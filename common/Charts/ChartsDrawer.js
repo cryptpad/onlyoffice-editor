@@ -10649,14 +10649,16 @@ drawScatterChart.prototype = {
 		var xPoints = this.catAx.xPoints;
 		var yPoints = this.valAx.yPoints;
 
-		var x, y, x1, y1, isSplineLine;
+		//пока smooth для логарифмической шкалы не выставлю - рисуется не верно
+		var allAxisLog = this.catAx.scaling && this.catAx.scaling.logBase && this.valAx.scaling && this.valAx.scaling.logBase;
+		var x, y, x1, y1, x2, y2, x3, y3, isSplineLine;
 
 		if(!points) {
 			return;
 		}
 
 		for (var i = 0; i < points.length; i++) {
-			isSplineLine = this.chart.series[i].smooth !== false;
+			isSplineLine = !allAxisLog && this.chart.series[i].smooth !== false;
 
 			if (!points[i]) {
 				continue;
@@ -10673,17 +10675,17 @@ drawScatterChart.prototype = {
 				if (points[i][n] != null && points[i][n + 1] != null) {
 					if (isSplineLine) {
 
-						var x = points[i][n - 1] ? points[i][n - 1].x : points[i][n].x;
-						var y = points[i][n - 1] ? points[i][n - 1].y : points[i][n].y;
+						x = points[i][n - 1] ? points[i][n - 1].x : points[i][n].x;
+						y = points[i][n - 1] ? points[i][n - 1].y : points[i][n].y;
 
-						var x1 = points[i][n].x;
-						var y1 = points[i][n].y;
+						x1 = points[i][n].x;
+						y1 = points[i][n].y;
 
-						var x2 = points[i][n + 1] ? points[i][n + 1].x : points[i][n].x;
-						var y2 = points[i][n + 1] ? points[i][n + 1].y : points[i][n].y;
+						x2 = points[i][n + 1] ? points[i][n + 1].x : points[i][n].x;
+						y2 = points[i][n + 1] ? points[i][n + 1].y : points[i][n].y;
 
-						var x3 = points[i][n + 2] ? points[i][n + 2].x : points[i][n + 1] ? points[i][n + 1].x : points[i][n].x;
-						var y3 = points[i][n + 2] ? points[i][n + 2].y : points[i][n + 1] ? points[i][n + 1].y : points[i][n].y;
+						x3 = points[i][n + 2] ? points[i][n + 2].x : points[i][n + 1] ? points[i][n + 1].x : points[i][n].x;
+						y3 = points[i][n + 2] ? points[i][n + 2].y : points[i][n + 1] ? points[i][n + 1].y : points[i][n].y;
 
 						//this.paths.series[i][n] = {path: this.cChartDrawer.calculateSplineLine(x, y, x1, y1, x2, y2, x3, y3, this.catAx, this.valAx), idx: points[i][n].idx};
 						this.paths.series[i][n] = this.cChartDrawer.calculateSplineLine(x, y, x1, y1, x2, y2, x3, y3, this.catAx, this.valAx);
