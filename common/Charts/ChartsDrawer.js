@@ -1606,6 +1606,9 @@ CChartsDrawer.prototype =
 				newArr[l] = [];
 
 				yNumCache = t.getNumCache(series[l].yVal);
+				if(!yNumCache) {
+					continue;
+				}
 
 				for (var j = 0; j < yNumCache.ptCount; ++j) {
 					var val = t._getScatterPointVal(series[l], j);
