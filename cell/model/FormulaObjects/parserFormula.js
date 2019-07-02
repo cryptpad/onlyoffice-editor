@@ -5633,8 +5633,7 @@ parserFormula.prototype.setFormula = function(formula) {
 
 			var p = top_elem, func, bError = false;
 			elemArr.pop();
-			if (0 !== elemArr.length &&
-				( func = elemArr[elemArr.length - 1] ).type === cElementType.func) {
+			if (0 !== elemArr.length && ( func = elemArr[elemArr.length - 1] ).type === cElementType.func) {
 				p = elemArr.pop();
 				if (top_elem_arg_count > func.argumentsMax && !ignoreErrors) {
 					t.outStack = [];
@@ -5657,7 +5656,7 @@ parserFormula.prototype.setFormula = function(formula) {
 					}
 				}
 				parseResult.argPos = leftParentArgumentsCurrentArr[elemArr.length - 1];
-			} else if(wasLeftParentheses && 0 === top_elem_arg_count && elemArr[elemArr.length - 1] && " " === elemArr[elemArr.length - 1].name && !ignoreErrors) {
+			} else if(wasLeftParentheses && 0 === top_elem_arg_count && elemArr[elemArr.length - 1] /*&& " " === elemArr[elemArr.length - 1].name*/ && !ignoreErrors) {
 				//intersection with empty range
 				t.outStack = [];
 				parseResult.setError(c_oAscError.ID.FrmlAnotherParsingError);
