@@ -1751,17 +1751,18 @@ CChartsDrawer.prototype =
 
 		var yMin = axis.min;
 		var yMax = axis.max;
+		var logBase = axis.scaling && axis.scaling.logBase;
 
-		if (axis.scaling && axis.scaling.logBase) {
-			arrayValues = this._getLogArray(yMin, yMax, axis.scaling.logBase);
+		var manualMin = axis.scaling && axis.scaling.min !== null ? axis.scaling.min : null;
+		var manualMax = axis.scaling && axis.scaling.max !== null ? axis.scaling.max : null;
+
+		if (logBase) {
+			arrayValues = this._getLogArray(yMin, yMax, logBase, axis);
 			return arrayValues;
 		}
 
 		//максимальное и минимальное значение(по документации excel)
 		var trueMinMax = this._getTrueMinMax(yMin, yMax, isStackedType);
-
-		var manualMin = axis.scaling && axis.scaling.min !== null ? axis.scaling.min : null;
-		var manualMax = axis.scaling && axis.scaling.max !== null ? axis.scaling.max : null;
 
 		//TODO временная проверка для некорректных минимальных и максимальных значений
 		if (manualMax && manualMin && manualMax < manualMin) {
@@ -1954,12 +1955,20 @@ CChartsDrawer.prototype =
 		return arrayValues;
 	},
 
-	_getLogArray: function (yMin, yMax, logBase) {
+	_getLogArray: function (yMin, yMax, logBase, axis) {
 		var result = [];
 
 		var temp;
 		var pow = 0;
 		var tempPow = yMin;
+
+		var kF = 1000000000;
+		var manualMin = axis.scaling && axis.scaling.min !== null ? Math.round(axis.scaling.min * kF) / kF : null;
+		var manualMax = axis.scaling && axis.scaling.max !== null ? Math.round(axis.scaling.max * kF) / kF : null;
+
+		if(manualMin !== null) {
+			yMin = manualMin;
+		}
 
 		if (yMin < 1 && yMin > 0) {
 			temp = this._getFirstDegree(yMin).numPow;
@@ -1983,16 +1992,37 @@ CChartsDrawer.prototype =
 			if (lMax < yMax) {
 				lMax = yMax;
 			}
+			if(manualMax !== null && manualMax > lMax) {
+				lMax = manualMax;
+			}
 
 			while (temp < lMax) {
 				temp = Math.pow(logBase, pow);
+				if(manualMin !== null && manualMin > temp) {
+					pow++;
+					continue;
+				}
+				if(manualMax !== null && manualMax < temp) {
+					break;
+				}
 				result[step] = temp;
 				pow++;
 				step++;
 			}
 		} else {
+			if(manualMax !== null && manualMax > yMax) {
+				yMax = manualMax;
+			}
+
 			while (temp <= yMax) {
 				temp = Math.pow(logBase, pow);
+				if(manualMin !== null && manualMin > temp) {
+					pow++;
+					continue;
+				}
+				if(manualMax !== null && manualMax < temp) {
+					break;
+				}
 				result[step] = temp;
 				pow++;
 				step++;
