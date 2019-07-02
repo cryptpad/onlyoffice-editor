@@ -78,6 +78,7 @@
 			this.year = null;
 			this.month = null;
 			this.day = null;
+			this.repeats = 1;
 		}
 		AutoFiltersOptionsElements.prototype = {
 			constructor: AutoFiltersOptionsElements,
@@ -136,6 +137,7 @@
 			asc_getYear: function () { return this.year; },
 			asc_getMonth: function () { return this.month; },
 			asc_getDay: function () { return this.day; },
+			asc_getRepeats: function () { return this.repeats; },
 			
 			asc_setVal: function (val) { this.val = val; },
 			asc_setVisible: function (val) { this.visible = val; },
@@ -143,7 +145,8 @@
 			asc_setIsDateFormat: function (val) { this.isDateFormat = val; },
 			asc_setYear: function (val) { this.year = val; },
 			asc_setMonth: function (val) { this.month = val; },
-			asc_setDay: function (val) { this.day = val; }
+			asc_setDay: function (val) { this.day = val; },
+			asc_setRepeats: function (val) { this.repeats = val; }
 		};
 
 		var g_oAutoFiltersOptionsProperties = {
@@ -4042,7 +4045,7 @@
 
 				var isTablePart = !filter.isAutoFilter(), autoFilter = filter.getAutoFilter(), ref = filter.Ref;
 				var filterColumns = autoFilter.FilterColumns;
-				var worksheet = this.worksheet, temp = {}, isDateTimeFormat, dataValue, values = [];
+				var worksheet = this.worksheet, textIndexMap = {}, isDateTimeFormat, dataValue, values = [];
 
 				var addValueToMenuObj = function (val, text, visible, count) {
 					var res = new AutoFiltersOptionsElements();
@@ -4093,7 +4096,7 @@
 					maxFilterRow--;
 				}
 
-				var individualCount = 0, count = 0, tempResult;
+				var individualCount = 0, count = 0;
 				for (var i = ref.r1 + 1; i <= maxFilterRow; i++) {
 					//max strings
 					if (individualCount > maxIndividualValues) {
@@ -4119,7 +4122,10 @@
 					}
 
 					//check duplicate value
-					if (temp.hasOwnProperty(textLowerCase)) {
+					if (textIndexMap.hasOwnProperty(textLowerCase)) {
+						if(values[textIndexMap[textLowerCase]]) {
+							values[textIndexMap[textLowerCase]].repeats++;
+						}
 						continue;
 					}
 
@@ -4139,14 +4145,14 @@
 
 							addValueToMenuObj(val, text, visible, count);
 
-							temp[textLowerCase] = 1;
+							textIndexMap[textLowerCase] = count;
 							count++;
 						}
 					} else {
 						hideValue(false, i);
 						addValueToMenuObj(val, text, true, count);
 
-						temp[textLowerCase] = 1;
+						textIndexMap[textLowerCase] = count;
 						count++;
 					}
 
@@ -5308,6 +5314,7 @@
 		prot["asc_getYear"]						= prot.asc_getYear;
 		prot["asc_getMonth"]					= prot.asc_getMonth;
 		prot["asc_getDay"]						= prot.asc_getDay;
+		prot["asc_getRepeats"]					= prot.asc_getRepeats;
 		
 		window["AscCommonExcel"].AddFormatTableOptions = AddFormatTableOptions;
 		prot									= AddFormatTableOptions.prototype;
