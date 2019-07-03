@@ -706,21 +706,23 @@ CFieldInstructionSEQ.prototype.GetText = function ()
 	{
 		return AscCommon.translateManager.getValue("Error! Main Document Only.");
 	}
-	var aFields = oTopDocument.GetAllFields(false);
-	var aSEQFields = [];
+	var aFields = [];
+	oTopDocument.GetAllSeqFieldsByType(this.Id, aFields);
+	var nIndex = -1;
 	for(var i = 0; i < aFields.length; ++i)
 	{
 		var oField = aFields[i];
-		if(oField && oField.Instruction && fieldtype_SEQ === oField.Instruction.Type && this.Id === oField.Instruction.Id)
+		if(this === oField.Instruction)
 		{
-			aSEQFields.push(oField.Instruction);
-			if(oField.Instruction === this)
-			{
-				break;
-			}
+			nIndex = i + 1;
+			break;
 		}
 	}
-	return aSEQFields.length + "";
+	if(nIndex > -1)
+	{
+		return nIndex + "";
+	}
+	return AscCommon.translateManager.getValue("Error! Main Document Only.");
 };
 CFieldInstructionSEQ.prototype.SetId = function (sVal)
 {

@@ -502,6 +502,15 @@ Paragraph.prototype.GetAllParagraphs = function(Props, ParaArray)
 			ParaArray.push(this);
 	}
 };
+
+Paragraph.prototype.GetAllSeqFieldsByType = function(sType, aFields)
+{
+	for(var i = 0; i < this.Content.length; ++i)
+	{
+		this.Content[i].GetAllSeqFieldsByType(sType, aFields);
+	}
+};
+
 Paragraph.prototype.Get_PageBounds = function(CurPage)
 {
 	if (!this.Pages[CurPage])

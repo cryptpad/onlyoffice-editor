@@ -2297,6 +2297,20 @@ CTable.prototype.GetAllFields = function(isSelection, arrFields)
 	}
 	return arrFields;
 };
+
+CTable.prototype.GetAllSeqFieldsByType = function(sType, aFields)
+{
+	var aRows = this.Content;
+	for(var i = 0; i < aRows.length; ++i)
+	{
+		var aCells = aRows[i].Content;
+		for(var j = 0; j < aCells.length; ++j)
+		{
+			var oCell = aCells[j];
+			oCell.Content.GetAllSeqFieldsByType(sType, aFields);
+		}
+	}
+};
 /**
  * Данная функция запрашивает новую позицию для содержимого у ячейки, разбивающейся на несколько страниц
  */

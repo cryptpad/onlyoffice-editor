@@ -1103,6 +1103,11 @@ CBlockLevelSdt.prototype.GetAllMaths = function(AllMaths)
 {
 	return this.Content.GetAllMaths(AllMaths);
 };
+
+CBlockLevelSdt.prototype.GetAllSeqFieldsByType = function(sType, aFields)
+{
+	return this.Content.GetAllSeqFieldsByType(sType, aFields);
+};
 CBlockLevelSdt.prototype.Get_ParentTextTransform = function()
 {
 	return this.Parent.Get_ParentTextTransform();
