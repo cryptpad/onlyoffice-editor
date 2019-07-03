@@ -17626,6 +17626,7 @@ CDocument.prototype.UpdateFields = function(isBySelection)
 	}
 
 };
+CDocument.prototype.GetAll
 /**
  * Получаем ссылку на класс, управляющий закладками
  * @returns {CBookmarksManager}

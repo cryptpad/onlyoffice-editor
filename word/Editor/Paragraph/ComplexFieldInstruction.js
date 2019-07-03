@@ -51,6 +51,7 @@ var fieldtype_ASK        = 0x0007;
 var fieldtype_REF        = 0x0008;
 var fieldtype_HYPERLINK  = 0x0009;
 var fieldtype_FORMULA    = 0x0010;
+var fieldtype_SEQ        = 0x0011;
 
 //--------------------------------------------------------export----------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};
@@ -68,6 +69,7 @@ window['AscCommonWord'].fieldtype_ASK        = fieldtype_ASK;
 window['AscCommonWord'].fieldtype_REF        = fieldtype_REF;
 window['AscCommonWord'].fieldtype_HYPERLINK  = fieldtype_HYPERLINK;
 window['AscCommonWord'].fieldtype_FORMULA    = fieldtype_FORMULA;
+window['AscCommonWord'].fieldtype_SEQ        = fieldtype_SEQ;
 
 
 /**
@@ -626,6 +628,131 @@ CFieldInstructionHYPERLINK.prototype.IsTopOfDocument = function()
 };
 
 
+function CFieldInstructionSEQ()
+{
+	this.Id = null;
+	this.C = false;
+	this.H = false;
+	this.N = false;
+	this.R = null;
+	this.S = null;
+	this.Format = null;
+
+	this.ParentContent = null;
+}
+CFieldInstructionSEQ.prototype = Object.create(CFieldInstructionBase.prototype);
+CFieldInstructionSEQ.prototype.constructor = CFieldInstructionSEQ;
+CFieldInstructionSEQ.prototype.Type = fieldtype_SEQ;
+CFieldInstructionSEQ.prototype.ToString = function ()
+{
+	var sInstruction = "SEQ ";
+	if(this.Id)
+	{
+		sInstruction += this.Id;
+	}
+	if(this.Format)
+	{
+		sInstruction +=  " \\* " + this.Format;
+	}
+	if(this.C)
+	{
+		sInstruction += " \\c"
+	}
+	if(this.H)
+	{
+		sInstruction += " \\h";
+	}
+	if(this.R)
+	{
+		sInstruction += " \\r " + this.R;
+	}
+	if(this.S)
+	{
+		sInstruction += " \\s " + this.S;
+	}
+	return sInstruction;
+};
+CFieldInstructionSEQ.prototype.SetComplexField = function (oComplexField)
+{
+	CFieldInstructionBase.prototype.SetComplexField.call(this, oComplexField);
+	this.ParentContent = null;
+	var oBeginChar = oComplexField.BeginChar;
+	if(oBeginChar)
+	{
+		var oRun = oBeginChar.Run;
+		if(oRun)
+		{
+			var oParagraph = oRun.Paragraph;
+			if(oParagraph)
+			{
+				this.ParentContent = oParagraph.Parent;
+			}
+		}
+	}
+};
+
+CFieldInstructionSEQ.prototype.GetText = function ()
+{
+	if(!this.ParentContent)
+	{
+		return "";
+	}
+	var oTopDocument = this.ParentContent.Is_TopDocument(true);
+	if(!oTopDocument)
+	{
+		return "";
+	}
+	if(oTopDocument.IsHdrFtr(false))
+	{
+		return AscCommon.translateManager.getValue("Error! Main Document Only.");
+	}
+	var aFields = oTopDocument.GetAllFields(false);
+	var aSEQFields = [];
+	for(var i = 0; i < aFields.length; ++i)
+	{
+		var oField = aFields[i];
+		if(oField && oField.Instruction && fieldtype_SEQ === oField.Instruction.Type && this.Id === oField.Instruction.Id)
+		{
+			aSEQFields.push(oField.Instruction);
+			if(oField.Instruction === this)
+			{
+				break;
+			}
+		}
+	}
+	return aSEQFields.length + "";
+};
+CFieldInstructionSEQ.prototype.SetId = function (sVal)
+{
+	this.Id = sVal;
+};
+CFieldInstructionSEQ.prototype.SetC = function (sVal)
+{
+	this.C = sVal;
+};
+CFieldInstructionSEQ.prototype.SetH = function (sVal)
+{
+	this.H = sVal;
+};
+CFieldInstructionSEQ.prototype.SetN = function (sVal)
+{
+	this.N = sVal;
+};
+CFieldInstructionSEQ.prototype.SetR = function (sVal)
+{
+	this.R = sVal;
+};
+CFieldInstructionSEQ.prototype.SetS = function (sVal)
+{
+	this.S = sVal;
+};
+CFieldInstructionSEQ.prototype.SetFormat = function (sVal)
+{
+	this.Format = sVal;
+};
+
+
+
 /**
  * Класс для разбора строки с инструкцией
  * @constructor
@@ -684,6 +811,10 @@ CFieldInstructionParser.prototype.private_Parse = function()
 	else if("HYPERLINK" === sBuffer)
 	{
 		this.private_ReadHYPERLINK();
+	}
+	else if("SEQ" === sBuffer)
+	{
+		this.private_ParseSEQ();
 	}
 	else if(sBuffer.indexOf("=") === 0)
 	{
@@ -1046,4 +1177,54 @@ CFieldInstructionParser.prototype.private_ParseIntegerRange = function(sValue)
 		return null;
 
 	return [nValue1, nValue2];
+};
+
+CFieldInstructionParser.prototype.private_ParseSEQ = function()
+{
+	this.Result = new CFieldInstructionSEQ();
+	var arrArguments = this.private_ReadArguments();
+	if (arrArguments.length > 0)
+		this.Result.SetId(arrArguments[0]);
+
+	while (this.private_ReadNext())
+	{
+		if (this.private_IsSwitch())
+		{
+			var sType = this.private_GetSwitchLetter();
+			if ('*' === sType)
+			{
+				arrArguments = this.private_ReadArguments();
+				if (arrArguments.length > 0)
+					this.Result.SetFormat(arrArguments[0]);
+			}
+			else if ('c' === sType)
+			{
+				this.Result.SetC(true);
+			}
+			else if ('h' === sType)
+			{
+				this.Result.SetH(true);
+			}
+			else if ('n' === sType)
+			{
+				this.Result.SetN(true);
+			}
+			else if ('r' === sType)
+			{
+				arrArguments = this.private_ReadArguments();
+				if (arrArguments.length > 0)
+				{
+					this.Result.SetR(arrArguments[0]);
+				}
+			}
+			else if('s' === sType)
+			{
+				arrArguments = this.private_ReadArguments();
+				if (arrArguments.length > 0)
+				{
+					this.Result.SetS(arrArguments[0]);
+				}
+			}
+		}
+	}
 };
