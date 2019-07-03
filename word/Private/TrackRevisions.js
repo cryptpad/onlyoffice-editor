@@ -611,8 +611,10 @@ CDocument.prototype.RejectRevisionChangesBySelection = function()
 	this.TrackRevisionsManager.ClearCurrentChange();
     this.GetNextRevisionChange();
 };
-CDocument.prototype.AcceptAllRevisionChanges = function(isSkipCheckLock)
+CDocument.prototype.AcceptAllRevisionChanges = function(isSkipCheckLock, isCheckEmptyAction)
 {
+	var _isCheckEmptyAction = (false !== isCheckEmptyAction);
+
     var RelatedParas = this.TrackRevisionsManager.Get_AllChangesRelatedParagraphs(true);
     if (true === isSkipCheckLock || false === this.Document_Is_SelectionLocked(AscCommon.changestype_None, { Type : changestype_2_ElementsArray_and_Type, Elements : RelatedParas, CheckType : AscCommon.changestype_Paragraph_Content}))
     {
@@ -637,7 +639,7 @@ CDocument.prototype.AcceptAllRevisionChanges = function(isSkipCheckLock)
 
         if (true !== isSkipCheckLock && true === this.History.Is_LastPointEmpty())
         {
-			this.FinalizeAction();
+			this.FinalizeAction(_isCheckEmptyAction);
             return;
         }
 
@@ -646,11 +648,13 @@ CDocument.prototype.AcceptAllRevisionChanges = function(isSkipCheckLock)
         this.Recalculate();
         this.UpdateSelection();
         this.UpdateInterface();
-        this.FinalizeAction();
+        this.FinalizeAction(_isCheckEmptyAction);
     }
 };
-CDocument.prototype.RejectAllRevisionChanges = function(isSkipCheckLock)
+CDocument.prototype.RejectAllRevisionChanges = function(isSkipCheckLock, isCheckEmptyAction)
 {
+	var _isCheckEmptyAction = (false !== isCheckEmptyAction);
+
     var RelatedParas = this.TrackRevisionsManager.Get_AllChangesRelatedParagraphs(false);
     if (true === isSkipCheckLock || false === this.Document_Is_SelectionLocked(AscCommon.changestype_None, { Type : changestype_2_ElementsArray_and_Type, Elements : RelatedParas, CheckType : AscCommon.changestype_Paragraph_Content}))
     {
@@ -667,7 +671,7 @@ CDocument.prototype.RejectAllRevisionChanges = function(isSkipCheckLock)
 
         if (true !== isSkipCheckLock && true === this.History.Is_LastPointEmpty())
         {
-			this.FinalizeAction();
+			this.FinalizeAction(_isCheckEmptyAction);
             return;
         }
 
@@ -676,7 +680,7 @@ CDocument.prototype.RejectAllRevisionChanges = function(isSkipCheckLock)
         this.Recalculate();
         this.UpdateSelection();
         this.UpdateInterface();
-        this.FinalizeAction();
+        this.FinalizeAction(_isCheckEmptyAction);
     }
 };
 CDocument.prototype.private_RejectAllRevisionChanges = function()
