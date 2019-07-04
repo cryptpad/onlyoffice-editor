@@ -1593,3 +1593,20 @@ CDocumentContentBase.prototype.ConcatParagraphs = function(nPosition, isUseConca
 
 	return false;
 };
+/**
+ * Пробегаемся по все ранам с заданной функцией
+ * @param fCheck - функция проверки содержимого рана
+ * @returns {boolean}
+ */
+CDocumentContentBase.prototype.CheckRunContent = function(fCheck)
+{
+	for (var nIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex)
+	{
+		if (this.Content[nIndex].CheckRunContent(fCheck))
+		{
+			return true;
+		}
+	}
+
+	return false;
+};

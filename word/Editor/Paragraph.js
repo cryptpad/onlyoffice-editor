@@ -13997,6 +13997,21 @@ Paragraph.prototype.RemoveElement = function(oElement)
 		}
 	}
 };
+/**
+ * Пробегаемся по все ранам с заданной функцией
+ * @param fCheck - функция проверки содержимого рана
+ * @returns {boolean}
+ */
+Paragraph.prototype.CheckRunContent = function(fCheck)
+{
+	for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
+	{
+		if (this.Content[nPos].CheckRunContent(fCheck))
+			return true;
+	}
+
+	return false;
+};
 
 var pararecalc_0_All  = 0;
 var pararecalc_0_None = 1;

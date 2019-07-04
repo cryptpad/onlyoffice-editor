@@ -14920,6 +14920,22 @@ CTable.prototype.private_CheckCurCell = function()
 		}
 	}
 };
+CTable.prototype.CheckRunContent = function(fCheck)
+{
+	for (var nCurRow = 0, nRowsCount = this.GetRowsCount(); nCurRow < nRowsCount; ++nCurRow)
+	{
+		var oRow = this.GetRow(nCurRow);
+		for (var nCurCell = 0, nCellsCount = oRow.GetCellsCount(); nCurCell < nCellsCount; ++nCurCell)
+		{
+			if (oRow.GetCell(nCurCell).GetContent().CheckRunContent(fCheck))
+			{
+				return true;
+			}
+		}
+	}
+
+	return false;
+};
 
 //----------------------------------------------------------------------------------------------------------------------
 // Класс  CTableLook

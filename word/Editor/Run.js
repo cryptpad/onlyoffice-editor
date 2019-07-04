@@ -11094,6 +11094,10 @@ ParaRun.prototype.UpdateBookmarks = function(oManager)
 			this.Content[nIndex].UpdateBookmarks(oManager);
 	}
 };
+ParaRun.prototype.CheckRunContent = function(fCheck)
+{
+	return fCheck(this);
+};
 
 function CParaRunStartState(Run)
 {

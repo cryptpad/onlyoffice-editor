@@ -5028,7 +5028,8 @@ CShape.prototype.getAllRasterImages = function(images)
             }
             return false;
         }
-        this.checkContentByCallback(oContent, fCallback);
+
+        oContent.CheckRunContent(fCallback);
     }
 };
 CShape.prototype.getAllDocContents = function(aDocContents)
@@ -5633,65 +5634,9 @@ CShape.prototype.recalculateBounds = function()
     this.bounds.h = this.bounds.b - this.bounds.t;
 };
 
-CShape.prototype.checkRunWordArtContent = function(aContent, fCallback)
-{
-    for(var j = 0; j < aContent.length; ++j)
-    {
-        if(aContent[j].Type === para_Run)
-        {
-            if(fCallback(aContent[j]))
-            {
-                return true;
-            }
-        }
-        else if(aContent[j].Type === para_Hyperlink)
-        {
-            if(this.checkRunWordArtContent(aContent[j].Content, fCallback))
-            {
-                return true;
-            }
-        }
-    }
-    return false;
-};
-
-CShape.prototype.checkContentByCallback = function(oContent, fCallback)
-{
-    if(!oContent)
-        return false;
-    var i, j, k, oElement, aRows, oRow;
-    for(i = 0; i < oContent.Content.length; ++i)
-    {
-        oElement = oContent.Content[i];
-        if(oElement.Get_Type() === type_Paragraph)
-        {
-            if(this.checkRunWordArtContent(oElement.Content, fCallback))
-            {
-                return true;
-            }
-        }
-        else if(oElement.Get_Type() === type_Table)
-        {
-            aRows = oElement.Content;
-            for(j = 0; j < aRows.length; ++j)
-            {
-                oRow = aRows[j];
-                for(k = 0; k < oRow.Content.length; ++k)
-                {
-                    if(this.checkContentByCallback(oRow.Content[k].Content, fCallback))
-                    {
-                        return true;
-                    }
-                }
-            }
-        }
-    }
-    return false;
-};
-
 CShape.prototype.checkContentWordArt = function(oContent)
 {
-    return this.checkContentByCallback(oContent, CheckWordArtTextPr);
+    return oContent.CheckRunContent(CheckWordArtTextPr);
 };
 
 CShape.prototype.checkNeedRecalcDocContentForTxWarp = function(oBodyPr)

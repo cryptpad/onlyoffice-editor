@@ -1072,6 +1072,15 @@ CDocumentContentElementBase.prototype.Is_UseInDocument = function(sId)
 {
 	return false;
 };
+/**
+ * Пробегаемся по все ранам с заданной функцией
+ * @param fCheck - функция проверки содержимого рана
+ * @returns {boolean}
+ */
+CDocumentContentElementBase.prototype.CheckRunContent = function(fCheck)
+{
+	return false;
+};
 
 //--------------------------------------------------------export--------------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};

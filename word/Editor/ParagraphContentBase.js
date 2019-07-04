@@ -667,6 +667,15 @@ CParagraphContentBase.prototype.IsStartFromNewLine = function()
 {
 	return false;
 };
+/**
+ * Пробегаемся по все ранам с заданной функцией
+ * @param fCheck - функция проверки содержимого рана
+ * @returns {boolean}
+ */
+CParagraphContentBase.prototype.CheckRunContent = function(fCheck)
+{
+	return false;
+};
 
 /**
  * Это базовый класс для элементов содержимого(контент) параграфа, у которых есть свое содержимое.
@@ -3801,6 +3810,16 @@ CParagraphContentWithParagraphLikeContent.prototype.CanAddComment = function()
 	}
 
 	return true;
+};
+CParagraphContentWithParagraphLikeContent.prototype.CheckRunContent = function(fCheck)
+{
+	for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
+	{
+		if (this.Content[nPos].CheckRunContent(fCheck))
+			return true;
+	}
+
+	return false;
 };
 //----------------------------------------------------------------------------------------------------------------------
 // Функции, которые должны быть реализованы в классах наследниках

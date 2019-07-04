@@ -1163,15 +1163,31 @@ CShape.prototype.setStartPage = function(pageIndex, bNoResetSelectPage, bCheckCo
         content.Set_StartPage(pageIndex);
         if(true === bCheckContent)
         {
-            if(this.bWordShape && this.checkContentByCallback && this.checkContentByCallback(content,
-                function(oRun){
-                    for(var i = 0; i < oRun.Content.length; ++i){
-                        if(oRun.Content[i].Type === para_PageNum){
-                            return true;
-                        }
-                    }
-                    return false;
-                }
+            if(this.bWordShape && content.CheckRunContent(function(oRun)
+				{
+					for (var i = 0; i < oRun.Content.length; ++i)
+					{
+						var oItem = oRun.Content[i];
+						if (para_PageNum === oItem.Type || para_PageCount === oItem.Type)
+						{
+							return true;
+						}
+						else if (para_FieldChar === oItem.Type && oItem.IsSeparate())
+						{
+							var oComplexField = oItem.GetComplexField();
+							if (oComplexField)
+							{
+								var oInstruction = oComplexField.GetInstruction();
+								if (oInstruction && (fieldtype_NUMPAGES === oInstruction.GetType() || fieldtype_PAGE === oInstruction.GetType()))
+								{
+									return true;
+								}
+							}
+						}
+					}
+
+					return false;
+				}
             ))
             {
                 this.recalcInfo.recalculateTxBoxContent = true;
