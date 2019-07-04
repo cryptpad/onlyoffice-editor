@@ -636,7 +636,8 @@ function CFieldInstructionSEQ()
 	this.N = false;
 	this.R = null;
 	this.S = null;
-	this.Format = null;
+
+	this.GeneralSwitches = [];
 
 	this.ParentContent = null;
 }
@@ -691,6 +692,24 @@ CFieldInstructionSEQ.prototype.SetComplexField = function (oComplexField)
 	}
 };
 
+CFieldInstructionSEQ.prototype.GetRestartNum = function ()
+{
+	if(typeof this.R === "string" && this.R.length > 0)
+	{
+		var aTest = /[0-9]+/.exec(this.R);
+		var nResult;
+		if(Array.isArray(aTest) && aTest.length > 0)
+		{
+			nResult = parseInt(aTest[0]);
+			if(!isNaN(nResult))
+			{
+				return nResult;
+			}
+		}
+	}
+	return null;
+};
+
 CFieldInstructionSEQ.prototype.GetText = function ()
 {
 	if(!this.ParentContent)
@@ -698,6 +717,7 @@ CFieldInstructionSEQ.prototype.GetText = function ()
 		return "";
 	}
 	var oTopDocument = this.ParentContent.Is_TopDocument(true);
+	var aFields, i, nIndex;
 	if(!oTopDocument)
 	{
 		return "";
@@ -706,9 +726,26 @@ CFieldInstructionSEQ.prototype.GetText = function ()
 	{
 		return AscCommon.translateManager.getValue("Error! Main Document Only.");
 	}
-	var aFields = [];
+	if(oTopDocument.IsFootnote(false))
+	{
+		return AscCommon.translateManager.getValue("Error! Main Document Only.");
+	}
+	
+	if(this.H)
+	{
+		if(this.GeneralSwitches.length === 0)
+		{
+			return "";
+		}
+	}
+	nIndex = this.GetRestartNum();
+	if(nIndex !== null)
+	{
+		return nIndex + "";
+	}
+	aFields = [];
 	oTopDocument.GetAllSeqFieldsByType(this.Id, aFields);
-	var nIndex = -1;
+	nIndex = -1;
 	for(var i = 0; i < aFields.length; ++i)
 	{
 		var oField = aFields[i];
@@ -748,9 +785,9 @@ CFieldInstructionSEQ.prototype.SetS = function (sVal)
 {
 	this.S = sVal;
 };
-CFieldInstructionSEQ.prototype.SetFormat = function (sVal)
+CFieldInstructionSEQ.prototype.SetGeneralSwitches = function (aSwitches)
 {
-	this.Format = sVal;
+	this.GeneralSwitches = aSwitches;
 };
 
 
@@ -1197,7 +1234,7 @@ CFieldInstructionParser.prototype.private_ParseSEQ = function()
 			{
 				arrArguments = this.private_ReadArguments();
 				if (arrArguments.length > 0)
-					this.Result.SetFormat(arrArguments[0]);
+					this.Result.SetGeneralSwitches(arrArguments);
 			}
 			else if ('c' === sType)
 			{
