@@ -2564,7 +2564,7 @@ CChartsDrawer.prototype =
 				result = yPoints[yPoints.length - 1].pos;
 			}
 		} else {
-			for (var s = 0; s < yPoints.length; s++) {
+			/*for (var s = 0; s < yPoints.length; s++) {
 				if (val >= yPoints[s].val && val <= yPoints[s + 1].val) {
 					resPos = Math.abs(yPoints[s + 1].pos - yPoints[s].pos);
 					resVal = yPoints[s + 1].val - yPoints[s].val;
@@ -2590,7 +2590,51 @@ CChartsDrawer.prototype =
 					}
 					break;
 				}
+			}*/
+
+
+			var getResult = function(index) {
+				resPos = Math.abs(yPoints[index + 1].pos - yPoints[index].pos);
+				resVal = yPoints[index + 1].val - yPoints[index].val;
+
+				if(resVal === 0) {
+					resVal = 1;
+				}
+
+				var res;
+				var startPos = yPoints[index].pos;
+
+				if (!isOx) {
+					if (axis.scaling.orientation === ORIENTATION_MIN_MAX) {
+						res = -(resPos / resVal) * (Math.abs(val - yPoints[index].val)) + startPos;
+					} else {
+						res = (resPos / resVal) * (Math.abs(val - yPoints[index].val)) + startPos;
+					}
+				} else {
+					if (axis.scaling.orientation !== ORIENTATION_MIN_MAX) {
+						res = -(resPos / resVal) * (Math.abs(val - yPoints[index].val)) + startPos;
+					} else {
+						res = (resPos / resVal) * (Math.abs(val - yPoints[index].val)) + startPos;
+					}
+				}
+
+				return res;
+			};
+
+			var i = 0, j = yPoints.length - 1, k;
+			while (i <= j) {
+				k = Math.floor((i + j) / 2);
+
+				if (val >= yPoints[k].val && yPoints[k + 1] && val <= yPoints[k + 1].val) {
+					result = getResult(k);
+					break;
+				} else if (val < yPoints[k].val) {
+					j = k - 1;
+				} else {
+					i = k + 1;
+				}
 			}
+
 		}
 
 		return result;
@@ -2812,9 +2856,8 @@ CChartsDrawer.prototype =
 		
 		return {val: val, numPow: numPow};
 	},
-	
-	getIdxPoint: function(seria, index, bXVal)
-	{
+
+	getIdxPoint: function (seria, index, bXVal) {
 		var res = null;
 
 		var ser;
@@ -2835,14 +2878,19 @@ CChartsDrawer.prototype =
 			return null;
 		}
 
-		for(var i = 0; i < pts.length; i++) {
-			if(pts[i].idx === index) {
+		if (pts[index] && pts[index].idx === index) {
+			return pts[index];
+		}
+
+		//TODO need binary search! start with index
+		for (var i = 0; i < pts.length; i++) {
+			if (pts[i].idx === index) {
 				res = pts[i];
 				break;
 			}
 		}
 
-		return res;
+		return pts[0];
 	},
 
 	getPointByIndex: function (seria, index, bXVal) {
