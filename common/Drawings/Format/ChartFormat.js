@@ -9319,6 +9319,8 @@ CNumLit.prototype =
 
     getPtByIndex: function(idx)
     {
+        if(this.pts[idx] && this.pts[idx].idx === idx)
+            return this.pts[idx];
         for(var i = 0; i < this.pts.length; ++i)
         {
             if(this.pts[i].idx === idx)
@@ -11477,6 +11479,8 @@ CStrCache.prototype =
 
     getPtByIndex: function(idx)
     {
+        if(this.pts[idx] && this.pts[idx].idx === idx)
+            return this.pts[idx];
         for(var i = 0; i < this.pts.length; ++i)
         {
             if(this.pts[i].idx === idx)
