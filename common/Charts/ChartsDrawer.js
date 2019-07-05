@@ -12300,6 +12300,10 @@ catAxisChart.prototype = {
 			return;
 		}
 
+		if(!this.catAx.compiledMajorGridLines && !this.catAx.compiledMinorGridLines) {
+			return;
+		}
+
 		for (var i = 0; i < this.paths.gridLines.length; i++) {
 			//промежуточные линии
 			if (this.paths.minorGridLines && this.paths.minorGridLines[i]) {
@@ -12585,6 +12589,10 @@ valAxisChart.prototype = {
 		var path;
 
 		if (!this.paths.gridLines) {
+			return;
+		}
+
+		if(!this.valAx.compiledMajorGridLines && !this.valAx.compiledMinorGridLines) {
 			return;
 		}
 
