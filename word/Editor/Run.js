@@ -3665,6 +3665,15 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
 						// Специальная ветка, для полей PAGE и NUMPAGES, находящихся в колонтитуле
 						var oComplexField = Item.GetComplexField();
 						var oHdrFtr       = Para.Parent.IsHdrFtr(true);
+
+						if (oHdrFtr && !oComplexField && this.Paragraph)
+						{
+							// Т.к. Recalculate_Width запускается после Recalculate_Range, то возможен случай, когда у нас
+							// поля еще не собраны, но в колонтитулах они нам нужны уже собранные
+							this.Paragraph.ProcessComplexFields();
+							oComplexField = Item.GetComplexField();
+						}
+
 						if (oHdrFtr && oComplexField)
 						{
 							var oInstruction = oComplexField.GetInstruction();
@@ -11098,6 +11107,23 @@ ParaRun.prototype.CheckRunContent = function(fCheck)
 {
 	return fCheck(this);
 };
+ParaRun.prototype.ProcessComplexFields = function(oComplexFields)
+{
+	for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
+	{
+		var oItem     = this.private_CheckInstrText(this.Content[nPos]);
+		var nItemType = oItem.Type;
+
+		if (oComplexFields.IsHiddenFieldContent() && para_End !== nItemType && para_FieldChar !== nItemType)
+			continue;
+
+		if (para_FieldChar === nItemType)
+			oComplexFields.ProcessFieldCharAndCollectComplexField(oItem);
+		else if (para_InstrText === nItemType)
+			oComplexFields.ProcessInstruction(oItem);
+	}
+};
+
 
 function CParaRunStartState(Run)
 {

@@ -676,6 +676,13 @@ CParagraphContentBase.prototype.CheckRunContent = function(fCheck)
 {
 	return false;
 };
+/**
+ * Собираем сложные поля параграфа
+ * @param {CParagraphComplexFieldsInfo} oComplexFields
+ */
+CParagraphContentBase.prototype.ProcessComplexFields = function(oComplexFields)
+{
+};
 
 /**
  * Это базовый класс для элементов содержимого(контент) параграфа, у которых есть свое содержимое.
@@ -3820,6 +3827,13 @@ CParagraphContentWithParagraphLikeContent.prototype.CheckRunContent = function(f
 	}
 
 	return false;
+};
+CParagraphContentWithParagraphLikeContent.prototype.ProcessComplexFields = function(oComplexFields)
+{
+	for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
+	{
+		this.Content[nPos].ProcessComplexFields(oComplexFields);
+	}
 };
 //----------------------------------------------------------------------------------------------------------------------
 // Функции, которые должны быть реализованы в классах наследниках

@@ -14012,6 +14012,19 @@ Paragraph.prototype.CheckRunContent = function(fCheck)
 
 	return false;
 };
+/**
+ * Обрабатываем сложные поля данного параграфа
+ */
+Paragraph.prototype.ProcessComplexFields = function()
+{
+	var oComplexFields = new CParagraphComplexFieldsInfo();
+	oComplexFields.ResetPage(this, 0);
+
+	for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
+	{
+		this.Content[nPos].ProcessComplexFields(oComplexFields);
+	}
+};
 
 var pararecalc_0_All  = 0;
 var pararecalc_0_None = 1;
