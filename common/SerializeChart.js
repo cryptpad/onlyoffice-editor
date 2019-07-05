@@ -5487,9 +5487,9 @@ BinaryChartReader.prototype.ReadCT_ChartSpace = function (type, length, val, cur
             return oThis.ReadCT_Chart(t, l, oNewVal);
         });
         val.setChart(oNewVal);
-        if(null === oNewVal.autoTitleDeleted){
-            oNewVal.setAutoTitleDeleted(false);
-        }
+        // if(null === oNewVal.autoTitleDeleted){
+        //     oNewVal.setAutoTitleDeleted(false);
+        // }
         if(null === oNewVal.showDLblsOverMax){
             oNewVal.setShowDLblsOverMax(false);
         }
