@@ -836,11 +836,18 @@ CDocumentContentBase.prototype.private_Remove = function(Count, isRemoveWholeEle
 					}
 					else if (true == this.Content[nCurContentPos].IsEmpty() && nCurContentPos == this.Content.length - 1 && nCurContentPos != 0 && type_Paragraph === this.Content[nCurContentPos - 1].GetType())
 					{
-						// Если данный параграф пустой, последний, не единственный и идущий перед
-						// ним элемент не таблица, удаляем его
-						this.Internal_Content_Remove(nCurContentPos, 1);
-						nCurContentPos--;
-						this.Content[nCurContentPos].MoveCursorToEndPos(false, false);
+						if (this.IsTrackRevisions())
+						{
+							bRetValue = false;
+						}
+						else
+						{
+							// Если данный параграф пустой, последний, не единственный и идущий перед
+							// ним элемент не таблица, удаляем его
+							this.Internal_Content_Remove(nCurContentPos, 1);
+							nCurContentPos--;
+							this.Content[nCurContentPos].MoveCursorToEndPos(false, false);
+						}
 					}
 					else if (nCurContentPos === this.Content.length - 1)
 					{
