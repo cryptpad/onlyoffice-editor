@@ -4652,6 +4652,7 @@ CDocument.prototype.AddNewParagraph = function(bRecalculate, bForceAdd)
 	if (false !== bRecalculate)
 		this.Recalculate();
 
+	this.UpdateInterface();
 	this.private_UpdateCursorXY(true, true);
 };
 /**
