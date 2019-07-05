@@ -57,7 +57,7 @@ CChartSpace.prototype.recalcText = function()
 {
     this.recalcInfo.recalculateAxisLabels = true;
     this.recalcTitles2();
-    this.handleUpdateInternalChart();
+    this.handleUpdateInternalChart(false);
 };
 
 CChartSpace.prototype.recalculateBounds = CShape.prototype.recalculateBounds;
@@ -162,7 +162,7 @@ CChartSpace.prototype.handleUpdateExtents = function()
     this.recalcBounds();
     this.recalcTransform();
     this.recalcTitles();
-    this.handleUpdateInternalChart();
+    this.handleUpdateInternalChart(false);
 };
 CChartSpace.prototype.handleUpdateFlip = function()
 {

@@ -206,7 +206,7 @@ CTextBody.prototype =
         if(this.parent && this.parent.parent && this.parent.parent.parent && this.parent.parent.parent.parent
             && this.parent.parent.parent.parent.parent && this.parent.parent.parent.parent.parent.handleUpdateInternalChart && History.Is_On())
         {
-            this.parent.parent.parent.parent.parent.handleUpdateInternalChart();
+            this.parent.parent.parent.parent.parent.handleUpdateInternalChart(false);
         }
     },
 

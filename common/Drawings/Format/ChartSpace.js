@@ -2728,14 +2728,17 @@ CChartSpace.prototype.handleUpdateType = function()
     this.chartObj = null;
     this.addToRecalculate();
 };
-CChartSpace.prototype.handleUpdateInternalChart = function()
+CChartSpace.prototype.handleUpdateInternalChart = function(bColors)
 {
     if(this.bNoHandleRecalc === true)
     {
         return;
     }
     this.recalcInfo.recalculateChart =  true;
-    this.recalcInfo.recalculateSeriesColors = true;
+    if(bColors !== false)
+    {
+        this.recalcInfo.recalculateSeriesColors = true;
+    }
     this.recalcInfo.recalculateDLbls = true;
     this.recalcInfo.recalculateAxisLabels = true;
     this.recalcInfo.recalculateMarkers = true;
@@ -11784,7 +11787,8 @@ CChartSpace.prototype.recalculateSeriesColors = function()
                                 compiled_line.w *= style.line3;
                                 if(ser.spPr && ser.spPr.ln)
                                     compiled_line.merge(ser.spPr.ln);
-                                ser.compiledSeriesPen = compiled_line.createDuplicate();
+                                ser.compiledSeriesPen = compiled_line;
+                                ser.compiledSeriesPen.calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA, this.clrMapOvr);
                                 for(var j = 0; j < pts.length; ++j)
                                 {
                                     var compiled_line = new AscFormat.CLn();
@@ -11793,6 +11797,8 @@ CChartSpace.prototype.recalculateSeriesColors = function()
                                     compiled_line.w *= style.line3;
                                     if(ser.spPr && ser.spPr.ln)
                                         compiled_line.merge(ser.spPr.ln);
+
+                                    var oPointLine = null;
                                     if(Array.isArray(ser.dPt))
                                     {
                                         for(var k = 0; k < ser.dPt.length; ++k)
@@ -11801,21 +11807,29 @@ CChartSpace.prototype.recalculateSeriesColors = function()
                                             {
                                                 if(ser.dPt[k].spPr)
                                                 {
-                                                    compiled_line.merge(ser.dPt[k].spPr.ln);
+                                                    oPointLine = ser.dPt[k].spPr.ln;
                                                 }
                                                 break;
                                             }
                                         }
+                                    }
+                                    if(oPointLine)
+                                    {
+                                        compiled_line = ser.compiledSeriesPen.createDuplicate();
+                                        compiled_line.merge(oPointLine);
+                                        compiled_line.calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA, this.clrMapOvr);
+                                    }
+                                    else
+                                    {
+                                        compiled_line = ser.compiledSeriesPen;
                                     }
                                     pts[j].brush = null;
                                     pts[j].pen = compiled_line;
                                     pts[j].pen.calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA, this.clrMapOvr);
                                     if(pts[j].compiledMarker)
                                     {
-
                                         pts[j].compiledMarker.pen &&  pts[j].compiledMarker.pen.calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA, this.clrMapOvr);
                                         pts[j].compiledMarker.brush &&  pts[j].compiledMarker.brush.calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA, this.clrMapOvr);
-
                                     }
                                 }
                             }

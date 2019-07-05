@@ -7437,7 +7437,7 @@ DrawingObjectsController.prototype =
             if(chart_selection.recalcInfo.bRecalculatedTitle || bDeleteTitle)
             {
                 chart_selection.recalcInfo.recalcTitle = null;
-                chart_selection.handleUpdateInternalChart();
+                chart_selection.handleUpdateInternalChart(false);
                 if(this.document)
                 {
                     chart_selection.recalculate();
