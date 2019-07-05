@@ -1674,7 +1674,36 @@ DrawingObjectsController.prototype =
 		if (oTargetDocContent)
 			return oTargetDocContent.RecalculateCurPos(bUpdateX, bUpdateY);
 
-		return {X : 0, Y : 0, Height : 0, PageNum : 0, Internal : {Line : 0, Page : 0, Range : 0}, Transform : null};
+		var oParaDrawing = this.getMajorParaDrawing();
+		if (oParaDrawing)
+		{
+			// Обновляем позицию курсора, чтобы проскроллиться к заданной позиции
+			var oDrawingDocument = editor.WordControl.m_oLogicDocument.GetDrawingDocument();
+			oDrawingDocument.SetTargetSize(oParaDrawing.GraphicObj.extY, 0);
+			oDrawingDocument.UpdateTarget(oParaDrawing.GraphicObj.x, oParaDrawing.GraphicObj.y, oParaDrawing.PageNum);
+
+			return {
+				X         : oParaDrawing.GraphicObj.x,
+				Y         : oParaDrawing.GraphicObj.y,
+				Height    : 0,
+				PageNum   : oParaDrawing.PageNum,
+				Internal  : {
+					Line  : 0,
+					Page  : 0,
+					Range : 0
+				},
+				Transform : null
+			};
+		}
+
+		return {
+			X         : 0,
+			Y         : 0,
+			Height    : 0,
+			PageNum   : 0,
+			Internal  : {Line : 0, Page : 0, Range : 0},
+			Transform : null
+		};
 	},
 
     startEditCurrentOleObject: function(){
