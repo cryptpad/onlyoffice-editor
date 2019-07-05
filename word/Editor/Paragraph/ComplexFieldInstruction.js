@@ -651,9 +651,9 @@ CFieldInstructionSEQ.prototype.ToString = function ()
 	{
 		sInstruction += this.Id;
 	}
-	if(this.Format)
+	for(var i = 0; i < this.GeneralSwitches.length; ++i)
 	{
-		sInstruction +=  " \\* " + this.Format;
+		sInstruction +=  " \\* " + this.GeneralSwitches[i];
 	}
 	if(this.C)
 	{
@@ -722,11 +722,7 @@ CFieldInstructionSEQ.prototype.GetText = function ()
 	{
 		return "";
 	}
-	if(oTopDocument.IsHdrFtr(false))
-	{
-		return AscCommon.translateManager.getValue("Error! Main Document Only.");
-	}
-	if(oTopDocument.IsFootnote(false))
+	if(oTopDocument.IsHdrFtr(false) || oTopDocument.IsFootnote(false))
 	{
 		return AscCommon.translateManager.getValue("Error! Main Document Only.");
 	}
@@ -739,20 +735,20 @@ CFieldInstructionSEQ.prototype.GetText = function ()
 		}
 	}
 	nIndex = this.GetRestartNum();
-	if(nIndex !== null)
+	if(nIndex === null)
 	{
-		return nIndex + "";
-	}
-	aFields = [];
-	oTopDocument.GetAllSeqFieldsByType(this.Id, aFields);
-	nIndex = -1;
-	for(var i = 0; i < aFields.length; ++i)
-	{
-		var oField = aFields[i];
-		if(this === oField.Instruction)
+
+		aFields = [];
+		oTopDocument.GetAllSeqFieldsByType(this.Id, aFields);
+		nIndex = -1;
+		for(var i = 0; i < aFields.length; ++i)
 		{
-			nIndex = i + 1;
-			break;
+			var oField = aFields[i];
+			if(this === oField.Instruction)
+			{
+				nIndex = i + 1;
+				break;
+			}
 		}
 	}
 	if(nIndex > -1)
