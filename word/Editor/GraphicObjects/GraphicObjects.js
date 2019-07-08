@@ -2958,8 +2958,7 @@ CGraphicObjects.prototype =
         {
             // Обновляем позицию курсора, чтобы проскроллиться к заданной позиции
             var oDrawingDocument = editor.WordControl.m_oLogicDocument.GetDrawingDocument();
-            oDrawingDocument.SetTargetSize(oParaDrawing.GraphicObj.extY, 0);
-            oDrawingDocument.UpdateTarget(oParaDrawing.GraphicObj.x, oParaDrawing.GraphicObj.y, oParaDrawing.PageNum);
+            oDrawingDocument.m_oWordControl.ScrollToPosition(oParaDrawing.GraphicObj.x, oParaDrawing.GraphicObj.y, oParaDrawing.PageNum, oParaDrawing.GraphicObj.extY);
 
             return {
                 X         : oParaDrawing.GraphicObj.x,
