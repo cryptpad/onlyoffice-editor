@@ -1643,8 +1643,11 @@
             pageOrientation = pageSetup.asc_getOrientation();
             bFitToWidth = pageSetup.asc_getFitToWidth();
             bFitToHeight = pageSetup.asc_getFitToHeight();
-			scale = pageSetup.asc_getScale() / 100;
         }
+
+        //scale пока всегда берём из модели
+		var pageSetupModel = this.model.PagePrintOptions ? this.model.PagePrintOptions.pageSetup : null;
+		scale = pageSetupModel ? pageSetupModel.asc_getScale() / 100 : 1;
 
         var pageLeftField, pageRightField, pageTopField, pageBottomField;
         if (pageMargins) {
@@ -16092,7 +16095,7 @@
 			pageOptions.asc_setOptions(obj);
 
 			//если поменялись scaling - fit sheet on.. -> необходимо пересчитать scaling
-			if(oldFitToWidth !== newFitToWidth || oldFitToHeight !== newFitToHeight) {
+			if(oldFitToWidth != newFitToWidth || oldFitToHeight != newFitToHeight) {
 				t.fitToPages(newFitToWidth, newFitToHeight);
 			}
 
