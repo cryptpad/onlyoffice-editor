@@ -2511,9 +2511,9 @@
                 this.memory.WriteByte(c_oSer_TableStyle.Name);
                 this.memory.WriteString2(customStyle.name);
             }
-            if(null != customStyle.pivot)
+            if(false === customStyle.pivot)
                 this.bs.WriteItem(c_oSer_TableStyle.Pivot, function(){oThis.memory.WriteBool(customStyle.pivot);});
-            if(null != customStyle.table)
+            if(false === customStyle.table)
                 this.bs.WriteItem(c_oSer_TableStyle.Table, function(){oThis.memory.WriteBool(customStyle.table);});
 
             this.bs.WriteItem(c_oSer_TableStyle.Elements, function(){oThis.WriteTableCustomStyleElements(customStyle);});
