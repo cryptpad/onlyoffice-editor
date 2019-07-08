@@ -277,7 +277,7 @@ function CBinaryFileWriter()
         {
             this.data[this.pos++] = data[_pos+i];
         }
-    }
+    };
     // ---------------------------
 
     this.m_arStack = [];
@@ -876,7 +876,7 @@ function CBinaryFileWriter()
 
         // теперь запишем информацию о главных таблицах
         this.WriteMainPart(startPos);
-    }
+    };
 
     this.WriteDocument = function(presentation)
     {
@@ -885,7 +885,7 @@ function CBinaryFileWriter()
         // и скинем все в base64
         var ret = "PPTY;v1;" + this.pos + ";";
         return ret + this.GetBase64Memory();
-    }
+    };
 	
 	this.WriteDocument3 = function(presentation, base64) {
 		var _memory = new AscCommon.CMemory(true);
@@ -911,7 +911,7 @@ function CBinaryFileWriter()
 		if (!base64)
 		    return _memory.GetData();
 		return _memory.GetBase64Memory();
-	}
+	};
 	this.WriteByMemory = function(callback) {
 		var _memory = new AscCommon.CMemory(true);
 		_memory.ImData = this.ImData;
@@ -931,18 +931,18 @@ function CBinaryFileWriter()
     {
         this.StartMainRecord(c_oMainTables.App);
         app.toStream(this);
-    }
+    };
     this.WriteCore = function(core, api)
     {
         this.StartMainRecord(c_oMainTables.Core);
         core.toStream(this, api);
-    }
+    };
     this.WriteViewProps = function(viewprops)
     {
         this.StartMainRecord(c_oMainTables.ViewProps);
         this.StartRecord(c_oMainTables.ViewProps);
         this.EndRecord();
-    }
+    };
     this.WritePresProps = function(presentation)
     {       
         this.StartMainRecord(c_oMainTables.PresProps);
@@ -1000,7 +1000,7 @@ function CBinaryFileWriter()
             this.EndRecord();
         }
         this.EndRecord();
-    }
+    };
 
     this.WritePresentation = function(presentation)
     {
@@ -1017,11 +1017,15 @@ function CBinaryFileWriter()
         this._WriteBool2(2, pres.attrCompatMode);
         this._WriteLimit2(3, pres.attrConformance);
         this._WriteBool2(4, pres.attrEmbedTrueTypeFonts);
+
+        pres.attrFirstSlideNum = presentation.firstSlideNum;
         this._WriteInt2(5, pres.attrFirstSlideNum);
         this._WriteBool2(6, pres.attrRemovePersonalInfoOnSave);
         this._WriteBool2(7, pres.attrRtl);
         this._WriteBool2(8, pres.attrSaveSubsetFonts);
         this._WriteString2(9, pres.attrServerZoom);
+
+        pres.attrShowSpecialPlsOnTitleSld = presentation.showSpecialPlsOnTitleSld;
         this._WriteBool2(10, pres.attrShowSpecialPlsOnTitleSld);
         this._WriteBool2(11, pres.attrStrictFirstAndLastChars);
 
@@ -1106,7 +1110,7 @@ function CBinaryFileWriter()
         }
 
         this.EndRecord();
-    }
+    };
 
     this.WriteTheme = function(_theme)
     {
@@ -1128,7 +1132,7 @@ function CBinaryFileWriter()
         this.WriteRecordArray(4, 0, _theme.extraClrSchemeLst, this.WriteExtraClrScheme);
 
         this.EndRecord();
-    }
+    };
 
     this.WriteSlideMaster = function(_master)
     {
@@ -1144,7 +1148,7 @@ function CBinaryFileWriter()
         this.WriteRecord2(6, _master.txStyles, this.WriteTxStyles);
 
         this.EndRecord();
-    }
+    };
 
     this.WriteSlideLayout = function(_layout)
     {
@@ -1164,7 +1168,7 @@ function CBinaryFileWriter()
         this.WriteRecord2(4, _layout.hf, this.WriteHF);
 
         this.EndRecord();
-    }
+    };
 
     this.WriteSlide = function(_slide)
     {
@@ -1182,7 +1186,7 @@ function CBinaryFileWriter()
         this.WriteComments(4, _slide.writecomments);
 
         this.EndRecord();
-    }
+    };
     this.WriteComments = function(type, comments)
     {
         var _countComments = 0;
@@ -1231,7 +1235,7 @@ function CBinaryFileWriter()
             oThis.EndRecord();
             oThis.EndRecord();
         }
-    }
+    };
 
     this.WriteSlideTransition = function(_timing)
     {
@@ -1565,7 +1569,7 @@ function CBinaryFileWriter()
         {
             oThis.WriteUChar(g_nodeAttributeEnd);
         }
-    }
+    };
 
     this.WriteSlideNote = function(_note)
     {
@@ -1580,7 +1584,7 @@ function CBinaryFileWriter()
         this.WriteRecord2(1, _note.clrMap, this.WriteClrMapOvr);
 
         this.EndRecord();
-    }
+    };
 
     this.WriteNoteMaster = function(_master)
     {
@@ -1592,7 +1596,7 @@ function CBinaryFileWriter()
         this.WriteRecord2(3, _master.txStyles, this.WriteTextListStyle);
 
         this.EndRecord();
-    }
+    };
 
     //////////////////////////////common functions///////////////////////////
     this.WriteThemeElements = function(themeElements)
@@ -1600,7 +1604,7 @@ function CBinaryFileWriter()
         oThis.WriteRecord1(0, themeElements.clrScheme, oThis.WriteClrScheme);
         oThis.WriteRecord1(1, themeElements.fontScheme, oThis.WriteFontScheme);
         oThis.WriteRecord1(2, themeElements.fmtScheme, oThis.WriteFmtScheme);
-    }
+    };
     this.WriteFontScheme = function(fontScheme)
     {
         oThis.WriteUChar(g_nodeAttributeStart);
@@ -1609,13 +1613,13 @@ function CBinaryFileWriter()
 
         oThis.WriteRecord1(0, fontScheme.majorFont, oThis.WriteFontCollection);
         oThis.WriteRecord1(1, fontScheme.minorFont, oThis.WriteFontCollection);
-    }
+    };
     this.WriteFontCollection = function(coll)
     {
         oThis.WriteRecord1(0, { Name: coll.latin, Index : -1 }, oThis.WriteTextFontTypeface);
         oThis.WriteRecord1(1, { Name: coll.ea, Index : -1 }, oThis.WriteTextFontTypeface);
         oThis.WriteRecord1(2, { Name: coll.cs, Index : -1 }, oThis.WriteTextFontTypeface);
-    }
+    };
     this.WriteFmtScheme = function(fmt)
     {
         oThis.WriteUChar(g_nodeAttributeStart);
@@ -1625,7 +1629,7 @@ function CBinaryFileWriter()
         oThis.WriteRecordArray(0, 0, fmt.fillStyleLst, oThis.WriteUniFill);
         oThis.WriteRecordArray(1, 0, fmt.lnStyleLst, oThis.WriteLn);
         oThis.WriteRecordArray(3, 0, fmt.bgFillStyleLst, oThis.WriteUniFill);
-    }
+    };
 
     this.WriteDefaultShapeDefinition = function(shapeDef)
     {
@@ -1633,12 +1637,12 @@ function CBinaryFileWriter()
         oThis.WriteRecord1(1, shapeDef.bodyPr, oThis.WriteBodyPr);
         oThis.WriteRecord1(2, shapeDef.lstStyle, oThis.WriteTextListStyle);
         oThis.WriteRecord2(3, shapeDef.style, oThis.WriteShapeStyle);
-    }
+    };
     this.WriteExtraClrScheme = function(extraScheme)
     {
         oThis.WriteRecord1(0, extraScheme.clrScheme, oThis.WriteClrScheme);
         oThis.WriteRecord2(1, extraScheme.clrMap, oThis.WriteClrMap);
-    }
+    };
     this.WriteCSld = function(cSld)
     {
         oThis.WriteUChar(g_nodeAttributeStart);
@@ -1725,7 +1729,7 @@ function CBinaryFileWriter()
         oThis.EndRecord();
 
         oThis.EndRecord();
-    }
+    };
     this.WriteClrMap = function(clrmap)
     {
         oThis.WriteUChar(g_nodeAttributeStart);
@@ -1741,7 +1745,7 @@ function CBinaryFileWriter()
         }
 
         oThis.WriteUChar(g_nodeAttributeEnd);
-    }
+    };
     this.WriteClrScheme = function(scheme)
     {
         oThis.WriteUChar(g_nodeAttributeStart);
@@ -1756,26 +1760,26 @@ function CBinaryFileWriter()
                 oThis.WriteRecord1(i, scheme.colors[i], oThis.WriteUniColor);
             }
         }
-    }
+    };
     this.WriteClrMapOvr = function(clrmapovr)
     {
         oThis.WriteRecord2(0, clrmapovr, oThis.WriteClrMap);
-    }
+    };
     this.WriteHF = function(hf)
     {
         oThis.WriteUChar(g_nodeAttributeStart);
-        oThis._WriteBool2(0, hf.dt);
-        oThis._WriteBool2(1, hf.ftr);
-        oThis._WriteBool2(2, hf.hdr);
-        oThis._WriteBool2(3, hf.sldNum);
+        oThis._WriteBool2(0, hf.dt === null ? true : hf.dt);
+        oThis._WriteBool2(1, hf.ftr === null ? true : hf.ftr);
+        oThis._WriteBool2(2, hf.hdr === null ? true : hf.hdr);
+        oThis._WriteBool2(3, hf.sldNum === null ? true : hf.sldNum);
         oThis.WriteUChar(g_nodeAttributeEnd);
-    }
+    };
     this.WriteTxStyles = function(txStyles)
     {
         oThis.WriteRecord2(0, txStyles.titleStyle, oThis.WriteTextListStyle);
         oThis.WriteRecord2(1, txStyles.bodyStyle, oThis.WriteTextListStyle);
         oThis.WriteRecord2(2, txStyles.otherStyle, oThis.WriteTextListStyle);
-    }
+    };
     this.WriteTextListStyle = function(styles)
     {
         var _levels = styles.levels;
@@ -1797,7 +1801,7 @@ function CBinaryFileWriter()
             }
             oThis.WriteRecord2(i, _props_to_write, oThis.WriteTextParagraphPr);
         }
-    }
+    };
     this.WriteTextParagraphPr = function(tPr)
     {
         oThis.WriteUChar(g_nodeAttributeStart);
@@ -2045,7 +2049,7 @@ function CBinaryFileWriter()
         {
             oThis.WriteRecord2(8, tPr.rPr, oThis.WriteRunProperties);
         }
-    }
+    };
 
     this.WriteRunProperties = function(rPr, hlinkObj)
     {
@@ -2133,14 +2137,14 @@ function CBinaryFileWriter()
         {
             oThis.WriteRecord1(12, rPr.HighlightColor, oThis.WriteHighlightColor);
         }
-    }
+    };
 
     this.WriteHighlightColor = function (HighlightColor) {
 
         oThis.WriteUChar(g_nodeAttributeStart);
         oThis.WriteUChar(g_nodeAttributeEnd);
         oThis.WriteRecord1(0, HighlightColor, oThis.WriteUniColor);
-    }
+    };
 
     this.WriteHyperlink = function(hlink)
     {
@@ -2186,7 +2190,7 @@ function CBinaryFileWriter()
         oThis._WriteString2(4, hlink.tooltip);
 
         oThis.WriteUChar(g_nodeAttributeEnd);
-    }
+    };
 
     this.WriteTextFontTypeface = function(typeface)
     {
@@ -2206,7 +2210,7 @@ function CBinaryFileWriter()
         oThis._WriteString1(3, typeface.Name);
 
         oThis.WriteUChar(g_nodeAttributeEnd);
-    }
+    };
 
     this.WriteTab = function(tab)
     {
@@ -2226,7 +2230,7 @@ function CBinaryFileWriter()
         }
 
         oThis.WriteUChar(g_nodeAttributeEnd);
-    }
+    };
 
     this.WriteBodyPr = function(bodyPr)
     {
@@ -2367,7 +2371,7 @@ function CBinaryFileWriter()
         }
 
         oThis.EndRecord();
-    }
+    };
 
     this.CorrectUniColorAlpha = function(color, trans)
     {
@@ -2404,7 +2408,368 @@ function CBinaryFileWriter()
             mods[_len].name = "alpha";
             mods[_len].val = (trans * 100000 / 255) >> 0;
         }
-    }
+    };
+
+    this.WriteEffectDag = function(oEffect)
+    {
+        oThis.StartRecord(oEffect.Type);
+
+        oThis.WriteUChar(g_nodeAttributeStart);
+        oThis.WriteString2(0, oEffect.name);
+        oThis._WriteLimit2(1, oEffect.type);
+        oThis.WriteUChar(g_nodeAttributeEnd);
+
+        oThis.StartRecord(type);
+        var len__ = oEffect.effectList.length;
+        oThis._WriteInt2(0, len__);
+
+        for (i = 0; i < len__; ++i)
+        {
+            oThis.WriteRecord1(1, oEffect.effectList[i], oThis.WriteEffect); // id неважен
+        }
+        oThis.EndRecord();
+
+        oThis.EndRecord();
+    };
+
+    this.WriteEffect = function(oEffect)
+    {
+        var type = oEffect.Type, i;
+        switch (type)
+        {
+                case 1: /*EFFECT_TYPE_OUTERSHDW		=*/
+                {
+                    oThis.StartRecord(type);
+                    oThis.WriteUChar(g_nodeAttributeStart);
+                    oThis._WriteUChar2(0, oEffect.algn);
+                    oThis._WriteInt2(1,	oEffect.blurRad);
+                    oThis._WriteInt2(2,	oEffect.dir);
+                    oThis._WriteInt2(3,	oEffect.dist);
+                    oThis._WriteInt2(4,	oEffect.kx);
+                    oThis._WriteInt2(5,	oEffect.ky);
+                    oThis._WriteInt2(6,	oEffect.sx);
+                    oThis._WriteInt2(7,	oEffect.sy);
+                    oThis._WriteBool2(8, oEffect.rotWithShape);
+                    oThis.WriteUChar(g_nodeAttributeEnd);
+                    oThis.WriteRecord2(0, oEffect.color, oThis.WriteUniColor);
+                    oThis.EndRecord();
+                    break;
+                }
+                case 2: /*EFFECT_TYPE_GLOW			=*/
+                {
+                    oThis.StartRecord(type);
+                    oThis.WriteUChar(g_nodeAttributeStart);
+                    oThis._WriteInt2(0,	oEffect.rad);
+                    oThis.WriteUChar(g_nodeAttributeEnd);
+                    oThis.WriteRecord2(0, oEffect.color, oThis.WriteUniColor);
+                    oThis.EndRecord();
+
+                    break;
+                }
+                case 3: /*EFFECT_TYPE_DUOTONE		    =*/
+                {
+                    oThis.StartRecord(type);
+                    oThis.WriteULong(oEffect.colors.length);
+                    for(i = 0; i < oEffect.colors.length; ++i)
+                    {
+                        oThis.WriteRecord1(0, oEffect.colors[i], oThis.WriteUniColor);
+                    }
+                    oThis.EndRecord();
+                    break;
+                }
+                case 4: /*EFFECT_TYPE_XFRM			=*/
+                {
+                    oThis.StartRecord(type);
+                    oThis.WriteUChar(g_nodeAttributeStart);
+                    oThis._WriteInt2(0, oEffect.kx);
+                    oThis._WriteInt2(1, oEffect.ky);
+                    oThis._WriteInt2(2, oEffect.sx);
+                    oThis._WriteInt2(3, oEffect.sy);
+                    oThis._WriteInt2(4, oEffect.tx);
+                    oThis._WriteInt2(5, oEffect.tx);
+                    oThis.WriteUChar(g_nodeAttributeEnd);
+                    oThis.EndRecord();
+                    break;
+                }
+                case 5: /*EFFECT_TYPE_BLUR			=*/
+                {
+                    oThis.StartRecord(type);
+                    oThis.WriteUChar(g_nodeAttributeStart);
+                    oThis._WriteInt2(0, oEffect.rad);
+                    oThis._WriteBool2(1, oEffect.grow);
+                    oThis.WriteUChar(g_nodeAttributeEnd);
+                    oThis.EndRecord();
+                    break;
+                }
+                case 6: /*EFFECT_TYPE_PRSTSHDW		=*/
+                {
+                    oThis.StartRecord(type);
+                    oThis.WriteUChar(g_nodeAttributeStart);
+                    oThis._WriteInt2(0, oEffect.dir);
+                    oThis._WriteInt2(1, oEffect.dist);
+                    oThis._WriteLimit1(2, oEffect.prst);
+                    oThis.WriteUChar(g_nodeAttributeEnd);
+                    oThis.EndRecord();
+                    break;
+                }
+                case 7: /*EFFECT_TYPE_INNERSHDW		=*/
+                {
+                    oThis.StartRecord(type);
+                    oThis.WriteUChar(g_nodeAttributeStart);
+                    oThis._WriteInt2(0, oEffect.dir);
+                    oThis._WriteInt2(1, oEffect.dist);
+                    oThis._WriteLimit1(2, oEffect.blurRad);
+                    oThis.WriteUChar(g_nodeAttributeEnd);
+                    oThis.WriteRecord1(0, oEffect.color, oThis.WriteUniColor);
+                    oThis.EndRecord();
+                    break;
+                }
+                case 8: /*EFFECT_TYPE_REFLECTION		=*/
+                {
+                    oThis.StartRecord(type);
+                    oThis.WriteUChar(g_nodeAttributeStart);
+                    oThis._WriteLimit2(0, oEffect.algn);
+                    oThis._WriteInt2(1, oEffect.blurRad);
+                    oThis._WriteInt2(2, oEffect.stA);
+                    oThis._WriteInt2(3, oEffect.endA);
+                    oThis._WriteInt2(4, oEffect.stPos);
+                    oThis._WriteInt2(5, oEffect.endPos);
+                    oThis._WriteInt2(6, oEffect.dir);
+                    oThis._WriteInt2(7, oEffect.fadeDir);
+                    oThis._WriteInt2(8, oEffect.dist);
+                    oThis._WriteInt2(9, oEffect.kx);
+                    oThis._WriteInt2(10, oEffect.ky);
+                    oThis._WriteInt2(11, oEffect.sx);
+                    oThis._WriteInt2(12, oEffect.sy);
+                    oThis._WriteBool2(13, oEffect.rotWithShape);
+                    oThis.WriteUChar(g_nodeAttributeEnd);
+                    oThis.EndRecord();
+                    break;
+                }
+                case 9: /*EFFECT_TYPE_SOFTEDGE		=*/
+                {
+                    oThis.StartRecord(type);
+
+                    oThis.WriteUChar(g_nodeAttributeStart);
+                    oThis._WriteInt2(0, oEffect.rad);
+                    oThis.WriteUChar(g_nodeAttributeEnd);
+
+                    oThis.EndRecord();
+                    break;
+                }
+                case 10: /*EFFECT_TYPE_FILLOVERLAY	    =*/
+                {
+                    oThis.StartRecord(type);
+                    oThis.WriteUChar(g_nodeAttributeStart);
+                    oThis._WriteLimit2(0, oEffect.blend);
+                    oThis.WriteUChar(g_nodeAttributeEnd);
+                    oThis.WriteRecord1(0, oEffect.fill, oThis.WriteUniFill);
+                    oThis.EndRecord();
+                    break;
+                }
+                case 11: /*EFFECT_TYPE_ALPHACEILING	=*/
+                {
+                    oThis.StartRecord(type);
+                    oThis.EndRecord();
+                    break;
+                }
+                case 12: /*EFFECT_TYPE_ALPHAFLOOR		=*/
+                {
+                    oThis.StartRecord(type);
+                    oThis.EndRecord();
+                    break;
+                }
+                case 13: /*EFFECT_TYPE_TINTEFFECT		=*/
+                {
+                    oThis.StartRecord(type);
+                    oThis.WriteUChar(g_nodeAttributeStart);
+                    oThis._WriteInt2(0, oEffect.amt);
+                    oThis._WriteInt2(1, oEffect.hue);
+                    oThis.WriteUChar(g_nodeAttributeEnd);
+
+                    oThis.EndRecord();
+                    break;
+                }
+                case 14: /*EFFECT_TYPE_RELOFF			=*/
+                {
+
+                    oThis.StartRecord(type);
+                    oThis.WriteUChar(g_nodeAttributeStart);
+                    oThis._WriteInt2(0, oEffect.tx);
+                    oThis._WriteInt2(1, oEffect.ty);
+                    oThis.WriteUChar(g_nodeAttributeEnd);
+
+                    oThis.EndRecord();
+                    break;
+                }
+                case 15: /*EFFECT_TYPE_LUM			    =*/
+                {
+                    oThis.StartRecord(type);
+
+                    oThis.WriteUChar(g_nodeAttributeStart);
+                    oThis._WriteInt2(0, oEffect.bright);
+                    oThis._WriteInt2(1, oEffect.contrast);
+                    oThis.WriteUChar(g_nodeAttributeEnd);
+
+                    oThis.EndRecord();
+                    break;
+                }
+                case 16: /*EFFECT_TYPE_HSL			    =*/
+                {
+                    oThis.StartRecord(type);
+
+                    oThis.WriteUChar(g_nodeAttributeStart);
+                    oThis._WriteInt2(0, oEffect.hue);
+                    oThis._WriteInt2(1, oEffect.lum);
+                    oThis._WriteInt2(2, oEffect.sat);
+                    oThis.WriteUChar(g_nodeAttributeEnd);
+
+                    oThis.EndRecord();
+                    break;
+                }
+                case 17: /*EFFECT_TYPE_GRAYSCL		    =*/
+                {
+                    oThis.StartRecord(type);
+                    oThis.EndRecord();
+                    break;
+                }
+                case 18: /*EFFECT_TYPE_ELEMENT		    =*/
+                {
+                    oThis.StartRecord(type);
+
+                    oThis.WriteUChar(g_nodeAttributeStart);
+                    oThis.WriteString2(0, oEffect.ref);
+                    oThis.WriteUChar(g_nodeAttributeEnd);
+
+                    oThis.EndRecord();
+                    break;
+                }
+                case 19: /*EFFECT_TYPE_ALPHAREPL		=*/
+                {
+                    oThis.StartRecord(type);
+
+                    oThis.WriteUChar(g_nodeAttributeStart);
+                    oThis._WriteInt2(0, oEffect.a);
+                    oThis.WriteUChar(g_nodeAttributeEnd);
+
+                    oThis.EndRecord();
+                    break;
+                }
+                case 20: /*EFFECT_TYPE_ALPHAOUTSET	    =*/
+                {
+
+                    oThis.StartRecord(type);
+
+                    oThis.WriteUChar(g_nodeAttributeStart);
+                    oThis._WriteInt2(0, oEffect.rad);
+                    oThis.WriteUChar(g_nodeAttributeEnd);
+
+                    oThis.EndRecord();
+                    break;
+                }
+                case 21: /*EFFECT_TYPE_ALPHAMODFIX	    =*/
+                {
+                    oThis.StartRecord(type);
+
+                    oThis.WriteUChar(g_nodeAttributeStart);
+                    oThis._WriteInt2(0, oEffect.amt);
+                    oThis.WriteUChar(g_nodeAttributeEnd);
+
+                    oThis.EndRecord();
+                    break;
+                }
+                case 22: /*EFFECT_TYPE_ALPHABILEVEL	=*/
+                {
+                    oThis.StartRecord(type);
+
+                    oThis.WriteUChar(g_nodeAttributeStart);
+                    oThis._WriteInt2(0, oEffect.thresh);
+                    oThis.WriteUChar(g_nodeAttributeEnd);
+
+                    oThis.EndRecord();
+                    break;
+                }
+                case 23: /*EFFECT_TYPE_BILEVEL		    =*/
+                {
+                    oThis.StartRecord(type);
+
+                    oThis.WriteUChar(g_nodeAttributeStart);
+                    oThis._WriteInt2(0, oEffect.thresh);
+                    oThis.WriteUChar(g_nodeAttributeEnd);
+
+                    oThis.EndRecord();
+                    break;
+                }
+                case 24:/*EFFECT_TYPE_DAG			    =*/
+                {
+                    oThis.WriteEffectDag(oEffect);
+                    break;
+                }
+                case 25:/*EFFECT_TYPE_FILL			=*/
+                {
+                    oThis.StartRecord(type);
+
+                    oThis.WriteRecord1(0, oEffect.Fill);
+
+                    oThis.EndRecord();
+                    break;
+                }
+                case 26:/*EFFECT_TYPE_CLRREPL		    =*/
+                {
+                    oThis.StartRecord(type);
+
+                    oThis.WriteRecord1(0, oEffect.color);
+
+                    oThis.EndRecord();
+                    break;
+                }
+                case 27:/*EFFECT_TYPE_CLRCHANGE		=*/
+                {
+                    oThis.StartRecord(type);
+
+                    oThis.WriteUChar(g_nodeAttributeStart);
+                    oThis._WriteBool2(0, oEffect.useA);
+                    oThis.WriteUChar(g_nodeAttributeEnd);
+
+                    oThis.WriteRecord1(0, oEffect.clrFrom);
+                    oThis.WriteRecord1(1, oEffect.clrTo);
+
+                    oThis.EndRecord();
+                    break;
+                }
+                case 28:/*EFFECT_TYPE_ALPHAINV		=*/
+                {
+                    oThis.StartRecord(type);
+
+                    oThis.WriteRecord1(0, oEffect.color);
+
+                    oThis.EndRecord();
+                    break;
+                }
+                case 29:/*EFFECT_TYPE_ALPHAMOD		=*/
+                {
+                    oThis.StartRecord(type);
+
+                    oThis.WriteRecord1(0, oEffect.cont);
+
+                    oThis.EndRecord();
+                    break;
+                }
+                case 30:/*EFFECT_TYPE_BLEND			=*/
+                {
+                    oThis.StartRecord(type);
+
+                    oThis.WriteUChar(g_nodeAttributeStart);
+                    oThis._WriteLimit2(0, oEffect.blend);
+                    oThis.WriteUChar(g_nodeAttributeEnd);
+
+                    oThis.WriteRecord1(0, oEffect.cont);
+
+                    oThis.EndRecord();
+                    break;
+                }
+        }
+    };
 
     this.WriteUniFill = function(unifill)
     {
@@ -2558,19 +2923,33 @@ function CBinaryFileWriter()
                 oThis.WriteUChar(g_nodeAttributeStart);
                 oThis.WriteUChar(g_nodeAttributeEnd);
 
-                if (null != trans)
+
+                var effects_count = fill.Effects.length;
+                if(effects_count > 0)
                 {
+
                     oThis.StartRecord(2);
-                    oThis.WriteULong(1);
-                    oThis.StartRecord(3);
-                    oThis.StartRecord(21);
-                    oThis.WriteUChar(g_nodeAttributeStart);
-                    oThis._WriteInt1(0, (trans * 100000 / 255) >> 0);
-                    oThis.WriteUChar(g_nodeAttributeEnd);
-                    oThis.EndRecord();
-                    oThis.EndRecord();
+                    oThis.WriteULong(effects_count);
+                    for(var effect_index = 0; effect_index < effects_count; ++effect_index)
+                    {
+                        oThis.WriteRecord1(0, fill.Effects[effect_index], oThis.WriteEffect);
+                    }
                     oThis.EndRecord();
                 }
+
+                // if (null != trans)
+                // {
+                //     oThis.StartRecord(2);
+                //     oThis.WriteULong(1);
+                //     oThis.StartRecord(3);
+                //     oThis.StartRecord(21);
+                //     oThis.WriteUChar(g_nodeAttributeStart);
+                //     oThis._WriteInt1(0, (trans * 100000 / 255) >> 0);
+                //     oThis.WriteUChar(g_nodeAttributeEnd);
+                //     oThis.EndRecord();
+                //     oThis.EndRecord();
+                //     oThis.EndRecord();
+                // }
 
                 oThis.StartRecord(3);
                 oThis.WriteUChar(g_nodeAttributeStart);
@@ -2658,7 +3037,7 @@ function CBinaryFileWriter()
             default:
                 break;
         }
-    }
+    };
     this.WriteLn = function(ln)
     {
         if (undefined === ln || null == ln)
@@ -2676,7 +3055,7 @@ function CBinaryFileWriter()
         oThis.WriteRecord1(2, ln.Join, oThis.WriteLineJoin);
         oThis.WriteRecord2(3, ln.headEnd, oThis.WriteLineEnd);
         oThis.WriteRecord2(4, ln.tailEnd, oThis.WriteLineEnd);
-    }
+    };
 
     this.WriteLineJoin = function(join)
     {
@@ -2692,7 +3071,7 @@ function CBinaryFileWriter()
         oThis._WriteInt1(0, (join.type != null && join.type !== undefined) ? join.type : 0);
         oThis._WriteInt2(1, join.limit);
         oThis.WriteUChar(g_nodeAttributeEnd);
-    }
+    };
 
     this.WriteLineDash = function(dash)
     {
@@ -2702,7 +3081,7 @@ function CBinaryFileWriter()
         oThis.WriteUChar(g_nodeAttributeStart);
         oThis._WriteLimit2(0, dash);
         oThis.WriteUChar(g_nodeAttributeEnd);
-    }
+    };
 
     this.WriteLineEnd = function(end)
     {
@@ -2711,7 +3090,7 @@ function CBinaryFileWriter()
         oThis._WriteLimit2(1, end.w);
         oThis._WriteLimit2(2, end.len);
         oThis.WriteUChar(g_nodeAttributeEnd);
-    }
+    };
     // fill-stroke ---------------------------------------------------------------
 
     // text body write ----------------------------------------------------------
@@ -3044,7 +3423,7 @@ function CBinaryFileWriter()
         oThis.WriteRecord1(1, style.fillRef, oThis.WriteStyleRef);
         oThis.WriteRecord1(2, style.effectRef, oThis.WriteStyleRef);
         oThis.WriteRecord1(3, style.fontRef, oThis.WriteFontRef);
-    }
+    };
 
     this.WriteStyleRef = function(ref)
     {
@@ -3053,7 +3432,7 @@ function CBinaryFileWriter()
         oThis.WriteUChar(g_nodeAttributeEnd);
 
         oThis.WriteRecord1(0, ref.Color, oThis.WriteUniColor);
-    }
+    };
 
     this.WriteFontRef = function(ref)
     {
@@ -3062,7 +3441,7 @@ function CBinaryFileWriter()
         oThis.WriteUChar(g_nodeAttributeEnd);
 
         oThis.WriteRecord1(0, ref.Color, oThis.WriteUniColor);
-    }
+    };
 
     this.WriteBg = function(bg)
     {
@@ -3072,7 +3451,7 @@ function CBinaryFileWriter()
 
         oThis.WriteRecord2(0, bg.bgPr, oThis.WriteBgPr);
         oThis.WriteRecord2(1, bg.bgRef, oThis.WriteStyleRef);
-    }
+    };
     this.WriteBgPr = function(bgPr)
     {
         oThis.WriteUChar(g_nodeAttributeStart);
@@ -3080,7 +3459,7 @@ function CBinaryFileWriter()
         oThis.WriteUChar(g_nodeAttributeEnd);
 
         oThis.WriteRecord1(0, bgPr.Fill, oThis.WriteUniFill);
-    }
+    };
 
     this.WriteShape = function(shape)
     {
@@ -3140,7 +3519,7 @@ function CBinaryFileWriter()
         shape.spPr.WriteXfrm = null;
 
         oThis.EndRecord();
-    }
+    };
 
     this.WriteImage = function(image)
     {
@@ -3212,7 +3591,7 @@ function CBinaryFileWriter()
         image.spPr.WriteXfrm = null;
 
         oThis.EndRecord();
-    }
+    };
     this.WriteOleInfo = function(ole)
     {
 		var ratio = 20 * 3 / 4;//px to twips
@@ -3235,7 +3614,7 @@ function CBinaryFileWriter()
                 oThis.WriteBuffer(ole.m_aBinaryData, 0, ole.m_aBinaryData.length);
             });
         }
-    }
+    };
     this.WriteTable = function(grObj)
     {
         oThis.StartRecord(5);
@@ -3267,7 +3646,7 @@ function CBinaryFileWriter()
         oThis.WriteRecord2(2, grObj.graphicObject, oThis.WriteTable2);
 
         oThis.EndRecord();
-    }
+    };
 
     this.WriteChart = function(grObj)
     {
@@ -3299,7 +3678,7 @@ function CBinaryFileWriter()
         oThis.WriteRecord2(3, grObj, oThis.WriteChart2);
 
         oThis.EndRecord();
-    }
+    };
 
     this.WriteChart2 = function(grObj)
     {
@@ -3323,7 +3702,7 @@ function CBinaryFileWriter()
 
         _memory.ImData = null;
         _memory.data = null;
-    }
+    };
 
     this.WriteTable2 = function(table)
     {
@@ -3362,7 +3741,7 @@ function CBinaryFileWriter()
         }
 
         oThis.EndRecord();
-    }
+    };
 
     this.GenerateTableWriteGrid = function(table)
     {
@@ -3438,7 +3817,7 @@ function CBinaryFileWriter()
         }
 
         return TableGrid;
-    }
+    };
 
     this.WriteEmptyTableCell = function(_info)
     {
@@ -3468,7 +3847,7 @@ function CBinaryFileWriter()
         oThis.EndRecord();
 
         oThis.EndRecord();
-    }
+    };
 
     this.WriteTableRow = function(row, row_info)
     {
@@ -3541,7 +3920,7 @@ function CBinaryFileWriter()
         }
 
         oThis.EndRecord();
-    }
+    };
 
     this.WriteTableCell = function(cell)
     {
@@ -3659,7 +4038,7 @@ function CBinaryFileWriter()
         oThis.StartRecord(1);
         oThis.WriteRecordArray(2, 0, cell.Content.Content, oThis.WriteParagraph);
         oThis.EndRecord();
-    }
+    };
 
     this.WriteTableProps = function(obj)
     {
@@ -3689,7 +4068,7 @@ function CBinaryFileWriter()
                 }
             }
         }
-    }
+    };
 
     this.WriteGroupShape = function(group, type)
     {
@@ -3768,7 +4147,7 @@ function CBinaryFileWriter()
         }
 
         oThis.EndRecord();
-    }
+    };
 
     this.WriteGrpSpPr = function(grpSpPr)
     {
@@ -3779,7 +4158,7 @@ function CBinaryFileWriter()
         if (grpSpPr.WriteXfrm && grpSpPr.WriteXfrm.isNotNull())
             oThis.WriteRecord2(0, grpSpPr.WriteXfrm, oThis.WriteXfrm);
         oThis.WriteRecord1(1, grpSpPr.Fill, oThis.WriteUniFill);
-    }
+    };
 
     this.WriteSpPr = function(spPr)
     {
@@ -3823,7 +4202,34 @@ function CBinaryFileWriter()
 
         oThis.WriteRecord1(2, spPr.Fill, oThis.WriteUniFill);
         oThis.WriteRecord2(3, spPr.ln, oThis.WriteLn);
-    }
+
+        var oEffectPr = spPr.effectProps;
+        if(oEffectPr)
+        {
+            if(oEffectPr.EffectLst)
+            {
+                oThis.WriteRecord1(4, oEffectPr.EffectLst, oThis.WriteEffectLst);
+            }
+            else if(oEffectPr.EffectDag)
+            {
+                oThis.WriteRecord1(4, oEffectPr.EffectDag, oThis.WriteEffectDag)
+            }
+        }
+    };
+
+    this.WriteEffectLst = function(oEffectLst)
+    {
+        oThis.StartRecord(1);
+        oThis.WriteRecord2(0, oEffectLst.blur, oThis.WriteEffect);
+        oThis.WriteRecord2(1, oEffectLst.fillOverlay, oThis.WriteEffect);
+        oThis.WriteRecord2(2, oEffectLst.glow, oThis.WriteEffect);
+        oThis.WriteRecord2(3, oEffectLst.innerShdw, oThis.WriteEffect);
+        oThis.WriteRecord2(4, oEffectLst.outerShdw, oThis.WriteEffect);
+        oThis.WriteRecord2(5, oEffectLst.prstShdw, oThis.WriteEffect);
+        oThis.WriteRecord2(6, oEffectLst.reflection, oThis.WriteEffect);
+        oThis.WriteRecord2(7, oEffectLst.softEdge, oThis.WriteEffect);
+        oThis.EndRecord();
+    };
 
     this.WriteXfrm = function(xfrm)
     {
@@ -3843,7 +4249,7 @@ function CBinaryFileWriter()
         oThis._WriteBool2(9, xfrm.flipV);
         oThis._WriteInt4(10, xfrm.rot, 180 * 60000 / Math.PI);
         oThis.WriteUChar(g_nodeAttributeEnd);
-    }
+    };
 
 	this.WriteSignatureLine = function(oSignatureLine)
 	{
@@ -3856,7 +4262,7 @@ function CBinaryFileWriter()
 		oThis._WriteString2(11, oSignatureLine.signer2);
 		oThis._WriteString2(12, oSignatureLine.email);
 		oThis.WriteUChar(g_nodeAttributeEnd);
-	}
+	};
 
     this.WriteXfrmRot = function(xfrm)
     {
@@ -3903,7 +4309,7 @@ function CBinaryFileWriter()
         }
 
         oThis.WriteUChar(g_nodeAttributeEnd);
-    }
+    };
 
     this.WriteSpCNvPr = function (locks) {
         oThis.WriteUChar(g_nodeAttributeStart);
@@ -4098,7 +4504,7 @@ function CBinaryFileWriter()
         oThis.WriteUChar(g_nodeAttributeEnd);
         oThis.WriteRecord2(0, cNvPr.hlinkClick, oThis.Write_Hyperlink2);
         oThis.WriteRecord2(1, cNvPr.hlinkHover, oThis.Write_Hyperlink2);
-    }
+    };
 
     this.Write_Hyperlink2 = function(hyper)
     {
@@ -4162,7 +4568,7 @@ function CBinaryFileWriter()
         oThis.WriteUChar(g_nodeAttributeEnd);
 
         oThis.WriteRecord2(0, nvPr.ph, oThis.Write_ph);
-    }
+    };
 
     this.Write_ph = function(ph)
     {
@@ -4173,7 +4579,7 @@ function CBinaryFileWriter()
         oThis._WriteLimit2(3, ph.sz);
         oThis._WriteLimit2(4, ph.type);
         oThis.WriteUChar(g_nodeAttributeEnd);
-    }
+    };
 
     this.WriteGeometry = function(geom)
     {
@@ -4205,7 +4611,7 @@ function CBinaryFileWriter()
 
             oThis.EndRecord();
         }
-    }
+    };
 
     this.WritePrstTxWarp = function(prstTxWarp)
     {
@@ -4213,7 +4619,7 @@ function CBinaryFileWriter()
         oThis._WriteLimit1(0, AscFormat.getNumByTxPrst(prstTxWarp.preset));
         oThis.WriteUChar(g_nodeAttributeEnd);
         oThis.WriteAdj(prstTxWarp.gdLst, prstTxWarp.avLst, 0);
-    }
+    };
 
     this.WriteAdj = function(gdLst, avLst, rec_num)
     {
@@ -4241,7 +4647,7 @@ function CBinaryFileWriter()
         }
 
         oThis.EndRecord();
-    }
+    };
 
     this.WriteGuides = function(gdLst, rec_num)
     {
@@ -4273,7 +4679,7 @@ function CBinaryFileWriter()
         }
 
         this.EndRecord();
-    }
+    };
 
     this.WriteAh = function(ahLstXY, ahLstPolar, rec_num)
     {
@@ -4339,7 +4745,7 @@ function CBinaryFileWriter()
         }
 
         this.EndRecord();
-    }
+    };
 
     this.WriteCnx = function(cnxLst, rec_num)
     {
@@ -4369,7 +4775,7 @@ function CBinaryFileWriter()
         }
 
         this.EndRecord();
-    }
+    };
 
     this.WriteTextRect = function(rect)
     {
@@ -4379,7 +4785,7 @@ function CBinaryFileWriter()
         oThis._WriteString2(2, rect.r);
         oThis._WriteString2(3, rect.b);
         oThis.WriteUChar(g_nodeAttributeEnd);
-    }
+    };
 
     this.WritePathLst = function(pathLst, rec_num)
     {
@@ -4498,7 +4904,7 @@ function CBinaryFileWriter()
         }
 
         this.EndRecord();
-    }
+    };
 
     // objects ------------------------------------------------------------------
 
@@ -4561,7 +4967,7 @@ function CBinaryFileWriter()
         oThis.WriteRecord2(13, tableStyle.TableTLCell, oThis.WriteTableStylePart);
 
         oThis.EndRecord();
-    }
+    };
 
     this.WriteTableStylePart = function(_part)
     {
@@ -4633,7 +5039,7 @@ function CBinaryFileWriter()
         }
 
         oThis.EndRecord();
-    }
+    };
 
     this.WriteTableStylePartWH = function(_part, tablePr)
     {
@@ -4728,7 +5134,7 @@ function CBinaryFileWriter()
 
         oThis.EndRecord();
 
-    }
+    };
 
     this.WriteTableCellBorder = function(_border)
     {
@@ -4785,7 +5191,7 @@ function CBinaryFileWriter()
 
             oThis.EndRecord();
         }
-    }
+    };
 
     this.WriteTableCellBorderLineStyle2 = function(rec_type, _border)
     {
@@ -4810,7 +5216,7 @@ function CBinaryFileWriter()
         {
             oThis.WriteRecord3(rec_type, _border, oThis.WriteTableCellBorderLineStyle);
         }
-    }
+    };
 
     this.WriteTableCellBorderLineStyle = function(_border)
     {
@@ -4870,7 +5276,7 @@ function CBinaryFileWriter()
         }
 
         oThis.WriteRecord2(1, _border.LineRef, oThis.WriteStyleRef);
-    }
+    };
     // --------------------------------------------------------------------------
 }
 

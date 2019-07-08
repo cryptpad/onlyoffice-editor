@@ -562,6 +562,10 @@ CDocumentContentElementBase.prototype.SplitTableCells = function(nColsCount, nRo
 {
 	return false;
 };
+CDocumentContentElementBase.prototype.RemoveTableCells = function()
+{
+	return false;
+};
 CDocumentContentElementBase.prototype.RemoveTable = function()
 {
 	return false;
@@ -1065,6 +1069,15 @@ CDocumentContentElementBase.prototype.IsUseInDocument = function(sId)
 	return this.Is_UseInDocument(sId);
 };
 CDocumentContentElementBase.prototype.Is_UseInDocument = function(sId)
+{
+	return false;
+};
+/**
+ * Пробегаемся по все ранам с заданной функцией
+ * @param fCheck - функция проверки содержимого рана
+ * @returns {boolean}
+ */
+CDocumentContentElementBase.prototype.CheckRunContent = function(fCheck)
 {
 	return false;
 };

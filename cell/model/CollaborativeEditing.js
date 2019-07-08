@@ -295,8 +295,14 @@
 
 					var drawing = AscCommon.g_oTableId.Get_ById(oLock.Element["rangeOrObjectId"]);
 					if(drawing && drawing.lockType !== c_oAscLockTypes.kLockTypeNone) {
+						var bLocked = drawing.lockType !== c_oAscLockTypes.kLockTypeNone && drawing.lockType !== c_oAscLockTypes.kLockTypeMine;
 						drawing.lockType = c_oAscLockTypes.kLockTypeNone;
 						bRedrawGraphicObjects = true;
+						if(drawing instanceof AscCommon.CCore) {
+							if(bLocked) {
+								Asc.editor && Asc.editor.sendEvent("asc_onLockCore", false);
+							}
+						}
 					}
 					if(!bUnlockDefName){
 						bUnlockDefName = this.handlers.trigger("checkDefNameLock", oLock);
@@ -314,8 +320,14 @@
 						if (!this.handlers.trigger("checkCommentRemoveLock", oLock.Element)) {
 							drawing = AscCommon.g_oTableId.Get_ById(oLock.Element["rangeOrObjectId"]);
 							if(drawing && drawing.lockType !== c_oAscLockTypes.kLockTypeNone) {
+								var bLocked = drawing.lockType !== c_oAscLockTypes.kLockTypeNone && drawing.lockType !== c_oAscLockTypes.kLockTypeMine;
 								drawing.lockType = c_oAscLockTypes.kLockTypeNone;
 								bRedrawGraphicObjects = true;
+								if(drawing instanceof AscCommon.CCore) {
+									if(bLocked) {
+										Asc.editor && Asc.editor.sendEvent("asc_onLockCore", false);
+									}
+								}
 							}
 							if(!bUnlockDefName){
 								bUnlockDefName = this.handlers.trigger("checkDefNameLock", oLock);

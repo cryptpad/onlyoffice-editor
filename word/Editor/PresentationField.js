@@ -33,7 +33,7 @@
 "use strict";
 
 (function(window, undefined){
-     var oMonths = {};
+    var oMonths = {};
     oMonths[0] = "January";
     oMonths[1] = "February";
     oMonths[2] = "March";
@@ -47,7 +47,7 @@
     oMonths[10] = "November";
     oMonths[11] = "December";
 
-     var oDays = {};
+    var oDays = {};
     oDays[0] = "Sunday";
     oDays[1] = "Monday";
     oDays[2] = "Tuesday";
@@ -56,15 +56,22 @@
     oDays[5] = "Friday";
     oDays[6] = "Saturday";
 
-    function AlignNum(Num, nDigitsCount)
-    {
-        var sStr = "" + Num;
-        for(var i = sStr.length; i < nDigitsCount; ++i)
-        {
-            sStr = '0' + sStr;
-        }
-        return sStr;
-    }
+
+
+    var oDateTimeFormats = {};
+    oDateTimeFormats["datetime1"] = "MM/DD/YYYY";
+    oDateTimeFormats["datetime2"] = "dddd\\,\\ mmmm\\ dd\\,\\ yyyy";
+    oDateTimeFormats["datetime3"] = "DD\\ MMMM\\ YYYY";
+    oDateTimeFormats["datetime4"] = "MMMM\\ DD\\,\\ YYYY";
+    oDateTimeFormats["datetime5"] = "DD-MMM-YY";
+    oDateTimeFormats["datetime6"] = "MMMM\\ YY";
+    oDateTimeFormats["datetime7"] = "MMM-YY";
+    oDateTimeFormats["datetime8"] = "MM/DD/YYYY\\ hh:mm\\ AM/PM";
+    oDateTimeFormats["datetime9"] = "MM/DD/YYYY\\ hh:mm:ss\\ AM/PM";
+    oDateTimeFormats["datetime10"] = "hh:mm";
+    oDateTimeFormats["datetime11"] = "hh:mm:ss";
+    oDateTimeFormats["datetime12"] = "hh:mm\\ AM/PM";
+    oDateTimeFormats["datetime13"] = "hh:mm:ss:\\ AM/PM";
 
     function CPresentationField(Paragraph)
     {
@@ -88,7 +95,7 @@
         }
         var Field = new CPresentationField(this.Paragraph);
         Field.Set_Pr( this.Pr.Copy() );
-        Field.SetGuid( '{' + AscCommon.GUID() + '}');
+        Field.SetGuid(AscCommon.CreateGUID());
         Field.SetFieldType( this.FieldType );
         if(this.PPr)
         {
@@ -134,6 +141,10 @@
         }
         ParaRun.prototype.Remove_FromContent.call(this, Pos, Count, UpdatePosition);
     };
+    CPresentationField.prototype.Is_Empty = function()
+    {
+        return false;
+    };
 
     CPresentationField.prototype.private_CalculateContent = function()
     {
@@ -146,159 +157,134 @@
             }
         }, this, []);
     };
+    CPresentationField.prototype.GetFieldType = function(){
+        if(typeof this.FieldType === 'string') {
+            return this.FieldType.toLowerCase();
+        }
+        return "";
+    };
     CPresentationField.prototype.private_GetString = function()
     {
         var sStr = null;
-        var oDate;
         var oStylesObject;
+        var oCultureInfo = AscCommon.g_aCultureInfos[this.Get_CompiledPr().Lang.Val];
+        if(!oCultureInfo)
+        {
+            oCultureInfo = AscCommon.g_aCultureInfos[1033];
+        }
+        var oDateTime, oFormat;
         if(typeof this.FieldType === 'string')
         {
             var sFieldType = this.FieldType.toLowerCase();
-            switch (sFieldType)
+            sStr = sFieldType;
+            if("slidenum" === sFieldType)
             {
-                case "slidenum":
+                if(this.Paragraph && this.Paragraph.Parent)
                 {
-                    if(this.Paragraph && this.Paragraph.Parent)
+                    oStylesObject = this.Paragraph.Parent.Get_Styles();
+                    var nFirstSlideNum = 1;
+                    if(oStylesObject.presentation)
                     {
-                        oStylesObject = this.Paragraph.Parent.Get_Styles();
-                        if(oStylesObject.slide)
+                        if(AscFormat.isRealNumber(oStylesObject.presentation.firstSlideNum))
                         {
-                            this.Slide = oStylesObject.slide;
+                            nFirstSlideNum = oStylesObject.presentation.firstSlideNum;
+                        }
+                    }
+                    if(oStylesObject.slide)
+                    {
+                        this.Slide = oStylesObject.slide;
+                        if(AscFormat.isRealNumber(this.Slide.num))
+                        {
+                            this.SlideNum = this.Slide.num;
+                            sStr = '' + (this.Slide.num + nFirstSlideNum);
+                        }
+                    }
+                    else if(oStylesObject.notes)
+                    {
+                        if(oStylesObject.notes.slide)
+                        {
+                            this.Slide = oStylesObject.notes.slide;
                             if(AscFormat.isRealNumber(this.Slide.num))
                             {
                                 this.SlideNum = this.Slide.num;
-                                sStr = '' + (this.Slide.num + 1);
+                                sStr = '' + (this.Slide.num + nFirstSlideNum);
                             }
                         }
-                        else if(oStylesObject.layout)
-                        {
-                            this.SlideNum = oStylesObject.layout.lastRecalcSlideIndex;
-                            sStr = '' + (oStylesObject.layout.lastRecalcSlideIndex + 1);
-                        }
-                        else if(oStylesObject.master)
-                        {
-                            this.SlideNum = oStylesObject.master.lastRecalcSlideIndex;
-                            sStr = '' + (oStylesObject.master.lastRecalcSlideIndex + 1);
-                        }
                     }
-                    break;
-                }
-                case "value":
-                {
-                    if(this.Paragraph && this.Paragraph.Parent)
+                    else if(oStylesObject.layout)
                     {
-                        oStylesObject = this.Paragraph.Parent.Get_Styles();
-                        if(oStylesObject.shape && oStylesObject.shape.getValueString())
-                        {
-                            sStr = oStylesObject.shape.getValueString();
-                        }
+                        this.SlideNum = oStylesObject.layout.lastRecalcSlideIndex;
+                        sStr = '' + (oStylesObject.layout.lastRecalcSlideIndex + nFirstSlideNum);
                     }
-                    break;
-                }
-                case "percentage":
-                {
-                    if(this.Paragraph && this.Paragraph.Parent)
+                    else if(oStylesObject.master)
                     {
-                        oStylesObject = this.Paragraph.Parent.Get_Styles();
-                        if(oStylesObject.shape && oStylesObject.shape.getPercentageString())
-                        {
-                            sStr = oStylesObject.shape.getPercentageString();
-                        }
+                        this.SlideNum = oStylesObject.master.lastRecalcSlideIndex;
+                        sStr = '' + (oStylesObject.master.lastRecalcSlideIndex + nFirstSlideNum);
                     }
-                    break;
                 }
-                case "datetime":
+            }
+            else if("value" === sFieldType)
+            {
+                if(this.Paragraph && this.Paragraph.Parent)
                 {
-                    oDate = new Date();
-                    sStr = AlignNum(oDate.getMonth() + 1, 2) + '/' + AlignNum(oDate.getDate(), 2) + '/' + oDate.getFullYear();
-                    break;
+                    oStylesObject = this.Paragraph.Parent.Get_Styles();
+                    if(oStylesObject.shape && oStylesObject.shape.getValueString())
+                    {
+                        sStr = oStylesObject.shape.getValueString();
+                    }
                 }
-                case "datetime1":
+            }
+            else if("percentage" === sFieldType)
+            {
+                if(this.Paragraph && this.Paragraph.Parent)
                 {
-                    oDate = new Date();
-                    sStr = AlignNum(oDate.getMonth() + 1, 2) + '/' + AlignNum(oDate.getDate(), 2) + '/' + oDate.getFullYear();
-                    break;
+                    oStylesObject = this.Paragraph.Parent.Get_Styles();
+                    if(oStylesObject.shape && oStylesObject.shape.getPercentageString())
+                    {
+                        sStr = oStylesObject.shape.getPercentageString();
+                    }
                 }
-                case "datetime2":
+            }
+            else if(sFieldType.indexOf("datetime") === 0)
+            {
+                oFormat = this.private_GetDateTimeFormat(sFieldType);
+                if(oFormat)
                 {
-                    oDate = new Date();
-                    sStr = AscCommon.translateManager.getValue(oDays[oDate.getDay()]) + ', ' + AscCommon.translateManager.getValue(oMonths[oDate.getMonth()]) + ' ' + AlignNum(oDate.getDate(), 2) + ', ' + oDate.getFullYear();
-                    break;
+                    oDateTime = new Asc.cDate();
+                    sStr =  oFormat.formatToChart(oDateTime.getExcelDate() + (oDateTime.getHours() * 60 * 60 + oDateTime.getMinutes() * 60 + oDateTime.getSeconds()) / AscCommonExcel.c_sPerDay, 15, oCultureInfo);
                 }
-                case "datetime3":
-                {
-                    oDate = new Date();
-                    sStr = AlignNum(oDate.getDate(), 2) + ' ' + AscCommon.translateManager.getValue(oMonths[oDate.getMonth()]) + ' ' + oDate.getFullYear();
-                    break;
-                }
-                case "datetime4":
-                {
-                    oDate = new Date();
-                    sStr = AscCommon.translateManager.getValue(oMonths[oDate.getMonth()]) + ' ' + AlignNum(oDate.getDate(), 2) + ', ' + oDate.getFullYear();
-                    break;
-                }
-                case "datetime5":
-                {
-                    oDate = new Date();
-                    sStr = AlignNum(oDate.getDate(), 2) + '-' + AscCommon.translateManager.getValue(oMonths[oDate.getMonth()]).slice(0, 3) + '-' + (oDate.getFullYear() + '').slice(2, 4);
-                    break;
-                }
-                case "datetime6":
-                {
-                    oDate = new Date();
-                    sStr = AscCommon.translateManager.getValue(oMonths[oDate.getMonth()]) + ' ' + (oDate.getFullYear() + '').slice(2, 4);
-                    break;
-                }
-                case "datetime7":
-                {
-                    oDate = new Date();
-                    sStr = AscCommon.translateManager.getValue(oMonths[oDate.getMonth()]).slice(0, 3) + '-' + (oDate.getFullYear() + '').slice(2, 4);
-                    break;
-                }
-                case "datetime8":
-                {
-                    oDate = new Date();
-                    sStr = AlignNum(oDate.getMonth() + 1, 2) + '/' + AlignNum(oDate.getDate(), 2) + '/' + oDate.getFullYear() + ' ' + oDate.toLocaleString('en-US', { hour: 'numeric', hour12: true, minute: 'numeric' });
-                    break;
-                }
-                case "datetime9":
-                {
-                    oDate = new Date();
-                    sStr = AlignNum(oDate.getMonth() + 1, 2) + '/' + AlignNum(oDate.getDate(), 2) + '/' + oDate.getFullYear() + ' ' + oDate.toLocaleString('en-US', { hour: 'numeric', hour12: true, minute: 'numeric', second: 'numeric' });
-                    break;
-                }
-                case "datetime10":
-                {
-                    oDate = new Date();
-                    sStr = oDate.toLocaleString('en-US', { hour: 'numeric',  minute: 'numeric', hour12: false });
-                    break;
-                }
-                case "datetime11":
-                {
-                    oDate = new Date();
-                    sStr = oDate.toLocaleString('en-US', { hour: 'numeric',  minute: 'numeric', second: 'numeric', hour12: false });
-                    break;
-                }
-                case "datetime12":
-                {
-                    oDate = new Date();
-                    sStr = oDate.toLocaleString('en-US', { hour: 'numeric', hour12: true, minute: 'numeric' });
-                    break;
-                }
-                case "datetime13":
-                {
-                    oDate = new Date();
-                    sStr = oDate.toLocaleString('en-US', { hour: 'numeric', hour12: true, minute: 'numeric', second: 'numeric' });
-                    break;
-                }
-                default:
+                else
                 {
                     sStr = sFieldType.toUpperCase();
-                    break;
                 }
+            }
+            else
+            {
+                sStr = sFieldType.toUpperCase();
             }
         }
         return sStr;
+    };
+
+    CPresentationField.prototype.private_GetDateTimeFormat = function(sFieldType)
+    {
+        var oFormat = null;
+        if(oDateTimeFormats[sFieldType])
+        {
+            oFormat = AscCommon.oNumFormatCache.get(oDateTimeFormats[sFieldType]);
+        }
+        else
+        {
+            if(typeof AscCommonWord.sDefaultDateTimeFormat === "string" && oDateTimeFormats[AscCommonWord.sDefaultDateTimeFormat])
+            {
+                oFormat = AscCommon.oNumFormatCache.get(oDateTimeFormats[AscCommonWord.sDefaultDateTimeFormat]);
+            }
+            else
+            {
+                oFormat = AscCommon.oNumFormatCache.get(oDateTimeFormats["datetime1"]);
+            }
+        }
+        return oFormat;
     };
 
     CPresentationField.prototype.Recalculate_MeasureContent = function()
@@ -339,4 +325,5 @@
 //--------------------------------------------------------export----------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};
 window['AscCommonWord'].CPresentationField = CPresentationField;
+window['AscCommonWord'].sDefaultDateTimeFormat = "datetime1";
 })(window);

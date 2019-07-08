@@ -353,6 +353,10 @@ CHdrFtrController.prototype.SplitTableCells = function(Cols, Rows)
 {
 	this.HdrFtr.SplitTableCells(Cols, Rows);
 };
+CHdrFtrController.prototype.RemoveTableCells = function()
+{
+	this.HdrFtr.RemoveTableCells();
+};
 CHdrFtrController.prototype.RemoveTable = function()
 {
 	this.HdrFtr.RemoveTable();

@@ -1568,6 +1568,9 @@ Paragraph.prototype.private_RecalculateLineCheckRanges = function(CurLine, CurPa
 		Ranges[nIndex].Y1 = AscCommon.CorrectMMToTwips(Ranges[nIndex].Y1);
 	}
 
+	if (this.LogicDocument && this.LogicDocument.GetCompatibilityMode && this.LogicDocument.GetCompatibilityMode() >= document_compatibility_mode_Word15)
+		Bottom = Bottom2;
+
     if ( true === this.Use_Wrap() )
         Ranges2 = this.Parent.CheckRange(Left, Top, Right, Bottom, Top2, Bottom2, PageFields.X, PageFields.XLimit, this.private_GetRelativePageIndex(CurPage), true, PRS.MathNotInline);
     else
@@ -3074,7 +3077,7 @@ CParagraphRecalculateStateWrap.prototype =
 				isHaveNumbering = true;
 			}
 
-			if (!isHaveNumbering || (!NumPr && !oPrevNumPr))
+			if (!isHaveNumbering || (!NumPr && !oPrevNumPr) || (!NumPr && reviewtype_Add === nReviewType))
 			{
 				// Так мы обнуляем все рассчитанные ширины данного элемента
 				NumberingItem.Measure(g_oTextMeasurer, undefined);
@@ -3139,7 +3142,7 @@ CParagraphRecalculateStateWrap.prototype =
 					else
 					{
 						if (reviewtype_Remove === nReviewType)
-							NumberingItem.Measure(g_oTextMeasurer, oNumbering, oNumTextPr, Para.Get_Theme(), undefined, undefined, arrNumInfo[0], NumPr);
+							NumberingItem.Measure(g_oTextMeasurer, oNumbering, oNumTextPr, Para.Get_Theme(), undefined, undefined, arrNumInfo[1], NumPr);
 						else
 							NumberingItem.Measure(g_oTextMeasurer, oNumbering, oNumTextPr, Para.Get_Theme(), arrNumInfo[0], NumPr);
 					}

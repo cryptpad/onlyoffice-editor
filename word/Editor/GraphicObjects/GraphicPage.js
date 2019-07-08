@@ -70,32 +70,6 @@ CGraphicPage.prototype =
         return editor.WordControl.m_oLogicDocument.GetCompatibilityMode();
     },
 
-    findWatermark: function()
-    {
-        if(this.graphicObjects && this.hdrFtrPage)
-        {
-            return this.hdrFtrPage.findWatermark();
-        }
-        var i, drawing;
-        for(i = this.beforeTextObjects.length - 1; i > -1; --i)
-        {
-            drawing = this.beforeTextObjects[i];
-            if(drawing.isWatermark())
-            {
-                return drawing;
-            }
-        }
-        for(i = this.behindDocObjects.length - 1; i > -1; --i)
-        {
-            drawing = this.beforeTextObjects[i];
-            if(drawing.isWatermark())
-            {
-                return drawing;
-            }
-        }
-        return null;
-    },
-
     addFloatTable: function(table)
     {
         for(var i = 0; i < this.flowTables.length; ++i)
@@ -110,11 +84,13 @@ CGraphicPage.prototype =
     {
 
         var drawing_array, need_sort = true;
-        if(object.parent.Is_Inline()){
+
+        var Type = object.parent.getDrawingArrayType();
+        if(Type === DRAWING_ARRAY_TYPE_INLINE){
             drawing_array = this.inlineObjects;
             need_sort = false;
         }
-        else if(object.parent.behindDoc == true && (this.getCompatibilityMode() < document_compatibility_mode_Word15 || object.parent.wrappingType === WRAPPING_TYPE_NONE)){
+        else if(Type === DRAWING_ARRAY_TYPE_BEHIND){
             drawing_array  = this.behindDocObjects;
         }
         else{
@@ -216,10 +192,12 @@ CGraphicPage.prototype =
         var oDrawing = AscCommon.g_oTableId.Get_ById(id);
         if(oDrawing){
             var drawing_array;
-            if(oDrawing.Is_Inline()){
+
+            var Type = oDrawing.getDrawingArrayType();
+            if(Type === DRAWING_ARRAY_TYPE_INLINE){
                 drawing_array = this.inlineObjects;
             }
-            else if(oDrawing.behindDoc === true  && (this.getCompatibilityMode() < document_compatibility_mode_Word15 || oDrawing.wrappingType === WRAPPING_TYPE_NONE)){
+            else if(Type === DRAWING_ARRAY_TYPE_BEHIND){
                 drawing_array = this.behindDocObjects;
             }
             else{
@@ -339,10 +317,12 @@ CGraphicPage.prototype =
     },
 
     addGraphicObject: function(graphicObject){
-        if(graphicObject.Is_Inline()){
+
+        var Type = graphicObject.getDrawingArrayType();
+        if(Type === DRAWING_ARRAY_TYPE_INLINE){
             this.inlineObjects.push(graphicObject);
         }
-        else if(graphicObject.behindDoc === true && (this.getCompatibilityMode() < document_compatibility_mode_Word15 || graphicObject.wrappingType === WRAPPING_TYPE_NONE)){
+        else if(Type === DRAWING_ARRAY_TYPE_BEHIND){
             this.behindDocObjects.push(graphicObject);
             this.behindDocObjects.sort(ComparisonByZIndexSimpleParent);
         }

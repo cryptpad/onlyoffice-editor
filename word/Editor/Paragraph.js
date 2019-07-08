@@ -313,6 +313,9 @@ Paragraph.prototype.Copy = function(Parent, DrawingDocument, oPr)
 	Para.Internal_Content_Add(Para.Content.length, EndRun, false);
 	EndRun.Set_Pr(this.TextPr.Value.Copy());
 
+	if (this.LogicDocument && (this.LogicDocument.RecalcTableHeader || this.LogicDocument.MoveDrawing))
+		EndRun.SetReviewTypeWithInfo(this.GetReviewType(), this.GetReviewInfo());
+
 	// Добавляем секцию в конце
 	if (undefined !== this.SectPr)
 	{
@@ -4102,7 +4105,7 @@ Paragraph.prototype.Correct_ContentPos = function(CorrectEndLinePos)
 		while (_CurPos < Count && true === this.Content[_CurPos].Is_Empty({SkipAnchor : true}))
 			_CurPos++;
 
-		if (_CurPos < Count && true === this.Content[_CurPos].Is_StartFromNewLine())
+		if (_CurPos < Count && true === this.Content[_CurPos].IsStartFromNewLine())
 		{
 			CurPos = _CurPos;
 			this.Content[CurPos].MoveCursorToStartPos();
@@ -7495,6 +7498,9 @@ Paragraph.prototype.GetSelectedContent = function(oSelectedContent)
 	if (oSelectedContent.IsTrackRevisions())
 	{
 		oPara = new Paragraph(this.DrawingDocument, this.Parent, !this.bFromDocument);
+		oPara.Set_Pr(this.Pr.Copy());
+		oPara.TextPr.Set_Value(this.TextPr.Value.Copy());
+
 		for (var nPos = nStartPos, nParaPos = 0; nPos <= nEndPos; ++nPos)
 		{
 			var oNewItem = this.Content[nPos].GetSelectedContent(oSelectedContent);
@@ -8431,6 +8437,28 @@ Paragraph.prototype.Get_CompiledPr = function()
 				}
 			}
 		}
+		else if (true === this.Parent.IsBlockLevelSdtContent() && true === Pr.ParaPr.ContextualSpacing)
+		{
+			var oPrevPara = null;
+			var oSdt      = this.Parent.Parent;
+			while (oSdt instanceof CBlockLevelSdt)
+			{
+				var oTempPrev = oSdt.Get_DocumentPrev();
+				if (oTempPrev)
+				{
+					oPrevPara = oTempPrev.GetLastParagraph();
+					break;
+				}
+
+				if (oSdt.Parent instanceof CDocumentContent && oSdt.Parent.Parent instanceof CBlockLevelSdt)
+					oSdt = oSdt.Parent.Parent;
+				else
+					oSdt = null;
+			}
+
+			if ((null === oPrevPara && undefined === StyleId) || (oPrevPara && oPrevPara.Style_Get() === StyleId))
+				Pr.ParaPr.Spacing.Before = 0;
+		}
 		else if (true === Pr.ParaPr.Spacing.BeforeAutoSpacing || !(this.bFromDocument === true))
 		{
 			Pr.ParaPr.Spacing.Before = 0;
@@ -8443,10 +8471,16 @@ Paragraph.prototype.Get_CompiledPr = function()
 			Pr.ParaPr.Spacing.Before = 14 * g_dKoef_pt_to_mm;
 		}
 	}
+	else if (PrevEl.IsBlockLevelSdt())
+	{
+		var oPrevPara = PrevEl.GetLastParagraph();
+		if (oPrevPara && oPrevPara.Style_Get() === StyleId)
+			Pr.ParaPr.Spacing.Before = 0;
+	}
 
 	if (null != NextEl)
 	{
-		if (type_Paragraph === NextEl.GetType())
+		if (NextEl.IsParagraph())
 		{
 			var NextStyle       = NextEl.Style_Get();
 			var Next_Pr         = NextEl.Get_CompiledPr2(false).ParaPr;
@@ -8475,14 +8509,14 @@ Paragraph.prototype.Get_CompiledPr = function()
 			else
 				Pr.ParaPr.Brd.Last = true;
 		}
-		else if (type_Table === NextEl.GetType())
+		else if (NextEl.IsTable() || NextEl.IsBlockLevelSdt())
 		{
-			var TableFirstParagraph = NextEl.Get_FirstParagraph();
-			if (null != TableFirstParagraph && undefined != TableFirstParagraph)
+			var oNextElFirstParagraph = NextEl.GetFirstParagraph();
+			if (oNextElFirstParagraph)
 			{
-				var NextStyle       = TableFirstParagraph.Style_Get();
-				var Next_Before     = TableFirstParagraph.Get_CompiledPr2(false).ParaPr.Spacing.Before;
-				var Next_BeforeAuto = TableFirstParagraph.Get_CompiledPr2(false).ParaPr.Spacing.BeforeAutoSpacing;
+				var NextStyle       = oNextElFirstParagraph.Style_Get();
+				var Next_Before     = oNextElFirstParagraph.Get_CompiledPr2(false).ParaPr.Spacing.Before;
+				var Next_BeforeAuto = oNextElFirstParagraph.Get_CompiledPr2(false).ParaPr.Spacing.BeforeAutoSpacing;
 				var Cur_After       = Pr.ParaPr.Spacing.After;
 				var Cur_AfterAuto   = Pr.ParaPr.Spacing.AfterAutoSpacing;
 				if (NextStyle === StyleId && true === Pr.ParaPr.ContextualSpacing)
@@ -8516,6 +8550,28 @@ Paragraph.prototype.Get_CompiledPr = function()
 		else if (true === this.Parent.IsTableCellContent() && true === Pr.ParaPr.Spacing.AfterAutoSpacing)
 		{
 			Pr.ParaPr.Spacing.After = 0;
+		}
+		else if (this.Parent.IsBlockLevelSdtContent() && true === Pr.ParaPr.ContextualSpacing)
+		{
+			var oNextPara = null;
+			var oSdt      = this.Parent.Parent;
+			while (oSdt instanceof CBlockLevelSdt)
+			{
+				var oTempNext = oSdt.Get_DocumentNext();
+				if (oTempNext)
+				{
+					oNextPara = oTempNext.GetFirstParagraph();
+					break;
+				}
+
+				if (oSdt.Parent instanceof CDocumentContent && oSdt.Parent.Parent instanceof CBlockLevelSdt)
+					oSdt = oSdt.Parent.Parent;
+				else
+					oSdt = null;
+			}
+
+			if ((null === oNextPara && undefined === StyleId) || (oNextPara && oNextPara.Style_Get() === StyleId))
+				Pr.ParaPr.Spacing.After = 0;
 		}
 		else if (!(this.bFromDocument === true))
 		{
@@ -11670,6 +11726,13 @@ Paragraph.prototype.ReplaceMisspelledWord = function(Word, oElement)
 	if (!Element)
 		return;
 
+	var isEndDot = false;
+	if (Element.IsEndDot() && 0x002E === Word.charCodeAt(Word.length - 1))
+	{
+		Word     = Word.substr(0, Word.length - 1);
+		isEndDot = true;
+	}
+
 	// Сначала вставим новое слово
 	var Class = Element.StartRun;
 	if (para_Run !== Class.Type || Element.StartPos.Data.Depth <= 0)
@@ -11706,6 +11769,8 @@ Paragraph.prototype.ReplaceMisspelledWord = function(Word, oElement)
 
 	this.RemoveSelection();
 	this.Set_ParaContentPos(StartPos, true, -1, -1);
+	if (isEndDot)
+		this.MoveCursorRight(false, false);
 
 	this.RecalcInfo.Set_Type_0(pararecalc_0_All);
 
@@ -13930,6 +13995,34 @@ Paragraph.prototype.RemoveElement = function(oElement)
 		{
 			oItem.RemoveElement(oElement);
 		}
+	}
+};
+/**
+ * Пробегаемся по все ранам с заданной функцией
+ * @param fCheck - функция проверки содержимого рана
+ * @returns {boolean}
+ */
+Paragraph.prototype.CheckRunContent = function(fCheck)
+{
+	for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
+	{
+		if (this.Content[nPos].CheckRunContent(fCheck))
+			return true;
+	}
+
+	return false;
+};
+/**
+ * Обрабатываем сложные поля данного параграфа
+ */
+Paragraph.prototype.ProcessComplexFields = function()
+{
+	var oComplexFields = new CParagraphComplexFieldsInfo();
+	oComplexFields.ResetPage(this, 0);
+
+	for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
+	{
+		this.Content[nPos].ProcessComplexFields(oComplexFields);
 	}
 };
 

@@ -179,7 +179,7 @@ CChartSpace.prototype.handleUpdateExtents = function()
     this.recalcTransform();
     this.recalcWrapPolygon();
     this.recalcTitles();
-    this.handleUpdateInternalChart();
+    this.handleUpdateInternalChart(false);
 };
 CChartSpace.prototype.handleUpdateFlip = function()
 {
@@ -226,7 +226,7 @@ CChartSpace.prototype.recalcText = function()
 {
     this.recalcInfo.recalculateAxisLabels = true;
     this.recalcTitles2();
-    this.handleUpdateInternalChart();
+    this.handleUpdateInternalChart(false);
 };
 
 CChartSpace.prototype.setStartPage = function(pageIndex)

@@ -1065,6 +1065,11 @@ CHeaderFooter.prototype =
 		this.Content.SplitTableCells(Cols, Rows);
 	},
 
+	RemoveTableCells : function()
+	{
+		this.Content.RemoveTableCells();
+	},
+
 	RemoveTable : function()
 	{
 		this.Content.RemoveTable();
@@ -1302,6 +1307,31 @@ CHeaderFooter.prototype.GetAllContentControls = function(arrContentControls)
 CHeaderFooter.prototype.GetContent = function()
 {
 	return this.Content;
+};
+
+CHeaderFooter.prototype.FindWatermark = function()
+{
+    var aAllDrawings = this.Content.GetAllDrawingObjects();
+    var oCandidate = null, oDrawing;
+    for(var i = aAllDrawings.length - 1; i > -1; --i)
+    {
+        oDrawing = aAllDrawings[i];
+        if(oDrawing.IsWatermark())
+        {
+            if(null === oCandidate)
+            {
+                oCandidate = oDrawing;
+            }
+            else
+            {
+                if(oCandidate.getDrawingArrayType() < oDrawing.getDrawingArrayType() || ComparisonByZIndexSimple(oDrawing, oCandidate))
+                {
+                    oCandidate = oDrawing;
+                }
+            }
+        }
+    }
+    return oCandidate;
 };
 
 //-----------------------------------------------------------------------------------
@@ -2435,6 +2465,12 @@ CHeaderFooterController.prototype =
 	{
 		if (null != this.CurHdrFtr)
 			this.CurHdrFtr.SplitTableCells(Cols, Rows);
+	},
+
+	RemoveTableCells : function()
+	{
+		if (this.CurHdrFtr)
+			this.CurHdrFtr.RemoveTableCells();
 	},
 
 	RemoveTable : function()

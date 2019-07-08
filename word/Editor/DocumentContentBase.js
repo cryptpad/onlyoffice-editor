@@ -380,7 +380,7 @@ CDocumentContentBase.prototype.private_Remove = function(Count, isRemoveWholeEle
 				_nEndPos = EndPos;
 
 			var oDirectParaPr = null;
-			if (this.Content[StartPos].IsParagraph())
+			if (this.Content[StartPos].IsParagraph() && !this.Content[StartPos].IsSelectedAll())
 				oDirectParaPr = this.Content[StartPos].GetDirectParaPr();
 
 			// TODO: Сделать для таблиц
@@ -402,7 +402,7 @@ CDocumentContentBase.prototype.private_Remove = function(Count, isRemoveWholeEle
 				}
 			}
 
-			if (StartPos === EndPos && this.Content[StartPos].IsTable() && !this.Content[StartPos].IsCellSelection())
+			if (StartPos === EndPos && this.Content[StartPos].IsTable() && (!this.Content[StartPos].IsCellSelection() || bOnTextAdd))
 			{
 				this.Content[StartPos].Remove(1, true, bRemoveOnlySelection, bOnTextAdd);
 			}
@@ -413,7 +413,7 @@ CDocumentContentBase.prototype.private_Remove = function(Count, isRemoveWholeEle
 				{
 					var oElement = this.Content[nIndex];
 					if (oElement.IsTable())
-						oElement.RemoveTableRow();
+						oElement.RemoveTableCells();
 					else
 						oElement.Remove(1, true, bRemoveOnlySelection, bOnTextAdd);
 				}
@@ -633,7 +633,7 @@ CDocumentContentBase.prototype.private_Remove = function(Count, isRemoveWholeEle
 				this.CurPos.ContentPos = StartPos;
 				if (Count < 0 && type_Table === this.Content[StartPos].GetType() && true === this.Content[StartPos].IsCellSelection() && true != bOnTextAdd)
 				{
-					this.RemoveTableRow();
+					this.RemoveTableCells();
 				}
 				else if (false === this.Content[StartPos].Remove(Count, isRemoveWholeElement, bRemoveOnlySelection, bOnTextAdd))
 				{
@@ -836,11 +836,18 @@ CDocumentContentBase.prototype.private_Remove = function(Count, isRemoveWholeEle
 					}
 					else if (true == this.Content[nCurContentPos].IsEmpty() && nCurContentPos == this.Content.length - 1 && nCurContentPos != 0 && type_Paragraph === this.Content[nCurContentPos - 1].GetType())
 					{
-						// Если данный параграф пустой, последний, не единственный и идущий перед
-						// ним элемент не таблица, удаляем его
-						this.Internal_Content_Remove(nCurContentPos, 1);
-						nCurContentPos--;
-						this.Content[nCurContentPos].MoveCursorToEndPos(false, false);
+						if (this.IsTrackRevisions())
+						{
+							bRetValue = false;
+						}
+						else
+						{
+							// Если данный параграф пустой, последний, не единственный и идущий перед
+							// ним элемент не таблица, удаляем его
+							this.Internal_Content_Remove(nCurContentPos, 1);
+							nCurContentPos--;
+							this.Content[nCurContentPos].MoveCursorToEndPos(false, false);
+						}
 					}
 					else if (nCurContentPos === this.Content.length - 1)
 					{
@@ -1589,6 +1596,23 @@ CDocumentContentBase.prototype.ConcatParagraphs = function(nPosition, isUseConca
 		this.Content[nPosition].Concat(this.Content[nPosition + 1], isUseConcatedStyle);
 		this.RemoveFromContent(nPosition + 1, 1);
 		return true;
+	}
+
+	return false;
+};
+/**
+ * Пробегаемся по все ранам с заданной функцией
+ * @param fCheck - функция проверки содержимого рана
+ * @returns {boolean}
+ */
+CDocumentContentBase.prototype.CheckRunContent = function(fCheck)
+{
+	for (var nIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex)
+	{
+		if (this.Content[nIndex].CheckRunContent(fCheck))
+		{
+			return true;
+		}
 	}
 
 	return false;
