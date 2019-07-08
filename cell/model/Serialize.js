@@ -4736,6 +4736,9 @@
                 res = this.bcr.Read1(length, function(t,l){
                     return oThis.ReadAutoFilter(t,l, oTable.AutoFilter);
                 });
+                if(!oTable.AutoFilter.Ref) {
+					oTable.AutoFilter.Ref = oTable.generateAutoFilterRef();
+                }
             }
             else if ( c_oSer_TablePart.SortState == type )
             {
