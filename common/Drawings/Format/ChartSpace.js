@@ -11488,43 +11488,66 @@ CChartSpace.prototype.recalculateDLbls = function()
             {
                 var ser = series[i];
                 var pts = AscFormat.getPtsFromSeries(ser);
-                for(var j = 0; j < pts.length; ++j)
+
+
+                var series_dlb = new AscFormat.CDLbl();
+                series_dlb.merge(default_lbl);
+                series_dlb.merge(aCharts[t].dLbls);
+                series_dlb.merge(ser.dLbls);
+
+
+
+                var bCheckAll = true, j;
+                if(series_dlb.checkNoLbl())
                 {
-
-                    var pt = pts[j];
-
-                    if(bSkip){
-
-                        if(nLblCount > (MAX_LABELS_COUNT*(nCount/this.ptsCount))){
-                            pt.compiledDlb = null;
-                            nCount++;
-                            continue;
+                    if(!aCharts[t].dLbls || aCharts[t].dLbls.dLbl.length === 0
+                    && !ser.dLbls || ser.dLbls.dLbl.length === 0)
+                    {
+                        for(j = 0; j < pts.length; ++j)
+                        {
+                            pts[j].compiledDlb = null;
                         }
-
+                        bCheckAll = false;
                     }
-                    var compiled_dlb = new AscFormat.CDLbl();
-                    compiled_dlb.merge(default_lbl);
-                    compiled_dlb.merge(aCharts[t].dLbls);
-                    if(aCharts[t].dLbls)
-                        compiled_dlb.merge(aCharts[t].dLbls.findDLblByIdx(pt.idx), false);
-                    compiled_dlb.merge(ser.dLbls);
-                    if(ser.dLbls)
-                        compiled_dlb.merge(ser.dLbls.findDLblByIdx(pt.idx));
-
-                    if(compiled_dlb.checkNoLbl())
+                }
+                if(bCheckAll)
+                {
+                    for(j = 0; j < pts.length; ++j)
                     {
-                        pt.compiledDlb = null;
+                        var pt = pts[j];
+                        if(bSkip){
+
+                            if(nLblCount > (MAX_LABELS_COUNT*(nCount/this.ptsCount))){
+                                pt.compiledDlb = null;
+                                nCount++;
+                                continue;
+                            }
+
+                        }
+                        var compiled_dlb = new AscFormat.CDLbl();
+                        compiled_dlb.merge(default_lbl);
+                        compiled_dlb.merge(aCharts[t].dLbls);
+                        if(aCharts[t].dLbls)
+                            compiled_dlb.merge(aCharts[t].dLbls.findDLblByIdx(pt.idx), false);
+                        compiled_dlb.merge(ser.dLbls);
+                        if(ser.dLbls)
+                            compiled_dlb.merge(ser.dLbls.findDLblByIdx(pt.idx));
+
+                        if(compiled_dlb.checkNoLbl())
+                        {
+                            pt.compiledDlb = null;
+                        }
+                        else
+                        {
+                            pt.compiledDlb = compiled_dlb;
+                            pt.compiledDlb.chart = this;
+                            pt.compiledDlb.series = ser;
+                            pt.compiledDlb.pt = pt;
+                            pt.compiledDlb.recalculate();
+                            nLblCount++;
+                        }
+                        ++nCount;
                     }
-                    else
-                    {
-                        pt.compiledDlb = compiled_dlb;
-                        pt.compiledDlb.chart = this;
-                        pt.compiledDlb.series = ser;
-                        pt.compiledDlb.pt = pt;
-                        pt.compiledDlb.recalculate();
-                        nLblCount++;
-                    }
-                    ++nCount;
                 }
             }
         }
