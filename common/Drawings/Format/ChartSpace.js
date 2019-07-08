@@ -1248,6 +1248,7 @@ function CChartSpace()
 
     this.pathMemory = new CPathMemory();
 
+    this.cachedCanvas = null;
 
     this.userShapes = [];//userShapes
 
@@ -12734,6 +12735,152 @@ CChartSpace.prototype.updateLinks = function()
     }
 };
 
+    CChartSpace.prototype.checkDrawingCache = function(graphics)
+    {
+        return false;
+        if(window["NATIVE_EDITOR_ENJINE"] || graphics.RENDERER_PDF_FLAG)
+        {
+            return false;
+        }
+        if(graphics.IsSlideBoundsCheckerType)
+        {
+            return false;
+        }
+        if (!this.transform.IsIdentity2())
+        {
+            return false;
+        }
+
+        var dBorderW = this.getBorderWidth();
+        var dWidth = this.extX + 2*dBorderW;
+        var dHeight = this.extY + 2*dBorderW;
+        var nWidth = (graphics.m_oCoordTransform.sx * dWidth + 0.5) >> 0;
+        var nHeight = (graphics.m_oCoordTransform.sy * dHeight + 0.5) >> 0;
+        if(this.cachedCanvas)
+        {
+            if(this.cachedCanvas.width !== nWidth || this.cachedCanvas.height !== nHeight)
+            {
+                this.cachedCanvas = null;
+            }
+        }
+        var ctx;
+        if(!this.cachedCanvas)
+        {
+            this.cachedCanvas = document.createElement('canvas');
+            this.cachedCanvas.width = nWidth;
+            this.cachedCanvas.height = nHeight;
+            ctx = this.cachedCanvas.getContext('2d');
+            var g = new AscCommon.CGraphics();
+            g.init(ctx, nWidth, nHeight, dWidth, dHeight);
+            g.m_oFontManager = AscCommon.g_fontManager;
+            g.m_oCoordTransform.tx = -((this.transform.tx - dBorderW) * graphics.m_oCoordTransform.sx + 0.5) >> 0;
+            g.m_oCoordTransform.ty = -((this.transform.ty - dBorderW) * graphics.m_oCoordTransform.sy + 0.5) >> 0;
+            g.transform(1,0,0,1,0,0);
+            this.drawInternal(g);
+        }
+        ctx = this.cachedCanvas.getContext("2d");
+        var data = ctx.getImageData(0, 0, nWidth, nHeight);
+        graphics.m_oContext.putImageData(data, ((this.transform.tx - dBorderW) * graphics.m_oCoordTransform.sx + 0.5) >> 0 , ((this.transform.ty - dBorderW) * graphics.m_oCoordTransform.sy + 0.5) >> 0);
+        return true;
+    };
+
+
+    CChartSpace.prototype.getBorderWidth = function()
+    {
+        var ln_width;
+        if(this.pen && AscFormat.isRealNumber(this.pen.w))
+        {
+            ln_width = this.pen.w/36000;
+        }
+        else
+        {
+            ln_width = 0;
+        }
+        return ln_width;
+    }
+
+    CChartSpace.prototype.drawInternal = function(graphics){
+        var oClipRect = this.getClipRect();
+        if(oClipRect){
+            graphics.SaveGrState();
+            graphics.AddClipRect(oClipRect.x, oClipRect.y, oClipRect.w, oClipRect.h);
+        }
+        graphics.SaveGrState();
+        graphics.SetIntegerGrid(false);
+        graphics.transform3(this.transform, false);
+
+        var ln_width = this.getBorderWidth();
+        graphics.AddClipRect(-ln_width, -ln_width, this.extX+2*ln_width, this.extY+2*ln_width);
+
+        if(this.chartObj)
+        {
+            this.chartObj.draw(this, graphics);
+        }
+        if(this.chart && !this.bEmptySeries)
+        {
+            if(this.chart.plotArea)
+            {
+                // var oChartSize = this.getChartSizes();
+                // graphics.p_width(70);
+                // graphics.p_color(0, 0, 0, 255);
+                // graphics._s();
+                // graphics._m(oChartSize.startX, oChartSize.startY);
+                // graphics._l(oChartSize.startX + oChartSize.w, oChartSize.startY + 0);
+                // graphics._l(oChartSize.startX + oChartSize.w, oChartSize.startY + oChartSize.h);
+                // graphics._l(oChartSize.startX + 0, oChartSize.startY + oChartSize.h);
+                // graphics._z();
+                // graphics.ds();
+                var aCharts = this.chart.plotArea.charts;
+                for(var t = 0; t < aCharts.length; ++t){
+                    var oChart = aCharts[t];
+                    if(oChart && oChart.series)
+                    {
+                        var series = oChart.series;
+                        var _len = oChart.getObjectType() === AscDFH.historyitem_type_PieChart ? 1 : series.length;
+                        for(var i = 0; i < _len; ++i)
+                        {
+                            var ser = series[i];
+                            var pts = AscFormat.getPtsFromSeries(ser);
+                            for(var j = 0; j < pts.length; ++j)
+                            {
+                                if(pts[j].compiledDlb)
+                                    pts[j].compiledDlb.draw(graphics);
+                            }
+                        }
+                    }
+                }
+                for(var  i = 0; i < this.chart.plotArea.axId.length; ++i){
+                    var oAxis = this.chart.plotArea.axId[i];
+                    if(oAxis.title){
+                        oAxis.title.draw(graphics);
+                    }
+                    if(oAxis.labels){
+                        oAxis.labels.draw(graphics);
+                    }
+                }
+            }
+            if(this.chart.title)
+            {
+                this.chart.title.draw(graphics);
+            }
+            if(this.chart.legend)
+            {
+                this.chart.legend.draw(graphics);
+            }
+        }
+        for(var i = 0; i < this.userShapes.length; ++i)
+        {
+            if(this.userShapes[i].object)
+            {
+                this.userShapes[i].object.draw(graphics);
+            }
+        }
+        graphics.RestoreGrState();
+        if(oClipRect){
+            graphics.RestoreGrState();
+        }
+    };
+
 CChartSpace.prototype.draw = function(graphics)
 {
     if(this.checkNeedRecalculate && this.checkNeedRecalculate()){
@@ -12760,97 +12907,13 @@ CChartSpace.prototype.draw = function(graphics)
             || bounds.y + bounds.h < rect.y)
             return;
     }
-    var oClipRect;
-    if(!graphics.IsSlideBoundsCheckerType){
-        oClipRect = this.getClipRect();
-    }
-    if(oClipRect){
-        graphics.SaveGrState();
-        graphics.AddClipRect(oClipRect.x, oClipRect.y, oClipRect.w, oClipRect.h);
-    }
-    graphics.SaveGrState();
-    graphics.SetIntegerGrid(false);
-    graphics.transform3(this.transform, false);
 
-    var ln_width;
-    if(this.pen && AscFormat.isRealNumber(this.pen.w))
+    if(!this.checkDrawingCache(graphics))
     {
-        ln_width = this.pen.w/36000;
+        this.drawInternal(graphics);
     }
-    else
-    {
-        ln_width = 0;
-    }
-    graphics.AddClipRect(-ln_width, -ln_width, this.extX+2*ln_width, this.extY+2*ln_width);
 
-    if(this.chartObj)
-    {
-        this.chartObj.draw(this, graphics);
-    }
-    if(this.chart && !this.bEmptySeries)
-    {
-        if(this.chart.plotArea)
-        {
-            // var oChartSize = this.getChartSizes();
-            // graphics.p_width(70);
-            // graphics.p_color(0, 0, 0, 255);
-            // graphics._s();
-            // graphics._m(oChartSize.startX, oChartSize.startY);
-            // graphics._l(oChartSize.startX + oChartSize.w, oChartSize.startY + 0);
-            // graphics._l(oChartSize.startX + oChartSize.w, oChartSize.startY + oChartSize.h);
-            // graphics._l(oChartSize.startX + 0, oChartSize.startY + oChartSize.h);
-            // graphics._z();
-            // graphics.ds();
-            var aCharts = this.chart.plotArea.charts;
-            for(var t = 0; t < aCharts.length; ++t){
-                var oChart = aCharts[t];
-                if(oChart && oChart.series)
-                {
-                    var series = oChart.series;
-                    var _len = oChart.getObjectType() === AscDFH.historyitem_type_PieChart ? 1 : series.length;
-                    for(var i = 0; i < _len; ++i)
-                    {
-                        var ser = series[i];
-                        var pts = AscFormat.getPtsFromSeries(ser);
-                        for(var j = 0; j < pts.length; ++j)
-                        {
-                            if(pts[j].compiledDlb)
-                                pts[j].compiledDlb.draw(graphics);
-                        }
-                    }
-                }
-            }
-            for(var  i = 0; i < this.chart.plotArea.axId.length; ++i){
-                var oAxis = this.chart.plotArea.axId[i];
-                if(oAxis.title){
-                    oAxis.title.draw(graphics);
-                }
-                if(oAxis.labels){
-                    oAxis.labels.draw(graphics);
-                }
-            }
-        }
-        if(this.chart.title)
-        {
-            this.chart.title.draw(graphics);
-        }
-        if(this.chart.legend)
-        {
-            this.chart.legend.draw(graphics);
-        }
-    }
-    for(var i = 0; i < this.userShapes.length; ++i)
-    {
-        if(this.userShapes[i].object)
-        {
-            this.userShapes[i].object.draw(graphics);  
-        }
-    }
-    graphics.RestoreGrState();
     if(this.drawLocks(this.transform, graphics)){
-        graphics.RestoreGrState();
-    }
-    if(oClipRect){
         graphics.RestoreGrState();
     }
 };
