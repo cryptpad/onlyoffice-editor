@@ -1106,6 +1106,19 @@ ParaRun.prototype.CheckSpelling = function(oSpellCheckerEngine, nDepth)
 	var SpellChecker = oSpellCheckerEngine.SpellChecker;
 	var ContentPos   = oSpellCheckerEngine.ContentPos;
 
+	if (reviewtype_Remove === this.GetReviewType())
+	{
+		if (true === bWord)
+		{
+			SpellChecker.Add(oSpellCheckerEngine.StartPos, oSpellCheckerEngine.EndPos, sWord, CurLcid, false);
+
+			oSpellCheckerEngine.bWord   = false;
+			oSpellCheckerEngine.sWord   = "";
+			oSpellCheckerEngine.CurLcid = CurLcid;
+		}
+		return;
+	}
+
 	var oCurTextPr = this.Get_CompiledPr(false);
 
 	if (oSpellCheckerEngine.IsFindStart())
