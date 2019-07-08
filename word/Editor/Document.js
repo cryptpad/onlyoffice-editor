@@ -14574,10 +14574,6 @@ CDocument.prototype.controller_AddToParagraph = function(ParaItem, bRecalculate)
 };
 CDocument.prototype.controller_Remove = function(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord)
 {
-	// Делаем так, чтобы при выделении нумерации удалялась нумерация. А она удаляется по backspace.
-	if (this.IsNumberingSelection())
-		return this.Selection.Data.CurPara.Remove(-1, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord);
-
 	this.private_Remove(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord);
 };
 CDocument.prototype.controller_GetCursorPosXY = function()
