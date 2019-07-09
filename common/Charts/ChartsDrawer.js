@@ -3916,6 +3916,9 @@ CChartsDrawer.prototype =
 		if(!points) {
 			return;
 		}
+		if(!axis.majorGridlines && !axis.minorGridlines) {
+			return;
+		}
 
 		var widthLine = this.calcProp.widthCanvas - (this.calcProp.chartGutter._left + this.calcProp.chartGutter._right);
 		var bottomMargin = this.calcProp.heightCanvas - this.calcProp.chartGutter._bottom;
@@ -4055,6 +4058,9 @@ CChartsDrawer.prototype =
 		var points = axis.xPoints;
 
 		if (!points) {
+			return;
+		}
+		if(!axis.majorGridlines && !axis.minorGridlines) {
 			return;
 		}
 
