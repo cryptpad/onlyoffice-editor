@@ -12764,9 +12764,11 @@ CChartSpace.prototype.updateLinks = function()
 
         var _x1 = (graphics.m_oCoordTransform.TransformPointX(this.transform.tx - dBorderW, this.transform.ty - dBorderW) + 0.5) >> 0;
         var _y1 = (graphics.m_oCoordTransform.TransformPointY(this.transform.tx - dBorderW, this.transform.ty - dBorderW) + 0.5) >> 0;
+
+        graphics.SaveGrState();
         graphics.SetIntegerGrid(true);
         graphics.m_oContext.drawImage(this.cachedCanvas, _x1, _y1, nWidth, nHeight);
-        graphics.SetIntegerGrid(false);
+        graphics.RestoreGrState();
         return true;
     };
 
