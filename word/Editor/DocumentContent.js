@@ -5705,6 +5705,10 @@ CDocumentContent.prototype.RemoveSelection = function(bNoCheckDrawing)
 {
 	if (docpostype_DrawingObjects === this.CurPos.Type)
 	{
+		var oParaDrawing = this.LogicDocument.DrawingObjects.getMajorParaDrawing();
+		if (oParaDrawing)
+			oParaDrawing.GoTo_Text(undefined, false);
+
 		return this.LogicDocument.DrawingObjects.resetSelection(undefined, bNoCheckDrawing);
 	}
 	else //if ( docpostype_Content === this.CurPos.Type )

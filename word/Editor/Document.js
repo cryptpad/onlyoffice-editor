@@ -5113,7 +5113,8 @@ CDocument.prototype.Remove = function(nDirection, isRemoveWholeElement, bRemoveO
 };
 CDocument.prototype.RemoveBeforePaste = function()
 {
-	if (docpostype_DrawingObjects === this.GetDocPosType() && null === this.DrawingObjects.getTargetDocContent())
+	if ((docpostype_DrawingObjects === this.GetDocPosType() && null === this.DrawingObjects.getTargetDocContent())
+		|| (docpostype_HdrFtr === this.GetDocPosType() && this.HdrFtr.CurHdrFtr && docpostype_DrawingObjects === this.HdrFtr.CurHdrFtr.GetContent().GetDocPosType() && null === this.DrawingObjects.getTargetDocContent()))
 		this.RemoveSelection();
 	else
 		this.Remove(1, true, true, true);
