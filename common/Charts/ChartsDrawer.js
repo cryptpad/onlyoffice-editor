@@ -12111,6 +12111,9 @@ catAxisChart.prototype = {
 		var minorStep, posX, posY, k, firstDiff = 0;
 		var tickMarkSkip = this.catAx.tickMarkSkip ? this.catAx.tickMarkSkip : 1;
 
+		var pathId = this.cChartSpace.AllocPath(), path = this.cChartSpace.GetPath(pathId);
+
+		var i, n;
 		var minorLinesCount = 2;
 		if (this.catAx.axPos === window['AscFormat'].AX_POS_R || this.catAx.axPos === window['AscFormat'].AX_POS_L) {
 			var yPoints = this.catAx.yPoints;
@@ -12134,7 +12137,7 @@ catAxisChart.prototype = {
 				firstDiff = -firstDiff;
 			}
 
-			for (var i = 0; i < yPoints.length; i++) {
+			for (i = 0; i < yPoints.length; i++) {
 				k = i * tickMarkSkip;
 				if (k >= yPoints.length) {
 					break;
@@ -12147,21 +12150,20 @@ catAxisChart.prototype = {
 				posY = yPoints[k].pos + firstDiff / 2;
 
 				if (!this.paths.tickMarks) {
-					this.paths.tickMarks = [];
+					this.paths.tickMarks = pathId;
 				}
-				this.paths.tickMarks[i] = this._calculateLine(posX, posY, posX + widthLine / this.chartProp.pxToMM, posY);
+				this._calculateLine(posX, posY, posX + widthLine / this.chartProp.pxToMM, posY, path);
 
 				if (((i + 1) * tickMarkSkip) === yPoints.length)//если последняя основная линия, то рисуем её
 				{
 					var posYtemp = yPoints[yPoints.length - 1].pos - firstDiff / 2;
-					this.paths.tickMarks[i + 1] =
-						this._calculateLine(posX - crossMajorStep / this.chartProp.pxToMM, posYtemp, posX + widthLine / this.chartProp.pxToMM, posYtemp);
+					this._calculateLine(posX - crossMajorStep / this.chartProp.pxToMM, posYtemp, posX + widthLine / this.chartProp.pxToMM, posYtemp, path);
 				}
 
 
 				//промежуточные линии
 				if (widthMinorLine !== 0) {
-					for (var n = 1; n < minorLinesCount; n++) {
+					for (n = 1; n < minorLinesCount; n++) {
 						var posMinorY = posY - n * minorStep * tickMarkSkip;
 
 						if (((posMinorY < yPoints[yPoints.length - 1].pos - firstDiff / 2) &&
@@ -12171,14 +12173,7 @@ catAxisChart.prototype = {
 							break;
 						}
 
-						if (!this.paths.minorTickMarks) {
-							this.paths.minorTickMarks = [];
-						}
-						if (!this.paths.minorTickMarks[i]) {
-							this.paths.minorTickMarks[i] = [];
-						}
-
-						this.paths.minorTickMarks[i][n] = this._calculateLine(posX - crossMinorStep / this.chartProp.pxToMM, posMinorY, posX + widthMinorLine / this.chartProp.pxToMM, posMinorY);
+						this._calculateLine(posX - crossMinorStep / this.chartProp.pxToMM, posMinorY, posX + widthMinorLine / this.chartProp.pxToMM, posMinorY, path);
 					}
 				}
 			}
@@ -12208,7 +12203,7 @@ catAxisChart.prototype = {
 			}
 
 			//сам рассчёт основных и промежуточных линий
-			for (var i = 0; i < xPoints.length; i++) {
+			for (i = 0; i < xPoints.length; i++) {
 				k = i * tickMarkSkip;
 				if (k >= xPoints.length) {
 					break;
@@ -12220,19 +12215,19 @@ catAxisChart.prototype = {
 
 				posX = xPoints[k].pos - firstDiff / 2;
 				if (!this.paths.tickMarks) {
-					this.paths.tickMarks = [];
+					this.paths.tickMarks = pathId;
 				}
-				this.paths.tickMarks[i] = this._calculateLine(posX, posY - crossMajorStep / this.chartProp.pxToMM, posX, posY + widthLine / this.chartProp.pxToMM);
+				this._calculateLine(posX, posY - crossMajorStep / this.chartProp.pxToMM, posX, posY + widthLine / this.chartProp.pxToMM, path);
 
 				if (((i + 1) * tickMarkSkip) === xPoints.length)//если последняя основная линия, то рисуем её
 				{
 					var posXtemp = xPoints[xPoints.length - 1].pos + firstDiff / 2;
-					this.paths.tickMarks[i + 1] = this._calculateLine(posXtemp, posY - crossMajorStep / this.chartProp.pxToMM, posXtemp, posY + widthLine / this.chartProp.pxToMM);
+					this._calculateLine(posXtemp, posY - crossMajorStep / this.chartProp.pxToMM, posXtemp, posY + widthLine / this.chartProp.pxToMM, path);
 				}
 
 				//промежуточные линии
 				if (widthMinorLine !== 0) {
-					for (var n = 1; n < minorLinesCount; n++) {
+					for (n = 1; n < minorLinesCount; n++) {
 						posMinorX = posX + n * minorStep * tickMarkSkip;
 
 						if (((posMinorX > xPoints[xPoints.length - 1].pos + firstDiff / 2) &&
@@ -12242,15 +12237,7 @@ catAxisChart.prototype = {
 							break;
 						}
 
-						if (!this.paths.minorTickMarks) {
-							this.paths.minorTickMarks = [];
-						}
-						if (!this.paths.minorTickMarks[i]) {
-							this.paths.minorTickMarks[i] = [];
-						}
-
-						this.paths.minorTickMarks[i][n] =
-							this._calculateLine(posMinorX, posY - crossMinorStep / this.chartProp.pxToMM, posMinorX, posY + widthMinorLine / this.chartProp.pxToMM);
+						this._calculateLine(posMinorX, posY - crossMinorStep / this.chartProp.pxToMM, posMinorX, posY + widthMinorLine / this.chartProp.pxToMM, path);
 					}
 				}
 			}
@@ -12258,7 +12245,7 @@ catAxisChart.prototype = {
 	},
 
 
-	_calculateLine: function (x, y, x1, y1) {
+	_calculateLine: function (x, y, x1, y1, path) {
 
 		if (this.cChartDrawer.nDimensionCount === 3) {
 			var view3DProp = this.cChartSpace.chart.getView3d();
@@ -12275,8 +12262,10 @@ catAxisChart.prototype = {
 			y1 = convertResult.y / this.chartProp.pxToMM;
 		}
 
-		var pathId = this.cChartSpace.AllocPath();
-		var path = this.cChartSpace.GetPath(pathId);
+		if(!path) {
+			var pathId = this.cChartSpace.AllocPath();
+			path = this.cChartSpace.GetPath(pathId);
+		}
 
 		var pathH = this.chartProp.pathH;
 		var pathW = this.chartProp.pathW;
@@ -12334,20 +12323,9 @@ catAxisChart.prototype = {
 	_drawTickMark: function () {
 		var pen, path;
 		if (this.paths.tickMarks) {
-			for (var i = 0; i < this.paths.tickMarks.length; i++) {
-				pen = this.catAx.compiledTickMarkLn;
-
-				path = this.paths.tickMarks[i];
-				this.cChartDrawer.drawPath(path, pen);
-
-				//промежуточные линии
-				if (this.paths.minorTickMarks && this.paths.minorTickMarks[i]) {
-					for (var n = 0; n < this.paths.minorTickMarks[i].length; n++) {
-						path = this.paths.minorTickMarks[i][n];
-						this.cChartDrawer.drawPath(path, pen);
-					}
-				}
-			}
+			pen = this.catAx.compiledTickMarkLn;
+			path = this.paths.tickMarks;
+			this.cChartDrawer.drawPath(path, pen);
 		}
 	}
 };
