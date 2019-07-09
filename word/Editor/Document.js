@@ -13520,7 +13520,7 @@ CDocument.prototype.Begin_CompositeInput = function()
 			}
 		}
 
-		this.FinalizeAction();
+		this.FinalizeAction(false);
 	}
 
 	return bResult;
@@ -13542,7 +13542,7 @@ CDocument.prototype.Replace_CompositeText = function(arrCharCodes)
 	this.Recalculate();
 	this.UpdateSelection();
 	this.UpdateUndoRedo();
-	this.FinalizeAction();
+	this.FinalizeAction(false);
 
 	this.private_UpdateCursorXY(true, true);
 
