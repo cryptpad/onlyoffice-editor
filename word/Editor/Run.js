@@ -2022,9 +2022,34 @@ ParaRun.prototype.Split2 = function(CurPos, Parent, ParentPos)
                 }
             }
         }
+
+		// Обновляем позиции в поиске
+		for (var nIndex = 0, nSearchMarksCount = this.SearchMarks.length; nIndex < nSearchMarksCount; ++nIndex)
+		{
+			var oMark       = this.SearchMarks[nIndex];
+			var oContentPos = oMark.Start ? oMark.SearchResult.StartPos : oMark.SearchResult.EndPos;
+			var nDepth      = oMark.Depth;
+
+			if (oContentPos.Get(nDepth) > CurPos || (oContentPos.Get(nDepth) === CurPos && oMark.Start))
+			{
+				this.SearchMarks.splice(nIndex, 1);
+				NewRun.SearchMarks.splice(NewRun.SearchMarks.length, 0, oMark);
+				oContentPos.Data[nDepth] -= CurPos;
+				oContentPos.Data[nDepth - 1]++;
+
+				if (oMark.Start)
+					oMark.SearchResult.ClassesS[oMark.SearchResult.ClassesS.length - 1] = NewRun;
+				else
+					oMark.SearchResult.ClassesE[oMark.SearchResult.ClassesE.length - 1] = NewRun;
+
+				nSearchMarksCount--;
+				nIndex--;
+			}
+		}
     }
 
-    // Разделяем содержимое по ранам
+
+	// Разделяем содержимое по ранам
     NewRun.ConcatToContent( this.Content.slice(CurPos) );
     this.Remove_FromContent( CurPos, this.Content.length - CurPos, true );
 
