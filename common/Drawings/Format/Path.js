@@ -1672,7 +1672,7 @@ Path.prototype = {
             if (!isLine)
                 isRect = this.isSmartRect();
 
-            if (window["NATIVE_EDITOR_ENJINE"] || ( !isLine && !isRect))
+            if (window["NATIVE_EDITOR_ENJINE"] || ( !isLine && !isRect && !shape_drawer.bDrawSmartAttack))
                 return this.draw(shape_drawer);
 
             var _old_int = _graphics.m_bIntegerGrid;

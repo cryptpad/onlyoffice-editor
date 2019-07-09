@@ -12330,9 +12330,11 @@ catAxisChart.prototype = {
 	_drawTickMark: function () {
 		var pen, path;
 		if (this.paths.tickMarks) {
+			this.cChartDrawer.cShapeDrawer.bDrawSmartAttack = true;
 			pen = this.catAx.compiledTickMarkLn;
 			path = this.paths.tickMarks;
 			this.cChartDrawer.drawPath(path, pen);
+			this.cChartDrawer.cShapeDrawer.bDrawSmartAttack = false;
 		}
 	}
 };
@@ -12603,9 +12605,11 @@ valAxisChart.prototype = {
 	_drawTickMark: function () {
 		var pen, path;
 		if (this.paths.tickMarks) {
+			this.cChartDrawer.cShapeDrawer.bDrawSmartAttack = true;
 			pen = this.valAx.compiledTickMarkLn;
 			path = this.paths.tickMarks;
 			this.cChartDrawer.drawPath(path, pen);
+			this.cChartDrawer.cShapeDrawer.bDrawSmartAttack = false;
 		}
 	}
 };

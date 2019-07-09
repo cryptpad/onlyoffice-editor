@@ -1227,7 +1227,9 @@ function checkPointInMap(map, worksheet, row, col)
         this.maxVal = 0.0;
         this.aStrings = [];
     }
-function CChartSpace()
+    var oIdentityMatrix = new AscCommon.CMatrix();
+
+    function CChartSpace()
 {
 	AscFormat.CGraphicObjectBase.call(this);
 
@@ -5096,6 +5098,7 @@ CChartSpace.prototype.getValAxisCrossType = function()
     };
 
     CChartSpace.prototype.recalculateAxes = function(){
+        this.cachedCanvas = null;
         this.plotAreaRect = null;
         this.bEmptySeries = this.checkEmptySeries();
         if(this.chart && this.chart.plotArea){
@@ -5284,6 +5287,7 @@ CChartSpace.prototype.recalculateAxis = function()
 {
     if(this.chart && this.chart.plotArea && this.chart.plotArea.charts[0])
     {
+        this.cachedCanvas = null;
         var b_checkEmpty = this.checkEmptySeries();
         this.bEmptySeries = b_checkEmpty;
 
@@ -11815,13 +11819,6 @@ CChartSpace.prototype.recalculateSeriesColors = function()
                                 ser.compiledSeriesPen.calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA, this.clrMapOvr);
                                 for(var j = 0; j < pts.length; ++j)
                                 {
-                                    var compiled_line = new AscFormat.CLn();
-                                    compiled_line.merge(default_line);
-                                    compiled_line.Fill && compiled_line.Fill.merge(base_line_fills[ser.idx]);
-                                    compiled_line.w *= style.line3;
-                                    if(ser.spPr && ser.spPr.ln)
-                                        compiled_line.merge(ser.spPr.ln);
-
                                     var oPointLine = null;
                                     if(Array.isArray(ser.dPt))
                                     {
@@ -11873,16 +11870,12 @@ CChartSpace.prototype.recalculateSeriesColors = function()
                                 {
                                     compiled_brush.merge(ser.spPr.Fill);
                                 }
-                                ser.compiledSeriesBrush = compiled_brush.createDuplicate();
+                                ser.compiledSeriesBrush = compiled_brush;
+                                ser.compiledSeriesBrush.calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA, this.clrMapOvr);
                                 var pts = AscFormat.getPtsFromSeries(ser);
                                 for(var j = 0; j < pts.length; ++j)
                                 {
-                                    var compiled_brush = new AscFormat.CUniFill();
-                                    compiled_brush.merge(base_fills[ser.idx]);
-                                    if(ser.spPr && ser.spPr.Fill)
-                                    {
-                                        compiled_brush.merge(ser.spPr.Fill);
-                                    }
+                                    pts[j].brush = ser.compiledSeriesBrush;
                                     if(Array.isArray(ser.dPt) && !(ser.getObjectType && ser.getObjectType() === AscDFH.historyitem_type_AreaSeries))
                                     {
                                         for(var k = 0; k < ser.dPt.length; ++k)
@@ -11893,15 +11886,14 @@ CChartSpace.prototype.recalculateSeriesColors = function()
                                                 {
                                                     if(ser.dPt[k].spPr.Fill && ser.dPt[k].spPr.Fill.fill)
                                                     {
-                                                        compiled_brush = ser.dPt[k].spPr.Fill.createDuplicate();
+                                                        pts[j].brush = ser.dPt[k].spPr.Fill.createDuplicate();
+                                                        pts[j].brush.calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA, this.clrMapOvr);
                                                     }
                                                 }
                                                 break;
                                             }
                                         }
                                     }
-                                    pts[j].brush = compiled_brush;
-                                    pts[j].brush.calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA, this.clrMapOvr);
                                 }
 
 
@@ -11940,20 +11932,10 @@ CChartSpace.prototype.recalculateSeriesColors = function()
                                     {
                                         compiled_line.merge(ser.spPr.ln);
                                     }
-                                    ser.compiledSeriesPen = compiled_line.createDuplicate();
+                                    ser.compiledSeriesPen = compiled_line;
+                                    ser.compiledSeriesPen.calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA, this.clrMapOvr);
                                     for(var j = 0; j < pts.length; ++j)
                                     {
-                                        var compiled_line = new AscFormat.CLn();
-                                        compiled_line.merge(default_line);
-                                        compiled_line.Fill = new AscFormat.CUniFill();
-                                        if(this.style !== 34)
-                                            compiled_line.Fill.merge(style.line2[0]);
-                                        else
-                                            compiled_line.Fill.merge(base_line_fills[ser.idx]);
-                                        if(ser.spPr && ser.spPr.ln)
-                                        {
-                                            compiled_line.merge(ser.spPr.ln);
-                                        }
                                         if(Array.isArray(ser.dPt) && !(ser.getObjectType && ser.getObjectType() === AscDFH.historyitem_type_AreaSeries))
                                         {
                                             for(var k = 0; k < ser.dPt.length; ++k)
@@ -11962,14 +11944,15 @@ CChartSpace.prototype.recalculateSeriesColors = function()
                                                 {
                                                     if(ser.dPt[k].spPr)
                                                     {
+                                                        compiled_line = ser.compiledSeriesPen.createDuplicate();
                                                         compiled_line.merge(ser.dPt[k].spPr.ln);
+                                                        pts[j].pen = compiled_line;
+                                                        pts[j].pen.calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA, this.clrMapOvr);
                                                     }
                                                     break;
                                                 }
                                             }
                                         }
-                                        pts[j].pen = compiled_line;
-                                        pts[j].pen.calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA, this.clrMapOvr);
                                         if(pts[j].compiledMarker)
                                         {
                                             pts[j].compiledMarker.pen &&  pts[j].compiledMarker.pen.calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA, this.clrMapOvr);
@@ -12003,7 +11986,6 @@ CChartSpace.prototype.recalculateSeriesColors = function()
                                 default_line.setFill(new AscFormat.CUniFill());
                                 default_line.Fill.setFill(new AscFormat.CNoFill());
                             }
-
                             var compiled_line = new AscFormat.CLn();
                             compiled_line.merge(default_line);
                             if(!(oChart.scatterStyle === AscFormat.SCATTER_STYLE_MARKER || oChart.scatterStyle === AscFormat.SCATTER_STYLE_NONE))
@@ -12013,18 +11995,12 @@ CChartSpace.prototype.recalculateSeriesColors = function()
                             compiled_line.w *= style.line3;
                             if(ser.spPr && ser.spPr.ln)
                                 compiled_line.merge(ser.spPr.ln);
-                            ser.compiledSeriesPen = compiled_line.createDuplicate();
+                            ser.compiledSeriesPen = compiled_line;
+                            ser.compiledSeriesPen.calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA, this.clrMapOvr);
                             for(var j = 0; j < pts.length; ++j)
                             {
-                                var compiled_line = new AscFormat.CLn();
-                                compiled_line.merge(default_line);
-                                if(!(oChart.scatterStyle === AscFormat.SCATTER_STYLE_MARKER || oChart.scatterStyle === AscFormat.SCATTER_STYLE_NONE))
-                                {
-                                    compiled_line.Fill && compiled_line.Fill.merge(base_line_fills[ser.idx]);
-                                }
-                                compiled_line.w *= style.line3;
-                                if(ser.spPr && ser.spPr.ln)
-                                    compiled_line.merge(ser.spPr.ln);
+                                pts[j].brush = null;
+                                pts[j].pen = ser.compiledSeriesPen;
                                 if(Array.isArray(ser.dPt))
                                 {
                                     for(var k = 0; k < ser.dPt.length; ++k)
@@ -12033,21 +12009,18 @@ CChartSpace.prototype.recalculateSeriesColors = function()
                                         {
                                             if(ser.dPt[k].spPr)
                                             {
-                                                compiled_line.merge(ser.dPt[k].spPr.ln);
+                                                pts[j].pen = ser.compiledSeriesPen.createDuplicate();
+                                                pts[j].pen.merge(ser.dPt[k].spPr.ln);
+                                                pts[j].pen.calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA, this.clrMapOvr);
                                             }
                                             break;
                                         }
                                     }
                                 }
-                                pts[j].brush = null;
-                                pts[j].pen = compiled_line;
-                                pts[j].pen.calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA, this.clrMapOvr);
                                 if(pts[j].compiledMarker)
                                 {
-
                                     pts[j].compiledMarker.pen &&  pts[j].compiledMarker.pen.calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA, this.clrMapOvr);
                                     pts[j].compiledMarker.brush &&  pts[j].compiledMarker.brush.calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA, this.clrMapOvr);
-
                                 }
                             }
                         }
@@ -12193,16 +12166,12 @@ CChartSpace.prototype.recalculateSeriesColors = function()
                                 compiled_brush.merge(ser.spPr.Fill);
                             }
                             ser.compiledSeriesBrush = compiled_brush.createDuplicate();
+                            ser.compiledSeriesBrush.calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA, this.clrMapOvr);
                             var pts = AscFormat.getPtsFromSeries(ser);
                             this.ptsCount += pts.length;
                             for(var j = 0; j < pts.length; ++j)
                             {
-                                var compiled_brush = new AscFormat.CUniFill();
-                                compiled_brush.merge(base_fills[ser.idx]);
-                                if(ser.spPr && ser.spPr.Fill)
-                                {
-                                    compiled_brush.merge(ser.spPr.Fill);
-                                }
+                                pts[j].brush = ser.compiledSeriesBrush;
                                 if(Array.isArray(ser.dPt) && !(ser.getObjectType && ser.getObjectType() === AscDFH.historyitem_type_AreaSeries))
                                 {
                                     for(var k = 0; k < ser.dPt.length; ++k)
@@ -12214,14 +12183,14 @@ CChartSpace.prototype.recalculateSeriesColors = function()
                                                 if(ser.dPt[k].spPr.Fill && ser.dPt[k].spPr.Fill.fill)
                                                 {
                                                     compiled_brush = ser.dPt[k].spPr.Fill.createDuplicate();
+                                                    pts[j].brush = compiled_brush;
+                                                    pts[j].brush.calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA, this.clrMapOvr);
                                                 }
                                             }
                                             break;
                                         }
                                     }
                                 }
-                                pts[j].brush = compiled_brush;
-                                pts[j].brush.calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA, this.clrMapOvr);
                             }
 
 
@@ -12261,19 +12230,10 @@ CChartSpace.prototype.recalculateSeriesColors = function()
                                     compiled_line.merge(ser.spPr.ln);
                                 }
                                 ser.compiledSeriesPen = compiled_line.createDuplicate();
+                                ser.compiledSeriesPen.calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA, this.clrMapOvr);
                                 for(var j = 0; j < pts.length; ++j)
                                 {
-                                    var compiled_line = new AscFormat.CLn();
-                                    compiled_line.merge(default_line);
-                                    compiled_line.Fill = new AscFormat.CUniFill();
-                                    if(this.style !== 34)
-                                        compiled_line.Fill.merge(style.line2[0]);
-                                    else
-                                        compiled_line.Fill.merge(base_line_fills[ser.idx]);
-                                    if(ser.spPr && ser.spPr.ln)
-                                    {
-                                        compiled_line.merge(ser.spPr.ln);
-                                    }
+                                    pts[j].pen = ser.compiledSeriesPen;
                                     if(Array.isArray(ser.dPt) && !(ser.getObjectType && ser.getObjectType() === AscDFH.historyitem_type_AreaSeries))
                                     {
                                         for(var k = 0; k < ser.dPt.length; ++k)
@@ -12282,14 +12242,15 @@ CChartSpace.prototype.recalculateSeriesColors = function()
                                             {
                                                 if(ser.dPt[k].spPr)
                                                 {
+                                                    compiled_line = ser.compiledSeriesPen.createDuplicate();
                                                     compiled_line.merge(ser.dPt[k].spPr.ln);
+                                                    compiled_line.calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA, this.clrMapOvr);
+                                                    pts[j].pen = compiled_line;
                                                 }
                                                 break;
                                             }
                                         }
                                     }
-                                    pts[j].pen = compiled_line;
-                                    pts[j].pen.calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA, this.clrMapOvr);
                                     if(pts[j].compiledMarker)
                                     {
                                         pts[j].compiledMarker.pen &&  pts[j].compiledMarker.pen.calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA, this.clrMapOvr);
@@ -12760,7 +12721,6 @@ CChartSpace.prototype.updateLinks = function()
 
     CChartSpace.prototype.checkDrawingCache = function(graphics)
     {
-        return false;
         if(window["NATIVE_EDITOR_ENJINE"] || graphics.RENDERER_PDF_FLAG)
         {
             return false;
@@ -12801,9 +12761,15 @@ CChartSpace.prototype.updateLinks = function()
             g.transform(1,0,0,1,0,0);
             this.drawInternal(g);
         }
-        ctx = this.cachedCanvas.getContext("2d");
-        var data = ctx.getImageData(0, 0, nWidth, nHeight);
-        graphics.m_oContext.putImageData(data, ((this.transform.tx - dBorderW) * graphics.m_oCoordTransform.sx + 0.5) >> 0 , ((this.transform.ty - dBorderW) * graphics.m_oCoordTransform.sy + 0.5) >> 0);
+
+        var _x1 = (graphics.m_oCoordTransform.TransformPointX(this.transform.tx - dBorderW, this.transform.ty - dBorderW) + 0.5) >> 0;
+        var _y1 = (graphics.m_oCoordTransform.TransformPointY(this.transform.tx - dBorderW, this.transform.ty - dBorderW) + 0.5) >> 0;
+
+        graphics.SaveGrState();
+        graphics.transform3(oIdentityMatrix, false);
+        graphics.SetIntegerGrid(true);
+        graphics.m_oContext.drawImage(this.cachedCanvas, _x1, _y1, nWidth, nHeight);
+        graphics.RestoreGrState();
         return true;
     };
 
@@ -12820,7 +12786,7 @@ CChartSpace.prototype.updateLinks = function()
             ln_width = 0;
         }
         return ln_width;
-    }
+    };
 
     CChartSpace.prototype.drawInternal = function(graphics){
         var oClipRect = this.getClipRect();
@@ -12931,9 +12897,19 @@ CChartSpace.prototype.draw = function(graphics)
             return;
     }
 
+    var oldShowParaMarks;
+    if(editor)
+    {
+        oldShowParaMarks = editor.ShowParaMarks;
+        editor.ShowParaMarks = false;
+    }
     if(!this.checkDrawingCache(graphics))
     {
         this.drawInternal(graphics);
+    }
+    if(editor)
+    {
+        editor.ShowParaMarks = oldShowParaMarks;
     }
 
     if(this.drawLocks(this.transform, graphics)){
