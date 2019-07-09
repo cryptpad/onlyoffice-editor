@@ -375,7 +375,7 @@ CAscHFProps.prototype['updateView'] = CAscHFProps.prototype.updateView = functio
     }
     var nWidth = oDiv.clientWidth;
     var nHeight = oDiv.clientHeight;
-    if(null === oCanvas || true){
+    if(null === oCanvas){
         oCanvas = document.createElement('canvas');
         oCanvas.width = parseInt(nWidth);
         oCanvas.height = parseInt(nHeight);
