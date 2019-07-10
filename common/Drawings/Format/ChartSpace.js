@@ -948,16 +948,18 @@ function checkPointInMap(map, worksheet, row, col)
 
 
                     var nIntervalCount = bOnTickMark ? this.count - 1 : this.count;
-                    var fInterval_ = (fXEnd - fXStart)/nIntervalCount;
+                    var fInterval_ = Math.abs(fXEnd - fXStart)/nIntervalCount;
                     var nLblTickSkip = (fInset/fInterval_ + 0.5) >> 0;
                     var aLabels = [].concat(aLabelsSource);
                     var index = 0;
-                    for(i = 0; i < aLabels.length; ++i){
-                        if(aLabels[i]){
-                            if((index % nLblTickSkip) !== 0){
-                                aLabels[i] = null;
+                    if(nLblTickSkip > 1) {
+                        for(i = 0; i < aLabels.length; ++i){
+                            if(aLabels[i]){
+                                if((index % nLblTickSkip) !== 0){
+                                    aLabels[i] = null;
+                                }
+                                index++;
                             }
-                            index++;
                         }
                     }
                     this.layoutHorRotated2(aLabels, fAxisY, fDistance, fXStart, fInterval, bOnTickMark);
@@ -1040,16 +1042,40 @@ function checkPointInMap(map, worksheet, row, col)
         var fCurY = bOnTickMark ? fYStart : fYStart + fInterval/2.0;
 
         var fDistance_ = Math.abs(fDistance);
-        var oTransform, oContent, oLabel, fMinY = fYStart, fMaxY = fYStart + fInterval*(this.aLabels.length - 1), fY;
-        var fMaxContentWidth = 0.0;
-        for(var i = 0; i < this.aLabels.length; ++i){
+        var oTransform, oContent, oLabel, fMinY = fYStart, fMaxY = fYStart + fInterval*(this.aLabels.length - 1), fY, i;
+        var fMaxContentWidth = 0.0, oSize;
+        var fLabelHeight = 0.0;
+        for(i = 0; i < this.aLabels.length; ++i) {
+            oLabel = this.aLabels[i];
+            if(oLabel) {
+                oSize = oLabel.tx.rich.getContentOneStringSizes();
+                fLabelHeight = oSize.h;
+                break;
+            }
+        }
+
+        var nIntervalCount = bOnTickMark ? this.count - 1 : this.count;
+        var fInterval_ = Math.abs(fMinY - fMaxY)/nIntervalCount;
+
+        var nLblTickSkip = (fLabelHeight/fInterval_) >> 0, index = 0;
+        if(nLblTickSkip > 1) {
+            for(i = 0; i < this.aLabels.length; ++i){
+                if(this.aLabels[i]){
+                    if((index % nLblTickSkip) !== 0){
+                        this.aLabels[i] = null;
+                    }
+                    index++;
+                }
+            }
+        }
+        for(i = 0; i < this.aLabels.length; ++i){
             if(this.aLabels[i]){
                 oLabel = this.aLabels[i];
                 oContent = oLabel.tx.rich.content;
                 oContent.Set_ApplyToAll(true);
                 oContent.SetParagraphAlign(AscCommon.align_Left);
                 oContent.Set_ApplyToAll(false);
-                var oSize = oLabel.tx.rich.getContentOneStringSizes();
+                oSize = oLabel.tx.rich.getContentOneStringSizes();
                 if(oSize.w + fDistance_ > fMaxBlockWidth){
                     break;
                 }
