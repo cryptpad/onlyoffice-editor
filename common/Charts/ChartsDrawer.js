@@ -12303,6 +12303,7 @@ catAxisChart.prototype = {
 			return;
 		}
 
+		this.cChartDrawer.cShapeDrawer.bDrawSmartAttack = true;
 		if (this.paths.minorGridLines) {
 			path = this.paths.minorGridLines;
 			pen = this.catAx.compiledMinorGridLines;
@@ -12313,6 +12314,7 @@ catAxisChart.prototype = {
 			path = this.paths.gridLines;
 			this.cChartDrawer.drawPath(path, pen);
 		}
+		this.cChartDrawer.cShapeDrawer.bDrawSmartAttack = false;
 	},
 
 	_drawAxis: function () {
@@ -12573,6 +12575,7 @@ valAxisChart.prototype = {
 			return;
 		}
 
+		this.cChartDrawer.cShapeDrawer.bDrawSmartAttack = true;
 		if (this.paths.minorGridLines) {
 			path = this.paths.minorGridLines;
 			pen = this.valAx.compiledMinorGridLines;
@@ -12583,6 +12586,7 @@ valAxisChart.prototype = {
 			path = this.paths.gridLines;
 			this.cChartDrawer.drawPath(path, pen);
 		}
+		this.cChartDrawer.cShapeDrawer.bDrawSmartAttack = false;
 	},
 
 	_drawAxis: function () {
