@@ -12769,6 +12769,7 @@ CChartSpace.prototype.updateLinks = function()
         graphics.SetIntegerGrid(true);
         graphics.m_oContext.drawImage(this.cachedCanvas, _x1, _y1, nWidth, nHeight);
         graphics.RestoreGrState();
+        graphics.FreeFont();
         return true;
     };
 
