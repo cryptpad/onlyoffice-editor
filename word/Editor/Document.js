@@ -8633,7 +8633,7 @@ CDocument.prototype.OnKeyDown = function(e)
                 if (false === this.Document_Is_SelectionLocked(changestype_Paragraph_Content))
                 {
                     this.StartAction(AscDFH.historydescription_Document_AddMathHotKey);
-                    this.AddToParagraph(new MathMenu(-1));
+                    this.AddToParagraph(new MathMenu());
 					this.FinalizeAction();
                     bRetValue = keydownresult_PreventAll;
                 }
@@ -14364,6 +14364,20 @@ CDocument.prototype.controller_AddToParagraph = function(ParaItem, bRecalculate)
 			case para_ContinuationSeparator:
 			case para_InstrText:
 			{
+				if (ParaItem instanceof AscCommonWord.MathMenu)
+				{
+					var oInfo = this.GetSelectedElementsInfo();
+					if (oInfo.Get_Math())
+					{
+						var oMath = oInfo.Get_Math();
+						ParaItem.SetText(oMath.Copy(true));
+					}
+					else if (!oInfo.Is_MixedSelection())
+					{
+						ParaItem.SetText(this.GetSelectedText());
+					}
+				}
+
 				// Если у нас что-то заселекчено и мы вводим текст или пробел
 				// и т.д., тогда сначала удаляем весь селект.
 				this.Remove(1, true, false, true);

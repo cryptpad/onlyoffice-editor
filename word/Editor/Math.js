@@ -657,13 +657,23 @@ function MathMenu(type)
 {
 	this.Type = para_Math;
 	this.Menu = type == undefined ? c_oAscMathType.Default_Text : type;
+	this.Text = null;
 }
-MathMenu.prototype =
+MathMenu.prototype.Get_Type = function()
 {
-	Get_Type : function()
-    {
-        return this.Type;
-    }
+	return this.Type;
+};
+MathMenu.prototype.GetType = function()
+{
+	return this.Type;
+};
+MathMenu.prototype.SetText = function(sText)
+{
+	this.Text = sText;
+};
+MathMenu.prototype.GetText = function()
+{
+	return this.Text;
 };
 
 function CMathLineState()
@@ -1224,7 +1234,7 @@ ParaMath.prototype.Add = function(Item)
         RightRun.MoveCursorToStartPos();
 
         var lng = oContent.Content.length;
-        oContent.Load_FromMenu(Item.Menu, this.Paragraph);
+        oContent.Load_FromMenu(Item.Menu, this.Paragraph, null, Item.GetText());
         oContent.Correct_ContentCurPos();
 
         var lng2 = oContent.Content.length;

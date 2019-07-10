@@ -3513,7 +3513,7 @@ Paragraph.prototype.Add = function(Item)
 					this.Internal_Content_Add(CurPos + 1, NewElement);
 
 				var MathElement = new ParaMath();
-				MathElement.Root.Load_FromMenu(Item.Menu, this);
+				MathElement.Root.Load_FromMenu(Item.Menu, this, null, Item.GetText());
 				MathElement.Root.Correct_Content(true);
 
 				this.Internal_Content_Add(CurPos + 1, MathElement);
@@ -3523,7 +3523,9 @@ Paragraph.prototype.Add = function(Item)
 				this.Content[this.CurPos.ContentPos].MoveCursorToEndPos(false);
 			}
 			else
+			{
 				this.Content[CurPos].Add(Item);
+			}
 
 			break;
 		}
