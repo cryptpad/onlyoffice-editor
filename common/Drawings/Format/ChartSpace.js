@@ -1107,7 +1107,6 @@ function checkPointInMap(map, worksheet, row, col)
                         global_MatrixTransformer.TranslateAppend(oTransform, fAxisX + fDistance, fY);
                     }
                     else{
-                        fY = fCurY - fContentHeight/2.0;
                         global_MatrixTransformer.TranslateAppend(oTransform, fAxisX + fDistance - fContentWidth, fY);
                     }
                     oLabel.transformText = oTransform.CreateDublicate();
@@ -12275,7 +12274,7 @@ CChartSpace.prototype.recalculateChartTitleEditMode = function(bWord)
     old_pos_y = this.recalcInfo.recalcTitle.y;
     old_pos_cx = this.recalcInfo.recalcTitle.x + this.recalcInfo.recalcTitle.extX/2;
     old_pos_cy = this.recalcInfo.recalcTitle.y + this.recalcInfo.recalcTitle.extY/2;
-
+    this.cachedCanvas = null;
     this.recalculateAxisLabels();
     if(checkVerticalTitle(this.recalcInfo.recalcTitle))
     {
