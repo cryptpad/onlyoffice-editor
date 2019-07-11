@@ -7375,10 +7375,23 @@ ParaRun.prototype.IsInHyperlinkInTOC = function()
 		}
 	}
 
-	if (!isHyperlink)
-		return false;
-
 	var arrComplexFields = oParagraph.GetComplexFieldsByPos(oPos);
+
+	if (!isHyperlink)
+	{
+		for (var nIndex = 0, nCount = arrComplexFields.length; nIndex < nCount; ++nIndex)
+		{
+			var oInstruction = arrComplexFields[nIndex].GetInstruction();
+			if (oInstruction && fieldtype_HYPERLINK === oInstruction.GetType())
+			{
+				isHyperlink = true;
+				break;
+			}
+		}
+
+		if (!isHyperlink)
+			return false;
+	}
 
 	for (var nIndex = 0, nCount = arrComplexFields.length; nIndex < nCount; ++nIndex)
 	{
