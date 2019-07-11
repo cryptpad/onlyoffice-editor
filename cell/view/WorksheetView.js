@@ -900,6 +900,7 @@
             if (viewMode) {
 				History.TurnOff();
 			}
+            var bIsHidden = t.model.getColHidden(col);
             t.model.setColWidth(cc, col, col);
             t._cleanCache(new asc_Range(0, 0, t.cols.length - 1, t.rows.length - 1));
             t.changeWorksheet("update", {reinitRanges: true});
@@ -909,7 +910,10 @@
             t.cellCommentator.updateAreaComments();
             if (t.objectRender) {
                 t.objectRender.updateSizeDrawingObjects({target: c_oTargetType.ColumnResize, col: col});
-				t.objectRender.rebuildChartGraphicObjects([new asc_Range(col, 0, col, gc_nMaxRow0)]);
+                if(bIsHidden !==  t.model.getColHidden(col)) {
+                    t.objectRender.rebuildChartGraphicObjects([new asc_Range(col, 0, col, gc_nMaxRow0)]);
+                }
+
             }
 			if (viewMode) {
 				History.TurnOn();

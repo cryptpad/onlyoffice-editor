@@ -133,16 +133,11 @@ function ParaRun(Paragraph, bMathRun)
 		this.bEqArray = false;
 	}
 
-	this.StartState = null;
 
 	this.CompositeInput = null;
 
 	// Добавляем данный класс в таблицу Id (обязательно в конце конструктора)
 	g_oTableId.Add(this, this.Id);
-	if (this.Paragraph && !this.Paragraph.bFromDocument)
-	{
-		this.Save_StartState();
-	}
 }
 
 ParaRun.prototype = Object.create(CParagraphContentWithContentBase.prototype);
@@ -172,10 +167,6 @@ ParaRun.prototype.Set_ParaMath = function(ParaMath, Parent)
     {
         this.Content[i].relate(this);
     }
-};
-ParaRun.prototype.Save_StartState = function()
-{
-    this.StartState = new CParaRunStartState(this);
 };
 //-----------------------------------------------------------------------------------
 // Функции для работы с содержимым данного рана
@@ -8608,18 +8599,9 @@ ParaRun.prototype.Write_ToBinary2 = function(Writer)
 
     Writer.WriteLong(this.Type);
     var ParagraphToWrite, PrToWrite, ContentToWrite;
-    if(this.StartState)
-    {
-        ParagraphToWrite = this.StartState.Paragraph;
-        PrToWrite = this.StartState.Pr;
-        ContentToWrite = this.StartState.Content;
-    }
-    else
-    {
-        ParagraphToWrite = this.Paragraph;
-        PrToWrite = this.Pr;
-        ContentToWrite = this.Content;
-    }
+	ParagraphToWrite = this.Paragraph;
+	PrToWrite = this.Pr;
+	ContentToWrite = this.Content;
 
     Writer.WriteString2( this.Id );
     Writer.WriteString2( null !== ParagraphToWrite && undefined !== ParagraphToWrite ? ParagraphToWrite.Get_Id() : "" );
@@ -11162,17 +11144,6 @@ ParaRun.prototype.ProcessComplexFields = function(oComplexFields)
 	}
 };
 
-
-function CParaRunStartState(Run)
-{
-    this.Paragraph = Run.Paragraph;
-    this.Pr = Run.Pr.Copy();
-    this.Content = [];
-    for(var i = 0; i < Run.Content.length; ++i)
-    {
-        this.Content.push(Run.Content[i]);
-    }
-}
 
 function CReviewInfo()
 {
