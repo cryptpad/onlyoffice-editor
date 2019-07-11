@@ -12456,11 +12456,46 @@ CChartSpace.prototype.recalculateMarkers = function()
                     var series = oCurChart.series;
                     var brushes = getArrayFillsFromBase(fill, getMaxIdx(aAllsSeries));
                     var pens_fills = getArrayFillsFromBase(line, getMaxIdx(aAllsSeries));
+                    
+                    
                     for(var i = 0; i < series.length; ++i)
                     {
                         var ser = series[i];
                         if(ser.marker && ser.marker.symbol === AscFormat.SYMBOL_NONE && (!Array.isArray(ser.dPt) || ser.dPt.length === 0))
                             continue;
+
+
+                        var compiled_marker = new AscFormat.CMarker();
+                        var symbol;
+                        if(ser.marker && AscFormat.isRealNumber(ser.marker.symbol))
+                        {
+                            symbol = ser.marker.symbol;
+                        }
+                        else 
+                        {
+                            symbol = GetTypeMarkerByIndex(ser.idx);
+                        }
+                        compiled_marker.merge(default_marker);
+                        if(!compiled_marker.spPr)
+                        {
+                            compiled_marker.setSpPr(new AscFormat.CSpPr());
+                        }
+                        compiled_marker.setSymbol(symbol);
+                        if(!checkNoFillMarkers(compiled_marker.symbol)){
+                            compiled_marker.spPr.setFill(brushes[ser.idx]);
+                        }
+                        else{
+                            compiled_marker.spPr.setFill(AscFormat.CreateNoFillUniFill());
+                        }
+                        if(!compiled_marker.spPr.ln)
+                            compiled_marker.spPr.setLn(new AscFormat.CLn());
+                        compiled_marker.spPr.ln.setFill(pens_fills[ser.idx]);
+                        compiled_marker.merge(ser.marker);
+                        ser.compiledSeriesMarker = compiled_marker.createDuplicate();
+                        ser.compiledSeriesMarker.pen = compiled_marker.spPr.ln;
+                        ser.compiledSeriesMarker.brush = compiled_marker.spPr.Fill;
+                        ser.compiledSeriesMarker.brush.calculate(parent_objects.theme, parent_objects.slide, parent_objects.layout, parent_objects.master, RGBA, oThis.clrMapOvr);
+                        ser.compiledSeriesMarker.pen.calculate(parent_objects.theme, parent_objects.slide, parent_objects.layout, parent_objects.master, RGBA, oThis.clrMapOvr);
                         pts = AscFormat.getPtsFromSeries(ser);
                         for(var j = 0; j < pts.length; ++j)
                         {
@@ -12476,47 +12511,21 @@ CChartSpace.prototype.recalculateMarkers = function()
                                     }
                                 }
                             }
-                            var symbol = GetTypeMarkerByIndex(ser.idx);
-                            if(ser && ser.marker && AscFormat.isRealNumber(ser.marker.symbol))
-                            {
-                                symbol = ser.marker.symbol;
-                            }
-                            if(d_pt && d_pt.marker && AscFormat.isRealNumber(d_pt.marker.symbol))
-                            {
-                                symbol = d_pt.marker.symbol;
-                            }
-
-                            var compiled_marker = new AscFormat.CMarker();
-                            compiled_marker.merge(default_marker);
-                            if(!compiled_marker.spPr)
-                            {
-                                compiled_marker.setSpPr(new AscFormat.CSpPr());
-                            }
-                            compiled_marker.setSymbol(symbol);
-                            if(!checkNoFillMarkers(compiled_marker.symbol)){
-                                compiled_marker.spPr.setFill(brushes[ser.idx]);
-                            }
-                            else{
-                                compiled_marker.spPr.setFill(AscFormat.CreateNoFillUniFill());
-                            }
-                            if(!compiled_marker.spPr.ln)
-                                compiled_marker.spPr.setLn(new AscFormat.CLn());
-                            compiled_marker.spPr.ln.setFill(pens_fills[ser.idx]);
-                            compiled_marker.merge(ser.marker);
-                            if(j === 0)
-                            {
-                                ser.compiledSeriesMarker = compiled_marker.createDuplicate();
-                            }
 
                             if(d_pt)
                             {
+                                compiled_marker = ser.compiledSeriesMarker.createDuplicate();
                                 compiled_marker.merge(d_pt.marker);
+                                compiled_marker.pen = compiled_marker.spPr.ln;
+                                compiled_marker.brush = compiled_marker.spPr.Fill;
+                                compiled_marker.brush.calculate(parent_objects.theme, parent_objects.slide, parent_objects.layout, parent_objects.master, RGBA, oThis.clrMapOvr);
+                                compiled_marker.pen.calculate(parent_objects.theme, parent_objects.slide, parent_objects.layout, parent_objects.master, RGBA, oThis.clrMapOvr);
+                                pts[j].compiledMarker = compiled_marker;
                             }
-                            pts[j].compiledMarker = compiled_marker;
-                            pts[j].compiledMarker.pen = compiled_marker.spPr.ln;
-                            pts[j].compiledMarker.brush = compiled_marker.spPr.Fill;
-                            pts[j].compiledMarker.brush.calculate(parent_objects.theme, parent_objects.slide, parent_objects.layout, parent_objects.master, RGBA, oThis.clrMapOvr);
-                            pts[j].compiledMarker.pen.calculate(parent_objects.theme, parent_objects.slide, parent_objects.layout, parent_objects.master, RGBA, oThis.clrMapOvr);
+                            else
+                            {
+                                pts[j].compiledMarker = ser.compiledSeriesMarker;
+                            }
                         }
                     }
                 }
