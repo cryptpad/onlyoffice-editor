@@ -3985,9 +3985,8 @@ CChartsDrawer.prototype =
 
 		var pathId = t.cChartSpace.AllocPath();
 		var path = t.cChartSpace.GetPath(pathId);
-		var pathIdMinor = t.cChartSpace.AllocPath();
-		var pathMinor = t.cChartSpace.GetPath(pathId);
-		for (var i = 0; i < points.length; i++) {
+		var i;
+		for (i = 0; i < points.length; i++) {
 			if(this.calcProp.type === c_oChartTypes.Radar) {
 				if(numCache) {
 					calculateRadarGridLines();
@@ -4008,6 +4007,34 @@ CChartsDrawer.prototype =
 				}
 				this._calculateGridLine(posX, posY, posX + widthLine, posY, path);
 
+				if (crossDiff && i === points.length - 1) {
+					if (crossDiff) {
+						posY = (points[i].pos - crossDiff) * this.calcProp.pxToMM;
+					}
+
+					i++;
+					if (!gridLines) {
+						gridLines = pathId;
+					}
+					this._calculateGridLine(posX, posY, posX + widthLine, posY, path);
+				}
+			}
+		}
+
+		var pathIdMinor = t.cChartSpace.AllocPath();
+		var pathMinor = t.cChartSpace.GetPath(pathIdMinor);
+		for (i = 0; i < points.length; i++) {
+			if(this.calcProp.type !== c_oChartTypes.Radar) {
+				if(isCatAxis && points[i].val < 0) {
+					continue;
+				}
+
+				if (crossDiff) {
+					posY = (points[i].pos + crossDiff) * this.calcProp.pxToMM;
+				} else {
+					posY = points[i].pos * this.calcProp.pxToMM;
+				}
+
 				//промежуточные линии
 				for (var n = 0; n < minorLinesCount; n++) {
 					posMinorY = posY + n * minorStep;
@@ -4022,21 +4049,9 @@ CChartsDrawer.prototype =
 
 					this._calculateGridLine(posX, posMinorY, posX + widthLine, posMinorY, pathMinor);
 				}
-
-
-				if (crossDiff && i === points.length - 1) {
-					if (crossDiff) {
-						posY = (points[i].pos - crossDiff) * this.calcProp.pxToMM;
-					}
-
-					i++;
-					if (!gridLines) {
-						gridLines = pathId;
-					}
-					this._calculateGridLine(posX, posY, posX + widthLine, posY, path);
-				}
 			}
 		}
+
 
 		return {gridLines: gridLines, minorGridLines: minorGridLines};
 	},
@@ -4075,10 +4090,8 @@ CChartsDrawer.prototype =
 
 		var pathId = this.cChartSpace.AllocPath();
 		var path = this.cChartSpace.GetPath(pathId);
-		var pathIdMinor = this.cChartSpace.AllocPath();
-		var pathMinor = this.cChartSpace.GetPath(pathId);
-
-		for (var i = 0; i < points.length; i++) {
+		var i;
+		for (i = 0; i < points.length; i++) {
 			if(isCatAxis && points[i].val < 0) {
 				continue;
 			}
@@ -4094,6 +4107,32 @@ CChartsDrawer.prototype =
 			}
 			this._calculateGridLine(posX, posY, posX, posY + heightLine, path);
 
+			if (crossDiff && i === points.length - 1) {
+				if (crossDiff) {
+					posX = (points[i].pos + crossDiff) * this.calcProp.pxToMM;
+				}
+
+				i++;
+				if (!gridLines) {
+					gridLines = pathId;
+				}
+				this._calculateGridLine(posX, posY, posX, posY + heightLine, path);
+			}
+		}
+
+		var pathIdMinor = this.cChartSpace.AllocPath();
+		var pathMinor = this.cChartSpace.GetPath(pathIdMinor);
+		for (i = 0; i < points.length; i++) {
+			if(isCatAxis && points[i].val < 0) {
+				continue;
+			}
+
+			if (crossDiff) {
+				posX = (points[i].pos - crossDiff) * this.calcProp.pxToMM;
+			} else {
+				posX = points[i].pos * this.calcProp.pxToMM;
+			}
+
 			//промежуточные линии
 			for (var n = 0; n <= minorLinesCount; n++) {
 				posMinorX = posX + n * minorStep;
@@ -4107,18 +4146,6 @@ CChartsDrawer.prototype =
 				}
 
 				this._calculateGridLine(posMinorX, posY, posMinorX, posY + heightLine, pathMinor);
-			}
-
-			if (crossDiff && i === points.length - 1) {
-				if (crossDiff) {
-					posX = (points[i].pos + crossDiff) * this.calcProp.pxToMM;
-				}
-
-				i++;
-				if (!gridLines) {
-					gridLines = pathId;
-				}
-				this._calculateGridLine(posX, posY, posX, posY + heightLine, path);
 			}
 		}
 
