@@ -85,10 +85,20 @@ var SKIP_LBL_LIMIT = 100;
     function removePtsFromLit(lit)
     {
         var i;
-        var start_idx = Array.isArray(lit.pts) ? lit.pts.length - 1 : -1;
-        for(i = start_idx; i > -1; --i)
+        if(Array.isArray(lit.pts))
         {
-            lit.removeDPt(i);
+            if(false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On())
+            {
+                var start_idx = lit.pts.length - 1;
+                for(i = start_idx; i > -1; --i)
+                {
+                    lit.removeDPt(i);
+                }
+            }
+            else
+            {
+                lit.pts.length = 0;
+            }
         }
     }
     function removeAllSeriesFromChart(chart)
@@ -3805,7 +3815,6 @@ CChartSpace.prototype.checkValByNumRef = function(workbook, ser, val, bVertical)
                         {
                             hidden = false;
                             cell = source_worksheet.getCell3(range.r1, j);
-                            var sCellValue = cell.getValue();
                             var value = cell.getNumberValue();
                             if(!AscFormat.isRealNumber(value) && (!AscFormat.isRealNumber(this.displayEmptyCellsAs) || this.displayEmptyCellsAs === 1)){
                                 var sVal = cell.getValueForEdit();
@@ -3845,6 +3854,7 @@ CChartSpace.prototype.checkValByNumRef = function(workbook, ser, val, bVertical)
                             {
                                 if(AscFormat.isRealNumber(this.displayEmptyCellsAs) && this.displayEmptyCellsAs !== 1)
                                 {
+                                    var sCellValue = cell.getValue();
                                     if(this.displayEmptyCellsAs === 2 || ((typeof sCellValue === "string") && sCellValue.length > 0))
                                     {
                                         pt = new AscFormat.CNumericPoint();
@@ -3900,7 +3910,6 @@ CChartSpace.prototype.checkValByNumRef = function(workbook, ser, val, bVertical)
                             hidden = false;
                             cell = source_worksheet.getCell3(j, range.c1);
                             var value = cell.getNumberValue();
-                            var sCellValue = cell.getValue();
                             if(!AscFormat.isRealNumber(value) && !AscFormat.isRealNumber(this.displayEmptyCellsAs)){
                                 var sVal = cell.getValueForEdit();
                                 if((typeof sVal === "string") && sVal.length > 0){
@@ -3922,6 +3931,7 @@ CChartSpace.prototype.checkValByNumRef = function(workbook, ser, val, bVertical)
                             {
                                 if(AscFormat.isRealNumber(this.displayEmptyCellsAs) && this.displayEmptyCellsAs !== 1)
                                 {
+                                    var sCellValue = cell.getValue();
                                     if(this.displayEmptyCellsAs === 2 || ((typeof sCellValue === "string") && sCellValue.length > 0))
                                     {
                                         pt = new AscFormat.CNumericPoint();
