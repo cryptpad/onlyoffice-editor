@@ -3827,9 +3827,10 @@ CChartSpace.prototype.checkValByNumRef = function(workbook, ser, val, bVertical)
                                 pt = new AscFormat.CNumericPoint();
                                 pt.setIdx(nPtCount);
                                 pt.setVal(value);
-                                if(cell.getNumFormatStr() !== lit_format_code)
+                                var sCellFormatStr = cell.getNumFormatStr();
+                                if(sCellFormatStr !== lit_format_code)
                                 {
-                                    pt.setFormatCode(cell.getNumFormatStr())
+                                    pt.setFormatCode(sCellFormatStr)
                                 }
                                 num_cache.addPt(pt);
 
@@ -3921,9 +3922,10 @@ CChartSpace.prototype.checkValByNumRef = function(workbook, ser, val, bVertical)
                                 pt = new AscFormat.CNumericPoint();
                                 pt.setIdx(nPtCount);
                                 pt.setVal(value);
-                                if(cell.getNumFormatStr() !== lit_format_code)
+                                var sCellFormatStr = cell.getNumFormatStr();
+                                if(sCellFormatStr !== lit_format_code)
                                 {
-                                    pt.setFormatCode(cell.getNumFormatStr());
+                                    pt.setFormatCode(sCellFormatStr);
                                 }
                                 num_cache.addPt(pt);
                             }
@@ -10849,38 +10851,70 @@ CChartSpace.prototype.recalculatePenBrush = function()
                 for(var i = 0; i < series.length; ++i)
                 {
                     var pts = AscFormat.getPtsFromSeries(series[i]);
+                    var oCalcObjects = [], nCalcId = 0;
                     for(var j = 0; j < pts.length; ++j)
                     {
                         var pt = pts[j];
+
                         if(pt.brush)
                         {
-                            pt.brush.calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA, this.clrMapOvr);
+                            if(!oCalcObjects[pt.brush.calcId])
+                            {
+                                pt.brush.calcId = ++nCalcId;
+                                oCalcObjects[pt.brush.calcId] = pt.brush;
+                                pt.brush.calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA, this.clrMapOvr);
+                            }
 
                         }
                         if(pt.pen)
                         {
-                            pt.pen.calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA, this.clrMapOvr);
+                            if(!oCalcObjects[pt.pen.calcId])
+                            {
+                                pt.pen.calcId = ++nCalcId;
+                                oCalcObjects[pt.pen.calcId] = pt.pen;
+                                pt.pen.calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA, this.clrMapOvr);
+                            }
                         }
                         if(pt.compiledMarker)
                         {
                             if(pt.compiledMarker.brush)
                             {
-                                pt.compiledMarker.brush.calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA, this.clrMapOvr);
+                                if(!oCalcObjects[pt.compiledMarker.brush.calcId])
+                                {
+                                    pt.compiledMarker.brush.calcId = ++nCalcId;
+                                    oCalcObjects[pt.compiledMarker.brush.calcId] = pt.compiledMarker.brush;
+                                    pt.compiledMarker.brush.calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA, this.clrMapOvr);
+                                }
                             }
                             if(pt.compiledMarker.pen)
                             {
-                                pt.compiledMarker.pen.calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA, this.clrMapOvr);
+                                if(!oCalcObjects[pt.compiledMarker.pen.calcId])
+                                {
+                                    pt.compiledMarker.pen.calcId = ++nCalcId;
+                                    oCalcObjects[pt.compiledMarker.pen.calcId] = pt.compiledMarker.pen;
+                                    pt.compiledMarker.pen.calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA, this.clrMapOvr);
+                                }
                             }
                         }
                         if(pt.compiledDlb)
                         {
                             if(pt.compiledDlb.brush)
                             {
-                                pt.compiledDlb.brush.calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA, this.clrMapOvr);
+                                if(!oCalcObjects[pt.compiledDlb.brush.calcId])
+                                {
+                                    pt.compiledDlb.brush.calcId = ++nCalcId;
+                                    oCalcObjects[pt.compiledDlb.brush.calcId] = pt.compiledDlb.brush;
+                                    pt.compiledDlb.brush.calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA, this.clrMapOvr);
+                                }
                             }
                             if(pt.compiledDlb.pen)
                             {
-                                pt.compiledDlb.pen.calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA, this.clrMapOvr);
+                                if(!oCalcObjects[pt.compiledDlb.pen.calcId])
+                                {
+                                    pt.compiledDlb.pen.calcId = ++nCalcId;
+                                    oCalcObjects[pt.compiledDlb.pen.calcId] = pt.compiledDlb.pen;
+                                    pt.compiledDlb.pen.calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA, this.clrMapOvr);
+                                }
                             }
 
                         }
@@ -11851,7 +11885,6 @@ CChartSpace.prototype.recalculateSeriesColors = function()
                                 if(ser.spPr && ser.spPr.ln)
                                     compiled_line.merge(ser.spPr.ln);
                                 ser.compiledSeriesPen = compiled_line;
-                                ser.compiledSeriesPen.calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA, this.clrMapOvr);
                                 for(var j = 0; j < pts.length; ++j)
                                 {
                                     var oPointLine = null;
@@ -11873,7 +11906,6 @@ CChartSpace.prototype.recalculateSeriesColors = function()
                                     {
                                         compiled_line = ser.compiledSeriesPen.createDuplicate();
                                         compiled_line.merge(oPointLine);
-                                        compiled_line.calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA, this.clrMapOvr);
                                     }
                                     else
                                     {
@@ -11881,12 +11913,6 @@ CChartSpace.prototype.recalculateSeriesColors = function()
                                     }
                                     pts[j].brush = null;
                                     pts[j].pen = compiled_line;
-                                    pts[j].pen.calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA, this.clrMapOvr);
-                                    if(pts[j].compiledMarker)
-                                    {
-                                        pts[j].compiledMarker.pen &&  pts[j].compiledMarker.pen.calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA, this.clrMapOvr);
-                                        pts[j].compiledMarker.brush &&  pts[j].compiledMarker.brush.calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA, this.clrMapOvr);
-                                    }
                                 }
                             }
                         }
@@ -12031,7 +12057,6 @@ CChartSpace.prototype.recalculateSeriesColors = function()
                             if(ser.spPr && ser.spPr.ln)
                                 compiled_line.merge(ser.spPr.ln);
                             ser.compiledSeriesPen = compiled_line;
-                            ser.compiledSeriesPen.calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA, this.clrMapOvr);
                             for(var j = 0; j < pts.length; ++j)
                             {
                                 pts[j].brush = null;
@@ -12051,11 +12076,6 @@ CChartSpace.prototype.recalculateSeriesColors = function()
                                             break;
                                         }
                                     }
-                                }
-                                if(pts[j].compiledMarker)
-                                {
-                                    pts[j].compiledMarker.pen &&  pts[j].compiledMarker.pen.calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA, this.clrMapOvr);
-                                    pts[j].compiledMarker.brush &&  pts[j].compiledMarker.brush.calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA, this.clrMapOvr);
                                 }
                             }
                         }
@@ -12201,7 +12221,6 @@ CChartSpace.prototype.recalculateSeriesColors = function()
                                 compiled_brush.merge(ser.spPr.Fill);
                             }
                             ser.compiledSeriesBrush = compiled_brush.createDuplicate();
-                            ser.compiledSeriesBrush.calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA, this.clrMapOvr);
                             var pts = AscFormat.getPtsFromSeries(ser);
                             this.ptsCount += pts.length;
                             for(var j = 0; j < pts.length; ++j)
@@ -12219,7 +12238,6 @@ CChartSpace.prototype.recalculateSeriesColors = function()
                                                 {
                                                     compiled_brush = ser.dPt[k].spPr.Fill.createDuplicate();
                                                     pts[j].brush = compiled_brush;
-                                                    pts[j].brush.calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA, this.clrMapOvr);
                                                 }
                                             }
                                             break;
@@ -12279,17 +12297,11 @@ CChartSpace.prototype.recalculateSeriesColors = function()
                                                 {
                                                     compiled_line = ser.compiledSeriesPen.createDuplicate();
                                                     compiled_line.merge(ser.dPt[k].spPr.ln);
-                                                    compiled_line.calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA, this.clrMapOvr);
                                                     pts[j].pen = compiled_line;
                                                 }
                                                 break;
                                             }
                                         }
-                                    }
-                                    if(pts[j].compiledMarker)
-                                    {
-                                        pts[j].compiledMarker.pen &&  pts[j].compiledMarker.pen.calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA, this.clrMapOvr);
-                                        pts[j].compiledMarker.brush &&  pts[j].compiledMarker.brush.calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA, this.clrMapOvr);
                                     }
                                 }
                             }
