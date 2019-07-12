@@ -587,7 +587,11 @@ CWriteCommentData.prototype =
             {
                 var d = new Date(this.Data.m_sOOTime - 0);
                 var WriteOOTime = this.DateToISO8601(d);
-                this.AdditionalData += ("3;" + WriteOOTime.length + ";" + WriteOOTime);
+                this.AdditionalData += ("3;" + WriteOOTime.length + ";" + WriteOOTime + ";");
+            }
+            if (this.Data.m_sGuid)
+            {
+                this.AdditionalData += "4;" + this.Data.m_sGuid.length + ";" + this.Data.m_sGuid + ";";
             }
         }
     },
@@ -649,6 +653,8 @@ CWriteCommentData.prototype =
                 var _time = this.Iso8601ToDate(_value);
                 _comment_data.m_sOOTime = _time;
 			}
+            else if (4 == _attr)
+                _comment_data.m_sGuid = _value;
         }
     }
 };
@@ -682,6 +688,7 @@ function CCommentData()
     this.m_sOOTime      = "";
     this.m_sUserId    = "";
     this.m_sUserName  = "";
+    this.m_sGuid  = "";
     this.m_sQuoteText = null;
     this.m_bSolved    = false;
     this.m_aReplies   = [];
@@ -697,6 +704,7 @@ CCommentData.prototype =
         ret.m_sOOTime = this.m_sOOTime;
         ret.m_sUserId = this.m_sUserId;
         ret.m_sUserName = this.m_sUserName;
+        ret.m_sGuid = this.m_sGuid;
         ret.m_sQuoteText = this.m_sQuoteText;
         ret.m_bSolved = this.m_bSolved;
         for(var i = 0; i < this.m_aReplies.length; ++i){
@@ -750,6 +758,16 @@ CCommentData.prototype =
         return this.m_sUserName;
     },
 
+    Set_Guid: function(Guid)
+    {
+        this.m_sGuid = Guid;
+    },
+
+    Get_Guid: function()
+    {
+        return this.m_sGuid;
+    },
+
     Get_RepliesCount: function()
     {
         return this.m_aReplies.length;
@@ -772,6 +790,7 @@ CCommentData.prototype =
         this.m_sQuoteText = AscCommentData.asc_getQuoteText();
         this.m_bSolved    = AscCommentData.asc_getSolved();
         this.m_sUserName  = AscCommentData.asc_getUserName();
+        this.m_sGuid      = AscCommentData.asc_getGuid();
 
         var RepliesCount  = AscCommentData.asc_getRepliesCount();
         for ( var Index = 0; Index < RepliesCount; Index++ )
@@ -789,6 +808,7 @@ CCommentData.prototype =
         // String            : m_sOOTime
         // String            : m_sUserId
         // String            : m_sUserName
+        // String            : m_sGuid
         // Bool              : Null ли QuoteText
         // String            : (Если предыдущий параметр false) QuoteText
         // Bool              : Solved
@@ -801,6 +821,7 @@ CCommentData.prototype =
         Writer.WriteString2( this.m_sOOTime );
         Writer.WriteString2( this.m_sUserId );
         Writer.WriteString2( this.m_sUserName );
+        Writer.WriteString2( this.m_sGuid );
 
         if ( null === this.m_sQuoteText )
             Writer.WriteBool( true );
@@ -824,6 +845,7 @@ CCommentData.prototype =
         // String            : m_sTime
         // String            : m_sOOTime
         // String            : m_sUserId
+        // String            : m_sGuid
         // Bool              : Null ли QuoteText
         // String            : (Если предыдущий параметр false) QuoteText
         // Bool              : Solved
@@ -835,6 +857,7 @@ CCommentData.prototype =
         this.m_sOOTime   = Reader.GetString2();
         this.m_sUserId   = Reader.GetString2();
         this.m_sUserName = Reader.GetString2();
+        this.m_sGuid     = Reader.GetString2();
 
         var bNullQuote = Reader.GetBool();
         if ( true != bNullQuote  )
