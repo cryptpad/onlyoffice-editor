@@ -14625,6 +14625,9 @@ CParagraphComplexFieldsInfo.prototype.ProcessFieldCharAndCollectComplexField = f
 			var oComplexField = this.CF[this.CF.length - 1].ComplexField;
 			oComplexField.SetEndChar(oChar);
 			this.CF.splice(this.CF.length - 1, 1);
+
+			if (this.CF.length > 0 && this.CF[this.CF.length - 1].IsFieldCode())
+				this.CF[this.CF.length - 1].ComplexField.SetInstructionCF(oComplexField);
 		}
 		else
 		{

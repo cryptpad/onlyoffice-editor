@@ -865,11 +865,11 @@ CFieldInstructionParser.prototype.private_ReadFORMULA = function()
 	{
     	if(this.private_IsSwitch())
     	{
-            bFormat = true;
-            if ('#' === this.Buffer.charAt(1))
-            {
-                bNumFormat = true;
-            }
+			bFormat = true;
+			if ('#' === this.Buffer.charAt(1))
+			{
+				bNumFormat = true;
+			}
 		}
 		else
 		{
