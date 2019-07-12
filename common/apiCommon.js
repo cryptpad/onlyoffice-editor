@@ -111,6 +111,10 @@
 		val = val.toUpperCase();
 		return val;
 	}
+	function CreateUInt32()
+	{
+		return Math.floor(Math.random() * 0x100000000);
+	}
 
 	var c_oLicenseResult = {
 		Error         : 1,
@@ -4196,6 +4200,7 @@
 	window["AscCommon"].CreateAscColorCustom = CreateAscColorCustom;
 	window["AscCommon"].CreateAscColor = CreateAscColor;
 	window["AscCommon"].CreateGUID = CreateGUID;
+	window["AscCommon"].CreateUInt32 = CreateUInt32;
 
 	window['Asc']['c_oLicenseResult'] = window['Asc'].c_oLicenseResult = c_oLicenseResult;
 	prot = c_oLicenseResult;
