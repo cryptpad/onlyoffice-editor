@@ -522,55 +522,21 @@ function CWriteCommentData()
 }
 CWriteCommentData.prototype =
 {
-    DateToISO8601 : function(d)
-    {
-        function pad(n){return n < 10 ? '0' + n : n;}
-        return d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1) + '-' +
-            pad(d.getUTCDate()) + 'T' + pad(d.getUTCHours()) + ':' +
-            pad(d.getUTCMinutes()) + ':' + pad(d.getUTCSeconds())+'Z';
-    },
-
-    Iso8601ToDate : function(sDate)
-    {
-        var numericKeys = [ 1, 4, 5, 6, 7, 10, 11 ];
-        var minutesOffset = 0;
-		var struct;
-        if ((struct = /^(\d{4}|[+\-]\d{6})(?:-(\d{2})(?:-(\d{2}))?)?(?:T(\d{2}):(\d{2})(?::(\d{2})(?:\.(\d{3}))?)?(?:(Z)|([+\-])(\d{2})(?::(\d{2}))?)?)?$/.exec(sDate))) {
-            // avoid NaN timestamps caused by “undefined” values being passed to Date.UTC
-            for (var i = 0, k; (k = numericKeys[i]); ++i) {
-                struct[k] = +struct[k] || 0;
-            }
-
-            // allow undefined days and months
-            struct[2] = (+struct[2] || 1) - 1;
-            struct[3] = +struct[3] || 1;
-
-            if (struct[8] !== 'Z' && struct[9] !== undefined) {
-                minutesOffset = struct[10] * 60 + struct[11];
-
-                if (struct[9] === '+') {
-                    minutesOffset = 0 - minutesOffset;
-                }
-            }
-
-            var _ret = new Date(Date.UTC(struct[1], struct[2], struct[3], struct[4], struct[5] + minutesOffset, struct[6], struct[7]));
-            return "" + _ret.getTime();
-        }
-        return "1";
-    },
-
     Calculate : function()
     {
-        var d = new Date(this.Data.m_sTime - 0);
-        this.WriteTime = this.DateToISO8601(d);
+        this.WriteTime = new Date(this.Data.m_sTime - 0).toISOString().slice(0, 19) + 'Z';
 
         this.CalculateAdditionalData();
     },
 
     Calculate2 : function()
     {
-        var _time = this.Iso8601ToDate(this.WriteTime);
-        this.WriteTime = _time;
+        var dateMs = AscCommon.getTimeISO8601(this.WriteTime);
+        if(!isNaN(dateMs)){
+            this.WriteTime = dateMs + "";
+        } else {
+            this.WriteTime = "1";
+        }
     },
 
     CalculateAdditionalData : function()
@@ -585,8 +551,7 @@ CWriteCommentData.prototype =
             this.AdditionalData += ("2;1;" + (this.Data.m_bSolved ? "1;" : "0;"));
             if (this.Data.m_sOOTime)
             {
-                var d = new Date(this.Data.m_sOOTime - 0);
-                var WriteOOTime = this.DateToISO8601(d);
+                var WriteOOTime = new Date(this.Data.m_sOOTime - 0).toISOString().slice(0, 19) + 'Z';
                 this.AdditionalData += ("3;" + WriteOOTime.length + ";" + WriteOOTime + ";");
             }
             if (this.Data.m_sGuid)
@@ -650,8 +615,9 @@ CWriteCommentData.prototype =
                 _comment_data.m_bSolved = ("1" == _value) ? true : false;
             else if (3 == _attr)
             {
-                var _time = this.Iso8601ToDate(_value);
-                _comment_data.m_sOOTime = _time;
+                var dateMs = AscCommon.getTimeISO8601(_value);
+                if(!isNaN(dateMs))
+                    _comment_data.m_sOOTime = dateMs + "";
 			}
             else if (4 == _attr)
                 _comment_data.m_sGuid = _value;

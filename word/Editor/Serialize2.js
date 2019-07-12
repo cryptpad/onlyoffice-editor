@@ -1216,7 +1216,7 @@ var c_oToNextParType = {
 			_parsed.pos += (_len + 1);
 
 			if (0 == _attr){
-				var dateMs = Date.parse(_value);
+				var dateMs = AscCommon.getTimeISO8601(_value);
 				if (isNaN(dateMs)) {
 					dateMs = new Date().getTime();
 				}
@@ -1325,7 +1325,7 @@ function ReadTrackRevision(type, length, stream, reviewInfo, options) {
         reviewInfo.UserName = stream.GetString2LE(length);
     } else if(c_oSerProp_RevisionType.Date == type) {
         var dateStr = stream.GetString2LE(length);
-        var dateMs = Date.parse(dateStr);
+        var dateMs = AscCommon.getTimeISO8601(dateStr);
         if (isNaN(dateMs)) {
             dateMs = new Date().getTime();
         }
@@ -1435,7 +1435,7 @@ function ReadMoveRangeStartElem(type, length, stream, reviewInfo, options) {
 		// 	stream.GetULongLE();
 	} else if (c_oSerMoveRange.Date == type) {
 		var dateStr = stream.GetString2LE(length);
-		var dateMs = Date.parse(dateStr);
+		var dateMs = AscCommon.getTimeISO8601(dateStr);
 		if (isNaN(dateMs)) {
 			dateMs = new Date().getTime();
 		}
@@ -14996,7 +14996,7 @@ function Binary_CommentsTableReader(doc, oReadResult, stream, oComments)
 		else if ( c_oSer_CommentsType.Date === type )
 		{
 			var dateStr = this.stream.GetString2LE(length);
-            var dateMs = Date.parse(dateStr);
+            var dateMs = AscCommon.getTimeISO8601(dateStr);
             if (isNaN(dateMs)) {
                 dateMs = new Date().getTime();
             }

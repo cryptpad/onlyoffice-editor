@@ -4122,7 +4122,7 @@
             var i;
             var sOOTime = oCommentData.asc_getOnlyOfficeTime();
             if (sOOTime) {
-                this.bs.WriteItem( c_oSer_ThreadedComment.dT, function(){oThis.memory.WriteString3(new Date(sOOTime - 0).toISOString().slice(0, 22));});
+                this.bs.WriteItem( c_oSer_ThreadedComment.dT, function(){oThis.memory.WriteString3(new Date(sOOTime - 0).toISOString().slice(0, 22) + "Z");});
             }
             var userId = oCommentData.asc_getUserId();
             var displayName = oCommentData.asc_getUserName();
@@ -7769,15 +7769,15 @@
                 oCommentData.asc_putText(this.stream.GetString2LE(length));
             else if ( c_oSer_CommentData.Time == type )
             {
-                var oDate = new Date(this.stream.GetString2LE(length));
-                if(!isNaN(oDate))
-                    oCommentData.asc_putTime(oDate.getTime() + "");
+                var dateMs = AscCommon.getTimeISO8601(this.stream.GetString2LE(length));
+                if(!isNaN(dateMs))
+                    oCommentData.asc_putTime(dateMs + "");
             }
             else if ( c_oSer_CommentData.OOTime == type )
             {
-                var oDate = new Date(this.stream.GetString2LE(length));
-                if(!isNaN(oDate))
-                    oCommentData.asc_putOnlyOfficeTime(oDate.getTime() + "");
+                var dateMs = AscCommon.getTimeISO8601(this.stream.GetString2LE(length));
+                if(!isNaN(dateMs))
+                    oCommentData.asc_putOnlyOfficeTime(dateMs + "");
             }
             else if ( c_oSer_CommentData.UserId == type )
                 oCommentData.asc_putUserId(this.stream.GetString2LE(length));
@@ -8430,9 +8430,9 @@
             var oThis = this;
             if ( c_oSer_ThreadedComment.dT === type ) {
                 oCommentData.asc_putTime("");
-                var date =  new Date(this.stream.GetString2LE(length) + "Z");
-                if(!isNaN(date))
-                    oCommentData.asc_putOnlyOfficeTime(date.getTime() + "");
+                var dateMs =  AscCommon.getTimeISO8601(this.stream.GetString2LE(length));
+                if(!isNaN(dateMs))
+                    oCommentData.asc_putOnlyOfficeTime(dateMs + "");
             } else if ( c_oSer_ThreadedComment.personId === type ) {
                 var person = this.personList[this.stream.GetString2LE(length)];
                 if (person) {
