@@ -476,7 +476,7 @@ ParaRun.prototype.Add = function(Item, bMath)
 		{
 			NewRun.MoveCursorToStartPos();
 			NewRun.Add(Item, bMath);
-			NewRun.Make_ThisElementCurrent();
+			NewRun.SetThisElementCurrentInParagraph();
 			return;
 		}
 	}
@@ -9956,9 +9956,7 @@ ParaRun.prototype.Make_ThisElementCurrent = function(bUpdateStates)
 {
     if (this.Is_UseInDocument())
     {
-        var ContentPos = this.Paragraph.Get_PosByElement(this);
-        ContentPos.Add(this.State.ContentPos);
-        this.Paragraph.Set_ParaContentPos(ContentPos, true, -1, -1, false);
+    	this.SetThisElementCurrentInParagraph();
         this.Paragraph.Document_SetThisElementCurrent(true === bUpdateStates ? true : false);
     }
 };
@@ -9973,6 +9971,21 @@ ParaRun.prototype.SetThisElementCurrent = function()
 
 	this.Paragraph.Set_ParaContentPos(StartPos, true, -1, -1, false);
 	this.Paragraph.Document_SetThisElementCurrent(false);
+};
+/**
+ * Устанавливаем курсор параграфа в текущую позицию данного рана
+ */
+ParaRun.prototype.SetThisElementCurrentInParagraph = function()
+{
+	if (!this.Paragraph)
+		return;
+
+	var oContentPos = this.Paragraph.Get_PosByElement(this);
+	if (!oContentPos)
+		return;
+
+	oContentPos.Add(this.State.ContentPos);
+	this.Paragraph.Set_ParaContentPos(oContentPos, true, -1, -1, false);
 };
 ParaRun.prototype.GetAllParagraphs = function(Props, ParaArray)
 {
