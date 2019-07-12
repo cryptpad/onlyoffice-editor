@@ -759,7 +759,7 @@ CShape.prototype.getIsSingleBody = function(x, y)
 };
 
 CShape.prototype.Set_CurrentElement = function(bUpdate, pageIndex){
-    if(this.parent){
+    if(this.parent && this.parent.graphicObjects){
         var drawing_objects = this.parent.graphicObjects;
         drawing_objects.resetSelection(true);
         if(this.group){
