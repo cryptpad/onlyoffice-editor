@@ -2973,6 +2973,7 @@ CPresentation.prototype =
                     sText = oContent.GetSelectedText(false, {NewLine: true, NewParagraph: true});
                     oContent.Set_ApplyToAll(false);
                     oDateTime.put_CustomDateTime(sText);
+                    oContent.CalculateAllFields();
                     oField = oContent.GetFieldByType2('datetime');
                     if(oField)
                     {
@@ -3001,7 +3002,7 @@ CPresentation.prototype =
                         }
                         oDateTime.put_DateTime(sFieldType);
 
-                        oDateTime.put_Lang(oField.CompiledPr.Lang.Val);
+                        oDateTime.put_Lang(oField.Pr.Lang.Val);
                     }
                     oSlideHF.put_DateTime(oDateTime);
                 }
@@ -3120,7 +3121,7 @@ CPresentation.prototype =
         History.Create_NewPoint(AscDFH.historydescription_Presentation_SetHF);
         var oSlideProps = oProps.get_Slide();
         var i, j, oSlide, oMaster, oParents, oHF, oLayout, oSp,
-            sText, oContent, oDateTime, sDateTime, sCustomDateTime, oFld, oParagraph, bRemoveOnTitle;
+            sText, oContent, oDateTime, sDateTime, sCustomDateTime, oFld, oParagraph, bRemoveOnTitle, nLang;
         if(oSlideProps)
         {
             var bShowOnTitleSlide = oSlideProps.get_ShowOnTitleSlide();
@@ -3215,9 +3216,7 @@ CPresentation.prototype =
                                         oContent = oSp && oSp.getDocContent && oSp.getDocContent();
                                         if(oContent)
                                         {
-                                            oContent.Set_ApplyToAll(true);
-                                            oContent.Remove(-1, false, false, false, false);
-                                            oContent.Set_ApplyToAll(false);
+                                            oContent.ClearContent(true);
                                             AscFormat.AddToContentFromString(oContent, sText);
                                         }
                                     }
@@ -3225,9 +3224,7 @@ CPresentation.prototype =
                                     oContent = oSp && oSp.getDocContent && oSp.getDocContent();
                                     if(oContent)
                                     {
-                                        oContent.Set_ApplyToAll(true);
-                                        oContent.Remove(-1, false, false, false, false);
-                                        oContent.Set_ApplyToAll(false);
+                                        oContent.ClearContent(true);
                                         AscFormat.AddToContentFromString(oContent, sText);
                                     }
                                 }
@@ -3250,9 +3247,7 @@ CPresentation.prototype =
                                     oContent = oSp.getDocContent && oSp.getDocContent();
                                     if(oContent && typeof sText === "string")
                                     {
-                                        oContent.Set_ApplyToAll(true);
-                                        oContent.Remove(-1, false, false, false, false);
-                                        oContent.Set_ApplyToAll(false);
+                                        oContent.ClearContent(true);
                                         AscFormat.AddToContentFromString(oContent, sText);
                                     }
                                 }
@@ -3297,9 +3292,7 @@ CPresentation.prototype =
                                         oContent = oSp && oSp.getDocContent && oSp.getDocContent();
                                         if(oContent)
                                         {
-                                            oContent.Set_ApplyToAll(true);
-                                            oContent.Remove(-1, false, false, false, false);
-                                            oContent.Set_ApplyToAll(false);
+                                            oContent.ClearContent(true);
                                             AscFormat.AddToContentFromString(oContent, sText);
                                         }
                                     }
@@ -3307,9 +3300,7 @@ CPresentation.prototype =
                                     oContent = oSp && oSp.getDocContent && oSp.getDocContent();
                                     if(oContent)
                                     {
-                                        oContent.Set_ApplyToAll(true);
-                                        oContent.Remove(-1, false, false, false, false);
-                                        oContent.Set_ApplyToAll(false);
+                                        oContent.ClearContent(true);
                                         AscFormat.AddToContentFromString(oContent, sText);
                                     }
                                 }
@@ -3334,9 +3325,7 @@ CPresentation.prototype =
                                     oContent = oSp.getDocContent && oSp.getDocContent();
                                     if(oContent && typeof sText === "string")
                                     {
-                                        oContent.Set_ApplyToAll(true);
-                                        oContent.Remove(-1, false, false, false, false);
-                                        oContent.Set_ApplyToAll(false);
+                                        oContent.ClearContent(true);
                                         AscFormat.AddToContentFromString(oContent, sText);
                                     }
                                 }
@@ -3375,10 +3364,16 @@ CPresentation.prototype =
 
                             sDateTime = "";
                             sCustomDateTime = "";
+                            nLang = 1033;
                             if(oDateTime)
                             {
                                 sDateTime = oDateTime.get_DateTime();
                                 sCustomDateTime = oDateTime.get_CustomDateTime();
+                                nLang = oDateTime.get_Lang();
+                                if(!AscFormat.isRealNumber(nLang))
+                                {
+                                    nLang = 1033;
+                                }
                                 if(!oMastersMap[oMaster.Get_Id()])
                                 {
                                     if(typeof sDateTime === "string" || typeof sCustomDateTime === "string")
@@ -3391,15 +3386,14 @@ CPresentation.prototype =
                                                 oContent = oSp.getDocContent && oSp.getDocContent();
                                                 if(oContent)
                                                 {
-                                                    oContent.Set_ApplyToAll(true);
-                                                    oContent.Remove(-1, false, false, false, false);
-                                                    oContent.Set_ApplyToAll(false);
+                                                    oContent.ClearContent(true);
                                                     if(sDateTime)
                                                     {
                                                         oParagraph = oContent.Content[0];
                                                         oFld = new AscCommonWord.CPresentationField(oParagraph);
                                                         oFld.SetGuid(AscCommon.CreateGUID());
                                                         oFld.SetFieldType(sDateTime);
+                                                        oFld.Set_Lang_Val(nLang);
                                                         if(typeof sCustomDateTime === "string")
                                                         {
                                                             oFld.AddText(sCustomDateTime);
@@ -3419,15 +3413,14 @@ CPresentation.prototype =
                                             oContent = oSp.getDocContent && oSp.getDocContent();
                                             if(oContent)
                                             {
-                                                oContent.Set_ApplyToAll(true);
-                                                oContent.Remove(-1, false, false, false, false);
-                                                oContent.Set_ApplyToAll(false);
+                                                oContent.ClearContent(true);
                                                 if(sDateTime)
                                                 {
                                                     oParagraph = oContent.Content[0];
                                                     oFld = new AscCommonWord.CPresentationField(oParagraph);
                                                     oFld.SetGuid(AscCommon.CreateGUID());
                                                     oFld.SetFieldType(sDateTime);
+                                                    oFld.Set_Lang_Val(nLang);
                                                     if(typeof sCustomDateTime === "string")
                                                     {
                                                         oFld.AddText(sCustomDateTime);
@@ -3461,15 +3454,14 @@ CPresentation.prototype =
                                     oContent = oSp.getDocContent && oSp.getDocContent();
                                     if(oContent)
                                     {
-                                        oContent.Set_ApplyToAll(true);
-                                        oContent.Remove(-1, false, false, false, false);
-                                        oContent.Set_ApplyToAll(false);
+                                        oContent.ClearContent(true);
                                         if(sDateTime)
                                         {
                                             oParagraph = oContent.Content[0];
                                             oFld = new AscCommonWord.CPresentationField(oParagraph);
                                             oFld.SetGuid(AscCommon.CreateGUID());
                                             oFld.SetFieldType(sDateTime);
+                                            oFld.Set_Lang_Val(nLang);
                                             if(typeof sCustomDateTime === "string")
                                             {
                                                 oFld.AddText(sCustomDateTime);
@@ -3561,9 +3553,7 @@ CPresentation.prototype =
                             oContent = oSp.getDocContent && oSp.getDocContent();
                             if(oContent && typeof sText === "string")
                             {
-                                oContent.Set_ApplyToAll(true);
-                                oContent.Remove(-1, false, false, false, false);
-                                oContent.Set_ApplyToAll(false);
+                                oContent.ClearContent(true);
                                 AscFormat.AddToContentFromString(oContent, sText);
                             }
                         }
@@ -3597,9 +3587,7 @@ CPresentation.prototype =
                             oContent = oSp.getDocContent && oSp.getDocContent();
                             if(oContent && typeof sText === "string")
                             {
-                                oContent.Set_ApplyToAll(true);
-                                oContent.Remove(-1, false, false, false, false);
-                                oContent.Set_ApplyToAll(false);
+                                oContent.ClearContent(true);
                                 AscFormat.AddToContentFromString(oContent, sText);
                             }
                         }
@@ -3619,10 +3607,16 @@ CPresentation.prototype =
                         oDateTime = oSlideProps.get_DateTime();
                         sDateTime = "";
                         sCustomDateTime = "";
+                        nLang = 1033;
                         if(oDateTime)
                         {
                             sDateTime = oDateTime.get_DateTime();
                             sCustomDateTime = oDateTime.get_CustomDateTime();
+                            nLang = oDateTime.get_Lang();
+                            if(!AscFormat.isRealNumber(nLang))
+                            {
+                                nLang = 1033;
+                            }
                         }
                         oSp = oSlide.getMatchingShape(AscFormat.phType_dt, null, false, {});
                         if(!oSp)
@@ -3640,15 +3634,14 @@ CPresentation.prototype =
                             oContent = oSp.getDocContent && oSp.getDocContent();
                             if(oContent)
                             {
-                                oContent.Set_ApplyToAll(true);
-                                oContent.Remove(-1, false, false, false, false);
-                                oContent.Set_ApplyToAll(false);
+                                oContent.ClearContent(true);
                                 if(sDateTime)
                                 {
                                     oParagraph = oContent.Content[0];
                                     oFld = new AscCommonWord.CPresentationField(oParagraph);
                                     oFld.SetGuid(AscCommon.CreateGUID());
                                     oFld.SetFieldType(sDateTime);
+                                    oFld.Set_Lang_Val(nLang);
                                     if(typeof sCustomDateTime === "string")
                                     {
                                         oFld.AddText(sCustomDateTime);
@@ -3673,7 +3666,7 @@ CPresentation.prototype =
                     }
                 }
             }
-
+            this.Recalculate();
         }
     },
 
