@@ -4457,6 +4457,37 @@ function CDrawingDocument()
 		}
 	};
 
+	this.DrawTable = function(overlay, startX, startY, endX, endY, pageIndex)
+	{
+		var _page = this.m_arrPages[pageIndex];
+		var drPage = _page.drawingPage;
+
+		var dKoefX = (drPage.right - drPage.left) / _page.width_mm;
+		var dKoefY = (drPage.bottom - drPage.top) / _page.height_mm;
+
+		var _x0 = (drPage.left + dKoefX * startX);
+		var _y0 = (drPage.top + dKoefY * startY);
+		var _x1 = (drPage.left + dKoefX * endX);
+		var _y1 = (drPage.top + dKoefY * endY);
+
+		var oContext = overlay.m_oContext;
+		oContext.strokeStyle = "rgba(255, 0, 0, 1)";
+		oContext.lineWidth   = 1;
+
+		oContext.clearRect(0, 0, 10000, 10000);
+
+		oContext.beginPath();
+		oContext.moveTo(_x0, _y0);
+		oContext.lineTo(_x1, _y1);
+		oContext.stroke();
+	};
+
+	this.DrawTableClear = function(overlay)
+	{
+		var oContext = overlay.m_oContext;
+		oContext.clearRect(0, 0, 10000, 10000);
+	};
+
 	this.ContentControlsSaveLast = function()
 	{
 		this.ContentControlObjectsLast = [];

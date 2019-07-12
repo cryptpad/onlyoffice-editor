@@ -1831,6 +1831,18 @@ function CDocument(DrawingDocument, isMainLogicDocument)
 	this.RemoveEmptySelection      = true;  // При обновлении селекта, если он пустой тогда сбрасываем его
 	this.MoveDrawing               = false; // Происходит ли сейчас перенос автофигуры
 
+	this.DrawTableMode = {
+		Start  : false,
+		Draw   : false,
+		Erase  : false,
+		StartX : -1,
+		StartY : -1,
+		EndX   : -1,
+		EndY   : -1,
+		Page   : -1,
+		Table  : null
+	};
+
 	// Параметры для случая, когда мы не можем сразу перерисовать треки и нужно перерисовывать их на таймере пересчета
 	this.NeedUpdateTracksOnRecalc = false;
 	this.NeedUpdateTracksParams   = {
@@ -7772,7 +7784,15 @@ CDocument.prototype.UpdateCursorType = function(X, Y, PageAbs, MouseEvent)
 	this.DrawingDocument.OnDrawContentControl(null, c_oContentControlTrack.Hover);
 
 	var nDocPosType = this.GetDocPosType();
-	if (docpostype_HdrFtr === nDocPosType)
+	if (this.DrawTableMode.Draw)
+	{
+		this.DrawingDocument.SetCursorType("pointer", new AscCommon.CMouseMoveData());
+	}
+	else if (this.DrawTableMode.Erase)
+	{
+		this.DrawingDocument.SetCursorType("no-drop", new AscCommon.CMouseMoveData());
+	}
+	else if (docpostype_HdrFtr === nDocPosType)
 	{
 		this.HeaderFooterController.UpdateCursorType(X, Y, PageAbs, MouseEvent);
 	}
@@ -8092,7 +8112,13 @@ CDocument.prototype.OnKeyDown = function(e)
         // 3. Если у нас сейчас происходит форматирование по образцу, тогда его отменяем
         // 4. Если у нас выделена автофигура (в колонтитуле или документе), тогда снимаем выделение с нее
         // 5. Если мы просто находимся в колонтитуле (автофигура не выделена) выходим из колонтитула
-        if (true === this.DrawingDocument.IsTrackText())
+		if (this.DrawTableMode.Draw || this.DrawTableMode.Erase)
+		{
+			this.DrawTableMode.Draw  = false;
+			this.DrawTableMode.Erase = false;
+			this.DrawingDocument.DrawTableClear(editor.WordControl.m_oOverlayApi);
+		}
+		else if (true === this.DrawingDocument.IsTrackText())
         {
             // Сбрасываем проверку Drag-n-Drop
             this.Selection.DragDrop.Flag = 0;
@@ -8583,6 +8609,20 @@ CDocument.prototype.OnKeyDown = function(e)
         bUpdateSelection = false;
         bRetValue        = keydownresult_PreventAll;
     }
+	else if (e.KeyCode == 112 && true === e.CtrlKey) // Ctrl + F1
+	{
+		this.DrawTableMode.Draw  = !this.DrawTableMode.Draw;
+		this.DrawTableMode.Erase = false;
+
+		bRetValue = keydownresult_PreventAll;
+	}
+	else if (e.KeyCode == 113 && true === e.CtrlKey) // Ctrl + F2
+	{
+		this.DrawTableMode.Draw  = false;
+		this.DrawTableMode.Erase = !this.DrawTableMode.Erase;
+
+		bRetValue = keydownresult_PreventAll;
+	}
 	else if (e.KeyCode == 120) // F9 - обновление полей
 	{
 		this.UpdateFields(true);
@@ -8828,6 +8868,44 @@ CDocument.prototype.OnMouseDown = function(e, X, Y, PageIndex)
 	if (AscCommon.g_mouse_button_right === e.Button)
 		return;
 
+	if (this.DrawTableMode.Draw || this.DrawTableMode.Erase)
+	{
+		this.DrawTableMode.Start  = true;
+		this.DrawTableMode.StartX = X;
+		this.DrawTableMode.StartY = Y;
+		this.DrawTableMode.Page   = PageIndex;
+
+		var nContentPos = this.Internal_GetContentPosByXY(X, Y, PageIndex);
+		var oElement    = this.Content[nContentPos];
+
+		if (oElement)
+		{
+			if (oElement.IsTable())
+			{
+				this.DrawTableMode.Table = oElement;
+			}
+			else if (oElement.IsParagraph())
+			{
+				var oNext = oElement.Get_DocumentNext();
+				var oPrev = oElement.Get_DocumentPrev();
+
+				if (oNext && oNext.IsTable())
+					this.DrawTableMode.Table = oNext;
+				else if (oPrev && oPrev.IsTable())
+					this.DrawTableMode.Table = oPrev;
+			}
+		}
+
+		console.log("DrawTable: " + this.DrawTableMode.Draw ? "Draw" : "Erase");
+		console.log("Start X " + X);
+		console.log("Start Y " + Y);
+		console.log("Page " + PageIndex);
+		console.log("Table");
+		console.log(this.DrawTableMode.Table);
+
+		return;
+	}
+
 	// Если мы только что расширяли документ двойным щелчком, то отменяем это действие
 	if (true === this.History.Is_ExtendDocumentToPos())
 	{
@@ -8900,6 +8978,36 @@ CDocument.prototype.OnMouseUp = function(e, X, Y, PageIndex)
 {
 	if (PageIndex < 0)
 		return;
+
+	if (this.DrawTableMode.Draw || this.DrawTableMode.Erase)
+	{
+		if (!this.DrawTableMode.Start)
+			return;
+
+		this.DrawTableMode.Start = false;
+
+		if (PageIndex !== this.DrawTableMode.Page)
+			return;
+
+		this.DrawTableMode.EndX = X;
+		this.DrawTableMode.EndY = Y;
+
+		console.log("End X " + X);
+		console.log("End Y " + Y);
+
+		this.DrawingDocument.DrawTableClear(editor.WordControl.m_oOverlayApi);
+
+		this.DrawTable();
+
+		this.DrawTableMode.StartX = -1;
+		this.DrawTableMode.StartY = -1;
+		this.DrawTableMode.EndX   = -1;
+		this.DrawTableMode.EndY   = -1;
+		this.DrawTableMode.Page   = -1;
+		this.DrawTableMode.Table  = null;
+
+		return;
+	}
 
 	this.private_UpdateTargetForCollaboration();
 
@@ -9113,11 +9221,21 @@ CDocument.prototype.OnMouseMove = function(e, X, Y, PageIndex)
 	if (PageIndex < 0)
 		return;
 
+
 	if (true === this.Selection.Start)
 		this.private_UpdateTargetForCollaboration();
 
 	this.UpdateCursorType(X, Y, PageIndex, e);
 	this.CollaborativeEditing.Check_ForeignCursorsLabels(X, Y, PageIndex);
+
+	if (this.DrawTableMode.Draw || this.DrawTableMode.Erase)
+	{
+		// TODO: отрисовка
+		if (this.DrawTableMode.Start)
+			this.DrawingDocument.DrawTable(editor.WordControl.m_oOverlayApi, this.DrawTableMode.StartX, this.DrawTableMode.StartY, X, Y, PageIndex);
+
+		return;
+	}
 
 	if (1 === this.Selection.DragDrop.Flag)
 	{
@@ -18739,6 +18857,35 @@ CDocument.prototype.SetForceHideContentControlTrack = function(isHide)
 CDocument.prototype.IsForceHideContentControlTrack = function()
 {
 	return this.ForceHideCCTrack;
+};
+/**
+ * Функция для рисования таблицы с помощью мыши
+ */
+CDocument.prototype.DrawTable = function()
+{
+	if (!this.DrawTableMode.Draw && !this.DrawTableMode.Erase)
+		return;
+
+	// TODO: Случай когда таблицы нет
+	if (!this.DrawTableMode.Table)
+		return;
+
+	if (this.Document_Is_SelectionLocked(changestype_None, {
+			Type      : changestype_2_ElementsArray_and_Type,
+			Elements  : [this.DrawTableMode.Table],
+			CheckType : AscCommon.changestype_Table_Properties
+		}))
+	{
+		// TODO: Нужно учесть колонки
+
+		var oTable          = this.DrawTableMode.Table;
+		var nTablePageIndex = oTable.Parent.private_GetElementPageIndex(oTable.GetIndex(), this.DrawTableMode.Page, 0, 1);
+
+		this.StartAction();
+		oTable.DrawTableCells(this.DrawTableMode.StartX, this.DrawTableMode.StartY, this.DrawTableMode.EndX, this.DrawTableMode.EndY, nTablePageIndex);
+		this.Recalculate();
+		this.FinalizeAction();
+	}
 };
 
 
