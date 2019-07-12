@@ -368,6 +368,14 @@ function (window, undefined) {
 			this.nRow = collaborativeEditing.getLockMeRow2(nSheetId, this.nRow);
 		}
 	};
+	asc_CCommentData.prototype.checkGuid = function () {
+		if(!this.sGuid){
+			this.sGuid = AscCommon.CreateGUID();
+		}
+		for(var i = 0; i < this.aReplies.length; ++i){
+			this.aReplies[i].checkGuid();
+		}
+	};
 
 /** @constructor */
 function CCellCommentator(currentSheet) {

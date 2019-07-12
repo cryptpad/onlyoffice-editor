@@ -642,7 +642,8 @@
         Document : 6,
         Replies : 7,
         Reply : 8,
-        OOTime : 9
+        OOTime : 9,
+        Guid : 10
     };
     var c_oSer_ThreadedComment =
     {
@@ -4101,6 +4102,10 @@
             var bDocumentFlag = oCommentData.asc_getDocumentFlag();
             if(null != bDocumentFlag)
                 this.bs.WriteItem( c_oSer_CommentData.Document, function(){oThis.memory.WriteBool(bDocumentFlag);});
+            var sGuid = oCommentData.asc_getGuid();
+            if(null != sGuid){
+                this.bs.WriteItem( c_oSer_CommentData.Guid, function(){oThis.memory.WriteString3(sGuid);});
+            }
             var aReplies = oCommentData.aReplies;
             if(null != aReplies && aReplies.length > 0)
                 this.bs.WriteItem( c_oSer_CommentData.Replies, function(){oThis.WriteReplies(aReplies);});
@@ -6359,6 +6364,10 @@
                 res = this.bcr.Read1(length, function(t,l){
                     return oThis.bwtr.ReadCommentDatas(t,l, oThis.oWorkbook.aComments);
                 });
+                //todo for Workbook Comments before guid is add to format. server should fill it
+                for(var i = 0; i < oThis.oWorkbook.aComments.length; ++i){
+                    oThis.oWorkbook.aComments[i].checkGuid();
+                }
             }
             else
                 res = c_oSerConstants.ReadUnknown;
@@ -7786,6 +7795,8 @@
                 oCommentData.asc_putSolved(this.stream.GetBool());
             else if ( c_oSer_CommentData.Document == type )
                 oCommentData.asc_putDocumentFlag(this.stream.GetBool());
+            else if ( c_oSer_CommentData.Guid == type )
+                oCommentData.asc_putGuid(this.stream.GetString2LE(length));
             else
                 res = c_oSerConstants.ReadUnknown;
             return res;
