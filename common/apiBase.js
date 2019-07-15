@@ -616,8 +616,6 @@
 
 		if (window.g_asc_plugins)
         {
-         	if (this.isMobileVersion)
-         		Asc.loadPluginsAsInterface(this);
             window.g_asc_plugins.onPluginEvent("onDocumentContentReady");
         }
 
