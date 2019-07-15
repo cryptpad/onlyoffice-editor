@@ -3997,10 +3997,13 @@ background-repeat: no-repeat;\
 	{
 		this.WordControl.m_oLogicDocument.addDateTime(oPr);
 	};
-	asc_docs_api.prototype.asc_setDefaultDateTimeFormat = function(sFormat)
+	asc_docs_api.prototype.asc_setDefaultDateTimeFormat = function(aFormat)
 	{
 		window['AscCommonWord'] = window['AscCommonWord'] || {};
-		window['AscCommonWord'].sDefaultDateTimeFormat = sFormat;
+		for(var key in aFormat)
+		{
+			window['AscCommonWord'].oDefaultDateTimeFormat[key] = aFormat[key];
+		}
 	};
 
 	asc_docs_api.prototype.asc_getHeaderFooterProperties = function()
