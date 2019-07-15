@@ -676,6 +676,9 @@ FT_Stream2.prototype.GetLongLE = function() {
 FT_Stream2.prototype.GetLong = function() {
 	return this.GetULongLE();
 };
+FT_Stream2.prototype.GetULong = function() {
+	return this.GetULongLE();
+}
 	var tempHelp = new ArrayBuffer(8);
 	var tempHelpUnit = new Uint8Array(tempHelp);
 	var tempHelpFloat = new Float64Array(tempHelp);

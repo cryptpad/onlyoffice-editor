@@ -105,7 +105,7 @@ function (window, undefined) {
 	asc_CCommentCoords.prototype.isValid = function() {
 		return null !== this.nLeft && null !== this.nTop && null !== this.nRight && null !== this.nBottom &&
 			null !== this.nLeftOffset && null !== this.nTopOffset && null !== this.nRightOffset && null !== this.nBottomOffset &&
-			null !== this.dLeftMM && null !== this.dTopMM && null !== this.dWidthMM && null !== this.dHeightMM;
+			null !== this.dWidthMM && null !== this.dHeightMM;
 	};
 	asc_CCommentCoords.prototype.Read_FromBinary2 = function(r) {
 		this.nRow = r.GetLong();
@@ -120,8 +120,12 @@ function (window, undefined) {
 		this.nBottom = r.GetLong();
 		this.nBottomOffset = r.GetLong();
 
-		this.dLeftMM = r.GetDouble();
-		this.dTopMM = r.GetDouble();
+		if (r.GetBool()) {
+			this.dLeftMM = r.GetDouble();
+		}
+		if (r.GetBool()) {
+			this.dTopMM = r.GetDouble();
+		}
 		this.dWidthMM = r.GetDouble();
 		this.dHeightMM = r.GetDouble();
 
@@ -141,8 +145,18 @@ function (window, undefined) {
 		w.WriteLong(this.nBottom);
 		w.WriteLong(this.nBottomOffset);
 
-		w.WriteDouble(this.dLeftMM);
-		w.WriteDouble(this.dTopMM);
+		if (null != this.dLeftMM) {
+			w.WriteBool(true);
+			w.WriteDouble(this.dLeftMM);
+		} else {
+			w.WriteBool(false);
+		}
+		if (null != this.dTopMM) {
+			w.WriteBool(true);
+			w.WriteDouble(this.dTopMM);
+		} else {
+			w.WriteBool(false);
+		}
 		w.WriteDouble(this.dWidthMM);
 		w.WriteDouble(this.dHeightMM);
 
@@ -163,6 +177,8 @@ function (window, undefined) {
 		this.nId = null;
 		this.oParent = null;
 		this.nLevel = 0;
+		this.sGuid = "";
+		this.sProviderId = "";
 
 		// Common
 		this.sText = "";
@@ -191,6 +207,8 @@ function (window, undefined) {
 		this.nId = comment.nId;
 		this.oParent = comment.oParent;
 		this.nLevel = (null === this.oParent) ? 0 : this.oParent.asc_getLevel() + 1;
+		this.sGuid = comment.sGuid;
+		this.sProviderId = comment.sProviderId;
 
 		// Common
 		this.sText = comment.sText;
@@ -234,6 +252,9 @@ function (window, undefined) {
 	asc_CCommentData.prototype.asc_putId = function(val) { this.nId = val; };
 	asc_CCommentData.prototype.asc_getId = function() { return this.nId; };
 
+	asc_CCommentData.prototype.asc_putGuid = function(val) { this.sGuid = val; };
+	asc_CCommentData.prototype.asc_getGuid = function() { return this.sGuid; };
+
 	asc_CCommentData.prototype.asc_putLevel = function(val) { this.nLevel = val; };
 	asc_CCommentData.prototype.asc_getLevel = function() { return this.nLevel; };
 
@@ -249,8 +270,11 @@ function (window, undefined) {
 	asc_CCommentData.prototype.asc_putOnlyOfficeTime = function(val) { this.sOOTime = val; };
 	asc_CCommentData.prototype.asc_getOnlyOfficeTime = function() { return this.sOOTime; };
 
-	asc_CCommentData.prototype.asc_putUserId = function(val) { this.sUserId = val; };
+	asc_CCommentData.prototype.asc_putUserId = function(val) { this.sUserId = val; this.sProviderId = "Teamlab"; };
 	asc_CCommentData.prototype.asc_getUserId = function() { return this.sUserId; };
+
+	asc_CCommentData.prototype.asc_putProviderId = function(val) { this.sProviderId = val; };
+	asc_CCommentData.prototype.asc_getProviderId = function() { return this.sProviderId; };
 
 	asc_CCommentData.prototype.asc_putUserName = function(val) { this.sUserName = val; };
 	asc_CCommentData.prototype.asc_getUserName = function() { return this.sUserName; };
@@ -304,6 +328,8 @@ function (window, undefined) {
 		this.bDocument = r.GetBool();
 		this.bSolved = r.GetBool();
 		this.bHidden = r.GetBool();
+		this.sGuid = r.GetString2();
+		this.sProviderId = r.GetString2();
 
 		var length = r.GetLong();
 		for (var i = 0; i < length; ++i) {
@@ -327,6 +353,8 @@ function (window, undefined) {
 		w.WriteBool(this.bDocument);
 		w.WriteBool(this.bSolved);
 		w.WriteBool(this.bHidden);
+		w.WriteString2(this.sGuid);
+		w.WriteString2(this.sProviderId);
 
 		w.WriteLong(this.aReplies.length);
 		for (var i = 0; i < this.aReplies.length; ++i) {
@@ -338,6 +366,14 @@ function (window, undefined) {
 		if ( !this.bDocument ) {
 			this.nCol = collaborativeEditing.getLockMeColumn2(nSheetId, this.nCol);
 			this.nRow = collaborativeEditing.getLockMeRow2(nSheetId, this.nRow);
+		}
+	};
+	asc_CCommentData.prototype.checkGuid = function () {
+		if(!this.sGuid){
+			this.sGuid = AscCommon.CreateGUID();
+		}
+		for(var i = 0; i < this.aReplies.length; ++i){
+			this.aReplies[i].checkGuid();
 		}
 	};
 
@@ -1293,6 +1329,8 @@ CCellCommentator.prototype.Redo = function(type, data) {
 	prot["asc_getUserId"] = prot.asc_getUserId;
 	prot["asc_putUserName"] = prot.asc_putUserName;
 	prot["asc_getUserName"] = prot.asc_getUserName;
+	prot["asc_putProviderId"] = prot.asc_putProviderId;
+	prot["asc_getProviderId"] = prot.asc_getProviderId;
 	prot["asc_putDocumentFlag"] = prot.asc_putDocumentFlag;
 	prot["asc_getDocumentFlag"] = prot.asc_getDocumentFlag;
 	prot["asc_putHiddenFlag"] = prot.asc_putHiddenFlag;
@@ -1303,4 +1341,6 @@ CCellCommentator.prototype.Redo = function(type, data) {
 	prot["asc_getReply"] = prot.asc_getReply;
 	prot["asc_addReply"] = prot.asc_addReply;
 	prot["asc_getMasterCommentId"] = prot.asc_getMasterCommentId;
+	prot["asc_putGuid"] = prot.asc_putGuid;
+	prot["asc_getGuid"] = prot.asc_getGuid;
 })(window);

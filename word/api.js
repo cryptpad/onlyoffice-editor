@@ -5946,9 +5946,12 @@ background-repeat: no-repeat;\
 			this.m_sTime      = (undefined != obj.m_sTime     ) ? obj.m_sTime : "";
 			this.m_sOOTime    = (undefined != obj.m_sOOTime   ) ? obj.m_sOOTime : "";
 			this.m_sUserId    = (undefined != obj.m_sUserId   ) ? obj.m_sUserId : "";
+			this.m_sProviderId= (undefined != obj.m_sProviderId) ? obj.m_sProviderId : "";
 			this.m_sQuoteText = (undefined != obj.m_sQuoteText) ? obj.m_sQuoteText : null;
 			this.m_bSolved    = (undefined != obj.m_bSolved   ) ? obj.m_bSolved : false;
 			this.m_sUserName  = (undefined != obj.m_sUserName ) ? obj.m_sUserName : "";
+			this.m_sInitials  = (undefined != obj.m_sInitials ) ? obj.m_sInitials : this.asc_makeInitials(this.m_sUserName);
+			this.m_nDurableId = (undefined != obj.m_nDurableId) ? obj.m_nDurableId : null;
 			this.m_aReplies   = [];
 			if (undefined != obj.m_aReplies)
 			{
@@ -5967,9 +5970,12 @@ background-repeat: no-repeat;\
 			this.m_sTime      = "";
 			this.m_sOOTime    = "";
 			this.m_sUserId    = "";
+			this.m_sProviderId= "";
 			this.m_sQuoteText = null;
 			this.m_bSolved    = false;
 			this.m_sUserName  = "";
+			this.m_sInitials  = "";
+			this.m_nDurableId = null;
 			this.m_aReplies   = [];
 		}
 	}
@@ -6005,6 +6011,15 @@ background-repeat: no-repeat;\
 	asc_CCommentDataWord.prototype.asc_putUserId       = function(v)
 	{
 		this.m_sUserId = v;
+		this.m_sProviderId = "Teamlab";
+	};
+	asc_CCommentDataWord.prototype.asc_getProviderId       = function()
+	{
+		return this.m_sProviderId;
+	};
+	asc_CCommentDataWord.prototype.asc_putProviderId       = function(v)
+	{
+		this.m_sProviderId = v;
 	};
 	asc_CCommentDataWord.prototype.asc_getUserName     = function()
 	{
@@ -6013,6 +6028,15 @@ background-repeat: no-repeat;\
 	asc_CCommentDataWord.prototype.asc_putUserName     = function(v)
 	{
 		this.m_sUserName = v;
+		this.m_sInitials = this.asc_makeInitials(this.m_sUserName);
+	};
+	asc_CCommentDataWord.prototype.asc_getInitials       = function()
+	{
+		return this.m_sInitials;
+	};
+	asc_CCommentDataWord.prototype.asc_putInitials       = function(v)
+	{
+		this.m_sInitials = v;
 	};
 	asc_CCommentDataWord.prototype.asc_getQuoteText    = function()
 	{
@@ -6029,6 +6053,14 @@ background-repeat: no-repeat;\
 	asc_CCommentDataWord.prototype.asc_putSolved       = function(v)
 	{
 		this.m_bSolved = v;
+	};
+	asc_CCommentDataWord.prototype.asc_getDurableId       = function()
+	{
+		return this.m_nDurableId;
+	};
+	asc_CCommentDataWord.prototype.asc_putDurableId       = function(v)
+	{
+		this.m_nDurableId = v;
 	};
 	asc_CCommentDataWord.prototype.asc_getReply        = function(i)
 	{
@@ -6049,6 +6081,18 @@ background-repeat: no-repeat;\
 	asc_CCommentDataWord.prototype.asc_getDocumentFlag = function()
 	{
 		return this.m_bGlobal;
+	};
+	asc_CCommentDataWord.prototype.asc_makeInitials = function(name)
+	{
+		var initials = "";
+		if(name){
+			name.split(" ").forEach(function(elem) {
+				if (elem.length > 0) {
+					initials += elem[0];
+				}
+			});
+		}
+		return initials;
 	};
 
 
@@ -10272,12 +10316,18 @@ background-repeat: no-repeat;\
 	asc_CCommentDataWord.prototype['asc_putOnlyOfficeTime']         = asc_CCommentDataWord.prototype.asc_putOnlyOfficeTime;
 	asc_CCommentDataWord.prototype['asc_getUserId']       = asc_CCommentDataWord.prototype.asc_getUserId;
 	asc_CCommentDataWord.prototype['asc_putUserId']       = asc_CCommentDataWord.prototype.asc_putUserId;
+	asc_CCommentDataWord.prototype['asc_getProviderId']   = asc_CCommentDataWord.prototype.asc_getProviderId;
+	asc_CCommentDataWord.prototype['asc_putProviderId']   = asc_CCommentDataWord.prototype.asc_putProviderId;
 	asc_CCommentDataWord.prototype['asc_getUserName']     = asc_CCommentDataWord.prototype.asc_getUserName;
 	asc_CCommentDataWord.prototype['asc_putUserName']     = asc_CCommentDataWord.prototype.asc_putUserName;
+	asc_CCommentDataWord.prototype['asc_getInitials']     = asc_CCommentDataWord.prototype.asc_getInitials;
+	asc_CCommentDataWord.prototype['asc_putInitials']     = asc_CCommentDataWord.prototype.asc_putInitials;
 	asc_CCommentDataWord.prototype['asc_getQuoteText']    = asc_CCommentDataWord.prototype.asc_getQuoteText;
 	asc_CCommentDataWord.prototype['asc_putQuoteText']    = asc_CCommentDataWord.prototype.asc_putQuoteText;
 	asc_CCommentDataWord.prototype['asc_getSolved']       = asc_CCommentDataWord.prototype.asc_getSolved;
 	asc_CCommentDataWord.prototype['asc_putSolved']       = asc_CCommentDataWord.prototype.asc_putSolved;
+	asc_CCommentDataWord.prototype['asc_getDurableId']    = asc_CCommentDataWord.prototype.asc_getDurableId;
+	asc_CCommentDataWord.prototype['asc_putDurableId']    = asc_CCommentDataWord.prototype.asc_putDurableId;
 	asc_CCommentDataWord.prototype['asc_getReply']        = asc_CCommentDataWord.prototype.asc_getReply;
 	asc_CCommentDataWord.prototype['asc_addReply']        = asc_CCommentDataWord.prototype.asc_addReply;
 	asc_CCommentDataWord.prototype['asc_getRepliesCount'] = asc_CCommentDataWord.prototype.asc_getRepliesCount;

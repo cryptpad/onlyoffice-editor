@@ -4626,6 +4626,8 @@ background-repeat: no-repeat;\
 			this.m_sQuoteText = (undefined != obj.m_sQuoteText) ? obj.m_sQuoteText : null;
 			this.m_bSolved    = (undefined != obj.m_bSolved   ) ? obj.m_bSolved : false;
 			this.m_sUserName  = (undefined != obj.m_sUserName ) ? obj.m_sUserName : "";
+			this.m_sGuid      = (undefined != obj.m_sGuid     ) ? obj.m_sGuid : "";
+			this.m_nTimeZoneBias= (undefined != obj.m_nTimeZoneBias) ? obj.m_nTimeZoneBias : null;
 			this.bDocument    = (undefined != obj.bDocument   ) ? obj.bDocument : false;
 			this.m_aReplies   = [];
 			if (undefined != obj.m_aReplies)
@@ -4647,6 +4649,8 @@ background-repeat: no-repeat;\
 			this.m_sQuoteText = null;
 			this.m_bSolved    = false;
 			this.m_sUserName  = "";
+			this.m_sGuid      = "";
+			this.m_nTimeZoneBias =  null;
 			this.m_aReplies   = [];
 			this.bDocument    = false;
 		}
@@ -4667,6 +4671,7 @@ background-repeat: no-repeat;\
 	asc_CCommentData.prototype.asc_putTime         = function(v)
 	{
 		this.m_sTime = v;
+		this.m_nTimeZoneBias = new Date().getTimezoneOffset();
 	};
 	asc_CCommentData.prototype.asc_getOnlyOfficeTime         = function()
 	{
@@ -4691,6 +4696,22 @@ background-repeat: no-repeat;\
 	asc_CCommentData.prototype.asc_putUserName     = function(v)
 	{
 		this.m_sUserName = v;
+	};
+	asc_CCommentData.prototype.asc_getGuid     = function()
+	{
+		return this.m_sGuid;
+	};
+	asc_CCommentData.prototype.asc_putGuid     = function(v)
+	{
+		this.m_sGuid = v;
+	};
+	asc_CCommentData.prototype.asc_putTimeZoneBias     = function(v)
+	{
+		this.m_nTimeZoneBias = v;
+	};
+	asc_CCommentData.prototype.asc_getTimeZoneBias     = function()
+	{
+		return this.m_nTimeZoneBias;
 	};
 	asc_CCommentData.prototype.asc_getQuoteText    = function()
 	{
@@ -7958,6 +7979,10 @@ background-repeat: no-repeat;\
 	asc_CCommentData.prototype['asc_putUserId']       = asc_CCommentData.prototype.asc_putUserId;
 	asc_CCommentData.prototype['asc_getUserName']     = asc_CCommentData.prototype.asc_getUserName;
 	asc_CCommentData.prototype['asc_putUserName']     = asc_CCommentData.prototype.asc_putUserName;
+	asc_CCommentData.prototype['asc_getGuid']         = asc_CCommentData.prototype.asc_getGuid;
+	asc_CCommentData.prototype['asc_putGuid']         = asc_CCommentData.prototype.asc_putGuid;
+	asc_CCommentData.prototype['asc_getTimeZoneBias'] = asc_CCommentData.prototype.asc_getTimeZoneBias;
+	asc_CCommentData.prototype['asc_putTimeZoneBias'] = asc_CCommentData.prototype.asc_putTimeZoneBias;
 	asc_CCommentData.prototype['asc_getQuoteText']    = asc_CCommentData.prototype.asc_getQuoteText;
 	asc_CCommentData.prototype['asc_putQuoteText']    = asc_CCommentData.prototype.asc_putQuoteText;
 	asc_CCommentData.prototype['asc_getSolved']       = asc_CCommentData.prototype.asc_getSolved;

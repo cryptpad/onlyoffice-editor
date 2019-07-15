@@ -4637,6 +4637,17 @@
 		return matrix;
 	}
 
+	function getTimeISO8601(dateStr) {
+		if (dateStr) {
+			if (dateStr.endsWith("Z")) {
+				return Date.parse(dateStr);
+			} else {
+				return Date.parse(dateStr + "Z");
+			}
+		}
+		return NaN;
+	}
+
 	//------------------------------------------------------------export---------------------------------------------------
 	window['AscCommon'] = window['AscCommon'] || {};
 	window["AscCommon"].getSockJs = getSockJs;
@@ -4729,6 +4740,7 @@
 	window["AscCommon"].translateManager = new CTranslateManager();
 
 	window["AscCommon"].parseText = parseText;
+	window["AscCommon"].getTimeISO8601 = getTimeISO8601;
 })(window);
 
 window["asc_initAdvancedOptions"] = function(_code, _file_hash, _docInfo)
