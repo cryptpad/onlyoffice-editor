@@ -1229,6 +1229,14 @@ function CBinaryFileWriter()
 
                 oThis.WriteUChar(g_nodeAttributeEnd);
 
+                if(null != _comment.timeZoneBias){
+                    oThis.StartRecord(0);
+                    oThis.WriteUChar(g_nodeAttributeStart);
+                    oThis._WriteInt1(9, _comment.timeZoneBias);
+                    oThis.WriteUChar(g_nodeAttributeEnd);
+                    oThis.EndRecord();
+                }
+
                 oThis.EndRecord();
             }
 

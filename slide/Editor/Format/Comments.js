@@ -516,6 +516,7 @@ function CWriteCommentData()
     this.WriteText = "";
 
     this.AdditionalData = "";
+    this.timeZoneBias = null;
 
     this.x = 0;
     this.y = 0;
@@ -525,6 +526,7 @@ CWriteCommentData.prototype =
     Calculate : function()
     {
         this.WriteTime = new Date(this.Data.m_sTime - 0).toISOString().slice(0, 19) + 'Z';
+        this.timeZoneBias = this.Data.m_nTimeZoneBias;
 
         this.CalculateAdditionalData();
     },
@@ -657,6 +659,7 @@ function CCommentData()
     this.m_sGuid  = "";
     this.m_sQuoteText = null;
     this.m_bSolved    = false;
+    this.m_nTimeZoneBias = new Date().getTimezoneOffset();
     this.m_aReplies   = [];
 }
 
@@ -673,6 +676,7 @@ CCommentData.prototype =
         ret.m_sGuid = this.m_sGuid;
         ret.m_sQuoteText = this.m_sQuoteText;
         ret.m_bSolved = this.m_bSolved;
+        ret.m_nTimeZoneBias = this.m_nTimeZoneBias;
         for(var i = 0; i < this.m_aReplies.length; ++i){
             ret.m_aReplies.push(this.m_aReplies[i].createDuplicate());
         }
@@ -734,6 +738,16 @@ CCommentData.prototype =
         return this.m_sGuid;
     },
 
+    Set_TimeZoneBias: function(timeZoneBias)
+    {
+        this.m_nTimeZoneBias = timeZoneBias;
+    },
+
+    Get_TimeZoneBias: function()
+    {
+        return this.m_nTimeZoneBias;
+    },
+
     Get_RepliesCount: function()
     {
         return this.m_aReplies.length;
@@ -775,6 +789,8 @@ CCommentData.prototype =
         // String            : m_sUserId
         // String            : m_sUserName
         // String            : m_sGuid
+        // Bool              : Null ли TimeZoneBias
+        // Long              : TimeZoneBias
         // Bool              : Null ли QuoteText
         // String            : (Если предыдущий параметр false) QuoteText
         // Bool              : Solved
@@ -789,6 +805,13 @@ CCommentData.prototype =
         Writer.WriteString2( this.m_sUserName );
         Writer.WriteString2( this.m_sGuid );
 
+        if ( null === this.m_nTimeZoneBias )
+            Writer.WriteBool( true );
+        else
+        {
+            Writer.WriteBool( false );
+            Writer.WriteLong( this.m_nTimeZoneBias );
+        }
         if ( null === this.m_sQuoteText )
             Writer.WriteBool( true );
         else
@@ -812,6 +835,8 @@ CCommentData.prototype =
         // String            : m_sOOTime
         // String            : m_sUserId
         // String            : m_sGuid
+        // Bool              : Null ли TimeZoneBias
+        // Long              : TimeZoneBias
         // Bool              : Null ли QuoteText
         // String            : (Если предыдущий параметр false) QuoteText
         // Bool              : Solved
@@ -825,6 +850,10 @@ CCommentData.prototype =
         this.m_sUserName = Reader.GetString2();
         this.m_sGuid     = Reader.GetString2();
 
+        if ( true != Reader.GetBool()  )
+            this.m_nTimeZoneBias = Reader.GetLong();
+        else
+            this.m_nTimeZoneBias = null;
         var bNullQuote = Reader.GetBool();
         if ( true != bNullQuote  )
             this.m_sQuoteText = Reader.GetString2();

@@ -1560,6 +1560,10 @@ function fLoadComments(oObject, authors)
             commentData.m_sUserId = ("" + _wc.WriteAuthorId);
             commentData.m_sUserName = "";
             commentData.m_sTime = _wc.WriteTime;
+            commentData.m_nTimeZoneBias = _wc.timeZoneBias;
+            if (commentData.m_sTime && null != commentData.m_nTimeZoneBias) {
+                commentData.m_sOOTime = (parseInt(commentData.m_sTime) + commentData.m_nTimeZoneBias * 60000) + "";
+            }
 
             for (var k in authors)
             {
@@ -1591,6 +1595,10 @@ function fLoadComments(oObject, authors)
             commentData.m_sUserId = ("" + _wc.WriteAuthorId);
             commentData.m_sUserName = "";
             commentData.m_sTime = _wc.WriteTime;
+            commentData.m_nTimeZoneBias = _wc.timeZoneBias;
+            if (commentData.m_sTime && null != commentData.m_nTimeZoneBias) {
+                commentData.m_sOOTime = (parseInt(commentData.m_sTime) + commentData.m_nTimeZoneBias * 60000) + "";
+            }
 
             for (var k in authors)
             {
