@@ -452,7 +452,9 @@ ChartPreviewManager.prototype.createChartPreview = function(graphics, type, pres
 
 ChartPreviewManager.prototype._isCachedChartStyles = function(chartType) {
 	var res = this.previewGroups.hasOwnProperty(chartType);
-	this.previewGroups[chartType] = [];
+	if(!res) {
+		this.previewGroups[chartType] = [];
+	}
 	return res;
 };
 ChartPreviewManager.prototype._getGraphics = function() {

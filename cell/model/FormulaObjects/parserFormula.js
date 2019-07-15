@@ -2704,7 +2704,9 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 		}
 		return new cString(localeName + "(" + str + ")");
 	};
-	cBaseFunction.prototype.toString = function () {
+	cBaseFunction.prototype.toString = function (/*locale*/) {
+		/*var name = this.toString();
+		var localeName = locale ? locale[name] : name;*/
 		return this.name.replace(rx_sFuncPref, "_xlfn.");
 	};
 	cBaseFunction.prototype.setCalcValue = function (arg, numFormat) {
@@ -4973,7 +4975,7 @@ _func[cElementType.cell3D] = _func[cElementType.cell];
 	ParseResult.prototype.getElementByPos = function(pos) {
 		var curPos = 0;
 		for (var i = 0; i < this.elems.length; ++i) {
-			curPos += this.elems[i].toString().length;
+			curPos += this.elems[i].toString(/*AscCommonExcel.cFormulaFunctionToLocale*/).length;
 			if (curPos >= pos) {
 				return this.elems[i];
 			}
@@ -5160,16 +5162,16 @@ parserFormula.prototype.clone = function(formula, parent, ws) {
 	parserFormula.prototype.setFormulaString = function(formula) {
 		this.Formula = formula;
 	};
-parserFormula.prototype.setFormula = function(formula) {
-  this.Formula = formula;
-  this.is3D = false;
-  this.value = null;
-  this.outStack = [];
-  this.isParsed = false;
-  this.ca = false;
-  //this.isTable = false;
-  this.isInDependencies = false;
-};
+	parserFormula.prototype.setFormula = function (formula) {
+		this.Formula = formula;
+		this.is3D = false;
+		this.value = null;
+		this.outStack = [];
+		this.isParsed = false;
+		this.ca = false;
+		//this.isTable = false;
+		this.isInDependencies = false;
+	};
 
 	parserFormula.prototype.parse = function (local, digitDelim, parseResult, ignoreErrors) {
 		var elemArr = [];
@@ -7145,13 +7147,13 @@ parserFormula.prototype.setFormula = function(formula) {
 	};
 	var g_cCalcRecursion =  new CalcRecursion();
 
-function parseNum( str ) {
-    if ( str.indexOf( "x" ) > -1 || str == "" || str.match( /\s+/ ) )//исключаем запись числа в 16-ричной форме из числа.
-  {
-        return false;
-  }
-    return !isNaN( str );
-}
+	function parseNum(str) {
+		if (str.indexOf("x") > -1 || str == "" || str.match(/\s+/))//исключаем запись числа в 16-ричной форме из числа.
+		{
+			return false;
+		}
+		return !isNaN(str);
+	}
 
 	var matchingOperators = new RegExp("^(=|<>|<=|>=|<|>).*");
 
@@ -7248,220 +7250,220 @@ function parseNum( str ) {
 		return res;
 	}
 
-function GetDiffDate360( nDay1, nMonth1, nYear1, nDay2, nMonth2, nYear2, bUSAMethod ) {
-    var nDayDiff;
-  var startTime = new Date(nYear1, nMonth1 - 1, nDay1), endTime = new Date(nYear2, nMonth2 - 1, nDay2), nY, nM, nD;
+	function GetDiffDate360(nDay1, nMonth1, nYear1, nDay2, nMonth2, nYear2, bUSAMethod) {
+		var nDayDiff;
+		var startTime = new Date(nYear1, nMonth1 - 1, nDay1), endTime = new Date(nYear2, nMonth2 -
+			1, nDay2), nY, nM, nD;
 
-    if ( startTime > endTime ) {
-        nY = nYear1;
-        nYear1 = nYear2;
-        nYear2 = nY;
-        nM = nMonth1;
-        nMonth1 = nMonth2;
-        nMonth2 = nM;
-        nD = nDay1;
-        nDay1 = nDay2;
-        nDay2 = nD;
-    }
+		if (startTime > endTime) {
+			nY = nYear1;
+			nYear1 = nYear2;
+			nYear2 = nY;
+			nM = nMonth1;
+			nMonth1 = nMonth2;
+			nMonth2 = nM;
+			nD = nDay1;
+			nDay1 = nDay2;
+			nDay2 = nD;
+		}
 
-    if ( bUSAMethod ) {
-        if ( nDay1 == 31 ) {
-            nDay1--;
-        }
-        if ( nDay1 == 30 && nDay2 == 31 ) {
-            nDay2--;
-    } else {
-            if ( nMonth1 == 2 && nDay1 == ( new cDate( nYear1, 0, 1 ).isLeapYear() ? 29 : 28 ) ) {
-                nDay1 = 30;
-                if ( nMonth2 == 2 && nDay2 == ( new cDate( nYear2, 0, 1 ).isLeapYear() ? 29 : 28 ) ) {
-                    nDay2 = 30;
-                }
-            }
-        }
-//        nDayDiff = ( nYear2 - nYear1 ) * 360 + ( nMonth2 - nMonth1 ) * 30 + ( nDay2 - nDay1 );
-  } else {
-        if ( nDay1 == 31 ) {
-            nDay1--;
-        }
-        if ( nDay2 == 31 ) {
-            nDay2--;
-        }
-    }
-    nDayDiff = ( nYear2 - nYear1 ) * 360 + ( nMonth2 - nMonth1 ) * 30 + ( nDay2 - nDay1 );
-    return nDayDiff;
-}
+		if (bUSAMethod) {
+			if (nDay1 == 31) {
+				nDay1--;
+			}
+			if (nDay1 == 30 && nDay2 == 31) {
+				nDay2--;
+			} else {
+				if (nMonth1 == 2 && nDay1 == ( new cDate(nYear1, 0, 1).isLeapYear() ? 29 : 28 )) {
+					nDay1 = 30;
+					if (nMonth2 == 2 && nDay2 == ( new cDate(nYear2, 0, 1).isLeapYear() ? 29 : 28 )) {
+						nDay2 = 30;
+					}
+				}
+			}
+		//nDayDiff = ( nYear2 - nYear1 ) * 360 + ( nMonth2 - nMonth1 ) * 30 + ( nDay2 - nDay1 );
+		} else {
+			if (nDay1 == 31) {
+				nDay1--;
+			}
+			if (nDay2 == 31) {
+				nDay2--;
+			}
+		}
+		nDayDiff = ( nYear2 - nYear1 ) * 360 + ( nMonth2 - nMonth1 ) * 30 + ( nDay2 - nDay1 );
+		return nDayDiff;
+	}
 
-function searchRegExp2( s, mask ) {
-    //todo протестировать
-    var bRes = true;
-    s = s.toString().toLowerCase();
-    mask = mask.toString().toLowerCase();
-	var cCurMask;
-    var nSIndex = 0;
-    var nMaskIndex = 0;
-    var nSLastIndex = 0;
-    var nMaskLastIndex = 0;
-    var nSLength = s.length;
-    var nMaskLength = mask.length;
-    var t = false;
-    for ( ; nSIndex < nSLength; nMaskIndex++, nSIndex++, t = false ) {
-        cCurMask = mask[nMaskIndex];
-        if ( '~' === cCurMask ) {
-            nMaskIndex++;
-            cCurMask = mask[nMaskIndex];
-            t = true;
-    } else if ('*' === cCurMask) {
-      break;
-        }
-        if ( ( cCurMask !== s[nSIndex] && '?' !== cCurMask ) || ( cCurMask !== s[nSIndex] && t) ) {
-            bRes = false;
-            break;
-        }
-    }
-    if ( bRes ) {
-        while ( 1 ) {
-            cCurMask = mask[nMaskIndex];
-            if ( nSIndex >= nSLength ) {
-                while ( '*' === cCurMask && nMaskIndex < nMaskLength ) {
-                    nMaskIndex++;
-                    cCurMask = mask[nMaskIndex];
-                }
-                bRes = nMaskIndex >= nMaskLength;
-                break;
-      } else if ('*' === cCurMask) {
-                nMaskIndex++;
-                if ( nMaskIndex >= nMaskLength ) {
-                    bRes = true;
-                    break;
-                }
-                nSLastIndex = nSIndex + 1;
-                nMaskLastIndex = nMaskIndex;
-      } else if (cCurMask !== s[nSIndex] && '?' !== cCurMask) {
-                nMaskIndex = nMaskLastIndex;
-                nSIndex = nSLastIndex++;
-      } else {
-                nSIndex++;
-                nMaskIndex++;
-            }
-        }
-    }
-    return bRes;
-}
+	function searchRegExp2(s, mask) {
+		//todo протестировать
+		var bRes = true;
+		s = s.toString().toLowerCase();
+		mask = mask.toString().toLowerCase();
+		var cCurMask;
+		var nSIndex = 0;
+		var nMaskIndex = 0;
+		var nSLastIndex = 0;
+		var nMaskLastIndex = 0;
+		var nSLength = s.length;
+		var nMaskLength = mask.length;
+		var t = false;
+		for (; nSIndex < nSLength; nMaskIndex++, nSIndex++, t = false) {
+			cCurMask = mask[nMaskIndex];
+			if ('~' === cCurMask) {
+				nMaskIndex++;
+				cCurMask = mask[nMaskIndex];
+				t = true;
+			} else if ('*' === cCurMask) {
+				break;
+			}
+			if (( cCurMask !== s[nSIndex] && '?' !== cCurMask ) || ( cCurMask !== s[nSIndex] && t)) {
+				bRes = false;
+				break;
+			}
+		}
+		if (bRes) {
+			while (1) {
+				cCurMask = mask[nMaskIndex];
+				if (nSIndex >= nSLength) {
+					while ('*' === cCurMask && nMaskIndex < nMaskLength) {
+						nMaskIndex++;
+						cCurMask = mask[nMaskIndex];
+					}
+					bRes = nMaskIndex >= nMaskLength;
+					break;
+				} else if ('*' === cCurMask) {
+					nMaskIndex++;
+					if (nMaskIndex >= nMaskLength) {
+						bRes = true;
+						break;
+					}
+					nSLastIndex = nSIndex + 1;
+					nMaskLastIndex = nMaskIndex;
+				} else if (cCurMask !== s[nSIndex] && '?' !== cCurMask) {
+					nMaskIndex = nMaskLastIndex;
+					nSIndex = nSLastIndex++;
+				} else {
+					nSIndex++;
+					nMaskIndex++;
+				}
+			}
+		}
+		return bRes;
+	}
 
-/*
- * Code below has been taken from OpenOffice Source.
- */
+	/*
+	 * Code below has been taken from OpenOffice Source.
+	 */
 
-function lcl_Erf0065( x ) {
-  var pn = [1.12837916709551256, 1.35894887627277916E-1, 4.03259488531795274E-2, 1.20339380863079457E-3,
-    6.49254556481904354E-5], qn = [1.00000000000000000, 4.53767041780002545E-1, 8.69936222615385890E-2,
-    8.49717371168693357E-3, 3.64915280629351082E-4];
-    var pSum = 0.0, qSum = 0.0, xPow = 1.0;
-    for ( var i = 0; i <= 4; ++i ) {
-        pSum += pn[i] * xPow;
-        qSum += qn[i] * xPow;
-        xPow *= x * x;
-    }
-    return x * pSum / qSum;
-}
+	function lcl_Erf0065(x) {
+		var pn = [1.12837916709551256, 1.35894887627277916E-1, 4.03259488531795274E-2, 1.20339380863079457E-3,
+			6.49254556481904354E-5], qn = [1.00000000000000000, 4.53767041780002545E-1, 8.69936222615385890E-2,
+			8.49717371168693357E-3, 3.64915280629351082E-4];
+		var pSum = 0.0, qSum = 0.0, xPow = 1.0;
+		for (var i = 0; i <= 4; ++i) {
+			pSum += pn[i] * xPow;
+			qSum += qn[i] * xPow;
+			xPow *= x * x;
+		}
+		return x * pSum / qSum;
+	}
 
-/** Approximation algorithm for erfc for 0.65 < x < 6.0. */
-function lcl_Erfc0600( x ) {
-  var pSum = 0, qSum = 0, xPow = 1, pn, qn;
+	/** Approximation algorithm for erfc for 0.65 < x < 6.0. */
+	function lcl_Erfc0600(x) {
+		var pSum = 0, qSum = 0, xPow = 1, pn, qn;
 
-    if ( x < 2.2 ) {
-    pn = [9.99999992049799098E-1, 1.33154163936765307, 8.78115804155881782E-1, 3.31899559578213215E-1,
-      7.14193832506776067E-2, 7.06940843763253131E-3];
-    qn = [1.00000000000000000, 2.45992070144245533, 2.65383972869775752, 1.61876655543871376, 5.94651311286481502E-1,
-      1.26579413030177940E-1, 1.25304936549413393E-2];
-  } else {
-    pn =
-      [9.99921140009714409E-1, 1.62356584489366647, 1.26739901455873222, 5.81528574177741135E-1, 1.57289620742838702E-1,
-        2.25716982919217555E-2];
-    qn = [1.00000000000000000, 2.75143870676376208, 3.37367334657284535, 2.38574194785344389, 1.05074004614827206,
-      2.78788439273628983E-1, 4.00072964526861362E-2];
-    }
+		if (x < 2.2) {
+			pn = [9.99999992049799098E-1, 1.33154163936765307, 8.78115804155881782E-1, 3.31899559578213215E-1,
+				7.14193832506776067E-2, 7.06940843763253131E-3];
+			qn = [1.00000000000000000, 2.45992070144245533, 2.65383972869775752, 1.61876655543871376,
+				5.94651311286481502E-1, 1.26579413030177940E-1, 1.25304936549413393E-2];
+		} else {
+			pn = [9.99921140009714409E-1, 1.62356584489366647, 1.26739901455873222, 5.81528574177741135E-1,
+				1.57289620742838702E-1, 2.25716982919217555E-2];
+			qn = [1.00000000000000000, 2.75143870676376208, 3.37367334657284535, 2.38574194785344389,
+				1.05074004614827206, 2.78788439273628983E-1, 4.00072964526861362E-2];
+		}
 
-    for ( var i = 0; i < 6; ++i ) {
-        pSum += pn[i] * xPow;
-        qSum += qn[i] * xPow;
-        xPow *= x;
-    }
-    qSum += qn[6] * xPow;
-    return Math.exp( -1 * x * x ) * pSum / qSum;
-}
+		for (var i = 0; i < 6; ++i) {
+			pSum += pn[i] * xPow;
+			qSum += qn[i] * xPow;
+			xPow *= x;
+		}
+		qSum += qn[6] * xPow;
+		return Math.exp(-1 * x * x) * pSum / qSum;
+	}
 
-/** Approximation algorithm for erfc for 6.0 < x < 26.54 (but used for all x > 6.0). */
-function lcl_Erfc2654( x ) {
-  var pn = [5.64189583547756078E-1, 8.80253746105525775, 3.84683103716117320E1, 4.77209965874436377E1,
-    8.08040729052301677], qn = [1.00000000000000000, 1.61020914205869003E1, 7.54843505665954743E1,
-    1.12123870801026015E2, 3.73997570145040850E1];
+	/** Approximation algorithm for erfc for 6.0 < x < 26.54 (but used for all x > 6.0). */
+	function lcl_Erfc2654(x) {
+		var pn = [5.64189583547756078E-1, 8.80253746105525775, 3.84683103716117320E1, 4.77209965874436377E1,
+			8.08040729052301677], qn = [1.00000000000000000, 1.61020914205869003E1, 7.54843505665954743E1,
+			1.12123870801026015E2, 3.73997570145040850E1];
 
-    var pSum = 0, qSum = 0, xPow = 1;
+		var pSum = 0, qSum = 0, xPow = 1;
 
-    for ( var i = 0; i <= 4; ++i ) {
-        pSum += pn[i] * xPow;
-        qSum += qn[i] * xPow;
-        xPow /= x * x;
-    }
-    return Math.exp( -1 * x * x ) * pSum / (x * qSum);
-}
+		for (var i = 0; i <= 4; ++i) {
+			pSum += pn[i] * xPow;
+			qSum += qn[i] * xPow;
+			xPow /= x * x;
+		}
+		return Math.exp(-1 * x * x) * pSum / (x * qSum);
+	}
 
-function rtl_math_erf( x ) {
-  if (x == 0) {
-        return 0;
-  }
+	function rtl_math_erf(x) {
+		if (x == 0) {
+			return 0;
+		}
 
-    var bNegative = false;
-    if ( x < 0 ) {
-        x = Math.abs( x );
-        bNegative = true;
-    }
+		var bNegative = false;
+		if (x < 0) {
+			x = Math.abs(x);
+			bNegative = true;
+		}
 
-    var res = 1;
-  if (x < 1.0e-10) {
-        res = parseFloat( x * 1.1283791670955125738961589031215452 );
-  } else if (x < 0.65) {
-        res = lcl_Erf0065( x );
-  } else {
-        res = 1 - rtl_math_erfc( x );
-  }
+		var res = 1;
+		if (x < 1.0e-10) {
+			res = parseFloat(x * 1.1283791670955125738961589031215452);
+		} else if (x < 0.65) {
+			res = lcl_Erf0065(x);
+		} else {
+			res = 1 - rtl_math_erfc(x);
+		}
 
-  if (bNegative) {
-        res *= -1;
-  }
+		if (bNegative) {
+			res *= -1;
+		}
 
-    return res;
-}
+		return res;
+	}
 
-function rtl_math_erfc( x ) {
-  if (x == 0) {
-        return 1;
-  }
+	function rtl_math_erfc(x) {
+		if (x == 0) {
+			return 1;
+		}
 
-    var bNegative = false;
-    if ( x < 0 ) {
-        x = Math.abs( x );
-        bNegative = true;
-    }
+		var bNegative = false;
+		if (x < 0) {
+			x = Math.abs(x);
+			bNegative = true;
+		}
 
-    var fErfc = 0;
-    if ( x >= 0.65 ) {
-    if (x < 6) {
-            fErfc = lcl_Erfc0600( x );
-    } else {
-            fErfc = lcl_Erfc2654( x );
-    }
-  } else {
-        fErfc = 1 - rtl_math_erf( x );
-  }
+		var fErfc = 0;
+		if (x >= 0.65) {
+			if (x < 6) {
+				fErfc = lcl_Erfc0600(x);
+			} else {
+				fErfc = lcl_Erfc2654(x);
+			}
+		} else {
+			fErfc = 1 - rtl_math_erf(x);
+		}
 
-  if (bNegative) {
-        fErfc = 2 - fErfc;
-  }
+		if (bNegative) {
+			fErfc = 2 - fErfc;
+		}
 
-    return fErfc;
-}
+		return fErfc;
+	}
 
 	// ToDo use Array.prototype.max, but some like to use for..in without hasOwnProperty
 	function getArrayMax (array) {

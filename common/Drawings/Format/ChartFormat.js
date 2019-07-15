@@ -1045,8 +1045,11 @@ function CDLbl()
 
     this.parent = null;
 
-    this.Id = g_oIdCounter.Get_NewId();
-    g_oTableId.Add(this, this.Id);
+    if(false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On())
+    {
+        this.Id = g_oIdCounter.Get_NewId();
+        g_oTableId.Add(this, this.Id);
+    }
 }
 
 CDLbl.prototype =
@@ -2177,78 +2180,78 @@ CDLbl.prototype =
 
     setDelete: function(pr)
     {
-        History.Add(new CChangesDrawingsBool(this, AscDFH.historyitem_DLbl_SetDelete, this.bDelete, pr));
+        (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsBool(this, AscDFH.historyitem_DLbl_SetDelete, this.bDelete, pr));
         this.bDelete = pr;
         this.Refresh_RecalcData2();
     },
     setDLblPos: function(pr)
     {
-        History.Add(new CChangesDrawingsLong(this, AscDFH.historyitem_DLbl_SetDLblPos, this.dLblPos, pr));
+        (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsLong(this, AscDFH.historyitem_DLbl_SetDLblPos, this.dLblPos, pr));
         this.dLblPos = pr;
     },
     setIdx: function(pr)
     {
-        History.Add(new CChangesDrawingsLong(this, AscDFH.historyitem_DLbl_SetIdx, this.idx, pr));
+        (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsLong(this, AscDFH.historyitem_DLbl_SetIdx, this.idx, pr));
         this.idx = pr;
     },
     setLayout: function(pr)
     {
-        History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_DLbl_SetLayout, this.layout, pr));
+        (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_DLbl_SetLayout, this.layout, pr));
         this.layout = pr;
     },
     setNumFmt: function(pr)
     {
-        History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_DLbl_SetNumFmt, this.numFmt, pr));
+        (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_DLbl_SetNumFmt, this.numFmt, pr));
         this.numFmt = pr;
     },
     setSeparator: function(pr)
     {
-        History.Add(new CChangesDrawingsString(this, AscDFH.historyitem_DLbl_SetSeparator, this.separator, pr));
+        (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsString(this, AscDFH.historyitem_DLbl_SetSeparator, this.separator, pr));
         this.separator = pr;
     },
     setShowBubbleSize: function(pr)
     {
-        History.Add(new CChangesDrawingsBool(this, AscDFH.historyitem_DLbl_SetShowBubbleSize, this.showBubbleSize, pr));
+        (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsBool(this, AscDFH.historyitem_DLbl_SetShowBubbleSize, this.showBubbleSize, pr));
         this.showBubbleSize = pr;
     },
     setShowCatName: function(pr)
     {
-        History.Add(new CChangesDrawingsBool(this, AscDFH.historyitem_DLbl_SetShowCatName, this.showCatName, pr));
+        (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsBool(this, AscDFH.historyitem_DLbl_SetShowCatName, this.showCatName, pr));
         this.showCatName = pr;
     },
     setShowLegendKey: function(pr)
     {
-        History.Add(new CChangesDrawingsBool(this, AscDFH.historyitem_DLbl_SetShowLegendKey, this.showLegendKey, pr));
+        (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsBool(this, AscDFH.historyitem_DLbl_SetShowLegendKey, this.showLegendKey, pr));
         this.showLegendKey = pr;
     },
     setShowPercent: function(pr)
     {
-        History.Add(new CChangesDrawingsBool(this, AscDFH.historyitem_DLbl_SetShowPercent, this.showPercent, pr));
+        (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsBool(this, AscDFH.historyitem_DLbl_SetShowPercent, this.showPercent, pr));
         this.showPercent = pr;
     },
     setShowSerName: function(pr)
     {
-        History.Add(new CChangesDrawingsBool(this, AscDFH.historyitem_DLbl_SetShowSerName, this.showSerName, pr));
+        (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsBool(this, AscDFH.historyitem_DLbl_SetShowSerName, this.showSerName, pr));
         this.showSerName = pr;
     },
     setShowVal: function(pr)
     {
-        History.Add(new CChangesDrawingsBool(this, AscDFH.historyitem_DLbl_SetShowVal, this.showVal, pr));
+        (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsBool(this, AscDFH.historyitem_DLbl_SetShowVal, this.showVal, pr));
         this.showVal = pr;
     },
     setSpPr: function(pr)
     {
-        History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_DLbl_SetSpPr, this.spPr, pr));
+        (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_DLbl_SetSpPr, this.spPr, pr));
         this.spPr = pr;
     },
     setTx: function(pr)
     {
-        History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_DLbl_SetTx, this.tx, pr));
+        (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_DLbl_SetTx, this.tx, pr));
         this.tx = pr;
     },
     setTxPr: function(pr)
     {
-        History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_DLbl_SetTxPr, this.txPr, pr));
+        (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_DLbl_SetTxPr, this.txPr, pr));
         this.txPr = pr;
         if(this.txPr)
         {
@@ -9140,8 +9143,11 @@ function CNumericPoint()
     this.idx        = null;
     this.val        = null;
 
-    this.Id = g_oIdCounter.Get_NewId();
-    g_oTableId.Add(this, this.Id);
+    if(false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On())
+    {
+        this.Id = g_oIdCounter.Get_NewId();
+        g_oTableId.Add(this, this.Id);
+    }
 }
 
 CNumericPoint.prototype =
@@ -9182,13 +9188,13 @@ CNumericPoint.prototype =
 
     setFormatCode: function(pr)
     {
-        History.Add(new CChangesDrawingsString(this, AscDFH.historyitem_NumericPoint_SetFormatCode, this.formatCode, pr));
+        (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsString(this, AscDFH.historyitem_NumericPoint_SetFormatCode, this.formatCode, pr));
         this.formatCode = pr;
     },
 
     setIdx: function(pr)
     {
-        History.Add(new CChangesDrawingsLong(this, AscDFH.historyitem_NumericPoint_SetIdx, this.idx, pr));
+        (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsLong(this, AscDFH.historyitem_NumericPoint_SetIdx, this.idx, pr));
         this.idx = pr;
     },
 
@@ -9199,9 +9205,9 @@ CNumericPoint.prototype =
         {
             _pr = 0;
         }
-        History.Add(new CChangesDrawingsDouble2(this, AscDFH.historyitem_NumericPoint_SetVal, this.val, _pr));
+        (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsDouble2(this, AscDFH.historyitem_NumericPoint_SetVal, this.val, _pr));
         this.val = _pr;
-            }
+    }
 };
 
 
@@ -9300,7 +9306,7 @@ CNumLit.prototype =
     {
         if(this.pts[idx])
         {
-            History.Add(new CChangesDrawingsContent(this, AscDFH.historyitem_CommonLit_RemoveDPt, idx, this.pts.splice(idx, 1), false));
+            (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsContent(this, AscDFH.historyitem_CommonLit_RemoveDPt, idx, [this.pts[idx]], false));
             this.pts.splice(idx, 1);
         }
     },
@@ -9319,6 +9325,8 @@ CNumLit.prototype =
 
     getPtByIndex: function(idx)
     {
+        if(this.pts[idx] && this.pts[idx].idx === idx)
+            return this.pts[idx];
         for(var i = 0; i < this.pts.length; ++i)
         {
             if(this.pts[i].idx === idx)
@@ -9361,13 +9369,13 @@ CNumLit.prototype =
 
     addPt: function(pr)
     {
-        History.Add(new CChangesDrawingsContent(this, AscDFH.historyitem_NumLit_AddPt, this.pts.length, [pr], true));
+        (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsContent(this, AscDFH.historyitem_NumLit_AddPt, this.pts.length, [pr], true));
         this.pts.push(pr);
     },
 
     setPtCount: function(pr)
     {
-        History.Add(new CChangesDrawingsLong(this, AscDFH.historyitem_NumLit_SetPtCount, this.ptCount, pr));
+        (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsLong(this, AscDFH.historyitem_NumLit_SetPtCount, this.ptCount, pr));
         this.ptCount = pr;
             }
 };
@@ -11460,7 +11468,10 @@ CStrCache.prototype =
     {
         if(this.pts[idx])
         {
-            History.Add(new CChangesDrawingsContent(this, AscDFH.historyitem_CommonLit_RemoveDPt, idx, this.pts.splice(idx, 1), false));
+            if(false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()){
+                History.Add(new CChangesDrawingsContent(this, AscDFH.historyitem_CommonLit_RemoveDPt, idx, [this.pts[idx]], false));
+            }
+            this.pts.splice(idx, 1);
         }
     },
 
@@ -11477,6 +11488,8 @@ CStrCache.prototype =
 
     getPtByIndex: function(idx)
     {
+        if(this.pts[idx] && this.pts[idx].idx === idx)
+            return this.pts[idx];
         for(var i = 0; i < this.pts.length; ++i)
         {
             if(this.pts[i].idx === idx)
@@ -11512,15 +11525,15 @@ CStrCache.prototype =
 
     addPt: function(pr)
     {
-        History.Add(new CChangesDrawingsContent(this, AscDFH.historyitem_StrCache_AddPt, this.pts.length, [pr], true));
+        (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsContent(this, AscDFH.historyitem_StrCache_AddPt, this.pts.length, [pr], true));
         this.pts.push(pr);
     },
 
     setPtCount: function(pr)
     {
-        History.Add(new CChangesDrawingsLong(this, AscDFH.historyitem_StrCache_SetPtCount, this.ptCount, pr));
+        (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsLong(this, AscDFH.historyitem_StrCache_SetPtCount, this.ptCount, pr));
         this.ptCount = pr;
-                    }
+    }
 };
 
 
@@ -11585,13 +11598,13 @@ CStringLiteral.prototype =
 
 
     addPt: function(pr){
-        History.Add(new CChangesDrawingsContent(this, AscDFH.historyitem_StringLiteral_SetPt, this.pts.length, [pr], true));
+        (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsContent(this, AscDFH.historyitem_StringLiteral_SetPt, this.pts.length, [pr], true));
         this.pts.push(pr);
     },
 
     setPtCount: function(pr)
     {
-        History.Add(new CChangesDrawingsLong(this, AscDFH.historyitem_StringLiteral_SetPtCount, this.ptCount, pr));
+        (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsLong(this, AscDFH.historyitem_StringLiteral_SetPtCount, this.ptCount, pr));
         this.ptCount = pr;
             }
 };

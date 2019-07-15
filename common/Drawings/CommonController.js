@@ -620,10 +620,19 @@ function CheckSpPrXfrm2(object)
             object.spPr.setXfrm(new AscFormat.CXfrm());
             object.spPr.xfrm.setParent(object.spPr);
         }
-        object.spPr.xfrm.setOffX(object.x);
-        object.spPr.xfrm.setOffY(object.y);
-        object.spPr.xfrm.setExtX(object.extX);
-        object.spPr.xfrm.setExtY(object.extY);
+        var oXfrm = object.spPr.xfrm;
+        if(oXfrm.offX === null || !AscFormat.fApproxEqual(object.x, oXfrm.offX, 0.01)) {
+            object.spPr.xfrm.setOffX(object.x);
+        }
+        if(oXfrm.offY === null || !AscFormat.fApproxEqual(object.y, oXfrm.offY, 0.01)) {
+            object.spPr.xfrm.setOffY(object.y);
+        }
+        if(oXfrm.extX === null || !AscFormat.fApproxEqual(object.extX, oXfrm.extX, 0.01)) {
+            object.spPr.xfrm.setExtX(object.extX);
+        }
+        if(oXfrm.extY === null || !AscFormat.fApproxEqual(object.extY, oXfrm.extY, 0.01)) {
+            object.spPr.xfrm.setExtY(object.extY);
+        }
     }
 
 function getObjectsByTypesFromArr(arr, bGrouped)
@@ -1673,8 +1682,8 @@ DrawingObjectsController.prototype =
 		var oTargetDocContent = this.getTargetDocContent(undefined, true);
 		if (oTargetDocContent)
 			return oTargetDocContent.RecalculateCurPos(bUpdateX, bUpdateY);
-
-		return {X : 0, Y : 0, Height : 0, PageNum : 0, Internal : {Line : 0, Page : 0, Range : 0}, Transform : null};
+        
+        return {X : 0, Y : 0, Height : 0, PageNum : 0, Internal : {Line : 0, Page : 0, Range : 0}, Transform : null};
 	},
 
     startEditCurrentOleObject: function(){
@@ -7408,7 +7417,7 @@ DrawingObjectsController.prototype =
             if(chart_selection.recalcInfo.bRecalculatedTitle || bDeleteTitle)
             {
                 chart_selection.recalcInfo.recalcTitle = null;
-                chart_selection.handleUpdateInternalChart();
+                chart_selection.handleUpdateInternalChart(false);
                 if(this.document)
                 {
                     chart_selection.recalculate();

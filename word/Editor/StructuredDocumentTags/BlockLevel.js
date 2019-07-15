@@ -1510,6 +1510,10 @@ CBlockLevelSdt.prototype.ReplacePlaceHolderWithContent = function()
 {
 	return this.private_ReplacePlaceHolderWithContent();
 };
+CBlockLevelSdt.prototype.CheckRunContent = function(fCheck)
+{
+	return this.Content.CheckRunContent(fCheck);
+};
 //--------------------------------------------------------export--------------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};
 window['AscCommonWord'].CBlockLevelSdt = CBlockLevelSdt;

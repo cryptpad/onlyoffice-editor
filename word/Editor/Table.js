@@ -4503,12 +4503,20 @@ CTable.prototype.CanAddComment = function()
 		if (true === this.Selection.Use && table_Selection_Cell === this.Selection.Type)
 		{
 			if (this.Selection.Data.length > 1)
+			{
 				return true;
+			}
 			else
 			{
-				var Pos  = this.Selection.Data[0];
-				var Cell = this.Content[Pos.Row].Get_Cell(Pos.Cell);
-				return Cell.Content.CanAddComment();
+				var oPos  = this.Selection.Data[0];
+				var oCell = this.GetRow(oPos.Row).GetCell(oPos.Cell);
+
+				var oCellContent = oCell.GetContent();
+				oCellContent.Set_ApplyToAll(true);
+				var isCanAdd = oCellContent.CanAddComment();
+				oCellContent.Set_ApplyToAll(false);
+
+				return isCanAdd;
 			}
 		}
 		else
@@ -14933,6 +14941,22 @@ CTable.prototype.private_CheckCurCell = function()
 			}
 		}
 	}
+};
+CTable.prototype.CheckRunContent = function(fCheck)
+{
+	for (var nCurRow = 0, nRowsCount = this.GetRowsCount(); nCurRow < nRowsCount; ++nCurRow)
+	{
+		var oRow = this.GetRow(nCurRow);
+		for (var nCurCell = 0, nCellsCount = oRow.GetCellsCount(); nCurCell < nCellsCount; ++nCurCell)
+		{
+			if (oRow.GetCell(nCurCell).GetContent().CheckRunContent(fCheck))
+			{
+				return true;
+			}
+		}
+	}
+
+	return false;
 };
 
 //----------------------------------------------------------------------------------------------------------------------

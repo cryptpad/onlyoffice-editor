@@ -4467,6 +4467,7 @@
 	prot["get_ListSubType"] = prot["asc_getListSubType"] = prot.asc_getListSubType;
 
 	window["AscCommon"].asc_CTextFontFamily = asc_CTextFontFamily;
+	window["AscCommon"]["asc_CTextFontFamily"] = asc_CTextFontFamily;
 	prot = asc_CTextFontFamily.prototype;
 	prot["get_Name"] = prot["asc_getName"] = prot.asc_getName;
 	prot["get_Index"] = prot["asc_getIndex"] = prot.asc_getIndex;

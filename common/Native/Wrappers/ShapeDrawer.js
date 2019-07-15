@@ -257,6 +257,7 @@ function CShapeDrawer()
     this.bIsTexture         = false;
     this.bIsNoFillAttack    = false;
     this.bIsNoStrokeAttack  = false;
+    this.bDrawSmartAttack = false;
     this.FillUniColor       = null;
     this.StrokeUniColor     = null;
     this.StrokeWidth        = 0;

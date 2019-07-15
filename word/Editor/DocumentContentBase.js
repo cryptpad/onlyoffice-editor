@@ -364,6 +364,18 @@ CDocumentContentBase.prototype.private_Remove = function(Count, isRemoveWholeEle
 	if (this.CurPos.ContentPos < 0)
 		return false;
 
+	if (this.IsNumberingSelection())
+	{
+		var oPara = this.Selection.Data.CurPara;
+		this.RemoveNumberingSelection();
+		oPara.RemoveSelection();
+		oPara.RemoveNumPr();
+		oPara.Set_Ind({FirstLine : undefined, Left : undefined, Right : oPara.Pr.Ind.Right}, true);
+		oPara.MoveCursorToStartPos();
+		oPara.Document_SetThisElementCurrent(true);
+		return true;
+	}
+
 	this.RemoveNumberingSelection();
 
 	var isRemoveOnDrag = this.GetLogicDocument() ? this.GetLogicDocument().DragAndDropAction : false;
@@ -850,11 +862,18 @@ CDocumentContentBase.prototype.private_Remove = function(Count, isRemoveWholeEle
 					}
 					else if (true == this.Content[nCurContentPos].IsEmpty() && nCurContentPos == this.Content.length - 1 && nCurContentPos != 0 && type_Paragraph === this.Content[nCurContentPos - 1].GetType())
 					{
-						// Если данный параграф пустой, последний, не единственный и идущий перед
-						// ним элемент не таблица, удаляем его
-						this.Internal_Content_Remove(nCurContentPos, 1);
-						nCurContentPos--;
-						this.Content[nCurContentPos].MoveCursorToEndPos(false, false);
+						if (this.IsTrackRevisions())
+						{
+							bRetValue = false;
+						}
+						else
+						{
+							// Если данный параграф пустой, последний, не единственный и идущий перед
+							// ним элемент не таблица, удаляем его
+							this.Internal_Content_Remove(nCurContentPos, 1);
+							nCurContentPos--;
+							this.Content[nCurContentPos].MoveCursorToEndPos(false, false);
+						}
 					}
 					else if (nCurContentPos === this.Content.length - 1)
 					{
@@ -1603,6 +1622,23 @@ CDocumentContentBase.prototype.ConcatParagraphs = function(nPosition, isUseConca
 		this.Content[nPosition].Concat(this.Content[nPosition + 1], isUseConcatedStyle);
 		this.RemoveFromContent(nPosition + 1, 1);
 		return true;
+	}
+
+	return false;
+};
+/**
+ * Пробегаемся по все ранам с заданной функцией
+ * @param fCheck - функция проверки содержимого рана
+ * @returns {boolean}
+ */
+CDocumentContentBase.prototype.CheckRunContent = function(fCheck)
+{
+	for (var nIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex)
+	{
+		if (this.Content[nIndex].CheckRunContent(fCheck))
+		{
+			return true;
+		}
 	}
 
 	return false;

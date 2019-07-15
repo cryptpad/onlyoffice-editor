@@ -2856,7 +2856,8 @@
 		
 		var result = [];
 		var canvas = document.createElement('canvas');
-		var styleInfo;
+		var tableStyleInfo;
+		var pivotStyleInfo;
 
 		var defaultStyles, styleThumbnailHeight, row, col = 5;
 		var styleThumbnailWidth = window["IS_NATIVE_EDITOR"] ? 90 : 61;
@@ -2865,28 +2866,28 @@
 			styleThumbnailHeight = 49;
 			row = 8;
 			defaultStyles =  wb.TableStyles.DefaultStylesPivot;
-			styleInfo = props;
+			pivotStyleInfo = props;
 		}
 		else
 		{
 			styleThumbnailHeight = window["IS_NATIVE_EDITOR"] ? 48 : 46;
 			row = 5;
 			defaultStyles = wb.TableStyles.DefaultStyles;
-			styleInfo = new AscCommonExcel.TableStyleInfo();
+			tableStyleInfo = new AscCommonExcel.TableStyleInfo();
 			if (props) {
-				styleInfo.ShowColumnStripes = props.asc_getBandVer();
-				styleInfo.ShowFirstColumn = props.asc_getFirstCol();
-				styleInfo.ShowLastColumn = props.asc_getLastCol();
-				styleInfo.ShowRowStripes = props.asc_getBandHor();
-				styleInfo.HeaderRowCount = props.asc_getFirstRow();
-				styleInfo.TotalsRowCount = props.asc_getLastRow();
+				tableStyleInfo.ShowColumnStripes = props.asc_getBandVer();
+				tableStyleInfo.ShowFirstColumn = props.asc_getFirstCol();
+				tableStyleInfo.ShowLastColumn = props.asc_getLastCol();
+				tableStyleInfo.ShowRowStripes = props.asc_getBandHor();
+				tableStyleInfo.HeaderRowCount = props.asc_getFirstRow();
+				tableStyleInfo.TotalsRowCount = props.asc_getLastRow();
 			} else {
-				styleInfo.ShowColumnStripes = false;
-				styleInfo.ShowFirstColumn = false;
-				styleInfo.ShowLastColumn = false;
-				styleInfo.ShowRowStripes = true;
-				styleInfo.HeaderRowCount = true;
-				styleInfo.TotalsRowCount = false;
+				tableStyleInfo.ShowColumnStripes = false;
+				tableStyleInfo.ShowFirstColumn = false;
+				tableStyleInfo.ShowLastColumn = false;
+				tableStyleInfo.ShowRowStripes = true;
+				tableStyleInfo.HeaderRowCount = true;
+				tableStyleInfo.TotalsRowCount = false;
 			}
 		}
 
@@ -2912,7 +2913,7 @@
 						//TODO empty style?
 						window["native"]["BeginDrawStyle"](type, i);
 					}
-					t._drawTableStyle(ctx, styles[i], styleInfo, sizeInfo);
+					t._drawTableStyle(ctx, styles[i], tableStyleInfo, pivotStyleInfo, sizeInfo);
 					if (window["IS_NATIVE_EDITOR"]) {
 						window["native"]["EndDrawStyle"]();
 					} else {
@@ -2940,7 +2941,7 @@
 		return result;
 	};
 
-  WorkbookView.prototype._drawTableStyle = function (ctx, style, styleInfo, size) {
+  WorkbookView.prototype._drawTableStyle = function (ctx, style, tableStyleInfo, pivotStyleInfo, size) {
   	ctx.clear();
 
 	var w = size.w;
@@ -3005,15 +3006,15 @@
 	var sheetMergedStyles = new AscCommonExcel.SheetMergedStyles();
 	var hiddenManager = new AscCommonExcel.HiddenManager(null);
 
-	if(style.pivot)
+	if(pivotStyleInfo)
 	{
-		this.getPivotMergeStyle(sheetMergedStyles, bbox, style, styleInfo);
+		this.getPivotMergeStyle(sheetMergedStyles, bbox, style, pivotStyleInfo);
 	}
-	else
+	else if(tableStyleInfo)
 	{
-		style.initStyle(sheetMergedStyles, bbox, styleInfo,
-			null !== styleInfo.HeaderRowCount ? styleInfo.HeaderRowCount : 1,
-			null !== styleInfo.TotalsRowCount ? styleInfo.TotalsRowCount : 0);
+		style.initStyle(sheetMergedStyles, bbox, tableStyleInfo,
+			null !== tableStyleInfo.HeaderRowCount ? tableStyleInfo.HeaderRowCount : 1,
+			null !== tableStyleInfo.TotalsRowCount ? tableStyleInfo.TotalsRowCount : 0);
 	}
 
 	var compiledStylesArr = [];

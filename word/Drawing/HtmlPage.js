@@ -1200,12 +1200,12 @@ function CEditorPage(api)
 		this.OnUpdateOverlay();
 	};
 
-	this.ScrollToPosition = function(x, y, PageNum)
+	this.ScrollToPosition = function(x, y, PageNum, height)
 	{
 		if (PageNum < 0 || PageNum >= this.m_oDrawingDocument.m_lCountCalculatePages)
 			return;
 
-		var _h       = 5;
+		var _h       = (undefined === height) ? 5 : height;
 		var rectSize = (_h * this.m_nZoomValue * g_dKoef_mm_to_pix / 100);
 		var pos      = this.m_oDrawingDocument.ConvertCoordsToCursor2(x, y, PageNum);
 

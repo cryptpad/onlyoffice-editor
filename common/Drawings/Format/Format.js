@@ -6911,13 +6911,13 @@ CXfrm.prototype =
     {
         History.Add(new CChangesDrawingsDouble(this, AscDFH.historyitem_Xfrm_SetExtX, this.extX,  pr));
         this.extX = pr;
-        this.handleUpdateExtents();
+        this.handleUpdateExtents(true);
     },
     setExtY: function(pr)
     {
         History.Add(new CChangesDrawingsDouble(this, AscDFH.historyitem_Xfrm_SetExtY, this.extY,  pr));
         this.extY = pr;
-        this.handleUpdateExtents();
+        this.handleUpdateExtents(false);
     },
     setChOffX: function(pr)
     {
@@ -6970,11 +6970,11 @@ CXfrm.prototype =
         }
     },
 
-    handleUpdateExtents: function()
+    handleUpdateExtents: function(bExtX)
     {
         if(this.parent && this.parent.handleUpdateExtents)
         {
-            this.parent.handleUpdateExtents();
+            this.parent.handleUpdateExtents(bExtX);
         }
     },
 
@@ -7508,11 +7508,11 @@ CSpPr.prototype =
         }
     },
 
-    handleUpdateExtents: function()
+    handleUpdateExtents: function(bExtX)
     {
         if(this.parent && this.parent.handleUpdateExtents)
         {
-            this.parent.handleUpdateExtents();
+            this.parent.handleUpdateExtents(bExtX);
         }
     },
 

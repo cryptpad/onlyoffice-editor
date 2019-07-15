@@ -535,6 +535,35 @@ CFieldInstructionREF.prototype.GetBookmarkName = function()
 {
 	return this.BookmarkName;
 };
+//----------------------------------------------------------------------------------------------------------------------
+// Функции для совместимости с обычным ParaHyperlink
+//----------------------------------------------------------------------------------------------------------------------
+CFieldInstructionREF.prototype.GetAnchor = function()
+{
+	return this.GetBookmarkName();
+};
+CFieldInstructionREF.prototype.GetValue = function()
+{
+	return "";
+};
+CFieldInstructionREF.prototype.SetVisited = function(isVisited)
+{
+};
+/**
+ * Проверяем является ли данная ссылка ссылкой в начало документа
+ * @returns {boolean}
+ */
+CFieldInstructionREF.prototype.IsTopOfDocument = function()
+{
+	return (this.GetBookmarkName() === "_top");
+};
+CFieldInstructionREF.prototype.SetToolTip = function(sToolTip)
+{
+};
+CFieldInstructionREF.prototype.GetToolTip = function()
+{
+	return "";
+};
 
 /**
  * NUMPAGES field
@@ -1002,11 +1031,11 @@ CFieldInstructionParser.prototype.private_ReadFORMULA = function()
 	{
     	if(this.private_IsSwitch())
     	{
-            bFormat = true;
-            if ('#' === this.Buffer.charAt(1))
-            {
-                bNumFormat = true;
-            }
+			bFormat = true;
+			if ('#' === this.Buffer.charAt(1))
+			{
+				bNumFormat = true;
+			}
 		}
 		else
 		{

@@ -3522,7 +3522,7 @@ Paragraph.prototype.Add = function(Item)
 					this.Internal_Content_Add(CurPos + 1, NewElement);
 
 				var MathElement = new ParaMath();
-				MathElement.Root.Load_FromMenu(Item.Menu, this);
+				MathElement.Root.Load_FromMenu(Item.Menu, this, null, Item.GetText());
 				MathElement.Root.Correct_Content(true);
 
 				this.Internal_Content_Add(CurPos + 1, MathElement);
@@ -3532,7 +3532,9 @@ Paragraph.prototype.Add = function(Item)
 				this.Content[this.CurPos.ContentPos].MoveCursorToEndPos(false);
 			}
 			else
+			{
 				this.Content[CurPos].Add(Item);
+			}
 
 			break;
 		}
@@ -11680,6 +11682,17 @@ Paragraph.prototype.AddCommentToObject = function(Comment, ObjectId)
 };
 Paragraph.prototype.CanAddComment = function()
 {
+	if (this.ApplyToAll)
+	{
+		var oState = this.Get_SelectionState2();
+		this.Set_ApplyToAll(false);
+		this.SelectAll(1);
+		var isCanAdd = this.CanAddComment();
+		this.Set_SelectionState2(oState);
+		this.Set_ApplyToAll(true);
+		return isCanAdd;
+	}
+
 	if (true === this.Selection.Use && true != this.IsSelectionEmpty())
 	{
 		var nStartPos = this.Selection.StartPos <= this.Selection.EndPos ? this.Selection.StartPos : this.Selection.EndPos;
@@ -14006,6 +14019,34 @@ Paragraph.prototype.RemoveElement = function(oElement)
 		}
 	}
 };
+/**
+ * Пробегаемся по все ранам с заданной функцией
+ * @param fCheck - функция проверки содержимого рана
+ * @returns {boolean}
+ */
+Paragraph.prototype.CheckRunContent = function(fCheck)
+{
+	for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
+	{
+		if (this.Content[nPos].CheckRunContent(fCheck))
+			return true;
+	}
+
+	return false;
+};
+/**
+ * Обрабатываем сложные поля данного параграфа
+ */
+Paragraph.prototype.ProcessComplexFields = function()
+{
+	var oComplexFields = new CParagraphComplexFieldsInfo();
+	oComplexFields.ResetPage(this, 0);
+
+	for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
+	{
+		this.Content[nPos].ProcessComplexFields(oComplexFields);
+	}
+};
 
 var pararecalc_0_All  = 0;
 var pararecalc_0_None = 1;
@@ -14593,6 +14634,9 @@ CParagraphComplexFieldsInfo.prototype.ProcessFieldCharAndCollectComplexField = f
 			var oComplexField = this.CF[this.CF.length - 1].ComplexField;
 			oComplexField.SetEndChar(oChar);
 			this.CF.splice(this.CF.length - 1, 1);
+
+			if (this.CF.length > 0 && this.CF[this.CF.length - 1].IsFieldCode())
+				this.CF[this.CF.length - 1].ComplexField.SetInstructionCF(oComplexField);
 		}
 		else
 		{

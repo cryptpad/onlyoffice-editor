@@ -476,7 +476,7 @@ ParaRun.prototype.Add = function(Item, bMath)
 		{
 			NewRun.MoveCursorToStartPos();
 			NewRun.Add(Item, bMath);
-			NewRun.Make_ThisElementCurrent();
+			NewRun.SetThisElementCurrentInParagraph();
 			return;
 		}
 	}
@@ -2022,9 +2022,34 @@ ParaRun.prototype.Split2 = function(CurPos, Parent, ParentPos)
                 }
             }
         }
+
+		// Обновляем позиции в поиске
+		for (var nIndex = 0, nSearchMarksCount = this.SearchMarks.length; nIndex < nSearchMarksCount; ++nIndex)
+		{
+			var oMark       = this.SearchMarks[nIndex];
+			var oContentPos = oMark.Start ? oMark.SearchResult.StartPos : oMark.SearchResult.EndPos;
+			var nDepth      = oMark.Depth;
+
+			if (oContentPos.Get(nDepth) > CurPos || (oContentPos.Get(nDepth) === CurPos && oMark.Start))
+			{
+				this.SearchMarks.splice(nIndex, 1);
+				NewRun.SearchMarks.splice(NewRun.SearchMarks.length, 0, oMark);
+				oContentPos.Data[nDepth] -= CurPos;
+				oContentPos.Data[nDepth - 1]++;
+
+				if (oMark.Start)
+					oMark.SearchResult.ClassesS[oMark.SearchResult.ClassesS.length - 1] = NewRun;
+				else
+					oMark.SearchResult.ClassesE[oMark.SearchResult.ClassesE.length - 1] = NewRun;
+
+				nSearchMarksCount--;
+				nIndex--;
+			}
+		}
     }
 
-    // Разделяем содержимое по ранам
+
+	// Разделяем содержимое по ранам
     NewRun.ConcatToContent( this.Content.slice(CurPos) );
     this.Remove_FromContent( CurPos, this.Content.length - CurPos, true );
 
@@ -3665,6 +3690,15 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
 						// Специальная ветка, для полей PAGE и NUMPAGES, находящихся в колонтитуле
 						var oComplexField = Item.GetComplexField();
 						var oHdrFtr       = Para.Parent.IsHdrFtr(true);
+
+						if (oHdrFtr && !oComplexField && this.Paragraph)
+						{
+							// Т.к. Recalculate_Width запускается после Recalculate_Range, то возможен случай, когда у нас
+							// поля еще не собраны, но в колонтитулах они нам нужны уже собранные
+							this.Paragraph.ProcessComplexFields();
+							oComplexField = Item.GetComplexField();
+						}
+
 						if (oHdrFtr && oComplexField)
 						{
 							var oInstruction = oComplexField.GetInstruction();
@@ -7341,10 +7375,23 @@ ParaRun.prototype.IsInHyperlinkInTOC = function()
 		}
 	}
 
-	if (!isHyperlink)
-		return false;
-
 	var arrComplexFields = oParagraph.GetComplexFieldsByPos(oPos);
+
+	if (!isHyperlink)
+	{
+		for (var nIndex = 0, nCount = arrComplexFields.length; nIndex < nCount; ++nIndex)
+		{
+			var oInstruction = arrComplexFields[nIndex].GetInstruction();
+			if (oInstruction && fieldtype_HYPERLINK === oInstruction.GetType())
+			{
+				isHyperlink = true;
+				break;
+			}
+		}
+
+		if (!isHyperlink)
+			return false;
+	}
 
 	for (var nIndex = 0, nCount = arrComplexFields.length; nIndex < nCount; ++nIndex)
 	{
@@ -9909,9 +9956,7 @@ ParaRun.prototype.Make_ThisElementCurrent = function(bUpdateStates)
 {
     if (this.Is_UseInDocument())
     {
-        var ContentPos = this.Paragraph.Get_PosByElement(this);
-        ContentPos.Add(this.State.ContentPos);
-        this.Paragraph.Set_ParaContentPos(ContentPos, true, -1, -1, false);
+    	this.SetThisElementCurrentInParagraph();
         this.Paragraph.Document_SetThisElementCurrent(true === bUpdateStates ? true : false);
     }
 };
@@ -9926,6 +9971,21 @@ ParaRun.prototype.SetThisElementCurrent = function()
 
 	this.Paragraph.Set_ParaContentPos(StartPos, true, -1, -1, false);
 	this.Paragraph.Document_SetThisElementCurrent(false);
+};
+/**
+ * Устанавливаем курсор параграфа в текущую позицию данного рана
+ */
+ParaRun.prototype.SetThisElementCurrentInParagraph = function()
+{
+	if (!this.Paragraph)
+		return;
+
+	var oContentPos = this.Paragraph.Get_PosByElement(this);
+	if (!oContentPos)
+		return;
+
+	oContentPos.Add(this.State.ContentPos);
+	this.Paragraph.Set_ParaContentPos(oContentPos, true, -1, -1, false);
 };
 ParaRun.prototype.GetAllParagraphs = function(Props, ParaArray)
 {
@@ -11136,6 +11196,27 @@ ParaRun.prototype.UpdateBookmarks = function(oManager)
 			this.Content[nIndex].UpdateBookmarks(oManager);
 	}
 };
+ParaRun.prototype.CheckRunContent = function(fCheck)
+{
+	return fCheck(this);
+};
+ParaRun.prototype.ProcessComplexFields = function(oComplexFields)
+{
+	for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
+	{
+		var oItem     = this.private_CheckInstrText(this.Content[nPos]);
+		var nItemType = oItem.Type;
+
+		if (oComplexFields.IsHiddenFieldContent() && para_End !== nItemType && para_FieldChar !== nItemType)
+			continue;
+
+		if (para_FieldChar === nItemType)
+			oComplexFields.ProcessFieldCharAndCollectComplexField(oItem);
+		else if (para_InstrText === nItemType)
+			oComplexFields.ProcessInstruction(oItem);
+	}
+};
+
 
 function CParaRunStartState(Run)
 {
