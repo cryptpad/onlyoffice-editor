@@ -505,6 +505,11 @@ Paragraph.prototype.GetAllParagraphs = function(Props, ParaArray)
 
 Paragraph.prototype.GetAllSeqFieldsByType = function(sType, aFields)
 {
+	var nOutlineLevel = this.GetOutlineLvl()
+	if(undefined !== nOutlineLevel && null !== nOutlineLevel)
+	{
+		aFields.push(nOutlineLevel)
+	}
 	for(var i = 0; i < this.Content.length; ++i)
 	{
 		this.Content[i].GetAllSeqFieldsByType(sType, aFields);

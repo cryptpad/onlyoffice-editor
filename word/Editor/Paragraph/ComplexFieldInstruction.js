@@ -746,7 +746,7 @@ CFieldInstructionSEQ.prototype.GetText = function ()
 		return "";
 	}
 	var oTopDocument = this.ParentContent.Is_TopDocument(true);
-	var aFields, i, nIndex;
+	var aFields, oField, i, nIndex, nLvl, nCounter;
 	if(!oTopDocument)
 	{
 		return "";
@@ -770,13 +770,48 @@ CFieldInstructionSEQ.prototype.GetText = function ()
 		aFields = [];
 		oTopDocument.GetAllSeqFieldsByType(this.Id, aFields);
 		nIndex = -1;
-		for(var i = 0; i < aFields.length; ++i)
+		if(this.S)
+		{
+			nLvl = parseInt(this.S);
+			if(!isNaN(nLvl))
+			{
+				for(i = aFields.length - 1; i > -1; --i)
+				{
+					oField = aFields[i];
+					if(AscCommon.isRealObject(oField) && this === oField.Instruction)
+					{
+						break;
+					}
+				}
+				if(i > -1)
+				{
+					nCounter = i;
+					for(i = i - 1; i > -1; --i)
+					{
+						oField = aFields[i];
+						if(AscFormat.isRealNumber(oField) && oField >= nLvl)
+						{
+							aFields = aFields.splice(i, nCounter - i);
+						}
+					}
+				}
+			}
+		}
+		nCounter = 0;
+		for(i = 0; i < aFields.length; ++i)
 		{
 			var oField = aFields[i];
-			if(this === oField.Instruction)
+			if(AscCommon.isRealObject(oField))
 			{
-				nIndex = i + 1;
-				break;
+				if(!oField.C)
+				{
+					++nCounter;
+				}
+				if(this === oField.Instruction)
+				{
+					nIndex = nCounter + 1;
+					break;
+				}
 			}
 		}
 	}
