@@ -4650,11 +4650,9 @@
             if (person.id) {
                 this.bs.WriteItem(c_oSer_Person.id, function(){oThis.memory.WriteString3(person.id);});
             }
-            if (person.providerId) {
-                this.bs.WriteItem(c_oSer_Person.providerId, function(){oThis.memory.WriteString3(person.providerId);});
-            }
-            if (person.userId) {
+            if (person.userId && person.providerId) {
                 this.bs.WriteItem(c_oSer_Person.userId, function(){oThis.memory.WriteString3(person.userId);});
+                this.bs.WriteItem(c_oSer_Person.providerId, function(){oThis.memory.WriteString3(person.providerId);});
             }
             if (person.displayName) {
                 this.bs.WriteItem(c_oSer_Person.displayName, function(){oThis.memory.WriteString3(person.displayName);});

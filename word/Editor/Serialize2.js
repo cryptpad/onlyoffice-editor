@@ -6270,14 +6270,13 @@ function BinaryCommentsTableWriter(memory, doc, oMapCommentId, isDocument)
 			this.memory.WriteByte(c_oSer_CommentsType.Initials);
 			this.memory.WriteString2(comment.m_sInitials);
 		}
-		if(null != comment.m_sUserId && "" != comment.m_sUserId)
+		if(null != comment.m_sUserId && "" != comment.m_sUserId && null != comment.m_sProviderId && "" != comment.m_sProviderId)
 		{
 			this.memory.WriteByte(c_oSer_CommentsType.UserId);
 			this.memory.WriteString2(comment.m_sUserId);
 
-			var providerId = (null != comment.m_sProviderId && "" != comment.m_sProviderId) ? comment.m_sProviderId : "Teamlab";
 			this.memory.WriteByte(c_oSer_CommentsType.ProviderId);
-			this.memory.WriteString2(providerId);
+			this.memory.WriteString2(comment.m_sProviderId);
 		}
 		if(null != comment.m_sTime && "" != comment.m_sTime)
 		{

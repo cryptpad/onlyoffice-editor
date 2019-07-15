@@ -6011,6 +6011,7 @@ background-repeat: no-repeat;\
 	asc_CCommentDataWord.prototype.asc_putUserId       = function(v)
 	{
 		this.m_sUserId = v;
+		this.m_sProviderId = "Teamlab";
 	};
 	asc_CCommentDataWord.prototype.asc_getProviderId       = function()
 	{

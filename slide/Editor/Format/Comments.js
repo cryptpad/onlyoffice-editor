@@ -659,7 +659,7 @@ function CCommentData()
     this.m_sGuid  = "";
     this.m_sQuoteText = null;
     this.m_bSolved    = false;
-    this.m_nTimeZoneBias = new Date().getTimezoneOffset();
+    this.m_nTimeZoneBias = null;
     this.m_aReplies   = [];
 }
 
@@ -771,6 +771,7 @@ CCommentData.prototype =
         this.m_bSolved    = AscCommentData.asc_getSolved();
         this.m_sUserName  = AscCommentData.asc_getUserName();
         this.m_sGuid      = AscCommentData.asc_getGuid();
+        this.m_nTimeZoneBias= AscCommentData.asc_getTimeZoneBias();
 
         var RepliesCount  = AscCommentData.asc_getRepliesCount();
         for ( var Index = 0; Index < RepliesCount; Index++ )

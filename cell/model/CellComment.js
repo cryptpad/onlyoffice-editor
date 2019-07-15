@@ -270,7 +270,7 @@ function (window, undefined) {
 	asc_CCommentData.prototype.asc_putOnlyOfficeTime = function(val) { this.sOOTime = val; };
 	asc_CCommentData.prototype.asc_getOnlyOfficeTime = function() { return this.sOOTime; };
 
-	asc_CCommentData.prototype.asc_putUserId = function(val) { this.sUserId = val; };
+	asc_CCommentData.prototype.asc_putUserId = function(val) { this.sUserId = val; this.sProviderId = "Teamlab"; };
 	asc_CCommentData.prototype.asc_getUserId = function() { return this.sUserId; };
 
 	asc_CCommentData.prototype.asc_putProviderId = function(val) { this.sProviderId = val; };
