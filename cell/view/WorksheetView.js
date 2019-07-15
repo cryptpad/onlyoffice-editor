@@ -15953,10 +15953,10 @@
 	};
 
 	//GROUP DATA FUNCTIONS
-	WorksheetView.prototype._updateGroups = function(bCol, start, end, bUpdateOnlyRowLevelMap) {
+	WorksheetView.prototype._updateGroups = function(bCol, start, end, bUpdateOnlyRowLevelMap, bUpdateOnlyRange) {
 		if(bCol) {
 			if(bUpdateOnlyRowLevelMap) {
-				this.arrColGroups.levelMap = this.getGroupDataArray(bCol, start, end, bUpdateOnlyRowLevelMap).levelMap;
+				this.arrColGroups.levelMap = this.getGroupDataArray(bCol, start, end, bUpdateOnlyRowLevelMap, bUpdateOnlyRange).levelMap;
 			} else {
 				this.arrColGroups = this.getGroupDataArray(bCol, start, end);
 				var oldGroupHeight = this.groupHeight;
@@ -15970,7 +15970,7 @@
 			}
 		} else {
 			if(bUpdateOnlyRowLevelMap) {
-				this.arrRowGroups.levelMap = this.getGroupDataArray(bCol, start, end, bUpdateOnlyRowLevelMap).levelMap;
+				this.arrRowGroups.levelMap = this.getGroupDataArray(bCol, start, end, bUpdateOnlyRowLevelMap, bUpdateOnlyRange).levelMap;
 			} else {
 				this.arrRowGroups = this.getGroupDataArray(bCol, start, end);
 				this.groupWidth = this.getGroupCommonWidth(this.getGroupCommonLevel());
@@ -15983,7 +15983,7 @@
 		this.groupWidth = this.getGroupCommonWidth(this.getGroupCommonLevel());
 	};
 
-	WorksheetView.prototype.getGroupDataArray = function (bCol, start, end, bUpdateOnlyRowLevelMap) {
+	WorksheetView.prototype.getGroupDataArray = function (bCol, start, end, bUpdateOnlyRowLevelMap, bUpdateOnlyRange) {
 		//проходимся по диапазону, и проверяем верхние/нижние строчки на наличия в них аттрибута outLineLevel
 		//возможно стоит добавить кэш для отрисовки
 
@@ -15993,6 +15993,14 @@
 		}
 
 		var levelMap = {};
+		if(bUpdateOnlyRange) {
+			if(bCol && this.arrColGroups && this.arrColGroups.levelMap) {
+				levelMap = this.arrColGroups.levelMap;
+			} else if(this.arrRowGroups && this.arrRowGroups.levelMap) {
+				levelMap = this.arrRowGroups.levelMap;
+			}
+		}
+
 		var res = null;
 		var up = true, down = true;
 		var fProcess = function(val){
@@ -16081,22 +16089,24 @@
 			this.model.getRange3(start, 0, end, 0)._foreachRowNoEmpty(fProcess);
 		}
 
-		while(up) {
-			start--;
-			if(start < 0) {
-				break;
+		if(!bUpdateOnlyRange) {
+			while(up) {
+				start--;
+				if(start < 0) {
+					break;
+				}
+				bCol ? fProcess(this.model._getCol(start)) : this.model._getRow(start, fProcess);
 			}
-			bCol ? fProcess(this.model._getCol(start)) : this.model._getRow(start, fProcess);
-		}
 
-		var maxCount = bCol ? this.model.getColsCount() : this.model.getRowsCount();
-		var cMaxCount = bCol ? gc_nMaxCol0 : gc_nMaxRow0;
-		while(down) {
-			end++;
-			if(end > maxCount || end > cMaxCount) {
-				break;
+			var maxCount = bCol ? this.model.getColsCount() : this.model.getRowsCount();
+			var cMaxCount = bCol ? gc_nMaxCol0 : gc_nMaxRow0;
+			while(down) {
+				end++;
+				if(end > maxCount || end > cMaxCount) {
+					break;
+				}
+				bCol ? fProcess(this.model._getCol(start)) : this.model._getRow(start, fProcess);
 			}
-			bCol ? fProcess(this.model._getCol(start)) : this.model._getRow(start, fProcess);
 		}
 
 		//TODO возможно стоит вначале пройтись по старому groupArr и проставить всем столбцам/строкам false - могут быть проблемы при удалении всех групп и тд
