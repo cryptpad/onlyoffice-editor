@@ -766,7 +766,6 @@ CFieldInstructionSEQ.prototype.GetText = function ()
 	nIndex = this.GetRestartNum();
 	if(nIndex === null)
 	{
-
 		aFields = [];
 		oTopDocument.GetAllSeqFieldsByType(this.Id, aFields);
 		nIndex = -1;
@@ -800,7 +799,7 @@ CFieldInstructionSEQ.prototype.GetText = function ()
 		nCounter = 0;
 		for(i = 0; i < aFields.length; ++i)
 		{
-			var oField = aFields[i];
+			oField = aFields[i];
 			if(AscCommon.isRealObject(oField))
 			{
 				if(!oField.C)
