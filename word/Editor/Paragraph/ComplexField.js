@@ -361,6 +361,9 @@ CComplexField.prototype.SetBeginChar = function(oChar)
 	this.SeparateChar    = null;
 	this.EndChar         = null;
 	this.InstructionLine = "";
+
+	this.InstructionLineSrc = "";
+	this.InstructionCF      = [];
 };
 CComplexField.prototype.SetEndChar = function(oChar)
 {
@@ -1050,8 +1053,10 @@ CComplexField.prototype.ChangeInstruction = function(sNewInstruction)
 	var nInRunPos = oRun.GetElementPosition(this.BeginChar) + 1;
 	oRun.AddInstrText(sNewInstruction, nInRunPos);
 
-	this.Instruction     = null;
-	this.InstructionLine = sNewInstruction;
+	this.Instruction        = null;
+	this.InstructionLine    = sNewInstruction;
+	this.InstructionLineSrc = sNewInstruction;
+	this.InstructionCF      = [];
 	this.private_UpdateInstruction();
 };
 
