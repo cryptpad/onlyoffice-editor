@@ -16651,7 +16651,6 @@
 			res =  val.getCollapsed();
 		};
 		bCol ? getCollapsed(this.model._getCol(index)) : this.model._getRow(index, getCollapsed);
-		console.log(index);
 		return res;
 	};
 
