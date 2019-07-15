@@ -15460,9 +15460,8 @@
         };
 
         var table = t.model.autoFilters._getFilterByDisplayName(tableName);
-        var tableRange = null !== table ? table.Ref : null;
 
-        var lockRange = tableRange;
+        var lockRange = null !== table ? table.Ref : null;
         var callBackLockedDefNames = function (isSuccess) {
             if (false === isSuccess) {
                 return;
@@ -16639,18 +16638,26 @@
 	WorksheetView.prototype._getGroupLevel = function(index, bCol) {
 		var res;
 		var fProcess = function(val) {
-			res = val.getOutlineLevel();
+			res = val ? val.getOutlineLevel() : 0;
 		};
-		bCol ? fProcess(this.model._getCol(index)) : this.model._getRow(index, fProcess);
+		if(bCol) {
+			this.model.getRange3(0, index, 0, index)._foreachColNoEmpty(fProcess);
+		} else {
+			this.model.getRange3(index, 0, index, 0)._foreachRowNoEmpty(fProcess);
+		}
 		return res;
 	};
 
 	WorksheetView.prototype._getGroupCollapsed = function(index, bCol) {
 		var res;
 		var getCollapsed = function(val) {
-			res =  val.getCollapsed();
+			res =  val ? val.getCollapsed() : false;
 		};
-		bCol ? getCollapsed(this.model._getCol(index)) : this.model._getRow(index, getCollapsed);
+		if(bCol) {
+			this.model.getRange3(0, index, 0, index)._foreachColNoEmpty(getCollapsed);
+		} else {
+			this.model.getRange3(index, 0, index, 0)._foreachRowNoEmpty(getCollapsed);
+		}
 		return res;
 	};
 
