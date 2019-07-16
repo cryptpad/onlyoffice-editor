@@ -14038,6 +14038,34 @@ Paragraph.prototype.ProcessComplexFields = function()
 		this.Content[nPos].ProcessComplexFields(oComplexFields);
 	}
 };
+Paragraph.prototype.GetStartPageForRecalculate = function(nPageAbs)
+{
+	var nPagesCount = this.GetPagesCount();
+	var nCurPage    = -1;
+	for (var nPageIndex = 0; nPageIndex < nPagesCount; ++nPageIndex)
+	{
+		var nTempPageAbs = this.GetAbsolutePage(nPageIndex);
+		if (nTempPageAbs === nPageAbs)
+		{
+			nCurPage = nPageIndex;
+			break;
+		}
+	}
+
+	if (-1 === nCurPage)
+		return nPageAbs;
+
+	// Если на заданной странице 2 строки и меньше, значит расчет следует начать с предыдущей страницы
+	while (this.Pages[nCurPage].EndLine - this.Pages[nCurPage].StartLine <= 1)
+	{
+		if (0 === nCurPage)
+			break;
+
+		nCurPage--;
+	}
+
+	return this.GetAbsolutePage(nCurPage);
+};
 
 var pararecalc_0_All  = 0;
 var pararecalc_0_None = 1;
