@@ -10178,6 +10178,7 @@ CPresentation.prototype =
                         var hierarchy = shape.getHierarchy(undefined, oInfo);
                         var bNoPlaceholder = true;
                         var bNeedResetTransform = false;
+                        var oNotNullPH = null;
                         for(var t = 0; t < hierarchy.length; ++t)
                         {
                             if(hierarchy[t])
@@ -10188,6 +10189,7 @@ CPresentation.prototype =
                                 if(hierarchy[t].spPr && hierarchy[t].spPr.xfrm && hierarchy[t].spPr.xfrm.isNotNull())
                                 {
                                     bNeedResetTransform = true;
+                                    oNotNullPH = hierarchy[t];
                                 }
                             }
                         }
@@ -10222,7 +10224,25 @@ CPresentation.prototype =
                             {
                                 if(shape.spPr && shape.spPr.xfrm && shape.spPr.xfrm.isNotNull())
                                 {
-                                    shape.spPr.setXfrm(null);
+                                    if(shape.getObjectType() !== AscDFH.historyitem_type_GraphicFrame)
+                                    {
+                                        shape.spPr.setXfrm(null);
+                                    }
+                                    else
+                                    {
+                                        if(oNotNullPH)
+                                        {
+                                            if(!shape.spPr && oNotNullPH.spPr)
+                                            {
+                                                shape.setSpPr(oNotNullPH.spPr.createDuplicate());
+                                                shape.spPr.setParent(shape);
+                                            }
+                                            if(!shape.spPr.xfrm && oNotNullPH.spPr && oNotNullPH.spPr.xfrm)
+                                            {
+                                                shape.spPr.setXfrm(oNotNullPH.spPr.xfrm.createDuplicate());
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
