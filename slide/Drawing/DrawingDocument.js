@@ -4968,7 +4968,10 @@ function CThumbnailsManager()
 					return;
 
 				this.FocusObjType = FOCUS_OBJECT_THUMBNAILS;
-				this.m_oWordControl.m_oLogicDocument.resetStateCurSlide(true);
+				if(this.m_oWordControl.m_oLogicDocument)
+				{
+					this.m_oWordControl.m_oLogicDocument.resetStateCurSlide(true);
+				}
 				break;
 			}
 			case FOCUS_OBJECT_NOTES:
