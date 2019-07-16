@@ -177,7 +177,7 @@ function (window, undefined) {
 		this.nId = null;
 		this.oParent = null;
 		this.nLevel = 0;
-		this.sGuid = "";
+		this.sGuid = AscCommon.CreateGUID();
 		this.sProviderId = "";
 
 		// Common
@@ -366,14 +366,6 @@ function (window, undefined) {
 		if ( !this.bDocument ) {
 			this.nCol = collaborativeEditing.getLockMeColumn2(nSheetId, this.nCol);
 			this.nRow = collaborativeEditing.getLockMeRow2(nSheetId, this.nRow);
-		}
-	};
-	asc_CCommentData.prototype.checkGuid = function () {
-		if(!this.sGuid){
-			this.sGuid = AscCommon.CreateGUID();
-		}
-		for(var i = 0; i < this.aReplies.length; ++i){
-			this.aReplies[i].checkGuid();
 		}
 	};
 

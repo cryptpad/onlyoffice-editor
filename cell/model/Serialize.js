@@ -6362,10 +6362,6 @@
                 res = this.bcr.Read1(length, function(t,l){
                     return oThis.bwtr.ReadCommentDatas(t,l, oThis.oWorkbook.aComments);
                 });
-                //todo for Workbook Comments before guid is add to format. server should fill it
-                for(var i = 0; i < oThis.oWorkbook.aComments.length; ++i){
-                    oThis.oWorkbook.aComments[i].checkGuid();
-                }
             }
             else
                 res = c_oSerConstants.ReadUnknown;

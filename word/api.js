@@ -5951,7 +5951,7 @@ background-repeat: no-repeat;\
 			this.m_bSolved    = (undefined != obj.m_bSolved   ) ? obj.m_bSolved : false;
 			this.m_sUserName  = (undefined != obj.m_sUserName ) ? obj.m_sUserName : "";
 			this.m_sInitials  = (undefined != obj.m_sInitials ) ? obj.m_sInitials : this.asc_makeInitials(this.m_sUserName);
-			this.m_nDurableId = (undefined != obj.m_nDurableId) ? obj.m_nDurableId : null;
+			this.m_nDurableId = (undefined != obj.m_nDurableId) ? obj.m_nDurableId : AscCommon.CreateUInt32();
 			this.m_aReplies   = [];
 			if (undefined != obj.m_aReplies)
 			{
@@ -5975,7 +5975,7 @@ background-repeat: no-repeat;\
 			this.m_bSolved    = false;
 			this.m_sUserName  = "";
 			this.m_sInitials  = "";
-			this.m_nDurableId = null;
+			this.m_nDurableId = AscCommon.CreateUInt32();
 			this.m_aReplies   = [];
 		}
 	}
@@ -6054,13 +6054,17 @@ background-repeat: no-repeat;\
 	{
 		this.m_bSolved = v;
 	};
+	asc_CCommentDataWord.prototype.asc_getGuid       = function()
+	{
+		return this.m_nDurableId.toString(16).padStart(8, "0");
+	};
+	asc_CCommentDataWord.prototype.asc_putGuid       = function(v)
+	{
+		this.m_nDurableId = parseInt(v, 16);
+	};
 	asc_CCommentDataWord.prototype.asc_getDurableId       = function()
 	{
 		return this.m_nDurableId;
-	};
-	asc_CCommentDataWord.prototype.asc_putDurableId       = function(v)
-	{
-		this.m_nDurableId = v;
 	};
 	asc_CCommentDataWord.prototype.asc_getReply        = function(i)
 	{
@@ -10326,8 +10330,8 @@ background-repeat: no-repeat;\
 	asc_CCommentDataWord.prototype['asc_putQuoteText']    = asc_CCommentDataWord.prototype.asc_putQuoteText;
 	asc_CCommentDataWord.prototype['asc_getSolved']       = asc_CCommentDataWord.prototype.asc_getSolved;
 	asc_CCommentDataWord.prototype['asc_putSolved']       = asc_CCommentDataWord.prototype.asc_putSolved;
-	asc_CCommentDataWord.prototype['asc_getDurableId']    = asc_CCommentDataWord.prototype.asc_getDurableId;
-	asc_CCommentDataWord.prototype['asc_putDurableId']    = asc_CCommentDataWord.prototype.asc_putDurableId;
+	asc_CCommentDataWord.prototype['asc_getGuid']         = asc_CCommentDataWord.prototype.asc_getGuid;
+	asc_CCommentDataWord.prototype['asc_putGuid']         = asc_CCommentDataWord.prototype.asc_putGuid;
 	asc_CCommentDataWord.prototype['asc_getReply']        = asc_CCommentDataWord.prototype.asc_getReply;
 	asc_CCommentDataWord.prototype['asc_addReply']        = asc_CCommentDataWord.prototype.asc_addReply;
 	asc_CCommentDataWord.prototype['asc_getRepliesCount'] = asc_CCommentDataWord.prototype.asc_getRepliesCount;

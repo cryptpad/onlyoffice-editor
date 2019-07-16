@@ -15018,7 +15018,7 @@ function Binary_CommentsTableReader(doc, oReadResult, stream, oComments)
 		}
 		else if ( c_oSer_CommentsType.DurableId === type )
 		{
-			oNewImage.DurableId = this.stream.GetULong();
+			oNewImage.DurableId = AscFonts.FT_Common.IntToUInt(this.stream.GetULong());
 		}
         else
             res = c_oSerConstants.ReadUnknown;
