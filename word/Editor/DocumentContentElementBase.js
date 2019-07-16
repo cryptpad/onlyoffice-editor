@@ -1081,6 +1081,15 @@ CDocumentContentElementBase.prototype.CheckRunContent = function(fCheck)
 {
 	return false;
 };
+/**
+ * По заданной странице получаем страницу, с которой нужно начинать расчет
+ * @param {number} nPageAbs
+ * @return {number}
+ */
+CDocumentContentElementBase.prototype.GetStartPageForRecalculate = function(nPageAbs)
+{
+	return nPageAbs;
+};
 
 //--------------------------------------------------------export--------------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};
