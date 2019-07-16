@@ -456,7 +456,7 @@ CInlineLevelSdt.prototype.IsPlaceHolder = function()
 {
 	return (this.Content.length === 1 && this.Content[0] === this.PlaceHolder);
 };
-CInlineLevelSdt.prototype.private_ReplacePlaceHolderWithContent = function()
+CInlineLevelSdt.prototype.private_ReplacePlaceHolderWithContent = function(bMathRun)
 {
 	if (!this.IsPlaceHolder())
 		return;
@@ -467,7 +467,7 @@ CInlineLevelSdt.prototype.private_ReplacePlaceHolderWithContent = function()
 
 	this.RemoveFromContent(0, this.GetElementsCount());
 
-	var oRun = new ParaRun();
+	var oRun = new ParaRun(undefined, bMathRun);
 	if (oTextPr)
 		oRun.SetPr(oTextPr.Copy());
 
@@ -498,9 +498,9 @@ CInlineLevelSdt.prototype.Set_SelectionContentPos = function(StartContentPos, En
 		CParagraphContentWithParagraphLikeContent.prototype.Set_SelectionContentPos.apply(this, arguments);
 	}
 };
-CInlineLevelSdt.prototype.ReplacePlaceHolderWithContent = function()
+CInlineLevelSdt.prototype.ReplacePlaceHolderWithContent = function(bMathRun)
 {
-	this.private_ReplacePlaceHolderWithContent();
+	this.private_ReplacePlaceHolderWithContent(bMathRun);
 };
 CInlineLevelSdt.prototype.ReplaceContentWithPlaceHolder = function()
 {
