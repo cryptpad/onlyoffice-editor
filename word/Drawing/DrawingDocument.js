@@ -2990,6 +2990,15 @@ function CDrawingDocument()
                                     api.WordControl.m_oLogicDocument.GoToBookmark(action["data"], true);
                                     break;
                                 }
+								case "comment":
+								{
+									var commentId = api.WordControl.m_oLogicDocument.Comments.GetCommentIdByGuid(action["data"]);
+									if (commentId) {
+										api.asc_selectComment(commentId);
+										api.asc_showComment(commentId);
+									}
+									break;
+								}
                                 default:
                                     break;
                             }

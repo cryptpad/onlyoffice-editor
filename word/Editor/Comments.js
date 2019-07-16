@@ -706,8 +706,9 @@ CComments.prototype.IsUseSolved = function()
 {
 	return this.m_bUseSolved;
 };
-CComments.prototype.GetCommentIdByDurableId = function(nDurableId)
+CComments.prototype.GetCommentIdByGuid = function(sGuid)
 {
+	var nDurableId = parseInt(sGuid, 16);
 	for (var sId in this.m_aComments)
 	{
 		if (this.m_aComments[sId].GetDurableId() === nDurableId)
