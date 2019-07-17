@@ -19321,7 +19321,7 @@
     window["AscCommonExcel"].WorksheetView = WorksheetView;
 	window["AscCommonExcel"].HeaderFooterParser = HeaderFooterParser;
 
-	window["AscCommonExcel"].CHeaderFooterEditor = window["AscCommon"]["CHeaderFooterEditor"] = CHeaderFooterEditor;
+	window["AscCommonExcel"].CHeaderFooterEditor = window["AscCommonExcel"]["CHeaderFooterEditor"] = CHeaderFooterEditor;
 	var prot = CHeaderFooterEditor.prototype;
 	prot["click"] 	= prot.click;
 	prot["destroy"] = prot.destroy;
