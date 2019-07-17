@@ -1207,10 +1207,10 @@ var editor;
 
   // GoTo
   spreadsheet_api.prototype.goTo = function(action) {
-    var data;
-    if (action && (data = action['data'])) {
-      this.asc_showWorksheet(this.wbModel.getWorksheetByComment(data));
-      this.asc_showComment(data);
+    var comment = this.wbModel.getComment(action && action['data']);
+    if (comment) {
+      this.asc_showWorksheet(comment.wsId);
+      this.asc_showComment(comment.nId);
     }
   };
 

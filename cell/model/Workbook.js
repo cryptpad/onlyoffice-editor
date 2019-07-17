@@ -2072,18 +2072,6 @@
 			}
 		return null;
 	};
-	Workbook.prototype.getWorksheetByComment = function (id) {
-		var sheet;
-		for (var i = 0; i < this.aWorksheets.length; ++i) {
-			sheet = this.aWorksheets[i];
-			for (var j = 0; j < sheet.aComments.length; ++j) {
-				if (id === sheet.aComments[j].asc_getGuid()) {
-					return i;
-				}
-			}
-		}
-		return null;
-	};
 	Workbook.prototype.getWorksheetIndexByName=function(name){
 		for(var i = 0; i < this.aWorksheets.length; i++)
 			if(this.aWorksheets[i].getName() == name){
@@ -3043,6 +3031,21 @@
 			this.cleanFindResults();
 		}
 		return result2 || result;
+	};
+	//Comments
+	Workbook.prototype.getComment = function (id) {
+		if (id) {
+			var sheet;
+			for (var i = 0; i < this.aWorksheets.length; ++i) {
+				sheet = this.aWorksheets[i];
+				for (var j = 0; j < sheet.aComments.length; ++j) {
+					if (id === sheet.aComments[j].asc_getGuid()) {
+						return sheet.aComments[j];
+					}
+				}
+			}
+		}
+		return null;
 	};
 //-------------------------------------------------------------------------------------------------
 	var tempHelp = new ArrayBuffer(8);
