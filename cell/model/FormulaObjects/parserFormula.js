@@ -5254,10 +5254,10 @@ parserFormula.prototype.clone = function(formula, parent, ws) {
 									} else {
 										tmp = AscCommonExcel.g_oRangeCache.getAscRange(valUp);
 										if (tmp) {
-											elem =
-												tmp.isOneCell() ? new cRef(valUp, this.ws) : new cArea(valUp, this.ws);
-											parseResult.addRefPos(aTokens[i].pos - aTokens[i].length,
-												aTokens[i].pos, this.outStack.length, elem);
+											//если использовать isOneCell - тогда A1:A1 -> A1
+											var isOneCell = /*tmp.isOneCell()*/!valUp.split(":")[1];
+											elem = isOneCell ? new cRef(valUp, this.ws) : new cArea(valUp, this.ws);
+											parseResult.addRefPos(aTokens[i].pos - aTokens[i].length, aTokens[i].pos, this.outStack.length, elem);
 										} else if(TOK_SUBTYPE_ERROR === aTokens[i].subtype) {
 											elem = new cError(val);
 										} else {
