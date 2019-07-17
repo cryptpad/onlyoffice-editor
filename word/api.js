@@ -1320,6 +1320,33 @@ background-repeat: no-repeat;\
 	};
 	// -------
 
+	// GoTo
+	asc_docs_api.prototype.goTo = function(action)
+	{
+		if (this.WordControl && this.WordControl.m_oLogicDocument && action)
+		{
+			switch (action["type"])
+			{
+				case "bookmark":
+				{
+					this.WordControl.m_oLogicDocument.GoToBookmark(action["data"], true);
+					break;
+				}
+				case "comment":
+				{
+					var commentId = this.WordControl.m_oLogicDocument.Comments.GetCommentIdByGuid(action["data"]);
+					if (commentId) {
+						this.asc_selectComment(commentId);
+						this.asc_showComment(commentId);
+					}
+					break;
+				}
+				default:
+					break;
+			}
+		}
+	};
+
 	/////////////////////////////////////////////////////////////////////////
 	///////////////////CoAuthoring and Chat api//////////////////////////////
 	/////////////////////////////////////////////////////////////////////////

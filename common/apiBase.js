@@ -792,6 +792,10 @@
 			this.sendEvent('asc_onGetEditorPermissions', new AscCommon.asc_CAscEditorPermissions());
 		}
 	};
+	// GoTo
+	baseEditorsApi.prototype.goTo                                = function(action)
+	{
+	};
 	// CoAuthoring
 	baseEditorsApi.prototype._coAuthoringInit                    = function()
 	{

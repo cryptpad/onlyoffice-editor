@@ -2863,7 +2863,7 @@ function CDrawingDocument()
 		{
 			this.OnEndRecalculate(false);
 		}
-	}
+	};
 
 	this.OnEndRecalculate = function (isFull, isBreak)
 	{
@@ -2975,34 +2975,12 @@ function CDrawingDocument()
 				if (!this.isFirstFullRecalculate)
 				{
                     var api = this.m_oWordControl.m_oApi;
-                    var options = api.DocInfo ? api.DocInfo.asc_getOptions() : null;
+                    var options = api.DocInfo && api.DocInfo.asc_getOptions();
 
-					if (!this.isFirstRecalculate && api.WordControl && api.WordControl.m_oLogicDocument)
+					if (!this.isFirstRecalculate)
 					{
 						// полный пересчет закончился, и не был пересчет документа.
-                        var action = options ? options["action"] : null;
-                        if (action)
-                        {
-                            switch (action["type"])
-                            {
-                                case "bookmark":
-                                {
-                                    api.WordControl.m_oLogicDocument.GoToBookmark(action["data"], true);
-                                    break;
-                                }
-								case "comment":
-								{
-									var commentId = api.WordControl.m_oLogicDocument.Comments.GetCommentIdByGuid(action["data"]);
-									if (commentId) {
-										api.asc_selectComment(commentId);
-										api.asc_showComment(commentId);
-									}
-									break;
-								}
-                                default:
-                                    break;
-                            }
-                        }
+						api.goTo(options && options["action"]);
 					}
 
 					if (options && options["disableEditBeforeCalculate"])
@@ -3021,7 +2999,7 @@ function CDrawingDocument()
         }
 
 		//console.log("end " + this.m_lCountCalculatePages + "," + isFull + "," + isBreak);
-	}
+	};
 
 	this.ChangePageAttack = function (pageIndex)
 	{
@@ -3030,7 +3008,7 @@ function CDrawingDocument()
 
 		this.StopRenderingPage(pageIndex);
 		this.m_oWordControl.OnScroll();
-	}
+	};
 
 	this.CheckPagesSizeMaximum = function(_w, _h)
 	{
@@ -3057,7 +3035,7 @@ function CDrawingDocument()
 		}
 
 		return [w, h];
-	}
+	};
 
 	this.CheckRecalculatePage = function (width, height, pageIndex)
 	{
