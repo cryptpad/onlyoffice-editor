@@ -619,8 +619,9 @@
             window.g_asc_plugins.onPluginEvent("onDocumentContentReady");
         }
 
-        if (this.editorId == c_oEditorId.Spreadsheet)
+        if (c_oEditorId.Spreadsheet === this.editorId) {
 			this.onUpdateDocumentModified(this.asc_isDocumentModified());
+		}
 
 		if (this.DocInfo)
 			this["pluginMethod_SetProperties"](this.DocInfo.asc_getOptions());
