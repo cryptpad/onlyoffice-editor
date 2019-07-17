@@ -1889,6 +1889,10 @@
 			return res && res.length ? res : null;
 		};
 
+		//TODO для печати не нужно учитывать размер группы
+		this.cellsTop -= this.groupHeight;
+		this.cellsLeft -= this.groupWidth;
+
 		var printAreaRanges = !printOnlySelection && printArea ? getPrintAreaRanges() : null;
 		if (printOnlySelection) {
 			for (var i = 0; i < this.model.selectionRange.ranges.length; ++i) {
@@ -1943,6 +1947,9 @@
 			range = new asc_Range(0, 0, maxCol, maxRow);
 			this._calcPagesPrint(range, pageOptions, indexWorksheet, arrPages);
 		}
+
+		this.cellsTop += this.groupHeight;
+		this.cellsLeft += this.groupWidth;
 	};
 
     WorksheetView.prototype.drawForPrint = function(drawingCtx, printPagesData, indexPrintPage, countPrintPages) {
@@ -1957,6 +1964,10 @@
             drawingCtx.EndPage();
         } else {
             drawingCtx.BeginPage(printPagesData.pageWidth, printPagesData.pageHeight);
+
+			//TODO для печати не нужно учитывать размер группы
+			this.cellsTop -= this.groupHeight;
+			this.cellsLeft -= this.groupWidth;
 
 			//draw header/footer
 			this._drawHeaderFooter(drawingCtx, printPagesData, indexPrintPage, countPrintPages);
@@ -2002,6 +2013,9 @@
             };
             this.objectRender.showDrawingObjectsEx(false, null, drawingPrintOptions);
             this.visibleRange = tmpVisibleRange;
+
+			this.cellsTop += this.groupHeight;
+			this.cellsLeft += this.groupWidth;
 
             drawingCtx.RemoveClipRect();
             drawingCtx.EndPage();
