@@ -435,7 +435,7 @@
         this.arrRowGroups = null;
         this.arrColGroups = null;
         this.clickedGroupButton = null;
-        this.ignoreGroupSize = null;
+        this.ignoreGroupSize = null;//для печати не нужно учитывать отступы групп
 
         this._init();
 
@@ -1891,9 +1891,11 @@
 		};
 
 		//TODO для печати не нужно учитывать размер группы
-		this.ignoreGroupSize = true;
-		this._calcHeaderColumnWidth();
-		this._calcHeaderRowHeight();
+		if(this.groupWidth || this.groupHeight) {
+			this.ignoreGroupSize = true;
+			this._calcHeaderColumnWidth();
+			this._calcHeaderRowHeight();
+		}
 
 		var printAreaRanges = !printOnlySelection && printArea ? getPrintAreaRanges() : null;
 		if (printOnlySelection) {
@@ -1950,9 +1952,11 @@
 			this._calcPagesPrint(range, pageOptions, indexWorksheet, arrPages);
 		}
 
-		this.ignoreGroupSize = false;
-		this._calcHeaderColumnWidth();
-		this._calcHeaderRowHeight();
+		if(this.groupWidth || this.groupHeight) {
+			this.ignoreGroupSize = false;
+			this._calcHeaderColumnWidth();
+			this._calcHeaderRowHeight();
+		}
 	};
 
     WorksheetView.prototype.drawForPrint = function(drawingCtx, printPagesData, indexPrintPage, countPrintPages) {
@@ -1969,9 +1973,11 @@
             drawingCtx.BeginPage(printPagesData.pageWidth, printPagesData.pageHeight);
 
 			//TODO для печати не нужно учитывать размер группы
-			this.ignoreGroupSize = true;
-			this._calcHeaderColumnWidth();
-			this._calcHeaderRowHeight();
+			if(this.groupWidth || this.groupHeight) {
+				this.ignoreGroupSize = true;
+				this._calcHeaderColumnWidth();
+				this._calcHeaderRowHeight();
+			}
 
 			//draw header/footer
 			this._drawHeaderFooter(drawingCtx, printPagesData, indexPrintPage, countPrintPages);
@@ -2018,9 +2024,11 @@
             this.objectRender.showDrawingObjectsEx(false, null, drawingPrintOptions);
             this.visibleRange = tmpVisibleRange;
 
-			this.ignoreGroupSize = false;
-			this._calcHeaderColumnWidth();
-			this._calcHeaderRowHeight();
+			if(this.groupWidth || this.groupHeight) {
+				this.ignoreGroupSize = false;
+				this._calcHeaderColumnWidth();
+				this._calcHeaderRowHeight();
+			}
 
             drawingCtx.RemoveClipRect();
             drawingCtx.EndPage();
