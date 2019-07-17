@@ -18659,9 +18659,10 @@ CDocument.prototype.SelectTrackMove = function(sMoveId, isFrom, isSetCurrentChan
 			var oStartDocPos = private_GetDocumentPosition(oStart);
 			var oEndDocPos   = private_GetDocumentPosition(oEnd);
 
-			if (oStartDocPos && oEndDocPos)
+			if (oStartDocPos && oEndDocPos && oStartDocPos[0].Class === oEndDocPos[0].Class)
 			{
-				this.SetSelectionByContentPositions(oStartDocPos, oEndDocPos);
+				var oDocContent = oStartDocPos[0].Class;
+				oDocContent.SetSelectionByContentPositions(oStartDocPos, oEndDocPos);
 
 				if (isSetCurrentChange)
 				{
