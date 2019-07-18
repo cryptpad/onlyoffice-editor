@@ -37,10 +37,15 @@ function CAscThemes()
     this.EditorThemes = [];
     this.DocumentThemes = [];
 
-    var _count = AscCommon._presentation_editor_themes.length;
+    var _defaultThemes = AscCommon["asc_getDefaultThemes"];
+
+    var _count = _defaultThemes.length;
     for (var i = 0; i < _count; i++)
     {
-        this.EditorThemes[i] = new CAscThemeInfo(AscCommon._presentation_editor_themes[i]);
+        this.EditorThemes[i] = new CAscThemeInfo({
+            Name : _defaultThemes[i],
+            Url : ("/theme" + (i + 1) + "/")
+        });
         this.EditorThemes[i].Index = i;
     }
 }

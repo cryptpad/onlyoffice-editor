@@ -7473,6 +7473,7 @@ background-repeat: no-repeat;\
         var objectRet = {};
         objectRet["name"] = _master.Theme.name;
         objectRet["data"] = _renderer.Memory.data;
+        objectRet["dataLen"] = _renderer.Memory.GetCurPosition();
         return objectRet;
     };
 
