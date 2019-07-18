@@ -1956,6 +1956,7 @@
 			iterateDelta: null, fullPrecision: null, calcCompleted: null, calcOnSave: null, concurrentCalc: null,
 			concurrentManualCount: null, forceFullCalc: null
 		};
+		this.connections = null;
 
 		this.wsHandlers = null;
 

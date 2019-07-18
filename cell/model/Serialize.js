@@ -226,7 +226,8 @@
 		VbaProject: 12,
 		JsaProject: 13,
 		Comments: 14,
-		CalcPr: 15
+		CalcPr: 15,
+		Connections: 16
     };
     /** @enum */
     var c_oSerWorkbookPrTypes =
@@ -2678,6 +2679,9 @@
                 if (this.wb.aComments.length > 0) {
                     this.bs.WriteItem(c_oSerWorkbookTypes.Comments, function() {oThis.WriteComments(oThis.wb.aComments);});
                 }
+				if (this.wb.connections) {
+					this.bs.WriteItem(c_oSerWorkbookTypes.Connections, function() {oThis.memory.WriteBuffer(oThis.wb.connections, 0, oThis.wb.connections.length)});
+				}
 			}
         };
         this.WriteWorkbookPr = function()
@@ -6363,6 +6367,10 @@
                     return oThis.bwtr.ReadCommentDatas(t,l, oThis.oWorkbook.aComments);
                 });
             }
+			else if (c_oSerWorkbookTypes.Connections == type)
+			{
+				this.oWorkbook.connections = this.stream.GetBuffer(length);
+			}
             else
                 res = c_oSerConstants.ReadUnknown;
             return res;
