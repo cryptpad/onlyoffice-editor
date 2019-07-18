@@ -7466,8 +7466,8 @@ background-repeat: no-repeat;\
 
         var pxW = 85;
         var pxH = 38;
-        var mmW = pxW * AscCommon.g_dKoef_mm_to_pix;
-        var mmH = pxH * AscCommon.g_dKoef_mm_to_pix;
+        var mmW = pxW * AscCommon.g_dKoef_pix_to_mm;
+        var mmH = pxH * AscCommon.g_dKoef_pix_to_mm;
 
         _renderer.BeginPage(mmW, mmH);
         var oldEngine = window["NATIVE_EDITOR_ENJINE"];

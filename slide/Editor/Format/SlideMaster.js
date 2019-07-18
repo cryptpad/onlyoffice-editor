@@ -712,7 +712,7 @@ function CMasterThumbnailDrawer()
         _api.isViewMode = true;
         _color.id = 15;
         _color.Calculate(_theme, null, null, _master, RGBA);
-        var nFontSize = 18 * dKoefPixToMM * dKoefPixToMM;
+        var nFontSize = 18;
         var _textPr1 = new CTextPr;
         _textPr1.FontFamily = {Name:_theme.themeElements.fontScheme.majorFont.latin, Index:-1};
         _textPr1.RFonts.Ascii = {Name: _theme.themeElements.fontScheme.majorFont.latin, Index: -1};
