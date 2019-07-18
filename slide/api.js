@@ -7464,8 +7464,20 @@ background-repeat: no-repeat;\
         this.ShowParaMarks                    = false;
         _renderer.IsNoDrawingEmptyPlaceholder = true;
 
-        _renderer.BeginPage(_pres.Width, _pres.Height);
-        this.WordControl.m_oMasterDrawer.Draw(_renderer, _master);
+        var mmW = _pres.Width;
+        var mmH = _pres.Height;
+        var pxW = mmW * AscCommon.g_dKoef_mm_to_pix;
+        var pxH = mmH * AscCommon.g_dKoef_mm_to_pix;
+
+        _renderer.BeginPage(mmW, mmH);
+        var oldEngine = window["NATIVE_EDITOR_ENJINE"];
+        window["NATIVE_EDITOR_ENJINE"] = undefined;
+        this.WordControl.m_oMasterDrawer.WidthMM = mmW;
+        this.WordControl.m_oMasterDrawer.HeightMM = mmH;
+        this.WordControl.m_oMasterDrawer.WidthPx = pxW;
+        this.WordControl.m_oMasterDrawer.HeightPx = pxH;
+        this.WordControl.m_oMasterDrawer.Draw2(_renderer, _master);
+        window["NATIVE_EDITOR_ENJINE"] = oldEngine;
         _renderer.EndPage();
 
         this.ShowParaMarks = _bOldShowMarks;

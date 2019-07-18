@@ -37,7 +37,7 @@ function CAscThemes()
     this.EditorThemes = [];
     this.DocumentThemes = [];
 
-    var _defaultThemes = AscCommon["g_defaultThemes"];
+    var _defaultThemes = AscCommon["g_defaultThemes"] || [];
 
     var _count = _defaultThemes.length;
     for (var i = 0; i < _count; i++)
