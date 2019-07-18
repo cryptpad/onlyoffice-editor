@@ -7444,6 +7444,38 @@ background-repeat: no-repeat;\
 		return _renderer.Memory.data;
 	};
 
+    window["asc_docs_api"].prototype["asc_nativeGetThemeThumbnail"] = function()
+    {
+        if (!this.WordControl.m_oLogicDocument ||
+            !this.WordControl.m_oLogicDocument.slideMasters ||
+            !this.WordControl.m_oLogicDocument.slideMasters[0] ||
+			!this.WordControl.m_oLogicDocument.slideMasters[0].Theme)
+		{
+			return null;
+		}
+
+		var _pres = this.WordControl.m_oLogicDocument;
+        var _master = this.WordControl.m_oLogicDocument.slideMasters[0];
+
+    	var _renderer                         = new AscCommon.CDocumentRenderer();
+        _renderer.InitPicker(AscCommon.g_oTextMeasurer.m_oManager);
+        _renderer.VectorMemoryForPrint        = new AscCommon.CMemory();
+        var _bOldShowMarks                    = this.ShowParaMarks;
+        this.ShowParaMarks                    = false;
+        _renderer.IsNoDrawingEmptyPlaceholder = true;
+
+        _renderer.BeginPage(_pres.Width, _pres.Height);
+        this.WordControl.m_oMasterDrawer.Draw(_renderer, _master);
+        _renderer.EndPage();
+
+        this.ShowParaMarks = _bOldShowMarks;
+
+        var objectRet = {};
+        objectRet["name"] = _master.Theme.name;
+        objectRet["data"] = _renderer.Memory.data;
+        return objectRet;
+    };
+
 	asc_docs_api.prototype.asc_OnHideContextMenu = function()
 	{
 		if (this.WordControl.MobileTouchManager)

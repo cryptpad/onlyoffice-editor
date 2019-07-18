@@ -646,8 +646,6 @@ function CMasterThumbnailDrawer()
         if (use_background !== false) {
           DrawBackground(g, _back_fill, this.WidthMM, this.HeightMM);
         }
-        var _sx = g.m_oCoordTransform.sx;
-        var _sy = g.m_oCoordTransform.sy;
 
         if (use_master_shapes !== false)
         {
@@ -684,8 +682,10 @@ function CMasterThumbnailDrawer()
         var _color_delta = 1;
         if (!window["NATIVE_EDITOR_ENJINE"]) {
           g.p_color(255, 255, 255, 255);
-          g.init(g.m_oContext, w_px, h_px, w_px, h_px);
-          g.CalculateFullTransform();
+          if (!g.RENDERER_PDF_FLAG) {
+              g.init(g.m_oContext, w_px, h_px, w_px, h_px);
+              g.CalculateFullTransform();
+          }
           g.m_bIntegerGrid = true;
           g.b_color1(255, 255, 255, 255);
           g._s();
@@ -766,8 +766,10 @@ function CMasterThumbnailDrawer()
         par.Reset(0, 0, 1000, 1000, 0, 0, 1);
         par.Recalculate_Page(0);
         if (!window["NATIVE_EDITOR_ENJINE"]) {
-          g.init(g.m_oContext, w_px, h_px, w_px * AscCommon.g_dKoef_pix_to_mm, h_px * AscCommon.g_dKoef_pix_to_mm);
-          g.CalculateFullTransform();
+          if (!g.RENDERER_PDF_FLAG) {
+            g.init(g.m_oContext, w_px, h_px, w_px * AscCommon.g_dKoef_pix_to_mm, h_px * AscCommon.g_dKoef_pix_to_mm);
+            g.CalculateFullTransform();
+          }
           _text_x = 8 * AscCommon.g_dKoef_pix_to_mm;
           _text_y = (h_px - 11) * AscCommon.g_dKoef_pix_to_mm;
           par.Lines[0].Ranges[0].XVisible = _text_x;
