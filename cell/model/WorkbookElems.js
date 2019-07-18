@@ -6348,6 +6348,19 @@ function RangeDataManagerElem(bbox, data)
 		this.TotalsRowFormula = null;
 		this.dxf = null;
 		this.CalculatedColumnFormula = null;
+
+		//формируется на сохранения
+		//this.queryTableFieldId = null;
+		this.uniqueName = null;
+
+		//queryTableField
+		this.clipped = null;
+		this.dataBound = null;//default true
+		this.fillFormulas = null;
+		this.queryName = null;
+		this.rowNumbers = null;
+		//формируется на сохранения
+		//this.tableColumnId = null;
 	}
 
 	TableColumn.prototype.onFormulaEvent = function (type, eventData) {
