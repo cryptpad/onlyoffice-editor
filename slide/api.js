@@ -1430,7 +1430,7 @@ background-repeat: no-repeat;\
 									<canvas id=\"id_hor_ruler\" class=\"block_elem\"></canvas>\
                                 </div>\
                                 <div id=\"id_main_view\" class=\"block_elem\" style=\"overflow:hidden\">\
-                                    <canvas id=\"id_viewer\" class=\"block_elem\" style=\"-ms-touch-action: none;-webkit-user-select: none;background-color:#B0B0B0;z-index:6\"></canvas>\
+                                    <canvas id=\"id_viewer\" class=\"block_elem\" style=\"-ms-touch-action: none;-webkit-user-select: none;background-color:" + AscCommonSlide.GlobalSkin.BackgroundColor + ";z-index:6\"></canvas>\
                                     <canvas id=\"id_viewer_overlay\" class=\"block_elem\" style=\"-ms-touch-action: none;-webkit-user-select: none;z-index:7\"></canvas>\
                                     <canvas id=\"id_target_cursor\" class=\"block_elem\" width=\"1\" height=\"1\" style=\"-ms-touch-action: none;-webkit-user-select: none;width:2px;height:13px;display:none;z-index:9;\"></canvas>\
                                 </div>\
@@ -3997,10 +3997,13 @@ background-repeat: no-repeat;\
 	{
 		this.WordControl.m_oLogicDocument.addDateTime(oPr);
 	};
-	asc_docs_api.prototype.asc_setDefaultDateTimeFormat = function(sFormat)
+	asc_docs_api.prototype.asc_setDefaultDateTimeFormat = function(aFormat)
 	{
 		window['AscCommonWord'] = window['AscCommonWord'] || {};
-		window['AscCommonWord'].sDefaultDateTimeFormat = sFormat;
+		for(var key in aFormat)
+		{
+			window['AscCommonWord'].oDefaultDateTimeFormat[key] = aFormat[key];
+		}
 	};
 
 	asc_docs_api.prototype.asc_getHeaderFooterProperties = function()
@@ -4623,6 +4626,8 @@ background-repeat: no-repeat;\
 			this.m_sQuoteText = (undefined != obj.m_sQuoteText) ? obj.m_sQuoteText : null;
 			this.m_bSolved    = (undefined != obj.m_bSolved   ) ? obj.m_bSolved : false;
 			this.m_sUserName  = (undefined != obj.m_sUserName ) ? obj.m_sUserName : "";
+			this.m_sGuid      = (undefined != obj.m_sGuid     ) ? obj.m_sGuid : AscCommon.CreateGUID();
+			this.m_nTimeZoneBias= (undefined != obj.m_nTimeZoneBias) ? obj.m_nTimeZoneBias : null;
 			this.bDocument    = (undefined != obj.bDocument   ) ? obj.bDocument : false;
 			this.m_aReplies   = [];
 			if (undefined != obj.m_aReplies)
@@ -4644,6 +4649,8 @@ background-repeat: no-repeat;\
 			this.m_sQuoteText = null;
 			this.m_bSolved    = false;
 			this.m_sUserName  = "";
+			this.m_sGuid      = AscCommon.CreateGUID();
+			this.m_nTimeZoneBias =  null;
 			this.m_aReplies   = [];
 			this.bDocument    = false;
 		}
@@ -4664,6 +4671,7 @@ background-repeat: no-repeat;\
 	asc_CCommentData.prototype.asc_putTime         = function(v)
 	{
 		this.m_sTime = v;
+		this.m_nTimeZoneBias = new Date().getTimezoneOffset();
 	};
 	asc_CCommentData.prototype.asc_getOnlyOfficeTime         = function()
 	{
@@ -4688,6 +4696,22 @@ background-repeat: no-repeat;\
 	asc_CCommentData.prototype.asc_putUserName     = function(v)
 	{
 		this.m_sUserName = v;
+	};
+	asc_CCommentData.prototype.asc_getGuid     = function()
+	{
+		return this.m_sGuid;
+	};
+	asc_CCommentData.prototype.asc_putGuid     = function(v)
+	{
+		this.m_sGuid = v;
+	};
+	asc_CCommentData.prototype.asc_putTimeZoneBias     = function(v)
+	{
+		this.m_nTimeZoneBias = v;
+	};
+	asc_CCommentData.prototype.asc_getTimeZoneBias     = function()
+	{
+		return this.m_nTimeZoneBias;
 	};
 	asc_CCommentData.prototype.asc_getQuoteText    = function()
 	{
@@ -7955,6 +7979,10 @@ background-repeat: no-repeat;\
 	asc_CCommentData.prototype['asc_putUserId']       = asc_CCommentData.prototype.asc_putUserId;
 	asc_CCommentData.prototype['asc_getUserName']     = asc_CCommentData.prototype.asc_getUserName;
 	asc_CCommentData.prototype['asc_putUserName']     = asc_CCommentData.prototype.asc_putUserName;
+	asc_CCommentData.prototype['asc_getGuid']         = asc_CCommentData.prototype.asc_getGuid;
+	asc_CCommentData.prototype['asc_putGuid']         = asc_CCommentData.prototype.asc_putGuid;
+	asc_CCommentData.prototype['asc_getTimeZoneBias'] = asc_CCommentData.prototype.asc_getTimeZoneBias;
+	asc_CCommentData.prototype['asc_putTimeZoneBias'] = asc_CCommentData.prototype.asc_putTimeZoneBias;
 	asc_CCommentData.prototype['asc_getQuoteText']    = asc_CCommentData.prototype.asc_getQuoteText;
 	asc_CCommentData.prototype['asc_putQuoteText']    = asc_CCommentData.prototype.asc_putQuoteText;
 	asc_CCommentData.prototype['asc_getSolved']       = asc_CCommentData.prototype.asc_getSolved;

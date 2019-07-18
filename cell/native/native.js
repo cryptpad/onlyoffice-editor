@@ -3931,6 +3931,9 @@ function OfflineEditor () {
             _api.sendColorThemes(_api.wbModel.theme);
             _api.asc_ApplyColorScheme(false);
             _api._applyFirstLoadChanges();
+            // Go to if sent options
+            var options = _api.DocInfo && _api.DocInfo.asc_getOptions();
+            _api.goTo(options && options["action"]);
             
             var ws = _api.wb.getWorksheet();
             
@@ -7061,7 +7064,10 @@ window["Asc"]["spreadsheet_api"].prototype.openDocument = function(sData) {
                t._applyPreOpenLocks();
                // Применяем пришедшие при открытии изменения
                t._applyFirstLoadChanges();
-               
+               // Go to if sent options
+               var options = t.DocInfo && t.DocInfo.asc_getOptions();
+               t.goTo(options && options["action"]);
+
                t.isDocumentLoadComplete = true;
                
                // Меняем тип состояния (на никакое)

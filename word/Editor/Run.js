@@ -476,7 +476,7 @@ ParaRun.prototype.Add = function(Item, bMath)
 		{
 			NewRun.MoveCursorToStartPos();
 			NewRun.Add(Item, bMath);
-			NewRun.Make_ThisElementCurrent();
+			NewRun.SetThisElementCurrentInParagraph();
 			return;
 		}
 	}
@@ -2022,9 +2022,34 @@ ParaRun.prototype.Split2 = function(CurPos, Parent, ParentPos)
                 }
             }
         }
+
+		// Обновляем позиции в поиске
+		for (var nIndex = 0, nSearchMarksCount = this.SearchMarks.length; nIndex < nSearchMarksCount; ++nIndex)
+		{
+			var oMark       = this.SearchMarks[nIndex];
+			var oContentPos = oMark.Start ? oMark.SearchResult.StartPos : oMark.SearchResult.EndPos;
+			var nDepth      = oMark.Depth;
+
+			if (oContentPos.Get(nDepth) > CurPos || (oContentPos.Get(nDepth) === CurPos && oMark.Start))
+			{
+				this.SearchMarks.splice(nIndex, 1);
+				NewRun.SearchMarks.splice(NewRun.SearchMarks.length, 0, oMark);
+				oContentPos.Data[nDepth] -= CurPos;
+				oContentPos.Data[nDepth - 1]++;
+
+				if (oMark.Start)
+					oMark.SearchResult.ClassesS[oMark.SearchResult.ClassesS.length - 1] = NewRun;
+				else
+					oMark.SearchResult.ClassesE[oMark.SearchResult.ClassesE.length - 1] = NewRun;
+
+				nSearchMarksCount--;
+				nIndex--;
+			}
+		}
     }
 
-    // Разделяем содержимое по ранам
+
+	// Разделяем содержимое по ранам
     NewRun.ConcatToContent( this.Content.slice(CurPos) );
     this.Remove_FromContent( CurPos, this.Content.length - CurPos, true );
 
@@ -2765,6 +2790,9 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
     var XRange    = PRS.XRange;
     var oSectionPr = undefined;
 
+	// TODO: Сделать возможность показывать инструкцию
+    var isHiddenCFPart = PRS.ComplexFields.IsComplexFieldCode();
+
     if (false === StartWord && true === FirstItemOnLine && XEnd - X < 0.001 && RangesCount > 0)
     {
         NewRange = true;
@@ -2804,7 +2832,10 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
 				}
 			}
 
-            // Проверяем, не нужно ли добавить нумерацию к данному элементу
+			if (isHiddenCFPart && para_End !== ItemType && para_FieldChar !== ItemType)
+				continue;
+
+			// Проверяем, не нужно ли добавить нумерацию к данному элементу
             if (true === this.RecalcInfo.NumberingAdd && true === Item.Can_AddNumbering())
                 X = this.private_RecalculateNumbering(PRS, Item, ParaPr, X);
 
@@ -3660,6 +3691,8 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
 					Item.SetRun(this);
 					PRS.ComplexFields.ProcessFieldChar(Item);
 
+					isHiddenCFPart = PRS.ComplexFields.IsComplexFieldCode();
+
 					if (Item.IsSeparate())
 					{
 						// Специальная ветка, для полей PAGE и NUMPAGES, находящихся в колонтитуле
@@ -3960,12 +3993,17 @@ ParaRun.prototype.Recalculate_Range_Width = function(PRSC, _CurLine, _CurRange)
     var StartPos = this.protected_GetRangeStartPos(CurLine, CurRange);
     var EndPos   = this.protected_GetRangeEndPos(CurLine, CurRange);
 
+	// TODO: Сделать возможность показывать инструкцию
+	var isHiddenCFPart = PRSC.ComplexFields.IsComplexFieldCode();
     for ( var Pos = StartPos; Pos < EndPos; Pos++ )
     {
 		var Item = this.private_CheckInstrText(this.Content[Pos]);
         var ItemType = Item.Type;
 
 		if (PRSC.ComplexFields.IsHiddenFieldContent() && para_End !== ItemType && para_FieldChar !== ItemType)
+			continue;
+
+		if (isHiddenCFPart && para_End !== ItemType && para_FieldChar !== ItemType && para_InstrText !== ItemType)
 			continue;
 
 		switch( ItemType )
@@ -4117,6 +4155,8 @@ ParaRun.prototype.Recalculate_Range_Width = function(PRSC, _CurLine, _CurRange)
 				else
 					PRSC.ComplexFields.ProcessFieldCharAndCollectComplexField(Item);
 
+				isHiddenCFPart = PRSC.ComplexFields.IsComplexFieldCode();
+
 				if (Item.IsNumValue())
 				{
 					PRSC.Words++;
@@ -4157,6 +4197,8 @@ ParaRun.prototype.Recalculate_Range_Spaces = function(PRSA, _CurLine, _CurRange,
     var StartPos = this.protected_GetRangeStartPos(CurLine, CurRange);
     var EndPos   = this.protected_GetRangeEndPos(CurLine, CurRange);
 
+	// TODO: Сделать возможность показывать инструкцию
+	var isHiddenCFPart = PRSA.ComplexFields.IsComplexFieldCode();
     for ( var Pos = StartPos; Pos < EndPos; Pos++ )
     {
 		var Item = this.private_CheckInstrText(this.Content[Pos]);
@@ -4165,6 +4207,12 @@ ParaRun.prototype.Recalculate_Range_Spaces = function(PRSA, _CurLine, _CurRange,
 		if (PRSA.ComplexFields.IsHiddenFieldContent() && para_End !== ItemType && para_FieldChar !== ItemType)
 		{
 			// Чтобы правильно позиционировался курсор и селект
+			Item.WidthVisible = 0;
+			continue;
+		}
+
+		if (isHiddenCFPart && para_End !== ItemType && para_FieldChar !== ItemType)
+		{
 			Item.WidthVisible = 0;
 			continue;
 		}
@@ -4487,6 +4535,7 @@ ParaRun.prototype.Recalculate_Range_Spaces = function(PRSA, _CurLine, _CurRange,
 			case para_FieldChar:
 			{
 				PRSA.ComplexFields.ProcessFieldChar(Item);
+				isHiddenCFPart = PRSA.ComplexFields.IsComplexFieldCode();
 
 				if (Item.IsNumValue())
 				{
@@ -5162,13 +5211,15 @@ ParaRun.prototype.Draw_HighLights = function(PDSH)
 
     this.CollaborativeMarks.Init_Drawing();
 
+	var isHiddenCFPart = PDSH.ComplexFields.IsComplexFieldCode();
+
     for ( var Pos = StartPos; Pos < EndPos; Pos++ )
     {
 		var Item = this.private_CheckInstrText(this.Content[Pos]);
         var ItemType         = Item.Type;
         var ItemWidthVisible = Item.Get_WidthVisible();
 
-        if (PDSH.ComplexFields.IsHiddenFieldContent() && para_End !== ItemType && para_FieldChar !== ItemType)
+        if ((PDSH.ComplexFields.IsHiddenFieldContent() || isHiddenCFPart) && para_End !== ItemType && para_FieldChar !== ItemType)
         	continue;
 
         // Определим попадание в поиск и совместное редактирование. Попадание в комментарий определять не надо,
@@ -5269,6 +5320,7 @@ ParaRun.prototype.Draw_HighLights = function(PDSH)
 			case para_FieldChar:
 			{
 				PDSH.ComplexFields.ProcessFieldChar(Item);
+				isHiddenCFPart = PDSH.ComplexFields.IsComplexFieldCode();
 
 				if (Item.IsNumValue())
 				{
@@ -5405,12 +5457,14 @@ ParaRun.prototype.Draw_Elements = function(PDSE)
         }
     }
 
+	var isHiddenCFPart = PDSE.ComplexFields.IsComplexFieldCode();
+
     for ( var Pos = StartPos; Pos < EndPos; Pos++ )
     {
 		var Item = this.private_CheckInstrText(this.Content[Pos]);
         var ItemType = Item.Type;
 
-		if (PDSE.ComplexFields.IsHiddenFieldContent() && para_End !== ItemType && para_FieldChar !== ItemType)
+		if ((PDSE.ComplexFields.IsHiddenFieldContent() || isHiddenCFPart) && para_End !== ItemType && para_FieldChar !== ItemType)
 			continue;
 
         var TempY = Y;
@@ -5567,6 +5621,7 @@ ParaRun.prototype.Draw_Elements = function(PDSE)
 			case para_FieldChar:
 			{
 				PDSE.ComplexFields.ProcessFieldChar(Item);
+				isHiddenCFPart = PDSE.ComplexFields.IsComplexFieldCode();
 
 				if (Item.IsNumValue())
 				{
@@ -5722,13 +5777,15 @@ ParaRun.prototype.Draw_Lines = function(PDSL)
         }
     }
 
+	var isHiddenCFPart = PDSL.ComplexFields.IsComplexFieldCode();
+
     for ( var Pos = StartPos; Pos < EndPos; Pos++ )
 	{
 		var Item             = this.private_CheckInstrText(this.Content[Pos]);
 		var ItemType         = Item.Type;
 		var ItemWidthVisible = Item.Get_WidthVisible();
 
-		if (PDSL.ComplexFields.IsHiddenFieldContent() && para_End !== ItemType && para_FieldChar !== ItemType)
+		if ((PDSL.ComplexFields.IsHiddenFieldContent() || isHiddenCFPart) && para_End !== ItemType && para_FieldChar !== ItemType)
 			continue;
 
 		if (SpellData[Pos])
@@ -5943,6 +6000,7 @@ ParaRun.prototype.Draw_Lines = function(PDSL)
 			case para_FieldChar:
 			{
 				PDSL.ComplexFields.ProcessFieldChar(Item);
+				isHiddenCFPart = PDSL.ComplexFields.IsComplexFieldCode();
 
 				if (Item.IsNumValue())
 				{
@@ -7350,10 +7408,23 @@ ParaRun.prototype.IsInHyperlinkInTOC = function()
 		}
 	}
 
-	if (!isHyperlink)
-		return false;
-
 	var arrComplexFields = oParagraph.GetComplexFieldsByPos(oPos);
+
+	if (!isHyperlink)
+	{
+		for (var nIndex = 0, nCount = arrComplexFields.length; nIndex < nCount; ++nIndex)
+		{
+			var oInstruction = arrComplexFields[nIndex].GetInstruction();
+			if (oInstruction && fieldtype_HYPERLINK === oInstruction.GetType())
+			{
+				isHyperlink = true;
+				break;
+			}
+		}
+
+		if (!isHyperlink)
+			return false;
+	}
 
 	for (var nIndex = 0, nCount = arrComplexFields.length; nIndex < nCount; ++nIndex)
 	{
@@ -9918,9 +9989,7 @@ ParaRun.prototype.Make_ThisElementCurrent = function(bUpdateStates)
 {
     if (this.Is_UseInDocument())
     {
-        var ContentPos = this.Paragraph.Get_PosByElement(this);
-        ContentPos.Add(this.State.ContentPos);
-        this.Paragraph.Set_ParaContentPos(ContentPos, true, -1, -1, false);
+    	this.SetThisElementCurrentInParagraph();
         this.Paragraph.Document_SetThisElementCurrent(true === bUpdateStates ? true : false);
     }
 };
@@ -9935,6 +10004,21 @@ ParaRun.prototype.SetThisElementCurrent = function()
 
 	this.Paragraph.Set_ParaContentPos(StartPos, true, -1, -1, false);
 	this.Paragraph.Document_SetThisElementCurrent(false);
+};
+/**
+ * Устанавливаем курсор параграфа в текущую позицию данного рана
+ */
+ParaRun.prototype.SetThisElementCurrentInParagraph = function()
+{
+	if (!this.Paragraph)
+		return;
+
+	var oContentPos = this.Paragraph.Get_PosByElement(this);
+	if (!oContentPos)
+		return;
+
+	oContentPos.Add(this.State.ContentPos);
+	this.Paragraph.Set_ParaContentPos(oContentPos, true, -1, -1, false);
 };
 ParaRun.prototype.GetAllParagraphs = function(Props, ParaArray)
 {

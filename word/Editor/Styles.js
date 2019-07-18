@@ -13275,6 +13275,8 @@ CParaTabs.prototype.Merge = function(Tabs)
 			{
 				if (tab_Clear === _Tab.Value)
 					Flag = -2; // таб нужно удалить
+				else if (Tab.Value !== _Tab.Value || Tab.Leader !== _Tab.Leader)
+					Flag = -3; // таб нужно заменить
 				else
 					Flag = -1; // табы совпали, не надо новый добавлять
 
@@ -13287,6 +13289,8 @@ CParaTabs.prototype.Merge = function(Tabs)
 
 		if (-2 === Flag)
 			this.Tabs.splice(Index2, 1);
+		else if (-3 === Flag)
+			this.Tabs.splice(Index2, 1, _Tab);
 		else if (-1 != Flag)
 			this.Tabs.splice(Index2, 0, _Tab);
 	}

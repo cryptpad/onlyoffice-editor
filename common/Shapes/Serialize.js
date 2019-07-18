@@ -4290,6 +4290,39 @@ function BinaryPPTYLoader()
                             }
                         }
 
+                        while (s.cur < _end_rec3)
+                        {
+                            var _rec3 = s.GetUChar();
+                            switch (_rec3)
+                            {
+                                case 0:
+                                {
+                                    var _end_rec4 = s.cur + s.GetLong() + 4;
+                                    s.Skip2(1); // start attributes
+                                    while (true)
+                                    {
+                                        var _at = s.GetUChar();
+                                        if (_at == g_nodeAttributeEnd)
+                                            break;
+
+                                        switch (_at)
+                                        {
+                                            case 9: { _comment.timeZoneBias = s.GetLong(); break; }
+                                            default:
+                                                return;
+                                        }
+                                    }
+                                    s.Seek2(_end_rec4);
+                                    break;
+                                }
+                                default:
+                                {
+                                    s.SkipRecord();
+                                    break;
+                                }
+                            }
+                        }
+
                         s.Seek2(_end_rec3);
 
                         _comment.Calculate2();

@@ -2704,7 +2704,9 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 		}
 		return new cString(localeName + "(" + str + ")");
 	};
-	cBaseFunction.prototype.toString = function () {
+	cBaseFunction.prototype.toString = function (/*locale*/) {
+		/*var name = this.toString();
+		var localeName = locale ? locale[name] : name;*/
 		return this.name.replace(rx_sFuncPref, "_xlfn.");
 	};
 	cBaseFunction.prototype.setCalcValue = function (arg, numFormat) {
@@ -4973,7 +4975,7 @@ _func[cElementType.cell3D] = _func[cElementType.cell];
 	ParseResult.prototype.getElementByPos = function(pos) {
 		var curPos = 0;
 		for (var i = 0; i < this.elems.length; ++i) {
-			curPos += this.elems[i].toString().length;
+			curPos += this.elems[i].toString(/*AscCommonExcel.cFormulaFunctionToLocale*/).length;
 			if (curPos >= pos) {
 				return this.elems[i];
 			}
@@ -5214,9 +5216,16 @@ parserFormula.prototype.clone = function(formula, parent, ws) {
 				return false;
 			}
 
+			var notEndedFuncCount = 0;
 			var stack = [], val, valUp, tmp, elem, len, indentCount = -1, args = [], prev, next, arr = null,
 				bArrElemSign = false, wsF, wsT, arg_count;
 			for (var i = 0, nLength = aTokens.length; i < nLength; ++i) {
+				if(TOK_SUBTYPE_START === aTokens[i].subtype) {
+					notEndedFuncCount++;
+				} else if(TOK_SUBTYPE_STOP === aTokens[i].subtype) {
+					notEndedFuncCount--;
+				}
+
 				found_operand = null;
 				val = aTokens[i].value;
 				switch (aTokens[i].type) {
@@ -5252,10 +5261,10 @@ parserFormula.prototype.clone = function(formula, parent, ws) {
 									} else {
 										tmp = AscCommonExcel.g_oRangeCache.getAscRange(valUp);
 										if (tmp) {
-											elem =
-												tmp.isOneCell() ? new cRef(valUp, this.ws) : new cArea(valUp, this.ws);
-											parseResult.addRefPos(aTokens[i].pos - aTokens[i].length,
-												aTokens[i].pos, this.outStack.length, elem);
+											//если использовать isOneCell - тогда A1:A1 -> A1
+											var isOneCell = /*tmp.isOneCell()*/!valUp.split(":")[1];
+											elem = isOneCell ? new cRef(valUp, this.ws) : new cArea(valUp, this.ws);
+											parseResult.addRefPos(aTokens[i].pos - aTokens[i].length, aTokens[i].pos, this.outStack.length, elem);
 										} else if(TOK_SUBTYPE_ERROR === aTokens[i].subtype) {
 											elem = new cError(val);
 										} else {
@@ -5498,6 +5507,12 @@ parserFormula.prototype.clone = function(formula, parent, ws) {
 			}
 			while (stack.length !== 0) {
 				this.outStack.push(stack.pop());
+			}
+
+			if(notEndedFuncCount) {
+				this.outStack = [];
+				parseResult.setError(c_oAscError.ID.FrmlOperandExpected);
+				return false;
 			}
 
 			if (this.outStack.length !== 0) {

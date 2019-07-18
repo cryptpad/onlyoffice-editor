@@ -602,6 +602,8 @@ $( function () {
 		//console.log(val);
 	}
 
+	var newFormulaParser = false;
+
     var c_msPerDay = AscCommonExcel.c_msPerDay;
     var parserFormula = AscCommonExcel.parserFormula;
     var GetDiffDate360 = AscCommonExcel.GetDiffDate360;
@@ -6625,7 +6627,8 @@ $( function () {
 
 		oParser = new parserFormula( "FORMULATEXT(S100:105)", "A1", ws );
 		ok( oParser.parse() );
-		strictEqual( oParser.calculate().getValue(), "#VALUE!" );
+		//"#N/A" - в ms excel
+		strictEqual( oParser.calculate().getValue(), newFormulaParser ? "#N/A" : "#VALUE!");
 
 		oParser = new parserFormula( "FORMULATEXT(S103)", "A1", ws );
 		ok( oParser.parse() );

@@ -120,6 +120,23 @@
 		};
 		String.prototype['repeat'] = String.prototype.repeat;
 	}
+	if (typeof String.prototype.padStart !== 'function') {
+		String.prototype.padStart = function padStart(targetLength,padString) {
+			targetLength = targetLength>>0; //floor if number or convert non-number to 0;
+			padString = String(padString || ' ');
+			if (this.length > targetLength) {
+				return String(this);
+			}
+			else {
+				targetLength = targetLength-this.length;
+				if (targetLength > padString.length) {
+					padString += padString.repeat(targetLength/padString.length); //append to original to ensure we are longer than needed
+				}
+				return padString.slice(0,targetLength) + String(this);
+			}
+		};
+		String.prototype['padStart'] = String.prototype.padStart;
+	}
 // Extend javascript String type
 	String.prototype.strongMatch = function (regExp)
 	{
@@ -3375,6 +3392,95 @@
 		return (nFirstCharCode - 64) + 26 * (nLen - 1);
 	}
 
+	/**
+	 * Переводим числовое значение в строку с заданным форматом нумерации
+	 * @param nValue {number}
+	 * @param nFormat {Asc.c_oAscNumberingFormat}
+	 * @returns {string}
+	 */
+	function IntToNumberFormat(nValue, nFormat)
+	{
+		var sResult = "";
+
+		switch (nFormat)
+		{
+			case Asc.c_oAscNumberingFormat.Bullet:
+			{
+				break;
+			}
+
+			case Asc.c_oAscNumberingFormat.Decimal:
+			{
+				sResult = "" + nValue;
+				break;
+			}
+
+			case Asc.c_oAscNumberingFormat.DecimalZero:
+			{
+				sResult = "" + nValue;
+
+				if (1 === sResult.length)
+					sResult = "0" + sResult;
+				break;
+			}
+
+			case Asc.c_oAscNumberingFormat.LowerLetter:
+			case Asc.c_oAscNumberingFormat.UpperLetter:
+			{
+				// Формат: a,..,z,aa,..,zz,aaa,...,zzz,...
+				var Num = nValue - 1;
+
+				var Count = (Num - Num % 26) / 26;
+				var Ost   = Num % 26;
+
+				var Letter;
+				if (Asc.c_oAscNumberingFormat.LowerLetter === nFormat)
+					Letter = String.fromCharCode(Ost + 97);
+				else
+					Letter = String.fromCharCode(Ost + 65);
+
+				for (var nIndex = 0; nIndex < Count + 1; ++nIndex)
+					sResult += Letter;
+
+				break;
+			}
+
+			case Asc.c_oAscNumberingFormat.LowerRoman:
+			case Asc.c_oAscNumberingFormat.UpperRoman:
+			{
+				var Num = nValue;
+
+				// Переводим число Num в римскую систему исчисления
+				var Rims;
+
+				if (Asc.c_oAscNumberingFormat.LowerRoman === nFormat)
+					Rims = ['m', 'cm', 'd', 'cd', 'c', 'xc', 'l', 'xl', 'x', 'ix', 'v', 'iv', 'i', ' '];
+				else
+					Rims = ['M', 'CM', 'D', 'CD', 'C', 'XC', 'L', 'XL', 'X', 'IX', 'V', 'IV', 'I', ' '];
+
+				var Vals = [1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1, 0];
+
+				var nIndex = 0;
+				while (Num > 0)
+				{
+					while (Vals[nIndex] <= Num)
+					{
+						sResult += Rims[nIndex];
+						Num -= Vals[nIndex];
+					}
+
+					nIndex++;
+
+					if (nIndex >= Rims.length)
+						break;
+				}
+				break;
+			}
+		}
+
+		return sResult;
+	}
+
 	var g_oUserColorById = {}, g_oUserNextColorIndex = 0;
 
 	function getUserColorById(userId, userName, isDark, isNumericValue)
@@ -4548,6 +4654,17 @@
 		return matrix;
 	}
 
+	function getTimeISO8601(dateStr) {
+		if (dateStr) {
+			if (dateStr.endsWith("Z")) {
+				return Date.parse(dateStr);
+			} else {
+				return Date.parse(dateStr + "Z");
+			}
+		}
+		return NaN;
+	}
+
 	//------------------------------------------------------------export---------------------------------------------------
 	window['AscCommon'] = window['AscCommon'] || {};
 	window["AscCommon"].getSockJs = getSockJs;
@@ -4604,6 +4721,7 @@
 	window["AscCommon"].MMToTwips = MMToTwips;
 	window["AscCommon"].RomanToInt = RomanToInt;
 	window["AscCommon"].LatinNumberingToInt = LatinNumberingToInt;
+	window["AscCommon"].IntToNumberFormat = IntToNumberFormat;
 
 	window["AscCommon"].loadSdk = loadSdk;
     window["AscCommon"].loadScript = loadScript;
@@ -4639,6 +4757,7 @@
 	window["AscCommon"].translateManager = new CTranslateManager();
 
 	window["AscCommon"].parseText = parseText;
+	window["AscCommon"].getTimeISO8601 = getTimeISO8601;
 })(window);
 
 window["asc_initAdvancedOptions"] = function(_code, _file_hash, _docInfo)

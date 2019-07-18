@@ -314,6 +314,9 @@ function CComplexField(oLogicDocument)
 	this.InstructionLine = "";
 	this.Instruction     = null;
 	this.Id              = null;
+
+	this.InstructionLineSrc = "";
+	this.InstructionCF      = [];
 }
 CComplexField.prototype.SetCurrent = function(isCurrent)
 {
@@ -326,6 +329,13 @@ CComplexField.prototype.IsCurrent = function()
 CComplexField.prototype.SetInstruction = function(oParaInstr)
 {
 	this.InstructionLine += oParaInstr.GetValue();
+	this.InstructionLineSrc += oParaInstr.GetValue();
+};
+CComplexField.prototype.SetInstructionCF = function(oCF)
+{
+	this.InstructionLine += " \\& ";
+	this.InstructionLineSrc +=  " \\& ";
+	this.InstructionCF.push(oCF);
 };
 CComplexField.prototype.SetInstructionLine = function(sLine)
 {
@@ -351,6 +361,9 @@ CComplexField.prototype.SetBeginChar = function(oChar)
 	this.SeparateChar    = null;
 	this.EndChar         = null;
 	this.InstructionLine = "";
+
+	this.InstructionLineSrc = "";
+	this.InstructionCF      = [];
 };
 CComplexField.prototype.SetEndChar = function(oChar)
 {
@@ -367,6 +380,7 @@ CComplexField.prototype.SetSeparateChar = function(oChar)
 };
 CComplexField.prototype.Update = function(isCreateHistoryPoint, isNeedRecalculate)
 {
+	this.private_CheckNestedComplexFields();
 	this.private_UpdateInstruction();
 
 	if (!this.Instruction || !this.BeginChar || !this.EndChar || !this.SeparateChar)
@@ -807,6 +821,28 @@ CComplexField.prototype.SelectField = function()
 	oDocument.RemoveSelection();
 	oDocument.SetSelectionByContentPositions(oStartPos, oEndPos);
 };
+CComplexField.prototype.GetFieldValueText = function()
+{
+	var oDocument = this.GetTopDocumentContent();
+	if (!oDocument)
+		return;
+
+	oDocument.RemoveSelection();
+
+	var oRun = this.SeparateChar.GetRun();
+	oRun.Make_ThisElementCurrent(false);
+	oRun.SetCursorPosition(oRun.GetElementPosition(this.SeparateChar) + 1);
+	var oStartPos = oDocument.GetContentPosition(false);
+
+	oRun = this.EndChar.GetRun();
+	oRun.Make_ThisElementCurrent(false);
+	oRun.SetCursorPosition(oRun.GetElementPosition(this.EndChar));
+	var oEndPos = oDocument.GetContentPosition(false);
+
+	oDocument.SetSelectionByContentPositions(oStartPos, oEndPos);
+
+	return oDocument.GetSelectedText();
+};
 CComplexField.prototype.GetTopDocumentContent = function()
 {
 	if (!this.BeginChar || !this.SeparateChar || !this.EndChar)
@@ -876,6 +912,23 @@ CComplexField.prototype.private_UpdateInstruction = function()
 		var oParser = new CFieldInstructionParser();
 		this.Instruction = oParser.GetInstructionClass(this.InstructionLine);
 		this.Instruction.SetComplexField(this);
+	}
+};
+CComplexField.prototype.private_CheckNestedComplexFields = function()
+{
+	var nCount = this.InstructionCF.length;
+	if (nCount > 0)
+	{
+		this.Instruction     = null;
+		this.InstructionLine = this.InstructionLineSrc;
+
+		for (var nIndex = 0; nIndex < nCount; ++nIndex)
+		{
+			this.InstructionCF[nIndex].Update();
+			var sValue = this.InstructionCF[nIndex].GetFieldValueText();
+
+			this.InstructionLine = this.InstructionLine.replace("\\&", sValue);
+		}
 	}
 };
 CComplexField.prototype.IsHidden = function()
@@ -1000,8 +1053,10 @@ CComplexField.prototype.ChangeInstruction = function(sNewInstruction)
 	var nInRunPos = oRun.GetElementPosition(this.BeginChar) + 1;
 	oRun.AddInstrText(sNewInstruction, nInRunPos);
 
-	this.Instruction     = null;
-	this.InstructionLine = sNewInstruction;
+	this.Instruction        = null;
+	this.InstructionLine    = sNewInstruction;
+	this.InstructionLineSrc = sNewInstruction;
+	this.InstructionCF      = [];
 	this.private_UpdateInstruction();
 };
 

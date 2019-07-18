@@ -361,8 +361,10 @@ CParaSpellChecker.prototype =
             var Element = this.Elements[Index];
             Element.CurPos = false;
 
-            if ( 1 >= Element.Word.length )
-                Element.Checked = true;
+            if (1 >= Element.Word.length || Element.Word.toUpperCase() === Element.Word)
+			{
+				Element.Checked = true;
+			}
             else if ( editor.asc_IsSpellCheckCurrentWord() !== true && null === Element.Checked && -1 != CurPos && Element.EndPos.Compare( CurPos ) >= 0 && Element.StartPos.Compare( CurPos ) <= 0 )
             {
                 Element.Checked = true;
@@ -1105,6 +1107,19 @@ ParaRun.prototype.CheckSpelling = function(oSpellCheckerEngine, nDepth)
 	var CurLcid      = oSpellCheckerEngine.CurLcid;
 	var SpellChecker = oSpellCheckerEngine.SpellChecker;
 	var ContentPos   = oSpellCheckerEngine.ContentPos;
+
+	if (reviewtype_Remove === this.GetReviewType())
+	{
+		if (true === bWord)
+		{
+			SpellChecker.Add(oSpellCheckerEngine.StartPos, oSpellCheckerEngine.EndPos, sWord, CurLcid, false);
+
+			oSpellCheckerEngine.bWord   = false;
+			oSpellCheckerEngine.sWord   = "";
+			oSpellCheckerEngine.CurLcid = CurLcid;
+		}
+		return;
+	}
 
 	var oCurTextPr = this.Get_CompiledPr(false);
 

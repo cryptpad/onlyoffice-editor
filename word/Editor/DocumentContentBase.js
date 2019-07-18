@@ -350,6 +350,18 @@ CDocumentContentBase.prototype.private_Remove = function(Count, isRemoveWholeEle
 	if (this.CurPos.ContentPos < 0)
 		return false;
 
+	if (this.IsNumberingSelection())
+	{
+		var oPara = this.Selection.Data.CurPara;
+		this.RemoveNumberingSelection();
+		oPara.RemoveSelection();
+		oPara.RemoveNumPr();
+		oPara.Set_Ind({FirstLine : undefined, Left : undefined, Right : oPara.Pr.Ind.Right}, true);
+		oPara.MoveCursorToStartPos();
+		oPara.Document_SetThisElementCurrent(true);
+		return true;
+	}
+
 	this.RemoveNumberingSelection();
 
 	var isRemoveOnDrag = this.GetLogicDocument() ? this.GetLogicDocument().DragAndDropAction : false;

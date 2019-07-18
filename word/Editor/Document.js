@@ -1608,7 +1608,7 @@ CSelectedElementsInfo.prototype.GetHyperlink = function()
 	for (var nIndex = 0, nCount = this.m_arrComplexFields.length; nIndex < nCount; ++nIndex)
 	{
 		var oInstruction = this.m_arrComplexFields[nIndex].GetInstruction();
-		if (oInstruction && fieldtype_HYPERLINK === oInstruction.GetType())
+		if (oInstruction && (fieldtype_HYPERLINK === oInstruction.GetType() || fieldtype_REF === oInstruction.GetType()))
 			return oInstruction;
 	}
 
@@ -2793,8 +2793,8 @@ CDocument.prototype.private_Recalculate = function(_RecalcData, isForceStrictRec
 		var ChangedElement = this.Content[ChangeIndex];
 		if (ChangedElement.GetPagesCount() > 0 && -1 !== ChangedElement.GetIndex() && ChangedElement.Get_StartPage_Absolute() < RecalcData.Inline.PageNum - 1)
 		{
-			StartIndex = ChangeIndex;
-			StartPage  = RecalcData.Inline.PageNum - 1;
+			StartPage  = ChangedElement.GetStartPageForRecalculate(RecalcData.Inline.PageNum - 1);
+			StartIndex = this.Pages[StartPage].Pos;
 		}
 		else
 		{
@@ -5113,7 +5113,8 @@ CDocument.prototype.Remove = function(nDirection, isRemoveWholeElement, bRemoveO
 };
 CDocument.prototype.RemoveBeforePaste = function()
 {
-	if (docpostype_DrawingObjects === this.GetDocPosType() && null === this.DrawingObjects.getTargetDocContent())
+	if ((docpostype_DrawingObjects === this.GetDocPosType() && null === this.DrawingObjects.getTargetDocContent())
+		|| (docpostype_HdrFtr === this.GetDocPosType() && this.HdrFtr.CurHdrFtr && docpostype_DrawingObjects === this.HdrFtr.CurHdrFtr.GetContent().GetDocPosType() && null === this.DrawingObjects.getTargetDocContent()))
 		this.RemoveSelection();
 	else
 		this.Remove(1, true, true, true);
@@ -8632,7 +8633,7 @@ CDocument.prototype.OnKeyDown = function(e)
                 if (false === this.Document_Is_SelectionLocked(changestype_Paragraph_Content))
                 {
                     this.StartAction(AscDFH.historydescription_Document_AddMathHotKey);
-                    this.AddToParagraph(new MathMenu(-1));
+                    this.AddToParagraph(new MathMenu());
 					this.FinalizeAction();
                     bRetValue = keydownresult_PreventAll;
                 }
@@ -13519,7 +13520,7 @@ CDocument.prototype.Begin_CompositeInput = function()
 			}
 		}
 
-		this.FinalizeAction();
+		this.FinalizeAction(false);
 	}
 
 	return bResult;
@@ -13541,7 +13542,7 @@ CDocument.prototype.Replace_CompositeText = function(arrCharCodes)
 	this.Recalculate();
 	this.UpdateSelection();
 	this.UpdateUndoRedo();
-	this.FinalizeAction();
+	this.FinalizeAction(false);
 
 	this.private_UpdateCursorXY(true, true);
 
@@ -14363,6 +14364,20 @@ CDocument.prototype.controller_AddToParagraph = function(ParaItem, bRecalculate)
 			case para_ContinuationSeparator:
 			case para_InstrText:
 			{
+				if (ParaItem instanceof AscCommonWord.MathMenu)
+				{
+					var oInfo = this.GetSelectedElementsInfo();
+					if (oInfo.Get_Math())
+					{
+						var oMath = oInfo.Get_Math();
+						ParaItem.SetText(oMath.Copy(true));
+					}
+					else if (!oInfo.Is_MixedSelection())
+					{
+						ParaItem.SetText(this.GetSelectedText());
+					}
+				}
+
 				// Если у нас что-то заселекчено и мы вводим текст или пробел
 				// и т.д., тогда сначала удаляем весь селект.
 				this.Remove(1, true, false, true);
@@ -14574,10 +14589,6 @@ CDocument.prototype.controller_AddToParagraph = function(ParaItem, bRecalculate)
 };
 CDocument.prototype.controller_Remove = function(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord)
 {
-	// Делаем так, чтобы при выделении нумерации удалялась нумерация. А она удаляется по backspace.
-	if (this.IsNumberingSelection())
-		return this.Selection.Data.CurPara.Remove(-1, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord);
-
 	this.private_Remove(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord);
 };
 CDocument.prototype.controller_GetCursorPosXY = function()
@@ -18648,9 +18659,10 @@ CDocument.prototype.SelectTrackMove = function(sMoveId, isFrom, isSetCurrentChan
 			var oStartDocPos = private_GetDocumentPosition(oStart);
 			var oEndDocPos   = private_GetDocumentPosition(oEnd);
 
-			if (oStartDocPos && oEndDocPos)
+			if (oStartDocPos && oEndDocPos && oStartDocPos[0].Class === oEndDocPos[0].Class)
 			{
-				this.SetSelectionByContentPositions(oStartDocPos, oEndDocPos);
+				var oDocContent = oStartDocPos[0].Class;
+				oDocContent.SetSelectionByContentPositions(oStartDocPos, oEndDocPos);
 
 				if (isSetCurrentChange)
 				{

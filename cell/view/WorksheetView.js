@@ -437,6 +437,7 @@
         this.arrRowGroups = null;
         this.arrColGroups = null;
         this.clickedGroupButton = null;
+        this.ignoreGroupSize = null;//для печати не нужно учитывать отступы групп
 
         this._init();
 
@@ -912,6 +913,7 @@
             if (viewMode) {
 				History.TurnOff();
 			}
+            var bIsHidden = t.model.getColHidden(col);
             t.model.setColWidth(cc, col, col);
             t._cleanCache(new asc_Range(0, 0, t.cols.length - 1, t.rows.length - 1));
             t.changeWorksheet("update", {reinitRanges: true});
@@ -921,7 +923,10 @@
             t.cellCommentator.updateAreaComments();
             if (t.objectRender) {
                 t.objectRender.updateSizeDrawingObjects({target: c_oTargetType.ColumnResize, col: col});
-				t.objectRender.rebuildChartGraphicObjects([new asc_Range(col, 0, col, gc_nMaxRow0)]);
+                if(bIsHidden !==  t.model.getColHidden(col)) {
+                    t.objectRender.rebuildChartGraphicObjects([new asc_Range(col, 0, col, gc_nMaxRow0)]);
+                }
+
             }
 			if (viewMode) {
 				History.TurnOn();
@@ -1460,7 +1465,7 @@
             this.headersWidth = Asc.round(this.model.modelColWidthToColWidth(nCharCount) * this.getZoom());
         }
         //todo приравниваю headersLeft и groupWidth. Необходимо пересмотреть!
-        this.headersLeft = this.groupWidth;
+        this.headersLeft = this.ignoreGroupSize ? 0 : this.groupWidth;
         this.cellsLeft = this.headersLeft + this.headersWidth;
         return old !== this.cellsLeft;
     };
@@ -1471,7 +1476,7 @@
 			Asc.round(this.headersHeightByFont * this.getZoom());
 
 		//todo приравниваю headersTop и groupHeight. Необходимо пересмотреть!
-		this.headersTop = this.groupHeight;
+		this.headersTop = this.ignoreGroupSize ? 0 : this.groupHeight;
         this.cellsTop = this.headersTop + this.headersHeight;
     };
 
@@ -1904,6 +1909,13 @@
 			return res && res.length ? res : null;
 		};
 
+		//TODO для печати не нужно учитывать размер группы
+		if(this.groupWidth || this.groupHeight) {
+			this.ignoreGroupSize = true;
+			this._calcHeaderColumnWidth();
+			this._calcHeaderRowHeight();
+		}
+
 		var printAreaRanges = !printOnlySelection && printArea ? getPrintAreaRanges() : null;
 		if (printOnlySelection) {
 			for (var i = 0; i < this.model.selectionRange.ranges.length; ++i) {
@@ -1958,6 +1970,12 @@
 			range = new asc_Range(0, 0, maxCol, maxRow);
 			this._calcPagesPrint(range, pageOptions, indexWorksheet, arrPages);
 		}
+
+		if(this.groupWidth || this.groupHeight) {
+			this.ignoreGroupSize = false;
+			this._calcHeaderColumnWidth();
+			this._calcHeaderRowHeight();
+		}
 	};
 
 	WorksheetView.prototype.drawForPrint = function (drawingCtx, printPagesData, indexPrintPage, countPrintPages) {
@@ -1975,6 +1993,13 @@
 			drawingCtx.BeginPage(printPagesData.pageWidth, printPagesData.pageHeight);
 
 			this.usePrintScale = true;
+			//TODO для печати не нужно учитывать размер группы
+			if(this.groupWidth || this.groupHeight) {
+				this.ignoreGroupSize = true;
+				this._calcHeaderColumnWidth();
+				this._calcHeaderRowHeight();
+			}
+
 			//draw header/footer
 			this._drawHeaderFooter(drawingCtx, printPagesData, indexPrintPage, countPrintPages);
 
@@ -2047,10 +2072,16 @@
 			this.objectRender.showDrawingObjectsEx(false, null, drawingPrintOptions);
 			this.visibleRange = tmpVisibleRange;
 
-			drawingCtx.RemoveClipRect();
-			drawingCtx.EndPage();
-		}
-	};
+			if(this.groupWidth || this.groupHeight) {
+				this.ignoreGroupSize = false;
+				this._calcHeaderColumnWidth();
+				this._calcHeaderRowHeight();
+			}
+
+            drawingCtx.RemoveClipRect();
+            drawingCtx.EndPage();
+        }
+    };
 
 	WorksheetView.prototype.fitOnOnePage = function(val) {
 		//TODO add constant!
@@ -15755,9 +15786,8 @@
         };
 
         var table = t.model.autoFilters._getFilterByDisplayName(tableName);
-        var tableRange = null !== table ? table.Ref : null;
 
-        var lockRange = tableRange;
+        var lockRange = null !== table ? table.Ref : null;
         var callBackLockedDefNames = function (isSuccess) {
             if (false === isSuccess) {
                 return;
@@ -16261,10 +16291,10 @@
 	};
 
 	//GROUP DATA FUNCTIONS
-	WorksheetView.prototype._updateGroups = function(bCol, start, end, bUpdateOnlyRowLevelMap) {
+	WorksheetView.prototype._updateGroups = function(bCol, start, end, bUpdateOnlyRowLevelMap, bUpdateOnlyRange) {
 		if(bCol) {
 			if(bUpdateOnlyRowLevelMap) {
-				this.arrColGroups.levelMap = this.getGroupDataArray(bCol, start, end, bUpdateOnlyRowLevelMap).levelMap;
+				//this.arrColGroups.levelMap = this.getGroupDataArray(bCol, start, end, bUpdateOnlyRowLevelMap, bUpdateOnlyRange).levelMap;
 			} else {
 				this.arrColGroups = this.getGroupDataArray(bCol, start, end);
 				var oldGroupHeight = this.groupHeight;
@@ -16278,7 +16308,7 @@
 			}
 		} else {
 			if(bUpdateOnlyRowLevelMap) {
-				this.arrRowGroups.levelMap = this.getGroupDataArray(bCol, start, end, bUpdateOnlyRowLevelMap).levelMap;
+				//this.arrRowGroups.levelMap = this.getGroupDataArray(bCol, start, end, bUpdateOnlyRowLevelMap, bUpdateOnlyRange).levelMap;
 			} else {
 				this.arrRowGroups = this.getGroupDataArray(bCol, start, end);
 				this.groupWidth = this.getGroupCommonWidth(this.getGroupCommonLevel());
@@ -16291,7 +16321,7 @@
 		this.groupWidth = this.getGroupCommonWidth(this.getGroupCommonLevel());
 	};
 
-	WorksheetView.prototype.getGroupDataArray = function (bCol, start, end, bUpdateOnlyRowLevelMap) {
+	WorksheetView.prototype.getGroupDataArray = function (bCol, start, end, bUpdateOnlyRowLevelMap, bUpdateOnlyRange) {
 		//проходимся по диапазону, и проверяем верхние/нижние строчки на наличия в них аттрибута outLineLevel
 		//возможно стоит добавить кэш для отрисовки
 
@@ -16300,13 +16330,21 @@
 			end = bCol ? gc_nMaxCol : gc_nMaxRow;
 		}
 
-		var levelMap = {};
+		/*var levelMap = {};
+		if(bUpdateOnlyRange) {
+			if(bCol && this.arrColGroups && this.arrColGroups.levelMap) {
+				levelMap = this.arrColGroups.levelMap;
+			} else if(this.arrRowGroups && this.arrRowGroups.levelMap) {
+				levelMap = this.arrRowGroups.levelMap;
+			}
+		}*/
+
 		var res = null;
 		var up = true, down = true;
 		var fProcess = function(val){
 			var outLineLevel = val.getOutlineLevel();
 
-			levelMap[val.index] = {level: outLineLevel, collapsed: false};
+			//levelMap[val.index] = {level: outLineLevel, collapsed: false};
 			if(bUpdateOnlyRowLevelMap) {
 				return;
 			}
@@ -16389,22 +16427,24 @@
 			this.model.getRange3(start, 0, end, 0)._foreachRowNoEmpty(fProcess);
 		}
 
-		while(up) {
-			start--;
-			if(start < 0) {
-				break;
+		if(!bUpdateOnlyRange) {
+			while(up) {
+				start--;
+				if(start < 0) {
+					break;
+				}
+				bCol ? fProcess(this.model._getCol(start)) : this.model._getRow(start, fProcess);
 			}
-			bCol ? fProcess(this.model._getCol(start)) : this.model._getRow(start, fProcess);
-		}
 
-		var maxCount = bCol ? this.model.getColsCount() : this.model.getRowsCount();
-		var cMaxCount = bCol ? gc_nMaxCol0 : gc_nMaxRow0;
-		while(down) {
-			end++;
-			if(end > maxCount || end > cMaxCount) {
-				break;
+			var maxCount = bCol ? this.model.getColsCount() : this.model.getRowsCount();
+			var cMaxCount = bCol ? gc_nMaxCol0 : gc_nMaxRow0;
+			while(down) {
+				end++;
+				if(end > maxCount || end > cMaxCount) {
+					break;
+				}
+				bCol ? fProcess(this.model._getCol(start)) : this.model._getRow(start, fProcess);
 			}
-			bCol ? fProcess(this.model._getCol(start)) : this.model._getRow(start, fProcess);
 		}
 
 		//TODO возможно стоит вначале пройтись по старому groupArr и проставить всем столбцам/строкам false - могут быть проблемы при удалении всех групп и тд
@@ -16439,7 +16479,7 @@
 			groupArr = bCol ? this.arrColGroups : this.arrRowGroups;
 			groupArr = groupArr ? groupArr.groupArr : null;
 		}
-		if(groupArr) {
+		/*if(groupArr) {
 			var addCollapsed = function(val) {
 				if(val.getCollapsed()) {
 					if(!levelMap[val.index]) {
@@ -16459,9 +16499,9 @@
 					}
 				}
 			}
-		}
+		}*/
 
-		return {groupArr: res, levelMap: levelMap};
+		return {groupArr: res/*, levelMap: levelMap*/};
 	};
 
 	WorksheetView.prototype._drawGroupData = function ( drawingCtx, range, leftFieldInPx, topFieldInPx, bCol /*width, height*/  ) {
@@ -16548,7 +16588,7 @@
 		}
 
 		var st = this.settings.header.style[kHeaderDefault];
-		var x1, y1, x2, y2, arrayLines, rowLevelMap, groupData;
+		var x1, y1, x2, y2, arrayLines, groupData;
 		var lineWidth = AscCommon.AscBrowser.convertToRetinaValue(2, true);
 		var thickLineDiff = AscCommon.AscBrowser.isRetina ? 0.5 : 0;
 		var tempButtonMap = [];//чтобы не рисовать точки там где кпопки
@@ -16575,7 +16615,7 @@
 				return;
 			}
 			arrayLines = groupData.groupArr;
-			rowLevelMap = groupData.levelMap;
+			//rowLevelMap = groupData.levelMap;
 
 			ctx.setStrokeStyle(new CColor(0, 0, 0)).setLineWidth(lineWidth).beginPath();
 
@@ -16623,7 +16663,8 @@
 							continue;
 						}
 
-						var collasedEndRow = rowLevelMap[arrayLines[i][j].end + 1] && rowLevelMap[arrayLines[i][j].end + 1].collapsed;
+						var collasedEndRow = this._getGroupCollapsed(arrayLines[i][j].end + 1, bCol);
+						//var collasedEndRow = rowLevelMap[arrayLines[i][j].end + 1] && rowLevelMap[arrayLines[i][j].end + 1].collapsed
 						if(!collasedEndRow) {
 							ctx.lineHorPrevPx(startPos, posY, endPos + paddingTop);
 						}
@@ -16640,11 +16681,13 @@
 
 			//TODO не рисовать точки на местах линий и кнопок
 			for(l = minCol; l < maxCol; l++) {
-				if(!rowLevelMap[l]) {
+				pointLevel = this._getGroupLevel(l, bCol);
+				
+				/*if(!rowLevelMap[l]) {
 					continue;
 				}
 
-				pointLevel = rowLevelMap[l].level;
+				pointLevel = rowLevelMap[l].level;*/
 				var colWidth = /*this.getColWidth(endX)*/this._getColLeft(l + 1) - this._getColLeft(l);
 				if(pointLevel === 0 || (tempButtonMap[pointLevel + 1] && tempButtonMap[pointLevel + 1][l]) || colWidth === 0) {
 					continue;
@@ -16672,7 +16715,7 @@
 				return;
 			}
 			arrayLines = groupData.groupArr;
-			rowLevelMap = groupData.levelMap;
+			//rowLevelMap = groupData.levelMap;
 
 			ctx.setStrokeStyle(new CColor(0, 0, 0)).setLineWidth(lineWidth).beginPath();
 
@@ -16720,7 +16763,8 @@
 							continue;
 						}
 
-						var collasedEndCol = rowLevelMap[arrayLines[i][j].end + 1] && rowLevelMap[arrayLines[i][j].end + 1].collapsed;
+						var collasedEndCol = this._getGroupCollapsed(arrayLines[i][j].end + 1);
+						//var collasedEndCol = rowLevelMap[arrayLines[i][j].end + 1] && rowLevelMap[arrayLines[i][j].end + 1].collapsed;
 						if(!collasedEndCol) {
 							ctx.lineVerPrevPx(posX, startPos, endPos + paddingTop);
 						}
@@ -16737,11 +16781,13 @@
 
 			//TODO не рисовать точки на местах линий и кнопок
 			for(l = minRow; l < maxRow; l++) {
-				if(!rowLevelMap[l]) {
+				pointLevel = this._getGroupLevel(l, bCol);
+
+				/*if(!rowLevelMap[l]) {
 					continue;
 				}
 
-				pointLevel = rowLevelMap[l].level;
+				pointLevel = rowLevelMap[l].level;*/
 				var rowHeight = this._getRowHeight(l);
 				if(pointLevel === 0 || (tempButtonMap[pointLevel + 1] && tempButtonMap[pointLevel + 1][l]) || rowHeight === 0) {
 					continue;
@@ -16767,7 +16813,7 @@
 			return;
 		}
 
-		var rowLevelMap = groupData.levelMap;
+		//var rowLevelMap = groupData.levelMap;
 
 		var ctx = drawingCtx || this.drawingCtx;
 
@@ -16854,7 +16900,7 @@
 			var paddingLine = Math.floor((w - sizeLine) / 2);
 
 			if(w > sizeLine + 2) {
-				if(rowLevelMap[val] && rowLevelMap[val].collapsed) {
+				if(this._getGroupCollapsed(val, bCol)/*rowLevelMap[val] && rowLevelMap[val].collapsed*/) {
 					ctx.lineHorPrevPx(x + paddingLine, y + h / 2 + 1, x + sizeLine + paddingLine);
 					ctx.lineVerPrevPx(x + paddingLine + sizeLine / 2 + 1, y + h / 2 - sizeLine / 2,  y + h / 2 + sizeLine / 2);
 				} else {
@@ -16897,6 +16943,61 @@
 		var h = buttonSize - 1;
 
 		return {x: x, y: y, w: w, h: h, size: bCol ? colW : rowH, pos: bCol ? endPosX : endPosY};
+	};
+
+	WorksheetView.prototype._getGroupLevel2 = function(index, bCol) {
+		var fProcess = function() {
+			var outLineLevel = val.getOutlineLevel();
+			return {level: outLineLevel, collapsed: false};
+		};
+		var levelObj = bCol ? fProcess(this.model._getCol(index)) : this.model._getRow(index, fProcess);
+		var groupArr = bCol ? this.arrColGroups : this.arrRowGroups;
+		if(groupArr) {
+			var addCollapsed = function(val) {
+				if(val.getCollapsed()) {
+					levelObj.collapsed = true;
+				}
+			};
+
+
+			for(var i = 0; i < groupArr.length; i++) {
+				if (groupArr[i]) {
+					for (var j = 0; j < groupArr[i].length; j++) {
+						if(index >= groupArr[i][j].start && index <= groupArr[i][j].end) {
+							bCol ? addCollapsed(this.model._getCol(groupArr[i][j].end + 1)) : this.model._getRow(groupArr[i][j].end + 1, addCollapsed);
+						}
+					}
+				}
+			}
+		}
+
+		return levelObj;
+	};
+
+	WorksheetView.prototype._getGroupLevel = function(index, bCol) {
+		var res;
+		var fProcess = function(val) {
+			res = val ? val.getOutlineLevel() : 0;
+		};
+		if(bCol) {
+			this.model.getRange3(0, index, 0, index)._foreachColNoEmpty(fProcess);
+		} else {
+			this.model.getRange3(index, 0, index, 0)._foreachRowNoEmpty(fProcess);
+		}
+		return res;
+	};
+
+	WorksheetView.prototype._getGroupCollapsed = function(index, bCol) {
+		var res;
+		var getCollapsed = function(val) {
+			res =  val ? val.getCollapsed() : false;
+		};
+		if(bCol) {
+			this.model.getRange3(0, index, 0, index)._foreachColNoEmpty(getCollapsed);
+		} else {
+			this.model.getRange3(index, 0, index, 0)._foreachRowNoEmpty(getCollapsed);
+		}
+		return res;
 	};
 
 	//GROUP MENU BUTTONS
@@ -17153,7 +17254,7 @@
 		var mouseDownClick;
 		var doClick = function() {
 			var arrayLines = bCol ? t.arrColGroups.groupArr : t.arrRowGroups.groupArr;
-			var levelMap = bCol ? t.arrColGroups.levelMap : t.arrRowGroups.levelMap;
+			/*var levelMap = bCol ? t.arrColGroups.levelMap : t.arrRowGroups.levelMap;*/
 
 			var endPosArr = {};
 			for(var i = 0; i < arrayLines.length; i++) {
@@ -17166,7 +17267,7 @@
 
 						if((arrayLines[i][j].end + 1 === target.row && !bCol) || (arrayLines[i][j].end + 1 === target.col && bCol)) {
 							var props = t._getGroupDataButtonPos(arrayLines[i][j].end + 1, i, bCol);
-							var collapsed = levelMap[arrayLines[i][j].end + 1] && levelMap[arrayLines[i][j].end + 1].collapsed;
+							var collapsed = t._getGroupCollapsed(arrayLines[i][j].end + 1, bCol);/*levelMap[arrayLines[i][j].end + 1] && levelMap[arrayLines[i][j].end + 1].collapsed*/
 							if(props) {
 								if(x >= props.x - offsetX && x <= props.x + props.w - offsetX && y >= props.y - offsetY && y <= props.y - offsetY + props.h) {
 									if("mouseup" === type) {
@@ -17360,13 +17461,13 @@
 					changeModelFunc.call(t.model, false, start, end);
 					collapsedFunction.call(t.model, !collapsed, end + 1);
 
-					var groupArr, levelMap;
+					var groupArr/*, levelMap*/;
 					if(bCol) {
 						groupArr = t.arrColGroups ? t.arrColGroups.groupArr : null;
-						levelMap = t.arrColGroups ? t.arrColGroups.levelMap : null;
+						//levelMap = t.arrColGroups ? t.arrColGroups.levelMap : null;
 					} else {
 						groupArr = t.arrRowGroups ? t.arrRowGroups.groupArr : null;
-						levelMap = t.arrRowGroups ? t.arrRowGroups.levelMap : null;
+						//levelMap = t.arrRowGroups ? t.arrRowGroups.levelMap : null;
 					}
 					if(groupArr) {
 						for(var i = level + 1; i <= groupArr.length; i++) {
@@ -17375,7 +17476,7 @@
 							}
 							for(var j = 0; j < groupArr[i].length; j++) {
 								if(groupArr[i][j] && groupArr[i][j].start >= start && groupArr[i][j].end < end) {
-									if(levelMap[groupArr[i][j].end + 1] && levelMap[groupArr[i][j].end + 1].collapsed) {
+									if(t._getGroupCollapsed(groupArr[i][j].end + 1, bCol)/*levelMap[groupArr[i][j].end + 1] && levelMap[groupArr[i][j].end + 1].collapsed*/) {
 										changeModelFunc.call(t.model, true, groupArr[i][j].start, groupArr[i][j].end);
 									}
 								}
@@ -17476,7 +17577,7 @@
 		//TODO то скрываем именно внутреннюю группу - это необходимо сделать! касается только группы с самым наименьшим уровенем, далее внутренни группы не нужно проверять
 
 
-		var getNeedGroups = function(groupArr, levelMap, bCol) {
+		var getNeedGroups = function(groupArr, /*levelMap,*/ bCol) {
 
 			var maxGroupIndexMap = {}, deleteIndexes = {};
 			var selectPartGroup, curLevel = 0;
@@ -17486,15 +17587,16 @@
 					if(groupArr[i]) {
 						for(var j = 0; j < groupArr[i].length; j++) {
 							//TODO COLUMNS! - bCol
+							var collapsed = t._getGroupCollapsed(groupArr[i][j].end + 1, bCol);
 							//полностью выделена группа, если выделена кнопка
 							if(groupArr[i][j].end + 1 >= ar.r1 && groupArr[i][j].end + 1 <= ar.r2 && undefined === maxGroupIndexMap[groupArr[i][j].end]) {
-								if(!deleteIndexes[groupArr[i][j].end] && undefined !== maxGroupIndexMap[groupArr[i][j].end + 1] && !levelMap[groupArr[i][j].end + 1].collapsed) {
+								if(!deleteIndexes[groupArr[i][j].end] && undefined !== maxGroupIndexMap[groupArr[i][j].end + 1] && !collapsed /*!levelMap[groupArr[i][j].end + 1].collapsed*/) {
 									delete container[maxGroupIndexMap[groupArr[i][j].end + 1]];
 									deleteIndexes[maxGroupIndexMap[groupArr[i][j].end + 1]] = 1;
 								} else {
 									maxGroupIndexMap[groupArr[i][j].end] = container.length;
 								}
-								if(!bExpand && (!levelMap[groupArr[i][j].end + 1] || !levelMap[groupArr[i][j].end + 1].collapsed)) {
+								if(!bExpand && !collapsed/*(!levelMap[groupArr[i][j].end + 1] || !levelMap[groupArr[i][j].end + 1].collapsed)*/) {
 									container.push(groupArr[i][j]);
 								}
 							} else {
@@ -17505,7 +17607,7 @@
 								} else {
 									outLineGroupRange = Asc.Range(0, groupArr[i][j].start, gc_nMaxCol, groupArr[i][j].end);
 								}
-								if((!levelMap[groupArr[i][j].end + 1] || !levelMap[groupArr[i][j].end + 1].collapsed) && i > curLevel && outLineGroupRange.intersection(ar)) {
+								if(!collapsed && i > curLevel && outLineGroupRange.intersection(ar)) {
 									selectPartGroup = groupArr[i][j];
 									curLevel = i;
 								}
@@ -17517,7 +17619,7 @@
 			return {container: container, selectPartGroup: selectPartGroup};
 		};
 
-		var needGroups = getNeedGroups(t.arrRowGroups.groupArr, t.arrRowGroups.levelMap);
+		var needGroups = getNeedGroups(t.arrRowGroups.groupArr/*, t.arrRowGroups.levelMap*/);
 		var allGroupSelectedRow = needGroups.container;
 		var selectPartRowGroup = needGroups.selectPartGroup;
 
@@ -17526,7 +17628,7 @@
 		}
 
 
-		needGroups = getNeedGroups(t.arrColGroups.groupArr, t.arrColGroups.levelMap, true);
+		needGroups = getNeedGroups(t.arrColGroups.groupArr, /*t.arrColGroups.levelMap,*/ true);
 		var allGroupSelectedCol = needGroups.container;
 		var selectPartColGroup = needGroups.selectPartGroup;
 
@@ -19531,7 +19633,7 @@
     window["AscCommonExcel"].WorksheetView = WorksheetView;
 	window["AscCommonExcel"].HeaderFooterParser = HeaderFooterParser;
 
-	window["AscCommonExcel"].CHeaderFooterEditor = window["AscCommon"]["CHeaderFooterEditor"] = CHeaderFooterEditor;
+	window["AscCommonExcel"].CHeaderFooterEditor = window["AscCommonExcel"]["CHeaderFooterEditor"] = CHeaderFooterEditor;
 	var prot = CHeaderFooterEditor.prototype;
 	prot["click"] 	= prot.click;
 	prot["destroy"] = prot.destroy;

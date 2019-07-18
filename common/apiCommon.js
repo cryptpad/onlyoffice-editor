@@ -111,6 +111,10 @@
 		val = val.toUpperCase();
 		return val;
 	}
+	function CreateUInt32()
+	{
+		return Math.floor(Math.random() * 0x100000000);
+	}
 
 	var c_oLicenseResult = {
 		Error         : 1,
@@ -4196,6 +4200,7 @@
 	window["AscCommon"].CreateAscColorCustom = CreateAscColorCustom;
 	window["AscCommon"].CreateAscColor = CreateAscColor;
 	window["AscCommon"].CreateGUID = CreateGUID;
+	window["AscCommon"].CreateUInt32 = CreateUInt32;
 
 	window['Asc']['c_oLicenseResult'] = window['Asc'].c_oLicenseResult = c_oLicenseResult;
 	prot = c_oLicenseResult;
@@ -4467,6 +4472,7 @@
 	prot["get_ListSubType"] = prot["asc_getListSubType"] = prot.asc_getListSubType;
 
 	window["AscCommon"].asc_CTextFontFamily = asc_CTextFontFamily;
+	window["AscCommon"]["asc_CTextFontFamily"] = asc_CTextFontFamily;
 	prot = asc_CTextFontFamily.prototype;
 	prot["get_Name"] = prot["asc_getName"] = prot.asc_getName;
 	prot["get_Index"] = prot["asc_getIndex"] = prot.asc_getIndex;

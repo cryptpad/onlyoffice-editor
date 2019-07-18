@@ -2796,6 +2796,21 @@ CDocumentContent.prototype.AddToParagraph = function(ParaItem, bRecalculate)
 				case para_ContinuationSeparator:
 				case para_InstrText:
 				{
+					if (ParaItem instanceof AscCommonWord.MathMenu)
+					{
+						var oInfo = this.GetSelectedElementsInfo();
+						if (oInfo.Get_Math())
+						{
+							var oMath = oInfo.Get_Math();
+							ParaItem.SetText(oMath.Copy(true));
+						}
+						else if (!oInfo.Is_MixedSelection())
+						{
+							ParaItem.SetText(this.GetSelectedText());
+						}
+					}
+
+
 					// Если у нас что-то заселекчено и мы вводим текст или пробел
 					// и т.д., тогда сначала удаляем весь селект.
 					this.Remove(1, true, false, true);
@@ -5705,6 +5720,10 @@ CDocumentContent.prototype.RemoveSelection = function(bNoCheckDrawing)
 {
 	if (docpostype_DrawingObjects === this.CurPos.Type)
 	{
+		var oParaDrawing = this.LogicDocument.DrawingObjects.getMajorParaDrawing();
+		if (oParaDrawing)
+			oParaDrawing.GoTo_Text(undefined, false);
+
 		return this.LogicDocument.DrawingObjects.resetSelection(undefined, bNoCheckDrawing);
 	}
 	else //if ( docpostype_Content === this.CurPos.Type )
@@ -7484,9 +7503,17 @@ CDocumentContent.prototype.CanAddComment = function()
 	if (true === this.ApplyToAll)
 	{
 		if (this.Content.length > 1)
+		{
 			return true;
+		}
 		else
-			return this.Content[0].CanAddComment();
+		{
+			var oElement = this.Content[0];
+			oElement.Set_ApplyToAll(true);
+			var isCanAdd = oElement.CanAddComment();
+			oElement.Set_ApplyToAll(false);
+			return isCanAdd;
+		}
 	}
 	else
 	{

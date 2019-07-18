@@ -275,9 +275,10 @@
         }
         else
         {
-            if(typeof AscCommonWord.sDefaultDateTimeFormat === "string" && oDateTimeFormats[AscCommonWord.sDefaultDateTimeFormat])
+            var sFormat = AscCommonWord.oDefaultDateTimeFormat[this.Get_CompiledPr().Lang.Val]
+            if(sFormat && oDateTimeFormats[sFormat])
             {
-                oFormat = AscCommon.oNumFormatCache.get(oDateTimeFormats[AscCommonWord.sDefaultDateTimeFormat]);
+                oFormat = AscCommon.oNumFormatCache.get(oDateTimeFormats[sFormat]);
             }
             else
             {
@@ -325,5 +326,5 @@
 //--------------------------------------------------------export----------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};
 window['AscCommonWord'].CPresentationField = CPresentationField;
-window['AscCommonWord'].sDefaultDateTimeFormat = "datetime1";
+window['AscCommonWord'].oDefaultDateTimeFormat = {};
 })(window);

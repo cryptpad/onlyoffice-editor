@@ -87,7 +87,8 @@
         Worksheets: 4,
         CalcChain: 5,
         App: 6,
-        Core: 7
+        Core: 7,
+        PersonList: 8
     };
     /** @enum */
     var c_oSerStylesTypes =
@@ -225,7 +226,8 @@
 		VbaProject: 12,
 		JsaProject: 13,
 		Comments: 14,
-		CalcPr: 15
+		CalcPr: 15,
+		Connections: 16
     };
     /** @enum */
     var c_oSerWorkbookPrTypes =
@@ -627,7 +629,8 @@
         WidthMM: 14,
         HeightMM: 15,
         MoveWithCells: 16,
-        SizeWithCells: 17
+        SizeWithCells: 17,
+        ThreadedComment: 18
     };
     var c_oSer_CommentData =
     {
@@ -640,7 +643,30 @@
         Document : 6,
         Replies : 7,
         Reply : 8,
-        OOTime : 9
+        OOTime : 9,
+        Guid : 10
+    };
+    var c_oSer_ThreadedComment =
+    {
+        dT: 0,
+        personId: 1,
+        id: 2,
+        done: 3,
+        text: 4,
+        mention: 5,
+        reply: 6,
+        mentionpersonId: 7,
+        mentionId: 8,
+        startIndex: 9,
+        length: 10
+    };
+    var c_oSer_Person =
+    {
+        person: 0,
+        id: 1,
+        providerId: 2,
+        userId: 3,
+        displayName: 4
     };
     var c_oSer_ConditionalFormatting = {
         Pivot						: 0,
@@ -2511,9 +2537,9 @@
                 this.memory.WriteByte(c_oSer_TableStyle.Name);
                 this.memory.WriteString2(customStyle.name);
             }
-            if(null != customStyle.pivot)
+            if(false === customStyle.pivot)
                 this.bs.WriteItem(c_oSer_TableStyle.Pivot, function(){oThis.memory.WriteBool(customStyle.pivot);});
-            if(null != customStyle.table)
+            if(false === customStyle.table)
                 this.bs.WriteItem(c_oSer_TableStyle.Table, function(){oThis.memory.WriteBool(customStyle.table);});
 
             this.bs.WriteItem(c_oSer_TableStyle.Elements, function(){oThis.WriteTableCustomStyleElements(customStyle);});
@@ -2653,6 +2679,9 @@
                 if (this.wb.aComments.length > 0) {
                     this.bs.WriteItem(c_oSerWorkbookTypes.Comments, function() {oThis.WriteComments(oThis.wb.aComments);});
                 }
+				if (this.wb.connections) {
+					this.bs.WriteItem(c_oSerWorkbookTypes.Connections, function() {oThis.memory.WriteBuffer(oThis.wb.connections, 0, oThis.wb.connections.length)});
+				}
 			}
         };
         this.WriteWorkbookPr = function()
@@ -2973,7 +3002,7 @@
             }
         };
     }
-	function BinaryWorksheetsTableWriter(memory, wb, oSharedStrings, aDxfs, isCopyPaste, bsw)
+	function BinaryWorksheetsTableWriter(memory, wb, oSharedStrings, aDxfs, personList, isCopyPaste, bsw)
     {
         this.memory = memory;
         this.bs = new BinaryCommonWriter(this.memory);
@@ -2981,6 +3010,7 @@
         this.wb = wb;
         this.oSharedStrings = oSharedStrings;
         this.aDxfs = aDxfs;
+        this.personList = personList;
 		this.stylesForWrite = bsw.stylesForWrite;
         this.isCopyPaste = isCopyPaste;
         this.sharedFormulas = {};
@@ -3995,13 +4025,16 @@
             this.memory.WriteByte(c_oSerPropLenType.Long);
             this.memory.WriteLong(comment.coords.nBottomOffset);
 
-            this.memory.WriteByte(c_oSer_Comments.LeftMM);
-            this.memory.WriteByte(c_oSerPropLenType.Double);
-            this.memory.WriteDouble2(comment.coords.dLeftMM);
-
-            this.memory.WriteByte(c_oSer_Comments.TopMM);
-            this.memory.WriteByte(c_oSerPropLenType.Double);
-            this.memory.WriteDouble2(comment.coords.dTopMM);
+            if(comment.coords.dLeftMM) {
+                this.memory.WriteByte(c_oSer_Comments.LeftMM);
+                this.memory.WriteByte(c_oSerPropLenType.Double);
+                this.memory.WriteDouble2(comment.coords.dLeftMM);
+            }
+            if(comment.coords.dTopMM) {
+                this.memory.WriteByte(c_oSer_Comments.TopMM);
+                this.memory.WriteByte(c_oSerPropLenType.Double);
+                this.memory.WriteDouble2(comment.coords.dTopMM);
+            }
 
             this.memory.WriteByte(c_oSer_Comments.WidthMM);
             this.memory.WriteByte(c_oSerPropLenType.Double);
@@ -4018,6 +4051,10 @@
             this.memory.WriteByte(c_oSer_Comments.SizeWithCells);
             this.memory.WriteByte(c_oSerPropLenType.Byte);
             this.memory.WriteBool(comment.coords.bSizeWithCells);
+
+            this.memory.WriteByte(c_oSer_Comments.ThreadedComment);
+            this.memory.WriteByte(c_oSerPropLenType.Variable);
+            this.bs.WriteItemWithLength(function(){oThis.WriteThreadedComment(comment);});
         };
         this.WriteCommentDatas = function(data)
         {
@@ -4036,18 +4073,14 @@
             var sTime = oCommentData.asc_getTime();
             if(null != sTime && "" !== sTime)
             {
-                var oDate = new Date(sTime - 0);
-
                 this.memory.WriteByte(c_oSer_CommentData.Time);
-                this.memory.WriteString2(this.DateToISO8601(oDate));
+                this.memory.WriteString2(new Date(sTime - 0).toISOString().slice(0, 19) + 'Z');
             }
             var sOOTime = oCommentData.asc_getOnlyOfficeTime();
             if(null != sOOTime && "" !== sOOTime)
             {
-                var oDate = new Date(sOOTime - 0);
-
                 this.memory.WriteByte(c_oSer_CommentData.OOTime);
-                this.memory.WriteString2(this.DateToISO8601(oDate));
+                this.memory.WriteString2(new Date(sOOTime - 0).toISOString().slice(0, 19) + 'Z');
             }
             var sUserId = oCommentData.asc_getUserId();
             if(null != sUserId)
@@ -4073,22 +4106,77 @@
             var bDocumentFlag = oCommentData.asc_getDocumentFlag();
             if(null != bDocumentFlag)
                 this.bs.WriteItem( c_oSer_CommentData.Document, function(){oThis.memory.WriteBool(bDocumentFlag);});
+            var sGuid = oCommentData.asc_getGuid();
+            if(null != sGuid){
+                this.bs.WriteItem( c_oSer_CommentData.Guid, function(){oThis.memory.WriteString3(sGuid);});
+            }
             var aReplies = oCommentData.aReplies;
             if(null != aReplies && aReplies.length > 0)
                 this.bs.WriteItem( c_oSer_CommentData.Replies, function(){oThis.WriteReplies(aReplies);});
-        };
-        this.DateToISO8601 = function(d)
-        {
-            function pad(n){return n < 10 ? '0' + n : n;}
-            return d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1) + '-' +
-                pad(d.getUTCDate()) + 'T' + pad(d.getUTCHours()) + ':' +
-                pad(d.getUTCMinutes()) + ':' + pad(d.getUTCSeconds())+'Z';
         };
         this.WriteReplies = function(aReplies)
         {
             var oThis = this;
             for(var i = 0, length = aReplies.length; i < length; ++i)
                 this.bs.WriteItem( c_oSer_CommentData.Reply, function(){oThis.WriteCommentData(aReplies[i]);});
+        };
+        this.WriteThreadedComment = function(oCommentData)
+        {
+            var oThis = this;
+            var i;
+            var sOOTime = oCommentData.asc_getOnlyOfficeTime();
+            if (sOOTime) {
+                this.bs.WriteItem( c_oSer_ThreadedComment.dT, function(){oThis.memory.WriteString3(new Date(sOOTime - 0).toISOString().slice(0, 22) + "Z");});
+            }
+            var userId = oCommentData.asc_getUserId();
+            var displayName = oCommentData.asc_getUserName();
+            var providerId = oCommentData.asc_getProviderId();
+            var person = this.personList.find(function isPrime(element) {
+                return userId === element.userId && displayName === element.displayName && providerId === element.providerId;
+            });
+            if (!person) {
+                person = {id: AscCommon.CreateGUID(), userId: userId, displayName: displayName, providerId: providerId};
+                this.personList.push(person);
+            }
+            this.bs.WriteItem( c_oSer_ThreadedComment.personId, function(){oThis.memory.WriteString3(person.id);});
+            var guid = oCommentData.asc_getGuid();
+            if (guid) {
+                this.bs.WriteItem( c_oSer_ThreadedComment.id, function(){oThis.memory.WriteString3(guid);});
+            }
+            var solved = oCommentData.asc_getSolved();
+            if (null != solved) {
+                this.bs.WriteItem( c_oSer_ThreadedComment.done, function(){oThis.memory.WriteBool(solved);});
+            }
+            var text = oCommentData.asc_getText();
+            if (text) {
+                this.bs.WriteItem( c_oSer_ThreadedComment.text, function(){oThis.memory.WriteString3(text);});
+            }
+            // if (oCommentData.aMentions && oCommentData.aMentions.length > 0) {
+            //     for (i = 0; i < oCommentData.aMentions.length; ++i) {
+            //         this.bs.WriteItem( c_oSer_ThreadedComment.mention, function(){oThis.WriteThreadedCommentMention(oCommentData.aMentions[i]);});
+            //     }
+            // }
+            if (oCommentData.aReplies && oCommentData.aReplies.length > 0) {
+                for (i = 0; i < oCommentData.aReplies.length; ++i) {
+                    this.bs.WriteItem( c_oSer_ThreadedComment.reply, function(){oThis.WriteThreadedComment(oCommentData.aReplies[i]);});
+                }
+            }
+        };
+        this.WriteThreadedCommentMention = function(mention)
+        {
+            var oThis = this;
+            if(mention.mentionpersonId){
+                this.bs.WriteItem( c_oSer_ThreadedComment.mentionpersonId, function(){oThis.memory.WriteString3(mention.mentionpersonId);});
+            }
+            if(mention.mentionId){
+                this.bs.WriteItem( c_oSer_ThreadedComment.mentionId, function(){oThis.memory.WriteString3(mention.mentionId);});
+            }
+            if(mention.startIndex){
+                this.bs.WriteItem( c_oSer_ThreadedComment.startIndex, function(){oThis.memory.WriteULong(mention.startIndex);});
+            }
+            if(mention.length){
+                this.bs.WriteItem( c_oSer_ThreadedComment.length, function(){oThis.memory.WriteULong(mention.length);});
+            }
         };
 		this.WriteConditionalFormatting = function(oRule)
 		{
@@ -4543,6 +4631,38 @@
 			this.bs.WriteItem(c_oSer_OtherType.Theme, function(){pptx_content_writer.WriteTheme(oThis.memory, oThis.wb.theme);});
 		};
 	}
+    function BinaryPersonTableWriter(memory, personList)
+    {
+        this.memory = memory;
+        this.personList = personList;
+        this.bs = new BinaryCommonWriter(this.memory);
+        this.Write = function()
+        {
+            var oThis = this;
+            this.bs.WriteItemWithLength(function(){oThis.WritePersonList();});
+        };
+        this.WritePersonList = function()
+        {
+            var oThis = this;
+            for (var i = 0; i < this.personList.length; ++i) {
+                this.bs.WriteItem(c_oSer_Person.person, function(){oThis.WritePerson(oThis.personList[i]);});
+            }
+        };
+        this.WritePerson = function(person)
+        {
+            var oThis = this;
+            if (person.id) {
+                this.bs.WriteItem(c_oSer_Person.id, function(){oThis.memory.WriteString3(person.id);});
+            }
+            if (person.userId && person.providerId) {
+                this.bs.WriteItem(c_oSer_Person.userId, function(){oThis.memory.WriteString3(person.userId);});
+                this.bs.WriteItem(c_oSer_Person.providerId, function(){oThis.memory.WriteString3(person.providerId);});
+            }
+            if (person.displayName) {
+                this.bs.WriteItem(c_oSer_Person.displayName, function(){oThis.memory.WriteString3(person.displayName);});
+            }
+        };
+    }
     /** @constructor */
     function BinaryFileWriter(wb, isCopyPaste)
     {
@@ -4614,11 +4734,13 @@
             var nStylesTablePos = this.ReserveTable(c_oSerTableTypes.Styles);
             //Workbook
             var aDxfs = [];
+            var personList = [];
 			var oBinaryStylesTableWriter = new BinaryStylesTableWriter(this.Memory, this.wb, aDxfs);
-			var oBinaryWorksheetsTableWriter = new BinaryWorksheetsTableWriter(this.Memory, this.wb, oSharedStrings, aDxfs, this.isCopyPaste, oBinaryStylesTableWriter);
+			var oBinaryWorksheetsTableWriter = new BinaryWorksheetsTableWriter(this.Memory, this.wb, oSharedStrings, aDxfs, personList, this.isCopyPaste, oBinaryStylesTableWriter);
             this.WriteTable(c_oSerTableTypes.Workbook, new BinaryWorkbookTableWriter(this.Memory, this.wb, oBinaryWorksheetsTableWriter, this.isCopyPaste));
             //Worksheets
             this.WriteTable(c_oSerTableTypes.Worksheets, oBinaryWorksheetsTableWriter);
+            this.WriteTable(c_oSerTableTypes.PersonList, new BinaryPersonTableWriter(this.Memory, personList));
 			if(!this.isCopyPaste)
 				this.WriteTable(c_oSerTableTypes.Other, new BinaryOtherTableWriter(this.Memory, this.wb));
             //Write SharedStrings
@@ -6245,6 +6367,10 @@
                     return oThis.bwtr.ReadCommentDatas(t,l, oThis.oWorkbook.aComments);
                 });
             }
+			else if (c_oSerWorkbookTypes.Connections == type)
+			{
+				this.oWorkbook.connections = this.stream.GetBuffer(length);
+			}
             else
                 res = c_oSerConstants.ReadUnknown;
             return res;
@@ -6499,7 +6625,7 @@
 		};
     }
     /** @constructor */
-    function Binary_WorksheetTableReader(stream, oReadResult, wb, aSharedStrings, aCellXfs, Dxfs, oMediaArray, copyPasteObj)
+    function Binary_WorksheetTableReader(stream, oReadResult, wb, aSharedStrings, aCellXfs, Dxfs, oMediaArray, personList, copyPasteObj)
     {
         this.stream = stream;
         this.wb = wb;
@@ -6510,6 +6636,7 @@
         this.bcr = new Binary_CommonReader(this.stream);
         this.aMerged = [];
         this.aHyperlinks = [];
+        this.personList = personList;
         this.copyPasteObj = copyPasteObj;
         this.curWorksheet = null;
         this.oReadResult = oReadResult;
@@ -7597,7 +7724,18 @@
                 oCommentCoords.bMoveWithCells = this.stream.GetBool();
             else if ( c_oSer_Comments.SizeWithCells == type )
                 oCommentCoords.bSizeWithCells = this.stream.GetBool();
-            else
+            else if ( c_oSer_Comments.ThreadedComment == type ) {
+                if (aCommentData.length > 0) {
+                    var commentData = aCommentData[0];
+                    commentData.aReplies = [];
+                    // commentData.aMentions = [];
+                    res = this.bcr.Read1(length, function(t, l) {
+                        return oThis.ReadThreadedComment(t, l, commentData);
+                    });
+                } else {
+                    res = c_oSerConstants.ReadUnknown;
+                }
+            } else
                 res = c_oSerConstants.ReadUnknown;
             return res;
         };
@@ -7633,15 +7771,15 @@
                 oCommentData.asc_putText(this.stream.GetString2LE(length));
             else if ( c_oSer_CommentData.Time == type )
             {
-                var oDate = this.Iso8601ToDate(this.stream.GetString2LE(length));
-                if(null != oDate)
-                    oCommentData.asc_putTime(oDate.getTime() + "");
+                var dateMs = AscCommon.getTimeISO8601(this.stream.GetString2LE(length));
+                if(!isNaN(dateMs))
+                    oCommentData.asc_putTime(dateMs + "");
             }
             else if ( c_oSer_CommentData.OOTime == type )
             {
-                var oDate = this.Iso8601ToDate(this.stream.GetString2LE(length));
-                if(null != oDate)
-                    oCommentData.asc_putOnlyOfficeTime(oDate.getTime() + "");
+                var dateMs = AscCommon.getTimeISO8601(this.stream.GetString2LE(length));
+                if(!isNaN(dateMs))
+                    oCommentData.asc_putOnlyOfficeTime(dateMs + "");
             }
             else if ( c_oSer_CommentData.UserId == type )
                 oCommentData.asc_putUserId(this.stream.GetString2LE(length));
@@ -7659,6 +7797,8 @@
                 oCommentData.asc_putSolved(this.stream.GetBool());
             else if ( c_oSer_CommentData.Document == type )
                 oCommentData.asc_putDocumentFlag(this.stream.GetBool());
+            else if ( c_oSer_CommentData.Guid == type )
+                oCommentData.asc_putGuid(this.stream.GetString2LE(length));
             else
                 res = c_oSerConstants.ReadUnknown;
             return res;
@@ -8270,33 +8410,6 @@
                 res = c_oSerConstants.ReadUnknown;
             return res;
         };
-        this.Iso8601ToDate = function(sDate)
-        {
-            var numericKeys = [ 1, 4, 5, 6, 7, 10, 11 ];
-            var minutesOffset = 0;
-            var struct;
-            if ((struct = /^(\d{4}|[+\-]\d{6})(?:-(\d{2})(?:-(\d{2}))?)?(?:T(\d{2}):(\d{2})(?::(\d{2})(?:\.(\d{3}))?)?(?:(Z)|([+\-])(\d{2})(?::(\d{2}))?)?)?$/.exec(sDate))) {
-                // avoid NaN timestamps caused by “undefined” values being passed to Date.UTC
-                for (var i = 0, k; (k = numericKeys[i]); ++i) {
-                    struct[k] = +struct[k] || 0;
-                }
-
-                // allow undefined days and months
-                struct[2] = (+struct[2] || 1) - 1;
-                struct[3] = +struct[3] || 1;
-
-                if (struct[8] !== 'Z' && struct[9] !== undefined) {
-                    minutesOffset = struct[10] * 60 + struct[11];
-
-                    if (struct[9] === '+') {
-                        minutesOffset = 0 - minutesOffset;
-                    }
-                }
-
-                return new Date(Date.UTC(struct[1], struct[2], struct[3], struct[4], struct[5] + minutesOffset, struct[6], struct[7]));
-            }
-            return null;
-        };
         this.ReadReplies = function(type, length, oCommentData)
         {
             var res = c_oSerConstants.ReadOk;
@@ -8304,13 +8417,65 @@
             if ( c_oSer_CommentData.Reply === type )
             {
                 var oReplyData = new Asc.asc_CCommentData();
-                oReplyData.asc_putDocumentFlag(false);
                 res = this.bcr.Read1(length, function(t,l){
                     return oThis.ReadCommentData(t,l,oReplyData);
                 });
-                oCommentData.aReplies.push(oReplyData);
+                oCommentData.asc_addReply(oReplyData);
             }
             else
+                res = c_oSerConstants.ReadUnknown;
+            return res;
+        };
+        this.ReadThreadedComment = function(type, length, oCommentData)
+        {
+            var res = c_oSerConstants.ReadOk;
+            var oThis = this;
+            if ( c_oSer_ThreadedComment.dT === type ) {
+                oCommentData.asc_putTime("");
+                var dateMs =  AscCommon.getTimeISO8601(this.stream.GetString2LE(length));
+                if(!isNaN(dateMs))
+                    oCommentData.asc_putOnlyOfficeTime(dateMs + "");
+            } else if ( c_oSer_ThreadedComment.personId === type ) {
+                var person = this.personList[this.stream.GetString2LE(length)];
+                if (person) {
+                    oCommentData.asc_putUserName(person.displayName);
+                    oCommentData.asc_putUserId(person.userId);
+                    oCommentData.asc_putProviderId(person.providerId);
+                }
+            } else if ( c_oSer_ThreadedComment.id === type ) {
+                oCommentData.asc_putGuid(this.stream.GetString2LE(length));
+            } else if ( c_oSer_ThreadedComment.done === type ) {
+                oCommentData.asc_putSolved(this.stream.GetBool());
+            } else if ( c_oSer_ThreadedComment.text === type ) {
+                oCommentData.asc_putText(this.stream.GetString2LE(length));
+            // } else if ( c_oSer_ThreadedComment.mention === type ) {
+            //     var mention = {mentionpersonId: undefined, mentionId: undefined, startIndex: undefined, length: undefined};
+            //     res = this.bcr.Read1(length, function(t,l){
+            //         return oThis.ReadThreadedCommentMention(t,l,mention);
+            //     });
+            //     oCommentData.aMentions.push(mention);
+            } else if ( c_oSer_ThreadedComment.reply === type ) {
+                var reply = new Asc.asc_CCommentData();
+                res = this.bcr.Read1(length, function(t,l){
+                    return oThis.ReadThreadedComment(t,l,reply);
+                });
+                oCommentData.asc_addReply(reply);
+            } else
+                res = c_oSerConstants.ReadUnknown;
+            return res;
+        };
+        this.ReadThreadedCommentMention = function(type, length, mention)
+        {
+            var res = c_oSerConstants.ReadOk;
+            if ( c_oSer_ThreadedComment.mentionpersonId === type ) {
+                mention.mentionpersonId = this.stream.GetString2LE(length);
+            } else if ( c_oSer_ThreadedComment.mentionId === type ) {
+                mention.mentionId = this.stream.GetString2LE(length);
+            } else if ( c_oSer_ThreadedComment.startIndex === type ) {
+                mention.startIndex = this.stream.GetULong();
+            } else if ( c_oSer_ThreadedComment.length === type ) {
+                mention.length = this.stream.GetULong();
+            } else
                 res = c_oSerConstants.ReadUnknown;
             return res;
         };
@@ -8483,6 +8648,49 @@
         });
     }
 
+    function BinaryPersonReader(stream, personList)
+    {
+        this.stream = stream;
+        this.personList = personList;
+        this.bcr = new Binary_CommonReader(this.stream);
+        this.Read = function()
+        {
+            var oThis = this;
+            var oRes = this.bcr.ReadTable(function(t, l){
+                return oThis.ReadPersonList(t,l);
+            });
+            return oRes;
+        };
+        this.ReadPersonList = function(type, length, persons)
+        {
+            var res = c_oSerConstants.ReadOk;
+            var oThis = this;
+            if ( c_oSer_Person.person === type ) {
+                var person = {providerId:"", userId:"", displayName:""};
+                res = this.bcr.Read1(length, function(t,l){
+                    return oThis.ReadPerson(t,l, person);
+                });
+            } else
+                res = c_oSerConstants.ReadUnknown;
+            return res;
+        };
+        this.ReadPerson = function(type, length, person)
+        {
+            var res = c_oSerConstants.ReadOk;
+            var oThis = this;
+            if ( c_oSer_Person.id === type ) {
+                this.personList[this.stream.GetString2LE(length)] = person;
+            } else if (c_oSer_Person.providerId === type) {
+                person.providerId = this.stream.GetString2LE(length);
+            } else if (c_oSer_Person.userId === type) {
+                person.userId = this.stream.GetString2LE(length);
+            } else if (c_oSer_Person.displayName === type) {
+                person.displayName = this.stream.GetString2LE(length);
+            } else
+                res = c_oSerConstants.ReadUnknown;
+            return res;
+        };
+    }
 
     /** @constructor */
     function BinaryFileReader(isCopyPaste)
@@ -8730,6 +8938,7 @@
             var nSharedStringTableOffset = null;
             var nStyleTableOffset = null;
             var nWorkbookTableOffset = null;
+            var nPersonListTableOffset = null;
             var fileStream;
             for(var i = 0; i < mtLen; ++i)
             {
@@ -8747,6 +8956,8 @@
                     nStyleTableOffset = mtiOffBits;
                 else if(c_oSerTableTypes.Workbook == mtiType)
                     nWorkbookTableOffset = mtiOffBits;
+                else if(c_oSerTableTypes.PersonList == mtiType)
+                    nPersonListTableOffset = mtiOffBits;
                 else
                     aSeekTable.push( {type: mtiType, offset: mtiOffBits} );
             }
@@ -8774,7 +8985,14 @@
                 if(c_oSerConstants.ReadOk == res)
 					res = this.oReadResult.stylesTableReader.Read();
             }
-			var bwtr = new Binary_WorksheetTableReader(this.stream, this.oReadResult, wb, aSharedStrings, aCellXfs, aDxfs, oMediaArray, this.copyPasteObj);
+            var personList = {};
+            if(null != nPersonListTableOffset)
+            {
+                res = this.stream.Seek(nPersonListTableOffset);
+                if(c_oSerConstants.ReadOk == res)
+                    res = new BinaryPersonReader(this.stream, personList).Read();
+            }
+			var bwtr = new Binary_WorksheetTableReader(this.stream, this.oReadResult, wb, aSharedStrings, aCellXfs, aDxfs, oMediaArray, personList, this.copyPasteObj);
             if(c_oSerConstants.ReadOk == res)
             {
                 for(var i = 0; i < aSeekTable.length; ++i)
@@ -8785,7 +9003,6 @@
                     res = this.stream.Seek(mtiOffBits);
                     if(c_oSerConstants.ReadOk != res)
                         break;
-                    var bwtr = new Binary_WorksheetTableReader(this.stream, this.oReadResult, wb, aSharedStrings, aCellXfs, aDxfs, oMediaArray, this.copyPasteObj);
                     switch(mtiType)
                     {
                         // case c_oSerTableTypes.SharedStrings:
