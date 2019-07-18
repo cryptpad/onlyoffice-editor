@@ -7464,10 +7464,10 @@ background-repeat: no-repeat;\
         this.ShowParaMarks                    = false;
         _renderer.IsNoDrawingEmptyPlaceholder = true;
 
-        var mmW = _pres.Width;
-        var mmH = _pres.Height;
-        var pxW = mmW * AscCommon.g_dKoef_mm_to_pix;
-        var pxH = mmH * AscCommon.g_dKoef_mm_to_pix;
+        var pxW = 85;
+        var pxH = 38;
+        var mmW = pxW * AscCommon.g_dKoef_mm_to_pix;
+        var mmH = pxH * AscCommon.g_dKoef_mm_to_pix;
 
         _renderer.BeginPage(mmW, mmH);
         var oldEngine = window["NATIVE_EDITOR_ENJINE"];

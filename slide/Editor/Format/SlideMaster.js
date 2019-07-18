@@ -598,10 +598,8 @@ function CMasterThumbnailDrawer()
     this.Draw2 = function(g, _master, use_background, use_master_shapes) {
         var w_px = this.WidthPx;
         var h_px = this.HeightPx;
-        var calcPxH = 38;
 
         var dKoefPixToMM = this.HeightMM / h_px;
-        var dKoefPixToMM2 = dKoefPixToMM * h_px / calcPxH;
         var _back_fill = null;
         var RGBA = {R:0, G:0, B:0, A:255};
         var _layout = null;
@@ -643,6 +641,15 @@ function CMasterThumbnailDrawer()
                 }
             }
         }
+
+        _master.changeSize(this.WidthMM, this.HeightMM);
+        _master.recalculate();
+        if (_layout)
+        {
+            _layout.changeSize(this.WidthMM, this.HeightMM);
+            _layout.recalculate();
+        }
+
         if (_back_fill != null) {
             _back_fill.calculate(_theme, null, _layout, _master, RGBA);
         }
@@ -675,16 +682,16 @@ function CMasterThumbnailDrawer()
             }
         }
         g.reset();
-        var _color_w = 6 * dKoefPixToMM2;
-        var _color_h = 3 * dKoefPixToMM2;
-        var _color_x = 4 * dKoefPixToMM2;
-        var _color_y = 31 * dKoefPixToMM2;
-        var _color_delta = 1 * dKoefPixToMM2;
+        var _color_w = 6 * dKoefPixToMM;
+        var _color_h = 3 * dKoefPixToMM;
+        var _color_x = 4 * dKoefPixToMM;
+        var _color_y = 31 * dKoefPixToMM;
+        var _color_delta = 1 * dKoefPixToMM;
 
         g.p_color(255, 255, 255, 255);
         g.b_color1(255, 255, 255, 255);
         g._s();
-        g.rect(_color_x - _color_delta, _color_y - _color_delta, _color_w * 6 + 7 * _color_delta, 5 * dKoefPixToMM2);
+        g.rect(_color_x - _color_delta, _color_y - _color_delta, _color_w * 6 + 7 * _color_delta, 5 * dKoefPixToMM);
         g.df();
         g._s();
         var _color = new AscFormat.CSchemeColor;
@@ -705,7 +712,7 @@ function CMasterThumbnailDrawer()
         _api.isViewMode = true;
         _color.id = 15;
         _color.Calculate(_theme, null, null, _master, RGBA);
-        var nFontSize = (18 * h_px / calcPxH);
+        var nFontSize = 18 * dKoefPixToMM * dKoefPixToMM;
         var _textPr1 = new CTextPr;
         _textPr1.FontFamily = {Name:_theme.themeElements.fontScheme.majorFont.latin, Index:-1};
         _textPr1.RFonts.Ascii = {Name: _theme.themeElements.fontScheme.majorFont.latin, Index: -1};
@@ -732,8 +739,8 @@ function CMasterThumbnailDrawer()
         par.Reset(0, 0, 1000, 1000, 0, 0, 1);
         par.Recalculate_Page(0);
 
-        var _text_x = 8 * dKoefPixToMM2;
-        var _text_y = (calcPxH - 11) * dKoefPixToMM2;
+        var _text_x = 8 * dKoefPixToMM;
+        var _text_y = (h_px - 11) * dKoefPixToMM;
         par.Lines[0].Ranges[0].XVisible = _text_x;
         par.Lines[0].Y = _text_y;
         var old_marks = _api.ShowParaMarks;
