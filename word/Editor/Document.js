@@ -18870,7 +18870,7 @@ CDocument.prototype.DrawTable = function()
 	if (!this.DrawTableMode.Table)
 		return;
 
-	if (this.Document_Is_SelectionLocked(changestype_None, {
+	if (!this.Document_Is_SelectionLocked(changestype_None, {
 			Type      : changestype_2_ElementsArray_and_Type,
 			Elements  : [this.DrawTableMode.Table],
 			CheckType : AscCommon.changestype_Table_Properties
