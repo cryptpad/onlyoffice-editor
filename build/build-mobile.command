@@ -3,8 +3,8 @@
 BASEDIR="$(cd "$(dirname "$0")" && pwd)"
 cd $BASEDIR
 
-PRODUCT_VERSION="5.3.2"
-BUILD_NUMBER="13"
+PRODUCT_VERSION="5.3.4"
+BUILD_NUMBER="7"
 LAST_VERSION_TAG=$(git describe --tags $(git rev-list --tags --max-count=1))
 
 version=$(echo $LAST_VERSION_TAG | sed -e "s/v//")
