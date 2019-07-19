@@ -1454,7 +1454,8 @@ var selected_DrawingObjectText = 1;
 
 function CSelectedElementsInfo(oPr)
 {
-	this.m_bSkipTOC = oPr && oPr.SkipTOC ? true : false;
+	this.m_bSkipTOC = !!(oPr && oPr.SkipTOC);
+	this.m_bCheckAllSelection = !!(oPr && oPr.CheckAllSelection); // Проверять все выделение, или только 1 элемент
 
 	this.m_bTable           = false; // Находится курсор или выделение целиком в какой-нибудь таблице
 	this.m_bMixedSelection  = false; // Попадает ли в выделение одновременно несколько элементов
@@ -1469,6 +1470,9 @@ function CSelectedElementsInfo(oPr)
 	this.m_arrComplexFields = [];
 	this.m_oPageNum         = null;
 	this.m_oPagesCount      = null;
+	this.m_bReviewAdd       = false; // Добавленный контент в режиме рецензирования
+	this.m_bReviewRemove    = false; // Удаленный контент в режиме рецензирования
+	this.m_bReviewNormal    = false; // Обычный контент
 
     this.Reset = function()
     {
@@ -1629,6 +1633,32 @@ CSelectedElementsInfo.prototype.SetPagesCount = function(oElement)
 CSelectedElementsInfo.prototype.GetPagesCount = function()
 {
 	return this.m_oPagesCount;
+};
+CSelectedElementsInfo.prototype.IsCheckAllSelection = function()
+{
+	return this.m_bCheckAllSelection;
+};
+CSelectedElementsInfo.prototype.RegisterRunWithReviewType = function(nReviewType)
+{
+	switch (nReviewType)
+	{
+		case reviewtype_Add: this.m_bReviewAdd = true; break;
+		case reviewtype_Remove : this.m_bReviewRemove = true; break;
+		case reviewtype_Common: this.m_bReviewNormal = true; break;
+
+	}
+};
+CSelectedElementsInfo.prototype.HaveAddedInReview = function()
+{
+	return this.m_bReviewAdd;
+};
+CSelectedElementsInfo.prototype.HaveRemovedInReview = function()
+{
+	return this.m_bReviewRemove;
+};
+CSelectedElementsInfo.prototype.HaveNotReviewedContent = function()
+{
+	return this.m_bReviewNormal;
 };
 
 var document_compatibility_mode_Word14  = 14;
@@ -7299,6 +7329,17 @@ CDocument.prototype.OnEndTextDrag = function(NearPos, bCopy)
     }
     else
     {
+    	var bCancelTrackMove = false;
+    	if (this.IsTrackRevisions())
+		{
+			var oInfo = this.GetSelectedElementsInfo({CheckAllSelection : true});
+			if (!oInfo.HaveNotReviewedContent() && !oInfo.HaveAddedInReview() && oInfo.HaveRemovedInReview())
+				return;
+
+			if (oInfo.HaveRemovedInReview() || !oInfo.HaveNotReviewedContent())
+				bCancelTrackMove = true;
+		}
+
         // Создаем сразу точку в истории, т.к. при выполнении функции GetSelectedContent нам надо, чтобы данная
         // точка уже набивалась изменениями. Если из-за совместного редактирования действие сделать невозможно будет,
         // тогда последнюю точку удаляем.
@@ -7309,7 +7350,7 @@ CDocument.prototype.OnEndTextDrag = function(NearPos, bCopy)
 		if (!bCopy)
 		{
 			this.DragAndDropAction = true;
-			this.TrackMoveId       = this.IsTrackRevisions() ? this.TrackRevisionsManager.GetNewMoveId() : null;
+			this.TrackMoveId       = this.IsTrackRevisions() && !bCancelTrackMove ? this.TrackRevisionsManager.GetNewMoveId() : null;
 		}
 		else
 		{
@@ -16314,7 +16355,7 @@ CDocument.prototype.controller_GetCurrentParagraph = function(bIgnoreSelection, 
 		return this.Content[Pos].GetCurrentParagraph(bIgnoreSelection, null, oPr);
 	}
 };
-CDocument.prototype.controller_GetSelectedElementsInfo = function(Info)
+CDocument.prototype.controller_GetSelectedElementsInfo = function(oInfo)
 {
 	if (true === this.Selection.Use)
 	{
@@ -16322,20 +16363,29 @@ CDocument.prototype.controller_GetSelectedElementsInfo = function(Info)
 		{
 			if (this.Selection.Data && this.Selection.Data.CurPara)
 			{
-				this.Selection.Data.CurPara.GetSelectedElementsInfo(Info);
+				this.Selection.Data.CurPara.GetSelectedElementsInfo(oInfo);
 			}
 		}
 		else
 		{
-			if (this.Selection.StartPos != this.Selection.EndPos)
-				Info.Set_MixedSelection();
-			else
-				this.Content[this.Selection.StartPos].GetSelectedElementsInfo(Info);
+			if (this.Selection.StartPos !== this.Selection.EndPos)
+				oInfo.Set_MixedSelection();
+
+			if (oInfo.IsCheckAllSelection() || this.Selection.StartPos === this.Selection.EndPos)
+			{
+				var nStart = this.Selection.StartPos < this.Selection.EndPos ? this.Selection.StartPos : this.Selection.EndPos;
+				var nEnd   = this.Selection.StartPos < this.Selection.EndPos ? this.Selection.EndPos : this.Selection.StartPos;
+
+				for (var nPos = nStart; nPos <= nEnd; ++nPos)
+				{
+					this.Content[nPos].GetSelectedElementsInfo(oInfo);
+				}
+			}
 		}
 	}
 	else
 	{
-		this.Content[this.CurPos.ContentPos].GetSelectedElementsInfo(Info);
+		this.Content[this.CurPos.ContentPos].GetSelectedElementsInfo(oInfo);
 	}
 };
 CDocument.prototype.controller_AddTableRow = function(bBefore)

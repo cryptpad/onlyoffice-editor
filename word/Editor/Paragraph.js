@@ -7424,22 +7424,32 @@ Paragraph.prototype.GetSelectedText = function(bClearText, oPr)
 
 	return Str;
 };
-Paragraph.prototype.GetSelectedElementsInfo = function(Info, ContentPos, Depth)
+Paragraph.prototype.GetSelectedElementsInfo = function(oInfo, ContentPos, Depth)
 {
-	Info.SetParagraph(this);
+	oInfo.SetParagraph(this);
 
 	if (ContentPos)
 	{
 		var Pos = ContentPos.Get(Depth);
 		if (this.Content[Pos].GetSelectedElementsInfo)
-			this.Content[Pos].GetSelectedElementsInfo(Info, ContentPos, Depth + 1);
+			this.Content[Pos].GetSelectedElementsInfo(oInfo, ContentPos, Depth + 1);
 	}
 	else
 	{
-		if (true === this.Selection.Use && this.Selection.StartPos === this.Selection.EndPos && this.Content[this.Selection.EndPos].GetSelectedElementsInfo)
-			this.Content[this.Selection.EndPos].GetSelectedElementsInfo(Info);
-		else if (false === this.Selection.Use && this.Content[this.CurPos.ContentPos].GetSelectedElementsInfo)
-			this.Content[this.CurPos.ContentPos].GetSelectedElementsInfo(Info);
+		if (true === this.Selection.Use && (oInfo.IsCheckAllSelection() || this.Selection.StartPos === this.Selection.EndPos))
+		{
+			var nStartPos = this.Selection.StartPos < this.Selection.EndPos ? this.Selection.StartPos : this.Selection.EndPos;
+			var nEndPos   = this.Selection.StartPos < this.Selection.EndPos ? this.Selection.EndPos : this.Selection.StartPos;
+
+			for (var nPos = nStartPos; nPos <= nEndPos; ++nPos)
+			{
+				this.Content[nPos].GetSelectedElementsInfo(oInfo);
+			}
+		}
+		else if (false === this.Selection.Use)
+		{
+			this.Content[this.CurPos.ContentPos].GetSelectedElementsInfo(oInfo);
+		}
 
 		if (true !== this.Selection.Use)
 		{
@@ -7450,11 +7460,11 @@ Paragraph.prototype.GetSelectedElementsInfo = function(Info, ContentPos, Depth)
 			{
 				if (para_PageNum === oNextElement.Type)
 				{
-					Info.SetPageNum(oNextElement);
+					oInfo.SetPageNum(oNextElement);
 				}
 				else if (para_PageCount === oNextElement.Type)
 				{
-					Info.SetPagesCount(oNextElement);
+					oInfo.SetPagesCount(oNextElement);
 				}
 			}
 
@@ -7462,11 +7472,11 @@ Paragraph.prototype.GetSelectedElementsInfo = function(Info, ContentPos, Depth)
 			{
 				if (para_PageNum === oPrevElement.Type)
 				{
-					Info.SetPageNum(oPrevElement);
+					oInfo.SetPageNum(oPrevElement);
 				}
 				else if (para_PageCount === oPrevElement.Type)
 				{
-					Info.SetPagesCount(oPrevElement);
+					oInfo.SetPagesCount(oPrevElement);
 				}
 			}
 		}
@@ -7474,7 +7484,7 @@ Paragraph.prototype.GetSelectedElementsInfo = function(Info, ContentPos, Depth)
 
 	var arrComplexFields = this.GetComplexFieldsByPos(ContentPos ? ContentPos : (this.Selection.Use === true ? this.Get_ParaContentPos(false, false) : this.Get_ParaContentPos(false)), false);
 	if (arrComplexFields.length > 0)
-		Info.SetComplexFields(arrComplexFields);
+		oInfo.SetComplexFields(arrComplexFields);
 };
 Paragraph.prototype.GetElementsInfoByXY = function(oInfo, X, Y, CurPage)
 {

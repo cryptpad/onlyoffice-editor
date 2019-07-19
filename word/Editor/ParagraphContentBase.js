@@ -683,6 +683,15 @@ CParagraphContentBase.prototype.CheckRunContent = function(fCheck)
 CParagraphContentBase.prototype.ProcessComplexFields = function(oComplexFields)
 {
 };
+/**
+ * Собираем информацию о выделенной части документа
+ * @param oInfo {CSelectedElementsInfo}
+ * @param oContentPos
+ * @param nDepth
+ */
+CParagraphContentBase.prototype.GetSelectedElementsInfo = function(oInfo, oContentPos, nDepth)
+{
+};
 
 /**
  * Это базовый класс для элементов содержимого(контент) параграфа, у которых есть свое содержимое.
@@ -1055,22 +1064,30 @@ CParagraphContentWithParagraphLikeContent.prototype.IsStartFromNewLine = functio
 
     return this.Content[0].IsStartFromNewLine();
 };
-CParagraphContentWithParagraphLikeContent.prototype.GetSelectedElementsInfo = function(Info, ContentPos, Depth)
+CParagraphContentWithParagraphLikeContent.prototype.GetSelectedElementsInfo = function(oInfo, oContentPos, nDepth)
 {
-	var Selection = this.Selection;
-
-	if (ContentPos)
+	if (oContentPos)
 	{
-		var Pos = ContentPos.Get(Depth);
-		if (this.Content[Pos].GetSelectedElementsInfo)
-			this.Content[Pos].GetSelectedElementsInfo(Info, ContentPos, Depth + 1);
+		var nPos = oContentPos.Get(nDepth);
+		if (this.Content[nPos].GetSelectedElementsInfo)
+			this.Content[nPos].GetSelectedElementsInfo(oInfo, oContentPos, nDepth + 1);
 	}
 	else
 	{
-		if (true === Selection.Use && Selection.StartPos === Selection.EndPos && this.Content[Selection.EndPos].GetSelectedElementsInfo)
-			this.Content[Selection.EndPos].GetSelectedElementsInfo(Info);
-		else if (false === Selection.Use && this.Content[this.State.ContentPos].GetSelectedElementsInfo)
-			this.Content[this.State.ContentPos].GetSelectedElementsInfo(Info);
+		if (true === this.Selection.Use && (oInfo.IsCheckAllSelection() || this.Selection.StartPos === this.Selection.EndPos))
+		{
+			var nStartPos = this.Selection.StartPos < this.Selection.EndPos ? this.Selection.StartPos : this.Selection.EndPos;
+			var nEndPos   = this.Selection.StartPos < this.Selection.EndPos ? this.Selection.EndPos : this.Selection.StartPos;
+
+			for (var nPos = nStartPos; nPos <= nEndPos; ++nPos)
+			{
+				this.Content[nPos].GetSelectedElementsInfo(oInfo);
+			}
+		}
+		else if (false === this.Selection.Use)
+		{
+			this.Content[this.State.ContentPos].GetSelectedElementsInfo(oInfo);
+		}
 	}
 };
 CParagraphContentWithParagraphLikeContent.prototype.GetSelectedText = function(bAll, bClearText, oPr)
