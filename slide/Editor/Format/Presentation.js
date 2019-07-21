@@ -3548,7 +3548,7 @@ CPresentation.prototype =
                                 oSp.setParent(oSlide);
                             }
                         }
-                        else
+                        if(oSp)
                         {
                             oContent = oSp.getDocContent && oSp.getDocContent();
                             if(oContent && typeof sText === "string")
@@ -3582,15 +3582,15 @@ CPresentation.prototype =
                                 oSp.setParent(oSlide);
                             }
                         }
-                        else
-                        {
-                            oContent = oSp.getDocContent && oSp.getDocContent();
-                            if(oContent && typeof sText === "string")
-                            {
-                                oContent.ClearContent(true);
-                                AscFormat.AddToContentFromString(oContent, sText);
-                            }
-                        }
+						if(oSp)
+						{
+							oContent = oSp.getDocContent && oSp.getDocContent();
+							if(oContent && typeof sText === "string")
+							{
+								oContent.ClearContent(true);
+								AscFormat.AddToContentFromString(oContent, sText);
+							}
+						}
                     }
                     else
                     {
