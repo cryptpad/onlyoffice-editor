@@ -18276,7 +18276,14 @@
 		this.changed = false;
 	}
 	CHeaderFooterEditorSection.prototype.setFragments = function (val) {
-		this.fragments = val;
+		this.fragments = this.isEmptyFragments(val) ? null : val;
+	};
+	CHeaderFooterEditorSection.prototype.isEmptyFragments = function (val) {
+		var res = false;
+		if(val.length === 1 && val[0].text === "") {
+			res = true;
+		}
+		return res;
 	};
 	CHeaderFooterEditorSection.prototype.getFragments = function () {
 		return this.fragments;
