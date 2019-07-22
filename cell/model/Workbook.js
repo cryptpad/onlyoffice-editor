@@ -3515,6 +3515,11 @@
 			}
 		});
 
+		//copy headers/footers
+		if(wsFrom.headerFooter) {
+			this.headerFooter = wsFrom.headerFooter.clone(this);
+		}
+
 		return renameParams;
 	};
 	Worksheet.prototype.copyObjects = function (oNewWs, wsFrom) {
