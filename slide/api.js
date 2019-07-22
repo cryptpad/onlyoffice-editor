@@ -576,6 +576,7 @@
 		this.documentFormatSave = c_oAscFileType.PPTX;
 
 		this.ThemeLoader   = null;
+		this.standartThemesStatus = 0;
 		this.tmpThemesPath = null;
 		this.tmpIsFreeze   = null;
 		this.tmpSlideDiv   = null;
@@ -1349,6 +1350,28 @@
 
 	asc_docs_api.prototype.SetThemesPath = function(path)
 	{
+	    if (this.standartThemesStatus == 0)
+        {
+            // 0 - начальное состояние
+            // 1 - просто чтобы не позволить грузить два раза
+            // 2 - загрузка скрипта/конец открытия документа
+            // 3 - конец открытия документа/загрузка скрипта
+
+            this.standartThemesStatus = 1;
+            var t = this;
+            AscCommon.loadScript(path + "/themes.js", function() {
+                t.standartThemesStatus++;
+                if (t.ThemeLoader)
+                    t.ThemeLoader.Themes._init();
+                if (2 < t.standartThemesStatus)
+                    t.WordControl.m_oLogicDocument.SendThemesThumbnails();
+            }, function() {
+                t.standartThemesStatus++;
+                if (2 < t.standartThemesStatus)
+                    t.WordControl.m_oLogicDocument.SendThemesThumbnails();
+            });
+        }
+
 		if (!this.isLoadFullApi)
 		{
 			this.tmpThemesPath = path;
@@ -5110,7 +5133,9 @@ background-repeat: no-repeat;\
 					this.WordControl.m_oMasterDrawer.WidthMM  = presentation.Width;
 					this.WordControl.m_oMasterDrawer.HeightMM = presentation.Height;
 				}
-				this.WordControl.m_oLogicDocument.SendThemesThumbnails();
+                this.standartThemesStatus++;
+                if (2 < this.standartThemesStatus)
+                   this.WordControl.m_oLogicDocument.SendThemesThumbnails();
 
 				this.sendEvent("asc_onPresentationSize", presentation.Width, presentation.Height);
 

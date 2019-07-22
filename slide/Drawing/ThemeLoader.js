@@ -37,6 +37,10 @@ function CAscThemes()
     this.EditorThemes = [];
     this.DocumentThemes = [];
 
+    this._init();
+}
+CAscThemes.prototype._init = function()
+{
     var _defaultThemes = AscCommon["g_defaultThemes"] || [];
 
     var _count = _defaultThemes.length;
@@ -48,7 +52,7 @@ function CAscThemes()
         });
         this.EditorThemes[i].Index = i;
     }
-}
+};
 CAscThemes.prototype.get_EditorThemes = function(){ return this.EditorThemes; };
 CAscThemes.prototype.get_DocumentThemes = function(){ return this.DocumentThemes; };
 
