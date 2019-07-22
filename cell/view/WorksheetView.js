@@ -1894,7 +1894,7 @@
 	};
 
     WorksheetView.prototype.calcPagesPrint = function (pageOptions, printOnlySelection, indexWorksheet, arrPages, arrRanges, ignorePrintArea, doNotRecalc) {
-		this.fitToPages(1, 1);
+		//this.fitToPages(1, 1);
 
 		var range, maxCell, t = this;
 		var printArea = !ignorePrintArea && this.model.workbook.getDefinesNames("Print_Area", this.model.getId());
@@ -2103,7 +2103,18 @@
 
 		this.fitToPages(width, height);
 	};
-	
+
+	//пересчитывать необходимо когда после открытия зашли в настройки печати
+	WorksheetView.prototype.recalcScale = function () {
+		var pageOptions = t.model.PagePrintOptions;
+		var width = pageOptions.asc_getFitToWidth();
+		var height = pageOptions.asc_getFitToHeight();
+		this.setPrintScale(this.calcPrintScale(width, height));
+
+		//TODO нужно ли в данном случае лочить?
+		//this._isLockedLayoutOptions(callback);
+	};
+
 	WorksheetView.prototype.fitToPages = function (width, height) {
 		//width/height - count of pages
 		//automatic -> width/height = undefined
