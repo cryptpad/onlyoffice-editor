@@ -19289,7 +19289,7 @@
 		var docInfo = window["Asc"]["editor"].DocInfo;
 		var userInfo = docInfo ? docInfo.get_UserInfo() : null;
 		var userName = userInfo ? userInfo.get_FullName() : "";
-		var fileName = docInfo ? docInfo : "";
+		var fileName = docInfo ? docInfo.get_Title() : "";
 
 		//TODO translate!
 		var confidential = "Confidential";
