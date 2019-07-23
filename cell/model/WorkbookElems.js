@@ -8260,6 +8260,23 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		return this;
 	}
 
+	CHeaderFooter.prototype.clone = function (ws) {
+		var oRes = new CHeaderFooter(ws);
+
+		oRes.alignWithMargins = this.alignWithMargins;
+		oRes.differentFirst = this.alignWithMargins;
+		oRes.differentOddEven = this.differentOddEven;
+		oRes.scaleWithDoc = this.scaleWithDoc;
+		oRes.evenFooter = this.evenFooter ? this.evenFooter.clone() : null;
+		oRes.evenHeader = this.evenHeader ? this.evenHeader.clone() : null;
+		oRes.firstFooter = this.firstFooter ? this.firstFooter.clone() : null;
+		oRes.firstHeader = this.firstHeader ? this.firstHeader.clone() : null;
+		oRes.oddFooter = this.oddFooter ? this.oddFooter.clone() : null;
+		oRes.oddHeader = this.oddHeader ? this.oddHeader.clone() : null;
+
+		return oRes;
+	};
+
 	CHeaderFooter.prototype.getAlignWithMargins = function () { return this.alignWithMargins; };
 	CHeaderFooter.prototype.getDifferentFirst = function () { return this.differentFirst; };
 	CHeaderFooter.prototype.getDifferentOddEven = function () { return this.differentOddEven; };
@@ -8511,6 +8528,11 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		return this;
 	}
 
+	CHeaderFooterData.prototype.clone = function() {
+		var oRes = new CHeaderFooterData();
+		oRes.str = this.str;
+		return oRes;
+	};
 	CHeaderFooterData.prototype.getStr = function () { return this.str; };
 	CHeaderFooterData.prototype.setStr = function (val) { this.str = val; };
 	CHeaderFooterData.prototype.parse = function () {

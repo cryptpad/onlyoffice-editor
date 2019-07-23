@@ -576,6 +576,7 @@
 		this.documentFormatSave = c_oAscFileType.PPTX;
 
 		this.ThemeLoader   = null;
+		this.standartThemesStatus = 0;
 		this.tmpThemesPath = null;
 		this.tmpIsFreeze   = null;
 		this.tmpSlideDiv   = null;
@@ -1349,6 +1350,28 @@
 
 	asc_docs_api.prototype.SetThemesPath = function(path)
 	{
+	    if (this.standartThemesStatus == 0)
+        {
+            // 0 - начальное состояние
+            // 1 - просто чтобы не позволить грузить два раза
+            // 2 - загрузка скрипта/конец открытия документа
+            // 3 - конец открытия документа/загрузка скрипта
+
+            this.standartThemesStatus = 1;
+            var t = this;
+            AscCommon.loadScript(path + "/themes.js", function() {
+                t.standartThemesStatus++;
+                if (t.ThemeLoader)
+                    t.ThemeLoader.Themes._init();
+                if (2 < t.standartThemesStatus)
+                    t.WordControl.m_oLogicDocument.SendThemesThumbnails();
+            }, function() {
+                t.standartThemesStatus++;
+                if (2 < t.standartThemesStatus)
+                    t.WordControl.m_oLogicDocument.SendThemesThumbnails();
+            });
+        }
+
 		if (!this.isLoadFullApi)
 		{
 			this.tmpThemesPath = path;
@@ -4897,6 +4920,33 @@ background-repeat: no-repeat;\
 		this.sendEvent("asc_onUnLockComment", Id);
 	};
 
+
+	asc_docs_api.prototype.goTo = function(action)
+	{
+		if (this.WordControl && this.WordControl.m_oLogicDocument && action)
+		{
+			switch (action["type"])
+			{
+				case "bookmark":
+				{
+					break;
+				}
+				case "comment":
+				{
+					var commentId = this.WordControl.m_oLogicDocument.GetCommentIdByGuid(action["data"]);
+					if (commentId) {
+						this.asc_selectComment(commentId);
+						this.asc_showComment(commentId);
+					}
+					break;
+				}
+				default:
+					break;
+			}
+		}
+	};
+
+
 	// работа с шрифтами
 	asc_docs_api.prototype.asyncFontsDocumentStartLoaded = function()
 	{
@@ -5110,7 +5160,9 @@ background-repeat: no-repeat;\
 					this.WordControl.m_oMasterDrawer.WidthMM  = presentation.Width;
 					this.WordControl.m_oMasterDrawer.HeightMM = presentation.Height;
 				}
-				this.WordControl.m_oLogicDocument.SendThemesThumbnails();
+                this.standartThemesStatus++;
+                if (2 < this.standartThemesStatus)
+                   this.WordControl.m_oLogicDocument.SendThemesThumbnails();
 
 				this.sendEvent("asc_onPresentationSize", presentation.Width, presentation.Height);
 
@@ -7443,6 +7495,51 @@ background-repeat: no-repeat;\
 
 		return _renderer.Memory.data;
 	};
+
+    window["asc_docs_api"].prototype["asc_nativeGetThemeThumbnail"] = function()
+    {
+        if (!this.WordControl.m_oLogicDocument ||
+            !this.WordControl.m_oLogicDocument.slideMasters ||
+            !this.WordControl.m_oLogicDocument.slideMasters[0] ||
+			!this.WordControl.m_oLogicDocument.slideMasters[0].Theme)
+		{
+			return null;
+		}
+
+		var _pres = this.WordControl.m_oLogicDocument;
+        var _master = this.WordControl.m_oLogicDocument.slideMasters[0];
+
+    	var _renderer                         = new AscCommon.CDocumentRenderer();
+        _renderer.InitPicker(AscCommon.g_oTextMeasurer.m_oManager);
+        _renderer.VectorMemoryForPrint        = new AscCommon.CMemory();
+        var _bOldShowMarks                    = this.ShowParaMarks;
+        this.ShowParaMarks                    = false;
+        _renderer.IsNoDrawingEmptyPlaceholder = true;
+
+        var pxW = 85;
+        var pxH = 38;
+        var mmW = pxW * AscCommon.g_dKoef_pix_to_mm;
+        var mmH = pxH * AscCommon.g_dKoef_pix_to_mm;
+
+        _renderer.BeginPage(mmW, mmH);
+        var oldEngine = window["NATIVE_EDITOR_ENJINE"];
+        window["NATIVE_EDITOR_ENJINE"] = undefined;
+        this.WordControl.m_oMasterDrawer.WidthMM = mmW;
+        this.WordControl.m_oMasterDrawer.HeightMM = mmH;
+        this.WordControl.m_oMasterDrawer.WidthPx = pxW;
+        this.WordControl.m_oMasterDrawer.HeightPx = pxH;
+        this.WordControl.m_oMasterDrawer.Draw2(_renderer, _master);
+        window["NATIVE_EDITOR_ENJINE"] = oldEngine;
+        _renderer.EndPage();
+
+        this.ShowParaMarks = _bOldShowMarks;
+
+        var objectRet = {};
+        objectRet["name"] = _master.Theme.name;
+        objectRet["data"] = _renderer.Memory.data;
+        objectRet["dataLen"] = _renderer.Memory.GetCurPosition();
+        return objectRet;
+    };
 
 	asc_docs_api.prototype.asc_OnHideContextMenu = function()
 	{

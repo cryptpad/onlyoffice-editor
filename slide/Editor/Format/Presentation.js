@@ -3548,7 +3548,7 @@ CPresentation.prototype =
                                 oSp.setParent(oSlide);
                             }
                         }
-                        else
+                        if(oSp)
                         {
                             oContent = oSp.getDocContent && oSp.getDocContent();
                             if(oContent && typeof sText === "string")
@@ -3582,15 +3582,15 @@ CPresentation.prototype =
                                 oSp.setParent(oSlide);
                             }
                         }
-                        else
-                        {
-                            oContent = oSp.getDocContent && oSp.getDocContent();
-                            if(oContent && typeof sText === "string")
-                            {
-                                oContent.ClearContent(true);
-                                AscFormat.AddToContentFromString(oContent, sText);
-                            }
-                        }
+						if(oSp)
+						{
+							oContent = oSp.getDocContent && oSp.getDocContent();
+							if(oContent && typeof sText === "string")
+							{
+								oContent.ClearContent(true);
+								AscFormat.AddToContentFromString(oContent, sText);
+							}
+						}
                     }
                     else
                     {
@@ -10766,6 +10766,36 @@ CPresentation.prototype =
     {
 
     },
+
+
+    GetCommentIdByGuid: function(sGuid)
+    {
+        for(var i = 0; i < this.Slides.length; ++i)
+        {
+            var comments =   this.Slides[i].slideComments.comments;
+            for(var j = 0; j < comments.length; ++j)
+            {
+                var oComment = comments[j];
+                var oData = oComment.Data;
+                if(oData)
+                {
+                    if(oData.m_sGuid === sGuid)
+                    {
+                        return oComment.Id;
+                    }
+                    for(var t = 0; t < oData.m_aReplies.length; ++t)
+                    {
+                        if(oData.m_aReplies[t].m_sGuid === sGuid)
+                        {
+                            return oComment.Id;
+                        }
+                    }
+                }
+            }
+        }
+        return null;
+    },
+
 
     ShowComment : function(Id)
     {

@@ -383,7 +383,9 @@ function (window, undefined) {
 						tokens.push(new ParsedThing(token, TOK_TYPE_OPERAND, null, offset, token.length));
 						token = "";
 					}
-					tokens.push(tokenStack.pop());
+					if(tokenStack.length) {
+						tokens.push(tokenStack.pop());
+					}
 					break;
 				}
 				default:

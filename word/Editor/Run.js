@@ -11207,6 +11207,13 @@ ParaRun.prototype.ProcessComplexFields = function(oComplexFields)
 			oComplexFields.ProcessInstruction(oItem);
 	}
 };
+ParaRun.prototype.GetSelectedElementsInfo = function(oInfo)
+{
+	if (oInfo && oInfo.IsCheckAllSelection() && !this.IsSelectionEmpty(true))
+	{
+		oInfo.RegisterRunWithReviewType(this.GetReviewType());
+	}
+};
 
 
 function CParaRunStartState(Run)

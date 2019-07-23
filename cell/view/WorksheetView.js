@@ -10234,7 +10234,7 @@
 				//далее проверяем наличие ф/т в области вставки
 				if(-1 === t.model.autoFilters.searchRangeInTableParts(pasteToRange)) {
 					//проверям на наличие хотя бы одной значимой ячейки в диапазоне, который вставляем
-					if(activeCellsPasteFragment && !val.autoFilters._isEmptyRange(activeCellsPasteFragment, 0)) {
+					if(activeCellsPasteFragment && fromBinary && !val.autoFilters._isEmptyRange(activeCellsPasteFragment, 0)) {
 						newRange = new Asc.Range(tableAboveRange.Ref.c1, tableAboveRange.Ref.r1, pasteToRange.c2, pasteToRange.r2);
 						//продлеваем ф/т
 						t.model.autoFilters.changeTableRange(tableAboveRange.DisplayName, newRange);
@@ -18599,7 +18599,14 @@
 		this.changed = false;
 	}
 	CHeaderFooterEditorSection.prototype.setFragments = function (val) {
-		this.fragments = val;
+		this.fragments = this.isEmptyFragments(val) ? null : val;
+	};
+	CHeaderFooterEditorSection.prototype.isEmptyFragments = function (val) {
+		var res = false;
+		if(val && val.length === 1 && val[0].text === "") {
+			res = true;
+		}
+		return res;
 	};
 	CHeaderFooterEditorSection.prototype.getFragments = function () {
 		return this.fragments;
@@ -19605,7 +19612,7 @@
 		var docInfo = window["Asc"]["editor"].DocInfo;
 		var userInfo = docInfo ? docInfo.get_UserInfo() : null;
 		var userName = userInfo ? userInfo.get_FullName() : "";
-		var fileName = docInfo ? docInfo : "";
+		var fileName = docInfo ? docInfo.get_Title() : "";
 
 		//TODO translate!
 		var confidential = "Confidential";
