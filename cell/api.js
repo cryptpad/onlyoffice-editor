@@ -3038,6 +3038,11 @@ var editor;
     return this.wb ? this.wb.getCellEditMode() : false;
   };
 
+  spreadsheet_api.prototype.asc_getHeaderFooterMode = function() {
+	  return this.wb && this.wb.getCellEditMode() && this.wb.cellEditor && this.wb.cellEditor.options &&
+		  this.wb.cellEditor.options.menuEditor;
+  };
+
   spreadsheet_api.prototype.asc_getIsTrackShape = function()  {
     return this.wb ? this.wb.getIsTrackShape() : false;
   };
@@ -4026,6 +4031,7 @@ var editor;
   prot["asc_decreaseFontSize"] = prot.asc_decreaseFontSize;
   prot["asc_formatPainter"] = prot.asc_formatPainter;
   prot["asc_showAutoComplete"] = prot.asc_showAutoComplete;
+  prot["asc_getHeaderFooterMode"] = prot.asc_getHeaderFooterMode;
 
   prot["asc_onMouseUp"] = prot.asc_onMouseUp;
 
