@@ -2485,7 +2485,8 @@
 			var fragments = getFragments(portion);
 			t.stringRender.setString(fragments, cellFlags);
 
-			var textMetrics = t.stringRender._measureChars();
+			var maxWidth = width - left - right;
+			var textMetrics = t.stringRender._measureChars(maxWidth);
 			var x, y;
 			switch(index) {
 				case c_nPortionLeft: {
