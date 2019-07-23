@@ -2289,15 +2289,16 @@
 
 	CellEditor.prototype._checkMaxCellLength = function ( length ) {
 		var newLength = this._getFragmentsLength( this.options.fragments ) + length;
+		var maxLength = this.options && this.options.menuEditor ? Asc.c_oAscMaxHeaderFooterLength : Asc.c_oAscMaxCellOrCommentLength;
 		// Ограничение на ввод
-		if ( newLength > Asc.c_oAscMaxCellOrCommentLength ) {
+		if ( newLength > maxLength ) {
 			if ( this.selectionBegin === this.selectionEnd ) {
 				return false;
 			}
 
 			var b = Math.min( this.selectionBegin, this.selectionEnd );
 			var e = Math.max( this.selectionBegin, this.selectionEnd );
-			if ( newLength - this._getFragmentsLength( this._getFragments( b, e - b ) ) > Asc.c_oAscMaxCellOrCommentLength ) {
+			if ( newLength - this._getFragmentsLength( this._getFragments( b, e - b ) ) > maxLength ) {
 				return false;
 			}
 		}
