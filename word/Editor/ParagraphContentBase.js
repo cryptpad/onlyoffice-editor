@@ -530,6 +530,14 @@ CParagraphContentBase.prototype.IsSelectedAll = function(Props)
 {
 	return true;
 };
+CParagraphContentBase.prototype.IsSelectedFromStart = function()
+{
+	return true;
+};
+CParagraphContentBase.prototype.IsSelectedToEnd = function()
+{
+	return true;
+};
 /**
  * Функция коррекции селекта, чтобы убрать из селекта плавающие объекты, идущие в начале
  * @param nDirection {number} - направление селекта
@@ -3068,6 +3076,23 @@ CParagraphContentWithParagraphLikeContent.prototype.IsSelectedAll = function(Pro
 
     return true;
 };
+CParagraphContentWithParagraphLikeContent.prototype.IsSelectedFromStart = function()
+{
+	if (!this.Selection.Use && !this.IsEmpty())
+		return false;
+
+	var nStartPos = this.Selection.StartPos < this.Selection.EndPos ? this.Selection.StartPos : this.Selection.EndPos;
+	return this.Content[nStartPos].IsSelectedFromStart();
+};
+CParagraphContentWithParagraphLikeContent.prototype.IsSelectedToEnd = function()
+{
+	if (!this.Selection.Use && !this.IsEmpty())
+		return false;
+
+	var nEndPos = this.Selection.StartPos < this.Selection.EndPos ? this.Selection.EndPos : this.Selection.StartPos;
+	return this.Content[nEndPos].IsSelectedFromEnd();
+};
+
 CParagraphContentWithParagraphLikeContent.prototype.SkipAnchorsAtSelectionStart = function(nDirection)
 {
 	if (false === this.Selection.Use || true === this.IsEmpty({SkipAnchor : true}))

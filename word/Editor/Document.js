@@ -522,8 +522,21 @@ CSelectedContent.prototype =
 				}
 			}
 
+			if (LogicDocument.TrackMoveRelocation)
+				isCanMove = true;
+
 			if (isCanMove)
 			{
+				if (LogicDocument.TrackMoveRelocation)
+				{
+					var oMarks = LogicDocument.GetTrackRevisionsManager().GetMoveMarks(LogicDocument.TrackMoveId);
+					if (oMarks)
+					{
+						oMarks.To.Start.RemoveThisMarkFromDocument();
+						oMarks.To.End.RemoveThisMarkFromDocument();
+					}
+				}
+
 				var oStartElement = this.Elements[0].Element;
 				var oEndElement   = this.Elements[this.Elements.length - 1].Element;
 
@@ -1858,6 +1871,7 @@ function CDocument(DrawingDocument, isMainLogicDocument)
 	this.DragAndDropAction         = false; // Происходит ли сейчас действие drag-n-drop
 	this.RecalcTableHeader         = false; // Пересчитываем ли сейчас заголовок таблицы
 	this.TrackMoveId               = null;  // Идентификатор переноса внутри рецензирования
+	this.TrackMoveRelocation       = false; // Перенос ранее перенесенного текста внутри рецензирования
 	this.RemoveEmptySelection      = true;  // При обновлении селекта, если он пустой тогда сбрасываем его
 	this.MoveDrawing               = false; // Происходит ли сейчас перенос автофигуры
 
@@ -2428,43 +2442,19 @@ CDocument.prototype.FinalizeAction = function(isCheckEmptyAction)
 };
 CDocument.prototype.private_FinalizeRemoveTrackMove = function()
 {
-	function privateRemoveTrackMoveMark(oMark)
-	{
-		if (oMark instanceof CRunRevisionMove)
-		{
-			oMark.GetRun().RemoveElement(oMark);
-		}
-		else if (oMark instanceof CParaRevisionMove && oMark.GetParagraph())
-		{
-			oMark.GetParagraph().RemoveElement(oMark);
-		}
-	}
-
 	for (var sMoveId in this.Action.Additional.TrackMove)
 	{
 		var oMarks = this.Action.Additional.TrackMove[sMoveId];
-		privateRemoveTrackMoveMark(oMarks.To.Start);
-		privateRemoveTrackMoveMark(oMarks.To.End);
-		privateRemoveTrackMoveMark(oMarks.From.Start);
-		privateRemoveTrackMoveMark(oMarks.From.End);
+		oMarks.To.Start.RemoveThisMarkFromDocument();
+		oMarks.To.End.RemoveThisMarkFromDocument();
+		oMarks.From.Start.RemoveThisMarkFromDocument();
+		oMarks.From.End.RemoveThisMarkFromDocument();
 
 		this.Action.Recalculate = true;
 	}
 };
 CDocument.prototype.private_FinalizeCheckTrackMove = function()
 {
-	function privateRemoveTrackMoveMark(oMark)
-	{
-		if (oMark instanceof CRunRevisionMove)
-		{
-			oMark.GetRun().RemoveElement(oMark);
-		}
-		else if (oMark instanceof CParaRevisionMove && oMark.GetParagraph())
-		{
-			oMark.GetParagraph().RemoveElement(oMark);
-		}
-	}
-
 	var sMoveId = this.TrackMoveId;
 	var oMarks  = this.TrackRevisionsManager.GetMoveMarks(sMoveId);
 
@@ -2485,10 +2475,10 @@ CDocument.prototype.private_FinalizeCheckTrackMove = function()
 		this.TrackMoveId = null;
 		this.RemoveTrackMoveMarks(sMoveId);
 
-		privateRemoveTrackMoveMark(oMarks.To.Start);
-		privateRemoveTrackMoveMark(oMarks.To.End);
-		privateRemoveTrackMoveMark(oMarks.From.Start);
-		privateRemoveTrackMoveMark(oMarks.From.End);
+		oMarks.To.Start.RemoveThisMarkFromDocument();
+		oMarks.To.End.RemoveThisMarkFromDocument();
+		oMarks.From.Start.RemoveThisMarkFromDocument();
+		oMarks.From.End.RemoveThisMarkFromDocument();
 
 		this.Action.Recalculate = true;
 	}
@@ -7330,6 +7320,7 @@ CDocument.prototype.OnEndTextDrag = function(NearPos, bCopy)
     else
     {
     	var bCancelTrackMove = false;
+    	var sPrevTrackModeId = null;
     	if (this.IsTrackRevisions())
 		{
 			var oInfo = this.GetSelectedElementsInfo({CheckAllSelection : true});
@@ -7338,6 +7329,13 @@ CDocument.prototype.OnEndTextDrag = function(NearPos, bCopy)
 
 			if (oInfo.HaveRemovedInReview() || !oInfo.HaveNotReviewedContent())
 				bCancelTrackMove = true;
+
+			sPrevTrackModeId = this.private_CheckTrackMoveSelection(oInfo);
+			if (sPrevTrackModeId)
+			{
+				this.SelectTrackMove(sPrevTrackModeId, false, false, false);
+				this.TrackMoveRelocation = true;
+			}
 		}
 
         // Создаем сразу точку в истории, т.к. при выполнении функции GetSelectedContent нам надо, чтобы данная
@@ -7350,12 +7348,13 @@ CDocument.prototype.OnEndTextDrag = function(NearPos, bCopy)
 		if (!bCopy)
 		{
 			this.DragAndDropAction = true;
-			this.TrackMoveId       = this.IsTrackRevisions() && !bCancelTrackMove ? this.TrackRevisionsManager.GetNewMoveId() : null;
+			this.TrackMoveId       = sPrevTrackModeId ? sPrevTrackModeId : (this.IsTrackRevisions() && !bCancelTrackMove ? this.TrackRevisionsManager.GetNewMoveId() : null);
 		}
 		else
 		{
 			this.TrackMoveId = null;
 		}
+
 
 		// Получим копию выделенной части документа, которую надо перенести в новое место, одновременно с этим
         // удаляем эту выделенную часть (если надо).
@@ -7367,8 +7366,9 @@ CDocument.prototype.OnEndTextDrag = function(NearPos, bCopy)
             this.History.Remove_LastPoint();
 			NearPos.Paragraph.Clear_NearestPosArray();
 
-			this.DragAndDropAction = false;
-			this.TrackMoveId       = null;
+			this.DragAndDropAction   = false;
+			this.TrackMoveId         = null;
+			this.TrackMoveRelocation = false;
 
 			this.FinalizeAction(false);
             return;
@@ -7384,8 +7384,9 @@ CDocument.prototype.OnEndTextDrag = function(NearPos, bCopy)
 				&& ((oSelectInfo.GetInlineLevelSdt() && !oSelectInfo.GetInlineLevelSdt().CanBeDeleted())
 				|| (oSelectInfo.GetBlockLevelSdt() && !oSelectInfo.GetBlockLevelSdt().CanBeDeleted())))
 			{
-				this.DragAndDropAction = false;
-				this.TrackMoveId       = null;
+				this.DragAndDropAction   = false;
+				this.TrackMoveId         = null;
+				this.TrackMoveRelocation = false;
 
 				this.FinalizeAction();
 				return;
@@ -7402,7 +7403,7 @@ CDocument.prototype.OnEndTextDrag = function(NearPos, bCopy)
                 CheckType : changestype_Paragraph_Content
             }, true))
         {
-        	if (this.TrackMoveId)
+        	if (this.TrackMoveId && !this.TrackMoveRelocation)
 			{
 				var arrParagraphs = this.GetSelectedParagraphs();
 				if (arrParagraphs.length > 0)
@@ -7423,8 +7424,9 @@ CDocument.prototype.OnEndTextDrag = function(NearPos, bCopy)
 
                 if (false === Para.Is_UseInDocument())
                 {
-					this.DragAndDropAction = false;
-					this.TrackMoveId       = null;
+					this.DragAndDropAction   = false;
+					this.TrackMoveId         = null;
+					this.TrackMoveRelocation = false;
 
                     this.Document_Undo();
                     this.History.Clear_Redo();
@@ -7454,8 +7456,9 @@ CDocument.prototype.OnEndTextDrag = function(NearPos, bCopy)
 
 		this.SetCheckContentControlsLock(true);
 
-		this.DragAndDropAction = false;
-		this.TrackMoveId       = null;
+		this.DragAndDropAction   = false;
+		this.TrackMoveId         = null;
+		this.TrackMoveRelocation = false;
 	}
 };
 /**
@@ -18791,7 +18794,32 @@ CDocument.prototype.IsForceHideContentControlTrack = function()
 {
 	return this.ForceHideCCTrack;
 };
+/**
+ * Проверяем, выделен ли перенесенный текст
+ * @param {?CSelectedElementsInfo} oSelectedInfo
+ * @returns {string | null} id переноса
+ */
+CDocument.prototype.private_CheckTrackMoveSelection = function(oSelectedInfo)
+{
+	if (!oSelectedInfo)
+		oSelectedInfo = this.GetSelectedElementsInfo({CheckAllSelection : true});
 
+	if (oSelectedInfo.HaveNotReviewedContent() || oSelectedInfo.HaveRemovedInReview() || !oSelectedInfo.HaveAddedInReview())
+		return null;
+
+	var arrParagraphs = this.GetSelectedParagraphs();
+
+	if (arrParagraphs.length <= 0)
+		return null;
+
+	var sMarkS = arrParagraphs[0].CheckTrackMoveMarkInSelection(true);
+	var sMarkE = arrParagraphs[arrParagraphs.length - 1].CheckTrackMoveMarkInSelection(false);
+
+	if (sMarkS === sMarkE)
+		return sMarkS;
+
+	return null;
+};
 
 function CDocumentSelectionState()
 {
