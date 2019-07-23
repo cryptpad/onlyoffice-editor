@@ -2163,6 +2163,8 @@
 			this.TransitionEvaluation = null;
 
 			this.TabColor = null;
+			this.AutoPageBreaks = null;
+			this.FitToPage = null;
 
 			return this;
 		}

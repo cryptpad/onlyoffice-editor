@@ -805,7 +805,10 @@
         TransitionEntry						: 7,
         TransitionEvaluation				: 8,
 
-        TabColor							: 9
+		TabColor							: 9,
+		PageSetUpPr							: 10,
+		AutoPageBreaks						: 11,
+		FitToPage							: 12
     };
     /** @enum */
     var c_oSer_Sparkline = {
@@ -3410,7 +3413,19 @@
                 this.bs.WriteItem(c_oSer_SheetPr.TransitionEvaluation, function(){oThis.memory.WriteBool(sheetPr.TransitionEvaluation);});
             if (null !== sheetPr.TabColor)
                 this.bs.WriteItem(c_oSer_SheetPr.TabColor, function(){oThis.bs.WriteColorSpreadsheet(sheetPr.TabColor);});
+			if (null !== sheetPr.AutoPageBreaks || null !== sheetPr.FitToPage)
+				this.bs.WriteItem(c_oSer_SheetPr.PageSetUpPr, function(){oThis.WritePageSetUpPr(sheetPr);});
         };
+		this.WritePageSetUpPr = function(sheetPr)
+		{
+			var oThis = this;
+			if (null !== sheetPr.AutoPageBreaks) {
+				this.bs.WriteItem(c_oSer_SheetPr.AutoPageBreaks, function(){oThis.memory.WriteBool(sheetPr.AutoPageBreaks);});
+			}
+			if (null !== sheetPr.FitToPage) {
+				this.bs.WriteItem(c_oSer_SheetPr.FitToPage, function(){oThis.memory.WriteBool(sheetPr.FitToPage);});
+			}
+		};
         this.WriteSheetFormatPr = function(ws)
         {
             if (null !== ws.oSheetFormatPr.nBaseColWidth) {
@@ -8151,11 +8166,26 @@
 				if (color) {
 					oSheetPr.TabColor = color;
 				}
+			} else if (c_oSer_SheetPr.PageSetUpPr === type) {
+				res = this.bcr.Read1(length, function (t, l) {
+					return oThis.ReadPageSetUpPr(t, l, oSheetPr);
+				});
             } else
                 res = c_oSerConstants.ReadUnknown;
 
             return res;
         };
+		this.ReadPageSetUpPr = function (type, length, oSheetPr) {
+			var oThis = this;
+			var res = c_oSerConstants.ReadOk;
+			if (c_oSer_SheetPr.AutoPageBreaks === type) {
+				oSheetPr.AutoPageBreaks = this.stream.GetBool();
+			} else if (c_oSer_SheetPr.FitToPage === type) {
+				oSheetPr.FitToPage = this.stream.GetBool();
+			} else
+				res = c_oSerConstants.ReadUnknown;
+			return res;
+		};
 		this.ReadSparklineGroups = function (type, length, oWorksheet) {
             var oThis = this;
             var res = c_oSerConstants.ReadOk;
