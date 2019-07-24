@@ -6924,7 +6924,10 @@
         {
             var res = c_oSerConstants.ReadOk;
             if ( c_oSerWorksheetPropTypes.Name == type )
+            {
                 oWorksheet.sName = this.stream.GetString2LE(length);
+				AscFonts.FontPickerByCharacter.getFontsByString(oWorksheet.sName);
+            }
             else if ( c_oSerWorksheetPropTypes.SheetId == type )
                 oWorksheet.nSheetId = this.stream.GetULongLE();
             else if ( c_oSerWorksheetPropTypes.State == type )

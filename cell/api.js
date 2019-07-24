@@ -2128,8 +2128,11 @@ var editor;
     var t = this;
     var renameCallback = function(res) {
       if (res) {
-        t.wbModel.getWorksheet(i).setName(name);
-        t.sheetsChanged();
+        AscFonts.FontPickerByCharacter.getFontsByString(name);
+        t._loadFonts([], function() {
+            t.wbModel.getWorksheet(i).setName(name);
+            t.sheetsChanged();
+        });
       } else {
         t.handlers.trigger("asc_onError", c_oAscError.ID.LockedWorksheetRename, c_oAscError.Level.NoCritical);
       }

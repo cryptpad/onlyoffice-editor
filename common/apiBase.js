@@ -332,6 +332,9 @@
 			this.documentFormat      = this.DocInfo.get_Format();
 			this.documentCallbackUrl = this.DocInfo.get_CallbackUrl();
 
+			//for excel header/footer
+			AscFonts.FontPickerByCharacter.getFontsByString(this.documentTitle);
+
 			this.documentOpenOptions = this.DocInfo.asc_getOptions();
 
 			this.User = new AscCommon.asc_CUser();
