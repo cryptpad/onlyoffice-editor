@@ -18653,14 +18653,34 @@
 		var api = window["Asc"]["editor"];
 		var wb = api.wb;
 
+
+		if(bSave && !this._checkSave()) {
+			return false;
+		}
+
 		wb.cellEditor.close();
 		wb.cellEditor = this.wbCellEditor;
 
 		if(bSave /*&& bChanged*/) {
 			this._saveToModel();
 		}
-
 		delete window.Asc.g_header_footer_editor;
+
+		return true;
+	};
+
+	CHeaderFooterEditor.prototype._checkSave = function() {
+		var res = true;
+
+		for(var i in this.sections) {
+			var width = 0;
+			for(var j in this.sections[i]) {
+				//var oFragments = this._convertFragments(this.sections[i][c_nPortionLeft].fragments);
+				var test = 1;
+			}
+		}
+
+		return res;
 	};
 
 	CHeaderFooterEditor.prototype._saveToModel = function () {
