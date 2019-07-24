@@ -297,6 +297,7 @@
 		this.sparklineInfo = null;
 		this.pivotTableInfo = null;
 		this.selectedColsCount = null;
+		this.isLockedHeaderFooter = false;
 	}
 
 	asc_CCellInfo.prototype.asc_getFormula = function () {
@@ -370,6 +371,9 @@
 	};
 	asc_CCellInfo.prototype.asc_getSelectedColsCount = function () {
 		return this.selectedColsCount;
+	};
+	asc_CCellInfo.prototype.asc_getLockedHeaderFooter = function () {
+		return this.isLockedTable;
 	};
 
 	/** @constructor */
@@ -526,6 +530,7 @@
 	prot["asc_getSparklineInfo"] = prot.asc_getSparklineInfo;
 	prot["asc_getPivotTableInfo"] = prot.asc_getPivotTableInfo;
 	prot["asc_getSelectedColsCount"] = prot.asc_getSelectedColsCount;
+	prot["asc_getLockedHeaderFooter"] = prot.asc_getLockedHeaderFooter;
 
 	window["Asc"].asc_CDefName = window["Asc"]["asc_CDefName"] = asc_CDefName;
 	prot = asc_CDefName.prototype;

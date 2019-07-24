@@ -7972,6 +7972,11 @@
 			}
 		}
 
+		lockInfo = this.collaborativeEditing.getLockInfo(c_oAscLockTypeElem.Object, /*subType*/null, sheetId, AscCommonExcel.c_oAscHeaderFooterEdit);
+		if (false !== this.collaborativeEditing.getLockIntersection(lockInfo, c_oAscLockTypes.kLockTypeOther, /*bCheckOnlyLockAll*/false)) {
+			cell_info.isLockedHeaderFooter = true;
+		}
+
 		cell_info.selectedColsCount = Math.abs(ar.c2 - ar.c1) + 1;
 
         return cell_info;
