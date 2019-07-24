@@ -2289,7 +2289,7 @@
 
 	CellEditor.prototype._checkMaxCellLength = function ( length ) {
 		var newLength = this._getFragmentsLength( this.options.fragments ) + length;
-		var maxLength = this.options && this.options.menuEditor ? Asc.c_oAscMaxHeaderFooterLength : Asc.c_oAscMaxCellOrCommentLength;
+		var maxLength = Asc.c_oAscMaxCellOrCommentLength;
 		// Ограничение на ввод
 		if ( newLength > maxLength ) {
 			if ( this.selectionBegin === this.selectionEnd ) {

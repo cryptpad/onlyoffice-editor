@@ -18054,19 +18054,20 @@
 
 	HeaderFooterParser.prototype.assembleText = function () {
 		var newStr = "";
-		var curPortion = this.assemblePortionText(c_nPortionLeft);
-		if(curPortion) {
-			newStr += curPortion;
+		var curPortionLeft = this.assemblePortionText(c_nPortionLeft);
+		if(curPortionLeft) {
+			newStr += curPortionLeft;
 		}
-		curPortion = this.assemblePortionText( c_nPortionCenter);
-		if(curPortion) {
-			newStr += curPortion;
+		var curPortionCenter = this.assemblePortionText(c_nPortionCenter);
+		if(curPortionCenter) {
+			newStr += curPortionCenter;
 		}
-		curPortion = this.assemblePortionText(c_nPortionRight);
-		if(curPortion) {
-			newStr += curPortion;
+		var curPortionRight = this.assemblePortionText(c_nPortionRight);
+		if(curPortionRight) {
+			newStr += curPortionRight;
 		}
 		this.date = newStr;
+		return {str: newStr, left: curPortionLeft, center: curPortionCenter, right: curPortionRight};
 	};
 
 	HeaderFooterParser.prototype.splitByParagraph = function (cPortionCode) {
@@ -18658,16 +18659,21 @@
 		var api = window["Asc"]["editor"];
 		var wb = api.wb;
 
-
-		if(bSave && !this._checkSave()) {
-			return false;
-		}
-
 		wb.cellEditor.close();
 		wb.cellEditor = this.wbCellEditor;
 
 		if(bSave /*&& bChanged*/) {
-			this._saveToModel();
+			if(null !== this.curParentFocusId) {
+				var prevField = this._getSectionById(this.curParentFocusId);
+				var prevFragments = this.cellEditor.options.fragments;
+				prevField.setFragments(prevFragments);
+
+				prevField.canvasObj.canvas.style.display = "block";
+			}
+
+			if(this._checkSave()) {
+				this._saveToModel();
+			}
 		}
 		delete window.Asc.g_header_footer_editor;
 
@@ -18675,28 +18681,41 @@
 	};
 
 	CHeaderFooterEditor.prototype._checkSave = function() {
-		var res = true;
+		var res = null;
+		for(var i = 0; i < this.sections.length; i++) {
+			if(!this.sections[i]) {
+				continue;
+			}
 
-		for(var i in this.sections) {
-			var width = 0;
-			for(var j in this.sections[i]) {
-				//var oFragments = this._convertFragments(this.sections[i][c_nPortionLeft].fragments);
-				var test = 1;
+			var prevHeaderFooter = this._getCurPageHF(i);
+			var curHeaderFooter = new Asc.CHeaderFooterData();
+			curHeaderFooter.parser = new window["AscCommonExcel"].HeaderFooterParser();
+			if(prevHeaderFooter) {
+				curHeaderFooter.parser.portions = prevHeaderFooter.parser.portions;
+			}
+
+
+			if(this.sections[i][c_nPortionLeft] && this.sections[i][c_nPortionLeft].changed) {
+				curHeaderFooter.parser.portions[c_nPortionLeft] = this._convertFragments(this.sections[i][c_nPortionLeft].fragments);
+			}
+			if(this.sections[i][c_nPortionCenter] && this.sections[i][c_nPortionCenter].changed) {
+				curHeaderFooter.parser.portions[c_nPortionCenter] = this._convertFragments(this.sections[i][c_nPortionCenter].fragments);
+			}
+			if(this.sections[i][c_nPortionRight] && this.sections[i][c_nPortionRight].changed) {
+				curHeaderFooter.parser.portions[c_nPortionRight] = this._convertFragments(this.sections[i][c_nPortionRight].fragments);
+			}
+
+			var oDate = curHeaderFooter.parser.assembleText();
+			if(oDate.str && oDate.str.length > Asc.c_oAscMaxHeaderFooterLength) {
+				return;
 			}
 		}
-
+		
 		return res;
 	};
 
 	CHeaderFooterEditor.prototype._saveToModel = function () {
 		var ws = this.wb.getWorksheet();
-		if(null !== this.curParentFocusId) {
-			var prevField = this._getSectionById(this.curParentFocusId);
-			var prevFragments = this.cellEditor.options.fragments;
-			prevField.setFragments(prevFragments);
-
-			prevField.canvasObj.canvas.style.display = "block";
-		}
 
 		var isAddHistory = false;
 		for(var i = 0; i < this.sections.length; i++) {

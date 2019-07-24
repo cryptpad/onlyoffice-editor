@@ -1103,7 +1103,7 @@
 	var c_oAscMaxTooltipLength       = 256;
 	var c_oAscMaxCellOrCommentLength = 32767;
 	var c_oAscMaxFormulaLength       = 8192;
-	var c_oAscMaxHeaderFooterLength  = 255;
+	var c_oAscMaxHeaderFooterLength  = 256;
 
 	var locktype_None   = 1; // никто не залочил данный объект
 	var locktype_Mine   = 2; // данный объект залочен текущим пользователем
