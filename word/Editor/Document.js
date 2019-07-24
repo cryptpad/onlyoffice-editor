@@ -1674,10 +1674,12 @@ CSelectedElementsInfo.prototype.HaveNotReviewedContent = function()
 	return this.m_bReviewNormal;
 };
 
+var document_compatibility_mode_Word11  = 11;
+var document_compatibility_mode_Word12  = 12;
 var document_compatibility_mode_Word14  = 14;
 var document_compatibility_mode_Word15  = 15;
 
-var document_compatibility_mode_Current = document_compatibility_mode_Word14;
+var document_compatibility_mode_Current = document_compatibility_mode_Word12;
 
 function CDocumentSettings()
 {

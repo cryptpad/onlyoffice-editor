@@ -1598,7 +1598,7 @@ function writeNestedReviewType(type, reviewInfo, fWriteRecord, fCallback) {
 	}
 }
 
-function BinaryFileWriter(doc, bMailMergeDocx, bMailMergeHtml)
+function BinaryFileWriter(doc, bMailMergeDocx, bMailMergeHtml, isCompatible)
 {
     this.memory = new AscCommon.CMemory();
     this.Document = doc;
@@ -1614,7 +1614,7 @@ function BinaryFileWriter(doc, bMailMergeDocx, bMailMergeHtml)
 		nNumIdIndex: null,
 		oUsedStyleMap: null
 	};
-	this.saveParams = new DocSaveParams(bMailMergeDocx, bMailMergeHtml);
+	this.saveParams = new DocSaveParams(bMailMergeDocx, bMailMergeHtml, isCompatible);
     this.Write = function(noBase64, onlySaveBase64)
     {
         pptx_content_writer._Start();
@@ -6367,7 +6367,24 @@ function BinarySettingsTableWriter(memory, doc, saveParams)
 			this.bs.WriteItem(c_oSer_SettingsType.SdtGlobalColor, function (){oThis.brPrs.Write_rPr(rPr, null, null);});
 			this.bs.WriteItem(c_oSer_SettingsType.SdtGlobalShowHighlight, function(){oThis.memory.WriteBool(oThis.Document.GetSdtGlobalShowHighlight());});
 		}
+		this.bs.WriteItem(c_oSer_SettingsType.Compat, function (){oThis.WriteCompat();});
     }
+	this.WriteCompat = function()
+	{
+		var oThis = this;
+		var compatibilityMode =  false === this.saveParams.isCompatible ? document_compatibility_mode_Word15 : oThis.Document.GetCompatibilityMode();
+		this.bs.WriteItem(c_oSerCompat.CompatSetting, function() {oThis.WriteCompatSetting("compatibilityMode", "http://schemas.microsoft.com/office/word", compatibilityMode.toString());});
+		this.bs.WriteItem(c_oSerCompat.CompatSetting, function() {oThis.WriteCompatSetting("overrideTableStyleFontSizeAndJustification", "http://schemas.microsoft.com/office/word", "1");});
+		this.bs.WriteItem(c_oSerCompat.CompatSetting, function() {oThis.WriteCompatSetting("enableOpenTypeFeatures", "http://schemas.microsoft.com/office/word", "1");});
+		this.bs.WriteItem(c_oSerCompat.CompatSetting, function() {oThis.WriteCompatSetting("doNotFlipMirrorIndents", "http://schemas.microsoft.com/office/word", "1");});
+	};
+	this.WriteCompatSetting = function(name, uri, value)
+	{
+		var oThis = this;
+		this.bs.WriteItem(c_oSerCompat.CompatName, function() {oThis.memory.WriteString3(name);});
+		this.bs.WriteItem(c_oSerCompat.CompatUri, function() {oThis.memory.WriteString3(uri);});
+		this.bs.WriteItem(c_oSerCompat.CompatValue, function() {oThis.memory.WriteString3(value);});
+	};
 	this.WriteFootnotePr = function()
 	{
 		var oThis = this;
@@ -15589,12 +15606,8 @@ function Binary_SettingsTableReader(doc, oReadResult, stream)
 			res = this.bcr.Read1(length, function(t, l){
 				return oThis.ReadCompatSetting(t,l,compat);
 			});
-			if ("compatibilityMode" === compat.name) {
-				if ("14" === compat.value) {
-					this.oReadResult.compatibilityMode = document_compatibility_mode_Word14;
-				} else if ("15" === compat.value) {
-					this.oReadResult.compatibilityMode = document_compatibility_mode_Word15;
-				}
+			if ("compatibilityMode" === compat.name && "http://schemas.microsoft.com/office/word" === compat.url) {
+				this.oReadResult.compatibilityMode = parseInt(compat.value);
 			}
 		}
 		else
@@ -15940,7 +15953,7 @@ OpenParStruct.prototype = {
 		}
     }
 };
-function DocSaveParams(bMailMergeDocx, bMailMergeHtml) {
+function DocSaveParams(bMailMergeDocx, bMailMergeHtml, isCompatible) {
 	this.bMailMergeDocx = bMailMergeDocx;
 	this.bMailMergeHtml = bMailMergeHtml;
 	this.trackRevisionId = 0;
@@ -15949,6 +15962,7 @@ function DocSaveParams(bMailMergeDocx, bMailMergeHtml) {
 	this.docPrId = 1;
 	this.moveRangeFromNameToId = {};
 	this.moveRangeToNameToId = {};
+	this.isCompatible = isCompatible;
 };
 function DocReadResult(doc) {
 	this.logicDocument = doc;
