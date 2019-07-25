@@ -373,7 +373,7 @@
 		return this.selectedColsCount;
 	};
 	asc_CCellInfo.prototype.asc_getLockedHeaderFooter = function () {
-		return this.isLockedTable;
+		return this.isLockedHeaderFooter;
 	};
 
 	/** @constructor */
