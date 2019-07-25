@@ -18461,6 +18461,9 @@
 		//хранить будем в следующем виде: [c_nPageHFType.firstHeader/.../][c_nPortionLeft/.../c_nPortionRight]
 		this._createAndDrawSections();
 		this._generatePresetsArr();
+
+		//лочим
+		ws._isLockedHeaderFooter();
 	};
 
 	CHeaderFooterEditor.prototype.switchHeaderFooterType = function (type) {
@@ -18499,12 +18502,7 @@
 		var ws = wb.getWorksheet();
 		var t = this;
 
-		var editLockCallback = function(isSuccess) {
-			if (false === isSuccess) {
-				ws.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.LockedAllError, c_oAscError.Level.NoCritical);
-				return;
-			}
-
+		var editLockCallback = function() {
 			id = id.replace("#", "");
 
 			//если находимся в том же элементе
@@ -18578,8 +18576,7 @@
 			}
 		};
 
-		ws._isLockedHeaderFooter(editLockCallback);
-
+		editLockCallback();
 	};
 
 	CHeaderFooterEditor.prototype._openCellEditor = function (editor, fragments, cursorPos, isFocus, isClearCell, isHideCursor, isQuickInput, x, y, sectionElem) {
@@ -18660,16 +18657,25 @@
 
 	CHeaderFooterEditor.prototype.destroy = function (bSave) {
 		//возвращаем cellEditor у wb
+		var t = this;
 		var api = window["Asc"]["editor"];
 		var wb = api.wb;
+		var ws = wb.getWorksheet();
 
 		if(bSave /*&& bChanged*/) {
 			var checkError = this._checkSave();
 			if(null === checkError) {
 				wb.cellEditor.close();
 				wb.cellEditor = this.wbCellEditor;
+				var saveCallback = function(isSuccess) {
+					if (false === isSuccess) {
+						ws.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.LockedAllError, c_oAscError.Level.NoCritical);
+						return;
+					}
 
-				this._saveToModel();
+					t._saveToModel();
+				};
+				ws._isLockedHeaderFooter(saveCallback);
 			} else {
 				return checkError;
 			}
