@@ -18690,6 +18690,15 @@
 
 	CHeaderFooterEditor.prototype._checkSave = function() {
 		var t = this;
+
+		if(null !== this.curParentFocusId) {
+			var prevField = this._getSectionById(this.curParentFocusId);
+			var prevFragments = this.cellEditor.options.fragments;
+			prevField.setFragments(prevFragments);
+
+			prevField.canvasObj.canvas.style.display = "block";
+		}
+
 		var checkError = function(type) {
 			var prevHeaderFooter = t._getCurPageHF(type);
 			var curHeaderFooter = new Asc.CHeaderFooterData();
@@ -18746,13 +18755,13 @@
 	CHeaderFooterEditor.prototype._saveToModel = function () {
 		var ws = this.wb.getWorksheet();
 
-		if(null !== this.curParentFocusId) {
+		/*if(null !== this.curParentFocusId) {
 			var prevField = this._getSectionById(this.curParentFocusId);
 			var prevFragments = this.cellEditor.options.fragments;
 			prevField.setFragments(prevFragments);
 
 			prevField.canvasObj.canvas.style.display = "block";
-		}
+		}*/
 
 		var isAddHistory = false;
 		for(var i = 0; i < this.sections.length; i++) {
