@@ -18467,6 +18467,10 @@
 		if(type === this.pageType) {
 			return;
 		}
+		var isError = this._checkSave();
+		if(null !== isError) {
+			return isError;
+		}
 
 		if(this.cellEditor) {
 			//save
@@ -18671,8 +18675,11 @@
 				prevField.canvasObj.canvas.style.display = "block";
 			}
 
-			if(null === this._checkSave()) {
+			var checkError = this._checkSave;
+			if(checkError) {
 				this._saveToModel();
+			} else {
+				return checkError;
 			}
 		}
 		delete window.Asc.g_header_footer_editor;
@@ -18681,37 +18688,58 @@
 	};
 
 	CHeaderFooterEditor.prototype._checkSave = function() {
-		var res = null;
-		for(var i = 0; i < this.sections.length; i++) {
-			if(!this.sections[i]) {
-				continue;
-			}
-
-			var prevHeaderFooter = this._getCurPageHF(i);
+		var t = this;
+		var checkError = function(type) {
+			var prevHeaderFooter = t._getCurPageHF(type);
 			var curHeaderFooter = new Asc.CHeaderFooterData();
 			curHeaderFooter.parser = new window["AscCommonExcel"].HeaderFooterParser();
-			if(prevHeaderFooter) {
+			if(prevHeaderFooter && prevHeaderFooter.parser) {
 				curHeaderFooter.parser.portions = prevHeaderFooter.parser.portions;
 			}
 
 
-			if(this.sections[i][c_nPortionLeft] && this.sections[i][c_nPortionLeft].changed) {
-				curHeaderFooter.parser.portions[c_nPortionLeft] = this._convertFragments(this.sections[i][c_nPortionLeft].fragments);
+			if(t.sections[type][c_nPortionLeft] && t.sections[type][c_nPortionLeft].changed) {
+				curHeaderFooter.parser.portions[c_nPortionLeft] = t._convertFragments(t.sections[type][c_nPortionLeft].fragments);
 			}
-			if(this.sections[i][c_nPortionCenter] && this.sections[i][c_nPortionCenter].changed) {
-				curHeaderFooter.parser.portions[c_nPortionCenter] = this._convertFragments(this.sections[i][c_nPortionCenter].fragments);
+			if(t.sections[type][c_nPortionCenter] && t.sections[type][c_nPortionCenter].changed) {
+				curHeaderFooter.parser.portions[c_nPortionCenter] = t._convertFragments(t.sections[type][c_nPortionCenter].fragments);
 			}
-			if(this.sections[i][c_nPortionRight] && this.sections[i][c_nPortionRight].changed) {
-				curHeaderFooter.parser.portions[c_nPortionRight] = this._convertFragments(this.sections[i][c_nPortionRight].fragments);
+			if(t.sections[type][c_nPortionRight] && t.sections[type][c_nPortionRight].changed) {
+				curHeaderFooter.parser.portions[c_nPortionRight] = t._convertFragments(t.sections[type][c_nPortionRight].fragments);
 			}
 
-			var oDate = curHeaderFooter.parser.assembleText();
-			if(oDate.str && oDate.str.length > Asc.c_oAscMaxHeaderFooterLength) {
-				return;
+			var oData = curHeaderFooter.parser.assembleText();
+			if(oData.str && oData.str.length > Asc.c_oAscMaxHeaderFooterLength) {
+				var maxLength = oData.left.length;
+				var section = c_nPortionLeft;
+				if(oData.right.length > oData.left.length && oData.right.length > oData.center.length) {
+					section = c_nPortionRight;
+					maxLength = oData.right.length;
+				} else if(oData.center.length > oData.left.length && oData.center.length > oData.right.length) {
+					section = c_nPortionCenter;
+					maxLength = oData.center.length;
+				}
+
+				if(t.sections[type] && t.sections[type][section] && t.sections[type][section].canvasObj) {
+					return {id: "#" + t.sections[type][section].canvasObj.idParent, max: maxLength};
+				}
 			}
+			return false
+		};
+
+		var pageHeaderType = this._getHeaderFooterType(this.pageType);
+		var pageFooterType = this._getHeaderFooterType(this.pageType, true);
+		var headerCheck = checkError(pageHeaderType);
+		var footerCheck = checkError(pageFooterType);
+		if(headerCheck && footerCheck) {
+			return headerCheck.max > footerCheck.max ? headerCheck.id : footerCheck.id;
+		} else if(headerCheck) {
+			return headerCheck.id
+		} else if(footerCheck) {
+			return footerCheck.id
 		}
 		
-		return res;
+		return null;
 	};
 
 	CHeaderFooterEditor.prototype._saveToModel = function () {
@@ -19367,6 +19395,11 @@
 	};
 
 
+	CHeaderFooterEditor.prototype.getPageType = function() {
+		return this.pageType;
+	};
+
+
 	//------------------------------------------------------------export---------------------------------------------------
     window['AscCommonExcel'] = window['AscCommonExcel'] || {};
 	window["AscCommonExcel"].CellFlags = CellFlags;
@@ -19400,5 +19433,7 @@
 	prot["getDifferentFirst"] = prot.getDifferentFirst;
 	prot["getDifferentOddEven"] = prot.getDifferentOddEven;
 	prot["getScaleWithDoc"] = prot.getScaleWithDoc;
+
+	prot["getType"] = prot.getPageType;
 
 })(window);
