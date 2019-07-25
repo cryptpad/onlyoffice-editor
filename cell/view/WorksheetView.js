@@ -18675,7 +18675,7 @@
 				prevField.canvasObj.canvas.style.display = "block";
 			}
 
-			var checkError = this._checkSave;
+			var checkError = this._checkSave();
 			if(checkError) {
 				this._saveToModel();
 			} else {
@@ -18684,7 +18684,7 @@
 		}
 		delete window.Asc.g_header_footer_editor;
 
-		return true;
+		return null;
 	};
 
 	CHeaderFooterEditor.prototype._checkSave = function() {
