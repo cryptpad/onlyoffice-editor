@@ -18671,7 +18671,7 @@
 				prevField.canvasObj.canvas.style.display = "block";
 			}
 
-			if(this._checkSave()) {
+			if(null === this._checkSave()) {
 				this._saveToModel();
 			}
 		}
