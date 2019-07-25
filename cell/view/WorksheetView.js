@@ -18663,24 +18663,19 @@
 		var api = window["Asc"]["editor"];
 		var wb = api.wb;
 
-		wb.cellEditor.close();
-		wb.cellEditor = this.wbCellEditor;
-
 		if(bSave /*&& bChanged*/) {
-			if(null !== this.curParentFocusId) {
-				var prevField = this._getSectionById(this.curParentFocusId);
-				var prevFragments = this.cellEditor.options.fragments;
-				prevField.setFragments(prevFragments);
-
-				prevField.canvasObj.canvas.style.display = "block";
-			}
-
 			var checkError = this._checkSave();
 			if(null === checkError) {
+				wb.cellEditor.close();
+				wb.cellEditor = this.wbCellEditor;
+
 				this._saveToModel();
 			} else {
 				return checkError;
 			}
+		} else {
+			wb.cellEditor.close();
+			wb.cellEditor = this.wbCellEditor;
 		}
 		delete window.Asc.g_header_footer_editor;
 
@@ -18744,6 +18739,14 @@
 
 	CHeaderFooterEditor.prototype._saveToModel = function () {
 		var ws = this.wb.getWorksheet();
+
+		if(null !== this.curParentFocusId) {
+			var prevField = this._getSectionById(this.curParentFocusId);
+			var prevFragments = this.cellEditor.options.fragments;
+			prevField.setFragments(prevFragments);
+
+			prevField.canvasObj.canvas.style.display = "block";
+		}
 
 		var isAddHistory = false;
 		for(var i = 0; i < this.sections.length; i++) {
