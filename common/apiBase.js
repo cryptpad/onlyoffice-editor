@@ -83,8 +83,6 @@
 
 		// Тип состояния на данный момент (сохранение, открытие или никакое)
 		this.advancedOptionsAction = AscCommon.c_oAscAdvancedOptionsAction.None;
-		// Тип скачивания файлы(download или event).нужен для txt, csv. запоминаем на asc_DownloadAs используем asc_setAdvancedOptions
-		this.downloadType          = AscCommon.DownloadType.None;
 		this.OpenDocumentProgress  = new AscCommon.COpenProgress();
 		var sProtocol              = window.location.protocol;
 		this.documentOrigin        = ((sProtocol && '' !== sProtocol) ? sProtocol + '//' : '') + window.location.host; // for presentation theme url
@@ -1149,6 +1147,10 @@
 	baseEditorsApi.prototype._coSpellCheckInit                   = function()
 	{
 	};
+	// Print Desktop
+	baseEditorsApi.prototype._printDesktop                       = function ()
+	{
+	};
 	// Images & Charts & TextArts
 	baseEditorsApi.prototype.asc_getChartPreviews                = function(chartType)
 	{
@@ -1361,6 +1363,24 @@
 	};
 	baseEditorsApi.prototype.asc_undoAllChanges = function()
 	{
+	};
+	baseEditorsApi.prototype.asc_getAdvancedOptions = function () {
+		var cp            = {
+			'codepage'  : AscCommon.c_oAscCodePageUtf8,
+			'encodings' : AscCommon.getEncodingParams()
+		};
+		return new AscCommon.asc_CAdvancedOptions(cp);
+	};
+	baseEditorsApi.prototype.asc_Print = function (options) {
+		if (window["AscDesktopEditor"] && this._printDesktop(options)) {
+			return;
+		}
+
+		if (!options) {
+			options = new Asc.asc_CDownloadOptions();
+		}
+		options.fileType = Asc.c_oAscFileType.PDF;
+		this._downloadAs(c_oAscAsyncAction.Print, options);
 	};
 	baseEditorsApi.prototype.asc_Save = function (isAutoSave, isIdle) {
 		var t = this;
@@ -2682,7 +2702,7 @@
 		//todo onerror
 		reader.onload = reader.onerror = function(e) {
 			var text = e.target.result ? e.target.result : "";
-			if (options instanceof Asc.asc_CCSVAdvancedOptions) {
+			if (options instanceof Asc.asc_CTextOptions) {
 				callback(AscCommon.parseText(text, options));
 			} else {
 				callback(text.match(/[^\r\n]+/g));
@@ -2710,4 +2730,7 @@
 
 	prot = baseEditorsApi.prototype;
 	prot['asc_selectSearchingResults'] = prot.asc_selectSearchingResults;
+	prot['asc_getAdvancedOptions'] = prot.asc_getAdvancedOptions;
+	prot['asc_Print'] = prot.asc_Print;
+
 })(window);

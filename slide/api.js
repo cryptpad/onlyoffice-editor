@@ -1757,17 +1757,10 @@ background-repeat: no-repeat;\
 	};
 	/*----------------------------------------------------------------*/
 	/*functions for working with clipboard, document*/
-	/*TODO: Print,Undo,Redo,Copy,Cut,Paste,Share,Save,DownloadAs,ReturnToDocuments(вернуться на предыдущую страницу) & callbacks for these functions*/
-	asc_docs_api.prototype.asc_Print      = function(bIsDownloadEvent)
+	asc_docs_api.prototype._printDesktop = function ()
 	{
-
-		if (window["AscDesktopEditor"])
-		{
-			window["AscDesktopEditor"]["Print"]();
-			return;
-		}
-		var options = {downloadType : bIsDownloadEvent ? DownloadType.Print : DownloadType.None};
-		this._downloadAs(c_oAscFileType.PDF, c_oAscAsyncAction.Print, options);
+		window["AscDesktopEditor"]["Print"]();
+		return true;
 	};
 	asc_docs_api.prototype.Undo           = function()
 	{
@@ -2166,10 +2159,9 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype._haveOtherChanges = function () {
 		return AscCommon.CollaborativeEditing.Have_OtherChanges();
 	};
-	asc_docs_api.prototype.asc_DownloadAs               = function(typeFile, bIsDownloadEvent)
-	{//передаем число соответствующее своему формату.
-		var options = {downloadType : bIsDownloadEvent ? DownloadType.Download : DownloadType.None};
-		this._downloadAs(typeFile, c_oAscAsyncAction.DownloadAs, options);
+	asc_docs_api.prototype.asc_DownloadAs = function(options)
+	{
+		this._downloadAs(c_oAscAsyncAction.DownloadAs, options);
 	};
 	asc_docs_api.prototype.Resize                       = function()
 	{
@@ -2187,8 +2179,8 @@ background-repeat: no-repeat;\
 	};
 	/*
 	 idOption идентификатор дополнительного параметра, c_oAscAdvancedOptionsID.TXT.
-	 option - какие свойства применить, пока массив. для TXT объект asc_CTXTAdvancedOptions(codepage)
-	 exp:	asc_setAdvancedOptions(c_oAscAdvancedOptionsID.TXT, new Asc.asc_CCSVAdvancedOptions(1200) );
+	 option - какие свойства применить, пока массив. для TXT объект asc_CTextOptions(codepage)
+	 exp:	asc_setAdvancedOptions(c_oAscAdvancedOptionsID.TXT, new Asc.asc_CTextOptions(1200) );
 	 */
 	asc_docs_api.prototype.asc_setAdvancedOptions       = function(idOption, option)
 	{
@@ -6956,7 +6948,7 @@ background-repeat: no-repeat;\
 	{
 		if (opt_isPassword) {
 			if (this.asc_checkNeedCallback("asc_onAdvancedOptions")) {
-				this.sendEvent("asc_onAdvancedOptions", new AscCommon.asc_CAdvancedOptions(c_oAscAdvancedOptionsID.DRM), c_oAscAdvancedOptionsAction.Open);
+				this.sendEvent("asc_onAdvancedOptions", c_oAscAdvancedOptionsID.DRM);
 			} else {
 				this.sendEvent("asc_onError", c_oAscError.ID.ConvertationPassword, c_oAscError.Level.Critical);
 			}
@@ -7058,18 +7050,21 @@ background-repeat: no-repeat;\
         }
 	};
 
-	asc_docs_api.prototype._downloadAs = function(filetype, actionType, options)
+	asc_docs_api.prototype._downloadAs = function(actionType, options)
 	{
 		var isCloudCrypto = (window["AscDesktopEditor"] && (0 < window["AscDesktopEditor"]["CryptoMode"])) ? true : false;
 		var t = this;
-		if (!options)
-		{
-			options = {};
+		var downloadType;
+		if (options.isDownloadEvent) {
+			downloadType = actionType === c_oAscAsyncAction.Print ? DownloadType.Print : DownloadType.Download;
+		} else {
+			downloadType = DownloadType.None;
 		}
 		if (actionType)
 		{
 			this.sync_StartAction(c_oAscAsyncActionType.BlockInteraction, actionType);
 		}
+		var fileType = options.fileType;
 		var isNoBase64 = (typeof ArrayBuffer !== 'undefined') && !isCloudCrypto;
 
 		var dataContainer               = {data : null, part : null, index : 0, count : 0};
@@ -7079,15 +7074,15 @@ background-repeat: no-repeat;\
 		oAdditionalData["id"]           = this.documentId;
 		oAdditionalData["userid"]       = this.documentUserId;
 		oAdditionalData["jwt"]         = this.CoAuthoringApi.get_jwt();
-		oAdditionalData["outputformat"] = filetype;
-		oAdditionalData["title"]        = AscCommon.changeFileExtention(this.documentTitle, AscCommon.getExtentionByFormat(filetype), Asc.c_nMaxDownloadTitleLen);
+		oAdditionalData["outputformat"] = fileType;
+		oAdditionalData["title"]        = AscCommon.changeFileExtention(this.documentTitle, AscCommon.getExtentionByFormat(fileType), Asc.c_nMaxDownloadTitleLen);
 		oAdditionalData["savetype"]     = AscCommon.c_oAscSaveTypes.CompleteAll;
 		oAdditionalData["nobase64"]     = isNoBase64;
-		if (DownloadType.Print === options.downloadType)
+		if (DownloadType.Print === downloadType)
 		{
 			oAdditionalData["inline"] = 1;
 		}
-		if (c_oAscFileType.PDF == filetype || c_oAscFileType.PDFA == filetype)
+		if (c_oAscFileType.PDF === fileType || c_oAscFileType.PDFA === fileType)
 		{
 			var dd             = this.WordControl.m_oDrawingDocument;
 			dataContainer.data = dd.ToRendererPart(isNoBase64);
@@ -7097,7 +7092,7 @@ background-repeat: no-repeat;\
 
         if (isCloudCrypto)
         {
-        	window["AscDesktopEditor"]["CryptoDownloadAs"](dataContainer.data, filetype);
+        	window["AscDesktopEditor"]["CryptoDownloadAs"](dataContainer.data, fileType);
             return;
         }
 
@@ -7112,7 +7107,7 @@ background-repeat: no-repeat;\
 					if (url)
 					{
 						error = c_oAscError.ID.No;
-						t.processSavedFile(url, options.downloadType);
+						t.processSavedFile(url, downloadType);
 					}
 				}
 				else
@@ -7651,7 +7646,6 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['sync_VerticalTextAlign']              = asc_docs_api.prototype.sync_VerticalTextAlign;
 	asc_docs_api.prototype['sync_Vert']                           = asc_docs_api.prototype.sync_Vert;
 	asc_docs_api.prototype['UpdateParagraphProp']                 = asc_docs_api.prototype.UpdateParagraphProp;
-	asc_docs_api.prototype['asc_Print']                           = asc_docs_api.prototype.asc_Print;
 	asc_docs_api.prototype['Undo']                                = asc_docs_api.prototype.Undo;
 	asc_docs_api.prototype['Redo']                                = asc_docs_api.prototype.Redo;
 	asc_docs_api.prototype['Copy']                                = asc_docs_api.prototype.Copy;

@@ -41,7 +41,7 @@ var c_oAscError = Asc.c_oAscError;
 Asc['asc_docs_api'].prototype.asc_StartMailMerge = function(oData)
 {
     this.mailMergeFileData = oData;
-    this.asc_DownloadAs(Asc.c_oAscFileType.JSON);
+    this.asc_DownloadAs(new Asc.asc_CDownloadOptions(Asc.c_oAscFileType.JSON));
 };
 Asc['asc_docs_api'].prototype.asc_StartMailMergeByList = function(aList)
 {
@@ -147,10 +147,12 @@ Asc['asc_docs_api'].prototype.asc_sendMailMergeData = function(oData)
     var actionType = Asc.c_oAscAsyncAction.SendMailMerge;
     oData.put_UserId(this.documentUserId);
     oData.put_RecordCount(oData.get_RecordTo() - oData.get_RecordFrom() + 1);
-    var options = {oMailMergeSendData: oData, isNoCallback: true};
+    var options = new Asc.asc_CDownloadOptions(Asc.c_oAscFileType.TXT);
+    options.oMailMergeSendData = oData;
+    options.isNoCallback = true;
     var t = this;
-    this._downloadAs("sendmm", Asc.c_oAscFileType.TXT, actionType, options, function(input) {
-        if (null != input && "sendmm" == input["type"])
+    this._downloadAs(actionType, options, function(input) {
+        if (null != input && "sendmm" === input["type"])
         {
             if ("ok" != input["status"])
             {
@@ -175,12 +177,14 @@ Asc['asc_docs_api'].prototype.asc_DownloadAsMailMerge = function(typeFile, Start
     if (null != oDocumentMailMerge)
     {
         var actionType = null;
-        var options = {oDocumentMailMerge: oDocumentMailMerge, downloadType: AscCommon.DownloadType.MailMerge, errorDirect: c_oAscError.ID.MailMergeSaveFile};
+        var options = new Asc.asc_CDownloadOptions(typeFile, true);
+        options.oDocumentMailMerge = oDocumentMailMerge;
+        options.errorDirect = c_oAscError.ID.MailMergeSaveFile;
         if (bIsDownload) {
             actionType = Asc.c_oAscAsyncAction.DownloadMerge;
-            options.downloadType = AscCommon.DownloadType.None;
+            options.isDownloadEvent = false;
         }
-        this._downloadAs("save", typeFile, actionType, options, null);
+        this._downloadAs(actionType, options, null);
     }
     return null != oDocumentMailMerge ? true : false;
 };
