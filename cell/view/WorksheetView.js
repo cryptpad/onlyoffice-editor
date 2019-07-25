@@ -18676,7 +18676,7 @@
 			}
 
 			var checkError = this._checkSave();
-			if(checkError) {
+			if(null === checkError) {
 				this._saveToModel();
 			} else {
 				return checkError;
