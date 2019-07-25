@@ -18719,7 +18719,7 @@
 			}
 
 			var oData = curHeaderFooter.parser.assembleText();
-			if(oData.str && oData.str.length > Asc.c_oAscMaxHeaderFooterLength) {
+			if(oData.str && oData.str.length >= Asc.c_oAscMaxHeaderFooterLength) {
 				var maxLength = oData.left.length;
 				var section = c_nPortionLeft;
 				if(oData.right.length > oData.left.length && oData.right.length > oData.center.length) {
