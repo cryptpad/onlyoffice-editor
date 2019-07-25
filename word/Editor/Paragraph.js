@@ -14709,6 +14709,8 @@ function CParagraphComplexFieldsInfo()
 	this.CF = [];
 
 	this.isHidden = null;
+
+	this.StoredState = null;
 }
 CParagraphComplexFieldsInfo.prototype.ResetPage = function(Paragraph, CurPage)
 {
@@ -14818,24 +14820,16 @@ CParagraphComplexFieldsInfo.prototype.ProcessFieldChar = function(oChar)
 	}
 	else if (oChar.IsSeparate())
 	{
-		for (var nIndex = 0, nCount = this.CF.length; nIndex < nCount; ++nIndex)
+		if (this.CF.length > 0)
 		{
-			if (oComplexField === this.CF[nIndex].ComplexField)
-			{
-				this.CF[nIndex].SetFieldCode(false);
-				break;
-			}
+			this.CF[this.CF.length - 1].SetFieldCode(false);
 		}
 	}
 	else if (oChar.IsEnd())
 	{
-		for (var nIndex = 0, nCount = this.CF.length; nIndex < nCount; ++nIndex)
+		if (this.CF.length > 0)
 		{
-			if (oComplexField === this.CF[nIndex].ComplexField)
-			{
-				this.CF.splice(nIndex, 1);
-				break;
-			}
+			this.CF.splice(this.CF.length - 1, 1);
 		}
 	}
 };
@@ -14891,6 +14885,27 @@ CParagraphComplexFieldsInfo.prototype.IsHyperlinkField = function()
 	}
 
 	return (isHaveHyperlink && !isOtherField ? true : false);
+};
+CParagraphComplexFieldsInfo.prototype.PushState = function()
+{
+	this.StoredState = {
+		Hidden : this.isHidden,
+		CF     : []
+	};
+
+	for (var nIndex = 0, nCount = this.CF.length; nIndex < nCount; ++nIndex)
+	{
+		this.StoredState.CF[nIndex] = this.CF[nIndex].Copy();
+	}
+};
+CParagraphComplexFieldsInfo.prototype.PopState = function()
+{
+	if (this.StoredState)
+	{
+		this.isHidden    = this.StoredState.Hidden;
+		this.CF          = this.StoredState.CF;
+		this.StoredState = null;
+	}
 };
 
 function CParagraphDrawStateHighlights()
