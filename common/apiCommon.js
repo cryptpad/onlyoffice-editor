@@ -3590,6 +3590,9 @@
 		*/
 
 		this.inputContentSrc = htmlContent;
+		if (typeof this.inputContentSrc === "object")
+			this.inputContentSrc = JSON.stringify(this.inputContentSrc);
+
 		this.replaceMap = {};
 
 		this.image = null;
@@ -3767,7 +3770,7 @@
 				}
 				for(var i = 0; i < aParagraphsS.length; ++i){
 					var oCurParS = aParagraphsS[i];
-					var oNewParagraph = new Paragraph(oContent.DrawingDocument, oContent, !bWord);
+					var oNewParagraph = new AscCommonWord.Paragraph(oContent.DrawingDocument, oContent, !bWord);
 					if(AscFormat.isRealNumber(oCurParS['align'])){
 						oNewParagraph.Set_Align(oCurParS['align'])
 					}
@@ -3805,7 +3808,7 @@
 
 						var sCustomText = oRunS['text'];
 						if(sCustomText === "<%br%>"){
-							oRun.AddToContent(0, new ParaNewLine(break_Line), false);
+							oRun.AddToContent(0, new AscCommonWord.ParaNewLine(AscCommonWord.break_Line), false);
 						}
 						else{
 							oRun.AddText(sCustomText);
