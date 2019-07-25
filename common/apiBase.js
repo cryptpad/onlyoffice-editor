@@ -1480,6 +1480,10 @@
 		this.macros = new AscCommon.CDocumentMacros();
 
 		this._loadSdkImages();
+
+		if(AscFonts.FontPickerByCharacter && this.documentTitle) {
+			AscFonts.FontPickerByCharacter.getFontsByString(this.documentTitle);
+		}
 	};
 	baseEditorsApi.prototype._loadSdkImages = function ()
 	{
