@@ -12995,6 +12995,7 @@
 								return false;
 							}
 						}
+						// ToDo Check validate
 
 						var bRes = t._saveCellValueAfterEdit(c, val, flags, /*isNotHistory*/false, /*lockDraw*/false);
 						if(callback) {
