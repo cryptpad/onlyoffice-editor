@@ -18995,11 +18995,23 @@
 	};
 
 	CHeaderFooterEditor.prototype.setDifferentFirst = function(val) {
+		var checkError;
+		if(!val && (checkError = this._checkSave()) !== null) {
+			return checkError;
+		}
 		this.differentFirst = val;
+
+		return null;
 	};
 
 	CHeaderFooterEditor.prototype.setDifferentOddEven = function(val) {
+		var checkError;
+		if(!val && (checkError = this._checkSave()) !== null) {
+			return checkError;
+		}
 		this.differentOddEven = val;
+
+		return null;
 	};
 
 	CHeaderFooterEditor.prototype.setScaleWithDoc = function(val) {
