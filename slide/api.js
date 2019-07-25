@@ -7053,6 +7053,8 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype._downloadAs = function(actionType, options)
 	{
 		var isCloudCrypto = (window["AscDesktopEditor"] && (0 < window["AscDesktopEditor"]["CryptoMode"])) ? true : false;
+		if (isCloudCrypto)
+			window.isCloudCryptoDownloadAs = true;
 		var t = this;
 		var downloadType;
 		if (options.isDownloadEvent) {
