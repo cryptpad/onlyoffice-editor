@@ -4143,8 +4143,12 @@ function OfflineEditor () {
                                   if (callback) callback.call(me);
                                   });
         
-        _api.asc_registerCallback("asc_onAdvancedOptions", function(options) {
+        _api.asc_registerCallback("asc_onAdvancedOptions", function(type, options) {
                                   var stream = global_memory_stream_menu;
+                                  if (options === undefined) {
+                                    options = {};
+                                  }
+                                  options["optionId"] = type;
                                   stream["ClearNoAttack"]();
                                   stream["WriteString2"](JSON.stringify(options));
                                   window["native"]["OnCallMenuEvent"](22000, stream); // ASC_MENU_EVENT_TYPE_ADVANCED_OPTIONS
