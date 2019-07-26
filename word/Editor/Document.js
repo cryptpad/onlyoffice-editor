@@ -2447,10 +2447,21 @@ CDocument.prototype.private_FinalizeRemoveTrackMove = function()
 	for (var sMoveId in this.Action.Additional.TrackMove)
 	{
 		var oMarks = this.Action.Additional.TrackMove[sMoveId];
-		oMarks.To.Start.RemoveThisMarkFromDocument();
-		oMarks.To.End.RemoveThisMarkFromDocument();
-		oMarks.From.Start.RemoveThisMarkFromDocument();
-		oMarks.From.End.RemoveThisMarkFromDocument();
+
+		if (oMarks)
+		{
+			if (oMarks.To.Start)
+				oMarks.To.Start.RemoveThisMarkFromDocument();
+
+			if (oMarks.To.End)
+				oMarks.To.End.RemoveThisMarkFromDocument();
+
+			if (oMarks.From.Start)
+				oMarks.From.Start.RemoveThisMarkFromDocument();
+
+			if (oMarks.From.End)
+				oMarks.From.End.RemoveThisMarkFromDocument();
+		}
 
 		this.Action.Recalculate = true;
 	}
