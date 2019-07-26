@@ -165,7 +165,7 @@ CNumberingLvl.prototype.GetLegacyIndent = function()
  * Использовать ли только арабскую нумерацию для предыдущих уровней, используемых на данном уровне
  * @returns {boolean}
  */
-CNumberingLvl.prototype.IsLgl = function()
+CNumberingLvl.prototype.IsLegalStyle = function()
 {
 	return this.IsLgl;
 };
