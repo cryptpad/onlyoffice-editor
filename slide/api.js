@@ -7056,7 +7056,6 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype._downloadAs = function(actionType, options, oAdditionalData, dataContainer)
 	{
 		var fileType = options.fileType;
-		oAdditionalData["savetype"]     = AscCommon.c_oAscSaveTypes.CompleteAll;
 		if (c_oAscFileType.PDF === fileType || c_oAscFileType.PDFA === fileType)
 		{
 			var dd             = this.WordControl.m_oDrawingDocument;
