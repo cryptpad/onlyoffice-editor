@@ -803,10 +803,6 @@ var editor;
 		}
 	};
 
-  spreadsheet_api.prototype._OfflineAppDocumentEndLoad = function() {
-    this.onEndLoadFile(AscCommonExcel.getEmptyWorkbook());
-  };
-
   spreadsheet_api.prototype._downloadAs = function(actionType, options, oAdditionalData, dataContainer) {
     var fileType = options.fileType;
     if (c_oAscFileType.PDF === fileType || c_oAscFileType.PDFA === fileType) {

@@ -1548,15 +1548,6 @@ background-repeat: no-repeat;\
 			setInterval(AscCommon.SafariIntervalFocus, 10);
 	};
 
-	asc_docs_api.prototype._OfflineAppDocumentEndLoad = function()
-	{
-		if (undefined == window["editor_bin"])
-			return;
-
-		this.OpenDocument2(this.documentUrl, window["editor_bin"]);
-		//callback
-		this.DocumentOrientation = (null == this.WordControl.m_oLogicDocument) ? true : !this.WordControl.m_oLogicDocument.Orientation;
-	};
 	// Callbacks
 	/* все имена callback'оф начинаются с On. Пока сделаны:
 	 OnBold,

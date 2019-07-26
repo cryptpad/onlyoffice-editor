@@ -7387,26 +7387,6 @@ background-repeat: no-repeat;\
 	};
 
 	asc_docs_api.prototype.asyncImageEndLoaded2       = null;
-	asc_docs_api.prototype._OfflineAppDocumentEndLoad = function()
-	{
-		var bIsViewer = false;
-		var sData     = window["editor_bin"];
-		if (undefined == sData)
-			return;
-		if (AscCommon.c_oSerFormat.Signature !== sData.substring(0, AscCommon.c_oSerFormat.Signature.length))
-		{
-			bIsViewer = true;
-		}
-
-		if (bIsViewer)
-		{
-			this.OpenDocument(this.documentUrl, sData);
-		}
-		else
-		{
-			this.OpenDocument2(this.documentUrl, sData);
-		}
-	};
 
 	asc_docs_api.prototype.SetDrawImagePlaceParagraph = function(element_id, props)
 	{

@@ -580,6 +580,10 @@
 	};
 	baseEditorsApi.prototype._OfflineAppDocumentEndLoad        = function()
 	{
+		var file = new AscCommon.OpenFileResult();
+		file.data = AscCommon.getEmpty();
+		file.bSerFormat = AscCommon.checkStreamSignature(file.data, AscCommon.c_oSerFormat.Signature);
+		this.onEndLoadFile(file);
 	};
 	baseEditorsApi.prototype._openDocumentEndCallback            = function()
 	{
@@ -1580,14 +1584,7 @@
 		{
 			if (this.DocInfo.get_OfflineApp())
 			{
-				if (this.editorId === c_oEditorId.Spreadsheet && this.isChartEditor)
-				{
-					this.onEndLoadFile(AscCommonExcel.getEmptyWorkbook());
-				}
-				else
-				{
-					this._OfflineAppDocumentStartLoad();
-				}
+				this._OfflineAppDocumentStartLoad();
 			}
 			this.onEndLoadFile(null);
 		}
