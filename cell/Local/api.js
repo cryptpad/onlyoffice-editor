@@ -93,7 +93,7 @@ var c_oAscError = Asc.c_oAscError;
 		}
 		this.handlers.trigger("asc_onAdvancedOptions", type, options);
 	};
-	spreadsheet_api.prototype.asc_addImageDrawingObject = function(url, imgProp, withAuthorization)
+	spreadsheet_api.prototype.asc_addImageDrawingObject = function(url, imgProp, token)
 	{
 		var ws = this.wb.getWorksheet();
 		if (ws) 

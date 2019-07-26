@@ -2398,7 +2398,7 @@ var editor;
     return ret;
   };
 
-  spreadsheet_api.prototype.asc_addImageDrawingObject = function (imageUrl, imgProp, withAuthorization) {
+  spreadsheet_api.prototype.asc_addImageDrawingObject = function (imageUrl, imgProp, token) {
 
     var t = this;
     AscCommon.sendImgUrls(this, [imageUrl], function(data) {
@@ -2409,7 +2409,7 @@ var editor;
         ws.objectRender.addImageDrawingObject([data[0].url], null);
       }
 
-    }, true, false, withAuthorization);
+    }, true, false, token);
 
   };
 

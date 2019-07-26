@@ -1820,7 +1820,7 @@
 		return this.IsDiagonal;
 	};
 
-	CAscWatermarkProperties.prototype['put_ImageUrl'] = CAscWatermarkProperties.prototype.put_ImageUrl = function (sUrl, withAuthorization) {
+	CAscWatermarkProperties.prototype['put_ImageUrl'] = CAscWatermarkProperties.prototype.put_ImageUrl = function (sUrl, token) {
 		var _this = this;
 		if(!_this.Api)
 		{
@@ -1836,7 +1836,7 @@
 					_this.Api.sendEvent("asc_onWatermarkImageLoaded");
 				});
 			}
-		}, false, undefined, withAuthorization);
+		}, false, undefined, token);
 	};
 	CAscWatermarkProperties.prototype['put_ImageUrl2'] = CAscWatermarkProperties.prototype.put_ImageUrl2 = function (sUrl) {
 		this.ImageUrl = sUrl;
@@ -1905,7 +1905,7 @@
 			});
 	};
 
-	CAscWatermarkProperties.prototype['loadImageUrl'] = CAscWatermarkProperties.prototype.loadImageUrl = function(sUrl, withAuthorization)	{
+	CAscWatermarkProperties.prototype['loadImageUrl'] = CAscWatermarkProperties.prototype.loadImageUrl = function(sUrl, token)	{
 		var _this = this;
 		if(!_this.Api)
 		{
@@ -1921,7 +1921,7 @@
 					_this.sendEvent("asc_onWatermarkImageLoaded");
 				});
 			}
-		}, false, undefined, withAuthorization);
+		}, false, undefined, token);
 	};
 
 	CAscWatermarkProperties.prototype['drawTexture'] = CAscWatermarkProperties.prototype.drawTexture = function () {

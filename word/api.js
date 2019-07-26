@@ -4961,7 +4961,7 @@ background-repeat: no-repeat;\
             }
         }
 	};
-	asc_docs_api.prototype.AddImageUrl       = function(url, imgProp, withAuthorization)
+	asc_docs_api.prototype.AddImageUrl       = function(url, imgProp, token)
 	{
 		if (g_oDocumentUrls.getLocal(url))
 		{
@@ -4975,7 +4975,7 @@ background-repeat: no-repeat;\
                 if (data && data[0])
                     t.AddImageUrlAction(data[0].url, imgProp);
 
-            }, false, undefined, withAuthorization);
+            }, false, undefined, token);
 		}
 	};
 	asc_docs_api.prototype.AddImageUrlAction = function(url, imgProp)
