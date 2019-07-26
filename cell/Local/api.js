@@ -68,8 +68,9 @@ var c_oAscError = Asc.c_oAscError;
 			return;
 		}
 
-		var _binary = getBinaryArray(_data, _len);
-		this.openDocument(_binary);
+		var file = new AscCommon.OpenFileResult();
+		file.data = getBinaryArray(_data, _len);
+		this.openDocument(file);
 		AscCommon.History.UserSaveMode = true;
 		
 		DesktopOfflineUpdateLocalName(this);

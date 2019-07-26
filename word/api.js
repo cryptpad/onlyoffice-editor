@@ -6878,18 +6878,18 @@ background-repeat: no-repeat;\
 		}
 	};
 
-	asc_docs_api.prototype.openDocument = function(sData)
+	asc_docs_api.prototype.openDocument = function(file)
 	{
-		if (sData.changes && this.VersionHistory)
+		if (file.changes && this.VersionHistory)
 		{
-			this.VersionHistory.changes = sData.changes;
+			this.VersionHistory.changes = file.changes;
 			this.VersionHistory.applyChanges(this);
 		}
 
-		if (sData.bSerFormat)
-			this.OpenDocument2(sData.url, sData.data);
+		if (file.bSerFormat)
+			this.OpenDocument2(file.url, file.data);
 		else
-			this.OpenDocument(sData.url, sData.data);
+			this.OpenDocument(file.url, file.data);
 	};
 
 	asc_docs_api.prototype.asyncImageEndLoadedBackground = function(_image)

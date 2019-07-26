@@ -4712,6 +4712,7 @@
 	window["AscCommon"].initStreamFromResponse = initStreamFromResponse;
 
 	window["AscCommon"].DocumentUrls = DocumentUrls;
+	window["AscCommon"].OpenFileResult = OpenFileResult;
 	window["AscCommon"].CLock = CLock;
 	window["AscCommon"].CContentChanges = CContentChanges;
 	window["AscCommon"].CContentChangesElement = CContentChangesElement;

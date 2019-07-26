@@ -6224,9 +6224,9 @@ window["asc_docs_api"].prototype["asc_nativeOpenFile2"] = function(base64File, v
     }
 };
 
-Asc['asc_docs_api'].prototype.openDocument = function(sData)
+Asc['asc_docs_api'].prototype.openDocument = function(file)
 {
-    _api.asc_nativeOpenFile2(sData.data);
+    _api.asc_nativeOpenFile2(file.data);
     
     
     if (!sdkCheck) {
@@ -6249,9 +6249,9 @@ Asc['asc_docs_api'].prototype.openDocument = function(sData)
     }
 
     var version;
-    if (sData.changes && this.VersionHistory)
+    if (file.changes && this.VersionHistory)
     {
-        this.VersionHistory.changes = sData.changes;
+        this.VersionHistory.changes = file.changes;
         this.VersionHistory.applyChanges(this);
     }
 

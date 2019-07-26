@@ -5340,9 +5340,9 @@ background-repeat: no-repeat;\
 		}
 	};
 
-	asc_docs_api.prototype.openDocument = function(sData)
+	asc_docs_api.prototype.openDocument = function(file)
 	{
-		this.OpenDocument2(sData.url, sData.data);
+		this.OpenDocument2(file.url, file.data);
 		this.DocumentOrientation = (null == this.WordControl.m_oLogicDocument) ? true : !this.WordControl.m_oLogicDocument.Orientation;
 		this.sync_DocSizeCallback(AscCommon.Page_Width, AscCommon.Page_Height);
 		this.sync_PageOrientCallback(this.get_DocumentOrientation());

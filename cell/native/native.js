@@ -7025,7 +7025,7 @@ window["AscCommonExcel"].WorksheetView.prototype._drawCollaborativeElements = fu
     }
 };
 
-window["Asc"]["spreadsheet_api"].prototype.openDocument = function(sData) {
+window["Asc"]["spreadsheet_api"].prototype.openDocument = function(file) {
     
     var t = this;
     
@@ -7033,7 +7033,7 @@ window["Asc"]["spreadsheet_api"].prototype.openDocument = function(sData) {
                
                //console.log("JS - openDocument()");
                
-               t._openDocument(sData);
+               t._openDocument(file.data);
                
                var thenCallback = function() {
                t.wb = new AscCommonExcel.WorkbookView(t.wbModel, t.controller, t.handlers,

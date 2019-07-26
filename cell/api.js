@@ -953,8 +953,8 @@ var editor;
     this.FontLoader.LoadDocumentFonts2(arrLoadFonts);
   };
 
-  spreadsheet_api.prototype.openDocument = function(sData) {
-	this._openDocument(sData);
+  spreadsheet_api.prototype.openDocument = function(file) {
+	this._openDocument(file.data);
 	this._openOnClient();
   };
 	spreadsheet_api.prototype.openDocumentFromZip = function (wb, data) {

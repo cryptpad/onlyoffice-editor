@@ -3370,9 +3370,9 @@ window["asc_docs_api"].prototype["asc_nativeOpenFile2"] = function(base64File, v
     AscCommon.g_oIdCounter.Set_Load(false);
 };
 
-Asc['asc_docs_api'].prototype.openDocument = function(sData)
+Asc['asc_docs_api'].prototype.openDocument = function(file)
 {
-    _api.asc_nativeOpenFile2(sData.data);
+    _api.asc_nativeOpenFile2(file.data);
 
 
     var _presentation = _api.WordControl.m_oLogicDocument;

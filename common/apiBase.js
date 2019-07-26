@@ -1546,7 +1546,7 @@
 		return AscCommon.getUrlType(url);
 	};
 
-	baseEditorsApi.prototype.openDocument  = function()
+	baseEditorsApi.prototype.openDocument  = function(file)
 	{
 	};
 	baseEditorsApi.prototype.openDocumentFromZip  = function()
