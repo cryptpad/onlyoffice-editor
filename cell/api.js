@@ -890,17 +890,6 @@ var editor;
 
   spreadsheet_api.prototype.asc_registerCallback = function(name, callback, replaceOldCallback) {
     this.handlers.add(name, callback, replaceOldCallback);
-    return;
-
-    /*
-     Не самая хорошая схема для отправки эвентов:
-     проверяем, подписан ли кто-то на эвент? Если да, то отправляем и больше ничего не делаем.
-     Если никто не подписан, то сохраняем у себя переменную и как только кто-то подписывается - отправляем ее
-     */
-    if (null !== this._gui_control_colors && "asc_onSendThemeColors" === name) {
-      this.handlers.trigger("asc_onSendThemeColors", this._gui_control_colors.Colors, this._gui_control_colors.StandartColors);
-      this._gui_control_colors = null;
-    }
   };
 
   spreadsheet_api.prototype.asc_unregisterCallback = function(name, callback) {
