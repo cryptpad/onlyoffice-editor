@@ -11123,9 +11123,9 @@ Paragraph.prototype.Concat = function(Para, isUseConcatedStyle)
 Paragraph.prototype.Continue = function(NewParagraph)
 {
 	var TextPr;
-	if (this.Is_Empty())
+	if (this.IsEmpty())
 	{
-		TextPr = this.Get_TextPr(this.Get_EndPos(false));
+		TextPr = this.TextPr.Value.Copy();
 	}
 	else
 	{
