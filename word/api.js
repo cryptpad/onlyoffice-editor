@@ -56,7 +56,6 @@
 	var asc_CSelectedObject              = AscCommon.asc_CSelectedObject;
 	var g_oDocumentUrls                  = AscCommon.g_oDocumentUrls;
 	var sendCommand                      = AscCommon.sendCommand;
-	var mapAscServerErrorToAscError      = AscCommon.mapAscServerErrorToAscError;
 	var g_oIdCounter                     = AscCommon.g_oIdCounter;
 	var g_oTableId                       = AscCommon.g_oTableId;
 	var PasteElementsId                  = null;
@@ -2512,7 +2511,7 @@ background-repeat: no-repeat;\
 				}
 				else
 				{
-					t.handlers.trigger("asc_onError", mapAscServerErrorToAscError(parseInt(input["data"])),
+					t.handlers.trigger("asc_onError", AscCommon.mapAscServerErrorToAscError(parseInt(input["data"])),
 						c_oAscError.Level.NoCritical);
 				}
 			}
