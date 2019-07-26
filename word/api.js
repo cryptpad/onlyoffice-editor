@@ -7497,7 +7497,6 @@ background-repeat: no-repeat;\
 			oAdditionalData["c"] = 'savefromorigin';
 		}
 
-		oAdditionalData["savetype"]     = AscCommon.c_oAscSaveTypes.CompleteAll;
 		if ('savefromorigin' === oAdditionalData["c"])
 		{
 			oAdditionalData["format"] = this.documentFormat;
