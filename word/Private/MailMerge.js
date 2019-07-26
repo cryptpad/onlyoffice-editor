@@ -144,14 +144,13 @@ Asc['asc_docs_api'].prototype.asc_setMailMergeData = function(aList)
 };
 Asc['asc_docs_api'].prototype.asc_sendMailMergeData = function(oData)
 {
+    var t = this;
     var actionType = Asc.c_oAscAsyncAction.SendMailMerge;
     oData.put_UserId(this.documentUserId);
     oData.put_RecordCount(oData.get_RecordTo() - oData.get_RecordFrom() + 1);
     var options = new Asc.asc_CDownloadOptions(Asc.c_oAscFileType.TXT);
     options.oMailMergeSendData = oData;
-    options.isNoCallback = true;
-    var t = this;
-    this._downloadAs(actionType, options, function(input) {
+    options.callback = function(input) {
         if (null != input && "sendmm" === input["type"])
         {
             if ("ok" != input["status"])
@@ -165,7 +164,8 @@ Asc['asc_docs_api'].prototype.asc_sendMailMergeData = function(oData)
             t.sendEvent("asc_onError", c_oAscError.ID.Unknown, c_oAscError.Level.NoCritical);
         }
         t.sync_EndAction(Asc.c_oAscAsyncActionType.BlockInteraction, actionType);
-    });
+    };
+    this.downloadAs(actionType, options);
 };
 Asc['asc_docs_api'].prototype.asc_GetMailMergeFiledValue = function(nIndex, sName)
 {
@@ -184,7 +184,7 @@ Asc['asc_docs_api'].prototype.asc_DownloadAsMailMerge = function(typeFile, Start
             actionType = Asc.c_oAscAsyncAction.DownloadMerge;
             options.isDownloadEvent = false;
         }
-        this._downloadAs(actionType, options, null);
+        this.downloadAs(actionType, options);
     }
     return null != oDocumentMailMerge ? true : false;
 };

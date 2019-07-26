@@ -2161,7 +2161,7 @@ background-repeat: no-repeat;\
 	};
 	asc_docs_api.prototype.asc_DownloadAs = function(options)
 	{
-		this._downloadAs(c_oAscAsyncAction.DownloadAs, options);
+		this.downloadAs(c_oAscAsyncAction.DownloadAs, options);
 	};
 	asc_docs_api.prototype.Resize                       = function()
 	{
@@ -7053,88 +7053,23 @@ background-repeat: no-repeat;\
         }
 	};
 
-	asc_docs_api.prototype._downloadAs = function(actionType, options)
+	asc_docs_api.prototype._downloadAs = function(actionType, options, oAdditionalData, dataContainer)
 	{
-		var isCloudCrypto = (window["AscDesktopEditor"] && (0 < window["AscDesktopEditor"]["CryptoMode"])) ? true : false;
-		if (isCloudCrypto)
-			window.isCloudCryptoDownloadAs = true;
-		var t = this;
-		var downloadType;
-		if (options.isDownloadEvent) {
-			downloadType = actionType === c_oAscAsyncAction.Print ? DownloadType.Print : DownloadType.Download;
-		} else {
-			downloadType = DownloadType.None;
-		}
-		if (actionType)
-		{
-			this.sync_StartAction(c_oAscAsyncActionType.BlockInteraction, actionType);
-		}
 		var fileType = options.fileType;
-		var isNoBase64 = (typeof ArrayBuffer !== 'undefined') && !isCloudCrypto;
-
-		var dataContainer               = {data : null, part : null, index : 0, count : 0};
-		var command                     = "save";
-		var oAdditionalData             = {};
-		oAdditionalData["c"]            = command;
-		oAdditionalData["id"]           = this.documentId;
-		oAdditionalData["userid"]       = this.documentUserId;
-		oAdditionalData["jwt"]         = this.CoAuthoringApi.get_jwt();
-		oAdditionalData["outputformat"] = fileType;
-		oAdditionalData["title"]        = AscCommon.changeFileExtention(this.documentTitle, AscCommon.getExtentionByFormat(fileType), Asc.c_nMaxDownloadTitleLen);
 		oAdditionalData["savetype"]     = AscCommon.c_oAscSaveTypes.CompleteAll;
-		oAdditionalData["nobase64"]     = isNoBase64;
-		if (DownloadType.Print === downloadType)
-		{
-			oAdditionalData["inline"] = 1;
-		}
 		if (c_oAscFileType.PDF === fileType || c_oAscFileType.PDFA === fileType)
 		{
 			var dd             = this.WordControl.m_oDrawingDocument;
-			dataContainer.data = dd.ToRendererPart(isNoBase64);
+			dataContainer.data = dd.ToRendererPart(oAdditionalData["nobase64"]);
 		}
 		else
-			dataContainer.data = this.WordControl.SaveDocument(isNoBase64);
+			dataContainer.data = this.WordControl.SaveDocument(oAdditionalData["nobase64"]);
 
-        if (isCloudCrypto)
+        if (window.isCloudCryptoDownloadAs)
         {
         	window["AscDesktopEditor"]["CryptoDownloadAs"](dataContainer.data, fileType);
-            return;
+			return true;
         }
-
-		var fCallback     = function(input, status)
-		{
-			var error = 403 === status ? c_oAscError.ID.AccessDeny : c_oAscError.ID.Unknown;
-			if (null != input && command == input["type"])
-			{
-				if ('ok' == input["status"])
-				{
-					var url = input["data"];
-					if (url)
-					{
-						error = c_oAscError.ID.No;
-						t.processSavedFile(url, downloadType);
-					}
-				}
-				else
-				{
-					error = mapAscServerErrorToAscError(parseInt(input["data"]),
-						AscCommon.c_oAscAdvancedOptionsAction.Save);
-				}
-			}
-			if (c_oAscError.ID.No != error)
-			{
-				t.sendEvent("asc_onError", error, c_oAscError.Level.NoCritical);
-			}
-			if (actionType)
-			{
-				t.sync_EndAction(c_oAscAsyncActionType.BlockInteraction, actionType);
-			}
-		};
-		this.fCurCallback = fCallback;
-		AscCommon.saveWithParts(function(fCallback1, oAdditionalData1, dataContainer1)
-		{
-			sendCommand(t, fCallback1, oAdditionalData1, dataContainer1);
-		}, fCallback, null, oAdditionalData, dataContainer);
 	};
 
     asc_docs_api.prototype.SetFontRenderingMode         = function(mode)

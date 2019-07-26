@@ -2965,7 +2965,7 @@ function CDrawingDocument()
 			this.m_oWordControl.OnScroll();
 
 			if (this.m_arPrintingWaitEndRecalculate)
-				this.m_oWordControl.m_oApi._downloadAs.apply(this.m_oWordControl.m_oApi, this.m_arPrintingWaitEndRecalculate);
+				this.m_oWordControl.m_oApi.downloadAs.apply(this.m_oWordControl.m_oApi, this.m_arPrintingWaitEndRecalculate);
 		}
 
         if (isFull || isBreak)

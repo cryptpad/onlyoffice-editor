@@ -330,7 +330,7 @@ var editor;
       return;
     }
 
-    this._downloadAs(c_oAscAsyncAction.DownloadAs, options);
+    this.downloadAs(c_oAscAsyncAction.DownloadAs, options);
   };
 	spreadsheet_api.prototype._saveCheck = function() {
 		return !this.isChartEditor && c_oAscAdvancedOptionsAction.None === this.advancedOptionsAction &&
@@ -625,46 +625,43 @@ var editor;
    exp:	asc_setAdvancedOptions(c_oAscAdvancedOptionsID.CSV, new Asc.asc_CTextOptions(1200, c_oAscCsvDelimiter.Comma) );
    */
   spreadsheet_api.prototype.asc_setAdvancedOptions = function(idOption, option) {
-    var v;
-    if (AscCommon.EncryptionWorker.asc_setAdvancedOptions(this, idOption, option))
+    // Проверяем тип состояния в данный момент
+    if (this.advancedOptionsAction !== c_oAscAdvancedOptionsAction.Open) {
       return;
+    }
+    if (AscCommon.EncryptionWorker.asc_setAdvancedOptions(this, idOption, option)) {
+      return;
+    }
 
+    var v;
     switch (idOption) {
       case c_oAscAdvancedOptionsID.CSV:
-        // Проверяем тип состояния в данный момент
-        if (this.advancedOptionsAction === c_oAscAdvancedOptionsAction.Open) {
-          v = {
-            "id": this.documentId,
-            "userid": this.documentUserId,
-            "format": this.documentFormat,
-            "c": "reopen",
-            "url": this.documentUrl,
-            "title": this.documentTitle,
-            "delimiter": option.asc_getDelimiter(),
-            "delimiterChar": option.asc_getDelimiterChar(),
-            "codepage": option.asc_getCodePage(),
-            "nobase64": true
-          };
-
-          sendCommand(this, null, v);
-        }
+        v = {
+          "id": this.documentId,
+          "userid": this.documentUserId,
+          "format": this.documentFormat,
+          "c": "reopen",
+          "url": this.documentUrl,
+          "title": this.documentTitle,
+          "delimiter": option.asc_getDelimiter(),
+          "delimiterChar": option.asc_getDelimiterChar(),
+          "codepage": option.asc_getCodePage(),
+          "nobase64": true
+        };
+        sendCommand(this, null, v);
         break;
       case c_oAscAdvancedOptionsID.DRM:
-        // Проверяем тип состояния в данный момент
-        if (this.advancedOptionsAction === c_oAscAdvancedOptionsAction.Open) {
-          v = {
-            "id": this.documentId,
-            "userid": this.documentUserId,
-            "format": this.documentFormat,
-            "c": "reopen",
-            "url": this.documentUrl,
-            "title": this.documentTitle,
-            "password": option.asc_getPassword(),
-            "nobase64": true
-          };
-
-          sendCommand(this, null, v);
-        }
+        v = {
+          "id": this.documentId,
+          "userid": this.documentUserId,
+          "format": this.documentFormat,
+          "c": "reopen",
+          "url": this.documentUrl,
+          "title": this.documentTitle,
+          "password": option.asc_getPassword(),
+          "nobase64": true
+        };
+        sendCommand(this, null, v);
         break;
     }
   };
@@ -826,40 +823,12 @@ var editor;
     this.onEndLoadFile(AscCommonExcel.getEmptyWorkbook());
   };
 
-  spreadsheet_api.prototype._downloadAs = function(actionType, options) {
-    var isCloudCrypto = (window["AscDesktopEditor"] && (0 < window["AscDesktopEditor"]["CryptoMode"])) ? true : false;
-    if (isCloudCrypto)
-      window.isCloudCryptoDownloadAs = true;
-
-    var t = this;
-    var downloadType;
-    if (options.isDownloadEvent) {
-      downloadType = actionType === c_oAscAsyncAction.Print ? DownloadType.Print : DownloadType.Download;
-    } else {
-      downloadType = DownloadType.None;
-    }
-    if (actionType) {
-      this.sync_StartAction(c_oAscAsyncActionType.BlockInteraction, actionType);
-    }
+  spreadsheet_api.prototype._downloadAs = function(actionType, options, oAdditionalData, dataContainer) {
     var fileType = options.fileType;
-    var isNoBase64 = (typeof ArrayBuffer !== 'undefined') && !isCloudCrypto;
-    var dataContainer = {data: null, part: null, index: 0, count: 0};
-    var command = "save";
-    var oAdditionalData = {};
-    oAdditionalData["c"] = command;
-    oAdditionalData["id"] = this.documentId;
-    oAdditionalData["userid"] = this.documentUserId;
-    oAdditionalData["jwt"] = this.CoAuthoringApi.get_jwt();
-    oAdditionalData["outputformat"] = fileType;
-    oAdditionalData["title"] = AscCommon.changeFileExtention(this.documentTitle, AscCommon.getExtentionByFormat(fileType), Asc.c_nMaxDownloadTitleLen);
-    oAdditionalData["nobase64"] = isNoBase64;
-    if (DownloadType.Print === downloadType) {
-      oAdditionalData["inline"] = 1;
-    }
     if (c_oAscFileType.PDF === fileType || c_oAscFileType.PDFA === fileType) {
       var printPagesData = this.wb.calcPagesPrint(options.advancedOptions);
       var pdfPrinterMemory = this.wb.printSheets(printPagesData).DocumentRenderer.Memory;
-      dataContainer.data = isNoBase64 ? pdfPrinterMemory.GetData() : pdfPrinterMemory.GetBase64Memory();
+      dataContainer.data = oAdditionalData["nobase64"] ? pdfPrinterMemory.GetData() : pdfPrinterMemory.GetBase64Memory();
     } else {
       var oBinaryFileWriter = new AscCommonExcel.BinaryFileWriter(this.wbModel);
       if (c_oAscFileType.CSV === fileType) {
@@ -869,45 +838,15 @@ var editor;
           oAdditionalData["delimiterChar"] = options.advancedOptions.asc_getDelimiterChar();
         }
       }
-      dataContainer.data = oBinaryFileWriter.Write(isNoBase64);
+      dataContainer.data = oBinaryFileWriter.Write(oAdditionalData["nobase64"]);
     }
-    // Меняем тип состояния (на сохранение)
-    this.advancedOptionsAction = c_oAscAdvancedOptionsAction.Save;
 
-    if (isCloudCrypto)
-    {
+    if (window.isCloudCryptoDownloadAs) {
       var sParamXml = ("<m_nCsvTxtEncoding>" + oAdditionalData["codepage"] + "</m_nCsvTxtEncoding>");
       sParamXml += ("<m_nCsvDelimiter>" + oAdditionalData["delimiter"] + "</m_nCsvDelimiter>");
       window["AscDesktopEditor"]["CryptoDownloadAs"](dataContainer.data, fileType, sParamXml);
-      return;
+      return true;
     }
-
-    var fCallback = function(input, status) {
-      var error = 403 === status ? c_oAscError.ID.AccessDeny : c_oAscError.ID.Unknown;
-      if (null != input && command == input["type"]) {
-        if ('ok' == input["status"]) {
-          var url = input["data"];
-          if (url) {
-            error = c_oAscError.ID.No;
-            t.processSavedFile(url, downloadType);
-          }
-        } else {
-          error = mapAscServerErrorToAscError(parseInt(input["data"]), AscCommon.c_oAscAdvancedOptionsAction.Save);
-        }
-      }
-      if (c_oAscError.ID.No != error) {
-        t.handlers.trigger("asc_onError", error, c_oAscError.Level.NoCritical);
-      }
-      // Меняем тип состояния (на никакое)
-      t.advancedOptionsAction = c_oAscAdvancedOptionsAction.None;
-      if (actionType) {
-        t.sync_EndAction(c_oAscAsyncActionType.BlockInteraction, actionType);
-      }
-    };
-    t.fCurCallback = fCallback;
-    AscCommon.saveWithParts(function(fCallback1, oAdditionalData1, dataContainer1) {
-      sendCommand(t, fCallback1, oAdditionalData1, dataContainer1);
-    }, fCallback, null, oAdditionalData, dataContainer);
   };
 
   spreadsheet_api.prototype.asc_isDocumentModified = function() {

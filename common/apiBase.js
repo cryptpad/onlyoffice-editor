@@ -39,6 +39,7 @@
 	// Import
 	var c_oEditorId = AscCommon.c_oEditorId;
 	var c_oCloseCode = AscCommon.c_oCloseCode;
+	var DownloadType = AscCommon.DownloadType;
 
 	var c_oAscError           = Asc.c_oAscError;
 	var c_oAscAsyncAction     = Asc.c_oAscAsyncAction;
@@ -1148,8 +1149,103 @@
 	{
 	};
 	// Print Desktop
+	baseEditorsApi.prototype._waitPrint                          = function (actionType, options)
+	{
+		return false;
+	};
 	baseEditorsApi.prototype._printDesktop                       = function ()
 	{
+	};
+	// Download
+	baseEditorsApi.prototype.endInsertDocumentUrls              = function ()
+	{
+	};
+	baseEditorsApi.prototype._downloadAs                        = function ()
+	{
+	};
+	baseEditorsApi.prototype.downloadAs                         = function (actionType, options)
+	{
+		var isCloudCrypto = !!(window["AscDesktopEditor"] && (0 < window["AscDesktopEditor"]["CryptoMode"]));
+		if (isCloudCrypto)
+		{
+			window.isCloudCryptoDownloadAs = true;
+		}
+		if (this._waitPrint(actionType, options))
+		{
+			return;
+		}
+
+		if (actionType)
+		{
+			this.sync_StartAction(c_oAscAsyncActionType.BlockInteraction, actionType);
+		}
+
+		var downloadType;
+		if (options.isDownloadEvent) {
+			downloadType = options.oDocumentMailMerge ? DownloadType.MailMerge : (actionType === c_oAscAsyncAction.Print ? DownloadType.Print : DownloadType.Download);
+		} else {
+			downloadType = DownloadType.None;
+		}
+
+		var isNoBase64 = (typeof ArrayBuffer !== 'undefined') && !isCloudCrypto;
+		var dataContainer = {data : null, part : null, index : 0, count : 0};
+		var oAdditionalData = {};
+		oAdditionalData["c"] = 'save';
+		oAdditionalData["id"] = this.documentId;
+		oAdditionalData["userid"] = this.documentUserId;
+		oAdditionalData["jwt"] = this.CoAuthoringApi.get_jwt();
+		oAdditionalData["outputformat"] = options.fileType;
+		oAdditionalData["title"] = AscCommon.changeFileExtention(this.documentTitle, AscCommon.getExtentionByFormat(options.fileType), Asc.c_nMaxDownloadTitleLen);
+		oAdditionalData["nobase64"] = isNoBase64;
+		if (DownloadType.Print === downloadType)
+		{
+			oAdditionalData["inline"] = 1;
+		}
+
+		if (this._downloadAs(actionType, options, oAdditionalData, dataContainer))
+		{
+			return;
+		}
+
+		var t = this;
+		this.fCurCallback = null;
+		if (!options.callback)
+		{
+			this.fCurCallback = function(input, status)
+			{
+				var error = 403 === status ? c_oAscError.ID.AccessDeny : c_oAscError.ID.Unknown;
+				//input = {'type': command, 'status': 'err', 'data': -80};
+				if (null != input && oAdditionalData["c"] === input['type'])
+				{
+					if ('ok' === input['status'])
+					{
+						var url = input['data'];
+						if (url)
+						{
+							error = c_oAscError.ID.No;
+							t.processSavedFile(url, downloadType);
+						}
+					}
+					else
+					{
+						error = mapAscServerErrorToAscError(parseInt(input["data"]),
+							AscCommon.c_oAscAdvancedOptionsAction.Save);
+					}
+				}
+				if (c_oAscError.ID.No !== error)
+				{
+					t.endInsertDocumentUrls();
+					t.sendEvent('asc_onError', options.errorDirect || error, c_oAscError.Level.NoCritical);
+				}
+				if (actionType)
+				{
+					t.sync_EndAction(c_oAscAsyncActionType.BlockInteraction, actionType);
+				}
+			};
+		}
+		AscCommon.saveWithParts(function(fCallback1, oAdditionalData1, dataContainer1) {
+			AscCommon.sendCommand(t, fCallback1, oAdditionalData1, dataContainer1);
+		}, this.fCurCallback, options.callback, oAdditionalData, dataContainer);
 	};
 	// Images & Charts & TextArts
 	baseEditorsApi.prototype.asc_getChartPreviews                = function(chartType)
@@ -1380,7 +1476,7 @@
 			options = new Asc.asc_CDownloadOptions();
 		}
 		options.fileType = Asc.c_oAscFileType.PDF;
-		this._downloadAs(c_oAscAsyncAction.Print, options);
+		this.downloadAs(c_oAscAsyncAction.Print, options);
 	};
 	baseEditorsApi.prototype.asc_Save = function (isAutoSave, isIdle) {
 		var t = this;

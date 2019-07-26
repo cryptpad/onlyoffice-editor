@@ -2526,7 +2526,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype.asc_DownloadAs     = function(options)
 	{
 		var actionType = this.mailMergeFileData ? c_oAscAsyncAction.MailMergeLoadFile : c_oAscAsyncAction.DownloadAs;
-		this._downloadAs(actionType, options, null);
+		this.downloadAs(actionType, options);
 	};
 	asc_docs_api.prototype.Resize             = function()
 	{
@@ -2549,43 +2549,40 @@ background-repeat: no-repeat;\
 	 */
 	asc_docs_api.prototype.asc_setAdvancedOptions       = function(idOption, option)
 	{
+		// Проверяем тип состояния в данный момент
+		if (this.advancedOptionsAction !== c_oAscAdvancedOptionsAction.Open) {
+			return;
+		}
         if (AscCommon.EncryptionWorker.asc_setAdvancedOptions(this, idOption, option))
             return;
 
 		switch (idOption)
 		{
 			case c_oAscAdvancedOptionsID.TXT:
-				// Проверяем тип состояния в данный момент
-				if (this.advancedOptionsAction === c_oAscAdvancedOptionsAction.Open)
-				{
-					var rData = {
-						"id"            : this.documentId,
-						"userid"        : this.documentUserId,
-						"format"        : this.documentFormat,
-						"c"             : "reopen",
-						"url"           : this.documentUrl,
-						"title"         : this.documentTitle,
-						"codepage"      : option.asc_getCodePage(),
-						"nobase64"      : true
-					};
-					sendCommand(this, null, rData);
-				}
+				var rData = {
+					"id"            : this.documentId,
+					"userid"        : this.documentUserId,
+					"format"        : this.documentFormat,
+					"c"             : "reopen",
+					"url"           : this.documentUrl,
+					"title"         : this.documentTitle,
+					"codepage"      : option.asc_getCodePage(),
+					"nobase64"      : true
+				};
+				sendCommand(this, null, rData);
 				break;
 			case c_oAscAdvancedOptionsID.DRM:
-				if (this.advancedOptionsAction === c_oAscAdvancedOptionsAction.Open) {
-					var v = {
-						"id": this.documentId,
-						"userid": this.documentUserId,
-						"format": this.documentFormat,
-						"c": "reopen",
-						"url": this.documentUrl,
-						"title": this.documentTitle,
-						"password": option.asc_getPassword(),
-						"nobase64": true
-					};
-
-					sendCommand(this, null, v);
-				}
+				var v = {
+					"id": this.documentId,
+					"userid": this.documentUserId,
+					"format": this.documentFormat,
+					"c": "reopen",
+					"url": this.documentUrl,
+					"title": this.documentTitle,
+					"password": option.asc_getPassword(),
+					"nobase64": true
+				};
+				sendCommand(this, null, v);
 				break;
 		}
 	};
@@ -7478,73 +7475,37 @@ background-repeat: no-repeat;\
 			t.onEndLoadFile(result);
 		});
 	};
-	asc_docs_api.prototype._downloadAs    = function(actionType, options, fCallbackRequest)
+	asc_docs_api.prototype._waitPrint    = function(actionType, options)
 	{
-		var fileType = options.fileType;
-        var isCloudCrypto = (window["AscDesktopEditor"] && (0 < window["AscDesktopEditor"]["CryptoMode"])) ? true : false;
-        if (isCloudCrypto)
-            window.isCloudCryptoDownloadAs = true;
-
-		if (this.WordControl && this.WordControl.m_oDrawingDocument && (c_oAscFileType.PDF === fileType || c_oAscFileType.PDFA === fileType))
+		if (this.WordControl && this.WordControl.m_oDrawingDocument &&
+			(c_oAscFileType.PDF === options.fileType || c_oAscFileType.PDFA === options.fileType))
 		{
-			if (this.WordControl.m_oDrawingDocument.CheckPrint([actionType, options, fCallbackRequest]))
-				return;
+			return this.WordControl.m_oDrawingDocument.CheckPrint([actionType, options]);
 		}
-
+		return false;
+	};
+	asc_docs_api.prototype._downloadAs    = function(actionType, options, oAdditionalData, dataContainer)
+	{
 		var t = this;
-		if (actionType)
-		{
-			this.sync_StartAction(c_oAscAsyncActionType.BlockInteraction, actionType);
-		}
-
-		var command;
+		var fileType = options.fileType;
 		if (c_oAscAsyncAction.SendMailMerge === actionType)
 		{
-			command = 'sendmm';
+			oAdditionalData["c"] = 'sendmm';
 		}
 		else if (!this.WordControl.m_oLogicDocument)
 		{
-			command = 'savefromorigin';
-		}
-		else
-		{
-			command = 'save';
-		}
-		var downloadType;
-		if (options.isDownloadEvent) {
-			downloadType = options.oDocumentMailMerge ? DownloadType.MailMerge : (actionType === c_oAscAsyncAction.Print ? DownloadType.Print : DownloadType.Download);
-		} else {
-			downloadType = DownloadType.None;
+			oAdditionalData["c"] = 'savefromorigin';
 		}
 
-
-		// Меняем тип состояния (на сохранение)
-		this.advancedOptionsAction = c_oAscAdvancedOptionsAction.Save;
-		var isNoBase64 = (typeof ArrayBuffer !== 'undefined') && !isCloudCrypto;
-		var _fCallbackRequest = fCallbackRequest;
-
-		var dataContainer               = {data : null, part : null, index : 0, count : 0};
-		var oAdditionalData             = {};
-		oAdditionalData["c"]            = command;
-		oAdditionalData["id"]           = this.documentId;
-		oAdditionalData["userid"]       = this.documentUserId;
-		oAdditionalData["jwt"]         = this.CoAuthoringApi.get_jwt();
-		oAdditionalData["outputformat"] = fileType;
-		oAdditionalData["title"]        = AscCommon.changeFileExtention(this.documentTitle, AscCommon.getExtentionByFormat(fileType), Asc.c_nMaxDownloadTitleLen);
 		oAdditionalData["savetype"]     = AscCommon.c_oAscSaveTypes.CompleteAll;
-		oAdditionalData["nobase64"]     = isNoBase64;
-		if (DownloadType.Print === downloadType)
-		{
-			oAdditionalData["inline"] = 1;
-		}
-		if ('savefromorigin' === command)
+		if ('savefromorigin' === oAdditionalData["c"])
 		{
 			oAdditionalData["format"] = this.documentFormat;
 		}
 		else if (null == options.oDocumentMailMerge && (c_oAscFileType.PDF === fileType || c_oAscFileType.PDFA === fileType))
 		{
 			var dd             = this.WordControl.m_oDrawingDocument;
-			dataContainer.data = dd.ToRendererPart(isNoBase64);
+			dataContainer.data = dd.ToRendererPart(oAdditionalData["nobase64"]);
 			//console.log(oAdditionalData["data"]);
 		}
 		else if (c_oAscFileType.JSON === fileType)
@@ -7553,7 +7514,7 @@ background-repeat: no-repeat;\
 			oAdditionalData['format']    = this.mailMergeFileData['fileType'];
 			// ToDo select csv params
 			oAdditionalData['codepage']  = AscCommon.c_oAscCodePageUtf8;
-			oAdditionalData['delimiter'] = AscCommon.c_oAscCsvDelimiter.Comma
+			oAdditionalData['delimiter'] = AscCommon.c_oAscCsvDelimiter.Comma;
 		}
 		else if (this.insertDocumentUrlsData)
 		{
@@ -7588,7 +7549,7 @@ background-repeat: no-repeat;\
 				oBinaryFileWriter = new AscCommonWord.BinaryFileWriter(oLogicDocument, false, true, options.compatible);
 			else
 				oBinaryFileWriter = new AscCommonWord.BinaryFileWriter(oLogicDocument, undefined, undefined, options.compatible);
-			dataContainer.data = oBinaryFileWriter.Write(isNoBase64);
+			dataContainer.data = oBinaryFileWriter.Write(oAdditionalData["nobase64"]);
 		}
 		if (null != options.oMailMergeSendData)
 		{
@@ -7616,73 +7577,24 @@ background-repeat: no-repeat;\
 			dataContainer.data = JSON.stringify(aJsonOut);
 			options.oMailMergeSendData.put_IsJson(true);
 			//save Editor.bin after json
-			_fCallbackRequest = function(incomeObject){
+			var callback = options.callback;
+			options.callback = function (incomeObject) {
 				oAdditionalData["savekey"] = incomeObject["data"];
-				dataContainer = {data : editorData, part : null, index : 0, count : 0};
+				var _dataContainer = {data : editorData, part : null, index : 0, count : 0};
 				options.oMailMergeSendData.put_IsJson(false);
 
 				AscCommon.saveWithParts(function(fCallback1, oAdditionalData1, dataContainer1) {
 					sendCommand(t, fCallback1, oAdditionalData1, dataContainer1);
-				}, fCallback, fCallbackRequest, oAdditionalData, dataContainer);
+				}, t.fCurCallback, callback, oAdditionalData, _dataContainer);
 			}
 		}
 
-        if (isCloudCrypto)
+        if (window.isCloudCryptoDownloadAs)
         {
             var sParamXml = ("<m_nCsvTxtEncoding>" + oAdditionalData["codepage"] + "</m_nCsvTxtEncoding>");
             window["AscDesktopEditor"]["CryptoDownloadAs"](dataContainer.data, fileType, sParamXml);
-            return;
+			return true;
         }
-
-		var fCallback = null;
-		if (!options.isNoCallback)
-		{
-			fCallback = function(input, status)
-			{
-				var error = 403 === status ? c_oAscError.ID.AccessDeny : c_oAscError.ID.Unknown;
-				//input = {'type': command, 'status': 'err', 'data': -80};
-				if (null != input && command == input['type'])
-				{
-					if ('ok' == input['status'])
-					{
-						if (options.isNoUrl)
-						{
-							error = c_oAscError.ID.No;
-						}
-						else
-						{
-							var url = input['data'];
-							if (url)
-							{
-								error = c_oAscError.ID.No;
-								t.processSavedFile(url, downloadType);
-							}
-						}
-					}
-					else
-					{
-						error = mapAscServerErrorToAscError(parseInt(input["data"]),
-															AscCommon.c_oAscAdvancedOptionsAction.Save);
-					}
-				}
-				if (c_oAscError.ID.No != error)
-				{
-					t.endInsertDocumentUrls();
-					t.sendEvent('asc_onError', options.errorDirect || error, c_oAscError.Level.NoCritical);
-				}
-				// Меняем тип состояния (на никакое)
-				t.advancedOptionsAction = c_oAscAdvancedOptionsAction.None;
-				if (actionType)
-				{
-					t.sync_EndAction(c_oAscAsyncActionType.BlockInteraction, actionType);
-				}
-			};
-		}
-		this.fCurCallback = fCallback;
-		AscCommon.saveWithParts(function(fCallback1, oAdditionalData1, dataContainer1)
-		{
-			sendCommand(t, fCallback1, oAdditionalData1, dataContainer1);
-		}, fCallback, _fCallbackRequest, oAdditionalData, dataContainer);
 	};
 
 	// Вставка диаграмм
