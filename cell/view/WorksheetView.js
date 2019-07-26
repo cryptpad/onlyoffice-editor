@@ -18705,7 +18705,19 @@
 			var curHeaderFooter = new Asc.CHeaderFooterData();
 			curHeaderFooter.parser = new window["AscCommonExcel"].HeaderFooterParser();
 			if(prevHeaderFooter && prevHeaderFooter.parser) {
-				curHeaderFooter.parser.portions = prevHeaderFooter.parser.portions;
+				var newPortions = [];
+				for(var i in prevHeaderFooter.parser.portions) {
+					if(prevHeaderFooter.parser.portions[i]) {
+						newPortions[i] = [];
+						for(var j in prevHeaderFooter.parser.portions[i]) {
+							var curPortion = prevHeaderFooter.parser.portions[i][j];
+							if(curPortion) {
+								newPortions[i][j] = {text: curPortion.text, format: curPortion.format.clone()}
+							}
+						}
+					}
+				}
+				curHeaderFooter.parser.portions = newPortions;
 			}
 
 
