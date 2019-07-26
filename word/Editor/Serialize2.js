@@ -4725,12 +4725,12 @@ function BinaryNumberingTableWriter(memory, doc, oNumIdMap, oUsedNumIdMap, saveP
 		// 	this.memory.WriteByte(c_oSerPropLenType.Long);
 		// 	this.memory.WriteLong(AscFonts.FT_Common.UintToInt(lvl.Tplc));
 		// }
-		// if(null != lvl.IsLgl)
-		// {
-		// 	this.memory.WriteByte(c_oSerNumTypes.IsLgl);
-		// 	this.memory.WriteByte(c_oSerPropLenType.Byte);
-		// 	this.memory.WriteBool(lvl.IsLgl);
-		// }
+		if(null != lvl.IsLgl)
+		{
+			this.memory.WriteByte(c_oSerNumTypes.IsLgl);
+			this.memory.WriteByte(c_oSerPropLenType.Byte);
+			this.memory.WriteBool(lvl.IsLgl);
+		}
 		if(null != lvl.Legacy)
 		{
 			this.memory.WriteByte(c_oSerNumTypes.LvlLegacy);
@@ -10023,10 +10023,10 @@ function Binary_NumberingTableReader(doc, oReadResult, stream)
 		// {
 		// 	oNewLvl.Tplc = AscFonts.FT_Common.IntToUInt(this.stream.GetULongLE());
 		// }
-		// else if ( c_oSerNumTypes.IsLgl === type )
-		// {
-		// 	oNewLvl.IsLgl = this.stream.GetBool();
-		// }
+		else if ( c_oSerNumTypes.IsLgl === type )
+		{
+			oNewLvl.IsLgl = this.stream.GetBool();
+		}
 		else if ( c_oSerNumTypes.LvlLegacy === type )
 		{
 			oNewLvl.Legacy = new CNumberingLvlLegacy();
