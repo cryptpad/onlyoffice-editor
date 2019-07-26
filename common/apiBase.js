@@ -1271,7 +1271,7 @@
 					}
 					else
 					{
-						error = mapAscServerErrorToAscError(parseInt(input["data"]),
+						error = AscCommon.mapAscServerErrorToAscError(parseInt(input["data"]),
 							AscCommon.c_oAscAdvancedOptionsAction.Save);
 					}
 				}
