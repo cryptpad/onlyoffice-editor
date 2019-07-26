@@ -42,12 +42,10 @@ var editor;
   var prot;
 
   var c_oAscAdvancedOptionsAction = AscCommon.c_oAscAdvancedOptionsAction;
-  var DownloadType = AscCommon.DownloadType;
   var c_oAscLockTypes = AscCommon.c_oAscLockTypes;
   var CColor = AscCommon.CColor;
   var g_oDocumentUrls = AscCommon.g_oDocumentUrls;
   var sendCommand = AscCommon.sendCommand;
-  var mapAscServerErrorToAscError = AscCommon.mapAscServerErrorToAscError;
   var parserHelp = AscCommon.parserHelp;
   var g_oIdCounter = AscCommon.g_oIdCounter;
   var g_oTableId = AscCommon.g_oTableId;
