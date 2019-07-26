@@ -149,7 +149,7 @@
 		window['Asc'] = window['Asc'] || {};
 		window['AscCommon'] = window['AscCommon'] || {};
 
-		window["Asc"].asc_CDownloadOptions = asc_CDownloadOptions;
+		window["Asc"].asc_CDownloadOptions = window["Asc"]["asc_CDownloadOptions"] = asc_CDownloadOptions;
 		prot = asc_CDownloadOptions.prototype;
 		prot["asc_setFileType"] = prot.asc_setFileType;
 		prot["asc_setIsDownloadEvent"] = prot.asc_setIsDownloadEvent;
