@@ -580,6 +580,9 @@
 	baseEditorsApi.prototype._OfflineAppDocumentEndLoad        = function()
 	{
 	};
+	baseEditorsApi.prototype._openDocumentEndCallback            = function()
+	{
+	};
 	baseEditorsApi.prototype._openOnClient                       = function()
 	{
 	};
@@ -603,6 +606,9 @@
 	};
 	baseEditorsApi.prototype.asyncServerIdEndLoaded              = function()
 	{
+		// С сервером соединились, возможно стоит подождать загрузку шрифтов
+		this.ServerIdWaitComplete = true;
+		this._openDocumentEndCallback();
 	};
 	baseEditorsApi.prototype.asyncFontStartLoaded                = function()
 	{

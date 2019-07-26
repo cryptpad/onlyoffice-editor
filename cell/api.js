@@ -1075,13 +1075,6 @@ var editor;
 		});
 	};
 
-  // Соединились с сервером
-  spreadsheet_api.prototype.asyncServerIdEndLoaded = function() {
-    // С сервером соединились, возможно стоит подождать загрузку шрифтов
-    this.ServerIdWaitComplete = true;
-      this._openDocumentEndCallback();
-  };
-
   // Эвент о пришедщих изменениях
   spreadsheet_api.prototype.syncCollaborativeChanges = function() {
     // Для быстрого сохранения уведомлять не нужно.

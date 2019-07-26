@@ -1177,12 +1177,6 @@
 			this.sendEvent("asc_onCollaborativeChanges");
 	};
 
-	asc_docs_api.prototype.asyncServerIdEndLoaded = function()
-	{
-		this.ServerIdWaitComplete = true;
-			this.OpenDocumentEndCallback();
-	};
-
 	// Эвент о пришедщих изменениях
 	asc_docs_api.prototype.syncCollaborativeChanges = function()
 	{
@@ -5085,11 +5079,11 @@ background-repeat: no-repeat;\
 		else
 		{
 			this.ServerImagesWaitComplete = true;
-				this.OpenDocumentEndCallback();
+			this._openDocumentEndCallback();
 		}
 	};
 
-	asc_docs_api.prototype.OpenDocumentEndCallback = function()
+	asc_docs_api.prototype._openDocumentEndCallback = function()
 	{
 		if (this.isDocumentLoadComplete || !this.ServerImagesWaitComplete || !this.ServerIdWaitComplete ||
 			!this.WordControl || !this.WordControl.m_oLogicDocument)
@@ -5111,7 +5105,7 @@ background-repeat: no-repeat;\
                         {
                             AscCommon.EncryptionWorker.init();
                             if (!AscCommon.EncryptionWorker.isChangesHandled)
-                            	return AscCommon.EncryptionWorker.handleChanges(AscCommon.CollaborativeEditing.m_aChanges, this, this.OpenDocumentEndCallback);
+                            	return AscCommon.EncryptionWorker.handleChanges(AscCommon.CollaborativeEditing.m_aChanges, this, this._openDocumentEndCallback);
                         }
                         
 						this.isApplyChangesOnOpenEnabled = false;
@@ -5409,7 +5403,7 @@ background-repeat: no-repeat;\
 		if (this.isApplyChangesOnOpen)
 		{
 			this.isApplyChangesOnOpen = false;
-			this.OpenDocumentEndCallback();
+			this._openDocumentEndCallback();
 		}
 
 		this.WordControl.SlideDrawer.CheckRecalculateSlide();
