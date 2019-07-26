@@ -123,6 +123,7 @@
 			"../cell/model/Workbook.js",
 			"../cell/model/Serialize.js",
 			"../cell/model/ConditionalFormatting.js",
+			"../cell/model/DataValidation.js",
 			"../cell/model/CellInfo.js",
 			"../cell/view/mobileTouch.js",
 			"../cell/view/StringRender.js",

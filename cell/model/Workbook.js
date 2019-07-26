@@ -3284,6 +3284,7 @@
 		this.sheetViews = [];
 		this.aConditionalFormattingRules = [];
 		this.updateConditionalFormattingRange = null;
+		this.dataValidations = null;
 		this.sheetPr = null;
 		this.aFormulaExt = null;
 
@@ -3478,6 +3479,8 @@
 		for (i = 0; i < wsFrom.aConditionalFormattingRules.length; ++i) {
 			this.aConditionalFormattingRules.push(wsFrom.aConditionalFormattingRules[i].clone());
 		}
+		if (wsFrom.dataValidations)
+			this.dataValidations = wsFrom.dataValidations.clone();
 		if (wsFrom.sheetPr)
 			this.sheetPr = wsFrom.sheetPr.clone();
 
