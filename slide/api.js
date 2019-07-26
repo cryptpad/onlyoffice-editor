@@ -36,8 +36,6 @@
 {
 
 	// Import
-	var c_oAscAdvancedOptionsAction = AscCommon.c_oAscAdvancedOptionsAction;
-	var DownloadType                = AscCommon.DownloadType;
 	var locktype_None               = AscCommon.locktype_None;
 	var locktype_Mine               = AscCommon.locktype_Mine;
 	var locktype_Other              = AscCommon.locktype_Other;
@@ -47,7 +45,6 @@
 	var asc_CSelectedObject         = AscCommon.asc_CSelectedObject;
 	var g_oDocumentUrls             = AscCommon.g_oDocumentUrls;
 	var sendCommand                 = AscCommon.sendCommand;
-	var mapAscServerErrorToAscError = AscCommon.mapAscServerErrorToAscError;
 	var g_oIdCounter                = AscCommon.g_oIdCounter;
 	var g_oTableId                  = AscCommon.g_oTableId;
 	var PasteElementsId             = null;
