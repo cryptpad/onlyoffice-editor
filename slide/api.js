@@ -5136,6 +5136,7 @@ background-repeat: no-repeat;\
 				presentation.DrawingDocument.OnEndRecalculate();
 
 
+
 				this.asc_registerCallback('asc_doubleClickOnChart', function(){
 					// next tick
 					setTimeout(function() {
@@ -5222,6 +5223,8 @@ background-repeat: no-repeat;\
 
 		// Меняем тип состояния (на никакое)
 		this.advancedOptionsAction = AscCommon.c_oAscAdvancedOptionsAction.None;
+		var options = this.DocInfo && this.DocInfo.asc_getOptions();
+		this.goTo(options && options["action"]);
 	};
 
 
