@@ -99,7 +99,7 @@
 
 			"../common/intervalTree.js",
 
-			"../cell/document/empty-workbook.js",
+			"../cell/document/empty.js",
 			"../cell/model/UndoRedo.js",
 			"../cell/model/clipboard.js",
 			"../cell/model/autofilters.js",
