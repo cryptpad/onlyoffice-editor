@@ -7461,20 +7461,6 @@ background-repeat: no-repeat;\
 			}
 		}
 	};
-	asc_docs_api.prototype._onOpenCommand = function(data)
-	{
-		var t = this;
-		AscCommon.openFileCommand(data, this.documentUrlChanges, AscCommon.c_oSerFormat.Signature, function(error, result)
-		{
-			if (error || (!result.bSerFormat && !Asc.c_rUneditableTypes.test(t.DocInfo && t.DocInfo.get_Format())))
-			{
-				var err = error ? c_oAscError.ID.Unknown : c_oAscError.ID.ConvertationOpenError;
-				t.sendEvent("asc_onError",  err, c_oAscError.Level.Critical);
-				return;
-			}
-			t.onEndLoadFile(result);
-		});
-	};
 	asc_docs_api.prototype._waitPrint    = function(actionType, options)
 	{
 		if (this.WordControl && this.WordControl.m_oDrawingDocument &&

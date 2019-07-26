@@ -779,21 +779,7 @@ var editor;
 			});
 		}
 	};
-  spreadsheet_api.prototype._onOpenCommand = function(data) {
-    var t = this;
-    AscCommon.openFileCommand(data, this.documentUrlChanges, AscCommon.c_oSerFormat.Signature, function(error, result) {
-      if (error || !result.bSerFormat) {
-        var err = error ? c_oAscError.ID.Unknown : c_oAscError.ID.ConvertationOpenError;
-        var oError = {returnCode: c_oAscError.Level.Critical, val: err};
-        t.handlers.trigger("asc_onError", oError.val, oError.returnCode);
-        return;
-      }
-
-      t.onEndLoadFile(result.data);
-    });
-    this._onOpenCommandXlsx();
-  };
-	spreadsheet_api.prototype._onOpenCommandXlsx = function() {
+	spreadsheet_api.prototype._openOnClient = function() {
 		var t = this;
 		if (this.openingEnd.xlsxStart) {
 			return;
@@ -982,7 +968,7 @@ var editor;
 
   spreadsheet_api.prototype.openDocument = function(sData) {
 	this._openDocument(sData);
-	this._onOpenCommandXlsx();
+	this._openOnClient();
   };
 	spreadsheet_api.prototype.openDocumentFromZip = function (wb, data) {
 		var t = this;
