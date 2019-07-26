@@ -1621,6 +1621,15 @@ CTable.prototype.private_RecalculatePositionX = function(CurPage)
     {
         if (0 === CurPage)
         {
+        	var oSectPr = this.Get_SectPr();
+        	if (oSectPr)
+			{
+				PageFields.Y      = oSectPr.PageMargins.Top;
+				PageFields.YLimit = oSectPr.PageSize.H - oSectPr.PageMargins.Bottom;
+				PageFields.X      = oSectPr.PageMargins.Left;
+				PageFields.XLimit = oSectPr.PageSize.W - oSectPr.PageMargins.Right;
+			}
+
             var OffsetCorrection_Left  = this.GetTableOffsetCorrection();
             var OffsetCorrection_Right = this.GetRightTableOffsetCorrection();
 

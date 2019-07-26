@@ -74,8 +74,11 @@ CGraphicPage.prototype =
     {
         for(var i = 0; i < this.flowTables.length; ++i)
         {
-            if(this.flowTables[i] === table)
-                return;
+            if(this.flowTables[i].GetElement() === table.GetElement() && this.flowTables[i].GetPage() === table.GetPage())
+			{
+				this.flowTables[i] = table;
+				return;
+			}
         }
         this.flowTables.push(table);
     },

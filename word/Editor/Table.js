@@ -2863,7 +2863,7 @@ CTable.prototype.Move = function(X, Y, PageNum, NearestPos)
 	oTargetTable.MoveCursorToStartPos();
 	editor.WordControl.m_oLogicDocument.Document_UpdateSelectionState();
 };
-CTable.prototype.Reset = function(X, Y, XLimit, YLimit, PageNum, ColumnNum, ColumnsCount)
+CTable.prototype.Reset = function(X, Y, XLimit, YLimit, PageNum, ColumnNum, ColumnsCount, SectionY)
 {
 	this.X_origin = X;
 	this.X        = X;
@@ -2877,6 +2877,11 @@ CTable.prototype.Reset = function(X, Y, XLimit, YLimit, PageNum, ColumnNum, Colu
 
 	this.Pages.length = 1;
 	this.Pages[0]     = new CTablePage(X, Y, XLimit, YLimit, 0, 0);
+
+	// Для плавающей таблицы, которая расположена во второй или далее колонке, текущее положение по Y - это верх
+	// текущей секции
+	if (!this.IsInline() && ColumnNum > 0 && undefined !== SectionY)
+		this.Y = SectionY;
 };
 CTable.prototype.Recalculate = function()
 {
@@ -3672,6 +3677,10 @@ CTable.prototype.Is_Inline = function()
 		return true;
 
 	return this.Inline;
+};
+CTable.prototype.IsInline = function()
+{
+	return this.Is_Inline();
 };
 CTable.prototype.Set_ApplyToAll = function(bValue)
 {

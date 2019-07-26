@@ -3704,7 +3704,7 @@ CDocument.prototype.private_RecalculateFlowTable             = function(RecalcIn
         if ((0 === Index && 0 === PageIndex) || Index != StartIndex || (Index === StartIndex && true === bResetStartElement))
         {
             Element.Set_DocumentIndex(Index);
-            Element.Reset(X, Y, XLimit, YLimit, PageIndex, ColumnIndex, ColumnsCount);
+            Element.Reset(X, Y, XLimit, YLimit, PageIndex, ColumnIndex, ColumnsCount, this.Pages[PageIndex].Sections[this.Pages[PageIndex].Sections.length - 1].Y);
             ElementPageIndex = 0;
         }
         else
@@ -3749,7 +3749,7 @@ CDocument.prototype.private_RecalculateFlowTable             = function(RecalcIn
                 YLimit = this.RecalcInfo.AdditionalInfo.YLimit;
 
                 // Пересчет нужнен для обновления номеров колонок и страниц
-                Element.Reset(X, Y, XLimit, YLimit, PageIndex, ColumnIndex, ColumnsCount);
+                Element.Reset(X, Y, XLimit, YLimit, PageIndex, ColumnIndex, ColumnsCount, this.Pages[PageIndex].Sections[this.Pages[PageIndex].Sections.length - 1].Y);
                 RecalcResult = Element.Recalculate_Page(0);
                 this.RecalcInfo.FlowObjectPage++;
 
