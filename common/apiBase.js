@@ -570,7 +570,8 @@
 
         if (this.DocInfo.get_Encrypted() && window["AscDesktopEditor"] && !window["AscDesktopEditor"]["IsLocalFile"](true))
         {
-            window["AscDesktopEditor"]["OpenFileCrypt"](this.DocInfo.get_Title(), this.DocInfo.get_Url(), window.openFileCryptCallback);
+        	var t = this;
+            window["AscDesktopEditor"]["OpenFileCrypt"](this.DocInfo.get_Title(), this.DocInfo.get_Url(), function () {t.openFileCryptCallback();});
         }
 	};
 	baseEditorsApi.prototype._OfflineAppDocumentStartLoad        = function()
@@ -600,6 +601,27 @@
 			t.onEndLoadFile(result);
 		});
 		this._openOnClient();
+	};
+	baseEditorsApi.prototype.openFileCryptCallback               = function (stream)
+	{
+		if (!this.isLoadFullApi)
+		{
+			this.openFileCryptBinary = stream;
+			return;
+		}
+		this.openFileCryptBinary = null;
+
+		if (stream == null)
+		{
+			this.sendEvent("asc_onError", c_oAscError.ID.ConvertationOpenError, c_oAscError.Level.Critical);
+			return;
+		}
+
+		var file = new AscCommon.OpenFileResult();
+		file.bSerFormat = AscCommon.checkStreamSignature(stream, AscCommon.c_oSerFormat.Signature);
+		file.data = stream;
+		this.openDocument(file);
+		this.sendEvent("asc_onDocumentPassword", ("" !== this.currentPassword));
 	};
 	baseEditorsApi.prototype._onNeedParams                       = function(data, opt_isPassword)
 	{
