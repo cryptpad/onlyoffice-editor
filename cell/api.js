@@ -639,7 +639,6 @@ var editor;
           "userid": this.documentUserId,
           "format": this.documentFormat,
           "c": "reopen",
-          "url": this.documentUrl,
           "title": this.documentTitle,
           "delimiter": option.asc_getDelimiter(),
           "delimiterChar": option.asc_getDelimiterChar(),
@@ -654,7 +653,6 @@ var editor;
           "userid": this.documentUserId,
           "format": this.documentFormat,
           "c": "reopen",
-          "url": this.documentUrl,
           "title": this.documentTitle,
           "password": option.asc_getPassword(),
           "nobase64": true

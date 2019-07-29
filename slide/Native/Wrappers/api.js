@@ -3602,7 +3602,6 @@ Asc['asc_docs_api'].prototype.asc_setDocumentPassword = function(password)
         "userid": this.documentUserId,
         "format": this.documentFormat,
         "c": "reopen",
-        "url": this.documentUrl,
         "title": this.documentTitle,
         "password": password
     };

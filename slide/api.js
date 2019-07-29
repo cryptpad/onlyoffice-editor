@@ -2177,7 +2177,6 @@ background-repeat: no-repeat;\
 					"userid": this.documentUserId,
 					"format": this.documentFormat,
 					"c": "reopen",
-					"url": this.documentUrl,
 					"title": this.documentTitle,
 					"password": option.asc_getPassword(),
 					"nobase64": true

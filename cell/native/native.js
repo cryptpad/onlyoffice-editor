@@ -6873,7 +6873,6 @@ window["Asc"]["spreadsheet_api"].prototype.asc_setDocumentPassword = function(pa
         "userid": this.documentUserId,
         "format": this.documentFormat,
         "c": "reopen",
-        "url": this.documentUrl,
         "title": this.documentTitle,
         "password": password
     };

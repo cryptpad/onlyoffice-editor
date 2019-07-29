@@ -2562,7 +2562,6 @@ background-repeat: no-repeat;\
 					"userid"        : this.documentUserId,
 					"format"        : this.documentFormat,
 					"c"             : "reopen",
-					"url"           : this.documentUrl,
 					"title"         : this.documentTitle,
 					"codepage"      : option.asc_getCodePage(),
 					"nobase64"      : true
@@ -2575,7 +2574,6 @@ background-repeat: no-repeat;\
 					"userid": this.documentUserId,
 					"format": this.documentFormat,
 					"c": "reopen",
-					"url": this.documentUrl,
 					"title": this.documentTitle,
 					"password": option.asc_getPassword(),
 					"nobase64": true
