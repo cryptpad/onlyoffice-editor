@@ -4928,7 +4928,11 @@
 
 		var fProcessRow = function(row){
 			if(row && !bNotAddCollapsed && outlineLevel !== undefined && outlineLevel !== row.getOutlineLevel()) {
-				oThis.setCollapsedRow(bHidden, null, row);
+				if(!window["AscCommonExcel"].summaryBelow) {
+					oThis.setCollapsedRow(bHidden, row.index - 1);
+				} else {
+					oThis.setCollapsedRow(bHidden, null, row);
+				}
 			}
 			outlineLevel = row ? row.getOutlineLevel() : null;
 
@@ -4957,11 +4961,19 @@
 		}
 		else
 		{
+			if(!window["AscCommonExcel"].summaryBelow && start > 0) {
+				this._getRow(start - 1, function(row) {
+					if(row) {
+						outlineLevel = row.getOutlineLevel();
+					}
+				});
+			}
+
 			for (i = start; i <= stop; ++i) {
 				false == bHidden ? this._getRowNoEmpty(i, fProcessRow) : this._getRow(i, fProcessRow);
 			}
 
-			if(outlineLevel && !bNotAddCollapsed) {
+			if(window["AscCommonExcel"].summaryBelow && outlineLevel && !bNotAddCollapsed) {
 				this._getRow(stop + 1, function(row) {
 					if(row && outlineLevel !== row.getOutlineLevel()) {
 						oThis.setCollapsedRow(bHidden, null, row);

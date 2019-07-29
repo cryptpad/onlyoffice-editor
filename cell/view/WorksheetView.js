@@ -16202,6 +16202,7 @@
 	};
 
 	WorksheetView.prototype._drawGroupData = function ( drawingCtx, range, leftFieldInPx, topFieldInPx, bCol /*width, height*/  ) {
+		var t = this;
 		if ( !range ) {
 			range = this.visibleRange;
 		} else {
@@ -16336,7 +16337,7 @@
 						maxCol = (maxCol === undefined || maxCol < endX) ? endX : maxCol;
 
 						diff = startX === arrayLines[i][j].start ? AscCommon.AscBrowser.convertToRetinaValue(3, true) : 0;
-						startPos = this._getColLeft(startX) + diff - offsetX ;
+						startPos = this._getColLeft(startX) + diff - offsetX;
 						endPos = this._getColLeft(endX) - offsetX;
 						var widthNextRow = /*this.getColWidth(endX)*/this._getColLeft(endX + 1) - this._getColLeft(endX);
 						paddingTop = (widthNextRow - buttonSize) / 2;
@@ -16416,8 +16417,24 @@
 
 			ctx.setStrokeStyle(new CColor(0, 0, 0)).setLineWidth(lineWidth).beginPath();
 
+			var checkPrevHideLevel = function(level, row) {
+				var res = false;
+				for(var n = level - 1; n >= 0; n--) {
+					if(arrayLines[n]) {
+						for(var m = 0; m < arrayLines[n].length; m++) {
+							if (row >= arrayLines[n][m].start && row <= arrayLines[n][m].end && t._getGroupCollapsed(arrayLines[n][m].start - 1)) {
+								res = true;
+								break;
+							}
+						}
+					}
+				}
+				return res;
+			};
+
 			var minRow;
 			var maxRow;
+			var startY, endY, heightNextRow;
 			for(i = 0; i < arrayLines.length; i++) {
 				if(arrayLines[i]) {
 					index = bFirstLine ? 1 : i;
@@ -16425,51 +16442,99 @@
 
 					for(j = 0; j < arrayLines[i].length; j++) {
 
-						if(endPosArr[arrayLines[i][j].end]) {
-							continue;
-						}
-						endPosArr[arrayLines[i][j].end] = 1;
-
-						var startY = Math.max(arrayLines[i][j].start, range.r1);
-						var endY = Math.min(arrayLines[i][j].end + 1, range.r2 + 1);
-						minRow = (minRow === undefined || minRow > startY) ? startY : minRow;
-						maxRow = (maxRow === undefined || maxRow < endY) ? endY : maxRow;
-
-						diff = startY === arrayLines[i][j].start ? 3 * padding : 0;
-						startPos = this._getRowTop(startY) + diff - offsetY;
-						endPos = this._getRowTop(endY) - offsetY;
-						var heightNextRow = this._getRowHeight(endY);
-						paddingTop = (heightNextRow - buttonSize) / 2;
-						if(paddingTop < 0) {
-							paddingTop = 0;
-						}
-
-						//button
-						if(endY === arrayLines[i][j].end + 1) {
-							//TODO ms обрезает кнопки сверху/снизу
-							if(heightNextRow && endY >= startY) {
-								if(!tempButtonMap[i]) {
-									tempButtonMap[i] = [];
-								}
-								tempButtonMap[i][endY] = 1;
-								buttons.push({r: endY, level: i});
+						if(window["AscCommonExcel"].summaryBelow) {
+							if(endPosArr[arrayLines[i][j].end]) {
+								continue;
 							}
-						}
+							endPosArr[arrayLines[i][j].end] = 1;
 
-						if(startPos > endPos) {
-							continue;
-						}
+							startY = Math.max(arrayLines[i][j].start, range.r1);
+							endY = Math.min(arrayLines[i][j].end + 1, range.r2 + 1);
+							minRow = (minRow === undefined || minRow > startY) ? startY : minRow;
+							maxRow = (maxRow === undefined || maxRow < endY) ? endY : maxRow;
 
-						var collasedEndCol = this._getGroupCollapsed(arrayLines[i][j].end + 1);
-						//var collasedEndCol = rowLevelMap[arrayLines[i][j].end + 1] && rowLevelMap[arrayLines[i][j].end + 1].collapsed;
-						if(!collasedEndCol) {
-							ctx.lineVerPrevPx(posX, startPos, endPos + paddingTop);
-						}
+							diff = startY === arrayLines[i][j].start ? 3 * padding : 0;
+							startPos = this._getRowTop(startY) + diff - offsetY;
+							endPos = this._getRowTop(endY) - offsetY;
+							heightNextRow = this._getRowHeight(endY);
+							paddingTop = (heightNextRow - buttonSize) / 2;
+							if(paddingTop < 0) {
+								paddingTop = 0;
+							}
 
-						// _
-						//|
-						if(!collasedEndCol && startY === arrayLines[i][j].start) {
-							ctx.lineHorPrevPx(posX - lineWidth + thickLineDiff, startPos, posX + 4*padding);
+							//button
+							if(endY === arrayLines[i][j].end + 1) {
+								//TODO ms обрезает кнопки сверху/снизу
+								if(heightNextRow && endY >= startY) {
+									if(!tempButtonMap[i]) {
+										tempButtonMap[i] = [];
+									}
+									tempButtonMap[i][endY] = 1;
+									buttons.push({r: endY, level: i});
+								}
+							}
+
+							if(startPos > endPos) {
+								continue;
+							}
+
+							var collasedEndCol = this._getGroupCollapsed(arrayLines[i][j].end + 1);
+							//var collasedEndCol = rowLevelMap[arrayLines[i][j].end + 1] && rowLevelMap[arrayLines[i][j].end + 1].collapsed;
+							if(!collasedEndCol) {
+								ctx.lineVerPrevPx(posX, startPos, endPos + paddingTop);
+							}
+
+							// _
+							//|
+							if(!collasedEndCol && startY === arrayLines[i][j].start) {
+								ctx.lineHorPrevPx(posX - lineWidth + thickLineDiff, startPos, posX + 4*padding);
+							}
+						} else {
+							if(endPosArr[arrayLines[i][j].start]) {
+								continue;
+							}
+							endPosArr[arrayLines[i][j].start] = 1;
+
+							startY = Math.max(arrayLines[i][j].start - 1, range.r1 - 1);
+							endY = Math.min(arrayLines[i][j].end + 1, range.r2 + 1);
+							minRow = (minRow === undefined || minRow > startY) ? startY : minRow;
+							maxRow = (maxRow === undefined || maxRow < endY) ? endY : maxRow;
+
+							diff = startY === arrayLines[i][j].start ? 3 * padding : 0;
+							startPos = this._getRowTop(startY + 1) + diff - offsetY;
+							endPos = this._getRowTop(endY) - offsetY;
+							heightNextRow = this._getRowHeight(startY);
+							paddingTop = (heightNextRow - buttonSize) / 2;
+							if(paddingTop < 0) {
+								paddingTop = 0;
+							}
+
+							//button
+							if(startY === arrayLines[i][j].start - 1) {
+								//TODO ms обрезает кнопки сверху/снизу
+								if(heightNextRow && endY >= startY) {
+									if(!tempButtonMap[i]) {
+										tempButtonMap[i] = [];
+									}
+									tempButtonMap[i][startY] = 1;
+									buttons.push({r: startY, level: i});
+								}
+							}
+
+							if(startPos > endPos) {
+								continue;
+							}
+
+							var collasedStartRow = this._getGroupCollapsed(arrayLines[i][j].start - 1);
+							//var collasedEndCol = rowLevelMap[arrayLines[i][j].end + 1] && rowLevelMap[arrayLines[i][j].end + 1].collapsed;
+							if(!collasedStartRow) {
+								ctx.lineVerPrevPx(posX, startPos - paddingTop - 1*padding, endPos);
+							}
+
+							// |_
+							if(!collasedStartRow && endY === arrayLines[i][j].end + 1 && !checkPrevHideLevel(i, arrayLines[i][j].start)) {
+								ctx.lineHorPrevPx(posX - lineWidth + thickLineDiff, endPos, posX + 4*padding);
+							}
 						}
 					}
 					bFirstLine = false;
@@ -16955,28 +17020,55 @@
 
 			var endPosArr = {};
 			for(var i = 0; i < arrayLines.length; i++) {
+				var props, collapsed;
 				if(arrayLines[i]) {
 					for(var j = 0; j < arrayLines[i].length; j++) {
-						if(endPosArr[arrayLines[i][j].end]) {
-							continue;
-						}
-						endPosArr[arrayLines[i][j].end] = 1;
+						if(!window["AscCommonExcel"].summaryBelow) {
+							if(endPosArr[arrayLines[i][j].start]) {
+								continue;
+							}
+							endPosArr[arrayLines[i][j].start] = 1;
 
-						if((arrayLines[i][j].end + 1 === target.row && !bCol) || (arrayLines[i][j].end + 1 === target.col && bCol)) {
-							var props = t._getGroupDataButtonPos(arrayLines[i][j].end + 1, i, bCol);
-							var collapsed = t._getGroupCollapsed(arrayLines[i][j].end + 1, bCol);/*levelMap[arrayLines[i][j].end + 1] && levelMap[arrayLines[i][j].end + 1].collapsed*/
-							if(props) {
-								if(x >= props.x - offsetX && x <= props.x + props.w - offsetX && y >= props.y - offsetY && y <= props.y - offsetY + props.h) {
-									if("mouseup" === type) {
-										t._tryChangeGroup(arrayLines[i][j], collapsed, i, bCol);
-										t.clickedGroupButton = null;
-									} else if("mousedown" === type) {
-										//перерисовываем кнопку в нажатом состоянии
-										t._drawGroupDataButtons(null, [{r: arrayLines[i][j].end + 1, level: i, active: true, clean: true}], undefined, undefined, bCol);
-										t.clickedGroupButton = {level: i, r: arrayLines[i][j].end + 1, bCol: bCol};
-										mouseDownClick = true;
+							if((arrayLines[i][j].start - 1 === target.row && !bCol) || (arrayLines[i][j].start - 1 === target.col && bCol)) {
+								props = t._getGroupDataButtonPos(arrayLines[i][j].start - 1, i, bCol);
+								collapsed = t._getGroupCollapsed(arrayLines[i][j].start - 1, bCol);/*levelMap[arrayLines[i][j].end + 1] && levelMap[arrayLines[i][j].end + 1].collapsed*/
+								if(props) {
+									if(x >= props.x - offsetX && x <= props.x + props.w - offsetX && y >= props.y - offsetY && y <= props.y - offsetY + props.h) {
+										if("mouseup" === type) {
+											t._tryChangeGroup(arrayLines[i][j], collapsed, i, bCol);
+											t.clickedGroupButton = null;
+										} else if("mousedown" === type) {
+											//перерисовываем кнопку в нажатом состоянии
+											t._drawGroupDataButtons(null, [{r: arrayLines[i][j].start - 1, level: i, active: true, clean: true}], undefined, undefined, bCol);
+											t.clickedGroupButton = {level: i, r: arrayLines[i][j].start - 1, bCol: bCol};
+											mouseDownClick = true;
+										}
+										return;
 									}
-									return;
+								}
+							}
+						} else {
+							if(endPosArr[arrayLines[i][j].end]) {
+								continue;
+							}
+							endPosArr[arrayLines[i][j].end] = 1;
+
+							if((arrayLines[i][j].end + 1 === target.row && !bCol) || (arrayLines[i][j].end + 1 === target.col && bCol)) {
+								props = t._getGroupDataButtonPos(arrayLines[i][j].end + 1, i, bCol);
+								collapsed = t._getGroupCollapsed(arrayLines[i][j].end + 1, bCol);/*levelMap[arrayLines[i][j].end + 1] && levelMap[arrayLines[i][j].end + 1].collapsed*/
+								if(props) {
+									if(x >= props.x - offsetX && x <= props.x + props.w - offsetX && y >= props.y - offsetY && y <= props.y - offsetY + props.h) {
+										if("mouseup" === type) {
+											t._tryChangeGroup(arrayLines[i][j], collapsed, i, bCol);
+											t.clickedGroupButton = null;
+										} else if("mousedown" === type) {
+											//перерисовываем кнопку в нажатом состоянии
+											t._drawGroupDataButtons(null, [{r: arrayLines[i][j].end + 1, level: i, active: true, clean: true}], undefined, undefined, bCol);
+											t.clickedGroupButton = {level: i, r: arrayLines[i][j].end + 1, bCol: bCol};
+											mouseDownClick = true;
+										}
+										return;
+									}
 								}
 							}
 						}
@@ -16995,9 +17087,17 @@
 			}
 		};
 		if(bCol) {
-			this.model.getRange3(0, target.col - 1,0, target.col)._foreachColNoEmpty(func);
+			if(window["AscCommonExcel"].summaryRight) {
+				this.model.getRange3(0, target.col - 1,0, target.col)._foreachColNoEmpty(func);
+			} else {
+				this.model.getRange3(0, target.col,0, target.col + 1)._foreachColNoEmpty(func);
+			}
 		} else {
-			this.model.getRange3(target.row - 1, 0, target.row, 0)._foreachRowNoEmpty(func);
+			if(window["AscCommonExcel"].summaryBelow) {
+				this.model.getRange3(target.row - 1, 0, target.row, 0)._foreachRowNoEmpty(func);
+			} else {
+				this.model.getRange3(target.row, 0, target.row + 1, 0)._foreachRowNoEmpty(func);
+			}
 		}
 
 		//проверяем предыдущую строку - если там есть outLineLevel, а в следующей outLineLevel c другим индексом, тогда в следующей может быть кнопка управления группой
@@ -17149,14 +17249,22 @@
 				var collapsedFunction = bCol ? t.model.setCollapsedCol :  t.model.setCollapsedRow;
 				if(!collapsed) {//скрываем
 					changeModelFunc.call(t.model, true, start, end);
-					collapsedFunction.call(t.model, !collapsed, end + 1);
+					if((!window["AscCommonExcel"].summaryBelow && !bCol) || (!window["AscCommonExcel"].summaryRight && bCol)) {
+						collapsedFunction.call(t.model, !collapsed, start - 1);
+					} else {
+						collapsedFunction.call(t.model, !collapsed, end + 1);
+					}
 					//hideFunc(true, start, end);
 					//t.model.autoFilters.reDrawFilter(arn);
 				} else {
 					//открываем все строки, кроме внутренних групп
 					//внутренние группы скрываем, если среди них есть раскрытые
 					changeModelFunc.call(t.model, false, start, end);
-					collapsedFunction.call(t.model, !collapsed, end + 1);
+					if((!window["AscCommonExcel"].summaryBelow && !bCol) || (!window["AscCommonExcel"].summaryRight && bCol)) {
+						collapsedFunction.call(t.model, !collapsed, start - 1);
+					} else {
+						collapsedFunction.call(t.model, !collapsed, end + 1);
+					}
 
 					var groupArr/*, levelMap*/;
 					if(bCol) {
@@ -17172,9 +17280,17 @@
 								continue;
 							}
 							for(var j = 0; j < groupArr[i].length; j++) {
-								if(groupArr[i][j] && groupArr[i][j].start >= start && groupArr[i][j].end < end) {
-									if(t._getGroupCollapsed(groupArr[i][j].end + 1, bCol)/*levelMap[groupArr[i][j].end + 1] && levelMap[groupArr[i][j].end + 1].collapsed*/) {
-										changeModelFunc.call(t.model, true, groupArr[i][j].start, groupArr[i][j].end);
+								if((!window["AscCommonExcel"].summaryBelow && !bCol) || (!window["AscCommonExcel"].summaryRight && bCol)) {
+									if(groupArr[i][j] && groupArr[i][j].start > start && groupArr[i][j].end <= end) {
+										if(t._getGroupCollapsed(groupArr[i][j].start - 1, bCol)) {
+											changeModelFunc.call(t.model, true, groupArr[i][j].start, groupArr[i][j].end);
+										}
+									}
+								} else {
+									if(groupArr[i][j] && groupArr[i][j].start >= start && groupArr[i][j].end < end) {
+										if(t._getGroupCollapsed(groupArr[i][j].end + 1, bCol)) {
+											changeModelFunc.call(t.model, true, groupArr[i][j].start, groupArr[i][j].end);
+										}
 									}
 								}
 							}
@@ -17244,10 +17360,20 @@
 				for(var j = 0; j < groupArr[i].length; j++) {
 					if(bCol) {
 						t.model.setColHidden(i >= level, groupArr[i][j].start, groupArr[i][j].end);
-						t.model.setCollapsedCol(i >= level, groupArr[i][j].end + 1);
+						if(window["AscCommonExcel"].summaryRight) {
+							t.model.setCollapsedCol(i >= level, groupArr[i][j].end + 1);
+						} else {
+							t.model.setCollapsedCol(i >= level, groupArr[i][j].start - 1);
+						}
+
 					} else {
 						t.model.setRowHidden(i >= level, groupArr[i][j].start, groupArr[i][j].end);
-						t.model.setCollapsedRow(i >= level, groupArr[i][j].end + 1);
+						if(window["AscCommonExcel"].summaryBelow) {
+							t.model.setCollapsedRow(i >= level, groupArr[i][j].end + 1);
+						} else {
+							t.model.setCollapsedRow(i >= level, groupArr[i][j].start - 1);
+						}
+
 					}
 				}
 			}
@@ -19479,6 +19605,10 @@
 	prot["getDifferentOddEven"] = prot.getDifferentOddEven;
 	prot["getScaleWithDoc"] = prot.getScaleWithDoc;
 
-	prot["getPageType"] = prot.getPageType;
+	prot["getType"] = prot.getPageType;
+
+	//temporary vars -> todo need read from file
+	window["AscCommonExcel"].summaryBelow = true;
+	window["AscCommonExcel"].summaryRight = true;
 
 })(window);
