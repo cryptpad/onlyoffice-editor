@@ -3512,8 +3512,8 @@
 			}
 			//this.bs.WriteItem(c_oSer_Selection.Pane, function(){oThis.memory.WriteByte();});
 			if (null != selectionRange.ranges) {
-				var sqref = getSqRefString(selectionRange.ranges);
-				this.bs.WriteItem(c_oSer_Selection.Sqref, function(){oThis.memory.WriteString3(sqref);});
+				var sqRef = getSqRefString(selectionRange.ranges);
+				this.bs.WriteItem(c_oSer_Selection.sqRef, function(){oThis.memory.WriteString3(sqRef);});
 			}
 		};
         this.WriteSheetPr = function (sheetPr) {
@@ -4325,8 +4325,8 @@
 				this.bs.WriteItem(c_oSer_ConditionalFormatting.Pivot, function() {oThis.memory.WriteBool(oRule.pivot);});
 			}
 			if (null != oRule.ranges) {
-				var sqref = getSqRefString(oRule.ranges);
-				this.bs.WriteItem(c_oSer_ConditionalFormatting.SqRef, function() {oThis.memory.WriteString3(sqref);});
+				var sqRef = getSqRefString(oRule.ranges);
+				this.bs.WriteItem(c_oSer_ConditionalFormatting.SqRef, function() {oThis.memory.WriteString3(sqRef);});
 			}
 			this.bs.WriteItem(c_oSer_ConditionalFormatting.ConditionalFormattingRule, function() {oThis.WriteConditionalFormattingRule(oRule);});
 		};
@@ -4592,9 +4592,9 @@
                 this.memory.WriteByte(c_oSer_Sparkline.SparklineRef);
                 this.memory.WriteString2(oSparkline.f);
 			}
-			if (null != oSparkline.sqref) {
+			if (null != oSparkline.sqRef) {
 				this.memory.WriteByte(c_oSer_Sparkline.SparklineSqRef);
-                this.memory.WriteString2(oSparkline.sqref.getName());
+                this.memory.WriteString2(oSparkline.sqRef.getName());
 			}
 		}
 		this.WritePivotTable = function(pivotTable)
@@ -8027,7 +8027,7 @@
             if (c_oSer_ConditionalFormatting.Pivot === type)
                 oConditionalFormatting.pivot = this.stream.GetBool();
             else if (c_oSer_ConditionalFormatting.SqRef === type) {
-                oConditionalFormatting.setSqref(this.stream.GetString2LE(length));
+                oConditionalFormatting.setSqRef(this.stream.GetString2LE(length));
             }
             else if (c_oSer_ConditionalFormatting.ConditionalFormattingRule === type) {
                 oConditionalFormattingRule = new AscCommonExcel.CConditionalFormattingRule();
@@ -8331,8 +8331,8 @@
 			} else if (c_oSer_Selection.ActiveCellId === type) {
 				selectionRange.activeCellId = this.stream.GetLong();
 			} else if (c_oSer_Selection.Sqref === type) {
-				var sqref = this.stream.GetString2LE(length);
-				var selectionNew = AscCommonExcel.g_oRangeCache.getActiveRangesFromSqRef(sqref);
+				var sqRef = this.stream.GetString2LE(length);
+				var selectionNew = AscCommonExcel.g_oRangeCache.getRangesFromSqRef(sqRef);
 				if (selectionNew.length > 0) {
 					selectionRange.ranges = selectionNew;
 				}
@@ -8637,7 +8637,7 @@
             if (c_oSer_Sparkline.SparklineRef === type) {
 				oSparkline.setF(this.stream.GetString2LE(length));
 			} else if (c_oSer_Sparkline.SparklineSqRef === type) {
-				oSparkline.setSqref(this.stream.GetString2LE(length));
+				oSparkline.setSqRef(this.stream.GetString2LE(length));
 			} else
                 res = c_oSerConstants.ReadUnknown;
             return res;

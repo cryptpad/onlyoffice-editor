@@ -1479,7 +1479,7 @@
 		RangeCache.prototype.getActiveRange = function (sRange) {
 			return this._getRange(sRange, 2);
 		};
-		RangeCache.prototype.getActiveRangesFromSqRef = function (sqRef) {
+		RangeCache.prototype.getRangesFromSqRef = function (sqRef) {
 			var res = [];
 			var refs = sqRef.split(' ');
 			for (var i = 0; i < refs.length; ++i) {
