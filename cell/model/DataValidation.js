@@ -184,7 +184,17 @@
 	 */
 	var prot;
 	window['Asc'] = window['Asc'] || {};
-	window['Asc'].EDataValidationType = EDataValidationType;
+	window['Asc']['c_oAscEDataValidationType'] = window['Asc'].EDataValidationType = EDataValidationType;
+	prot = EDataValidationType;
+	prot['None'] = prot.None;
+	prot['Custom'] = prot.Custom;
+	prot['Date'] = prot.Date;
+	prot['Decimal'] = prot.Decimal;
+	prot['List'] = prot.List;
+	prot['TextLength'] = prot.TextLength;
+	prot['Time'] = prot.Time;
+	prot['Whole'] = prot.Whole;
+
 	window['Asc']['c_oAscEDataValidationErrorStyle'] = window['Asc'].EDataValidationErrorStyle = EDataValidationErrorStyle;
 	prot = EDataValidationErrorStyle;
 	prot['Stop'] = prot.Stop;
