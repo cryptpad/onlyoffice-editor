@@ -182,9 +182,15 @@
 	 * Export
 	 * -----------------------------------------------------------------------------
 	 */
+	var prot;
 	window['Asc'] = window['Asc'] || {};
 	window['Asc'].EDataValidationType = EDataValidationType;
-	window['Asc'].EDataValidationErrorStyle = EDataValidationErrorStyle;
+	window['Asc']['c_oAscEDataValidationErrorStyle'] = window['Asc'].EDataValidationErrorStyle = EDataValidationErrorStyle;
+	prot = EDataValidationErrorStyle;
+	prot['Stop'] = prot.Stop;
+	prot['Warning'] = prot.Warning;
+	prot['Information'] = prot.Information;
+
 	window['Asc'].EDataValidationImeMode = EDataValidationImeMode;
 
 	window['AscCommonExcel'] = window['AscCommonExcel'] || {};
