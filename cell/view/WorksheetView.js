@@ -12998,7 +12998,6 @@
 								return false;
 							}
 						}
-						// ToDo Check validate
 
 						var bRes = t._saveCellValueAfterEdit(c, val, flags, /*isNotHistory*/false, /*lockDraw*/false);
 						if(callback) {
@@ -13007,6 +13006,11 @@
 							return bRes;
 						}
 					};
+
+					if (!t.model.checkDataValidation(col, row, val)) {
+						this.workbook._onValidationError();
+						return false;
+					}
 
 					//***array-formula***
 					var ref = null;

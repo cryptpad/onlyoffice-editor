@@ -135,6 +135,28 @@
 		}
 		return false;
 	};
+	CDataValidation.prototype.checkValue = function (val) {
+		var res = true;
+		if (this.showErrorMessage) {
+			switch (this.type) {
+				case EDataValidationType.Custom:
+					break;
+				case EDataValidationType.Date:
+					break;
+				case EDataValidationType.Decimal:
+					break;
+				case EDataValidationType.List:
+					break;
+				case EDataValidationType.TextLength:
+					break;
+				case EDataValidationType.Time:
+					break;
+				case EDataValidationType.Whole:
+					break;
+			}
+		}
+		return res;
+	};
 
 	function CDataValidations() {
 		this.disablePrompts = false;

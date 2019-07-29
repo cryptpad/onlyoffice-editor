@@ -6786,6 +6786,10 @@
 		}
 		return res;
 	};
+	Worksheet.prototype.checkDataValidation = function (c, r, value) {
+		var dataValidation = this.getDataValidation();
+		return !dataValidation || dataValidation.checkValue(value);
+	};
 	Worksheet.prototype.getDataValidation = function (c, r) {
 		if (!this.dataValidations) {
 			return null;

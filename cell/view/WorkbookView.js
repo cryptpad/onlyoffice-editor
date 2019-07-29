@@ -979,6 +979,12 @@
   	this.handlers.trigger("asc_onInputMessage", title, message);
   };
 
+  WorkbookView.prototype._onValidationError = function () {
+  	var dataValidation = this.oSelectionInfo && this.oSelectionInfo.dataValidation;
+  	if (dataValidation) {
+		this.handlers.trigger("asc_onErrorMessage", dataValidation.errorTitle, dataValidation.error);
+  	}
+  };
 
 	WorkbookView.prototype._onScrollReinitialize = function (type) {
 		if (window["NATIVE_EDITOR_ENJINE"] || !type) {
