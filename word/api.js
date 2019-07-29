@@ -2487,7 +2487,6 @@ background-repeat: no-repeat;\
 		//скачивание оригинального pdf, djvu, xps
 		var downloadType = bIsDownloadEvent ? DownloadType.Download : DownloadType.None;
 		var rData        = {
-			"id"    : this.documentId,
 			"c"     : 'pathurl',
 			"title" : this.documentTitle,
 			"data"  : 'origin.' + this.documentFormat
