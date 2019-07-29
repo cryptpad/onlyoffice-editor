@@ -328,9 +328,10 @@
      * @constructor
      * @memberOf Asc
      */
-    function WorksheetView(model, handlers, buffers, stringRender, maxDigitWidth, collaborativeEditing, settings) {
+    function WorksheetView(workbook, model, handlers, buffers, stringRender, maxDigitWidth, collaborativeEditing, settings) {
         this.settings = settings;
 
+        this.workbook = workbook;
         this.handlers = handlers;
         this.model = model;
 
