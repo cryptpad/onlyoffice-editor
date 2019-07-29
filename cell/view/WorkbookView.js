@@ -982,7 +982,7 @@
   WorkbookView.prototype._onValidationError = function () {
   	var dataValidation = this.oSelectionInfo && this.oSelectionInfo.dataValidation;
   	if (dataValidation) {
-		this.handlers.trigger("asc_onErrorMessage", dataValidation.errorTitle, dataValidation.error);
+		this.handlers.trigger("asc_onErrorMessage", dataValidation.errorStyle, dataValidation.errorTitle, dataValidation.error);
   	}
   };
 
