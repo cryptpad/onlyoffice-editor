@@ -973,7 +973,7 @@
   WorkbookView.prototype._onInputMessage = function () {
   	var title = null, message = null;
   	var dataValidation = this.oSelectionInfo && this.oSelectionInfo.dataValidation;
-  	if (dataValidation.showInputMessage) {
+  	if (dataValidation && dataValidation.showInputMessage) {
   		title = dataValidation.promptTitle;
 		message = dataValidation.promt;
 	}
