@@ -19477,6 +19477,6 @@
 	prot["getDifferentOddEven"] = prot.getDifferentOddEven;
 	prot["getScaleWithDoc"] = prot.getScaleWithDoc;
 
-	prot["getType"] = prot.getPageType;
+	prot["getPageType"] = prot.getPageType;
 
 })(window);
