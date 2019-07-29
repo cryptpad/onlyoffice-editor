@@ -77,7 +77,7 @@
 	};
 
 	function CDataValidation() {
-		this.sqRef = null;
+		this.ranges = null;
 
 		this.allowBlank = false;
 		this.showDropDown = false;
@@ -100,7 +100,12 @@
 
 	CDataValidation.prototype.clone = function() {
 		var res = new CDataValidation();
-		res.sqRef = this.sqRef;
+		if (this.ranges) {
+			res.ranges = [];
+			for (var i = 0; i < this.ranges.length; ++i) {
+				res.ranges.push(this.ranges[i].clone());
+			}
+		}
 		res.allowBlank = this.allowBlank;
 		res.showDropDown = this.showDropDown;
 		res.showErrorMessage = this.showErrorMessage;
@@ -116,6 +121,9 @@
 		res.formula1 = this.formula1;
 		res.formula2 = this.formula2;
 		return res;
+	};
+	CDataValidation.prototype.setSqRef = function(sqRef) {
+		this.ranges = AscCommonExcel.g_oRangeCache.getRangesFromSqRef(sqRef);
 	};
 
 	function CDataValidations() {
