@@ -945,7 +945,6 @@
   };
 
   WorkbookView.prototype._updateSelectionInfo = function () {
-  	console.log("_updateSelectionInfo");
     var ws = this.cellFormulaEnterWSOpen ? this.cellFormulaEnterWSOpen : this.getWorksheet();
     this.oSelectionInfo = ws.getSelectionInfo();
     this.lastSendInfoRange = ws.model.selectionRange.clone();
