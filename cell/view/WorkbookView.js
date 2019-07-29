@@ -945,6 +945,7 @@
   };
 
   WorkbookView.prototype._updateSelectionInfo = function () {
+  	console.log("_updateSelectionInfo");
     var ws = this.cellFormulaEnterWSOpen ? this.cellFormulaEnterWSOpen : this.getWorksheet();
     this.oSelectionInfo = ws.getSelectionInfo();
     this.lastSendInfoRange = ws.model.selectionRange.clone();
@@ -966,6 +967,17 @@
     }
     this.handlers.trigger("asc_onSelectionChanged", this.oSelectionInfo);
     this.handlers.trigger("asc_onSelectionEnd");
+    this._onInputMessage();
+  };
+
+  WorkbookView.prototype._onInputMessage = function () {
+  	var title = null, message = null;
+  	var dataValidation = this.oSelectionInfo && this.oSelectionInfo.dataValidation;
+  	if (dataValidation.showInputMessage) {
+  		title = dataValidation.promptTitle;
+		message = dataValidation.promt;
+	}
+  	this.handlers.trigger("asc_onInputMessage", title, message);
   };
 
 
