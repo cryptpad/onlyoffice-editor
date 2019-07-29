@@ -6774,6 +6774,17 @@
 		}
 		return res;
 	};
+	Worksheet.prototype.getDataValidation = function (c, r) {
+		if (!this.dataValidations) {
+			return null;
+		}
+		for (var i = 0; i < this.dataValidations.elems.length; ++i) {
+			if (this.dataValidations.elems[i].contains(c, r)) {
+				return this.dataValidations.elems[i];
+			}
+		}
+		return null;
+	};
 	// ----- Search -----
 	Worksheet.prototype.clearFindResults = function () {
 		this.lastFindOptions = null;

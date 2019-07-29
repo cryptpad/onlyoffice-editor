@@ -125,6 +125,16 @@
 	CDataValidation.prototype.setSqRef = function(sqRef) {
 		this.ranges = AscCommonExcel.g_oRangeCache.getRangesFromSqRef(sqRef);
 	};
+	CDataValidation.prototype.contains = function (c, r) {
+		if (this.ranges) {
+			for (var i = 0; i < this.ranges.length; ++i) {
+				if (this.ranges[i].contains(c, r)) {
+					return true;
+				}
+			}
+		}
+		return false;
+	};
 
 	function CDataValidations() {
 		this.disablePrompts = false;

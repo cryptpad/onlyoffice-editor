@@ -296,6 +296,7 @@
 		this.formatTableInfo = null;
 		this.sparklineInfo = null;
 		this.pivotTableInfo = null;
+		this.dataValidation = null;
 		this.selectedColsCount = null;
 		this.isLockedHeaderFooter = false;
 	}
@@ -368,6 +369,9 @@
 	};
 	asc_CCellInfo.prototype.asc_getPivotTableInfo = function () {
 		return this.pivotTableInfo;
+	};
+	asc_CCellInfo.prototype.asc_getDataValidation = function () {
+		return this.dataValidation;
 	};
 	asc_CCellInfo.prototype.asc_getSelectedColsCount = function () {
 		return this.selectedColsCount;
@@ -529,6 +533,7 @@
 	prot["asc_getFormatTableInfo"] = prot.asc_getFormatTableInfo;
 	prot["asc_getSparklineInfo"] = prot.asc_getSparklineInfo;
 	prot["asc_getPivotTableInfo"] = prot.asc_getPivotTableInfo;
+	prot["asc_getDataValidation"] = prot.asc_getDataValidation;
 	prot["asc_getSelectedColsCount"] = prot.asc_getSelectedColsCount;
 	prot["asc_getLockedHeaderFooter"] = prot.asc_getLockedHeaderFooter;
 

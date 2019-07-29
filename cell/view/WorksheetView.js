@@ -7972,6 +7972,8 @@
 			}
 		}
 
+		cell_info.dataValidation = this.model.getDataValidation(c1, r1);
+
 		lockInfo = this.collaborativeEditing.getLockInfo(c_oAscLockTypeElem.Object, /*subType*/null, sheetId, AscCommonExcel.c_oAscHeaderFooterEdit);
 		if (false !== this.collaborativeEditing.getLockIntersection(lockInfo, c_oAscLockTypes.kLockTypeOther, /*bCheckOnlyLockAll*/false)) {
 			cell_info.isLockedHeaderFooter = true;
