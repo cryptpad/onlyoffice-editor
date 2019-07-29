@@ -12016,6 +12016,15 @@ function CPres()
     prot["asc_getRevision"] = prot.asc_getRevision;
     prot["asc_getCreated"] = prot.asc_getCreated;
     prot["asc_getModified"] = prot.asc_getModified;
+    prot["asc_getCategory"] = prot.asc_getCategory;
+    prot["asc_getContentStatus"] = prot.asc_getContentStatus;
+    prot["asc_getDescription"] = prot.asc_getDescription;
+    prot["asc_getIdentifier"] = prot.asc_getIdentifier;
+    prot["asc_getKeywords"] = prot.asc_getKeywords;
+    prot["asc_getLanguage"] = prot.asc_getLanguage;
+    prot["asc_getLastPrinted"] = prot.asc_getLastPrinted;
+    prot["asc_getSubject"] = prot.asc_getSubject;
+    prot["asc_getVersion"] = prot.asc_getVersion;
 
     prot["asc_putTitle"] = prot.asc_putTitle;
     prot["asc_putCreator"] = prot.asc_putCreator;
