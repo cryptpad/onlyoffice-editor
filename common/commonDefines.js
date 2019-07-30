@@ -146,6 +146,9 @@
 			MailMergeLoadFile : -40,
 			MailMergeSaveFile : -41,
 
+			// Data Validate
+			DataValidate : -45,
+
 			// for AutoFilter
 			AutoFilterDataRangeError         : -50,
 			AutoFilterChangeFormatTableError : -51,
