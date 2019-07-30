@@ -158,6 +158,16 @@
 		return res;
 	};
 
+	CDataValidation.prototype.getError = function () {
+		return this.error;
+	};
+	CDataValidation.prototype.getErrorStyle = function () {
+		return this.errorStyle;
+	};
+	CDataValidation.prototype.getErrorTitle = function () {
+		return this.errorTitle;
+	};
+
 	function CDataValidations() {
 		this.disablePrompts = false;
 		this.xWindow = null;
@@ -205,5 +215,10 @@
 
 	window['AscCommonExcel'] = window['AscCommonExcel'] || {};
 	window['AscCommonExcel'].CDataValidation = CDataValidation;
+	prot = CDataValidation.prototype;
+	prot['asc_getError'] = prot.getError;
+	prot['asc_getErrorStyle'] = prot.getErrorStyle;
+	prot['asc_getErrorTitle'] = prot.getErrorTitle;
+
 	window['AscCommonExcel'].CDataValidations = CDataValidations;
 })(window);
