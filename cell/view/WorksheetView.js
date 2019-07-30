@@ -13007,8 +13007,9 @@
 						}
 					};
 
-					if (!t.model.checkDataValidation(col, row, val)) {
-						this.workbook._onValidationError();
+					var dataValidation = t.model.getDataValidation(col, row);
+					if (dataValidation && !dataValidation.checkValue(val)) {
+						t.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.DataValidate, c_oAscError.Level.NoCritical, dataValidation);
 						return false;
 					}
 
