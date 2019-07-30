@@ -17244,6 +17244,11 @@
 
 		functionModelAction = function () {
 			//AscCommonExcel.checkFilteringMode(function () {
+				/*var isNeedRecal = t.model.needRecalFormulas(start, stop);
+				if(isNeedRecal) {
+					t.model.workbook.dependencyFormulas.lockRecal();
+				}*/
+
 				History.Create_NewPoint();
 				History.StartTransaction();
 
@@ -17310,6 +17315,9 @@
 				//updateDrawingObjectsInfo = {target: c_oTargetType.RowResize, row: arn.r1};
 
 				History.EndTransaction();
+				/*if(isNeedRecal) {
+					t.model.workbook.dependencyFormulas.unlockRecal();
+				}*/
 			//});
 		};
 		this._isLockedAll(onChangeWorksheetCallback);
@@ -17355,6 +17363,11 @@
 			History.Create_NewPoint();
 			History.StartTransaction();
 
+			/*var isNeedRecal = t.needRecalFormulas(start, stop);
+			if(isNeedRecal) {
+				t.model.workbook.dependencyFormulas.lockRecal();
+			}*/
+
 			//TODO check filtering mode
 			var oldExcludeCollapsed = t.model.bExcludeCollapsed;
 			t.model.bExcludeCollapsed = true;
@@ -17385,6 +17398,10 @@
 			t.model.bExcludeCollapsed = oldExcludeCollapsed;
 
 			History.EndTransaction();
+
+			/*if(isNeedRecal) {
+				t.model.workbook.dependencyFormulas.unlockRecal();
+			}*/
 		};
 
 		this._isLockedAll(onChangeWorksheetCallback);

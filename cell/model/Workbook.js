@@ -4906,7 +4906,9 @@
 				});
 			}
 		}
-		this.workbook.dependencyFormulas.calcTree();
+		if(this.needRecalFormulas(start, stop)) {
+			this.workbook.dependencyFormulas.calcTree();
+		}
 	};
 	Worksheet.prototype.getRowHidden=function(index){
 		var res;
@@ -4987,7 +4989,9 @@
 				History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_RowHide, oThis.getId(),updateRange, new UndoRedoData_FromToRowCol(bHidden, startIndex, endIndex));
 			}
 		}
-		this.workbook.dependencyFormulas.calcTree();
+		if(this.needRecalFormulas(start, stop)) {
+			this.workbook.dependencyFormulas.calcTree();
+		}
 	};
 	//TODO
 	Worksheet.prototype.setCollapsedRow = function (bCollapse, rowIndex, curRow) {
@@ -6970,6 +6974,28 @@
 				stream.XlsbSkipRecord();
 			}
 		}
+	};
+	//need recalculate formulas after change rows
+	Worksheet.prototype.needRecalFormulas = function(start, stop) {
+		//TODO в данном случае необходим пересчёт только тез формул, которые зависят от данных строк + те, которые
+		// меняют своё значение в зависимости от скрытия/раскрыватия строк
+		var res = false;
+
+		if(this.AutoFilter && this.AutoFilter.isApplyAutoFilter()) {
+			return true;
+		}
+
+		var tableParts = this.TableParts;
+		var tablePart;
+		for (var i = 0; i < tableParts.length; i++) {
+			tablePart = tableParts[i];
+			if (tablePart && tablePart.isApplyAutoFilter() && start >= tablePart.Ref.r1 && stop <= tablePart.Ref.r2) {
+				res = true;
+				break;
+			}
+		}
+
+		return res;
 	};
 //-------------------------------------------------------------------------------------------------
 	var g_nCellOffsetFlag = 0;
