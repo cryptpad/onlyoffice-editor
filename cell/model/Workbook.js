@@ -6790,6 +6790,9 @@
 		}
 		return res;
 	};
+	Worksheet.prototype.getDisablePrompts = function () {
+		return this.dataValidations && this.dataValidations.disablePrompts;
+	};
 	Worksheet.prototype.getDataValidation = function (c, r) {
 		if (!this.dataValidations) {
 			return null;
