@@ -15493,7 +15493,7 @@
 			t.model.workbook.dependencyFormulas.lockRecal();
 
             t.model.autoFilters.convertTableToRange(tableName);
-            t._onUpdateFormatTable(tableRange, false, true);
+            t._onUpdateFormatTable(lockRange, false, true);
 
 			t.model.workbook.dependencyFormulas.unlockRecal();
 
