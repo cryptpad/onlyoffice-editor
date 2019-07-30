@@ -17244,10 +17244,10 @@
 
 		functionModelAction = function () {
 			//AscCommonExcel.checkFilteringMode(function () {
-				/*var isNeedRecal = t.model.needRecalFormulas(start, stop);
+				var isNeedRecal = !bCol ? t.model.needRecalFormulas(start, end) : null;
 				if(isNeedRecal) {
 					t.model.workbook.dependencyFormulas.lockRecal();
-				}*/
+				}
 
 				History.Create_NewPoint();
 				History.StartTransaction();
@@ -17315,9 +17315,9 @@
 				//updateDrawingObjectsInfo = {target: c_oTargetType.RowResize, row: arn.r1};
 
 				History.EndTransaction();
-				/*if(isNeedRecal) {
+				if(isNeedRecal) {
 					t.model.workbook.dependencyFormulas.unlockRecal();
-				}*/
+				}
 			//});
 		};
 		this._isLockedAll(onChangeWorksheetCallback);
@@ -17363,19 +17363,32 @@
 			History.Create_NewPoint();
 			History.StartTransaction();
 
-			/*var isNeedRecal = t.needRecalFormulas(start, stop);
+			var isNeedRecal = false;
+			if(!bCol) {
+				for(var i = 0; i <= level; i++) {
+					if(!groupArr[i]) {
+						continue;
+					}
+					for(var j = 0; j < groupArr[i].length; j++) {
+						isNeedRecal = t.model.needRecalFormulas(groupArr[i][j].start, groupArr[i][j].end);
+						if(isNeedRecal) {
+							break;
+						}
+					}
+				}
+			}
 			if(isNeedRecal) {
 				t.model.workbook.dependencyFormulas.lockRecal();
-			}*/
+			}
 
 			//TODO check filtering mode
 			var oldExcludeCollapsed = t.model.bExcludeCollapsed;
 			t.model.bExcludeCollapsed = true;
-			for(var i = 0; i <= level; i++) {
+			for(i = 0; i <= level; i++) {
 				if(!groupArr[i]) {
 					continue;
 				}
-				for(var j = 0; j < groupArr[i].length; j++) {
+				for(j = 0; j < groupArr[i].length; j++) {
 					if(bCol) {
 						t.model.setColHidden(i >= level, groupArr[i][j].start, groupArr[i][j].end);
 						if(window["AscCommonExcel"].summaryRight) {
@@ -17399,9 +17412,9 @@
 
 			History.EndTransaction();
 
-			/*if(isNeedRecal) {
+			if(isNeedRecal) {
 				t.model.workbook.dependencyFormulas.unlockRecal();
-			}*/
+			}
 		};
 
 		this._isLockedAll(onChangeWorksheetCallback);
