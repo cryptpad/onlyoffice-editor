@@ -16958,18 +16958,22 @@
 	};
 
 	WorksheetView.prototype._getGroupButtonSize = function () {
-		var headersWidth = this.headersWidth;
-		if(!headersWidth) {
+		var zoom = this.getZoom();
+		if(zoom > 1) {
+			zoom = 1;
+		}
+		//var headersWidth = this.headersWidth;
+		//if(!headersWidth) {
 			var numDigit = Math.max(AscCommonExcel.calcDecades(this.visibleRange.r2 + 1), 3);
 			var nCharCount = this.model.charCountToModelColWidth(numDigit);
-			headersWidth = Asc.round(this.model.modelColWidthToColWidth(nCharCount) * this.getZoom());
-		}
-		var headersHeight = this.headersHeight;
-		if(!headersHeight) {
-			headersHeight = Asc.round(this.headersHeightByFont * this.getZoom());
-		}
+			var headersWidth = Asc.round(this.model.modelColWidthToColWidth(nCharCount) * zoom);
+		//}
+		//var headersHeight = this.headersHeight;
+		//if(!headersHeight) {
+			var headersHeight = Asc.round(this.headersHeightByFont * zoom);
+		//}
 
-		return Math.min(Math.floor(16 * this.getZoom()), headersWidth - 1, headersHeight - 1);
+		return Math.min(Math.floor(16 * zoom), headersWidth - 1, headersHeight - 1);
 	};
 
 	WorksheetView.prototype.groupRowClick = function (x, y, target, type) {
