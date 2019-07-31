@@ -6326,7 +6326,11 @@
             offsetX = this._getColLeft(this.visibleRange.c1) - this.cellsLeft - diffWidth;
             offsetY = this._getRowTop(this.visibleRange.r1) - this.cellsTop - diffHeight;
             this._drawGrid(null, range);
-			this._drawGroupData(null, range);
+			if(dx !== 0) {
+				this._drawGroupData(null);
+			} else {
+				this._drawGroupData(null, range);
+			}
 
             this._drawCellsAndBorders(null, range);
             this.af_drawButtons(range, offsetX, offsetY);
