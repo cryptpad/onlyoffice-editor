@@ -5643,13 +5643,13 @@ CMathContent.prototype.private_CanAutoCorrectText = function(AutoCorrectEngine, 
         var CheckString = AutoCorrectElement[0];
         var CheckStringLen = CheckString.length;
 
-        if (ElCount < CheckStringLen) {
+        if (ElCount - IndexAdd < CheckStringLen) {
             continue;
         }
         var Found = true;
         for (var nStringPos = 0; nStringPos < CheckStringLen; nStringPos++) {
             var LastEl = AutoCorrectEngine.Elements[ElCount - nStringPos - 1 - IndexAdd];
-            if (String.fromCharCode(LastEl.Element.value) !== CheckString[CheckStringLen - nStringPos - 1]) {
+            if (LastEl && String.fromCharCode(LastEl.Element.value) !== CheckString[CheckStringLen - nStringPos - 1]) {
                 Found = false;
                 break;
             }
