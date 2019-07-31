@@ -3162,8 +3162,8 @@ CShape.prototype.recalculateLocalTransform = function(transform)
                 {
                     if(this.parent && this.parent.Extent && AscFormat.isRealNumber(this.parent.Extent.W) && AscFormat.isRealNumber(this.parent.Extent.H))
                     {
-                        this.x = 0;
-                        this.y = 0;
+                        // this.x = 0;
+                        // this.y = 0;
                         this.extX = this.parent.Extent.W;
                         this.extY = this.parent.Extent.H;
                     }
@@ -3173,13 +3173,13 @@ CShape.prototype.recalculateLocalTransform = function(transform)
                     var oParaDrawing = getParaDrawing(this);
                     if(oParaDrawing)
                     {
-                        this.x = 0;
-                        this.y = 0;
+                        // this.x = 0;
+                        // this.y = 0;
 
                         if(oParaDrawing.Extent && AscFormat.isRealNumber(oParaDrawing.Extent.W) && AscFormat.isRealNumber(oParaDrawing.Extent.H))
                         {
-                            this.x = 0;
-                            this.y = 0;
+                            // this.x = 0;
+                            // this.y = 0;
                             this.extX = oParaDrawing.Extent.W;
                             this.extY = oParaDrawing.Extent.H;
                         }

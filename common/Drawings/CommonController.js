@@ -560,8 +560,16 @@ function CheckSpPrXfrm(object, bNoResetAutofit)
     {
         object.spPr.setXfrm(new AscFormat.CXfrm());
         object.spPr.xfrm.setParent(object.spPr);
-        object.spPr.xfrm.setOffX(object.x);
-        object.spPr.xfrm.setOffY(object.y);
+        if(object.parent && object.parent.GraphicObj === object)
+        {
+            object.spPr.xfrm.setOffX(0);
+            object.spPr.xfrm.setOffY(0);
+        }
+        else
+        {
+            object.spPr.xfrm.setOffX(object.x);
+            object.spPr.xfrm.setOffY(object.y);
+        }
         object.spPr.xfrm.setExtX(object.extX);
         object.spPr.xfrm.setExtY(object.extY);
         if(bNoResetAutofit !== true)
@@ -604,8 +612,16 @@ function CheckSpPrXfrm2(object)
             {
                 object.spPr.setXfrm(new AscFormat.CXfrm());
                 object.spPr.xfrm.setParent(object.spPr);
-                object.spPr.xfrm.setOffX(AscFormat.isRealNumber(object.x) ? object.x : 0);
-                object.spPr.xfrm.setOffY(AscFormat.isRealNumber(object.y) ? object.x : 0);
+                if(object.parent && object.parent.GraphicObj === object)
+                {
+                    object.spPr.xfrm.setOffX(0);
+                    object.spPr.xfrm.setOffY(0);
+                }
+                else
+                {
+                    object.spPr.xfrm.setOffX(AscFormat.isRealNumber(object.x) ? object.x : 0);
+                    object.spPr.xfrm.setOffY(AscFormat.isRealNumber(object.y) ? object.x : 0);
+                }
                 object.spPr.xfrm.setExtX(AscFormat.isRealNumber(object.extX) ? object.extX : 0);
                 object.spPr.xfrm.setExtY(AscFormat.isRealNumber(object.extY) ? object.extY : 0);
             }
@@ -621,11 +637,18 @@ function CheckSpPrXfrm2(object)
             object.spPr.xfrm.setParent(object.spPr);
         }
         var oXfrm = object.spPr.xfrm;
-        if(oXfrm.offX === null || !AscFormat.fApproxEqual(object.x, oXfrm.offX, 0.01)) {
-            object.spPr.xfrm.setOffX(object.x);
+        var _x = object.x;
+        var _y = object.y;
+        if(object.parent && object.parent.GraphicObj === object)
+        {
+             _x = 0.0;
+             _y = 0.0;
         }
-        if(oXfrm.offY === null || !AscFormat.fApproxEqual(object.y, oXfrm.offY, 0.01)) {
-            object.spPr.xfrm.setOffY(object.y);
+        if(oXfrm.offX === null || !AscFormat.fApproxEqual(_x, oXfrm.offX, 0.01)) {
+            object.spPr.xfrm.setOffX(_x);
+        }
+        if(oXfrm.offY === null || !AscFormat.fApproxEqual(_y, oXfrm.offY, 0.01)) {
+            object.spPr.xfrm.setOffY(_y);
         }
         if(oXfrm.extX === null || !AscFormat.fApproxEqual(object.extX, oXfrm.extX, 0.01)) {
             object.spPr.xfrm.setExtX(object.extX);
