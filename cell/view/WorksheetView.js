@@ -16301,7 +16301,8 @@
 		var thickLineDiff = AscCommon.AscBrowser.isRetina ? 0.5 : 0;
 		var tempButtonMap = [];//чтобы не рисовать точки там где кпопки
 		var bFirstLine = true;
-		var buttonSize = AscCommon.AscBrowser.convertToRetinaValue(Math.floor(16 * zoom), true);
+		var _buttonSize = this._getGroupButtonSize();
+		var buttonSize = AscCommon.AscBrowser.convertToRetinaValue(_buttonSize, true);
 		var padding = AscCommon.AscBrowser.convertToRetinaValue(1, true);
 		var buttons = [];
 		var endPosArr = {};
@@ -16694,7 +16695,8 @@
 		if(zoom > 1) {
 			zoom = 1;
 		}
-		var buttonSize = AscCommon.AscBrowser.convertToRetinaValue(Math.floor(16 * zoom), true);
+		var _buttonSize = this._getGroupButtonSize();
+		var buttonSize = AscCommon.AscBrowser.convertToRetinaValue(_buttonSize, true);
 		var padding = AscCommon.AscBrowser.convertToRetinaValue(1, true);
 
 		if(bCol) {
@@ -16815,6 +16817,10 @@
 		ctx.stroke();
 		ctx.closePath();
 
+		if(false === this.model.getSheetView().asc_getShowRowColHeaders()) {
+			return;
+		}
+
 		if(groupData.groupArr.length) {
 			for(var i = 0; i < groupData.groupArr.length; i++) {
 				this._drawGroupDataMenuButton(ctx, i, null, null, bCol);
@@ -16886,8 +16892,9 @@
 		if(zoom > 1) {
 			zoom = 1;
 		}
+		var _buttonSize = this._getGroupButtonSize();
 		var padding =  AscCommon.AscBrowser.convertToRetinaValue(1, true);
-		var buttonSize =  AscCommon.AscBrowser.convertToRetinaValue(Math.floor(16 * zoom), true) - padding;
+		var buttonSize =  AscCommon.AscBrowser.convertToRetinaValue(_buttonSize, true) - padding;
 
 		//TODO учитывать будущий отступ для группировке колонок!
 		var x, y;
@@ -16944,10 +16951,25 @@
 				}
 			}*/
 
-			var section = Math.floor(16 * zoom);
-			res = padding * 2 + section + section * level;
+			var _buttonSize = this._getGroupButtonSize();
+			res = padding * 2 + _buttonSize + _buttonSize * level;
 		}
 		return AscCommon.AscBrowser.convertToRetinaValue(res, true);
+	};
+
+	WorksheetView.prototype._getGroupButtonSize = function () {
+		var headersWidth = this.headersWidth;
+		if(!headersWidth) {
+			var numDigit = Math.max(AscCommonExcel.calcDecades(this.visibleRange.r2 + 1), 3);
+			var nCharCount = this.model.charCountToModelColWidth(numDigit);
+			headersWidth = Asc.round(this.model.modelColWidthToColWidth(nCharCount) * this.getZoom());
+		}
+		var headersHeight = this.headersHeight;
+		if(!headersHeight) {
+			headersHeight = Asc.round(this.headersHeightByFont * this.getZoom());
+		}
+
+		return Math.min(Math.floor(16 * this.getZoom()), headersWidth - 1, headersHeight - 1);
 	};
 
 	WorksheetView.prototype.groupRowClick = function (x, y, target, type) {
