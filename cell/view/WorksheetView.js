@@ -15312,9 +15312,25 @@
         var intersectionTableParts = ws.autoFilters.getTableIntersectionRange(activeRange);
         var isPartTablePartsUnderRange = ws.autoFilters._isPartTablePartsUnderRange(activeRange);
         var isPartTablePartsRightRange = ws.autoFilters.isPartTablePartsRightRange(activeRange);
-        var isOneTableIntersection = intersectionTableParts && intersectionTableParts.length === 1 ?
-          intersectionTableParts[0] : null;
+        var isOneTableIntersection = intersectionTableParts && intersectionTableParts.length === 1 ? intersectionTableParts[0] : null;
 
+		var isPartTablePartsByRowCol = ws.autoFilters._isPartTablePartsByRowCol(activeRange);
+		//var isPartTablePartsRows = ws.autoFilters._isPartTablePartsUnderRange(activeRange);
+
+		var allTablesInside = null;
+		if(intersectionTableParts && intersectionTableParts.length) {
+			allTablesInside = true;
+			for(var i = 0; i < intersectionTableParts.length; i++) {
+				if(intersectionTableParts[i] && intersectionTableParts[i].Ref && !activeRange.containsRange(intersectionTableParts[i].Ref)) {
+					allTablesInside = false;
+					break;
+				}
+			}
+		}
+
+		//TODO перепроверить ->
+		//когда выделено несколько колонок и нажимаем InsertCellsAndShiftRight(аналогично со строками)
+		//ms в данном случае выдаёт ошибку, но пока не вижу никаких ограничений для данного действия
         var checkInsCells = function () {
             switch (val) {
                 case c_oAscInsertOptions.InsertCellsAndShiftDown:
@@ -15331,11 +15347,13 @@
                     } else {
                         if (isPartTablePartsUnderRange) {
                             res = false;
-                        } else if (intersectionTableParts && null !== isOneTableIntersection) {
+                        } /*else if (intersectionTableParts && null !== isOneTableIntersection) {
                             res = false;
                         } else if (isOneTableIntersection && !isOneTableIntersection.Ref.isEqual(activeRange)) {
                             res = false;
-                        }
+                        }*/ else if(isPartTablePartsByRowCol && isPartTablePartsByRowCol.cols) {
+							res = false;
+						}
                     }
 
                     break;
@@ -15350,11 +15368,13 @@
                     } else {
                         if (isPartTablePartsRightRange) {
                             res = false;
-                        } else if (intersectionTableParts && null !== isOneTableIntersection) {
+                        } /*else if (intersectionTableParts && null !== isOneTableIntersection) {
                             res = false;
                         } else if (isOneTableIntersection && !isOneTableIntersection.Ref.isEqual(activeRange)) {
                             res = false;
-                        }
+                        } */else if(isPartTablePartsByRowCol && isPartTablePartsByRowCol.rows) {
+							res = false;
+						}
                     }
 
                     break;
@@ -15383,11 +15403,13 @@
                     } else {
                         if (isPartTablePartsUnderRange) {
                             res = false;
-                        } else if (!isOneTableIntersection && null !== isOneTableIntersection) {
+                        } /*else if (!isOneTableIntersection && null !== isOneTableIntersection) {
                             res = false;
                         } else if (isOneTableIntersection && !isOneTableIntersection.Ref.isEqual(activeRange)) {
                             res = false;
-                        }
+                        }*/ else if(!allTablesInside) {
+							res = false;
+						}
                     }
 
                     break;
@@ -15401,11 +15423,13 @@
                     } else {
                         if (isPartTablePartsRightRange) {
                             res = false;
-                        } else if (!isOneTableIntersection && null !== isOneTableIntersection) {
+                        } /*else if (!isOneTableIntersection && null !== isOneTableIntersection) {
                             res = false;
                         } else if (isOneTableIntersection && !isOneTableIntersection.Ref.isEqual(activeRange)) {
                             res = false;
-                        }
+                        }*/ else if(!allTablesInside) {
+							res = false;
+						}
                     }
 
                     break;
