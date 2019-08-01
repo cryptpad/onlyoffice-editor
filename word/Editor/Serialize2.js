@@ -15918,7 +15918,7 @@ OpenParStruct.prototype = {
         if (this.stack.length > 1) {
             var oPrevElem = this.stack.pop();
             this.cur = this.stack[this.stack.length - 1];
-            var elem = oPrevElem.elem;
+            var elem = oPrevElem;
             if (null != elem && elem.Content) {
                 if (para_Field == elem.Get_Type() && (fieldtype_PAGENUM == elem.Get_FieldType() || fieldtype_PAGECOUNT == elem.Get_FieldType())) {
                     var oNewRun = new ParaRun(this.paragraph);
