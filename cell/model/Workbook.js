@@ -5995,7 +5995,7 @@
 		this.workbook.updateSparklineCache(this.sName, ranges);
 		// ToDo do not update conditional formatting on hidden sheet
 		this.setDirtyConditionalFormatting(new AscCommonExcel.MultiplyRange(ranges));
-		this.workbook.handlers.trigger("toggleAutoCorrectOptions", null,true);
+		//this.workbook.handlers.trigger("toggleAutoCorrectOptions", null,true);
 		this.clearFindResults();
 	};
 	Worksheet.prototype.updateSparklineCache = function(sheet, ranges) {

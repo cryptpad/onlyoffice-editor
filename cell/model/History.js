@@ -224,7 +224,7 @@ CHistory.prototype.Clear = function()
   this.UserSavedIndex = null;
 
 	window['AscCommon'].g_specialPasteHelper.SpecialPasteButton_Hide();
-	this.workbook.handlers.trigger("toggleAutoCorrectOptions");
+	this.workbook.handlers.trigger("toggleAutoCorrectOptions", null, true);
 	//this.workbook.handlers.trigger("cleanCutData");
 	this._sendCanUndoRedo();
 };
@@ -731,7 +731,7 @@ CHistory.prototype.Create_NewPoint = function()
     this.Points.length = this.Index + 1;
 
 	window['AscCommon'].g_specialPasteHelper.SpecialPasteButton_Hide();
-	this.workbook.handlers.trigger("toggleAutoCorrectOptions");
+	this.workbook.handlers.trigger("toggleAutoCorrectOptions", null, true);
 	//this.workbook.handlers.trigger("cleanCutData");
 
 	return true;
