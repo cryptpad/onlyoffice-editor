@@ -317,6 +317,7 @@
     /**
      * Widget for displaying and editing Worksheet object
      * -----------------------------------------------------------------------------
+	 * @param {WorkbookView} workbook  WorkbookView
      * @param {Worksheet} model  Worksheet
      * @param {AscCommonExcel.asc_CHandlersList} handlers  Event handlers
      * @param {Object} buffers    DrawingContext + Overlay
