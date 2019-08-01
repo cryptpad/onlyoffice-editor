@@ -13013,7 +13013,7 @@
 					};
 
 					var dataValidation = t.model.getDataValidation(col, row);
-					if (dataValidation && !dataValidation.checkValue(val, this.model)) {
+					if (dataValidation && !dataValidation.checkValue(val, t.model)) {
 						t.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.DataValidate, c_oAscError.Level.NoCritical, dataValidation);
 						return false;
 					}
