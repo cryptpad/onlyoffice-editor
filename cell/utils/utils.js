@@ -1712,6 +1712,11 @@
 				return pv + cv.text;
 			}, "");
 		}
+		function getFragmentsLength(f) {
+			return f.length > 0 ? f.reduce(function (pv, cv) {
+				return pv + cv.text.length;
+			}, 0) : 0;
+		}
 
 		function executeInR1C1Mode(mode, runFunction) {
 			var oldMode = AscCommonExcel.g_R1C1Mode;
@@ -2620,6 +2625,7 @@
 		window["Asc"].isFixedWidthCell = isFixedWidthCell;
 		window["AscCommonExcel"].dropDecimalAutofit = dropDecimalAutofit;
 		window["AscCommonExcel"].getFragmentsText = getFragmentsText;
+		window['AscCommonExcel'].getFragmentsLength = getFragmentsLength;
 		window['AscCommonExcel'].executeInR1C1Mode = executeInR1C1Mode;
 		window['AscCommonExcel'].checkFilteringMode = checkFilteringMode;
 		window["Asc"].getEndValueRange = getEndValueRange;

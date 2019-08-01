@@ -367,7 +367,7 @@
 
 		if (saveValue) {
 			// Пересчет делаем всегда для не пустой ячейки или если были изменения. http://bugzilla.onlyoffice.com/show_bug.cgi?id=34864
-			if (0 < this.undoList.length || 0 < this._getFragmentsLength(this.options.fragments)) {
+			if (0 < this.undoList.length || 0 < AscCommonExcel.getFragmentsLength(this.options.fragments)) {
 				var isFormula = this.isFormula();
 				// Делаем замену текста на автодополнение, если есть select и текст полностью совпал.
 				if (this.sAutoComplete && !isFormula) {
@@ -638,7 +638,7 @@
 		if (!(fragments.length > 0)) {
 			return;
 		}
-		var length = this._getFragmentsLength(fragments);
+		var length = AscCommonExcel.getFragmentsLength(fragments);
 		if (!this._checkMaxCellLength(length)) {
 			return;
 		}
@@ -2092,7 +2092,7 @@
 		// merge fragments with equal formats
 		t._mergeFragments();
 
-		t.cursorPos = pos + t._getFragmentsLength( f );
+		t.cursorPos = pos + AscCommonExcel.getFragmentsLength(f);
 		if ( !t.noUpdateMode ) {
 			t._update();
 		}
@@ -2135,12 +2135,6 @@
 				f.setSize(t.options.font.getSize());
 			}
 		}
-	};
-
-	CellEditor.prototype._getFragmentsLength = function ( f ) {
-		return f.length > 0 ? f.reduce( function ( pv, cv ) {
-			return pv + cv.text.length;
-		}, 0 ) : 0;
 	};
 
 	CellEditor.prototype._setFormatProperty = function (format, prop, val) {
@@ -2215,7 +2209,7 @@
 		}
 		else if ( action.fn === t._addFragments ) {
 			pos = action.args[1];
-			len = t._getFragmentsLength( action.args[0] );
+			len = AscCommonExcel.getFragmentsLength(action.args[0]);
 			list2.push( {fn: t._removeChars, args: [pos, len], isRange: action.isRange} );
 		}
 		else {
@@ -2288,7 +2282,7 @@
 	};
 
 	CellEditor.prototype._checkMaxCellLength = function ( length ) {
-		var newLength = this._getFragmentsLength( this.options.fragments ) + length;
+		var newLength = AscCommonExcel.getFragmentsLength( this.options.fragments ) + length;
 		var maxLength = Asc.c_oAscMaxCellOrCommentLength;
 		// Ограничение на ввод
 		if ( newLength > maxLength ) {
@@ -2298,7 +2292,7 @@
 
 			var b = Math.min( this.selectionBegin, this.selectionEnd );
 			var e = Math.max( this.selectionBegin, this.selectionEnd );
-			if ( newLength - this._getFragmentsLength( this._getFragments( b, e - b ) ) > maxLength ) {
+			if ( newLength - AscCommonExcel.getFragmentsLength(this._getFragments( b, e - b ) ) > maxLength) {
 				return false;
 			}
 		}
@@ -2330,7 +2324,7 @@
 		t.skipTLUpdate = false;
 
 		// определение ввода иероглифов
-		if (t.isTopLineActive && t._getFragmentsLength(t.options.fragments) !== t.input.value.length) {
+		if (t.isTopLineActive && AscCommonExcel.getFragmentsLength(t.options.fragments) !== t.input.value.length) {
 			hieroglyph = true;
 		}
 
@@ -2696,7 +2690,7 @@
 			}
 
 			// определение ввода иероглифов
-			if (t.isTopLineActive && t._getFragmentsLength(t.options.fragments) !== t.input.value.length) {
+			if (t.isTopLineActive && AscCommonExcel.getFragmentsLength(t.options.fragments) !== t.input.value.length) {
 				t._syncEditors();
 			}
 
