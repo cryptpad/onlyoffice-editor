@@ -15317,9 +15317,8 @@
 		var isPartTablePartsByRowCol = ws.autoFilters._isPartTablePartsByRowCol(activeRange);
 		//var isPartTablePartsRows = ws.autoFilters._isPartTablePartsUnderRange(activeRange);
 
-		var allTablesInside = null;
+		var allTablesInside = true;
 		if(intersectionTableParts && intersectionTableParts.length) {
-			allTablesInside = true;
 			for(var i = 0; i < intersectionTableParts.length; i++) {
 				if(intersectionTableParts[i] && intersectionTableParts[i].Ref && !activeRange.containsRange(intersectionTableParts[i].Ref)) {
 					allTablesInside = false;
