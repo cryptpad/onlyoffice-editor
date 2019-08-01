@@ -196,10 +196,46 @@
 		}
 		return false;
 	};
-	CDataValidation.prototype.checkValue = function (val) {
-		var res = true;
+	CDataValidation.prototype.checkValue = function (val, ws) {
+		var res = false;
 		if (this.showErrorMessage) {
-			var value = (this.type === EDataValidationType.TextLength) ? AscCommonExcel.getFragmentsLength(val) : AscCommonExcel.getFragmentsText(val);
+			val = (this.type === EDataValidationType.TextLength) ? AscCommonExcel.getFragmentsLength(val) : AscCommonExcel.getFragmentsText(val);
+			if (EDataValidationType.List === this.type) {
+
+			} else if (EDataValidationType.Custom === this.type) {
+			} else {
+				val = Number(val);
+				if (!isNaN(val)) {
+					var v1 = this.formula1 && this.formula1.getValue(this.type, ws);
+					var v2 = this.formula2 && this.formula2.getValue(this.type, ws);
+					switch (this.operator) {
+						case EDataValidationOperator.Between:
+							res = v1 <= val && val <= v2;
+							break;
+						case EDataValidationOperator.NotBetween:
+							res = !(v1 <= val && val <= v2);
+							break;
+						case EDataValidationOperator.Equal:
+							res = v1 === val;
+							break;
+						case EDataValidationOperator.NotEqual:
+							res = v1 !== val;
+							break;
+						case EDataValidationOperator.LessThan:
+							res = v1 > val;
+							break;
+						case EDataValidationOperator.LessThanOrEqual:
+							res = v1 >= val;
+							break;
+						case EDataValidationOperator.GreaterThan:
+							res = v1 < val;
+							break;
+						case EDataValidationOperator.GreaterThanOrEqual:
+							res = v1 <= val;
+							break;
+					}
+				}
+			}
 		}
 		return res;
 	};
