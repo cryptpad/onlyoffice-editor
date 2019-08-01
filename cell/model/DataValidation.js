@@ -114,10 +114,15 @@
 
 		this.type = EFormulaType.Formula;
 		this._formula = new AscCommonExcel.parserFormula(this.text, null, ws);
+		this._formula.parse();
 	};
 	CDataFormula.prototype.getValue = function(vt, ws) {
 		this._init(vt, ws);
-		return (EFormulaType.Formula === this.type) ? this._formula.calculate() : this._formula;
+		if (EFormulaType.Formula === this.type) {
+			var res = this._formula.calculate();
+			return this._formula.simplifyRefType(res).getValue();
+		}
+		return this._formula;
 	};
 
 	function CDataValidation() {
