@@ -4956,11 +4956,31 @@ Asc['asc_docs_api'].prototype.AddImageUrlNative = function(url, _w, _h, _pageNum
 };
 Asc['asc_docs_api'].prototype.AddImageUrlActionNative = function(src, _w, _h, _pageNum)
 {
-  var ColumnSize = this.WordControl.m_oLogicDocument.GetColumnSize();
-  var __w = Math.max((_w * AscCommon.g_dKoef_pix_to_mm), 1);
-  var __h = Math.max((_h * AscCommon.g_dKoef_pix_to_mm), 1);
-  _w = Math.max(5, Math.min(_w, __w));
-  _h = Math.max(5, Math.min((_w * __h / __w)));
+  var section_select = this.WordControl.m_oLogicDocument.Get_PageSizesByDrawingObjects();
+  var page_width = AscCommon.Page_Width;
+  var page_height = AscCommon.Page_Height;
+  var page_x_left_margin = AscCommon.X_Left_Margin;
+  var page_y_top_margin = AscCommon.Y_Top_Margin;
+  var page_x_right_margin = AscCommon.X_Right_Margin;
+  var page_y_bottom_margin = AscCommon.Y_Bottom_Margin;
+
+  var boundingWidth  = Math.max(1, page_width  - (page_x_left_margin + page_x_right_margin));
+  var boundingHeight = Math.max(1, page_height - (page_y_top_margin  + page_y_bottom_margin));
+
+  var w = Math.max(_w * AscCommon.g_dKoef_pix_to_mm, 1);
+  var h = Math.max(_h * AscCommon.g_dKoef_pix_to_mm, 1);
+                                        
+  var mW = boundingWidth  / w;
+  var mH = boundingHeight / h;
+
+  if (mH < mW) {
+    boundingWidth  = boundingHeight / h * w;
+  } else if (mW < mH) {
+    boundingHeight = boundingWidth  / w * h;
+  }
+
+  _w = Math.max(5, boundingWidth);
+  _h = Math.max(5, boundingHeight);  
 
   if (this.isShapeImageChangeUrl)
   {
