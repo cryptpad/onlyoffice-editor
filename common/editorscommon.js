@@ -137,6 +137,12 @@
 		};
 		String.prototype['padStart'] = String.prototype.padStart;
 	}
+	Number.isInteger = Number.isInteger || function(value) {
+		return typeof value === 'number' && Number.isFinite(value) && !(value % 1);
+	};
+	Number.isFinite = Number.isFinite || function(value) {
+		return typeof value === 'number' && isFinite(value);
+	};
 // Extend javascript String type
 	String.prototype.strongMatch = function (regExp)
 	{
