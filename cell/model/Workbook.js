@@ -5828,12 +5828,12 @@
 	};
 	Worksheet.prototype.getTableRangeForFormula = function(name, objectParam){
 		var res = null;
-		if(!this.TableParts)
+		if(!this.TableParts || !name)
 			return res;
 
 		for(var i = 0; i < this.TableParts.length; i++)
 		{
-			if(this.TableParts[i].DisplayName === name)
+			if(this.TableParts[i].DisplayName.toLowerCase() === name.toLowerCase())
 			{
 				res = this.TableParts[i].getTableRangeForFormula(objectParam);
 				break;
@@ -5843,12 +5843,12 @@
 	};
 	Worksheet.prototype.getTableIndexColumnByName = function(tableName, columnName){
 		var res = null;
-		if(!this.TableParts)
+		if(!this.TableParts || !tableName)
 			return res;
 
 		for(var i = 0; i < this.TableParts.length; i++)
 		{
-			if(this.TableParts[i].DisplayName === tableName)
+			if(this.TableParts[i].DisplayName.toLowerCase() === tableName.toLowerCase())
 			{
 				res = this.TableParts[i].getTableIndexColumnByName(columnName);
 				break;
@@ -5858,12 +5858,12 @@
 	};
 	Worksheet.prototype.getTableNameColumnByIndex = function(tableName, columnIndex){
 		var res = null;
-		if(!this.TableParts)
+		if(!this.TableParts || !tableName)
 			return res;
 
 		for(var i = 0; i < this.TableParts.length; i++)
 		{
-			if(this.TableParts[i].DisplayName === tableName)
+			if(this.TableParts[i].DisplayName.toLowerCase() === tableName.toLowerCase())
 			{
 				res = this.TableParts[i].getTableNameColumnByIndex(columnIndex);
 				break;
@@ -5873,12 +5873,12 @@
 	};
 	Worksheet.prototype.getTableByName = function(tableName){
 		var res = null;
-		if(!this.TableParts)
+		if(!this.TableParts || !tableName)
 			return res;
 
 		for(var i = 0; i < this.TableParts.length; i++)
 		{
-			if(this.TableParts[i].DisplayName === tableName)
+			if(this.TableParts[i].DisplayName.toLowerCase() === tableName.toLowerCase())
 			{
 				res = this.TableParts[i];
 				break;
