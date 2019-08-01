@@ -2881,8 +2881,12 @@
 		{
 			var ws = this.aWorksheets[i];
 			res = ws.getTableIndexColumnByName(tableName, columnName);
+			//получаем имя через getTableNameColumnByIndex поскольку tableName приходит в том виде
+			//в котором набрал пользователь, те регистр может быть произвольным
+			//todo для того, чтобы два раза не бежать по колонкам можно сделать функцию которая возвращает полную информацию о колонке
+			//
 			if(res !== null){
-				res = {wsID:ws.getId(), index: res, name: columnName};
+				res = {wsID:ws.getId(), index: res, name: ws.getTableNameColumnByIndex(tableName, res)};
 				break;
 			}
 		}
