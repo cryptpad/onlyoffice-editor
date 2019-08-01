@@ -76,6 +76,67 @@
 		GreaterThanOrEqual: 7
 	};
 
+	var EFormulaType = {
+		None: 0,
+		Whole: 1,
+		Decimal: 2,
+		Formula: 3
+	};
+
+	function CDataFormula(value) {
+		this.text = value;
+		this._formula = null;
+		this.type = EFormulaType.None;
+	}
+
+	CDataFormula.prototype._init = function (vt, ws) {
+		if (this._formula || !this.text) {
+			return;
+		}
+
+		var value = null;
+		if (vt !== EDataValidationType.Custom && vt !== EDataValidationType.List) {
+			value = Number(this.text);
+			if (!isNaN(value)) {
+				if (vt !== EDataValidationType.Decimal && vt !== EDataValidationType.Time) {
+					if (Number.isInteger(value)) {
+						this.type = EFormulaType.Whole;
+						this._formula = value;
+						return;
+					}
+				} else {
+					this.type = EFormulaType.Decimal;
+					this._formula = value;
+					return;
+				}
+			}
+		}
+
+		this.type = EFormulaType.Formula;
+		this._formula = new AscCommonExcel.parserFormula(this.text, null, ws);
+
+		switch (this.type) {
+			case EDataValidationType.Custom:
+				break;
+			case EDataValidationType.Date:
+				break;
+			case EDataValidationType.Decimal:
+				break;
+			case EDataValidationType.List:
+				break;
+			case EDataValidationType.TextLength:
+				break;
+			case EDataValidationType.Time:
+				break;
+			case EDataValidationType.Whole:
+				break;
+		}
+	};
+	CDataFormula.prototype.getValue = function(vt, ws) {
+		this._init(vt, ws);
+		return (EFormulaType.Formula === this.type) ? this._formula.calculate() : this._formula;
+	};
+
 	function CDataValidation() {
 		this.ranges = null;
 
@@ -138,22 +199,7 @@
 	CDataValidation.prototype.checkValue = function (val) {
 		var res = true;
 		if (this.showErrorMessage) {
-			switch (this.type) {
-				case EDataValidationType.Custom:
-					break;
-				case EDataValidationType.Date:
-					break;
-				case EDataValidationType.Decimal:
-					break;
-				case EDataValidationType.List:
-					break;
-				case EDataValidationType.TextLength:
-					break;
-				case EDataValidationType.Time:
-					break;
-				case EDataValidationType.Whole:
-					break;
-			}
+			var value = (this.type === EDataValidationType.TextLength) ? AscCommonExcel.getFragmentsLength(val) : AscCommonExcel.getFragmentsText(val);
 		}
 		return res;
 	};
@@ -214,6 +260,7 @@
 	window['Asc'].EDataValidationImeMode = EDataValidationImeMode;
 
 	window['AscCommonExcel'] = window['AscCommonExcel'] || {};
+	window['AscCommonExcel'].CDataFormula = CDataFormula;
 	window['AscCommonExcel'].CDataValidation = CDataValidation;
 	prot = CDataValidation.prototype;
 	prot['asc_getError'] = prot.getError;
