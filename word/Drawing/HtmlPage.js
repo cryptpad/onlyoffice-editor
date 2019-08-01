@@ -210,7 +210,6 @@ function CEditorPage(api)
 
 	this.NoneRepaintPages = false;
 
-	this.isPaintAfterResize = false;
 	this.m_bIsScroll    = false;
 	this.ScrollsWidthPx = 14;
 
@@ -2807,7 +2806,6 @@ function CEditorPage(api)
 
 		this.m_oBoundsController.ClearNoAttack();
 
-        this.isPaintAfterResize = true;
 		this.OnScroll();
 		this.onTimerScroll2_sync();
 
@@ -3308,12 +3306,8 @@ function CEditorPage(api)
 		var context       = canvas.getContext("2d");
 		context.fillStyle = GlobalSkin.BackgroundColor;
 
-		if (this.isPaintAfterResize)
-		{
-            this.isPaintAfterResize = false;
-            if (AscCommon.AscBrowser.isSailfish)
-            	context.fillRect(0, 0, canvas.width, canvas.height);
-		}
+        if (AscCommon.AscBrowser.isSailfish)
+            context.fillRect(0, 0, canvas.width, canvas.height);
 
 		if (this.m_oDrawingDocument.m_lDrawingFirst < 0 || this.m_oDrawingDocument.m_lDrawingEnd < 0)
 			return;
