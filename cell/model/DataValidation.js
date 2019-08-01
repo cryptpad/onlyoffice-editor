@@ -114,23 +114,6 @@
 
 		this.type = EFormulaType.Formula;
 		this._formula = new AscCommonExcel.parserFormula(this.text, null, ws);
-
-		switch (this.type) {
-			case EDataValidationType.Custom:
-				break;
-			case EDataValidationType.Date:
-				break;
-			case EDataValidationType.Decimal:
-				break;
-			case EDataValidationType.List:
-				break;
-			case EDataValidationType.TextLength:
-				break;
-			case EDataValidationType.Time:
-				break;
-			case EDataValidationType.Whole:
-				break;
-		}
 	};
 	CDataFormula.prototype.getValue = function(vt, ws) {
 		this._init(vt, ws);
