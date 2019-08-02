@@ -10184,119 +10184,148 @@ CTable.prototype.AddTableColumn = function(bBefore)
 };
 CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage)
 {
-	//приводим к координатам таблицы
+	// Приводим к координатам таблицы
 	X1 = X1-this.Pages[0].X; 
 	X2 = X2-this.Pages[0].X;
-
-	//если поставили просто точку => выход из функции
-	if (Y1 === Y2)
+	var curColumn = 0; // номер колонки, которую будем делить (колонка страницы, в которой находится таблица)
+	// Рисуем вертикальную линию
+	if (Math.abs(Y2 - Y1) > 2 && Math.abs(X2 - X1) < 3)
+	{
+		//если поставили просто точку => выход из функции
+		if (Y1 === Y2)
 		return;
 
-	//если рисуем линию снизу вверх
-	if (Y1 > Y2)
-	{
-		var cache; 
-		cache = Y2;
-		Y2 = Y1;
-		Y1 = cache;
-	}
+		//если рисуем линию снизу вверх
+		if (Y1 > Y2) {
+			var cache;
+			cache = Y2;
+			Y2 = Y1;
+			Y1 = cache;
+		}
 
-	var Rows = [];        // массив строк подлежащих делению (которые мы режем)
-	var rowsInfo 	= []; // масив строк с ширинами ячеейк (используется для создания новой сетки таблицы)
-	var Grid_spans = [];  //массив грид спанов ячеек, подлежащих делению (используется при добавлении ячеек в таблицу)
-	var curColumn = 0;   // номер колонки, которую будем делить (колонка страницы, в которой находится таблица)
+		var Rows = [];        // массив строк подлежащих делению (которые мы режем)
+		var rowsInfo = []; // масив строк с ширинами ячеейк (используется для создания новой сетки таблицы)
+		var Grid_spans = [];  //массив грид спанов ячеек, подлежащих делению (используется при добавлении ячеек в таблицу)
 
-	// заполняем массив Rows строками, которые попали под режущую линии 
-	if (CurPage === 0)
-	{
-		for (var curRow = 0; curRow < this.Content.length; curRow++)
+		// заполняем массив Rows строками, которые попали под режущую линии 
+		if (CurPage === 0) 
 		{
-			for (var curCell = 0; curCell < this.Content[curRow].CellsInfo.length; curCell++)
-			{
-				if ((X1 >= this.Content[curRow].CellsInfo[curCell].X_cell_start)&&(X2 <= this.Content[curRow].CellsInfo[curCell].X_cell_end))
-				{
-					if (this.RowsInfo[curRow].Y[CurPage] <= Y1 && Y1 < this.RowsInfo[curRow].Y[CurPage] + this.RowsInfo[curRow].H[CurPage])
-					{
-						Rows.push(curRow);
+			for (var curRow = 0; curRow < this.Content.length; curRow++) {
+				for (var curCell = 0; curCell < this.Content[curRow].CellsInfo.length; curCell++) {
+
+					var Cell = this.Content[curRow].Get_Cell(curCell);
+					var Row = this.Content[curRow];
+					var Grid_start = Row.Get_CellInfo(curCell).StartGridCol;
+					var Grid_span  = Cell.Get_GridSpan();
+					var VMerge_count = this.Internal_GetVertMergeCount(curRow, Grid_start, Grid_span);
+					var rowHSum = 0; //высота строки
+
+					if (VMerge_count >= 1){
+						for (Index = curRow; Index < curRow + VMerge_count; Index++){
+							rowHSum += this.RowsInfo[Index].H[CurPage]
+						}
 					}
-					else if (Rows.length === 0)
-						continue;
-					else if (this.RowsInfo[curRow].Y[CurPage] <= Y2)
-						Rows.push(curRow);
+					
+					if ((X1 >= this.Content[curRow].CellsInfo[curCell].X_cell_start) && (X2 <= this.Content[curRow].CellsInfo[curCell].X_cell_end)) {
+						if (this.RowsInfo[curRow].Y[CurPage] <= Y1 && Y1 < this.RowsInfo[curRow].Y[CurPage] + rowHSum) {
+							if (VMerge_count > 1){
+								for (Index = curRow; Index < curRow + VMerge_count; Index++){
+									Rows.push(Index);
+									
+								}
+								curRow += VMerge_count - 1;
+								break;
+							}
+							else
+								Rows.push(curRow);
+						}
+						else if (Rows.length === 0)
+							continue;
+						else if (this.RowsInfo[curRow].Y[CurPage] <= Y2){
+							if (VMerge_count > 1){
+								for (Index = curRow; Index < curRow + VMerge_count; Index++){
+									Rows.push(Index);
+								}
+								curRow += VMerge_count - 1;
+								break;
+							}
+							else 
+								Rows.push(curRow);
+						}
+							
+
+					}
+
 				}
-
 			}
+
 		}
 
-	}
-	
- 
-	//здесь мы определяем в какую колонку мы попали
-	if (Rows.length === 0)
-	{
-		for (var Index = 0; Index < this.ColumnsCount; Index++)
-		{
-			if (X1 > this.Pages[Index].X - this.Pages[0].X && X1 < this.Pages[Index].XLimit - this.Pages[0].X)
-			{
-				curColumn = Index; 
-				if (CurPage >= 1)
-					curColumn += CurPage * this.ColumnsCount;
-			}
-				
-		}
-		//Приводим к относительным координатам
-		X1 = X1 - (this.Pages[curColumn].X - this.Pages[CurPage].X - (this.Pages[0].X - this.Pages[CurPage].X));
-		X2 = X2 - (this.Pages[curColumn].X - this.Pages[CurPage].X - (this.Pages[0].X - this.Pages[CurPage].X));
 
-		for (var curRow = this.Pages[curColumn].FirstRow; curRow <= this.Pages[curColumn].LastRow; curRow++)
+		//здесь мы определяем в какую колонку мы попали
+		if (Rows.length === 0) 
 		{
-			for (var curCell = 0; curCell < this.Content[curRow].CellsInfo.length; curCell++)
+			for (var Index = 0; Index < this.Pages.length; Index++) 
 			{
-				if ((X1 >= this.Content[curRow].CellsInfo[curCell].X_cell_start)&&(X2 <= this.Content[curRow].CellsInfo[curCell].X_cell_end))
+				if (X1 > this.Pages[Index].X - this.Pages[0].X && X1 < this.Pages[Index].XLimit - this.Pages[0].X) 
 				{
-					if (this.RowsInfo[curRow].Y[curColumn] <= Y1 && Y1 < this.RowsInfo[curRow].Y[curColumn] + this.RowsInfo[curRow].H[curColumn])
-						Rows.push(curRow);
-					else if (Rows.length === 0)
-						continue;
-					else if (this.RowsInfo[curRow].Y[curColumn] <= Y2)
-						Rows.push(curRow);
+					curColumn = Index;
+					if (CurPage >= 1)
+						curColumn = CurPage * this.Pages.length - 1;
 				}
 
 			}
+			//Приводим к относительным координатам
+			X1 = X1 - (this.Pages[curColumn].X - this.Pages[CurPage].X - (this.Pages[0].X - this.Pages[CurPage].X));
+			X2 = X2 - (this.Pages[curColumn].X - this.Pages[CurPage].X - (this.Pages[0].X - this.Pages[CurPage].X));
+
+			// Заполнение массива Rows с учетом колонки в которую попали 
+			for (var curRow = this.Pages[curColumn].FirstRow; curRow <= this.Pages[curColumn].LastRow; curRow++) 
+			{
+				for (var curCell = 0; curCell < this.Content[curRow].CellsInfo.length; curCell++) 
+				{
+					if ((X1 >= this.Content[curRow].CellsInfo[curCell].X_cell_start) && (X2 <= this.Content[curRow].CellsInfo[curCell].X_cell_end)) 
+					{
+						if (this.RowsInfo[curRow].Y[curColumn] <= Y1 && Y1 < this.RowsInfo[curRow].Y[curColumn] + this.RowsInfo[curRow].H[curColumn])
+							Rows.push(curRow);
+						else if (Rows.length === 0)
+							continue;
+						else if (this.RowsInfo[curRow].Y[curColumn] <= Y2)
+							Rows.push(curRow);
+					}
+
+				}
+			}
+
 		}
 
-	}
-	
 
-	//если массив строк подлежащих делению пуст, выходим    
-	if (Rows.length === 0) 
-		return;
+		//если массив строк подлежащих делению пуст, выходим    
+		if (Rows.length === 0)
+			return;
 
-	// заполняем массив строк с ширинами ячеек 	
-	for (var curRow = 0; curRow < this.Content.length; curRow++)
-	{
-		var cellsInfo   = [];
-		for (var curCell = 0; curCell < this.Content[curRow].CellsInfo.length; curCell++)
-		{
-			if ((X1 >= this.Content[curRow].CellsInfo[curCell].X_cell_start)&&(X2 <= this.Content[curRow].CellsInfo[curCell].X_cell_end))
-			{
-				
-				if (Rows.indexOf(curRow) != -1) //проверка на наличие строки curRow в массиве строк которые мы выделили 
+		// заполняем массив строк с ширинами ячеек 	
+		for (var curRow = 0; curRow < this.Content.length; curRow++) {
+			var cellsInfo = [];
+			for (var curCell = 0; curCell < this.Content[curRow].CellsInfo.length; curCell++) {
+				if ((X1 >= this.Content[curRow].CellsInfo[curCell].X_cell_start) && (X2 <= this.Content[curRow].CellsInfo[curCell].X_cell_end)) {
+
+					if (Rows.indexOf(curRow) != -1) //проверка на наличие строки curRow в массиве строк которые мы выделили 
 					{
-						var X_start  = this.Content[curRow].CellsInfo[curCell].X_cell_start;
-						var X_end    = this.Content[curRow].CellsInfo[curCell].X_cell_end;
-						var Row 	 = this.Content[curRow];
-						var Cell     = this.Content[curRow].Get_Cell(curCell);  //текущая ячейка
+						var X_start = this.Content[curRow].CellsInfo[curCell].X_cell_start;
+						var X_end = this.Content[curRow].CellsInfo[curCell].X_cell_end;
+						var Row = this.Content[curRow];
+						var Cell = this.Content[curRow].Get_Cell(curCell);  //текущая ячейка
 						var Grid_start = this.Content[curRow].Get_CellInfo(curCell).StartGridCol;
 
 						//сделаем разбиение по горизонтали
 						// Найдем позиции новых колонок в сетке
 						var Span_width = X_end - X_start; //ширина текущей ячейки
-						var Grid_width_1 = X1 - X_start; 
+						var Grid_width_1 = X1 - X_start;
 						var Grid_width_2 = X_end - X1;
 
 						var CellSpacing = Row.Get_CellSpacing();
-						var CellMar     = Cell.GetMargins();
+						var CellMar = Cell.GetMargins();
 						var MinW = CellSpacing + CellMar.Right.W + CellMar.Left.W;
 						if (X2 - X1 > MinW)
 							return;
@@ -10304,328 +10333,528 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage)
 						// В этих условиях мы проверяем допустимая ли ширина ячеек нами нарисована, 
 						// если меньше допустимой, устанавливаем ширину равную минимальной допустимой
 						// если ширина делимой ячейки Span_width < Minw*2 то выдаем ошибку
-						if (Grid_width_1 < MinW)
-						{
+						if (Grid_width_1 < MinW) {
 							Grid_width_1 = MinW;
 							Grid_width_2 = Span_width - Grid_width_1;
 							if (Grid_width_2 < MinW)
 								Grid_width_2 = MinW;
-							if (Span_width < Grid_width_1 + Grid_width_2)
-							{
+							if (Span_width < Grid_width_1 + Grid_width_2) {
 								Span_width = Grid_width_1 + Grid_width_2;
-								
+
 							}
-							
+
 						}
-						else if (Grid_width_2 < MinW)
-						{
+						else if (Grid_width_2 < MinW) {
 							Grid_width_2 = MinW;
 							Grid_width_1 = Span_width - Grid_width_2;
 							if (Grid_width_1 < MinW)
 								Grid_width_1 = MinW;
-							if (Span_width < Grid_width_1 + Grid_width_2)
-							{
+							if (Span_width < Grid_width_1 + Grid_width_2) {
 								Span_width = Grid_width_1 + Grid_width_2;
-								
+
 							}
 
 						}
 
 						//Проверяем есть ли GridBefore у строки перед первой ячейкой, если да, то учитываем это в сетке
 						//GridBefore строки должен совпадать с Grid_Start ячейки(перед которой отступ), чтобы условие выполнилось ровно один раз
-						if (this.Content[curRow].Get_Before().GridBefore >= 1 && Grid_start === this.Content[curRow].Get_Before().GridBefore)
-						{
-							var cell_Indent = 
+						if (this.Content[curRow].Get_Before().GridBefore >= 1 && Grid_start === this.Content[curRow].Get_Before().GridBefore) {
+							var cell_Indent =
 							{
-								W : X_end - Span_width,
-								Type : -1,
-								Grid_span : 1
+								W: X_end - Span_width,
+								Type: -1,
+								Grid_span: 1
 							}
 							cellsInfo[cellsInfo.length] = cell_Indent;
 						}
 
-						var cell_1 = 
+						var cell_1 =
 						{
-							W : Grid_width_1,
-							Type : 0,
-							GridSpan : 1
+							W: Grid_width_1,
+							Type: 0,
+							GridSpan: 1
 						};
-						var cell_2 = 
+						var cell_2 =
 						{
-							W : Grid_width_2,
-							Type : 0,
-							GridSpan : 1
+							W: Grid_width_2,
+							Type: 0,
+							GridSpan: 1
 						};
 						cellsInfo[cellsInfo.length] = cell_1;
 						cellsInfo[cellsInfo.length] = cell_2;
-						
-				}
-				else 
-				{
-					var Grid_start = this.Content[curRow].Get_CellInfo(curCell).StartGridCol;
-					var X_start  = this.Content[curRow].CellsInfo[curCell].X_cell_start;
-					var X_end    = this.Content[curRow].CellsInfo[curCell].X_cell_end;
-					var cellWidth = X_end - X_start;
 
-					//Проверяем есть ли GridBefore у строки перед первой ячейкой, если да, то учитываем это в сетке
-					//GridBefore строки должен совпадать с Grid_Start ячейки(перед которой отступ), чтобы условие выполнилось ровно один раз
-					if (this.Content[curRow].Get_Before().GridBefore >= 1 && Grid_start === this.Content[curRow].Get_Before().GridBefore)
-						{
-							var cell_Indent = 
+					}
+					else {
+						var Grid_start = this.Content[curRow].Get_CellInfo(curCell).StartGridCol;
+						var X_start = this.Content[curRow].CellsInfo[curCell].X_cell_start;
+						var X_end = this.Content[curRow].CellsInfo[curCell].X_cell_end;
+						var cellWidth = X_end - X_start;
+
+						//Проверяем есть ли GridBefore у строки перед первой ячейкой, если да, то учитываем это в сетке
+						//GridBefore строки должен совпадать с Grid_Start ячейки(перед которой отступ), чтобы условие выполнилось ровно один раз
+						if (this.Content[curRow].Get_Before().GridBefore >= 1 && Grid_start === this.Content[curRow].Get_Before().GridBefore) {
+							var cell_Indent =
 							{
-								W : X_end - cellWidth,
-								Type : -1,
-								Grid_span : 1
+								W: X_end - cellWidth,
+								Type: -1,
+								Grid_span: 1
 							}
 							cellsInfo[cellsInfo.length] = cell_Indent;
 						}
-					
-					var cell = 
+
+						var cell =
+						{
+							W: cellWidth,
+							Type: 0,
+							GridSpan: 1
+						};
+						cellsInfo[cellsInfo.length] = cell;
+					}
+
+				}
+				else {
+					var X_start = this.Content[curRow].CellsInfo[curCell].X_cell_start;
+					var X_end = this.Content[curRow].CellsInfo[curCell].X_cell_end;
+					var cellWidth = X_end - X_start;
+					var Grid_start = this.Content[curRow].Get_CellInfo(curCell).StartGridCol;
+
+					//Проверяем есть ли отступ у строки перед первой ячейкой,  если да, то учитываем это в сетке
+					//GridBefore строки должен совпадать с Grid_Start ячейки(перед которой отступ), чтобы условие выполнилось ровно один раз
+					if (this.Content[curRow].Get_Before().GridBefore >= 1 && Grid_start === this.Content[curRow].Get_Before().GridBefore) {
+						var cell_Indent =
+						{
+							W: X_end - cellWidth,
+							Type: -1,
+							Grid_span: 1
+						}
+						cellsInfo[cellsInfo.length] = cell_Indent;
+					}
+
+					var cell =
 					{
-						W : cellWidth,
-						Type : 0,
-						GridSpan : 1
+						W: cellWidth,
+						Type: 0,
+						GridSpan: 1
 					};
 					cellsInfo[cellsInfo.length] = cell;
+
 				}
+				rowsInfo[curRow] = cellsInfo;
 
 			}
-			else 
-			{
-				var X_start  = this.Content[curRow].CellsInfo[curCell].X_cell_start;
-				var X_end    = this.Content[curRow].CellsInfo[curCell].X_cell_end;
-				var cellWidth = X_end - X_start;
-				var Grid_start = this.Content[curRow].Get_CellInfo(curCell).StartGridCol;
 
-				//Проверяем есть ли отступ у строки перед первой ячейкой,  если да, то учитываем это в сетке
-				//GridBefore строки должен совпадать с Grid_Start ячейки(перед которой отступ), чтобы условие выполнилось ровно один раз
-				if (this.Content[curRow].Get_Before().GridBefore >= 1 && Grid_start === this.Content[curRow].Get_Before().GridBefore)
-				{
-					var cell_Indent = 
-					{
-						W : X_end - cellWidth,
-						Type : -1,
-						Grid_span : 1
-					}
-					cellsInfo[cellsInfo.length] = cell_Indent;
-				}
-				
-				var cell = 
-				{
-					W : cellWidth,
-					Type : 0,
-					GridSpan : 1
-				};
-				cellsInfo[cellsInfo.length] = cell;
-				
-			}
-			rowsInfo[curRow] = cellsInfo;
-			
-		}		
-
-	}
-	
-	//заполнение массива Grid_spans (используется в горизонтальном разбиении)
-	for (var curRow = 0; curRow < this.Content.length; curRow++)
-	{
-		for (var curCell = 0; curCell < this.Content[curRow].CellsInfo.length; curCell++)
-		{
-			if ((X1 >= this.Content[curRow].CellsInfo[curCell].X_cell_start)&&(X2 <= this.Content[curRow].CellsInfo[curCell].X_cell_end))
-			{
-				if(Rows.indexOf(curRow) != -1)
-				{
-					var Cell     = this.Content[curRow].Get_Cell(curCell);  //текущая ячейка
-					var Cell_pos = 											//позиция текущей ячейки
-					{ 
-						Cell : curCell,
-						Row  : curRow
-					};
-					Grid_spans[curRow] = Cell.Get_GridSpan();	
-				}
-				
-			}
-			
 		}
 
-	}
-
-	//Добавляем новые ячейки в горизонтальном разбиении 
-	for (var curRow = 0; curRow < this.Content.length; curRow++)
-	{
-		for (var curCell = 0; curCell < this.Content[curRow].CellsInfo.length; curCell++)
-		{
-			if ((X1 >= this.Content[curRow].CellsInfo[curCell].X_cell_start)&&(X2 <= this.Content[curRow].CellsInfo[curCell].X_cell_end))
-			{
-				//проверка текущей строки на наличие в массиве Rows
-				if (Rows.indexOf(curRow) != -1)
-				{
-					var X_start  = this.Content[curRow].CellsInfo[curCell].X_grid_start;
-					var X_end    = this.Content[curRow].CellsInfo[curCell].X_grid_end;
-					var Cell     = this.Content[curRow].Get_Cell(curCell);  //текущая ячейка
-					var Cell_pos = 											//позиция текущей ячейки
-					{ 
-						Cell : curCell,
-						Row  : curRow
-					};
-					var Row = this.Content[Cell_pos.Row];					//строка текущей ячейки
-
-					var Grid_start = Row.Get_CellInfo(Cell_pos.Cell).StartGridCol;//столбец, с которого начинается ячейка
-					var Grid_span  = Grid_spans[curRow];				//кол-во столбцов, охваченных текущей ячейкой
-
-					var VMerge_count = this.Internal_GetVertMergeCount(Cell_pos.Row, Grid_start, Grid_span); //кол-во строк охваченных тек. ячейкой
-					//var VMerge_count = this.Content.length;
-					var Cells     = [];
-					var Cells_pos = [];
-					var Rows_     = [];
-					for (var Index = 0; Index < VMerge_count; Index++)
-					{
-						var TempRow = this.Content[Cell_pos.Row + Index];
-						Rows_[Index]     = TempRow;
-						Cells[Index]     = null;
-						Cells_pos[Index] = null;
-						// Ищем ячейку, начинающуюся с Grid_start
-						var CellsCount = TempRow.Get_CellsCount();
-						for (var CurCell = 0; CurCell < CellsCount; CurCell++)
+		//заполнение массива Grid_spans (используется в горизонтальном разбиении)
+		for (var curRow = 0; curRow < this.Content.length; curRow++) {
+			for (var curCell = 0; curCell < this.Content[curRow].CellsInfo.length; curCell++) {
+				if ((X1 >= this.Content[curRow].CellsInfo[curCell].X_cell_start) && (X2 <= this.Content[curRow].CellsInfo[curCell].X_cell_end)) {
+					if (Rows.indexOf(curRow) != -1) {
+						var Cell = this.Content[curRow].Get_Cell(curCell);  //текущая ячейка
+						var Cell_pos = 											//позиция текущей ячейки
 						{
-							var StartGridCol = TempRow.Get_CellInfo(CurCell).StartGridCol;
-							if (StartGridCol === Grid_start)
-							{
-								Cells[Index]     = TempRow.Get_Cell(CurCell);
-								Cells_pos[Index] = {Row : Cell_pos.Row + Index, Cell : CurCell};
+							Cell: curCell,
+							Row: curRow
+						};
+						Grid_spans[curRow] = Cell.Get_GridSpan();
+					}
+
+				}
+
+			}
+
+		}
+
+		//Добавляем новые ячейки в горизонтальном разбиении 
+		for (var curRow = 0; curRow < this.Content.length; curRow++) {
+			for (var curCell = 0; curCell < this.Content[curRow].CellsInfo.length; curCell++) {
+				if ((X1 >= this.Content[curRow].CellsInfo[curCell].X_cell_start) && (X2 <= this.Content[curRow].CellsInfo[curCell].X_cell_end)) {
+					//проверка текущей строки на наличие в массиве Rows
+					if (Rows.indexOf(curRow) != -1) {
+						var X_start = this.Content[curRow].CellsInfo[curCell].X_grid_start;
+						var X_end = this.Content[curRow].CellsInfo[curCell].X_grid_end;
+						var Cell = this.Content[curRow].Get_Cell(curCell);  //текущая ячейка
+						var Cell_pos = 											//позиция текущей ячейки
+						{
+							Cell: curCell,
+							Row: curRow
+						};
+						var Row = this.Content[Cell_pos.Row];					//строка текущей ячейки
+
+						var Grid_start = Row.Get_CellInfo(Cell_pos.Cell).StartGridCol;//столбец, с которого начинается ячейка
+						var Grid_span = Grid_spans[curRow];				//кол-во столбцов, охваченных текущей ячейкой
+
+						var VMerge_count = this.Internal_GetVertMergeCount(Cell_pos.Row, Grid_start, Grid_span); //кол-во строк охваченных тек. ячейкой
+						//var VMerge_count = this.Content.length;
+						var Cells = [];
+						var Cells_pos = [];
+						var Rows_ = [];
+						for (var Index = 0; Index < VMerge_count; Index++) {
+							var TempRow = this.Content[Cell_pos.Row + Index];
+							Rows_[Index] = TempRow;
+							Cells[Index] = null;
+							Cells_pos[Index] = null;
+							// Ищем ячейку, начинающуюся с Grid_start
+							var CellsCount = TempRow.Get_CellsCount();
+							for (var CurCell = 0; CurCell < CellsCount; CurCell++) {
+								var StartGridCol = TempRow.Get_CellInfo(CurCell).StartGridCol;
+								if (StartGridCol === Grid_start) {
+									Cells[Index] = TempRow.Get_Cell(CurCell);
+									Cells_pos[Index] = { Row: Cell_pos.Row + Index, Cell: CurCell };
+								}
 							}
 						}
-					}
-					//сделаем разбиение по горизонтали
-					// Найдем позиции новых колонок в сетке
-					var Sum_before = this.TableSumGrid[Grid_start - 1]; //координаты конца предыдущей ячейки
-					var Sum_with   = this.TableSumGrid[Grid_start + Grid_span - 1]; //координаты конца текущей ячейки
+						//сделаем разбиение по горизонтали
+						// Найдем позиции новых колонок в сетке
+						var Sum_before = this.TableSumGrid[Grid_start - 1]; //координаты конца предыдущей ячейки
+						var Sum_with = this.TableSumGrid[Grid_start + Grid_span - 1]; //координаты конца текущей ячейки
 
-					var Span_width = Sum_with - Sum_before; //ширина текущей ячейки
-					//var Grid_width = Span_width / 2;
-					var Grid_width_1 = X1 - X_start; 
-					var Grid_width_2 = X_end - X1;
+						var Span_width = Sum_with - Sum_before; //ширина текущей ячейки
+						//var Grid_width = Span_width / 2;
+						var Grid_width_1 = X1 - X_start;
+						var Grid_width_2 = X_end - X1;
 
-					var CellSpacing = Row.Get_CellSpacing();
-					var CellMar     = Cell.GetMargins();
-					var MinW = CellSpacing + CellMar.Right.W + CellMar.Left.W;
+						var CellSpacing = Row.Get_CellSpacing();
+						var CellMar = Cell.GetMargins();
+						var MinW = CellSpacing + CellMar.Right.W + CellMar.Left.W;
 
-					// В этих условиях мы проверяем допустимая ли ширина ячеек нами нарисована, 
-					// если меньше допустимой, устанавливаем ширину равную минимальной допустимой
-					// если ширина делимой ячейки Span_width < Minw*2 то выдаем ошибку
-					if (Grid_width_1 < MinW)
-					{
-						Grid_width_1 = MinW;
-						Grid_width_2 = Span_width - Grid_width_1;
-						if (Grid_width_2 < MinW)
-							Grid_width_2 = MinW;
-						if (Span_width < Grid_width_1 + Grid_width_2)
-						{
-							Span_width = Grid_width_1 + Grid_width_2;
-							
-						}
-						
-					}
-					else if (Grid_width_2 < MinW)
-					{
-						Grid_width_2 = MinW;
-						Grid_width_1 = Span_width - Grid_width_2;
-						if (Grid_width_1 < MinW)
+						// В этих условиях мы проверяем допустимая ли ширина ячеек нами нарисована, 
+						// если меньше допустимой, устанавливаем ширину равную минимальной допустимой
+						// если ширина делимой ячейки Span_width < Minw*2 то выдаем ошибку
+						if (Grid_width_1 < MinW) {
 							Grid_width_1 = MinW;
-						if (Span_width < Grid_width_1 + Grid_width_2)
-						{
-							Span_width = Grid_width_1 + Grid_width_2;
-							
+							Grid_width_2 = Span_width - Grid_width_1;
+							if (Grid_width_2 < MinW)
+								Grid_width_2 = MinW;
+							if (Span_width < Grid_width_1 + Grid_width_2) {
+								Span_width = Grid_width_1 + Grid_width_2;
+
+							}
+
+						}
+						else if (Grid_width_2 < MinW) {
+							Grid_width_2 = MinW;
+							Grid_width_1 = Span_width - Grid_width_2;
+							if (Grid_width_1 < MinW)
+								Grid_width_1 = MinW;
+							if (Span_width < Grid_width_1 + Grid_width_2) {
+								Span_width = Grid_width_1 + Grid_width_2;
+
+							}
+
 						}
 
-					}
-					
 
-					// Данный массив содержит информацию о том сколько новых колонок
-					// было добавлено после i-ой колонки
-					var Grid_Info = [];
-					for (var Index = 0; Index < this.TableGridCalc.length; Index++)
-						Grid_Info[Index] = 0;
+						// Данный массив содержит информацию о том сколько новых колонок
+						// было добавлено после i-ой колонки
+						var Grid_Info = [];
+						for (var Index = 0; Index < this.TableGridCalc.length; Index++)
+							Grid_Info[Index] = 0;
 
-					// Массив содержит информацию о том сколько промежутков будет в
-					// новых ячейках
-					var Grid_Info_new = [];
-					for (var Index = 0; Index < 2; Index++)
-						Grid_Info_new[Index] = 1;
+						// Массив содержит информацию о том сколько промежутков будет в
+						// новых ячейках
+						var Grid_Info_new = [];
+						for (var Index = 0; Index < 2; Index++)
+							Grid_Info_new[Index] = 1;
 
-					var Grid_Info_start = [];
-					for (var Index = 0; Index < this.TableGridCalc.length; Index++)
-						Grid_Info_start[Index] = this.TableGridCalc[Index];
+						var Grid_Info_start = [];
+						for (var Index = 0; Index < this.TableGridCalc.length; Index++)
+							Grid_Info_start[Index] = this.TableGridCalc[Index];
 
-					var NewCol_Index = 0;
+						var NewCol_Index = 0;
 
-					var CurWidth = Sum_before + Grid_width_1; 
-					
-					for (var Grid_index = Grid_start; Grid_index < Grid_start + Grid_span; Grid_index++)
-					{
-						var bNewCol = true;
+						var CurWidth = Sum_before + Grid_width_1;
 
-						// Если мы попали в уже имеющуюся границу не добавляем новую точку
-						if (Math.abs(CurWidth - this.TableSumGrid[Grid_index]) < 0.001)
-						{
-							NewCol_Index++;
-							CurWidth += Grid_width_2;
-							bNewCol = false;
-							continue;
-						}		
-
-						while (CurWidth < this.TableSumGrid[Grid_index])
-						{
-							if (0 === Grid_Info[Grid_index])
-								Grid_Info_start[Grid_index] = CurWidth - this.TableSumGrid[Grid_index - 1];
-							Grid_Info[Grid_index] += 1;
-
-							NewCol_Index++
-							CurWidth += Grid_width_2;
+						for (var Grid_index = Grid_start; Grid_index < Grid_start + Grid_span; Grid_index++) {
+							var bNewCol = true;
 
 							// Если мы попали в уже имеющуюся границу не добавляем новую точку
-							if (Math.abs(CurWidth - this.TableSumGrid[Grid_index]) < 0.001)
-							{
+							if (Math.abs(CurWidth - this.TableSumGrid[Grid_index]) < 0.001) {
 								NewCol_Index++;
 								CurWidth += Grid_width_2;
 								bNewCol = false;
-								break;
+								continue;
+							}
+
+							while (CurWidth < this.TableSumGrid[Grid_index]) {
+								if (0 === Grid_Info[Grid_index])
+									Grid_Info_start[Grid_index] = CurWidth - this.TableSumGrid[Grid_index - 1];
+								Grid_Info[Grid_index] += 1;
+
+								NewCol_Index++
+								CurWidth += Grid_width_2;
+
+								// Если мы попали в уже имеющуюся границу не добавляем новую точку
+								if (Math.abs(CurWidth - this.TableSumGrid[Grid_index]) < 0.001) {
+									NewCol_Index++;
+									CurWidth += Grid_width_2;
+									bNewCol = false;
+									break;
+								}
+							}
+
+							if (true === bNewCol)
+								Grid_Info_new[NewCol_Index] += 1;
+						}
+						// Добавим в данной строке (Cols - 1) ячеек, с теми же настроками,
+						// что и исходной. Значение GridSpan мы берем из массива Grid_Info_new
+
+						for (var Index2 = 0; Index2 < Rows_.length; Index2++) {
+							if (null != Cells[Index2] && null != Cells_pos[Index2]) {
+								var TempRow = Rows_[Index2];
+								var TempCell = Cells[Index2];
+								var TempCell_pos = Cells_pos[Index2];
+
+								TempCell.Set_GridSpan(Grid_Info_new[0]);
+								TempCell.Set_W(new CTableMeasurement(tblwidth_Mm, Grid_width_1));
+
+								var NewCell = TempRow.Add_Cell(TempCell_pos.Cell + 1, TempRow, null, false);
+								NewCell.Copy_Pr(TempCell.Pr);
+								NewCell.Set_GridSpan(Grid_Info_new[1]);
+								NewCell.Set_W(new CTableMeasurement(tblwidth_Mm, Grid_width_2));
+
 							}
 						}
-
-						if (true === bNewCol)
-						Grid_Info_new[NewCol_Index] += 1;
-					}
-					// Добавим в данной строке (Cols - 1) ячеек, с теми же настроками,
-					// что и исходной. Значение GridSpan мы берем из массива Grid_Info_new
-
-					for (var Index2 = 0; Index2 < Rows_.length; Index2++)
-					{
-						if (null != Cells[Index2] && null != Cells_pos[Index2])
-						{
-							var TempRow      = Rows_[Index2];
-							var TempCell     = Cells[Index2];
-							var TempCell_pos = Cells_pos[Index2];
-
-							TempCell.Set_GridSpan(Grid_Info_new[0]);
-							TempCell.Set_W(new CTableMeasurement(tblwidth_Mm, Grid_width_1));
-							
-							var NewCell = TempRow.Add_Cell(TempCell_pos.Cell + 1, TempRow, null, false);
-							NewCell.Copy_Pr(TempCell.Pr);
-							NewCell.Set_GridSpan(Grid_Info_new[1]);
-							NewCell.Set_W(new CTableMeasurement(tblwidth_Mm, Grid_width_2));
-							
+						if (VMerge_count > 1) {
+							curRow += VMerge_count - 1;
 						}
-					}
-					if (VMerge_count > 1) 
-					{
-						curRow += VMerge_count -1;
 					}
 				}
 			}
 		}
+		this.SetTableGrid(this.Internal_CreateNewGrid(rowsInfo));
 	}
-	this.SetTableGrid(this.Internal_CreateNewGrid(rowsInfo));
-	
+	// Рисуем горизонтальную линию 
+	else if (Math.abs(X2 - X1) > 2 && Math.abs(Y2 - Y1) < 3)
+	{
+		if (X1 > X2)
+		{
+			var cache; 
+			cache = X2;
+			X2 = X1;
+			X1 = cache;
+		}
+
+		var RowNumb; // Строка, попавшая в вертикальное разбиение 
+		var CellsNumb = []; // Массив номеров ячеек, попавших в вертикальное разбиение
+
+		// Вычисление Row
+		for (var curRow = 0; curRow < this.Content.length; curRow++)
+		{
+			if (Y1 > this.RowsInfo[curRow].Y[CurPage] && Y1 < (this.RowsInfo[curRow].Y[CurPage] + this.RowsInfo[curRow].H[CurPage]))
+				RowNumb = curRow;
+		}
+		// Заполнение Cells 
+		if (CurPage === 0)
+		{
+			for (var curCell = 0; curCell < this.Content[RowNumb].CellsInfo.length; curCell++)
+			{
+				if (X1 > this.Content[RowNumb].CellsInfo[curCell].X_cell_start && X1 < this.Content[RowNumb].CellsInfo[curCell].X_cell_end)
+					CellsNumb.push(curCell);
+				else if (CellsNumb.length === 0)
+					continue;
+				else if (this.Content[RowNumb].CellsInfo[curCell].X_cell_start < X2)
+					CellsNumb.push(curCell);
+
+			}
+
+		}
+		
+		// Здесь мы определяем в какую колонку мы попали
+		if (CellsNumb.length === 0)
+		{
+			for (var Index = 0; Index < this.Pages.length; Index++) 
+			{
+				if (X1 > this.Pages[Index].X - this.Pages[0].X && X1 < this.Pages[Index].XLimit - this.Pages[0].X) 
+				{
+					curColumn = Index;
+					if (CurPage >= 1)
+						curColumn = CurPage * this.Pages.length - 1;
+				}
+
+			}
+
+			// Приводим к относительным координатам
+			X1 = X1 - (this.Pages[curColumn].X - this.Pages[CurPage].X - (this.Pages[0].X - this.Pages[CurPage].X));
+			X2 = X2 - (this.Pages[curColumn].X - this.Pages[CurPage].X - (this.Pages[0].X - this.Pages[CurPage].X));
+
+			// Вычисление RowNumb с учетом колонки в которую попали 
+			for (var curRow = this.Pages[curColumn].FirstRow; curRow <= this.Pages[curColumn].LastRow; curRow++) 
+			{
+				if (Y1 > this.RowsInfo[curRow].Y[curColumn] && Y1 < (this.RowsInfo[curRow].Y[curColumn] + this.RowsInfo[curRow].H[curColumn]))
+					RowNumb = curRow;
+			}
+
+			for (var curCell = 0; curCell < this.Content[RowNumb].CellsInfo.length; curCell++)
+			{
+				if (X1 > this.Content[RowNumb].CellsInfo[curCell].X_cell_start && X1 < this.Content[RowNumb].CellsInfo[curCell].X_cell_end)
+					CellsNumb.push(curCell);
+				else if (CellsNumb.length === 0)
+					continue;
+				else if (this.Content[RowNumb].CellsInfo[curCell].X_cell_start < X2)
+					CellsNumb.push(curCell);
+
+			}
+
+		
+		}
+		// Отрисовка границ ячеек, при попадании в горизонтальные окрестности других границ
+		// if (Math.abs(this.RowsInfo[RowNumb].Y[curColumn] - Y1) < 2 && Math.abs(this.RowsInfo[RowNumb].Y[curColumn] + this.RowsInfo[RowNumb].H[curColumn] - Y1) < 2)
+		// {
+			for (var curCell = 0; curCell < this.Content[RowNumb].CellsInfo.length; curCell++)
+			{
+				if (CellsNumb.indexOf(curCell) != -1) //проверка ячейки на наличие в массиве Cells 
+				{
+					var Cell = this.Content[RowNumb].Get_Cell(curCell);
+					var Cell_pos = 
+					{
+						Cell : curCell,
+						Row  : RowNumb
+					};
+					var Row = this.Content[Cell_pos.Row];
+					
+					var Grid_start = Row.Get_CellInfo(Cell_pos.Cell).StartGridCol;
+					var Grid_span  = Cell.Get_GridSpan();
+
+					var VMerge_count = this.Internal_GetVertMergeCount(Cell_pos.Row, Grid_start, Grid_span);
+					
+					var Cells	  = [];
+					var Cells_pos = [];
+					var Rows_     = [];
+					if (VMerge_count > 1)
+					{
+						// Если попадаем в окрестность верхней границы ячейки, то добавляем границу сверху
+						if (Math.abs(this.RowsInfo[RowNumb].Y[curColumn] - Y1) < 2) 
+						{
+							var TempRow = this.Content[Cell_pos.Row];
+							var TempCell	 = TempRow.Get_Cell(Cell_pos.Cell);
+							TempCell.SetVMerge(vmerge_Restart);
+							
+
+						}
+						// Если попадаем в окрестность нижней границы, то добавляем границу снизу
+						else if (Math.abs(this.RowsInfo[RowNumb].Y[curColumn] + this.RowsInfo[RowNumb].H[curColumn]- Y1) < 2) 
+						{
+							if (RowNumb != this.Content.length - 1)
+							{
+								var TempRow = this.Content[Cell_pos.Row + 1];
+								var TempCell	 = TempRow.Get_Cell(Cell_pos.Cell);
+								TempCell.SetVMerge(vmerge_Restart);
+							}
+						}
+
+					} 
+					else 
+					{
+						// Если попадаем в окрестность верхней границы ячейки, то добавляем границу сверху
+						// необходимо для последней строки из строк которые входят в VMerge
+						if (Math.abs(this.RowsInfo[RowNumb].Y[curColumn] - Y1) < 2) 
+						{
+							var TempRow = this.Content[Cell_pos.Row];
+							var TempCell	 = TempRow.Get_Cell(Cell_pos.Cell);
+							if (TempCell.GetVMerge() === 2)
+								TempCell.SetVMerge(vmerge_Restart);
+							else
+								continue;
+						}
+						// Если попадаем в нижнюю границу, выходим
+						else if (Math.abs(this.RowsInfo[RowNumb].Y[curColumn] + this.RowsInfo[RowNumb].H[curColumn]  - Y1) < 2)
+							continue;
+						
+					}
+								
+				}
+				
+			}
+		// }
+		
+		// Вертикальное разбиение (условие, что мы не попадаем в горизонтальные границы других ячеек)
+		if (Math.abs(this.RowsInfo[RowNumb].Y[curColumn] - Y1) > 2 && Math.abs(this.RowsInfo[RowNumb].Y[curColumn] + this.RowsInfo[RowNumb].H[curColumn] - Y1) > 2)
+		{
+			var Cell = this.Content[RowNumb].Get_Cell(CellsNumb[0]);
+			var Cell_pos = 
+			{
+				Cell : CellsNumb[0],
+				Row  : RowNumb
+			};
+			var Row = this.Content[Cell_pos.Row];
+			
+			var Grid_start = Row.Get_CellInfo(Cell_pos.Cell).StartGridCol;
+			var Grid_span  = Cell.Get_GridSpan();
+
+			var VMerge_count = this.Internal_GetVertMergeCount(Cell_pos.Row, Grid_start, Grid_span);
+			
+			var Cells	  = [];
+			var Cells_pos = [];
+			var Rows_     = [];
+
+			Rows_[0]     = Row;
+			Cells[0]     = Cell;
+			Cells_pos[0] = Cell_pos;
+
+			var SumRowH = 0; // суммарная длина строки 
+			for (Index = 0; Index < curColumn; Index++)
+			{
+				SumRowH += this.RowsInfo[RowNumb].H[Index];
+
+			}
+			var rowHeight_1 = Y1 - this.RowsInfo[Cell_pos.Row].Y[curColumn];
+			var rowHeight_2 = this.RowsInfo[Cell_pos.Row].Y[curColumn] + this.RowsInfo[Cell_pos.Row].H[curColumn] - Y1;
+		
+			// var rowHeight_2 = this.RowsInfo[Cell_pos.Row].Y[curColumn] + this.RowsInfo[Cell_pos.Row].H[curColumn] - Y1;
+			// var rowHeight_1 = SumRowH - rowHeight_2;
+
+			var CellsCount = Row.Get_CellsCount();
+
+			var NewRow = this.private_AddRow(Cell_pos.Row + 1, CellsCount);
+			NewRow.Copy_Pr(Row.Pr);
+
+			Row.Set_Height(rowHeight_1, linerule_AtLeast);
+			NewRow.Set_Height(rowHeight_2, linerule_AtLeast);
+			
+			Rows_[1]     = NewRow;
+			Cells[1]     = null;
+			Cells_pos[1] = null;
+
+
+			// Копируем настройки всех ячеек исходной строки в новую строку
+			for (var CurCell = 0; CurCell < CellsCount; CurCell++)
+			{
+				var New_Cell = NewRow.Get_Cell(CurCell);
+				var Old_Cell = Row.Get_Cell(CurCell);
+
+				New_Cell.Copy_Pr(Old_Cell.Pr);
+
+				if (CurCell === Cell_pos.Cell)
+				{
+					Cells[1]     = New_Cell;
+					Cells_pos[1] = {Row : Cell_pos.Row + 1, Cell : CurCell};
+					New_Cell.SetVMerge(vmerge_Restart);
+					
+						
+				}
+				else
+				{
+					New_Cell.SetVMerge(vmerge_Continue);
+				}
+				if (CellsNumb.indexOf(CurCell) != -1)
+				{
+					if (CurCell != CellsNumb[0])
+						New_Cell.SetVMerge(vmerge_Restart);
+				}
+			}
+		
+		}
+
+		this.ReIndexing();
+		this.Recalc_CompiledPr2();
+		this.private_RecalculateGrid();
+		this.Internal_Recalculate_1();
+		
+
+
+
+	}
 	console.log("TEST");
 };
 /**
