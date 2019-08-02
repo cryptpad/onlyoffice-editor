@@ -7826,7 +7826,7 @@ function CDrawingDocument()
 			var _old_mode = editor.isViewMode;
 			editor.isViewMode = true;
 			editor.isShowTableEmptyLineAttack = true;
-			_table_styles.Draw(0, graphics);
+			_table_styles.Draw(0, graphics, false);
 			editor.isShowTableEmptyLineAttack = false;
 			editor.isViewMode = _old_mode;
 
