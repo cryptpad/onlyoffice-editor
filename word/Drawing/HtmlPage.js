@@ -3306,6 +3306,9 @@ function CEditorPage(api)
 		var context       = canvas.getContext("2d");
 		context.fillStyle = GlobalSkin.BackgroundColor;
 
+        if (AscCommon.AscBrowser.isSailfish)
+            context.fillRect(0, 0, canvas.width, canvas.height);
+
 		if (this.m_oDrawingDocument.m_lDrawingFirst < 0 || this.m_oDrawingDocument.m_lDrawingEnd < 0)
 			return;
 

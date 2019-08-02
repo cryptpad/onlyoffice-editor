@@ -1444,7 +1444,7 @@
 							else
 								callback(mapAscServerErrorToAscError(data["error"]));
 						}
-						else if (data.type === "onExternalPluginMessage")
+						else if (data["type"] === "onExternalPluginMessage")
 						{
                             if (!window.g_asc_plugins)
                             	return;
@@ -1467,6 +1467,14 @@
 
 							window.g_asc_plugins.sendToAllPlugins(event.data);
 						}
+                        else if (data["type"] === "emulateUploadInFrame")
+                        {
+                            if (window["_private_emulate_upload"])
+                            {
+                                window["_private_emulate_upload"](data["name"], data["content"]);
+                                window["_private_emulate_upload"] = undefined;
+                            }
+                        }
 					} catch (err)
 					{
 					}
@@ -1477,6 +1485,25 @@
 
 	function ShowImageFileDialog(documentId, documentUserId, jwt, callback, callbackOld)
 	{
+		if (AscCommon.AscBrowser.isNeedEmulateUpload && window["emulateUpload"])
+		{
+            window["emulateUpload"](function(name, content) {
+            	if (content === "") {
+					callback(Asc.c_oAscError.ID.Unknown);
+					return;
+                }
+
+				var stream = AscFonts.CreateFontData2(content);
+				var blob = new Blob([stream.data.slice(0, stream.size)]);
+				blob.name = name;
+				blob.fileName = name;
+
+                var nError = ValidateUploadImage([blob]);
+                callback(mapAscServerErrorToAscError(nError), [blob]);
+            }, ":<iframe><image>");
+			return;
+		}
+
         if (AscCommon.EncryptionWorker && AscCommon.EncryptionWorker.isCryptoImages())
 		{
 			AscCommon.EncryptionWorker.addCryproImagesFromDialog(callback);

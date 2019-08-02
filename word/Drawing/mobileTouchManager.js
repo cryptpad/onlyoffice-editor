@@ -278,7 +278,7 @@
 			}
 		}
 
-		if (AscCommon.AscBrowser.isAndroid)
+		if (AscCommon.AscBrowser.isAndroid && !AscCommon.AscBrowser.isSailfish)
 			isPreventDefault = false;
 
 		if (this.Api.isViewMode || isPreventDefault)
@@ -465,6 +465,7 @@
 		var isPreventDefault = false;
 		switch (this.Mode)
 		{
+            case AscCommon.MobileTouchMode.None:
 			case AscCommon.MobileTouchMode.Scroll:
 			case AscCommon.MobileTouchMode.InlineObj:
 			case AscCommon.MobileTouchMode.FlowObj:
@@ -659,11 +660,11 @@
 		if (this.Api.isViewMode || isPreventDefault)
 			AscCommon.stopEvent(e);//AscCommon.g_inputContext.preventVirtualKeyboard(e);
 
-		if (AscCommon.AscBrowser.isSailfish && AscCommon.AscBrowser.isEmulateDevicePixelRatio && isPreventDefault)
-			AscCommon.stopEvent(e);
-
 		if (true !== this.iScroll.isAnimating)
 			this.CheckContextMenuTouchEnd(isCheckContextMenuMode, isCheckContextMenuSelect, isCheckContextMenuCursor, isCheckContextMenuTableRuler);
+
+		if (AscCommon.g_inputContext.isHardCheckKeyboard)
+			isPreventDefault ? AscCommon.g_inputContext.preventVirtualKeyboard_Hard() : AscCommon.g_inputContext.enableVirtualKeyboard_Hard();
 
 		return false;
 	};

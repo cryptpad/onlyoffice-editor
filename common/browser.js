@@ -58,7 +58,8 @@ var AscBrowser = {
 	retinaPixelRatio : 1,
 	isVivaldiLinux : false,
     isSailfish : false,
-    isEmulateDevicePixelRatio : false
+    isEmulateDevicePixelRatio : false,
+    isNeedEmulateUpload : false
 };
 
 // user agent lower case
@@ -119,6 +120,8 @@ AscBrowser.isVivaldiLinux = AscBrowser.isLinuxOS && (AscBrowser.userAgent.indexO
 AscBrowser.isSailfish = (AscBrowser.userAgent.indexOf("sailfish") > -1);
 
 AscBrowser.isEmulateDevicePixelRatio = (AscBrowser.userAgent.indexOf("emulatedevicepixelratio") > -1);
+
+AscBrowser.isNeedEmulateUpload = (AscBrowser.userAgent.indexOf("needemulateupload") > -1);
 
 AscBrowser.zoom = 1;
 
