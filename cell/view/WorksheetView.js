@@ -16590,7 +16590,7 @@
 							minRow = (minRow === undefined || minRow > startY) ? startY : minRow;
 							maxRow = (maxRow === undefined || maxRow < endY) ? endY : maxRow;
 
-							diff = startY === arrayLines[i][j].start ? 3 * padding : 0;
+							diff = /*startY === arrayLines[i][j].start - 1 ? 3 * padding :*/ 0;
 							startPos = (startY === arrayLines[i][j].start - 1 ? this._getRowTop(startY + 1) : this._getRowTop(startY)) + diff - offsetY;
 							endPos = this._getRowTop(endY) - offsetY;
 							heightNextRow = this._getRowHeight(startY);
@@ -16615,15 +16615,17 @@
 								continue;
 							}
 
-							var collasedStartRow = this._getGroupCollapsed(arrayLines[i][j].start - 1);
-							//var collasedEndCol = rowLevelMap[arrayLines[i][j].end + 1] && rowLevelMap[arrayLines[i][j].end + 1].collapsed;
-							if(!collasedStartRow) {
-								ctx.lineVerPrevPx(posX, startPos - paddingTop - 1*padding, endPos);
-							}
+							if(endPos > startPos - paddingTop - 1*padding) {
+								var collasedStartRow = this._getGroupCollapsed(arrayLines[i][j].start - 1);
+								//var collasedEndCol = rowLevelMap[arrayLines[i][j].end + 1] && rowLevelMap[arrayLines[i][j].end + 1].collapsed;
+								if(!collasedStartRow) {
+									ctx.lineVerPrevPx(posX, startPos - paddingTop - 1*padding, endPos);
+								}
 
-							// |_
-							if(!collasedStartRow && endY === arrayLines[i][j].end + 1 && !checkPrevHideLevel(i, arrayLines[i][j].start)) {
-								ctx.lineHorPrevPx(posX - lineWidth + thickLineDiff, endPos, posX + 4*padding);
+								// |_
+								if(!collasedStartRow && endY === arrayLines[i][j].end + 1 && !checkPrevHideLevel(i, arrayLines[i][j].start)) {
+									ctx.lineHorPrevPx(posX - lineWidth + thickLineDiff, endPos, posX + 4*padding);
+								}
 							}
 						}
 					}
@@ -19753,7 +19755,7 @@
 	prot["getType"] = prot.getPageType;
 
 	//temporary vars -> todo need read from file
-	window["AscCommonExcel"].summaryBelow = false;
-	window["AscCommonExcel"].summaryRight = false;
+	window["AscCommonExcel"].summaryBelow = true;
+	window["AscCommonExcel"].summaryRight = true;
 
 })(window);
