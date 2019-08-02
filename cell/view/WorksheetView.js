@@ -16354,6 +16354,7 @@
 
 			var minCol;
 			var maxCol;
+			var startX, endX, widthNextRow, collasedEndRow;
 			for(i = 0; i < arrayLines.length; i++) {
 				if(arrayLines[i]) {
 					index = bFirstLine ? 1 : i;
@@ -16361,51 +16362,103 @@
 
 					for(j = 0; j < arrayLines[i].length; j++) {
 
-						if(endPosArr[arrayLines[i][j].end]) {
-							continue;
-						}
-						endPosArr[arrayLines[i][j].end] = 1;
-
-						var startX = Math.max(arrayLines[i][j].start, range.c1);
-						var endX = Math.min(arrayLines[i][j].end + 1, range.c2 + 1);
-						minCol = (minCol === undefined || minCol > startX) ? startX : minCol;
-						maxCol = (maxCol === undefined || maxCol < endX) ? endX : maxCol;
-
-						diff = startX === arrayLines[i][j].start ? AscCommon.AscBrowser.convertToRetinaValue(3, true) : 0;
-						startPos = this._getColLeft(startX) + diff - offsetX;
-						endPos = this._getColLeft(endX) - offsetX;
-						var widthNextRow = /*this.getColWidth(endX)*/this._getColLeft(endX + 1) - this._getColLeft(endX);
-						paddingTop = (widthNextRow - buttonSize) / 2;
-						if(paddingTop < 0) {
-							paddingTop = 0;
-						}
-
-						//button
-						if(endX === arrayLines[i][j].end + 1) {
-							//TODO ms обрезает кнопки сверху/снизу
-							if(widthNextRow && endX >= startX) {
-								if(!tempButtonMap[i]) {
-									tempButtonMap[i] = [];
-								}
-								tempButtonMap[i][endX] = 1;
-								buttons.push({r: endX, level: i});
+						if(window["AscCommonExcel"].summaryRight) {
+							if(endPosArr[arrayLines[i][j].end]) {
+								continue;
 							}
-						}
+							endPosArr[arrayLines[i][j].end] = 1;
 
-						if(startPos > endPos) {
-							continue;
-						}
+							startX = Math.max(arrayLines[i][j].start, range.c1);
+							endX = Math.min(arrayLines[i][j].end + 1, range.c2 + 1);
+							minCol = (minCol === undefined || minCol > startX) ? startX : minCol;
+							maxCol = (maxCol === undefined || maxCol < endX) ? endX : maxCol;
 
-						var collasedEndRow = this._getGroupCollapsed(arrayLines[i][j].end + 1, bCol);
-						//var collasedEndRow = rowLevelMap[arrayLines[i][j].end + 1] && rowLevelMap[arrayLines[i][j].end + 1].collapsed
-						if(!collasedEndRow) {
-							ctx.lineHorPrevPx(startPos, posY, endPos + paddingTop);
-						}
+							diff = startX === arrayLines[i][j].start ? AscCommon.AscBrowser.convertToRetinaValue(3, true) : 0;
+							startPos = this._getColLeft(startX) + diff - offsetX;
+							endPos = this._getColLeft(endX) - offsetX;
+							widthNextRow = /*this.getColWidth(endX)*/this._getColLeft(endX + 1) - this._getColLeft(endX);
+							paddingTop = (widthNextRow - buttonSize) / 2;
+							if(paddingTop < 0) {
+								paddingTop = 0;
+							}
 
-						// _
-						//|
-						if(!collasedEndRow && startX === arrayLines[i][j].start) {
-							ctx.lineVerPrevPx(startPos, posY - 2 * padding + thickLineDiff, posY + 4 * padding);
+							//button
+							if(endX === arrayLines[i][j].end + 1) {
+								//TODO ms обрезает кнопки сверху/снизу
+								if(widthNextRow && endX >= startX) {
+									if(!tempButtonMap[i]) {
+										tempButtonMap[i] = [];
+									}
+									tempButtonMap[i][endX] = 1;
+									buttons.push({r: endX, level: i});
+								}
+							}
+
+							if(startPos > endPos) {
+								continue;
+							}
+
+							collasedEndRow = this._getGroupCollapsed(arrayLines[i][j].end + 1, bCol);
+							//var collasedEndRow = rowLevelMap[arrayLines[i][j].end + 1] && rowLevelMap[arrayLines[i][j].end + 1].collapsed
+							if(!collasedEndRow) {
+								ctx.lineHorPrevPx(startPos, posY, endPos + paddingTop);
+							}
+
+							// _
+							//|
+							if(!collasedEndRow && startX === arrayLines[i][j].start) {
+								ctx.lineVerPrevPx(startPos, posY - 2 * padding + thickLineDiff, posY + 4 * padding);
+							}
+						} else {
+
+							if(endPosArr[arrayLines[i][j].start]) {
+								continue;
+							}
+							endPosArr[arrayLines[i][j].start] = 1;
+
+							startX = Math.max(arrayLines[i][j].start - 1, range.c1 - 1);
+							endX = Math.min(arrayLines[i][j].end + 1, range.c2 + 1);
+							minCol = (minCol === undefined || minCol > startX) ? startX : minCol;
+							maxCol = (maxCol === undefined || maxCol < endX) ? endX : maxCol;
+
+							diff = startX === arrayLines[i][j].start ? AscCommon.AscBrowser.convertToRetinaValue(3, true) : 0;
+							startPos = this._getColLeft(startX) + diff - offsetX;
+							endPos = this._getColLeft(endX) - offsetX;
+							widthNextRow = this._getColLeft(startX + 1) - this._getColLeft(startX);
+							paddingTop = (widthNextRow + buttonSize) / 2;
+							if(paddingTop < 0) {
+								paddingTop = 0;
+							}
+
+							//button
+							if(startX === arrayLines[i][j].start - 1) {
+								//TODO ms обрезает кнопки сверху/снизу
+								if(widthNextRow && endX >= startX) {
+									if(!tempButtonMap[i]) {
+										tempButtonMap[i] = [];
+									}
+									tempButtonMap[i][startX] = 1;
+									buttons.push({r: startX, level: i});
+								}
+							}
+
+							if(startPos > endPos) {
+								continue;
+							}
+
+							collasedEndRow = this._getGroupCollapsed(arrayLines[i][j].start - 1, bCol);
+							//var collasedEndRow = rowLevelMap[arrayLines[i][j].end + 1] && rowLevelMap[arrayLines[i][j].end + 1].collapsed
+							if(!collasedEndRow) {
+								//ctx.lineVerPrevPx(posX, startPos - paddingTop - 1*padding, endPos);
+								ctx.lineHorPrevPx(startPos + paddingTop - 1*padding, posY, endPos);
+							}
+
+							// _
+							//  |
+							if(!collasedEndRow && endX === arrayLines[i][j].end + 1) {
+								//ctx.lineHorPrevPx(posX - lineWidth + thickLineDiff, endPos, posX + 4*padding);
+								ctx.lineVerPrevPx(endPos, posY - 2 * padding + thickLineDiff, posY + 4 * padding);
+							}
 						}
 					}
 					bFirstLine = false;
