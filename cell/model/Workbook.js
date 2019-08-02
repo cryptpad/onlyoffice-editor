@@ -7373,69 +7373,8 @@
 		if (History.Is_On()) {
 			DataOld = this.getValueData();
 		}
-		var bIsTextFormat = false;
-		if (!isCopyPaste) {
-			var sNumFormat;
-			if (null != this.xfs && null != this.xfs.num) {
-				sNumFormat = this.xfs.num.getFormat();
-			} else {
-				sNumFormat = g_oDefaultFormat.Num.getFormat();
-			}
-			var numFormat = oNumFormatCache.get(sNumFormat);
-			bIsTextFormat = numFormat.isTextFormat();
-		}
-
 		var isFirstArrayFormulaCell = byRef && this.nCol === byRef.c1 && this.nRow === byRef.r1;
-		var newFP = null;
-		if (false == bIsTextFormat) {
-			/*
-			 Устанавливаем значение в Range ячеек. При этом происходит проверка значения на формулу.
-			 Если значение является формулой, то проверяем содержиться ли в ячейке формула или нет, если "да" - то очищаем в графе зависимостей список, от которых зависит формула(masterNodes), позже будет построен новый. Затем выставляем флаг о необходимости дальнейшего пересчета, и заносим ячейку в список пересчитываемых ячеек.
-			 */
-			if (null != val && val[0] == "=" && val.length > 1) {
-				//***array-formula***
-				if(byRef && !isFirstArrayFormulaCell) {
-					newFP = this.ws.formulaArrayLink;
-					if(newFP === null) {
-						return;
-					}
-					if(this.nCol === byRef.c2 && this.nRow === byRef.r2) {
-						this.ws.formulaArrayLink = null;
-					}
-				} else {
-					var cellWithFormula = new CCellWithFormula(this.ws, this.nRow, this.nCol);
-					newFP = new parserFormula(val.substring(1), cellWithFormula, this.ws);
-
-					var formulaLocaleParse = isCopyPaste === true ? false : oFormulaLocaleInfo.Parse;
-					var formulaLocaleDigetSep = isCopyPaste === true ? false : oFormulaLocaleInfo.DigitSep;
-					var parseResult = new AscCommonExcel.ParseResult();
-					if (!newFP.parse(formulaLocaleParse, formulaLocaleDigetSep, parseResult)) {
-						switch (parseResult.error) {
-							case c_oAscError.ID.FrmlWrongFunctionName:
-								break;
-							case c_oAscError.ID.FrmlParenthesesCorrectCount:
-								this.setValue("=" + newFP.getFormula(), callback, isCopyPaste, byRef);
-								return;
-							default :
-							{
-								wb.handlers.trigger("asc_onError", parseResult.error, c_oAscError.Level.NoCritical);
-								if (callback) {
-									callback(false);
-								}
-								return;
-							}
-						}
-					} else {
-						newFP.setFormulaString(newFP.assemble());
-						//***array-formula***
-						if(byRef) {
-							newFP.ref = byRef;
-							this.ws.formulaArrayLink = newFP;
-						}
-					}
-				}
-			}
-		}
+		var newFP = this.setValueGetParsed(val, callback, isCopyPaste, byRef);
 		//удаляем старые значения
 		this.cleanText();
 		this.setFormulaInternal(null);
@@ -7477,7 +7416,75 @@
 			cell.removeHyperlink();
 		}
 	};
+	Cell.prototype.setValueGetParsed=function(val,callback, isCopyPaste, byRef) {
+		var ws = this.ws;
+		var wb = ws.workbook;
+		var bIsTextFormat = false;
+		if (!isCopyPaste) {
+			var sNumFormat;
+			if (null != this.xfs && null != this.xfs.num) {
+				sNumFormat = this.xfs.num.getFormat();
+			} else {
+				sNumFormat = g_oDefaultFormat.Num.getFormat();
+			}
+			var numFormat = oNumFormatCache.get(sNumFormat);
+			bIsTextFormat = numFormat.isTextFormat();
+		}
+
+		var isFirstArrayFormulaCell = byRef && this.nCol === byRef.c1 && this.nRow === byRef.r1;
+		var newFP = null;
+		if (false == bIsTextFormat) {
+			/*
+			 Устанавливаем значение в Range ячеек. При этом происходит проверка значения на формулу.
+			 Если значение является формулой, то проверяем содержиться ли в ячейке формула или нет, если "да" - то очищаем в графе зависимостей список, от которых зависит формула(masterNodes), позже будет построен новый. Затем выставляем флаг о необходимости дальнейшего пересчета, и заносим ячейку в список пересчитываемых ячеек.
+			 */
+			if (null != val && val[0] == "=" && val.length > 1) {
+				//***array-formula***
+				if(byRef && !isFirstArrayFormulaCell) {
+					newFP = this.ws.formulaArrayLink;
+					if(newFP === null) {
+						return;
+					}
+					if(this.nCol === byRef.c2 && this.nRow === byRef.r2) {
+						this.ws.formulaArrayLink = null;
+					}
+				} else {
+					var cellWithFormula = new CCellWithFormula(this.ws, this.nRow, this.nCol);
+					newFP = new parserFormula(val.substring(1), cellWithFormula, this.ws);
+
+					var formulaLocaleParse = isCopyPaste === true ? false : oFormulaLocaleInfo.Parse;
+					var formulaLocaleDigetSep = isCopyPaste === true ? false : oFormulaLocaleInfo.DigitSep;
+					var parseResult = new AscCommonExcel.ParseResult();
+					if (!newFP.parse(formulaLocaleParse, formulaLocaleDigetSep, parseResult)) {
+						switch (parseResult.error) {
+							case c_oAscError.ID.FrmlWrongFunctionName:
+								break;
+							case c_oAscError.ID.FrmlParenthesesCorrectCount:
+								return this.setValueGetParsed("=" + newFP.getFormula(), callback, isCopyPaste, byRef);
+							default :
+							{
+								wb.handlers.trigger("asc_onError", parseResult.error, c_oAscError.Level.NoCritical);
+								if (callback) {
+									callback(false);
+								}
+								return;
+							}
+						}
+					} else {
+						newFP.setFormulaString(newFP.assemble());
+						//***array-formula***
+						if(byRef) {
+							newFP.ref = byRef;
+							this.ws.formulaArrayLink = newFP;
+						}
+					}
+				}
+			}
+		}
+		return newFP;
+	};
 	Cell.prototype.setValue2=function(array){
+		return this.cloneAndSetValue(array);
 		var DataOld = null;
 		if(History.Is_On())
 			DataOld = this.getValueData();
@@ -7498,6 +7505,28 @@
 			var cell = this.ws.getCell3(this.nRow, this.nCol);
 			cell.removeHyperlink();
 		}
+	};
+	Cell.prototype.cloneAndSetValue = function(array, formula, callback, isCopyPaste, byRef) {
+		var cell = new Cell(this.ws);
+		cell.nRow = this.nRow;
+		cell.nCol = this.nCol;
+		cell.xfs = this.xfs;
+		cell.setFormulaInternal(null);
+		cell.cleanText();
+		if (formula) {
+			var newFP = cell.setValueGetParsed(formula, callback, isCopyPaste, byRef);
+			this.ws.formulaArrayLink = null;//todo
+			if (newFP) {
+				cell.setFormulaInternal(newFP);
+				newFP.calculate();
+				cell._updateCellValue();
+			} else if (formula) {
+				cell._setValue(formula);
+			}
+		} else {
+			cell._setValue2(array);
+		}
+		return cell;
 	};
 	Cell.prototype.setFormulaTemplate = function(bHistoryUndo, action) {
 		var DataOld = null;
