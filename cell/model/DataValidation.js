@@ -116,11 +116,11 @@
 		this._formula = new AscCommonExcel.parserFormula(this.text, null, ws);
 		this._formula.parse();
 	};
-	CDataFormula.prototype.getValue = function(vt, ws) {
+	CDataFormula.prototype.getValue = function(vt, ws, returnRaw) {
 		this._init(vt, ws);
 		if (EFormulaType.Formula === this.type) {
 			var res = this._formula.calculate();
-			return this._formula.simplifyRefType(res).getValue();
+			return returnRaw ? this._formula.simplifyRefType(res).getValue() : res;
 		}
 		return this._formula;
 	};
@@ -185,17 +185,28 @@
 		return false;
 	};
 	CDataValidation.prototype.checkValue = function (val, ws) {
-		var res = false;
+		var res = true;
 		if (this.showErrorMessage) {
 			val = (this.type === EDataValidationType.TextLength) ? AscCommonExcel.getFragmentsLength(val) : AscCommonExcel.getFragmentsText(val);
 			if (EDataValidationType.List === this.type) {
-
+				var list = this.formula1 && this.formula1.getValue(this.type, ws, false);
+				list = ws.getRange2(list);
+				if (list) {
+					res = false;
+					list._foreachNoEmpty(function (cell) {
+						// ToDo check cells type
+						if (!cell.isEmptyTextString() && cell.getValue() === val) {
+							res = true;
+							return null;
+						}
+					});
+				}
 			} else if (EDataValidationType.Custom === this.type) {
 			} else {
 				val = Number(val);
 				if (!isNaN(val)) {
-					var v1 = this.formula1 && this.formula1.getValue(this.type, ws);
-					var v2 = this.formula2 && this.formula2.getValue(this.type, ws);
+					var v1 = this.formula1 && this.formula1.getValue(this.type, ws, true);
+					var v2 = this.formula2 && this.formula2.getValue(this.type, ws, true);
 					switch (this.operator) {
 						case EDataValidationOperator.Between:
 							res = v1 <= val && val <= v2;
