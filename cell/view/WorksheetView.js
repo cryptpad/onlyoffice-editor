@@ -16616,14 +16616,14 @@
 							}
 
 							if(endPos > startPos - paddingTop - 1*padding) {
-								var collasedStartRow = this._getGroupCollapsed(arrayLines[i][j].start - 1);
-								//var collasedEndCol = rowLevelMap[arrayLines[i][j].end + 1] && rowLevelMap[arrayLines[i][j].end + 1].collapsed;
-								if(!collasedStartRow) {
+								var collapsedStartRow = this._getGroupCollapsed(arrayLines[i][j].start - 1);
+								var hiddenStartRow = this._getHidden(arrayLines[i][j].start);
+								if(!collapsedStartRow && !hiddenStartRow) {
 									ctx.lineVerPrevPx(posX, startPos - paddingTop - 1*padding, endPos);
 								}
 
 								// |_
-								if(!collasedStartRow && endY === arrayLines[i][j].end + 1 && !checkPrevHideLevel(i, arrayLines[i][j].start)) {
+								if(!collapsedStartRow && !hiddenStartRow && endY === arrayLines[i][j].end + 1 && !checkPrevHideLevel(i, arrayLines[i][j].start)) {
 									ctx.lineHorPrevPx(posX - lineWidth + thickLineDiff, endPos, posX + 4*padding);
 								}
 							}
@@ -16851,6 +16851,19 @@
 			this.model.getRange3(0, index, 0, index)._foreachColNoEmpty(getCollapsed);
 		} else {
 			this.model.getRange3(index, 0, index, 0)._foreachRowNoEmpty(getCollapsed);
+		}
+		return res;
+	};
+
+	WorksheetView.prototype._getHidden = function(index, bCol) {
+		var res;
+		var callback = function(val) {
+			res =  val ? val.getHidden() : false;
+		};
+		if(bCol) {
+			this.model.getRange3(0, index, 0, index)._foreachColNoEmpty(callback);
+		} else {
+			this.model.getRange3(index, 0, index, 0)._foreachRowNoEmpty(callback);
 		}
 		return res;
 	};
@@ -19755,7 +19768,7 @@
 	prot["getType"] = prot.getPageType;
 
 	//temporary vars -> todo need read from file
-	window["AscCommonExcel"].summaryBelow = true;
-	window["AscCommonExcel"].summaryRight = true;
+	window["AscCommonExcel"].summaryBelow = false;
+	window["AscCommonExcel"].summaryRight = false;
 
 })(window);
