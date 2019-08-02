@@ -830,7 +830,12 @@
 		TabColor							: 9,
 		PageSetUpPr							: 10,
 		AutoPageBreaks						: 11,
-		FitToPage							: 12
+		FitToPage							: 12,
+		OutlinePr							: 13,
+		ApplyStyles							: 14,
+		ShowOutlineSymbols					: 15,
+		SummaryBelow						: 16,
+		SummaryRight						: 17
     };
     /** @enum */
     var c_oSer_Sparkline = {
@@ -3540,7 +3545,25 @@
                 this.bs.WriteItem(c_oSer_SheetPr.TabColor, function(){oThis.bs.WriteColorSpreadsheet(sheetPr.TabColor);});
 			if (null !== sheetPr.AutoPageBreaks || null !== sheetPr.FitToPage)
 				this.bs.WriteItem(c_oSer_SheetPr.PageSetUpPr, function(){oThis.WritePageSetUpPr(sheetPr);});
+			if (null !== sheetPr.ApplyStyles || null !== sheetPr.ShowOutlineSymbols || null !== sheetPr.SummaryBelow || null !== sheetPr.SummaryRight)
+				this.bs.WriteItem(c_oSer_SheetPr.OutlinePr, function(){oThis.WriteOutlinePr(sheetPr);});
         };
+		this.WriteOutlinePr = function(sheetPr)
+		{
+			var oThis = this;
+			if (null !== sheetPr.ApplyStyles) {
+				this.bs.WriteItem(c_oSer_SheetPr.ApplyStyles, function(){oThis.memory.WriteBool(sheetPr.ApplyStyles);});
+			}
+			if (null !== sheetPr.ShowOutlineSymbols) {
+				this.bs.WriteItem(c_oSer_SheetPr.ShowOutlineSymbols, function(){oThis.memory.WriteBool(sheetPr.ShowOutlineSymbols);});
+			}
+			if (null !== sheetPr.SummaryBelow) {
+				this.bs.WriteItem(c_oSer_SheetPr.SummaryBelow, function(){oThis.memory.WriteBool(sheetPr.SummaryBelow);});
+			}
+			if (null !== sheetPr.SummaryRight) {
+				this.bs.WriteItem(c_oSer_SheetPr.SummaryRight, function(){oThis.memory.WriteBool(sheetPr.SummaryRight);});
+			}
+		};
 		this.WritePageSetUpPr = function(sheetPr)
 		{
 			var oThis = this;
@@ -8374,11 +8397,30 @@
 				res = this.bcr.Read1(length, function (t, l) {
 					return oThis.ReadPageSetUpPr(t, l, oSheetPr);
 				});
+			} else if (c_oSer_SheetPr.OutlinePr === type) {
+				res = this.bcr.Read1(length, function (t, l) {
+					return oThis.ReadOutlinePr(t, l, oSheetPr);
+				});
             } else
                 res = c_oSerConstants.ReadUnknown;
 
             return res;
         };
+		this.ReadOutlinePr = function (type, length, oSheetPr) {
+			var oThis = this;
+			var res = c_oSerConstants.ReadOk;
+			if (c_oSer_SheetPr.ApplyStyles === type) {
+				oSheetPr.ApplyStyles = this.stream.GetBool();
+			} else if (c_oSer_SheetPr.ShowOutlineSymbols === type) {
+				oSheetPr.ShowOutlineSymbols = this.stream.GetBool();
+			} else if (c_oSer_SheetPr.SummaryBelow === type) {
+				oSheetPr.SummaryBelow = this.stream.GetBool();
+			} else if (c_oSer_SheetPr.SummaryRight === type) {
+				oSheetPr.SummaryRight = this.stream.GetBool();
+			} else
+				res = c_oSerConstants.ReadUnknown;
+			return res;
+		};
 		this.ReadPageSetUpPr = function (type, length, oSheetPr) {
 			var oThis = this;
 			var res = c_oSerConstants.ReadOk;

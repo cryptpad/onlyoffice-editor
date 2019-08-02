@@ -2168,8 +2168,12 @@
 			this.TransitionEvaluation = null;
 
 			this.TabColor = null;
-			this.AutoPageBreaks = null;
-			this.FitToPage = null;
+			this.AutoPageBreaks = true;
+			this.FitToPage = false;
+			this.ApplyStyles = false;
+			this.ShowOutlineSymbols = true;
+			this.SummaryBelow = true;
+			this.SummaryRight = true;
 
 			return this;
 		}
