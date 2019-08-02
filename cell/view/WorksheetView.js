@@ -17957,6 +17957,44 @@
 		return res;
 	};
 
+	WorksheetView.prototype.switchGroupSummaryPos = function(val, bCol) {
+		var t = this;
+		var groupArr = bCol ? this.arrColGroups : this.arrRowGroups;
+		groupArr = groupArr ? groupArr.groupArr : null;
+		var collapsedIndexes = [];
+		if(groupArr) {
+			for(var i = 0; i < groupArr.length; i++) {
+				if (groupArr[i]) {
+					for (var j = 0; j < groupArr[i].length; j++) {
+						var collapsedFrom, collapsedTo;
+						if(val === false) {
+							collapsedFrom = end + 1;
+							collapsedTo = start - 1;
+
+						} else {
+							collapsedFrom = start - 1;
+							collapsedTo = end + 1;
+						}
+
+						if(this._getGroupCollapsed(collapsedFrom)) {
+							collapsedIndexes[collapsedTo] = 1;
+						}
+					}
+				}
+			}
+		}
+
+		if(collapsedIndexes.length) {
+			var callback = function() {
+				for(var n in collapsedIndexes) {
+					bCol ? t.model.setCollapsedCol(true, collapsedIndexes[n]) : t.model.setCollapsedRow(true, collapsedIndexes[n]);
+				}
+			};
+			//TODO нужен ли лок?
+			this._isLockedAll(callback);
+		}
+	};
+
 
 
    	//HEADER/FOOTER
