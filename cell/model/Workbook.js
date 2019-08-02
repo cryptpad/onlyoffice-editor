@@ -4592,8 +4592,10 @@
 		var fProcessCol = function(col){
 			if(col.width != width)
 			{
-				if(!bNotAddCollapsed && col.getCollapsed()) {
+				if(window["AscCommonExcel"].summaryRight && !bNotAddCollapsed && col.getCollapsed()) {
 					oThis.setCollapsedCol(false, null, col);
+				} else if(!window["AscCommonExcel"].summaryRight && !bNotAddCollapsed && prevCol && prevCol.getCollapsed()) {
+					oThis.setCollapsedCol(false, null, prevCol);
 				}
 				prevCol = col;
 
@@ -4622,12 +4624,18 @@
 		}
 		else
 		{
+			if(!window["AscCommonExcel"].summaryRight) {
+				if(!bNotAddCollapsed && start > 0) {
+					prevCol = this._getCol(start - 1);
+				}
+			}
+
 			for(var i = start; i <= stop; i++){
 				var col = this._getCol(i);
 				fProcessCol(col);
 			}
 
-			if(!bNotAddCollapsed && prevCol) {
+			if(window["AscCommonExcel"].summaryRight && !bNotAddCollapsed && prevCol) {
 				col = this._getCol(stop + 1);
 				if(col.getCollapsed()) {
 					this.setCollapsedCol(false, null, col);
@@ -4651,7 +4659,11 @@
 		var fProcessCol = function(col){
 
 			if(col && !bNotAddCollapsed && outlineLevel !== undefined && outlineLevel !== col.getOutlineLevel()) {
-				oThis.setCollapsedCol(bHidden, null, col);
+				if(!window["AscCommonExcel"].summaryRight) {
+					oThis.setCollapsedCol(bHidden, col.index - 1);
+				} else {
+					oThis.setCollapsedCol(bHidden, null, col);
+				}
 			}
 			outlineLevel = col ? col.getOutlineLevel() : null;
 
@@ -4679,6 +4691,12 @@
 								new UndoRedoData_IndexSimpleProp(col.index, false, oOldProps, oNewProps));
 			}
 		};
+
+		if(!bNotAddCollapsed && !window["AscCommonExcel"].summaryRight && start > 0) {
+			col = this._getCol(start - 1);
+			outlineLevel = col.getOutlineLevel();
+		}
+
 		if(0 != start && gc_nMaxCol0 == stop)
 		{
 			var col = null;
@@ -4707,7 +4725,7 @@
 			}
 		}
 
-		if(!bNotAddCollapsed && outlineLevel) {
+		if(!bNotAddCollapsed && outlineLevel && window["AscCommonExcel"].summaryRight) {
 			col = this._getCol(stop + 1);
 			if(col && outlineLevel !== col.getOutlineLevel()) {
 				oThis.setCollapsedCol(bHidden, null, col);
@@ -4876,8 +4894,10 @@
 		var fProcessRow = function(row){
 			if(row)
 			{
-				if(!bNotAddCollapsed && row.getCollapsed()) {
+				if(window["AscCommonExcel"].summaryBelow && !bNotAddCollapsed && row.getCollapsed()) {
 					oThis.setCollapsedRow(false, null, row);
+				} else if(!window["AscCommonExcel"].summaryBelow && !bNotAddCollapsed && prevRow && prevRow.getCollapsed()) {
+					oThis.setCollapsedRow(false, null, prevRow);
 				}
 				prevRow = row;
 
@@ -4900,14 +4920,24 @@
 		}
 		else
 		{
+			if(!window["AscCommonExcel"].summaryBelow) {
+				if(!bNotAddCollapsed && start > 0) {
+					this._getRow(start - 1, function(row) {
+						prevRow = row;
+					});
+				}
+			}
+
 			this.getRange3(start,0,stop, 0)._foreachRow(fProcessRow);
 
-			if(!bNotAddCollapsed && prevRow) {
-				this._getRow(stop + 1, function(row) {
-					if(row.getCollapsed()) {
-						oThis.setCollapsedRow(false, null, row);
-					}
-				});
+			if(window["AscCommonExcel"].summaryBelow) {
+				if(!bNotAddCollapsed && prevRow) {
+					this._getRow(stop + 1, function(row) {
+						if(row.getCollapsed()) {
+							oThis.setCollapsedRow(false, null, row);
+						}
+					});
+				}
 			}
 		}
 		if(this.needRecalFormulas(start, stop)) {
@@ -4967,7 +4997,7 @@
 		}
 		else
 		{
-			if(!window["AscCommonExcel"].summaryBelow && start > 0) {
+			if(!window["AscCommonExcel"].summaryBelow && start > 0 && !bNotAddCollapsed) {
 				this._getRow(start - 1, function(row) {
 					if(row) {
 						outlineLevel = row.getOutlineLevel();
@@ -5000,7 +5030,7 @@
 	//TODO
 	Worksheet.prototype.setCollapsedRow = function (bCollapse, rowIndex, curRow) {
 		var oThis = this;
-		var fProcessRow = function(row){
+		var fProcessRow = function(row, bSave){
 			var oOldProps = row.getCollapsed();
 			row.setCollapsed(bCollapse);
 			var oNewProps = row.getCollapsed();
@@ -5008,10 +5038,13 @@
 			if(oOldProps !== oNewProps) {
 				History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_CollapsedRow, oThis.getId(), row._getUpdateRange(), new UndoRedoData_IndexSimpleProp(row.index, true, oOldProps, oNewProps));
 			}
+			if(bSave) {
+				row.saveContent(true);
+			}
 		};
 
 		if(curRow) {
-			fProcessRow(curRow);
+			fProcessRow(curRow, true);
 		} else {
 			this.getRange3(rowIndex,0,rowIndex, 0)._foreachRow(fProcessRow);
 		}
