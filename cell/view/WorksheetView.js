@@ -16416,16 +16416,16 @@
 							}
 							endPosArr[arrayLines[i][j].start] = 1;
 
-							startX = Math.max(arrayLines[i][j].start - 1, range.c1 - 1);
+							startX = Math.max(arrayLines[i][j].start - 1, range.c1);
 							endX = Math.min(arrayLines[i][j].end + 1, range.c2 + 1);
 							minCol = (minCol === undefined || minCol > startX) ? startX : minCol;
 							maxCol = (maxCol === undefined || maxCol < endX) ? endX : maxCol;
 
-							diff = startX === arrayLines[i][j].start ? AscCommon.AscBrowser.convertToRetinaValue(3, true) : 0;
+							diff = /*startX === arrayLines[i][j].start ? AscCommon.AscBrowser.convertToRetinaValue(3, true) :*/ 0;
 							startPos = this._getColLeft(startX) + diff - offsetX;
 							endPos = this._getColLeft(endX) - offsetX;
 							widthNextRow = this._getColLeft(startX + 1) - this._getColLeft(startX);
-							paddingTop = (widthNextRow + buttonSize) / 2;
+							paddingTop = startX === arrayLines[i][j].start - 1 ? (widthNextRow + buttonSize) / 2 : 0;
 							if(paddingTop < 0) {
 								paddingTop = 0;
 							}
@@ -16447,17 +16447,19 @@
 							}
 
 							collasedEndRow = this._getGroupCollapsed(arrayLines[i][j].start - 1, bCol);
-							//var collasedEndRow = rowLevelMap[arrayLines[i][j].end + 1] && rowLevelMap[arrayLines[i][j].end + 1].collapsed
-							if(!collasedEndRow) {
-								//ctx.lineVerPrevPx(posX, startPos - paddingTop - 1*padding, endPos);
-								ctx.lineHorPrevPx(startPos + paddingTop - 1*padding, posY, endPos);
-							}
 
-							// _
-							//  |
-							if(!collasedEndRow && endX === arrayLines[i][j].end + 1) {
-								//ctx.lineHorPrevPx(posX - lineWidth + thickLineDiff, endPos, posX + 4*padding);
-								ctx.lineVerPrevPx(endPos, posY - 2 * padding + thickLineDiff, posY + 4 * padding);
+							if( endPos > startPos + paddingTop - 1*padding) {
+								if(!collasedEndRow && endPos > startPos + paddingTop - 1*padding) {
+									//ctx.lineVerPrevPx(posX, startPos - paddingTop - 1*padding, endPos);
+									ctx.lineHorPrevPx(startPos + paddingTop - 1*padding, posY, endPos);
+								}
+
+								// _
+								//  |
+								if(!collasedEndRow && endX === arrayLines[i][j].end + 1 && endPos > startPos + paddingTop - 1*padding) {
+									//ctx.lineHorPrevPx(posX - lineWidth + thickLineDiff, endPos, posX + 4*padding);
+									ctx.lineVerPrevPx(endPos, posY - 2 * padding + thickLineDiff, posY + 4 * padding);
+								}
 							}
 						}
 					}
@@ -16583,16 +16585,16 @@
 							}
 							endPosArr[arrayLines[i][j].start] = 1;
 
-							startY = Math.max(arrayLines[i][j].start - 1, range.r1 - 1);
+							startY = Math.max(arrayLines[i][j].start - 1, range.r1);
 							endY = Math.min(arrayLines[i][j].end + 1, range.r2 + 1);
 							minRow = (minRow === undefined || minRow > startY) ? startY : minRow;
 							maxRow = (maxRow === undefined || maxRow < endY) ? endY : maxRow;
 
 							diff = startY === arrayLines[i][j].start ? 3 * padding : 0;
-							startPos = this._getRowTop(startY + 1) + diff - offsetY;
+							startPos = (startY === arrayLines[i][j].start - 1 ? this._getRowTop(startY + 1) : this._getRowTop(startY)) + diff - offsetY;
 							endPos = this._getRowTop(endY) - offsetY;
 							heightNextRow = this._getRowHeight(startY);
-							paddingTop = (heightNextRow - buttonSize) / 2;
+							paddingTop = startY === arrayLines[i][j].start - 1 ? (heightNextRow - buttonSize) / 2 : 0;
 							if(paddingTop < 0) {
 								paddingTop = 0;
 							}
@@ -19751,7 +19753,7 @@
 	prot["getType"] = prot.getPageType;
 
 	//temporary vars -> todo need read from file
-	window["AscCommonExcel"].summaryBelow = true;
-	window["AscCommonExcel"].summaryRight = true;
+	window["AscCommonExcel"].summaryBelow = false;
+	window["AscCommonExcel"].summaryRight = false;
 
 })(window);
