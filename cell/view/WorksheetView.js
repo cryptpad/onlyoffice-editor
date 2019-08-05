@@ -19806,7 +19806,7 @@
 	prot["getPageType"] = prot.getPageType;
 
 	//temporary vars -> todo need read from file
-	window["AscCommonExcel"].summaryBelow = false;
-	window["AscCommonExcel"].summaryRight = false;
+	window["AscCommonExcel"].summaryBelow = true;
+	window["AscCommonExcel"].summaryRight = true;
 
 })(window);
