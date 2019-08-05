@@ -17842,18 +17842,16 @@
 	WorksheetView.prototype.clearOutline = function() {
 		var t = this;
 
-		var groupArrCol= this.arrColGroups ? this.arrColGroups.groupArr : null;
-		var groupArrRow = this.arrRowGroups ? this.arrRowGroups.groupArr : null;
-
-		History.Create_NewPoint();
-		History.StartTransaction();
-
 		//TODO check filtering mode
 		var ar = t.model.selectionRange;
 
 		//если активной является 1 ячейка, то сбрасываем все группы
 		var isOneCell = 1 === ar.ranges.length && ar.ranges[0].isOneCell();
 
+		var groupArrCol= t.arrColGroups ? t.arrColGroups.groupArr : null;
+		var groupArrRow = t.arrRowGroups ? t.arrRowGroups.groupArr : null;
+
+		var doChangeRowArr = [], doChangeColArr = [];
 		var range, intersection;
 		for(var n = 0; n < ar.ranges.length; n++) {
 			if(groupArrRow) {
@@ -17869,8 +17867,9 @@
 							intersection = ar.ranges[n].intersection(range);
 						}
 						if(intersection) {
-							t.model.setRowHidden(false, intersection.r1, intersection.r2);
-							t.model.setOutlineRow(0, intersection.r1, intersection.r2);
+							doChangeRowArr.push(intersection);
+							//t.model.setRowHidden(false, intersection.r1, intersection.r2);
+							//t.model.setOutlineRow(0, intersection.r1, intersection.r2);
 						}
 					}
 				}
@@ -17889,18 +17888,41 @@
 							intersection = ar.ranges[n].intersection(range);
 						}
 						if(intersection) {
-							t.model.setColHidden(false, intersection.c1, intersection.c2);
-							t.model.setOutlineCol(0, intersection.c1, intersection.c2);
+							doChangeColArr.push(intersection);
+							//t.model.setColHidden(false, intersection.c1, intersection.c2);
+							//t.model.setOutlineCol(0, intersection.c1, intersection.c2);
 						}
 					}
 				}
 			}
 		}
 
-		History.EndTransaction();
+		var callback = function(isSuccess) {
+			if(!isSuccess) {
+				return;
+			}
 
-		t._updateGroups(null);
-		t._updateGroups(true);
+			History.Create_NewPoint();
+			History.StartTransaction();
+
+			for(var j in doChangeRowArr) {
+				t.model.setRowHidden(false, doChangeRowArr[j].r1, doChangeRowArr[j].r2);
+				t.model.setOutlineRow(0, doChangeRowArr[j].r1, doChangeRowArr[j].r2);
+			}
+			for(j in doChangeColArr) {
+				t.model.setColHidden(false, doChangeRowArr[j].c1, doChangeRowArr[j].c2);
+				t.model.setOutlineCol(0, doChangeRowArr[j].c1, doChangeRowArr[j].c2);
+			}
+
+			History.EndTransaction();
+
+			t._updateGroups(null);
+			t._updateGroups(true);
+		};
+
+		if(doChangeRowArr.length || doChangeColArr.length) {
+			this._isLockedAll(callback);
+		}
 	};
 
 	WorksheetView.prototype.checkAddGroup = function(bUngroup) {
