@@ -1303,6 +1303,7 @@ function checkPointInMap(map, worksheet, row, col)
         plotArea:      null,
         rotatePlotArea: null,
         gridLines:     null,
+        chart:        null,
         series:        null,
         datPoint:      null,
         textSelection: null

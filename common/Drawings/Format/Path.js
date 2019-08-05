@@ -1380,6 +1380,74 @@ Path.prototype = {
             shape_drawer._e();
         },
 
+        hitInInnerArea: function(canvasContext, x, y)
+        {
+            if(this.fill === "none")
+                return false;
+
+            var _arr_commands = this.ArrPathCommand;
+            var _commands_count = _arr_commands.length;
+            var _command_index;
+            var _command;
+
+            var path = this.ArrPathCommand;
+            canvasContext.beginPath();
+            var i = 0;
+            var len = this.PathMemory.ArrPathCommand[this.startPos];
+            while(i < len)
+            {
+                var cmd=path[this.startPos + i + 1];
+                switch(cmd)
+                {
+                    case moveTo:
+                    {
+                        canvasContext.moveTo(path[this.startPos + i+2], path[this.startPos + i + 3]);
+                        i+=3;
+                        break;
+                    }
+                    case lineTo:
+                    {
+                        canvasContext.lineTo(path[this.startPos + i+2], path[this.startPos + i + 3]);
+                        i+=3;
+                        break;
+                    }
+                    case bezier3:
+                    {
+                        canvasContext.quadraticCurveTo(path[this.startPos + i+2], path[this.startPos + i + 3], path[this.startPos + i+4], path[this.startPos + i + 5]);
+                        i+=5;
+                        break;
+                    }
+                    case bezier4:
+                    {
+                        canvasContext.bezierCurveTo(path[this.startPos + i+2], path[this.startPos + i + 3], path[this.startPos + i+4], path[this.startPos + i + 5], path[this.startPos + i+6], path[this.startPos + i + 7]);
+                        i+=7;
+                        break;
+                    }
+                    case arcTo:
+                    {
+                        ArcToOnCanvas(canvasContext, path[this.startPos + i + 2], path[this.startPos + i + 3], path[this.startPos + i + 4], path[this.startPos + i + 5], path[this.startPos + i + 6], path[this.startPos + i + 7]);
+                        i+=7;
+                        break;
+                    }
+                    case close:
+                    {
+                        canvasContext.closePath();
+                        if(canvasContext.isPointInPath(x, y))
+                        {
+                            return true;
+                        }
+                        i+=1;
+                        break;
+                    }
+                }
+            }
+            canvasContext.closePath();
+            if(canvasContext.isPointInPath(x, y))
+            {
+                return true;
+            }
+            return false;
+        },
 
         getCommandByIndex: function(idx){
             var i = 0;
