@@ -2508,8 +2508,13 @@
 				}
 			}
 
-			if(fragments[0] && null === fragments[0].format.fn) {
-				fragments[0].format.fn = t.model.getDefaultFontName();
+			if(fragments[0]) {
+				if(null === fragments[0].format.fn) {
+					fragments[0].format.fn = t.model.getDefaultFontName();
+				}
+				if(null === fragments[0].format.fs) {
+					fragments[0].format.fs = t.model.getDefaultFontSize();
+				}
 				t.stringRender._setFont(drawingCtx, fragments[0].format);
 			}
 			t.stringRender.render(drawingCtx, x, y, textMetrics.width, t.settings.activeCellBorderColor);
