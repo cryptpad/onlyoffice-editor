@@ -2438,6 +2438,10 @@ function (window, undefined) {
 			worksheetView._updateFreezePane(updateData.c1, updateData.r1, /*lockDraw*/true);
 		} else if (AscCH.historyitem_Worksheet_SetTabColor === Type) {
 			ws.setTabColor(bUndo ? Data.from : Data.to);
+		} else if (AscCH.historyitem_Worksheet_SetSummaryRight === Type) {
+			ws.setSummaryRight(bUndo ? Data.from : Data.to);
+		} else if (AscCH.historyitem_Worksheet_SetSummaryBelow === Type) {
+			ws.setSummaryBelow(bUndo ? Data.from : Data.to);
 		} else if (AscCH.historyitem_Worksheet_GroupRow == Type) {
 			index = Data.index;
 			if (wb.bCollaborativeChanges) {

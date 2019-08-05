@@ -18020,12 +18020,26 @@
 		}
 
 		if(collapsedIndexes.length) {
-			var callback = function() {
+			var callback = function(success) {
+				if(!success) {
+					return;
+				}
+
+				History.Create_NewPoint();
+				History.StartTransaction();
+
+				bCol ? t.model.setSummaryRight(val) : t.model.setSummaryBelow(val);
+
 				for(var n in collapsedIndexes) {
 					bCol ? t.model.setCollapsedCol(true, collapsedIndexes[n]) : t.model.setCollapsedRow(true, collapsedIndexes[n]);
 				}
+
+				History.EndTransaction();
+
+				t._updateGroups(null);
+				t._updateGroups(true);
 			};
-			//TODO нужен ли лок?
+
 			this._isLockedAll(callback);
 		}
 	};

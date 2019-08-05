@@ -3633,6 +3633,13 @@ var editor;
       return this.wbModel && this.wbModel.Core;
 	};
 
+	spreadsheet_api.prototype.asc_switchGroupSummary = function (val, bCol) {
+		var ws = this.wb && this.wb.getWorksheet();
+		if(ws) {
+			ws.switchGroupSummaryPos(val, bCol);
+		}
+	};
+
   /*
    * Export
    * -----------------------------------------------------------------------------
@@ -3802,6 +3809,8 @@ var editor;
   prot["asc_clearOutline"] = prot.asc_clearOutline;
   prot["asc_changeGroupDetails"] = prot.asc_changeGroupDetails;
   prot["asc_checkAddGroup"] = prot.asc_checkAddGroup;
+  prot["asc_switchGroupSummary"] = prot.asc_switchGroupSummary;
+
   
   // Drawing objects interface
 

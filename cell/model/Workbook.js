@@ -4753,6 +4753,28 @@
 			this.getRange3(0, colIndex,0, colIndex)._foreachCol(fProcessCol);
 		}
 	};
+	Worksheet.prototype.setSummaryRight = function (val) {
+		if (!this.sheetPr){
+			this.sheetPr = new AscCommonExcel.asc_CSheetPr();
+		}
+
+		History.Create_NewPoint();
+		History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_SetSummaryRight, this.getId(), null,
+			new UndoRedoData_FromTo(this.sheetPr.summaryRight, val));
+
+		this.sheetPr.summaryRight = val;
+	};
+	Worksheet.prototype.setSummaryBelow = function (val) {
+		if (!this.sheetPr){
+			this.sheetPr = new AscCommonExcel.asc_CSheetPr();
+		}
+
+		History.Create_NewPoint();
+		History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_SetSummaryBelow, this.getId(), null,
+			new UndoRedoData_FromTo(this.sheetPr.summaryBelow, val));
+
+		this.sheetPr.summaryBelow = val;
+	};
 	Worksheet.prototype.setGroupCol = function (bDel, start, stop) {
 		var oThis = this;
 		var fProcessCol = function(col){
