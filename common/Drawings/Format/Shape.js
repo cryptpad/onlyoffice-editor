@@ -4553,6 +4553,8 @@ CShape.prototype.draw = function (graphics, transform, transformText, pageIndex)
             this.brush = AscFormat.CreateBlipFillUniFillFromUrl(sSignatureUrl);
         }
     }
+
+    this.drawShdw &&  this.drawShdw(graphics);
     if ((geometry || (this.getObjectType && (this.getObjectType() === AscDFH.historyitem_type_DLbl || this.getObjectType() === AscDFH.historyitem_type_Legend))) && (this.style || (this.brush && this.brush.fill) || (this.pen && this.pen.Fill && this.pen.Fill.fill))) {
         graphics.SetIntegerGrid(false);
         graphics.transform3(_transform, false);
@@ -4639,6 +4641,7 @@ CShape.prototype.draw = function (graphics, transform, transformText, pageIndex)
     }
     this.brush = _oldBrush;
     var oController = this.getDrawingObjectsController && this.getDrawingObjectsController();
+
     if(!this.cropObject)
     {
         if(!this.txWarpStruct && !this.txWarpStructParamarksNoTransform || (!this.txWarpStructParamarksNoTransform && oController && (AscFormat.getTargetTextObject(oController) === this) || (!this.txBody && !this.textBoxContent)) /*|| this.haveSelectedDrawingInContent()*/)

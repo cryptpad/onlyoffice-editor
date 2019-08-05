@@ -186,6 +186,7 @@ CImageShape.prototype.recalculate = function ()
     {
         this.recalculateBounds();
         this.recalcInfo.recalculateBounds = false;
+        this.recalculateShdw();
     }
     this.clearCropObject();
     }, this, []);

@@ -357,6 +357,7 @@ CShape.prototype.recalculatePresentation = function ()
         {
             this.recalculateBounds();
             this.recalcInfo.recalculateBounds = false;
+            this.recalculateShdw();
         }
 
     }, this, []);
@@ -397,6 +398,7 @@ CShape.prototype.recalculate = function ()
             {
                 this.recalculateBounds();
                 this.recalcInfo.recalculateBounds = false;
+                this.recalculateShdw();
             }
             if(this.recalcInfo.recalculateWrapPolygon)
             {
@@ -440,6 +442,7 @@ CShape.prototype.recalculate = function ()
             {
                 this.recalculateBounds();
                 this.recalcInfo.recalculateBounds = false;
+                this.recalculateShdw();
             }
         }
         this.clearCropObject();

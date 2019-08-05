@@ -184,13 +184,14 @@ CImageShape.prototype.recalculate = function ()
             this.recalcInfo.recalculateTransform = false;
         }
 
-        if (this.recalcInfo.recalculateGeometry) {
+        if(this.recalcInfo.recalculateGeometry) {
             this.recalculateGeometry();
             this.recalcInfo.recalculateGeometry = false;
         }
-        if (this.recalcInfo.recalculateBounds) {
+        if(this.recalcInfo.recalculateBounds) {
             this.recalculateBounds();
             this.recalcInfo.recalculateBounds = false;
+            this.recalculateShdw();
         }
         if(this.recalcInfo.recalculateWrapPolygon)
         {

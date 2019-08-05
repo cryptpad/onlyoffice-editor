@@ -87,6 +87,8 @@ function CImageShape()
     this.isCrop = false;
     this.parentCrop = null;
 
+    this.shdwSp = null;
+
     this.Id = AscCommon.g_oIdCounter.Get_NewId();
     AscCommon.g_oTableId.Add( this, this.Id );
 }
@@ -662,6 +664,8 @@ CImageShape.prototype.draw = function(graphics, transform)
             return;
     }
 
+
+    this.drawShdw &&  this.drawShdw(graphics);
     var oClipRect;
     if(!graphics.IsSlideBoundsCheckerType){
         oClipRect = this.getClipRect();
