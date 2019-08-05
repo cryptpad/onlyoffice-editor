@@ -7484,7 +7484,6 @@
 		return newFP;
 	};
 	Cell.prototype.setValue2=function(array){
-		return this.cloneAndSetValue(array);
 		var DataOld = null;
 		if(History.Is_On())
 			DataOld = this.getValueData();
