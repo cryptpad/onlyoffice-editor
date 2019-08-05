@@ -1449,6 +1449,87 @@ Path.prototype = {
             return false;
         },
 
+        drawTracks: function(drawingDocument, transform)
+        {
+            var i = 0;
+            var len = this.PathMemory.ArrPathCommand[this.startPos];
+
+            var path = this.ArrPathCommand;
+            var dDist = 0;
+            while(i < len)
+            {
+                var cmd=path[this.startPos + i + 1];
+                switch(cmd)
+                {
+                    case moveTo:
+                    {
+                        drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.CHART_TEXT, transform, path[this.startPos + i+2] - dDist, path[this.startPos + i + 3] - dDist, 2*dDist, 2*dDist, false, false);
+                        i+=3;
+                        break;
+                    }
+                    case lineTo:
+                    {
+                        drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.CHART_TEXT, transform, path[this.startPos + i+2] - dDist, path[this.startPos + i + 3] - dDist, 2*dDist, 2*dDist, false, false);
+                        i+=3;
+                        break;
+                    }
+                    case bezier3:
+                    {
+                      //  drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.CHART_TEXT, transform, path[this.startPos + i+2] - dDist, path[this.startPos + i + 3] - dDist, 2*dDist, 2*dDist, false, false);
+                        drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.CHART_TEXT, transform, path[this.startPos + i+4] - dDist, path[this.startPos + i + 5] - dDist, 2*dDist, 2*dDist, false, false);
+                        i+=5;
+                        break;
+                    }
+                    case bezier4:
+                    {
+                      //  drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.CHART_TEXT, transform, path[this.startPos + i+2] - dDist, path[this.startPos + i + 3] - dDist, 2*dDist,2*dDist, false, false);
+                       // drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.CHART_TEXT, transform, path[this.startPos + i+4] - dDist, path[this.startPos + i + 5] - dDist, 2*dDist,2*dDist, false, false); i+=7;
+                        drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.CHART_TEXT, transform, path[this.startPos + i+6] - dDist, path[this.startPos + i + 7] - dDist, 2*dDist,2*dDist, false, false); i+=7;
+                        break;
+                    }
+                    case arcTo:
+                    {
+                        var path_accumulator = new AscFormat.PathAccumulator();
+                        ArcToCurvers(path_accumulator, path[this.startPos + i + 2], path[this.startPos + i + 3], path[this.startPos + i + 4], path[this.startPos + i + 5], path[this.startPos + i + 6], path[this.startPos + i + 7]);
+                        var arc_to_path_commands = path_accumulator.pathCommand;
+                        var lastX, lastY;
+                        for(var arc_to_path_index = 0; arc_to_path_index < arc_to_path_commands.length; ++arc_to_path_index)
+                        {
+                            var cur_arc_to_command = arc_to_path_commands[arc_to_path_index];
+                            switch (cur_arc_to_command.id)
+                            {
+                                case AscFormat.moveTo:
+                                {
+                                    lastX =cur_arc_to_command.X; 
+                                    lastY =cur_arc_to_command.Y; 
+                                  //  drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.CHART_TEXT, transform, cur_arc_to_command.X - dDist, cur_arc_to_command.Y - dDist,  2*dDist, 2*dDist, false, false);
+                                    break;
+                                }
+                                case AscFormat.bezier4:
+                                {
+
+                                    lastX =cur_arc_to_command.X2;
+                                    lastY =cur_arc_to_command.Y2;
+                                    //drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.CHART_TEXT, transform, cur_arc_to_command.X0 - dDist, cur_arc_to_command.Y0 - dDist,  2*dDist, 2*dDist, false, false);
+                                    //drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.CHART_TEXT, transform, cur_arc_to_command.X2 - dDist, cur_arc_to_command.Y2 - dDist,  2*dDist, 2*dDist, false, false);
+                                    break;
+                                }
+                            }
+                        }
+                        drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.CHART_TEXT, transform, lastX - dDist, lastY - dDist,  2*dDist, 2*dDist, false, false);
+                        i+=7;
+                        break;
+                    }
+                    case close:
+                    {
+                        i+=1;
+                        break;
+                    }
+                }
+            }
+
+        },
+
         getCommandByIndex: function(idx){
             var i = 0;
             var path = this.PathMemory.ArrPathCommand;

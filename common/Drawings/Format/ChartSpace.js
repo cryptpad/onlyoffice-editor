@@ -1435,6 +1435,46 @@ CChartSpace.prototype.drawSelect = function(drawingDocument, nPageIndex)
                     drawingDocument.AutoShapesTrack.DrawEditWrapPointsPolygon(arr, this.transform);
                 }*/
             }
+            else if(AscFormat.isRealNumber(this.selection.series))
+            {
+                var oDrawChart = this.chartObj.charts[this.selection.chart];
+                if(oDrawChart)
+                {
+                    var seriesPaths = oDrawChart.paths.series;
+                    var Paths = seriesPaths[this.selection.series];
+
+                    if(Array.isArray(Paths))
+                    {
+                        var aPointsPaths = Paths;
+                        if(AscFormat.isRealNumber(aPointsPaths[this.selection.datPoint]))
+                        {
+                            var oPath = this.pathMemory.GetPath(aPointsPaths[this.selection.datPoint]);
+                            oPath.drawTracks(drawingDocument, this.transform);
+                        }
+                        else
+                        {
+                            for(var l = 0; l < aPointsPaths.length; ++l)
+                            {
+                                if(AscFormat.isRealNumber(aPointsPaths[l]))
+                                {
+                                    var oPath = this.pathMemory.GetPath(aPointsPaths[l]);
+                                    oPath.drawTracks(drawingDocument, this.transform);
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if(AscFormat.isRealNumber(Paths))
+                        {
+                            var oPath = this.pathMemory.GetPath(Paths);
+                            oPath.drawTracks(drawingDocument, this.transform);
+                        }
+                    }
+
+                }
+
+            }
         }
     };
 CChartSpace.prototype.recalculateTextPr = function()
