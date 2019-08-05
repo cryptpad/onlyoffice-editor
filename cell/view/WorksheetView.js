@@ -19803,7 +19803,7 @@
 	prot["getDifferentOddEven"] = prot.getDifferentOddEven;
 	prot["getScaleWithDoc"] = prot.getScaleWithDoc;
 
-	prot["getType"] = prot.getPageType;
+	prot["getPageType"] = prot.getPageType;
 
 	//temporary vars -> todo need read from file
 	window["AscCommonExcel"].summaryBelow = false;
