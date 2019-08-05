@@ -16352,6 +16352,7 @@
 
 			ctx.setStrokeStyle(new CColor(0, 0, 0)).setLineWidth(lineWidth).beginPath();
 
+			var _summaryRight = this.model.sheetPr ? this.model.sheetPr.SummaryRight : true;
 			var minCol;
 			var maxCol;
 			var startX, endX, widthNextRow, collasedEndRow;
@@ -16362,7 +16363,7 @@
 
 					for(j = 0; j < arrayLines[i].length; j++) {
 
-						if(window["AscCommonExcel"].summaryRight) {
+						if(_summaryRight) {
 							if(endPosArr[arrayLines[i][j].end]) {
 								continue;
 							}
@@ -16522,6 +16523,7 @@
 				return res;
 			};
 
+			var _summaryBelow = this.model.sheetPr ? this.model.sheetPr.SummaryBelow : true;
 			var minRow;
 			var maxRow;
 			var startY, endY, heightNextRow;
@@ -16532,7 +16534,7 @@
 
 					for(j = 0; j < arrayLines[i].length; j++) {
 
-						if(window["AscCommonExcel"].summaryBelow) {
+						if(_summaryBelow) {
 							if(endPosArr[arrayLines[i][j].end]) {
 								continue;
 							}
@@ -17143,6 +17145,8 @@
 			offsetX = 0;
 		}
 
+		var _summaryRight = this.model.sheetPr ? this.model.sheetPr.SummaryRight : true;
+		var _summaryBelow = this.model.sheetPr ? this.model.sheetPr.SummaryBelow : true;
 		var mouseDownClick;
 		var doClick = function() {
 			var arrayLines = bCol ? t.arrColGroups.groupArr : t.arrRowGroups.groupArr;
@@ -17153,7 +17157,7 @@
 				var props, collapsed;
 				if(arrayLines[i]) {
 					for(var j = 0; j < arrayLines[i].length; j++) {
-						if(!window["AscCommonExcel"].summaryBelow) {
+						if(!_summaryBelow) {
 							if(endPosArr[arrayLines[i][j].start]) {
 								continue;
 							}
@@ -17217,13 +17221,13 @@
 			}
 		};
 		if(bCol) {
-			if(window["AscCommonExcel"].summaryRight) {
+			if(_summaryRight) {
 				this.model.getRange3(0, target.col - 1,0, target.col)._foreachColNoEmpty(func);
 			} else {
 				this.model.getRange3(0, target.col,0, target.col + 1)._foreachColNoEmpty(func);
 			}
 		} else {
-			if(window["AscCommonExcel"].summaryBelow) {
+			if(_summaryBelow) {
 				this.model.getRange3(target.row - 1, 0, target.row, 0)._foreachRowNoEmpty(func);
 			} else {
 				this.model.getRange3(target.row, 0, target.row + 1, 0)._foreachRowNoEmpty(func);
@@ -17369,7 +17373,9 @@
 
 		functionModelAction = function () {
 			//AscCommonExcel.checkFilteringMode(function () {
-				var isNeedRecal = !bCol ? t.model.needRecalFormulas(start, end) : null;
+			var _summaryBelow = t.model.sheetPr ? t.model.sheetPr.SummaryBelow : true;
+			var _summaryRight = t.model.sheetPr ? t.model.sheetPr.SummaryRight : true;
+			var isNeedRecal = !bCol ? t.model.needRecalFormulas(start, end) : null;
 				if(isNeedRecal) {
 					t.model.workbook.dependencyFormulas.lockRecal();
 				}
@@ -17384,7 +17390,7 @@
 				var collapsedFunction = bCol ? t.model.setCollapsedCol :  t.model.setCollapsedRow;
 				if(!collapsed) {//скрываем
 					changeModelFunc.call(t.model, true, start, end);
-					if((!window["AscCommonExcel"].summaryBelow && !bCol) || (!window["AscCommonExcel"].summaryRight && bCol)) {
+					if((!_summaryBelow && !bCol) || (!_summaryRight && bCol)) {
 						collapsedFunction.call(t.model, !collapsed, start - 1);
 					} else {
 						collapsedFunction.call(t.model, !collapsed, end + 1);
@@ -17395,7 +17401,7 @@
 					//открываем все строки, кроме внутренних групп
 					//внутренние группы скрываем, если среди них есть раскрытые
 					changeModelFunc.call(t.model, false, start, end);
-					if((!window["AscCommonExcel"].summaryBelow && !bCol) || (!window["AscCommonExcel"].summaryRight && bCol)) {
+					if((!_summaryBelow && !bCol) || (!_summaryRight && bCol)) {
 						collapsedFunction.call(t.model, !collapsed, start - 1);
 					} else {
 						collapsedFunction.call(t.model, !collapsed, end + 1);
@@ -17415,7 +17421,7 @@
 								continue;
 							}
 							for(var j = 0; j < groupArr[i].length; j++) {
-								if((!window["AscCommonExcel"].summaryBelow && !bCol) || (!window["AscCommonExcel"].summaryRight && bCol)) {
+								if((!_summaryBelow && !bCol) || (!_summaryRight && bCol)) {
 									if(groupArr[i][j] && groupArr[i][j].start > start && groupArr[i][j].end <= end) {
 										if(t._getGroupCollapsed(groupArr[i][j].start - 1, bCol)) {
 											changeModelFunc.call(t.model, true, groupArr[i][j].start, groupArr[i][j].end);
@@ -17508,6 +17514,8 @@
 
 			//TODO check filtering mode
 			var oldExcludeCollapsed = t.model.bExcludeCollapsed;
+			var _summaryBelow = t.model.sheetPr ? t.model.sheetPr.SummaryBelow : true;
+			var _summaryRight = t.model.sheetPr ? t.model.sheetPr.SummaryRight : true;
 			t.model.bExcludeCollapsed = true;
 			for(i = 0; i <= level; i++) {
 				if(!groupArr[i]) {
@@ -17516,7 +17524,7 @@
 				for(j = 0; j < groupArr[i].length; j++) {
 					if(bCol) {
 						t.model.setColHidden(i >= level, groupArr[i][j].start, groupArr[i][j].end);
-						if(window["AscCommonExcel"].summaryRight) {
+						if(_summaryRight) {
 							t.model.setCollapsedCol(i >= level, groupArr[i][j].end + 1);
 						} else {
 							t.model.setCollapsedCol(i >= level, groupArr[i][j].start - 1);
@@ -17524,7 +17532,7 @@
 
 					} else {
 						t.model.setRowHidden(i >= level, groupArr[i][j].start, groupArr[i][j].end);
-						if(window["AscCommonExcel"].summaryBelow) {
+						if(_summaryBelow) {
 							t.model.setCollapsedRow(i >= level, groupArr[i][j].end + 1);
 						} else {
 							t.model.setCollapsedRow(i >= level, groupArr[i][j].start - 1);
@@ -19804,9 +19812,5 @@
 	prot["getScaleWithDoc"] = prot.getScaleWithDoc;
 
 	prot["getPageType"] = prot.getPageType;
-
-	//temporary vars -> todo need read from file
-	window["AscCommonExcel"].summaryBelow = true;
-	window["AscCommonExcel"].summaryRight = true;
 
 })(window);

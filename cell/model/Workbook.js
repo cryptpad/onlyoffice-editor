@@ -4588,13 +4588,14 @@
 		}
 
 		var bNotAddCollapsed = true == this.workbook.bUndoChanges || true == this.workbook.bRedoChanges || this.bExcludeCollapsed;
+		var _summaryRight = this.sheetPr ? this.sheetPr.SummaryRight : true;
 		var oThis = this, prevCol;
 		var fProcessCol = function(col){
 			if(col.width != width)
 			{
-				if(window["AscCommonExcel"].summaryRight && !bNotAddCollapsed && col.getCollapsed()) {
+				if(_summaryRight && !bNotAddCollapsed && col.getCollapsed()) {
 					oThis.setCollapsedCol(false, null, col);
-				} else if(!window["AscCommonExcel"].summaryRight && !bNotAddCollapsed && prevCol && prevCol.getCollapsed()) {
+				} else if(!_summaryRight && !bNotAddCollapsed && prevCol && prevCol.getCollapsed()) {
 					oThis.setCollapsedCol(false, null, prevCol);
 				}
 				prevCol = col;
@@ -4624,7 +4625,7 @@
 		}
 		else
 		{
-			if(!window["AscCommonExcel"].summaryRight) {
+			if(!_summaryRight) {
 				if(!bNotAddCollapsed && start > 0) {
 					prevCol = this._getCol(start - 1);
 				}
@@ -4635,7 +4636,7 @@
 				fProcessCol(col);
 			}
 
-			if(window["AscCommonExcel"].summaryRight && !bNotAddCollapsed && prevCol) {
+			if(_summaryRight && !bNotAddCollapsed && prevCol) {
 				col = this._getCol(stop + 1);
 				if(col.getCollapsed()) {
 					this.setCollapsedCol(false, null, col);
@@ -4656,10 +4657,11 @@
 		History.Create_NewPoint();
 		var oThis = this, outlineLevel;
 		var bNotAddCollapsed = true == this.workbook.bUndoChanges || true == this.workbook.bRedoChanges || this.bExcludeCollapsed;
+		var _summaryRight = this.sheetPr ? this.sheetPr.SummaryRight : true;
 		var fProcessCol = function(col){
 
 			if(col && !bNotAddCollapsed && outlineLevel !== undefined && outlineLevel !== col.getOutlineLevel()) {
-				if(!window["AscCommonExcel"].summaryRight) {
+				if(!_summaryRight) {
 					oThis.setCollapsedCol(bHidden, col.index - 1);
 				} else {
 					oThis.setCollapsedCol(bHidden, null, col);
@@ -4692,7 +4694,7 @@
 			}
 		};
 
-		if(!bNotAddCollapsed && !window["AscCommonExcel"].summaryRight && start > 0) {
+		if(!bNotAddCollapsed && !_summaryRight && start > 0) {
 			col = this._getCol(start - 1);
 			outlineLevel = col.getOutlineLevel();
 		}
@@ -4725,7 +4727,7 @@
 			}
 		}
 
-		if(!bNotAddCollapsed && outlineLevel && window["AscCommonExcel"].summaryRight) {
+		if(!bNotAddCollapsed && outlineLevel && _summaryRight) {
 			col = this._getCol(stop + 1);
 			if(col && outlineLevel !== col.getOutlineLevel()) {
 				oThis.setCollapsedCol(bHidden, null, col);
@@ -4891,12 +4893,13 @@
 		}
 		var prevRow;
 		var bNotAddCollapsed = true == this.workbook.bUndoChanges || true == this.workbook.bRedoChanges || this.bExcludeCollapsed;
+		var _summaryBelow = this.sheetPr ? this.sheetPr.SummaryBelow : true;
 		var fProcessRow = function(row){
 			if(row)
 			{
-				if(window["AscCommonExcel"].summaryBelow && !bNotAddCollapsed && row.getCollapsed()) {
+				if(_summaryBelow && !bNotAddCollapsed && row.getCollapsed()) {
 					oThis.setCollapsedRow(false, null, row);
-				} else if(!window["AscCommonExcel"].summaryBelow && !bNotAddCollapsed && prevRow && prevRow.getCollapsed()) {
+				} else if(!_summaryBelow && !bNotAddCollapsed && prevRow && prevRow.getCollapsed()) {
 					oThis.setCollapsedRow(false, null, prevRow);
 				}
 				prevRow = row;
@@ -4920,7 +4923,7 @@
 		}
 		else
 		{
-			if(!window["AscCommonExcel"].summaryBelow) {
+			if(!_summaryBelow) {
 				if(!bNotAddCollapsed && start > 0) {
 					this._getRow(start - 1, function(row) {
 						prevRow = row;
@@ -4930,7 +4933,7 @@
 
 			this.getRange3(start,0,stop, 0)._foreachRow(fProcessRow);
 
-			if(window["AscCommonExcel"].summaryBelow) {
+			if(_summaryBelow) {
 				if(!bNotAddCollapsed && prevRow) {
 					this._getRow(stop + 1, function(row) {
 						if(row.getCollapsed()) {
@@ -4961,10 +4964,10 @@
 		var oThis = this, i;
 		var startIndex = null, endIndex = null, updateRange, outlineLevel;
 		var bNotAddCollapsed = true == this.workbook.bUndoChanges || true == this.workbook.bRedoChanges || this.bExcludeCollapsed;
-
+		var _summaryBelow = this.sheetPr ? this.sheetPr.SummaryBelow : true;
 		var fProcessRow = function(row){
 			if(row && !bNotAddCollapsed && outlineLevel !== undefined && outlineLevel !== row.getOutlineLevel()) {
-				if(!window["AscCommonExcel"].summaryBelow) {
+				if(!_summaryBelow) {
 					oThis.setCollapsedRow(bHidden, row.index - 1);
 				} else {
 					oThis.setCollapsedRow(bHidden, null, row);
@@ -4997,7 +5000,7 @@
 		}
 		else
 		{
-			if(!window["AscCommonExcel"].summaryBelow && start > 0 && !bNotAddCollapsed) {
+			if(!_summaryBelow && start > 0 && !bNotAddCollapsed) {
 				this._getRow(start - 1, function(row) {
 					if(row) {
 						outlineLevel = row.getOutlineLevel();
@@ -5009,7 +5012,7 @@
 				false == bHidden ? this._getRowNoEmpty(i, fProcessRow) : this._getRow(i, fProcessRow);
 			}
 
-			if(window["AscCommonExcel"].summaryBelow && outlineLevel && !bNotAddCollapsed) {
+			if(_summaryBelow && outlineLevel && !bNotAddCollapsed) {
 				this._getRow(stop + 1, function(row) {
 					if(row && outlineLevel !== row.getOutlineLevel()) {
 						oThis.setCollapsedRow(bHidden, null, row);
