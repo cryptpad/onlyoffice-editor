@@ -17910,8 +17910,8 @@
 				t.model.setOutlineRow(0, doChangeRowArr[j].r1, doChangeRowArr[j].r2);
 			}
 			for(j in doChangeColArr) {
-				t.model.setColHidden(false, doChangeRowArr[j].c1, doChangeRowArr[j].c2);
-				t.model.setOutlineCol(0, doChangeRowArr[j].c1, doChangeRowArr[j].c2);
+				t.model.setColHidden(false, doChangeColArr[j].c1, doChangeColArr[j].c2);
+				t.model.setOutlineCol(0, doChangeColArr[j].c1, doChangeColArr[j].c2);
 			}
 
 			History.EndTransaction();
