@@ -19741,10 +19741,10 @@
 		var userName = userInfo ? userInfo.get_FullName() : "";
 		var fileName = docInfo ? docInfo.get_Title() : "";
 
-		//TODO translate!
-		var confidential = "Confidential";
-		var preparedBy = "Prepared by ";
-		var page = "Page";
+		var tM = AscCommon.translateManager;
+		var confidential = tM.getValue("Confidential");
+		var preparedBy = tM.getValue("Prepared by ");
+		var page = tM.getValue("Page");
 
 		var arrPresets = [];
 		var arrPresetsMenu = [];
