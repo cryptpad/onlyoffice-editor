@@ -5260,6 +5260,11 @@ CShape.prototype.changeFill = function (unifill) {
     unifill2.convertToPPTXMods();
     this.spPr.setFill(unifill2);
 };
+CShape.prototype.changeShadow = function (oShadow) {
+
+
+    this.spPr && this.spPr.changeShadow(oShadow);
+};
 CShape.prototype.setFill = function (fill) {
 
     this.spPr.setFill(fill);

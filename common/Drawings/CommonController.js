@@ -3574,6 +3574,21 @@ DrawingObjectsController.prototype =
                 objects_by_type.charts[i].changeFill(props.fill);
             }
         }
+        if(isRealObject(props.shadow) || props.shadow === null)
+        {
+            for(i = 0; i < objects_by_type.shapes.length; ++i)
+            {
+                objects_by_type.shapes[i].changeShadow(props.shadow);
+            }
+            for(i = 0; i < objects_by_type.groups.length; ++i)
+            {
+                objects_by_type.groups[i].changeShadow(props.shadow);
+            }
+            for(i = 0; i < objects_by_type.images.length; ++i)
+            {
+                objects_by_type.images[i].changeShadow(props.shadow);
+            }
+        }
 
         if(props.title !== null && props.title !== undefined)
         {
@@ -8343,7 +8358,8 @@ DrawingObjectsController.prototype =
                         description: drawing.getDescription(),
                         columnNumber: drawing.getColumnNumber(),
                         columnSpace: drawing.getColumnSpace(),
-                        signatureId: drawing.getSignatureLineGuid()
+                        signatureId: drawing.getSignatureLineGuid(),
+                        shadow: drawing.getOuterShdw()
                     };
                     if(!shape_props)
                         shape_props = new_shape_props;
@@ -8427,7 +8443,8 @@ DrawingObjectsController.prototype =
                         description: drawing.getDescription(),
                         columnNumber: null,
                         columnSpace: null,
-                        signatureId: null
+                        signatureId: null,
+                        shadow: drawing.getOuterShdw()
                     };
                     if(!shape_props)
                         shape_props = new_shape_props;
@@ -8910,6 +8927,7 @@ DrawingObjectsController.prototype =
 
             shape_props.ShapeProperties.columnNumber = props.shapeProps.columnNumber;
             shape_props.ShapeProperties.columnSpace = props.shapeProps.columnSpace;
+            shape_props.ShapeProperties.shadow = props.shapeProps.shadow;
             if(props.shapeProps.textArtProperties && oDrawingDocument)
             {
                 oTextArtProperties = props.shapeProps.textArtProperties;

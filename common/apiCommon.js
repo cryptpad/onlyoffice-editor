@@ -2080,6 +2080,7 @@
 		this.flipV = null;
 		this.flipHInvert = null;
 		this.flipVInvert = null;
+		this.shadow = null;
 	}
 
 	asc_CShapeProperty.prototype = {
@@ -2229,6 +2230,13 @@
 
 		asc_putFlipVInvert: function(v){
 			this.flipVInvert = v;
+		},
+		asc_getShadow: function(){
+			return this.shadow;
+		},
+
+		asc_putShadow: function(v){
+			this.shadow = v;
 		}
 	};
 
@@ -2438,6 +2446,7 @@
 
             this.columnNumber =  obj.columnNumber != undefined ? obj.columnNumber : undefined;
             this.columnSpace =  obj.columnSpace != undefined ? obj.columnSpace : undefined;
+            this.shadow =  obj.shadow != undefined ? obj.shadow : undefined;
 
 			this.rot = obj.rot != undefined ? obj.rot : undefined;
 			this.flipH = obj.flipH != undefined ? obj.flipH : undefined;
@@ -2817,6 +2826,13 @@
 		},
 		asc_putResetCrop: function(v){
 			this.resetCrop = v;
+		},
+		asc_getShadow: function(){
+			return this.shadow;
+		},
+
+		asc_putShadow: function(v){
+			this.shadow = v;
 		}
 	};
 
@@ -4684,6 +4700,8 @@
 	prot["put_FlipHInvert"] = prot["asc_putFlipHInvert"] = prot.asc_putFlipHInvert;
 	prot["get_FlipVInvert"] = prot["asc_getFlipVInvert"] = prot.asc_getFlipVInvert;
 	prot["put_FlipVInvert"] = prot["asc_putFlipVInvert"] = prot.asc_putFlipVInvert;
+	prot["put_shadow"] = prot.put_shadow = prot["asc_putShadow"] = prot.asc_putShadow;
+	prot["get_shadow"] = prot.get_shadow = prot["asc_getShadow"] = prot.asc_getShadow;
 
 	window["Asc"]["asc_TextArtProperties"] = window["Asc"].asc_TextArtProperties = asc_TextArtProperties;
 	prot = asc_TextArtProperties.prototype;

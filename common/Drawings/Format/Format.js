@@ -209,7 +209,7 @@ var asc_CShapeProperty = Asc.asc_CShapeProperty;
         drawingsChangesMap[AscDFH.historyitem_ShapeStyle_SetLnRef               ] = function (oClass, value){oClass.lnRef     = value;};
         drawingsChangesMap[AscDFH.historyitem_ShapeStyle_SetFillRef             ] = function (oClass, value){oClass.fillRef   = value;};
         drawingsChangesMap[AscDFH.historyitem_ShapeStyle_SetFontRef             ] = function (oClass, value){oClass.fontRef   = value;};
-        drawingsChangesMap[AscDFH.historyitem_ShapeStyle_SetEffectRef           ] = function (oClass, value){oClass.effectRef = value;};
+        drawingsChangesMap[AscDFH.historyitem_ShapeStyle_SetEffectRef           ] = function (oClass, value){oClass.effectRef = value; oClass.handleUpdateGeometry();};
         drawingsChangesMap[AscDFH.historyitem_Xfrm_SetParent                    ] = function (oClass, value){oClass.parent   = value;};
         drawingsChangesMap[AscDFH.historyitem_Xfrm_SetOffX                      ] = function (oClass, value){oClass.offX     = value; oClass.handleUpdatePosition();};
         drawingsChangesMap[AscDFH.historyitem_Xfrm_SetOffY                      ] = function (oClass, value){oClass.offY     = value; oClass.handleUpdatePosition();};
@@ -3406,7 +3406,56 @@ var  EFFECT_TYPE_BLEND			=	30;
         oCopy.sy = this.sy;
         return oCopy;
     };
+    COuterShdw.prototype.IsIdentical = function(other)
+    {
+        if(!other)
+        {
+            return false;
+        }
+        if(!this.color && other.color || this.color && !other.color || !this.color.IsIdentical(other.color))
+        {
+            return false;
+        }
+        if(other.algn !== this.algn ||
+        other.blurRad !== this.blurRad ||
+        other.dir !== this.dir ||
+        other.dist !== this.dist ||
+        other.kx !== this.kx ||
+        other.ky !== this.ky ||
+        other.rotWithShape !== this.rotWithShape ||
+        other.sx !== this.sx ||
+        other.sy !== this.sy)
+        {
+            return false;
+        }
+        return true;
+    };
 
+
+
+    function asc_CShadowProperty()
+    {
+        COuterShdw.call(this);
+        this.algn = 7;
+        this.blurRad = 50800;
+        this.color = new CUniColor();
+        this.color.color = new CPrstColor();
+        this.color.color.id = "black";
+        this.color.Mods = new CColorModifiers();
+        var oMod =  new CColorMod();
+        oMod.name = "alpha";
+        oMod.val = 40000;
+        this.color.Mods.Mods.push(oMod);
+        this.dir = 2700000
+        this.dist = 38100
+        this.rotWithShape =  false;
+    }
+    asc_CShadowProperty.prototype = Object.create(COuterShdw.prototype);
+    asc_CShadowProperty.prototype.constructor = asc_CShadowProperty;
+
+
+    window['Asc'] = window['Asc'] || {};
+    window['Asc']['asc_CShadowProperty'] = window['Asc'].asc_CShadowProperty = asc_CShadowProperty;
     function CPrstShdw()
     {
         this.color = new CUniColor();
@@ -5314,6 +5363,24 @@ function CompareShapeProperties(shapeProp1, shapeProp2)
     }
     if(shapeProp1.columnSpace === shapeProp2.columnSpace){
         _result_shape_prop.columnSpace = shapeProp1.columnSpace;
+    }
+
+    if(!shapeProp1.shadow && !shapeProp2.shadow){
+        _result_shape_prop.shadow = null;
+    }
+    else if(shapeProp1.shadow && !shapeProp2.shadow){
+        _result_shape_prop.shadow = null;
+    }
+    else if(!shapeProp1.shadow && shapeProp2.shadow){
+        _result_shape_prop.shadow = null;
+    }
+    else if(shapeProp1.shadow.IsIdentical(shapeProp2.shadow))
+    {
+        _result_shape_prop.shadow = shapeProp1.shadow.createDuplicate();
+    }
+    else
+    {
+        _result_shape_prop.shadow = null;
     }
 
     return _result_shape_prop;
@@ -7337,6 +7404,7 @@ CSpPr.prototype =
                 break;
             }
             case AscDFH.historyitem_SpPr_SetGeometry:
+            case AscDFH.historyitem_SpPr_SetEffectPr:
             {
                 this.handleUpdateGeometry();
                 break;
@@ -7403,6 +7471,35 @@ CSpPr.prototype =
             var line_image_id = this.checkUniFillRasterImageId(this.ln.Fill);
             if(line_image_id)
                 images.push(line_image_id);
+        }
+    },
+
+    changeShadow: function(oShadow)
+    {
+        if(oShadow)
+        {
+            var oEffectProps = this.effectProps ? this.effectProps.createDuplicate() : new AscFormat.CEffectProperties();
+            if(!oEffectProps.EffectLst)
+            {
+                oEffectProps.EffectLst = new CEffectLst();
+            }
+            oEffectProps.EffectLst.outerShdw = oShadow.createDuplicate();
+            this.setEffectPr(oEffectProps);
+        }
+        else
+        {
+            if(this.effectProps)
+            {
+                if(this.effectProps.EffectLst)
+                {
+                    if(this.effectProps.EffectLst.outerShdw)
+                    {
+                        var oEffectProps = this.effectProps.createDuplicate();
+                        oEffectProps.EffectLst.outerShdw = null;
+                        this.setEffectPr(oEffectProps);
+                    }
+                }
+            }
         }
     },
 
@@ -11337,6 +11434,7 @@ function CreateAscShapePropFromProp(shapeProp)
     obj.description = shapeProp.description;
     obj.columnNumber = shapeProp.columnNumber;
     obj.columnSpace = shapeProp.columnSpace;
+    obj.shadow = shapeProp.shadow;
     if(shapeProp.signatureId)
     {
         obj.signatureId = shapeProp.signatureId;

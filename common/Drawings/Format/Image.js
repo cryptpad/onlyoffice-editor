@@ -754,6 +754,11 @@ CImageShape.prototype.select = CShape.prototype.select;
         this.spPr.setGeometry( AscFormat.CreateGeometry(sPreset));
     };
 
+    CImageShape.prototype.changeShadow = function (oShadow) {
+
+
+        this.spPr && this.spPr.changeShadow(oShadow);
+    };
 
     CImageShape.prototype.recalculateLocalTransform = CShape.prototype.recalculateLocalTransform;
 CImageShape.prototype.hit = CShape.prototype.hit;
