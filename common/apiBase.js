@@ -1299,7 +1299,7 @@
 		var word = (typeof SpellCheckProperty === "string") ? SpellCheckProperty : SpellCheckProperty.Word;
 		if (window["AscDesktopEditor"])
 		{
-			window["AscDesktopEditor"]["SpellCheck"]("{\"type\":\"add\",\"words\":[\"" + word + "\"]}");
+			window["AscDesktopEditor"]["SpellCheck"]("{\"type\":\"add\",\"usrWords\":[\"" + word + "\"]}");
 
 			this._spellCheckRestart(word);
 		}
