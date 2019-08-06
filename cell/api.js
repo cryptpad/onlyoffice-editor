@@ -2895,11 +2895,7 @@ var editor;
   spreadsheet_api.prototype._spellCheckDisconnect = function () {
     this.cleanSpelling();
   };
-  spreadsheet_api.prototype.asc_setDefaultLanguage = function (val) {
-    if (this.spellcheckState.lockSpell) {
-      return;
-    }
-    this.defaultLanguage = val;
+  spreadsheet_api.prototype._spellCheckRestart = function () {
     var lastSpellInfo;
     if ((lastSpellInfo = this.spellcheckState.lastSpellInfo)) {
       var lastIndex = this.spellcheckState.lastIndex;
@@ -2918,6 +2914,12 @@ var editor;
         "cellsInfo": lastSpellInfo["cellsInfo"].slice(lastIndex)
       });
     }
+  };
+  spreadsheet_api.prototype.asc_setDefaultLanguage = function (val) {
+    if (this.spellcheckState.lockSpell || this.defaultLanguage === val) {
+      return;
+    }
+    this._spellCheckRestart();
   };
   spreadsheet_api.prototype.asc_nextWord = function () {
     if (this.spellcheckState.lockSpell) {
