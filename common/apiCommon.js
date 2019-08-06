@@ -2080,7 +2080,7 @@
 		this.flipV = null;
 		this.flipHInvert = null;
 		this.flipVInvert = null;
-		this.shadow = null;
+		this.shadow = undefined;
 	}
 
 	asc_CShapeProperty.prototype = {

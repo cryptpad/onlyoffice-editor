@@ -833,7 +833,7 @@ function handleInternalChart(drawing, drawingObjectsController, e, x, y, group, 
                                             if(AscFormat.isRealNumber(aPointsPaths[l]))
                                             {
                                                 var oPath = drawing.pathMemory.GetPath(aPointsPaths[l]);
-                                                if(oPath.hitInInnerArea(oCanvas, dTx, dTy))
+                                                if(oPath.hitInInnerArea(oCanvas, dTx, dTy) || oPath.hitInPath(oCanvas, dTx, dTy))
                                                 {
                                                     bSeries = true;
                                                     if(drawing.selection.chart === id && drawing.selection.series === k)

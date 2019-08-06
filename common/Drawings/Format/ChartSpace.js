@@ -1628,6 +1628,9 @@ CChartSpace.prototype.resetSelection = function(noResetContentSelect)
     this.selection.textSelection = null;
     this.selection.plotArea = null;
     this.selection.rotatePlotArea = null;
+    this.selection.series = null;
+    this.selection.chart = null;
+    this.selection.datPoint = null;
 };
 CChartSpace.prototype.getStyles = function()
 {

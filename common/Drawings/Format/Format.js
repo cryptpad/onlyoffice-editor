@@ -209,7 +209,7 @@ var asc_CShapeProperty = Asc.asc_CShapeProperty;
         drawingsChangesMap[AscDFH.historyitem_ShapeStyle_SetLnRef               ] = function (oClass, value){oClass.lnRef     = value;};
         drawingsChangesMap[AscDFH.historyitem_ShapeStyle_SetFillRef             ] = function (oClass, value){oClass.fillRef   = value;};
         drawingsChangesMap[AscDFH.historyitem_ShapeStyle_SetFontRef             ] = function (oClass, value){oClass.fontRef   = value;};
-        drawingsChangesMap[AscDFH.historyitem_ShapeStyle_SetEffectRef           ] = function (oClass, value){oClass.effectRef = value; oClass.handleUpdateGeometry();};
+        drawingsChangesMap[AscDFH.historyitem_ShapeStyle_SetEffectRef           ] = function (oClass, value){oClass.effectRef = value;};
         drawingsChangesMap[AscDFH.historyitem_Xfrm_SetParent                    ] = function (oClass, value){oClass.parent   = value;};
         drawingsChangesMap[AscDFH.historyitem_Xfrm_SetOffX                      ] = function (oClass, value){oClass.offX     = value; oClass.handleUpdatePosition();};
         drawingsChangesMap[AscDFH.historyitem_Xfrm_SetOffY                      ] = function (oClass, value){oClass.offY     = value; oClass.handleUpdatePosition();};
@@ -240,7 +240,7 @@ var asc_CShapeProperty = Asc.asc_CShapeProperty;
             }
         };
         drawingsChangesMap[AscDFH.historyitem_SpPr_SetLn                        ] = function (oClass, value){oClass.ln       = value; oClass.handleUpdateLn();};
-        drawingsChangesMap[AscDFH.historyitem_SpPr_SetEffectPr                  ] = function (oClass, value){oClass.effectProps = value;};
+        drawingsChangesMap[AscDFH.historyitem_SpPr_SetEffectPr                  ] = function (oClass, value){oClass.effectProps = value; oClass.handleUpdateGeometry();};
         drawingsChangesMap[AscDFH.historyitem_ExtraClrScheme_SetClrScheme       ] = function (oClass, value){oClass.clrScheme = value;};
         drawingsChangesMap[AscDFH.historyitem_ExtraClrScheme_SetClrMap          ] = function (oClass, value){oClass.clrMap    = value;};
         drawingsChangesMap[AscDFH.historyitem_ThemeSetColorScheme               ] = function (oClass, value){
@@ -7323,41 +7323,49 @@ CEffectLst.prototype.Read_FromBinary = function(r)
     if(nFlags & 1)
     {
         this.blur = new CBlur();
+        r.GetLong();
         this.blur.Read_FromBinary(r);
     }
     if(nFlags & 2)
     {
         this.fillOverlay = new CFillOverlay();
+        r.GetLong();
         this.fillOverlay.Read_FromBinary(r);
     }
     if(nFlags & 4)
     {
         this.glow = new CGlow();
+        r.GetLong();
         this.glow.Read_FromBinary(r);
     }
     if(nFlags & 8)
     {
         this.innerShdw = new CInnerShdw();
+        r.GetLong();
         this.innerShdw.Read_FromBinary(r);
     }
     if(nFlags & 16)
     {
         this.outerShdw = new COuterShdw();
+        r.GetLong();
         this.outerShdw.Read_FromBinary(r);
     }
     if(nFlags & 32)
     {
         this.prstShdw = new CPrstShdw();
+        r.GetLong();
         this.prstShdw.Read_FromBinary(r);
     }
     if(nFlags & 64)
     {
         this.reflection = new CReflection();
+        r.GetLong();
         this.reflection.Read_FromBinary(r);
     }
     if(nFlags & 128)
     {
         this.softEdge = new CSoftEdge();
+        r.GetLong();
         this.softEdge.Read_FromBinary(r);
     }
 };

@@ -1382,14 +1382,6 @@ Path.prototype = {
 
         hitInInnerArea: function(canvasContext, x, y)
         {
-            if(this.fill === "none")
-                return false;
-
-            var _arr_commands = this.ArrPathCommand;
-            var _commands_count = _arr_commands.length;
-            var _command_index;
-            var _command;
-
             var path = this.ArrPathCommand;
             canvasContext.beginPath();
             var i = 0;
@@ -1445,6 +1437,82 @@ Path.prototype = {
             if(canvasContext.isPointInPath(x, y))
             {
                 return true;
+            }
+            return false;
+        },
+
+        hitInPath: function(canvasContext, x, y)
+        {
+            var _arr_commands = this.ArrPathCommand;
+            var _commands_count = _arr_commands.length;
+            var _command_index;
+            var _command;
+            var _last_x, _last_y;
+            var _begin_x, _begin_y;
+
+            var path = this.ArrPathCommand;
+            var i = 0;
+            var len = this.PathMemory.ArrPathCommand[this.startPos];
+            while(i < len)
+            {
+                var cmd=path[this.startPos + i + 1];
+                switch(cmd)
+                {
+                    case moveTo:
+                    {
+                        canvasContext.moveTo(path[this.startPos + i+2], path[this.startPos + i + 3]);
+                        _last_x = path[this.startPos + i+2];
+                        _last_y = path[this.startPos + i+3];
+                        _begin_x = path[this.startPos + i+2];
+                        _begin_y = path[this.startPos + i+3];
+                        i+=3;
+                        break;
+                    }
+                    case lineTo:
+                    {
+                        if(HitInLine(canvasContext, x, y, _last_x, _last_y, path[this.startPos + i+2], path[this.startPos + i + 3]))
+                            return true;
+                        _last_x = path[this.startPos + i+2];
+                        _last_y = path[this.startPos + i+3];
+                        i+=3;
+                        break;
+                    }
+                    case bezier3:
+                    {
+                        canvasContext.quadraticCurveTo(path[this.startPos + i+2], path[this.startPos + i + 3], path[this.startPos + i+4], path[this.startPos + i + 5]);
+                        if(HitInBezier3(canvasContext, x, y, _last_x, _last_y, path[this.startPos + i+2], path[this.startPos + i + 3], path[this.startPos + i+4], path[this.startPos + i + 5]))
+                            return true;
+                        _last_x=path[this.startPos + i+4];
+                        _last_y=path[this.startPos + i+5];
+                        i+=5;
+                        break;
+                    }
+                    case bezier4:
+                    {
+                        if(HitInBezier4(canvasContext, x, y, _last_x, _last_y, path[this.startPos + i+2], path[this.startPos + i + 3], path[this.startPos + i+4], path[this.startPos + i + 5], path[this.startPos + i+6], path[this.startPos + i + 7]))
+                            return true;
+                        _last_x=path[this.startPos + i+6];
+                        _last_y=path[this.startPos + i+7];
+                        i+=7;
+                        break;
+                    }
+                    case arcTo:
+                    {
+                        if(HitToArc(canvasContext, x, y, path[this.startPos + i + 2], path[this.startPos + i + 3], path[this.startPos + i + 4], path[this.startPos + i + 5], path[this.startPos + i + 6], path[this.startPos + i + 7]))
+                            return true;
+                        _last_x=(path[this.startPos + i + 2] - path[this.startPos + i + 4]*Math.cos(path[this.startPos + i + 6])+ path[this.startPos + i + 4]*Math.cos(path[this.startPos + i + 7]));
+                        _last_y=(path[this.startPos + i + 3] - path[this.startPos + i + 5]*Math.sin(path[this.startPos + i + 6])+ path[this.startPos + i + 5]*Math.sin(path[this.startPos + i + 7]));
+                        i+=7;
+                        break;
+                    }
+                    case close:
+                    {
+                        if(HitInLine(canvasContext, x, y, _last_x, _last_y, _begin_x, _begin_y))
+                            return true;
+                        i+=1;
+                        break;
+                    }
+                }
             }
             return false;
         },
