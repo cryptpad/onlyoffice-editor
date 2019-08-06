@@ -13805,8 +13805,12 @@
             }
             var sortProps = t.model.autoFilters.getPropForSort(cellId, ar, displayName);
 
-            var onSortAutoFilterCallBack = function () {
-                History.Create_NewPoint();
+            var onSortAutoFilterCallBack = function (success) {
+				if (false === success) {
+					return;
+				}
+
+				History.Create_NewPoint();
                 History.StartTransaction();
 
                 var rgbColor = color ?
