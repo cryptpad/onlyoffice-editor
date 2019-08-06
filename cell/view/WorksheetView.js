@@ -15748,6 +15748,7 @@
 			if(t.viewPrintLines) {
 				t.updateSelection();
 			}
+			window["Asc"]["editor"]._onUpdateLayoutMenu(t.model.Id);
 		};
 
 		return this._isLockedLayoutOptions(onChangeDocSize);
@@ -15774,6 +15775,7 @@
 			if(t.viewPrintLines) {
 				t.updateSelection();
 			}
+			window["Asc"]["editor"]._onUpdateLayoutMenu(t.model.Id);
 		};
 
 		return this._isLockedLayoutOptions(callback);
@@ -15804,6 +15806,7 @@
 			if(t.viewPrintLines) {
 				t.updateSelection();
 			}
+			window["Asc"]["editor"]._onUpdateLayoutMenu(t.model.Id);
 		};
 
 		return this._isLockedLayoutOptions(callback);
