@@ -17,6 +17,10 @@ common/libfont/js/fonts.js
 common/libfont/wasm/fonts.js
 common/Images/fonts_thumbnail.png
 common/Images/fonts_thumbnail@2x.png
+common/Images/themes_thumbnail.png
+common/Images/themes_thumbnail@2x.png
+slide/themes/theme*
+slide/themes/themes.js
 *~
 .DS_Store
 /deploy

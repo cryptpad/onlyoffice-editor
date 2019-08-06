@@ -434,10 +434,17 @@ CNum.prototype.GetLvlByStyle = function(sStyleId)
  * Получаем нумерованное значение для заданного уровня с учетом заданого сдвига и формата данного уровня
  * @param nLvl {number} 0..8
  * @param nNumShift {number}
+ * @param [isForceArabic=false] {boolean}
  */
-CNum.prototype.private_GetNumberedLvlText = function(nLvl, nNumShift)
+CNum.prototype.private_GetNumberedLvlText = function(nLvl, nNumShift, isForceArabic)
 {
-	return AscCommon.IntToNumberFormat(nNumShift, this.GetLvl(nLvl).GetFormat());
+	var nFormat = this.GetLvl(nLvl).GetFormat();
+	if (true === isForceArabic
+		&& nFormat !== Asc.c_oAscNumberingFormat.Decimal
+		&& nFormat !== Asc.c_oAscNumberingFormat.DecimalZero)
+		nFormat = Asc.c_oAscNumberingFormat.Decimal;
+
+	return AscCommon.IntToNumberFormat(nNumShift, nFormat);
 };
 /**
  * Функция отрисовки заданного уровня нумерации в заданной позиции
@@ -489,7 +496,7 @@ CNum.prototype.Draw = function(nX, nY, oContext, nLvl, oNumInfo, oNumTextPr, oTh
 				var T = "";
 
 				if (nCurLvl < oNumInfo.length)
-					T = this.private_GetNumberedLvlText(nCurLvl, oNumInfo[nCurLvl]);
+					T = this.private_GetNumberedLvlText(nCurLvl, oNumInfo[nCurLvl], oLvl.IsLegalStyle() && nCurLvl < nLvl);
 
 				for (var Index2 = 0; Index2 < T.length; Index2++)
 				{
@@ -549,7 +556,7 @@ CNum.prototype.Measure = function(oContext, nLvl, oNumInfo, oNumTextPr, oTheme)
 				var T = "";
 
 				if (nCurLvl < oNumInfo.length)
-					T = this.private_GetNumberedLvlText(nCurLvl, oNumInfo[nCurLvl]);
+					T = this.private_GetNumberedLvlText(nCurLvl, oNumInfo[nCurLvl], oLvl.IsLegalStyle() && nCurLvl < nLvl);
 
 				for (var Index2 = 0; Index2 < T.length; Index2++)
 				{

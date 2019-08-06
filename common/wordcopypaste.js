@@ -1969,7 +1969,7 @@ function Editor_Paste_Exec(api, _format, data1, data2, text_data, specialPastePr
 function trimString( str ){
     return str.replace(/^\s+|\s+$/g, '') ;
 }
-function sendImgUrls(api, images, callback, bExcel, bNotShowError, withAuthorization) {
+function sendImgUrls(api, images, callback, bExcel, bNotShowError, token) {
 
   if (window["AscDesktopEditor"])
   {
@@ -1994,7 +1994,7 @@ function sendImgUrls(api, images, callback, bExcel, bNotShowError, withAuthoriza
 
   var rData = {
     "id": api.documentId, "c": "imgurls", "userid": api.documentUserId, "saveindex": g_oDocumentUrls.getMaxIndex(),
-    "withAuthorization": withAuthorization, "data": images
+    "jwt": token, "data": images
   };
   api.sync_StartAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.LoadImage);
 

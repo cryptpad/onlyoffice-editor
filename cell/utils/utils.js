@@ -1479,7 +1479,7 @@
 		RangeCache.prototype.getActiveRange = function (sRange) {
 			return this._getRange(sRange, 2);
 		};
-		RangeCache.prototype.getActiveRangesFromSqRef = function (sqRef) {
+		RangeCache.prototype.getRangesFromSqRef = function (sqRef) {
 			var res = [];
 			var refs = sqRef.split(' ');
 			for (var i = 0; i < refs.length; ++i) {
@@ -1711,6 +1711,11 @@
 			return f.reduce(function (pv, cv) {
 				return pv + cv.text;
 			}, "");
+		}
+		function getFragmentsLength(f) {
+			return f.length > 0 ? f.reduce(function (pv, cv) {
+				return pv + cv.text.length;
+			}, 0) : 0;
 		}
 
 		function executeInR1C1Mode(mode, runFunction) {
@@ -2163,6 +2168,12 @@
 			this.TransitionEvaluation = null;
 
 			this.TabColor = null;
+			this.AutoPageBreaks = true;
+			this.FitToPage = false;
+			this.ApplyStyles = false;
+			this.ShowOutlineSymbols = true;
+			this.SummaryBelow = true;
+			this.SummaryRight = true;
 
 			return this;
 		}
@@ -2618,6 +2629,7 @@
 		window["Asc"].isFixedWidthCell = isFixedWidthCell;
 		window["AscCommonExcel"].dropDecimalAutofit = dropDecimalAutofit;
 		window["AscCommonExcel"].getFragmentsText = getFragmentsText;
+		window['AscCommonExcel'].getFragmentsLength = getFragmentsLength;
 		window['AscCommonExcel'].executeInR1C1Mode = executeInR1C1Mode;
 		window['AscCommonExcel'].checkFilteringMode = checkFilteringMode;
 		window["Asc"].getEndValueRange = getEndValueRange;

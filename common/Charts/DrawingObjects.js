@@ -1005,7 +1005,7 @@ CSparklineView.prototype.initFromSparkline = function(oSparkline, oSparklineGrou
         this.chartSpace = chart_space;
         if(worksheetView){
 
-            var oBBox = oSparkline.sqref;
+            var oBBox = oSparkline.sqRef;
             this.col = oBBox.c1;
             this.row = oBBox.r1;
             this.x = worksheetView.getCellLeft(oBBox.c1, 3);

@@ -1654,6 +1654,22 @@
 
 		return arrResult;
 	};
+	/**
+	 * Set to track changes or not
+	 * @param isTrack {boolean}
+	 */
+	ApiDocument.prototype.SetTrackRevisions = function(isTrack)
+	{
+		this.Document.SetTrackRevisions(isTrack);
+	};
+	/**
+	 * Is change tracking enabled
+	 * @returns {boolean}
+	 */
+	ApiDocument.prototype.IsTrackRevisions = function()
+	{
+		return this.Document.IsTrackRevisions();
+	};
 	//------------------------------------------------------------------------------------------------------------------
 	//
 	// ApiParagraph
@@ -5195,6 +5211,8 @@
 	ApiDocument.prototype["InsertWatermark"]         = ApiDocument.prototype.InsertWatermark;
 	ApiDocument.prototype["SearchAndReplace"]        = ApiDocument.prototype.SearchAndReplace;
 	ApiDocument.prototype["GetAllContentControls"]   = ApiDocument.prototype.GetAllContentControls;
+	ApiDocument.prototype["SetTrackRevisions"]       = ApiDocument.prototype.SetTrackRevisions;
+	ApiDocument.prototype["IsTrackRevisions"]        = ApiDocument.prototype.IsTrackRevisions;
 
 	ApiParagraph.prototype["GetClassType"]           = ApiParagraph.prototype.GetClassType;
 	ApiParagraph.prototype["AddText"]                = ApiParagraph.prototype.AddText;

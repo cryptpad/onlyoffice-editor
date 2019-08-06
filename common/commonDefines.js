@@ -146,6 +146,9 @@
 			MailMergeLoadFile : -40,
 			MailMergeSaveFile : -41,
 
+			// Data Validate
+			DataValidate : -45,
+
 			// for AutoFilter
 			AutoFilterDataRangeError         : -50,
 			AutoFilterChangeFormatTableError : -51,
@@ -1103,6 +1106,7 @@
 	var c_oAscMaxTooltipLength       = 256;
 	var c_oAscMaxCellOrCommentLength = 32767;
 	var c_oAscMaxFormulaLength       = 8192;
+	var c_oAscMaxHeaderFooterLength  = 256;
 
 	var locktype_None   = 1; // никто не залочил данный объект
 	var locktype_Mine   = 2; // данный объект залочен текущим пользователем
@@ -1981,6 +1985,7 @@
 	prot['Point']                           = prot.Point;
 	window['Asc']['c_oAscMaxTooltipLength'] = window['Asc'].c_oAscMaxTooltipLength = c_oAscMaxTooltipLength;
 	window['Asc']['c_oAscMaxCellOrCommentLength'] = window['Asc'].c_oAscMaxCellOrCommentLength = c_oAscMaxCellOrCommentLength;
+	window['Asc']['c_oAscMaxHeaderFooterLength']  = window['Asc'].c_oAscMaxHeaderFooterLength  = c_oAscMaxHeaderFooterLength;
 	window['Asc']['c_oAscSelectionType'] = window['Asc'].c_oAscSelectionType = c_oAscSelectionType;
 	prot                                 = c_oAscSelectionType;
 	prot['RangeCells']                   = prot.RangeCells;

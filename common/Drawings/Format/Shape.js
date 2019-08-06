@@ -3162,8 +3162,8 @@ CShape.prototype.recalculateLocalTransform = function(transform)
                 {
                     if(this.parent && this.parent.Extent && AscFormat.isRealNumber(this.parent.Extent.W) && AscFormat.isRealNumber(this.parent.Extent.H))
                     {
-                        this.x = 0;
-                        this.y = 0;
+                        // this.x = 0;
+                        // this.y = 0;
                         this.extX = this.parent.Extent.W;
                         this.extY = this.parent.Extent.H;
                     }
@@ -3173,13 +3173,13 @@ CShape.prototype.recalculateLocalTransform = function(transform)
                     var oParaDrawing = getParaDrawing(this);
                     if(oParaDrawing)
                     {
-                        this.x = 0;
-                        this.y = 0;
+                        // this.x = 0;
+                        // this.y = 0;
 
                         if(oParaDrawing.Extent && AscFormat.isRealNumber(oParaDrawing.Extent.W) && AscFormat.isRealNumber(oParaDrawing.Extent.H))
                         {
-                            this.x = 0;
-                            this.y = 0;
+                            // this.x = 0;
+                            // this.y = 0;
                             this.extX = oParaDrawing.Extent.W;
                             this.extY = oParaDrawing.Extent.H;
                         }
@@ -4553,6 +4553,8 @@ CShape.prototype.draw = function (graphics, transform, transformText, pageIndex)
             this.brush = AscFormat.CreateBlipFillUniFillFromUrl(sSignatureUrl);
         }
     }
+
+    this.drawShdw &&  this.drawShdw(graphics);
     if ((geometry || (this.getObjectType && (this.getObjectType() === AscDFH.historyitem_type_DLbl || this.getObjectType() === AscDFH.historyitem_type_Legend))) && (this.style || (this.brush && this.brush.fill) || (this.pen && this.pen.Fill && this.pen.Fill.fill))) {
         graphics.SetIntegerGrid(false);
         graphics.transform3(_transform, false);
@@ -4639,6 +4641,7 @@ CShape.prototype.draw = function (graphics, transform, transformText, pageIndex)
     }
     this.brush = _oldBrush;
     var oController = this.getDrawingObjectsController && this.getDrawingObjectsController();
+
     if(!this.cropObject)
     {
         if(!this.txWarpStruct && !this.txWarpStructParamarksNoTransform || (!this.txWarpStructParamarksNoTransform && oController && (AscFormat.getTargetTextObject(oController) === this) || (!this.txBody && !this.textBoxContent)) /*|| this.haveSelectedDrawingInContent()*/)
@@ -5256,6 +5259,11 @@ CShape.prototype.changeFill = function (unifill) {
     var unifill2 = AscFormat.CorrectUniFill(unifill, this.brush, this.getEditorType());
     unifill2.convertToPPTXMods();
     this.spPr.setFill(unifill2);
+};
+CShape.prototype.changeShadow = function (oShadow) {
+
+
+    this.spPr && this.spPr.changeShadow(oShadow);
 };
 CShape.prototype.setFill = function (fill) {
 

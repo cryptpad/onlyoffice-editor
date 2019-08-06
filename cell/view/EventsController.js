@@ -707,7 +707,7 @@
 				t.lastKeyCode = event.which;
 			}
 
-			if (!t.isMousePressed && t.enableKeyEvents && t.handlers.trigger("graphicObjectWindowKeyDown", event)) {
+			if (!t.getCellEditMode() && !t.isMousePressed && t.enableKeyEvents && t.handlers.trigger("graphicObjectWindowKeyDown", event)) {
 				return result;
 			}
 

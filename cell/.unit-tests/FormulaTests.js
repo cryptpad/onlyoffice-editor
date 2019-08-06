@@ -610,7 +610,7 @@ $( function () {
     var fSortAscending = AscCommon.fSortAscending;
     var g_oIdCounter = AscCommon.g_oIdCounter;
 
-    var oParser, wb, ws, dif = 1e-9, sData = AscCommonExcel.getEmptyWorkbook(), tmp;
+    var oParser, wb, ws, dif = 1e-9, sData = AscCommon.getEmpty(), tmp;
     if ( AscCommon.c_oSerFormat.Signature === sData.substring( 0, AscCommon.c_oSerFormat.Signature.length ) ) {
         wb = new AscCommonExcel.Workbook( new AscCommonExcel.asc_CHandlersList(), {wb:{getWorksheet:function(){}}} );
         AscCommon.History.init(wb);

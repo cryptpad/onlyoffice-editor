@@ -731,6 +731,28 @@
 		iconSet : 0,
 		iconId : 1
 	};
+	var c_oSer_DataValidation = {
+		DataValidations: 0,
+		DataValidation: 1,
+		DisablePrompts: 2,
+		XWindow: 3,
+		YWindow: 4,
+		Type: 5,
+		AllowBlank: 6,
+		Error: 7,
+		ErrorTitle: 8,
+		ErrorStyle: 9,
+		ImeMode: 10,
+		Operator: 11,
+		Promt: 12,
+		PromptTitle: 13,
+		ShowDropDown: 14,
+		ShowErrorMessage: 15,
+		ShowInputMessage: 16,
+		SqRef: 17,
+		Formula1: 18,
+		Formula2: 19
+	};
     var c_oSer_SheetView = {
         ColorId						: 0,
         DefaultGridColor			: 1,
@@ -805,7 +827,15 @@
         TransitionEntry						: 7,
         TransitionEvaluation				: 8,
 
-        TabColor							: 9
+		TabColor							: 9,
+		PageSetUpPr							: 10,
+		AutoPageBreaks						: 11,
+		FitToPage							: 12,
+		OutlinePr							: 13,
+		ApplyStyles							: 14,
+		ShowOutlineSymbols					: 15,
+		SummaryBelow						: 16,
+		SummaryRight						: 17
     };
     /** @enum */
     var c_oSer_Sparkline = {
@@ -3147,7 +3177,110 @@
                 this.memory.WriteByte(c_oSerWorksheetsTypes.Picture);
                 this.memory.WriteString2(ws.picture);
             }
+			if (null !== ws.dataValidations) {
+				this.bs.WriteItem(c_oSerWorksheetsTypes.DataValidations, function () {oThis.WriteDataValidations(ws.dataValidations);});
+			}
         };
+		this.WriteDataValidations = function(dataValidations)
+		{
+			var oThis = this;
+			//Name
+			if (null != dataValidations.disablePrompts) {
+				this.bs.WriteItem(c_oSer_DataValidation.DisablePrompts, function () {oThis.memory.WriteBool(dataValidations.disablePrompts);});
+			}
+			if (null != dataValidations.xWindow) {
+				this.bs.WriteItem(c_oSer_DataValidation.XWindow, function () {oThis.memory.WriteLong(dataValidations.xWindow);});
+			}
+			if (null != dataValidations.yWindow) {
+				this.bs.WriteItem(c_oSer_DataValidation.YWindow, function () {oThis.memory.WriteLong(dataValidations.yWindow);});
+			}
+			if (dataValidations.elems.length > 0) {
+				this.bs.WriteItem(c_oSer_DataValidation.DataValidations, function () {
+					for (var i = 0; i < dataValidations.elems.length; ++i) {
+						oThis.bs.WriteItem(c_oSer_DataValidation.DataValidation, function () {oThis.WriteDataValidation(dataValidations.elems[i]);});
+					}
+				});
+			}
+		};
+		this.WriteDataValidation = function(dataValidation)
+		{
+			//Name
+			if (null != dataValidation.allowBlank) {
+				this.memory.WriteByte(c_oSer_DataValidation.AllowBlank);
+				this.memory.WriteByte(c_oSerPropLenType.Byte);
+				this.memory.WriteBool(dataValidation.allowBlank);
+			}
+			if (null != dataValidation.type) {
+				this.memory.WriteByte(c_oSer_DataValidation.Type);
+				this.memory.WriteByte(c_oSerPropLenType.Byte);
+				this.memory.WriteByte(dataValidation.type);
+			}
+			if (null != dataValidation.error) {
+				this.memory.WriteByte(c_oSer_DataValidation.Error);
+				this.memory.WriteByte(c_oSerPropLenType.Variable);
+				this.memory.WriteString2(dataValidation.error);
+			}
+			if (null != dataValidation.errorTitle) {
+				this.memory.WriteByte(c_oSer_DataValidation.ErrorTitle);
+				this.memory.WriteByte(c_oSerPropLenType.Variable);
+				this.memory.WriteString2(dataValidation.errorTitle);
+			}
+			if (null != dataValidation.errorStyle) {
+				this.memory.WriteByte(c_oSer_DataValidation.ErrorStyle);
+				this.memory.WriteByte(c_oSerPropLenType.Byte);
+				this.memory.WriteByte(dataValidation.errorStyle);
+			}
+			if (null != dataValidation.imeMode) {
+				this.memory.WriteByte(c_oSer_DataValidation.ImeMode);
+				this.memory.WriteByte(c_oSerPropLenType.Byte);
+				this.memory.WriteByte(dataValidation.imeMode);
+			}
+			if (null != dataValidation.operator) {
+				this.memory.WriteByte(c_oSer_DataValidation.Operator);
+				this.memory.WriteByte(c_oSerPropLenType.Byte);
+				this.memory.WriteByte(dataValidation.operator);
+			}
+			if (null != dataValidation.promt) {
+				this.memory.WriteByte(c_oSer_DataValidation.Promt);
+				this.memory.WriteByte(c_oSerPropLenType.Variable);
+				this.memory.WriteString2(dataValidation.promt);
+			}
+			if (null != dataValidation.promptTitle) {
+				this.memory.WriteByte(c_oSer_DataValidation.PromptTitle);
+				this.memory.WriteByte(c_oSerPropLenType.Variable);
+				this.memory.WriteString2(dataValidation.promptTitle);
+			}
+			if (null != dataValidation.showDropDown) {
+				this.memory.WriteByte(c_oSer_DataValidation.ShowDropDown);
+				this.memory.WriteByte(c_oSerPropLenType.Byte);
+				this.memory.WriteBool(dataValidation.showDropDown);
+			}
+			if (null != dataValidation.showErrorMessage) {
+				this.memory.WriteByte(c_oSer_DataValidation.ShowErrorMessage);
+				this.memory.WriteByte(c_oSerPropLenType.Byte);
+				this.memory.WriteBool(dataValidation.showErrorMessage);
+			}
+			if (null != dataValidation.showInputMessage) {
+				this.memory.WriteByte(c_oSer_DataValidation.ShowInputMessage);
+				this.memory.WriteByte(c_oSerPropLenType.Byte);
+				this.memory.WriteBool(dataValidation.showInputMessage);
+			}
+			if (null != dataValidation.ranges) {
+				this.memory.WriteByte(c_oSer_DataValidation.SqRef);
+				this.memory.WriteByte(c_oSerPropLenType.Variable);
+				this.memory.WriteString2(getSqRefString(dataValidation.ranges));
+			}
+			if (null != dataValidation.formula1) {
+				this.memory.WriteByte(c_oSer_DataValidation.Formula1);
+				this.memory.WriteByte(c_oSerPropLenType.Variable);
+				this.memory.WriteString2(dataValidation.formula1);
+			}
+			if (null != dataValidation.formula2) {
+				this.memory.WriteByte(c_oSer_DataValidation.Formula2);
+				this.memory.WriteByte(c_oSerPropLenType.Variable);
+				this.memory.WriteString2(dataValidation.formula2);
+			}
+		};
         this.WriteWorksheetProp = function(ws, index)
         {
             var oThis = this;
@@ -3384,8 +3517,8 @@
 			}
 			//this.bs.WriteItem(c_oSer_Selection.Pane, function(){oThis.memory.WriteByte();});
 			if (null != selectionRange.ranges) {
-				var sqref = getSqRefString(selectionRange.ranges);
-				this.bs.WriteItem(c_oSer_Selection.Sqref, function(){oThis.memory.WriteString3(sqref);});
+				var sqRef = getSqRefString(selectionRange.ranges);
+				this.bs.WriteItem(c_oSer_Selection.Sqref, function(){oThis.memory.WriteString3(sqRef);});
 			}
 		};
         this.WriteSheetPr = function (sheetPr) {
@@ -3410,7 +3543,37 @@
                 this.bs.WriteItem(c_oSer_SheetPr.TransitionEvaluation, function(){oThis.memory.WriteBool(sheetPr.TransitionEvaluation);});
             if (null !== sheetPr.TabColor)
                 this.bs.WriteItem(c_oSer_SheetPr.TabColor, function(){oThis.bs.WriteColorSpreadsheet(sheetPr.TabColor);});
+			if (null !== sheetPr.AutoPageBreaks || null !== sheetPr.FitToPage)
+				this.bs.WriteItem(c_oSer_SheetPr.PageSetUpPr, function(){oThis.WritePageSetUpPr(sheetPr);});
+			if (null !== sheetPr.ApplyStyles || null !== sheetPr.ShowOutlineSymbols || null !== sheetPr.SummaryBelow || null !== sheetPr.SummaryRight)
+				this.bs.WriteItem(c_oSer_SheetPr.OutlinePr, function(){oThis.WriteOutlinePr(sheetPr);});
         };
+		this.WriteOutlinePr = function(sheetPr)
+		{
+			var oThis = this;
+			if (null !== sheetPr.ApplyStyles) {
+				this.bs.WriteItem(c_oSer_SheetPr.ApplyStyles, function(){oThis.memory.WriteBool(sheetPr.ApplyStyles);});
+			}
+			if (null !== sheetPr.ShowOutlineSymbols) {
+				this.bs.WriteItem(c_oSer_SheetPr.ShowOutlineSymbols, function(){oThis.memory.WriteBool(sheetPr.ShowOutlineSymbols);});
+			}
+			if (null !== sheetPr.SummaryBelow) {
+				this.bs.WriteItem(c_oSer_SheetPr.SummaryBelow, function(){oThis.memory.WriteBool(sheetPr.SummaryBelow);});
+			}
+			if (null !== sheetPr.SummaryRight) {
+				this.bs.WriteItem(c_oSer_SheetPr.SummaryRight, function(){oThis.memory.WriteBool(sheetPr.SummaryRight);});
+			}
+		};
+		this.WritePageSetUpPr = function(sheetPr)
+		{
+			var oThis = this;
+			if (null !== sheetPr.AutoPageBreaks) {
+				this.bs.WriteItem(c_oSer_SheetPr.AutoPageBreaks, function(){oThis.memory.WriteBool(sheetPr.AutoPageBreaks);});
+			}
+			if (null !== sheetPr.FitToPage) {
+				this.bs.WriteItem(c_oSer_SheetPr.FitToPage, function(){oThis.memory.WriteBool(sheetPr.FitToPage);});
+			}
+		};
         this.WriteSheetFormatPr = function(ws)
         {
             if (null !== ws.oSheetFormatPr.nBaseColWidth) {
@@ -4185,8 +4348,8 @@
 				this.bs.WriteItem(c_oSer_ConditionalFormatting.Pivot, function() {oThis.memory.WriteBool(oRule.pivot);});
 			}
 			if (null != oRule.ranges) {
-				var sqref = getSqRefString(oRule.ranges);
-				this.bs.WriteItem(c_oSer_ConditionalFormatting.SqRef, function() {oThis.memory.WriteString3(sqref);});
+				var sqRef = getSqRefString(oRule.ranges);
+				this.bs.WriteItem(c_oSer_ConditionalFormatting.SqRef, function() {oThis.memory.WriteString3(sqRef);});
 			}
 			this.bs.WriteItem(c_oSer_ConditionalFormatting.ConditionalFormattingRule, function() {oThis.WriteConditionalFormattingRule(oRule);});
 		};
@@ -4452,9 +4615,9 @@
                 this.memory.WriteByte(c_oSer_Sparkline.SparklineRef);
                 this.memory.WriteString2(oSparkline.f);
 			}
-			if (null != oSparkline.sqref) {
+			if (null != oSparkline.sqRef) {
 				this.memory.WriteByte(c_oSer_Sparkline.SparklineSqRef);
-                this.memory.WriteString2(oSparkline.sqref.getName());
+                this.memory.WriteString2(oSparkline.sqRef.getName());
 			}
 		}
 		this.WritePivotTable = function(pivotTable)
@@ -4740,7 +4903,9 @@
             this.WriteTable(c_oSerTableTypes.Workbook, new BinaryWorkbookTableWriter(this.Memory, this.wb, oBinaryWorksheetsTableWriter, this.isCopyPaste));
             //Worksheets
             this.WriteTable(c_oSerTableTypes.Worksheets, oBinaryWorksheetsTableWriter);
-            this.WriteTable(c_oSerTableTypes.PersonList, new BinaryPersonTableWriter(this.Memory, personList));
+            if (personList.length > 0) {
+                this.WriteTable(c_oSerTableTypes.PersonList, new BinaryPersonTableWriter(this.Memory, personList));
+            }
 			if(!this.isCopyPaste)
 				this.WriteTable(c_oSerTableTypes.Other, new BinaryOtherTableWriter(this.Memory, this.wb));
             //Write SharedStrings
@@ -6901,15 +7066,92 @@
             //     });
             // } else if (c_oSerWorksheetsTypes.Picture === type) {
             //     oWorksheet.picture = this.stream.GetString2LE(length);
+			} else if (c_oSerWorksheetsTypes.DataValidations === type && typeof AscCommonExcel.CDataValidations != "undefined") {
+				oWorksheet.dataValidations = new AscCommonExcel.CDataValidations();
+				res = this.bcr.Read1(length, function(t, l) {
+					return oThis.ReadDataValidations(t, l, oWorksheet.dataValidations);
+				});
+			} else
+				res = c_oSerConstants.ReadUnknown;
+			return res;
+		};
+		this.ReadDataValidations = function(type, length, dataValidations)
+		{
+			var res = c_oSerConstants.ReadOk;
+			var oThis = this;
+			if (c_oSer_DataValidation.DataValidations == type) {
+				res = this.bcr.Read1(length, function(t, l) {
+					return oThis.ReadDataValidationsContent(t, l, dataValidations);
+				});
+			} else if (c_oSer_DataValidation.DisablePrompts == type) {
+				dataValidations.disablePrompts = this.stream.GetBool();
+			} else if (c_oSer_DataValidation.XWindow == type) {
+				dataValidations.xWindow = this.stream.GetLong();
+			} else if (c_oSer_DataValidation.YWindow == type) {
+				dataValidations.yWindow = this.stream.GetLong();
             } else
                 res = c_oSerConstants.ReadUnknown;
             return res;
         };
+		this.ReadDataValidationsContent = function(type, length, dataValidations)
+		{
+			var res = c_oSerConstants.ReadOk;
+			var oThis = this;
+			if (c_oSer_DataValidation.DataValidation == type) {
+				var dataValidation = new AscCommonExcel.CDataValidation();
+				res = this.bcr.Read2(length, function(t, l) {
+					return oThis.ReadDataValidation(t, l, dataValidation);
+				});
+				dataValidations.elems.push(dataValidation);
+			} else
+				res = c_oSerConstants.ReadUnknown;
+			return res;
+		};
+		this.ReadDataValidation = function(type, length, dataValidation)
+		{
+			var res = c_oSerConstants.ReadOk;
+			if (c_oSer_DataValidation.AllowBlank == type) {
+				dataValidation.allowBlank = this.stream.GetBool();
+			} else if (c_oSer_DataValidation.Type == type) {
+				dataValidation.type = this.stream.GetUChar();
+			} else if (c_oSer_DataValidation.Error == type) {
+				dataValidation.error = this.stream.GetString2LE(length);
+			} else if (c_oSer_DataValidation.ErrorTitle == type) {
+				dataValidation.errorTitle = this.stream.GetString2LE(length);
+			} else if (c_oSer_DataValidation.ErrorStyle == type) {
+				dataValidation.errorStyle = this.stream.GetUChar();
+			} else if (c_oSer_DataValidation.ImeMode == type) {
+				dataValidation.imeMode = this.stream.GetUChar();
+			} else if (c_oSer_DataValidation.Operator == type) {
+				dataValidation.operator = this.stream.GetUChar();
+			} else if (c_oSer_DataValidation.Promt == type) {
+				dataValidation.promt = this.stream.GetString2LE(length);
+			} else if (c_oSer_DataValidation.PromptTitle == type) {
+				dataValidation.promptTitle = this.stream.GetString2LE(length);
+			} else if (c_oSer_DataValidation.ShowDropDown == type) {
+				dataValidation.showDropDown = this.stream.GetBool();
+			} else if (c_oSer_DataValidation.ShowErrorMessage == type) {
+				dataValidation.showErrorMessage = this.stream.GetBool();
+			} else if (c_oSer_DataValidation.ShowInputMessage == type) {
+				dataValidation.showInputMessage = this.stream.GetBool();
+			} else if (c_oSer_DataValidation.SqRef == type) {
+			    dataValidation.setSqRef(this.stream.GetString2LE(length));
+			} else if (c_oSer_DataValidation.Formula1 == type) {
+			    dataValidation.formula1 = new AscCommonExcel.CDataFormula(this.stream.GetString2LE(length));
+			} else if (c_oSer_DataValidation.Formula2 == type) {
+                dataValidation.formula2 = new AscCommonExcel.CDataFormula(this.stream.GetString2LE(length));
+			} else
+				res = c_oSerConstants.ReadUnknown;
+			return res;
+		};
         this.ReadWorksheetProp = function(type, length, oWorksheet)
         {
             var res = c_oSerConstants.ReadOk;
             if ( c_oSerWorksheetPropTypes.Name == type )
+            {
                 oWorksheet.sName = this.stream.GetString2LE(length);
+				AscFonts.FontPickerByCharacter.getFontsByString(oWorksheet.sName);
+            }
             else if ( c_oSerWorksheetPropTypes.SheetId == type )
                 oWorksheet.nSheetId = this.stream.GetULongLE();
             else if ( c_oSerWorksheetPropTypes.State == type )
@@ -7810,7 +8052,7 @@
             if (c_oSer_ConditionalFormatting.Pivot === type)
                 oConditionalFormatting.pivot = this.stream.GetBool();
             else if (c_oSer_ConditionalFormatting.SqRef === type) {
-                oConditionalFormatting.setSqref(this.stream.GetString2LE(length));
+                oConditionalFormatting.setSqRef(this.stream.GetString2LE(length));
             }
             else if (c_oSer_ConditionalFormatting.ConditionalFormattingRule === type) {
                 oConditionalFormattingRule = new AscCommonExcel.CConditionalFormattingRule();
@@ -8114,8 +8356,8 @@
 			} else if (c_oSer_Selection.ActiveCellId === type) {
 				selectionRange.activeCellId = this.stream.GetLong();
 			} else if (c_oSer_Selection.Sqref === type) {
-				var sqref = this.stream.GetString2LE(length);
-				var selectionNew = AscCommonExcel.g_oRangeCache.getActiveRangesFromSqRef(sqref);
+				var sqRef = this.stream.GetString2LE(length);
+				var selectionNew = AscCommonExcel.g_oRangeCache.getRangesFromSqRef(sqRef);
 				if (selectionNew.length > 0) {
 					selectionRange.ranges = selectionNew;
 				}
@@ -8151,11 +8393,45 @@
 				if (color) {
 					oSheetPr.TabColor = color;
 				}
+			} else if (c_oSer_SheetPr.PageSetUpPr === type) {
+				res = this.bcr.Read1(length, function (t, l) {
+					return oThis.ReadPageSetUpPr(t, l, oSheetPr);
+				});
+			} else if (c_oSer_SheetPr.OutlinePr === type) {
+				res = this.bcr.Read1(length, function (t, l) {
+					return oThis.ReadOutlinePr(t, l, oSheetPr);
+				});
             } else
                 res = c_oSerConstants.ReadUnknown;
 
             return res;
         };
+		this.ReadOutlinePr = function (type, length, oSheetPr) {
+			var oThis = this;
+			var res = c_oSerConstants.ReadOk;
+			if (c_oSer_SheetPr.ApplyStyles === type) {
+				oSheetPr.ApplyStyles = this.stream.GetBool();
+			} else if (c_oSer_SheetPr.ShowOutlineSymbols === type) {
+				oSheetPr.ShowOutlineSymbols = this.stream.GetBool();
+			} else if (c_oSer_SheetPr.SummaryBelow === type) {
+				oSheetPr.SummaryBelow = this.stream.GetBool();
+			} else if (c_oSer_SheetPr.SummaryRight === type) {
+				oSheetPr.SummaryRight = this.stream.GetBool();
+			} else
+				res = c_oSerConstants.ReadUnknown;
+			return res;
+		};
+		this.ReadPageSetUpPr = function (type, length, oSheetPr) {
+			var oThis = this;
+			var res = c_oSerConstants.ReadOk;
+			if (c_oSer_SheetPr.AutoPageBreaks === type) {
+				oSheetPr.AutoPageBreaks = this.stream.GetBool();
+			} else if (c_oSer_SheetPr.FitToPage === type) {
+				oSheetPr.FitToPage = this.stream.GetBool();
+			} else
+				res = c_oSerConstants.ReadUnknown;
+			return res;
+		};
 		this.ReadSparklineGroups = function (type, length, oWorksheet) {
             var oThis = this;
             var res = c_oSerConstants.ReadOk;
@@ -8405,7 +8681,7 @@
             if (c_oSer_Sparkline.SparklineRef === type) {
 				oSparkline.setF(this.stream.GetString2LE(length));
 			} else if (c_oSer_Sparkline.SparklineSqRef === type) {
-				oSparkline.setSqref(this.stream.GetString2LE(length));
+				oSparkline.setSqRef(this.stream.GetString2LE(length));
 			} else
                 res = c_oSerConstants.ReadUnknown;
             return res;

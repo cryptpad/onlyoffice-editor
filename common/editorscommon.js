@@ -137,6 +137,12 @@
 		};
 		String.prototype['padStart'] = String.prototype.padStart;
 	}
+	Number.isInteger = Number.isInteger || function(value) {
+		return typeof value === 'number' && Number.isFinite(value) && !(value % 1);
+	};
+	Number.isFinite = Number.isFinite || function(value) {
+		return typeof value === 'number' && isFinite(value);
+	};
 // Extend javascript String type
 	String.prototype.strongMatch = function (regExp)
 	{
@@ -1438,7 +1444,7 @@
 							else
 								callback(mapAscServerErrorToAscError(data["error"]));
 						}
-						else if (data.type === "onExternalPluginMessage")
+						else if (data["type"] === "onExternalPluginMessage")
 						{
                             if (!window.g_asc_plugins)
                             	return;
@@ -1461,6 +1467,14 @@
 
 							window.g_asc_plugins.sendToAllPlugins(event.data);
 						}
+                        else if (data["type"] === "emulateUploadInFrame")
+                        {
+                            if (window["_private_emulate_upload"])
+                            {
+                                window["_private_emulate_upload"](data["name"], data["content"]);
+                                window["_private_emulate_upload"] = undefined;
+                            }
+                        }
 					} catch (err)
 					{
 					}
@@ -1471,6 +1485,25 @@
 
 	function ShowImageFileDialog(documentId, documentUserId, jwt, callback, callbackOld)
 	{
+		if (AscCommon.AscBrowser.isNeedEmulateUpload && window["emulateUpload"])
+		{
+            window["emulateUpload"](function(name, content) {
+            	if (content === "") {
+					callback(Asc.c_oAscError.ID.Unknown);
+					return;
+                }
+
+				var stream = AscFonts.CreateFontData2(content);
+				var blob = new Blob([stream.data.slice(0, stream.size)]);
+				blob.name = name;
+				blob.fileName = name;
+
+                var nError = ValidateUploadImage([blob]);
+                callback(mapAscServerErrorToAscError(nError), [blob]);
+            }, ":<iframe><image>");
+			return;
+		}
+
         if (AscCommon.EncryptionWorker && AscCommon.EncryptionWorker.isCryptoImages())
 		{
 			AscCommon.EncryptionWorker.addCryproImagesFromDialog(callback);
@@ -4710,8 +4743,10 @@
 	window["AscCommon"].getColorFromXml = getColorFromXml;
 	window["AscCommon"].getBoolFromXml = getBoolFromXml;
 	window["AscCommon"].initStreamFromResponse = initStreamFromResponse;
+	window["AscCommon"].checkStreamSignature = checkStreamSignature;
 
 	window["AscCommon"].DocumentUrls = DocumentUrls;
+	window["AscCommon"].OpenFileResult = OpenFileResult;
 	window["AscCommon"].CLock = CLock;
 	window["AscCommon"].CContentChanges = CContentChanges;
 	window["AscCommon"].CContentChangesElement = CContentChangesElement;
@@ -4791,48 +4826,6 @@ window["asc_initAdvancedOptions"] = function(_code, _file_hash, _docInfo)
 
     window.checkPasswordFromPlugin = false;
     _editor._onNeedParams(undefined, (_code == 90 || _code == 91) ? true : undefined);
-};
-window.openFileCryptCallback = function(_binary)
-{
-    var _editor = window["Asc"]["editor"] ? window["Asc"]["editor"] : window.editor;
-
-    if (!_editor.isLoadFullApi)
-	{
-		_editor.openFileCryptBinary = _binary;
-		return;
-	}
-
-    if (_binary == null)
-    {
-        _editor.sendEvent("asc_onError", c_oAscError.ID.ConvertationOpenError, c_oAscError.Level.Critical);
-        return;
-    }
-
-    if ("DOCY" == AscCommon.c_oSerFormat.Signature)
-	{
-		var isEditor = true;
-        if (_binary.length > 4)
-		{
-			var _signature = (String.fromCharCode(_binary[0]) + String.fromCharCode(_binary[1]) + String.fromCharCode(_binary[2]) + String.fromCharCode(_binary[3]));
-			if (_signature != AscCommon.c_oSerFormat.Signature)
-				isEditor = false;
-		}
-
-        if (!isEditor)
-            _editor.OpenDocument("", _binary);
-        else
-            _editor.OpenDocument2("", _binary);
-	}
-	else if ("PPTY" == AscCommon.c_oSerFormat.Signature)
-	{
-        _editor.OpenDocument2("", _binary);
-	}
-	else
-	{
-        _editor.openDocument(_binary);
-	}
-
-    _editor.sendEvent("asc_onDocumentPassword", ("" != _editor.currentPassword) ? true : false);
 };
 
 window["asc_IsNeedBuildCryptedFile"] = function()

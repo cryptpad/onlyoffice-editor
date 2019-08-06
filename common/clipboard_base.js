@@ -894,7 +894,12 @@
 		Button_Copy : function()
 		{
 			if (this.inputContext)
-				this.inputContext.HtmlArea.focus();
+			{
+                if (this.inputContext.isHardCheckKeyboard)
+                    this.inputContext.enableVirtualKeyboard_Hard();
+
+                this.inputContext.HtmlArea.focus();
+            }
 			this.Api.asc_enableKeyEvents(true, true);
 
 			this.CommonDiv_Execute_CopyCut();
@@ -919,7 +924,12 @@
 		Button_Cut : function()
 		{
 			if (this.inputContext)
-				this.inputContext.HtmlArea.focus();
+			{
+                if (this.inputContext.isHardCheckKeyboard)
+                    this.inputContext.enableVirtualKeyboard_Hard();
+
+                this.inputContext.HtmlArea.focus();
+            }
 			this.Api.asc_enableKeyEvents(true, true);
 
 			this.CommonDiv_Execute_CopyCut();
@@ -948,7 +958,12 @@
 		Button_Paste : function()
 		{
 			if (this.inputContext)
-				this.inputContext.HtmlArea.focus();
+			{
+				if (this.inputContext.isHardCheckKeyboard)
+					this.inputContext.enableVirtualKeyboard_Hard();
+
+                this.inputContext.HtmlArea.focus();
+            }
 			this.Api.asc_enableKeyEvents(true, true);
 
 			var _ret = false;

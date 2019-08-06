@@ -3983,6 +3983,9 @@ CDocumentContent.prototype.GetSelectedText = function(bClearText, oPr)
 };
 CDocumentContent.prototype.GetSelectedElementsInfo = function(oInfo)
 {
+	if (!oInfo)
+		oInfo = new CSelectedElementsInfo();
+
 	if (true === this.ApplyToAll)
 	{
 		var nCount = this.Content.length;
@@ -4040,6 +4043,8 @@ CDocumentContent.prototype.GetSelectedElementsInfo = function(oInfo)
 			}
 		}
 	}
+
+	return oInfo;
 };
 CDocumentContent.prototype.GetSelectedContent = function(SelectedContent)
 {

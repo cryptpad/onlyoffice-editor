@@ -240,7 +240,7 @@ var asc_CShapeProperty = Asc.asc_CShapeProperty;
             }
         };
         drawingsChangesMap[AscDFH.historyitem_SpPr_SetLn                        ] = function (oClass, value){oClass.ln       = value; oClass.handleUpdateLn();};
-        drawingsChangesMap[AscDFH.historyitem_SpPr_SetEffectPr                  ] = function (oClass, value){oClass.effectProps = value;};
+        drawingsChangesMap[AscDFH.historyitem_SpPr_SetEffectPr                  ] = function (oClass, value){oClass.effectProps = value; oClass.handleUpdateGeometry();};
         drawingsChangesMap[AscDFH.historyitem_ExtraClrScheme_SetClrScheme       ] = function (oClass, value){oClass.clrScheme = value;};
         drawingsChangesMap[AscDFH.historyitem_ExtraClrScheme_SetClrMap          ] = function (oClass, value){oClass.clrMap    = value;};
         drawingsChangesMap[AscDFH.historyitem_ThemeSetColorScheme               ] = function (oClass, value){
@@ -3406,7 +3406,56 @@ var  EFFECT_TYPE_BLEND			=	30;
         oCopy.sy = this.sy;
         return oCopy;
     };
+    COuterShdw.prototype.IsIdentical = function(other)
+    {
+        if(!other)
+        {
+            return false;
+        }
+        if(!this.color && other.color || this.color && !other.color || !this.color.IsIdentical(other.color))
+        {
+            return false;
+        }
+        if(other.algn !== this.algn ||
+        other.blurRad !== this.blurRad ||
+        other.dir !== this.dir ||
+        other.dist !== this.dist ||
+        other.kx !== this.kx ||
+        other.ky !== this.ky ||
+        other.rotWithShape !== this.rotWithShape ||
+        other.sx !== this.sx ||
+        other.sy !== this.sy)
+        {
+            return false;
+        }
+        return true;
+    };
 
+
+
+    function asc_CShadowProperty()
+    {
+        COuterShdw.call(this);
+        this.algn = 7;
+        this.blurRad = 50800;
+        this.color = new CUniColor();
+        this.color.color = new CPrstColor();
+        this.color.color.id = "black";
+        this.color.Mods = new CColorModifiers();
+        var oMod =  new CColorMod();
+        oMod.name = "alpha";
+        oMod.val = 40000;
+        this.color.Mods.Mods.push(oMod);
+        this.dir = 2700000
+        this.dist = 38100
+        this.rotWithShape =  false;
+    }
+    asc_CShadowProperty.prototype = Object.create(COuterShdw.prototype);
+    asc_CShadowProperty.prototype.constructor = asc_CShadowProperty;
+
+
+    window['Asc'] = window['Asc'] || {};
+    window['Asc']['asc_CShadowProperty'] = window['Asc'].asc_CShadowProperty = asc_CShadowProperty;
     function CPrstShdw()
     {
         this.color = new CUniColor();
@@ -5314,6 +5363,24 @@ function CompareShapeProperties(shapeProp1, shapeProp2)
     }
     if(shapeProp1.columnSpace === shapeProp2.columnSpace){
         _result_shape_prop.columnSpace = shapeProp1.columnSpace;
+    }
+
+    if(!shapeProp1.shadow && !shapeProp2.shadow){
+        _result_shape_prop.shadow = null;
+    }
+    else if(shapeProp1.shadow && !shapeProp2.shadow){
+        _result_shape_prop.shadow = null;
+    }
+    else if(!shapeProp1.shadow && shapeProp2.shadow){
+        _result_shape_prop.shadow = null;
+    }
+    else if(shapeProp1.shadow.IsIdentical(shapeProp2.shadow))
+    {
+        _result_shape_prop.shadow = shapeProp1.shadow.createDuplicate();
+    }
+    else
+    {
+        _result_shape_prop.shadow = null;
     }
 
     return _result_shape_prop;
@@ -7256,41 +7323,49 @@ CEffectLst.prototype.Read_FromBinary = function(r)
     if(nFlags & 1)
     {
         this.blur = new CBlur();
+        r.GetLong();
         this.blur.Read_FromBinary(r);
     }
     if(nFlags & 2)
     {
         this.fillOverlay = new CFillOverlay();
+        r.GetLong();
         this.fillOverlay.Read_FromBinary(r);
     }
     if(nFlags & 4)
     {
         this.glow = new CGlow();
+        r.GetLong();
         this.glow.Read_FromBinary(r);
     }
     if(nFlags & 8)
     {
         this.innerShdw = new CInnerShdw();
+        r.GetLong();
         this.innerShdw.Read_FromBinary(r);
     }
     if(nFlags & 16)
     {
         this.outerShdw = new COuterShdw();
+        r.GetLong();
         this.outerShdw.Read_FromBinary(r);
     }
     if(nFlags & 32)
     {
         this.prstShdw = new CPrstShdw();
+        r.GetLong();
         this.prstShdw.Read_FromBinary(r);
     }
     if(nFlags & 64)
     {
         this.reflection = new CReflection();
+        r.GetLong();
         this.reflection.Read_FromBinary(r);
     }
     if(nFlags & 128)
     {
         this.softEdge = new CSoftEdge();
+        r.GetLong();
         this.softEdge.Read_FromBinary(r);
     }
 };
@@ -7337,6 +7412,7 @@ CSpPr.prototype =
                 break;
             }
             case AscDFH.historyitem_SpPr_SetGeometry:
+            case AscDFH.historyitem_SpPr_SetEffectPr:
             {
                 this.handleUpdateGeometry();
                 break;
@@ -7403,6 +7479,35 @@ CSpPr.prototype =
             var line_image_id = this.checkUniFillRasterImageId(this.ln.Fill);
             if(line_image_id)
                 images.push(line_image_id);
+        }
+    },
+
+    changeShadow: function(oShadow)
+    {
+        if(oShadow)
+        {
+            var oEffectProps = this.effectProps ? this.effectProps.createDuplicate() : new AscFormat.CEffectProperties();
+            if(!oEffectProps.EffectLst)
+            {
+                oEffectProps.EffectLst = new CEffectLst();
+            }
+            oEffectProps.EffectLst.outerShdw = oShadow.createDuplicate();
+            this.setEffectPr(oEffectProps);
+        }
+        else
+        {
+            if(this.effectProps)
+            {
+                if(this.effectProps.EffectLst)
+                {
+                    if(this.effectProps.EffectLst.outerShdw)
+                    {
+                        var oEffectProps = this.effectProps.createDuplicate();
+                        oEffectProps.EffectLst.outerShdw = null;
+                        this.setEffectPr(oEffectProps);
+                    }
+                }
+            }
         }
     },
 
@@ -11337,6 +11442,7 @@ function CreateAscShapePropFromProp(shapeProp)
     obj.description = shapeProp.description;
     obj.columnNumber = shapeProp.columnNumber;
     obj.columnSpace = shapeProp.columnSpace;
+    obj.shadow = shapeProp.shadow;
     if(shapeProp.signatureId)
     {
         obj.signatureId = shapeProp.signatureId;

@@ -11123,9 +11123,9 @@ Paragraph.prototype.Concat = function(Para, isUseConcatedStyle)
 Paragraph.prototype.Continue = function(NewParagraph)
 {
 	var TextPr;
-	if (this.Is_Empty())
+	if (this.IsEmpty())
 	{
-		TextPr = this.Get_TextPr(this.Get_EndPos(false));
+		TextPr = this.TextPr.Value.Copy();
 	}
 	else
 	{
@@ -14076,6 +14076,118 @@ Paragraph.prototype.GetStartPageForRecalculate = function(nPageAbs)
 
 	return this.GetAbsolutePage(nCurPage);
 };
+Paragraph.prototype.CheckTrackMoveMarkInSelection = function(isStart)
+{
+	if (!this.IsSelectionUse())
+		return null;
+
+	var nStartPos = this.Selection.StartPos < this.Selection.EndPos ? this.Selection.StartPos : this.Selection.EndPos;
+	var nEndPos   = this.Selection.StartPos < this.Selection.EndPos ? this.Selection.EndPos : this.Selection.StartPos;
+
+	if (isStart)
+	{
+		if (para_RevisionMove === this.Content[nStartPos].GetType())
+		{
+			if (!this.Content[nStartPos].IsFrom() && this.Content[nStartPos].IsStart())
+				return this.Content[nStartPos].GetMarkId();
+			else
+				return null;
+		}
+
+		var nPos = nStartPos;
+		while (this.Content[nPos].IsSelectionEmpty())
+		{
+			nPos++;
+
+			if (nPos > nEndPos)
+				break;
+
+			if (para_RevisionMove === this.Content[nPos].GetType())
+			{
+				if (!this.Content[nPos].IsFrom() && this.Content[nPos].IsStart())
+					return this.Content[nPos].GetMarkId();
+				else
+					return null;
+			}
+		}
+
+
+		if (this.Content[nStartPos].IsSelectedFromStart())
+		{
+			nPos = nStartPos - 1;
+			while (nPos >= 0 && para_RevisionMove !== this.Content[nPos].GetType() && this.Content[nPos].IsEmpty())
+			{
+				nPos--;
+			}
+
+			if (nPos < 0)
+			{
+				var oPrevElement = this.Get_DocumentPrev();
+				if (oPrevElement && oPrevElement.IsParagraph())
+				{
+					var oLastRun = oPrevElement.GetParaEndRun();
+					var oMark    = oLastRun.GetLastTrackMoveMark();
+					if (oMark && !oMark.IsFrom() && oMark.IsStart())
+						return oMark.GetMarkId();
+				}
+			}
+			else if (para_RevisionMove === this.Content[nPos].GetType() && !this.Content[nPos].IsFrom() && this.Content[nPos].IsStart())
+			{
+				return this.Content[nPos].GetMarkId();
+			}
+		}
+	}
+	else
+	{
+		if (para_RevisionMove === this.Content[nEndPos].GetType())
+		{
+			if (!this.Content[nEndPos].IsFrom() && !this.Content[nEndPos].IsStart())
+				return this.Content[nEndPos].GetMarkId();
+			else
+				return null;
+		}
+
+		var nPos = nEndPos;
+		while (this.Content[nPos].IsSelectionEmpty())
+		{
+			nPos--;
+
+			if (nPos < nStartPos)
+				break;
+
+			if (para_RevisionMove === this.Content[nPos].GetType())
+			{
+				if (!this.Content[nPos].IsFrom() && !this.Content[nPos].IsStart())
+					return this.Content[nPos].GetMarkId();
+				else
+					return null;
+			}
+		}
+
+		if (this.Content[nEndPos].IsSelectedToEnd())
+		{
+			nPos = nEndPos + 1;
+			while (nPos < this.Content.length && para_RevisionMove !== this.Content[nPos].GetType() && this.Content[nPos].IsEmpty())
+			{
+				nPos++;
+			}
+
+			if (nPos < this.Content.length && para_RevisionMove === this.Content[nPos].GetType() && !this.Content[nPos].IsFrom() && !this.Content[nPos].IsStart())
+			{
+				return this.Content[nPos].GetMarkId();
+			}
+			else if (this.Selection_CheckParaEnd())
+			{
+				var oLastRun = this.GetParaEndRun();
+				var oMark    = oLastRun.GetLastTrackMoveMark();
+				if (oMark && !oMark.IsFrom() && !oMark.IsStart())
+					return oMark.GetMarkId();
+			}
+		}
+	}
+
+	return null;
+};
 
 var pararecalc_0_All  = 0;
 var pararecalc_0_None = 1;
@@ -14597,6 +14709,8 @@ function CParagraphComplexFieldsInfo()
 	this.CF = [];
 
 	this.isHidden = null;
+
+	this.StoredState = null;
 }
 CParagraphComplexFieldsInfo.prototype.ResetPage = function(Paragraph, CurPage)
 {
@@ -14706,24 +14820,16 @@ CParagraphComplexFieldsInfo.prototype.ProcessFieldChar = function(oChar)
 	}
 	else if (oChar.IsSeparate())
 	{
-		for (var nIndex = 0, nCount = this.CF.length; nIndex < nCount; ++nIndex)
+		if (this.CF.length > 0)
 		{
-			if (oComplexField === this.CF[nIndex].ComplexField)
-			{
-				this.CF[nIndex].SetFieldCode(false);
-				break;
-			}
+			this.CF[this.CF.length - 1].SetFieldCode(false);
 		}
 	}
 	else if (oChar.IsEnd())
 	{
-		for (var nIndex = 0, nCount = this.CF.length; nIndex < nCount; ++nIndex)
+		if (this.CF.length > 0)
 		{
-			if (oComplexField === this.CF[nIndex].ComplexField)
-			{
-				this.CF.splice(nIndex, 1);
-				break;
-			}
+			this.CF.splice(this.CF.length - 1, 1);
 		}
 	}
 };
@@ -14779,6 +14885,27 @@ CParagraphComplexFieldsInfo.prototype.IsHyperlinkField = function()
 	}
 
 	return (isHaveHyperlink && !isOtherField ? true : false);
+};
+CParagraphComplexFieldsInfo.prototype.PushState = function()
+{
+	this.StoredState = {
+		Hidden : this.isHidden,
+		CF     : []
+	};
+
+	for (var nIndex = 0, nCount = this.CF.length; nIndex < nCount; ++nIndex)
+	{
+		this.StoredState.CF[nIndex] = this.CF[nIndex].Copy();
+	}
+};
+CParagraphComplexFieldsInfo.prototype.PopState = function()
+{
+	if (this.StoredState)
+	{
+		this.isHidden    = this.StoredState.Hidden;
+		this.CF          = this.StoredState.CF;
+		this.StoredState = null;
+	}
 };
 
 function CParagraphDrawStateHighlights()

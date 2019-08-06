@@ -5029,10 +5029,10 @@ function RangeDataManagerElem(bbox, data)
 		var result = new AscCommonExcel.SelectionRange();
 		this.arrSparklines.forEach(function (item, i) {
 			if (0 === i) {
-				result.assign2(item.sqref);
+				result.assign2(item.sqRef);
 			} else {
 				result.addRange();
-				result.getLast().assign2(item.sqref);
+				result.getLast().assign2(item.sqRef);
 			}
 		});
 		var unionRange = result.getUnion();
@@ -5146,7 +5146,7 @@ function RangeDataManagerElem(bbox, data)
 		} else {
 			this.arrSparklines.forEach(function (item) {
 				arrResultData.push(item.f || AscCommon.cErrorOrigin['ref']);
-				arrResultLocation.push(item.sqref.getAbsName());
+				arrResultLocation.push(item.sqRef.getAbsName());
 			});
 		}
 		return [arrResultData.join(AscCommon.FormulaSeparators.functionArgumentSeparator),
@@ -5375,7 +5375,7 @@ function RangeDataManagerElem(bbox, data)
 	};
 	/** @constructor */
 	function sparkline() {
-		this.sqref = null;
+		this.sqRef = null;
 		this.f = null;
 		this._f = null;
 
@@ -5387,15 +5387,15 @@ function RangeDataManagerElem(bbox, data)
 	sparkline.prototype.clone = function () {
 		var res = new sparkline();
 
-		res.sqref = this.sqref ? this.sqref.clone() : null;
+		res.sqRef = this.sqRef ? this.sqRef.clone() : null;
 		res.f = this.f;
 		res._f = this._f ? this._f.clone() : null;
 
 		return res;
 	};
-	sparkline.prototype.setSqref = function (sqref) {
-		this.sqref = AscCommonExcel.g_oRangeCache.getAscRange(sqref).clone();
-		this.sqref.setAbs(true, true, true, true);
+	sparkline.prototype.setSqRef = function (sqRef) {
+		this.sqRef = AscCommonExcel.g_oRangeCache.getAscRange(sqRef).clone();
+		this.sqRef.setAbs(true, true, true, true);
 	};
 	sparkline.prototype.setF = function (f) {
 		this.f = f;
@@ -5411,13 +5411,13 @@ function RangeDataManagerElem(bbox, data)
 		}
 	};
 	sparkline.prototype.checkInRange = function (range) {
-		return this.sqref ? range.isIntersect(this.sqref) : false;
+		return this.sqRef ? range.isIntersect(this.sqRef) : false;
 	};
 	sparkline.prototype.contains = function (c, r) {
-		return this.sqref ? this.sqref.contains(c, r) : false;
+		return this.sqRef ? this.sqRef.contains(c, r) : false;
 	};
 	sparkline.prototype.intersectionSimple = function (range) {
-		return this.sqref ? this.sqref.intersectionSimple(range) : false;
+		return this.sqRef ? this.sqRef.intersectionSimple(range) : false;
 	};
 
 	// For Auto Filters

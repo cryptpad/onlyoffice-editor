@@ -6348,7 +6348,7 @@ parserFormula.prototype.clone = function(formula, parent, ws) {
 
 		for (i = 0; i < this.outStack.length; i++) {
 			elem = this.outStack[i];
-			if (elem.type == cElementType.table && elem.tableName == defName.name) {
+			if (elem.type == cElementType.table && elem.tableName.toLowerCase() == defName.name.toLowerCase()) {
 				if(bConvertTableFormulaToRef)
 				{
 					this.outStack[i] = this.outStack[i].toRef(bbox, bConvertTableFormulaToRef);
@@ -6364,7 +6364,7 @@ parserFormula.prototype.clone = function(formula, parent, ws) {
 		var i, elem;
 		for (i = 0; i < this.outStack.length; i++) {
 			elem = this.outStack[i];
-			if (elem.type == cElementType.table && elem.tableName == tableName) {
+			if (elem.type == cElementType.table && tableName && elem.tableName.toLowerCase() == tableName.toLowerCase()) {
 				if (elem.removeTableColumn(deleted)) {
 					this.outStack[i] = new cError(cErrorType.bad_reference);
 				}
@@ -6375,7 +6375,7 @@ parserFormula.prototype.clone = function(formula, parent, ws) {
 		var i, elem;
 		for (i = 0; i < this.outStack.length; i++) {
 			elem = this.outStack[i];
-			if (elem.type == cElementType.table && elem.tableName == tableName) {
+			if (elem.type == cElementType.table && tableName && elem.tableName.toLowerCase() == tableName.toLowerCase()) {
 				if (!elem.renameTableColumn()) {
 					this.outStack[i] = new cError(cErrorType.bad_reference);
 				}
@@ -6386,7 +6386,7 @@ parserFormula.prototype.clone = function(formula, parent, ws) {
 		var i, elem;
 		for (i = 0; i < this.outStack.length; i++) {
 			elem = this.outStack[i];
-			if (elem.type == cElementType.table && elem.tableName == tableName) {
+			if (elem.type == cElementType.table && tableName && elem.tableName.toLowerCase() == tableName.toLowerCase()) {
 				elem.changeTableRef();
 			}
 		}

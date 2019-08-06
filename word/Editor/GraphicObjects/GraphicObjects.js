@@ -2953,25 +2953,28 @@ CGraphicObjects.prototype =
         if (oTargetDocContent)
             return oTargetDocContent.RecalculateCurPos(bUpdateX, bUpdateY);
 
-        var oParaDrawing = this.getMajorParaDrawing();
-        if (oParaDrawing)
-        {
-            // Обновляем позицию курсора, чтобы проскроллиться к заданной позиции
-            var oDrawingDocument = editor.WordControl.m_oLogicDocument.GetDrawingDocument();
-            oDrawingDocument.m_oWordControl.ScrollToPosition(oParaDrawing.GraphicObj.x, oParaDrawing.GraphicObj.y, oParaDrawing.PageNum, oParaDrawing.GraphicObj.extY);
+        if (!window["NATIVE_EDITOR_ENJINE"]) {
+            
+            var oParaDrawing = this.getMajorParaDrawing();
+            if (oParaDrawing)
+            {
+                // Обновляем позицию курсора, чтобы проскроллиться к заданной позиции
+                var oDrawingDocument = editor.WordControl.m_oLogicDocument.GetDrawingDocument();
+                oDrawingDocument.m_oWordControl.ScrollToPosition(oParaDrawing.GraphicObj.x, oParaDrawing.GraphicObj.y, oParaDrawing.PageNum, oParaDrawing.GraphicObj.extY);
 
-            return {
-                X         : oParaDrawing.GraphicObj.x,
-                Y         : oParaDrawing.GraphicObj.y,
-                Height    : 0,
-                PageNum   : oParaDrawing.PageNum,
-                Internal  : {
-                    Line  : 0,
-                    Page  : 0,
-                    Range : 0
-                },
-                Transform : null
-            };
+                return {
+                    X         : oParaDrawing.GraphicObj.x,
+                    Y         : oParaDrawing.GraphicObj.y,
+                    Height    : 0,
+                    PageNum   : oParaDrawing.PageNum,
+                    Internal  : {
+                        Line  : 0,
+                        Page  : 0,
+                        Range : 0
+                    },
+                    Transform : null
+                };
+            }
         }
 
         return {

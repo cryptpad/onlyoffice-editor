@@ -87,6 +87,8 @@ function CImageShape()
     this.isCrop = false;
     this.parentCrop = null;
 
+    this.shdwSp = null;
+
     this.Id = AscCommon.g_oIdCounter.Get_NewId();
     AscCommon.g_oTableId.Add( this, this.Id );
 }
@@ -662,6 +664,8 @@ CImageShape.prototype.draw = function(graphics, transform)
             return;
     }
 
+
+    this.drawShdw &&  this.drawShdw(graphics);
     var oClipRect;
     if(!graphics.IsSlideBoundsCheckerType){
         oClipRect = this.getClipRect();
@@ -750,6 +754,11 @@ CImageShape.prototype.select = CShape.prototype.select;
         this.spPr.setGeometry( AscFormat.CreateGeometry(sPreset));
     };
 
+    CImageShape.prototype.changeShadow = function (oShadow) {
+
+
+        this.spPr && this.spPr.changeShadow(oShadow);
+    };
 
     CImageShape.prototype.recalculateLocalTransform = CShape.prototype.recalculateLocalTransform;
 CImageShape.prototype.hit = CShape.prototype.hit;

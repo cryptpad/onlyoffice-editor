@@ -296,8 +296,8 @@ CChangesRunAddItem.prototype.Redo = function()
 
 	for (var nIndex = 0, nCount = this.Items.length; nIndex < nCount; ++nIndex)
 	{
-		if (this.Items.SetParent)
-			this.Items.SetParent(oRun);
+		if (this.Items[nIndex].SetParent)
+			this.Items[nIndex].SetParent(oRun);
 	}
 };
 CChangesRunAddItem.prototype.private_WriteItem = function(Writer, Item)
@@ -375,8 +375,8 @@ CChangesRunRemoveItem.prototype.Undo = function()
 
 	for (var nIndex = 0, nCount = this.Items.length; nIndex < nCount; ++nIndex)
 	{
-		if (this.Items.SetParent)
-			this.Items.SetParent(oRun);
+		if (this.Items[nIndex].SetParent)
+			this.Items[nIndex].SetParent(oRun);
 	}
 };
 CChangesRunRemoveItem.prototype.Redo = function()

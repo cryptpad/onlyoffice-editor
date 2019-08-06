@@ -2365,7 +2365,7 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             _api.advancedOptionsAction = AscCommon.c_oAscAdvancedOptionsAction.Open;
             _api.documentFormat = "txt";
            
-            _api.asc_setAdvancedOptions(type, new Asc.asc_CTXTAdvancedOptions(encoding));
+            _api.asc_setAdvancedOptions(type, new Asc.asc_CTextOptions(encoding));
             
             break;
         } 
@@ -2402,7 +2402,6 @@ Asc['asc_docs_api'].prototype.asc_setDocumentPassword = function(password)
       "userid": this.documentUserId,
       "format": this.documentFormat,
       "c": "reopen",
-      "url": this.documentUrl,
       "title": this.documentTitle,
       "password": password
     };
@@ -4957,11 +4956,31 @@ Asc['asc_docs_api'].prototype.AddImageUrlNative = function(url, _w, _h, _pageNum
 };
 Asc['asc_docs_api'].prototype.AddImageUrlActionNative = function(src, _w, _h, _pageNum)
 {
-  var ColumnSize = this.WordControl.m_oLogicDocument.GetColumnSize();
-  var __w = Math.max((_w * AscCommon.g_dKoef_pix_to_mm), 1);
-  var __h = Math.max((_h * AscCommon.g_dKoef_pix_to_mm), 1);
-  _w = Math.max(5, Math.min(_w, __w));
-  _h = Math.max(5, Math.min((_w * __h / __w)));
+  var section_select = this.WordControl.m_oLogicDocument.Get_PageSizesByDrawingObjects();
+  var page_width = AscCommon.Page_Width;
+  var page_height = AscCommon.Page_Height;
+  var page_x_left_margin = AscCommon.X_Left_Margin;
+  var page_y_top_margin = AscCommon.Y_Top_Margin;
+  var page_x_right_margin = AscCommon.X_Right_Margin;
+  var page_y_bottom_margin = AscCommon.Y_Bottom_Margin;
+
+  var boundingWidth  = Math.max(1, page_width  - (page_x_left_margin + page_x_right_margin));
+  var boundingHeight = Math.max(1, page_height - (page_y_top_margin  + page_y_bottom_margin));
+
+  var w = Math.max(_w * AscCommon.g_dKoef_pix_to_mm, 1);
+  var h = Math.max(_h * AscCommon.g_dKoef_pix_to_mm, 1);
+                                        
+  var mW = boundingWidth  / w;
+  var mH = boundingHeight / h;
+
+  if (mH < mW) {
+    boundingWidth  = boundingHeight / h * w;
+  } else if (mW < mH) {
+    boundingHeight = boundingWidth  / w * h;
+  }
+
+  _w = Math.max(5, boundingWidth);
+  _h = Math.max(5, boundingHeight);  
 
   if (this.isShapeImageChangeUrl)
   {
@@ -6025,8 +6044,12 @@ function NativeOpenFile3(_params, documentInfo)
 
         _api.asc_setDocInfo(docInfo);
 
-        _api.asc_registerCallback("asc_onAdvancedOptions", function(options) {
+        _api.asc_registerCallback("asc_onAdvancedOptions", function(type, options) {
                                   var stream = global_memory_stream_menu;
+                                  if (options === undefined) {
+                                    options = {};
+                                  }
+                                  options["optionId"] = type;
                                   stream["ClearNoAttack"]();
                                   stream["WriteString2"](JSON.stringify(options));
                                   window["native"]["OnCallMenuEvent"](22000, stream); // ASC_MENU_EVENT_TYPE_ADVANCED_OPTIONS
@@ -6220,9 +6243,9 @@ window["asc_docs_api"].prototype["asc_nativeOpenFile2"] = function(base64File, v
     }
 };
 
-Asc['asc_docs_api'].prototype.openDocument = function(sData)
+Asc['asc_docs_api'].prototype.openDocument = function(file)
 {
-    _api.asc_nativeOpenFile2(sData.data);
+    _api.asc_nativeOpenFile2(file.data);
     
     
     if (!sdkCheck) {
@@ -6245,9 +6268,9 @@ Asc['asc_docs_api'].prototype.openDocument = function(sData)
     }
 
     var version;
-    if (sData.changes && this.VersionHistory)
+    if (file.changes && this.VersionHistory)
     {
-        this.VersionHistory.changes = sData.changes;
+        this.VersionHistory.changes = file.changes;
         this.VersionHistory.applyChanges(this);
     }
 

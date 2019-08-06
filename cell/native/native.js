@@ -4143,8 +4143,12 @@ function OfflineEditor () {
                                   if (callback) callback.call(me);
                                   });
         
-        _api.asc_registerCallback("asc_onAdvancedOptions", function(options) {
+        _api.asc_registerCallback("asc_onAdvancedOptions", function(type, options) {
                                   var stream = global_memory_stream_menu;
+                                  if (options === undefined) {
+                                    options = {};
+                                  }
+                                  options["optionId"] = type;
                                   stream["ClearNoAttack"]();
                                   stream["WriteString2"](JSON.stringify(options));
                                   window["native"]["OnCallMenuEvent"](22000, stream); // ASC_MENU_EVENT_TYPE_ADVANCED_OPTIONS
@@ -6844,7 +6848,7 @@ window["native"]["offline_apply_event"] = function(type,params) {
             _api.advancedOptionsAction = AscCommon.c_oAscAdvancedOptionsAction.Open;
             _api.documentFormat = "csv";
             
-            _api.asc_setAdvancedOptions(type, new Asc.asc_CCSVAdvancedOptions(encoding, delimiter, null));
+            _api.asc_setAdvancedOptions(type, new Asc.asc_CTextOptions(encoding, delimiter, null));
             
             break;
         }
@@ -6869,7 +6873,6 @@ window["Asc"]["spreadsheet_api"].prototype.asc_setDocumentPassword = function(pa
         "userid": this.documentUserId,
         "format": this.documentFormat,
         "c": "reopen",
-        "url": this.documentUrl,
         "title": this.documentTitle,
         "password": password
     };
@@ -7021,7 +7024,7 @@ window["AscCommonExcel"].WorksheetView.prototype._drawCollaborativeElements = fu
     }
 };
 
-window["Asc"]["spreadsheet_api"].prototype.openDocument = function(sData) {
+window["Asc"]["spreadsheet_api"].prototype.openDocument = function(file) {
     
     var t = this;
     
@@ -7029,7 +7032,7 @@ window["Asc"]["spreadsheet_api"].prototype.openDocument = function(sData) {
                
                //console.log("JS - openDocument()");
                
-               t._openDocument(sData);
+               t._openDocument(file.data);
                
                var thenCallback = function() {
                t.wb = new AscCommonExcel.WorkbookView(t.wbModel, t.controller, t.handlers,

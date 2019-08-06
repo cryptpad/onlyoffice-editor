@@ -799,8 +799,8 @@
         if(bIsArray){
             Writer.WriteLong(Pr.length);
             for(var i = 0; i < Pr.length; ++i){
-                Writer.WriteLong(Pr[i].sqref.c1);
-                Writer.WriteLong(Pr[i].sqref.r1);
+                Writer.WriteLong(Pr[i].sqRef.c1);
+                Writer.WriteLong(Pr[i].sqRef.r1);
                 Writer.WriteString2(Pr[i].f);
             }
         }
@@ -816,7 +816,7 @@
                 var oSparkline = new AscCommonExcel.sparkline();
                 var col = Reader.GetLong();
                 var row = Reader.GetLong();
-                oSparkline.sqref = new Asc.Range(col, row, col, row);
+                oSparkline.sqRef = new Asc.Range(col, row, col, row);
                 oSparkline.setF(Reader.GetString2());
                 RetPr.push(oSparkline);
             }
@@ -881,8 +881,8 @@
         var bIsObject = AscCommon.isRealObject(this.sparkline);
         Writer.WriteBool(bIsObject);
         if(bIsObject){
-            Writer.WriteLong(this.sparkline.sqref.c1);
-            Writer.WriteLong(this.sparkline.sqref.r1);
+            Writer.WriteLong(this.sparkline.sqRef.c1);
+            Writer.WriteLong(this.sparkline.sqRef.r1);
             Writer.WriteString2(this.sparkline.f);
         }
         Writer.WriteBool(this.bReverse === true);
@@ -893,7 +893,7 @@
             this.sparkline = new AscCommonExcel.sparkline();
             var col = Reader.GetLong();
             var row = Reader.GetLong();
-            this.sparkline.sqref = new Asc.Range(col, row, col, row);
+            this.sparkline.sqRef = new Asc.Range(col, row, col, row);
             this.sparkline.setF(Reader.GetString2());
         }
         this.bReverse = Reader.GetBool();
@@ -901,7 +901,7 @@
 
     CChangesSparklinesRemoveData.prototype.Undo = function(){
         if(this.bReverse){
-            this.Class.remove(this.sparkline.sqref);
+            this.Class.remove(this.sparkline.sqRef);
         }
         else{
             this.Class.arrSparklines.push(this.sparkline);
@@ -913,7 +913,7 @@
             this.Class.arrSparklines.push(this.sparkline);
         }
         else{
-            this.Class.remove(this.sparkline.sqref);
+            this.Class.remove(this.sparkline.sqRef);
         }
         this.Class.cleanCache();
     };

@@ -809,8 +809,73 @@ function handleInternalChart(drawing, drawingObjectsController, e, x, y, group, 
                         drawingObjectsController.checkChartTextSelection();
                         selector.resetSelection();
                         selector.selectObject(drawing, pageIndex);
+                        var bSeries = false;
+                        if(drawing.chartObj)
+                        {
+                            var t = drawing.chartObj;
+                            var sortCharts = t._sortChartsForDrawing(drawing);
+                            var oCanvas = drawing.getCanvasContext();
+                            for(var j = sortCharts.length - 1; j > -1; j--) {
+                                var id = sortCharts[j];
+                                var chartModel = t._getChartModelById(drawing.chart.plotArea, id);
+                                if(!chartModel) {
+                                    continue;
+                                }
+                                var oDrawChart = t.charts[id];
+                                var seriesPaths = oDrawChart.paths.series;
+                                for(var k = 0; k < seriesPaths.length; ++k)
+                                {
+                                    if(Array.isArray(seriesPaths[k]))
+                                    {
+                                        var aPointsPaths = seriesPaths[k];
+                                        for(var l = 0; l < aPointsPaths.length; ++l)
+                                        {
+                                            if(AscFormat.isRealNumber(aPointsPaths[l]))
+                                            {
+                                                var oPath = drawing.pathMemory.GetPath(aPointsPaths[l]);
+                                                if(oPath.hitInInnerArea(oCanvas, dTx, dTy) || oPath.hitInPath(oCanvas, dTx, dTy))
+                                                {
+                                                    bSeries = true;
+                                                    if(drawing.selection.chart === id && drawing.selection.series === k)
+                                                    {
+                                                        drawing.selection.chart = id;
+                                                        drawing.selection.series = k;
+                                                        drawing.selection.datPoint = l;
+                                                    }
+                                                    else
+                                                    {
+                                                        drawing.selection.chart = id;
+                                                        drawing.selection.series = k;
+                                                        drawing.selection.datPoint = null;
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        if(AscFormat.isRealNumber(seriesPaths[k]))
+                                        {
+                                            var oPath = drawing.pathMemory.GetPath(seriesPaths[k]);
+                                            if(oPath.hitInInnerArea(oCanvas, dTx, dTy))
+                                            {
+
+                                                bSeries = true;
+                                                drawing.selection.plotArea = null;
+                                                drawing.selection.chart = id;
+                                                drawing.selection.series = k;
+                                                drawing.selection.datPoint = null;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                         selector.selection.chartSelection = drawing;
-                        drawing.selection.plotArea = drawing.chart.plotArea;
+                        if(!bSeries)
+                        {
+                            drawing.selection.plotArea = drawing.chart.plotArea;
+                        }
                     }
                     else
                     {

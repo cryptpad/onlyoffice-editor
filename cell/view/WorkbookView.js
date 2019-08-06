@@ -924,7 +924,7 @@
   };
 
   WorkbookView.prototype._createWorksheetView = function(wsModel) {
-    return new AscCommonExcel.WorksheetView(wsModel, this.wsViewHandlers, this.buffers, this.stringRender, this.maxDigitWidth, this.collaborativeEditing, this.defaults.worksheetView);
+    return new AscCommonExcel.WorksheetView(this, wsModel, this.wsViewHandlers, this.buffers, this.stringRender, this.maxDigitWidth, this.collaborativeEditing, this.defaults.worksheetView);
   };
 
   WorkbookView.prototype._onSelectionNameChanged = function(name) {
@@ -966,8 +966,18 @@
     }
     this.handlers.trigger("asc_onSelectionChanged", this.oSelectionInfo);
     this.handlers.trigger("asc_onSelectionEnd");
+    this._onInputMessage();
   };
 
+  WorkbookView.prototype._onInputMessage = function () {
+  	var title = null, message = null;
+  	var dataValidation = this.oSelectionInfo && this.oSelectionInfo.dataValidation;
+  	if (dataValidation && dataValidation.showInputMessage && !this.model.getActiveWs().getDisablePrompts()) {
+  		title = dataValidation.promptTitle;
+		message = dataValidation.promt;
+	}
+  	this.handlers.trigger("asc_onInputMessage", title, message);
+  };
 
 	WorkbookView.prototype._onScrollReinitialize = function (type) {
 		if (window["NATIVE_EDITOR_ENJINE"] || !type) {
@@ -2631,6 +2641,9 @@
   	}
   };
   WorkbookView.prototype.calcPagesPrint = function (adjustPrint) {
+  	if (!adjustPrint) {
+  		adjustPrint = new Asc.asc_CAdjustPrint();
+	}
     var printPagesData = new asc_CPrintPagesData();
     var printType = adjustPrint.asc_getPrintType();
     if (printType === Asc.c_oAscPrintType.ActiveSheets) {

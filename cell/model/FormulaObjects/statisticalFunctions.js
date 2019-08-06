@@ -82,10 +82,6 @@ function (window, undefined) {
 	cFormulaFunctionGroup['NotRealised'] = cFormulaFunctionGroup['NotRealised'] || [];
 	cFormulaFunctionGroup['NotRealised'].push(cGROWTH, cLINEST, cLOGEST, cTREND);
 
-	function isInteger(value) {
-		return typeof value === 'number' && isFinite(value) && Math.floor(value) === value;
-	}
-
 	function integralPhi(x) { // Using gauss(x)+0.5 has severe cancellation errors for x<-4
 		return 0.5 * AscCommonExcel.rtl_math_erfc(-x * 0.7071067811865475); // * 1/sqrt(2)
 	}
@@ -6505,7 +6501,7 @@ function (window, undefined) {
 		}
 
 		var calcGamma = function (argArray) {
-			if (argArray[0] <= 0 && isInteger(argArray[0])) {
+			if (argArray[0] <= 0 && Number.isInteger(argArray[0])) {
 				return new cError(cErrorType.not_numeric);
 			}
 			var res = getGamma(argArray[0]);

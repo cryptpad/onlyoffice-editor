@@ -56,7 +56,6 @@
 	var asc_CSelectedObject              = AscCommon.asc_CSelectedObject;
 	var g_oDocumentUrls                  = AscCommon.g_oDocumentUrls;
 	var sendCommand                      = AscCommon.sendCommand;
-	var mapAscServerErrorToAscError      = AscCommon.mapAscServerErrorToAscError;
 	var g_oIdCounter                     = AscCommon.g_oIdCounter;
 	var g_oTableId                       = AscCommon.g_oTableId;
 	var PasteElementsId                  = null;
@@ -545,7 +544,9 @@
 								window.g_asc_plugins.api.__content_control_worker.run();
 							}, 1);
 						}};
-						this.api.asc_DownloadAs(Asc.c_oAscFileType.CANVAS_WORD, undefined, true);
+						var options = new Asc.asc_CDownloadOptions(Asc.c_oAscFileType.CANVAS_WORD);
+						options.isNaturalDownload = true;
+						this.api.asc_DownloadAs(options);
 						return;
 					}
 					else if (_current["Script"] !== undefined)
@@ -2042,41 +2043,22 @@ background-repeat: no-repeat;\
 
 	/*----------------------------------------------------------------*/
 	/*functions for working with clipboard, document*/
-	/*TODO: Print,Undo,Redo,Copy,Cut,Paste,Share,Save,DownloadAs,ReturnToDocuments(вернуться на предыдущую страницу) & callbacks for these functions*/
-	asc_docs_api.prototype.asc_Print      = function(bIsDownloadEvent)
+	asc_docs_api.prototype._printDesktop = function ()
 	{
-		if (window["AscDesktopEditor"])
+		if (null != this.WordControl.m_oDrawingDocument.m_oDocumentRenderer)
 		{
-			if (null != this.WordControl.m_oDrawingDocument.m_oDocumentRenderer)
-			{
-				if (window["AscDesktopEditor"]["IsSupportNativePrint"](this.DocumentUrl) === true)
-				{
-					window["AscDesktopEditor"]["Print"]();
-					return;
-				}
-			}
-			else
+			if (window["AscDesktopEditor"]["IsSupportNativePrint"](this.DocumentUrl) === true)
 			{
 				window["AscDesktopEditor"]["Print"]();
 				return;
 			}
 		}
-		this._print(c_oAscAsyncAction.Print, bIsDownloadEvent ? DownloadType.Print : DownloadType.None);
-	};
-	asc_docs_api.prototype._print         = function(actionType, downloadType)
-	{
-		var command;
-		var options = {isNoData : false, downloadType : downloadType};
-		if (null == this.WordControl.m_oLogicDocument)
-		{
-			command          = 'savefromorigin';
-			options.isNoData = true;
-		}
 		else
 		{
-			command = 'save';
+			window["AscDesktopEditor"]["Print"]();
+			return;
 		}
-		this._downloadAs(command, c_oAscFileType.PDF, actionType, options, null);
+		return true;
 	};
 	asc_docs_api.prototype.Undo           = function()
 	{
@@ -2505,7 +2487,6 @@ background-repeat: no-repeat;\
 		//скачивание оригинального pdf, djvu, xps
 		var downloadType = bIsDownloadEvent ? DownloadType.Download : DownloadType.None;
 		var rData        = {
-			"id"    : this.documentId,
 			"c"     : 'pathurl',
 			"title" : this.documentTitle,
 			"data"  : 'origin.' + this.documentFormat
@@ -2529,7 +2510,7 @@ background-repeat: no-repeat;\
 				}
 				else
 				{
-					t.handlers.trigger("asc_onError", mapAscServerErrorToAscError(parseInt(input["data"])),
+					t.handlers.trigger("asc_onError", AscCommon.mapAscServerErrorToAscError(parseInt(input["data"])),
 						c_oAscError.Level.NoCritical);
 				}
 			}
@@ -2540,11 +2521,10 @@ background-repeat: no-repeat;\
 		};
 		sendCommand(this, null, rData);
 	};
-	asc_docs_api.prototype.asc_DownloadAs     = function(typeFile, bIsDownloadEvent)
-	{//передаем число соответствующее своему формату.
+	asc_docs_api.prototype.asc_DownloadAs     = function(options)
+	{
 		var actionType = this.mailMergeFileData ? c_oAscAsyncAction.MailMergeLoadFile : c_oAscAsyncAction.DownloadAs;
-		var options    = {downloadType : bIsDownloadEvent ? DownloadType.Download : DownloadType.None};
-		this._downloadAs("save", typeFile, actionType, options, null);
+		this.downloadAs(actionType, options);
 	};
 	asc_docs_api.prototype.Resize             = function()
 	{
@@ -2562,54 +2542,43 @@ background-repeat: no-repeat;\
 	};
 	/*
 	 idOption идентификатор дополнительного параметра, c_oAscAdvancedOptionsID.TXT.
-	 option - какие свойства применить, пока массив. для TXT объект asc_CTXTAdvancedOptions(codepage)
-	 exp:	asc_setAdvancedOptions(c_oAscAdvancedOptionsID.TXT, new Asc.asc_CCSVAdvancedOptions(1200) );
+	 option - какие свойства применить, пока массив. для TXT объект asc_CTextOptions(codepage)
+	 exp:	asc_setAdvancedOptions(c_oAscAdvancedOptionsID.TXT, new Asc.asc_CTextOptions(1200) );
 	 */
 	asc_docs_api.prototype.asc_setAdvancedOptions       = function(idOption, option)
 	{
+		// Проверяем тип состояния в данный момент
+		if (this.advancedOptionsAction !== c_oAscAdvancedOptionsAction.Open) {
+			return;
+		}
         if (AscCommon.EncryptionWorker.asc_setAdvancedOptions(this, idOption, option))
             return;
 
 		switch (idOption)
 		{
 			case c_oAscAdvancedOptionsID.TXT:
-				// Проверяем тип состояния в данный момент
-				if (this.advancedOptionsAction === c_oAscAdvancedOptionsAction.Open)
-				{
-					var rData = {
-						"id"            : this.documentId,
-						"userid"        : this.documentUserId,
-						"format"        : this.documentFormat,
-						"c"             : "reopen",
-						"url"           : this.documentUrl,
-						"title"         : this.documentTitle,
-						"codepage"      : option.asc_getCodePage(),
-						"nobase64"      : true
-					};
-					sendCommand(this, null, rData);
-				}
-				else if (this.advancedOptionsAction === c_oAscAdvancedOptionsAction.Save)
-				{
-					var options       = {txtOptions : option, downloadType : this.downloadType};
-					this.downloadType = DownloadType.None;
-					this._downloadAs("save", c_oAscFileType.TXT, c_oAscAsyncAction.DownloadAs, options, null);
-				}
+				var rData = {
+					"id"            : this.documentId,
+					"userid"        : this.documentUserId,
+					"format"        : this.documentFormat,
+					"c"             : "reopen",
+					"title"         : this.documentTitle,
+					"codepage"      : option.asc_getCodePage(),
+					"nobase64"      : true
+				};
+				sendCommand(this, null, rData);
 				break;
 			case c_oAscAdvancedOptionsID.DRM:
-				if (this.advancedOptionsAction === c_oAscAdvancedOptionsAction.Open) {
-					var v = {
-						"id": this.documentId,
-						"userid": this.documentUserId,
-						"format": this.documentFormat,
-						"c": "reopen",
-						"url": this.documentUrl,
-						"title": this.documentTitle,
-						"password": option.asc_getPassword(),
-						"nobase64": true
-					};
-
-					sendCommand(this, null, v);
-				}
+				var v = {
+					"id": this.documentId,
+					"userid": this.documentUserId,
+					"format": this.documentFormat,
+					"c": "reopen",
+					"title": this.documentTitle,
+					"password": option.asc_getPassword(),
+					"nobase64": true
+				};
+				sendCommand(this, null, v);
 				break;
 		}
 	};
@@ -2686,7 +2655,9 @@ background-repeat: no-repeat;\
 			this.WordControl.m_oLogicDocument.Recalculate();
 		}
 		if (this.insertDocumentUrlsData && this.insertDocumentUrlsData.documents.length > 0) {
-			this.asc_DownloadAs(Asc.c_oAscFileType.CANVAS_WORD, undefined, true);
+			var options = new Asc.asc_CDownloadOptions(Asc.c_oAscFileType.CANVAS_WORD);
+			options.isNaturalDownload = true;
+			this.asc_DownloadAs(options);
 		} else {
 			this.endInsertDocumentUrls();
 		}
@@ -4987,7 +4958,7 @@ background-repeat: no-repeat;\
             }
         }
 	};
-	asc_docs_api.prototype.AddImageUrl       = function(url, imgProp, withAuthorization)
+	asc_docs_api.prototype.AddImageUrl       = function(url, imgProp, token)
 	{
 		if (g_oDocumentUrls.getLocal(url))
 		{
@@ -5001,7 +4972,7 @@ background-repeat: no-repeat;\
                 if (data && data[0])
                     t.AddImageUrlAction(data[0].url, imgProp);
 
-            }, false, undefined, withAuthorization);
+            }, false, undefined, token);
 		}
 	};
 	asc_docs_api.prototype.AddImageUrlAction = function(url, imgProp)
@@ -6400,12 +6371,6 @@ background-repeat: no-repeat;\
 		return _ret;
 	};
 
-	asc_docs_api.prototype.asyncServerIdEndLoaded = function()
-	{
-		this.ServerIdWaitComplete = true;
-			this.OpenDocumentEndCallback();
-	};
-
 	// работа с шрифтами
 	asc_docs_api.prototype.asyncFontsDocumentStartLoaded = function()
 	{
@@ -6671,7 +6636,7 @@ background-repeat: no-repeat;\
 			return;
 		}
 
-		// на методе OpenDocumentEndCallback может поменяться this.EndActionLoadImages
+		// на методе _openDocumentEndCallback может поменяться this.EndActionLoadImages
 		if (this.EndActionLoadImages == 1)
 		{
 			this.sync_EndAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.LoadDocumentImages);
@@ -6689,7 +6654,7 @@ background-repeat: no-repeat;\
 		if (false === this.isPasteFonts_Images && false === this.isSaveFonts_Images && false === this.isLoadImagesCustom)
 		{
 			this.ServerImagesWaitComplete = true;
-				this.OpenDocumentEndCallback();
+			this._openDocumentEndCallback();
 		}
 		else
 		{
@@ -6724,7 +6689,7 @@ background-repeat: no-repeat;\
 		}
 	};
 
-	asc_docs_api.prototype.OpenDocumentEndCallback = function()
+	asc_docs_api.prototype._openDocumentEndCallback = function()
 	{
 		if (this.isDocumentLoadComplete || !this.ServerImagesWaitComplete || !this.ServerIdWaitComplete || !this.WordControl || !this.WordControl.m_oLogicDocument)
 			return;
@@ -6749,7 +6714,7 @@ background-repeat: no-repeat;\
 					{
 						AscCommon.EncryptionWorker.init();
 						if (!AscCommon.EncryptionWorker.isChangesHandled)
-							return AscCommon.EncryptionWorker.handleChanges(AscCommon.CollaborativeEditing.m_aChanges, this, this.OpenDocumentEndCallback);
+							return AscCommon.EncryptionWorker.handleChanges(AscCommon.CollaborativeEditing.m_aChanges, this, this._openDocumentEndCallback);
 					}
 
                     if (false === this.isSaveFonts_Images && !isSendOnReady)
@@ -6910,18 +6875,18 @@ background-repeat: no-repeat;\
 		}
 	};
 
-	asc_docs_api.prototype.openDocument = function(sData)
+	asc_docs_api.prototype.openDocument = function(file)
 	{
-		if (sData.changes && this.VersionHistory)
+		if (file.changes && this.VersionHistory)
 		{
-			this.VersionHistory.changes = sData.changes;
+			this.VersionHistory.changes = file.changes;
 			this.VersionHistory.applyChanges(this);
 		}
 
-		if (sData.bSerFormat)
-			this.OpenDocument2(sData.url, sData.data);
+		if (file.bSerFormat)
+			this.OpenDocument2(file.url, file.data);
 		else
-			this.OpenDocument(sData.url, sData.data);
+			this.OpenDocument(file.url, file.data);
 	};
 
 	asc_docs_api.prototype.asyncImageEndLoadedBackground = function(_image)
@@ -7022,7 +6987,7 @@ background-repeat: no-repeat;\
 		if (this.isApplyChangesOnOpen)
 		{
 			this.isApplyChangesOnOpen = false;
-			this.OpenDocumentEndCallback();
+			this._openDocumentEndCallback();
 		}
 	};
 
@@ -7419,26 +7384,6 @@ background-repeat: no-repeat;\
 	};
 
 	asc_docs_api.prototype.asyncImageEndLoaded2       = null;
-	asc_docs_api.prototype._OfflineAppDocumentEndLoad = function()
-	{
-		var bIsViewer = false;
-		var sData     = window["editor_bin"];
-		if (undefined == sData)
-			return;
-		if (AscCommon.c_oSerFormat.Signature !== sData.substring(0, AscCommon.c_oSerFormat.Signature.length))
-		{
-			bIsViewer = true;
-		}
-
-		if (bIsViewer)
-		{
-			this.OpenDocument(this.documentUrl, sData);
-		}
-		else
-		{
-			this.OpenDocument2(this.documentUrl, sData);
-		}
-	};
 
 	asc_docs_api.prototype.SetDrawImagePlaceParagraph = function(element_id, props)
 	{
@@ -7460,11 +7405,9 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype._onNeedParams  = function(data, opt_isPassword)
 	{
 		var t = this;
-		var options;
 		if (opt_isPassword) {
 			if (this.asc_checkNeedCallback("asc_onAdvancedOptions")) {
-				options = new AscCommon.asc_CAdvancedOptions(c_oAscAdvancedOptionsID.DRM);
-				t.sendEvent("asc_onAdvancedOptions", options, t.advancedOptionsAction);
+				t.sendEvent("asc_onAdvancedOptions", c_oAscAdvancedOptionsID.DRM);
 			} else {
 				t.sendEvent("asc_onError", c_oAscError.ID.ConvertationPassword, c_oAscError.Level.Critical);
 			}
@@ -7477,94 +7420,56 @@ background-repeat: no-repeat;\
 							t.sendEvent("asc_onError", c_oAscError.ID.Unknown, c_oAscError.Level.Critical);
 						} else {
 							cp['data'] = data;
-							options = new AscCommon.asc_CAdvancedOptions(c_oAscAdvancedOptionsID.TXT, cp);
-							t.sendEvent("asc_onAdvancedOptions", options, t.advancedOptionsAction);
+							t.sendEvent("asc_onAdvancedOptions", c_oAscAdvancedOptionsID.TXT, new AscCommon.asc_CAdvancedOptions(cp));
 						}
 					});
 				} else {
-					options = new AscCommon.asc_CAdvancedOptions(c_oAscAdvancedOptionsID.TXT, cp);
-					t.sendEvent("asc_onAdvancedOptions", options, t.advancedOptionsAction);
+					t.sendEvent("asc_onAdvancedOptions", c_oAscAdvancedOptionsID.TXT, new AscCommon.asc_CAdvancedOptions(cp));
 				}
 			} else {
-				this.asc_setAdvancedOptions(c_oAscAdvancedOptionsID.TXT, new Asc.asc_CTXTAdvancedOptions(AscCommon.c_oAscCodePageUtf8));
+				this.asc_setAdvancedOptions(c_oAscAdvancedOptionsID.TXT, new Asc.asc_CTextOptions(AscCommon.c_oAscCodePageUtf8));
 			}
 		}
 	};
-	asc_docs_api.prototype._onOpenCommand = function(data)
+	asc_docs_api.prototype._waitPrint    = function(actionType, options)
 	{
-		var t = this;
-		AscCommon.openFileCommand(data, this.documentUrlChanges, AscCommon.c_oSerFormat.Signature, function(error, result)
+		if (this.WordControl && this.WordControl.m_oDrawingDocument &&
+			(c_oAscFileType.PDF === options.fileType || c_oAscFileType.PDFA === options.fileType))
 		{
-			if (error || (!result.bSerFormat && !Asc.c_rUneditableTypes.test(t.DocInfo && t.DocInfo.get_Format())))
-			{
-				var err = error ? c_oAscError.ID.Unknown : c_oAscError.ID.ConvertationOpenError;
-				t.sendEvent("asc_onError",  err, c_oAscError.Level.Critical);
-				return;
-			}
-			t.onEndLoadFile(result);
-		});
+			return this.WordControl.m_oDrawingDocument.CheckPrint([actionType, options]);
+		}
+		return false;
 	};
-	asc_docs_api.prototype._downloadAs    = function(command, filetype, actionType, options, fCallbackRequest)
+	asc_docs_api.prototype._downloadAs    = function(actionType, options, oAdditionalData, dataContainer)
 	{
-        var isCloudCrypto = (window["AscDesktopEditor"] && (0 < window["AscDesktopEditor"]["CryptoMode"])) ? true : false;
-        if (isCloudCrypto)
-            window.isCloudCryptoDownloadAs = true;
-
-		if (this.WordControl && this.WordControl.m_oDrawingDocument && (c_oAscFileType.PDF == filetype || c_oAscFileType.PDFA == filetype))
-		{
-			if (this.WordControl.m_oDrawingDocument.CheckPrint([command, filetype, actionType, options, fCallbackRequest]))
-				return;
-		}
-
 		var t = this;
-		if (!options)
+		var fileType = options.fileType;
+		if (c_oAscAsyncAction.SendMailMerge === actionType)
 		{
-			options = {};
+			oAdditionalData["c"] = 'sendmm';
 		}
-		if (actionType)
+		else if (!this.WordControl.m_oLogicDocument)
 		{
-			this.sync_StartAction(c_oAscAsyncActionType.BlockInteraction, actionType);
+			oAdditionalData["c"] = 'savefromorigin';
 		}
-		// Меняем тип состояния (на сохранение)
-		this.advancedOptionsAction = c_oAscAdvancedOptionsAction.Save;
-		var isNoBase64 = (typeof ArrayBuffer !== 'undefined') && !isCloudCrypto;
-		var _fCallbackRequest = fCallbackRequest;
 
-		var dataContainer               = {data : null, part : null, index : 0, count : 0};
-		var oAdditionalData             = {};
-		oAdditionalData["c"]            = command;
-		oAdditionalData["id"]           = this.documentId;
-		oAdditionalData["userid"]       = this.documentUserId;
-		oAdditionalData["jwt"]         = this.CoAuthoringApi.get_jwt();
-		oAdditionalData["outputformat"] = filetype;
-		oAdditionalData["title"]        = AscCommon.changeFileExtention(this.documentTitle, AscCommon.getExtentionByFormat(filetype), Asc.c_nMaxDownloadTitleLen);
-		oAdditionalData["savetype"]     = AscCommon.c_oAscSaveTypes.CompleteAll;
-		oAdditionalData["nobase64"]     = isNoBase64;
-		if ('savefromorigin' === command)
+		if ('savefromorigin' === oAdditionalData["c"])
 		{
 			oAdditionalData["format"] = this.documentFormat;
 		}
-		if (DownloadType.Print === options.downloadType)
-		{
-			oAdditionalData["inline"] = 1;
-		}
-		if (options.isNoData)
-		{
-			;//nothing
-		}
-		else if (null == options.oDocumentMailMerge && (c_oAscFileType.PDF === filetype || c_oAscFileType.PDFA === filetype))
+		else if (null == options.oDocumentMailMerge && (c_oAscFileType.PDF === fileType || c_oAscFileType.PDFA === fileType))
 		{
 			var dd             = this.WordControl.m_oDrawingDocument;
-			dataContainer.data = dd.ToRendererPart(isNoBase64);
+			dataContainer.data = dd.ToRendererPart(oAdditionalData["nobase64"]);
 			//console.log(oAdditionalData["data"]);
 		}
-		else if (c_oAscFileType.JSON === filetype)
+		else if (c_oAscFileType.JSON === fileType)
 		{
 			oAdditionalData['url']       = this.mailMergeFileData['url'];
 			oAdditionalData['format']    = this.mailMergeFileData['fileType'];
 			// ToDo select csv params
 			oAdditionalData['codepage']  = AscCommon.c_oAscCodePageUtf8;
-			oAdditionalData['delimiter'] = AscCommon.c_oAscCsvDelimiter.Comma
+			oAdditionalData['delimiter'] = AscCommon.c_oAscCsvDelimiter.Comma;
 		}
 		else if (this.insertDocumentUrlsData)
 		{
@@ -7573,22 +7478,7 @@ background-repeat: no-repeat;\
 			oAdditionalData['format']    = last['format'];
 			oAdditionalData['outputurls']= true;
 		}
-		else if (c_oAscFileType.TXT === filetype && !options.txtOptions && null == options.oDocumentMailMerge && null == options.oMailMergeSendData)
-		{
-			// Мы открывали команду, надо ее закрыть.
-			if (actionType)
-			{
-				this.sync_EndAction(c_oAscAsyncActionType.BlockInteraction, actionType);
-			}
-			var cp            = {
-				'codepage'  : AscCommon.c_oAscCodePageUtf8,
-				'encodings' : AscCommon.getEncodingParams()
-			};
-			this.downloadType = options.downloadType;
-			this.sendEvent("asc_onAdvancedOptions", new AscCommon.asc_CAdvancedOptions(c_oAscAdvancedOptionsID.TXT, cp), this.advancedOptionsAction);
-			return;
-		}
-		else if (c_oAscFileType.HTML === filetype && null == options.oDocumentMailMerge && null == options.oMailMergeSendData)
+		else if (c_oAscFileType.HTML === fileType && null == options.oDocumentMailMerge && null == options.oMailMergeSendData)
 		{
 			//в asc_nativeGetHtml будет вызван select all, чтобы выделился документ должны выйти из колонтитулов и автофигур
 			var _e     = new AscCommon.CKeyboardEvent();
@@ -7600,9 +7490,9 @@ background-repeat: no-repeat;\
 		}
 		else
 		{
-			if (options.txtOptions instanceof Asc.asc_CTXTAdvancedOptions)
+			if (options.advancedOptions instanceof Asc.asc_CTextOptions)
 			{
-				oAdditionalData["codepage"] = options.txtOptions.asc_getCodePage();
+				oAdditionalData["codepage"] = options.advancedOptions.asc_getCodePage();
 			}
 			var oLogicDocument;
 			if (null != options.oDocumentMailMerge)
@@ -7610,11 +7500,11 @@ background-repeat: no-repeat;\
 			else
 				oLogicDocument = this.WordControl.m_oLogicDocument;
 			var oBinaryFileWriter;
-			if (null != options.oMailMergeSendData && c_oAscFileType.HTML == options.oMailMergeSendData.get_MailFormat())
-				oBinaryFileWriter = new AscCommonWord.BinaryFileWriter(oLogicDocument, false, true);
+			if (null != options.oMailMergeSendData && c_oAscFileType.HTML === options.oMailMergeSendData.get_MailFormat())
+				oBinaryFileWriter = new AscCommonWord.BinaryFileWriter(oLogicDocument, false, true, options.compatible);
 			else
-				oBinaryFileWriter = new AscCommonWord.BinaryFileWriter(oLogicDocument);
-			dataContainer.data = oBinaryFileWriter.Write(isNoBase64);
+				oBinaryFileWriter = new AscCommonWord.BinaryFileWriter(oLogicDocument, undefined, undefined, options.compatible);
+			dataContainer.data = oBinaryFileWriter.Write(oAdditionalData["nobase64"]);
 		}
 		if (null != options.oMailMergeSendData)
 		{
@@ -7642,74 +7532,25 @@ background-repeat: no-repeat;\
 			dataContainer.data = JSON.stringify(aJsonOut);
 			options.oMailMergeSendData.put_IsJson(true);
 			//save Editor.bin after json
-			_fCallbackRequest = function(incomeObject){
+			var callback = options.callback;
+			options.callback = function (incomeObject) {
 				oAdditionalData["savekey"] = incomeObject["data"];
-				dataContainer = {data : editorData, part : null, index : 0, count : 0};
+				var _dataContainer = {data : editorData, part : null, index : 0, count : 0};
 				options.oMailMergeSendData.put_IsJson(false);
 
 				AscCommon.saveWithParts(function(fCallback1, oAdditionalData1, dataContainer1) {
 					sendCommand(t, fCallback1, oAdditionalData1, dataContainer1);
-				}, fCallback, fCallbackRequest, oAdditionalData, dataContainer);
+				}, t.fCurCallback, callback, oAdditionalData, _dataContainer);
 			}
 		}
 
-        if (isCloudCrypto)
+        if (window.isCloudCryptoDownloadAs)
         {
             var sParamXml = ("<m_nCsvTxtEncoding>" + oAdditionalData["codepage"] + "</m_nCsvTxtEncoding>");
-            window["AscDesktopEditor"]["CryptoDownloadAs"](dataContainer.data, filetype, sParamXml);
-            return;
+            window["AscDesktopEditor"]["CryptoDownloadAs"](dataContainer.data, fileType, sParamXml);
+			return true;
         }
-
-		var fCallback = null;
-		if (!options.isNoCallback)
-		{
-			fCallback = function(input, status)
-			{
-				var error = 403 === status ? c_oAscError.ID.AccessDeny : c_oAscError.ID.Unknown;
-				//input = {'type': command, 'status': 'err', 'data': -80};
-				if (null != input && command == input['type'])
-				{
-					if ('ok' == input['status'])
-					{
-						if (options.isNoUrl)
-						{
-							error = c_oAscError.ID.No;
-						}
-						else
-						{
-							var url = input['data'];
-							if (url)
-							{
-								error = c_oAscError.ID.No;
-								t.processSavedFile(url, options.downloadType);
-							}
-						}
-					}
-					else
-					{
-						error = mapAscServerErrorToAscError(parseInt(input["data"]),
-															AscCommon.c_oAscAdvancedOptionsAction.Save);
-					}
-				}
-				if (c_oAscError.ID.No != error)
-				{
-					t.endInsertDocumentUrls();
-					t.sendEvent('asc_onError', options.errorDirect || error, c_oAscError.Level.NoCritical);
-				}
-				// Меняем тип состояния (на никакое)
-				t.advancedOptionsAction = c_oAscAdvancedOptionsAction.None;
-				if (actionType)
-				{
-					t.sync_EndAction(c_oAscAsyncActionType.BlockInteraction, actionType);
-				}
-			};
-		}
-		this.fCurCallback = fCallback;
-		AscCommon.saveWithParts(function(fCallback1, oAdditionalData1, dataContainer1)
-		{
-			sendCommand(t, fCallback1, oAdditionalData1, dataContainer1);
-		}, fCallback, _fCallbackRequest, oAdditionalData, dataContainer);
-	}
+	};
 
 	// Вставка диаграмм
 	asc_docs_api.prototype.asc_getChartObject = function(type)
@@ -8047,8 +7888,7 @@ background-repeat: no-repeat;\
 
         if (this.openFileCryptBinary)
         {
-            window.openFileCryptCallback(this.openFileCryptBinary);
-            this.openFileCryptBinary = null;
+            this.openFileCryptCallback(this.openFileCryptBinary);
         }
 	};
 
@@ -9707,7 +9547,14 @@ background-repeat: no-repeat;\
 			oLogicDocument.FinalizeAction(true);
 		}
 	};
-
+	asc_docs_api.prototype.asc_isCompatibilityMode = function()
+	{
+		if (null !== this.WordControl.m_oLogicDocument)
+		{
+			return AscCommon.document_compatibility_mode_Word15 !== this.WordControl.m_oLogicDocument.GetCompatibilityMode();
+		}
+		return false;
+	};
 	//-------------------------------------------------------------export---------------------------------------------------
 	window['Asc']                                                       = window['Asc'] || {};
 	CAscSection.prototype['get_PageWidth']                              = CAscSection.prototype.get_PageWidth;
@@ -9798,6 +9645,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_getAppProps']                           = asc_docs_api.prototype.asc_getAppProps;
 	asc_docs_api.prototype['asc_getCoreProps']                          = asc_docs_api.prototype.asc_getCoreProps;
 	asc_docs_api.prototype['asc_setCoreProps']                          = asc_docs_api.prototype.asc_setCoreProps;
+	asc_docs_api.prototype['asc_isCompatibilityMode']                   = asc_docs_api.prototype.asc_isCompatibilityMode;
 	asc_docs_api.prototype['asc_registerCallback']                      = asc_docs_api.prototype.asc_registerCallback;
 	asc_docs_api.prototype['asc_unregisterCallback']                    = asc_docs_api.prototype.asc_unregisterCallback;
 	asc_docs_api.prototype['asc_checkNeedCallback']                     = asc_docs_api.prototype.asc_checkNeedCallback;
@@ -9824,7 +9672,6 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['select_Element']                            = asc_docs_api.prototype.select_Element;
 	asc_docs_api.prototype['UpdateTextPr']                              = asc_docs_api.prototype.UpdateTextPr;
 	asc_docs_api.prototype['UpdateParagraphProp']                       = asc_docs_api.prototype.UpdateParagraphProp;
-	asc_docs_api.prototype['asc_Print']                                 = asc_docs_api.prototype.asc_Print;
 	asc_docs_api.prototype['Undo']                                      = asc_docs_api.prototype.Undo;
 	asc_docs_api.prototype['Redo']                                      = asc_docs_api.prototype.Redo;
 	asc_docs_api.prototype['Copy']                                      = asc_docs_api.prototype.Copy;

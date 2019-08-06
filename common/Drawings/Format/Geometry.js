@@ -1647,6 +1647,7 @@ function ComparisonEdgeByTopPoint(graphEdge1, graphEdge2)
     window['AscFormat'] = window['AscFormat'] || {};
     window['AscFormat'].Geometry = Geometry;
     window['AscFormat'].GraphEdge = GraphEdge;
+    window['AscFormat'].PathAccumulator = PathAccumulator;
 
     window['AscFormat'].EPSILON_TEXT_AUTOFIT = EPSILON_TEXT_AUTOFIT;
     window['AscFormat'].APPROXIMATE_EPSILON = 1;

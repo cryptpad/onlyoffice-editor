@@ -317,6 +317,7 @@
     /**
      * Widget for displaying and editing Worksheet object
      * -----------------------------------------------------------------------------
+	 * @param {WorkbookView} workbook  WorkbookView
      * @param {Worksheet} model  Worksheet
      * @param {AscCommonExcel.asc_CHandlersList} handlers  Event handlers
      * @param {Object} buffers    DrawingContext + Overlay
@@ -328,9 +329,10 @@
      * @constructor
      * @memberOf Asc
      */
-    function WorksheetView(model, handlers, buffers, stringRender, maxDigitWidth, collaborativeEditing, settings) {
+    function WorksheetView(workbook, model, handlers, buffers, stringRender, maxDigitWidth, collaborativeEditing, settings) {
         this.settings = settings;
 
+        this.workbook = workbook;
         this.handlers = handlers;
         this.model = model;
 
@@ -2782,7 +2784,8 @@
 			var fragments = getFragments(portion);
 			t.stringRender.setString(fragments, cellFlags);
 
-			var textMetrics = t.stringRender._measureChars();
+			var maxWidth = width - left - right;
+			var textMetrics = t.stringRender._measureChars(maxWidth);
 			var x, y;
 			switch(index) {
 				case c_nPortionLeft: {
@@ -2802,8 +2805,13 @@
 				}
 			}
 
-			if(fragments[0] && null === fragments[0].format.fn) {
-				fragments[0].format.fn = t.model.getDefaultFontName();
+			if(fragments[0]) {
+				if(null === fragments[0].format.fn) {
+					fragments[0].format.fn = t.model.getDefaultFontName();
+				}
+				if(null === fragments[0].format.fs) {
+					fragments[0].format.fs = t.model.getDefaultFontSize();
+				}
 				t.stringRender._setFont(drawingCtx, fragments[0].format);
 			}
 			t.stringRender.render(drawingCtx, x, y, textMetrics.width, t.settings.activeCellBorderColor);
@@ -6634,7 +6642,11 @@
             offsetX = this._getColLeft(this.visibleRange.c1) - this.cellsLeft - diffWidth;
             offsetY = this._getRowTop(this.visibleRange.r1) - this.cellsTop - diffHeight;
             this._drawGrid(null, range);
-			this._drawGroupData(null, range);
+			if(dx !== 0) {
+				this._drawGroupData(null);
+			} else {
+				this._drawGroupData(null, range);
+			}
 
             this._drawCellsAndBorders(null, range);
             this.af_drawButtons(range, offsetX, offsetY);
@@ -8279,6 +8291,13 @@
                     /*bCheckOnlyLockAll*/false)) {
 				cell_info.isLockedPivotTable = true;
 			}
+		}
+
+		cell_info.dataValidation = this.model.getDataValidation(c1, r1);
+
+		lockInfo = this.collaborativeEditing.getLockInfo(c_oAscLockTypeElem.Object, /*subType*/null, sheetId, AscCommonExcel.c_oAscHeaderFooterEdit);
+		if (false !== this.collaborativeEditing.getLockIntersection(lockInfo, c_oAscLockTypes.kLockTypeOther, /*bCheckOnlyLockAll*/false)) {
+			cell_info.isLockedHeaderFooter = true;
 		}
 
 		cell_info.selectedColsCount = Math.abs(ar.c2 - ar.c1) + 1;
@@ -13308,6 +13327,12 @@
 						}
 					};
 
+					var dataValidation = t.model.getDataValidation(col, row);
+					if (dataValidation && !dataValidation.checkValue(val, t.model)) {
+						t.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.DataValidate, c_oAscError.Level.NoCritical, dataValidation);
+						return false;
+					}
+
 					//***array-formula***
 					var ref = null;
 					if(flags.bApplyByArray) {
@@ -15602,9 +15627,24 @@
         var intersectionTableParts = ws.autoFilters.getTableIntersectionRange(activeRange);
         var isPartTablePartsUnderRange = ws.autoFilters._isPartTablePartsUnderRange(activeRange);
         var isPartTablePartsRightRange = ws.autoFilters.isPartTablePartsRightRange(activeRange);
-        var isOneTableIntersection = intersectionTableParts && intersectionTableParts.length === 1 ?
-          intersectionTableParts[0] : null;
+        var isOneTableIntersection = intersectionTableParts && intersectionTableParts.length === 1 ? intersectionTableParts[0] : null;
 
+		var isPartTablePartsByRowCol = ws.autoFilters._isPartTablePartsByRowCol(activeRange);
+		//var isPartTablePartsRows = ws.autoFilters._isPartTablePartsUnderRange(activeRange);
+
+		var allTablesInside = true;
+		if(intersectionTableParts && intersectionTableParts.length) {
+			for(var i = 0; i < intersectionTableParts.length; i++) {
+				if(intersectionTableParts[i] && intersectionTableParts[i].Ref && !activeRange.containsRange(intersectionTableParts[i].Ref)) {
+					allTablesInside = false;
+					break;
+				}
+			}
+		}
+
+		//TODO перепроверить ->
+		//когда выделено несколько колонок и нажимаем InsertCellsAndShiftRight(аналогично со строками)
+		//ms в данном случае выдаёт ошибку, но пока не вижу никаких ограничений для данного действия
         var checkInsCells = function () {
             switch (val) {
                 case c_oAscInsertOptions.InsertCellsAndShiftDown:
@@ -15621,11 +15661,13 @@
                     } else {
                         if (isPartTablePartsUnderRange) {
                             res = false;
-                        } else if (intersectionTableParts && null !== isOneTableIntersection) {
+                        } /*else if (intersectionTableParts && null !== isOneTableIntersection) {
                             res = false;
                         } else if (isOneTableIntersection && !isOneTableIntersection.Ref.isEqual(activeRange)) {
                             res = false;
-                        }
+                        }*/ else if(isPartTablePartsByRowCol && isPartTablePartsByRowCol.cols) {
+							res = false;
+						}
                     }
 
                     break;
@@ -15640,11 +15682,13 @@
                     } else {
                         if (isPartTablePartsRightRange) {
                             res = false;
-                        } else if (intersectionTableParts && null !== isOneTableIntersection) {
+                        } /*else if (intersectionTableParts && null !== isOneTableIntersection) {
                             res = false;
                         } else if (isOneTableIntersection && !isOneTableIntersection.Ref.isEqual(activeRange)) {
                             res = false;
-                        }
+                        } */else if(isPartTablePartsByRowCol && isPartTablePartsByRowCol.rows) {
+							res = false;
+						}
                     }
 
                     break;
@@ -15673,11 +15717,13 @@
                     } else {
                         if (isPartTablePartsUnderRange) {
                             res = false;
-                        } else if (!isOneTableIntersection && null !== isOneTableIntersection) {
+                        } /*else if (!isOneTableIntersection && null !== isOneTableIntersection) {
                             res = false;
                         } else if (isOneTableIntersection && !isOneTableIntersection.Ref.isEqual(activeRange)) {
                             res = false;
-                        }
+                        }*/ else if(!allTablesInside) {
+							res = false;
+						}
                     }
 
                     break;
@@ -15691,11 +15737,13 @@
                     } else {
                         if (isPartTablePartsRightRange) {
                             res = false;
-                        } else if (!isOneTableIntersection && null !== isOneTableIntersection) {
+                        } /*else if (!isOneTableIntersection && null !== isOneTableIntersection) {
                             res = false;
                         } else if (isOneTableIntersection && !isOneTableIntersection.Ref.isEqual(activeRange)) {
                             res = false;
-                        }
+                        }*/ else if(!allTablesInside) {
+							res = false;
+						}
                     }
 
                     break;
@@ -15789,7 +15837,7 @@
 			t.model.workbook.dependencyFormulas.lockRecal();
 
             t.model.autoFilters.convertTableToRange(tableName);
-            t._onUpdateFormatTable(tableRange, false, true);
+            t._onUpdateFormatTable(lockRange, false, true);
 
 			t.model.workbook.dependencyFormulas.unlockRecal();
 
@@ -16516,6 +16564,7 @@
 	};
 
 	WorksheetView.prototype._drawGroupData = function ( drawingCtx, range, leftFieldInPx, topFieldInPx, bCol /*width, height*/  ) {
+		var t = this;
 		if ( !range ) {
 			range = this.visibleRange;
 		} else {
@@ -16604,7 +16653,8 @@
 		var thickLineDiff = AscCommon.AscBrowser.isRetina ? 0.5 : 0;
 		var tempButtonMap = [];//чтобы не рисовать точки там где кпопки
 		var bFirstLine = true;
-		var buttonSize = AscCommon.AscBrowser.convertToRetinaValue(Math.floor(16 * zoom), true);
+		var _buttonSize = this._getGroupButtonSize();
+		var buttonSize = AscCommon.AscBrowser.convertToRetinaValue(_buttonSize, true);
 		var padding = AscCommon.AscBrowser.convertToRetinaValue(1, true);
 		var buttons = [];
 		var endPosArr = {};
@@ -16630,8 +16680,10 @@
 
 			ctx.setStrokeStyle(new CColor(0, 0, 0)).setLineWidth(lineWidth).beginPath();
 
+			var _summaryRight = this.model.sheetPr ? this.model.sheetPr.SummaryRight : true;
 			var minCol;
 			var maxCol;
+			var startX, endX, widthNextRow, collasedEndRow;
 			for(i = 0; i < arrayLines.length; i++) {
 				if(arrayLines[i]) {
 					index = bFirstLine ? 1 : i;
@@ -16639,51 +16691,105 @@
 
 					for(j = 0; j < arrayLines[i].length; j++) {
 
-						if(endPosArr[arrayLines[i][j].end]) {
-							continue;
-						}
-						endPosArr[arrayLines[i][j].end] = 1;
-
-						var startX = Math.max(arrayLines[i][j].start, range.c1);
-						var endX = Math.min(arrayLines[i][j].end + 1, range.c2 + 1);
-						minCol = (minCol === undefined || minCol > startX) ? startX : minCol;
-						maxCol = (maxCol === undefined || maxCol < endX) ? endX : maxCol;
-
-						diff = startX === arrayLines[i][j].start ? AscCommon.AscBrowser.convertToRetinaValue(3, true) : 0;
-						startPos = this._getColLeft(startX) + diff - offsetX ;
-						endPos = this._getColLeft(endX) - offsetX;
-						var widthNextRow = /*this.getColWidth(endX)*/this._getColLeft(endX + 1) - this._getColLeft(endX);
-						paddingTop = (widthNextRow - buttonSize) / 2;
-						if(paddingTop < 0) {
-							paddingTop = 0;
-						}
-
-						//button
-						if(endX === arrayLines[i][j].end + 1) {
-							//TODO ms обрезает кнопки сверху/снизу
-							if(widthNextRow && endX >= startX) {
-								if(!tempButtonMap[i]) {
-									tempButtonMap[i] = [];
-								}
-								tempButtonMap[i][endX] = 1;
-								buttons.push({r: endX, level: i});
+						if(_summaryRight) {
+							if(endPosArr[arrayLines[i][j].end]) {
+								continue;
 							}
-						}
+							endPosArr[arrayLines[i][j].end] = 1;
 
-						if(startPos > endPos) {
-							continue;
-						}
+							startX = Math.max(arrayLines[i][j].start, range.c1);
+							endX = Math.min(arrayLines[i][j].end + 1, range.c2 + 1);
+							minCol = (minCol === undefined || minCol > startX) ? startX : minCol;
+							maxCol = (maxCol === undefined || maxCol < endX) ? endX : maxCol;
 
-						var collasedEndRow = this._getGroupCollapsed(arrayLines[i][j].end + 1, bCol);
-						//var collasedEndRow = rowLevelMap[arrayLines[i][j].end + 1] && rowLevelMap[arrayLines[i][j].end + 1].collapsed
-						if(!collasedEndRow) {
-							ctx.lineHorPrevPx(startPos, posY, endPos + paddingTop);
-						}
+							diff = startX === arrayLines[i][j].start ? AscCommon.AscBrowser.convertToRetinaValue(3, true) : 0;
+							startPos = this._getColLeft(startX) + diff - offsetX;
+							endPos = this._getColLeft(endX) - offsetX;
+							widthNextRow = /*this.getColWidth(endX)*/this._getColLeft(endX + 1) - this._getColLeft(endX);
+							paddingTop = (widthNextRow - buttonSize) / 2;
+							if(paddingTop < 0) {
+								paddingTop = 0;
+							}
 
-						// _
-						//|
-						if(!collasedEndRow && startX === arrayLines[i][j].start) {
-							ctx.lineVerPrevPx(startPos, posY - 2 * padding + thickLineDiff, posY + 4 * padding);
+							//button
+							if(endX === arrayLines[i][j].end + 1) {
+								//TODO ms обрезает кнопки сверху/снизу
+								if(widthNextRow && endX >= startX) {
+									if(!tempButtonMap[i]) {
+										tempButtonMap[i] = [];
+									}
+									tempButtonMap[i][endX] = 1;
+									buttons.push({r: endX, level: i});
+								}
+							}
+
+							if(startPos > endPos) {
+								continue;
+							}
+
+							collasedEndRow = this._getGroupCollapsed(arrayLines[i][j].end + 1, bCol);
+							//var collasedEndRow = rowLevelMap[arrayLines[i][j].end + 1] && rowLevelMap[arrayLines[i][j].end + 1].collapsed
+							if(!collasedEndRow) {
+								ctx.lineHorPrevPx(startPos, posY, endPos + paddingTop);
+							}
+
+							// _
+							//|
+							if(!collasedEndRow && startX === arrayLines[i][j].start) {
+								ctx.lineVerPrevPx(startPos, posY - 2 * padding + thickLineDiff, posY + 4 * padding);
+							}
+						} else {
+
+							if(endPosArr[arrayLines[i][j].start]) {
+								continue;
+							}
+							endPosArr[arrayLines[i][j].start] = 1;
+
+							startX = Math.max(arrayLines[i][j].start - 1, range.c1);
+							endX = Math.min(arrayLines[i][j].end + 1, range.c2 + 1);
+							minCol = (minCol === undefined || minCol > startX) ? startX : minCol;
+							maxCol = (maxCol === undefined || maxCol < endX) ? endX : maxCol;
+
+							diff = /*startX === arrayLines[i][j].start ? AscCommon.AscBrowser.convertToRetinaValue(3, true) :*/ 0;
+							startPos = this._getColLeft(startX) + diff - offsetX;
+							endPos = this._getColLeft(endX) - offsetX;
+							widthNextRow = this._getColLeft(startX + 1) - this._getColLeft(startX);
+							paddingTop = startX === arrayLines[i][j].start - 1 ? (widthNextRow + buttonSize) / 2 : 0;
+							if(paddingTop < 0) {
+								paddingTop = 0;
+							}
+
+							//button
+							if(startX === arrayLines[i][j].start - 1) {
+								//TODO ms обрезает кнопки сверху/снизу
+								if(widthNextRow && endX >= startX) {
+									if(!tempButtonMap[i]) {
+										tempButtonMap[i] = [];
+									}
+									tempButtonMap[i][startX] = 1;
+									buttons.push({r: startX, level: i});
+								}
+							}
+
+							if(startPos > endPos) {
+								continue;
+							}
+
+							collasedEndRow = this._getGroupCollapsed(arrayLines[i][j].start - 1, bCol);
+
+							if( endPos > startPos + paddingTop - 1*padding) {
+								if(!collasedEndRow && endPos > startPos + paddingTop - 1*padding) {
+									//ctx.lineVerPrevPx(posX, startPos - paddingTop - 1*padding, endPos);
+									ctx.lineHorPrevPx(startPos + paddingTop - 1*padding, posY, endPos);
+								}
+
+								// _
+								//  |
+								if(!collasedEndRow && endX === arrayLines[i][j].end + 1 && endPos > startPos + paddingTop - 1*padding) {
+									//ctx.lineHorPrevPx(posX - lineWidth + thickLineDiff, endPos, posX + 4*padding);
+									ctx.lineVerPrevPx(endPos, posY - 2 * padding + thickLineDiff, posY + 4 * padding);
+								}
+							}
 						}
 					}
 					bFirstLine = false;
@@ -16730,8 +16836,25 @@
 
 			ctx.setStrokeStyle(new CColor(0, 0, 0)).setLineWidth(lineWidth).beginPath();
 
+			var checkPrevHideLevel = function(level, row) {
+				var res = false;
+				for(var n = level - 1; n >= 0; n--) {
+					if(arrayLines[n]) {
+						for(var m = 0; m < arrayLines[n].length; m++) {
+							if (row >= arrayLines[n][m].start && row <= arrayLines[n][m].end && t._getGroupCollapsed(arrayLines[n][m].start - 1)) {
+								res = true;
+								break;
+							}
+						}
+					}
+				}
+				return res;
+			};
+
+			var _summaryBelow = this.model.sheetPr ? this.model.sheetPr.SummaryBelow : true;
 			var minRow;
 			var maxRow;
+			var startY, endY, heightNextRow;
 			for(i = 0; i < arrayLines.length; i++) {
 				if(arrayLines[i]) {
 					index = bFirstLine ? 1 : i;
@@ -16739,51 +16862,101 @@
 
 					for(j = 0; j < arrayLines[i].length; j++) {
 
-						if(endPosArr[arrayLines[i][j].end]) {
-							continue;
-						}
-						endPosArr[arrayLines[i][j].end] = 1;
-
-						var startY = Math.max(arrayLines[i][j].start, range.r1);
-						var endY = Math.min(arrayLines[i][j].end + 1, range.r2 + 1);
-						minRow = (minRow === undefined || minRow > startY) ? startY : minRow;
-						maxRow = (maxRow === undefined || maxRow < endY) ? endY : maxRow;
-
-						diff = startY === arrayLines[i][j].start ? 3 * padding : 0;
-						startPos = this._getRowTop(startY) + diff - offsetY;
-						endPos = this._getRowTop(endY) - offsetY;
-						var heightNextRow = this._getRowHeight(endY);
-						paddingTop = (heightNextRow - buttonSize) / 2;
-						if(paddingTop < 0) {
-							paddingTop = 0;
-						}
-
-						//button
-						if(endY === arrayLines[i][j].end + 1) {
-							//TODO ms обрезает кнопки сверху/снизу
-							if(heightNextRow && endY >= startY) {
-								if(!tempButtonMap[i]) {
-									tempButtonMap[i] = [];
-								}
-								tempButtonMap[i][endY] = 1;
-								buttons.push({r: endY, level: i});
+						if(_summaryBelow) {
+							if(endPosArr[arrayLines[i][j].end]) {
+								continue;
 							}
-						}
+							endPosArr[arrayLines[i][j].end] = 1;
 
-						if(startPos > endPos) {
-							continue;
-						}
+							startY = Math.max(arrayLines[i][j].start, range.r1);
+							endY = Math.min(arrayLines[i][j].end + 1, range.r2 + 1);
+							minRow = (minRow === undefined || minRow > startY) ? startY : minRow;
+							maxRow = (maxRow === undefined || maxRow < endY) ? endY : maxRow;
 
-						var collasedEndCol = this._getGroupCollapsed(arrayLines[i][j].end + 1);
-						//var collasedEndCol = rowLevelMap[arrayLines[i][j].end + 1] && rowLevelMap[arrayLines[i][j].end + 1].collapsed;
-						if(!collasedEndCol) {
-							ctx.lineVerPrevPx(posX, startPos, endPos + paddingTop);
-						}
+							diff = startY === arrayLines[i][j].start ? 3 * padding : 0;
+							startPos = this._getRowTop(startY) + diff - offsetY;
+							endPos = this._getRowTop(endY) - offsetY;
+							heightNextRow = this._getRowHeight(endY);
+							paddingTop = (heightNextRow - buttonSize) / 2;
+							if(paddingTop < 0) {
+								paddingTop = 0;
+							}
 
-						// _
-						//|
-						if(!collasedEndCol && startY === arrayLines[i][j].start) {
-							ctx.lineHorPrevPx(posX - lineWidth + thickLineDiff, startPos, posX + 4*padding);
+							//button
+							if(endY === arrayLines[i][j].end + 1) {
+								//TODO ms обрезает кнопки сверху/снизу
+								if(heightNextRow && endY >= startY) {
+									if(!tempButtonMap[i]) {
+										tempButtonMap[i] = [];
+									}
+									tempButtonMap[i][endY] = 1;
+									buttons.push({r: endY, level: i});
+								}
+							}
+
+							if(startPos > endPos) {
+								continue;
+							}
+
+							var collasedEndCol = this._getGroupCollapsed(arrayLines[i][j].end + 1);
+							//var collasedEndCol = rowLevelMap[arrayLines[i][j].end + 1] && rowLevelMap[arrayLines[i][j].end + 1].collapsed;
+							if(!collasedEndCol) {
+								ctx.lineVerPrevPx(posX, startPos, endPos + paddingTop);
+							}
+
+							// _
+							//|
+							if(!collasedEndCol && startY === arrayLines[i][j].start) {
+								ctx.lineHorPrevPx(posX - lineWidth + thickLineDiff, startPos, posX + 4*padding);
+							}
+						} else {
+							if(endPosArr[arrayLines[i][j].start]) {
+								continue;
+							}
+							endPosArr[arrayLines[i][j].start] = 1;
+
+							startY = Math.max(arrayLines[i][j].start - 1, range.r1);
+							endY = Math.min(arrayLines[i][j].end + 1, range.r2 + 1);
+							minRow = (minRow === undefined || minRow > startY) ? startY : minRow;
+							maxRow = (maxRow === undefined || maxRow < endY) ? endY : maxRow;
+
+							diff = /*startY === arrayLines[i][j].start - 1 ? 3 * padding :*/ 0;
+							startPos = (startY === arrayLines[i][j].start - 1 ? this._getRowTop(startY + 1) : this._getRowTop(startY)) + diff - offsetY;
+							endPos = this._getRowTop(endY) - offsetY;
+							heightNextRow = this._getRowHeight(startY);
+							paddingTop = startY === arrayLines[i][j].start - 1 ? (heightNextRow - buttonSize) / 2 : 0;
+							if(paddingTop < 0) {
+								paddingTop = 0;
+							}
+
+							//button
+							if(startY === arrayLines[i][j].start - 1) {
+								//TODO ms обрезает кнопки сверху/снизу
+								if(heightNextRow && endY >= startY) {
+									if(!tempButtonMap[i]) {
+										tempButtonMap[i] = [];
+									}
+									tempButtonMap[i][startY] = 1;
+									buttons.push({r: startY, level: i});
+								}
+							}
+
+							if(startPos > endPos) {
+								continue;
+							}
+
+							if(endPos > startPos - paddingTop - 1*padding) {
+								var collapsedStartRow = this._getGroupCollapsed(arrayLines[i][j].start - 1);
+								var hiddenStartRow = this._getHidden(arrayLines[i][j].start);
+								if(!collapsedStartRow && !hiddenStartRow) {
+									ctx.lineVerPrevPx(posX, startPos - paddingTop - 1*padding, endPos);
+								}
+
+								// |_
+								if(!collapsedStartRow && !hiddenStartRow && endY === arrayLines[i][j].end + 1 && !checkPrevHideLevel(i, arrayLines[i][j].start)) {
+									ctx.lineHorPrevPx(posX - lineWidth + thickLineDiff, endPos, posX + 4*padding);
+								}
+							}
 						}
 					}
 					bFirstLine = false;
@@ -16933,7 +17106,8 @@
 		if(zoom > 1) {
 			zoom = 1;
 		}
-		var buttonSize = AscCommon.AscBrowser.convertToRetinaValue(Math.floor(16 * zoom), true);
+		var _buttonSize = this._getGroupButtonSize();
+		var buttonSize = AscCommon.AscBrowser.convertToRetinaValue(_buttonSize, true);
 		var padding = AscCommon.AscBrowser.convertToRetinaValue(1, true);
 
 		if(bCol) {
@@ -17011,6 +17185,19 @@
 		return res;
 	};
 
+	WorksheetView.prototype._getHidden = function(index, bCol) {
+		var res;
+		var callback = function(val) {
+			res =  val ? val.getHidden() : false;
+		};
+		if(bCol) {
+			this.model.getRange3(0, index, 0, index)._foreachColNoEmpty(callback);
+		} else {
+			this.model.getRange3(index, 0, index, 0)._foreachRowNoEmpty(callback);
+		}
+		return res;
+	};
+
 	//GROUP MENU BUTTONS
 	WorksheetView.prototype._drawGroupDataMenu = function ( drawingCtx, bCol ) {
 		var ctx = drawingCtx || this.drawingCtx;
@@ -17053,6 +17240,10 @@
 		ctx.lineVerPrevPx(this.headersLeft, 0, this.headersTop);
 		ctx.stroke();
 		ctx.closePath();
+
+		if(false === this.model.getSheetView().asc_getShowRowColHeaders()) {
+			return;
+		}
 
 		if(groupData.groupArr.length) {
 			for(var i = 0; i < groupData.groupArr.length; i++) {
@@ -17125,8 +17316,9 @@
 		if(zoom > 1) {
 			zoom = 1;
 		}
+		var _buttonSize = this._getGroupButtonSize();
 		var padding =  AscCommon.AscBrowser.convertToRetinaValue(1, true);
-		var buttonSize =  AscCommon.AscBrowser.convertToRetinaValue(Math.floor(16 * zoom), true) - padding;
+		var buttonSize =  AscCommon.AscBrowser.convertToRetinaValue(_buttonSize, true) - padding;
 
 		//TODO учитывать будущий отступ для группировке колонок!
 		var x, y;
@@ -17183,10 +17375,29 @@
 				}
 			}*/
 
-			var section = Math.floor(16 * zoom);
-			res = padding * 2 + section + section * level;
+			var _buttonSize = this._getGroupButtonSize();
+			res = padding * 2 + _buttonSize + _buttonSize * level;
 		}
 		return AscCommon.AscBrowser.convertToRetinaValue(res, true);
+	};
+
+	WorksheetView.prototype._getGroupButtonSize = function () {
+		var zoom = this.getZoom();
+		if(zoom > 1) {
+			zoom = 1;
+		}
+		//var headersWidth = this.headersWidth;
+		//if(!headersWidth) {
+			var numDigit = Math.max(AscCommonExcel.calcDecades(this.visibleRange.r2 + 1), 3);
+			var nCharCount = this.model.charCountToModelColWidth(numDigit);
+			var headersWidth = Asc.round(this.model.modelColWidthToColWidth(nCharCount) * zoom);
+		//}
+		//var headersHeight = this.headersHeight;
+		//if(!headersHeight) {
+			var headersHeight = Asc.round(this.headersHeightByFont * zoom);
+		//}
+
+		return Math.min(Math.floor(16 * zoom), headersWidth - 1, headersHeight - 1);
 	};
 
 	WorksheetView.prototype.groupRowClick = function (x, y, target, type) {
@@ -17262,6 +17473,8 @@
 			offsetX = 0;
 		}
 
+		var _summaryRight = this.model.sheetPr ? this.model.sheetPr.SummaryRight : true;
+		var _summaryBelow = this.model.sheetPr ? this.model.sheetPr.SummaryBelow : true;
 		var mouseDownClick;
 		var doClick = function() {
 			var arrayLines = bCol ? t.arrColGroups.groupArr : t.arrRowGroups.groupArr;
@@ -17269,28 +17482,55 @@
 
 			var endPosArr = {};
 			for(var i = 0; i < arrayLines.length; i++) {
+				var props, collapsed;
 				if(arrayLines[i]) {
 					for(var j = 0; j < arrayLines[i].length; j++) {
-						if(endPosArr[arrayLines[i][j].end]) {
-							continue;
-						}
-						endPosArr[arrayLines[i][j].end] = 1;
+						if(!_summaryBelow) {
+							if(endPosArr[arrayLines[i][j].start]) {
+								continue;
+							}
+							endPosArr[arrayLines[i][j].start] = 1;
 
-						if((arrayLines[i][j].end + 1 === target.row && !bCol) || (arrayLines[i][j].end + 1 === target.col && bCol)) {
-							var props = t._getGroupDataButtonPos(arrayLines[i][j].end + 1, i, bCol);
-							var collapsed = t._getGroupCollapsed(arrayLines[i][j].end + 1, bCol);/*levelMap[arrayLines[i][j].end + 1] && levelMap[arrayLines[i][j].end + 1].collapsed*/
-							if(props) {
-								if(x >= props.x - offsetX && x <= props.x + props.w - offsetX && y >= props.y - offsetY && y <= props.y - offsetY + props.h) {
-									if("mouseup" === type) {
-										t._tryChangeGroup(arrayLines[i][j], collapsed, i, bCol);
-										t.clickedGroupButton = null;
-									} else if("mousedown" === type) {
-										//перерисовываем кнопку в нажатом состоянии
-										t._drawGroupDataButtons(null, [{r: arrayLines[i][j].end + 1, level: i, active: true, clean: true}], undefined, undefined, bCol);
-										t.clickedGroupButton = {level: i, r: arrayLines[i][j].end + 1, bCol: bCol};
-										mouseDownClick = true;
+							if((arrayLines[i][j].start - 1 === target.row && !bCol) || (arrayLines[i][j].start - 1 === target.col && bCol)) {
+								props = t._getGroupDataButtonPos(arrayLines[i][j].start - 1, i, bCol);
+								collapsed = t._getGroupCollapsed(arrayLines[i][j].start - 1, bCol);/*levelMap[arrayLines[i][j].end + 1] && levelMap[arrayLines[i][j].end + 1].collapsed*/
+								if(props) {
+									if(x >= props.x - offsetX && x <= props.x + props.w - offsetX && y >= props.y - offsetY && y <= props.y - offsetY + props.h) {
+										if("mouseup" === type) {
+											t._tryChangeGroup(arrayLines[i][j], collapsed, i, bCol);
+											t.clickedGroupButton = null;
+										} else if("mousedown" === type) {
+											//перерисовываем кнопку в нажатом состоянии
+											t._drawGroupDataButtons(null, [{r: arrayLines[i][j].start - 1, level: i, active: true, clean: true}], undefined, undefined, bCol);
+											t.clickedGroupButton = {level: i, r: arrayLines[i][j].start - 1, bCol: bCol};
+											mouseDownClick = true;
+										}
+										return;
 									}
-									return;
+								}
+							}
+						} else {
+							if(endPosArr[arrayLines[i][j].end]) {
+								continue;
+							}
+							endPosArr[arrayLines[i][j].end] = 1;
+
+							if((arrayLines[i][j].end + 1 === target.row && !bCol) || (arrayLines[i][j].end + 1 === target.col && bCol)) {
+								props = t._getGroupDataButtonPos(arrayLines[i][j].end + 1, i, bCol);
+								collapsed = t._getGroupCollapsed(arrayLines[i][j].end + 1, bCol);/*levelMap[arrayLines[i][j].end + 1] && levelMap[arrayLines[i][j].end + 1].collapsed*/
+								if(props) {
+									if(x >= props.x - offsetX && x <= props.x + props.w - offsetX && y >= props.y - offsetY && y <= props.y - offsetY + props.h) {
+										if("mouseup" === type) {
+											t._tryChangeGroup(arrayLines[i][j], collapsed, i, bCol);
+											t.clickedGroupButton = null;
+										} else if("mousedown" === type) {
+											//перерисовываем кнопку в нажатом состоянии
+											t._drawGroupDataButtons(null, [{r: arrayLines[i][j].end + 1, level: i, active: true, clean: true}], undefined, undefined, bCol);
+											t.clickedGroupButton = {level: i, r: arrayLines[i][j].end + 1, bCol: bCol};
+											mouseDownClick = true;
+										}
+										return;
+									}
 								}
 							}
 						}
@@ -17309,9 +17549,17 @@
 			}
 		};
 		if(bCol) {
-			this.model.getRange3(0, target.col - 1,0, target.col)._foreachColNoEmpty(func);
+			if(_summaryRight) {
+				this.model.getRange3(0, target.col - 1,0, target.col)._foreachColNoEmpty(func);
+			} else {
+				this.model.getRange3(0, target.col,0, target.col + 1)._foreachColNoEmpty(func);
+			}
 		} else {
-			this.model.getRange3(target.row - 1, 0, target.row, 0)._foreachRowNoEmpty(func);
+			if(_summaryBelow) {
+				this.model.getRange3(target.row - 1, 0, target.row, 0)._foreachRowNoEmpty(func);
+			} else {
+				this.model.getRange3(target.row, 0, target.row + 1, 0)._foreachRowNoEmpty(func);
+			}
 		}
 
 		//проверяем предыдущую строку - если там есть outLineLevel, а в следующей outLineLevel c другим индексом, тогда в следующей может быть кнопка управления группой
@@ -17453,6 +17701,13 @@
 
 		functionModelAction = function () {
 			//AscCommonExcel.checkFilteringMode(function () {
+			var _summaryBelow = t.model.sheetPr ? t.model.sheetPr.SummaryBelow : true;
+			var _summaryRight = t.model.sheetPr ? t.model.sheetPr.SummaryRight : true;
+			var isNeedRecal = !bCol ? t.model.needRecalFormulas(start, end) : null;
+				if(isNeedRecal) {
+					t.model.workbook.dependencyFormulas.lockRecal();
+				}
+
 				History.Create_NewPoint();
 				History.StartTransaction();
 
@@ -17463,14 +17718,22 @@
 				var collapsedFunction = bCol ? t.model.setCollapsedCol :  t.model.setCollapsedRow;
 				if(!collapsed) {//скрываем
 					changeModelFunc.call(t.model, true, start, end);
-					collapsedFunction.call(t.model, !collapsed, end + 1);
+					if((!_summaryBelow && !bCol) || (!_summaryRight && bCol)) {
+						collapsedFunction.call(t.model, !collapsed, start - 1);
+					} else {
+						collapsedFunction.call(t.model, !collapsed, end + 1);
+					}
 					//hideFunc(true, start, end);
 					//t.model.autoFilters.reDrawFilter(arn);
 				} else {
 					//открываем все строки, кроме внутренних групп
 					//внутренние группы скрываем, если среди них есть раскрытые
 					changeModelFunc.call(t.model, false, start, end);
-					collapsedFunction.call(t.model, !collapsed, end + 1);
+					if((!_summaryBelow && !bCol) || (!_summaryRight && bCol)) {
+						collapsedFunction.call(t.model, !collapsed, start - 1);
+					} else {
+						collapsedFunction.call(t.model, !collapsed, end + 1);
+					}
 
 					var groupArr/*, levelMap*/;
 					if(bCol) {
@@ -17486,9 +17749,17 @@
 								continue;
 							}
 							for(var j = 0; j < groupArr[i].length; j++) {
-								if(groupArr[i][j] && groupArr[i][j].start >= start && groupArr[i][j].end < end) {
-									if(t._getGroupCollapsed(groupArr[i][j].end + 1, bCol)/*levelMap[groupArr[i][j].end + 1] && levelMap[groupArr[i][j].end + 1].collapsed*/) {
-										changeModelFunc.call(t.model, true, groupArr[i][j].start, groupArr[i][j].end);
+								if((!_summaryBelow && !bCol) || (!_summaryRight && bCol)) {
+									if(groupArr[i][j] && groupArr[i][j].start > start && groupArr[i][j].end <= end) {
+										if(t._getGroupCollapsed(groupArr[i][j].start - 1, bCol)) {
+											changeModelFunc.call(t.model, true, groupArr[i][j].start, groupArr[i][j].end);
+										}
+									}
+								} else {
+									if(groupArr[i][j] && groupArr[i][j].start >= start && groupArr[i][j].end < end) {
+										if(t._getGroupCollapsed(groupArr[i][j].end + 1, bCol)) {
+											changeModelFunc.call(t.model, true, groupArr[i][j].start, groupArr[i][j].end);
+										}
 									}
 								}
 							}
@@ -17503,6 +17774,9 @@
 				//updateDrawingObjectsInfo = {target: c_oTargetType.RowResize, row: arn.r1};
 
 				History.EndTransaction();
+				if(isNeedRecal) {
+					t.model.workbook.dependencyFormulas.unlockRecal();
+				}
 			//});
 		};
 		this._isLockedAll(onChangeWorksheetCallback);
@@ -17548,26 +17822,60 @@
 			History.Create_NewPoint();
 			History.StartTransaction();
 
+			var isNeedRecal = false;
+			if(!bCol) {
+				for(var i = 0; i <= level; i++) {
+					if(!groupArr[i]) {
+						continue;
+					}
+					for(var j = 0; j < groupArr[i].length; j++) {
+						isNeedRecal = t.model.needRecalFormulas(groupArr[i][j].start, groupArr[i][j].end);
+						if(isNeedRecal) {
+							break;
+						}
+					}
+				}
+			}
+			if(isNeedRecal) {
+				t.model.workbook.dependencyFormulas.lockRecal();
+			}
+
 			//TODO check filtering mode
 			var oldExcludeCollapsed = t.model.bExcludeCollapsed;
+			var _summaryBelow = t.model.sheetPr ? t.model.sheetPr.SummaryBelow : true;
+			var _summaryRight = t.model.sheetPr ? t.model.sheetPr.SummaryRight : true;
 			t.model.bExcludeCollapsed = true;
-			for(var i = 0; i <= level; i++) {
+			for(i = 0; i <= level; i++) {
 				if(!groupArr[i]) {
 					continue;
 				}
-				for(var j = 0; j < groupArr[i].length; j++) {
+				for(j = 0; j < groupArr[i].length; j++) {
 					if(bCol) {
 						t.model.setColHidden(i >= level, groupArr[i][j].start, groupArr[i][j].end);
-						t.model.setCollapsedCol(i >= level, groupArr[i][j].end + 1);
+						if(_summaryRight) {
+							t.model.setCollapsedCol(i >= level, groupArr[i][j].end + 1);
+						} else {
+							t.model.setCollapsedCol(i >= level, groupArr[i][j].start - 1);
+						}
+
 					} else {
 						t.model.setRowHidden(i >= level, groupArr[i][j].start, groupArr[i][j].end);
-						t.model.setCollapsedRow(i >= level, groupArr[i][j].end + 1);
+						if(_summaryBelow) {
+							t.model.setCollapsedRow(i >= level, groupArr[i][j].end + 1);
+						} else {
+							t.model.setCollapsedRow(i >= level, groupArr[i][j].start - 1);
+						}
+
 					}
 				}
 			}
 			t.model.bExcludeCollapsed = oldExcludeCollapsed;
 
 			History.EndTransaction();
+
+			if(isNeedRecal) {
+				t.model.workbook.dependencyFormulas.unlockRecal();
+			}
 		};
 
 		this._isLockedAll(onChangeWorksheetCallback);
@@ -17857,18 +18165,16 @@
 	WorksheetView.prototype.clearOutline = function() {
 		var t = this;
 
-		var groupArrCol= this.arrColGroups ? this.arrColGroups.groupArr : null;
-		var groupArrRow = this.arrRowGroups ? this.arrRowGroups.groupArr : null;
-
-		History.Create_NewPoint();
-		History.StartTransaction();
-
 		//TODO check filtering mode
 		var ar = t.model.selectionRange;
 
 		//если активной является 1 ячейка, то сбрасываем все группы
 		var isOneCell = 1 === ar.ranges.length && ar.ranges[0].isOneCell();
 
+		var groupArrCol= t.arrColGroups ? t.arrColGroups.groupArr : null;
+		var groupArrRow = t.arrRowGroups ? t.arrRowGroups.groupArr : null;
+
+		var doChangeRowArr = [], doChangeColArr = [];
 		var range, intersection;
 		for(var n = 0; n < ar.ranges.length; n++) {
 			if(groupArrRow) {
@@ -17884,8 +18190,9 @@
 							intersection = ar.ranges[n].intersection(range);
 						}
 						if(intersection) {
-							t.model.setRowHidden(false, intersection.r1, intersection.r2);
-							t.model.setOutlineRow(0, intersection.r1, intersection.r2);
+							doChangeRowArr.push(intersection);
+							//t.model.setRowHidden(false, intersection.r1, intersection.r2);
+							//t.model.setOutlineRow(0, intersection.r1, intersection.r2);
 						}
 					}
 				}
@@ -17904,18 +18211,41 @@
 							intersection = ar.ranges[n].intersection(range);
 						}
 						if(intersection) {
-							t.model.setColHidden(false, intersection.c1, intersection.c2);
-							t.model.setOutlineCol(0, intersection.c1, intersection.c2);
+							doChangeColArr.push(intersection);
+							//t.model.setColHidden(false, intersection.c1, intersection.c2);
+							//t.model.setOutlineCol(0, intersection.c1, intersection.c2);
 						}
 					}
 				}
 			}
 		}
 
-		History.EndTransaction();
+		var callback = function(isSuccess) {
+			if(!isSuccess) {
+				return;
+			}
 
-		t._updateGroups(null);
-		t._updateGroups(true);
+			History.Create_NewPoint();
+			History.StartTransaction();
+
+			for(var j in doChangeRowArr) {
+				t.model.setRowHidden(false, doChangeRowArr[j].r1, doChangeRowArr[j].r2);
+				t.model.setOutlineRow(0, doChangeRowArr[j].r1, doChangeRowArr[j].r2);
+			}
+			for(j in doChangeColArr) {
+				t.model.setColHidden(false, doChangeColArr[j].c1, doChangeColArr[j].c2);
+				t.model.setOutlineCol(0, doChangeColArr[j].c1, doChangeColArr[j].c2);
+			}
+
+			History.EndTransaction();
+
+			t._updateGroups(null);
+			t._updateGroups(true);
+		};
+
+		if(doChangeRowArr.length || doChangeColArr.length) {
+			this._isLockedAll(callback);
+		}
 	};
 
 	WorksheetView.prototype.checkAddGroup = function(bUngroup) {
@@ -17983,6 +18313,58 @@
 		}
 
 		return res;
+	};
+
+	WorksheetView.prototype.switchGroupSummaryPos = function(val, bCol) {
+		var t = this;
+		var groupArr = bCol ? this.arrColGroups : this.arrRowGroups;
+		groupArr = groupArr ? groupArr.groupArr : null;
+		var collapsedIndexes = [];
+		if(groupArr) {
+			for(var i = 0; i < groupArr.length; i++) {
+				if (groupArr[i]) {
+					for (var j = 0; j < groupArr[i].length; j++) {
+						var collapsedFrom, collapsedTo;
+						if(val === false) {
+							collapsedFrom = end + 1;
+							collapsedTo = start - 1;
+
+						} else {
+							collapsedFrom = start - 1;
+							collapsedTo = end + 1;
+						}
+
+						if(this._getGroupCollapsed(collapsedFrom)) {
+							collapsedIndexes[collapsedTo] = 1;
+						}
+					}
+				}
+			}
+		}
+
+		if(collapsedIndexes.length) {
+			var callback = function(success) {
+				if(!success) {
+					return;
+				}
+
+				History.Create_NewPoint();
+				History.StartTransaction();
+
+				bCol ? t.model.setSummaryRight(val) : t.model.setSummaryBelow(val);
+
+				for(var n in collapsedIndexes) {
+					bCol ? t.model.setCollapsedCol(true, collapsedIndexes[n]) : t.model.setCollapsedRow(true, collapsedIndexes[n]);
+				}
+
+				History.EndTransaction();
+
+				t._updateGroups(null);
+				t._updateGroups(true);
+			};
+
+			this._isLockedAll(callback);
+		}
 	};
 
 
@@ -18371,19 +18753,20 @@
 
 	HeaderFooterParser.prototype.assembleText = function () {
 		var newStr = "";
-		var curPortion = this.assemblePortionText(c_nPortionLeft);
-		if(curPortion) {
-			newStr += curPortion;
+		var curPortionLeft = this.assemblePortionText(c_nPortionLeft);
+		if(curPortionLeft) {
+			newStr += curPortionLeft;
 		}
-		curPortion = this.assemblePortionText( c_nPortionCenter);
-		if(curPortion) {
-			newStr += curPortion;
+		var curPortionCenter = this.assemblePortionText(c_nPortionCenter);
+		if(curPortionCenter) {
+			newStr += curPortionCenter;
 		}
-		curPortion = this.assemblePortionText(c_nPortionRight);
-		if(curPortion) {
-			newStr += curPortion;
+		var curPortionRight = this.assemblePortionText(c_nPortionRight);
+		if(curPortionRight) {
+			newStr += curPortionRight;
 		}
 		this.date = newStr;
+		return {str: newStr, left: curPortionLeft, center: curPortionCenter, right: curPortionRight};
 	};
 
 	HeaderFooterParser.prototype.splitByParagraph = function (cPortionCode) {
@@ -18777,11 +19160,18 @@
 		//хранить будем в следующем виде: [c_nPageHFType.firstHeader/.../][c_nPortionLeft/.../c_nPortionRight]
 		this._createAndDrawSections();
 		this._generatePresetsArr();
+
+		//лочим
+		ws._isLockedHeaderFooter();
 	};
 
 	CHeaderFooterEditor.prototype.switchHeaderFooterType = function (type) {
 		if(type === this.pageType) {
 			return;
+		}
+		var isError = this._checkSave();
+		if(null !== isError) {
+			return isError;
 		}
 
 		if(this.cellEditor) {
@@ -18811,12 +19201,7 @@
 		var ws = wb.getWorksheet();
 		var t = this;
 
-		var editLockCallback = function(isSuccess) {
-			if (false === isSuccess) {
-				ws.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.LockedAllError, c_oAscError.Level.NoCritical);
-				return;
-			}
-
+		var editLockCallback = function() {
 			id = id.replace("#", "");
 
 			//если находимся в том же элементе
@@ -18890,8 +19275,7 @@
 			}
 		};
 
-		ws._isLockedHeaderFooter(editLockCallback);
-
+		editLockCallback();
 	};
 
 	CHeaderFooterEditor.prototype._openCellEditor = function (editor, fragments, cursorPos, isFocus, isClearCell, isHideCursor, isQuickInput, x, y, sectionElem) {
@@ -18972,21 +19356,40 @@
 
 	CHeaderFooterEditor.prototype.destroy = function (bSave) {
 		//возвращаем cellEditor у wb
+		var t = this;
 		var api = window["Asc"]["editor"];
 		var wb = api.wb;
-
-		wb.cellEditor.close();
-		wb.cellEditor = this.wbCellEditor;
+		var ws = wb.getWorksheet();
 
 		if(bSave /*&& bChanged*/) {
-			this._saveToModel();
-		}
+			var checkError = this._checkSave();
+			if(null === checkError) {
+				wb.cellEditor.close();
+				wb.cellEditor = this.wbCellEditor;
+				var saveCallback = function(isSuccess) {
+					if (false === isSuccess) {
+						ws.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.LockedAllError, c_oAscError.Level.NoCritical);
+						return;
+					}
 
+					t._saveToModel();
+				};
+				ws._isLockedHeaderFooter(saveCallback);
+			} else {
+				return checkError;
+			}
+		} else {
+			wb.cellEditor.close();
+			wb.cellEditor = this.wbCellEditor;
+		}
 		delete window.Asc.g_header_footer_editor;
+
+		return null;
 	};
 
-	CHeaderFooterEditor.prototype._saveToModel = function () {
-		var ws = this.wb.getWorksheet();
+	CHeaderFooterEditor.prototype._checkSave = function() {
+		var t = this;
+
 		if(null !== this.curParentFocusId) {
 			var prevField = this._getSectionById(this.curParentFocusId);
 			var prevFragments = this.cellEditor.options.fragments;
@@ -18994,6 +19397,82 @@
 
 			prevField.canvasObj.canvas.style.display = "block";
 		}
+
+		var checkError = function(type) {
+			var prevHeaderFooter = t._getCurPageHF(type);
+			var curHeaderFooter = new Asc.CHeaderFooterData();
+			curHeaderFooter.parser = new window["AscCommonExcel"].HeaderFooterParser();
+			if(prevHeaderFooter && prevHeaderFooter.parser) {
+				var newPortions = [];
+				for(var i in prevHeaderFooter.parser.portions) {
+					if(prevHeaderFooter.parser.portions[i]) {
+						newPortions[i] = [];
+						for(var j in prevHeaderFooter.parser.portions[i]) {
+							var curPortion = prevHeaderFooter.parser.portions[i][j];
+							if(curPortion) {
+								newPortions[i][j] = {text: curPortion.text, format: curPortion.format.clone()}
+							}
+						}
+					}
+				}
+				curHeaderFooter.parser.portions = newPortions;
+			}
+
+
+			if(t.sections[type][c_nPortionLeft] && t.sections[type][c_nPortionLeft].changed) {
+				curHeaderFooter.parser.portions[c_nPortionLeft] = t._convertFragments(t.sections[type][c_nPortionLeft].fragments);
+			}
+			if(t.sections[type][c_nPortionCenter] && t.sections[type][c_nPortionCenter].changed) {
+				curHeaderFooter.parser.portions[c_nPortionCenter] = t._convertFragments(t.sections[type][c_nPortionCenter].fragments);
+			}
+			if(t.sections[type][c_nPortionRight] && t.sections[type][c_nPortionRight].changed) {
+				curHeaderFooter.parser.portions[c_nPortionRight] = t._convertFragments(t.sections[type][c_nPortionRight].fragments);
+			}
+
+			var oData = curHeaderFooter.parser.assembleText();
+			if(oData.str && oData.str.length >= Asc.c_oAscMaxHeaderFooterLength) {
+				var maxLength = oData.left.length;
+				var section = c_nPortionLeft;
+				if(oData.right.length > oData.left.length && oData.right.length > oData.center.length) {
+					section = c_nPortionRight;
+					maxLength = oData.right.length;
+				} else if(oData.center.length > oData.left.length && oData.center.length > oData.right.length) {
+					section = c_nPortionCenter;
+					maxLength = oData.center.length;
+				}
+
+				if(t.sections[type] && t.sections[type][section] && t.sections[type][section].canvasObj) {
+					return {id: "#" + t.sections[type][section].canvasObj.idParent, max: maxLength};
+				}
+			}
+			return false
+		};
+
+		var pageHeaderType = this._getHeaderFooterType(this.pageType);
+		var pageFooterType = this._getHeaderFooterType(this.pageType, true);
+		var headerCheck = checkError(pageHeaderType);
+		var footerCheck = checkError(pageFooterType);
+		if(headerCheck && footerCheck) {
+			return headerCheck.max > footerCheck.max ? headerCheck.id : footerCheck.id;
+		} else if(headerCheck) {
+			return headerCheck.id
+		} else if(footerCheck) {
+			return footerCheck.id
+		}
+		
+		return null;
+	};
+
+	CHeaderFooterEditor.prototype._saveToModel = function () {
+		var ws = this.wb.getWorksheet();
+
+		/*if(null !== this.curParentFocusId) {
+			var prevField = this._getSectionById(this.curParentFocusId);
+			var prevFragments = this.cellEditor.options.fragments;
+			prevField.setFragments(prevFragments);
+
+			prevField.canvasObj.canvas.style.display = "block";
+		}*/
 
 		var isAddHistory = false;
 		for(var i = 0; i < this.sections.length; i++) {
@@ -19245,11 +19724,23 @@
 	};
 
 	CHeaderFooterEditor.prototype.setDifferentFirst = function(val) {
+		var checkError;
+		if(!val && (checkError = this._checkSave()) !== null) {
+			return checkError;
+		}
 		this.differentFirst = val;
+
+		return null;
 	};
 
 	CHeaderFooterEditor.prototype.setDifferentOddEven = function(val) {
+		var checkError;
+		if(!val && (checkError = this._checkSave()) !== null) {
+			return checkError;
+		}
 		this.differentOddEven = val;
+
+		return null;
 	};
 
 	CHeaderFooterEditor.prototype.setScaleWithDoc = function(val) {
@@ -19614,10 +20105,10 @@
 		var userName = userInfo ? userInfo.get_FullName() : "";
 		var fileName = docInfo ? docInfo.get_Title() : "";
 
-		//TODO translate!
-		var confidential = "Confidential";
-		var preparedBy = "Prepared by ";
-		var page = "Page";
+		var tM = AscCommon.translateManager;
+		var confidential = tM.getValue("Confidential");
+		var preparedBy = tM.getValue("Prepared by ");
+		var page = tM.getValue("Page");
 
 		var arrPresets = [];
 		var arrPresetsMenu = [];
@@ -19642,6 +20133,11 @@
 
 		this.presets = arrPresets;
 		this.menuPresets = arrPresetsMenu;
+	};
+
+
+	CHeaderFooterEditor.prototype.getPageType = function() {
+		return this.pageType;
 	};
 
 
@@ -19678,5 +20174,7 @@
 	prot["getDifferentFirst"] = prot.getDifferentFirst;
 	prot["getDifferentOddEven"] = prot.getDifferentOddEven;
 	prot["getScaleWithDoc"] = prot.getScaleWithDoc;
+
+	prot["getPageType"] = prot.getPageType;
 
 })(window);

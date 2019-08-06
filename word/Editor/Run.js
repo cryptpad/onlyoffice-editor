@@ -248,6 +248,7 @@ ParaRun.prototype.Copy = function(Selected, oPr, isCopyReviewPr)
 		{
 			// TODO: Как только перенесем para_End в сам параграф (как и нумерацию) убрать здесь
 			if (para_End !== Item.Type
+				&& para_RevisionMove !== Item.Type
 				&& (para_Drawing !== Item.Type || Item.Is_Inline() || true !== oPr.SkipAnchors)
 				&& (para_FootnoteReference !== Item.Type || true !== oPr.SkipFootnoteReference)
 				&& ((para_FieldChar !== Item.Type && para_InstrText !== Item.Type) || true !== oPr.SkipComplexFields))
@@ -775,7 +776,7 @@ ParaRun.prototype.Remove = function(Direction, bOnAddText)
 
     var ReviewType  = this.GetReviewType();
     var oReviewInfo = this.GetReviewInfo();
-    if (true === TrackRevisions && (reviewtype_Add !== ReviewType || !oReviewInfo.IsCurrentUser()) && (reviewtype_Remove !== ReviewType || !oReviewInfo.IsPrevAddedByCurrentUser()))
+    if (true === TrackRevisions && (reviewtype_Add !== ReviewType || !oReviewInfo.IsCurrentUser() || !oReviewInfo.IsMovedTo() || !this.Paragraph.LogicDocument.TrackMoveRelocation) && (reviewtype_Remove !== ReviewType || !oReviewInfo.IsPrevAddedByCurrentUser()))
     {
     	if (reviewtype_Remove === ReviewType)
 		{
@@ -6961,6 +6962,20 @@ ParaRun.prototype.IsSelectedAll = function(Props)
 
     return true;
 };
+ParaRun.prototype.IsSelectedFromStart = function()
+{
+	if (!this.Selection.Use && !this.IsEmpty())
+		return false;
+
+	return (Math.min(this.Selection.StartPos, this.Selection.EndPos) === 0);
+};
+ParaRun.prototype.IsSelectedToEnd = function()
+{
+	if (!this.Selection.Use && !this.IsEmpty())
+		return false;
+
+	return (Math.max(this.Selection.StartPos, this.Selection.EndPos) === this.Content.length);
+};
 
 ParaRun.prototype.SkipAnchorsAtSelectionStart = function(Direction)
 {
@@ -11213,6 +11228,16 @@ ParaRun.prototype.GetSelectedElementsInfo = function(oInfo)
 	{
 		oInfo.RegisterRunWithReviewType(this.GetReviewType());
 	}
+};
+ParaRun.prototype.GetLastTrackMoveMark = function()
+{
+	for (var nPos = this.Content.length - 1; nPos >= 0; --nPos)
+	{
+		if (para_RevisionMove === this.Content[nPos].Type)
+			return this.Content[nPos];
+	}
+
+	return null;
 };
 
 

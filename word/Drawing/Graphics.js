@@ -58,7 +58,9 @@ function CGraphics()
     this.m_bIsBreak 	= false;
 
     this.m_oPen     = new AscCommon.CPen();
+    this.m_bPenColorInit = false;
     this.m_oBrush   = new AscCommon.CBrush();
+    this.m_bBrushColorInit = false;
 
     this.m_oFontManager = null;
 
@@ -147,6 +149,9 @@ CGraphics.prototype =
 
         this.m_oLastFont.Clear();
         this.m_oContext.save();
+
+        this.m_bPenColorInit = false;
+        this.m_bBrushColorInit = false;
     },
     EndDraw : function()
     {
@@ -190,6 +195,10 @@ CGraphics.prototype =
     p_color : function(r,g,b,a)
     {
         var _c = this.m_oPen.Color;
+        if (this.m_bPenColorInit && _c.R === r && _c.G === g && _c.B === b && _c.A === a)
+            return;
+
+        this.m_bPenColorInit = true;
         _c.R = r;
         _c.G = g;
         _c.B = b;
@@ -249,6 +258,11 @@ CGraphics.prototype =
     b_color1 : function(r,g,b,a)
     {
         var _c = this.m_oBrush.Color1;
+        if (this.m_bBrushColorInit && _c.R === r && _c.G === g && _c.B === b && _c.A === a)
+            return;
+
+        this.m_bBrushColorInit = true;
+
         _c.R = r;
         _c.G = g;
         _c.B = b;

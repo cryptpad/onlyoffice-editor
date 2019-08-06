@@ -68,8 +68,9 @@ var c_oAscError = Asc.c_oAscError;
 			return;
 		}
 
-		var _binary = getBinaryArray(_data, _len);
-		this.openDocument(_binary);
+		var file = new AscCommon.OpenFileResult();
+		file.data = getBinaryArray(_data, _len);
+		this.openDocument(file);
 		AscCommon.History.UserSaveMode = true;
 		
 		DesktopOfflineUpdateLocalName(this);
@@ -80,17 +81,19 @@ var c_oAscError = Asc.c_oAscError;
 	};
 	spreadsheet_api.prototype._onNeedParams = function(data, opt_isPassword)
 	{
+		var type;
 		var options;
-		if(opt_isPassword){
-			options = new AscCommon.asc_CAdvancedOptions(Asc.c_oAscAdvancedOptionsID.DRM);
+		if (opt_isPassword) {
+			type = Asc.c_oAscAdvancedOptionsID.DRM;
 		} else {
+			type = Asc.c_oAscAdvancedOptionsID.CSV;
 			var cp = JSON.parse("{\"codepage\":46,\"delimiter\":1}");
 			cp['encodings'] = AscCommon.getEncodingParams();
-			options = new AscCommon.asc_CAdvancedOptions(Asc.c_oAscAdvancedOptionsID.CSV, cp);
+			options = new AscCommon.asc_CAdvancedOptions(cp);
 		}
-		this.handlers.trigger("asc_onAdvancedOptions", options, AscCommon.c_oAscAdvancedOptionsAction.Open);
+		this.handlers.trigger("asc_onAdvancedOptions", type, options);
 	};
-	spreadsheet_api.prototype.asc_addImageDrawingObject = function(url, imgProp, withAuthorization)
+	spreadsheet_api.prototype.asc_addImageDrawingObject = function(url, imgProp, token)
 	{
 		var ws = this.wb.getWorksheet();
 		if (ws) 
@@ -172,11 +175,11 @@ var c_oAscError = Asc.c_oAscError;
 				window["DesktopOfflineAppDocumentStartSave"](isSaveAs);
 		}
 	};
-    spreadsheet_api.prototype.asc_DownloadAs2 = spreadsheet_api.prototype.asc_DownloadAs;
-	spreadsheet_api.prototype.asc_DownloadAs = function(typeFile, bIsDownloadEvent, adjustPrint, isNaturalDownloadAs)
+    spreadsheet_api.prototype.asc_DownloadAsNatural = spreadsheet_api.prototype.asc_DownloadAs;
+	spreadsheet_api.prototype.asc_DownloadAs = function(options)
 	{
-        if (isNaturalDownloadAs)
-            return this.asc_DownloadAs2(typeFile, bIsDownloadEvent, adjustPrint);
+        if (options.isNaturalDownload)
+            return this.asc_DownloadAsNatural(options);
 		this.asc_Save(false, true);
 	};
 	spreadsheet_api.prototype.asc_isOffline = function()
