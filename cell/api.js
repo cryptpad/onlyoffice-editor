@@ -2903,7 +2903,7 @@ var editor;
 
       var usrLang = [];
       for (var i = lastIndex; i < lastSpellInfo["usrWords"].length; ++i) {
-        usrLang.push(val);
+        usrLang.push(this.defaultLanguage);
       }
 
       this.spellcheckState.lockSpell = true;
