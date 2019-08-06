@@ -2895,7 +2895,7 @@ var editor;
   spreadsheet_api.prototype._spellCheckDisconnect = function () {
     this.cleanSpelling();
   };
-  spreadsheet_api.prototype._spellCheckRestart = function () {
+  spreadsheet_api.prototype._spellCheckRestart = function (word) {
     var lastSpellInfo;
     if ((lastSpellInfo = this.spellcheckState.lastSpellInfo)) {
       var lastIndex = this.spellcheckState.lastIndex;

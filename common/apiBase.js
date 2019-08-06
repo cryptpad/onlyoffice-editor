@@ -1203,6 +1203,9 @@
 		this.isSpellCheckEnable = false;
 		this._spellCheckDisconnect();
 	};
+	baseEditorsApi.prototype._spellCheckRestart                  = function(word)
+	{
+	};
 	baseEditorsApi.prototype._spellCheckDisconnect               = function()
 	{
 	};
@@ -1291,8 +1294,15 @@
 		};
 		this.SpellCheckApi.init(this.documentId);
 	};
-    baseEditorsApi.prototype.asc_spellCheckAddToDictionary       = function(word)
+    baseEditorsApi.prototype.asc_spellCheckAddToDictionary       = function(SpellCheckProperty)
     {
+		var word = (typeof SpellCheckProperty === "string") ? SpellCheckProperty : SpellCheckProperty.Word;
+		if (window["AscDesktopEditor"])
+		{
+			window["AscDesktopEditor"]["SpellCheck"]("{\"type\":\"add\",\"words\":[\"" + word + "\"]}");
+
+			this._spellCheckRestart(word);
+		}
     };
     baseEditorsApi.prototype.asc_spellCheckClearDictionary       = function()
     {

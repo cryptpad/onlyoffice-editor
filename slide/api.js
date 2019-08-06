@@ -5686,31 +5686,25 @@ background-repeat: no-repeat;\
         }
     };
 
-    asc_docs_api.prototype.asc_spellCheckAddToDictionary = function(SpellCheckProperty)
+    asc_docs_api.prototype._spellCheckRestart = function(word)
     {
-        var word = (typeof SpellCheckProperty === "string") ? SpellCheckProperty : SpellCheckProperty.Word;
-        if (window["AscDesktopEditor"])
-        {
-            window["AscDesktopEditor"]["SpellCheck"]("{\"type\":\"add\",\"words\":[\"" + word + "\"]}");
-
-            var LogicDocument = this.WordControl.m_oLogicDocument;
-            if (LogicDocument)
-            {
-                // TODO: сделать нормальный сброс слова
-                var oldWordStatus = LogicDocument.Spelling.Check_Word(word);
-                if (true !== oldWordStatus)
-                {
-                    LogicDocument.Spelling.Add_Word(word);
-                    LogicDocument.DrawingDocument.ClearCachePages();
-                    LogicDocument.DrawingDocument.FirePaint();
-                    if(LogicDocument.Slides[LogicDocument.CurPage])
-                    {
-                        LogicDocument.DrawingDocument.Notes_OnRecalculate(LogicDocument.CurPage,LogicDocument.NotesWidth, LogicDocument.Slides[LogicDocument.CurPage].getNotesHeight());
-                    }
-                    delete LogicDocument.Spelling.Words[word];
-                }
-            }
-        }
+		var LogicDocument = this.WordControl.m_oLogicDocument;
+		if (LogicDocument)
+		{
+			// TODO: сделать нормальный сброс слова
+			var oldWordStatus = LogicDocument.Spelling.Check_Word(word);
+			if (true !== oldWordStatus)
+			{
+				LogicDocument.Spelling.Add_Word(word);
+				LogicDocument.DrawingDocument.ClearCachePages();
+				LogicDocument.DrawingDocument.FirePaint();
+				if(LogicDocument.Slides[LogicDocument.CurPage])
+				{
+					LogicDocument.DrawingDocument.Notes_OnRecalculate(LogicDocument.CurPage,LogicDocument.NotesWidth, LogicDocument.Slides[LogicDocument.CurPage].getNotesHeight());
+				}
+				delete LogicDocument.Spelling.Words[word];
+			}
+		}
     };
     asc_docs_api.prototype.asc_spellCheckClearDictionary = function()
     {

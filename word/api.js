@@ -5803,27 +5803,21 @@ background-repeat: no-repeat;\
 		}
 	};
 
-    asc_docs_api.prototype.asc_spellCheckAddToDictionary = function(SpellCheckProperty)
+    asc_docs_api.prototype._spellCheckRestart = function(word)
     {
-    	var word = (typeof SpellCheckProperty === "string") ? SpellCheckProperty : SpellCheckProperty.Word;
-    	if (window["AscDesktopEditor"])
+		var LogicDocument = this.WordControl.m_oLogicDocument;
+		if (LogicDocument)
 		{
-			window["AscDesktopEditor"]["SpellCheck"]("{\"type\":\"add\",\"words\":[\"" + word + "\"]}");
-
-			var LogicDocument = this.WordControl.m_oLogicDocument;
-			if (LogicDocument)
+			// TODO: сделать нормальный сброс слова
+			var oldWordStatus = LogicDocument.Spelling.Check_Word(word);
+			if (true !== oldWordStatus)
 			{
-				// TODO: сделать нормальный сброс слова
-				var oldWordStatus = LogicDocument.Spelling.Check_Word(word);
-				if (true !== oldWordStatus)
-				{
-                    LogicDocument.Spelling.Add_Word(word);
-                    LogicDocument.DrawingDocument.ClearCachePages();
-                    LogicDocument.DrawingDocument.FirePaint();
-                    delete LogicDocument.Spelling.Words[word];
-                }
-            }
-        }
+				LogicDocument.Spelling.Add_Word(word);
+				LogicDocument.DrawingDocument.ClearCachePages();
+				LogicDocument.DrawingDocument.FirePaint();
+				delete LogicDocument.Spelling.Words[word];
+			}
+		}
     };
     asc_docs_api.prototype.asc_spellCheckClearDictionary = function()
     {
