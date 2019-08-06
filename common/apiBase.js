@@ -1291,6 +1291,12 @@
 		};
 		this.SpellCheckApi.init(this.documentId);
 	};
+    baseEditorsApi.prototype.asc_spellCheckAddToDictionary       = function(word)
+    {
+    };
+    baseEditorsApi.prototype.asc_spellCheckClearDictionary       = function()
+    {
+    };
 	// Print Desktop
 	baseEditorsApi.prototype._waitPrint                          = function (actionType, options)
 	{

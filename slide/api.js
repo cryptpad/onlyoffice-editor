@@ -5682,9 +5682,40 @@ background-repeat: no-repeat;\
 			if(LogicDocument.Slides[LogicDocument.CurPage])
 			{
 				LogicDocument.DrawingDocument.Notes_OnRecalculate(LogicDocument.CurPage,LogicDocument.NotesWidth, LogicDocument.Slides[LogicDocument.CurPage].getNotesHeight());
-
 			}
         }
+    };
+
+    asc_docs_api.prototype.asc_spellCheckAddToDictionary = function(SpellCheckProperty)
+    {
+        var word = (typeof SpellCheckProperty === "string") ? SpellCheckProperty : SpellCheckProperty.Word;
+        if (window["AscDesktopEditor"])
+        {
+            window["AscDesktopEditor"]["SpellCheck"]("{\"type\":\"add\",\"words\":[\"" + word + "\"]}");
+
+            var LogicDocument = this.WordControl.m_oLogicDocument;
+            if (LogicDocument)
+            {
+                // TODO: сделать нормальный сброс слова
+                var oldWordStatus = LogicDocument.Spelling.Check_Word(word);
+                if (true !== oldWordStatus)
+                {
+                    LogicDocument.Spelling.Add_Word(word);
+                    LogicDocument.DrawingDocument.ClearCachePages();
+                    LogicDocument.DrawingDocument.FirePaint();
+                    if(LogicDocument.Slides[LogicDocument.CurPage])
+                    {
+                        LogicDocument.DrawingDocument.Notes_OnRecalculate(LogicDocument.CurPage,LogicDocument.NotesWidth, LogicDocument.Slides[LogicDocument.CurPage].getNotesHeight());
+                    }
+                    delete LogicDocument.Spelling.Words[word];
+                }
+            }
+        }
+    };
+    asc_docs_api.prototype.asc_spellCheckClearDictionary = function()
+    {
+        if (window["AscDesktopEditor"])
+            window["AscDesktopEditor"]["SpellCheck"]("{\"type\":\"clear\"}");
     };
 
     asc_docs_api.prototype.asc_setDefaultLanguage = function(Lang)
@@ -7730,6 +7761,8 @@ background-repeat: no-repeat;\
     asc_docs_api.prototype['sync_SpellCheckVariantsFound']        = asc_docs_api.prototype.sync_SpellCheckVariantsFound;
     asc_docs_api.prototype['asc_replaceMisspelledWord']           = asc_docs_api.prototype.asc_replaceMisspelledWord;
     asc_docs_api.prototype['asc_ignoreMisspelledWord']            = asc_docs_api.prototype.asc_ignoreMisspelledWord;
+    asc_docs_api.prototype['asc_spellCheckAddToDictionary']       = asc_docs_api.prototype.asc_spellCheckAddToDictionary;
+    asc_docs_api.prototype['asc_spellCheckClearDictionary']       = asc_docs_api.prototype.asc_spellCheckClearDictionary;
     asc_docs_api.prototype['asc_setDefaultLanguage']              = asc_docs_api.prototype.asc_setDefaultLanguage;
     asc_docs_api.prototype['asc_getDefaultLanguage']              = asc_docs_api.prototype.asc_getDefaultLanguage;
     asc_docs_api.prototype['asc_getKeyboardLanguage']             = asc_docs_api.prototype.asc_getKeyboardLanguage;
