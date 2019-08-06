@@ -1302,6 +1302,9 @@ function checkPointInMap(map, worksheet, row, col)
         dataLbl:       null,
         plotArea:      null,
         rotatePlotArea: null,
+        axis:           null,
+        minorGridlines: null,
+        majorGridlines: null,
         gridLines:     null,
         chart:        null,
         series:        null,
@@ -1460,6 +1463,18 @@ CChartSpace.prototype.drawSelect = function(drawingDocument, nPageIndex)
                                     var oPath = this.pathMemory.GetPath(aPointsPaths[l]);
                                     oPath.drawTracks(drawingDocument, this.transform);
                                 }
+                                if(Array.isArray(aPointsPaths[l]))
+                                {
+                                    var aPointsPaths2 = aPointsPaths[l];
+                                    for(var z = 0; z < aPointsPaths2.length; ++z)
+                                    {
+                                        if(AscFormat.isRealNumber(aPointsPaths2[z]))
+                                        {
+                                            var oPath = this.pathMemory.GetPath(aPointsPaths2[z]);
+                                            oPath.drawTracks(drawingDocument, this.transform);
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
@@ -1474,6 +1489,19 @@ CChartSpace.prototype.drawSelect = function(drawingDocument, nPageIndex)
 
                 }
 
+            }
+            else if(this.selection.axis)
+            {
+                if(this.selection.majorGridlines)
+                {
+                    var oPath = this.pathMemory.GetPath(this.selection.majorGridlines);
+                    oPath.drawTracks(drawingDocument, this.transform);
+                }
+                else if(this.selection.minorGridlines)
+                {
+                    var oPath = this.pathMemory.GetPath(this.selection.minorGridlines);
+                    oPath.drawTracks(drawingDocument, this.transform);
+                }
             }
         }
     };
@@ -1550,6 +1578,9 @@ CChartSpace.prototype.loadDocumentStateAfterLoadChanges = function(state)
      this.selection.series =        null;
      this.selection.datPoint =      null;
      this.selection.textSelection = null;
+     this.selection.axis = null;
+     this.selection.minorGridlines = null;
+     this.selection.majorGridlines = null;
     var bRet = false;
     if(state.DrawingsSelectionState){
         var chartSelection = state.DrawingsSelectionState.chartSelection;
@@ -1631,6 +1662,9 @@ CChartSpace.prototype.resetSelection = function(noResetContentSelect)
     this.selection.series = null;
     this.selection.chart = null;
     this.selection.datPoint = null;
+    this.selection.axis = null;
+    this.selection.minorGridlines = null;
+    this.selection.majorGridlines = null;
 };
 CChartSpace.prototype.getStyles = function()
 {
@@ -2564,6 +2598,9 @@ CChartSpace.prototype.clearFormatting = function(bNoClearShapeProps)
         this.selection.series =        null;
         this.selection.datPoint =      null;
         this.selection.textSelection = null;
+        this.selection.axis = null;
+        this.selection.minorGridlines = null;
+        this.selection.majorGridlines = null;
     };
 
 CChartSpace.prototype.copy = function(drawingDocument)
