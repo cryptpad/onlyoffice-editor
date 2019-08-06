@@ -3801,11 +3801,21 @@ var editor;
       return this.wbModel && this.wbModel.Core;
 	};
 
-	spreadsheet_api.prototype.asc_switchGroupSummary = function (val, bCol) {
+	spreadsheet_api.prototype.asc_setGroupSummary = function (val, bCol) {
 		var ws = this.wb && this.wb.getWorksheet();
 		if(ws) {
-			ws.switchGroupSummaryPos(val, bCol);
+			ws.asc_setGroupSummary(val, bCol);
 		}
+	};
+
+	spreadsheet_api.prototype.asc_getGroupSummaryRight = function () {
+		var ws = this.wbModel.getActive();
+		return ws && ws.sheetPr ? ws.sheetPr.SummaryRight : true;
+	};
+
+	spreadsheet_api.prototype.asc_getGroupSummaryBelow = function () {
+		var ws = this.wbModel.getActive();
+		return ws && ws.sheetPr ? ws.sheetPr.SummaryBelow : true;
 	};
 
   /*
@@ -3977,7 +3987,9 @@ var editor;
   prot["asc_clearOutline"] = prot.asc_clearOutline;
   prot["asc_changeGroupDetails"] = prot.asc_changeGroupDetails;
   prot["asc_checkAddGroup"] = prot.asc_checkAddGroup;
-  prot["asc_switchGroupSummary"] = prot.asc_switchGroupSummary;
+  prot["asc_setGroupSummary"] = prot.asc_setGroupSummary;
+  prot["asc_getGroupSummaryRight"] = prot.asc_getGroupSummaryRight;
+  prot["asc_getGroupSummaryBelow"] = prot.asc_getGroupSummaryBelow;
 
   
   // Drawing objects interface

@@ -17992,7 +17992,7 @@
 		return res;
 	};
 
-	WorksheetView.prototype.switchGroupSummaryPos = function(val, bCol) {
+	WorksheetView.prototype.asc_setGroupSummary = function(val, bCol) {
 		var t = this;
 		var groupArr = bCol ? this.arrColGroups : this.arrRowGroups;
 		groupArr = groupArr ? groupArr.groupArr : null;
