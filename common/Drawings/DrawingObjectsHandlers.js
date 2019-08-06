@@ -824,7 +824,7 @@ function handleInternalChart(drawing, drawingObjectsController, e, x, y, group, 
                                     }
                                     var oDrawChart = t.charts[id];
                                     var seriesPaths = oDrawChart.paths.series;
-                                    for(var k = 0; k < seriesPaths.length; ++k)
+                                    for(var k = seriesPaths.length - 1; k > - 1 ; --k)
                                     {
                                         if(Array.isArray(seriesPaths[k]))
                                         {
@@ -923,7 +923,7 @@ function handleInternalChart(drawing, drawingObjectsController, e, x, y, group, 
                                             }
                                         }
                                     }
-                                    if(k < seriesPaths.length)
+                                    if(k > -1)
                                     {
                                         break;
                                     }
@@ -994,7 +994,7 @@ function handleInternalChart(drawing, drawingObjectsController, e, x, y, group, 
                                                 selector.selectObject(drawing, pageIndex);
                                                 selector.selection.chartSelection = drawing;
                                                 drawing.selection.axis = oAxObj.catAx;
-                                                drawing.selection.minorGridLines = oAxObj.paths.minorGridLines;
+                                                drawing.selection.minorGridlines = oAxObj.paths.minorGridLines;
                                                 break;
                                             }
                                         }
@@ -1031,7 +1031,7 @@ function handleInternalChart(drawing, drawingObjectsController, e, x, y, group, 
                                                     selector.selectObject(drawing, pageIndex);
                                                     selector.selection.chartSelection = drawing;
                                                     drawing.selection.axis = oAxObj.valAx;
-                                                    drawing.selection.minorGridLines = oAxObj.paths.minorGridLines;
+                                                    drawing.selection.minorGridlines = oAxObj.paths.minorGridLines;
                                                     break;
                                                 }
                                             }
@@ -1069,7 +1069,7 @@ function handleInternalChart(drawing, drawingObjectsController, e, x, y, group, 
                                         }
                                         var oDrawChart = t.charts[id];
                                         var seriesPaths = oDrawChart.paths.series;
-                                        for(var k = 0; k < seriesPaths.length; ++k)
+                                        for(var k = seriesPaths.length - 1; k > - 1 ; --k)
                                         {
                                             if(Array.isArray(seriesPaths[k]))
                                             {
@@ -1168,7 +1168,7 @@ function handleInternalChart(drawing, drawingObjectsController, e, x, y, group, 
                                                 }
                                             }
                                         }
-                                        if(k < seriesPaths.length)
+                                        if(k > -1)
                                         {
                                             break;
                                         }
@@ -1239,7 +1239,7 @@ function handleInternalChart(drawing, drawingObjectsController, e, x, y, group, 
                                                     selector.selectObject(drawing, pageIndex);
                                                     selector.selection.chartSelection = drawing;
                                                     drawing.selection.axis = oAxObj.catAx;
-                                                    drawing.selection.minorGridLines = oAxObj.paths.minorGridLines;
+                                                    drawing.selection.minorGridlines = oAxObj.paths.minorGridLines;
                                                     break;
                                                 }
                                             }
@@ -1276,7 +1276,7 @@ function handleInternalChart(drawing, drawingObjectsController, e, x, y, group, 
                                                         selector.selectObject(drawing, pageIndex);
                                                         selector.selection.chartSelection = drawing;
                                                         drawing.selection.axis = oAxObj.valAx;
-                                                        drawing.selection.minorGridLines = oAxObj.paths.minorGridLines;
+                                                        drawing.selection.minorGridlines = oAxObj.paths.minorGridLines;
                                                         break;
                                                     }
                                                 }

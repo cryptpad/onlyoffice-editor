@@ -1535,7 +1535,15 @@ CChartSpace.prototype.getSelectionState = function()
         rotatePlotArea:         this.selection.rotatePlotArea,
         contentSelection: content_selection,
         recalcTitle: this.recalcInfo.recalcTitle,
-        bRecalculatedTitle: this.recalcInfo.bRecalculatedTitle
+        bRecalculatedTitle: this.recalcInfo.bRecalculatedTitle,
+        axis:           this.selection.axis,
+        minorGridlines: this.selection.minorGridlines,
+        majorGridlines: this.selection.majorGridlines,
+        gridLines:     this.selection.gridLines,
+        chart:        this.selection.chart,
+        series:        this.selection.series,
+        datPoint:      this.selection.datPoint
+
     }
 };
 CChartSpace.prototype.setSelectionState = function(state)
@@ -1549,6 +1557,13 @@ CChartSpace.prototype.setSelectionState = function(state)
    this.selection.rotatePlotArea        = state.rotatePlotArea;
    this.selection.textSelection  = state.textSelection;
    this.selection.plotArea       = state.plotArea;
+    this.selection.axis = state.axis;
+    this.selection.minorGridlines = state.minorGridlines;
+    this.selection.majorGridlines = state.majorGridlines;
+    this.selection.gridLines = state.gridLines;
+    this.selection.chart = state.chart;
+    this.selection.datPoint = state.datPoint;
+    this.selection.series = state.series;
    if(isRealObject(state.recalcTitle))
    {
        this.recalcInfo.recalcTitle = state.recalcTitle;
@@ -2048,17 +2063,118 @@ CChartSpace.prototype.getFill = CShape.prototype.getFill;
 CChartSpace.prototype.changeSize = CShape.prototype.changeSize;
 CChartSpace.prototype.changeFill = function (unifill)
 {
-    if(this.recalcInfo.recalculatePenBrush)
+    var unifill2;
+    if(this.selection.plotArea)
     {
-        this.recalculatePenBrush();
+        if(!this.chart.plotArea.spPr)
+        {
+            this.chart.plotArea.setSpPr(new AscFormat.CSpPr());
+            this.chart.plotArea.spPr.setParent(this.chart.plotArea);
+        }
+        unifill2 = AscFormat.CorrectUniFill(unifill, this.chart.plotArea.brush, this.getEditorType());
+        unifill2.convertToPPTXMods();
+        this.chart.plotArea.spPr.setFill(unifill2);
     }
-    var unifill2 = AscFormat.CorrectUniFill(unifill, this.brush, this.getEditorType());
-    unifill2.convertToPPTXMods();
+    else if(AscFormat.isRealNumber(this.selection.series))
+    {
+        var oChart = AscCommon.g_oTableId.Get_ById(this.selection.chart);
+        if(oChart)
+        {
+            var oSeries = null;
+            for(var i = 0; i < oChart.series.length; ++i)
+            {
+                if(oChart.series[i].idx === this.selection.series)
+                {
+                    oSeries = oChart.series[i];
+                    break;
+                }
+            }
+            if(oSeries)
+            {
+                if(AscFormat.isRealNumber(this.selection.datPoint))
+                {
+                    var pts = AscFormat.getPtsFromSeries(oSeries);
+                    for(var j = 0; j < pts.length; ++j)
+                    {
+                        var pt = pts[j];
+                        if(pt.idx === this.selection.datPoint)
+                        {
+                            var oDataPoint = null;
+
+                            if(Array.isArray(oSeries.dPt))
+                            {
+                                for(var k = 0; k < oSeries.dPt.length; ++k)
+                                {
+                                    if(oSeries.dPt[k].idx === pts[j].idx)
+                                    {
+                                        oDataPoint = oSeries.dPt[k];
+                                        break;
+                                    }
+                                }
+                            }
+                            if(!oDataPoint)
+                            {
+                                oDataPoint = new AscFormat.CDPt();
+                                oDataPoint.setIdx(pt.idx);
+                                oSeries.addDPt(oDataPoint);
+                            }
+                            if(!oDataPoint.spPr)
+                            {
+                                oDataPoint.setSpPr(new AscFormat.CSpPr());
+                                oDataPoint.spPr.setParent(oDataPoint);
+                            }
+                            unifill2 = AscFormat.CorrectUniFill(unifill, pt.brush, this.getEditorType());
+                            unifill2.convertToPPTXMods();
+                            oDataPoint.spPr.setFill(unifill2);
+                            break;
+                        }
+                    }
+                }
+                else
+                {
+                    if(!oSeries.spPr)
+                    {
+                        oSeries.setSpPr(new AscFormat.CSpPr());
+                        oSeries.spPr.setParent(oSeries);
+                    }
+                    unifill2 = AscFormat.CorrectUniFill(unifill, oSeries.compiledSeriesBrush, this.getEditorType());
+                    unifill2.convertToPPTXMods();
+                    oSeries.spPr.setFill(unifill2);
+                }
+            }
+        }
+    }
+    else if(this.selection.axis)
+    {
+        var oAxis = this.selection.axis;
+        if(this.selection.majorGridlines)
+        {
+
+        }
+    }
+    else if(this.selection.axisLbls)
+    {
+
+    }
+    else 
+    {
+        if(this.recalcInfo.recalculatePenBrush)
+        {
+            this.recalculatePenBrush();
+        }
+        unifill2 = AscFormat.CorrectUniFill(unifill, this.brush, this.getEditorType());
+        unifill2.convertToPPTXMods();
+        if(!this.spPr){
+            this.setSpPr(new AscFormat.CSpPr());
+            this.spPr.setParent(this);
+        }
+        this.spPr.setFill(unifill2);
+    }
     if(!this.spPr){
         this.setSpPr(new AscFormat.CSpPr());
         this.spPr.setParent(this);
     }
-    this.spPr.setFill(unifill2);
+    this.spPr.setFill(this.spPr.Fill ? this.spPr.Fill.createDuplicate() : this.spPr.Fill);
 };
 CChartSpace.prototype.setFill = function (fill) {
     if(!this.spPr){
@@ -11738,6 +11854,7 @@ CChartSpace.prototype.recalculateHiLowLines = function()
 
 CChartSpace.prototype.recalculateSeriesColors = function()
 {
+    this.cachedCanvas = null;
     this.ptsCount = 0;
     if(this.chart && this.chart.plotArea)
     {

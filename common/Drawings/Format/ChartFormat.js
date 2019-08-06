@@ -3405,6 +3405,25 @@ CAreaSeries.prototype =
             }
         }
     },
+    handleUpdateFill: function()
+    {
+        if(this.parent && this.parent.parent
+            && this.parent.parent.parent && this.parent.parent.parent.parent
+            && this.parent.parent.parent.parent.handleUpdateInternalChart)
+        {
+            this.parent.parent.parent.parent.handleUpdateInternalChart();
+        }
+    },
+    handleUpdateLn: function()
+    {
+        if(this.parent && this.parent.parent
+            && this.parent.parent.parent && this.parent.parent.parent.parent
+            && this.parent.parent.parent.parent.handleUpdateInternalChart)
+        {
+            this.parent.parent.parent.parent.handleUpdateInternalChart();
+        }
+    },
+
 
     checkSpPrRasterImages: function(images)
     {
@@ -5912,6 +5931,10 @@ CBarSeries.prototype =
     },
 
     documentCreateFontMap: CAreaSeries.prototype.documentCreateFontMap,
+    handleUpdateFill: CAreaSeries.prototype.handleUpdateFill,
+    handleUpdateLn: CAreaSeries.prototype.handleUpdateLn,
+
+
 
     Write_ToBinary2: function(w)
     {
@@ -6332,7 +6355,8 @@ CBubbleSeries.prototype =
     getCatName: CAreaSeries.prototype.getCatName,
     getValByIndex: CAreaSeries.prototype.getValByIndex,
     getFormatCode: CAreaSeries.prototype.getFormatCode,
-
+    handleUpdateFill: CAreaSeries.prototype.handleUpdateFill,
+    handleUpdateLn: CAreaSeries.prototype.handleUpdateLn,
 
     setFromOtherSeries: function(o)
     {
@@ -8579,7 +8603,7 @@ CLineSeries.prototype =
     getCatName: CAreaSeries.prototype.getCatName,
     getValByIndex: CAreaSeries.prototype.getValByIndex,
     getFormatCode: CAreaSeries.prototype.getFormatCode,
-
+    handleUpdateFill: CAreaSeries.prototype.handleUpdateFill,
     setFromOtherSeries: function(other)
     {
         if(other.cat)
@@ -9974,6 +9998,8 @@ CPieSeries.prototype =
 
 
     documentCreateFontMap: CAreaSeries.prototype.documentCreateFontMap,
+    handleUpdateFill: CAreaSeries.prototype.handleUpdateFill,
+    handleUpdateLn: CAreaSeries.prototype.handleUpdateLn,
 
     getAllRasterImages: CAreaSeries.prototype.getAllRasterImages,
     checkSpPrRasterImages: CAreaSeries.prototype.checkSpPrRasterImages,
@@ -10498,7 +10524,8 @@ CRadarSeries.prototype =
     getValByIndex: CAreaSeries.prototype.getValByIndex,
     getFormatCode: CAreaSeries.prototype.getFormatCode,
 
-
+    handleUpdateFill: CAreaSeries.prototype.handleUpdateFill,
+    handleUpdateLn: CAreaSeries.prototype.handleUpdateLn,
     getAllRasterImages: CAreaSeries.prototype.getAllRasterImages,
     checkSpPrRasterImages: CAreaSeries.prototype.checkSpPrRasterImages,
 
@@ -10966,7 +10993,8 @@ CScatterSeries.prototype =
     },
 
     documentCreateFontMap: CAreaSeries.prototype.documentCreateFontMap,
-
+    handleUpdateFill: CAreaSeries.prototype.handleUpdateFill,
+    handleUpdateLn: CAreaSeries.prototype.handleUpdateLn,
     removeDPt: function(idx)
     {
         if(this.dPt[idx])
@@ -12007,7 +12035,8 @@ CSurfaceSeries.prototype =
 
     documentCreateFontMap: CAreaSeries.prototype.documentCreateFontMap,
 
-
+    handleUpdateFill: CAreaSeries.prototype.handleUpdateFill,
+    handleUpdateLn: CAreaSeries.prototype.handleUpdateLn,
     getAllRasterImages: CAreaSeries.prototype.getAllRasterImages,
     checkSpPrRasterImages: CAreaSeries.prototype.checkSpPrRasterImages,
 

@@ -79,6 +79,7 @@ CChartSpace.prototype.handleUpdateFill = function()
     this.recalcInfo.recalculatePenBrush = true;
     this.recalcInfo.recalculateBrush = true;
     this.recalcInfo.recalculateChart = true;
+    this.recalcInfo.recalculateSeriesColors = true;
     this.addToRecalculate();
 };
 CChartSpace.prototype.handleUpdateLn = function()
@@ -86,6 +87,7 @@ CChartSpace.prototype.handleUpdateLn = function()
     this.recalcInfo.recalculatePenBrush = true;
     this.recalcInfo.recalculatePen = true;
     this.recalcInfo.recalculateChart = true;
+    this.recalcInfo.recalculateSeriesColors = true;
     this.addToRecalculate();
 };
 
