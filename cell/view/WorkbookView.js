@@ -967,6 +967,7 @@
     this.handlers.trigger("asc_onSelectionChanged", this.oSelectionInfo);
     this.handlers.trigger("asc_onSelectionEnd");
     this._onInputMessage();
+    this.Api.cleanSpelling();
   };
 
   WorkbookView.prototype._onInputMessage = function () {
@@ -1498,6 +1499,8 @@
       ws.openCellEditor(t.cellEditor, /*cursorPos*/undefined, isFocus, isClearCell,
         /*isHideCursor*/isHideCursor, /*isQuickInput*/isQuickInput, selectionRange);
       t.input.disabled = false;
+
+      t.Api.cleanSpelling();
 
       // Эвент на обновление состояния редактора
       t.cellEditor._updateEditorState();

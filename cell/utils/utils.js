@@ -124,7 +124,6 @@
 			return null === val2 ? val1 : (null === val1 ? val2 : Math.min(val1, val2));
 		}
 
-
 		function round(x) {
 			var y = x + (x >= 0 ? .5 : -.5);
 			return y | y;
@@ -191,7 +190,6 @@
 			return value;
 		}
 
-
 		// Определяет времени работы функции
 		function profileTime(fn/*[, arguments]*/) {
 			var start, end, arg = [], i;
@@ -255,6 +253,26 @@
 
 			// borders equal
 			return border1;
+		}
+
+		function WordSplitting(str) {
+			var trueLetter = false;
+			var index = 0;
+			var wordsArray = [];
+			for (var i = 0; i < str.length; i++) {
+				var nCharCode = str.charCodeAt(i);
+				if (AscCommon.g_aPunctuation[nCharCode] !== undefined || nCharCode === 32) {
+					if (trueLetter === true) {
+						trueLetter = false;
+						index++;
+					}
+				} else {
+					trueLetter = true;
+					wordsArray[index] = wordsArray[index] || "";
+					wordsArray[index] = wordsArray[index] + str[i];
+				}
+			}
+			return wordsArray;
 		}
 
 		var referenceType = {
@@ -2371,6 +2389,39 @@
 			return -2;
 		};
 
+		function CSpellcheckState() {
+			this.lastSpellInfo = null;
+			this.lastIndex = -1;
+
+			this.lockSpell = false;
+			this.startCell = null;
+			this.currentCell = null;
+			this.iteration = false;
+		}
+
+		CSpellcheckState.prototype.init = function (startCell) {
+			if (!this.startCell) {
+				this.startCell = startCell.clone();
+				this.currentCell = startCell.clone();
+			}
+		};
+		CSpellcheckState.prototype.clean = function () {
+			this.lastSpellInfo = null;
+			this.lastIndex = -1;
+
+			this.lockSpell = false;
+			this.startCell = null;
+			this.currentCell = null;
+			this.iteration = false;
+		};
+		CSpellcheckState.prototype.nextRow = function () {
+			this.lastSpellInfo = null;
+			this.lastIndex = -1;
+
+			this.currentCell.row += 1;
+			this.currentCell.col = 0;
+		};
+
 		/** @constructor */
 		function asc_CCompleteMenu(name, type) {
 			this.name = name;
@@ -2449,8 +2500,7 @@
 		asc_CAutoCorrectOptions.prototype.asc_getOptions = function () {return this.options;};
 		asc_CAutoCorrectOptions.prototype.asc_getCellCoord = function () {return this.cellCoord;};
 
-
-
+		/** @constructor */
 		function cDate() {
 			var bind = Function.bind;
 			var unbind = bind.bind(bind);
@@ -2478,9 +2528,9 @@
 			return this.isLeapYear() ? this.getDaysInMonth.L[this.getUTCMonth()] : this.getDaysInMonth.R[this.getUTCMonth()];
 		};
 
-// durations of months for the regular year
+		// durations of months for the regular year
 		cDate.prototype.getDaysInMonth.R = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-// durations of months for the leap year
+		// durations of months for the leap year
 		cDate.prototype.getDaysInMonth.L = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 
 		cDate.prototype.truncate = function () {
@@ -2620,9 +2670,10 @@
 		window["AscCommonExcel"].calcDecades = calcDecades;
 		window["AscCommonExcel"].convertPtToPx = convertPtToPx;
 		window["AscCommonExcel"].convertPxToPt = convertPxToPt;
-		window["Asc"].outputDebugStr = outputDebugStr;
 		window["Asc"].profileTime = profileTime;
 		window["AscCommonExcel"].getMatchingBorder = getMatchingBorder;
+		window["AscCommonExcel"].WordSplitting = WordSplitting;
+		window["Asc"].outputDebugStr = outputDebugStr;
 		window["Asc"].isNumberInfinity = isNumberInfinity;
 		window["Asc"].trim = trim;
 		window["Asc"].arrayToLowerCase = arrayToLowerCase;
@@ -2730,6 +2781,8 @@
 		prot["asc_setIsReplaceAll"] = prot.asc_setIsReplaceAll;
 
 		window["AscCommonExcel"].findResults = findResults;
+
+		window["AscCommonExcel"].CSpellcheckState = CSpellcheckState;
 
 		window["AscCommonExcel"].asc_CCompleteMenu = asc_CCompleteMenu;
 		prot = asc_CCompleteMenu.prototype;
