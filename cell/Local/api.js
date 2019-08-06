@@ -178,7 +178,7 @@ var c_oAscError = Asc.c_oAscError;
     spreadsheet_api.prototype.asc_DownloadAsNatural = spreadsheet_api.prototype.asc_DownloadAs;
 	spreadsheet_api.prototype.asc_DownloadAs = function(options)
 	{
-        if (options.isNaturalDownload)
+        if (options && options.isNaturalDownload)
             return this.asc_DownloadAsNatural(options);
 		this.asc_Save(false, true);
 	};

@@ -248,7 +248,7 @@ window["DesktopOfflineAppDocumentEndSave"] = function(error, hash, password)
 Asc['asc_docs_api'].prototype.asc_DownloadAsNatural = Asc['asc_docs_api'].prototype.asc_DownloadAs;
 Asc['asc_docs_api'].prototype.asc_DownloadAs = function(options)
 {
-    if (options.isNaturalDownload)
+    if (options && options.isNaturalDownload)
         return this.asc_DownloadAsNatural(options);
 	this.asc_Save(false, true);
 };
