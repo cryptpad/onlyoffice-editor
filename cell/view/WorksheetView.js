@@ -18730,29 +18730,37 @@
 
 	function convertFieldToMenuText(val) {
 		var textField = null;
+		var tM = AscCommon.translateManager;
+		var pageTag = "&[" + tM.getValue("Page") + "]";
+		var pagesTag = "&[" + tM.getValue("Pages") + "]";
+		var tabTag = "&[" + tM.getValue("Tab") + "]";
+		var dateTag = "&[" + tM.getValue("Date") + "]";
+		var fileTag = "&[" + tM.getValue("File") + "]";
+		var timeTag = "&[" + tM.getValue("Time") + "]";
+
 		switch (val){
 			case asc.c_oAscHeaderFooterField.pageNumber: {
-				textField = "&[Page]";
+				textField = pageTag;
 				break;
 			}
 			case asc.c_oAscHeaderFooterField.pageCount: {
-				textField = "&[Pages]";
+				textField = pagesTag;
 				break;
 			}
 			case asc.c_oAscHeaderFooterField.date: {
-				textField = "&[Date]";
+				textField = dateTag;
 				break;
 			}
 			case asc.c_oAscHeaderFooterField.time: {
-				textField = "&[Time]";
+				textField = timeTag;
 				break;
 			}
 			case asc.c_oAscHeaderFooterField.sheetName: {
-				textField = "&[Tab]";
+				textField = tabTag;
 				break;
 			}
 			case asc.c_oAscHeaderFooterField.fileName: {
-				textField = "&[File]";
+				textField = fileTag;
 				break;
 			}
 			case asc.c_oAscHeaderFooterField.filePath: {
@@ -19621,6 +19629,14 @@
 		//TODO возможно стоит созадавать portions внутри парсера с элементами Fragments
 		var res = [];
 
+		var tM = AscCommon.translateManager;
+		var pageTag = "&[" + tM.getValue("Page") + "]";
+		var pagesTag = "&[" + tM.getValue("Pages") + "]";
+		var tabTag = "&[" + tM.getValue("Tab") + "]";
+		var dateTag = "&[" + tM.getValue("Date") + "]";
+		var fileTag = "&[" + tM.getValue("File") + "]";
+		var timeTag = "&[" + tM.getValue("Time") + "]";
+
 		var bToken, text, symbol, startToken, tokenText, tokenFormat;
 		for(var j = 0; j < fragments.length; j++) {
 			text = "";
@@ -19643,32 +19659,32 @@
 				} else if(startToken) {
 					if(symbol === "]") {
 						switch(tokenText.toLowerCase()) {
-							case "page": {
+							case tM.getValue("Page").toLowerCase(): {
 								text = "";
 								res.push({text: new HeaderFooterField(asc.c_oAscHeaderFooterField.pageNumber), format: tokenFormat});
 								break;
 							}
-							case "pages": {
+							case tM.getValue("Pages").toLowerCase(): {
 								text = "";
 								res.push({text: new HeaderFooterField(asc.c_oAscHeaderFooterField.pageCount), format: tokenFormat});
 								break;
 							}
-							case "date": {
+							case tM.getValue("Date").toLowerCase(): {
 								text = "";
 								res.push({text: new HeaderFooterField(asc.c_oAscHeaderFooterField.date), format: tokenFormat});
 								break;
 							}
-							case "time": {
+							case tM.getValue("Time").toLowerCase(): {
 								text = "";
 								res.push({text: new HeaderFooterField(asc.c_oAscHeaderFooterField.time), format: tokenFormat});
 								break;
 							}
-							case "tab": {
+							case tM.getValue("Tab").toLowerCase(): {
 								text = "";
 								res.push({text: new HeaderFooterField(asc.c_oAscHeaderFooterField.sheetName), format: tokenFormat});
 								break;
 							}
-							case "file": {
+							case tM.getValue("File").toLowerCase(): {
 								text = "";
 								res.push({text: new HeaderFooterField(asc.c_oAscHeaderFooterField.fileName), format: tokenFormat});
 								break;
@@ -19794,27 +19810,34 @@
 		var confidential = tM.getValue("Confidential");
 		var preparedBy = tM.getValue("Prepared by ");
 		var page = tM.getValue("Page");
+		var pageOf = tM.getValue("Page %1 of %2");
+
+		var pageTag = "&[" + page + "]";
+		var pagesTag = "&[" + tM.getValue("Pages") + "]";
+		var tabTag = "&[" + tM.getValue("Tab") + "]";
+		var dateTag = "&[" + tM.getValue("Date") + "]";
+		var fileTag = "&[" + tM.getValue("File") + "]";
 
 		var arrPresets = [];
 		var arrPresetsMenu = [];
 		arrPresets[0] = arrPresetsMenu[0] = [null, null, null];
-		arrPresets[1] = arrPresetsMenu[1] = [null, "Page &[Page]", null];
-		arrPresets[2] = [null, page + " &[Page] of &[Pages]", null];
-		arrPresetsMenu[2] = [null, page + " &[Page] of ?", null];
-		arrPresets[3] = arrPresetsMenu[3] = [null, "&[Tab]", null];
-		arrPresets[4] = arrPresetsMenu[4] = [confidential, "&[Date]", page + " &[Page]"];
-		arrPresets[5] = arrPresetsMenu[5] = [null, "&[File]", null];
+		arrPresets[1] = arrPresetsMenu[1] = [null,  page + " " + pageTag, null];
+		arrPresets[2] = [null, page + pageOf.replace("%1", pageTag).replace("%2", pagesTag), null];
+		arrPresetsMenu[2] = [null, pageOf.replace("%1", pageTag).replace("%2", "?"), null];
+		arrPresets[3] = arrPresetsMenu[3] = [null, tabTag, null];
+		arrPresets[4] = arrPresetsMenu[4] = [confidential, dateTag, page + " " + pageTag];
+		arrPresets[5] = arrPresetsMenu[5] = [null, fileTag, null];
 		//arrPresets[6] = [null, "&[Path]&[File]", null];
-		arrPresets[6] = arrPresetsMenu[6] = [null, "&[Tab]", page + " &[Page]"];
-		arrPresets[7] = arrPresetsMenu[7] = ["&[Tab]", confidential, page + " &[Page]"];
-		arrPresets[8] = arrPresetsMenu[8] = [null, "&[File]", page + " &[Page]"];
+		arrPresets[6] = arrPresetsMenu[6] = [null, tabTag, page + " " + pageTag];
+		arrPresets[7] = arrPresetsMenu[7] = [tabTag, confidential, page + " " + pageTag];
+		arrPresets[8] = arrPresetsMenu[8] = [null, fileTag, page + " " + pageTag];
 		//arrPresets[10] = [null,"&[Path]&[File]","Page &[Page]"];
-		arrPresets[9] = arrPresetsMenu[9] = [null, page + " &[Page]", "&[Tab]"];
-		arrPresets[10] = arrPresetsMenu[10] = [null, page + " &[Page]", fileName];
-		arrPresets[11] = arrPresetsMenu[11] = [null, page + " &[Page]", "&[File]"];
+		arrPresets[9] = arrPresetsMenu[9] = [null, page + " " + pageTag, tabTag];
+		arrPresets[10] = arrPresetsMenu[10] = [null, page + " " + pageTag, fileName];
+		arrPresets[11] = arrPresetsMenu[11] = [null, page + " " + pageTag, fileTag];
 		//arrPresets[12] = [null,"Page &[Page]","&[Path]&[File]"];
-		arrPresets[12] = arrPresetsMenu[12] = [userName, page + " &[Page]", "&[Date]"];
-		arrPresets[13] = arrPresetsMenu[13] = [null, preparedBy + userName + " &[Date]", page + " &[Page]"];
+		arrPresets[12] = arrPresetsMenu[12] = [userName, page + " " + pageTag, dateTag];
+		arrPresets[13] = arrPresetsMenu[13] = [null, preparedBy + userName + " " + dateTag, page + " " + pageTag];
 
 		this.presets = arrPresets;
 		this.menuPresets = arrPresetsMenu;
