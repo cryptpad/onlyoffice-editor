@@ -2919,6 +2919,7 @@ var editor;
     if (this.spellcheckState.lockSpell || this.defaultLanguage === val) {
       return;
     }
+    this.defaultLanguage = val;
     this._spellCheckRestart();
   };
   spreadsheet_api.prototype.asc_nextWord = function () {
