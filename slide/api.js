@@ -1640,9 +1640,13 @@ background-repeat: no-repeat;\
 	};
 	/*----------------------------------------------------------------*/
 	/*functions for working with clipboard, document*/
-	asc_docs_api.prototype._printDesktop = function ()
+	asc_docs_api.prototype._printDesktop = function (options)
 	{
-		window["AscDesktopEditor"]["Print"]();
+		var opt = 0;
+        if (options && options.advancedOptions && options.advancedOptions && (Asc.c_oAscPrintType.Selection === options.advancedOptions.asc_getPrintType()))
+            opt |= 1;
+
+		window["AscDesktopEditor"]["Print"](opt);
 		return true;
 	};
 	asc_docs_api.prototype.Undo           = function()
@@ -6950,8 +6954,12 @@ background-repeat: no-repeat;\
 		var fileType = options.fileType;
 		if (c_oAscFileType.PDF === fileType || c_oAscFileType.PDFA === fileType)
 		{
+			var isSelection = false;
+			if (options.advancedOptions && options.advancedOptions && (Asc.c_oAscPrintType.Selection === options.advancedOptions.asc_getPrintType()))
+				isSelection = true;
+
 			var dd             = this.WordControl.m_oDrawingDocument;
-			dataContainer.data = dd.ToRendererPart(oAdditionalData["nobase64"]);
+			dataContainer.data = dd.ToRendererPart(oAdditionalData["nobase64"], isSelection);
 		}
 		else
 			dataContainer.data = this.WordControl.SaveDocument(oAdditionalData["nobase64"]);
@@ -7241,7 +7249,7 @@ background-repeat: no-repeat;\
 	{
 	};
 
-	window["asc_docs_api"].prototype["asc_nativePrint"] = function(_printer, _page)
+	window["asc_docs_api"].prototype["asc_nativePrint"] = function(_printer, _page, _opt)
 	{
 		if (undefined === _printer && _page === undefined)
 		{
@@ -7249,6 +7257,8 @@ background-repeat: no-repeat;\
 			{
 				var _drawing_document = this.WordControl.m_oDrawingDocument;
 				var pagescount        = _drawing_document.SlidesCount;
+                if ((_opt & 0x01) == 0x01)
+                    pagescount = this.WordControl.Thumbnails.GetSelectedArray().length;
 
 				window["AscDesktopEditor"]["Print_Start"](this.DocumentUrl, pagescount, this.ThemeLoader.ThemesUrl, this.getCurrentPage());
 
@@ -7259,8 +7269,15 @@ background-repeat: no-repeat;\
 				this.ShowParaMarks                       = false;
 				oDocRenderer.IsNoDrawingEmptyPlaceholder = true;
 
+                pagescount = _drawing_document.SlidesCount;
 				for (var i = 0; i < pagescount; i++)
 				{
+					if ((_opt & 0x01) == 0x01)
+					{
+						if (!this.WordControl.Thumbnails.isSelectedPage(i))
+							continue;
+					}
+
 					oDocRenderer.Memory.Seek(0);
 					oDocRenderer.VectorMemoryForPrint.ClearNoAttack();
 

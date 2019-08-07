@@ -1207,7 +1207,7 @@ function CDrawingDocument()
 		this.m_oWordControl.m_oApi.ShowParaMarks = old_marks;
 		return ret;
 	}
-	this.ToRendererPart = function(noBase64)
+	this.ToRendererPart = function(noBase64, isSelection)
 	{
 		var watermark = this.m_oWordControl.m_oApi.watermarkDraw;
 
@@ -1236,6 +1236,11 @@ function CDrawingDocument()
 
 		for (var i = start; i <= end; i++)
 		{
+			if (true === isSelection)
+			{
+				if (!this.m_oWordControl.Thumbnails.isSelectedPage(i))
+					continue;
+			}
 			renderer.BeginPage(this.m_oLogicDocument.Width, this.m_oLogicDocument.Height);
 			this.m_oLogicDocument.DrawPage(i, renderer);
 			renderer.EndPage();
@@ -3964,6 +3969,13 @@ function CThumbnailsManager()
 		{
 			this.m_oWordControl.m_oScrollThumbApi.scrollByY(y2 - this.m_oWordControl.m_oThumbnails.HtmlElement.height);
 		}
+	};
+
+	this.isSelectedPage = function(pageNum)
+	{
+		if (this.m_arrPages[pageNum] && this.m_arrPages[pageNum].IsSelected)
+			return true;
+		return false;
 	};
 
 	this.SelectPage = function(pageNum)
