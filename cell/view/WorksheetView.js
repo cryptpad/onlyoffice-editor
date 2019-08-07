@@ -19630,12 +19630,6 @@
 		var res = [];
 
 		var tM = AscCommon.translateManager;
-		var pageTag = "&[" + tM.getValue("Page") + "]";
-		var pagesTag = "&[" + tM.getValue("Pages") + "]";
-		var tabTag = "&[" + tM.getValue("Tab") + "]";
-		var dateTag = "&[" + tM.getValue("Date") + "]";
-		var fileTag = "&[" + tM.getValue("File") + "]";
-		var timeTag = "&[" + tM.getValue("Time") + "]";
 
 		var bToken, text, symbol, startToken, tokenText, tokenFormat;
 		for(var j = 0; j < fragments.length; j++) {
