@@ -426,27 +426,6 @@
 		t       : 9
 	};
 
-	var c_oAscChartCatAxisSettings = {
-		none        : 0,
-		leftToRight : 1,
-		rightToLeft : 2,
-		noLabels    : 3
-	};
-
-	var c_oAscChartValAxisSettings = {
-		none      : 0,
-		byDefault : 1,
-		thousands : 2,
-		millions  : 3,
-		billions  : 4,
-		log       : 5
-	};
-
-	var c_oAscAxisTypeSettings = {
-		vert : 0,
-		hor  : 1
-	};
-
 	var c_oAscGridLinesSettings = {
 		none       : 0,
 		major      : 1,
@@ -535,12 +514,6 @@
 		maxValue : 1,
 		value    : 2,
 		minValue : 3
-	};
-
-	var c_oAscHorAxisType = {
-		auto : 0,
-		date : 1,
-		text : 2
 	};
 
 	var c_oAscBetweenLabelsRule = {
