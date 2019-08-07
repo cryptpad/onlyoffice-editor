@@ -2508,7 +2508,7 @@
 				}
 			}
 
-			if(fragments[0]) {
+			/*if(fragments[0]) {
 				if(null === fragments[0].format.fn) {
 					fragments[0].format.fn = t.model.getDefaultFontName();
 				}
@@ -2516,13 +2516,14 @@
 					fragments[0].format.fs = t.model.getDefaultFontSize();
 				}
 				t.stringRender._setFont(drawingCtx, fragments[0].format);
-			}
+			}*/
+			t.stringRender.fontNeedUpdate = true;
 			t.stringRender.render(drawingCtx, x, y, textMetrics.width, t.settings.activeCellBorderColor);
 		};
 
 		//добавил аналогично другим отрисовка.
 		//без этого отсутвует drawingCtx.DocumentRenderer.m_arrayPages[0].FontPicker.LastPickFont
-		this._setDefaultFont(drawingCtx);
+		//this._setDefaultFont(drawingCtx);
 		for(var i = 0; i < headerFooterParser.portions.length; i++) {
 			drawPortion(i);
 		}
