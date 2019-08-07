@@ -170,6 +170,11 @@ CImageShape.prototype.recalculate = function ()
     if(this.bDeleted)
         return;
     AscFormat.ExecuteNoHistory(function() {
+        var bRecalcShadow = this.recalcInfo.recalculateBrush ||
+            this.recalcInfo.recalculatePen ||
+            this.recalcInfo.recalculateTransform ||
+            this.recalcInfo.recalculateGeometry ||
+            this.recalcInfo.recalculateBounds;
         if (this.recalcInfo.recalculateBrush) {
             this.recalculateBrush();
             this.recalcInfo.recalculateBrush = false;
@@ -191,12 +196,15 @@ CImageShape.prototype.recalculate = function ()
         if(this.recalcInfo.recalculateBounds) {
             this.recalculateBounds();
             this.recalcInfo.recalculateBounds = false;
-            this.recalculateShdw();
         }
         if(this.recalcInfo.recalculateWrapPolygon)
         {
             this.recalculateWrapPolygon();
             this.recalcInfo.recalculateWrapPolygon = false;
+        }
+        if(bRecalcShadow)
+        {
+            this.recalculateShdw();
         }
 
         this.clearCropObject();

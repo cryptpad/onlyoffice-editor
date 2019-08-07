@@ -445,6 +445,11 @@ CShape.prototype.recalculate = function ()
     var check_slide_placeholder = !this.isPlaceholder() || (this.parent && (this.parent.getObjectType() === AscDFH.historyitem_type_Slide));
     AscFormat.ExecuteNoHistory(function(){
 
+        var bRecalcShadow = this.recalcInfo.recalculateBrush ||
+            this.recalcInfo.recalculatePen ||
+            this.recalcInfo.recalculateTransform ||
+            this.recalcInfo.recalculateGeometry ||
+            this.recalcInfo.recalculateBounds;
         if (this.recalcInfo.recalculateBrush) {
             this.recalculateBrush();
             this.recalcInfo.recalculateBrush = false;
@@ -482,6 +487,9 @@ CShape.prototype.recalculate = function ()
         {
             this.recalculateBounds();
             this.recalcInfo.recalculateBounds = false;
+        }
+        if(bRecalcShadow)
+        {
             this.recalculateShdw();
         }
 
