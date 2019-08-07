@@ -454,7 +454,6 @@
 		majorMinor : 3
 	};
 
-
 	var c_oAscChartTypeSettings = {
 		barNormal              : 0,
 		barStacked             : 1,
@@ -496,7 +495,6 @@
 		contourWireframe       : 37,
 		unknown                : 38
 	};
-
 
 	var c_oAscValAxisRule = {
 		auto  : 0,
@@ -554,7 +552,6 @@
 		byDivisions      : 0,
 		betweenDivisions : 1
 	};
-
 
 	var c_oAscAxisType = {
 		auto : 0,
@@ -857,7 +854,6 @@
 		DeleteTable             : 5
 	};
 
-
 	// Print default options (in mm)
 	var c_oAscPrintDefaultSettings = {
 		// Размеры страницы при печати
@@ -879,6 +875,13 @@
 
 		PageGridLines : 0,
 		PageHeadings  : 0
+	};
+
+	// Тип печати
+	var c_oAscPrintType = {
+		ActiveSheets: 0,	// Активные листы
+		EntireWorkbook: 1,	// Всю книгу
+		Selection: 2		// Выделенный фрагмент
 	};
 
 	var c_oZoomType = {
@@ -2015,6 +2018,12 @@
 	prot['DeleteColumns']           = prot.DeleteColumns;
 	prot['DeleteRows']              = prot.DeleteRows;
 	prot['DeleteTable']             = prot.DeleteTable;
+
+	window['Asc']['c_oAscPrintType'] = window['Asc'].c_oAscPrintType = c_oAscPrintType;
+	prot = c_oAscPrintType;
+	prot['ActiveSheets'] = prot.ActiveSheets;
+	prot['EntireWorkbook'] = prot.EntireWorkbook;
+	prot['Selection'] = prot.Selection;
 
 	window['Asc']['c_oDashType'] = window['Asc'].c_oDashType = c_oDashType;
 	prot                  = c_oDashType;

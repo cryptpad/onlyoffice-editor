@@ -146,13 +146,6 @@ var c_oAscRecalcIndexTypes = {
   RecalcIndexRemove: 2
 };
 
-// Тип печати
-var c_oAscPrintType = {
-  ActiveSheets: 0,	// Активные листы
-  EntireWorkbook: 1,	// Всю книгу
-  Selection: 2		// Выделенный фрагмент
-};
-
 /** @enum */
 var c_oAscCustomAutoFilter = {
   equals: 1,
@@ -541,11 +534,6 @@ var c_oAscPopUpSelectorType = {
   prot['Range'] = prot.Range;
   prot['TableProperties'] = prot.TableProperties;
   prot['Sheet'] = prot.Sheet;
-  window['Asc']['c_oAscPrintType'] = window['Asc'].c_oAscPrintType = c_oAscPrintType;
-  prot = c_oAscPrintType;
-  prot['ActiveSheets'] = prot.ActiveSheets;
-  prot['EntireWorkbook'] = prot.EntireWorkbook;
-  prot['Selection'] = prot.Selection;
   window['Asc']['c_oAscCustomAutoFilter'] = window['Asc'].c_oAscCustomAutoFilter = c_oAscCustomAutoFilter;
   prot = c_oAscCustomAutoFilter;
   prot['equals'] = prot.equals;
