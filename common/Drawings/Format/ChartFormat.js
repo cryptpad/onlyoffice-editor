@@ -2682,7 +2682,22 @@ CPlotArea.prototype =
     {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_CommonChartFormat_SetParent, this.parent, pr));
         this.parent = pr;
-            }
+            },
+
+    handleUpdateFill: function()
+    {
+        if(this.parent && this.parent.handleUpdateFill)
+        {
+            this.parent.handleUpdateFill();
+        }
+    },
+    handleUpdateLn: function()
+    {
+        if(this.parent && this.parent.handleUpdateLn)
+        {
+            this.parent.handleUpdateLn();
+        }
+    }
 };
 
 
