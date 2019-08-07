@@ -10924,7 +10924,7 @@
 			var skipFormat = null;
 			var noSkipVal = null;
 
-			var cellValueData = newVal.getValueData();
+			var cellValueData = specialPasteProps.cellStyle ? newVal.getValueData() : null;
 			if(cellValueData && cellValueData.value)
 			{
 				if(!specialPasteProps.formula)
