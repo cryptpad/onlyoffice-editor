@@ -18076,7 +18076,7 @@
 				break;
 			}
 			case asc.c_oAscHeaderFooterField.fileName: {
-				res = api.DocInfo.Title;
+				res = api.DocInfo ? api.DocInfo.Title : "";
 				break;
 			}
 			case asc.c_oAscHeaderFooterField.filePath: {
