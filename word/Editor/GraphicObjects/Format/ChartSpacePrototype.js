@@ -144,6 +144,7 @@ CChartSpace.prototype.recalcChart = function()
 CChartSpace.prototype.recalcSeriesColors = function()
 {
     this.recalcInfo.recalculateSeriesColors = true;
+    this.recalcInfo.recalculatePenBrush = true;
 };
 
 CChartSpace.prototype.recalcDLbls = function()
@@ -208,6 +209,7 @@ CChartSpace.prototype.handleUpdateStyle = function()
     this.recalcInfo.recalculatePen = true;
     this.recalcInfo.recalculateHiLowLines = true;
     this.recalcInfo.recalculateUpDownBars = true;
+    this.recalcInfo.recalculatePenBrush = true;
     this.handleTitlesAfterChangeTheme();
     this.recalcInfo.recalculateAxisLabels = true;
     this.recalcInfo.recalculateAxisVal = true;
@@ -311,6 +313,7 @@ CChartSpace.prototype.recalculate = function()
         {
             this.recalculateSeriesColors();
             this.recalcInfo.recalculateSeriesColors = false;
+            this.recalcInfo.recalculatePenBrush = true;
         }
         if(this.recalcInfo.recalculateGridLines)
         {

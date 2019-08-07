@@ -569,6 +569,247 @@ function handleGroup(drawing, drawingObjectsController, e, x, y, group, pageInde
     return false;
 }
 
+function handleChartElements(drawing, drawingObjectsController, e, dTx, dTy, group, pageIndex, bWord) {
+
+    var selector = group ? group : drawingObjectsController;
+    var bSeries = false;
+    if(drawing.chartObj)
+    {
+        var t = drawing.chartObj;
+        var sortCharts = t._sortChartsForDrawing(drawing);
+        var oCanvas = drawing.getCanvasContext();
+        if( !Array.isArray(t.chart.sortZIndexPaths) || t.chart.sortZIndexPaths.length === 0)
+        {
+            for(var j = sortCharts.length - 1; j > -1; j--) {
+                var id = sortCharts[j];
+                var chartModel = t._getChartModelById(drawing.chart.plotArea, id);
+                if(!chartModel) {
+                    continue;
+                }
+                var oDrawChart = t.charts[id];
+                var seriesPaths = oDrawChart.paths.series;
+                for(var k = seriesPaths.length - 1; k > - 1 ; --k)
+                {
+                    if(Array.isArray(seriesPaths[k]))
+                    {
+                        var aPointsPaths = seriesPaths[k];
+                        for(var l = 0; l < aPointsPaths.length; ++l)
+                        {
+                            if(AscFormat.isRealNumber(aPointsPaths[l]))
+                            {
+                                var oPath = drawing.pathMemory.GetPath(aPointsPaths[l]);
+                                if(oPath.hitInInnerArea(oCanvas, dTx, dTy) || oPath.hitInPath(oCanvas, dTx, dTy))
+                                {
+                                    bSeries = true;
+                                    if(drawing.selection.chart === id && drawing.selection.series === k)
+                                    {
+                                        selector.resetSelection();
+                                        selector.selectObject(drawing, pageIndex);
+                                        selector.selection.chartSelection = drawing;
+                                        drawing.selection.chart = id;
+                                        drawing.selection.series = k;
+                                        drawing.selection.datPoint = l;
+                                    }
+                                    else
+                                    {
+                                        selector.resetSelection();
+                                        selector.selectObject(drawing, pageIndex);
+                                        selector.selection.chartSelection = drawing;
+                                        drawing.selection.chart = id;
+                                        drawing.selection.series = k;
+                                        drawing.selection.datPoint = null;
+                                    }
+                                    break;
+                                }
+                            }
+                            if(Array.isArray(aPointsPaths[l]))
+                            {
+                                var aPointsPaths2 = aPointsPaths[l];
+                                for(var z = 0; z < aPointsPaths2.length; ++z)
+                                {
+                                    if(AscFormat.isRealNumber(aPointsPaths2[z]))
+                                    {
+                                        var oPath = drawing.pathMemory.GetPath(aPointsPaths2[z]);
+                                        if(oPath.hitInInnerArea(oCanvas, dTx, dTy) || oPath.hitInPath(oCanvas, dTx, dTy))
+                                        {
+                                            bSeries = true;
+                                            if(drawing.selection.chart === id && drawing.selection.series === k)
+                                            {
+                                                selector.resetSelection();
+                                                selector.selectObject(drawing, pageIndex);
+                                                selector.selection.chartSelection = drawing;
+                                                drawing.selection.chart = id;
+                                                drawing.selection.series = k;
+                                                drawing.selection.datPoint = l;
+                                            }
+                                            else
+                                            {
+                                                selector.resetSelection();
+                                                selector.selectObject(drawing, pageIndex);
+                                                selector.selection.chartSelection = drawing;
+                                                drawing.selection.chart = id;
+                                                drawing.selection.series = k;
+                                                drawing.selection.datPoint = null;
+                                            }
+                                            break;
+                                        }
+                                    }
+                                }
+                                if(z < aPointsPaths2.length)
+                                {
+                                    break;
+                                }
+                            }
+                        }
+                        if(l < aPointsPaths.length)
+                        {
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        if(AscFormat.isRealNumber(seriesPaths[k]))
+                        {
+                            var oPath = drawing.pathMemory.GetPath(seriesPaths[k]);
+                            if(oPath.hitInInnerArea(oCanvas, dTx, dTy))
+                            {
+                                selector.resetSelection();
+                                selector.selectObject(drawing, pageIndex);
+                                selector.selection.chartSelection = drawing;
+                                bSeries = true;
+                                drawing.selection.plotArea = null;
+                                drawing.selection.chart = id;
+                                drawing.selection.series = k;
+                                drawing.selection.datPoint = null;
+                                break;
+                            }
+                        }
+                    }
+                }
+                if(k > -1)
+                {
+                    break;
+                }
+            }
+
+        }
+        else
+        {
+            for(var i = t.chart.sortZIndexPaths.length - 1; i > -1; i--) {
+                if(AscFormat.isRealNumber(t.chart.sortZIndexPaths[i].paths))
+                {
+                    var oPath = drawing.pathMemory.GetPath(t.chart.sortZIndexPaths[i].paths);
+                    if(oPath.hitInInnerArea(oCanvas, dTx, dTy) || oPath.hitInPath(oCanvas, dTx, dTy))
+                    {
+                        bSeries = true;
+                        if(drawing.selection.chart === t.chart.chart.Id && drawing.selection.series === t.chart.sortZIndexPaths[i].seria)
+                        {
+                            selector.resetSelection();
+                            selector.selectObject(drawing, pageIndex);
+                            selector.selection.chartSelection = drawing;
+                            drawing.selection.chart = t.chart.chart.Id;
+                            drawing.selection.series = t.chart.sortZIndexPaths[i].seria;
+                            drawing.selection.datPoint = t.chart.sortZIndexPaths[i].point;
+                        }
+                        else
+                        {
+                            selector.resetSelection();
+                            selector.selectObject(drawing, pageIndex);
+                            selector.selection.chartSelection = drawing;
+                            drawing.selection.chart = t.chart.chart.Id;
+                            drawing.selection.series = t.chart.sortZIndexPaths[i].seria;
+                            drawing.selection.datPoint = null;
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+
+        if(!bSeries)
+        {
+            for(j = 0; j < t.catAxisChart.length; ++j)
+            {
+                var oAxObj = t.catAxisChart[j];
+                if(oAxObj && oAxObj.paths)
+                {
+                    if(oAxObj.catAx.compiledMajorGridLines && oAxObj.catAx.compiledMajorGridLines.isVisible()
+                        && AscFormat.isRealNumber(oAxObj.paths.gridLines))
+                    {
+                        var oPath = drawing.pathMemory.GetPath(oAxObj.paths.gridLines);
+                        if(oPath.hitInPath(oCanvas, dTx, dTy))
+                        {
+                            bSeries = true;
+                            selector.resetSelection();
+                            selector.selectObject(drawing, pageIndex);
+                            selector.selection.chartSelection = drawing;
+                            drawing.selection.axis = oAxObj.catAx;
+                            drawing.selection.majorGridlines = oAxObj.paths.gridLines;
+                            break;
+                        }
+                    }
+                    if(oAxObj.catAx.compiledMinorGridLines && oAxObj.catAx.compiledMinorGridLines.isVisible()
+                        && AscFormat.isRealNumber(oAxObj.paths.minorGridLines))
+                    {
+                        var oPath = drawing.pathMemory.GetPath(oAxObj.paths.minorGridLines);
+                        if(oPath.hitInPath(oCanvas, dTx, dTy))
+                        {
+                            bSeries = true;
+                            selector.resetSelection();
+                            selector.selectObject(drawing, pageIndex);
+                            selector.selection.chartSelection = drawing;
+                            drawing.selection.axis = oAxObj.catAx;
+                            drawing.selection.minorGridlines = oAxObj.paths.minorGridLines;
+                            break;
+                        }
+                    }
+                }
+            }
+            if(j ===  t.catAxisChart.length)
+            {
+                for(j = 0; j < t.valAxisChart.length; ++j)
+                {
+                    var oAxObj = t.valAxisChart[j];
+                    if(oAxObj && oAxObj.paths)
+                    {
+                        if(oAxObj.valAx.compiledMajorGridLines && oAxObj.valAx.compiledMajorGridLines.isVisible() &&
+                            AscFormat.isRealNumber(oAxObj.paths.gridLines))
+                        {
+                            var oPath = drawing.pathMemory.GetPath(oAxObj.paths.gridLines);
+                            if(oPath.hitInPath(oCanvas, dTx, dTy))
+                            {
+                                bSeries = true;
+                                selector.resetSelection();
+                                selector.selectObject(drawing, pageIndex);
+                                selector.selection.chartSelection = drawing;
+                                drawing.selection.axis = oAxObj.valAx;
+                                drawing.selection.majorGridlines = oAxObj.paths.gridLines;
+                                break;
+                            }
+                        }
+                        if(oAxObj.valAx.compiledMinorGridLines && oAxObj.valAx.compiledMinorGridLines.isVisible() &&
+                            AscFormat.isRealNumber(oAxObj.paths.minorGridLines))
+                        {
+                            var oPath = drawing.pathMemory.GetPath(oAxObj.paths.minorGridLines);
+                            if(oPath.hitInPath(oCanvas, dTx, dTy))
+                            {
+                                bSeries = true;
+                                selector.resetSelection();
+                                selector.selectObject(drawing, pageIndex);
+                                selector.selection.chartSelection = drawing;
+                                drawing.selection.axis = oAxObj.valAx;
+                                drawing.selection.minorGridlines = oAxObj.paths.minorGridLines;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return bSeries;
+}
+
 function handleInternalChart(drawing, drawingObjectsController, e, x, y, group, pageIndex, bWord)
 {
     if(e.CtrlKey || (e.Button === AscCommon.g_mouse_button_right && drawingObjectsController.selectedObjects.length > 1)){
@@ -808,238 +1049,7 @@ function handleInternalChart(drawing, drawingObjectsController, e, x, y, group, 
                     {
                         drawingObjectsController.checkChartTextSelection();
 
-                        var bSeries = false;
-                        if(drawing.chartObj)
-                        {
-                            var t = drawing.chartObj;
-                            var sortCharts = t._sortChartsForDrawing(drawing);
-                            var oCanvas = drawing.getCanvasContext();
-                            if( !Array.isArray(t.chart.sortZIndexPaths) || t.chart.sortZIndexPaths.length === 0)
-                            {
-                                for(var j = sortCharts.length - 1; j > -1; j--) {
-                                    var id = sortCharts[j];
-                                    var chartModel = t._getChartModelById(drawing.chart.plotArea, id);
-                                    if(!chartModel) {
-                                        continue;
-                                    }
-                                    var oDrawChart = t.charts[id];
-                                    var seriesPaths = oDrawChart.paths.series;
-                                    for(var k = seriesPaths.length - 1; k > - 1 ; --k)
-                                    {
-                                        if(Array.isArray(seriesPaths[k]))
-                                        {
-                                            var aPointsPaths = seriesPaths[k];
-                                            for(var l = 0; l < aPointsPaths.length; ++l)
-                                            {
-                                                if(AscFormat.isRealNumber(aPointsPaths[l]))
-                                                {
-                                                    var oPath = drawing.pathMemory.GetPath(aPointsPaths[l]);
-                                                    if(oPath.hitInInnerArea(oCanvas, dTx, dTy) || oPath.hitInPath(oCanvas, dTx, dTy))
-                                                    {
-                                                        bSeries = true;
-                                                        if(drawing.selection.chart === id && drawing.selection.series === k)
-                                                        {
-                                                            selector.resetSelection();
-                                                            selector.selectObject(drawing, pageIndex);
-                                                            selector.selection.chartSelection = drawing;
-                                                            drawing.selection.chart = id;
-                                                            drawing.selection.series = k;
-                                                            drawing.selection.datPoint = l;
-                                                        }
-                                                        else
-                                                        {
-                                                            selector.resetSelection();
-                                                            selector.selectObject(drawing, pageIndex);
-                                                            selector.selection.chartSelection = drawing;
-                                                            drawing.selection.chart = id;
-                                                            drawing.selection.series = k;
-                                                            drawing.selection.datPoint = null;
-                                                        }
-                                                        break;
-                                                    }
-                                                }
-                                                if(Array.isArray(aPointsPaths[l]))
-                                                {
-                                                    var aPointsPaths2 = aPointsPaths[l];
-                                                    for(var z = 0; z < aPointsPaths2.length; ++z)
-                                                    {
-                                                        if(AscFormat.isRealNumber(aPointsPaths2[z]))
-                                                        {
-                                                            var oPath = drawing.pathMemory.GetPath(aPointsPaths2[z]);
-                                                            if(oPath.hitInInnerArea(oCanvas, dTx, dTy) || oPath.hitInPath(oCanvas, dTx, dTy))
-                                                            {
-                                                                bSeries = true;
-                                                                if(drawing.selection.chart === id && drawing.selection.series === k)
-                                                                {
-                                                                    selector.resetSelection();
-                                                                    selector.selectObject(drawing, pageIndex);
-                                                                    selector.selection.chartSelection = drawing;
-                                                                    drawing.selection.chart = id;
-                                                                    drawing.selection.series = k;
-                                                                    drawing.selection.datPoint = l;
-                                                                }
-                                                                else
-                                                                {
-                                                                    selector.resetSelection();
-                                                                    selector.selectObject(drawing, pageIndex);
-                                                                    selector.selection.chartSelection = drawing;
-                                                                    drawing.selection.chart = id;
-                                                                    drawing.selection.series = k;
-                                                                    drawing.selection.datPoint = null;
-                                                                }
-                                                                break;
-                                                            }
-                                                        }
-                                                    }
-                                                    if(z < aPointsPaths2.length)
-                                                    {
-                                                        break;
-                                                    }
-                                                }
-                                            }
-                                            if(l < aPointsPaths.length)
-                                            {
-                                                break;
-                                            }
-                                        }
-                                        else
-                                        {
-                                            if(AscFormat.isRealNumber(seriesPaths[k]))
-                                            {
-                                                var oPath = drawing.pathMemory.GetPath(seriesPaths[k]);
-                                                if(oPath.hitInInnerArea(oCanvas, dTx, dTy))
-                                                {
-
-                                                    selector.resetSelection();
-                                                    selector.selectObject(drawing, pageIndex);
-                                                    selector.selection.chartSelection = drawing;
-                                                    bSeries = true;
-                                                    drawing.selection.plotArea = null;
-                                                    drawing.selection.chart = id;
-                                                    drawing.selection.series = k;
-                                                    drawing.selection.datPoint = null;
-                                                    break;
-                                                }
-                                            }
-                                        }
-                                    }
-                                    if(k > -1)
-                                    {
-                                        break;
-                                    }
-                                }
-
-                            }
-                            else
-                            {
-                                for(var i = t.chart.sortZIndexPaths.length - 1; i > -1; i--) {
-                                    if(AscFormat.isRealNumber(t.chart.sortZIndexPaths[i].paths))
-                                    {
-                                        var oPath = drawing.pathMemory.GetPath(t.chart.sortZIndexPaths[i].paths);
-                                        if(oPath.hitInInnerArea(oCanvas, dTx, dTy) || oPath.hitInPath(oCanvas, dTx, dTy))
-                                        {
-                                            bSeries = true;
-                                            if(drawing.selection.chart === t.chart.chart.Id && drawing.selection.series === t.chart.sortZIndexPaths[i].seria)
-                                            {
-                                                selector.resetSelection();
-                                                selector.selectObject(drawing, pageIndex);
-                                                selector.selection.chartSelection = drawing;
-                                                drawing.selection.chart = t.chart.chart.Id;
-                                                drawing.selection.series = t.chart.sortZIndexPaths[i].seria;
-                                                drawing.selection.datPoint = t.chart.sortZIndexPaths[i].point;
-                                            }
-                                            else
-                                            {
-                                                selector.resetSelection();
-                                                selector.selectObject(drawing, pageIndex);
-                                                selector.selection.chartSelection = drawing;
-                                                drawing.selection.chart = t.chart.chart.Id;
-                                                drawing.selection.series = t.chart.sortZIndexPaths[i].seria;
-                                                drawing.selection.datPoint = null;
-                                            }
-                                            break;
-                                        }
-                                    }
-                                }
-                            }
-
-                            if(!bSeries)
-                            {
-                                for(j = 0; j < t.catAxisChart.length; ++j)
-                                {
-                                    var oAxObj = t.catAxisChart[j];
-                                    if(oAxObj && oAxObj.paths)
-                                    {
-                                        if(AscFormat.isRealNumber(oAxObj.paths.gridLines))
-                                        {
-                                            var oPath = drawing.pathMemory.GetPath(oAxObj.paths.gridLines);
-                                            if(oPath.hitInPath(oCanvas, dTx, dTy))
-                                            {
-                                                bSeries = true;
-                                                selector.resetSelection();
-                                                selector.selectObject(drawing, pageIndex);
-                                                selector.selection.chartSelection = drawing;
-                                                drawing.selection.axis = oAxObj.catAx;
-                                                drawing.selection.majorGridlines = oAxObj.paths.gridLines;
-                                                break;
-                                            }
-                                        }
-                                        if(AscFormat.isRealNumber(oAxObj.paths.minorGridLines))
-                                        {
-                                            var oPath = drawing.pathMemory.GetPath(oAxObj.paths.minorGridLines);
-                                            if(oPath.hitInPath(oCanvas, dTx, dTy))
-                                            {
-                                                bSeries = true;
-                                                selector.resetSelection();
-                                                selector.selectObject(drawing, pageIndex);
-                                                selector.selection.chartSelection = drawing;
-                                                drawing.selection.axis = oAxObj.catAx;
-                                                drawing.selection.minorGridlines = oAxObj.paths.minorGridLines;
-                                                break;
-                                            }
-                                        }
-                                    }
-                                }
-                                if(j ===  t.catAxisChart.length)
-                                {
-                                    for(j = 0; j < t.valAxisChart.length; ++j)
-                                    {
-                                        var oAxObj = t.valAxisChart[j];
-                                        if(oAxObj && oAxObj.paths)
-                                        {
-                                            if(AscFormat.isRealNumber(oAxObj.paths.gridLines))
-                                            {
-                                                var oPath = drawing.pathMemory.GetPath(oAxObj.paths.gridLines);
-                                                if(oPath.hitInPath(oCanvas, dTx, dTy))
-                                                {
-                                                    bSeries = true;
-                                                    selector.resetSelection();
-                                                    selector.selectObject(drawing, pageIndex);
-                                                    selector.selection.chartSelection = drawing;
-                                                    drawing.selection.axis = oAxObj.valAx;
-                                                    drawing.selection.majorGridlines = oAxObj.paths.gridLines;
-                                                    break;
-                                                }
-                                            }
-                                            if(AscFormat.isRealNumber(oAxObj.paths.minorGridLines))
-                                            {
-                                                var oPath = drawing.pathMemory.GetPath(oAxObj.paths.minorGridLines);
-                                                if(oPath.hitInPath(oCanvas, dTx, dTy))
-                                                {
-                                                    bSeries = true;
-                                                    selector.resetSelection();
-                                                    selector.selectObject(drawing, pageIndex);
-                                                    selector.selection.chartSelection = drawing;
-                                                    drawing.selection.axis = oAxObj.valAx;
-                                                    drawing.selection.minorGridlines = oAxObj.paths.minorGridLines;
-                                                    break;
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                        var bSeries =  handleChartElements(drawing, drawingObjectsController, e, dTx, dTy, group, pageIndex, bWord);
 
                         if(!bSeries)
                         {
@@ -1055,236 +1065,7 @@ function handleInternalChart(drawing, drawingObjectsController, e, x, y, group, 
                         var bSeries = false;
                         if(AscFormat.CChartsDrawer.prototype._isSwitchCurrent3DChart(drawing))
                         {
-                            if(drawing.chartObj) {
-                                var t = drawing.chartObj;
-                                var sortCharts = t._sortChartsForDrawing(drawing);
-                                var oCanvas = drawing.getCanvasContext();
-                                if( !Array.isArray(t.chart.sortZIndexPaths) || t.chart.sortZIndexPaths.length === 0)
-                                {
-                                    for(var j = sortCharts.length - 1; j > -1; j--) {
-                                        var id = sortCharts[j];
-                                        var chartModel = t._getChartModelById(drawing.chart.plotArea, id);
-                                        if(!chartModel) {
-                                            continue;
-                                        }
-                                        var oDrawChart = t.charts[id];
-                                        var seriesPaths = oDrawChart.paths.series;
-                                        for(var k = seriesPaths.length - 1; k > - 1 ; --k)
-                                        {
-                                            if(Array.isArray(seriesPaths[k]))
-                                            {
-                                                var aPointsPaths = seriesPaths[k];
-                                                for(var l = 0; l < aPointsPaths.length; ++l)
-                                                {
-                                                    if(AscFormat.isRealNumber(aPointsPaths[l]))
-                                                    {
-                                                        var oPath = drawing.pathMemory.GetPath(aPointsPaths[l]);
-                                                        if(oPath.hitInInnerArea(oCanvas, dTx, dTy) || oPath.hitInPath(oCanvas, dTx, dTy))
-                                                        {
-                                                            bSeries = true;
-                                                            if(drawing.selection.chart === id && drawing.selection.series === k)
-                                                            {
-                                                                selector.resetSelection();
-                                                                selector.selectObject(drawing, pageIndex);
-                                                                selector.selection.chartSelection = drawing;
-                                                                drawing.selection.chart = id;
-                                                                drawing.selection.series = k;
-                                                                drawing.selection.datPoint = l;
-                                                            }
-                                                            else
-                                                            {
-                                                                selector.resetSelection();
-                                                                selector.selectObject(drawing, pageIndex);
-                                                                selector.selection.chartSelection = drawing;
-                                                                drawing.selection.chart = id;
-                                                                drawing.selection.series = k;
-                                                                drawing.selection.datPoint = null;
-                                                            }
-                                                            break;
-                                                        }
-                                                    }
-                                                    if(Array.isArray(aPointsPaths[l]))
-                                                    {
-                                                        var aPointsPaths2 = aPointsPaths[l];
-                                                        for(var z = 0; z < aPointsPaths2.length; ++z)
-                                                        {
-                                                            if(AscFormat.isRealNumber(aPointsPaths2[z]))
-                                                            {
-                                                                var oPath = drawing.pathMemory.GetPath(aPointsPaths2[z]);
-                                                                if(oPath.hitInInnerArea(oCanvas, dTx, dTy) || oPath.hitInPath(oCanvas, dTx, dTy))
-                                                                {
-                                                                    bSeries = true;
-                                                                    if(drawing.selection.chart === id && drawing.selection.series === k)
-                                                                    {
-                                                                        selector.resetSelection();
-                                                                        selector.selectObject(drawing, pageIndex);
-                                                                        selector.selection.chartSelection = drawing;
-                                                                        drawing.selection.chart = id;
-                                                                        drawing.selection.series = k;
-                                                                        drawing.selection.datPoint = l;
-                                                                    }
-                                                                    else
-                                                                    {
-                                                                        selector.resetSelection();
-                                                                        selector.selectObject(drawing, pageIndex);
-                                                                        selector.selection.chartSelection = drawing;
-                                                                        drawing.selection.chart = id;
-                                                                        drawing.selection.series = k;
-                                                                        drawing.selection.datPoint = null;
-                                                                    }
-                                                                    break;
-                                                                }
-                                                            }
-                                                        }
-                                                        if(z < aPointsPaths2.length)
-                                                        {
-                                                            break;
-                                                        }
-                                                    }
-                                                }
-                                                if(l < aPointsPaths.length)
-                                                {
-                                                    break;
-                                                }
-                                            }
-                                            else
-                                            {
-                                                if(AscFormat.isRealNumber(seriesPaths[k]))
-                                                {
-                                                    var oPath = drawing.pathMemory.GetPath(seriesPaths[k]);
-                                                    if(oPath.hitInInnerArea(oCanvas, dTx, dTy))
-                                                    {
-
-                                                        selector.resetSelection();
-                                                        selector.selectObject(drawing, pageIndex);
-                                                        selector.selection.chartSelection = drawing;
-                                                        bSeries = true;
-                                                        drawing.selection.plotArea = null;
-                                                        drawing.selection.chart = id;
-                                                        drawing.selection.series = k;
-                                                        drawing.selection.datPoint = null;
-                                                        break;
-                                                    }
-                                                }
-                                            }
-                                        }
-                                        if(k > -1)
-                                        {
-                                            break;
-                                        }
-                                    }
-
-                                }
-                                else
-                                {
-                                    for(var i = t.chart.sortZIndexPaths.length - 1; i > -1; i--) {
-                                        if(AscFormat.isRealNumber(t.chart.sortZIndexPaths[i].paths))
-                                        {
-                                            var oPath = drawing.pathMemory.GetPath(t.chart.sortZIndexPaths[i].paths);
-                                            if(oPath.hitInInnerArea(oCanvas, dTx, dTy) || oPath.hitInPath(oCanvas, dTx, dTy))
-                                            {
-                                                bSeries = true;
-                                                if(drawing.selection.chart === t.chart.chart.Id && drawing.selection.series === t.chart.sortZIndexPaths[i].seria)
-                                                {
-                                                    selector.resetSelection();
-                                                    selector.selectObject(drawing, pageIndex);
-                                                    selector.selection.chartSelection = drawing;
-                                                    drawing.selection.chart = t.chart.chart.Id;
-                                                    drawing.selection.series = t.chart.sortZIndexPaths[i].seria;
-                                                    drawing.selection.datPoint = t.chart.sortZIndexPaths[i].point;
-                                                }
-                                                else
-                                                {
-                                                    selector.resetSelection();
-                                                    selector.selectObject(drawing, pageIndex);
-                                                    selector.selection.chartSelection = drawing;
-                                                    drawing.selection.chart = t.chart.chart.Id;
-                                                    drawing.selection.series = t.chart.sortZIndexPaths[i].seria;
-                                                    drawing.selection.datPoint = null;
-                                                }
-                                                break;
-                                            }
-                                        }
-                                    }
-                                }
-
-                                if(!bSeries)
-                                {
-                                    for(j = 0; j < t.catAxisChart.length; ++j)
-                                    {
-                                        var oAxObj = t.catAxisChart[j];
-                                        if(oAxObj && oAxObj.paths)
-                                        {
-                                            if(AscFormat.isRealNumber(oAxObj.paths.gridLines))
-                                            {
-                                                var oPath = drawing.pathMemory.GetPath(oAxObj.paths.gridLines);
-                                                if(oPath.hitInPath(oCanvas, dTx, dTy))
-                                                {
-                                                    bSeries = true;
-                                                    selector.resetSelection();
-                                                    selector.selectObject(drawing, pageIndex);
-                                                    selector.selection.chartSelection = drawing;
-                                                    drawing.selection.axis = oAxObj.catAx;
-                                                    drawing.selection.majorGridlines = oAxObj.paths.gridLines;
-                                                    break;
-                                                }
-                                            }
-                                            if(AscFormat.isRealNumber(oAxObj.paths.minorGridLines))
-                                            {
-                                                var oPath = drawing.pathMemory.GetPath(oAxObj.paths.minorGridLines);
-                                                if(oPath.hitInPath(oCanvas, dTx, dTy))
-                                                {
-                                                    bSeries = true;
-                                                    selector.resetSelection();
-                                                    selector.selectObject(drawing, pageIndex);
-                                                    selector.selection.chartSelection = drawing;
-                                                    drawing.selection.axis = oAxObj.catAx;
-                                                    drawing.selection.minorGridlines = oAxObj.paths.minorGridLines;
-                                                    break;
-                                                }
-                                            }
-                                        }
-                                    }
-                                    if(j ===  t.catAxisChart.length)
-                                    {
-                                        for(j = 0; j < t.valAxisChart.length; ++j)
-                                        {
-                                            var oAxObj = t.valAxisChart[j];
-                                            if(oAxObj && oAxObj.paths)
-                                            {
-                                                if(AscFormat.isRealNumber(oAxObj.paths.gridLines))
-                                                {
-                                                    var oPath = drawing.pathMemory.GetPath(oAxObj.paths.gridLines);
-                                                    if(oPath.hitInPath(oCanvas, dTx, dTy))
-                                                    {
-                                                        bSeries = true;
-                                                        selector.resetSelection();
-                                                        selector.selectObject(drawing, pageIndex);
-                                                        selector.selection.chartSelection = drawing;
-                                                        drawing.selection.axis = oAxObj.valAx;
-                                                        drawing.selection.majorGridlines = oAxObj.paths.gridLines;
-                                                        break;
-                                                    }
-                                                }
-                                                if(AscFormat.isRealNumber(oAxObj.paths.minorGridLines))
-                                                {
-                                                    var oPath = drawing.pathMemory.GetPath(oAxObj.paths.minorGridLines);
-                                                    if(oPath.hitInPath(oCanvas, dTx, dTy))
-                                                    {
-                                                        bSeries = true;
-                                                        selector.resetSelection();
-                                                        selector.selectObject(drawing, pageIndex);
-                                                        selector.selection.chartSelection = drawing;
-                                                        drawing.selection.axis = oAxObj.valAx;
-                                                        drawing.selection.minorGridlines = oAxObj.paths.minorGridLines;
-                                                        break;
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
+                            bSeries = handleChartElements(drawing, drawingObjectsController, e, dTx, dTy, group, pageIndex, bWord);
                         }
                         if(!bSeries)
                         {

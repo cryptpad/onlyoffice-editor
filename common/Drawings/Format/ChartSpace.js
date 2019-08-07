@@ -2191,20 +2191,48 @@ CChartSpace.prototype.setNvSpPr = function(pr) {
 
 CChartSpace.prototype.changeLine = function (line)
 {
-    if(this.recalcInfo.recalculatePenBrush)
+
+    var unifill2;
+    if(this.selection.plotArea)
     {
-        this.recalculatePenBrush();
     }
-    var stroke = AscFormat.CorrectUniStroke(line, this.pen);
-    if(stroke.Fill)
+    else if(AscFormat.isRealNumber(this.selection.series))
     {
-        stroke.Fill.convertToPPTXMods();
+    }
+    else if(this.selection.axis)
+    {
+        var oAxis = this.selection.axis;
+        if(this.selection.majorGridlines)
+        {
+
+        }
+    }
+    else if(this.selection.axisLbls)
+    {
+
+    }
+    else
+    {
+        if(this.recalcInfo.recalculatePenBrush)
+        {
+            this.recalculatePenBrush();
+        }
+        var stroke = AscFormat.CorrectUniStroke(line, this.pen);
+        if(stroke.Fill)
+        {
+            stroke.Fill.convertToPPTXMods();
+        }
+        if(!this.spPr){
+            this.setSpPr(new AscFormat.CSpPr());
+            this.spPr.setParent(this);
+        }
+        this.spPr.setLn(stroke);
     }
     if(!this.spPr){
         this.setSpPr(new AscFormat.CSpPr());
         this.spPr.setParent(this);
     }
-    this.spPr.setLn(stroke);
+    this.spPr.setFill(this.spPr.Fill ? this.spPr.Fill.createDuplicate() : this.spPr.Fill);
 };
 CChartSpace.prototype.parseChartFormula = function(sFormula)
 {
@@ -2946,6 +2974,7 @@ CChartSpace.prototype.handleUpdateType = function()
     }
     this.recalcInfo.recalculateChart =  true;
     this.recalcInfo.recalculateSeriesColors = true;
+    this.recalcInfo.recalculatePenBrush = true;
     this.recalcInfo.recalculateMarkers = true;
     this.recalcInfo.recalculateGridLines = true;
     this.recalcInfo.recalculateDLbls = true;
@@ -2973,6 +3002,7 @@ CChartSpace.prototype.handleUpdateInternalChart = function(bColors)
     if(bColors !== false)
     {
         this.recalcInfo.recalculateSeriesColors = true;
+        this.recalcInfo.recalculatePenBrush = true;
     }
     this.recalcInfo.recalculateDLbls = true;
     this.recalcInfo.recalculateAxisLabels = true;

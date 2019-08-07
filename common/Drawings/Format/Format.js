@@ -4871,8 +4871,6 @@ CUniFill.prototype =
         }
     },
 
-
-
     calculate : function(theme, slide, layout, masterSlide, RGBA, colorMap)
     {
         if(this.fill )
@@ -5867,6 +5865,11 @@ CLn.prototype =
     setW: function(w)
     {
         this.w = w;
+    },
+
+    isVisible: function()
+    {
+        return this.Fill && this.Fill.fill && this.Fill.fill.type !== AscFormat.FILL_TYPE_NONE && this.Fill.fill.type !== AscFormat.FILL_TYPE_NOFILL;
     },
 
     Write_ToBinary: function(w)
