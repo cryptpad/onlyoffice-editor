@@ -17118,7 +17118,7 @@
 				var props, collapsed;
 				if(arrayLines[i]) {
 					for(var j = 0; j < arrayLines[i].length; j++) {
-						if(!_summaryBelow) {
+						if((!bCol && !_summaryBelow) || (bCol && !_summaryRight)) {
 							if(endPosArr[arrayLines[i][j].start]) {
 								continue;
 							}
@@ -17967,8 +17967,9 @@
 							collapsedTo = groupArr[i][j].end + 1;
 						}
 
-						if(this._getGroupCollapsed(collapsedFrom)) {
-							collapsedIndexes[collapsedTo] = 1;
+						var fromCollapsed = this._getGroupCollapsed(collapsedFrom, bCol);
+						if(fromCollapsed !== this._getGroupCollapsed(collapsedTo, bCol)) {
+							collapsedIndexes[collapsedTo] = fromCollapsed;
 						}
 					}
 				}
@@ -17987,13 +17988,19 @@
 			bCol ? t.model.setSummaryRight(val) : t.model.setSummaryBelow(val);
 
 			for(var n in collapsedIndexes) {
-				bCol ? t.model.setCollapsedCol(true, collapsedIndexes[n]) : t.model.setCollapsedRow(true, collapsedIndexes[n]);
+				bCol ? t.model.setCollapsedCol(collapsedIndexes[n], n) : t.model.setCollapsedRow(collapsedIndexes[n], n);
 			}
 
 			History.EndTransaction();
 
-			t._updateGroups(null);
-			t._updateGroups(true);
+			//t._updateGroups(null);
+			//t._updateGroups(true);
+
+			if(bCol) {
+				t._updateAfterChangeGroup(undefined, null);
+			} else {
+				t._updateAfterChangeGroup(null);
+			}
 		};
 
 		this._isLockedAll(callback);
