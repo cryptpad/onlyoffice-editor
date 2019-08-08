@@ -1440,57 +1440,60 @@ CChartSpace.prototype.drawSelect = function(drawingDocument, nPageIndex)
             }
             else if(AscFormat.isRealNumber(this.selection.series))
             {
-                var oDrawChart = this.chartObj.charts[this.selection.chart];
-                if(oDrawChart)
+                if(this.chartObj)
                 {
-                    var seriesPaths = oDrawChart.paths.series;
-                    var Paths = seriesPaths[this.selection.series];
-
-                    if(Array.isArray(Paths))
+                    var oDrawChart = this.chartObj.charts[this.selection.chart];
+                    if(oDrawChart)
                     {
-                        var aPointsPaths = Paths;
-                        if(AscFormat.isRealNumber(aPointsPaths[this.selection.datPoint]))
+                        var seriesPaths = oDrawChart.paths.series;
+                        var Paths = seriesPaths[this.selection.series];
+
+                        if(Array.isArray(Paths))
                         {
-                            var oPath = this.pathMemory.GetPath(aPointsPaths[this.selection.datPoint]);
-                            oPath.drawTracks(drawingDocument, this.transform);
-                        }
-                        else
-                        {
-                            for(var l = 0; l < aPointsPaths.length; ++l)
+                            var aPointsPaths = Paths;
+                            if(AscFormat.isRealNumber(aPointsPaths[this.selection.datPoint]))
                             {
-                                if(AscFormat.isRealNumber(aPointsPaths[l]))
+                                var oPath = this.pathMemory.GetPath(aPointsPaths[this.selection.datPoint]);
+                                oPath.drawTracks(drawingDocument, this.transform);
+                            }
+                            else
+                            {
+                                for(var l = 0; l < aPointsPaths.length; ++l)
                                 {
-                                    var oPath = this.pathMemory.GetPath(aPointsPaths[l]);
-                                    oPath.drawTracks(drawingDocument, this.transform);
-                                }
-                                if(Array.isArray(aPointsPaths[l]))
-                                {
-                                    var aPointsPaths2 = aPointsPaths[l];
-                                    for(var z = 0; z < aPointsPaths2.length; ++z)
+                                    if(AscFormat.isRealNumber(aPointsPaths[l]))
                                     {
-                                        if(AscFormat.isRealNumber(aPointsPaths2[z]))
+                                        var oPath = this.pathMemory.GetPath(aPointsPaths[l]);
+                                        oPath.drawTracks(drawingDocument, this.transform);
+                                    }
+                                    if(Array.isArray(aPointsPaths[l]))
+                                    {
+                                        var aPointsPaths2 = aPointsPaths[l];
+                                        for(var z = 0; z < aPointsPaths2.length; ++z)
                                         {
-                                            var oPath = this.pathMemory.GetPath(aPointsPaths2[z]);
-                                            oPath.drawTracks(drawingDocument, this.transform);
+                                            if(AscFormat.isRealNumber(aPointsPaths2[z]))
+                                            {
+                                                var oPath = this.pathMemory.GetPath(aPointsPaths2[z]);
+                                                oPath.drawTracks(drawingDocument, this.transform);
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
-                    }
-                    else
-                    {
-                        if(AscFormat.isRealNumber(Paths))
+                        else
                         {
-                            if(AscFormat.isRealNumber(this.selection.datPoint))
+                            if(AscFormat.isRealNumber(Paths))
                             {
-                                Paths = seriesPaths[this.selection.datPoint];
+                                if(AscFormat.isRealNumber(this.selection.datPoint))
+                                {
+                                    Paths = seriesPaths[this.selection.datPoint];
+                                }
+                                var oPath = this.pathMemory.GetPath(Paths);
+                                oPath.drawTracks(drawingDocument, this.transform);
                             }
-                            var oPath = this.pathMemory.GetPath(Paths);
-                            oPath.drawTracks(drawingDocument, this.transform);
                         }
-                    }
 
+                    }
                 }
 
             }
