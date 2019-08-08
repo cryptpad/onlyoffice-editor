@@ -2263,13 +2263,22 @@ CDLbl.prototype =
         }
     },
 
+    handleUpdateFill: function()
+    {
+        this.Refresh_RecalcData2();
+    },
+    handleUpdateLn: function()
+    {
+        this.Refresh_RecalcData2();
+    },
+
     Refresh_RecalcData2: function()
     {
         if(this.parent && this.parent.Refresh_RecalcData2)
         {
             this.parent.Refresh_RecalcData2();
         }
-            }
+    }
 };
 
 
@@ -2478,7 +2487,7 @@ CPlotArea.prototype =
         var aCharts = this.charts;
         var oRet = null;
         var oChart, aSeries;
-        var aRet = []
+        var aRet = [];
         for(var i = 0; i < aCharts.length; ++i){
             oChart = aCharts[i];
             var aAxes = aCharts[i].axId;
@@ -6808,6 +6817,15 @@ CDLbls.prototype =
                 }
             }
         }
+    },
+
+    handleUpdateFill: function()
+    {
+        this.Refresh_RecalcData2();
+    },
+    handleUpdateLn: function()
+    {
+        this.Refresh_RecalcData2();
     },
 
 
@@ -13426,6 +13444,21 @@ CChart.prototype =
         if(this.parent && this.parent.handleUpdateDataLabels)
         {
             this.parent.handleUpdateDataLabels();
+        }
+    },
+
+    handleUpdateFill: function()
+    {
+        if(this.parent && this.parent.handleUpdateFill)
+        {
+            this.parent.handleUpdateFill();
+        }
+    },
+    handleUpdateLn: function()
+    {
+        if(this.parent && this.parent.handleUpdateLn)
+        {
+            this.parent.handleUpdateLn();
         }
     },
 

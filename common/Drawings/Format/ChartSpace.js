@@ -551,8 +551,8 @@ function checkPointInMap(map, worksheet, row, col)
     AscDFH.changesFactory[AscDFH.historyitem_PageSetupSetPaperWidth             ] = CChangesDrawingsDouble;
     AscDFH.changesFactory[AscDFH.historyitem_PageSetupSetUseFirstPageNumb         ] = CChangesDrawingsBool;
     AscDFH.changesFactory[AscDFH.historyitem_PageSetupSetVerticalDpi              ] = CChangesDrawingsLong;
-    
-    
+
+
 
     function CheckParagraphTextPr(oParagraph, oTextPr)
     {
@@ -1164,7 +1164,7 @@ function checkPointInMap(map, worksheet, row, col)
             this.x = fAxisX + fDistance - fMaxContentWidth;
         }
         this.extX = fMaxContentWidth + fDistance_;
-        
+
         this.y = fMinY;
         this.extY = fMaxY - fMinY;
     };
@@ -1482,6 +1482,10 @@ CChartSpace.prototype.drawSelect = function(drawingDocument, nPageIndex)
                     {
                         if(AscFormat.isRealNumber(Paths))
                         {
+                            if(AscFormat.isRealNumber(this.selection.datPoint))
+                            {
+                                Paths = seriesPaths[this.selection.datPoint];
+                            }
                             var oPath = this.pathMemory.GetPath(Paths);
                             oPath.drawTracks(drawingDocument, this.transform);
                         }
@@ -2178,6 +2182,141 @@ CChartSpace.prototype.changeSize = CShape.prototype.changeSize;
         if(!ret)
         {
             ret = AscFormat.CreateNoFillUniFill();
+        }
+        var parents = this.getParentObjects();
+        var RGBA = {R: 255, G:255, B: 255, A:255};
+        ret.calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA, this.clrMapOvr);
+        return ret;
+    };
+
+    CChartSpace.prototype.getStroke = function()
+    {
+        var ret = null;
+        if(this.selection.plotArea)
+        {
+            if(this.chart.plotArea.pen && this.chart.plotArea.pen.Fill)
+            {
+                ret = this.chart.plotArea.pen;
+            }
+        }
+        else if(AscFormat.isRealNumber(this.selection.dataLbls))
+        {
+            var ser = this.getAllSeries()[this.selection.dataLbls];
+            if(ser)
+            {
+                var oDlbls = ser.dLbls;
+                if(!AscFormat.isRealNumber(this.selection.dataLbl))
+                {
+                    if(oDlbls && oDlbls.spPr && oDlbls.spPr.ln && oDlbls.spPr.ln.Fill)
+                    {
+                        ret = oDlbls.spPr.ln;
+                    }
+                }
+                else
+                {
+                    var pts = AscFormat.getPtsFromSeries(ser);
+                    var pt = pts[this.selection.dataLbl];
+                    if(pt)
+                    {
+                        var dLbl  = ser.dLbls.findDLblByIdx(pt.idx);
+                        if(dLbl && dLbl.spPr && dLbl.spPr.ln && dLbl.spPr.ln.Fill)
+                        {
+                            ret = dLbl.spPr.ln;
+                        }
+                    }
+                }
+            }
+        }
+        else if(this.selection.axisLbls)
+        {
+            if(this.selection.axisLbls.spPr && this.selection.axisLbls.spPr.ln && this.selection.axisLbls.spPr.ln.Fill)
+            {
+                ret = this.selection.axisLbls.spPr.ln;
+            }
+        }
+        else if(this.selection.title)
+        {
+            if(this.selection.title.spPr && this.selection.title.spPr.ln && this.selection.title.spPr.ln.Fill)
+            {
+                ret = this.selection.title.spPr.ln;
+            }
+        }
+        else if(this.selection.legend)
+        {
+            if(this.selection.legend.spPr && this.selection.legend.spPr.ln && this.selection.legend.spPr.ln.Fill)
+            {
+                ret = this.selection.legend.spPr.ln;
+            }
+        }
+        else if(AscFormat.isRealNumber(this.selection.series))
+        {
+            var oChart = AscCommon.g_oTableId.Get_ById(this.selection.chart);
+            if(oChart)
+            {
+                var oSeries = null;
+                for(var i = 0; i < oChart.series.length; ++i)
+                {
+                    if(oChart.series[i].idx === this.selection.series)
+                    {
+                        oSeries = oChart.series[i];
+                        break;
+                    }
+                }
+                if(oSeries)
+                {
+                    if(AscFormat.isRealNumber(this.selection.datPoint))
+                    {
+                        var pts = AscFormat.getPtsFromSeries(oSeries);
+                        for(var j = 0; j < pts.length; ++j)
+                        {
+                            var pt = pts[j];
+                            if(pt.idx === this.selection.datPoint)
+                            {
+                                if(pt.pen && pt.pen.Fill)
+                                {
+                                    ret = pt.pen;
+                                }
+                                break;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        if(oSeries.compiledSeriesPen && oSeries.compiledSeriesPen.Fill)
+                        {
+                            ret = oSeries.compiledSeriesPen;
+                        }
+                    }
+                }
+            }
+        }
+        else if(this.selection.axis)
+        {
+            if(AscFormat.isRealNumber(this.selection.majorGridlines))
+            {
+                if(this.selection.axis.majorGridlines && this.selection.axis.majorGridlines.ln && this.selection.axis.majorGridlines.ln.Fill)
+                {
+                    ret = this.selection.axis.majorGridlines.ln;
+                }
+            }
+            if(AscFormat.isRealNumber(this.selection.minorGridlines))
+            {
+                if(this.selection.axis.minorGridlines && this.selection.axis.minorGridlines.ln && this.selection.axis.minorGridlines.ln.Fill)
+                {
+                    ret = this.selection.axis.minorGridlines.ln;
+                }
+            }
+        }
+        else
+        {
+            if(this.pen && this.pen.Fill)
+            {
+                ret = this.pen;
+            }
+        }
+        if(!ret)
+        {
+            ret = AscFormat.CreateNoFillLine();
         }
         var parents = this.getParentObjects();
         var RGBA = {R: 255, G:255, B: 255, A:255};
