@@ -13331,7 +13331,7 @@ CYVal.prototype =
         {
             this.numRef.setParent(this);
         }
-            }
+    }
 };
 
 

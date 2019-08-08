@@ -2145,10 +2145,15 @@ CChartSpace.prototype.changeSize = CShape.prototype.changeSize;
                     if(AscFormat.isRealNumber(this.selection.datPoint))
                     {
                         var pts = AscFormat.getPtsFromSeries(oSeries);
+                        var datPoint = this.selection.datPoint;
+                        if(oSeries.getObjectType() === AscDFH.historyitem_type_LineSeries || oSeries.getObjectType() === AscDFH.historyitem_type_ScatterSer)
+                        {
+                            datPoint++;
+                        }
                         for(var j = 0; j < pts.length; ++j)
                         {
                             var pt = pts[j];
-                            if(pt.idx === this.selection.datPoint)
+                            if(pt.idx === datPoint)
                             {
                                 if(pt.brush && pt.brush.fill)
                                 {
@@ -2267,10 +2272,15 @@ CChartSpace.prototype.changeSize = CShape.prototype.changeSize;
                     if(AscFormat.isRealNumber(this.selection.datPoint))
                     {
                         var pts = AscFormat.getPtsFromSeries(oSeries);
+                        var datPoint = this.selection.datPoint;
+                        if(oSeries.getObjectType() === AscDFH.historyitem_type_LineSeries || oSeries.getObjectType() === AscDFH.historyitem_type_ScatterSer)
+                        {
+                            datPoint++;
+                        }
                         for(var j = 0; j < pts.length; ++j)
                         {
                             var pt = pts[j];
-                            if(pt.idx === this.selection.datPoint)
+                            if(pt.idx === datPoint)
                             {
                                 if(pt.pen && pt.pen.Fill)
                                 {
@@ -2457,10 +2467,15 @@ CChartSpace.prototype.changeFill = function (unifill)
                 if(AscFormat.isRealNumber(this.selection.datPoint))
                 {
                     var pts = AscFormat.getPtsFromSeries(oSeries);
+                    var datPoint = this.selection.datPoint;
+                    if(oSeries.getObjectType() === AscDFH.historyitem_type_LineSeries || oSeries.getObjectType() === AscDFH.historyitem_type_ScatterSer)
+                    {
+                        datPoint++;
+                    }
                     for(var j = 0; j < pts.length; ++j)
                     {
                         var pt = pts[j];
-                        if(pt.idx === this.selection.datPoint)
+                        if(pt.idx === datPoint)
                         {
                             var oDataPoint = null;
 
@@ -2693,10 +2708,15 @@ CChartSpace.prototype.changeLine = function (line)
                 if(AscFormat.isRealNumber(this.selection.datPoint))
                 {
                     var pts = AscFormat.getPtsFromSeries(oSeries);
+                    var datPoint = this.selection.datPoint;
+                    if(oSeries.getObjectType() === AscDFH.historyitem_type_LineSeries || oSeries.getObjectType() === AscDFH.historyitem_type_ScatterSer)
+                    {
+                        datPoint++;
+                    }
                     for(var j = 0; j < pts.length; ++j)
                     {
                         var pt = pts[j];
-                        if(pt.idx === this.selection.datPoint)
+                        if(pt.idx === datPoint)
                         {
                             var oDataPoint = null;
 
