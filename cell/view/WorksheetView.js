@@ -17959,12 +17959,12 @@
 					for (var j = 0; j < groupArr[i].length; j++) {
 						var collapsedFrom, collapsedTo;
 						if(val === false) {
-							collapsedFrom = end + 1;
-							collapsedTo = start - 1;
+							collapsedFrom = groupArr[i][j].end + 1;
+							collapsedTo = groupArr[i][j].start - 1;
 
 						} else {
-							collapsedFrom = start - 1;
-							collapsedTo = end + 1;
+							collapsedFrom = groupArr[i][j].start - 1;
+							collapsedTo = groupArr[i][j].end + 1;
 						}
 
 						if(this._getGroupCollapsed(collapsedFrom)) {
