@@ -1953,13 +1953,13 @@ background-repeat: no-repeat;\
 			if (window["AscDesktopEditor"]["IsSupportNativePrint"](this.DocumentUrl) === true)
 			{
 				window["AscDesktopEditor"]["Print"]();
-				return;
+				return true;
 			}
 		}
 		else
 		{
 			window["AscDesktopEditor"]["Print"]();
-			return;
+			return true;
 		}
 		return true;
 	};
@@ -7389,6 +7389,9 @@ background-repeat: no-repeat;\
                 isSelection = true;
 
 			var dd             = this.WordControl.m_oDrawingDocument;
+			if (isSelection)
+				dd.GenerateSelectionPrint();
+
 			dataContainer.data = dd.ToRendererPart(oAdditionalData["nobase64"], isSelection);
 			//console.log(oAdditionalData["data"]);
 		}
@@ -9135,16 +9138,20 @@ background-repeat: no-repeat;\
 	{
 	};
 
-	window["asc_docs_api"].prototype["asc_nativePrint"] = function(_printer, _page)
+	window["asc_docs_api"].prototype["asc_nativePrint"] = function(_printer, _page, _opt)
 	{
 		if (undefined === _printer && _page === undefined)
 		{
 			if (undefined !== window["AscDesktopEditor"])
 			{
 				var _drawing_document = this.WordControl.m_oDrawingDocument;
-				var pagescount        = Math.min(_drawing_document.m_lPagesCount, _drawing_document.m_lCountCalculatePages);
+                if ((_opt & 0x01) == 0x01)
+                	_drawing_document.GenerateSelectionPrint();
 
-				window["AscDesktopEditor"]["Print_Start"](this.DocumentUrl, pagescount, "", this.getCurrentPage());
+                var _drawing_document_print = _drawing_document.printedDocument ? _drawing_document.printedDocument : _drawing_document;
+				var pagescount        = Math.min(_drawing_document_print.m_lPagesCount, _drawing_document_print.m_lCountCalculatePages);
+
+				window["AscDesktopEditor"]["Print_Start"](this.DocumentUrl, pagescount, "", _drawing_document.printedDocument ? 0 : this.getCurrentPage());
 
 				var oDocRenderer                  = new AscCommon.CDocumentRenderer();
                 oDocRenderer.InitPicker(AscCommon.g_oTextMeasurer.m_oManager);
@@ -9157,9 +9164,9 @@ background-repeat: no-repeat;\
 					oDocRenderer.Memory.Seek(0);
 					oDocRenderer.VectorMemoryForPrint.ClearNoAttack();
 
-					var page = _drawing_document.m_arrPages[i];
+					var page = _drawing_document_print.m_arrPages[i];
 					oDocRenderer.BeginPage(page.width_mm, page.height_mm);
-					this.WordControl.m_oLogicDocument.DrawPage(i, oDocRenderer);
+                    _drawing_document_print.m_oLogicDocument.DrawPage(i, oDocRenderer);
 					oDocRenderer.EndPage();
 
 					window["AscDesktopEditor"]["Print_Page"](oDocRenderer.Memory.GetBase64Memory(), page.width_mm, page.height_mm);
@@ -9167,6 +9174,7 @@ background-repeat: no-repeat;\
 
 				this.ShowParaMarks = bOldShowMarks;
 
+                _drawing_document.printedDocument = null;
 				window["AscDesktopEditor"]["Print_End"]();
 			}
 			return;
