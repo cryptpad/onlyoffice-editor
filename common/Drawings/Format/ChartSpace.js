@@ -1477,6 +1477,27 @@ CChartSpace.prototype.drawSelect = function(drawingDocument, nPageIndex)
                                             }
                                         }
                                     }
+                                    else if(AscCommon.isRealObject(aPointsPaths[l]))
+                                    {
+                                        // downPath: 1230
+                                        // frontPath: []
+                                        // insidePath: 1188
+                                        // upPath: 1213
+                                        if(AscFormat.isRealNumber(aPointsPaths[l].upPath))
+                                        {
+                                            var oPath = this.pathMemory.GetPath(aPointsPaths[l].downPath);
+                                            oPath.drawTracks(drawingDocument, this.transform);
+                                        }
+                                        if(Array.isArray(aPointsPaths[l].frontPath))
+                                        {
+                                            for(var s = 0; s < aPointsPaths[l].frontPath.length; ++s)
+                                            {
+                                                var oPath = this.pathMemory.GetPath(aPointsPaths[l].frontPath[s]);
+                                                oPath.drawTracks(drawingDocument, this.transform);
+                                            }
+                                        }
+
+                                    }
                                 }
                             }
                         }

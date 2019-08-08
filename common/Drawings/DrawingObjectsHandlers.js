@@ -689,6 +689,67 @@ function handleChartElements(drawing, drawingObjectsController, e, dTx, dTy, gro
                                         break;
                                     }
                                 }
+                                else if(AscCommon.isRealObject(aPointsPaths[l]))
+                                {
+                                    // downPath: 1230
+                                    // frontPath: []
+                                    // insidePath: 1188
+                                    // upPath: 1213
+                                    if(AscFormat.isRealNumber(aPointsPaths[l].upPath))
+                                    {
+                                        var oPath = drawing.pathMemory.GetPath(aPointsPaths[l].downPath);
+                                        if(oPath.hitInInnerArea(oCanvas, dTx, dTy) || oPath.hitInPath(oCanvas, dTx, dTy))
+                                        {
+                                            bSeries = true;
+                                        }
+                                    }
+                                    if(Array.isArray(aPointsPaths[l].frontPath))
+                                    {
+                                        for(var s = 0; s < aPointsPaths[l].frontPath.length; ++s)
+                                        {
+                                            var oPath = drawing.pathMemory.GetPath(aPointsPaths[l].frontPath[s]);
+                                            if(oPath.hitInInnerArea(oCanvas, dTx, dTy) || oPath.hitInPath(oCanvas, dTx, dTy))
+                                            {
+                                                bSeries = true;
+                                            }
+                                        }
+                                    }
+
+                                    if(bSeries)
+                                    {
+                                        if(bPie)
+                                        {
+                                            selector.resetSelection();
+                                            selector.selectObject(drawing, pageIndex);
+                                            selector.selection.chartSelection = drawing;
+                                            drawing.selection.chart = id;
+                                            drawing.selection.series = 0;
+                                            drawing.selection.datPoint = k;
+                                        }
+                                        else
+                                        {
+                                            if(drawing.selection.chart === id && drawing.selection.series === k)
+                                            {
+                                                selector.resetSelection();
+                                                selector.selectObject(drawing, pageIndex);
+                                                selector.selection.chartSelection = drawing;
+                                                drawing.selection.chart = id;
+                                                drawing.selection.series = k;
+                                                drawing.selection.datPoint = l;
+                                            }
+                                            else
+                                            {
+                                                selector.resetSelection();
+                                                selector.selectObject(drawing, pageIndex);
+                                                selector.selection.chartSelection = drawing;
+                                                drawing.selection.chart = id;
+                                                drawing.selection.series = k;
+                                                drawing.selection.datPoint = null;
+                                            }
+                                        }
+                                        break;
+                                    }
+                                }
                             }
                             if(l < aPointsPaths.length)
                             {
@@ -731,6 +792,10 @@ function handleChartElements(drawing, drawingObjectsController, e, dTx, dTy, gro
                     {
                         break;
                     }
+                }
+                else
+                {
+
                 }
             }
 
