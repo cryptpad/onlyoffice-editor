@@ -17975,29 +17975,29 @@
 			}
 		}
 
-		if(collapsedIndexes.length) {
-			var callback = function(success) {
-				if(!success) {
-					return;
-				}
 
-				History.Create_NewPoint();
-				History.StartTransaction();
+		var callback = function(success) {
+			if(!success) {
+				return;
+			}
 
-				bCol ? t.model.setSummaryRight(val) : t.model.setSummaryBelow(val);
+			History.Create_NewPoint();
+			History.StartTransaction();
 
-				for(var n in collapsedIndexes) {
-					bCol ? t.model.setCollapsedCol(true, collapsedIndexes[n]) : t.model.setCollapsedRow(true, collapsedIndexes[n]);
-				}
+			bCol ? t.model.setSummaryRight(val) : t.model.setSummaryBelow(val);
 
-				History.EndTransaction();
+			for(var n in collapsedIndexes) {
+				bCol ? t.model.setCollapsedCol(true, collapsedIndexes[n]) : t.model.setCollapsedRow(true, collapsedIndexes[n]);
+			}
 
-				t._updateGroups(null);
-				t._updateGroups(true);
-			};
+			History.EndTransaction();
 
-			this._isLockedAll(callback);
-		}
+			t._updateGroups(null);
+			t._updateGroups(true);
+		};
+
+		this._isLockedAll(callback);
+
 	};
 
 
