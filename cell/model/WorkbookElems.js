@@ -6401,6 +6401,14 @@ function RangeDataManagerElem(bbox, data)
 			res.dxf = this.dxf.clone;
 		}
 		res.CalculatedColumnFormula = this.CalculatedColumnFormula;
+
+		res.uniqueName = this.uniqueName;
+		res.clipped = this.clipped;
+		res.dataBound = this.dataBound;
+		res.fillFormulas = this.fillFormulas;
+		res.queryName = this.queryName;
+		res.rowNumbers = this.rowNumbers;
+
 		return res;
 	};
 	TableColumn.prototype.generateTotalsRowLabel = function () {
