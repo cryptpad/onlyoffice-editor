@@ -1494,6 +1494,31 @@ CChartSpace.prototype.drawSelect = function(drawingDocument, nPageIndex)
                                         }
                                     }
                                 }
+                                else if(AscCommon.isRealObject(aPointsPaths[this.selection.datPoint]))
+                                {
+                                    if(Array.isArray(aPointsPaths[this.selection.datPoint].frontPaths))
+                                    {
+                                        for(var l = 0; l < aPointsPaths[this.selection.datPoint].frontPaths.length; ++l)
+                                        {
+                                            if(AscFormat.isRealNumber(aPointsPaths[this.selection.datPoint].frontPaths[l]))
+                                            {
+                                                var oPath = this.pathMemory.GetPath(aPointsPaths[this.selection.datPoint].frontPaths[l]);
+                                                oPath.drawTracks(drawingDocument, this.transform);
+                                            }
+                                        }
+                                    }
+                                    if(Array.isArray(aPointsPaths[this.selection.datPoint].darkPaths))
+                                    {
+                                        for(var l = 0; l < aPointsPaths[this.selection.datPoint].darkPaths.length; ++l)
+                                        {
+                                            if(AscFormat.isRealNumber(aPointsPaths[this.selection.datPoint].darkPaths[l]))
+                                            {
+                                                var oPath = this.pathMemory.GetPath(aPointsPaths[this.selection.datPoint].darkPaths[l]);
+                                                oPath.drawTracks(drawingDocument, this.transform);
+                                            }
+                                        }
+                                    }
+                                }
                             }
                             else
                             {
