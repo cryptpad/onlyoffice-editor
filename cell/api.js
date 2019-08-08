@@ -2919,6 +2919,7 @@ var editor;
     if (this.spellcheckState.lockSpell || this.defaultLanguage === val) {
       return;
     }
+    this.defaultLanguage = val;
     this._spellCheckRestart();
   };
   spreadsheet_api.prototype.asc_nextWord = function () {
@@ -2996,13 +2997,18 @@ var editor;
     }
   };
 
-  spreadsheet_api.prototype.asc_replaceMisspelledWord = function(newWord, variantsFound) {
+  spreadsheet_api.prototype.asc_replaceMisspelledWord = function(newWord, variantsFound, replaceAll) {
     var t = this;
     var ws = this.wb.getWorksheet();
     var options = new Asc.asc_CFindOptions();
     options.findWhat = variantsFound.Word;
     options.replaceWith = newWord;
     this.spellcheckState.lockSpell = true;
+
+    if (replaceAll === true) {
+      options.isReplaceAll = true;
+    }
+    
     ws.replaceCellText(options, false, function () {
       t.spellcheckState.lockSpell = false;
       t.asc_nextWord();
@@ -3811,12 +3817,12 @@ var editor;
 	};
 
 	spreadsheet_api.prototype.asc_getGroupSummaryRight = function () {
-		var ws = this.wbModel.getActive();
+		var ws = this.wbModel.getActiveWs();
 		return ws && ws.sheetPr ? ws.sheetPr.SummaryRight : true;
 	};
 
 	spreadsheet_api.prototype.asc_getGroupSummaryBelow = function () {
-		var ws = this.wbModel.getActive();
+		var ws = this.wbModel.getActiveWs();
 		return ws && ws.sheetPr ? ws.sheetPr.SummaryBelow : true;
 	};
 

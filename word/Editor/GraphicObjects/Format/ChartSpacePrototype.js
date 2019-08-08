@@ -80,6 +80,7 @@ CChartSpace.prototype.handleUpdateFill = function()
     this.recalcInfo.recalculateBrush = true;
     this.recalcInfo.recalculateChart = true;
     this.recalcInfo.recalculateSeriesColors = true;
+    this.recalcInfo.recalculateLegend = true;
     this.addToRecalculate();
 };
 CChartSpace.prototype.handleUpdateLn = function()
@@ -88,6 +89,7 @@ CChartSpace.prototype.handleUpdateLn = function()
     this.recalcInfo.recalculatePen = true;
     this.recalcInfo.recalculateChart = true;
     this.recalcInfo.recalculateSeriesColors = true;
+    this.recalcInfo.recalculateLegend = true;
     this.addToRecalculate();
 };
 
@@ -145,6 +147,7 @@ CChartSpace.prototype.recalcSeriesColors = function()
 {
     this.recalcInfo.recalculateSeriesColors = true;
     this.recalcInfo.recalculatePenBrush = true;
+    this.recalcInfo.recalculateLegend = true;
 };
 
 CChartSpace.prototype.recalcDLbls = function()
@@ -314,6 +317,7 @@ CChartSpace.prototype.recalculate = function()
             this.recalculateSeriesColors();
             this.recalcInfo.recalculateSeriesColors = false;
             this.recalcInfo.recalculatePenBrush = true;
+            this.recalcInfo.recalculateLegend = true;
         }
         if(this.recalcInfo.recalculateGridLines)
         {

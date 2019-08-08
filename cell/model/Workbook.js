@@ -4760,9 +4760,9 @@
 
 		History.Create_NewPoint();
 		History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_SetSummaryRight, this.getId(), null,
-			new UndoRedoData_FromTo(this.sheetPr.summaryRight, val));
+			new UndoRedoData_FromTo(this.sheetPr.SummaryRight, val));
 
-		this.sheetPr.summaryRight = val;
+		this.sheetPr.SummaryRight = val;
 	};
 	Worksheet.prototype.setSummaryBelow = function (val) {
 		if (!this.sheetPr){
@@ -4771,9 +4771,9 @@
 
 		History.Create_NewPoint();
 		History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_SetSummaryBelow, this.getId(), null,
-			new UndoRedoData_FromTo(this.sheetPr.summaryBelow, val));
+			new UndoRedoData_FromTo(this.sheetPr.SummaryBelow, val));
 
-		this.sheetPr.summaryBelow = val;
+		this.sheetPr.SummaryBelow = val;
 	};
 	Worksheet.prototype.setGroupCol = function (bDel, start, stop) {
 		var oThis = this;
