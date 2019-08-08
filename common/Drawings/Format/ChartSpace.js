@@ -1446,15 +1446,54 @@ CChartSpace.prototype.drawSelect = function(drawingDocument, nPageIndex)
                     if(oDrawChart)
                     {
                         var seriesPaths = oDrawChart.paths.series;
-                        var Paths = seriesPaths[this.selection.series];
+                        var Paths;
+                        if(oDrawChart.chart && oDrawChart.chart.getObjectType() === AscDFH.historyitem_type_PieChart && oDrawChart.properties3d)
+                        {
+                            Paths = seriesPaths;
+                        }
+                        else
+                        {
+                            Paths = seriesPaths[this.selection.series];
+                        }
 
                         if(Array.isArray(Paths))
                         {
                             var aPointsPaths = Paths;
-                            if(AscFormat.isRealNumber(aPointsPaths[this.selection.datPoint]))
+                            if(AscFormat.isRealNumber(this.selection.datPoint))
                             {
-                                var oPath = this.pathMemory.GetPath(aPointsPaths[this.selection.datPoint]);
-                                oPath.drawTracks(drawingDocument, this.transform);
+                                if(AscFormat.isRealNumber(aPointsPaths[this.selection.datPoint]))
+                                {
+                                    var oPath = this.pathMemory.GetPath(aPointsPaths[this.selection.datPoint]);
+                                    oPath.drawTracks(drawingDocument, this.transform);
+                                }
+                                else  if(Array.isArray(aPointsPaths[this.selection.datPoint]))
+                                {
+                                    var aPointsPaths2 = aPointsPaths[this.selection.datPoint];
+                                    for(var z = 0; z < aPointsPaths2.length; ++z)
+                                    {
+                                        if(AscCommon.isRealObject(aPointsPaths2[z]))
+                                        {
+                                            // downPath: 1230
+                                            // frontPath: []
+                                            // insidePath: 1188
+                                            // upPath: 1213
+                                            if(AscFormat.isRealNumber(aPointsPaths2[z].upPath))
+                                            {
+                                                var oPath = this.pathMemory.GetPath(aPointsPaths2[z].downPath);
+                                                oPath.drawTracks(drawingDocument, this.transform);
+                                            }
+                                            if(Array.isArray(aPointsPaths2[z].frontPath))
+                                            {
+                                                for(var s = 0; s < aPointsPaths2[z].frontPath.length; ++s)
+                                                {
+                                                    var oPath = this.pathMemory.GetPath(aPointsPaths2[z].frontPath[s]);
+                                                    oPath.drawTracks(drawingDocument, this.transform);
+                                                }
+                                            }
+
+                                        }
+                                    }
+                                }
                             }
                             else
                             {
@@ -1476,27 +1515,6 @@ CChartSpace.prototype.drawSelect = function(drawingDocument, nPageIndex)
                                                 oPath.drawTracks(drawingDocument, this.transform);
                                             }
                                         }
-                                    }
-                                    else if(AscCommon.isRealObject(aPointsPaths[l]))
-                                    {
-                                        // downPath: 1230
-                                        // frontPath: []
-                                        // insidePath: 1188
-                                        // upPath: 1213
-                                        if(AscFormat.isRealNumber(aPointsPaths[l].upPath))
-                                        {
-                                            var oPath = this.pathMemory.GetPath(aPointsPaths[l].downPath);
-                                            oPath.drawTracks(drawingDocument, this.transform);
-                                        }
-                                        if(Array.isArray(aPointsPaths[l].frontPath))
-                                        {
-                                            for(var s = 0; s < aPointsPaths[l].frontPath.length; ++s)
-                                            {
-                                                var oPath = this.pathMemory.GetPath(aPointsPaths[l].frontPath[s]);
-                                                oPath.drawTracks(drawingDocument, this.transform);
-                                            }
-                                        }
-
                                     }
                                 }
                             }
