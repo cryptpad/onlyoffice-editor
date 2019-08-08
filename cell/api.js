@@ -3812,12 +3812,12 @@ var editor;
 	};
 
 	spreadsheet_api.prototype.asc_getGroupSummaryRight = function () {
-		var ws = this.wbModel.getActive();
+		var ws = this.wbModel.getActiveWs();
 		return ws && ws.sheetPr ? ws.sheetPr.SummaryRight : true;
 	};
 
 	spreadsheet_api.prototype.asc_getGroupSummaryBelow = function () {
-		var ws = this.wbModel.getActive();
+		var ws = this.wbModel.getActiveWs();
 		return ws && ws.sheetPr ? ws.sheetPr.SummaryBelow : true;
 	};
 
