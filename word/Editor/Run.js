@@ -10852,7 +10852,11 @@ ParaRun.prototype.ProcessAutoCorrect = function(nPos)
 			if (arrElements.length > 0)
 			{
 				var oPrevElement = arrElements[0];
-				if (para_Text === oPrevElement.Type && 45 !== oPrevElement.Value)
+				if (para_Text === oPrevElement.Type
+					&& 45 !== oPrevElement.Value
+					&& 40 !== oPrevElement.Value
+					&& 91 !== oPrevElement.Value
+					&& 123 !== oPrevElement.Value)
 					isOpenQuote = false;
 			}
 
