@@ -38,40 +38,6 @@ var c_oAscError = Asc.c_oAscError;
 /////////////////////////////////////////////////////////
 //////////////        OPEN       ////////////////////////
 /////////////////////////////////////////////////////////
-Asc['asc_docs_api'].prototype._OfflineAppDocumentEndLoad = function(_url, _data, _len)
-{
-	AscCommon.g_oIdCounter.m_sUserId = window["AscDesktopEditor"]["CheckUserId"]();
-	if (_data == "")
-	{
-		this.sendEvent("asc_onError", c_oAscError.ID.ConvertationOpenError, c_oAscError.Level.Critical);
-		return;
-	}
-
-	var _binary = getBinaryArray(_data, _len);
-	var _sign_len = AscCommon.c_oSerFormat.Signature.length;
-	var _signature = "";
-	if (_binary.length >= _sign_len)
-	{
-		for (var i = 0; i < _sign_len; i++)
-		{
-			_signature += String.fromCharCode(_binary[i]);
-		}
-	}
-
-	if (AscCommon.c_oSerFormat.Signature !== _signature)
-	{
-		this.OpenDocument(_url, _binary);
-	}
-    else
-	{
-		this.OpenDocument2(_url, _binary);
-		this.WordControl.m_oLogicDocument.Set_FastCollaborativeEditing(false);
-	}
-
-	DesktopOfflineUpdateLocalName(this);
-
-	window["DesktopAfterOpen"](this);
-};
 window["DesktopOfflineAppDocumentEndLoad"] = function(_url, _data, _len)
 {
 	AscCommon.g_oDocumentUrls.documentUrl = _url;
@@ -82,7 +48,7 @@ window["DesktopOfflineAppDocumentEndLoad"] = function(_url, _data, _len)
 		AscCommon.g_oDocumentUrls.documentUrl = "file://" + AscCommon.g_oDocumentUrls.documentUrl;
 	}
 
-    editor._OfflineAppDocumentEndLoad(_url, _data, _len);
+    editor._onEndLoadLocalFile(_url, _data, _len);
 	editor.sendEvent("asc_onDocumentPassword", ("" != editor.currentPassword) ? true : false);
 };
 
