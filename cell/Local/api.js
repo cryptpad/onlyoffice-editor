@@ -51,6 +51,9 @@ var c_oAscError = Asc.c_oAscError;
 
 	spreadsheet_api.prototype._OfflineAppDocumentStartLoad = function()
 	{
+		if (this.isChartEditor)
+			return AscCommon.baseEditorsApi.prototype._OfflineAppDocumentStartLoad.call(this);
+
 		this.asc_registerCallback('asc_onDocumentContentReady', function(){
 			DesktopOfflineUpdateLocalName(asc["editor"]);
 
@@ -61,6 +64,9 @@ var c_oAscError = Asc.c_oAscError;
 	};
 	spreadsheet_api.prototype._OfflineAppDocumentEndLoad = function(_data, _len)
 	{
+        if (this.isChartEditor)
+            return AscCommon.baseEditorsApi.prototype._OfflineAppDocumentEndLoad.call(this);
+
 		AscCommon.g_oIdCounter.m_sUserId = window["AscDesktopEditor"]["CheckUserId"]();
 		if (_data == "")
 		{
