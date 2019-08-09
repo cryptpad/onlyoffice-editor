@@ -294,17 +294,4 @@ var c_oAscError = Asc.c_oAscError;
 		else if (sCommand == "print")
 			asc["editor"].asc_Print();
 	};
-	window["DesktopOfflineAppDocumentEndLoad"] = function(_url, _data, _len)
-	{
-		AscCommon.g_oDocumentUrls.documentUrl = _url;
-		if (AscCommon.g_oDocumentUrls.documentUrl.indexOf("file:") != 0)
-		{
-			if (AscCommon.g_oDocumentUrls.documentUrl.indexOf("/") != 0)
-				AscCommon.g_oDocumentUrls.documentUrl = "/" + AscCommon.g_oDocumentUrls.documentUrl;
-			AscCommon.g_oDocumentUrls.documentUrl = "file://" + AscCommon.g_oDocumentUrls.documentUrl;
-		}
-
-        asc["editor"]._onEndLoadLocalFile(_url, _data, _len);
-        asc["editor"].sendEvent("asc_onDocumentPassword", ("" != asc["editor"].currentPassword) ? true : false);
-	};
 })(jQuery, window);

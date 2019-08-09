@@ -38,21 +38,7 @@ var c_oAscError = Asc.c_oAscError;
 /////////////////////////////////////////////////////////
 //////////////        OPEN       ////////////////////////
 /////////////////////////////////////////////////////////
-window["DesktopOfflineAppDocumentEndLoad"] = function(_url, _data, _len)
-{
-	AscCommon.g_oDocumentUrls.documentUrl = _url;
-	if (AscCommon.g_oDocumentUrls.documentUrl.indexOf("file:") != 0)
-	{
-		if (AscCommon.g_oDocumentUrls.documentUrl.indexOf("/") != 0)
-			AscCommon.g_oDocumentUrls.documentUrl = "/" + AscCommon.g_oDocumentUrls.documentUrl;
-		AscCommon.g_oDocumentUrls.documentUrl = "file://" + AscCommon.g_oDocumentUrls.documentUrl;
-	}
-
-    editor._onEndLoadLocalFile(_url, _data, _len);
-	editor.sendEvent("asc_onDocumentPassword", ("" != editor.currentPassword) ? true : false);
-};
-
-Asc['asc_docs_api'].prototype.asc_setAdvancedOptions = function(idOption, option) 
+Asc['asc_docs_api'].prototype.asc_setAdvancedOptions = function(idOption, option)
 {
 	if (window.isNativeOpenPassword)
 	{

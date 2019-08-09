@@ -135,6 +135,21 @@ AscFonts.CFontFileLoader.prototype.LoadFontAsync = function(basePath, _callback,
 	xhr.send(null);
 };
 
+window["DesktopOfflineAppDocumentEndLoad"] = function(_url, _data, _len)
+{
+	var editor = Asc.editor || window.editor;
+	AscCommon.g_oDocumentUrls.documentUrl = _url;
+	if (AscCommon.g_oDocumentUrls.documentUrl.indexOf("file:") != 0)
+	{
+		if (AscCommon.g_oDocumentUrls.documentUrl.indexOf("/") != 0)
+			AscCommon.g_oDocumentUrls.documentUrl = "/" + AscCommon.g_oDocumentUrls.documentUrl;
+		AscCommon.g_oDocumentUrls.documentUrl = "file://" + AscCommon.g_oDocumentUrls.documentUrl;
+	}
+
+	editor._onEndLoadLocalFile(_url, _data, _len);
+	editor.sendEvent("asc_onDocumentPassword", ("" != editor.currentPassword) ? true : false);
+};
+
 window["DesktopUploadFileToUrl"] = function(url, dst, hash, pass)
 {
     var xhr = new XMLHttpRequest();
