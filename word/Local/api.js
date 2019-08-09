@@ -38,17 +38,6 @@ var c_oAscError = Asc.c_oAscError;
 /////////////////////////////////////////////////////////
 //////////////        OPEN       ////////////////////////
 /////////////////////////////////////////////////////////
-Asc['asc_docs_api'].prototype._openChartOrLocalDocument = function()
-{
-	this.asc_registerCallback('asc_onDocumentContentReady', function(){
-		DesktopOfflineUpdateLocalName(editor);
-
-		setTimeout(function(){window["UpdateInstallPlugins"]();}, 10);
-	});
-
-	AscCommon.History.UserSaveMode = true;
-    window["AscDesktopEditor"]["LocalStartOpen"]();
-};
 Asc['asc_docs_api'].prototype._OfflineAppDocumentEndLoad = function(_url, _data, _len)
 {
 	AscCommon.g_oIdCounter.m_sUserId = window["AscDesktopEditor"]["CheckUserId"]();

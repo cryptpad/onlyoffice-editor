@@ -49,19 +49,6 @@ var c_oAscError = Asc.c_oAscError;
 	var asc = window["Asc"];
 	var spreadsheet_api = asc['spreadsheet_api'];
 
-	spreadsheet_api.prototype._openChartOrLocalDocument = function()
-	{
-		if (this.isChartEditor)
-			return this._openEmptyDocument();
-
-		this.asc_registerCallback('asc_onDocumentContentReady', function(){
-			DesktopOfflineUpdateLocalName(asc["editor"]);
-
-			setTimeout(function(){window["UpdateInstallPlugins"]();}, 10);
-		});
-	
-		window["AscDesktopEditor"]["LocalStartOpen"]();
-	};
 	spreadsheet_api.prototype._OfflineAppDocumentEndLoad = function(_data, _len)
 	{
 		AscCommon.g_oIdCounter.m_sUserId = window["AscDesktopEditor"]["CheckUserId"]();

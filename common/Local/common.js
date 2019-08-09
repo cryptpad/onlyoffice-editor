@@ -32,6 +32,26 @@
 
 "use strict";
 
+(function (window, undefined)
+{
+	AscCommon.baseEditorsApi.prototype._openChartOrLocalDocument = function ()
+	{
+		if (this.isChartEditor)
+		{
+			return this._openEmptyDocument();
+		}
+
+		this.asc_registerCallback('asc_onDocumentContentReady', function(){
+			DesktopOfflineUpdateLocalName(Asc.editor || editor);
+
+			setTimeout(function(){window["UpdateInstallPlugins"]();}, 10);
+		});
+
+		AscCommon.History.UserSaveMode = true;
+		window["AscDesktopEditor"]["LocalStartOpen"]();
+	};
+})(window);
+
 /////////////////////////////////////////////////////////
 //////////////       FONTS       ////////////////////////
 /////////////////////////////////////////////////////////
