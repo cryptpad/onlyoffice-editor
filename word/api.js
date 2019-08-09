@@ -1946,7 +1946,7 @@ background-repeat: no-repeat;\
 
 	/*----------------------------------------------------------------*/
 	/*functions for working with clipboard, document*/
-	asc_docs_api.prototype._printDesktop = function ()
+	asc_docs_api.prototype._printDesktop = function (options)
 	{
 		if (null != this.WordControl.m_oDrawingDocument.m_oDocumentRenderer)
 		{
@@ -1958,7 +1958,11 @@ background-repeat: no-repeat;\
 		}
 		else
 		{
-			window["AscDesktopEditor"]["Print"]();
+            var opt = 0;
+            if (options && options.advancedOptions && options.advancedOptions && (Asc.c_oAscPrintType.Selection === options.advancedOptions.asc_getPrintType()))
+                opt |= 1;
+
+			window["AscDesktopEditor"]["Print"](opt);
 			return true;
 		}
 		return true;
