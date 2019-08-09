@@ -1809,17 +1809,17 @@
 				{canvas: oCanvas, units: 0/*px*/, fmgrGraphics: wb.fmgrGraphics, font: wb.m_oFont});
 
 			function addStyles(styles, type) {
-				var oStyle, name;
+				var oStyle, name, displayName;
 				for (var i = 0; i < styles.length && i < 1000; ++i) {
 					oStyle = styles[i];
 					if (oStyle.Hidden) {
 						continue;
 					}
-					name = oStyle.Name;
+					name = displayName = oStyle.Name;
 					if (type === AscCommon.c_oAscStyleImage.Default) {
 						// ToDo Возможно стоит переписать немного, чтобы не пробегать каждый раз по массиву custom-стилей (нужно генерировать AllStyles)
 						oStyle = cellStyles.getCustomStyleByBuiltinId(oStyle.BuiltinId) || oStyle;
-						name = AscCommon.translateManager.getValue(name);
+						displayName = AscCommon.translateManager.getValue(name);
 					} else if (null !== oStyle.BuiltinId) {
 						continue;
 					}
@@ -1827,7 +1827,7 @@
 					if (window["IS_NATIVE_EDITOR"]) {
 						window["native"]["BeginDrawStyle"](type, name);
 					}
-					drawStyle(oGraphics, wb.stringRender, oStyle, name, widthWithRetina, heightWithRetina);
+					drawStyle(oGraphics, wb.stringRender, oStyle, displayName, widthWithRetina, heightWithRetina);
 					if (window["IS_NATIVE_EDITOR"]) {
 						window["native"]["EndDrawStyle"]();
 					} else {

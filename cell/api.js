@@ -2932,11 +2932,6 @@ var editor;
     }
 
     var ws = this.wb.getWorksheet();
-    this.spellcheckState.init(ws.model.selectionRange.activeCell);
-
-    var startCell = this.spellcheckState.startCell;
-    var currentCell = this.spellcheckState.currentCell;
-    var lang = this.defaultLanguage;
 
     var maxC = ws.model.getColsCount() - 1;
     var maxR = ws.model.getRowsCount() - 1;
@@ -2944,6 +2939,24 @@ var editor;
       this.handlers.trigger("asc_onSpellCheckVariantsFound", new AscCommon.asc_CSpellCheckProperty());
       return;
     }
+
+    var activeCell = ws.model.selectionRange.activeCell;
+    if (!this.spellcheckState.startCell) {
+      this.spellcheckState.startCell = activeCell.clone();
+      if (this.spellcheckState.startCell.col > maxC) {
+        this.spellcheckState.startCell.row += 1;
+        this.spellcheckState.startCell.col = 0;
+      }
+      if (this.spellcheckState.startCell.row > maxR) {
+        this.spellcheckState.startCell.row = 0;
+        this.spellcheckState.startCell.col = 0;
+      }
+      this.spellcheckState.currentCell = this.spellcheckState.startCell.clone();
+    }
+
+    var startCell = this.spellcheckState.startCell;
+    var currentCell = this.spellcheckState.currentCell;
+    var lang = this.defaultLanguage;
 
     var langArray = [];
     var wordsArray = [];
