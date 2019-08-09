@@ -795,7 +795,82 @@ function handleChartElements(drawing, drawingObjectsController, e, dTx, dTy, gro
                 }
                 else
                 {
+                    if(chartModel.getObjectType() === AscDFH.historyitem_type_StockChart)
+                    {
+                        seriesPaths = oDrawChart.paths.values;
+                        if(Array.isArray(seriesPaths))
+                        {
+                            for(var k = 0; k < seriesPaths.length; ++k)
+                            {
+                                if(AscFormat.isRealNumber(seriesPaths[k].upBars))
+                                {
+                                    var oPath = drawing.pathMemory.GetPath(seriesPaths[k].upBars);
+                                    if(oPath.hitInInnerArea(oCanvas, dTx, dTy) || oPath.hitInPath(oCanvas, dTx, dTy))
+                                    {
+                                        if(chartModel && chartModel.upDownBars && chartModel.upDownBars.upBars)
+                                        {
 
+                                            bSeries = true;
+                                            selector.resetSelection();
+                                            selector.selectObject(drawing, pageIndex);
+                                            selector.selection.chartSelection = drawing;
+                                            drawing.selection.chart = id;
+                                            drawing.selection.upBars = chartModel.upDownBars.upBars ;
+                                            break;
+                                        }
+                                    }
+                                }
+                                else if(AscFormat.isRealNumber(seriesPaths[k].downBars))
+                                {
+                                    var oPath = drawing.pathMemory.GetPath(seriesPaths[k].downBars);
+                                    if(oPath.hitInInnerArea(oCanvas, dTx, dTy) || oPath.hitInPath(oCanvas, dTx, dTy))
+                                    {
+                                        if(chartModel && chartModel.upDownBars && chartModel.upDownBars.downBars)
+                                        {
+                                            bSeries = true;
+                                            selector.resetSelection();
+                                            selector.selectObject(drawing, pageIndex);
+                                            selector.selection.chartSelection = drawing;
+                                            drawing.selection.chart = id;
+                                            drawing.selection.downBars = chartModel.upDownBars.downBars;
+                                            break;
+                                        }
+                                    }
+                                }
+                                if(AscFormat.isRealNumber(seriesPaths[k].lowLines))
+                                {
+                                    var oPath = drawing.pathMemory.GetPath(seriesPaths[k].lowLines);
+                                    if(oPath.hitInInnerArea(oCanvas, dTx, dTy) || oPath.hitInPath(oCanvas, dTx, dTy))
+                                    {
+                                        if(chartModel && chartModel.hiLowLines)
+                                        {
+                                            bSeries = true;
+                                            selector.resetSelection();
+                                            selector.selectObject(drawing, pageIndex);
+                                            selector.selection.chartSelection = drawing;
+                                            drawing.selection.chart = id;
+                                            drawing.selection.hiLowLines = chartModel.hiLowLines;
+                                            break;
+                                        }
+                                    }
+                                    var oPath = drawing.pathMemory.GetPath(seriesPaths[k].highLines);
+                                    if(oPath.hitInInnerArea(oCanvas, dTx, dTy) || oPath.hitInPath(oCanvas, dTx, dTy))
+                                    {
+                                        if(chartModel && chartModel.hiLowLines)
+                                        {
+                                            bSeries = true;
+                                            selector.resetSelection();
+                                            selector.selectObject(drawing, pageIndex);
+                                            selector.selection.chartSelection = drawing;
+                                            drawing.selection.chart = id;
+                                            drawing.selection.hiLowLines = chartModel.hiLowLines;
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
 
