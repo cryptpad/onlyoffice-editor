@@ -7400,6 +7400,9 @@
 		}
 		var isFirstArrayFormulaCell = byRef && this.nCol === byRef.c1 && this.nRow === byRef.r1;
 		var newFP = this.setValueGetParsed(val, callback, isCopyPaste, byRef);
+		if (undefined === newFP) {
+			return;
+		}
 		//удаляем старые значения
 		this.cleanText();
 		this.setFormulaInternal(null);
@@ -7544,7 +7547,7 @@
 				cell.setFormulaInternal(newFP);
 				newFP.calculate();
 				cell._updateCellValue();
-			} else if (formula) {
+			} else if (undefined !== newFP) {
 				cell._setValue(formula);
 			}
 		} else {
