@@ -2523,7 +2523,7 @@
 
 		//добавил аналогично другим отрисовка.
 		//без этого отсутвует drawingCtx.DocumentRenderer.m_arrayPages[0].FontPicker.LastPickFont
-		//this._setDefaultFont(drawingCtx);
+		this._setDefaultFont(drawingCtx);
 		for(var i = 0; i < headerFooterParser.portions.length; i++) {
 			drawPortion(i);
 		}
