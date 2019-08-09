@@ -2508,15 +2508,6 @@
 				}
 			}
 
-			/*if(fragments[0]) {
-				if(null === fragments[0].format.fn) {
-					fragments[0].format.fn = t.model.getDefaultFontName();
-				}
-				if(null === fragments[0].format.fs) {
-					fragments[0].format.fs = t.model.getDefaultFontSize();
-				}
-				t.stringRender._setFont(drawingCtx, fragments[0].format);
-			}*/
 			t.stringRender.fontNeedUpdate = true;
 			t.stringRender.render(drawingCtx, x, y, textMetrics.width, t.settings.activeCellBorderColor);
 		};
@@ -17285,83 +17276,80 @@
 
 
 		functionModelAction = function () {
-			//AscCommonExcel.checkFilteringMode(function () {
 			var _summaryBelow = t.model.sheetPr ? t.model.sheetPr.SummaryBelow : true;
 			var _summaryRight = t.model.sheetPr ? t.model.sheetPr.SummaryRight : true;
 			var isNeedRecal = !bCol ? t.model.needRecalFormulas(start, end) : null;
-				if(isNeedRecal) {
-					t.model.workbook.dependencyFormulas.lockRecal();
+			if(isNeedRecal) {
+				t.model.workbook.dependencyFormulas.lockRecal();
+			}
+
+			History.Create_NewPoint();
+			History.StartTransaction();
+
+			var oldExcludeCollapsed = t.model.bExcludeCollapsed;
+			t.model.bExcludeCollapsed = true;
+
+			var changeModelFunc = bCol ? t.model.setColHidden :  t.model.setRowHidden;
+			var collapsedFunction = bCol ? t.model.setCollapsedCol :  t.model.setCollapsedRow;
+			if(!collapsed) {//скрываем
+				changeModelFunc.call(t.model, true, start, end);
+				if((!_summaryBelow && !bCol) || (!_summaryRight && bCol)) {
+					collapsedFunction.call(t.model, !collapsed, start - 1);
+				} else {
+					collapsedFunction.call(t.model, !collapsed, end + 1);
+				}
+				//hideFunc(true, start, end);
+				//t.model.autoFilters.reDrawFilter(arn);
+			} else {
+				//открываем все строки, кроме внутренних групп
+				//внутренние группы скрываем, если среди них есть раскрытые
+				changeModelFunc.call(t.model, false, start, end);
+				if((!_summaryBelow && !bCol) || (!_summaryRight && bCol)) {
+					collapsedFunction.call(t.model, !collapsed, start - 1);
+				} else {
+					collapsedFunction.call(t.model, !collapsed, end + 1);
 				}
 
-				History.Create_NewPoint();
-				History.StartTransaction();
-
-				var oldExcludeCollapsed = t.model.bExcludeCollapsed;
-				t.model.bExcludeCollapsed = true;
-
-				var changeModelFunc = bCol ? t.model.setColHidden :  t.model.setRowHidden;
-				var collapsedFunction = bCol ? t.model.setCollapsedCol :  t.model.setCollapsedRow;
-				if(!collapsed) {//скрываем
-					changeModelFunc.call(t.model, true, start, end);
-					if((!_summaryBelow && !bCol) || (!_summaryRight && bCol)) {
-						collapsedFunction.call(t.model, !collapsed, start - 1);
-					} else {
-						collapsedFunction.call(t.model, !collapsed, end + 1);
-					}
-					//hideFunc(true, start, end);
-					//t.model.autoFilters.reDrawFilter(arn);
+				var groupArr/*, levelMap*/;
+				if(bCol) {
+					groupArr = t.arrColGroups ? t.arrColGroups.groupArr : null;
+					//levelMap = t.arrColGroups ? t.arrColGroups.levelMap : null;
 				} else {
-					//открываем все строки, кроме внутренних групп
-					//внутренние группы скрываем, если среди них есть раскрытые
-					changeModelFunc.call(t.model, false, start, end);
-					if((!_summaryBelow && !bCol) || (!_summaryRight && bCol)) {
-						collapsedFunction.call(t.model, !collapsed, start - 1);
-					} else {
-						collapsedFunction.call(t.model, !collapsed, end + 1);
-					}
-
-					var groupArr/*, levelMap*/;
-					if(bCol) {
-						groupArr = t.arrColGroups ? t.arrColGroups.groupArr : null;
-						//levelMap = t.arrColGroups ? t.arrColGroups.levelMap : null;
-					} else {
-						groupArr = t.arrRowGroups ? t.arrRowGroups.groupArr : null;
-						//levelMap = t.arrRowGroups ? t.arrRowGroups.levelMap : null;
-					}
-					if(groupArr) {
-						for(var i = level + 1; i <= groupArr.length; i++) {
-							if(!groupArr[i]) {
-								continue;
-							}
-							for(var j = 0; j < groupArr[i].length; j++) {
-								if((!_summaryBelow && !bCol) || (!_summaryRight && bCol)) {
-									if(groupArr[i][j] && groupArr[i][j].start > start && groupArr[i][j].end <= end) {
-										if(t._getGroupCollapsed(groupArr[i][j].start - 1, bCol)) {
-											changeModelFunc.call(t.model, true, groupArr[i][j].start, groupArr[i][j].end);
-										}
+					groupArr = t.arrRowGroups ? t.arrRowGroups.groupArr : null;
+					//levelMap = t.arrRowGroups ? t.arrRowGroups.levelMap : null;
+				}
+				if(groupArr) {
+					for(var i = level + 1; i <= groupArr.length; i++) {
+						if(!groupArr[i]) {
+							continue;
+						}
+						for(var j = 0; j < groupArr[i].length; j++) {
+							if((!_summaryBelow && !bCol) || (!_summaryRight && bCol)) {
+								if(groupArr[i][j] && groupArr[i][j].start > start && groupArr[i][j].end <= end) {
+									if(t._getGroupCollapsed(groupArr[i][j].start - 1, bCol)) {
+										changeModelFunc.call(t.model, true, groupArr[i][j].start, groupArr[i][j].end);
 									}
-								} else {
-									if(groupArr[i][j] && groupArr[i][j].start >= start && groupArr[i][j].end < end) {
-										if(t._getGroupCollapsed(groupArr[i][j].end + 1, bCol)) {
-											changeModelFunc.call(t.model, true, groupArr[i][j].start, groupArr[i][j].end);
-										}
+								}
+							} else {
+								if(groupArr[i][j] && groupArr[i][j].start >= start && groupArr[i][j].end < end) {
+									if(t._getGroupCollapsed(groupArr[i][j].end + 1, bCol)) {
+										changeModelFunc.call(t.model, true, groupArr[i][j].start, groupArr[i][j].end);
 									}
 								}
 							}
 						}
 					}
 				}
+			}
 
-				t.model.bExcludeCollapsed = oldExcludeCollapsed;
+			t.model.bExcludeCollapsed = oldExcludeCollapsed;
 
-				History.EndTransaction();
-				if(isNeedRecal) {
-					t.model.workbook.dependencyFormulas.unlockRecal();
-				}
-			//});
+			History.EndTransaction();
+			if(isNeedRecal) {
+				t.model.workbook.dependencyFormulas.unlockRecal();
+			}
 		};
 		this._isLockedAll(onChangeWorksheetCallback);
-
 	};
 
 	WorksheetView.prototype.hideGroupLevel = function (level, bCol) {
@@ -17544,10 +17532,6 @@
 
 			asc_applyFunction(callback);
 			t._updateAfterChangeGroup(null, null);
-
-			//тут требуется обновить только rowLevelMap
-			//t._updateGroups(true, undefined, undefined, true);
-			//t._updateGroups(false, undefined, undefined, true);
 		};
 
 		//TODO необходимо не закрывать полностью выделенные 1 уровни
@@ -17772,8 +17756,6 @@
 						}
 						if(intersection) {
 							doChangeRowArr.push(intersection);
-							//t.model.setRowHidden(false, intersection.r1, intersection.r2);
-							//t.model.setOutlineRow(0, intersection.r1, intersection.r2);
 						}
 					}
 				}
@@ -17793,8 +17775,6 @@
 						}
 						if(intersection) {
 							doChangeColArr.push(intersection);
-							//t.model.setColHidden(false, intersection.c1, intersection.c2);
-							//t.model.setOutlineCol(0, intersection.c1, intersection.c2);
 						}
 					}
 				}
@@ -17940,9 +17920,6 @@
 			}
 
 			History.EndTransaction();
-
-			//t._updateGroups(null);
-			//t._updateGroups(true);
 
 			if(bCol) {
 				t._updateAfterChangeGroup(undefined, null);
@@ -18296,9 +18273,6 @@
 			if ((rName.length === 1) && (rName[0] === '-')) {
 				//пересмотреть
 				this.font.fn = null;
-                /*var defaultFont = window["Asc"]["editor"].getDefaultFontFamily();
-                 this.font.fn = defaultFont;
-                 this.allFontsMap[defaultFont] = 1;*/
 			} else {
 				this.font.fn = rName;
 				this.allFontsMap[rName] = 1;
@@ -18967,7 +18941,6 @@
 						ws.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.LockedAllError, c_oAscError.Level.NoCritical);
 						return;
 					}
-
 					t._saveToModel();
 				};
 				ws._isLockedHeaderFooter(saveCallback);
@@ -19013,7 +18986,6 @@
 				}
 				curHeaderFooter.parser.portions = newPortions;
 			}
-
 
 			if(t.sections[type][c_nPortionLeft] && t.sections[type][c_nPortionLeft].changed) {
 				curHeaderFooter.parser.portions[c_nPortionLeft] = t._convertFragments(t.sections[type][c_nPortionLeft].fragments);
@@ -19061,14 +19033,6 @@
 
 	CHeaderFooterEditor.prototype._saveToModel = function () {
 		var ws = this.wb.getWorksheet();
-
-		/*if(null !== this.curParentFocusId) {
-			var prevField = this._getSectionById(this.curParentFocusId);
-			var prevFragments = this.cellEditor.options.fragments;
-			prevField.setFragments(prevFragments);
-
-			prevField.canvasObj.canvas.style.display = "block";
-		}*/
 
 		var isAddHistory = false;
 		for(var i = 0; i < this.sections.length; i++) {
