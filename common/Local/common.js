@@ -50,29 +50,6 @@
 		AscCommon.History.UserSaveMode = true;
 		window["AscDesktopEditor"]["LocalStartOpen"]();
 	};
-	AscCommon.baseEditorsApi._onEndLoadLocalFile = function(_url, _data, _len)
-	{
-		AscCommon.g_oIdCounter.m_sUserId = window["AscDesktopEditor"]["CheckUserId"]();
-		if (_data == "")
-		{
-			this.sendEvent("asc_onError", c_oAscError.ID.ConvertationOpenError, c_oAscError.Level.Critical);
-			return;
-		}
-
-		var file = new AscCommon.OpenFileResult();
-		file.data = getBinaryArray(_data, _len);
-		file.bSerFormat = AscCommon.checkStreamSignature(file.data, AscCommon.c_oSerFormat.Signature);
-		file.url = _url;
-		this.openDocument(file);
-
-		this.asc_SetFastCollaborative(false);
-		DesktopOfflineUpdateLocalName(this);
-
-		window["DesktopAfterOpen"](this);
-
-		// why?
-		// this.onUpdateDocumentModified(AscCommon.History.Have_Changes());
-	};
 })(window);
 
 /////////////////////////////////////////////////////////
@@ -146,7 +123,27 @@ window["DesktopOfflineAppDocumentEndLoad"] = function(_url, _data, _len)
 		AscCommon.g_oDocumentUrls.documentUrl = "file://" + AscCommon.g_oDocumentUrls.documentUrl;
 	}
 
-	editor._onEndLoadLocalFile(_url, _data, _len);
+	AscCommon.g_oIdCounter.m_sUserId = window["AscDesktopEditor"]["CheckUserId"]();
+	if (_data == "")
+	{
+		this.sendEvent("asc_onError", c_oAscError.ID.ConvertationOpenError, c_oAscError.Level.Critical);
+		return;
+	}
+
+	var file = new AscCommon.OpenFileResult();
+	file.data = getBinaryArray(_data, _len);
+	file.bSerFormat = AscCommon.checkStreamSignature(file.data, AscCommon.c_oSerFormat.Signature);
+	file.url = _url;
+	editor.openDocument(file);
+
+	editor.asc_SetFastCollaborative(false);
+	DesktopOfflineUpdateLocalName(editor);
+
+	window["DesktopAfterOpen"](editor);
+
+	// why?
+	// this.onUpdateDocumentModified(AscCommon.History.Have_Changes());
+
 	editor.sendEvent("asc_onDocumentPassword", ("" != editor.currentPassword) ? true : false);
 };
 
