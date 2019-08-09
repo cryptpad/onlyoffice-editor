@@ -5711,7 +5711,12 @@ parserFormula.prototype.clone = function(formula, parent, ws) {
 			wasRigthParentheses = false;
 			var stackLength = elemArr.length, top_elem = null, top_elem_arg_pos;
 
-			if (elemArr.length !== 0 && elemArr[stackLength - 1].name === "(" && parseResult.operand_expected) {
+			if (elemArr.length !== 0 && elemArr[stackLength - 1].name === "(" && ((!elemArr[stackLength - 2]) ||
+				(elemArr[stackLength - 2] && elemArr[stackLength - 2].type !== cElementType.func)) && !ignoreErrors) {
+				parseResult.setError(c_oAscError.ID.FrmlWrongOperator);
+				t.outStack = [];
+				return false;
+			} else if (elemArr.length !== 0 && elemArr[stackLength - 1].name === "(" && parseResult.operand_expected) {
 				t.outStack.push(new cEmpty());
 				top_elem = elemArr[stackLength - 1];
 				top_elem_arg_pos = stackLength - 1;
