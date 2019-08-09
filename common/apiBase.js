@@ -577,11 +577,11 @@
             window["AscDesktopEditor"]["OpenFileCrypt"](this.DocInfo.get_Title(), this.DocInfo.get_Url(), function () {t.openFileCryptCallback();});
         }
 	};
-	baseEditorsApi.prototype._OfflineAppDocumentStartLoad        = function()
+	baseEditorsApi.prototype._openChartOrLocalDocument           = function()
 	{
-		this._OfflineAppDocumentEndLoad();
+		this._openEmptyDocument();
 	};
-	baseEditorsApi.prototype._OfflineAppDocumentEndLoad        = function()
+	baseEditorsApi.prototype._openEmptyDocument           = function()
 	{
 		var file = new AscCommon.OpenFileResult();
 		file.data = AscCommon.getEmpty();
@@ -1696,7 +1696,7 @@
 		{
 			if (this.DocInfo.get_OfflineApp())
 			{
-				this._OfflineAppDocumentStartLoad();
+				this._openChartOrLocalDocument();
 			}
 			this.onEndLoadFile(null);
 		}

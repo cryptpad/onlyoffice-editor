@@ -38,7 +38,7 @@ var c_oAscError = Asc.c_oAscError;
 /////////////////////////////////////////////////////////
 //////////////        OPEN       ////////////////////////
 /////////////////////////////////////////////////////////
-Asc['asc_docs_api'].prototype._OfflineAppDocumentStartLoad = function()
+Asc['asc_docs_api'].prototype._openChartOrLocalDocument = function()
 {
 	this.asc_registerCallback('asc_onDocumentContentReady', function(){
 		DesktopOfflineUpdateLocalName(editor);

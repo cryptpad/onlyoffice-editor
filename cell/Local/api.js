@@ -49,8 +49,11 @@ var c_oAscError = Asc.c_oAscError;
 	var asc = window["Asc"];
 	var spreadsheet_api = asc['spreadsheet_api'];
 
-	spreadsheet_api.prototype._OfflineAppDocumentStartLoad = function()
+	spreadsheet_api.prototype._openChartOrLocalDocument = function()
 	{
+		if (this.isChartEditor)
+			return this._openEmptyDocument();
+
 		this.asc_registerCallback('asc_onDocumentContentReady', function(){
 			DesktopOfflineUpdateLocalName(asc["editor"]);
 
