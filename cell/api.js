@@ -4089,6 +4089,8 @@ var editor;
   prot["asc_nextWord"] = prot.asc_nextWord;
   prot["asc_replaceMisspelledWord"]= prot.asc_replaceMisspelledWord;
   prot["asc_ignoreMisspelledWord"] = prot.asc_ignoreMisspelledWord;
+  prot["asc_spellCheckAddToDictionary"] = prot.asc_spellCheckAddToDictionary;
+  prot["asc_spellCheckClearDictionary"] = prot.asc_spellCheckClearDictionary;
 
   // Frozen pane
   prot["asc_freezePane"] = prot.asc_freezePane;
