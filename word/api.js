@@ -9152,7 +9152,7 @@ background-repeat: no-repeat;\
                 if ((_opt & 0x01) == 0x01)
                 	_drawing_document.GenerateSelectionPrint();
 
-                var _drawing_document_print = _drawing_document.printedDocument ? _drawing_document.printedDocument : _drawing_document;
+                var _drawing_document_print = _drawing_document.printedDocument ? _drawing_document.printedDocument.DrawingDocument : _drawing_document;
 				var pagescount        = Math.min(_drawing_document_print.m_lPagesCount, _drawing_document_print.m_lCountCalculatePages);
 
 				window["AscDesktopEditor"]["Print_Start"](this.DocumentUrl, pagescount, "", _drawing_document.printedDocument ? 0 : this.getCurrentPage());
