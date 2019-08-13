@@ -424,7 +424,13 @@ CShapeDrawer.prototype =
         }
 
         if (this.Ln == null || this.Ln.Fill == null || this.Ln.Fill.fill == null)
+        {
             this.bIsNoStrokeAttack = true;
+            if (true === graphics.IsTrack)
+                graphics.Graphics.ArrayPoints = null;
+            else
+                graphics.ArrayPoints = null;
+        }
         else
         {
             var _fill = this.Ln.Fill.fill;
@@ -491,18 +497,14 @@ CShapeDrawer.prototype =
 			if (graphics.IsSlideBoundsCheckerType && !this.bIsNoStrokeAttack)
                 graphics.LineWidth = this.StrokeWidth;
 
+            var isUseArrayPoints = false;
             if ((this.Ln.headEnd != null && this.Ln.headEnd.type != null) || (this.Ln.tailEnd != null && this.Ln.tailEnd.type != null))
-            {
-                if (true === graphics.IsTrack)
-                {
-                    if(graphics.Graphics)
-                    {
-                        graphics.Graphics.ArrayPoints = [];
-                    }
-                }
-                else
-                    graphics.ArrayPoints = [];
-        }
+                isUseArrayPoints = true;
+
+            if (true === graphics.IsTrack)
+                graphics.Graphics.ArrayPoints = isUseArrayPoints ? [] : null;
+            else
+                graphics.ArrayPoints = isUseArrayPoints ? [] : null;
 
             if (this.Graphics.m_oContext != null && this.Ln.Join != null && this.Ln.Join.type != null)
                 this.OldLineJoin = this.Graphics.m_oContext.lineJoin;

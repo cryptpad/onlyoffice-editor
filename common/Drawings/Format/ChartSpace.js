@@ -1309,6 +1309,9 @@ function checkPointInMap(map, worksheet, row, col)
         chart:        null,
         series:        null,
         datPoint:      null,
+        hiLowLines: null,
+        upBars: null,
+        downBars: null,
         textSelection: null
     };
 
@@ -1413,6 +1416,77 @@ CChartSpace.prototype.drawSelect = function(drawingDocument, nPageIndex)
                 var oLabels = this.selection.axisLbls.labels;
                 drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.CHART_TEXT, this.transform, oLabels.x, oLabels.y, oLabels.extX, oLabels.extY, false, false);
             }
+            else if(this.selection.hiLowLines)
+            {
+                if(this.chartObj)
+                {
+                    var oDrawChart = this.chartObj.charts[this.selection.chart];
+                    if(oDrawChart)
+                    {
+                        var seriesPaths = oDrawChart.paths.values;
+                        if(Array.isArray(seriesPaths))
+                        {
+                            for(var i = 0; i < seriesPaths.length; ++i)
+                            {
+                                if(AscFormat.isRealNumber(seriesPaths[i].lowLines))
+                                {
+                                    var oPath = this.pathMemory.GetPath(seriesPaths[i].lowLines);
+                                    oPath.drawTracks(drawingDocument, this.transform);
+                                }
+                                if(AscFormat.isRealNumber(seriesPaths[i].highLines))
+                                {
+                                    var oPath = this.pathMemory.GetPath(seriesPaths[i].highLines);
+                                    oPath.drawTracks(drawingDocument, this.transform);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            else if(this.selection.upBars)
+            {
+                if(this.chartObj)
+                {
+                    var oDrawChart = this.chartObj.charts[this.selection.chart];
+                    if(oDrawChart)
+                    {
+                        var seriesPaths = oDrawChart.paths.values;
+                        if(Array.isArray(seriesPaths))
+                        {
+                            for(var i = 0; i < seriesPaths.length; ++i)
+                            {
+                                if(AscFormat.isRealNumber(seriesPaths[i].upBars))
+                                {
+                                    var oPath = this.pathMemory.GetPath(seriesPaths[i].upBars);
+                                    oPath.drawTracks(drawingDocument, this.transform);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            else if(this.selection.downBars)
+            {
+                if(this.chartObj)
+                {
+                    var oDrawChart = this.chartObj.charts[this.selection.chart];
+                    if(oDrawChart)
+                    {
+                        var seriesPaths = oDrawChart.paths.values;
+                        if(Array.isArray(seriesPaths))
+                        {
+                            for(var i = 0; i < seriesPaths.length; ++i)
+                            {
+                                if(AscFormat.isRealNumber(seriesPaths[i].downBars))
+                                {
+                                    var oPath = this.pathMemory.GetPath(seriesPaths[i].downBars);
+                                    oPath.drawTracks(drawingDocument, this.transform);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
             else if(this.selection.plotArea)
             {
 
@@ -1491,6 +1565,31 @@ CChartSpace.prototype.drawSelect = function(drawingDocument, nPageIndex)
                                                 }
                                             }
 
+                                        }
+                                    }
+                                }
+                                else if(AscCommon.isRealObject(aPointsPaths[this.selection.datPoint]))
+                                {
+                                    if(Array.isArray(aPointsPaths[this.selection.datPoint].frontPaths))
+                                    {
+                                        for(var l = 0; l < aPointsPaths[this.selection.datPoint].frontPaths.length; ++l)
+                                        {
+                                            if(AscFormat.isRealNumber(aPointsPaths[this.selection.datPoint].frontPaths[l]))
+                                            {
+                                                var oPath = this.pathMemory.GetPath(aPointsPaths[this.selection.datPoint].frontPaths[l]);
+                                                oPath.drawTracks(drawingDocument, this.transform);
+                                            }
+                                        }
+                                    }
+                                    if(Array.isArray(aPointsPaths[this.selection.datPoint].darkPaths))
+                                    {
+                                        for(var l = 0; l < aPointsPaths[this.selection.datPoint].darkPaths.length; ++l)
+                                        {
+                                            if(AscFormat.isRealNumber(aPointsPaths[this.selection.datPoint].darkPaths[l]))
+                                            {
+                                                var oPath = this.pathMemory.GetPath(aPointsPaths[this.selection.datPoint].darkPaths[l]);
+                                                oPath.drawTracks(drawingDocument, this.transform);
+                                            }
                                         }
                                     }
                                 }
@@ -1588,7 +1687,10 @@ CChartSpace.prototype.getSelectionState = function()
         gridLines:     this.selection.gridLines,
         chart:        this.selection.chart,
         series:        this.selection.series,
-        datPoint:      this.selection.datPoint
+        datPoint:      this.selection.datPoint,
+        hiLowLines: this.selection.hiLowLines,
+        upBars: this.selection.upBars,
+        downBars: this.selection.downBars
 
     }
 };
@@ -1610,6 +1712,9 @@ CChartSpace.prototype.setSelectionState = function(state)
     this.selection.chart = state.chart;
     this.selection.datPoint = state.datPoint;
     this.selection.series = state.series;
+    this.selection.hiLowLines = state.hiLowLines;
+    this.selection.downBars = state.downBars;
+    this.selection.upBars = state.upBars;
    if(isRealObject(state.recalcTitle))
    {
        this.recalcInfo.recalcTitle = state.recalcTitle;
@@ -1627,21 +1732,24 @@ CChartSpace.prototype.setSelectionState = function(state)
 };
 CChartSpace.prototype.loadDocumentStateAfterLoadChanges = function(state)
 {
-     this.selection.title =    null;
-     this.selection.legend =        null;
-     this.selection.legendEntry =   null;
-     this.selection.axisLbls =      null;
-     this.selection.dataLbls =      null;
-     this.selection.dataLbl =       null;
-     this.selection.plotArea =      null;
-     this.selection.rotatePlotArea =  null;
-     this.selection.gridLine =     null;
-     this.selection.series =        null;
-     this.selection.datPoint =      null;
-     this.selection.textSelection = null;
-     this.selection.axis = null;
-     this.selection.minorGridlines = null;
-     this.selection.majorGridlines = null;
+    this.selection.title =    null;
+    this.selection.legend =        null;
+    this.selection.legendEntry =   null;
+    this.selection.axisLbls =      null;
+    this.selection.dataLbls =      null;
+    this.selection.dataLbl =       null;
+    this.selection.plotArea =      null;
+    this.selection.rotatePlotArea =  null;
+    this.selection.gridLine =     null;
+    this.selection.series =        null;
+    this.selection.datPoint =      null;
+    this.selection.textSelection = null;
+    this.selection.axis = null;
+    this.selection.minorGridlines = null;
+    this.selection.majorGridlines = null;
+    this.selection.hiLowLines = null;
+    this.selection.upBars = null;
+    this.selection.downBars = null;
     var bRet = false;
     if(state.DrawingsSelectionState){
         var chartSelection = state.DrawingsSelectionState.chartSelection;
@@ -1726,6 +1834,9 @@ CChartSpace.prototype.resetSelection = function(noResetContentSelect)
     this.selection.axis = null;
     this.selection.minorGridlines = null;
     this.selection.majorGridlines = null;
+    this.selection.hiLowLines = null;
+    this.selection.upBars = null;
+    this.selection.downBars = null;
 };
 CChartSpace.prototype.getStyles = function()
 {
@@ -2065,6 +2176,20 @@ CChartSpace.prototype.selectTitle = function(title, pageIndex)
     this.selection.textSelection = null;
     this.selection.plotArea = null;
     this.selection.rotatePlotArea = null;
+    this.selection.axis = null;
+    this.selection.minorGridlines = null;
+    this.selection.majorGridlines = null,
+    this.selection.gridLines = null;
+    this.selection.chart = null;
+    this.selection.series = null;
+    this.selection.datPoint = null;
+    this.selection.hiLowLines = null;
+    this.selection.upBars = null;
+    this.selection.downBars = null;
+
+    this.selection.hiLowLines = null;
+    this.selection.upBars = null;
+    this.selection.downBars = null;
 };
 CChartSpace.prototype.recalculateCurPos = AscFormat.DrawingObjectsController.prototype.recalculateCurPos;
 CChartSpace.prototype.documentUpdateSelectionState = function()
@@ -2112,6 +2237,8 @@ CChartSpace.prototype.changeSize = CShape.prototype.changeSize;
     CChartSpace.prototype.getFill = function()
     {
         var ret = null;
+
+        var oChart = AscCommon.g_oTableId.Get_ById(this.selection.chart);
         if(this.selection.plotArea)
         {
             if(this.chart.plotArea.brush && this.chart.plotArea.brush.fill)
@@ -2170,7 +2297,6 @@ CChartSpace.prototype.changeSize = CShape.prototype.changeSize;
         }
         else if(AscFormat.isRealNumber(this.selection.series))
         {
-            var oChart = AscCommon.g_oTableId.Get_ById(this.selection.chart);
             if(oChart)
             {
                 var oSeries = null;
@@ -2215,6 +2341,26 @@ CChartSpace.prototype.changeSize = CShape.prototype.changeSize;
                 }
             }
         }
+        else if(AscFormat.isRealNumber(this.selection.hiLowLines))
+        {
+            ret = AscFormat.CreateNoFillUniFill();
+        }
+        else if(this.selection.upBars)
+        {
+            if(oChart && oChart.upDownBars
+                && oChart.upDownBars.upBarsBrush && oChart.upDownBars.upBarsBrush.fill)
+            {
+                ret = oChart.upDownBars.upBarsBrush;
+            }
+        }
+        else if(this.selection.downBars)
+        {
+            if(oChart && oChart.upDownBars
+                && oChart.upDownBars.downBarsBrush && oChart.upDownBars.downBarsBrush.fill)
+            {
+                ret = oChart.upDownBars.downBarsBrush;
+            }
+        }
         else if(this.selection.axis)
         {
 
@@ -2239,6 +2385,7 @@ CChartSpace.prototype.changeSize = CShape.prototype.changeSize;
     CChartSpace.prototype.getStroke = function()
     {
         var ret = null;
+        var oChart = AscCommon.g_oTableId.Get_ById(this.selection.chart);
         if(this.selection.plotArea)
         {
             if(this.chart.plotArea.pen && this.chart.plotArea.pen.Fill)
@@ -2342,6 +2489,30 @@ CChartSpace.prototype.changeSize = CShape.prototype.changeSize;
                 }
             }
         }
+        else if(AscFormat.isRealNumber(this.selection.hiLowLines))
+        {
+            if(oChart && oChart.calculatedHiLowLines
+                && oChart.calculatedHiLowLines.Fill)
+            {
+                ret = oChart.calculatedHiLowLines;
+            }
+        }
+        else if(this.selection.upBars)
+        {
+            if(oChart && oChart.upDownBars
+                && oChart.upDownBars.upBarsPen && oChart.upDownBars.upBarsPen.Fill)
+            {
+                ret = oChart.upDownBars.upBarsPen;
+            }
+        }
+        else if(this.selection.downBars)
+        {
+            if(oChart && oChart.upDownBars
+                && oChart.upDownBars.downBarsPen && oChart.upDownBars.downBarsPen.Fill)
+            {
+                ret = oChart.upDownBars.downBarsPen;
+            }
+        }
         else if(this.selection.axis)
         {
             if(AscFormat.isRealNumber(this.selection.majorGridlines))
@@ -2377,6 +2548,8 @@ CChartSpace.prototype.changeSize = CShape.prototype.changeSize;
     };
 CChartSpace.prototype.changeFill = function (unifill)
 {
+    var oChart = AscCommon.g_oTableId.Get_ById(this.selection.chart);
+
     var unifill2;
     if(this.selection.plotArea)
     {
@@ -2492,7 +2665,6 @@ CChartSpace.prototype.changeFill = function (unifill)
     }
     else if(AscFormat.isRealNumber(this.selection.series))
     {
-        var oChart = AscCommon.g_oTableId.Get_ById(this.selection.chart);
         if(oChart)
         {
             var oSeries = null;
@@ -2564,14 +2736,45 @@ CChartSpace.prototype.changeFill = function (unifill)
             }
         }
     }
-    else if(this.selection.axis)
+    // else if(AscFormat.isRealNumber(this.selection.hiLowLines))
+    // {
+    // }
+    else if(this.selection.upBars)
     {
-        var oAxis = this.selection.axis;
-        if(this.selection.majorGridlines)
+        if(oChart && oChart.upDownBars )
         {
-
+            if(!oChart.upDownBars.upBars)
+            {
+                oChart.upDownBars.setUpBars(new AscFormat.CSpPr());
+                oChart.upDownBars.upBars.setParent(oChart.upDownBars);
+            }
+            unifill2 = AscFormat.CorrectUniFill(unifill, oChart.upDownBars.upBarsBrush, this.getEditorType());
+            unifill2.convertToPPTXMods();
+            oChart.upDownBars.upBars.setFill(unifill2);
         }
     }
+    else if(this.selection.downBars)
+    {
+        if(oChart && oChart.upDownBars )
+        {
+            if(!oChart.upDownBars.downBars)
+            {
+                oChart.upDownBars.setDownBars(new AscFormat.CSpPr());
+                oChart.upDownBars.downBars.setParent(oChart.upDownBars);
+            }
+            unifill2 = AscFormat.CorrectUniFill(unifill, oChart.upDownBars.downBarsBrush, this.getEditorType());
+            unifill2.convertToPPTXMods();
+            oChart.upDownBars.downBars.setFill(unifill2);
+        }
+    }
+    // else if(this.selection.axis)
+    // {
+    //     var oAxis = this.selection.axis;
+    //     if(this.selection.majorGridlines)
+    //     {
+    //
+    //     }
+    // }
     else 
     {
         if(this.recalcInfo.recalculatePenBrush)
@@ -2608,6 +2811,8 @@ CChartSpace.prototype.setNvSpPr = function(pr) {
 CChartSpace.prototype.changeLine = function (line)
 {
     var stroke;
+
+    var oChart = AscCommon.g_oTableId.Get_ById(this.selection.chart);
     if(this.selection.plotArea)
     {
         if(!this.chart.plotArea.spPr)
@@ -2809,6 +3014,52 @@ CChartSpace.prototype.changeLine = function (line)
                     oSeries.spPr.setLn(stroke);
                 }
             }
+        }
+    }
+    else if(AscCommon.isRealObject(this.selection.hiLowLines))
+    {
+        if(oChart)
+        {
+            stroke = AscFormat.CorrectUniStroke(line, oChart.calculatedHiLowLines);
+            if(stroke.Fill)
+            {
+                stroke.Fill.convertToPPTXMods();
+            }
+            this.selection.hiLowLines.setLn(stroke);
+        }
+    }
+    else if(this.selection.upBars)
+    {
+        if(oChart && oChart.upDownBars )
+        {
+            if(!oChart.upDownBars.upBars)
+            {
+                oChart.upDownBars.setUpBars(new AscFormat.CSpPr());
+                oChart.upDownBars.upBars.setParent(oChart.upDownBars);
+            }
+            stroke = AscFormat.CorrectUniStroke(line, oChart.upDownBars.upBarsPen);
+            if(stroke.Fill)
+            {
+                stroke.Fill.convertToPPTXMods();
+            }
+            oChart.upDownBars.upBars.setLn(stroke);
+        }
+    }
+    else if(this.selection.downBars)
+    {
+        if(oChart && oChart.upDownBars )
+        {
+            if(!oChart.upDownBars.downBars)
+            {
+                oChart.upDownBars.setDownBars(new AscFormat.CSpPr());
+                oChart.upDownBars.downBars.setParent(oChart.upDownBars);
+            }
+            stroke = AscFormat.CorrectUniStroke(line, oChart.upDownBars.downBarsPen);
+            if(stroke.Fill)
+            {
+                stroke.Fill.convertToPPTXMods();
+            }
+            oChart.upDownBars.downBars.setLn(stroke);
         }
     }
     else if(this.selection.axis)
@@ -3377,6 +3628,9 @@ CChartSpace.prototype.clearFormatting = function(bNoClearShapeProps)
         this.selection.axis = null;
         this.selection.minorGridlines = null;
         this.selection.majorGridlines = null;
+        this.selection.hiLowLines = null;
+        this.selection.downBars = null;
+        this.selection.upBars = null;
     };
 
 CChartSpace.prototype.copy = function(drawingDocument)
