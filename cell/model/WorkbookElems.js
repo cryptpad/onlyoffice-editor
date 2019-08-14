@@ -1275,6 +1275,9 @@ var g_oFontProperties = {
 		}
 		return newContext;
 	};
+	GradientFill.prototype.asc_getType = function () {
+		return this.type;
+	};
 	function GradientStop() {
 		//Attributes
 		this.position = null;
@@ -1465,6 +1468,9 @@ var g_oFontProperties = {
 		}
 		return newContext;
 	};
+	PatternFill.prototype.asc_getType = function () {
+		return this.patternType;
+	};
 
 	/** @constructor */
 	function Fill() {
@@ -1586,6 +1592,12 @@ var g_oFontProperties = {
 		if ("patternFill" === elem && AscCommon.openXml.SaxParserDataTransfer.priorityBg) {
 			prevContext.fixForDxf();
 		}
+	};
+	Fill.prototype.asc_getPatternFill = function () {
+		return this.patternFill;
+	};
+	Fill.prototype.asc_getGradientFill = function () {
+		return this.gradientFill;
 	};
 
 	function FromXml_ST_BorderStyle(val) {
@@ -8556,6 +8568,38 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	window['AscCommonExcel'].Fragment = Fragment;
 	window['AscCommonExcel'].Font = Font;
 	window['AscCommonExcel'].Fill = Fill;
+	window["Asc"]["c_oAscGradientType"] = c_oAscGradientType;
+	prot = c_oAscGradientType;
+	prot["Linear"] = prot.Linear;
+	prot["Path"] = prot.Path;
+	window["Asc"]["c_oAscPatternType"] = c_oAscPatternType;
+	prot = c_oAscPatternType;
+	prot["DarkDown"] = prot.DarkDown;
+	prot["DarkGray"] = prot.DarkGray;
+	prot["DarkGrid"] = prot.DarkGrid;
+	prot["DarkHorizontal"] = prot.DarkHorizontal;
+	prot["DarkTrellis"] = prot.DarkTrellis;
+	prot["DarkUp"] = prot.DarkUp;
+	prot["DarkVertical"] = prot.DarkVertical;
+	prot["Gray0625"] = prot.Gray0625;
+	prot["Gray125"] = prot.Gray125;
+	prot["LightDown"] = prot.LightDown;
+	prot["LightGray"] = prot.LightGray;
+	prot["LightGrid"] = prot.LightGrid;
+	prot["LightHorizontal"] = prot.LightHorizontal;
+	prot["LightTrellis"] = prot.LightTrellis;
+	prot["LightUp"] = prot.LightUp;
+	prot["LightVertical"] = prot.LightVertical;
+	prot["MediumGray"] = prot.MediumGray;
+	prot["None"] = prot.None;
+	prot["Solid"] = prot.Solid;
+	prot = GradientFill.prototype;
+	prot["asc_getType"] = prot.asc_getType;
+	prot = PatternFill.prototype;
+	prot["asc_getType"] = prot.asc_getType;
+	prot = Fill.prototype;
+	prot["asc_getPatternFill"] = prot.asc_getPatternFill;
+	prot["asc_getGradientFill"] = prot.asc_getGradientFill;
 	window['AscCommonExcel'].BorderProp = BorderProp;
 	window['AscCommonExcel'].Border = Border;
 	window['AscCommonExcel'].Num = Num;
