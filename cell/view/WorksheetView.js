@@ -7903,6 +7903,7 @@
         cell_info.font.color = asc_obj2Color(font.getColor());
 
         cell_info.fill = new asc_CFill((null != bg) ? asc_obj2Color(bg) : bg);
+		cell_info.fill2 = c.getFill();
 
 		cell_info.numFormat = c.getNumFormatStr();
         cell_info.numFormatInfo = c.getNumFormatTypeInfo();
