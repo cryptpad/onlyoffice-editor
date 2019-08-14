@@ -1278,6 +1278,21 @@ var g_oFontProperties = {
 	GradientFill.prototype.asc_getType = function () {
 		return this.type;
 	};
+	GradientFill.prototype.asc_getDegree = function () {
+		return this.degree;
+	};
+	GradientFill.prototype.asc_getLeft = function () {
+		return this.left;
+	};
+	GradientFill.prototype.asc_getRight = function () {
+		return this.right;
+	};
+	GradientFill.prototype.asc_getTop = function () {
+		return this.top;
+	};
+	GradientFill.prototype.asc_getBottom = function () {
+		return this.bottom;
+	};
 	function GradientStop() {
 		//Attributes
 		this.position = null;
@@ -8567,7 +8582,6 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	window['AscCommonExcel'].CorrectAscColor = CorrectAscColor;
 	window['AscCommonExcel'].Fragment = Fragment;
 	window['AscCommonExcel'].Font = Font;
-	window['AscCommonExcel'].Fill = Fill;
 	window["Asc"]["c_oAscGradientType"] = c_oAscGradientType;
 	prot = c_oAscGradientType;
 	prot["Linear"] = prot.Linear;
@@ -8593,10 +8607,19 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	prot["MediumGray"] = prot.MediumGray;
 	prot["None"] = prot.None;
 	prot["Solid"] = prot.Solid;
+	window["Asc"]["asc_CGradientFill"] = window['AscCommonExcel'].GradientFill = GradientFill;
 	prot = GradientFill.prototype;
 	prot["asc_getType"] = prot.asc_getType;
+	prot["asc_getDegree"] = prot.asc_getDegree;
+	prot["asc_getLeft"] = prot.asc_getLeft;
+	prot["asc_getRight"] = prot.asc_getRight;
+	prot["asc_getTop"] = prot.asc_getTop;
+	prot["asc_getBottom"] = prot.asc_getBottom;
+	window["Asc"]["asc_CGradientStop"] = window['AscCommonExcel'].GradientStop = GradientStop;
+	window["Asc"]["asc_CPatternFill"] = window['AscCommonExcel'].PatternFill = PatternFill;
 	prot = PatternFill.prototype;
 	prot["asc_getType"] = prot.asc_getType;
+	window["Asc"]["asc_CFill"] = window['AscCommonExcel'].Fill = Fill;
 	prot = Fill.prototype;
 	prot["asc_getPatternFill"] = prot.asc_getPatternFill;
 	prot["asc_getGradientFill"] = prot.asc_getGradientFill;
@@ -8684,9 +8707,6 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	window['AscCommonExcel'].DateGroupItem = DateGroupItem;
 	window['AscCommonExcel'].SortCondition = SortCondition;
 	window['AscCommonExcel'].AutoFilterDateElem = AutoFilterDateElem;
-	window['AscCommonExcel'].PatternFill = PatternFill;
-	window['AscCommonExcel'].GradientFill = GradientFill;
-	window['AscCommonExcel'].GradientStop = GradientStop;
 	window['AscCommonExcel'].c_oAscGradientType = c_oAscGradientType;
 	window['AscCommonExcel'].c_oAscPatternType = c_oAscPatternType;
 
