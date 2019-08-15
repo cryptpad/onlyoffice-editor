@@ -8824,6 +8824,10 @@
 		var flags = stream.GetUShortLE();
 		if (0 !== (flags & 0x4)) {
 			this.fromXLSBFormulaExt(stream, tmp.formula, flags);
+			if (0 !== (flags & 0x4000)) {
+				this.setTypeInternal(CellValueType.Number);
+				this.setValueNumberInternal(null);
+			}
 		}
 		if (0 !== (flags & 0x2000)) {
 			this.setTypeInternal(CellValueType.String);
@@ -8908,6 +8912,7 @@
 			len += this.getXLSBSizeFormula(formulaToWrite);
 		}
 		var textToWrite;
+		var isBlankFormula = false;
 		if (formulaToWrite) {
 			if (!this.isNullTextString()) {
 				switch (this.type) {
@@ -8933,6 +8938,7 @@
 				type = AscCommonExcel.XLSB.rt_FMLA_STRING;
 				textToWrite = "";
 				len += 4 + 2 * textToWrite.length;
+				isBlankFormula = true;
 			}
 		} else {
 			if (!this.isNullTextString()) {
@@ -9020,7 +9026,7 @@
 		}
 		var flags = 0;
 		if (formulaToWrite) {
-			flags = this.toXLSBFormula(stream, formulaToWrite);
+			flags = this.toXLSBFormula(stream, formulaToWrite, isBlankFormula);
 		}
 		stream.WriteUShort(flags);
 		if (formulaToWrite) {
@@ -9043,7 +9049,7 @@
 		}
 		return len;
 	};
-	Cell.prototype.toXLSBFormula = function(stream, formulaToWrite) {
+	Cell.prototype.toXLSBFormula = function(stream, formulaToWrite, isBlankFormula) {
 		var flags = 0;
 		if (formulaToWrite.ca) {
 			flags |= 0x2;
@@ -9065,6 +9071,9 @@
 		}
 		if (undefined !== formulaToWrite.si) {
 			flagsExt |= 0x1000;
+		}
+		if (isBlankFormula) {
+			flagsExt |= 0x4000;
 		}
 		return flagsExt;
 	};
