@@ -11173,7 +11173,29 @@ function CorrectUniFill(asc_fill, unifill, editorId)
 
     var _alpha = asc_fill.transparent;
     if (null != _alpha)
-        ret.transparent = _alpha;
+	{
+		ret.transparent = _alpha;
+		
+		if(ret.fill && ret.fill.type === c_oAscFill.FILL_TYPE_BLIP)
+		{
+			
+			for(var i = 0; i < ret.fill.Effects.length; ++i)
+			{
+				if(ret.fill.Effects[i].Type = EFFECT_TYPE_ALPHAMODFIX)
+				{
+					ret.fill.Effects[i].amt = ((_alpha * 100000 / 255) >> 0);
+					break;
+				}  
+			}
+			if(i === ret.fill.Effects.length)
+			{
+				var oEffect = new CAlphaModFix();
+				oEffect.amt = ((_alpha * 100000 / 255) >> 0);
+				ret.fill.Effects.push(oEffect);
+			}
+		}
+	}
+        
 
     return ret;
 }
