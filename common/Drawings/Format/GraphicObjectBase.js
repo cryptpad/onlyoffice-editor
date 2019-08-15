@@ -738,17 +738,17 @@
         var outerShdw = this.getOuterShdw && this.getOuterShdw();
         if(this.shdwSp && outerShdw && !graphics.IsSlideBoundsCheckerType)
         {
-            graphics.SaveGrState();
             var oTransform =  new AscCommon.CMatrix();
             var dist = outerShdw.dist ? outerShdw.dist /36000 : 0;
             var dir = outerShdw.dir ? outerShdw.dir : 0;
             oTransform.tx = dist*Math.cos(AscFormat.cToRad*dir) - (this.shdwSp.extX - this.extX) / 2.0;
             oTransform.ty = dist*Math.sin(AscFormat.cToRad*dir) - (this.shdwSp.extY - this.extY) / 2.0;
             global_MatrixTransformer.MultiplyAppend(oTransform, this.transform);
+			this.shdwSp.bounds.x = this.bounds.x + this.shdwSp.bounds.l;
+			this.shdwSp.bounds.y = this.bounds.y + this.shdwSp.bounds.t;
             this.shdwSp.transform = oTransform;
             this.shdwSp.pen = null;
             this.shdwSp.draw(graphics);
-            graphics.RestoreGrState();
         }
     };
 
