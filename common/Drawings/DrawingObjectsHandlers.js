@@ -930,82 +930,89 @@ function handleChartElements(drawing, drawingObjectsController, e, dTx, dTy, gro
 
         if(!bSeries)
         {
-            for(j = 0; j < t.catAxisChart.length; ++j)
+			j = 0;
+			if(Array.isArray(t.catAxisChart))
+			{
+				for(j = 0; j < t.catAxisChart.length; ++j)
+				{
+					var oAxObj = t.catAxisChart[j];
+					if(oAxObj && oAxObj.paths)
+					{
+						if(oAxObj.catAx.compiledMajorGridLines && oAxObj.catAx.compiledMajorGridLines.isVisible()
+							&& AscFormat.isRealNumber(oAxObj.paths.gridLines))
+						{
+							var oPath = drawing.pathMemory.GetPath(oAxObj.paths.gridLines);
+							if(oPath.hitInPath(oCanvas, dTx, dTy))
+							{
+								bSeries = true;
+								selector.resetSelection();
+								selector.selectObject(drawing, pageIndex);
+								selector.selection.chartSelection = drawing;
+								drawing.selection.axis = oAxObj.catAx;
+								drawing.selection.majorGridlines = oAxObj.paths.gridLines;
+								break;
+							}
+						}
+						if(oAxObj.catAx.compiledMinorGridLines && oAxObj.catAx.compiledMinorGridLines.isVisible()
+							&& AscFormat.isRealNumber(oAxObj.paths.minorGridLines))
+						{
+							var oPath = drawing.pathMemory.GetPath(oAxObj.paths.minorGridLines);
+							if(oPath.hitInPath(oCanvas, dTx, dTy))
+							{
+								bSeries = true;
+								selector.resetSelection();
+								selector.selectObject(drawing, pageIndex);
+								selector.selection.chartSelection = drawing;
+								drawing.selection.axis = oAxObj.catAx;
+								drawing.selection.minorGridlines = oAxObj.paths.minorGridLines;
+								break;
+							}
+						}
+					}
+				}
+			}
+            if(!Array.isArray(t.catAxisChart) || j ===  t.catAxisChart.length)
             {
-                var oAxObj = t.catAxisChart[j];
-                if(oAxObj && oAxObj.paths)
-                {
-                    if(oAxObj.catAx.compiledMajorGridLines && oAxObj.catAx.compiledMajorGridLines.isVisible()
-                        && AscFormat.isRealNumber(oAxObj.paths.gridLines))
-                    {
-                        var oPath = drawing.pathMemory.GetPath(oAxObj.paths.gridLines);
-                        if(oPath.hitInPath(oCanvas, dTx, dTy))
-                        {
-                            bSeries = true;
-                            selector.resetSelection();
-                            selector.selectObject(drawing, pageIndex);
-                            selector.selection.chartSelection = drawing;
-                            drawing.selection.axis = oAxObj.catAx;
-                            drawing.selection.majorGridlines = oAxObj.paths.gridLines;
-                            break;
-                        }
-                    }
-                    if(oAxObj.catAx.compiledMinorGridLines && oAxObj.catAx.compiledMinorGridLines.isVisible()
-                        && AscFormat.isRealNumber(oAxObj.paths.minorGridLines))
-                    {
-                        var oPath = drawing.pathMemory.GetPath(oAxObj.paths.minorGridLines);
-                        if(oPath.hitInPath(oCanvas, dTx, dTy))
-                        {
-                            bSeries = true;
-                            selector.resetSelection();
-                            selector.selectObject(drawing, pageIndex);
-                            selector.selection.chartSelection = drawing;
-                            drawing.selection.axis = oAxObj.catAx;
-                            drawing.selection.minorGridlines = oAxObj.paths.minorGridLines;
-                            break;
-                        }
-                    }
-                }
-            }
-            if(j ===  t.catAxisChart.length)
-            {
-                for(j = 0; j < t.valAxisChart.length; ++j)
-                {
-                    var oAxObj = t.valAxisChart[j];
-                    if(oAxObj && oAxObj.paths)
-                    {
-                        if(oAxObj.valAx.compiledMajorGridLines && oAxObj.valAx.compiledMajorGridLines.isVisible() &&
-                            AscFormat.isRealNumber(oAxObj.paths.gridLines))
-                        {
-                            var oPath = drawing.pathMemory.GetPath(oAxObj.paths.gridLines);
-                            if(oPath.hitInPath(oCanvas, dTx, dTy))
-                            {
-                                bSeries = true;
-                                selector.resetSelection();
-                                selector.selectObject(drawing, pageIndex);
-                                selector.selection.chartSelection = drawing;
-                                drawing.selection.axis = oAxObj.valAx;
-                                drawing.selection.majorGridlines = oAxObj.paths.gridLines;
-                                break;
-                            }
-                        }
-                        if(oAxObj.valAx.compiledMinorGridLines && oAxObj.valAx.compiledMinorGridLines.isVisible() &&
-                            AscFormat.isRealNumber(oAxObj.paths.minorGridLines))
-                        {
-                            var oPath = drawing.pathMemory.GetPath(oAxObj.paths.minorGridLines);
-                            if(oPath.hitInPath(oCanvas, dTx, dTy))
-                            {
-                                bSeries = true;
-                                selector.resetSelection();
-                                selector.selectObject(drawing, pageIndex);
-                                selector.selection.chartSelection = drawing;
-                                drawing.selection.axis = oAxObj.valAx;
-                                drawing.selection.minorGridlines = oAxObj.paths.minorGridLines;
-                                break;
-                            }
-                        }
-                    }
-                }
+				if(Array.isArray(t.valAxisChart))
+				{
+					for(j = 0; j < t.valAxisChart.length; ++j)
+					{
+						var oAxObj = t.valAxisChart[j];
+						if(oAxObj && oAxObj.paths)
+						{
+							if(oAxObj.valAx.compiledMajorGridLines && oAxObj.valAx.compiledMajorGridLines.isVisible() &&
+								AscFormat.isRealNumber(oAxObj.paths.gridLines))
+							{
+								var oPath = drawing.pathMemory.GetPath(oAxObj.paths.gridLines);
+								if(oPath.hitInPath(oCanvas, dTx, dTy))
+								{
+									bSeries = true;
+									selector.resetSelection();
+									selector.selectObject(drawing, pageIndex);
+									selector.selection.chartSelection = drawing;
+									drawing.selection.axis = oAxObj.valAx;
+									drawing.selection.majorGridlines = oAxObj.paths.gridLines;
+									break;
+								}
+							}
+							if(oAxObj.valAx.compiledMinorGridLines && oAxObj.valAx.compiledMinorGridLines.isVisible() &&
+								AscFormat.isRealNumber(oAxObj.paths.minorGridLines))
+							{
+								var oPath = drawing.pathMemory.GetPath(oAxObj.paths.minorGridLines);
+								if(oPath.hitInPath(oCanvas, dTx, dTy))
+								{
+									bSeries = true;
+									selector.resetSelection();
+									selector.selectObject(drawing, pageIndex);
+									selector.selection.chartSelection = drawing;
+									drawing.selection.axis = oAxObj.valAx;
+									drawing.selection.minorGridlines = oAxObj.paths.minorGridLines;
+									break;
+								}
+							}
+						}
+					}
+				}
             }
         }
     }
