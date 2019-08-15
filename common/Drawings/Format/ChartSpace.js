@@ -2760,6 +2760,16 @@ CChartSpace.prototype.changeFill = function (unifill)
                     unifill2 = AscFormat.CorrectUniFill(unifill, oSeries.compiledSeriesBrush, this.getEditorType());
                     unifill2.convertToPPTXMods();
                     oSeries.spPr.setFill(unifill2);
+					if(Array.isArray(oSeries.dPt))
+					{
+						for(var i = 0; i < oSeries.dPt.length; ++i)
+						{
+							if(oSeries.dPt[i].spPr)
+							{
+								oSeries.dPt[i].spPr.setFill(unifill2.createDuplicate());
+							}
+						}
+					}
                 }
             }
         }
@@ -3040,6 +3050,16 @@ CChartSpace.prototype.changeLine = function (line)
                         stroke.Fill.convertToPPTXMods();
                     }
                     oSeries.spPr.setLn(stroke);
+					if(Array.isArray(oSeries.dPt))
+					{
+						for(var i = 0; i < oSeries.dPt.length; ++i)
+						{
+							if(oSeries.dPt[i].spPr)
+							{
+								oSeries.dPt[i].spPr.setLn(stroke.createDuplicate());
+							}
+						}
+					}
                 }
             }
         }
