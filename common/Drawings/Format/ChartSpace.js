@@ -1603,7 +1603,7 @@ CChartSpace.prototype.drawSelect = function(drawingDocument, nPageIndex)
                                         var oPath = this.pathMemory.GetPath(aPointsPaths[l]);
                                         oPath.drawTracks(drawingDocument, this.transform);
                                     }
-                                    if(Array.isArray(aPointsPaths[l]))
+                                    else if(Array.isArray(aPointsPaths[l]))
                                     {
                                         var aPointsPaths2 = aPointsPaths[l];
                                         for(var z = 0; z < aPointsPaths2.length; ++z)
@@ -1615,6 +1615,34 @@ CChartSpace.prototype.drawSelect = function(drawingDocument, nPageIndex)
                                             }
                                         }
                                     }
+									else
+									{
+										if(AscCommon.isRealObject(aPointsPaths[l]))
+										{
+											if(Array.isArray(aPointsPaths[l].frontPaths))
+											{
+												for(var p = 0; p < aPointsPaths[l].frontPaths.length; ++p)
+												{
+													if(AscFormat.isRealNumber(aPointsPaths[l].frontPaths[p]))
+													{
+														var oPath = this.pathMemory.GetPath(aPointsPaths[l].frontPaths[p]);
+														oPath.drawTracks(drawingDocument, this.transform);
+													}
+												}
+											}
+											if(Array.isArray(aPointsPaths[l].darkPaths))
+											{
+												for(var p = 0; p < aPointsPaths[l].darkPaths.length; ++p)
+												{
+													if(AscFormat.isRealNumber(aPointsPaths[l].darkPaths[p]))
+													{
+														var oPath = this.pathMemory.GetPath(aPointsPaths[l].darkPaths[p]);
+														oPath.drawTracks(drawingDocument, this.transform);
+													}
+												}
+											}
+										}
+									}
                                 }
                             }
                         }
