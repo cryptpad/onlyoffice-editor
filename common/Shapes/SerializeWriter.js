@@ -2526,7 +2526,7 @@ function CBinaryFileWriter()
                     oThis.WriteUChar(g_nodeAttributeStart);
                     oThis._WriteInt2(0, oEffect.dir);
                     oThis._WriteInt2(1, oEffect.dist);
-                    oThis._WriteLimit1(2, oEffect.blurRad);
+                    oThis._WriteInt2(2, oEffect.blurRad);
                     oThis.WriteUChar(g_nodeAttributeEnd);
                     oThis.WriteRecord1(0, oEffect.color, oThis.WriteUniColor);
                     oThis.EndRecord();
