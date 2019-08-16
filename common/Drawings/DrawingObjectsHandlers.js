@@ -587,6 +587,66 @@ function handleChartElements(drawing, drawingObjectsController, e, dTx, dTy, gro
                     continue;
                 }
                 var oDrawChart = t.charts[id];
+
+                var pointsPaths = oDrawChart.paths.points;
+                if(Array.isArray(pointsPaths))
+                {
+                    for(var k = pointsPaths.length - 1; k > - 1 ; --k)
+                    {
+                        if(Array.isArray(pointsPaths[k]))
+                        {
+                            var aPointsPaths = pointsPaths[k];
+                            for(var l = 0; l < aPointsPaths.length; ++l)
+                            {
+                                if(AscCommon.isRealObject(aPointsPaths[l]))
+                                {
+                                    if(AscFormat.isRealNumber(aPointsPaths[l].path))
+                                    {
+                                        var oPath = drawing.pathMemory.GetPath(aPointsPaths[l].path);
+                                        if(oPath.hitInInnerArea(oCanvas, dTx, dTy) || oPath.hitInPath(oCanvas, dTx, dTy))
+                                        {
+                                            bSeries = true;
+                                        }
+                                    }
+
+                                    if(bSeries)
+                                    {
+
+                                        if(drawing.selection.chart === id && drawing.selection.series === k)
+                                        {
+                                            selector.resetSelection();
+                                            selector.selectObject(drawing, pageIndex);
+                                            selector.selection.chartSelection = drawing;
+                                            drawing.selection.chart = id;
+                                            drawing.selection.series = k;
+                                            drawing.selection.markers = true;
+                                            drawing.selection.datPoint = l;
+                                        }
+                                        else
+                                        {
+                                            selector.resetSelection();
+                                            selector.selectObject(drawing, pageIndex);
+                                            selector.selection.chartSelection = drawing;
+                                            drawing.selection.chart = id;
+                                            drawing.selection.series = k;
+                                            drawing.selection.markers = true;
+                                            drawing.selection.datPoint = null;
+                                        }
+                                        break;
+                                    }
+                                }
+                            }
+                            if(l < aPointsPaths.length)
+                            {
+                                break;
+                            }
+                        }
+                    }
+                    if(k > -1)
+                    {
+                        break;
+                    }
+                }
                 var seriesPaths = oDrawChart.paths.series;
                 var bPie = chartModel.getObjectType() === AscDFH.historyitem_type_PieChart;
 
@@ -697,7 +757,7 @@ function handleChartElements(drawing, drawingObjectsController, e, dTx, dTy, gro
                                     // upPath: 1213
                                     if(AscFormat.isRealNumber(aPointsPaths[l].upPath))
                                     {
-                                        var oPath = drawing.pathMemory.GetPath(aPointsPaths[l].downPath);
+                                        var oPath = drawing.pathMemory.GetPath(aPointsPaths[l].upPath);
                                         if(oPath.hitInInnerArea(oCanvas, dTx, dTy) || oPath.hitInPath(oCanvas, dTx, dTy))
                                         {
                                             bSeries = true;
