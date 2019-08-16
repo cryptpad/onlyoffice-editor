@@ -1502,23 +1502,23 @@ function ToXml_ST_AllocationMethod(val) {
 function CT_PivotCacheDefinition() {
 //Attributes
 	this.id = null;
-	this.invalid = null;//false
-	this.saveData = null;//true
-	this.refreshOnLoad = null;//false
-	this.optimizeMemory = null;//false
-	this.enableRefresh = null;//true
+	this.invalid = false;
+	this.saveData = true;
+	this.refreshOnLoad = false;
+	this.optimizeMemory = false;
+	this.enableRefresh = true;
 	this.refreshedBy = null;
 	this.refreshedDate = null;
-	this.backgroundQuery = null;//false
+	this.backgroundQuery = false;
 	this.missingItemsLimit = null;
-	this.createdVersion = null;//0
-	this.refreshedVersion = null;//0
-	this.minRefreshableVersion = null;//0
+	this.createdVersion = 0;
+	this.refreshedVersion = 0;
+	this.minRefreshableVersion = 0;
 	this.recordCount = null;
-	this.upgradeOnRefresh = null;//false
-	this.tupleCache = null;//false
-	this.supportSubquery = null;//false
-	this.supportAdvancedDrill = null;//false
+	this.upgradeOnRefresh = false;
+	this.tupleCache = false;
+	this.supportSubquery = false;
+	this.supportAdvancedDrill = false;
 //Members
 	this.cacheSource = null;
 	this.cacheFields = null;
@@ -1698,19 +1698,19 @@ CT_PivotCacheDefinition.prototype.toXml = function(writer) {
 	// if (null !== this.id) {
 		// writer.WriteXmlAttributeStringEncode("r:id", this.id);
 	// }
-	if (null !== this.invalid) {
+	if (false !== this.invalid) {
 		writer.WriteXmlAttributeBool("invalid", this.invalid);
 	}
-	if (null !== this.saveData) {
+	if (true !== this.saveData) {
 		writer.WriteXmlAttributeBool("saveData", this.saveData);
 	}
-	if (null !== this.refreshOnLoad) {
+	if (false !== this.refreshOnLoad) {
 		writer.WriteXmlAttributeBool("refreshOnLoad", this.refreshOnLoad);
 	}
-	if (null !== this.optimizeMemory) {
+	if (false !== this.optimizeMemory) {
 		writer.WriteXmlAttributeBool("optimizeMemory", this.optimizeMemory);
 	}
-	if (null !== this.enableRefresh) {
+	if (true !== this.enableRefresh) {
 		writer.WriteXmlAttributeBool("enableRefresh", this.enableRefresh);
 	}
 	if (null !== this.refreshedBy) {
@@ -1719,34 +1719,34 @@ CT_PivotCacheDefinition.prototype.toXml = function(writer) {
 	if (null !== this.refreshedDate) {
 		writer.WriteXmlAttributeNumber("refreshedDate", this.refreshedDate);
 	}
-	if (null !== this.backgroundQuery) {
+	if (false !== this.backgroundQuery) {
 		writer.WriteXmlAttributeBool("backgroundQuery", this.backgroundQuery);
 	}
 	if (null !== this.missingItemsLimit) {
 		writer.WriteXmlAttributeNumber("missingItemsLimit", this.missingItemsLimit);
 	}
-	if (null !== this.createdVersion) {
+	if (0 !== this.createdVersion) {
 		writer.WriteXmlAttributeNumber("createdVersion", this.createdVersion);
 	}
-	if (null !== this.refreshedVersion) {
+	if (0 !== this.refreshedVersion) {
 		writer.WriteXmlAttributeNumber("refreshedVersion", this.refreshedVersion);
 	}
-	if (null !== this.minRefreshableVersion) {
+	if (0 !== this.minRefreshableVersion) {
 		writer.WriteXmlAttributeNumber("minRefreshableVersion", this.minRefreshableVersion);
 	}
 	if (null !== this.recordCount) {
 		writer.WriteXmlAttributeNumber("recordCount", this.recordCount);
 	}
-	if (null !== this.upgradeOnRefresh) {
+	if (false !== this.upgradeOnRefresh) {
 		writer.WriteXmlAttributeBool("upgradeOnRefresh", this.upgradeOnRefresh);
 	}
-	if (null !== this.tupleCache) {
+	if (false !== this.tupleCache) {
 		writer.WriteXmlAttributeBool("tupleCache", this.tupleCache);
 	}
-	if (null !== this.supportSubquery) {
+	if (false !== this.supportSubquery) {
 		writer.WriteXmlAttributeBool("supportSubquery", this.supportSubquery);
 	}
-	if (null !== this.supportAdvancedDrill) {
+	if (false !== this.supportAdvancedDrill) {
 		writer.WriteXmlAttributeBool("supportAdvancedDrill", this.supportAdvancedDrill);
 	}
 	writer.WriteXmlNodeEnd("pivotCacheDefinition", true);
@@ -1892,7 +1892,7 @@ function CT_pivotTableDefinition() {
 //Attributes
 	this.name = null;
 	this.cacheId = null;
-	this.dataOnRows = null;//false
+	this.dataOnRows = false;
 	this.dataPosition = null;
 	this.autoFormatId = null;
 	this.applyNumberFormats = null;
@@ -1904,60 +1904,60 @@ function CT_pivotTableDefinition() {
 	this.dataCaption = null;
 	this.grandTotalCaption = null;
 	this.errorCaption = null;
-	this.showError = null;//false
+	this.showError = false;
 	this.missingCaption = null;
-	this.showMissing = null;//true
+	this.showMissing = true;
 	this.pageStyle = null;
 	this.pivotTableStyle = null;
 	this.vacatedStyle = null;
 	this.tag = null;
-	this.updatedVersion = null;//0
-	this.minRefreshableVersion = null;//0
-	this.asteriskTotals = null;//false
-	this.showItems = null;//true
-	this.editData = null;//false
-	this.disableFieldList = null;//false
-	this.showCalcMbrs = null;//true
-	this.visualTotals = null;//true
-	this.showMultipleLabel = null;//true
-	this.showDataDropDown = null;//true
-	this.showDrill = null;//true
-	this.printDrill = null;//false
-	this.showMemberPropertyTips = null;//true
-	this.showDataTips = null;//true
-	this.enableWizard = null;//true
-	this.enableDrill = null;//true
-	this.enableFieldProperties = null;//true
-	this.preserveFormatting = null;//true
-	this.useAutoFormatting = null;//false
-	this.pageWrap = null;//0
-	this.pageOverThenDown = null;//false
-	this.subtotalHiddenItems = null;//false
-	this.rowGrandTotals = null;//true
-	this.colGrandTotals = null;//true
-	this.fieldPrintTitles = null;//false
-	this.itemPrintTitles = null;//false
-	this.mergeItem = null;//false
-	this.showDropZones = null;//true
-	this.createdVersion = null;//0
-	this.indent = null;//1
-	this.showEmptyRow = null;//false
-	this.showEmptyCol = null;//false
-	this.showHeaders = null;//true
-	this.compact = null;//true
-	this.outline = null;//false
-	this.outlineData = null;//false
-	this.compactData = null;//true
-	this.published = null;//false
-	this.gridDropZones = null;//false
-	this.immersive = null;//true
-	this.multipleFieldFilters = null;//true
-	this.chartFormat = null;//0
+	this.updatedVersion = 0;
+	this.minRefreshableVersion = 0;
+	this.asteriskTotals = false;
+	this.showItems = true;
+	this.editData = false;
+	this.disableFieldList = false;
+	this.showCalcMbrs = true;
+	this.visualTotals = true;
+	this.showMultipleLabel = true;
+	this.showDataDropDown = true;
+	this.showDrill = true;
+	this.printDrill = false;
+	this.showMemberPropertyTips = true;
+	this.showDataTips = true;
+	this.enableWizard = true;
+	this.enableDrill = true;
+	this.enableFieldProperties = true;
+	this.preserveFormatting = true;
+	this.useAutoFormatting = false;
+	this.pageWrap = 0;
+	this.pageOverThenDown = false;
+	this.subtotalHiddenItems = false;
+	this.rowGrandTotals = true;
+	this.colGrandTotals = true;
+	this.fieldPrintTitles = false;
+	this.itemPrintTitles = false;
+	this.mergeItem = false;
+	this.showDropZones = true;
+	this.createdVersion = 0;
+	this.indent = 1;
+	this.showEmptyRow = false;
+	this.showEmptyCol = false;
+	this.showHeaders = true;
+	this.compact = true;
+	this.outline = false;
+	this.outlineData = false;
+	this.compactData = true;
+	this.published = false;
+	this.gridDropZones = false;
+	this.immersive = true;
+	this.multipleFieldFilters = true;
+	this.chartFormat = 0;
 	this.rowHeaderCaption = null;
 	this.colHeaderCaption = null;
-	this.fieldListSortAscending = null;//false
-	this.mdxSubqueries = null;//false
-	this.customListSort = null;//true
+	this.fieldListSortAscending = false;
+	this.mdxSubqueries = false;
+	this.customListSort = true;
 //Members
 	this.location = null;
 	this.pivotFields = null;
@@ -2421,7 +2421,7 @@ CT_pivotTableDefinition.prototype.toXml = function(writer) {
 	if (null !== this.cacheId) {
 		writer.WriteXmlAttributeNumber("cacheId", this.cacheId);
 	}
-	if (null !== this.dataOnRows) {
+	if (false !== this.dataOnRows) {
 		writer.WriteXmlAttributeBool("dataOnRows", this.dataOnRows);
 	}
 	if (null !== this.dataPosition) {
@@ -2457,13 +2457,13 @@ CT_pivotTableDefinition.prototype.toXml = function(writer) {
 	if (null !== this.errorCaption) {
 		writer.WriteXmlAttributeStringEncode("errorCaption", this.errorCaption);
 	}
-	if (null !== this.showError) {
+	if (false !== this.showError) {
 		writer.WriteXmlAttributeBool("showError", this.showError);
 	}
 	if (null !== this.missingCaption) {
 		writer.WriteXmlAttributeStringEncode("missingCaption", this.missingCaption);
 	}
-	if (null !== this.showMissing) {
+	if (true !== this.showMissing) {
 		writer.WriteXmlAttributeBool("showMissing", this.showMissing);
 	}
 	if (null !== this.pageStyle) {
@@ -2478,130 +2478,130 @@ CT_pivotTableDefinition.prototype.toXml = function(writer) {
 	if (null !== this.tag) {
 		writer.WriteXmlAttributeStringEncode("tag", this.tag);
 	}
-	if (null !== this.updatedVersion) {
+	if (0 !== this.updatedVersion) {
 		writer.WriteXmlAttributeNumber("updatedVersion", this.updatedVersion);
 	}
-	if (null !== this.minRefreshableVersion) {
+	if (0 !== this.minRefreshableVersion) {
 		writer.WriteXmlAttributeNumber("minRefreshableVersion", this.minRefreshableVersion);
 	}
-	if (null !== this.asteriskTotals) {
+	if (false !== this.asteriskTotals) {
 		writer.WriteXmlAttributeBool("asteriskTotals", this.asteriskTotals);
 	}
-	if (null !== this.showItems) {
+	if (true !== this.showItems) {
 		writer.WriteXmlAttributeBool("showItems", this.showItems);
 	}
-	if (null !== this.editData) {
+	if (false !== this.editData) {
 		writer.WriteXmlAttributeBool("editData", this.editData);
 	}
-	if (null !== this.disableFieldList) {
+	if (false !== this.disableFieldList) {
 		writer.WriteXmlAttributeBool("disableFieldList", this.disableFieldList);
 	}
-	if (null !== this.showCalcMbrs) {
+	if (true !== this.showCalcMbrs) {
 		writer.WriteXmlAttributeBool("showCalcMbrs", this.showCalcMbrs);
 	}
-	if (null !== this.visualTotals) {
+	if (true !== this.visualTotals) {
 		writer.WriteXmlAttributeBool("visualTotals", this.visualTotals);
 	}
-	if (null !== this.showMultipleLabel) {
+	if (true !== this.showMultipleLabel) {
 		writer.WriteXmlAttributeBool("showMultipleLabel", this.showMultipleLabel);
 	}
-	if (null !== this.showDataDropDown) {
+	if (true !== this.showDataDropDown) {
 		writer.WriteXmlAttributeBool("showDataDropDown", this.showDataDropDown);
 	}
-	if (null !== this.showDrill) {
+	if (true !== this.showDrill) {
 		writer.WriteXmlAttributeBool("showDrill", this.showDrill);
 	}
-	if (null !== this.printDrill) {
+	if (false !== this.printDrill) {
 		writer.WriteXmlAttributeBool("printDrill", this.printDrill);
 	}
-	if (null !== this.showMemberPropertyTips) {
+	if (true !== this.showMemberPropertyTips) {
 		writer.WriteXmlAttributeBool("showMemberPropertyTips", this.showMemberPropertyTips);
 	}
-	if (null !== this.showDataTips) {
+	if (true !== this.showDataTips) {
 		writer.WriteXmlAttributeBool("showDataTips", this.showDataTips);
 	}
-	if (null !== this.enableWizard) {
+	if (true !== this.enableWizard) {
 		writer.WriteXmlAttributeBool("enableWizard", this.enableWizard);
 	}
-	if (null !== this.enableDrill) {
+	if (true !== this.enableDrill) {
 		writer.WriteXmlAttributeBool("enableDrill", this.enableDrill);
 	}
-	if (null !== this.enableFieldProperties) {
+	if (true !== this.enableFieldProperties) {
 		writer.WriteXmlAttributeBool("enableFieldProperties", this.enableFieldProperties);
 	}
-	if (null !== this.preserveFormatting) {
+	if (true !== this.preserveFormatting) {
 		writer.WriteXmlAttributeBool("preserveFormatting", this.preserveFormatting);
 	}
-	if (null !== this.useAutoFormatting) {
+	if (false !== this.useAutoFormatting) {
 		writer.WriteXmlAttributeBool("useAutoFormatting", this.useAutoFormatting);
 	}
-	if (null !== this.pageWrap) {
+	if (0 !== this.pageWrap) {
 		writer.WriteXmlAttributeNumber("pageWrap", this.pageWrap);
 	}
-	if (null !== this.pageOverThenDown) {
+	if (false !== this.pageOverThenDown) {
 		writer.WriteXmlAttributeBool("pageOverThenDown", this.pageOverThenDown);
 	}
-	if (null !== this.subtotalHiddenItems) {
+	if (false !== this.subtotalHiddenItems) {
 		writer.WriteXmlAttributeBool("subtotalHiddenItems", this.subtotalHiddenItems);
 	}
-	if (null !== this.rowGrandTotals) {
+	if (true !== this.rowGrandTotals) {
 		writer.WriteXmlAttributeBool("rowGrandTotals", this.rowGrandTotals);
 	}
-	if (null !== this.colGrandTotals) {
+	if (true !== this.colGrandTotals) {
 		writer.WriteXmlAttributeBool("colGrandTotals", this.colGrandTotals);
 	}
-	if (null !== this.fieldPrintTitles) {
+	if (false !== this.fieldPrintTitles) {
 		writer.WriteXmlAttributeBool("fieldPrintTitles", this.fieldPrintTitles);
 	}
-	if (null !== this.itemPrintTitles) {
+	if (false !== this.itemPrintTitles) {
 		writer.WriteXmlAttributeBool("itemPrintTitles", this.itemPrintTitles);
 	}
-	if (null !== this.mergeItem) {
+	if (false !== this.mergeItem) {
 		writer.WriteXmlAttributeBool("mergeItem", this.mergeItem);
 	}
-	if (null !== this.showDropZones) {
+	if (true !== this.showDropZones) {
 		writer.WriteXmlAttributeBool("showDropZones", this.showDropZones);
 	}
-	if (null !== this.createdVersion) {
+	if (0 !== this.createdVersion) {
 		writer.WriteXmlAttributeNumber("createdVersion", this.createdVersion);
 	}
-	if (null !== this.indent) {
+	if (1 !== this.indent) {
 		writer.WriteXmlAttributeNumber("indent", this.indent);
 	}
-	if (null !== this.showEmptyRow) {
+	if (false !== this.showEmptyRow) {
 		writer.WriteXmlAttributeBool("showEmptyRow", this.showEmptyRow);
 	}
-	if (null !== this.showEmptyCol) {
+	if (false !== this.showEmptyCol) {
 		writer.WriteXmlAttributeBool("showEmptyCol", this.showEmptyCol);
 	}
-	if (null !== this.showHeaders) {
+	if (true !== this.showHeaders) {
 		writer.WriteXmlAttributeBool("showHeaders", this.showHeaders);
 	}
-	if (null !== this.compact) {
+	if (true !== this.compact) {
 		writer.WriteXmlAttributeBool("compact", this.compact);
 	}
-	if (null !== this.outline) {
+	if (false !== this.outline) {
 		writer.WriteXmlAttributeBool("outline", this.outline);
 	}
-	if (null !== this.outlineData) {
+	if (false !== this.outlineData) {
 		writer.WriteXmlAttributeBool("outlineData", this.outlineData);
 	}
-	if (null !== this.compactData) {
+	if (true !== this.compactData) {
 		writer.WriteXmlAttributeBool("compactData", this.compactData);
 	}
-	if (null !== this.published) {
+	if (false !== this.published) {
 		writer.WriteXmlAttributeBool("published", this.published);
 	}
-	if (null !== this.gridDropZones) {
+	if (false !== this.gridDropZones) {
 		writer.WriteXmlAttributeBool("gridDropZones", this.gridDropZones);
 	}
-	if (null !== this.immersive) {
+	if (true !== this.immersive) {
 		writer.WriteXmlAttributeBool("immersive", this.immersive);
 	}
-	if (null !== this.multipleFieldFilters) {
+	if (true !== this.multipleFieldFilters) {
 		writer.WriteXmlAttributeBool("multipleFieldFilters", this.multipleFieldFilters);
 	}
-	if (null !== this.chartFormat) {
+	if (0 !== this.chartFormat) {
 		writer.WriteXmlAttributeNumber("chartFormat", this.chartFormat);
 	}
 	if (null !== this.rowHeaderCaption) {
@@ -2610,13 +2610,13 @@ CT_pivotTableDefinition.prototype.toXml = function(writer) {
 	if (null !== this.colHeaderCaption) {
 		writer.WriteXmlAttributeStringEncode("colHeaderCaption", this.colHeaderCaption);
 	}
-	if (null !== this.fieldListSortAscending) {
+	if (false !== this.fieldListSortAscending) {
 		writer.WriteXmlAttributeBool("fieldListSortAscending", this.fieldListSortAscending);
 	}
-	if (null !== this.mdxSubqueries) {
+	if (false !== this.mdxSubqueries) {
 		writer.WriteXmlAttributeBool("mdxSubqueries", this.mdxSubqueries);
 	}
-	if (null !== this.customListSort) {
+	if (true !== this.customListSort) {
 		writer.WriteXmlAttributeBool("customListSort", this.customListSort);
 	}
 	writer.WriteXmlNodeEnd("pivotTableDefinition", true);
@@ -3047,16 +3047,16 @@ CT_pivotTableDefinition.prototype.changeGrandTotals = function (items, newVal) {
 
 function CT_pivotTableDefinitionX14() {
 //Attributes
-	this.fillDownLabelsDefault = null;//false
-	this.visualTotalsForSets = null;//false
-	this.calculatedMembersInFilters = null;//false
+	this.fillDownLabelsDefault = false;
+	this.visualTotalsForSets = false;
+	this.calculatedMembersInFilters = false;
 	this.altText = null;
 	this.altTextSummary = null;
-	this.enableEdit = null;//false
-	this.autoApply = null;//false
-	this.allocationMethod = null;//equalAllocation
+	this.enableEdit = false;
+	this.autoApply = false;
+	this.allocationMethod = c_oAscAllocationMethod.EqualAllocation;
 	this.weightExpression = null;
-	this.hideValuesRow = null;//false
+	this.hideValuesRow = false;
 //Members
 	//this.pivotEdits = null;
 	//this.pivotChanges = null;
@@ -3126,13 +3126,13 @@ CT_pivotTableDefinitionX14.prototype.onStartNode = function(elem, attr, uq) {
 CT_pivotTableDefinitionX14.prototype.toXml = function(writer) {
 	writer.WriteXmlNodeStart("x14:pivotTableDefinition");
 	writer.WriteXmlString(" xmlns:xm=\"http://schemas.microsoft.com/office/excel/2006/main\"");
-	if (null !== this.fillDownLabelsDefault) {
+	if (false !== this.fillDownLabelsDefault) {
 		writer.WriteXmlAttributeBool("fillDownLabelsDefault", this.fillDownLabelsDefault);
 	}
-	if (null !== this.visualTotalsForSets) {
+	if (false !== this.visualTotalsForSets) {
 		writer.WriteXmlAttributeBool("visualTotalsForSets", this.visualTotalsForSets);
 	}
-	if (null !== this.calculatedMembersInFilters) {
+	if (false !== this.calculatedMembersInFilters) {
 		writer.WriteXmlAttributeBool("calculatedMembersInFilters", this.calculatedMembersInFilters);
 	}
 	if (null !== this.altText) {
@@ -3141,19 +3141,19 @@ CT_pivotTableDefinitionX14.prototype.toXml = function(writer) {
 	if (null !== this.altTextSummary) {
 		writer.WriteXmlAttributeStringEncode("altTextSummary", this.altTextSummary);
 	}
-	if (null !== this.enableEdit) {
+	if (false !== this.enableEdit) {
 		writer.WriteXmlAttributeBool("enableEdit", this.enableEdit);
 	}
-	if (null !== this.autoApply) {
+	if (false !== this.autoApply) {
 		writer.WriteXmlAttributeBool("autoApply", this.autoApply);
 	}
-	if (null !== this.allocationMethod) {
+	if (c_oAscAllocationMethod.EqualAllocation !== this.allocationMethod) {
 		writer.WriteXmlAttributeStringEncode("allocationMethod", ToXml_ST_AllocationMethod(this.allocationMethod));
 	}
 	if (null !== this.weightExpression) {
 		writer.WriteXmlAttributeStringEncode("weightExpression", this.weightExpression);
 	}
-	if (null !== this.hideValuesRow) {
+	if (false !== this.hideValuesRow) {
 		writer.WriteXmlAttributeBool("hideValuesRow", this.hideValuesRow);
 	}
 	writer.WriteXmlNodeEnd("pivotTableDefinition", true, true);
@@ -3161,7 +3161,7 @@ CT_pivotTableDefinitionX14.prototype.toXml = function(writer) {
 function CT_CacheSource() {
 //Attributes
 	this.type = null;
-	this.connectionId = null;//0
+	this.connectionId = 0;
 //Members
 	this.consolidation = null;
 	this.extLst = null;
@@ -3214,7 +3214,7 @@ CT_CacheSource.prototype.toXml = function(writer, name) {
 	if (null !== this.type) {
 		writer.WriteXmlAttributeStringEncode("type", ToXml_ST_SourceType(this.type));
 	}
-	if (null !== this.connectionId) {
+	if (0 !== this.connectionId) {
 		writer.WriteXmlAttributeNumber("connectionId", this.connectionId);
 	}
 	writer.WriteXmlNodeEnd(name, true);
@@ -3763,10 +3763,10 @@ function CT_Error() {
 	this.in = null;
 	this.bc = null;
 	this.fc = null;
-	this.i = null;//false
-	this.un = null;//false
-	this.st = null;//false
-	this.b = null;//false
+	this.i = false;
+	this.un = false;
+	this.st = false;
+	this.b = false;
 //Members
 	this.tpls = [];
 	this.x = [];
@@ -3874,16 +3874,16 @@ CT_Error.prototype.toXml2 = function(writer, name, val, obj) {
 		if (null !== obj.fc) {
 			writer.WriteXmlAttributeNumber("fc", obj.fc);
 		}
-		if (null !== obj.i) {
+		if (false !== obj.i) {
 			writer.WriteXmlAttributeBool("i", obj.i);
 		}
-		if (null !== obj.un) {
+		if (false !== obj.un) {
 			writer.WriteXmlAttributeBool("un", obj.un);
 		}
-		if (null !== obj.st) {
+		if (false !== obj.st) {
 			writer.WriteXmlAttributeBool("st", obj.st);
 		}
-		if (null !== obj.b) {
+		if (false !== obj.b) {
 			writer.WriteXmlAttributeBool("b", obj.b);
 		}
 		writer.WriteXmlNodeEnd(name, true);
@@ -3914,10 +3914,10 @@ CT_Error.prototype.clean = function() {
 	this.in = null;
 	this.bc = null;
 	this.fc = null;
-	this.i = null;//false
-	this.un = null;//false
-	this.st = null;//false
-	this.b = null;//false
+	this.i = false;
+	this.un = false;
+	this.st = false;
+	this.b = false;
 	this.tpls = [];
 	this.x = [];
 };
@@ -3930,10 +3930,10 @@ function CT_Missing() {
 	this.in = null;
 	this.bc = null;
 	this.fc = null;
-	this.i = null;//false
-	this.un = null;//false
-	this.st = null;//false
-	this.b = null;//false
+	this.i = false;
+	this.un = false;
+	this.st = false;
+	this.b = false;
 //Members
 	this.tpls = [];
 	this.x = [];
@@ -4034,16 +4034,16 @@ CT_Missing.prototype.toXml2 = function(writer, name, obj) {
 		if (null !== obj.fc) {
 			writer.WriteXmlAttributeNumber("fc", obj.fc);
 		}
-		if (null !== obj.i) {
+		if (false !== obj.i) {
 			writer.WriteXmlAttributeBool("i", obj.i);
 		}
-		if (null !== obj.un) {
+		if (false !== obj.un) {
 			writer.WriteXmlAttributeBool("un", obj.un);
 		}
-		if (null !== obj.st) {
+		if (false !== obj.st) {
 			writer.WriteXmlAttributeBool("st", obj.st);
 		}
-		if (null !== obj.b) {
+		if (false !== obj.b) {
 			writer.WriteXmlAttributeBool("b", obj.b);
 		}
 		writer.WriteXmlNodeEnd(name, true);
@@ -4074,10 +4074,10 @@ CT_Missing.prototype.clean = function() {
 	this.in = null;
 	this.bc = null;
 	this.fc = null;
-	this.i = null;//false
-	this.un = null;//false
-	this.st = null;//false
-	this.b = null;//false
+	this.i = false;
+	this.un = false;
+	this.st = false;
+	this.b = false;
 	this.tpls = [];
 	this.x = [];
 };
@@ -4091,10 +4091,10 @@ function CT_Number() {
 	this.in = null;
 	this.bc = null;
 	this.fc = null;
-	this.i = null;//false
-	this.un = null;//false
-	this.st = null;//false
-	this.b = null;//false
+	this.i = false;
+	this.un = false;
+	this.st = false;
+	this.b = false;
 //Members
 	this.tpls = [];
 	this.x = [];
@@ -4204,16 +4204,16 @@ CT_Number.prototype.toXml2 = function(writer, name, val, obj) {
 		if (null !== obj.fc) {
 			writer.WriteXmlAttributeNumber("fc", obj.fc);
 		}
-		if (null !== obj.i) {
+		if (false !== obj.i) {
 			writer.WriteXmlAttributeBool("i", obj.i);
 		}
-		if (null !== obj.un) {
+		if (false !== obj.un) {
 			writer.WriteXmlAttributeBool("un", obj.un);
 		}
-		if (null !== obj.st) {
+		if (false !== obj.st) {
 			writer.WriteXmlAttributeBool("st", obj.st);
 		}
-		if (null !== obj.b) {
+		if (false !== obj.b) {
 			writer.WriteXmlAttributeBool("b", obj.b);
 		}
 		writer.WriteXmlNodeEnd(name, true);
@@ -4244,10 +4244,10 @@ CT_Number.prototype.clean = function() {
 	this.in = null;
 	this.bc = null;
 	this.fc = null;
-	this.i = null;//false
-	this.un = null;//false
-	this.st = null;//false
-	this.b = null;//false
+	this.i = false;
+	this.un = false;
+	this.st = false;
+	this.b = false;
 	this.tpls = [];
 	this.x = [];
 };
@@ -4261,10 +4261,10 @@ function CT_String() {
 	this.in = null;
 	this.bc = null;
 	this.fc = null;
-	this.i = null;//false
-	this.un = null;//false
-	this.st = null;//false
-	this.b = null;//false
+	this.i = false;
+	this.un = false;
+	this.st = false;
+	this.b = false;
 //Members
 	this.tpls = [];
 	this.x = [];
@@ -4372,16 +4372,16 @@ CT_String.prototype.toXml2 = function(writer, name, val, obj) {
 		if (null !== obj.fc) {
 			writer.WriteXmlAttributeNumber("fc", obj.fc);
 		}
-		if (null !== obj.i) {
+		if (false !== obj.i) {
 			writer.WriteXmlAttributeBool("i", obj.i);
 		}
-		if (null !== obj.un) {
+		if (false !== obj.un) {
 			writer.WriteXmlAttributeBool("un", obj.un);
 		}
-		if (null !== obj.st) {
+		if (false !== obj.st) {
 			writer.WriteXmlAttributeBool("st", obj.st);
 		}
-		if (null !== obj.b) {
+		if (false !== obj.b) {
 			writer.WriteXmlAttributeBool("b", obj.b);
 		}
 		writer.WriteXmlNodeEnd(name, true);
@@ -4412,10 +4412,10 @@ CT_String.prototype.clean = function() {
 	this.in = null;
 	this.bc = null;
 	this.fc = null;
-	this.i = null;//false
-	this.un = null;//false
-	this.st = null;//false
-	this.b = null;//false
+	this.i = false;
+	this.un = false;
+	this.st = false;
+	this.b = false;
 	this.tpls = [];
 	this.x = [];
 };
@@ -4455,8 +4455,8 @@ function CT_Location() {
 	this.firstHeaderRow = null;
 	this.firstDataRow = null;
 	this.firstDataCol = null;
-	this.rowPageCount = null;//0
-	this.colPageCount = null;//0
+	this.rowPageCount = 0;
+	this.colPageCount = 0;
 // private
 	this.refWithPage = null;
 }
@@ -4504,10 +4504,10 @@ CT_Location.prototype.toXml = function(writer, name) {
 	if (null !== this.firstDataCol) {
 		writer.WriteXmlAttributeNumber("firstDataCol", this.firstDataCol);
 	}
-	if (null !== this.rowPageCount) {
+	if (0 !== this.rowPageCount) {
 		writer.WriteXmlAttributeNumber("rowPageCount", this.rowPageCount);
 	}
-	if (null !== this.colPageCount) {
+	if (0 !== this.colPageCount) {
 		writer.WriteXmlAttributeNumber("colPageCount", this.colPageCount);
 	}
 	writer.WriteXmlNodeEnd(name, true, true);
@@ -5134,7 +5134,7 @@ CT_ColHierarchiesUsage.prototype.toXml = function(writer, name) {
 };
 function CT_Consolidation() {
 //Attributes
-	this.autoPage = null;//true
+	this.autoPage = true;
 //Members
 	this.pages = null;
 	this.rangeSets = null;
@@ -5170,7 +5170,7 @@ CT_Consolidation.prototype.onStartNode = function(elem, attr, uq) {
 };
 CT_Consolidation.prototype.toXml = function(writer, name) {
 	writer.WriteXmlNodeStart(name);
-	if (null !== this.autoPage) {
+	if (true !== this.autoPage) {
 		writer.WriteXmlAttributeBool("autoPage", this.autoPage);
 	}
 	writer.WriteXmlNodeEnd(name, true);
@@ -5252,16 +5252,16 @@ function CT_CacheField() {
 	this.name = null;
 	this.caption = null;
 	this.propertyName = null;
-	this.serverField = null;//false
-	this.uniqueList = null;//true
+	this.serverField = false;
+	this.uniqueList = true;
 	this.numFmtId = null;
 	this.formula = null;
-	this.sqlType = null;//0
-	this.hierarchy = null;//0
-	this.level = null;//0
-	this.databaseField = null;//true
+	this.sqlType = 0;
+	this.hierarchy = 0;
+	this.level = 0;
+	this.databaseField = true;
 	this.mappingCount = null;
-	this.memberPropertyField = null;//false
+	this.memberPropertyField = false;
 //Members
 	this.sharedItems = null;
 	this.fieldGroup = null;
@@ -5368,10 +5368,10 @@ CT_CacheField.prototype.toXml = function(writer, name) {
 	if (null !== this.propertyName) {
 		writer.WriteXmlAttributeStringEncode("propertyName", this.propertyName);
 	}
-	if (null !== this.serverField) {
+	if (false !== this.serverField) {
 		writer.WriteXmlAttributeBool("serverField", this.serverField);
 	}
-	if (null !== this.uniqueList) {
+	if (true !== this.uniqueList) {
 		writer.WriteXmlAttributeBool("uniqueList", this.uniqueList);
 	}
 	if (null !== this.numFmtId) {
@@ -5380,22 +5380,22 @@ CT_CacheField.prototype.toXml = function(writer, name) {
 	if (null !== this.formula) {
 		writer.WriteXmlAttributeStringEncode("formula", this.formula);
 	}
-	if (null !== this.sqlType) {
+	if (0 !== this.sqlType) {
 		writer.WriteXmlAttributeNumber("sqlType", this.sqlType);
 	}
-	if (null !== this.hierarchy) {
+	if (0 !== this.hierarchy) {
 		writer.WriteXmlAttributeNumber("hierarchy", this.hierarchy);
 	}
-	if (null !== this.level) {
+	if (0 !== this.level) {
 		writer.WriteXmlAttributeNumber("level", this.level);
 	}
-	if (null !== this.databaseField) {
+	if (true !== this.databaseField) {
 		writer.WriteXmlAttributeBool("databaseField", this.databaseField);
 	}
 	if (null !== this.mappingCount) {
 		writer.WriteXmlAttributeNumber("mappingCount", this.mappingCount);
 	}
-	if (null !== this.memberPropertyField) {
+	if (false !== this.memberPropertyField) {
 		writer.WriteXmlAttributeBool("memberPropertyField", this.memberPropertyField);
 	}
 	writer.WriteXmlNodeEnd(name, true);
@@ -5424,26 +5424,26 @@ function CT_CacheHierarchy() {
 //Attributes
 	this.uniqueName = null;
 	this.caption = null;
-	this.measure = null;//false
-	this.set = null;//false
+	this.measure = false;
+	this.set = false;
 	this.parentSet = null;
-	this.iconSet = null;//0
-	this.attribute = null;//false
-	this.time = null;//false
-	this.keyAttribute = null;//false
+	this.iconSet = 0;
+	this.attribute = false;
+	this.time = false;
+	this.keyAttribute = false;
 	this.defaultMemberUniqueName = null;
 	this.allUniqueName = null;
 	this.allCaption = null;
 	this.dimensionUniqueName = null;
 	this.displayFolder = null;
 	this.measureGroup = null;
-	this.measures = null;//false
+	this.measures = false;
 	this.count = null;
-	this.oneField = null;//false
+	this.oneField = false;
 	this.memberValueDatatype = null;
 	this.unbalanced = null;
 	this.unbalancedGroup = null;
-	this.hidden = null;//false
+	this.hidden = false;
 //Members
 	this.fieldsUsage = null;
 	this.groupLevels = null;
@@ -5576,25 +5576,25 @@ CT_CacheHierarchy.prototype.toXml = function(writer, name) {
 	if (null !== this.caption) {
 		writer.WriteXmlAttributeStringEncode("caption", this.caption);
 	}
-	if (null !== this.measure) {
+	if (false !== this.measure) {
 		writer.WriteXmlAttributeBool("measure", this.measure);
 	}
-	if (null !== this.set) {
+	if (false !== this.set) {
 		writer.WriteXmlAttributeBool("set", this.set);
 	}
 	if (null !== this.parentSet) {
 		writer.WriteXmlAttributeNumber("parentSet", this.parentSet);
 	}
-	if (null !== this.iconSet) {
+	if (0 !== this.iconSet) {
 		writer.WriteXmlAttributeNumber("iconSet", this.iconSet);
 	}
-	if (null !== this.attribute) {
+	if (false !== this.attribute) {
 		writer.WriteXmlAttributeBool("attribute", this.attribute);
 	}
-	if (null !== this.time) {
+	if (false !== this.time) {
 		writer.WriteXmlAttributeBool("time", this.time);
 	}
-	if (null !== this.keyAttribute) {
+	if (false !== this.keyAttribute) {
 		writer.WriteXmlAttributeBool("keyAttribute", this.keyAttribute);
 	}
 	if (null !== this.defaultMemberUniqueName) {
@@ -5615,13 +5615,13 @@ CT_CacheHierarchy.prototype.toXml = function(writer, name) {
 	if (null !== this.measureGroup) {
 		writer.WriteXmlAttributeStringEncode("measureGroup", this.measureGroup);
 	}
-	if (null !== this.measures) {
+	if (false !== this.measures) {
 		writer.WriteXmlAttributeBool("measures", this.measures);
 	}
 	if (null !== this.count) {
 		writer.WriteXmlAttributeNumber("count", this.count);
 	}
-	if (null !== this.oneField) {
+	if (false !== this.oneField) {
 		writer.WriteXmlAttributeBool("oneField", this.oneField);
 	}
 	if (null !== this.memberValueDatatype) {
@@ -5633,7 +5633,7 @@ CT_CacheHierarchy.prototype.toXml = function(writer, name) {
 	if (null !== this.unbalancedGroup) {
 		writer.WriteXmlAttributeBool("unbalancedGroup", this.unbalancedGroup);
 	}
-	if (null !== this.hidden) {
+	if (false !== this.hidden) {
 		writer.WriteXmlAttributeBool("hidden", this.hidden);
 	}
 	writer.WriteXmlNodeEnd(name, true);
@@ -5964,8 +5964,8 @@ function CT_CalculatedMember() {
 	this.memberName = null;
 	this.hierarchy = null;
 	this.parent = null;
-	this.solveOrder = null;//0
-	this.set = null;//false
+	this.solveOrder = 0;
+	this.set = false;
 //Members
 	this.extLst = null;
 }
@@ -6033,10 +6033,10 @@ CT_CalculatedMember.prototype.toXml = function(writer, name) {
 	if (null !== this.parent) {
 		writer.WriteXmlAttributeStringEncode("parent", this.parent);
 	}
-	if (null !== this.solveOrder) {
+	if (0 !== this.solveOrder) {
 		writer.WriteXmlAttributeNumber("solveOrder", this.solveOrder);
 	}
-	if (null !== this.set) {
+	if (false !== this.set) {
 		writer.WriteXmlAttributeBool("set", this.set);
 	}
 	writer.WriteXmlNodeEnd(name, true);
@@ -6047,7 +6047,7 @@ CT_CalculatedMember.prototype.toXml = function(writer, name) {
 };
 function CT_PivotDimension() {
 //Attributes
-	this.measure = null;//false
+	this.measure = false;
 	this.name = null;
 	this.uniqueName = null;
 	this.caption = null;
@@ -6076,7 +6076,7 @@ CT_PivotDimension.prototype.readAttributes = function(attr, uq) {
 };
 CT_PivotDimension.prototype.toXml = function(writer, name) {
 	writer.WriteXmlNodeStart(name);
-	if (null !== this.measure) {
+	if (false !== this.measure) {
 		writer.WriteXmlAttributeBool("measure", this.measure);
 	}
 	if (null !== this.name) {
@@ -6191,7 +6191,7 @@ CT_Extension.prototype.toXml = function(writer, name) {
 };
 function CT_X() {
 //Attributes
-	this.v = null;//0
+	this.v = 0;
 }
 CT_X.prototype.readAttributes = function(attr, uq) {
 	if (attr()) {
@@ -6205,13 +6205,13 @@ CT_X.prototype.readAttributes = function(attr, uq) {
 };
 CT_X.prototype.toXml = function(writer, name) {
 	writer.WriteXmlNodeStart(name);
-	if (null !== this.v) {
+	if (0 !== this.v) {
 		writer.WriteXmlAttributeNumber("v", this.v);
 	}
 	writer.WriteXmlNodeEnd(name, true, true);
 };
 CT_X.prototype.getV = function () {
-	return this.v || 0;
+	return this.v;
 };
 function CT_Tuples() {
 //Attributes
@@ -6258,52 +6258,52 @@ function CT_PivotField() {
 //Attributes
 	this.name = null;
 	this.axis = null;
-	this.dataField = null;//false
+	this.dataField = false;
 	this.subtotalCaption = null;
-	this.showDropDowns = null;//true
-	this.hiddenLevel = null;//false
+	this.showDropDowns = true;
+	this.hiddenLevel = false;
 	this.uniqueMemberProperty = null;
-	this.compact = null;//true
-	this.allDrilled = null;//false
+	this.compact = true;
+	this.allDrilled = false;
 	this.numFmtId = null;
-	this.outline = null;//true
-	this.subtotalTop = null;//true
-	this.dragToRow = null;//true
-	this.dragToCol = null;//true
-	this.multipleItemSelectionAllowed = null;//false
-	this.dragToPage = null;//true
-	this.dragToData = null;//true
-	this.dragOff = null;//true
-	this.showAll = null;//true
-	this.insertBlankRow = null;//false
-	this.serverField = null;//false
-	this.insertPageBreak = null;//false
-	this.autoShow = null;//false
-	this.topAutoShow = null;//true
-	this.hideNewItems = null;//false
-	this.measureFilter = null;//false
-	this.includeNewItemsInFilter = null;//false
-	this.itemPageCount = null;//10
-	this.sortType = null;//manual
+	this.outline = true;
+	this.subtotalTop = true;
+	this.dragToRow = true;
+	this.dragToCol = true;
+	this.multipleItemSelectionAllowed = false;
+	this.dragToPage = true;
+	this.dragToData = true;
+	this.dragOff = true;
+	this.showAll = true;
+	this.insertBlankRow = false;
+	this.serverField = false;
+	this.insertPageBreak = false;
+	this.autoShow = false;
+	this.topAutoShow = true;
+	this.hideNewItems = false;
+	this.measureFilter = false;
+	this.includeNewItemsInFilter = false;
+	this.itemPageCount = 10;
+	this.sortType = c_oAscFieldSortType.Manual;
 	this.dataSourceSort = null;
-	this.nonAutoSortDefault = null;//false
+	this.nonAutoSortDefault = false;
 	this.rankBy = null;
-	this.defaultSubtotal = null;//true
-	this.sumSubtotal = null;//false
-	this.countASubtotal = null;//false
-	this.avgSubtotal = null;//false
-	this.maxSubtotal = null;//false
-	this.minSubtotal = null;//false
-	this.productSubtotal = null;//false
-	this.countSubtotal = null;//false
-	this.stdDevSubtotal = null;//false
-	this.stdDevPSubtotal = null;//false
-	this.varSubtotal = null;//false
-	this.varPSubtotal = null;//false
-	this.showPropCell = null;//false
-	this.showPropTip = null;//false
-	this.showPropAsCaption = null;//false
-	this.defaultAttributeDrillState = null;//false
+	this.defaultSubtotal = true;
+	this.sumSubtotal = false;
+	this.countASubtotal = false;
+	this.avgSubtotal = false;
+	this.maxSubtotal = false;
+	this.minSubtotal = false;
+	this.productSubtotal = false;
+	this.countSubtotal = false;
+	this.stdDevSubtotal = false;
+	this.stdDevPSubtotal = false;
+	this.varSubtotal = false;
+	this.varPSubtotal = false;
+	this.showPropCell = false;
+	this.showPropTip = false;
+	this.showPropAsCaption = false;
+	this.defaultAttributeDrillState = false;
 //Members
 	this.items = null;
 	this.autoSortScope = null;
@@ -6546,142 +6546,142 @@ CT_PivotField.prototype.toXml = function(writer, name) {
 	if (null !== this.axis) {
 		writer.WriteXmlAttributeStringEncode("axis", ToXml_ST_Axis(this.axis));
 	}
-	if (null !== this.dataField) {
+	if (false !== this.dataField) {
 		writer.WriteXmlAttributeBool("dataField", this.dataField);
 	}
 	if (null !== this.subtotalCaption) {
 		writer.WriteXmlAttributeStringEncode("subtotalCaption", this.subtotalCaption);
 	}
-	if (null !== this.showDropDowns) {
+	if (true !== this.showDropDowns) {
 		writer.WriteXmlAttributeBool("showDropDowns", this.showDropDowns);
 	}
-	if (null !== this.hiddenLevel) {
+	if (false !== this.hiddenLevel) {
 		writer.WriteXmlAttributeBool("hiddenLevel", this.hiddenLevel);
 	}
 	if (null !== this.uniqueMemberProperty) {
 		writer.WriteXmlAttributeStringEncode("uniqueMemberProperty", this.uniqueMemberProperty);
 	}
-	if (null !== this.compact) {
+	if (true !== this.compact) {
 		writer.WriteXmlAttributeBool("compact", this.compact);
 	}
-	if (null !== this.allDrilled) {
+	if (false !== this.allDrilled) {
 		writer.WriteXmlAttributeBool("allDrilled", this.allDrilled);
 	}
 	if (null !== this.numFmtId) {
 		writer.WriteXmlAttributeNumber("numFmtId", this.numFmtId);
 	}
-	if (null !== this.outline) {
+	if (true !== this.outline) {
 		writer.WriteXmlAttributeBool("outline", this.outline);
 	}
-	if (null !== this.subtotalTop) {
+	if (true !== this.subtotalTop) {
 		writer.WriteXmlAttributeBool("subtotalTop", this.subtotalTop);
 	}
-	if (null !== this.dragToRow) {
+	if (true !== this.dragToRow) {
 		writer.WriteXmlAttributeBool("dragToRow", this.dragToRow);
 	}
-	if (null !== this.dragToCol) {
+	if (true !== this.dragToCol) {
 		writer.WriteXmlAttributeBool("dragToCol", this.dragToCol);
 	}
-	if (null !== this.multipleItemSelectionAllowed) {
+	if (false !== this.multipleItemSelectionAllowed) {
 		writer.WriteXmlAttributeBool("multipleItemSelectionAllowed", this.multipleItemSelectionAllowed);
 	}
-	if (null !== this.dragToPage) {
+	if (true !== this.dragToPage) {
 		writer.WriteXmlAttributeBool("dragToPage", this.dragToPage);
 	}
-	if (null !== this.dragToData) {
+	if (true !== this.dragToData) {
 		writer.WriteXmlAttributeBool("dragToData", this.dragToData);
 	}
-	if (null !== this.dragOff) {
+	if (true !== this.dragOff) {
 		writer.WriteXmlAttributeBool("dragOff", this.dragOff);
 	}
-	if (null !== this.showAll) {
+	if (true !== this.showAll) {
 		writer.WriteXmlAttributeBool("showAll", this.showAll);
 	}
-	if (null !== this.insertBlankRow) {
+	if (false !== this.insertBlankRow) {
 		writer.WriteXmlAttributeBool("insertBlankRow", this.insertBlankRow);
 	}
-	if (null !== this.serverField) {
+	if (false !== this.serverField) {
 		writer.WriteXmlAttributeBool("serverField", this.serverField);
 	}
-	if (null !== this.insertPageBreak) {
+	if (false !== this.insertPageBreak) {
 		writer.WriteXmlAttributeBool("insertPageBreak", this.insertPageBreak);
 	}
-	if (null !== this.autoShow) {
+	if (false !== this.autoShow) {
 		writer.WriteXmlAttributeBool("autoShow", this.autoShow);
 	}
-	if (null !== this.topAutoShow) {
+	if (true !== this.topAutoShow) {
 		writer.WriteXmlAttributeBool("topAutoShow", this.topAutoShow);
 	}
-	if (null !== this.hideNewItems) {
+	if (false !== this.hideNewItems) {
 		writer.WriteXmlAttributeBool("hideNewItems", this.hideNewItems);
 	}
-	if (null !== this.measureFilter) {
+	if (false !== this.measureFilter) {
 		writer.WriteXmlAttributeBool("measureFilter", this.measureFilter);
 	}
-	if (null !== this.includeNewItemsInFilter) {
+	if (false !== this.includeNewItemsInFilter) {
 		writer.WriteXmlAttributeBool("includeNewItemsInFilter", this.includeNewItemsInFilter);
 	}
-	if (null !== this.itemPageCount) {
+	if (10 !== this.itemPageCount) {
 		writer.WriteXmlAttributeNumber("itemPageCount", this.itemPageCount);
 	}
-	if (null !== this.sortType) {
+	if (c_oAscFieldSortType.Manual !== this.sortType) {
 		writer.WriteXmlAttributeStringEncode("sortType", ToXml_ST_FieldSortType(this.sortType));
 	}
 	if (null !== this.dataSourceSort) {
 		writer.WriteXmlAttributeBool("dataSourceSort", this.dataSourceSort);
 	}
-	if (null !== this.nonAutoSortDefault) {
+	if (false !== this.nonAutoSortDefault) {
 		writer.WriteXmlAttributeBool("nonAutoSortDefault", this.nonAutoSortDefault);
 	}
 	if (null !== this.rankBy) {
 		writer.WriteXmlAttributeNumber("rankBy", this.rankBy);
 	}
-	if (null !== this.defaultSubtotal) {
+	if (true !== this.defaultSubtotal) {
 		writer.WriteXmlAttributeBool("defaultSubtotal", this.defaultSubtotal);
 	}
-	if (null !== this.sumSubtotal) {
+	if (false !== this.sumSubtotal) {
 		writer.WriteXmlAttributeBool("sumSubtotal", this.sumSubtotal);
 	}
-	if (null !== this.countASubtotal) {
+	if (false !== this.countASubtotal) {
 		writer.WriteXmlAttributeBool("countASubtotal", this.countASubtotal);
 	}
-	if (null !== this.avgSubtotal) {
+	if (false !== this.avgSubtotal) {
 		writer.WriteXmlAttributeBool("avgSubtotal", this.avgSubtotal);
 	}
-	if (null !== this.maxSubtotal) {
+	if (false !== this.maxSubtotal) {
 		writer.WriteXmlAttributeBool("maxSubtotal", this.maxSubtotal);
 	}
-	if (null !== this.minSubtotal) {
+	if (false !== this.minSubtotal) {
 		writer.WriteXmlAttributeBool("minSubtotal", this.minSubtotal);
 	}
-	if (null !== this.productSubtotal) {
+	if (false !== this.productSubtotal) {
 		writer.WriteXmlAttributeBool("productSubtotal", this.productSubtotal);
 	}
-	if (null !== this.countSubtotal) {
+	if (false !== this.countSubtotal) {
 		writer.WriteXmlAttributeBool("countSubtotal", this.countSubtotal);
 	}
-	if (null !== this.stdDevSubtotal) {
+	if (false !== this.stdDevSubtotal) {
 		writer.WriteXmlAttributeBool("stdDevSubtotal", this.stdDevSubtotal);
 	}
-	if (null !== this.stdDevPSubtotal) {
+	if (false !== this.stdDevPSubtotal) {
 		writer.WriteXmlAttributeBool("stdDevPSubtotal", this.stdDevPSubtotal);
 	}
-	if (null !== this.varSubtotal) {
+	if (false !== this.varSubtotal) {
 		writer.WriteXmlAttributeBool("varSubtotal", this.varSubtotal);
 	}
-	if (null !== this.varPSubtotal) {
+	if (false !== this.varPSubtotal) {
 		writer.WriteXmlAttributeBool("varPSubtotal", this.varPSubtotal);
 	}
-	if (null !== this.showPropCell) {
+	if (false !== this.showPropCell) {
 		writer.WriteXmlAttributeBool("showPropCell", this.showPropCell);
 	}
-	if (null !== this.showPropTip) {
+	if (false !== this.showPropTip) {
 		writer.WriteXmlAttributeBool("showPropTip", this.showPropTip);
 	}
-	if (null !== this.showPropAsCaption) {
+	if (false !== this.showPropAsCaption) {
 		writer.WriteXmlAttributeBool("showPropAsCaption", this.showPropAsCaption);
 	}
-	if (null !== this.defaultAttributeDrillState) {
+	if (false !== this.defaultAttributeDrillState) {
 		writer.WriteXmlAttributeBool("defaultAttributeDrillState", this.defaultAttributeDrillState);
 	}
 	writer.WriteXmlNodeEnd(name, true);
@@ -6771,9 +6771,9 @@ CT_Field.prototype.asc_getIndex = function () {
 };
 function CT_I() {
 //Attributes
-	this.t = null;//data
-	this.r = null;//0
-	this.i = null;//0
+	this.t = Asc.c_oAscItemType.Data;
+	this.r = 0;
+	this.i = 0;
 //Members
 	this.x = [];
 }
@@ -6813,13 +6813,13 @@ CT_I.prototype.onStartNode = function(elem, attr, uq) {
 };
 CT_I.prototype.toXml = function(writer, name) {
 	writer.WriteXmlNodeStart(name);
-	if (null !== this.t) {
+	if (Asc.c_oAscItemType.Data !== this.t) {
 		writer.WriteXmlAttributeStringEncode("t", ToXml_ST_ItemType(this.t));
 	}
-	if (null !== this.r) {
+	if (0 !== this.r) {
 		writer.WriteXmlAttributeNumber("r", this.r);
 	}
-	if (null !== this.i) {
+	if (0 !== this.i) {
 		writer.WriteXmlAttributeNumber("i", this.i);
 	}
 	writer.WriteXmlNodeEnd(name, true);
@@ -6830,7 +6830,7 @@ CT_I.prototype.toXml = function(writer, name) {
 	writer.WriteXmlNodeEnd(name);
 };
 CT_I.prototype.getR = function () {
-	return this.r || 0;
+	return this.r;
 };
 function CT_PageField() {
 //Attributes
@@ -6908,16 +6908,16 @@ CT_PageField.prototype.asc_getName = function () {
 	return this.name;
 };
 CT_PageField.prototype.asc_getIndex = function () {
-	return this.fld;
+	return this.fld || 0;
 };
 function CT_DataField() {
 //Attributes
 	this.name = null;
 	this.fld = null;
-	this.subtotal = null;//sum
-	this.showDataAs = null;//normal
-	this.baseField = null;//-1
-	this.baseItem = null;//1048832
+	this.subtotal = c_oAscDataConsolidateFunction.Sum;
+	this.showDataAs = c_oAscShowDataAs.Normal;
+	this.baseField = -1;
+	this.baseItem = 1048832;
 	this.numFmtId = null;
 //Members
 	this.extLst = null;
@@ -6983,10 +6983,10 @@ CT_DataField.prototype.toXml = function(writer, name) {
 	if (null !== this.fld) {
 		writer.WriteXmlAttributeNumber("fld", this.fld);
 	}
-	if (null !== this.subtotal) {
+	if (c_oAscDataConsolidateFunction.Sum !== this.subtotal) {
 		writer.WriteXmlAttributeStringEncode("subtotal", ToXml_ST_DataConsolidateFunction(this.subtotal));
 	}
-	if (null !== this.showDataAs) {
+	if (c_oAscShowDataAs.Normal !== this.showDataAs) {
 		writer.WriteXmlAttributeStringEncode("showDataAs", ToXml_ST_ShowDataAs(this.showDataAs));
 	}
 	if (null !== this.baseField) {
@@ -7008,13 +7008,13 @@ CT_DataField.prototype.asc_getName = function () {
 	return this.name;
 };
 CT_DataField.prototype.asc_getIndex = function () {
-	return this.fld;
+	return this.fld || 0;
 };
 CT_DataField.prototype.asc_getSubtotal = function () {
-	return null !== this.subtotal ? this.subtotal : c_oAscDataConsolidateFunction.Sum;
+	return this.subtotal;
 };
 CT_DataField.prototype.asc_getShowDataAs = function () {
-	return null !== this.showDataAs ? this.showDataAs : c_oAscShowDataAs.Normal;
+	return this.showDataAs;
 };
 CT_DataField.prototype.asc_set = function (api, pivot, newVal) {
 	var t = this;
@@ -7022,7 +7022,7 @@ CT_DataField.prototype.asc_set = function (api, pivot, newVal) {
 		if (null !== newVal.name && t.name !== newVal.name) {
 			t.asc_setName(newVal.name);
 		}
-		if (null !== newVal.subtotal && t.subtotal !== newVal.subtotal) {
+		if (t.subtotal !== newVal.subtotal) {
 			t.asc_setSubtotal(newVal.subtotal);
 		}
 
@@ -7038,7 +7038,7 @@ CT_DataField.prototype.asc_setSubtotal = function(newVal) {
 };
 function CT_Format() {
 //Attributes
-	this.action = null;//formatting
+	this.action = c_oAscFormatAction.Formatting;
 	this.dxfId = null;
 //Members
 	this.pivotArea = null;
@@ -7082,7 +7082,7 @@ CT_Format.prototype.onStartNode = function(elem, attr, uq) {
 };
 CT_Format.prototype.toXml = function(writer, name) {
 	writer.WriteXmlNodeStart(name);
-	if (null !== this.action) {
+	if (c_oAscFormatAction.Formatting !== this.action) {
 		writer.WriteXmlAttributeStringEncode("action", ToXml_ST_FormatAction(this.action));
 	}
 	//todo
@@ -7100,8 +7100,8 @@ CT_Format.prototype.toXml = function(writer, name) {
 };
 function CT_ConditionalFormat() {
 //Attributes
-	this.scope = null;//selection
-	this.type = null;//none
+	this.scope = c_oAscScope.Selection;
+	this.type = c_oAscType.None;
 	this.priority = null;
 //Members
 	this.pivotAreas = null;
@@ -7152,10 +7152,10 @@ CT_ConditionalFormat.prototype.onStartNode = function(elem, attr, uq) {
 };
 CT_ConditionalFormat.prototype.toXml = function(writer, name) {
 	writer.WriteXmlNodeStart(name);
-	if (null !== this.scope) {
+	if (c_oAscScope.Selection !== this.scope) {
 		writer.WriteXmlAttributeStringEncode("scope", ToXml_ST_Scope(this.scope));
 	}
-	if (null !== this.type) {
+	if (c_oAscType.None !== this.type) {
 		writer.WriteXmlAttributeStringEncode("type", ToXml_ST_Type(this.type));
 	}
 	if (null !== this.priority) {
@@ -7174,7 +7174,7 @@ function CT_ChartFormat() {
 //Attributes
 	this.chart = null;
 	this.format = null;
-	this.series = null;//false
+	this.series = false;
 //Members
 	this.pivotArea = null;
 }
@@ -7217,7 +7217,7 @@ CT_ChartFormat.prototype.toXml = function(writer, name) {
 	if (null !== this.format) {
 		writer.WriteXmlAttributeNumber("format", this.format);
 	}
-	if (null !== this.series) {
+	if (false !== this.series) {
 		writer.WriteXmlAttributeBool("series", this.series);
 	}
 	writer.WriteXmlNodeEnd(name, true);
@@ -7228,16 +7228,16 @@ CT_ChartFormat.prototype.toXml = function(writer, name) {
 };
 function CT_PivotHierarchy() {
 //Attributes
-	this.outline = null;//false
-	this.multipleItemSelectionAllowed = null;//false
-	this.subtotalTop = null;//false
-	this.showInFieldList = null;//true
-	this.dragToRow = null;//true
-	this.dragToCol = null;//true
-	this.dragToPage = null;//true
-	this.dragToData = null;//false
-	this.dragOff = null;//true
-	this.includeNewItemsInFilter = null;//false
+	this.outline = false;
+	this.multipleItemSelectionAllowed = false;
+	this.subtotalTop = false;
+	this.showInFieldList = true;
+	this.dragToRow = true;
+	this.dragToCol = true;
+	this.dragToPage = true;
+	this.dragToData = false;
+	this.dragOff = true;
+	this.includeNewItemsInFilter = false;
 	this.caption = null;
 //Members
 	this.mps = null;
@@ -7321,34 +7321,34 @@ CT_PivotHierarchy.prototype.onStartNode = function(elem, attr, uq) {
 };
 CT_PivotHierarchy.prototype.toXml = function(writer, name) {
 	writer.WriteXmlNodeStart(name);
-	if (null !== this.outline) {
+	if (false !== this.outline) {
 		writer.WriteXmlAttributeBool("outline", this.outline);
 	}
-	if (null !== this.multipleItemSelectionAllowed) {
+	if (false !== this.multipleItemSelectionAllowed) {
 		writer.WriteXmlAttributeBool("multipleItemSelectionAllowed", this.multipleItemSelectionAllowed);
 	}
-	if (null !== this.subtotalTop) {
+	if (false !== this.subtotalTop) {
 		writer.WriteXmlAttributeBool("subtotalTop", this.subtotalTop);
 	}
-	if (null !== this.showInFieldList) {
+	if (true !== this.showInFieldList) {
 		writer.WriteXmlAttributeBool("showInFieldList", this.showInFieldList);
 	}
-	if (null !== this.dragToRow) {
+	if (true !== this.dragToRow) {
 		writer.WriteXmlAttributeBool("dragToRow", this.dragToRow);
 	}
-	if (null !== this.dragToCol) {
+	if (true !== this.dragToCol) {
 		writer.WriteXmlAttributeBool("dragToCol", this.dragToCol);
 	}
-	if (null !== this.dragToPage) {
+	if (true !== this.dragToPage) {
 		writer.WriteXmlAttributeBool("dragToPage", this.dragToPage);
 	}
-	if (null !== this.dragToData) {
+	if (false !== this.dragToData) {
 		writer.WriteXmlAttributeBool("dragToData", this.dragToData);
 	}
-	if (null !== this.dragOff) {
+	if (true !== this.dragOff) {
 		writer.WriteXmlAttributeBool("dragOff", this.dragOff);
 	}
-	if (null !== this.includeNewItemsInFilter) {
+	if (false !== this.includeNewItemsInFilter) {
 		writer.WriteXmlAttributeBool("includeNewItemsInFilter", this.includeNewItemsInFilter);
 	}
 	if (null !== this.caption) {
@@ -7372,7 +7372,7 @@ function CT_PivotFilter() {
 	this.fld = null;
 	this.mpFld = null;
 	this.type = null;
-	this.evalOrder = null;//0
+	this.evalOrder = 0;
 	this.id = null;
 	this.iMeasureHier = null;
 	this.iMeasureFld = null;
@@ -7467,7 +7467,7 @@ CT_PivotFilter.prototype.toXml = function(writer, name) {
 	if (null !== this.type) {
 		writer.WriteXmlAttributeStringEncode("type", ToXml_ST_PivotFilterType(this.type));
 	}
-	if (null !== this.evalOrder) {
+	if (0 !== this.evalOrder) {
 		writer.WriteXmlAttributeNumber("evalOrder", this.evalOrder);
 	}
 	if (null !== this.id) {
@@ -7585,20 +7585,20 @@ CT_RangeSets.prototype.toXml = function(writer, name) {
 };
 function CT_SharedItems() {
 //Attributes
-	this.containsSemiMixedTypes = null;//true
-	this.containsNonDate = null;//true
-	this.containsDate = null;//false
-	this.containsString = null;//true
-	this.containsBlank = null;//false
-	this.containsMixedTypes = null;//false
-	this.containsNumber = null;//false
-	this.containsInteger = null;//false
+	this.containsSemiMixedTypes = true;
+	this.containsNonDate = true;
+	this.containsDate = false;
+	this.containsString = true;
+	this.containsBlank = false;
+	this.containsMixedTypes = false;
+	this.containsNumber = false;
+	this.containsInteger = false;
 	this.minValue = null;
 	this.maxValue = null;
 	this.minDate = null;
 	this.maxDate = null;
 //	this.count = null;
-	this.longText = null;//false
+	this.longText = false;
 //Members
 	this.Items = new PivotRecords();
 }
@@ -7675,28 +7675,28 @@ CT_SharedItems.prototype.onEndNode = function(prevContext, elem) {
 };
 CT_SharedItems.prototype.toXml = function(writer, name) {
 	writer.WriteXmlNodeStart(name);
-	if (null !== this.containsSemiMixedTypes) {
+	if (true !== this.containsSemiMixedTypes) {
 		writer.WriteXmlAttributeBool("containsSemiMixedTypes", this.containsSemiMixedTypes);
 	}
-	if (null !== this.containsNonDate) {
+	if (true !== this.containsNonDate) {
 		writer.WriteXmlAttributeBool("containsNonDate", this.containsNonDate);
 	}
-	if (null !== this.containsDate) {
+	if (false !== this.containsDate) {
 		writer.WriteXmlAttributeBool("containsDate", this.containsDate);
 	}
-	if (null !== this.containsString) {
+	if (true !== this.containsString) {
 		writer.WriteXmlAttributeBool("containsString", this.containsString);
 	}
-	if (null !== this.containsBlank) {
+	if (false !== this.containsBlank) {
 		writer.WriteXmlAttributeBool("containsBlank", this.containsBlank);
 	}
-	if (null !== this.containsMixedTypes) {
+	if (false !== this.containsMixedTypes) {
 		writer.WriteXmlAttributeBool("containsMixedTypes", this.containsMixedTypes);
 	}
-	if (null !== this.containsNumber) {
+	if (false !== this.containsNumber) {
 		writer.WriteXmlAttributeBool("containsNumber", this.containsNumber);
 	}
-	if (null !== this.containsInteger) {
+	if (false !== this.containsInteger) {
 		writer.WriteXmlAttributeBool("containsInteger", this.containsInteger);
 	}
 	if (null !== this.minValue) {
@@ -7715,7 +7715,7 @@ CT_SharedItems.prototype.toXml = function(writer, name) {
 	if (count > 0) {
 		writer.WriteXmlAttributeNumber("count", count);
 	}
-	if (null !== this.longText) {
+	if (false !== this.longText) {
 		writer.WriteXmlAttributeBool("longText", this.longText);
 	}
 	writer.WriteXmlNodeEnd(name, true);
@@ -7857,8 +7857,8 @@ function CT_Set() {
 //	this.count = null;
 	this.maxRank = null;
 	this.setDefinition = null;
-	this.sortType = null;//none
-	this.queryFailed = null;//false
+	this.sortType = c_oAscSortType.None;
+	this.queryFailed = false;
 //Members
 	this.tpls = [];
 	this.sortByTuple = null;
@@ -7918,10 +7918,10 @@ CT_Set.prototype.toXml = function(writer, name) {
 	if (null !== this.setDefinition) {
 		writer.WriteXmlAttributeStringEncode("setDefinition", this.setDefinition);
 	}
-	if (null !== this.sortType) {
+	if (c_oAscSortType.None !== this.sortType) {
 		writer.WriteXmlAttributeStringEncode("sortType", ToXml_ST_SortType(this.sortType));
 	}
-	if (null !== this.queryFailed) {
+	if (false !== this.queryFailed) {
 		writer.WriteXmlAttributeBool("queryFailed", this.queryFailed);
 	}
 	writer.WriteXmlNodeEnd(name, true);
@@ -8006,15 +8006,15 @@ CT_ServerFormat.prototype.toXml = function(writer, name) {
 function CT_PivotArea() {
 //Attributes
 	this.field = null;
-	this.type = null;//normal
-	this.dataOnly = null;//true
-	this.labelOnly = null;//false
-	this.grandRow = null;//false
-	this.grandCol = null;//false
-	this.cacheIndex = null;//false
-	this.outline = null;//true
+	this.type = c_oAscPivotAreaType.None;
+	this.dataOnly = true;
+	this.labelOnly = false;
+	this.grandRow = false;
+	this.grandCol = false;
+	this.cacheIndex = false;
+	this.outline = true;
 	this.offset = null;
-	this.collapsedLevelsAreSubtotals = null;//false
+	this.collapsedLevelsAreSubtotals = false;
 	this.axis = null;
 	this.fieldPosition = null;
 //Members
@@ -8105,31 +8105,31 @@ CT_PivotArea.prototype.toXml = function(writer, name) {
 	if (null !== this.field) {
 		writer.WriteXmlAttributeNumber("field", this.field);
 	}
-	if (null !== this.type) {
+	if (c_oAscPivotAreaType.None !== this.type) {
 		writer.WriteXmlAttributeStringEncode("type", ToXml_ST_PivotAreaType(this.type));
 	}
-	if (null !== this.dataOnly) {
+	if (true !== this.dataOnly) {
 		writer.WriteXmlAttributeBool("dataOnly", this.dataOnly);
 	}
-	if (null !== this.labelOnly) {
+	if (false !== this.labelOnly) {
 		writer.WriteXmlAttributeBool("labelOnly", this.labelOnly);
 	}
-	if (null !== this.grandRow) {
+	if (false !== this.grandRow) {
 		writer.WriteXmlAttributeBool("grandRow", this.grandRow);
 	}
-	if (null !== this.grandCol) {
+	if (false !== this.grandCol) {
 		writer.WriteXmlAttributeBool("grandCol", this.grandCol);
 	}
-	if (null !== this.cacheIndex) {
+	if (false !== this.cacheIndex) {
 		writer.WriteXmlAttributeBool("cacheIndex", this.cacheIndex);
 	}
-	if (null !== this.outline) {
+	if (true !== this.outline) {
 		writer.WriteXmlAttributeBool("outline", this.outline);
 	}
 	if (null !== this.offset) {
 		writer.WriteXmlAttributeStringEncode("offset", this.offset);
 	}
-	if (null !== this.collapsedLevelsAreSubtotals) {
+	if (false !== this.collapsedLevelsAreSubtotals) {
 		writer.WriteXmlAttributeBool("collapsedLevelsAreSubtotals", this.collapsedLevelsAreSubtotals);
 	}
 	if (null !== this.axis) {
@@ -8519,14 +8519,14 @@ CT_RangeSet.prototype.toXml = function(writer, name) {
 };
 function CT_RangePr() {
 //Attributes
-	this.autoStart = null;//true
-	this.autoEnd = null;//true
-	this.groupBy = null;//range
+	this.autoStart = true;
+	this.autoEnd = true;
+	this.groupBy = c_oAscGroupBy.Range;
 	this.startNum = null;
 	this.endNum = null;
 	this.startDate = null;
 	this.endDate = null;
-	this.groupInterval = null;//1
+	this.groupInterval = 1;
 }
 CT_RangePr.prototype.readAttributes = function(attr, uq) {
 	if (attr()) {
@@ -8571,13 +8571,13 @@ CT_RangePr.prototype.readAttributes = function(attr, uq) {
 };
 CT_RangePr.prototype.toXml = function(writer, name) {
 	writer.WriteXmlNodeStart(name);
-	if (null !== this.autoStart) {
+	if (true !== this.autoStart) {
 		writer.WriteXmlAttributeBool("autoStart", this.autoStart);
 	}
-	if (null !== this.autoEnd) {
+	if (true !== this.autoEnd) {
 		writer.WriteXmlAttributeBool("autoEnd", this.autoEnd);
 	}
-	if (null !== this.groupBy) {
+	if (c_oAscGroupBy.Range !== this.groupBy) {
 		writer.WriteXmlAttributeStringEncode("groupBy", ToXml_ST_GroupBy(this.groupBy));
 	}
 	if (null !== this.startNum) {
@@ -8592,7 +8592,7 @@ CT_RangePr.prototype.toXml = function(writer, name) {
 	if (null !== this.endDate) {
 		writer.WriteXmlAttributeStringEncode("endDate", this.endDate);
 	}
-	if (null !== this.groupInterval) {
+	if (1 !== this.groupInterval) {
 		writer.WriteXmlAttributeNumber("groupInterval", this.groupInterval);
 	}
 	writer.WriteXmlNodeEnd(name, true, true);
@@ -8682,8 +8682,8 @@ function CT_GroupLevel() {
 //Attributes
 	this.uniqueName = null;
 	this.caption = null;
-	this.user = null;//false
-	this.customRollUp = null;//false
+	this.user = false;
+	this.customRollUp = false;
 //Members
 	this.groups = null;
 	this.extLst = null;
@@ -8737,10 +8737,10 @@ CT_GroupLevel.prototype.toXml = function(writer, name) {
 	if (null !== this.caption) {
 		writer.WriteXmlAttributeStringEncode("caption", this.caption);
 	}
-	if (null !== this.user) {
+	if (false !== this.user) {
 		writer.WriteXmlAttributeBool("user", this.user);
 	}
-	if (null !== this.customRollUp) {
+	if (false !== this.customRollUp) {
 		writer.WriteXmlAttributeBool("customRollUp", this.customRollUp);
 	}
 	writer.WriteXmlNodeEnd(name, true);
@@ -8786,16 +8786,16 @@ CT_PivotAreaReferences.prototype.toXml = function(writer, name) {
 function CT_Item() {
 //Attributes
 	this.n = null;
-	this.t = null;//data
-	this.h = null;//false
-	this.s = null;//false
-	this.sd = null;//true
-	this.f = null;//false
-	this.m = null;//false
-	this.c = null;//false
+	this.t = Asc.c_oAscItemType.Data;
+	this.h = false;
+	this.s = false;
+	this.sd = true;
+	this.f = false;
+	this.m = false;
+	this.c = false;
 	this.x = null;
-	this.d = null;//false
-	this.e = null;//true
+	this.d = false;
+	this.e = true;
 }
 CT_Item.prototype.readAttributes = function(attr, uq) {
 	if (attr()) {
@@ -8855,34 +8855,34 @@ CT_Item.prototype.toXml = function(writer, name) {
 	if (null !== this.n) {
 		writer.WriteXmlAttributeStringEncode("n", this.n);
 	}
-	if (null !== this.t) {
+	if (Asc.c_oAscItemType.Data !== this.t) {
 		writer.WriteXmlAttributeStringEncode("t", ToXml_ST_ItemType(this.t));
 	}
-	if (null !== this.h) {
+	if (false !== this.h) {
 		writer.WriteXmlAttributeBool("h", this.h);
 	}
-	if (null !== this.s) {
+	if (false !== this.s) {
 		writer.WriteXmlAttributeBool("s", this.s);
 	}
-	if (null !== this.sd) {
+	if (true !== this.sd) {
 		writer.WriteXmlAttributeBool("sd", this.sd);
 	}
-	if (null !== this.f) {
+	if (false !== this.f) {
 		writer.WriteXmlAttributeBool("f", this.f);
 	}
-	if (null !== this.m) {
+	if (false !== this.m) {
 		writer.WriteXmlAttributeBool("m", this.m);
 	}
-	if (null !== this.c) {
+	if (false !== this.c) {
 		writer.WriteXmlAttributeBool("c", this.c);
 	}
 	if (null !== this.x) {
 		writer.WriteXmlAttributeNumber("x", this.x);
 	}
-	if (null !== this.d) {
+	if (false !== this.d) {
 		writer.WriteXmlAttributeBool("d", this.d);
 	}
-	if (null !== this.e) {
+	if (true !== this.e) {
 		writer.WriteXmlAttributeBool("e", this.e);
 	}
 	writer.WriteXmlNodeEnd(name, true, true);
@@ -8890,9 +8890,9 @@ CT_Item.prototype.toXml = function(writer, name) {
 function CT_MemberProperty() {
 //Attributes
 	this.name = null;
-	this.showCell = null;//false
-	this.showTip = null;//false
-	this.showAsCaption = null;//false
+	this.showCell = false;
+	this.showTip = false;
+	this.showAsCaption = false;
 	this.nameLen = null;
 	this.pPos = null;
 	this.pLen = null;
@@ -8946,13 +8946,13 @@ CT_MemberProperty.prototype.toXml = function(writer, name) {
 	if (null !== this.name) {
 		writer.WriteXmlAttributeStringEncode("name", this.name);
 	}
-	if (null !== this.showCell) {
+	if (false !== this.showCell) {
 		writer.WriteXmlAttributeBool("showCell", this.showCell);
 	}
-	if (null !== this.showTip) {
+	if (false !== this.showTip) {
 		writer.WriteXmlAttributeBool("showTip", this.showTip);
 	}
-	if (null !== this.showAsCaption) {
+	if (false !== this.showAsCaption) {
 		writer.WriteXmlAttributeBool("showAsCaption", this.showAsCaption);
 	}
 	if (null !== this.nameLen) {
@@ -8996,8 +8996,8 @@ CT_Member.prototype.toXml = function(writer, name) {
 function CT_FilterColumn() {
 //Attributes
 	this.colId = null;
-	this.hiddenButton = null;//false
-	this.showButton = null;//true
+	this.hiddenButton = false;
+	this.showButton = true;
 //Members
 	this.colorFilter = null;
 	this.customFilters = null;
@@ -9079,10 +9079,10 @@ CT_FilterColumn.prototype.toXml = function(writer, name) {
 	if (null !== this.colId) {
 		writer.WriteXmlAttributeNumber("colId", this.colId);
 	}
-	if (null !== this.hiddenButton) {
+	if (false !== this.hiddenButton) {
 		writer.WriteXmlAttributeBool("hiddenButton", this.hiddenButton);
 	}
-	if (null !== this.showButton) {
+	if (true !== this.showButton) {
 		writer.WriteXmlAttributeBool("showButton", this.showButton);
 	}
 	writer.WriteXmlNodeEnd(name, true);
@@ -9111,9 +9111,9 @@ CT_FilterColumn.prototype.toXml = function(writer, name) {
 };
 function CT_SortState() {
 //Attributes
-	this.columnSort = null;//false
-	this.caseSensitive = null;//false
-	this.sortMethod = null;//none
+	this.columnSort = false;
+	this.caseSensitive = false;
+	this.sortMethod = c_oAscSortMethod.None;
 	this.ref = null;
 //Members
 	this.sortCondition = [];
@@ -9165,13 +9165,13 @@ CT_SortState.prototype.onStartNode = function(elem, attr, uq) {
 };
 CT_SortState.prototype.toXml = function(writer, name) {
 	writer.WriteXmlNodeStart(name);
-	if (null !== this.columnSort) {
+	if (false !== this.columnSort) {
 		writer.WriteXmlAttributeBool("columnSort", this.columnSort);
 	}
-	if (null !== this.caseSensitive) {
+	if (false !== this.caseSensitive) {
 		writer.WriteXmlAttributeBool("caseSensitive", this.caseSensitive);
 	}
-	if (null !== this.sortMethod) {
+	if (c_oAscSortMethod.None !== this.sortMethod) {
 		writer.WriteXmlAttributeStringEncode("sortMethod", ToXml_ST_SortMethod(this.sortMethod));
 	}
 	if (null !== this.ref) {
@@ -9243,21 +9243,21 @@ function CT_PivotAreaReference() {
 //Attributes
 	this.field = null;
 //	this.count = null;
-	this.selected = null;//true
-	this.byPosition = null;//false
-	this.relative = null;//false
-	this.defaultSubtotal = null;//false
-	this.sumSubtotal = null;//false
-	this.countASubtotal = null;//false
-	this.avgSubtotal = null;//false
-	this.maxSubtotal = null;//false
-	this.minSubtotal = null;//false
-	this.productSubtotal = null;//false
-	this.countSubtotal = null;//false
-	this.stdDevSubtotal = null;//false
-	this.stdDevPSubtotal = null;//false
-	this.varSubtotal = null;//false
-	this.varPSubtotal = null;//false
+	this.selected = true;
+	this.byPosition = false;
+	this.relative = false;
+	this.defaultSubtotal = false;
+	this.sumSubtotal = false;
+	this.countASubtotal = false;
+	this.avgSubtotal = false;
+	this.maxSubtotal = false;
+	this.minSubtotal = false;
+	this.productSubtotal = false;
+	this.countSubtotal = false;
+	this.stdDevSubtotal = false;
+	this.stdDevPSubtotal = false;
+	this.varSubtotal = false;
+	this.varPSubtotal = false;
 //Members
 	this.x = [];
 	this.extLst = null;
@@ -9359,49 +9359,49 @@ CT_PivotAreaReference.prototype.toXml = function(writer, name) {
 	if (this.x.length > 0) {
 		writer.WriteXmlAttributeNumber("count", this.x.length);
 	}
-	if (null !== this.selected) {
+	if (true !== this.selected) {
 		writer.WriteXmlAttributeBool("selected", this.selected);
 	}
-	if (null !== this.byPosition) {
+	if (false !== this.byPosition) {
 		writer.WriteXmlAttributeBool("byPosition", this.byPosition);
 	}
-	if (null !== this.relative) {
+	if (false !== this.relative) {
 		writer.WriteXmlAttributeBool("relative", this.relative);
 	}
-	if (null !== this.defaultSubtotal) {
+	if (false !== this.defaultSubtotal) {
 		writer.WriteXmlAttributeBool("defaultSubtotal", this.defaultSubtotal);
 	}
-	if (null !== this.sumSubtotal) {
+	if (false !== this.sumSubtotal) {
 		writer.WriteXmlAttributeBool("sumSubtotal", this.sumSubtotal);
 	}
-	if (null !== this.countASubtotal) {
+	if (false !== this.countASubtotal) {
 		writer.WriteXmlAttributeBool("countASubtotal", this.countASubtotal);
 	}
-	if (null !== this.avgSubtotal) {
+	if (false !== this.avgSubtotal) {
 		writer.WriteXmlAttributeBool("avgSubtotal", this.avgSubtotal);
 	}
-	if (null !== this.maxSubtotal) {
+	if (false !== this.maxSubtotal) {
 		writer.WriteXmlAttributeBool("maxSubtotal", this.maxSubtotal);
 	}
-	if (null !== this.minSubtotal) {
+	if (false !== this.minSubtotal) {
 		writer.WriteXmlAttributeBool("minSubtotal", this.minSubtotal);
 	}
-	if (null !== this.productSubtotal) {
+	if (false !== this.productSubtotal) {
 		writer.WriteXmlAttributeBool("productSubtotal", this.productSubtotal);
 	}
-	if (null !== this.countSubtotal) {
+	if (false !== this.countSubtotal) {
 		writer.WriteXmlAttributeBool("countSubtotal", this.countSubtotal);
 	}
-	if (null !== this.stdDevSubtotal) {
+	if (false !== this.stdDevSubtotal) {
 		writer.WriteXmlAttributeBool("stdDevSubtotal", this.stdDevSubtotal);
 	}
-	if (null !== this.stdDevPSubtotal) {
+	if (false !== this.stdDevPSubtotal) {
 		writer.WriteXmlAttributeBool("stdDevPSubtotal", this.stdDevPSubtotal);
 	}
-	if (null !== this.varSubtotal) {
+	if (false !== this.varSubtotal) {
 		writer.WriteXmlAttributeBool("varSubtotal", this.varSubtotal);
 	}
-	if (null !== this.varPSubtotal) {
+	if (false !== this.varPSubtotal) {
 		writer.WriteXmlAttributeBool("varPSubtotal", this.varPSubtotal);
 	}
 	writer.WriteXmlNodeEnd(name, true);
@@ -9417,7 +9417,7 @@ CT_PivotAreaReference.prototype.toXml = function(writer, name) {
 function CT_ColorFilter() {
 //Attributes
 	this.dxfId = null;
-	this.cellColor = null;//true
+	this.cellColor = true;
 }
 CT_ColorFilter.prototype.readAttributes = function(attr, uq) {
 	if (attr()) {
@@ -9439,14 +9439,14 @@ CT_ColorFilter.prototype.toXml = function(writer, name) {
 	// if (null !== this.dxfId) {
 	// 	writer.WriteXmlAttributeNumber("dxfId", this.dxfId);
 	// }
-	if (null !== this.cellColor) {
+	if (true !== this.cellColor) {
 		writer.WriteXmlAttributeBool("cellColor", this.cellColor);
 	}
 	writer.WriteXmlNodeEnd(name, true, true);
 };
 function CT_CustomFilters() {
 //Attributes
-	this.and = null;//false
+	this.and = false;
 //Members
 	this.customFilter = [];
 }
@@ -9475,7 +9475,7 @@ CT_CustomFilters.prototype.onStartNode = function(elem, attr, uq) {
 };
 CT_CustomFilters.prototype.toXml = function(writer, name) {
 	writer.WriteXmlNodeStart(name);
-	if (null !== this.and) {
+	if (false !== this.and) {
 		writer.WriteXmlAttributeBool("and", this.and);
 	}
 	writer.WriteXmlNodeEnd(name, true);
@@ -9535,8 +9535,8 @@ CT_DynamicFilter.prototype.toXml = function(writer, name) {
 };
 function CT_Filters() {
 //Attributes
-	this.blank = null;//false
-	this.calendarType = null;//none
+	this.blank = false;
+	this.calendarType = c_oAscCalendarType.None;
 //Members
 	this.filter = [];
 	this.dateGroupItem = [];
@@ -9579,10 +9579,10 @@ CT_Filters.prototype.onStartNode = function(elem, attr, uq) {
 };
 CT_Filters.prototype.toXml = function(writer, name) {
 	writer.WriteXmlNodeStart(name);
-	if (null !== this.blank) {
+	if (false !== this.blank) {
 		writer.WriteXmlAttributeBool("blank", this.blank);
 	}
-	if (null !== this.calendarType) {
+	if (c_oAscCalendarType.None !== this.calendarType) {
 		writer.WriteXmlAttributeStringEncode("calendarType", ToXml_ST_CalendarType(this.calendarType));
 	}
 	writer.WriteXmlNodeEnd(name, true);
@@ -9630,8 +9630,8 @@ CT_IconFilter.prototype.toXml = function(writer, name) {
 };
 function CT_Top10() {
 //Attributes
-	this.top = null;//true
-	this.percent = null;//false
+	this.top = true;
+	this.percent = false;
 	this.val = null;
 	this.filterVal = null;
 }
@@ -9659,10 +9659,10 @@ CT_Top10.prototype.readAttributes = function(attr, uq) {
 };
 CT_Top10.prototype.toXml = function(writer, name) {
 	writer.WriteXmlNodeStart(name);
-	if (null !== this.top) {
+	if (true !== this.top) {
 		writer.WriteXmlAttributeBool("top", this.top);
 	}
-	if (null !== this.percent) {
+	if (false !== this.percent) {
 		writer.WriteXmlAttributeBool("percent", this.percent);
 	}
 	if (null !== this.val) {
@@ -9675,12 +9675,12 @@ CT_Top10.prototype.toXml = function(writer, name) {
 };
 function CT_SortCondition() {
 //Attributes
-	this.descending = null;//false
-	this.sortBy = null;//value
+	this.descending = false;
+	this.sortBy = c_oAscSortBy.Value;
 	this.ref = null;
 	this.customList = null;
 	this.dxfId = null;
-	this.iconSet = null;//item3arrows
+	this.iconSet = c_oAscIconSetType.ThreeArrows;
 	this.iconId = null;
 }
 CT_SortCondition.prototype.readAttributes = function(attr, uq) {
@@ -9725,10 +9725,10 @@ CT_SortCondition.prototype.readAttributes = function(attr, uq) {
 };
 CT_SortCondition.prototype.toXml = function(writer, name) {
 	writer.WriteXmlNodeStart(name);
-	if (null !== this.descending) {
+	if (false !== this.descending) {
 		writer.WriteXmlAttributeBool("descending", this.descending);
 	}
-	if (null !== this.sortBy) {
+	if (c_oAscSortBy.Value !== this.sortBy) {
 		writer.WriteXmlAttributeStringEncode("sortBy", ToXml_ST_SortBy(this.sortBy));
 	}
 	if (null !== this.ref) {
@@ -9741,7 +9741,7 @@ CT_SortCondition.prototype.toXml = function(writer, name) {
 	// if (null !== this.dxfId) {
 	// 	writer.WriteXmlAttributeNumber("dxfId", this.dxfId);
 	// }
-	if (null !== this.iconSet) {
+	if (c_oAscIconSetType.ThreeArrows !== this.iconSet) {
 		writer.WriteXmlAttributeStringEncode("iconSet", ToXml_ST_IconSetType(this.iconSet));
 	}
 	if (null !== this.iconId) {
@@ -9823,7 +9823,7 @@ CT_LevelGroup.prototype.toXml = function(writer, name) {
 };
 function CT_CustomFilter() {
 //Attributes
-	this.operator = null;//equal
+	this.operator = c_oAscFilterOperator.Equal;
 	this.val = null;
 }
 CT_CustomFilter.prototype.readAttributes = function(attr, uq) {
@@ -9845,7 +9845,7 @@ CT_CustomFilter.prototype.readAttributes = function(attr, uq) {
 };
 CT_CustomFilter.prototype.toXml = function(writer, name) {
 	writer.WriteXmlNodeStart(name);
-	if (null !== this.operator) {
+	if (c_oAscFilterOperator.Equal !== this.operator) {
 		writer.WriteXmlAttributeStringEncode("operator", ToXml_ST_FilterOperator(this.operator));
 	}
 	if (null !== this.val) {
@@ -9980,7 +9980,7 @@ CT_GroupMembers.prototype.toXml = function(writer, name) {
 function CT_GroupMember() {
 //Attributes
 	this.uniqueName = null;
-	this.group = null;//false
+	this.group = false;
 }
 CT_GroupMember.prototype.readAttributes = function(attr, uq) {
 	if (attr()) {
@@ -10001,7 +10001,7 @@ CT_GroupMember.prototype.toXml = function(writer, name) {
 	if (null !== this.uniqueName) {
 		writer.WriteXmlAttributeStringEncode("uniqueName", this.uniqueName);
 	}
-	if (null !== this.group) {
+	if (false !== this.group) {
 		writer.WriteXmlAttributeBool("group", this.group);
 	}
 	writer.WriteXmlNodeEnd(name, true, true);
