@@ -18882,7 +18882,7 @@ CDocument.prototype.DrawTable = function()
 		var nTablePageIndex = oTable.Parent.private_GetElementPageIndex(oTable.GetIndex(), this.DrawTableMode.Page, 0, 1);
 
 		this.StartAction();
-		oTable.DrawTableCells(this.DrawTableMode.StartX, this.DrawTableMode.StartY, this.DrawTableMode.EndX, this.DrawTableMode.EndY, nTablePageIndex);
+		oTable.DrawTableCells(this.DrawTableMode.StartX, this.DrawTableMode.StartY, this.DrawTableMode.EndX, this.DrawTableMode.EndY, nTablePageIndex, this.DrawTableMode.Draw);
 		this.Recalculate();
 		this.FinalizeAction();
 	}
