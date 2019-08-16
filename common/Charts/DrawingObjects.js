@@ -2818,14 +2818,7 @@ function DrawingObjects() {
                     History.TurnOn();
                     if(aImagesSync.length > 0)
                     {
-						for(var i = 0; i < aImagesSync.length; ++i)
-						{
-							aImagesSync[i] = AscCommon.getFullImageSrc2(aImagesSync[i])
-						}
-						window["Asc"]["editor"].ImageLoader.LoadImagesWithCallback(aImagesSync, function(){
-							oNewChartSpace.cachedCanvas = null;
-							 window["Asc"]["editor"].asyncImagesDocumentEndLoaded();
-						}, [])
+                        window["Asc"]["editor"].ImageLoader.LoadDocumentImages(aImagesSync);
                     }
                 });
 

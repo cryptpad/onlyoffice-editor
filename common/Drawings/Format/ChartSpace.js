@@ -13978,6 +13978,22 @@ CChartSpace.prototype.updateLinks = function()
         var ctx;
         if(!this.cachedCanvas)
         {
+            //check loading images
+            var aImages = [];
+            this.getAllRasterImages(aImages);
+            var oApi = window["Asc"]["editor"] || editor;
+            if(oApi && oApi.ImageLoader)
+            {
+                for(var i = 0; i < aImages.length; ++i)
+                {
+                    var _image = oApi.ImageLoader.map_image_index[AscCommon.getFullImageSrc2(aImages[i])];
+                    if (_image != undefined && _image.Image != null && _image.Status === window['AscFonts'].ImageLoadStatus.Loading)
+                    {
+                        return false;
+                    }
+                }
+            }
+
             this.cachedCanvas = document.createElement('canvas');
             this.cachedCanvas.width = nWidth;
             this.cachedCanvas.height = nHeight;
