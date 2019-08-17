@@ -3058,7 +3058,7 @@ CChartSpace.prototype.changeLine = function (line)
             this.selection.axisLbls.setSpPr(new AscFormat.CSpPr());
             this.selection.axisLbls.spPr.setParent(this.selection.axisLbls);
         }
-        stroke = AscFormat.CorrectUniStroke(line, this.selection.axisLbls.spPr.ln, this.getEditorType());
+        stroke = AscFormat.CorrectUniStroke(line, this.selection.axisLbls.spPr.ln ? this.selection.axisLbls.spPr.ln.createDuplicate() : null, this.getEditorType());
         if(stroke.Fill)
         {
             stroke.Fill.convertToPPTXMods();
