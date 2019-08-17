@@ -763,15 +763,37 @@ function handleChartElements(drawing, drawingObjectsController, e, dTx, dTy, gro
                                             bSeries = true;
                                         }
                                     }
-                                    if(Array.isArray(aPointsPaths[l].frontPath))
+									var aFrontPaths = aPointsPaths[l].frontPath ||  aPointsPaths[l].frontPaths;
+                                    if(!bSeries && Array.isArray(aFrontPaths))
                                     {
-                                        for(var s = 0; s < aPointsPaths[l].frontPath.length; ++s)
+                                        for(var s = 0; s < aFrontPaths.length; ++s)
                                         {
-                                            var oPath = drawing.pathMemory.GetPath(aPointsPaths[l].frontPath[s]);
-                                            if(oPath.hitInInnerArea(oCanvas, dTx, dTy) || oPath.hitInPath(oCanvas, dTx, dTy))
-                                            {
-                                                bSeries = true;
-                                            }
+											if(AscFormat.isRealNumber(aFrontPaths[s]))
+											{
+												var oPath = drawing.pathMemory.GetPath(aFrontPaths[s]);
+												if(oPath.hitInInnerArea(oCanvas, dTx, dTy) || oPath.hitInPath(oCanvas, dTx, dTy))
+												{
+													bSeries = true;
+													break;
+												}
+											}
+                                        }
+                                    }
+									
+									aFrontPaths = aPointsPaths[l].darkPaths;
+									  if(!bSeries && Array.isArray(aFrontPaths))
+                                    {
+                                        for(var s = 0; s < aFrontPaths.length; ++s)
+                                        {
+											if(AscFormat.isRealNumber(aFrontPaths[s]))
+											{
+												var oPath = drawing.pathMemory.GetPath(aFrontPaths[s]);
+												if(oPath.hitInInnerArea(oCanvas, dTx, dTy) || oPath.hitInPath(oCanvas, dTx, dTy))
+												{
+													bSeries = true;
+													break;
+												}
+											}
                                         }
                                     }
 
@@ -897,7 +919,7 @@ function handleChartElements(drawing, drawingObjectsController, e, dTx, dTy, gro
                                         }
                                     }
                                 }
-                                if(AscFormat.isRealNumber(seriesPaths[k].lowLines))
+                                if(!bSeries && AscFormat.isRealNumber(seriesPaths[k].lowLines))
                                 {
                                     var oPath = drawing.pathMemory.GetPath(seriesPaths[k].lowLines);
                                     if(oPath.hitInInnerArea(oCanvas, dTx, dTy) || oPath.hitInPath(oCanvas, dTx, dTy))
@@ -948,16 +970,17 @@ function handleChartElements(drawing, drawingObjectsController, e, dTx, dTy, gro
                 }
                 else
                 {
-                    if(AscFormat.isRealNumber(t.chart.sortZIndexPaths[i].darkPaths))
+					
+                    if(!bSeries && AscFormat.isRealNumber(t.chart.sortZIndexPaths[i].frontPaths))
                     {
-                        var oPath = drawing.pathMemory.GetPath(t.chart.sortZIndexPaths[i].darkPaths);
+                        var oPath = drawing.pathMemory.GetPath(t.chart.sortZIndexPaths[i].frontPaths);
                         if(oPath.hitInInnerArea(oCanvas, dTx, dTy) || oPath.hitInPath(oCanvas, dTx, dTy)) {
                             bSeries = true;
                         }
                     }
-                    if(AscFormat.isRealNumber(t.chart.sortZIndexPaths[i].frontPaths))
+                    if(!bSeries && AscFormat.isRealNumber(t.chart.sortZIndexPaths[i].darkPaths))
                     {
-                        var oPath = drawing.pathMemory.GetPath(t.chart.sortZIndexPaths[i].frontPaths);
+                        var oPath = drawing.pathMemory.GetPath(t.chart.sortZIndexPaths[i].darkPaths);
                         if(oPath.hitInInnerArea(oCanvas, dTx, dTy) || oPath.hitInPath(oCanvas, dTx, dTy)) {
                             bSeries = true;
                         }
@@ -1013,7 +1036,7 @@ function handleChartElements(drawing, drawingObjectsController, e, dTx, dTy, gro
 								break;
 							}
 						}
-						if(oAxObj.catAx.compiledMinorGridLines && oAxObj.catAx.compiledMinorGridLines.isVisible()
+						if(!bSeries && oAxObj.catAx.compiledMinorGridLines && oAxObj.catAx.compiledMinorGridLines.isVisible()
 							&& AscFormat.isRealNumber(oAxObj.paths.minorGridLines))
 						{
 							var oPath = drawing.pathMemory.GetPath(oAxObj.paths.minorGridLines);
@@ -1055,7 +1078,7 @@ function handleChartElements(drawing, drawingObjectsController, e, dTx, dTy, gro
 									break;
 								}
 							}
-							if(oAxObj.valAx.compiledMinorGridLines && oAxObj.valAx.compiledMinorGridLines.isVisible() &&
+							if(!bSeries && oAxObj.valAx.compiledMinorGridLines && oAxObj.valAx.compiledMinorGridLines.isVisible() &&
 								AscFormat.isRealNumber(oAxObj.paths.minorGridLines))
 							{
 								var oPath = drawing.pathMemory.GetPath(oAxObj.paths.minorGridLines);

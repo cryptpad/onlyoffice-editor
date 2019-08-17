@@ -1557,13 +1557,30 @@ CChartSpace.prototype.drawSelect = function(drawingDocument, nPageIndex)
                                                 var oPath = this.pathMemory.GetPath(aPointsPaths2[z].downPath);
                                                 oPath.drawTracks(drawingDocument, this.transform);
                                             }
-                                            if(Array.isArray(aPointsPaths2[z].frontPath))
+											
+											var aFrontPaths = aPointsPaths2[z].frontPath || aPointsPaths2[z].frontPaths;
+                                            if(Array.isArray(aFrontPaths))
                                             {
-                                                for(var s = 0; s < aPointsPaths2[z].frontPath.length; ++s)
+                                                for(var s = 0; s < aFrontPaths.length; ++s)
                                                 {
-                                                    var oPath = this.pathMemory.GetPath(aPointsPaths2[z].frontPath[s]);
-                                                    oPath.drawTracks(drawingDocument, this.transform);
+													if(AscFormat.isRealNumber(aFrontPaths[s]))
+													{													
+														var oPath = this.pathMemory.GetPath(aFrontPaths[s]);
+														oPath.drawTracks(drawingDocument, this.transform);	
+													}
                                                 }
+                                            }
+											aFrontPaths = aPointsPaths2[z].darkPaths;
+                                            if(Array.isArray(aFrontPaths))
+                                            {
+                                                for(var s = 0; s < aFrontPaths.length; ++s)
+                                                {
+													if(AscFormat.isRealNumber(aFrontPaths[s]))
+													{													
+														var oPath = this.pathMemory.GetPath(aFrontPaths[s]);
+														oPath.drawTracks(drawingDocument, this.transform);	
+													}
+												}
                                             }
 
                                         }
