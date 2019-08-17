@@ -306,6 +306,7 @@ CChartSpace.prototype.handleUpdateFill = function()
     this.recalcInfo.recalculateChart = true;
     this.recalcInfo.recalculateSeriesColors = true;
     this.recalcInfo.recalculateLegend = true;
+	this.recalcInfo.recalculateMarkers = true;
     this.addToRecalculate();
 };
 CChartSpace.prototype.handleUpdateLn = function()
@@ -315,6 +316,7 @@ CChartSpace.prototype.handleUpdateLn = function()
     this.recalcInfo.recalculateChart = true;
     this.recalcInfo.recalculateSeriesColors = true;
     this.recalcInfo.recalculateLegend = true;
+	this.recalcInfo.recalculateMarkers = true;
     this.addToRecalculate();
 };
 CChartSpace.prototype.canGroup = CShape.prototype.canGroup;

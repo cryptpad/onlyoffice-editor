@@ -2365,7 +2365,10 @@ CChartSpace.prototype.changeSize = CShape.prototype.changeSize;
                         var datPoint = this.selection.datPoint;
                         if(oSeries.getObjectType() === AscDFH.historyitem_type_LineSeries || oSeries.getObjectType() === AscDFH.historyitem_type_ScatterSer)
                         {
-                            datPoint++;
+                            if(!this.selection.markers)
+							{
+								datPoint++;
+							}
                         }
                         for(var j = 0; j < pts.length; ++j)
                         {
@@ -2533,7 +2536,10 @@ CChartSpace.prototype.changeSize = CShape.prototype.changeSize;
                         var datPoint = this.selection.datPoint;
                         if(oSeries.getObjectType() === AscDFH.historyitem_type_LineSeries || oSeries.getObjectType() === AscDFH.historyitem_type_ScatterSer)
                         {
-                            datPoint++;
+                            if(!this.selection.markers)
+							{
+								datPoint++;
+							}
                         }
                         for(var j = 0; j < pts.length; ++j)
                         {
@@ -2679,7 +2685,7 @@ CChartSpace.prototype.changeFill = function (unifill)
                     oDlbls.spPr.setParent(oDlbls);
                 }
                 var brush = null;
-                unifill2 = AscFormat.CorrectUniFill(unifill, oDlbls.spPr && oDlbls.spPr.Fill, this.getEditorType());
+                unifill2 = AscFormat.CorrectUniFill(unifill, (oDlbls.spPr && oDlbls.spPr.Fill) ? oDlbls.spPr.Fill.createDuplicate() : null, this.getEditorType());
                 unifill2.convertToPPTXMods();
                 oDlbls.spPr.setFill(unifill2);
             }
@@ -2712,7 +2718,7 @@ CChartSpace.prototype.changeFill = function (unifill)
                         dLbl.spPr.setParent(dLbl);
                     }
                     var brush = null;
-                    unifill2 = AscFormat.CorrectUniFill(unifill, dLbl.spPr && dLbl.spPr.Fill, this.getEditorType());
+                    unifill2 = AscFormat.CorrectUniFill(unifill, (dLbl.spPr && dLbl.spPr.Fill) ? dLbl.spPr.Fill.createDuplicate() : null, this.getEditorType());
                     unifill2.convertToPPTXMods();
                     dLbl.spPr.setFill(unifill2);
                 }
@@ -2726,7 +2732,7 @@ CChartSpace.prototype.changeFill = function (unifill)
             this.selection.axisLbls.setSpPr(new AscFormat.CSpPr());
             this.selection.axisLbls.spPr.setParent(this.selection.axisLbls);
         }
-        unifill2 = AscFormat.CorrectUniFill(unifill, this.selection.axisLbls.spPr && this.selection.axisLbls.spPr.Fill, this.getEditorType());
+        unifill2 = AscFormat.CorrectUniFill(unifill, (this.selection.axisLbls.spPr && this.selection.axisLbls.spPr.Fill) ? this.selection.axisLbls.spPr.Fill.createDuplicate() : null, this.getEditorType());
         unifill2.convertToPPTXMods();
         this.selection.axisLbls.spPr.setFill(unifill2);
     }
@@ -3005,7 +3011,7 @@ CChartSpace.prototype.changeLine = function (line)
                     oDlbls.setSpPr(new AscFormat.CSpPr());
                     oDlbls.spPr.setParent(oDlbls);
                 }
-                stroke = AscFormat.CorrectUniStroke(line, oDlbls.spPr.ln, this.getEditorType());
+                stroke = AscFormat.CorrectUniStroke(line, oDlbls.spPr.ln ? oDlbls.spPr.ln.createDuplicate() : null, this.getEditorType());
                 if(stroke.Fill)
                 {
                     stroke.Fill.convertToPPTXMods();
@@ -3035,7 +3041,7 @@ CChartSpace.prototype.changeLine = function (line)
                         dLbl.setSpPr(new AscFormat.CSpPr());
                         dLbl.spPr.setParent(dLbl);
                     }
-                    stroke = AscFormat.CorrectUniStroke(line, dLbl.spPr.ln, this.getEditorType());
+                    stroke = AscFormat.CorrectUniStroke(line, dLbl.spPr.ln ? dLbl.spPr.ln.createDuplicate() : null, this.getEditorType());
                     if(stroke.Fill)
                     {
                         stroke.Fill.convertToPPTXMods();
@@ -3293,7 +3299,7 @@ CChartSpace.prototype.changeLine = function (line)
                 this.selection.axis.setMajorGridlines(new AscFormat.CSpPr());
                 this.selection.axis.majorGridlines.setParent(this.selection.axis);
             }
-            stroke = AscFormat.CorrectUniStroke(line, this.selection.axis.majorGridlines.ln, this.getEditorType());
+            stroke = AscFormat.CorrectUniStroke(line, this.selection.axis.majorGridlines.ln ? this.selection.axis.majorGridlines.ln.createDuplicate() : null, this.getEditorType());
             if(stroke.Fill)
             {
                 stroke.Fill.convertToPPTXMods();
@@ -3307,7 +3313,7 @@ CChartSpace.prototype.changeLine = function (line)
                 this.selection.axis.setMinorGridlines(new AscFormat.CSpPr());
                 this.selection.axis.minorGridlines.setParent(this.selection.axis);
             }
-            stroke = AscFormat.CorrectUniStroke(line, this.selection.axis.minorGridlines.ln, this.getEditorType());
+            stroke = AscFormat.CorrectUniStroke(line, this.selection.axis.minorGridlines.ln ? this.selection.axis.minorGridlines.ln.createDuplicate() : null, this.getEditorType());
             if(stroke.Fill)
             {
                 stroke.Fill.convertToPPTXMods();
