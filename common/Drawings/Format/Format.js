@@ -11176,6 +11176,12 @@ function CorrectUniFill(asc_fill, unifill, editorId)
 	{
 		ret.transparent = _alpha;
 		
+		
+	}
+	
+	if(ret.transparent != null)
+	{
+		
 		if(ret.fill && ret.fill.type === c_oAscFill.FILL_TYPE_BLIP)
 		{
 			
@@ -11183,14 +11189,14 @@ function CorrectUniFill(asc_fill, unifill, editorId)
 			{
 				if(ret.fill.Effects[i].Type = EFFECT_TYPE_ALPHAMODFIX)
 				{
-					ret.fill.Effects[i].amt = ((_alpha * 100000 / 255) >> 0);
+					ret.fill.Effects[i].amt = ((ret.transparent * 100000 / 255) >> 0);
 					break;
 				}  
 			}
 			if(i === ret.fill.Effects.length)
 			{
 				var oEffect = new CAlphaModFix();
-				oEffect.amt = ((_alpha * 100000 / 255) >> 0);
+				oEffect.amt = ((ret.transparent * 100000 / 255) >> 0);
 				ret.fill.Effects.push(oEffect);
 			}
 		}
