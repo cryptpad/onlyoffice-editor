@@ -1374,10 +1374,10 @@ var g_oFontProperties = {
 		}
 		return newContext;
 	};
-	GradientFill.prototype.asc_getPosition = function () {
+	GradientStop.prototype.asc_getPosition = function () {
 		return this.position;
 	};
-	GradientFill.prototype.asc_getColor = function () {
+	GradientStop.prototype.asc_getColor = function () {
 		return this.color;
 	};
 	function PatternFill() {
