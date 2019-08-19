@@ -130,7 +130,10 @@ CShape.prototype.deleteDrawingBase = function(bCheckPlaceholder)
     if(this.parent && this.parent.cSld && this.parent.cSld.spTree)
     {
         var pos = this.parent.removeFromSpTreeById(this.Id);
-        if(bCheckPlaceholder && this.isPlaceholder() && !this.isEmptyPlaceholder())
+        var phType = this.getPlaceholderType();
+        if(bCheckPlaceholder && this.isPlaceholder() && !this.isEmptyPlaceholder()
+            && phType !== AscFormat.phType_hdr && phType !== AscFormat.phType_ftr
+            && phType !== AscFormat.phType_sldNum && phType !== AscFormat.phType_dt )
         {
             var hierarchy = this.getHierarchy();
             if(hierarchy[0])
