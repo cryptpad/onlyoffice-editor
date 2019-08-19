@@ -4559,12 +4559,12 @@ CDocument.prototype.Draw                                     = function(nPageInd
         }
 
 		var oHdrFtrLine = this.HdrFtr.GetHdrFtrLines(nPageIndex);
-        var nHeaderY = this.Pages[nPageIndex].Y;
-        if (oHdrFtrLine.Top > nHeaderY)
-        	nHeaderY = oHdrFtrLine.Top;
+		var nHeaderY    = this.Pages[nPageIndex].Y;
+		if (null !== oHdrFtrLine.Top && oHdrFtrLine.Top > nHeaderY)
+			nHeaderY = oHdrFtrLine.Top;
 
 		var nFooterY = this.Pages[nPageIndex].YLimit;
-		if (oHdrFtrLine.Bottom < nFooterY)
+		if (null !== oHdrFtrLine.Bottom && oHdrFtrLine.Bottom < nFooterY)
 			nFooterY = oHdrFtrLine.Bottom;
 
         pGraphics.DrawHeaderEdit(nHeaderY, this.HdrFtr.Lock.Get_Type(), SectIndex, RepH, HeaderInfo);
