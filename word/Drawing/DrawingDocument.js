@@ -9005,6 +9005,10 @@ function CDrawingDocument()
             _document.theme = _srcDoc.theme.createDuplicate();
             _document.clrSchemeMap = _srcDoc.clrSchemeMap.createDuplicate();
 
+            var oLastSectPr = _selection.GetLastSection();
+			if (oLastSectPr)
+				_document.SectPr.Copy(oLastSectPr, true);
+
             editor.WordControl.m_oLogicDocument = _document;
             editor.WordControl.m_oDrawingDocument = _drDocument;
 

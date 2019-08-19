@@ -360,6 +360,8 @@ function CSelectedContent()
     this.MoveTrackId    = null;
     this.MoveTrackRuns  = [];
     this.HaveMovedParts = false;
+
+    this.LastSection = null;
 }
 
 CSelectedContent.prototype =
@@ -681,6 +683,22 @@ CSelectedContent.prototype.SetMovedParts = function(isHave)
 CSelectedContent.prototype.IsHaveMovedParts = function()
 {
 	return this.HaveMovedParts;
+};
+/**
+ * Запоминаем секцию, на которой закончилось выделение (если оно было в основной части документа)
+ * @param {CSectionPr} oSectPr
+ */
+CSelectedContent.prototype.SetLastSection = function(oSectPr)
+{
+	this.LastSection = oSectPr;
+};
+/**
+ * Получаем секцию, на которой закончилось выделение
+ * @returns {null|CSectionPr}
+ */
+CSelectedContent.prototype.GetLastSection = function()
+{
+	return this.LastSection;
 };
 
 
@@ -16231,7 +16249,7 @@ CDocument.prototype.controller_SelectAll = function()
 		this.Content[Index].SelectAll();
 	}
 };
-CDocument.prototype.controller_GetSelectedContent = function(SelectedContent)
+CDocument.prototype.controller_GetSelectedContent = function(oSelectedContent)
 {
 	if (true !== this.Selection.Use || this.Selection.Flag !== selectionflag_Common)
 		return;
@@ -16246,8 +16264,10 @@ CDocument.prototype.controller_GetSelectedContent = function(SelectedContent)
 
 	for (var Index = StartPos; Index <= EndPos; Index++)
 	{
-		this.Content[Index].GetSelectedContent(SelectedContent);
+		this.Content[Index].GetSelectedContent(oSelectedContent);
 	}
+
+	oSelectedContent.SetLastSection(this.SectionsInfo.Get_SectPr(EndPos));
 };
 CDocument.prototype.controller_UpdateCursorType = function(X, Y, PageAbs, MouseEvent)
 {
