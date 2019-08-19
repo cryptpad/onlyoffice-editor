@@ -3098,7 +3098,7 @@ CParagraphContentWithParagraphLikeContent.prototype.IsSelectedToEnd = function()
 		return false;
 
 	var nEndPos = this.Selection.StartPos < this.Selection.EndPos ? this.Selection.EndPos : this.Selection.StartPos;
-	return this.Content[nEndPos].IsSelectedFromEnd();
+	return this.Content[nEndPos].IsSelectedToEnd();
 };
 
 CParagraphContentWithParagraphLikeContent.prototype.SkipAnchorsAtSelectionStart = function(nDirection)
