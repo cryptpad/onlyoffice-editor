@@ -9000,7 +9000,6 @@ function CDrawingDocument()
                 _nearpos = {Paragraph: _paragraph, ContentPos: _paragraph.Get_ParaContentPos(false, false)};
                 _paragraph.Check_NearestPos(_nearpos);
             }
-            _document.SectionsInfo = _srcDoc.SectionsInfo;
             _document.Numbering = _srcDoc.Numbering;
             _document.Styles = _srcDoc.Styles.Copy();
             _document.theme = _srcDoc.theme.createDuplicate();
