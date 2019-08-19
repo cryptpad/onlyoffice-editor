@@ -1293,6 +1293,13 @@ var g_oFontProperties = {
 	GradientFill.prototype.asc_getBottom = function () {
 		return this.bottom;
 	};
+	GradientFill.prototype.asc_getGradientStops = function () {
+		var res = [];
+		for (var i = 0; i < this.stop.length; ++i) {
+			res[i] = this.stop[i].clone();
+		}
+		return res;
+	};
 	function GradientStop() {
 		//Attributes
 		this.position = null;
@@ -8621,6 +8628,7 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	prot["asc_getRight"] = prot.asc_getRight;
 	prot["asc_getTop"] = prot.asc_getTop;
 	prot["asc_getBottom"] = prot.asc_getBottom;
+	prot["asc_getGradientStops"] = prot.asc_getGradientStops;
 	window["Asc"]["asc_CGradientStop"] = window['AscCommonExcel'].GradientStop = GradientStop;
 	window["Asc"]["asc_CPatternFill"] = window['AscCommonExcel'].PatternFill = PatternFill;
 	prot = PatternFill.prototype;
