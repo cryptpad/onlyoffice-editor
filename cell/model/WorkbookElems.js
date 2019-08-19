@@ -1374,6 +1374,12 @@ var g_oFontProperties = {
 		}
 		return newContext;
 	};
+	GradientFill.prototype.asc_getPosition = function () {
+		return this.position;
+	};
+	GradientFill.prototype.asc_getColor = function () {
+		return this.color;
+	};
 	function PatternFill() {
 		//Attributes
 		this.patternType = c_oAscPatternType.None;
@@ -8630,6 +8636,9 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	prot["asc_getBottom"] = prot.asc_getBottom;
 	prot["asc_getGradientStops"] = prot.asc_getGradientStops;
 	window["Asc"]["asc_CGradientStop"] = window['AscCommonExcel'].GradientStop = GradientStop;
+	prot = GradientStop.prototype;
+	prot["asc_getPosition"] = prot.asc_getPosition;
+	prot["asc_getColor"] = prot.asc_getColor;
 	window["Asc"]["asc_CPatternFill"] = window['AscCommonExcel'].PatternFill = PatternFill;
 	prot = PatternFill.prototype;
 	prot["asc_getType"] = prot.asc_getType;
