@@ -6211,6 +6211,8 @@
 	};
 	Worksheet.prototype.updatePivotTable = function (pivotTable) {
 		pivotTable.init();
+		pivotTable.updateRowColItems();
+		pivotTable.updateLocation();
 		var cleanRanges = [];
 		var pos, cells, bWarning, pivotRange;
 		var i, l = pivotTable.pageFieldsPositions.length;
@@ -6307,7 +6309,7 @@
 							indexField = colFields[r + j].asc_getIndex();
 							field = pivotFields[indexField];
 							cacheIndex = field.getItem(item.x[j].getV());
-							if (null !== item.t) {
+							if (Asc.c_oAscItemType.Data !== item.t) {
 								oCellValue = new AscCommonExcel.CCellValue();
 								oCellValue.text =
 									valuesWithFormat[r1 + r + j] + AscCommonExcel.ToName_ST_ItemType(item.t);
@@ -6327,7 +6329,7 @@
 							cells.setNum(new AscCommonExcel.Num({id: field.numFmtId}));
 						}
 						cells.setValueData(new AscCommonExcel.UndoRedoData_CellValueData(null, oCellValue));
-						if (null === item.t) {
+						if (Asc.c_oAscItemType.Data === item.t) {
 							valuesWithFormat[r1 + r + j] = cells.getValueWithFormat();
 						}
 					}
@@ -6359,7 +6361,7 @@
 				field = pivotFields[index];
 				if (setName) {
 					cells = this.getRange4(r1, c1);
-					cells.setValue(pivotFields[index].asc_getName() || cacheFields[index].asc_getName());
+					cells.setValue((field && field.asc_getName()) || cacheFields[index].asc_getName());
 					setName = false;
 				}
 				rowFieldsPos[i] = c1;
@@ -6386,7 +6388,7 @@
 							indexField = rowFields[r].asc_getIndex();
 							field = pivotFields[indexField];
 							cacheIndex = field.getItem(item.x[j].getV());
-							if (null !== item.t) {
+							if (Asc.c_oAscItemType.Data !== item.t) {
 								oCellValue = new AscCommonExcel.CCellValue();
 								oCellValue.text =
 									valuesWithFormat[r1 + r + j] + AscCommonExcel.ToName_ST_ItemType(item.t);
@@ -6407,11 +6409,11 @@
 						}
 						cells.setValueData(new AscCommonExcel.UndoRedoData_CellValueData(null, oCellValue));
 
-						if (null === item.t) {
+						if (Asc.c_oAscItemType.Data === item.t) {
 							valuesWithFormat[r1 + r + j] = cells.getValueWithFormat();
 						}
 					}
-					last = r === countR - 1 || null !== item.t;
+					last = r === countR - 1 || Asc.c_oAscItemType.Data !== item.t;
 					if (countD && (last || (field && field.asc_getSubtotalTop()))) {
 						for (j = 0; j < cacheValuesCol.length; ++j) {
 							rowIndexes = cacheValuesCol[j];
@@ -6419,11 +6421,11 @@
 								rowIndexes =
 									pivotTable.getValues(cacheRecords, rowIndexes, cacheValuesRow[k], cacheValuesRow[k + 1]);
 							}
-							if (0 !== rowIndexes.length) {
+							if (rowIndexes && 0 !== rowIndexes.length) {
 								cells = this.getRange4(r1 + i, rowFieldsPos[r] + 1 + j);
 								oCellValue = new AscCommonExcel.CCellValue();
 								oCellValue.number = pivotTable.getValue(cacheRecords, rowIndexes, dataFields[0].asc_getIndex(),
-																		(null !== item.t && Asc.c_oAscItemType.Grand !== item.t) ? item.t :
+																		(Asc.c_oAscItemType.Data !== item.t && Asc.c_oAscItemType.Grand !== item.t) ? item.t :
 																			dataFields[0].asc_getSubtotal());
 								oCellValue.type = AscCommon.CellValueType.Number;
 								cells.setValueData(new AscCommonExcel.UndoRedoData_CellValueData(null, oCellValue));
@@ -6581,7 +6583,7 @@
 					} else {
 						// Subtotal Column
 						if (r + 1 !== countC) {
-							if (countD && null !== item.t) {
+							if (countD && Asc.c_oAscItemType.Data !== item.t) {
 								if (0 === r) {
 									dxf = style.firstSubtotalColumn;
 								} else if (1 === r % 2) {
@@ -6609,7 +6611,7 @@
 				for (j = 0; j < items.length; ++j) {
 					dxf = null;
 					item = items[j];
-					if (null !== item.t) {
+					if (Asc.c_oAscItemType.Data !== item.t) {
 						if (Asc.c_oAscItemType.Grand === item.t) {
 							// Grand Total Row
 							dxf = style.totalRow;
@@ -6693,7 +6695,7 @@
 				pos = pivotRange.r1 + 1 + firstHeaderRow0 - (countR ? 1 : 0);
 				for (j = 0; j < items.length; ++j) {
 					item = items[j];
-					if (null !== item.t && Asc.c_oAscItemType.Grand !== item.t) {
+					if (Asc.c_oAscItemType.Data !== item.t && Asc.c_oAscItemType.Grand !== item.t) {
 						r = item.getR();
 						if (0 === r) {
 							dxf = style.firstColumnSubheading;
