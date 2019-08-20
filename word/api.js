@@ -3297,6 +3297,9 @@ background-repeat: no-repeat;\
 			if ("undefined" != typeof(Props.Spacing) && null != Props.Spacing)
 				this.WordControl.m_oLogicDocument.SetParagraphSpacing(Props.Spacing);
 
+			if (undefined !== Props.OutlineLvl && null !== Props.OutlineLvl)
+				this.WordControl.m_oLogicDocument.SetParagraphOutlineLvl(Props.OutlineLvl);
+
 			if ("undefined" != typeof(Props.Shd) && null != Props.Shd)
 			{
 				var Unifill        = new AscFormat.CUniFill();
@@ -3935,6 +3938,20 @@ background-repeat: no-repeat;\
 			this.WordControl.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_SetParagraphIndent);
 			this.WordControl.m_oLogicDocument.SetParagraphIndent({Left : value, ChangeLevel : levelValue});
 			this.WordControl.m_oLogicDocument.FinalizeAction();
+		}
+	};
+	asc_docs_api.prototype.put_ParagraphOutlineLvl = function(nLvl)
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return;
+
+		if (false === oLogicDocument.Document_Is_SelectionLocked(changestype_Paragraph_Properties))
+		{
+			oLogicDocument.StartAction(AscDFH.historydescription_Document_SetParagraphOutlineLvl);
+			oLogicDocument.SetParagraphOutlineLvl(nLvl);
+			oLogicDocument.FinalizeAction();
+			oLogicDocument.UpdateDocumentOutlinePosition();
 		}
 	};
 
@@ -9724,6 +9741,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['put_TextColor']                             = asc_docs_api.prototype.put_TextColor;
 	asc_docs_api.prototype['put_ParagraphShade']                        = asc_docs_api.prototype.put_ParagraphShade;
 	asc_docs_api.prototype['put_PrIndent']                              = asc_docs_api.prototype.put_PrIndent;
+	asc_docs_api.prototype['put_ParagraphOutlineLvl']                   = asc_docs_api.prototype.put_ParagraphOutlineLvl;
 	asc_docs_api.prototype['IncreaseIndent']                            = asc_docs_api.prototype.IncreaseIndent;
 	asc_docs_api.prototype['DecreaseIndent']                            = asc_docs_api.prototype.DecreaseIndent;
 	asc_docs_api.prototype['put_PrIndentRight']                         = asc_docs_api.prototype.put_PrIndentRight;

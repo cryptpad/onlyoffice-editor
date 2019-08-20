@@ -1899,3 +1899,7 @@ CChangesParagraphOutlineLvl.prototype.private_SetValue = function(Value)
 };
 CChangesParagraphOutlineLvl.prototype.Merge = private_ParagraphChangesOnMergePr;
 CChangesParagraphOutlineLvl.prototype.Load = private_ParagraphChangesOnLoadPr;
+CChangesParagraphOutlineLvl.prototype.IsNeedRecalculate = function()
+{
+	return false;
+};

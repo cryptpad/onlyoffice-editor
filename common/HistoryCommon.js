@@ -1103,6 +1103,9 @@
 			case AscDFH.historydescription_Document_ChangeTableFormula:
 				sString = "Document_ChangeTableFormula";
 				break;
+			case AscDFH.historydescription_Document_SetParagraphOutlineLvl:
+				sString = "Document_SetParagraphOutlineLvl";
+				break;
 		}
 		return sString;
 	}
@@ -3122,6 +3125,7 @@
 	window['AscDFH'].historydescription_Document_AddWatermark                       = 0x0160;
 	window['AscDFH'].historydescription_Presentation_SetHF                          = 0x0161;
 	window['AscDFH'].historydescription_Presentation_AddSlideNumber                 = 0x0162;
+	window['AscDFH'].historydescription_Document_SetParagraphOutlineLvl             = 0x0163;
 
 
 

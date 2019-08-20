@@ -1032,6 +1032,7 @@
 			this.Shd = (undefined != obj.Shd && null != obj.Shd) ? new Asc.asc_CParagraphShd(obj.Shd) : null;
 			this.WidowControl = (undefined != obj.WidowControl) ? obj.WidowControl : null;                  // Запрет висячих строк
 			this.Tabs = obj.Tabs;
+			this.OutlineLvl = (undefined !== obj.OutlineLvl) ? obj.OutlineLvl : 0;
 		}
 		else
 		{
@@ -1083,6 +1084,7 @@
 			this.Shd = new Asc.asc_CParagraphShd();
 			this.WidowControl = true;                  // Запрет висячих строк
 			this.Tabs = null;
+			this.OutlineLvl = 0;
 		}
 	}
 
@@ -1125,6 +1127,10 @@
 	CParagraphPropEx.prototype.get_Tabs = function ()
 	{
 		return this.Tabs;
+	};
+	CParagraphPropEx.prototype.get_OutlineLvl = function()
+	{
+		return this.OutlineLvl;
 	};
 
 	function CTextProp(obj)
@@ -1250,6 +1256,7 @@
 	CParagraphPropEx.prototype['get_Shd'] = CParagraphPropEx.prototype.get_Shd;
 	CParagraphPropEx.prototype['get_WidowControl'] = CParagraphPropEx.prototype.get_WidowControl;
 	CParagraphPropEx.prototype['get_Tabs'] = CParagraphPropEx.prototype.get_Tabs;
+	CParagraphPropEx.prototype['get_OutlineLvl'] = CParagraphPropEx.prototype.get_OutlineLvl;
 	CTextProp.prototype['get_Bold'] = CTextProp.prototype.get_Bold;
 	CTextProp.prototype['get_Italic'] = CTextProp.prototype.get_Italic;
 	CTextProp.prototype['get_Underline'] = CTextProp.prototype.get_Underline;

@@ -5374,6 +5374,17 @@ CDocument.prototype.SetParagraphNumbering = function(NumInfo)
 		this.Document_UpdateInterfaceState();
 	}
 };
+CDocument.prototype.SetParagraphOutlineLvl = function(nLvl)
+{
+	var arrParagraphs = this.GetSelectedParagraphs();
+	for (var nIndex = 0, nCount = arrParagraphs.length; nIndex < nCount; ++nIndex)
+	{
+		arrParagraphs[nIndex].SetOutlineLvl(nLvl);
+		arrParagraphs[nIndex].UpdateDocumentOutline();
+	}
+
+	this.Recalculate();
+};
 CDocument.prototype.private_SetParagraphNumbering = function(oNumInfo)
 {
 	var oNumPr = this.GetSelectedNum();
