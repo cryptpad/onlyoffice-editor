@@ -3297,7 +3297,7 @@ background-repeat: no-repeat;\
 			if ("undefined" != typeof(Props.Spacing) && null != Props.Spacing)
 				this.WordControl.m_oLogicDocument.SetParagraphSpacing(Props.Spacing);
 
-			if (undefined !== Props.OutlineLvl && null !== Props.OutlineLvl)
+			if (undefined !== Props.OutlineLvl)
 				this.WordControl.m_oLogicDocument.SetParagraphOutlineLvl(Props.OutlineLvl);
 
 			if ("undefined" != typeof(Props.Shd) && null != Props.Shd)
