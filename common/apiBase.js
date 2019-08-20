@@ -1813,9 +1813,14 @@
 		var _extra = theme.extraClrSchemeLst;
 		var _count = _extra.length;
 		var _rgba = {R: 0, G: 0, B: 0, A: 255};
+		var oNameMap = {};
 		for (var i = 0; i < _count; ++i) {
 			var _scheme = _extra[i].clrScheme;
 
+			if(oNameMap[_scheme.name]) {
+				continue;
+			}
+			oNameMap[_scheme.name] = true;
 			elem = new AscCommon.CAscColorScheme();
 			elem.name = _scheme.name;
 
