@@ -10026,7 +10026,7 @@ CPresentation.prototype =
                 master = this.lastMaster;
             }
             layout = AscFormat.isRealNumber(layoutIndex) ? (master.sldLayoutLst[layoutIndex] ?  master.sldLayoutLst[layoutIndex]:  master.sldLayoutLst[0]) : master.sldLayoutLst[0];
-
+            hf = layout.Master.hf;
 
             new_slide = new Slide(this, layout, this.CurPage + 1);
             new_slide.setNotes(AscCommonSlide.CreateNotes());
@@ -10037,11 +10037,15 @@ CPresentation.prototype =
                 if(layout.cSld.spTree[i].isPlaceholder())
                 {
                     _ph_type = layout.cSld.spTree[i].getPhType();
-                    if((_ph_type !== AscFormat.phType_dt || (hf && hf.dt !== false)) && _ph_type != AscFormat.phType_ftr && (_ph_type !== AscFormat.phType_hdr || (hf && hf.hdr !== false)) && (_ph_type !== AscFormat.phType_sldNum || (hf && hf.sldNum !== false)))
+                    bIsSpecialPh = _ph_type === AscFormat.phType_dt || _ph_type === AscFormat.phType_ftr || _ph_type === AscFormat.phType_hdr || _ph_type === AscFormat.phType_sldNum;
+                    if(!bIsSpecialPh || hf && ((_ph_type === AscFormat.phType_dt && (hf.dt !== false)) ||
+                        (_ph_type === AscFormat.phType_ftr && (hf.ftr !== false)) ||
+                        (_ph_type === AscFormat.phType_hdr && (hf.hdr !== false)) ||
+                        (_ph_type === AscFormat.phType_sldNum && (hf.sldNum !== false))))
                     {
                         sp = layout.cSld.spTree[i].copy();
                         sp.setParent(new_slide);
-                        sp.clearContent && sp.clearContent();
+                        !bIsSpecialPh && sp.clearContent && sp.clearContent();
                         new_slide.addToSpTreeToPos(new_slide.cSld.spTree.length, sp);
                     }
                 }
