@@ -7685,8 +7685,12 @@ DrawingObjectsController.prototype =
         for(var i = 0; i < graphic_objects.length; ++i)
         {
             var cur_graphic_object = graphic_objects[i];
-            if(cur_graphic_object.selected && cur_graphic_object.canGroup())
+            if(cur_graphic_object.selected)
             {
+                if(!cur_graphic_object.canGroup())
+                {
+                    return [];
+                }
                 grouped_objects.push(cur_graphic_object);
             }
         }
