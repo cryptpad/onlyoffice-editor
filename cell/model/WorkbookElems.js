@@ -1053,9 +1053,8 @@ var g_oFontProperties = {
 			case c_oAscPatternType.LightVertical:
 				return 'ltVert';
 			case c_oAscPatternType.MediumGray:
-				return 'pct50';
 			default:
-				return 'cross';
+				return 'pct50';
 		}
 	}
 
@@ -1497,7 +1496,7 @@ var g_oFontProperties = {
 		return newContext;
 	};
 	PatternFill.prototype.asc_getType = function () {
-		return this.patternType;
+		return this.getHatchOffset();
 	};
 	PatternFill.prototype.asc_getFgColor = function () {
 		return this.fgColor;
