@@ -3257,6 +3257,13 @@ CFootnotesController.prototype.GetSimilarNumbering = function(oEngine)
 	if (this.CurFootnote)
 		this.CurFootnote.GetSimilarNumbering(oEngine);
 };
+CFootnotesController.prototype.GetPlaceHolderObject = function()
+{
+	if (this.CurFootnote)
+		return this.CurFootnote.GetPlaceHolderObject();
+
+	return null;
+};
 CFootnotesController.prototype.GetAllFields = function(isUseSelection, arrFields)
 {
 	// Поиск по всем сноскам должен происходить не здесь

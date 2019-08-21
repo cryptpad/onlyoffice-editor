@@ -2612,6 +2612,13 @@ CHeaderFooterController.prototype.GetSimilarNumbering = function(oEngine)
 	if (this.CurHdrFtr)
 		this.CurHdrFtr.Content.GetSimilarNumbering(oEngine)
 };
+CHeaderFooterController.prototype.GetPlaceHolderObject = function()
+{
+	if (this.CurHdrFtr)
+		return this.CurHdrFtr.Content.GetPlaceHolderObject();
+
+	return null;
+};
 CHeaderFooterController.prototype.SetParagraphFramePr = function(FramePr, bDelete)
 {
     if (null !== this.CurHdrFtr)

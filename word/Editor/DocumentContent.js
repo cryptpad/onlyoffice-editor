@@ -4025,7 +4025,7 @@ CDocumentContent.prototype.GetSelectedElementsInfo = function(oInfo)
 					if (this.Selection.StartPos != this.Selection.EndPos)
 						oInfo.Set_MixedSelection();
 
-					if (oInfo.IsCheckAllSelection() || this.Selection.StartPos !== this.Selection.EndPos)
+					if (oInfo.IsCheckAllSelection() || this.Selection.StartPos === this.Selection.EndPos)
 					{
 						var nStartPos = this.Selection.StartPos < this.Selection.EndPos ? this.Selection.StartPos : this.Selection.EndPos;
 						var nEndPos   = this.Selection.StartPos < this.Selection.EndPos ? this.Selection.EndPos : this.Selection.StartPos;
