@@ -226,12 +226,6 @@ CChartSpace.prototype.getCanvasContext = CShape.prototype.getCanvasContext;
 CChartSpace.prototype.getHierarchy = CShape.prototype.getHierarchy;
 CChartSpace.prototype.getParentObjects = CShape.prototype.getParentObjects;
 CChartSpace.prototype.recalculateTransform = CShape.prototype.recalculateTransform;
-CChartSpace.prototype.recalculateChart = function()
-{
-    if(this.chartObj == null)
-        this.chartObj =  new AscFormat.CChartsDrawer();
-    this.chartObj.recalculate(this);
-};
 CChartSpace.prototype.canResize = CShape.prototype.canResize;
 CChartSpace.prototype.canMove = CShape.prototype.canMove;
 
