@@ -5415,19 +5415,15 @@ CDocumentContent.prototype.GetCalculatedParaPr = function()
 				Pr.Ind.FirstLine = StartPr.Ind.FirstLine;
 
 			Result_ParaPr             = Pr;
-			Result_ParaPr.CanAddTable = ( true === Pr.Locked ? false : true ) && !(this.bPresentation === true);
+			Result_ParaPr.CanAddTable = (true !== Pr.Locked) && !(this.bPresentation === true);
 		}
 		else
 		{
 			var Item = this.Content[this.CurPos.ContentPos];
 			if (type_Paragraph == Item.GetType())
 			{
-				var ParaPr = Item.Get_CompiledPr2(false).ParaPr;
-				var Locked = Item.Lock.Is_Locked();
-
-				Result_ParaPr             = ParaPr.Copy();
-				Result_ParaPr.Locked      = Locked;
-				Result_ParaPr.CanAddTable = ( ( true === Locked ) ? ( ( true === Item.IsCursorAtEnd() ) ? true : false ) : true ) && !(this.bPresentation === true);
+				Result_ParaPr             = Item.GetCalculatedParaPr().Copy();
+				Result_ParaPr.CanAddTable = (true === Result_ParaPr.Locked ? Item.IsCursorAtEnd() : true) && !(this.bPresentation === true);
 			}
 			else
 			{

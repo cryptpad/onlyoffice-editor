@@ -15784,7 +15784,7 @@ CDocument.prototype.controller_GetCalculatedParaPr = function()
 			Pr.Ind.FirstLine = StartPr.Ind.FirstLine;
 
 		Result_ParaPr             = Pr;
-		Result_ParaPr.CanAddTable = ( true === Pr.Locked ? false : true );
+		Result_ParaPr.CanAddTable = true !== Pr.Locked;
 
 		// Если мы находимся в рамке, тогда дополняем ее свойства настройками границы и настройкой текста (если это буквица)
 		if (undefined != Result_ParaPr.FramePr && type_Paragraph === this.Content[StartPos].GetType())
@@ -15807,12 +15807,8 @@ CDocument.prototype.controller_GetCalculatedParaPr = function()
 		var Item = this.Content[this.CurPos.ContentPos];
 		if (type_Paragraph == Item.GetType())
 		{
-			var ParaPr = Item.Get_CompiledPr2(false).ParaPr;
-			var Locked = Item.Lock.Is_Locked();
-
-			Result_ParaPr             = ParaPr.Copy();
-			Result_ParaPr.Locked      = Locked;
-			Result_ParaPr.CanAddTable = ( ( true === Locked ) ? ( ( true === Item.IsCursorAtEnd() ) ? true : false ) : true );
+			Result_ParaPr             = Item.GetCalculatedParaPr().Copy();
+			Result_ParaPr.CanAddTable = true === Result_ParaPr.Locked ? Item.IsCursorAtEnd() : true;
 
 			// Если мы находимся в рамке, тогда дополняем ее свойства настройками границы и настройкой текста (если это буквица)
 			if (undefined != Result_ParaPr.FramePr)

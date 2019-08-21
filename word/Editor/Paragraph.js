@@ -7705,6 +7705,9 @@ Paragraph.prototype.GetCalculatedParaPr = function()
 	if (!ParaPr.PStyle && this.bFromDocument && this.LogicDocument && this.LogicDocument.GetStyles)
 		ParaPr.PStyle = this.LogicDocument.GetStyles().GetDefaultParagraph();
 
+	if (undefined !== ParaPr.OutlineLvl && undefined === this.Pr.OutlineLvl)
+		ParaPr.OutlineLvlStyle = true;
+
 	return ParaPr;
 };
 /**
