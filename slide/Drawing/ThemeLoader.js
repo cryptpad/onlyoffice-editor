@@ -69,6 +69,7 @@ function CThemeLoadInfo()
 function CThemeLoader()
 {
     this.Themes = new CAscThemes();
+    this.ThemesCached = [];
 
     // editor themes info
     this.themes_info_editor     = [];
@@ -200,6 +201,11 @@ function CThemeLoader()
 
     this._callback_theme_load = function(_binary)
     {
+        if (_binary)
+            oThis.ThemesCached[oThis.CurrentLoadThemeIndex] = _binary;
+
+        _binary = oThis.ThemesCached[oThis.CurrentLoadThemeIndex];
+
         if (_binary)
         {
             var _loader = new AscCommon.BinaryPPTYLoader();
