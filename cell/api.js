@@ -3419,11 +3419,22 @@ var editor;
     }
   };
 
-	spreadsheet_api.prototype.asc_ChangeColorScheme = function (index) {
+  spreadsheet_api.prototype.asc_GetCurrentColorSchemeName = function()
+  {
+    var oTheme = this.wbModel && this.wbModel.theme;
+    var oClrScheme = oTheme && oTheme.themeElements && oTheme.themeElements.clrScheme;
+    if(oClrScheme && typeof oClrScheme.name === "string")
+    {
+      return oClrScheme.name;
+    }
+    return "";
+  };
+
+	spreadsheet_api.prototype.asc_ChangeColorScheme = function (sSchemeName) {
 		var t = this;
 		var onChangeColorScheme = function (res) {
 			if (res) {
-				if (t.wbModel.changeColorScheme(index)) {
+				if (t.wbModel.changeColorScheme(sSchemeName)) {
 					t.asc_AfterChangeColorScheme();
 				}
 			}
@@ -4149,6 +4160,7 @@ var editor;
   prot["asc_getFormulaNameByLocale"] = prot.asc_getFormulaNameByLocale;
   prot["asc_setFontRenderingMode"] = prot.asc_setFontRenderingMode;
   prot["asc_setSelectionDialogMode"] = prot.asc_setSelectionDialogMode;
+  prot["asc_GetCurrentColorSchemeName"] = prot.asc_GetCurrentColorSchemeName;
   prot["asc_ChangeColorScheme"] = prot.asc_ChangeColorScheme;
   prot["asc_setListType"] = prot.asc_setListType;
   prot["asc_getCurrentListType"] = prot.asc_getCurrentListType;

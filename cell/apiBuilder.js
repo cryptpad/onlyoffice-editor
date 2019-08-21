@@ -287,16 +287,8 @@
 	 */
 	Api.prototype.SetThemeColors = function (theme) {
 		if ('string' === typeof theme) {
-			if (!AscCommon.g_oUserColorScheme.some(function (item, i) {
-					if (theme === item.get_name()) {
-						theme = i;
-						return true;
-					}
-				})) {
-				return;
-			}
+			this.wbModel.changeColorScheme(theme);
 		}
-		this.wbModel.changeColorScheme(theme);
 	};
 
 	Api.prototype.CreateNewHistoryPoint = function(){

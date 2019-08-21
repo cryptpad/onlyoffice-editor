@@ -2956,15 +2956,14 @@
 		var sheetId = this.getSheetIdByIndex(ascName.LocalSheetId);
 		return new UndoRedoData_DefinedNames(ascName.Name, ascName.Ref, sheetId, ascName.isTable, ascName.isXLNM);
 	};
-	Workbook.prototype.changeColorScheme = function (index) {
-		var scheme = AscCommon.getColorThemeByIndex(index);
+	Workbook.prototype.changeColorScheme = function (sSchemeName) {
+		var scheme = AscCommon.getColorSchemeByName(sSchemeName);
 		if (!scheme) {
-			index -= AscCommon.g_oUserColorScheme.length;
-			if (index < 0 || index >= this.theme.extraClrSchemeLst.length) {
-				return false;
-			}
-
-			scheme = this.theme.extraClrSchemeLst[index].clrScheme.createDuplicate();
+			scheme = this.theme.getExtraClrScheme(sSchemeName);
+		}
+		if(!scheme)
+		{
+			return;
 		}
 		History.Create_NewPoint();
 		//не делаем Duplicate потому что предполагаем что схема не будет менять частями, а только обьектом целиком.

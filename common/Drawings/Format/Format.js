@@ -8395,6 +8395,18 @@ CTheme.prototype =
         return new CLn();
     },
 
+    getExtraClrScheme: function(sName)
+    {
+        for(var i = 0; i < this.extraClrSchemeLst.length; ++i)
+        {
+            if(this.extraClrSchemeLst[i].name === sName)
+            {
+                return this.extraClrSchemeLst[i].createDuplicate();
+            }
+        }
+        return null;
+    },
+
     changeColorScheme: function(clrScheme)
     {
         History.Add(new CChangesDrawingsObjectNoId(this, AscDFH.historyitem_ThemeSetColorScheme, this.themeElements.clrScheme,  clrScheme));

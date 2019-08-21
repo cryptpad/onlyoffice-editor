@@ -1805,76 +1805,33 @@
 		Obj.Generate2();
 	};
 
+	baseEditorsApi.prototype.asc_GetCurrentColorSchemeName = function()
+	{
+		return "";
+	};
+
 	baseEditorsApi.prototype.sendColorThemes = function (theme) {
 		var result = AscCommon.g_oUserColorScheme.slice();
-
 		// theme colors
-		var elem, _c;
 		var _extra = theme.extraClrSchemeLst;
 		var _count = _extra.length;
-		var _rgba = {R: 0, G: 0, B: 0, A: 255};
 		var oNameMap = {};
 		for (var i = 0; i < _count; ++i) {
 			var _scheme = _extra[i].clrScheme;
-
 			if(oNameMap[_scheme.name]) {
 				continue;
 			}
 			oNameMap[_scheme.name] = true;
-			elem = new AscCommon.CAscColorScheme();
-			elem.name = _scheme.name;
-
-			_scheme.colors[8].Calculate(theme, null, null, null, _rgba);
-			_c = _scheme.colors[8].RGBA;
-			elem.colors.push(new AscCommon.CColor(_c.R, _c.G, _c.B));
-
-			_scheme.colors[12].Calculate(theme, null, null, null, _rgba);
-			_c = _scheme.colors[12].RGBA;
-			elem.colors.push(new AscCommon.CColor(_c.R, _c.G, _c.B));
-
-			_scheme.colors[9].Calculate(theme, null, null, null, _rgba);
-			_c = _scheme.colors[9].RGBA;
-			elem.colors.push(new AscCommon.CColor(_c.R, _c.G, _c.B));
-
-			_scheme.colors[13].Calculate(theme, null, null, null, _rgba);
-			_c = _scheme.colors[13].RGBA;
-			elem.colors.push(new AscCommon.CColor(_c.R, _c.G, _c.B));
-
-			_scheme.colors[0].Calculate(theme, null, null, null, _rgba);
-			_c = _scheme.colors[0].RGBA;
-			elem.colors.push(new AscCommon.CColor(_c.R, _c.G, _c.B));
-
-			_scheme.colors[1].Calculate(theme, null, null, null, _rgba);
-			_c = _scheme.colors[1].RGBA;
-			elem.colors.push(new AscCommon.CColor(_c.R, _c.G, _c.B));
-
-			_scheme.colors[2].Calculate(theme, null, null, null, _rgba);
-			_c = _scheme.colors[2].RGBA;
-			elem.colors.push(new AscCommon.CColor(_c.R, _c.G, _c.B));
-
-			_scheme.colors[3].Calculate(theme, null, null, null, _rgba);
-			_c = _scheme.colors[3].RGBA;
-			elem.colors.push(new AscCommon.CColor(_c.R, _c.G, _c.B));
-
-			_scheme.colors[4].Calculate(theme, null, null, null, _rgba);
-			_c = _scheme.colors[4].RGBA;
-			elem.colors.push(new AscCommon.CColor(_c.R, _c.G, _c.B));
-
-			_scheme.colors[5].Calculate(theme, null, null, null, _rgba);
-			_c = _scheme.colors[5].RGBA;
-			elem.colors.push(new AscCommon.CColor(_c.R, _c.G, _c.B));
-
-			_scheme.colors[11].Calculate(theme, null, null, null, _rgba);
-			_c = _scheme.colors[11].RGBA;
-			elem.colors.push(new AscCommon.CColor(_c.R, _c.G, _c.B));
-
-			_scheme.colors[10].Calculate(theme, null, null, null, _rgba);
-			_c = _scheme.colors[10].RGBA;
-			elem.colors.push(new AscCommon.CColor(_c.R, _c.G, _c.B));
-
-            result.push(elem)
+            result.push(AscCommon.getAscColorScheme(_scheme, theme));
 		}
-
+		_scheme = theme.themeElements && theme.themeElements.clrScheme;
+		if(_scheme)
+		{
+			if(!AscCommon.getColorSchemeByName(_scheme.name) && !oNameMap[_scheme.name])
+			{
+				result.splice(0, 0, AscCommon.getAscColorScheme(_scheme, theme));
+			}
+		}
 		this.sendEvent("asc_onSendThemeColorSchemes", result);
 		return result;
 	};
