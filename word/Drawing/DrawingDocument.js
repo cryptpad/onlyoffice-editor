@@ -2655,6 +2655,7 @@ function CDrawingDocument()
 	this.GuiCanvasFillTOC = null;
 
 	this.TableStylesLastLook = null;
+	this.TableStylesLastClrScheme = null;
 	this.LastParagraphMargins = null;
 
 	this.TableStylesCheckLook = null;
@@ -7682,6 +7683,12 @@ function CDrawingDocument()
 		if (!this.m_oWordControl.m_oApi.asc_checkNeedCallback("asc_onInitTableTemplates"))
 			return;
 
+        var logicDoc = this.m_oWordControl.m_oLogicDocument;
+
+        var newClrScheme = null;
+        if (logicDoc && logicDoc.theme && logicDoc.theme.themeElements)
+        	newClrScheme = logicDoc.theme.themeElements.clrScheme;
+
 		var bIsChanged = false;
 		if (null == this.TableStylesLastLook)
 		{
@@ -7694,6 +7701,8 @@ function CDrawingDocument()
 			this.TableStylesLastLook.BandHor = tableLook.BandHor;
 			this.TableStylesLastLook.BandVer = tableLook.BandVer;
 			bIsChanged = true;
+
+            this.TableStylesLastClrScheme = newClrScheme;
 		}
 		else
 		{
@@ -7727,12 +7736,16 @@ function CDrawingDocument()
 				this.TableStylesLastLook.BandVer = tableLook.BandVer;
 				bIsChanged = true;
 			}
+			if (this.TableStylesLastClrScheme !== newClrScheme)
+			{
+				this.TableStylesLastClrScheme = newClrScheme;
+				bIsChanged = true;
+			}
 		}
 
 		if (!bIsChanged)
 			return;
 
-		var logicDoc = this.m_oWordControl.m_oLogicDocument;
 		var _dst_styles = [];
 
 		var _styles = logicDoc.Styles.Get_AllTableStyles();
