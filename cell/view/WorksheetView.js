@@ -9559,7 +9559,7 @@
                         range.setFontcolor(val);
                         break;
 					case "f":
-						// ToDo fill
+						range.setFill(val || null);
 						break;
                     case "bc":
                         range.setFillColor(val || null);
