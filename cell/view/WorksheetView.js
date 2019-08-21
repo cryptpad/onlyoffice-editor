@@ -9558,6 +9558,9 @@
                     case "c":
                         range.setFontcolor(val);
                         break;
+					case "f":
+						// ToDo fill
+						break;
                     case "bc":
                         range.setFillColor(val || null);
                         break; // ToDo можно делать просто отрисовку

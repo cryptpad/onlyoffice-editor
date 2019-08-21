@@ -3263,6 +3263,16 @@ var editor;
 
   };
 
+  spreadsheet_api.prototype.asc_setCellFill = function (fill) {
+    var ws = this.wb.getWorksheet();
+    if (ws.objectRender.selectedGraphicObjectsExists() && ws.objectRender.controller.setCellBackgroundColor) {
+      ws.objectRender.controller.setCellBackgroundColor(fill);
+    } else {
+      this.wb.getWorksheet().setSelectionInfo("f", fill);
+      this.wb.restoreFocus();
+    }
+  };
+
   spreadsheet_api.prototype.asc_setCellBackgroundColor = function(color) {
     var ws = this.wb.getWorksheet();
     if (ws.objectRender.selectedGraphicObjectsExists() && ws.objectRender.controller.setCellBackgroundColor) {
@@ -4136,6 +4146,7 @@ var editor;
   prot["asc_setCellTextWrap"] = prot.asc_setCellTextWrap;
   prot["asc_setCellTextShrink"] = prot.asc_setCellTextShrink;
   prot["asc_setCellTextColor"] = prot.asc_setCellTextColor;
+  prot["asc_setCellFill"] = prot.asc_setCellFill;
   prot["asc_setCellBackgroundColor"] = prot.asc_setCellBackgroundColor;
   prot["asc_setCellBorders"] = prot.asc_setCellBorders;
   prot["asc_setCellFormat"] = prot.asc_setCellFormat;
