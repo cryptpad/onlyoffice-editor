@@ -8399,9 +8399,9 @@ CTheme.prototype =
     {
         for(var i = 0; i < this.extraClrSchemeLst.length; ++i)
         {
-            if(this.extraClrSchemeLst[i].name === sName)
+            if(this.extraClrSchemeLst[i].clrScheme && this.extraClrSchemeLst[i].clrScheme.name === sName)
             {
-                return this.extraClrSchemeLst[i].createDuplicate();
+                return this.extraClrSchemeLst[i].clrScheme.createDuplicate();
             }
         }
         return null;

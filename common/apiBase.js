@@ -1816,6 +1816,7 @@
 		var _extra = theme.extraClrSchemeLst;
 		var _count = _extra.length;
 		var oNameMap = {};
+		var nStartIndex = result.length;
 		for (var i = 0; i < _count; ++i) {
 			var _scheme = _extra[i].clrScheme;
 			if(oNameMap[_scheme.name]) {
@@ -1829,7 +1830,7 @@
 		{
 			if(!AscCommon.getColorSchemeByName(_scheme.name) && !oNameMap[_scheme.name])
 			{
-				result.splice(0, 0, AscCommon.getAscColorScheme(_scheme, theme));
+				result.splice(nStartIndex, 0, AscCommon.getAscColorScheme(_scheme, theme));
 			}
 		}
 		this.sendEvent("asc_onSendThemeColorSchemes", result);
