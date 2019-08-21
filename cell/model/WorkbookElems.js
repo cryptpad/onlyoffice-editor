@@ -1629,8 +1629,16 @@ var g_oFontProperties = {
 	Fill.prototype.asc_getPatternFill = function () {
 		return this.patternFill;
 	};
+	Fill.prototype.asc_setPatternFill = function (value) {
+		this.patternFill = value;
+		this.gradientFill = null;
+	};
 	Fill.prototype.asc_getGradientFill = function () {
 		return this.gradientFill;
+	};
+	Fill.prototype.asc_setGradientFill = function (value) {
+		this.patternFill = null;
+		this.gradientFill = value;
 	};
 
 	function FromXml_ST_BorderStyle(val) {
@@ -8643,10 +8651,12 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	prot["asc_getType"] = prot.asc_getType;
 	prot["asc_getFgColor"] = prot.asc_getFgColor;
 	prot["asc_getBgColor"] = prot.asc_getBgColor;
-	window["Asc"]["asc_CFill"] = window['AscCommonExcel'].Fill = Fill;
+	window["Asc"]["asc_CFill2"] = window['AscCommonExcel'].Fill = Fill;
 	prot = Fill.prototype;
 	prot["asc_getPatternFill"] = prot.asc_getPatternFill;
+	prot["asc_setPatternFill"] = prot.asc_setPatternFill;
 	prot["asc_getGradientFill"] = prot.asc_getGradientFill;
+	prot["asc_setGradientFill"] = prot.asc_setGradientFill;
 	window['AscCommonExcel'].BorderProp = BorderProp;
 	window['AscCommonExcel'].Border = Border;
 	window['AscCommonExcel'].Num = Num;
