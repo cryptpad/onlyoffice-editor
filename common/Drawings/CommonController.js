@@ -8568,7 +8568,7 @@ DrawingObjectsController.prototype =
 
                     new_shape_props =
                     {
-                        canFill: true,
+                        canFill: drawing.canFill(),
                         type: null,
                         fill: drawing.getFill(),
                         stroke: drawing.getStroke(),

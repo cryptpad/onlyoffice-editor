@@ -2275,6 +2275,8 @@ CChartSpace.prototype.getLegend = function()
     return null;
 };
 
+
+
 CChartSpace.prototype.getAllTitles = function()
 {
     var ret = [];
@@ -2658,6 +2660,36 @@ CChartSpace.prototype.changeSize = CShape.prototype.changeSize;
         ret.calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA, this.clrMapOvr);
         return ret;
     };
+	
+	
+CChartSpace.prototype.canFill = function()
+{	
+	if(this.selection.axis)
+	{
+		return false;
+	}
+	if(this.selection.axisLbls)
+	{
+		return false;//TODO
+	}
+	if(AscFormat.isRealNumber(this.selection.hiLowLines))
+	{
+		return false;
+	}
+	if(AscFormat.isRealNumber(this.selection.series) && !this.selection.markers)
+	{
+		var oChart = AscCommon.g_oTableId.Get_ById(this.selection.chart);
+		if(oChart)
+		{
+			if(oChart.getObjectType() === AscDFH.historyitem_type_LineChart 
+			|| oChart.getObjectType() === AscDFH.historyitem_type_ScatterChart)
+			{
+				return false;
+			}
+		}
+	}
+	return true;
+};
 CChartSpace.prototype.changeFill = function (unifill)
 {
     var oChart = AscCommon.g_oTableId.Get_ById(this.selection.chart);
