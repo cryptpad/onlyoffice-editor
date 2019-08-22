@@ -700,6 +700,10 @@
                 if(this.pen)
                 {
                     penW = this.pen.w ? this.pen.w / 36000.0 : 12700.0 / 36000.0;
+                    if(this.getObjectType() !== AscDFH.historyitem_type_ImageShape)
+                    {
+                        penW /= 2.0;
+                    }
                 }
                 if(outerShdw.sx)
                 {

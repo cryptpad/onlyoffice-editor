@@ -2791,6 +2791,7 @@ var  EFFECT_TYPE_BLEND			=	30;
     function fReadEffect(r) {
         var type = r.GetLong();
         var ret = fCreateEffectByType(type);
+        ret.Read_FromBinary(r);
         return ret;
     }
 
