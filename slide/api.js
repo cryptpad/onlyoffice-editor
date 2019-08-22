@@ -3918,11 +3918,48 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype.asc_setHeaderFooterProperties = function(oProps, bAll)
 	{
-		if(this.WordControl && this.WordControl.m_oLogicDocument)
+		
+		if(oProps && this.WordControl && this.WordControl.m_oLogicDocument)
 		{
-			return this.WordControl.m_oLogicDocument.setHFProperties(oProps, bAll);
+			var sTextForCheck = "";
+			var sCheck;
+			var oSlide = oProps.get_Slide();
+			var oThis = this;
+			if(oSlide)
+			{
+				var oDateTime = oSlide.get_DateTime();
+				if(oDateTime)
+				{
+					sCheck = oDateTime.get_CustomDateTime();
+					if(sCheck)
+					{
+						sTextForCheck += sCheck;
+					}
+				}
+				sCheck = oSlide.get_Footer();
+				if(sCheck)
+				{
+					sTextForCheck += sCheck;
+				}
+				sCheck = oSlide.get_Header();
+				if(sCheck)
+				{
+					sTextForCheck += sCheck;
+				}
+			}
+			//TODO: check notes
+			if(sTextForCheck.length > 0)
+			{
+				AscFonts.FontPickerByCharacter.checkText(sTextForCheck, this, function() {
+					oThis.WordControl.m_oLogicDocument.setHFProperties(oProps, bAll);
+				});
+			}
+			else
+			{
+				
+				oThis.WordControl.m_oLogicDocument.setHFProperties(oProps, bAll);
+			}
 		}
-		return null;
 	};
 
 
