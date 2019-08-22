@@ -5053,7 +5053,7 @@ function BinaryPPTYLoader()
                     this.ReadThemeElements(themeElements);
                     theme.setFontScheme(themeElements.fontScheme);
                     theme.setFormatScheme(themeElements.fmtScheme);
-                    theme.changeColorScheme(themeElements.clrScheme);
+                    theme.setColorScheme(themeElements.clrScheme);
 
                     break;
                 }

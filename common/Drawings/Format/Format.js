@@ -7723,23 +7723,29 @@ ClrScheme.prototype =
 {
     isIdentical: function(clrScheme)
     {
-        if(clrScheme == null)
-        {
-            return false;
-        }
         if(!(clrScheme instanceof ClrScheme) )
         {
             return false;
         }
-        if(clrScheme.name != this.name)
+        if(clrScheme.name !== this.name)
         {
             return false;
         }
         for(var _clr_index = g_clr_MIN; _clr_index <= g_clr_MAX; ++_clr_index)
         {
-            if(this.colors[_clr_index] != clrScheme.colors[_clr_index])
+            if(this.colors[_clr_index])
             {
-                return false;
+                if(!this.colors[_clr_index].IsIdentical(clrScheme.colors[_clr_index]))
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                if(clrScheme.colors[_clr_index])
+                {
+                    return false;
+                }
             }
         }
         return true;
@@ -7751,7 +7757,10 @@ ClrScheme.prototype =
         _duplicate.name = this.name;
         for(var _clr_index = 0; _clr_index <= this.colors.length; ++_clr_index)
         {
-            _duplicate.colors[_clr_index] = this.colors[_clr_index];
+            if(this.colors[_clr_index])
+            {
+                _duplicate.colors[_clr_index] = this.colors[_clr_index].createDuplicate();
+            }
         }
         return _duplicate;
     },
@@ -7935,6 +7944,8 @@ ExtraClrScheme.prototype =
         this.Id = r.GetString2();
     }
 };
+
+drawingConstructorsMap[AscDFH.historyitem_ExtraClrScheme_SetClrScheme                 ] = ClrScheme;
 
 function FontCollection(fontScheme)
 {
@@ -8314,7 +8325,7 @@ CTheme.prototype =
     {
         var oTheme = new CTheme();
         oTheme.setName(this.name);
-        oTheme.changeColorScheme(this.themeElements.clrScheme.createDuplicate());
+        oTheme.setColorScheme(this.themeElements.clrScheme.createDuplicate());
         oTheme.setFontScheme(this.themeElements.fontScheme.createDuplicate());
         oTheme.setFormatScheme(this.themeElements.fmtScheme.createDuplicate());
         if(this.spDef){
@@ -8409,6 +8420,22 @@ CTheme.prototype =
     },
 
     changeColorScheme: function(clrScheme)
+    {
+        var oCurClrScheme = this.themeElements.clrScheme;
+        this.setColorScheme(clrScheme);
+        if(!AscCommon.getColorSchemeByName(oCurClrScheme.name))
+        {
+            var oExtraClrScheme = new ExtraClrScheme();
+            if(this.clrMap)
+            {
+                oExtraClrScheme.setClrMap(this.clrMap.createDuplicate());
+            }
+            oExtraClrScheme.setClrScheme(oCurClrScheme.createDuplicate());
+            this.addExtraClrSceme(oExtraClrScheme, 0);
+        }
+    },
+
+    setColorScheme: function(clrScheme)
     {
         History.Add(new CChangesDrawingsObjectNoId(this, AscDFH.historyitem_ThemeSetColorScheme, this.themeElements.clrScheme,  clrScheme));
         this.themeElements.clrScheme = clrScheme;
