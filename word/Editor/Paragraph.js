@@ -9007,7 +9007,7 @@ Paragraph.prototype.Style_Add = function(Id, bDoNotDeleteProps)
 		this.Set_Spacing(new CParaSpacing(), true);
 		this.Set_Shd(undefined, true);
 		this.Set_WidowControl(undefined);
-		this.Set_Tabs(new CParaTabs());
+		this.Set_Tabs(undefined);
 		this.Set_Border(undefined, AscDFH.historyitem_Paragraph_Borders_Between);
 		this.Set_Border(undefined, AscDFH.historyitem_Paragraph_Borders_Bottom);
 		this.Set_Border(undefined, AscDFH.historyitem_Paragraph_Borders_Left);
@@ -9357,22 +9357,25 @@ Paragraph.prototype.Set_Tabs = function(Tabs)
 {
 	var _Tabs = new CParaTabs();
 
-	var StyleTabs = this.Get_CompiledPr2(false).ParaPr.StyleTabs;
-
-	// 1. Ищем табы, которые уже есть в стиле (такие добавлять не надо)
-	for (var Index = 0; Index < Tabs.Tabs.length; Index++)
+	if (Tabs)
 	{
-		var Value = StyleTabs.Get_Value(Tabs.Tabs[Index].Pos);
-		if (-1 === Value)
-			_Tabs.Add(Tabs.Tabs[Index]);
-	}
+		var StyleTabs = this.Get_CompiledPr2(false).ParaPr.StyleTabs;
 
-	// 2. Ищем табы в стиле, которые нужно отменить
-	for (var Index = 0; Index < StyleTabs.Tabs.length; Index++)
-	{
-		var Value = _Tabs.Get_Value(StyleTabs.Tabs[Index].Pos);
-		if (tab_Clear != StyleTabs.Tabs[Index] && -1 === Value)
-			_Tabs.Add(new CParaTab(tab_Clear, StyleTabs.Tabs[Index].Pos));
+		// 1. Ищем табы, которые уже есть в стиле (такие добавлять не надо)
+		for (var Index = 0; Index < Tabs.Tabs.length; Index++)
+		{
+			var Value = StyleTabs.Get_Value(Tabs.Tabs[Index].Pos);
+			if (-1 === Value)
+				_Tabs.Add(Tabs.Tabs[Index]);
+		}
+
+		// 2. Ищем табы в стиле, которые нужно отменить
+		for (var Index = 0; Index < StyleTabs.Tabs.length; Index++)
+		{
+			var Value = _Tabs.Get_Value(StyleTabs.Tabs[Index].Pos);
+			if (tab_Clear != StyleTabs.Tabs[Index] && -1 === Value)
+				_Tabs.Add(new CParaTab(tab_Clear, StyleTabs.Tabs[Index].Pos));
+		}
 	}
 
 	this.private_AddPrChange();
