@@ -1058,7 +1058,12 @@
 			if (null != error)
 			{
 				t.setViewModeDisconnect();
-				t.sendEvent('asc_onError', error.code, error.level);
+				if (Asc.c_oAscError.ID.UpdateVersion === error.code) {
+					t.sendEvent("asc_onDocumentUpdateVersion", function() {
+					});
+				} else {
+					t.sendEvent('asc_onError', error.code, error.level);
+				}
 			}
 		};
 		this.CoAuthoringApi.onDocumentOpen = function (inputWrap) {

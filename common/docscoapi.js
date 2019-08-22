@@ -1405,7 +1405,7 @@
 
   DocsCoApi.prototype._onDrop = function(data) {
     this.disconnect();
-    this.onDisconnect(data ? data['description'] : '', this._getDisconnectErrorCode());
+    this.onDisconnect(data ? data['description'] : '', this._getDisconnectErrorCode(data && data['code']));
   };
 
   DocsCoApi.prototype._onWarning = function(data) {
@@ -1789,6 +1789,8 @@
 			level = Asc.c_oAscError.Level.Critical;
 		} else if (c_oCloseCode.drop === opt_closeCode) {
 			code = Asc.c_oAscError.ID.UserDrop;
+		} else if (c_oCloseCode.updateVersion === opt_closeCode) {
+			code = Asc.c_oAscError.ID.UpdateVersion;
 		}
 		return {code: code, level: level};
 	};
