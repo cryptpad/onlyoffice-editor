@@ -16274,7 +16274,7 @@ CDocument.prototype.controller_GetSelectedContent = function(oSelectedContent)
 		this.Content[Index].GetSelectedContent(oSelectedContent);
 	}
 
-	oSelectedContent.SetLastSection(this.SectionsInfo.Get_SectPr(EndPos));
+	oSelectedContent.SetLastSection(this.SectionsInfo.Get_SectPr(EndPos).SectPr);
 };
 CDocument.prototype.controller_UpdateCursorType = function(X, Y, PageAbs, MouseEvent)
 {

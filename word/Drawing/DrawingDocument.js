@@ -9029,6 +9029,7 @@ function CDrawingDocument()
                 _document.DrawingObjects.addGraphicObject(_selection.DrawingObjects[i]);
 
             _document.Insert_Content(_selection, _nearpos);
+            _document.UpdateAllSectionsInfo();
 
             var old = window["NATIVE_EDITOR_ENJINE_SYNC_RECALC"];
             window["NATIVE_EDITOR_ENJINE_SYNC_RECALC"] = true;
