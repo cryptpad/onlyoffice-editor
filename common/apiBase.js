@@ -2230,6 +2230,10 @@
 						}
 						case c_oEditorId.Spreadsheet:
 						{
+							var ws = this.wb && this.wb.getWorksheet();
+							if (ws && ws.objectRender && ws.objectRender) {
+								ws.objectRender.OnUpdateOverlay();
+							}
 							break;
 						}
 					}

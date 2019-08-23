@@ -1977,7 +1977,7 @@ function DrawingObjects() {
                 _this.drawingArea.clear();
             }
 
-            if ( aObjects.length ) {
+            if ( aObjects.length || api.watermarkDraw ) {
                 var shapeCtx = api.wb.shapeCtx;
                 if (graphicOption) {
                     // Выставляем нужный диапазон для отрисовки
@@ -2035,6 +2035,7 @@ function DrawingObjects() {
                     }
                 }
 
+
 				if (graphicOption)
                 {
                     shapeCtx.m_oContext.restore();
@@ -2046,7 +2047,7 @@ function DrawingObjects() {
         if ( !printOptions ) {
 
             var bChangedFrozen = _this.lasteForzenPlaseNum !== _this.drawingArea.frozenPlaces.length;
-            if ( _this.controller.selectedObjects.length || _this.drawingArea.frozenPlaces.length > 1 || bChangedFrozen) {
+            if ( _this.controller.selectedObjects.length || _this.drawingArea.frozenPlaces.length > 1 || bChangedFrozen || window['Asc']['editor'].watermarkDraw) {
                 _this.OnUpdateOverlay();
                 _this.controller.updateSelectionState(true);
             }
