@@ -6976,6 +6976,11 @@ parserFormula.prototype.clone = function(formula, parent, ws) {
 		}
 		return res;
 	};
+	parserFormula.prototype.getFirstElem = function() {
+		if(this.outStack.length > 0){
+			return this.outStack[this.outStack.length - 1];
+		}
+	};
 	parserFormula.prototype.getIndexNumber = function() {
 		return this._index;
 	};

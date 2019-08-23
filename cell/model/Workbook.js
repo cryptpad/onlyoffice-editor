@@ -2107,7 +2107,7 @@
 		History.SetSheetUndo(wsActive.getId());
 		History.SetSheetRedo(oNewWorksheet.getId());
 		this.dependencyFormulas.unlockRecal();
-		return oNewWorksheet.index;
+		return oNewWorksheet;
 	};
 	Workbook.prototype.copyWorksheet=function(index, insertBefore, sName, sId, bFromRedo, tableNames){
 		//insertBefore - optional
@@ -8006,6 +8006,10 @@
 	Cell.prototype.getBoolValue = function() {
 		this._checkDirty();
 		return this.number == 1;
+	};
+	Cell.prototype.getErrorValue = function() {
+		this._checkDirty();
+		return AscCommonExcel.cError.prototype.getErrorTypeFromString(this.text);
 	};
 	Cell.prototype.getValueText = function() {
 		this._checkDirty();

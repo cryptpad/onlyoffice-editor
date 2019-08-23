@@ -899,6 +899,12 @@
 			this.refType1 = (this.refType1 + 1) % 4;
 			this.refType2 = (this.refType2 + 1) % 4;
 		};
+		Range.prototype.getWidth = function() {
+			return this.c2 - this.c1 + 1;
+		};
+		Range.prototype.getHeight = function() {
+			return this.r2 - this.r1 + 1;
+		};
 
 		/**
 		 *
