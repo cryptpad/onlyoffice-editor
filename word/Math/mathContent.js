@@ -7381,7 +7381,11 @@ CMathContent.prototype.GetTextContent = function(bSelectedText) {
             addText(String.fromCharCode(elem.Pr.chr || elem.operator.code));
         } else if (elem instanceof CDelimiter) {
             addText(String.fromCharCode(elem.Pr.begChr || elem.begOper.code || 40));
-            getAndPushTextContent(elem.Content[0]);
+            for (var i = 0; i < elem.Content.length; i++) {
+                getAndPushTextContent(elem.Content[i]);
+                if (i != elem.Content.length - 1)
+                    addText(String.fromCharCode(elem.sepOper.code))
+            }
             addText(String.fromCharCode(elem.Pr.endChr || elem.endOper.code || 41));            
 		} else if (elem instanceof CNary) {
             addText(String.fromCharCode(elem.Pr.chr || elem.getSign().chrCode));
