@@ -3925,24 +3925,33 @@ background-repeat: no-repeat;\
 			var sCheck;
 			var oSlide = oProps.get_Slide();
 			var oThis = this;
+			var sDateTime;
 			if(oSlide)
 			{
 				var oDateTime = oSlide.get_DateTime();
 				if(oDateTime)
 				{
 					sCheck = oDateTime.get_CustomDateTime();
-					if(sCheck)
+					if(typeof sCheck === "string" && sCheck.length > 0)
 					{
 						sTextForCheck += sCheck;
 					}
+					else
+					{
+						sCheck = oDateTime.get_DateTimeExamples()[oDateTime.get_DateTime()];
+						if(typeof sCheck === "string" && sCheck.length > 0)
+						{
+							sTextForCheck += sCheck;
+						}
+					}
 				}
 				sCheck = oSlide.get_Footer();
-				if(sCheck)
+				if(typeof sCheck === "string" && sCheck.length > 0)
 				{
 					sTextForCheck += sCheck;
 				}
 				sCheck = oSlide.get_Header();
-				if(sCheck)
+				if(typeof sCheck === "string" && sCheck.length > 0)
 				{
 					sTextForCheck += sCheck;
 				}
