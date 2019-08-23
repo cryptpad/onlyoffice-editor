@@ -8268,7 +8268,29 @@ CPresentation.prototype =
 
     private_UpdateCursorXY: function(bUpdateX, bUpdateY)
     {
+
+		this.private_CheckCursorInField();
     },
+
+	private_CheckCursorInField : function()
+	{
+		var oPresentationField = this.GetPresentationField();
+		if (oPresentationField)
+		{
+			oPresentationField.SelectThisElement();
+		}
+	},
+
+	GetPresentationField: function()
+	{
+		var oDocContent = this.Get_TargetDocContent();
+		if (oDocContent)
+		{
+			return oDocContent.GetPresentationField();
+		}
+
+		return null;
+	},
 
     resetStateCurSlide: function()
     {

@@ -1488,22 +1488,23 @@ function CSelectedElementsInfo(oPr)
 	this.m_bSkipTOC = !!(oPr && oPr.SkipTOC);
 	this.m_bCheckAllSelection = !!(oPr && oPr.CheckAllSelection); // Проверять все выделение, или только 1 элемент
 
-	this.m_bTable           = false; // Находится курсор или выделение целиком в какой-нибудь таблице
-	this.m_bMixedSelection  = false; // Попадает ли в выделение одновременно несколько элементов
-	this.m_nDrawing         = selected_None;
-	this.m_pParagraph       = null;  // Параграф, в котором находится выделение
-	this.m_oMath            = null;  // Формула, в которой находится выделение
-	this.m_oHyperlink       = null;  // Гиперссылка, в которой находится выделение
-	this.m_oField           = null;  // Поле, в котором находится выделение
-	this.m_oCell            = null;  // Выделенная ячейка (специальная ситуация, когда выделена ровно одна ячейка)
-	this.m_oBlockLevelSdt   = null;  // Если мы находимся в классе CBlockLevelSdt
-	this.m_oInlineLevelSdt  = null;  // Если мы находимся в классе CInlineLevelSdt (важно, что мы находимся внутри класса)
-	this.m_arrComplexFields = [];
-	this.m_oPageNum         = null;
-	this.m_oPagesCount      = null;
-	this.m_bReviewAdd       = false; // Добавленный контент в режиме рецензирования
-	this.m_bReviewRemove    = false; // Удаленный контент в режиме рецензирования
-	this.m_bReviewNormal    = false; // Обычный контент
+	this.m_bTable             = false; // Находится курсор или выделение целиком в какой-нибудь таблице
+	this.m_bMixedSelection    = false; // Попадает ли в выделение одновременно несколько элементов
+	this.m_nDrawing           = selected_None;
+	this.m_pParagraph         = null;  // Параграф, в котором находится выделение
+	this.m_oMath              = null;  // Формула, в которой находится выделение
+	this.m_oHyperlink         = null;  // Гиперссылка, в которой находится выделение
+	this.m_oField             = null;  // Поле, в котором находится выделение
+	this.m_oCell              = null;  // Выделенная ячейка (специальная ситуация, когда выделена ровно одна ячейка)
+	this.m_oBlockLevelSdt     = null;  // Если мы находимся в классе CBlockLevelSdt
+	this.m_oInlineLevelSdt    = null;  // Если мы находимся в классе CInlineLevelSdt (важно, что мы находимся внутри класса)
+	this.m_arrComplexFields   = [];
+	this.m_oPageNum           = null;
+	this.m_oPagesCount        = null;
+	this.m_bReviewAdd         = false; // Добавленный контент в режиме рецензирования
+	this.m_bReviewRemove      = false; // Удаленный контент в режиме рецензирования
+	this.m_bReviewNormal      = false; // Обычный контент
+	this.m_oPresentationField = null;
 
     this.Reset = function()
     {
@@ -1690,6 +1691,14 @@ CSelectedElementsInfo.prototype.HaveRemovedInReview = function()
 CSelectedElementsInfo.prototype.HaveNotReviewedContent = function()
 {
 	return this.m_bReviewNormal;
+};
+CSelectedElementsInfo.prototype.SetPresentationField = function(oField)
+{
+	this.m_oPresentationField = oField;
+};
+CSelectedElementsInfo.prototype.GetPresentationField = function()
+{
+	return this.m_oPresentationField;
 };
 
 var document_compatibility_mode_Word11  = 11;

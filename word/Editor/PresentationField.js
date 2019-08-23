@@ -313,6 +313,58 @@
         Writer.WriteLong( AscDFH.historyitem_type_PresentationField);
         Writer.Seek(EndPos);
     };
+    CPresentationField.prototype.GetSelectedElementsInfo = function(oInfo)
+	{
+		oInfo.SetPresentationField(this);
+		ParaRun.prototype.GetSelectedElementsInfo.apply(this, arguments);
+	};
+	CPresentationField.prototype.Set_SelectionContentPos = function(StartContentPos, EndContentPos, Depth, StartFlag, EndFlag)
+	{
+		if (this.Paragraph && this.Paragraph.GetSelectDirection() > 0)
+			this.SelectAll(1);
+		else
+			this.SelectAll(-1);
+	};
+	CPresentationField.prototype.Get_LeftPos = function(SearchPos, ContentPos, Depth, UseContentPos)
+	{
+		if (false === UseContentPos && this.Content.length > 0)
+		{
+			SearchPos.Found = true;
+			SearchPos.Pos.Update(0, Depth);
+			return true;
+		}
+
+		return false;
+	};
+	CPresentationField.prototype.Get_RightPos = function(SearchPos, ContentPos, Depth, UseContentPos, StepEnd)
+	{
+		if (false === UseContentPos && this.Content.length > 0)
+		{
+			SearchPos.Found = true;
+			SearchPos.Pos.Update(this.Content.length, Depth);
+			return true;
+		}
+
+		return false;
+	};
+	CPresentationField.prototype.Get_WordStartPos = function(SearchPos, ContentPos, Depth, UseContentPos)
+	{
+	};
+	CPresentationField.prototype.Get_WordEndPos = function(SearchPos, ContentPos, Depth, UseContentPos, StepEnd)
+	{
+	};
+	CPresentationField.prototype.IsSolid = function()
+	{
+		return true;
+	};
+	CPresentationField.prototype.IsStopCursorOnEntryExit = function()
+	{
+		return true;
+	};
+	CPresentationField.prototype.Cursor_Is_NeededCorrectPos = function()
+	{
+		return false;
+	};
 
     var drawingsChangesMap = window['AscDFH'].drawingsChangesMap;
     drawingsChangesMap[AscDFH.historyitem_PresentationField_FieldType] = function(oClass, value){oClass.FieldType = value;};

@@ -8160,6 +8160,19 @@ CDocumentContent.prototype.SetIsRecalculated = function(isRecalculated)
 	if (this.Parent && this.Parent.SetIsRecalculated)
 		this.Parent.SetIsRecalculated(isRecalculated);
 };
+CDocumentContent.prototype.GetPresentationField = function()
+{
+	var nCurPos = this.CurPos.ContentPos;
+	if (this.Selection.Use)
+	{
+		if (this.Selection.StartPos === this.Selection.EndPos)
+			nCurPos = this.Selection.StartPos;
+		else
+			return null;
+	}
+
+	return this.Content[nCurPos].GetPresentationField();
+};
 
 function CDocumentContentStartState(DocContent)
 {
