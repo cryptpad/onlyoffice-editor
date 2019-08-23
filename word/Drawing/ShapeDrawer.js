@@ -794,7 +794,8 @@ CShapeDrawer.prototype =
                         _is_ctx = true;
                     }
 
-                    var _ctx = (this.Graphics.IsTrack === true) ? this.Graphics.Graphics.m_oContext : this.Graphics.m_oContext;
+                    var _gr = (this.Graphics.IsTrack === true) ? this.Graphics.Graphics : this.Graphics;
+                    var _ctx = _gr.m_oContext;
 
                     var patt = !_img_native ? _ctx.createPattern(_img.Image, "repeat") : _ctx.createPattern(_img_native, "repeat");
 
@@ -838,6 +839,9 @@ CShapeDrawer.prototype =
                     }
 
                     _ctx.restore();
+
+                    _gr.m_bPenColorInit = false;
+                    _gr.m_bBrushColorInit = false;
                 }
             }
 
@@ -869,7 +873,8 @@ CShapeDrawer.prototype =
                     _is_ctx = true;
                 }
 
-                var _ctx = (this.Graphics.IsTrack === true) ? this.Graphics.Graphics.m_oContext : this.Graphics.m_oContext;
+                var _gr = (this.Graphics.IsTrack === true) ? this.Graphics.Graphics : this.Graphics;
+                var _ctx = _gr.m_oContext;
 
                 var _patt_name = AscCommon.global_hatch_names[_fill.ftype];
                 if (undefined == _patt_name)
@@ -925,6 +930,9 @@ CShapeDrawer.prototype =
 
                 _ctx.restore();
 
+                _gr.m_bPenColorInit = false;
+                _gr.m_bBrushColorInit = false;
+
                 if (bIsIntegerGridTRUE)
                 {
                     this.Graphics.SetIntegerGrid(true);
@@ -949,7 +957,8 @@ CShapeDrawer.prototype =
                     _is_ctx = true;
                 }
 
-                var _ctx = (this.Graphics.IsTrack === true) ? this.Graphics.Graphics.m_oContext : this.Graphics.m_oContext;
+                var _gr = (this.Graphics.IsTrack === true) ? this.Graphics.Graphics : this.Graphics;
+                var _ctx = _gr.m_oContext;
 
                 var gradObj = null;
                 if (_fill.lin)
@@ -1000,6 +1009,9 @@ CShapeDrawer.prototype =
                 {
                     _ctx.fill();
                 }
+
+                _gr.m_bPenColorInit = false;
+                _gr.m_bBrushColorInit = false;
 
                 if (bIsIntegerGridTRUE)
                 {
