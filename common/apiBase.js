@@ -784,7 +784,12 @@
 		return true;
 	};
 	// Unlock document when start co-authoring
-	baseEditorsApi.prototype._unlockDocument = function () {
+	baseEditorsApi.prototype._unlockDocument = function (isWaitAuth) {
+		if (isWaitAuth && this.isDocumentLoadComplete && !this.canSave) {
+			var errorMsg = 'Error: connection state changed waitAuth' +
+				';this.canSave:' + this.canSave;
+			this.CoAuthoringApi.sendChangesError(errorMsg);
+		}
 		if (this.isDocumentLoadComplete) {
 			// Document is load
 			this.canUnlockDocument = true;
@@ -1125,7 +1130,7 @@
 				}
 			}
 		};
-		this.CoAuthoringApi.onStartCoAuthoring = function (isStartEvent) {
+		this.CoAuthoringApi.onStartCoAuthoring = function (isStartEvent, isWaitAuth) {
 			if (t.isViewMode) {
 				return;
 			}
@@ -1133,7 +1138,7 @@
 			if (isStartEvent) {
 				t.startCollaborationEditing();
 			} else {
-				t._unlockDocument();
+				t._unlockDocument(isWaitAuth);
 			}
 		};
 		this.CoAuthoringApi.onEndCoAuthoring = function (isStartEvent) {
