@@ -4529,6 +4529,7 @@ CPresentation.prototype =
             this.DrawingDocument.UnLockSlide(this.slidesToUnlock[i]);
         }
         this.slidesToUnlock.length = 0;
+        this.private_UpdateCursorXY(true, true);
     },
 
     updateSlideIndexes: function()
@@ -5598,6 +5599,7 @@ CPresentation.prototype =
     {
         var oController = this.GetCurrentController();
         oController && oController.cursorMoveToStartPos();
+        this.private_UpdateCursorXY(true, true);
         this.Document_UpdateSelectionState();
         this.Document_UpdateInterfaceState();
         return true;
@@ -5607,6 +5609,7 @@ CPresentation.prototype =
     {
         var oController = this.GetCurrentController();
         oController && oController.cursorMoveToEndPos();
+        this.private_UpdateCursorXY(true, true);
         this.Document_UpdateSelectionState();
         this.Document_UpdateInterfaceState();
         return true;
@@ -5616,6 +5619,7 @@ CPresentation.prototype =
     {
         var oController = this.GetCurrentController();
         oController && oController.cursorMoveLeft(AddToSelect, Word);
+        this.private_UpdateCursorXY(true, true);
         this.Document_UpdateInterfaceState();
         return true;
     },
@@ -5624,6 +5628,7 @@ CPresentation.prototype =
     {
         var oController = this.GetCurrentController();
         oController && oController.cursorMoveRight(AddToSelect, Word);
+        this.private_UpdateCursorXY(true, true);
         this.Document_UpdateInterfaceState();
         return true;
     },
@@ -5632,6 +5637,7 @@ CPresentation.prototype =
     {
         var oController = this.GetCurrentController();
         oController && oController.cursorMoveUp(AddToSelect, CtrlKey);
+        this.private_UpdateCursorXY(true, true);
         this.Document_UpdateInterfaceState();
         return true;
     },
@@ -5640,6 +5646,7 @@ CPresentation.prototype =
     {
         var oController = this.GetCurrentController();
         oController && oController.cursorMoveDown(AddToSelect, CtrlKey);
+        this.private_UpdateCursorXY(true, true);
         this.Document_UpdateInterfaceState();
         return true;
     },
@@ -5648,6 +5655,7 @@ CPresentation.prototype =
     {
         var oController = this.GetCurrentController();
         oController && oController.cursorMoveEndOfLine(AddToSelect);
+        this.private_UpdateCursorXY(true, true);
         this.Document_UpdateInterfaceState();
         return true;
     },
@@ -5656,6 +5664,7 @@ CPresentation.prototype =
     {
         var oController = this.GetCurrentController();
         oController && oController.cursorMoveStartOfLine(AddToSelect);
+        this.private_UpdateCursorXY(true, true);
         this.Document_UpdateInterfaceState();
         return true;
     },
@@ -5664,6 +5673,7 @@ CPresentation.prototype =
     {
         var oController = this.GetCurrentController();
         oController && oController.cursorMoveAt(X, Y, AddToSelect);
+        this.private_UpdateCursorXY(true, true);
         this.Document_UpdateInterfaceState();
         return true;
     },
@@ -7152,6 +7162,7 @@ CPresentation.prototype =
         e.ctrlKey = e.CtrlKey;
         e.shiftKey = e.ShiftKey;
         var ret = this.Slides[this.CurPage].graphicObjects.onMouseDown(e, X, Y);
+        this.private_UpdateCursorXY(true, true);
         if(!ret)
         {
             this.Document_UpdateSelectionState();
@@ -7176,6 +7187,7 @@ CPresentation.prototype =
         if(oController)
         {
             oController.onMouseUp(e, X, Y);
+            this.private_UpdateCursorXY(true, true);
         }
         if(nStartPage !== this.CurPage)
         {
@@ -7252,6 +7264,7 @@ CPresentation.prototype =
             Paragraph.Document_SetThisElementCurrent(false);
 
             oController.onMouseUp(AscCommon.global_mouseEvent, AscCommon.global_mouseEvent.X, AscCommon.global_mouseEvent.Y);
+            this.private_UpdateCursorXY(true, true);
             this.Document_UpdateSelectionState();
             this.Document_UpdateInterfaceState();
             this.Document_UpdateRulersState();
@@ -7436,6 +7449,7 @@ CPresentation.prototype =
                 e.ctrlKey = e.CtrlKey;
                 e.shiftKey = e.ShiftKey;
                 var ret = oCurSlide.notes.graphicObjects.onMouseDown(e, X, Y);
+                this.private_UpdateCursorXY(true, true);
                 if(bFocusOnSlide){
                     this.CheckEmptyPlaceholderNotes();
                 }
@@ -7458,6 +7472,7 @@ CPresentation.prototype =
             e.ctrlKey = e.CtrlKey;
             e.shiftKey = e.ShiftKey;
             oCurSlide.notes.graphicObjects.onMouseUp(e, X, Y);
+            this.private_UpdateCursorXY(true, true);
             if(e.Button === AscCommon.g_mouse_button_right && !this.noShowContextMenu)
             {
                 var ContextData = new AscCommonSlide.CContextMenuData();
@@ -8249,6 +8264,10 @@ CPresentation.prototype =
     Get_CurPage : function()
     {
         return this.CurPage;
+    },
+
+    private_UpdateCursorXY: function(bUpdateX, bUpdateY)
+    {
     },
 
     resetStateCurSlide: function()
