@@ -3931,14 +3931,15 @@ background-repeat: no-repeat;\
 				var oDateTime = oSlide.get_DateTime();
 				if(oDateTime)
 				{
-					sCheck = oDateTime.get_CustomDateTime();
+
+					sCheck = oDateTime.get_DateTimeExamples()[oDateTime.get_DateTime()];
 					if(typeof sCheck === "string" && sCheck.length > 0)
 					{
 						sTextForCheck += sCheck;
 					}
 					else
 					{
-						sCheck = oDateTime.get_DateTimeExamples()[oDateTime.get_DateTime()];
+						sCheck = oDateTime.get_CustomDateTime();
 						if(typeof sCheck === "string" && sCheck.length > 0)
 						{
 							sTextForCheck += sCheck;
