@@ -7273,307 +7273,231 @@ CMathContent.prototype.ReplaceAutoCorrect = function(AutoCorrectEngine, bCursorS
     }
 };
 
-CMathContent.prototype.GetTextContent = function(bSelectedText)
-{
-	//TODO временная функция. пересмотреть!
+CMathContent.prototype.GetTextContent = function(bSelectedText) {
 	var arr = [], str = "", bIsContainsOperator = false, paraRunArr = [];
-
-	var addText = function(value, bIsAddParenthesis, paraRun)
-	{
-		if(bIsAddParenthesis && value.length > 1 && value.match())
-		{
+	var addText = function(value, bIsAddParenthesis, paraRun) {
+		if (bIsAddParenthesis) {
 			arr.push("(");
 			str += "(";
 			paraRunArr.push("(");
 		}
-
 		arr.push(value);
 		str += value;
-		if(undefined === paraRun)
-		{
+		if(undefined === paraRun) {
 			paraRunArr.push(value);
-		}
-		else
-		{
+		} else {
 			paraRunArr.push(paraRun);
 		}
-
-
-		if(bIsAddParenthesis && value.length > 1)
-		{
+		if (bIsAddParenthesis) {
 			arr.push(")");
 			str += ")";
 			paraRunArr.push(")");
 		}
-
 	};
 
-	var getMathSymbol = function(elem)
-	{
-		var res = [];
-
-		var getVal = function(val, position)
-		{
-			var newVal = {};
-			newVal.prePosition = !!position;
-			newVal.value = undefined !== val ? val : "";
-			return newVal;
-		};
-
-		if(elem instanceof CDegree)
-		{
-			if(DEGREE_SUPERSCRIPT === elem.Pr.type)
-			{
-				//res.push(getVal("^"));
-				res.push(getVal(String.fromCharCode(94)));
-			}
-			else
-			{
-				//res.push(getVal("_"));
-				res.push(getVal(String.fromCharCode(95)));
-			}
-		}
-		else if(elem instanceof CDelimiter)
-		{
-			res.push(getVal("(", true));
-			res.push(getVal(")"));
-		}
-		else if(elem instanceof CNary)
-		{
-			res.push(getVal(String.fromCharCode(elem.Pr.chr), true));
-			if(!elem.Pr.supHide)
-			{
-				res.push(getVal(String.fromCharCode(95), true));
-				//res.push(getVal("_", true));
-			}
-			else
-			{
-				res.push(null);
-			}
-			if(!elem.Pr.subHide)
-			{
-				res.push(getVal(String.fromCharCode(94), true));
-				//res.push(getVal("^", true));//94
-			}
-			else
-			{
-				res.push(null);
-			}
-			res.push(getVal(String.fromCharCode(9618), true));
-			//res.push(getVal("▒", true));//9618
-		}
-		else if(elem instanceof CFraction)
-		{
-			res.push(getVal("/"));
-		}
-		else if(elem instanceof CRadical)
-		{
-			//res.push(getVal("√", true));
-			res.push(getVal(String.fromCharCode(8730), true));
-			//res.push(getVal("&", true));
-			res.push(getVal(String.fromCharCode(38), true));
-		}
-		else if(elem instanceof CMathMatrix)
-		{
-			//res[-1] = getVal("■", true);//9632
-			res[-1] = getVal(String.fromCharCode(9632), true);
-
-			for(var row = 0; row < elem.nRow; row++)
-			{
-				for(var col = 1; col < elem.nCol; col++)
-				{
-					res.push(getVal(String.fromCharCode(38)));
-					//res.push(getVal("&"));
-				}
-				if(row !== elem.nRow - 1)
-				{
-					res.push(getVal(String.fromCharCode(64)));
-					//res.push(getVal("@"));
-				}
-			}
-		}
-		else if(elem instanceof CMathFunc)
-		{
-			//res.push(getVal("#"));//8289
-			res.push(getVal(String.fromCharCode(8289)));
-		}
-
-		return res;
-	};
-
-	var getAndPushTextContent = function(elem)
-	{
-		var tempStr = elem.GetTextContent(bSelectedText);
-		if(tempStr.str)
-		{
-			addText(tempStr.str, tempStr.bIsContainsOperator, tempStr.paraRunArr);
+	var getAndPushTextContent = function(elem, bAddBrackets) {
+		var tempStr = elem.GetTextContent();
+		if (tempStr.str) {
+			addText(tempStr.str, tempStr.bIsContainsOperator || bAddBrackets, tempStr.paraRunArr);
 		}
 	};
 
-	var parseMathComposition = function(elem)
-	{
+	var parseMathComposition = function(elem) {
 		var tempStr;
-		var symbol = getMathSymbol(elem);
 
-		if(elem instanceof CDegree)//степень
-		{
+		if(elem instanceof CDegree) {//степень
 			//основание
-			getAndPushTextContent(elem.Content[0]);
-
-			addText(symbol[0].value);
-
-			//показатель
-			getAndPushTextContent(elem.Content[1]);
-		}
-		else if(elem instanceof CDelimiter)
-		{
-			getAndPushTextContent(elem.Content[0]);
-		}
-		else if(elem instanceof CNary)//сумма
-		{
-			addText(symbol[0].value);
-
-			//нижняя граница суммирования
-			if(null !== symbol[1])
-			{
-				addText(symbol[1].value);
-
-				getAndPushTextContent(elem.Content[0]);
+            getAndPushTextContent(elem.Content[0]);
+            //знак
+			addText((elem.Pr.type === DEGREE_SUPERSCRIPT) ? "^" : "_");
+            //показатель
+            getAndPushTextContent(elem.Content[1], true);
+        } else if (elem instanceof CDegreeSubSup) {//^ и _
+            if (elem.Pr.type == 1) {
+                //основание
+                getAndPushTextContent(elem.Content[0]);
+                addText("^");
+                //показатель ^
+                getAndPushTextContent(elem.Content[1], true);
+                addText("_");
+                //показатель _
+                getAndPushTextContent(elem.Content[2], true);
+            } else {
+                //показатель _
+                getAndPushTextContent(elem.Content[2], true);
+                addText("_");
+                //показатель ^
+                getAndPushTextContent(elem.Content[1], true);
+                addText("^");
+                //основание
+                getAndPushTextContent(elem.Content[0]);  
+            }   
+        } else if (elem instanceof CBar) {
+            //символ Bar
+            addText(String.fromCharCode((elem.Pr.pos) ? 9601 : 175));        
+            //содержимое
+            getAndPushTextContent(elem.Content[0], true);
+        } else if (elem instanceof CBox || elem instanceof CBorderBox) {
+            addText(String.fromCharCode((elem instanceof CBox) ? 9633 : 9645));
+            //содержимое
+            getAndPushTextContent(elem.Content[0], true);
+        } else if (elem instanceof CEqArray) {
+            addText(String.fromCharCode(9608));
+            addText("(");
+            for(var j = 0; j < elem.Content.length; j++) {
+                if(para_Math_Content === elem.Content[j].Type) {
+                    getAndPushTextContent(elem.Content[j]);
+                    if (j !== elem.Content.length - 1)
+                        addText(String.fromCharCode(64));
+                }
+            }
+			addText(")");
+        } else if (elem instanceof CDelimiter && elem.Pr.endChr == -1) {
+            //символ Eq array
+            addText(String.fromCharCode(9400));
+            addText("(");
+            var tempEl = null;
+            for (var i = 0; i < elem.Content[0].Content.length; i++) {
+                if (elem.Content[0].Content[i] instanceof CEqArray) {
+                    tempEl = elem.Content[0].Content[i];
+                    break;
+                }
+            }
+            if (tempEl) {
+                for(var j = 0; j < tempEl.Content.length; j++) {
+                    if(para_Math_Content === tempEl.Content[j].Type) {
+                        getAndPushTextContent(tempEl.Content[j]);
+                        if (j !== tempEl.Content.length - 1)
+                            addText(String.fromCharCode(64));
+                    }
+                }
+            }
+			addText(")");
+        } else if (elem instanceof CGroupCharacter) {
+            addText(String.fromCharCode(elem.Pr.chr || elem.operator.code));
+            getAndPushTextContent(elem.Content[0], true);
+        } else if (elem instanceof CAccent) {
+            getAndPushTextContent(elem.Content[0], true);
+            addText(String.fromCharCode(elem.Pr.chr || elem.operator.code));
+        } else if (elem instanceof CDelimiter) {
+            addText(String.fromCharCode(elem.Pr.begChr || elem.begOper.code || 40));
+            getAndPushTextContent(elem.Content[0]);
+            addText(String.fromCharCode(elem.Pr.endChr || elem.endOper.code || 41));            
+		} else if (elem instanceof CNary) {
+            addText(String.fromCharCode(elem.Pr.chr || elem.getSign().chrCode));
+            //верхняя граница суммирования
+            if (!elem.Pr.supHide) {
+				addText("^");             
+                getAndPushTextContent(elem.getSupMathContent(), true);
+            }
+            //нижняя граница суммирования
+			if (!elem.Pr.subHide) {
+				addText("_");
+                getAndPushTextContent(elem.getSubMathContent(), true);
 			}
-
-			//верхняя граница суммирования
-			if(null !== symbol[2])
-			{
-				addText(symbol[2].value);
-
-				getAndPushTextContent(elem.Content[1]);
-			}
-
-			addText(symbol[3].value);
-
-			getAndPushTextContent(elem.Content[2]);
-		}
-		else if(elem instanceof CFraction)//дробь
-		{
+            addText(String.fromCharCode(9618));
+            getAndPushTextContent(elem.getBase(), true);
+        } else if (elem instanceof CFraction) {//дробь
 			//числитель
-			getAndPushTextContent(elem.Content[0]);
-
-			addText(symbol[0].value);
-
+			getAndPushTextContent(elem.Content[0], true);
+            switch (elem.Pr.type) {
+                case 0:
+                    addText(String.fromCharCode(47));
+                    break;
+                case 1:
+                    addText(String.fromCharCode(8260));
+                    break;
+                case 2:
+                    addText(String.fromCharCode(92));
+                    addText(String.fromCharCode(47));
+                    break;
+                case 3:
+                    addText(String.fromCharCode(166));
+                    break;
+            }
 			//знаменатель
-			getAndPushTextContent(elem.Content[1]);
-		}
-		else if(elem instanceof CRadical)//корень
-		{
-			addText(symbol[0].value);
+            getAndPushTextContent(elem.Content[1], true);       
+		} else if (elem instanceof CRadical) {//корень
+			addText(String.fromCharCode(8730));
 			//степень корня
 			tempStr = elem.Content[0].GetTextContent(bSelectedText);
 			var isAddExp = false;
-			if(tempStr.str)
-			{
+			if (tempStr.str) {
 				addText("(");
 				addText(tempStr.str, tempStr.bIsContainsOperator, tempStr.paraRunArr);
 				isAddExp = true;
 			}
-
-			if(tempStr.str)
-			{
-				addText(symbol[1].value);
-			}
-
+			if (tempStr.str) {
+				addText(String.fromCharCode(38));
+            }
+            if (!isAddExp) {
+                addText("(");
+            }
 			//подкоренное выражение
 			getAndPushTextContent(elem.Content[1]);
-
-			if(isAddExp)
-			{
-				addText(")");
+            addText(")");
+        } else if (elem instanceof CMathMatrix) {//matrix
+            var symbol = [];
+            for (var row = 0; row < elem.nRow; row++) {
+				for(var col = 1; col < elem.nCol; col++) {
+					symbol.push(String.fromCharCode(38));
+                }
+                if (row !== elem.nRow - 1)
+                    symbol.push(String.fromCharCode(64));
 			}
-		}
-		else if(elem instanceof CMathMatrix)
-		{
-			addText(symbol[-1].value);
+			addText(String.fromCharCode(9632));
 			addText("(");
-			for(var j = 0; j < elem.Content.length; j++)
-			{
-				if(para_Math_Content === elem.Content[j].Type)
-				{
-					if(symbol[j] && symbol[j].prePosition)
-					{
-						addText(symbol[j].value);
-					}
-
+			for (var j = 0; j < elem.Content.length; j++) {
+				if (para_Math_Content === elem.Content[j].Type) {
 					getAndPushTextContent(elem.Content[j]);
-
-					if(symbol[j] && !symbol[j].prePosition)
-					{
-						addText(symbol[j].value);
+					if (symbol[j]) {
+						addText(symbol[j]);
 					}
 				}
 			}
 			addText(")");
-		}
-		else if(elem instanceof CMathFunc)
-		{
+		} else if(elem instanceof CMathFunc) {
 			//функция
-			getAndPushTextContent(elem.Content[0]);
-
-			addText(symbol[0].value);
-
+			getAndPushTextContent(elem.Content[0]);         
 			//аргумент
-			getAndPushTextContent(elem.Content[1]);
-		}
-		else if(elem instanceof CLimit)
-		{
+            getAndPushTextContent(elem.Content[1], true);
+		} else if(elem instanceof CLimit) {
 			//функция
-			getAndPushTextContent(elem.Content[0]);
+            getAndPushTextContent(elem.Content[0]);
+            addText((elem.Pr.type == 1) ? "^" : "_");
 			//аргумент
-			getAndPushTextContent(elem.Content[1]);
+            getAndPushTextContent(elem.Content[1], true);
 		}
 
 	};
 
 	var StartPos = 0, EndPos = this.Content.length;
-	if(bSelectedText)
-	{
-		StartPos = ( true == this.Selection.Use ? Math.min(this.Selection.StartPos, this.Selection.EndPos) : this.CurPos.ContentPos );
-		EndPos   = ( true == this.Selection.Use ? Math.max(this.Selection.StartPos, this.Selection.EndPos) : this.CurPos.ContentPos );
+	if (bSelectedText) {
+		StartPos = (this.Selection.Use == true ? Math.min(this.Selection.StartPos, this.Selection.EndPos) : this.CurPos.ContentPos);
+		EndPos   = (this.Selection.Use == true ? Math.max(this.Selection.StartPos, this.Selection.EndPos) : this.CurPos.ContentPos);
 	}
 
-
-	for(var i = StartPos; i <= EndPos; i++)
-	{
-		if(!this.Content[i])
-		{
+	for (var i = StartPos; i <= EndPos; i++) {
+		if (!this.Content[i]) {
 			continue;
 		}
 
-		switch(this.Content[i].Type)
-		{
+		switch (this.Content[i].Type) {
 			case para_Math_Run:
-			{
-				if(this.Content[i].Content.length)
-				{
+				if (this.Content[i].Content.length) {
 					var StartContentPos = 0, EndContentPos = this.Content[i].Content.length;
-					if(bSelectedText)
-					{
-						StartContentPos = ( true == this.Content[i].Selection.Use ? Math.min(this.Content[i].Selection.StartPos, this.Content[i].Selection.EndPos) : this.Content[i].CurPos.ContentPos );
-						EndContentPos   = ( true == this.Content[i].Selection.Use ? Math.max(this.Content[i].Selection.StartPos, this.Content[i].Selection.EndPos) : this.Content[i].CurPos.ContentPos );
+					if (bSelectedText) {
+						StartContentPos = (this.Content[i].Selection.Use == true ? Math.min(this.Content[i].Selection.StartPos, this.Content[i].Selection.EndPos) : this.Content[i].CurPos.ContentPos);
+						EndContentPos   = (this.Content[i].Selection.Use == true ? Math.max(this.Content[i].Selection.StartPos, this.Content[i].Selection.EndPos) : this.Content[i].CurPos.ContentPos);
 					}
-
 					var string = "";
-					for(var j = StartContentPos; j <= EndContentPos; j++)
-					{
-						if(!this.Content[i].Content[j])
-						{
+					for (var j = StartContentPos; j <= EndContentPos; j++) {
+						if (!this.Content[i].Content[j]) {
 							continue;
 						}
-
-						if(para_Math_Text === this.Content[i].Content[j].Type)
-						{
+						if (this.Content[i].Content[j].Type === para_Math_Text) {
 							string += String.fromCharCode(this.Content[i].Content[j].value);
-						}
-						else if(para_Math_BreakOperator === this.Content[i].Content[j].Type)
-						{
+						} else if (this.Content[i].Content[j].Type === para_Math_BreakOperator) {
 							string += String.fromCharCode(this.Content[i].Content[j].value);
 							bIsContainsOperator = true;
 						}
@@ -7581,15 +7505,11 @@ CMathContent.prototype.GetTextContent = function(bSelectedText)
 					addText(string, null, this.Content[i]);
 				}
 				break;
-			}
 			case para_Math_Composition:
-			{
 				parseMathComposition(this.Content[i]);
 				break;
-			}
 		}
 	}
-
 	return {str: str, bIsContainsOperator: bIsContainsOperator, paraRunArr: paraRunArr};
 };
 
