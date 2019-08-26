@@ -2409,9 +2409,9 @@
 			ws.reassignImageUrls(oImages);
 		});
 	};
-	Workbook.prototype.recalcWB = function(rebuild, opt_sheetId) {
+	Workbook.prototype.calculate = function (type) {
 		var formulas;
-		if (rebuild) {
+		if (type === Asc.c_oAscCalculateType.All) {
 			formulas = this.getAllFormulas();
 			for (var i = 0; i < formulas.length; ++i) {
 				var formula = formulas[i];
@@ -2420,9 +2420,9 @@
 				formula.parse();
 				formula.buildDependencies();
 			}
-		} else if (opt_sheetId) {
+		} else if (type === Asc.c_oAscCalculateType.ActiveSheet) {
 			formulas = [];
-			var ws = this.getWorksheetById(opt_sheetId);
+			var ws = this.getActiveWs();
 			ws.getAllFormulas(formulas);
 		} else {
 			formulas = this.getAllFormulas();

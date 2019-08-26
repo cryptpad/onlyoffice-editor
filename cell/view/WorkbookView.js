@@ -460,16 +460,9 @@
 				  return self.stateFormatPainter;
 			  },
 
-			  //calcAll
-			  'calcAll': function (ctrlKey, altKey, shiftKey) {
-				  if (ctrlKey && altKey && shiftKey) {
-					  self.model.recalcWB(true);
-				  } else if (shiftKey) {
-					  var ws = self.model.getActiveWs();
-					  self.model.recalcWB(false, ws.getId());
-				  } else {
-					  self.model.recalcWB(false);
-				  }
+			  //calculate
+			  'calculate': function () {
+			  	self.calculate.apply(self, arguments);
 			  },
 
 			  'changeFormatTableInfo': function () {
@@ -2675,6 +2668,11 @@
       item._cleanCellsTextMetricsCache();
       item._prepareDrawingObjects();
     }
+  };
+
+  WorkbookView.prototype.calculate = function (type) {
+  	this.model.calculate(type);
+  	this.drawWS();
   };
 
   WorkbookView.prototype.reInit = function() {

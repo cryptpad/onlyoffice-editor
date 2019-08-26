@@ -3395,8 +3395,8 @@ var editor;
     return f ? f.prototype.name : name;
   };
 
-  spreadsheet_api.prototype.asc_recalc = function(isRecalcWB) {
-    this.wbModel.recalcWB(isRecalcWB);
+  spreadsheet_api.prototype.asc_calculate = function(type) {
+    this.wb.calculate(type);
   };
 
   spreadsheet_api.prototype.asc_setFontRenderingMode = function(mode) {
@@ -4169,6 +4169,7 @@ var editor;
   prot["asc_getFormulasInfo"] = prot.asc_getFormulasInfo;
   prot["asc_getFormulaLocaleName"] = prot.asc_getFormulaLocaleName;
   prot["asc_getFormulaNameByLocale"] = prot.asc_getFormulaNameByLocale;
+  prot["asc_calculate"] = prot.asc_calculate;
   prot["asc_setFontRenderingMode"] = prot.asc_setFontRenderingMode;
   prot["asc_setSelectionDialogMode"] = prot.asc_setSelectionDialogMode;
   prot["asc_GetCurrentColorSchemeName"] = prot.asc_GetCurrentColorSchemeName;
