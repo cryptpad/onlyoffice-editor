@@ -19695,7 +19695,7 @@
 		var arrPresetsMenu = [];
 		arrPresets[0] = arrPresetsMenu[0] = [null, null, null];
 		arrPresets[1] = arrPresetsMenu[1] = [null,  page + " " + pageTag, null];
-		arrPresets[2] = [null, page + pageOf.replace("%1", pageTag).replace("%2", pagesTag), null];
+		arrPresets[2] = [null, pageOf.replace("%1", pageTag).replace("%2", pagesTag), null];
 		arrPresetsMenu[2] = [null, pageOf.replace("%1", pageTag).replace("%2", "?"), null];
 		arrPresets[3] = arrPresetsMenu[3] = [null, tabTag, null];
 		arrPresets[4] = arrPresetsMenu[4] = [confidential, dateTag, page + " " + pageTag];
