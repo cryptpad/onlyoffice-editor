@@ -6504,6 +6504,28 @@
 			countR = pivotTable.getRowFieldsCount(true);
 
 			if (0 === countC + countR) {
+				//todo transparent ih, iv
+				var border;
+				border = new AscCommonExcel.Border();
+				border.l = new AscCommonExcel.BorderProp();
+				border.l.setStyle(c_oAscBorderStyles.Thin);
+				border.l.c = AscCommonExcel.createRgbColor(0, 0, 0);
+				border.t = new AscCommonExcel.BorderProp();
+				border.t.setStyle(c_oAscBorderStyles.Thin);
+				border.t.c = AscCommonExcel.createRgbColor(0, 0, 0);
+				border.r = new AscCommonExcel.BorderProp();
+				border.r.setStyle(c_oAscBorderStyles.Thin);
+				border.r.c = AscCommonExcel.createRgbColor(0, 0, 0);
+				border.b = new AscCommonExcel.BorderProp();
+				border.b.setStyle(c_oAscBorderStyles.Thin);
+				border.b.c = AscCommonExcel.createRgbColor(0, 0, 0);
+				border.ih = new AscCommonExcel.BorderProp();
+				border.ih.setStyle(c_oAscBorderStyles.Thin);
+				border.ih.c = AscCommonExcel.createRgbColor(255, 255, 255);
+				border.iv = new AscCommonExcel.BorderProp();
+				border.iv.setStyle(c_oAscBorderStyles.Thin);
+				border.iv.c = AscCommonExcel.createRgbColor(255, 255, 255);
+				cells.setBorder(border);
 				continue;
 			}
 
