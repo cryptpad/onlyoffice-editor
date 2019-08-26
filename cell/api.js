@@ -2917,6 +2917,8 @@ var editor;
         "cellsInfo": lastSpellInfo["cellsInfo"].slice(lastIndex),
         "wordsIndex": lastSpellInfo["wordsIndex"].slice(lastIndex)
       });
+    } else {
+      this.cleanSpelling();
     }
   };
   spreadsheet_api.prototype.asc_setDefaultLanguage = function (val) {
