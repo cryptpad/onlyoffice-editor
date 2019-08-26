@@ -2468,7 +2468,7 @@
 		var bottom = margins.footer / AscCommonExcel.vector_koef;
 
 		//TODO пересмотреть минимальный отступ
-		var rowTop = this._getRowTop(0);
+		var rowTop = this._getRowTop(0) - this.groupHeight;
 		if(top < rowTop) {
 			top = rowTop;
 		}
