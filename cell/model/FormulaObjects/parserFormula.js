@@ -4982,7 +4982,7 @@ _func[cElementType.cell3D] = _func[cElementType.cell];
 	ParseResult.prototype.getElementByPos = function(pos) {
 		var curPos = 0;
 		for (var i = 0; i < this.elems.length; ++i) {
-			curPos += this.elems[i].toString(/*AscCommonExcel.cFormulaFunctionToLocale*/).length;
+			curPos += this.elems[i].toLocaleString(/*AscCommonExcel.cFormulaFunctionToLocale*/).length;
 			if (curPos >= pos) {
 				return this.elems[i];
 			}
