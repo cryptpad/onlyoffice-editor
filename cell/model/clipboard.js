@@ -3687,12 +3687,12 @@
 						case para_Math_BreakOperator:
 						case para_Math_Text:
 						{
-							text += String.fromCharCode(paraRunContent[pR].value);
+							text += AscCommon.encodeSurrogateChar(paraRunContent[pR].value)
 							break;
 						}
 						case para_Text:
 						{
-							text += String.fromCharCode(paraRunContent[pR].Value);
+							text += AscCommon.encodeSurrogateChar(paraRunContent[pR].Value)
 							break;
 						}
 						case para_NewLine: {
@@ -4068,9 +4068,9 @@
 
 										var Letter;
 										if (Asc.c_oAscNumberingFormat.LowerLetter === LvlPr.Format) {
-											Letter = String.fromCharCode(Ost + 97);
+											Letter = AscCommon.encodeSurrogateChar(Ost + 97);
 										} else {
-											Letter = String.fromCharCode(Ost + 65);
+											Letter = AscCommon.encodeSurrogateChar(Ost + 65);
 										}
 
 										for (Index2 = 0; Index2 < Count + 1; Index2++) {
