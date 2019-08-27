@@ -6133,13 +6133,7 @@
             else if ( c_oSerAligmentTypes.TextRotation == type )
                 oAligment.angle = this.stream.GetULongLE();
             else if ( c_oSerAligmentTypes.Vertical == type )
-            {
                 oAligment.ver = this.stream.GetUChar();
-                if (Asc.c_oAscVAlign.Dist == oAligment.ver ||
-                    Asc.c_oAscVAlign.Just == oAligment.ver) {
-                    oAligment.ver = Asc.c_oAscVAlign.Center;
-                }
-            }
             else if ( c_oSerAligmentTypes.WrapText == type )
                 oAligment.wrap= this.stream.GetBool();
             else

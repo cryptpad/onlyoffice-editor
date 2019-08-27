@@ -2560,9 +2560,9 @@ CellXfs.prototype =
 		} else if ("bottom" === val) {
 			res = Asc.c_oAscVAlign.Bottom;
 		} else if ("justify" === val) {
-			res = Asc.c_oAscVAlign.Center;
+			res = Asc.c_oAscVAlign.Just;
 		} else if ("distributed" === val) {
-			res = Asc.c_oAscVAlign.Center;
+			res = Asc.c_oAscVAlign.Dist;
 		}
 		return res;
 	}
@@ -2719,7 +2719,7 @@ Align.prototype =
 	},
 	getWrap: function() {
 		// Для justify wrap всегда true
-		return AscCommon.align_Justify === this.hor ? true : this.wrap;
+		return (AscCommon.align_Justify === this.hor || Asc.c_oAscVAlign.Just === this.ver || Asc.c_oAscVAlign.Dist === this.ver) ? true : this.wrap;
 	},
 	setWrap: function(val) {
 		this.wrap = val;
