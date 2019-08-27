@@ -2368,13 +2368,9 @@ CChartSpace.prototype.changeSize = CShape.prototype.changeSize;
             if(oChart)
             {
                 var oSeries = null;
-                for(var i = 0; i < oChart.series.length; ++i)
+                if(oChart.series[this.selection.series])
                 {
-                    if(oChart.series[i].idx === this.selection.series)
-                    {
-                        oSeries = oChart.series[i];
-                        break;
-                    }
+                    oSeries = oChart.series[this.selection.series];
                 }
                 if(oSeries)
                 {
@@ -2539,13 +2535,9 @@ CChartSpace.prototype.changeSize = CShape.prototype.changeSize;
             if(oChart)
             {
                 var oSeries = null;
-                for(var i = 0; i < oChart.series.length; ++i)
+                if(oChart.series[this.selection.series])
                 {
-                    if(oChart.series[i].idx === this.selection.series)
-                    {
-                        oSeries = oChart.series[i];
-                        break;
-                    }
+                    oSeries = oChart.series[this.selection.series];
                 }
                 if(oSeries)
                 {
@@ -2812,13 +2804,9 @@ CChartSpace.prototype.changeFill = function (unifill)
         if(oChart)
         {
             var oSeries = null;
-            for(var i = 0; i < oChart.series.length; ++i)
+            if(oChart.series[this.selection.series])
             {
-                if(oChart.series[i].idx === this.selection.series)
-                {
-                    oSeries = oChart.series[i];
-                    break;
-                }
+                oSeries = oChart.series[this.selection.series];
             }
             if(oSeries)
             {
@@ -3148,13 +3136,9 @@ CChartSpace.prototype.changeLine = function (line)
         if(oChart)
         {
             var oSeries = null;
-            for(var i = 0; i < oChart.series.length; ++i)
+            if(oChart.series[this.selection.series])
             {
-                if(oChart.series[i].idx === this.selection.series)
-                {
-                    oSeries = oChart.series[i];
-                    break;
-                }
+                oSeries = oChart.series[this.selection.series];
             }
             if(oSeries)
             {
