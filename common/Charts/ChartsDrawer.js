@@ -2875,7 +2875,7 @@ CChartsDrawer.prototype =
 			}
 		}
 
-		return pts[0];
+		return res;
 	},
 
 	getPointByIndex: function (seria, index, bXVal) {
@@ -5415,6 +5415,10 @@ drawLineChart.prototype = {
 		var point = this.cChartDrawer.getIdxPoint(this.chart.series[ser], val);
 		var path;
 
+		if(!point) {
+			return;
+		}
+
 		var commandIndex = 0;
 		if (this.cChartDrawer.nDimensionCount === 3) {
 			var curSer = this.paths.series[ser];
@@ -6868,6 +6872,10 @@ drawAreaChart.prototype = {
 		var point = this.cChartDrawer.getIdxPoint(this.chart.series[ser], val);
 		var path;
 
+		if(!point) {
+			return;
+		}
+
 		path = this.points[ser][val];
 
 		if (!path) {
@@ -7609,6 +7617,10 @@ drawHBarChart.prototype = {
 	_calculateDLbl: function (chartSpace, ser, val) {
 		var point = this.cChartDrawer.getIdxPoint(this.chart.series[ser], val);
 		var path = this.paths.series[ser][val];
+
+		if(!point) {
+			return;
+		}
 
 		if (this.cChartDrawer.nDimensionCount === 3 && this.paths.series[ser][val].frontPaths) {
 			var frontPaths = this.paths.series[ser][val].frontPaths;
@@ -10818,8 +10830,11 @@ drawScatterChart.prototype = {
 
 	_calculateDLbl: function (chartSpace, ser, val) {
 		var point = this.cChartDrawer.getIdxPoint(this.chart.series[ser], val);
-
 		var path;
+
+		if(!point) {
+			return;
+		}
 
 		if (this.paths.points) {
 			if (this.paths.points[ser] && this.paths.points[ser][val]) {
