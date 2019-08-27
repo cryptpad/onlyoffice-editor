@@ -6438,6 +6438,7 @@
 				}
 			}
 		}
+		this.workbook.handlers.trigger("setSelection", new Asc.Range(pivotRange.c1, pivotRange.r1, pivotRange.c1, pivotRange.r1));
 	};
 	Worksheet.prototype.updatePivotTablesStyle = function (range) {
 		var t = this;

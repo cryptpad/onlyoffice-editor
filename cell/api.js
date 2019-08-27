@@ -2136,7 +2136,12 @@ var editor;
             var pivotTable = new Asc.CT_pivotTableDefinition();
             pivotTable.asc_create(dataRef, new Asc.Range(0, 2, 2, 19));
             ws.insertPivotTable(pivotTable);
-            t._changePivotStyle(pivotTable, function(){});
+            t._changePivotStyle(pivotTable, function(){
+                var pivotRange = pivotTable.getRange();
+                if (pivotRange) {
+                    t.handlers.trigger("setSelection", new Asc.Range(pivotRange.c1, pivotRange.r1, pivotRange.c1, pivotRange.r1));
+                }
+            });
           }
         });
       }
