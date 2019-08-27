@@ -10035,6 +10035,37 @@ ParaRun.prototype.SetThisElementCurrentInParagraph = function()
 	oContentPos.Add(this.State.ContentPos);
 	this.Paragraph.Set_ParaContentPos(oContentPos, true, -1, -1, false);
 };
+ParaRun.prototype.SelectThisElement = function(nDirection)
+{
+	if (!this.Paragraph)
+		return false;
+
+	var oContentPos = this.Paragraph.Get_PosByElement(this);
+	if (!oContentPos)
+		return false;
+
+	var oStartPos = oContentPos.Copy();
+	var oEndPos   = oContentPos.Copy();
+
+	if (nDirection > 0)
+	{
+		this.Get_StartPos(oStartPos, oStartPos.GetDepth() + 1);
+		this.Get_EndPos(true, oEndPos, oEndPos.GetDepth() + 1);
+	}
+	else
+	{
+		this.Get_StartPos(oEndPos, oEndPos.Get_Depth() + 1);
+		this.Get_EndPos(true, oStartPos, oStartPos.Get_Depth() + 1);
+	}
+
+	this.Paragraph.Selection.Use   = true;
+	this.Paragraph.Selection.Start = false;
+	this.Paragraph.Set_ParaContentPos(oStartPos, true, -1, -1);
+	this.Paragraph.Set_SelectionContentPos(oStartPos, oEndPos, false);
+	this.Paragraph.Document_SetThisElementCurrent(false);
+
+	return true;
+};
 ParaRun.prototype.GetAllParagraphs = function(Props, ParaArray)
 {
     var ContentLen = this.Content.length;
@@ -10852,7 +10883,11 @@ ParaRun.prototype.ProcessAutoCorrect = function(nPos)
 			if (arrElements.length > 0)
 			{
 				var oPrevElement = arrElements[0];
-				if (para_Text === oPrevElement.Type && 45 !== oPrevElement.Value)
+				if (para_Text === oPrevElement.Type
+					&& 45 !== oPrevElement.Value
+					&& 40 !== oPrevElement.Value
+					&& 91 !== oPrevElement.Value
+					&& 123 !== oPrevElement.Value)
 					isOpenQuote = false;
 			}
 

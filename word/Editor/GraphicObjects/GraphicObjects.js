@@ -730,7 +730,8 @@ CGraphicObjects.prototype =
         if(AscFormat.isRealNumber(oApplyProps.Width) || AscFormat.isRealNumber(oApplyProps.Height) || AscFormat.isRealNumber(oApplyProps.rot)
             || AscFormat.isRealNumber(oApplyProps.rotAdd)
             || AscFormat.isRealBool(oApplyProps.flipH)|| AscFormat.isRealBool(oApplyProps.flipV)
-            || AscFormat.isRealBool(oApplyProps.flipHInvert)|| AscFormat.isRealBool(oApplyProps.flipVInvert) || (typeof oApplyProps.type === "string"))
+            || AscFormat.isRealBool(oApplyProps.flipHInvert)|| AscFormat.isRealBool(oApplyProps.flipVInvert) || (typeof oApplyProps.type === "string")
+            || AscCommon.isRealObject(oApplyProps.shadow) || oApplyProps.shadow === null)
         {
             /*в случае если в насторойках ParaDrawing стоит UseAlign - пересчитываем drawing, т. к. ширина и высото ParaDrawing рассчитывается по bounds*/
             var aSelectedObjects = this.selectedObjects;
@@ -2958,22 +2959,27 @@ CGraphicObjects.prototype =
             var oParaDrawing = this.getMajorParaDrawing();
             if (oParaDrawing)
             {
-                // Обновляем позицию курсора, чтобы проскроллиться к заданной позиции
-                var oDrawingDocument = editor.WordControl.m_oLogicDocument.GetDrawingDocument();
-                oDrawingDocument.m_oWordControl.ScrollToPosition(oParaDrawing.GraphicObj.x, oParaDrawing.GraphicObj.y, oParaDrawing.PageNum, oParaDrawing.GraphicObj.extY);
+            	var oLogicDocument = editor.WordControl.m_oLogicDocument;
 
-                return {
-                    X         : oParaDrawing.GraphicObj.x,
-                    Y         : oParaDrawing.GraphicObj.y,
-                    Height    : 0,
-                    PageNum   : oParaDrawing.PageNum,
-                    Internal  : {
-                        Line  : 0,
-                        Page  : 0,
-                        Range : 0
-                    },
-                    Transform : null
-                };
+            	if (oLogicDocument && !oLogicDocument.Selection.Start)
+				{
+					// Обновляем позицию курсора, чтобы проскроллиться к заданной позиции
+					var oDrawingDocument = oLogicDocument.GetDrawingDocument();
+					oDrawingDocument.m_oWordControl.ScrollToPosition(oParaDrawing.GraphicObj.x, oParaDrawing.GraphicObj.y, oParaDrawing.PageNum, oParaDrawing.GraphicObj.extY);
+
+					return {
+						X         : oParaDrawing.GraphicObj.x,
+						Y         : oParaDrawing.GraphicObj.y,
+						Height    : 0,
+						PageNum   : oParaDrawing.PageNum,
+						Internal  : {
+							Line  : 0,
+							Page  : 0,
+							Range : 0
+						},
+						Transform : null
+					};
+				}
             }
         }
 

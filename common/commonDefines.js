@@ -174,6 +174,7 @@
 
 			UserDrop : -100,
 			Warning  : -101,
+			UpdateVersion : -102,
 
 			PrintMaxPagesCount					: -110,
 
@@ -426,34 +427,12 @@
 		t       : 9
 	};
 
-	var c_oAscChartCatAxisSettings = {
-		none        : 0,
-		leftToRight : 1,
-		rightToLeft : 2,
-		noLabels    : 3
-	};
-
-	var c_oAscChartValAxisSettings = {
-		none      : 0,
-		byDefault : 1,
-		thousands : 2,
-		millions  : 3,
-		billions  : 4,
-		log       : 5
-	};
-
-	var c_oAscAxisTypeSettings = {
-		vert : 0,
-		hor  : 1
-	};
-
 	var c_oAscGridLinesSettings = {
 		none       : 0,
 		major      : 1,
 		minor      : 2,
 		majorMinor : 3
 	};
-
 
 	var c_oAscChartTypeSettings = {
 		barNormal              : 0,
@@ -497,7 +476,6 @@
 		unknown                : 38
 	};
 
-
 	var c_oAscValAxisRule = {
 		auto  : 0,
 		fixed : 1
@@ -539,12 +517,6 @@
 		minValue : 3
 	};
 
-	var c_oAscHorAxisType = {
-		auto : 0,
-		date : 1,
-		text : 2
-	};
-
 	var c_oAscBetweenLabelsRule = {
 		auto   : 0,
 		manual : 1
@@ -554,7 +526,6 @@
 		byDivisions      : 0,
 		betweenDivisions : 1
 	};
-
 
 	var c_oAscAxisType = {
 		auto : 0,
@@ -857,7 +828,6 @@
 		DeleteTable             : 5
 	};
 
-
 	// Print default options (in mm)
 	var c_oAscPrintDefaultSettings = {
 		// Размеры страницы при печати
@@ -879,6 +849,13 @@
 
 		PageGridLines : 0,
 		PageHeadings  : 0
+	};
+
+	// Тип печати
+	var c_oAscPrintType = {
+		ActiveSheets: 0,	// Активные листы
+		EntireWorkbook: 1,	// Всю книгу
+		Selection: 2		// Выделенный фрагмент
 	};
 
 	var c_oZoomType = {
@@ -2015,6 +1992,12 @@
 	prot['DeleteColumns']           = prot.DeleteColumns;
 	prot['DeleteRows']              = prot.DeleteRows;
 	prot['DeleteTable']             = prot.DeleteTable;
+
+	window['Asc']['c_oAscPrintType'] = window['Asc'].c_oAscPrintType = c_oAscPrintType;
+	prot = c_oAscPrintType;
+	prot['ActiveSheets'] = prot.ActiveSheets;
+	prot['EntireWorkbook'] = prot.EntireWorkbook;
+	prot['Selection'] = prot.Selection;
 
 	window['Asc']['c_oDashType'] = window['Asc'].c_oDashType = c_oDashType;
 	prot                  = c_oDashType;

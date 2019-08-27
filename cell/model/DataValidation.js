@@ -190,16 +190,18 @@
 			val = (this.type === EDataValidationType.TextLength) ? AscCommonExcel.getFragmentsLength(val) : AscCommonExcel.getFragmentsText(val);
 			if (EDataValidationType.List === this.type) {
 				var list = this.formula1 && this.formula1.getValue(this.type, ws, false);
-				list = ws.getRange2(list);
-				if (list) {
-					res = false;
-					list._foreachNoEmpty(function (cell) {
-						// ToDo check cells type
-						if (!cell.isEmptyTextString() && cell.getValue() === val) {
-							res = true;
-							return null;
-						}
-					});
+				if (list && AscCommonExcel.cElementType.error !== list.type) {
+					list = ws.getRange2(list);
+					if (list) {
+						res = false;
+						list._foreachNoEmpty(function (cell) {
+							// ToDo check cells type
+							if (!cell.isEmptyTextString() && cell.getValue() === val) {
+								res = true;
+								return null;
+							}
+						});
+					}
 				}
 			} else if (EDataValidationType.Custom === this.type) {
 			} else {

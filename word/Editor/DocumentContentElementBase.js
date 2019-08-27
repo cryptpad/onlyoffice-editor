@@ -1090,6 +1090,14 @@ CDocumentContentElementBase.prototype.GetStartPageForRecalculate = function(nPag
 {
 	return nPageAbs;
 };
+/**
+ * Проверяем выделено ли сейчас какое-либо презентационное поле, если да, то возвращаем управляющий объект
+ * @returns {?Object}
+ */
+CDocumentContentElementBase.prototype.GetPresentationField = function()
+{
+	return null;
+};
 
 //--------------------------------------------------------export--------------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};

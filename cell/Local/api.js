@@ -49,36 +49,6 @@ var c_oAscError = Asc.c_oAscError;
 	var asc = window["Asc"];
 	var spreadsheet_api = asc['spreadsheet_api'];
 
-	spreadsheet_api.prototype._OfflineAppDocumentStartLoad = function()
-	{
-		this.asc_registerCallback('asc_onDocumentContentReady', function(){
-			DesktopOfflineUpdateLocalName(asc["editor"]);
-
-			setTimeout(function(){window["UpdateInstallPlugins"]();}, 10);
-		});
-	
-		window["AscDesktopEditor"]["LocalStartOpen"]();
-	};
-	spreadsheet_api.prototype._OfflineAppDocumentEndLoad = function(_data, _len)
-	{
-		AscCommon.g_oIdCounter.m_sUserId = window["AscDesktopEditor"]["CheckUserId"]();
-		if (_data == "")
-		{
-			this.sendEvent("asc_onError", c_oAscError.ID.ConvertationOpenError, c_oAscError.Level.Critical);
-			return;
-		}
-
-		var file = new AscCommon.OpenFileResult();
-		file.data = getBinaryArray(_data, _len);
-		this.openDocument(file);
-		AscCommon.History.UserSaveMode = true;
-		
-		DesktopOfflineUpdateLocalName(this);
-
-		window["DesktopAfterOpen"](this);
-		
-		this.onUpdateDocumentModified(AscCommon.History.Have_Changes());
-	};
 	spreadsheet_api.prototype._onNeedParams = function(data, opt_isPassword)
 	{
 		var type;
@@ -178,7 +148,7 @@ var c_oAscError = Asc.c_oAscError;
     spreadsheet_api.prototype.asc_DownloadAsNatural = spreadsheet_api.prototype.asc_DownloadAs;
 	spreadsheet_api.prototype.asc_DownloadAs = function(options)
 	{
-        if (options.isNaturalDownload)
+        if (options && options.isNaturalDownload)
             return this.asc_DownloadAsNatural(options);
 		this.asc_Save(false, true);
 	};
@@ -323,18 +293,5 @@ var c_oAscError = Asc.c_oAscError;
 			asc["editor"].asc_Save(false, true);
 		else if (sCommand == "print")
 			asc["editor"].asc_Print();
-	};
-	window["DesktopOfflineAppDocumentEndLoad"] = function(_url, _data, _len)
-	{
-		AscCommon.g_oDocumentUrls.documentUrl = _url;
-		if (AscCommon.g_oDocumentUrls.documentUrl.indexOf("file:") != 0)
-		{
-			if (AscCommon.g_oDocumentUrls.documentUrl.indexOf("/") != 0)
-				AscCommon.g_oDocumentUrls.documentUrl = "/" + AscCommon.g_oDocumentUrls.documentUrl;
-			AscCommon.g_oDocumentUrls.documentUrl = "file://" + AscCommon.g_oDocumentUrls.documentUrl;
-		}
-
-        asc["editor"]._OfflineAppDocumentEndLoad(_data, _len);
-        asc["editor"].sendEvent("asc_onDocumentPassword", ("" != asc["editor"].currentPassword) ? true : false);
 	};
 })(jQuery, window);

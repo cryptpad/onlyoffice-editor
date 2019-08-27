@@ -245,7 +245,7 @@ CImageShape.prototype.getWatermarkProps = function()
         oImgP.ImageUrl = this.blipFill.RasterImageId;
         var oSize = oImgP.asc_getOriginSize(oApi);
 
-        if(oSize && oSize.IsCorrect)
+        if(oSize)
         {
             var dScale = (((this.extX /oSize.Width) * 100 + 0.5) >> 0) / 100 ;
             oProps.put_Scale(dScale);

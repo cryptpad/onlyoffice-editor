@@ -437,6 +437,9 @@ CGraphics.prototype =
     restore : function()
     {
         this.m_oContext.restore();
+
+        this.m_bPenColorInit = false;
+        this.m_bBrushColorInit = false;
     },
     clip : function()
     {
@@ -1362,6 +1365,8 @@ CGraphics.prototype =
         _ctx.beginPath();
         _ctx.fillStyle = "#E1E1E1";
         _ctx.strokeStyle = GlobalSkin.RulerOutline;
+        this.m_bBrushColorInit = false;
+        this.m_bPenColorInit = false;
 
         var _xPxOffset = 10;
         var _yPxOffset = 5;
@@ -1420,6 +1425,8 @@ CGraphics.prototype =
         _ctx.beginPath();
         _ctx.fillStyle = "#E1E1E1";
         _ctx.strokeStyle = GlobalSkin.RulerOutline;
+        this.m_bBrushColorInit = false;
+        this.m_bPenColorInit = false;
 
         var _xPxOffset = 10;
         var _yPxOffset = 5;
@@ -2429,6 +2436,9 @@ CGraphics.prototype =
     {
         this.m_oContext.restore();
         this.m_oContext.save();
+
+        this.m_bPenColorInit = false;
+        this.m_bBrushColorInit = false;
 
         if (this.m_oContext.globalAlpha != this.globalAlpha)
             this.m_oContext.globalAlpha = this.globalAlpha;

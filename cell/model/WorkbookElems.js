@@ -1053,9 +1053,8 @@ var g_oFontProperties = {
 			case c_oAscPatternType.LightVertical:
 				return 'ltVert';
 			case c_oAscPatternType.MediumGray:
-				return 'pct50';
 			default:
-				return 'cross';
+				return 'pct50';
 		}
 	}
 
@@ -1275,6 +1274,31 @@ var g_oFontProperties = {
 		}
 		return newContext;
 	};
+	GradientFill.prototype.asc_getType = function () {
+		return this.type;
+	};
+	GradientFill.prototype.asc_getDegree = function () {
+		return this.degree;
+	};
+	GradientFill.prototype.asc_getLeft = function () {
+		return this.left;
+	};
+	GradientFill.prototype.asc_getRight = function () {
+		return this.right;
+	};
+	GradientFill.prototype.asc_getTop = function () {
+		return this.top;
+	};
+	GradientFill.prototype.asc_getBottom = function () {
+		return this.bottom;
+	};
+	GradientFill.prototype.asc_getGradientStops = function () {
+		var res = [];
+		for (var i = 0; i < this.stop.length; ++i) {
+			res[i] = this.stop[i].clone();
+		}
+		return res;
+	};
 	function GradientStop() {
 		//Attributes
 		this.position = null;
@@ -1348,6 +1372,12 @@ var g_oFontProperties = {
 			newContext = null;
 		}
 		return newContext;
+	};
+	GradientStop.prototype.asc_getPosition = function () {
+		return this.position;
+	};
+	GradientStop.prototype.asc_getColor = function () {
+		return this.color;
 	};
 	function PatternFill() {
 		//Attributes
@@ -1464,6 +1494,15 @@ var g_oFontProperties = {
 			newContext = null;
 		}
 		return newContext;
+	};
+	PatternFill.prototype.asc_getType = function () {
+		return this.getHatchOffset();
+	};
+	PatternFill.prototype.asc_getFgColor = function () {
+		return this.fgColor;
+	};
+	PatternFill.prototype.asc_getBgColor = function () {
+		return this.bgColor;
 	};
 
 	/** @constructor */
@@ -1586,6 +1625,20 @@ var g_oFontProperties = {
 		if ("patternFill" === elem && AscCommon.openXml.SaxParserDataTransfer.priorityBg) {
 			prevContext.fixForDxf();
 		}
+	};
+	Fill.prototype.asc_getPatternFill = function () {
+		return this.patternFill;
+	};
+	Fill.prototype.asc_setPatternFill = function (value) {
+		this.patternFill = value;
+		this.gradientFill = null;
+	};
+	Fill.prototype.asc_getGradientFill = function () {
+		return this.gradientFill;
+	};
+	Fill.prototype.asc_setGradientFill = function (value) {
+		this.patternFill = null;
+		this.gradientFill = value;
 	};
 
 	function FromXml_ST_BorderStyle(val) {
@@ -6401,6 +6454,14 @@ function RangeDataManagerElem(bbox, data)
 			res.dxf = this.dxf.clone;
 		}
 		res.CalculatedColumnFormula = this.CalculatedColumnFormula;
+
+		res.uniqueName = this.uniqueName;
+		res.clipped = this.clipped;
+		res.dataBound = this.dataBound;
+		res.fillFormulas = this.fillFormulas;
+		res.queryName = this.queryName;
+		res.rowNumbers = this.rowNumbers;
+
 		return res;
 	};
 	TableColumn.prototype.generateTotalsRowLabel = function () {
@@ -8570,7 +8631,55 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	window['AscCommonExcel'].CorrectAscColor = CorrectAscColor;
 	window['AscCommonExcel'].Fragment = Fragment;
 	window['AscCommonExcel'].Font = Font;
-	window['AscCommonExcel'].Fill = Fill;
+	window["Asc"]["c_oAscGradientType"] = c_oAscGradientType;
+	prot = c_oAscGradientType;
+	prot["Linear"] = prot.Linear;
+	prot["Path"] = prot.Path;
+	window["Asc"]["c_oAscPatternType"] = c_oAscPatternType;
+	prot = c_oAscPatternType;
+	prot["DarkDown"] = prot.DarkDown;
+	prot["DarkGray"] = prot.DarkGray;
+	prot["DarkGrid"] = prot.DarkGrid;
+	prot["DarkHorizontal"] = prot.DarkHorizontal;
+	prot["DarkTrellis"] = prot.DarkTrellis;
+	prot["DarkUp"] = prot.DarkUp;
+	prot["DarkVertical"] = prot.DarkVertical;
+	prot["Gray0625"] = prot.Gray0625;
+	prot["Gray125"] = prot.Gray125;
+	prot["LightDown"] = prot.LightDown;
+	prot["LightGray"] = prot.LightGray;
+	prot["LightGrid"] = prot.LightGrid;
+	prot["LightHorizontal"] = prot.LightHorizontal;
+	prot["LightTrellis"] = prot.LightTrellis;
+	prot["LightUp"] = prot.LightUp;
+	prot["LightVertical"] = prot.LightVertical;
+	prot["MediumGray"] = prot.MediumGray;
+	prot["None"] = prot.None;
+	prot["Solid"] = prot.Solid;
+	window["Asc"]["asc_CGradientFill"] = window['AscCommonExcel'].GradientFill = GradientFill;
+	prot = GradientFill.prototype;
+	prot["asc_getType"] = prot.asc_getType;
+	prot["asc_getDegree"] = prot.asc_getDegree;
+	prot["asc_getLeft"] = prot.asc_getLeft;
+	prot["asc_getRight"] = prot.asc_getRight;
+	prot["asc_getTop"] = prot.asc_getTop;
+	prot["asc_getBottom"] = prot.asc_getBottom;
+	prot["asc_getGradientStops"] = prot.asc_getGradientStops;
+	window["Asc"]["asc_CGradientStop"] = window['AscCommonExcel'].GradientStop = GradientStop;
+	prot = GradientStop.prototype;
+	prot["asc_getPosition"] = prot.asc_getPosition;
+	prot["asc_getColor"] = prot.asc_getColor;
+	window["Asc"]["asc_CPatternFill"] = window['AscCommonExcel'].PatternFill = PatternFill;
+	prot = PatternFill.prototype;
+	prot["asc_getType"] = prot.asc_getType;
+	prot["asc_getFgColor"] = prot.asc_getFgColor;
+	prot["asc_getBgColor"] = prot.asc_getBgColor;
+	window["Asc"]["asc_CFill2"] = window['AscCommonExcel'].Fill = Fill;
+	prot = Fill.prototype;
+	prot["asc_getPatternFill"] = prot.asc_getPatternFill;
+	prot["asc_setPatternFill"] = prot.asc_setPatternFill;
+	prot["asc_getGradientFill"] = prot.asc_getGradientFill;
+	prot["asc_setGradientFill"] = prot.asc_setGradientFill;
 	window['AscCommonExcel'].BorderProp = BorderProp;
 	window['AscCommonExcel'].Border = Border;
 	window['AscCommonExcel'].Num = Num;
@@ -8655,9 +8764,6 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	window['AscCommonExcel'].DateGroupItem = DateGroupItem;
 	window['AscCommonExcel'].SortCondition = SortCondition;
 	window['AscCommonExcel'].AutoFilterDateElem = AutoFilterDateElem;
-	window['AscCommonExcel'].PatternFill = PatternFill;
-	window['AscCommonExcel'].GradientFill = GradientFill;
-	window['AscCommonExcel'].GradientStop = GradientStop;
 	window['AscCommonExcel'].c_oAscGradientType = c_oAscGradientType;
 	window['AscCommonExcel'].c_oAscPatternType = c_oAscPatternType;
 

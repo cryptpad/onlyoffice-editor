@@ -14696,6 +14696,13 @@ CTable.prototype.GetPlaceHolderObject = function()
 
 	return this.CurCell.GetContent().GetPlaceHolderObject();
 };
+CTable.prototype.GetPresentationField = function()
+{
+	if (this.IsCellSelection())
+		return null;
+
+	return this.CurCell.GetContent().GetPresentationField();
+};
 /**
  * Получаем колонку в виде массива ячеек
  * @returns {[CTableCell]}

@@ -794,10 +794,6 @@
 		this.tmpViewRulers  = null;
 		this.tmpZoomType    = null;
 
-		// Spell Checking
-		this.SpellCheckApi      = new AscCommon.CSpellCheckApi();
-		this.isSpellCheckEnable = true;
-
 		// это чтобы сразу показать ридер, без возможности вернуться в редактор/вьюер
 		this.isOnlyReaderMode = false;
 
@@ -1599,95 +1595,6 @@ background-repeat: no-repeat;\
 		this.asc_setDrawCollaborationMarks(false);
 		};
 
-	/////////////////////////////////////////////////////////////////////////
-	//////////////////////////SpellChecking api//////////////////////////////
-	/////////////////////////////////////////////////////////////////////////
-	// Init SpellCheck
-	asc_docs_api.prototype._coSpellCheckInit = function()
-	{
-		if (!this.SpellCheckApi)
-		{
-			return; // Error
-		}
-
-		var t = this;
-		if (window["AscDesktopEditor"]) {
-
-            window["asc_nativeOnSpellCheck"] = function(response) {
-                var _editor = window["Asc"]["editor"] ? window["Asc"]["editor"] : window.editor;
-                if (_editor.SpellCheckApi)
-                    _editor.SpellCheckApi.onSpellCheck(response);
-            };
-
-			this.SpellCheckApi.spellCheck = function (spellData) {
-				window["AscDesktopEditor"]["SpellCheck"](JSON.stringify(spellData));
-			};
-			this.SpellCheckApi.disconnect = function () {
-			};
-			if (window["AscDesktopEditor"]["IsLocalFile"] && !window["AscDesktopEditor"]["IsLocalFile"]())
-			{
-				this.sendEvent('asc_onSpellCheckInit', [
-                    "1026",
-                    "1027",
-                    "1029",
-                    "1030",
-                    "1031",
-                    "1032",
-                    "1033",
-                    "1036",
-                    "1038",
-                    "1040",
-                    "1042",
-                    "1043",
-                    "1044",
-                    "1045",
-                    "1046",
-                    "1048",
-                    "1049",
-                    "1050",
-                    "1051",
-                    "1053",
-                    "1055",
-                    "1057",
-                    "1058",
-                    "1060",
-                    "1062",
-                    "1063",
-                    "1066",
-                    "1068",
-                    "1069",
-                    "1087",
-                    "1104",
-                    "1110",
-                    "1134",
-                    "2051",
-                    "2055",
-                    "2057",
-                    "2068",
-                    "2070",
-                    "3079",
-                    "3081",
-                    "3082",
-                    "4105",
-                    "7177",
-                    "9242",
-                    "10266"
-				]);
-			}
-		} else {
-			if (this.SpellCheckUrl && this.isSpellCheckEnable) {
-				this.SpellCheckApi.set_url(this.SpellCheckUrl);
-			}
-		}
-
-		this.SpellCheckApi.onInit = function (e) {
-			t.sendEvent('asc_onSpellCheckInit', e);
-		};
-		this.SpellCheckApi.onSpellCheck = function (e) {
-			t.SpellCheck_CallBack(e);
-		};
-		this.SpellCheckApi.init(this.documentId);
-	};
 	//----------------------------------------------------------------------------------------------------------------------
 	// SpellCheck_CallBack
 	//          Функция ответа от сервера.
@@ -1715,12 +1622,8 @@ background-repeat: no-repeat;\
 		}
 	};
 
-	asc_docs_api.prototype.asc_SpellCheckDisconnect   = function()
+	asc_docs_api.prototype._spellCheckDisconnect   = function()
 	{
-		if (!this.SpellCheckApi)
-			return; // Error
-		this.SpellCheckApi.disconnect();
-		this.isSpellCheckEnable = false;
 		if (this.WordControl.m_oLogicDocument)
 			this.WordControl.m_oLogicDocument.TurnOff_CheckSpelling();
 	};
@@ -2043,20 +1946,24 @@ background-repeat: no-repeat;\
 
 	/*----------------------------------------------------------------*/
 	/*functions for working with clipboard, document*/
-	asc_docs_api.prototype._printDesktop = function ()
+	asc_docs_api.prototype._printDesktop = function (options)
 	{
 		if (null != this.WordControl.m_oDrawingDocument.m_oDocumentRenderer)
 		{
 			if (window["AscDesktopEditor"]["IsSupportNativePrint"](this.DocumentUrl) === true)
 			{
 				window["AscDesktopEditor"]["Print"]();
-				return;
+				return true;
 			}
 		}
 		else
 		{
-			window["AscDesktopEditor"]["Print"]();
-			return;
+            var opt = 0;
+            if (options && options.advancedOptions && options.advancedOptions && (Asc.c_oAscPrintType.Selection === options.advancedOptions.asc_getPrintType()))
+                opt |= 1;
+
+			window["AscDesktopEditor"]["Print"](opt);
+			return true;
 		}
 		return true;
 	};
@@ -3390,6 +3297,9 @@ background-repeat: no-repeat;\
 			if ("undefined" != typeof(Props.Spacing) && null != Props.Spacing)
 				this.WordControl.m_oLogicDocument.SetParagraphSpacing(Props.Spacing);
 
+			if (undefined !== Props.OutlineLvl)
+				this.WordControl.m_oLogicDocument.SetParagraphOutlineLvl(Props.OutlineLvl);
+
 			if ("undefined" != typeof(Props.Shd) && null != Props.Shd)
 			{
 				var Unifill        = new AscFormat.CUniFill();
@@ -4028,6 +3938,20 @@ background-repeat: no-repeat;\
 			this.WordControl.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_SetParagraphIndent);
 			this.WordControl.m_oLogicDocument.SetParagraphIndent({Left : value, ChangeLevel : levelValue});
 			this.WordControl.m_oLogicDocument.FinalizeAction();
+		}
+	};
+	asc_docs_api.prototype.put_ParagraphOutlineLvl = function(nLvl)
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return;
+
+		if (false === oLogicDocument.Document_Is_SelectionLocked(changestype_Paragraph_Properties))
+		{
+			oLogicDocument.StartAction(AscDFH.historydescription_Document_SetParagraphOutlineLvl);
+			oLogicDocument.SetParagraphOutlineLvl(nLvl);
+			oLogicDocument.FinalizeAction();
+			oLogicDocument.UpdateDocumentOutlinePosition();
 		}
 	};
 
@@ -5900,6 +5824,28 @@ background-repeat: no-repeat;\
 		}
 	};
 
+    asc_docs_api.prototype._spellCheckRestart = function(word)
+    {
+		var LogicDocument = this.WordControl.m_oLogicDocument;
+		if (LogicDocument)
+		{
+			// TODO: сделать нормальный сброс слова
+			var oldWordStatus = LogicDocument.Spelling.Check_Word(word);
+			if (true !== oldWordStatus)
+			{
+				LogicDocument.Spelling.Add_Word(word);
+				LogicDocument.DrawingDocument.ClearCachePages();
+				LogicDocument.DrawingDocument.FirePaint();
+				delete LogicDocument.Spelling.Words[word];
+			}
+		}
+    };
+    asc_docs_api.prototype.asc_spellCheckClearDictionary = function()
+    {
+        if (window["AscDesktopEditor"])
+            window["AscDesktopEditor"]["SpellCheck"]("{\"type\":\"clear\"}");
+    };
+
 	asc_docs_api.prototype.asc_setDefaultLanguage = function(Lang)
 	{
 		if (false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Document_SectPr))
@@ -6552,7 +6498,23 @@ background-repeat: no-repeat;\
 		this.sendEvent("asc_onSendThemeColors", colors, standart_colors);
 	};
 
-	asc_docs_api.prototype.ChangeColorScheme            = function(index_scheme)
+
+
+	asc_docs_api.prototype.asc_GetCurrentColorSchemeName            = function()
+	{
+		if (null == this.WordControl.m_oLogicDocument)
+			return "";
+
+		var oTheme = this.WordControl.m_oLogicDocument.theme;
+		var oClrScheme = oTheme && oTheme.themeElements && oTheme.themeElements.clrScheme;
+		if(oClrScheme && typeof oClrScheme.name === "string")
+		{
+			return oClrScheme.name;
+		}
+		return "";
+	};
+
+	asc_docs_api.prototype.ChangeColorScheme            = function(sSchemeName)
 	{
 		if (null == this.WordControl.m_oLogicDocument)
 			return;
@@ -6562,25 +6524,17 @@ background-repeat: no-repeat;\
 			return;
 
 		var theme = this.WordControl.m_oLogicDocument.theme;
-
+		var scheme = AscCommon.getColorSchemeByName(sSchemeName);
+		if (!scheme)
+		{
+			scheme = theme.getExtraClrScheme(sSchemeName);
+		}
+		if(!scheme)
+		{
+			return;
+		}
 		if (this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_ColorScheme) === false)
 		{
-			var scheme = AscCommon.getColorThemeByIndex(index_scheme);
-			if (!scheme)
-			{
-				index_scheme -= AscCommon.g_oUserColorScheme.length;
-
-				if (index_scheme < 0 || index_scheme >= theme.extraClrSchemeLst.length)
-					return;
-
-				scheme = theme.extraClrSchemeLst[index_scheme].clrScheme.createDuplicate();
-				/*_changer.calculateAfterChangeTheme();
-
-				 // TODO:
-				 this.WordControl.m_oDrawingDocument.ClearCachePages();
-				 this.WordControl.OnScroll();*/
-			}
-
 			this.WordControl.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_ChangeColorScheme);
 			theme.changeColorScheme(scheme);
 			this.WordControl.m_oDrawingDocument.CheckGuiControlColors();
@@ -7459,8 +7413,15 @@ background-repeat: no-repeat;\
 		}
 		else if (null == options.oDocumentMailMerge && (c_oAscFileType.PDF === fileType || c_oAscFileType.PDFA === fileType))
 		{
+            var isSelection = false;
+            if (options.advancedOptions && options.advancedOptions && (Asc.c_oAscPrintType.Selection === options.advancedOptions.asc_getPrintType()))
+                isSelection = true;
+
 			var dd             = this.WordControl.m_oDrawingDocument;
-			dataContainer.data = dd.ToRendererPart(oAdditionalData["nobase64"]);
+			if (isSelection)
+				dd.GenerateSelectionPrint();
+
+			dataContainer.data = dd.ToRendererPart(oAdditionalData["nobase64"], isSelection);
 			//console.log(oAdditionalData["data"]);
 		}
 		else if (c_oAscFileType.JSON === fileType)
@@ -9206,16 +9167,20 @@ background-repeat: no-repeat;\
 	{
 	};
 
-	window["asc_docs_api"].prototype["asc_nativePrint"] = function(_printer, _page)
+	window["asc_docs_api"].prototype["asc_nativePrint"] = function(_printer, _page, _opt)
 	{
 		if (undefined === _printer && _page === undefined)
 		{
 			if (undefined !== window["AscDesktopEditor"])
 			{
 				var _drawing_document = this.WordControl.m_oDrawingDocument;
-				var pagescount        = Math.min(_drawing_document.m_lPagesCount, _drawing_document.m_lCountCalculatePages);
+                if ((_opt & 0x01) == 0x01)
+                	_drawing_document.GenerateSelectionPrint();
 
-				window["AscDesktopEditor"]["Print_Start"](this.DocumentUrl, pagescount, "", this.getCurrentPage());
+                var _drawing_document_print = _drawing_document.printedDocument ? _drawing_document.printedDocument.DrawingDocument : _drawing_document;
+				var pagescount        = Math.min(_drawing_document_print.m_lPagesCount, _drawing_document_print.m_lCountCalculatePages);
+
+				window["AscDesktopEditor"]["Print_Start"](this.DocumentUrl, pagescount, "", _drawing_document.printedDocument ? 0 : this.getCurrentPage());
 
 				var oDocRenderer                  = new AscCommon.CDocumentRenderer();
                 oDocRenderer.InitPicker(AscCommon.g_oTextMeasurer.m_oManager);
@@ -9228,9 +9193,9 @@ background-repeat: no-repeat;\
 					oDocRenderer.Memory.Seek(0);
 					oDocRenderer.VectorMemoryForPrint.ClearNoAttack();
 
-					var page = _drawing_document.m_arrPages[i];
+					var page = _drawing_document_print.m_arrPages[i];
 					oDocRenderer.BeginPage(page.width_mm, page.height_mm);
-					this.WordControl.m_oLogicDocument.DrawPage(i, oDocRenderer);
+                    _drawing_document_print.m_oLogicDocument.DrawPage(i, oDocRenderer);
 					oDocRenderer.EndPage();
 
 					window["AscDesktopEditor"]["Print_Page"](oDocRenderer.Memory.GetBase64Memory(), page.width_mm, page.height_mm);
@@ -9238,6 +9203,7 @@ background-repeat: no-repeat;\
 
 				this.ShowParaMarks = bOldShowMarks;
 
+                _drawing_document.printedDocument = null;
 				window["AscDesktopEditor"]["Print_End"]();
 			}
 			return;
@@ -9783,6 +9749,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['put_TextColor']                             = asc_docs_api.prototype.put_TextColor;
 	asc_docs_api.prototype['put_ParagraphShade']                        = asc_docs_api.prototype.put_ParagraphShade;
 	asc_docs_api.prototype['put_PrIndent']                              = asc_docs_api.prototype.put_PrIndent;
+	asc_docs_api.prototype['put_ParagraphOutlineLvl']                   = asc_docs_api.prototype.put_ParagraphOutlineLvl;
 	asc_docs_api.prototype['IncreaseIndent']                            = asc_docs_api.prototype.IncreaseIndent;
 	asc_docs_api.prototype['DecreaseIndent']                            = asc_docs_api.prototype.DecreaseIndent;
 	asc_docs_api.prototype['put_PrIndentRight']                         = asc_docs_api.prototype.put_PrIndentRight;
@@ -9909,6 +9876,8 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['sync_SpellCheckVariantsFound']              = asc_docs_api.prototype.sync_SpellCheckVariantsFound;
 	asc_docs_api.prototype['asc_replaceMisspelledWord']                 = asc_docs_api.prototype.asc_replaceMisspelledWord;
 	asc_docs_api.prototype['asc_ignoreMisspelledWord']                  = asc_docs_api.prototype.asc_ignoreMisspelledWord;
+    asc_docs_api.prototype['asc_spellCheckAddToDictionary']       		= asc_docs_api.prototype.asc_spellCheckAddToDictionary;
+    asc_docs_api.prototype['asc_spellCheckClearDictionary']       		= asc_docs_api.prototype.asc_spellCheckClearDictionary;
 	asc_docs_api.prototype['asc_setDefaultLanguage']                    = asc_docs_api.prototype.asc_setDefaultLanguage;
 	asc_docs_api.prototype['asc_getDefaultLanguage']                    = asc_docs_api.prototype.asc_getDefaultLanguage;
 	asc_docs_api.prototype['asc_getKeyboardLanguage']                   = asc_docs_api.prototype.asc_getKeyboardLanguage;
@@ -9953,6 +9922,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asyncFontsDocumentEndLoaded']               = asc_docs_api.prototype.asyncFontsDocumentEndLoaded;
 	asc_docs_api.prototype['CreateFontsCharMap']                        = asc_docs_api.prototype.CreateFontsCharMap;
 	asc_docs_api.prototype['sync_SendThemeColors']                      = asc_docs_api.prototype.sync_SendThemeColors;
+	asc_docs_api.prototype['asc_GetCurrentColorSchemeName']             = asc_docs_api.prototype.asc_GetCurrentColorSchemeName;
 	asc_docs_api.prototype['ChangeColorScheme']                         = asc_docs_api.prototype.ChangeColorScheme;
 	asc_docs_api.prototype['UpdateInterfaceState']                      = asc_docs_api.prototype.UpdateInterfaceState;
 	asc_docs_api.prototype['asyncFontEndLoaded']                        = asc_docs_api.prototype.asyncFontEndLoaded;

@@ -124,7 +124,6 @@
 			return null === val2 ? val1 : (null === val1 ? val2 : Math.min(val1, val2));
 		}
 
-
 		function round(x) {
 			var y = x + (x >= 0 ? .5 : -.5);
 			return y | y;
@@ -191,7 +190,6 @@
 			return value;
 		}
 
-
 		// Определяет времени работы функции
 		function profileTime(fn/*[, arguments]*/) {
 			var start, end, arg = [], i;
@@ -255,6 +253,33 @@
 
 			// borders equal
 			return border1;
+		}
+
+		function WordSplitting(str) {
+			var trueLetter = false;
+			var index = 0;
+			var wordsArray = [];
+			var wordsIndexArray = [];
+			for (var i = 0; i < str.length; i++) {
+				var nCharCode = str.charCodeAt(i);
+				if (AscCommon.g_aPunctuation[nCharCode] !== undefined || nCharCode === 32) {
+					if (trueLetter) {
+						trueLetter = false;
+						index++;
+					}
+				} else {
+					if(trueLetter === false) {
+					  wordsIndexArray.push(i);
+					}
+					trueLetter = true;
+					wordsArray[index] = wordsArray[index] || "";
+					wordsArray[index] = wordsArray[index] + str[i];
+				}
+			}
+			return {
+				wordsArray: wordsArray,
+				wordsIndex: wordsIndexArray
+			};
 		}
 
 		var referenceType = {
@@ -1791,17 +1816,17 @@
 				{canvas: oCanvas, units: 0/*px*/, fmgrGraphics: wb.fmgrGraphics, font: wb.m_oFont});
 
 			function addStyles(styles, type) {
-				var oStyle, name;
+				var oStyle, name, displayName;
 				for (var i = 0; i < styles.length && i < 1000; ++i) {
 					oStyle = styles[i];
 					if (oStyle.Hidden) {
 						continue;
 					}
-					name = oStyle.Name;
+					name = displayName = oStyle.Name;
 					if (type === AscCommon.c_oAscStyleImage.Default) {
 						// ToDo Возможно стоит переписать немного, чтобы не пробегать каждый раз по массиву custom-стилей (нужно генерировать AllStyles)
 						oStyle = cellStyles.getCustomStyleByBuiltinId(oStyle.BuiltinId) || oStyle;
-						name = AscCommon.translateManager.getValue(name);
+						displayName = AscCommon.translateManager.getValue(name);
 					} else if (null !== oStyle.BuiltinId) {
 						continue;
 					}
@@ -1809,7 +1834,7 @@
 					if (window["IS_NATIVE_EDITOR"]) {
 						window["native"]["BeginDrawStyle"](type, name);
 					}
-					drawStyle(oGraphics, wb.stringRender, oStyle, name, widthWithRetina, heightWithRetina);
+					drawStyle(oGraphics, wb.stringRender, oStyle, displayName, widthWithRetina, heightWithRetina);
 					if (window["IS_NATIVE_EDITOR"]) {
 						window["native"]["EndDrawStyle"]();
 					} else {
@@ -2219,10 +2244,12 @@
 		/** @constructor */
 		function asc_CFindOptions() {
 			this.findWhat = "";							// текст, который ищем
+			this.wordIndex = 0;                         // индекс текущего слова
 			this.scanByRows = true;						// просмотр по строкам/столбцам
 			this.scanForward = true;					// поиск вперед/назад
 			this.isMatchCase = false;					// учитывать регистр
-			this.isWholeCell = false;					// ячейка целиком
+			this.isWholeCell = false;	                // ячейка целиком
+			this.isChangeSingleWord = false;		    // изменение только одного слова	
 			this.scanOnOnlySheet = true;				// искать только на листе/в книге
 			this.lookIn = Asc.c_oAscFindLookIn.Formulas;	// искать в формулах/значениях/примечаниях
 
@@ -2244,12 +2271,14 @@
 		}
 		asc_CFindOptions.prototype.clone = function () {
 			var result = new asc_CFindOptions();
+			result.wordIndex = this.wordIndex;
 			result.findWhat = this.findWhat;
 			result.scanByRows = this.scanByRows;
 			result.scanForward = this.scanForward;
 			result.isMatchCase = this.isMatchCase;
 			result.isWholeCell = this.isWholeCell;
-			result.scanOnOnlySheet = this.scanOnOnlySheet;
+			result.isChangeSingleWord = 	this.isChangeSingleWord;	
+			result.scanOnOnlySheet = this.scanOnOnlySheet;		
 			result.lookIn = this.lookIn;
 
 			result.replaceWith = this.replaceWith;
@@ -2291,6 +2320,7 @@
 		asc_CFindOptions.prototype.asc_setScanForward = function (val) {this.scanForward = val;};
 		asc_CFindOptions.prototype.asc_setIsMatchCase = function (val) {this.isMatchCase = val;};
 		asc_CFindOptions.prototype.asc_setIsWholeCell = function (val) {this.isWholeCell = val;};
+		asc_CFindOptions.prototype.asc_changeSingleWord = function (val) { this.isChangeSingleWord = val; };	
 		asc_CFindOptions.prototype.asc_setScanOnOnlySheet = function (val) {this.scanOnOnlySheet = val;};
 		asc_CFindOptions.prototype.asc_setLookIn = function (val) {this.lookIn = val;};
 		asc_CFindOptions.prototype.asc_setReplaceWith = function (val) {this.replaceWith = val;};
@@ -2371,6 +2401,40 @@
 			return -2;
 		};
 
+		function CSpellcheckState() {
+			this.lastSpellInfo = null;
+			this.lastIndex = -1;
+
+			this.lockSpell = false;
+			this.startCell = null;
+			this.currentCell = null;
+			this.iteration = false;
+			this.wordIndex = null;
+		}
+
+		CSpellcheckState.prototype.init = function (startCell) {
+			if (!this.startCell) {
+				this.startCell = startCell.clone();
+				this.currentCell = startCell.clone();
+			}
+		};
+		CSpellcheckState.prototype.clean = function () {
+			this.lastSpellInfo = null;
+			this.lastIndex = -1;
+
+			this.lockSpell = false;
+			this.startCell = null;
+			this.currentCell = null;
+			this.iteration = false;
+		};
+		CSpellcheckState.prototype.nextRow = function () {
+			this.lastSpellInfo = null;
+			this.lastIndex = -1;
+
+			this.currentCell.row += 1;
+			this.currentCell.col = 0;
+		};
+
 		/** @constructor */
 		function asc_CCompleteMenu(name, type) {
 			this.name = name;
@@ -2449,8 +2513,7 @@
 		asc_CAutoCorrectOptions.prototype.asc_getOptions = function () {return this.options;};
 		asc_CAutoCorrectOptions.prototype.asc_getCellCoord = function () {return this.cellCoord;};
 
-
-
+		/** @constructor */
 		function cDate() {
 			var bind = Function.bind;
 			var unbind = bind.bind(bind);
@@ -2478,9 +2541,9 @@
 			return this.isLeapYear() ? this.getDaysInMonth.L[this.getUTCMonth()] : this.getDaysInMonth.R[this.getUTCMonth()];
 		};
 
-// durations of months for the regular year
+		// durations of months for the regular year
 		cDate.prototype.getDaysInMonth.R = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-// durations of months for the leap year
+		// durations of months for the leap year
 		cDate.prototype.getDaysInMonth.L = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 
 		cDate.prototype.truncate = function () {
@@ -2620,9 +2683,10 @@
 		window["AscCommonExcel"].calcDecades = calcDecades;
 		window["AscCommonExcel"].convertPtToPx = convertPtToPx;
 		window["AscCommonExcel"].convertPxToPt = convertPxToPt;
-		window["Asc"].outputDebugStr = outputDebugStr;
 		window["Asc"].profileTime = profileTime;
 		window["AscCommonExcel"].getMatchingBorder = getMatchingBorder;
+		window["AscCommonExcel"].WordSplitting = WordSplitting;
+		window["Asc"].outputDebugStr = outputDebugStr;
 		window["Asc"].isNumberInfinity = isNumberInfinity;
 		window["Asc"].trim = trim;
 		window["Asc"].arrayToLowerCase = arrayToLowerCase;
@@ -2730,6 +2794,8 @@
 		prot["asc_setIsReplaceAll"] = prot.asc_setIsReplaceAll;
 
 		window["AscCommonExcel"].findResults = findResults;
+
+		window["AscCommonExcel"].CSpellcheckState = CSpellcheckState;
 
 		window["AscCommonExcel"].asc_CCompleteMenu = asc_CCompleteMenu;
 		prot = asc_CCompleteMenu.prototype;

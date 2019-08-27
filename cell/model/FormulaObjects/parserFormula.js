@@ -2344,6 +2344,9 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 	cName3D.prototype.toString = function () {
 		return parserHelp.getEscapeSheetName(this.ws.getName()) + "!" + cName.prototype.toString.call(this);
 	};
+	cName3D.prototype.toLocaleString = function () {
+		return parserHelp.getEscapeSheetName(this.ws.getName()) + "!" + cName.prototype.toLocaleString.call(this);
+	};
 
 	/**
 	 * @constructor
@@ -2784,6 +2787,8 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 					newArgs[i] = arg.getMatrix(this.excludeHiddenRows, this.excludeErrorsVal, this.excludeNestedStAg);
 				} else if (cElementType.cellsRange3D === arg.type) {
 					newArgs[i] = arg.getMatrix(this.excludeHiddenRows, this.excludeErrorsVal, this.excludeNestedStAg)[0];
+				} else if(cElementType.error === arg.type) {
+					newArgs[i] = arg;
 				} else {
 					newArgs[i] = new cError(cErrorType.division_by_zero);
 				}
@@ -4977,7 +4982,7 @@ _func[cElementType.cell3D] = _func[cElementType.cell];
 	ParseResult.prototype.getElementByPos = function(pos) {
 		var curPos = 0;
 		for (var i = 0; i < this.elems.length; ++i) {
-			curPos += this.elems[i].toString(/*AscCommonExcel.cFormulaFunctionToLocale*/).length;
+			curPos += this.elems[i].toLocaleString(/*AscCommonExcel.cFormulaFunctionToLocale*/).length;
 			if (curPos >= pos) {
 				return this.elems[i];
 			}
@@ -5709,7 +5714,12 @@ parserFormula.prototype.clone = function(formula, parent, ws) {
 			wasRigthParentheses = false;
 			var stackLength = elemArr.length, top_elem = null, top_elem_arg_pos;
 
-			if (elemArr.length !== 0 && elemArr[stackLength - 1].name === "(" && parseResult.operand_expected) {
+			if (elemArr.length !== 0 && elemArr[stackLength - 1].name === "(" && ((!elemArr[stackLength - 2]) ||
+				(elemArr[stackLength - 2] && elemArr[stackLength - 2].type !== cElementType.func)) && !ignoreErrors) {
+				parseResult.setError(c_oAscError.ID.FrmlWrongOperator);
+				t.outStack = [];
+				return false;
+			} else if (elemArr.length !== 0 && elemArr[stackLength - 1].name === "(" && parseResult.operand_expected) {
 				t.outStack.push(new cEmpty());
 				top_elem = elemArr[stackLength - 1];
 				top_elem_arg_pos = stackLength - 1;

@@ -3273,12 +3273,12 @@
 			if (null != dataValidation.formula1) {
 				this.memory.WriteByte(c_oSer_DataValidation.Formula1);
 				this.memory.WriteByte(c_oSerPropLenType.Variable);
-				this.memory.WriteString2(dataValidation.formula1);
+				this.memory.WriteString2(dataValidation.formula1.text);
 			}
 			if (null != dataValidation.formula2) {
 				this.memory.WriteByte(c_oSer_DataValidation.Formula2);
 				this.memory.WriteByte(c_oSerPropLenType.Variable);
-				this.memory.WriteString2(dataValidation.formula2);
+				this.memory.WriteString2(dataValidation.formula2.text);
 			}
 		};
         this.WriteWorksheetProp = function(ws, index)

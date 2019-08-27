@@ -1840,6 +1840,8 @@
 			this.Position = (undefined != obj.Position) ? obj.Position : undefined;
 			this.Jc = (undefined != obj.Jc) ? obj.Jc : undefined;
 			this.ListType = (undefined != obj.ListType) ? obj.ListType : undefined;
+			this.OutlineLvl = (undefined != obj.OutlineLvl) ? obj.OutlineLvl : undefined;
+			this.OutlineLvlStyle = (undefined != obj.OutlineLvlStyle) ? obj.OutlineLvlStyle : false;
 		} else {
 			//ContextualSpacing : false,            // Удалять ли интервал между параграфами одинакового стиля
 			//
@@ -1881,6 +1883,8 @@
 			this.Position = undefined;
 			this.Jc = undefined;
 			this.ListType = undefined;
+			this.OutlineLvl = undefined;
+			this.OutlineLvlStyle = false;
 		}
 	}
 
@@ -1980,6 +1984,12 @@
 			return this.CanAddDropCap;
 		}, asc_getCanAddImage: function () {
 			return this.CanAddImage;
+		}, asc_getOutlineLvl: function() {
+			return this.OutlineLvl;
+		}, asc_putOutLineLvl: function(nLvl) {
+			this.OutlineLvl = nLvl;
+		}, asc_getOutlineLvlStyle: function() {
+			return this.OutlineLvlStyle;
 		}
 	};
 
@@ -4623,6 +4633,9 @@
 	prot["put_FramePr"] = prot["asc_putFramePr"] = prot.asc_putFramePr;
 	prot["get_CanAddDropCap"] = prot["asc_getCanAddDropCap"] = prot.asc_getCanAddDropCap;
 	prot["get_CanAddImage"] = prot["asc_getCanAddImage"] = prot.asc_getCanAddImage;
+	prot["get_OutlineLvl"] = prot["asc_getOutlineLvl"] = prot.asc_getOutlineLvl;
+	prot["put_OutlineLvl"] = prot["asc_putOutLineLvl"] = prot.asc_putOutLineLvl;
+	prot["get_OutlineLvlStyle"] = prot["asc_getOutlineLvlStyle"] = prot.asc_getOutlineLvlStyle;
 
 	window["AscCommon"].asc_CTexture = asc_CTexture;
 	prot = asc_CTexture.prototype;

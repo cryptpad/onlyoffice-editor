@@ -2351,6 +2351,12 @@ CTable.prototype.private_RecalculatePage = function(CurPage)
                     Cell = this.Internal_Get_StartMergedCell( CurRow, CurGridCol, GridSpan );
                     CellMar = Cell.GetMargins();
 
+                    var oTempRow         = Cell.GetRow();
+					var oTempCellMetrics = oTempRow.GetCellInfo(Cell.GetIndex());
+
+					X_content_start = Page.X + oTempCellMetrics.X_content_start;
+					X_content_end   = Page.X + oTempCellMetrics.X_content_end;
+
                     Y_content_start = Cell.Temp.Y + CellMar.Top.W;
                 }
             }

@@ -130,7 +130,10 @@ CShape.prototype.deleteDrawingBase = function(bCheckPlaceholder)
     if(this.parent && this.parent.cSld && this.parent.cSld.spTree)
     {
         var pos = this.parent.removeFromSpTreeById(this.Id);
-        if(bCheckPlaceholder && this.isPlaceholder() && !this.isEmptyPlaceholder())
+        var phType = this.getPlaceholderType();
+        if(bCheckPlaceholder && this.isPlaceholder() && !this.isEmptyPlaceholder()
+            && phType !== AscFormat.phType_hdr && phType !== AscFormat.phType_ftr
+            && phType !== AscFormat.phType_sldNum && phType !== AscFormat.phType_dt )
         {
             var hierarchy = this.getHierarchy();
             if(hierarchy[0])
@@ -445,6 +448,11 @@ CShape.prototype.recalculate = function ()
     var check_slide_placeholder = !this.isPlaceholder() || (this.parent && (this.parent.getObjectType() === AscDFH.historyitem_type_Slide));
     AscFormat.ExecuteNoHistory(function(){
 
+        var bRecalcShadow = this.recalcInfo.recalculateBrush ||
+            this.recalcInfo.recalculatePen ||
+            this.recalcInfo.recalculateTransform ||
+            this.recalcInfo.recalculateGeometry ||
+            this.recalcInfo.recalculateBounds;
         if (this.recalcInfo.recalculateBrush) {
             this.recalculateBrush();
             this.recalcInfo.recalculateBrush = false;
@@ -482,6 +490,9 @@ CShape.prototype.recalculate = function ()
         {
             this.recalculateBounds();
             this.recalcInfo.recalculateBounds = false;
+        }
+        if(bRecalcShadow)
+        {
             this.recalculateShdw();
         }
 

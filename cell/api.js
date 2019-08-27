@@ -86,6 +86,10 @@ var editor;
     this.tmpLocale = null;
     this.tmpLocalization = null;
 
+    // spellcheck
+    this.defaultLanguage = 1033;
+    this.spellcheckState = new AscCommonExcel.CSpellcheckState();
+
     this.documentFormatSave = c_oAscFileType.XLSX;
 
     // объекты, нужные для отправки в тулбар (шрифты, стили)
@@ -2844,6 +2848,203 @@ var editor;
     }
   };
 
+  // spellCheck
+  spreadsheet_api.prototype.cleanSpelling = function () {
+    if (!this.spellcheckState.lockSpell && this.spellcheckState.startCell) {
+      this.handlers.trigger("asc_onSpellCheckVariantsFound", null);
+      this.spellcheckState.clean();
+    }
+  };
+  spreadsheet_api.prototype.SpellCheck_CallBack = function (e) {
+    this.spellcheckState.lockSpell = false;
+    var type = e["type"];
+    if (type === "spell") {
+      var usrCorrect = e["usrCorrect"];
+      this.spellcheckState.lastSpellInfo = e;
+      this.spellcheckState.wordsIndex = e["wordsIndex"];
+      this.spellcheckState.lastIndex += 1;
+      var lastIndex = this.spellcheckState.lastIndex;
+      while (usrCorrect[lastIndex]) {
+        ++lastIndex;
+      }
+      this.spellcheckState.lastIndex = lastIndex;
+      if (false !== usrCorrect[lastIndex]) {
+        this.spellcheckState.nextRow();
+        this.asc_nextWord();
+        return;
+      }
+
+      this.spellcheckState.lockSpell = true;
+      this.SpellCheckApi.spellCheck({
+        "type": "suggest",
+        "usrWords": [e["usrWords"][lastIndex]],
+        "usrLang": [e["usrLang"][lastIndex]],
+        "cellInfo": e["cellsInfo"][lastIndex],
+        "wordsIndex": e["wordsIndex"][lastIndex]
+      });
+    } else if (type === "suggest") {
+      this.handlers.trigger("asc_onSpellCheckVariantsFound", new AscCommon.asc_CSpellCheckProperty(e["usrWords"][0], null, e["usrSuggest"][0], null, null));
+      var cellInfo = e["cellInfo"];
+
+      var ws = this.wb.getWorksheet();
+      var dc = cellInfo.col - ws.model.selectionRange.activeCell.col;
+      var dr = cellInfo.row - ws.model.selectionRange.activeCell.row;
+      this.spellcheckState.lockSpell = true;
+      ws.changeSelectionStartPoint(dc, dr);
+      this.spellcheckState.lockSpell = false;
+      this.spellcheckState.wordsIndex = e["wordsIndex"];
+    }
+  };
+  spreadsheet_api.prototype._spellCheckDisconnect = function () {
+    this.cleanSpelling();
+  };
+  spreadsheet_api.prototype._spellCheckRestart = function (word) {
+    var lastSpellInfo;
+    if ((lastSpellInfo = this.spellcheckState.lastSpellInfo)) {
+      var lastIndex = this.spellcheckState.lastIndex;
+      this.spellcheckState.lastIndex = -1;
+
+      var usrLang = [];
+      for (var i = lastIndex; i < lastSpellInfo["usrWords"].length; ++i) {
+        usrLang.push(this.defaultLanguage);
+      }
+
+      this.spellcheckState.lockSpell = true;
+      this.SpellCheckApi.spellCheck({
+        "type": "spell",
+        "usrWords": lastSpellInfo["usrWords"].slice(lastIndex),
+        "usrLang": usrLang,
+        "cellsInfo": lastSpellInfo["cellsInfo"].slice(lastIndex),
+        "wordsIndex": lastSpellInfo["wordsIndex"].slice(lastIndex)
+      });
+    } else {
+      this.cleanSpelling();
+    }
+  };
+  spreadsheet_api.prototype.asc_setDefaultLanguage = function (val) {
+    if (this.spellcheckState.lockSpell || this.defaultLanguage === val) {
+      return;
+    }
+    this.defaultLanguage = val;
+    this._spellCheckRestart();
+  };
+  spreadsheet_api.prototype.asc_nextWord = function () {
+    if (this.spellcheckState.lockSpell) {
+      return;
+    }
+    if (this.spellcheckState.lastSpellInfo) {
+      this.SpellCheck_CallBack(this.spellcheckState.lastSpellInfo);
+      return;
+    }
+
+    var ws = this.wb.getWorksheet();
+    var maxC = ws.model.getColsCount() - 1;
+    var maxR = ws.model.getRowsCount() - 1;
+    if (-1 === maxC || -1 === maxR) {
+      this.handlers.trigger("asc_onSpellCheckVariantsFound", new AscCommon.asc_CSpellCheckProperty());
+      return;
+    }
+
+    var activeCell = ws.model.selectionRange.activeCell;
+    if (!this.spellcheckState.startCell) {
+      this.spellcheckState.startCell = activeCell.clone();
+      if (this.spellcheckState.startCell.col > maxC) {
+        this.spellcheckState.startCell.row += 1;
+        this.spellcheckState.startCell.col = 0;
+      }
+      if (this.spellcheckState.startCell.row > maxR) {
+        this.spellcheckState.startCell.row = 0;
+        this.spellcheckState.startCell.col = 0;
+      }
+      this.spellcheckState.currentCell = this.spellcheckState.startCell.clone();
+    }
+
+    var startCell = this.spellcheckState.startCell;
+    var currentCell = this.spellcheckState.currentCell;
+    var lang = this.defaultLanguage;
+
+    var langArray = [];
+    var wordsArray = [];
+    var cellsInfo = [];
+    var wordsIndexArray = [];
+    var isEnd = false;
+
+    do {
+      if (this.spellcheckState.iteration && currentCell.row > startCell.row) {
+        break;
+      }
+      if (currentCell.row > maxR) {
+        currentCell.row = 0;
+        currentCell.col = 0;
+        this.spellcheckState.iteration = true;
+      }
+      if (this.spellcheckState.iteration && currentCell.row === startCell.row) {
+        maxC = startCell.col - 1;
+      }
+      if (currentCell.col > maxC) {
+        this.spellcheckState.nextRow();
+        continue;
+      }
+      ws.model.getRange3(currentCell.row, currentCell.col, currentCell.row, maxC)._foreachNoEmpty(function (cell, r, c) {
+        if (cell.text !== null) {
+          var cellInfo = new AscCommon.CellBase(r, c);
+          var wordsObject = AscCommonExcel.WordSplitting(cell.text);
+          var words = wordsObject.wordsArray;
+          var wordsIndex = wordsObject.wordsIndex;
+          for (var i = 0; i < words.length; ++i) {
+            wordsArray.push(words[i]);
+            wordsIndexArray.push(wordsIndex[i]);
+            langArray.push(lang);
+            cellsInfo.push(cellInfo);
+          }
+          isEnd = true;
+        }
+      });
+      if (isEnd) {
+        break;
+      }
+      this.spellcheckState.nextRow();
+    } while (true);
+
+    if (0 < wordsArray.length) {
+      this.spellcheckState.lockSpell = true;
+      this.SpellCheckApi.spellCheck({
+        "type": "spell",
+        "usrWords": wordsArray,
+        "usrLang": langArray,
+        "cellsInfo": cellsInfo,
+        "wordsIndex": wordsIndexArray
+      });
+    } else {
+      this.handlers.trigger("asc_onSpellCheckVariantsFound", new AscCommon.asc_CSpellCheckProperty());
+    }
+  };
+
+  spreadsheet_api.prototype.asc_replaceMisspelledWord = function(newWord, variantsFound, replaceAll) {
+    var t = this;
+    var ws = this.wb.getWorksheet();
+    var options = new Asc.asc_CFindOptions();
+    options.findWhat = variantsFound.Word;
+    options.replaceWith = newWord;
+    options.isChangeSingleWord = true;
+    this.spellcheckState.lockSpell = true;
+    options.wordsIndex = this.spellcheckState.wordsIndex;
+
+    if (replaceAll === true) {
+      options.isReplaceAll = true;
+    }
+    
+    ws.replaceCellText(options, false, function () {
+      t.spellcheckState.lockSpell = false;
+      t.asc_nextWord();
+    });
+  };
+
+  spreadsheet_api.prototype.asc_ignoreMisspelledWord = function() {
+    //Todo: запоминать пропущенное слово
+    this.asc_nextWord();
+  };
+
   // Frozen pane
   spreadsheet_api.prototype.asc_freezePane = function () {
     this.wb.getWorksheet().freezePane();
@@ -3064,6 +3265,16 @@ var editor;
 
   };
 
+  spreadsheet_api.prototype.asc_setCellFill = function (fill) {
+    var ws = this.wb.getWorksheet();
+    if (ws.objectRender.selectedGraphicObjectsExists() && ws.objectRender.controller.setCellBackgroundColor) {
+      ws.objectRender.controller.setCellBackgroundColor(fill);
+    } else {
+      this.wb.getWorksheet().setSelectionInfo("f", fill);
+      this.wb.restoreFocus();
+    }
+  };
+
   spreadsheet_api.prototype.asc_setCellBackgroundColor = function(color) {
     var ws = this.wb.getWorksheet();
     if (ws.objectRender.selectedGraphicObjectsExists() && ws.objectRender.controller.setCellBackgroundColor) {
@@ -3186,8 +3397,8 @@ var editor;
     return f ? f.prototype.name : name;
   };
 
-  spreadsheet_api.prototype.asc_recalc = function(isRecalcWB) {
-    this.wbModel.recalcWB(isRecalcWB);
+  spreadsheet_api.prototype.asc_calculate = function(type) {
+    this.wb.calculate(type);
   };
 
   spreadsheet_api.prototype.asc_setFontRenderingMode = function(mode) {
@@ -3220,11 +3431,22 @@ var editor;
     }
   };
 
-	spreadsheet_api.prototype.asc_ChangeColorScheme = function (index) {
+  spreadsheet_api.prototype.asc_GetCurrentColorSchemeName = function()
+  {
+    var oTheme = this.wbModel && this.wbModel.theme;
+    var oClrScheme = oTheme && oTheme.themeElements && oTheme.themeElements.clrScheme;
+    if(oClrScheme && typeof oClrScheme.name === "string")
+    {
+      return oClrScheme.name;
+    }
+    return "";
+  };
+
+	spreadsheet_api.prototype.asc_ChangeColorScheme = function (sSchemeName) {
 		var t = this;
 		var onChangeColorScheme = function (res) {
 			if (res) {
-				if (t.wbModel.changeColorScheme(index)) {
+				if (t.wbModel.changeColorScheme(sSchemeName)) {
 					t.asc_AfterChangeColorScheme();
 				}
 			}
@@ -3633,11 +3855,21 @@ var editor;
       return this.wbModel && this.wbModel.Core;
 	};
 
-	spreadsheet_api.prototype.asc_switchGroupSummary = function (val, bCol) {
+	spreadsheet_api.prototype.asc_setGroupSummary = function (val, bCol) {
 		var ws = this.wb && this.wb.getWorksheet();
 		if(ws) {
-			ws.switchGroupSummaryPos(val, bCol);
+			ws.asc_setGroupSummary(val, bCol);
 		}
+	};
+
+	spreadsheet_api.prototype.asc_getGroupSummaryRight = function () {
+		var ws = this.wbModel.getActiveWs();
+		return ws && ws.sheetPr ? ws.sheetPr.SummaryRight : true;
+	};
+
+	spreadsheet_api.prototype.asc_getGroupSummaryBelow = function () {
+		var ws = this.wbModel.getActiveWs();
+		return ws && ws.sheetPr ? ws.sheetPr.SummaryBelow : true;
 	};
 
   /*
@@ -3809,7 +4041,9 @@ var editor;
   prot["asc_clearOutline"] = prot.asc_clearOutline;
   prot["asc_changeGroupDetails"] = prot.asc_changeGroupDetails;
   prot["asc_checkAddGroup"] = prot.asc_checkAddGroup;
-  prot["asc_switchGroupSummary"] = prot.asc_switchGroupSummary;
+  prot["asc_setGroupSummary"] = prot.asc_setGroupSummary;
+  prot["asc_getGroupSummaryRight"] = prot.asc_getGroupSummaryRight;
+  prot["asc_getGroupSummaryBelow"] = prot.asc_getGroupSummaryBelow;
 
   
   // Drawing objects interface
@@ -3883,6 +4117,14 @@ var editor;
   prot["asc_SetMathProps"] = prot.asc_SetMathProps;
   //----------------------------------------------------------------------------------------------------------------------
 
+  // Spellcheck
+  prot["asc_setDefaultLanguage"] = prot.asc_setDefaultLanguage;
+  prot["asc_nextWord"] = prot.asc_nextWord;
+  prot["asc_replaceMisspelledWord"]= prot.asc_replaceMisspelledWord;
+  prot["asc_ignoreMisspelledWord"] = prot.asc_ignoreMisspelledWord;
+  prot["asc_spellCheckAddToDictionary"] = prot.asc_spellCheckAddToDictionary;
+  prot["asc_spellCheckClearDictionary"] = prot.asc_spellCheckClearDictionary;
+
   // Frozen pane
   prot["asc_freezePane"] = prot.asc_freezePane;
 
@@ -3906,6 +4148,7 @@ var editor;
   prot["asc_setCellTextWrap"] = prot.asc_setCellTextWrap;
   prot["asc_setCellTextShrink"] = prot.asc_setCellTextShrink;
   prot["asc_setCellTextColor"] = prot.asc_setCellTextColor;
+  prot["asc_setCellFill"] = prot.asc_setCellFill;
   prot["asc_setCellBackgroundColor"] = prot.asc_setCellBackgroundColor;
   prot["asc_setCellBorders"] = prot.asc_setCellBorders;
   prot["asc_setCellFormat"] = prot.asc_setCellFormat;
@@ -3928,8 +4171,10 @@ var editor;
   prot["asc_getFormulasInfo"] = prot.asc_getFormulasInfo;
   prot["asc_getFormulaLocaleName"] = prot.asc_getFormulaLocaleName;
   prot["asc_getFormulaNameByLocale"] = prot.asc_getFormulaNameByLocale;
+  prot["asc_calculate"] = prot.asc_calculate;
   prot["asc_setFontRenderingMode"] = prot.asc_setFontRenderingMode;
   prot["asc_setSelectionDialogMode"] = prot.asc_setSelectionDialogMode;
+  prot["asc_GetCurrentColorSchemeName"] = prot.asc_GetCurrentColorSchemeName;
   prot["asc_ChangeColorScheme"] = prot.asc_ChangeColorScheme;
   prot["asc_setListType"] = prot.asc_setListType;
   prot["asc_getCurrentListType"] = prot.asc_getCurrentListType;

@@ -69,6 +69,7 @@ function CThemeLoadInfo()
 function CThemeLoader()
 {
     this.Themes = new CAscThemes();
+    this.ThemesCached = [];
 
     // editor themes info
     this.themes_info_editor     = [];
@@ -152,40 +153,37 @@ function CThemeLoader()
 
             xhr.onload = function()
             {
-                if (this.status != 200)
+                if (this.readyState == 4 && (this.status == 200 || location.href.indexOf("file:") == 0))
                 {
-                    oThis._callback_theme_load(null);
-                    return;
-                }
-
-                if (typeof ArrayBuffer !== 'undefined' && !window.opera && this.response)
-                {
-                    oThis._callback_theme_load(new Uint8Array(this.response));
-                }
-                else if (AscCommon.AscBrowser.isIE)
-                {
-                    var _response = new VBArray(this["responseBody"]).toArray();
-                    var srcLen = _response.length;
-                    var _responseNative = new Uint8Array(srcLen);
-
-                    for (var i = 0; i < srcLen; i++)
+                    if (typeof ArrayBuffer !== 'undefined' && !window.opera && this.response)
                     {
-                        _responseNative[i] = _response[i];
+                        oThis._callback_theme_load(new Uint8Array(this.response));
                     }
-
-                    oThis._callback_theme_load(_responseNative);
-                }
-                else
-                {
-                    var srcLen = this.responseText.length;
-                    var _responseNative = new Uint8Array(srcLen);
-
-                    for (var i = 0; i < srcLen; i++)
+                    else if (AscCommon.AscBrowser.isIE)
                     {
-                        _responseNative[i] = (this.responseText.charCodeAt(i) & 0xFF);
-                    }
+                        var _response = new VBArray(this["responseBody"]).toArray();
+                        var srcLen = _response.length;
+                        var _responseNative = new Uint8Array(srcLen);
 
-                    oThis._callback_theme_load(_responseNative);
+                        for (var i = 0; i < srcLen; i++)
+                        {
+                            _responseNative[i] = _response[i];
+                        }
+
+                        oThis._callback_theme_load(_responseNative);
+                    }
+                    else
+                    {
+                        var srcLen = this.responseText.length;
+                        var _responseNative = new Uint8Array(srcLen);
+
+                        for (var i = 0; i < srcLen; i++)
+                        {
+                            _responseNative[i] = (this.responseText.charCodeAt(i) & 0xFF);
+                        }
+
+                        oThis._callback_theme_load(_responseNative);
+                    }
                 }
             };
 
@@ -203,6 +201,11 @@ function CThemeLoader()
 
     this._callback_theme_load = function(_binary)
     {
+        if (_binary)
+            oThis.ThemesCached[oThis.CurrentLoadThemeIndex] = _binary;
+
+        _binary = oThis.ThemesCached[oThis.CurrentLoadThemeIndex];
+
         if (_binary)
         {
             var _loader = new AscCommon.BinaryPPTYLoader();

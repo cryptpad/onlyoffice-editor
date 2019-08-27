@@ -700,6 +700,14 @@ CParagraphContentBase.prototype.ProcessComplexFields = function(oComplexFields)
 CParagraphContentBase.prototype.GetSelectedElementsInfo = function(oInfo, oContentPos, nDepth)
 {
 };
+/**
+ * Проверяем является ли данный элемент цельным, т.е. его нальзя разбить на части и
+ * @returns {boolean}
+ */
+CParagraphContentBase.prototype.IsSolid = function()
+{
+	return true;
+};
 
 /**
  * Это базовый класс для элементов содержимого(контент) параграфа, у которых есть свое содержимое.
@@ -877,6 +885,10 @@ CParagraphContentWithContentBase.prototype.private_UpdateDocumentOutline = funct
 {
 	if (this.Paragraph)
 		this.Paragraph.UpdateDocumentOutline();
+};
+CParagraphContentWithContentBase.prototype.IsSolid = function()
+{
+	return false;
 };
 /**
  * Это базовый класс для элементов параграфа, которые сами по себе могут содержать элементы параграфа.
@@ -1284,6 +1296,9 @@ CParagraphContentWithParagraphLikeContent.prototype.Add_ToContent = function(Pos
         if (ContentPos.Data[Depth] >= Pos)
             ContentPos.Data[Depth]++;
     }
+
+    if (Item.SetParagraph)
+    	Item.SetParagraph(this.GetParagraph());
 };
 CParagraphContentWithParagraphLikeContent.prototype.Remove_FromContent = function(Pos, Count, UpdatePosition)
 {
@@ -1404,21 +1419,35 @@ CParagraphContentWithParagraphLikeContent.prototype.Remove = function(Direction,
 
         if (StartPos === EndPos)
         {
-            this.Content[StartPos].Remove(Direction, bOnAddText);
+        	if (this.Content[StartPos].IsSolid())
+			{
+				this.RemoveFromContent(StartPos, 1, true);
+			}
+        	else
+			{
+				this.Content[StartPos].Remove(Direction, bOnAddText);
 
-            if (StartPos !== this.Content.length - 1 && true === this.Content[StartPos].Is_Empty() && true !== bOnAddText)
-            {
-                this.Remove_FromContent( StartPos, 1, true );
-            }
+				if (StartPos !== this.Content.length - 1 && true === this.Content[StartPos].Is_Empty() && true !== bOnAddText)
+				{
+					this.Remove_FromContent(StartPos, 1, true);
+				}
+			}
         }
         else
         {
-            this.Content[EndPos].Remove(Direction, bOnAddText);
+        	if (this.Content[EndPos].IsSolid())
+			{
+				this.RemoveFromContent(EndPos, 1, true);
+			}
+			else
+			{
+				this.Content[EndPos].Remove(Direction, bOnAddText);
 
-            if (EndPos !== this.Content.length - 1 && true === this.Content[EndPos].Is_Empty() && true !== bOnAddText)
-            {
-                this.Remove_FromContent(EndPos, 1, true);
-            }
+				if (EndPos !== this.Content.length - 1 && true === this.Content[EndPos].Is_Empty() && true !== bOnAddText)
+				{
+					this.Remove_FromContent(EndPos, 1, true);
+				}
+			}
 
             if (this.Paragraph && this.Paragraph.LogicDocument && true === this.Paragraph.LogicDocument.IsTrackRevisions())
 			{
@@ -1447,10 +1476,17 @@ CParagraphContentWithParagraphLikeContent.prototype.Remove = function(Direction,
                 }
             }
 
-            this.Content[StartPos].Remove(Direction, bOnAddText);
+            if (this.Content[StartPos].IsSolid())
+			{
+				this.RemoveFromContent(StartPos, 1, true);
+			}
+			else
+			{
+				this.Content[StartPos].Remove(Direction, bOnAddText);
 
-            if (true === this.Content[StartPos].Is_Empty())
-                this.Remove_FromContent(StartPos, 1, true);
+				if (true === this.Content[StartPos].Is_Empty())
+					this.Remove_FromContent(StartPos, 1, true);
+			}
         }
 
         this.RemoveSelection();
@@ -3098,7 +3134,7 @@ CParagraphContentWithParagraphLikeContent.prototype.IsSelectedToEnd = function()
 		return false;
 
 	var nEndPos = this.Selection.StartPos < this.Selection.EndPos ? this.Selection.EndPos : this.Selection.StartPos;
-	return this.Content[nEndPos].IsSelectedFromEnd();
+	return this.Content[nEndPos].IsSelectedToEnd();
 };
 
 CParagraphContentWithParagraphLikeContent.prototype.SkipAnchorsAtSelectionStart = function(nDirection)

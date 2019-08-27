@@ -779,6 +779,13 @@ DrawingArea.prototype.drawSelection = function(drawingDocument) {
 		}
 
     }
+
+	if(window['Asc']['editor'].watermarkDraw)
+	{
+		window['Asc']['editor'].watermarkDraw.zoom = 1;//this.worksheet.objectRender.zoom.current;
+		window['Asc']['editor'].watermarkDraw.Generate();
+		window['Asc']['editor'].watermarkDraw.Draw(ctx, ctx.canvas.width, ctx.canvas.height);
+	}
 };
 
 DrawingArea.prototype.getOffsets = function(x, y, bEvents) {

@@ -1807,8 +1807,11 @@ function BinaryPPTYLoader()
     {
         var ret = new AscFormat.CColorModifiers();
         var _mods = this.ReadColorModifiers();
-        for(var i = 0; i < _mods.length; ++i)
-            ret.addMod(_mods[i]);
+        if(_mods)
+        {
+            for(var i = 0; i < _mods.length; ++i)
+                ret.addMod(_mods[i]);
+        }
         return ret;
     };
 
@@ -3074,7 +3077,7 @@ function BinaryPPTYLoader()
                     var count_effects = s.GetULong();
                     for (var _eff = 0; _eff < count_effects; ++_eff)
                     {
-                        s.Skip(1); // type
+                        s.Skip2(1); // type
                         var effect = this.ReadEffect();
                         if(effect)
                         {
@@ -3185,7 +3188,7 @@ function BinaryPPTYLoader()
                                             for (var _eff = 0; _eff < count_effects; ++_eff)
                                             {
 
-                                                s.Skip(1); // type
+                                                s.Skip2(1); // type
                                                 var oEffect = this.ReadEffect();
                                                 if(oEffect)
                                                 {
@@ -5050,7 +5053,7 @@ function BinaryPPTYLoader()
                     this.ReadThemeElements(themeElements);
                     theme.setFontScheme(themeElements.fontScheme);
                     theme.setFormatScheme(themeElements.fmtScheme);
-                    theme.changeColorScheme(themeElements.clrScheme);
+                    theme.setColorScheme(themeElements.clrScheme);
 
                     break;
                 }

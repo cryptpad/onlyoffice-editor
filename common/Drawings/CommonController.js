@@ -7685,8 +7685,12 @@ DrawingObjectsController.prototype =
         for(var i = 0; i < graphic_objects.length; ++i)
         {
             var cur_graphic_object = graphic_objects[i];
-            if(cur_graphic_object.selected && cur_graphic_object.canGroup())
+            if(cur_graphic_object.selected)
             {
+                if(!cur_graphic_object.canGroup())
+                {
+                    return [];
+                }
                 grouped_objects.push(cur_graphic_object);
             }
         }
@@ -8564,7 +8568,7 @@ DrawingObjectsController.prototype =
 
                     new_shape_props =
                     {
-                        canFill: true,
+                        canFill: drawing.canFill(),
                         type: null,
                         fill: drawing.getFill(),
                         stroke: drawing.getStroke(),

@@ -360,6 +360,8 @@ function CSelectedContent()
     this.MoveTrackId    = null;
     this.MoveTrackRuns  = [];
     this.HaveMovedParts = false;
+
+    this.LastSection = null;
 }
 
 CSelectedContent.prototype =
@@ -681,6 +683,22 @@ CSelectedContent.prototype.SetMovedParts = function(isHave)
 CSelectedContent.prototype.IsHaveMovedParts = function()
 {
 	return this.HaveMovedParts;
+};
+/**
+ * Запоминаем секцию, на которой закончилось выделение (если оно было в основной части документа)
+ * @param {CSectionPr} oSectPr
+ */
+CSelectedContent.prototype.SetLastSection = function(oSectPr)
+{
+	this.LastSection = oSectPr;
+};
+/**
+ * Получаем секцию, на которой закончилось выделение
+ * @returns {null|CSectionPr}
+ */
+CSelectedContent.prototype.GetLastSection = function()
+{
+	return this.LastSection;
 };
 
 
@@ -1470,22 +1488,23 @@ function CSelectedElementsInfo(oPr)
 	this.m_bSkipTOC = !!(oPr && oPr.SkipTOC);
 	this.m_bCheckAllSelection = !!(oPr && oPr.CheckAllSelection); // Проверять все выделение, или только 1 элемент
 
-	this.m_bTable           = false; // Находится курсор или выделение целиком в какой-нибудь таблице
-	this.m_bMixedSelection  = false; // Попадает ли в выделение одновременно несколько элементов
-	this.m_nDrawing         = selected_None;
-	this.m_pParagraph       = null;  // Параграф, в котором находится выделение
-	this.m_oMath            = null;  // Формула, в которой находится выделение
-	this.m_oHyperlink       = null;  // Гиперссылка, в которой находится выделение
-	this.m_oField           = null;  // Поле, в котором находится выделение
-	this.m_oCell            = null;  // Выделенная ячейка (специальная ситуация, когда выделена ровно одна ячейка)
-	this.m_oBlockLevelSdt   = null;  // Если мы находимся в классе CBlockLevelSdt
-	this.m_oInlineLevelSdt  = null;  // Если мы находимся в классе CInlineLevelSdt (важно, что мы находимся внутри класса)
-	this.m_arrComplexFields = [];
-	this.m_oPageNum         = null;
-	this.m_oPagesCount      = null;
-	this.m_bReviewAdd       = false; // Добавленный контент в режиме рецензирования
-	this.m_bReviewRemove    = false; // Удаленный контент в режиме рецензирования
-	this.m_bReviewNormal    = false; // Обычный контент
+	this.m_bTable             = false; // Находится курсор или выделение целиком в какой-нибудь таблице
+	this.m_bMixedSelection    = false; // Попадает ли в выделение одновременно несколько элементов
+	this.m_nDrawing           = selected_None;
+	this.m_pParagraph         = null;  // Параграф, в котором находится выделение
+	this.m_oMath              = null;  // Формула, в которой находится выделение
+	this.m_oHyperlink         = null;  // Гиперссылка, в которой находится выделение
+	this.m_oField             = null;  // Поле, в котором находится выделение
+	this.m_oCell              = null;  // Выделенная ячейка (специальная ситуация, когда выделена ровно одна ячейка)
+	this.m_oBlockLevelSdt     = null;  // Если мы находимся в классе CBlockLevelSdt
+	this.m_oInlineLevelSdt    = null;  // Если мы находимся в классе CInlineLevelSdt (важно, что мы находимся внутри класса)
+	this.m_arrComplexFields   = [];
+	this.m_oPageNum           = null;
+	this.m_oPagesCount        = null;
+	this.m_bReviewAdd         = false; // Добавленный контент в режиме рецензирования
+	this.m_bReviewRemove      = false; // Удаленный контент в режиме рецензирования
+	this.m_bReviewNormal      = false; // Обычный контент
+	this.m_oPresentationField = null;
 
     this.Reset = function()
     {
@@ -1672,6 +1691,14 @@ CSelectedElementsInfo.prototype.HaveRemovedInReview = function()
 CSelectedElementsInfo.prototype.HaveNotReviewedContent = function()
 {
 	return this.m_bReviewNormal;
+};
+CSelectedElementsInfo.prototype.SetPresentationField = function(oField)
+{
+	this.m_oPresentationField = oField;
+};
+CSelectedElementsInfo.prototype.GetPresentationField = function()
+{
+	return this.m_oPresentationField;
 };
 
 var document_compatibility_mode_Word11  = 11;
@@ -4541,12 +4568,12 @@ CDocument.prototype.Draw                                     = function(nPageInd
         }
 
 		var oHdrFtrLine = this.HdrFtr.GetHdrFtrLines(nPageIndex);
-        var nHeaderY = this.Pages[nPageIndex].Y;
-        if (oHdrFtrLine.Top > nHeaderY)
-        	nHeaderY = oHdrFtrLine.Top;
+		var nHeaderY    = this.Pages[nPageIndex].Y;
+		if (null !== oHdrFtrLine.Top && oHdrFtrLine.Top > nHeaderY)
+			nHeaderY = oHdrFtrLine.Top;
 
 		var nFooterY = this.Pages[nPageIndex].YLimit;
-		if (oHdrFtrLine.Bottom < nFooterY)
+		if (null !== oHdrFtrLine.Bottom && oHdrFtrLine.Bottom < nFooterY)
 			nFooterY = oHdrFtrLine.Bottom;
 
         pGraphics.DrawHeaderEdit(nHeaderY, this.HdrFtr.Lock.Get_Type(), SectIndex, RepH, HeaderInfo);
@@ -5355,6 +5382,17 @@ CDocument.prototype.SetParagraphNumbering = function(NumInfo)
 		this.Document_UpdateSelectionState();
 		this.Document_UpdateInterfaceState();
 	}
+};
+CDocument.prototype.SetParagraphOutlineLvl = function(nLvl)
+{
+	var arrParagraphs = this.GetSelectedParagraphs();
+	for (var nIndex = 0, nCount = arrParagraphs.length; nIndex < nCount; ++nIndex)
+	{
+		arrParagraphs[nIndex].SetOutlineLvl(nLvl);
+		arrParagraphs[nIndex].UpdateDocumentOutline();
+	}
+
+	this.Recalculate();
 };
 CDocument.prototype.private_SetParagraphNumbering = function(oNumInfo)
 {
@@ -15755,7 +15793,7 @@ CDocument.prototype.controller_GetCalculatedParaPr = function()
 			Pr.Ind.FirstLine = StartPr.Ind.FirstLine;
 
 		Result_ParaPr             = Pr;
-		Result_ParaPr.CanAddTable = ( true === Pr.Locked ? false : true );
+		Result_ParaPr.CanAddTable = true !== Pr.Locked;
 
 		// Если мы находимся в рамке, тогда дополняем ее свойства настройками границы и настройкой текста (если это буквица)
 		if (undefined != Result_ParaPr.FramePr && type_Paragraph === this.Content[StartPos].GetType())
@@ -15778,12 +15816,8 @@ CDocument.prototype.controller_GetCalculatedParaPr = function()
 		var Item = this.Content[this.CurPos.ContentPos];
 		if (type_Paragraph == Item.GetType())
 		{
-			var ParaPr = Item.Get_CompiledPr2(false).ParaPr;
-			var Locked = Item.Lock.Is_Locked();
-
-			Result_ParaPr             = ParaPr.Copy();
-			Result_ParaPr.Locked      = Locked;
-			Result_ParaPr.CanAddTable = ( ( true === Locked ) ? ( ( true === Item.IsCursorAtEnd() ) ? true : false ) : true );
+			Result_ParaPr             = Item.GetCalculatedParaPr().Copy();
+			Result_ParaPr.CanAddTable = true === Result_ParaPr.Locked ? Item.IsCursorAtEnd() : true;
 
 			// Если мы находимся в рамке, тогда дополняем ее свойства настройками границы и настройкой текста (если это буквица)
 			if (undefined != Result_ParaPr.FramePr)
@@ -16231,7 +16265,7 @@ CDocument.prototype.controller_SelectAll = function()
 		this.Content[Index].SelectAll();
 	}
 };
-CDocument.prototype.controller_GetSelectedContent = function(SelectedContent)
+CDocument.prototype.controller_GetSelectedContent = function(oSelectedContent)
 {
 	if (true !== this.Selection.Use || this.Selection.Flag !== selectionflag_Common)
 		return;
@@ -16246,8 +16280,10 @@ CDocument.prototype.controller_GetSelectedContent = function(SelectedContent)
 
 	for (var Index = StartPos; Index <= EndPos; Index++)
 	{
-		this.Content[Index].GetSelectedContent(SelectedContent);
+		this.Content[Index].GetSelectedContent(oSelectedContent);
 	}
+
+	oSelectedContent.SetLastSection(this.SectionsInfo.Get_SectPr(EndPos).SectPr);
 };
 CDocument.prototype.controller_UpdateCursorType = function(X, Y, PageAbs, MouseEvent)
 {

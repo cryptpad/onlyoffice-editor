@@ -2526,7 +2526,7 @@ function CBinaryFileWriter()
                     oThis.WriteUChar(g_nodeAttributeStart);
                     oThis._WriteInt2(0, oEffect.dir);
                     oThis._WriteInt2(1, oEffect.dist);
-                    oThis._WriteLimit1(2, oEffect.blurRad);
+                    oThis._WriteInt2(2, oEffect.blurRad);
                     oThis.WriteUChar(g_nodeAttributeEnd);
                     oThis.WriteRecord1(0, oEffect.color, oThis.WriteUniColor);
                     oThis.EndRecord();
@@ -2717,7 +2717,7 @@ function CBinaryFileWriter()
                 {
                     oThis.StartRecord(type);
 
-                    oThis.WriteRecord1(0, oEffect.Fill);
+                    oThis.WriteRecord1(0, oEffect.Fill, oThis.WriteUniFill);
 
                     oThis.EndRecord();
                     break;
@@ -2726,7 +2726,7 @@ function CBinaryFileWriter()
                 {
                     oThis.StartRecord(type);
 
-                    oThis.WriteRecord1(0, oEffect.color);
+                    oThis.WriteRecord1(0, oEffect.color, oThis.WriteUniColor);
 
                     oThis.EndRecord();
                     break;
@@ -2739,8 +2739,8 @@ function CBinaryFileWriter()
                     oThis._WriteBool2(0, oEffect.useA);
                     oThis.WriteUChar(g_nodeAttributeEnd);
 
-                    oThis.WriteRecord1(0, oEffect.clrFrom);
-                    oThis.WriteRecord1(1, oEffect.clrTo);
+                    oThis.WriteRecord1(0, oEffect.clrFrom, oThis.WriteUniColor);
+                    oThis.WriteRecord1(1, oEffect.clrTo, oThis.WriteUniColor);
 
                     oThis.EndRecord();
                     break;
@@ -2749,7 +2749,7 @@ function CBinaryFileWriter()
                 {
                     oThis.StartRecord(type);
 
-                    oThis.WriteRecord1(0, oEffect.color);
+                    oThis.WriteRecord1(0, oEffect.color, oThis.WriteUniColor);
 
                     oThis.EndRecord();
                     break;
@@ -2758,7 +2758,7 @@ function CBinaryFileWriter()
                 {
                     oThis.StartRecord(type);
 
-                    oThis.WriteRecord1(0, oEffect.cont);
+                    oThis.WriteRecord1(0, oEffect.cont, oThis.WriteEffectDag);
 
                     oThis.EndRecord();
                     break;
@@ -2771,7 +2771,7 @@ function CBinaryFileWriter()
                     oThis._WriteLimit2(0, oEffect.blend);
                     oThis.WriteUChar(g_nodeAttributeEnd);
 
-                    oThis.WriteRecord1(0, oEffect.cont);
+                    oThis.WriteRecord1(0, oEffect.cont, oThis.WriteEffectDag);
 
                     oThis.EndRecord();
                     break;

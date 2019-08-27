@@ -460,16 +460,9 @@
 				  return self.stateFormatPainter;
 			  },
 
-			  //calcAll
-			  'calcAll': function (ctrlKey, altKey, shiftKey) {
-				  if (ctrlKey && altKey && shiftKey) {
-					  self.model.recalcWB(true);
-				  } else if (shiftKey) {
-					  var ws = self.model.getActiveWs();
-					  self.model.recalcWB(false, ws.getId());
-				  } else {
-					  self.model.recalcWB(false);
-				  }
+			  //calculate
+			  'calculate': function () {
+			  	self.calculate.apply(self, arguments);
 			  },
 
 			  'changeFormatTableInfo': function () {
@@ -967,6 +960,7 @@
     this.handlers.trigger("asc_onSelectionChanged", this.oSelectionInfo);
     this.handlers.trigger("asc_onSelectionEnd");
     this._onInputMessage();
+    this.Api.cleanSpelling();
   };
 
   WorkbookView.prototype._onInputMessage = function () {
@@ -1498,6 +1492,8 @@
       ws.openCellEditor(t.cellEditor, /*cursorPos*/undefined, isFocus, isClearCell,
         /*isHideCursor*/isHideCursor, /*isQuickInput*/isQuickInput, selectionRange);
       t.input.disabled = false;
+
+      t.Api.cleanSpelling();
 
       // Эвент на обновление состояния редактора
       t.cellEditor._updateEditorState();
@@ -2672,6 +2668,11 @@
       item._cleanCellsTextMetricsCache();
       item._prepareDrawingObjects();
     }
+  };
+
+  WorkbookView.prototype.calculate = function (type) {
+  	this.model.calculate(type);
+  	this.drawWS();
   };
 
   WorkbookView.prototype.reInit = function() {

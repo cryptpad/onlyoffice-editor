@@ -4493,7 +4493,10 @@ CShape.prototype.draw = function (graphics, transform, transformText, pageIndex)
     var _transform = transform ? transform : this.transform;
     var _transform_text = transformText ? transformText : this.transformText;
     var geometry = this.calcGeometry || this.spPr && this.spPr.geometry;
+	
+	this.drawShdw &&  this.drawShdw(graphics);
     if (graphics.IsSlideBoundsCheckerType === true) {
+		
         graphics.transform3(_transform);
         if (!this.spPr || null == geometry || geometry.pathLst.length === 0 || (geometry.pathLst.length === 1 && geometry.pathLst[0].ArrPathCommandInfo.length === 0) || !graphics.IsShapeNeedBounds(geometry.preset)) {
             graphics._s();
@@ -4532,7 +4535,6 @@ CShape.prototype.draw = function (graphics, transform, transformText, pageIndex)
         return;
     }
 
-
     var oClipRect;
     if(!graphics.IsSlideBoundsCheckerType && this.getClipRect){
         oClipRect = this.getClipRect();
@@ -4554,7 +4556,6 @@ CShape.prototype.draw = function (graphics, transform, transformText, pageIndex)
         }
     }
 
-    this.drawShdw &&  this.drawShdw(graphics);
     if ((geometry || (this.getObjectType && (this.getObjectType() === AscDFH.historyitem_type_DLbl || this.getObjectType() === AscDFH.historyitem_type_Legend))) && (this.style || (this.brush && this.brush.fill) || (this.pen && this.pen.Fill && this.pen.Fill.fill))) {
         graphics.SetIntegerGrid(false);
         graphics.transform3(_transform, false);

@@ -191,6 +191,9 @@
 
 		this.SaveAfterMacros = false;
 
+		// Spell Checking
+		this.SpellCheckApi = new AscCommon.CSpellCheckApi();
+		this.isSpellCheckEnable = true;
 		return this;
 	}
 
@@ -571,14 +574,14 @@
         if (this.DocInfo.get_Encrypted() && window["AscDesktopEditor"] && !window["AscDesktopEditor"]["IsLocalFile"](true))
         {
         	var t = this;
-            window["AscDesktopEditor"]["OpenFileCrypt"](this.DocInfo.get_Title(), this.DocInfo.get_Url(), function () {t.openFileCryptCallback();});
+            window["AscDesktopEditor"]["OpenFileCrypt"](this.DocInfo.get_Title(), this.DocInfo.get_Url(), function () {t.openFileCryptCallback.apply(t, arguments);});
         }
 	};
-	baseEditorsApi.prototype._OfflineAppDocumentStartLoad        = function()
+	baseEditorsApi.prototype._openChartOrLocalDocument           = function()
 	{
-		this._OfflineAppDocumentEndLoad();
+		this._openEmptyDocument();
 	};
-	baseEditorsApi.prototype._OfflineAppDocumentEndLoad        = function()
+	baseEditorsApi.prototype._openEmptyDocument           = function()
 	{
 		var file = new AscCommon.OpenFileResult();
 		file.data = AscCommon.getEmpty();
@@ -781,7 +784,12 @@
 		return true;
 	};
 	// Unlock document when start co-authoring
-	baseEditorsApi.prototype._unlockDocument = function () {
+	baseEditorsApi.prototype._unlockDocument = function (isWaitAuth) {
+		if (isWaitAuth && this.isDocumentLoadComplete && !this.canSave) {
+			var errorMsg = 'Error: connection state changed waitAuth' +
+				';this.canSave:' + this.canSave;
+			this.CoAuthoringApi.sendChangesError(errorMsg);
+		}
 		if (this.isDocumentLoadComplete) {
 			// Document is load
 			this.canUnlockDocument = true;
@@ -1055,7 +1063,12 @@
 			if (null != error)
 			{
 				t.setViewModeDisconnect();
-				t.sendEvent('asc_onError', error.code, error.level);
+				if (Asc.c_oAscError.ID.UpdateVersion === error.code) {
+					t.sendEvent("asc_onDocumentUpdateVersion", function() {
+					});
+				} else {
+					t.sendEvent('asc_onError', error.code, error.level);
+				}
 			}
 		};
 		this.CoAuthoringApi.onDocumentOpen = function (inputWrap) {
@@ -1117,7 +1130,7 @@
 				}
 			}
 		};
-		this.CoAuthoringApi.onStartCoAuthoring = function (isStartEvent) {
+		this.CoAuthoringApi.onStartCoAuthoring = function (isStartEvent, isWaitAuth) {
 			if (t.isViewMode) {
 				return;
 			}
@@ -1125,7 +1138,7 @@
 			if (isStartEvent) {
 				t.startCollaborationEditing();
 			} else {
-				t._unlockDocument();
+				t._unlockDocument(isWaitAuth);
 			}
 		};
 		this.CoAuthoringApi.onEndCoAuthoring = function (isStartEvent) {
@@ -1192,9 +1205,118 @@
 		this.decrementCounterLongAction();
 	};
 	// SpellCheck
-	baseEditorsApi.prototype._coSpellCheckInit                   = function()
+	baseEditorsApi.prototype.asc_SpellCheckDisconnect            = function()
+	{
+		if (!this.SpellCheckApi)
+			return; // Error
+		this.SpellCheckApi.disconnect();
+		this.isSpellCheckEnable = false;
+		this._spellCheckDisconnect();
+	};
+	baseEditorsApi.prototype._spellCheckRestart                  = function(word)
 	{
 	};
+	baseEditorsApi.prototype._spellCheckDisconnect               = function()
+	{
+	};
+	baseEditorsApi.prototype._coSpellCheckInit                   = function()
+	{
+		if (!this.SpellCheckApi)
+		{
+			return; // Error
+		}
+
+		var t = this;
+		if (window["AscDesktopEditor"]) {
+
+            window["asc_nativeOnSpellCheck"] = function(response) {
+                var _editor = window["Asc"]["editor"] ? window["Asc"]["editor"] : window.editor;
+                if (_editor.SpellCheckApi)
+                    _editor.SpellCheckApi.onSpellCheck(response);
+            };
+
+			this.SpellCheckApi.spellCheck = function (spellData) {
+				window["AscDesktopEditor"]["SpellCheck"](JSON.stringify(spellData));
+			};
+			this.SpellCheckApi.disconnect = function () {
+			};
+			if (window["AscDesktopEditor"]["IsLocalFile"] && !window["AscDesktopEditor"]["IsLocalFile"]())
+			{
+				this.sendEvent('asc_onSpellCheckInit', [
+                    "1026",
+                    "1027",
+                    "1029",
+                    "1030",
+                    "1031",
+                    "1032",
+                    "1033",
+                    "1036",
+                    "1038",
+                    "1040",
+                    "1042",
+                    "1043",
+                    "1044",
+                    "1045",
+                    "1046",
+                    "1048",
+                    "1049",
+                    "1050",
+                    "1051",
+                    "1053",
+                    "1055",
+                    "1057",
+                    "1058",
+                    "1060",
+                    "1062",
+                    "1063",
+                    "1066",
+                    "1068",
+                    "1069",
+                    "1087",
+                    "1104",
+                    "1110",
+                    "1134",
+                    "2051",
+                    "2055",
+                    "2057",
+                    "2068",
+                    "2070",
+                    "3079",
+                    "3081",
+                    "3082",
+                    "4105",
+                    "7177",
+                    "9242",
+                    "10266"
+				]);
+			}
+		} else {
+			if (this.SpellCheckUrl && this.isSpellCheckEnable) {
+				this.SpellCheckApi.set_url(this.SpellCheckUrl);
+			}
+		}
+
+		this.SpellCheckApi.onInit = function (e) {
+			t.sendEvent('asc_onSpellCheckInit', e);
+		};
+		this.SpellCheckApi.onSpellCheck = function (e) {
+			t.SpellCheck_CallBack(e);
+		};
+		this.SpellCheckApi.init(this.documentId);
+	};
+    baseEditorsApi.prototype.asc_spellCheckAddToDictionary       = function(SpellCheckProperty)
+    {
+		var word = (typeof SpellCheckProperty === "string") ? SpellCheckProperty : SpellCheckProperty.Word;
+		if (window["AscDesktopEditor"])
+		{
+			window["AscDesktopEditor"]["SpellCheck"]("{\"type\":\"add\",\"usrWords\":[\"" + word + "\"]}");
+
+			this._spellCheckRestart(word);
+		}
+    };
+    baseEditorsApi.prototype.asc_spellCheckClearDictionary       = function()
+    {
+    };
 	// Print Desktop
 	baseEditorsApi.prototype._waitPrint                          = function (actionType, options)
 	{
@@ -1584,7 +1706,7 @@
 		{
 			if (this.DocInfo.get_OfflineApp())
 			{
-				this._OfflineAppDocumentStartLoad();
+				this._openChartOrLocalDocument();
 			}
 			this.onEndLoadFile(null);
 		}
@@ -1693,71 +1815,34 @@
 		Obj.Generate2();
 	};
 
+	baseEditorsApi.prototype.asc_GetCurrentColorSchemeName = function()
+	{
+		return "";
+	};
+
 	baseEditorsApi.prototype.sendColorThemes = function (theme) {
 		var result = AscCommon.g_oUserColorScheme.slice();
-
 		// theme colors
-		var elem, _c;
 		var _extra = theme.extraClrSchemeLst;
 		var _count = _extra.length;
-		var _rgba = {R: 0, G: 0, B: 0, A: 255};
+		var oNameMap = {};
+		var nStartIndex = result.length;
 		for (var i = 0; i < _count; ++i) {
 			var _scheme = _extra[i].clrScheme;
-
-			elem = new AscCommon.CAscColorScheme();
-			elem.name = _scheme.name;
-
-			_scheme.colors[8].Calculate(theme, null, null, null, _rgba);
-			_c = _scheme.colors[8].RGBA;
-			elem.colors.push(new AscCommon.CColor(_c.R, _c.G, _c.B));
-
-			_scheme.colors[12].Calculate(theme, null, null, null, _rgba);
-			_c = _scheme.colors[12].RGBA;
-			elem.colors.push(new AscCommon.CColor(_c.R, _c.G, _c.B));
-
-			_scheme.colors[9].Calculate(theme, null, null, null, _rgba);
-			_c = _scheme.colors[9].RGBA;
-			elem.colors.push(new AscCommon.CColor(_c.R, _c.G, _c.B));
-
-			_scheme.colors[13].Calculate(theme, null, null, null, _rgba);
-			_c = _scheme.colors[13].RGBA;
-			elem.colors.push(new AscCommon.CColor(_c.R, _c.G, _c.B));
-
-			_scheme.colors[0].Calculate(theme, null, null, null, _rgba);
-			_c = _scheme.colors[0].RGBA;
-			elem.colors.push(new AscCommon.CColor(_c.R, _c.G, _c.B));
-
-			_scheme.colors[1].Calculate(theme, null, null, null, _rgba);
-			_c = _scheme.colors[1].RGBA;
-			elem.colors.push(new AscCommon.CColor(_c.R, _c.G, _c.B));
-
-			_scheme.colors[2].Calculate(theme, null, null, null, _rgba);
-			_c = _scheme.colors[2].RGBA;
-			elem.colors.push(new AscCommon.CColor(_c.R, _c.G, _c.B));
-
-			_scheme.colors[3].Calculate(theme, null, null, null, _rgba);
-			_c = _scheme.colors[3].RGBA;
-			elem.colors.push(new AscCommon.CColor(_c.R, _c.G, _c.B));
-
-			_scheme.colors[4].Calculate(theme, null, null, null, _rgba);
-			_c = _scheme.colors[4].RGBA;
-			elem.colors.push(new AscCommon.CColor(_c.R, _c.G, _c.B));
-
-			_scheme.colors[5].Calculate(theme, null, null, null, _rgba);
-			_c = _scheme.colors[5].RGBA;
-			elem.colors.push(new AscCommon.CColor(_c.R, _c.G, _c.B));
-
-			_scheme.colors[11].Calculate(theme, null, null, null, _rgba);
-			_c = _scheme.colors[11].RGBA;
-			elem.colors.push(new AscCommon.CColor(_c.R, _c.G, _c.B));
-
-			_scheme.colors[10].Calculate(theme, null, null, null, _rgba);
-			_c = _scheme.colors[10].RGBA;
-			elem.colors.push(new AscCommon.CColor(_c.R, _c.G, _c.B));
-
-            result.push(elem)
+			if(oNameMap[_scheme.name]) {
+				continue;
+			}
+			oNameMap[_scheme.name] = true;
+            result.push(AscCommon.getAscColorScheme(_scheme, theme));
 		}
-
+		_scheme = theme.themeElements && theme.themeElements.clrScheme;
+		if(_scheme)
+		{
+			if(!AscCommon.getColorSchemeByName(_scheme.name) && !oNameMap[_scheme.name])
+			{
+				result.splice(nStartIndex, 0, AscCommon.getAscColorScheme(_scheme, theme));
+			}
+		}
 		this.sendEvent("asc_onSendThemeColorSchemes", result);
 		return result;
 	};
@@ -2145,6 +2230,10 @@
 						}
 						case c_oEditorId.Spreadsheet:
 						{
+							var ws = this.wb && this.wb.getWorksheet();
+							if (ws && ws.objectRender && ws.objectRender) {
+								ws.objectRender.OnUpdateOverlay();
+							}
 							break;
 						}
 					}
