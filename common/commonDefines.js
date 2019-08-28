@@ -169,8 +169,9 @@
 			MaxDataSeriesError : -80,
 			CannotFillRange    : -81,
 
-			ConvertationOpenError : -82,
-            ConvertationSaveError : -83,
+			ConvertationOpenError      : -82,
+            ConvertationSaveError      : -83,
+			ConvertationOpenLimitError : -84,
 
 			UserDrop : -100,
 			Warning  : -101,
@@ -1581,6 +1582,7 @@
 	prot['CannotFillRange']                  = prot.CannotFillRange;
 	prot['ConvertationOpenError']            = prot.ConvertationOpenError;
 	prot['ConvertationSaveError']            = prot.ConvertationSaveError;
+	prot['ConvertationOpenLimitError']       = prot.ConvertationOpenLimitError;
 	prot['UserDrop']                         = prot.UserDrop;
 	prot['Warning']                          = prot.Warning;
 	prot['PrintMaxPagesCount']               = prot.PrintMaxPagesCount;

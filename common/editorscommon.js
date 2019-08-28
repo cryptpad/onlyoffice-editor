@@ -746,6 +746,8 @@
 				nRes = Asc.c_oAscError.ID.ConvertationPassword;
 				break;
 			case c_oAscServerError.ConvertLIMITS :
+				nRes = Asc.c_oAscError.ID.ConvertationOpenLimitError;
+				break;
 			case c_oAscServerError.ConvertCONVERT_CORRUPTED :
 			case c_oAscServerError.ConvertLIBREOFFICE :
 			case c_oAscServerError.ConvertPARAMS :
