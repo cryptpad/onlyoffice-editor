@@ -381,6 +381,11 @@ var editor;
       return ws.canAddPrintArea();
   };
 
+  spreadsheet_api.prototype.asc_SetPrintScale = function(width, height, scale) {
+	  var ws = this.wb.getWorksheet();
+	  return ws.setPrintScale(width, height, scale);
+  };
+
   spreadsheet_api.prototype.asc_Copy = function() {
     if (window["AscDesktopEditor"])
     {
@@ -3931,6 +3936,7 @@ var editor;
 
   prot["asc_ChangePrintArea"] = prot.asc_ChangePrintArea;
   prot["asc_CanAddPrintArea"] = prot.asc_CanAddPrintArea;
+  prot["asc_SetPrintScale"] = prot.asc_SetPrintScale;
 
 
   prot["asc_decodeBuffer"] = prot.asc_decodeBuffer;

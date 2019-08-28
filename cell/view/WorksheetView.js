@@ -2106,12 +2106,20 @@
 		this.fitToPages(width, height);
 	};
 
+	WorksheetView.prototype.setPrintScale = function (width, height, scale) {
+		if(width !== null || height !== null) {
+			this.fitToWidthHeight(width, height);
+		} else {
+			this._setPrintScale(scale);
+		}
+	};
+
 	//пересчитывать необходимо когда после открытия зашли в настройки печати
 	WorksheetView.prototype.recalcScale = function () {
 		var pageOptions = t.model.PagePrintOptions;
 		var width = pageOptions.asc_getFitToWidth();
 		var height = pageOptions.asc_getFitToHeight();
-		this.setPrintScale(this.calcPrintScale(width, height));
+		this._setPrintScale(this.calcPrintScale(width, height));
 
 		//TODO нужно ли в данном случае лочить?
 		//this._isLockedLayoutOptions(callback);
@@ -2121,7 +2129,7 @@
 		//width/height - count of pages
 		//automatic -> width/height = undefined
 		//define print scale
-		this.setPrintScale(this.calcPrintScale(width, height));
+		this._setPrintScale(this.calcPrintScale(width, height));
 
 		//TODO нужно ли в данном случае лочить?
 		//this._isLockedLayoutOptions(callback);
@@ -2141,7 +2149,7 @@
 			History.StartTransaction();
 
 			pageOptions.asc_setFitToWidth(val);
-			this.setPrintScale(this.calcPrintScale(pageOptions.asc_getFitToWidth(), pageOptions.asc_getFitToHeight()));
+			this._setPrintScale(this.calcPrintScale(pageOptions.asc_getFitToWidth(), pageOptions.asc_getFitToHeight()));
 
 			History.EndTransaction();
 		}
@@ -2164,7 +2172,7 @@
 			History.StartTransaction();
 
 			pageOptions.asc_setFitToHeight(val);
-			this.setPrintScale(this.calcPrintScale(pageOptions.asc_getFitToWidth(), pageOptions.asc_getFitToHeight()));
+			this._setPrintScale(this.calcPrintScale(pageOptions.asc_getFitToWidth(), pageOptions.asc_getFitToHeight()));
 
 			History.EndTransaction();
 		}
@@ -2173,7 +2181,37 @@
 		//this._isLockedLayoutOptions(callback);
 	};
 
-	WorksheetView.prototype.setPrintScale = function (val) {
+	WorksheetView.prototype.fitToWidthHeight = function (width, height) {
+		//width/height - count of pages
+		//automatic -> width/height = undefined
+		//define print scale
+
+		var t = this;
+		var pageOptions = t.model.PagePrintOptions;
+
+		var changedWidth = width !== pageOptions.asc_getFitToWidth();
+		var changedHeight = height !== pageOptions.asc_getFitToHeight();
+		if(changedWidth || changedHeight) {
+			History.Create_NewPoint();
+			History.StartTransaction();
+
+			if(changedWidth) {
+				pageOptions.asc_setFitToWidth(width);
+			}
+			if(changedHeight) {
+				pageOptions.asc_setFitToHeight(height);
+			}
+
+			this._setPrintScale(this.calcPrintScale(pageOptions.asc_getFitToWidth(), pageOptions.asc_getFitToHeight()));
+
+			History.EndTransaction();
+		}
+
+		//TODO нужно ли в данном случае лочить?
+		//this._isLockedLayoutOptions(callback);
+	};
+
+	WorksheetView.prototype._setPrintScale = function (val) {
 		var pageOptions = this.model.PagePrintOptions;
 		var pageSetup = pageOptions.asc_getPageSetup();
 		var oldScale = pageSetup.asc_getScale() / 100;

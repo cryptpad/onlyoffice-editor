@@ -8120,8 +8120,8 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		this.width = c_oAscPrintDefaultSettings.PageWidth;
 		this.height = c_oAscPrintDefaultSettings.PageHeight;
 
-		this.fitToWidth = false; //ToDo can be a number
-		this.fitToHeight = false; //ToDo can be a number
+		this.fitToWidth = null; //null -> automatic
+		this.fitToHeight = null; //ToDo can be a number
 
 		// ToDo
 		this.blackAndWhite = false;
@@ -8835,6 +8835,7 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	prot["asc_getFitToHeight"] = prot.asc_getFitToHeight;
 	prot["asc_setFitToWidth"] = prot.asc_setFitToWidth;
 	prot["asc_setFitToHeight"] = prot.asc_setFitToHeight;
+	prot["asc_getScale"] = prot.asc_getScale;
 
 	window["Asc"]["asc_CPageOptions"] = window["Asc"].asc_CPageOptions = asc_CPageOptions;
 	prot = asc_CPageOptions.prototype;
