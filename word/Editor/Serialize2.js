@@ -2455,6 +2455,8 @@ function Binary_pPrWriter(memory, oNumIdMap, oBinaryHeaderFooterTableWriter, sav
 				case Asc.c_oAscNumberingFormat.LowerLetter: val = 46; break;
 				case Asc.c_oAscNumberingFormat.UpperLetter: val = 60; break;
 				case Asc.c_oAscNumberingFormat.DecimalZero: val = 21; break;
+				case Asc.c_oAscNumberingFormat.DecimalEnclosedCircle: val = 14; break;
+
 				default: val = 13; break;
 			}
 			this.bs.WriteItem(c_oSerNumTypes.NumFmtVal, function(){oThis.memory.WriteByte(val);});
@@ -8645,6 +8647,8 @@ function Binary_pPrReader(doc, oReadResult, stream)
 				case 46: props.fmt = Asc.c_oAscNumberingFormat.LowerLetter; break;
 				case 60: props.fmt = Asc.c_oAscNumberingFormat.UpperLetter; break;
 				case 21: props.fmt = Asc.c_oAscNumberingFormat.DecimalZero; break;
+				case 14: props.fmt = Asc.c_oAscNumberingFormat.DecimalEnclosedCircle; break;
+				case 15: props.fmt = Asc.c_oAscNumberingFormat.DecimalEnclosedCircle; break;
 				default: props.fmt = Asc.c_oAscNumberingFormat.Decimal; break;
 			}
 		} else {

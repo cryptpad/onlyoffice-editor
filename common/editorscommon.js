@@ -3457,6 +3457,20 @@
 				break;
 			}
 
+			case Asc.c_oAscNumberingFormat.DecimalEnclosedCircle:
+			{
+				if (nValue <= 20)
+				{
+					sResult = String.fromCharCode(0x2460 + nValue - 1);
+				}
+				else
+				{
+					sResult = "" + nValue;
+				}
+
+				break;
+			}
+
 			case Asc.c_oAscNumberingFormat.LowerLetter:
 			case Asc.c_oAscNumberingFormat.UpperLetter:
 			{

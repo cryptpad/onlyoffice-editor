@@ -1407,14 +1407,15 @@
 
 	/** @enum {number} */
 	var c_oAscNumberingFormat = {
-		None        : 0x0000,
-		Bullet      : 0x1001,
-		Decimal     : 0x2002,
-		LowerRoman  : 0x2003,
-		UpperRoman  : 0x2004,
-		LowerLetter : 0x2005,
-		UpperLetter : 0x2006,
-		DecimalZero : 0x2007,
+		None                  : 0x0000,
+		Bullet                : 0x1001,
+		Decimal               : 0x2002,
+		LowerRoman            : 0x2003,
+		UpperRoman            : 0x2004,
+		LowerLetter           : 0x2005,
+		UpperLetter           : 0x2006,
+		DecimalZero           : 0x2007,
+		DecimalEnclosedCircle : 0x2008,
 
 
 		BulletFlag   : 0x1000,
@@ -2253,6 +2254,7 @@
 	prot['LowerLetter'] = c_oAscNumberingFormat.LowerLetter;
 	prot['UpperLetter'] = c_oAscNumberingFormat.UpperLetter;
 	prot['DecimalZero'] = c_oAscNumberingFormat.DecimalZero;
+	prot['DecimalEnclosedCircle'] = c_oAscNumberingFormat.DecimalEnclosedCircle;
 
 	window['Asc']['c_oAscNumberingSuff'] = window['Asc'].c_oAscNumberingSuff = c_oAscNumberingSuff;
 	prot = c_oAscNumberingSuff;
