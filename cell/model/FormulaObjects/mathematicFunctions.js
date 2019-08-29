@@ -3414,7 +3414,7 @@
 	cROMAN.prototype = Object.create(cBaseFunction.prototype);
 	cROMAN.prototype.constructor = cROMAN;
 	cROMAN.prototype.name = 'ROMAN';
-	cROMAN.prototype.argumentsMin = 2;
+	cROMAN.prototype.argumentsMin = 1;
 	cROMAN.prototype.argumentsMax = 2;
 	cROMAN.prototype.Calculate = function (arg) {
 		function roman(num, mode) {
@@ -3456,7 +3456,7 @@
 			}
 		}
 
-		var arg0 = arg[0], arg1 = arg[1];
+		var arg0 = arg[0], arg1 = arg[1] ? arg[1] : new cNumber(0);
 		if (arg0 instanceof cArea || arg0 instanceof cArea3D || arg1 instanceof cArea || arg1 instanceof cArea3D) {
 			return new cError(cErrorType.wrong_value_type);
 		}

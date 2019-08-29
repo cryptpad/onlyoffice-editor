@@ -5202,6 +5202,10 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), "MMLDVLIV" );
 
+		oParser = new parserFormula( "ROMAN(499)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "CDXCIX" );
+
 		testArrayFormula2("ROMAN", 2, 2);
     } );
 
