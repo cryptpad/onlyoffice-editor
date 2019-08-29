@@ -3378,6 +3378,10 @@ CPresentation.prototype =
                                 {
                                     if(typeof sDateTime === "string" || typeof sCustomDateTime === "string")
                                     {
+                                        if(sDateTime)
+                                        {
+                                            sCustomDateTime = oDateTime.get_DateTimeExamples()[sDateTime];
+                                        }
                                         for(j = 0; j < oMaster.sldLayoutLst.length; ++j)
                                         {
                                             oSp = oMaster.sldLayoutLst[j].getMatchingShape(AscFormat.phType_dt, null, false, {});
@@ -3396,7 +3400,9 @@ CPresentation.prototype =
                                                         oFld.Set_Lang_Val(nLang);
                                                         if(typeof sCustomDateTime === "string")
                                                         {
+                                                            oFld.CanAddToContent = true;
                                                             oFld.AddText(sCustomDateTime);
+                                                            oFld.CanAddToContent = false;
                                                         }
                                                         oParagraph.Internal_Content_Add(0, oFld);
                                                     }
@@ -3423,7 +3429,9 @@ CPresentation.prototype =
                                                     oFld.Set_Lang_Val(nLang);
                                                     if(typeof sCustomDateTime === "string")
                                                     {
+                                                        oFld.CanAddToContent = true;
                                                         oFld.AddText(sCustomDateTime);
+                                                        oFld.CanAddToContent = false;
                                                     }
                                                     oParagraph.Internal_Content_Add(0, oFld);
                                                 }
@@ -3464,7 +3472,9 @@ CPresentation.prototype =
                                             oFld.Set_Lang_Val(nLang);
                                             if(typeof sCustomDateTime === "string")
                                             {
+                                                oFld.CanAddToContent = true;
                                                 oFld.AddText(sCustomDateTime);
+                                                oFld.CanAddToContent = false;
                                             }
                                             oParagraph.Internal_Content_Add(0, oFld);
                                         }
@@ -3614,6 +3624,10 @@ CPresentation.prototype =
                             {
                                 sDateTime = oDateTime.get_DateTime();
                                 sCustomDateTime = oDateTime.get_CustomDateTime();
+                                if(sDateTime)
+                                {
+                                    sCustomDateTime = oDateTime.get_DateTimeExamples()[sDateTime];
+                                }
                                 nLang = oDateTime.get_Lang();
                                 if(!AscFormat.isRealNumber(nLang))
                                 {
@@ -3646,7 +3660,9 @@ CPresentation.prototype =
                                         oFld.Set_Lang_Val(nLang);
                                         if(typeof sCustomDateTime === "string")
                                         {
+                                            oFld.CanAddToContent = true;
                                             oFld.AddText(sCustomDateTime);
+                                            oFld.CanAddToContent = false;
                                         }
                                         oParagraph.Internal_Content_Add(0, oFld);
                                     }
@@ -3742,10 +3758,16 @@ CPresentation.prototype =
                     oFld = new AscCommonWord.CPresentationField(oParagraph);
                     oFld.SetGuid(AscCommon.CreateGUID());
                     oFld.SetFieldType(sFieldType);
+                    if(sFieldType)
+                    {
+                        sCustomDateTime = oPr.get_DateTimeExamples()[sFieldType];
+                    }
                     oFld.Set_Lang_Val(nLang);
                     if(typeof sCustomDateTime === "string" && sCustomDateTime.length > 0)
                     {
+                        oFld.CanAddToContent = true;
                         oFld.AddText(sCustomDateTime);
+                        oFld.CanAddToContent = false;
                     }
                 }
                 else

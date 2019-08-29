@@ -181,6 +181,7 @@ CChartSpace.prototype.setWorksheet = CShape.prototype.setWorksheet;
 CChartSpace.prototype.handleUpdateLn = function()
 {
     this.recalcInfo.recalculatePenBrush = true;
+    this.recalcInfo.recalculatePlotAreaPen = true;
     this.addToRecalculate();
 };
 CChartSpace.prototype.setRecalculateInfo = function()
@@ -235,6 +236,7 @@ CChartSpace.prototype.recalcSeriesColors = function()
 {
     this.recalcInfo.recalculateSeriesColors = true;
     this.recalcInfo.recalculatePenBrush = true;
+    this.recalcInfo.recalculatePlotAreaBrush = true;
     this.recalcInfo.recalculateLegend = true;
 };
 
@@ -302,6 +304,7 @@ CChartSpace.prototype.handleUpdateStyle = function()
 CChartSpace.prototype.handleUpdateFill = function()
 {
     this.recalcInfo.recalculatePenBrush = true;
+    this.recalcInfo.recalculatePlotAreaBrush = true;
     this.recalcInfo.recalculateBrush = true;
     this.recalcInfo.recalculateChart = true;
     this.recalcInfo.recalculateSeriesColors = true;
@@ -312,6 +315,7 @@ CChartSpace.prototype.handleUpdateFill = function()
 CChartSpace.prototype.handleUpdateLn = function()
 {
     this.recalcInfo.recalculatePenBrush = true;
+    this.recalcInfo.recalculatePlotAreaPen = true;
     this.recalcInfo.recalculatePen = true;
     this.recalcInfo.recalculateChart = true;
     this.recalcInfo.recalculateSeriesColors = true;
