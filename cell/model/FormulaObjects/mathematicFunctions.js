@@ -1471,7 +1471,11 @@
 				}
 
 				if (b <= n) {
-					return new cError(cErrorType.not_numeric);
+					if(i + 1 === a.length && ((b ==  2 && (a[i] == 'b' || a[i] == 'B')) ||(b == 16 && (a[i] == 'h' || a[i] == 'H')))) {
+						;
+					} else {
+						return new cError(cErrorType.not_numeric);
+					}
 				} else {
 					fVal = fVal * b + n;
 				}

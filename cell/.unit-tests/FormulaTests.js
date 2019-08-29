@@ -1459,6 +1459,14 @@ $( function () {
 		ok( oParser.parse(), 'DECIMAL("zap",36)' );
 		strictEqual( oParser.calculate().getValue(), 45745, 'DECIMAL("zap",36)' );
 
+		oParser = new parserFormula( 'DECIMAL("00FF",16)', "A1", ws );
+		ok( oParser.parse(), 'DECIMAL("00FF",16)' );
+		strictEqual( oParser.calculate().getValue(), 255, 'DECIMAL("00FF",16)' );
+
+		oParser = new parserFormula( 'DECIMAL("101b",2)', "A1", ws );
+		ok( oParser.parse(), 'DECIMAL("101b",2)' );
+		strictEqual( oParser.calculate().getValue(), 5, 'DECIMAL("101b",2)' );
+
 		testArrayFormula2("DECIMAL", 2, 2);
 	} );
 
