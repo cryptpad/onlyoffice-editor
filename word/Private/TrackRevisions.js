@@ -551,65 +551,95 @@ CDocument.prototype.RejectRevisionChange = function(oChange)
 };
 CDocument.prototype.AcceptRevisionChangesBySelection = function()
 {
-    var CurrentChange = this.TrackRevisionsManager.Get_CurrentChange();
-    if (null !== CurrentChange)
+	var CurrentChange = this.TrackRevisionsManager.Get_CurrentChange();
+	if (null !== CurrentChange)
 	{
 		this.AcceptRevisionChange(CurrentChange);
 	}
-    else
-    {
-        var SelectedParagraphs = this.GetAllParagraphs({Selected : true});
-        var RelatedParas = this.TrackRevisionsManager.Get_AllChangesRelatedParagraphsBySelectedParagraphs(SelectedParagraphs, true);
-        if (false === this.Document_Is_SelectionLocked(AscCommon.changestype_None, { Type : changestype_2_ElementsArray_and_Type, Elements : RelatedParas, CheckType : AscCommon.changestype_Paragraph_Content}))
-        {
-            this.StartAction(AscDFH.historydescription_Document_AcceptRevisionChangesBySelection);
+	else
+	{
+		var sMoveId = this.private_CheckTrackMoveSelection();
+		if (sMoveId)
+		{
+			var oChange = this.TrackRevisionsManager.GetMoveMarkChange(sMoveId, true, false);
+			if (oChange)
+			{
+				oChange = this.TrackRevisionsManager.CollectMoveChange(oChange);
+				return this.AcceptRevisionChange(oChange);
+			}
+		}
+
+		var SelectedParagraphs = this.GetAllParagraphs({Selected : true});
+		var RelatedParas       = this.TrackRevisionsManager.Get_AllChangesRelatedParagraphsBySelectedParagraphs(SelectedParagraphs, true);
+		if (false === this.Document_Is_SelectionLocked(AscCommon.changestype_None, {
+				Type      : changestype_2_ElementsArray_and_Type,
+				Elements  : RelatedParas,
+				CheckType : AscCommon.changestype_Paragraph_Content
+			}))
+		{
+			this.StartAction(AscDFH.historydescription_Document_AcceptRevisionChangesBySelection);
 
 			var isTrackRevision = this.IsTrackRevisions();
 			if (isTrackRevision)
 				this.SetTrackRevisions(false);
 
-            this.AcceptRevisionChanges(undefined, false);
+			this.AcceptRevisionChanges(undefined, false);
 
 			if (isTrackRevision)
 				this.SetTrackRevisions(isTrackRevision);
 
-            this.FinalizeAction();
-        }
-    }
+			this.FinalizeAction();
+		}
+	}
 
-    this.TrackRevisionsManager.ClearCurrentChange();
-    this.GetNextRevisionChange();
+	this.TrackRevisionsManager.ClearCurrentChange();
+	this.GetNextRevisionChange();
 };
 CDocument.prototype.RejectRevisionChangesBySelection = function()
 {
-    var CurrentChange = this.TrackRevisionsManager.Get_CurrentChange();
-    if (null !== CurrentChange)
+	var CurrentChange = this.TrackRevisionsManager.Get_CurrentChange();
+	if (null !== CurrentChange)
 	{
 		this.RejectRevisionChange(CurrentChange);
 	}
-    else
-    {
-        var SelectedParagraphs = this.GetAllParagraphs({Selected : true});
-        var RelatedParas = this.TrackRevisionsManager.Get_AllChangesRelatedParagraphsBySelectedParagraphs(SelectedParagraphs, false);
-        if (false === this.Document_Is_SelectionLocked(AscCommon.changestype_None, { Type : changestype_2_ElementsArray_and_Type, Elements : RelatedParas, CheckType : AscCommon.changestype_Paragraph_Content}))
-        {
-            this.StartAction(AscDFH.historydescription_Document_AcceptRevisionChangesBySelection);
+	else
+	{
+		var sMoveId = this.private_CheckTrackMoveSelection();
+		if (sMoveId)
+		{
+			var oChange = this.TrackRevisionsManager.GetMoveMarkChange(sMoveId, true, false);
+			if (oChange)
+			{
+				oChange = this.TrackRevisionsManager.CollectMoveChange(oChange);
+				return this.RejectRevisionChange(oChange);
+			}
+		}
+
+		var SelectedParagraphs = this.GetAllParagraphs({Selected : true});
+		var RelatedParas       = this.TrackRevisionsManager.Get_AllChangesRelatedParagraphsBySelectedParagraphs(SelectedParagraphs, false);
+		if (false === this.Document_Is_SelectionLocked(AscCommon.changestype_None, {
+				Type      : changestype_2_ElementsArray_and_Type,
+				Elements  : RelatedParas,
+				CheckType : AscCommon.changestype_Paragraph_Content
+			}))
+		{
+			this.StartAction(AscDFH.historydescription_Document_AcceptRevisionChangesBySelection);
 
 			var isTrackRevision = this.IsTrackRevisions();
 			if (isTrackRevision)
 				this.SetTrackRevisions(false);
 
-            this.RejectRevisionChanges(undefined, false);
+			this.RejectRevisionChanges(undefined, false);
 
 			if (isTrackRevision)
 				this.SetTrackRevisions(isTrackRevision);
 
-            this.FinalizeAction();
-        }
-    }
+			this.FinalizeAction();
+		}
+	}
 
 	this.TrackRevisionsManager.ClearCurrentChange();
-    this.GetNextRevisionChange();
+	this.GetNextRevisionChange();
 };
 CDocument.prototype.AcceptAllRevisionChanges = function(isSkipCheckLock, isCheckEmptyAction)
 {
