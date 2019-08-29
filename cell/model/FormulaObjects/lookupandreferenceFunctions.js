@@ -947,20 +947,24 @@ function (window, undefined) {
 				return new cError(cErrorType.bad_reference);
 			}
 
-			var b = arg2.getBBox0();
-			if (2 === arg.length) {
-				if (bVertical) {
-					return new cRef(ws.getCell3(b.r1 + 0, b.c1 + index).getName(), ws);
+			var res;
+			AscCommonExcel.executeInR1C1Mode(false, function () {
+				var b = arg2.getBBox0();
+				if (2 === arg.length) {
+					if (bVertical) {
+						res = new cRef(ws.getCell3(b.r1 + 0, b.c1 + index).getName(), ws);
+					} else {
+						res = new cRef(ws.getCell3(b.r1 + index, b.c1 + 0).getName(), ws);
+					}
 				} else {
-					return new cRef(ws.getCell3(b.r1 + index, b.c1 + 0).getName(), ws);
+					if (1 === arg2Range.length) {
+						res = new cRef(ws.getCell3(b.r1 + 0, b.c1 + index).getName(), ws);
+					} else {
+						res = new cRef(ws.getCell3(b.r1 + index, b.c1 + 0).getName(), ws);
+					}
 				}
-			} else {
-				if (1 === arg2Range.length) {
-					return new cRef(ws.getCell3(b.r1 + 0, b.c1 + index).getName(), ws);
-				} else {
-					return new cRef(ws.getCell3(b.r1 + index, b.c1 + 0).getName(), ws);
-				}
-			}
+			});
+			return res;
 		}
 	};
 
@@ -1835,8 +1839,12 @@ function (window, undefined) {
 		return resVal;
 	};
 	VHLOOKUPCache.prototype._get = function (range, valueForSearching, arg3Value) {
-		var res, _this = this, wsId = range.getWorksheet().getId(),
-			sRangeName = wsId + g_cCharDelimiter + range.getName(), cacheElem = this.cacheId[sRangeName];
+		var res, _this = this, wsId = range.getWorksheet().getId();
+		var sRangeName;
+		AscCommonExcel.executeInR1C1Mode(false, function () {
+			sRangeName = wsId + g_cCharDelimiter + range.getName();
+		});
+		var cacheElem = this.cacheId[sRangeName];
 		if (!cacheElem) {
 			cacheElem = {elements: [], results: {}};
 			range._foreachNoEmpty(function (cell, r, c) {
