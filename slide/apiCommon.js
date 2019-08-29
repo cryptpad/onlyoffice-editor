@@ -307,17 +307,19 @@ CAscDateTime.prototype['get_DateTimeExamples'] = CAscDateTime.prototype.get_Date
         "datetime12": null,
         "datetime13": null
     };
-    var oParaField = new AscCommonWord.CPresentationField();
-    oParaField.RecalcInfo.TextPr = false;
-    oParaField.CompiledPr = new CTextPr();
-    oParaField.CompiledPr.Init_Default();
-    oParaField.CompiledPr.Lang.Val = this.Lang;
-    for(var key in oMap) {
-        if(oMap.hasOwnProperty(key)) {
-            oParaField.FieldType = key;
-            oMap[key] = oParaField.private_GetString();
+    AscFormat.ExecuteNoHistory(function () {
+        var oParaField = new AscCommonWord.CPresentationField();
+        oParaField.RecalcInfo.TextPr = false;
+        oParaField.CompiledPr = new CTextPr();
+        oParaField.CompiledPr.Init_Default();
+        oParaField.CompiledPr.Lang.Val = this.Lang;
+        for(var key in oMap) {
+            if(oMap.hasOwnProperty(key)) {
+                oParaField.FieldType = key;
+                oMap[key] = oParaField.private_GetString();
+            }
         }
-    }
+    }, this, []);
     return oMap;
 
 };
