@@ -82,6 +82,7 @@
 
         this.Slide = null;
         this.SlideNum = null;
+        this.CanAddToContent = false;
     }
     CPresentationField.prototype = Object.create(ParaRun.prototype);
     CPresentationField.prototype.constructor = CPresentationField;
@@ -127,7 +128,7 @@
 
     CPresentationField.prototype.Add_ToContent = function(Pos, Item, UpdatePosition)
     {
-        if(AscCommon.History.Is_On())
+        if(AscCommon.History.Is_On() && !this.CanAddToContent)
         {
             return;
         }
