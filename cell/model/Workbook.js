@@ -383,6 +383,8 @@
 		this.defNames = {wb: {}, sheet: {}};
 		this.tableNamePattern = "Table";
 		this.tableNameIndex = 0;
+		this.pivotNamePattern = "PivotTable";
+		this.pivotNameIndex = 0;
 	}
 
 	DependencyGraph.prototype = {
@@ -853,9 +855,22 @@
 			}
 			do {
 				this.tableNameIndex++;
-				var tableName = AscCommon.translateManager.getValue(this.tableNamePattern)
+				var tableName = AscCommon.translateManager.getValue(this.tableNamePattern);
 				sNewName = tableName + this.tableNameIndex + collaborativeIndexUser;
 			} while (this.getDefNameByName(sNewName, null) || this.isListeningDefName(sNewName));
+			return sNewName;
+		},
+		getNextPivotName: function() {
+			var sNewName;
+			var collaborativeIndexUser = "";
+			if (this.wb.oApi.collaborativeEditing.getCollaborativeEditing()) {
+				collaborativeIndexUser = "_" + this.wb.oApi.CoAuthoringApi.get_indexUser();
+			}
+			do {
+				this.pivotNameIndex++;
+				var tableName = AscCommon.translateManager.getValue(this.pivotNamePattern);
+				sNewName = tableName + this.pivotNameIndex + collaborativeIndexUser;
+			} while (this.wb.getPivotTableByName(sNewName));
 			return sNewName;
 		},
 		addTableName: function(ws, table, opt_isOpen) {
@@ -3047,6 +3062,15 @@
 						return sheet.aComments[j];
 					}
 				}
+			}
+		}
+		return null;
+	};
+	Workbook.prototype.getPivotTableByName = function(name) {
+		for (var i = 0, l = this.aWorksheets.length; i < l; ++i) {
+			var pivot = this.aWorksheets[i].getPivotTableByName(name);
+			if (pivot) {
+				return pivot;
 			}
 		}
 		return null;

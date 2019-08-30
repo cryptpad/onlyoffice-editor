@@ -2133,8 +2133,9 @@ var editor;
         var i = this.wbModel.getActive();
         this._addWorksheet(pivotNewSheetName, i, function(ws) {
           if (ws) {
+            var pivotName = ws.workbook.dependencyFormulas.getNextPivotName();
             var pivotTable = new Asc.CT_pivotTableDefinition();
-            pivotTable.asc_create(dataRef, new Asc.Range(0, 2, 2, 19));
+            pivotTable.asc_create(ws, pivotName, dataRef, new Asc.Range(0, 2, 2, 19));
             ws.insertPivotTable(pivotTable);
             t._changePivotStyle(pivotTable, function(){
                 var pivotRange = pivotTable.getRange();

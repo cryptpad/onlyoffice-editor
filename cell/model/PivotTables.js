@@ -3309,12 +3309,13 @@ CT_pivotTableDefinition.prototype.asc_updateCacheData = function() {
 		this.cacheDefinition = newCacheDefinition;
 	}
 };
-CT_pivotTableDefinition.prototype.asc_create = function(dataRef, bbox) {
+CT_pivotTableDefinition.prototype.asc_create = function(ws, name, dataRef, bbox) {
+	this.worksheet = ws;
 	this.cacheDefinition = new CT_PivotCacheDefinition();
 	this.cacheDefinition.fromDataRef(dataRef);
 
 	this.cacheId = 0;//todo
-	this.name = "PivotTable1";//todo
+	this.name = name;
 	this.applyNumberFormats = false;
 	this.applyBorderFormats = false;
 	this.applyFontFormats = false;
@@ -3337,7 +3338,7 @@ CT_pivotTableDefinition.prototype.asc_create = function(dataRef, bbox) {
 		this.pivotFields.pivotField.push(pivotField);
 	}
 	this.pivotTableStyleInfo = new CT_PivotTableStyle();
-	this.pivotTableStyleInfo.name = "PivotStyleLight16";//todo
+	this.pivotTableStyleInfo.name = this.worksheet.workbook.TableStyles.DefaultPivotStyle;
 	this.pivotTableStyleInfo.showRowHeaders = true;
 	this.pivotTableStyleInfo.showColHeaders = true;
 	this.pivotTableStyleInfo.showRowStripes = false;
