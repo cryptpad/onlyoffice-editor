@@ -2188,21 +2188,22 @@
 
 		var t = this;
 		var pageOptions = t.model.PagePrintOptions;
+		var pageSetup = pageOptions.asc_getPageSetup();
 
-		var changedWidth = width !== pageOptions.asc_getFitToWidth();
-		var changedHeight = height !== pageOptions.asc_getFitToHeight();
+		var changedWidth = width !== pageSetup.asc_getFitToWidth();
+		var changedHeight = height !== pageSetup.asc_getFitToHeight();
 		if(changedWidth || changedHeight) {
 			History.Create_NewPoint();
 			History.StartTransaction();
 
 			if(changedWidth) {
-				pageOptions.asc_setFitToWidth(width);
+				pageSetup.asc_setFitToWidth(width);
 			}
 			if(changedHeight) {
-				pageOptions.asc_setFitToHeight(height);
+				pageSetup.asc_setFitToHeight(height);
 			}
 
-			this._setPrintScale(this.calcPrintScale(pageOptions.asc_getFitToWidth(), pageOptions.asc_getFitToHeight()));
+			this._setPrintScale(this.calcPrintScale(pageSetup.asc_getFitToWidth(), pageSetup.asc_getFitToHeight()));
 
 			History.EndTransaction();
 		}
