@@ -8663,10 +8663,14 @@ Paragraph.prototype.Recalc_CompiledPr = function()
 };
 /**
  * Сообщаем, что нужно пересчитать скомпилированные настройки параграфа
+ * @param {boolean} isForce - пересчитать прямо сейчас без дополнительных проверок
  */
-Paragraph.prototype.RecalcCompiledPr = function()
+Paragraph.prototype.RecalcCompiledPr = function(isForce)
 {
 	this.CompiledPr.NeedRecalc = true;
+
+	if (isForce)
+		this.private_CompileParaPr(true);
 };
 Paragraph.prototype.Recalc_RunsCompiledPr = function()
 {
@@ -8685,7 +8689,7 @@ Paragraph.prototype.Recalc_RunsCompiledPr = function()
  */
 Paragraph.prototype.Get_CompiledPr2 = function(bCopy)
 {
-	this.Internal_CompileParaPr();
+	this.private_CompileParaPr();
 
 	if (false === bCopy)
 		return this.CompiledPr.Pr;
@@ -8698,39 +8702,36 @@ Paragraph.prototype.Get_CompiledPr2 = function(bCopy)
 		return Pr;
 	}
 };
-Paragraph.prototype.Internal_CompileParaPr = function()
+Paragraph.prototype.private_CompileParaPr = function(isForce)
 {
-	if (true === this.CompiledPr.NeedRecalc)
+	if (!this.CompiledPr.NeedRecalc)
+		return;
+
+	if (this.Parent && (isForce || (true !== AscCommon.g_oIdCounter.m_bLoad && true !== AscCommon.g_oIdCounter.m_bRead)))
 	{
-		if (undefined !== this.Parent && null !== this.Parent && true !== AscCommon.g_oIdCounter.m_bLoad && true !== AscCommon.g_oIdCounter.m_bRead)
+		this.CompiledPr.Pr = this.Internal_CompileParaPr2();
+		if (!this.bFromDocument)
 		{
-			this.CompiledPr.Pr = this.Internal_CompileParaPr2();
-			if (!this.bFromDocument)
-			{
-				this.PresentationPr.Level  = AscFormat.isRealNumber(this.Pr.Lvl) ? this.Pr.Lvl : 0;
-				this.PresentationPr.Bullet = this.CompiledPr.Pr.ParaPr.Get_PresentationBullet(this.Get_Theme(), this.Get_ColorMap());
-				this.Numbering.Bullet      = this.PresentationPr.Bullet;
-			}
-
-			this.CompiledPr.NeedRecalc = false;
-		}
-		else
-		{
-			if (undefined === this.CompiledPr.Pr || null === this.CompiledPr.Pr)
-			{
-				this.CompiledPr.Pr =
-					{
-						ParaPr : g_oDocumentDefaultParaPr,
-						TextPr : g_oDocumentDefaultTextPr
-					};
-
-				this.CompiledPr.Pr.ParaPr.StyleTabs  = new CParaTabs();
-				this.CompiledPr.Pr.ParaPr.StyleNumPr = undefined;
-			}
-
-			this.CompiledPr.NeedRecalc = true;
+			this.PresentationPr.Level  = AscFormat.isRealNumber(this.Pr.Lvl) ? this.Pr.Lvl : 0;
+			this.PresentationPr.Bullet = this.CompiledPr.Pr.ParaPr.Get_PresentationBullet(this.Get_Theme(), this.Get_ColorMap());
+			this.Numbering.Bullet      = this.PresentationPr.Bullet;
 		}
 	}
+	else
+	{
+		if (undefined === this.CompiledPr.Pr || null === this.CompiledPr.Pr)
+		{
+			this.CompiledPr.Pr = {
+				ParaPr : g_oDocumentDefaultParaPr,
+				TextPr : g_oDocumentDefaultTextPr
+			};
+
+			this.CompiledPr.Pr.ParaPr.StyleTabs  = new CParaTabs();
+			this.CompiledPr.Pr.ParaPr.StyleNumPr = undefined;
+		}
+	}
+
+	this.CompiledPr.NeedRecalc = true;
 };
 /**
  * Формируем конечные свойства параграфа на основе стиля, возможной нумерации и прямых настроек.
@@ -9670,7 +9671,7 @@ Paragraph.prototype.SetOutlineLvl = function(nLvl)
 Paragraph.prototype.GetOutlineLvl = function()
 {
 	// TODO: Заглушка со стилями заголовков тут временная
-	var ParaPr = this.Get_CompiledPr2(false).ParaPr;
+	var ParaPr  = this.Get_CompiledPr2(false).ParaPr;
 	var oStyles = this.LogicDocument.Get_Styles();
 	for (var nIndex = 0; nIndex < 9; ++nIndex)
 	{
@@ -10160,7 +10161,7 @@ Paragraph.prototype.Document_CreateFontMap = function(FontMap)
 	{
 		this.FontMap.Map = {};
 
-		this.Internal_CompileParaPr();
+		this.private_CompileParaPr();
 
 		var FontScheme = this.Get_Theme().themeElements.fontScheme;
 		var CurTextPr  = this.CompiledPr.Pr.TextPr.Copy();

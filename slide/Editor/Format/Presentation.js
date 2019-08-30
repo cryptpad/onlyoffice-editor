@@ -8755,7 +8755,7 @@ CPresentation.prototype =
                                     for(i = 0; i < oSelectedContent.Elements.length; ++i){
                                         oParagraph = oSelectedContent.Elements[i].Element;
                                         oParagraph.Parent = oDocContent;
-                                        oParagraph.Internal_CompileParaPr();
+                                        oParagraph.private_CompileParaPr();
                                         aContent.push(oParagraph);
                                     }
                                     AscFormat.SaveContentSourceFormatting(aContent, aContent, oDocContent.Get_Theme(), oDocContent.Get_ColorMap());
@@ -8769,7 +8769,7 @@ CPresentation.prototype =
                                     for(i = 0; i < oSelectedContent2.Elements.length; ++i){
                                         oParagraph = oSelectedContent2.Elements[i].Element;
                                         oParagraph.Parent = oDocContent;
-                                        oParagraph.Internal_CompileParaPr();
+                                        oParagraph.private_CompileParaPr();
                                         aContent.push(oParagraph);
                                     }
                                     AscFormat.SaveContentSourceFormatting(aContent, aContent, oDocContent.Get_Theme(), oDocContent.Get_ColorMap());
