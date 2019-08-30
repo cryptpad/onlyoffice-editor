@@ -665,7 +665,7 @@ function CFieldInstructionSEQ()
 	this.N = false;
 	this.R = null;
 	this.S = null;
-
+	this.NumFormat = Asc.c_oAscNumberingFormat.Decimal;
 	this.GeneralSwitches = [];
 
 	this.ParentContent = null;
@@ -808,7 +808,7 @@ CFieldInstructionSEQ.prototype.GetText = function ()
 				}
 				if(this === oField.Instruction)
 				{
-					nIndex = nCounter + 1;
+					nIndex = nCounter;
 					break;
 				}
 			}
@@ -816,7 +816,7 @@ CFieldInstructionSEQ.prototype.GetText = function ()
 	}
 	if(nIndex > -1)
 	{
-		return nIndex + "";
+		return AscCommon.IntToNumberFormat(nIndex, this.NumFormat);
 	}
 	return AscCommon.translateManager.getValue("Error! Main Document Only.");
 };
@@ -847,6 +847,40 @@ CFieldInstructionSEQ.prototype.SetS = function (sVal)
 CFieldInstructionSEQ.prototype.SetGeneralSwitches = function (aSwitches)
 {
 	this.GeneralSwitches = aSwitches;
+	var sSwitch;
+	for(var i = 0; i < aSwitches.length; ++i)
+	{
+		sSwitch = aSwitches[i];
+		if(typeof sSwitch === 'string')
+		{
+			if(sSwitch.toLowerCase() === 'arabic')
+			{
+				this.NumFormat = Asc.c_oAscNumberingFormat.Decimal;
+			}
+			else if(sSwitch.toLowerCase() === 'alphabetic')
+			{
+				if(sSwitch[0] === 'A')
+				{
+					this.NumFormat = Asc.c_oAscNumberingFormat.UpperLetter;
+				}
+				else
+				{
+					this.NumFormat = Asc.c_oAscNumberingFormat.LowerLetter;
+				}
+			}
+			else if(sSwitch.toLowerCase() === 'roman')
+			{
+				if(sSwitch[0] === 'r')
+				{
+					this.NumFormat = Asc.c_oAscNumberingFormat.LowerRoman;
+				}
+				else
+				{
+					this.NumFormat = Asc.c_oAscNumberingFormat.UpperRoman;
+				}
+			}
+		}
+	}
 };
 
 
