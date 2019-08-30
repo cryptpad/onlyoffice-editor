@@ -2279,22 +2279,26 @@ CTable.prototype.GetAllFields = function(isSelection, arrFields)
 {
 	if (!arrFields)
 		arrFields = [];
-	if(isSelection)
-	{
-		var Cells_array = this.Internal_Get_SelectionArray();
-		for (var Index = 0; Index < Cells_array.length; Index++)
-		{
-			var CurPos      = Cells_array[Index];
-			var CurCell     = this.Content[CurPos.Row].Get_Cell(CurPos.Cell);
-			var CellContent = CurCell.Content;
 
-			CellContent.GetAllFields(isSelection, arrFields);
+	if (isSelection && this.IsCellSelection())
+	{
+		var arrCellsArray = this.GetSelectionArray();
+		for (var nPos = 0, nCount = arrCellsArray.length; nPos < nCount; ++nPos)
+		{
+			var oCellPos     = arrCellsArray[nPos];
+			var oCurCell     = this.GetRow(oCellPos.Row).GetCell(oCellPos.Cell);
+			var oCellContent = oCurCell.GetContent();
+
+			oCellContent.SelectAll();
+			oCellContent.GetAllFields(true, arrFields);
+			oCellContent.RemoveSelection();
 		}
 	}
 	else
 	{
 		this.CurCell.Content.GetAllFields(isSelection, arrFields);
 	}
+
 	return arrFields;
 };
 
