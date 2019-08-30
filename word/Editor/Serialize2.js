@@ -11241,6 +11241,11 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
 			if (editor)
 				editor.WordControl.m_oLogicDocument.Register_Field(oRes);
 		}
+		else if ("SEQ" == sFieldType){
+			oRes = new ParaField(fieldtype_SEQ, aArguments, aSwitches);
+			if (editor)
+				editor.WordControl.m_oLogicDocument.Register_Field(oRes);
+		}
 		return oRes;
 	}
     this.ReadImage = function(type, length, img)
