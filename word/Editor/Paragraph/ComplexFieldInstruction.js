@@ -675,7 +675,7 @@ CFieldInstructionSEQ.prototype.constructor = CFieldInstructionSEQ;
 CFieldInstructionSEQ.prototype.Type = fieldtype_SEQ;
 CFieldInstructionSEQ.prototype.ToString = function ()
 {
-	var sInstruction = "SEQ ";
+	var sInstruction = " SEQ ";
 	if(this.Id)
 	{
 		sInstruction += this.Id;

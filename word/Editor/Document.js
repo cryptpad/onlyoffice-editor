@@ -17492,31 +17492,33 @@ CDocument.prototype.AddFieldWithInstruction = function(sInstruction)
 	if (!oParagraph)
 		return null;
 
-	var nIndex = -1;
+	return  this.private_CreateComplexFieldRun(sInstruction, oParagraph);
+};
 
-	var oBeginChar    = new ParaFieldChar(fldchartype_Begin, this),
-		oSeparateChar = new ParaFieldChar(fldchartype_Separate, this),
-		oEndChar      = new ParaFieldChar(fldchartype_End, this);
+CDocument.prototype.private_CreateComplexFieldRun = function(sInstruction, oParagraph)
+{
+    var oBeginChar    = new ParaFieldChar(fldchartype_Begin, this),
+        oSeparateChar = new ParaFieldChar(fldchartype_Separate, this),
+        oEndChar      = new ParaFieldChar(fldchartype_End, this);
 
-	var oRun = new ParaRun();
-	oRun.AddToContent(-1, oBeginChar);
-	oRun.AddInstrText(sInstruction);
-	oRun.AddToContent(-1, oSeparateChar);
-	oRun.AddToContent(-1, oEndChar);
-	oParagraph.Add(oRun);
+    var oRun = new ParaRun();
+    oRun.AddToContent(-1, oBeginChar);
+    oRun.AddInstrText(sInstruction);
+    oRun.AddToContent(-1, oSeparateChar);
+    oRun.AddToContent(-1, oEndChar);
+    oParagraph.Add(oRun);
 
-	oBeginChar.SetRun(oRun);
-	oSeparateChar.SetRun(oRun);
-	oEndChar.SetRun(oRun);
+    oBeginChar.SetRun(oRun);
+    oSeparateChar.SetRun(oRun);
+    oEndChar.SetRun(oRun);
 
-	var oComplexField = oBeginChar.GetComplexField();
-	oComplexField.SetBeginChar(oBeginChar);
-	oComplexField.SetInstructionLine(sInstruction);
-	oComplexField.SetSeparateChar(oSeparateChar);
-	oComplexField.SetEndChar(oEndChar);
-	oComplexField.Update(false);
-
-	return oComplexField;
+    var oComplexField = oBeginChar.GetComplexField();
+    oComplexField.SetBeginChar(oBeginChar);
+    oComplexField.SetInstructionLine(sInstruction);
+    oComplexField.SetSeparateChar(oSeparateChar);
+    oComplexField.SetEndChar(oEndChar);
+    oComplexField.Update(false);
+    return oComplexField;
 };
 CDocument.prototype.UpdateComplexField = function(oField)
 {
@@ -18710,6 +18712,48 @@ CDocument.prototype.ParseTableFormulaInstrLine = function(sInstrLine)
         return [oResult.Formula ? "=" + oResult.Formula : "=", oResult.Format && oResult.Format.sFormat ? oResult.Format.sFormat : ""];
     }
     return ["", ""];
+};
+
+
+CDocument.prototype.AddTableCaption = function()
+{
+    if(this.Selection.Use && this.Selection.StartPos === this.Selection.EndPos
+    && this.Content[this.Selection.StartPos].GetType() === type_Table)
+    {
+        var oTable = this.Content[this.Selection.StartPos];
+        this.Create_NewHistoryPoint(0);
+        var NewParagraph = new Paragraph(this.DrawingDocument, this);
+        var NewRun       = new ParaRun(NewParagraph, false);
+        NewRun.AddText("Table ");
+        NewParagraph.Add_ToContent(0, NewRun);
+        this.Internal_Content_Add(oTable.Index, NewParagraph);
+        this.private_CreateComplexFieldRun(" SEQ Table \\* ARABIC ", NewParagraph);
+        NewParagraph.MoveCursorToEndPos();
+        NewParagraph.Document_SetThisElementCurrent(true);
+
+        this.Recalculate();
+        this.FinalizeAction();
+    }
+};
+CDocument.prototype.AddDrawingCaption = function()
+{
+    if(this.Selection.Use && this.Selection.StartPos === this.Selection.EndPos
+        && this.Content[this.Selection.StartPos].GetType() === type_Table)
+    {
+        var oTable = this.Content[this.Selection.StartPos];
+        this.Create_NewHistoryPoint(0);
+        var NewParagraph = new Paragraph(this.DrawingDocument, this);
+        var NewRun       = new ParaRun(NewParagraph, false);
+        NewRun.AddText("Table ");
+        NewParagraph.Add_ToContent(0, NewRun);
+        this.Internal_Content_Add(oTable.Index, NewParagraph);
+        this.private_CreateComplexFieldRun(" SEQ Table \\* ARABIC ", NewParagraph);
+        NewParagraph.MoveCursorToEndPos();
+        NewParagraph.Document_SetThisElementCurrent(true);
+
+        this.Recalculate();
+        this.FinalizeAction();
+    }
 };
 /**
  * Выделяем перемещенный или удаленный после перемещения текст

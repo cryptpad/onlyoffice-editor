@@ -2006,4 +2006,69 @@
 			oContext.beginPath();
 		}
 	};
+
+
+	function CAscCaptionProperties()
+	{
+		this.Name = null;
+		this.Label = null;
+		this.Before = null;
+		this.ExcludeLabel = null;
+		this.Format = null;
+
+		this.IncludeChapterNumber = false;
+		this.HeadingLvl = null;
+		this.Separator = null;
+
+		this.Document = null;
+	}
+
+	window['Asc']['CAscCaptionProperties'] = window['Asc'].CAscCaptionProperties = CAscCaptionProperties;
+	var prot = CAscCaptionProperties.prototype;
+	prot.get_Name = prot["get_Name"] = function(){return this.Name;};
+	prot.get_Label = prot["get_Label"] = function(){return this.Label;};
+	prot.get_Before = prot["get_Before"] = function(){return this.Before;};
+	prot.get_ExcludeLabel = prot["get_ExcludeLabel"] = function(){return this.ExcludeLabel;};
+	prot.get_Format = prot["get_Format"] = function(){return this.Format;};
+	prot.get_IncludeChapterNumber = prot["get_IncludeChapterNumber"] = function(){return this.IncludeChapterNumber ;};
+	prot.get_HeadingLvl = prot["get_HeadingLvl"] = function(){return this.HeadingLvl;};
+	prot.get_Separator = prot["get_Separator"] = function(){return this.Separator;};
+
+	prot.put_Name = prot["put_Name"] = function(v){this.Name = v;};
+	prot.put_Label = prot["put_Label"] = function(v){this.Label = v;};
+	prot.put_Before = prot["put_Before"] = function(v){this.Before = v;};
+	prot.put_ExcludeLabel = prot["put_ExcludeLabel"] = function(v){this.ExcludeLabel = v;};
+	prot.put_Format = prot["put_Format"] = function(v){this.Format = v;};
+	prot.put_IncludeChapterNumber = prot["put_IncludeChapterNumber"] = function(v){this.IncludeChapterNumber  = v;};
+	prot.put_HeadingLvl = prot["put_HeadingLvl"] = function(v){this.HeadingLvl = v;};
+	prot.put_Separator = prot["put_Separator"] = function(v){this.Separator = v;};
+
+
+	prot.getSeqInstruction = function()
+	{
+		var oComplexField = new CFieldInstructionSEQ();
+		if(this.Format)
+		{
+			oComplexField.SetGeneralSwitches([this.Format]);
+		}
+		if(this.Label)
+		{
+			oComplexField.SetId(this.Label);
+		}
+		if(AscFormat.isRealNumber(this.HeadingLvl))
+		{
+			oComplexField.SetS(this.HeadingLvl);
+		}
+		return oComplexField;
+	};
+
+	prot.getSeqInstructionLine = function()
+	{
+		return this.getSeqInstruction().ToString();
+	};
+	prot.updateName = prot["updateName"] = function()
+	{
+
+	};
+
 })(window, undefined);
