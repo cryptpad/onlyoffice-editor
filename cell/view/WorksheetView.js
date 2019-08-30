@@ -2107,10 +2107,10 @@
 	};
 
 	WorksheetView.prototype.setPrintScale = function (width, height, scale) {
-		if(width !== null || height !== null) {
-			this.fitToWidthHeight(width, height);
-		} else {
+		if((width === null && height === null) || (width === 0 && height === 0)) {
 			this._setPrintScale(scale);
+		} else {
+			this.fitToWidthHeight(width, height);
 		}
 	};
 
