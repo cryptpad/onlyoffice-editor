@@ -3075,6 +3075,15 @@
 		}
 		return null;
 	};
+	Workbook.prototype.getPivotCacheByDataRef = function(dataRef) {
+		for (var i = 0, l = this.aWorksheets.length; i < l; ++i) {
+			var cache = this.aWorksheets[i].getPivotCacheByDataRef(dataRef);
+			if (cache) {
+				return cache;
+			}
+		}
+		return null;
+	};
 //-------------------------------------------------------------------------------------------------
 	var tempHelp = new ArrayBuffer(8);
 	var tempHelpUnit = new Uint8Array(tempHelp);
@@ -6464,7 +6473,7 @@
 		}
 		this.workbook.handlers.trigger("setSelection", new Asc.Range(pivotRange.c1, pivotRange.r1, pivotRange.c1, pivotRange.r1));
 	};
-	Worksheet.prototype.updatePivotTablesStyle = function (range) {
+	Worksheet.prototype.updatePivotTablesStyle = function (range, canModifyDocument) {
 		var t = this;
 		var pivotTable, pivotRange, pivotFields, rowFields, styleInfo, style, wholeStyle, cells, j, r, x, pos,
 			firstHeaderRow0, firstDataCol0, countC, countCWValues, countR, countD, stripe1, stripe2, items, l, item,
@@ -6529,28 +6538,30 @@
 			countR = pivotTable.getRowFieldsCount(true);
 
 			if (0 === countC + countR) {
-				//todo transparent ih, iv
-				var border;
-				border = new AscCommonExcel.Border();
-				border.l = new AscCommonExcel.BorderProp();
-				border.l.setStyle(c_oAscBorderStyles.Thin);
-				border.l.c = AscCommonExcel.createRgbColor(0, 0, 0);
-				border.t = new AscCommonExcel.BorderProp();
-				border.t.setStyle(c_oAscBorderStyles.Thin);
-				border.t.c = AscCommonExcel.createRgbColor(0, 0, 0);
-				border.r = new AscCommonExcel.BorderProp();
-				border.r.setStyle(c_oAscBorderStyles.Thin);
-				border.r.c = AscCommonExcel.createRgbColor(0, 0, 0);
-				border.b = new AscCommonExcel.BorderProp();
-				border.b.setStyle(c_oAscBorderStyles.Thin);
-				border.b.c = AscCommonExcel.createRgbColor(0, 0, 0);
-				border.ih = new AscCommonExcel.BorderProp();
-				border.ih.setStyle(c_oAscBorderStyles.Thin);
-				border.ih.c = AscCommonExcel.createRgbColor(255, 255, 255);
-				border.iv = new AscCommonExcel.BorderProp();
-				border.iv.setStyle(c_oAscBorderStyles.Thin);
-				border.iv.c = AscCommonExcel.createRgbColor(255, 255, 255);
-				cells.setBorder(border);
+				if (canModifyDocument) {
+					//todo transparent ih, iv
+					var border;
+					border = new AscCommonExcel.Border();
+					border.l = new AscCommonExcel.BorderProp();
+					border.l.setStyle(c_oAscBorderStyles.Thin);
+					border.l.c = AscCommonExcel.createRgbColor(0, 0, 0);
+					border.t = new AscCommonExcel.BorderProp();
+					border.t.setStyle(c_oAscBorderStyles.Thin);
+					border.t.c = AscCommonExcel.createRgbColor(0, 0, 0);
+					border.r = new AscCommonExcel.BorderProp();
+					border.r.setStyle(c_oAscBorderStyles.Thin);
+					border.r.c = AscCommonExcel.createRgbColor(0, 0, 0);
+					border.b = new AscCommonExcel.BorderProp();
+					border.b.setStyle(c_oAscBorderStyles.Thin);
+					border.b.c = AscCommonExcel.createRgbColor(0, 0, 0);
+					border.ih = new AscCommonExcel.BorderProp();
+					border.ih.setStyle(c_oAscBorderStyles.Thin);
+					border.ih.c = AscCommonExcel.createRgbColor(255, 255, 255);
+					border.iv = new AscCommonExcel.BorderProp();
+					border.iv.setStyle(c_oAscBorderStyles.Thin);
+					border.iv.c = AscCommonExcel.createRgbColor(255, 255, 255);
+					cells.setBorder(border);
+				}
 				continue;
 			}
 
@@ -6830,6 +6841,20 @@
 			if (this.pivotTables[i].asc_getName() === name) {
 				res = this.pivotTables[i];
 				break;
+			}
+		}
+		return res;
+	};
+	Worksheet.prototype.getPivotCacheByDataRef = function(dataRef) {
+		var res = null;
+		for (var i = 0; i < this.pivotTables.length; ++i) {
+			var pivotTable = this.pivotTables[i];
+			if (pivotTable.cacheDefinition) {
+				var worksheetSource = pivotTable.cacheDefinition.getWorksheetSource();
+				if (worksheetSource && dataRef === worksheetSource.getDataRef()) {
+					res = pivotTable.cacheDefinition;
+					break;
+				}
 			}
 		}
 		return res;

@@ -1562,7 +1562,13 @@ function CT_PivotCacheDefinition() {
 	this.extLst = null;
 	//editor
 	this.cacheRecords = null;
+
+	this.Id = AscCommon.g_oIdCounter.Get_NewId();
+	AscCommon.g_oTableId.Add(this, this.Id);
 }
+CT_PivotCacheDefinition.prototype.Get_Id = function () {
+	return this.Id;
+};
 CT_PivotCacheDefinition.prototype.readAttributes = function(attr, uq) {
 	if (attr()) {
 		var vals = attr();
@@ -3199,7 +3205,7 @@ CT_pivotTableDefinition.prototype.asc_addDataField = function(api, index) {
 		if (!t.dataFields) {
 			t.dataFields = new CT_DataFields();
 		}
-		t._addField(index, c_oAscAxis.AxisValues, t.dataFields, function() {
+		var pivotField = t._addField(index, null, t.dataFields, function() {
 			var newField = new CT_DataField();
 			newField.fld = index;
 			newField.name = "Sum of Ship date";
@@ -3207,6 +3213,9 @@ CT_pivotTableDefinition.prototype.asc_addDataField = function(api, index) {
 			newField.baseItem = 0;
 			return newField;
 		});
+		if (pivotField) {
+			pivotField.dataField = true;
+		}
 		t.checkValuesField();
 		ws.updatePivotTable(t);
 	});
@@ -3283,15 +3292,18 @@ CT_pivotTableDefinition.prototype._addField = function(index, axis, fields, fCre
 	if (!(pivotField)) {
 		return;
 	}
-	if (axis !== pivotField.axis) {
-		if (null !== pivotField.axis) {
-			this.removeField(index);
-		}
-		pivotField.axis = axis;
-		fields.add(fCreate());
-	} else {
-		fields.add(fields.remove(index));
+	var newElem;
+	if (axis === pivotField.axis) {
+		newElem = fields.remove(index);
+	} else if (null !== pivotField.axis) {
+		this.removeField(index);
 	}
+	pivotField.axis = axis;
+	if (!newElem) {
+		newElem = fCreate();
+	}
+	fields.add(newElem);
+	return pivotField;
 };
 CT_pivotTableDefinition.prototype.asc_removeField = function(api, index) {
 	var t = this;
@@ -3309,12 +3321,11 @@ CT_pivotTableDefinition.prototype.asc_updateCacheData = function() {
 		this.cacheDefinition = newCacheDefinition;
 	}
 };
-CT_pivotTableDefinition.prototype.asc_create = function(ws, name, dataRef, bbox) {
+CT_pivotTableDefinition.prototype.asc_create = function(ws, name, cacheDefinition, bbox) {
 	this.worksheet = ws;
-	this.cacheDefinition = new CT_PivotCacheDefinition();
-	this.cacheDefinition.fromDataRef(dataRef);
+	this.cacheDefinition = cacheDefinition;
 
-	this.cacheId = 0;//todo
+	this.cacheId = null;
 	this.name = name;
 	this.applyNumberFormats = false;
 	this.applyBorderFormats = false;
@@ -3617,12 +3628,16 @@ CT_pivotTableDefinition.prototype.removeField = function (index) {
 			}
 			break;
 		case c_oAscAxis.AxisValues:
-			if (1 === this.dataFields.getCount()) {
-				this.dataFields = null;
-			} else {
-				this.dataFields.remove(index);
+		default:
+			if (pivotField.dataField) {
+				pivotField.dataField = false;
+				if (1 === this.dataFields.getCount()) {
+					this.dataFields = null;
+				} else {
+					this.dataFields.remove(index);
+				}
+				this.checkValuesField();
 			}
-			this.checkValuesField();
 			break;
 	}
 	pivotField.axis = null;

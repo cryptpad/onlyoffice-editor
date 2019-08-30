@@ -2125,29 +2125,36 @@ var editor;
     this.collaborativeEditing.lock([lockInfo], copyWorksheet);
   };
 
-  spreadsheet_api.prototype.asc_insertPivot = function(dataRef, pivotNewSheetName, pivotRef) {
-    //todo pivotRef
-    var t = this;
-    if (Asc.CT_pivotTableDefinition.prototype.isValidDataRef(dataRef)) {
-      if (pivotNewSheetName) {
-        var i = this.wbModel.getActive();
-        this._addWorksheet(pivotNewSheetName, i, function(ws) {
-          if (ws) {
-            var pivotName = ws.workbook.dependencyFormulas.getNextPivotName();
-            var pivotTable = new Asc.CT_pivotTableDefinition();
-            pivotTable.asc_create(ws, pivotName, dataRef, new Asc.Range(0, 2, 2, 19));
-            ws.insertPivotTable(pivotTable);
-            t._changePivotStyle(pivotTable, function(){
-                var pivotRange = pivotTable.getRange();
-                if (pivotRange) {
-                    t.handlers.trigger("setSelection", new Asc.Range(pivotRange.c1, pivotRange.r1, pivotRange.c1, pivotRange.r1));
-                }
-            });
-          }
-        });
-      }
-    }
-  };
+	spreadsheet_api.prototype.asc_insertPivot = function(dataRef, pivotNewSheetName, pivotRef) {
+		//todo pivotRef
+		var t = this;
+		if (Asc.CT_pivotTableDefinition.prototype.isValidDataRef(dataRef)) {
+			if (pivotNewSheetName) {
+				var wb = this.wbModel;
+				var i = wb.getActive();
+				this._addWorksheet(pivotNewSheetName, i, function(ws) {
+					if (ws) {
+						var pivotName = wb.dependencyFormulas.getNextPivotName();
+						var pivotTable = new Asc.CT_pivotTableDefinition();
+						var cacheDefinition = wb.getPivotCacheByDataRef(dataRef);
+						if (!cacheDefinition) {
+							cacheDefinition = new CT_PivotCacheDefinition();
+							cacheDefinition.fromDataRef(dataRef);
+						}
+						pivotTable.asc_create(ws, pivotName, cacheDefinition, new Asc.Range(0, 2, 2, 19));
+						ws.insertPivotTable(pivotTable);
+						t._changePivotStyle(pivotTable, function() {
+							var pivotRange = pivotTable.getRange();
+							if (pivotRange) {
+								t.handlers.trigger("setSelection",
+									new Asc.Range(pivotRange.c1, pivotRange.r1, pivotRange.c1, pivotRange.r1));
+							}
+						});
+					}
+				});
+			}
+		}
+	};
 
   spreadsheet_api.prototype.asc_cleanSelection = function() {
     this.wb.getWorksheet().cleanSelection();
@@ -3823,14 +3830,14 @@ var editor;
 				History.Create_NewPoint();
 				History.StartTransaction();
 				callback(wsModel);
-				History.EndTransaction();
 				pivotRange.union2(pivot.getRange());
 				// ToDo update ranges, not big range
 				for (i = 0; i < pivot.pageFieldsPositions.length; ++i) {
 					pos = pivot.pageFieldsPositions[i];
 					pivotRange.union3(pos.col + 1, pos.row);
 				}
-				wsModel.updatePivotTablesStyle(pivotRange);
+				wsModel.updatePivotTablesStyle(pivotRange, true);
+				History.EndTransaction();
 				ws = t.wb.getWorksheet();
 				ws._onUpdateFormatTable(pivotRange);
 				t.wb._onWSSelectionChanged();

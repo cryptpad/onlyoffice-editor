@@ -2684,18 +2684,22 @@
 			this.bs.WriteItem(c_oSerWorkbookTypes.CalcPr, function(){oThis.WriteCalcPr(oThis.wb.calcPr);});
 
 			//PivotCaches
-			var isEmptyCaches = true;
+			var pivotCacheIndex = 0;
 			var pivotCaches = {};
 			this.oBinaryWorksheetsTableWriter.wb.forEach(function(ws) {
 				for (var i = 0; i < ws.pivotTables.length; ++i) {
 					var pivotTable = ws.pivotTables[i];
-					if (null !== pivotTable.cacheId && pivotTable.cacheDefinition) {
-						isEmptyCaches = false;
-						pivotCaches[pivotTable.cacheId] = pivotTable.cacheDefinition;
+					if (pivotTable.cacheDefinition) {
+						var pivotCache = pivotCaches[pivotTable.cacheDefinition.Get_Id()];
+						if (!pivotCache) {
+							pivotCache = {id: pivotCacheIndex++, cache: pivotTable.cacheDefinition};
+							pivotCaches[pivotTable.cacheDefinition.Get_Id()] = pivotCache;
+                        }
+						pivotTable.cacheId = pivotCache.id;
 					}
 				}
 			}, this.oBinaryWorksheetsTableWriter.isCopyPaste);
-			if (!isEmptyCaches) {
+			if (pivotCacheIndex > 0) {
 				this.bs.WriteItem(c_oSerWorkbookTypes.PivotCaches, function () {oThis.WritePivotCaches(pivotCaches);});
 			}
 			if (this.wb.externalReferences.length > 0) {
@@ -2870,8 +2874,11 @@
 		};
 		this.WritePivotCaches = function(pivotCaches) {
 			var oThis = this;
-			for (var id in pivotCaches) {
-				this.bs.WriteItem(c_oSerWorkbookTypes.PivotCache, function(){oThis.WritePivotCache(id, pivotCaches[id]);});
+            for (var id in pivotCaches) {
+				if (pivotCaches.hasOwnProperty(id)) {
+					var elem = pivotCaches[id];
+					this.bs.WriteItem(c_oSerWorkbookTypes.PivotCache, function(){oThis.WritePivotCache(elem.id, elem.cache);});
+                }
 			}
 		};
 		this.WritePivotCache = function(id, pivotCache) {
