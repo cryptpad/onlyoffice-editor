@@ -796,20 +796,20 @@ CFieldInstructionSEQ.prototype.GetText = function ()
 				}
 			}
 		}
-		nCounter = 0;
+		nCounter = 1;
 		for(i = 0; i < aFields.length; ++i)
 		{
 			oField = aFields[i];
 			if(AscCommon.isRealObject(oField))
 			{
-				if(!oField.C)
-				{
-					++nCounter;
-				}
 				if(this === oField.Instruction)
 				{
 					nIndex = nCounter;
 					break;
+				}
+				if(!oField.C)
+				{
+					++nCounter;
 				}
 			}
 		}
