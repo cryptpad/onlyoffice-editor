@@ -14011,7 +14011,7 @@
                         var isShowButton = true;
 						var isSortState = null;//true - ascending, false - descending
 
-						var colId = filter.isAutoFilter() ? t.model.autoFilters._getTrueColId(autoFilter, col - range.c1) : col - range.c1;
+						var colId = filter.isAutoFilter() ? t.model.autoFilters._getTrueColId(autoFilter, col - range.c1, true) : col - range.c1;
                         if (autoFilter.FilterColumns && autoFilter.FilterColumns.length) {
                             var filterColumn = null, filterColumnWithMerge = null;
 

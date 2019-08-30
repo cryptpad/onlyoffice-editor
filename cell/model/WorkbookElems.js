@@ -6210,6 +6210,11 @@ function RangeDataManagerElem(bbox, data)
 		return res;
 	};
 
+	AutoFilter.prototype.isHideButton = function (colId) {
+		var filterColumn = this.getFilterColumn(colId);
+		return filterColumn && false === filterColumn.ShowButton;
+	};
+
 	AutoFilter.prototype.getAutoFilter = function () {
 		return this;
 	};

@@ -2682,7 +2682,7 @@
 					}
 				}
 
-				ColId = this._getTrueColId(filter, ColId);
+				ColId = this._getTrueColId(filter, ColId, true);
 
 				if (autoFilter && autoFilter.FilterColumns) {
 					for (var i = 0; i < autoFilter.FilterColumns.length; i++) {
@@ -2724,7 +2724,7 @@
 
 					var rangeCellId = this._idToRange(cellId);
 					var colId = rangeCellId.c1 - autoFilter.Ref.c1;
-					res = this._getTrueColId(filter, colId);
+					res = this._getTrueColId(filter, colId, true);
 				}
 
 				return res;
@@ -4074,7 +4074,7 @@
 
 				var maxFilterRow = ref.r2;
 				var automaticRowCount = null;
-				colId = this._getTrueColId(autoFilter, colId);
+				colId = this._getTrueColId(autoFilter, colId, true);
 
 				var currentFilterColumn = autoFilter.getFilterColumn(colId);
 				//если скрыты только пустые значение, игнорируем пользовательский фильтр при отображении в меню
@@ -4166,7 +4166,7 @@
 				return {values: this._sortArrayMinMax(values), automaticRowCount: automaticRowCount, ignoreCustomFilter: ignoreCustomFilter};
 			},
 			
-			_getTrueColId: function(filter, colId)
+			_getTrueColId: function(filter, colId, checkShowButton)
 			{
 				//TODO - добавил условие, чтобы не было ошибки(bug 30007). возможно, второму пользователю нужно запретить все действия с измененной таблицей.
 				if(filter === null)
@@ -4179,14 +4179,28 @@
 				//если находимся в мерженной ячейке, то возвращаем сдвинутый colId
 				var worksheet = this.worksheet;
 				var ref = filter.Ref;
+
 				var cell = worksheet.getCell3(ref.r1, colId + ref.c1);
 				var hasMerged = cell.hasMerged();
-				if(hasMerged)
-				{
-					if(hasMerged.c1 < ref.c1) {
-						res = 0;
-					} else {
-						res = hasMerged.c1 - ref.c1 >= 0 ? hasMerged.c1 - ref.c1 : res;
+				if(checkShowButton) {
+					if(filter.isHideButton(colId)) {
+						if(hasMerged) {
+							for(var i = colId + ref.c1; i <= Math.min(ref.c2, hasMerged.c2); i++) {
+								if(!filter.isHideButton(colId - ref.c1)) {
+									res = colId - ref.c1;
+									break;
+								}
+							}
+						}
+					}
+				} else {
+					if(hasMerged)
+					{
+						if(hasMerged.c1 < ref.c1) {
+							res = 0;
+						} else {
+							res = hasMerged.c1 - ref.c1 >= 0 ? hasMerged.c1 - ref.c1 : res;
+						}
 					}
 				}
 				
@@ -4263,7 +4277,7 @@
 				var filterColumns = autoFilter.FilterColumns;
 				var worksheet = this.worksheet;
 
-				colId = this._getTrueColId(autoFilter, colId);
+				colId = this._getTrueColId(autoFilter, colId, true);
 
 				if (colId === null) {
 					return;
