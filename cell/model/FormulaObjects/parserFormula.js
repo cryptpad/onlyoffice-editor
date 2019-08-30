@@ -383,7 +383,9 @@ function (window, undefined) {
 						tokens.push(new ParsedThing(token, TOK_TYPE_OPERAND, null, offset, token.length));
 						token = "";
 					}
-					tokens.push(tokenStack.pop());
+					if(tokenStack.length) {
+						tokens.push(tokenStack.pop());
+					}
 					break;
 				}
 				default:
@@ -2342,6 +2344,9 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 	cName3D.prototype.toString = function () {
 		return parserHelp.getEscapeSheetName(this.ws.getName()) + "!" + cName.prototype.toString.call(this);
 	};
+	cName3D.prototype.toLocaleString = function () {
+		return parserHelp.getEscapeSheetName(this.ws.getName()) + "!" + cName.prototype.toLocaleString.call(this);
+	};
 
 	/**
 	 * @constructor
@@ -2782,6 +2787,8 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 					newArgs[i] = arg.getMatrix(this.excludeHiddenRows, this.excludeErrorsVal, this.excludeNestedStAg);
 				} else if (cElementType.cellsRange3D === arg.type) {
 					newArgs[i] = arg.getMatrix(this.excludeHiddenRows, this.excludeErrorsVal, this.excludeNestedStAg)[0];
+				} else if(cElementType.error === arg.type) {
+					newArgs[i] = arg;
 				} else {
 					newArgs[i] = new cError(cErrorType.division_by_zero);
 				}
@@ -4975,7 +4982,7 @@ _func[cElementType.cell3D] = _func[cElementType.cell];
 	ParseResult.prototype.getElementByPos = function(pos) {
 		var curPos = 0;
 		for (var i = 0; i < this.elems.length; ++i) {
-			curPos += this.elems[i].toString(/*AscCommonExcel.cFormulaFunctionToLocale*/).length;
+			curPos += this.elems[i].toLocaleString(/*AscCommonExcel.cFormulaFunctionToLocale*/).length;
 			if (curPos >= pos) {
 				return this.elems[i];
 			}
@@ -5216,9 +5223,16 @@ parserFormula.prototype.clone = function(formula, parent, ws) {
 				return false;
 			}
 
+			var notEndedFuncCount = 0;
 			var stack = [], val, valUp, tmp, elem, len, indentCount = -1, args = [], prev, next, arr = null,
 				bArrElemSign = false, wsF, wsT, arg_count;
 			for (var i = 0, nLength = aTokens.length; i < nLength; ++i) {
+				if(TOK_SUBTYPE_START === aTokens[i].subtype) {
+					notEndedFuncCount++;
+				} else if(TOK_SUBTYPE_STOP === aTokens[i].subtype) {
+					notEndedFuncCount--;
+				}
+
 				found_operand = null;
 				val = aTokens[i].value;
 				switch (aTokens[i].type) {
@@ -5254,10 +5268,10 @@ parserFormula.prototype.clone = function(formula, parent, ws) {
 									} else {
 										tmp = AscCommonExcel.g_oRangeCache.getAscRange(valUp);
 										if (tmp) {
-											elem =
-												tmp.isOneCell() ? new cRef(valUp, this.ws) : new cArea(valUp, this.ws);
-											parseResult.addRefPos(aTokens[i].pos - aTokens[i].length,
-												aTokens[i].pos, this.outStack.length, elem);
+											//если использовать isOneCell - тогда A1:A1 -> A1
+											var isOneCell = /*tmp.isOneCell()*/!valUp.split(":")[1];
+											elem = isOneCell ? new cRef(valUp, this.ws) : new cArea(valUp, this.ws);
+											parseResult.addRefPos(aTokens[i].pos - aTokens[i].length, aTokens[i].pos, this.outStack.length, elem);
 										} else if(TOK_SUBTYPE_ERROR === aTokens[i].subtype) {
 											elem = new cError(val);
 										} else {
@@ -5502,6 +5516,12 @@ parserFormula.prototype.clone = function(formula, parent, ws) {
 				this.outStack.push(stack.pop());
 			}
 
+			if(notEndedFuncCount) {
+				this.outStack = [];
+				parseResult.setError(c_oAscError.ID.FrmlOperandExpected);
+				return false;
+			}
+
 			if (this.outStack.length !== 0) {
 				return this.isParsed = true;
 			} else {
@@ -5694,7 +5714,12 @@ parserFormula.prototype.clone = function(formula, parent, ws) {
 			wasRigthParentheses = false;
 			var stackLength = elemArr.length, top_elem = null, top_elem_arg_pos;
 
-			if (elemArr.length !== 0 && elemArr[stackLength - 1].name === "(" && parseResult.operand_expected) {
+			if (elemArr.length !== 0 && elemArr[stackLength - 1].name === "(" && ((!elemArr[stackLength - 2]) ||
+				(elemArr[stackLength - 2] && elemArr[stackLength - 2].type !== cElementType.func)) && !ignoreErrors) {
+				parseResult.setError(c_oAscError.ID.FrmlWrongOperator);
+				t.outStack = [];
+				return false;
+			} else if (elemArr.length !== 0 && elemArr[stackLength - 1].name === "(" && parseResult.operand_expected) {
 				t.outStack.push(new cEmpty());
 				top_elem = elemArr[stackLength - 1];
 				top_elem_arg_pos = stackLength - 1;
@@ -6333,7 +6358,7 @@ parserFormula.prototype.clone = function(formula, parent, ws) {
 
 		for (i = 0; i < this.outStack.length; i++) {
 			elem = this.outStack[i];
-			if (elem.type == cElementType.table && elem.tableName == defName.name) {
+			if (elem.type == cElementType.table && elem.tableName.toLowerCase() == defName.name.toLowerCase()) {
 				if(bConvertTableFormulaToRef)
 				{
 					this.outStack[i] = this.outStack[i].toRef(bbox, bConvertTableFormulaToRef);
@@ -6349,7 +6374,7 @@ parserFormula.prototype.clone = function(formula, parent, ws) {
 		var i, elem;
 		for (i = 0; i < this.outStack.length; i++) {
 			elem = this.outStack[i];
-			if (elem.type == cElementType.table && elem.tableName == tableName) {
+			if (elem.type == cElementType.table && tableName && elem.tableName.toLowerCase() == tableName.toLowerCase()) {
 				if (elem.removeTableColumn(deleted)) {
 					this.outStack[i] = new cError(cErrorType.bad_reference);
 				}
@@ -6360,7 +6385,7 @@ parserFormula.prototype.clone = function(formula, parent, ws) {
 		var i, elem;
 		for (i = 0; i < this.outStack.length; i++) {
 			elem = this.outStack[i];
-			if (elem.type == cElementType.table && elem.tableName == tableName) {
+			if (elem.type == cElementType.table && tableName && elem.tableName.toLowerCase() == tableName.toLowerCase()) {
 				if (!elem.renameTableColumn()) {
 					this.outStack[i] = new cError(cErrorType.bad_reference);
 				}
@@ -6371,7 +6396,7 @@ parserFormula.prototype.clone = function(formula, parent, ws) {
 		var i, elem;
 		for (i = 0; i < this.outStack.length; i++) {
 			elem = this.outStack[i];
-			if (elem.type == cElementType.table && elem.tableName == tableName) {
+			if (elem.type == cElementType.table && tableName && elem.tableName.toLowerCase() == tableName.toLowerCase()) {
 				elem.changeTableRef();
 			}
 		}

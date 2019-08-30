@@ -1670,32 +1670,33 @@ ParaMath.prototype.GetSelectedElementsInfo = function(Info, ContentPos, Depth)
 
 ParaMath.prototype.GetSelectedText = function(bAll, bClearText, oPr)
 {
-	if (true === bAll || true === this.IsSelectionUse())
-	{
+	if (true === bAll || true === this.IsSelectionUse()) {
 		if (true === bClearText)
 			return null;
 
 		var res = "";
-
-		//TODO проверить!!! +  пересмотреть работу функции GetTextContent
-		//включаю эту ветку только для copy/paste
-		if(window['AscCommon'].g_clipboardBase && window['AscCommon'].g_clipboardBase.CopyPasteFocus)
-		{
-			var selectedContent = this.GetSelectContent();
-			if(selectedContent && selectedContent.Content && selectedContent.Content.GetTextContent)
-			{
-				var textContent = selectedContent.Content.GetTextContent(!bAll);
-				if(textContent && textContent.str)
-				{
-					res = textContent.str;
-				}
-			}
-		}
-
+        var selectedContent = this.GetSelectContent();
+        if (selectedContent && selectedContent.Content && selectedContent.Content.GetTextContent) {
+            var textContent = selectedContent.Content.GetTextContent(!bAll);
+            if (textContent && textContent.str) {
+                res = textContent.str;
+            }
+        }
 		return res;
 	}
-
 	return "";
+};
+
+ParaMath.prototype.GetText = function()
+{
+    var res = "";
+    if (this.Root && this.Root.GetTextContent) {
+        var textContent = this.Root.GetTextContent();
+        if (textContent && textContent.str) {
+            res = textContent.str;
+        }
+    }
+    return res;
 };
 
 ParaMath.prototype.GetSelectDirection = function()

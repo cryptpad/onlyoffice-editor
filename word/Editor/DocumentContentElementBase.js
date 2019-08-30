@@ -1091,6 +1091,23 @@ CDocumentContentElementBase.prototype.CheckRunContent = function(fCheck)
 {
 	return false;
 };
+/**
+ * По заданной странице получаем страницу, с которой нужно начинать расчет
+ * @param {number} nPageAbs
+ * @return {number}
+ */
+CDocumentContentElementBase.prototype.GetStartPageForRecalculate = function(nPageAbs)
+{
+	return nPageAbs;
+};
+/**
+ * Проверяем выделено ли сейчас какое-либо презентационное поле, если да, то возвращаем управляющий объект
+ * @returns {?Object}
+ */
+CDocumentContentElementBase.prototype.GetPresentationField = function()
+{
+	return null;
+};
 
 //--------------------------------------------------------export--------------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};

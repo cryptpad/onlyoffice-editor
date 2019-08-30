@@ -58,7 +58,8 @@ var AscBrowser = {
 	retinaPixelRatio : 1,
 	isVivaldiLinux : false,
     isSailfish : false,
-    isEmulateDevicePixelRatio : false
+    isEmulateDevicePixelRatio : false,
+    isNeedEmulateUpload : false
 };
 
 // user agent lower case
@@ -120,6 +121,8 @@ AscBrowser.isSailfish = (AscBrowser.userAgent.indexOf("sailfish") > -1);
 
 AscBrowser.isEmulateDevicePixelRatio = (AscBrowser.userAgent.indexOf("emulatedevicepixelratio") > -1);
 
+AscBrowser.isNeedEmulateUpload = (AscBrowser.userAgent.indexOf("needemulateupload") > -1);
+
 AscBrowser.zoom = 1;
 
 AscBrowser.checkZoom = function()
@@ -154,57 +157,55 @@ AscBrowser.checkZoom = function()
 	AscBrowser.isRetina = false;
 	AscBrowser.retinaPixelRatio = 1;
 
-    if (AscBrowser.isChrome && !AscBrowser.isOperaOld && !AscBrowser.isMobile && document && document.firstElementChild && document.body)
+	// пока отключаем мозиллу... хотя почти все работает
+    if ((/*AscBrowser.isMozilla || */AscBrowser.isChrome) && !AscBrowser.isOperaOld && !AscBrowser.isMobile && document && document.firstElementChild && document.body)
     {
-        if (false)
+        // делаем простую проверку
+        // считаем: 0 < window.devicePixelRatio < 2 => _devicePixelRatio = 1; zoom = window.devicePixelRatio / _devicePixelRatio;
+        // считаем: window.devicePixelRatio >= 2 => _devicePixelRatio = 2; zoom = window.devicePixelRatio / _devicePixelRatio;
+        if (window.devicePixelRatio > 0.1)
+        {
+            if (window.devicePixelRatio < 1.99)
+            {
+                var _devicePixelRatio = 1;
+                AscBrowser.zoom = window.devicePixelRatio / _devicePixelRatio;
+            }
+            else
+            {
+                var _devicePixelRatio = 2;
+                AscBrowser.zoom = window.devicePixelRatio / _devicePixelRatio;
+                AscBrowser.isRetina = true;
+            }
+        }
+
+        var firstElemStyle = document.firstElementChild.style;
+        if (AscBrowser.isMozilla)
 		{
-			// этот код - рабочий, но только если этот ифрейм открыт на весь размер браузера
-            // (window.outerWidth и window.innerWidth зависимы)
-			if (window.innerWidth > 300)
-				AscBrowser.zoom = window.outerWidth / window.innerWidth;
-
-			if (Math.abs(AscBrowser.zoom - 1) < 0.1)
-				AscBrowser.zoom = 1;
-
-			AscBrowser.zoom = window.outerWidth / window.innerWidth;
-
-			var _devicePixelRatio = window.devicePixelRatio / AscBrowser.zoom;
-
-			// device pixel ratio: кратно 0.5
-			_devicePixelRatio = (5 * (((2.5 + 10 * _devicePixelRatio) / 5) >> 0)) / 10;
-
-			AscBrowser.zoom = window.devicePixelRatio / _devicePixelRatio;
-			if (2 == _devicePixelRatio)
-				AscBrowser.isRetina = true;
-
-			// chrome 54.x: zoom = "reset" - clear retina zoom (windows)
-			//document.firstElementChild.style.zoom = "reset";
-			document.firstElementChild.style.zoom = 1.0 / AscBrowser.zoom;
+            if (window.devicePixelRatio > 0.1)
+            {
+                firstElemStyle.transformOrigin = "0 0";
+                firstElemStyle.transform = ("scale(" + (1 / AscBrowser.zoom) + ")");
+                firstElemStyle.width = ((AscBrowser.zoom * 100) + "%");
+                firstElemStyle.height = ((AscBrowser.zoom * 100) + "%");
+            }
+            else
+			{
+                firstElemStyle.transformOrigin = "0 0";
+                firstElemStyle.transform = "scale(1)";
+                firstElemStyle.width = "100%";
+                firstElemStyle.height = "100%";
+			}
 		}
 		else
         {
-            // делаем простую проверку
-            // считаем: 0 < window.devicePixelRatio < 2 => _devicePixelRatio = 1; zoom = window.devicePixelRatio / _devicePixelRatio;
-			// считаем: window.devicePixelRatio >= 2 => _devicePixelRatio = 2; zoom = window.devicePixelRatio / _devicePixelRatio;
             if (window.devicePixelRatio > 0.1)
 			{
-				if (window.devicePixelRatio < 1.99)
-				{
-					var _devicePixelRatio = 1;
-					AscBrowser.zoom = window.devicePixelRatio / _devicePixelRatio;
-				}
-				else
-				{
-					var _devicePixelRatio = 2;
-					AscBrowser.zoom = window.devicePixelRatio / _devicePixelRatio;
-					AscBrowser.isRetina = true;
-				}
 				// chrome 54.x: zoom = "reset" - clear retina zoom (windows)
 				//document.firstElementChild.style.zoom = "reset";
-				document.firstElementChild.style.zoom = 1.0 / AscBrowser.zoom;
+                firstElemStyle.zoom = 1.0 / AscBrowser.zoom;
 			}
 			else
-				document.firstElementChild.style.zoom = "normal";
+                firstElemStyle.zoom = "normal";
         }
 
         if (AscBrowser.isRetina)

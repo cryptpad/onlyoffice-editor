@@ -647,6 +647,7 @@ Paragraph.prototype.private_RecalculatePage            = function(CurPage, bFirs
     {
         PRS.Line = CurLine;
         PRS.RecalcResult = recalcresult_NextLine;
+        PRS.ComplexFields.PushState();
 
         this.private_RecalculateLine(CurLine, CurPage, PRS, ParaPr);
 
@@ -676,6 +677,7 @@ Paragraph.prototype.private_RecalculatePage            = function(CurPage, bFirs
             // были заполнены при последнем неудачном рассчете.
 
             PRS.Restore_RunRecalcInfo();
+			PRS.ComplexFields.PopState();
         }
         else if (RecalcResult & recalcresult_NextElement || RecalcResult & recalcresult_NextPage)
         {

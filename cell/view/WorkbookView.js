@@ -460,16 +460,9 @@
 				  return self.stateFormatPainter;
 			  },
 
-			  //calcAll
-			  'calcAll': function (ctrlKey, altKey, shiftKey) {
-				  if (ctrlKey && altKey && shiftKey) {
-					  self.model.recalcWB(true);
-				  } else if (shiftKey) {
-					  var ws = self.model.getActiveWs();
-					  self.model.recalcWB(false, ws.getId());
-				  } else {
-					  self.model.recalcWB(false);
-				  }
+			  //calculate
+			  'calculate': function () {
+			  	self.calculate.apply(self, arguments);
 			  },
 
 			  'changeFormatTableInfo': function () {
@@ -924,7 +917,7 @@
   };
 
   WorkbookView.prototype._createWorksheetView = function(wsModel) {
-    return new AscCommonExcel.WorksheetView(wsModel, this.wsViewHandlers, this.buffers, this.stringRender, this.maxDigitWidth, this.collaborativeEditing, this.defaults.worksheetView);
+    return new AscCommonExcel.WorksheetView(this, wsModel, this.wsViewHandlers, this.buffers, this.stringRender, this.maxDigitWidth, this.collaborativeEditing, this.defaults.worksheetView);
   };
 
   WorkbookView.prototype._onSelectionNameChanged = function(name) {
@@ -966,8 +959,19 @@
     }
     this.handlers.trigger("asc_onSelectionChanged", this.oSelectionInfo);
     this.handlers.trigger("asc_onSelectionEnd");
+    this._onInputMessage();
+    this.Api.cleanSpelling();
   };
 
+  WorkbookView.prototype._onInputMessage = function () {
+  	var title = null, message = null;
+  	var dataValidation = this.oSelectionInfo && this.oSelectionInfo.dataValidation;
+  	if (dataValidation && dataValidation.showInputMessage && !this.model.getActiveWs().getDisablePrompts()) {
+  		title = dataValidation.promptTitle;
+		message = dataValidation.promt;
+	}
+  	this.handlers.trigger("asc_onInputMessage", title, message);
+  };
 
 	WorkbookView.prototype._onScrollReinitialize = function (type) {
 		if (window["NATIVE_EDITOR_ENJINE"] || !type) {
@@ -1488,6 +1492,8 @@
       ws.openCellEditor(t.cellEditor, /*cursorPos*/undefined, isFocus, isClearCell,
         /*isHideCursor*/isHideCursor, /*isQuickInput*/isQuickInput, selectionRange);
       t.input.disabled = false;
+
+      t.Api.cleanSpelling();
 
       // Эвент на обновление состояния редактора
       t.cellEditor._updateEditorState();
@@ -2631,6 +2637,9 @@
   	}
   };
   WorkbookView.prototype.calcPagesPrint = function (adjustPrint) {
+  	if (!adjustPrint) {
+  		adjustPrint = new Asc.asc_CAdjustPrint();
+	}
     var printPagesData = new asc_CPrintPagesData();
     var printType = adjustPrint.asc_getPrintType();
     if (printType === Asc.c_oAscPrintType.ActiveSheets) {
@@ -2659,6 +2668,11 @@
       item._cleanCellsTextMetricsCache();
       item._prepareDrawingObjects();
     }
+  };
+
+  WorkbookView.prototype.calculate = function (type) {
+  	this.model.calculate(type);
+  	this.drawWS();
   };
 
   WorkbookView.prototype.reInit = function() {

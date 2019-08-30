@@ -659,6 +659,103 @@
     CGraphicObjectBase.prototype.getAllFonts = function(mapUrl){
     };
 
+    CGraphicObjectBase.prototype.getOuterShdw = function(){
+        if(this.spPr && this.spPr.effectProps && this.spPr.effectProps.EffectLst && this.spPr.effectProps.EffectLst.outerShdw)
+        {
+            return this.spPr.effectProps.EffectLst.outerShdw;
+        }
+        return null;
+    };
+
+    CGraphicObjectBase.prototype.recalculateShdw = function(){
+
+        this.shdwSp = null;
+        var outerShdw = this.getOuterShdw && this.getOuterShdw();
+        if(outerShdw)
+        {
+            AscFormat.ExecuteNoHistory(function(){
+                var geometry = this.calcGeometry || this.spPr && this.spPr.geometry;
+
+                var oParentObjects = this.getParentObjects();
+                var track_object = new AscFormat.NewShapeTrack("rect", 0, 0, oParentObjects.theme, oParentObjects.master, oParentObjects.layout, oParentObjects.slide, 0);
+                track_object.track({}, 0, 0);
+                var shape = track_object.getShape(false, null, null);
+                if(geometry)
+                {
+                    shape.spPr.setGeometry(geometry.createDuplicate());
+                    shape.spPr.geometry.setParent(shape.spPr);
+                }
+                if(outerShdw.color)
+                {
+                    shape.spPr.Fill = AscFormat.CreateUniFillByUniColor(outerShdw.color);
+                }
+                else
+                {
+                    shape.spPr.Fill = AscFormat.CreateUniFillByUniColor(CreateUniColorRGB(0, 0, 0));
+                }
+                shape.spPr.ln = null;
+                var W = this.extX;
+                var H = this.extY;
+                var penW = 0;
+                if(this.pen)
+                {
+                    penW = this.pen.w ? this.pen.w / 36000.0 : 12700.0 / 36000.0;
+                    if(this.getObjectType() !== AscDFH.historyitem_type_ImageShape)
+                    {
+                        penW /= 2.0;
+                    }
+                }
+                if(outerShdw.sx)
+                {
+                    W *= outerShdw.sx / 100000;
+                }
+                if(outerShdw.sy)
+                {
+                    H *= outerShdw.sy / 100000;
+                }
+                // W += penW;
+                // H += penW;
+                if(W < this.extX + penW)
+                {
+                    W = this.extX + penW + 1;
+                }
+                if(H < this.extY + penW)
+                {
+                    H = this.extY  + penW + 1;
+                }
+                shape.spPr.xfrm.setExtX(W);
+                shape.spPr.xfrm.setExtY(H);
+                shape.spPr.xfrm.setOffX(0);
+                shape.spPr.xfrm.setOffY(0);
+                if(!(this.parent && this.parent.Extent))
+                {
+                    shape.setParent(this.parent);
+                }
+                shape.recalculate();
+                this.shdwSp = shape;
+            }, this, []);
+        }
+    };
+
+
+    CGraphicObjectBase.prototype.drawShdw = function(graphics){
+        var outerShdw = this.getOuterShdw && this.getOuterShdw();
+        if(this.shdwSp && outerShdw && !graphics.IsSlideBoundsCheckerType)
+        {
+            var oTransform =  new AscCommon.CMatrix();
+            var dist = outerShdw.dist ? outerShdw.dist /36000 : 0;
+            var dir = outerShdw.dir ? outerShdw.dir : 0;
+            oTransform.tx = dist*Math.cos(AscFormat.cToRad*dir) - (this.shdwSp.extX - this.extX) / 2.0;
+            oTransform.ty = dist*Math.sin(AscFormat.cToRad*dir) - (this.shdwSp.extY - this.extY) / 2.0;
+            global_MatrixTransformer.MultiplyAppend(oTransform, this.transform);
+			this.shdwSp.bounds.x = this.bounds.x + this.shdwSp.bounds.l;
+			this.shdwSp.bounds.y = this.bounds.y + this.shdwSp.bounds.t;
+            this.shdwSp.transform = oTransform;
+            this.shdwSp.pen = null;
+            this.shdwSp.draw(graphics);
+        }
+    };
+
 
     CGraphicObjectBase.prototype.getAllRasterImages = function(mapUrl){
     };

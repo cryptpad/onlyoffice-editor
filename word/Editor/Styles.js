@@ -14223,6 +14223,12 @@ CParaPr.prototype.Copy = function(bCopyPrChange)
 	if (undefined !== this.OutlineLvl)
 		ParaPr.OutlineLvl = this.OutlineLvl;
 
+	if (undefined !== this.OutlineLvlStyle)
+		ParaPr.OutlineLvlStyle = this.OutlineLvlStyle;
+
+	if (undefined !== this.Locked)
+		ParaPr.Locked = this.Locked;
+
 	return ParaPr;
 };
 CParaPr.prototype.Merge = function(ParaPr)
@@ -14644,6 +14650,9 @@ CParaPr.prototype.Compare = function(ParaPr)
 
 	if (this.OutlineLvl === ParaPr.OutlineLvl)
 		Result_ParaPr.OutlineLvl = this.OutlineLvl;
+
+	if (this.OutlineLvlStyle || ParaPr.OutlineLvlStyle)
+		Result_ParaPr.OutlineLvlStyle = true;
 
 	return Result_ParaPr;
 };

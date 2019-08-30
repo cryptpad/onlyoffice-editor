@@ -446,7 +446,13 @@ CShapeDrawer.prototype =
         }
 
         if (this.Ln == null || this.Ln.Fill == null || this.Ln.Fill.fill == null)
+        {
             this.bIsNoStrokeAttack = true;
+            if (true === graphics.IsTrack)
+                graphics.Graphics.ArrayPoints = null;
+            else
+                graphics.ArrayPoints = null;
+        }
         else
         {
             var _fill = this.Ln.Fill.fill;
@@ -522,18 +528,14 @@ CShapeDrawer.prototype =
             if (graphics.IsSlideBoundsCheckerType && !this.bIsNoStrokeAttack)
                 graphics.LineWidth = this.StrokeWidth;
 
+            var isUseArrayPoints = false;
             if ((this.Ln.headEnd != null && this.Ln.headEnd.type != null) || (this.Ln.tailEnd != null && this.Ln.tailEnd.type != null))
-            {
-                if (true === graphics.IsTrack)
-                {
-                    if(graphics.Graphics)
-                    {
-                        graphics.Graphics.ArrayPoints = [];
-                    }
-                }
-                else
-                    graphics.ArrayPoints = [];
-            }
+                isUseArrayPoints = true;
+
+            if (true === graphics.IsTrack)
+                graphics.Graphics.ArrayPoints = isUseArrayPoints ? [] : null;
+            else
+                graphics.ArrayPoints = isUseArrayPoints ? [] : null;
 
             if (this.Graphics.m_oContext != null && this.Ln.Join != null && this.Ln.Join.type != null)
                 this.OldLineJoin = this.Graphics.m_oContext.lineJoin;
@@ -792,7 +794,8 @@ CShapeDrawer.prototype =
                         _is_ctx = true;
                     }
 
-                    var _ctx = (this.Graphics.IsTrack === true) ? this.Graphics.Graphics.m_oContext : this.Graphics.m_oContext;
+                    var _gr = (this.Graphics.IsTrack === true) ? this.Graphics.Graphics : this.Graphics;
+                    var _ctx = _gr.m_oContext;
 
                     var patt = !_img_native ? _ctx.createPattern(_img.Image, "repeat") : _ctx.createPattern(_img_native, "repeat");
 
@@ -836,6 +839,9 @@ CShapeDrawer.prototype =
                     }
 
                     _ctx.restore();
+
+                    _gr.m_bPenColorInit = false;
+                    _gr.m_bBrushColorInit = false;
                 }
             }
 
@@ -867,7 +873,8 @@ CShapeDrawer.prototype =
                     _is_ctx = true;
                 }
 
-                var _ctx = (this.Graphics.IsTrack === true) ? this.Graphics.Graphics.m_oContext : this.Graphics.m_oContext;
+                var _gr = (this.Graphics.IsTrack === true) ? this.Graphics.Graphics : this.Graphics;
+                var _ctx = _gr.m_oContext;
 
                 var _patt_name = AscCommon.global_hatch_names[_fill.ftype];
                 if (undefined == _patt_name)
@@ -923,6 +930,9 @@ CShapeDrawer.prototype =
 
                 _ctx.restore();
 
+                _gr.m_bPenColorInit = false;
+                _gr.m_bBrushColorInit = false;
+
                 if (bIsIntegerGridTRUE)
                 {
                     this.Graphics.SetIntegerGrid(true);
@@ -947,7 +957,8 @@ CShapeDrawer.prototype =
                     _is_ctx = true;
                 }
 
-                var _ctx = (this.Graphics.IsTrack === true) ? this.Graphics.Graphics.m_oContext : this.Graphics.m_oContext;
+                var _gr = (this.Graphics.IsTrack === true) ? this.Graphics.Graphics : this.Graphics;
+                var _ctx = _gr.m_oContext;
 
                 var gradObj = null;
                 if (_fill.lin)
@@ -998,6 +1009,9 @@ CShapeDrawer.prototype =
                 {
                     _ctx.fill();
                 }
+
+                _gr.m_bPenColorInit = false;
+                _gr.m_bBrushColorInit = false;
 
                 if (bIsIntegerGridTRUE)
                 {

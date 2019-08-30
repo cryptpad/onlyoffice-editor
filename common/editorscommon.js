@@ -120,6 +120,29 @@
 		};
 		String.prototype['repeat'] = String.prototype.repeat;
 	}
+	if (typeof String.prototype.padStart !== 'function') {
+		String.prototype.padStart = function padStart(targetLength,padString) {
+			targetLength = targetLength>>0; //floor if number or convert non-number to 0;
+			padString = String(padString || ' ');
+			if (this.length > targetLength) {
+				return String(this);
+			}
+			else {
+				targetLength = targetLength-this.length;
+				if (targetLength > padString.length) {
+					padString += padString.repeat(targetLength/padString.length); //append to original to ensure we are longer than needed
+				}
+				return padString.slice(0,targetLength) + String(this);
+			}
+		};
+		String.prototype['padStart'] = String.prototype.padStart;
+	}
+	Number.isInteger = Number.isInteger || function(value) {
+		return typeof value === 'number' && Number.isFinite(value) && !(value % 1);
+	};
+	Number.isFinite = Number.isFinite || function(value) {
+		return typeof value === 'number' && isFinite(value);
+	};
 // Extend javascript String type
 	String.prototype.strongMatch = function (regExp)
 	{
@@ -723,6 +746,8 @@
 				nRes = Asc.c_oAscError.ID.ConvertationPassword;
 				break;
 			case c_oAscServerError.ConvertLIMITS :
+				nRes = Asc.c_oAscError.ID.ConvertationOpenLimitError;
+				break;
 			case c_oAscServerError.ConvertCONVERT_CORRUPTED :
 			case c_oAscServerError.ConvertLIBREOFFICE :
 			case c_oAscServerError.ConvertPARAMS :
@@ -1421,7 +1446,7 @@
 							else
 								callback(mapAscServerErrorToAscError(data["error"]));
 						}
-						else if (data.type === "onExternalPluginMessage")
+						else if (data["type"] === "onExternalPluginMessage")
 						{
                             if (!window.g_asc_plugins)
                             	return;
@@ -1444,6 +1469,14 @@
 
 							window.g_asc_plugins.sendToAllPlugins(event.data);
 						}
+                        else if (data["type"] === "emulateUploadInFrame")
+                        {
+                            if (window["_private_emulate_upload"])
+                            {
+                                window["_private_emulate_upload"](data["name"], data["content"]);
+                                window["_private_emulate_upload"] = undefined;
+                            }
+                        }
 					} catch (err)
 					{
 					}
@@ -1454,6 +1487,25 @@
 
 	function ShowImageFileDialog(documentId, documentUserId, jwt, callback, callbackOld)
 	{
+		if (AscCommon.AscBrowser.isNeedEmulateUpload && window["emulateUpload"])
+		{
+            window["emulateUpload"](function(name, content) {
+            	if (content === "") {
+					callback(Asc.c_oAscError.ID.Unknown);
+					return;
+                }
+
+				var stream = AscFonts.CreateFontData2(content);
+				var blob = new Blob([stream.data.slice(0, stream.size)]);
+				blob.name = name;
+				blob.fileName = name;
+
+                var nError = ValidateUploadImage([blob]);
+                callback(mapAscServerErrorToAscError(nError), [blob]);
+            }, ":<iframe><image>");
+			return;
+		}
+
         if (AscCommon.EncryptionWorker && AscCommon.EncryptionWorker.isCryptoImages())
 		{
 			AscCommon.EncryptionWorker.addCryproImagesFromDialog(callback);
@@ -3375,6 +3427,109 @@
 		return (nFirstCharCode - 64) + 26 * (nLen - 1);
 	}
 
+	/**
+	 * Переводим числовое значение в строку с заданным форматом нумерации
+	 * @param nValue {number}
+	 * @param nFormat {Asc.c_oAscNumberingFormat}
+	 * @returns {string}
+	 */
+	function IntToNumberFormat(nValue, nFormat)
+	{
+		var sResult = "";
+
+		switch (nFormat)
+		{
+			case Asc.c_oAscNumberingFormat.Bullet:
+			{
+				break;
+			}
+
+			case Asc.c_oAscNumberingFormat.Decimal:
+			{
+				sResult = "" + nValue;
+				break;
+			}
+
+			case Asc.c_oAscNumberingFormat.DecimalZero:
+			{
+				sResult = "" + nValue;
+
+				if (1 === sResult.length)
+					sResult = "0" + sResult;
+				break;
+			}
+
+			case Asc.c_oAscNumberingFormat.DecimalEnclosedCircle:
+			{
+				if (nValue <= 20)
+				{
+					sResult = String.fromCharCode(0x2460 + nValue - 1);
+				}
+				else
+				{
+					sResult = "" + nValue;
+				}
+
+				break;
+			}
+
+			case Asc.c_oAscNumberingFormat.LowerLetter:
+			case Asc.c_oAscNumberingFormat.UpperLetter:
+			{
+				// Формат: a,..,z,aa,..,zz,aaa,...,zzz,...
+				var Num = nValue - 1;
+
+				var Count = (Num - Num % 26) / 26;
+				var Ost   = Num % 26;
+
+				var Letter;
+				if (Asc.c_oAscNumberingFormat.LowerLetter === nFormat)
+					Letter = String.fromCharCode(Ost + 97);
+				else
+					Letter = String.fromCharCode(Ost + 65);
+
+				for (var nIndex = 0; nIndex < Count + 1; ++nIndex)
+					sResult += Letter;
+
+				break;
+			}
+
+			case Asc.c_oAscNumberingFormat.LowerRoman:
+			case Asc.c_oAscNumberingFormat.UpperRoman:
+			{
+				var Num = nValue;
+
+				// Переводим число Num в римскую систему исчисления
+				var Rims;
+
+				if (Asc.c_oAscNumberingFormat.LowerRoman === nFormat)
+					Rims = ['m', 'cm', 'd', 'cd', 'c', 'xc', 'l', 'xl', 'x', 'ix', 'v', 'iv', 'i', ' '];
+				else
+					Rims = ['M', 'CM', 'D', 'CD', 'C', 'XC', 'L', 'XL', 'X', 'IX', 'V', 'IV', 'I', ' '];
+
+				var Vals = [1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1, 0];
+
+				var nIndex = 0;
+				while (Num > 0)
+				{
+					while (Vals[nIndex] <= Num)
+					{
+						sResult += Rims[nIndex];
+						Num -= Vals[nIndex];
+					}
+
+					nIndex++;
+
+					if (nIndex >= Rims.length)
+						break;
+				}
+				break;
+			}
+		}
+
+		return sResult;
+	}
+
 	var g_oUserColorById = {}, g_oUserNextColorIndex = 0;
 
 	function getUserColorById(userId, userName, isDark, isNumericValue)
@@ -3527,45 +3682,103 @@
 		return (altKey && (AscBrowser.isMacOs ? !ctrlKey : ctrlKey));
 	}
 
-	function getColorThemeByIndex(index)
+	function getColorSchemeByName(sName)
 	{
-		var _c, scheme = null;
-		var oColorScheme = AscCommon.g_oUserColorScheme;
-		if (index >= oColorScheme.length)
+		for(var i = 0; i <  AscCommon.g_oUserColorScheme.length; ++i)
 		{
-			return scheme;
+			var tmp = AscCommon.g_oUserColorScheme[i];
+			if(tmp.name === sName)
+			{
+				var scheme = new AscFormat.ClrScheme(), _c;
+				scheme.name = tmp.name;
+
+				_c = tmp.get_dk1();
+				scheme.colors[8] = AscFormat.CreateUniColorRGB(_c.r, _c.g, _c.b);
+				_c = tmp.get_lt1();
+				scheme.colors[12] = AscFormat.CreateUniColorRGB(_c.r, _c.g, _c.b);
+				_c = tmp.get_dk2();
+				scheme.colors[9] = AscFormat.CreateUniColorRGB(_c.r, _c.g, _c.b);
+				_c = tmp.get_lt2();
+				scheme.colors[13] = AscFormat.CreateUniColorRGB(_c.r, _c.g, _c.b);
+				_c = tmp.get_accent1();
+				scheme.colors[0] = AscFormat.CreateUniColorRGB(_c.r, _c.g, _c.b);
+				_c = tmp.get_accent2();
+				scheme.colors[1] = AscFormat.CreateUniColorRGB(_c.r, _c.g, _c.b);
+				_c = tmp.get_accent3();
+				scheme.colors[2] = AscFormat.CreateUniColorRGB(_c.r, _c.g, _c.b);
+				_c = tmp.get_accent4();
+				scheme.colors[3] = AscFormat.CreateUniColorRGB(_c.r, _c.g, _c.b);
+				_c = tmp.get_accent5();
+				scheme.colors[4] = AscFormat.CreateUniColorRGB(_c.r, _c.g, _c.b);
+				_c = tmp.get_accent6();
+				scheme.colors[5] = AscFormat.CreateUniColorRGB(_c.r, _c.g, _c.b);
+				_c = tmp.get_hlink();
+				scheme.colors[11] = AscFormat.CreateUniColorRGB(_c.r, _c.g, _c.b);
+				_c = tmp.get_folHlink();
+				scheme.colors[10] = AscFormat.CreateUniColorRGB(_c.r, _c.g, _c.b);
+				return scheme;
+			}
 		}
-		scheme = new AscFormat.ClrScheme();
+		return null;
+	}
 
-		var tmp = oColorScheme[index];
-		scheme.name = tmp.name;
+	function getAscColorScheme(_scheme, theme)
+	{
 
-		_c = tmp.get_dk1();
-		scheme.colors[8] = AscFormat.CreateUniColorRGB(_c.r, _c.g, _c.b);
-		_c = tmp.get_lt1();
-		scheme.colors[12] = AscFormat.CreateUniColorRGB(_c.r, _c.g, _c.b);
-		_c = tmp.get_dk2();
-		scheme.colors[9] = AscFormat.CreateUniColorRGB(_c.r, _c.g, _c.b);
-		_c = tmp.get_lt2();
-		scheme.colors[13] = AscFormat.CreateUniColorRGB(_c.r, _c.g, _c.b);
-		_c = tmp.get_accent1();
-		scheme.colors[0] = AscFormat.CreateUniColorRGB(_c.r, _c.g, _c.b);
-		_c = tmp.get_accent2();
-		scheme.colors[1] = AscFormat.CreateUniColorRGB(_c.r, _c.g, _c.b);
-		_c = tmp.get_accent3();
-		scheme.colors[2] = AscFormat.CreateUniColorRGB(_c.r, _c.g, _c.b);
-		_c = tmp.get_accent4();
-		scheme.colors[3] = AscFormat.CreateUniColorRGB(_c.r, _c.g, _c.b);
-		_c = tmp.get_accent5();
-		scheme.colors[4] = AscFormat.CreateUniColorRGB(_c.r, _c.g, _c.b);
-		_c = tmp.get_accent6();
-		scheme.colors[5] = AscFormat.CreateUniColorRGB(_c.r, _c.g, _c.b);
-		_c = tmp.get_hlink();
-		scheme.colors[11] = AscFormat.CreateUniColorRGB(_c.r, _c.g, _c.b);
-		_c = tmp.get_folHlink();
-		scheme.colors[10] = AscFormat.CreateUniColorRGB(_c.r, _c.g, _c.b);
+		// theme colors
+		var elem, _c;
+		var _rgba = {R: 0, G: 0, B: 0, A: 255};
+		elem = new AscCommon.CAscColorScheme();
+		elem.name = _scheme.name;
 
-		return scheme;
+		_scheme.colors[8].Calculate(theme, null, null, null, _rgba);
+		_c = _scheme.colors[8].RGBA;
+		elem.colors.push(new AscCommon.CColor(_c.R, _c.G, _c.B));
+
+		_scheme.colors[12].Calculate(theme, null, null, null, _rgba);
+		_c = _scheme.colors[12].RGBA;
+		elem.colors.push(new AscCommon.CColor(_c.R, _c.G, _c.B));
+
+		_scheme.colors[9].Calculate(theme, null, null, null, _rgba);
+		_c = _scheme.colors[9].RGBA;
+		elem.colors.push(new AscCommon.CColor(_c.R, _c.G, _c.B));
+
+		_scheme.colors[13].Calculate(theme, null, null, null, _rgba);
+		_c = _scheme.colors[13].RGBA;
+		elem.colors.push(new AscCommon.CColor(_c.R, _c.G, _c.B));
+
+		_scheme.colors[0].Calculate(theme, null, null, null, _rgba);
+		_c = _scheme.colors[0].RGBA;
+		elem.colors.push(new AscCommon.CColor(_c.R, _c.G, _c.B));
+
+		_scheme.colors[1].Calculate(theme, null, null, null, _rgba);
+		_c = _scheme.colors[1].RGBA;
+		elem.colors.push(new AscCommon.CColor(_c.R, _c.G, _c.B));
+
+		_scheme.colors[2].Calculate(theme, null, null, null, _rgba);
+		_c = _scheme.colors[2].RGBA;
+		elem.colors.push(new AscCommon.CColor(_c.R, _c.G, _c.B));
+
+		_scheme.colors[3].Calculate(theme, null, null, null, _rgba);
+		_c = _scheme.colors[3].RGBA;
+		elem.colors.push(new AscCommon.CColor(_c.R, _c.G, _c.B));
+
+		_scheme.colors[4].Calculate(theme, null, null, null, _rgba);
+		_c = _scheme.colors[4].RGBA;
+		elem.colors.push(new AscCommon.CColor(_c.R, _c.G, _c.B));
+
+		_scheme.colors[5].Calculate(theme, null, null, null, _rgba);
+		_c = _scheme.colors[5].RGBA;
+		elem.colors.push(new AscCommon.CColor(_c.R, _c.G, _c.B));
+
+		_scheme.colors[11].Calculate(theme, null, null, null, _rgba);
+		_c = _scheme.colors[11].RGBA;
+		elem.colors.push(new AscCommon.CColor(_c.R, _c.G, _c.B));
+
+		_scheme.colors[10].Calculate(theme, null, null, null, _rgba);
+		_c = _scheme.colors[10].RGBA;
+		elem.colors.push(new AscCommon.CColor(_c.R, _c.G, _c.B));
+		return elem;
 	}
 
 	function isEastAsianScript(value)
@@ -4548,6 +4761,17 @@
 		return matrix;
 	}
 
+	function getTimeISO8601(dateStr) {
+		if (dateStr) {
+			if (dateStr.endsWith("Z")) {
+				return Date.parse(dateStr);
+			} else {
+				return Date.parse(dateStr + "Z");
+			}
+		}
+		return NaN;
+	}
+
 	//------------------------------------------------------------export---------------------------------------------------
 	window['AscCommon'] = window['AscCommon'] || {};
 	window["AscCommon"].getSockJs = getSockJs;
@@ -4593,8 +4817,10 @@
 	window["AscCommon"].getColorFromXml = getColorFromXml;
 	window["AscCommon"].getBoolFromXml = getBoolFromXml;
 	window["AscCommon"].initStreamFromResponse = initStreamFromResponse;
+	window["AscCommon"].checkStreamSignature = checkStreamSignature;
 
 	window["AscCommon"].DocumentUrls = DocumentUrls;
+	window["AscCommon"].OpenFileResult = OpenFileResult;
 	window["AscCommon"].CLock = CLock;
 	window["AscCommon"].CContentChanges = CContentChanges;
 	window["AscCommon"].CContentChangesElement = CContentChangesElement;
@@ -4604,11 +4830,13 @@
 	window["AscCommon"].MMToTwips = MMToTwips;
 	window["AscCommon"].RomanToInt = RomanToInt;
 	window["AscCommon"].LatinNumberingToInt = LatinNumberingToInt;
+	window["AscCommon"].IntToNumberFormat = IntToNumberFormat;
 
 	window["AscCommon"].loadSdk = loadSdk;
     window["AscCommon"].loadScript = loadScript;
 	window["AscCommon"].getAltGr = getAltGr;
-	window["AscCommon"].getColorThemeByIndex = getColorThemeByIndex;
+	window["AscCommon"].getColorSchemeByName = getColorSchemeByName;
+	window["AscCommon"].getAscColorScheme = getAscColorScheme;
 	window["AscCommon"].isEastAsianScript = isEastAsianScript;
 
 	window["AscCommon"].JSZipWrapper = JSZipWrapper;
@@ -4639,6 +4867,7 @@
 	window["AscCommon"].translateManager = new CTranslateManager();
 
 	window["AscCommon"].parseText = parseText;
+	window["AscCommon"].getTimeISO8601 = getTimeISO8601;
 })(window);
 
 window["asc_initAdvancedOptions"] = function(_code, _file_hash, _docInfo)
@@ -4672,48 +4901,6 @@ window["asc_initAdvancedOptions"] = function(_code, _file_hash, _docInfo)
 
     window.checkPasswordFromPlugin = false;
     _editor._onNeedParams(undefined, (_code == 90 || _code == 91) ? true : undefined);
-};
-window.openFileCryptCallback = function(_binary)
-{
-    var _editor = window["Asc"]["editor"] ? window["Asc"]["editor"] : window.editor;
-
-    if (!_editor.isLoadFullApi)
-	{
-		_editor.openFileCryptBinary = _binary;
-		return;
-	}
-
-    if (_binary == null)
-    {
-        _editor.sendEvent("asc_onError", c_oAscError.ID.ConvertationOpenError, c_oAscError.Level.Critical);
-        return;
-    }
-
-    if ("DOCY" == AscCommon.c_oSerFormat.Signature)
-	{
-		var isEditor = true;
-        if (_binary.length > 4)
-		{
-			var _signature = (String.fromCharCode(_binary[0]) + String.fromCharCode(_binary[1]) + String.fromCharCode(_binary[2]) + String.fromCharCode(_binary[3]));
-			if (_signature != AscCommon.c_oSerFormat.Signature)
-				isEditor = false;
-		}
-
-        if (!isEditor)
-            _editor.OpenDocument("", _binary);
-        else
-            _editor.OpenDocument2("", _binary);
-	}
-	else if ("PPTY" == AscCommon.c_oSerFormat.Signature)
-	{
-        _editor.OpenDocument2("", _binary);
-	}
-	else
-	{
-        _editor.openDocument(_binary);
-	}
-
-    _editor.sendEvent("asc_onDocumentPassword", ("" != _editor.currentPassword) ? true : false);
 };
 
 window["asc_IsNeedBuildCryptedFile"] = function()

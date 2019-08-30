@@ -206,6 +206,10 @@
 	var reconnectTimeout, attemptCount = 0;
 
 	function initSocksJs(url, docsCoApi) {
+		if (window['IS_NATIVE_EDITOR']) {
+			return;
+		}
+
 		//ограничиваем transports WebSocket и XHR / JSONP polling, как и engine.io https://github.com/socketio/engine.io
 		//при переборе streaming transports у клиента с wirewall происходило зацикливание(не повторялось в версии sock.js 0.3.4)
 		var sockjs = new (AscCommon.getSockJs())(url, null,

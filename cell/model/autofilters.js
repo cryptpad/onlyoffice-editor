@@ -5038,6 +5038,34 @@
 				return result;
 			},
 
+			_isPartTablePartsByRowCol: function (range) {
+				var worksheet = this.worksheet;
+
+				var partCols = false;
+				var partRows = false;
+				if (worksheet.TableParts && worksheet.TableParts.length) {
+					var allRangeRows = new Asc.Range(range.c1, 0, range.c2, AscCommon.gc_nMaxRow);
+					var allRangeCols = new Asc.Range(0, range.r1, AscCommon.gc_nMaxCol, range.r2);
+					for (var i = 0; i < worksheet.TableParts.length; i++) {
+						var tableRef = worksheet.TableParts[i].Ref;
+						if(range.intersection(tableRef)) {
+							if (!partCols && !allRangeRows.containsRange(tableRef)) {
+								partCols = true;
+							}
+							if (!partRows && !allRangeCols.containsRange(tableRef)) {
+								partRows = true;
+							}
+						}
+
+						if (partCols && partRows) {
+							break;
+						}
+					}
+				}
+
+				return partCols || partRows ? {cols: partCols, rows: partRows} : null;
+			},
+
 			bIsExcludeHiddenRows: function(range, activeCell, checkHiddenRows)
 			{
 				var worksheet = this.worksheet;

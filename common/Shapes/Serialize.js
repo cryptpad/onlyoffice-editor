@@ -1807,8 +1807,11 @@ function BinaryPPTYLoader()
     {
         var ret = new AscFormat.CColorModifiers();
         var _mods = this.ReadColorModifiers();
-        for(var i = 0; i < _mods.length; ++i)
-            ret.addMod(_mods[i]);
+        if(_mods)
+        {
+            for(var i = 0; i < _mods.length; ++i)
+                ret.addMod(_mods[i]);
+        }
         return ret;
     };
 
@@ -3074,7 +3077,7 @@ function BinaryPPTYLoader()
                     var count_effects = s.GetULong();
                     for (var _eff = 0; _eff < count_effects; ++_eff)
                     {
-                        s.Skip(1); // type
+                        s.Skip2(1); // type
                         var effect = this.ReadEffect();
                         if(effect)
                         {
@@ -3185,7 +3188,7 @@ function BinaryPPTYLoader()
                                             for (var _eff = 0; _eff < count_effects; ++_eff)
                                             {
 
-                                                s.Skip(1); // type
+                                                s.Skip2(1); // type
                                                 var oEffect = this.ReadEffect();
                                                 if(oEffect)
                                                 {
@@ -4290,6 +4293,39 @@ function BinaryPPTYLoader()
                             }
                         }
 
+                        while (s.cur < _end_rec3)
+                        {
+                            var _rec3 = s.GetUChar();
+                            switch (_rec3)
+                            {
+                                case 0:
+                                {
+                                    var _end_rec4 = s.cur + s.GetLong() + 4;
+                                    s.Skip2(1); // start attributes
+                                    while (true)
+                                    {
+                                        var _at = s.GetUChar();
+                                        if (_at == g_nodeAttributeEnd)
+                                            break;
+
+                                        switch (_at)
+                                        {
+                                            case 9: { _comment.timeZoneBias = s.GetLong(); break; }
+                                            default:
+                                                return;
+                                        }
+                                    }
+                                    s.Seek2(_end_rec4);
+                                    break;
+                                }
+                                default:
+                                {
+                                    s.SkipRecord();
+                                    break;
+                                }
+                            }
+                        }
+
                         s.Seek2(_end_rec3);
 
                         _comment.Calculate2();
@@ -5017,7 +5053,7 @@ function BinaryPPTYLoader()
                     this.ReadThemeElements(themeElements);
                     theme.setFontScheme(themeElements.fontScheme);
                     theme.setFormatScheme(themeElements.fmtScheme);
-                    theme.changeColorScheme(themeElements.clrScheme);
+                    theme.setColorScheme(themeElements.clrScheme);
 
                     break;
                 }
@@ -11983,6 +12019,15 @@ function CPres()
     prot["asc_getRevision"] = prot.asc_getRevision;
     prot["asc_getCreated"] = prot.asc_getCreated;
     prot["asc_getModified"] = prot.asc_getModified;
+    prot["asc_getCategory"] = prot.asc_getCategory;
+    prot["asc_getContentStatus"] = prot.asc_getContentStatus;
+    prot["asc_getDescription"] = prot.asc_getDescription;
+    prot["asc_getIdentifier"] = prot.asc_getIdentifier;
+    prot["asc_getKeywords"] = prot.asc_getKeywords;
+    prot["asc_getLanguage"] = prot.asc_getLanguage;
+    prot["asc_getLastPrinted"] = prot.asc_getLastPrinted;
+    prot["asc_getSubject"] = prot.asc_getSubject;
+    prot["asc_getVersion"] = prot.asc_getVersion;
 
     prot["asc_putTitle"] = prot.asc_putTitle;
     prot["asc_putCreator"] = prot.asc_putCreator;

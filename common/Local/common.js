@@ -32,6 +32,26 @@
 
 "use strict";
 
+(function (window, undefined)
+{
+	AscCommon.baseEditorsApi.prototype._openChartOrLocalDocument = function ()
+	{
+		if (this.isChartEditor)
+		{
+			return this._openEmptyDocument();
+		}
+
+		this.asc_registerCallback('asc_onDocumentContentReady', function(){
+			DesktopOfflineUpdateLocalName(Asc.editor || editor);
+
+			setTimeout(function(){window["UpdateInstallPlugins"]();}, 10);
+		});
+
+		AscCommon.History.UserSaveMode = true;
+		window["AscDesktopEditor"]["LocalStartOpen"]();
+	};
+})(window);
+
 /////////////////////////////////////////////////////////
 //////////////       FONTS       ////////////////////////
 /////////////////////////////////////////////////////////
@@ -90,6 +110,41 @@ AscFonts.CFontFileLoader.prototype.LoadFontAsync = function(basePath, _callback,
 	};
 
 	xhr.send(null);
+};
+
+window["DesktopOfflineAppDocumentEndLoad"] = function(_url, _data, _len)
+{
+	var editor = Asc.editor || window.editor;
+	AscCommon.g_oDocumentUrls.documentUrl = _url;
+	if (AscCommon.g_oDocumentUrls.documentUrl.indexOf("file:") != 0)
+	{
+		if (AscCommon.g_oDocumentUrls.documentUrl.indexOf("/") != 0)
+			AscCommon.g_oDocumentUrls.documentUrl = "/" + AscCommon.g_oDocumentUrls.documentUrl;
+		AscCommon.g_oDocumentUrls.documentUrl = "file://" + AscCommon.g_oDocumentUrls.documentUrl;
+	}
+
+	AscCommon.g_oIdCounter.m_sUserId = window["AscDesktopEditor"]["CheckUserId"]();
+	if (_data == "")
+	{
+		this.sendEvent("asc_onError", c_oAscError.ID.ConvertationOpenError, c_oAscError.Level.Critical);
+		return;
+	}
+
+	var file = new AscCommon.OpenFileResult();
+	file.data = getBinaryArray(_data, _len);
+	file.bSerFormat = AscCommon.checkStreamSignature(file.data, AscCommon.c_oSerFormat.Signature);
+	file.url = _url;
+	editor.openDocument(file);
+
+	editor.asc_SetFastCollaborative(false);
+	DesktopOfflineUpdateLocalName(editor);
+
+	window["DesktopAfterOpen"](editor);
+
+	// why?
+	// this.onUpdateDocumentModified(AscCommon.History.Have_Changes());
+
+	editor.sendEvent("asc_onDocumentPassword", ("" != editor.currentPassword) ? true : false);
 };
 
 window["DesktopUploadFileToUrl"] = function(url, dst, hash, pass)

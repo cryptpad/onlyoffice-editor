@@ -1471,7 +1471,11 @@
 				}
 
 				if (b <= n) {
-					return new cError(cErrorType.not_numeric);
+					if(i + 1 === a.length && ((b ==  2 && (a[i] == 'b' || a[i] == 'B')) ||(b == 16 && (a[i] == 'h' || a[i] == 'H')))) {
+						;
+					} else {
+						return new cError(cErrorType.not_numeric);
+					}
 				} else {
 					fVal = fVal * b + n;
 				}
@@ -3410,7 +3414,7 @@
 	cROMAN.prototype = Object.create(cBaseFunction.prototype);
 	cROMAN.prototype.constructor = cROMAN;
 	cROMAN.prototype.name = 'ROMAN';
-	cROMAN.prototype.argumentsMin = 2;
+	cROMAN.prototype.argumentsMin = 1;
 	cROMAN.prototype.argumentsMax = 2;
 	cROMAN.prototype.Calculate = function (arg) {
 		function roman(num, mode) {
@@ -3452,7 +3456,7 @@
 			}
 		}
 
-		var arg0 = arg[0], arg1 = arg[1];
+		var arg0 = arg[0], arg1 = arg[1] ? arg[1] : new cNumber(0);
 		if (arg0 instanceof cArea || arg0 instanceof cArea3D || arg1 instanceof cArea || arg1 instanceof cArea3D) {
 			return new cError(cErrorType.wrong_value_type);
 		}
@@ -4757,7 +4761,7 @@
 			}
 
 			if (!_3d) {
-				if (a.length == b.length && a[0].length == b[0].length) {
+				if (a.length == b.length && a[0] && b[0] && a[0].length == b[0].length) {
 					for (i = 0; i < a.length; i++) {
 						for (j = 0; j < a[0].length; j++) {
 							if (a[i][j] instanceof cNumber && b[i][j] instanceof cNumber) {
@@ -4772,7 +4776,7 @@
 					return new cError(cErrorType.wrong_value_type);
 				}
 			} else {
-				if (a.length == b.length && a[0].length == b[0].length && a[0][0].length == b[0][0].length) {
+				if (a.length == b.length && a[0] && b[0] && a[0].length == b[0].length && a[0][0] && b[0][0] && a[0][0].length == b[0][0].length) {
 					for (i = 0; i < a.length; i++) {
 						for (j = 0; j < a[0].length; j++) {
 							for (var k = 0; k < a[0][0].length; k++) {
@@ -4797,18 +4801,30 @@
 			return sumX2MY2(arg0.getMatrix(), arg1.getMatrix(), true);
 		}
 
+		if(arg0 instanceof cRef || arg0 instanceof cRef3D) {
+			arg0 = arg0.getValue();
+		}
+
 		if (arg0 instanceof cArea || arg0 instanceof cArray) {
 			arg0 = arg0.getMatrix();
 		} else if (arg0 instanceof cError) {
 			return arg0;
+		} else if(arg0 instanceof cNumber) {
+			arg0 = [[arg0]];
 		} else {
 			return new cError(cErrorType.wrong_value_type);
+		}
+
+		if(arg1 instanceof cRef || arg1 instanceof cRef3D) {
+			arg1 = arg1.getValue();
 		}
 
 		if (arg1 instanceof cArea || arg1 instanceof cArray || arg1 instanceof cArea3D) {
 			arg1 = arg1.getMatrix();
 		} else if (arg1 instanceof cError) {
 			return arg1;
+		} else if(arg1 instanceof cNumber) {
+			arg1 = [[arg1]];
 		} else {
 			return new cError(cErrorType.wrong_value_type);
 		}

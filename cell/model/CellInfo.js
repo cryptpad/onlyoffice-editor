@@ -117,25 +117,7 @@
 
 	/** @constructor */
 	function asc_CBorder(style, color) {
-		// ToDo заглушка для создания border-а
-		if (typeof style === "string") {
-			switch (style) {
-				case "thin"    :
-					this.style = c_oAscBorderStyles.Thin;
-					break;
-				case "medium"  :
-					this.style = c_oAscBorderStyles.Medium;
-					break;
-				case "thick"  :
-					this.style = c_oAscBorderStyles.Thick;
-					break;
-				default      :
-					this.style = c_oAscBorderStyles.None;
-					break;
-			}
-		} else {
-			this.style = style !== undefined ? style : c_oAscBorderStyles.None;
-		}
+		this.style = style !== undefined ? style : c_oAscBorderStyles.None;
 		this.color = color !== undefined ? color : null;
 	}
 
@@ -280,6 +262,7 @@
 		this.flags = null;
 		this.font = null;
 		this.fill = null;
+		this.fill2 = null;
 		this.border = null;
 		this.innertext = null;
 		this.numFormat = null;
@@ -296,7 +279,9 @@
 		this.formatTableInfo = null;
 		this.sparklineInfo = null;
 		this.pivotTableInfo = null;
+		this.dataValidation = null;
 		this.selectedColsCount = null;
+		this.isLockedHeaderFooter = false;
 	}
 
 	asc_CCellInfo.prototype.asc_getFormula = function () {
@@ -319,6 +304,9 @@
 	};
 	asc_CCellInfo.prototype.asc_getFill = function () {
 		return this.fill;
+	};
+	asc_CCellInfo.prototype.asc_getFill2 = function () {
+		return this.fill2;
 	};
 	asc_CCellInfo.prototype.asc_getBorders = function () {
 		return this.border;
@@ -368,8 +356,14 @@
 	asc_CCellInfo.prototype.asc_getPivotTableInfo = function () {
 		return this.pivotTableInfo;
 	};
+	asc_CCellInfo.prototype.asc_getDataValidation = function () {
+		return this.dataValidation;
+	};
 	asc_CCellInfo.prototype.asc_getSelectedColsCount = function () {
 		return this.selectedColsCount;
+	};
+	asc_CCellInfo.prototype.asc_getLockedHeaderFooter = function () {
+		return this.isLockedHeaderFooter;
 	};
 
 	/** @constructor */
@@ -509,6 +503,7 @@
 	prot["asc_getFlags"] = prot.asc_getFlags;
 	prot["asc_getFont"] = prot.asc_getFont;
 	prot["asc_getFill"] = prot.asc_getFill;
+	prot["asc_getFill2"] = prot.asc_getFill2;
 	prot["asc_getBorders"] = prot.asc_getBorders;
 	prot["asc_getInnerText"] = prot.asc_getInnerText;
 	prot["asc_getNumFormat"] = prot.asc_getNumFormat;
@@ -525,7 +520,9 @@
 	prot["asc_getFormatTableInfo"] = prot.asc_getFormatTableInfo;
 	prot["asc_getSparklineInfo"] = prot.asc_getSparklineInfo;
 	prot["asc_getPivotTableInfo"] = prot.asc_getPivotTableInfo;
+	prot["asc_getDataValidation"] = prot.asc_getDataValidation;
 	prot["asc_getSelectedColsCount"] = prot.asc_getSelectedColsCount;
+	prot["asc_getLockedHeaderFooter"] = prot.asc_getLockedHeaderFooter;
 
 	window["Asc"].asc_CDefName = window["Asc"]["asc_CDefName"] = asc_CDefName;
 	prot = asc_CDefName.prototype;

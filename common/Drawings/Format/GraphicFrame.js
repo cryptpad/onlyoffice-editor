@@ -391,7 +391,7 @@ CGraphicFrame.prototype.recalculateTable = function () {
         this.graphicObject.Set_PositionH(Asc.c_oAscHAnchor.Page, false, 0, false);
         this.graphicObject.Set_PositionV(Asc.c_oAscVAnchor.Page, false, 0, false);
         this.graphicObject.Parent = this;
-        this.graphicObject.Reset(0, 0, this.spPr.xfrm.extX, 10000, 0);
+        this.graphicObject.Reset(0, 0, this.extX, 10000, 0);
         this.graphicObject.Recalculate_Page(0);
     }
 };
@@ -401,6 +401,16 @@ CGraphicFrame.prototype.recalculate = function()
         if(this.bDeleted  || !this.parent)
             return;
         AscFormat.ExecuteNoHistory(function(){
+
+            if(this.recalcInfo.recalculateTransform)
+            {
+                this.recalculateTransform();
+                this.recalculateSnapArrays();
+                this.recalcInfo.recalculateTransform = false;
+                this.transformText = this.transform;
+                this.invertTransformText = this.invertTransform;
+                this.cachedImage = null;
+            }
             if(this.recalcInfo.recalculateTable)
             {
                 this.recalculateTable();
@@ -410,16 +420,6 @@ CGraphicFrame.prototype.recalculate = function()
             {
                 this.recalculateSizes();
                 this.recalcInfo.recalculateSizes = false;
-
-            }
-            if(this.recalcInfo.recalculateTransform)
-            {
-                this.recalculateTransform();
-            this.recalculateSnapArrays();
-                this.recalcInfo.recalculateTransform = false;
-                this.transformText = this.transform;
-                this.invertTransformText = this.invertTransform;
-                this.cachedImage = null;
                 this.bounds.l = this.x;
                 this.bounds.t = this.y;
                 this.bounds.r = this.x + this.extX;
@@ -434,19 +434,17 @@ CGraphicFrame.prototype.recalculate = function()
 };
 
 CGraphicFrame.prototype.recalculateSizes = function()
+{
+    if(this.graphicObject)
     {
-        if(this.graphicObject)
-        {
-            this.graphicObject.XLimit -= this.graphicObject.X;
-            this.graphicObject.X = 0;
-            this.graphicObject.Y = 0;
-            this.graphicObject.X_origin = 0;
-            var _page_bounds = this.graphicObject.Get_PageBounds(0);
-            this.spPr.xfrm.extY = _page_bounds.Bottom - _page_bounds.Top;
-            this.spPr.xfrm.extX = _page_bounds.Right - _page_bounds.Left;
-            this.extX =  this.spPr.xfrm.extX;
-            this.extY =  this.spPr.xfrm.extY;
-        }
+        this.graphicObject.XLimit -= this.graphicObject.X;
+        this.graphicObject.X = 0;
+        this.graphicObject.Y = 0;
+        this.graphicObject.X_origin = 0;
+        var _page_bounds = this.graphicObject.Get_PageBounds(0);
+        this.extX = _page_bounds.Right - _page_bounds.Left;
+        this.extY = _page_bounds.Bottom - _page_bounds.Top;
+    }
 };
 
 CGraphicFrame.prototype.IsSelectedSingleElement = function()

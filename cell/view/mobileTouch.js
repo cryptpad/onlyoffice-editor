@@ -960,7 +960,13 @@ function (window, undefined)
 			isPreventDefault = false;
 
 		if (this.Api.isViewMode || isPreventDefault)
-			AscCommon.g_inputContext.preventVirtualKeyboard(e);
+		{
+			if (!AscCommon.g_inputContext.isHardCheckKeyboard)
+          		AscCommon.g_inputContext.preventVirtualKeyboard(e);
+        }
+
+        if (AscCommon.g_inputContext.isHardCheckKeyboard)
+            isPreventDefault ? AscCommon.g_inputContext.preventVirtualKeyboard_Hard() : AscCommon.g_inputContext.enableVirtualKeyboard_Hard();
 
 		if (true !== this.iScroll.isAnimating && (this.CellEditorType != Asc.c_oAscCellEditorState.editFormula))
 			this.CheckContextMenuTouchEnd(isCheckContextMenuMode, isCheckContextMenuSelect, isCheckContextMenuCursor);

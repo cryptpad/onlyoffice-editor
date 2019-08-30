@@ -49,48 +49,21 @@ var c_oAscError = Asc.c_oAscError;
 	var asc = window["Asc"];
 	var spreadsheet_api = asc['spreadsheet_api'];
 
-	spreadsheet_api.prototype._OfflineAppDocumentStartLoad = function()
-	{
-		this.asc_registerCallback('asc_onDocumentContentReady', function(){
-			DesktopOfflineUpdateLocalName(asc["editor"]);
-
-			setTimeout(function(){window["UpdateInstallPlugins"]();}, 10);
-		});
-	
-		window["AscDesktopEditor"]["LocalStartOpen"]();
-	};
-	spreadsheet_api.prototype._OfflineAppDocumentEndLoad = function(_data, _len)
-	{
-		AscCommon.g_oIdCounter.m_sUserId = window["AscDesktopEditor"]["CheckUserId"]();
-		if (_data == "")
-		{
-			this.sendEvent("asc_onError", c_oAscError.ID.ConvertationOpenError, c_oAscError.Level.Critical);
-			return;
-		}
-
-		var _binary = getBinaryArray(_data, _len);
-		this.openDocument(_binary);
-		AscCommon.History.UserSaveMode = true;
-		
-		DesktopOfflineUpdateLocalName(this);
-
-		window["DesktopAfterOpen"](this);
-		
-		this.onUpdateDocumentModified(AscCommon.History.Have_Changes());
-	};
 	spreadsheet_api.prototype._onNeedParams = function(data, opt_isPassword)
 	{
+		var type;
 		var options;
-		if(opt_isPassword){
-			options = new AscCommon.asc_CAdvancedOptions(Asc.c_oAscAdvancedOptionsID.DRM);
+		if (opt_isPassword) {
+			type = Asc.c_oAscAdvancedOptionsID.DRM;
 		} else {
+			type = Asc.c_oAscAdvancedOptionsID.CSV;
 			var cp = JSON.parse("{\"codepage\":46,\"delimiter\":1}");
 			cp['encodings'] = AscCommon.getEncodingParams();
-			options = new AscCommon.asc_CAdvancedOptions(Asc.c_oAscAdvancedOptionsID.CSV, cp);
+			options = new AscCommon.asc_CAdvancedOptions(cp);
 		}
-		this.handlers.trigger("asc_onAdvancedOptions", options, AscCommon.c_oAscAdvancedOptionsAction.Open);
+		this.handlers.trigger("asc_onAdvancedOptions", type, options);
 	};
-	spreadsheet_api.prototype.asc_addImageDrawingObject = function(url, imgProp, withAuthorization)
+	spreadsheet_api.prototype.asc_addImageDrawingObject = function(url, imgProp, token)
 	{
 		var ws = this.wb.getWorksheet();
 		if (ws) 
@@ -172,11 +145,11 @@ var c_oAscError = Asc.c_oAscError;
 				window["DesktopOfflineAppDocumentStartSave"](isSaveAs);
 		}
 	};
-    spreadsheet_api.prototype.asc_DownloadAs2 = spreadsheet_api.prototype.asc_DownloadAs;
-	spreadsheet_api.prototype.asc_DownloadAs = function(typeFile, bIsDownloadEvent, adjustPrint, isNaturalDownloadAs)
+    spreadsheet_api.prototype.asc_DownloadAsNatural = spreadsheet_api.prototype.asc_DownloadAs;
+	spreadsheet_api.prototype.asc_DownloadAs = function(options)
 	{
-        if (isNaturalDownloadAs)
-            return this.asc_DownloadAs2(typeFile, bIsDownloadEvent, adjustPrint);
+        if (options && options.isNaturalDownload)
+            return this.asc_DownloadAsNatural(options);
 		this.asc_Save(false, true);
 	};
 	spreadsheet_api.prototype.asc_isOffline = function()
@@ -320,18 +293,5 @@ var c_oAscError = Asc.c_oAscError;
 			asc["editor"].asc_Save(false, true);
 		else if (sCommand == "print")
 			asc["editor"].asc_Print();
-	};
-	window["DesktopOfflineAppDocumentEndLoad"] = function(_url, _data, _len)
-	{
-		AscCommon.g_oDocumentUrls.documentUrl = _url;
-		if (AscCommon.g_oDocumentUrls.documentUrl.indexOf("file:") != 0)
-		{
-			if (AscCommon.g_oDocumentUrls.documentUrl.indexOf("/") != 0)
-				AscCommon.g_oDocumentUrls.documentUrl = "/" + AscCommon.g_oDocumentUrls.documentUrl;
-			AscCommon.g_oDocumentUrls.documentUrl = "file://" + AscCommon.g_oDocumentUrls.documentUrl;
-		}
-
-        asc["editor"]._OfflineAppDocumentEndLoad(_data, _len);
-        asc["editor"].sendEvent("asc_onDocumentPassword", ("" != asc["editor"].currentPassword) ? true : false);
 	};
 })(jQuery, window);

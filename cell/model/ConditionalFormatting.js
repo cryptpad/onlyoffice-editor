@@ -54,8 +54,8 @@
 
 		return this;
 	}
-	CConditionalFormatting.prototype.setSqref = function(sqref) {
-		this.ranges = AscCommonExcel.g_oRangeCache.getActiveRangesFromSqRef(sqref);
+	CConditionalFormatting.prototype.setSqRef = function(sqRef) {
+		this.ranges = AscCommonExcel.g_oRangeCache.getRangesFromSqRef(sqRef);
 	};
 	CConditionalFormatting.prototype.isValid = function() {
 		//todo more checks

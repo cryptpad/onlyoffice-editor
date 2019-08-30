@@ -190,6 +190,8 @@ ParaHyperlink.prototype.Split = function (ContentPos, Depth)
     var NewHyperlink = CParagraphContentWithParagraphLikeContent.prototype.Split.apply(this, arguments);
     NewHyperlink.SetValue(this.Value);
     NewHyperlink.SetToolTip(this.ToolTip);
+	NewHyperlink.SetAnchor(this.Anchor);
+	NewHyperlink.Visited = this.Visited;
     return NewHyperlink;
 };
 

@@ -145,8 +145,8 @@
         t.callback_OnSaveChanges(e, userId, bFirstLoad);
       };
       // Callback есть пользователей больше 1
-      this._CoAuthoringApi.onStartCoAuthoring = function(e) {
-        t.callback_OnStartCoAuthoring(e);
+      this._CoAuthoringApi.onStartCoAuthoring = function(e, isWaitAuth) {
+        t.callback_OnStartCoAuthoring(e, isWaitAuth);
       };
       this._CoAuthoringApi.onEndCoAuthoring = function(e) {
         t.callback_OnEndCoAuthoring(e);
@@ -505,9 +505,9 @@
       this.onSaveChanges(e, userId, bFirstLoad);
     }
   };
-  CDocsCoApi.prototype.callback_OnStartCoAuthoring = function(e) {
+  CDocsCoApi.prototype.callback_OnStartCoAuthoring = function(e, isWaitAuth) {
     if (this.onStartCoAuthoring) {
-      this.onStartCoAuthoring(e);
+      this.onStartCoAuthoring(e, isWaitAuth);
     }
   };
   CDocsCoApi.prototype.callback_OnEndCoAuthoring = function(e) {
@@ -1167,10 +1167,15 @@
   };
 
   DocsCoApi.prototype._onStartCoAuthoring = function(isStartEvent, isWaitAuth) {
+    if (isWaitAuth && false === this.isCoAuthoring && !this.onStartCoAuthoring) {
+      var errorMsg = 'Error: connection state changed waitAuth' +
+          ';this.onStartCoAuthoring:' + !!this.onStartCoAuthoring;
+      this.sendChangesError(errorMsg);
+    }
     if (false === this.isCoAuthoring) {
       this.isCoAuthoring = true;
       if (this.onStartCoAuthoring) {
-        this.onStartCoAuthoring(isStartEvent);
+        this.onStartCoAuthoring(isStartEvent, isWaitAuth);
       }
     } else if (isWaitAuth) {
       //it is a stub for unexpected situation(no direct reproduce scenery)
@@ -1379,10 +1384,23 @@
     }
     var isWaitAuth = data['waitAuth'];
     var usersStateChanged;
+    if(isWaitAuth && !(this.onConnectionStateChanged && (!this._participantsTimestamp || this._participantsTimestamp <= data['participantsTimestamp']))) {
+      var errorMsg = 'Error: connection state changed waitAuth' +
+          ';onConnectionStateChanged:' + !!this.onConnectionStateChanged +
+          ';this._participantsTimestamp:' + this._participantsTimestamp +
+          ';data.participantsTimestamp:' + data['participantsTimestamp'];
+      this.sendChangesError(errorMsg);
+    }
     if (this.onConnectionStateChanged && (!this._participantsTimestamp || this._participantsTimestamp <= data['participantsTimestamp'])) {
       this._participantsTimestamp = data['participantsTimestamp'];
       usersStateChanged = this._onParticipantsChanged(data['participants'], true);
 
+      if (isWaitAuth && !(usersStateChanged.length > 0 && 1 < this._countEditUsers)) {
+        var errorMsg = 'Error: connection state changed waitAuth' +
+            ';usersStateChanged:' + JSON.stringify(usersStateChanged) +
+            ';this._countEditUsers:' + this._countEditUsers;
+        this.sendChangesError(errorMsg);
+      }
       if (usersStateChanged.length > 0) {
         // Посылаем эвент о совместном редактировании
         if (1 < this._countEditUsers) {
@@ -1405,7 +1423,7 @@
 
   DocsCoApi.prototype._onDrop = function(data) {
     this.disconnect();
-    this.onDisconnect(data ? data['description'] : '', this._getDisconnectErrorCode());
+    this.onDisconnect(data ? data['description'] : '', this._getDisconnectErrorCode(data && data['code']));
   };
 
   DocsCoApi.prototype._onWarning = function(data) {
@@ -1789,6 +1807,8 @@
 			level = Asc.c_oAscError.Level.Critical;
 		} else if (c_oCloseCode.drop === opt_closeCode) {
 			code = Asc.c_oAscError.ID.UserDrop;
+		} else if (c_oCloseCode.updateVersion === opt_closeCode) {
+			code = Asc.c_oAscError.ID.UpdateVersion;
 		}
 		return {code: code, level: level};
 	};

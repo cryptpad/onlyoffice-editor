@@ -357,6 +357,7 @@ CShape.prototype.recalculatePresentation = function ()
         {
             this.recalculateBounds();
             this.recalcInfo.recalculateBounds = false;
+            this.recalculateShdw();
         }
 
     }, this, []);
@@ -372,6 +373,11 @@ CShape.prototype.recalculate = function ()
     }
     AscFormat.ExecuteNoHistory(function()
     {
+        var bRecalcShadow = this.recalcInfo.recalculateBrush ||
+            this.recalcInfo.recalculatePen ||
+            this.recalcInfo.recalculateTransform ||
+            this.recalcInfo.recalculateGeometry ||
+            this.recalcInfo.recalculateBounds;
         if(this.bWordShape)
         {
             if (this.recalcInfo.recalculateBrush) {
@@ -402,6 +408,10 @@ CShape.prototype.recalculate = function ()
             {
                 this.recalculateWrapPolygon();
                 this.recalcInfo.recalculateWrapPolygon = false;
+            }
+            if(bRecalcShadow)
+            {
+                this.recalculateShdw();
             }
         }
         else
@@ -440,6 +450,11 @@ CShape.prototype.recalculate = function ()
             {
                 this.recalculateBounds();
                 this.recalcInfo.recalculateBounds = false;
+            }
+
+            if(bRecalcShadow)
+            {
+                this.recalculateShdw();
             }
         }
         this.clearCropObject();

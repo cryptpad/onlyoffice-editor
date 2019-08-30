@@ -540,6 +540,10 @@ CHdrFtrController.prototype.GetSimilarNumbering = function(oEngine)
 {
 	this.HdrFtr.GetSimilarNumbering(oEngine)
 };
+CHdrFtrController.prototype.GetPlaceHolderObject = function()
+{
+	return this.HdrFtr.GetPlaceHolderObject();
+};
 CHdrFtrController.prototype.GetAllFields = function(isUseSelection, arrFields)
 {
 	// Поиск по всем колонтитулам должен происходить не здесь

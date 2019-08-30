@@ -426,7 +426,6 @@ CCollaborativeEditingBase.prototype.SendImagesUrlsFromChanges = function (aImage
     if(!oApi){
         return;
     }
-    rData['id'] = oApi.documentId;
     rData['c'] = 'pathurls';
     rData['data'] = [];
     for(i = 0; i < aImages.length; ++i)

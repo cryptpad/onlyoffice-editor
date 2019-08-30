@@ -1384,6 +1384,17 @@ function CGroupShape()
         }
     };
 
+    CGroupShape.prototype.changeShadow = function (oShadow) {
+
+        for(var _shape_index = 0; _shape_index < this.spTree.length; ++_shape_index)
+        {
+            if(this.spTree[_shape_index].changeShadow)
+            {
+                this.spTree[_shape_index].changeShadow(oShadow);
+            }
+        }
+    };
+
     CGroupShape.prototype.changeFill = function(fill)
     {
         for(var _shape_index = 0; _shape_index < this.spTree.length; ++_shape_index)

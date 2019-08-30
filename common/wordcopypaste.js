@@ -1969,7 +1969,7 @@ function Editor_Paste_Exec(api, _format, data1, data2, text_data, specialPastePr
 function trimString( str ){
     return str.replace(/^\s+|\s+$/g, '') ;
 }
-function sendImgUrls(api, images, callback, bExcel, bNotShowError, withAuthorization) {
+function sendImgUrls(api, images, callback, bExcel, bNotShowError, token) {
 
   if (window["AscDesktopEditor"])
   {
@@ -1994,7 +1994,7 @@ function sendImgUrls(api, images, callback, bExcel, bNotShowError, withAuthoriza
 
   var rData = {
     "id": api.documentId, "c": "imgurls", "userid": api.documentUserId, "saveindex": g_oDocumentUrls.getMaxIndex(),
-    "withAuthorization": withAuthorization, "data": images
+    "jwt": token, "data": images
   };
   api.sync_StartAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.LoadImage);
 
@@ -5140,11 +5140,18 @@ PasteProcessor.prototype =
 				addTextIntoRun(newParaRun, insertText);
 				newParagraph.Internal_Content_Add(newParagraph.Content.length - 1, newParaRun, false);
 				insertText = "";
-			} else if(13 === _charCode){
+			} else if(13 === _charCode) {
 				continue;
 			} else {
 				insertText += _char;
 			}
+		}
+
+		if(insertText !== "") {
+			newParaRun = getNewParaRun();
+			addTextIntoRun(newParaRun, insertText);
+			newParagraph.Internal_Content_Add(newParagraph.Content.length - 1, newParaRun, false);
+			this.aContent.push(newParagraph);
 		}
 	},
 
@@ -9518,6 +9525,7 @@ PasteProcessor.prototype =
 		};
 		var fInitCommentData = function (comment) {
 			var oCommentObj = new CCommentData();
+			oCommentObj.m_nDurableId = AscCommon.CreateUInt32();
 			if (null != comment.UserName) {
 				oCommentObj.m_sUserName = comment.UserName;
 			}

@@ -132,7 +132,8 @@
 	accessDeny: 4004,
 	jwtExpired: 4005,
 	jwtError: 4006,
-	drop: 4007
+	drop: 4007,
+	updateVersion: 4008
   };
   
 	var c_oAscServerCommandErrors = {

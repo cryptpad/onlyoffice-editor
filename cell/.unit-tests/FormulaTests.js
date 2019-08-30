@@ -602,13 +602,15 @@ $( function () {
 		//console.log(val);
 	}
 
+	var newFormulaParser = false;
+
     var c_msPerDay = AscCommonExcel.c_msPerDay;
     var parserFormula = AscCommonExcel.parserFormula;
     var GetDiffDate360 = AscCommonExcel.GetDiffDate360;
     var fSortAscending = AscCommon.fSortAscending;
     var g_oIdCounter = AscCommon.g_oIdCounter;
 
-    var oParser, wb, ws, dif = 1e-9, sData = AscCommonExcel.getEmptyWorkbook(), tmp;
+    var oParser, wb, ws, dif = 1e-9, sData = AscCommon.getEmpty(), tmp;
     if ( AscCommon.c_oSerFormat.Signature === sData.substring( 0, AscCommon.c_oSerFormat.Signature.length ) ) {
         wb = new AscCommonExcel.Workbook( new AscCommonExcel.asc_CHandlersList(), {wb:{getWorksheet:function(){}}} );
         AscCommon.History.init(wb);
@@ -1456,6 +1458,14 @@ $( function () {
 		oParser = new parserFormula( 'DECIMAL("zap",36)', "A1", ws );
 		ok( oParser.parse(), 'DECIMAL("zap",36)' );
 		strictEqual( oParser.calculate().getValue(), 45745, 'DECIMAL("zap",36)' );
+
+		oParser = new parserFormula( 'DECIMAL("00FF",16)', "A1", ws );
+		ok( oParser.parse(), 'DECIMAL("00FF",16)' );
+		strictEqual( oParser.calculate().getValue(), 255, 'DECIMAL("00FF",16)' );
+
+		oParser = new parserFormula( 'DECIMAL("101b",2)', "A1", ws );
+		ok( oParser.parse(), 'DECIMAL("101b",2)' );
+		strictEqual( oParser.calculate().getValue(), 5, 'DECIMAL("101b",2)' );
 
 		testArrayFormula2("DECIMAL", 2, 2);
 	} );
@@ -5192,6 +5202,10 @@ $( function () {
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), "MMLDVLIV" );
 
+		oParser = new parserFormula( "ROMAN(499)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "CDXCIX" );
+
 		testArrayFormula2("ROMAN", 2, 2);
     } );
 
@@ -5214,6 +5228,18 @@ $( function () {
 
     test( "Test: \"SUMX2MY2\"", function () {
 
+		ws.getRange2( "A101" ).setValue( "5" );
+		ws.getRange2( "A102" ).setValue( "6" );
+		ws.getRange2( "A103" ).setValue( "test1" );
+		ws.getRange2( "A104" ).setValue( "" );
+		ws.getRange2( "A105" ).setValue( "false" );
+
+		ws.getRange2( "B101" ).setValue( "1" );
+		ws.getRange2( "B102" ).setValue( "1" );
+		ws.getRange2( "B103" ).setValue( "test2" );
+		ws.getRange2( "B104" ).setValue( "" );
+		ws.getRange2( "B105" ).setValue( "false" );
+
         oParser = new parserFormula( "SUMX2MY2({2,3,9,1,8,7,5},{6,5,11,7,5,4,4})", "A1", ws );
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), -55 );
@@ -5224,7 +5250,27 @@ $( function () {
 
         oParser = new parserFormula( "SUMX2MY2(7,5)", "A1", ws );
         ok( oParser.parse() );
-        strictEqual( oParser.calculate().getValue(), "#VALUE!" );
+        strictEqual( oParser.calculate().getValue(), 24 );
+
+		oParser = new parserFormula( "SUMX2MY2(A101,B101)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 24 );
+
+		oParser = new parserFormula( "SUMX2MY2(A103,B103)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "#VALUE!" );
+
+		oParser = new parserFormula( "SUMX2MY2(A101:A102,B101:B102)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 59 );
+
+		/*oParser = new parserFormula( "SUMX2MY2(A101:A105,B101:B105)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 59 );*/
+
+		oParser = new parserFormula( "SUMX2MY2(A105,B105)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "#VALUE!" );
 
         testArrayFormula2("SUMX2MY2", 2, 2, null, true);
     } );
@@ -6625,7 +6671,8 @@ $( function () {
 
 		oParser = new parserFormula( "FORMULATEXT(S100:105)", "A1", ws );
 		ok( oParser.parse() );
-		strictEqual( oParser.calculate().getValue(), "#VALUE!" );
+		//"#N/A" - в ms excel
+		strictEqual( oParser.calculate().getValue(), newFormulaParser ? "#N/A" : "#VALUE!");
 
 		oParser = new parserFormula( "FORMULATEXT(S103)", "A1", ws );
 		ok( oParser.parse() );

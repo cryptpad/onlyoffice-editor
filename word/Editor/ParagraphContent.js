@@ -2281,5 +2281,6 @@ window['AscCommonWord'].ParaSpace     = ParaSpace;
 window['AscCommonWord'].ParaPageNum   = ParaPageNum;
 window['AscCommonWord'].ParaPageCount = ParaPageCount;
 
+window['AscCommonWord'].break_Line = break_Line;
 window['AscCommonWord'].break_Page = break_Page;
 window['AscCommonWord'].break_Column = break_Column;

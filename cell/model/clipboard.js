@@ -2861,9 +2861,32 @@
 					text = AscCommon.parseText(text, advancedOptions, true);
 				}
 				var aResult = this._getTableFromText(text, textImport);
-				if(aResult && !(aResult.onlyImages && window["Asc"]["editor"] && window["Asc"]["editor"].isChartEditor))
-				{
-					worksheet.setSelectionInfo('paste', {data: aResult, bText: true});
+				if(aResult && !(aResult.onlyImages && window["Asc"]["editor"] && window["Asc"]["editor"].isChartEditor)) {
+					if(textImport) {
+						var arn = worksheet.model.selectionRange.getLast().clone();
+						var width = aResult.content && aResult.content[0] ? aResult.content[0].length - 1 : 0;
+						var height = aResult.content ? aResult.content.length - 1 : 0;
+						var arnTo = new Asc.Range(arn.c1, arn.r1, arn.c1 + width, arn.r1 + height);
+
+						var resmove = worksheet.model._prepareMoveRange(arn, arnTo);
+						if (resmove === -2) {
+							window['AscCommon'].g_specialPasteHelper.Paste_Process_End();
+							worksheet.handlers.trigger("onErrorEvent", c_oAscError.ID.CannotMoveRange, c_oAscError.Level.NoCritical);
+						} else if (resmove === -1) {
+							worksheet.model.workbook.handlers.trigger("asc_onConfirmAction", Asc.c_oAscConfirm.ConfirmReplaceRange,
+								function (can) {
+									if (can) {
+										worksheet.setSelectionInfo('paste', {data: aResult, bText: true});
+									} else {
+										window['AscCommon'].g_specialPasteHelper.Paste_Process_End();
+									}
+								});
+						} else {
+							worksheet.setSelectionInfo('paste', {data: aResult, bText: true});
+						}
+					} else {
+						worksheet.setSelectionInfo('paste', {data: aResult, bText: true});
+					}
 				}
 			},
 			
@@ -3664,12 +3687,12 @@
 						case para_Math_BreakOperator:
 						case para_Math_Text:
 						{
-							text += String.fromCharCode(paraRunContent[pR].value);
+							text += AscCommon.encodeSurrogateChar(paraRunContent[pR].value)
 							break;
 						}
 						case para_Text:
 						{
-							text += String.fromCharCode(paraRunContent[pR].Value);
+							text += AscCommon.encodeSurrogateChar(paraRunContent[pR].Value)
 							break;
 						}
 						case para_NewLine: {
@@ -4045,9 +4068,9 @@
 
 										var Letter;
 										if (Asc.c_oAscNumberingFormat.LowerLetter === LvlPr.Format) {
-											Letter = String.fromCharCode(Ost + 97);
+											Letter = AscCommon.encodeSurrogateChar(Ost + 97);
 										} else {
-											Letter = String.fromCharCode(Ost + 65);
+											Letter = AscCommon.encodeSurrogateChar(Ost + 65);
 										}
 
 										for (Index2 = 0; Index2 < Count + 1; Index2++) {

@@ -3055,8 +3055,12 @@ function NativeOpenFileP(_params, documentInfo){
     }
     _api.asc_setDocInfo(docInfo);
     
-    _api.asc_registerCallback("asc_onAdvancedOptions", function(options) {
+    _api.asc_registerCallback("asc_onAdvancedOptions", function(type, options) {
         var stream = global_memory_stream_menu;
+        if (options === undefined) {
+            options = {};
+        }
+        options["optionId"] = type;
         stream["ClearNoAttack"]();
         stream["WriteString2"](JSON.stringify(options));
         window["native"]["OnCallMenuEvent"](22000, stream); // ASC_MENU_EVENT_TYPE_ADVANCED_OPTIONS
@@ -3366,9 +3370,9 @@ window["asc_docs_api"].prototype["asc_nativeOpenFile2"] = function(base64File, v
     AscCommon.g_oIdCounter.Set_Load(false);
 };
 
-Asc['asc_docs_api'].prototype.openDocument = function(sData)
+Asc['asc_docs_api'].prototype.openDocument = function(file)
 {
-    _api.asc_nativeOpenFile2(sData.data);
+    _api.asc_nativeOpenFile2(file.data);
 
 
     var _presentation = _api.WordControl.m_oLogicDocument;
@@ -3598,7 +3602,6 @@ Asc['asc_docs_api'].prototype.asc_setDocumentPassword = function(password)
         "userid": this.documentUserId,
         "format": this.documentFormat,
         "c": "reopen",
-        "url": this.documentUrl,
         "title": this.documentTitle,
         "password": password
     };

@@ -5,6 +5,7 @@
 			"../common/commonDefines.js",
 			"../common/docscoapicommon.js",
 			"../common/docscoapi.js",
+			"../common/spellcheckapi.js",
 			"../common/apiCommon.js",
 			"../common/SerializeCommonWordExcel.js",
 			"../common/editorscommon.js",
@@ -99,7 +100,7 @@
 
 			"../common/intervalTree.js",
 
-			"../cell/document/empty-workbook.js",
+			"../cell/document/empty.js",
 			"../cell/model/UndoRedo.js",
 			"../cell/model/clipboard.js",
 			"../cell/model/autofilters.js",
@@ -123,6 +124,7 @@
 			"../cell/model/Workbook.js",
 			"../cell/model/Serialize.js",
 			"../cell/model/ConditionalFormatting.js",
+			"../cell/model/DataValidation.js",
 			"../cell/model/CellInfo.js",
 			"../cell/view/mobileTouch.js",
 			"../cell/view/StringRender.js",

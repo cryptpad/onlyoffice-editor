@@ -287,16 +287,8 @@
 	 */
 	Api.prototype.SetThemeColors = function (theme) {
 		if ('string' === typeof theme) {
-			if (!AscCommon.g_oUserColorScheme.some(function (item, i) {
-					if (theme === item.get_name()) {
-						theme = i;
-						return true;
-					}
-				})) {
-				return;
-			}
+			this.wbModel.changeColorScheme(theme);
 		}
-		this.wbModel.changeColorScheme(theme);
 	};
 
 	Api.prototype.CreateNewHistoryPoint = function(){
@@ -1502,7 +1494,7 @@
 	/**
 	 * Get rows height value
 	 * @memberof ApiRange
-	 * @returns {number}
+	 * @returns {pt} The height the row in the range specified, measured in points.
 	 */
 	ApiRange.prototype.GetRowHeight = function () {
 		return this.range.worksheet.getRowHeight(this.range.bbox.r1);
@@ -1510,7 +1502,7 @@
 	/**
 	* Set rows height value
 	* @memberof ApiRange
-	* @param {number} height
+	* @param {pt} height The height the row in the range specified, measured in points.
 	 */
 	ApiRange.prototype.SetRowHeight = function (height) {
 		this.range.worksheet.setRowHeight(height, this.range.bbox.r1, this.range.bbox.r2, false);
@@ -1568,7 +1560,7 @@
 	 * Set the vertical alignment of the text in the current cell range.
 	 * @typeofeditors ["CSE"]
 	 * @memberof ApiRange
-	 * @param {'center' | 'bottom' | 'top'} value - The parameters will define the vertical alignment that will be applied to the cell contents.
+	 * @param {'center' | 'bottom' | 'top' | 'distributed' | 'justify'} value - The parameters will define the vertical alignment that will be applied to the cell contents.
 	 */
 	ApiRange.prototype.SetAlignVertical = function (value) {
 		switch(value)
@@ -1586,6 +1578,16 @@
 			case "top":
 			{
 				this.range.setAlignVertical(Asc.c_oAscVAlign.Top);
+				break;
+			}
+			case "distributed":
+			{
+				this.range.setAlignVertical(Asc.c_oAscVAlign.Dist);
+				break;
+			}
+			case "justify":
+			{
+				this.range.setAlignVertical(Asc.c_oAscVAlign.Just);
 				break;
 			}
 		}

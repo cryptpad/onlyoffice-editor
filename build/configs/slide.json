@@ -96,8 +96,6 @@
 			"../common/wordcopypaste.js",
 			"../common/intervalTree.js",
 
-			"../slide/themes/Themes.js",
-
 			"../cell/utils/utils.js",
 			"../cell/model/WorkbookElems.js",
 			"../cell/model/Workbook.js",

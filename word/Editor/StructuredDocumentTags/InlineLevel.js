@@ -125,6 +125,17 @@ CInlineLevelSdt.prototype.Copy = function(isUseSelection, oPr)
 
 	return oContentControl;
 };
+CInlineLevelSdt.prototype.GetSelectedContent = function(oSelectedContent)
+{
+	if (this.IsPlaceHolder())
+	{
+		return new CInlineLevelSdt();
+	}
+	else
+	{
+		return CParagraphContentWithParagraphLikeContent.prototype.GetSelectedContent.apply(this, arguments);
+	}
+};
 CInlineLevelSdt.prototype.GetSelectedElementsInfo = function(Info)
 {
 	Info.SetInlineLevelSdt(this);

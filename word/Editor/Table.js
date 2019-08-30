@@ -2877,7 +2877,7 @@ CTable.prototype.Move = function(X, Y, PageNum, NearestPos)
 	oTargetTable.MoveCursorToStartPos();
 	editor.WordControl.m_oLogicDocument.Document_UpdateSelectionState();
 };
-CTable.prototype.Reset = function(X, Y, XLimit, YLimit, PageNum, ColumnNum, ColumnsCount)
+CTable.prototype.Reset = function(X, Y, XLimit, YLimit, PageNum, ColumnNum, ColumnsCount, SectionY)
 {
 	this.X_origin = X;
 	this.X        = X;
@@ -2891,6 +2891,11 @@ CTable.prototype.Reset = function(X, Y, XLimit, YLimit, PageNum, ColumnNum, Colu
 
 	this.Pages.length = 1;
 	this.Pages[0]     = new CTablePage(X, Y, XLimit, YLimit, 0, 0);
+
+	// Для плавающей таблицы, которая расположена во второй или далее колонке, текущее положение по Y - это верх
+	// текущей секции
+	if (!this.IsInline() && ColumnNum > 0 && undefined !== SectionY)
+		this.Y = SectionY;
 };
 CTable.prototype.Recalculate = function()
 {
@@ -3686,6 +3691,10 @@ CTable.prototype.Is_Inline = function()
 		return true;
 
 	return this.Inline;
+};
+CTable.prototype.IsInline = function()
+{
+	return this.Is_Inline();
 };
 CTable.prototype.Set_ApplyToAll = function(bValue)
 {
@@ -12040,50 +12049,82 @@ CTable.prototype.Internal_Get_TableMinWidth = function()
 
 	return MinWidth;
 };
-CTable.prototype.Internal_Get_MinSumGrid = function()
+/**
+ * Рассчитываем минимальные знаяения для сетки таблицы
+ * @returns {Array}
+ */
+CTable.prototype.private_GetMinGrid = function()
 {
-	var ColsCount = this.TableGridCalc.length;
-	var SumGrid   = [];
-	for (var Index = -1; Index < ColsCount; Index++)
-		SumGrid[Index] = 0;
-
-	var RowsCount = this.Content.length;
-	for (var CurRow = 0; CurRow < RowsCount; CurRow++)
+	var nColsCount = this.TableGrid.length;
+	var arrSumGrid = [];
+	for (var nIndex = -1; nIndex < nColsCount; ++nIndex)
 	{
-		var Row         = this.Content[CurRow];
-		var Cells_Count = Row.Get_CellsCount();
+		arrSumGrid[nIndex] = 0;
+	}
 
-		var CellSpacing = Row.Get_CellSpacing();
-		if (null === CellSpacing)
-			CellSpacing = 0;
+	var arrMinCols = [];
+	for (var nCurRow = 0, nRowsCount = this.GetRowsCount(); nCurRow < nRowsCount; ++nCurRow)
+	{
+		var oRow         = this.GetRow(nCurRow);
+		var nCellSpacing = oRow.GetCellSpacing();
+		if (null === nCellSpacing)
+			nCellSpacing = 0;
 
-		var CurGridCol = 0;
+		var nCurGridCol = 0;
 
-		for (var CurCell = 0; CurCell < Cells_Count; CurCell++)
+		for (var nCurCell = 0, nCellsCount = oRow.GetCellsCount(); nCurCell < nCellsCount; ++nCurCell)
 		{
-			var Cell         = Row.Get_Cell(CurCell);
-			var Cell_Margins = Cell.GetMargins();
-			var GridSpan     = Cell.Get_GridSpan();
+			var oCell        = oRow.GetCell(nCurCell);
+			var oCellMargins = oCell.GetMargins();
+			var nGridSpan    = oCell.GetGridSpan();
 
-			var Cell_MinWidth = Cell_Margins.Left.W + Cell_Margins.Right.W;
-			if (0 === CurCell || Cells_Count - 1 === CurCell)
-				Cell_MinWidth += CellSpacing * 1.5;
+			var nCellMinWidth = oCellMargins.Left.W + oCellMargins.Right.W;
+
+			if (0 === nCurCell || nCellsCount - 1 === nCurCell)
+				nCellMinWidth += nCellSpacing * 1.5;
 			else
-				Cell_MinWidth += CellSpacing;
+				nCellMinWidth += nCellSpacing;
 
-			if (SumGrid[CurGridCol + GridSpan - 1] < SumGrid[CurGridCol - 1] + Cell_MinWidth)
-				SumGrid[CurGridCol + GridSpan - 1] = SumGrid[CurGridCol - 1] + Cell_MinWidth;
+			if (!arrMinCols[nGridSpan])
+				arrMinCols[nGridSpan] = [];
 
-			CurGridCol += GridSpan;
+			arrMinCols[nGridSpan].push({Col : nCurGridCol, W : nCellMinWidth});
+
+			nCurGridCol += nGridSpan;
 		}
 	}
 
-	return SumGrid;
+	for (var nGridSpan = 0; nGridSpan < nColsCount; ++nGridSpan)
+	{
+		var arrCols = arrMinCols[nGridSpan];
+		if (arrCols)
+		{
+			for (var nIndex = 0, nCount = arrCols.length; nIndex < nCount; ++nIndex)
+			{
+				var nCurGridCol = arrCols[nIndex].Col;
+				var nMinW       = arrCols[nIndex].W;
+
+				if (arrSumGrid[nCurGridCol + nGridSpan - 1] < arrSumGrid[nCurGridCol - 1] + nMinW)
+				{
+					var nDiff = arrSumGrid[nCurGridCol - 1] + nMinW - arrSumGrid[nCurGridCol + nGridSpan - 1];
+					for (var nCol = nCurGridCol + nGridSpan - 1; nCol < nColsCount; ++nCol)
+					{
+						arrSumGrid[nCol] += nDiff;
+					}
+				}
+			}
+		}
+	}
+
+	var arrTableGridMin = [];
+	arrTableGridMin[0]  = arrSumGrid[0];
+	for (var nIndex = 1, nCount = arrSumGrid.length; nIndex < nCount; ++nIndex)
+		arrTableGridMin[nIndex] = arrSumGrid[nIndex] - arrSumGrid[nIndex - 1];
+
+	return arrTableGridMin;
 };
 CTable.prototype.Internal_ScaleTableWidth = function(SumGrid, TableW)
 {
-	var SumGrid_min = this.Internal_Get_MinSumGrid();
-
 	// Массив означает, какие колонки таблицы нам надо изменить
 	var Grids_to_scale = [];
 	for (var Index = 0; Index < SumGrid.length; Index++)
@@ -12096,10 +12137,7 @@ CTable.prototype.Internal_ScaleTableWidth = function(SumGrid, TableW)
 	for (var Index = 1; Index < SumGrid.length; Index++)
 		TableGrid[Index] = SumGrid[Index] - SumGrid[Index - 1];
 
-	var TableGrid_min = [];
-	TableGrid_min[0]  = SumGrid_min[0];
-	for (var Index = 1; Index < SumGrid_min.length; Index++)
-		TableGrid_min[Index] = SumGrid_min[Index] - SumGrid_min[Index - 1];
+	var TableGrid_min = this.private_GetMinGrid();
 
 	var CurrentW = SumGrid[SumGrid.length - 1];
 	while (Grids_to_scale_count > 0 && CurrentW > 0.001)
@@ -14671,6 +14709,13 @@ CTable.prototype.GetPlaceHolderObject = function()
 		return null;
 
 	return this.CurCell.GetContent().GetPlaceHolderObject();
+};
+CTable.prototype.GetPresentationField = function()
+{
+	if (this.IsCellSelection())
+		return null;
+
+	return this.CurCell.GetContent().GetPresentationField();
 };
 /**
  * Получаем колонку в виде массива ячеек

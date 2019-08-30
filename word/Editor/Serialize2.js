@@ -102,7 +102,7 @@ var c_oSerNumTypes = {
     AbstractNum_Lvls:4,
     Lvl:5,
     lvl_Format:6,
-    lvl_Jc:7,
+	lvl_Jc_deprecated:7,
     lvl_LvlText:8,
     lvl_LvlTextItem:9,
     lvl_LvlTextItemText:10,
@@ -131,7 +131,8 @@ var c_oSerNumTypes = {
 	LvlLegacy: 33,
 	Legacy: 34,
 	LegacyIndent: 35,
-	LegacySpace: 36
+	LegacySpace: 36,
+	lvl_Jc: 37
 };
 var c_oSerOtherTableTypes = {
     ImageMap:0,
@@ -634,7 +635,9 @@ var c_oSer_CommentsType = {
 	QuoteText: 7,
 	Solved: 8,
 	Replies: 9,
-	OOData: 10
+	OOData: 10,
+	DurableId: 11,
+	ProviderId: 12
 };
 
 var c_oSer_StyleType = {
@@ -1214,7 +1217,7 @@ var c_oToNextParType = {
 			_parsed.pos += (_len + 1);
 
 			if (0 == _attr){
-				var dateMs = Date.parse(_value);
+				var dateMs = AscCommon.getTimeISO8601(_value);
 				if (isNaN(dateMs)) {
 					dateMs = new Date().getTime();
 				}
@@ -1323,7 +1326,7 @@ function ReadTrackRevision(type, length, stream, reviewInfo, options) {
         reviewInfo.UserName = stream.GetString2LE(length);
     } else if(c_oSerProp_RevisionType.Date == type) {
         var dateStr = stream.GetString2LE(length);
-        var dateMs = Date.parse(dateStr);
+        var dateMs = AscCommon.getTimeISO8601(dateStr);
         if (isNaN(dateMs)) {
             dateMs = new Date().getTime();
         }
@@ -1433,7 +1436,7 @@ function ReadMoveRangeStartElem(type, length, stream, reviewInfo, options) {
 		// 	stream.GetULongLE();
 	} else if (c_oSerMoveRange.Date == type) {
 		var dateStr = stream.GetString2LE(length);
-		var dateMs = Date.parse(dateStr);
+		var dateMs = AscCommon.getTimeISO8601(dateStr);
 		if (isNaN(dateMs)) {
 			dateMs = new Date().getTime();
 		}
@@ -1596,7 +1599,7 @@ function writeNestedReviewType(type, reviewInfo, fWriteRecord, fCallback) {
 	}
 }
 
-function BinaryFileWriter(doc, bMailMergeDocx, bMailMergeHtml)
+function BinaryFileWriter(doc, bMailMergeDocx, bMailMergeHtml, isCompatible)
 {
     this.memory = new AscCommon.CMemory();
     this.Document = doc;
@@ -1612,7 +1615,7 @@ function BinaryFileWriter(doc, bMailMergeDocx, bMailMergeHtml)
 		nNumIdIndex: null,
 		oUsedStyleMap: null
 	};
-	this.saveParams = new DocSaveParams(bMailMergeDocx, bMailMergeHtml);
+	this.saveParams = new DocSaveParams(bMailMergeDocx, bMailMergeHtml, isCompatible);
     this.Write = function(noBase64, onlySaveBase64)
     {
         pptx_content_writer._Start();
@@ -2453,6 +2456,8 @@ function Binary_pPrWriter(memory, oNumIdMap, oBinaryHeaderFooterTableWriter, sav
 				case Asc.c_oAscNumberingFormat.LowerLetter: val = 46; break;
 				case Asc.c_oAscNumberingFormat.UpperLetter: val = 60; break;
 				case Asc.c_oAscNumberingFormat.DecimalZero: val = 21; break;
+				case Asc.c_oAscNumberingFormat.DecimalEnclosedCircle: val = 14; break;
+
 				default: val = 13; break;
 			}
 			this.bs.WriteItem(c_oSerNumTypes.NumFmtVal, function(){oThis.memory.WriteByte(val);});
@@ -4645,16 +4650,21 @@ function BinaryNumberingTableWriter(memory, doc, oNumIdMap, oUsedNumIdMap, saveP
         //Format
         if(null != lvl.Format)
         {
-            this.memory.WriteByte(c_oSerNumTypes.lvl_Format);
-            this.memory.WriteByte(c_oSerPropLenType.Long);
-            this.memory.WriteLong(lvl.Format);
+			this.memory.WriteByte(c_oSerNumTypes.lvl_NumFmt);
+			this.memory.WriteByte(c_oSerPropLenType.Variable);
+			this.bs.WriteItemWithLength(function(){oThis.bpPrs.WriteNumFmt(lvl.Format);});
         }
         //Jc
         if(null != lvl.Jc)
         {
             this.memory.WriteByte(c_oSerNumTypes.lvl_Jc);
             this.memory.WriteByte(c_oSerPropLenType.Byte);
-            this.memory.WriteByte(lvl.Jc);
+			switch (lvl.Jc) {
+				case align_Center: this.memory.WriteByte(1);break;
+				case align_Right: this.memory.WriteByte(11);break;
+				case align_Justify:this.memory.WriteByte(2);break;
+				default: this.memory.WriteByte(10);break;
+			}
         }
         //LvlText
         if(null != lvl.LvlText)
@@ -4723,12 +4733,12 @@ function BinaryNumberingTableWriter(memory, doc, oNumIdMap, oUsedNumIdMap, saveP
 		// 	this.memory.WriteByte(c_oSerPropLenType.Long);
 		// 	this.memory.WriteLong(AscFonts.FT_Common.UintToInt(lvl.Tplc));
 		// }
-		// if(null != lvl.IsLgl)
-		// {
-		// 	this.memory.WriteByte(c_oSerNumTypes.IsLgl);
-		// 	this.memory.WriteByte(c_oSerPropLenType.Byte);
-		// 	this.memory.WriteBool(lvl.IsLgl);
-		// }
+		if(null != lvl.IsLgl)
+		{
+			this.memory.WriteByte(c_oSerNumTypes.IsLgl);
+			this.memory.WriteByte(c_oSerPropLenType.Byte);
+			this.memory.WriteBool(lvl.IsLgl);
+		}
 		if(null != lvl.Legacy)
 		{
 			this.memory.WriteByte(c_oSerNumTypes.LvlLegacy);
@@ -6263,10 +6273,18 @@ function BinaryCommentsTableWriter(memory, doc, oMapCommentId, isDocument)
 			this.memory.WriteByte(c_oSer_CommentsType.UserName);
 			this.memory.WriteString2(comment.m_sUserName);
 		}
-		if(null != comment.m_sUserId && "" != comment.m_sUserId)
+		if(null != comment.m_sInitials && "" != comment.m_sInitials)
+		{
+			this.memory.WriteByte(c_oSer_CommentsType.Initials);
+			this.memory.WriteString2(comment.m_sInitials);
+		}
+		if(null != comment.m_sUserId && "" != comment.m_sUserId && null != comment.m_sProviderId && "" != comment.m_sProviderId)
 		{
 			this.memory.WriteByte(c_oSer_CommentsType.UserId);
 			this.memory.WriteString2(comment.m_sUserId);
+
+			this.memory.WriteByte(c_oSer_CommentsType.ProviderId);
+			this.memory.WriteString2(comment.m_sProviderId);
 		}
 		if(null != comment.m_sTime && "" != comment.m_sTime)
 		{
@@ -6277,6 +6295,10 @@ function BinaryCommentsTableWriter(memory, doc, oMapCommentId, isDocument)
 		if(null != comment.m_bSolved)
 		{
 			this.bs.WriteItem(c_oSer_CommentsType.Solved, function(){oThis.memory.WriteBool(comment.m_bSolved);});
+		}
+		if(null != comment.m_nDurableId)
+		{
+			this.bs.WriteItem(c_oSer_CommentsType.DurableId, function(){oThis.memory.WriteULong(comment.m_nDurableId);});
 		}
 		if(null != comment.m_sText && "" != comment.m_sText)
 		{
@@ -6353,7 +6375,24 @@ function BinarySettingsTableWriter(memory, doc, saveParams)
 			this.bs.WriteItem(c_oSer_SettingsType.SdtGlobalColor, function (){oThis.brPrs.Write_rPr(rPr, null, null);});
 			this.bs.WriteItem(c_oSer_SettingsType.SdtGlobalShowHighlight, function(){oThis.memory.WriteBool(oThis.Document.GetSdtGlobalShowHighlight());});
 		}
+		this.bs.WriteItem(c_oSer_SettingsType.Compat, function (){oThis.WriteCompat();});
     }
+	this.WriteCompat = function()
+	{
+		var oThis = this;
+		var compatibilityMode =  false === this.saveParams.isCompatible ? document_compatibility_mode_Word15 : oThis.Document.GetCompatibilityMode();
+		this.bs.WriteItem(c_oSerCompat.CompatSetting, function() {oThis.WriteCompatSetting("compatibilityMode", "http://schemas.microsoft.com/office/word", compatibilityMode.toString());});
+		this.bs.WriteItem(c_oSerCompat.CompatSetting, function() {oThis.WriteCompatSetting("overrideTableStyleFontSizeAndJustification", "http://schemas.microsoft.com/office/word", "1");});
+		this.bs.WriteItem(c_oSerCompat.CompatSetting, function() {oThis.WriteCompatSetting("enableOpenTypeFeatures", "http://schemas.microsoft.com/office/word", "1");});
+		this.bs.WriteItem(c_oSerCompat.CompatSetting, function() {oThis.WriteCompatSetting("doNotFlipMirrorIndents", "http://schemas.microsoft.com/office/word", "1");});
+	};
+	this.WriteCompatSetting = function(name, uri, value)
+	{
+		var oThis = this;
+		this.bs.WriteItem(c_oSerCompat.CompatName, function() {oThis.memory.WriteString3(name);});
+		this.bs.WriteItem(c_oSerCompat.CompatUri, function() {oThis.memory.WriteString3(uri);});
+		this.bs.WriteItem(c_oSerCompat.CompatValue, function() {oThis.memory.WriteString3(value);});
+	};
 	this.WriteFootnotePr = function()
 	{
 		var oThis = this;
@@ -7312,8 +7351,12 @@ function BinaryFileReader(doc, openParams)
 			var oCommentObj = new CCommentData();
 			if(null != comment.UserName)
 				oCommentObj.m_sUserName = comment.UserName;
+			if(null != comment.Initials)
+				oCommentObj.m_sInitials = comment.Initials;
 			if(null != comment.UserId)
 				oCommentObj.m_sUserId = comment.UserId;
+			if(null != comment.ProviderId)
+				oCommentObj.m_sProviderId = comment.ProviderId;
 			if(null != comment.Date)
 				oCommentObj.m_sTime = comment.Date;
 			if(null != comment.OODate)
@@ -7322,6 +7365,8 @@ function BinaryFileReader(doc, openParams)
 				oCommentObj.m_sText = comment.Text;
 			if(null != comment.Solved)
 				oCommentObj.m_bSolved = comment.Solved;
+			if(null != comment.DurableId)
+				oCommentObj.m_nDurableId = comment.DurableId;
 			if(null != comment.Replies)
 			{
 				for(var  i = 0, length = comment.Replies.length; i < length; ++i)
@@ -7333,7 +7378,7 @@ function BinaryFileReader(doc, openParams)
 		for(var i in this.oReadResult.oComments)
 		{
 			var oOldComment = this.oReadResult.oComments[i];
-			var oNewComment = new CComment(this.Document.Comments, fInitCommentData(oOldComment))
+			var oNewComment = new CComment(this.Document.Comments, fInitCommentData(oOldComment));
 			this.Document.Comments.Add(oNewComment);
 			oCommentsNewId[oOldComment.Id] = oNewComment;
 		}
@@ -7648,8 +7693,12 @@ function BinaryFileReader(doc, openParams)
 			var oCommentObj = new CCommentData();
 			if(null != comment.UserName)
 				oCommentObj.m_sUserName = comment.UserName;
+			if(null != comment.Initials)
+				oCommentObj.m_sInitials = comment.Initials;
 			if(null != comment.UserId)
 				oCommentObj.m_sUserId = comment.UserId;
+			if(null != comment.ProviderId)
+				oCommentObj.m_sProviderId = comment.ProviderId;
 			if(null != comment.Date)
 				oCommentObj.m_sTime = comment.Date;
 			if(null != comment.m_sQuoteText)
@@ -7658,6 +7707,8 @@ function BinaryFileReader(doc, openParams)
 				oCommentObj.m_sText = comment.Text;
 			if(null != comment.Solved)
 				oCommentObj.m_bSolved = comment.Solved;
+			if(null != comment.DurableId)
+				oCommentObj.m_nDurableId = comment.DurableId;
 			if(null != comment.Replies)
 			{
 				for(var  i = 0, length = comment.Replies.length; i < length; ++i)
@@ -8548,12 +8599,12 @@ function Binary_pPrReader(doc, oReadResult, stream)
 			});
 		}
 		else if( c_oSerProp_secPrType.footnotePr === type ) {
-			var props = {fmt: null, restart: null, start: null, pos: null};
+			var props = {Format: null, restart: null, start: null, pos: null};
 			res = this.bcr.Read1(length, function(t, l) {
 				return oThis.ReadFootnotePr(t, l, props);
 			});
-			if (null != props.fmt) {
-				oSectPr.SetFootnoteNumFormat(props.fmt);
+			if (null != props.Format) {
+				oSectPr.SetFootnoteNumFormat(props.Format);
 			}
 			if (null != props.restart) {
 				oSectPr.SetFootnoteNumRestart(props.restart);
@@ -8594,15 +8645,17 @@ function Binary_pPrReader(doc, oReadResult, stream)
 		var res = c_oSerConstants.ReadOk;
 		if (c_oSerNumTypes.NumFmtVal === type) {
 			switch (this.stream.GetByte()) {
-				case 48: props.fmt = Asc.c_oAscNumberingFormat.None; break;
-				case 5: props.fmt = Asc.c_oAscNumberingFormat.Bullet; break;
-				case 13: props.fmt = Asc.c_oAscNumberingFormat.Decimal; break;
-				case 47: props.fmt = Asc.c_oAscNumberingFormat.LowerRoman; break;
-				case 61: props.fmt = Asc.c_oAscNumberingFormat.UpperRoman; break;
-				case 46: props.fmt = Asc.c_oAscNumberingFormat.LowerLetter; break;
-				case 60: props.fmt = Asc.c_oAscNumberingFormat.UpperLetter; break;
-				case 21: props.fmt = Asc.c_oAscNumberingFormat.DecimalZero; break;
-				default: props.fmt = Asc.c_oAscNumberingFormat.Decimal; break;
+				case 48: props.Format = Asc.c_oAscNumberingFormat.None; break;
+				case 5: props.Format = Asc.c_oAscNumberingFormat.Bullet; break;
+				case 13: props.Format = Asc.c_oAscNumberingFormat.Decimal; break;
+				case 47: props.Format = Asc.c_oAscNumberingFormat.LowerRoman; break;
+				case 61: props.Format = Asc.c_oAscNumberingFormat.UpperRoman; break;
+				case 46: props.Format = Asc.c_oAscNumberingFormat.LowerLetter; break;
+				case 60: props.Format = Asc.c_oAscNumberingFormat.UpperLetter; break;
+				case 21: props.Format = Asc.c_oAscNumberingFormat.DecimalZero; break;
+				case 14: props.Format = Asc.c_oAscNumberingFormat.DecimalEnclosedCircle; break;
+				case 15: props.Format = Asc.c_oAscNumberingFormat.DecimalEnclosedCircle; break;
+				default: props.Format = Asc.c_oAscNumberingFormat.Decimal; break;
 			}
 		} else {
 			res = c_oSerConstants.ReadUnknown;
@@ -9933,9 +9986,30 @@ function Binary_NumberingTableReader(doc, oReadResult, stream)
         {
             oNewLvl.Format = this.stream.GetULongLE();
         }
-        else if ( c_oSerNumTypes.lvl_Jc === type )
-        {
-            oNewLvl.Jc = this.stream.GetUChar();
+		else if ( c_oSerNumTypes.lvl_NumFmt === type )
+		{
+			res = this.bcr.Read1(length, function(t, l){
+				return oThis.bpPrr.ReadNumFmt(t, l, oNewLvl);
+			});
+		}
+		else if ( c_oSerNumTypes.lvl_Jc_deprecated === type )
+		{
+			oNewLvl.Jc = this.stream.GetUChar();
+		}
+		else if ( c_oSerNumTypes.lvl_Jc === type )
+		{
+			var jc = this.stream.GetUChar();
+			switch(jc) {
+				case 1: oNewLvl.Jc = align_Center;break;
+				case 8:
+				case 10: oNewLvl.Jc = align_Left;break;
+				case 3:
+				case 11: oNewLvl.Jc = align_Right;break;
+				case 0:
+				case 9:
+				case 2: oNewLvl.Jc = align_Justify;break;
+				default: oNewLvl.Jc = align_Left;break;
+			}
         }
         else if ( c_oSerNumTypes.lvl_LvlText === type )
         {
@@ -9980,10 +10054,10 @@ function Binary_NumberingTableReader(doc, oReadResult, stream)
 		// {
 		// 	oNewLvl.Tplc = AscFonts.FT_Common.IntToUInt(this.stream.GetULongLE());
 		// }
-		// else if ( c_oSerNumTypes.IsLgl === type )
-		// {
-		// 	oNewLvl.IsLgl = this.stream.GetBool();
-		// }
+		else if ( c_oSerNumTypes.IsLgl === type )
+		{
+			oNewLvl.IsLgl = this.stream.GetBool();
+		}
 		else if ( c_oSerNumTypes.LvlLegacy === type )
 		{
 			oNewLvl.Legacy = new CNumberingLvlLegacy();
@@ -14960,12 +15034,16 @@ function Binary_CommentsTableReader(doc, oReadResult, stream, oComments)
 			oNewImage.Id = this.stream.GetULongLE();
         else if ( c_oSer_CommentsType.UserName === type )
             oNewImage.UserName = this.stream.GetString2LE(length);
+		else if ( c_oSer_CommentsType.Initials === type )
+			oNewImage.Initials = this.stream.GetString2LE(length);
 		else if ( c_oSer_CommentsType.UserId === type )
             oNewImage.UserId = this.stream.GetString2LE(length);
+		else if ( c_oSer_CommentsType.ProviderId === type )
+			oNewImage.ProviderId = this.stream.GetString2LE(length);
 		else if ( c_oSer_CommentsType.Date === type )
 		{
 			var dateStr = this.stream.GetString2LE(length);
-            var dateMs = Date.parse(dateStr);
+            var dateMs = AscCommon.getTimeISO8601(dateStr);
             if (isNaN(dateMs)) {
                 dateMs = new Date().getTime();
             }
@@ -14985,6 +15063,10 @@ function Binary_CommentsTableReader(doc, oReadResult, stream, oComments)
 		else if ( c_oSer_CommentsType.OOData === type )
 		{
 			ParceAdditionalData(this.stream.GetString2LE(length), oNewImage);
+		}
+		else if ( c_oSer_CommentsType.DurableId === type )
+		{
+			oNewImage.DurableId = AscFonts.FT_Common.IntToUInt(this.stream.GetULong());
 		}
         else
             res = c_oSerConstants.ReadUnknown;
@@ -15061,14 +15143,14 @@ function Binary_SettingsTableReader(doc, oReadResult, stream)
 		}
 		else if ( c_oSer_SettingsType.FootnotePr === type )
 		{
-			var props = {fmt: null, restart: null, start: null, pos: null};
+			var props = {Format: null, restart: null, start: null, pos: null};
 			res = this.bcr.Read1(length, function(t, l) {
 				return oThis.bpPrr.ReadFootnotePr(t, l, props);
 			});
 			if (this.oReadResult.logicDocument) {
 				var footnotes = this.oReadResult.logicDocument.Footnotes;
-				if (null != props.fmt) {
-					footnotes.SetFootnotePrNumFormat(props.fmt);
+				if (null != props.Format) {
+					footnotes.SetFootnotePrNumFormat(props.Format);
 				}
 				if (null != props.restart) {
 					footnotes.SetFootnotePrNumRestart(props.restart);
@@ -15555,12 +15637,8 @@ function Binary_SettingsTableReader(doc, oReadResult, stream)
 			res = this.bcr.Read1(length, function(t, l){
 				return oThis.ReadCompatSetting(t,l,compat);
 			});
-			if ("compatibilityMode" === compat.name) {
-				if ("14" === compat.value) {
-					this.oReadResult.compatibilityMode = document_compatibility_mode_Word14;
-				} else if ("15" === compat.value) {
-					this.oReadResult.compatibilityMode = document_compatibility_mode_Word15;
-				}
+			if ("compatibilityMode" === compat.name && "http://schemas.microsoft.com/office/word" === compat.url) {
+				this.oReadResult.compatibilityMode = parseInt(compat.value);
 			}
 		}
 		else
@@ -15871,7 +15949,7 @@ OpenParStruct.prototype = {
         if (this.stack.length > 1) {
             var oPrevElem = this.stack.pop();
             this.cur = this.stack[this.stack.length - 1];
-            var elem = oPrevElem.elem;
+            var elem = oPrevElem;
             if (null != elem && elem.Content) {
                 if (para_Field == elem.Get_Type() && (fieldtype_PAGENUM == elem.Get_FieldType() || fieldtype_PAGECOUNT == elem.Get_FieldType())) {
                     var oNewRun = new ParaRun(this.paragraph);
@@ -15906,7 +15984,7 @@ OpenParStruct.prototype = {
 		}
     }
 };
-function DocSaveParams(bMailMergeDocx, bMailMergeHtml) {
+function DocSaveParams(bMailMergeDocx, bMailMergeHtml, isCompatible) {
 	this.bMailMergeDocx = bMailMergeDocx;
 	this.bMailMergeHtml = bMailMergeHtml;
 	this.trackRevisionId = 0;
@@ -15915,6 +15993,7 @@ function DocSaveParams(bMailMergeDocx, bMailMergeHtml) {
 	this.docPrId = 1;
 	this.moveRangeFromNameToId = {};
 	this.moveRangeToNameToId = {};
+	this.isCompatible = isCompatible;
 };
 function DocReadResult(doc) {
 	this.logicDocument = doc;

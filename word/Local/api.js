@@ -38,66 +38,7 @@ var c_oAscError = Asc.c_oAscError;
 /////////////////////////////////////////////////////////
 //////////////        OPEN       ////////////////////////
 /////////////////////////////////////////////////////////
-Asc['asc_docs_api'].prototype._OfflineAppDocumentStartLoad = function()
-{
-	this.asc_registerCallback('asc_onDocumentContentReady', function(){
-		DesktopOfflineUpdateLocalName(editor);
-
-		setTimeout(function(){window["UpdateInstallPlugins"]();}, 10);
-	});
-
-	AscCommon.History.UserSaveMode = true;
-    window["AscDesktopEditor"]["LocalStartOpen"]();
-};
-Asc['asc_docs_api'].prototype._OfflineAppDocumentEndLoad = function(_url, _data, _len)
-{
-	AscCommon.g_oIdCounter.m_sUserId = window["AscDesktopEditor"]["CheckUserId"]();
-	if (_data == "")
-	{
-		this.sendEvent("asc_onError", c_oAscError.ID.ConvertationOpenError, c_oAscError.Level.Critical);
-		return;
-	}
-
-	var _binary = getBinaryArray(_data, _len);
-	var _sign_len = AscCommon.c_oSerFormat.Signature.length;
-	var _signature = "";
-	if (_binary.length >= _sign_len)
-	{
-		for (var i = 0; i < _sign_len; i++)
-		{
-			_signature += String.fromCharCode(_binary[i]);
-		}
-	}
-
-	if (AscCommon.c_oSerFormat.Signature !== _signature)
-	{
-		this.OpenDocument(_url, _binary);
-	}
-    else
-	{
-		this.OpenDocument2(_url, _binary);
-		this.WordControl.m_oLogicDocument.Set_FastCollaborativeEditing(false);
-	}
-
-	DesktopOfflineUpdateLocalName(this);
-
-	window["DesktopAfterOpen"](this);
-};
-window["DesktopOfflineAppDocumentEndLoad"] = function(_url, _data, _len)
-{
-	AscCommon.g_oDocumentUrls.documentUrl = _url;
-	if (AscCommon.g_oDocumentUrls.documentUrl.indexOf("file:") != 0)
-	{
-		if (AscCommon.g_oDocumentUrls.documentUrl.indexOf("/") != 0)
-			AscCommon.g_oDocumentUrls.documentUrl = "/" + AscCommon.g_oDocumentUrls.documentUrl;
-		AscCommon.g_oDocumentUrls.documentUrl = "file://" + AscCommon.g_oDocumentUrls.documentUrl;
-	}
-
-    editor._OfflineAppDocumentEndLoad(_url, _data, _len);
-	editor.sendEvent("asc_onDocumentPassword", ("" != editor.currentPassword) ? true : false);
-};
-
-Asc['asc_docs_api'].prototype.asc_setAdvancedOptions = function(idOption, option) 
+Asc['asc_docs_api'].prototype.asc_setAdvancedOptions = function(idOption, option)
 {
 	if (window.isNativeOpenPassword)
 	{
@@ -291,15 +232,15 @@ window["DesktopOfflineAppDocumentEndSave"] = function(error, hash, password)
 	if (0 == error)
 		editor.sendEvent("asc_onDocumentPassword", ("" != editor.currentPassword) ? true : false);
 };
-Asc['asc_docs_api'].prototype.asc_DownloadAs2 = Asc['asc_docs_api'].prototype.asc_DownloadAs;
-Asc['asc_docs_api'].prototype.asc_DownloadAs = function(typeFile, bIsDownloadEvent, isNaturalDownloadAs)
+Asc['asc_docs_api'].prototype.asc_DownloadAsNatural = Asc['asc_docs_api'].prototype.asc_DownloadAs;
+Asc['asc_docs_api'].prototype.asc_DownloadAs = function(options)
 {
-	if (isNaturalDownloadAs)
-		return this.asc_DownloadAs2(typeFile, bIsDownloadEvent);
+	if (options && options.isNaturalDownload)
+		return this.asc_DownloadAsNatural(options);
 	this.asc_Save(false, true);
 };
 
-Asc['asc_docs_api'].prototype.AddImageUrl = function(url, imgProp, withAuthorization)
+Asc['asc_docs_api'].prototype.AddImageUrl = function(url, imgProp, token)
 {
 	var _url = window["AscDesktopEditor"]["LocalFileGetImageUrl"](url);
 	this.AddImageUrlAction(AscCommon.g_oDocumentUrls.getImageUrl(_url), imgProp);

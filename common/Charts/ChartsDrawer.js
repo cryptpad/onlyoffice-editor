@@ -12484,7 +12484,7 @@ valAxisChart.prototype = {
 		}
 
 		//TODO необходимо при смене ориентации оси категорий менять axPos!!!
-		//var orientation = this.cChartSpace && this.cChartSpace.chart.plotArea.catAx ? this.cChartSpace.chart.plotArea.catAx.scaling.orientation : ORIENTATION_MIN_MAX;
+		var orientation = this.valAx ? this.valAx.scaling.orientation : ORIENTATION_MIN_MAX;
 		var minorLinesCount = 5;
 		var axPos = this.valAx.axPos;
 		if (axPos !== window['AscFormat'].AX_POS_L && axPos !== window['AscFormat'].AX_POS_T) {
@@ -12517,7 +12517,7 @@ valAxisChart.prototype = {
 					this._calculateLine(posX, posY - crossMajorStep / this.chartProp.pxToMM, posX, posY + widthLine / this.chartProp.pxToMM, path);
 
 					//промежуточные линии
-					if (widthMinorLine !== 0) {
+					if (widthMinorLine !== 0 && !((orientation === ORIENTATION_MIN_MAX && i === points.length - 1) || (orientation !== ORIENTATION_MIN_MAX && i === 0))) {
 						for (var n = 0; n < minorLinesCount; n++) {
 							posMinorX = posX + n * minorStep;
 
@@ -12546,7 +12546,7 @@ valAxisChart.prototype = {
 					this._calculateLine(posX - crossMajorStep / this.chartProp.pxToMM, posY, posX + widthLine / this.chartProp.pxToMM, posY, path);
 
 					//промежуточные линии
-					if (widthMinorLine !== 0) {
+					if (widthMinorLine !== 0 && !((orientation === ORIENTATION_MIN_MAX && i === points.length - 1) || (orientation !== ORIENTATION_MIN_MAX && i === 0))) {
 						for (var n = 0; n < minorLinesCount; n++) {
 							posMinorY = posY - n * minorStep;
 
