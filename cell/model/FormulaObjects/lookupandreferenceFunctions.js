@@ -506,67 +506,69 @@ function (window, undefined) {
 			return new cError(cErrorType.wrong_value_type);
 		}
 
-		if (cElementType.array === arg0.type) {
-			if(undefined === arg[2] && 1 === arg0.rowCount) {//если последний аргумент опущен, и выделенa 1 строка
-				res = arg0.getValue2(0, (0 === arg1) ? 0 : arg1 - 1);
-			} else if(undefined === arg[2] && 1 === arg0.getCountElementInRow()) {//если последний аргумент опущен, и выделен 1 столбец
-				res = arg0.getValue2((0 === arg1) ? 0 : arg1 - 1, 0);
-			} else {
-				res = arg0.getValue2((1 === arg0.rowCount || 0 === arg1) ? 0 : arg1 - 1, 0 === arg2 ? 0 : arg2 - 1);
-			}
-		} else if (cElementType.cellsRange === arg0.type) {
-			var ws = arg0.getWS(), bbox = arg0.getBBox0();
-
-			if(cElementType.empty === arg[1].type) {
-				arg1 = 0;
-			}
-
-			var diffArg1 = arg1 === 0 ? 0 : 1;
-			var diffArg2 = arg2 === 0 ? 0 : 1;
-			if(undefined === arg[2] && bbox.r1 === bbox.r2) {//если последний аргумент опущен, и выделенa 1 строка
-				if (arg1 > Math.abs(bbox.c1 - bbox.c2) + 1) {
-					res = new cError(cErrorType.bad_reference);
+		AscCommonExcel.executeInR1C1Mode(false, function () {
+			if (cElementType.array === arg0.type) {
+				if(undefined === arg[2] && 1 === arg0.rowCount) {//если последний аргумент опущен, и выделенa 1 строка
+					res = arg0.getValue2(0, (0 === arg1) ? 0 : arg1 - 1);
+				} else if(undefined === arg[2] && 1 === arg0.getCountElementInRow()) {//если последний аргумент опущен, и выделен 1 столбец
+					res = arg0.getValue2((0 === arg1) ? 0 : arg1 - 1, 0);
 				} else {
-					res = new Asc.Range(bbox.c1 + arg1 - diffArg1, bbox.r1, bbox.c1 + arg1 - diffArg1, bbox.r1);
-					res = new cRef(res.getName(), ws);
+					res = arg0.getValue2((1 === arg0.rowCount || 0 === arg1) ? 0 : arg1 - 1, 0 === arg2 ? 0 : arg2 - 1);
 				}
-			} else if(undefined === arg[2] && bbox.c1 === bbox.c2 && arg1 > 0) {//если последний аргумент опущен, и выделен 1 столбец
-				if (arg1 > Math.abs(bbox.r1 - bbox.r2) + 1) {
-					res = new cError(cErrorType.bad_reference);
-				} else {
-					res = new Asc.Range(bbox.c1, bbox.r1 + arg1 - diffArg1, bbox.c1, bbox.r1 + arg1 - diffArg1);
-					res = new cRef(res.getName(), ws);
+			} else if (cElementType.cellsRange === arg0.type) {
+				var ws = arg0.getWS(), bbox = arg0.getBBox0();
+
+				if(cElementType.empty === arg[1].type) {
+					arg1 = 0;
 				}
-			} else if(undefined === arg[2] && Math.abs(bbox.r1 - bbox.r2) + 1 > 1 && Math.abs(bbox.c1 - bbox.c2) + 1 > 1) {//если последний аргумент опущен, и выделен более 1 строки и более 1 столбца
-				//так себя ведёт excel в случае с cellsArea
-				res = new cError(cErrorType.bad_reference);
-			} else if (bbox.r1 === bbox.r2) {/*одна строка*/
-				res = new Asc.Range(bbox.c1 + arg2 - 1, bbox.r1, bbox.c1 + arg2 - 1, bbox.r1);
-				res = new cRef(res.getName(), ws);
-			} else {
-				if (0 === arg1 && arg2 > 0) {
-					if (arg2 > Math.abs(bbox.c1 - bbox.c2) + 1) {
+
+				var diffArg1 = arg1 === 0 ? 0 : 1;
+				var diffArg2 = arg2 === 0 ? 0 : 1;
+				if(undefined === arg[2] && bbox.r1 === bbox.r2) {//если последний аргумент опущен, и выделенa 1 строка
+					if (arg1 > Math.abs(bbox.c1 - bbox.c2) + 1) {
 						res = new cError(cErrorType.bad_reference);
 					} else {
-						res = new Asc.Range(bbox.c1 + arg2 - 1, bbox.r1, bbox.c1 + arg2 - 1, bbox.r2);
-						res = new cArea(res.getName(), ws);
-					}
-				} else {
-					if (arg1 > Math.abs(bbox.r1 - bbox.r2) + 1 || arg2 > Math.abs(bbox.c1 - bbox.c2) + 1) {
-						res = new cError(cErrorType.bad_reference);
-					} else {
-						res = new Asc.Range(bbox.c1 + arg2 - diffArg2, bbox.r1 + arg1 - diffArg1, bbox.c1 + arg2 - diffArg2, bbox.r1 + arg1 - diffArg1);
+						res = new Asc.Range(bbox.c1 + arg1 - diffArg1, bbox.r1, bbox.c1 + arg1 - diffArg1, bbox.r1);
 						res = new cRef(res.getName(), ws);
 					}
+				} else if(undefined === arg[2] && bbox.c1 === bbox.c2 && arg1 > 0) {//если последний аргумент опущен, и выделен 1 столбец
+					if (arg1 > Math.abs(bbox.r1 - bbox.r2) + 1) {
+						res = new cError(cErrorType.bad_reference);
+					} else {
+						res = new Asc.Range(bbox.c1, bbox.r1 + arg1 - diffArg1, bbox.c1, bbox.r1 + arg1 - diffArg1);
+						res = new cRef(res.getName(), ws);
+					}
+				} else if(undefined === arg[2] && Math.abs(bbox.r1 - bbox.r2) + 1 > 1 && Math.abs(bbox.c1 - bbox.c2) + 1 > 1) {//если последний аргумент опущен, и выделен более 1 строки и более 1 столбца
+					//так себя ведёт excel в случае с cellsArea
+					res = new cError(cErrorType.bad_reference);
+				} else if (bbox.r1 === bbox.r2) {/*одна строка*/
+					res = new Asc.Range(bbox.c1 + arg2 - 1, bbox.r1, bbox.c1 + arg2 - 1, bbox.r1);
+					res = new cRef(res.getName(), ws);
+				} else {
+					if (0 === arg1 && arg2 > 0) {
+						if (arg2 > Math.abs(bbox.c1 - bbox.c2) + 1) {
+							res = new cError(cErrorType.bad_reference);
+						} else {
+							res = new Asc.Range(bbox.c1 + arg2 - 1, bbox.r1, bbox.c1 + arg2 - 1, bbox.r2);
+							res = new cArea(res.getName(), ws);
+						}
+					} else {
+						if (arg1 > Math.abs(bbox.r1 - bbox.r2) + 1 || arg2 > Math.abs(bbox.c1 - bbox.c2) + 1) {
+							res = new cError(cErrorType.bad_reference);
+						} else {
+							res = new Asc.Range(bbox.c1 + arg2 - diffArg2, bbox.r1 + arg1 - diffArg1, bbox.c1 + arg2 - diffArg2, bbox.r1 + arg1 - diffArg1);
+							res = new cRef(res.getName(), ws);
+						}
+					}
 				}
+			} else if (cElementType.cell === arg0.type || cElementType.cell3D === arg0.type) {
+				if ((0 === arg1 || 1 === arg1) && (0 === arg2 || 1 === arg2)) {
+					res = arg0.getValue();
+				}
+			} else {
+				res = new cError(cErrorType.wrong_value_type);
 			}
-		} else if (cElementType.cell === arg0.type || cElementType.cell3D === arg0.type) {
-			if ((0 === arg1 || 1 === arg1) && (0 === arg2 || 1 === arg2)) {
-				res = arg0.getValue();
-			}
-		} else {
-			res = new cError(cErrorType.wrong_value_type);
-		}
+		});
 
 		return res ? res : new cError(cErrorType.bad_reference);
 	};
@@ -945,20 +947,24 @@ function (window, undefined) {
 				return new cError(cErrorType.bad_reference);
 			}
 
-			var b = arg2.getBBox0();
-			if (2 === arg.length) {
-				if (bVertical) {
-					return new cRef(ws.getCell3(b.r1 + 0, b.c1 + index).getName(), ws);
+			var res;
+			AscCommonExcel.executeInR1C1Mode(false, function () {
+				var b = arg2.getBBox0();
+				if (2 === arg.length) {
+					if (bVertical) {
+						res = new cRef(ws.getCell3(b.r1 + 0, b.c1 + index).getName(), ws);
+					} else {
+						res = new cRef(ws.getCell3(b.r1 + index, b.c1 + 0).getName(), ws);
+					}
 				} else {
-					return new cRef(ws.getCell3(b.r1 + index, b.c1 + 0).getName(), ws);
+					if (1 === arg2Range.length) {
+						res = new cRef(ws.getCell3(b.r1 + 0, b.c1 + index).getName(), ws);
+					} else {
+						res = new cRef(ws.getCell3(b.r1 + index, b.c1 + 0).getName(), ws);
+					}
 				}
-			} else {
-				if (1 === arg2Range.length) {
-					return new cRef(ws.getCell3(b.r1 + 0, b.c1 + index).getName(), ws);
-				} else {
-					return new cRef(ws.getCell3(b.r1 + index, b.c1 + 0).getName(), ws);
-				}
-			}
+			});
+			return res;
 		}
 	};
 
@@ -1541,7 +1547,10 @@ function (window, undefined) {
 					return new cError(cErrorType.bad_reference);
 				}
 
-				var name = box.getName();
+				var name;
+				AscCommonExcel.executeInR1C1Mode(false, function () {
+					name = box.getName();
+				});
 				var ws = arg0.getWS();
 				var wsCell = arguments[3];
 				if (box.isOneCell()) {
@@ -1830,8 +1839,12 @@ function (window, undefined) {
 		return resVal;
 	};
 	VHLOOKUPCache.prototype._get = function (range, valueForSearching, arg3Value) {
-		var res, _this = this, wsId = range.getWorksheet().getId(),
-			sRangeName = wsId + g_cCharDelimiter + range.getName(), cacheElem = this.cacheId[sRangeName];
+		var res, _this = this, wsId = range.getWorksheet().getId();
+		var sRangeName;
+		AscCommonExcel.executeInR1C1Mode(false, function () {
+			sRangeName = wsId + g_cCharDelimiter + range.getName();
+		});
+		var cacheElem = this.cacheId[sRangeName];
 		if (!cacheElem) {
 			cacheElem = {elements: [], results: {}};
 			range._foreachNoEmpty(function (cell, r, c) {

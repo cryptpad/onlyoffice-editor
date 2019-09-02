@@ -3466,7 +3466,7 @@
 					if (ct.angle < 0) {
 						if (Asc.c_oAscVAlign.Top === ct.cellVA) {
 							this.stringRender.flags.textAlign = AscCommon.align_Left;
-						} else if (Asc.c_oAscVAlign.Center === ct.cellVA) {
+						} else if (Asc.c_oAscVAlign.Center === ct.cellVA || Asc.c_oAscVAlign.Dist === ct.cellVA || Asc.c_oAscVAlign.Just === ct.cellVA) {
 							this.stringRender.flags.textAlign = AscCommon.align_Center;
 						} else if (Asc.c_oAscVAlign.Bottom === ct.cellVA) {
 							this.stringRender.flags.textAlign = AscCommon.align_Right;
@@ -3474,7 +3474,7 @@
 					} else {
 						if (Asc.c_oAscVAlign.Top === ct.cellVA) {
 							this.stringRender.flags.textAlign = AscCommon.align_Right;
-						} else if (Asc.c_oAscVAlign.Center === ct.cellVA) {
+						} else if (Asc.c_oAscVAlign.Center === ct.cellVA || Asc.c_oAscVAlign.Dist === ct.cellVA || Asc.c_oAscVAlign.Just === ct.cellVA) {
 							this.stringRender.flags.textAlign = AscCommon.align_Center;
 						} else if (Asc.c_oAscVAlign.Bottom === ct.cellVA) {
 							this.stringRender.flags.textAlign = AscCommon.align_Left;
@@ -6318,7 +6318,9 @@
 
     WorksheetView.prototype._calcTextVertPos = function (y1, h, baseline, tm, align) {
         switch (align) {
-            case Asc.c_oAscVAlign.Center:
+			case Asc.c_oAscVAlign.Center:
+			case Asc.c_oAscVAlign.Dist:
+			case Asc.c_oAscVAlign.Just:
                 return y1 + Asc.round(0.5 * (h - tm.height * this.getZoom()));
             case Asc.c_oAscVAlign.Top:
                 return y1;
@@ -14358,7 +14360,7 @@
                         var isShowButton = true;
 						var isSortState = null;//true - ascending, false - descending
 
-						var colId = filter.isAutoFilter() ? t.model.autoFilters._getTrueColId(autoFilter, col - range.c1) : col - range.c1;
+						var colId = filter.isAutoFilter() ? t.model.autoFilters._getTrueColId(autoFilter, col - range.c1, true) : col - range.c1;
                         if (autoFilter.FilterColumns && autoFilter.FilterColumns.length) {
                             var filterColumn = null, filterColumnWithMerge = null;
 

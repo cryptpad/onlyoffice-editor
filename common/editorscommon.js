@@ -746,6 +746,8 @@
 				nRes = Asc.c_oAscError.ID.ConvertationPassword;
 				break;
 			case c_oAscServerError.ConvertLIMITS :
+				nRes = Asc.c_oAscError.ID.ConvertationOpenLimitError;
+				break;
 			case c_oAscServerError.ConvertCONVERT_CORRUPTED :
 			case c_oAscServerError.ConvertLIBREOFFICE :
 			case c_oAscServerError.ConvertPARAMS :
@@ -3454,6 +3456,20 @@
 
 				if (1 === sResult.length)
 					sResult = "0" + sResult;
+				break;
+			}
+
+			case Asc.c_oAscNumberingFormat.DecimalEnclosedCircle:
+			{
+				if (nValue <= 20)
+				{
+					sResult = String.fromCharCode(0x2460 + nValue - 1);
+				}
+				else
+				{
+					sResult = "" + nValue;
+				}
+
 				break;
 			}
 

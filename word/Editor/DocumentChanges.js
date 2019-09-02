@@ -196,6 +196,12 @@ CChangesDocumentAddItem.prototype.Load = function(Color)
 			oDocument.private_ReindexContent(Pos);
 
 			AscCommon.CollaborativeEditing.Update_DocumentPositionsOnAdd(oDocument, Pos);
+
+			if (Element.IsParagraph())
+			{
+				Element.RecalcCompiledPr(true);
+				Element.UpdateDocumentOutline();
+			}
 		}
 	}
 };
@@ -308,6 +314,15 @@ CChangesDocumentRemoveItem.prototype.Load = function(Color)
 		var Elements = oDocument.Content.splice(Pos, 1);
 		oDocument.private_RecalculateNumbering(Elements);
 		AscCommon.CollaborativeEditing.Update_DocumentPositionsOnRemove(oDocument, Pos, 1);
+
+		for (var nElementIndex = 0; nElementIndex < Elements.length; ++nElementIndex)
+		{
+			if (Elements[nElementIndex].IsParagraph())
+			{
+				Elements[nElementIndex].RecalcCompiledPr(true);
+				Elements[nElementIndex].UpdateDocumentOutline();
+			}
+		}
 
 		if (Pos > 0)
 		{

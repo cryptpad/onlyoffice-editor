@@ -396,6 +396,7 @@ CChangesParagraphAddItem.prototype.Load = function(Color)
 	oParagraph.private_ResetSelection();
 	oParagraph.private_UpdateTrackRevisions();
 	oParagraph.private_CheckUpdateBookmarks(this.Items);
+	oParagraph.UpdateDocumentOutline();
 
 	private_ParagraphChangesOnSetValue(this.Class);
 };
@@ -492,6 +493,7 @@ CChangesParagraphRemoveItem.prototype.Load = function(Color)
 	oParagraph.private_ResetSelection();
 	oParagraph.private_UpdateTrackRevisions();
 	oParagraph.private_CheckUpdateBookmarks(this.Items);
+	oParagraph.UpdateDocumentOutline();
 
 	private_ParagraphChangesOnSetValue(this.Class);
 };
@@ -1143,9 +1145,10 @@ CChangesParagraphPStyle.prototype.private_SetValue = function(Value)
 	var oParagraph = this.Class;
 	oParagraph.Pr.PStyle = Value;
 
-	oParagraph.CompiledPr.NeedRecalc = true;
+	oParagraph.RecalcCompiledPr(true);
 	oParagraph.private_UpdateTrackRevisionOnChangeParaPr(false);
 	oParagraph.Recalc_RunsCompiledPr();
+	oParagraph.UpdateDocumentOutline();
 	private_ParagraphChangesOnSetValue(this.Class);
 };
 CChangesParagraphPStyle.prototype.Merge = private_ParagraphChangesOnMergePr;
@@ -1300,8 +1303,9 @@ CChangesParagraphPr.prototype.private_SetValue = function(Value)
 	var oParagraph = this.Class;
 	oParagraph.Pr = Value;
 
-	oParagraph.CompiledPr.NeedRecalc = true;
+	oParagraph.RecalcCompiledPr(true);
 	oParagraph.private_UpdateTrackRevisionOnChangeParaPr(false);
+	oParagraph.UpdateDocumentOutline();
 	private_ParagraphChangesOnSetValue(this.Class);
 };
 CChangesParagraphPr.prototype.private_IsCreateEmptyObject = function()
