@@ -10866,7 +10866,6 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 	// Если стираем (ctrl + F2)
 	else if (drawMode === false)
 	{
-		
 		var rowsInfo 	  = []; // масив строк, каждая из которых содержит массив cellsInfo (используется для создания новой сетки таблицы)
 		var Cells         = []; // ячейки, подлежащие объединению
 		var isClearMerge  = false;
@@ -10887,13 +10886,6 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 			oldRows.push(this.Content[curRow]);
 		}
 
-		var oldCellsCount = []; // При объединении ячеек, бывают случаи когда удаляются лишнии ячейки, мы должны это учитывать
-		for (var curRow = 0; curRow < this.Content.length; curRow++)
-		{
-			oldCellsCount.push(this.Content[curRow].CellsInfo.length);
-		}
-		 
-		
 
 		// Проверка, была ли выбрана граница (для случая, когда щелкаем по границе); 
 		// Проверка, были ли выбраны начало и конец выделения
@@ -11356,10 +11348,10 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 
 								}
 							}
-							if (X1 < this.Content[0].CellsInfo[0].X_cell_start)
-								X_Front = true;
-							if (X2 > this.Content[0].CellsInfo[this.Content[0].CellsInfo.length - 1].X_cell_end)
-								X_After = true;
+							// if (X1 < this.Content[0].CellsInfo[0].X_cell_start)
+							// 	X_Front = true;
+							// if (X2 > this.Content[0].CellsInfo[this.Content[0].CellsInfo.length - 1].X_cell_end)
+							// 	X_After = true;
 
 						}
 						// Ищем первую в строке ячейку попавшую под выделение
@@ -11406,10 +11398,10 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 
 								}
 							}
-							if (X1 < this.Content[0].CellsInfo[0].X_cell_start)
-								X_Front = true;
-							if (X2 > this.Content[0].CellsInfo[this.Content[0].CellsInfo.length - 1].X_cell_end)
-								X_After = true;
+							// if (X1 < this.Content[0].CellsInfo[0].X_cell_start)
+							// 	X_Front = true;
+							// if (X2 > this.Content[0].CellsInfo[this.Content[0].CellsInfo.length - 1].X_cell_end)
+							// 	X_After = true;
 							
 						}
 						else if (!check_first)
@@ -11456,8 +11448,8 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 
 								}
 							}
-							if (X2 > this.Content[0].CellsInfo[this.Content[0].CellsInfo.length - 1].X_cell_end)
-								X_After = true;
+							// if (X2 > this.Content[0].CellsInfo[this.Content[0].CellsInfo.length - 1].X_cell_end)
+							// 	X_After = true;
 						}
 						
 					
@@ -11490,19 +11482,46 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 
 		var newTempSelectionData  = [];
 		var TempSelectionData = this.Selection.Data; // Массив ячеек, которые были выделены 
-
+		
+		// this.Selection.Use = true;
+		// this.Selection.Type = 0;
+		// this.RemoveTableCells();
+		// return;
+		
 		// Удаление внешних границ, 
 		// в выделении должна быть только одна ячейка
 		if (this.Selection.Data.length === 1)
 		{
 			// Пустая граница (без отрисовки)
-			var borderNan = new CDocumentBorder();
+			var borderNan 	 = new CDocumentBorder();
+			var Cell 		 = this.Content[this.Selection.Data[0].Row].Get_Cell(this.Selection.Data[0].Cell);
+			var Cell_pos 	 = this.Selection.Data[0];
+			var Row 		 = this.Content[Cell_pos.Row];
+			var Grid_start 	 = Row.Get_CellInfo(Cell_pos.Cell).StartGridCol;
+			var Grid_span 	 = Cell.Get_GridSpan();
+			var VMerge_Count = this.Internal_GetVertMergeCount(Cell_pos.Row, Grid_start, Grid_span);
+			var rowHSum 	 = 0;
+
+			if (VMerge_count >= 1){
+				for (Index = Cell_pos.Row; Index < Cell_pos.Row + VMerge_Count; Index++)
+				{
+					rowHSum += this.RowsInfo[Index].H[CurPage]
+				}
+			}
+
+			if (this.RowsInfo[Cell.Row.Index].Y[CurPage] + rowHSum < Y2)
+				Y_Under = true;
+			if (this.RowsInfo[Cell.Row.Index].Y[CurPage] > Y1)
+				Y_Over = true;
+			if (Cell.Index === 0 && this.Content[Cell.Row.Index].CellsInfo[Cell.Index].X_cell_start > X1)
+				X_Front = true;
+			if (Cell.Index === this.Content[Cell.Row.Index].CellsInfo.length - 1 && this.Content[Cell.Row.Index].CellsInfo[Cell.Index].X_cell_end < X2)
+				X_After = true;
+
 
 			// Удаление горизонтальных внешних границ
 			if (isHSelect)
 			{
-				var Cell = this.Content[this.Selection.Data[0].Row].Get_Cell(this.Selection.Data[0].Cell);
-
 				if (isTopBorder)
 					Cell.Set_Border(borderNan, 0);
 				else if (isBottomBorder)
@@ -11512,7 +11531,6 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 			// Удаление вертикальных внешних границ
 			else if (isVSelect)
 			{
-				var Cell = this.Content[this.Selection.Data[0].Row].Get_Cell(this.Selection.Data[0].Cell);
 				if (isRightBorder)
 					Cell.Set_Border(borderNan, 1);
 				else if (isLeftBorder)
@@ -11521,22 +11539,19 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 			
 			if (X_Front)
 			{
-				var Cell = this.Content[this.Selection.Data[0].Row].Get_Cell(this.Selection.Data[0].Cell);
 				Cell.Set_Border(borderNan, 3);
 			}
 			if (X_After)
 			{
-				var Cell = this.Content[this.Selection.Data[0].Row].Get_Cell(this.Selection.Data[0].Cell);
 				Cell.Set_Border(borderNan, 1);
 			}
 			if (Y_Over)
 			{
-				var Cell = this.Content[this.Selection.Data[0].Row].Get_Cell(this.Selection.Data[0].Cell);
 				Cell.Set_Border(borderNan, 0);
 			}
 			if (Y_Under)
 			{
-				var Cell = this.Content[this.Selection.Data[0].Row].Get_Cell(this.Selection.Data[0].Cell);
+				
 				var Cell_pos = this.Selection.Data[0];
 				var Row = this.Content[Cell_pos.Row];
 				var Grid_start = Row.Get_CellInfo(Cell_pos.Cell).StartGridCol;
@@ -11809,7 +11824,6 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 		for (var Selection = 0; Selection < newSelectionData.length; Selection++)
 		{
 			
-			var curCellsCount = [];
 			var curRows 	  = [];
 			var curCells 	  = [];
 			
@@ -11878,29 +11892,6 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 
 				}
 			}
-
-			
-
-
-
-
-			// for (var curRow = 0; curRow < this.Content.length; curRow++)
-			// {
-			// 	curCellsCount.push(this.Content[curRow].CellsInfo.length);
-			// }
-
-			// for (var curRow = 0; curRow < this.Content.length; curRow++)
-			// {
-			// 	if (oldCellsCount[curRow] > curCellsCount[curRow])
-			// 	{
-			// 		for (var cell_pos = 0; cell_pos < newSelectionData[Selection].length; cell_pos++)
-			// 		{
-			// 			if (newSelectionData[Selection][cell_pos].Row === curRow)
-			// 				newSelectionData[Selection][cell_pos].Cell -= oldCellsCount[curRow] - curCellsCount[curRow];
-			// 		}
-			// 	}
-			// }
-
 			
 			this.Selection.Data = newSelectionData[Selection];
 
@@ -11915,50 +11906,45 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 			
 			if (Y_Over)
 			{
-				for (var Index = 0; Index < newSelectionData[Selection].length; Index++)
+				if (this.Selection.Data[0].Row === 0)
 				{
-					if (this.Selection.Data[0].Row === 0)
-					{
-						var borderNan = new CDocumentBorder();
-						Cell_tl.Set_Border(borderNan, 0);
-					}
-				
+					var borderNan = new CDocumentBorder();
+					Cell_tl.Set_Border(borderNan, 0);
 				}
 			}
 			if (Y_Under)
 			{
-				for (var Index = 0; Index < newSelectionData[Selection].length; Index++)
-				{
-					if (this.Selection.Data[this.Selection.Data.length - 1].Row === this.Content.length - 1)
-					{
-						var borderNan = new CDocumentBorder();
-						TempCell = this.Content[this.Content.length - 1].Get_Cell(Pos_tl.Cell);
-						TempCell.Set_Border(borderNan, 2);
-						Cell_tl.Set_Border(borderNan, 2);
-					}
-				}
+				var Cell_pos_ 		 = this.Selection.Data[this.Selection.Data.length - 1];
+				var Cell_ 			 = this.Content[Cell_pos_.Row].Get_Cell(Cell_pos_.Cell);
+				var Row_ 			 = this.Content[Cell_pos_.Row];
+				var Grid_start_      = Row_.Get_CellInfo(Cell_pos_.Cell).StartGridCol;
+				var Grid_span_ 	     = Cell_.Get_GridSpan();
+				var VMerge_Count_    = this.Internal_GetVertMergeCount(Cell_pos_.Row, Grid_start_, Grid_span_);
+				var TempCell 	     = this.Content[Cell_pos_.Row + VMerge_Count_ - 1].Get_Cell(this.Selection.Data[0].Cell);
+				var borderNan 		 = new CDocumentBorder();
+
+				TempCell.Set_Border(borderNan, 2);
 			}
+			var end_pos = this.Selection.Data[this.Selection.Data.length - 1];
+			if (Cell_tl.Index === 0 && this.Content[Cell_tl.Row.Index].CellsInfo[Cell_tl.Index].X_cell_start > X1)
+				X_Front = true;
+			if (end_pos.Cell === this.Content[end_pos.Row].CellsInfo.length - 1 && this.Content[end_pos.Row].CellsInfo[end_pos.Cell].X_cell_end < X2)
+				X_After = true;
+
 			if (X_Front)
 			{
-				for (var Index = 0; Index < newSelectionData[Selection].length; Index++)
+				
+				if (this.Selection.Data[0].Cell === 0)
 				{
-					if (this.Selection.Data[0].Cell === 0)
-					{
-						var borderNan = new CDocumentBorder();
-						Cell_tl.Set_Border(borderNan, 3);
-					}
+					var borderNan = new CDocumentBorder();
+					Cell_tl.Set_Border(borderNan, 3);
 				}
+				
 			}
 			if (X_After)
 			{
-				for (var Index = 0; Index < newSelectionData[Selection].length; Index++)
-				{
-					if (this.Selection.Data[this.Selection.Data.length - 1].Cell === this.Content[this.Selection.Data[this.Selection.Data.length - 1].Row].CellsInfo.length - 1)
-					{
-						var borderNan = new CDocumentBorder();
-						Cell_tl.Set_Border(borderNan, 1);
-					}
-				}
+				var borderNan = new CDocumentBorder();
+				Cell_tl.Set_Border(borderNan, 1);
 			}
 
 			// Объединяем содержимое всех ячеек в левую верхнюю ячейку. (Все выделенные
@@ -12049,6 +12035,10 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 
 			for (var Index = 0; Index < newTempSelectionData.length; Index++)
 			{
+				Y_Over  = false;
+				Y_Under = false;
+				X_Front = false;
+				X_After = false;
 				var Cell_pos_1     = newTempSelectionData[Index];
 				var Cell_1         = this.Content[Cell_pos_1.Row].Get_Cell(Cell_pos_1.Cell);
 				var Row_1          = this.Content[Cell_pos_1.Row];
@@ -12056,25 +12046,33 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 				var Grid_span_1    = Cell_1.Get_GridSpan();
 				var Grid_end_1     = Grid_start_1 + Grid_span_1 - 1;
 				var VMerge_count_1 = this.Internal_GetVertMergeCount(Cell_pos_1.Row, Grid_start_1, Grid_span_1);
+				var rowHSum 	   = 0;
+
+				if (VMerge_count_1 >= 1){
+					for (newIndex = Cell_pos_1.Row; newIndex < Cell_pos_1.Row + VMerge_count_1; newIndex++)
+					{
+						rowHSum += this.RowsInfo[newIndex].H[CurPage]
+					}
+				}
+
+				if (this.RowsInfo[Cell_pos_1.Row].Y[CurPage] + rowHSum < Y2)
+					Y_Under = true;
+				if (this.RowsInfo[Cell_pos_1.Row].Y[CurPage] > Y1)
+					Y_Over = true;
 
 				if (Y_Over)
 				{
-					if (Row_1.Index === 0)
-						Cell_1.Set_Border(borderNan, 0);
-					
+					Cell_1.Set_Border(borderNan, 0);
 				}
 				if (Y_Under)
 				{
-					if (Row_1.Index + VMerge_count_1 - 1 === this.Content.length - 1)
-					{
-						Cell_1.Set_Border(borderNan, 2);
-						var TempCell = this.Content[Cell_pos_1.Row + VMerge_count_1 - 1].Get_Cell(Cell_pos_1.Cell);
-						TempCell.Set_Border(borderNan, 2);
-					}
-						
-
+					var TempCell = this.Content[Cell_pos_1.Row + VMerge_count_1 - 1].Get_Cell(Cell_pos_1.Cell);
+					TempCell.Set_Border(borderNan, 2);
 				}
-
+				if (Cell_pos_1.Cell === 0 && this.Content[Cell_pos_1.Row].CellsInfo[Cell_pos_1.Cell].X_cell_start > X1)
+					X_Front = true;
+				if (Cell_pos_1.Cell === this.Content[Cell_pos_1.Row].CellsInfo.length - 1 && this.Content[Cell_pos_1.Row].CellsInfo[Cell_pos_1.Cell].X_cell_end < X2)
+					X_After = true;
 				if (X_Front)
 				{
 					if (Cell_pos_1.Cell === 0)
@@ -12082,7 +12080,7 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 				}
 				if(X_After)
 				{
-					if (Cell_pos_1.Cell === this.Content[Cell_pos_1.Row].CellInfo.length - 1)
+					//if (Cell_pos_1.Cell === this.Content[Cell_pos_1.Row].CellInfo.length - 1)
 					Cell_1.Set_Border(borderNan, 1);
 				}
 				for (var Index2 = 0; Index2 < newTempSelectionData.length; Index2++)
