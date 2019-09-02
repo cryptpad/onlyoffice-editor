@@ -2714,6 +2714,10 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 		var localeName = locale ? locale[name] : name;*/
 		return this.name.replace(rx_sFuncPref, "_xlfn.");
 	};
+	cBaseFunction.prototype.toLocaleString = function (/*locale*/) {
+		var name = this.toString();
+		return AscCommonExcel.cFormulaFunctionToLocale ? AscCommonExcel.cFormulaFunctionToLocale[name] : name;
+	};
 	cBaseFunction.prototype.setCalcValue = function (arg, numFormat) {
 		if (numFormat !== null && numFormat !== undefined) {
 			arg.numFormat = numFormat;
