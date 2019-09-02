@@ -2107,11 +2107,7 @@
 	};
 
 	WorksheetView.prototype.setPrintScale = function (width, height, scale) {
-		if((width === null && height === null) || (width === 0 && height === 0)) {
-			this._setPrintScale(scale);
-		} else {
-			this.fitToWidthHeight(width, height);
-		}
+		this.fitToWidthHeight(width, height, ((width === null && height === null) || (width === 0 && height === 0)) ? scale : undefined);
 	};
 
 	//пересчитывать необходимо когда после открытия зашли в настройки печати
@@ -2181,7 +2177,7 @@
 		//this._isLockedLayoutOptions(callback);
 	};
 
-	WorksheetView.prototype.fitToWidthHeight = function (width, height) {
+	WorksheetView.prototype.fitToWidthHeight = function (width, height, scale) {
 		//width/height - count of pages
 		//automatic -> width/height = undefined
 		//define print scale
@@ -2192,7 +2188,8 @@
 
 		var changedWidth = width !== pageSetup.asc_getFitToWidth();
 		var changedHeight = height !== pageSetup.asc_getFitToHeight();
-		if(changedWidth || changedHeight) {
+		var changedScale = scale && scale !== pageSetup.asc_getScale();
+		if(changedWidth || changedHeight || changedScale) {
 			History.Create_NewPoint();
 			History.StartTransaction();
 
@@ -2203,7 +2200,10 @@
 				pageSetup.asc_setFitToHeight(height);
 			}
 
-			this._setPrintScale(this.calcPrintScale(pageSetup.asc_getFitToWidth(), pageSetup.asc_getFitToHeight()));
+			if(undefined === scale) {
+				scale = this.calcPrintScale(pageSetup.asc_getFitToWidth(), pageSetup.asc_getFitToHeight());
+			}
+			this._setPrintScale(scale);
 
 			History.EndTransaction();
 		}
