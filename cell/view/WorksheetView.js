@@ -2205,6 +2205,11 @@
 			}
 			this._setPrintScale(scale);
 
+			this.changeViewPrintLines(true);
+			if(this.viewPrintLines) {
+				t.updateSelection();
+			}
+
 			History.EndTransaction();
 		}
 
