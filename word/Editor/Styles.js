@@ -7080,7 +7080,7 @@ CStyle.prototype.CreateCaption = function()
 	this.SetQFormat(true);
 	this.SetParaPr({
 		Spacing : {
-			Line     : 240 * g_dKoef_twips_to_mm,
+			Line     : 1.15,
 			LineRule : linerule_Auto
 		}
 	});
@@ -7088,7 +7088,7 @@ CStyle.prototype.CreateCaption = function()
 		Bold       : true,
 		BoldCS     : true,
 		Color      : { r : 0x4F, g : 0x81, b : 0xBD },
-		Unifill    : AscCommonWord.CreateThemeUnifill(EThemeColor.themecolorText1, null, null),
+		Unifill    : AscCommonWord.CreateThemeUnifill(EThemeColor.themecolorAccent1, null, null),
 		FontSize   : 9,
 		FontSizeCS : 9
 	});
