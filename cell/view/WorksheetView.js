@@ -1638,7 +1638,7 @@
             pageOrientation = pageSetup.asc_getOrientation();
             bFitToWidth = pageSetup.asc_getFitToWidth();
             bFitToHeight = pageSetup.asc_getFitToHeight();
-			scale = pageSetup.asc_getScale() / 100;
+			scale = 1/*pageSetup.asc_getScale() / 100*/;
         }
 
         var pageLeftField, pageRightField, pageTopField, pageBottomField;
@@ -1970,6 +1970,14 @@
 			//draw header/footer
 			this._drawHeaderFooter(drawingCtx, printPagesData, indexPrintPage, countPrintPages);
 
+            if(window['Asc']['editor'].watermarkDraw)
+            {
+                window['Asc']['editor'].watermarkDraw.zoom = 1;//this.worksheet.objectRender.zoom.current;
+                window['Asc']['editor'].watermarkDraw.Generate();
+                window['Asc']['editor'].watermarkDraw.StartRenderer();
+                window['Asc']['editor'].watermarkDraw.DrawOnRenderer(drawingCtx.DocumentRenderer, c_oAscPrintDefaultSettings.PageWidth, c_oAscPrintDefaultSettings.PageHeight);
+                window['Asc']['editor'].watermarkDraw.EndRenderer();
+            }
             drawingCtx.EndPage();
         } else {
             drawingCtx.BeginPage(printPagesData.pageWidth, printPagesData.pageHeight);
@@ -2033,6 +2041,16 @@
 			}
 
             drawingCtx.RemoveClipRect();
+
+            if(window['Asc']['editor'].watermarkDraw)
+            {
+                window['Asc']['editor'].watermarkDraw.zoom = 1;//this.worksheet.objectRender.zoom.current;
+                window['Asc']['editor'].watermarkDraw.Generate();
+                window['Asc']['editor'].watermarkDraw.StartRenderer();
+                window['Asc']['editor'].watermarkDraw.DrawOnRenderer(drawingCtx.DocumentRenderer, printPagesData.pageWidth,
+                    printPagesData.pageHeight);
+                window['Asc']['editor'].watermarkDraw.EndRenderer();
+            }
             drawingCtx.EndPage();
         }
     };
@@ -2747,7 +2765,7 @@
 			return;
 		}
 
-		var dependentCells = {}, i;
+		var drawCells = {}, i;
 		var aRules = this.model.aConditionalFormattingRules.sort(function (v1, v2) {
 			return v2.priority - v1.priority;
 		});
@@ -2866,28 +2884,23 @@
 
 			var showValue = this._drawCellCF(ctx, aRules, c, row, col, top, width + mwidth, height + mheight, offsetX, offsetY);
 			if (showValue) {
-				this._drawCellText(drawingCtx, col, row, colStart, colEnd, offsetX, offsetY);
-
-				if (!mc) {
-					// check if long text overlaps this cell
-					i = this._findSourceOfCellText(col, row);
-					if (i >= 0) {
-						dependentCells[i] = (dependentCells[i] || []);
-						dependentCells[i].push(col);
-					}
-				}
+				drawCells[col] = 1;
 			}
         }
-		// draw long text that overlaps own cell's borders
-		for (i in dependentCells) {
-			var arr = dependentCells[i], j = arr.length - 1;
-			col = i >> 0;
-			// if source cell belongs to cells range then skip it (text has been drawn already)
-			if (col >= arr[0] && col <= arr[j]) {
-				continue;
+		// Check overlaps start and end
+		i = this._findSourceOfCellText(colStart, row);
+		if (-1 !== i) {
+			drawCells[i] = 1;
+		}
+		if (colStart !== colEnd) {
+			i = this._findSourceOfCellText(colEnd, row);
+			if (-1 !== i) {
+				drawCells[i] = 1;
 			}
-			// draw long text fragment
-			this._drawCellText(drawingCtx, col, row, arr[0], arr[j], offsetX, offsetY);
+		}
+		// draw text
+		for (i in drawCells) {
+			this._drawCellText(drawingCtx, i >> 0, row, colStart, colEnd, offsetX, offsetY);
 		}
     };
 
@@ -5395,7 +5408,7 @@
 		var isNumberFormat = !cell.isEmptyTextString() && (null === cellType || CellValueType.String !== cellType);
 		if (angle || isNumberFormat || align.getWrap()) {
 			this._addCellTextToCache(cell.nCol, cell.nRow);
-			return;
+			return AscCommonExcel.convertPtToPx(this._getRowHeightReal(cell.nRow));
 		}
 
 		// ToDo with angle and wrap
@@ -5592,7 +5605,7 @@
         return res;
     };
 
-    // Ищет текст в строке (columnsWithText - это колонки, в которых есть текст)
+    // If this cell with overlap or text return index of column
     WorksheetView.prototype._findSourceOfCellText = function (col, row) {
         var r = this._getRowCache(row);
         if (r) {
@@ -17100,7 +17113,7 @@
 			}
 		}
 
-		if((target.row < 1 && !bCol) || (target.col < 1 && bCol)) {
+		if((target.row < 0 && !bCol) || (target.col < 0 && bCol)) {
 			//проверяем, возможно мы попали в одну из кнопок управления уровнями
 			return this._groupRowMenuClick(x, y, target, type, bCol);
 		}
@@ -17985,7 +17998,7 @@
 			}
 			case asc.c_oAscHeaderFooterField.time: {
 				curDate = new cDate();
-				curDateNum = curDate.getExcelDateWithTime(true);
+				curDateNum = curDate.getExcelDateWithTime(true) - curDate.getTimezoneOffset()/(60*24);
 				res = api.asc_getLocaleExample(AscCommon.getShortTimeFormat(), curDateNum);
 				break;
 			}

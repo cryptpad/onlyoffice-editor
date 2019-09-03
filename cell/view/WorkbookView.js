@@ -1770,6 +1770,8 @@
       ws.changeZoom(true);
     }
 
+    this.updateGroupData();
+
     if (this.cellEditor && this.cellFormulaEnterWSOpen) {
       if (ws === this.cellFormulaEnterWSOpen) {
         this.cellFormulaEnterWSOpen.setFormulaEditMode(true);
