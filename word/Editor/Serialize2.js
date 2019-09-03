@@ -4440,7 +4440,7 @@ Binary_tblPrWriter.prototype =
             this.memory.WriteByte(c_oSerPropLenType.Byte);
             this.memory.WriteByte(textDirection);
         }
-        var noWrap = cell ? cell.Get_NoWrap() : null;
+        var noWrap = cell ? cell.GetNoWrap() : null;
         if(null != noWrap)
         {
             this.memory.WriteByte(c_oSerProp_cellPrType.noWrap);
