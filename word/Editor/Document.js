@@ -18715,25 +18715,74 @@ CDocument.prototype.ParseTableFormulaInstrLine = function(sInstrLine)
 };
 
 
-CDocument.prototype.AddTableCaption = function()
+CDocument.prototype.AddCaption = function(oPr)
 {
-    if(this.Selection.Use && this.Selection.StartPos === this.Selection.EndPos
-    && this.Content[this.Selection.StartPos].GetType() === type_Table)
+
+    this.Create_NewHistoryPoint(0);
+    var NewParagraph;
+    if(this.CurPos.Type === docpostype_DrawingObjects)
     {
-        var oTable = this.Content[this.Selection.StartPos];
-        this.Create_NewHistoryPoint(0);
-        var NewParagraph = new Paragraph(this.DrawingDocument, this);
-        var NewRun       = new ParaRun(NewParagraph, false);
-        NewRun.AddText("Table ");
-        NewParagraph.Add_ToContent(0, NewRun);
-        this.Internal_Content_Add(oTable.Index, NewParagraph);
-        this.private_CreateComplexFieldRun(" SEQ Table \\* ARABIC ", NewParagraph);
+        if(this.DrawingObjects.selectedObjects.length === 1)
+        {
+            var oDrawing = this.DrawingObjects.selectedObjects[0].parent;
+            if(oDrawing.Is_Inline())
+            {
+                NewParagraph = new Paragraph(this.DrawingDocument, oDrawing.DocumentContent);
+                NewParagraph.SetParagraphStyle("Caption");
+                oDrawing.DocumentContent.Internal_Content_Add(oPr.get_Before() ? oDrawing.Get_ParentParagraph().Index : (oDrawing.Get_ParentParagraph().Index + 1), NewParagraph, true);
+            }
+            else
+            {
+                var oShape = this.DrawingObjects.createTextArt(0, true, null, "");
+            }
+        }
+    }
+    else
+    {
+        if(this.Selection.Use && this.Selection.StartPos === this.Selection.EndPos
+            && this.Content[this.Selection.StartPos].GetType() === type_Table)
+        {
+            var oTable = this.Content[this.Selection.StartPos];
+            NewParagraph = new Paragraph(this.DrawingDocument, this);
+            NewParagraph.SetParagraphStyle("Caption");
+            this.Internal_Content_Add(oPr.get_Before() ? oTable.Index : (oTable.Index + 1), NewParagraph, true);
+        }
+    }
+    if(NewParagraph)
+    {
+        var NewRun;
+        if(!oPr.get_ExcludeLabel())
+        {
+            var sLabel = oPr.get_Label();
+            if(typeof sLabel === "string" && sLabel.length > 0)
+            {
+                NewRun = new ParaRun(NewParagraph, false);
+                NewRun.AddText(sLabel + " ");
+                NewParagraph.Add(NewRun);
+            }
+        }
+        if(oPr.get_IncludeChapterNumber())
+        {
+            var nHeadingLvl = oPr.get_HeadingLvl();
+            if(AscFormat.isRealNumber(nHeadingLvl))
+            {
+                this.private_CreateComplexFieldRun(" STYLEREF " + nHeadingLvl + " \\s", NewParagraph);
+            }
+            var sSeparator = oPr.get_Separator();
+            if(!sSeparator || sSeparator.length === 0)
+            {
+                sSeparator = " ";
+            }
+            NewRun = new ParaRun(NewParagraph, false);
+            NewRun.AddText(sSeparator);
+            NewParagraph.Add(NewRun);
+        }
+        this.private_CreateComplexFieldRun(" SEQ " + oPr.get_Label() + " \\* " + oPr.get_Format() + " ", NewParagraph);
         NewParagraph.MoveCursorToEndPos();
         NewParagraph.Document_SetThisElementCurrent(true);
-
-        this.Recalculate();
-        this.FinalizeAction();
     }
+    this.Recalculate();
+    this.FinalizeAction();
 };
 CDocument.prototype.AddDrawingCaption = function()
 {

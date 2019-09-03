@@ -847,43 +847,45 @@ CFieldInstructionSEQ.prototype.SetS = function (sVal)
 CFieldInstructionSEQ.prototype.SetGeneralSwitches = function (aSwitches)
 {
 	this.GeneralSwitches = aSwitches;
-	var sSwitch;
 	for(var i = 0; i < aSwitches.length; ++i)
 	{
-		sSwitch = aSwitches[i];
-		if(typeof sSwitch === 'string')
-		{
-			if(sSwitch.toLowerCase() === 'arabic')
-			{
-				this.NumFormat = Asc.c_oAscNumberingFormat.Decimal;
-			}
-			else if(sSwitch.toLowerCase() === 'alphabetic')
-			{
-				if(sSwitch[0] === 'A')
-				{
-					this.NumFormat = Asc.c_oAscNumberingFormat.UpperLetter;
-				}
-				else
-				{
-					this.NumFormat = Asc.c_oAscNumberingFormat.LowerLetter;
-				}
-			}
-			else if(sSwitch.toLowerCase() === 'roman')
-			{
-				if(sSwitch[0] === 'r')
-				{
-					this.NumFormat = Asc.c_oAscNumberingFormat.LowerRoman;
-				}
-				else
-				{
-					this.NumFormat = Asc.c_oAscNumberingFormat.UpperRoman;
-				}
-			}
-		}
+		this.NumFormat = GeneralToNumFormat(aSwitches[i]);
 	}
 };
 
-
+function GeneralToNumFormat(sFormat)
+{
+	if(typeof sFormat === 'string')
+	{
+		if(sFormat.toLowerCase() === 'arabic')
+		{
+			return Asc.c_oAscNumberingFormat.Decimal;
+		}
+		else if(sFormat.toLowerCase() === 'alphabetic')
+		{
+			if(sFormat[0] === 'A')
+			{
+				return Asc.c_oAscNumberingFormat.UpperLetter;
+			}
+			else
+			{
+				return Asc.c_oAscNumberingFormat.LowerLetter;
+			}
+		}
+		else if(sFormat.toLowerCase() === 'roman')
+		{
+			if(sFormat[0] === 'r')
+			{
+				return Asc.c_oAscNumberingFormat.LowerRoman;
+			}
+			else
+			{
+				return Asc.c_oAscNumberingFormat.UpperRoman;
+			}
+		}
+	}
+	return Asc.c_oAscNumberingFormat.Decimal;
+}
 
 /**
  * Класс для разбора строки с инструкцией

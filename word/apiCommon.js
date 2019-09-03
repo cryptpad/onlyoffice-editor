@@ -2012,13 +2012,13 @@
 	{
 		this.Name = null;
 		this.Label = null;
-		this.Before = null;
-		this.ExcludeLabel = null;
-		this.Format = null;
+		this.Before = false;
+		this.ExcludeLabel = false;
+		this.Format = "ARABIC";
 
 		this.IncludeChapterNumber = false;
 		this.HeadingLvl = null;
-		this.Separator = null;
+		this.Separator = ":";
 
 		this.Document = null;
 	}
@@ -2068,7 +2068,27 @@
 	};
 	prot.updateName = prot["updateName"] = function()
 	{
-
+		this.Name = "";
+		if(!this.ExcludeLabel)
+		{
+			if(typeof this.Label === "string" && this.Label.length > 0)
+			{
+				this.Name += (this.Label + " ");
+			}
+		}
+		if(this.IncludeChapterNumber)
+		{
+			this.Name += "1";
+			if(typeof this.Separator === "string" && this.Separator.length > 0)
+			{
+				this.Name += this.Separator;
+			}
+			else
+			{
+				this.Name += " ";
+			}
+		}
+		this.Name += AscCommon.IntToNumberFormat(1, GeneralToNumFormat(this.Format));
 	};
 
 })(window, undefined);
