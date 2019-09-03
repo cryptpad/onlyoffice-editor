@@ -264,10 +264,12 @@ CTable.prototype.private_RecalculateGrid = function()
         }
         else
         {
-            TableW = TablePr.TableW.W
+            TableW = TablePr.TableW.W;
         }
 
-        if (TableW < MinWidth)
+        if (0.001 > TableW)
+        	TableW = 0;
+        else if (TableW < MinWidth)
             TableW = MinWidth;
     }
 
@@ -1619,6 +1621,15 @@ CTable.prototype.private_RecalculatePositionX = function(CurPage)
     {
         if (0 === CurPage)
         {
+        	var oSectPr = this.Get_SectPr();
+        	if (oSectPr)
+			{
+				PageFields.Y      = oSectPr.PageMargins.Top;
+				PageFields.YLimit = oSectPr.PageSize.H - oSectPr.PageMargins.Bottom;
+				PageFields.X      = oSectPr.PageMargins.Left;
+				PageFields.XLimit = oSectPr.PageSize.W - oSectPr.PageMargins.Right;
+			}
+
             var OffsetCorrection_Left  = this.GetTableOffsetCorrection();
             var OffsetCorrection_Right = this.GetRightTableOffsetCorrection();
 
@@ -2339,6 +2350,12 @@ CTable.prototype.private_RecalculatePage = function(CurPage)
                 {
                     Cell = this.Internal_Get_StartMergedCell( CurRow, CurGridCol, GridSpan );
                     CellMar = Cell.GetMargins();
+
+                    var oTempRow         = Cell.GetRow();
+					var oTempCellMetrics = oTempRow.GetCellInfo(Cell.GetIndex());
+
+					X_content_start = Page.X + oTempCellMetrics.X_content_start;
+					X_content_end   = Page.X + oTempCellMetrics.X_content_end;
 
                     Y_content_start = Cell.Temp.Y + CellMar.Top.W;
                 }

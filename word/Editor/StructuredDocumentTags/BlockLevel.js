@@ -693,6 +693,13 @@ CBlockLevelSdt.prototype.SplitTableCells = function(nColsCount, nRowsCount)
 
 	return this.Content.SplitTableCells(nColsCount, nRowsCount);
 };
+CBlockLevelSdt.prototype.RemoveTableCells = function()
+{
+	if (this.IsPlaceHolder())
+		return false;
+
+	return this.Content.RemoveTableCells();
+};
 CBlockLevelSdt.prototype.RemoveTable = function()
 {
 	if (this.IsPlaceHolder())
@@ -1497,6 +1504,10 @@ CBlockLevelSdt.prototype.GetAllFields = function(isUseSelection, arrFields)
 CBlockLevelSdt.prototype.ReplacePlaceHolderWithContent = function()
 {
 	return this.private_ReplacePlaceHolderWithContent();
+};
+CBlockLevelSdt.prototype.CheckRunContent = function(fCheck)
+{
+	return this.Content.CheckRunContent(fCheck);
 };
 //--------------------------------------------------------export--------------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};

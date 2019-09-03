@@ -1654,6 +1654,22 @@
 
 		return arrResult;
 	};
+	/**
+	 * Set to track changes or not
+	 * @param isTrack {boolean}
+	 */
+	ApiDocument.prototype.SetTrackRevisions = function(isTrack)
+	{
+		this.Document.SetTrackRevisions(isTrack);
+	};
+	/**
+	 * Is change tracking enabled
+	 * @returns {boolean}
+	 */
+	ApiDocument.prototype.IsTrackRevisions = function()
+	{
+		return this.Document.IsTrackRevisions();
+	};
 	//------------------------------------------------------------------------------------------------------------------
 	//
 	// ApiParagraph
@@ -5195,6 +5211,8 @@
 	ApiDocument.prototype["InsertWatermark"]         = ApiDocument.prototype.InsertWatermark;
 	ApiDocument.prototype["SearchAndReplace"]        = ApiDocument.prototype.SearchAndReplace;
 	ApiDocument.prototype["GetAllContentControls"]   = ApiDocument.prototype.GetAllContentControls;
+	ApiDocument.prototype["SetTrackRevisions"]       = ApiDocument.prototype.SetTrackRevisions;
+	ApiDocument.prototype["IsTrackRevisions"]        = ApiDocument.prototype.IsTrackRevisions;
 
 	ApiParagraph.prototype["GetClassType"]           = ApiParagraph.prototype.GetClassType;
 	ApiParagraph.prototype["AddText"]                = ApiParagraph.prototype.AddText;
@@ -5715,87 +5733,19 @@
 	}
 
 	function private_CreateWatermark(sText, bDiagonal){
-		var sText2 = ((typeof (sText) === "string") && (sText.length > 0)) ? sText : "WATERMARK";
-		var sFontName2 = undefined;
-		var nFontSize2 = 2;
-		var oTextFill2 = AscFormat.CreateUnfilFromRGB(127, 127, 127);
-		oTextFill2.transparent = 127;
-
-		var MainLogicDocument = (editor && editor.WordControl && editor.WordControl.m_oLogicDocument ? editor && editor.WordControl && editor.WordControl.m_oLogicDocument : null);
-		var TrackRevisions = (MainLogicDocument ? MainLogicDocument.IsTrackRevisions() : false);
-
-		if (MainLogicDocument && true === TrackRevisions)
-			MainLogicDocument.SetTrackRevisions(false);
-
-		var oShape = new AscFormat.CShape();
-		oShape.setWordShape(true);
-		oShape.setBDeleted(false);
-		oShape.createTextBoxContent();
-		var oSpPr = new AscFormat.CSpPr();
-		var oXfrm = new AscFormat.CXfrm();
-		oXfrm.setOffX(0);
-		oXfrm.setOffY(0);
-
-
-		var fHeight = 45;
-		var fWidth;
-		if(bDiagonal !== false){
-			fWidth = 175;
-			oXfrm.setRot(7*Math.PI/4);
-		}
-		else{
-			fWidth = 165;
-		}
-
-		oXfrm.setExtX(fWidth);
-		oXfrm.setExtY(fHeight);
-		oSpPr.setXfrm(oXfrm);
-		oXfrm.setParent(oSpPr);
-		oSpPr.setFill(AscFormat.CreateNoFillUniFill());
-		oSpPr.setLn(AscFormat.CreateNoFillLine());
-		oSpPr.setGeometry(AscFormat.CreateGeometry("rect"));
-		oShape.setSpPr(oSpPr);
-		oSpPr.setParent(oShape);
-		var oContent = oShape.getDocContent();
-		AscFormat.AddToContentFromString(oContent, sText2);
-		var oTextPr = new CTextPr();
-		oTextPr.FontSize = nFontSize2;
-		oTextPr.RFonts.Ascii = sFontName2;
-		oTextPr.TextFill = oTextFill2;
-		oContent.Set_ApplyToAll(true);
-		oContent.AddToParagraph(new ParaTextPr(oTextPr));
-		oContent.SetParagraphAlign(AscCommon.align_Center);
-		oContent.Set_ApplyToAll(false);
-		var oBodyPr = oShape.getBodyPr().createDuplicate();
-		oBodyPr.rot = 0;
-		oBodyPr.spcFirstLastPara = false;
-		oBodyPr.vertOverflow = AscFormat.nOTOwerflow;
-		oBodyPr.horzOverflow = AscFormat.nOTOwerflow;
-		oBodyPr.vert = AscFormat.nVertTThorz;
-		oBodyPr.lIns = 2.54;
-		oBodyPr.tIns = 1.27;
-		oBodyPr.rIns = 2.54;
-		oBodyPr.bIns = 1.27;
-		oBodyPr.numCol = 1;
-		oBodyPr.spcCol = 0;
-		oBodyPr.rtlCol = 0;
-		oBodyPr.fromWordArt = false;
-		oBodyPr.anchor = 4;
-		oBodyPr.anchorCtr = false;
-		oBodyPr.forceAA = false;
-		oBodyPr.compatLnSpc = true;
-		oBodyPr.prstTxWarp = AscFormat.ExecuteNoHistory(function(){return AscFormat.CreatePrstTxWarpGeometry("textPlain");}, this, []);
-		oShape.setBodyPr(oBodyPr);
-
 		var oLogicDocument = private_GetLogicDocument();
-		var oDrawingDocuemnt = private_GetDrawingDocument();
-		var oDrawing = new ParaDrawing(fWidth, fHeight, null, oDrawingDocuemnt, oLogicDocument, null);
-		oShape.setParent(oDrawing);
-		oDrawing.Set_GraphicObject(oShape);
-		var oApiShape = new ApiShape(oShape);
-		oApiShape.SetWrappingStyle("inFront");
-		oApiShape.SetHorAlign("margin", "center");
-		oApiShape.SetVerAlign("margin", "center");
+		var oProps = new Asc.CAscWatermarkProperties();
+		oProps.put_Type(Asc.c_oAscWatermarkType.Text);
+		oProps.put_IsDiagonal(bDiagonal === true);
+		oProps.put_Text(sText);
+		oProps.put_Opacity(127);
+		var oTextPr = new Asc.CTextProp();
+		oTextPr.put_FontSize(-1);
+		oTextPr.put_FontFamily(new AscCommon.asc_CTextFontFamily({Name : "Arial", Index : -1}));
+		oTextPr.put_Color(AscCommon.CreateAscColorCustom(192, 192, 192));
+		oProps.put_TextPr(oTextPr);
+		var oDrawing = oLogicDocument.DrawingObjects.createWatermark(oProps);
+		var oApiShape = new ApiShape(oDrawing.GraphicObj);
 		return oApiShape;
 	}
 

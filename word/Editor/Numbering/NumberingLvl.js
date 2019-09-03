@@ -49,6 +49,7 @@ function CNumberingLvl()
 	this.ParaPr  = new CParaPr();
 	this.LvlText = [];
 	this.Legacy  = undefined;
+	this.IsLgl   = false;
 }
 /**
  * Доступ к типу прилегания данного уровня
@@ -159,6 +160,14 @@ CNumberingLvl.prototype.GetLegacyIndent = function()
 		return this.Legacy.Indent;
 
 	return 0;
+};
+/**
+ * Использовать ли только арабскую нумерацию для предыдущих уровней, используемых на данном уровне
+ * @returns {boolean}
+ */
+CNumberingLvl.prototype.IsLegalStyle = function()
+{
+	return this.IsLgl;
 };
 /**
  * Выставляем значения по умолчанию для заданного уровня
@@ -481,6 +490,8 @@ CNumberingLvl.prototype.Copy = function()
 
 	if (this.Legacy)
 		oLvl.Legacy = this.Legacy.Copy();
+
+	oLvl.IsLgl = oLvl.IsLgl;
 
 	return oLvl;
 };
@@ -891,6 +902,7 @@ CNumberingLvl.prototype.WriteToBinary = function(oWriter)
 	// Array of variables : массив LvlText
 	// Bool               : true -> CNumberingLegacy
 	//                    : false -> Legacy = undefined
+	// Bool               : IsLgl
 
 	oWriter.WriteLong(this.Jc);
 	oWriter.WriteLong(this.Format);
@@ -919,6 +931,8 @@ CNumberingLvl.prototype.WriteToBinary = function(oWriter)
 	{
 		oWriter.WriteBool(false);
 	}
+
+	oWriter.WriteBool(this.IsLgl);
 };
 CNumberingLvl.prototype.ReadFromBinary = function(oReader)
 {
@@ -934,6 +948,7 @@ CNumberingLvl.prototype.ReadFromBinary = function(oReader)
 	// Array of variables : массив LvlText
 	// Bool               : true -> CNumberingLegacy
 	//                    : false -> Legacy = undefined
+	// Bool               : IsLgl
 
 
 	this.Jc     = oReader.GetLong();
@@ -966,6 +981,8 @@ CNumberingLvl.prototype.ReadFromBinary = function(oReader)
 		this.Legacy = new CNumberingLvlLegacy();
 		this.Legacy.ReadFromBinary(oReader);
 	}
+
+	this.IsLgl = oReader.GetBool();
 };
 CNumberingLvl.prototype.private_ReadLvlTextFromBinary = function(oReader)
 {
@@ -996,6 +1013,34 @@ CNumberingLvl.prototype.IsNumbered = function()
 {
 	var nFormat = this.GetFormat();
 	return (nFormat !== Asc.c_oAscNumberingFormat.Bullet && nFormat !== Asc.c_oAscNumberingFormat.None);
+};
+/**
+ * Получаем список связанных уровней с данным
+ * @returns {number[]}
+ */
+CNumberingLvl.prototype.GetRelatedLvlList = function()
+{
+	var arrLvls = [];
+	for (var nIndex = 0, nCount = this.LvlText.length; nIndex < nCount; ++nIndex)
+	{
+		if (numbering_lvltext_Num === this.LvlText[nIndex].Type)
+		{
+			var nLvl  = this.LvlText[nIndex].Value;
+
+			if (arrLvls.length <= 0)
+				arrLvls.push(nLvl);
+
+			for (var nLvlIndex = 0, nLvlsCount = arrLvls.length; nLvlIndex < nLvlsCount; ++nLvlIndex)
+			{
+				if (arrLvls[nLvlIndex] === nLvl)
+					break;
+				else if (arrLvls[nLvlIndex] > nLvl)
+					arrLvls.splice(nLvlIndex, 0, nLvl);
+			}
+		}
+	}
+
+	return arrLvls;
 };
 
 

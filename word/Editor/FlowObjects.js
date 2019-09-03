@@ -197,6 +197,14 @@ CFlowTable.prototype =
     }
 
 };
+CFlowTable.prototype.GetElement = function()
+{
+	return this.Table;
+};
+CFlowTable.prototype.GetPage = function()
+{
+	return this.PageNum;
+};
 
 function CFlowParagraph(Paragraph, X, Y, W, H, Dx, Dy, StartIndex, FlowCount, Wrap)
 {
@@ -270,4 +278,12 @@ CFlowParagraph.prototype =
     {
         return CFlowTable.prototype.getArrayWrapIntervals.call(this, x0,y0, x1, y1, Y0Sp, Y1Sp, LeftField, RightField, ret, bMathWrap);
     }
+};
+CFlowParagraph.prototype.GetElement = function()
+{
+	return this.Paragraph;
+};
+CFlowParagraph.prototype.GetPage = function()
+{
+	return this.PageNum;
 };

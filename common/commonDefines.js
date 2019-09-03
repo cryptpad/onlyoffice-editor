@@ -146,6 +146,9 @@
 			MailMergeLoadFile : -40,
 			MailMergeSaveFile : -41,
 
+			// Data Validate
+			DataValidate : -45,
+
 			// for AutoFilter
 			AutoFilterDataRangeError         : -50,
 			AutoFilterChangeFormatTableError : -51,
@@ -171,6 +174,7 @@
 
 			UserDrop : -100,
 			Warning  : -101,
+			UpdateVersion : -102,
 
 			PrintMaxPagesCount					: -110,
 
@@ -179,6 +183,7 @@
 			SessionToken: -122,
 
 			/* для формул */
+			FrmlMaxTextLength           : -299,
 			FrmlWrongCountParentheses   : -300,
 			FrmlWrongOperator           : -301,
 			FrmlWrongMaxArgument        : -302,
@@ -207,7 +212,9 @@
 
 			MailToClientMissing	: -452,
 
-			NoDataToParse : -601
+			NoDataToParse : -601,
+
+			CannotUngroupError : -700
 		}
 	};
 
@@ -420,34 +427,12 @@
 		t       : 9
 	};
 
-	var c_oAscChartCatAxisSettings = {
-		none        : 0,
-		leftToRight : 1,
-		rightToLeft : 2,
-		noLabels    : 3
-	};
-
-	var c_oAscChartValAxisSettings = {
-		none      : 0,
-		byDefault : 1,
-		thousands : 2,
-		millions  : 3,
-		billions  : 4,
-		log       : 5
-	};
-
-	var c_oAscAxisTypeSettings = {
-		vert : 0,
-		hor  : 1
-	};
-
 	var c_oAscGridLinesSettings = {
 		none       : 0,
 		major      : 1,
 		minor      : 2,
 		majorMinor : 3
 	};
-
 
 	var c_oAscChartTypeSettings = {
 		barNormal              : 0,
@@ -491,7 +476,6 @@
 		unknown                : 38
 	};
 
-
 	var c_oAscValAxisRule = {
 		auto  : 0,
 		fixed : 1
@@ -533,12 +517,6 @@
 		minValue : 3
 	};
 
-	var c_oAscHorAxisType = {
-		auto : 0,
-		date : 1,
-		text : 2
-	};
-
 	var c_oAscBetweenLabelsRule = {
 		auto   : 0,
 		manual : 1
@@ -548,7 +526,6 @@
 		byDivisions      : 0,
 		betweenDivisions : 1
 	};
-
 
 	var c_oAscAxisType = {
 		auto : 0,
@@ -851,7 +828,6 @@
 		DeleteTable             : 5
 	};
 
-
 	// Print default options (in mm)
 	var c_oAscPrintDefaultSettings = {
 		// Размеры страницы при печати
@@ -864,6 +840,8 @@
 		PageRightField  : 17.8,
 		PageTopField    : 19.1,
 		PageBottomField : 19.1,
+		PageHeaderField : 7.62,
+		PageFooterField : 7.62,
 		MinPageLeftField	: 0.17,
 		MinPageRightField	: 0.17,
 		MinPageTopField		: 0.17,
@@ -871,6 +849,13 @@
 
 		PageGridLines : 0,
 		PageHeadings  : 0
+	};
+
+	// Тип печати
+	var c_oAscPrintType = {
+		ActiveSheets: 0,	// Активные листы
+		EntireWorkbook: 1,	// Всю книгу
+		Selection: 2		// Выделенный фрагмент
 	};
 
 	var c_oZoomType = {
@@ -1098,6 +1083,7 @@
 	var c_oAscMaxTooltipLength       = 256;
 	var c_oAscMaxCellOrCommentLength = 32767;
 	var c_oAscMaxFormulaLength       = 8192;
+	var c_oAscMaxHeaderFooterLength  = 256;
 
 	var locktype_None   = 1; // никто не залочил данный объект
 	var locktype_Mine   = 2; // данный объект залочен текущим пользователем
@@ -1140,6 +1126,7 @@
 	var changestype_AddShapes                 = 73;
 	var changestype_PresDefaultLang           = 74;
 	var changestype_SlideHide                 = 75;
+	var changestype_CorePr                    = 76;
 
 	var changestype_2_InlineObjectMove       = 1; // Передвигаем объект в заданную позцию (проверяем место, в которое пытаемся передвинуть)
 	var changestype_2_HdrFtr                 = 2; // Изменения с колонтитулом
@@ -1576,6 +1563,7 @@
 	prot['MobileUnexpectedCharCount']        = prot.MobileUnexpectedCharCount;
 	prot['MailMergeLoadFile']                = prot.MailMergeLoadFile;
 	prot['MailMergeSaveFile']                = prot.MailMergeSaveFile;
+	prot['DataValidate']                     = prot.DataValidate;
 	prot['AutoFilterDataRangeError']         = prot.AutoFilterDataRangeError;
 	prot['AutoFilterChangeFormatTableError'] = prot.AutoFilterChangeFormatTableError;
 	prot['AutoFilterChangeError']            = prot.AutoFilterChangeError;
@@ -1599,6 +1587,7 @@
 	prot['SessionAbsolute']                  = prot.SessionAbsolute;
 	prot['SessionIdle']                      = prot.SessionIdle;
 	prot['SessionToken']                     = prot.SessionToken;
+	prot['FrmlMaxTextLength']                = prot.FrmlMaxTextLength;
 	prot['FrmlWrongCountParentheses']        = prot.FrmlWrongCountParentheses;
 	prot['FrmlWrongOperator']                = prot.FrmlWrongOperator;
 	prot['FrmlWrongMaxArgument']             = prot.FrmlWrongMaxArgument;
@@ -1620,6 +1609,7 @@
 	prot['OpenWarning']                      = prot.OpenWarning;
 	prot['DataEncrypted']                    = prot.DataEncrypted;
 	prot['NoDataToParse']                    = prot.NoDataToParse;
+	prot['CannotUngroupError']               = prot.CannotUngroupError;
 	window['Asc']['c_oAscAsyncAction']       = window['Asc'].c_oAscAsyncAction = c_oAscAsyncAction;
 	prot                                     = c_oAscAsyncAction;
 	prot['Open']                             = prot.Open;
@@ -1973,6 +1963,7 @@
 	prot['Point']                           = prot.Point;
 	window['Asc']['c_oAscMaxTooltipLength'] = window['Asc'].c_oAscMaxTooltipLength = c_oAscMaxTooltipLength;
 	window['Asc']['c_oAscMaxCellOrCommentLength'] = window['Asc'].c_oAscMaxCellOrCommentLength = c_oAscMaxCellOrCommentLength;
+	window['Asc']['c_oAscMaxHeaderFooterLength']  = window['Asc'].c_oAscMaxHeaderFooterLength  = c_oAscMaxHeaderFooterLength;
 	window['Asc']['c_oAscSelectionType'] = window['Asc'].c_oAscSelectionType = c_oAscSelectionType;
 	prot                                 = c_oAscSelectionType;
 	prot['RangeCells']                   = prot.RangeCells;
@@ -2002,6 +1993,12 @@
 	prot['DeleteColumns']           = prot.DeleteColumns;
 	prot['DeleteRows']              = prot.DeleteRows;
 	prot['DeleteTable']             = prot.DeleteTable;
+
+	window['Asc']['c_oAscPrintType'] = window['Asc'].c_oAscPrintType = c_oAscPrintType;
+	prot = c_oAscPrintType;
+	prot['ActiveSheets'] = prot.ActiveSheets;
+	prot['EntireWorkbook'] = prot.EntireWorkbook;
+	prot['Selection'] = prot.Selection;
 
 	window['Asc']['c_oDashType'] = window['Asc'].c_oDashType = c_oDashType;
 	prot                  = c_oDashType;
@@ -2186,6 +2183,7 @@
 	window["AscCommon"].changestype_AddShapes                 = changestype_AddShapes;
 	window["AscCommon"].changestype_PresDefaultLang           = changestype_PresDefaultLang;
 	window["AscCommon"].changestype_SlideHide                 = changestype_SlideHide;
+	window["AscCommon"].changestype_CorePr                    = changestype_CorePr;
 	window["AscCommon"].changestype_2_InlineObjectMove        = changestype_2_InlineObjectMove;
 	window["AscCommon"].changestype_2_HdrFtr                  = changestype_2_HdrFtr;
 	window["AscCommon"].changestype_2_Comment                 = changestype_2_Comment;

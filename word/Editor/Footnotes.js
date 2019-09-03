@@ -2715,6 +2715,13 @@ CFootnotesController.prototype.SplitTableCells = function(Cols, Rows)
 
 	this.CurFootnote.SplitTableCells(Cols, Rows);
 };
+CFootnotesController.prototype.RemoveTableCells = function()
+{
+	if (false === this.private_CheckFootnotesSelectionBeforeAction())
+		return;
+
+	this.CurFootnote.RemoveTableCells();
+};
 CFootnotesController.prototype.RemoveTable = function()
 {
 	if (false === this.private_CheckFootnotesSelectionBeforeAction())
@@ -3249,6 +3256,13 @@ CFootnotesController.prototype.GetSimilarNumbering = function(oEngine)
 {
 	if (this.CurFootnote)
 		this.CurFootnote.GetSimilarNumbering(oEngine);
+};
+CFootnotesController.prototype.GetPlaceHolderObject = function()
+{
+	if (this.CurFootnote)
+		return this.CurFootnote.GetPlaceHolderObject();
+
+	return null;
 };
 CFootnotesController.prototype.GetAllFields = function(isUseSelection, arrFields)
 {

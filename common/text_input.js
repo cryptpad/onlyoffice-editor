@@ -150,6 +150,8 @@
         this.isKeyPressOnUp = AscCommon.AscBrowser.isAppleDevices; // keyPress может приходить ДО oncompositionstart, а это проблема.
 		this.keyPressOnUpCodes = [];
 		this.isKeyPressOnUpStackedMode = false;
+
+		this.isHardCheckKeyboard = AscCommon.AscBrowser.isSailfish;
 	}
 
 	CTextInput.prototype =
@@ -1475,6 +1477,8 @@
 
 		preventVirtualKeyboard : function(e)
 		{
+			if (this.isHardCheckKeyboard)
+				return;
 			//AscCommon.stopEvent(e);
 
 			if (AscCommon.AscBrowser.isAndroid)
@@ -1492,6 +1496,9 @@
 
 		enableVirtualKeyboard : function()
 		{
+            if (this.isHardCheckKeyboard)
+                return;
+
 			if (AscCommon.AscBrowser.isAndroid)
 			{
 				if (-1 != this.virtualKeyboardClickTimeout)
@@ -1503,6 +1510,16 @@
                 this.HtmlArea.readOnly = false;
 				this.virtualKeyboardClickPrevent = false;
 			}
+		},
+
+        preventVirtualKeyboard_Hard : function()
+		{
+            this.HtmlArea.readOnly = true;
+		},
+
+        enableVirtualKeyboard_Hard : function()
+		{
+            this.HtmlArea.readOnly = false;
 		}
 	};
 

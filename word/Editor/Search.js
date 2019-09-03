@@ -142,60 +142,96 @@ CDocumentSearch.prototype =
         this.CurId = -1;
     },
 
-    Replace : function(NewStr, Id, bRestorePos)
-    {
-        var Para = this.Elements[Id];
-        if ( undefined != Para )
-        {
-            var SearchElement = Para.SearchResults[Id];
-            if ( undefined != SearchElement )
-            {
-                var ContentPos, StartPos, EndPos, bSelection;
-                if (true === bRestorePos)
-                {
-                    // Сохраняем позицию состояние параграфа, чтобы курсор остался в том же месте и после замены.
-                    bSelection = Para.IsSelectionUse();
-                    ContentPos = Para.Get_ParaContentPos(false, false);
-                    StartPos   = Para.Get_ParaContentPos(true, true);
-                    EndPos     = Para.Get_ParaContentPos(true, false);
+    Replace : function(sReplaceString, Id, bRestorePos)
+	{
+		var oPara = this.Elements[Id];
+		if (oPara)
+		{
+			var oLogicDocument   = oPara.LogicDocument;
+			var isTrackRevisions = oLogicDocument ? oLogicDocument.IsTrackRevisions() : false;
 
-                    Para.Check_NearestPos({ContentPos : ContentPos});
-                    Para.Check_NearestPos({ContentPos : StartPos});
-                    Para.Check_NearestPos({ContentPos : EndPos});
-                }
+			var SearchElement = oPara.SearchResults[Id];
+			if (undefined != SearchElement)
+			{
+				var ContentPos, StartPos, EndPos, bSelection;
+				if (true === bRestorePos)
+				{
+					// Сохраняем позицию состояние параграфа, чтобы курсор остался в том же месте и после замены.
+					bSelection = oPara.IsSelectionUse();
+					ContentPos = oPara.Get_ParaContentPos(false, false);
+					StartPos   = oPara.Get_ParaContentPos(true, true);
+					EndPos     = oPara.Get_ParaContentPos(true, false);
 
-                // Сначала в начальную позицию поиска добавляем новый текст
-                var StartContentPos = SearchElement.StartPos;
-                var StartRun = SearchElement.ClassesS[SearchElement.ClassesS.length - 1];
+					oPara.Check_NearestPos({ContentPos : ContentPos});
+					oPara.Check_NearestPos({ContentPos : StartPos});
+					oPara.Check_NearestPos({ContentPos : EndPos});
+				}
 
-                var RunPos = StartContentPos.Get( SearchElement.ClassesS.length - 1 );
-                StartRun.AddText(NewStr, RunPos);
+				if (isTrackRevisions)
+				{
+					// Встанем в конечную позицию поиска и добавим новый текст
+					var oEndContentPos = SearchElement.EndPos;
+					var oEndRun        = SearchElement.ClassesE[SearchElement.ClassesE.length - 1];
 
-                // Выделяем старый объект поиска и удаляем его
-                Para.Selection.Use = true;
-                Para.Set_SelectionContentPos( SearchElement.StartPos, SearchElement.EndPos );
-                Para.Remove();
+					var nRunPos = oEndContentPos.Get(SearchElement.ClassesE.length - 1);
 
-                // Перемещаем курсор в конец поиска
-                Para.RemoveSelection();
-                Para.Set_ParaContentPos( SearchElement.StartPos, true, -1, -1 );
+					if (reviewtype_Add === oEndRun.GetReviewType() && oEndRun.GetReviewInfo().IsCurrentUser())
+					{
+						oEndRun.AddText(sReplaceString, nRunPos);
+					}
+					else
+					{
+						var oRunParent      = oEndRun.GetParent();
+						var nRunPosInParent = oEndRun.GetPosInParent(oRunParent);
+						var oReplaceRun     = oEndRun.Split2(nRunPos, oRunParent, nRunPosInParent);
 
-                // Удаляем запись о данном элементе
-                this.Count--;
+						if (!oReplaceRun.IsEmpty())
+							oReplaceRun.Split2(0, oRunParent, nRunPosInParent + 1);
 
-                Para.Remove_SearchResult( Id );
-                delete this.Elements[Id];
+						oReplaceRun.AddText(sReplaceString, 0);
+						oReplaceRun.SetReviewType(reviewtype_Add);
 
-                if (true === bRestorePos)
-                {
-                    Para.Set_SelectionContentPos(StartPos, EndPos);
-                    Para.Set_ParaContentPos(ContentPos, true, -1, -1 );
-                    Para.Selection.Use = bSelection;
-                    Para.Clear_NearestPosArray();
-                }
-            }
-        }
-    },
+						// Выделяем старый объект поиска и удаляем его
+						oPara.Selection.Use = true;
+						oPara.Set_SelectionContentPos(SearchElement.StartPos, SearchElement.EndPos);
+						oPara.Remove();
+					}
+				}
+				else
+				{
+					// Сначала в начальную позицию поиска добавляем новый текст
+					var StartContentPos = SearchElement.StartPos;
+					var StartRun        = SearchElement.ClassesS[SearchElement.ClassesS.length - 1];
+
+					var RunPos = StartContentPos.Get(SearchElement.ClassesS.length - 1);
+					StartRun.AddText(sReplaceString, RunPos);
+				}
+
+				// Выделяем старый объект поиска и удаляем его
+				oPara.Selection.Use = true;
+				oPara.Set_SelectionContentPos(SearchElement.StartPos, SearchElement.EndPos);
+				oPara.Remove();
+
+				// Перемещаем курсор в конец поиска
+				oPara.RemoveSelection();
+				oPara.Set_ParaContentPos(SearchElement.StartPos, true, -1, -1);
+
+				// Удаляем запись о данном элементе
+				this.Count--;
+
+				oPara.Remove_SearchResult(Id);
+				delete this.Elements[Id];
+
+				if (true === bRestorePos)
+				{
+					oPara.Set_SelectionContentPos(StartPos, EndPos);
+					oPara.Set_ParaContentPos(ContentPos, true, -1, -1);
+					oPara.Selection.Use = bSelection;
+					oPara.Clear_NearestPosArray();
+				}
+			}
+		}
+	},
 
     Replace_All : function(NewStr, bUpdateStates)
     {
@@ -328,7 +364,7 @@ CDocument.prototype.Search_Replace = function(NewStr, bAll, Id, bInterfaceEvent)
 		}
 
 		this.SearchEngine.ClearOnRecalc = false;
-		this.Recalculate();
+		this.Recalculate(true);
 		this.SearchEngine.ClearOnRecalc = true;
 		this.FinalizeAction();
 	}

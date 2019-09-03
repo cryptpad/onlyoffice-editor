@@ -434,89 +434,17 @@ CNum.prototype.GetLvlByStyle = function(sStyleId)
  * Получаем нумерованное значение для заданного уровня с учетом заданого сдвига и формата данного уровня
  * @param nLvl {number} 0..8
  * @param nNumShift {number}
+ * @param [isForceArabic=false] {boolean}
  */
-CNum.prototype.private_GetNumberedLvlText = function(nLvl, nNumShift)
+CNum.prototype.private_GetNumberedLvlText = function(nLvl, nNumShift, isForceArabic)
 {
-	var sResult = "";
+	var nFormat = this.GetLvl(nLvl).GetFormat();
+	if (true === isForceArabic
+		&& nFormat !== Asc.c_oAscNumberingFormat.Decimal
+		&& nFormat !== Asc.c_oAscNumberingFormat.DecimalZero)
+		nFormat = Asc.c_oAscNumberingFormat.Decimal;
 
-	var oLvl = this.GetLvl(nLvl);
-	switch (oLvl.GetFormat())
-	{
-		case Asc.c_oAscNumberingFormat.Bullet:
-		{
-			break;
-		}
-
-		case Asc.c_oAscNumberingFormat.Decimal:
-		{
-			sResult = "" + nNumShift;
-			break;
-		}
-
-		case Asc.c_oAscNumberingFormat.DecimalZero:
-		{
-			sResult = "" + nNumShift;
-
-			if (1 === sResult.length)
-				sResult = "0" + sResult;
-			break;
-		}
-
-		case Asc.c_oAscNumberingFormat.LowerLetter:
-		case Asc.c_oAscNumberingFormat.UpperLetter:
-		{
-			// Формат: a,..,z,aa,..,zz,aaa,...,zzz,...
-			var Num = nNumShift - 1;
-
-			var Count = (Num - Num % 26) / 26;
-			var Ost   = Num % 26;
-
-			var Letter;
-			if (Asc.c_oAscNumberingFormat.LowerLetter === oLvl.GetFormat())
-				Letter = String.fromCharCode(Ost + 97);
-			else
-				Letter = String.fromCharCode(Ost + 65);
-
-			for (var nIndex = 0; nIndex < Count + 1; ++nIndex)
-				sResult += Letter;
-
-			break;
-		}
-
-		case Asc.c_oAscNumberingFormat.LowerRoman:
-		case Asc.c_oAscNumberingFormat.UpperRoman:
-		{
-			var Num = nNumShift;
-
-			// Переводим число Num в римскую систему исчисления
-			var Rims;
-
-			if (Asc.c_oAscNumberingFormat.LowerRoman === oLvl.GetFormat())
-				Rims = ['m', 'cm', 'd', 'cd', 'c', 'xc', 'l', 'xl', 'x', 'ix', 'v', 'iv', 'i', ' '];
-			else
-				Rims = ['M', 'CM', 'D', 'CD', 'C', 'XC', 'L', 'XL', 'X', 'IX', 'V', 'IV', 'I', ' '];
-
-			var Vals = [1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1, 0];
-
-			var nIndex = 0;
-			while (Num > 0)
-			{
-				while (Vals[nIndex] <= Num)
-				{
-					sResult += Rims[nIndex];
-					Num -= Vals[nIndex];
-				}
-
-				nIndex++;
-
-				if (nIndex >= Rims.length)
-					break;
-			}
-			break;
-		}
-	}
-
-	return sResult;
+	return AscCommon.IntToNumberFormat(nNumShift, nFormat);
 };
 /**
  * Функция отрисовки заданного уровня нумерации в заданной позиции
@@ -568,7 +496,7 @@ CNum.prototype.Draw = function(nX, nY, oContext, nLvl, oNumInfo, oNumTextPr, oTh
 				var T = "";
 
 				if (nCurLvl < oNumInfo.length)
-					T = this.private_GetNumberedLvlText(nCurLvl, oNumInfo[nCurLvl]);
+					T = this.private_GetNumberedLvlText(nCurLvl, oNumInfo[nCurLvl], oLvl.IsLegalStyle() && nCurLvl < nLvl);
 
 				for (var Index2 = 0; Index2 < T.length; Index2++)
 				{
@@ -628,7 +556,7 @@ CNum.prototype.Measure = function(oContext, nLvl, oNumInfo, oNumTextPr, oTheme)
 				var T = "";
 
 				if (nCurLvl < oNumInfo.length)
-					T = this.private_GetNumberedLvlText(nCurLvl, oNumInfo[nCurLvl]);
+					T = this.private_GetNumberedLvlText(nCurLvl, oNumInfo[nCurLvl], oLvl.IsLegalStyle() && nCurLvl < nLvl);
 
 				for (var Index2 = 0; Index2 < T.length; Index2++)
 				{
@@ -779,13 +707,7 @@ CNum.prototype.GetStartOverride = function(nLvl)
 	if (!oLvlOverride)
 		return -1;
 
-	var nStartOverride = oLvlOverride.GetStartOverride();
-
-	var oLvl = oLvlOverride.GetLvl();
-	if (oLvl)
-		nStartOverride = oLvl.GetStart();
-
-	return nStartOverride;
+	return oLvlOverride.GetStartOverride();
 };
 /**
  * Проверяем есть ли у данной нумерации уровни с текстом, зависящим от других уровней

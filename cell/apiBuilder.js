@@ -287,16 +287,8 @@
 	 */
 	Api.prototype.SetThemeColors = function (theme) {
 		if ('string' === typeof theme) {
-			if (!AscCommon.g_oUserColorScheme.some(function (item, i) {
-					if (theme === item.get_name()) {
-						theme = i;
-						return true;
-					}
-				})) {
-				return;
-			}
+			this.wbModel.changeColorScheme(theme);
 		}
-		this.wbModel.changeColorScheme(theme);
 	};
 
 	Api.prototype.CreateNewHistoryPoint = function(){
@@ -1502,7 +1494,7 @@
 	/**
 	 * Get rows height value
 	 * @memberof ApiRange
-	 * @returns {number}
+	 * @returns {pt} The height the row in the range specified, measured in points.
 	 */
 	ApiRange.prototype.GetRowHeight = function () {
 		return this.range.worksheet.getRowHeight(this.range.bbox.r1);
@@ -1510,7 +1502,7 @@
 	/**
 	* Set rows height value
 	* @memberof ApiRange
-	* @param {number} height
+	* @param {pt} height The height the row in the range specified, measured in points.
 	 */
 	ApiRange.prototype.SetRowHeight = function (height) {
 		this.range.worksheet.setRowHeight(height, this.range.bbox.r1, this.range.bbox.r2, false);

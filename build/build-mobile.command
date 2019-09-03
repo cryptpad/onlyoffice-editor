@@ -1,14 +1,24 @@
 #!/bin/bash
 
-PRODUCT_VERSION="5.3.2"
-BUILD_NUMBER="13"
+BASEDIR="$(cd "$(dirname "$0")" && pwd)"
+cd $BASEDIR
+
+PRODUCT_VERSION="5.3.4"
+BUILD_NUMBER="7"
+LAST_VERSION_TAG=$(git describe --tags $(git rev-list --tags --max-count=1))
+
+version=$(echo $LAST_VERSION_TAG | sed -e "s/v//")
+major=$(echo $version | cut -d. -f1)
+minor=$(echo $version | cut -d. -f2)
+maintenance=$(echo $version | cut -d. -f3)
+build=$(echo $version | cut -d. -f4)
+
+PRODUCT_VERSION="$major.$minor.$maintenance"
+BUILD_NUMBER=$build
 
 echo "----------------------------------------"
 echo "Building for mobile"
 echo "----------------------------------------"
-
-BASEDIR="$(cd "$(dirname "$0")" && pwd)"
-cd $BASEDIR
 
 # First argument is path to repository of iOS mobile. Use default if not setup
 

@@ -690,6 +690,28 @@ ParaDrawing.prototype.Set_Parent = function(oParent)
 	History.Add(new CChangesParaDrawingParent(this, this.Parent, oParent));
 	this.Parent = oParent;
 };
+ParaDrawing.prototype.IsWatermark = function()
+{
+	if(this.Is_Inline())
+	{
+		return false;
+	}
+	var oContent = this.DocumentContent;
+	if(!oContent || oContent.Is_DrawingShape(false))
+	{
+		return false;
+	}
+	var oHdrFtr = oContent.IsHdrFtr(true);
+	if(!oHdrFtr)
+	{
+		return false;
+	}
+	if(oHdrFtr.Type === AscCommon.hdrftr_Footer)
+	{
+		return false;
+	}
+	return this.GraphicObj.isWatermark();
+};
 ParaDrawing.prototype.Set_ParaMath = function(ParaMath)
 {
 	History.Add(new CChangesParaDrawingParaMath(this, this.ParaMath, ParaMath));
@@ -2494,6 +2516,10 @@ ParaDrawing.prototype.getDrawingArrayType = function()
 		}
 	}
 	return DRAWING_ARRAY_TYPE_BEFORE;
+};
+ParaDrawing.prototype.GetWatermarkProps = function()
+{
+	return this.GraphicObj.getWatermarkProps();
 };
 ParaDrawing.prototype.documentSearch = function(String, search_Common)
 {

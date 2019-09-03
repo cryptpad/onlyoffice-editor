@@ -353,6 +353,10 @@ CHdrFtrController.prototype.SplitTableCells = function(Cols, Rows)
 {
 	this.HdrFtr.SplitTableCells(Cols, Rows);
 };
+CHdrFtrController.prototype.RemoveTableCells = function()
+{
+	this.HdrFtr.RemoveTableCells();
+};
 CHdrFtrController.prototype.RemoveTable = function()
 {
 	this.HdrFtr.RemoveTable();
@@ -535,6 +539,10 @@ CHdrFtrController.prototype.GetStyleFromFormatting = function()
 CHdrFtrController.prototype.GetSimilarNumbering = function(oEngine)
 {
 	this.HdrFtr.GetSimilarNumbering(oEngine)
+};
+CHdrFtrController.prototype.GetPlaceHolderObject = function()
+{
+	return this.HdrFtr.GetPlaceHolderObject();
 };
 CHdrFtrController.prototype.GetAllFields = function(isUseSelection, arrFields)
 {

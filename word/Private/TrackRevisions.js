@@ -551,68 +551,100 @@ CDocument.prototype.RejectRevisionChange = function(oChange)
 };
 CDocument.prototype.AcceptRevisionChangesBySelection = function()
 {
-    var CurrentChange = this.TrackRevisionsManager.Get_CurrentChange();
-    if (null !== CurrentChange)
+	var CurrentChange = this.TrackRevisionsManager.Get_CurrentChange();
+	if (null !== CurrentChange)
 	{
 		this.AcceptRevisionChange(CurrentChange);
 	}
-    else
-    {
-        var SelectedParagraphs = this.GetAllParagraphs({Selected : true});
-        var RelatedParas = this.TrackRevisionsManager.Get_AllChangesRelatedParagraphsBySelectedParagraphs(SelectedParagraphs, true);
-        if (false === this.Document_Is_SelectionLocked(AscCommon.changestype_None, { Type : changestype_2_ElementsArray_and_Type, Elements : RelatedParas, CheckType : AscCommon.changestype_Paragraph_Content}))
-        {
-            this.StartAction(AscDFH.historydescription_Document_AcceptRevisionChangesBySelection);
+	else
+	{
+		var sMoveId = this.private_CheckTrackMoveSelection();
+		if (sMoveId)
+		{
+			var oChange = this.TrackRevisionsManager.GetMoveMarkChange(sMoveId, true, false);
+			if (oChange)
+			{
+				oChange = this.TrackRevisionsManager.CollectMoveChange(oChange);
+				return this.AcceptRevisionChange(oChange);
+			}
+		}
+
+		var SelectedParagraphs = this.GetAllParagraphs({Selected : true});
+		var RelatedParas       = this.TrackRevisionsManager.Get_AllChangesRelatedParagraphsBySelectedParagraphs(SelectedParagraphs, true);
+		if (false === this.Document_Is_SelectionLocked(AscCommon.changestype_None, {
+				Type      : changestype_2_ElementsArray_and_Type,
+				Elements  : RelatedParas,
+				CheckType : AscCommon.changestype_Paragraph_Content
+			}))
+		{
+			this.StartAction(AscDFH.historydescription_Document_AcceptRevisionChangesBySelection);
 
 			var isTrackRevision = this.IsTrackRevisions();
 			if (isTrackRevision)
 				this.SetTrackRevisions(false);
 
-            this.AcceptRevisionChanges(undefined, false);
+			this.AcceptRevisionChanges(undefined, false);
 
 			if (isTrackRevision)
 				this.SetTrackRevisions(isTrackRevision);
 
-            this.FinalizeAction();
-        }
-    }
+			this.FinalizeAction();
+		}
+	}
 
-    this.TrackRevisionsManager.ClearCurrentChange();
-    this.GetNextRevisionChange();
+	this.TrackRevisionsManager.ClearCurrentChange();
+	this.GetNextRevisionChange();
 };
 CDocument.prototype.RejectRevisionChangesBySelection = function()
 {
-    var CurrentChange = this.TrackRevisionsManager.Get_CurrentChange();
-    if (null !== CurrentChange)
+	var CurrentChange = this.TrackRevisionsManager.Get_CurrentChange();
+	if (null !== CurrentChange)
 	{
 		this.RejectRevisionChange(CurrentChange);
 	}
-    else
-    {
-        var SelectedParagraphs = this.GetAllParagraphs({Selected : true});
-        var RelatedParas = this.TrackRevisionsManager.Get_AllChangesRelatedParagraphsBySelectedParagraphs(SelectedParagraphs, false);
-        if (false === this.Document_Is_SelectionLocked(AscCommon.changestype_None, { Type : changestype_2_ElementsArray_and_Type, Elements : RelatedParas, CheckType : AscCommon.changestype_Paragraph_Content}))
-        {
-            this.StartAction(AscDFH.historydescription_Document_AcceptRevisionChangesBySelection);
+	else
+	{
+		var sMoveId = this.private_CheckTrackMoveSelection();
+		if (sMoveId)
+		{
+			var oChange = this.TrackRevisionsManager.GetMoveMarkChange(sMoveId, true, false);
+			if (oChange)
+			{
+				oChange = this.TrackRevisionsManager.CollectMoveChange(oChange);
+				return this.RejectRevisionChange(oChange);
+			}
+		}
+
+		var SelectedParagraphs = this.GetAllParagraphs({Selected : true});
+		var RelatedParas       = this.TrackRevisionsManager.Get_AllChangesRelatedParagraphsBySelectedParagraphs(SelectedParagraphs, false);
+		if (false === this.Document_Is_SelectionLocked(AscCommon.changestype_None, {
+				Type      : changestype_2_ElementsArray_and_Type,
+				Elements  : RelatedParas,
+				CheckType : AscCommon.changestype_Paragraph_Content
+			}))
+		{
+			this.StartAction(AscDFH.historydescription_Document_AcceptRevisionChangesBySelection);
 
 			var isTrackRevision = this.IsTrackRevisions();
 			if (isTrackRevision)
 				this.SetTrackRevisions(false);
 
-            this.RejectRevisionChanges(undefined, false);
+			this.RejectRevisionChanges(undefined, false);
 
 			if (isTrackRevision)
 				this.SetTrackRevisions(isTrackRevision);
 
-            this.FinalizeAction();
-        }
-    }
+			this.FinalizeAction();
+		}
+	}
 
 	this.TrackRevisionsManager.ClearCurrentChange();
-    this.GetNextRevisionChange();
+	this.GetNextRevisionChange();
 };
-CDocument.prototype.AcceptAllRevisionChanges = function(isSkipCheckLock)
+CDocument.prototype.AcceptAllRevisionChanges = function(isSkipCheckLock, isCheckEmptyAction)
 {
+	var _isCheckEmptyAction = (false !== isCheckEmptyAction);
+
     var RelatedParas = this.TrackRevisionsManager.Get_AllChangesRelatedParagraphs(true);
     if (true === isSkipCheckLock || false === this.Document_Is_SelectionLocked(AscCommon.changestype_None, { Type : changestype_2_ElementsArray_and_Type, Elements : RelatedParas, CheckType : AscCommon.changestype_Paragraph_Content}))
     {
@@ -637,7 +669,7 @@ CDocument.prototype.AcceptAllRevisionChanges = function(isSkipCheckLock)
 
         if (true !== isSkipCheckLock && true === this.History.Is_LastPointEmpty())
         {
-			this.FinalizeAction();
+			this.FinalizeAction(_isCheckEmptyAction);
             return;
         }
 
@@ -646,11 +678,13 @@ CDocument.prototype.AcceptAllRevisionChanges = function(isSkipCheckLock)
         this.Recalculate();
         this.UpdateSelection();
         this.UpdateInterface();
-        this.FinalizeAction();
+        this.FinalizeAction(_isCheckEmptyAction);
     }
 };
-CDocument.prototype.RejectAllRevisionChanges = function(isSkipCheckLock)
+CDocument.prototype.RejectAllRevisionChanges = function(isSkipCheckLock, isCheckEmptyAction)
 {
+	var _isCheckEmptyAction = (false !== isCheckEmptyAction);
+
     var RelatedParas = this.TrackRevisionsManager.Get_AllChangesRelatedParagraphs(false);
     if (true === isSkipCheckLock || false === this.Document_Is_SelectionLocked(AscCommon.changestype_None, { Type : changestype_2_ElementsArray_and_Type, Elements : RelatedParas, CheckType : AscCommon.changestype_Paragraph_Content}))
     {
@@ -667,7 +701,7 @@ CDocument.prototype.RejectAllRevisionChanges = function(isSkipCheckLock)
 
         if (true !== isSkipCheckLock && true === this.History.Is_LastPointEmpty())
         {
-			this.FinalizeAction();
+			this.FinalizeAction(_isCheckEmptyAction);
             return;
         }
 
@@ -676,7 +710,7 @@ CDocument.prototype.RejectAllRevisionChanges = function(isSkipCheckLock)
         this.Recalculate();
         this.UpdateSelection();
         this.UpdateInterface();
-        this.FinalizeAction();
+        this.FinalizeAction(_isCheckEmptyAction);
     }
 };
 CDocument.prototype.private_RejectAllRevisionChanges = function()
@@ -939,7 +973,7 @@ CDocumentContentBase.prototype.private_AcceptRevisionChanges = function(nType, b
 						&& oTrackMove.GetUserId() === oReviewInfo.GetUserId())))
 					{
 						oElement.SetReviewType(reviewtype_Common);
-						this.ConcatParagraphs(nCurPos);;
+						this.ConcatParagraphs(nCurPos, true);
 					}
 				}
 				else if (oElement.IsTable())
@@ -1028,16 +1062,8 @@ CDocumentContentBase.prototype.private_RejectRevisionChanges = function(nType, b
 						&& !oTrackMove.IsFrom()
 						&& oTrackMove.GetUserId() === oReviewInfo.GetUserId())))
 					{
-						var oNextPara   = this.Content[nCurPos + 1];
-						var oNextParaPr = null;
-						if (oNextPara && oNextPara.IsParagraph())
-							oNextParaPr = oNextPara.GetDirectParaPr(false);
-
 						oElement.SetReviewType(reviewtype_Common);
-						this.ConcatParagraphs(nCurPos);
-
-						if (oNextParaPr)
-							oElement.SetDirectParaPr(oNextParaPr.Copy(true));
+						this.ConcatParagraphs(nCurPos, true);
 					}
 					else if (reviewtype_Remove === nReviewType
 						&& (undefined === nType

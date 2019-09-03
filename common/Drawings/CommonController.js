@@ -560,8 +560,16 @@ function CheckSpPrXfrm(object, bNoResetAutofit)
     {
         object.spPr.setXfrm(new AscFormat.CXfrm());
         object.spPr.xfrm.setParent(object.spPr);
-        object.spPr.xfrm.setOffX(object.x);
-        object.spPr.xfrm.setOffY(object.y);
+        if(object.parent && object.parent.GraphicObj === object)
+        {
+            object.spPr.xfrm.setOffX(0);
+            object.spPr.xfrm.setOffY(0);
+        }
+        else
+        {
+            object.spPr.xfrm.setOffX(object.x);
+            object.spPr.xfrm.setOffY(object.y);
+        }
         object.spPr.xfrm.setExtX(object.extX);
         object.spPr.xfrm.setExtY(object.extY);
         if(bNoResetAutofit !== true)
@@ -604,8 +612,16 @@ function CheckSpPrXfrm2(object)
             {
                 object.spPr.setXfrm(new AscFormat.CXfrm());
                 object.spPr.xfrm.setParent(object.spPr);
-                object.spPr.xfrm.setOffX(AscFormat.isRealNumber(object.x) ? object.x : 0);
-                object.spPr.xfrm.setOffY(AscFormat.isRealNumber(object.y) ? object.x : 0);
+                if(object.parent && object.parent.GraphicObj === object)
+                {
+                    object.spPr.xfrm.setOffX(0);
+                    object.spPr.xfrm.setOffY(0);
+                }
+                else
+                {
+                    object.spPr.xfrm.setOffX(AscFormat.isRealNumber(object.x) ? object.x : 0);
+                    object.spPr.xfrm.setOffY(AscFormat.isRealNumber(object.y) ? object.x : 0);
+                }
                 object.spPr.xfrm.setExtX(AscFormat.isRealNumber(object.extX) ? object.extX : 0);
                 object.spPr.xfrm.setExtY(AscFormat.isRealNumber(object.extY) ? object.extY : 0);
             }
@@ -620,10 +636,26 @@ function CheckSpPrXfrm2(object)
             object.spPr.setXfrm(new AscFormat.CXfrm());
             object.spPr.xfrm.setParent(object.spPr);
         }
-        object.spPr.xfrm.setOffX(object.x);
-        object.spPr.xfrm.setOffY(object.y);
-        object.spPr.xfrm.setExtX(object.extX);
-        object.spPr.xfrm.setExtY(object.extY);
+        var oXfrm = object.spPr.xfrm;
+        var _x = object.x;
+        var _y = object.y;
+        if(object.parent && object.parent.GraphicObj === object)
+        {
+             _x = 0.0;
+             _y = 0.0;
+        }
+        if(oXfrm.offX === null || !AscFormat.fApproxEqual(_x, oXfrm.offX, 0.01)) {
+            object.spPr.xfrm.setOffX(_x);
+        }
+        if(oXfrm.offY === null || !AscFormat.fApproxEqual(_y, oXfrm.offY, 0.01)) {
+            object.spPr.xfrm.setOffY(_y);
+        }
+        if(oXfrm.extX === null || !AscFormat.fApproxEqual(object.extX, oXfrm.extX, 0.01)) {
+            object.spPr.xfrm.setExtX(object.extX);
+        }
+        if(oXfrm.extY === null || !AscFormat.fApproxEqual(object.extY, oXfrm.extY, 0.01)) {
+            object.spPr.xfrm.setExtY(object.extY);
+        }
     }
 
 function getObjectsByTypesFromArr(arr, bGrouped)
@@ -1673,8 +1705,8 @@ DrawingObjectsController.prototype =
 		var oTargetDocContent = this.getTargetDocContent(undefined, true);
 		if (oTargetDocContent)
 			return oTargetDocContent.RecalculateCurPos(bUpdateX, bUpdateY);
-
-		return {X : 0, Y : 0, Height : 0, PageNum : 0, Internal : {Line : 0, Page : 0, Range : 0}, Transform : null};
+        
+        return {X : 0, Y : 0, Height : 0, PageNum : 0, Internal : {Line : 0, Page : 0, Range : 0}, Transform : null};
 	},
 
     startEditCurrentOleObject: function(){
@@ -3540,6 +3572,21 @@ DrawingObjectsController.prototype =
             for(i = 0; i < objects_by_type.charts.length; ++i)
             {
                 objects_by_type.charts[i].changeFill(props.fill);
+            }
+        }
+        if(isRealObject(props.shadow) || props.shadow === null)
+        {
+            for(i = 0; i < objects_by_type.shapes.length; ++i)
+            {
+                objects_by_type.shapes[i].changeShadow(props.shadow);
+            }
+            for(i = 0; i < objects_by_type.groups.length; ++i)
+            {
+                objects_by_type.groups[i].changeShadow(props.shadow);
+            }
+            for(i = 0; i < objects_by_type.images.length; ++i)
+            {
+                objects_by_type.images[i].changeShadow(props.shadow);
             }
         }
 
@@ -7408,7 +7455,7 @@ DrawingObjectsController.prototype =
             if(chart_selection.recalcInfo.bRecalculatedTitle || bDeleteTitle)
             {
                 chart_selection.recalcInfo.recalcTitle = null;
-                chart_selection.handleUpdateInternalChart();
+                chart_selection.handleUpdateInternalChart(false);
                 if(this.document)
                 {
                     chart_selection.recalculate();
@@ -7638,8 +7685,12 @@ DrawingObjectsController.prototype =
         for(var i = 0; i < graphic_objects.length; ++i)
         {
             var cur_graphic_object = graphic_objects[i];
-            if(cur_graphic_object.selected && cur_graphic_object.canGroup())
+            if(cur_graphic_object.selected)
             {
+                if(!cur_graphic_object.canGroup())
+                {
+                    return [];
+                }
                 grouped_objects.push(cur_graphic_object);
             }
         }
@@ -8311,7 +8362,8 @@ DrawingObjectsController.prototype =
                         description: drawing.getDescription(),
                         columnNumber: drawing.getColumnNumber(),
                         columnSpace: drawing.getColumnSpace(),
-                        signatureId: drawing.getSignatureLineGuid()
+                        signatureId: drawing.getSignatureLineGuid(),
+                        shadow: drawing.getOuterShdw()
                     };
                     if(!shape_props)
                         shape_props = new_shape_props;
@@ -8395,7 +8447,8 @@ DrawingObjectsController.prototype =
                         description: drawing.getDescription(),
                         columnNumber: null,
                         columnSpace: null,
-                        signatureId: null
+                        signatureId: null,
+                        shadow: drawing.getOuterShdw()
                     };
                     if(!shape_props)
                         shape_props = new_shape_props;
@@ -8515,7 +8568,7 @@ DrawingObjectsController.prototype =
 
                     new_shape_props =
                     {
-                        canFill: true,
+                        canFill: drawing.canFill(),
                         type: null,
                         fill: drawing.getFill(),
                         stroke: drawing.getStroke(),
@@ -8878,6 +8931,7 @@ DrawingObjectsController.prototype =
 
             shape_props.ShapeProperties.columnNumber = props.shapeProps.columnNumber;
             shape_props.ShapeProperties.columnSpace = props.shapeProps.columnSpace;
+            shape_props.ShapeProperties.shadow = props.shapeProps.shadow;
             if(props.shapeProps.textArtProperties && oDrawingDocument)
             {
                 oTextArtProperties = props.shapeProps.textArtProperties;

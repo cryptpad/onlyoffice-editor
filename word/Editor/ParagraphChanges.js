@@ -395,6 +395,7 @@ CChangesParagraphAddItem.prototype.Load = function(Color)
 
 	oParagraph.private_ResetSelection();
 	oParagraph.private_UpdateTrackRevisions();
+	oParagraph.private_CheckUpdateBookmarks(this.Items);
 
 	private_ParagraphChangesOnSetValue(this.Class);
 };
@@ -490,6 +491,7 @@ CChangesParagraphRemoveItem.prototype.Load = function(Color)
 	}
 	oParagraph.private_ResetSelection();
 	oParagraph.private_UpdateTrackRevisions();
+	oParagraph.private_CheckUpdateBookmarks(this.Items);
 
 	private_ParagraphChangesOnSetValue(this.Class);
 };
@@ -1897,3 +1899,7 @@ CChangesParagraphOutlineLvl.prototype.private_SetValue = function(Value)
 };
 CChangesParagraphOutlineLvl.prototype.Merge = private_ParagraphChangesOnMergePr;
 CChangesParagraphOutlineLvl.prototype.Load = private_ParagraphChangesOnLoadPr;
+CChangesParagraphOutlineLvl.prototype.IsNeedRecalculate = function()
+{
+	return false;
+};

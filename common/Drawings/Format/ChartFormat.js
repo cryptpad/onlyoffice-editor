@@ -1045,8 +1045,11 @@ function CDLbl()
 
     this.parent = null;
 
-    this.Id = g_oIdCounter.Get_NewId();
-    g_oTableId.Add(this, this.Id);
+    if(false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On())
+    {
+        this.Id = g_oIdCounter.Get_NewId();
+        g_oTableId.Add(this, this.Id);
+    }
 }
 
 CDLbl.prototype =
@@ -2177,83 +2180,96 @@ CDLbl.prototype =
 
     setDelete: function(pr)
     {
-        History.Add(new CChangesDrawingsBool(this, AscDFH.historyitem_DLbl_SetDelete, this.bDelete, pr));
+        (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsBool(this, AscDFH.historyitem_DLbl_SetDelete, this.bDelete, pr));
         this.bDelete = pr;
         this.Refresh_RecalcData2();
     },
     setDLblPos: function(pr)
     {
-        History.Add(new CChangesDrawingsLong(this, AscDFH.historyitem_DLbl_SetDLblPos, this.dLblPos, pr));
+        (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsLong(this, AscDFH.historyitem_DLbl_SetDLblPos, this.dLblPos, pr));
         this.dLblPos = pr;
     },
     setIdx: function(pr)
     {
-        History.Add(new CChangesDrawingsLong(this, AscDFH.historyitem_DLbl_SetIdx, this.idx, pr));
+        (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsLong(this, AscDFH.historyitem_DLbl_SetIdx, this.idx, pr));
         this.idx = pr;
     },
     setLayout: function(pr)
     {
-        History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_DLbl_SetLayout, this.layout, pr));
+        (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_DLbl_SetLayout, this.layout, pr));
         this.layout = pr;
     },
     setNumFmt: function(pr)
     {
-        History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_DLbl_SetNumFmt, this.numFmt, pr));
+        (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_DLbl_SetNumFmt, this.numFmt, pr));
         this.numFmt = pr;
     },
     setSeparator: function(pr)
     {
-        History.Add(new CChangesDrawingsString(this, AscDFH.historyitem_DLbl_SetSeparator, this.separator, pr));
+        (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsString(this, AscDFH.historyitem_DLbl_SetSeparator, this.separator, pr));
         this.separator = pr;
     },
     setShowBubbleSize: function(pr)
     {
-        History.Add(new CChangesDrawingsBool(this, AscDFH.historyitem_DLbl_SetShowBubbleSize, this.showBubbleSize, pr));
+        (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsBool(this, AscDFH.historyitem_DLbl_SetShowBubbleSize, this.showBubbleSize, pr));
         this.showBubbleSize = pr;
     },
     setShowCatName: function(pr)
     {
-        History.Add(new CChangesDrawingsBool(this, AscDFH.historyitem_DLbl_SetShowCatName, this.showCatName, pr));
+        (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsBool(this, AscDFH.historyitem_DLbl_SetShowCatName, this.showCatName, pr));
         this.showCatName = pr;
     },
     setShowLegendKey: function(pr)
     {
-        History.Add(new CChangesDrawingsBool(this, AscDFH.historyitem_DLbl_SetShowLegendKey, this.showLegendKey, pr));
+        (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsBool(this, AscDFH.historyitem_DLbl_SetShowLegendKey, this.showLegendKey, pr));
         this.showLegendKey = pr;
     },
     setShowPercent: function(pr)
     {
-        History.Add(new CChangesDrawingsBool(this, AscDFH.historyitem_DLbl_SetShowPercent, this.showPercent, pr));
+        (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsBool(this, AscDFH.historyitem_DLbl_SetShowPercent, this.showPercent, pr));
         this.showPercent = pr;
     },
     setShowSerName: function(pr)
     {
-        History.Add(new CChangesDrawingsBool(this, AscDFH.historyitem_DLbl_SetShowSerName, this.showSerName, pr));
+        (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsBool(this, AscDFH.historyitem_DLbl_SetShowSerName, this.showSerName, pr));
         this.showSerName = pr;
     },
     setShowVal: function(pr)
     {
-        History.Add(new CChangesDrawingsBool(this, AscDFH.historyitem_DLbl_SetShowVal, this.showVal, pr));
+        (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsBool(this, AscDFH.historyitem_DLbl_SetShowVal, this.showVal, pr));
         this.showVal = pr;
     },
     setSpPr: function(pr)
     {
-        History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_DLbl_SetSpPr, this.spPr, pr));
+        (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_DLbl_SetSpPr, this.spPr, pr));
         this.spPr = pr;
+        if(this.spPr)
+        {
+            this.spPr.setParent(this);
+        }
     },
     setTx: function(pr)
     {
-        History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_DLbl_SetTx, this.tx, pr));
+        (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_DLbl_SetTx, this.tx, pr));
         this.tx = pr;
     },
     setTxPr: function(pr)
     {
-        History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_DLbl_SetTxPr, this.txPr, pr));
+        (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_DLbl_SetTxPr, this.txPr, pr));
         this.txPr = pr;
         if(this.txPr)
         {
             this.txPr.setParent(this);
         }
+    },
+
+    handleUpdateFill: function()
+    {
+        this.Refresh_RecalcData2();
+    },
+    handleUpdateLn: function()
+    {
+        this.Refresh_RecalcData2();
     },
 
     Refresh_RecalcData2: function()
@@ -2262,7 +2278,7 @@ CDLbl.prototype =
         {
             this.parent.Refresh_RecalcData2();
         }
-            }
+    }
 };
 
 
@@ -2471,7 +2487,7 @@ CPlotArea.prototype =
         var aCharts = this.charts;
         var oRet = null;
         var oChart, aSeries;
-        var aRet = []
+        var aRet = [];
         for(var i = 0; i < aCharts.length; ++i){
             oChart = aCharts[i];
             var aAxes = aCharts[i].axId;
@@ -2679,7 +2695,22 @@ CPlotArea.prototype =
     {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_CommonChartFormat_SetParent, this.parent, pr));
         this.parent = pr;
-            }
+            },
+
+    handleUpdateFill: function()
+    {
+        if(this.parent && this.parent.handleUpdateFill)
+        {
+            this.parent.handleUpdateFill();
+        }
+    },
+    handleUpdateLn: function()
+    {
+        if(this.parent && this.parent.handleUpdateLn)
+        {
+            this.parent.handleUpdateLn();
+        }
+    }
 };
 
 
@@ -3402,6 +3433,25 @@ CAreaSeries.prototype =
             }
         }
     },
+    handleUpdateFill: function()
+    {
+        if(this.parent && this.parent.parent
+            && this.parent.parent.parent && this.parent.parent.parent.parent
+            && this.parent.parent.parent.parent.handleUpdateInternalChart)
+        {
+            this.parent.parent.parent.parent.handleUpdateInternalChart();
+        }
+    },
+    handleUpdateLn: function()
+    {
+        if(this.parent && this.parent.parent
+            && this.parent.parent.parent && this.parent.parent.parent.parent
+            && this.parent.parent.parent.parent.handleUpdateInternalChart)
+        {
+            this.parent.parent.parent.parent.handleUpdateInternalChart();
+        }
+    },
+
 
     checkSpPrRasterImages: function(images)
     {
@@ -3679,6 +3729,10 @@ CAreaSeries.prototype =
     {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_AreaSeries_SetSpPr, this.spPr, pr));
         this.spPr = pr;
+        if(this.spPr)
+        {
+            this.spPr.setParent(this);
+        }
     },
     setTrendline: function(pr)
     {
@@ -4211,6 +4265,10 @@ CCatAx.prototype =
     {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_CatAxSetMajorGridlines, this.majorGridlines, pr));
         this.majorGridlines = pr;
+        if(this.majorGridlines)
+        {
+            this.majorGridlines.setParent(this);
+        }
         if(this.parent && this.parent.parent && this.parent.parent.parent)
         {
             this.parent.parent.parent.handleUpdateGridlines();
@@ -4229,7 +4287,10 @@ CCatAx.prototype =
     {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_CatAxSetMinorGridlines, this.minorGridlines, pr));
         this.minorGridlines = pr;
-
+        if(this.minorGridlines)
+        {
+            this.minorGridlines.setParent(this);
+        }
         if(this.parent && this.parent.parent && this.parent.parent.parent)
         {
             this.parent.parent.parent.handleUpdateGridlines();
@@ -4279,6 +4340,10 @@ CCatAx.prototype =
     {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_CatAxSetSpPr, this.spPr, pr));
         this.spPr = pr;
+        if(this.spPr)
+        {
+            this.spPr.setParent(this);
+        }
         if(this.parent && this.parent.parent && this.parent.parent.parent)
         {
             this.parent.parent.parent.handleUpdateInternalChart();
@@ -4562,6 +4627,10 @@ CDateAx.prototype =
     {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_DateAxMajorGridlines, this.majorGridlines, pr));
         this.majorGridlines = pr;
+        if(this.majorGridlines)
+        {
+            this.majorGridlines.setParent(this);
+        }
         if(this.parent && this.parent.parent && this.parent.parent.parent)
         {
             this.parent.parent.parent.handleUpdateGridlines();
@@ -4601,7 +4670,11 @@ CDateAx.prototype =
     setMinorGridlines: function(pr)
     {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_DateAxMajorGridlines, this.majorGridlines, pr));
-        this.majorGridlines = pr;
+        this.minorGridlines = pr;
+        if(this.minorGridlines)
+        {
+            this.minorGridlines.setParent(this);
+        }
         if(this.parent && this.parent.parent && this.parent.parent.parent)
         {
             this.parent.parent.parent.handleUpdateGridlines();
@@ -4663,6 +4736,10 @@ CDateAx.prototype =
     {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_DateAxSpPr, this.spPr, pr));
         this.spPr = pr;
+        if(this.spPr)
+        {
+            this.spPr.setParent(this);
+        }
         if(this.parent && this.parent.parent && this.parent.parent.parent)
         {
             this.parent.parent.parent.handleUpdateInternalChart();
@@ -4892,6 +4969,10 @@ CSerAx.prototype =
     {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_SerAxSetMajorGridlines, this.majorGridlines, pr));
         this.majorGridlines = pr;
+        if(this.majorGridlines)
+        {
+            this.majorGridlines.setParent(this);
+        }
         if(this.parent && this.parent.parent && this.parent.parent.parent)
         {
             this.parent.parent.parent.handleUpdateGridlines();
@@ -4909,7 +4990,11 @@ CSerAx.prototype =
     setMinorGridlines: function(pr)
     {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_SerAxSetMinorGridlines, this.majorGridlines, pr));
-        this.majorGridlines = pr;
+        this.minorGridlines = pr;
+        if(this.minorGridlines)
+        {
+            this.minorGridlines.setParent(this);
+        }
         if(this.parent && this.parent.parent && this.parent.parent.parent)
         {
             this.parent.parent.parent.handleUpdateGridlines();
@@ -4950,6 +5035,10 @@ CSerAx.prototype =
     {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_SerAxSetSpPr, this.spPr, pr));
         this.spPr = pr;
+        if(this.spPr)
+        {
+            this.spPr.setParent(this);
+        }
         if(this.parent && this.parent.parent && this.parent.parent.parent)
         {
             this.parent.parent.parent.handleUpdateInternalChart();
@@ -5245,6 +5334,10 @@ CValAx.prototype =
     {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_ValAxSetMajorGridlines, this.majorGridlines, pr));
         this.majorGridlines = pr;
+        if(this.majorGridlines)
+        {
+            this.majorGridlines.setParent(this);
+        }
         if(this.parent && this.parent.parent && this.parent.parent.parent)
         {
             this.parent.parent.parent.handleUpdateGridlines();
@@ -5273,6 +5366,10 @@ CValAx.prototype =
     {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_ValAxSetMinorGridlines, this.minorGridlines, pr));
         this.minorGridlines = pr;
+        if(this.minorGridlines)
+        {
+            this.minorGridlines.setParent(this);
+        }
         if(this.parent && this.parent.parent && this.parent.parent.parent)
         {
             this.parent.parent.parent.handleUpdateGridlines();
@@ -5325,7 +5422,10 @@ CValAx.prototype =
     {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_ValAxSetSpPr, this.spPr, pr));
         this.spPr = pr;
-
+        if(this.spPr)
+        {
+            this.spPr.setParent(this);
+        }
         if(this.parent && this.parent.parent && this.parent.parent.parent)
         {
             this.parent.parent.parent.handleUpdateInternalChart();
@@ -5789,6 +5889,14 @@ CBandFmt.prototype =
     {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_BandFmt_SetSpPr, this.spPr, pr));
         this.spPr = pr;
+        if(this.spPr)
+        {
+            this.spPr.setParent(this);
+        }
+        if(this.spPr)
+        {
+            this.spPr.setParent(this);
+        }
     },
 
     Write_ToBinary2: function(w)
@@ -5909,6 +6017,10 @@ CBarSeries.prototype =
     },
 
     documentCreateFontMap: CAreaSeries.prototype.documentCreateFontMap,
+    handleUpdateFill: CAreaSeries.prototype.handleUpdateFill,
+    handleUpdateLn: CAreaSeries.prototype.handleUpdateLn,
+
+
 
     Write_ToBinary2: function(w)
     {
@@ -6034,6 +6146,10 @@ CBarSeries.prototype =
     {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_BarSeries_SetSpPr, this.spPr, pr));
         this.spPr = pr;
+        if(this.spPr)
+        {
+            this.spPr.setParent(this);
+        }
     },
     setTrendline: function(pr)
     {
@@ -6329,7 +6445,8 @@ CBubbleSeries.prototype =
     getCatName: CAreaSeries.prototype.getCatName,
     getValByIndex: CAreaSeries.prototype.getValByIndex,
     getFormatCode: CAreaSeries.prototype.getFormatCode,
-
+    handleUpdateFill: CAreaSeries.prototype.handleUpdateFill,
+    handleUpdateLn: CAreaSeries.prototype.handleUpdateLn,
 
     setFromOtherSeries: function(o)
     {
@@ -6402,6 +6519,10 @@ CBubbleSeries.prototype =
     {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_BubbleSeries_SetSpPr, this.spPr, pr));
         this.spPr = pr;
+        if(this.spPr)
+        {
+            this.spPr.setParent(this);
+        }
     },
     setTrendline: function(pr)
     {
@@ -6698,6 +6819,15 @@ CDLbls.prototype =
         }
     },
 
+    handleUpdateFill: function()
+    {
+        this.Refresh_RecalcData2();
+    },
+    handleUpdateLn: function()
+    {
+        this.Refresh_RecalcData2();
+    },
+
 
     getContentChangesByType: function(type){
         switch(type){
@@ -6919,6 +7049,10 @@ CDLbls.prototype =
     {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_DLbls_SetSpPr, this.spPr, pr));
         this.spPr = pr;
+        if(this.spPr)
+        {
+            this.spPr.setParent(this);
+        }
         if(this.parent && this.parent.parent && this.parent.parent.parent && this.parent.parent.parent.parent && this.parent.parent.parent.parent.handleUpdateDataLabels)
         {
             this.parent.parent.parent.parent.handleUpdateDataLabels();
@@ -7047,7 +7181,11 @@ CDPt.prototype =
     {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_DPt_SetSpPr, this.spPr, pr));
         this.spPr = pr;
-            }
+        if(this.spPr)
+        {
+            this.spPr.setParent(this);
+        }
+    }
 };
 
 
@@ -7128,6 +7266,10 @@ CDTable.prototype =
     {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_DTable_SetSpPr, this.showHorzBorder, pr));
         this.spPr = pr;
+        if(this.spPr)
+        {
+            this.spPr.setParent(this);
+        }
     },
     setTxPr: function(pr)
     {
@@ -7549,6 +7691,10 @@ CErrBars.prototype =
     {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_ErrBars_SetSpPr, this.spPr, pr));
         this.spPr = pr;
+        if(this.spPr)
+        {
+            this.spPr.setParent(this);
+        }
     },
     setVal: function(pr)
     {
@@ -7997,6 +8143,10 @@ CLegend.prototype =
     {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_Legend_SetSpPr, this.spPr, spPr));
         this.spPr = spPr;
+        if(this.spPr)
+        {
+            this.spPr.setParent(this);
+        }
     },
     setTxPr: function(txPr)
     {
@@ -8576,7 +8726,7 @@ CLineSeries.prototype =
     getCatName: CAreaSeries.prototype.getCatName,
     getValByIndex: CAreaSeries.prototype.getValByIndex,
     getFormatCode: CAreaSeries.prototype.getFormatCode,
-
+    handleUpdateFill: CAreaSeries.prototype.handleUpdateFill,
     setFromOtherSeries: function(other)
     {
         if(other.cat)
@@ -8842,13 +8992,17 @@ CMarker.prototype =
     {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_Marker_SetSpPr, this.spPr, pr));
         this.spPr = pr;
+        if(this.spPr)
+        {
+            this.spPr.setParent(this);
+        }
     },
 
     setSymbol: function(pr)
     {
         History.Add(new CChangesDrawingsLong(this, AscDFH.historyitem_Marker_SetSymbol, this.symbol, pr));
         this.symbol = pr;
-            }
+    }
 };
 
 
@@ -9140,8 +9294,11 @@ function CNumericPoint()
     this.idx        = null;
     this.val        = null;
 
-    this.Id = g_oIdCounter.Get_NewId();
-    g_oTableId.Add(this, this.Id);
+    if(false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On())
+    {
+        this.Id = g_oIdCounter.Get_NewId();
+        g_oTableId.Add(this, this.Id);
+    }
 }
 
 CNumericPoint.prototype =
@@ -9182,13 +9339,13 @@ CNumericPoint.prototype =
 
     setFormatCode: function(pr)
     {
-        History.Add(new CChangesDrawingsString(this, AscDFH.historyitem_NumericPoint_SetFormatCode, this.formatCode, pr));
+        (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsString(this, AscDFH.historyitem_NumericPoint_SetFormatCode, this.formatCode, pr));
         this.formatCode = pr;
     },
 
     setIdx: function(pr)
     {
-        History.Add(new CChangesDrawingsLong(this, AscDFH.historyitem_NumericPoint_SetIdx, this.idx, pr));
+        (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsLong(this, AscDFH.historyitem_NumericPoint_SetIdx, this.idx, pr));
         this.idx = pr;
     },
 
@@ -9199,9 +9356,9 @@ CNumericPoint.prototype =
         {
             _pr = 0;
         }
-        History.Add(new CChangesDrawingsDouble2(this, AscDFH.historyitem_NumericPoint_SetVal, this.val, _pr));
+        (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsDouble2(this, AscDFH.historyitem_NumericPoint_SetVal, this.val, _pr));
         this.val = _pr;
-            }
+    }
 };
 
 
@@ -9300,7 +9457,7 @@ CNumLit.prototype =
     {
         if(this.pts[idx])
         {
-            History.Add(new CChangesDrawingsContent(this, AscDFH.historyitem_CommonLit_RemoveDPt, idx, this.pts.splice(idx, 1), false));
+            (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsContent(this, AscDFH.historyitem_CommonLit_RemoveDPt, idx, [this.pts[idx]], false));
             this.pts.splice(idx, 1);
         }
     },
@@ -9319,6 +9476,8 @@ CNumLit.prototype =
 
     getPtByIndex: function(idx)
     {
+        if(this.pts[idx] && this.pts[idx].idx === idx)
+            return this.pts[idx];
         for(var i = 0; i < this.pts.length; ++i)
         {
             if(this.pts[i].idx === idx)
@@ -9361,13 +9520,13 @@ CNumLit.prototype =
 
     addPt: function(pr)
     {
-        History.Add(new CChangesDrawingsContent(this, AscDFH.historyitem_NumLit_AddPt, this.pts.length, [pr], true));
+        (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsContent(this, AscDFH.historyitem_NumLit_AddPt, this.pts.length, [pr], true));
         this.pts.push(pr);
     },
 
     setPtCount: function(pr)
     {
-        History.Add(new CChangesDrawingsLong(this, AscDFH.historyitem_NumLit_SetPtCount, this.ptCount, pr));
+        (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsLong(this, AscDFH.historyitem_NumLit_SetPtCount, this.ptCount, pr));
         this.ptCount = pr;
             }
 };
@@ -9966,6 +10125,8 @@ CPieSeries.prototype =
 
 
     documentCreateFontMap: CAreaSeries.prototype.documentCreateFontMap,
+    handleUpdateFill: CAreaSeries.prototype.handleUpdateFill,
+    handleUpdateLn: CAreaSeries.prototype.handleUpdateLn,
 
     getAllRasterImages: CAreaSeries.prototype.getAllRasterImages,
     checkSpPrRasterImages: CAreaSeries.prototype.checkSpPrRasterImages,
@@ -10180,13 +10341,17 @@ CPivotFmt.prototype =
     {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_PivotFmt_SetSpPr, this.spPr, pr));
         this.spPr = pr;
+        if(this.spPr)
+        {
+            this.spPr.setParent(this);
+        }
     },
 
     setTxPr: function(pr)
     {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_PivotFmt_SetTxPr, this.txPr, pr));
         this.txPr = pr;
-            }
+    }
 };
 
 function CRadarChart()
@@ -10490,7 +10655,8 @@ CRadarSeries.prototype =
     getValByIndex: CAreaSeries.prototype.getValByIndex,
     getFormatCode: CAreaSeries.prototype.getFormatCode,
 
-
+    handleUpdateFill: CAreaSeries.prototype.handleUpdateFill,
+    handleUpdateLn: CAreaSeries.prototype.handleUpdateLn,
     getAllRasterImages: CAreaSeries.prototype.getAllRasterImages,
     checkSpPrRasterImages: CAreaSeries.prototype.checkSpPrRasterImages,
 
@@ -10578,6 +10744,10 @@ CRadarSeries.prototype =
     {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_RadarSeries_SetCat, this.spPr, pr));
         this.spPr = pr;
+        if(this.spPr)
+        {
+            this.spPr.setParent(this);
+        }
     },
     setTx: function(pr)
     {
@@ -10958,7 +11128,8 @@ CScatterSeries.prototype =
     },
 
     documentCreateFontMap: CAreaSeries.prototype.documentCreateFontMap,
-
+    handleUpdateFill: CAreaSeries.prototype.handleUpdateFill,
+    handleUpdateLn: CAreaSeries.prototype.handleUpdateLn,
     removeDPt: function(idx)
     {
         if(this.dPt[idx])
@@ -11123,6 +11294,10 @@ CScatterSeries.prototype =
     {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_ScatterSer_SetSpPr, this.spPr, pr));
         this.spPr = pr;
+        if(this.spPr)
+        {
+            this.spPr.setParent(this);
+        }
     },
     setTrendline: function(pr)
     {
@@ -11460,7 +11635,10 @@ CStrCache.prototype =
     {
         if(this.pts[idx])
         {
-            History.Add(new CChangesDrawingsContent(this, AscDFH.historyitem_CommonLit_RemoveDPt, idx, this.pts.splice(idx, 1), false));
+            if(false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()){
+                History.Add(new CChangesDrawingsContent(this, AscDFH.historyitem_CommonLit_RemoveDPt, idx, [this.pts[idx]], false));
+            }
+            this.pts.splice(idx, 1);
         }
     },
 
@@ -11477,6 +11655,8 @@ CStrCache.prototype =
 
     getPtByIndex: function(idx)
     {
+        if(this.pts[idx] && this.pts[idx].idx === idx)
+            return this.pts[idx];
         for(var i = 0; i < this.pts.length; ++i)
         {
             if(this.pts[i].idx === idx)
@@ -11512,15 +11692,15 @@ CStrCache.prototype =
 
     addPt: function(pr)
     {
-        History.Add(new CChangesDrawingsContent(this, AscDFH.historyitem_StrCache_AddPt, this.pts.length, [pr], true));
+        (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsContent(this, AscDFH.historyitem_StrCache_AddPt, this.pts.length, [pr], true));
         this.pts.push(pr);
     },
 
     setPtCount: function(pr)
     {
-        History.Add(new CChangesDrawingsLong(this, AscDFH.historyitem_StrCache_SetPtCount, this.ptCount, pr));
+        (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsLong(this, AscDFH.historyitem_StrCache_SetPtCount, this.ptCount, pr));
         this.ptCount = pr;
-                    }
+    }
 };
 
 
@@ -11585,13 +11765,13 @@ CStringLiteral.prototype =
 
 
     addPt: function(pr){
-        History.Add(new CChangesDrawingsContent(this, AscDFH.historyitem_StringLiteral_SetPt, this.pts.length, [pr], true));
+        (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsContent(this, AscDFH.historyitem_StringLiteral_SetPt, this.pts.length, [pr], true));
         this.pts.push(pr);
     },
 
     setPtCount: function(pr)
     {
-        History.Add(new CChangesDrawingsLong(this, AscDFH.historyitem_StringLiteral_SetPtCount, this.ptCount, pr));
+        (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsLong(this, AscDFH.historyitem_StringLiteral_SetPtCount, this.ptCount, pr));
         this.ptCount = pr;
             }
 };
@@ -11994,7 +12174,8 @@ CSurfaceSeries.prototype =
 
     documentCreateFontMap: CAreaSeries.prototype.documentCreateFontMap,
 
-
+    handleUpdateFill: CAreaSeries.prototype.handleUpdateFill,
+    handleUpdateLn: CAreaSeries.prototype.handleUpdateLn,
     getAllRasterImages: CAreaSeries.prototype.getAllRasterImages,
     checkSpPrRasterImages: CAreaSeries.prototype.checkSpPrRasterImages,
 
@@ -12060,6 +12241,10 @@ CSurfaceSeries.prototype =
     {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_SurfaceSeries_SetSpPr, this.spPr, pr));
         this.spPr = pr;
+        if(this.spPr)
+        {
+            this.spPr.setParent(this);
+        }
     },
     setTx: function(pr)
     {
@@ -12650,6 +12835,10 @@ CTitle.prototype =
     {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_Title_SetSpPr, this.spPr, pr));
         this.spPr = pr;
+        if(this.spPr)
+        {
+            this.spPr.setParent(this);
+        }
     },
 
     setTx: function(pr)
@@ -12764,6 +12953,10 @@ CTrendLine.prototype =
     {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_Trendline_SetSpPr, this.spPr, pr));
         this.spPr = pr;
+        if(this.spPr)
+        {
+            this.spPr.setParent(this);
+        }
     },
 
     setTrendlineLbl: function(pr)
@@ -13138,7 +13331,7 @@ CYVal.prototype =
         {
             this.numRef.setParent(this);
         }
-            }
+    }
 };
 
 
@@ -13251,6 +13444,21 @@ CChart.prototype =
         if(this.parent && this.parent.handleUpdateDataLabels)
         {
             this.parent.handleUpdateDataLabels();
+        }
+    },
+
+    handleUpdateFill: function()
+    {
+        if(this.parent && this.parent.handleUpdateFill)
+        {
+            this.parent.handleUpdateFill();
+        }
+    },
+    handleUpdateLn: function()
+    {
+        if(this.parent && this.parent.handleUpdateLn)
+        {
+            this.parent.handleUpdateLn();
         }
     },
 
@@ -13501,12 +13709,16 @@ CChartWall.prototype =
     {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_ChartWall_SetSpPr, this.spPr, pr));
         this.spPr = pr;
+        if(this.spPr)
+        {
+            this.spPr.setParent(this);
+        }
     },
     setThickness: function(pr)
     {
         History.Add(new CChangesDrawingsLong(this, AscDFH.historyitem_ChartWall_SetThickness, this.thickness, pr));
         this.thickness = pr;
-            }
+    }
 };
 
 function CView3d()

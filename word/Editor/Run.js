@@ -112,7 +112,8 @@ function ParaRun(Paragraph, bMathRun)
 		&& editor.WordControl
 		&& editor.WordControl.m_oLogicDocument
 		&& true === editor.WordControl.m_oLogicDocument.IsTrackRevisions()
-		&& !editor.WordControl.m_oLogicDocument.RecalcTableHeader)
+		&& !editor.WordControl.m_oLogicDocument.RecalcTableHeader
+		&& !editor.WordControl.m_oLogicDocument.MoveDrawing)
 	{
 		this.ReviewType = reviewtype_Add;
 		this.ReviewInfo.Update();
@@ -191,11 +192,11 @@ ParaRun.prototype.Copy = function(Selected, oPr, isCopyReviewPr)
     NewRun.Set_Pr( this.Pr.Copy() );
 
     var oLogicDocument = this.GetLogicDocument();
-    if (true === isCopyReviewPr || (oLogicDocument && oLogicDocument.RecalcTableHeader))
+    if (true === isCopyReviewPr || (oLogicDocument && (oLogicDocument.RecalcTableHeader || oLogicDocument.MoveDrawing)))
 	{
 		var nReviewType = this.GetReviewType();
 		var oReviewInfo = this.GetReviewInfo().Copy();
-		if (!(oLogicDocument && oLogicDocument.RecalcTableHeader))
+		if (!(oLogicDocument && (oLogicDocument.RecalcTableHeader || oLogicDocument.MoveDrawing)))
 			oReviewInfo.SetMove(Asc.c_oAscRevisionsMove.NoMove);
 
 		NewRun.SetReviewTypeWithInfo(nReviewType, oReviewInfo);
@@ -247,6 +248,7 @@ ParaRun.prototype.Copy = function(Selected, oPr, isCopyReviewPr)
 		{
 			// TODO: Как только перенесем para_End в сам параграф (как и нумерацию) убрать здесь
 			if (para_End !== Item.Type
+				&& para_RevisionMove !== Item.Type
 				&& (para_Drawing !== Item.Type || Item.Is_Inline() || true !== oPr.SkipAnchors)
 				&& (para_FootnoteReference !== Item.Type || true !== oPr.SkipFootnoteReference)
 				&& ((para_FieldChar !== Item.Type && para_InstrText !== Item.Type) || true !== oPr.SkipComplexFields))
@@ -467,6 +469,18 @@ ParaRun.prototype.Add = function(Item, bMath)
 {
 	if (undefined !== Item.Parent)
 		Item.Parent = this;
+
+	if (this.IsParaEndRun())
+	{
+		var NewRun = this.private_SplitRunInCurPos();
+		if (NewRun)
+		{
+			NewRun.MoveCursorToStartPos();
+			NewRun.Add(Item, bMath);
+			NewRun.SetThisElementCurrentInParagraph();
+			return;
+		}
+	}
 
 	if (this.Paragraph && this.Paragraph.LogicDocument)
 	{
@@ -762,7 +776,7 @@ ParaRun.prototype.Remove = function(Direction, bOnAddText)
 
     var ReviewType  = this.GetReviewType();
     var oReviewInfo = this.GetReviewInfo();
-    if (true === TrackRevisions && (reviewtype_Add !== ReviewType || !oReviewInfo.IsCurrentUser()) && (reviewtype_Remove !== ReviewType || !oReviewInfo.IsPrevAddedByCurrentUser()))
+    if (true === TrackRevisions && (reviewtype_Add !== ReviewType || !oReviewInfo.IsCurrentUser() || !oReviewInfo.IsMovedTo() || !this.Paragraph.LogicDocument.TrackMoveRelocation) && (reviewtype_Remove !== ReviewType || !oReviewInfo.IsPrevAddedByCurrentUser()))
     {
     	if (reviewtype_Remove === ReviewType)
 		{
@@ -1015,7 +1029,7 @@ ParaRun.prototype.Remove = function(Direction, bOnAddText)
 					if (oComplexField)
 					{
 						oComplexField.SelectField();
-						var oLogicDocument = this.Paragraph ? this.Paragraph.LogicDocument : null;
+						var oLogicDocument = (this.Paragraph && this.Paragraph.bFromDocument) ? this.Paragraph.LogicDocument : null;
 						if (oLogicDocument)
 						{
 							oLogicDocument.Document_UpdateInterfaceState();
@@ -1025,8 +1039,11 @@ ParaRun.prototype.Remove = function(Direction, bOnAddText)
 					return true;
 				}
 
-                this.Remove_FromContent(CurPos - 1, 1, true);
+				var oStyles = (this.Paragraph && this.Paragraph.bFromDocument) ? this.Paragraph.LogicDocument.GetStyles() : null;
+				if (oStyles && 1 === this.Content.length && para_FootnoteReference === this.Content[0].Type && this.Get_RStyle() === oStyles.GetDefaultFootnoteReference())
+					this.Set_RStyle(undefined);
 
+                this.RemoveFromContent(CurPos - 1, 1, true);
                 this.State.ContentPos = CurPos - 1;
             }
             else
@@ -1048,7 +1065,7 @@ ParaRun.prototype.Remove = function(Direction, bOnAddText)
 					if (oComplexField)
 					{
 						oComplexField.SelectField();
-						var oLogicDocument = this.Paragraph ? this.Paragraph.LogicDocument : null;
+						var oLogicDocument = (this.Paragraph && this.Paragraph.bFromDocument) ? this.Paragraph.LogicDocument : null;
 						if (oLogicDocument)
 						{
 							oLogicDocument.Document_UpdateInterfaceState();
@@ -1058,8 +1075,11 @@ ParaRun.prototype.Remove = function(Direction, bOnAddText)
 					return true;
 				}
 
-                this.Remove_FromContent(CurPos, 1, true);
+				var oStyles = (this.Paragraph && this.Paragraph.bFromDocument) ? this.Paragraph.LogicDocument.GetStyles() : null;
+				if (oStyles && 1 === this.Content.length && para_FootnoteReference === this.Content[0].Type && this.Get_RStyle() === oStyles.GetDefaultFootnoteReference())
+					this.Set_RStyle(undefined);
 
+				this.RemoveFromContent(CurPos, 1, true);
                 this.State.ContentPos = CurPos;
             }
         }
@@ -2003,9 +2023,34 @@ ParaRun.prototype.Split2 = function(CurPos, Parent, ParentPos)
                 }
             }
         }
+
+		// Обновляем позиции в поиске
+		for (var nIndex = 0, nSearchMarksCount = this.SearchMarks.length; nIndex < nSearchMarksCount; ++nIndex)
+		{
+			var oMark       = this.SearchMarks[nIndex];
+			var oContentPos = oMark.Start ? oMark.SearchResult.StartPos : oMark.SearchResult.EndPos;
+			var nDepth      = oMark.Depth;
+
+			if (oContentPos.Get(nDepth) > CurPos || (oContentPos.Get(nDepth) === CurPos && oMark.Start))
+			{
+				this.SearchMarks.splice(nIndex, 1);
+				NewRun.SearchMarks.splice(NewRun.SearchMarks.length, 0, oMark);
+				oContentPos.Data[nDepth] -= CurPos;
+				oContentPos.Data[nDepth - 1]++;
+
+				if (oMark.Start)
+					oMark.SearchResult.ClassesS[oMark.SearchResult.ClassesS.length - 1] = NewRun;
+				else
+					oMark.SearchResult.ClassesE[oMark.SearchResult.ClassesE.length - 1] = NewRun;
+
+				nSearchMarksCount--;
+				nIndex--;
+			}
+		}
     }
 
-    // Разделяем содержимое по ранам
+
+	// Разделяем содержимое по ранам
     NewRun.ConcatToContent( this.Content.slice(CurPos) );
     this.Remove_FromContent( CurPos, this.Content.length - CurPos, true );
 
@@ -2746,6 +2791,9 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
     var XRange    = PRS.XRange;
     var oSectionPr = undefined;
 
+	// TODO: Сделать возможность показывать инструкцию
+    var isHiddenCFPart = PRS.ComplexFields.IsComplexFieldCode();
+
     if (false === StartWord && true === FirstItemOnLine && XEnd - X < 0.001 && RangesCount > 0)
     {
         NewRange = true;
@@ -2785,7 +2833,10 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
 				}
 			}
 
-            // Проверяем, не нужно ли добавить нумерацию к данному элементу
+			if (isHiddenCFPart && para_End !== ItemType && para_FieldChar !== ItemType)
+				continue;
+
+			// Проверяем, не нужно ли добавить нумерацию к данному элементу
             if (true === this.RecalcInfo.NumberingAdd && true === Item.Can_AddNumbering())
                 X = this.private_RecalculateNumbering(PRS, Item, ParaPr, X);
 
@@ -3641,11 +3692,22 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
 					Item.SetRun(this);
 					PRS.ComplexFields.ProcessFieldChar(Item);
 
+					isHiddenCFPart = PRS.ComplexFields.IsComplexFieldCode();
+
 					if (Item.IsSeparate())
 					{
 						// Специальная ветка, для полей PAGE и NUMPAGES, находящихся в колонтитуле
 						var oComplexField = Item.GetComplexField();
 						var oHdrFtr       = Para.Parent.IsHdrFtr(true);
+
+						if (oHdrFtr && !oComplexField && this.Paragraph)
+						{
+							// Т.к. Recalculate_Width запускается после Recalculate_Range, то возможен случай, когда у нас
+							// поля еще не собраны, но в колонтитулах они нам нужны уже собранные
+							this.Paragraph.ProcessComplexFields();
+							oComplexField = Item.GetComplexField();
+						}
+
 						if (oHdrFtr && oComplexField)
 						{
 							var oInstruction = oComplexField.GetInstruction();
@@ -3932,12 +3994,17 @@ ParaRun.prototype.Recalculate_Range_Width = function(PRSC, _CurLine, _CurRange)
     var StartPos = this.protected_GetRangeStartPos(CurLine, CurRange);
     var EndPos   = this.protected_GetRangeEndPos(CurLine, CurRange);
 
+	// TODO: Сделать возможность показывать инструкцию
+	var isHiddenCFPart = PRSC.ComplexFields.IsComplexFieldCode();
     for ( var Pos = StartPos; Pos < EndPos; Pos++ )
     {
 		var Item = this.private_CheckInstrText(this.Content[Pos]);
         var ItemType = Item.Type;
 
 		if (PRSC.ComplexFields.IsHiddenFieldContent() && para_End !== ItemType && para_FieldChar !== ItemType)
+			continue;
+
+		if (isHiddenCFPart && para_End !== ItemType && para_FieldChar !== ItemType && para_InstrText !== ItemType)
 			continue;
 
 		switch( ItemType )
@@ -4089,6 +4156,8 @@ ParaRun.prototype.Recalculate_Range_Width = function(PRSC, _CurLine, _CurRange)
 				else
 					PRSC.ComplexFields.ProcessFieldCharAndCollectComplexField(Item);
 
+				isHiddenCFPart = PRSC.ComplexFields.IsComplexFieldCode();
+
 				if (Item.IsNumValue())
 				{
 					PRSC.Words++;
@@ -4129,6 +4198,8 @@ ParaRun.prototype.Recalculate_Range_Spaces = function(PRSA, _CurLine, _CurRange,
     var StartPos = this.protected_GetRangeStartPos(CurLine, CurRange);
     var EndPos   = this.protected_GetRangeEndPos(CurLine, CurRange);
 
+	// TODO: Сделать возможность показывать инструкцию
+	var isHiddenCFPart = PRSA.ComplexFields.IsComplexFieldCode();
     for ( var Pos = StartPos; Pos < EndPos; Pos++ )
     {
 		var Item = this.private_CheckInstrText(this.Content[Pos]);
@@ -4137,6 +4208,12 @@ ParaRun.prototype.Recalculate_Range_Spaces = function(PRSA, _CurLine, _CurRange,
 		if (PRSA.ComplexFields.IsHiddenFieldContent() && para_End !== ItemType && para_FieldChar !== ItemType)
 		{
 			// Чтобы правильно позиционировался курсор и селект
+			Item.WidthVisible = 0;
+			continue;
+		}
+
+		if (isHiddenCFPart && para_End !== ItemType && para_FieldChar !== ItemType)
+		{
 			Item.WidthVisible = 0;
 			continue;
 		}
@@ -4459,6 +4536,7 @@ ParaRun.prototype.Recalculate_Range_Spaces = function(PRSA, _CurLine, _CurRange,
 			case para_FieldChar:
 			{
 				PRSA.ComplexFields.ProcessFieldChar(Item);
+				isHiddenCFPart = PRSA.ComplexFields.IsComplexFieldCode();
 
 				if (Item.IsNumValue())
 				{
@@ -5134,13 +5212,15 @@ ParaRun.prototype.Draw_HighLights = function(PDSH)
 
     this.CollaborativeMarks.Init_Drawing();
 
+	var isHiddenCFPart = PDSH.ComplexFields.IsComplexFieldCode();
+
     for ( var Pos = StartPos; Pos < EndPos; Pos++ )
     {
 		var Item = this.private_CheckInstrText(this.Content[Pos]);
         var ItemType         = Item.Type;
         var ItemWidthVisible = Item.Get_WidthVisible();
 
-        if (PDSH.ComplexFields.IsHiddenFieldContent() && para_End !== ItemType && para_FieldChar !== ItemType)
+        if ((PDSH.ComplexFields.IsHiddenFieldContent() || isHiddenCFPart) && para_End !== ItemType && para_FieldChar !== ItemType)
         	continue;
 
         // Определим попадание в поиск и совместное редактирование. Попадание в комментарий определять не надо,
@@ -5241,6 +5321,7 @@ ParaRun.prototype.Draw_HighLights = function(PDSH)
 			case para_FieldChar:
 			{
 				PDSH.ComplexFields.ProcessFieldChar(Item);
+				isHiddenCFPart = PDSH.ComplexFields.IsComplexFieldCode();
 
 				if (Item.IsNumValue())
 				{
@@ -5339,12 +5420,12 @@ ParaRun.prototype.Draw_Elements = function(PDSE)
         CurTextPr.Unifill.check(PDSE.Theme, PDSE.ColorMap);
         RGBA = CurTextPr.Unifill.getRGBAColor();
 
-        if ( true === PDSE.VisitedHyperlink && ( undefined === this.Pr.Color && undefined === this.Pr.Unifill || bPresentation) )
-        {
-            AscFormat.G_O_VISITED_HLINK_COLOR.check(PDSE.Theme, PDSE.ColorMap);
-            RGBA = AscFormat.G_O_VISITED_HLINK_COLOR.getRGBAColor();
-            pGraphics.b_color1( RGBA.R, RGBA.G, RGBA.B, RGBA.A );
-        }
+		if (true === PDSE.VisitedHyperlink)
+		{
+			AscFormat.G_O_VISITED_HLINK_COLOR.check(PDSE.Theme, PDSE.ColorMap);
+			RGBA = AscFormat.G_O_VISITED_HLINK_COLOR.getRGBAColor();
+			pGraphics.b_color1(RGBA.R, RGBA.G, RGBA.B, RGBA.A);
+		}
         else
         {
             if(bPresentation && PDSE.Hyperlink)
@@ -5361,7 +5442,7 @@ ParaRun.prototype.Draw_Elements = function(PDSE)
     }
     else
     {
-        if ( true === PDSE.VisitedHyperlink && ( undefined === this.Pr.Color && undefined === this.Pr.Unifill ) )
+        if (true === PDSE.VisitedHyperlink)
         {
             AscFormat.G_O_VISITED_HLINK_COLOR.check(PDSE.Theme, PDSE.ColorMap);
             RGBA = AscFormat.G_O_VISITED_HLINK_COLOR.getRGBAColor();
@@ -5377,12 +5458,14 @@ ParaRun.prototype.Draw_Elements = function(PDSE)
         }
     }
 
+	var isHiddenCFPart = PDSE.ComplexFields.IsComplexFieldCode();
+
     for ( var Pos = StartPos; Pos < EndPos; Pos++ )
     {
 		var Item = this.private_CheckInstrText(this.Content[Pos]);
         var ItemType = Item.Type;
 
-		if (PDSE.ComplexFields.IsHiddenFieldContent() && para_End !== ItemType && para_FieldChar !== ItemType)
+		if ((PDSE.ComplexFields.IsHiddenFieldContent() || isHiddenCFPart) && para_End !== ItemType && para_FieldChar !== ItemType)
 			continue;
 
         var TempY = Y;
@@ -5539,6 +5622,7 @@ ParaRun.prototype.Draw_Elements = function(PDSE)
 			case para_FieldChar:
 			{
 				PDSE.ComplexFields.ProcessFieldChar(Item);
+				isHiddenCFPart = PDSE.ComplexFields.IsComplexFieldCode();
 
 				if (Item.IsNumValue())
 				{
@@ -5636,14 +5720,16 @@ ParaRun.prototype.Draw_Lines = function(PDSL)
     // Выставляем цвет обводки
 
     var bPresentation = this.Paragraph && !this.Paragraph.bFromDocument;
-    if ( true === PDSL.VisitedHyperlink && ( undefined === this.Pr.Color && undefined === this.Pr.Unifill || bPresentation) )
-    {
-        AscFormat.G_O_VISITED_HLINK_COLOR.check(Theme, ColorMap);
-        RGBA = AscFormat.G_O_VISITED_HLINK_COLOR.getRGBAColor();
-        CurColor = new CDocumentColor( RGBA.R, RGBA.G, RGBA.B, RGBA.A );
-    }
+    if (true === PDSL.VisitedHyperlink)
+	{
+		AscFormat.G_O_VISITED_HLINK_COLOR.check(Theme, ColorMap);
+		RGBA     = AscFormat.G_O_VISITED_HLINK_COLOR.getRGBAColor();
+		CurColor = new CDocumentColor(RGBA.R, RGBA.G, RGBA.B, RGBA.A);
+	}
     else if ( true === CurTextPr.Color.Auto && !CurTextPr.Unifill)
-        CurColor = new CDocumentColor( AutoColor.r, AutoColor.g, AutoColor.b );
+	{
+		CurColor = new CDocumentColor(AutoColor.r, AutoColor.g, AutoColor.b);
+	}
     else
     {
         if(bPresentation && PDSL.Hyperlink)
@@ -5692,13 +5778,15 @@ ParaRun.prototype.Draw_Lines = function(PDSL)
         }
     }
 
+	var isHiddenCFPart = PDSL.ComplexFields.IsComplexFieldCode();
+
     for ( var Pos = StartPos; Pos < EndPos; Pos++ )
 	{
 		var Item             = this.private_CheckInstrText(this.Content[Pos]);
 		var ItemType         = Item.Type;
 		var ItemWidthVisible = Item.Get_WidthVisible();
 
-		if (PDSL.ComplexFields.IsHiddenFieldContent() && para_End !== ItemType && para_FieldChar !== ItemType)
+		if ((PDSL.ComplexFields.IsHiddenFieldContent() || isHiddenCFPart) && para_End !== ItemType && para_FieldChar !== ItemType)
 			continue;
 
 		if (SpellData[Pos])
@@ -5913,6 +6001,7 @@ ParaRun.prototype.Draw_Lines = function(PDSL)
 			case para_FieldChar:
 			{
 				PDSL.ComplexFields.ProcessFieldChar(Item);
+				isHiddenCFPart = PDSL.ComplexFields.IsComplexFieldCode();
 
 				if (Item.IsNumValue())
 				{
@@ -6873,6 +6962,20 @@ ParaRun.prototype.IsSelectedAll = function(Props)
 
     return true;
 };
+ParaRun.prototype.IsSelectedFromStart = function()
+{
+	if (!this.Selection.Use && !this.IsEmpty())
+		return false;
+
+	return (Math.min(this.Selection.StartPos, this.Selection.EndPos) === 0);
+};
+ParaRun.prototype.IsSelectedToEnd = function()
+{
+	if (!this.Selection.Use && !this.IsEmpty())
+		return false;
+
+	return (Math.max(this.Selection.StartPos, this.Selection.EndPos) === this.Content.length);
+};
 
 ParaRun.prototype.SkipAnchorsAtSelectionStart = function(Direction)
 {
@@ -7320,10 +7423,23 @@ ParaRun.prototype.IsInHyperlinkInTOC = function()
 		}
 	}
 
-	if (!isHyperlink)
-		return false;
-
 	var arrComplexFields = oParagraph.GetComplexFieldsByPos(oPos);
+
+	if (!isHyperlink)
+	{
+		for (var nIndex = 0, nCount = arrComplexFields.length; nIndex < nCount; ++nIndex)
+		{
+			var oInstruction = arrComplexFields[nIndex].GetInstruction();
+			if (oInstruction && fieldtype_HYPERLINK === oInstruction.GetType())
+			{
+				isHyperlink = true;
+				break;
+			}
+		}
+
+		if (!isHyperlink)
+			return false;
+	}
 
 	for (var nIndex = 0, nCount = arrComplexFields.length; nIndex < nCount; ++nIndex)
 	{
@@ -8180,6 +8296,7 @@ ParaRun.prototype.Get_HighLight = function()
 {
     return this.Get_CompiledPr(false).HighLight;
 };
+
 
 ParaRun.prototype.Set_RStyle = function(Value)
 {
@@ -9887,9 +10004,7 @@ ParaRun.prototype.Make_ThisElementCurrent = function(bUpdateStates)
 {
     if (this.Is_UseInDocument())
     {
-        var ContentPos = this.Paragraph.Get_PosByElement(this);
-        ContentPos.Add(this.State.ContentPos);
-        this.Paragraph.Set_ParaContentPos(ContentPos, true, -1, -1, false);
+    	this.SetThisElementCurrentInParagraph();
         this.Paragraph.Document_SetThisElementCurrent(true === bUpdateStates ? true : false);
     }
 };
@@ -9904,6 +10019,52 @@ ParaRun.prototype.SetThisElementCurrent = function()
 
 	this.Paragraph.Set_ParaContentPos(StartPos, true, -1, -1, false);
 	this.Paragraph.Document_SetThisElementCurrent(false);
+};
+/**
+ * Устанавливаем курсор параграфа в текущую позицию данного рана
+ */
+ParaRun.prototype.SetThisElementCurrentInParagraph = function()
+{
+	if (!this.Paragraph)
+		return;
+
+	var oContentPos = this.Paragraph.Get_PosByElement(this);
+	if (!oContentPos)
+		return;
+
+	oContentPos.Add(this.State.ContentPos);
+	this.Paragraph.Set_ParaContentPos(oContentPos, true, -1, -1, false);
+};
+ParaRun.prototype.SelectThisElement = function(nDirection)
+{
+	if (!this.Paragraph)
+		return false;
+
+	var oContentPos = this.Paragraph.Get_PosByElement(this);
+	if (!oContentPos)
+		return false;
+
+	var oStartPos = oContentPos.Copy();
+	var oEndPos   = oContentPos.Copy();
+
+	if (nDirection > 0)
+	{
+		this.Get_StartPos(oStartPos, oStartPos.GetDepth() + 1);
+		this.Get_EndPos(true, oEndPos, oEndPos.GetDepth() + 1);
+	}
+	else
+	{
+		this.Get_StartPos(oEndPos, oEndPos.Get_Depth() + 1);
+		this.Get_EndPos(true, oStartPos, oStartPos.Get_Depth() + 1);
+	}
+
+	this.Paragraph.Selection.Use   = true;
+	this.Paragraph.Selection.Start = false;
+	this.Paragraph.Set_ParaContentPos(oStartPos, true, -1, -1);
+	this.Paragraph.Set_SelectionContentPos(oStartPos, oEndPos, false);
+	this.Paragraph.Document_SetThisElementCurrent(false);
+
+	return true;
 };
 ParaRun.prototype.GetAllParagraphs = function(Props, ParaArray)
 {
@@ -10178,7 +10339,9 @@ ParaRun.prototype.RejectRevisionChanges = function(nType, bAll)
 			CenterRun.Set_Pr(CenterRun.Pr.PrChange);
 		}
 
-		if (reviewtype_Add === ReviewType
+		var oReviewInfo = this.GetReviewInfo();
+		var oPrevInfo   = oReviewInfo.GetPrevAdded();
+		if ((reviewtype_Add === ReviewType
 			&& (undefined === nType
 			|| c_oAscRevisionsChangeType.TextAdd === nType
 			|| (c_oAscRevisionsChangeType.MoveMark === nType
@@ -10186,6 +10349,10 @@ ParaRun.prototype.RejectRevisionChanges = function(nType, bAll)
 			&& oProcessMove
 			&& !oProcessMove.IsFrom()
 			&& oProcessMove.GetUserId() === this.GetReviewInfo().GetUserId())))
+			|| (undefined === nType
+			&& bAll
+			&& reviewtype_Remove === ReviewType
+			&& oPrevInfo))
 		{
 			Parent.RemoveFromContent(CenterRunPos, 1);
 
@@ -10205,8 +10372,6 @@ ParaRun.prototype.RejectRevisionChanges = function(nType, bAll)
 			&& oProcessMove.IsFrom()
 			&& oProcessMove.GetUserId() === this.GetReviewInfo().GetUserId())))
 		{
-			var oReviewInfo = this.GetReviewInfo();
-			var oPrevInfo   = oReviewInfo.GetPrevAdded();
 			if (oPrevInfo && c_oAscRevisionsChangeType.MoveMark !== nType)
 			{
 				CenterRun.SetReviewTypeWithInfo(reviewtype_Add, oPrevInfo.Copy());
@@ -10718,7 +10883,11 @@ ParaRun.prototype.ProcessAutoCorrect = function(nPos)
 			if (arrElements.length > 0)
 			{
 				var oPrevElement = arrElements[0];
-				if (para_Text === oPrevElement.Type && 45 !== oPrevElement.Value)
+				if (para_Text === oPrevElement.Type
+					&& 45 !== oPrevElement.Value
+					&& 40 !== oPrevElement.Value
+					&& 91 !== oPrevElement.Value
+					&& 123 !== oPrevElement.Value)
 					isOpenQuote = false;
 			}
 
@@ -11068,6 +11237,44 @@ ParaRun.prototype.UpdateBookmarks = function(oManager)
 			this.Content[nIndex].UpdateBookmarks(oManager);
 	}
 };
+ParaRun.prototype.CheckRunContent = function(fCheck)
+{
+	return fCheck(this);
+};
+ParaRun.prototype.ProcessComplexFields = function(oComplexFields)
+{
+	for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
+	{
+		var oItem     = this.private_CheckInstrText(this.Content[nPos]);
+		var nItemType = oItem.Type;
+
+		if (oComplexFields.IsHiddenFieldContent() && para_End !== nItemType && para_FieldChar !== nItemType)
+			continue;
+
+		if (para_FieldChar === nItemType)
+			oComplexFields.ProcessFieldCharAndCollectComplexField(oItem);
+		else if (para_InstrText === nItemType)
+			oComplexFields.ProcessInstruction(oItem);
+	}
+};
+ParaRun.prototype.GetSelectedElementsInfo = function(oInfo)
+{
+	if (oInfo && oInfo.IsCheckAllSelection() && !this.IsSelectionEmpty(true))
+	{
+		oInfo.RegisterRunWithReviewType(this.GetReviewType());
+	}
+};
+ParaRun.prototype.GetLastTrackMoveMark = function()
+{
+	for (var nPos = this.Content.length - 1; nPos >= 0; --nPos)
+	{
+		if (para_RevisionMove === this.Content[nPos].Type)
+			return this.Content[nPos];
+	}
+
+	return null;
+};
+
 
 function CParaRunStartState(Run)
 {

@@ -602,13 +602,15 @@ $( function () {
 		//console.log(val);
 	}
 
+	var newFormulaParser = false;
+
     var c_msPerDay = AscCommonExcel.c_msPerDay;
     var parserFormula = AscCommonExcel.parserFormula;
     var GetDiffDate360 = AscCommonExcel.GetDiffDate360;
     var fSortAscending = AscCommon.fSortAscending;
     var g_oIdCounter = AscCommon.g_oIdCounter;
 
-    var oParser, wb, ws, dif = 1e-9, sData = AscCommonExcel.getEmptyWorkbook(), tmp;
+    var oParser, wb, ws, dif = 1e-9, sData = AscCommon.getEmpty(), tmp;
     if ( AscCommon.c_oSerFormat.Signature === sData.substring( 0, AscCommon.c_oSerFormat.Signature.length ) ) {
         wb = new AscCommonExcel.Workbook( new AscCommonExcel.asc_CHandlersList(), {wb:{getWorksheet:function(){}}} );
         AscCommon.History.init(wb);
@@ -2868,6 +2870,50 @@ $( function () {
         oParser = new parserFormula( "MOD(7,3)", "A1", ws );
         ok( oParser.parse() );
         strictEqual( oParser.calculate().getValue(), 1 );
+
+		oParser = new parserFormula( "MOD(-10,5)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 0 );
+
+		oParser = new parserFormula( "MOD(-9,5)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 1 );
+
+		oParser = new parserFormula( "MOD(-8,5)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 2 );
+
+		oParser = new parserFormula( "MOD(-7,5)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 3 );
+
+		oParser = new parserFormula( "MOD(-6,5)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 4 );
+
+		oParser = new parserFormula( "MOD(-5,5)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 0 );
+
+		oParser = new parserFormula( "MOD(10,5)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 0 );
+
+		oParser = new parserFormula( "MOD(9,5)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 4 );
+
+		oParser = new parserFormula( "MOD(8,5)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 3 );
+
+		oParser = new parserFormula( "MOD(15,5)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 0 );
+
+		oParser = new parserFormula( "MOD(15,0)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "#DIV/0!" );
 
 		testArrayFormula2("MOD", 2, 2);
     } );
@@ -6581,7 +6627,8 @@ $( function () {
 
 		oParser = new parserFormula( "FORMULATEXT(S100:105)", "A1", ws );
 		ok( oParser.parse() );
-		strictEqual( oParser.calculate().getValue(), "#VALUE!" );
+		//"#N/A" - в ms excel
+		strictEqual( oParser.calculate().getValue(), newFormulaParser ? "#N/A" : "#VALUE!");
 
 		oParser = new parserFormula( "FORMULATEXT(S103)", "A1", ws );
 		ok( oParser.parse() );

@@ -111,6 +111,10 @@
 		val = val.toUpperCase();
 		return val;
 	}
+	function CreateUInt32()
+	{
+		return Math.floor(Math.random() * 0x100000000);
+	}
 
 	var c_oLicenseResult = {
 		Error         : 1,
@@ -1497,6 +1501,11 @@
 			return this.Name;
 		}, asc_getIndex: function () {
 			return this.Index;
+		},
+		asc_putName: function (v) {
+			this.Name = v;
+		}, asc_putIndex: function (v) {
+			this.Index = v;
 		}
 	};
 
@@ -1831,6 +1840,8 @@
 			this.Position = (undefined != obj.Position) ? obj.Position : undefined;
 			this.Jc = (undefined != obj.Jc) ? obj.Jc : undefined;
 			this.ListType = (undefined != obj.ListType) ? obj.ListType : undefined;
+			this.OutlineLvl = (undefined != obj.OutlineLvl) ? obj.OutlineLvl : undefined;
+			this.OutlineLvlStyle = (undefined != obj.OutlineLvlStyle) ? obj.OutlineLvlStyle : false;
 		} else {
 			//ContextualSpacing : false,            // Удалять ли интервал между параграфами одинакового стиля
 			//
@@ -1872,6 +1883,8 @@
 			this.Position = undefined;
 			this.Jc = undefined;
 			this.ListType = undefined;
+			this.OutlineLvl = undefined;
+			this.OutlineLvlStyle = false;
 		}
 	}
 
@@ -1971,6 +1984,12 @@
 			return this.CanAddDropCap;
 		}, asc_getCanAddImage: function () {
 			return this.CanAddImage;
+		}, asc_getOutlineLvl: function() {
+			return this.OutlineLvl;
+		}, asc_putOutLineLvl: function(nLvl) {
+			this.OutlineLvl = nLvl;
+		}, asc_getOutlineLvlStyle: function() {
+			return this.OutlineLvlStyle;
 		}
 	};
 
@@ -2071,6 +2090,7 @@
 		this.flipV = null;
 		this.flipHInvert = null;
 		this.flipVInvert = null;
+		this.shadow = undefined;
 	}
 
 	asc_CShapeProperty.prototype = {
@@ -2220,6 +2240,13 @@
 
 		asc_putFlipVInvert: function(v){
 			this.flipVInvert = v;
+		},
+		asc_getShadow: function(){
+			return this.shadow;
+		},
+
+		asc_putShadow: function(v){
+			this.shadow = v;
 		}
 	};
 
@@ -2429,6 +2456,7 @@
 
             this.columnNumber =  obj.columnNumber != undefined ? obj.columnNumber : undefined;
             this.columnSpace =  obj.columnSpace != undefined ? obj.columnSpace : undefined;
+            this.shadow =  obj.shadow != undefined ? obj.shadow : undefined;
 
 			this.rot = obj.rot != undefined ? obj.rot : undefined;
 			this.flipH = obj.flipH != undefined ? obj.flipH : undefined;
@@ -2808,6 +2836,13 @@
 		},
 		asc_putResetCrop: function(v){
 			this.resetCrop = v;
+		},
+		asc_getShadow: function(){
+			return this.shadow;
+		},
+
+		asc_putShadow: function(v){
+			this.shadow = v;
 		}
 	};
 
@@ -3497,22 +3532,23 @@
 	};
 
 	function CStyleImage(name, type, image, uiPriority) {
-		this.Name = name;
+		this.name = name;
+		this.displayName = null;
 		this.type = type;
 		this.image = image;
 		this.uiPriority = uiPriority;
 	}
 
-	CStyleImage.prototype.asc_getName = CStyleImage.prototype.get_Name = function () {
-		return this.Name;
+	CStyleImage.prototype.asc_getId = CStyleImage.prototype.asc_getName = CStyleImage.prototype.get_Name = function () {
+		return this.name;
 	};
+	CStyleImage.prototype.asc_getDisplayName = function () { return this.displayName; };
 	CStyleImage.prototype.asc_getType = CStyleImage.prototype.get_Type = function () {
 		return this.type;
 	};
 	CStyleImage.prototype.asc_getImage = function () {
 		return this.image;
 	};
-
 
 	/** @constructor */
     function asc_CSpellCheckProperty(Word, Checked, Variants, ParaId, Element)
@@ -3580,6 +3616,9 @@
 		*/
 
 		this.inputContentSrc = htmlContent;
+		if (typeof this.inputContentSrc === "object")
+			this.inputContentSrc = JSON.stringify(this.inputContentSrc);
+
 		this.replaceMap = {};
 
 		this.image = null;
@@ -3757,7 +3796,7 @@
 				}
 				for(var i = 0; i < aParagraphsS.length; ++i){
 					var oCurParS = aParagraphsS[i];
-					var oNewParagraph = new Paragraph(oContent.DrawingDocument, oContent, !bWord);
+					var oNewParagraph = new AscCommonWord.Paragraph(oContent.DrawingDocument, oContent, !bWord);
 					if(AscFormat.isRealNumber(oCurParS['align'])){
 						oNewParagraph.Set_Align(oCurParS['align'])
 					}
@@ -3795,7 +3834,7 @@
 
 						var sCustomText = oRunS['text'];
 						if(sCustomText === "<%br%>"){
-							oRun.AddToContent(0, new ParaNewLine(break_Line), false);
+							oRun.AddToContent(0, new AscCommonWord.ParaNewLine(AscCommonWord.break_Line), false);
 						}
 						else{
 							oRun.AddText(sCustomText);
@@ -4190,6 +4229,7 @@
 	window["AscCommon"].CreateAscColorCustom = CreateAscColorCustom;
 	window["AscCommon"].CreateAscColor = CreateAscColor;
 	window["AscCommon"].CreateGUID = CreateGUID;
+	window["AscCommon"].CreateUInt32 = CreateUInt32;
 
 	window['Asc']['c_oLicenseResult'] = window['Asc'].c_oLicenseResult = c_oLicenseResult;
 	prot = c_oLicenseResult;
@@ -4461,9 +4501,12 @@
 	prot["get_ListSubType"] = prot["asc_getListSubType"] = prot.asc_getListSubType;
 
 	window["AscCommon"].asc_CTextFontFamily = asc_CTextFontFamily;
+	window["AscCommon"]["asc_CTextFontFamily"] = asc_CTextFontFamily;
 	prot = asc_CTextFontFamily.prototype;
-	prot["get_Name"] = prot["asc_getName"] = prot.asc_getName;
-	prot["get_Index"] = prot["asc_getIndex"] = prot.asc_getIndex;
+	prot["get_Name"] = prot["asc_getName"] = prot.get_Name = prot.asc_getName;
+	prot["get_Index"] = prot["asc_getIndex"] = prot.get_Index = prot.asc_getIndex;
+	prot["put_Name"] = prot["asc_putName"] = prot.put_Name = prot.asc_putName;
+	prot["put_Index"] = prot["asc_putIndex"] = prot.put_Index = prot.asc_putIndex;
 
 	window["Asc"]["asc_CParagraphTab"] = window["Asc"].asc_CParagraphTab = asc_CParagraphTab;
 	prot = asc_CParagraphTab.prototype;
@@ -4590,6 +4633,9 @@
 	prot["put_FramePr"] = prot["asc_putFramePr"] = prot.asc_putFramePr;
 	prot["get_CanAddDropCap"] = prot["asc_getCanAddDropCap"] = prot.asc_getCanAddDropCap;
 	prot["get_CanAddImage"] = prot["asc_getCanAddImage"] = prot.asc_getCanAddImage;
+	prot["get_OutlineLvl"] = prot["asc_getOutlineLvl"] = prot.asc_getOutlineLvl;
+	prot["put_OutlineLvl"] = prot["asc_putOutLineLvl"] = prot.asc_putOutLineLvl;
+	prot["get_OutlineLvlStyle"] = prot["asc_getOutlineLvlStyle"] = prot.asc_getOutlineLvlStyle;
 
 	window["AscCommon"].asc_CTexture = asc_CTexture;
 	prot = asc_CTexture.prototype;
@@ -4667,6 +4713,8 @@
 	prot["put_FlipHInvert"] = prot["asc_putFlipHInvert"] = prot.asc_putFlipHInvert;
 	prot["get_FlipVInvert"] = prot["asc_getFlipVInvert"] = prot.asc_getFlipVInvert;
 	prot["put_FlipVInvert"] = prot["asc_putFlipVInvert"] = prot.asc_putFlipVInvert;
+	prot["put_shadow"] = prot.put_shadow = prot["asc_putShadow"] = prot.asc_putShadow;
+	prot["get_shadow"] = prot.get_shadow = prot["asc_getShadow"] = prot.asc_getShadow;
 
 	window["Asc"]["asc_TextArtProperties"] = window["Asc"].asc_TextArtProperties = asc_TextArtProperties;
 	prot = asc_TextArtProperties.prototype;
@@ -4962,7 +5010,8 @@
 
 	window["AscCommon"].CStyleImage = CStyleImage;
 	prot = CStyleImage.prototype;
-	prot["asc_getName"] = prot["get_Name"] = prot.asc_getName;
+	prot["asc_getId"] = prot["asc_getName"] = prot["get_Name"] = prot.asc_getName;
+	prot["asc_getDisplayName"] = prot.asc_getDisplayName;
 	prot["asc_getType"] = prot["get_Type"] = prot.asc_getType;
 	prot["asc_getImage"] = prot.asc_getImage;
 

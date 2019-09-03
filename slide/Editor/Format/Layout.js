@@ -37,7 +37,8 @@ var History = AscCommon.History;
 
 
 AscDFH.changesFactory[AscDFH.historyitem_SlideLayoutSetMaster] = AscDFH.CChangesDrawingsObject;
-AscDFH.changesFactory[AscDFH.historyitem_SlideLayoutSetMatchingName] = AscDFH.CChangesDrawingsObject;
+AscDFH.changesFactory[AscDFH.historyitem_SlideLayoutSetHF] = AscDFH.CChangesDrawingsObject;
+AscDFH.changesFactory[AscDFH.historyitem_SlideLayoutSetMatchingName] = AscDFH.CChangesDrawingsString;
 AscDFH.changesFactory[AscDFH.historyitem_SlideLayoutSetType] = AscDFH.CChangesDrawingsLong;
 AscDFH.changesFactory[AscDFH.historyitem_SlideLayoutSetBg] = AscDFH.CChangesDrawingsObjectNoId;
 AscDFH.changesFactory[AscDFH.historyitem_SlideLayoutSetCSldName] = AscDFH.CChangesDrawingsString;
@@ -52,6 +53,7 @@ AscDFH.drawingsConstructorsMap[AscDFH.historyitem_SlideLayoutSetBg] = AscFormat.
 AscDFH.drawingsConstructorsMap[AscDFH.historyitem_SlideLayoutSetSize] = AscFormat.CDrawingBaseCoordsWritable;
 
 AscDFH.drawingsChangesMap[AscDFH.historyitem_SlideLayoutSetMaster]            = function(oClass, value){oClass.Master = value;};
+AscDFH.drawingsChangesMap[AscDFH.historyitem_SlideLayoutSetHF]            = function(oClass, value){oClass.hf = value;};
 AscDFH.drawingsChangesMap[AscDFH.historyitem_SlideLayoutSetMatchingName]      = function(oClass, value){oClass.matchingName = value;};
 AscDFH.drawingsChangesMap[AscDFH.historyitem_SlideLayoutSetType]              = function(oClass, value){oClass.type = value;};
 AscDFH.drawingsChangesMap[AscDFH.historyitem_SlideLayoutSetBg]                = function(oClass, value, FromLoad){
@@ -90,7 +92,7 @@ function SlideLayout()
     this.cSld = new AscFormat.CSld();
     this.clrMap = null; // override ClrMap
 
-    this.hf = new AscFormat.HF();
+    this.hf = null;
 
     this.matchingName = "";
     this.preserve = false;
@@ -195,8 +197,14 @@ SlideLayout.prototype =
     },
     setMatchingName: function(name)
     {
-        History.Add(new AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_SlideLayoutSetMatchingName, this.matchingName, name));
+        History.Add(new AscDFH.CChangesDrawingsString(this, AscDFH.historyitem_SlideLayoutSetMatchingName, this.matchingName, name));
         this.matchingName = name;
+    },
+
+    setHF: function (pr)
+    {
+        History.Add(new AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_SlideLayoutSetHF, this.hf, pr));
+        this.hf = pr;
     },
 
     setType: function(type)

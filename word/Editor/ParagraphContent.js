@@ -249,6 +249,14 @@ CRunElementBase.prototype.IsPunctuation = function()
 {
 	return false;
 };
+/**
+ * Проверяем является ли элемент символом точки
+ * @returns {boolean}
+ */
+CRunElementBase.prototype.IsDot = function()
+{
+	return false;
+};
 
 /**
  * Класс представляющий текстовый символ
@@ -486,6 +494,10 @@ ParaText.prototype.CanStartAutoCorrect = function()
 ParaText.prototype.IsDiacriticalSymbol = function()
 {
 	return !!(0x0300 <= this.Value && this.Value <= 0x036F);
+};
+ParaText.prototype.IsDot = function()
+{
+	return !!(this.Value === 0x002E);
 };
 
 /**
@@ -2269,5 +2281,6 @@ window['AscCommonWord'].ParaSpace     = ParaSpace;
 window['AscCommonWord'].ParaPageNum   = ParaPageNum;
 window['AscCommonWord'].ParaPageCount = ParaPageCount;
 
+window['AscCommonWord'].break_Line = break_Line;
 window['AscCommonWord'].break_Page = break_Page;
 window['AscCommonWord'].break_Column = break_Column;

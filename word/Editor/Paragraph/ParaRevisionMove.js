@@ -188,7 +188,12 @@ CParaRevisionMove.prototype.Is_Empty = function()
 {
 	return false;
 };
-
+CParaRevisionMove.prototype.RemoveThisMarkFromDocument = function()
+{
+	var oParagraph = this.GetParagraph();
+	if (oParagraph)
+		oParagraph.RemoveElement(this);
+};
 
 /**
  * Класс для обозначения элемента начала/конца переноса текста во время рецензирования внутри рана
@@ -303,7 +308,7 @@ CRunRevisionMove.prototype.PreDelete = function()
 CRunRevisionMove.prototype.IsUseInDocument = function()
 {
 	var oRun = this.GetRun();
-	return (oRun && oRun.Is_UseInDocument());
+	return (oRun && -1 !== oRun.GetElementPosition(this) && oRun.Is_UseInDocument());
 };
 CRunRevisionMove.prototype.GetReviewChange = function()
 {
@@ -317,6 +322,12 @@ CRunRevisionMove.prototype.GetReviewChange = function()
 	}
 
 	return null;
+};
+CRunRevisionMove.prototype.RemoveThisMarkFromDocument = function()
+{
+	var oRun = this.GetRun();
+	if (oRun)
+		oRun.RemoveElement(this);
 };
 
 //--------------------------------------------------------export----------------------------------------------------

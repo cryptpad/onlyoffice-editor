@@ -657,13 +657,23 @@ function MathMenu(type)
 {
 	this.Type = para_Math;
 	this.Menu = type == undefined ? c_oAscMathType.Default_Text : type;
+	this.Text = null;
 }
-MathMenu.prototype =
+MathMenu.prototype.Get_Type = function()
 {
-	Get_Type : function()
-    {
-        return this.Type;
-    }
+	return this.Type;
+};
+MathMenu.prototype.GetType = function()
+{
+	return this.Type;
+};
+MathMenu.prototype.SetText = function(sText)
+{
+	this.Text = sText;
+};
+MathMenu.prototype.GetText = function()
+{
+	return this.Text;
 };
 
 function CMathLineState()
@@ -1224,7 +1234,7 @@ ParaMath.prototype.Add = function(Item)
         RightRun.MoveCursorToStartPos();
 
         var lng = oContent.Content.length;
-        oContent.Load_FromMenu(Item.Menu, this.Paragraph);
+        oContent.Load_FromMenu(Item.Menu, this.Paragraph, null, Item.GetText());
         oContent.Correct_ContentCurPos();
 
         var lng2 = oContent.Content.length;
@@ -1660,32 +1670,33 @@ ParaMath.prototype.GetSelectedElementsInfo = function(Info, ContentPos, Depth)
 
 ParaMath.prototype.GetSelectedText = function(bAll, bClearText, oPr)
 {
-	if (true === bAll || true === this.IsSelectionUse())
-	{
+	if (true === bAll || true === this.IsSelectionUse()) {
 		if (true === bClearText)
 			return null;
 
 		var res = "";
-
-		//TODO проверить!!! +  пересмотреть работу функции GetTextContent
-		//включаю эту ветку только для copy/paste
-		if(window['AscCommon'].g_clipboardBase && window['AscCommon'].g_clipboardBase.CopyPasteFocus)
-		{
-			var selectedContent = this.GetSelectContent();
-			if(selectedContent && selectedContent.Content && selectedContent.Content.GetTextContent)
-			{
-				var textContent = selectedContent.Content.GetTextContent(!bAll);
-				if(textContent && textContent.str)
-				{
-					res = textContent.str;
-				}
-			}
-		}
-
+        var selectedContent = this.GetSelectContent();
+        if (selectedContent && selectedContent.Content && selectedContent.Content.GetTextContent) {
+            var textContent = selectedContent.Content.GetTextContent(!bAll);
+            if (textContent && textContent.str) {
+                res = textContent.str;
+            }
+        }
 		return res;
 	}
-
 	return "";
+};
+
+ParaMath.prototype.GetText = function()
+{
+    var res = "";
+    if (this.Root && this.Root.GetTextContent) {
+        var textContent = this.Root.GetTextContent();
+        if (textContent && textContent.str) {
+            res = textContent.str;
+        }
+    }
+    return res;
 };
 
 ParaMath.prototype.GetSelectDirection = function()

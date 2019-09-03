@@ -1065,6 +1065,11 @@ CHeaderFooter.prototype =
 		this.Content.SplitTableCells(Cols, Rows);
 	},
 
+	RemoveTableCells : function()
+	{
+		this.Content.RemoveTableCells();
+	},
+
 	RemoveTable : function()
 	{
 		this.Content.RemoveTable();
@@ -1302,6 +1307,31 @@ CHeaderFooter.prototype.GetAllContentControls = function(arrContentControls)
 CHeaderFooter.prototype.GetContent = function()
 {
 	return this.Content;
+};
+
+CHeaderFooter.prototype.FindWatermark = function()
+{
+    var aAllDrawings = this.Content.GetAllDrawingObjects();
+    var oCandidate = null, oDrawing;
+    for(var i = aAllDrawings.length - 1; i > -1; --i)
+    {
+        oDrawing = aAllDrawings[i];
+        if(oDrawing.IsWatermark())
+        {
+            if(null === oCandidate)
+            {
+                oCandidate = oDrawing;
+            }
+            else
+            {
+                if(oCandidate.getDrawingArrayType() < oDrawing.getDrawingArrayType() || ComparisonByZIndexSimple(oDrawing, oCandidate))
+                {
+                    oCandidate = oDrawing;
+                }
+            }
+        }
+    }
+    return oCandidate;
 };
 
 //-----------------------------------------------------------------------------------
@@ -2264,17 +2294,17 @@ CHeaderFooterController.prototype =
 
         // В зависимости от страницы и позиции на странице мы активируем(делаем текущим)
         // соответствующий колонтитул
+        var oPrevHdrFtr = this.CurHdrFtr;
 
-        var OldHdrFtr = this.CurHdrFtr;
-        this.CurHdrFtr = HdrFtr;
+		// Очищаем селект, если он был в предыдущем колонтитуле
+		if (oPrevHdrFtr && (oPrevHdrFtr !== HdrFtr || OldPage != this.CurPage))
+		{
+			oPrevHdrFtr.RemoveSelection();
+		}
 
-        if ( null != OldHdrFtr && (OldHdrFtr != this.CurHdrFtr || OldPage != this.CurPage) )
-        {
-            // Удаляем селект, если он был на предыдущем колонтитуле
-            OldHdrFtr.RemoveSelection();
-        }
+		this.CurHdrFtr = HdrFtr;
 
-        if ( null != this.CurHdrFtr )
+		if ( null != this.CurHdrFtr )
         {
             this.CurHdrFtr.Selection_SetStart( X, Y, PageIndex, MouseEvent );
             if ( true === bActivate )
@@ -2437,6 +2467,12 @@ CHeaderFooterController.prototype =
 			this.CurHdrFtr.SplitTableCells(Cols, Rows);
 	},
 
+	RemoveTableCells : function()
+	{
+		if (this.CurHdrFtr)
+			this.CurHdrFtr.RemoveTableCells();
+	},
+
 	RemoveTable : function()
 	{
 		if (null != this.CurHdrFtr)
@@ -2575,6 +2611,13 @@ CHeaderFooterController.prototype.GetSimilarNumbering = function(oEngine)
 {
 	if (this.CurHdrFtr)
 		this.CurHdrFtr.Content.GetSimilarNumbering(oEngine)
+};
+CHeaderFooterController.prototype.GetPlaceHolderObject = function()
+{
+	if (this.CurHdrFtr)
+		return this.CurHdrFtr.Content.GetPlaceHolderObject();
+
+	return null;
 };
 CHeaderFooterController.prototype.SetParagraphFramePr = function(FramePr, bDelete)
 {

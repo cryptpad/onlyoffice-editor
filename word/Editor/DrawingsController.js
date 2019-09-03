@@ -422,6 +422,10 @@ CDrawingsController.prototype.SplitTableCells = function(Cols, Rows)
 {
 	this.DrawingObjects.tableSplitCell(Cols, Rows);
 };
+CDrawingsController.prototype.RemoveTableCells = function()
+{
+	this.DrawingObjects.tableRemoveCells();
+};
 CDrawingsController.prototype.RemoveTable = function()
 {
 	this.DrawingObjects.tableRemoveTable();

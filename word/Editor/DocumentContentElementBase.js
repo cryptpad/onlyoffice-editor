@@ -562,6 +562,10 @@ CDocumentContentElementBase.prototype.SplitTableCells = function(nColsCount, nRo
 {
 	return false;
 };
+CDocumentContentElementBase.prototype.RemoveTableCells = function()
+{
+	return false;
+};
 CDocumentContentElementBase.prototype.RemoveTable = function()
 {
 	return false;
@@ -1067,6 +1071,32 @@ CDocumentContentElementBase.prototype.IsUseInDocument = function(sId)
 CDocumentContentElementBase.prototype.Is_UseInDocument = function(sId)
 {
 	return false;
+};
+/**
+ * Пробегаемся по все ранам с заданной функцией
+ * @param fCheck - функция проверки содержимого рана
+ * @returns {boolean}
+ */
+CDocumentContentElementBase.prototype.CheckRunContent = function(fCheck)
+{
+	return false;
+};
+/**
+ * По заданной странице получаем страницу, с которой нужно начинать расчет
+ * @param {number} nPageAbs
+ * @return {number}
+ */
+CDocumentContentElementBase.prototype.GetStartPageForRecalculate = function(nPageAbs)
+{
+	return nPageAbs;
+};
+/**
+ * Проверяем выделено ли сейчас какое-либо презентационное поле, если да, то возвращаем управляющий объект
+ * @returns {?Object}
+ */
+CDocumentContentElementBase.prototype.GetPresentationField = function()
+{
+	return null;
 };
 
 //--------------------------------------------------------export--------------------------------------------------------

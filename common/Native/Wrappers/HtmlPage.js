@@ -175,7 +175,7 @@ function CEditorPage(api)
     {
     }
 
-    this.ScrollToPosition = function(x, y, PageNum)
+    this.ScrollToPosition = function(x, y, PageNum, height)
     {
     }
 

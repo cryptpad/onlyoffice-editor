@@ -106,6 +106,7 @@ CChangesParaFieldAddItem.prototype.Load = function(Color)
 	}
 
 	oField.private_UpdateTrackRevisions();
+	oField.private_CheckUpdateBookmarks(this.Items);
 	oField.private_UpdateSpellChecking();
 };
 CChangesParaFieldAddItem.prototype.IsRelated = function(oChanges)
@@ -172,6 +173,7 @@ CChangesParaFieldRemoveItem.prototype.Load = function(Color)
 		AscCommon.CollaborativeEditing.Update_DocumentPositionsOnRemove(oField, ChangesPos, 1);
 	}
 	oField.private_UpdateTrackRevisions();
+	oField.private_CheckUpdateBookmarks(this.Items);
 	oField.private_UpdateSpellChecking();
 };
 CChangesParaFieldRemoveItem.prototype.IsRelated = function(oChanges)

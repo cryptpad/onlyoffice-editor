@@ -71,6 +71,12 @@ function (window, undefined) {
 	window['AscCH'].historyitem_Worksheet_RowHide = 28;
 	window['AscCH'].historyitem_Worksheet_SetDisplayGridlines = 31;
 	window['AscCH'].historyitem_Worksheet_SetDisplayHeadings = 32;
+	window['AscCH'].historyitem_Worksheet_GroupRow = 33;
+	window['AscCH'].historyitem_Worksheet_CollapsedRow = 34;
+	window['AscCH'].historyitem_Worksheet_CollapsedCol = 35;
+	window['AscCH'].historyitem_Worksheet_GroupCol = 36;
+	window['AscCH'].historyitem_Worksheet_SetSummaryRight = 37;
+	window['AscCH'].historyitem_Worksheet_SetSummaryBelow = 38;
 // Frozen cell
 	window['AscCH'].historyitem_Worksheet_ChangeFrozenCell = 30;
 
@@ -165,6 +171,17 @@ function (window, undefined) {
 	window['AscCH'].historyitem_ArrayFromula_AddFormula = 1;
 	window['AscCH'].historyitem_ArrayFromula_DeleteFormula = 2;
 
+	window['AscCH'].historyitem_Header_First = 1;
+	window['AscCH'].historyitem_Header_Even = 2;
+	window['AscCH'].historyitem_Header_Odd = 3;
+	window['AscCH'].historyitem_Footer_First = 4;
+	window['AscCH'].historyitem_Footer_Even = 5;
+	window['AscCH'].historyitem_Footer_Odd = 6;
+	window['AscCH'].historyitem_Align_With_Margins = 7;
+	window['AscCH'].historyitem_Scale_With_Doc = 8;
+	window['AscCH'].historyitem_Different_First = 9;
+	window['AscCH'].historyitem_Different_Odd_Even = 10;
+
 function CHistory()
 {
 	this.workbook = null;
@@ -209,7 +226,7 @@ CHistory.prototype.Clear = function()
   this.UserSavedIndex = null;
 
 	window['AscCommon'].g_specialPasteHelper.SpecialPasteButton_Hide();
-	this.workbook.handlers.trigger("toggleAutoCorrectOptions");
+	this.workbook.handlers.trigger("toggleAutoCorrectOptions", null, true);
 	//this.workbook.handlers.trigger("cleanCutData");
 	this._sendCanUndoRedo();
 };
@@ -483,6 +500,8 @@ CHistory.prototype.UndoRedoEnd = function (Point, oRedoObjectParam, bUndo) {
 			this.workbook.bRedoChanges = false;
 		if (oRedoObjectParam.bIsReInit)
 			this.workbook.handlers.trigger("reInit");
+		//TODO вызывать только в случае, если были изменения строк/столбцов и отдельно для строк и столбцов
+		this.workbook.handlers.trigger("updateGroupData");
 		this.workbook.handlers.trigger("drawWS");
 		if (bUndo) {
 			if (AscCommon.isRealObject(this.lastDrawingObjects)) {
@@ -714,7 +733,7 @@ CHistory.prototype.Create_NewPoint = function()
     this.Points.length = this.Index + 1;
 
 	window['AscCommon'].g_specialPasteHelper.SpecialPasteButton_Hide();
-	this.workbook.handlers.trigger("toggleAutoCorrectOptions");
+	this.workbook.handlers.trigger("toggleAutoCorrectOptions", null, true);
 	//this.workbook.handlers.trigger("cleanCutData");
 
 	return true;

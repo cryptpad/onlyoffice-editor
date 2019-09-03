@@ -422,20 +422,6 @@ function CCellObjectInfo () {
 }
 
 /** @constructor */
-function asc_CChartStyle() {
-    this.style = null;
-    this.imageUrl = null;
-}
-
-asc_CChartStyle.prototype = {
-    asc_getStyle: function() { return this.style; },
-    asc_setStyle: function(style) { this.style = style; },
-
-    asc_getImageUrl: function() { return this.imageUrl; },
-    asc_setImageUrl: function(imageUrl) { this.imageUrl = imageUrl; }
-};
-
-/** @constructor */
 function asc_CChartBinary(chart) {
 
     this["binary"] = null;
@@ -660,6 +646,7 @@ CSparklineView.prototype.initFromSparkline = function(oSparkline, oSparklineGrou
         }
         var chartSeries = {series: [ser], parsedHeaders: {bLeft: false, bTop: false}};
         var chart_space = AscFormat.DrawingObjectsController.prototype._getChartSpace(chartSeries, settings, true);
+        chart_space.isSparkline = true;
         chart_space.setBDeleted(false);
         if(worksheetView){
             chart_space.setWorksheet(worksheetView.model);
@@ -1019,7 +1006,7 @@ CSparklineView.prototype.initFromSparkline = function(oSparkline, oSparklineGrou
         this.chartSpace = chart_space;
         if(worksheetView){
 
-            var oBBox = oSparkline.sqref;
+            var oBBox = oSparkline.sqRef;
             this.col = oBBox.c1;
             this.row = oBBox.r1;
             this.x = worksheetView.getCellLeft(oBBox.c1, 3);
@@ -1111,21 +1098,16 @@ CSparklineView.prototype.draw = function(graphics, offX, offY)
         }
     }
 
-    var tx, ty, sx, sy, oldExtX, oldExtY;
-
     var _true_height = this.chartSpace.chartObj.calcProp.trueHeight;
-    var _true_width = this.chartSpace.chartObj.calcProp.trueWidht;
+    var _true_width = this.chartSpace.chartObj.calcProp.trueWidth;
 
-
-	this.chartSpace.chartObj.calcProp.trueWidht = this.chartSpace.extX * this.chartSpace.chartObj.calcProp.pxToMM;
+	this.chartSpace.chartObj.calcProp.trueWidth = this.chartSpace.extX * this.chartSpace.chartObj.calcProp.pxToMM;
 	this.chartSpace.chartObj.calcProp.trueHeight = this.chartSpace.extY * this.chartSpace.chartObj.calcProp.pxToMM;
 
     this.chartSpace.draw(graphics);
 
-	this.chartSpace.chartObj.calcProp.trueWidht = _true_width;
+	this.chartSpace.chartObj.calcProp.trueWidth = _true_width;
 	this.chartSpace.chartObj.calcProp.trueHeight = _true_height;
-
-
 };
 
 
@@ -1996,7 +1978,7 @@ function DrawingObjects() {
                 _this.drawingArea.clear();
             }
 
-            if ( aObjects.length ) {
+            if ( aObjects.length || api.watermarkDraw ) {
                 var shapeCtx = api.wb.shapeCtx;
                 if (graphicOption) {
                     // Выставляем нужный диапазон для отрисовки
@@ -2054,6 +2036,7 @@ function DrawingObjects() {
                     }
                 }
 
+
 				if (graphicOption)
                 {
                     shapeCtx.m_oContext.restore();
@@ -2065,7 +2048,7 @@ function DrawingObjects() {
         if ( !printOptions ) {
 
             var bChangedFrozen = _this.lasteForzenPlaseNum !== _this.drawingArea.frozenPlaces.length;
-            if ( _this.controller.selectedObjects.length || _this.drawingArea.frozenPlaces.length > 1 || bChangedFrozen) {
+            if ( _this.controller.selectedObjects.length || _this.drawingArea.frozenPlaces.length > 1 || bChangedFrozen || window['Asc']['editor'].watermarkDraw) {
                 _this.OnUpdateOverlay();
                 _this.controller.updateSelectionState(true);
             }
@@ -2999,7 +2982,7 @@ function DrawingObjects() {
                 if(wsViews[i] && wsViews[i].objectRender)
                 {
                     wsViews[i].objectRender.rebuildCharts(changedArr);
-                    wsViews[i].objectRender.recalculate(true);
+                    wsViews[i].objectRender.recalculate();
                 }
             }
         }, _this, []);
@@ -4542,13 +4525,6 @@ ClickCounter.prototype.getClickCount = function() {
     window['Asc'] = window['Asc'] || {};
     window['AscFormat'].isObject = isObject;
     window['AscFormat'].CCellObjectInfo = CCellObjectInfo;
-
-    window["AscFormat"].asc_CChartStyle = asc_CChartStyle;
-    prot = asc_CChartStyle.prototype;
-    prot["asc_getStyle"] = prot.asc_getStyle;
-    prot["asc_setStyle"] = prot.asc_setStyle;
-    prot["asc_getImageUrl"] = prot.asc_getImageUrl;
-    prot["asc_setImageUrl"] = prot.asc_setImageUrl;
 
     window["Asc"]["asc_CChartBinary"] = window["Asc"].asc_CChartBinary = asc_CChartBinary;
     prot = asc_CChartBinary.prototype;

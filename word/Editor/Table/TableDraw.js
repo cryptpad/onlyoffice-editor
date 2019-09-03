@@ -40,7 +40,7 @@ CTable.prototype.ReDraw = function()
 {
     this.Parent.OnContentReDraw( this.Get_StartPage_Absolute(), this.Get_StartPage_Absolute() + this.Pages.length - 1 );
 };
-CTable.prototype.Draw = function(CurPage, pGraphics)
+CTable.prototype.Draw = function(CurPage, pGraphics, isDrawContent)
 {
     if (CurPage < 0 || CurPage >= this.Pages.length)
         return 0;
@@ -88,7 +88,8 @@ CTable.prototype.Draw = function(CurPage, pGraphics)
     //-------------------------------------------------------------------------------------
     // 3. Рисуем содержимое ячеек
     //-------------------------------------------------------------------------------------
-    this.private_DrawCellsContent(pGraphics, CurPage, Row_start, Row_last);
+    if (false !== isDrawContent)
+        this.private_DrawCellsContent(pGraphics, CurPage, Row_start, Row_last);
     //-------------------------------------------------------------------------------------
     // 4. Рисуем границы всех ячеек таблицы
     //-------------------------------------------------------------------------------------

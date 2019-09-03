@@ -1380,6 +1380,223 @@ Path.prototype = {
             shape_drawer._e();
         },
 
+        hitInInnerArea: function(canvasContext, x, y)
+        {
+            var path = this.ArrPathCommand;
+            canvasContext.beginPath();
+            var i = 0;
+            var len = this.PathMemory.ArrPathCommand[this.startPos];
+            while(i < len)
+            {
+                var cmd=path[this.startPos + i + 1];
+                switch(cmd)
+                {
+                    case moveTo:
+                    {
+                        canvasContext.moveTo(path[this.startPos + i+2], path[this.startPos + i + 3]);
+                        i+=3;
+                        break;
+                    }
+                    case lineTo:
+                    {
+                        canvasContext.lineTo(path[this.startPos + i+2], path[this.startPos + i + 3]);
+                        i+=3;
+                        break;
+                    }
+                    case bezier3:
+                    {
+                        canvasContext.quadraticCurveTo(path[this.startPos + i+2], path[this.startPos + i + 3], path[this.startPos + i+4], path[this.startPos + i + 5]);
+                        i+=5;
+                        break;
+                    }
+                    case bezier4:
+                    {
+                        canvasContext.bezierCurveTo(path[this.startPos + i+2], path[this.startPos + i + 3], path[this.startPos + i+4], path[this.startPos + i + 5], path[this.startPos + i+6], path[this.startPos + i + 7]);
+                        i+=7;
+                        break;
+                    }
+                    case arcTo:
+                    {
+                        ArcToOnCanvas(canvasContext, path[this.startPos + i + 2], path[this.startPos + i + 3], path[this.startPos + i + 4], path[this.startPos + i + 5], path[this.startPos + i + 6], path[this.startPos + i + 7]);
+                        i+=7;
+                        break;
+                    }
+                    case close:
+                    {
+                        canvasContext.closePath();
+                        if(canvasContext.isPointInPath(x, y))
+                        {
+                            return true;
+                        }
+                        i+=1;
+                        break;
+                    }
+                }
+            }
+            canvasContext.closePath();
+            if(canvasContext.isPointInPath(x, y))
+            {
+                return true;
+            }
+            return false;
+        },
+
+        hitInPath: function(canvasContext, x, y)
+        {
+            var _arr_commands = this.ArrPathCommand;
+            var _commands_count = _arr_commands.length;
+            var _command_index;
+            var _command;
+            var _last_x, _last_y;
+            var _begin_x, _begin_y;
+
+            var path = this.ArrPathCommand;
+            var i = 0;
+            var len = this.PathMemory.ArrPathCommand[this.startPos];
+            while(i < len)
+            {
+                var cmd=path[this.startPos + i + 1];
+                switch(cmd)
+                {
+                    case moveTo:
+                    {
+                        canvasContext.moveTo(path[this.startPos + i+2], path[this.startPos + i + 3]);
+                        _last_x = path[this.startPos + i+2];
+                        _last_y = path[this.startPos + i+3];
+                        _begin_x = path[this.startPos + i+2];
+                        _begin_y = path[this.startPos + i+3];
+                        i+=3;
+                        break;
+                    }
+                    case lineTo:
+                    {
+                        if(HitInLine(canvasContext, x, y, _last_x, _last_y, path[this.startPos + i+2], path[this.startPos + i + 3]))
+                            return true;
+                        _last_x = path[this.startPos + i+2];
+                        _last_y = path[this.startPos + i+3];
+                        i+=3;
+                        break;
+                    }
+                    case bezier3:
+                    {
+                        canvasContext.quadraticCurveTo(path[this.startPos + i+2], path[this.startPos + i + 3], path[this.startPos + i+4], path[this.startPos + i + 5]);
+                        if(HitInBezier3(canvasContext, x, y, _last_x, _last_y, path[this.startPos + i+2], path[this.startPos + i + 3], path[this.startPos + i+4], path[this.startPos + i + 5]))
+                            return true;
+                        _last_x=path[this.startPos + i+4];
+                        _last_y=path[this.startPos + i+5];
+                        i+=5;
+                        break;
+                    }
+                    case bezier4:
+                    {
+                        if(HitInBezier4(canvasContext, x, y, _last_x, _last_y, path[this.startPos + i+2], path[this.startPos + i + 3], path[this.startPos + i+4], path[this.startPos + i + 5], path[this.startPos + i+6], path[this.startPos + i + 7]))
+                            return true;
+                        _last_x=path[this.startPos + i+6];
+                        _last_y=path[this.startPos + i+7];
+                        i+=7;
+                        break;
+                    }
+                    case arcTo:
+                    {
+                        if(HitToArc(canvasContext, x, y, path[this.startPos + i + 2], path[this.startPos + i + 3], path[this.startPos + i + 4], path[this.startPos + i + 5], path[this.startPos + i + 6], path[this.startPos + i + 7]))
+                            return true;
+                        _last_x=(path[this.startPos + i + 2] - path[this.startPos + i + 4]*Math.cos(path[this.startPos + i + 6])+ path[this.startPos + i + 4]*Math.cos(path[this.startPos + i + 7]));
+                        _last_y=(path[this.startPos + i + 3] - path[this.startPos + i + 5]*Math.sin(path[this.startPos + i + 6])+ path[this.startPos + i + 5]*Math.sin(path[this.startPos + i + 7]));
+                        i+=7;
+                        break;
+                    }
+                    case close:
+                    {
+                        if(HitInLine(canvasContext, x, y, _last_x, _last_y, _begin_x, _begin_y))
+                            return true;
+                        i+=1;
+                        break;
+                    }
+                }
+            }
+            return false;
+        },
+
+        drawTracks: function(drawingDocument, transform)
+        {
+            var i = 0;
+            var len = this.PathMemory.ArrPathCommand[this.startPos];
+
+            var path = this.ArrPathCommand;
+            var dDist = 0;
+            while(i < len)
+            {
+                var cmd=path[this.startPos + i + 1];
+                switch(cmd)
+                {
+                    case moveTo:
+                    {
+                        drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.CHART_TEXT, transform, path[this.startPos + i+2] - dDist, path[this.startPos + i + 3] - dDist, 2*dDist, 2*dDist, false, false);
+                        i+=3;
+                        break;
+                    }
+                    case lineTo:
+                    {
+                        drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.CHART_TEXT, transform, path[this.startPos + i+2] - dDist, path[this.startPos + i + 3] - dDist, 2*dDist, 2*dDist, false, false);
+                        i+=3;
+                        break;
+                    }
+                    case bezier3:
+                    {
+                      //  drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.CHART_TEXT, transform, path[this.startPos + i+2] - dDist, path[this.startPos + i + 3] - dDist, 2*dDist, 2*dDist, false, false);
+                        drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.CHART_TEXT, transform, path[this.startPos + i+4] - dDist, path[this.startPos + i + 5] - dDist, 2*dDist, 2*dDist, false, false);
+                        i+=5;
+                        break;
+                    }
+                    case bezier4:
+                    {
+                      //  drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.CHART_TEXT, transform, path[this.startPos + i+2] - dDist, path[this.startPos + i + 3] - dDist, 2*dDist,2*dDist, false, false);
+                       // drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.CHART_TEXT, transform, path[this.startPos + i+4] - dDist, path[this.startPos + i + 5] - dDist, 2*dDist,2*dDist, false, false); i+=7;
+                        drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.CHART_TEXT, transform, path[this.startPos + i+6] - dDist, path[this.startPos + i + 7] - dDist, 2*dDist,2*dDist, false, false); i+=7;
+                        break;
+                    }
+                    case arcTo:
+                    {
+                        var path_accumulator = new AscFormat.PathAccumulator();
+                        ArcToCurvers(path_accumulator, path[this.startPos + i + 2], path[this.startPos + i + 3], path[this.startPos + i + 4], path[this.startPos + i + 5], path[this.startPos + i + 6], path[this.startPos + i + 7]);
+                        var arc_to_path_commands = path_accumulator.pathCommand;
+                        var lastX, lastY;
+                        for(var arc_to_path_index = 0; arc_to_path_index < arc_to_path_commands.length; ++arc_to_path_index)
+                        {
+                            var cur_arc_to_command = arc_to_path_commands[arc_to_path_index];
+                            switch (cur_arc_to_command.id)
+                            {
+                                case AscFormat.moveTo:
+                                {
+                                    lastX =cur_arc_to_command.X; 
+                                    lastY =cur_arc_to_command.Y; 
+                                  //  drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.CHART_TEXT, transform, cur_arc_to_command.X - dDist, cur_arc_to_command.Y - dDist,  2*dDist, 2*dDist, false, false);
+                                    break;
+                                }
+                                case AscFormat.bezier4:
+                                {
+
+                                    lastX =cur_arc_to_command.X2;
+                                    lastY =cur_arc_to_command.Y2;
+                                    //drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.CHART_TEXT, transform, cur_arc_to_command.X0 - dDist, cur_arc_to_command.Y0 - dDist,  2*dDist, 2*dDist, false, false);
+                                    //drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.CHART_TEXT, transform, cur_arc_to_command.X2 - dDist, cur_arc_to_command.Y2 - dDist,  2*dDist, 2*dDist, false, false);
+                                    break;
+                                }
+                            }
+                        }
+                        drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.CHART_TEXT, transform, lastX - dDist, lastY - dDist,  2*dDist, 2*dDist, false, false);
+                        i+=7;
+                        break;
+                    }
+                    case close:
+                    {
+                        i+=1;
+                        break;
+                    }
+                }
+            }
+
+        },
 
         getCommandByIndex: function(idx){
             var i = 0;
@@ -1672,7 +1889,7 @@ Path.prototype = {
             if (!isLine)
                 isRect = this.isSmartRect();
 
-            if (window["NATIVE_EDITOR_ENJINE"] || ( !isLine && !isRect))
+            if (window["NATIVE_EDITOR_ENJINE"] || ( !isLine && !isRect && !shape_drawer.bDrawSmartAttack))
                 return this.draw(shape_drawer);
 
             var _old_int = _graphics.m_bIntegerGrid;

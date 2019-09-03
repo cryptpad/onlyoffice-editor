@@ -661,6 +661,9 @@ FT_Stream2.prototype.GetUShortLE = function() {
 		return 0;
 	return (this.data[this.cur++] | this.data[this.cur++] << 8);
 };
+FT_Stream2.prototype.GetShortLE = function() {
+	return AscFonts.FT_Common.UShort_To_Short(this.GetUShortLE());
+}
 // 4 byte
 FT_Stream2.prototype.GetULongLE = function() {
 	if (this.cur + 3 >= this.size)
@@ -673,6 +676,9 @@ FT_Stream2.prototype.GetLongLE = function() {
 FT_Stream2.prototype.GetLong = function() {
 	return this.GetULongLE();
 };
+FT_Stream2.prototype.GetULong = function() {
+	return this.GetULongLE();
+}
 	var tempHelp = new ArrayBuffer(8);
 	var tempHelpUnit = new Uint8Array(tempHelp);
 	var tempHelpFloat = new Float64Array(tempHelp);
@@ -796,6 +802,31 @@ FT_Stream2.prototype.FromFileStream = function(stream) {
 	this.pos = stream.pos;
 	this.cur = stream.cur;
 };
+	FT_Stream2.prototype.XlsbReadRecordType = function() {
+		var nValue = this.GetUChar();
+		if(0 != (nValue & 0x80))
+		{
+			var nPart = this.GetUChar();
+			nValue = (nValue & 0x7F) | ((nPart & 0x7F) << 7);
+		}
+		return nValue;
+	};
+	FT_Stream2.prototype.XlsbSkipRecord = function() {
+		this.Skip2(this.XlsbReadRecordLength());
+	};
+	FT_Stream2.prototype.XlsbReadRecordLength = function() {
+		var nValue = 0;
+		for (var i = 0; i < 4; ++i)
+		{
+			var nPart = this.GetUChar();
+			nValue |= (nPart & 0x7F) << (7 * i);
+			if(0 == (nPart & 0x80))
+			{
+				break;
+			}
+		}
+		return nValue;
+	};
 var gc_nMaxRow = 1048576;
 var gc_nMaxCol = 16384;
 var gc_nMaxRow0 = gc_nMaxRow - 1;

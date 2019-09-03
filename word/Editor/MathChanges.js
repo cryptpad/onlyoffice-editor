@@ -37,6 +37,10 @@
  * Time: 15:52
  */
 
+// TODO: Изменения с добавлениями строк и колонок матриц работают не совсем корректно:
+//       Нужно либо сделать специальнный класс CContentChanges для случая прямоугольной матрицы,
+//       либо навсегда запретить одновременное редактирования колонок и строк одной и той же матрицы
+
 AscDFH.changesFactory[AscDFH.historyitem_MathContent_AddItem]      = CChangesMathContentAddItem;
 AscDFH.changesFactory[AscDFH.historyitem_MathContent_RemoveItem]   = CChangesMathContentRemoveItem;
 AscDFH.changesFactory[AscDFH.historyitem_MathContent_ArgSize]      = CChangesMathContentArgSize;
@@ -1454,6 +1458,11 @@ CChangesMathMatrixAddRow.prototype.Merge = function(oChange)
 	// TODO: Это изменение надо целиком переделать
 	return true;
 };
+CChangesMathMatrixAddRow.prototype.Load = function()
+{
+	var nPos = this.UseArray ? this.PosArray[0] : this.Pos;
+	this.Class.raw_AddRow(nPos, this.Items);
+};
 /**
  * @constructor
  * @extends {AscDFH.CChangesBase}
@@ -1551,6 +1560,11 @@ CChangesMathMatrixRemoveRow.prototype.Merge = function(oChange)
 	// TODO: Это изменение надо целиком переделать
 	return true;
 };
+CChangesMathMatrixRemoveRow.prototype.Load = function()
+{
+	var nPos = this.UseArray ? this.PosArray[0] : this.Pos;
+	this.Class.raw_RemoveRow(nPos, this.Items.length);
+};
 /**
  * @constructor
  * @extends {AscDFH.CChangesBase}
@@ -1587,6 +1601,11 @@ CChangesMathMatrixAddColumn.prototype.Merge = function(oChange)
 {
 	// TODO: Это изменение надо целиком переделать
 	return true;
+};
+CChangesMathMatrixAddColumn.prototype.Load = function()
+{
+	var nPos = this.UseArray ? this.PosArray[0] : this.Pos;
+	this.Class.raw_AddColumn(nPos, this.Items);
 };
 /**
  * @constructor
@@ -1625,6 +1644,12 @@ CChangesMathMatrixRemoveColumn.prototype.Merge = function(oChange)
 	// TODO: Это изменение надо целиком переделать
 	return true;
 };
+CChangesMathMatrixRemoveColumn.prototype.Load = function()
+{
+	var nPos = this.UseArray ? this.PosArray[0] : this.Pos;
+	this.Class.raw_RemoveColumn(nPos, this.Items.length);
+};
+
 /**
  * @constructor
  * @extends {AscDFH.CChangesBaseLongProperty}

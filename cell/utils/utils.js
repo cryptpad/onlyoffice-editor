@@ -56,6 +56,8 @@
 		var kLeftLim1 = .999999999999999;
 		var MAX_EXCEL_INT = 1e308;
 		var MIN_EXCEL_INT = -MAX_EXCEL_INT;
+		var c_sPerDay = 86400;
+		var c_msPerDay = c_sPerDay * 1000;
 
 		/** @const */
 		var kUndefinedL = "undefined";
@@ -121,7 +123,6 @@
 		function getMinValueOrNull (val1, val2) {
 			return null === val2 ? val1 : (null === val1 ? val2 : Math.min(val1, val2));
 		}
-
 
 		function round(x) {
 			var y = x + (x >= 0 ? .5 : -.5);
@@ -189,7 +190,6 @@
 			return value;
 		}
 
-
 		// Определяет времени работы функции
 		function profileTime(fn/*[, arguments]*/) {
 			var start, end, arg = [], i;
@@ -253,6 +253,33 @@
 
 			// borders equal
 			return border1;
+		}
+
+		function WordSplitting(str) {
+			var trueLetter = false;
+			var index = 0;
+			var wordsArray = [];
+			var wordsIndexArray = [];
+			for (var i = 0; i < str.length; i++) {
+				var nCharCode = str.charCodeAt(i);
+				if (AscCommon.g_aPunctuation[nCharCode] !== undefined || nCharCode === 32) {
+					if (trueLetter) {
+						trueLetter = false;
+						index++;
+					}
+				} else {
+					if(trueLetter === false) {
+					  wordsIndexArray.push(i);
+					}
+					trueLetter = true;
+					wordsArray[index] = wordsArray[index] || "";
+					wordsArray[index] = wordsArray[index] + str[i];
+				}
+			}
+			return {
+				wordsArray: wordsArray,
+				wordsIndex: wordsIndexArray
+			};
 		}
 
 		var referenceType = {
@@ -1477,7 +1504,7 @@
 		RangeCache.prototype.getActiveRange = function (sRange) {
 			return this._getRange(sRange, 2);
 		};
-		RangeCache.prototype.getActiveRangesFromSqRef = function (sqRef) {
+		RangeCache.prototype.getRangesFromSqRef = function (sqRef) {
 			var res = [];
 			var refs = sqRef.split(' ');
 			for (var i = 0; i < refs.length; ++i) {
@@ -1710,6 +1737,11 @@
 				return pv + cv.text;
 			}, "");
 		}
+		function getFragmentsLength(f) {
+			return f.length > 0 ? f.reduce(function (pv, cv) {
+				return pv + cv.text.length;
+			}, 0) : 0;
+		}
 
 		function executeInR1C1Mode(mode, runFunction) {
 			var oldMode = AscCommonExcel.g_R1C1Mode;
@@ -1729,7 +1761,7 @@
 			return ret;
 		}
 
-		function getEndValueRange (dx, start, v1, v2) {
+		function getEndValueRange(dx, start, v1, v2) {
 			var x1, x2;
 			if (0 !== dx) {
 				if (start === v1) {
@@ -1752,6 +1784,157 @@
 				x2 = v2;
 			}
 			return {x1: x1, x2: x2};
+		}
+
+		function checkStylesNames(cellStyles) {
+			var oStyle, i;
+			for (i = 0; i < cellStyles.DefaultStyles.length; ++i) {
+				oStyle = cellStyles.DefaultStyles[i];
+				AscFonts.FontPickerByCharacter.getFontsByString(oStyle.Name);
+				AscFonts.FontPickerByCharacter.getFontsByString(AscCommon.translateManager.getValue(oStyle.Name));
+			}
+			for (i = 0; i < cellStyles.CustomStyles.length; ++i) {
+				oStyle = cellStyles.CustomStyles[i];
+				AscFonts.FontPickerByCharacter.getFontsByString(oStyle.Name);
+			}
+		}
+
+		function generateStyles(width, height, cellStyles, wb) {
+			var result = [];
+
+			var widthWithRetina = width;
+			var heightWithRetina = height;
+			if (AscCommon.AscBrowser.isRetina) {
+				widthWithRetina = AscCommon.AscBrowser.convertToRetinaValue(widthWithRetina, true);
+				heightWithRetina = AscCommon.AscBrowser.convertToRetinaValue(heightWithRetina, true);
+			}
+
+			var oCanvas = document.createElement('canvas');
+			oCanvas.width = widthWithRetina;
+			oCanvas.height = heightWithRetina;
+			var oGraphics = new Asc.DrawingContext(
+				{canvas: oCanvas, units: 0/*px*/, fmgrGraphics: wb.fmgrGraphics, font: wb.m_oFont});
+
+			function addStyles(styles, type) {
+				var oStyle, name, displayName;
+				for (var i = 0; i < styles.length && i < 1000; ++i) {
+					oStyle = styles[i];
+					if (oStyle.Hidden) {
+						continue;
+					}
+					name = displayName = oStyle.Name;
+					if (type === AscCommon.c_oAscStyleImage.Default) {
+						// ToDo Возможно стоит переписать немного, чтобы не пробегать каждый раз по массиву custom-стилей (нужно генерировать AllStyles)
+						oStyle = cellStyles.getCustomStyleByBuiltinId(oStyle.BuiltinId) || oStyle;
+						displayName = AscCommon.translateManager.getValue(name);
+					} else if (null !== oStyle.BuiltinId) {
+						continue;
+					}
+
+					if (window["IS_NATIVE_EDITOR"]) {
+						window["native"]["BeginDrawStyle"](type, name);
+					}
+					drawStyle(oGraphics, wb.stringRender, oStyle, displayName, widthWithRetina, heightWithRetina);
+					if (window["IS_NATIVE_EDITOR"]) {
+						window["native"]["EndDrawStyle"]();
+					} else {
+						result.push(new AscCommon.CStyleImage(name, type, oCanvas.toDataURL("image/png")));
+					}
+				}
+			}
+
+			addStyles(cellStyles.CustomStyles, AscCommon.c_oAscStyleImage.Document);
+			addStyles(cellStyles.DefaultStyles, AscCommon.c_oAscStyleImage.Default);
+
+			return result;
+		}
+
+		function drawStyle(ctx, sr, oStyle, sStyleName, width, height) {
+			var bc = null, bs = AscCommon.c_oAscBorderStyles.None, isNotFirst = false; // cached border color
+			ctx.clear();
+			// Fill cell
+			if (oStyle.ApplyFill) {
+				var oColor = oStyle.getFillColor();
+				if (null !== oColor) {
+					ctx.setFillStyle(oColor);
+					ctx.fillRect(0, 0, width, height);
+				}
+			}
+
+			function drawBorder(type, b, x1, y1, x2, y2) {
+				if (b && b.w > 0) {
+					var isStroke = false;
+					var isNewColor = !AscCommonExcel.g_oColorManager.isEqual(bc, b.c);
+					var isNewStyle = bs !== b.s;
+					if (isNotFirst && (isNewColor || isNewStyle)) {
+						ctx.stroke();
+						isStroke = true;
+					}
+
+					if (isNewColor) {
+						bc = b.c;
+						ctx.setStrokeStyle(bc);
+					}
+					if (isNewStyle) {
+						bs = b.s;
+						ctx.setLineWidth(b.w);
+						ctx.setLineDash(b.getDashSegments());
+					}
+
+					if (isStroke || false === isNotFirst) {
+						isNotFirst = true;
+						ctx.beginPath();
+					}
+
+					switch (type) {
+						case AscCommon.c_oAscBorderType.Hor:
+							ctx.lineHor(x1, y1, x2);
+							break;
+						case AscCommon.c_oAscBorderType.Ver:
+							ctx.lineVer(x1, y1, y2);
+							break;
+						case AscCommon.c_oAscBorderType.Diag:
+							ctx.lineDiag(x1, y1, x2, y2);
+							break;
+					}
+				}
+			}
+
+			if (oStyle.ApplyBorder) {
+				// borders
+				var oBorders = oStyle.getBorder();
+				drawBorder(AscCommon.c_oAscBorderType.Ver, oBorders.l, 0, 0, 0, height);
+				drawBorder(AscCommon.c_oAscBorderType.Hor, oBorders.b, 0, height - 1, width, height - 1);
+				drawBorder(AscCommon.c_oAscBorderType.Ver, oBorders.r, width - 1, height, width - 1, 0);
+				drawBorder(AscCommon.c_oAscBorderType.Hor, oBorders.t, width, 0, 0, 0);
+				if (isNotFirst) {
+					ctx.stroke();
+				}
+			}
+
+			// Draw text
+			var format = oStyle.getFont().clone();
+			// Для размера шрифта делаем ограничение для превью в 16pt (у Excel 18pt, но и высота превью больше 22px)
+			var nSize = format.getSize();
+			if (16 < format.getSize()) {
+				nSize = 16;
+			}
+
+			// рисуем в пикселях
+			if (window["IS_NATIVE_EDITOR"]) {
+				nSize *= AscCommon.AscBrowser.retinaPixelRatio;
+			}
+
+			format.setSize(nSize);
+
+			var width_padding = 4;
+
+			var tm = sr.measureString(sStyleName);
+			// Текст будем рисовать по центру (в Excel чуть по другому реализовано, у них постоянный отступ снизу)
+			var textY = Asc.round(0.5 * (height - tm.height));
+			ctx.setFont(format);
+			ctx.setFillStyle(oStyle.getFontColor() || new AscCommon.CColor(0, 0, 0));
+			ctx.fillText(sStyleName, width_padding, textY + tm.baseline);
 		}
 
 		//-----------------------------------------------------------------
@@ -1993,149 +2176,6 @@
 			this.activeSheet = null;
 		}
 
-
-		/** @constructor */
-		function asc_CStylesPainter(width, height) {
-			this.defaultStyles = null;
-			this.docStyles = null;
-
-			this.styleThumbnailWidth = width;
-			this.styleThumbnailHeight = height;
-			this.styleThumbnailWidthPt = this.styleThumbnailWidth * 72 / 96;
-			this.styleThumbnailHeightPt = this.styleThumbnailHeight * 72 / 96;
-
-			this.styleThumbnailWidthWithRetina = this.styleThumbnailWidth;
-			this.styleThumbnailHeightWithRetina = this.styleThumbnailHeight;
-			if (AscCommon.AscBrowser.isRetina) {
-				this.styleThumbnailWidthWithRetina =
-					AscCommon.AscBrowser.convertToRetinaValue(this.styleThumbnailWidthWithRetina, true);
-				this.styleThumbnailHeightWithRetina =
-					AscCommon.AscBrowser.convertToRetinaValue(this.styleThumbnailHeightWithRetina, true);
-			}
-		}
-
-		asc_CStylesPainter.prototype.asc_checkStylesNames = function(cellStylesAll) {
-			var oStyle, i;
-			for (i = 0; i < cellStylesAll.DefaultStyles.length; ++i) {
-				oStyle = cellStylesAll.DefaultStyles[i];
-				AscFonts.FontPickerByCharacter.getFontsByString(oStyle.Name);
-				AscFonts.FontPickerByCharacter.getFontsByString(AscCommon.translateManager.getValue(oStyle.Name));
-			}
-			for (i = 0; i < cellStylesAll.CustomStyles.length; ++i) {
-				oStyle = cellStylesAll.CustomStyles[i];
-				AscFonts.FontPickerByCharacter.getFontsByString(oStyle.Name);
-			}
-		};
-		asc_CStylesPainter.prototype.asc_getStyleThumbnailWidth = function () {
-			return this.styleThumbnailWidthWithRetina;
-		};
-		asc_CStylesPainter.prototype.asc_getStyleThumbnailHeight = function () {
-			return this.styleThumbnailHeightWithRetina;
-		};
-		asc_CStylesPainter.prototype.asc_getDefaultStyles = function () {
-			return this.defaultStyles;
-		};
-		asc_CStylesPainter.prototype.asc_getDocStyles = function () {
-			return this.docStyles;
-		};
-		asc_CStylesPainter.prototype.generateStylesAll = function (cellStylesAll, fmgrGraphics, oFont, sr) {
-			this.generateDefaultStyles(cellStylesAll, fmgrGraphics, oFont, sr);
-			this.generateDocumentStyles(cellStylesAll, fmgrGraphics, oFont, sr);
-		};
-		asc_CStylesPainter.prototype.generateDefaultStyles = function (cellStylesAll, fmgrGraphics, oFont, sr) {
-			var cellStyles = cellStylesAll.DefaultStyles;
-
-			var oCanvas = document.createElement('canvas');
-			oCanvas.width = this.styleThumbnailWidthWithRetina;
-			oCanvas.height = this.styleThumbnailHeightWithRetina;
-			var oGraphics = new Asc.DrawingContext(
-				{canvas: oCanvas, units: 1/*pt*/, fmgrGraphics: fmgrGraphics, font: oFont});
-
-			var oStyle, oCustomStyle;
-			this.defaultStyles = [];
-			for (var i = 0; i < cellStyles.length; ++i) {
-				oStyle = cellStyles[i];
-				if (oStyle.Hidden) {
-					continue;
-				}
-				// ToDo Возможно стоит переписать немного, чтобы не пробегать каждый раз по массиву custom-стилей (нужно генерировать AllStyles)
-				oCustomStyle = cellStylesAll.getCustomStyleByBuiltinId(oStyle.BuiltinId);
-
-				this.drawStyle(oGraphics, sr, oCustomStyle || oStyle, AscCommon.translateManager.getValue(oStyle.Name));
-				this.defaultStyles.push(new AscCommon.CStyleImage(oStyle.Name, AscCommon.c_oAscStyleImage.Default,
-					oCanvas.toDataURL("image/png")));
-			}
-		};
-		asc_CStylesPainter.prototype.generateDocumentStyles = function (cellStylesAll, fmgrGraphics, oFont, sr) {
-			var cellStyles = cellStylesAll.CustomStyles;
-
-			var oCanvas = document.createElement('canvas');
-			oCanvas.width = this.styleThumbnailWidthWithRetina;
-			oCanvas.height = this.styleThumbnailHeightWithRetina;
-			var oGraphics = new Asc.DrawingContext(
-				{canvas: oCanvas, units: 1/*pt*/, fmgrGraphics: fmgrGraphics, font: oFont});
-
-			var oStyle;
-			this.docStyles = [];
-			for (var i = 0; i < cellStyles.length && i < 1000; ++i) {
-				oStyle = cellStyles[i];
-				if (oStyle.Hidden || null != oStyle.BuiltinId) {
-					continue;
-				}
-
-				this.drawStyle(oGraphics, sr, oStyle, oStyle.Name);
-				this.docStyles.push(new AscCommon.CStyleImage(oStyle.Name, AscCommon.c_oAscStyleImage.Document,
-					oCanvas.toDataURL("image/png")));
-			}
-		};
-		asc_CStylesPainter.prototype.drawStyle = function (oGraphics, sr, oStyle, sStyleName) {
-			oGraphics.clear();
-			// Fill cell
-			if (oStyle.ApplyFill) {
-				var oColor = oStyle.getFillColor();
-				if (null !== oColor) {
-					oGraphics.setFillStyle(oColor);
-					oGraphics.fillRect(0, 0, this.styleThumbnailWidthPt, this.styleThumbnailHeightPt);
-				}
-			}
-
-			var drawBorder = function (b, x1, y1, x2, y2) {
-				if (b && AscCommon.c_oAscBorderStyles.None !== b.s) {
-					oGraphics.setStrokeStyle(b.c);
-
-					// ToDo поправить
-					oGraphics.setLineWidth(b.w).beginPath().moveTo(x1, y1).lineTo(x2, y2).stroke();
-				}
-			};
-
-			if (oStyle.ApplyBorder) {
-				// borders
-				var oBorders = oStyle.getBorder();
-				drawBorder(oBorders.l, 0, 0, 0, this.styleThumbnailHeightPt);
-				drawBorder(oBorders.r, this.styleThumbnailWidthPt, 0, this.styleThumbnailWidthPt,
-					this.styleThumbnailHeightPt);
-				drawBorder(oBorders.t, 0, 0, this.styleThumbnailWidthPt, 0);
-				drawBorder(oBorders.b, 0, this.styleThumbnailHeightPt, this.styleThumbnailWidthPt,
-					this.styleThumbnailHeightPt);
-			}
-
-			// Draw text
-			var format = oStyle.getFont().clone();
-			// Для размера шрифта делаем ограничение для превью в 16pt (у Excel 18pt, но и высота превью больше 22px)
-			if (16 < format.getSize()) {
-				format.setSize(16);
-			}
-
-			var width_padding = 3; // 4 * 72 / 96
-
-			var tm = sr.measureString(sStyleName);
-			// Текст будем рисовать по центру (в Excel чуть по другому реализовано, у них постоянный отступ снизу)
-			var textY = 0.5 * (this.styleThumbnailHeightPt - tm.height);
-			oGraphics.setFont(format);
-			oGraphics.setFillStyle(oStyle.getFontColor() || new AscCommon.CColor(0, 0, 0));
-			oGraphics.fillText(sStyleName, width_padding, textY + tm.baseline);
-		};
-
 		/** @constructor */
 		function asc_CSheetPr() {
 			if (!(this instanceof asc_CSheetPr)) {
@@ -2153,6 +2193,12 @@
 			this.TransitionEvaluation = null;
 
 			this.TabColor = null;
+			this.AutoPageBreaks = true;
+			this.FitToPage = false;
+			this.ApplyStyles = false;
+			this.ShowOutlineSymbols = true;
+			this.SummaryBelow = true;
+			this.SummaryRight = true;
 
 			return this;
 		}
@@ -2198,10 +2244,12 @@
 		/** @constructor */
 		function asc_CFindOptions() {
 			this.findWhat = "";							// текст, который ищем
+			this.wordIndex = 0;                         // индекс текущего слова
 			this.scanByRows = true;						// просмотр по строкам/столбцам
 			this.scanForward = true;					// поиск вперед/назад
 			this.isMatchCase = false;					// учитывать регистр
-			this.isWholeCell = false;					// ячейка целиком
+			this.isWholeCell = false;	                // ячейка целиком
+			this.isChangeSingleWord = false;		    // изменение только одного слова	
 			this.scanOnOnlySheet = true;				// искать только на листе/в книге
 			this.lookIn = Asc.c_oAscFindLookIn.Formulas;	// искать в формулах/значениях/примечаниях
 
@@ -2223,12 +2271,14 @@
 		}
 		asc_CFindOptions.prototype.clone = function () {
 			var result = new asc_CFindOptions();
+			result.wordIndex = this.wordIndex;
 			result.findWhat = this.findWhat;
 			result.scanByRows = this.scanByRows;
 			result.scanForward = this.scanForward;
 			result.isMatchCase = this.isMatchCase;
 			result.isWholeCell = this.isWholeCell;
-			result.scanOnOnlySheet = this.scanOnOnlySheet;
+			result.isChangeSingleWord = 	this.isChangeSingleWord;	
+			result.scanOnOnlySheet = this.scanOnOnlySheet;		
 			result.lookIn = this.lookIn;
 
 			result.replaceWith = this.replaceWith;
@@ -2270,6 +2320,7 @@
 		asc_CFindOptions.prototype.asc_setScanForward = function (val) {this.scanForward = val;};
 		asc_CFindOptions.prototype.asc_setIsMatchCase = function (val) {this.isMatchCase = val;};
 		asc_CFindOptions.prototype.asc_setIsWholeCell = function (val) {this.isWholeCell = val;};
+		asc_CFindOptions.prototype.asc_changeSingleWord = function (val) { this.isChangeSingleWord = val; };	
 		asc_CFindOptions.prototype.asc_setScanOnOnlySheet = function (val) {this.scanOnOnlySheet = val;};
 		asc_CFindOptions.prototype.asc_setLookIn = function (val) {this.lookIn = val;};
 		asc_CFindOptions.prototype.asc_setReplaceWith = function (val) {this.replaceWith = val;};
@@ -2350,6 +2401,40 @@
 			return -2;
 		};
 
+		function CSpellcheckState() {
+			this.lastSpellInfo = null;
+			this.lastIndex = -1;
+
+			this.lockSpell = false;
+			this.startCell = null;
+			this.currentCell = null;
+			this.iteration = false;
+			this.wordIndex = null;
+		}
+
+		CSpellcheckState.prototype.init = function (startCell) {
+			if (!this.startCell) {
+				this.startCell = startCell.clone();
+				this.currentCell = startCell.clone();
+			}
+		};
+		CSpellcheckState.prototype.clean = function () {
+			this.lastSpellInfo = null;
+			this.lastIndex = -1;
+
+			this.lockSpell = false;
+			this.startCell = null;
+			this.currentCell = null;
+			this.iteration = false;
+		};
+		CSpellcheckState.prototype.nextRow = function () {
+			this.lastSpellInfo = null;
+			this.lastIndex = -1;
+
+			this.currentCell.row += 1;
+			this.currentCell.col = 0;
+		};
+
 		/** @constructor */
 		function asc_CCompleteMenu(name, type) {
 			this.name = name;
@@ -2402,6 +2487,7 @@
 		asc_CFormatCellsInfo.prototype.asc_getSeparator = function () {return this.separator;};
 		asc_CFormatCellsInfo.prototype.asc_getSymbol = function () {return this.symbol;};
 
+		/** @constructor */
 		function asc_CSelectionRangeValue(){
 			this.name =  null;
 			this.type = null;
@@ -2411,7 +2497,10 @@
 		asc_CSelectionRangeValue.prototype.asc_getType = function () {return this.type;};
 		asc_CSelectionRangeValue.prototype.asc_getName = function () {return this.name;};
 
-		//передаём в меню для того, чтобы показать иконку опций авторавертывания таблиц
+		/**
+		 * передаём в меню для того, чтобы показать иконку опций авторавертывания таблиц
+		 * @constructor
+		 */
 		function asc_CAutoCorrectOptions(){
 			this.type = null;
 			this.options = [];
@@ -2423,6 +2512,143 @@
 		asc_CAutoCorrectOptions.prototype.asc_getType = function () {return this.type;};
 		asc_CAutoCorrectOptions.prototype.asc_getOptions = function () {return this.options;};
 		asc_CAutoCorrectOptions.prototype.asc_getCellCoord = function () {return this.cellCoord;};
+
+		/** @constructor */
+		function cDate() {
+			var bind = Function.bind;
+			var unbind = bind.bind(bind);
+			var date = new (unbind(Date, null).apply(null, arguments));
+			date.__proto__ = cDate.prototype;
+			return date;
+		}
+
+		cDate.prototype = Object.create(Date.prototype);
+		cDate.prototype.constructor = cDate;
+		cDate.prototype.excelNullDate1900 = Date.UTC( 1899, 11, 30, 0, 0, 0 );
+		cDate.prototype.excelNullDate1904 = Date.UTC( 1904, 0, 1, 0, 0, 0 );
+
+		cDate.prototype.getExcelNullDate = function () {
+			return AscCommon.bDate1904 ? cDate.prototype.excelNullDate1904 : cDate.prototype.excelNullDate1900;
+		};
+
+		cDate.prototype.isLeapYear = function () {
+			var y = this.getUTCFullYear();
+			return (y % 4 === 0 && y % 100 !== 0) || y % 400 === 0;
+		};
+
+		cDate.prototype.getDaysInMonth = function () {
+//    return arguments.callee[this.isLeapYear() ? 'L' : 'R'][this.getMonth()];
+			return this.isLeapYear() ? this.getDaysInMonth.L[this.getUTCMonth()] : this.getDaysInMonth.R[this.getUTCMonth()];
+		};
+
+		// durations of months for the regular year
+		cDate.prototype.getDaysInMonth.R = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+		// durations of months for the leap year
+		cDate.prototype.getDaysInMonth.L = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+
+		cDate.prototype.truncate = function () {
+			this.setUTCHours( 0, 0, 0, 0 );
+			return this;
+		};
+
+		cDate.prototype.getExcelDate = function () {
+			return Math.floor( this.getExcelDateWithTime() );
+		};
+
+		cDate.prototype.getExcelDateWithTime = function () {
+//    return Math.floor( ( this.getTime() / 1000 - this.getTimezoneOffset() * 60 ) / c_sPerDay + ( AscCommonExcel.c_DateCorrectConst + (bDate1904 ? 0 : 1) ) );
+			var year = this.getUTCFullYear(), month = this.getUTCMonth(), date = this.getUTCDate(), res;
+
+			if(1900 === year && 0 === month && 0 === date) {
+				res = 0;
+			} else if (1900 < year || (1900 == year && 1 < month)) {
+				res = (Date.UTC(year, month, date, this.getUTCHours(), this.getUTCMinutes(), this.getUTCSeconds()) - this.getExcelNullDate() ) / c_msPerDay;
+			} else if (1900 == year && 1 == month && 29 == date) {
+				res = 60;
+			} else {
+				res = (Date.UTC(year, month, date, this.getUTCHours(), this.getUTCMinutes(), this.getUTCSeconds()) - this.getExcelNullDate() ) / c_msPerDay - 1;
+			}
+
+			return res;
+		};
+
+		cDate.prototype.getDateFromExcel = function ( val ) {
+
+			val = Math.floor( val );
+
+			return this.getDateFromExcelWithTime(val);
+		};
+
+		cDate.prototype.getDateFromExcelWithTime = function ( val ) {
+			if (AscCommon.bDate1904) {
+				return new cDate( val * c_msPerDay + this.getExcelNullDate() );
+			} else {
+				if ( val < 60 ) {
+					return new cDate( val * c_msPerDay + this.getExcelNullDate() );
+				} else if (val === 60) {
+					return new cDate( Date.UTC( 1900, 1, 29 ) );
+				} else {
+					return new cDate( val * c_msPerDay + this.getExcelNullDate() );
+				}
+			}
+		};
+
+		cDate.prototype.addYears = function ( counts ) {
+			this.setUTCFullYear( this.getUTCFullYear() + Math.floor( counts ) );
+		};
+
+		cDate.prototype.addMonths = function ( counts ) {
+			if ( this.lastDayOfMonth() ) {
+				this.setUTCDate( 1 );
+				this.setUTCMonth( this.getUTCMonth() + Math.floor( counts ) );
+				this.setUTCDate( this.getDaysInMonth() );
+			} else {
+				this.setUTCMonth( this.getUTCMonth() + Math.floor( counts ) );
+			}
+		};
+
+		cDate.prototype.addDays = function ( counts ) {
+			this.setUTCDate( this.getUTCDate() + Math.floor( counts ) );
+		};
+
+		cDate.prototype.lastDayOfMonth = function () {
+			return this.getDaysInMonth() == this.getUTCDate();
+		};
+		cDate.prototype.getUTCDate = function () {
+			var year = Date.prototype.getUTCFullYear.call(this);
+			var month = Date.prototype.getUTCMonth.call(this);
+			var date = Date.prototype.getUTCDate.call(this);
+
+			if(1899 == year && 11 == month && 31 == date) {
+				return 0;
+			} else {
+				return date;
+			}
+		};
+
+		cDate.prototype.getUTCMonth = function () {
+			var year = Date.prototype.getUTCFullYear.call(this);
+			var month = Date.prototype.getUTCMonth.call(this);
+			var date = Date.prototype.getUTCDate.call(this);
+
+			if(1899 == year && 11 == month && (30 === date || 31 === date)) {
+				return 0;
+			} else {
+				return month;
+			}
+		};
+
+		cDate.prototype.getUTCFullYear = function () {
+			var year = Date.prototype.getUTCFullYear.call(this);
+			var month = Date.prototype.getUTCMonth.call(this);
+			var date = Date.prototype.getUTCDate.call(this);
+
+			if(1899 == year && 11 == month && (30 === date || 31 === date)) {
+				return 1900;
+			} else {
+				return year;
+			}
+		};
 
 		/*
 		 * Export
@@ -2437,7 +2663,14 @@
 		window["AscCommonExcel"].c_oAscShiftType = c_oAscShiftType;
 		window["AscCommonExcel"].recalcType = recalcType;
 		window["AscCommonExcel"].sizePxinPt = sizePxinPt;
+		window['AscCommonExcel'].c_sPerDay = c_sPerDay;
+		window['AscCommonExcel'].c_msPerDay = c_msPerDay;
 		window["AscCommonExcel"].applyFunction = applyFunction;
+		window['AscCommonExcel'].cDate = cDate;
+		window["Asc"]["cDate"] = window["Asc"].cDate = cDate;
+		prot									     = cDate.prototype;
+		prot["getExcelDateWithTime"]	             = prot.getExcelDateWithTime;
+
 		window["Asc"].typeOf = typeOf;
 		window["Asc"].lastIndexOf = lastIndexOf;
 		window["Asc"].search = search;
@@ -2450,18 +2683,22 @@
 		window["AscCommonExcel"].calcDecades = calcDecades;
 		window["AscCommonExcel"].convertPtToPx = convertPtToPx;
 		window["AscCommonExcel"].convertPxToPt = convertPxToPt;
-		window["Asc"].outputDebugStr = outputDebugStr;
 		window["Asc"].profileTime = profileTime;
 		window["AscCommonExcel"].getMatchingBorder = getMatchingBorder;
+		window["AscCommonExcel"].WordSplitting = WordSplitting;
+		window["Asc"].outputDebugStr = outputDebugStr;
 		window["Asc"].isNumberInfinity = isNumberInfinity;
 		window["Asc"].trim = trim;
 		window["Asc"].arrayToLowerCase = arrayToLowerCase;
 		window["Asc"].isFixedWidthCell = isFixedWidthCell;
 		window["AscCommonExcel"].dropDecimalAutofit = dropDecimalAutofit;
 		window["AscCommonExcel"].getFragmentsText = getFragmentsText;
+		window['AscCommonExcel'].getFragmentsLength = getFragmentsLength;
 		window['AscCommonExcel'].executeInR1C1Mode = executeInR1C1Mode;
-		window["Asc"].getEndValueRange = getEndValueRange;
 		window['AscCommonExcel'].checkFilteringMode = checkFilteringMode;
+		window["Asc"].getEndValueRange = getEndValueRange;
+		window["AscCommonExcel"].checkStylesNames = checkStylesNames;
+		window["AscCommonExcel"].generateStyles = generateStyles;
 
 		window["AscCommonExcel"].referenceType = referenceType;
 		window["Asc"].Range = Range;
@@ -2533,14 +2770,6 @@
 		prot["asc_setShowRowColHeaders"] = prot.asc_setShowRowColHeaders;
 
 		window["AscCommonExcel"].asc_CPane = asc_CPane;
-
-		window["AscCommonExcel"].asc_CStylesPainter = asc_CStylesPainter;
-		prot = asc_CStylesPainter.prototype;
-		prot["asc_getStyleThumbnailWidth"] = prot.asc_getStyleThumbnailWidth;
-		prot["asc_getStyleThumbnailHeight"] = prot.asc_getStyleThumbnailHeight;
-		prot["asc_getDefaultStyles"] = prot.asc_getDefaultStyles;
-		prot["asc_getDocStyles"] = prot.asc_getDocStyles;
-
 		window["AscCommonExcel"].asc_CSheetPr = asc_CSheetPr;
 
 		window["AscCommonExcel"].asc_CSelectionMathInfo = asc_CSelectionMathInfo;
@@ -2565,6 +2794,8 @@
 		prot["asc_setIsReplaceAll"] = prot.asc_setIsReplaceAll;
 
 		window["AscCommonExcel"].findResults = findResults;
+
+		window["AscCommonExcel"].CSpellcheckState = CSpellcheckState;
 
 		window["AscCommonExcel"].asc_CCompleteMenu = asc_CCompleteMenu;
 		prot = asc_CCompleteMenu.prototype;
