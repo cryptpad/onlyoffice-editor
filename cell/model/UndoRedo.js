@@ -2509,6 +2509,8 @@ function (window, undefined) {
 			} else {
 				ws.setCollapsedCol(Data.oNewVal, index);
 			}
+		}  else if (AscCH.historyitem_Worksheet_SetFitToPage === Type) {
+			ws.setFitToPage(bUndo ? Data.from : Data.to);
 		}
 	};
 	UndoRedoWoorksheet.prototype.forwardTransformationIsAffect = function (Type) {

@@ -2195,10 +2195,20 @@
 
 			if(changedWidth) {
 				pageSetup.asc_setFitToWidth(width);
+				//выставляю принудительно 0 вместо null, поскольку деволтовое значение fitToHeight/fitToWidth -> 1
+				if(width !== null && !changedHeight && null === pageSetup.asc_getFitToHeight()) {
+					pageSetup.asc_setFitToHeight(0);
+				}
 			}
 			if(changedHeight) {
 				pageSetup.asc_setFitToHeight(height);
+
+				if(height !== null && !changedWidth && null === pageSetup.asc_getFitToWidth()) {
+					pageSetup.asc_setFitToWidth(0);
+				}
 			}
+
+			this._changeFitToPage(width, height);
 
 			if(undefined === scale) {
 				scale = this.calcPrintScale(pageSetup.asc_getFitToWidth(), pageSetup.asc_getFitToHeight());
@@ -2233,6 +2243,11 @@
 
 		//TODO нужно ли в данном случае лочить?
 		//this._isLockedLayoutOptions(callback);
+	};
+
+	WorksheetView.prototype._changeFitToPage = function(width, height) {
+		var fitToPageTo = (width !== 0 || height !== 0) || (width !== null || height !== null);
+		this.model.setFitToPage(fitToPageTo);
 	};
 
 	WorksheetView.prototype.calcPrintScale = function(width, height) {
