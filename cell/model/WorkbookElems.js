@@ -1284,14 +1284,26 @@ var g_oFontProperties = {
 	GradientFill.prototype.asc_getLeft = function () {
 		return this.left;
 	};
+	GradientFill.prototype.asc_setLeft = function (value) {
+		this.left = value;
+	};
 	GradientFill.prototype.asc_getRight = function () {
 		return this.right;
+	};
+	GradientFill.prototype.asc_setRight = function (value) {
+		this.right = value;
 	};
 	GradientFill.prototype.asc_getTop = function () {
 		return this.top;
 	};
+	GradientFill.prototype.asc_setTop = function (value) {
+		this.top = value;
+	};
 	GradientFill.prototype.asc_getBottom = function () {
 		return this.bottom;
+	};
+	GradientFill.prototype.asc_setBottom = function (value) {
+		this.bottom = value;
 	};
 	GradientFill.prototype.asc_getGradientStops = function () {
 		var res = [];
@@ -8645,9 +8657,13 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	prot["asc_getDegree"] = prot.asc_getDegree;
 	prot["asc_setDegree"] = prot.asc_setDegree;
 	prot["asc_getLeft"] = prot.asc_getLeft;
+	prot["asc_setLeft"] = prot.asc_setLeft;
 	prot["asc_getRight"] = prot.asc_getRight;
+	prot["asc_setRight"] = prot.asc_setRight;
 	prot["asc_getTop"] = prot.asc_getTop;
+	prot["asc_setTop"] = prot.asc_setTop;
 	prot["asc_getBottom"] = prot.asc_getBottom;
+	prot["asc_setBottom"] = prot.asc_setBottom;
 	prot["asc_getGradientStops"] = prot.asc_getGradientStops;
 	window["Asc"]["asc_CGradientStop"] = window['AscCommonExcel'].GradientStop = GradientStop;
 	prot = GradientStop.prototype;
