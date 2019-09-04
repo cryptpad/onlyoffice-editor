@@ -1272,6 +1272,9 @@ var g_oFontProperties = {
 	GradientFill.prototype.asc_getType = function () {
 		return this.type;
 	};
+	GradientFill.prototype.asc_setType = function (value) {
+		this.type = value;
+	};
 	GradientFill.prototype.asc_getDegree = function () {
 		return this.degree;
 	};
@@ -8635,6 +8638,7 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	window["Asc"]["asc_CGradientFill"] = window['AscCommonExcel'].GradientFill = GradientFill;
 	prot = GradientFill.prototype;
 	prot["asc_getType"] = prot.asc_getType;
+	prot["asc_setType"] = prot.asc_setType;
 	prot["asc_getDegree"] = prot.asc_getDegree;
 	prot["asc_getLeft"] = prot.asc_getLeft;
 	prot["asc_getRight"] = prot.asc_getRight;
