@@ -52,6 +52,7 @@ var fieldtype_REF        = 0x0008;
 var fieldtype_HYPERLINK  = 0x0009;
 var fieldtype_FORMULA    = 0x0010;
 var fieldtype_SEQ        = 0x0011;
+var fieldtype_STYLEREF   = 0x0012;
 
 //--------------------------------------------------------export----------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};
@@ -70,6 +71,7 @@ window['AscCommonWord'].fieldtype_REF        = fieldtype_REF;
 window['AscCommonWord'].fieldtype_HYPERLINK  = fieldtype_HYPERLINK;
 window['AscCommonWord'].fieldtype_FORMULA    = fieldtype_FORMULA;
 window['AscCommonWord'].fieldtype_SEQ        = fieldtype_SEQ;
+window['AscCommonWord'].fieldtype_STYLEREF   = fieldtype_STYLEREF;
 
 
 /**
@@ -656,9 +658,14 @@ CFieldInstructionHYPERLINK.prototype.IsTopOfDocument = function()
 	return (this.GetBookmarkName() === "_top");
 };
 
-
+/**
+ * SEQ field
+ * @constructor
+ */
 function CFieldInstructionSEQ()
 {
+
+	CFieldInstructionBase.call(this);
 	this.Id = null;
 	this.C = false;
 	this.H = false;
@@ -888,6 +895,76 @@ function GeneralToNumFormat(sFormat)
 }
 
 /**
+ * STYLEREF field
+ * @constructor
+ */
+
+function CFieldInstructionSTYLEREF()
+{
+
+	CFieldInstructionBase.call(this);
+	this.StyleName = null;
+	this.L = null;
+	this.N = null;
+	this.P = null;
+	this.R = null;
+	this.T = null;
+	this.W = null;
+	this.GeneralSwitches = [];
+}
+CFieldInstructionSTYLEREF.prototype = Object.create(CFieldInstructionBase.prototype);
+CFieldInstructionSTYLEREF.prototype.constructor = CFieldInstructionSTYLEREF;
+CFieldInstructionSTYLEREF.prototype.Type = fieldtype_STYLEREF;
+CFieldInstructionSTYLEREF.prototype.SetL = function(v){this.L = v;};
+CFieldInstructionSTYLEREF.prototype.SetN = function(v){this.N = v;};
+CFieldInstructionSTYLEREF.prototype.SetP = function(v){this.P = v;};
+CFieldInstructionSTYLEREF.prototype.SetR = function(v){this.R = v;};
+CFieldInstructionSTYLEREF.prototype.SetT = function(v){this.T = v;};
+CFieldInstructionSTYLEREF.prototype.SetW = function(v){this.W = v;};
+CFieldInstructionSTYLEREF.prototype.SetGeneralSwitches = function(v){this.GeneralSwitches = v;};
+CFieldInstructionSTYLEREF.prototype.GetText = function(v)
+{
+	return "STYLEREF";
+};
+CFieldInstructionSTYLEREF.prototype.SetStyleName = function(v)
+{
+	this.StyleName = v;
+};
+CFieldInstructionSTYLEREF.prototype.ToString = function()
+{
+	var sRet = " STYLEREF ";
+	if(this.StyleName)
+	{
+		sRet += this.StyleName;
+	}
+	if(this.L)
+	{
+		sRet += " \\l";
+	}
+	if(this.N)
+	{
+		sRet += " \\n"
+	}
+	if(this.P)
+	{
+		sRet += " \\p"
+	}
+	if(this.R)
+	{
+		sRet += " \\r"
+	}
+	if(this.T)
+	{
+		sRet += " \\t"
+	}
+	if(this.W)
+	{
+		sRet += " \\w"
+	}
+	return sRet;
+};
+
+/**
  * Класс для разбора строки с инструкцией
  * @constructor
  */
@@ -949,6 +1026,10 @@ CFieldInstructionParser.prototype.private_Parse = function()
 	else if("SEQ" === sBuffer)
 	{
 		this.private_ParseSEQ();
+	}
+	else if("STYLEREF" === sBuffer)
+	{
+		this.private_ParseSTYLEREF();
 	}
 	else if(sBuffer.indexOf("=") === 0)
 	{
@@ -1358,6 +1439,52 @@ CFieldInstructionParser.prototype.private_ParseSEQ = function()
 				{
 					this.Result.SetS(arrArguments[0]);
 				}
+			}
+		}
+	}
+};
+
+CFieldInstructionParser.prototype.private_ParseSTYLEREF = function()
+{
+	this.Result = new CFieldInstructionSTYLEREF();
+	var arrArguments = this.private_ReadArguments();
+	if (arrArguments.length > 0)
+		this.Result.SetStyleName(arrArguments[0]);
+
+	while (this.private_ReadNext())
+	{
+		if (this.private_IsSwitch())
+		{
+			var sType = this.private_GetSwitchLetter();
+			if ('*' === sType)
+			{
+				arrArguments = this.private_ReadArguments();
+				if (arrArguments.length > 0)
+					this.Result.SetGeneralSwitches(arrArguments);
+			}
+			else if ('l' === sType)
+			{
+				this.Result.SetL(true);
+			}
+			else if ('n' === sType)
+			{
+				this.Result.SetN(true);
+			}
+			else if ('p' === sType)
+			{
+				this.Result.SetP(true);
+			}
+			else if ('r' === sType)
+			{
+				this.Result.SetR(true);
+			}
+			else if('t' === sType)
+			{
+				this.Result.SetT(true)
+			}
+			else if('w' === sType)
+			{
+				this.Result.SetW(true)
 			}
 		}
 	}

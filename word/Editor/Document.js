@@ -17492,7 +17492,28 @@ CDocument.prototype.AddFieldWithInstruction = function(sInstruction)
 	if (!oParagraph)
 		return null;
 
-	return  this.private_CreateComplexFieldRun(sInstruction, oParagraph);
+    var oBeginChar    = new ParaFieldChar(fldchartype_Begin, this),
+        oSeparateChar = new ParaFieldChar(fldchartype_Separate, this),
+        oEndChar      = new ParaFieldChar(fldchartype_End, this);
+
+    var oRun = new ParaRun();
+    oRun.AddToContent(-1, oBeginChar);
+    oRun.AddInstrText(sInstruction);
+    oRun.AddToContent(-1, oSeparateChar);
+    oRun.AddToContent(-1, oEndChar);
+    oParagraph.Add(oRun);
+
+    oBeginChar.SetRun(oRun);
+    oSeparateChar.SetRun(oRun);
+    oEndChar.SetRun(oRun);
+
+    var oComplexField = oBeginChar.GetComplexField();
+    oComplexField.SetBeginChar(oBeginChar);
+    oComplexField.SetInstructionLine(sInstruction);
+    oComplexField.SetSeparateChar(oSeparateChar);
+    oComplexField.SetEndChar(oEndChar);
+    oComplexField.Update(false);
+    return oComplexField;
 };
 
 CDocument.prototype.private_CreateComplexFieldRun = function(sInstruction, oParagraph)
@@ -18751,6 +18772,9 @@ CDocument.prototype.AddCaption = function(oPr)
     if(NewParagraph)
     {
         var NewRun;
+        var nCurPos = 0;
+        var oComplexField;
+        var oBeginChar, oSeparateChar, oEndChar;
         if(!oPr.get_ExcludeLabel())
         {
             var sLabel = oPr.get_Label();
@@ -18758,7 +18782,7 @@ CDocument.prototype.AddCaption = function(oPr)
             {
                 NewRun = new ParaRun(NewParagraph, false);
                 NewRun.AddText(sLabel + " ");
-                NewParagraph.Add(NewRun);
+                NewParagraph.Internal_Content_Add(nCurPos++, NewRun, false);
             }
         }
         if(oPr.get_IncludeChapterNumber())
@@ -18766,7 +18790,24 @@ CDocument.prototype.AddCaption = function(oPr)
             var nHeadingLvl = oPr.get_HeadingLvl();
             if(AscFormat.isRealNumber(nHeadingLvl))
             {
-                this.private_CreateComplexFieldRun(" STYLEREF " + nHeadingLvl + " \\s", NewParagraph);
+                oBeginChar    = new ParaFieldChar(fldchartype_Begin, this);
+                oSeparateChar = new ParaFieldChar(fldchartype_Separate, this);
+                oEndChar      = new ParaFieldChar(fldchartype_End, this);
+                NewRun = new ParaRun();
+                NewRun.AddToContent(-1, oBeginChar);
+                NewRun.AddInstrText(" STYLEREF " + nHeadingLvl + " \\s");
+                NewRun.AddToContent(-1, oSeparateChar);
+                NewRun.AddToContent(-1, oEndChar);
+                oBeginChar.SetRun(NewRun);
+                oSeparateChar.SetRun(NewRun);
+                oEndChar.SetRun(NewRun);
+                NewParagraph.Internal_Content_Add(nCurPos++, NewRun, false);
+                oComplexField = oBeginChar.GetComplexField();
+                oComplexField.SetBeginChar(oBeginChar);
+                oComplexField.SetInstructionLine(" STYLEREF " + nHeadingLvl + " \\s");
+                oComplexField.SetSeparateChar(oSeparateChar);
+                oComplexField.SetEndChar(oEndChar);
+                oComplexField.Update(false, false);
             }
             var sSeparator = oPr.get_Separator();
             if(!sSeparator || sSeparator.length === 0)
@@ -18775,9 +18816,26 @@ CDocument.prototype.AddCaption = function(oPr)
             }
             NewRun = new ParaRun(NewParagraph, false);
             NewRun.AddText(sSeparator);
-            NewParagraph.Add(NewRun);
+            NewParagraph.Internal_Content_Add(nCurPos++, NewRun, false);
         }
-        this.private_CreateComplexFieldRun(" SEQ " + oPr.get_Label() + " \\* " + oPr.get_Format() + " ", NewParagraph);
+        oBeginChar    = new ParaFieldChar(fldchartype_Begin, this);
+        oSeparateChar = new ParaFieldChar(fldchartype_Separate, this);
+        oEndChar      = new ParaFieldChar(fldchartype_End, this);
+        NewRun = new ParaRun();
+        NewRun.AddToContent(-1, oBeginChar);
+        NewRun.AddInstrText(" SEQ " + oPr.get_Label() + " \\* " + oPr.get_Format() + " ");
+        NewRun.AddToContent(-1, oSeparateChar);
+        NewRun.AddToContent(-1, oEndChar);
+        oBeginChar.SetRun(NewRun);
+        oSeparateChar.SetRun(NewRun);
+        oEndChar.SetRun(NewRun);
+        NewParagraph.Internal_Content_Add(nCurPos++, NewRun, false);
+        oComplexField = oBeginChar.GetComplexField();
+        oComplexField.SetBeginChar(oBeginChar);
+        oComplexField.SetInstructionLine(" SEQ " + oPr.get_Label() + " \\* " + oPr.get_Format() + " ");
+        oComplexField.SetSeparateChar(oSeparateChar);
+        oComplexField.SetEndChar(oEndChar);
+        oComplexField.Update(false, false);
         NewParagraph.MoveCursorToEndPos();
         NewParagraph.Document_SetThisElementCurrent(true);
     }
