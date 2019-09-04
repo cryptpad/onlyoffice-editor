@@ -606,7 +606,7 @@ function (window, undefined) {
 		};
 
 		function parseReference() {
-			if ((ref = parserHelp.is3DRef.call(o, o.Formula, o.pCurrPos))[0]) {
+			if ((ref = parserHelp.is3DRef.call(o, o.Formula, o.pCurrPos, true))[0]) {
 				var wsFrom = _getWorksheetByName(ref[1]);
 				var wsTo = (null !== ref[2]) ? _getWorksheetByName(ref[2]) : wsFrom;
 				if (!(wsFrom && wsTo)) {
