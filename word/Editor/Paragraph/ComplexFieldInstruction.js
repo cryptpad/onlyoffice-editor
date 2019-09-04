@@ -911,6 +911,7 @@ function CFieldInstructionSTYLEREF()
 	this.T = null;
 	this.W = null;
 	this.GeneralSwitches = [];
+	this.ParentContent = null;
 }
 CFieldInstructionSTYLEREF.prototype = Object.create(CFieldInstructionBase.prototype);
 CFieldInstructionSTYLEREF.prototype.constructor = CFieldInstructionSTYLEREF;
@@ -922,8 +923,28 @@ CFieldInstructionSTYLEREF.prototype.SetR = function(v){this.R = v;};
 CFieldInstructionSTYLEREF.prototype.SetT = function(v){this.T = v;};
 CFieldInstructionSTYLEREF.prototype.SetW = function(v){this.W = v;};
 CFieldInstructionSTYLEREF.prototype.SetGeneralSwitches = function(v){this.GeneralSwitches = v;};
-CFieldInstructionSTYLEREF.prototype.GetText = function(v)
+CFieldInstructionSTYLEREF.prototype.GetText = function()
 {
+	if(this.ParentContent)
+	{
+		var oHdrFtr = this.ParentContent.IsHdrFtr(true);
+		if (oHdrFtr)
+		{
+			//TODO
+		}
+		else
+		{
+			var oFootNote = this.ParentContent.IsFootnote(true);
+			if(oFootNote)
+			{
+				//TODO
+			}
+			else
+			{
+
+			}
+		}
+	}
 	return "STYLEREF";
 };
 CFieldInstructionSTYLEREF.prototype.SetStyleName = function(v)
@@ -962,6 +983,24 @@ CFieldInstructionSTYLEREF.prototype.ToString = function()
 		sRet += " \\w"
 	}
 	return sRet;
+};
+CFieldInstructionSTYLEREF.prototype.SetComplexField = function (oComplexField)
+{
+	CFieldInstructionBase.prototype.SetComplexField.call(this, oComplexField);
+	this.ParentContent = null;
+	var oBeginChar = oComplexField.BeginChar;
+	if(oBeginChar)
+	{
+		var oRun = oBeginChar.Run;
+		if(oRun)
+		{
+			var oParagraph = oRun.Paragraph;
+			if(oParagraph)
+			{
+				this.ParentContent = oParagraph.Parent;
+			}
+		}
+	}
 };
 
 /**
