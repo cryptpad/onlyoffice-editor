@@ -1493,6 +1493,9 @@ var g_oFontProperties = {
 	PatternFill.prototype.asc_getType = function () {
 		return this.getHatchOffset();
 	};
+	PatternFill.prototype.asc_setType = function (value) {
+		this.patternType = value;
+	};
 	PatternFill.prototype.asc_getFgColor = function () {
 		return this.fgColor;
 	};
@@ -8645,6 +8648,7 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	window["Asc"]["asc_CPatternFill"] = window['AscCommonExcel'].PatternFill = PatternFill;
 	prot = PatternFill.prototype;
 	prot["asc_getType"] = prot.asc_getType;
+	prot["asc_setType"] = prot.asc_setType;
 	prot["asc_getFgColor"] = prot.asc_getFgColor;
 	prot["asc_getBgColor"] = prot.asc_getBgColor;
 	window["Asc"]["asc_CFill2"] = window['AscCommonExcel'].Fill = Fill;
