@@ -2186,34 +2186,38 @@
 		var pageOptions = t.model.PagePrintOptions;
 		var pageSetup = pageOptions.asc_getPageSetup();
 
-		var changedWidth = width !== pageSetup.asc_getFitToWidth();
-		var changedHeight = height !== pageSetup.asc_getFitToHeight();
+		if(width === null) {
+			width = 0;
+		}
+		if(height === null) {
+			height = 0;
+		}
+
+		var fitToWidthModel = pageSetup.fitToWidth;
+		var changedWidth = width !== fitToWidthModel;
+		var fitToHeightModel = pageSetup.fitToHeight;
+		var changedHeight = height !== fitToHeightModel;
 		var changedScale = scale && scale !== pageSetup.asc_getScale();
+
 		if(changedWidth || changedHeight || changedScale) {
 			History.Create_NewPoint();
 			History.StartTransaction();
 
+			this._changeFitToPage(width, height);
+
 			if(changedWidth) {
 				pageSetup.asc_setFitToWidth(width);
-				//выставляю принудительно 0 вместо null, поскольку деволтовое значение fitToHeight/fitToWidth -> 1
-				if(width !== null && !changedHeight && null === pageSetup.asc_getFitToHeight()) {
-					pageSetup.asc_setFitToHeight(0);
-				}
 			}
 			if(changedHeight) {
 				pageSetup.asc_setFitToHeight(height);
-
-				if(height !== null && !changedWidth && null === pageSetup.asc_getFitToWidth()) {
-					pageSetup.asc_setFitToWidth(0);
-				}
 			}
 
-			this._changeFitToPage(width, height);
-
-			if(undefined === scale) {
+			if(undefined === scale && (width !== 0 || height !== 0)) {
 				scale = this.calcPrintScale(pageSetup.asc_getFitToWidth(), pageSetup.asc_getFitToHeight());
 			}
-			this._setPrintScale(scale);
+			if(scale) {
+				this._setPrintScale(scale);
+			}
 
 			this.changeViewPrintLines(true);
 			if(this.viewPrintLines) {
@@ -2246,8 +2250,9 @@
 	};
 
 	WorksheetView.prototype._changeFitToPage = function(width, height) {
-		var fitToPageTo = (width !== 0 || height !== 0) || (width !== null || height !== null);
-		this.model.setFitToPage(fitToPageTo);
+		var fitToHeightAuto = height === 0;
+		var fitToWidthAuto = width === 0;
+		this.model.setFitToPage(!fitToHeightAuto || !fitToWidthAuto);
 	};
 
 	WorksheetView.prototype.calcPrintScale = function(width, height) {

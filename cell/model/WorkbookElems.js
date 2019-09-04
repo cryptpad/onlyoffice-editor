@@ -8125,8 +8125,8 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		this.width = c_oAscPrintDefaultSettings.PageWidth;
 		this.height = c_oAscPrintDefaultSettings.PageHeight;
 
-		this.fitToWidth = null; //null -> automatic
-		this.fitToHeight = null; //ToDo can be a number
+		this.fitToWidth = 1; //default -> 1, 0 -> automatic
+		this.fitToHeight = 1; //default -> 1, 0 -> automatic
 
 		// ToDo
 		this.blackAndWhite = false;
@@ -8176,8 +8176,14 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		}
 	};
 
-	asc_CPageSetup.prototype.asc_getFitToWidth = function () { return this.fitToWidth; };
-	asc_CPageSetup.prototype.asc_getFitToHeight = function () { return this.fitToHeight; };
+	asc_CPageSetup.prototype.asc_getFitToWidth = function () {
+		var fitToPage = this.ws && this.ws.sheetPr && this.ws.sheetPr.FitToPage;
+		return fitToPage ? this.fitToWidth : 0;
+	};
+	asc_CPageSetup.prototype.asc_getFitToHeight = function () {
+		var fitToPage = this.ws && this.ws.sheetPr && this.ws.sheetPr.FitToPage;
+		return fitToPage ? this.fitToHeight : 0;
+	};
 
 	asc_CPageSetup.prototype.asc_getScale = function () { return this.scale; };
 
