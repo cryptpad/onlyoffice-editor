@@ -991,11 +991,6 @@ var g_oFontProperties = {
 		this.fn = stream.GetString();
 	};
 
-	var c_oAscGradientType = {
-		Linear : 0,
-		Path : 1
-	};
-
 	var c_oAscPatternType = {
 		DarkDown :  0,
 		DarkGray :  1,
@@ -1061,9 +1056,9 @@ var g_oFontProperties = {
 	function FromXml_ST_GradientType(val) {
 		var res = -1;
 		if ("linear" === val) {
-			res = c_oAscGradientType.Linear;
+			res = Asc.c_oAscFillGradType.GRAD_LINEAR;
 		} else if ("path" === val) {
-			res = c_oAscGradientType.Path;
+			res = Asc.c_oAscFillGradType.GRAD_PATH;
 		}
 		return res;
 	}
@@ -1114,7 +1109,7 @@ var g_oFontProperties = {
 
 	function GradientFill() {
 		//Attributes
-		this.type = c_oAscGradientType.Linear;
+		this.type = Asc.c_oAscFillGradType.GRAD_LINEAR;
 		this.degree = 0;
 		this.left = 0;
 		this.right = 0;
@@ -8613,10 +8608,6 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	window['AscCommonExcel'].CorrectAscColor = CorrectAscColor;
 	window['AscCommonExcel'].Fragment = Fragment;
 	window['AscCommonExcel'].Font = Font;
-	window["Asc"]["c_oAscGradientType"] = c_oAscGradientType;
-	prot = c_oAscGradientType;
-	prot["Linear"] = prot.Linear;
-	prot["Path"] = prot.Path;
 	window["Asc"]["c_oAscPatternType"] = c_oAscPatternType;
 	prot = c_oAscPatternType;
 	prot["DarkDown"] = prot.DarkDown;
@@ -8746,7 +8737,6 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	window['AscCommonExcel'].DateGroupItem = DateGroupItem;
 	window['AscCommonExcel'].SortCondition = SortCondition;
 	window['AscCommonExcel'].AutoFilterDateElem = AutoFilterDateElem;
-	window['AscCommonExcel'].c_oAscGradientType = c_oAscGradientType;
 	window['AscCommonExcel'].c_oAscPatternType = c_oAscPatternType;
 
 	window["Asc"]["CustomFilters"]			= window["Asc"].CustomFilters = CustomFilters;

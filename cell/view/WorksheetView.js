@@ -2836,7 +2836,7 @@
 								oUniFill.fill.bgClr = AscFormat.CreateUniColorRGB2(fill.patternFill.bgColor || AscCommonExcel.createRgbColor(255, 255, 255));
 							} else if (fill.gradientFill) {
                                 oUniFill.fill = new AscFormat.CGradFill();
-                                if(fill.gradientFill.type === AscCommonExcel.c_oAscGradientType.Linear) {
+                                if(fill.gradientFill.type === Asc.c_oAscFillGradType.GRAD_LINEAR) {
                                     oUniFill.fill.lin = new AscFormat.GradLin();
                                     oUniFill.fill.lin.angle = fill.gradientFill.degree*60000;
                                 }
