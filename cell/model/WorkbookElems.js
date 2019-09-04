@@ -1278,6 +1278,9 @@ var g_oFontProperties = {
 	GradientFill.prototype.asc_getDegree = function () {
 		return this.degree;
 	};
+	GradientFill.prototype.asc_setDegree = function (value) {
+		this.degree = value;
+	};
 	GradientFill.prototype.asc_getLeft = function () {
 		return this.left;
 	};
@@ -8640,6 +8643,7 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	prot["asc_getType"] = prot.asc_getType;
 	prot["asc_setType"] = prot.asc_setType;
 	prot["asc_getDegree"] = prot.asc_getDegree;
+	prot["asc_setDegree"] = prot.asc_setDegree;
 	prot["asc_getLeft"] = prot.asc_getLeft;
 	prot["asc_getRight"] = prot.asc_getRight;
 	prot["asc_getTop"] = prot.asc_getTop;
