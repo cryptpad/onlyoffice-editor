@@ -557,7 +557,7 @@
 
 		var res = null;
 		if (0 === arg.length) {
-			res = new cNumber(ws.nSheetId);
+			res = new cNumber(ws.index + 1);
 		} else {
 			var arg0 = arg[0];
 			if (cElementType.error === arg0.type) {
