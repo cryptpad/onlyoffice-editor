@@ -2181,54 +2181,59 @@
 		//width/height - count of pages
 		//automatic -> width/height = undefined
 		//define print scale
-
 		var t = this;
-		var pageOptions = t.model.PagePrintOptions;
-		var pageSetup = pageOptions.asc_getPageSetup();
-
-		if(width === null) {
-			width = 0;
-		}
-		if(height === null) {
-			height = 0;
-		}
-
-		var fitToWidthModel = pageSetup.asc_getFitToWidth();
-		var changedWidth = width !== fitToWidthModel;
-		var fitToHeightModel = pageSetup.asc_getFitToHeight;
-		var changedHeight = height !== fitToHeightModel;
-		var changedScale = scale && scale !== pageSetup.asc_getScale();
-
-		if(changedWidth || changedHeight || changedScale) {
-			History.Create_NewPoint();
-			History.StartTransaction();
-
-			this._changeFitToPage(width, height);
-
-			if(changedWidth) {
-				pageSetup.asc_setFitToWidth(width);
-			}
-			if(changedHeight) {
-				pageSetup.asc_setFitToHeight(height);
+		var callback = function(success) {
+			if(!success) {
+				return;
 			}
 
-			if(undefined === scale && (width !== 0 || height !== 0)) {
-				scale = this.calcPrintScale(pageSetup.asc_getFitToWidth(), pageSetup.asc_getFitToHeight());
+			var pageOptions = t.model.PagePrintOptions;
+			var pageSetup = pageOptions.asc_getPageSetup();
+
+			if(width === null) {
+				width = 0;
 			}
-			if(scale) {
-				this._setPrintScale(scale);
+			if(height === null) {
+				height = 0;
 			}
 
-			this.changeViewPrintLines(true);
-			if(this.viewPrintLines) {
-				t.updateSelection();
-			}
+			var fitToWidthModel = pageSetup.asc_getFitToWidth();
+			var changedWidth = width !== fitToWidthModel;
+			var fitToHeightModel = pageSetup.asc_getFitToHeight;
+			var changedHeight = height !== fitToHeightModel;
+			var changedScale = scale && scale !== pageSetup.asc_getScale();
 
-			History.EndTransaction();
-		}
+			if(changedWidth || changedHeight || changedScale) {
+				History.Create_NewPoint();
+				History.StartTransaction();
+
+				t._changeFitToPage(width, height);
+
+				if(changedWidth) {
+					pageSetup.asc_setFitToWidth(width);
+				}
+				if(changedHeight) {
+					pageSetup.asc_setFitToHeight(height);
+				}
+
+				if(undefined === scale && (width !== 0 || height !== 0)) {
+					scale = t.calcPrintScale(pageSetup.asc_getFitToWidth(), pageSetup.asc_getFitToHeight());
+				}
+				if(scale) {
+					t._setPrintScale(scale);
+				}
+
+				t.changeViewPrintLines(true);
+				if(t.viewPrintLines) {
+					t.updateSelection();
+				}
+
+				History.EndTransaction();
+			}
+		};
 
 		//TODO нужно ли в данном случае лочить?
-		//this._isLockedLayoutOptions(callback);
+		this._isLockedLayoutOptions(callback);
 	};
 
 	WorksheetView.prototype._setPrintScale = function (val) {
