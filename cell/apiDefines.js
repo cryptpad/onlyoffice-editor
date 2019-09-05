@@ -340,6 +340,7 @@ var c_oAscFormulaRangeBorderColor = [
   var c_oAscLockAddSheet = "addSheet";
   var c_oAscLockLayoutOptions = "layoutOptions";
   var c_oAscHeaderFooterEdit = "headerFooterEdit";
+  var c_oAscLockPrintScaleOptions = "printScaleOptions";
 
 var c_oAscGetDefinedNamesList = {
   Worksheet: 0,
@@ -470,6 +471,8 @@ var c_oAscPopUpSelectorType = {
   window['AscCommonExcel'].c_oAscLockAddSheet = c_oAscLockAddSheet;
   window['AscCommonExcel'].c_oAscLockLayoutOptions = c_oAscLockLayoutOptions;
   window['AscCommonExcel'].c_oAscHeaderFooterEdit = c_oAscHeaderFooterEdit;
+  window['AscCommonExcel'].c_oAscLockPrintScaleOptions = c_oAscLockPrintScaleOptions;
+
 
   window['AscCommonExcel'].c_kMaxPrintPages = c_kMaxPrintPages;
   window['AscCommonExcel'].filteringMode = true;

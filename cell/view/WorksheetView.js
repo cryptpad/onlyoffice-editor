@@ -11723,6 +11723,12 @@
 		return lockInfo;
 	};
 
+	WorksheetView.prototype._isLockedPrintScaleOptions = function (callback) {
+		var lockInfo = this.collaborativeEditing.getLockInfo(c_oAscLockTypeElem.Object, null, this.model.getId(),
+			AscCommonExcel.c_oAscLockPrintScaleOptions);
+		this.collaborativeEditing.lock([lockInfo], callback);
+	};
+
 	// Залочена ли панель для закрепления
 	WorksheetView.prototype._isLockedFrozenPane = function (callback) {
 		var lockInfo = this.collaborativeEditing.getLockInfo(c_oAscLockTypeElem.Object, null, this.model.getId(),

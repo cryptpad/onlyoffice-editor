@@ -1156,6 +1156,9 @@ var editor;
       },
       "updateAllHeaderFooterLock": function() {
           t._onUpdateAllHeaderFooterLock.apply(t, arguments);
+      },
+      "updateAllPrintScaleLock": function() {
+          t._onUpdateAllPrintScaleLock.apply(t, arguments);
       }
     }, this.getViewMode());
 
@@ -1218,6 +1221,10 @@ var editor;
           t._onUpdatePrintAreaLock(lockElem);
           //эвент о локе в меню опции headers/footers во вкладке layout
           t._onUpdateHeaderFooterLock(lockElem);
+          //эвент о локе в меню опции scale во вкладке layout
+          t._onUpdatePrintScaleLock(lockElem);
+
+
 
           var ws = t.wb.getWorksheet();
           var lockSheetId = lockElem.Element["sheetId"];
@@ -1301,6 +1308,8 @@ var editor;
           t._onUpdatePrintAreaLock(lockElem);
           //эвент о локе в меню опции headers/footers во вкладке layout
           t._onUpdateHeaderFooterLock(lockElem);
+          //эвент о локе в меню опции scale во вкладке layout
+          t._onUpdatePrintScaleLock(lockElem);
         }
       }
     };
@@ -1456,6 +1465,24 @@ var editor;
       }
   };
 
+	spreadsheet_api.prototype._onUpdateAllPrintScaleLock = function () {
+		var t = this;
+		if (t.wbModel) {
+			var i, length, wsModel, wsIndex;
+			for (i = 0, length = t.wbModel.getWorksheetCount(); i < length; ++i) {
+				wsModel = t.wbModel.getWorksheet(i);
+				wsIndex = wsModel.getIndex();
+
+				var isLocked = t.asc_isLayoutLocked(wsIndex);
+				if (isLocked) {
+					t.handlers.trigger("asc_onLockPrintScale", wsIndex);
+				} else {
+					t.handlers.trigger("asc_onUnLockPrintScale", wsIndex);
+				}
+			}
+		}
+	};
+
   spreadsheet_api.prototype._onUpdateLayoutMenu = function (nSheetId) {
       var t = this;
       if (t.wbModel) {
@@ -1538,6 +1565,22 @@ var editor;
               t.handlers.trigger("asc_onLockHeaderFooter");
           } else {
               t.handlers.trigger("asc_onUnLockHeaderFooter");
+          }
+      }
+  };
+
+  spreadsheet_api.prototype._onUpdatePrintScaleLock = function(lockElem) {
+      var t = this;
+
+      var wsModel = t.wbModel.getWorksheetById(lockElem.Element["sheetId"]);
+      if (wsModel) {
+          var wsIndex = wsModel.getIndex();
+
+          var isLocked = t.asc_isPrintScaleLocked();
+          if(isLocked) {
+              t.handlers.trigger("asc_onLockPrintScale");
+          } else {
+              t.handlers.trigger("asc_onUnLockPrintScale");
           }
       }
   };
@@ -1909,6 +1952,19 @@ var editor;
 
       var lockInfo = this.collaborativeEditing.getLockInfo(c_oAscLockTypeElem.Object, /*subType*/null, sheetId, "headerFooter");
       // Проверим, редактирует ли кто-то лист
+      return (false !== this.collaborativeEditing.getLockIntersection(lockInfo, c_oAscLockTypes.kLockTypeOther, /*bCheckOnlyLockAll*/false));
+  };
+
+  spreadsheet_api.prototype.asc_isPrintScaleLocked = function(index) {
+      var ws = this.wbModel.getWorksheet(index);
+      var sheetId = null;
+      if (null === ws || undefined === ws) {
+          sheetId = this.asc_getActiveWorksheetId();
+      } else {
+          sheetId = ws.getId();
+      }
+
+      var lockInfo = this.collaborativeEditing.getLockInfo(c_oAscLockTypeElem.Object, /*subType*/null, sheetId, "printScaleOptions");
       return (false !== this.collaborativeEditing.getLockIntersection(lockInfo, c_oAscLockTypes.kLockTypeOther, /*bCheckOnlyLockAll*/false));
   };
 
