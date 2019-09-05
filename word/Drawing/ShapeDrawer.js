@@ -532,7 +532,7 @@ CShapeDrawer.prototype =
             if ((this.Ln.headEnd != null && this.Ln.headEnd.type != null) || (this.Ln.tailEnd != null && this.Ln.tailEnd.type != null))
                 isUseArrayPoints = true;
 
-            if (true === graphics.IsTrack)
+            if (true === graphics.IsTrack && graphics.Graphics != undefined && graphics.Graphics != null)
                 graphics.Graphics.ArrayPoints = isUseArrayPoints ? [] : null;
             else
                 graphics.ArrayPoints = isUseArrayPoints ? [] : null;
