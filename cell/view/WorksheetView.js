@@ -2193,9 +2193,9 @@
 			height = 0;
 		}
 
-		var fitToWidthModel = pageSetup.fitToWidth;
+		var fitToWidthModel = pageSetup.asc_getFitToWidth();
 		var changedWidth = width !== fitToWidthModel;
-		var fitToHeightModel = pageSetup.fitToHeight;
+		var fitToHeightModel = pageSetup.asc_getFitToHeight;
 		var changedHeight = height !== fitToHeightModel;
 		var changedScale = scale && scale !== pageSetup.asc_getScale();
 

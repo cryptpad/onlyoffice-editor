@@ -8177,10 +8177,16 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	};
 
 	asc_CPageSetup.prototype.asc_getFitToWidth = function () {
+		if(!this.ws) {
+			return this.fitToWidth;
+		}
 		var fitToPage = this.ws && this.ws.sheetPr && this.ws.sheetPr.FitToPage;
 		return fitToPage ? this.fitToWidth : 0;
 	};
 	asc_CPageSetup.prototype.asc_getFitToHeight = function () {
+		if(!this.ws) {
+			return this.fitToHeight;
+		}
 		var fitToPage = this.ws && this.ws.sheetPr && this.ws.sheetPr.FitToPage;
 		return fitToPage ? this.fitToHeight : 0;
 	};
