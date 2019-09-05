@@ -9510,6 +9510,7 @@ background-repeat: no-repeat;\
 		{
 			oLogicDocument.StartAction(AscDFH.historydescription_SetCoreproperties);
 			oCore.setProps(oProps);
+			this.UpdateInterfaceState();
 			oLogicDocument.FinalizeAction(true);
 		}
 	};

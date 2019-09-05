@@ -7515,6 +7515,7 @@ background-repeat: no-repeat;\
 			oLogicDocument.StartAction(AscDFH.historydescription_SetCoreproperties);
 			oCore.setProps(oProps);
 			oLogicDocument.FinalizeAction(true);
+			this.WordControl.m_oLogicDocument.Document_UpdateInterfaceState();
 		}
 	};
 	//-------------------------------------------------------------export---------------------------------------------------
