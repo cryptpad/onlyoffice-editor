@@ -912,6 +912,7 @@ function CFieldInstructionSTYLEREF()
 	this.W = null;
 	this.GeneralSwitches = [];
 	this.ParentContent = null;
+	this.ParentParagraph = null;
 }
 CFieldInstructionSTYLEREF.prototype = Object.create(CFieldInstructionBase.prototype);
 CFieldInstructionSTYLEREF.prototype.constructor = CFieldInstructionSTYLEREF;
@@ -941,6 +942,67 @@ CFieldInstructionSTYLEREF.prototype.GetText = function()
 			}
 			else
 			{
+				//TODO: Find in all document
+				if(this.ParentParagraph)
+				{
+					if(this.ParentParagraph.Pr.PStyle === this.StyleName)
+					{
+						return AscCommon.translateManager.getValue("Error! Not a valid bookmark self-reference.");
+					}
+					var nIndex, nCount;
+					var oParagraph = null;
+					var sRet = "";
+					var bAbove = true;
+					var oStyles = this.ParentContent.Styles;
+					var sId = oStyles.GetStyleIdByName(this.StyleName);
+					if(sId)
+					{
+						for(nIndex = this.ParentParagraph.Index - 1; nIndex > -1; --nIndex)
+						{
+							if(this.ParentContent.Content[nIndex].Pr.PStyle === sId)
+							{
+								oParagraph = this.ParentContent.Content[nIndex];
+								break;
+							}
+						}
+						if(!oParagraph)
+						{
+							nCount = this.ParentContent.Content.length;
+							for(nIndex = this.ParentParagraph.Index + 1; nIndex < nCount; ++nIndex)
+							{
+								if(this.ParentContent.Content[nIndex].Pr.PStyle === sId)
+								{
+									oParagraph = this.ParentContent.Content[nIndex];
+									bAbove = false;
+								}
+							}
+						}
+						if(oParagraph)
+						{
+							if(this.N || this.R || this.W)
+							{
+								var sNumText = oParagraph.GetNumberingText();
+								if(sNumText === "")
+								{
+									sNumText = "0";
+								}
+								sRet += sNumText;
+							}
+							else
+							{
+								oParagraph.ApplyToAll = true;
+								sRet = oParagraph.GetSelectedText(true, {});
+								oParagraph.ApplyToAll = false;
+							}
+							if(this.P)
+							{
+								sRet += (" " + AscCommon.translateManager.getValue(bAbove ? "above" : "below"));
+							}
+							return sRet;
+						}
+					}
+					return AscCommon.translateManager.getValue("Error! No text of specified style in document.");
+				}
 
 			}
 		}
@@ -997,6 +1059,7 @@ CFieldInstructionSTYLEREF.prototype.SetComplexField = function (oComplexField)
 			var oParagraph = oRun.Paragraph;
 			if(oParagraph)
 			{
+				this.ParentParagraph = oParagraph;
 				this.ParentContent = oParagraph.Parent;
 			}
 		}

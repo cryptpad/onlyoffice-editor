@@ -1111,25 +1111,6 @@ CTableRow.prototype.private_CheckCurCell = function()
 		this.GetTable().private_CheckCurCell();
 };
 
-CTableRow.prototype.CheckElements = function(fCheck, nStartIndex, bForward)
-{
-    var nIndex, nCount;
-    if(bForward)
-    {
-        for(nIndex = nStartIndex; nIndex < this.Content.length; ++nIndex)
-        {
-            
-        }
-    }
-    else
-    {
-
-    }
-};
-
-
-
-
 function CTableRowRecalculateObject()
 {
     this.CellsInfo   = [];

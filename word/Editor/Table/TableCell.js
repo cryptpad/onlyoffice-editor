@@ -2311,22 +2311,6 @@ CTableCell.prototype.IsMergedCell = function()
 	return false;
 };
 
-
-CTableCell.prototype.CheckElements = function(fCheck, bForward)
-{
-    if(this.Row)
-    {
-        if(bForward)
-        {
-            this.Row.CheckElements(fCheck, this.Index + 1, bForward);
-        }
-        else
-        {
-            this.Row.CheckElements(fCheck, this.Index - 1, bForward);
-        }
-    }
-};
-
 function CTableCellRecalculateObject()
 {
     this.BorderInfo = null;

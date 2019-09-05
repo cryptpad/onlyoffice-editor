@@ -18795,7 +18795,10 @@ CDocument.prototype.AddCaption = function(oPr)
                 oEndChar      = new ParaFieldChar(fldchartype_End, this);
                 NewRun = new ParaRun();
                 NewRun.AddToContent(-1, oBeginChar);
-                NewRun.AddInstrText(" STYLEREF " + nHeadingLvl + " \\s");
+
+                var sStyleId = this.Styles.GetDefaultHeading(nHeadingLvl - 1);
+                var oStyle = this.Styles.Get(sStyleId);
+                NewRun.AddInstrText(" STYLEREF \"" + oStyle.GetName() + "\" \\s");
                 NewRun.AddToContent(-1, oSeparateChar);
                 NewRun.AddToContent(-1, oEndChar);
                 oBeginChar.SetRun(NewRun);
@@ -18804,7 +18807,7 @@ CDocument.prototype.AddCaption = function(oPr)
                 NewParagraph.Internal_Content_Add(nCurPos++, NewRun, false);
                 oComplexField = oBeginChar.GetComplexField();
                 oComplexField.SetBeginChar(oBeginChar);
-                oComplexField.SetInstructionLine(" STYLEREF " + nHeadingLvl + " \\s");
+                oComplexField.SetInstructionLine(" STYLEREF \"" + oStyle.GetName() + "\" \\s");
                 oComplexField.SetSeparateChar(oSeparateChar);
                 oComplexField.SetEndChar(oEndChar);
                 oComplexField.Update(false, false);

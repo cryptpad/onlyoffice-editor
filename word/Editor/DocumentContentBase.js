@@ -1643,35 +1643,3 @@ CDocumentContentBase.prototype.CheckRunContent = function(fCheck)
 
 	return false;
 };
-
-
-CDocumentContentBase.prototype.CheckElements = function(fCheck, nStartIndex, bForward)
-{
-	var nIndex, nLength = this.Content.length, Ret = null;
-	if(bForward)
-	{
-		for(nIndex = nStartIndex; nIndex < nLength; nIndex++)
-		{
-			Ret = fCheck(this.Content[nIndex]);
-			if(Ret)
-			{
-				return Ret;
-			}
-		}
-	}
-	else
-	{
-		for(nIndex = nStartIndex; nIndex > -1; nIndex--)
-		{
-			Ret = fCheck(this.Content[nIndex]);
-			if(Ret)
-			{
-				return Ret;
-			}
-		}
-	}
-	if(this.Parent && this.Parent.CheckElements)
-	{
-		this.Parent.CheckElements(fCheck, bForward);
-	}
-};
