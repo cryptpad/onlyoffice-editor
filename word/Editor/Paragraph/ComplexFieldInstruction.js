@@ -910,6 +910,7 @@ function CFieldInstructionSTYLEREF()
 	this.R = null;
 	this.T = null;
 	this.W = null;
+	this.S = null;
 	this.GeneralSwitches = [];
 	this.ParentContent = null;
 	this.ParentParagraph = null;
@@ -923,6 +924,7 @@ CFieldInstructionSTYLEREF.prototype.SetP = function(v){this.P = v;};
 CFieldInstructionSTYLEREF.prototype.SetR = function(v){this.R = v;};
 CFieldInstructionSTYLEREF.prototype.SetT = function(v){this.T = v;};
 CFieldInstructionSTYLEREF.prototype.SetW = function(v){this.W = v;};
+CFieldInstructionSTYLEREF.prototype.SetS = function(v){this.S = v;};
 CFieldInstructionSTYLEREF.prototype.SetGeneralSwitches = function(v){this.GeneralSwitches = v;};
 CFieldInstructionSTYLEREF.prototype.GetText = function()
 {
@@ -979,7 +981,7 @@ CFieldInstructionSTYLEREF.prototype.GetText = function()
 						}
 						if(oParagraph)
 						{
-							if(this.N || this.R || this.W)
+							if(this.N || this.R || this.W || this.S)
 							{
 								var sNumText = oParagraph.GetNumberingText();
 								if(sNumText === "")
@@ -1016,6 +1018,11 @@ CFieldInstructionSTYLEREF.prototype.SetStyleName = function(v)
 CFieldInstructionSTYLEREF.prototype.ToString = function()
 {
 	var sRet = " STYLEREF ";
+
+	if(this.S)
+	{
+		sRet += " \\s"
+	}
 	if(this.StyleName)
 	{
 		sRet += this.StyleName;
@@ -1587,6 +1594,10 @@ CFieldInstructionParser.prototype.private_ParseSTYLEREF = function()
 			else if('w' === sType)
 			{
 				this.Result.SetW(true)
+			}
+			else if ('s' === sType)
+			{
+				this.Result.SetS(true);
 			}
 		}
 	}
