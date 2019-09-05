@@ -360,26 +360,26 @@ CDocumentContent.prototype.GetNumbering = function()
 };
 CDocumentContent.prototype.Get_Styles = function(lvl)
 {
-	if(!this.bPresentation)
+	if (!this.bPresentation)
 	{
 		return this.Styles;
 	}
 	else
 	{
-		return this.Parent.Get_Styles(lvl);
+		return this.Parent ? this.Parent.Get_Styles(lvl) : this.LogicDocument ? this.LogicDocument.GetStyles() : null;
 	}
 };
 CDocumentContent.prototype.Get_TableStyleForPara = function()
 {
-	return this.Parent.Get_TableStyleForPara();
+	return this.Parent ? this.Parent.Get_TableStyleForPara() : null;
 };
 CDocumentContent.prototype.Get_ShapeStyleForPara = function()
 {
-	return this.Parent.Get_ShapeStyleForPara();
+	return this.Parent ? this.Parent.Get_ShapeStyleForPara() : null;
 };
 CDocumentContent.prototype.Get_TextBackGroundColor = function()
 {
-	return this.Parent.Get_TextBackGroundColor();
+	return this.Parent ? this.Parent.Get_TextBackGroundColor() : undefined;
 };
 CDocumentContent.prototype.Recalc_AllParagraphs_CompiledPr = function()
 {
