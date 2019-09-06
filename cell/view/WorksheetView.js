@@ -1633,6 +1633,7 @@
 		//TODO  в данный момент с этот флаг не используется. нужно проверить и убрать.
 		var bPageLayout = arguments[4];
 
+        //TODO убрать использование bFitToWidth/bFitToHeight. сейчас всё должно регулироваться скейлингом
 		var bFitToWidth = false;
 		var bFitToHeight = false;
 		var pageMargins, pageSetup, pageGridLines, pageHeadings;
@@ -1648,8 +1649,8 @@
             pageWidth = pageSetup.asc_getWidth();
             pageHeight = pageSetup.asc_getHeight();
             pageOrientation = pageSetup.asc_getOrientation();
-            bFitToWidth = pageSetup.asc_getFitToWidth();
-            bFitToHeight = pageSetup.asc_getFitToHeight();
+            //bFitToWidth = pageSetup.asc_getFitToWidth();
+            //bFitToHeight = pageSetup.asc_getFitToHeight();
         }
 
         //scale пока всегда берём из модели
@@ -2107,7 +2108,13 @@
 	};
 
 	WorksheetView.prototype.setPrintScale = function (width, height, scale) {
-		this.fitToWidthHeight(width, height, ((width === null && height === null) || (width === 0 && height === 0)) ? scale : undefined);
+		var t = this;
+		this._isLockedLayoutOptions(function(success) {
+			if(!success) {
+				return;
+			}
+			t.fitToWidthHeight(width, height, ((width === null && height === null) || (width === 0 && height === 0)) ? scale : undefined);
+		});
 	};
 
 	//пересчитывать необходимо когда после открытия зашли в настройки печати
@@ -2182,58 +2189,50 @@
 		//automatic -> width/height = undefined
 		//define print scale
 		var t = this;
-		var callback = function(success) {
-			if(!success) {
-				return;
+		
+		var pageOptions = t.model.PagePrintOptions;
+		var pageSetup = pageOptions.asc_getPageSetup();
+
+		if(width === null) {
+			width = 0;
+		}
+		if(height === null) {
+			height = 0;
+		}
+
+		var fitToWidthModel = pageSetup.asc_getFitToWidth();
+		var changedWidth = width !== fitToWidthModel;
+		var fitToHeightModel = pageSetup.asc_getFitToHeight;
+		var changedHeight = height !== fitToHeightModel;
+		var changedScale = scale && scale !== pageSetup.asc_getScale();
+
+		if(changedWidth || changedHeight || changedScale) {
+			History.Create_NewPoint();
+			History.StartTransaction();
+
+			t._changeFitToPage(width, height);
+
+			if(changedWidth) {
+				pageSetup.asc_setFitToWidth(width);
+			}
+			if(changedHeight) {
+				pageSetup.asc_setFitToHeight(height);
 			}
 
-			var pageOptions = t.model.PagePrintOptions;
-			var pageSetup = pageOptions.asc_getPageSetup();
-
-			if(width === null) {
-				width = 0;
+			if(undefined === scale && (width !== 0 || height !== 0)) {
+				scale = t.calcPrintScale(pageSetup.asc_getFitToWidth(), pageSetup.asc_getFitToHeight());
 			}
-			if(height === null) {
-				height = 0;
+			if(scale) {
+				t._setPrintScale(scale);
 			}
 
-			var fitToWidthModel = pageSetup.asc_getFitToWidth();
-			var changedWidth = width !== fitToWidthModel;
-			var fitToHeightModel = pageSetup.asc_getFitToHeight;
-			var changedHeight = height !== fitToHeightModel;
-			var changedScale = scale && scale !== pageSetup.asc_getScale();
-
-			if(changedWidth || changedHeight || changedScale) {
-				History.Create_NewPoint();
-				History.StartTransaction();
-
-				t._changeFitToPage(width, height);
-
-				if(changedWidth) {
-					pageSetup.asc_setFitToWidth(width);
-				}
-				if(changedHeight) {
-					pageSetup.asc_setFitToHeight(height);
-				}
-
-				if(undefined === scale && (width !== 0 || height !== 0)) {
-					scale = t.calcPrintScale(pageSetup.asc_getFitToWidth(), pageSetup.asc_getFitToHeight());
-				}
-				if(scale) {
-					t._setPrintScale(scale);
-				}
-
-				t.changeViewPrintLines(true);
-				if(t.viewPrintLines) {
-					t.updateSelection();
-				}
-
-				History.EndTransaction();
+			t.changeViewPrintLines(true);
+			if(t.viewPrintLines) {
+				t.updateSelection();
 			}
-		};
 
-		//TODO нужно ли в данном случае лочить?
-		this._isLockedLayoutOptions(callback);
+			History.EndTransaction();
+		}
 	};
 
 	WorksheetView.prototype._setPrintScale = function (val) {
@@ -16221,7 +16220,7 @@
 
 			//если поменялись scaling - fit sheet on.. -> необходимо пересчитать scaling
 			if(oldFitToWidth != newFitToWidth || oldFitToHeight != newFitToHeight) {
-				t.fitToPages(newFitToWidth, newFitToHeight);
+				t.fitToWidthHeight(newFitToWidth, newFitToHeight);
 			}
 
 			t.changeViewPrintLines(true);
