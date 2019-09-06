@@ -5101,14 +5101,14 @@ background-repeat: no-repeat;\
 
 				presentation.DrawingDocument.OnEndRecalculate();
 
-
-
-				this.asc_registerCallback('asc_doubleClickOnChart', function(){
-					// next tick
-					setTimeout(function() {
-						window.editor.WordControl.onMouseUpMainSimple();
-					}, 0);
-				});
+				if(!window['IS_NATIVE_EDITOR']) {
+					this.asc_registerCallback('asc_doubleClickOnChart', function(){
+						// next tick
+						setTimeout(function() {
+							window.editor.WordControl.onMouseUpMainSimple();
+						}, 0);
+					});
+				}
 
 				if(!window["NATIVE_EDITOR_ENJINE"]){
 

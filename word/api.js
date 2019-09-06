@@ -7547,7 +7547,11 @@ background-repeat: no-repeat;\
 	{
 		this.isChartEditor = true;	// Для совместного редактирования
 		this.asc_onOpenChartFrame();
-		this.WordControl.onMouseUpMainSimple();
+		
+		if(!window['IS_NATIVE_EDITOR']) {
+			this.WordControl.onMouseUpMainSimple();
+		}
+		
 		this.sendEvent("asc_doubleClickOnChart", obj);
 	};
 
