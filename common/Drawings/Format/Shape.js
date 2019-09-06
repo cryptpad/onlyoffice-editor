@@ -369,7 +369,7 @@ function CopyRunToPPTX(Run, Paragraph, bHyper)
 function ConvertParagraphToPPTX(paragraph, drawingDocument, newParent, bIsAddMath, bRemoveHyperlink)
 {
     var _drawing_document = isRealObject(drawingDocument) ? drawingDocument : paragraph.DrawingDocument;
-    var _new_parent = isRealObject(newParent) ? newParent : paragraph.Parent;
+    var _new_parent = isRealObject(newParent) ? newParent : null;
 
     var new_paragraph = new Paragraph(_drawing_document, _new_parent, true);
     if(!(paragraph instanceof Paragraph))
