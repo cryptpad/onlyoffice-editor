@@ -44,6 +44,74 @@
 	var cNumber = AscCommonExcel.cNumber;
 	var cError = AscCommonExcel.cError;
 
+	function StatisticOnlineAlgorithm(){
+		this.count = 0;
+		this.countNums = 0;
+		this.min = Number.POSITIVE_INFINITY;
+		this.max = Number.NEGATIVE_INFINITY;
+		this.sum = 0;
+		this.product = 1;
+		this.mean = 0;
+		this.M2 = 0;
+	}
+	StatisticOnlineAlgorithm.prototype.union = function(val) {
+		this.min = Math.min(this.min, val.min);
+		this.max = Math.max(this.max, val.max);
+		this.sum = this.sum + val.sum;
+		this.product = this.product * val.product;
+		//Parallel Welford's online algorithm
+		var delta = val.mean - this.mean;
+		this.mean = this.mean + delta * val.countNums / (this.countNums + val.countNums);
+		this.M2 = this.M2 + val.M2 + delta * delta * this.countNums * val.countNums / (this.countNums + val.countNums);
+		this.count = this.count + val.count;
+		this.countNums = this.countNums + val.countNums;
+	};
+	StatisticOnlineAlgorithm.prototype.add = function(val) {
+		this.count++;
+		this.countNums++;
+		this.min = Math.min(this.min, val);
+		this.max = Math.max(this.max, val);
+		this.sum += val;
+		this.product *= val;
+		//Welford's online algorithm
+		var delta = val - this.mean;
+		this.mean += delta / this.count;
+		this.M2 += delta * (val - this.mean);
+	};
+	StatisticOnlineAlgorithm.prototype.addCount = function() {
+		this.count++;
+	};
+	StatisticOnlineAlgorithm.prototype.getCount = function() {
+		return this.count;
+	};
+	StatisticOnlineAlgorithm.prototype.getCountNums = function() {
+		return this.countNums;
+	};
+	StatisticOnlineAlgorithm.prototype.getMin = function() {
+		return this.min;
+	};
+	StatisticOnlineAlgorithm.prototype.getMax = function() {
+		return this.max;
+	};
+	StatisticOnlineAlgorithm.prototype.getSum = function() {
+		return this.sum;
+	};
+	StatisticOnlineAlgorithm.prototype.getMean = function() {
+		return this.mean;
+	};
+	StatisticOnlineAlgorithm.prototype.getVar = function() {
+		return this.M2 / (this.countNums - 1);
+	};
+	StatisticOnlineAlgorithm.prototype.getVarP = function() {
+		return this.M2 / this.countNums;
+	};
+	StatisticOnlineAlgorithm.prototype.getStdDev = function() {
+		return this.countNums > 0 ? Math.sqrt(this.getVar()) : 0.0;
+	};
+	StatisticOnlineAlgorithm.prototype.getStdDevP = function() {
+		return this.countNums > 0 ? Math.sqrt(this.getVarP()) : 0.0;
+	};
+
 	function checkValueByCondition(condition, val){
 		var res = false;
 		condition = condition.tocString();
@@ -793,4 +861,7 @@
 		return /*cElementType.error === res.type ? new cNumber(0) :*/ res;
 	};
 
+	window['AscCommonExcel'] = window['AscCommonExcel'] || {};
+
+	window["AscCommonExcel"].StatisticOnlineAlgorithm = StatisticOnlineAlgorithm;
 })(window);
