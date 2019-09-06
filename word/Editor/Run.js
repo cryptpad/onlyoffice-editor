@@ -6064,7 +6064,7 @@ ParaRun.prototype.Draw_Lines = function(PDSL)
 // Функции для работы с курсором
 //-----------------------------------------------------------------------------------
 // Находится ли курсор в начале рана
-ParaRun.prototype.Is_CursorPlaceable = function()
+ParaRun.prototype.IsCursorPlaceable = function()
 {
     return true;
 };

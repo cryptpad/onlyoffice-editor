@@ -4195,13 +4195,13 @@ Paragraph.prototype.Correct_ContentPos2 = function()
 
 	// Может так случиться, что текущий элемент окажется непригодным для расположения курсора, тогда мы ищем ближайший
 	// пригодный
-	while (CurPos > 0 && false === this.Content[CurPos].Is_CursorPlaceable())
+	while (CurPos > 0 && false === this.Content[CurPos].IsCursorPlaceable())
 	{
 		CurPos--;
 		this.Content[CurPos].MoveCursorToEndPos();
 	}
 
-	while (CurPos < Count && false === this.Content[CurPos].Is_CursorPlaceable())
+	while (CurPos < Count && false === this.Content[CurPos].IsCursorPlaceable())
 	{
 		CurPos++;
 		this.Content[CurPos].MoveCursorToStartPos(false);
@@ -4210,7 +4210,7 @@ Paragraph.prototype.Correct_ContentPos2 = function()
 	// Если курсор находится в начале или конце гиперссылки, тогда выводим его из гиперссылки
 	while (CurPos > 0 && para_Run !== this.Content[CurPos].Type && para_Math !== this.Content[CurPos].Type && para_Field !== this.Content[CurPos].Type && para_InlineLevelSdt !== this.Content[CurPos].Type && true === this.Content[CurPos].Cursor_Is_Start())
 	{
-		if (false === this.Content[CurPos - 1].Is_CursorPlaceable())
+		if (false === this.Content[CurPos - 1].IsCursorPlaceable())
 			break;
 
 		CurPos--;
@@ -4219,7 +4219,7 @@ Paragraph.prototype.Correct_ContentPos2 = function()
 
 	while (CurPos < Count && para_Run !== this.Content[CurPos].Type && para_Math !== this.Content[CurPos].Type && para_Field !== this.Content[CurPos].Type && para_InlineLevelSdt !== this.Content[CurPos].Type && true === this.Content[CurPos].Cursor_Is_End())
 	{
-		if (false === this.Content[CurPos + 1].Is_CursorPlaceable())
+		if (false === this.Content[CurPos + 1].IsCursorPlaceable())
 			break;
 
 		CurPos++;
@@ -4229,6 +4229,8 @@ Paragraph.prototype.Correct_ContentPos2 = function()
 	this.private_CorrectCurPosRangeLine();
 
 	this.CurPos.ContentPos = CurPos;
+
+	this.Content[this.CurPos.ContentPos].CorrectContentPos();
 };
 Paragraph.prototype.Get_ParaContentPos = function(bSelection, bStart, bUseCorrection)
 {
@@ -7652,7 +7654,7 @@ Paragraph.prototype.GetCalculatedTextPr = function()
 
 		var StartPos = 0;
 		var Count    = this.Content.length;
-		while (true !== this.Content[StartPos].Is_CursorPlaceable() && StartPos < Count - 1)
+		while (true !== this.Content[StartPos].IsCursorPlaceable() && StartPos < Count - 1)
 			StartPos++;
 
 		TextPr    = this.Content[StartPos].Get_CompiledTextPr(true);
@@ -7702,7 +7704,7 @@ Paragraph.prototype.GetCalculatedTextPr = function()
 				while (true === this.Content[StartPos].IsSelectionEmpty() && StartPos < EndPos)
 					StartPos++;
 
-				while (true !== this.Content[StartPos].Is_CursorPlaceable() && StartPos > OldStartPos)
+				while (true !== this.Content[StartPos].IsCursorPlaceable() && StartPos > OldStartPos)
 					StartPos--;
 
 
