@@ -2202,7 +2202,7 @@
 
 		var fitToWidthModel = pageSetup.asc_getFitToWidth();
 		var changedWidth = width !== fitToWidthModel;
-		var fitToHeightModel = pageSetup.asc_getFitToHeight;
+		var fitToHeightModel = pageSetup.asc_getFitToHeight();
 		var changedHeight = height !== fitToHeightModel;
 		var changedScale = scale && scale !== pageSetup.asc_getScale();
 
@@ -2212,10 +2212,10 @@
 
 			t._changeFitToPage(width, height);
 
-			if(changedWidth) {
+			if(width !== pageSetup.asc_getFitToWidth()) {
 				pageSetup.asc_setFitToWidth(width);
 			}
-			if(changedHeight) {
+			if(height !== pageSetup.asc_getFitToHeight()) {
 				pageSetup.asc_setFitToHeight(height);
 			}
 
