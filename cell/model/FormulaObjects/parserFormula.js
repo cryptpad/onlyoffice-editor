@@ -1066,6 +1066,17 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 		}
 		return res;
 	};
+	cArea.prototype.getValueByRowCol = function (i, j) {
+		var res, r;
+		r = this.getRange();
+		r.worksheet._getCellNoEmpty(r.bbox.r1 + i, r.bbox.c1 + j, function(cell) {
+			if(cell) {
+				res = checkTypeCell(cell);
+			}
+		});
+
+		return res;
+	};
 	cArea.prototype.getRange = function () {
 		if (!this.range) {
 			this.range = this.ws.getRange2(this.value);
@@ -1365,6 +1376,19 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 		}
 
 		return (null == _val[0]) ? new cEmpty() : _val[0];
+	};
+	cArea3D.prototype.getValueByRowCol = function (i, j) {
+		var r = this.getRanges(), res;
+
+		if(r[0]) {
+			r[0].worksheet._getCellNoEmpty(r[0].bbox.r1 + i, r[0].bbox.c1 + j, function(cell) {
+				if(cell) {
+					res = checkTypeCell(cell);
+				}
+			});
+		}
+
+		return res;
 	};
 	cArea3D.prototype.changeSheet = function (wsLast, wsNew) {
 		if (this.wsFrom === wsLast) {
@@ -7045,17 +7069,7 @@ parserFormula.prototype.clone = function(formula, parent, ws) {
 		return false;
 	};
 	parserFormula.prototype.simplifyRefType = function(val, opt_cell) {
-		var ref = this.getArrayFormulaRef();
-
-		var getMatrixVal = function(_val) {
-			var row = 1 === _val.length ? 0 : opt_cell.nRow - ref.r1;
-			var col = 1 === _val[0].length ? 0 : opt_cell.nCol - ref.c1;
-			if(_val[row] && _val[row][col]) {
-				return _val[row][col];
-			} else {
-				return new window['AscCommonExcel'].cError(window['AscCommonExcel'].cErrorType.not_available);
-			}
-		};
+		var ref = this.getArrayFormulaRef(), row, col;
 
 		if (cElementType.cell === val.type || cElementType.cell3D === val.type) {
 			val = val.getValue();
@@ -7065,7 +7079,13 @@ parserFormula.prototype.clone = function(formula, parent, ws) {
 			}
 		} else if (cElementType.array === val.type) {
 			if(ref && opt_cell) {
-				val = getMatrixVal(val.array);
+				row = 1 === val.array.length ? 0 : opt_cell.nRow - ref.r1;
+				col = 1 === val.array[0].length ? 0 : opt_cell.nCol - ref.c1;
+				if(val.array[row] && val.array[row][col]) {
+					val = val.getElementRowCol(row, col);
+				} else {
+					val = new window['AscCommonExcel'].cError(window['AscCommonExcel'].cErrorType.not_available);
+				}
 			} else {
 				val = val.getElement(0);
 			}
@@ -7077,14 +7097,24 @@ parserFormula.prototype.clone = function(formula, parent, ws) {
 			}
 		} else if (cElementType.cellsRange === val.type || cElementType.cellsRange3D === val.type) {
 			if (opt_cell) {
+				var range;
 				if(ref) {
-					var matrix = val.getMatrix();
-					if(cElementType.cellsRange3D === val.type) {
-						matrix = matrix[0];
+					range = val.getRange();
+					if(range) {
+						var bbox = range.bbox;
+						var rowCount = bbox.r2 - bbox.r1 + 1;
+						var colCount = bbox.c2 - bbox.c1 + 1;
+						row = 1 === rowCount ? 0 : opt_cell.nRow - ref.r1;
+						col = 1 === colCount ? 0 : opt_cell.nCol - ref.c1;
+						val = val.getValueByRowCol(row, col);
+						if(!val) {
+							val = new window['AscCommonExcel'].cError(window['AscCommonExcel'].cErrorType.not_available);
+						}
+					} else {
+						val = new window['AscCommonExcel'].cError(window['AscCommonExcel'].cErrorType.not_available);
 					}
-					val = getMatrixVal(matrix);
 				} else {
-					var range = new Asc.Range(opt_cell.nCol, opt_cell.nRow, opt_cell.nCol, opt_cell.nRow);
+					range = new Asc.Range(opt_cell.nCol, opt_cell.nRow, opt_cell.nCol, opt_cell.nRow);
 					val = val.cross(range, opt_cell.ws.getId());
 				}
 			} else if (cElementType.cellsRange === val.type) {
