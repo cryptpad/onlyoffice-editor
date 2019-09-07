@@ -6113,6 +6113,13 @@ function NativeOpenFile3(_params, documentInfo)
             var doc_bin = window.native.GetFileString(window.g_file_path);
             _api.asc_nativeOpenFile(doc_bin);
 
+           	if (window.documentInfo["viewmode"]) {
+            	_api.ShowParaMarks = false;
+            	AscCommon.CollaborativeEditing.Set_GlobalLock(true);
+            	_api.isViewMode = true;
+            	_api.WordControl.m_oDrawingDocument.IsViewMode = true;
+          	}
+
             if (null != _api.WordControl.m_oLogicDocument)
             {
                 _api.sendColorThemes(_api.WordControl.m_oLogicDocument.theme);
@@ -6261,7 +6268,12 @@ Asc['asc_docs_api'].prototype.openDocument = function(file)
         {
             _api.sendColorThemes(_api.WordControl.m_oLogicDocument.theme);
         }
-        
+
+        _api.ShowParaMarks = false;
+        AscCommon.CollaborativeEditing.Set_GlobalLock(true);
+        _api.isViewMode = true;
+        _api.WordControl.m_oDrawingDocument.IsViewMode = true;
+  
         window["native"]["onEndLoadingFile"]();
         
         return;
