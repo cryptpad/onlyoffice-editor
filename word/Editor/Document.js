@@ -18754,18 +18754,32 @@ CDocument.prototype.AddCaption = function(oPr)
             }
             else
             {
-                var oDrawing = new ParaDrawing(1828800 / 36000, 1828800 / 36000, null, this.DrawingDocument, this, null);
+                var oNewDrawing = new ParaDrawing(1828800 / 36000, 1828800 / 36000, null, this.DrawingDocument, this, null);
                 var oShape = this.DrawingObjects.createTextArt(0, true, null, "");
-                oShape.setParent(oDrawing);
-                oDrawing.Set_GraphicObject(oShape);
-                oDrawing.Set_DrawingType(drawing_Anchor);
-                oDrawing.Set_WrappingType(WRAPPING_TYPE_NONE);
-                oDrawing.Set_BehindDoc(false);
-                oDrawing.Set_Distance(3.2, 0, 3.2, 0);
-                oDrawing.Set_PositionH(Asc.c_oAscRelativeFromH.Column, false, 0, false);
-                oDrawing.Set_PositionV(Asc.c_oAscRelativeFromV.Paragraph, false, 0, false);
-                var oContent = oShape.getDocContent();
-                NewParagraph = oContent.Content[0];
+                oShape.setParent(oNewDrawing);
+                oNewDrawing.Set_GraphicObject(oShape);
+                oNewDrawing.Set_DrawingType(drawing_Anchor);
+                oNewDrawing.Set_WrappingType(oDrawing.wrappingType);
+                oNewDrawing.Set_BehindDoc(oDrawing.behindDoc);
+				oNewDrawing.Set_Distance(3.2, 0, 3.2, 0);
+				var oNearestPos = this.Get_NearestPos(oDrawing.PageNum, oDrawing.X, oDrawing.Y, true, oNewDrawing);
+				if(oNearestPos)
+				{
+					oNearestPos.Paragraph.Check_NearestPos(oNearestPos);
+					oNearestPos.Page = oDrawing.PageNum;
+					if(oPr.get_Before())
+					{
+						
+					}
+					else
+					{
+						oNewDrawing.Set_XYForAdd(oDrawing.X, oDrawing.Y + oDrawing.H, oNearestPos, oDrawing.PageNum);
+					}
+					oNewDrawing.Add_ToDocument(oNearestPos, false);
+					oNewDrawing.CheckWH();
+					var oContent = oShape.getDocContent();
+					NewParagraph = oContent.Content[0];
+				}
             }
         }
     }
