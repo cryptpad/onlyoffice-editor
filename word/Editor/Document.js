@@ -18779,12 +18779,13 @@ CDocument.prototype.AddCaption = function(oPr)
                     oBodyPr.tIns = 0.0;
                     oBodyPr.rIns = 0.0;
                     oBodyPr.bIns = 0.0;
-                    var Y = oDrawing.Y + oDrawing.Extent.H;
+                    var dInset = 1.6;
+                    var Y = oDrawing.Y + oDrawing.Extent.H + dInset;
                     if(oPr.get_Before())
 					{
                         oBodyPr.textFit = new AscFormat.CTextFit();
                         oBodyPr.textFit.type = AscFormat.text_fit_No;
-                        Y = oDrawing.Y - oShape.spPr.xfrm.extY;
+                        Y = oDrawing.Y - oShape.spPr.xfrm.extY - dInset;
 					}
                     oNewDrawing.Set_XYForAdd(oDrawing.X, Y, oNearestPos, oDrawing.PageNum);
                     oShape.setBodyPr(oBodyPr);
