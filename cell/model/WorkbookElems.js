@@ -1517,8 +1517,14 @@ var g_oFontProperties = {
 	PatternFill.prototype.asc_getFgColor = function () {
 		return this.fgColor;
 	};
+	PatternFill.prototype.asc_setFgColor = function (value) {
+		this.fgColor = CorrectAscColor(value);
+	};
 	PatternFill.prototype.asc_getBgColor = function () {
 		return this.bgColor;
+	};
+	PatternFill.prototype.asc_setBgColor = function (value) {
+		this.bgColor = CorrectAscColor(value);
 	};
 
 	/** @constructor */
@@ -8674,7 +8680,9 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	prot["asc_getType"] = prot.asc_getType;
 	prot["asc_setType"] = prot.asc_setType;
 	prot["asc_getFgColor"] = prot.asc_getFgColor;
+	prot["asc_setFgColor"] = prot.asc_setFgColor;
 	prot["asc_getBgColor"] = prot.asc_getBgColor;
+	prot["asc_setBgColor"] = prot.asc_setBgColor;
 	window["Asc"]["asc_CFill2"] = window['AscCommonExcel'].Fill = Fill;
 	prot = Fill.prototype;
 	prot["asc_getPatternFill"] = prot.asc_getPatternFill;
