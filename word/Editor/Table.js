@@ -10184,7 +10184,7 @@ CTable.prototype.AddTableColumn = function(bBefore)
 };
 CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 {
-	
+	this.RemoveSelection();
 	// Приводим к координатам таблицы
 	X1 = X1-this.Pages[0].X; 
 	X2 = X2-this.Pages[0].X;
@@ -10967,7 +10967,6 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 					{
 						// Проверка на попадание в окрестность вертикальной границы
 						// для внутреннего содержания таблицы
-						
 						if (Math.abs(X1 - this.Content[curRow].CellsInfo[curCell].X_cell_end) < 2)
 						{
 							if (curCell != this.Content[curRow].CellsInfo.length - 1)
@@ -11109,6 +11108,9 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 								{
 									if (this.Content[curRow].CellsInfo[Index].X_cell_start < X1  &&  X1 < this.Content[curRow].CellsInfo[Index].X_cell_end)
 									{
+										if (Cell.GetVMerge() === 2)
+											return;
+
 										var cell_pos = 
 										{
 											Cell: Index,
@@ -11158,8 +11160,6 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 							}
 
 						}
-						
-						
 					}
 					// Идем по столбцу и проверяем в границу какой ячейки попадаем ластиком
 					else if (this.Content[curRow].CellsInfo[curCell].X_cell_start < X1  &&  X1 < this.Content[curRow].CellsInfo[curCell].X_cell_end)
@@ -11182,7 +11182,8 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 											Row : curRow + VMerge_count - 1
 										};
 										
-										
+										if (Cell.GetVMerge() === 2)
+											return;
 										this.Selection.Data = [];
 										this.Selection.Data.push(cell_pos);
 										
@@ -11192,7 +11193,8 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 										break;
 
 									}
-
+									if (Cell.GetVMerge() === 2)
+										return;
 									var cell_pos1 = 
 									{
 										Cell: curCell,
@@ -11528,35 +11530,32 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 		var newTempSelectionData  = [];
 		var TempSelectionData = this.Selection.Data; // Массив ячеек, которые были выделены 
 		
-		
 		// Если выделяем целиком колонку - удаляем её 
-		if (!click && this.Selection.Data[0].Row === 0 && this.Selection.Data[this.Selection.Data.length - 1].Row === this.Content.length - 1)
+		if (Y_Over && Y_Under && bCanMerge)
 		{
 			var Sel_Cells_Count = 0; 
 			for (var curRow = 0; curRow < this.Content.length; curRow++)
 			{
 				Sel_Cells_Count += this.Content[curRow].CellsInfo.length;
 			}
-
-			if (bCanMerge && Y_Over && Y_Under)
+			
+			if (Sel_Cells_Count === this.Selection.Data.length)
 			{
-				if (Sel_Cells_Count === this.Selection.Data.length)
+				for (var curRow = 0; curRow < this.Content.length; curRow++)
 				{
-					// this.Selection.Use  = true;
-					// this.Selection.Type = 0;
-					// this.RemoveTableRow();
-					// return true;
-					this.RemoveInnerTable();
-					return true;
+					this.RemoveTableRow(curRow);
 				}
-					
-				this.Selection.Use = true;
-				this.Selection.Type = 0;
-				this.RemoveTableCells();
 				return true;
 			}
-			
+				
+			// var pos = this.Selection.Data[0];
+			// this.CurCell = this.Content[pos.Row].Get_Cell(pos.Cell);
+			this.Selection.Use = true;
+			this.Selection.Type = 0;
+			this.RemoveTableColumn();
+			return true;
 		}
+		
 		
 		// Удаление внешних границ, 
 		// в выделении должна быть только одна ячейка
@@ -11594,30 +11593,56 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 			if (isHSelect)
 			{
 				if (isTopBorder)
+				{
+					if (Cell.Get_Border(0).Value === 0)
+						return;
 					Cell.Set_Border(borderNan, 0);
+				}
+					
 				else if (isBottomBorder)
+				{
+					if (Cell.Get_Border(2).Value === 0)
+						return;
 					Cell.Set_Border(borderNan, 2);
+				}
+					
 			}
 
 			// Удаление вертикальных внешних границ
 			else if (isVSelect)
 			{
 				if (isRightBorder)
+				{
+					if (Cell.Get_Border(1).Value === 0)
+						return;
 					Cell.Set_Border(borderNan, 1);
+				}
+					
 				else if (isLeftBorder)
+				{
+					if (Cell.Get_Border(3).Value === 0)
+						return;
 					Cell.Set_Border(borderNan, 3);
+				}
+					
 			}
 			
 			if (X_Front)
 			{
+				if (Cell.Get_Border(3).Value === 0)
+					return;
 				Cell.Set_Border(borderNan, 3);
 			}
 			if (X_After)
 			{
+				if (Cell.Get_Border(1).Value === 0)
+					return;
 				Cell.Set_Border(borderNan, 1);
 			}
 			if (Y_Over)
 			{
+				if (Cell.Get_Border(0).Value === 0)
+					return;
 				Cell.Set_Border(borderNan, 0);
 			}
 			if (Y_Under)
@@ -11629,6 +11654,8 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 				var Grid_span 	 = Cell.Get_GridSpan();
 				var VMerge_Count = this.Internal_GetVertMergeCount(Cell_pos.Row, Grid_start, Grid_span);
 				TempCell 		 = this.Content[Cell_pos.Row + VMerge_Count - 1].Get_Cell(Cell_pos.Cell);
+				if (TempCell.Get_Border(2).Value === 0)
+					return;
 				Cell.Set_Border(borderNan, 2);
 				TempCell.Set_Border(borderNan, 2);
 
@@ -11712,7 +11739,7 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 				var Cells 	 = []; // ячейки, которые будут удалены, при условии, что все внешние границы стерты
 				var rowsInfo = []; // т.к. исп. функцию RemoveTableCells, при удалении ячейки слева, сетка смещается влево, 
 				// поэтому генерируем свою сетку 
-				var done 	 = false; // первая ячейка из вертикального объединения должна быть добавлена в Cells только 1 раз
+				
 
 				if (Cell.Get_Border(0).Value === 0 && Cell.Get_Border(3).Value === 0)
 				{
@@ -11879,13 +11906,11 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 						}
 						else if (TempCell.GetVMerge() === 1)
 						{
-							if (!done)
-								if (TempCell.Row.Index === Cell.Row.Index)
-								{
-									Cells.push(TempCell);
-									done = true;
-									continue;
-								}
+							if (TempCell.Row.Index === Cell.Row.Index)
+							{
+								Cells.push(TempCell);
+								return true;
+							}
 							if (TempCell.Get_Border(0).Value === 0 && TempCell.Get_Border(3).Value === 0)
 							{
 								Cells.push(TempCell);
@@ -12005,6 +12030,7 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 									}
 									return true;
 								}
+								return true;
 								
 							}
 						}
@@ -12024,13 +12050,12 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 						}
 						else if (TempCell.GetVMerge() === 1)
 						{
-							if (!done)
-								if (TempCell.Row.Index === Cell.Row.Index)
-								{
-									Cells.push(TempCell);
-									done = true;
-									continue;
-								}
+							
+							if (TempCell.Row.Index === Cell.Row.Index)
+							{
+								Cells.push(TempCell);
+								return true;
+							}
 							if (TempCell.Get_Border(0).Value === 0 && TempCell.Get_Border(1).Value === 0)
 							{
 								Cells.push(TempCell);
@@ -12077,8 +12102,10 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 						var borderNan = new CDocumentBorder(); 
 						
 						// Стираем границу
-						Cell_1.Set_Border(borderNan,2);
-						Cell_2.Set_Border(borderNan, 0);
+						if (Cell_1.Get_Border(2).Value != 0)
+							Cell_1.Set_Border(borderNan,2);
+						if (Cell_2.Get_Border(0).Value != 0)	
+							Cell_2.Set_Border(borderNan, 0);
 					}
 					else if (isVSelect)
 					{
@@ -12094,8 +12121,10 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 						var Cell_2 = this.Content[this.Selection.Data[1].Row].Get_Cell(this.Selection.Data[1].Cell);
 						
 						// Стираем границу
-						Cell_1.Set_Border(borderNan, 1);
-						Cell_2.Set_Border(borderNan, 3);
+						if (Cell_1.Get_Border(1).Value != 0)
+							Cell_1.Set_Border(borderNan, 1);
+						if (Cell_2.Get_Border(3).Value != 0)
+							Cell_2.Set_Border(borderNan, 3);
 						
 					}
 					// Если отсутвуют все внутренние и внешние границы у строки - удаляем её
@@ -12140,7 +12169,6 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 							var Cells 	 = []; // ячейки, которые будут удалены, при условии, что все внешние границы стерты
 							var rowsInfo = []; // т.к. исп. функцию RemoveTableCells, при удалении ячейки слева, сетка смещается влево, 
 							// поэтому генерируем свою сетку 
-							var done 	 = false; // первая ячейка из вертикального объединения должна быть добавлена в Cells только 1 раз
 
 							if (Cell.Get_Border(0).Value === 0 && Cell.Get_Border(3).Value === 0)
 							{
@@ -12307,13 +12335,12 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 									}
 									else if (TempCell.GetVMerge() === 1)
 									{
-										if (!done)
-											if (TempCell.Row.Index === Cell.Row.Index)
-											{
-												Cells.push(TempCell);
-												done = true;
-												continue;
-											}
+										
+										if (TempCell.Row.Index === Cell.Row.Index)
+										{
+											Cells.push(TempCell);
+											return true;
+										}
 										if (TempCell.Get_Border(0).Value === 0 && TempCell.Get_Border(3).Value === 0)
 										{
 											Cells.push(TempCell);
@@ -12452,13 +12479,12 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 									}
 									else if (TempCell.GetVMerge() === 1)
 									{
-										if (!done)
-											if (TempCell.Row.Index === Cell.Row.Index)
-											{
-												Cells.push(TempCell);
-												done = true;
-												continue;
-											}
+										
+										if (TempCell.Row.Index === Cell.Row.Index)
+										{
+											Cells.push(TempCell);
+											return true;
+										}
 										if (TempCell.Get_Border(0).Value === 0 && TempCell.Get_Border(1).Value === 0)
 										{
 											Cells.push(TempCell);
@@ -12724,7 +12750,8 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 				if (this.Selection.Data[0].Row === 0)
 				{
 					var borderNan = new CDocumentBorder();
-					Cell_tl.Set_Border(borderNan, 0);
+					if (Cell_tl.Get_Border(0).Value != 0)
+						Cell_tl.Set_Border(borderNan, 0);
 				}
 			}
 			if (Y_Under)
@@ -12738,7 +12765,8 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 				var TempCell 	     = this.Content[Cell_pos_.Row + VMerge_Count_ - 1].Get_Cell(this.Selection.Data[0].Cell);
 				var borderNan 		 = new CDocumentBorder();
 
-				TempCell.Set_Border(borderNan, 2);
+				if (TempCell.Get_Border(2).Value != 0)
+					TempCell.Set_Border(borderNan, 2);
 			}
 			var end_pos = this.Selection.Data[this.Selection.Data.length - 1];
 			if (Cell_tl.Index === 0 && this.Content[Cell_tl.Row.Index].CellsInfo[Cell_tl.Index].X_cell_start > X1)
@@ -12752,14 +12780,16 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 				if (this.Selection.Data[0].Cell === 0)
 				{
 					var borderNan = new CDocumentBorder();
-					Cell_tl.Set_Border(borderNan, 3);
+					if (Cell_tl.Get_Border(3).Value != 0)
+						Cell_tl.Set_Border(borderNan, 3);
 				}
 				
 			}
 			if (X_After)
 			{
 				var borderNan = new CDocumentBorder();
-				Cell_tl.Set_Border(borderNan, 1);
+				if (Cell_tl.Get_Border(1).Value != 0)
+					Cell_tl.Set_Border(borderNan, 1);
 			}
 
 			// Объединяем содержимое всех ячеек в левую верхнюю ячейку. (Все выделенные
@@ -12849,6 +12879,7 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 						this.RemoveTableRow(Pos_tl.Row);
 			
 		}
+		
 		if (newSelectionData.length >= 1)
 		{
 			for (let Item of newSelectionData)
@@ -12891,26 +12922,29 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 
 				if (Y_Over)
 				{
-					Cell_1.Set_Border(borderNan, 0);
+					if (Cell_1.Get_Border(0).Value != 0)
+						Cell_1.Set_Border(borderNan, 0);
 				}
 				if (Y_Under)
 				{
 					var TempCell = this.Content[Cell_pos_1.Row + VMerge_count_1 - 1].Get_Cell(Cell_pos_1.Cell);
+						if (TempCell.Get_Border(2).Value != 0)
 					TempCell.Set_Border(borderNan, 2);
 				}
 				if (Cell_pos_1.Cell === 0 && this.Content[Cell_pos_1.Row].CellsInfo[Cell_pos_1.Cell].X_cell_start > X1)
 					X_Front = true;
-				if (Cell_pos_1.Cell === this.Content[Cell_pos_1.Row].CellsInfo.length - 1 && this.TableSumGrid[Grid_end] < X2)
+				if (Cell_pos_1.Cell === this.Content[Cell_pos_1.Row].CellsInfo.length - 1 && this.TableSumGrid[Grid_end_1] < X2)
 					X_After = true;
 				if (X_Front)
 				{
 					if (Cell_pos_1.Cell === 0)
-						Cell_1.Set_Border(borderNan, 3);
+						if (Cell_1.Get_Border(3).Value != 0)
+							Cell_1.Set_Border(borderNan, 3);
 				}
 				if(X_After)
 				{
-					//if (Cell_pos_1.Cell === this.Content[Cell_pos_1.Row].CellInfo.length - 1)
-					Cell_1.Set_Border(borderNan, 1);
+					if (Cell_1.Get_Border(1).Value != 0)
+						Cell_1.Set_Border(borderNan, 1);
 				}
 				for (var Index2 = 0; Index2 < newTempSelectionData.length; Index2++)
 				{
@@ -12930,16 +12964,20 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 						Cell_pos_1.Row >= Cell_pos_2.Row && Cell_pos_1.Row <= Cell_pos_2.Row + VMerge_count_2 -1))
 					{
 						// Стираем границу
-						Cell_1.Set_Border(borderNan, 1);
-						Cell_2.Set_Border(borderNan, 3);
+						if (Cell_1.Get_Border(1).Value != 0)
+							Cell_1.Set_Border(borderNan, 1);
+						if (Cell_2.Get_Border(3).Value != 0)
+							Cell_2.Set_Border(borderNan, 3);
 					}
 					// Определяем взаимное расположение ячеек, удаляем нужные границы
 					else if ((Grid_start_1 === Grid_start_2 || Grid_end_1 === Grid_end_2) && (Cell_pos_1.Row + VMerge_count_1 - 1 === Cell_pos_2.Row - 1))
 					{
 						var Cell = this.Content[Cell_pos_1.Row + VMerge_count_1 - 1].Get_Cell(Cell_pos_1.Cell);
 						// Стираем границу
-						Cell.Set_Border(borderNan, 2);
-						Cell_2.Set_Border(borderNan, 0);
+						if (Cell.Get_Border(2).Value != 0)
+							Cell.Set_Border(borderNan, 2);
+						if (Cell_2.Get_Border(0).Value != 0)
+							Cell_2.Set_Border(borderNan, 0);
 					}
 
 				}
@@ -13007,7 +13045,7 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 				if (Cell.Index === 0)
 				{
 					// поэтому генерируем свою сетку 
-					var done 	 = false; // первая ячейка из вертикального объединения должна быть добавлена в Cells только 1 раз
+					
 					
 					isLeft = true;
 					if (Cell.Get_Border(0).Value === 0 && Cell.Get_Border(3).Value === 0)
@@ -13071,13 +13109,12 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 							}
 							else if (TempCell.GetVMerge() === 1)
 							{
-								if (!done)
-									if (TempCell.Row.Index === Cell.Row.Index)
-									{
-										Cells.push(TempCell);
-										done = true;
-										continue;
-									}
+								
+								if (TempCell.Row.Index === Cell.Row.Index)
+								{
+									Cells.push(TempCell);
+									return true;
+								}
 								if (TempCell.Get_Border(0).Value === 0 && TempCell.Get_Border(3).Value === 0)
 								{
 									Cells.push(TempCell);
@@ -13113,7 +13150,6 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 								{
 									if (TempCell.Get_Border(2).Value === 0)
 									{	
-										
 										break;
 									}
 									else 
@@ -13164,22 +13200,15 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 							}
 							else if (TempCell.GetVMerge() === 1)
 							{
-								if (!done)
-									if (TempCell.Row.Index === Cell.Row.Index)
-									{
-										Cells.push(TempCell);
-										done = true;
-										continue;
-									}
+								
+								if (TempCell.Row.Index === Cell.Row.Index)
+								{
+									Cells.push(TempCell);
+									return true;
+								}
 								if (TempCell.Get_Border(0).Value === 0 && TempCell.Get_Border(1).Value === 0)
 								{
 									Cells.push(TempCell);
-									// Cells.reverse();
-									// for (let cell of Cells)
-									// {
-									// 	this.CurCell = cell;
-									// 	this.RemoveTableCells();
-									// }
 									break;
 								}
 								
