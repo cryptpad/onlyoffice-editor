@@ -8757,7 +8757,7 @@ background-repeat: no-repeat;\
 		if (!oLogicDocument)
 			return;
 
-		oLogicDocument.AddDrawingCaption(oPr);
+		oLogicDocument.AddCaption(oPr);
 	};
 
 	asc_docs_api.prototype.asc_GetBookmarksManager = function()
