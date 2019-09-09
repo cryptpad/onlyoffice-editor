@@ -18754,22 +18754,24 @@ CDocument.prototype.AddCaption = function(oPr)
             }
             else
             {
-                var oNewDrawing = new ParaDrawing(1828800 / 36000, 1828800 / 36000, null, this.DrawingDocument, this, null);
-                var oShape = this.DrawingObjects.createTextArt(0, true, null, "");
-                oShape.setParent(oNewDrawing);
-                oNewDrawing.Set_GraphicObject(oShape);
-                oNewDrawing.Set_DrawingType(drawing_Anchor);
-                oNewDrawing.Set_WrappingType(oDrawing.wrappingType);
-                oNewDrawing.Set_BehindDoc(oDrawing.behindDoc);
-				oNewDrawing.Set_Distance(3.2, 0, 3.2, 0);
-				var oNearestPos = this.Get_NearestPos(oDrawing.PageNum, oDrawing.X, oDrawing.Y, true, oNewDrawing);
+
+				var oNearestPos = this.Get_NearestPos(oDrawing.PageNum, oDrawing.X, oDrawing.Y, true, null);
 				if(oNearestPos)
 				{
+                    var oNewDrawing = new ParaDrawing(1828800 / 36000, 1828800 / 36000, null, this.DrawingDocument, this, null);
+                    var oShape = this.DrawingObjects.createTextArt(0, true, null, "");
+                    oShape.setParent(oNewDrawing);
+                    oNewDrawing.Set_GraphicObject(oShape);
+                    oNewDrawing.Set_DrawingType(drawing_Anchor);
+                    oNewDrawing.Set_WrappingType(oDrawing.wrappingType);
+                    oNewDrawing.Set_BehindDoc(oDrawing.behindDoc);
+                    oNewDrawing.Set_Distance(3.2, 0, 3.2, 0);
 					oNearestPos.Paragraph.Check_NearestPos(oNearestPos);
 					oNearestPos.Page = oDrawing.PageNum;
                     oShape.spPr.xfrm.setOffX(0.0);
                     oShape.spPr.xfrm.setOffY(0.0);
                     oShape.spPr.xfrm.setExtX(Math.max(25.4, oDrawing.Extent.W));
+                    oShape.spPr.xfrm.setExtY(12.7);
                     var oBodyPr;
                     oBodyPr = oShape.getBodyPr().createDuplicate();
                     oBodyPr.wrap = AscFormat.nTWTSquare;
@@ -18777,24 +18779,22 @@ CDocument.prototype.AddCaption = function(oPr)
                     oBodyPr.tIns = 0.0;
                     oBodyPr.rIns = 0.0;
                     oBodyPr.bIns = 0.0;
-					if(oPr.get_Before())
+                    var Y = oDrawing.Y + oDrawing.Extent.H;
+                    if(oPr.get_Before())
 					{
                         oBodyPr.textFit = new AscFormat.CTextFit();
                         oBodyPr.textFit.type = AscFormat.text_fit_No;
-                        oShape.setBodyPr(oBodyPr);
-					    oShape.spPr.xfrm.setExtY(12.7);
-                        oNewDrawing.Set_XYForAdd(oDrawing.X, oDrawing.Y - oShape.spPr.xfrm.extY, oNearestPos, oDrawing.PageNum);
+                        Y = oDrawing.Y - oShape.spPr.xfrm.extY;
 					}
-					else
-					{
-                        oShape.setBodyPr(oBodyPr);
-                        oShape.spPr.xfrm.setExtY(12.7);
-						oNewDrawing.Set_XYForAdd(oDrawing.X, oDrawing.Y + oDrawing.H, oNearestPos, oDrawing.PageNum);
-					}
+                    oNewDrawing.Set_XYForAdd(oDrawing.X, Y, oNearestPos, oDrawing.PageNum);
+                    oShape.setBodyPr(oBodyPr);
 					oNewDrawing.Add_ToDocument(oNearestPos, false);
 					oNewDrawing.CheckWH();
 					var oContent = oShape.getDocContent();
 					NewParagraph = oContent.Content[0];
+                    NewParagraph.RemoveFromContent(0, NewParagraph.Content.length - 1);
+                    NewParagraph.Clear_Formatting();
+                    NewParagraph.SetParagraphStyle("Caption");
 				}
             }
         }
