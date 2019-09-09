@@ -18883,6 +18883,34 @@ CDocument.prototype.DrawTable = function()
 
 		this.StartAction();
 		oTable.DrawTableCells(this.DrawTableMode.StartX, this.DrawTableMode.StartY, this.DrawTableMode.EndX, this.DrawTableMode.EndY, nTablePageIndex, this.DrawTableMode.Draw);
+
+		if (oTable.GetRowsCount() <= 0 && oTable.GetParent())
+		{
+			var oParentDocContent = oTable.GetParent();
+
+			this.RemoveSelection();
+			oTable.PreDelete();
+
+			var nPos = oTable.GetIndex();
+			oParentDocContent.RemoveFromContent(nPos, 1);
+
+			oParentDocContent.SetDocPosType(docpostype_Content);
+
+			if (nPos >= oParentDocContent.Content.length)
+			{
+				oParentDocContent.CurPos.ContentPos = nPos - 1;
+				oParentDocContent.Content[nPos - 1].MoveCursorToEndPos();
+			}
+			else
+			{
+				if (nPos < 0)
+					nPos = 0;
+
+				oParentDocContent.CurPos.ContentPos = nPos;
+				oParentDocContent.Content[nPos].MoveCursorToEndPos();
+			}
+		}
+
 		this.Recalculate();
 		this.FinalizeAction();
 	}
