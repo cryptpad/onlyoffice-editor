@@ -12996,12 +12996,13 @@
 						//необходимо проверить на выделение массива частично
 						var activeRange = t.getSelectedRange();
 						var doNotApply = false;
+						var formulaRef;
 						if(!activeRange.bbox.isOneCell()) {
 							if(t.model.autoFilters.isIntersectionTable(activeRange.bbox)) {
 								t.handlers.trigger("onErrorEvent", c_oAscError.ID.MultiCellsInTablesFormulaArray, c_oAscError.Level.NoCritical);
 								return false;
 							} else {
-								activeRange._foreachNoEmpty(function(cell, row, col) {
+								activeRange._foreachNoEmpty(function(cell) {
 									ref = cell.formulaParsed && cell.formulaParsed.ref ? cell.formulaParsed.ref : null;
 
 									if(ref && !activeRange.bbox.containsRange(ref)) {
@@ -13010,12 +13011,17 @@
 									}
 								});
 							}
+						} else {
+							activeRange._foreachNoEmpty(function(cell) {
+								formulaRef = cell.formulaParsed && cell.formulaParsed.ref ? cell.formulaParsed.ref : null;
+							});
 						}
 						if(doNotApply) {
 							t.handlers.trigger("onErrorEvent", c_oAscError.ID.CannotChangeFormulaArray, c_oAscError.Level.NoCritical);
 							return false;
 						} else {
-							t._isLockedCells(activeRange.bbox, /*subType*/null, saveCellValueCallback);
+							var lockedRange = formulaRef ? formulaRef : activeRange.bbox;
+							t._isLockedCells(lockedRange, /*subType*/null, saveCellValueCallback);
 						}
 					} else {
 						//проверяем activeCell на наличие форулы массива
@@ -16450,7 +16456,7 @@
 			//TODO не рисовать точки на местах линий и кнопок
 			for(l = minCol; l < maxCol; l++) {
 				pointLevel = this._getGroupLevel(l, bCol);
-				
+
 				/*if(!rowLevelMap[l]) {
 					continue;
 				}
@@ -17957,6 +17963,17 @@
 
 		this._isLockedAll(callback);
 
+	};
+
+	WorksheetView.prototype.expandActiveCellByFormulaArray = function(activeCellRange) {
+		var formulaRef;
+		if(!activeCellRange) {
+			return activeCellRange;
+		}
+		this.model.getRange3(activeCellRange.r1, activeCellRange.c1, activeCellRange.r1, activeCellRange.c1)._foreachNoEmpty(function(cell) {
+			formulaRef = cell.formulaParsed && cell.formulaParsed.ref ? cell.formulaParsed.ref : null;
+		});
+		return formulaRef ? formulaRef : activeCellRange;
 	};
 
 

@@ -1517,7 +1517,7 @@
     };
 
     // Стартуем редактировать ячейку
-    this.collaborativeEditing.onStartEditCell();
+	  activeCellRange = ws.expandActiveCellByFormulaArray(activeCellRange);
     if (ws._isLockedCells(activeCellRange, /*subType*/null, editLockCallback)) {
       editFunction();
     }
