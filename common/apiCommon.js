@@ -3818,15 +3818,16 @@
 						if(Array.isArray(oRunS['fill']) && oRunS['fill'].length === 3){
 							oRun.Set_Unifill(AscFormat.CreteSolidFillRGB(oRunS['fill'][0], oRunS['fill'][1], oRunS['fill'][2]));
 						}
-						if(oRunS['font-family']){
-							oRun.Set_RFonts_Ascii({Name : oRunS['font-family'], Index : -1});
-							oRun.Set_RFonts_CS({Name : oRunS['font-family'], Index : -1});
-							oRun.Set_RFonts_EastAsia({Name : oRunS['font-family'], Index : -1});
-							oRun.Set_RFonts_HAnsi({Name : oRunS['font-family'], Index : -1});
-						}
-						if(oRunS['font-size']){
-							oRun.Set_FontSize(oRunS['font-size']);
-						}
+						var fontFamilyName = oRunS['font-family'] ? oRunS['font-family'] : "Arial";
+						var fontSize = (oRunS['font-size'] != null) ? oRunS['font-size'] : 50;
+
+						oRun.Set_RFonts_Ascii({Name : fontFamilyName, Index : -1});
+						oRun.Set_RFonts_CS({Name : fontFamilyName, Index : -1});
+						oRun.Set_RFonts_EastAsia({Name : fontFamilyName, Index : -1});
+						oRun.Set_RFonts_HAnsi({Name : fontFamilyName, Index : -1});
+
+						oRun.Set_FontSize(fontSize);
+
 						oRun.Set_Bold(oRunS['bold'] === true);
 						oRun.Set_Italic(oRunS['italic'] === true);
 						oRun.Set_Strikeout(oRunS['strikeout'] === true);
