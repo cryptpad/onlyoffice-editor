@@ -18767,12 +18767,28 @@ CDocument.prototype.AddCaption = function(oPr)
 				{
 					oNearestPos.Paragraph.Check_NearestPos(oNearestPos);
 					oNearestPos.Page = oDrawing.PageNum;
+                    oShape.spPr.xfrm.setOffX(0.0);
+                    oShape.spPr.xfrm.setOffY(0.0);
+                    oShape.spPr.xfrm.setExtX(Math.max(25.4, oDrawing.Extent.W));
+                    var oBodyPr;
+                    oBodyPr = oShape.getBodyPr().createDuplicate();
+                    oBodyPr.wrap = AscFormat.nTWTSquare;
+                    oBodyPr.lIns = 0.0;
+                    oBodyPr.tIns = 0.0;
+                    oBodyPr.rIns = 0.0;
+                    oBodyPr.bIns = 0.0;
 					if(oPr.get_Before())
 					{
-						
+                        oBodyPr.textFit = new AscFormat.CTextFit();
+                        oBodyPr.textFit.type = AscFormat.text_fit_No;
+                        oShape.setBodyPr(oBodyPr);
+					    oShape.spPr.xfrm.setExtY(12.7);
+                        oNewDrawing.Set_XYForAdd(oDrawing.X, oDrawing.Y - oShape.spPr.xfrm.extY, oNearestPos, oDrawing.PageNum);
 					}
 					else
 					{
+                        oShape.setBodyPr(oBodyPr);
+                        oShape.spPr.xfrm.setExtY(12.7);
 						oNewDrawing.Set_XYForAdd(oDrawing.X, oDrawing.Y + oDrawing.H, oNearestPos, oDrawing.PageNum);
 					}
 					oNewDrawing.Add_ToDocument(oNearestPos, false);
