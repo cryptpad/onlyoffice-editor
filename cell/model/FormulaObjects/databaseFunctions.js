@@ -99,6 +99,9 @@
 	StatisticOnlineAlgorithm.prototype.getMean = function() {
 		return this.mean;
 	};
+	StatisticOnlineAlgorithm.prototype.getProduct = function() {
+		return this.product;
+	};
 	StatisticOnlineAlgorithm.prototype.getVar = function() {
 		return this.M2 / (this.countNums - 1);
 	};
@@ -110,6 +113,21 @@
 	};
 	StatisticOnlineAlgorithm.prototype.getStdDevP = function() {
 		return this.countNums > 0 ? Math.sqrt(this.getVarP()) : 0.0;
+	};
+	StatisticOnlineAlgorithm.prototype.getByType = function(type) {
+		switch(type){
+			case Asc.c_oAscItemType.Avg: return this.getMean();
+			case Asc.c_oAscItemType.Count: return this.getCount();
+			case Asc.c_oAscItemType.CountA: return this.getCountNums();
+			case Asc.c_oAscItemType.Max: return this.getMax();
+			case Asc.c_oAscItemType.Min: return this.getMin();
+			case Asc.c_oAscItemType.Product: return this.getProduct();
+			case Asc.c_oAscItemType.StdDev: return this.getStdDev();
+			case Asc.c_oAscItemType.StdDevP: return this.getStdDevP();
+			case Asc.c_oAscItemType.Var: return this.getVar();
+			case Asc.c_oAscItemType.VarP: return this.getVarP();
+		}
+		return this.getSum();
 	};
 
 	function checkValueByCondition(condition, val){

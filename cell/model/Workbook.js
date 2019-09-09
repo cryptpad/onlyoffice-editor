@@ -6244,7 +6244,7 @@
 	};
 	Worksheet.prototype.updatePivotTable = function (pivotTable) {
 		pivotTable.init();
-		pivotTable.updateRowColItems();
+		var dataRow = pivotTable.updateRowColItems();
 		pivotTable.updateLocation();
 		var cleanRanges = [];
 		var pos, cells, bWarning, pivotRange;
@@ -6274,7 +6274,7 @@
 		var t = this;
 		function callback(res) {
 			if (res) {
-				t._updatePivotTable(pivotTable, cleanRanges);
+				t._updatePivotTable(pivotTable, cleanRanges, dataRow);
 			}
 		}
 		if (bWarning) {
@@ -6373,14 +6373,15 @@
 			}
 		}
 	};
-	Worksheet.prototype._updatePivotTableRowHeaderLables = function(pivotTable) {
-		var rowFieldsPos = [];
+	Worksheet.prototype.item_updatePivotTableRowHeaderLabels = function(pivotTable) {
+		var rowFieldsPos = [0];
 		var rowFields = pivotTable.asc_getRowFields();
-		if (rowFields) {
+		if (!rowFields) {
 			return rowFieldsPos;
 		}
 		var cells, index, field;
 		var pivotFields = pivotTable.asc_getPivotFields();
+		var pivotRange = pivotTable.getRange();
 		var location = pivotTable.location;
 		var c1 = pivotRange.c1;
 		var r1 = pivotRange.r1 + location.firstDataRow - 1;
@@ -6403,7 +6404,7 @@
 		}
 		return rowFieldsPos;
 	};
-	Worksheet.prototype._updatePivotTableData = function(pivotTable, dataRows, dataCols) {
+	Worksheet.prototype._updatePivotTableData = function(pivotTable, dataRow) {
 		var rowFields = pivotTable.asc_getRowFields();
 		var rowItems = pivotTable.getRowItems();
 		var colFields = pivotTable.asc_getColumnFields();
@@ -6412,43 +6413,55 @@
 		if (!rowItems || !colItems) {
 			return;
 		}
+		var dataFields = pivotTable.asc_getDataFields();
 		var pivotRange = pivotTable.getRange();
 		var location = pivotTable.location;
 		var r1 = pivotRange.r1 + location.firstDataRow;
 		var c1 = pivotRange.c1 + location.firstDataCol;
-		var curDataRows = dataRows;
-		var dataByRowIndex = [dataRows];
-		var fieldIndex, dataByColIndex;
+		var curDataRow = dataRow;
+		var dataByRowIndex = [curDataRow];
+		var fieldIndex, field, fieldItem, dataByColIndex, dataField;
 		for (var rowItemsIndex = 0; rowItemsIndex < rowItems.length; ++rowItemsIndex) {
 			var rowItem = rowItems[rowItemsIndex];
 			var rowR = rowItem.getR();
-			curDataRows = dataByRowIndex[rowR];
-			for (var rowItemsXIndex = 0; rowItemsXIndex < rowItem.x.length; ++rowItemsXIndex) {
-				fieldIndex = rowFields[rowR + rowItemsXIndex].asc_getIndex();
-				curDataRows = curDataRows[fieldIndex];
-				dataByRowIndex[rowR + rowItemsXIndex] = curDataRows;
+			curDataRow = dataByRowIndex[rowR];
+			if (Asc.c_oAscItemType.Grand !== rowItem.t) {
+				for (var rowItemsXIndex = 0; rowItemsXIndex < rowItem.x.length; ++rowItemsXIndex) {
+					fieldIndex = rowFields[rowR + rowItemsXIndex].asc_getIndex();
+					field = pivotFields[fieldIndex];
+					fieldItem = field.getItem(rowItem.x[rowItemsXIndex].getV());
+					curDataRow = curDataRow.vals[fieldItem.x];
+					dataByRowIndex[rowR + rowItemsXIndex + 1] = curDataRow;
+					if (!curDataRow) {
+						break;
+					}
+				}
 			}
-			if (Asc.c_oAscItemType.Data !== rowItem.t || rowR + rowItem.x.length - 1 === rowFields.length ||
+			if (Asc.c_oAscItemType.Data !== rowItem.t || rowR + rowItem.x.length === rowFields.length ||
 				pivotFields[fieldIndex].asc_getSubtotalTop()) {
-				dataByColIndex = [curDataRows];
+				dataByColIndex = [curDataRow];
 				for (var colItemsIndex = 0; colItemsIndex < colItems.length; ++colItemsIndex) {
 					var colItem = colItems[colItemsIndex];
 					var colR = colItem.getR();
-					curDataRows = dataByColIndex[colR];
-					for (var colItemsXIndex = 0; colItemsXIndex < colItem.x.length; ++colItemsXIndex) {
-						fieldIndex = colFields[colR + colItemsXIndex].asc_getIndex();
-						curDataRows = curDataRows[fieldIndex];
-						if (curDataRows) {
-							dataByRowIndex[rowR + rowItemsXIndex] = fieldIndex[fieldIndex];
-						} else {
-							curDataRows = undefined;
-							break;
+					curDataRow = dataByColIndex[colR];
+					if (curDataRow && Asc.c_oAscItemType.Grand !== colItem.t) {
+						for (var colItemsXIndex = 0; colItemsXIndex < colItem.x.length; ++colItemsXIndex) {
+							fieldIndex = colFields[colR + colItemsXIndex].asc_getIndex();
+							field = pivotFields[fieldIndex];
+							fieldItem = field.getItem(colItem.x[colItemsXIndex].getV());
+							curDataRow = curDataRow.subtotal[fieldItem.x];
+							dataByColIndex[colR + colItemsXIndex + 1] = curDataRow;
+							if (!curDataRow) {
+								break;
+							}
 						}
 					}
-					if (curDataRows) {
+					if (curDataRow) {
 						var oCellValue = new AscCommonExcel.CCellValue();
-						oCellValue.type = AscCommon.CellValueType.String;
-						oCellValue.text = "1";
+						oCellValue.type = AscCommon.CellValueType.Number;
+						dataField = dataFields[colItem.i];
+						//todo
+						oCellValue.number = curDataRow.total[colItem.i].getByType(dataField.subtotal);
 						var cells = this.getRange4(r1 + rowItemsIndex, c1 + colItemsIndex);
 						cells.setValueData(new AscCommonExcel.UndoRedoData_CellValueData(null, oCellValue));
 					}
@@ -6456,21 +6469,15 @@
 			}
 		}
 	};
-	Worksheet.prototype._updatePivotTable = function (pivotTable, cleanRanges) {
-		var pos, cells, index, i, j, k, r, c1, r1, field, indexField, cacheIndex, sharedItem, item, items, setName,
-			oCellValue, rowIndexes, last;
+	Worksheet.prototype._updatePivotTable = function (pivotTable, cleanRanges, dataRow) {
+		var pos, cells, index, i, c1, r1;
 		for (i = 0; i < cleanRanges.length; ++i) {
 			cleanRanges[i].cleanAll();
 		}
 		var pivotRange = pivotTable.getRange();
-		var cacheRecords = pivotTable.getRecords();
 		var cacheFields = pivotTable.asc_getCacheFields();
 		var pivotFields = pivotTable.asc_getPivotFields();
 		var pageFields = pivotTable.asc_getPageFields();
-		var colFields = pivotTable.asc_getColumnFields();
-		var rowFields = pivotTable.asc_getRowFields();
-		var dataFields = pivotTable.asc_getDataFields();
-		var location = pivotTable.location;
 		for (i = 0; i < pivotTable.pageFieldsPositions.length; ++i) {
 			pos = pivotTable.pageFieldsPositions[i];
 			cells = this.getRange4(pos.row, pos.col);
@@ -6481,56 +6488,11 @@
 			cells = this.getRange4(pos.row, pos.col + 1);
 			cells.setValue('(All)');
 		}
-		var countC = pivotTable.getColumnFieldsCount();
-		var countR = pivotTable.getRowFieldsCount(true);
-		var countD = pivotTable.getDataFieldsCount();
-		var cacheValuesCol = [];
-		var cacheValuesRow = [];
-
-		c1 = pivotRange.c1 + countR;
-		r1 = pivotRange.r1 + location.firstHeaderRow;
 		this._updatePivotTableHeader(pivotTable);
 		this._updatePivotTableRowColLables(pivotTable);
-		var rowFieldsPos = this._updatePivotTableRowHeaderLables(pivotTable);
+		var rowFieldsPos = this.item_updatePivotTableRowHeaderLabels(pivotTable);
 		this._updatePivotTableRowColLables(pivotTable, rowFieldsPos);
-		//this._updatePivotTableData(pivotTable);
-
-		//cacheValuesCol
-		//rowIndexes
-
-		// rows
-		countR = pivotTable.getRowFieldsCount();
-		if (countR) {
-			items = pivotTable.getRowItems();
-			if (items) {
-				for (i = 0; i < items.length; ++i) {
-					item = items[i];
-					r = item.getR();
-					last = r === countR - 1 || Asc.c_oAscItemType.Data !== item.t;
-					if (countD && (last || (field && field.asc_getSubtotalTop()))) {
-						for (j = 0; j < cacheValuesCol.length; ++j) {
-							rowIndexes = cacheValuesCol[j];
-							for (k = 0; k < cacheValuesRow.length && (!rowIndexes || 0 !== rowIndexes.length); k += 2) {
-								rowIndexes =
-									pivotTable.getValues(cacheRecords, rowIndexes, cacheValuesRow[k], cacheValuesRow[k + 1]);
-							}
-							if (rowIndexes && 0 !== rowIndexes.length) {
-								cells = this.getRange4(r1 + i, rowFieldsPos[r] + 1 + j);
-								oCellValue = new AscCommonExcel.CCellValue();
-								oCellValue.number = pivotTable.getValue(cacheRecords, rowIndexes, dataFields[0].asc_getIndex(),
-																		(Asc.c_oAscItemType.Data !== item.t && Asc.c_oAscItemType.Grand !== item.t) ? item.t :
-																			dataFields[0].asc_getSubtotal());
-								oCellValue.type = AscCommon.CellValueType.Number;
-								cells.setValueData(new AscCommonExcel.UndoRedoData_CellValueData(null, oCellValue));
-							}
-						}
-						if (last) {
-							cacheValuesRow = [];
-						}
-					}
-				}
-			}
-		}
+		this._updatePivotTableData(pivotTable, dataRow);
 		this.workbook.handlers.trigger("setSelection", new Asc.Range(pivotRange.c1, pivotRange.r1, pivotRange.c1, pivotRange.r1));
 	};
 	Worksheet.prototype.updatePivotTablesStyle = function (range, canModifyDocument) {

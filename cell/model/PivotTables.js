@@ -325,10 +325,15 @@ function ctItemSort(items, sharedItems) {
 	});
 }
 function PivotDataElem(dataLength) {
-	this.vals = {};
+	this.subtotal = this.vals = {};
 	this.total = new Array(dataLength);
 	for (var i = 0; i < dataLength; ++i) {
 		this.total[i] = new AscCommonExcel.StatisticOnlineAlgorithm();
+	}
+}
+PivotDataElem.prototype.unionTotal = function(val){
+	for (var i = 0; i < this.total.length; ++i) {
+		this.total[i].union(val.total[i]);
 	}
 }
 
@@ -1954,36 +1959,50 @@ CT_PivotCacheRecords.prototype._getDataMapAddElem = function(dataMap, val, dataL
 	}
 	return elem;
 };
-CT_PivotCacheRecords.prototype._getDataMapColMap = function(stack, rowMap, rowCount, colMap) {
-	var i;
+CT_PivotCacheRecords.prototype._getDataMapMergeSubtotal = function(rowMap1, rowMap2) {
 	var isEnd = true;
-	for (i in rowMap.vals) {
-		if (rowMap.vals.hasOwnProperty(i)) {
-			stack.push(i);
-			this._getDataMapColMap(stack, rowMap.vals[i], rowCount, colMap);
-			stack.pop();
-			isEnd = false;
+	for (var i in rowMap2.subtotal) {
+		if (rowMap2.subtotal.hasOwnProperty(i)) {
+			isEnd =false;
+			var sub1 = rowMap1.subtotal[i];
+			if (!sub1) {
+				sub1 = new PivotDataElem(rowMap1.total.length);
+				rowMap1.subtotal[i] = sub1;
+			}
+			var sub2 = rowMap2.subtotal[i];
+			this._getDataMapMergeSubtotal(sub1, sub2);
 		}
 	}
-	if (isEnd) {
-		var dataMapCur = colMap;
-		for (i = rowCount; i < stack.length; ++i) {
-			dataMapCur = this._getDataMapAddElem(dataMapCur, stack[i], rowMap.total.length);
+	if(isEnd){
+		rowMap1.unionTotal(rowMap2);
+	}
+};
+CT_PivotCacheRecords.prototype._getDataMapSubtotal = function(rowMap, rowCount) {
+	if (rowCount > 0) {
+		rowMap.subtotal = {};
+		for (var i in rowMap.vals) {
+			if (rowMap.vals.hasOwnProperty(i)) {
+				var sub = rowMap.vals[i];
+				this._getDataMapSubtotal(sub, rowCount - 1);
+				this._getDataMapMergeSubtotal(rowMap, sub);
+			}
 		}
-		for (i = 0; i < 2 * rowCount; ++i) {
-			dataMapCur = this._getDataMapAddElem(dataMapCur, stack[i], rowMap.total.length);
-		}
-		dataMapCur.total = rowMap.total;
+	} else {
+		rowMap.subtotal = rowMap.vals;
 	}
 };
 CT_PivotCacheRecords.prototype._getDataMapTotal = function(rowMap) {
-	var i, j;
-	for (i in rowMap.vals) {
-		if (rowMap.vals.hasOwnProperty(i)) {
-			var val = rowMap.vals[i];
-			this._getDataMapTotal(val);
-			for (j = 0; j < rowMap.total.length; ++j) {
-				rowMap.total[j].union(val.total[j]);
+	var i;
+	for (i in rowMap.subtotal) {
+		if (rowMap.subtotal.hasOwnProperty(i)) {
+			this._getDataMapTotal(rowMap.subtotal[i]);
+			rowMap.unionTotal(rowMap.subtotal[i]);
+		}
+	}
+	if (rowMap.subtotal !== rowMap.vals) {
+		for (i in rowMap.vals) {
+			if (rowMap.vals.hasOwnProperty(i)) {
+				this._getDataMapTotal(rowMap.vals[i]);
 			}
 		}
 	}
@@ -2001,9 +2020,9 @@ CT_PivotCacheRecords.prototype._getDataMapRowToTotal = function(row, rowMapCur, 
 			total.addCount(val.val);
 		}
 	}
-}
+};
 CT_PivotCacheRecords.prototype.getDataMap = function(filterMaps, rowIndexes, colIndexes, dataIndexes) {
-	var res = {rowMap: new PivotDataElem(dataIndexes.length), colMap: new PivotDataElem(dataIndexes.length)};
+	var res = new PivotDataElem(dataIndexes.length);
 	var filter, val, i, row, isInFilter, rowMapCur;
 	for (row = 0; row < this.getRowsCount(); ++row) {
 		isInFilter = true;
@@ -2018,7 +2037,7 @@ CT_PivotCacheRecords.prototype.getDataMap = function(filterMaps, rowIndexes, col
 		if (!isInFilter) {
 			continue;
 		}
-		rowMapCur = res.rowMap;
+		rowMapCur = res;
 		if (rowIndexes.length > 0) {
 			rowMapCur = this._getDataMapFromFields(rowIndexes, rowIndexes.length, row, rowMapCur);
 		}
@@ -2027,10 +2046,8 @@ CT_PivotCacheRecords.prototype.getDataMap = function(filterMaps, rowIndexes, col
 		}
 		this._getDataMapRowToTotal(row, rowMapCur, dataIndexes);
 	}
-	var stack = [];
-	this._getDataMapColMap(stack, res.rowMap, rowIndexes.length, res.colMap);
-	this._getDataMapTotal(res.rowMap);
-	this._getDataMapTotal(res.colMap);
+	this._getDataMapSubtotal(res, rowIndexes.length);
+	this._getDataMapTotal(res);
 	return res;
 };
 CT_PivotCacheRecords.prototype.convertToSharedItems = function(index, si) {
@@ -3100,56 +3117,6 @@ CT_pivotTableDefinition.prototype.getColItems = function () {
 CT_pivotTableDefinition.prototype.getRecords = function () {
 	return this.cacheDefinition.getRecords();
 };
-CT_pivotTableDefinition.prototype.getValues = function (records, rowIndexes, colIndex, value) {
-	var res = [];
-	var i;
-	if (rowIndexes) {
-		for (i = 0; i < rowIndexes.length; ++i) {
-			this._getValues(records, rowIndexes[i], colIndex, value, res);
-		}
-	} else {
-		for (i = 0; i < records.getRowsCount(); ++i) {
-			this._getValues(records, i, colIndex, value, res);
-		}
-	}
-	return res;
-};
-CT_pivotTableDefinition.prototype._getValues = function (records, rowIndex, colIndex, value, output) {
-	var elem = records.get(rowIndex, colIndex);
-	if (elem && elem.type === c_oAscPivotRecType.Index && value === elem.val) {
-		output.push(rowIndex);
-	}
-};
-CT_pivotTableDefinition.prototype.getValue = function (records, rowIndexes, index, subtotal) {
-	var cacheFields = this.asc_getCacheFields();
-	if (Asc.c_oAscItemType.Default === subtotal || Asc.c_oAscItemType.Data === subtotal || Asc.c_oAscItemType.Blank === subtotal) {
-		subtotal = Asc.c_oAscItemType.Sum;
-	}
-	var arg = [new AscCommonExcel.cNumber(subtotal)];
-	var i;
-	if(rowIndexes){
-		for (i = 0; i < rowIndexes.length; ++i) {
-			this._getValue(records, rowIndexes[i], index, cacheFields, arg);
-		}
-	} else {
-		for (i = 0; i < records.getRowsCount(); ++i) {
-			this._getValue(records, i, index, cacheFields, arg);
-		}
-	}
-
-	var res = (new AscCommonExcel.cSUBTOTAL()).Calculate(arg);
-
-	return res ? res.value : null;
-};
-CT_pivotTableDefinition.prototype._getValue = function (records, rowIndex, index, cacheFields, output) {
-	var elem = records.get(rowIndex, index);
-	if (elem.type === c_oAscPivotRecType.Index) {
-		elem = cacheFields[index].getSharedItem(elem.val);
-	}
-	if (elem.type === c_oAscPivotRecType.Number) {
-		output.push(new AscCommonExcel.cNumber(elem.val));
-	}
-};
 CT_pivotTableDefinition.prototype.getAllRange = function (ws) {
 	var newSelection = new AscCommonExcel.SelectionRange(ws);
 	newSelection.assign2(this.getRange());
@@ -3538,7 +3505,7 @@ CT_pivotTableDefinition.prototype.getRowColIndexes = function(fields, withoutVal
 	if (fields) {
 		for (i = 0; i < fields.length; ++i) {
 			var index = fields[i].x;
-			if (st_VALUES !== index || withoutValue) {
+			if (st_VALUES !== index || !withoutValue) {
 				this.checkPivotFieldItems(index);
 				indexes.push(index);
 			}
@@ -3564,14 +3531,14 @@ CT_pivotTableDefinition.prototype.getDataFieldName = function(index) {
 	return this.asc_getDataFields()[index].name || this.getPivotFieldName(index);
 };
 CT_pivotTableDefinition.prototype.updateRowColItems = function () {
-	var maps, pivotFields, rowFields, colFields, dataFields, cacheRecords, hasDataField;
+	var dataRow, pivotFields, rowFields, colFields, dataFields, cacheRecords, hasDataField;
 	cacheRecords = this.getRecords();
 	if(!cacheRecords){
 		return;
 	}
 	var rowIndexes = this.getRowColIndexes(this.asc_getRowFields(),true);
 	var colIndexes = this.getRowColIndexes(this.asc_getColumnFields(),true);
-	maps = cacheRecords.getDataMap(this.getFilterMaps(), rowIndexes, colIndexes, this.getDataFieldIndexes());
+	dataRow = cacheRecords.getDataMap(this.getFilterMaps(), rowIndexes, colIndexes, this.getDataFieldIndexes());
 	pivotFields = this.asc_getPivotFields();
 	rowFields = this.asc_getRowFields();
 	colFields = this.asc_getColumnFields();
@@ -3579,12 +3546,12 @@ CT_pivotTableDefinition.prototype.updateRowColItems = function () {
 	this.rowItems = this.colItems = null;
 	if (rowFields) {
 		this.rowItems = new CT_rowItems();
-		hasDataField = this._updateRowColItemsRecursively(0, maps.rowMap, undefined, this.rowItems.i, rowFields, false, pivotFields);
+		hasDataField = this._updateRowColItemsRecursively(0, dataRow, undefined, this.rowItems.i, rowFields, false, pivotFields);
 		this._updateRowColItemsGrandTotal(this.rowGrandTotals, hasDataField, this.rowItems.i, dataFields);
 	}
 	if (colFields) {
 		this.colItems = new CT_colItems();
-		hasDataField = this._updateRowColItemsRecursively(0, maps.colMap, undefined, this.colItems.i, colFields, true, pivotFields);
+		hasDataField = this._updateRowColItemsRecursively(0, {vals: dataRow.subtotal}, undefined, this.colItems.i, colFields, true, pivotFields);
 		this._updateRowColItemsGrandTotal(this.colGrandTotals, hasDataField, this.colItems.i, dataFields);
 	}
 	if (rowFields || colFields || dataFields) {
@@ -3597,7 +3564,7 @@ CT_pivotTableDefinition.prototype.updateRowColItems = function () {
 			this.colItems.i.push(new CT_I());
 		}
 	}
-	return maps;
+	return dataRow;
 };
 CT_pivotTableDefinition.prototype._updateRowColItemsRecursively = function(index, dataMap, parentI, items, fields, forceTabular, pivotFields) {
 	var hasDataField = false;
