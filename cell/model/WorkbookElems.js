@@ -1509,7 +1509,7 @@ var g_oFontProperties = {
 		return newContext;
 	};
 	PatternFill.prototype.asc_getType = function () {
-		return this.getHatchOffset();
+		return c_oAscPatternType.Solid === this.patternType ? -1 : this.getHatchOffset();
 	};
 	PatternFill.prototype.asc_setType = function (value) {
 		this.patternType = value;
