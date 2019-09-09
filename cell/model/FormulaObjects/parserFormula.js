@@ -6767,6 +6767,14 @@ parserFormula.prototype.clone = function(formula, parent, ws) {
 		var currentElement = null, _count = this.outStack.length, elemArr = new Array(_count), res = undefined,
 			_count_arg, _numberPrevArg, _argDiff, onlyRangesElements = true, rangesStr;
 
+		//для получаения грамотного дипапазона, устанавливаем для формул массива g_activeCell главную ячейку
+		var formulaArray = this.getArrayFormulaRef();
+		var oldActiveCell;
+		if(AscCommonExcel.g_R1C1Mode && bLocale && formulaArray){
+			AscCommonExcel.g_ActiveCell = new Asc.Range(formulaArray.c1, formulaArray.r1, formulaArray.c1, formulaArray.r1);
+			oldActiveCell = AscCommonExcel.g_ActiveCell;
+		}
+
 		for (var i = 0, j = 0; i < _count; i++) {
 			currentElement = this.outStack[i];
 
@@ -6830,13 +6838,18 @@ parserFormula.prototype.clone = function(formula, parent, ws) {
 				//используется в областях печати
 				//формулы вида "Sheet1!$B$3:$C$4,Sheet1!$D$3:$E$5,Sheet1!$G$3:$G$6,Sheet1!$J$2"
 				//TODO рассмотреть вписание в общую схему
-				return rangesStr;
+				res = rangesStr;
 			} else {
-				return bLocale ? res.toLocaleString(digitDelim) : res.toString();
+				res = bLocale ? res.toLocaleString(digitDelim) : res.toString();
 			}
 		} else {
-			return this.Formula;
+			res = this.Formula;
 		}
+
+		if(oldActiveCell) {
+			AscCommonExcel.g_ActiveCell = oldActiveCell;
+		}
+		return res;
 	};
 
 	parserFormula.prototype.buildDependencies = function() {

@@ -2927,7 +2927,9 @@ function (window, undefined) {
 		switch (Type) {
 			case AscCH.historyitem_ArrayFromula_AddFormula:
 				if(!bUndo) {
-					range.setValue(formula, null, null, bbox);
+					AscCommonExcel.executeInR1C1Mode(false, function () {
+						range.setValue(formula, null, null, bbox);
+					});
 				}
 				break;
 			case AscCH.historyitem_ArrayFromula_DeleteFormula:
