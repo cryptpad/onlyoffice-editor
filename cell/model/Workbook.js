@@ -6474,15 +6474,12 @@
 				continue;
 			}
 			style = this.workbook.TableStyles.AllStyles[styleInfo.asc_getName()];
-			if (!style) {
-				continue;
-			}
 
-			wholeStyle = style.wholeTable && style.wholeTable.dxf;
+			wholeStyle = style && style.wholeTable && style.wholeTable.dxf;
 
 			// Page Field Labels, Page Field Values
-			dxfLabels = style.pageFieldLabels && style.pageFieldLabels.dxf;
-			dxfValues = style.pageFieldValues && style.pageFieldValues.dxf;
+			dxfLabels = style && style.pageFieldLabels && style.pageFieldLabels.dxf;
+			dxfValues = style && style.pageFieldValues && style.pageFieldValues.dxf;
 			for (j = 0; j < pivotTable.pageFieldsPositions.length; ++j) {
 				pos = pivotTable.pageFieldsPositions[j];
 				cells = this.getRange4(pos.row, pos.col);
@@ -6497,6 +6494,10 @@
 
 			cells = this.getRange3(pivotRange.r1, pivotRange.c1, pivotRange.r2, pivotRange.c2);
 			cells.clearTableStyle();
+
+			if (!style) {
+				continue;
+			}
 
 			countC = pivotTable.getColumnFieldsCount();
 			countR = pivotTable.getRowFieldsCount(true);
