@@ -7571,9 +7571,17 @@
 				History.Add(AscCommonExcel.g_oUndoRedoCell, typeHistory, this.ws.getId(), new Asc.Range(this.nCol, this.nRow, this.nCol, this.nRow), new UndoRedoData_CellSimpleData(this.nRow, this.nCol, DataOld, DataNew), bHistoryUndo);}
 		}
 	};
-	Cell.prototype.setFormula = function(formula, bHistoryUndo) {
+	Cell.prototype.setFormula = function(formula, bHistoryUndo, formulaRef) {
 		var cellWithFormula = new CCellWithFormula(this.ws, this.nRow, this.nCol);
-		this.setFormulaParsed(new parserFormula(formula, cellWithFormula, this.ws), bHistoryUndo);
+		var parser = new parserFormula(formula, cellWithFormula, this.ws);
+		if(formulaRef) {
+			parser.setArrayFormulaRef(formulaRef);
+			this.ws.getRange3(formulaRef.r1, formulaRef.c1, formulaRef.r2, formulaRef.c2)._foreachNoEmpty(function(cell){
+				cell.setFormulaParsed(parser, bHistoryUndo);
+			});
+		} else {
+			this.setFormulaParsed(parser, bHistoryUndo);
+		}
 	};
 	Cell.prototype.setFormulaParsed = function(parsed, bHistoryUndo) {
 		this.setFormulaTemplate(bHistoryUndo, function(cell){
@@ -8052,12 +8060,19 @@
 	Cell.prototype.getValueData = function(){
 		this._checkDirty();
 		var formula = this.isFormula() ? this.getFormula() : null;
-		return new UndoRedoData_CellValueData(formula, new AscCommonExcel.CCellValue(this));
+		var formulaRef;
+		if(formula) {
+			var parser = this.getFormulaParsed();
+			if(parser) {
+				formulaRef = this.getFormulaParsed().getArrayFormulaRef();
+			}
+		}
+		return new UndoRedoData_CellValueData(formula, new AscCommonExcel.CCellValue(this), formulaRef);
 	};
 	Cell.prototype.setValueData = function(Val){
 		//значения устанавляваются через setValue, чтобы пересчитались формулы
 		if(null != Val.formula)
-			this.setFormula(Val.formula);
+			this.setFormula(Val.formula, null, Val.formulaRef);
 		else if(null != Val.value)
 		{
 			var DataOld = null;

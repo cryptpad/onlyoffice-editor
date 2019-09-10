@@ -647,19 +647,25 @@ function (window, undefined) {
 		}
 	};
 
-	function UndoRedoData_CellValueData(sFormula, oValue) {
+	function UndoRedoData_CellValueData(sFormula, oValue, formulaRef) {
 		this.formula = sFormula;
+		this.formulaRef = formulaRef;
 		this.value = oValue;
 	}
 
 	UndoRedoData_CellValueData.prototype.Properties = {
-		formula: 0, value: 1
+		formula: 0, value: 1, formulaRef: 2
 	};
 	UndoRedoData_CellValueData.prototype.isEqual = function (val) {
 		if (null == val) {
 			return false;
 		}
 		if (this.formula != val.formula) {
+			return false;
+		}
+		if ((this.formulaRef &&
+			!(this.formulaRef.r1 === val.r1 && this.formulaRef.c1 === val.c1 && this.formulaRef.r2 === val.r2 &&
+			this.formulaRef.c2 === val.c2)) || (this.formulaRef !== val)) {
 			return false;
 		}
 		if (this.value.isEqual(val.value)) {
@@ -681,6 +687,9 @@ function (window, undefined) {
 			case this.Properties.value:
 				return this.value;
 				break;
+			case this.Properties.formulaRef:
+				return new UndoRedoData_BBox(this.formulaRef);
+				break;
 		}
 		return null;
 	};
@@ -691,6 +700,9 @@ function (window, undefined) {
 				break;
 			case this.Properties.value:
 				this.value = value;
+				break;
+			case this.Properties.formulaRef:
+				this.formulaRef = new Asc.Range(value.c1, value.r1, value.c2, value.r2);
 				break;
 		}
 	};
