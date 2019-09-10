@@ -8339,6 +8339,10 @@ $( function () {
 		ok( oParser.parse() );
 		strictEqual( oParser.calculate().getValue(), "#DIV/0!" );
 
+		oParser = new parserFormula( "VAR(#REF!)", "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "#REF!" );
+
     } );
 
 	test( "Test: \"VAR.P\"", function () {
