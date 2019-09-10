@@ -11544,6 +11544,7 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 				for (var curRow = 0; curRow < this.Content.length; curRow++)
 				{
 					this.RemoveTableRow(curRow);
+					curRow = -1;
 				}
 				return true;
 			}
@@ -11555,7 +11556,20 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 			this.RemoveTableColumn();
 			return true;
 		}
-		
+		if (X_Front && X_After && bCanMerge)
+		{
+			var del_count = 0;
+			for (var curRow = this.Selection.Data[0].Row; curRow <= this.Selection.Data[this.Selection.Data.length - 1].Row; curRow++)
+			{
+				if (del_count = this.Selection.Data[this.Selection.Data.length - 1].Row - this.Selection.Data[0].Row + 1)
+					return true;
+				this.RemoveTableRow(curRow);
+				curRow = this.Selection.Data[0].Row - 1;
+				del_count += 1;
+
+			}
+				
+		}
 		
 		// Удаление внешних границ, 
 		// в выделении должна быть только одна ячейка
@@ -11626,41 +11640,44 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 				}
 					
 			}
-			
-			if (X_Front)
+			if (!click)
 			{
-				if (Cell.Get_Border(3).Value === 0)
-					return;
-				Cell.Set_Border(borderNan, 3);
-			}
-			if (X_After)
-			{
-				if (Cell.Get_Border(1).Value === 0)
-					return;
-				Cell.Set_Border(borderNan, 1);
-			}
-			if (Y_Over)
-			{
-				if (Cell.Get_Border(0).Value === 0)
-					return;
-				Cell.Set_Border(borderNan, 0);
-			}
-			if (Y_Under)
-			{
-				
-				var Cell_pos	 = this.Selection.Data[0];
-				var Row 		 = this.Content[Cell_pos.Row];
-				var Grid_start   = Row.Get_CellInfo(Cell_pos.Cell).StartGridCol;
-				var Grid_span 	 = Cell.Get_GridSpan();
-				var VMerge_Count = this.Internal_GetVertMergeCount(Cell_pos.Row, Grid_start, Grid_span);
-				TempCell 		 = this.Content[Cell_pos.Row + VMerge_Count - 1].Get_Cell(Cell_pos.Cell);
-				if (TempCell.Get_Border(2).Value === 0)
-					return;
-				Cell.Set_Border(borderNan, 2);
-				TempCell.Set_Border(borderNan, 2);
+				if (X_Front)
+				{
+					if (Cell.Get_Border(3).Value === 0)
+						return;
+					Cell.Set_Border(borderNan, 3);
+				}
+				if (X_After)
+				{
+					if (Cell.Get_Border(1).Value === 0)
+						return;
+					Cell.Set_Border(borderNan, 1);
+				}
+				if (Y_Over)
+				{
+					if (Cell.Get_Border(0).Value === 0)
+						return;
+					Cell.Set_Border(borderNan, 0);
+				}
+				if (Y_Under)
+				{
+					
+					var Cell_pos	 = this.Selection.Data[0];
+					var Row 		 = this.Content[Cell_pos.Row];
+					var Grid_start   = Row.Get_CellInfo(Cell_pos.Cell).StartGridCol;
+					var Grid_span 	 = Cell.Get_GridSpan();
+					var VMerge_Count = this.Internal_GetVertMergeCount(Cell_pos.Row, Grid_start, Grid_span);
+					TempCell 		 = this.Content[Cell_pos.Row + VMerge_Count - 1].Get_Cell(Cell_pos.Cell);
+					if (TempCell.Get_Border(2).Value === 0)
+						return;
+					Cell.Set_Border(borderNan, 2);
+					TempCell.Set_Border(borderNan, 2);
 
-				rowNumber 		 = TempCell.Row.Index; // номер строки ячейки в которой нужно удалить границу
+					rowNumber 		 = TempCell.Row.Index; // номер строки ячейки в которой нужно удалить границу
+				}
 			}
+			
 			
 			// Удаление строки и слобца, при условии, что удаляем последнюю внешнюю границу
 			for (var curRow = 0; curRow < this.Content.length; curRow++)
@@ -12886,7 +12903,7 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 				newTempSelectionData.push(Item[0]);
 		}
 		// если остались ячейки которые нельзя объединить, удаляем между ними и между объединенными границы
-		if (newTempSelectionData.length >= 1)
+		if (newTempSelectionData.length > 1)
 		{
 			var borderNan = new CDocumentBorder();
 			var Cells 	  = [];
