@@ -8773,6 +8773,11 @@ background-repeat: no-repeat;\
 		oManager.Update();
 		return oManager;
 	};
+	asc_docs_api.prototype.asc_OnBookmarksUpdate = function()
+	{
+		this.sendEvent("asc_onBookmarksUpdate");
+		console.log("Обновляем закладки");
+	};
 
 	asc_docs_api.prototype.asc_GetHeadingLevel = function(sStyleName)
 	{
@@ -10133,6 +10138,7 @@ background-repeat: no-repeat;\
 
 
 	asc_docs_api.prototype['asc_GetBookmarksManager']                   = asc_docs_api.prototype.asc_GetBookmarksManager;
+	asc_docs_api.prototype['asc_OnBookmarksUpdate']                     = asc_docs_api.prototype.asc_OnBookmarksUpdate;
 
 	asc_docs_api.prototype['asc_GetHeadingLevel']                       = asc_docs_api.prototype.asc_GetHeadingLevel;
 	asc_docs_api.prototype['asc_GetStylesArray']                        = asc_docs_api.prototype.asc_GetStylesArray;
