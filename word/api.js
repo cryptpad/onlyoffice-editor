@@ -8776,7 +8776,6 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype.asc_OnBookmarksUpdate = function()
 	{
 		this.sendEvent("asc_onBookmarksUpdate");
-		console.log("Обновляем закладки");
 	};
 
 	asc_docs_api.prototype.asc_GetHeadingLevel = function(sStyleName)
