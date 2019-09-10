@@ -1395,7 +1395,7 @@ Paragraph.prototype.GetNumberingTextPr = function()
  * Получаем рассчитанное значение нумерации для данного параграфа
  * @returns {string}
  */
-Paragraph.prototype.GetNumberingText = function()
+Paragraph.prototype.GetNumberingText = function(bWithoutLvlText)
 {
 	var oParent = this.GetParent();
 	var oNumPr  = this.GetNumPr();
@@ -1404,7 +1404,7 @@ Paragraph.prototype.GetNumberingText = function()
 
 	var oNumbering = oParent.GetNumbering();
 	var oNumInfo   = oParent.CalculateNumberingValues(this, oNumPr);
-	return oNumbering.GetText(oNumPr.NumId, oNumPr.Lvl, oNumInfo);
+	return oNumbering.GetText(oNumPr.NumId, oNumPr.Lvl, oNumInfo, bWithoutLvlText);
 };
 /**
  * Есть ли у параграфа нумерованная нумерация

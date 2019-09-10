@@ -983,12 +983,14 @@ CFieldInstructionSTYLEREF.prototype.GetText = function()
 						{
 							if(this.N || this.R || this.W || this.S)
 							{
-								var sNumText = oParagraph.GetNumberingText();
-								if(sNumText === "")
+								if(oParagraph.IsNumberedNumbering())
 								{
-									sNumText = "0";
+									sRet += oParagraph.GetNumberingText(true);
 								}
-								sRet += sNumText;
+								else
+								{
+									sRet += "0";
+								}
 							}
 							else
 							{
