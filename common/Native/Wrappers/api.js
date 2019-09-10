@@ -6097,7 +6097,8 @@ function NativeOpenFile3(_params, documentInfo)
                                       "vkey"          : undefined,
                                       "url"           : window.documentInfo["docURL"],
                                       "title"         : this.documentTitle,
-                                      "nobase64"      : true};
+                                      "nobase64"      : true
+                                      };
 
                                       _api.CoAuthoringApi.auth(window.documentInfo["viewmode"], rData);
                                       });
@@ -6253,7 +6254,12 @@ window["asc_docs_api"].prototype["asc_nativeOpenFile2"] = function(base64File, v
 Asc['asc_docs_api'].prototype.openDocument = function(file)
 {
     _api.asc_nativeOpenFile2(file.data);
-    
+
+    if (window.documentInfo["viewmode"]) {
+        _api.ShowParaMarks = false;
+        _api.isViewMode = true;
+        _api.WordControl.m_oDrawingDocument.IsViewMode = true;
+    }    
     
     if (!sdkCheck) {
         
@@ -6268,11 +6274,6 @@ Asc['asc_docs_api'].prototype.openDocument = function(file)
         {
             _api.sendColorThemes(_api.WordControl.m_oLogicDocument.theme);
         }
-
-        _api.ShowParaMarks = false;
-        AscCommon.CollaborativeEditing.Set_GlobalLock(true);
-        _api.isViewMode = true;
-        _api.WordControl.m_oDrawingDocument.IsViewMode = true;
   
         window["native"]["onEndLoadingFile"]();
         
