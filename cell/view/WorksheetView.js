@@ -10065,7 +10065,7 @@
 				var rangeFormulaArray = this.model.getRange3(arrayRef.r1, arrayRef.c1, arrayRef.r2, arrayRef.c2);
 				rangeFormulaArray.setValue(valF, function (r) {
 					//ret = r;
-				}, null, arrayRef);
+				}, true, arrayRef);
 				History.Add(AscCommonExcel.g_oUndoRedoArrayFormula, AscCH.historyitem_ArrayFromula_AddFormula, this.model.getId(),
 					new Asc.Range(arrayRef.c1, arrayRef.r1, arrayRef.c2, arrayRef.r2), new AscCommonExcel.UndoRedoData_ArrayFormula(arrayRef, valF));
 			} else if (rangeF.isOneCell()) {
