@@ -18863,12 +18863,18 @@ CDocument.prototype.AddCaption = function(oPr)
             NewRun.AddText(sSeparator);
             NewParagraph.Internal_Content_Add(nCurPos++, NewRun, false);
         }
+
+        var sInstruction = " SEQ " + oPr.get_Label() + " \\* " + oPr.get_Format() + " ";
+        if(AscFormat.isRealNumber(nHeadingLvl))
+        {
+            sInstruction += ("\\s " + nHeadingLvl);
+        }
         oBeginChar    = new ParaFieldChar(fldchartype_Begin, this);
         oSeparateChar = new ParaFieldChar(fldchartype_Separate, this);
         oEndChar      = new ParaFieldChar(fldchartype_End, this);
         NewRun = new ParaRun();
         NewRun.AddToContent(-1, oBeginChar);
-        NewRun.AddInstrText(" SEQ " + oPr.get_Label() + " \\* " + oPr.get_Format() + " ");
+        NewRun.AddInstrText(sInstruction);
         NewRun.AddToContent(-1, oSeparateChar);
         NewRun.AddToContent(-1, oEndChar);
         oBeginChar.SetRun(NewRun);
@@ -18877,7 +18883,7 @@ CDocument.prototype.AddCaption = function(oPr)
         NewParagraph.Internal_Content_Add(nCurPos++, NewRun, false);
         oComplexField = oBeginChar.GetComplexField();
         oComplexField.SetBeginChar(oBeginChar);
-        oComplexField.SetInstructionLine(" SEQ " + oPr.get_Label() + " \\* " + oPr.get_Format() + " ");
+        oComplexField.SetInstructionLine(sInstruction);
         oComplexField.SetSeparateChar(oSeparateChar);
         oComplexField.SetEndChar(oEndChar);
         oComplexField.Update(false, false);

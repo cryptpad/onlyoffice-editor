@@ -781,6 +781,7 @@ CFieldInstructionSEQ.prototype.GetText = function ()
 			nLvl = parseInt(this.S);
 			if(!isNaN(nLvl))
 			{
+				--nLvl;
 				for(i = aFields.length - 1; i > -1; --i)
 				{
 					oField = aFields[i];
@@ -797,7 +798,8 @@ CFieldInstructionSEQ.prototype.GetText = function ()
 						oField = aFields[i];
 						if(AscFormat.isRealNumber(oField) && oField >= nLvl)
 						{
-							aFields = aFields.splice(i, nCounter - i);
+							aFields = aFields.splice(i + 1, nCounter - i);
+							break;
 						}
 					}
 				}
