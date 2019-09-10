@@ -1967,7 +1967,7 @@ function CT_pivotTableDefinition() {
 	this.conditionalFormats = null;
 	this.chartFormats = null;
 	this.pivotHierarchies = null;
-	this.pivotTableStyleInfo = null;
+	this.pivotTableStyleInfo = new CT_PivotTableStyle(); // May be absent in some cases, so create
 	this.filters = null;
 	this.rowHierarchiesUsage = null;
 	this.colHierarchiesUsage = null;
