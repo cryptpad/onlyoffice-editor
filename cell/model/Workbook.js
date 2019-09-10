@@ -6416,7 +6416,7 @@
 		var colFields = pivotTable.asc_getColumnFields();
 		var colItems = pivotTable.getColItems();
 		var pivotFields = pivotTable.asc_getPivotFields();
-		if (!rowItems || !colItems) {
+		if (!rowItems || !colItems || !rowFields || !colFields) {
 			return;
 		}
 		var dataFields = pivotTable.asc_getDataFields();
@@ -6438,10 +6438,10 @@
 						field = pivotFields[fieldIndex];
 						fieldItem = field.getItem(rowItem.x[rowItemsXIndex].getV());
 						curDataRow = curDataRow.vals[fieldItem.x];
-						dataByRowIndex[rowR + rowItemsXIndex + 1] = curDataRow;
-						if (!curDataRow) {
-							break;
-						}
+					}
+					dataByRowIndex[rowR + rowItemsXIndex + 1] = curDataRow;
+					if (!curDataRow) {
+						break;
 					}
 				}
 			}
@@ -6459,10 +6459,10 @@
 								field = pivotFields[fieldIndex];
 								fieldItem = field.getItem(colItem.x[colItemsXIndex].getV());
 								curDataRow = curDataRow.subtotal[fieldItem.x];
-								dataByColIndex[colR + colItemsXIndex + 1] = curDataRow;
-								if (!curDataRow) {
-									break;
-								}
+							}
+							dataByColIndex[colR + colItemsXIndex + 1] = curDataRow;
+							if (!curDataRow) {
+								break;
 							}
 						}
 					}
