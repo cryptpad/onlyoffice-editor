@@ -6346,10 +6346,16 @@
 				}
 				if (Asc.c_oAscItemType.Data === item.t) {
 					fieldIndex = fields[r + j].asc_getIndex();
-					field = pivotFields[fieldIndex];
-					fieldItem = field.getItem(item.x[j].getV());
-					sharedItem = cacheFields[fieldIndex].getSharedItem(fieldItem.x);
-					oCellValue = sharedItem.getCellValue();
+					if (AscCommonExcel.st_VALUES !== fieldIndex) {
+						field = pivotFields[fieldIndex];
+						fieldItem = field.getItem(item.x[j].getV());
+						sharedItem = cacheFields[fieldIndex].getSharedItem(fieldItem.x);
+						oCellValue = sharedItem.getCellValue();
+					} else {
+						oCellValue = new AscCommonExcel.CCellValue();
+						oCellValue.type = AscCommon.CellValueType.String;
+						oCellValue.text = pivotTable.getDataFieldName(item.i);
+					}
 					totalTitleRange[r + j] = cells;
 				} else if (Asc.c_oAscItemType.Grand === item.t) {
 					oCellValue = new AscCommonExcel.CCellValue();
@@ -6428,12 +6434,14 @@
 			if (Asc.c_oAscItemType.Grand !== rowItem.t) {
 				for (var rowItemsXIndex = 0; rowItemsXIndex < rowItem.x.length; ++rowItemsXIndex) {
 					fieldIndex = rowFields[rowR + rowItemsXIndex].asc_getIndex();
-					field = pivotFields[fieldIndex];
-					fieldItem = field.getItem(rowItem.x[rowItemsXIndex].getV());
-					curDataRow = curDataRow.vals[fieldItem.x];
-					dataByRowIndex[rowR + rowItemsXIndex + 1] = curDataRow;
-					if (!curDataRow) {
-						break;
+					if (AscCommonExcel.st_VALUES !== fieldIndex) {
+						field = pivotFields[fieldIndex];
+						fieldItem = field.getItem(rowItem.x[rowItemsXIndex].getV());
+						curDataRow = curDataRow.vals[fieldItem.x];
+						dataByRowIndex[rowR + rowItemsXIndex + 1] = curDataRow;
+						if (!curDataRow) {
+							break;
+						}
 					}
 				}
 			}
@@ -6447,23 +6455,25 @@
 					if (curDataRow && Asc.c_oAscItemType.Grand !== colItem.t) {
 						for (var colItemsXIndex = 0; colItemsXIndex < colItem.x.length; ++colItemsXIndex) {
 							fieldIndex = colFields[colR + colItemsXIndex].asc_getIndex();
-							field = pivotFields[fieldIndex];
-							fieldItem = field.getItem(colItem.x[colItemsXIndex].getV());
-							curDataRow = curDataRow.subtotal[fieldItem.x];
-							dataByColIndex[colR + colItemsXIndex + 1] = curDataRow;
-							if (!curDataRow) {
-								break;
+							if (AscCommonExcel.st_VALUES !== fieldIndex) {
+								field = pivotFields[fieldIndex];
+								fieldItem = field.getItem(colItem.x[colItemsXIndex].getV());
+								curDataRow = curDataRow.subtotal[fieldItem.x];
+								dataByColIndex[colR + colItemsXIndex + 1] = curDataRow;
+								if (!curDataRow) {
+									break;
+								}
 							}
 						}
 					}
 					if (curDataRow) {
-						var oCellValue = new AscCommonExcel.CCellValue();
-						oCellValue.type = AscCommon.CellValueType.Number;
-						dataField = dataFields[colItem.i];
-						//todo
-						oCellValue.number = curDataRow.total[colItem.i].getByType(dataField.subtotal);
-						var cells = this.getRange4(r1 + rowItemsIndex, c1 + colItemsIndex);
-						cells.setValueData(new AscCommonExcel.UndoRedoData_CellValueData(null, oCellValue));
+						var dataIndex = Math.max(rowItem.i, colItem.i);
+						dataField = dataFields[dataIndex];
+						var oCellValue = curDataRow.total[dataIndex].getCellValue(dataField.subtotal);
+						if (oCellValue) {
+							var cells = this.getRange4(r1 + rowItemsIndex, c1 + colItemsIndex);
+							cells.setValueData(new AscCommonExcel.UndoRedoData_CellValueData(null, oCellValue));
+						}
 					}
 				}
 			}

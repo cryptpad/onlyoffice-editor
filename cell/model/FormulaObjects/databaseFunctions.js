@@ -53,6 +53,7 @@
 		this.product = 1;
 		this.mean = 0;
 		this.M2 = 0;
+		this.errorType = null;
 	}
 	StatisticOnlineAlgorithm.prototype.union = function(val) {
 		this.min = Math.min(this.min, val.min);
@@ -61,10 +62,13 @@
 		this.product = this.product * val.product;
 		//Parallel Welford's online algorithm
 		var delta = val.mean - this.mean;
-		this.mean = this.mean + delta * val.countNums / (this.countNums + val.countNums);
-		this.M2 = this.M2 + val.M2 + delta * delta * this.countNums * val.countNums / (this.countNums + val.countNums);
+		if (this.countNums + val.countNums > 0) {
+			this.mean = this.mean + delta * val.countNums / (this.countNums + val.countNums);
+			this.M2 = this.M2 + val.M2 + delta * delta * this.countNums * val.countNums / (this.countNums + val.countNums);
+		}
 		this.count = this.count + val.count;
 		this.countNums = this.countNums + val.countNums;
+		this.errorType = this.errorType || val.errorType;
 	};
 	StatisticOnlineAlgorithm.prototype.add = function(val) {
 		this.count++;
@@ -75,11 +79,14 @@
 		this.product *= val;
 		//Welford's online algorithm
 		var delta = val - this.mean;
-		this.mean += delta / this.count;
+		this.mean += delta / this.countNums;
 		this.M2 += delta * (val - this.mean);
 	};
 	StatisticOnlineAlgorithm.prototype.addCount = function() {
 		this.count++;
+	};
+	StatisticOnlineAlgorithm.prototype.addError = function(errorType) {
+		this.errorType = errorType;
 	};
 	StatisticOnlineAlgorithm.prototype.getCount = function() {
 		return this.count;
@@ -103,31 +110,88 @@
 		return this.product;
 	};
 	StatisticOnlineAlgorithm.prototype.getVar = function() {
-		return this.M2 / (this.countNums - 1);
+		return this.countNums > 1 ? (this.M2 / (this.countNums - 1)) : 0;
 	};
 	StatisticOnlineAlgorithm.prototype.getVarP = function() {
-		return this.M2 / this.countNums;
+		return this.countNums > 0 ? (this.M2 / this.countNums) : 0;
 	};
 	StatisticOnlineAlgorithm.prototype.getStdDev = function() {
-		return this.countNums > 0 ? Math.sqrt(this.getVar()) : 0.0;
+		return Math.sqrt(this.getVar());
 	};
 	StatisticOnlineAlgorithm.prototype.getStdDevP = function() {
-		return this.countNums > 0 ? Math.sqrt(this.getVarP()) : 0.0;
+		return Math.sqrt(this.getVarP());
 	};
-	StatisticOnlineAlgorithm.prototype.getByType = function(type) {
-		switch(type){
-			case Asc.c_oAscItemType.Avg: return this.getMean();
-			case Asc.c_oAscItemType.Count: return this.getCount();
-			case Asc.c_oAscItemType.CountA: return this.getCountNums();
-			case Asc.c_oAscItemType.Max: return this.getMax();
-			case Asc.c_oAscItemType.Min: return this.getMin();
-			case Asc.c_oAscItemType.Product: return this.getProduct();
-			case Asc.c_oAscItemType.StdDev: return this.getStdDev();
-			case Asc.c_oAscItemType.StdDevP: return this.getStdDevP();
-			case Asc.c_oAscItemType.Var: return this.getVar();
-			case Asc.c_oAscItemType.VarP: return this.getVarP();
+	StatisticOnlineAlgorithm.prototype.getCellValue = function(type) {
+		var oCellValue;
+		if (0 === this.count && 0 === this.countNums) {
+			return oCellValue;
 		}
-		return this.getSum();
+		oCellValue = new AscCommonExcel.CCellValue();
+		oCellValue.type = AscCommon.CellValueType.Number;
+		if (null !== this.errorType) {
+			oCellValue.type = AscCommon.CellValueType.Error;
+			oCellValue.text = AscCommonExcel.cError.prototype.getStringFromErrorType(this.errorType);
+			return oCellValue;
+		}
+		switch (type) {
+			case Asc.c_oAscItemType.Count:
+				oCellValue.number = this.getCount();
+				break;
+			case Asc.c_oAscItemType.CountA:
+				oCellValue.number = this.getCountNums();
+				break;
+			case Asc.c_oAscItemType.Max:
+				oCellValue.number = this.countNums > 0 ? this.getMax() : 0;
+				break;
+			case Asc.c_oAscItemType.Min:
+				oCellValue.number = this.countNums > 0 ? this.getMin() : 0;
+				break;
+			case Asc.c_oAscItemType.Product:
+				oCellValue.number =  this.getProduct();
+				break;
+			case Asc.c_oAscItemType.Avg:
+				if (this.countNums > 0) {
+					oCellValue.number = this.getMean();
+				} else {
+					oCellValue.type = AscCommon.CellValueType.Error;
+					oCellValue.text = AscCommonExcel.cError.prototype.getStringFromErrorType(cErrorType.division_by_zero);
+				}
+				break;
+			case Asc.c_oAscItemType.StdDev:
+				if (this.countNums > 1) {
+					oCellValue.number = this.getStdDev();
+				} else {
+					oCellValue.type = AscCommon.CellValueType.Error;
+					oCellValue.text = AscCommonExcel.cError.prototype.getStringFromErrorType(cErrorType.division_by_zero);
+				}
+				break;
+			case Asc.c_oAscItemType.StdDevP:
+				if (this.countNums > 0) {
+					oCellValue.number = this.getStdDevP();
+				} else {
+					oCellValue.type = AscCommon.CellValueType.Error;
+					oCellValue.text = AscCommonExcel.cError.prototype.getStringFromErrorType(cErrorType.division_by_zero);
+				}
+				break;
+			case Asc.c_oAscItemType.Var:
+				if (this.countNums > 0) {
+					oCellValue.number = this.getVar();
+				} else {
+					oCellValue.type = AscCommon.CellValueType.Error;
+					oCellValue.text = AscCommonExcel.cError.prototype.getStringFromErrorType(cErrorType.division_by_zero);
+				}
+				break;
+			case Asc.c_oAscItemType.VarP:
+				if (this.countNums > 0) {
+					oCellValue.number = this.getVarP();
+				} else {
+					oCellValue.type = AscCommon.CellValueType.Error;
+					oCellValue.text = AscCommonExcel.cError.prototype.getStringFromErrorType(cErrorType.division_by_zero);
+				}
+				break;
+			default: oCellValue.number = this.getSum();
+		}
+		return oCellValue;
 	};
 
 	function checkValueByCondition(condition, val){

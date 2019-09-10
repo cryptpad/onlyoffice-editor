@@ -2016,7 +2016,9 @@ CT_PivotCacheRecords.prototype._getDataMapRowToTotal = function(row, rowMapCur, 
 			total.add(val.val);
 		} else if (c_oAscPivotRecType.Index === val.type) {
 			//todo
-		} else {
+		} else if (c_oAscPivotRecType.Error === val.type) {
+			total.addError(val.val);
+		} else if (c_oAscPivotRecType.Missing !== val.type) {
 			total.addCount(val.val);
 		}
 	}
@@ -3415,9 +3417,9 @@ CT_pivotTableDefinition.prototype.asc_create = function(ws, name, cacheDefinitio
 	this.useAutoFormatting = true;
 	this.itemPrintTitles = true;
 	this.indent = 0;
-	this.outline = 1;
-	this.outlineData = 1;
-	this.multipleFieldFilters = 0;
+	this.outline = true;
+	this.outlineData = true;
+	this.multipleFieldFilters = false;
 
 	this.pivotFields = new CT_PivotFields();
 	this.pivotFields.fillWithEmpty(this.cacheDefinition.getFields().length);
@@ -3546,13 +3548,13 @@ CT_pivotTableDefinition.prototype.updateRowColItems = function () {
 	this.rowItems = this.colItems = null;
 	if (rowFields) {
 		this.rowItems = new CT_rowItems();
-		hasDataField = this._updateRowColItemsRecursively(0, dataRow, undefined, this.rowItems.i, rowFields, false, pivotFields);
-		this._updateRowColItemsGrandTotal(this.rowGrandTotals, hasDataField, this.rowItems.i, dataFields);
+		hasDataField = this._updateRowColItemsRecursively(0, dataRow, undefined, this.rowItems.i, rowFields, false, pivotFields, 0, dataFields);
+		this._updateRowColItemsGrandTotal(this.rowGrandTotals, hasDataField, this.rowItems.i, rowFields, dataFields);
 	}
 	if (colFields) {
 		this.colItems = new CT_colItems();
-		hasDataField = this._updateRowColItemsRecursively(0, {vals: dataRow.subtotal}, undefined, this.colItems.i, colFields, true, pivotFields);
-		this._updateRowColItemsGrandTotal(this.colGrandTotals, hasDataField, this.colItems.i, dataFields);
+		hasDataField = this._updateRowColItemsRecursively(0, {vals: dataRow.subtotal}, undefined, this.colItems.i, colFields, true, pivotFields, 0, dataFields);
+		this._updateRowColItemsGrandTotal(this.colGrandTotals, hasDataField, this.colItems.i, colFields, dataFields);
 	}
 	if (rowFields || colFields || dataFields) {
 		if (!(this.rowItems && this.rowItems.i.length > 0)) {
@@ -3566,58 +3568,74 @@ CT_pivotTableDefinition.prototype.updateRowColItems = function () {
 	}
 	return dataRow;
 };
-CT_pivotTableDefinition.prototype._updateRowColItemsRecursively = function(index, dataMap, parentI, items, fields, forceTabular, pivotFields) {
+CT_pivotTableDefinition.prototype._updateRowColItemsRecursively = function(index, dataMap, parentI, items, fields, forceTabular, pivotFields, dataIndex, dataFields) {
 	var hasDataField = false;
 	if (index >= fields.length) {
 		return hasDataField;
 	}
-	var newX, newI, pivotField, isTabular, indexItem, item, subDataMap, newParentI;
+	var pivotField, isTabular, indexItem, item, subDataMap, dataField;
 	var x = fields[index].x;
 	if (st_VALUES === x) {
 		hasDataField = true;
+		for (indexItem = 0; indexItem < dataFields.length; ++indexItem) {
+			dataField = dataFields[indexItem];
+			if (dataField) {
+				pivotField = pivotFields[dataField.asc_getIndex()];
+				if (pivotField) {
+					isTabular = (forceTabular || false === pivotField.compact);
+					hasDataField |= this._updateRowColItemsRecursivelyElem(index, dataMap, items, fields, forceTabular, pivotFields, indexItem, dataFields, indexItem, parentI, isTabular);
+				}
+			}
+		}
 	} else {
 		pivotField = pivotFields[x];
 		if (pivotField && pivotField.items) {
-			isTabular = (forceTabular || false === pivotField.outline);
+			isTabular = (forceTabular || false === pivotField.compact);
 			for (indexItem = 0; indexItem < pivotField.items.item.length; ++indexItem) {
 				item = pivotField.items.item[indexItem];
 				if (Asc.c_oAscItemType.Default !== item.t) {
 					subDataMap = dataMap.vals[item.x];
 					if (subDataMap) {
-						newX = new CT_X();
-						newX.v = indexItem;
-						if (parentI) {
-							parentI.x.push(newX);
-							newParentI = isTabular ? parentI : undefined;
-							parentI = null;
-						} else {
-							newI = new CT_I();
-							newI.r = index;
-							newI.x.push(newX);
-							items.push(newI);
-							newParentI = isTabular ? newI : undefined;
-						}
-						hasDataField = this._updateRowColItemsRecursively(index + 1, subDataMap, newParentI, items,
-																					 fields, forceTabular,
-																					 pivotFields) || hasDataField;
-						if (isTabular && index < fields.length - 1) {
-							newX = new CT_X();
-							newX.v = indexItem;
-							newI = new CT_I();
-							newI.t = Asc.c_oAscItemType.Default;
-							newI.r = index;
-							newI.x.push(newX);
-							items.push(newI);
-						}
+						hasDataField |= this._updateRowColItemsRecursivelyElem(index, subDataMap, items, fields, forceTabular, pivotFields, dataIndex, dataFields, indexItem, parentI, isTabular);
 					}
 				}
 			}
 		}
 	}
 	return hasDataField;
-}
-CT_pivotTableDefinition.prototype._updateRowColItemsGrandTotal = function(grandTotals, hasDataField, items, dataFields) {
-	if (this.rowGrandTotals) {
+};
+CT_pivotTableDefinition.prototype._updateRowColItemsRecursivelyElem = function(index, dataMap, items, fields, forceTabular, pivotFields, dataIndex, dataFields, indexItem, parentI, isTabular) {
+	var newI, newParentI;
+	var newX = new CT_X();
+	newX.v = indexItem;
+	if (parentI) {
+		parentI.x.push(newX);
+		newParentI = isTabular ? parentI : undefined;
+		parentI = null;
+	} else {
+		newI = new CT_I();
+		newI.i = dataIndex;
+		newI.r = index;
+		newI.x.push(newX);
+		items.push(newI);
+		newParentI = isTabular ? newI : undefined;
+	}
+	var hasDataField = this._updateRowColItemsRecursively(index + 1, dataMap, newParentI, items,
+			fields,	forceTabular, pivotFields, dataIndex, dataFields) || hasDataField;
+	if (isTabular && index < fields.length - 1) {
+		newX = new CT_X();
+		newX.v = indexItem;
+		newI = new CT_I();
+		newI.i = dataIndex;
+		newI.t = Asc.c_oAscItemType.Default;
+		newI.r = index;
+		newI.x.push(newX);
+		items.push(newI);
+	}
+	return hasDataField;
+};
+CT_pivotTableDefinition.prototype._updateRowColItemsGrandTotal = function(grandTotals, hasDataField, items, fields, dataFields) {
+	if (grandTotals && !(hasDataField && 1 === fields.length)) {
 		var grandTotalsCount = hasDataField ? dataFields.length : 1;
 		for (var i = 0; i < grandTotalsCount; ++i) {
 			var newI = new CT_I();
@@ -3654,7 +3672,7 @@ CT_pivotTableDefinition.prototype.updateLocation = function() {
 			location.firstDataCol = 1;
 			for (i = 0; i < rowFields.length; ++i) {
 				var field = pivotFields[rowFields[i].asc_getIndex()];
-				if (field && false === field.outline) {
+				if (field && false === field.compact) {
 					location.firstDataCol++;
 				}
 			}
