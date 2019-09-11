@@ -1521,7 +1521,63 @@ var g_oFontProperties = {
 		return c_oAscPatternType.Solid === this.patternType ? -1 : this.getHatchOffset();
 	};
 	PatternFill.prototype.asc_setType = function (value) {
-		this.patternType = value;
+		switch (value) {
+			case -1:
+				this.patternType = c_oAscPatternType.Solid;
+				break;
+			case 8:
+				this.patternType = c_oAscPatternType.DarkDown;
+				break;
+			case 9:
+				this.patternType = c_oAscPatternType.DarkHorizontal;
+				break;
+			case 10:
+				this.patternType = c_oAscPatternType.DarkUp;
+				break;
+			case 11:
+				this.patternType = c_oAscPatternType.DarkVertical;
+				break;
+			case 20:
+				this.patternType = c_oAscPatternType.LightDown;
+				break;
+			case 21:
+				this.patternType = c_oAscPatternType.LightHorizontal;
+				break;
+			case 22:
+				this.patternType = c_oAscPatternType.LightUp;
+				break;
+			case 23:
+				this.patternType = c_oAscPatternType.LightVertical;
+				break;
+			case 27:
+				this.patternType = c_oAscPatternType.Gray0625;
+				break;
+			case 28:
+				this.patternType = c_oAscPatternType.Gray125;
+				break;
+			case 29:
+				this.patternType = c_oAscPatternType.LightGray;
+				break;
+			case 30:
+				this.patternType = c_oAscPatternType.LightTrellis;
+				break;
+			case 33:
+				this.patternType = c_oAscPatternType.MediumGray;
+				break;
+			case 35:
+				this.patternType = c_oAscPatternType.DarkGray;
+				break;
+			case 41:
+				this.patternType = c_oAscPatternType.DarkGrid;
+				break;
+			case 43:
+				this.patternType = c_oAscPatternType.LightGrid;
+				break;
+			case 46:
+			default:
+				this.patternType = c_oAscPatternType.DarkTrellis;
+				break;
+		}
 	};
 	PatternFill.prototype.asc_getFgColor = function () {
 		return this.fgColor;
