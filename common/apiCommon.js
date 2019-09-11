@@ -3750,6 +3750,13 @@
 					}
 				}
 
+				var _oldTrackRevision = false;
+                if (oApi.getEditorId() == AscCommon.c_oEditorId.Word && oApi.WordControl && oApi.WordControl.m_oLogicDocument)
+                    _oldTrackRevision = oApi.WordControl.m_oLogicDocument.TrackRevisions;
+
+                if (_oldTrackRevision)
+                    oApi.WordControl.m_oLogicDocument.TrackRevisions = false;
+
                 oShape.setBDeleted(false);
 				oShape.spPr = new AscFormat.CSpPr();
 				oShape.spPr.setParent(oShape);
@@ -3855,8 +3862,8 @@
 				var oldShowParaMarks;
 				if (window.editor)
 				{
-					oldShowParaMarks = editor.ShowParaMarks;
-					editor.ShowParaMarks = false;
+					oldShowParaMarks = oApi.ShowParaMarks;
+                    oApi.ShowParaMarks = false;
 				}
 
 				AscCommon.IsShapeToImageConverter = true;
@@ -3905,8 +3912,11 @@
 
 				if (window.editor)
 				{
-					window.editor.ShowParaMarks = oldShowParaMarks;
+                    oApi.ShowParaMarks = oldShowParaMarks;
 				}
+
+				if (_oldTrackRevision)
+					oApi.WordControl.m_oLogicDocument.TrackRevisions = true;
 
 			}, this, [obj]);
 		};

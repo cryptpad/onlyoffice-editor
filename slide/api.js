@@ -7419,7 +7419,7 @@ background-repeat: no-repeat;\
 		return _renderer.Memory.data;
 	};
 
-    window["asc_docs_api"].prototype["asc_nativeGetThemeThumbnail"] = function()
+    window["asc_docs_api"].prototype["asc_nativeGetThemeThumbnail"] = function(params)
     {
         if (!this.WordControl.m_oLogicDocument ||
             !this.WordControl.m_oLogicDocument.slideMasters ||
@@ -7439,8 +7439,8 @@ background-repeat: no-repeat;\
         this.ShowParaMarks                    = false;
         _renderer.IsNoDrawingEmptyPlaceholder = true;
 
-        var pxW = 85;
-        var pxH = 38;
+        var pxW = 85; if (params && params.length && params[0]) pxW = params[0];
+        var pxH = 38; if (params && params.length && params[1]) pxH = params[1];
         var mmW = pxW * AscCommon.g_dKoef_pix_to_mm;
         var mmH = pxH * AscCommon.g_dKoef_pix_to_mm;
 
@@ -7451,7 +7451,7 @@ background-repeat: no-repeat;\
         this.WordControl.m_oMasterDrawer.HeightMM = mmH;
         this.WordControl.m_oMasterDrawer.WidthPx = pxW;
         this.WordControl.m_oMasterDrawer.HeightPx = pxH;
-        this.WordControl.m_oMasterDrawer.Draw2(_renderer, _master);
+        this.WordControl.m_oMasterDrawer.Draw2(_renderer, _master, undefined, undefined, params);
         window["NATIVE_EDITOR_ENJINE"] = oldEngine;
         _renderer.EndPage();
 
