@@ -6289,16 +6289,25 @@
 		if (0 === location.firstHeaderRow) {
 			return;
 		}
+		var cells;
 		var pivotRange = pivotTable.getRange();
+		var rowFields = pivotTable.asc_getRowFields();
 		var colFields = pivotTable.asc_getColumnFields();
 		var dataFields = pivotTable.asc_getDataFields();
 		var cacheFields = pivotTable.asc_getCacheFields();
 		var pivotFields = pivotTable.asc_getPivotFields();
-		if (1 === dataFields.length) {
-			this.getRange4(pivotRange.r1, pivotRange.c1).setValue(pivotTable.getDataFieldName(0));
+		if (dataFields && 1 === dataFields.length) {
+			if(rowFields && !colFields) {
+				cells = this.getRange4(pivotRange.r1, pivotRange.c1 + location.firstDataCol);
+			} else if(!rowFields && colFields){
+				cells = this.getRange4(pivotRange.r1 + location.firstDataRow, pivotRange.c1);
+			} else {
+				cells = this.getRange4(pivotRange.r1, pivotRange.c1);
+			}
+			cells.setValue(pivotTable.getDataFieldName(0));
 		}
-		if (pivotTable.showHeaders) {
-			var cells = this.getRange4(pivotRange.r1, pivotRange.c1 + location.firstDataCol);
+		if (pivotTable.showHeaders && colFields) {
+			cells = this.getRange4(pivotRange.r1, pivotRange.c1 + location.firstDataCol);
 			if (pivotTable.compact) {
 				cells.setValue('Column Labels');
 			} else {
@@ -6312,7 +6321,7 @@
 		}
 	};
 	Worksheet.prototype._updatePivotTableRowColLables = function(pivotTable, rowFieldsPos) {
-		var items, fields, field, oCellValue, fieldIndex, sharedItem, fieldItem, cells, r1, c1;
+		var items, fields, field, oCellValue, fieldIndex, sharedItem, fieldItem, cells, r1, c1, valuesIndex;
 		var pivotRange = pivotTable.getRange();
 		var location = pivotTable.location;
 		if (rowFieldsPos) {
@@ -6320,19 +6329,20 @@
 			fields = pivotTable.asc_getRowFields();
 			r1 = pivotRange.r1 + location.firstDataRow;
 			c1 = pivotRange.c1;
+			valuesIndex = pivotTable.getRowFieldsValuesIndex();
 		} else {
 			items = pivotTable.getColItems();
 			fields = pivotTable.asc_getColumnFields();
 			r1 = pivotRange.r1 + location.firstHeaderRow;
 			c1 = pivotRange.c1 + location.firstDataCol;
+			valuesIndex = pivotTable.getColumnFieldsValuesIndex();
 		}
 		if (!items || !fields) {
 			return;
 		}
 		var cacheFields = pivotTable.asc_getCacheFields();
 		var pivotFields = pivotTable.asc_getPivotFields();
-		var dataFields = pivotTable.asc_getDataFields();
-		var dataFieldsCount = dataFields && dataFields.length || 0;
+
 		var totalTitleRange = [];
 		for (var i = 0; i < items.length; ++i) {
 			var item = items[i];
@@ -6360,17 +6370,21 @@
 				} else if (Asc.c_oAscItemType.Grand === item.t) {
 					oCellValue = new AscCommonExcel.CCellValue();
 					oCellValue.type = AscCommon.CellValueType.String;
-					if (dataFieldsCount < 2) {
+					if (-1 === valuesIndex) {
 						oCellValue.text = 'Grand Total';
 					} else {
-						oCellValue.text = pivotTable.getDataFieldName(item.i);
-						oCellValue.text += AscCommonExcel.ToName_ST_ItemType(item.t);
+						oCellValue.text = AscCommonExcel.ToName_ST_ItemType(item.t);
+						oCellValue.text += ' ' + pivotTable.getDataFieldName(item.i);
 					}
 				} else {
 					oCellValue = new AscCommonExcel.CCellValue();
 					oCellValue.type = AscCommon.CellValueType.String;
 					oCellValue.text = totalTitleRange[r + j].getValueWithFormat();
-					oCellValue.text += AscCommonExcel.ToName_ST_ItemType(item.t);
+					if (r + j > valuesIndex) {
+						oCellValue.text += ' ' + AscCommonExcel.ToName_ST_ItemType(item.t);
+					} else {
+						oCellValue.text += ' ' + pivotTable.getDataFieldName(item.i);
+					}
 				}
 				if (field && null !== field.numFmtId) {
 					cells.setNum(new AscCommonExcel.Num({id: field.numFmtId}));
@@ -6392,7 +6406,11 @@
 		var c1 = pivotRange.c1;
 		var r1 = pivotRange.r1 + location.firstDataRow - 1;
 		if (pivotTable.compact || location.firstDataCol !== rowFields.length) {
-			this.getRange4(r1, c1).setValue('Row Labels');
+			if(1 === rowFields.length && AscCommonExcel.st_VALUES === rowFields[0].asc_getIndex()){
+				this.getRange4(r1, c1).setValue('Values');
+			} else {
+				this.getRange4(r1, c1).setValue('Row Labels');
+			}
 		} else {
 			index = rowFields[0].asc_getIndex();
 			cells = this.getRange4(r1, c1++);
@@ -6416,10 +6434,10 @@
 		var colFields = pivotTable.asc_getColumnFields();
 		var colItems = pivotTable.getColItems();
 		var pivotFields = pivotTable.asc_getPivotFields();
-		if (!rowItems || !colItems || !rowFields || !colFields) {
+		var dataFields = pivotTable.asc_getDataFields();
+		if (!rowItems || !colItems || !dataFields) {
 			return;
 		}
-		var dataFields = pivotTable.asc_getDataFields();
 		var pivotRange = pivotTable.getRange();
 		var location = pivotTable.location;
 		var r1 = pivotRange.r1 + location.firstDataRow;
@@ -6431,7 +6449,7 @@
 			var rowItem = rowItems[rowItemsIndex];
 			var rowR = rowItem.getR();
 			curDataRow = dataByRowIndex[rowR];
-			if (Asc.c_oAscItemType.Grand !== rowItem.t) {
+			if (Asc.c_oAscItemType.Grand !== rowItem.t && rowFields) {
 				for (var rowItemsXIndex = 0; rowItemsXIndex < rowItem.x.length; ++rowItemsXIndex) {
 					fieldIndex = rowFields[rowR + rowItemsXIndex].asc_getIndex();
 					if (AscCommonExcel.st_VALUES !== fieldIndex) {
@@ -6445,14 +6463,15 @@
 					}
 				}
 			}
-			if (Asc.c_oAscItemType.Data !== rowItem.t || rowR + rowItem.x.length === rowFields.length ||
-				pivotFields[fieldIndex].asc_getSubtotalTop()) {
+			//todo
+			if (Asc.c_oAscItemType.Data !== rowItem.t || !rowFields || rowR + rowItem.x.length === rowFields.length ||
+				(AscCommonExcel.st_VALUES !== fieldIndex && pivotFields[fieldIndex].asc_getSubtotalTop())) {
 				dataByColIndex = [curDataRow];
 				for (var colItemsIndex = 0; colItemsIndex < colItems.length; ++colItemsIndex) {
 					var colItem = colItems[colItemsIndex];
 					var colR = colItem.getR();
 					curDataRow = dataByColIndex[colR];
-					if (curDataRow && Asc.c_oAscItemType.Grand !== colItem.t) {
+					if (curDataRow && Asc.c_oAscItemType.Grand !== colItem.t && colFields) {
 						for (var colItemsXIndex = 0; colItemsXIndex < colItem.x.length; ++colItemsXIndex) {
 							fieldIndex = colFields[colR + colItemsXIndex].asc_getIndex();
 							if (AscCommonExcel.st_VALUES !== fieldIndex) {
