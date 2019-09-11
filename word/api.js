@@ -4700,6 +4700,19 @@ background-repeat: no-repeat;\
 
 		return bResult;
 	};
+	asc_docs_api.prototype.asc_RemoveTableCells    = function()
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return;
+
+		if (!oLogicDocument.Document_Is_SelectionLocked(changestype_Table_Properties))
+		{
+			oLogicDocument.StartAction(AscDFH.historydescription_Document_RemoveTableCells);
+			oLogicDocument.RemoveTableCells();
+			oLogicDocument.FinalizeAction();
+		}
+	};
 	asc_docs_api.prototype.widthTable              = function(width)
 	{
 
@@ -9442,6 +9455,28 @@ background-repeat: no-repeat;\
 
 		this.asc_addComment(oData);
 	};
+	window["asc_docs_api"].prototype["pluginMethod_MoveCursorToStart"] = function(isMoveToMainContent)
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (oLogicDocument)
+		{
+			if (isMoveToMainContent)
+				oLogicDocument.MoveCursorToStartOfDocument();
+			else
+				oLogicDocument.MoveCursorToStartPos(false);
+		}
+	};
+	window["asc_docs_api"].prototype["pluginMethod_MoveCursorToEnd"] = function(isMoveToMainContent)
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (oLogicDocument)
+		{
+			if (isMoveToMainContent)
+				oLogicDocument.MoveCursorToStartOfDocument();
+
+			oLogicDocument.MoveCursorToEndPos(false);
+		}
+	};
 	/**
 	 * Find and replace text.
 	 * @param {Object} oProperties The properties for find and replace.
@@ -9829,6 +9864,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['MergeCells']                                = asc_docs_api.prototype.MergeCells;
 	asc_docs_api.prototype['SplitCell']                                 = asc_docs_api.prototype.SplitCell;
 	asc_docs_api.prototype['asc_DistributeTableCells']                  = asc_docs_api.prototype.asc_DistributeTableCells;
+	asc_docs_api.prototype['asc_RemoveTableCells']                      = asc_docs_api.prototype.asc_RemoveTableCells;
 	asc_docs_api.prototype['widthTable']                                = asc_docs_api.prototype.widthTable;
 	asc_docs_api.prototype['put_CellsMargin']                           = asc_docs_api.prototype.put_CellsMargin;
 	asc_docs_api.prototype['set_TblWrap']                               = asc_docs_api.prototype.set_TblWrap;

@@ -900,8 +900,18 @@ CTableCell.prototype =
 			}
 		}
 
-        if (true !== isRotated && true === this.Get_NoWrap())
-            Result.Min = Math.max(Result.Min, Result.Max);
+        if (true !== isRotated && true === this.GetNoWrap())
+		{
+			if (tblwidth_Mm !== this.GetW().Type)
+			{
+				Result.Min = Math.max(Result.Min, Result.Max);
+			}
+			else
+			{
+				var oMargins = this.GetMargins();
+				Result.Min = Math.max(Result.Min, this.GetW().W - oMargins.Left.W - oMargins.Right.W, 0);
+			}
+		}
 
         return Result;
     },
@@ -1140,7 +1150,7 @@ CTableCell.prototype =
         this.Set_TextDirection(OtherPr.TextDirection);
 
         // NoWrap
-        this.Set_NoWrap(OtherPr.NoWrap);
+        this.SetNoWrap(OtherPr.NoWrap);
     },
 
     Get_W : function()
@@ -1365,12 +1375,12 @@ CTableCell.prototype =
 		this.Recalc_CompiledPr();
 	},
 
-    Get_NoWrap : function()
+    GetNoWrap : function()
     {
         return this.Get_CompiledPr(false).NoWrap;
     },
 
-	Set_NoWrap : function(Value)
+	SetNoWrap : function(Value)
 	{
 		if (this.Pr.NoWrap !== Value)
 		{

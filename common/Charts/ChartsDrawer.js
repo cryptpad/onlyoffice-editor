@@ -888,32 +888,30 @@ CChartsDrawer.prototype =
 
 		//исключение - когда среди диаграмм есть груговая
 		var pieChart = null;
-		if(!this._isSwitchCurrent3DChart(chartSpace)) {
-			var charts = plotArea.charts;
-			for(var i = 0; i < charts.length; i++) {
-				var chartType = this._getChartType(charts[i]);
-				if(c_oChartTypes.Pie === chartType || c_oChartTypes.DoughnutChart === chartType) {
-					pieChart = charts[i];
-					break;
-				}
+		var charts = plotArea.charts;
+		for(i = 0; i < charts.length; i++) {
+			var chartType = this._getChartType(charts[i]);
+			if(c_oChartTypes.Pie === chartType || c_oChartTypes.DoughnutChart === chartType) {
+				pieChart = charts[i];
+				break;
 			}
-			if(null !== pieChart) {
-				//вычисляем истинную(первоначальную) ширину и высоту диаграммы
-				left = this._getStandartMargin(left, leftKey, leftTextLabels, 0) + leftKey + leftTextLabels;
-				bottom = this._getStandartMargin(bottom, bottomKey, bottomTextLabels, 0) + bottomKey + bottomTextLabels;
-				top = this._getStandartMargin(top, topKey, topTextLabels, topMainTitle) + topKey + topTextLabels + topMainTitle;
-				right = this._getStandartMargin(right, rightKey, rightTextLabels, 0) + rightKey + rightTextLabels;
+		}
+		if(!this._isSwitchCurrent3DChart(chartSpace) && null !== pieChart) {
+			//вычисляем истинную(первоначальную) ширину и высоту диаграммы
+			left = this._getStandartMargin(left, leftKey, leftTextLabels, 0) + leftKey + leftTextLabels;
+			bottom = this._getStandartMargin(bottom, bottomKey, bottomTextLabels, 0) + bottomKey + bottomTextLabels;
+			top = this._getStandartMargin(top, topKey, topTextLabels, topMainTitle) + topKey + topTextLabels + topMainTitle;
+			right = this._getStandartMargin(right, rightKey, rightTextLabels, 0) + rightKey + rightTextLabels;
 
-				var width = chartSpace.extX - left - right;
-				var height = chartSpace.extY - top - bottom;
-				var pieSize = width > height ? height : width;
+			var width = chartSpace.extX - left - right;
+			var height = chartSpace.extY - top - bottom;
+			var pieSize = width > height ? height : width;
 
-				//размещаем по центру относительно width/height
-				left += (width - pieSize)/2;
-				right += (width - pieSize)/2;
-				top += (height - pieSize)/2;
-				bottom += (height - pieSize)/2;
-			}
+			//размещаем по центру относительно width/height
+			left += (width - pieSize)/2;
+			right += (width - pieSize)/2;
+			top += (height - pieSize)/2;
+			bottom += (height - pieSize)/2;
 		}
 
 		if(null === pieChart) {
@@ -2875,7 +2873,7 @@ CChartsDrawer.prototype =
 			}
 		}
 
-		return pts[0];
+		return res;
 	},
 
 	getPointByIndex: function (seria, index, bXVal) {
@@ -5415,6 +5413,10 @@ drawLineChart.prototype = {
 		var point = this.cChartDrawer.getIdxPoint(this.chart.series[ser], val);
 		var path;
 
+		if(!point) {
+			return;
+		}
+
 		var commandIndex = 0;
 		if (this.cChartDrawer.nDimensionCount === 3) {
 			var curSer = this.paths.series[ser];
@@ -6868,6 +6870,10 @@ drawAreaChart.prototype = {
 		var point = this.cChartDrawer.getIdxPoint(this.chart.series[ser], val);
 		var path;
 
+		if(!point) {
+			return;
+		}
+
 		path = this.points[ser][val];
 
 		if (!path) {
@@ -7609,6 +7615,10 @@ drawHBarChart.prototype = {
 	_calculateDLbl: function (chartSpace, ser, val) {
 		var point = this.cChartDrawer.getIdxPoint(this.chart.series[ser], val);
 		var path = this.paths.series[ser][val];
+
+		if(!point) {
+			return;
+		}
 
 		if (this.cChartDrawer.nDimensionCount === 3 && this.paths.series[ser][val].frontPaths) {
 			var frontPaths = this.paths.series[ser][val].frontPaths;
@@ -10818,8 +10828,11 @@ drawScatterChart.prototype = {
 
 	_calculateDLbl: function (chartSpace, ser, val) {
 		var point = this.cChartDrawer.getIdxPoint(this.chart.series[ser], val);
-
 		var path;
+
+		if(!point) {
+			return;
+		}
 
 		if (this.paths.points) {
 			if (this.paths.points[ser] && this.paths.points[ser][val]) {

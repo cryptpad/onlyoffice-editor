@@ -4440,7 +4440,7 @@ Binary_tblPrWriter.prototype =
             this.memory.WriteByte(c_oSerPropLenType.Byte);
             this.memory.WriteByte(textDirection);
         }
-        var noWrap = cell ? cell.Get_NoWrap() : null;
+        var noWrap = cell ? cell.GetNoWrap() : null;
         if(null != noWrap)
         {
             this.memory.WriteByte(c_oSerProp_cellPrType.noWrap);
@@ -10612,7 +10612,7 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
 			}
 		} else if ( c_oSerParType.Sdt === type) {
 			var oSdt = new AscCommonWord.CInlineLevelSdt();
-			oSdt.ReplacePlaceHolderWithContent();
+			oSdt.RemoveFromContent(0, oSdt.GetElementsCount());
 			oSdt.SetParagraph(oParStruct.paragraph);
 			var oSdtStruct = new OpenParStruct(oSdt, oParStruct.paragraph);
 			res = this.bcr.Read1(length, function(t, l){
@@ -12514,7 +12514,7 @@ function Binary_oMathReader(stream, oReadResult, curFootnote, openParams)
 		{
 			var reviewInfo = new CReviewInfo();
 			var oSdt = new AscCommonWord.CInlineLevelSdt();
-			oSdt.ReplacePlaceHolderWithContent(true);
+			oSdt.RemoveFromContent(0, oSdt.GetElementsCount());
 			oSdt.SetParagraph(oParStruct.paragraph);
 			var oSdtStruct = new OpenParStruct(oSdt, oParStruct.paragraph);
 			res = this.bcr.Read1(length, function(t, l){
@@ -12593,7 +12593,7 @@ function Binary_oMathReader(stream, oReadResult, curFootnote, openParams)
 		{
 			var reviewInfo = new CReviewInfo();
 			var oSdt = new AscCommonWord.CInlineLevelSdt();
-			oSdt.ReplacePlaceHolderWithContent(true);
+			oSdt.RemoveFromContent(0, oSdt.GetElementsCount());
 			oSdt.SetParagraph(oParStruct.paragraph);
 			var oSdtStruct = new OpenParStruct(oSdt, oParStruct.paragraph);
 			res = this.bcr.Read1(length, function(t, l){

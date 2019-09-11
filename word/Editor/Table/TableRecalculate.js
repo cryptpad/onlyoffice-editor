@@ -1733,7 +1733,7 @@ CTable.prototype.private_RecalculatePage = function(CurPage)
 
     var X_max = -1;
     var X_min = -1;
-    if ( this.HeaderInfo.Count > 0 && this.HeaderInfo.PageIndex != -1 && CurPage > this.HeaderInfo.PageIndex )
+	if (this.HeaderInfo.Count > 0 && this.HeaderInfo.PageIndex != -1 && CurPage > this.HeaderInfo.PageIndex && this.IsInline())
     {
     	this.HeaderInfo.HeaderRecalculate = true;
         this.HeaderInfo.Pages[CurPage] = {};

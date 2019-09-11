@@ -1878,6 +1878,8 @@ Paragraph.prototype.Internal_Draw_3 = function(CurPage, pGraphics, Pr)
 
 				if (this.Lines[CurLine].Ranges.length - 1 === CurRange)
 				{
+					TempX1 = this.Pages[CurPage].XLimit - Pr.ParaPr.Ind.Right;
+
 					if (Pr.ParaPr.Brd.Right.Value === border_Single)
 						TempX1 += 0.5 + Pr.ParaPr.Brd.Right.Size + Pr.ParaPr.Brd.Right.Space;
 					else
@@ -2055,7 +2057,7 @@ Paragraph.prototype.Internal_Draw_3 = function(CurPage, pGraphics, Pr)
 		if (true === bDrawBorders && ( ( this.Pages.length - 1 === CurPage ) || ( CurLine < this.Pages[CurPage + 1].FirstLine ) ))
 		{
 			var TempX0 = Math.min(this.Lines[CurLine].Ranges[0].X, this.Pages[CurPage].X + Pr.ParaPr.Ind.Left, this.Pages[CurPage].X + Pr.ParaPr.Ind.Left + Pr.ParaPr.Ind.FirstLine);
-			var TempX1 = this.Lines[CurLine].Ranges[this.Lines[CurLine].Ranges.length - 1].XEnd;
+			var TempX1 = this.Pages[CurPage].XLimit - Pr.ParaPr.Ind.Right;//this.Lines[CurLine].Ranges[this.Lines[CurLine].Ranges.length - 1].XEnd;
 
 			if (true === this.Is_LineDropCap())
 			{
@@ -4207,13 +4209,13 @@ Paragraph.prototype.Correct_ContentPos2 = function()
 
 	// Может так случиться, что текущий элемент окажется непригодным для расположения курсора, тогда мы ищем ближайший
 	// пригодный
-	while (CurPos > 0 && false === this.Content[CurPos].Is_CursorPlaceable())
+	while (CurPos > 0 && false === this.Content[CurPos].IsCursorPlaceable())
 	{
 		CurPos--;
 		this.Content[CurPos].MoveCursorToEndPos();
 	}
 
-	while (CurPos < Count && false === this.Content[CurPos].Is_CursorPlaceable())
+	while (CurPos < Count && false === this.Content[CurPos].IsCursorPlaceable())
 	{
 		CurPos++;
 		this.Content[CurPos].MoveCursorToStartPos(false);
@@ -4222,7 +4224,7 @@ Paragraph.prototype.Correct_ContentPos2 = function()
 	// Если курсор находится в начале или конце гиперссылки, тогда выводим его из гиперссылки
 	while (CurPos > 0 && para_Run !== this.Content[CurPos].Type && para_Math !== this.Content[CurPos].Type && para_Field !== this.Content[CurPos].Type && para_InlineLevelSdt !== this.Content[CurPos].Type && true === this.Content[CurPos].Cursor_Is_Start())
 	{
-		if (false === this.Content[CurPos - 1].Is_CursorPlaceable())
+		if (false === this.Content[CurPos - 1].IsCursorPlaceable())
 			break;
 
 		CurPos--;
@@ -4231,7 +4233,7 @@ Paragraph.prototype.Correct_ContentPos2 = function()
 
 	while (CurPos < Count && para_Run !== this.Content[CurPos].Type && para_Math !== this.Content[CurPos].Type && para_Field !== this.Content[CurPos].Type && para_InlineLevelSdt !== this.Content[CurPos].Type && true === this.Content[CurPos].Cursor_Is_End())
 	{
-		if (false === this.Content[CurPos + 1].Is_CursorPlaceable())
+		if (false === this.Content[CurPos + 1].IsCursorPlaceable())
 			break;
 
 		CurPos++;
@@ -4241,6 +4243,8 @@ Paragraph.prototype.Correct_ContentPos2 = function()
 	this.private_CorrectCurPosRangeLine();
 
 	this.CurPos.ContentPos = CurPos;
+
+	this.Content[this.CurPos.ContentPos].CorrectContentPos();
 };
 Paragraph.prototype.Get_ParaContentPos = function(bSelection, bStart, bUseCorrection)
 {
@@ -7664,7 +7668,7 @@ Paragraph.prototype.GetCalculatedTextPr = function()
 
 		var StartPos = 0;
 		var Count    = this.Content.length;
-		while (true !== this.Content[StartPos].Is_CursorPlaceable() && StartPos < Count - 1)
+		while (true !== this.Content[StartPos].IsCursorPlaceable() && StartPos < Count - 1)
 			StartPos++;
 
 		TextPr    = this.Content[StartPos].Get_CompiledTextPr(true);
@@ -7714,7 +7718,7 @@ Paragraph.prototype.GetCalculatedTextPr = function()
 				while (true === this.Content[StartPos].IsSelectionEmpty() && StartPos < EndPos)
 					StartPos++;
 
-				while (true !== this.Content[StartPos].Is_CursorPlaceable() && StartPos > OldStartPos)
+				while (true !== this.Content[StartPos].IsCursorPlaceable() && StartPos > OldStartPos)
 					StartPos--;
 
 
@@ -8677,10 +8681,14 @@ Paragraph.prototype.Recalc_CompiledPr = function()
 };
 /**
  * Сообщаем, что нужно пересчитать скомпилированные настройки параграфа
+ * @param {boolean} isForce - пересчитать прямо сейчас без дополнительных проверок
  */
-Paragraph.prototype.RecalcCompiledPr = function()
+Paragraph.prototype.RecalcCompiledPr = function(isForce)
 {
 	this.CompiledPr.NeedRecalc = true;
+
+	if (isForce)
+		this.private_CompileParaPr(true);
 };
 Paragraph.prototype.Recalc_RunsCompiledPr = function()
 {
@@ -8699,7 +8707,7 @@ Paragraph.prototype.Recalc_RunsCompiledPr = function()
  */
 Paragraph.prototype.Get_CompiledPr2 = function(bCopy)
 {
-	this.Internal_CompileParaPr();
+	this.private_CompileParaPr();
 
 	if (false === bCopy)
 		return this.CompiledPr.Pr;
@@ -8712,39 +8720,36 @@ Paragraph.prototype.Get_CompiledPr2 = function(bCopy)
 		return Pr;
 	}
 };
-Paragraph.prototype.Internal_CompileParaPr = function()
+Paragraph.prototype.private_CompileParaPr = function(isForce)
 {
-	if (true === this.CompiledPr.NeedRecalc)
+	if (!this.CompiledPr.NeedRecalc)
+		return;
+
+	if (this.Parent && (isForce || (true !== AscCommon.g_oIdCounter.m_bLoad && true !== AscCommon.g_oIdCounter.m_bRead)))
 	{
-		if (undefined !== this.Parent && null !== this.Parent && true !== AscCommon.g_oIdCounter.m_bLoad && true !== AscCommon.g_oIdCounter.m_bRead)
+		this.CompiledPr.Pr = this.Internal_CompileParaPr2();
+		if (!this.bFromDocument)
 		{
-			this.CompiledPr.Pr = this.Internal_CompileParaPr2();
-			if (!this.bFromDocument)
-			{
-				this.PresentationPr.Level  = AscFormat.isRealNumber(this.Pr.Lvl) ? this.Pr.Lvl : 0;
-				this.PresentationPr.Bullet = this.CompiledPr.Pr.ParaPr.Get_PresentationBullet(this.Get_Theme(), this.Get_ColorMap());
-				this.Numbering.Bullet      = this.PresentationPr.Bullet;
-			}
-
-			this.CompiledPr.NeedRecalc = false;
-		}
-		else
-		{
-			if (undefined === this.CompiledPr.Pr || null === this.CompiledPr.Pr)
-			{
-				this.CompiledPr.Pr =
-					{
-						ParaPr : g_oDocumentDefaultParaPr,
-						TextPr : g_oDocumentDefaultTextPr
-					};
-
-				this.CompiledPr.Pr.ParaPr.StyleTabs  = new CParaTabs();
-				this.CompiledPr.Pr.ParaPr.StyleNumPr = undefined;
-			}
-
-			this.CompiledPr.NeedRecalc = true;
+			this.PresentationPr.Level  = AscFormat.isRealNumber(this.Pr.Lvl) ? this.Pr.Lvl : 0;
+			this.PresentationPr.Bullet = this.CompiledPr.Pr.ParaPr.Get_PresentationBullet(this.Get_Theme(), this.Get_ColorMap());
+			this.Numbering.Bullet      = this.PresentationPr.Bullet;
 		}
 	}
+	else
+	{
+		if (undefined === this.CompiledPr.Pr || null === this.CompiledPr.Pr)
+		{
+			this.CompiledPr.Pr = {
+				ParaPr : g_oDocumentDefaultParaPr,
+				TextPr : g_oDocumentDefaultTextPr
+			};
+
+			this.CompiledPr.Pr.ParaPr.StyleTabs  = new CParaTabs();
+			this.CompiledPr.Pr.ParaPr.StyleNumPr = undefined;
+		}
+	}
+
+	this.CompiledPr.NeedRecalc = true;
 };
 /**
  * Формируем конечные свойства параграфа на основе стиля, возможной нумерации и прямых настроек.
@@ -9684,7 +9689,7 @@ Paragraph.prototype.SetOutlineLvl = function(nLvl)
 Paragraph.prototype.GetOutlineLvl = function()
 {
 	// TODO: Заглушка со стилями заголовков тут временная
-	var ParaPr = this.Get_CompiledPr2(false).ParaPr;
+	var ParaPr  = this.Get_CompiledPr2(false).ParaPr;
 	var oStyles = this.LogicDocument.Get_Styles();
 	for (var nIndex = 0; nIndex < 9; ++nIndex)
 	{
@@ -10174,7 +10179,7 @@ Paragraph.prototype.Document_CreateFontMap = function(FontMap)
 	{
 		this.FontMap.Map = {};
 
-		this.Internal_CompileParaPr();
+		this.private_CompileParaPr();
 
 		var FontScheme = this.Get_Theme().themeElements.fontScheme;
 		var CurTextPr  = this.CompiledPr.Pr.TextPr.Copy();

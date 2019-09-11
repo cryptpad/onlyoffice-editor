@@ -1066,6 +1066,17 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 		}
 		return res;
 	};
+	cArea.prototype.getValueByRowCol = function (i, j) {
+		var res, r;
+		r = this.getRange();
+		r.worksheet._getCellNoEmpty(r.bbox.r1 + i, r.bbox.c1 + j, function(cell) {
+			if(cell) {
+				res = checkTypeCell(cell);
+			}
+		});
+
+		return res;
+	};
 	cArea.prototype.getRange = function () {
 		if (!this.range) {
 			this.range = this.ws.getRange2(this.value);
@@ -1365,6 +1376,19 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 		}
 
 		return (null == _val[0]) ? new cEmpty() : _val[0];
+	};
+	cArea3D.prototype.getValueByRowCol = function (i, j) {
+		var r = this.getRanges(), res;
+
+		if(r[0]) {
+			r[0].worksheet._getCellNoEmpty(r[0].bbox.r1 + i, r[0].bbox.c1 + j, function(cell) {
+				if(cell) {
+					res = checkTypeCell(cell);
+				}
+			});
+		}
+
+		return res;
 	};
 	cArea3D.prototype.changeSheet = function (wsLast, wsNew) {
 		if (this.wsFrom === wsLast) {
@@ -2713,6 +2737,10 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 		/*var name = this.toString();
 		var localeName = locale ? locale[name] : name;*/
 		return this.name.replace(rx_sFuncPref, "_xlfn.");
+	};
+	cBaseFunction.prototype.toLocaleString = function (/*locale*/) {
+		var name = this.toString();
+		return AscCommonExcel.cFormulaFunctionToLocale ? AscCommonExcel.cFormulaFunctionToLocale[name] : name;
 	};
 	cBaseFunction.prototype.setCalcValue = function (arg, numFormat) {
 		if (numFormat !== null && numFormat !== undefined) {
@@ -6739,6 +6767,14 @@ parserFormula.prototype.clone = function(formula, parent, ws) {
 		var currentElement = null, _count = this.outStack.length, elemArr = new Array(_count), res = undefined,
 			_count_arg, _numberPrevArg, _argDiff, onlyRangesElements = true, rangesStr;
 
+		//для получаения грамотного дипапазона, устанавливаем для формул массива g_activeCell главную ячейку
+		var formulaArray = this.getArrayFormulaRef();
+		var oldActiveCell;
+		if(AscCommonExcel.g_R1C1Mode && bLocale && formulaArray){
+			AscCommonExcel.g_ActiveCell = new Asc.Range(formulaArray.c1, formulaArray.r1, formulaArray.c1, formulaArray.r1);
+			oldActiveCell = AscCommonExcel.g_ActiveCell;
+		}
+
 		for (var i = 0, j = 0; i < _count; i++) {
 			currentElement = this.outStack[i];
 
@@ -6802,13 +6838,18 @@ parserFormula.prototype.clone = function(formula, parent, ws) {
 				//используется в областях печати
 				//формулы вида "Sheet1!$B$3:$C$4,Sheet1!$D$3:$E$5,Sheet1!$G$3:$G$6,Sheet1!$J$2"
 				//TODO рассмотреть вписание в общую схему
-				return rangesStr;
+				res = rangesStr;
 			} else {
-				return bLocale ? res.toLocaleString(digitDelim) : res.toString();
+				res = bLocale ? res.toLocaleString(digitDelim) : res.toString();
 			}
 		} else {
-			return this.Formula;
+			res = this.Formula;
 		}
+
+		if(oldActiveCell) {
+			AscCommonExcel.g_ActiveCell = oldActiveCell;
+		}
+		return res;
 	};
 
 	parserFormula.prototype.buildDependencies = function() {
@@ -7041,6 +7082,8 @@ parserFormula.prototype.clone = function(formula, parent, ws) {
 		return false;
 	};
 	parserFormula.prototype.simplifyRefType = function(val, opt_cell) {
+		var ref = this.getArrayFormulaRef(), row, col;
+
 		if (cElementType.cell === val.type || cElementType.cell3D === val.type) {
 			val = val.getValue();
 			if (cElementType.empty === val.type && opt_cell) {
@@ -7048,10 +7091,9 @@ parserFormula.prototype.clone = function(formula, parent, ws) {
 				val = new cNumber(0);
 			}
 		} else if (cElementType.array === val.type) {
-			var ref = this.getArrayFormulaRef();
 			if(ref && opt_cell) {
-				var row = 1 === val.array.length ? 0 : opt_cell.nRow - ref.r1;
-				var col = 1 === val.array[0].length ? 0 : opt_cell.nCol - ref.c1;
+				row = 1 === val.array.length ? 0 : opt_cell.nRow - ref.r1;
+				col = 1 === val.array[0].length ? 0 : opt_cell.nCol - ref.c1;
 				if(val.array[row] && val.array[row][col]) {
 					val = val.getElementRowCol(row, col);
 				} else {
@@ -7068,8 +7110,26 @@ parserFormula.prototype.clone = function(formula, parent, ws) {
 			}
 		} else if (cElementType.cellsRange === val.type || cElementType.cellsRange3D === val.type) {
 			if (opt_cell) {
-				var range = new Asc.Range(opt_cell.nCol, opt_cell.nRow, opt_cell.nCol, opt_cell.nRow);
-				val = val.cross(range, opt_cell.ws.getId());
+				var range;
+				if(ref) {
+					range = val.getRange();
+					if(range) {
+						var bbox = range.bbox;
+						var rowCount = bbox.r2 - bbox.r1 + 1;
+						var colCount = bbox.c2 - bbox.c1 + 1;
+						row = 1 === rowCount ? 0 : opt_cell.nRow - ref.r1;
+						col = 1 === colCount ? 0 : opt_cell.nCol - ref.c1;
+						val = val.getValueByRowCol(row, col);
+						if(!val) {
+							val = new window['AscCommonExcel'].cError(window['AscCommonExcel'].cErrorType.not_available);
+						}
+					} else {
+						val = new window['AscCommonExcel'].cError(window['AscCommonExcel'].cErrorType.not_available);
+					}
+				} else {
+					range = new Asc.Range(opt_cell.nCol, opt_cell.nRow, opt_cell.nCol, opt_cell.nRow);
+					val = val.cross(range, opt_cell.ws.getId());
+				}
 			} else if (cElementType.cellsRange === val.type) {
 				val = val.getValue2(0, 0);
 			} else {
