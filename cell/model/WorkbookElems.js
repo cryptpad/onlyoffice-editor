@@ -1312,10 +1312,8 @@ var g_oFontProperties = {
 		}
 		return res;
 	};
-	GradientFill.prototype.asc_addGradientStop = function (value) {
-		if (value && value.getType && UndoRedoDataTypes.StyleGradientFillStop === value.getType()) {
-			this.stop.push(value);
-		}
+	GradientFill.prototype.asc_putGradientStops = function (value) {
+		this.stop = value;
 	};
 	function GradientStop() {
 		//Attributes
@@ -8682,7 +8680,7 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	prot["asc_getBottom"] = prot.asc_getBottom;
 	prot["asc_setBottom"] = prot.asc_setBottom;
 	prot["asc_getGradientStops"] = prot.asc_getGradientStops;
-	prot["asc_addGradientStop"] = prot.asc_addGradientStop;
+	prot["asc_putGradientStops"] = prot.asc_putGradientStops;
 	window["Asc"]["asc_CGradientStop"] = window['AscCommonExcel'].GradientStop = GradientStop;
 	prot = GradientStop.prototype;
 	prot["asc_getPosition"] = prot.asc_getPosition;
