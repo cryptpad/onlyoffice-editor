@@ -751,7 +751,7 @@ function (window, undefined) {
 				return new cError(cErrorType.not_available);
 			}
 
-			var arg1Range, arg2Range;
+			var arg1Range, arg2RowsLength;
 
 			if (cElementType.cellsRange3D === arg1.type) {
 				arg1Range = arg1.getMatrix()[0];
@@ -760,9 +760,11 @@ function (window, undefined) {
 			}
 
 			if (cElementType.cellsRange3D === arg2.type) {
-				arg2Range = arg2.getMatrix()[0];
+				arg2RowsLength = arg2.bbox.r2 - arg2.bbox.r1 + 1;
+				//arg2Range = arg2.getMatrix()[0];
 			} else if (cElementType.cellsRange === arg2.type) {
-				arg2Range = arg2.getMatrix();
+				arg2RowsLength = arg2.range.bbox.r2 - arg2.range.bbox.r1 + 1;
+				//arg2Range = arg2.getMatrix();
 			}
 
 			var bVertical = arg1Range[0].length >= arg1Range.length;//r>=c
@@ -777,131 +779,6 @@ function (window, undefined) {
 					tempArr.push(arg1Range[i][0]);
 				}
 			}
-
-			//As LO
-			/*if (tempArr && tempArr.length) {
-				var _compare = function (i, rMat) {
-					var elem = rMat[i];
-					if (elem.type === cElementType.empty) {
-						return -1;
-					}
-
-					var bByString = arg0.type === cElementType.string;
-					if (elem.type === cElementType.number) {
-						if (bByString) {
-							return -1;
-						}
-
-						var nVal1 = elem.value;
-						var nVal2 = arg0.value;
-						if (nVal1 == nVal2) {
-							return 0;
-						}
-
-						return nVal1 < nVal2 ? -1 : 1;
-					}
-
-					if (!bByString) {
-						return 1;
-					}
-
-					//var aStr1 = elem.toString();
-					//var aStr2 = arg0.toString();
-
-					//return compareString(aStr1, aStr2);
-				};
-
-
-				var nLenMajor = tempArr.length;
-
-				var bFound = false;
-				var nDelta = -1;
-
-				var nFirst = 0, nLast = nLenMajor - 1; //, nHitIndex = 0;
-				for (var nLen = nLast - nFirst; nLen > 0; nLen = nLast - nFirst) {
-					var nMid = Math.floor(nFirst + nLen / 2);
-					var nCmp = _compare(nMid, tempArr);
-					if (nCmp == 0) {
-						_match(nMid, tempArr, nLenMajor, false);
-						nDelta = nMid;
-						bFound = true;
-						break;
-					}
-
-					if (nLen == 1) {
-						nDelta = nCmp < 0 ? nLast - 1 : nFirst - 1;
-
-						bFound = (nDelta >= 0);
-						break;
-					}
-
-					if (nCmp < 0) {
-						nFirst = nMid;
-					} else {
-						nLast = nMid;
-					}
-				}
-
-
-				if (nDelta === nLenMajor - 2) // last item
-				{
-					var nCmp = _compare(nDelta + 1, tempArr);
-					if (nCmp <= 0) {
-						nDelta += 1;
-						bFound = true;
-					}
-				} else if (nDelta > 0)
-				{
-					// non-exact match
-					bFound = true;
-				}
-
-				if (bFound) {
-					var n = bVertical ? arg1Range[0].length : arg1Range.length;
-					if (nDelta >= n) {
-						nDelta = n;
-					}
-					var foundVal = bVertical ? arg1Range[0][nDelta] : arg1Range[nDelta][0];
-					//bool bByString = rEntry.GetQueryItem().meType == ScQueryEntry::ByString;
-					//if (bByString == aMatAcc.IsValue(i))
-					//bFound = false;
-				}
-
-				if (!bFound) {
-					return new cError(cErrorType.not_available);
-				}
-
-				var ws = cElementType.cellsRange3D === arg1.type && arg1.isSingleSheet() ? arg1.getWS() : arg1.ws;
-
-				if (cElementType.cellsRange3D === arg1.type) {
-					if (arg1.isSingleSheet()) {
-						ws = arg1.getWS();
-					} else {
-						return new cError(cErrorType.bad_reference);
-					}
-				} else if (cElementType.cellsRange === arg1.type) {
-					ws = arg1.getWS();
-				} else {
-					return new cError(cErrorType.bad_reference);
-				}
-
-				var b = arg2.getBBox0();
-				if (2 === arg.length) {
-					if (bVertical) {
-						return new cRef(ws.getCell3(b.r1 + 0, b.c1 + nDelta).getName(), ws);
-					} else {
-						return new cRef(ws.getCell3(b.r1 + nDelta, b.c1 + 0).getName(), ws);
-					}
-				} else {
-					if (1 === arg2Range.length) {
-						return new cRef(ws.getCell3(b.r1 + 0, b.c1 + nDelta).getName(), ws);
-					} else {
-						return new cRef(ws.getCell3(b.r1 + nDelta, b.c1 + 0).getName(), ws);
-					}
-				}
-
-				return;
-			}*/
 
 			if(tempArr[tempArr.length - 1] && tempArr[tempArr.length - 1].value < arg0.value) {
 				//в этом случае фукнция бинарного поиска одаст последний элемент. для конкретного случая это неверно
@@ -957,7 +834,7 @@ function (window, undefined) {
 						res = new cRef(ws.getCell3(b.r1 + index, b.c1 + 0).getName(), ws);
 					}
 				} else {
-					if (1 === arg2Range.length) {
+					if (1 === arg2RowsLength) {
 						res = new cRef(ws.getCell3(b.r1 + 0, b.c1 + index).getName(), ws);
 					} else {
 						res = new cRef(ws.getCell3(b.r1 + index, b.c1 + 0).getName(), ws);
