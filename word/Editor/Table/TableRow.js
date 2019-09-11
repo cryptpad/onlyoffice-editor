@@ -1111,9 +1111,6 @@ CTableRow.prototype.private_CheckCurCell = function()
 		this.GetTable().private_CheckCurCell();
 };
 
-
-
-
 function CTableRowRecalculateObject()
 {
     this.CellsInfo   = [];

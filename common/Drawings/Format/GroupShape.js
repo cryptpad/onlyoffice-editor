@@ -1840,6 +1840,12 @@ function CGroupShape()
         }
         return _arrFields;
     };
+    CGroupShape.prototype.GetAllSeqFieldsByType = function(sType, aFields)
+    {
+        for(var i = 0; i < this.spTree.length; ++i){
+            this.spTree[i].GetAllSeqFieldsByType(sType, aFields)
+        }
+    };
     //--------------------------------------------------------export----------------------------------------------------
     window['AscFormat'] = window['AscFormat'] || {};
     window['AscFormat'].CGroupShape = CGroupShape;

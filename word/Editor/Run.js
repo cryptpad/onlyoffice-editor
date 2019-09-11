@@ -10780,6 +10780,58 @@ ParaRun.prototype.GetAllFields = function(isUseSelection, arrFields)
 		}
 	}
 };
+
+ParaRun.prototype.GetAllSeqFieldsByType = function(sType, aFields)
+{
+	for (var nPos = 0; nPos < this.Content.length; ++nPos)
+	{
+		var oItem = this.Content[nPos];
+		if (para_FieldChar === oItem.Type)
+		{
+			var oComplexField = oItem.GetComplexField();
+			if(oComplexField)
+			{
+				var oInstruction = oComplexField.Instruction;
+				if(oInstruction)
+				{
+					if(oInstruction.Type === fieldtype_SEQ)
+					{
+						if(oInstruction.Id === sType)
+						{
+							var isNeedAdd = true;
+							for (var nFieldIndex = 0, nFieldsCount = aFields.length; nFieldIndex < nFieldsCount; ++nFieldIndex)
+							{
+								if (oComplexField === aFields[nFieldIndex])
+								{
+									isNeedAdd = false;
+									break;
+								}
+							}
+							if (isNeedAdd)
+							{
+								aFields.push(oComplexField);
+							}
+						}
+					}
+				}
+			}
+		}
+		else if(para_Field === oItem.Type)
+		{
+			if(oItem.FieldType === fieldtype_SEQ)
+			{
+				if(oItem.Arguments[0] === sType)
+				{
+					aFields.push(oItem);
+				}
+			}
+		}
+		else if (para_Drawing === oItem.Type)
+		{
+			oItem.GetAllSeqFieldsByType(sType, aFields);
+		}
+	}
+};
 ParaRun.prototype.AddToContent = function(nPos, oItem, isUpdatePositions)
 {
 	return this.Add_ToContent(nPos, oItem, isUpdatePositions);

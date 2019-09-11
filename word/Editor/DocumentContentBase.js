@@ -176,6 +176,20 @@ CDocumentContentBase.prototype.Reassign_ImageUrls = function(mapUrls)
 		oDrawing.Reassign_ImageUrls(mapUrls);
 	}
 };
+
+/**
+ * Find all SEQ complex fields with specified type
+ * @param {String} sType - field type
+ * @param {Array} aFields - array which accumulates complex fields
+ */
+CDocumentContentBase.prototype.GetAllSeqFieldsByType = function(sType, aFields)
+{
+	for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
+	{
+		this.Content[nPos].GetAllSeqFieldsByType(sType, aFields)
+	}
+};
+
 /**
  * Находим отрезок сносок, заданный между сносками.
  * @param {?CFootEndnote} oFirstFootnote - если null, то иещм с начала документа

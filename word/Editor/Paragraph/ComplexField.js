@@ -415,6 +415,12 @@ CComplexField.prototype.Update = function(isCreateHistoryPoint, isNeedRecalculat
 		case fieldtype_FORMULA:
 			this.private_UpdateFORMULA();
 			break;
+		case fieldtype_SEQ:
+			this.private_UpdateSEQ();
+			break;
+		case fieldtype_STYLEREF:
+			this.private_UpdateSTYLEREF();
+			break;
 
 	}
 
@@ -425,6 +431,19 @@ CComplexField.prototype.Update = function(isCreateHistoryPoint, isNeedRecalculat
 	{
 		this.LogicDocument.FinalizeAction();
 	}
+};
+
+
+CComplexField.prototype.private_UpdateSEQ = function()
+{
+	var sText = this.Instruction.GetText();
+	this.LogicDocument.AddText(sText);
+};
+
+CComplexField.prototype.private_UpdateSTYLEREF = function()
+{
+	var sText = this.Instruction.GetText();
+	this.LogicDocument.AddText(sText);
 };
 CComplexField.prototype.private_UpdateFORMULA = function()
 {

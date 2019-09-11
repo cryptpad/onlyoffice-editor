@@ -4997,6 +4997,12 @@ function BinaryDocumentTableWriter(memory, doc, oMapCommentId, oNumIdMap, copyPa
 						Instr = "FORMTEXT";
 						oFFData = {};
 					}
+					else if(fieldtype_SEQ === item.Get_FieldType()) {
+						Instr = "SEQ";
+					}
+					else if(fieldtype_STYLEREF === item.Get_FieldType()) {
+						Instr = "STYLEREF";
+					}
 					if (null !== Instr) {
 						if(this.saveParams && this.saveParams.bMailMergeDocx)
 							oThis.WriteParagraphContent(item, bUseSelection, false);
@@ -11238,6 +11244,16 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
 		}
 		else if ("FORMTEXT" == sFieldType){
 			oRes = new ParaField(fieldtype_FORMTEXT, aArguments, aSwitches);
+			if (editor)
+				editor.WordControl.m_oLogicDocument.Register_Field(oRes);
+		}
+		else if ("SEQ" == sFieldType){
+			oRes = new ParaField(fieldtype_SEQ, aArguments, aSwitches);
+			if (editor)
+				editor.WordControl.m_oLogicDocument.Register_Field(oRes);
+		}
+		else if ("STYLEREF" == sFieldType){
+			oRes = new ParaField(fieldtype_STYLEREF, aArguments, aSwitches);
 			if (editor)
 				editor.WordControl.m_oLogicDocument.Register_Field(oRes);
 		}

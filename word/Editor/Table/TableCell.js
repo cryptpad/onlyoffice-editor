@@ -2321,7 +2321,6 @@ CTableCell.prototype.IsMergedCell = function()
 	return false;
 };
 
-
 function CTableCellRecalculateObject()
 {
     this.BorderInfo = null;

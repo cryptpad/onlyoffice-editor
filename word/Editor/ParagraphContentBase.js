@@ -614,6 +614,9 @@ CParagraphContentBase.prototype.GetAllFields = function(isUseSelection, arrField
 {
 	return arrFields ? arrFields : [];
 };
+CParagraphContentBase.prototype.GetAllSeqFieldsByType = function(sType, aFields)
+{
+};
 /**
  * Проверяем можно ли добавлять комментарий по заданому селекту
  * @returns {boolean}

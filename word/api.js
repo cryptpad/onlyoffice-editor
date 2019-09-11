@@ -8763,6 +8763,16 @@ background-repeat: no-repeat;\
 		return sRet;
 	};
 
+	asc_docs_api.prototype.asc_AddObjectCaption = function(oPr)
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+
+		if (!oLogicDocument)
+			return;
+
+		oLogicDocument.AddCaption(oPr);
+	};
+
 	asc_docs_api.prototype.asc_GetBookmarksManager = function()
 	{
 		var oLogicDocument = this.WordControl.m_oLogicDocument;
@@ -10135,6 +10145,8 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_ParseTableFormulaInstrLine']            = asc_docs_api.prototype.asc_ParseTableFormulaInstrLine;
 	asc_docs_api.prototype['asc_CreateInstructionLine']                 = asc_docs_api.prototype.asc_CreateInstructionLine;
 
+
+	asc_docs_api.prototype['asc_AddObjectCaption']                      = asc_docs_api.prototype.asc_AddObjectCaption;
 
 	asc_docs_api.prototype['asc_GetBookmarksManager']                   = asc_docs_api.prototype.asc_GetBookmarksManager;
 	asc_docs_api.prototype['asc_OnBookmarksUpdate']                     = asc_docs_api.prototype.asc_OnBookmarksUpdate;
