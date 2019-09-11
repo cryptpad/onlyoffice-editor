@@ -10816,9 +10816,19 @@ ParaRun.prototype.GetAllSeqFieldsByType = function(sType, aFields)
 				}
 			}
 		}
+		else if(para_Field === oItem.Type)
+		{
+			if(oItem.FieldType === fieldtype_SEQ)
+			{
+				if(oItem.Arguments[0] === sType)
+				{
+					aFields.push(oItem);
+				}
+			}
+		}
 		else if (para_Drawing === oItem.Type)
 		{
-			oItem.GetAllFields(false, aFields);
+			oItem.GetAllSeqFieldsByType(sType, aFields);
 		}
 	}
 };

@@ -2739,6 +2739,14 @@ ParaDrawing.prototype.GetAllFields = function(isUseSelection, arrFields)
 	return arrFields ? arrFields : [];
 };
 
+ParaDrawing.prototype.GetAllSeqFieldsByType = function(sType, aFields)
+{
+	if(this.GraphicObj)
+	{
+		return this.GraphicObj.GetAllSeqFieldsByType(sType, aFields);
+	}
+};
+
 /**
  * Класс, описывающий текущее положение параграфа при рассчете позиции автофигуры.
  * @constructor

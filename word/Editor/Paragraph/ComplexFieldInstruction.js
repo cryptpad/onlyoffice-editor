@@ -785,7 +785,7 @@ CFieldInstructionSEQ.prototype.GetText = function ()
 				for(i = aFields.length - 1; i > -1; --i)
 				{
 					oField = aFields[i];
-					if(AscCommon.isRealObject(oField) && this === oField.Instruction)
+					if(AscCommon.isRealObject(oField) && this.ComplexField === oField)
 					{
 						break;
 					}
@@ -811,12 +811,12 @@ CFieldInstructionSEQ.prototype.GetText = function ()
 			oField = aFields[i];
 			if(AscCommon.isRealObject(oField))
 			{
-				if(this === oField.Instruction)
+				if(this.ComplexField === oField)
 				{
 					nIndex = nCounter;
 					break;
 				}
-				if(!oField.C)
+				if(!(oField.Instruction && oField.Instruction.C))
 				{
 					++nCounter;
 				}
@@ -1009,11 +1009,10 @@ CFieldInstructionSTYLEREF.prototype.GetText = function()
 					}
 					return AscCommon.translateManager.getValue("Error! No text of specified style in document.");
 				}
-
 			}
 		}
 	}
-	return "STYLEREF";
+    return AscCommon.translateManager.getValue("Error! No text of specified style in document.");
 };
 CFieldInstructionSTYLEREF.prototype.SetStyleName = function(v)
 {

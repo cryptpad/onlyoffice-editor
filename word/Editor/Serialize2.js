@@ -4997,6 +4997,12 @@ function BinaryDocumentTableWriter(memory, doc, oMapCommentId, oNumIdMap, copyPa
 						Instr = "FORMTEXT";
 						oFFData = {};
 					}
+					else if(fieldtype_SEQ === item.Get_FieldType()) {
+						Instr = "SEQ";
+					}
+					else if(fieldtype_STYLEREF === item.Get_FieldType()) {
+						Instr = "STYLEREF";
+					}
 					if (null !== Instr) {
 						if(this.saveParams && this.saveParams.bMailMergeDocx)
 							oThis.WriteParagraphContent(item, bUseSelection, false);

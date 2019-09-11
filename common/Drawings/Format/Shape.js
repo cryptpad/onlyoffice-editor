@@ -5958,6 +5958,13 @@ CShape.prototype.getColumnNumber = function(){
         }
         return arrFields ? arrFields : [];
     };
+    CShape.prototype.GetAllSeqFieldsByType = function(sType, aFields)
+    {
+        var oContent = this.getDocContent();
+        if(oContent){
+            return oContent.GetAllSeqFieldsByType(sType, aFields)
+        }
+    };
 function CreateBinaryReader(szSrc, offset, srcLen)
 {
     var nWritten = 0;
