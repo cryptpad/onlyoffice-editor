@@ -2011,6 +2011,7 @@
 	function CAscCaptionProperties()
 	{
 		this.Name = null;
+		this.Additional = null;
 		this.Label = null;
 		this.Before = false;
 		this.ExcludeLabel = false;
@@ -2033,6 +2034,7 @@
 	prot.get_IncludeChapterNumber = prot["get_IncludeChapterNumber"] = function(){return this.IncludeChapterNumber ;};
 	prot.get_HeadingLvl = prot["get_HeadingLvl"] = function(){return this.HeadingLvl;};
 	prot.get_Separator = prot["get_Separator"] = function(){return this.Separator;};
+	prot.get_Additional = prot["get_Additional"] = function(){return this.Additional;};
 
 	prot.put_Name = prot["put_Name"] = function(v){this.Name = v;};
 	prot.put_Label = prot["put_Label"] = function(v){this.Label = v;};
@@ -2042,6 +2044,7 @@
 	prot.put_IncludeChapterNumber = prot["put_IncludeChapterNumber"] = function(v){this.IncludeChapterNumber  = v;};
 	prot.put_HeadingLvl = prot["put_HeadingLvl"] = function(v){this.HeadingLvl = v;};
 	prot.put_Separator = prot["put_Separator"] = function(v){this.Separator = v;};
+	prot.put_Additional = prot["put_Additional"] = function(v){this.Additional = v;};
 
 
 	prot.getSeqInstruction = function()

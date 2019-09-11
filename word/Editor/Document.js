@@ -18887,31 +18887,18 @@ CDocument.prototype.AddCaption = function(oPr)
         oComplexField.SetSeparateChar(oSeparateChar);
         oComplexField.SetEndChar(oEndChar);
         oComplexField.Update(false, false);
+        var sAdditional = oPr.get_Additional();
+        if(typeof sAdditional === "string" && sAdditional.length > 0)
+        {
+            NewRun = new ParaRun(NewParagraph, false);
+            NewRun.AddText(sAdditional + " ");
+            NewParagraph.Internal_Content_Add(nCurPos++, NewRun, false);
+        }
         NewParagraph.MoveCursorToEndPos();
         NewParagraph.Document_SetThisElementCurrent(true);
     }
     this.Recalculate();
     this.FinalizeAction();
-};
-CDocument.prototype.AddDrawingCaption = function()
-{
-    if(this.Selection.Use && this.Selection.StartPos === this.Selection.EndPos
-        && this.Content[this.Selection.StartPos].GetType() === type_Table)
-    {
-        var oTable = this.Content[this.Selection.StartPos];
-        this.Create_NewHistoryPoint(0);
-        var NewParagraph = new Paragraph(this.DrawingDocument, this);
-        var NewRun       = new ParaRun(NewParagraph, false);
-        NewRun.AddText("Table ");
-        NewParagraph.Add_ToContent(0, NewRun);
-        this.Internal_Content_Add(oTable.Index, NewParagraph);
-        this.private_CreateComplexFieldRun(" SEQ Table \\* ARABIC ", NewParagraph);
-        NewParagraph.MoveCursorToEndPos();
-        NewParagraph.Document_SetThisElementCurrent(true);
-
-        this.Recalculate();
-        this.FinalizeAction();
-    }
 };
 /**
  * Выделяем перемещенный или удаленный после перемещения текст
