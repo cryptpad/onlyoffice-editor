@@ -4810,6 +4810,63 @@ _func.binarySearch = function ( sElem, arrTagert, regExp ) {
 
 };
 
+_func.binarySearchByRange = function ( sElem, area, regExp ) {
+	var bbox;
+	if (cElementType.cellsRange3D === area.type) {
+		bbox = area.bbox;
+	} else if (cElementType.cellsRange === area.type) {
+		bbox = area.range;
+	}
+	var bVertical = bbox.r2 - bbox.r1 >= bbox.c2 - bbox.c1;//r>=c
+	var first = 0, /* Номер первого элемента в массиве */
+		last = bVertical ? bbox.r2 - bbox.r1 : bbox.c2 - bbox.c1, /* Номер элемента в массиве, СЛЕДУЮЩЕГО ЗА последним */
+		/* Если просматриваемый участок непустой, first<last */
+		mid;
+
+	var getValue = function(n) {
+		var r, c;
+		if(bVertical) {
+			r = n + bbox.r1;
+			c = bbox.c1;
+		} else {
+			r = bbox.r1;
+			c = n + bbox.c1;
+		}
+		var res = area.getValueByRowCol(r, c);
+		return res ? res : new cEmpty();
+	};
+
+	if (last === 0) {
+		return -1;
+		/* массив пуст */
+	} else if (getValue(0).value > sElem.value) {
+		return -2;
+	} else if (getValue(last).value < sElem.value) {
+		return last;
+	}
+
+	var tempValue;
+	while (first < last) {
+		mid = Math.floor(first + (last - first) / 2);
+		tempValue = getValue(mid);
+		if (sElem.value <= tempValue.value || ( regExp && regExp.test(tempValue.value) )) {
+			last = mid;
+		} else {
+			first = mid + 1;
+		}
+	}
+
+	/* Если условный оператор if(n==0) и т.д. в начале опущен - значит, тут раскомментировать!    */
+	if (/* last<n &&*/ getValue(last).value === sElem.value) {
+		return last;
+		/* Искомый элемент найден. last - искомый индекс */
+	} else {
+		return last - 1;
+		/* Искомый элемент не найден. Но если вам вдруг надо его вставить со сдвигом, то его место - last.    */
+	}
+
+};
+
 _func[cElementType.number][cElementType.cell] = function ( arg0, arg1, what, bbox ) {
     var ar1 = arg1.tocNumber();
     switch ( what ) {
