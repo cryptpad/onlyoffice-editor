@@ -1444,15 +1444,7 @@ CTableCell.prototype =
 
     Get_Borders : function()
     {
-        var CellBorders =
-            {
-                Top    : this.Get_Border( 0 ),
-                Right  : this.Get_Border( 1 ),
-                Bottom : this.Get_Border( 2 ),
-                Left   : this.Get_Border( 3 )
-            };
-
-        return CellBorders;
+    	return this.GetBorders();
     },
 
     // 0 - Top, 1 - Right, 2- Bottom, 3- Left
@@ -2319,6 +2311,19 @@ CTableCell.prototype.IsMergedCell = function()
 		return (oTable.GetStartMergedCell(this.GetIndex(), this.GetRow().GetIndex()) !== this);
 
 	return false;
+};
+/**
+ * Получаем границы данной ячейки
+ * @returns {{Top: *, Right: *, Bottom: *, Left: *}}
+ */
+CTableCell.prototype.GetBorders = function()
+{
+	return {
+		Top    : this.GetBorder(0),
+		Right  : this.GetBorder(1),
+		Bottom : this.GetBorder(2),
+		Left   : this.GetBorder(3)
+	};
 };
 
 function CTableCellRecalculateObject()
