@@ -1053,7 +1053,7 @@ ParaNewLine.prototype.Update_String = function(_W)
 
 	if (break_Page === this.BreakType || break_Column === this.BreakType)
 	{
-		var W = ( false === this.Flags.NewLine ? 50 : _W );
+		var W = false === this.Flags.NewLine ? 50 : Math.max(_W, 50);
 
 		g_oTextMeasurer.SetFont({
 			FontFamily : {Name : "Courier New", Index : -1},
