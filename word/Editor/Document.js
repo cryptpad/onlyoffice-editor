@@ -18802,13 +18802,18 @@ CDocument.prototype.AddCaption = function(oPr)
     }
     else
     {
-        if(this.Selection.Use && this.Selection.StartPos === this.Selection.EndPos
-            && this.Content[this.Selection.StartPos].GetType() === type_Table)
+        if(this.Selection.Use)
         {
             var oTable = this.Content[this.Selection.StartPos];
             NewParagraph = new Paragraph(this.DrawingDocument, this);
             NewParagraph.SetParagraphStyle("Caption");
             this.Internal_Content_Add(oPr.get_Before() ? oTable.Index : (oTable.Index + 1), NewParagraph, true);
+        }
+        else
+        {
+            NewParagraph = new Paragraph(this.DrawingDocument, this);
+            NewParagraph.SetParagraphStyle("Caption");
+            this.Internal_Content_Add(oPr.get_Before() ? this.CurPos.ContentPos : (this.CurPos.ContentPos + 1), NewParagraph, true);
         }
     }
     if(NewParagraph)
