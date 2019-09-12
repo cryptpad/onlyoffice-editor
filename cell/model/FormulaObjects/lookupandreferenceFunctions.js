@@ -870,7 +870,21 @@ function (window, undefined) {
 						return new cError(cErrorType.not_available);
 					}
 				}
-			}
+			} /*else {
+				var arg2RowsLength;
+
+				if (cElementType.cellsRange3D === arg2.type) {
+					arg2RowsLength = arg2.bbox.r2 - arg2.bbox.r1 + 1;
+				} else if (cElementType.cellsRange === arg2.type) {
+					arg2RowsLength = arg2.range.bbox.r2 - arg2.range.bbox.r1 + 1;
+				}
+
+				index = g_oLOOKUPCache.calculate(arg);
+
+				if (index < 0) {
+					return new cError(cErrorType.not_available);
+				}
+			}*/
 
 
 			var ws = cElementType.cellsRange3D === arg1.type && arg1.isSingleSheet() ? arg1.getWS() : arg1.ws;
@@ -2029,6 +2043,106 @@ function (window, undefined) {
 		return (-1 < index) ? new cNumber(index + 1) : new cError(cErrorType.not_available);
 	};
 
+	function LOOKUPCache() {
+		this.cacheId = {};
+		this.cacheRanges = {};
+	}
+
+	LOOKUPCache.prototype = Object.create(VHLOOKUPCache.prototype);
+	LOOKUPCache.prototype.constructor = LOOKUPCache;
+
+	LOOKUPCache.prototype.calculate = function (arg) {
+		var arg0 = arg[0], arg1 = arg[1];
+		var t = this, r, c, count;
+
+		if (cElementType.cell3D === arg0.type || cElementType.cell === arg0.type) {
+			arg0 = arg0.getValue();
+		}
+
+		if (cElementType.error === arg0.type) {
+			return arg0;
+		}
+
+		var arg0Val;
+		if(cElementType.array === arg0.type) {
+			arg0Val = arg0.getElementRowCol(0,0);
+		} else {
+			arg0Val = arg0;
+		}
+
+		var range;
+		if (cElementType.cell === arg1.type || cElementType.cell3D === arg1.type ||
+			cElementType.cellsRange === arg1.type || cElementType.cellsRange3D === arg1.type) {
+			range = arg1.getRange();
+		}
+		if (!range) {
+			return new cError(cErrorType.bad_reference);
+		}
+
+		var bb = range.getBBox0();
+		var bHor = bb.r2 - bb.r1 < bb.c2 - bb.c1;
+		//count = bHor ? (bb.r2 - bb.r1) : (bb.c2 - bb.c1);
+
+		var ws = arg1.getWS();
+		r = bHor ? bb.r1 : bb.r2;
+		c = bHor ? bb.c2 : bb.c1;
+		var oSearchRange = ws.getRange3(bb.r1, bb.c1, r, c);
+
+		if(cElementType.cellsRange === arg0Val.type) {
+			arg0Val = arg0Val.cross(arguments[1]);
+		} else if(cElementType.cellsRange3D === arg0Val.type) {
+			arg0Val = arg0Val.cross(arguments[1]);
+		}
+
+		if (cElementType.error === arg0Val.type) {
+			return arg0;
+		}
+
+		var res = this._get(oSearchRange, arg0Val, true);
+		if (-1 === res) {
+			return new cError(cErrorType.not_available);
+		}
+
+		return res;
+	};
+	LOOKUPCache.prototype._calculate = function (cacheArray, valueForSearching, lookup) {
+		var res = -1, i = 0, j, length = cacheArray.length, k, elem, val;
+
+		//TODO неверно работает функция, допустим для случая: VLOOKUP("12",A1:A5,1) 12.00 ; "qwe" ; "3" ; 3.00 ; 4.00
+
+		//ascending order: ..., -2, -1, 0, 1, 2, ..., A-Z, FALSE
+		var _compareValues = function (val1, val2, op) {
+			var res = _func[val1.type][val2.type](val1, val2, op);
+			return res ? res.value : false;
+		};
+
+		if (lookup) {
+			j = length - 1;
+			while (i <= j) {
+				k = Math.floor((i + j) / 2);
+				elem = cacheArray[k];
+				val = elem.v;
+				if (_compareValues(valueForSearching, val, "=")) {
+					return k;
+				} else if (_compareValues(valueForSearching, val, "<")) {
+					j = k - 1;
+				} else {
+					i = k + 1;
+				}
+			}
+			res = Math.min(i, j);
+		} else {
+			// Exact value
+			for (; i < length; i++) {
+				elem = cacheArray[i];
+				val = elem.v;
+				if (_compareValues(valueForSearching, val, "=")) {
+					return i;
+				}
+			}
+		}
+		return res;
+	};
 
 	/**
 	 * @constructor
@@ -2062,6 +2176,7 @@ function (window, undefined) {
 	var g_oVLOOKUPCache = new VHLOOKUPCache(false);
 	var g_oHLOOKUPCache = new VHLOOKUPCache(true);
 	var g_oMatchCache = new MatchCache();
+	var g_oLOOKUPCache = new LOOKUPCache();
 
 //----------------------------------------------------------export----------------------------------------------------
 	window['AscCommonExcel'] = window['AscCommonExcel'] || {};
