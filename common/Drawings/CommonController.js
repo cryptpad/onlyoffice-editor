@@ -6422,7 +6422,7 @@ DrawingObjectsController.prototype =
                 else
                 {
                     var last_selected_object = this.selectedObjects[this.selectedObjects.length-1];
-                    if(last_selected_object.getObjectType() === AscDFH.historyitem_type_GroupShape)
+                    if(last_selected_object.getObjectType() === AscDFH.historyitem_type_GroupShape && last_selected_object.arrGraphicObjects.length > 0)
                     {
                         this.resetSelection();
                         this.selectObject(last_selected_object, last_selected_object.selectStartPage);
@@ -6495,7 +6495,7 @@ DrawingObjectsController.prototype =
                 else
                 {
                     var first_selected_object = this.selectedObjects[0];
-                    if(first_selected_object.getObjectType() === AscDFH.historyitem_type_GroupShape)
+                    if(first_selected_object.getObjectType() === AscDFH.historyitem_type_GroupShape && first_selected_object.arrGraphicObjects.length > 0)
                     {
                         this.resetSelection();
                         this.selectObject(first_selected_object, first_selected_object.selectStartPage);
