@@ -2015,7 +2015,7 @@
 		this.Label = null;
 		this.Before = false;
 		this.ExcludeLabel = false;
-		this.Format = "ARABIC";
+		this.Format = Asc.c_oAscNumberingFormat.Decimal;
 
 		this.IncludeChapterNumber = false;
 		this.HeadingLvl = null;
@@ -2031,6 +2031,31 @@
 	prot.get_Before = prot["get_Before"] = function(){return this.Before;};
 	prot.get_ExcludeLabel = prot["get_ExcludeLabel"] = function(){return this.ExcludeLabel;};
 	prot.get_Format = prot["get_Format"] = function(){return this.Format;};
+	prot.get_FormatGeneral  = prot["get_FormatGeneral"] =function()
+	{
+		switch (this.Format) {
+			case Asc.c_oAscNumberingFormat.UpperLetter:
+			{
+				return "ALPHABETIC";
+			}
+			case Asc.c_oAscNumberingFormat.LowerLetter:
+			{
+				return "alphabetic";
+			}
+			case Asc.c_oAscNumberingFormat.UpperRoman:
+			{
+				return "Roman";
+			}
+			case Asc.c_oAscNumberingFormat.LowerRoman:
+			{
+				return  "roman";
+			}
+			default:
+			{
+				return "Arabic";
+			}
+		}
+	};
 	prot.get_IncludeChapterNumber = prot["get_IncludeChapterNumber"] = function(){return this.IncludeChapterNumber ;};
 	prot.get_HeadingLvl = prot["get_HeadingLvl"] = function(){return this.HeadingLvl;};
 	prot.get_Separator = prot["get_Separator"] = function(){return this.Separator;};

@@ -18864,7 +18864,7 @@ CDocument.prototype.AddCaption = function(oPr)
             NewParagraph.Internal_Content_Add(nCurPos++, NewRun, false);
         }
 
-        var sInstruction = " SEQ " + oPr.get_Label() + " \\* " + oPr.get_Format() + " ";
+        var sInstruction = " SEQ " + oPr.get_Label() + " \\* " + oPr.get_FormatGeneral() + " ";
         if(AscFormat.isRealNumber(nHeadingLvl))
         {
             sInstruction += ("\\s " + nHeadingLvl);
