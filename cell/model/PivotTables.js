@@ -294,7 +294,10 @@ var c_oAscAllocationMethod = {
 };
 
 var st_VALUES = -2;
-var DATA_CAPTION = "Values";
+var DATA_CAPTION = 'Values';
+var GRAND_TOTAL_CAPTION = 'Grand Total';
+var ROW_HEADER_CAPTION = 'Row Labels';
+var COL_HEADER_CAPTION = 'Column Labels';
 var NEW_PIVOT_COLS_COUNT = 3;
 var NEW_PIVOT_ROWS_COUNT = 18;
 var cDate = Asc.cDate;
@@ -3650,7 +3653,12 @@ CT_pivotTableDefinition.prototype._updateRowColItemsRecursivelyElem = function(i
 	}
 	this._updateRowColItemsRecursively(index + 1, dataMap, newParentI, items,
 			fields,	forceTabular, pivotFields, dataIndex, dataFields, indexValues);
-	if (isTabular && index !== indexValues && (index < fields.length - 2 || index === fields.length - 2 && index + 1 !== indexValues)) {
+	var defaultSubtotal = true;
+	var x = fields[index].x;
+	if (st_VALUES !== x) {
+		defaultSubtotal = pivotFields[x] && pivotFields[x].defaultSubtotal;
+	}
+	if (isTabular && defaultSubtotal && index !== indexValues && (index < fields.length - 2 || index === fields.length - 2 && index + 1 !== indexValues)) {
 		var from = dataIndex;
 		var to = dataIndex;
 		if(index < indexValues && dataFields){
@@ -3702,13 +3710,13 @@ CT_pivotTableDefinition.prototype.updateLocation = function() {
 		location.firstDataCol = 0;
 		if (rowFields) {
 			location.firstDataCol = 1;
-			for (i = 0; i < rowFields.length; ++i) {
+			for (i = 0; i < rowFields.length - 1; ++i) {
 				var field = pivotFields[rowFields[i].asc_getIndex()];
 				if (field && false === field.compact) {
 					location.firstDataCol++;
 				}
 			}
-		} else if (colFields && dataFields && 1 == dataFields.length) {
+		} else if (colFields && dataFields && 1 === dataFields.length) {
 			location.firstDataCol = 1;
 		}
 		var rowItemsCount = (rowFields || dataFields) ? this.rowItems.i.length : 0;
@@ -11665,6 +11673,10 @@ prot['Minute'] = prot.Minute;
 prot['Second'] = prot.Second;
 
 window['Asc']['st_VALUES'] = window['AscCommonExcel'].st_VALUES = st_VALUES;
+window['AscCommonExcel'].DATA_CAPTION = DATA_CAPTION;
+window['AscCommonExcel'].GRAND_TOTAL_CAPTION = GRAND_TOTAL_CAPTION;
+window['AscCommonExcel'].ROW_HEADER_CAPTION = ROW_HEADER_CAPTION;
+window['AscCommonExcel'].COL_HEADER_CAPTION = COL_HEADER_CAPTION;
 
 window['AscCommonExcel'].ToName_ST_ItemType = ToName_ST_ItemType;
 

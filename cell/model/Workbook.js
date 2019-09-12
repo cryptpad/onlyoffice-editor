@@ -6309,7 +6309,7 @@
 		if (pivotTable.showHeaders && colFields) {
 			cells = this.getRange4(pivotRange.r1, pivotRange.c1 + location.firstDataCol);
 			if (pivotTable.compact) {
-				cells.setValue('Column Labels');
+				cells.setValue(pivotTable.colHeaderCaption || AscCommonExcel.COL_HEADER_CAPTION);
 			} else {
 				var offset = new AscCommon.CellBase(0, 1);
 				for (var i = 0; i < colFields.length; ++i) {
@@ -6371,7 +6371,7 @@
 					oCellValue = new AscCommonExcel.CCellValue();
 					oCellValue.type = AscCommon.CellValueType.String;
 					if (-1 === valuesIndex) {
-						oCellValue.text = 'Grand Total';
+						oCellValue.text = pivotTable.grandTotalCaption || AscCommonExcel.GRAND_TOTAL_CAPTION;
 					} else {
 						oCellValue.text = AscCommonExcel.ToName_ST_ItemType(item.t);
 						oCellValue.text += ' ' + pivotTable.getDataFieldName(item.i);
@@ -6379,10 +6379,19 @@
 				} else {
 					oCellValue = new AscCommonExcel.CCellValue();
 					oCellValue.type = AscCommon.CellValueType.String;
-					oCellValue.text = totalTitleRange[r + j].getValueWithFormat();
 					if (r + j > valuesIndex) {
-						oCellValue.text += ' ' + AscCommonExcel.ToName_ST_ItemType(item.t);
+						fieldIndex = fields[r + j].asc_getIndex();
+						if (AscCommonExcel.st_VALUES !== fieldIndex) {
+							field = pivotFields[fieldIndex];
+							if (field.subtotalCaption) {
+								oCellValue.text = field.subtotalCaption;
+							} else {
+								oCellValue.text = totalTitleRange[r + j].getValueWithFormat();
+								oCellValue.text += ' ' + AscCommonExcel.ToName_ST_ItemType(item.t);
+							}
+						}
 					} else {
+						oCellValue.text = totalTitleRange[r + j].getValueWithFormat();
 						oCellValue.text += ' ' + pivotTable.getDataFieldName(item.i);
 					}
 				}
@@ -6407,9 +6416,9 @@
 		var r1 = pivotRange.r1 + location.firstDataRow - 1;
 		if (pivotTable.compact || location.firstDataCol !== rowFields.length) {
 			if(1 === rowFields.length && AscCommonExcel.st_VALUES === rowFields[0].asc_getIndex()){
-				this.getRange4(r1, c1).setValue('Values');
+				this.getRange4(r1, c1).setValue(pivotTable.dataCaption || AscCommonExcel.DATA_CAPTION);
 			} else {
-				this.getRange4(r1, c1).setValue('Row Labels');
+				this.getRange4(r1, c1).setValue(pivotTable.rowHeaderCaption || AscCommonExcel.ROW_HEADER_CAPTION);
 			}
 		} else {
 			index = rowFields[0].asc_getIndex();
