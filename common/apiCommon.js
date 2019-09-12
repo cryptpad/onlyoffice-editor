@@ -3750,6 +3750,13 @@
 					}
 				}
 
+				var _oldTrackRevision = false;
+                if (oApi.getEditorId() == AscCommon.c_oEditorId.Word && oApi.WordControl && oApi.WordControl.m_oLogicDocument)
+                    _oldTrackRevision = oApi.WordControl.m_oLogicDocument.TrackRevisions;
+
+                if (_oldTrackRevision)
+                    oApi.WordControl.m_oLogicDocument.TrackRevisions = false;
+
                 oShape.setBDeleted(false);
 				oShape.spPr = new AscFormat.CSpPr();
 				oShape.spPr.setParent(oShape);
@@ -3818,15 +3825,16 @@
 						if(Array.isArray(oRunS['fill']) && oRunS['fill'].length === 3){
 							oRun.Set_Unifill(AscFormat.CreteSolidFillRGB(oRunS['fill'][0], oRunS['fill'][1], oRunS['fill'][2]));
 						}
-						if(oRunS['font-family']){
-							oRun.Set_RFonts_Ascii({Name : oRunS['font-family'], Index : -1});
-							oRun.Set_RFonts_CS({Name : oRunS['font-family'], Index : -1});
-							oRun.Set_RFonts_EastAsia({Name : oRunS['font-family'], Index : -1});
-							oRun.Set_RFonts_HAnsi({Name : oRunS['font-family'], Index : -1});
-						}
-						if(oRunS['font-size']){
-							oRun.Set_FontSize(oRunS['font-size']);
-						}
+						var fontFamilyName = oRunS['font-family'] ? oRunS['font-family'] : "Arial";
+						var fontSize = (oRunS['font-size'] != null) ? oRunS['font-size'] : 50;
+
+						oRun.Set_RFonts_Ascii({Name : fontFamilyName, Index : -1});
+						oRun.Set_RFonts_CS({Name : fontFamilyName, Index : -1});
+						oRun.Set_RFonts_EastAsia({Name : fontFamilyName, Index : -1});
+						oRun.Set_RFonts_HAnsi({Name : fontFamilyName, Index : -1});
+
+						oRun.Set_FontSize(fontSize);
+
 						oRun.Set_Bold(oRunS['bold'] === true);
 						oRun.Set_Italic(oRunS['italic'] === true);
 						oRun.Set_Strikeout(oRunS['strikeout'] === true);
@@ -3854,8 +3862,8 @@
 				var oldShowParaMarks;
 				if (window.editor)
 				{
-					oldShowParaMarks = editor.ShowParaMarks;
-					editor.ShowParaMarks = false;
+					oldShowParaMarks = oApi.ShowParaMarks;
+                    oApi.ShowParaMarks = false;
 				}
 
 				AscCommon.IsShapeToImageConverter = true;
@@ -3904,8 +3912,11 @@
 
 				if (window.editor)
 				{
-					window.editor.ShowParaMarks = oldShowParaMarks;
+                    oApi.ShowParaMarks = oldShowParaMarks;
 				}
+
+				if (_oldTrackRevision)
+					oApi.WordControl.m_oLogicDocument.TrackRevisions = true;
 
 			}, this, [obj]);
 		};
