@@ -2116,7 +2116,7 @@
 				this.Name += " ";
 			}
 		}
-		this.Name += AscCommon.IntToNumberFormat(1, GeneralToNumFormat(this.Format));
+		this.Name += AscCommon.IntToNumberFormat(1, this.Format);
 	};
 
 })(window, undefined);
