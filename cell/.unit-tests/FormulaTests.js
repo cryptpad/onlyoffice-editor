@@ -8571,23 +8571,75 @@ $( function () {
 
     } );
 
-	/*test( "Test: \"LOOKUP\"", function () {
+	test( "Test: \"LOOKUP\"", function () {
 
-		ws.getRange2( "A501" ).setValue( "1" );
-		ws.getRange2( "B501" ).setValue( "" );
-		ws.getRange2( "C501" ).setValue( "" );
-		ws.getRange2( "D501" ).setValue( "" );
-		ws.getRange2( "E501" ).setValue( "" );
-		ws.getRange2( "F501" ).setValue( "123" );
-		ws.getRange2( "G501" ).setValue( "12" );
-		ws.getRange2( "H501" ).setValue( "" );
-		ws.getRange2( "I501" ).setValue( "" );
-		ws.getRange2( "J501" ).setValue( "" );
+		ws.getRange2( "A102" ).setValue( "4.14" );
+		ws.getRange2( "A103" ).setValue( "4.19" );
+		ws.getRange2( "A104" ).setValue( "5.17" );
+		ws.getRange2( "A105" ).setValue( "5.77" );
+		ws.getRange2( "A106" ).setValue( "6.39" );
 
-		oParser = new parserFormula( "LOOKUP(100,A501:J501)", "A2", ws );
+		ws.getRange2( "B102" ).setValue( "red" );
+		ws.getRange2( "B103" ).setValue( "orange" );
+		ws.getRange2( "B104" ).setValue( "yellow" );
+		ws.getRange2( "B105" ).setValue( "green" );
+		ws.getRange2( "B106" ).setValue( "blue" );
+
+
+		oParser = new parserFormula( "LOOKUP(4.19, A102:A106, B102:B106)", "A2", ws );
 		ok( oParser.parse() );
-		strictEqual( oParser.calculate().getValue().getValue(), 1 );
-	} );*/
+		strictEqual( oParser.calculate().getValue().getValue(), "orange" );
+
+		oParser = new parserFormula( "LOOKUP(5.75, A102:A106, B102:B106)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue().getValue(), "yellow" );
+
+		oParser = new parserFormula( "LOOKUP(7.66, A102:A106, B102:B106)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue().getValue(), "blue" );
+
+		oParser = new parserFormula( "LOOKUP(0, A102:A106, B102:B106)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "#N/A" );
+
+		ws.getRange2( "C101" ).setValue( "4.14" );
+		ws.getRange2( "D101" ).setValue( "4.19" );
+		ws.getRange2( "E101" ).setValue( "5.17" );
+		ws.getRange2( "F101" ).setValue( "5.77" );
+		ws.getRange2( "G101" ).setValue( "6.39" );
+		ws.getRange2( "H101" ).setValue( "7.99" );
+
+		ws.getRange2( "C102" ).setValue( "red" );
+		ws.getRange2( "D102" ).setValue( "orange" );
+		ws.getRange2( "E102" ).setValue( "yellow" );
+		ws.getRange2( "F102" ).setValue( "green" );
+		ws.getRange2( "G102" ).setValue( "blue" );
+		ws.getRange2( "H102" ).setValue( "black" );
+
+		oParser = new parserFormula( "LOOKUP(4.19,C101:H101,C102:H102)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue().getValue(), "orange" );
+
+		oParser = new parserFormula( "LOOKUP(5.75,C101:H101,C102:H102)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue().getValue(), "yellow" );
+
+		oParser = new parserFormula( "LOOKUP(7.66,C101:H101,C102:H102)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue().getValue(), "blue" );
+
+		oParser = new parserFormula( "LOOKUP(0,C101:H101,C102:H102)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "#N/A" );
+
+		oParser = new parserFormula( "LOOKUP(5.17,C101:H101,C102:H102)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue().getValue(), "yellow" );
+
+		oParser = new parserFormula( "LOOKUP(9,C101:H101,C102:H102)", "A2", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue().getValue(), "black" );
+	});
 
 
 	test( "Test: \"MATCH\"", function () {

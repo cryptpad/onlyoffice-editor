@@ -814,7 +814,7 @@ function (window, undefined) {
 				if (cElementType.cellsRange3D === arg1.type) {
 					bbox = arg1.bbox;
 				} else if (cElementType.cellsRange === arg1.type) {
-					bbox = arg1.range;
+					bbox = arg1.range.bbox;
 				}
 
 				if (cElementType.cellsRange3D === arg2.type) {
@@ -830,11 +830,11 @@ function (window, undefined) {
 				var _getValue = function(n) {
 					var r, c;
 					if(bVertical) {
-						r = n + bbox.r1;
-						c = bbox.c1;
+						r = n;
+						c = 0;
 					} else {
-						r = bbox.r1;
-						c = n + bbox.c1;
+						r = 0;
+						c = n;
 					}
 					var res = arg1.getValueByRowCol(r, c);
 					return res ? res : new cEmpty();
@@ -847,7 +847,7 @@ function (window, undefined) {
 					//Если функции не удается найти искомое_значение, то в просматриваемом_векторе выбирается наибольшее значение, которое меньше искомого_значения или равно ему.
 					var diff = null;
 					var endNumber;
-					for(var i = 0; i < length; i++) {
+					for(var i = 0; i <= length; i++) {
 						var tempValue = _getValue(i);
 						if(cElementType.number === tempValue.type) {
 							if(tempValue.value <= arg0.value && (null === diff || diff > (arg0.value - tempValue.value))) {

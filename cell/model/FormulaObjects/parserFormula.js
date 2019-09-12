@@ -4815,7 +4815,7 @@ _func.binarySearchByRange = function ( sElem, area, regExp ) {
 	if (cElementType.cellsRange3D === area.type) {
 		bbox = area.bbox;
 	} else if (cElementType.cellsRange === area.type) {
-		bbox = area.range;
+		bbox = area.range.bbox;
 	}
 	var bVertical = bbox.r2 - bbox.r1 >= bbox.c2 - bbox.c1;//r>=c
 	var first = 0, /* Номер первого элемента в массиве */
@@ -4826,11 +4826,11 @@ _func.binarySearchByRange = function ( sElem, area, regExp ) {
 	var getValue = function(n) {
 		var r, c;
 		if(bVertical) {
-			r = n + bbox.r1;
-			c = bbox.c1;
+			r = n;
+			c = 0;
 		} else {
-			r = bbox.r1;
-			c = n + bbox.c1;
+			r = 0;
+			c = n;
 		}
 		var res = area.getValueByRowCol(r, c);
 		return res ? res : new cEmpty();
