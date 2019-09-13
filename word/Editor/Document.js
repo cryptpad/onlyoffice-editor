@@ -7544,7 +7544,7 @@ CDocument.prototype.GetSelectedContent = function(bUseHistory)
 	}
 
 	var oSelectedContent = new CSelectedContent();
-	oSelectedContent.SetMoveTrack(this.IsTrackRevisions(), this.TrackMoveId);
+	oSelectedContent.SetMoveTrack(isTrack, this.TrackMoveId);
 	this.Controller.GetSelectedContent(oSelectedContent);
 	oSelectedContent.On_EndCollectElements(this, false);
 
