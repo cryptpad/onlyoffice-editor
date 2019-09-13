@@ -6961,32 +6961,56 @@
 		//проверка на внутренний сдвиг
 		var res = true;
 
-		var checkRange = function(formulaRange) {
-			var isHor = offset && offset.col;
-			var isDelete = offset && (offset.col < 0 || offset.row < 0);
+		var isHor = offset && offset.col;
+		var isDelete = offset && (offset.col < 0 || offset.row < 0);
 
+		var checkRange = function(formulaRange) {
 			//частичное выделение при удалении столбца/строки
-			if(formulaRange.intersection(range) && !range.containsRange(formulaRange)) {
+			if(isDelete && formulaRange.intersection(range) && !range.containsRange(formulaRange)) {
 				return false;
 			}
 
-			/*if (isHor) {
-				//частичный сдвиг влево/вправо
+			if (isHor) {
 				if(range.r1 > formulaRange.r1 && range.r1 <= formulaRange.r2) {
 					return false;
 				}
-			} else {
-				//частичный сдвиг вверх/вниз
+				if(range.r2 >= formulaRange.r1 && range.r2 < formulaRange.r2) {
+					return false;
+				}
 				if(range.c1 > formulaRange.c1 && range.c1 <= formulaRange.c2) {
 					return false;
 				}
-			}*/
+				/*if(range.c1 < formulaRange.c1 && range.c2 >= formulaRange.c1 && range.c2 < formulaRange.c2) {
+					return false;
+				}*/
+			} else {
+				if(range.c1 > formulaRange.c1 && range.c1 <= formulaRange.c2) {
+					return false;
+				}
+				if(range.c2 >= formulaRange.c1 && range.c2 < formulaRange.c2) {
+					return false;
+				}
+				if(range.r1 > formulaRange.r1 && range.r1 <= formulaRange.r2) {
+					return false;
+				}
+				/*if(range.r1 < formulaRange.r1 && range.r2 >= formulaRange.r1 && range.r2 < formulaRange.r2) {
+					return false;
+				}*/
+			}
 
 			return true;
 		};
 
+		//if intersection with range
 		var alreadyCheckFormulas = [];
-		this.getRange3(range.r1, range.c1, range.r2, range.c2)._foreachNoEmpty(function(cell) {
+		var r2 = range.r2, c2 = range.c2;
+		if(isHor) {
+			c2 = gc_nMaxCol0;
+		} else {
+			r2 = gc_nMaxRow0;
+		}
+
+		this.getRange3(range.r1, range.c1, r2, c2)._foreachNoEmpty(function(cell) {
 			if(res && cell.isFormula()) {
 				var formulaParsed = cell.getFormulaParsed();
 				var arrayFormulaRef = formulaParsed.getArrayFormulaRef();
