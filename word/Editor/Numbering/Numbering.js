@@ -314,8 +314,8 @@ CNumbering.prototype.GetAllFontNames = function(arrAllFonts)
  * @param oNumInfo
  * @returns {string}
  */
-CNumbering.prototype.GetText = function(sNumId, nLvl, oNumInfo)
+CNumbering.prototype.GetText = function(sNumId, nLvl, oNumInfo, bWithoutLvlText)
 {
 	var oNum = this.GetNum(sNumId);
-	return oNum.GetText(nLvl, oNumInfo);
+	return oNum.GetText(nLvl, oNumInfo, bWithoutLvlText);
 };

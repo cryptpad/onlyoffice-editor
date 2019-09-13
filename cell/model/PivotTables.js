@@ -1967,7 +1967,9 @@ function CT_pivotTableDefinition() {
 	this.conditionalFormats = null;
 	this.chartFormats = null;
 	this.pivotHierarchies = null;
-	this.pivotTableStyleInfo = null;
+	this.pivotTableStyleInfo = new CT_PivotTableStyle(); // May be absent in some cases, so create
+	this.pivotTableStyleInfo.showRowHeaders = true; // When creating a new pivot table, initialize by default
+	this.pivotTableStyleInfo.showColHeaders = true; // When creating a new pivot table, initialize by default
 	this.filters = null;
 	this.rowHierarchiesUsage = null;
 	this.colHierarchiesUsage = null;

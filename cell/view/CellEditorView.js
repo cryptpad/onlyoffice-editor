@@ -407,6 +407,10 @@
 		// Сброс состояния редактора
 		this.m_nEditorState = c_oAscCellEditorState.editEnd;
 		this.handlers.trigger("closed");
+		if(callback) {
+			callback(true);
+		}
+
 		return true;
 	};
 

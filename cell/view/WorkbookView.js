@@ -1517,7 +1517,7 @@
     };
 
     // Стартуем редактировать ячейку
-    this.collaborativeEditing.onStartEditCell();
+	  activeCellRange = ws.expandActiveCellByFormulaArray(activeCellRange);
     if (ws._isLockedCells(activeCellRange, /*subType*/null, editLockCallback)) {
       editFunction();
     }
@@ -1769,6 +1769,8 @@
     } else if (ws.updateZoom) {
       ws.changeZoom(true);
     }
+
+    this.updateGroupData();
 
     if (this.cellEditor && this.cellFormulaEnterWSOpen) {
       if (ws === this.cellFormulaEnterWSOpen) {
@@ -2947,7 +2949,7 @@
 			//None style
 			var emptyStyle = new Asc.CTableStyle();
 			emptyStyle.displayName = "None";
-			emptyStyle.pivot = false;
+			emptyStyle.pivot = bPivotTable;
 			addStyles({null: emptyStyle}, AscCommon.c_oAscStyleImage.Default, true);
 		}
 		addStyles(defaultStyles, AscCommon.c_oAscStyleImage.Default);

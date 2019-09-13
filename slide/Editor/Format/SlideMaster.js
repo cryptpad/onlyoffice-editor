@@ -595,9 +595,30 @@ function CMasterThumbnailDrawer()
 
     this.DrawingDocument = null;
 
-    this.Draw2 = function(g, _master, use_background, use_master_shapes) {
+    this.Draw2 = function(g, _master, use_background, use_master_shapes, params) {
         var w_px = this.WidthPx;
         var h_px = this.HeightPx;
+
+        var _params = [
+            6,  // color_w
+            3,  // color_h,
+            4,  // color_x
+            31, // color_y
+            1,  // color_delta,
+            8,  // text_x
+            11, // text_y (from bottom)
+            18  // font_size
+        ];
+
+        if (params && params.length)
+        {
+            // first 2 - width & height
+            for (var i = 2, len = params.length; i < len; i++) {
+                _params[i - 2] = params[i];
+            }
+        }
+
+        var koefScale = Math.max(w_px / 85, h_px / 38);
 
         var dKoefPixToMM = this.HeightMM / h_px;
         var _back_fill = null;
@@ -682,16 +703,16 @@ function CMasterThumbnailDrawer()
             }
         }
         g.reset();
-        var _color_w = 6 * dKoefPixToMM;
-        var _color_h = 3 * dKoefPixToMM;
-        var _color_x = 4 * dKoefPixToMM;
-        var _color_y = 31 * dKoefPixToMM;
-        var _color_delta = 1 * dKoefPixToMM;
+        var _color_w = _params[0] * dKoefPixToMM;
+        var _color_h = _params[1] * dKoefPixToMM;
+        var _color_x = _params[2] * dKoefPixToMM;
+        var _color_y = _params[3] * dKoefPixToMM;
+        var _color_delta = _params[4] * dKoefPixToMM;
 
         g.p_color(255, 255, 255, 255);
         g.b_color1(255, 255, 255, 255);
         g._s();
-        g.rect(_color_x - _color_delta, _color_y - _color_delta, _color_w * 6 + 7 * _color_delta, 5 * dKoefPixToMM);
+        g.rect(_color_x - _color_delta, _color_y - _color_delta, _color_w * 6 + 7 * _color_delta, _color_h + 2 * _color_delta);
         g.df();
         g._s();
         var _color = new AscFormat.CSchemeColor;
@@ -712,7 +733,7 @@ function CMasterThumbnailDrawer()
         _api.isViewMode = true;
         _color.id = 15;
         _color.Calculate(_theme, null, null, _master, RGBA);
-        var nFontSize = 18;
+        var nFontSize = _params[7];
         var _textPr1 = new CTextPr;
         _textPr1.FontFamily = {Name:_theme.themeElements.fontScheme.majorFont.latin, Index:-1};
         _textPr1.RFonts.Ascii = {Name: _theme.themeElements.fontScheme.majorFont.latin, Index: -1};
@@ -739,8 +760,8 @@ function CMasterThumbnailDrawer()
         par.Reset(0, 0, 1000, 1000, 0, 0, 1);
         par.Recalculate_Page(0);
 
-        var _text_x = 8 * dKoefPixToMM;
-        var _text_y = (h_px - 11) * dKoefPixToMM;
+        var _text_x = _params[5] * dKoefPixToMM;
+        var _text_y = (h_px - _params[6]) * dKoefPixToMM;
         par.Lines[0].Ranges[0].XVisible = _text_x;
         par.Lines[0].Y = _text_y;
         var old_marks = _api.ShowParaMarks;

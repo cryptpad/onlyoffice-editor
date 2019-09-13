@@ -11814,9 +11814,9 @@ function CPres()
             this.ParaDrawing = oldParaDrawing;
             s.Seek2(_end_rec);
             this.TempGroupObject = null;
-            if(shape.spTree.length === 0){
-                return null;
-            }
+            // if(shape.spTree.length === 0){
+            //     return null;
+            // }
             return shape;
         }
 

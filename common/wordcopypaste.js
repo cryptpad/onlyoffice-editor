@@ -8139,7 +8139,7 @@ PasteProcessor.prototype =
 
 		var whiteSpace = this._getStyle(node, computedStyle, "white-space");
 		if("nowrap" === whiteSpace || true === node.noWrap) {
-			cell.Set_NoWrap(true);
+			cell.SetNoWrap(true);
 		}
 
         //content

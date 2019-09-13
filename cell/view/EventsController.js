@@ -798,7 +798,7 @@
 					return result;
 
 				case 9: // tab
-					if (t.getCellEditMode()) {
+					if (t.getCellEditMode() || t.isSelectionDialogMode) {
 						return true;
 					}
 					// Отключим стандартную обработку браузера нажатия tab
@@ -815,7 +815,7 @@
 					break;
 
 				case 13:  // "enter"
-					if (t.getCellEditMode()) {
+					if (t.getCellEditMode() || t.isSelectionDialogMode) {
 						return true;
 					}
 					// Особый случай (возможно движение в выделенной области)

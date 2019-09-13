@@ -4700,6 +4700,19 @@ background-repeat: no-repeat;\
 
 		return bResult;
 	};
+	asc_docs_api.prototype.asc_RemoveTableCells    = function()
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return;
+
+		if (!oLogicDocument.Document_Is_SelectionLocked(changestype_Table_Properties))
+		{
+			oLogicDocument.StartAction(AscDFH.historydescription_Document_RemoveTableCells);
+			oLogicDocument.RemoveTableCells();
+			oLogicDocument.FinalizeAction();
+		}
+	};
 	asc_docs_api.prototype.widthTable              = function(width)
 	{
 
@@ -7547,7 +7560,11 @@ background-repeat: no-repeat;\
 	{
 		this.isChartEditor = true;	// Для совместного редактирования
 		this.asc_onOpenChartFrame();
-		this.WordControl.onMouseUpMainSimple();
+		
+		if(!window['IS_NATIVE_EDITOR']) {
+			this.WordControl.onMouseUpMainSimple();
+		}
+		
 		this.sendEvent("asc_doubleClickOnChart", obj);
 	};
 
@@ -8750,6 +8767,16 @@ background-repeat: no-repeat;\
 		return sRet;
 	};
 
+	asc_docs_api.prototype.asc_AddObjectCaption = function(oPr)
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+
+		if (!oLogicDocument)
+			return;
+
+		oLogicDocument.AddCaption(oPr);
+	};
+
 	asc_docs_api.prototype.asc_GetBookmarksManager = function()
 	{
 		var oLogicDocument = this.WordControl.m_oLogicDocument;
@@ -8759,6 +8786,10 @@ background-repeat: no-repeat;\
 		var oManager = oLogicDocument.GetBookmarksManager();
 		oManager.Update();
 		return oManager;
+	};
+	asc_docs_api.prototype.asc_OnBookmarksUpdate = function()
+	{
+		this.sendEvent("asc_onBookmarksUpdate");
 	};
 
 	asc_docs_api.prototype.asc_GetHeadingLevel = function(sStyleName)
@@ -9432,6 +9463,28 @@ background-repeat: no-repeat;\
 
 		this.asc_addComment(oData);
 	};
+	window["asc_docs_api"].prototype["pluginMethod_MoveCursorToStart"] = function(isMoveToMainContent)
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (oLogicDocument)
+		{
+			if (isMoveToMainContent)
+				oLogicDocument.MoveCursorToStartOfDocument();
+			else
+				oLogicDocument.MoveCursorToStartPos(false);
+		}
+	};
+	window["asc_docs_api"].prototype["pluginMethod_MoveCursorToEnd"] = function(isMoveToMainContent)
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (oLogicDocument)
+		{
+			if (isMoveToMainContent)
+				oLogicDocument.MoveCursorToStartOfDocument();
+
+			oLogicDocument.MoveCursorToEndPos(false);
+		}
+	};
 	/**
 	 * Find and replace text.
 	 * @param {Object} oProperties The properties for find and replace.
@@ -9510,6 +9563,7 @@ background-repeat: no-repeat;\
 		{
 			oLogicDocument.StartAction(AscDFH.historydescription_SetCoreproperties);
 			oCore.setProps(oProps);
+			this.UpdateInterfaceState();
 			oLogicDocument.FinalizeAction(true);
 		}
 	};
@@ -9819,6 +9873,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['MergeCells']                                = asc_docs_api.prototype.MergeCells;
 	asc_docs_api.prototype['SplitCell']                                 = asc_docs_api.prototype.SplitCell;
 	asc_docs_api.prototype['asc_DistributeTableCells']                  = asc_docs_api.prototype.asc_DistributeTableCells;
+	asc_docs_api.prototype['asc_RemoveTableCells']                      = asc_docs_api.prototype.asc_RemoveTableCells;
 	asc_docs_api.prototype['widthTable']                                = asc_docs_api.prototype.widthTable;
 	asc_docs_api.prototype['put_CellsMargin']                           = asc_docs_api.prototype.put_CellsMargin;
 	asc_docs_api.prototype['set_TblWrap']                               = asc_docs_api.prototype.set_TblWrap;
@@ -10096,7 +10151,10 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_CreateInstructionLine']                 = asc_docs_api.prototype.asc_CreateInstructionLine;
 
 
+	asc_docs_api.prototype['asc_AddObjectCaption']                      = asc_docs_api.prototype.asc_AddObjectCaption;
+
 	asc_docs_api.prototype['asc_GetBookmarksManager']                   = asc_docs_api.prototype.asc_GetBookmarksManager;
+	asc_docs_api.prototype['asc_OnBookmarksUpdate']                     = asc_docs_api.prototype.asc_OnBookmarksUpdate;
 
 	asc_docs_api.prototype['asc_GetHeadingLevel']                       = asc_docs_api.prototype.asc_GetHeadingLevel;
 	asc_docs_api.prototype['asc_GetStylesArray']                        = asc_docs_api.prototype.asc_GetStylesArray;

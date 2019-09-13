@@ -991,11 +991,6 @@ var g_oFontProperties = {
 		this.fn = stream.GetString();
 	};
 
-	var c_oAscGradientType = {
-		Linear : 0,
-		Path : 1
-	};
-
 	var c_oAscPatternType = {
 		DarkDown :  0,
 		DarkGray :  1,
@@ -1061,9 +1056,9 @@ var g_oFontProperties = {
 	function FromXml_ST_GradientType(val) {
 		var res = -1;
 		if ("linear" === val) {
-			res = c_oAscGradientType.Linear;
+			res = Asc.c_oAscFillGradType.GRAD_LINEAR;
 		} else if ("path" === val) {
-			res = c_oAscGradientType.Path;
+			res = Asc.c_oAscFillGradType.GRAD_PATH;
 		}
 		return res;
 	}
@@ -1114,7 +1109,7 @@ var g_oFontProperties = {
 
 	function GradientFill() {
 		//Attributes
-		this.type = c_oAscGradientType.Linear;
+		this.type = Asc.c_oAscFillGradType.GRAD_LINEAR;
 		this.degree = 0;
 		this.left = 0;
 		this.right = 0;
@@ -1277,20 +1272,38 @@ var g_oFontProperties = {
 	GradientFill.prototype.asc_getType = function () {
 		return this.type;
 	};
+	GradientFill.prototype.asc_setType = function (value) {
+		this.type = value;
+	};
 	GradientFill.prototype.asc_getDegree = function () {
 		return this.degree;
+	};
+	GradientFill.prototype.asc_setDegree = function (value) {
+		this.degree = value;
 	};
 	GradientFill.prototype.asc_getLeft = function () {
 		return this.left;
 	};
+	GradientFill.prototype.asc_setLeft = function (value) {
+		this.left = value;
+	};
 	GradientFill.prototype.asc_getRight = function () {
 		return this.right;
+	};
+	GradientFill.prototype.asc_setRight = function (value) {
+		this.right = value;
 	};
 	GradientFill.prototype.asc_getTop = function () {
 		return this.top;
 	};
+	GradientFill.prototype.asc_setTop = function (value) {
+		this.top = value;
+	};
 	GradientFill.prototype.asc_getBottom = function () {
 		return this.bottom;
+	};
+	GradientFill.prototype.asc_setBottom = function (value) {
+		this.bottom = value;
 	};
 	GradientFill.prototype.asc_getGradientStops = function () {
 		var res = [];
@@ -1298,6 +1311,9 @@ var g_oFontProperties = {
 			res[i] = this.stop[i].clone();
 		}
 		return res;
+	};
+	GradientFill.prototype.asc_putGradientStops = function (value) {
+		this.stop = value;
 	};
 	function GradientStop() {
 		//Attributes
@@ -1376,8 +1392,14 @@ var g_oFontProperties = {
 	GradientStop.prototype.asc_getPosition = function () {
 		return this.position;
 	};
+	GradientStop.prototype.asc_setPosition = function (value) {
+		this.position = value;
+	};
 	GradientStop.prototype.asc_getColor = function () {
 		return this.color;
+	};
+	GradientStop.prototype.asc_setColor = function (value) {
+		this.color = CorrectAscColor(value);
 	};
 	function PatternFill() {
 		//Attributes
@@ -1496,13 +1518,78 @@ var g_oFontProperties = {
 		return newContext;
 	};
 	PatternFill.prototype.asc_getType = function () {
-		return this.getHatchOffset();
+		return c_oAscPatternType.Solid === this.patternType ? -1 : this.getHatchOffset();
+	};
+	PatternFill.prototype.asc_setType = function (value) {
+		switch (value) {
+			case -1:
+				this.patternType = c_oAscPatternType.Solid;
+				break;
+			case 8:
+				this.patternType = c_oAscPatternType.DarkDown;
+				break;
+			case 9:
+				this.patternType = c_oAscPatternType.DarkHorizontal;
+				break;
+			case 10:
+				this.patternType = c_oAscPatternType.DarkUp;
+				break;
+			case 11:
+				this.patternType = c_oAscPatternType.DarkVertical;
+				break;
+			case 20:
+				this.patternType = c_oAscPatternType.LightDown;
+				break;
+			case 21:
+				this.patternType = c_oAscPatternType.LightHorizontal;
+				break;
+			case 22:
+				this.patternType = c_oAscPatternType.LightUp;
+				break;
+			case 23:
+				this.patternType = c_oAscPatternType.LightVertical;
+				break;
+			case 27:
+				this.patternType = c_oAscPatternType.Gray0625;
+				break;
+			case 28:
+				this.patternType = c_oAscPatternType.Gray125;
+				break;
+			case 29:
+				this.patternType = c_oAscPatternType.LightGray;
+				break;
+			case 30:
+				this.patternType = c_oAscPatternType.LightTrellis;
+				break;
+			case 33:
+				this.patternType = c_oAscPatternType.MediumGray;
+				break;
+			case 35:
+				this.patternType = c_oAscPatternType.DarkGray;
+				break;
+			case 41:
+				this.patternType = c_oAscPatternType.DarkGrid;
+				break;
+			case 43:
+				this.patternType = c_oAscPatternType.LightGrid;
+				break;
+			case 46:
+			default:
+				this.patternType = c_oAscPatternType.DarkTrellis;
+				break;
+		}
 	};
 	PatternFill.prototype.asc_getFgColor = function () {
 		return this.fgColor;
 	};
+	PatternFill.prototype.asc_setFgColor = function (value) {
+		this.fgColor = CorrectAscColor(value);
+	};
 	PatternFill.prototype.asc_getBgColor = function () {
 		return this.bgColor;
+	};
+	PatternFill.prototype.asc_setBgColor = function (value) {
+		this.bgColor = CorrectAscColor(value);
 	};
 
 	/** @constructor */
@@ -8648,10 +8735,6 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	window['AscCommonExcel'].CorrectAscColor = CorrectAscColor;
 	window['AscCommonExcel'].Fragment = Fragment;
 	window['AscCommonExcel'].Font = Font;
-	window["Asc"]["c_oAscGradientType"] = c_oAscGradientType;
-	prot = c_oAscGradientType;
-	prot["Linear"] = prot.Linear;
-	prot["Path"] = prot.Path;
 	window["Asc"]["c_oAscPatternType"] = c_oAscPatternType;
 	prot = c_oAscPatternType;
 	prot["DarkDown"] = prot.DarkDown;
@@ -8676,21 +8759,33 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	window["Asc"]["asc_CGradientFill"] = window['AscCommonExcel'].GradientFill = GradientFill;
 	prot = GradientFill.prototype;
 	prot["asc_getType"] = prot.asc_getType;
+	prot["asc_setType"] = prot.asc_setType;
 	prot["asc_getDegree"] = prot.asc_getDegree;
+	prot["asc_setDegree"] = prot.asc_setDegree;
 	prot["asc_getLeft"] = prot.asc_getLeft;
+	prot["asc_setLeft"] = prot.asc_setLeft;
 	prot["asc_getRight"] = prot.asc_getRight;
+	prot["asc_setRight"] = prot.asc_setRight;
 	prot["asc_getTop"] = prot.asc_getTop;
+	prot["asc_setTop"] = prot.asc_setTop;
 	prot["asc_getBottom"] = prot.asc_getBottom;
+	prot["asc_setBottom"] = prot.asc_setBottom;
 	prot["asc_getGradientStops"] = prot.asc_getGradientStops;
+	prot["asc_putGradientStops"] = prot.asc_putGradientStops;
 	window["Asc"]["asc_CGradientStop"] = window['AscCommonExcel'].GradientStop = GradientStop;
 	prot = GradientStop.prototype;
 	prot["asc_getPosition"] = prot.asc_getPosition;
+	prot["asc_setPosition"] = prot.asc_setPosition;
 	prot["asc_getColor"] = prot.asc_getColor;
+	prot["asc_setColor"] = prot.asc_setColor;
 	window["Asc"]["asc_CPatternFill"] = window['AscCommonExcel'].PatternFill = PatternFill;
 	prot = PatternFill.prototype;
 	prot["asc_getType"] = prot.asc_getType;
+	prot["asc_setType"] = prot.asc_setType;
 	prot["asc_getFgColor"] = prot.asc_getFgColor;
+	prot["asc_setFgColor"] = prot.asc_setFgColor;
 	prot["asc_getBgColor"] = prot.asc_getBgColor;
+	prot["asc_setBgColor"] = prot.asc_setBgColor;
 	window["Asc"]["asc_CFill2"] = window['AscCommonExcel'].Fill = Fill;
 	prot = Fill.prototype;
 	prot["asc_getPatternFill"] = prot.asc_getPatternFill;
@@ -8781,7 +8876,6 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	window['AscCommonExcel'].DateGroupItem = DateGroupItem;
 	window['AscCommonExcel'].SortCondition = SortCondition;
 	window['AscCommonExcel'].AutoFilterDateElem = AutoFilterDateElem;
-	window['AscCommonExcel'].c_oAscGradientType = c_oAscGradientType;
 	window['AscCommonExcel'].c_oAscPatternType = c_oAscPatternType;
 
 	window["Asc"]["CustomFilters"]			= window["Asc"].CustomFilters = CustomFilters;

@@ -1991,9 +1991,17 @@
 			//draw header/footer
 			this._drawHeaderFooter(drawingCtx, printPagesData, indexPrintPage, countPrintPages);
 
-			drawingCtx.EndPage();
-		} else {
-			drawingCtx.BeginPage(printPagesData.pageWidth, printPagesData.pageHeight);
+            if(window['Asc']['editor'].watermarkDraw)
+            {
+                window['Asc']['editor'].watermarkDraw.zoom = 1;//this.worksheet.objectRender.zoom.current;
+                window['Asc']['editor'].watermarkDraw.Generate();
+                window['Asc']['editor'].watermarkDraw.StartRenderer();
+                window['Asc']['editor'].watermarkDraw.DrawOnRenderer(drawingCtx.DocumentRenderer, c_oAscPrintDefaultSettings.PageWidth, c_oAscPrintDefaultSettings.PageHeight);
+                window['Asc']['editor'].watermarkDraw.EndRenderer();
+            }
+            drawingCtx.EndPage();
+        } else {
+            drawingCtx.BeginPage(printPagesData.pageWidth, printPagesData.pageHeight);
 
 			this.usePrintScale = true;
 			//TODO для печати не нужно учитывать размер группы
@@ -2082,6 +2090,16 @@
 			}
 
             drawingCtx.RemoveClipRect();
+
+            if(window['Asc']['editor'].watermarkDraw)
+            {
+                window['Asc']['editor'].watermarkDraw.zoom = 1;//this.worksheet.objectRender.zoom.current;
+                window['Asc']['editor'].watermarkDraw.Generate();
+                window['Asc']['editor'].watermarkDraw.StartRenderer();
+                window['Asc']['editor'].watermarkDraw.DrawOnRenderer(drawingCtx.DocumentRenderer, printPagesData.pageWidth,
+                    printPagesData.pageHeight);
+                window['Asc']['editor'].watermarkDraw.EndRenderer();
+            }
             drawingCtx.EndPage();
         }
     };
@@ -3125,7 +3143,7 @@
 			return;
 		}
 
-		var dependentCells = {}, i;
+		var drawCells = {}, i;
 		var aRules = this.model.aConditionalFormattingRules.sort(function (v1, v2) {
 			return v2.priority - v1.priority;
 		});
@@ -3196,7 +3214,7 @@
 								oUniFill.fill.bgClr = AscFormat.CreateUniColorRGB2(fill.patternFill.bgColor || AscCommonExcel.createRgbColor(255, 255, 255));
 							} else if (fill.gradientFill) {
                                 oUniFill.fill = new AscFormat.CGradFill();
-                                if(fill.gradientFill.type === AscCommonExcel.c_oAscGradientType.Linear) {
+                                if(fill.gradientFill.type === Asc.c_oAscFillGradType.GRAD_LINEAR) {
                                     oUniFill.fill.lin = new AscFormat.GradLin();
                                     oUniFill.fill.lin.angle = fill.gradientFill.degree*60000;
                                 }
@@ -3244,28 +3262,23 @@
 
 			var showValue = this._drawCellCF(ctx, aRules, c, row, col, top, width + mwidth, height + mheight, offsetX, offsetY);
 			if (showValue) {
-				this._drawCellText(drawingCtx, col, row, colStart, colEnd, offsetX, offsetY);
-
-				if (!mc) {
-					// check if long text overlaps this cell
-					i = this._findSourceOfCellText(col, row);
-					if (i >= 0) {
-						dependentCells[i] = (dependentCells[i] || []);
-						dependentCells[i].push(col);
-					}
-				}
+				drawCells[col] = 1;
 			}
         }
-		// draw long text that overlaps own cell's borders
-		for (i in dependentCells) {
-			var arr = dependentCells[i], j = arr.length - 1;
-			col = i >> 0;
-			// if source cell belongs to cells range then skip it (text has been drawn already)
-			if (col >= arr[0] && col <= arr[j]) {
-				continue;
+		// Check overlaps start and end
+		i = this._findSourceOfCellText(colStart, row);
+		if (-1 !== i) {
+			drawCells[i] = 1;
+		}
+		if (colStart !== colEnd) {
+			i = this._findSourceOfCellText(colEnd, row);
+			if (-1 !== i) {
+				drawCells[i] = 1;
 			}
-			// draw long text fragment
-			this._drawCellText(drawingCtx, col, row, arr[0], arr[j], offsetX, offsetY);
+		}
+		// draw text
+		for (i in drawCells) {
+			this._drawCellText(drawingCtx, i >> 0, row, colStart, colEnd, offsetX, offsetY);
 		}
     };
 
@@ -5773,7 +5786,7 @@
 		var isNumberFormat = !cell.isEmptyTextString() && (null === cellType || CellValueType.String !== cellType);
 		if (angle || isNumberFormat || align.getWrap()) {
 			this._addCellTextToCache(cell.nCol, cell.nRow);
-			return;
+			return AscCommonExcel.convertPtToPx(this._getRowHeightReal(cell.nRow));
 		}
 
 		// ToDo with angle and wrap
@@ -5970,7 +5983,7 @@
         return res;
     };
 
-    // Ищет текст в строке (columnsWithText - это колонки, в которых есть текст)
+    // If this cell with overlap or text return index of column
     WorksheetView.prototype._findSourceOfCellText = function (col, row) {
         var r = this._getRowCache(row);
         if (r) {
@@ -8283,7 +8296,7 @@
         cell_info.font.color = asc_obj2Color(font.getColor());
 
         cell_info.fill = new asc_CFill((null != bg) ? asc_obj2Color(bg) : bg);
-		cell_info.fill2 = c.getFill();
+		cell_info.fill2 = c.getFill().clone();
 
 		cell_info.numFormat = c.getNumFormatStr();
         cell_info.numFormatInfo = c.getNumFormatTypeInfo();
@@ -10430,7 +10443,7 @@
 				var rangeFormulaArray = this.model.getRange3(arrayRef.r1, arrayRef.c1, arrayRef.r2, arrayRef.c2);
 				rangeFormulaArray.setValue(valF, function (r) {
 					//ret = r;
-				}, null, arrayRef);
+				}, true, arrayRef);
 				History.Add(AscCommonExcel.g_oUndoRedoArrayFormula, AscCH.historyitem_ArrayFromula_AddFormula, this.model.getId(),
 					new Asc.Range(arrayRef.c1, arrayRef.r1, arrayRef.c2, arrayRef.r2), new AscCommonExcel.UndoRedoData_ArrayFormula(arrayRef, valF));
 			} else if (rangeF.isOneCell()) {
@@ -12103,7 +12116,7 @@
 							return;
 						}
 						count = checkRange.c2 - checkRange.c1 + 1;
-						if (!this.model.checkShiftArrayFormulas(lockRange, new AscCommon.CellBase(0, count))) {
+						if (!this.model.checkShiftArrayFormulas(arn, new AscCommon.CellBase(0, count))) {
 							this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.CannotChangeFormulaArray, c_oAscError.Level.NoCritical);
 							return;
 						}
@@ -12135,7 +12148,7 @@
 							return;
 						}
 						count = checkRange.c2 - checkRange.c1 + 1;
-						if (!this.model.checkShiftArrayFormulas(lockRange, new AscCommon.CellBase(count, 0))) {
+						if (!this.model.checkShiftArrayFormulas(arn, new AscCommon.CellBase(count, 0))) {
 							this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.CannotChangeFormulaArray, c_oAscError.Level.NoCritical);
 							return;
 						}
@@ -12243,7 +12256,7 @@
 							return;
 						}
 						count = checkRange.c2 - checkRange.c1 + 1;
-						if (!this.model.checkShiftArrayFormulas(lockRange, new AscCommon.CellBase(-count, 0))) {
+						if (!this.model.checkShiftArrayFormulas(arn, new AscCommon.CellBase(0, -count))) {
 							this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.CannotChangeFormulaArray, c_oAscError.Level.NoCritical);
 							return;
 						}
@@ -12281,7 +12294,7 @@
 							return;
 						}
 						count = checkRange.c2 - checkRange.c1 + 1;
-						if (!this.model.checkShiftArrayFormulas(lockRange, new AscCommon.CellBase(0, -count))) {
+						if (!this.model.checkShiftArrayFormulas(arn, new AscCommon.CellBase(-count, 0))) {
 							this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.CannotChangeFormulaArray, c_oAscError.Level.NoCritical);
 							return;
 						}
@@ -13186,7 +13199,7 @@
 			//***array-formula***
 			if(applyByArray) {
 				History.Add(AscCommonExcel.g_oUndoRedoArrayFormula, AscCH.historyitem_ArrayFromula_AddFormula, this.model.getId(),
-					new Asc.Range(c.bbox.c1, c.bbox.r1, c.bbox.c2, c.bbox.r2), new AscCommonExcel.UndoRedoData_ArrayFormula(c.bbox, ftext));
+					new Asc.Range(c.bbox.c1, c.bbox.r1, c.bbox.c2, c.bbox.r2), new AscCommonExcel.UndoRedoData_ArrayFormula(c.bbox, "=" + c.getFormula()));
 			}
 
 			isFormula = c.isFormula();
@@ -13220,7 +13233,7 @@
 			History.EndTransaction();
 		}
 
-		if (oAutoExpansionTable) {
+		if (oAutoExpansionTable && !applyByArray) {
 			var callback = function () {
 				var options = {
 					props: [Asc.c_oAscAutoCorrectOptions.UndoTableAutoExpansion],
@@ -13367,12 +13380,13 @@
 						//необходимо проверить на выделение массива частично
 						var activeRange = t.getSelectedRange();
 						var doNotApply = false;
+						var formulaRef;
 						if(!activeRange.bbox.isOneCell()) {
 							if(t.model.autoFilters.isIntersectionTable(activeRange.bbox)) {
 								t.handlers.trigger("onErrorEvent", c_oAscError.ID.MultiCellsInTablesFormulaArray, c_oAscError.Level.NoCritical);
 								return false;
 							} else {
-								activeRange._foreachNoEmpty(function(cell, row, col) {
+								activeRange._foreachNoEmpty(function(cell) {
 									ref = cell.formulaParsed && cell.formulaParsed.ref ? cell.formulaParsed.ref : null;
 
 									if(ref && !activeRange.bbox.containsRange(ref)) {
@@ -13381,12 +13395,17 @@
 									}
 								});
 							}
+						} else {
+							activeRange._foreachNoEmpty(function(cell) {
+								formulaRef = cell.formulaParsed && cell.formulaParsed.ref ? cell.formulaParsed.ref : null;
+							});
 						}
 						if(doNotApply) {
 							t.handlers.trigger("onErrorEvent", c_oAscError.ID.CannotChangeFormulaArray, c_oAscError.Level.NoCritical);
 							return false;
 						} else {
-							t._isLockedCells(activeRange.bbox, /*subType*/null, saveCellValueCallback);
+							var lockedRange = formulaRef ? formulaRef : activeRange.bbox;
+							t._isLockedCells(lockedRange, /*subType*/null, saveCellValueCallback);
 						}
 					} else {
 						//проверяем activeCell на наличие форулы массива
@@ -14137,11 +14156,28 @@
 			return;
 		}
 
+		var sortProps = t.model.autoFilters.getPropForSort(cellId, ar, displayName);
+		var expandRange;
+		var selectionRange = t.model.selectionRange;
+		var activeCell = selectionRange.activeCell.clone();
+		var activeRange = selectionRange.getLast();
+		if (null === sortProps) {
+			//expand selectionRange
+			if (bIsExpandRange) {
+				//TODO стоит заменить на expandRange ?
+				expandRange = t.model.autoFilters._getAdjacentCellsAF(activeRange, true, true, true);
+
+				var bIgnoreFirstRow = window['AscCommonExcel'].ignoreFirstRowSort(t.model, expandRange);
+				if (bIgnoreFirstRow) {
+					expandRange.r1++;
+				}
+			}
+		}
+
         var onChangeAutoFilterCallback = function (isSuccess) {
             if (false === isSuccess) {
                 return;
             }
-            var sortProps = t.model.autoFilters.getPropForSort(cellId, ar, displayName);
 
             var onSortAutoFilterCallBack = function (success) {
 				if (false === success) {
@@ -14167,20 +14203,7 @@
 				var rgbColor = color ?  new AscCommonExcel.RgbColor((color.asc_getR() << 16) + (color.asc_getG() << 8) + color.asc_getB()) : null;
 
 				//expand selectionRange
-				if(bIsExpandRange)
-				{
-					var selectionRange = t.model.selectionRange;
-					var activeCell = selectionRange.activeCell.clone();
-					var activeRange = selectionRange.getLast();
-					//TODO стоит заменить на expandRange ?
-					var expandRange = t.model.autoFilters._getAdjacentCellsAF(activeRange, true, true, true);
-
-					var bIgnoreFirstRow = window['AscCommonExcel'].ignoreFirstRowSort(t.model, expandRange);
-					if(bIgnoreFirstRow)
-					{
-						expandRange.r1++;
-					}
-
+				if(bIsExpandRange && expandRange) {
 					//change selection
 					t.setSelection(expandRange);
 					selectionRange.activeCell = activeCell;
@@ -14194,7 +14217,22 @@
                 t._isLockedCells(sortProps.sortRange.bbox, /*subType*/null, onSortAutoFilterCallBack);
             }
         };
-        this._isLockedAll(onChangeAutoFilterCallback);
+
+		var bNeedSort = true;
+		if(expandRange) {
+			bNeedSort = !this.intersectionFormulaArray(expandRange, true);
+		} else if(sortProps) {
+			bNeedSort =  !this.intersectionFormulaArray(sortProps.sortRange.bbox, true)
+		} else if(!sortProps) {
+			bNeedSort = !this.intersectionFormulaArray(activeRange, true);
+		}
+		if(bNeedSort) {
+			this._isLockedAll(onChangeAutoFilterCallback);
+		} else {
+			window.setTimeout(function() {
+				t.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.CannotChangeFormulaArray, c_oAscError.Level.NoCritical);
+			}, 0);
+		}
     };
 
     WorksheetView.prototype.getAddFormatTableOptions = function (range) {
@@ -16834,7 +16872,7 @@
 			//TODO не рисовать точки на местах линий и кнопок
 			for(l = minCol; l < maxCol; l++) {
 				pointLevel = this._getGroupLevel(l, bCol);
-				
+
 				/*if(!rowLevelMap[l]) {
 					continue;
 				}
@@ -17497,7 +17535,7 @@
 			}
 		}
 
-		if((target.row < 1 && !bCol) || (target.col < 1 && bCol)) {
+		if((target.row < 0 && !bCol) || (target.col < 0 && bCol)) {
 			//проверяем, возможно мы попали в одну из кнопок управления уровнями
 			return this._groupRowMenuClick(x, y, target, type, bCol);
 		}
@@ -18343,6 +18381,17 @@
 
 	};
 
+	WorksheetView.prototype.expandActiveCellByFormulaArray = function(activeCellRange) {
+		var formulaRef;
+		if(!activeCellRange) {
+			return activeCellRange;
+		}
+		this.model.getRange3(activeCellRange.r1, activeCellRange.c1, activeCellRange.r1, activeCellRange.c1)._foreachNoEmpty(function(cell) {
+			formulaRef = cell.formulaParsed && cell.formulaParsed.ref ? cell.formulaParsed.ref : null;
+		});
+		return formulaRef ? formulaRef : activeCellRange;
+	};
+
 
 
    	//HEADER/FOOTER
@@ -18382,7 +18431,7 @@
 			}
 			case asc.c_oAscHeaderFooterField.time: {
 				curDate = new cDate();
-				curDateNum = curDate.getExcelDateWithTime(true);
+				curDateNum = curDate.getExcelDateWithTime(true) - curDate.getTimezoneOffset()/(60*24);
 				res = api.asc_getLocaleExample(AscCommon.getShortTimeFormat(), curDateNum);
 				break;
 			}

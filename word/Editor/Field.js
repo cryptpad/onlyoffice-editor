@@ -51,6 +51,7 @@ function ParaField(FieldType, Arguments, Switches)
 
     this.Type    = para_Field;
 
+    this.Istruction = null;
     this.FieldType = (undefined === FieldType ? fieldtype_UNKNOWN : FieldType);
     this.Arguments = (undefined === Arguments ? []                : Arguments);
     this.Switches  = (undefined === Switches  ? []                : Switches);
@@ -314,6 +315,16 @@ ParaField.prototype.GetAllFields = function(isUseSelection, arrFields)
 	arrFields.push(this);
 	return CParagraphContentWithParagraphLikeContent.prototype.GetAllFields.apply(this, arguments);
 };
+ParaField.prototype.GetAllSeqFieldsByType = function(sType, aFields)
+{
+	if(this.FieldType === fieldtype_SEQ)
+	{
+		if(this.Arguments[0] === sType)
+		{
+			aFields.push(this);
+		}
+	}
+};
 //----------------------------------------------------------------------------------------------------------------------
 // Работа с данными поля
 //----------------------------------------------------------------------------------------------------------------------
@@ -486,7 +497,36 @@ ParaField.prototype.FindNextFillingForm = function(isNext, isCurrent, isStart)
 };
 ParaField.prototype.Update = function(isCreateHistoryPoint, isRecalculate)
 {
-	// TODO: Реализовать
+	var sReplaceString = null;
+	if(this.FieldType === fieldtype_SEQ)
+	{
+		if(this.Paragraph && this.Paragraph.Parent)
+		{
+			var oInstruction = new CFieldInstructionSEQ();
+			oInstruction.ComplexField = this;
+			oInstruction.ParentContent = this.Paragraph.Parent;
+			oInstruction.Id = this.Arguments[0];
+			sReplaceString = oInstruction.GetText();
+		}
+	}
+	else if(this.FieldType === fieldtype_STYLEREF)
+	{
+		if(this.Paragraph && this.Paragraph.Parent)
+		{
+			var oInstruction = new CFieldInstructionSTYLEREF();
+			oInstruction.ComplexField = this;
+			oInstruction.ParentContent = this.Paragraph.Parent;
+			oInstruction.ParentParagraph = this.Paragraph;
+			oInstruction.StyleName = this.Arguments[0];
+			sReplaceString = oInstruction.GetText();
+		}
+	}
+	if(sReplaceString)
+	{
+		var oRun = this.private_GetMappedRun(sReplaceString);
+		this.Remove_FromContent(0, this.Content.length);
+		this.Add_ToContent(0, oRun);
+	}
 };
 //----------------------------------------------------------------------------------------------------------------------
 // Функции совместного редактирования

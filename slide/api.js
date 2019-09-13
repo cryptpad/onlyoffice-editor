@@ -3896,7 +3896,31 @@ background-repeat: no-repeat;\
 	};
 	asc_docs_api.prototype.asc_addDateTime = function(oPr)
 	{
-		this.WordControl.m_oLogicDocument.addDateTime(oPr);
+
+		var sCheck = oPr.get_DateTimeExamples()[oPr.get_DateTime()], sTextForCheck = "";
+		if(typeof sCheck === "string" && sCheck.length > 0)
+		{
+			sTextForCheck += sCheck;
+		}
+		else
+		{
+			sCheck = oPr.get_CustomDateTime();
+			if(typeof sCheck === "string" && sCheck.length > 0)
+			{
+				sTextForCheck += sCheck;
+			}
+		}
+
+		if(sTextForCheck.length > 0)
+		{
+			AscFonts.FontPickerByCharacter.checkText(sTextForCheck, this, function() {
+				this.WordControl.m_oLogicDocument.addDateTime(oPr);
+			});
+		}
+		else
+		{
+			this.WordControl.m_oLogicDocument.addDateTime(oPr);
+		}
 	};
 	asc_docs_api.prototype.asc_setDefaultDateTimeFormat = function(aFormat)
 	{
@@ -5077,14 +5101,14 @@ background-repeat: no-repeat;\
 
 				presentation.DrawingDocument.OnEndRecalculate();
 
-
-
-				this.asc_registerCallback('asc_doubleClickOnChart', function(){
-					// next tick
-					setTimeout(function() {
-						window.editor.WordControl.onMouseUpMainSimple();
-					}, 0);
-				});
+				if(!window['IS_NATIVE_EDITOR']) {
+					this.asc_registerCallback('asc_doubleClickOnChart', function(){
+						// next tick
+						setTimeout(function() {
+							window.editor.WordControl.onMouseUpMainSimple();
+						}, 0);
+					});
+				}
 
 				if(!window["NATIVE_EDITOR_ENJINE"]){
 
@@ -7395,7 +7419,7 @@ background-repeat: no-repeat;\
 		return _renderer.Memory.data;
 	};
 
-    window["asc_docs_api"].prototype["asc_nativeGetThemeThumbnail"] = function()
+    window["asc_docs_api"].prototype["asc_nativeGetThemeThumbnail"] = function(params)
     {
         if (!this.WordControl.m_oLogicDocument ||
             !this.WordControl.m_oLogicDocument.slideMasters ||
@@ -7415,8 +7439,8 @@ background-repeat: no-repeat;\
         this.ShowParaMarks                    = false;
         _renderer.IsNoDrawingEmptyPlaceholder = true;
 
-        var pxW = 85;
-        var pxH = 38;
+        var pxW = 85; if (params && params.length && params[0]) pxW = params[0];
+        var pxH = 38; if (params && params.length && params[1]) pxH = params[1];
         var mmW = pxW * AscCommon.g_dKoef_pix_to_mm;
         var mmH = pxH * AscCommon.g_dKoef_pix_to_mm;
 
@@ -7427,7 +7451,7 @@ background-repeat: no-repeat;\
         this.WordControl.m_oMasterDrawer.HeightMM = mmH;
         this.WordControl.m_oMasterDrawer.WidthPx = pxW;
         this.WordControl.m_oMasterDrawer.HeightPx = pxH;
-        this.WordControl.m_oMasterDrawer.Draw2(_renderer, _master);
+        this.WordControl.m_oMasterDrawer.Draw2(_renderer, _master, undefined, undefined, params);
         window["NATIVE_EDITOR_ENJINE"] = oldEngine;
         _renderer.EndPage();
 
@@ -7491,6 +7515,7 @@ background-repeat: no-repeat;\
 			oLogicDocument.StartAction(AscDFH.historydescription_SetCoreproperties);
 			oCore.setProps(oProps);
 			oLogicDocument.FinalizeAction(true);
+			this.WordControl.m_oLogicDocument.Document_UpdateInterfaceState();
 		}
 	};
 	//-------------------------------------------------------------export---------------------------------------------------

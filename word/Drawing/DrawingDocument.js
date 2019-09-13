@@ -7787,6 +7787,11 @@ function CDrawingDocument()
 
 		History.TurnOff();
 		g_oTableId.m_bTurnOff = true;
+
+		var isTrackRevision = logicDoc && logicDoc.IsTrackRevisions();
+		if (isTrackRevision)
+			logicDoc.SetTrackRevisions(false);
+
 		for (var i1 = 0; i1 < _styles_len; i1++)
 		{
 			var i = _styles[i1];
@@ -7861,6 +7866,9 @@ function CDrawingDocument()
 		}
 		g_oTableId.m_bTurnOff = false;
 		History.TurnOn();
+
+		if (isTrackRevision)
+			logicDoc.SetTrackRevisions(true);
 
 		this.m_oWordControl.m_oApi.sync_InitEditorTableStyles(_dst_styles, this.m_oWordControl.bIsRetinaSupport);
 	}

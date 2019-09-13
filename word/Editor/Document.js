@@ -1505,6 +1505,7 @@ function CSelectedElementsInfo(oPr)
 	this.m_bReviewRemove      = false; // Удаленный контент в режиме рецензирования
 	this.m_bReviewNormal      = false; // Обычный контент
 	this.m_oPresentationField = null;
+	this.m_arrMoveMarks       = [];
 
     this.Reset = function()
     {
@@ -1699,6 +1700,14 @@ CSelectedElementsInfo.prototype.SetPresentationField = function(oField)
 CSelectedElementsInfo.prototype.GetPresentationField = function()
 {
 	return this.m_oPresentationField;
+};
+CSelectedElementsInfo.prototype.RegisterTrackMoveMark = function(oMoveMark)
+{
+	this.m_arrMoveMarks.push(oMoveMark);
+};
+CSelectedElementsInfo.prototype.GetTrackMoveMarks = function()
+{
+	return this.m_arrMoveMarks;
 };
 
 var document_compatibility_mode_Word11  = 11;
@@ -17492,31 +17501,54 @@ CDocument.prototype.AddFieldWithInstruction = function(sInstruction)
 	if (!oParagraph)
 		return null;
 
-	var nIndex = -1;
+    var oBeginChar    = new ParaFieldChar(fldchartype_Begin, this),
+        oSeparateChar = new ParaFieldChar(fldchartype_Separate, this),
+        oEndChar      = new ParaFieldChar(fldchartype_End, this);
 
-	var oBeginChar    = new ParaFieldChar(fldchartype_Begin, this),
-		oSeparateChar = new ParaFieldChar(fldchartype_Separate, this),
-		oEndChar      = new ParaFieldChar(fldchartype_End, this);
+    var oRun = new ParaRun();
+    oRun.AddToContent(-1, oBeginChar);
+    oRun.AddInstrText(sInstruction);
+    oRun.AddToContent(-1, oSeparateChar);
+    oRun.AddToContent(-1, oEndChar);
+    oParagraph.Add(oRun);
 
-	var oRun = new ParaRun();
-	oRun.AddToContent(-1, oBeginChar);
-	oRun.AddInstrText(sInstruction);
-	oRun.AddToContent(-1, oSeparateChar);
-	oRun.AddToContent(-1, oEndChar);
-	oParagraph.Add(oRun);
+    oBeginChar.SetRun(oRun);
+    oSeparateChar.SetRun(oRun);
+    oEndChar.SetRun(oRun);
 
-	oBeginChar.SetRun(oRun);
-	oSeparateChar.SetRun(oRun);
-	oEndChar.SetRun(oRun);
+    var oComplexField = oBeginChar.GetComplexField();
+    oComplexField.SetBeginChar(oBeginChar);
+    oComplexField.SetInstructionLine(sInstruction);
+    oComplexField.SetSeparateChar(oSeparateChar);
+    oComplexField.SetEndChar(oEndChar);
+    oComplexField.Update(false);
+    return oComplexField;
+};
 
-	var oComplexField = oBeginChar.GetComplexField();
-	oComplexField.SetBeginChar(oBeginChar);
-	oComplexField.SetInstructionLine(sInstruction);
-	oComplexField.SetSeparateChar(oSeparateChar);
-	oComplexField.SetEndChar(oEndChar);
-	oComplexField.Update(false);
+CDocument.prototype.private_CreateComplexFieldRun = function(sInstruction, oParagraph)
+{
+    var oBeginChar    = new ParaFieldChar(fldchartype_Begin, this),
+        oSeparateChar = new ParaFieldChar(fldchartype_Separate, this),
+        oEndChar      = new ParaFieldChar(fldchartype_End, this);
 
-	return oComplexField;
+    var oRun = new ParaRun();
+    oRun.AddToContent(-1, oBeginChar);
+    oRun.AddInstrText(sInstruction);
+    oRun.AddToContent(-1, oSeparateChar);
+    oRun.AddToContent(-1, oEndChar);
+    oParagraph.Add(oRun);
+
+    oBeginChar.SetRun(oRun);
+    oSeparateChar.SetRun(oRun);
+    oEndChar.SetRun(oRun);
+
+    var oComplexField = oBeginChar.GetComplexField();
+    oComplexField.SetBeginChar(oBeginChar);
+    oComplexField.SetInstructionLine(sInstruction);
+    oComplexField.SetSeparateChar(oSeparateChar);
+    oComplexField.SetEndChar(oEndChar);
+    oComplexField.Update(false);
+    return oComplexField;
 };
 CDocument.prototype.UpdateComplexField = function(oField)
 {
@@ -18711,6 +18743,177 @@ CDocument.prototype.ParseTableFormulaInstrLine = function(sInstrLine)
     }
     return ["", ""];
 };
+
+
+CDocument.prototype.AddCaption = function(oPr)
+{
+
+    this.Create_NewHistoryPoint(0);
+    var NewParagraph;
+    if(this.CurPos.Type === docpostype_DrawingObjects)
+    {
+        if(this.DrawingObjects.selectedObjects.length === 1)
+        {
+            var oDrawing = this.DrawingObjects.selectedObjects[0].parent;
+            if(oDrawing.Is_Inline())
+            {
+                NewParagraph = new Paragraph(this.DrawingDocument, oDrawing.DocumentContent);
+                NewParagraph.SetParagraphStyle("Caption");
+                oDrawing.DocumentContent.Internal_Content_Add(oPr.get_Before() ? oDrawing.Get_ParentParagraph().Index : (oDrawing.Get_ParentParagraph().Index + 1), NewParagraph, true);
+            }
+            else
+            {
+
+				var oNearestPos = this.Get_NearestPos(oDrawing.PageNum, oDrawing.X, oDrawing.Y, true, null);
+				if(oNearestPos)
+				{
+                    var oNewDrawing = new ParaDrawing(1828800 / 36000, 1828800 / 36000, null, this.DrawingDocument, this, null);
+                    var oShape = this.DrawingObjects.createTextArt(0, true, null, "");
+                    oShape.setParent(oNewDrawing);
+                    oNewDrawing.Set_GraphicObject(oShape);
+                    oNewDrawing.Set_DrawingType(drawing_Anchor);
+                    oNewDrawing.Set_WrappingType(oDrawing.wrappingType);
+                    oNewDrawing.Set_BehindDoc(oDrawing.behindDoc);
+                    oNewDrawing.Set_Distance(3.2, 0, 3.2, 0);
+					oNearestPos.Paragraph.Check_NearestPos(oNearestPos);
+					oNearestPos.Page = oDrawing.PageNum;
+                    oShape.spPr.xfrm.setOffX(0.0);
+                    oShape.spPr.xfrm.setOffY(0.0);
+                    oShape.spPr.xfrm.setExtX(Math.max(25.4, oDrawing.Extent.W));
+                    oShape.spPr.xfrm.setExtY(12.7);
+                    var oBodyPr;
+                    oBodyPr = oShape.getBodyPr().createDuplicate();
+                    oBodyPr.wrap = AscFormat.nTWTSquare;
+                    oBodyPr.lIns = 0.0;
+                    oBodyPr.tIns = 0.0;
+                    oBodyPr.rIns = 0.0;
+                    oBodyPr.bIns = 0.0;
+                    var dInset = 1.6;
+                    var Y = oDrawing.Y + oDrawing.Extent.H + dInset;
+                    if(oPr.get_Before())
+					{
+                        oBodyPr.textFit = new AscFormat.CTextFit();
+                        oBodyPr.textFit.type = AscFormat.text_fit_No;
+                        Y = oDrawing.Y - oShape.spPr.xfrm.extY - dInset;
+					}
+                    oNewDrawing.Set_XYForAdd(oDrawing.X, Y, oNearestPos, oDrawing.PageNum);
+                    oShape.setBodyPr(oBodyPr);
+					oNewDrawing.Add_ToDocument(oNearestPos, false);
+					oNewDrawing.CheckWH();
+					var oContent = oShape.getDocContent();
+					NewParagraph = oContent.Content[0];
+                    NewParagraph.RemoveFromContent(0, NewParagraph.Content.length - 1);
+                    NewParagraph.Clear_Formatting();
+                    NewParagraph.SetParagraphStyle("Caption");
+				}
+            }
+        }
+    }
+    else
+    {
+        if(this.Selection.Use)
+        {
+            var oTable = this.Content[this.Selection.StartPos];
+            NewParagraph = new Paragraph(this.DrawingDocument, this);
+            NewParagraph.SetParagraphStyle("Caption");
+            this.Internal_Content_Add(oPr.get_Before() ? oTable.Index : (oTable.Index + 1), NewParagraph, true);
+        }
+        else
+        {
+            NewParagraph = new Paragraph(this.DrawingDocument, this);
+            NewParagraph.SetParagraphStyle("Caption");
+            this.Internal_Content_Add(oPr.get_Before() ? this.CurPos.ContentPos : (this.CurPos.ContentPos + 1), NewParagraph, true);
+        }
+    }
+    if(NewParagraph)
+    {
+        var NewRun;
+        var nCurPos = 0;
+        var oComplexField;
+        var oBeginChar, oSeparateChar, oEndChar;
+        if(!oPr.get_ExcludeLabel())
+        {
+            var sLabel = oPr.get_Label();
+            if(typeof sLabel === "string" && sLabel.length > 0)
+            {
+                NewRun = new ParaRun(NewParagraph, false);
+                NewRun.AddText(sLabel + " ");
+                NewParagraph.Internal_Content_Add(nCurPos++, NewRun, false);
+            }
+        }
+        if(oPr.get_IncludeChapterNumber())
+        {
+            var nHeadingLvl = oPr.get_HeadingLvl();
+            if(AscFormat.isRealNumber(nHeadingLvl))
+            {
+                oBeginChar    = new ParaFieldChar(fldchartype_Begin, this);
+                oSeparateChar = new ParaFieldChar(fldchartype_Separate, this);
+                oEndChar      = new ParaFieldChar(fldchartype_End, this);
+                NewRun = new ParaRun();
+                NewRun.AddToContent(-1, oBeginChar);
+
+                var sStyleId = this.Styles.GetDefaultHeading(nHeadingLvl - 1);
+                var oStyle = this.Styles.Get(sStyleId);
+                NewRun.AddInstrText(" STYLEREF \"" + oStyle.GetName() + "\" \\s");
+                NewRun.AddToContent(-1, oSeparateChar);
+                NewRun.AddToContent(-1, oEndChar);
+                oBeginChar.SetRun(NewRun);
+                oSeparateChar.SetRun(NewRun);
+                oEndChar.SetRun(NewRun);
+                NewParagraph.Internal_Content_Add(nCurPos++, NewRun, false);
+                oComplexField = oBeginChar.GetComplexField();
+                oComplexField.SetBeginChar(oBeginChar);
+                oComplexField.SetInstructionLine(" STYLEREF \"" + oStyle.GetName() + "\" \\s");
+                oComplexField.SetSeparateChar(oSeparateChar);
+                oComplexField.SetEndChar(oEndChar);
+                oComplexField.Update(false, false);
+            }
+            var sSeparator = oPr.get_Separator();
+            if(!sSeparator || sSeparator.length === 0)
+            {
+                sSeparator = " ";
+            }
+            NewRun = new ParaRun(NewParagraph, false);
+            NewRun.AddText(sSeparator);
+            NewParagraph.Internal_Content_Add(nCurPos++, NewRun, false);
+        }
+
+        var sInstruction = " SEQ " + oPr.get_Label() + " \\* " + oPr.get_FormatGeneral() + " ";
+        if(AscFormat.isRealNumber(nHeadingLvl))
+        {
+            sInstruction += ("\\s " + nHeadingLvl);
+        }
+        oBeginChar    = new ParaFieldChar(fldchartype_Begin, this);
+        oSeparateChar = new ParaFieldChar(fldchartype_Separate, this);
+        oEndChar      = new ParaFieldChar(fldchartype_End, this);
+        NewRun = new ParaRun();
+        NewRun.AddToContent(-1, oBeginChar);
+        NewRun.AddInstrText(sInstruction);
+        NewRun.AddToContent(-1, oSeparateChar);
+        NewRun.AddToContent(-1, oEndChar);
+        oBeginChar.SetRun(NewRun);
+        oSeparateChar.SetRun(NewRun);
+        oEndChar.SetRun(NewRun);
+        NewParagraph.Internal_Content_Add(nCurPos++, NewRun, false);
+        oComplexField = oBeginChar.GetComplexField();
+        oComplexField.SetBeginChar(oBeginChar);
+        oComplexField.SetInstructionLine(sInstruction);
+        oComplexField.SetSeparateChar(oSeparateChar);
+        oComplexField.SetEndChar(oEndChar);
+        oComplexField.Update(false, false);
+        var sAdditional = oPr.get_Additional();
+        if(typeof sAdditional === "string" && sAdditional.length > 0)
+        {
+            NewRun = new ParaRun(NewParagraph, false);
+            NewRun.AddText(sAdditional + " ");
+            NewParagraph.Internal_Content_Add(nCurPos++, NewRun, false);
+        }
+        NewParagraph.MoveCursorToEndPos();
+        NewParagraph.Document_SetThisElementCurrent(true);
+    }
+    this.Recalculate();
+    this.FinalizeAction();
+};
 /**
  * Выделяем перемещенный или удаленный после перемещения текст
  * @param sMoveId {string} идентификатор переноса
@@ -18865,6 +19068,40 @@ CDocument.prototype.private_CheckTrackMoveSelection = function(oSelectedInfo)
 	var sMarkE = arrParagraphs[arrParagraphs.length - 1].CheckTrackMoveMarkInSelection(false);
 
 	if (sMarkS === sMarkE)
+		return sMarkS;
+
+	return null;
+};
+/**
+ * Проверяем попадает ли в выделение какой-нибудь перенос
+ * @returns {string | null} id переноса
+ */
+CDocument.prototype.CheckTrackMoveInSelection = function()
+{
+	var oSelectedInfo = this.GetSelectedElementsInfo({CheckAllSelection : true});
+
+	var arrMoveMarks = oSelectedInfo.GetTrackMoveMarks();
+	if (arrMoveMarks.length > 0)
+		return arrMoveMarks[0].GetMarkId();
+
+	if (!oSelectedInfo.HaveRemovedInReview() && !oSelectedInfo.HaveAddedInReview())
+		return null;
+
+	var arrParagraphs = this.GetSelectedParagraphs();
+
+	if (arrParagraphs.length <= 0)
+		return null;
+
+	var sMarkS = arrParagraphs[0].CheckTrackMoveMarkInSelection(true);
+	var sMarkE = arrParagraphs[arrParagraphs.length - 1].CheckTrackMoveMarkInSelection(false);
+
+	if (sMarkS && sMarkS === sMarkE)
+		return sMarkS;
+
+	sMarkS = arrParagraphs[0].CheckTrackMoveMarkInSelection(true, false);
+	sMarkE = arrParagraphs[arrParagraphs.length - 1].CheckTrackMoveMarkInSelection(false, false);
+
+	if (sMarkS && sMarkS === sMarkE)
 		return sMarkS;
 
 	return null;
