@@ -12849,7 +12849,7 @@
 			History.EndTransaction();
 		}
 
-		if (oAutoExpansionTable) {
+		if (oAutoExpansionTable && !applyByArray) {
 			var callback = function () {
 				var options = {
 					props: [Asc.c_oAscAutoCorrectOptions.UndoTableAutoExpansion],
