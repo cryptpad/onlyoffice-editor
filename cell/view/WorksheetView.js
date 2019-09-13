@@ -13772,11 +13772,28 @@
 			return;
 		}
 
+		var sortProps = t.model.autoFilters.getPropForSort(cellId, ar, displayName);
+		var expandRange;
+		var selectionRange = t.model.selectionRange;
+		var activeCell = selectionRange.activeCell.clone();
+		var activeRange = selectionRange.getLast();
+		if (null === sortProps) {
+			//expand selectionRange
+			if (bIsExpandRange) {
+				//TODO стоит заменить на expandRange ?
+				expandRange = t.model.autoFilters._getAdjacentCellsAF(activeRange, true, true, true);
+
+				var bIgnoreFirstRow = window['AscCommonExcel'].ignoreFirstRowSort(t.model, expandRange);
+				if (bIgnoreFirstRow) {
+					expandRange.r1++;
+				}
+			}
+		}
+
         var onChangeAutoFilterCallback = function (isSuccess) {
             if (false === isSuccess) {
                 return;
             }
-            var sortProps = t.model.autoFilters.getPropForSort(cellId, ar, displayName);
 
             var onSortAutoFilterCallBack = function (success) {
 				if (false === success) {
@@ -13802,20 +13819,7 @@
 				var rgbColor = color ?  new AscCommonExcel.RgbColor((color.asc_getR() << 16) + (color.asc_getG() << 8) + color.asc_getB()) : null;
 
 				//expand selectionRange
-				if(bIsExpandRange)
-				{
-					var selectionRange = t.model.selectionRange;
-					var activeCell = selectionRange.activeCell.clone();
-					var activeRange = selectionRange.getLast();
-					//TODO стоит заменить на expandRange ?
-					var expandRange = t.model.autoFilters._getAdjacentCellsAF(activeRange, true, true, true);
-
-					var bIgnoreFirstRow = window['AscCommonExcel'].ignoreFirstRowSort(t.model, expandRange);
-					if(bIgnoreFirstRow)
-					{
-						expandRange.r1++;
-					}
-
+				if(bIsExpandRange && expandRange) {
 					//change selection
 					t.setSelection(expandRange);
 					selectionRange.activeCell = activeCell;
@@ -13829,7 +13833,22 @@
                 t._isLockedCells(sortProps.sortRange.bbox, /*subType*/null, onSortAutoFilterCallBack);
             }
         };
-        this._isLockedAll(onChangeAutoFilterCallback);
+
+		var bNeedSort = true;
+		if(expandRange) {
+			bNeedSort = !this.intersectionFormulaArray(expandRange, true);
+		} else if(sortProps) {
+			bNeedSort =  !this.intersectionFormulaArray(sortProps.sortRange.bbox, true)
+		} else if(!sortProps) {
+			bNeedSort = !this.intersectionFormulaArray(activeRange, true);
+		}
+		if(bNeedSort) {
+			this._isLockedAll(onChangeAutoFilterCallback);
+		} else {
+			window.setTimeout(function() {
+				t.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.CannotChangeFormulaArray, c_oAscError.Level.NoCritical);
+			}, 0);
+		}
     };
 
     WorksheetView.prototype.getAddFormatTableOptions = function (range) {
