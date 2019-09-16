@@ -2706,6 +2706,14 @@ CHeaderFooterController.prototype.GetAllFields = function(isUseSelection, arrFie
 
 	return arrFields ? arrFields : [];
 };
+CHeaderFooterController.prototype.IsTableCellSelection = function()
+{
+	if (this.CurHdrFtr)
+		return this.CurHdrFtr.GetContent().IsTableCellSelection();
+
+	return false;
+};
+
 
 function CHdrFtrPage()
 {

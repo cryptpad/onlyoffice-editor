@@ -2301,7 +2301,13 @@ CTable.prototype.GetAllFields = function(isSelection, arrFields)
 
 	return arrFields;
 };
+CTable.prototype.IsTableCellSelection = function()
+{
+	if (this.IsInnerTable())
+		return this.CurCell.GetContent().IsTableCellSelection();
 
+	return this.IsCellSelection();
+};
 CTable.prototype.GetAllSeqFieldsByType = function(sType, aFields)
 {
 	var aRows = this.Content;

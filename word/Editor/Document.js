@@ -7931,6 +7931,14 @@ CDocument.prototype.IsTableBorder = function(X, Y, PageIndex)
 	}
 };
 /**
+ * Проверяем, происходит ли сейчас выделение ячеек какой-либо таблицы
+ * @returns {boolean}
+ */
+CDocument.prototype.IsTableCellSelection = function()
+{
+	return this.Controller.IsTableCellSelection();
+};
+/**
  * Проверяем, попали ли мы четко в текст (не лежащий в автофигуре)
  * @param X
  * @param Y
@@ -17146,6 +17154,10 @@ CDocument.prototype.controller_GetAllFields = function(isUseSelection, arrFields
 	}
 
 	return arrFields;
+};
+CDocument.prototype.controller_IsTableCellSelection = function()
+{
+	return (this.Selection.Use && this.Selection.StartPos === this.Selection.EndPos && this.Content[this.Selection.StartPos].IsTable() && this.Content[this.Selection.StartPos].IsTableCellSelection());
 };
 //----------------------------------------------------------------------------------------------------------------------
 //

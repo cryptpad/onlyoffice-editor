@@ -1514,6 +1514,10 @@ CBlockLevelSdt.prototype.CheckRunContent = function(fCheck)
 {
 	return this.Content.CheckRunContent(fCheck);
 };
+CBlockLevelSdt.prototype.IsTableCellSelection = function()
+{
+	return this.Content.IsTableCellSelection();
+};
 //--------------------------------------------------------export--------------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};
 window['AscCommonWord'].CBlockLevelSdt = CBlockLevelSdt;

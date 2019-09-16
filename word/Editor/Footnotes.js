@@ -3290,6 +3290,13 @@ CFootnotesController.prototype.GetAllDrawingObjects = function(arrDrawings)
 
 	return arrDrawings;
 };
+CFootnotesController.prototype.IsTableCellSelection = function()
+{
+	if (this.CurFootnote)
+		return this.CurFootnote.IsTableCellSelection();
+
+	return false;
+};
 
 
 function CFootEndnotePageColumn()

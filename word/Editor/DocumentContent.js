@@ -8173,6 +8173,11 @@ CDocumentContent.prototype.GetPresentationField = function()
 
 	return this.Content[nCurPos].GetPresentationField();
 };
+CDocumentContent.prototype.IsTableCellSelection = function()
+{
+	return (this.Selection.Use && this.Selection.StartPos === this.Selection.EndPos && this.Content[this.Selection.StartPos].IsTable() && this.Content[this.Selection.StartPos].IsTableCellSelection());
+};
+
 
 function CDocumentContentStartState(DocContent)
 {
