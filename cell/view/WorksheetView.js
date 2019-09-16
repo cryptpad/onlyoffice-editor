@@ -434,6 +434,8 @@
 
         this.cutRange = null;
 
+        this.usePrintScale = false;//флаг нужен для того, чтобы возвращался scale только в случае печати, а при отрисовке, допустим сектки, он был равен 1
+
         this.arrRowGroups = null;
         this.arrColGroups = null;
         this.clickedGroupButton = null;
@@ -800,6 +802,16 @@
     WorksheetView.prototype.getZoom = function () {
         return this.drawingCtx.getZoom();
     };
+
+	WorksheetView.prototype.getPrintScale = function () {
+		var res = 1;
+		if(this.usePrintScale) {
+			var printOptions = this.model.PagePrintOptions;
+			res = printOptions && printOptions.pageSetup ? printOptions.pageSetup.scale : 100;
+			res = res / 100;
+		}
+		return res;
+	};
 
     WorksheetView.prototype.changeZoom = function (isUpdate) {
         if (isUpdate) {
@@ -1621,6 +1633,7 @@
 		//TODO  в данный момент с этот флаг не используется. нужно проверить и убрать.
 		var bPageLayout = arguments[4];
 
+        //TODO убрать использование bFitToWidth/bFitToHeight. сейчас всё должно регулироваться скейлингом
 		var bFitToWidth = false;
 		var bFitToHeight = false;
 		var pageMargins, pageSetup, pageGridLines, pageHeadings;
@@ -1636,10 +1649,13 @@
             pageWidth = pageSetup.asc_getWidth();
             pageHeight = pageSetup.asc_getHeight();
             pageOrientation = pageSetup.asc_getOrientation();
-            bFitToWidth = pageSetup.asc_getFitToWidth();
-            bFitToHeight = pageSetup.asc_getFitToHeight();
-			scale = 1/*pageSetup.asc_getScale() / 100*/;
+            //bFitToWidth = pageSetup.asc_getFitToWidth();
+            //bFitToHeight = pageSetup.asc_getFitToHeight();
         }
+
+        //scale пока всегда берём из модели
+		var pageSetupModel = this.model.PagePrintOptions ? this.model.PagePrintOptions.pageSetup : null;
+		scale = pageSetupModel ? pageSetupModel.asc_getScale() / 100 : 1;
 
         var pageLeftField, pageRightField, pageTopField, pageBottomField;
         if (pageMargins) {
@@ -1881,8 +1897,12 @@
 	};
 
     WorksheetView.prototype.calcPagesPrint = function (pageOptions, printOnlySelection, indexWorksheet, arrPages, arrRanges, ignorePrintArea, doNotRecalc) {
+		//this.fitToPages(1, 1);
+
 		var range, maxCell, t = this;
 		var printArea = !ignorePrintArea && this.model.workbook.getDefinesNames("Print_Area", this.model.getId());
+
+		//this.model.PagePrintOptions.pageSetup.scale  = 145;
 
 		var getPrintAreaRanges = function() {
 			var res = false;
@@ -1961,11 +1981,12 @@
 		}
 	};
 
-    WorksheetView.prototype.drawForPrint = function(drawingCtx, printPagesData, indexPrintPage, countPrintPages) {
+	WorksheetView.prototype.drawForPrint = function (drawingCtx, printPagesData, indexPrintPage, countPrintPages) {
+
 		this.stringRender.fontNeedUpdate = true;
-        if (null === printPagesData) {
-            // Напечатаем пустую страницу
-            drawingCtx.BeginPage(c_oAscPrintDefaultSettings.PageWidth, c_oAscPrintDefaultSettings.PageHeight);
+		if (null === printPagesData) {
+			// Напечатаем пустую страницу
+			drawingCtx.BeginPage(c_oAscPrintDefaultSettings.PageWidth, c_oAscPrintDefaultSettings.PageHeight);
 
 			//draw header/footer
 			this._drawHeaderFooter(drawingCtx, printPagesData, indexPrintPage, countPrintPages);
@@ -1982,6 +2003,7 @@
         } else {
             drawingCtx.BeginPage(printPagesData.pageWidth, printPagesData.pageHeight);
 
+			this.usePrintScale = true;
 			//TODO для печати не нужно учитывать размер группы
 			if(this.groupWidth || this.groupHeight) {
 				this.ignoreGroupSize = true;
@@ -1992,47 +2014,74 @@
 			//draw header/footer
 			this._drawHeaderFooter(drawingCtx, printPagesData, indexPrintPage, countPrintPages);
 
-            drawingCtx.AddClipRect(printPagesData.pageClipRectLeft, printPagesData.pageClipRectTop,
-              printPagesData.pageClipRectWidth, printPagesData.pageClipRectHeight);
+			drawingCtx.AddClipRect(printPagesData.pageClipRectLeft, printPagesData.pageClipRectTop,
+				printPagesData.pageClipRectWidth, printPagesData.pageClipRectHeight);
 
-            var offsetCols = printPagesData.startOffsetPx;
-            var range = printPagesData.pageRange;
-            var offsetX = this._getColLeft(range.c1) - printPagesData.leftFieldInPx + offsetCols;
-            var offsetY = this._getRowTop(range.r1) - printPagesData.topFieldInPx;
+			var printScale = this.getPrintScale();
 
-            var tmpVisibleRange = this.visibleRange;
-            // Сменим visibleRange для прохождения проверок отрисовки
-            this.visibleRange = range;
+			//drawingCtx.BeginPage(printPagesData.pageWidth, printPagesData.pageHeight);
 
-            // Нужно отрисовать заголовки
-            if (printPagesData.pageHeadings) {
-                this._drawColumnHeaders(drawingCtx, range.c1, range.c2, /*style*/ undefined, offsetX,
-                  printPagesData.topFieldInPx - this.cellsTop);
-                this._drawRowHeaders(drawingCtx, range.r1, range.r2, /*style*/ undefined,
-                  printPagesData.leftFieldInPx - this.cellsLeft, offsetY);
-            }
+			var transformMatrix;
+			if (printScale !== 1 && drawingCtx.Transform) {
+				var mmToPx = asc_getcvt(3/*mm*/, 0/*px*/, this._getPPIX());
+				var leftDiff = printPagesData.pageClipRectLeft * (1 - printScale);
+				var topDiff = printPagesData.pageClipRectTop * (1 - printScale);
+				transformMatrix = drawingCtx.Transform.CreateDublicate();
+
+				//drawingCtx.Transform.Scale(printScale, printScale);
+				drawingCtx.setTransform(printScale, drawingCtx.Transform.shy, drawingCtx.Transform.shx, printScale,
+					leftDiff / mmToPx, topDiff / mmToPx);
+			}
+
+			//TODO пересмотреть условие printScale < 1 ? printScale
+			drawingCtx.AddClipRect(printPagesData.pageClipRectLeft, printPagesData.pageClipRectTop,
+				printPagesData.pageClipRectWidth / (printScale < 1 ? printScale : 1), printPagesData.pageClipRectHeight / (printScale < 1 ? printScale : 1));
+
+			var offsetCols = printPagesData.startOffsetPx;
+			var range = printPagesData.pageRange;
+			var offsetX = this._getColLeft(range.c1) - printPagesData.leftFieldInPx + offsetCols;
+			var offsetY = this._getRowTop(range.r1) - printPagesData.topFieldInPx;
+
+			var tmpVisibleRange = this.visibleRange;
+			// Сменим visibleRange для прохождения проверок отрисовки
+			this.visibleRange = range;
+
+
+			// Нужно отрисовать заголовки
+			if (printPagesData.pageHeadings) {
+				this._drawColumnHeaders(drawingCtx, range.c1, range.c2, /*style*/ undefined, offsetX,
+					printPagesData.topFieldInPx - this.cellsTop);
+				this._drawRowHeaders(drawingCtx, range.r1, range.r2, /*style*/ undefined,
+					printPagesData.leftFieldInPx - this.cellsLeft, offsetY);
+			}
 
 			// Рисуем сетку
-            if (printPagesData.pageGridLines) {
-                var vector_koef = AscCommonExcel.vector_koef / this.getZoom();
+			if (printPagesData.pageGridLines) {
+				var vector_koef = AscCommonExcel.vector_koef / this.getZoom();
 				if (AscCommon.AscBrowser.isRetina) {
 					vector_koef /= AscCommon.AscBrowser.retinaPixelRatio;
 				}
-                this._drawGrid(drawingCtx, range, offsetX, offsetY, printPagesData.pageWidth / vector_koef,
-                  printPagesData.pageHeight / vector_koef);
-            }
+				this._drawGrid(drawingCtx, range, offsetX, offsetY, printPagesData.pageWidth / vector_koef,
+					printPagesData.pageHeight / vector_koef);
+			}
 
-            // Отрисовываем ячейки и бордеры
-            this._drawCellsAndBorders(drawingCtx, range, offsetX, offsetY);
+			// Отрисовываем ячейки и бордеры
+			this._drawCellsAndBorders(drawingCtx, range, offsetX, offsetY);
+
+			if (transformMatrix) {
+				drawingCtx.setTransform(transformMatrix.sx, transformMatrix.shy, transformMatrix.shx,
+					transformMatrix.sy, transformMatrix.tx, transformMatrix.ty);
+			}
+			this.usePrintScale = false;
 
 			//Отрисовываем панель группировки по строкам
 			//this._drawGroupData(drawingCtx, null, offsetX, offsetY);
 
-            var drawingPrintOptions = {
-                ctx: drawingCtx, printPagesData: printPagesData
-            };
-            this.objectRender.showDrawingObjectsEx(false, null, drawingPrintOptions);
-            this.visibleRange = tmpVisibleRange;
+			var drawingPrintOptions = {
+				ctx: drawingCtx, printPagesData: printPagesData
+			};
+			this.objectRender.showDrawingObjectsEx(false, null, drawingPrintOptions);
+			this.visibleRange = tmpVisibleRange;
 
 			if(this.groupWidth || this.groupHeight) {
 				this.ignoreGroupSize = false;
@@ -2054,6 +2103,318 @@
             drawingCtx.EndPage();
         }
     };
+
+	WorksheetView.prototype.fitOnOnePage = function(val) {
+		//TODO add constant!
+		var width = undefined, height = undefined;
+		if(val === 0) {
+			//sheet
+			width = 1;
+			height = 1;
+			//todo fitToPage
+		} else if(val === 1) {
+			//columns
+			width = 1;
+			//pageSetup.asc_setFitToWidth();
+		} else {
+			//rows
+			height = 1;
+			//pageSetup.asc_setFitToHeight();
+		}
+
+		this.fitToPages(width, height);
+	};
+
+	WorksheetView.prototype.setPrintScale = function (width, height, scale) {
+		var t = this;
+		this._isLockedLayoutOptions(function(success) {
+			if(!success) {
+				return;
+			}
+			t.fitToWidthHeight(width, height, ((width === null && height === null) || (width === 0 && height === 0)) ? scale : undefined);
+		});
+	};
+
+	//пересчитывать необходимо когда после открытия зашли в настройки печати
+	WorksheetView.prototype.recalcScale = function () {
+		var pageOptions = t.model.PagePrintOptions;
+		var width = pageOptions.asc_getFitToWidth();
+		var height = pageOptions.asc_getFitToHeight();
+		this._setPrintScale(this.calcPrintScale(width, height));
+
+		//TODO нужно ли в данном случае лочить?
+		//this._isLockedLayoutOptions(callback);
+	};
+
+	WorksheetView.prototype.fitToPages = function (width, height) {
+		//width/height - count of pages
+		//automatic -> width/height = undefined
+		//define print scale
+		this._setPrintScale(this.calcPrintScale(width, height));
+
+		//TODO нужно ли в данном случае лочить?
+		//this._isLockedLayoutOptions(callback);
+	};
+
+	//вызывается из меню при изменении только scale to fit -> width
+	WorksheetView.prototype.fitToWidth = function (val) {
+		//width/height - count of pages
+		//automatic -> width/height = undefined
+		//define print scale
+
+		var t = this;
+		var pageOptions = t.model.PagePrintOptions;
+
+		if(val !== pageOptions.asc_getFitToWidth()) {
+			History.Create_NewPoint();
+			History.StartTransaction();
+
+			pageOptions.asc_setFitToWidth(val);
+			this._setPrintScale(this.calcPrintScale(pageOptions.asc_getFitToWidth(), pageOptions.asc_getFitToHeight()));
+
+			History.EndTransaction();
+		}
+
+		//TODO нужно ли в данном случае лочить?
+		//this._isLockedLayoutOptions(callback);
+	};
+
+	//вызывается из меню при изменении только scale to fit -> height
+	WorksheetView.prototype.fitToHeight = function (val) {
+		//width/height - count of pages
+		//automatic -> width/height = undefined
+		//define print scale
+
+		var t = this;
+		var pageOptions = t.model.PagePrintOptions;
+
+		if(val !== pageOptions.asc_getFitToHeight()) {
+			History.Create_NewPoint();
+			History.StartTransaction();
+
+			pageOptions.asc_setFitToHeight(val);
+			this._setPrintScale(this.calcPrintScale(pageOptions.asc_getFitToWidth(), pageOptions.asc_getFitToHeight()));
+
+			History.EndTransaction();
+		}
+
+		//TODO нужно ли в данном случае лочить?
+		//this._isLockedLayoutOptions(callback);
+	};
+
+	WorksheetView.prototype.fitToWidthHeight = function (width, height, scale) {
+		//width/height - count of pages
+		//automatic -> width/height = undefined
+		//define print scale
+		var t = this;
+		
+		var pageOptions = t.model.PagePrintOptions;
+		var pageSetup = pageOptions.asc_getPageSetup();
+
+		if(width === null) {
+			width = 0;
+		}
+		if(height === null) {
+			height = 0;
+		}
+
+		var fitToWidthModel = pageSetup.asc_getFitToWidth();
+		var changedWidth = width !== fitToWidthModel;
+		var fitToHeightModel = pageSetup.asc_getFitToHeight();
+		var changedHeight = height !== fitToHeightModel;
+		var changedScale = scale && scale !== pageSetup.asc_getScale();
+
+		if(changedWidth || changedHeight || changedScale) {
+			History.Create_NewPoint();
+			History.StartTransaction();
+
+			t._changeFitToPage(width, height);
+
+			if(width !== pageSetup.asc_getFitToWidth()) {
+				pageSetup.asc_setFitToWidth(width);
+			}
+			if(height !== pageSetup.asc_getFitToHeight()) {
+				pageSetup.asc_setFitToHeight(height);
+			}
+
+			if(undefined === scale && (width !== 0 || height !== 0)) {
+				scale = t.calcPrintScale(pageSetup.asc_getFitToWidth(), pageSetup.asc_getFitToHeight());
+			}
+			if(scale) {
+				t._setPrintScale(scale);
+			}
+
+			t.changeViewPrintLines(true);
+			if(t.viewPrintLines) {
+				t.updateSelection();
+			}
+
+			History.EndTransaction();
+		}
+	};
+
+	WorksheetView.prototype._setPrintScale = function (val) {
+		var pageOptions = this.model.PagePrintOptions;
+		var pageSetup = pageOptions.asc_getPageSetup();
+		var oldScale = pageSetup.asc_getScale() / 100;
+
+		if(val !== oldScale) {
+			History.Create_NewPoint();
+			History.StartTransaction();
+
+			pageSetup.asc_setScale(val);
+
+			History.EndTransaction();
+		}
+
+		//TODO нужно ли в данном случае лочить?
+		//this._isLockedLayoutOptions(callback);
+	};
+
+	WorksheetView.prototype._changeFitToPage = function(width, height) {
+		var fitToHeightAuto = height === 0;
+		var fitToWidthAuto = width === 0;
+		this.model.setFitToPage(!fitToHeightAuto || !fitToWidthAuto);
+	};
+
+	WorksheetView.prototype.calcPrintScale = function(width, height) {
+		var pageOptions = this.model.PagePrintOptions;
+		var bFitToWidth = false;
+		var bFitToHeight = false;
+		var pageMargins, pageSetup, pageGridLines, pageHeadings;
+		if (pageOptions) {
+			pageMargins = pageOptions.asc_getPageMargins();
+			pageSetup = pageOptions.asc_getPageSetup();
+			pageGridLines = pageOptions.asc_getGridLines();
+			pageHeadings = pageOptions.asc_getHeadings();
+		}
+
+		var pageWidth, pageHeight, pageOrientation, scale;
+		if (pageSetup instanceof asc_CPageSetup) {
+			pageWidth = pageSetup.asc_getWidth();
+			pageHeight = pageSetup.asc_getHeight();
+			pageOrientation = pageSetup.asc_getOrientation();
+			bFitToWidth = pageSetup.asc_getFitToWidth();
+			bFitToHeight = pageSetup.asc_getFitToHeight();
+			scale = pageSetup.asc_getScale() / 100;
+		}
+
+		var pageLeftField, pageRightField, pageTopField, pageBottomField;
+		if (pageMargins) {
+			pageLeftField = Math.max(pageMargins.asc_getLeft(), c_oAscPrintDefaultSettings.MinPageLeftField);
+			pageRightField = Math.max(pageMargins.asc_getRight(), c_oAscPrintDefaultSettings.MinPageRightField);
+			pageTopField = Math.max(pageMargins.asc_getTop(), c_oAscPrintDefaultSettings.MinPageTopField);
+			pageBottomField = Math.max(pageMargins.asc_getBottom(), c_oAscPrintDefaultSettings.MinPageBottomField);
+		}
+
+
+		var vector_koef = AscCommonExcel.vector_koef / this.getZoom();
+		if (AscCommon.AscBrowser.isRetina) {
+			vector_koef /= AscCommon.AscBrowser.retinaPixelRatio;
+		}
+
+		if (null == pageGridLines) {
+			pageGridLines = c_oAscPrintDefaultSettings.PageGridLines;
+		}
+		if (null == pageHeadings) {
+			pageHeadings = c_oAscPrintDefaultSettings.PageHeadings;
+		}
+
+		if (null == pageWidth) {
+			pageWidth = c_oAscPrintDefaultSettings.PageWidth;
+		}
+		if (null == pageHeight) {
+			pageHeight = c_oAscPrintDefaultSettings.PageHeight;
+		}
+		if (null == pageOrientation) {
+			pageOrientation = c_oAscPrintDefaultSettings.PageOrientation;
+		}
+
+		if (null == pageLeftField) {
+			pageLeftField = c_oAscPrintDefaultSettings.PageLeftField;
+		}
+		if (null == pageRightField) {
+			pageRightField = c_oAscPrintDefaultSettings.PageRightField;
+		}
+		if (null == pageTopField) {
+			pageTopField = c_oAscPrintDefaultSettings.PageTopField;
+		}
+		if (null == pageBottomField) {
+			pageBottomField = c_oAscPrintDefaultSettings.PageBottomField;
+		}
+
+
+		if (Asc.c_oAscPageOrientation.PageLandscape === pageOrientation) {
+			var tmp = pageWidth;
+			pageWidth = pageHeight;
+			pageHeight = tmp;
+		}
+
+		var pageWidthWithFields = pageWidth - pageLeftField - pageRightField;
+		var pageHeightWithFields = pageHeight - pageTopField - pageBottomField;
+		var leftFieldInPx = pageLeftField / vector_koef + 1;
+		var topFieldInPx = pageTopField / vector_koef + 1;
+
+		//TODO ms считает именно так - каждый раз прибаляются размеры заголовков к полям. необходимо перепроверить!
+		//if (pageHeadings) {
+		// Рисуем заголовки, нужно чуть сдвинуться
+		leftFieldInPx += this.cellsLeft;
+		topFieldInPx += this.cellsTop;
+		//}
+
+		//TODO при сравнении резальтатов рассчета страниц в зависимости от scale - LO выдаёт похожие результаты, MS - другие. Необходимо пересмотреть!
+		var pageWidthWithFieldsHeadings = ((pageWidth - pageRightField) / vector_koef - leftFieldInPx) /*/ scale*/;
+		var pageHeightWithFieldsHeadings = ((pageHeight - pageBottomField) / vector_koef - topFieldInPx) /*/ scale*/;
+
+		//calculate width/height all columns/rows
+		var range = new asc_Range(0, 0, this.model.getColsCount() - 1, this.model.getRowsCount() - 1);
+		var maxCell = this._checkPrintRange(range);
+		var maxCol = maxCell.col;
+		var maxRow = maxCell.row;
+
+		maxCell = this.model.autoFilters.getMaxColRow();
+		maxCol = Math.max(maxCol, maxCell.col);
+		maxRow = Math.max(maxRow, maxCell.row);
+
+		maxCell = this.objectRender.getMaxColRow();
+		maxCol = Math.max(maxCol, maxCell.col);
+		maxRow = Math.max(maxRow, maxCell.row);
+
+
+		var wScale;
+		var hScale;
+		if(width) {
+			var widthAllCols = pageHeadings ? this.cellsLeft * width : 0;
+			for(var i = 0; i <= maxCol; i++) {
+				widthAllCols += this._getColumnWidth(i);
+			}
+			wScale = ((pageWidthWithFieldsHeadings * width) / widthAllCols) * 100;
+		}
+		if(height) {
+			var heightAllRows = pageHeadings ? this.cellsTop * height : 0;
+			for(i = 0; i <= maxRow; i++) {
+				heightAllRows += this._getRowHeight(i);
+			}
+			hScale = ((pageHeightWithFieldsHeadings * height) / heightAllRows) * 100;
+		}
+		var minScale;
+		if(width && height) {
+			minScale = Math.min(Math.round(wScale), Math.round(hScale));
+		} else if(width) {
+			minScale = Math.round(wScale);
+		} else {
+			minScale = Math.round(hScale);
+		}
+
+		if(minScale < 10) {
+			minScale = 10;
+		}
+		if(minScale > 100) {
+			minScale = 100;
+		}
+		console.log(minScale);
+		return minScale;
+	};
 
     // ----- Drawing -----
 
@@ -2209,8 +2570,7 @@
     };
 
     /** Рисует заголовки видимых колонок */
-    WorksheetView.prototype._drawColumnHeaders =
-      function (drawingCtx, start, end, style, offsetXForDraw, offsetYForDraw) {
+    WorksheetView.prototype._drawColumnHeaders = function (drawingCtx, start, end, style, offsetXForDraw, offsetYForDraw) {
           if (!drawingCtx && false === this.model.getSheetView().asc_getShowRowColHeaders()) {
               return;
           }
@@ -2467,10 +2827,15 @@
 				var str = new AscCommonExcel.Fragment();
 				str.text = getFragmentText(portion[i].text);
 				str.format = portion[i].format.clone();
+				//TODO уменьшаю только размер текста. пересмотреть!
+				str.format.fs = AscCommonExcel.g_oDefaultFormat.Font.fs * printScale;
 				res.push(str);
 			}
 			return res;
 		};
+
+		var scaleWithDoc = this.model.headerFooter.getScaleWithDoc();
+		var printScale = (scaleWithDoc === null || scaleWithDoc === true) ? this.getPrintScale() : 1;
 
 		var margins = this.model.PagePrintOptions.asc_getPageMargins();
 		var width = printPagesData.pageWidth / AscCommonExcel.vector_koef;
@@ -2532,10 +2897,22 @@
 
 		//добавил аналогично другим отрисовка.
 		//без этого отсутвует drawingCtx.DocumentRenderer.m_arrayPages[0].FontPicker.LastPickFont
+		/*var transformMatrix;
+		if (printScale !== 1 && drawingCtx.Transform) {
+			transformMatrix = drawingCtx.Transform.CreateDublicate();
+
+			drawingCtx.setTransform(printScale, drawingCtx.Transform.shy, drawingCtx.Transform.shx, printScale, 0, 0);
+		}*/
+
 		this._setDefaultFont(drawingCtx);
 		for(var i = 0; i < headerFooterParser.portions.length; i++) {
 			drawPortion(i);
 		}
+
+		/*if (transformMatrix) {
+			drawingCtx.setTransform(transformMatrix.sx, transformMatrix.shy, transformMatrix.shx,
+				transformMatrix.sy, transformMatrix.tx, transformMatrix.ty);
+		}*/
 	};
 
     WorksheetView.prototype._cleanColumnHeaders = function (colStart, colEnd) {
@@ -2633,9 +3010,10 @@
 		if (range === undefined) {
 			range = this.visibleRange;
 		}
+		var printScale = this.getPrintScale();
 		var ctx = drawingCtx || this.drawingCtx;
-		var widthCtx = (width) ? width : ctx.getWidth();
-		var heightCtx = (height) ? height : ctx.getHeight();
+		var widthCtx = (width) ? width / printScale : ctx.getWidth() / printScale;
+		var heightCtx = (height) ? height / printScale : ctx.getHeight() / printScale;
 		var offsetX = (undefined !== leftFieldInPx) ? leftFieldInPx : this._getColLeft(this.visibleRange.c1) - this.cellsLeft;
 		var offsetY = (undefined !== topFieldInPx) ? topFieldInPx : this._getRowTop(this.visibleRange.r1) - this.cellsTop;
 		if (!drawingCtx && this.topLeftFrozenCell) {
@@ -11362,6 +11740,12 @@
 		return lockInfo;
 	};
 
+	WorksheetView.prototype._isLockedPrintScaleOptions = function (callback) {
+		var lockInfo = this.collaborativeEditing.getLockInfo(c_oAscLockTypeElem.Object, null, this.model.getId(),
+			AscCommonExcel.c_oAscLockPrintScaleOptions);
+		this.collaborativeEditing.lock([lockInfo], callback);
+	};
+
 	// Залочена ли панель для закрепления
 	WorksheetView.prototype._isLockedFrozenPane = function (callback) {
 		var lockInfo = this.collaborativeEditing.getLockInfo(c_oAscLockTypeElem.Object, null, this.model.getId(),
@@ -15863,7 +16247,20 @@
 			History.Create_NewPoint();
 			History.StartTransaction();
 
+			var pageSetupModel = pageOptions.asc_getPageSetup();
+			var oldFitToWidth = pageSetupModel.asc_getFitToWidth();
+			var oldFitToHeight = pageSetupModel.asc_getFitToHeight();
+			var pageSetupObj = obj.asc_getPageSetup();
+			var newFitToWidth = pageSetupObj.asc_getFitToWidth();
+			var newFitToHeight = pageSetupObj.asc_getFitToHeight();
+
 			pageOptions.asc_setOptions(obj);
+
+			//если поменялись scaling - fit sheet on.. -> необходимо пересчитать scaling
+			if(oldFitToWidth != newFitToWidth || oldFitToHeight != newFitToHeight) {
+				t.fitToWidthHeight(newFitToWidth, newFitToHeight);
+			}
+
 			t.changeViewPrintLines(true);
 			//window["Asc"]["editor"]._onUpdateLayoutMenu(this.model.nSheetId);
 
