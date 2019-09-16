@@ -12751,7 +12751,18 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 				var Grid_start_      = Row_.Get_CellInfo(Cell_pos_.Cell).StartGridCol;
 				var Grid_span_ 	     = Cell_.Get_GridSpan();
 				var VMerge_Count_    = this.Internal_GetVertMergeCount(Cell_pos_.Row, Grid_start_, Grid_span_);
-				var TempCell 	     = this.Content[Cell_pos_.Row + VMerge_Count_ - 1].Get_Cell(this.Selection.Data[0].Cell);
+				var TempCell 	     = null;
+				for (var Index = 0; Index < this.Content[Cell_pos_.Row + VMerge_Count_ - 1].CellsInfo.length; Index++)
+				{
+					var TempRow 	  = this.Content[Cell_pos_.Row + VMerge_Count_ - 1];
+					var TempGridStart = TempRow.Get_CellInfo(Index).StartGridCol;
+					if (TempGridStart === Grid_start_)
+					{
+						TempCell = this.Content[Cell_pos_.Row + VMerge_Count_ - 1].Get_Cell(Index);
+						break;
+					}
+				}
+				
 				var borderNan 		 = new CDocumentBorder();
 
 				if (TempCell.Get_Border(2).Value != 0)
