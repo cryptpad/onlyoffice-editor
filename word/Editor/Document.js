@@ -18717,6 +18717,15 @@ CDocument.prototype.AddTableCellFormula = function(sFormula)
 		if (!this.Document_Is_SelectionLocked(AscCommon.changestype_Paragraph_Content))
 		{
 			this.StartAction(AscDFH.historydescription_Document_AddTableFormula);
+
+			if (this.IsSelectionUse())
+			{
+				if (!this.IsTableCellSelection())
+					this.Remove(1, false, false, true);
+
+				this.RemoveSelection();
+			}
+
 			this.AddFieldWithInstruction(sFormula);
 			this.Recalculate();
 			this.UpdateInterface();

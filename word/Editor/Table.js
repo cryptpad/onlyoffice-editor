@@ -5537,21 +5537,21 @@ CTable.prototype.RemoveSelection = function()
 	if (false === this.Selection.Use)
 		return;
 
-	if (this.Content.length <= 0)
+	this.CurCell = null;
+	if (this.GetRowsCount() > 0)
 	{
-		this.CurCell = null;
-	}
-	else
-	{
-		if (table_Selection_Text === this.Selection.Type)
+
+		var oRow  = this.GetRow(this.Selection.EndPos.Pos.Row);
+		var oCell = null;
+		if (!oRow)
+			oCell = this.GetRow(0).GetCell(0);
+		else
+			oCell = oRow.GetCellsCount() > this.Selection.EndPos.Pos.Cell ? oRow.GetCell(this.Selection.EndPos.Pos.Cell) : oRow.GetCell(0);
+
+		if (oCell)
 		{
-			this.CurCell = this.Content[this.Selection.StartPos.Pos.Row].Get_Cell(this.Selection.StartPos.Pos.Cell);
-			this.CurCell.Content.RemoveSelection();
-		}
-		else if (this.Content.length > 0 && this.Content[0].Get_CellsCount() > 0)
-		{
-			this.CurCell = this.Content[0].Get_Cell(0);
-			this.CurCell.Content.RemoveSelection();
+			this.CurCell = oCell;
+			this.CurCell.GetContent().RemoveSelection();
 		}
 	}
 
