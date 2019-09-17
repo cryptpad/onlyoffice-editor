@@ -9654,6 +9654,7 @@
                             t.handlers.trigger("slowOperation", true);
                         }
                         t.cellCommentator.sortComments(range.sort(val.type, activeCell.col, val.color, true));
+                        //t.cellCommentator.sortComments(range.sort(val.type, activeCell.row, val.color, true));
                         break;
 
                     case "empty":
