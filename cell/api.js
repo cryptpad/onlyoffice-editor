@@ -3659,12 +3659,13 @@ var editor;
     var _adjustPrint = (window.AscDesktopEditor_PrintOptions && window.AscDesktopEditor_PrintOptions.advancedOptions) || new Asc.asc_CAdjustPrint();
     window.AscDesktopEditor_PrintOptions = undefined;
 
+    var pageSetup;
+    var countWorksheets = this.wbModel.getWorksheetCount();
+
     var isOnePage = ((_param & 0x0100) == 0x0100);
     _param &= 0xFF;
     if (1 == _param) {
       _adjustPrint.asc_setPrintType(Asc.c_oAscPrintType.EntireWorkbook);
-      var pageSetup;
-      var countWorksheets = this.wbModel.getWorksheetCount();
       for (var j = 0; j < countWorksheets; ++j) {
         pageSetup = this.wbModel.getWorksheet(j).PagePrintOptions.asc_getPageSetup();
         pageSetup.asc_setFitToWidth(true);
@@ -3694,7 +3695,32 @@ var editor;
 			  _printer.m_arrayPages[i].Width, _printer.m_arrayPages[i].Height);
         }
 
-        window["AscDesktopEditor"]["Print_End"]();
+        // detect fit flag
+        var paramEnd = 0;
+        if (_adjustPrint && _adjustPrint.asc_getPrintType() == Asc.c_oAscPrintType.EntireWorkbook) {
+          for (var j = 0; j < countWorksheets; ++j) {
+            if (_adjustPrint && _adjustPrint.pageOptionsMap && _adjustPrint.pageOptionsMap[j]) {
+              pageSetup = _adjustPrint.pageOptionsMap[j].pageSetup;
+            } else {
+              pageSetup = this.wbModel.getWorksheet(j).PagePrintOptions.asc_getPageSetup();
+            }
+            if (pageSetup.asc_getFitToWidth() || pageSetup.asc_getFitToHeight())
+              paramEnd |= 1;
+          }
+        }
+
+        if (_adjustPrint && _adjustPrint.asc_getPrintType() == Asc.c_oAscPrintType.ActiveSheets) {
+          var activeSheet = this.wbModel.getActive();
+          if (_adjustPrint && _adjustPrint.pageOptionsMap && _adjustPrint.pageOptionsMap[activeSheet]) {
+            pageSetup = _adjustPrint.pageOptionsMap[activeSheet].pageSetup;
+          } else {
+            pageSetup = this.wbModel.getWorksheet(activeSheet).PagePrintOptions.asc_getPageSetup();
+          }
+          if (pageSetup.asc_getFitToWidth() || pageSetup.asc_getFitToHeight())
+            paramEnd |= 1;
+        }
+
+        window["AscDesktopEditor"]["Print_End"](paramEnd);
       }
     } else {
       this.wb.printSheets(_printPagesData, _printer);
