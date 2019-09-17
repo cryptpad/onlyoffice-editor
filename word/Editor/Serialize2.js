@@ -251,7 +251,7 @@ var c_oSerProp_pPrType = {
     Tab:17,
     Tab_Item:18,
     Tab_Item_Pos:19,
-    Tab_Item_Val:20,
+	Tab_Item_Val_deprecated:20,
     ParaStyle:21,
     numPr: 22,
     numPr_lvl: 23,
@@ -273,7 +273,8 @@ var c_oSerProp_pPrType = {
 	Spacing_LineTwips: 39,
 	Spacing_BeforeTwips: 40,
 	Spacing_AfterTwips: 41,
-	Tab_Item_PosTwips: 42
+	Tab_Item_PosTwips: 42,
+	Tab_Item_Val: 43
 };
 var c_oSerProp_rPrType = {
     Bold:0,
@@ -2269,14 +2270,8 @@ function Binary_pPrWriter(memory, oNumIdMap, oBinaryHeaderFooterTableWriter, sav
         //type
         this.memory.WriteByte(c_oSerProp_pPrType.Tab_Item_Val);
         this.memory.WriteByte(c_oSerPropLenType.Byte);
-		switch(TabItem.Value)
-		{
-			case tab_Right: this.memory.WriteByte(AscCommon.g_tabtype_right);break;
-			case tab_Center: this.memory.WriteByte(AscCommon.g_tabtype_center);break;
-			case tab_Clear: this.memory.WriteByte(AscCommon.g_tabtype_clear);break;
-			default:this.memory.WriteByte(AscCommon.g_tabtype_left);
-		}
-        
+		this.memory.WriteByte(TabItem.Value);
+
         //pos
         this.memory.WriteByte(c_oSerProp_pPrType.Tab_Item_PosTwips);
         this.memory.WriteByte(c_oSerPropLenType.Long);
@@ -8443,8 +8438,13 @@ function Binary_pPrReader(doc, oReadResult, stream)
             res = this.bcr.Read2(length, function(t, l){
                         return oThis.ReadTabItem(t, l, oNewTab);
                     });
-            if(null != oNewTab.Pos && null != oNewTab.Value)
+            if(null != oNewTab.Pos && null != oNewTab.Value && tab_Bar != oNewTab.Value && tab_Decimal != oNewTab.Value)
             {
+				if (4 === oNewTab.Value) {
+					oNewTab.Value = tab_Right;
+				} else if (6 === oNewTab.Value) {
+					oNewTab.Value = tab_Left;
+				}
                 Tabs.Add(oNewTab);
             }
         }
@@ -8456,16 +8456,16 @@ function Binary_pPrReader(doc, oReadResult, stream)
     {
         var res = c_oSerConstants.ReadOk;
         if(c_oSerProp_pPrType.Tab_Item_Val === type)
-		{
-			switch(this.stream.GetUChar())
+			tab.Value = this.stream.GetUChar();
+		else if(c_oSerProp_pPrType.Tab_Item_Val_deprecated === type) {
+			switch (this.stream.GetUChar())
 			{
-				case AscCommon.g_tabtype_right : tab.Value = tab_Right;break;
-				case AscCommon.g_tabtype_center : tab.Value = tab_Center;break;
-				case AscCommon.g_tabtype_clear : tab.Value = tab_Clear;break;
-				default : tab.Value = tab_Left;
+				case 1 : tab.Value = tab_Right;break;
+				case 2 : tab.Value = tab_Center;break;
+				case 3 : tab.Value = tab_Clear;break;
+				default: tab.Value = tab_Left;
 			}
-		}
-        else if(c_oSerProp_pPrType.Tab_Item_Pos === type)
+		} else if(c_oSerProp_pPrType.Tab_Item_Pos === type)
 			tab.Pos = this.bcr.ReadDouble();
 		else if(c_oSerProp_pPrType.Tab_Item_PosTwips === type)
 			tab.Pos = g_dKoef_twips_to_mm * this.stream.GetULongLE();

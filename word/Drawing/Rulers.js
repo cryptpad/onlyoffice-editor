@@ -2344,12 +2344,8 @@ function CHorRuler()
 		var _c   = this.m_arrTabs.length;
 		for (var i = 0; i < _c; i++)
 		{
-			if (this.m_arrTabs[i].type == AscCommon.g_tabtype_left)
-				_arr.Add(new CParaTab(tab_Left, this.m_arrTabs[i].pos, this.m_arrTabs[i].leader));
-			else if (this.m_arrTabs[i].type == AscCommon.g_tabtype_right)
-				_arr.Add(new CParaTab(tab_Right, this.m_arrTabs[i].pos, this.m_arrTabs[i].leader));
-			else if (this.m_arrTabs[i].type == AscCommon.g_tabtype_center)
-				_arr.Add(new CParaTab(tab_Center, this.m_arrTabs[i].pos, this.m_arrTabs[i].leader));
+			if (this.m_arrTabs[i].type == tab_Left || this.m_arrTabs[i].type == tab_Right || this.m_arrTabs[i].type == tab_Center)
+				_arr.Add(new CParaTab(this.m_arrTabs[i].type, this.m_arrTabs[i].pos, this.m_arrTabs[i].leader));
 		}
 
 		if (false === this.m_oWordControl.m_oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Paragraph_Properties))
@@ -2575,7 +2571,7 @@ function CHorRuler()
                 context.lineWidth = 2;
                 switch (_tab.type)
                 {
-                    case AscCommon.g_tabtype_left:
+                    case tab_Left:
                     {
                         context.beginPath();
                         context.moveTo(_x, _positon_y);
@@ -2584,7 +2580,7 @@ function CHorRuler()
                         context.stroke();
                         break;
                     }
-                    case AscCommon.g_tabtype_right:
+                    case tab_Right:
                     {
                         context.beginPath();
                         context.moveTo(_x, _positon_y);
@@ -2593,7 +2589,7 @@ function CHorRuler()
                         context.stroke();
                         break;
                     }
-                    case AscCommon.g_tabtype_center:
+                    case tab_Center:
                     {
                         context.beginPath();
                         context.moveTo(_x, _positon_y);
@@ -2742,7 +2738,7 @@ function CHorRuler()
 
                     switch (tab.type)
                     {
-                        case AscCommon.g_tabtype_left:
+                        case tab_Left:
                         {
                             context.beginPath();
                             context.moveTo(_x, _positon_y);
@@ -2751,7 +2747,7 @@ function CHorRuler()
                             context.stroke();
                             break;
                         }
-                        case AscCommon.g_tabtype_right:
+                        case tab_Right:
                         {
                             context.beginPath();
                             context.moveTo(_x, _positon_y);
@@ -2760,7 +2756,7 @@ function CHorRuler()
                             context.stroke();
                             break;
                         }
-                        case AscCommon.g_tabtype_center:
+                        case tab_Center:
                         {
                             context.beginPath();
                             context.moveTo(_x, _positon_y);
