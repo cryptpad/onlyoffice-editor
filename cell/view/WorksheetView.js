@@ -5786,18 +5786,18 @@
 		var isNumberFormat = !cell.isEmptyTextString() && (null === cellType || CellValueType.String !== cellType);
 		if (angle || isNumberFormat || align.getWrap()) {
 			this._addCellTextToCache(cell.nCol, cell.nRow);
-			return AscCommonExcel.convertPtToPx(this._getRowHeightReal(cell.nRow));
-		}
-
-		// ToDo with angle and wrap
-		for (var i = 0; i < fr.length; ++i) {
-			f = fr[i].format;
-			if (!f.isEqual2(AscCommonExcel.g_oDefaultFormat.Font) || f.va) {
-				fm = getFontMetrics(f, this.stringRender);
-				lm = this.stringRender._calcLineMetrics2(f.getSize(), f.va, fm);
-				th = Math.min(this.maxRowHeightPx, Math.max(th, lm.th + 1));
-				if (updateDescender && !f.va) {
-					d = Math.max(d, lm.th - lm.bl);
+			th = AscCommonExcel.convertPtToPx(this._getRowHeightReal(cell.nRow));
+		} else {
+			// ToDo with angle and wrap
+			for (var i = 0; i < fr.length; ++i) {
+				f = fr[i].format;
+				if (!f.isEqual2(AscCommonExcel.g_oDefaultFormat.Font) || f.va) {
+					fm = getFontMetrics(f, this.stringRender);
+					lm = this.stringRender._calcLineMetrics2(f.getSize(), f.va, fm);
+					th = Math.min(this.maxRowHeightPx, Math.max(th, lm.th + 1));
+					if (updateDescender && !f.va) {
+						d = Math.max(d, lm.th - lm.bl);
+					}
 				}
 			}
 		}
