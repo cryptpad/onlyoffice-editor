@@ -3723,6 +3723,11 @@ var editor;
     window.AscDesktopEditor_PrintOptions = undefined;
 
     var isOnePage = ((_param & 0x0100) == 0x0100);
+    var isIgnorePrintArea = ((_param & 0x1000) == 0x1000);
+    if(isIgnorePrintArea) {
+		_adjustPrint.asc_setIgnorePrintArea(true);
+    }
+
     _param &= 0xFF;
     if (1 == _param) {
       _adjustPrint.asc_setPrintType(Asc.c_oAscPrintType.EntireWorkbook);
