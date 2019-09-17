@@ -2089,7 +2089,7 @@ background-repeat: no-repeat;\
 		if (!_logicDoc || _logicDoc.IsSelectionEmpty(true))
 			return;
 
-		if (false === _logicDoc.Document_Is_SelectionLocked(changestype_Paragraph_Content))
+		if (false === _logicDoc.Document_Is_SelectionLocked(AscCommon.changestype_Remove))
 		{
 			_logicDoc.StartAction(AscDFH.historydescription_Cut);
 			_logicDoc.Remove(-1, true, true); // -1 - нормальное удаление  (например, для таблиц)
