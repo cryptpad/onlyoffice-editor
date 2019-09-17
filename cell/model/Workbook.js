@@ -12136,7 +12136,7 @@
 			}
 			var oUndoRedoBBox = new UndoRedoData_BBox({r1:nRowFirst0, c1:nColFirst0, r2:nLastRow0, c2:nLastCol0});
 			oRes = new AscCommonExcel.UndoRedoData_SortData(oUndoRedoBBox, aSortData);
-			this._sortByArray(oUndoRedoBBox, aSortData);
+			this._sortByArray2(oUndoRedoBBox, aSortData);
 			History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_Sort, this.worksheet.getId(), new Asc.Range(nColFirst0, 0, nLastCol0, gc_nMaxRow0)/*new Asc.Range(0, nRowFirst0, gc_nMaxCol0, nLastRow0)*/, oRes);
 		}
 		this.worksheet.workbook.dependencyFormulas.unlockRecal();
@@ -12208,31 +12208,18 @@
 		for (var j in oSortedIndexes) {
 			var nIndexFrom = j - 0;
 			var nIndexTo = oSortedIndexes[j];
+			var sheetMemoryFrom = this.worksheet.getColData(nIndexFrom);
+			var sheetMemoryTo = this.worksheet.getColData(nIndexTo);
+
 			tempSheetMemory[nIndexTo] = new SheetMemory(g_nCellStructSize, height);
-			var sheetMemoryFrom = this.worksheet.getColDataNoEmpty(nIndexFrom);
-			var sheetMemoryTo = this.worksheet.getColDataNoEmpty(nIndexTo);
+			tempSheetMemory[nIndexTo].copyRange(sheetMemoryTo, oBBox.r1, 0, height);
 
 			if(tempSheetMemory[nIndexFrom]) {
 				sheetMemoryTo.copyRange(tempSheetMemory[nIndexFrom], 0, oBBox.r1, height);
 			} else {
 				sheetMemoryTo.copyRange(sheetMemoryFrom, oBBox.r1, oBBox.r1, height);
 			}
-
-			tempSheetMemory[nIndexTo].copyRange(sheetMemoryTo, oBBox.r1, 0, height);
 		}
-
-		/*for (var i = oBBox.c1; i <= oBBox.c2; ++i) {
-			var sheetMemory = this.worksheet.getColDataNoEmpty(i);
-			if (sheetMemory) {
-				tempSheetMemory.copyRange(sheetMemory, oBBox.r1, 0, height);
-				for (var j in oSortedIndexes) {
-					var nIndexFrom = j - 0;
-					var nIndexTo = oSortedIndexes[j];
-					tempSheetMemory.copyRange(sheetMemory, nIndexFrom, nIndexTo - oBBox.r1, 1);
-				}
-				sheetMemory.copyRange(tempSheetMemory, 0, oBBox.r1, height);
-			}
-		}*/
 
 		this.worksheet.workbook.dependencyFormulas.addToChangedRange(this.worksheet.getId(), new Asc.Range(oBBox.c1, oBBox.r1, oBBox.c2, oBBox.r2));
 
