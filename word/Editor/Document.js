@@ -17744,6 +17744,12 @@ CDocument.prototype.UpdateFields = function(isBySelection)
 {
 	var arrFields = this.GetAllFields(isBySelection);
 
+	if (arrFields.length <= 0)
+	{
+		var oInfo = this.GetSelectedElementsInfo();
+		arrFields = oInfo.GetComplexFields();
+	}
+
 	var oDocState = this.SaveDocumentState();
 
 	var arrParagraphs = [];
