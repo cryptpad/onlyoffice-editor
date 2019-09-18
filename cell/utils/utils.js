@@ -2046,6 +2046,8 @@
 			this.startOffset = 0;
 			this.startOffsetPx = 0;
 
+			this.scale = null;
+
 			return this;
 		}
 		function CPrintPagesData () {
