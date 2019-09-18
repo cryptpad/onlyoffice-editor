@@ -373,7 +373,13 @@ CBookmarksManager.prototype.AddBookmark = function(sName)
 	this.Update();
 
 	if (this.GetBookmarkByName(sName))
-		return;
+	{
+		if (this.IsHiddenBookmark(sName))
+			return;
+
+		this.LogicDocument.RemoveBookmark(sName);
+	}
+
 
 	this.LogicDocument.AddBookmark(sName);
 };
