@@ -1396,7 +1396,7 @@ var g_oFontProperties = {
 		this.position = value;
 	};
 	GradientStop.prototype.asc_getColor = function () {
-		return this.color;
+		return this.color ? Asc.colorObjToAscColor(this.color) : this.color;
 	};
 	GradientStop.prototype.asc_setColor = function (value) {
 		this.color = CorrectAscColor(value);
@@ -1580,13 +1580,13 @@ var g_oFontProperties = {
 		}
 	};
 	PatternFill.prototype.asc_getFgColor = function () {
-		return this.fgColor;
+		return this.fgColor ? Asc.colorObjToAscColor(this.fgColor) : this.fgColor;
 	};
 	PatternFill.prototype.asc_setFgColor = function (value) {
 		this.fgColor = CorrectAscColor(value);
 	};
 	PatternFill.prototype.asc_getBgColor = function () {
-		return this.bgColor;
+		return this.bgColor ? Asc.colorObjToAscColor(this.bgColor) : this.bgColor;
 	};
 	PatternFill.prototype.asc_setBgColor = function (value) {
 		this.bgColor = CorrectAscColor(value);
