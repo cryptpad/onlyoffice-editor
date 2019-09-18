@@ -2248,10 +2248,10 @@
 
 			t._changeFitToPage(width, height);
 
-			if(width !== pageSetup.asc_getFitToWidth()) {
+			if(changedWidth) {
 				pageSetup.asc_setFitToWidth(width);
 			}
-			if(height !== pageSetup.asc_getFitToHeight()) {
+			if(changedHeight) {
 				pageSetup.asc_setFitToHeight(height);
 			}
 
@@ -16314,12 +16314,16 @@
 			var newFitToWidth = pageSetupObj.asc_getFitToWidth();
 			var newFitToHeight = pageSetupObj.asc_getFitToHeight();
 
-			pageOptions.asc_setOptions(obj);
-
 			//если поменялись scaling - fit sheet on.. -> необходимо пересчитать scaling
 			if(oldFitToWidth != newFitToWidth || oldFitToHeight != newFitToHeight) {
 				t.fitToWidthHeight(newFitToWidth, newFitToHeight);
 			}
+
+			if(newFitToWidth === 0 && newFitToHeight === 0) {
+				pageOptions.asc_getPageSetup().asc_setScale(pageSetupObj.asc_getScale());
+			}
+
+			pageOptions.asc_setOptions(obj);
 
 			t.changeViewPrintLines(true);
 			//window["Asc"]["editor"]._onUpdateLayoutMenu(this.model.nSheetId);
