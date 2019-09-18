@@ -8337,6 +8337,10 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		if(prop !== this.asc_getFitToHeight()) {
 			this.asc_setFitToHeight(prop);
 		}
+		prop = obj.asc_getScale();
+		if(prop !== this.asc_getScale()) {
+			this.asc_setScale(prop);
+		}
 	};
 
 	asc_CPageSetup.prototype.asc_setScale = function (newVal) {
