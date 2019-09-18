@@ -2032,8 +2032,8 @@
 			//draw header/footer
 			this._drawHeaderFooter(drawingCtx, printPagesData, indexPrintPage, countPrintPages);
 
-			drawingCtx.AddClipRect(printPagesData.pageClipRectLeft, printPagesData.pageClipRectTop,
-				printPagesData.pageClipRectWidth, printPagesData.pageClipRectHeight);
+			/*drawingCtx.AddClipRect(printPagesData.pageClipRectLeft, printPagesData.pageClipRectTop,
+				printPagesData.pageClipRectWidth, printPagesData.pageClipRectHeight);*/
 
 			var printScale = printPagesData.scale ? printPagesData.scale : this.getPrintScale();
 
