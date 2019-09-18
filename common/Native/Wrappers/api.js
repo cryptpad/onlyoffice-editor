@@ -2258,13 +2258,17 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             
         case 450:   // ASC_MENU_EVENT_TYPE_GET_CHART_DATA
         {
-            var chart = _api.asc_getChartObject();
+            var index = null;
+            if (undefined !== _params) {
+                index = parseInt(_params);
+            }
+
+            var chart = _api.asc_getChartObject(index);
             
             var _stream = global_memory_stream_menu;
             _stream["ClearNoAttack"]();
             _stream["WriteStringA"](JSON.stringify(new Asc.asc_CChartBinary(chart)));
-            _return = _stream;
-            
+            _return = _stream;           
             break;
         }
         
