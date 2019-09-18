@@ -2405,8 +2405,7 @@
 
 		var wScale;
 		var hScale;
-		if(bSelection) {
-			var ranges = this._getSelection().ranges;
+		var calcScaleByRanges = function(ranges) {
 			var tempWScale = null, tempHScale = null;
 			for(var i = 0; i < ranges.length; i++) {
 				tempWScale = doCalcScaleWidth(ranges[i].c1, ranges[i].c2);
@@ -2418,24 +2417,43 @@
 					hScale = tempHScale;
 				}
 			}
+		};
+
+		if(bSelection) {
+			calcScaleByRanges(this._getSelection().ranges);
 		} else {
-			//calculate width/height all columns/rows
-			var range = new asc_Range(0, 0, this.model.getColsCount() - 1, this.model.getRowsCount() - 1);
-			var maxCell = this._checkPrintRange(range);
-			var maxCol = maxCell.col;
-			var maxRow = maxCell.row;
+			//TODO ignorePrintArea - необходимо протащить флаг!
+			var printArea = /*!ignorePrintArea &&*/ this.model.workbook.getDefinesNames("Print_Area", this.model.getId());
+			var getPrintAreaRanges = function() {
+				var res = false;
+				AscCommonExcel.executeInR1C1Mode(false, function () {
+					res = AscCommonExcel.getRangeByRef(printArea.ref, t.model, true, true)
+				});
+				return res && res.length ? res : null;
+			};
 
-			maxCell = this.model.autoFilters.getMaxColRow();
-			maxCol = Math.max(maxCol, maxCell.col);
-			maxRow = Math.max(maxRow, maxCell.row);
+			var printAreaRanges = printArea ? getPrintAreaRanges() : null;
+			if(printAreaRanges) {
+				calcScaleByRanges(printAreaRanges);
+			} else {
+				//calculate width/height all columns/rows
+				var range = new asc_Range(0, 0, this.model.getColsCount() - 1, this.model.getRowsCount() - 1);
+				var maxCell = this._checkPrintRange(range);
+				var maxCol = maxCell.col;
+				var maxRow = maxCell.row;
 
-			maxCell = this.objectRender.getMaxColRow();
-			maxCol = Math.max(maxCol, maxCell.col);
-			maxRow = Math.max(maxRow, maxCell.row);
+				maxCell = this.model.autoFilters.getMaxColRow();
+				maxCol = Math.max(maxCol, maxCell.col);
+				maxRow = Math.max(maxRow, maxCell.row);
 
-			//TODO print area
-			wScale = doCalcScaleWidth(0, maxCol);
-			hScale = doCalcScaleHeight(0, maxRow);
+				maxCell = this.objectRender.getMaxColRow();
+				maxCol = Math.max(maxCol, maxCell.col);
+				maxRow = Math.max(maxRow, maxCell.row);
+
+				//TODO print area
+				wScale = doCalcScaleWidth(0, maxCol);
+				hScale = doCalcScaleHeight(0, maxRow);
+			}
 		}
 
 
