@@ -11514,13 +11514,11 @@
 			this.removeHyperlink(aHyperlinks.inner[i]);
 		History.EndTransaction();
 	};
-	Range.prototype.sort=function(nOption, nStartRow, sortColor, opt_guessHeader){
+	Range.prototype.sort=function(nOption, nStartRowCol, sortColor, opt_guessHeader, opt_by_row){
 		var bbox = this.bbox;
 		if (opt_guessHeader) {
 			//если тип ячеек первого и второго row попарно совпадает, то считаем первую строку заголовком
 			//todo рассмотреть замерженые ячейки. стили тоже влияют, но непонятно как сравнивать border
-
-
 			var bIgnoreFirstRow = ignoreFirstRowSort(this.worksheet, bbox);
 
 			if(bIgnoreFirstRow) {
@@ -11528,56 +11526,211 @@
 				bbox.r1++;
 			}
 		}
+
 		//todo горизонтальная сортировка
 		var aMerged = this.worksheet.mergeManager.get(bbox);
 		if(aMerged.outer.length > 0 || (aMerged.inner.length > 0 && null == _isSameSizeMerged(bbox, aMerged.inner)))
 			return null;
+
 		var nMergedWidth = 1;
+		var nMergedHeight = 1;
 		if(aMerged.inner.length > 0)
 		{
 			var merged = aMerged.inner[0];
-			nMergedWidth = merged.bbox.c2 - merged.bbox.c1 + 1;
-			//меняем nStartCol, потому что приходит колонка той ячейки, на которой начали выделение
-			nStartRow = merged.bbox.r1;
+			if(opt_by_row) {
+				nMergedWidth = merged.bbox.c2 - merged.bbox.c1 + 1;
+				//меняем nStartCol, потому что приходит колонка той ячейки, на которой начали выделение
+				nStartRowCol = merged.bbox.r1;
+			} else {
+				nMergedHeight = merged.bbox.r2 - merged.bbox.r1 + 1;
+				//меняем nStartCol, потому что приходит колонка той ячейки, на которой начали выделение
+				nStartRowCol = merged.bbox.c1;
+			}
+
 		}
+
 		this.worksheet.workbook.dependencyFormulas.lockRecal();
-		var colorFill = nOption === Asc.c_oAscSortOptions.ByColorFill;
-		var colorText = nOption === Asc.c_oAscSortOptions.ByColorFont;
-		var isSortColor = colorFill || colorText;
 
 		var oRes = null;
 		var oThis = this;
 		var bAscent = false;
 		if(nOption == Asc.c_oAscSortOptions.Ascending)
 			bAscent = true;
+
+		//get sort elems
+		//_getSortElems - for split big function
+		var elemObj = this._getSortElems(bbox, nStartRowCol, nOption, sortColor, opt_by_row);
+		var aSortElems = elemObj.aSortElems;
+		var nColFirst0 = elemObj.nColFirst0;
+		var nRowFirst0 = elemObj.nRowFirst0;
+		var nLastRow0 = elemObj.nLastRow0;
+		var nLastCol0 = elemObj.nLastCol0;
+
+
+		//проверяем что это не пустая операция
+		var aSortData = [];
+		var nHiddenCount = 0;
+		var oFromArray = {};
+
+		var nNewIndex, oNewElem, i, length;
+		var nColMax = 0, nRowMax = 0;
+		var nColMin = gc_nMaxCol0, nRowMin = gc_nMaxRow0;
+		var nToMax = 0;
+		for(i = 0, length = aSortElems.length; i < length; ++i)
+		{
+			var item = aSortElems[i];
+			if(opt_by_row) {
+				nNewIndex = i * nMergedWidth + nColFirst0 + nHiddenCount;
+				while(false != oThis.worksheet.getColHidden(nNewIndex))
+				{
+					nHiddenCount++;
+					nNewIndex = i * nMergedWidth + nColFirst0 + nHiddenCount;
+				}
+				oNewElem = new UndoRedoData_FromToRowCol(false, item.col, nNewIndex);
+				oFromArray[item.col] = 1;
+				if(nColMax < item.col)
+					nColMax = item.col;
+				if(nColMax < nNewIndex)
+					nColMax = nNewIndex;
+				if(nColMin > item.col)
+					nColMin = item.col;
+				if(nColMin > nNewIndex)
+					nColMin = nNewIndex;
+				if(nToMax < nNewIndex)
+					nToMax = nNewIndex;
+				if(oNewElem.from != oNewElem.to)
+					aSortData.push(oNewElem);
+			} else {
+				nNewIndex = i * nMergedHeight + nRowFirst0 + nHiddenCount;
+				while(false != oThis.worksheet.getRowHidden(nNewIndex))
+				{
+					nHiddenCount++;
+					nNewIndex = i * nMergedHeight + nRowFirst0 + nHiddenCount;
+				}
+				oNewElem = new UndoRedoData_FromToRowCol(true, item.row, nNewIndex);
+				oFromArray[item.row] = 1;
+				if(nRowMax < item.row)
+					nRowMax = item.row;
+				if(nRowMax < nNewIndex)
+					nRowMax = nNewIndex;
+				if(nRowMin > item.row)
+					nRowMin = item.row;
+				if(nRowMin > nNewIndex)
+					nRowMin = nNewIndex;
+				if(nToMax < nNewIndex)
+					nToMax = nNewIndex;
+				if(oNewElem.from != oNewElem.to)
+					aSortData.push(oNewElem);
+			}
+		}
+
+		
+		if(aSortData.length > 0)
+		{
+			//добавляем индексы перехода пустых ячеек(нужно для сортировки комментариев)
+			var nRowColMin = opt_by_row ? nColMin : nRowMin;
+			var nRowColMax = opt_by_row ? nColMax : nRowMax;
+			var hiddenFunc = opt_by_row ? oThis.worksheet.getColHidden : oThis.worksheet.getRowHidden;
+			for(i = nRowColMin; i <= nRowColMax; ++i)
+			{
+				if(null == oFromArray[i] && false == hiddenFunc.apply(oThis.worksheet,[i]))
+				{
+					var nFrom = i;
+					var nTo = ++nToMax;
+					while(false != hiddenFunc.apply(oThis.worksheet, [nTo]))
+						nTo = ++nToMax;
+					if(nFrom != nTo)
+					{
+						oNewElem = new UndoRedoData_FromToRowCol(false, nFrom, nTo);
+						aSortData.push(oNewElem);
+					}
+				}
+			}
+			
+			History.Create_NewPoint();
+			var oSelection = History.GetSelection();
+			if(null != oSelection)
+			{
+				oSelection = oSelection.clone();
+				oSelection.assign(nColFirst0, nRowFirst0, nLastCol0, nLastRow0);
+				History.SetSelection(oSelection);
+				History.SetSelectionRedo(oSelection);
+			}
+			var oUndoRedoBBox = new UndoRedoData_BBox({r1:nRowFirst0, c1:nColFirst0, r2:nLastRow0, c2:nLastCol0});
+			oRes = new AscCommonExcel.UndoRedoData_SortData(oUndoRedoBBox, aSortData);
+			this._sortByArray(oUndoRedoBBox, aSortData);
+			if(opt_by_row) {
+				History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_Sort, this.worksheet.getId(), new Asc.Range(nColFirst0, 0, nLastCol0, gc_nMaxRow0)/*new Asc.Range(0, nRowFirst0, gc_nMaxCol0, nLastRow0)*/, oRes)
+			} else {
+				History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_Sort, this.worksheet.getId(), new Asc.Range(0, nRowFirst0, gc_nMaxCol0, nLastRow0), oRes);
+			}
+		}
+		this.worksheet.workbook.dependencyFormulas.unlockRecal();
+		return oRes;
+	};
+	Range.prototype._getSortElems=function(bbox, nStartRowCol, nOption, sortColor, opt_by_row) {
+		var oThis = this;
+
+		var bAscent = false;
+		if (nOption == Asc.c_oAscSortOptions.Ascending) {
+			bAscent = true;
+		}
+
+		var colorFill = nOption === Asc.c_oAscSortOptions.ByColorFill;
+		var colorText = nOption === Asc.c_oAscSortOptions.ByColorFont;
+		var isSortColor = colorFill || colorText;
+
 		var nRowFirst0 = bbox.r1;
 		var nRowLast0 = bbox.r2;
 		var nColFirst0 = bbox.c1;
 		var nColLast0 = bbox.c2;
+
 		var bWholeCol = false;
 		var bWholeRow = false;
-		if(0 == nRowFirst0 && gc_nMaxRow0 == nRowLast0)
+		if (0 == nRowFirst0 && gc_nMaxRow0 == nRowLast0) {
 			bWholeCol = true;
-		if(0 == nColFirst0 && gc_nMaxCol0 == nColLast0)
-			bWholeRow = true;
-		var oRangeRow = this.worksheet.getRange(new CellAddress(nStartRow, nColFirst0, 0), new CellAddress(nStartRow, nColLast0, 0));
-		var nLastRow0 = nRowLast0;
-		var nLastCol0 = 0;
-		if(true == bWholeCol)
-		{
-			nLastRow0 = 0;
-			this._foreachColNoEmpty(null, function(cell){
-				var nCurRow0 = cell.nRow;
-				if(nCurRow0 > nLastRow0)
-					nLastRow0 = nCurRow0;
-			});
 		}
+		if (0 == nColFirst0 && gc_nMaxCol0 == nColLast0) {
+			bWholeRow = true;
+		}
+
+		var nLastRow0, nLastCol0;
+		if(opt_by_row) {
+			var oRangeRow = this.worksheet.getRange(new CellAddress(nStartRowCol, nColFirst0, 0), new CellAddress(nStartRowCol, nColLast0, 0));
+			nLastRow0 = nRowLast0;
+			nLastCol0 = 0;
+			if(true == bWholeCol)
+			{
+				nLastRow0 = 0;
+				this._foreachColNoEmpty(null, function(cell){
+					var nCurRow0 = cell.nRow;
+					if(nCurRow0 > nLastRow0)
+						nLastRow0 = nCurRow0;
+				});
+			}
+		} else {
+			var oRangeCol = this.worksheet.getRange(new CellAddress(nRowFirst0, nStartRowCol, 0), new CellAddress(nRowLast0, nStartRowCol, 0));
+			nLastRow0 = 0;
+			nLastCol0 = nColLast0;
+			if(true == bWholeRow)
+			{
+				nLastCol0 = 0;
+				this._foreachRowNoEmpty(null, function(cell){
+					var nCurCol0 = cell.nCol;
+					if(nCurCol0 > nLastCol0)
+						nLastCol0 = nCurCol0;
+				});
+			}
+		}
+
 		//собираем массив обьектов для сортировки
 		var aSortElems = [];
-		var fAddSortElems = function(oCell, nRow0, nCol0,nRowStart0, nColStart0){
+		var fAddSortElems = function(oCell, nRow0, nCol0){
 			//не сортируем сткрытие строки
-			if (!oThis.worksheet.getColHidden(nCol0)) {
-				if(nLastCol0 < nCol0)
+			if ((opt_by_row && !oThis.worksheet.getColHidden(nCol0)) || (!opt_by_row && !oThis.worksheet.getRowHidden(nRow0))) {
+				if(!opt_by_row && nLastRow0 < nRow0)
+					nLastRow0 = nRow0;
+				if(opt_by_row && nLastCol0 < nCol0)
 					nLastCol0 = nCol0;
 				var val = oCell.getValueWithoutFormat();
 
@@ -11611,36 +11764,70 @@
 						nNumber = nVal;
 					else
 						sText = val;
-					aSortElems.push({col: nCol0, num: nNumber, text: sText, colorFill: colorFillCell, colorsText: colorsTextCell});
+					if(opt_by_row) {
+						aSortElems.push({col: nCol0, num: nNumber, text: sText, colorFill: colorFillCell, colorsText: colorsTextCell});
+					} else {
+						aSortElems.push({row: nRow0, num: nNumber, text: sText, colorFill: colorFillCell, colorsText: colorsTextCell});
+					}
 				}
 				else if(isSortColor)
 				{
-					aSortElems.push({col: nCol0, num: nNumber, text: sText, colorFill: colorFillCell, colorsText: colorsTextCell});
+					if(opt_by_row) {
+						aSortElems.push({col: nCol0, num: nNumber, text: sText, colorFill: colorFillCell, colorsText: colorsTextCell});
+					} else {
+						aSortElems.push({row: nRow0, num: nNumber, text: sText, colorFill: colorFillCell, colorsText: colorsTextCell});
+					}
 				}
 			}
 		};
-		if(nRowFirst0 == nStartRow)
-		{
-			while(0 == aSortElems.length && nStartRow <= nLastRow0)
+		if(opt_by_row) {
+			if(nRowFirst0 == nStartRowCol)
 			{
-				if(false == bWholeRow)
-					oRangeRow._foreachNoEmpty(fAddSortElems);
-				else
-					oRangeRow._foreachRowNoEmpty(null, fAddSortElems);
-				if(0 == aSortElems.length)
+				while(0 == aSortElems.length && nStartRowCol <= nLastRow0)
 				{
-					nStartRow++;
-					oRangeRow = this.worksheet.getRange(new CellAddress(nStartRow, nColFirst0, 0), new CellAddress(nStartRow, nColLast0, 0));
+					if(false == bWholeRow)
+						oRangeRow._foreachNoEmpty(fAddSortElems);
+					else
+						oRangeRow._foreachRowNoEmpty(null, fAddSortElems);
+					if(0 == aSortElems.length)
+					{
+						nStartRowCol++;
+						oRangeRow = this.worksheet.getRange(new CellAddress(nStartRowCol, nColFirst0, 0), new CellAddress(nStartRowCol, nColLast0, 0));
+					}
 				}
 			}
-		}
-		else
-		{
-			if(false == bWholeRow)
-				oRangeRow._foreachNoEmptyByCol(fAddSortElems);
 			else
-				oRangeRow._foreachRowNoEmpty(null, fAddSortElems);
+			{
+				if(false == bWholeRow)
+					oRangeRow._foreachNoEmptyByCol(fAddSortElems);
+				else
+					oRangeRow._foreachRowNoEmpty(null, fAddSortElems);
+			}
+		} else {
+			if(nColFirst0 == nStartRowCol)
+			{
+				while(0 == aSortElems.length && nStartRowCol <= nLastCol0)
+				{
+					if(false == bWholeCol)
+						oRangeCol._foreachNoEmpty(fAddSortElems);
+					else
+						oRangeCol._foreachColNoEmpty(null, fAddSortElems);
+					if(0 == aSortElems.length)
+					{
+						nStartRowCol++;
+						oRangeCol = this.worksheet.getRange(new CellAddress(nRowFirst0, nStartRowCol, 0), new CellAddress(nRowLast0, nStartRowCol, 0));
+					}
+				}
+			}
+			else
+			{
+				if(false == bWholeCol)
+					oRangeCol._foreachNoEmpty(fAddSortElems);
+				else
+					oRangeCol._foreachColNoEmpty(null, fAddSortElems);
+			}
 		}
+
 		function strcmp ( str1, str2 ) {
 			return ( ( str1 == str2 ) ? 0 : ( ( str1 > str2 ) ? 1 : -1 ) );
 		}
@@ -11709,88 +11896,25 @@
 						res = -1;
 				}
 				if(0 == res)
-					res = a.col - b.col;
+					res = opt_by_row ? a.col - b.col : a.row - b.row;
 				else if(!bAscent)
 					res = -res;
 				return res;
 			});
 		}
 
-		//проверяем что это не пустая операция
-		var aSortData = [];
-		var nHiddenCount = 0;
-		var oFromArray = {};
-		var nColMax = 0;
-		var nColMin = gc_nMaxCol0;
-		var nToMax = 0;
-		for(var i = 0, length = aSortElems.length; i < length; ++i)
-		{
-			var item = aSortElems[i];
-			var nNewIndex = i * nMergedWidth + nColFirst0 + nHiddenCount;
-			while(false != oThis.worksheet.getRowHidden(nNewIndex))
-			{
-				nHiddenCount++;
-				nNewIndex = i * nMergedWidth + nColFirst0 + nHiddenCount;
-			}
-			var oNewElem = new UndoRedoData_FromToRowCol(false, item.col, nNewIndex);
-			oFromArray[item.col] = 1;
-			if(nColMax < item.col)
-				nColMax = item.col;
-			if(nColMax < nNewIndex)
-				nColMax = nNewIndex;
-			if(nColMin > item.col)
-				nColMin = item.col;
-			if(nColMin > nNewIndex)
-				nColMin = nNewIndex;
-			if(nToMax < nNewIndex)
-				nToMax = nNewIndex;
-			if(oNewElem.from != oNewElem.to)
-				aSortData.push(oNewElem);
-		}
-		if(aSortData.length > 0)
-		{
-			//добавляем индексы перехода пустых ячеек(нужно для сортировки комментариев)
-			for(var i = nColMin; i <= nColMax; ++i)
-			{
-				if(null == oFromArray[i] && false == oThis.worksheet.getColHidden(i))
-				{
-					var nFrom = i;
-					var nTo = ++nToMax;
-					while(false != oThis.worksheet.getColHidden(nTo))
-						nTo = ++nToMax;
-					if(nFrom != nTo)
-					{
-						var oNewElem = new UndoRedoData_FromToRowCol(false, nFrom, nTo);
-						aSortData.push(oNewElem);
-					}
-				}
-			}
-			History.Create_NewPoint();
-			var oSelection = History.GetSelection();
-			if(null != oSelection)
-			{
-				oSelection = oSelection.clone();
-				oSelection.assign(nColFirst0, nRowFirst0, nLastCol0, nLastRow0);
-				History.SetSelection(oSelection);
-				History.SetSelectionRedo(oSelection);
-			}
-			var oUndoRedoBBox = new UndoRedoData_BBox({r1:nRowFirst0, c1:nColFirst0, r2:nLastRow0, c2:nLastCol0});
-			oRes = new AscCommonExcel.UndoRedoData_SortData(oUndoRedoBBox, aSortData);
-			this._sortByArray(oUndoRedoBBox, aSortData);
-			History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_Sort, this.worksheet.getId(), new Asc.Range(nColFirst0, 0, nLastCol0, gc_nMaxRow0)/*new Asc.Range(0, nRowFirst0, gc_nMaxCol0, nLastRow0)*/, oRes);
-		}
-		this.worksheet.workbook.dependencyFormulas.unlockRecal();
-		return oRes;
+		return {aSortElems: aSortElems, nRowFirst0: nRowFirst0, nColFirst0: nColFirst0, nLastRow0: nLastRow0, nLastCol0: nLastCol0};
 	};
-	Range.prototype._sortByArray=function(oBBox, aSortData, bUndo){
+	Range.prototype._sortByArray=function(oBBox, aSortData, bUndo, opt_by_row){
 		var t = this;
 		var height = oBBox.r2 - oBBox.r1 + 1;
 		var oSortedIndexes = {};
-		for(var i = 0, length = aSortData.length; i < length; ++i)
+		var nFrom, nTo, length, i;
+		for(i = 0, length = aSortData.length; i < length; ++i)
 		{
 			var item = aSortData[i];
-			var nFrom = item.from;
-			var nTo = item.to;
+			nFrom = item.from;
+			nTo = item.to;
 			if(true == this.worksheet.workbook.bUndoChanges)
 			{
 				nFrom = item.to;
@@ -11799,19 +11923,19 @@
 			oSortedIndexes[nFrom] = nTo;
 		}
 		//сортируются только одинарные гиперссылки, все неодинарные оставляем
-		var aSortedHyperlinks = [];
+		var aSortedHyperlinks = [], hyp;
 		if(false == this.worksheet.workbook.bUndoChanges && (false == this.worksheet.workbook.bRedoChanges || this.worksheet.workbook.bCollaborativeChanges))
 		{
 			History.LocalChange = true;
 			var aHyperlinks = this.worksheet.hyperlinkManager.get(this.bbox);
-			for(var i = 0, length = aHyperlinks.inner.length; i < length; i++)
+			for(i = 0, length = aHyperlinks.inner.length; i < length; i++)
 			{
 				var elem = aHyperlinks.inner[i];
-				var hyp = elem.data;
+				hyp = elem.data;
 				if(hyp.Ref.isOneCell())
 				{
-					var nFrom = elem.bbox.c1;
-					var nTo = oSortedIndexes[nFrom];
+					nFrom = opt_by_row ? elem.bbox.c1 : elem.bbox.r1;
+					nTo = oSortedIndexes[nFrom];
 					if(null != nTo)
 					{
 						//удаляем ссылки, а не перемещаем, чтобы не было конфликтов(например в случае если все ячейки имеют ссылки
@@ -11825,54 +11949,81 @@
 			}
 			History.LocalChange = false;
 		}
-		var t = this;
+
 		var tempRange = this.worksheet.getRange3(oBBox.r1, oBBox.c1, oBBox.r2, oBBox.c2);
-		tempRange._foreachNoEmptyByCol(function(cell){
+		var func = opt_by_row ? tempRange._foreachNoEmptyByCol : tempRange._foreachNoEmpty;
+		func.apply(tempRange, (function(cell){
 			var ws = t.worksheet;
 			var formula = cell.getFormulaParsed();
 			if (formula) {
 				var cellWithFormula = formula.getParent();
-				var nFrom = cell.nCol;
 				var nTo = oSortedIndexes[nFrom];
+				var nFrom = opt_by_row ? cell.nCol : cell.nRow;
 				if(null != nTo) {
-					cell.changeOffset(new AscCommon.CellBase(0, nTo - nFrom), true, true);
+					if(opt_by_row) {
+						cell.changeOffset(new AscCommon.CellBase(0, nTo - nFrom), true, true);
+					} else {
+						cell.changeOffset(new AscCommon.CellBase(nTo - nFrom, 0), true, true);
+					}
 					formula = cell.getFormulaParsed();
 					cellWithFormula = formula.getParent();
-					cellWithFormula.nCol = nTo;
+					if(opt_by_row) {
+						cellWithFormula.nCol = nTo;
+					} else {
+						cellWithFormula.nRow = nTo;
+					}
 				}
 				ws.workbook.dependencyFormulas.addToChangedCell(cellWithFormula);
 			}
-		});
+		}));
 
-		var tempSheetMemory = [];
-		for (var j in oSortedIndexes) {
-			var nIndexFrom = j - 0;
-			var nIndexTo = oSortedIndexes[j];
-			var sheetMemoryFrom = this.worksheet.getColData(nIndexFrom);
-			var sheetMemoryTo = this.worksheet.getColData(nIndexTo);
+		
+		var tempSheetMemory, nIndexFrom, nIndexTo, j;
+		if(opt_by_row) {
+			tempSheetMemory = [];
+			for (j in oSortedIndexes) {
+				nIndexFrom = j - 0;
+				nIndexTo = oSortedIndexes[j];
+				var sheetMemoryFrom = this.worksheet.getColData(nIndexFrom);
+				var sheetMemoryTo = this.worksheet.getColData(nIndexTo);
 
-			tempSheetMemory[nIndexTo] = new SheetMemory(g_nCellStructSize, height);
-			tempSheetMemory[nIndexTo].copyRange(sheetMemoryTo, oBBox.r1, 0, height);
+				tempSheetMemory[nIndexTo] = new SheetMemory(g_nCellStructSize, height);
+				tempSheetMemory[nIndexTo].copyRange(sheetMemoryTo, oBBox.r1, 0, height);
 
-			if(tempSheetMemory[nIndexFrom]) {
-				sheetMemoryTo.copyRange(tempSheetMemory[nIndexFrom], 0, oBBox.r1, height);
-			} else {
-				sheetMemoryTo.copyRange(sheetMemoryFrom, oBBox.r1, oBBox.r1, height);
+				if(tempSheetMemory[nIndexFrom]) {
+					sheetMemoryTo.copyRange(tempSheetMemory[nIndexFrom], 0, oBBox.r1, height);
+				} else {
+					sheetMemoryTo.copyRange(sheetMemoryFrom, oBBox.r1, oBBox.r1, height);
+				}
+			}
+		} else {
+			tempSheetMemory = new SheetMemory(g_nCellStructSize, height);
+			for (i = oBBox.c1; i <= oBBox.c2; ++i) {
+				var sheetMemory = this.worksheet.getColDataNoEmpty(i);
+				if (sheetMemory) {
+					tempSheetMemory.copyRange(sheetMemory, oBBox.r1, 0, height);
+					for (j in oSortedIndexes) {
+						nIndexFrom = j - 0;
+						nIndexTo = oSortedIndexes[j];
+						tempSheetMemory.copyRange(sheetMemory, nIndexFrom, nIndexTo - oBBox.r1, 1);
+					}
+					sheetMemory.copyRange(tempSheetMemory, 0, oBBox.r1, height);
+				}
 			}
 		}
 
 		this.worksheet.workbook.dependencyFormulas.addToChangedRange(this.worksheet.getId(), new Asc.Range(oBBox.c1, oBBox.r1, oBBox.c2, oBBox.r2));
-
 		this.worksheet.workbook.dependencyFormulas.calcTree();
+
 		if(false == this.worksheet.workbook.bUndoChanges && (false == this.worksheet.workbook.bRedoChanges || this.worksheet.workbook.bCollaborativeChanges))
 		{
 			History.LocalChange = true;
 			//восстанавливаем удаленые гиперссылки
 			if(aSortedHyperlinks.length > 0)
 			{
-				for(var i = 0, length = aSortedHyperlinks.length; i < length; i++)
+				for(i = 0, length = aSortedHyperlinks.length; i < length; i++)
 				{
-					var hyp = aSortedHyperlinks[i];
+					hyp = aSortedHyperlinks[i];
 					this.worksheet.hyperlinkManager.add(hyp.Ref.getBBox0(), hyp);
 				}
 			}
