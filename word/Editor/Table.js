@@ -13557,7 +13557,7 @@ CTable.prototype.GotoFootnoteRef = function(isNext, isCurrent)
  */
 CTable.prototype.CanUpdateTarget = function(nCurPage)
 {
-	if (this.Pages.length <= 0 || !this.Pages[nCurPage])
+	if (this.Pages.length <= 0)
 		return false;
 
 	var oRow, oCell;
@@ -13575,12 +13575,24 @@ CTable.prototype.CanUpdateTarget = function(nCurPage)
 	if (!oRow || !oCell)
 		return false;
 
-	if (this.Pages[nCurPage].LastRow > oRow.Index)
-		return true;
-	else if (this.Pages[nCurPage].LastRow < oRow.Index)
-		return false;
+	if (nCurPage >= this.Pages.length)
+	{
+		var nLastPage = this.Pages.length - 1;
 
-	return oCell.Content.CanUpdateTarget(nCurPage - oCell.Content.Get_StartPage_Relative());
+		if (this.Pages[nLastPage].LastRow >= oRow.Index)
+			return true;
+
+		return false;
+	}
+	else
+	{
+		if (this.Pages[nCurPage].LastRow > oRow.Index)
+			return true;
+		else if (this.Pages[nCurPage].LastRow < oRow.Index)
+			return false;
+
+		return oCell.Content.CanUpdateTarget(nCurPage - oCell.Content.Get_StartPage_Relative());
+	}
 };
 /**
  * Проверяем, выделение идет по  ячейкам или нет
