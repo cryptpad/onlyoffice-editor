@@ -1377,7 +1377,7 @@ ParaNumbering.prototype.GetSourceWidth = function()
 	return this.Internal.SourceWidth;
 };
 
-// TODO: Реализовать табы по точке и с чертой.
+// TODO: Реализовать табы по точке и с чертой (tab_Bar tab_Decimal)
 var tab_Bar     = 0x00;
 var tab_Center  = 0x01;
 var tab_Clear   = 0x02;

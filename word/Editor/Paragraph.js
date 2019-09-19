@@ -8147,6 +8147,8 @@ Paragraph.prototype.IndDecNumberingLevel = function(bIncrease)
 	var NumPr = this.GetNumPr();
 	if (undefined != NumPr)
 	{
+		var oNumPrOld = this.Pr.NumPr;
+
 		var NewLvl;
 		if (true === bIncrease)
 			NewLvl = Math.min(8, NumPr.Lvl + 1);
@@ -8157,7 +8159,7 @@ Paragraph.prototype.IndDecNumberingLevel = function(bIncrease)
 		this.Pr.NumPr.Set(NumPr.NumId, NewLvl);
 
 		this.private_AddPrChange();
-		History.Add(new CChangesParagraphNumbering(this, NumPr, this.Pr.NumPr));
+		History.Add(new CChangesParagraphNumbering(this, oNumPrOld, this.Pr.NumPr));
 		this.private_RefreshNumbering(NumPr);
 		this.private_RefreshNumbering(this.Pr.NumPr);
 
@@ -8734,6 +8736,7 @@ Paragraph.prototype.private_CompileParaPr = function(isForce)
 			this.PresentationPr.Bullet = this.CompiledPr.Pr.ParaPr.Get_PresentationBullet(this.Get_Theme(), this.Get_ColorMap());
 			this.Numbering.Bullet      = this.PresentationPr.Bullet;
 		}
+		this.CompiledPr.NeedRecalc = false;
 	}
 	else
 	{
@@ -8747,9 +8750,8 @@ Paragraph.prototype.private_CompileParaPr = function(isForce)
 			this.CompiledPr.Pr.ParaPr.StyleTabs  = new CParaTabs();
 			this.CompiledPr.Pr.ParaPr.StyleNumPr = undefined;
 		}
+		this.CompiledPr.NeedRecalc = true;
 	}
-
-	this.CompiledPr.NeedRecalc = true;
 };
 /**
  * Формируем конечные свойства параграфа на основе стиля, возможной нумерации и прямых настроек.

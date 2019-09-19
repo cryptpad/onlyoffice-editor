@@ -8538,16 +8538,20 @@ CStyles.prototype =
 		if ((styletype_Paragraph === Type || styletype_Table === Type) && undefined != Style.ParaPr.NumPr && oLogicDocument)
 		{
 			var oNumbering = oLogicDocument.GetNumbering();
-			if (0 != Style.ParaPr.NumPr.NumId)
+			if (0 !== Style.ParaPr.NumPr.NumId)
 			{
-				var oNum = oNumbering.GetNum(Style.ParaPr.NumPr.NumId);
+				var sNumId = Style.ParaPr.NumPr.NumId;
+				if (undefined === sNumId && Pr.ParaPr.NumPr)
+					sNumId = Pr.ParaPr.NumPr.NumId;
+
+				var oNum = oNumbering.GetNum(sNumId);
 				if (oNum)
 				{
 					var nLvl = oNum.GetLvlByStyle(StyleId);
 					if (-1 != nLvl)
-						Pr.ParaPr.Merge(oNumbering.GetParaPr(Style.ParaPr.NumPr.NumId, nLvl));
+						Pr.ParaPr.Merge(oNumbering.GetParaPr(sNumId, nLvl));
 					else if (undefined !== Style.ParaPr.NumPr.Lvl)
-						Pr.ParaPr.Merge(oNumbering.GetParaPr(Style.ParaPr.NumPr.NumId, Style.ParaPr.NumPr.Lvl));
+						Pr.ParaPr.Merge(oNumbering.GetParaPr(sNumId, Style.ParaPr.NumPr.Lvl));
 					else
 						Pr.ParaPr.NumPr = undefined;
 				}
