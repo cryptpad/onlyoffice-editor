@@ -278,12 +278,14 @@ CBookmarksManager.prototype.GetBookmarkById = function(Id)
 };
 CBookmarksManager.prototype.GetBookmarkByName = function(sName)
 {
+	var _sName = sName.toLowerCase();
+
 	this.Update();
 
 	for (var nIndex = 0, nCount = this.Bookmarks.length; nIndex < nCount; ++nIndex)
 	{
 		var oStart = this.Bookmarks[nIndex][0];
-		if (oStart.GetBookmarkName() === sName)
+		if (oStart.GetBookmarkName().toLowerCase() === _sName)
 			return this.Bookmarks[nIndex];
 	}
 
@@ -291,12 +293,14 @@ CBookmarksManager.prototype.GetBookmarkByName = function(sName)
 };
 CBookmarksManager.prototype.HaveBookmark = function(sName)
 {
+	var _sName = sName.toLowerCase();
+
 	this.Update();
 
 	for (var nIndex = 0, nCount = this.Bookmarks.length; nIndex < nCount; ++nIndex)
 	{
 		var oStart = this.Bookmarks[nIndex][0];
-		if (oStart.GetBookmarkName() === sName)
+		if (oStart.GetBookmarkName().toLowerCase() === sName)
 			return true;
 	}
 
