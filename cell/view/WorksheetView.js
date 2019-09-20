@@ -11462,7 +11462,7 @@
 							_p_.renameSheetCopy(renameParams);
 							assemb = _p_.assemble(true)
 						} else {
-							assemb = _p_.changeOffset(offset).assemble(true);
+							assemb = _p_.changeOffset(offset, null, true).assemble(true);
 						}
 
 						rangeStyle.formula = {range: range, val: "=" + assemb, arrayRef: arrayFormulaRef};
