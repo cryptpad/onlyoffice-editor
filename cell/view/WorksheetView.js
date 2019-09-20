@@ -15579,6 +15579,7 @@
         var newActiveRange = this.model.selectionRange.getLast().clone();
         var displayName = undefined;
         var type = null;
+        var totalRow = tablePart.isTotalsRow();
         switch (optionType) {
             case c_oAscInsertOptions.InsertTableRowAbove:
             {
@@ -15592,9 +15593,11 @@
             {
                 newActiveRange.c1 = tablePart.Ref.c1;
                 newActiveRange.c2 = tablePart.Ref.c2;
-                newActiveRange.r1 = tablePart.Ref.r2 + 1;
-                newActiveRange.r2 = tablePart.Ref.r2 + 1;
-                displayName = tableName;
+                newActiveRange.r1 = totalRow ? tablePart.Ref.r2 : tablePart.Ref.r2 + 1;
+                newActiveRange.r2 = totalRow ? tablePart.Ref.r2 : tablePart.Ref.r2 + 1;
+                if(!totalRow) {
+					displayName = tableName;
+				}
                 type = c_oAscInsertOptions.InsertCellsAndShiftDown;
 
                 break;
