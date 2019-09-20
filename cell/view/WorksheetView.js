@@ -15536,95 +15536,91 @@
         return res;
     };
 
-    WorksheetView.prototype.af_insertCellsInTable = function (tableName, optionType) {
-        var t = this;
-        var ws = this.model;
+	WorksheetView.prototype.af_insertCellsInTable = function (tableName, optionType) {
+		var t = this;
+		var ws = this.model;
 
-        var tablePart = ws.autoFilters._getFilterByDisplayName(tableName);
+		var tablePart = ws.autoFilters._getFilterByDisplayName(tableName);
 
-        if (!tablePart || (tablePart && !tablePart.Ref)) {
-            return false;
-        }
+		if (!tablePart || (tablePart && !tablePart.Ref)) {
+			return false;
+		}
 
-        var insertCellsAndShiftDownRight = function (arn, displayName, type) {
-            var range = t.model.getRange3(arn.r1, arn.c1, arn.r2, arn.c2);
-            var isCheckChangeAutoFilter = t.af_checkInsDelCells(arn, type, "insCell", true);
-            if (isCheckChangeAutoFilter === false) {
-                return;
-            }
+		var insertCellsAndShiftDownRight = function (arn, displayName, type) {
+			var range = t.model.getRange3(arn.r1, arn.c1, arn.r2, arn.c2);
+			var isCheckChangeAutoFilter = t.af_checkInsDelCells(arn, type, "insCell", true);
+			if (isCheckChangeAutoFilter === false) {
+				return;
+			}
 
-            var callback = function (isSuccess) {
-                if (false === isSuccess) {
-                    return;
-                }
+			var callback = function (isSuccess) {
+				if (false === isSuccess) {
+					return;
+				}
 
-                History.Create_NewPoint();
-                History.StartTransaction();
-                var shiftCells = type === c_oAscInsertOptions.InsertCellsAndShiftRight ?
-                  range.addCellsShiftRight(displayName) : range.addCellsShiftBottom(displayName);
-                if (shiftCells) {
-                    t.cellCommentator.updateCommentsDependencies(true, type, arn);
-                    t.objectRender.updateDrawingObject(true, type, arn);
-                    t._onUpdateFormatTable(range, false, true);
-                }
-                History.EndTransaction();
-            };
+				History.Create_NewPoint();
+				History.StartTransaction();
+				var shiftCells = type === c_oAscInsertOptions.InsertCellsAndShiftRight ?
+					range.addCellsShiftRight(displayName) : range.addCellsShiftBottom(displayName);
+				if (shiftCells) {
+					t.cellCommentator.updateCommentsDependencies(true, type, arn);
+					t.objectRender.updateDrawingObject(true, type, arn);
+					t._onUpdateFormatTable(range, false, true);
+				}
+				History.EndTransaction();
+			};
 
 			var r2 = type === c_oAscInsertOptions.InsertCellsAndShiftRight ? tablePart.Ref.r2 : gc_nMaxRow0;
 			var c2 = type !== c_oAscInsertOptions.InsertCellsAndShiftRight ? tablePart.Ref.c2 : gc_nMaxCol0;
 			var changedRange = new asc_Range(tablePart.Ref.c1, tablePart.Ref.r1, c2, r2);
-            t._isLockedCells(changedRange, null, callback);
-        };
+			t._isLockedCells(changedRange, null, callback);
+		};
 
-        var newActiveRange = this.model.selectionRange.getLast().clone();
-        var displayName = undefined;
-        var type = null;
-        var totalRow = tablePart.isTotalsRow();
-        switch (optionType) {
-            case c_oAscInsertOptions.InsertTableRowAbove:
-            {
-                newActiveRange.c1 = tablePart.Ref.c1;
-                newActiveRange.c2 = tablePart.Ref.c2;
-                type = c_oAscInsertOptions.InsertCellsAndShiftDown;
+		var newActiveRange = this.model.selectionRange.getLast().clone();
+		var displayName = undefined;
+		var type = null;
+		var totalRow = tablePart.isTotalsRow();
+		switch (optionType) {
+			case c_oAscInsertOptions.InsertTableRowAbove: {
+				newActiveRange.c1 = tablePart.Ref.c1;
+				newActiveRange.c2 = tablePart.Ref.c2;
+				type = c_oAscInsertOptions.InsertCellsAndShiftDown;
 
-                break;
-            }
-            case c_oAscInsertOptions.InsertTableRowBelow:
-            {
-                newActiveRange.c1 = tablePart.Ref.c1;
-                newActiveRange.c2 = tablePart.Ref.c2;
-                newActiveRange.r1 = totalRow ? tablePart.Ref.r2 : tablePart.Ref.r2 + 1;
-                newActiveRange.r2 = totalRow ? tablePart.Ref.r2 : tablePart.Ref.r2 + 1;
-                if(!totalRow) {
+				break;
+			}
+			case c_oAscInsertOptions.InsertTableRowBelow: {
+				newActiveRange.c1 = tablePart.Ref.c1;
+				newActiveRange.c2 = tablePart.Ref.c2;
+				newActiveRange.r1 = totalRow ? tablePart.Ref.r2 : tablePart.Ref.r2 + 1;
+				newActiveRange.r2 = totalRow ? tablePart.Ref.r2 : tablePart.Ref.r2 + 1;
+				if (!totalRow) {
 					displayName = tableName;
 				}
-                type = c_oAscInsertOptions.InsertCellsAndShiftDown;
+				type = c_oAscInsertOptions.InsertCellsAndShiftDown;
 
-                break;
-            }
-            case c_oAscInsertOptions.InsertTableColLeft:
-            {
-                newActiveRange.r1 = tablePart.Ref.r1;
-                newActiveRange.r2 = tablePart.Ref.r2;
-                type = c_oAscInsertOptions.InsertCellsAndShiftRight;
+				break;
+			}
+			case c_oAscInsertOptions.InsertTableColLeft: {
+				newActiveRange.r1 = tablePart.Ref.r1;
+				newActiveRange.r2 = tablePart.Ref.r2;
+				type = c_oAscInsertOptions.InsertCellsAndShiftRight;
 
-                break;
-            }
-            case c_oAscInsertOptions.InsertTableColRight:
-            {
-                newActiveRange.c1 = tablePart.Ref.c2 + 1;
-                newActiveRange.c2 = tablePart.Ref.c2 + 1;
-                newActiveRange.r1 = tablePart.Ref.r1;
-                newActiveRange.r2 = tablePart.Ref.r2;
-                displayName = tableName;
-                type = c_oAscInsertOptions.InsertCellsAndShiftRight;
+				break;
+			}
+			case c_oAscInsertOptions.InsertTableColRight: {
+				newActiveRange.c1 = tablePart.Ref.c2 + 1;
+				newActiveRange.c2 = tablePart.Ref.c2 + 1;
+				newActiveRange.r1 = tablePart.Ref.r1;
+				newActiveRange.r2 = tablePart.Ref.r2;
+				displayName = tableName;
+				type = c_oAscInsertOptions.InsertCellsAndShiftRight;
 
-                break;
-            }
-        }
+				break;
+			}
+		}
 
-        insertCellsAndShiftDownRight(newActiveRange, displayName, type)
-    };
+		insertCellsAndShiftDownRight(newActiveRange, displayName, type)
+	};
 
     WorksheetView.prototype.af_deleteCellsInTable = function (tableName, optionType) {
         var t = this;
