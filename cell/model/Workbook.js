@@ -11599,12 +11599,6 @@
 				if (nColMin > nNewIndex) {
 					nColMin = nNewIndex;
 				}
-				if (nToMax < nNewIndex) {
-					nToMax = nNewIndex;
-				}
-				if (oNewElem.from != oNewElem.to) {
-					aSortData.push(oNewElem);
-				}
 			} else {
 				nNewIndex = i * nMergedHeight + nRowFirst0 + nHiddenCount;
 				while (false != oThis.worksheet.getRowHidden(nNewIndex)) {
@@ -11625,12 +11619,12 @@
 				if (nRowMin > nNewIndex) {
 					nRowMin = nNewIndex;
 				}
-				if (nToMax < nNewIndex) {
-					nToMax = nNewIndex;
-				}
-				if (oNewElem.from != oNewElem.to) {
-					aSortData.push(oNewElem);
-				}
+			}
+			if (nToMax < nNewIndex) {
+				nToMax = nNewIndex;
+			}
+			if (oNewElem.from != oNewElem.to) {
+				aSortData.push(oNewElem);
 			}
 		}
 
@@ -11784,7 +11778,7 @@
 			if (nRowFirst0 == nStartRowCol) {
 				while (0 == aSortElems.length && nStartRowCol <= nLastRow0) {
 					if (false == bWholeRow) {
-						oRangeRow._foreachNoEmpty(fAddSortElems);
+						oRangeRow._foreachNoEmptyByCol(fAddSortElems);
 					} else {
 						oRangeRow._foreachRowNoEmpty(null, fAddSortElems);
 					}
@@ -11903,8 +11897,7 @@
 		}
 		//сортируются только одинарные гиперссылки, все неодинарные оставляем
 		var aSortedHyperlinks = [], hyp;
-		if (false == this.worksheet.workbook.bUndoChanges &&
-			(false == this.worksheet.workbook.bRedoChanges || this.worksheet.workbook.bCollaborativeChanges)) {
+		if (false == this.worksheet.workbook.bUndoChanges && (false == this.worksheet.workbook.bRedoChanges || this.worksheet.workbook.bCollaborativeChanges)) {
 			History.LocalChange = true;
 			var aHyperlinks = this.worksheet.hyperlinkManager.get(this.bbox);
 			for (i = 0, length = aHyperlinks.inner.length; i < length; i++) {
