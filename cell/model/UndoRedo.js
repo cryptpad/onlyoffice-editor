@@ -1126,13 +1126,14 @@ function (window, undefined) {
 		this.c2 = collaborativeEditing.getLockMeColumn2(nSheetId, this.c2);
 	};
 
-	function UndoRedoData_SortData(bbox, places) {
+	function UndoRedoData_SortData(bbox, places, sortByRow) {
 		this.bbox = bbox;
 		this.places = places;
+		this.sortByRow = sortByRow;
 	}
 
 	UndoRedoData_SortData.prototype.Properties = {
-		bbox: 0, places: 1
+		bbox: 0, places: 1, sortByRow: 2
 	};
 	UndoRedoData_SortData.prototype.getType = function () {
 		return UndoRedoDataTypes.SortData;
@@ -1148,6 +1149,9 @@ function (window, undefined) {
 			case this.Properties.places:
 				return this.places;
 				break;
+			case this.Properties.sortByRow:
+				return this.sortByRow;
+				break;
 		}
 		return null;
 	};
@@ -1159,6 +1163,9 @@ function (window, undefined) {
 			case this.Properties.places:
 				this.places = value;
 				break;
+			case this.Properties.sortByRow:
+				this.sortByRow = value;
+				break;
 		}
 	};
 	UndoRedoData_SortData.prototype.applyCollaborative = function (nSheetId, collaborativeEditing) {
@@ -1168,8 +1175,13 @@ function (window, undefined) {
 		this.bbox.c2 = collaborativeEditing.getLockMeColumn2(nSheetId, this.bbox.c2);
 		for (var i = 0, length = this.places.length; i < length; ++i) {
 			var place = this.places[i];
-			place.from = collaborativeEditing.getLockMeRow2(nSheetId, place.from);
-			place.to = collaborativeEditing.getLockMeRow2(nSheetId, place.to);
+			if(this.sortByRow) {
+				place.from = collaborativeEditing.getLockMeColumn2(nSheetId, place.from);
+				place.to = collaborativeEditing.getLockMeColumn2(nSheetId, place.to);
+			} else {
+				place.from = collaborativeEditing.getLockMeRow2(nSheetId, place.from);
+				place.to = collaborativeEditing.getLockMeRow2(nSheetId, place.to);
+			}
 		}
 	};
 
@@ -2275,6 +2287,7 @@ function (window, undefined) {
 		} else if (AscCH.historyitem_Worksheet_Sort == Type) {
 			var bbox = Data.bbox;
 			var places = Data.places;
+			var sortByRow = Data.sortByRow;
 			if (wb.bCollaborativeChanges) {
 				bbox.r1 = collaborativeEditing.getLockOtherRow2(nSheetId, bbox.r1);
 				bbox.c1 = collaborativeEditing.getLockOtherColumn2(nSheetId, bbox.c1);
@@ -2282,8 +2295,8 @@ function (window, undefined) {
 				bbox.c2 = collaborativeEditing.getLockOtherColumn2(nSheetId, bbox.c2);
 				for (i = 0, length = Data.places.length; i < length; ++i) {
 					var place = Data.places[i];
-					place.from = collaborativeEditing.getLockOtherRow2(nSheetId, place.from);
-					place.to = collaborativeEditing.getLockOtherRow2(nSheetId, place.to);
+					place.from = sortByRow ? collaborativeEditing.getLockOtherColumn2(nSheetId, place.from) : collaborativeEditing.getLockOtherRow2(nSheetId, place.from);
+					place.to = sortByRow ?  collaborativeEditing.getLockOtherColumn2(nSheetId, place.to) : collaborativeEditing.getLockOtherRow2(nSheetId, place.to);
 					oLockInfo = new AscCommonExcel.asc_CLockInfo();
 					oLockInfo["sheetId"] = nSheetId;
 					oLockInfo["type"] = c_oAscLockTypeElem.Range;
@@ -2292,7 +2305,7 @@ function (window, undefined) {
 				}
 			}
 			range = ws.getRange3(bbox.r1, bbox.c1, bbox.r2, bbox.c2);
-			range._sortByArray(bbox, places);
+			range._sortByArray(bbox, places, null, sortByRow);
 
 			worksheetView = wb.oApi.wb.getWorksheetById(nSheetId);
 			worksheetView.model.autoFilters.resetTableStyles(bbox);

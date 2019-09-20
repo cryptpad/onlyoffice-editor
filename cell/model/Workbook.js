@@ -11656,13 +11656,11 @@
 				History.SetSelectionRedo(oSelection);
 			}
 			var oUndoRedoBBox = new UndoRedoData_BBox({r1: nRowFirst0, c1: nColFirst0, r2: nLastRow0, c2: nLastCol0});
-			oRes = new AscCommonExcel.UndoRedoData_SortData(oUndoRedoBBox, aSortData);
+			oRes = new AscCommonExcel.UndoRedoData_SortData(oUndoRedoBBox, aSortData, opt_by_row);
 			this._sortByArray(oUndoRedoBBox, aSortData, null, opt_by_row);
-			if (opt_by_row) {
-				History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_Sort, this.worksheet.getId(), new Asc.Range(nColFirst0, 0, nLastCol0, gc_nMaxRow0)/*new Asc.Range(0, nRowFirst0, gc_nMaxCol0, nLastRow0)*/, oRes)
-			} else {
-				History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_Sort, this.worksheet.getId(), new Asc.Range(0, nRowFirst0, gc_nMaxCol0, nLastRow0), oRes);
-			}
+
+			var range = opt_by_row ? new Asc.Range(nColFirst0, 0, nLastCol0, gc_nMaxRow0) : new Asc.Range(0, nRowFirst0, gc_nMaxCol0, nLastRow0);
+			History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_Sort, this.worksheet.getId(), range, oRes)
 		}
 		this.worksheet.workbook.dependencyFormulas.unlockRecal();
 		return oRes;

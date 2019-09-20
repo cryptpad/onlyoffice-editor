@@ -9653,8 +9653,8 @@
                             callTrigger = true;
                             t.handlers.trigger("slowOperation", true);
                         }
-                        t.cellCommentator.sortComments(range.sort(val.type, activeCell.col, val.color, true));
-                        //t.cellCommentator.sortComments(range.sort(val.type, activeCell.row, val.color, true, true));
+                       	var opt_by_rows = false;
+                        t.cellCommentator.sortComments(range.sort(val.type, opt_by_rows ? activeCell.row : activeCell.col, val.color, true, opt_by_rows));
                         break;
 
                     case "empty":
