@@ -147,7 +147,29 @@ CParagraphBookmark.prototype.RemoveBookmark = function()
 	if (!oParent || -1 === nPosInParent)
 		return;
 
-	oParent.Remove_FromContent(nPosInParent, 1);
+	oParent.RemoveFromContent(nPosInParent, 1);
+};
+CParagraphBookmark.prototype.ChangeBookmarkName = function(sNewName)
+{
+	var oParagraph = this.Paragraph;
+	if (!oParagraph)
+		return;
+
+	var oCurPos = oParagraph.Get_PosByElement(this);
+	if (!oCurPos)
+		return;
+
+	var oParent      = this.GetParent();
+	var nPosInParent = this.GetPosInParent(oParent);
+
+	if (!oParent || -1 === nPosInParent)
+		return;
+
+	var oNewMark = new CParagraphBookmark(this.IsStart(), this.GetBookmarkId(), sNewName);
+	oParent.RemoveFromContent(nPosInParent, 1);
+	oParent.AddToContent(nPosInParent, oNewMark);
+
+	return oNewMark;
 };
 //----------------------------------------------------------------------------------------------------------------------
 // Функции совместного редактирования
@@ -381,11 +403,23 @@ CBookmarksManager.prototype.AddBookmark = function(sName)
 		if (this.IsHiddenBookmark(sName))
 			return;
 
+		var sTempName = "_temp_" + sName;
+		this.LogicDocument.AddBookmark(sTempName);
 		this.LogicDocument.RemoveBookmark(sName);
+
+		this.NeedUpdate = true;
+		var oBookmark = this.GetBookmarkByName(sTempName);
+		if (oBookmark)
+		{
+			this.NeedUpdate = true;
+			oBookmark[0].ChangeBookmarkName(sName);
+			oBookmark[1].ChangeBookmarkName(sName);
+		}
 	}
-
-
-	this.LogicDocument.AddBookmark(sName);
+	else
+	{
+		this.LogicDocument.AddBookmark(sName);
+	}
 };
 CBookmarksManager.prototype.GoToBookmark = function(sName)
 {
