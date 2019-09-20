@@ -4081,7 +4081,7 @@
 				var ignoreCustomFilter = currentFilterColumn ? currentFilterColumn.isOnlyNotEqualEmpty() : null;
 				var isCustomFilter = currentFilterColumn && !ignoreCustomFilter && currentFilterColumn.isApplyCustomFilter();
 
-				if (!isTablePart && filter.isApplyAutoFilter() === false)//нужно подхватить нижние ячейки в случае, если это не применен а/ф
+				if (!isTablePart /*&& filter.isApplyAutoFilter() === false*/)//нужно подхватить нижние ячейки
 				{
 					//TODO стоит заменить на expandRange ?
 					var automaticRange = this._getAdjacentCellsAF(filter.Ref, true);
