@@ -6226,6 +6226,16 @@
 			this.pivotTables[i].init();
 		}
 	};
+	Worksheet.prototype.updatePivotTable = function(pivotTable, oldRanges) {
+		var dataRow = pivotTable.update();
+		var multiplyRange = new AscCommonExcel.MultiplyRange(oldRanges);
+		multiplyRange.union2(new AscCommonExcel.MultiplyRange(this.getPivotTableRanges(pivotTable)));
+		var unionRange = multiplyRange.getUnionRange();
+		this.cleanPivotTableRanges(unionRange);
+		this._updatePivotTableCells(pivotTable, dataRow);
+		this.updatePivotTablesStyle(unionRange, true);
+		return unionRange;
+	};
 	Worksheet.prototype.clearPivotTable = function (pivotTable) {
 		var pos, cells;
 		if (this.pageFieldsPositions) {
@@ -6242,49 +6252,34 @@
 		cells.clearTableStyle();
 		cells.cleanAll();
 	};
-	Worksheet.prototype.updatePivotTable = function (pivotTable) {
-		pivotTable.init();
-		var dataRow = pivotTable.updateRowColItems();
-		pivotTable.updateLocation();
-		var cleanRanges = [];
-		var pos, cells, bWarning, pivotRange;
-		var i, l = pivotTable.pageFieldsPositions.length;
-		pos = 0 < l && pivotTable.pageFieldsPositions[0];
-		if (pos && 0 > pos.row) {
-			// ToDo add check exist data in cells
-			pivotRange = pivotTable.getRange();
-			pivotRange.setOffset(new AscCommon.CellBase(-1 * pos.row, 0));
-			pivotTable.init();
-			cells = this.getRange3(pivotRange.r1, pivotRange.c1, pivotRange.r2, pivotRange.c2);
-			cells._foreachNoEmpty(function (cell) {
-				return (bWarning = !cell.isNullText()) ? null : cell;
-			});
-			cleanRanges.push(cells);
-		}
-		for (i = 0; i < pivotTable.pageFieldsPositions.length; ++i) {
-			pos = pivotTable.pageFieldsPositions[i];
-			cells = this.getRange3(pos.row, pos.col, pos.row, pos.col + 1);
-			if (!bWarning) {
-				cells._foreachNoEmpty(function (cell) {
-					return (bWarning = !cell.isNullText()) ? null : cell;
-				});
-			}
-			cleanRanges.push(cells);
-		}
-		var t = this;
-		function callback(res) {
-			if (res) {
-				t._updatePivotTable(pivotTable, cleanRanges, dataRow);
+	Worksheet.prototype.getPivotTableRanges = function (pivotTable) {
+		var res = [], pos;
+		if (this.pageFieldsPositions) {
+			for (var i = 0; i < pivotTable.pageFieldsPositions.length; ++i) {
+				pos = pivotTable.pageFieldsPositions[i];
+				res.push(new Asc.Range(pos.col, pos.row, pos.col + 1, pos.row));
 			}
 		}
-		if (bWarning) {
-			// ToDo add confirm event
-			callback(true);
-		} else {
-			callback(true);
+
+		var pivotRange = pivotTable.getRange();
+		res.push(new Asc.Range(pivotRange.c1, pivotRange.r1, pivotRange.c2, pivotRange.r2));
+		return res;
+	};
+	Worksheet.prototype.cleanPivotTableRanges = function(range) {
+		var range = this.getRange3(range.r1, range.c1, range.r2, range.c2);
+		range.clearTableStyle();
+		range.cleanAll();
+	};
+	Worksheet.prototype._updatePivotTableCellsPage = function (pivotTable) {
+		for (var i = 0; i < pivotTable.pageFieldsPositions.length; ++i) {
+			var pos = pivotTable.pageFieldsPositions[i];
+			var cells = this.getRange4(pos.row, pos.col);
+			cells.setValue(pivotTable.getPageFieldName(i));
+			cells = this.getRange4(pos.row, pos.col + 1);
+			cells.setValue('(All)');
 		}
 	};
-	Worksheet.prototype._updatePivotTableHeader = function (pivotTable) {
+	Worksheet.prototype._updatePivotTableCellsHeader = function (pivotTable) {
 		var location = pivotTable.location;
 		if (0 === location.firstHeaderRow) {
 			return;
@@ -6320,7 +6315,7 @@
 			}
 		}
 	};
-	Worksheet.prototype._updatePivotTableRowColLables = function(pivotTable, rowFieldsPos) {
+	Worksheet.prototype._updatePivotTableCellsRowColLables = function(pivotTable, rowFieldsPos) {
 		var items, fields, field, oCellValue, fieldIndex, sharedItem, fieldItem, cells, r1, c1, valuesIndex;
 		var pivotRange = pivotTable.getRange();
 		var location = pivotTable.location;
@@ -6402,7 +6397,7 @@
 			}
 		}
 	};
-	Worksheet.prototype.item_updatePivotTableRowHeaderLabels = function(pivotTable) {
+	Worksheet.prototype._updatePivotTableCellsRowHeaderLabels = function(pivotTable) {
 		var rowFieldsPos = [0];
 		var rowFields = pivotTable.asc_getRowFields();
 		if (!rowFields) {
@@ -6437,7 +6432,7 @@
 		}
 		return rowFieldsPos;
 	};
-	Worksheet.prototype._updatePivotTableData = function(pivotTable, dataRow) {
+	Worksheet.prototype._updatePivotTableCellsData = function(pivotTable, dataRow) {
 		var rowFields = pivotTable.asc_getRowFields();
 		var rowItems = pivotTable.getRowItems();
 		var colFields = pivotTable.asc_getColumnFields();
@@ -6507,31 +6502,13 @@
 			}
 		}
 	};
-	Worksheet.prototype._updatePivotTable = function (pivotTable, cleanRanges, dataRow) {
-		var pos, cells, index, i, c1, r1;
-		for (i = 0; i < cleanRanges.length; ++i) {
-			cleanRanges[i].cleanAll();
-		}
-		var pivotRange = pivotTable.getRange();
-		var cacheFields = pivotTable.asc_getCacheFields();
-		var pivotFields = pivotTable.asc_getPivotFields();
-		var pageFields = pivotTable.asc_getPageFields();
-		for (i = 0; i < pivotTable.pageFieldsPositions.length; ++i) {
-			pos = pivotTable.pageFieldsPositions[i];
-			cells = this.getRange4(pos.row, pos.col);
-			index = pageFields[i].asc_getIndex();
-			cells.setValue(pageFields[i].asc_getName() || pivotFields[index].asc_getName() ||
-				cacheFields[index].asc_getName());
-
-			cells = this.getRange4(pos.row, pos.col + 1);
-			cells.setValue('(All)');
-		}
-		this._updatePivotTableHeader(pivotTable);
-		this._updatePivotTableRowColLables(pivotTable);
-		var rowFieldsPos = this.item_updatePivotTableRowHeaderLabels(pivotTable);
-		this._updatePivotTableRowColLables(pivotTable, rowFieldsPos);
-		this._updatePivotTableData(pivotTable, dataRow);
-		this.workbook.handlers.trigger("setSelection", new Asc.Range(pivotRange.c1, pivotRange.r1, pivotRange.c1, pivotRange.r1));
+	Worksheet.prototype._updatePivotTableCells = function (pivotTable, dataRow) {
+		this._updatePivotTableCellsPage(pivotTable);
+		this._updatePivotTableCellsHeader(pivotTable);
+		this._updatePivotTableCellsRowColLables(pivotTable);
+		var rowFieldsPos = this._updatePivotTableCellsRowHeaderLabels(pivotTable);
+		this._updatePivotTableCellsRowColLables(pivotTable, rowFieldsPos);
+		this._updatePivotTableCellsData(pivotTable, dataRow);
 	};
 	Worksheet.prototype.updatePivotTablesStyle = function (range, canModifyDocument) {
 		var t = this;
@@ -6598,7 +6575,7 @@
 			countR = pivotTable.getRowFieldsCount(true);
 
 			if (0 === countC + countR) {
-				if (canModifyDocument) {
+				if (canModifyDocument && 0 === pivotTable.pageFieldsPositions.length) {
 					//todo transparent ih, iv
 					var border;
 					border = new AscCommonExcel.Border();

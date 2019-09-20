@@ -2772,6 +2772,9 @@ function (window, undefined) {
 		if (!pivotTable) {
 			return;
 		}
+		if (!pivotTable.isChanged) {
+			pivotTable.isChanged = ws.getPivotTableRanges(pivotTable);
+		}
 
 		var value = bUndo ? Data.from : Data.to;
 		switch (Type) {
@@ -2790,14 +2793,64 @@ function (window, undefined) {
 			case AscCH.historyitem_PivotTable_StyleShowColStripes:
 				pivotTable.asc_getStyleInfo()._setShowColStripes(value);
 				break;
-		}
-
-		// ToDo not the best way to update
-		if (pivotTable.isInit) {
-			var pivotRange = pivotTable.getRange();
-			ws.updatePivotTablesStyle(pivotRange);
-			var api = window["Asc"]["editor"];
-			api.wb.getWorksheet()._onUpdateFormatTable(pivotRange);
+			case AscCH.historyitem_PivotTable_AddPageField:
+				if (bUndo) {
+					pivotTable.removeNoDataField(Data.from);
+				} else {
+					pivotTable.addPageField(Data.from, Data.to);
+				}
+				break;
+			case AscCH.historyitem_PivotTable_AddRowField:
+				if (bUndo) {
+					pivotTable.removeNoDataField(Data.from);
+				} else {
+					pivotTable.addRowField(Data.from, Data.to);
+				}
+				break;
+			case AscCH.historyitem_PivotTable_AddColField:
+				if (bUndo) {
+					pivotTable.removeNoDataField(Data.from);
+				} else {
+					pivotTable.addColField(Data.from, Data.to);
+				}
+				break;
+			case AscCH.historyitem_PivotTable_AddDataField:
+				if (bUndo) {
+					pivotTable.removeDataField(Data.from, Data.to);
+				} else {
+					pivotTable.addDataField(Data.from, Data.to);
+				}
+				break;
+			case AscCH.historyitem_PivotTable_RemovePageField:
+				if (bUndo) {
+					pivotTable.addPageField(Data.from, Data.to);
+				} else {
+					pivotTable.removeNoDataField(Data.from);
+				}
+				break;
+			case AscCH.historyitem_PivotTable_RemoveRowField:
+				if (bUndo) {
+					pivotTable.addRowField(Data.from, Data.to);
+				} else {
+					pivotTable.removeNoDataField(Data.from);
+				}
+				break;
+			case AscCH.historyitem_PivotTable_RemoveColField:
+				if (bUndo) {
+					pivotTable.addColField(Data.from, Data.to);
+				} else {
+					pivotTable.removeNoDataField(Data.from);
+				}
+				break;
+			case AscCH.historyitem_PivotTable_RemoveDataField:
+				for (var i = Data.to.length - 1; i >= 0; --i) {
+					if (bUndo) {
+						pivotTable.addDataField(Data.from, Data.to[i]);
+					} else {
+						pivotTable.removeDataField(Data.from, Data.to[i]);
+					}
+				}
+				break;
 		}
 	};
 

@@ -1485,6 +1485,16 @@
 			}
 			return false;
 		};
+		MultiplyRange.prototype.getUnionRange = function() {
+			if (0 === this.ranges.length) {
+				return null;
+			}
+			var res = this.ranges[0].clone();
+			for (var i = 1; i < this.ranges.length; ++i) {
+				res.union2(this.ranges[i]);
+			}
+			return res;
+		};
 
 		function VisibleRange(visibleRange, offsetX, offsetY) {
 			this.visibleRange = visibleRange;

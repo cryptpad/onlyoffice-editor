@@ -152,6 +152,14 @@ function (window, undefined) {
 	window['AscCH'].historyitem_PivotTable_StyleShowColHeaders = 3;
 	window['AscCH'].historyitem_PivotTable_StyleShowRowStripes = 4;
 	window['AscCH'].historyitem_PivotTable_StyleShowColStripes = 5;
+	window['AscCH'].historyitem_PivotTable_AddPageField = 6;
+	window['AscCH'].historyitem_PivotTable_AddRowField = 7;
+	window['AscCH'].historyitem_PivotTable_AddColField = 8;
+	window['AscCH'].historyitem_PivotTable_AddDataField = 9;
+	window['AscCH'].historyitem_PivotTable_RemovePageField = 10;
+	window['AscCH'].historyitem_PivotTable_RemoveRowField = 11;
+	window['AscCH'].historyitem_PivotTable_RemoveColField = 12;
+	window['AscCH'].historyitem_PivotTable_RemoveDataField = 13;
 
 	window['AscCH'].historyitem_SharedFormula_ChangeFormula = 1;
 	window['AscCH'].historyitem_SharedFormula_ChangeShared = 2;
@@ -426,6 +434,9 @@ CHistory.prototype.UndoRedoEnd = function (Point, oRedoObjectParam, bUndo) {
 		//синхронизация index и id worksheet
 		if (oRedoObjectParam.bUpdateWorksheetByModel)
 			this.workbook.handlers.trigger("updateWorksheetByModel");
+
+		//important after updateWorksheetByModel
+		t.workbook.oApi.updatePivotTables();
 
 		if(!bCoaut)
 		{

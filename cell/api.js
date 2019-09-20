@@ -1727,9 +1727,9 @@ var editor;
     this.collaborativeEditing.lock([lockInfo], callback);
   };
 
-	spreadsheet_api.prototype._isLockedPivot = function (pivotName, callback) {
+	spreadsheet_api.prototype._isLockedPivot = function (pivot, callback) {
 		var lockInfo = this.collaborativeEditing.getLockInfo(c_oAscLockTypeElem.Object, /*subType*/null,
-			this.asc_getActiveWorksheetId(), pivotName);
+			this.asc_getActiveWorksheetId(), pivot.asc_getName());
 		this.collaborativeEditing.lock([lockInfo], callback);
 	};
 
@@ -2141,14 +2141,10 @@ var editor;
 							cacheDefinition = new CT_PivotCacheDefinition();
 							cacheDefinition.fromDataRef(dataRef);
 						}
-						pivotTable.asc_create(ws, pivotName, cacheDefinition, new Asc.Range(0, 2, 2, 19));
-						ws.insertPivotTable(pivotTable);
-						t._changePivotStyle(pivotTable, function() {
-							var pivotRange = pivotTable.getRange();
-							if (pivotRange) {
-								t.handlers.trigger("setSelection",
-									new Asc.Range(pivotRange.c1, pivotRange.r1, pivotRange.c1, pivotRange.r1));
-							}
+						var location = new Asc.Range(AscCommonExcel.NEW_PIVOT_COL, AscCommonExcel.NEW_PIVOT_ROW, AscCommonExcel.NEW_PIVOT_COL, AscCommonExcel.NEW_PIVOT_ROW);
+						pivotTable.asc_create(ws, pivotName, cacheDefinition, location);
+						t._changePivotWithLock(pivotTable, function() {
+							ws.insertPivotTable(pivotTable);
 						});
 					}
 				});
@@ -3816,35 +3812,55 @@ var editor;
 	  this.asc_closeCellEditor();
     };
 
-	spreadsheet_api.prototype._changePivotStyle = function (pivot, callback) {
+	spreadsheet_api.prototype._changePivotWithLock = function (pivot, callback) {
 		var t = this;
-		var changePivotStyle = function (res) {
-		  var ws, wsModel, pivotRange, pos, i;
-			if (res) {
-				wsModel = t.wbModel.getActiveWs();
-				pivotRange = pivot.getRange().clone();
-				for (i = 0; i < pivot.pageFieldsPositions.length; ++i) {
-					pos = pivot.pageFieldsPositions[i];
-					pivotRange.union3(pos.col + 1, pos.row);
-				}
-				History.Create_NewPoint();
-				History.StartTransaction();
-				callback(wsModel);
-				pivotRange.union2(pivot.getRange());
-				// ToDo update ranges, not big range
-				for (i = 0; i < pivot.pageFieldsPositions.length; ++i) {
-					pos = pivot.pageFieldsPositions[i];
-					pivotRange.union3(pos.col + 1, pos.row);
-				}
-				wsModel.updatePivotTablesStyle(pivotRange, true);
-				History.EndTransaction();
-				ws = t.wb.getWorksheet();
-				ws._onUpdateFormatTable(pivotRange);
-				t.wb._onWSSelectionChanged();
-				ws.draw();
+		this._isLockedPivot(pivot, function(res) {
+			if (!res) {
+				return;
 			}
-		};
-		this._isLockedPivot(pivot.asc_getName(), changePivotStyle);
+			if (t._changePivotCheckLocation(pivot)) {
+			}
+			t._changePivot(pivot, callback);
+		});
+	};
+	spreadsheet_api.prototype._changePivotCheckLocation = function(pivot) {
+		return true;
+	};
+	spreadsheet_api.prototype._changePivot = function(pivot, callback) {
+		var ws, wsModel;
+		History.Create_NewPoint();
+		History.StartTransaction();
+		this.wbModel.dependencyFormulas.lockRecal();
+		wsModel = pivot.GetWS();
+		var oldRanges = wsModel.getPivotTableRanges(pivot);
+
+		callback(wsModel);
+
+		ws = this.wb.getWorksheet(wsModel.getIndex());
+		this._updatePivotTable(pivot, oldRanges, wsModel, ws);
+		this.wbModel.dependencyFormulas.unlockRecal();
+		History.EndTransaction();
+		var pivotRange = pivot.getRange();
+		ws.setSelection(new Asc.Range(pivotRange.c1, pivotRange.r1, pivotRange.c1, pivotRange.r1));
+		this.wb._onWSSelectionChanged();
+		ws.draw();
+	};
+	spreadsheet_api.prototype.updatePivotTables = function() {
+		var t = this;
+		this.wbModel.forEach(function(wsModel) {
+			var ws = t.wb.getWorksheet(wsModel.getIndex());
+			for (var i = 0; i < wsModel.pivotTables.length; ++i) {
+				var pivot = wsModel.pivotTables[i];
+				if (pivot.isChanged) {
+					t._updatePivotTable(pivot, pivot.isChanged, wsModel, ws);
+				}
+			}
+		});
+	};
+	spreadsheet_api.prototype._updatePivotTable = function(pivot, oldRanges, wsModel, ws) {
+		var unionRange = wsModel.updatePivotTable(pivot, oldRanges);
+		// ToDo update ranges, not big range
+		ws._onUpdateFormatTable(unionRange);
 	};
 
 	spreadsheet_api.prototype._selectSearchingResults = function () {
