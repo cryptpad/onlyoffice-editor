@@ -13784,7 +13784,9 @@
 
 					History.EndTransaction();
 				};
-
+				if(ar.containsRange(filterRange)) {
+					filterRange = ar.clone();
+				}
 				if (addNameColumn) {
 					filterRange.r2 = filterRange.r2 + 1;
 				}

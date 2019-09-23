@@ -1889,8 +1889,10 @@
 					}
 				}
 
-				//пересекается, но не равен фильтрованному диапазону. если равен - то фильтр превращается в таблицу
-				return worksheet.AutoFilter && worksheet.AutoFilter.Ref && range.intersection(worksheet.AutoFilter.Ref) && !range.isEqual(worksheet.AutoFilter.Ref);
+				//пересекается, но не содержит фильтрованный диапазону. если содержит + строки первые совпадают - то фильтр превращается в таблицу
+				var filterRef = worksheet.AutoFilter && worksheet.AutoFilter.Ref;
+				var contains = filterRef && range.containsRange(filterRef) && range.r1 === filterRef.r1;
+				return filterRef && range.intersection(filterRef) && !contains;
 			},
 
 			isStartRangeContainIntoTableOrFilter: function (activeCell) {
