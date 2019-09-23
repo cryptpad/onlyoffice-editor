@@ -6266,7 +6266,7 @@
 		return res;
 	};
 	Worksheet.prototype.cleanPivotTableRanges = function(range) {
-		var range = this.getRange3(range.r1, range.c1, range.r2, range.c2);
+		range = this.getRange3(range.r1, range.c1, range.r2, range.c2);
 		range.clearTableStyle();
 		range.cleanAll();
 	};

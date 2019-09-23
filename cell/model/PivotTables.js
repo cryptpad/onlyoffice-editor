@@ -581,6 +581,34 @@ function ToXml_ST_DataConsolidateFunction(val) {
 	return res;
 }
 
+function ToName_ST_DataConsolidateFunction(val) {
+	var res = "";
+	if (c_oAscDataConsolidateFunction.Average === val) {
+		res = "Average";
+	} else if (c_oAscDataConsolidateFunction.Count === val) {
+		res = "Count";
+	} else if (c_oAscDataConsolidateFunction.CountNums === val) {
+		res = "Count";
+	} else if (c_oAscDataConsolidateFunction.Max === val) {
+		res = "Max";
+	} else if (c_oAscDataConsolidateFunction.Min === val) {
+		res = "Min";
+	} else if (c_oAscDataConsolidateFunction.Product === val) {
+		res = "Product";
+	} else if (c_oAscDataConsolidateFunction.StdDev === val) {
+		res = "StdDev";
+	} else if (c_oAscDataConsolidateFunction.StdDevp === val) {
+		res = "StdDevp";
+	} else if (c_oAscDataConsolidateFunction.Sum === val) {
+		res = "Sum";
+	} else if (c_oAscDataConsolidateFunction.Var === val) {
+		res = "Var";
+	} else if (c_oAscDataConsolidateFunction.Varp === val) {
+		res = "Varp";
+	}
+	return res;
+}
+
 function FromXml_ST_ShowDataAs(val) {
 	var res = -1;
 	if ("normal" === val) {
@@ -2287,6 +2315,11 @@ CT_pivotTableDefinition.prototype.Get_Id = function () {
 CT_pivotTableDefinition.prototype.GetWS = function () {
 	return this.worksheet;
 };
+CT_pivotTableDefinition.prototype.getAndCleanIsChanged = function () {
+	var res = this.isChanged;
+	this.isChanged = null;
+	return res;
+};
 CT_pivotTableDefinition.prototype.Write_ToBinary2 = function (w) {
 	w.WriteLong(this.getObjectType());
 	w.WriteString2(this.Id);
@@ -3238,7 +3271,13 @@ CT_pivotTableDefinition.prototype.addDataField = function(pivotIndex, insertInde
 	pivotField.dataField = true;
 	var newField = new CT_DataField();
 	newField.fld = pivotIndex;
-	newField.name = "Sum of " + this.getPivotFieldName(pivotIndex);
+	var cacheField = this.asc_getCacheFields()[pivotIndex];
+	if (cacheField && cacheField.isSumSubtotal()) {
+		newField.subtotal = c_oAscDataConsolidateFunction.Sum;
+	} else {
+		newField.subtotal = c_oAscDataConsolidateFunction.Count;
+	}
+	newField.name = ToName_ST_DataConsolidateFunction(newField.subtotal) + " of " + this.getPivotFieldName(pivotIndex);
 	newField.baseField = 0;
 	newField.baseItem = 0;
 	if (!this.dataFields) {
@@ -3349,7 +3388,7 @@ CT_pivotTableDefinition.prototype.addPageField = function(pivotIndex, insertInde
 };
 CT_pivotTableDefinition.prototype.asc_addField = function(api, index) {
 	var cacheField = this.asc_getCacheFields()[index];
-	if (cacheField && cacheField.sharedItems && false === cacheField.sharedItems.containsSemiMixedTypes && true === cacheField.sharedItems.containsNumber) {
+	if (cacheField && cacheField.isSumSubtotal()) {
 		this.asc_addDataField(api, index);
 	} else {
 		this.asc_addRowField(api, index);
@@ -6377,6 +6416,10 @@ CT_CacheField.prototype.asc_getName = function () {
 CT_CacheField.prototype.getSharedItem = function (index) {
 	return this.sharedItems && this.sharedItems.Items.get(index);
 };
+CT_CacheField.prototype.isSumSubtotal = function (index) {
+	return this.sharedItems && false === this.sharedItems.containsSemiMixedTypes && true === this.sharedItems.containsNumber;
+};
+
 function CT_CacheHierarchy() {
 //Attributes
 	this.uniqueName = null;

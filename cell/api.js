@@ -3851,8 +3851,9 @@ var editor;
 			var ws = t.wb.getWorksheet(wsModel.getIndex());
 			for (var i = 0; i < wsModel.pivotTables.length; ++i) {
 				var pivot = wsModel.pivotTables[i];
-				if (pivot.isChanged) {
-					t._updatePivotTable(pivot, pivot.isChanged, wsModel, ws);
+				var isChanged = pivot.getAndCleanIsChanged();
+				if (isChanged) {
+					t._updatePivotTable(pivot, isChanged, wsModel, ws);
 				}
 			}
 		});
