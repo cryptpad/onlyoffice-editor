@@ -10478,6 +10478,9 @@
         if (fromBinary) {
             selectData = t._pasteFromBinary(val, null, tablesMap);
         } else {
+			if(bText) {
+				specialPasteProps.font = false;
+			}
             selectData = t._pasteFromHTML(val, null, specialPasteProps);
         }
 
