@@ -645,15 +645,19 @@
 
 				var autoFilter = filterObj.filter.getAutoFilter();
 				var rangeOldFilter = oldFilter.Ref;
+				var newFilterColumn, filterRange;
+
 				//byCurCell - если пользователь нажимает на конкретной ячейке - скрыть данное значение - для а/ф с мерженным заголвком
 				if(byCurCell && filterObj.ColId >= 0 && filterObj.startColId >= 0 && filterObj.ColId !== filterObj.startColId) {
 
-					if(rangeOldFilter.r1 + 1 <= ar.r1 - 1) {
-						worksheet.setRowHidden(true, rangeOldFilter.r1 + 1, ar.r1 - 1);
-					}
-					if(rangeOldFilter.r2 >= ar.r1 + 1) {
-						worksheet.setRowHidden(true, ar.r1 + 1, rangeOldFilter.r2);
-					}
+					newFilterColumn = new window['AscCommonExcel'].FilterColumn();
+					newFilterColumn.ColId = filterObj.startColId;
+
+					filterRange = worksheet.getRange3(autoFilter.Ref.r1 + 1, filterObj.startColId + autoFilter.Ref.c1, autoFilter.Ref.r2, filterObj.startColId + autoFilter.Ref.c1);
+					autoFiltersObject = tryConvertFilter ? this._tryConvertCustomFilter(autoFiltersObject, filterRange) : autoFiltersObject;
+					newFilterColumn.createFilter(autoFiltersObject);
+					newFilterColumn.init(filterRange);
+					autoFilter.setRowHidden(worksheet, newFilterColumn);
 
 					History.EndTransaction();
 					return {minChangeRow: minChangeRow, rangeOldFilter: rangeOldFilter, nOpenRowsCount: null, nAllRowsCount: null};
@@ -665,7 +669,6 @@
 					autoFilter = filterObj.filter.addAutoFilter();
 				}
 
-				var newFilterColumn;
 				if (filterObj.index !== null) {
 					newFilterColumn = autoFilter.FilterColumns[filterObj.index];
 					newFilterColumn.clean();
@@ -675,7 +678,7 @@
 					newFilterColumn.ColId = filterObj.ColId;
 				}
 
-				var filterRange = worksheet.getRange3(autoFilter.Ref.r1 + 1, filterObj.ColId + autoFilter.Ref.c1, autoFilter.Ref.r2, filterObj.ColId + autoFilter.Ref.c1);
+				filterRange = worksheet.getRange3(autoFilter.Ref.r1 + 1, filterObj.ColId + autoFilter.Ref.c1, autoFilter.Ref.r2, filterObj.ColId + autoFilter.Ref.c1);
 				autoFiltersObject = tryConvertFilter ? this._tryConvertCustomFilter(autoFiltersObject, filterRange) : autoFiltersObject;
 				var allFilterOpenElements = newFilterColumn.createFilter(autoFiltersObject);
 				newFilterColumn.init(filterRange);
