@@ -2255,6 +2255,20 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
 
             break;
         }
+
+        case 440:   // ASC_MENU_EVENT_TYPE_ADD_CHART_DATA
+        {
+            if (undefined !== _params) {
+                var chartData = _params[0];
+                if (chartData && chartData.length > 0) {
+                    var json = JSON.parse(chartData);
+                    if (json) {
+                        _api.asc_addChartDrawingObject(json);
+                    }
+                }
+            }
+            break;
+        } 
             
         case 450:   // ASC_MENU_EVENT_TYPE_GET_CHART_DATA
         {
