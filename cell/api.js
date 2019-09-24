@@ -1030,7 +1030,7 @@ var editor;
 								if (res) {
 									var ws = t.wbModel.getWorksheet(wsIndex);
 									for (var i = 0; i < res.length; ++i) {
-										var pivotTable = new Asc.CT_pivotTableDefinition();
+										var pivotTable = new Asc.CT_pivotTableDefinition(true);
 										new openXml.SaxParserBase().parse(res[i], pivotTable);
 										var cacheDefinition = pivotCaches[pivotTable.cacheId];
 										if (cacheDefinition) {
@@ -2137,7 +2137,7 @@ var editor;
 				this._addWorksheet(pivotNewSheetName, i, function(ws) {
 					if (ws) {
 						var pivotName = wb.dependencyFormulas.getNextPivotName();
-						var pivotTable = new Asc.CT_pivotTableDefinition();
+						var pivotTable = new Asc.CT_pivotTableDefinition(true);
 						var cacheDefinition = wb.getPivotCacheByDataRef(dataRef);
 						if (!cacheDefinition) {
 							cacheDefinition = new CT_PivotCacheDefinition();

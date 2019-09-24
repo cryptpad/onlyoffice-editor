@@ -6371,6 +6371,8 @@
 						oCellValue.text = AscCommonExcel.ToName_ST_ItemType(item.t);
 						oCellValue.text += ' ' + pivotTable.getDataFieldName(item.i);
 					}
+				} else if (Asc.c_oAscItemType.Blank === item.t) {
+					break;
 				} else {
 					oCellValue = new AscCommonExcel.CCellValue();
 					oCellValue.type = AscCommon.CellValueType.String;
@@ -6451,6 +6453,9 @@
 		var fieldIndex, field, fieldItem, dataByColIndex, dataField;
 		for (var rowItemsIndex = 0; rowItemsIndex < rowItems.length; ++rowItemsIndex) {
 			var rowItem = rowItems[rowItemsIndex];
+			if (Asc.c_oAscItemType.Blank === rowItem.t) {
+				continue;
+			}
 			var rowR = rowItem.getR();
 			curDataRow = dataByRowIndex[rowR];
 			if (Asc.c_oAscItemType.Grand !== rowItem.t && rowFields) {
@@ -6469,7 +6474,8 @@
 			}
 			//todo
 			if (Asc.c_oAscItemType.Data !== rowItem.t || !rowFields || rowR + rowItem.x.length === rowFields.length ||
-				(AscCommonExcel.st_VALUES !== fieldIndex && pivotFields[fieldIndex].asc_getSubtotalTop())) {
+				(AscCommonExcel.st_VALUES !== fieldIndex && pivotFields[fieldIndex].asc_getDefaultSubtotal() &&
+				pivotFields[fieldIndex].asc_getSubtotalTop())) {
 				dataByColIndex = [curDataRow];
 				for (var colItemsIndex = 0; colItemsIndex < colItems.length; ++colItemsIndex) {
 					var colItem = colItems[colItemsIndex];
