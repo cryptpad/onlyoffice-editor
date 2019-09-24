@@ -622,11 +622,13 @@
 				worksheet.workbook.dependencyFormulas.lockRecal();
 
 				//if apply a/f from context menu
-				if (autoFiltersObject && null === autoFiltersObject.automaticRowCount && currentFilter.isAutoFilter() &&
-					currentFilter.isApplyAutoFilter() === false) {
+				var byCurCell = false;
+				if (autoFiltersObject && null === autoFiltersObject.automaticRowCount && currentFilter.isAutoFilter() && currentFilter.isApplyAutoFilter() === false) {
 					//TODO стоит заменить на expandRange ?
 					var automaticRange = this._getAdjacentCellsAF(currentFilter.Ref, true);
 					var automaticRowCount = automaticRange.r2;
+
+					byCurCell = true;
 
 					var maxFilterRow = currentFilter.Ref.r2;
 					if (automaticRowCount > currentFilter.Ref.r2) {
@@ -642,6 +644,20 @@
 				History.StartTransaction();
 
 				var rangeOldFilter = oldFilter.Ref;
+				//byCurCell - если пользователь нажимает на конкретной ячейке - скрыть данное значение - для а/ф с мерженным заголвком
+				if(byCurCell && filterObj.ColId >= 0 && filterObj.startColId >= 0 && filterObj.ColId !== filterObj.startColId) {
+
+					if(rangeOldFilter.r1 + 1 <= ar.r1 - 1) {
+						worksheet.setRowHidden(true, rangeOldFilter.r1 + 1, ar.r1 - 1);
+					}
+					if(rangeOldFilter.r2 >= ar.r1 + 1) {
+						worksheet.setRowHidden(true, ar.r1 + 1, rangeOldFilter.r2);
+					}
+
+					History.EndTransaction();
+					return {minChangeRow: minChangeRow, rangeOldFilter: rangeOldFilter, nOpenRowsCount: null, nAllRowsCount: null};
+				}
+
 
 				//change model
 				var autoFilter = filterObj.filter.getAutoFilter();
@@ -2684,6 +2700,7 @@
 					}
 				}
 
+				var startColId = ColId;
 				ColId = this._getTrueColId(filter, ColId, true);
 
 				if (autoFilter && autoFilter.FilterColumns) {
@@ -2696,7 +2713,7 @@
 				}
 
 
-				return {filter: filter, index: index, activeRange: activeRange, ColId: ColId};
+				return {filter: filter, index: index, activeRange: activeRange, ColId: ColId, startColId: startColId};
 			},
 
 			_getFilterByDisplayName: function (displayName) {
@@ -4079,6 +4096,9 @@
 				colId = this._getTrueColId(autoFilter, colId, true);
 
 				var currentFilterColumn = autoFilter.getFilterColumn(colId);
+				if(currentFilterColumn && !currentFilterColumn.isApplyAutoFilter()) {
+					currentFilterColumn = null;
+				}
 				//если скрыты только пустые значение, игнорируем пользовательский фильтр при отображении в меню
 				var ignoreCustomFilter = currentFilterColumn ? currentFilterColumn.isOnlyNotEqualEmpty() : null;
 				var isCustomFilter = currentFilterColumn && !ignoreCustomFilter && currentFilterColumn.isApplyCustomFilter();
