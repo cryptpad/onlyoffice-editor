@@ -643,6 +643,7 @@
 				History.Create_NewPoint();
 				History.StartTransaction();
 
+				var autoFilter = filterObj.filter.getAutoFilter();
 				var rangeOldFilter = oldFilter.Ref;
 				//byCurCell - если пользователь нажимает на конкретной ячейке - скрыть данное значение - для а/ф с мерженным заголвком
 				if(byCurCell && filterObj.ColId >= 0 && filterObj.startColId >= 0 && filterObj.ColId !== filterObj.startColId) {
@@ -660,7 +661,6 @@
 
 
 				//change model
-				var autoFilter = filterObj.filter.getAutoFilter();
 				if (!autoFilter) {
 					autoFilter = filterObj.filter.addAutoFilter();
 				}
@@ -4205,13 +4205,24 @@
 				var cell = worksheet.getCell3(ref.r1, colId + ref.c1);
 				var hasMerged = cell.hasMerged();
 				if(checkShowButton) {
-					if(filter.isHideButton(colId)) {
+					var i, length;
+					/*if(filter.isHideButton(colId)) {
 						if(hasMerged) {
-							for(var i = colId + ref.c1; i <= Math.min(ref.c2, hasMerged.c2); i++) {
+							for(i = colId + ref.c1; i <= Math.min(ref.c2, hasMerged.c2); i++) {
 								if(!filter.isHideButton(colId - ref.c1)) {
 									res = colId - ref.c1;
 									break;
 								}
+							}
+						}
+					} else*/ if(colId > 0 && filter.isHideButton(colId - 1)) {
+						for(i = colId + ref.c1 - 1, length = Math.max(ref.c1, hasMerged.c1); i >= length; i--) {
+							if(!filter.isHideButton(i - ref.c1)) {
+								res = i + 1 - ref.c1;
+								break;
+							} else if(length === i) {
+								res = i - ref.c1;
+								break;
 							}
 						}
 					}
