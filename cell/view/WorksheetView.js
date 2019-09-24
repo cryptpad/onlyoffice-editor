@@ -10969,12 +10969,9 @@
             }
         }
 
-        var rangeUnMerge = t.model.getRange3(arn.r1, arn.c1, rMax - 1, cMax - 1);
-
         var rMax2 = rMax;
         var cMax2 = cMax;
-        //var rMax = values.length;
-		if (isCheckSelection) {
+        var getLockRange = function() {
 			var newArr = arn.clone(true);
 			newArr.r2 = rMax2 - 1;
 			newArr.c2 = cMax2 - 1;
@@ -10983,7 +10980,15 @@
 				newArr.c2 = arn.c2;
 			}
 			return newArr;
+		};
+
+		if (isCheckSelection) {
+			return getLockRange();
 		}
+
+		var bboxUnMerge = getLockRange();
+		var rangeUnMerge = t.model.getRange3(bboxUnMerge.r1, bboxUnMerge.c1, bboxUnMerge.r2, bboxUnMerge.c2);
+
 		//если не возникает конфликт, делаем unmerge
 		if (specialPasteProps.format) {
 			rangeUnMerge.unmerge();
