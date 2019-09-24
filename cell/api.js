@@ -1746,7 +1746,9 @@ var editor;
           t.sheetsChanged();
 		}
       }
-      callback(newWs);
+      if (callback) {
+        callback(newWs);
+      }
     };
 
     var lockInfo = this.collaborativeEditing.getLockInfo(c_oAscLockTypeElem.Sheet, /*subType*/null,
@@ -2150,6 +2152,15 @@ var editor;
 				});
 			}
 		}
+	};
+
+	spreadsheet_api.prototype.asc_refreshAllPivots = function() {
+		var t = this;
+		this.wbModel.forEach(function(ws) {
+			for (var i = 0; i < ws.pivotTables.length; ++i) {
+				ws.pivotTables[i].asc_refresh(t);
+			}
+		});
 	};
 
   spreadsheet_api.prototype.asc_cleanSelection = function() {

@@ -6417,18 +6417,18 @@
 			}
 		} else {
 			index = rowFields[0].asc_getIndex();
-			cells = this.getRange4(r1, c1++);
+			cells = this.getRange4(r1, c1);
 			cells.setValue(pivotTable.getPivotFieldName(index));
 		}
 		for (var i = 1; i < rowFields.length; ++i) {
-			rowFieldsPos[i] = c1;
 			index = rowFields[i - 1].asc_getIndex();
 			field = pivotFields[index];
-			if (field && false === field.compact) {
+			if (field && !(field.compact && field.outline)) {
 				index = rowFields[i].asc_getIndex();
-				cells = this.getRange4(r1, c1++);
+				cells = this.getRange4(r1, ++c1);
 				cells.setValue(pivotTable.getPivotFieldName(index));
 			}
+			rowFieldsPos[i] = c1;
 		}
 		return rowFieldsPos;
 	};

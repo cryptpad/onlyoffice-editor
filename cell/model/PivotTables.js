@@ -3242,6 +3242,12 @@ CT_pivotTableDefinition.prototype.asc_set = function (api, newVal) {
 		if (t.asc_getColGrandTotals() !== newVal.colGrandTotals) {
 			t.asc_setColGrandTotals(newVal.colGrandTotals);
 		}
+		if (t.compact !== newVal.compact) {
+			t.setCompact(newVal.compact);
+		}
+		if (t.outline !== newVal.outline) {
+			t.setOutline(newVal.outline);
+		}
 	});
 };
 CT_pivotTableDefinition.prototype.asc_setRowGrandTotals = function(newVal) {
@@ -3259,6 +3265,42 @@ CT_pivotTableDefinition.prototype.asc_setColGrandTotals = function(newVal) {
 	if (colFields && (res = this.changeGrandTotals(this.colItems, newVal))) {
 		this.getRange().setOffsetLast(new AscCommon.CellBase(0, res));
 	}
+};
+CT_pivotTableDefinition.prototype.asc_setCompact = function(newVal) {
+	this.compact = newVal;
+};
+CT_pivotTableDefinition.prototype.setCompact = function(newVal) {
+	this.compact = newVal;
+	this.compactData = newVal;
+	var pivotFields = this.asc_getPivotFields();
+	if (pivotFields) {
+		for (var i = 0; i < pivotFields.length; ++i) {
+			pivotFields[i].compact = newVal;
+		}
+	}
+};
+CT_pivotTableDefinition.prototype.asc_setOutline = function(newVal) {
+	this.outline = newVal;
+};
+CT_pivotTableDefinition.prototype.setOutline = function(newVal) {
+	this.outline = newVal;
+	this.outlineData = newVal;
+	var pivotFields = this.asc_getPivotFields();
+	if (pivotFields) {
+		for (var i = 0; i < pivotFields.length; ++i) {
+			pivotFields[i].outline = newVal;
+		}
+	}
+};
+CT_pivotTableDefinition.prototype.asc_setFillDownLabels = function(newVal) {
+	this.setFillDownLabels();
+};
+CT_pivotTableDefinition.prototype.setFillDownLabels = function(newVal) {
+	if (this.pivotTableDefinitionX14) {
+		this.pivotTableDefinitionX14 = new CT_pivotTableDefinitionX14();
+	}
+	this.pivotTableDefinitionX14.fillDownLabelsDefault = newVal;
+	//todo
 };
 CT_pivotTableDefinition.prototype.asc_addDataField = function(api, pivotIndex, insertIndex) {
 	var t = this;
@@ -3401,7 +3443,7 @@ CT_pivotTableDefinition.prototype.asc_removeField = function(api, pivotIndex, da
 		t.removeDataField(pivotIndex, dataIndex, true);
 	});
 };
-CT_pivotTableDefinition.prototype.asc_updateCacheData = function(api) {
+CT_pivotTableDefinition.prototype.asc_refresh = function(api) {
 	var worksheetSource = this.cacheDefinition.getWorksheetSource();
 	var dataRef = worksheetSource.getDataRef();
 	if (worksheetSource && Asc.CT_pivotTableDefinition.prototype.isValidDataRef(dataRef)) {
@@ -3666,7 +3708,7 @@ CT_pivotTableDefinition.prototype._updateRowColItemsRecursively = function(index
 	if (index >= fields.length) {
 		return;
 	}
-	var pivotField, isTabular, indexItem, item, subDataMap, dataField;
+	var pivotField, indexItem, item, subDataMap, dataField;
 	var x = fields[index].x;
 	if (st_VALUES === x) {
 		if (dataFields) {
@@ -3675,8 +3717,7 @@ CT_pivotTableDefinition.prototype._updateRowColItemsRecursively = function(index
 				if (dataField) {
 					pivotField = pivotFields[dataField.asc_getIndex()];
 					if (pivotField) {
-						isTabular = (forceTabular || false === pivotField.compact);
-						this._updateRowColItemsRecursivelyElem(index, dataMap, items, fields, forceTabular, pivotFields, indexItem, dataFields, indexItem, parentI, isTabular, indexValues);
+						this._updateRowColItemsRecursivelyElem(index, dataMap, items, fields, forceTabular, pivotField, pivotFields, indexItem, dataFields, indexItem, parentI, indexValues);
 						parentI = null;
 					}
 				}
@@ -3685,13 +3726,12 @@ CT_pivotTableDefinition.prototype._updateRowColItemsRecursively = function(index
 	} else {
 		pivotField = pivotFields[x];
 		if (pivotField && pivotField.items) {
-			isTabular = (forceTabular || false === pivotField.compact);
 			for (indexItem = 0; indexItem < pivotField.items.item.length; ++indexItem) {
 				item = pivotField.items.item[indexItem];
 				if (Asc.c_oAscItemType.Default !== item.t) {
 					subDataMap = dataMap.vals[item.x];
 					if (subDataMap) {
-						this._updateRowColItemsRecursivelyElem(index, subDataMap, items, fields, forceTabular, pivotFields, dataIndex, dataFields, indexItem, parentI, isTabular, indexValues);
+						this._updateRowColItemsRecursivelyElem(index, subDataMap, items, fields, forceTabular, pivotField, pivotFields, dataIndex, dataFields, indexItem, parentI, indexValues);
 						parentI = null;
 					}
 				}
@@ -3699,10 +3739,11 @@ CT_pivotTableDefinition.prototype._updateRowColItemsRecursively = function(index
 		}
 	}
 };
-CT_pivotTableDefinition.prototype._updateRowColItemsRecursivelyElem = function(index, dataMap, items, fields, forceTabular, pivotFields, dataIndex, dataFields, indexItem, parentI, isTabular, indexValues) {
+CT_pivotTableDefinition.prototype._updateRowColItemsRecursivelyElem = function(index, dataMap, items, fields, forceTabular, parentPivotField, pivotFields, dataIndex, dataFields, indexItem, parentI, indexValues) {
 	var newI, newParentI;
 	var newX = new CT_X();
 	newX.v = indexItem;
+	var isTabular = forceTabular || !parentPivotField.outline;
 	if (parentI) {
 		parentI.x.push(newX);
 		newParentI = isTabular ? parentI : undefined;
@@ -3781,7 +3822,7 @@ CT_pivotTableDefinition.prototype.updateLocation = function() {
 			location.firstDataCol = 1;
 			for (i = 0; i < rowFields.length - 1; ++i) {
 				var field = pivotFields[rowFields[i].asc_getIndex()];
-				if (field && false === field.compact) {
+				if (field && !(field.compact && field.outline)) {
 					location.firstDataCol++;
 				}
 			}
@@ -11809,13 +11850,16 @@ prot["asc_select"] = prot.asc_select;
 prot["asc_set"] = prot.asc_set;
 prot["asc_setRowGrandTotals"] = prot.asc_setRowGrandTotals;
 prot["asc_setColGrandTotals"] = prot.asc_setColGrandTotals;
+prot["asc_setCompact"] = prot.asc_setCompact;
+prot["asc_setOutline"] = prot.asc_setOutline;
+prot["asc_setFillDownLabels"] = prot.asc_setFillDownLabels;
 prot["asc_addPageField"] = prot.asc_addPageField;
 prot["asc_addRowField"] = prot.asc_addRowField;
 prot["asc_addColField"] = prot.asc_addColField;
 prot["asc_addDataField"] = prot.asc_addDataField;
 prot["asc_addField"] = prot.asc_addField;
 prot["asc_removeField"] = prot.asc_removeField;
-prot["asc_updateCacheData"] = prot.asc_updateCacheData;
+prot["asc_refresh"] = prot.asc_refresh;
 
 prot = CT_PivotTableStyle.prototype;
 prot["asc_getName"] = prot.asc_getName;
