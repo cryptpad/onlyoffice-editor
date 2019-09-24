@@ -2243,6 +2243,10 @@ CDocumentContent.prototype.Get_ApplyToAll = function()
 {
 	return this.ApplyToAll;
 };
+CDocumentContent.prototype.IsApplyToAll = function()
+{
+	return this.ApplyToAll;
+};
 CDocumentContent.prototype.UpdateCursorType = function(X, Y, CurPage)
 {
 	if (CurPage < 0 || CurPage >= this.Pages.length)

@@ -897,6 +897,10 @@ CBlockLevelSdt.prototype.IsSelectedAll = function()
 {
 	return this.Content.IsSelectedAll();
 };
+CBlockLevelSdt.prototype.IsApplyToAll = function()
+{
+	return this.Content.IsApplyToAll();
+};
 CBlockLevelSdt.prototype.GetLastRangeVisibleBounds = function()
 {
 	return this.Content.GetLastRangeVisibleBounds();

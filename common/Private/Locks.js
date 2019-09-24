@@ -789,8 +789,9 @@ CBlockLevelSdt.prototype.Document_Is_SelectionLocked = function(CheckType, bChec
 		|| AscCommon.changestype_Document_Content === CheckType
 		|| AscCommon.changestype_Document_Content_Add === CheckType
 		|| AscCommon.changestype_ContentControl_Remove === CheckType)
-		&& this.IsSelectionUse()
+		&& ((this.IsSelectionUse()
 		&& this.IsSelectedAll())
+		|| this.IsApplyToAll()))
 	{
 		var bSelectedOnlyThis = false;
 		// Если это происходит на добавлении текста, тогда проверяем, что выделен только данный элемент
