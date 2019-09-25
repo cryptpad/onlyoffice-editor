@@ -15002,6 +15002,10 @@
 
         //get values
         var colId = filterProp.colId;
+		if(filterProp.id === null) {
+			colId = this.model.autoFilters._getTrueColId(filter, colId, true);
+		}
+
         var openAndClosedValues = ws.autoFilters.getOpenAndClosedValues(filter, colId);
         var values = openAndClosedValues.values;
         var automaticRowCount = openAndClosedValues.automaticRowCount;
@@ -15095,11 +15099,7 @@
 		autoFilterObject.asc_setColumnName(columnName);
 		autoFilterObject.asc_setSheetColumnName(AscCommon.g_oCellAddressUtils.colnumToColstr(rangeButton.c1 + 1));
 
-		var trueColId = rangeButton.c1;
-		if(filterProp.id === null) {
-			trueColId = this.model.autoFilters._getTrueColId(filter, rangeButton.c1 - autoFilter.Ref.c1, true) + autoFilter.Ref.c1;
-		}
-		var columnRange = new Asc.Range(trueColId, autoFilter.Ref.r1 + 1, trueColId, autoFilter.Ref.r2);
+		var columnRange = new Asc.Range(colId + autoFilter.Ref.c1, autoFilter.Ref.r1 + 1, colId + autoFilter.Ref.c1, autoFilter.Ref.r2);
 
         var filterTypes = this.af_getFilterTypes(columnRange);
         autoFilterObject.asc_setIsTextFilter(filterTypes.text);
