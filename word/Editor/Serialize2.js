@@ -2418,8 +2418,8 @@ function Binary_pPrWriter(memory, oNumIdMap, oBinaryHeaderFooterTableWriter, sav
 			this.bs.WriteItem(c_oSerProp_secPrType.pgBorders, function(){oThis.WritePgBorders(sectPr.Borders);});
 		if(null != sectPr.FootnotePr)
 			this.bs.WriteItem(c_oSerProp_secPrType.footnotePr, function(){oThis.WriteFootnotePr(sectPr.FootnotePr);});
-		// if(null != sectPr.RtlGutter)
-		// 	this.bs.WriteItem(c_oSerProp_secPrType.rtlGutter, function(){oThis.memory.WriteBool(sectPr.RtlGutter);});
+		if(sectPr.IsGutterRTL())
+			this.bs.WriteItem(c_oSerProp_secPrType.rtlGutter, function(){oThis.memory.WriteBool(true);});
     };
 	this.WriteFootnotePr = function(footnotePr)
 	{
@@ -2502,11 +2502,9 @@ function Binary_pPrWriter(memory, oNumIdMap, oBinaryHeaderFooterTableWriter, sav
         this.memory.WriteByte(c_oSerPropLenType.Long);
         this.bs.writeMmToTwips(sectPr.Get_PageMargins_Footer());
 		//gutter
-		// if (null != sectPr.Gutter) {
-		// 	this.memory.WriteByte(c_oSer_pgMarType.GutterTwips);
-		// 	this.memory.WriteByte(c_oSerPropLenType.Long);
-		// 	this.bs.writeMmToTwips(sectPr.Gutter);
-		// }
+		this.memory.WriteByte(c_oSer_pgMarType.GutterTwips);
+		this.memory.WriteByte(c_oSerPropLenType.Long);
+		this.bs.writeMmToTwips(sectPr.GetGutter());
     };
 	this.WritePageSetting = function(sectPr, oDocument)
     {
@@ -6352,9 +6350,9 @@ function BinarySettingsTableWriter(memory, doc, saveParams)
 		if (oThis.Document.Settings && oThis.Document.Settings.ListSeparator) {
 			this.bs.WriteItem(c_oSer_SettingsType.ListSeparator, function() {oThis.memory.WriteString3(oThis.Document.Settings.ListSeparator);});
 		}
-		// if (oThis.Document.Settings && null != oThis.Document.Settings.GutterAtTop) {
-		// 	this.bs.WriteItem(c_oSer_SettingsType.GutterAtTop, function() {oThis.memory.WriteBool(oThis.Document.Settings.GutterAtTop);});
-		// }
+		if (oThis.Document.IsGutterAtTop()) {
+			this.bs.WriteItem(c_oSer_SettingsType.GutterAtTop, function() {oThis.memory.WriteBool(true);});
+		}
 		// if (oThis.Document.Settings && null != oThis.Document.Settings.MirrorMargins) {
 		// 	this.bs.WriteItem(c_oSer_SettingsType.MirrorMargins, function() {oThis.memory.WriteBool(oThis.Document.Settings.MirrorMargins);});
 		// }
@@ -8621,8 +8619,8 @@ function Binary_pPrReader(doc, oReadResult, stream)
 			if (null != props.pos) {
 				oSectPr.SetFootnotePos(props.pos);
 			}
-		// } else if( c_oSerProp_secPrType.rtlGutter === type ) {
-		// 	oSectPr.RtlGutter = this.stream.GetBool();
+		} else if( c_oSerProp_secPrType.rtlGutter === type ) {
+			oSectPr.SetGutterRTL(this.stream.GetBool());
 		} else
             res = c_oSerConstants.ReadUnknown;
         return res;
@@ -8778,10 +8776,10 @@ function Binary_pPrReader(doc, oReadResult, stream)
 		{
 			oSectPr.Set_PageMargins_Footer(g_dKoef_twips_to_mm * this.stream.GetULongLE());
 		}
-		// else if( c_oSer_pgMarType.GutterTwips === type )
-		// {
-		// 	oSectPr.Gutter = g_dKoef_twips_to_mm * this.stream.GetULongLE();
-		// }
+		else if( c_oSer_pgMarType.GutterTwips === type )
+		{
+			oSectPr.SetGutter(g_dKoef_twips_to_mm * this.stream.GetULongLE());
+		}
         else
             res = c_oSerConstants.ReadUnknown;
         return res;
@@ -15205,10 +15203,10 @@ function Binary_SettingsTableReader(doc, oReadResult, stream)
 		{
 			editor.WordControl.m_oLogicDocument.Settings.ListSeparator = this.stream.GetString2LE(length);
 		}
-		// else if ( c_oSer_SettingsType.GutterAtTop === type )
-		// {
-		// 	editor.WordControl.m_oLogicDocument.Settings.GutterAtTop = this.stream.GetBool();
-		// }
+		else if ( c_oSer_SettingsType.GutterAtTop === type )
+		{
+			editor.WordControl.m_oLogicDocument.SetGutterAtTop(this.stream.GetBool());
+		}
 		// else if ( c_oSer_SettingsType.MirrorMargins === type )
 		// {
 		// 	editor.WordControl.m_oLogicDocument.Settings.MirrorMargins = this.stream.GetBool();
