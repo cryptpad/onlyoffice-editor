@@ -1364,13 +1364,14 @@
 	//------------------------------------------------------------------------------------------------------------------
 	// Типы изменений в классе CDocument
 	//------------------------------------------------------------------------------------------------------------------
-	window['AscDFH'].historyitem_Document_AddItem           = window['AscDFH'].historyitem_type_Document | 1;
-	window['AscDFH'].historyitem_Document_RemoveItem        = window['AscDFH'].historyitem_type_Document | 2;
-	window['AscDFH'].historyitem_Document_DefaultTab        = window['AscDFH'].historyitem_type_Document | 3;
-	window['AscDFH'].historyitem_Document_EvenAndOddHeaders = window['AscDFH'].historyitem_type_Document | 4;
-	window['AscDFH'].historyitem_Document_DefaultLanguage   = window['AscDFH'].historyitem_type_Document | 5;
-	window['AscDFH'].historyitem_Document_MathSettings      = window['AscDFH'].historyitem_type_Document | 6;
-	window['AscDFH'].historyitem_Document_SdtGlobalSettings = window['AscDFH'].historyitem_type_Document | 7;
+	window['AscDFH'].historyitem_Document_AddItem              = window['AscDFH'].historyitem_type_Document | 1;
+	window['AscDFH'].historyitem_Document_RemoveItem           = window['AscDFH'].historyitem_type_Document | 2;
+	window['AscDFH'].historyitem_Document_DefaultTab           = window['AscDFH'].historyitem_type_Document | 3;
+	window['AscDFH'].historyitem_Document_EvenAndOddHeaders    = window['AscDFH'].historyitem_type_Document | 4;
+	window['AscDFH'].historyitem_Document_DefaultLanguage      = window['AscDFH'].historyitem_type_Document | 5;
+	window['AscDFH'].historyitem_Document_MathSettings         = window['AscDFH'].historyitem_type_Document | 6;
+	window['AscDFH'].historyitem_Document_SdtGlobalSettings    = window['AscDFH'].historyitem_type_Document | 7;
+	window['AscDFH'].historyitem_Document_Settings_GutterAtTop = window['AscDFH'].historyitem_type_Document | 8;
 	//------------------------------------------------------------------------------------------------------------------
 	// Типы изменений в классе Paragraph
 	//------------------------------------------------------------------------------------------------------------------
@@ -1771,6 +1772,8 @@
 	window['AscDFH'].historyitem_Section_Footnote_NumStart   = window['AscDFH'].historyitem_type_Section | 29;
 	window['AscDFH'].historyitem_Section_Footnote_NumRestart = window['AscDFH'].historyitem_type_Section | 30;
 	window['AscDFH'].historyitem_Section_Footnote_NumFormat  = window['AscDFH'].historyitem_type_Section | 31;
+	window['AscDFH'].historyitem_Section_PageMargins_Gutter  = window['AscDFH'].historyitem_type_Section | 32;
+	window['AscDFH'].historyitem_Section_Gutter_RTL          = window['AscDFH'].historyitem_type_Section | 33;
 	//------------------------------------------------------------------------------------------------------------------
 	// Типы изменений в классе ParaComment
 	//------------------------------------------------------------------------------------------------------------------
