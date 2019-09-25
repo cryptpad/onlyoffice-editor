@@ -4827,30 +4827,44 @@
 				
 				return res;
 			},
-			
-			_cleanFilterColumnsAndSortState: function(autoFilterElement, activeCells)
-			{
+
+			_cleanFilterColumnsAndSortState: function (autoFilterElement, activeCells) {
 				var worksheet = this.worksheet;
 				var oldFilter = autoFilterElement.clone(null);
-				
-				if(autoFilterElement.SortState)
+
+				if (autoFilterElement.SortState) {
 					autoFilterElement.SortState = null;
-				
+				}
+
 				worksheet.setRowHidden(false, autoFilterElement.Ref.r1, autoFilterElement.Ref.r2);
-				
-				if(autoFilterElement.AutoFilter && autoFilterElement.AutoFilter.FilterColumns)
-				{
-					autoFilterElement.AutoFilter.FilterColumns = null;
+
+				var doClean = function(af) {
+					var filterColumns = af.FilterColumns;
+					if(filterColumns.length) {
+						var isAllClean = true;
+						for(var i = 0; i < filterColumns.length; i++) {
+							filterColumns[i].clean();
+							if(!filterColumns[i].isAllClean()) {
+								isAllClean = false;
+							}
+						}
+						if(isAllClean) {
+							af.FilterColumns = null;
+						}
+					}
+				};
+
+				if (autoFilterElement.AutoFilter && autoFilterElement.AutoFilter.FilterColumns) {
+					doClean(autoFilterElement.AutoFilter);
+				} else if (autoFilterElement.FilterColumns) {
+					doClean(autoFilterElement);
 				}
-				else if(autoFilterElement.FilterColumns)
-				{
-					autoFilterElement.FilterColumns = null;
-				}
-				
-				this._addHistoryObj(oldFilter, AscCH.historyitem_AutoFilter_CleanAutoFilter, {activeCells: activeCells}, null, activeCells);
+
+				this._addHistoryObj(oldFilter, AscCH.historyitem_AutoFilter_CleanAutoFilter, {activeCells: activeCells},
+					null, activeCells);
 
 				this._resetTablePartStyle();
-				
+
 				return oldFilter.Ref;
 			},
 			

@@ -6890,7 +6890,7 @@ function RangeDataManagerElem(bbox, data)
 
 	FilterColumn.prototype.isAllClean = function () {
 
-		if (this.ColId === null && this.Filters === null && this.CustomFiltersObj === null &&
+		if (this.Filters === null && this.CustomFiltersObj === null &&
 			this.DynamicFilter === null && this.ColorFilter === null && this.Top10 === null &&
 			(this.ShowButton === true || this.ShowButton === null)) {
 			return true;
