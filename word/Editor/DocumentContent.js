@@ -2247,6 +2247,10 @@ CDocumentContent.prototype.IsApplyToAll = function()
 {
 	return this.ApplyToAll;
 };
+CDocumentContent.prototype.SetApplyToAll = function(isApplyAll)
+{
+	this.ApplyToAll = isApplyAll;
+};
 CDocumentContent.prototype.UpdateCursorType = function(X, Y, CurPage)
 {
 	if (CurPage < 0 || CurPage >= this.Pages.length)
@@ -2730,7 +2734,7 @@ CDocumentContent.prototype.AddInlineTable = function(Cols, Rows)
 				Grid[Index] = W / Cols;
 
 			var NewTable = new CTable(this.DrawingDocument, this, true, Rows, Cols, Grid);
-			NewTable.Set_ParagraphPrOnAdd(Item);
+			NewTable.SetParagraphPrOnAdd(Item);
 
 			var nContentPos = this.CurPos.ContentPos;
 			if (true === Item.IsCursorAtBegin())
@@ -4350,6 +4354,49 @@ CDocumentContent.prototype.Insert_Content                     = function(Selecte
             DocContent.Selection.Start = false;
         }
     }
+};
+CDocumentContent.prototype.SetParagraphPr = function(oParaPr)
+{
+	if (this.IsApplyToAll())
+	{
+		for (var nIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex)
+		{
+			var oItem = this.Content[nIndex];
+			oItem.SetApplyToAll(true);
+			oItem.SetParagraphPr(oParaPr);
+			oItem.SetApplyToAll(false);
+		}
+
+		return;
+	}
+
+	if (docpostype_DrawingObjects === this.GetDocPosType())
+	{
+		// TODO: Прокинуть в Drawings
+	}
+	else
+	{
+		if (this.Selection.Use)
+		{
+			var nStartPos = this.Selection.StartPos;
+			var nEndPos   = this.Selection.EndPos;
+			if (nEndPos < nStartPos)
+			{
+				var nTemp = nStartPos;
+				nStartPos = nEndPos;
+				nEndPos   = nTemp;
+			}
+
+			for (var nIndex = nStartPos; nIndex <= nEndPos; ++nIndex)
+			{
+				this.Content[nIndex].SetParagraphPr(oParaPr);
+			}
+		}
+		else
+		{
+			this.Content[this.CurPos.ContentPos].SetParagraphPr(oParaPr);
+		}
+	}
 };
 CDocumentContent.prototype.SetParagraphAlign = function(Align)
 {

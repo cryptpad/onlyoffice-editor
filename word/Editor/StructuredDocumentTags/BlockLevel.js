@@ -553,6 +553,10 @@ CBlockLevelSdt.prototype.StartSelectionFromCurPos = function()
 {
 	this.Content.StartSelectionFromCurPos();
 };
+CBlockLevelSdt.prototype.SetParagraphPr = function(oParaPr)
+{
+	return this.Content.SetParagraphPr(oParaPr);
+};
 CBlockLevelSdt.prototype.SetParagraphAlign = function(Align)
 {
 	return this.Content.SetParagraphAlign(Align);
@@ -856,9 +860,13 @@ CBlockLevelSdt.prototype.LoadRecalculateObject = function(RecalcObj)
 {
 	return this.Content.LoadRecalculateObject(RecalcObj);
 };
-CBlockLevelSdt.prototype.Set_ApplyToAll = function(bValue)
+CBlockLevelSdt.prototype.SetApplyToAll = function(bValue)
 {
-	this.Content.Set_ApplyToAll(bValue);
+	this.Content.SetApplyToAll(bValue);
+};
+CBlockLevelSdt.prototype.IsApplyToAll = function()
+{
+	return this.Content.IsApplyToAll();
 };
 CBlockLevelSdt.prototype.RecalculateAllTables = function()
 {

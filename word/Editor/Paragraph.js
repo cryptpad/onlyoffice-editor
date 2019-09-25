@@ -10057,14 +10057,6 @@ Paragraph.prototype.CollectDocumentStatistics = function(Stats)
 	if (false === ParaStats.EmptyParagraph)
 		Stats.Add_Paragraph();
 };
-Paragraph.prototype.Set_ApplyToAll = function(bValue)
-{
-	this.ApplyToAll = bValue;
-};
-Paragraph.prototype.Get_ApplyToAll = function()
-{
-	return this.ApplyToAll;
-};
 Paragraph.prototype.Get_ParentTextTransform = function()
 {
 	return this.Parent.Get_ParentTextTransform();
@@ -13282,6 +13274,10 @@ Paragraph.prototype.ClearParagraphFormatting = function(isClearParaPr, isClearTe
 
 		this.Add(oParaTextPr);
 	}
+};
+Paragraph.prototype.SetParagraphPr = function(oParaPr)
+{
+	this.SetDirectParaPr(oParaPr);
 };
 Paragraph.prototype.SetParagraphAlign = function(Align)
 {

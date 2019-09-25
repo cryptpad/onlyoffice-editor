@@ -14400,7 +14400,7 @@ CDocument.prototype.controller_AddInlineTable = function(Cols, Rows)
 			Grid[Index] = W / Cols;
 
 		var NewTable = new CTable(this.DrawingDocument, this, true, Rows, Cols, Grid);
-		NewTable.Set_ParagraphPrOnAdd(Item);
+		NewTable.SetParagraphPrOnAdd(Item);
 
 		var nContentPos = this.CurPos.ContentPos;
 		if (true === Item.IsCursorAtBegin() && undefined === Item.Get_SectionPr())
