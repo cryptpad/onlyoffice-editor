@@ -2028,31 +2028,38 @@ var editor;
     }
   };
 
-  spreadsheet_api.prototype.asc_hideWorksheet = function() {
-    var t = this;
-    // Колличество листов
-    var countWorksheets = this.asc_getWorksheetsCount();
-    // Колличество скрытых листов
-    var arrHideWorksheets = this.asc_getHiddenWorksheets();
-    var countHideWorksheets = arrHideWorksheets.length;
-    // Вдруг остался один лист
-    if (countWorksheets <= countHideWorksheets + 1) {
+  spreadsheet_api.prototype.asc_hideWorksheet = function (arrSheets) {
+    // Проверка глобального лока
+    if (this.collaborativeEditing.getGlobalLock()) {
       return false;
     }
 
-    var model = this.wbModel;
-    // Активный лист
-    var activeWorksheet = model.getActive();
-    var sheetId = this.wbModel.getWorksheet(activeWorksheet).getId();
-    var lockInfo = this.collaborativeEditing.getLockInfo(c_oAscLockTypeElem.Sheet, /*subType*/null, sheetId, sheetId);
+    if (!arrSheets) {
+      arrSheets = [];
+      arrSheets.push(this.wbModel.getActive());
+    }
 
+    // Вдруг остался один лист
+    if (this.asc_getWorksheetsCount() <= this.asc_getHiddenWorksheets().length + arrSheets.length) {
+      return false;
+    }
+
+    var sheet, arrLocks = [];
+    for (var i = 0; i < arrSheets.length; ++i) {
+      sheet = this.wbModel.getWorksheet(arrSheets[i]);
+      arrLocks.push(this.collaborativeEditing.getLockInfo(c_oAscLockTypeElem.Sheet, /*subType*/null, sheet.getId(), sheet.getId()));
+    }
+
+    var t = this;
     var hideWorksheetCallback = function(res) {
       if (res) {
-        t.wbModel.getWorksheet(activeWorksheet).setHidden(true);
+        for (var i = 0; i < arrSheets.length; ++i) {
+          t.wbModel.getWorksheet(arrSheets[i]).setHidden(true);
+        }
       }
     };
 
-    this.collaborativeEditing.lock([lockInfo], hideWorksheetCallback);
+    this.collaborativeEditing.lock(arrLocks, hideWorksheetCallback);
     return true;
   };
 
