@@ -15095,7 +15095,11 @@
 		autoFilterObject.asc_setColumnName(columnName);
 		autoFilterObject.asc_setSheetColumnName(AscCommon.g_oCellAddressUtils.colnumToColstr(rangeButton.c1 + 1));
 
-        var columnRange = new Asc.Range(rangeButton.c1, autoFilter.Ref.r1 + 1, rangeButton.c1, autoFilter.Ref.r2);
+		var trueColId = rangeButton.c1;
+		if(filterProp.id === null) {
+			trueColId = this.model.autoFilters._getTrueColId(filter, rangeButton.c1 - autoFilter.Ref.c1, true) + autoFilter.Ref.c1;
+		}
+		var columnRange = new Asc.Range(trueColId, autoFilter.Ref.r1 + 1, trueColId, autoFilter.Ref.r2);
 
         var filterTypes = this.af_getFilterTypes(columnRange);
         autoFilterObject.asc_setIsTextFilter(filterTypes.text);
