@@ -2053,9 +2053,12 @@ var editor;
     var t = this;
     var hideWorksheetCallback = function(res) {
       if (res) {
+        History.Create_NewPoint();
+        History.StartTransaction();
         for (var i = 0; i < arrSheets.length; ++i) {
           t.wbModel.getWorksheet(arrSheets[i]).setHidden(true);
         }
+        History.EndTransaction();
       }
     };
 
