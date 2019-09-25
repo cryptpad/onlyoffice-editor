@@ -4870,8 +4870,12 @@
 				{
 					var index = autoFilter.getIndexByColId(colId);
 					this._openHiddenRowsAfterDeleteColumn(autoFilter, colId);
-					
-					autoFilter.FilterColumns.splice(index, 1);
+
+					var filterColumn = autoFilter.FilterColumns[index];
+					filterColumn.clean();
+					if(filterColumn.isAllClean()) {
+						autoFilter.FilterColumns.splice(index, 1);
+					}
 					
 					this._resetTablePartStyle();
 				}

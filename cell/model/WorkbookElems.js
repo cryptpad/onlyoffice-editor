@@ -6888,6 +6888,17 @@ function RangeDataManagerElem(bbox, data)
 		return res;
 	};
 
+	FilterColumn.prototype.isAllClean = function () {
+
+		if (this.ColId === null && this.Filters === null && this.CustomFiltersObj === null &&
+			this.DynamicFilter === null && this.ColorFilter === null && this.Top10 === null &&
+			(this.ShowButton === true || this.ShowButton === null)) {
+			return true;
+		}
+
+		return false;
+	};
+
 
 	/** @constructor */
 	function Filters() {
