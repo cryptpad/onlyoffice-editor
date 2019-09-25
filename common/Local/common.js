@@ -147,58 +147,6 @@ window["DesktopOfflineAppDocumentEndLoad"] = function(_url, _data, _len)
 	editor.sendEvent("asc_onDocumentPassword", ("" != editor.currentPassword) ? true : false);
 };
 
-window["DesktopUploadFileToUrl"] = function(url, dst, hash, pass)
-{
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', "ascdesktop://fonts/" + url, true);
-    xhr.responseType = 'arraybuffer';
-
-    if (xhr.overrideMimeType)
-        xhr.overrideMimeType('text/plain; charset=x-user-defined');
-    else
-        xhr.setRequestHeader('Accept-Charset', 'x-user-defined');
-
-    xhr.onload = function()
-    {
-        if (this.status != 200)
-        {
-            // error
-            return;
-        }
-
-        var fileData = new Uint8Array(this.response);
-
-        var req = new XMLHttpRequest();
-        req.open("PUT", dst, true);
-
-        req.onload = function()
-		{
-			if (this.response && this.status == 200)
-			{
-				try
-				{
-					var data = {
-						"accounts": this.response ? JSON.parse(this.response) : undefined,
-						"hash": hash,
-						"password" : pass,
-						"type": "share"
-					};
-
-					window["AscDesktopEditor"]["sendSystemMessage"](data);
-					window["AscDesktopEditor"]["CallInAllWindows"]("function(){ if (window.DesktopUpdateFile) { window.DesktopUpdateFile(undefined); } }");
-				}
-				catch (err)
-				{
-				}
-			}
-        };
-
-        req.send(fileData);
-    };
-
-    xhr.send(null);
-};
-
 /////////////////////////////////////////////////////////
 //////////////       IMAGES      ////////////////////////
 /////////////////////////////////////////////////////////
