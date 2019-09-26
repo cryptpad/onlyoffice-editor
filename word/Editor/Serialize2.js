@@ -6353,9 +6353,9 @@ function BinarySettingsTableWriter(memory, doc, saveParams)
 		if (oThis.Document.IsGutterAtTop()) {
 			this.bs.WriteItem(c_oSer_SettingsType.GutterAtTop, function() {oThis.memory.WriteBool(true);});
 		}
-		// if (oThis.Document.Settings && null != oThis.Document.Settings.MirrorMargins) {
-		// 	this.bs.WriteItem(c_oSer_SettingsType.MirrorMargins, function() {oThis.memory.WriteBool(oThis.Document.Settings.MirrorMargins);});
-		// }
+		if (oThis.Document.IsMirrorMargins()) {
+			this.bs.WriteItem(c_oSer_SettingsType.MirrorMargins, function() {oThis.memory.WriteBool(true);});
+		}
 		// if (oThis.Document.Settings && null != oThis.Document.Settings.PrintTwoOnOne) {
 		// 	this.bs.WriteItem(c_oSer_SettingsType.PrintTwoOnOne, function() {oThis.memory.WriteBool(oThis.Document.Settings.PrintTwoOnOne);});
 		// }
@@ -15207,10 +15207,10 @@ function Binary_SettingsTableReader(doc, oReadResult, stream)
 		{
 			editor.WordControl.m_oLogicDocument.SetGutterAtTop(this.stream.GetBool());
 		}
-		// else if ( c_oSer_SettingsType.MirrorMargins === type )
-		// {
-		// 	editor.WordControl.m_oLogicDocument.Settings.MirrorMargins = this.stream.GetBool();
-		// }
+		else if ( c_oSer_SettingsType.MirrorMargins === type )
+		{
+			editor.WordControl.m_oLogicDocument.SetMirrorMargins(this.stream.GetBool());
+		}
 		// else if ( c_oSer_SettingsType.PrintTwoOnOne === type )
 		// {
 		// 	editor.WordControl.m_oLogicDocument.Settings.PrintTwoOnOne = this.stream.GetBool();
