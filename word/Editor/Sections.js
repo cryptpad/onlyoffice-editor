@@ -251,16 +251,6 @@ CSectionPr.prototype =
 		}
 	},
 
-    Get_PageWidth : function()
-    {
-        return this.PageSize.W;
-    },
-
-    Get_PageHeight : function()
-    {
-        return this.PageSize.H;
-    },
-
 	Set_PageMargins : function(_L, _T, _R, _B)
 	{
 		// Значения могут прийти как undefined, в этом случае мы поля со значением undefined не меняем
@@ -284,26 +274,6 @@ CSectionPr.prototype =
 			this.PageMargins.Bottom = B;
 		}
 	},
-
-    Get_PageMargin_Left : function()
-    {
-        return this.PageMargins.Left;
-    },
-
-    Get_PageMargin_Right : function()
-    {
-        return this.PageMargins.Right;
-    },
-
-    Get_PageMargin_Top : function()
-    {
-        return this.PageMargins.Top;
-    },
-
-    Get_PageMargin_Bottom : function()
-    {
-        return this.PageMargins.Bottom;
-    },
 
 	Set_Orientation : function(Orient, ApplySize)
 	{
@@ -1079,6 +1049,66 @@ CSectionPr.prototype.SetGutterRTL = function(isRTL)
 CSectionPr.prototype.IsGutterRTL = function()
 {
 	return this.GutterRTL;
+};
+CSectionPr.prototype.Get_PageMargin_Left = function()
+{
+	return this.PageMargins.Left;
+};
+CSectionPr.prototype.Get_PageMargin_Right = function()
+{
+	return this.PageMargins.Right;
+};
+CSectionPr.prototype.Get_PageMargin_Top = function()
+{
+	return this.PageMargins.Top;
+};
+CSectionPr.prototype.Get_PageMargin_Bottom = function()
+{
+	return this.PageMargins.Bottom;
+};
+CSectionPr.prototype.Get_PageWidth = function()
+{
+	return this.PageSize.W;
+};
+CSectionPr.prototype.Get_PageHeight = function()
+{
+	return this.PageSize.H;
+};
+CSectionPr.prototype.GetPageMarginLeft = function()
+{
+	return this.PageMargins.Left;
+};
+CSectionPr.prototype.GetPageMarginRight = function()
+{
+	return this.PageMargins.Right;
+};
+CSectionPr.prototype.GetPageMarginTop = function()
+{
+	return this.PageMargins.Top;
+};
+CSectionPr.prototype.GetPageMarginBottom = function()
+{
+	return this.PageMargins.Bottom;
+};
+CSectionPr.prototype.GetPageWidth = function()
+{
+	return this.PageSize.W;
+};
+CSectionPr.prototype.GetPageHeight = function()
+{
+	return this.PageSize.H;
+};
+CSectionPr.prototype.GetColumnsCount = function()
+{
+	return this.Columns.Get_Count();
+};
+CSectionPr.prototype.GetColumnWidth = function(nColIndex)
+{
+	return this.Columns.Get_ColumnWidth(nColIndex);
+};
+CSectionPr.prototype.GetColumnSpace = function(nColIndex)
+{
+	return this.Columns.Get_ColumnSpace(nColIndex);
 };
 
 function CSectionPageSize()

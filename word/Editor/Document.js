@@ -2105,84 +2105,100 @@ CDocument.prototype.Is_ThisElementCurrent          = function()
 {
     return true;
 };
-CDocument.prototype.Get_PageContentStartPos        = function(PageIndex, ElementIndex)
+CDocument.prototype.Get_PageContentStartPos = function(PageIndex, ElementIndex)
 {
-    if (undefined === ElementIndex && undefined !== this.Pages[PageIndex])
-        ElementIndex = this.Pages[PageIndex].Pos;
+	if (undefined === ElementIndex && undefined !== this.Pages[PageIndex])
+		ElementIndex = this.Pages[PageIndex].Pos;
 
-    var SectPr = this.SectionsInfo.Get_SectPr(ElementIndex).SectPr;
+	var oSectPr = this.SectionsInfo.Get_SectPr(ElementIndex).SectPr;
 
-    var Y      = Math.abs(SectPr.Get_PageMargin_Top());
-    var YLimit = SectPr.Get_PageHeight() - Math.abs(SectPr.Get_PageMargin_Bottom());
-    var X      = SectPr.Get_PageMargin_Left();
-    var XLimit = SectPr.Get_PageWidth() - SectPr.Get_PageMargin_Right();
+	var Y      = Math.abs(oSectPr.GetPageMarginTop());
+	var YLimit = oSectPr.GetPageHeight() - Math.abs(oSectPr.GetPageMarginBottom());
+	var X      = oSectPr.GetPageMarginLeft();
+	var XLimit = oSectPr.GetPageWidth() - oSectPr.GetPageMarginRight();
 
-    var HdrFtrLine = this.HdrFtr.GetHdrFtrLines(PageIndex);
+	if (this.IsMirrorMargins() && 1 === PageIndex % 2)
+	{
+		X      = oSectPr.GetPageMarginRight();
+		XLimit = oSectPr.GetPageWidth() - oSectPr.GetPageMarginLeft();
+	}
 
-    var YHeader = HdrFtrLine.Top;
-    if (null !== YHeader && YHeader > Y && SectPr.Get_PageMargin_Top() >= 0)
-        Y = YHeader;
+	var HdrFtrLine = this.HdrFtr.GetHdrFtrLines(PageIndex);
 
-    var YFooter = HdrFtrLine.Bottom;
-    if (null !== YFooter && YFooter < YLimit && SectPr.Get_PageMargin_Bottom() >= 0)
-        YLimit = YFooter;
+	var YHeader = HdrFtrLine.Top;
+	if (null !== YHeader && YHeader > Y && oSectPr.GetPageMarginTop() >= 0)
+		Y = YHeader;
 
-    return {X : X, Y : Y, XLimit : XLimit, YLimit : YLimit};
+	var YFooter = HdrFtrLine.Bottom;
+	if (null !== YFooter && YFooter < YLimit && oSectPr.GetPageMarginBottom() >= 0)
+		YLimit = YFooter;
+
+	return {
+		X      : X,
+		Y      : Y,
+		XLimit : XLimit,
+		YLimit : YLimit
+	};
 };
-CDocument.prototype.Get_PageContentStartPos2       = function(StartPageIndex, StartColumnIndex, ElementPageIndex, ElementIndex)
+CDocument.prototype.Get_PageContentStartPos2 = function(StartPageIndex, StartColumnIndex, ElementPageIndex, ElementIndex)
 {
-    if (undefined === ElementIndex && undefined !== this.Pages[StartPageIndex])
-        ElementIndex = this.Pages[StartPageIndex].Pos;
+	if (undefined === ElementIndex && undefined !== this.Pages[StartPageIndex])
+		ElementIndex = this.Pages[StartPageIndex].Pos;
 
-    var SectPr = this.SectionsInfo.Get_SectPr(ElementIndex).SectPr;
+	var oSectPr = this.SectionsInfo.Get_SectPr(ElementIndex).SectPr;
 
-    var ColumnsCount = SectPr.Get_ColumnsCount();
-    var ColumnAbs    = (StartColumnIndex + ElementPageIndex) - ((StartColumnIndex + ElementPageIndex) / ColumnsCount | 0) * ColumnsCount;
-    var PageAbs      = StartPageIndex + ((StartColumnIndex + ElementPageIndex) / ColumnsCount | 0);
+	var ColumnsCount = oSectPr.GetColumnsCount();
+	var ColumnAbs    = (StartColumnIndex + ElementPageIndex) - ((StartColumnIndex + ElementPageIndex) / ColumnsCount | 0) * ColumnsCount;
+	var PageAbs      = StartPageIndex + ((StartColumnIndex + ElementPageIndex) / ColumnsCount | 0);
 
-	var Y      = Math.abs(SectPr.Get_PageMargin_Top());
-	var YLimit = SectPr.Get_PageHeight() - Math.abs(SectPr.Get_PageMargin_Bottom());
-	var X      = SectPr.Get_PageMargin_Left();
-	var XLimit = SectPr.Get_PageWidth() - SectPr.Get_PageMargin_Right();
+	var Y      = Math.abs(oSectPr.GetPageMarginTop());
+	var YLimit = oSectPr.GetPageHeight() - Math.abs(oSectPr.GetPageMarginBottom());
+	var X      = oSectPr.GetPageMarginLeft();
+	var XLimit = oSectPr.GetPageWidth() - oSectPr.GetPageMarginRight();
 
+	if (this.IsMirrorMargins() && 1 === PageAbs % 2)
+	{
+		X      = oSectPr.GetPageMarginRight();
+		XLimit = oSectPr.GetPageWidth() - oSectPr.GetPageMarginLeft();
+	}
 
 	var SectionIndex = this.FullRecalc.SectionIndex;
-    if (this.Pages[PageAbs] && this.Pages[PageAbs].Sections[SectionIndex])
-    {
-        Y      = this.Pages[PageAbs].Sections[SectionIndex].Get_Y();
-        YLimit = this.Pages[PageAbs].Sections[SectionIndex].Get_YLimit();
-    }
+	if (this.Pages[PageAbs] && this.Pages[PageAbs].Sections[SectionIndex])
+	{
+		Y      = this.Pages[PageAbs].Sections[SectionIndex].Get_Y();
+		YLimit = this.Pages[PageAbs].Sections[SectionIndex].Get_YLimit();
+	}
 
-    var HdrFtrLine = this.HdrFtr.GetHdrFtrLines(PageAbs);
+	var HdrFtrLine = this.HdrFtr.GetHdrFtrLines(PageAbs);
 
-    for (var ColumnIndex = 0; ColumnIndex < ColumnAbs; ++ColumnIndex)
-    {
-        X += SectPr.Get_ColumnWidth(ColumnIndex);
-        X += SectPr.Get_ColumnSpace(ColumnIndex);
-    }
+	for (var ColumnIndex = 0; ColumnIndex < ColumnAbs; ++ColumnIndex)
+	{
+		X += oSectPr.GetColumnWidth(ColumnIndex);
+		X += oSectPr.GetColumnSpace(ColumnIndex);
+	}
 
-    if (ColumnsCount - 1 !== ColumnAbs)
-        XLimit = X + SectPr.Get_ColumnWidth(ColumnAbs);
+	if (ColumnsCount - 1 !== ColumnAbs)
+		XLimit = X + oSectPr.Get_ColumnWidth(ColumnAbs);
 
-    var YHeader = HdrFtrLine.Top;
-    if (null !== YHeader && YHeader > Y && SectPr.Get_PageMargin_Top() >= 0)
-        Y = YHeader;
+	var YHeader = HdrFtrLine.Top;
+	if (null !== YHeader && YHeader > Y && oSectPr.GetPageMarginTop() >= 0)
+		Y = YHeader;
 
-    var YFooter = HdrFtrLine.Bottom;
-    if (null !== YFooter && YFooter < YLimit && SectPr.Get_PageMargin_Bottom() >= 0)
-        YLimit = YFooter;
+	var YFooter = HdrFtrLine.Bottom;
+	if (null !== YFooter && YFooter < YLimit && oSectPr.GetPageMarginBottom() >= 0)
+		YLimit = YFooter;
 
-    var ColumnSpaceBefore = (ColumnAbs > 0 ? SectPr.Get_ColumnSpace(ColumnAbs - 1) : 0);
-    var ColumnSpaceAfter  = (ColumnAbs < ColumnsCount - 1 ? SectPr.Get_ColumnSpace(ColumnAbs) : 0);
+	var ColumnSpaceBefore = (ColumnAbs > 0 ? oSectPr.GetColumnSpace(ColumnAbs - 1) : 0);
+	var ColumnSpaceAfter  = (ColumnAbs < ColumnsCount - 1 ? oSectPr.GetColumnSpace(ColumnAbs) : 0);
 
-    return {
-        X                 : X,
-        Y                 : Y,
-        XLimit            : XLimit,
-        YLimit            : YLimit,
-        ColumnSpaceBefore : ColumnSpaceBefore,
-        ColumnSpaceAfter  : ColumnSpaceAfter
-    };
+	return {
+		X                 : X,
+		Y                 : Y,
+		XLimit            : XLimit,
+		YLimit            : YLimit,
+		ColumnSpaceBefore : ColumnSpaceBefore,
+		ColumnSpaceAfter  : ColumnSpaceAfter
+	};
 };
 CDocument.prototype.Get_PageLimits                 = function(PageIndex)
 {
@@ -2981,6 +2997,33 @@ CDocument.prototype.Recalculate_Page = function()
             Page.Margins.Top    = Math.abs(SectPr.PageMargins.Top);
             Page.Margins.Right  = SectPr.PageSize.W - SectPr.PageMargins.Right;
             Page.Margins.Bottom = SectPr.PageSize.H - Math.abs(SectPr.PageMargins.Bottom);
+
+            if (this.IsMirrorMargins() && 1 === PageIndex % 2)
+			{
+				Page.Margins.Left  = SectPr.PageMargins.Right;
+				Page.Margins.Right = SectPr.PageSize.W - SectPr.PageMargins.Left;
+			}
+
+            var nGutter = SectPr.GetGutter();
+            if (0 !== nGutter)
+			{
+				if (this.IsMirrorMargins())
+				{
+					if (0 === PageIndex % 2)
+						Page.Margins.Left += nGutter;
+					else
+						Page.Margins.Right -= nGutter;
+				}
+				else
+				{
+					if (this.IsGutterAtTop())
+						Page.Margins.Top += nGutter;
+					else if (SectPr.IsGutterRTL())
+						Page.Margins.Right -= nGutter;
+					else
+						Page.Margins.Left += nGutter;
+				}
+			}
 
             Page.Sections[0] = new CDocumentPageSection();
             var ColumnsCount = SectPr.Get_ColumnsCount();
@@ -10127,27 +10170,31 @@ CDocument.prototype.Document_UpdateRulersState = function()
 {
 	this.UpdateRulers();
 };
-CDocument.prototype.Document_UpdateRulersStateBySection = function(Pos)
+CDocument.prototype.Document_UpdateRulersStateBySection = function(nPos)
 {
 	// В данной функции мы уже точно знаем, что нам секцию нужно выбирать исходя из текущего параграфа
-	var CurPos = undefined === Pos ? ( this.Selection.Use === true ? this.Selection.EndPos : this.CurPos.ContentPos ) : Pos;
+	var nCurPos = undefined === nPos ? ( this.Selection.Use === true ? this.Selection.EndPos : this.CurPos.ContentPos ) : nPos;
 
-	var SectPr = this.SectionsInfo.Get_SectPr(CurPos).SectPr;
+	var oSectPr = this.SectionsInfo.Get_SectPr(nCurPos).SectPr;
 
-	var L = SectPr.Get_PageMargin_Left();
-	var T = Math.abs(SectPr.Get_PageMargin_Top());
-	var R = SectPr.Get_PageWidth() - SectPr.Get_PageMargin_Right();
-	var B = SectPr.Get_PageHeight() - Math.abs(SectPr.Get_PageMargin_Bottom());
+	var L = oSectPr.GetPageMarginLeft();
+	var T = Math.abs(oSectPr.GetPageMarginTop());
+	var R = oSectPr.GetPageWidth() - oSectPr.GetPageMarginRight();
+	var B = oSectPr.GetPageHeight() - Math.abs(oSectPr.GetPageMarginBottom());
 
-	var ColumnsCount = SectPr.Get_ColumnsCount();
-
-	if (ColumnsCount > 1)
+	if (this.IsMirrorMargins() && 1 === this.CurPage % 2)
 	{
-		this.ColumnsMarkup.Update_FromSectPr(SectPr);
+		L = oSectPr.GetPageMarginRight();
+		R = oSectPr.GetPageWidth() - oSectPr.GetPageMarginLeft();
+	}
 
-		var Element = this.Content[CurPos];
-		if (type_Paragraph === Element.Get_Type())
-			this.ColumnsMarkup.Set_CurCol(Element.Get_CurrentColumn());
+	if (oSectPr.GetColumnsCount() > 1)
+	{
+		this.ColumnsMarkup.UpdateFromSectPr(oSectPr, this.IsMirrorMargins() && 1 === this.CurPage % 2);
+
+		var oElement = this.Content[nCurPos];
+		if (oElement.IsParagraph())
+			this.ColumnsMarkup.SetCurCol(oElement.Get_CurrentColumn());
 
 		this.DrawingDocument.Set_RulerState_Columns(this.ColumnsMarkup);
 	}
