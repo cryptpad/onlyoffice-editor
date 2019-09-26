@@ -1726,6 +1726,7 @@ function CDocumentSettings()
     this.ListSeparator = undefined;
     this.DecimalSymbol = undefined;
     this.GutterAtTop   = false;
+    this.MirrorMargins = false;
 }
 
 /**
@@ -13526,6 +13527,26 @@ CDocument.prototype.SetGutterAtTop = function(isGutterAtTop)
 CDocument.prototype.IsGutterAtTop = function()
 {
 	return this.Settings.GutterAtTop;
+};
+/**
+ * Выставляем зеркальные отступы
+ * @param {boolean} isMirror
+ */
+CDocument.prototype.SetMirrorMargins = function(isMirror)
+{
+	if (isMirror !== this.Settings.MirrorMargins)
+	{
+		this.History.Add(new CChangesDocumentSettingsMirrorMargins(this, this.Settings.MirrorIndent, isMirror));
+		this.Settings.MirrorMargins = isMirror;
+	}
+};
+/**
+ * Проверяем зеркальные ли отступы
+ * @returns {boolean}
+ */
+CDocument.prototype.IsMirrorMargins = function()
+{
+	return this.Settings.MirrorMargins;
 };
 //----------------------------------------------------------------------------------------------------------------------
 // Math
