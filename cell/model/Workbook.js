@@ -4774,6 +4774,19 @@
 
 		this.sheetPr.SummaryBelow = val;
 	};
+	Worksheet.prototype.setFitToPage = function (val) {
+		if((this.sheetPr && val !== this.sheetPr.FitToPage) || (!this.sheetPr && val)) {
+			if (!this.sheetPr){
+				this.sheetPr = new AscCommonExcel.asc_CSheetPr();
+			}
+
+			History.Create_NewPoint();
+			History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_SetFitToPage, this.getId(), null,
+				new UndoRedoData_FromTo(this.sheetPr.FitToPage, val));
+
+			this.sheetPr.FitToPage = val;
+		}
+	};
 	Worksheet.prototype.setGroupCol = function (bDel, start, stop) {
 		var oThis = this;
 		var fProcessCol = function(col){

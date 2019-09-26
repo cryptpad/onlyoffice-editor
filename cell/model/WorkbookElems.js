@@ -1396,7 +1396,7 @@ var g_oFontProperties = {
 		this.position = value;
 	};
 	GradientStop.prototype.asc_getColor = function () {
-		return this.color;
+		return this.color ? Asc.colorObjToAscColor(this.color) : this.color;
 	};
 	GradientStop.prototype.asc_setColor = function (value) {
 		this.color = CorrectAscColor(value);
@@ -1580,13 +1580,13 @@ var g_oFontProperties = {
 		}
 	};
 	PatternFill.prototype.asc_getFgColor = function () {
-		return this.fgColor;
+		return this.fgColor ? Asc.colorObjToAscColor(this.fgColor) : this.fgColor;
 	};
 	PatternFill.prototype.asc_setFgColor = function (value) {
 		this.fgColor = CorrectAscColor(value);
 	};
 	PatternFill.prototype.asc_getBgColor = function () {
-		return this.bgColor;
+		return this.bgColor ? Asc.colorObjToAscColor(this.bgColor) : this.bgColor;
 	};
 	PatternFill.prototype.asc_setBgColor = function (value) {
 		this.bgColor = CorrectAscColor(value);
@@ -6888,6 +6888,17 @@ function RangeDataManagerElem(bbox, data)
 		return res;
 	};
 
+	FilterColumn.prototype.isAllClean = function () {
+
+		if (this.Filters === null && this.CustomFiltersObj === null &&
+			this.DynamicFilter === null && this.ColorFilter === null && this.Top10 === null &&
+			(this.ShowButton === true || this.ShowButton === null)) {
+			return true;
+		}
+
+		return false;
+	};
+
 
 	/** @constructor */
 	function Filters() {
@@ -8212,8 +8223,8 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		this.width = c_oAscPrintDefaultSettings.PageWidth;
 		this.height = c_oAscPrintDefaultSettings.PageHeight;
 
-		this.fitToWidth = false; //ToDo can be a number
-		this.fitToHeight = false; //ToDo can be a number
+		this.fitToWidth = 1; //default -> 1, 0 -> automatic
+		this.fitToHeight = 1; //default -> 1, 0 -> automatic
 
 		// ToDo
 		this.blackAndWhite = false;
@@ -8263,12 +8274,31 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		}
 	};
 
-	asc_CPageSetup.prototype.asc_getFitToWidth = function () { return this.fitToWidth; };
-	asc_CPageSetup.prototype.asc_getFitToHeight = function () { return this.fitToHeight; };
+	asc_CPageSetup.prototype.asc_getFitToWidth = function () {
+		if(!this.ws) {
+			return this.fitToWidth;
+		}
+		var fitToPage = this.ws && this.ws.sheetPr && this.ws.sheetPr.FitToPage;
+		return fitToPage ? this.fitToWidth : 0;
+	};
+	asc_CPageSetup.prototype.asc_getFitToHeight = function () {
+		if(!this.ws) {
+			return this.fitToHeight;
+		}
+		var fitToPage = this.ws && this.ws.sheetPr && this.ws.sheetPr.FitToPage;
+		return fitToPage ? this.fitToHeight : 0;
+	};
 
 	asc_CPageSetup.prototype.asc_getScale = function () { return this.scale; };
 
 	asc_CPageSetup.prototype.asc_setFitToWidth = function (newVal) {
+		//TODO заглушка! потому что из меню проставляется булево значение, а должно быть число
+		if(newVal === true) {
+			newVal = 1;
+		} else if(newVal === false) {
+			newVal = 0;
+		}
+
 		var oldVal = this.fitToWidth;
 		this.fitToWidth = newVal;
 		if (this.ws && History.Is_On() && oldVal !== this.fitToWidth) {
@@ -8277,6 +8307,13 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		}
 	};
 	asc_CPageSetup.prototype.asc_setFitToHeight = function (newVal) {
+		//TODO заглушка! потому что из меню проставляется булево значение, а должно быть число
+		if(newVal === true) {
+			newVal = 1;
+		} else if(newVal === false) {
+			newVal = 0;
+		}
+
 		var oldVal = this.fitToHeight;
 		this.fitToHeight = newVal;
 		if (this.ws && History.Is_On() && oldVal !== this.fitToHeight) {
@@ -8310,6 +8347,15 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		prop = obj.asc_getFitToHeight();
 		if(prop !== this.asc_getFitToHeight()) {
 			this.asc_setFitToHeight(prop);
+		}
+	};
+
+	asc_CPageSetup.prototype.asc_setScale = function (newVal) {
+		var oldVal = this.scale;
+		this.scale = newVal;
+		if (this.ws && History.Is_On() && oldVal !== this.scale) {
+			History.Add(AscCommonExcel.g_oUndoRedoLayout, AscCH.historyitem_Layout_Scale, this.ws.getId(),
+				null, new UndoRedoData_Layout(oldVal, newVal));
 		}
 	};
 
@@ -8911,6 +8957,7 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	prot["asc_getFitToHeight"] = prot.asc_getFitToHeight;
 	prot["asc_setFitToWidth"] = prot.asc_setFitToWidth;
 	prot["asc_setFitToHeight"] = prot.asc_setFitToHeight;
+	prot["asc_getScale"] = prot.asc_getScale;
 
 	window["Asc"]["asc_CPageOptions"] = window["Asc"].asc_CPageOptions = asc_CPageOptions;
 	prot = asc_CPageOptions.prototype;

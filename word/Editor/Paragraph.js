@@ -8147,6 +8147,8 @@ Paragraph.prototype.IndDecNumberingLevel = function(bIncrease)
 	var NumPr = this.GetNumPr();
 	if (undefined != NumPr)
 	{
+		var oNumPrOld = this.Pr.NumPr;
+
 		var NewLvl;
 		if (true === bIncrease)
 			NewLvl = Math.min(8, NumPr.Lvl + 1);
@@ -8157,7 +8159,7 @@ Paragraph.prototype.IndDecNumberingLevel = function(bIncrease)
 		this.Pr.NumPr.Set(NumPr.NumId, NewLvl);
 
 		this.private_AddPrChange();
-		History.Add(new CChangesParagraphNumbering(this, NumPr, this.Pr.NumPr));
+		History.Add(new CChangesParagraphNumbering(this, oNumPrOld, this.Pr.NumPr));
 		this.private_RefreshNumbering(NumPr);
 		this.private_RefreshNumbering(this.Pr.NumPr);
 
@@ -8435,6 +8437,9 @@ Paragraph.prototype.Get_CompiledPr = function()
 	var PrevEl = this.Get_DocumentPrev();
 	var NextEl = this.Get_DocumentNext();
 
+	var oPrevParagraph = this.GetPrevParagraph();
+	var oNextParagraph = this.GetNextParagraph();
+
 	// Предыдущий и последующий параграфы - это не обязательно именно предыдущий и последующий. Если данный параграф
 	// находится в рамке, тогда надо искать предыдущий и последующий только в текущей рамке, а если мы вне рамки, тогда
 	// надо пропускать все параграфы находящиеся в рамке.
@@ -8467,7 +8472,11 @@ Paragraph.prototype.Get_CompiledPr = function()
 			NextEl = NextEl.Get_DocumentNext();
 	}
 
-	if (null != PrevEl && type_Paragraph === PrevEl.GetType())
+	if (oPrevParagraph && StyleId === oPrevParagraph.Style_Get() && Pr.ParaPr.ContextualSpacing)
+	{
+		Pr.ParaPr.Spacing.Before = 0;
+	}
+	else if (null != PrevEl && type_Paragraph === PrevEl.GetType())
 	{
 		var PrevStyle      = PrevEl.Style_Get();
 		var Prev_Pr        = PrevEl.Get_CompiledPr2(false).ParaPr;
@@ -8477,30 +8486,23 @@ Paragraph.prototype.Get_CompiledPr = function()
 		var Cur_BeforeAuto = Pr.ParaPr.Spacing.BeforeAutoSpacing;
 		var Prev_NumPr     = PrevEl.GetNumPr();
 
-		if (PrevStyle === StyleId && true === Pr.ParaPr.ContextualSpacing)
-		{
+		if (true === Cur_BeforeAuto && PrevStyle === StyleId && undefined != Prev_NumPr && undefined != NumPr && Prev_NumPr.NumId === NumPr.NumId)
 			Pr.ParaPr.Spacing.Before = 0;
-		}
 		else
 		{
-			if (true === Cur_BeforeAuto && PrevStyle === StyleId && undefined != Prev_NumPr && undefined != NumPr && Prev_NumPr.NumId === NumPr.NumId)
-				Pr.ParaPr.Spacing.Before = 0;
-			else
-			{
-				Cur_Before = this.Internal_CalculateAutoSpacing(Cur_Before, Cur_BeforeAuto, this);
-				Prev_After = this.Internal_CalculateAutoSpacing(Prev_After, Prev_AfterAuto, this);
+			Cur_Before = this.Internal_CalculateAutoSpacing(Cur_Before, Cur_BeforeAuto, this);
+			Prev_After = this.Internal_CalculateAutoSpacing(Prev_After, Prev_AfterAuto, this);
 
-				if ((true === Prev_Pr.ContextualSpacing
-					&& PrevStyle === StyleId)
-					|| (true === Prev_AfterAuto
-					&& PrevStyle === StyleId
-					&& undefined != Prev_NumPr
-					&& undefined != NumPr
-					&& Prev_NumPr.NumId === NumPr.NumId))
-					Prev_After = 0;
+			if ((true === Prev_Pr.ContextualSpacing
+				&& PrevStyle === StyleId)
+				|| (true === Prev_AfterAuto
+				&& PrevStyle === StyleId
+				&& undefined != Prev_NumPr
+				&& undefined != NumPr
+				&& Prev_NumPr.NumId === NumPr.NumId))
+				Prev_After = 0;
 
-				Pr.ParaPr.Spacing.Before = Math.max(Prev_After, Cur_Before) - Prev_After;
-			}
+			Pr.ParaPr.Spacing.Before = Math.max(Prev_After, Cur_Before) - Prev_After;
 		}
 
 		if (true === this.private_CompareBorderSettings(Prev_Pr, Pr.ParaPr) && undefined === PrevEl.Get_SectionPr() && true !== Pr.ParaPr.PageBreakBefore)
@@ -8568,7 +8570,11 @@ Paragraph.prototype.Get_CompiledPr = function()
 			Pr.ParaPr.Spacing.Before = 0;
 	}
 
-	if (null != NextEl)
+	if (oNextParagraph && StyleId === oNextParagraph.Style_Get() && Pr.ParaPr.ContextualSpacing)
+	{
+		Pr.ParaPr.Spacing.After = 0;
+	}
+	else if (null != NextEl)
 	{
 		if (NextEl.IsParagraph())
 		{
@@ -8580,19 +8586,10 @@ Paragraph.prototype.Get_CompiledPr = function()
 			var Cur_AfterAuto   = Pr.ParaPr.Spacing.AfterAutoSpacing;
 			var Next_NumPr      = NextEl.GetNumPr();
 
-			if (NextStyle === StyleId && true === Pr.ParaPr.ContextualSpacing)
-			{
+			if (true === Cur_AfterAuto && NextStyle === StyleId && undefined != Next_NumPr && undefined != NumPr && Next_NumPr.NumId === NumPr.NumId)
 				Pr.ParaPr.Spacing.After = 0;
-			}
 			else
-			{
-				if (true === Cur_AfterAuto && NextStyle === StyleId && undefined != Next_NumPr && undefined != NumPr && Next_NumPr.NumId === NumPr.NumId)
-					Pr.ParaPr.Spacing.After = 0;
-				else
-				{
-					Pr.ParaPr.Spacing.After = this.Internal_CalculateAutoSpacing(Cur_After, Cur_AfterAuto, this);
-				}
-			}
+				Pr.ParaPr.Spacing.After = this.Internal_CalculateAutoSpacing(Cur_After, Cur_AfterAuto, this);
 
 			if (true === this.private_CompareBorderSettings(Next_Pr, Pr.ParaPr) && undefined === this.Get_SectionPr() && (undefined === NextEl.Get_SectionPr() || true !== NextEl.IsEmpty()) && true !== Next_Pr.PageBreakBefore)
 				Pr.ParaPr.Brd.Last = false;
@@ -8734,6 +8731,7 @@ Paragraph.prototype.private_CompileParaPr = function(isForce)
 			this.PresentationPr.Bullet = this.CompiledPr.Pr.ParaPr.Get_PresentationBullet(this.Get_Theme(), this.Get_ColorMap());
 			this.Numbering.Bullet      = this.PresentationPr.Bullet;
 		}
+		this.CompiledPr.NeedRecalc = false;
 	}
 	else
 	{
@@ -8747,9 +8745,8 @@ Paragraph.prototype.private_CompileParaPr = function(isForce)
 			this.CompiledPr.Pr.ParaPr.StyleTabs  = new CParaTabs();
 			this.CompiledPr.Pr.ParaPr.StyleNumPr = undefined;
 		}
+		this.CompiledPr.NeedRecalc = true;
 	}
-
-	this.CompiledPr.NeedRecalc = true;
 };
 /**
  * Формируем конечные свойства параграфа на основе стиля, возможной нумерации и прямых настроек.
@@ -10059,14 +10056,6 @@ Paragraph.prototype.CollectDocumentStatistics = function(Stats)
 
 	if (false === ParaStats.EmptyParagraph)
 		Stats.Add_Paragraph();
-};
-Paragraph.prototype.Set_ApplyToAll = function(bValue)
-{
-	this.ApplyToAll = bValue;
-};
-Paragraph.prototype.Get_ApplyToAll = function()
-{
-	return this.ApplyToAll;
 };
 Paragraph.prototype.Get_ParentTextTransform = function()
 {
@@ -13285,6 +13274,10 @@ Paragraph.prototype.ClearParagraphFormatting = function(isClearParaPr, isClearTe
 
 		this.Add(oParaTextPr);
 	}
+};
+Paragraph.prototype.SetParagraphPr = function(oParaPr)
+{
+	this.SetDirectParaPr(oParaPr);
 };
 Paragraph.prototype.SetParagraphAlign = function(Align)
 {

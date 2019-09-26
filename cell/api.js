@@ -381,6 +381,11 @@ var editor;
       return ws.canAddPrintArea();
   };
 
+  spreadsheet_api.prototype.asc_SetPrintScale = function(width, height, scale) {
+	  var ws = this.wb.getWorksheet();
+	  return ws.setPrintScale(width, height, scale);
+  };
+
   spreadsheet_api.prototype.asc_Copy = function() {
     if (window["AscDesktopEditor"])
     {
@@ -1151,6 +1156,9 @@ var editor;
       },
       "updateAllHeaderFooterLock": function() {
           t._onUpdateAllHeaderFooterLock.apply(t, arguments);
+      },
+      "updateAllPrintScaleLock": function() {
+          t._onUpdateAllPrintScaleLock.apply(t, arguments);
       }
     }, this.getViewMode());
 
@@ -1213,6 +1221,10 @@ var editor;
           t._onUpdatePrintAreaLock(lockElem);
           //эвент о локе в меню опции headers/footers во вкладке layout
           t._onUpdateHeaderFooterLock(lockElem);
+          //эвент о локе в меню опции scale во вкладке layout
+          t._onUpdatePrintScaleLock(lockElem);
+
+
 
           var ws = t.wb.getWorksheet();
           var lockSheetId = lockElem.Element["sheetId"];
@@ -1296,6 +1308,8 @@ var editor;
           t._onUpdatePrintAreaLock(lockElem);
           //эвент о локе в меню опции headers/footers во вкладке layout
           t._onUpdateHeaderFooterLock(lockElem);
+          //эвент о локе в меню опции scale во вкладке layout
+          t._onUpdatePrintScaleLock(lockElem);
         }
       }
     };
@@ -1451,6 +1465,24 @@ var editor;
       }
   };
 
+	spreadsheet_api.prototype._onUpdateAllPrintScaleLock = function () {
+		var t = this;
+		if (t.wbModel) {
+			var i, length, wsModel, wsIndex;
+			for (i = 0, length = t.wbModel.getWorksheetCount(); i < length; ++i) {
+				wsModel = t.wbModel.getWorksheet(i);
+				wsIndex = wsModel.getIndex();
+
+				var isLocked = t.asc_isLayoutLocked(wsIndex);
+				if (isLocked) {
+					t.handlers.trigger("asc_onLockPrintScale", wsIndex);
+				} else {
+					t.handlers.trigger("asc_onUnLockPrintScale", wsIndex);
+				}
+			}
+		}
+	};
+
   spreadsheet_api.prototype._onUpdateLayoutMenu = function (nSheetId) {
       var t = this;
       if (t.wbModel) {
@@ -1533,6 +1565,22 @@ var editor;
               t.handlers.trigger("asc_onLockHeaderFooter");
           } else {
               t.handlers.trigger("asc_onUnLockHeaderFooter");
+          }
+      }
+  };
+
+  spreadsheet_api.prototype._onUpdatePrintScaleLock = function(lockElem) {
+      var t = this;
+
+      var wsModel = t.wbModel.getWorksheetById(lockElem.Element["sheetId"]);
+      if (wsModel) {
+          var wsIndex = wsModel.getIndex();
+
+          var isLocked = t.asc_isPrintScaleLocked();
+          if(isLocked) {
+              t.handlers.trigger("asc_onLockPrintScale");
+          } else {
+              t.handlers.trigger("asc_onUnLockPrintScale");
           }
       }
   };
@@ -1907,6 +1955,19 @@ var editor;
       return (false !== this.collaborativeEditing.getLockIntersection(lockInfo, c_oAscLockTypes.kLockTypeOther, /*bCheckOnlyLockAll*/false));
   };
 
+  spreadsheet_api.prototype.asc_isPrintScaleLocked = function(index) {
+      var ws = this.wbModel.getWorksheet(index);
+      var sheetId = null;
+      if (null === ws || undefined === ws) {
+          sheetId = this.asc_getActiveWorksheetId();
+      } else {
+          sheetId = ws.getId();
+      }
+
+      var lockInfo = this.collaborativeEditing.getLockInfo(c_oAscLockTypeElem.Object, /*subType*/null, sheetId, "printScaleOptions");
+      return (false !== this.collaborativeEditing.getLockIntersection(lockInfo, c_oAscLockTypes.kLockTypeOther, /*bCheckOnlyLockAll*/false));
+  };
+
 	spreadsheet_api.prototype.asc_isPrintAreaLocked = function(index) {
 		//проверка лока для именованного диапазона -  области печати
 		//локи для именованных диапазонов устроены следующем образом: если изменяется хоть один именованный диапазон
@@ -1967,31 +2028,41 @@ var editor;
     }
   };
 
-  spreadsheet_api.prototype.asc_hideWorksheet = function() {
-    var t = this;
-    // Колличество листов
-    var countWorksheets = this.asc_getWorksheetsCount();
-    // Колличество скрытых листов
-    var arrHideWorksheets = this.asc_getHiddenWorksheets();
-    var countHideWorksheets = arrHideWorksheets.length;
-    // Вдруг остался один лист
-    if (countWorksheets <= countHideWorksheets + 1) {
+  spreadsheet_api.prototype.asc_hideWorksheet = function (arrSheets) {
+    // Проверка глобального лока
+    if (this.collaborativeEditing.getGlobalLock()) {
       return false;
     }
 
-    var model = this.wbModel;
-    // Активный лист
-    var activeWorksheet = model.getActive();
-    var sheetId = this.wbModel.getWorksheet(activeWorksheet).getId();
-    var lockInfo = this.collaborativeEditing.getLockInfo(c_oAscLockTypeElem.Sheet, /*subType*/null, sheetId, sheetId);
+    if (!arrSheets) {
+      arrSheets = [];
+      arrSheets.push(this.wbModel.getActive());
+    }
 
+    // Вдруг остался один лист
+    if (this.asc_getWorksheetsCount() <= this.asc_getHiddenWorksheets().length + arrSheets.length) {
+      return false;
+    }
+
+    var sheet, arrLocks = [];
+    for (var i = 0; i < arrSheets.length; ++i) {
+      sheet = this.wbModel.getWorksheet(arrSheets[i]);
+      arrLocks.push(this.collaborativeEditing.getLockInfo(c_oAscLockTypeElem.Sheet, /*subType*/null, sheet.getId(), sheet.getId()));
+    }
+
+    var t = this;
     var hideWorksheetCallback = function(res) {
       if (res) {
-        t.wbModel.getWorksheet(activeWorksheet).setHidden(true);
+        History.Create_NewPoint();
+        History.StartTransaction();
+        for (var i = 0; i < arrSheets.length; ++i) {
+          t.wbModel.getWorksheet(arrSheets[i]).setHidden(true);
+        }
+        History.EndTransaction();
       }
     };
 
-    this.collaborativeEditing.lock([lockInfo], hideWorksheetCallback);
+    this.collaborativeEditing.lock(arrLocks, hideWorksheetCallback);
     return true;
   };
 
@@ -2033,22 +2104,32 @@ var editor;
   };
 
   // Удаление листа
-  spreadsheet_api.prototype.asc_deleteWorksheet = function() {
+  spreadsheet_api.prototype.asc_deleteWorksheet = function (arrSheets) {
     // Проверка глобального лока
     if (this.collaborativeEditing.getGlobalLock()) {
       return false;
     }
 
-    var i = this.wbModel.getActive();
-    var activeSheet = this.wbModel.getWorksheet(i);
-    var activeName = parserHelp.getEscapeSheetName(activeSheet.sName);
-    var sheetId = activeSheet.getId();
-    var lockInfo = this.collaborativeEditing.getLockInfo(c_oAscLockTypeElem.Sheet, /*subType*/null, sheetId, sheetId);
+    if (!arrSheets) {
+      arrSheets = [];
+      arrSheets.push(this.wbModel.getActive());
+    }
+
+    // Check delete all
+    if (this.wbModel.getWorksheetCount() === arrSheets.length) {
+      return false;
+    }
+
+    var sheet, arrLocks = [], arrDeleteNames = [];
+    for (var i = 0; i < arrSheets.length; ++i) {
+      sheet = this.wbModel.getWorksheet(arrSheets[i]);
+      arrDeleteNames.push(sheet.sName);
+      arrLocks.push(this.collaborativeEditing.getLockInfo(c_oAscLockTypeElem.Sheet, /*subType*/null, sheet.getId(), sheet.getId()));
+    }
 
     var t = this;
     var deleteCallback = function(res) {
       if (res) {
-
         History.Create_NewPoint();
         History.StartTransaction();
         t.wbModel.dependencyFormulas.lockRecal();
@@ -2057,26 +2138,31 @@ var editor;
 			  History.TurnOff();
 			  var wsView = t.wb.getWorksheet(ws.index, true);
 			  History.TurnOn();
-			  ws.oDrawingOjectsManager.updateChartReferencesWidthHistory(activeName, parserHelp.getEscapeSheetName(ws.sName));
+			  for (var i = 0; i < arrDeleteNames.length; ++i) {
+                ws.oDrawingOjectsManager.updateChartReferencesWidthHistory(arrDeleteNames[i], parserHelp.getEscapeSheetName(ws.sName));
+              }
 			  if (wsView && wsView.objectRender && wsView.objectRender.controller) {
 				  wsView.objectRender.controller.recalculate2(true);
 			  }
           });
 
         // Удаляем Worksheet и получаем новый активный индекс (-1 означает, что ничего не удалилось)
-        var activeNow = t.wbModel.removeWorksheet(i);
-        if (-1 !== activeNow) {
-          t.wb.removeWorksheet(i);
-          t.asc_showWorksheet(activeNow);
-          // Посылаем callback об изменении списка листов
-          t.sheetsChanged();
+        var active;
+        for (var i = 0; i < arrSheets.length; ++i) {
+          active = t.wbModel.removeWorksheet(arrSheets[i]);
+          t.wb.removeWorksheet(arrSheets[i]);
         }
+        if (-1 !== active) {
+          t.asc_showWorksheet(active);
+        }
+        // Посылаем callback об изменении списка листов
+        t.sheetsChanged();
         t.wbModel.dependencyFormulas.unlockRecal();
         History.EndTransaction();
       }
     };
 
-    this.collaborativeEditing.lock([lockInfo], deleteCallback);
+    this.collaborativeEditing.lock(arrLocks, deleteCallback);
     return true;
   };
 
@@ -3662,6 +3748,11 @@ var editor;
     window.AscDesktopEditor_PrintOptions = undefined;
 
     var isOnePage = ((_param & 0x0100) == 0x0100);
+    var isIgnorePrintArea = ((_param & 0x1000) == 0x1000);
+    if(isIgnorePrintArea) {
+		_adjustPrint.asc_setIgnorePrintArea(true);
+    }
+
     _param &= 0xFF;
     if (1 == _param) {
       _adjustPrint.asc_setPrintType(Asc.c_oAscPrintType.EntireWorkbook);
@@ -3931,6 +4022,7 @@ var editor;
 
   prot["asc_ChangePrintArea"] = prot.asc_ChangePrintArea;
   prot["asc_CanAddPrintArea"] = prot.asc_CanAddPrintArea;
+  prot["asc_SetPrintScale"] = prot.asc_SetPrintScale;
 
 
   prot["asc_decodeBuffer"] = prot.asc_decodeBuffer;

@@ -2089,7 +2089,7 @@ background-repeat: no-repeat;\
 		if (!_logicDoc || _logicDoc.IsSelectionEmpty(true))
 			return;
 
-		if (false === _logicDoc.Document_Is_SelectionLocked(changestype_Paragraph_Content))
+		if (false === _logicDoc.Document_Is_SelectionLocked(AscCommon.changestype_Remove))
 		{
 			_logicDoc.StartAction(AscDFH.historydescription_Cut);
 			_logicDoc.Remove(-1, true, true); // -1 - нормальное удаление  (например, для таблиц)
@@ -4604,29 +4604,65 @@ background-repeat: no-repeat;\
 	};
 	asc_docs_api.prototype.remRow                  = function()
 	{
-		if (false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(changestype_Table_RemoveCells))
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return false;
+
+		oLogicDocument.SelectTable(c_oAscTableSelectionType.Row);
+
+		if (!oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Remove))
 		{
-			this.WordControl.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_TableRemoveRow);
-			this.WordControl.m_oLogicDocument.RemoveTableRow();
-			this.WordControl.m_oLogicDocument.FinalizeAction();
+			oLogicDocument.StartAction(AscDFH.historydescription_Document_TableRemoveRow);
+			oLogicDocument.RemoveTableRow();
+			oLogicDocument.FinalizeAction();
+
+			return true;
+		}
+		else
+		{
+			return false;
 		}
 	};
 	asc_docs_api.prototype.remColumn               = function()
 	{
-		if (false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(changestype_Table_RemoveCells))
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return false;
+
+		oLogicDocument.SelectTable(c_oAscTableSelectionType.Column);
+
+		if (!oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Remove))
 		{
-			this.WordControl.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_TableRemoveColumn);
-			this.WordControl.m_oLogicDocument.RemoveTableColumn();
-			this.WordControl.m_oLogicDocument.FinalizeAction();
+			oLogicDocument.StartAction(AscDFH.historydescription_Document_TableRemoveColumn);
+			oLogicDocument.RemoveTableColumn();
+			oLogicDocument.FinalizeAction();
+
+			return true;
+		}
+		else
+		{
+			return false;
 		}
 	};
 	asc_docs_api.prototype.remTable                = function()
 	{
-		if (false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(changestype_Table_RemoveCells))
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return false;
+
+		oLogicDocument.SelectTable(c_oAscTableSelectionType.Table);
+
+		if (!oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Remove))
 		{
-			this.WordControl.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_RemoveTable);
-			this.WordControl.m_oLogicDocument.RemoveTable();
-			this.WordControl.m_oLogicDocument.FinalizeAction();
+			oLogicDocument.StartAction(AscDFH.historydescription_Document_RemoveTable);
+			oLogicDocument.RemoveTable();
+			oLogicDocument.FinalizeAction();
+
+			return true;
+		}
+		else
+		{
+			return false;
 		}
 	};
 	asc_docs_api.prototype.selectRow               = function()
@@ -4704,13 +4740,19 @@ background-repeat: no-repeat;\
 	{
 		var oLogicDocument = this.private_GetLogicDocument();
 		if (!oLogicDocument)
-			return;
+			return false;
 
-		if (!oLogicDocument.Document_Is_SelectionLocked(changestype_Table_Properties))
+		if (!oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Remove))
 		{
 			oLogicDocument.StartAction(AscDFH.historydescription_Document_RemoveTableCells);
 			oLogicDocument.RemoveTableCells();
 			oLogicDocument.FinalizeAction();
+
+			return true;
+		}
+		else
+		{
+			return false;
 		}
 	};
 	asc_docs_api.prototype.widthTable              = function(width)

@@ -552,3 +552,7 @@ CHdrFtrController.prototype.GetAllFields = function(isUseSelection, arrFields)
 
 	return this.HdrFtr.GetAllFields(isUseSelection, arrFields);
 };
+CHdrFtrController.prototype.IsTableCellSelection = function()
+{
+	return this.HdrFtr.IsTableCellSelection();
+};

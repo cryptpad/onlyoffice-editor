@@ -1361,14 +1361,10 @@ CDrawingDocument.prototype =
         var _len = __tabs.length;
         for (var i = 0; i < _len; i++)
         {
-            if (__tabs[i].Value == tab_Left)
-                _arr_types.push(AscCommon.g_tabtype_left);
-            else if (__tabs[i].Value == tab_Center)
-                _arr_types.push(AscCommon.g_tabtype_center);
-            else if (__tabs[i].Value == tab_Right)
-                _arr_types.push(AscCommon.g_tabtype_right);
+            if (__tabs[i].Value == tab_Left || __tabs[i].Value == tab_Center || __tabs[i].Value == tab_Right)
+                _arr_types.push(__tabs[i].Value);
             else
-                _arr_types.push(AscCommon.g_tabtype_left);
+                _arr_types.push(tab_Left);
 
             _arr_pos.push(__tabs[i].Pos);
         }

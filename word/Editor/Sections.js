@@ -84,6 +84,7 @@ function CSectionPr(LogicDocument)
     this.HeaderDefault = null;
 
     this.TitlePage     = false;
+	this.GutterRTL     = false;
 
     this.Columns       = new CSectionColumns(this);
 	this.FootnotePr    = new CFootnotePr();
@@ -113,6 +114,7 @@ CSectionPr.prototype =
 
         // Настройки отступов
         this.Set_PageMargins( Other.PageMargins.Left, Other.PageMargins.Top, Other.PageMargins.Right, Other.PageMargins.Bottom );
+        this.SetGutter(Other.PageMargins.Gutter);
 
         // Настройки границ
         this.Set_Borders_Left( Other.Borders.Left );
@@ -880,6 +882,7 @@ CSectionPr.prototype =
         // Variable : PageNumType
         // Variable : CSectionColumns
 		// Variable : CFootnotePr
+		// Bool     : GutterRTL
 
         Writer.WriteString2( "" + this.Id );
         Writer.WriteString2( "" + this.LogicDocument.Get_Id() );
@@ -890,6 +893,7 @@ CSectionPr.prototype =
         this.PageNumType.Write_ToBinary( Writer );
         this.Columns.Write_ToBinary(Writer);
 		this.FootnotePr.WriteToBinary(Writer);
+		Writer.WriteBool(this.GutterRTL);
     },
 
     Read_FromBinary2 : function(Reader)
@@ -904,6 +908,7 @@ CSectionPr.prototype =
         // Variable : PageNumType
         // Variable : CSectionColumns
 		// Variable : CFootnotePr
+		// Bool     : GutterRTL
 
         this.Id = Reader.GetString2();
         this.LogicDocument = g_oTableId.Get_ById( Reader.GetString2() );
@@ -914,6 +919,7 @@ CSectionPr.prototype =
         this.PageNumType.Read_FromBinary( Reader );
         this.Columns.Read_FromBinary(Reader);
 		this.FootnotePr.ReadFromBinary(Reader);
+		this.GutterRTL = Reader.GetBool();
     }
 };
 /**
@@ -1050,6 +1056,30 @@ CSectionPr.prototype.SetColumnProps = function(ColumnsProps)
 
 	this.Set_Columns_Sep(ColumnsProps.get_Sep());
 };
+CSectionPr.prototype.SetGutter = function(nGutter)
+{
+	if (Math.abs(nGutter - this.PageMargins.Gutter) > 0.001)
+	{
+		History.Add(new CChangesSectionPageMarginsGutter(this, this.PageMargins.Gutter, nGutter));
+		this.PageMargins.Gutter = nGutter;
+	}
+};
+CSectionPr.prototype.GetGutter = function()
+{
+	return this.PageMargins.Gutter;
+};
+CSectionPr.prototype.SetGutterRTL = function(isRTL)
+{
+	if (isRTL !== this.GutterRTL)
+	{
+		History.Add(new CChangesSectionGutterRTL(this, this.GutterRTL, isRTL));
+		this.GutterRTL = isRTL;
+	}
+};
+CSectionPr.prototype.IsGutterRTL = function()
+{
+	return this.GutterRTL;
+};
 
 function CSectionPageSize()
 {
@@ -1089,46 +1119,46 @@ function CSectionPageMargins()
     this.Top    = 20; // 2 cm
     this.Right  = 15; // 1.5 cm
     this.Bottom = 20; // 2 cm
+	this.Gutter = 0;  // 0 cm
     
     this.Header = 12.5; // 1.25 cm
     this.Footer = 12.5; // 1.25 cm
 }
 
-CSectionPageMargins.prototype =
+CSectionPageMargins.prototype.Write_ToBinary = function(Writer)
 {
-    Write_ToBinary : function(Writer)
-    {
-        // Double : Left
-        // Double : Top
-        // Double : Right
-        // Double : Bottom
-        // Double : Header
-        // Double : Footer        
+	// Double : Left
+	// Double : Top
+	// Double : Right
+	// Double : Bottom
+	// Double : Header
+	// Double : Footer
 
-        Writer.WriteDouble( this.Left );
-        Writer.WriteDouble( this.Top );
-        Writer.WriteDouble( this.Right );
-        Writer.WriteDouble( this.Bottom );
-        Writer.WriteDouble( this.Header );
-        Writer.WriteDouble( this.Footer );
-    },
+	Writer.WriteDouble(this.Left);
+	Writer.WriteDouble(this.Top);
+	Writer.WriteDouble(this.Right);
+	Writer.WriteDouble(this.Bottom);
+	Writer.WriteDouble(this.Header);
+	Writer.WriteDouble(this.Footer);
+	Writer.WriteDouble(this.Gutter);
+};
+CSectionPageMargins.prototype.Read_FromBinary = function(Reader)
+{
+	// Double : Left
+	// Double : Top
+	// Double : Right
+	// Double : Bottom
+	// Double : Header
+	// Double : Footer
+	// Double : Gutter
 
-    Read_FromBinary : function(Reader)
-    {
-        // Double : Left
-        // Double : Top
-        // Double : Right
-        // Double : Bottom
-        // Double : Header
-        // Double : Footer        
-
-        this.Left   = Reader.GetDouble();
-        this.Top    = Reader.GetDouble();
-        this.Right  = Reader.GetDouble();
-        this.Bottom = Reader.GetDouble();
-        this.Header = Reader.GetDouble();
-        this.Footer = Reader.GetDouble();
-    }
+	this.Left   = Reader.GetDouble();
+	this.Top    = Reader.GetDouble();
+	this.Right  = Reader.GetDouble();
+	this.Bottom = Reader.GetDouble();
+	this.Header = Reader.GetDouble();
+	this.Footer = Reader.GetDouble();
+	this.Gutter = Reader.GetDouble();
 };
 
 function CSectionBorders()

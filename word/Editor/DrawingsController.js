@@ -600,3 +600,11 @@ CDrawingsController.prototype.GetAllFields = function(isUseSelection, arrFields)
 {
 	return this.DrawingObjects.GetAllFields(isUseSelection, arrFields);
 };
+CDrawingsController.prototype.IsTableCellSelection = function()
+{
+	var oTargetDocContent = this.DrawingObjects.getTargetDocContent();
+	if (oTargetDocContent && oTargetDocContent.IsTableCellSelection)
+		return oTargetDocContent.IsTableCellSelection();
+
+	return false;
+};
