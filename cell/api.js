@@ -2122,7 +2122,7 @@ var editor;
 
     var sheet, arrLocks = [], arrDeleteNames = [];
     for (var i = 0; i < arrSheets.length; ++i) {
-      sheet = this.wbModel.getWorksheet(arrSheets[i]);
+      sheet = arrSheets[i] = this.wbModel.getWorksheet(arrSheets[i]);
       arrDeleteNames.push(sheet.sName);
       arrLocks.push(this.collaborativeEditing.getLockInfo(c_oAscLockTypeElem.Sheet, /*subType*/null, sheet.getId(), sheet.getId()));
     }
@@ -2147,10 +2147,11 @@ var editor;
           });
 
         // Удаляем Worksheet и получаем новый активный индекс (-1 означает, что ничего не удалилось)
-        var active;
+        var active, index;
         for (var i = 0; i < arrSheets.length; ++i) {
-          active = t.wbModel.removeWorksheet(arrSheets[i]);
-          t.wb.removeWorksheet(arrSheets[i]);
+          index = arrSheets[i].getIndex();
+          active = t.wbModel.removeWorksheet(index);
+          t.wb.removeWorksheet(index);
         }
         if (-1 !== active) {
           t.asc_showWorksheet(active);
