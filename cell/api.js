@@ -1763,12 +1763,6 @@ var editor;
 		this.collaborativeEditing.sendChanges(this.IsUserSave, true);
 	};
 
-  // Залочена ли панель для закрепления
-  spreadsheet_api.prototype._isLockedTabColor = function(index, callback) {
-    var sheetId = this.wbModel.getWorksheet(index).getId();
-    var lockInfo = this.collaborativeEditing.getLockInfo(c_oAscLockTypeElem.Object, null, sheetId, AscCommonExcel.c_oAscLockNameTabColor);
-    this.collaborativeEditing.lock([lockInfo], callback);
-  };
   spreadsheet_api.prototype._isLockedSparkline = function (id, callback) {
     var lockInfo = this.collaborativeEditing.getLockInfo(c_oAscLockTypeElem.Object, /*subType*/null,
         this.asc_getActiveWorksheetId(), id);
@@ -1813,15 +1807,36 @@ var editor;
   spreadsheet_api.prototype.asc_getWorksheetTabColor = function(index) {
     return this.wbModel.getWorksheet(index).getTabColor();
   };
-  spreadsheet_api.prototype.asc_setWorksheetTabColor = function(index, color) {
+  spreadsheet_api.prototype.asc_setWorksheetTabColor = function(color, arrSheets) {
+    // Проверка глобального лока
+    if (this.collaborativeEditing.getGlobalLock()) {
+      return false;
+    }
+
+    if (!arrSheets) {
+      arrSheets = [];
+      arrSheets.push(this.wbModel.getActive());
+    }
+
+    var sheet, arrLocks = [];
+    for (var i = 0; i < arrSheets.length; ++i) {
+      sheet = this.wbModel.getWorksheet(arrSheets[i]);
+      arrLocks.push(this.collaborativeEditing.getLockInfo(c_oAscLockTypeElem.Object, /*subType*/null, sheet.getId(), AscCommonExcel.c_oAscLockNameTabColor));
+    }
+
     var t = this;
     var changeTabColorCallback = function(res) {
       if (res) {
         color = AscCommonExcel.CorrectAscColor(color);
-        t.wbModel.getWorksheet(index).setTabColor(color);
+        History.Create_NewPoint();
+        History.StartTransaction();
+        for (var i = 0; i < arrSheets.length; ++i) {
+          t.wbModel.getWorksheet(arrSheets[i]).setTabColor(color);
+        }
+        History.EndTransaction();
       }
     };
-    this._isLockedTabColor(index, changeTabColorCallback);
+    this.collaborativeEditing.lock(arrLocks, changeTabColorCallback);
   };
 
   spreadsheet_api.prototype.asc_getActiveWorksheetIndex = function() {
