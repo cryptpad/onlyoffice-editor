@@ -2182,21 +2182,37 @@ var editor;
     return true;
   };
 
-  spreadsheet_api.prototype.asc_moveWorksheet = function(where) {
-    var i = this.wbModel.getActive();
-    var d = i < where ? +1 : -1;
-    // Мы должны поместить слева от заданного значения, поэтому если идем вправо, то вычтем 1
-    if (1 === d) {
-      where -= 1;
+  spreadsheet_api.prototype.asc_moveWorksheet = function (where, arrSheets) {
+    // Проверка глобального лока
+    if (this.collaborativeEditing.getGlobalLock()) {
+      return false;
     }
+
+    if (!arrSheets) {
+      arrSheets = [];
+      arrSheets.push(this.wbModel.getActive());
+    }
+
+    var i, index, activeWs = this.wbModel.getActiveWs(), _where;
+    for (i = 0; i < arrSheets.length; ++i) {
+      arrSheets[i] = this.wbModel.getWorksheet(arrSheets[i]);
+    }
+
     History.Create_NewPoint();
-    this.wb.replaceWorksheet(i, where);
-    this.wbModel.replaceWorksheet(i, where);
+    History.StartTransaction();
+    for (i = arrSheets.length - 1; i >= 0; --i) {
+      index = arrSheets[i].getIndex();
+      // Мы должны поместить слева от заданного значения, поэтому если идем вправо, то вычтем 1
+      _where = index < where ? (where - 1) : where;
+      this.wb.replaceWorksheet(index, _where);
+      this.wbModel.replaceWorksheet(index, _where);
+    }
 
     // Обновим текущий номер
-    this.asc_showWorksheet(where);
+    this.asc_showWorksheet(activeWs.getIndex());
     // Посылаем callback об изменении списка листов
     this.sheetsChanged();
+    History.EndTransaction();
   };
 
   spreadsheet_api.prototype.asc_copyWorksheet = function(where, newName) {
