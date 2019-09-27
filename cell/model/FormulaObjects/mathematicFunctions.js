@@ -4491,239 +4491,21 @@
 	 * @constructor
 	 */
 	function SUMIFSCache() {
-		this.cacheId = {};
 		this.cacheRanges = {};
 	}
-
-	SUMIFSCache.prototype.calculate = function (arg) {
-		var arg0 = arg[0], arg1 = arg[1], arg2 = arg[2];
-		var arg3 = arg[3] ? arg[3].tocBool().value : true;
-		var t = this, number = arg2.getValue() - 1, valueForSearching, r, c, res = -1, min, regexp, count;
-
-		if(cElementType.array === arg2.type) {
-			var arg2Val = arg2.getElementRowCol(0,0);
-			number = arg2Val ? arg2Val.getValue() - 1 : number;
-		}
-
-		if (isNaN(number)) {
-			return new cError(cErrorType.bad_reference);
-		}
-		if (number < 0) {
-			return new cError(cErrorType.wrong_value_type);
-		}
-
-		if (cElementType.cell3D === arg0.type || cElementType.cell === arg0.type) {
-			arg0 = arg0.getValue();
-		}
-
-		if (cElementType.error === arg0.type) {
-			return arg0;
-		}
-
-		var arg0Val;
-		if(cElementType.array === arg0.type) {
-			arg0Val = arg0.getElementRowCol(0,0);
-			valueForSearching = ('' + arg0Val.getValue()).toLowerCase();
-		} else {
-			arg0Val = arg0;
-			valueForSearching = ('' + arg0.getValue()).toLowerCase();
-		}
-
-		//TODO hlookup не правильно работает если первый агумент массив - раскомментировать тесты для hlookup
-		var found = false;
-		if (cElementType.array === arg1.type) {
-			// ToDo
-			if (cElementType.string === arg0.type) {
-				regexp = searchRegExp(valueForSearching);
-			}
-			arg1.foreach(function (elem, r, c) {
-				var v = ('' + elem.getValue()).toLowerCase();
-				var i = t.bHor ? c : r;
-				if (0 === i) {
-					min = v;
-				}
-
-				if (arg3) {
-					if (valueForSearching === v) {
-						res = i;
-						found = true;
-					} else if (valueForSearching > v && !found) {
-						res = i;
-					}
-				} else {
-					if (cElementType.string === arg0.type) {
-						if (regexp.test(v)) {
-							res = i;
-						}
-					} else if (valueForSearching === v) {
-						res = i;
-					}
-				}
-
-				min = Math.min(min, v);
-			});
-
-			if (/*min > valueForSearching ||*/ -1 === res) {
-				return new cError(cErrorType.not_available);
-			}
-
-			count = this.bHor ? arg1.getRowCount() : arg1.getCountElementInRow();
-			if (number > count - 1) {
-				return new cError(cErrorType.bad_reference);
-			}
-
-			r = this.bHor ? number : res;
-			c = this.bHor ? res : number;
-			return arg1.getElementRowCol(r, c);
-		}
-
-		var range;
-		if (cElementType.cell === arg1.type || cElementType.cell3D === arg1.type ||
-			cElementType.cellsRange === arg1.type || cElementType.cellsRange3D === arg1.type) {
-			range = arg1.getRange();
-		}
-		if (!range) {
-			return new cError(cErrorType.bad_reference);
-		}
-
-		var bb = range.getBBox0();
-		count = this.bHor ? (bb.r2 - bb.r1) : (bb.c2 - bb.c1);
-		if (number > count) {
-			return new cError(cErrorType.bad_reference);
-		}
-		var ws = arg1.getWS();
-		r = this.bHor ? bb.r1 : bb.r2;
-		c = this.bHor ? bb.c2 : bb.c1;
-		var oSearchRange = ws.getRange3(bb.r1, bb.c1, r, c);
-
-		if(cElementType.cellsRange === arg0Val.type) {
-			arg0Val = arg0Val.cross(arguments[1]);
-		} else if(cElementType.cellsRange3D === arg0Val.type) {
-			arg0Val = arg0Val.cross(arguments[1]);
-		}
-
-		if (cElementType.error === arg0Val.type) {
-			return arg0;
-		}
-
-		res = this._get(oSearchRange, arg0Val, arg3);
-		if (-1 === res) {
-			return new cError(cErrorType.not_available);
-		}
-
-		r = this.bHor ? bb.r1 + number : res;
-		c = this.bHor ? res : bb.c1 + number;
-		var resVal;
-		arg1.getWS()._getCellNoEmpty(r, c, function (cell) {
-			resVal = checkTypeCell(cell);
-		});
-		if(cElementType.empty === resVal.type){
-			resVal = new cNumber(0);
-		}
-
-		return resVal;
-	};
-	SUMIFSCache.prototype._get = function (range, valueForSearching, arg3Value) {
+	SUMIFSCache.prototype._get = function (range, arg) {
 		var res, _this = this, wsId = range.getWorksheet().getId();
 		var sRangeName;
 		AscCommonExcel.executeInR1C1Mode(false, function () {
-			sRangeName = wsId + g_cCharDelimiter + range.getName();
+			sRangeName = wsId + AscCommon.g_cCharDelimiter + range.getName();
 		});
-		var cacheElem = this.cacheId[sRangeName];
+		var cacheElem = this.cacheRanges[sRangeName];
 		if (!cacheElem) {
-			cacheElem = {elements: [], results: {}};
-			range._foreachNoEmpty(function (cell, r, c) {
-				cacheElem.elements.push({v: checkTypeCell(cell), i: (_this.bHor ? c : r)});
-			});
-			this.cacheId[sRangeName] = cacheElem;
-			var cacheRange = this.cacheRanges[wsId];
-			if (!cacheRange) {
-				cacheRange = new AscCommonExcel.RangeDataManager(null);
-				this.cacheRanges[wsId] = cacheRange;
-			}
-			cacheRange.add(range.getBBox0(), cacheElem);
+			cacheElem = this.cacheRanges[sRangeName] = arg.getMatrix();
 		}
-		var sInputKey = valueForSearching.getValue() + g_cCharDelimiter + arg3Value + g_cCharDelimiter + valueForSearching.type;
-		res = cacheElem.results[sInputKey];
-		if (!res) {
-			cacheElem.results[sInputKey] = res = this._calculate(cacheElem.elements, valueForSearching, arg3Value);
-		}
-		return res;
-	};
-	SUMIFSCache.prototype._calculate = function (cacheArray, valueForSearching, lookup) {
-		var res = -1, i = 0, j, length = cacheArray.length, k, elem, val;
-
-		//TODO неверно работает функция, допустим для случая: VLOOKUP("12",A1:A5,1) 12.00 ; "qwe" ; "3" ; 3.00 ; 4.00
-
-		//ascending order: ..., -2, -1, 0, 1, 2, ..., A-Z, FALSE
-		var _compareValues = function (val1, val2, op) {
-			var res = _func[val1.type][val2.type](val1, val2, op);
-
-			//op == true -> "="; op == false -> "<"
-			/*if(op) {
-			 if(val1.type === val2.type) {
-			 res = val1.value === val2.value;
-			 } else {
-			 res = false;
-			 }
-			 } else {
-			 if(val1.type === val2.type) {
-			 res = val1.value < val2.value;
-			 } else if(cElementType.number === val1.type && cElementType.string === val2.type) {
-			 res = true;
-			 } else if(cElementType.string === val1.type && cElementType.number === val2.type) {
-			 res = false;
-			 } else if(cElementType.number === val1.type && cElementType.bool === val2.type) {
-			 res = true;
-			 } else if(cElementType.bool === val1.type && cElementType.number === val2.type) {
-			 res = false;
-			 }
-			 }*/
-
-			return res ? res.value : false;
-		};
-
-		if (lookup) {
-			j = length - 1;
-			while (i <= j) {
-				k = Math.floor((i + j) / 2);
-				elem = cacheArray[k];
-				val = elem.v;
-				if (_compareValues(valueForSearching, val, "=")) {
-					return elem.i;
-				} else if (_compareValues(valueForSearching, val, "<")) {
-					j = k - 1;
-				} else {
-					i = k + 1;
-				}
-			}
-			res = Math.min(i, j);
-			res = -1 === res ? res : cacheArray[res].i;
-		} else {
-			// Exact value
-			for (; i < length; i++) {
-				elem = cacheArray[i];
-				val = elem.v;
-				if (_compareValues(valueForSearching, val, "=")) {
-					return elem.i;
-				}
-			}
-		}
-		return res;
-	};
-	SUMIFSCache.prototype.remove = function (cell) {
-		var wsId = cell.ws.getId();
-		var cacheRange = this.cacheRanges[wsId];
-		if (cacheRange) {
-			var oGetRes = cacheRange.get(new Asc.Range(cell.nCol, cell.nRow, cell.nCol, cell.nRow));
-			for (var i = 0, length = oGetRes.all.length; i < length; ++i) {
-				var elem = oGetRes.all[i];
-				elem.data.results = {};
-			}
-		}
+		return cacheElem;
 	};
 	SUMIFSCache.prototype.clean = function () {
-		this.cacheId = {};
 		this.cacheRanges = {};
 	};
 
@@ -4764,8 +4546,6 @@
 			}
 			return res;
 		};
-
-		//return g_oVLOOKUPCache.calculate(arg, arguments[1]);
 
 		var arg0Range = getRange(arg0);
 		var c_colType = Asc.c_oAscSelectionType.RangeCol;
@@ -4842,6 +4622,116 @@
 		}
 		return new cNumber(_sum);
 	};
+	/*cSUMIFS.prototype.Calculate2 = function (arg) {
+		var arg0 = arg[0];
+		if (cElementType.cell !== arg0.type && cElementType.cell3D !== arg0.type && cElementType.cellsRange !== arg0.type) {
+			if (cElementType.cellsRange3D === arg0.type) {
+				arg0 = arg0.tocArea();
+				if (!arg0) {
+					return new cError(cErrorType.wrong_value_type);
+				}
+			} else {
+				return new cError(cErrorType.wrong_value_type);
+			}
+		}
+
+		var getRange = function(curArg) {
+			var res = null;
+			if(cElementType.cellsRange === curArg.type) {
+				res = curArg.range && curArg.range.bbox ? curArg.range.bbox : null;
+			} else if(cElementType.cellsRange3D === curArg.type) {
+				res = curArg.bbox ? curArg.bbox : null;
+			}
+			return res;
+		};
+
+		var getMatrixFromCache = function(val) {
+			var range = val.getRange();
+			var ws = val.getWS();
+			var bb = range.getBBox0();
+			var oSearchRange = ws.getRange3(bb.r1, bb.c1, bb.r2, bb.c2);
+			return g_oSUMIFSCache._get(oSearchRange, val);
+		};
+
+		var arg0Range = getRange(arg0);
+		var c_colType = Asc.c_oAscSelectionType.RangeCol;
+
+		var resMat = [];
+		var arg0Matrix = getMatrixFromCache(arg0);
+		var i, j, arg1, arg2, matchingInfo, bSelectRangeCol, arg1Range;
+		for (var k = 1; k < arg.length; k += 2) {
+			arg1 = arg[k];
+			arg2 = arg[k + 1];
+
+			//добавляю флаг bSelectRangeCol - для случая когда нулевой и первый аргумент это area/area3d с диапазоном весь столбец
+			//в этом случае нет ошибки при разных размерах полученных массивов - arg0Matrix/arg1Matrix
+			bSelectRangeCol = false;
+			arg1Range = getRange(arg1);
+			if(arg1Range && arg1Range.getType() === c_colType && arg0Range && arg0Range.getType() === c_colType) {
+				if(arg0Range.c1 === arg0Range.c1 && arg0Range.c2 === arg0Range.c2) {
+					bSelectRangeCol = true;
+				}
+			}
+
+			if (cElementType.cell !== arg1.type && cElementType.cell3D !== arg1.type &&
+				cElementType.cellsRange !== arg1.type) {
+				if (cElementType.cellsRange3D === arg1.type) {
+					arg1 = arg1.tocArea();
+					if (!arg1) {
+						return new cError(cErrorType.wrong_value_type);
+					}
+				} else {
+					return new cError(cErrorType.wrong_value_type);
+				}
+			}
+
+			if (cElementType.cellsRange === arg2.type || cElementType.cellsRange3D === arg2.type) {
+				arg2 = arg2.cross(arguments[1]);
+			} else if (cElementType.array === arg2.type) {
+				arg2 = arg2.getElementRowCol(0, 0);
+			}
+
+			arg2 = arg2.tocString();
+
+			if (cElementType.string !== arg2.type) {
+				return new cError(cErrorType.wrong_value_type);
+			}
+
+			matchingInfo = AscCommonExcel.matchingValue(arg2);
+
+			var arg1Matrix = getMatrixFromCache(arg1);
+			if (!bSelectRangeCol && arg0Matrix.length !== arg1Matrix.length) {
+				return new cError(cErrorType.wrong_value_type);
+			}
+			for (i = 0; i < arg1Matrix.length; ++i) {
+				if(bSelectRangeCol && (!arg0Matrix[i] || !arg1Matrix[i])) {
+					continue;
+				}
+				if (arg0Matrix[i].length !== arg1Matrix[i].length) {
+					return new cError(cErrorType.wrong_value_type);
+				}
+				for (j = 0; j < arg1Matrix[i].length; ++j) {
+					if(!resMat[i]) {
+						resMat[i] = [];
+					}
+					if (arg0Matrix[i][j] && !AscCommonExcel.matching(arg1Matrix[i][j], matchingInfo)) {
+						resMat[i][j] = null;
+					}
+				}
+			}
+		}
+
+		var _sum = 0;
+		var valMatrix0;
+		for (i = 0; i < resMat.length; ++i) {
+			for (j = 0; j < resMat[i].length; ++j) {
+				if (((!resMat[i]) || (resMat[i] && resMat[i][j] !== null)) && (valMatrix0 = arg0Matrix[i][j]) && cElementType.number === valMatrix0.type) {
+					_sum += valMatrix0.getValue();
+				}
+			}
+		}
+		return new cNumber(_sum);
+	};*/
 	cSUMIFS.prototype.checkArguments = function (countArguments) {
 		return 1 === countArguments % 2 && cBaseFunction.prototype.checkArguments.apply(this, arguments);
 	};
@@ -5418,6 +5308,8 @@
 
 		return truncHelper(arg0.getValue(), arg1.getValue());
 	};
+
+	var g_oSUMIFSCache = new SUMIFSCache();
 
 	//----------------------------------------------------------export----------------------------------------------------
 	window['AscCommonExcel'] = window['AscCommonExcel'] || {};
