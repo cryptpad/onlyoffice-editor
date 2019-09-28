@@ -1545,8 +1545,14 @@ CHeaderFooterController.prototype =
         this.Pages[PageIndex].Footer = Footer;
         var X, XLimit;
         
-        var X      = SectPr.Get_PageMargin_Left();
-        var XLimit = SectPr.Get_PageWidth() - SectPr.Get_PageMargin_Right();
+        var X      = SectPr.GetPageMarginLeft();
+        var XLimit = SectPr.GetPageWidth() - SectPr.GetPageMarginRight();
+
+        if (bEven)
+        {
+            X      = SectPr.GetPageMarginRight();
+            XLimit = SectPr.GetPageWidth() - SectPr.GetPageMarginLeft();
+        }
         
         var bRecalcHeader = false;
 
