@@ -6503,7 +6503,7 @@
 					if (curDataRow) {
 						var dataIndex = Math.max(rowItem.i, colItem.i);
 						dataField = dataFields[dataIndex];
-						var oCellValue = curDataRow.total[dataIndex].getCellValue(dataField.subtotal);
+						var oCellValue = curDataRow.total[dataIndex].getCellValue(dataField.subtotal, rowItem.t, colItem.t);
 						if (oCellValue) {
 							var cells = this.getRange4(r1 + rowItemsIndex, c1 + colItemsIndex);
 							cells.setValueData(new AscCommonExcel.UndoRedoData_CellValueData(null, oCellValue));

@@ -121,7 +121,7 @@
 	StatisticOnlineAlgorithm.prototype.getStdDevP = function() {
 		return Math.sqrt(this.getVarP());
 	};
-	StatisticOnlineAlgorithm.prototype.getCellValue = function(type) {
+	StatisticOnlineAlgorithm.prototype.getCellValue = function(dataType, rowType, colType) {
 		var oCellValue;
 		if (0 === this.count && 0 === this.countNums) {
 			return oCellValue;
@@ -132,6 +132,15 @@
 			oCellValue.type = AscCommon.CellValueType.Error;
 			oCellValue.text = AscCommonExcel.cError.prototype.getStringFromErrorType(this.errorType);
 			return oCellValue;
+		}
+		var type = dataType;
+		if (Asc.c_oAscItemType.Default !== rowType && Asc.c_oAscItemType.Data !== rowType && Asc.c_oAscItemType.Blank !== rowType && Asc.c_oAscItemType.Grand !== rowType) {
+			type = rowType;
+			if (Asc.c_oAscItemType.Default !== colType && Asc.c_oAscItemType.Data !== colType && Asc.c_oAscItemType.Blank !== colType && Asc.c_oAscItemType.Grand !== colType) {
+				if (rowType !== colType) {
+					type = Asc.c_oAscItemType.Blank;
+				}
+			}
 		}
 		switch (type) {
 			case Asc.c_oAscItemType.Count:
@@ -174,7 +183,7 @@
 				}
 				break;
 			case Asc.c_oAscItemType.Var:
-				if (this.countNums > 0) {
+				if (this.countNums > 1) {
 					oCellValue.number = this.getVar();
 				} else {
 					oCellValue.type = AscCommon.CellValueType.Error;
@@ -188,6 +197,9 @@
 					oCellValue.type = AscCommon.CellValueType.Error;
 					oCellValue.text = AscCommonExcel.cError.prototype.getStringFromErrorType(cErrorType.division_by_zero);
 				}
+				break;
+			case Asc.c_oAscItemType.Blank:
+				oCellValue = undefined;
 				break;
 			default: oCellValue.number = this.getSum();
 		}
