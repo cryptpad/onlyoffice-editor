@@ -4729,6 +4729,18 @@
 			}
 
 			if(null === cacheElem.elems) {
+				if (cElementType.cell !== arg1.type && cElementType.cell3D !== arg1.type &&
+					cElementType.cellsRange !== arg1.type) {
+					if (cElementType.cellsRange3D === arg1.type) {
+						arg1 = arg1.tocArea();
+						if (!arg1) {
+							return new cError(cErrorType.wrong_value_type);
+						}
+					} else {
+						return new cError(cErrorType.wrong_value_type);
+					}
+				}
+
 				cacheElem.elems = getElems(arg1, arg2, parent.elems, k + 1 === arg.length - 1);
 			}
 
