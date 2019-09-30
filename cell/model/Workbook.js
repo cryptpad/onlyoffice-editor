@@ -6411,24 +6411,29 @@
 		var location = pivotTable.location;
 		var c1 = pivotRange.c1;
 		var r1 = pivotRange.r1 + location.firstDataRow - 1;
-		if (pivotTable.compact || location.firstDataCol !== rowFields.length) {
-			if(1 === rowFields.length && AscCommonExcel.st_VALUES === rowFields[0].asc_getIndex()){
-				this.getRange4(r1, c1).setValue(pivotTable.dataCaption || AscCommonExcel.DATA_CAPTION);
+		if (pivotTable.showHeaders) {
+			if (pivotTable.compact || location.firstDataCol !== rowFields.length) {
+				if(1 === rowFields.length && AscCommonExcel.st_VALUES === rowFields[0].asc_getIndex()){
+					this.getRange4(r1, c1).setValue(pivotTable.dataCaption || AscCommonExcel.DATA_CAPTION);
+				} else {
+					this.getRange4(r1, c1).setValue(pivotTable.rowHeaderCaption || AscCommonExcel.ROW_HEADER_CAPTION);
+				}
 			} else {
-				this.getRange4(r1, c1).setValue(pivotTable.rowHeaderCaption || AscCommonExcel.ROW_HEADER_CAPTION);
+				index = rowFields[0].asc_getIndex();
+				cells = this.getRange4(r1, c1);
+				cells.setValue(pivotTable.getPivotFieldName(index));
 			}
-		} else {
-			index = rowFields[0].asc_getIndex();
-			cells = this.getRange4(r1, c1);
-			cells.setValue(pivotTable.getPivotFieldName(index));
 		}
 		for (var i = 1; i < rowFields.length; ++i) {
 			index = rowFields[i - 1].asc_getIndex();
 			field = pivotFields[index];
 			if (field && !(field.compact && field.outline)) {
 				index = rowFields[i].asc_getIndex();
-				cells = this.getRange4(r1, ++c1);
-				cells.setValue(pivotTable.getPivotFieldName(index));
+				++c1;
+				if (pivotTable.showHeaders) {
+					cells = this.getRange4(r1, c1);
+					cells.setValue(pivotTable.getPivotFieldName(index));
+				}
 			}
 			rowFieldsPos[i] = c1;
 		}
