@@ -2123,6 +2123,17 @@ CDocument.prototype.Get_PageContentStartPos = function(PageIndex, ElementIndex)
 		XLimit = oSectPr.GetPageWidth() - oSectPr.GetPageMarginLeft();
 	}
 
+	var nGutter = oSectPr.GetGutter();
+	if (nGutter > 0.001)
+	{
+		if (this.IsGutterAtTop())
+			Y += nGutter;
+		else if (oSectPr.IsGutterRTL())
+			XLimit -= nGutter;
+		else
+			X += nGutter;
+	}
+
 	var HdrFtrLine = this.HdrFtr.GetHdrFtrLines(PageIndex);
 
 	var YHeader = HdrFtrLine.Top;
@@ -2160,6 +2171,17 @@ CDocument.prototype.Get_PageContentStartPos2 = function(StartPageIndex, StartCol
 	{
 		X      = oSectPr.GetPageMarginRight();
 		XLimit = oSectPr.GetPageWidth() - oSectPr.GetPageMarginLeft();
+	}
+
+	var nGutter = oSectPr.GetGutter();
+	if (nGutter > 0.001)
+	{
+		if (this.IsGutterAtTop())
+			Y += nGutter;
+		else if (oSectPr.IsGutterRTL())
+			XLimit -= nGutter;
+		else
+			X += nGutter;
 	}
 
 	var SectionIndex = this.FullRecalc.SectionIndex;
@@ -2200,27 +2222,40 @@ CDocument.prototype.Get_PageContentStartPos2 = function(StartPageIndex, StartCol
 		ColumnSpaceAfter  : ColumnSpaceAfter
 	};
 };
-CDocument.prototype.Get_PageLimits                 = function(PageIndex)
+CDocument.prototype.Get_PageLimits = function(nPageIndex)
 {
-    var Index  = ( undefined !== this.Pages[PageIndex] ? this.Pages[PageIndex].Pos : 0 );
-    var SectPr = this.SectionsInfo.Get_SectPr(Index).SectPr;
+	var nIndex  = this.Pages[nPageIndex] ? this.Pages[nPageIndex].Pos : 0;
+	var oSectPr = this.SectionsInfo.Get_SectPr(nIndex).SectPr;
 
-    var W = SectPr.Get_PageWidth();
-    var H = SectPr.Get_PageHeight();
-
-    return {X : 0, Y : 0, XLimit : W, YLimit : H};
+	return {
+		X      : 0,
+		Y      : 0,
+		XLimit : oSectPr.GetPageWidth(),
+		YLimit : oSectPr.GetPageHeight()
+	};
 };
-CDocument.prototype.Get_PageFields                 = function(PageIndex)
+CDocument.prototype.Get_PageFields = function(nPageIndex)
 {
-    var Index  = ( undefined !== this.Pages[PageIndex] ? this.Pages[PageIndex].Pos : 0 );
-    var SectPr = this.SectionsInfo.Get_SectPr(Index).SectPr;
+	var nIndex  = this.Pages[nPageIndex] ? this.Pages[nPageIndex].Pos : 0;
+	var oSectPr = this.SectionsInfo.Get_SectPr(nIndex).SectPr;
 
-    var Y      = SectPr.PageMargins.Top;
-    var YLimit = SectPr.PageSize.H - SectPr.PageMargins.Bottom;
-    var X      = SectPr.PageMargins.Left;
-    var XLimit = SectPr.PageSize.W - SectPr.PageMargins.Right;
+	var Y      = oSectPr.GetPageMarginTop();
+	var YLimit = oSectPr.GetPageHeight() - oSectPr.GetPageMarginBottom();
+	var X      = oSectPr.GetPageMarginLeft();
+	var XLimit = oSectPr.GetPageWidth() - oSectPr.GetPageMarginRight();
 
-    return {X : X, Y : Y, XLimit : XLimit, YLimit : YLimit};
+	if (this.IsMirrorMargins() && 1 === nPageIndex % 2)
+	{
+		X      = oSectPr.GetPageMarginRight();
+		XLimit = oSectPr.GetPageWidth() - oSectPr.GetPageMarginLeft();
+	}
+
+	return {
+		X      : X,
+		Y      : Y,
+		XLimit : XLimit,
+		YLimit : YLimit
+	};
 };
 CDocument.prototype.Get_ColumnFields               = function(ElementIndex, ColumnIndex)
 {
