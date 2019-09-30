@@ -8299,6 +8299,7 @@
 			AscCommonExcel.g_oVLOOKUPCache.remove(this);
 			AscCommonExcel.g_oHLOOKUPCache.remove(this);
 			AscCommonExcel.g_oMatchCache.remove(this);
+			AscCommonExcel.g_oSUMIFSCache.remove(this);
 		}
 	};
 	Cell.prototype.cleanText = function() {

@@ -4493,16 +4493,29 @@
 	function SUMIFSCache() {
 		this.cacheRanges = {};
 	}
-	SUMIFSCache.prototype._get = function (range, arg, valueForSearching) {
+	SUMIFSCache.prototype._get = function (range, arg, valueForSearching, parent) {
 		var res, _this = this, wsId = range.getWorksheet().getId();
 		var sRangeName;
 		AscCommonExcel.executeInR1C1Mode(false, function () {
 			sRangeName = wsId + AscCommon.g_cCharDelimiter + range.getName();
 		});
 		var sInputKey = valueForSearching.getValue() + AscCommon.g_cCharDelimiter + sRangeName /*+ g_cCharDelimiter + valueForSearching.type*/;
-		var cacheElem = this.cacheRanges[sInputKey];
+
+		var cacheElem;
+		if(parent) {
+			if(!parent.cacheRanges) {
+				parent.cacheRanges = [];
+			}
+			cacheElem = parent.cacheRanges[sInputKey];
+		} else {
+			cacheElem = this.cacheRanges[sInputKey];
+		}
 		if (!cacheElem) {
-			cacheElem = this.cacheRanges[sInputKey] = {elems: null, cacheRanges: null};
+			if(parent && parent.cacheRanges) {
+				cacheElem = parent.cacheRanges[sInputKey] = {elems: null, cacheRanges: null};
+			} else {
+				cacheElem = this.cacheRanges[sInputKey] = {elems: null, cacheRanges: null};
+			}
 		}
 		return cacheElem;
 	};
@@ -4646,12 +4659,12 @@
 			return res;
 		};
 
-		var getMatrixFromCache = function(area, searchVal) {
+		var getMatrixFromCache = function(area, searchVal, parent) {
 			var range = area.getRange();
 			var ws = area.getWS();
 			var bb = range.getBBox0();
 			var oSearchRange = ws.getRange3(bb.r1, bb.c1, bb.r2, bb.c2);
-			return g_oSUMIFSCache._get(oSearchRange, range, searchVal);
+			return g_oSUMIFSCache._get(oSearchRange, range, searchVal, parent);
 		};
 
 		var getElems = function(a1, a2, p, calcSum) {
@@ -4668,14 +4681,21 @@
 				return new cError(cErrorType.wrong_value_type);
 			}*/
 			var res = undefined;
-			for (i = 0; i < enterMatrix.length; ++i) {
-				/*if(bSelectRangeCol && (!arg0Matrix[i] || !arg1Matrix[i])) {
+			for (var i = 0; i < enterMatrix.length; ++i) {
+				if(bSelectRangeCol && (/*!arg0Matrix[i] || */!arg1Matrix[i])) {
 					continue;
-				}*/
-				if (arg0Matrix[i].length !== arg1Matrix[i].length) {
-					return new cError(cErrorType.wrong_value_type);
 				}
-				for (j = 0; j < enterMatrix[i].length; ++j) {
+				if(!enterMatrix[i]) {
+					continue;
+				}
+				/*if (arg0Matrix[i].length !== arg1Matrix[i].length) {
+					return new cError(cErrorType.wrong_value_type);
+				}*/
+				for (var j = 0; j < enterMatrix[i].length; ++j) {
+					if(!enterMatrix[i][j]) {
+						continue;
+					}
+
 					if (AscCommonExcel.matching(arg1Matrix[i][j], matchingInfo)) {
 						if(!res) {
 							res = [];
@@ -4685,8 +4705,9 @@
 						}
 						res[i][j] = arg1Matrix[i][j];
 						if(calcSum) {
-							if (cElementType.number === arg0Matrix[i][j].type) {
-								_sum += arg0Matrix[i][j].getValue();
+							var arg0Val = arg0.getValueByRowCol(i, j);
+							if (arg0Val && cElementType.number === arg0Val.type) {
+								_sum += arg0Val.getValue();
 							}
 						}
 					}
@@ -4696,27 +4717,18 @@
 			return res;
 		};
 
-		var arg0Range = getRange(arg0);
 		var c_colType = Asc.c_oAscSelectionType.RangeCol;
 
 		var _sum = 0;
-		var arg0Matrix = arg0.getMatrix();
+		//var arg0Matrix = arg0.getMatrix();
+		var arg0Range = getRange(arg0);
+		var arg0C = arg0Range.c2 - arg0Range.c1 + 1;
+		var arg0R = arg0Range.r2 - arg0Range.r1 + 1;
 		var cacheElem, parent;
-		var i, j, arg1, arg2, matchingInfo, bSelectRangeCol, arg1Range;
+		var arg1, arg2, bSelectRangeCol, arg1Range;
 		for (var k = 1; k < arg.length; k += 2) {
 			arg1 = arg[k];
 			arg2 = arg[k + 1];
-
-			if(!cacheElem) {
-				cacheElem = getMatrixFromCache(arg1, arg2);
-				parent = cacheElem;
-			} else {
-				if(!cacheElem.children) {
-					cacheElem.children = {elems: null, children: null};
-				}
-				parent = cacheElem;
-				cacheElem = cacheElem.children;
-			}
 
 			//добавляю флаг bSelectRangeCol - для случая когда нулевой и первый аргумент это area/area3d с диапазоном весь столбец
 			//в этом случае нет ошибки при разных размерах полученных массивов - arg0Matrix/arg1Matrix
@@ -4727,6 +4739,15 @@
 					bSelectRangeCol = true;
 				}
 			}
+
+			var arg1C = arg1Range.c2 - arg1Range.c1 + 1;
+			var arg1R = arg1Range.r2 - arg1Range.r1 + 1;
+			if ((!bSelectRangeCol && arg0R !== arg1R) || arg0C !== arg1C) {
+				return new cError(cErrorType.wrong_value_type);
+			}
+
+			parent = cacheElem;
+			cacheElem = getMatrixFromCache(arg1, arg2, cacheElem);
 
 			if(null === cacheElem.elems) {
 				if (cElementType.cell !== arg1.type && cElementType.cell3D !== arg1.type &&
@@ -4741,7 +4762,19 @@
 					}
 				}
 
-				cacheElem.elems = getElems(arg1, arg2, parent.elems, k + 1 === arg.length - 1);
+				if (cElementType.cellsRange === arg2.type || cElementType.cellsRange3D === arg2.type) {
+					arg2 = arg2.cross(arguments[1]);
+				} else if (cElementType.array === arg2.type) {
+					arg2 = arg2.getElementRowCol(0, 0);
+				}
+
+				arg2 = arg2.tocString();
+
+				if (cElementType.string !== arg2.type) {
+					return new cError(cErrorType.wrong_value_type);
+				}
+
+				cacheElem.elems = getElems(arg1, arg2, parent ? parent.elems : null, k + 1 === arg.length - 1);
 			}
 
 			if(undefined === cacheElem.elems) {
@@ -4750,60 +4783,6 @@
 
 			if(cElementType.error === cacheElem.elems.type) {
 				return cacheElem.elems;
-			}
-
-
-			continue;
-
-
-
-
-
-
-
-
-			if (cElementType.cell !== arg1.type && cElementType.cell3D !== arg1.type &&
-				cElementType.cellsRange !== arg1.type) {
-				if (cElementType.cellsRange3D === arg1.type) {
-					arg1 = arg1.tocArea();
-					if (!arg1) {
-						return new cError(cErrorType.wrong_value_type);
-					}
-				} else {
-					return new cError(cErrorType.wrong_value_type);
-				}
-			}
-
-			if (cElementType.cellsRange === arg2.type || cElementType.cellsRange3D === arg2.type) {
-				arg2 = arg2.cross(arguments[1]);
-			} else if (cElementType.array === arg2.type) {
-				arg2 = arg2.getElementRowCol(0, 0);
-			}
-
-			arg2 = arg2.tocString();
-
-			if (cElementType.string !== arg2.type) {
-				return new cError(cErrorType.wrong_value_type);
-			}
-
-			matchingInfo = AscCommonExcel.matchingValue(arg2);
-
-			var arg1Matrix = getMatrixFromCache(arg1);
-			if (!bSelectRangeCol && arg0Matrix.length !== arg1Matrix.length) {
-				return new cError(cErrorType.wrong_value_type);
-			}
-			for (i = 0; i < arg1Matrix.length; ++i) {
-				if(bSelectRangeCol && (!arg0Matrix[i] || !arg1Matrix[i])) {
-					continue;
-				}
-				if (arg0Matrix[i].length !== arg1Matrix[i].length) {
-					return new cError(cErrorType.wrong_value_type);
-				}
-				for (j = 0; j < arg1Matrix[i].length; ++j) {
-					if (arg0Matrix[i][j] && !AscCommonExcel.matching(arg1Matrix[i][j], matchingInfo)) {
-						arg0Matrix[i][j] = null;
-					}
-				}
 			}
 		}
 
