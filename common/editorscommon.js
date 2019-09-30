@@ -4720,6 +4720,9 @@
 	if (typeof Float64Array !== 'undefined' && !Float64Array.prototype.fill) {
 		Float64Array.prototype.fill = Array.prototype.fill;
 	}
+	if (typeof Uint8Array !== 'undefined' && !Uint8Array.prototype.slice) {
+		Uint8Array.prototype.slice = Array.prototype.slice;
+	}
 
 	function parseText(text, options, bTrimSpaces) {
 		var delimiterChar;
