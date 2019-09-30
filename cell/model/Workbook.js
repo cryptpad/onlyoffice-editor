@@ -1152,6 +1152,7 @@
 			AscCommonExcel.g_oVLOOKUPCache.clean();
 			AscCommonExcel.g_oHLOOKUPCache.clean();
 			AscCommonExcel.g_oMatchCache.clean();
+			AscCommonExcel.g_oSUMIFSCache.clean();
 		},
 		initOpen: function() {
 			this._foreachDefName(function(defName) {
