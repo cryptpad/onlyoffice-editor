@@ -779,6 +779,11 @@ function BinaryPPTYLoader()
                     _slide.notes.setSlide(_slide);
                     _slide.notes.setNotesMaster(this.presentation.notesMasters[0]);
                 }
+                else{
+                    if(!_slide.notes.Master){
+                        _slide.notes.setNotesMaster(this.presentation.notesMasters[0]);
+                    }
+                }
             }
             //var _editor = this.Api;
             //_editor.sync_InitEditorThemes(_editor.ThemeLoader.Themes.EditorThemes, _editor.ThemeLoader.Themes.DocumentThemes);
