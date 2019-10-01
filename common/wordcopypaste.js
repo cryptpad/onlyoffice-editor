@@ -1741,12 +1741,12 @@ CopyProcessor.prototype =
         var Item = graphicFrame.graphicObject;
 		
         var b_style_index = false;
-        if(Item.TableStyle)
+        var presentation = editor.WordControl.m_oLogicDocument;
+        if(Item.TableStyle && presentation.globalTableStyles.Style[Item.TableStyle])
         {
             b_style_index = true;
         }
-		
-		var presentation = editor.WordControl.m_oLogicDocument;
+
 		for(var key in presentation.TableStylesIdMap)
         {
             if(presentation.TableStylesIdMap.hasOwnProperty(key))
