@@ -19348,26 +19348,28 @@
 				var fragments = cSection.getFragments();
 				var self = wb;
 				if(!t.cellEditor) {
-					t.cellEditor = new AscCommonExcel.CellEditor(sectionElem, wb.input, wb.fmgrGraphics, wb.m_oFont, /*handlers*/{
-						"closed": function () {
-							self._onCloseCellEditor.apply(self, arguments);
-						}, "updated": function () {
-							self.Api.checkLastWork();
-							self._onUpdateCellEditor.apply(self, arguments);
-						}, /*"gotFocus": function (hasFocus) {
-							self.controller.setFocus(!hasFocus);
-						},*/ "updateEditorState": function (state) {
-							self.handlers.trigger("asc_onEditCell", state);
-						}, "updateEditorSelectionInfo": function (info) {
-							self.handlers.trigger("asc_onEditorSelectionChanged", info);
-						}, "onContextMenu": function (event) {
-							self.handlers.trigger("asc_onContextMenu", event);
-						}, "updateMenuEditorCursorPosition": function(pos, height) {
-							self.handlers.trigger("asc_updateEditorCursorPosition", pos, height);
-						}, "resizeEditorHeight": function () {
-							self.handlers.trigger("asc_resizeEditorHeight");
-						}
-					}, 2, /*settings*/{ menuEditor: true });
+					t.cellEditor =
+						new AscCommonExcel.CellEditor(sectionElem, wb.input, wb.fmgrGraphics, wb.m_oFont, /*handlers*/{
+							"closed": function () {
+								self._onCloseCellEditor.apply(self, arguments);
+							}, "updated": function () {
+								self.Api.checkLastWork();
+								self._onUpdateCellEditor.apply(self, arguments);
+							}, /*"gotFocus": function (hasFocus) {
+							 self.controller.setFocus(!hasFocus);
+							 },*/ "updateEditorState": function (state) {
+								self.handlers.trigger("asc_onEditCell", state);
+							}, "updateEditorSelectionInfo": function (info) {
+								self.handlers.trigger("asc_onEditorSelectionChanged", info);
+							}, "onContextMenu": function (event) {
+								self.handlers.trigger("asc_onContextMenu", event);
+							}, "updateMenuEditorCursorPosition": function (pos, height) {
+								self.handlers.trigger("asc_updateEditorCursorPosition", pos, height);
+							}, "resizeEditorHeight": function () {
+								self.handlers.trigger("asc_resizeEditorHeight");
+							}
+						}, AscCommon.AscBrowser.isRetina ? AscCommon.AscBrowser.convertToRetinaValue(2, true) :
+							2, /*settings*/{menuEditor: true});
 
 					//временно меняем cellEditor у wb
 					wb.cellEditor = t.cellEditor;
