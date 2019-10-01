@@ -6226,13 +6226,21 @@
 			this.pivotTables[i].init();
 		}
 	};
-	Worksheet.prototype.updatePivotTable = function(pivotTable, oldRanges) {
-		var dataRow = pivotTable.update();
-		var multiplyRange = new AscCommonExcel.MultiplyRange(oldRanges);
-		multiplyRange.union2(new AscCommonExcel.MultiplyRange(this.getPivotTableRanges(pivotTable)));
+	Worksheet.prototype.updatePivotTable = function(pivotTable, changed) {
+		if (!(changed.oldRanges && (changed.data || changed.style))) {
+			return;
+		}
+		var dataRow;
+		var multiplyRange = new AscCommonExcel.MultiplyRange(changed.oldRanges);
+		if (changed.data) {
+			dataRow = pivotTable.update();
+			multiplyRange.union2(new AscCommonExcel.MultiplyRange(this.getPivotTableRanges(pivotTable)));
+		}
 		var unionRange = multiplyRange.getUnionRange();
-		this.cleanPivotTableRanges(unionRange);
-		this._updatePivotTableCells(pivotTable, dataRow);
+		this.cleanPivotTableRanges(unionRange, changed.data, changed.data || changed.style);
+		if (dataRow) {
+			this._updatePivotTableCells(pivotTable, dataRow);
+		}
 		this.updatePivotTablesStyle(unionRange, true);
 		return unionRange;
 	};
@@ -6265,10 +6273,14 @@
 		res.push(new Asc.Range(pivotRange.c1, pivotRange.r1, pivotRange.c2, pivotRange.r2));
 		return res;
 	};
-	Worksheet.prototype.cleanPivotTableRanges = function(range) {
+	Worksheet.prototype.cleanPivotTableRanges = function(range, cleanData, cleanStyle) {
 		range = this.getRange3(range.r1, range.c1, range.r2, range.c2);
-		range.clearTableStyle();
-		range.cleanAll();
+		if (cleanStyle) {
+			range.clearTableStyle();
+		}
+		if (cleanData) {
+			range.cleanAll();
+		}
 	};
 	Worksheet.prototype._updatePivotTableCellsPage = function (pivotTable) {
 		for (var i = 0; i < pivotTable.pageFieldsPositions.length; ++i) {

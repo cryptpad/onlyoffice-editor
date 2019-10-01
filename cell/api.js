@@ -320,6 +320,7 @@ var editor;
     AscCommonExcel.g_oUndoRedoAutoFilters = new AscCommonExcel.UndoRedoAutoFilters(wbModel);
     AscCommonExcel.g_oUndoRedoSparklines = new AscCommonExcel.UndoRedoSparklines(wbModel);
     AscCommonExcel.g_oUndoRedoPivotTables = new AscCommonExcel.UndoRedoPivotTables(wbModel);
+	AscCommonExcel.g_oUndoRedoPivotFields = new AscCommonExcel.UndoRedoPivotFields(wbModel);
     AscCommonExcel.g_DefNameWorksheet = new AscCommonExcel.Worksheet(wbModel, -1);
     AscCommonExcel.g_oUndoRedoSharedFormula = new AscCommonExcel.UndoRedoSharedFormula(wbModel);
     AscCommonExcel.g_oUndoRedoLayout = new AscCommonExcel.UndoRedoRedoLayout(wbModel);
@@ -2147,6 +2148,7 @@ var editor;
 						pivotTable.asc_create(ws, pivotName, cacheDefinition, location);
 						t._changePivotWithLock(pivotTable, function() {
 							ws.insertPivotTable(pivotTable);
+							pivotTable.setChanged(true);
 						});
 					}
 				});
@@ -3843,12 +3845,12 @@ var editor;
 		History.StartTransaction();
 		this.wbModel.dependencyFormulas.lockRecal();
 		wsModel = pivot.GetWS();
-		var oldRanges = wsModel.getPivotTableRanges(pivot);
+		pivot.checkChangedRange();
 
 		callback(wsModel);
 
 		ws = this.wb.getWorksheet(wsModel.getIndex());
-		this._updatePivotTable(pivot, oldRanges, wsModel, ws);
+		this._updatePivotTable(pivot, pivot.getAndCleanChanged(), wsModel, ws);
 		this.wbModel.dependencyFormulas.unlockRecal();
 		History.EndTransaction();
 		var pivotRange = pivot.getRange();
@@ -3862,17 +3864,16 @@ var editor;
 			var ws = t.wb.getWorksheet(wsModel.getIndex());
 			for (var i = 0; i < wsModel.pivotTables.length; ++i) {
 				var pivot = wsModel.pivotTables[i];
-				var isChanged = pivot.getAndCleanIsChanged();
-				if (isChanged) {
-					t._updatePivotTable(pivot, isChanged, wsModel, ws);
-				}
+				t._updatePivotTable(pivot, pivot.getAndCleanChanged(), wsModel, ws);
 			}
 		});
 	};
-	spreadsheet_api.prototype._updatePivotTable = function(pivot, oldRanges, wsModel, ws) {
-		var unionRange = wsModel.updatePivotTable(pivot, oldRanges);
-		// ToDo update ranges, not big range
-		ws._onUpdateFormatTable(unionRange);
+	spreadsheet_api.prototype._updatePivotTable = function(pivot, changed, wsModel, ws) {
+		var unionRange = wsModel.updatePivotTable(pivot, changed);
+		if (unionRange) {
+			// ToDo update ranges, not big range
+			ws._onUpdateFormatTable(unionRange);
+		}
 	};
 
 	spreadsheet_api.prototype._selectSearchingResults = function () {
