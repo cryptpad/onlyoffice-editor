@@ -4492,6 +4492,7 @@
 	 */
 	function SUMIFSCache() {
 		this.cacheRanges = {};
+		this.cacheId = {};
 	}
 	SUMIFSCache.prototype._get = function (range, arg, valueForSearching, parent) {
 		var res, _this = this, wsId = range.getWorksheet().getId();
@@ -4500,27 +4501,50 @@
 			sRangeName = wsId + AscCommon.g_cCharDelimiter + range.getName();
 		});
 		var sInputKey = valueForSearching.getValue() + AscCommon.g_cCharDelimiter + sRangeName /*+ g_cCharDelimiter + valueForSearching.type*/;
-
 		var cacheElem;
 		if(parent) {
-			if(!parent.cacheRanges) {
-				parent.cacheRanges = [];
+			if(!parent.cacheId) {
+				parent.cacheId = [];
 			}
-			cacheElem = parent.cacheRanges[sInputKey];
+			cacheElem = parent.cacheId[sInputKey];
 		} else {
-			cacheElem = this.cacheRanges[sInputKey];
+			cacheElem = this.cacheId[sInputKey];
 		}
+
 		if (!cacheElem) {
-			if(parent && parent.cacheRanges) {
-				cacheElem = parent.cacheRanges[sInputKey] = {elems: null, cacheRanges: null};
+			cacheElem = {elems: null, cacheId: null};
+
+			if(parent && parent.cacheId) {
+				parent.cacheId[sInputKey] = cacheElem;
 			} else {
-				cacheElem = this.cacheRanges[sInputKey] = {elems: null, cacheRanges: null};
+				this.cacheId[sInputKey] = cacheElem;
 			}
+
+			var cacheRange = this.cacheRanges[wsId];
+			if (!cacheRange) {
+				cacheRange = new AscCommonExcel.RangeDataManager(null);
+				this.cacheRanges[wsId] = cacheRange;
+			}
+			cacheRange.add(range.getBBox0(), cacheElem);
 		}
+
 		return cacheElem;
 	};
 	SUMIFSCache.prototype.clean = function () {
 		this.cacheRanges = {};
+		this.cacheId = {};
+	};
+	SUMIFSCache.prototype.remove = function (cell) {
+		var wsId = cell.ws.getId();
+		var cacheRange = this.cacheRanges[wsId];
+		if (cacheRange) {
+			var oGetRes = cacheRange.get(new Asc.Range(cell.nCol, cell.nRow, cell.nCol, cell.nRow));
+			for (var i = 0, length = oGetRes.all.length; i < length; ++i) {
+				var elem = oGetRes.all[i];
+				elem.data.cacheId = null;
+				elem.data.elems = null;
+			}
+		}
 	};
 
 	/**
