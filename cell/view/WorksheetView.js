@@ -19203,7 +19203,7 @@
 	function CHeaderFooterEditor(idArr, width, pageType) {
 		window.Asc.g_header_footer_editor = this;
 
-		this.parentWidth = width;
+		this.parentWidth = AscBrowser.isRetina ? AscCommon.AscBrowser.convertToRetinaValue(width, true) : width;
 		this.parentHeight = 90;
 		this.pageType = undefined === pageType ? asc.c_oAscHeaderFooterType.odd : pageType;//odd, even, first
 		this.canvas = [];
@@ -19243,6 +19243,7 @@
 			obj.canvas.id = obj.id;
 			obj.canvas.width = t.parentWidth;
 			obj.canvas.height = t.parentHeight;
+			obj.canvas.style.width = AscBrowser.isRetina ? AscCommon.AscBrowser.convertToRetinaValue(t.parentWidth) + "px" : t.parentWidth + "px";
 
 			var curElem = document.getElementById(id);
 			curElem.appendChild(obj.canvas);
