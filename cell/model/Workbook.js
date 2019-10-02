@@ -3292,6 +3292,7 @@
 		this.aFormulaExt = null;
 
 		this.autoFilters = AscCommonExcel.AutoFilters !== undefined ? new AscCommonExcel.AutoFilters(this) : null;
+		this.sortState = null;
 
 		this.oDrawingOjectsManager = new DrawingObjectsManager(this);
 		this.contentChanges = new AscCommon.CContentChanges();
