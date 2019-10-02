@@ -2464,43 +2464,43 @@ function Binary_pPrWriter(memory, oNumIdMap, oBinaryHeaderFooterTableWriter, sav
         //W
         this.memory.WriteByte(c_oSer_pgSzType.WTwips);
         this.memory.WriteByte(c_oSerPropLenType.Long);
-        this.bs.writeMmToTwips(sectPr.Get_PageWidth());
+        this.bs.writeMmToTwips(sectPr.GetPageWidth());
         //H
         this.memory.WriteByte(c_oSer_pgSzType.HTwips);
         this.memory.WriteByte(c_oSerPropLenType.Long);
-        this.bs.writeMmToTwips(sectPr.Get_PageHeight());
+        this.bs.writeMmToTwips(sectPr.GetPageHeight());
         //Orientation
         this.memory.WriteByte(c_oSer_pgSzType.Orientation);
         this.memory.WriteByte(c_oSerPropLenType.Byte);
-        this.memory.WriteByte(sectPr.Get_Orientation());
+        this.memory.WriteByte(sectPr.GetOrientation());
     };
     this.WritePageMargin = function(sectPr, oDocument)
     {
         //Left
         this.memory.WriteByte(c_oSer_pgMarType.LeftTwips);
         this.memory.WriteByte(c_oSerPropLenType.Long);
-        this.bs.writeMmToTwips(sectPr.Get_PageMargin_Left());
+        this.bs.writeMmToTwips(sectPr.GetPageMarginLeft());
         //Top
         this.memory.WriteByte(c_oSer_pgMarType.TopTwips);
         this.memory.WriteByte(c_oSerPropLenType.Long);
-        this.bs.writeMmToTwips(sectPr.Get_PageMargin_Top());
+        this.bs.writeMmToTwips(sectPr.GetPageMarginTop());
         //Right
         this.memory.WriteByte(c_oSer_pgMarType.RightTwips);
         this.memory.WriteByte(c_oSerPropLenType.Long);
-        this.bs.writeMmToTwips(sectPr.Get_PageMargin_Right());
+        this.bs.writeMmToTwips(sectPr.GetPageMarginRight());
         //Bottom
         this.memory.WriteByte(c_oSer_pgMarType.BottomTwips);
         this.memory.WriteByte(c_oSerPropLenType.Long);
-        this.bs.writeMmToTwips(sectPr.Get_PageMargin_Bottom());
+        this.bs.writeMmToTwips(sectPr.GetPageMarginBottom());
         
         //Header
         this.memory.WriteByte(c_oSer_pgMarType.HeaderTwips);
         this.memory.WriteByte(c_oSerPropLenType.Long);
-        this.bs.writeMmToTwips(sectPr.Get_PageMargins_Header());
+        this.bs.writeMmToTwips(sectPr.GetPageMarginHeader());
         //Footer
         this.memory.WriteByte(c_oSer_pgMarType.FooterTwips);
         this.memory.WriteByte(c_oSerPropLenType.Long);
-        this.bs.writeMmToTwips(sectPr.Get_PageMargins_Footer());
+        this.bs.writeMmToTwips(sectPr.GetPageMarginFooter());
 		//gutter
 		this.memory.WriteByte(c_oSer_pgMarType.GutterTwips);
 		this.memory.WriteByte(c_oSerPropLenType.Long);
@@ -8554,7 +8554,7 @@ function Binary_pPrReader(doc, oReadResult, stream)
                 oSectPr.Set_PageSize(oSize.W, oSize.H);
             }
             if(null != oSize.Orientation)
-                oSectPr.Set_Orientation(oSize.Orientation, false);
+                oSectPr.SetOrientation(oSize.Orientation, false);
         }
         else if( c_oSerProp_secPrType.pgMar === type )
         {
@@ -8563,7 +8563,7 @@ function Binary_pPrReader(doc, oReadResult, stream)
                 return oThis.Read_pgMar(t, l, oSectPr, oMar, oAdditional);
             });
 			if(null != oMar.L && null != oMar.T && null != oMar.R && null != oMar.B)
-				oSectPr.Set_PageMargins(oMar.L, oMar.T, oMar.R, oMar.B);
+				oSectPr.SetPageMargins(oMar.L, oMar.T, oMar.R, oMar.B);
         }
         else if( c_oSerProp_secPrType.setting === type )
         {
@@ -8762,19 +8762,19 @@ function Binary_pPrReader(doc, oReadResult, stream)
 		}
 		else if( c_oSer_pgMarType.Header === type )
         {
-			oSectPr.Set_PageMargins_Header(this.bcr.ReadDouble());
+			oSectPr.SetPageMarginHeader(this.bcr.ReadDouble());
         }
 		else if( c_oSer_pgMarType.HeaderTwips === type )
 		{
-			oSectPr.Set_PageMargins_Header(g_dKoef_twips_to_mm * this.stream.GetULongLE());
+			oSectPr.SetPageMarginHeader(g_dKoef_twips_to_mm * this.stream.GetULongLE());
 		}
 		else if( c_oSer_pgMarType.Footer === type )
         {
-			oSectPr.Set_PageMargins_Footer(this.bcr.ReadDouble());
+			oSectPr.SetPageMarginFooter(this.bcr.ReadDouble());
         }
 		else if( c_oSer_pgMarType.FooterTwips === type )
 		{
-			oSectPr.Set_PageMargins_Footer(g_dKoef_twips_to_mm * this.stream.GetULongLE());
+			oSectPr.SetPageMarginFooter(g_dKoef_twips_to_mm * this.stream.GetULongLE());
 		}
 		else if( c_oSer_pgMarType.GutterTwips === type )
 		{

@@ -108,13 +108,13 @@ CSectionPr.prototype =
         // Тип
         this.Set_Type( Other.Type );
 
-        // Настройки страницы
-        this.Set_PageSize( Other.PageSize.W, Other.PageSize.H );
-        this.Set_Orientation( Other.PageSize.Orient, false );
+		// Настройки страницы
+		this.SetPageSize(Other.PageSize.W, Other.PageSize.H);
+		this.SetOrientation(Other.PageSize.Orient, false);
 
-        // Настройки отступов
-        this.Set_PageMargins( Other.PageMargins.Left, Other.PageMargins.Top, Other.PageMargins.Right, Other.PageMargins.Bottom );
-        this.SetGutter(Other.PageMargins.Gutter);
+		// Настройки отступов
+		this.SetPageMargins(Other.PageMargins.Left, Other.PageMargins.Top, Other.PageMargins.Right, Other.PageMargins.Bottom);
+		this.SetGutter(Other.PageMargins.Gutter);
 
         // Настройки границ
         this.Set_Borders_Left( Other.Borders.Left );
@@ -122,7 +122,7 @@ CSectionPr.prototype =
         this.Set_Borders_Right( Other.Borders.Right );
         this.Set_Borders_Bottom( Other.Borders.Bottom );
         this.Set_Borders_Display( Other.Borders.Display );
-        this.Set_Borders_OffsetFrom( Other.Borders.OffsetFrom );
+		this.SetBordersOffsetFrom(Other.Borders.OffsetFrom);
         this.Set_Borders_ZOrder( Other.Borders.ZOrder );
 
         // Колонтитулы
@@ -237,82 +237,6 @@ CSectionPr.prototype =
         return this.Type;
     },
 
-	Set_PageSize : function(W, H)
-	{
-		if (Math.abs(W - this.PageSize.W) > 0.001 || Math.abs(H - this.PageSize.H) > 0.001)
-		{
-			H = Math.max(2.6, H);
-			W = Math.max(12.7, W);
-
-			History.Add(new CChangesSectionPageSize(this, {W : this.PageSize.W, H : this.PageSize.H}, {W : W, H : H}));
-
-			this.PageSize.W = W;
-			this.PageSize.H = H;
-		}
-	},
-
-	Set_PageMargins : function(_L, _T, _R, _B)
-	{
-		// Значения могут прийти как undefined, в этом случае мы поля со значением undefined не меняем
-		var L = ( undefined !== _L ? _L : this.PageMargins.Left );
-		var T = ( undefined !== _T ? _T : this.PageMargins.Top );
-		var R = ( undefined !== _R ? _R : this.PageMargins.Right );
-		var B = ( undefined !== _B ? _B : this.PageMargins.Bottom );
-
-		if (Math.abs(L - this.PageMargins.Left) > 0.001 || Math.abs(T - this.PageMargins.Top) > 0.001 || Math.abs(R - this.PageMargins.Right) > 0.001 || Math.abs(B - this.PageMargins.Bottom) > 0.001)
-		{
-			History.Add(new CChangesSectionPageMargins(this, {
-				L : this.PageMargins.Left,
-				T : this.PageMargins.Top,
-				R : this.PageMargins.Right,
-				B : this.PageMargins.Bottom
-			}, {L : L, T : T, R : R, B : B}));
-
-			this.PageMargins.Left   = L;
-			this.PageMargins.Top    = T;
-			this.PageMargins.Right  = R;
-			this.PageMargins.Bottom = B;
-		}
-	},
-
-	Set_Orientation : function(Orient, ApplySize)
-	{
-		var _Orient = this.Get_Orientation();
-		if (_Orient !== Orient)
-		{
-			History.Add(new CChangesSectionPageOrient(this, this.PageSize.Orient, Orient));
-			this.PageSize.Orient = Orient;
-
-			if (true === ApplySize)
-			{
-				// При смене ориентации меняем местами высоту и ширину страницы и изменяем отступы
-
-				var W = this.PageSize.W;
-				var H = this.PageSize.H;
-
-				var L = this.PageMargins.Left;
-				var R = this.PageMargins.Right;
-				var T = this.PageMargins.Top;
-				var B = this.PageMargins.Bottom;
-
-				this.Set_PageSize(H, W);
-
-				if (Asc.c_oAscPageOrientation.PagePortrait === Orient)
-					this.Set_PageMargins(T, R, B, L);
-				else
-					this.Set_PageMargins(B, L, T, R);
-			}
-		}
-	},
-
-    Get_Orientation : function()
-    {
-    	if (this.PageSize.W > this.PageSize.H)
-    		return Asc.c_oAscPageOrientation.PageLandscape;
-
-    	return Asc.c_oAscPageOrientation.PagePortrait;
-    },
-
 	Set_Borders_Left : function(Border)
 	{
 		if (true !== this.Borders.Left.Compare(Border))
@@ -381,20 +305,6 @@ CSectionPr.prototype =
     Get_Borders_Display : function()
     {
         return this.Borders.Display;
-    },
-
-	Set_Borders_OffsetFrom : function(OffsetFrom)
-	{
-		if (OffsetFrom !== this.Borders.OffsetFrom)
-		{
-			History.Add(new CChangesSectionBordersOffsetFrom(this, this.Borders.OffsetFrom, OffsetFrom));
-			this.Borders.OffsetFrom = OffsetFrom;
-		}
-	},
-
-    Get_Borders_OffsetFrom : function()
-    {
-        return this.Borders.OffsetFrom;
     },
 
 	Set_Borders_ZOrder : function(ZOrder)
@@ -507,34 +417,6 @@ CSectionPr.prototype =
     Get_TitlePage : function()
     {
         return this.TitlePage;
-    },
-
-	Set_PageMargins_Header : function(Header)
-	{
-		if (Header !== this.PageMargins.Header)
-		{
-			History.Add(new CChangesSectionPageMarginsHeader(this, this.PageMargins.Header, Header));
-			this.PageMargins.Header = Header;
-		}
-	},
-    
-    Get_PageMargins_Header : function()
-    {
-        return this.PageMargins.Header;
-    },
-
-	Set_PageMargins_Footer : function(Footer)
-	{
-		if (Footer !== this.PageMargins.Footer)
-		{
-			History.Add(new CChangesSectionPageMarginsFooter(this, this.PageMargins.Footer, Footer));
-			this.PageMargins.Footer = Footer;
-		}
-	},
-
-    Get_PageMargins_Footer : function()
-    {
-        return this.PageMargins.Footer;
     },
     
     GetHdrFtr : function(bHeader, bFirst, bEven)
@@ -976,21 +858,21 @@ CSectionPr.prototype.private_GetDocumentWideFootnotePr = function()
 {
 	return this.LogicDocument.Footnotes.FootnotePr;
 };
-CSectionPr.prototype.SetColumnProps = function(ColumnsProps)
+CSectionPr.prototype.SetColumnProps = function(oColumnsProps)
 {
-	var EqualWidth = ColumnsProps.get_EqualWidth();
-	this.Set_Columns_EqualWidth(ColumnsProps.get_EqualWidth());
+	var EqualWidth = oColumnsProps.get_EqualWidth();
+	this.Set_Columns_EqualWidth(oColumnsProps.get_EqualWidth());
 	if (false === EqualWidth)
 	{
-		var X      = this.Get_PageMargin_Left();
-		var XLimit = this.Get_PageWidth() - this.Get_PageMargin_Right();
+		var X      = 0;
+		var XLimit = this.GetContentFrameWidth();
 
 		var Cols          = [];
 		var SectionColumn = null;
-		var Count         = ColumnsProps.get_ColsCount();
+		var Count         = oColumnsProps.get_ColsCount();
 		for (var Index = 0; Index < Count; ++Index)
 		{
-			var Col             = ColumnsProps.get_Col(Index);
+			var Col             = oColumnsProps.get_Col(Index);
 			SectionColumn       = new CSectionColumn();
 			SectionColumn.W     = Col.get_W();
 			SectionColumn.Space = Col.get_Space();
@@ -1020,11 +902,11 @@ CSectionPr.prototype.SetColumnProps = function(ColumnsProps)
 	}
 	else
 	{
-		this.Set_Columns_Num(ColumnsProps.get_Num());
-		this.Set_Columns_Space(ColumnsProps.get_Space());
+		this.Set_Columns_Num(oColumnsProps.get_Num());
+		this.Set_Columns_Space(oColumnsProps.get_Space());
 	}
 
-	this.Set_Columns_Sep(ColumnsProps.get_Sep());
+	this.Set_Columns_Sep(oColumnsProps.get_Sep());
 };
 CSectionPr.prototype.SetGutter = function(nGutter)
 {
@@ -1050,29 +932,28 @@ CSectionPr.prototype.IsGutterRTL = function()
 {
 	return this.GutterRTL;
 };
-CSectionPr.prototype.Get_PageMargin_Left = function()
+CSectionPr.prototype.SetPageMargins = function(_L, _T, _R, _B)
 {
-	return this.PageMargins.Left;
-};
-CSectionPr.prototype.Get_PageMargin_Right = function()
-{
-	return this.PageMargins.Right;
-};
-CSectionPr.prototype.Get_PageMargin_Top = function()
-{
-	return this.PageMargins.Top;
-};
-CSectionPr.prototype.Get_PageMargin_Bottom = function()
-{
-	return this.PageMargins.Bottom;
-};
-CSectionPr.prototype.Get_PageWidth = function()
-{
-	return this.PageSize.W;
-};
-CSectionPr.prototype.Get_PageHeight = function()
-{
-	return this.PageSize.H;
+	// Значения могут прийти как undefined, в этом случае мы поля со значением undefined не меняем
+	var L = ( undefined !== _L ? _L : this.PageMargins.Left );
+	var T = ( undefined !== _T ? _T : this.PageMargins.Top );
+	var R = ( undefined !== _R ? _R : this.PageMargins.Right );
+	var B = ( undefined !== _B ? _B : this.PageMargins.Bottom );
+
+	if (Math.abs(L - this.PageMargins.Left) > 0.001 || Math.abs(T - this.PageMargins.Top) > 0.001 || Math.abs(R - this.PageMargins.Right) > 0.001 || Math.abs(B - this.PageMargins.Bottom) > 0.001)
+	{
+		History.Add(new CChangesSectionPageMargins(this, {
+			L : this.PageMargins.Left,
+			T : this.PageMargins.Top,
+			R : this.PageMargins.Right,
+			B : this.PageMargins.Bottom
+		}, {L : L, T : T, R : R, B : B}));
+
+		this.PageMargins.Left   = L;
+		this.PageMargins.Top    = T;
+		this.PageMargins.Right  = R;
+		this.PageMargins.Bottom = B;
+	}
 };
 CSectionPr.prototype.GetPageMarginLeft = function()
 {
@@ -1090,6 +971,19 @@ CSectionPr.prototype.GetPageMarginBottom = function()
 {
 	return this.PageMargins.Bottom;
 };
+CSectionPr.prototype.SetPageSize = function(W, H)
+{
+	if (Math.abs(W - this.PageSize.W) > 0.001 || Math.abs(H - this.PageSize.H) > 0.001)
+	{
+		H = Math.max(2.6, H);
+		W = Math.max(12.7, W);
+
+		History.Add(new CChangesSectionPageSize(this, {W : this.PageSize.W, H : this.PageSize.H}, {W : W, H : H}));
+
+		this.PageSize.W = W;
+		this.PageSize.H = H;
+	}
+};
 CSectionPr.prototype.GetPageWidth = function()
 {
 	return this.PageSize.W;
@@ -1097,6 +991,42 @@ CSectionPr.prototype.GetPageWidth = function()
 CSectionPr.prototype.GetPageHeight = function()
 {
 	return this.PageSize.H;
+};
+CSectionPr.prototype.SetOrientation = function(Orient, ApplySize)
+{
+	var _Orient = this.GetOrientation();
+	if (_Orient !== Orient)
+	{
+		History.Add(new CChangesSectionPageOrient(this, this.PageSize.Orient, Orient));
+		this.PageSize.Orient = Orient;
+
+		if (true === ApplySize)
+		{
+			// При смене ориентации меняем местами высоту и ширину страницы и изменяем отступы
+
+			var W = this.PageSize.W;
+			var H = this.PageSize.H;
+
+			var L = this.PageMargins.Left;
+			var R = this.PageMargins.Right;
+			var T = this.PageMargins.Top;
+			var B = this.PageMargins.Bottom;
+
+			this.Set_PageSize(H, W);
+
+			if (Asc.c_oAscPageOrientation.PagePortrait === Orient)
+				this.SetPageMargins(T, R, B, L);
+			else
+				this.SetPageMargins(B, L, T, R);
+		}
+	}
+};
+CSectionPr.prototype.GetOrientation = function()
+{
+	if (this.PageSize.W > this.PageSize.H)
+		return Asc.c_oAscPageOrientation.PageLandscape;
+
+	return Asc.c_oAscPageOrientation.PagePortrait;
 };
 CSectionPr.prototype.GetColumnsCount = function()
 {
@@ -1109,6 +1039,94 @@ CSectionPr.prototype.GetColumnWidth = function(nColIndex)
 CSectionPr.prototype.GetColumnSpace = function(nColIndex)
 {
 	return this.Columns.Get_ColumnSpace(nColIndex);
+};
+CSectionPr.prototype.SetBordersOffsetFrom = function(nOffsetFrom)
+{
+	if (nOffsetFrom !== this.Borders.OffsetFrom)
+	{
+		History.Add(new CChangesSectionBordersOffsetFrom(this, this.Borders.OffsetFrom, nOffsetFrom));
+		this.Borders.OffsetFrom = nOffsetFrom;
+	}
+};
+CSectionPr.prototype.GetBordersOffsetFrom = function()
+{
+	return this.Borders.OffsetFrom;
+};
+CSectionPr.prototype.SetPageMarginHeader = function(nHeader)
+{
+	if (nHeader !== this.PageMargins.Header)
+	{
+		History.Add(new CChangesSectionPageMarginsHeader(this, this.PageMargins.Header, nHeader));
+		this.PageMargins.Header = nHeader;
+	}
+};
+CSectionPr.prototype.GetPageMarginHeader = function()
+{
+	return this.PageMargins.Header;
+};
+CSectionPr.prototype.SetPageMarginFooter = function(nFooter)
+{
+	if (nFooter !== this.PageMargins.Footer)
+	{
+		History.Add(new CChangesSectionPageMarginsFooter(this, this.PageMargins.Footer, nFooter));
+		this.PageMargins.Footer = nFooter;
+	}
+};
+CSectionPr.prototype.GetPageMarginFooter = function()
+{
+	return this.PageMargins.Footer;
+};
+/**
+ * Получаем границы для расположения содержимого документа на заданной страницы
+ * @param nPageAbs {number}
+ * @returns {{Left: number, Top: number, Right: number, Bottom: number}}
+ */
+CSectionPr.prototype.GetContentFrame = function(nPageAbs)
+{
+	var nT = this.GetPageMarginTop();
+	var nB = this.GetPageHeight() - this.GetPageMarginBottom();
+	var nL = this.GetPageMarginLeft();
+	var nR = this.GetPageWidth() - this.GetPageMarginRight();
+
+	// var nGutter = oSectPr.GetGutter();
+	// if (nGutter > 0.001)
+	// {
+	// 	if (this.IsGutterAtTop())
+	// 		Y += nGutter;
+	// 	else if (oSectPr.IsGutterRTL())
+	// 		XLimit -= nGutter;
+	// 	else
+	// 		X += nGutter;
+	// }
+
+	if (this.LogicDocument && this.LogicDocument.IsMirrorMargins() && 1 === nPageAbs % 2)
+	{
+		nL = this.GetPageMarginRight();
+		nR = this.GetPageWidth() - this.GetPageMarginLeft();
+	}
+
+	return {
+		Left   : nL,
+		Top    : nT,
+		Right  : nR,
+		Bottom : nB
+	};
+};
+/**
+ * Получаем ширину области для расположения содержимого документа
+ * @returns {number}
+ */
+CSectionPr.prototype.GetContentFrameWidth = function()
+{
+	return this.GetPageWidth() - this.GetPageMarginLeft() - this.GetPageMarginRight();
+};
+/**
+ * Получаем высоту области для расположения содержимого документа
+ * @returns {number}
+ */
+CSectionPr.prototype.GetContentFrameHeight = function()
+{
+	return this.GetPageHeight() - this.GetPageMarginTop() - this.GetPageMarginBottom();
 };
 
 function CSectionPageSize()
@@ -1199,7 +1217,7 @@ function CSectionBorders()
     this.Right      = new CDocumentBorder();
     
     this.Display    = section_borders_DisplayAllPages;
-    this.OffsetFrom = section_borders_OffsetFromPage;
+    this.OffsetFrom = section_borders_OffsetFromText;
     this.ZOrder     = section_borders_ZOrderFront;
 }
 
@@ -1395,9 +1413,9 @@ CSectionColumns.prototype.Get_ColumnWidth = function(ColIndex)
 {
 	if (true === this.EqualWidth)
 	{
-		var PageW   = this.SectPr.Get_PageWidth();
-		var MarginL = this.SectPr.Get_PageMargin_Left();
-		var MarginR = this.SectPr.Get_PageMargin_Right();
+		var PageW   = this.SectPr.GetPageWidth();
+		var MarginL = this.SectPr.GetPageMarginLeft();
+		var MarginR = this.SectPr.GetPageMarginRight();
 		return this.Num > 0 ? (PageW - MarginL - MarginR - this.Space * (this.Num - 1)) / this.Num : (PageW - MarginL - MarginR);
 	}
 	else

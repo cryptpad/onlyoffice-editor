@@ -244,10 +244,9 @@ CDocumentContent.prototype.Get_PageLimits = function(PageIndex)
 		var Page_abs = this.Get_StartPage_Absolute() + PageIndex;
 		var Index    = ( undefined !== this.LogicDocument.Pages[Page_abs] ? this.LogicDocument.Pages[Page_abs].Pos : 0 );
 		var SectPr   = this.LogicDocument.SectionsInfo.Get_SectPr(Index).SectPr;
-		var Orient   = SectPr.Get_Orientation();
 
-		var W = SectPr.Get_PageWidth();
-		var H = SectPr.Get_PageHeight();
+		var W = SectPr.GetPageWidth();
+		var H = SectPr.GetPageHeight();
 
 		return {X : 0, Y : 0, XLimit : W, YLimit : H};
 	}
@@ -273,10 +272,9 @@ CDocumentContent.prototype.Get_PageFields = function(PageIndex)
 			var Page_abs = this.Get_AbsolutePage(PageIndex);
 			var Index    = ( undefined !== this.LogicDocument.Pages[Page_abs] ? this.LogicDocument.Pages[Page_abs].Pos : 0 );
 			var SectPr   = this.LogicDocument.SectionsInfo.Get_SectPr(Index).SectPr;
-			var Orient   = SectPr.Get_Orientation();
 
-			var W = SectPr.Get_PageWidth();
-			var H = SectPr.Get_PageHeight();
+			var W = SectPr.GetPageWidth();
+			var H = SectPr.GetPageHeight();
 
 			return {X : 0, Y : 0, XLimit : W, YLimit : H};
 		}
@@ -286,17 +284,17 @@ CDocumentContent.prototype.Get_PageFields = function(PageIndex)
 		if (null === this.LogicDocument)
 			return {X : 0, Y : 0, XLimit : 0, YLimit : 0};
 
-		var Page_abs = this.Get_AbsolutePage(PageIndex);
-		var Index    = ( undefined !== this.LogicDocument.Pages[Page_abs] ? this.LogicDocument.Pages[Page_abs].Pos : 0 );
-		var SectPr   = this.LogicDocument.SectionsInfo.Get_SectPr(Index).SectPr;
-		var Orient   = SectPr.Get_Orientation();
+		var nPageAbs = this.Get_AbsolutePage(PageIndex);
+		var Index    = ( undefined !== this.LogicDocument.Pages[nPageAbs] ? this.LogicDocument.Pages[nPageAbs].Pos : 0 );
+		var oSectPr  = this.LogicDocument.SectionsInfo.Get_SectPr(Index).SectPr;
+		var oFrame   = oSectPr.GetContentFrame(nPageAbs);
 
-		var Y      = SectPr.PageMargins.Top;
-		var YLimit = SectPr.PageSize.H - SectPr.PageMargins.Bottom;
-		var X      = SectPr.PageMargins.Left;
-		var XLimit = SectPr.PageSize.W - SectPr.PageMargins.Right;
-
-		return {X : X, Y : Y, XLimit : XLimit, YLimit : YLimit};
+		return {
+			X      : oFrame.Left,
+			Y      : oFrame.Top,
+			XLimit : oFrame.Right,
+			YLimit : oFrame.Bottom
+		};
 	}
 
 };

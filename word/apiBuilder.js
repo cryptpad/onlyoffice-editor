@@ -2199,8 +2199,8 @@
 	 */
 	ApiSection.prototype.SetPageSize = function(nWidth, nHeight, isPortrait)
 	{
-		this.Section.Set_PageSize(private_Twips2MM(nWidth), private_Twips2MM(nHeight));
-		this.Section.Set_Orientation(false === isPortrait ? Asc.c_oAscPageOrientation.PageLandscape : Asc.c_oAscPageOrientation.PagePortrait, false);
+		this.Section.SetPageSize(private_Twips2MM(nWidth), private_Twips2MM(nHeight));
+		this.Section.SetOrientation(false === isPortrait ? Asc.c_oAscPageOrientation.PageLandscape : Asc.c_oAscPageOrientation.PagePortrait, false);
 	};
 	/**
 	 * Specify the page margins for all pages in this section.
@@ -2212,7 +2212,7 @@
 	 */
 	ApiSection.prototype.SetPageMargins = function(nLeft, nTop, nRight, nBottom)
 	{
-		this.Section.Set_PageMargins(private_Twips2MM(nLeft), private_Twips2MM(nTop), private_Twips2MM(nRight), private_Twips2MM(nBottom));
+		this.Section.SetPageMargins(private_Twips2MM(nLeft), private_Twips2MM(nTop), private_Twips2MM(nRight), private_Twips2MM(nBottom));
 	};
 	/**
 	 * Specify the distance from the top edge of the page to the top edge of the header.
@@ -2221,7 +2221,7 @@
 	 */
 	ApiSection.prototype.SetHeaderDistance = function(nDistance)
 	{
-		this.Section.Set_PageMargins_Header(private_Twips2MM(nDistance));
+		this.Section.SetPageMarginHeader(private_Twips2MM(nDistance));
 	};
 	/**
 	 * Specify the distance from the bottom edge of the page to the bottom edge of the footer.
@@ -2231,7 +2231,7 @@
 	 */
 	ApiSection.prototype.SetFooterDistance = function(nDistance)
 	{
-		this.Section.Set_PageMargins_Footer(private_Twips2MM(nDistance));
+		this.Section.SetPageMarginFooter(private_Twips2MM(nDistance));
 	};
 	/**
 	 * Get the content for the specified header type.

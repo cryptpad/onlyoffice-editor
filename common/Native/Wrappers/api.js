@@ -189,7 +189,7 @@ Asc['asc_docs_api'].prototype["Call_HR_Margins"] = function(_margin_left, _margi
     if ( false === _logic.Document_Is_SelectionLocked(AscCommon.changestype_Document_SectPr) )
     {
         _logic.StartAction();
-        _logic.Set_DocumentMargin( { Left : _margin_left, Right : _margin_right });
+        _logic.SetDocumentMargin( { Left : _margin_left, Right : _margin_right });
 		_logic.FinalizeAction();
     }
 };
@@ -217,7 +217,7 @@ Asc['asc_docs_api'].prototype["Call_VR_Margins"] = function(_top, _bottom)
     if ( false === _logic.Document_Is_SelectionLocked(AscCommon.changestype_Document_SectPr) )
     {
         _logic.StartAction();
-        _logic.Set_DocumentMargin( { Top : _top, Bottom : _bottom });
+        _logic.SetDocumentMargin( { Top : _top, Bottom : _bottom });
         _logic.FinalizeAction();
     }
 };

@@ -77,27 +77,22 @@ function CColumnsMarkup()
 	this.Space = 30;
 	this.Cols = [];
 
-	this.SectPr = null;
+	this.SectPr    = null;
+	this.PageIndex = 0;
 }
-CColumnsMarkup.prototype.UpdateFromSectPr = function(oSectPr, isMirror)
+CColumnsMarkup.prototype.UpdateFromSectPr = function(oSectPr, nPageIndex)
 {
 	if (!oSectPr)
 		return;
 
-	this.SectPr = oSectPr;
+	this.SectPr    = oSectPr;
+	this.PageIndex = nPageIndex;
 
 	var Columns = oSectPr.Columns;
 
-	if (isMirror)
-	{
-		this.X = oSectPr.GetPageMarginRight();
-		this.R = oSectPr.GetPageWidth() - oSectPr.GetPageMarginLeft();
-	}
-	else
-	{
-		this.X = oSectPr.GetPageMarginLeft();
-		this.R = oSectPr.GetPageWidth() - oSectPr.GetPageMarginRight();
-	}
+	var oFrame = oSectPr.GetContentFrame(nPageIndex);
+	this.X     = oFrame.Left;
+	this.R     = oFrame.Right;
 
 	this.EqualWidth = Columns.EqualWidth;
 	this.Num        = Columns.Num;
@@ -118,6 +113,9 @@ CColumnsMarkup.prototype.SetCurCol = function(nCurCol)
 CColumnsMarkup.prototype.CreateDuplicate = function ()
 {
 	var _ret = new CColumnsMarkup();
+
+	_ret.PageIndex = this.PageIndex;
+
 	_ret.SectPr = this.SectPr;
 	_ret.CurCol = this.CurCol;
 	_ret.X = this.X;
