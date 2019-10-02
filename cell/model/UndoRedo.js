@@ -688,7 +688,7 @@ function (window, undefined) {
 				return this.value;
 				break;
 			case this.Properties.formulaRef:
-				return new UndoRedoData_BBox(this.formulaRef);
+				return this.formulaRef ? new UndoRedoData_BBox(this.formulaRef) : null;
 				break;
 		}
 		return null;
@@ -702,7 +702,7 @@ function (window, undefined) {
 				this.value = value;
 				break;
 			case this.Properties.formulaRef:
-				this.formulaRef = new Asc.Range(value.c1, value.r1, value.c2, value.r2);
+				this.formulaRef = value ? new Asc.Range(value.c1, value.r1, value.c2, value.r2) : null;
 				break;
 		}
 	};
