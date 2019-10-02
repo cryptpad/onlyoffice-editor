@@ -216,6 +216,36 @@ AscCommon.sendImgUrls = function(api, images, callback)
 	callback(_data);
 };
 
+window['Asc']["CAscWatermarkProperties"].prototype["showFileDialog"] = function () {
+    if(!this.Api || !this.DivId){
+        return;
+    }
+    var t = this.Api;
+    var _this = this;
+
+    window["AscDesktopEditor"]["OpenFilenameDialog"]("images", false, function(_file) {
+        var file = _file;
+        if (Array.isArray(file))
+            file = file[0];
+
+        if (!file)
+			return;
+
+        var url = window["AscDesktopEditor"]["LocalFileGetImageUrl"](file);
+        var urls = [AscCommon.g_oDocumentUrls.getImageUrl(url)];
+
+        t.ImageLoader.LoadImagesWithCallback(urls, function(){
+            if(urls.length > 0)
+            {
+                _this.ImageUrl = urls[0];
+                _this.Type = Asc.c_oAscWatermarkType.Image;
+                _this.drawTexture();
+                t.sendEvent("asc_onWatermarkImageLoaded");
+            }
+        });
+    });
+};
+
 /////////////////////////////////////////////////////////
 ////////////////        SAVE       //////////////////////
 /////////////////////////////////////////////////////////

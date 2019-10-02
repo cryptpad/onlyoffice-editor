@@ -580,6 +580,7 @@
 		this.tmpTextArtDiv = null;
 		this.tmpViewRulers = null;
 		this.tmpZoomType   = null;
+        this.tmpDocumentUnits = null;
 
         this.DocumentUrl     = "";
 		this.bNoSendComments = false;
@@ -5460,6 +5461,10 @@ background-repeat: no-repeat;\
 			this.WordControl.UpdateHorRulerBack(true);
 			this.WordControl.UpdateVerRulerBack(true);
 		}
+		else
+		{
+            this.tmpDocumentUnits = _units;
+		}
 	};
 
 	asc_docs_api.prototype.GoToHeader = function(pageNumber)
@@ -7008,6 +7013,11 @@ background-repeat: no-repeat;\
 					break;
 			}
 		}
+        if (null != this.tmpDocumentUnits)
+        {
+            this.asc_SetDocumentUnits(this.tmpDocumentUnits);
+            this.tmpDocumentUnits = null;
+        }
 
 		this.asc_setViewMode(this.isViewMode);
 
