@@ -2255,16 +2255,34 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
 
             break;
         }
+
+        case 440:   // ASC_MENU_EVENT_TYPE_ADD_CHART_DATA
+        {
+            if (undefined !== _params) {
+                var chartData = _params[0];
+                if (chartData && chartData.length > 0) {
+                    var json = JSON.parse(chartData);
+                    if (json) {
+                        _api.asc_addChartDrawingObject(json);
+                    }
+                }
+            }
+            break;
+        } 
             
         case 450:   // ASC_MENU_EVENT_TYPE_GET_CHART_DATA
         {
-            var chart = _api.asc_getChartObject();
+            var index = null;
+            if (undefined !== _params) {
+                index = parseInt(_params);
+            }
+
+            var chart = _api.asc_getChartObject(index);
             
             var _stream = global_memory_stream_menu;
             _stream["ClearNoAttack"]();
             _stream["WriteStringA"](JSON.stringify(new Asc.asc_CChartBinary(chart)));
-            _return = _stream;
-            
+            _return = _stream;           
             break;
         }
         
@@ -6097,7 +6115,8 @@ function NativeOpenFile3(_params, documentInfo)
                                       "vkey"          : undefined,
                                       "url"           : window.documentInfo["docURL"],
                                       "title"         : this.documentTitle,
-                                      "nobase64"      : true};
+                                      "nobase64"      : true
+                                      };
 
                                       _api.CoAuthoringApi.auth(window.documentInfo["viewmode"], rData);
                                       });
@@ -6112,6 +6131,13 @@ function NativeOpenFile3(_params, documentInfo)
         } else {
             var doc_bin = window.native.GetFileString(window.g_file_path);
             _api.asc_nativeOpenFile(doc_bin);
+
+           	if (window.documentInfo["viewmode"]) {
+            	_api.ShowParaMarks = false;
+            	AscCommon.CollaborativeEditing.Set_GlobalLock(true);
+            	_api.isViewMode = true;
+            	_api.WordControl.m_oDrawingDocument.IsViewMode = true;
+          	}
 
             if (null != _api.WordControl.m_oLogicDocument)
             {
@@ -6246,7 +6272,12 @@ window["asc_docs_api"].prototype["asc_nativeOpenFile2"] = function(base64File, v
 Asc['asc_docs_api'].prototype.openDocument = function(file)
 {
     _api.asc_nativeOpenFile2(file.data);
-    
+
+    if (window.documentInfo["viewmode"]) {
+        _api.ShowParaMarks = false;
+        _api.isViewMode = true;
+        _api.WordControl.m_oDrawingDocument.IsViewMode = true;
+    }    
     
     if (!sdkCheck) {
         
@@ -6261,7 +6292,7 @@ Asc['asc_docs_api'].prototype.openDocument = function(file)
         {
             _api.sendColorThemes(_api.WordControl.m_oLogicDocument.theme);
         }
-        
+  
         window["native"]["onEndLoadingFile"]();
         
         return;

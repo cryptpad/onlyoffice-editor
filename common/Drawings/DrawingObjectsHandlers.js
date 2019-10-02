@@ -1302,7 +1302,7 @@ function handleInternalChart(drawing, drawingObjectsController, e, x, y, group, 
         //todo gridlines
 
         //plotArea
-        if(bClickFlag ){
+        if(bClickFlag && !window["IS_NATIVE_EDITOR"]){
             var oChartSizes = drawing.getChartSizes(true);
             var oInvertTransform = drawing.invertTransform;
             var dTx = oInvertTransform.TransformPointX(x, y);

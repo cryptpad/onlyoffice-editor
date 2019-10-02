@@ -4353,6 +4353,8 @@
 			f.excludeHiddenRows = oldExcludeHiddenRows;
 			f.excludeNestedStAg = oldIgnoreNestedStAg;
 			f.checkExclude = oldCheckExclude;
+		} else {
+			res = new cError(cErrorType.wrong_value_type);
 		}
 
 		return res;
