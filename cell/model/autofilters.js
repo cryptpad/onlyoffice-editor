@@ -443,11 +443,14 @@
 
 						if (addNameColumn && !isTurnOffHistory) {
 							var moveToRange;
+							var shiftRange;
 							if (t._isEmptyCellsUnderRange(rangeWithoutDiff)) {
 								moveToRange = new Asc.Range(filterRange.c1, filterRange.r1 + 1, filterRange.c2, filterRange.r2);
 							} else {
 								//shift down not empty range and move
-								worksheet.getRange3(filterRange.r2, filterRange.c1, filterRange.r2, filterRange.c2).addCellsShiftBottom();
+								shiftRange = worksheet.getRange3(filterRange.r2, filterRange.c1, filterRange.r2, filterRange.c2);
+								shiftRange.addCellsShiftBottom();
+								wsView.cellCommentator.updateCommentsDependencies(true, c_oAscInsertOptions.InsertCellsAndShiftDown, shiftRange.bbox);
 								moveToRange = new Asc.Range(filterRange.c1, filterRange.r1 + 1, filterRange.c2, filterRange.r2);
 							}
 							worksheet._moveRange(rangeWithoutDiff, moveToRange);
@@ -460,8 +463,9 @@
 									filterRange.r2++;
 									//shift down not empty range and move
 									if (!isTurnOffHistory) {
-										worksheet.getRange3(filterRange.r2, filterRange.c1, filterRange.r2,
-											filterRange.c2).addCellsShiftBottom();
+										shiftRange = worksheet.getRange3(filterRange.r2, filterRange.c1, filterRange.r2, filterRange.c2);
+										shiftRange.addCellsShiftBottom();
+										wsView.cellCommentator.updateCommentsDependencies(true, c_oAscInsertOptions.InsertCellsAndShiftDown, shiftRange.bbox);
 									}
 								}
 							}
