@@ -1012,7 +1012,7 @@ CSectionPr.prototype.SetOrientation = function(Orient, ApplySize)
 			var T = this.PageMargins.Top;
 			var B = this.PageMargins.Bottom;
 
-			this.Set_PageSize(H, W);
+			this.SetPageSize(H, W);
 
 			if (Asc.c_oAscPageOrientation.PagePortrait === Orient)
 				this.SetPageMargins(T, R, B, L);
