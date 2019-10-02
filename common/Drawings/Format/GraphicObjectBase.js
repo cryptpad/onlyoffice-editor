@@ -847,6 +847,10 @@
     {
         return null;
     };
+    CGraphicObjectBase.prototype.getDrawingBaseType = function()
+    {
+        return this.drawingBase ? this.drawingBase.Type : null;
+    };
 
     CGraphicObjectBase.prototype.checkDrawingBaseCoords = function()
     {

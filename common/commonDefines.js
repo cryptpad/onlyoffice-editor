@@ -2100,6 +2100,13 @@
 	prot['OnlySignatures'] = c_oAscRestrictionType.OnlySignatures;
 	prot['View']           = c_oAscRestrictionType.View;
 
+
+	prot =  window["AscCommon"]["c_oAscCellAnchorType"] = window["AscCommon"].c_oAscCellAnchorType = c_oAscCellAnchorType;
+	prot["cellanchorAbsolute"] = prot.cellanchorAbsolute;
+	prot["cellanchorOneCell"] = prot.cellanchorOneCell;
+	prot["cellanchorTwoCell"] = prot.cellanchorTwoCell;
+
+
     window['AscCommon']                             = window['AscCommon'] || {};
 	window["AscCommon"].g_cCharDelimiter            = g_cCharDelimiter;
 	window["AscCommon"].g_cGeneralFormat            = g_cGeneralFormat;
@@ -2107,7 +2114,6 @@
 	window["AscCommon"].c_oAscAdvancedOptionsAction = c_oAscAdvancedOptionsAction;
 	window["AscCommon"].DownloadType                = DownloadType;
 	window["AscCommon"].CellValueType               = CellValueType;
-	window["AscCommon"].c_oAscCellAnchorType        = c_oAscCellAnchorType;
 	window["AscCommon"].c_oAscChartDefines          = c_oAscChartDefines;
 	window["AscCommon"].c_oAscStyleImage            = c_oAscStyleImage;
 	window["AscCommon"].c_oAscLineDrawingRule       = c_oAscLineDrawingRule;
