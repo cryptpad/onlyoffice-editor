@@ -4604,22 +4604,17 @@
 				enterMatrix = arg1Matrix;
 			}
 
-			/*if (!bSelectRangeCol && arg0Matrix.length !== arg1Matrix.length) {
-				return new cError(cErrorType.wrong_value_type);
-			}*/
 			var res = undefined;
 			for (var i = 0; i < enterMatrix.length; ++i) {
-				if(bSelectRangeCol && (/*!arg0Matrix[i] || */!arg1Matrix[i])) {
+				if(!arg1Matrix[i]) {
 					continue;
 				}
 				if(!enterMatrix[i]) {
 					continue;
 				}
-				/*if (arg0Matrix[i].length !== arg1Matrix[i].length) {
-					return new cError(cErrorType.wrong_value_type);
-				}*/
+
 				for (var j = 0; j < enterMatrix[i].length; ++j) {
-					if(!enterMatrix[i][j] || !arg1Matrix[i] || !arg1Matrix[i][j]) {
+					if(!enterMatrix[i][j] || !arg1Matrix[i][j]) {
 						continue;
 					}
 
@@ -4644,32 +4639,22 @@
 			return res;
 		};
 
-		var c_colType = Asc.c_oAscSelectionType.RangeCol;
-
 		var _sum = 0;
-		//var arg0Matrix = arg0.getMatrix();
 		var arg0Range = getRange(arg0);
 		var arg0C = arg0Range.c2 - arg0Range.c1 + 1;
 		var arg0R = arg0Range.r2 - arg0Range.r1 + 1;
 		var cacheElem, parent;
-		var arg1, arg2, bSelectRangeCol, arg1Range;
+		var arg1, arg2, arg1Range;
 		for (var k = 1; k < arg.length; k += 2) {
 			arg1 = arg[k];
 			arg2 = arg[k + 1];
 
-			//добавляю флаг bSelectRangeCol - для случая когда нулевой и первый аргумент это area/area3d с диапазоном весь столбец
-			//в этом случае нет ошибки при разных размерах полученных массивов - arg0Matrix/arg1Matrix
-			bSelectRangeCol = false;
+
 			arg1Range = getRange(arg1);
-			if(arg1Range && arg1Range.getType() === c_colType && arg0Range && arg0Range.getType() === c_colType) {
-				if(arg0Range.c1 === arg0Range.c1 && arg0Range.c2 === arg0Range.c2) {
-					bSelectRangeCol = true;
-				}
-			}
 
 			var arg1C = arg1Range.c2 - arg1Range.c1 + 1;
 			var arg1R = arg1Range.r2 - arg1Range.r1 + 1;
-			if ((!bSelectRangeCol && arg0R !== arg1R) || arg0C !== arg1C) {
+			if (arg0R !== arg1R || arg0C !== arg1C) {
 				return new cError(cErrorType.wrong_value_type);
 			}
 
@@ -4707,7 +4692,6 @@
 			if(undefined === cacheElem.elems) {
 				return new cNumber(0);
 			}
-
 			if(cElementType.error === cacheElem.elems.type) {
 				return cacheElem.elems;
 			}
