@@ -13813,10 +13813,10 @@
         this._isLockedAll(onChangeAutoFilterCallback);
     };
 
-    WorksheetView.prototype.getAddFormatTableOptions = function (range) {
+    WorksheetView.prototype.getAddFormatTableOptions = function (range, isPivot) {
         var selectionRange = this.model.selectionRange.getLast();
         //TODO возможно стоит перенести getAddFormatTableOptions во view
-        return this.model.autoFilters.getAddFormatTableOptions(selectionRange, range);
+        return this.model.autoFilters.getAddFormatTableOptions(selectionRange, range, isPivot);
     };
 
     WorksheetView.prototype.clearFilter = function () {

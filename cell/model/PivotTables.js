@@ -4145,6 +4145,20 @@ CT_pivotTableDefinition.prototype.isValidDataRef = function(dataRef) {
 	}
 	return false;
 };
+CT_pivotTableDefinition.prototype.prepareDataRange = function(ws, range) {
+	var minCol = range.c2;
+	var maxCol = range.c1;
+	ws.getRange3(range.r1, range.c1, range.r1, range.c2)._foreachNoEmptyByCol(function(cell) {
+		if (!cell.isNullTextString()) {
+			minCol = Math.min(minCol, cell.nCol);
+			maxCol = Math.max(maxCol, cell.nCol);
+		}
+	});
+	if (minCol <= maxCol) {
+		range.c1 = minCol;
+		range.c2 = maxCol;
+	}
+};
 
 function CT_pivotTableDefinitionX14() {
 //Attributes

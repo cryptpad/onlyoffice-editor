@@ -556,6 +556,11 @@ var editor;
     return ws.getAddFormatTableOptions(range);
   };
 
+  spreadsheet_api.prototype.asc_getAddPivotTableOptions = function(range) {
+      var ws = this.wb.getWorksheet();
+      return ws.getAddFormatTableOptions(range, true);
+  };
+
   spreadsheet_api.prototype.asc_clearFilter = function() {
     var ws = this.wb.getWorksheet();
     return ws.clearFilter();
@@ -4082,6 +4087,7 @@ var editor;
   prot["asc_reapplyAutoFilter"] = prot.asc_reapplyAutoFilter;
   prot["asc_sortColFilter"] = prot.asc_sortColFilter;
   prot["asc_getAddFormatTableOptions"] = prot.asc_getAddFormatTableOptions;
+  prot["asc_getAddPivotTableOptions"] = prot.asc_getAddPivotTableOptions;
   prot["asc_clearFilter"] = prot.asc_clearFilter;
   prot["asc_clearFilterColumn"] = prot.asc_clearFilterColumn;
   prot["asc_changeSelectionFormatTable"] = prot.asc_changeSelectionFormatTable;
