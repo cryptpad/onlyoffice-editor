@@ -4619,7 +4619,7 @@
 					return new cError(cErrorType.wrong_value_type);
 				}*/
 				for (var j = 0; j < enterMatrix[i].length; ++j) {
-					if(!enterMatrix[i][j]) {
+					if(!enterMatrix[i][j] || !arg1Matrix[i] || !arg1Matrix[i][j]) {
 						continue;
 					}
 
