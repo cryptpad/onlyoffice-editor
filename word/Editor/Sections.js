@@ -1088,21 +1088,36 @@ CSectionPr.prototype.GetContentFrame = function(nPageAbs)
 	var nL = this.GetPageMarginLeft();
 	var nR = this.GetPageWidth() - this.GetPageMarginRight();
 
-	// var nGutter = oSectPr.GetGutter();
-	// if (nGutter > 0.001)
-	// {
-	// 	if (this.IsGutterAtTop())
-	// 		Y += nGutter;
-	// 	else if (oSectPr.IsGutterRTL())
-	// 		XLimit -= nGutter;
-	// 	else
-	// 		X += nGutter;
-	// }
-
 	if (this.LogicDocument && this.LogicDocument.IsMirrorMargins() && 1 === nPageAbs % 2)
 	{
 		nL = this.GetPageMarginRight();
 		nR = this.GetPageWidth() - this.GetPageMarginLeft();
+	}
+
+	var nGutter = this.GetGutter();
+	if (nGutter > 0.001)
+	{
+		if (this.LogicDocument && this.LogicDocument.IsGutterAtTop())
+		{
+			nT += nGutter;
+		}
+		else
+		{
+			if (this.LogicDocument && this.LogicDocument.IsMirrorMargins() && 1 === nPageAbs % 2)
+			{
+				if (this.IsGutterRTL())
+					nL += nGutter;
+				else
+					nR -= nGutter;
+			}
+			else
+			{
+				if (this.IsGutterRTL())
+					nR -= nGutter;
+				else
+					nL += nGutter;
+			}
+		}
 	}
 
 	return {
@@ -1118,7 +1133,13 @@ CSectionPr.prototype.GetContentFrame = function(nPageAbs)
  */
 CSectionPr.prototype.GetContentFrameWidth = function()
 {
-	return this.GetPageWidth() - this.GetPageMarginLeft() - this.GetPageMarginRight();
+	var nFrameWidth = this.GetPageWidth() - this.GetPageMarginLeft() - this.GetPageMarginRight();
+
+	var nGutter = this.GetGutter();
+	if (nGutter > 0.001 && !(this.LogicDocument && this.LogicDocument.IsGutterAtTop()))
+		nFrameWidth -= nGutter;
+
+	return nFrameWidth;
 };
 /**
  * Получаем высоту области для расположения содержимого документа
@@ -1126,7 +1147,13 @@ CSectionPr.prototype.GetContentFrameWidth = function()
  */
 CSectionPr.prototype.GetContentFrameHeight = function()
 {
-	return this.GetPageHeight() - this.GetPageMarginTop() - this.GetPageMarginBottom();
+	var nFrameHeight = this.GetPageHeight() - this.GetPageMarginTop() - this.GetPageMarginBottom();
+
+	var nGutter = this.GetGutter();
+	if (nGutter > 0.001 && this.LogicDocument && this.LogicDocument.IsGutterAtTop())
+		nFrameHeight -= nGutter;
+
+	return nFrameHeight;
 };
 
 function CSectionPageSize()
@@ -1413,10 +1440,8 @@ CSectionColumns.prototype.Get_ColumnWidth = function(ColIndex)
 {
 	if (true === this.EqualWidth)
 	{
-		var PageW   = this.SectPr.GetPageWidth();
-		var MarginL = this.SectPr.GetPageMarginLeft();
-		var MarginR = this.SectPr.GetPageMarginRight();
-		return this.Num > 0 ? (PageW - MarginL - MarginR - this.Space * (this.Num - 1)) / this.Num : (PageW - MarginL - MarginR);
+		var nFrameW = this.SectPr.GetContentFrameWidth();
+		return this.Num > 0 ? (nFrameW - this.Space * (this.Num - 1)) / this.Num : nFrameW;
 	}
 	else
 	{
