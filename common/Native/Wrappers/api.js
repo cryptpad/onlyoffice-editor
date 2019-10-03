@@ -189,7 +189,7 @@ Asc['asc_docs_api'].prototype["Call_HR_Margins"] = function(_margin_left, _margi
     if ( false === _logic.Document_Is_SelectionLocked(AscCommon.changestype_Document_SectPr) )
     {
         _logic.StartAction();
-        _logic.Set_DocumentMargin( { Left : _margin_left, Right : _margin_right });
+        _logic.SetDocumentMargin( { Left : _margin_left, Right : _margin_right });
 		_logic.FinalizeAction();
     }
 };
@@ -217,7 +217,7 @@ Asc['asc_docs_api'].prototype["Call_VR_Margins"] = function(_top, _bottom)
     if ( false === _logic.Document_Is_SelectionLocked(AscCommon.changestype_Document_SectPr) )
     {
         _logic.StartAction();
-        _logic.Set_DocumentMargin( { Top : _top, Bottom : _bottom });
+        _logic.SetDocumentMargin( { Top : _top, Bottom : _bottom });
         _logic.FinalizeAction();
     }
 };
@@ -2255,16 +2255,34 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
 
             break;
         }
+
+        case 440:   // ASC_MENU_EVENT_TYPE_ADD_CHART_DATA
+        {
+            if (undefined !== _params) {
+                var chartData = _params[0];
+                if (chartData && chartData.length > 0) {
+                    var json = JSON.parse(chartData);
+                    if (json) {
+                        _api.asc_addChartDrawingObject(json);
+                    }
+                }
+            }
+            break;
+        } 
             
         case 450:   // ASC_MENU_EVENT_TYPE_GET_CHART_DATA
         {
-            var chart = _api.asc_getChartObject();
+            var index = null;
+            if (undefined !== _params) {
+                index = parseInt(_params);
+            }
+
+            var chart = _api.asc_getChartObject(index);
             
             var _stream = global_memory_stream_menu;
             _stream["ClearNoAttack"]();
             _stream["WriteStringA"](JSON.stringify(new Asc.asc_CChartBinary(chart)));
-            _return = _stream;
-            
+            _return = _stream;           
             break;
         }
         

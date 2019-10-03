@@ -8853,6 +8853,12 @@ Paragraph.prototype.Internal_CompiledParaPrPresentation = function(Lvl, bNoMerge
 {
 	var _Lvl        = AscFormat.isRealNumber(Lvl) ? Lvl : (AscFormat.isRealNumber(this.Pr.Lvl) ? this.Pr.Lvl : 0);
 	var styleObject = this.Parent.Get_Styles(_Lvl);
+	if(!styleObject)
+	{
+		return {ParaPr : g_oDocumentDefaultParaPr,
+				TextPr : g_oDocumentDefaultTextPr
+		};
+	}
 	var Styles      = styleObject.styles;
 
 	// Считываем свойства для текущего стиля

@@ -7032,7 +7032,7 @@ CPresentation.prototype =
         return oController && oController.setDefaultTabSize(DTab);
     },
 
-    Set_DocumentMargin: function()
+    SetDocumentMargin: function()
     {
 
     },

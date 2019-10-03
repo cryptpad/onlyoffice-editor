@@ -1763,12 +1763,6 @@ var editor;
 		this.collaborativeEditing.sendChanges(this.IsUserSave, true);
 	};
 
-  // Залочена ли панель для закрепления
-  spreadsheet_api.prototype._isLockedTabColor = function(index, callback) {
-    var sheetId = this.wbModel.getWorksheet(index).getId();
-    var lockInfo = this.collaborativeEditing.getLockInfo(c_oAscLockTypeElem.Object, null, sheetId, AscCommonExcel.c_oAscLockNameTabColor);
-    this.collaborativeEditing.lock([lockInfo], callback);
-  };
   spreadsheet_api.prototype._isLockedSparkline = function (id, callback) {
     var lockInfo = this.collaborativeEditing.getLockInfo(c_oAscLockTypeElem.Object, /*subType*/null,
         this.asc_getActiveWorksheetId(), id);
@@ -1813,15 +1807,36 @@ var editor;
   spreadsheet_api.prototype.asc_getWorksheetTabColor = function(index) {
     return this.wbModel.getWorksheet(index).getTabColor();
   };
-  spreadsheet_api.prototype.asc_setWorksheetTabColor = function(index, color) {
+  spreadsheet_api.prototype.asc_setWorksheetTabColor = function(color, arrSheets) {
+    // Проверка глобального лока
+    if (this.collaborativeEditing.getGlobalLock()) {
+      return false;
+    }
+
+    if (!arrSheets) {
+      arrSheets = [];
+      arrSheets.push(this.wbModel.getActive());
+    }
+
+    var sheet, arrLocks = [];
+    for (var i = 0; i < arrSheets.length; ++i) {
+      sheet = this.wbModel.getWorksheet(arrSheets[i]);
+      arrLocks.push(this.collaborativeEditing.getLockInfo(c_oAscLockTypeElem.Object, /*subType*/null, sheet.getId(), AscCommonExcel.c_oAscLockNameTabColor));
+    }
+
     var t = this;
     var changeTabColorCallback = function(res) {
       if (res) {
         color = AscCommonExcel.CorrectAscColor(color);
-        t.wbModel.getWorksheet(index).setTabColor(color);
+        History.Create_NewPoint();
+        History.StartTransaction();
+        for (var i = 0; i < arrSheets.length; ++i) {
+          t.wbModel.getWorksheet(arrSheets[i]).setTabColor(color);
+        }
+        History.EndTransaction();
       }
     };
-    this._isLockedTabColor(index, changeTabColorCallback);
+    this.collaborativeEditing.lock(arrLocks, changeTabColorCallback);
   };
 
   spreadsheet_api.prototype.asc_getActiveWorksheetIndex = function() {
@@ -2122,7 +2137,7 @@ var editor;
 
     var sheet, arrLocks = [], arrDeleteNames = [];
     for (var i = 0; i < arrSheets.length; ++i) {
-      sheet = this.wbModel.getWorksheet(arrSheets[i]);
+      sheet = arrSheets[i] = this.wbModel.getWorksheet(arrSheets[i]);
       arrDeleteNames.push(sheet.sName);
       arrLocks.push(this.collaborativeEditing.getLockInfo(c_oAscLockTypeElem.Sheet, /*subType*/null, sheet.getId(), sheet.getId()));
     }
@@ -2147,10 +2162,11 @@ var editor;
           });
 
         // Удаляем Worksheet и получаем новый активный индекс (-1 означает, что ничего не удалилось)
-        var active;
+        var active, index;
         for (var i = 0; i < arrSheets.length; ++i) {
-          active = t.wbModel.removeWorksheet(arrSheets[i]);
-          t.wb.removeWorksheet(arrSheets[i]);
+          index = arrSheets[i].getIndex();
+          active = t.wbModel.removeWorksheet(index);
+          t.wb.removeWorksheet(index);
         }
         if (-1 !== active) {
           t.asc_showWorksheet(active);
@@ -2166,21 +2182,37 @@ var editor;
     return true;
   };
 
-  spreadsheet_api.prototype.asc_moveWorksheet = function(where) {
-    var i = this.wbModel.getActive();
-    var d = i < where ? +1 : -1;
-    // Мы должны поместить слева от заданного значения, поэтому если идем вправо, то вычтем 1
-    if (1 === d) {
-      where -= 1;
+  spreadsheet_api.prototype.asc_moveWorksheet = function (where, arrSheets) {
+    // Проверка глобального лока
+    if (this.collaborativeEditing.getGlobalLock()) {
+      return false;
     }
+
+    if (!arrSheets) {
+      arrSheets = [];
+      arrSheets.push(this.wbModel.getActive());
+    }
+
+    var i, index, activeWs = this.wbModel.getActiveWs(), _where;
+    for (i = 0; i < arrSheets.length; ++i) {
+      arrSheets[i] = this.wbModel.getWorksheet(arrSheets[i]);
+    }
+
     History.Create_NewPoint();
-    this.wb.replaceWorksheet(i, where);
-    this.wbModel.replaceWorksheet(i, where);
+    History.StartTransaction();
+    for (i = arrSheets.length - 1; i >= 0; --i) {
+      index = arrSheets[i].getIndex();
+      // Мы должны поместить слева от заданного значения, поэтому если идем вправо, то вычтем 1
+      _where = index < where ? (where - 1) : where;
+      this.wb.replaceWorksheet(index, _where);
+      this.wbModel.replaceWorksheet(index, _where);
+    }
 
     // Обновим текущий номер
-    this.asc_showWorksheet(where);
+    this.asc_showWorksheet(activeWs.getIndex());
     // Посылаем callback об изменении списка листов
     this.sheetsChanged();
+    History.EndTransaction();
   };
 
   spreadsheet_api.prototype.asc_copyWorksheet = function(where, newName) {
@@ -3747,6 +3779,9 @@ var editor;
     var _adjustPrint = (window.AscDesktopEditor_PrintOptions && window.AscDesktopEditor_PrintOptions.advancedOptions) || new Asc.asc_CAdjustPrint();
     window.AscDesktopEditor_PrintOptions = undefined;
 
+    var pageSetup;
+    var countWorksheets = this.wbModel.getWorksheetCount();
+
     var isOnePage = ((_param & 0x0100) == 0x0100);
     var isIgnorePrintArea = ((_param & 0x1000) == 0x1000);
     if(isIgnorePrintArea) {
@@ -3756,8 +3791,6 @@ var editor;
     _param &= 0xFF;
     if (1 == _param) {
       _adjustPrint.asc_setPrintType(Asc.c_oAscPrintType.EntireWorkbook);
-      var pageSetup;
-      var countWorksheets = this.wbModel.getWorksheetCount();
       for (var j = 0; j < countWorksheets; ++j) {
         pageSetup = this.wbModel.getWorksheet(j).PagePrintOptions.asc_getPageSetup();
         pageSetup.asc_setFitToWidth(true);
@@ -3787,7 +3820,32 @@ var editor;
 			  _printer.m_arrayPages[i].Width, _printer.m_arrayPages[i].Height);
         }
 
-        window["AscDesktopEditor"]["Print_End"]();
+        // detect fit flag
+        var paramEnd = 0;
+        if (_adjustPrint && _adjustPrint.asc_getPrintType() == Asc.c_oAscPrintType.EntireWorkbook) {
+          for (var j = 0; j < countWorksheets; ++j) {
+            if (_adjustPrint && _adjustPrint.pageOptionsMap && _adjustPrint.pageOptionsMap[j]) {
+              pageSetup = _adjustPrint.pageOptionsMap[j].pageSetup;
+            } else {
+              pageSetup = this.wbModel.getWorksheet(j).PagePrintOptions.asc_getPageSetup();
+            }
+            if (pageSetup.asc_getFitToWidth() || pageSetup.asc_getFitToHeight())
+              paramEnd |= 1;
+          }
+        }
+
+        if (_adjustPrint && _adjustPrint.asc_getPrintType() == Asc.c_oAscPrintType.ActiveSheets) {
+          var activeSheet = this.wbModel.getActive();
+          if (_adjustPrint && _adjustPrint.pageOptionsMap && _adjustPrint.pageOptionsMap[activeSheet]) {
+            pageSetup = _adjustPrint.pageOptionsMap[activeSheet].pageSetup;
+          } else {
+            pageSetup = this.wbModel.getWorksheet(activeSheet).PagePrintOptions.asc_getPageSetup();
+          }
+          if (pageSetup.asc_getFitToWidth() || pageSetup.asc_getFitToHeight())
+            paramEnd |= 1;
+        }
+
+        window["AscDesktopEditor"]["Print_End"](paramEnd);
       }
     } else {
       this.wb.printSheets(_printPagesData, _printer);

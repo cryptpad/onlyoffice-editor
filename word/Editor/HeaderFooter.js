@@ -592,11 +592,11 @@ CHeaderFooter.prototype =
         // нужно обновить линейку
         if ( this.Type === hdrftr_Header )
         {
-            this.DrawingDocument.Set_RulerState_HdrFtr( true, Bounds.Top, Math.max( Bounds.Bottom, SectPr.Get_PageMargin_Top() ) );
+            this.DrawingDocument.Set_RulerState_HdrFtr( true, Bounds.Top, Math.max( Bounds.Bottom, SectPr.GetPageMarginTop() ) );
         }
         else
         {
-            this.DrawingDocument.Set_RulerState_HdrFtr( false, Bounds.Top, SectPr.Get_PageHeight() );
+            this.DrawingDocument.Set_RulerState_HdrFtr( false, Bounds.Top, SectPr.GetPageHeight() );
         }
 
         this.Content.Document_UpdateRulersState( this.Content.Get_StartPage_Absolute() );
@@ -1467,9 +1467,9 @@ CHeaderFooterController.prototype =
             var SectPr = this.LogicDocument.SectionsInfo.Get_SectPr(Index).SectPr;
 
             if ( hdrftr_Footer === Pr.Type )
-                Pr.Position = SectPr.Get_PageMargins_Footer();
+                Pr.Position = SectPr.GetPageMarginFooter();
             else
-                Pr.Position = SectPr.Get_PageMargins_Header();
+                Pr.Position = SectPr.GetPageMarginHeader();
             
             Pr.DifferentFirst   = SectPr.Get_TitlePage();
             Pr.DifferentEvenOdd = EvenAndOddHeaders;
@@ -1545,8 +1545,14 @@ CHeaderFooterController.prototype =
         this.Pages[PageIndex].Footer = Footer;
         var X, XLimit;
         
-        var X      = SectPr.Get_PageMargin_Left();
-        var XLimit = SectPr.Get_PageWidth() - SectPr.Get_PageMargin_Right();
+        var X      = SectPr.GetPageMarginLeft();
+        var XLimit = SectPr.GetPageWidth() - SectPr.GetPageMarginRight();
+
+        if (bEven)
+        {
+            X      = SectPr.GetPageMarginRight();
+            XLimit = SectPr.GetPageWidth() - SectPr.GetPageMarginLeft();
+        }
         
         var bRecalcHeader = false;
 
@@ -1556,8 +1562,8 @@ CHeaderFooterController.prototype =
         {
             if ( true === Header.Is_NeedRecalculate( PageIndex ) )
             {
-                var Y      = SectPr.Get_PageMargins_Header();
-                var YLimit = SectPr.Get_PageHeight() / 2;
+                var Y      = SectPr.GetPageMarginHeader();
+                var YLimit = SectPr.GetPageHeight() / 2;
 
                 Header.Reset( X, Y, XLimit, YLimit );
                 bRecalcHeader = Header.Recalculate(PageIndex, SectPr);
@@ -1582,13 +1588,13 @@ CHeaderFooterController.prototype =
                 // Исходя из уже известной высоты располагаем и рассчитываем колонтитул.
 
                 var Y      = 0;
-                var YLimit = SectPr.Get_PageHeight();
+                var YLimit = SectPr.GetPageHeight();
 
                 Footer.Reset( X, Y, XLimit, YLimit );
                 Footer.Recalculate2(PageIndex);
 
                 var SummaryHeight = Footer.Content.GetSummaryHeight();
-                Y = Math.max( 2 * YLimit / 3, YLimit - SectPr.Get_PageMargins_Footer() - SummaryHeight );
+                Y = Math.max( 2 * YLimit / 3, YLimit - SectPr.GetPageMarginFooter() - SummaryHeight );
 
                 Footer.Reset( X, Y, XLimit, YLimit );
                 bRecalcFooter = Footer.Recalculate(PageIndex, SectPr);

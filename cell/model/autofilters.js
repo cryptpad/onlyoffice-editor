@@ -398,6 +398,7 @@
 			addAutoFilter: function(styleName, activeRange, addFormatTableOptionsObj, offLock, props, filterInfo)
 			{
 				var worksheet = this.worksheet, t = this, cloneFilter;
+				var wsView = Asc['editor'].wb.getWorksheet(worksheet.getIndex());
 				var isTurnOffHistory = worksheet.workbook.bUndoChanges || worksheet.workbook.bRedoChanges;
 				
 				if(!filterInfo) {
@@ -441,16 +442,19 @@
 						}
 
 						if (addNameColumn && !isTurnOffHistory) {
+							var moveToRange;
+							var shiftRange;
 							if (t._isEmptyCellsUnderRange(rangeWithoutDiff)) {
-								worksheet._moveRange(rangeWithoutDiff,
-									new Asc.Range(filterRange.c1, filterRange.r1 + 1, filterRange.c2, filterRange.r2));
+								moveToRange = new Asc.Range(filterRange.c1, filterRange.r1 + 1, filterRange.c2, filterRange.r2);
 							} else {
 								//shift down not empty range and move
-								worksheet.getRange3(filterRange.r2, filterRange.c1, filterRange.r2, filterRange.c2)
-									.addCellsShiftBottom();
-								worksheet._moveRange(rangeWithoutDiff,
-									new Asc.Range(filterRange.c1, filterRange.r1 + 1, filterRange.c2, filterRange.r2));
+								shiftRange = worksheet.getRange3(filterRange.r2, filterRange.c1, filterRange.r2, filterRange.c2);
+								shiftRange.addCellsShiftBottom();
+								wsView.cellCommentator.updateCommentsDependencies(true, c_oAscInsertOptions.InsertCellsAndShiftDown, shiftRange.bbox);
+								moveToRange = new Asc.Range(filterRange.c1, filterRange.r1 + 1, filterRange.c2, filterRange.r2);
 							}
+							worksheet._moveRange(rangeWithoutDiff, moveToRange);
+							wsView.cellCommentator.moveRangeComments(rangeWithoutDiff, moveToRange);
 						} else if (!addNameColumn && styleName) {
 							if (filterRange.r1 === filterRange.r2) {
 								if (t._isEmptyCellsUnderRange(rangeWithoutDiff)) {
@@ -459,8 +463,9 @@
 									filterRange.r2++;
 									//shift down not empty range and move
 									if (!isTurnOffHistory) {
-										worksheet.getRange3(filterRange.r2, filterRange.c1, filterRange.r2,
-											filterRange.c2).addCellsShiftBottom();
+										shiftRange = worksheet.getRange3(filterRange.r2, filterRange.c1, filterRange.r2, filterRange.c2);
+										shiftRange.addCellsShiftBottom();
+										wsView.cellCommentator.updateCommentsDependencies(true, c_oAscInsertOptions.InsertCellsAndShiftDown, shiftRange.bbox);
 									}
 								}
 							}

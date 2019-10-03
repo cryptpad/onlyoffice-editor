@@ -236,38 +236,45 @@ function CColumnsMarkup()
 	this.Space = 30;
 	this.Cols = [];
 
-	this.SectPr = null;
+	this.SectPr    = null;
+	this.PageIndex = 0;
 }
-CColumnsMarkup.prototype.Update_FromSectPr = function (SectPr)
+CColumnsMarkup.prototype.UpdateFromSectPr = function(oSectPr, nPageIndex)
 {
-	if (!SectPr)
+	if (!oSectPr)
 		return;
 
-	this.SectPr = SectPr;
+	this.SectPr    = oSectPr;
+	this.PageIndex = nPageIndex;
 
-	var Columns = SectPr.Columns;
+	var Columns = oSectPr.Columns;
 
-	this.X = SectPr.Get_PageMargin_Left();
-	this.R = SectPr.Get_PageWidth() - SectPr.Get_PageMargin_Right();
+	var oFrame = oSectPr.GetContentFrame(nPageIndex);
+	this.X     = oFrame.Left;
+	this.R     = oFrame.Right;
+
 	this.EqualWidth = Columns.EqualWidth;
-	this.Num = Columns.Num;
-	this.Space = Columns.Space;
+	this.Num        = Columns.Num;
+	this.Space      = Columns.Space;
 
 	this.Cols = [];
 	for (var Index = 0, Count = Columns.Cols.length; Index < Count; ++Index)
 	{
-		this.Cols[Index] = new CColumnsMarkupColumn();
-		this.Cols[Index].W = Columns.Cols[Index].W;
+		this.Cols[Index]       = new CColumnsMarkupColumn();
+		this.Cols[Index].W     = Columns.Cols[Index].W;
 		this.Cols[Index].Space = Columns.Cols[Index].Space;
 	}
 };
-CColumnsMarkup.prototype.Set_CurCol = function (CurCol)
+CColumnsMarkup.prototype.SetCurCol = function(nCurCol)
 {
-	this.CurCol = CurCol;
+	this.CurCol = nCurCol;
 };
 CColumnsMarkup.prototype.CreateDuplicate = function ()
 {
 	var _ret = new CColumnsMarkup();
+
+	_ret.PageIndex = this.PageIndex;
+
 	_ret.SectPr = this.SectPr;
 	_ret.CurCol = this.CurCol;
 	_ret.X = this.X;

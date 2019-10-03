@@ -688,7 +688,7 @@ function (window, undefined) {
 				return this.value;
 				break;
 			case this.Properties.formulaRef:
-				return new UndoRedoData_BBox(this.formulaRef);
+				return this.formulaRef ? new UndoRedoData_BBox(this.formulaRef) : null;
 				break;
 		}
 		return null;
@@ -702,7 +702,7 @@ function (window, undefined) {
 				this.value = value;
 				break;
 			case this.Properties.formulaRef:
-				this.formulaRef = new Asc.Range(value.c1, value.r1, value.c2, value.r2);
+				this.formulaRef = value ? new Asc.Range(value.c1, value.r1, value.c2, value.r2) : null;
 				break;
 		}
 	};
@@ -2688,19 +2688,16 @@ function (window, undefined) {
 	UndoRedoComment.prototype.UndoRedo = function (Type, Data, nSheetId, bUndo) {
 		var collaborativeEditing, to;
 		var oModel = (null == nSheetId) ? this.wb : this.wb.getWorksheetById(nSheetId);
-		if (!oModel.aComments) {
-			oModel.aComments = [];
-		}
-
 		var api = window["Asc"]["editor"];
-		if (!api.wb) {
+		if (!api.wb || !oModel) {
 			return;
 		}
+
 		var ws = (null == nSheetId) ? api.wb : api.wb.getWorksheetById(nSheetId);
 		Data.worksheet = ws;
 
 		var cellCommentator = ws.cellCommentator;
-		if (bUndo == true) {
+		if (bUndo) {
 			cellCommentator.Undo(Type, Data);
 		} else {
 			to = (Data.from || Data.to) ? Data.to : Data;

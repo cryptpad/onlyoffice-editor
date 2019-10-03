@@ -793,6 +793,7 @@
 		this.tmpCoMarksDraw = false;
 		this.tmpViewRulers  = null;
 		this.tmpZoomType    = null;
+		this.tmpDocumentUnits = null;
 
 		// это чтобы сразу показать ридер, без возможности вернуться в редактор/вьюер
 		this.isOnlyReaderMode = false;
@@ -4014,7 +4015,7 @@ background-repeat: no-repeat;\
 	};
 	asc_docs_api.prototype.put_Margins            = function(left, top, right, bottom)
 	{
-		this.WordControl.m_oLogicDocument.Set_DocumentMargin({Left : left, Top : top, Right : right, Bottom : bottom});
+		this.WordControl.m_oLogicDocument.SetDocumentMargin({Left : left, Top : top, Right : right, Bottom : bottom});
 	};
 	asc_docs_api.prototype.getFocusObject         = function()
 	{//возвратит тип элемента - параграф c_oAscTypeSelectElement.Paragraph, изображение c_oAscTypeSelectElement.Image, таблица c_oAscTypeSelectElement.Table, колонтитул c_oAscTypeSelectElement.Header.
@@ -7092,6 +7093,10 @@ background-repeat: no-repeat;\
 			this.WordControl.UpdateHorRulerBack(true);
 			this.WordControl.UpdateVerRulerBack(true);
 		}
+		else
+		{
+            this.tmpDocumentUnits = _units;
+		}
 	};
 
 	asc_docs_api.prototype.GoToHeader = function(pageNumber)
@@ -7898,6 +7903,11 @@ background-repeat: no-repeat;\
 					this.zoomCustomMode();
 					break;
 			}
+		}
+		if (null != this.tmpDocumentUnits)
+		{
+			this.asc_SetDocumentUnits(this.tmpDocumentUnits);
+			this.tmpDocumentUnits = null;
 		}
 
 		this.asc_setViewMode(this.isViewMode);

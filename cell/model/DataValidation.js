@@ -191,7 +191,7 @@
 			if (EDataValidationType.List === this.type) {
 				var list = this.formula1 && this.formula1.getValue(this.type, ws, false);
 				if (list && AscCommonExcel.cElementType.error !== list.type) {
-					list = ws.getRange2(list);
+					list = list.getRange();
 					if (list) {
 						res = false;
 						list._foreachNoEmpty(function (cell) {
