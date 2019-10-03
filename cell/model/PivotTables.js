@@ -3621,6 +3621,8 @@ CT_pivotTableDefinition.prototype.asc_refresh = function(api) {
 		api._changePivotWithLock(this, function (ws) {
 			t.updateCacheData(dataRef);
 		});
+	} else {
+		api.sendEvent('asc_onError', c_oAscError.ID.PivotLabledColumns, c_oAscError.Level.NoCritical);
 	}
 };
 CT_pivotTableDefinition.prototype.updateCacheData = function(dataRef) {
@@ -4134,6 +4136,7 @@ CT_pivotTableDefinition.prototype.isValidDataRef = function(dataRef) {
 	worksheetSource.fromDataRef(dataRef);
 	var location = worksheetSource.getDataLocation();
 	if (location && location.range.getHeight() > 1) {
+		var header = this._prepareDataRange(location.ws, location.range.r1, location.range.c1, location.range.c2);
 		var headerCount = 0;
 		location.ws.getRange3(location.range.r1, location.range.c1, location.range.r1, location.range.c2)
 			._foreachNoEmptyByCol(function(cell) {
@@ -4141,23 +4144,33 @@ CT_pivotTableDefinition.prototype.isValidDataRef = function(dataRef) {
 					headerCount += 1;
 				}
 			});
-		return headerCount === location.range.getWidth();
+		return header.countCol === location.range.getWidth();
 	}
 	return false;
 };
 CT_pivotTableDefinition.prototype.prepareDataRange = function(ws, range) {
-	var minCol = range.c2;
-	var maxCol = range.c1;
-	ws.getRange3(range.r1, range.c1, range.r1, range.c2)._foreachNoEmptyByCol(function(cell) {
+	var header = this._prepareDataRange(ws, range.r1, range.c1, range.c2);
+	if (header.minCol <= header.maxCol && header.countCol === header.maxCol - header.minCol + 1) {
+		range.c1 = header.minCol;
+		range.c2 = header.maxCol;
+	} else if(range.r2 - range.r1 > 1){
+		//test second row
+		header = this._prepareDataRange(ws, range.r1 + 1, range.c1, range.c2);
+		if (header.countCol === range.getWidth()) {
+			range.r1 = range.r1 + 1;
+		}
+	}
+};
+CT_pivotTableDefinition.prototype._prepareDataRange = function(ws, row, c1, c2) {
+	var res = {minCol: c2, maxCol: c1, countCol: 0};
+	ws.getRange3(row, c1, row, c2)._foreachNoEmptyByCol(function(cell) {
 		if (!cell.isNullTextString()) {
-			minCol = Math.min(minCol, cell.nCol);
-			maxCol = Math.max(maxCol, cell.nCol);
+			res.minCol = Math.min(res.minCol, cell.nCol);
+			res.maxCol = Math.max(res.maxCol, cell.nCol);
+			res.countCol++;
 		}
 	});
-	if (minCol <= maxCol) {
-		range.c1 = minCol;
-		range.c2 = maxCol;
-	}
+	return res;
 };
 
 function CT_pivotTableDefinitionX14() {

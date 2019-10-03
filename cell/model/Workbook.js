@@ -6327,11 +6327,11 @@
 			}
 		}
 	};
-	Worksheet.prototype._updatePivotTableCellsRowColLables = function(pivotTable, rowFieldsPos) {
+	Worksheet.prototype._updatePivotTableCellsRowColLables = function(pivotTable, rowFieldsOffset) {
 		var items, fields, field, oCellValue, fieldIndex, sharedItem, fieldItem, cells, r1, c1, valuesIndex;
 		var pivotRange = pivotTable.getRange();
 		var location = pivotTable.location;
-		if (rowFieldsPos) {
+		if (rowFieldsOffset) {
 			items = pivotTable.getRowItems();
 			fields = pivotTable.asc_getRowFields();
 			r1 = pivotRange.r1 + location.firstDataRow;
@@ -6356,8 +6356,8 @@
 			var r = item.getR();
 			for (var j = 0; j < item.x.length; ++j) {
 				field = null;
-				if (rowFieldsPos) {
-					cells = this.getRange4(r1 + i, rowFieldsPos[r + j]);
+				if (rowFieldsOffset) {
+					cells = this.getRange4(r1 + i, c1 + rowFieldsOffset[r + j]);
 				} else {
 					cells = this.getRange4(r1 + r + j, c1 + i);
 				}
@@ -6412,10 +6412,10 @@
 		}
 	};
 	Worksheet.prototype._updatePivotTableCellsRowHeaderLabels = function(pivotTable) {
-		var rowFieldsPos = [0];
+		var rowFieldsOffset = [0];
 		var rowFields = pivotTable.asc_getRowFields();
 		if (!rowFields) {
-			return rowFieldsPos;
+			return rowFieldsOffset;
 		}
 		var cells, index, field;
 		var pivotFields = pivotTable.asc_getPivotFields();
@@ -6447,9 +6447,9 @@
 					cells.setValue(pivotTable.getPivotFieldName(index));
 				}
 			}
-			rowFieldsPos[i] = c1;
+			rowFieldsOffset[i] = c1 - pivotRange.c1;
 		}
-		return rowFieldsPos;
+		return rowFieldsOffset;
 	};
 	Worksheet.prototype._updatePivotTableCellsData = function(pivotTable, dataRow) {
 		var rowFields = pivotTable.asc_getRowFields();
@@ -6529,8 +6529,8 @@
 		this._updatePivotTableCellsPage(pivotTable);
 		this._updatePivotTableCellsHeader(pivotTable);
 		this._updatePivotTableCellsRowColLables(pivotTable);
-		var rowFieldsPos = this._updatePivotTableCellsRowHeaderLabels(pivotTable);
-		this._updatePivotTableCellsRowColLables(pivotTable, rowFieldsPos);
+		var rowFieldsOffset = this._updatePivotTableCellsRowHeaderLabels(pivotTable);
+		this._updatePivotTableCellsRowColLables(pivotTable, rowFieldsOffset);
 		this._updatePivotTableCellsData(pivotTable, dataRow);
 	};
 	Worksheet.prototype.updatePivotTablesStyle = function (range, canModifyDocument) {

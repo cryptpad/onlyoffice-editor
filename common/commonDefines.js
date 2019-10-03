@@ -200,6 +200,7 @@
 			LockCreateDefName      : -311,
 
 			LockedCellPivot				: -312,
+			PivotLabledColumns			: -313,
 
 			ForceSaveButton: -331,
 			ForceSaveTimeout: -332,
