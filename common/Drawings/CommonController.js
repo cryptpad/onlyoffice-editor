@@ -3636,6 +3636,7 @@ DrawingObjectsController.prototype =
         {
             for(i = 0; i < this.selectedObjects.length; ++i)
             {
+                CheckSpPrXfrm3(this.selectedObjects[i]);
                 this.selectedObjects[i].setDrawingBaseType(props.anchor);
                 this.selectedObjects[i].checkDrawingBaseCoords();
             }
@@ -9487,7 +9488,6 @@ DrawingObjectsController.prototype =
             if(AscFormat.isRealNumber(props.Width) && AscFormat.isRealNumber(props.Height)){
                 aAdditionalObjects = this.getConnectorsForCheck2();
             }
-            //props.anchor = 1;
             this.checkSelectedObjectsAndCallback(this.setGraphicObjectPropsCallBack, [props], false, AscDFH.historydescription_Spreadsheet_SetGraphicObjectsProps, aAdditionalObjects);
             var oApplyProps = null;
             if(props)
