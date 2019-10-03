@@ -18480,9 +18480,87 @@
 		return formulaRef ? formulaRef : activeCellRange;
 	};
 
+	WorksheetView.prototype.getSortProps = function(bExpand) {
+		var sortSettings = null;
+
+		//todo добавить локи
+
+		//перед этой функцией необходимо вызвать getSelectionSortInfo - необходимо ли расширять
+		//bExpand - ответ от этой функции, который протаскивается через интерфейс
+		//если мультиселект - дизейбл кнопки sort
 
 
-   	//HEADER/FOOTER
+		//если пустой дипазон, выдаём ошибку
+		var selection = t.model.selectionRange.getLast();
+		var oldSelection = selection.clone();
+		if(bExpand) {
+			selection = t.model.autoFilters.expandRange(selection);
+		}
+
+		var dataHasHeaders = window['AscCommonExcel'].ignoreFirstRowSort(t.model, selection);
+		if (dataHasHeaders) {
+			selection.r1++;
+		}
+
+		if(t.model.autoFilters._isEmptyRange(selection, 0)) {
+			this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.LockedAllError, c_oAscError.Level.NoCritical);
+			return false;
+		}
+
+		sortSettings = new Asc.CSortProperties();
+		//необходимо ещё сохранять значение старого селекта, чтобы при нажатии пользователя на отмену - откатить
+		sortSettings._oldSelect = oldSelection;
+
+		//заголовки
+		sortSettings.hasHeaders = dataHasHeaders;
+
+		//столбцы/строки с настройками
+		var modelSort = this.model.sortState;
+		var columnSort = true;
+		if(modelSort) {
+			if(!modelSort.columnSort) {
+				columnSort = false;
+			}
+			for(var i = 0; i < modelSort.sortState.length; i++) {
+				sortSettings.levels.push();
+			}
+		}
+
+		//список столбцов/строк(первое или второе берём из sortState -> columnSort)
+		sortSettings.columnSort = columnSort;
+		var j;
+		if(!sortSettings.sortList) {
+			sortSettings.sortList = [];
+		}
+		if(dataHasHeaders) {
+			if(columnSort) {
+				for(j = selection.c1; j <= selection.c2; j++) {
+					sortSettings.sortList.push();
+				}
+			} else {
+				for(j = selection.r1; j <= selection.r2; j++) {
+					sortSettings.sortList.push();
+				}
+			}
+		} else {
+			if(columnSort) {
+				for(j = selection.c1; j <= selection.c2; j++) {
+					sortSettings.sortList.push();
+				}
+			} else {
+				for(j = selection.r1; j <= selection.r2; j++) {
+					sortSettings.sortList.push();
+				}
+			}
+		}
+
+		return sortSettings;
+	};
+
+
+
+
+	//HEADER/FOOTER
 	function HeaderFooterField(val) {
 		this.field = val;
 	}

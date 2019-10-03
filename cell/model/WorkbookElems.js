@@ -8723,6 +8723,17 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		}
 	};
 
+	function CSortProperties() {
+		this._oldSelect = null;
+		this.hasHeaders = null;
+		this.columnSort = null;
+		this.levels = null;
+
+		this.sortList = null;//массив, порядковый номер - его индекс в levels
+
+		return this;
+	}
+
 
 	//----------------------------------------------------------export----------------------------------------------------
 	var prot;
@@ -8972,4 +8983,6 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 
 	window["Asc"]["CHeaderFooter"] = window["Asc"].CHeaderFooter = CHeaderFooter;
 	window["Asc"]["CHeaderFooterData"] = window["Asc"].CHeaderFooterData = CHeaderFooterData;
+
+	window["Asc"]["CSortProperties"] = window["Asc"].CSortProperties = CSortProperties;
 })(window);
