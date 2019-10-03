@@ -2309,8 +2309,8 @@
 	};
 
 	WorksheetView.prototype._changeFitToPage = function(width, height) {
-		var fitToHeightAuto = height === 0;
-		var fitToWidthAuto = width === 0;
+		var fitToHeightAuto = height === 0 || height === undefined;
+		var fitToWidthAuto = width === 0 || width === undefined;
 		this.model.setFitToPage(!fitToHeightAuto || !fitToWidthAuto);
 	};
 
