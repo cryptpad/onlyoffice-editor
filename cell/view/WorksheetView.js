@@ -18482,8 +18482,10 @@
 
 	WorksheetView.prototype.getSortProps = function(bExpand) {
 		var sortSettings = null;
+		var t = this;
 
 		//todo добавить локи
+		//todo отдельная обработка для форматированных таблиц
 
 		//перед этой функцией необходимо вызвать getSelectionSortInfo - необходимо ли расширять
 		//bExpand - ответ от этой функции, который протаскивается через интерфейс
@@ -18498,6 +18500,7 @@
 		}
 
 		var dataHasHeaders = window['AscCommonExcel'].ignoreFirstRowSort(t.model, selection);
+		//для columnSort - добавлять с1++
 		if (dataHasHeaders) {
 			selection.r1++;
 		}
@@ -18521,35 +18524,62 @@
 			if(!modelSort.columnSort) {
 				columnSort = false;
 			}
+			//заполняем только в случае пересечения
 			for(var i = 0; i < modelSort.sortState.length; i++) {
 				sortSettings.levels.push();
 			}
 		}
 
+		var getNameRowCol = function(i, j) {
+			//todo перевод!
+			var base = columnSort ? "Column" : "Row";
+			if(!dataHasHeaders) {
+				base = "(" + base + ")";
+			}
+
+			if(columnSort) {
+
+			} else {
+				base += i + 1;
+			}
+			
+			return base;
+		};
+
 		//список столбцов/строк(первое или второе берём из sortState -> columnSort)
+		var getCellText = function(i, j) {
+			if(!dataHasHeaders) {
+				return getNameRowCol(i, j);
+			}
+			var cell = t.model.getCell3(i, j);
+			var value = cell.getValueWithFormat();
+			return value !== "" ? value : getNameRowCol(i, j);
+		};
+
 		sortSettings.columnSort = columnSort;
 		var j;
 		if(!sortSettings.sortList) {
 			sortSettings.sortList = [];
 		}
+
 		if(dataHasHeaders) {
 			if(columnSort) {
 				for(j = selection.c1; j <= selection.c2; j++) {
-					sortSettings.sortList.push();
+					sortSettings.sortList.push(getCellText(selection.r1 - 1, j));
 				}
 			} else {
 				for(j = selection.r1; j <= selection.r2; j++) {
-					sortSettings.sortList.push();
+					sortSettings.sortList.push(getCellText(j, selection.c1 - 1));
 				}
 			}
 		} else {
 			if(columnSort) {
 				for(j = selection.c1; j <= selection.c2; j++) {
-					sortSettings.sortList.push();
+					sortSettings.sortList.push(getCellText(selection.r1, j));
 				}
 			} else {
 				for(j = selection.r1; j <= selection.r2; j++) {
-					sortSettings.sortList.push();
+					sortSettings.sortList.push(getCellText(j, selection.c1 - 1));
 				}
 			}
 		}
