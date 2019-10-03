@@ -1780,8 +1780,8 @@ function ShapeToImageConverter(shape, pageIndex)
     }*/
 
     var _canvas = document.createElement('canvas');
-    _canvas.width = _need_pix_width;
-    _canvas.height = _need_pix_height;
+    _canvas.width = _need_pix_width >> 0;
+    _canvas.height = _need_pix_height >> 0;
 
     var _ctx = _canvas.getContext('2d');
 
