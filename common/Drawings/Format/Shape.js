@@ -4377,6 +4377,15 @@ CShape.prototype.check_bounds = function (checker) {
 
 CShape.prototype.getBase64Img = function ()
 {
+    if(this.parent)
+    {
+        if(this.parent.kind === AscFormat.TYPE_KIND.LAYOUT
+            || this.parent.kind === AscFormat.TYPE_KIND.MASTER
+            || this.parent.kind === AscFormat.TYPE_KIND.NOTES
+            || this.parent.kind === AscFormat.TYPE_KIND.NOTES_MASTER){
+            return ""
+        }
+    }
     if(typeof this.cachedImage === "string" && this.cachedImage.length > 0)
     {
         return this.cachedImage;
