@@ -923,6 +923,7 @@
                     cx: this.drawingBase.ext.cx,
                     cy: this.drawingBase.ext.cy
                 })));
+            this.handleUpdateExtents();
         }
 };
 
@@ -974,6 +975,8 @@
             this.drawingBase.Pos.Y  = posY;
             this.drawingBase.ext.cx = extX;
             this.drawingBase.ext.cy = extY;
+
+        this.handleUpdateExtents();
 }
 };
 

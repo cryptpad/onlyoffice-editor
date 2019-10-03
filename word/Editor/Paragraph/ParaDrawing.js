@@ -602,7 +602,7 @@ ParaDrawing.prototype.Set_GraphicObject = function(graphicObject)
 
 	History.Add(new CChangesParaDrawingGraphicObject(this, oldId, newId));
 
-	if (graphicObject && graphicObject.handleUpdateExtents)
+	if (graphicObject)
 		graphicObject.handleUpdateExtents();
 
 	this.GraphicObj = graphicObject;

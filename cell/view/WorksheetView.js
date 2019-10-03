@@ -924,7 +924,6 @@
 			t.cellCommentator.updateActiveComment();
             t.cellCommentator.updateAreaComments();
             if (t.objectRender) {
-                t.objectRender.updateSizeDrawingObjects({target: c_oTargetType.ColumnResize, col: col});
                 if(bIsHidden !==  t.model.getColHidden(col)) {
                     t.objectRender.rebuildChartGraphicObjects([new asc_Range(col, 0, col, gc_nMaxRow0)]);
                 }
@@ -987,7 +986,6 @@
 			t.cellCommentator.updateActiveComment();
 			t.cellCommentator.updateAreaComments();
             if (t.objectRender) {
-                t.objectRender.updateSizeDrawingObjects({target: c_oTargetType.RowResize, row: row});
 				t.objectRender.rebuildChartGraphicObjects([new asc_Range(0, row, gc_nMaxCol0, row)]);
             }
 			if (viewMode) {
@@ -14039,7 +14037,7 @@
             }
 
             if (null !== minChangeRow) {
-                t.objectRender.updateSizeDrawingObjects({target: c_oTargetType.RowResize, row: minChangeRow});
+                t.objectRender.updateSizeDrawingObjects({target: c_oTargetType.RowResize, row: minChangeRow}, true);
             }
         };
 		if (!window['AscCommonExcel'].filteringMode) {
@@ -14110,7 +14108,7 @@
             }
 
             if (null !== minChangeRow) {
-                t.objectRender.updateSizeDrawingObjects({target: c_oTargetType.RowResize, row: minChangeRow});
+                t.objectRender.updateSizeDrawingObjects({target: c_oTargetType.RowResize, row: minChangeRow}, true);
             }
         };
 		if (!window['AscCommonExcel'].filteringMode) {
@@ -14216,7 +14214,7 @@
                 }
 
                 if (null !== minChangeRow) {
-                    t.objectRender.updateSizeDrawingObjects({target: c_oTargetType.RowResize, row: minChangeRow});
+                    t.objectRender.updateSizeDrawingObjects({target: c_oTargetType.RowResize, row: minChangeRow}, true);
                 }
             }
 
@@ -18245,7 +18243,7 @@
 				t.objectRender.drawingArea.reinitRanges();
 			}
 			if (null !== updateDrawingObjectsInfo) {
-				t.objectRender.updateSizeDrawingObjects(updateDrawingObjectsInfo);
+				t.objectRender.updateSizeDrawingObjects(updateDrawingObjectsInfo, true);
 			}
 			if (null !== updateDrawingObjectsInfo2) {
 				t.objectRender.updateDrawingObject(updateDrawingObjectsInfo2.bInsert,

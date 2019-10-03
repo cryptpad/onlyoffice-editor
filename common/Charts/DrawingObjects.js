@@ -3211,34 +3211,23 @@ function DrawingObjects() {
                     if (bCheck) {
                         oGraphicObject = drawingObject.graphicObject;
                         if(oGraphicObject){
-                            if(oGraphicObject.handleUpdateExtents) {
-
-                                bRecalculate = true;
-                                if(oGraphicObject.recalculateTransform){
-                                    var oldX = oGraphicObject.x;
-                                    var oldY = oGraphicObject.y;
-                                    var oldExtX = oGraphicObject.extX;
-                                    var oldExtY = oGraphicObject.extY;
-                                    oGraphicObject.recalculateTransform();
-                                    var fDelta = 0.01;
-                                    bRecalculate = false;
-                                    if(!AscFormat.fApproxEqual(oldX, oGraphicObject.x, fDelta) || !AscFormat.fApproxEqual(oldY, oGraphicObject.y, fDelta)
-                                        || !AscFormat.fApproxEqual(oldExtX, oGraphicObject.extX, fDelta) || !AscFormat.fApproxEqual(oldExtY, oGraphicObject.extY, fDelta)){
-                                        bRecalculate = true;
-                                    }
-                                }
-                                if(bRecalculate){
-                                    oGraphicObject.handleUpdateExtents(true);
-                                    oGraphicObject.recalculate();
+                            bRecalculate = true;
+                            if(oGraphicObject.recalculateTransform){
+                                var oldX = oGraphicObject.x;
+                                var oldY = oGraphicObject.y;
+                                var oldExtX = oGraphicObject.extX;
+                                var oldExtY = oGraphicObject.extY;
+                                oGraphicObject.recalculateTransform();
+                                var fDelta = 0.01;
+                                bRecalculate = false;
+                                if(!AscFormat.fApproxEqual(oldX, oGraphicObject.x, fDelta) || !AscFormat.fApproxEqual(oldY, oGraphicObject.y, fDelta)
+                                    || !AscFormat.fApproxEqual(oldExtX, oGraphicObject.extX, fDelta) || !AscFormat.fApproxEqual(oldExtY, oGraphicObject.extY, fDelta)){
+                                    bRecalculate = true;
                                 }
                             }
-                            else {
-                                if(oGraphicObject.recalculateTransform){
-                                    oGraphicObject.recalculateTransform();
-                                }
-                                if(oGraphicObject.recalculateBounds){
-                                    oGraphicObject.recalculateBounds();
-                                }
+                            if(bRecalculate){
+                                oGraphicObject.handleUpdateExtents(true);
+                                oGraphicObject.recalculate();
                             }
                         }
                     }
