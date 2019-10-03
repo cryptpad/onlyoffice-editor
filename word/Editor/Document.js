@@ -17158,14 +17158,14 @@ CDocument.prototype.controller_GetColumnSize = function()
 	var XLimit = oFrame.Right;
 
 	var ColumnsCount = oSectPr.GetColumnsCount();
-	for (var ColumnIndex = 0; ColumnIndex < ColumnAbs; ++ColumnIndex)
+	for (var ColumnIndex = 0; ColumnIndex < nColumnAbs; ++ColumnIndex)
 	{
 		X += oSectPr.GetColumnWidth(ColumnIndex);
 		X += oSectPr.GetColumnSpace(ColumnIndex);
 	}
 
-	if (ColumnsCount - 1 !== ColumnAbs)
-		XLimit = X + oSectPr.GetColumnWidth(ColumnAbs);
+	if (ColumnsCount - 1 !== nColumnAbs)
+		XLimit = X + oSectPr.GetColumnWidth(nColumnAbs);
 
 	return {
 		W : XLimit - X,
