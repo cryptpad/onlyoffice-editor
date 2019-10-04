@@ -18517,13 +18517,45 @@
 		//заголовки
 		sortSettings.hasHeaders = dataHasHeaders;
 
+		var columnSort = true;
+
+		var _generateName = function(index) {
+			//todo перевод!
+			var base = columnSort ? "Column" : "Row";
+			if(!dataHasHeaders) {
+				base = "(" + base + ")";
+			}
+
+			var text = columnSort ? t._getColumnTitle(index) : t._getRowTitle(index);
+			return base + text;
+		};
+
+		var getNameColumnByIndex = function(index, parentRef) {
+			//columnSort; dataHasHeaders
+			var row = columnSort ? parentRef.r1 : index;
+			var col = !columnSort ? parentRef.c1 : index;
+			//TODO проверить в 1 строке как должно работать
+			if(dataHasHeaders) {
+				if(columnSort) {
+					row--;
+				} else {
+					col--;
+				}
+			}
+			if(!dataHasHeaders) {
+				return _generateName(index);
+			} else {
+				var cell = t.model.getCell3(row, col);
+				var value = cell.getValueWithFormat();
+				return value !== "" ? value : _generateName(index);
+			}
+		};
 
 		var getSortLevel = function(sortCondition) {
 			var level = new Asc.CSortPropertiesLevel();
 			var index = columnSort ? sortCondition.ref.c1 - modelSort.ref.c1 : sortCondition.ref.r1 - modelSort.ref.r1;
 
-			//todo сделать общую функцию для получения имени строки/столбца
-			var name = getNameRowCol();
+			var name = getNameColumnByIndex(index);
 
 			//TODO добавить функцию в CSortPropertiesLevel для получения всех цветов(при открытии соответсвующего меню)
 			//TODO перенести в отдельную константу Descending/Ascending
@@ -18568,7 +18600,6 @@
 
 		//столбцы/строки с настройками
 		var modelSort = this.model.sortState;
-		var columnSort = true;
 		if(modelSort) {
 			if(!modelSort.columnSort) {
 				columnSort = false;
@@ -18581,61 +18612,22 @@
 			}
 		}
 
-		var getNameRowCol = function(i, j) {
-			//todo перевод!
-			var base = columnSort ? "Column" : "Row";
-			if(!dataHasHeaders) {
-				base = "(" + base + ")";
-			}
-
-			if(columnSort) {
-				//todo название столбцов
-
-			} else {
-				base += i + 1;
-			}
-			
-			return base;
-		};
-
-		//список столбцов/строк(первое или второе берём из sortState -> columnSort)
-		var getCellText = function(i, j) {
-			if(!dataHasHeaders) {
-				return getNameRowCol(i, j);
-			}
-			var cell = t.model.getCell3(i, j);
-			var value = cell.getValueWithFormat();
-			return value !== "" ? value : getNameRowCol(i, j);
-		};
-
 		sortSettings.columnSort = columnSort;
 		var j;
 		if(!sortSettings.sortList) {
 			sortSettings.sortList = [];
 		}
 
-		if(dataHasHeaders) {
-			if(columnSort) {
-				for(j = selection.c1; j <= selection.c2; j++) {
-					sortSettings.sortList.push(getCellText(selection.r1 - 1, j));
-				}
-			} else {
-				for(j = selection.r1; j <= selection.r2; j++) {
-					sortSettings.sortList.push(getCellText(j, selection.c1 - 1));
-				}
+		if(columnSort) {
+			for(j = selection.c1; j <= selection.c2; j++) {
+				sortSettings.sortList.push(getNameColumnByIndex(j - selection.c1));
 			}
 		} else {
-			if(columnSort) {
-				for(j = selection.c1; j <= selection.c2; j++) {
-					sortSettings.sortList.push(getCellText(selection.r1, j));
-				}
-			} else {
-				for(j = selection.r1; j <= selection.r2; j++) {
-					sortSettings.sortList.push(getCellText(j, selection.c1));
-				}
+			for(j = selection.r1; j <= selection.r2; j++) {
+				sortSettings.sortList.push(getNameColumnByIndex(j - selection.r1));
 			}
 		}
-
+		
 		return sortSettings;
 	};
 
