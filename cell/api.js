@@ -4021,6 +4021,14 @@ var editor;
 		return ws && ws.sheetPr ? ws.sheetPr.SummaryBelow : true;
 	};
 
+	spreadsheet_api.prototype.asc_getSortProps = function (bExpand) {
+		var ws = this.wb && this.wb.getWorksheet();
+		if(ws) {
+			return ws.getSortProps(bExpand);
+		}
+	};
+
+
   /*
    * Export
    * -----------------------------------------------------------------------------
@@ -4408,4 +4416,7 @@ var editor;
 
   // mobile
   prot["asc_Remove"] = prot.asc_Remove;
+
+  prot["asc_getSortProps"] = prot.asc_getSortProps;
+
 })(window);

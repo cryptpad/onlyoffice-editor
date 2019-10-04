@@ -8758,6 +8758,22 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		return this;
 	}
 
+	CSortProperties.prototype.asc_getIndex = function () {
+		return this.hasHeaders;
+	};
+	CSortProperties.prototype.asc_getName = function () {
+		return this.columnSort;
+	};
+	CSortProperties.prototype.asc_getSortBy = function () {
+		return this.sortBy;
+	};
+	CSortProperties.prototype.asc_getDescending = function () {
+		return this.descending;
+	};
+	CSortProperties.prototype.asc_getColor = function () {
+		return this.color;
+	};
+
 
 	//----------------------------------------------------------export----------------------------------------------------
 	var prot;
@@ -9017,5 +9033,10 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 
 	window["Asc"]["CSortPropertiesLevel"] = window["Asc"].CSortPropertiesLevel = CSortPropertiesLevel;
 	prot = CSortPropertiesLevel.prototype;
+	prot["asc_getIndex"] = prot.asc_getIndex;
+	prot["asc_getName"] = prot.asc_getName;
+	prot["asc_getSortBy"] = prot.asc_getSortBy;
+	prot["asc_getDescending"] = prot.asc_getDescending;
+	prot["asc_getColor"] = prot.asc_getColor;
 
 })(window);
