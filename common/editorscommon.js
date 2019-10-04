@@ -2746,6 +2746,23 @@
 				}
 			}
 		}
+		else if(Asc.c_oAscSelectionDialogType.PivotTableData === dialogType)
+		{
+			result = parserHelp.parse3DRef(dataRange);
+			if (result)
+			{
+				sheetModel = model.getWorksheetByName(result.sheet);
+				if (sheetModel)
+				{
+					range = AscCommonExcel.g_oRangeCache.getAscRange(result.range);
+				}
+			} else {
+				range = AscCommonExcel.g_oRangeCache.getAscRange(dataRange);
+			}
+			if (!range) {
+				range = AscCommon.rx_defName.test(dataRange);
+			}
+		}
 		else
 			range = AscCommonExcel.g_oRangeCache.getAscRange(dataRange);
 
@@ -2806,6 +2823,13 @@
 				if (null !== checkChangeRange)
 					return checkChangeRange;
 			}
+			else if (Asc.c_oAscSelectionDialogType.PivotTableData === dialogType)
+			{
+				if (!Asc.CT_pivotTableDefinition.prototype.isValidDataRef(dataRange)) {
+					return c_oAscError.ID.PivotLabledColumns;
+				}
+			}
+
 		}
 		return Asc.c_oAscError.ID.No;
 	};

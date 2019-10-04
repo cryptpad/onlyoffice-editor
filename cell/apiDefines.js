@@ -104,7 +104,8 @@ var c_oAscSelectionDialogType = {
   None: 0,
   FormatTable: 1,
   Chart: 2,
-  FormatTableChangeRange: 4
+  FormatTableChangeRange: 4,
+  PivotTableData: 5
 };
 
 var c_oAscScrollType = {
