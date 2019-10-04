@@ -18554,8 +18554,10 @@
 		var getSortLevel = function(sortCondition) {
 			var level = new Asc.CSortPropertiesLevel();
 			var index = columnSort ? sortCondition.ref.c1 - modelSort.ref.c1 : sortCondition.ref.r1 - modelSort.ref.r1;
-
 			var name = getNameColumnByIndex(index, modelSort.Ref);
+
+			level.index = index;
+			level.name = name;
 
 			//TODO добавить функцию в CSortPropertiesLevel для получения всех цветов(при открытии соответсвующего меню)
 			//TODO перенести в отдельную константу Descending/Ascending
@@ -18636,9 +18638,30 @@
 			return false;
 		}
 
-		//TODO lock
-		
+		var t = this;
+		//TODO отдельная обработка для таблиц
+		var callback = function() {
+			//формируем sortState из настроек
+			var sortState = new AscCommonExcel.SortState();
 
+			//? activeRange
+			sortState.Ref = null;
+			t.SortConditions = [];
+
+			for(var i = 0; i < props.levels.length; i++) {
+				var sortCondition = new AscCommonExcel.SortCondition();
+
+				sortCondition.Ref = null;
+				sortCondition.ConditionSortBy = null;
+				sortCondition.ConditionDescending = null;
+				sortCondition.dxf = null;
+
+			}
+
+		};
+
+		//TODO lock
+		callback();
 	};
 
 
