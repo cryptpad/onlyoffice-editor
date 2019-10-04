@@ -8734,6 +8734,30 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		return this;
 	}
 
+	CSortProperties.prototype.asc_getHasHeaders = function () {
+		return this.hasHeaders;
+	};
+	CSortProperties.prototype.asc_getColumnSort = function () {
+		return this.columnSort;
+	};
+	CSortProperties.prototype.asc_getLevels = function () {
+		return this.levels;
+	};
+	CSortProperties.prototype.asc_getSortList = function () {
+		return this.sortList;
+	};
+
+	function CSortPropertiesLevel() {
+		this.index = null;
+		this.name = null;
+
+		this.sortBy = null;
+		this.descending = null;
+		this.color = null;
+
+		return this;
+	}
+
 
 	//----------------------------------------------------------export----------------------------------------------------
 	var prot;
@@ -8985,4 +9009,13 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	window["Asc"]["CHeaderFooterData"] = window["Asc"].CHeaderFooterData = CHeaderFooterData;
 
 	window["Asc"]["CSortProperties"] = window["Asc"].CSortProperties = CSortProperties;
+	prot = CSortProperties.prototype;
+	prot["asc_getHasHeaders"] = prot.asc_getHasHeaders;
+	prot["asc_getColumnSort"] = prot.asc_getColumnSort;
+	prot["asc_getLevels"] = prot.asc_getLevels;
+	prot["asc_getSortList"] = prot.asc_getSortList;
+
+	window["Asc"]["CSortPropertiesLevel"] = window["Asc"].CSortPropertiesLevel = CSortPropertiesLevel;
+	prot = CSortPropertiesLevel.prototype;
+
 })(window);

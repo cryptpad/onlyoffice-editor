@@ -61,7 +61,9 @@ var c_oAscSortOptions = {
   Ascending: 1,
   Descending: 2,
   ByColorFill: 3,
-  ByColorFont: 4
+  ByColorFont: 4,
+  ByIcon: 5,
+  ByValue: 6
 };
 
 var c_oAscBorderOptions = {
@@ -489,6 +491,8 @@ var c_oAscPopUpSelectorType = {
   prot['Descending'] = prot.Descending;
   prot['ByColorFill'] = prot.ByColorFill;
   prot['ByColorFont'] = prot.ByColorFont;
+  prot['ByIcon'] = prot.ByIcon;
+  prot['ByValue'] = prot.ByValue;
   window['Asc']['c_oAscConfirm'] = window['Asc'].c_oAscConfirm = c_oAscConfirm;
   prot = c_oAscConfirm;
   prot['ConfirmReplaceRange'] = prot.ConfirmReplaceRange;

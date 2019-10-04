@@ -18517,6 +18517,55 @@
 		//заголовки
 		sortSettings.hasHeaders = dataHasHeaders;
 
+
+		var getSortLevel = function(sortCondition) {
+			var level = new Asc.CSortPropertiesLevel();
+			var index = columnSort ? sortCondition.ref.c1 - modelSort.ref.c1 : sortCondition.ref.r1 - modelSort.ref.r1;
+
+			//todo сделать общую функцию для получения имени строки/столбца
+			var name = getNameRowCol();
+
+			//TODO добавить функцию в CSortPropertiesLevel для получения всех цветов(при открытии соответсвующего меню)
+			//TODO перенести в отдельную константу Descending/Ascending
+			level.descending = sortCondition.ConditionDescending ? Asc.c_oAscSortOptions.Descending : Asc.c_oAscSortOptions.Ascending;
+			level.sortBy = sortCondition.ConditionSortBy;
+
+			var conditionSortBy = SortConditions.ConditionSortBy;
+			var sortColor = null;
+			switch (conditionSortBy) {
+				case Asc.ESortBy.sortbyCellColor: {
+					level.sortBy = Asc.c_oAscSortOptions.ByColorFill;
+					sortColor = SortConditions.dxf && SortConditions.dxf.fill ? SortConditions.dxf.fill.bg() : null;
+					break;
+				}
+				case Asc.ESortBy.sortbyFontColor: {
+					level.sortBy = Asc.c_oAscSortOptions.ByColorFont;
+					sortColor = SortConditions.dxf && SortConditions.dxf.font ? SortConditions.dxf.font.getColor() : null;
+					break;
+				}
+				case Asc.ESortBy.sortbyIcon: {
+					level.sortBy = Asc.c_oAscSortOptions.ByIcon;
+					break;
+				}
+				default: {
+					level.sortBy = Asc.c_oAscSortOptions.ByValue;
+					break;
+				}
+			}
+
+			var ascColor = null;
+			if (null !== sortColor) {
+				ascColor = new Asc.asc_CColor();
+				ascColor.asc_putR(sortColor.getR());
+				ascColor.asc_putG(sortColor.getG());
+				ascColor.asc_putB(sortColor.getB());
+				ascColor.asc_putA(sortColor.getA());
+
+				level.color = ascColor;
+			}
+		};
+
+
 		//столбцы/строки с настройками
 		var modelSort = this.model.sortState;
 		var columnSort = true;
@@ -18525,8 +18574,10 @@
 				columnSort = false;
 			}
 			//заполняем только в случае пересечения
-			for(var i = 0; i < modelSort.sortState.length; i++) {
-				sortSettings.levels.push();
+			if(selection.intersection(modelSort.ref)) {
+				for(var i = 0; i < modelSort.sortState.length; i++) {
+					sortSettings.levels.push(getSortLevel(modelSort.sortState[i]));
+				}
 			}
 		}
 
@@ -18538,6 +18589,7 @@
 			}
 
 			if(columnSort) {
+				//todo название столбцов
 
 			} else {
 				base += i + 1;
@@ -18579,7 +18631,7 @@
 				}
 			} else {
 				for(j = selection.r1; j <= selection.r2; j++) {
-					sortSettings.sortList.push(getCellText(j, selection.c1 - 1));
+					sortSettings.sortList.push(getCellText(j, selection.c1));
 				}
 			}
 		}
