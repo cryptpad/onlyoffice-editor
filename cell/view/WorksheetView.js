@@ -18555,7 +18555,7 @@
 			var level = new Asc.CSortPropertiesLevel();
 			var index = columnSort ? sortCondition.ref.c1 - modelSort.ref.c1 : sortCondition.ref.r1 - modelSort.ref.r1;
 
-			var name = getNameColumnByIndex(index);
+			var name = getNameColumnByIndex(index, modelSort.Ref);
 
 			//TODO добавить функцию в CSortPropertiesLevel для получения всех цветов(при открытии соответсвующего меню)
 			//TODO перенести в отдельную константу Descending/Ascending
@@ -18620,14 +18620,14 @@
 
 		if(columnSort) {
 			for(j = selection.c1; j <= selection.c2; j++) {
-				sortSettings.sortList.push(getNameColumnByIndex(j - selection.c1));
+				sortSettings.sortList.push(getNameColumnByIndex(j - selection.c1), selection);
 			}
 		} else {
 			for(j = selection.r1; j <= selection.r2; j++) {
-				sortSettings.sortList.push(getNameColumnByIndex(j - selection.r1));
+				sortSettings.sortList.push(getNameColumnByIndex(j - selection.r1), selection);
 			}
 		}
-		
+
 		return sortSettings;
 	};
 
