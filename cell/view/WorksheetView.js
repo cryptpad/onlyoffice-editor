@@ -18631,6 +18631,15 @@
 		return sortSettings;
 	};
 
+	WorksheetView.prototype.setSortProps = function(props) {
+		if(!props) {
+			return false;
+		}
+
+		//TODO lock
+		
+
+	};
 
 
 
