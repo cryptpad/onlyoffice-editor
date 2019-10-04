@@ -1638,6 +1638,10 @@ function CT_PivotCacheDefinition() {
 CT_PivotCacheDefinition.prototype.Get_Id = function () {
 	return this.Id;
 };
+CT_PivotCacheDefinition.prototype.Write_ToBinary2 = function (w) {
+};
+CT_PivotCacheDefinition.prototype.Read_FromBinary2 = function (r) {
+};
 CT_PivotCacheDefinition.prototype.readAttributes = function(attr, uq) {
 	if (attr()) {
 		var vals = attr();
@@ -3146,7 +3150,9 @@ CT_pivotTableDefinition.prototype.init = function () {
 		}
 	}
 
-	this.location.setPageCount(rowPageCount, colPageCount);
+	if (this.location) {
+		this.location.setPageCount(rowPageCount, colPageCount);
+	}
 	this.updatePivotType();
 };
 CT_pivotTableDefinition.prototype.updatePivotType = function () {
