@@ -260,7 +260,7 @@ CImageShape.prototype.getWatermarkProps = function()
                         var oSectPr = oParentParagraph.Get_SectPr();
                         if(oSectPr)
                         {
-                            var Width = oSectPr.Get_PageWidth() - oSectPr.Get_PageMargin_Left() - oSectPr.Get_PageMargin_Right();
+                            var Width = oSectPr.GetContentFrameWidth();
                             if(AscFormat.fApproxEqual(this.extX, Width, 1))
                             {
                                 oProps.put_Scale(-1);

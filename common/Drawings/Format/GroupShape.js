@@ -544,28 +544,28 @@ function CGroupShape()
                                     {
                                         case c_oAscSizeRelFromH.sizerelfromhMargin:
                                         {
-                                            dExtX = oSectPr.Get_PageWidth() - oSectPr.Get_PageMargin_Left() - oSectPr.Get_PageMargin_Right();
+                                            dExtX = oSectPr.GetContentFrameWidth();
                                             break;
                                         }
                                         case c_oAscSizeRelFromH.sizerelfromhPage:
                                         {
-                                            dExtX = oSectPr.Get_PageWidth();
+                                            dExtX = oSectPr.GetPageWidth();
                                             break;
                                         }
                                         case c_oAscSizeRelFromH.sizerelfromhLeftMargin:
                                         {
-                                            dExtX = oSectPr.Get_PageMargin_Left();
+                                            dExtX = oSectPr.GetPageMarginLeft();
                                             break;
                                         }
 
                                         case c_oAscSizeRelFromH.sizerelfromhRightMargin:
                                         {
-                                            dExtX = oSectPr.Get_PageMargin_Right();
+                                            dExtX = oSectPr.GetPageMarginRight();
                                             break;
                                         }
                                         default:
                                         {
-                                            dExtX = oSectPr.Get_PageMargin_Left();
+                                            dExtX = oSectPr.GetPageMarginLeft();
                                             break;
                                         }
                                     }
@@ -577,27 +577,27 @@ function CGroupShape()
                                     {
                                         case c_oAscSizeRelFromV.sizerelfromvMargin:
                                         {
-                                            dExtY = oSectPr.Get_PageHeight() - oSectPr.Get_PageMargin_Top() - oSectPr.Get_PageMargin_Bottom();
+                                            dExtY = oSectPr.GetContentFrameHeight();
                                             break;
                                         }
                                         case c_oAscSizeRelFromV.sizerelfromvPage:
                                         {
-                                            dExtY = oSectPr.Get_PageHeight();
+                                            dExtY = oSectPr.GetPageHeight();
                                             break;
                                         }
                                         case c_oAscSizeRelFromV.sizerelfromvTopMargin:
                                         {
-                                            dExtY = oSectPr.Get_PageMargin_Top();
+                                            dExtY = oSectPr.GetPageMarginTop();
                                             break;
                                         }
                                         case c_oAscSizeRelFromV.sizerelfromvBottomMargin:
                                         {
-                                            dExtY = oSectPr.Get_PageMargin_Bottom();
+                                            dExtY = oSectPr.GetPageMarginBottom();
                                             break;
                                         }
                                         default:
                                         {
-                                            dExtY = oSectPr.Get_PageMargin_Top();
+                                            dExtY = oSectPr.GetPageMarginTop();
                                             break;
                                         }
                                     }
@@ -1839,6 +1839,12 @@ function CGroupShape()
             }
         }
         return _arrFields;
+    };
+    CGroupShape.prototype.GetAllSeqFieldsByType = function(sType, aFields)
+    {
+        for(var i = 0; i < this.spTree.length; ++i){
+            this.spTree[i].GetAllSeqFieldsByType(sType, aFields)
+        }
     };
     //--------------------------------------------------------export----------------------------------------------------
     window['AscFormat'] = window['AscFormat'] || {};

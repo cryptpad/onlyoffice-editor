@@ -244,10 +244,9 @@ CDocumentContent.prototype.Get_PageLimits = function(PageIndex)
 		var Page_abs = this.Get_StartPage_Absolute() + PageIndex;
 		var Index    = ( undefined !== this.LogicDocument.Pages[Page_abs] ? this.LogicDocument.Pages[Page_abs].Pos : 0 );
 		var SectPr   = this.LogicDocument.SectionsInfo.Get_SectPr(Index).SectPr;
-		var Orient   = SectPr.Get_Orientation();
 
-		var W = SectPr.Get_PageWidth();
-		var H = SectPr.Get_PageHeight();
+		var W = SectPr.GetPageWidth();
+		var H = SectPr.GetPageHeight();
 
 		return {X : 0, Y : 0, XLimit : W, YLimit : H};
 	}
@@ -273,10 +272,9 @@ CDocumentContent.prototype.Get_PageFields = function(PageIndex)
 			var Page_abs = this.Get_AbsolutePage(PageIndex);
 			var Index    = ( undefined !== this.LogicDocument.Pages[Page_abs] ? this.LogicDocument.Pages[Page_abs].Pos : 0 );
 			var SectPr   = this.LogicDocument.SectionsInfo.Get_SectPr(Index).SectPr;
-			var Orient   = SectPr.Get_Orientation();
 
-			var W = SectPr.Get_PageWidth();
-			var H = SectPr.Get_PageHeight();
+			var W = SectPr.GetPageWidth();
+			var H = SectPr.GetPageHeight();
 
 			return {X : 0, Y : 0, XLimit : W, YLimit : H};
 		}
@@ -286,17 +284,17 @@ CDocumentContent.prototype.Get_PageFields = function(PageIndex)
 		if (null === this.LogicDocument)
 			return {X : 0, Y : 0, XLimit : 0, YLimit : 0};
 
-		var Page_abs = this.Get_AbsolutePage(PageIndex);
-		var Index    = ( undefined !== this.LogicDocument.Pages[Page_abs] ? this.LogicDocument.Pages[Page_abs].Pos : 0 );
-		var SectPr   = this.LogicDocument.SectionsInfo.Get_SectPr(Index).SectPr;
-		var Orient   = SectPr.Get_Orientation();
+		var nPageAbs = this.Get_AbsolutePage(PageIndex);
+		var Index    = ( undefined !== this.LogicDocument.Pages[nPageAbs] ? this.LogicDocument.Pages[nPageAbs].Pos : 0 );
+		var oSectPr  = this.LogicDocument.SectionsInfo.Get_SectPr(Index).SectPr;
+		var oFrame   = oSectPr.GetContentFrame(nPageAbs);
 
-		var Y      = SectPr.PageMargins.Top;
-		var YLimit = SectPr.PageSize.H - SectPr.PageMargins.Bottom;
-		var X      = SectPr.PageMargins.Left;
-		var XLimit = SectPr.PageSize.W - SectPr.PageMargins.Right;
-
-		return {X : X, Y : Y, XLimit : XLimit, YLimit : YLimit};
+		return {
+			X      : oFrame.Left,
+			Y      : oFrame.Top,
+			XLimit : oFrame.Right,
+			YLimit : oFrame.Bottom
+		};
 	}
 
 };
@@ -360,26 +358,26 @@ CDocumentContent.prototype.GetNumbering = function()
 };
 CDocumentContent.prototype.Get_Styles = function(lvl)
 {
-	if(!this.bPresentation)
+	if (!this.bPresentation)
 	{
 		return this.Styles;
 	}
 	else
 	{
-		return this.Parent.Get_Styles(lvl);
+		return this.Parent ? this.Parent.Get_Styles(lvl) : this.LogicDocument ? this.LogicDocument.GetStyles() : null;
 	}
 };
 CDocumentContent.prototype.Get_TableStyleForPara = function()
 {
-	return this.Parent.Get_TableStyleForPara();
+	return this.Parent ? this.Parent.Get_TableStyleForPara() : null;
 };
 CDocumentContent.prototype.Get_ShapeStyleForPara = function()
 {
-	return this.Parent.Get_ShapeStyleForPara();
+	return this.Parent ? this.Parent.Get_ShapeStyleForPara() : null;
 };
 CDocumentContent.prototype.Get_TextBackGroundColor = function()
 {
-	return this.Parent.Get_TextBackGroundColor();
+	return this.Parent ? this.Parent.Get_TextBackGroundColor() : undefined;
 };
 CDocumentContent.prototype.Recalc_AllParagraphs_CompiledPr = function()
 {
@@ -2243,6 +2241,14 @@ CDocumentContent.prototype.Get_ApplyToAll = function()
 {
 	return this.ApplyToAll;
 };
+CDocumentContent.prototype.IsApplyToAll = function()
+{
+	return this.ApplyToAll;
+};
+CDocumentContent.prototype.SetApplyToAll = function(isApplyAll)
+{
+	this.ApplyToAll = isApplyAll;
+};
 CDocumentContent.prototype.UpdateCursorType = function(X, Y, CurPage)
 {
 	if (CurPage < 0 || CurPage >= this.Pages.length)
@@ -2726,7 +2732,7 @@ CDocumentContent.prototype.AddInlineTable = function(Cols, Rows)
 				Grid[Index] = W / Cols;
 
 			var NewTable = new CTable(this.DrawingDocument, this, true, Rows, Cols, Grid);
-			NewTable.Set_ParagraphPrOnAdd(Item);
+			NewTable.SetParagraphPrOnAdd(Item);
 
 			var nContentPos = this.CurPos.ContentPos;
 			if (true === Item.IsCursorAtBegin())
@@ -4346,6 +4352,49 @@ CDocumentContent.prototype.Insert_Content                     = function(Selecte
             DocContent.Selection.Start = false;
         }
     }
+};
+CDocumentContent.prototype.SetParagraphPr = function(oParaPr)
+{
+	if (this.IsApplyToAll())
+	{
+		for (var nIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex)
+		{
+			var oItem = this.Content[nIndex];
+			oItem.SetApplyToAll(true);
+			oItem.SetParagraphPr(oParaPr);
+			oItem.SetApplyToAll(false);
+		}
+
+		return;
+	}
+
+	if (docpostype_DrawingObjects === this.GetDocPosType())
+	{
+		// TODO: Прокинуть в Drawings
+	}
+	else
+	{
+		if (this.Selection.Use)
+		{
+			var nStartPos = this.Selection.StartPos;
+			var nEndPos   = this.Selection.EndPos;
+			if (nEndPos < nStartPos)
+			{
+				var nTemp = nStartPos;
+				nStartPos = nEndPos;
+				nEndPos   = nTemp;
+			}
+
+			for (var nIndex = nStartPos; nIndex <= nEndPos; ++nIndex)
+			{
+				this.Content[nIndex].SetParagraphPr(oParaPr);
+			}
+		}
+		else
+		{
+			this.Content[this.CurPos.ContentPos].SetParagraphPr(oParaPr);
+		}
+	}
 };
 CDocumentContent.prototype.SetParagraphAlign = function(Align)
 {
@@ -8173,6 +8222,11 @@ CDocumentContent.prototype.GetPresentationField = function()
 
 	return this.Content[nCurPos].GetPresentationField();
 };
+CDocumentContent.prototype.IsTableCellSelection = function()
+{
+	return (this.Selection.Use && this.Selection.StartPos === this.Selection.EndPos && this.Content[this.Selection.StartPos].IsTable() && this.Content[this.Selection.StartPos].IsTableCellSelection());
+};
+
 
 function CDocumentContentStartState(DocContent)
 {

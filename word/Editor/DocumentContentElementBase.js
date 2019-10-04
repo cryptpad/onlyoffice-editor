@@ -466,6 +466,9 @@ CDocumentContentElementBase.prototype.GetCursorPosXY = function()
 CDocumentContentElementBase.prototype.StartSelectionFromCurPos = function()
 {
 };
+CDocumentContentElementBase.prototype.SetParagraphPr = function(oParaPr)
+{
+};
 CDocumentContentElementBase.prototype.SetParagraphAlign = function(Align)
 {
 };
@@ -649,6 +652,19 @@ CDocumentContentElementBase.prototype.LoadRecalculateObject = function(RecalcObj
 };
 CDocumentContentElementBase.prototype.Set_ApplyToAll = function(bValue)
 {
+	this.SetApplyToAll(bValue);
+};
+CDocumentContentElementBase.prototype.Get_ApplyToAll = function()
+{
+	return this.IsApplyToAll();
+};
+CDocumentContentElementBase.prototype.SetApplyToAll = function(isApplyAll)
+{
+	this.ApplyToAll = isApplyAll;
+};
+CDocumentContentElementBase.prototype.IsApplyToAll = function()
+{
+	return this.ApplyToAll;
 };
 CDocumentContentElementBase.prototype.RecalculateAllTables = function()
 {
@@ -883,6 +899,16 @@ CDocumentContentElementBase.prototype.GetAllComments = function(AllComments)
 CDocumentContentElementBase.prototype.GetAllMaths = function(AllMaths)
 {
 };
+
+/**
+ * Find all SEQ complex fields with specified type
+ * @param {String} sType - field type
+ * @param {Array} aFields - array which accumulates complex fields
+ */
+CDocumentContentElementBase.prototype.GetAllSeqFieldsByType = function(sType, aFields)
+{
+};
+
 CDocumentContentElementBase.prototype.UpdateBookmarks = function(oManager)
 {
 };

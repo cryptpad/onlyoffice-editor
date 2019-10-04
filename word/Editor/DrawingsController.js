@@ -86,7 +86,12 @@ CDrawingsController.prototype.AddOleObject = function(W, H, nWidthPix, nHeightPi
 };
 CDrawingsController.prototype.AddTextArt = function(nStyle)
 {
-	// ничего не делаем
+	var ParaDrawing = this.DrawingObjects.getMajorParaDrawing();
+	if (ParaDrawing)
+	{
+		ParaDrawing.GoTo_Text(undefined, false);
+		this.LogicDocument.AddTextArt(nStyle);
+	}
 };
 CDrawingsController.prototype.EditChart = function(Chart)
 {
@@ -599,4 +604,12 @@ CDrawingsController.prototype.GetSimilarNumbering = function(oEngine)
 CDrawingsController.prototype.GetAllFields = function(isUseSelection, arrFields)
 {
 	return this.DrawingObjects.GetAllFields(isUseSelection, arrFields);
+};
+CDrawingsController.prototype.IsTableCellSelection = function()
+{
+	var oTargetDocContent = this.DrawingObjects.getTargetDocContent();
+	if (oTargetDocContent && oTargetDocContent.IsTableCellSelection)
+		return oTargetDocContent.IsTableCellSelection();
+
+	return false;
 };

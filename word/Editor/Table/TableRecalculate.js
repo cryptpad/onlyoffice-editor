@@ -698,11 +698,11 @@ CTable.prototype.private_RecalculateGrid = function()
 				nTopIndex = arrPos[0].Position;
 
 			if (-1 !== nTopIndex)
-				PageFields = this.LogicDocument.Get_ColumnFields(nTopIndex, this.Get_AbsoluteColumn(this.PageNum));
+				PageFields = this.LogicDocument.Get_ColumnFields(nTopIndex, this.Get_AbsoluteColumn(this.PageNum), this.GetAbsolutePage(this.PageNum));
 		}
 
 		if (!PageFields)
-			PageFields = this.Parent.Get_ColumnFields ? this.Parent.Get_ColumnFields(this.Get_Index(), this.Get_AbsoluteColumn(this.PageNum)) : this.Parent.Get_PageFields(this.private_GetRelativePageIndex(this.PageNum));
+			PageFields = this.Parent.Get_ColumnFields ? this.Parent.Get_ColumnFields(this.Get_Index(), this.Get_AbsoluteColumn(this.PageNum), this.GetAbsolutePage(this.PageNum)) : this.Parent.Get_PageFields(this.private_GetRelativePageIndex(this.PageNum));
 
 		var MaxTableW = PageFields.XLimit - PageFields.X - TablePr.TableInd - this.GetTableOffsetCorrection() + this.GetRightTableOffsetCorrection();
 
@@ -1624,10 +1624,12 @@ CTable.prototype.private_RecalculatePositionX = function(CurPage)
         	var oSectPr = this.Get_SectPr();
         	if (oSectPr)
 			{
-				PageFields.Y      = oSectPr.PageMargins.Top;
-				PageFields.YLimit = oSectPr.PageSize.H - oSectPr.PageMargins.Bottom;
-				PageFields.X      = oSectPr.PageMargins.Left;
-				PageFields.XLimit = oSectPr.PageSize.W - oSectPr.PageMargins.Right;
+				var oFrame = oSectPr.GetContentFrame(this.GetAbsolutePage(CurPage));
+
+				PageFields.Y      = oFrame.Top;
+				PageFields.YLimit = oFrame.Bottom;
+				PageFields.X      = oFrame.Left;
+				PageFields.XLimit = oFrame.Right;
 			}
 
             var OffsetCorrection_Left  = this.GetTableOffsetCorrection();
@@ -1733,7 +1735,7 @@ CTable.prototype.private_RecalculatePage = function(CurPage)
 
     var X_max = -1;
     var X_min = -1;
-    if ( this.HeaderInfo.Count > 0 && this.HeaderInfo.PageIndex != -1 && CurPage > this.HeaderInfo.PageIndex )
+	if (this.HeaderInfo.Count > 0 && this.HeaderInfo.PageIndex != -1 && CurPage > this.HeaderInfo.PageIndex && this.IsInline())
     {
     	this.HeaderInfo.HeaderRecalculate = true;
         this.HeaderInfo.Pages[CurPage] = {};

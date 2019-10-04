@@ -1167,6 +1167,7 @@
 			AscCommonExcel.g_oVLOOKUPCache.clean();
 			AscCommonExcel.g_oHLOOKUPCache.clean();
 			AscCommonExcel.g_oMatchCache.clean();
+			AscCommonExcel.g_oSUMIFSCache.clean();
 		},
 		initOpen: function() {
 			this._foreachDefName(function(defName) {
@@ -4807,6 +4808,19 @@
 
 		this.sheetPr.SummaryBelow = val;
 	};
+	Worksheet.prototype.setFitToPage = function (val) {
+		if((this.sheetPr && val !== this.sheetPr.FitToPage) || (!this.sheetPr && val)) {
+			if (!this.sheetPr){
+				this.sheetPr = new AscCommonExcel.asc_CSheetPr();
+			}
+
+			History.Create_NewPoint();
+			History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_SetFitToPage, this.getId(), null,
+				new UndoRedoData_FromTo(this.sheetPr.FitToPage, val));
+
+			this.sheetPr.FitToPage = val;
+		}
+	};
 	Worksheet.prototype.setGroupCol = function (bDel, start, stop) {
 		var oThis = this;
 		var fProcessCol = function(col){
@@ -6570,15 +6584,12 @@
 				continue;
 			}
 			style = this.workbook.TableStyles.AllStyles[styleInfo.asc_getName()];
-			if (!style) {
-				continue;
-			}
 
-			wholeStyle = style.wholeTable && style.wholeTable.dxf;
+			wholeStyle = style && style.wholeTable && style.wholeTable.dxf;
 
 			// Page Field Labels, Page Field Values
-			dxfLabels = style.pageFieldLabels && style.pageFieldLabels.dxf;
-			dxfValues = style.pageFieldValues && style.pageFieldValues.dxf;
+			dxfLabels = style && style.pageFieldLabels && style.pageFieldLabels.dxf;
+			dxfValues = style && style.pageFieldValues && style.pageFieldValues.dxf;
 			for (j = 0; j < pivotTable.pageFieldsPositions.length; ++j) {
 				pos = pivotTable.pageFieldsPositions[j];
 				cells = this.getRange4(pos.row, pos.col);
@@ -6593,6 +6604,10 @@
 
 			cells = this.getRange3(pivotRange.r1, pivotRange.c1, pivotRange.r2, pivotRange.c2);
 			cells.clearTableStyle();
+
+			if (!style) {
+				continue;
+			}
 
 			countC = pivotTable.getColumnFieldsCount();
 			countR = pivotTable.getRowFieldsCount(true);
@@ -7094,32 +7109,56 @@
 		//проверка на внутренний сдвиг
 		var res = true;
 
-		var checkRange = function(formulaRange) {
-			var isHor = offset && offset.col;
-			var isDelete = offset && (offset.col < 0 || offset.row < 0);
+		var isHor = offset && offset.col;
+		var isDelete = offset && (offset.col < 0 || offset.row < 0);
 
+		var checkRange = function(formulaRange) {
 			//частичное выделение при удалении столбца/строки
-			if(formulaRange.intersection(range) && !range.containsRange(formulaRange)) {
+			if(isDelete && formulaRange.intersection(range) && !range.containsRange(formulaRange)) {
 				return false;
 			}
 
-			/*if (isHor) {
-				//частичный сдвиг влево/вправо
+			if (isHor) {
 				if(range.r1 > formulaRange.r1 && range.r1 <= formulaRange.r2) {
 					return false;
 				}
-			} else {
-				//частичный сдвиг вверх/вниз
+				if(range.r2 >= formulaRange.r1 && range.r2 < formulaRange.r2) {
+					return false;
+				}
 				if(range.c1 > formulaRange.c1 && range.c1 <= formulaRange.c2) {
 					return false;
 				}
-			}*/
+				/*if(range.c1 < formulaRange.c1 && range.c2 >= formulaRange.c1 && range.c2 < formulaRange.c2) {
+					return false;
+				}*/
+			} else {
+				if(range.c1 > formulaRange.c1 && range.c1 <= formulaRange.c2) {
+					return false;
+				}
+				if(range.c2 >= formulaRange.c1 && range.c2 < formulaRange.c2) {
+					return false;
+				}
+				if(range.r1 > formulaRange.r1 && range.r1 <= formulaRange.r2) {
+					return false;
+				}
+				/*if(range.r1 < formulaRange.r1 && range.r2 >= formulaRange.r1 && range.r2 < formulaRange.r2) {
+					return false;
+				}*/
+			}
 
 			return true;
 		};
 
+		//if intersection with range
 		var alreadyCheckFormulas = [];
-		this.getRange3(range.r1, range.c1, range.r2, range.c2)._foreachNoEmpty(function(cell) {
+		var r2 = range.r2, c2 = range.c2;
+		if(isHor) {
+			c2 = gc_nMaxCol0;
+		} else {
+			r2 = gc_nMaxRow0;
+		}
+
+		this.getRange3(range.r1, range.c1, r2, c2)._foreachNoEmpty(function(cell) {
 			if(res && cell.isFormula()) {
 				var formulaParsed = cell.getFormulaParsed();
 				var arrayFormulaRef = formulaParsed.getArrayFormulaRef();
@@ -7704,9 +7743,17 @@
 				History.Add(AscCommonExcel.g_oUndoRedoCell, typeHistory, this.ws.getId(), new Asc.Range(this.nCol, this.nRow, this.nCol, this.nRow), new UndoRedoData_CellSimpleData(this.nRow, this.nCol, DataOld, DataNew), bHistoryUndo);}
 		}
 	};
-	Cell.prototype.setFormula = function(formula, bHistoryUndo) {
+	Cell.prototype.setFormula = function(formula, bHistoryUndo, formulaRef) {
 		var cellWithFormula = new CCellWithFormula(this.ws, this.nRow, this.nCol);
-		this.setFormulaParsed(new parserFormula(formula, cellWithFormula, this.ws), bHistoryUndo);
+		var parser = new parserFormula(formula, cellWithFormula, this.ws);
+		if(formulaRef) {
+			parser.setArrayFormulaRef(formulaRef);
+			this.ws.getRange3(formulaRef.r1, formulaRef.c1, formulaRef.r2, formulaRef.c2)._foreachNoEmpty(function(cell){
+				cell.setFormulaParsed(parser, bHistoryUndo);
+			});
+		} else {
+			this.setFormulaParsed(parser, bHistoryUndo);
+		}
 	};
 	Cell.prototype.setFormulaParsed = function(parsed, bHistoryUndo) {
 		this.setFormulaTemplate(bHistoryUndo, function(cell){
@@ -8189,12 +8236,19 @@
 	Cell.prototype.getValueData = function(){
 		this._checkDirty();
 		var formula = this.isFormula() ? this.getFormula() : null;
-		return new UndoRedoData_CellValueData(formula, new AscCommonExcel.CCellValue(this));
+		var formulaRef;
+		if(formula) {
+			var parser = this.getFormulaParsed();
+			if(parser) {
+				formulaRef = this.getFormulaParsed().getArrayFormulaRef();
+			}
+		}
+		return new UndoRedoData_CellValueData(formula, new AscCommonExcel.CCellValue(this), formulaRef);
 	};
 	Cell.prototype.setValueData = function(Val){
 		//значения устанавляваются через setValue, чтобы пересчитались формулы
 		if(null != Val.formula)
-			this.setFormula(Val.formula);
+			this.setFormula(Val.formula, null, Val.formulaRef);
 		else if(null != Val.value)
 		{
 			var DataOld = null;
@@ -8383,6 +8437,7 @@
 			AscCommonExcel.g_oVLOOKUPCache.remove(this);
 			AscCommonExcel.g_oHLOOKUPCache.remove(this);
 			AscCommonExcel.g_oMatchCache.remove(this);
+			AscCommonExcel.g_oSUMIFSCache.remove(this);
 		}
 	};
 	Cell.prototype.cleanText = function() {

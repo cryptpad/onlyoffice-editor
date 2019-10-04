@@ -165,7 +165,7 @@ Asc['asc_docs_api'].prototype.sync_EndCatchSelectedElements = function()
 // chat styles
 AscCommon.ChartPreviewManager.prototype.clearPreviews = function()
 {
-    window["native"]["DD_ClearCacheChartStyles"]();
+    window["native"]["ClearCacheChartStyles"]();
 };
 
 AscCommon.ChartPreviewManager.prototype.createChartPreview = function(_graphics, type, styleIndex)

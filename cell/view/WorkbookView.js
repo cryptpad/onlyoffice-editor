@@ -597,23 +597,19 @@
         return res;
       };
       this.Api.beginInlineDropTarget = function (event) {
-      	console.log('start beginInlineDropTarget');
       	if (!self.controller.isMoveRangeMode) {
       		self.controller.isMoveRangeMode = true;
 			self.getWorksheet().dragAndDropRange = new Asc.Range(0, 0, 0, 0);
 		}
       	self.controller._onMouseMove(event);
-      	console.log('end beginInlineDropTarget');
 	  };
       this.Api.endInlineDropTarget = function (event) {
-      	console.log('start endInlineDropTarget');
       	self.controller.isMoveRangeMode = false;
       	var ws = self.getWorksheet();
       	var newSelection = ws.activeMoveRange.clone();
       	ws._cleanSelectionMoveRange();
       	ws.dragAndDropRange = null;
       	self._onSetSelection(newSelection);
-      	console.log('end endInlineDropTarget');
 	  };
       this.Api.isEnabledDropTarget = function () {
       	return !self.isCellEditMode;
@@ -1517,7 +1513,7 @@
     };
 
     // Стартуем редактировать ячейку
-    this.collaborativeEditing.onStartEditCell();
+	  activeCellRange = ws.expandActiveCellByFormulaArray(activeCellRange);
     if (ws._isLockedCells(activeCellRange, /*subType*/null, editLockCallback)) {
       editFunction();
     }
@@ -1769,6 +1765,8 @@
     } else if (ws.updateZoom) {
       ws.changeZoom(true);
     }
+
+    this.updateGroupData();
 
     if (this.cellEditor && this.cellFormulaEnterWSOpen) {
       if (ws === this.cellFormulaEnterWSOpen) {
@@ -2947,7 +2945,7 @@
 			//None style
 			var emptyStyle = new Asc.CTableStyle();
 			emptyStyle.displayName = "None";
-			emptyStyle.pivot = false;
+			emptyStyle.pivot = bPivotTable;
 			addStyles({null: emptyStyle}, AscCommon.c_oAscStyleImage.Default, true);
 		}
 		addStyles(defaultStyles, AscCommon.c_oAscStyleImage.Default);

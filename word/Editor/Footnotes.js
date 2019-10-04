@@ -207,20 +207,22 @@ CFootnotesController.prototype.Reset = function(nPageIndex, oSectPr)
 	var oPage = this.Pages[nPageIndex];
 	oPage.Reset();
 
-	var X      = oSectPr.Get_PageMargin_Left();
-	var XLimit = oSectPr.Get_PageWidth() - oSectPr.Get_PageMargin_Right();
+	var oFrame = oSectPr.GetContentFrame(nPageIndex);
 
-	var nColumnsCount = oSectPr.Get_ColumnsCount();
+	var X      = oFrame.Left;
+	var XLimit = oFrame.Right;
+
+	var nColumnsCount = oSectPr.GetColumnsCount();
 	for (var nColumnIndex = 0; nColumnIndex < nColumnsCount; ++nColumnIndex)
 	{
 		var _X = X;
 		for (var nTempColumnIndex = 0; nTempColumnIndex < nColumnIndex; ++nTempColumnIndex)
 		{
-			_X += oSectPr.Get_ColumnWidth(nTempColumnIndex);
-			_X += oSectPr.Get_ColumnSpace(nTempColumnIndex);
+			_X += oSectPr.GetColumnWidth(nTempColumnIndex);
+			_X += oSectPr.GetColumnSpace(nTempColumnIndex);
 		}
 
-		var _XLimit = (nColumnsCount - 1 !== nColumnIndex ? _X + oSectPr.Get_ColumnWidth(nColumnIndex) : XLimit);
+		var _XLimit = (nColumnsCount - 1 !== nColumnIndex ? _X + oSectPr.GetColumnWidth(nColumnIndex) : XLimit);
 
 		var oColumn    = new CFootEndnotePageColumn();
 		oColumn.X      = _X;
@@ -2792,17 +2794,14 @@ CFootnotesController.prototype.UpdateInterfaceState = function()
 };
 CFootnotesController.prototype.UpdateRulersState = function()
 {
-	var PageAbs = this.CurFootnote.Get_StartPage_Absolute();
-	if (this.LogicDocument.Pages[PageAbs])
+	var nPageAbs = this.CurFootnote.Get_StartPage_Absolute();
+	if (this.LogicDocument.Pages[nPageAbs])
 	{
-		var Pos    = this.LogicDocument.Pages[PageAbs].Pos;
-		var SectPr = this.LogicDocument.SectionsInfo.Get_SectPr(Pos).SectPr;
+		var nPos    = this.LogicDocument.Pages[nPageAbs].Pos;
+		var oSectPr = this.LogicDocument.SectionsInfo.Get_SectPr(nPos).SectPr;
+		var oFrame  = oSectPr.GetContentFrame(nPageAbs);
 
-		var L = SectPr.Get_PageMargin_Left();
-		var T = SectPr.Get_PageMargin_Top();
-		var R = SectPr.Get_PageWidth() - SectPr.Get_PageMargin_Right();
-		var B = SectPr.Get_PageHeight() - SectPr.Get_PageMargin_Bottom();
-		this.DrawingDocument.Set_RulerState_Paragraph({L : L, T : T, R : R, B : B}, true);
+		this.DrawingDocument.Set_RulerState_Paragraph({L : oFrame.Left, T : oFrame.Top, R : oFrame.Right, B : oFrame.Bottom}, true);
 	}
 
 	if (true === this.private_IsOnFootnoteSelected())
@@ -3289,6 +3288,13 @@ CFootnotesController.prototype.GetAllDrawingObjects = function(arrDrawings)
 	}
 
 	return arrDrawings;
+};
+CFootnotesController.prototype.IsTableCellSelection = function()
+{
+	if (this.CurFootnote)
+		return this.CurFootnote.IsTableCellSelection();
+
+	return false;
 };
 
 

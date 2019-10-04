@@ -650,19 +650,25 @@ function (window, undefined) {
 		}
 	};
 
-	function UndoRedoData_CellValueData(sFormula, oValue) {
+	function UndoRedoData_CellValueData(sFormula, oValue, formulaRef) {
 		this.formula = sFormula;
+		this.formulaRef = formulaRef;
 		this.value = oValue;
 	}
 
 	UndoRedoData_CellValueData.prototype.Properties = {
-		formula: 0, value: 1
+		formula: 0, value: 1, formulaRef: 2
 	};
 	UndoRedoData_CellValueData.prototype.isEqual = function (val) {
 		if (null == val) {
 			return false;
 		}
 		if (this.formula != val.formula) {
+			return false;
+		}
+		if ((this.formulaRef &&
+			!(this.formulaRef.r1 === val.r1 && this.formulaRef.c1 === val.c1 && this.formulaRef.r2 === val.r2 &&
+			this.formulaRef.c2 === val.c2)) || (this.formulaRef !== val)) {
 			return false;
 		}
 		if (this.value.isEqual(val.value)) {
@@ -684,6 +690,9 @@ function (window, undefined) {
 			case this.Properties.value:
 				return this.value;
 				break;
+			case this.Properties.formulaRef:
+				return this.formulaRef ? new UndoRedoData_BBox(this.formulaRef) : null;
+				break;
 		}
 		return null;
 	};
@@ -694,6 +703,9 @@ function (window, undefined) {
 				break;
 			case this.Properties.value:
 				this.value = value;
+				break;
+			case this.Properties.formulaRef:
+				this.formulaRef = value ? new Asc.Range(value.c1, value.r1, value.c2, value.r2) : null;
 				break;
 		}
 	};
@@ -2561,6 +2573,8 @@ function (window, undefined) {
 			} else {
 				ws.setCollapsedCol(Data.oNewVal, index);
 			}
+		}  else if (AscCH.historyitem_Worksheet_SetFitToPage === Type) {
+			ws.setFitToPage(bUndo ? Data.from : Data.to);
 		}
 	};
 	UndoRedoWoorksheet.prototype.forwardTransformationIsAffect = function (Type) {
@@ -2713,19 +2727,16 @@ function (window, undefined) {
 	UndoRedoComment.prototype.UndoRedo = function (Type, Data, nSheetId, bUndo) {
 		var collaborativeEditing, to;
 		var oModel = (null == nSheetId) ? this.wb : this.wb.getWorksheetById(nSheetId);
-		if (!oModel.aComments) {
-			oModel.aComments = [];
-		}
-
 		var api = window["Asc"]["editor"];
-		if (!api.wb) {
+		if (!api.wb || !oModel) {
 			return;
 		}
+
 		var ws = (null == nSheetId) ? api.wb : api.wb.getWorksheetById(nSheetId);
 		Data.worksheet = ws;
 
 		var cellCommentator = ws.cellCommentator;
-		if (bUndo == true) {
+		if (bUndo) {
 			cellCommentator.Undo(Type, Data);
 		} else {
 			to = (Data.from || Data.to) ? Data.to : Data;
@@ -3096,6 +3107,9 @@ function (window, undefined) {
 			case AscCH.historyitem_Layout_Orientation:
 				pageSetup.asc_setOrientation(value);
 				break;
+			case AscCH.historyitem_Layout_Scale:
+				pageSetup.asc_setScale(value);
+				break;
 		}
 
 		this.wb.oApi._onUpdateLayoutMenu(nSheetId);
@@ -3130,7 +3144,9 @@ function (window, undefined) {
 		switch (Type) {
 			case AscCH.historyitem_ArrayFromula_AddFormula:
 				if(!bUndo) {
-					range.setValue(formula, null, null, bbox);
+					AscCommonExcel.executeInR1C1Mode(false, function () {
+						range.setValue(formula, null, null, bbox);
+					});
 				}
 				break;
 			case AscCH.historyitem_ArrayFromula_DeleteFormula:

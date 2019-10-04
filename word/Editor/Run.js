@@ -776,7 +776,7 @@ ParaRun.prototype.Remove = function(Direction, bOnAddText)
 
     var ReviewType  = this.GetReviewType();
     var oReviewInfo = this.GetReviewInfo();
-    if (true === TrackRevisions && (reviewtype_Add !== ReviewType || !oReviewInfo.IsCurrentUser() || !oReviewInfo.IsMovedTo() || !this.Paragraph.LogicDocument.TrackMoveRelocation) && (reviewtype_Remove !== ReviewType || !oReviewInfo.IsPrevAddedByCurrentUser()))
+    if (true === TrackRevisions && (reviewtype_Add !== ReviewType || !oReviewInfo.IsCurrentUser() || (oReviewInfo.IsMovedTo() && !this.Paragraph.LogicDocument.TrackMoveRelocation)) && (reviewtype_Remove !== ReviewType || !oReviewInfo.IsPrevAddedByCurrentUser()))
     {
     	if (reviewtype_Remove === ReviewType)
 		{
@@ -6064,7 +6064,7 @@ ParaRun.prototype.Draw_Lines = function(PDSL)
 // Функции для работы с курсором
 //-----------------------------------------------------------------------------------
 // Находится ли курсор в начале рана
-ParaRun.prototype.Is_CursorPlaceable = function()
+ParaRun.prototype.IsCursorPlaceable = function()
 {
     return true;
 };
@@ -10780,6 +10780,58 @@ ParaRun.prototype.GetAllFields = function(isUseSelection, arrFields)
 		}
 	}
 };
+
+ParaRun.prototype.GetAllSeqFieldsByType = function(sType, aFields)
+{
+	for (var nPos = 0; nPos < this.Content.length; ++nPos)
+	{
+		var oItem = this.Content[nPos];
+		if (para_FieldChar === oItem.Type)
+		{
+			var oComplexField = oItem.GetComplexField();
+			if(oComplexField)
+			{
+				var oInstruction = oComplexField.Instruction;
+				if(oInstruction)
+				{
+					if(oInstruction.Type === fieldtype_SEQ)
+					{
+						if(oInstruction.Id === sType)
+						{
+							var isNeedAdd = true;
+							for (var nFieldIndex = 0, nFieldsCount = aFields.length; nFieldIndex < nFieldsCount; ++nFieldIndex)
+							{
+								if (oComplexField === aFields[nFieldIndex])
+								{
+									isNeedAdd = false;
+									break;
+								}
+							}
+							if (isNeedAdd)
+							{
+								aFields.push(oComplexField);
+							}
+						}
+					}
+				}
+			}
+		}
+		else if(para_Field === oItem.Type)
+		{
+			if(oItem.FieldType === fieldtype_SEQ)
+			{
+				if(oItem.Arguments[0] === sType)
+				{
+					aFields.push(oItem);
+				}
+			}
+		}
+		else if (para_Drawing === oItem.Type)
+		{
+			oItem.GetAllSeqFieldsByType(sType, aFields);
+		}
+	}
+};
 ParaRun.prototype.AddToContent = function(nPos, oItem, isUpdatePositions)
 {
 	return this.Add_ToContent(nPos, oItem, isUpdatePositions);
@@ -11262,6 +11314,14 @@ ParaRun.prototype.GetSelectedElementsInfo = function(oInfo)
 	if (oInfo && oInfo.IsCheckAllSelection() && !this.IsSelectionEmpty(true))
 	{
 		oInfo.RegisterRunWithReviewType(this.GetReviewType());
+
+		for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
+		{
+			if (para_RevisionMove === this.Content[nPos].Type)
+			{
+				oInfo.RegisterTrackMoveMark(this.Content[nPos].Type);
+			}
+		}
 	}
 };
 ParaRun.prototype.GetLastTrackMoveMark = function()

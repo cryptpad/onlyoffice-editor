@@ -77,6 +77,7 @@ function (window, undefined) {
 	window['AscCH'].historyitem_Worksheet_GroupCol = 36;
 	window['AscCH'].historyitem_Worksheet_SetSummaryRight = 37;
 	window['AscCH'].historyitem_Worksheet_SetSummaryBelow = 38;
+	window['AscCH'].historyitem_Worksheet_SetFitToPage = 39;
 // Frozen cell
 	window['AscCH'].historyitem_Worksheet_ChangeFrozenCell = 30;
 
@@ -195,6 +196,7 @@ function (window, undefined) {
 	window['AscCH'].historyitem_Layout_GridLines = 9;
 	window['AscCH'].historyitem_Layout_Headings = 10;
 	window['AscCH'].historyitem_Layout_Orientation = 11;
+	window['AscCH'].historyitem_Layout_Scale = 12;
 	
 	window['AscCH'].historyitem_ArrayFromula_AddFormula = 1;
 	window['AscCH'].historyitem_ArrayFromula_DeleteFormula = 2;

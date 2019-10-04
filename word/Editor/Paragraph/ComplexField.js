@@ -415,6 +415,12 @@ CComplexField.prototype.Update = function(isCreateHistoryPoint, isNeedRecalculat
 		case fieldtype_FORMULA:
 			this.private_UpdateFORMULA();
 			break;
+		case fieldtype_SEQ:
+			this.private_UpdateSEQ();
+			break;
+		case fieldtype_STYLEREF:
+			this.private_UpdateSTYLEREF();
+			break;
 
 	}
 
@@ -425,6 +431,19 @@ CComplexField.prototype.Update = function(isCreateHistoryPoint, isNeedRecalculat
 	{
 		this.LogicDocument.FinalizeAction();
 	}
+};
+
+
+CComplexField.prototype.private_UpdateSEQ = function()
+{
+	var sText = this.Instruction.GetText();
+	this.LogicDocument.AddText(sText);
+};
+
+CComplexField.prototype.private_UpdateSTYLEREF = function()
+{
+	var sText = this.Instruction.GetText();
+	this.LogicDocument.AddText(sText);
 };
 CComplexField.prototype.private_UpdateFORMULA = function()
 {
@@ -484,11 +503,11 @@ CComplexField.prototype.private_UpdateTOC = function()
 		if (oSectPr.Get_ColumnsCount() > 1)
 		{
 			// TODO: Сейчас забирается ширина текущей колонки. По правильному надо читать поля от текущего места
-			nTabPos = Math.max(0, Math.min(oSectPr.Get_ColumnWidth(0), oSectPr.Get_PageWidth(), oSectPr.Get_PageWidth() - oSectPr.Get_PageMargin_Left() - oSectPr.Get_PageMargin_Right()));
+			nTabPos = Math.max(0, Math.min(oSectPr.GetColumnWidth(0), oSectPr.GetPageWidth(), oSectPr.GetContentFrameWidth()));
 		}
 		else
 		{
-			nTabPos = Math.max(0, Math.min(oSectPr.Get_PageWidth(), oSectPr.Get_PageWidth() - oSectPr.Get_PageMargin_Left() - oSectPr.Get_PageMargin_Right()));
+			nTabPos = Math.max(0, Math.min(oSectPr.GetPageWidth(), oSectPr.GetContentFrameWidth()));
 		}
 	}
 

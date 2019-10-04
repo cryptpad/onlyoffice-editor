@@ -1291,7 +1291,7 @@ function checkPointInMap(map, worksheet, row, col)
 
     this.bbox = null;
     this.ptsCount = 0;
-
+    this.isSparkline = false;
     this.selection =
     {
         title:         null,
@@ -2368,13 +2368,9 @@ CChartSpace.prototype.changeSize = CShape.prototype.changeSize;
             if(oChart)
             {
                 var oSeries = null;
-                for(var i = 0; i < oChart.series.length; ++i)
+                if(oChart.series[this.selection.series])
                 {
-                    if(oChart.series[i].idx === this.selection.series)
-                    {
-                        oSeries = oChart.series[i];
-                        break;
-                    }
+                    oSeries = oChart.series[this.selection.series];
                 }
                 if(oSeries)
                 {
@@ -2539,13 +2535,9 @@ CChartSpace.prototype.changeSize = CShape.prototype.changeSize;
             if(oChart)
             {
                 var oSeries = null;
-                for(var i = 0; i < oChart.series.length; ++i)
+                if(oChart.series[this.selection.series])
                 {
-                    if(oChart.series[i].idx === this.selection.series)
-                    {
-                        oSeries = oChart.series[i];
-                        break;
-                    }
+                    oSeries = oChart.series[this.selection.series];
                 }
                 if(oSeries)
                 {
@@ -2812,13 +2804,9 @@ CChartSpace.prototype.changeFill = function (unifill)
         if(oChart)
         {
             var oSeries = null;
-            for(var i = 0; i < oChart.series.length; ++i)
+            if(oChart.series[this.selection.series])
             {
-                if(oChart.series[i].idx === this.selection.series)
-                {
-                    oSeries = oChart.series[i];
-                    break;
-                }
+                oSeries = oChart.series[this.selection.series];
             }
             if(oSeries)
             {
@@ -3148,13 +3136,9 @@ CChartSpace.prototype.changeLine = function (line)
         if(oChart)
         {
             var oSeries = null;
-            for(var i = 0; i < oChart.series.length; ++i)
+            if(oChart.series[this.selection.series])
             {
-                if(oChart.series[i].idx === this.selection.series)
-                {
-                    oSeries = oChart.series[i];
-                    break;
-                }
+                oSeries = oChart.series[this.selection.series];
             }
             if(oSeries)
             {
@@ -4138,6 +4122,8 @@ CChartSpace.prototype.handleUpdateType = function()
     this.recalcInfo.recalculateChart =  true;
     this.recalcInfo.recalculateSeriesColors = true;
     this.recalcInfo.recalculatePenBrush = true;
+    this.recalcInfo.recalculatePlotAreaBrush = true;
+    this.recalcInfo.recalculatePlotAreaPen = true;
     this.recalcInfo.recalculateMarkers = true;
     this.recalcInfo.recalculateGridLines = true;
     this.recalcInfo.recalculateDLbls = true;
@@ -4184,7 +4170,7 @@ CChartSpace.prototype.handleUpdateInternalChart = function(bColors)
 
     for(var i = 0; i < this.userShapes.length; ++i)
     {
-        if(this.userShapes[i].object && this.userShapes[i].object.handleUpdateExtents)
+        if(this.userShapes[i].object)
         {
             this.userShapes[i].object.handleUpdateExtents();
         }
@@ -5514,6 +5500,7 @@ CChartSpace.prototype.checkCatByNumRef = function(oThis, ser, cat, bVertical)
 
 CChartSpace.prototype.recalculateReferences = function()
 {
+    this.resetSelection(false);
     var worksheet = this.worksheet;
     //this.pointsMap = {};
     if(!worksheet)
@@ -14179,7 +14166,7 @@ CChartSpace.prototype.updateLinks = function()
 
     CChartSpace.prototype.checkDrawingCache = function(graphics)
     {
-        if(window["NATIVE_EDITOR_ENJINE"] || graphics.RENDERER_PDF_FLAG)
+        if(window["NATIVE_EDITOR_ENJINE"] || graphics.RENDERER_PDF_FLAG || this.isSparkline)
         {
             return false;
         }

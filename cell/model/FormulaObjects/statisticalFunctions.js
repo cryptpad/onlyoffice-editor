@@ -10935,6 +10935,8 @@ function (window, undefined) {
 				arr0.push(element.tocNumber());
 			} else if (cElementType.string === element.type || cElementType.empty === element.type) {
 				continue;
+			} else if (cElementType.error === element.type) {
+				return element;
 			} else {
 				return new cError(cErrorType.wrong_value_type);
 			}

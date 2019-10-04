@@ -1053,7 +1053,7 @@ ParaNewLine.prototype.Update_String = function(_W)
 
 	if (break_Page === this.BreakType || break_Column === this.BreakType)
 	{
-		var W = ( false === this.Flags.NewLine ? 50 : _W );
+		var W = false === this.Flags.NewLine ? 50 : Math.max(_W, 50);
 
 		g_oTextMeasurer.SetFont({
 			FontFamily : {Name : "Courier New", Index : -1},
@@ -1377,11 +1377,14 @@ ParaNumbering.prototype.GetSourceWidth = function()
 	return this.Internal.SourceWidth;
 };
 
-// TODO: Реализовать табы по точке и с чертой.
-var tab_Clear  = 0x00;
-var tab_Left   = 0x01;
-var tab_Right  = 0x02;
-var tab_Center = 0x03;
+// TODO: Реализовать табы по точке и с чертой (tab_Bar tab_Decimal)
+var tab_Bar     = 0x00;
+var tab_Center  = 0x01;
+var tab_Clear   = 0x02;
+var tab_Decimal = 0x03;
+var tab_Num     = 0x05;
+var tab_Right   = 0x07;
+var tab_Left    = 0x08;
 
 var tab_Symbol = 0x0022;//0x2192;
 

@@ -1792,7 +1792,7 @@ function (window, undefined) {
 		if (arg0 instanceof cString || arg0 instanceof cError) {
 			return arg[0];
 		} else {
-			return new AscCommonExcel.cEmpty();
+			return new cString("");
 		}
 	};
 
@@ -1842,7 +1842,7 @@ function (window, undefined) {
 		}
 
 		var oFormat = oNumFormatCache.get(arg1.toString());
-		var a = g_oFormatParser.parse(arg0.getValue() + ""), aText;
+		var a = g_oFormatParser.parse(arg0.toLocaleString(true) + ""), aText;
 		aText = oFormat.format(a ? a.value : arg0.getValue(),
 			(arg0 instanceof cNumber || a) ? CellValueType.Number : CellValueType.String,
 			AscCommon.gc_nMaxDigCountView);

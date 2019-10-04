@@ -3721,12 +3721,12 @@
             if (null != oPageSetup.fitToHeight) {
                 this.memory.WriteByte(c_oSer_PageSetup.FitToHeight);
                 this.memory.WriteByte(c_oSerPropLenType.Long);
-                this.memory.WriteLong(oPageSetup.fitToHeight ? 1 : 0);
+                this.memory.WriteLong(oPageSetup.fitToHeight);
             }
             if (null != oPageSetup.fitToWidth) {
                 this.memory.WriteByte(c_oSer_PageSetup.FitToWidth);
                 this.memory.WriteByte(c_oSerPropLenType.Long);
-                this.memory.WriteLong(oPageSetup.fitToWidth ? 1 : 0);
+                this.memory.WriteLong(oPageSetup.fitToWidth);
             }
             if (null != oPageSetup.horizontalDpi) {
                 this.memory.WriteByte(c_oSer_PageSetup.HorizontalDpi);
@@ -7288,9 +7288,9 @@
             } else if ( c_oSer_PageSetup.FirstPageNumber == type ) {
                 oPageSetup.firstPageNumber = this.stream.GetULongLE();
             } else if ( c_oSer_PageSetup.FitToHeight == type ) {
-                oPageSetup.fitToHeight = !!this.stream.GetULongLE();
+                oPageSetup.fitToHeight = this.stream.GetULongLE();
             } else if ( c_oSer_PageSetup.FitToWidth == type ) {
-                oPageSetup.fitToWidth = !!this.stream.GetULongLE();
+                oPageSetup.fitToWidth = this.stream.GetULongLE();
             } else if ( c_oSer_PageSetup.HorizontalDpi == type ) {
                 oPageSetup.horizontalDpi = this.stream.GetULongLE();
             } else if ( c_oSer_PageSetup.Orientation == type ) {

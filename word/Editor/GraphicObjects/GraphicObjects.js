@@ -1500,19 +1500,10 @@ CGraphicObjects.prototype =
         }
         else
         {
-            if(this.selectedObjects[0] && this.selectedObjects[0].parent && this.selectedObjects[0].parent.Is_Inline())
+            if(this.selectedObjects.length > 0)
             {
-                this.resetInternalSelection();
-                this.document.Remove(1, true);
+                this.resetSelection2();
                 this.document.AddInlineImage(W, H, Img, Chart, bFlow );
-            }
-            else
-            {
-                if(this.selectedObjects.length > 0)
-                {
-                    this.resetSelection2();
-                    this.document.AddInlineImage(W, H, Img, Chart, bFlow );
-                }
             }
         }
     },
@@ -3457,6 +3448,7 @@ CGraphicObjects.prototype =
                 {
                     return;
                 }
+
                 if(alignType === Asc.c_oAscObjectsAlignType.Page)
                 {
                     switch (type)
@@ -3468,7 +3460,7 @@ CGraphicObjects.prototype =
                         }
                         case c_oAscAlignShapeType.ALIGN_RIGHT:
                         {
-                            this.alignRight(oSectPr.Get_PageWidth(), Bounds.arrBounds);
+                            this.alignRight(oSectPr.GetPageWidth(), Bounds.arrBounds);
                             break;
                         }
                         case c_oAscAlignShapeType.ALIGN_TOP:
@@ -3478,17 +3470,17 @@ CGraphicObjects.prototype =
                         }
                         case c_oAscAlignShapeType.ALIGN_BOTTOM:
                         {
-                            this.alignBottom(oSectPr.Get_PageHeight(), Bounds.arrBounds);
+                            this.alignBottom(oSectPr.GetPageHeight(), Bounds.arrBounds);
                             break;
                         }
                         case c_oAscAlignShapeType.ALIGN_CENTER:
                         {
-                            this.alignCenter(oSectPr.Get_PageWidth()/2, Bounds.arrBounds);
+                            this.alignCenter(oSectPr.GetPageWidth()/2, Bounds.arrBounds);
                             break;
                         }
                         case c_oAscAlignShapeType.ALIGN_MIDDLE:
                         {
-                            this.alignMiddle(oSectPr.Get_PageHeight()/2, Bounds.arrBounds);
+                            this.alignMiddle(oSectPr.GetPageHeight()/2, Bounds.arrBounds);
                             break;
                         }
                         default:
@@ -3497,36 +3489,37 @@ CGraphicObjects.prototype =
                 }
                 else
                 {
-                    switch (type)
+					var oFrame = oSectPr.GetContentFrame(this.selection.groupSelection.parent.PageNum);
+					switch (type)
                     {
                         case c_oAscAlignShapeType.ALIGN_LEFT:
                         {
-                            this.alignLeft(oSectPr.Get_PageMargin_Left(), Bounds.arrBounds);
+                            this.alignLeft(oFrame.Left, Bounds.arrBounds);
                             break;
                         }
                         case c_oAscAlignShapeType.ALIGN_RIGHT:
                         {
-                            this.alignRight(oSectPr.Get_PageWidth() - oSectPr.Get_PageMargin_Right(), Bounds.arrBounds);
+                            this.alignRight(oFrame.Right, Bounds.arrBounds);
                             break;
                         }
                         case c_oAscAlignShapeType.ALIGN_TOP:
                         {
-                            this.alignTop(oSectPr.Get_PageMargin_Top(), Bounds.arrBounds);
+                            this.alignTop(oFrame.Top, Bounds.arrBounds);
                             break;
                         }
                         case c_oAscAlignShapeType.ALIGN_BOTTOM:
                         {
-                            this.alignBottom(oSectPr.Get_PageHeight() - oSectPr.Get_PageMargin_Bottom(), Bounds.arrBounds);
+                            this.alignBottom(oFrame.Bottom, Bounds.arrBounds);
                             break;
                         }
                         case c_oAscAlignShapeType.ALIGN_CENTER:
                         {
-                            this.alignCenter(oSectPr.Get_PageMargin_Left() + (oSectPr.Get_PageWidth() - oSectPr.Get_PageMargin_Left() - oSectPr.Get_PageMargin_Right())/2, Bounds.arrBounds);
+                            this.alignCenter((oFrame.Left + oFrame.Right) / 2, Bounds.arrBounds);
                             break;
                         }
                         case c_oAscAlignShapeType.ALIGN_MIDDLE:
                         {
-                            this.alignMiddle(oSectPr.Get_PageMargin_Top() + (oSectPr.Get_PageHeight() - oSectPr.Get_PageMargin_Top() - oSectPr.Get_PageMargin_Bottom())/2, Bounds.arrBounds);
+                            this.alignMiddle((oFrame.Top + oFrame.Bottom) / 2, Bounds.arrBounds);
                             break;
                         }
                         default:
@@ -3728,15 +3721,18 @@ CGraphicObjects.prototype =
                 {
                     return;
                 }
+
                 if(alignType === Asc.c_oAscObjectsAlignType.Page)
                 {
-                    pos1 =  0;
-                    pos2 = oSectPr.Get_PageWidth();
+                    pos1 = 0;
+                    pos2 = oSectPr.GetPageWidth();
                 }
                 else
                 {
-                    pos1 =  oSectPr.Get_PageMargin_Left();
-                    pos2 = oSectPr.Get_PageWidth() - oSectPr.Get_PageMargin_Right();
+					var oFrame = oSectPr.GetContentFrame(sortObjects[0].trackObject.originalObject.selectStartPage);
+
+					pos1 = oFrame.Left;
+                    pos2 = oFrame.Right;
                 }
             }
             var summ_width = boundsObject.summWidth;
@@ -3794,15 +3790,18 @@ CGraphicObjects.prototype =
                 {
                     return;
                 }
+
                 if(alignType === Asc.c_oAscObjectsAlignType.Page)
                 {
-                    pos1 =  0;
-                    pos2 = oSectPr.Get_PageHeight();
+                    pos1 = 0;
+                    pos2 = oSectPr.GetPageHeight();
                 }
                 else
                 {
-                    pos1 =  oSectPr.Get_PageMargin_Top();
-                    pos2 = oSectPr.Get_PageHeight() - oSectPr.Get_PageMargin_Bottom();
+					var oFrame = oSectPr.GetContentFrame(sortObjects[0].trackObject.originalObject.selectStartPage);
+
+                    pos1 = oFrame.Top;
+                    pos2 = oFrame.Bottom;
                 }
             }
             var summ_height = boundsObject.summHeight;

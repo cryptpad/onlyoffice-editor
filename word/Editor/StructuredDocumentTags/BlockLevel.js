@@ -553,6 +553,10 @@ CBlockLevelSdt.prototype.StartSelectionFromCurPos = function()
 {
 	this.Content.StartSelectionFromCurPos();
 };
+CBlockLevelSdt.prototype.SetParagraphPr = function(oParaPr)
+{
+	return this.Content.SetParagraphPr(oParaPr);
+};
 CBlockLevelSdt.prototype.SetParagraphAlign = function(Align)
 {
 	return this.Content.SetParagraphAlign(Align);
@@ -856,9 +860,13 @@ CBlockLevelSdt.prototype.LoadRecalculateObject = function(RecalcObj)
 {
 	return this.Content.LoadRecalculateObject(RecalcObj);
 };
-CBlockLevelSdt.prototype.Set_ApplyToAll = function(bValue)
+CBlockLevelSdt.prototype.SetApplyToAll = function(bValue)
 {
-	this.Content.Set_ApplyToAll(bValue);
+	this.Content.SetApplyToAll(bValue);
+};
+CBlockLevelSdt.prototype.IsApplyToAll = function()
+{
+	return this.Content.IsApplyToAll();
 };
 CBlockLevelSdt.prototype.RecalculateAllTables = function()
 {
@@ -896,6 +904,10 @@ CBlockLevelSdt.prototype.GetAllContentControls = function(arrContentControls)
 CBlockLevelSdt.prototype.IsSelectedAll = function()
 {
 	return this.Content.IsSelectedAll();
+};
+CBlockLevelSdt.prototype.IsApplyToAll = function()
+{
+	return this.Content.IsApplyToAll();
 };
 CBlockLevelSdt.prototype.GetLastRangeVisibleBounds = function()
 {
@@ -1102,6 +1114,11 @@ CBlockLevelSdt.prototype.GetAllComments = function(AllComments)
 CBlockLevelSdt.prototype.GetAllMaths = function(AllMaths)
 {
 	return this.Content.GetAllMaths(AllMaths);
+};
+
+CBlockLevelSdt.prototype.GetAllSeqFieldsByType = function(sType, aFields)
+{
+	return this.Content.GetAllSeqFieldsByType(sType, aFields);
 };
 CBlockLevelSdt.prototype.Get_ParentTextTransform = function()
 {
@@ -1508,6 +1525,10 @@ CBlockLevelSdt.prototype.ReplacePlaceHolderWithContent = function()
 CBlockLevelSdt.prototype.CheckRunContent = function(fCheck)
 {
 	return this.Content.CheckRunContent(fCheck);
+};
+CBlockLevelSdt.prototype.IsTableCellSelection = function()
+{
+	return this.Content.IsTableCellSelection();
 };
 //--------------------------------------------------------export--------------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};

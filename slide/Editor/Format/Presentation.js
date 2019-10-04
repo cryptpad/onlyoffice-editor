@@ -3378,6 +3378,10 @@ CPresentation.prototype =
                                 {
                                     if(typeof sDateTime === "string" || typeof sCustomDateTime === "string")
                                     {
+                                        if(sDateTime)
+                                        {
+                                            sCustomDateTime = oDateTime.get_DateTimeExamples()[sDateTime];
+                                        }
                                         for(j = 0; j < oMaster.sldLayoutLst.length; ++j)
                                         {
                                             oSp = oMaster.sldLayoutLst[j].getMatchingShape(AscFormat.phType_dt, null, false, {});
@@ -3396,7 +3400,9 @@ CPresentation.prototype =
                                                         oFld.Set_Lang_Val(nLang);
                                                         if(typeof sCustomDateTime === "string")
                                                         {
+                                                            oFld.CanAddToContent = true;
                                                             oFld.AddText(sCustomDateTime);
+                                                            oFld.CanAddToContent = false;
                                                         }
                                                         oParagraph.Internal_Content_Add(0, oFld);
                                                     }
@@ -3423,7 +3429,9 @@ CPresentation.prototype =
                                                     oFld.Set_Lang_Val(nLang);
                                                     if(typeof sCustomDateTime === "string")
                                                     {
+                                                        oFld.CanAddToContent = true;
                                                         oFld.AddText(sCustomDateTime);
+                                                        oFld.CanAddToContent = false;
                                                     }
                                                     oParagraph.Internal_Content_Add(0, oFld);
                                                 }
@@ -3464,7 +3472,9 @@ CPresentation.prototype =
                                             oFld.Set_Lang_Val(nLang);
                                             if(typeof sCustomDateTime === "string")
                                             {
+                                                oFld.CanAddToContent = true;
                                                 oFld.AddText(sCustomDateTime);
+                                                oFld.CanAddToContent = false;
                                             }
                                             oParagraph.Internal_Content_Add(0, oFld);
                                         }
@@ -3614,6 +3624,10 @@ CPresentation.prototype =
                             {
                                 sDateTime = oDateTime.get_DateTime();
                                 sCustomDateTime = oDateTime.get_CustomDateTime();
+                                if(sDateTime)
+                                {
+                                    sCustomDateTime = oDateTime.get_DateTimeExamples()[sDateTime];
+                                }
                                 nLang = oDateTime.get_Lang();
                                 if(!AscFormat.isRealNumber(nLang))
                                 {
@@ -3646,7 +3660,9 @@ CPresentation.prototype =
                                         oFld.Set_Lang_Val(nLang);
                                         if(typeof sCustomDateTime === "string")
                                         {
+                                            oFld.CanAddToContent = true;
                                             oFld.AddText(sCustomDateTime);
+                                            oFld.CanAddToContent = false;
                                         }
                                         oParagraph.Internal_Content_Add(0, oFld);
                                     }
@@ -3692,6 +3708,8 @@ CPresentation.prototype =
             oContent = oController.getTargetDocContent(true, false);
             if(oContent)
             {
+                if (true === oContent.IsSelectionUse())
+                    oContent.Remove(1, true, false, true);
                 var oParagraph = oContent.Content[oContent.CurPos.ContentPos];
                 if(oParagraph)
                 {
@@ -3740,10 +3758,16 @@ CPresentation.prototype =
                     oFld = new AscCommonWord.CPresentationField(oParagraph);
                     oFld.SetGuid(AscCommon.CreateGUID());
                     oFld.SetFieldType(sFieldType);
+                    if(sFieldType)
+                    {
+                        sCustomDateTime = oPr.get_DateTimeExamples()[sFieldType];
+                    }
                     oFld.Set_Lang_Val(nLang);
                     if(typeof sCustomDateTime === "string" && sCustomDateTime.length > 0)
                     {
+                        oFld.CanAddToContent = true;
                         oFld.AddText(sCustomDateTime);
+                        oFld.CanAddToContent = false;
                     }
                 }
                 else
@@ -7008,7 +7032,7 @@ CPresentation.prototype =
         return oController && oController.setDefaultTabSize(DTab);
     },
 
-    Set_DocumentMargin: function()
+    SetDocumentMargin: function()
     {
 
     },
@@ -8283,12 +8307,16 @@ CPresentation.prototype =
 
 	GetPresentationField: function()
 	{
-		var oDocContent = this.Get_TargetDocContent();
-		if (oDocContent)
-		{
-			return oDocContent.GetPresentationField();
-		}
-
+        var oController = this.GetCurrentController();
+        var oDocContent;
+        if(oController)
+        {
+            oDocContent = oController.getTargetDocContent();
+            if (oDocContent)
+            {
+                return oDocContent.GetPresentationField();
+            }
+        }
 		return null;
 	},
 
@@ -8755,7 +8783,7 @@ CPresentation.prototype =
                                     for(i = 0; i < oSelectedContent.Elements.length; ++i){
                                         oParagraph = oSelectedContent.Elements[i].Element;
                                         oParagraph.Parent = oDocContent;
-                                        oParagraph.Internal_CompileParaPr();
+                                        oParagraph.private_CompileParaPr();
                                         aContent.push(oParagraph);
                                     }
                                     AscFormat.SaveContentSourceFormatting(aContent, aContent, oDocContent.Get_Theme(), oDocContent.Get_ColorMap());
@@ -8769,7 +8797,7 @@ CPresentation.prototype =
                                     for(i = 0; i < oSelectedContent2.Elements.length; ++i){
                                         oParagraph = oSelectedContent2.Elements[i].Element;
                                         oParagraph.Parent = oDocContent;
-                                        oParagraph.Internal_CompileParaPr();
+                                        oParagraph.private_CompileParaPr();
                                         aContent.push(oParagraph);
                                     }
                                     AscFormat.SaveContentSourceFormatting(aContent, aContent, oDocContent.Get_Theme(), oDocContent.Get_ColorMap());

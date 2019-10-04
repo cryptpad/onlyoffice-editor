@@ -82,6 +82,7 @@
 
         this.Slide = null;
         this.SlideNum = null;
+        this.CanAddToContent = false;
     }
     CPresentationField.prototype = Object.create(ParaRun.prototype);
     CPresentationField.prototype.constructor = CPresentationField;
@@ -127,7 +128,7 @@
 
     CPresentationField.prototype.Add_ToContent = function(Pos, Item, UpdatePosition)
     {
-        if(AscCommon.History.Is_On())
+        if(AscCommon.History.Is_On() && !this.CanAddToContent)
         {
             return;
         }
@@ -181,7 +182,7 @@
             {
                 if(this.Paragraph && this.Paragraph.Parent)
                 {
-                    oStylesObject = this.Paragraph.Parent.Get_Styles();
+                    oStylesObject = this.Paragraph.Parent.Get_Styles(0);
                     var nFirstSlideNum = 1;
                     if(oStylesObject.presentation)
                     {

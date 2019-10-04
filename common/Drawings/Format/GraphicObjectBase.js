@@ -57,6 +57,7 @@
     drawingsChangesMap[AscDFH.historyitem_AutoShapes_SetDrawingBaseType] = function(oClass, value){
         if(oClass.drawingBase){
             oClass.drawingBase.Type = value;
+            oClass.handleUpdateExtents();
         }
     };
 
@@ -81,6 +82,7 @@
             if(oClass.drawingBase && oClass.drawingBase.Pos){
                 oClass.drawingBase.Pos.X = value.a;
                 oClass.drawingBase.Pos.Y = value.b;
+                oClass.handleUpdatePosition();
             }
         }
     };
@@ -90,6 +92,7 @@
             if(oClass.drawingBase && oClass.drawingBase.ext){
                 oClass.drawingBase.ext.cx = value.a;
                 oClass.drawingBase.ext.cy = value.b;
+                oClass.handleUpdateExtents();
             }
         }
     };
@@ -108,6 +111,7 @@
                 oClass.drawingBase.Pos.Y = value.posY;
                 oClass.drawingBase.ext.cx = value.cx ;
                 oClass.drawingBase.ext.cy = value.cy ;
+                oClass.handleUpdateExtents();
             }
         }
     };
@@ -806,11 +810,15 @@
     CGraphicObjectBase.prototype.checkTypeCorrect = function(){
         return true;
     };
-
+    CGraphicObjectBase.prototype.handleUpdateExtents = function(){
+    };
+    CGraphicObjectBase.prototype.handleUpdatePosition = function(){
+    };
     CGraphicObjectBase.prototype.setDrawingBaseType = function(nType){
         if(this.drawingBase){
             History.Add(new AscDFH.CChangesDrawingsLong(this, AscDFH.historyitem_AutoShapes_SetDrawingBaseType, this.drawingBase.Type, nType));
             this.drawingBase.Type = nType;
+            this.handleUpdateExtents();
         }
     };
     CGraphicObjectBase.prototype.setDrawingBasePos = function(fPosX, fPosY){
@@ -818,6 +826,7 @@
             History.Add(new AscDFH.CChangesDrawingsObjectNoId(this, AscDFH.historyitem_AutoShapes_SetDrawingBasePos, new CDrawingBaseCoordsWritable(this.drawingBase.Pos.X, this.drawingBase.Pos.Y), new CDrawingBaseCoordsWritable(fPosX, fPosY)));
             this.drawingBase.Pos.X = fPosX;
             this.drawingBase.Pos.Y = fPosY;
+            this.handleUpdatePosition();
         }
     };
     CGraphicObjectBase.prototype.setDrawingBaseExt = function(fExtX, fExtY){
@@ -825,6 +834,7 @@
             History.Add(new AscDFH.CChangesDrawingsObjectNoId(this, AscDFH.historyitem_AutoShapes_SetDrawingBaseExt, new CDrawingBaseCoordsWritable(this.drawingBase.ext.cx, this.drawingBase.ext.cy), new CDrawingBaseCoordsWritable(fExtX, fExtY)));
             this.drawingBase.ext.cx = fExtX;
             this.drawingBase.ext.cy = fExtY;
+            this.handleUpdateExtents();
         }
     };
 
@@ -846,6 +856,10 @@
     CGraphicObjectBase.prototype.getPhIndex = function()
     {
         return null;
+    };
+    CGraphicObjectBase.prototype.getDrawingBaseType = function()
+    {
+        return this.drawingBase ? this.drawingBase.Type : null;
     };
 
     CGraphicObjectBase.prototype.checkDrawingBaseCoords = function()
@@ -909,6 +923,7 @@
                     cx: this.drawingBase.ext.cx,
                     cy: this.drawingBase.ext.cy
                 })));
+            this.handleUpdateExtents();
         }
 };
 
@@ -960,6 +975,8 @@
             this.drawingBase.Pos.Y  = posY;
             this.drawingBase.ext.cx = extX;
             this.drawingBase.ext.cy = extY;
+
+        this.handleUpdateExtents();
 }
 };
 
@@ -1048,6 +1065,10 @@
     CGraphicObjectBase.prototype.GetAllFields = function(isUseSelection, arrFields)
     {
         return arrFields ? arrFields : [];
+    };
+
+    CGraphicObjectBase.prototype.GetAllSeqFieldsByType = function(sType, aFields)
+    {
     };
 
     CGraphicObjectBase.prototype.convertToConnectionParams = function(rot, flipH, flipV, oTransform, oBounds, oConnectorInfo){

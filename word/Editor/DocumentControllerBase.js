@@ -798,3 +798,8 @@ CDocumentControllerBase.prototype.GetPlaceHolderObject = function(){return null;
  * @returns {Array}
  */
 CDocumentControllerBase.prototype.GetAllFields = function(isUseSelection, arrFields){return arrFields ? arrFields : [];};
+/**
+ * Проверяем, происходит ли сейчас выделение по ячейкам таблицы
+ * @returns {boolean}
+ */
+CDocumentControllerBase.prototype.IsTableCellSelection = function(){return false;};

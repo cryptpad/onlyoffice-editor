@@ -793,6 +793,7 @@
 		this.tmpCoMarksDraw = false;
 		this.tmpViewRulers  = null;
 		this.tmpZoomType    = null;
+		this.tmpDocumentUnits = null;
 
 		// это чтобы сразу показать ридер, без возможности вернуться в редактор/вьюер
 		this.isOnlyReaderMode = false;
@@ -2089,7 +2090,7 @@ background-repeat: no-repeat;\
 		if (!_logicDoc || _logicDoc.IsSelectionEmpty(true))
 			return;
 
-		if (false === _logicDoc.Document_Is_SelectionLocked(changestype_Paragraph_Content))
+		if (false === _logicDoc.Document_Is_SelectionLocked(AscCommon.changestype_Remove))
 		{
 			_logicDoc.StartAction(AscDFH.historydescription_Cut);
 			_logicDoc.Remove(-1, true, true); // -1 - нормальное удаление  (например, для таблиц)
@@ -4014,7 +4015,7 @@ background-repeat: no-repeat;\
 	};
 	asc_docs_api.prototype.put_Margins            = function(left, top, right, bottom)
 	{
-		this.WordControl.m_oLogicDocument.Set_DocumentMargin({Left : left, Top : top, Right : right, Bottom : bottom});
+		this.WordControl.m_oLogicDocument.SetDocumentMargin({Left : left, Top : top, Right : right, Bottom : bottom});
 	};
 	asc_docs_api.prototype.getFocusObject         = function()
 	{//возвратит тип элемента - параграф c_oAscTypeSelectElement.Paragraph, изображение c_oAscTypeSelectElement.Image, таблица c_oAscTypeSelectElement.Table, колонтитул c_oAscTypeSelectElement.Header.
@@ -4604,29 +4605,65 @@ background-repeat: no-repeat;\
 	};
 	asc_docs_api.prototype.remRow                  = function()
 	{
-		if (false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(changestype_Table_RemoveCells))
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return false;
+
+		oLogicDocument.SelectTable(c_oAscTableSelectionType.Row);
+
+		if (!oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Remove))
 		{
-			this.WordControl.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_TableRemoveRow);
-			this.WordControl.m_oLogicDocument.RemoveTableRow();
-			this.WordControl.m_oLogicDocument.FinalizeAction();
+			oLogicDocument.StartAction(AscDFH.historydescription_Document_TableRemoveRow);
+			oLogicDocument.RemoveTableRow();
+			oLogicDocument.FinalizeAction();
+
+			return true;
+		}
+		else
+		{
+			return false;
 		}
 	};
 	asc_docs_api.prototype.remColumn               = function()
 	{
-		if (false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(changestype_Table_RemoveCells))
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return false;
+
+		oLogicDocument.SelectTable(c_oAscTableSelectionType.Column);
+
+		if (!oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Remove))
 		{
-			this.WordControl.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_TableRemoveColumn);
-			this.WordControl.m_oLogicDocument.RemoveTableColumn();
-			this.WordControl.m_oLogicDocument.FinalizeAction();
+			oLogicDocument.StartAction(AscDFH.historydescription_Document_TableRemoveColumn);
+			oLogicDocument.RemoveTableColumn();
+			oLogicDocument.FinalizeAction();
+
+			return true;
+		}
+		else
+		{
+			return false;
 		}
 	};
 	asc_docs_api.prototype.remTable                = function()
 	{
-		if (false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(changestype_Table_RemoveCells))
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return false;
+
+		oLogicDocument.SelectTable(c_oAscTableSelectionType.Table);
+
+		if (!oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Remove))
 		{
-			this.WordControl.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_RemoveTable);
-			this.WordControl.m_oLogicDocument.RemoveTable();
-			this.WordControl.m_oLogicDocument.FinalizeAction();
+			oLogicDocument.StartAction(AscDFH.historydescription_Document_RemoveTable);
+			oLogicDocument.RemoveTable();
+			oLogicDocument.FinalizeAction();
+
+			return true;
+		}
+		else
+		{
+			return false;
 		}
 	};
 	asc_docs_api.prototype.selectRow               = function()
@@ -4699,6 +4736,25 @@ background-repeat: no-repeat;\
 		}
 
 		return bResult;
+	};
+	asc_docs_api.prototype.asc_RemoveTableCells    = function()
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return false;
+
+		if (!oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Remove))
+		{
+			oLogicDocument.StartAction(AscDFH.historydescription_Document_RemoveTableCells);
+			oLogicDocument.RemoveTableCells();
+			oLogicDocument.FinalizeAction();
+
+			return true;
+		}
+		else
+		{
+			return false;
+		}
 	};
 	asc_docs_api.prototype.widthTable              = function(width)
 	{
@@ -7037,6 +7093,10 @@ background-repeat: no-repeat;\
 			this.WordControl.UpdateHorRulerBack(true);
 			this.WordControl.UpdateVerRulerBack(true);
 		}
+		else
+		{
+            this.tmpDocumentUnits = _units;
+		}
 	};
 
 	asc_docs_api.prototype.GoToHeader = function(pageNumber)
@@ -7547,7 +7607,11 @@ background-repeat: no-repeat;\
 	{
 		this.isChartEditor = true;	// Для совместного редактирования
 		this.asc_onOpenChartFrame();
-		this.WordControl.onMouseUpMainSimple();
+		
+		if(!window['IS_NATIVE_EDITOR']) {
+			this.WordControl.onMouseUpMainSimple();
+		}
+		
 		this.sendEvent("asc_doubleClickOnChart", obj);
 	};
 
@@ -7839,6 +7903,11 @@ background-repeat: no-repeat;\
 					this.zoomCustomMode();
 					break;
 			}
+		}
+		if (null != this.tmpDocumentUnits)
+		{
+			this.asc_SetDocumentUnits(this.tmpDocumentUnits);
+			this.tmpDocumentUnits = null;
 		}
 
 		this.asc_setViewMode(this.isViewMode);
@@ -8750,6 +8819,16 @@ background-repeat: no-repeat;\
 		return sRet;
 	};
 
+	asc_docs_api.prototype.asc_AddObjectCaption = function(oPr)
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+
+		if (!oLogicDocument)
+			return;
+
+		oLogicDocument.AddCaption(oPr);
+	};
+
 	asc_docs_api.prototype.asc_GetBookmarksManager = function()
 	{
 		var oLogicDocument = this.WordControl.m_oLogicDocument;
@@ -8759,6 +8838,10 @@ background-repeat: no-repeat;\
 		var oManager = oLogicDocument.GetBookmarksManager();
 		oManager.Update();
 		return oManager;
+	};
+	asc_docs_api.prototype.asc_OnBookmarksUpdate = function()
+	{
+		this.sendEvent("asc_onBookmarksUpdate");
 	};
 
 	asc_docs_api.prototype.asc_GetHeadingLevel = function(sStyleName)
@@ -9432,6 +9515,28 @@ background-repeat: no-repeat;\
 
 		this.asc_addComment(oData);
 	};
+	window["asc_docs_api"].prototype["pluginMethod_MoveCursorToStart"] = function(isMoveToMainContent)
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (oLogicDocument)
+		{
+			if (isMoveToMainContent)
+				oLogicDocument.MoveCursorToStartOfDocument();
+			else
+				oLogicDocument.MoveCursorToStartPos(false);
+		}
+	};
+	window["asc_docs_api"].prototype["pluginMethod_MoveCursorToEnd"] = function(isMoveToMainContent)
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (oLogicDocument)
+		{
+			if (isMoveToMainContent)
+				oLogicDocument.MoveCursorToStartOfDocument();
+
+			oLogicDocument.MoveCursorToEndPos(false);
+		}
+	};
 	/**
 	 * Find and replace text.
 	 * @param {Object} oProperties The properties for find and replace.
@@ -9510,6 +9615,7 @@ background-repeat: no-repeat;\
 		{
 			oLogicDocument.StartAction(AscDFH.historydescription_SetCoreproperties);
 			oCore.setProps(oProps);
+			this.UpdateInterfaceState();
 			oLogicDocument.FinalizeAction(true);
 		}
 	};
@@ -9819,6 +9925,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['MergeCells']                                = asc_docs_api.prototype.MergeCells;
 	asc_docs_api.prototype['SplitCell']                                 = asc_docs_api.prototype.SplitCell;
 	asc_docs_api.prototype['asc_DistributeTableCells']                  = asc_docs_api.prototype.asc_DistributeTableCells;
+	asc_docs_api.prototype['asc_RemoveTableCells']                      = asc_docs_api.prototype.asc_RemoveTableCells;
 	asc_docs_api.prototype['widthTable']                                = asc_docs_api.prototype.widthTable;
 	asc_docs_api.prototype['put_CellsMargin']                           = asc_docs_api.prototype.put_CellsMargin;
 	asc_docs_api.prototype['set_TblWrap']                               = asc_docs_api.prototype.set_TblWrap;
@@ -10096,7 +10203,10 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_CreateInstructionLine']                 = asc_docs_api.prototype.asc_CreateInstructionLine;
 
 
+	asc_docs_api.prototype['asc_AddObjectCaption']                      = asc_docs_api.prototype.asc_AddObjectCaption;
+
 	asc_docs_api.prototype['asc_GetBookmarksManager']                   = asc_docs_api.prototype.asc_GetBookmarksManager;
+	asc_docs_api.prototype['asc_OnBookmarksUpdate']                     = asc_docs_api.prototype.asc_OnBookmarksUpdate;
 
 	asc_docs_api.prototype['asc_GetHeadingLevel']                       = asc_docs_api.prototype.asc_GetHeadingLevel;
 	asc_docs_api.prototype['asc_GetStylesArray']                        = asc_docs_api.prototype.asc_GetStylesArray;

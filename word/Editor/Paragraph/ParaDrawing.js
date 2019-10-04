@@ -602,7 +602,7 @@ ParaDrawing.prototype.Set_GraphicObject = function(graphicObject)
 
 	History.Add(new CChangesParaDrawingGraphicObject(this, oldId, newId));
 
-	if (graphicObject && graphicObject.handleUpdateExtents)
+	if (graphicObject)
 		graphicObject.handleUpdateExtents();
 
 	this.GraphicObj = graphicObject;
@@ -2739,6 +2739,14 @@ ParaDrawing.prototype.GetAllFields = function(isUseSelection, arrFields)
 	return arrFields ? arrFields : [];
 };
 
+ParaDrawing.prototype.GetAllSeqFieldsByType = function(sType, aFields)
+{
+	if(this.GraphicObj)
+	{
+		return this.GraphicObj.GetAllSeqFieldsByType(sType, aFields);
+	}
+};
+
 /**
  * Класс, описывающий текущее положение параграфа при рассчете позиции автофигуры.
  * @constructor
@@ -2850,14 +2858,31 @@ CAnchorPosition.prototype.Calculate_X = function(bInline, RelativeFrom, bAlign, 
 	}
 	var Width = _W + this.EffectExtentL + this.EffectExtentR;
 	var Shift = this.EffectExtentL + _W / 2.0 - this.W / 2.0;
+
 	if (true === bInline)
 	{
-			this.CalcX = this.X + Shift;
+		this.CalcX = this.X + Shift;
 	}
 	else
 	{
+		var _RelativeFrom = RelativeFrom;
+		if (_RelativeFrom === c_oAscRelativeFromH.InsideMargin)
+		{
+			if (0 === this.PageNum % 2)
+				_RelativeFrom = c_oAscRelativeFromH.LeftMargin;
+			else
+				_RelativeFrom = c_oAscRelativeFromH.RightMargin;
+		}
+		else if (_RelativeFrom === c_oAscRelativeFromH.OutsideMargin)
+		{
+			if (0 === this.PageNum % 2)
+				_RelativeFrom = c_oAscRelativeFromH.RightMargin;
+			else
+				_RelativeFrom = c_oAscRelativeFromH.LeftMargin;
+		}
+
 		// Вычисляем координату по X
-		switch (RelativeFrom)
+		switch (_RelativeFrom)
 		{
 			case c_oAscRelativeFromH.Character:
 			{
@@ -2932,9 +2957,7 @@ CAnchorPosition.prototype.Calculate_X = function(bInline, RelativeFrom, bAlign, 
 				break;
 			}
 
-			case c_oAscRelativeFromH.InsideMargin:
 			case c_oAscRelativeFromH.LeftMargin:
-			case c_oAscRelativeFromH.OutsideMargin:
 			{
 				if (true === bAlign)
 				{

@@ -369,7 +369,7 @@ function CopyRunToPPTX(Run, Paragraph, bHyper)
 function ConvertParagraphToPPTX(paragraph, drawingDocument, newParent, bIsAddMath, bRemoveHyperlink)
 {
     var _drawing_document = isRealObject(drawingDocument) ? drawingDocument : paragraph.DrawingDocument;
-    var _new_parent = isRealObject(newParent) ? newParent : paragraph.Parent;
+    var _new_parent = isRealObject(newParent) ? newParent : null;
 
     var new_paragraph = new Paragraph(_drawing_document, _new_parent, true);
     if(!(paragraph instanceof Paragraph))
@@ -3199,28 +3199,28 @@ CShape.prototype.recalculateLocalTransform = function(transform)
                                         {
                                             case c_oAscSizeRelFromH.sizerelfromhMargin:
                                             {
-                                                this.extX = oSectPr.Get_PageWidth() - oSectPr.Get_PageMargin_Left() - oSectPr.Get_PageMargin_Right();
+                                                this.extX = oSectPr.GetContentFrameWidth();
                                                 break;
                                             }
                                             case c_oAscSizeRelFromH.sizerelfromhPage:
                                             {
-                                                this.extX = oSectPr.Get_PageWidth();
+                                                this.extX = oSectPr.GetPageWidth();
                                                 break;
                                             }
                                             case c_oAscSizeRelFromH.sizerelfromhLeftMargin:
                                             {
-                                                this.extX = oSectPr.Get_PageMargin_Left();
+                                                this.extX = oSectPr.GetPageMarginLeft();
                                                 break;
                                             }
 
                                             case c_oAscSizeRelFromH.sizerelfromhRightMargin:
                                             {
-                                                this.extX = oSectPr.Get_PageMargin_Right();
+                                                this.extX = oSectPr.GetPageMarginRight();
                                                 break;
                                             }
                                             default:
                                             {
-                                                this.extX = oSectPr.Get_PageMargin_Left();
+                                                this.extX = oSectPr.GetPageMarginLeft();
                                                 break;
                                             }
                                         }
@@ -3232,27 +3232,27 @@ CShape.prototype.recalculateLocalTransform = function(transform)
                                         {
                                             case c_oAscSizeRelFromV.sizerelfromvMargin:
                                             {
-                                                this.extY = oSectPr.Get_PageHeight() - oSectPr.Get_PageMargin_Top() - oSectPr.Get_PageMargin_Bottom();
+                                                this.extY = oSectPr.GetContentFrameHeight();
                                                 break;
                                             }
                                             case c_oAscSizeRelFromV.sizerelfromvPage:
                                             {
-                                                this.extY = oSectPr.Get_PageHeight();
+                                                this.extY = oSectPr.GetPageHeight();
                                                 break;
                                             }
                                             case c_oAscSizeRelFromV.sizerelfromvTopMargin:
                                             {
-                                                this.extY = oSectPr.Get_PageMargin_Top();
+                                                this.extY = oSectPr.GetPageMarginTop();
                                                 break;
                                             }
                                             case c_oAscSizeRelFromV.sizerelfromvBottomMargin:
                                             {
-                                                this.extY = oSectPr.Get_PageMargin_Bottom();
+                                                this.extY = oSectPr.GetPageMarginBottom();
                                                 break;
                                             }
                                             default:
                                             {
-                                                this.extY = oSectPr.Get_PageMargin_Top();
+                                                this.extY = oSectPr.GetPageMarginTop();
                                                 break;
                                             }
                                         }
@@ -3738,12 +3738,12 @@ CShape.prototype.CheckNeedRecalcAutoFit  = function(oSectPr)
             }
             else
             {
+				Width  = oSectPr.GetContentFrameWidth();
+				Height = oSectPr.GetContentFrameHeight();
 
-                Width = oSectPr.Get_PageWidth() - oSectPr.Get_PageMargin_Left() - oSectPr.Get_PageMargin_Right();
-                Height = oSectPr.Get_PageHeight() - oSectPr.Get_PageMargin_Top() - oSectPr.Get_PageMargin_Bottom();
+				Width2  = this.m_oSectPr.GetContentFrameWidth();
+				Height2 = this.m_oSectPr.GetContentFrameHeight();
 
-                Width2 = this.m_oSectPr.Get_PageWidth() - this.m_oSectPr.Get_PageMargin_Left() - this.m_oSectPr.Get_PageMargin_Right();
-                Height2 = this.m_oSectPr.Get_PageHeight() - this.m_oSectPr.Get_PageMargin_Top() - this.m_oSectPr.Get_PageMargin_Bottom();
                 bRet = (Math.abs(Width - Width2) > 0.001 || Math.abs(Height - Height2) > 0.001);
                 if(bRet)
                 {
@@ -3839,11 +3839,11 @@ CShape.prototype.recalculateDocContent = function(oDocContent, oBodyPr)
                     {
                         if(!(oBodyPr.vert === AscFormat.nVertTTvert || oBodyPr.vert === AscFormat.nVertTTvert270 || oBodyPr.vert === AscFormat.nVertTTeaVert))
                         {
-                            dMaxWidth = oSectPr.Get_PageWidth() - oSectPr.Get_PageMargin_Left() - oSectPr.Get_PageMargin_Right() - l_ins - r_ins;
+                            dMaxWidth = oSectPr.GetContentFrameWidth() - l_ins - r_ins;
                         }
                         else
                         {
-                            dMaxWidth = oSectPr.Get_PageHeight() - oSectPr.Get_PageMargin_Top() - oSectPr.Get_PageMargin_Bottom();
+                            dMaxWidth = oSectPr.GetContentFrameHeight();
                         }
                         this.m_oSectPr = new CSectionPr();
                         this.m_oSectPr.Copy(oSectPr);
@@ -4556,7 +4556,7 @@ CShape.prototype.draw = function (graphics, transform, transformText, pageIndex)
         }
     }
 
-    if ((geometry || (this.getObjectType && (this.getObjectType() === AscDFH.historyitem_type_DLbl || this.getObjectType() === AscDFH.historyitem_type_Legend))) && (this.style || (this.brush && this.brush.fill) || (this.pen && this.pen.Fill && this.pen.Fill.fill))) {
+    if ((geometry || (this.getObjectType && (this.getObjectType() === AscDFH.historyitem_type_DLbl || this.getObjectType() === AscDFH.historyitem_type_Title || this.getObjectType() === AscDFH.historyitem_type_Legend))) && (this.style || (this.brush && this.brush.fill) || (this.pen && this.pen.Fill && this.pen.Fill.fill))) {
         graphics.SetIntegerGrid(false);
         graphics.transform3(_transform, false);
 
@@ -5957,6 +5957,13 @@ CShape.prototype.getColumnNumber = function(){
             return oContent.GetAllFields(isUseSelection, arrFields)
         }
         return arrFields ? arrFields : [];
+    };
+    CShape.prototype.GetAllSeqFieldsByType = function(sType, aFields)
+    {
+        var oContent = this.getDocContent();
+        if(oContent){
+            return oContent.GetAllSeqFieldsByType(sType, aFields)
+        }
     };
 function CreateBinaryReader(szSrc, offset, srcLen)
 {

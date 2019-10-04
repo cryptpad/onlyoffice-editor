@@ -2838,7 +2838,7 @@ ParaMath.prototype.Draw_Lines = function(PDSL)
 //-----------------------------------------------------------------------------------
 // Функции для работы с курсором
 //-----------------------------------------------------------------------------------
-ParaMath.prototype.Is_CursorPlaceable = function()
+ParaMath.prototype.IsCursorPlaceable = function()
 {
     return true;
 };

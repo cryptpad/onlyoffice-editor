@@ -398,6 +398,7 @@
 			addAutoFilter: function(styleName, activeRange, addFormatTableOptionsObj, offLock, props, filterInfo)
 			{
 				var worksheet = this.worksheet, t = this, cloneFilter;
+				var wsView = Asc['editor'].wb.getWorksheet(worksheet.getIndex());
 				var isTurnOffHistory = worksheet.workbook.bUndoChanges || worksheet.workbook.bRedoChanges;
 				
 				if(!filterInfo) {
@@ -441,16 +442,19 @@
 						}
 
 						if (addNameColumn && !isTurnOffHistory) {
+							var moveToRange;
+							var shiftRange;
 							if (t._isEmptyCellsUnderRange(rangeWithoutDiff)) {
-								worksheet._moveRange(rangeWithoutDiff,
-									new Asc.Range(filterRange.c1, filterRange.r1 + 1, filterRange.c2, filterRange.r2));
+								moveToRange = new Asc.Range(filterRange.c1, filterRange.r1 + 1, filterRange.c2, filterRange.r2);
 							} else {
 								//shift down not empty range and move
-								worksheet.getRange3(filterRange.r2, filterRange.c1, filterRange.r2, filterRange.c2)
-									.addCellsShiftBottom();
-								worksheet._moveRange(rangeWithoutDiff,
-									new Asc.Range(filterRange.c1, filterRange.r1 + 1, filterRange.c2, filterRange.r2));
+								shiftRange = worksheet.getRange3(filterRange.r2, filterRange.c1, filterRange.r2, filterRange.c2);
+								shiftRange.addCellsShiftBottom();
+								wsView.cellCommentator.updateCommentsDependencies(true, c_oAscInsertOptions.InsertCellsAndShiftDown, shiftRange.bbox);
+								moveToRange = new Asc.Range(filterRange.c1, filterRange.r1 + 1, filterRange.c2, filterRange.r2);
 							}
+							worksheet._moveRange(rangeWithoutDiff, moveToRange);
+							wsView.cellCommentator.moveRangeComments(rangeWithoutDiff, moveToRange);
 						} else if (!addNameColumn && styleName) {
 							if (filterRange.r1 === filterRange.r2) {
 								if (t._isEmptyCellsUnderRange(rangeWithoutDiff)) {
@@ -459,8 +463,9 @@
 									filterRange.r2++;
 									//shift down not empty range and move
 									if (!isTurnOffHistory) {
-										worksheet.getRange3(filterRange.r2, filterRange.c1, filterRange.r2,
-											filterRange.c2).addCellsShiftBottom();
+										shiftRange = worksheet.getRange3(filterRange.r2, filterRange.c1, filterRange.r2, filterRange.c2);
+										shiftRange.addCellsShiftBottom();
+										wsView.cellCommentator.updateCommentsDependencies(true, c_oAscInsertOptions.InsertCellsAndShiftDown, shiftRange.bbox);
 									}
 								}
 							}
@@ -622,11 +627,13 @@
 				worksheet.workbook.dependencyFormulas.lockRecal();
 
 				//if apply a/f from context menu
-				if (autoFiltersObject && null === autoFiltersObject.automaticRowCount && currentFilter.isAutoFilter() &&
-					currentFilter.isApplyAutoFilter() === false) {
+				var byCurCell = false;
+				if (autoFiltersObject && null === autoFiltersObject.automaticRowCount && currentFilter.isAutoFilter() && currentFilter.isApplyAutoFilter() === false) {
 					//TODO стоит заменить на expandRange ?
 					var automaticRange = this._getAdjacentCellsAF(currentFilter.Ref, true);
 					var automaticRowCount = automaticRange.r2;
+
+					byCurCell = true;
 
 					var maxFilterRow = currentFilter.Ref.r2;
 					if (automaticRowCount > currentFilter.Ref.r2) {
@@ -641,15 +648,32 @@
 				History.Create_NewPoint();
 				History.StartTransaction();
 
+				var autoFilter = filterObj.filter.getAutoFilter();
 				var rangeOldFilter = oldFilter.Ref;
+				var newFilterColumn, filterRange;
+
+				//byCurCell - если пользователь нажимает на конкретной ячейке - скрыть данное значение - для а/ф с мерженным заголвком
+				if(byCurCell && filterObj.ColId >= 0 && filterObj.startColId >= 0 && filterObj.ColId !== filterObj.startColId) {
+
+					newFilterColumn = new window['AscCommonExcel'].FilterColumn();
+					newFilterColumn.ColId = filterObj.startColId;
+
+					filterRange = worksheet.getRange3(autoFilter.Ref.r1 + 1, filterObj.startColId + autoFilter.Ref.c1, autoFilter.Ref.r2, filterObj.startColId + autoFilter.Ref.c1);
+					autoFiltersObject = tryConvertFilter ? this._tryConvertCustomFilter(autoFiltersObject, filterRange) : autoFiltersObject;
+					newFilterColumn.createFilter(autoFiltersObject);
+					newFilterColumn.init(filterRange);
+					autoFilter.setRowHidden(worksheet, newFilterColumn);
+
+					History.EndTransaction();
+					return {minChangeRow: minChangeRow, rangeOldFilter: rangeOldFilter, nOpenRowsCount: null, nAllRowsCount: null};
+				}
+
 
 				//change model
-				var autoFilter = filterObj.filter.getAutoFilter();
 				if (!autoFilter) {
 					autoFilter = filterObj.filter.addAutoFilter();
 				}
 
-				var newFilterColumn;
 				if (filterObj.index !== null) {
 					newFilterColumn = autoFilter.FilterColumns[filterObj.index];
 					newFilterColumn.clean();
@@ -659,7 +683,7 @@
 					newFilterColumn.ColId = filterObj.ColId;
 				}
 
-				var filterRange = worksheet.getRange3(autoFilter.Ref.r1 + 1, filterObj.ColId + autoFilter.Ref.c1, autoFilter.Ref.r2, filterObj.ColId + autoFilter.Ref.c1);
+				filterRange = worksheet.getRange3(autoFilter.Ref.r1 + 1, filterObj.ColId + autoFilter.Ref.c1, autoFilter.Ref.r2, filterObj.ColId + autoFilter.Ref.c1);
 				autoFiltersObject = tryConvertFilter ? this._tryConvertCustomFilter(autoFiltersObject, filterRange) : autoFiltersObject;
 				var allFilterOpenElements = newFilterColumn.createFilter(autoFiltersObject);
 				newFilterColumn.init(filterRange);
@@ -1906,8 +1930,10 @@
 					}
 				}
 
-				//пересекается, но не равен фильтрованному диапазону. если равен - то фильтр превращается в таблицу
-				return worksheet.AutoFilter && worksheet.AutoFilter.Ref && range.intersection(worksheet.AutoFilter.Ref) && !range.isEqual(worksheet.AutoFilter.Ref);
+				//пересекается, но не содержит фильтрованный диапазону. если содержит + строки первые совпадают - то фильтр превращается в таблицу
+				var filterRef = worksheet.AutoFilter && worksheet.AutoFilter.Ref;
+				var contains = filterRef && range.containsRange(filterRef) && range.r1 === filterRef.r1;
+				return filterRef && range.intersection(filterRef) && !contains;
 			},
 
 			isStartRangeContainIntoTableOrFilter: function (activeCell) {
@@ -2699,7 +2725,8 @@
 					}
 				}
 
-				ColId = this._getTrueColId(filter, ColId);
+				var startColId = ColId;
+				ColId = this._getTrueColId(filter, ColId, true);
 
 				if (autoFilter && autoFilter.FilterColumns) {
 					for (var i = 0; i < autoFilter.FilterColumns.length; i++) {
@@ -2711,7 +2738,7 @@
 				}
 
 
-				return {filter: filter, index: index, activeRange: activeRange, ColId: ColId};
+				return {filter: filter, index: index, activeRange: activeRange, ColId: ColId, startColId: startColId};
 			},
 
 			_getFilterByDisplayName: function (displayName) {
@@ -2741,7 +2768,7 @@
 
 					var rangeCellId = this._idToRange(cellId);
 					var colId = rangeCellId.c1 - autoFilter.Ref.c1;
-					res = this._getTrueColId(filter, colId);
+					res = this._getTrueColId(filter, colId, true);
 				}
 
 				return res;
@@ -4091,14 +4118,17 @@
 
 				var maxFilterRow = ref.r2;
 				var automaticRowCount = null;
-				colId = this._getTrueColId(autoFilter, colId);
+				colId = this._getTrueColId(autoFilter, colId, true);
 
 				var currentFilterColumn = autoFilter.getFilterColumn(colId);
+				if(currentFilterColumn && !currentFilterColumn.isApplyAutoFilter()) {
+					currentFilterColumn = null;
+				}
 				//если скрыты только пустые значение, игнорируем пользовательский фильтр при отображении в меню
 				var ignoreCustomFilter = currentFilterColumn ? currentFilterColumn.isOnlyNotEqualEmpty() : null;
 				var isCustomFilter = currentFilterColumn && !ignoreCustomFilter && currentFilterColumn.isApplyCustomFilter();
 
-				if (!isTablePart && filter.isApplyAutoFilter() === false)//нужно подхватить нижние ячейки в случае, если это не применен а/ф
+				if (!isTablePart /*&& filter.isApplyAutoFilter() === false*/)//нужно подхватить нижние ячейки
 				{
 					//TODO стоит заменить на expandRange ?
 					var automaticRange = this._getAdjacentCellsAF(filter.Ref, true);
@@ -4183,7 +4213,7 @@
 				return {values: this._sortArrayMinMax(values), automaticRowCount: automaticRowCount, ignoreCustomFilter: ignoreCustomFilter};
 			},
 			
-			_getTrueColId: function(filter, colId)
+			_getTrueColId: function(filter, colId, checkShowButton)
 			{
 				//TODO - добавил условие, чтобы не было ошибки(bug 30007). возможно, второму пользователю нужно запретить все действия с измененной таблицей.
 				if(filter === null)
@@ -4196,14 +4226,39 @@
 				//если находимся в мерженной ячейке, то возвращаем сдвинутый colId
 				var worksheet = this.worksheet;
 				var ref = filter.Ref;
+
 				var cell = worksheet.getCell3(ref.r1, colId + ref.c1);
 				var hasMerged = cell.hasMerged();
-				if(hasMerged)
-				{
-					if(hasMerged.c1 < ref.c1) {
-						res = 0;
-					} else {
-						res = hasMerged.c1 - ref.c1 >= 0 ? hasMerged.c1 - ref.c1 : res;
+				if(checkShowButton) {
+					var i, length;
+					/*if(filter.isHideButton(colId)) {
+						if(hasMerged) {
+							for(i = colId + ref.c1; i <= Math.min(ref.c2, hasMerged.c2); i++) {
+								if(!filter.isHideButton(colId - ref.c1)) {
+									res = colId - ref.c1;
+									break;
+								}
+							}
+						}
+					} else*/ if(colId > 0 && filter.isHideButton(colId - 1)) {
+						for(i = colId + ref.c1 - 1, length = Math.max(ref.c1, hasMerged.c1); i >= length; i--) {
+							if(!filter.isHideButton(i - ref.c1)) {
+								res = i + 1 - ref.c1;
+								break;
+							} else if(length === i) {
+								res = i - ref.c1;
+								break;
+							}
+						}
+					}
+				} else {
+					if(hasMerged)
+					{
+						if(hasMerged.c1 < ref.c1) {
+							res = 0;
+						} else {
+							res = hasMerged.c1 - ref.c1 >= 0 ? hasMerged.c1 - ref.c1 : res;
+						}
 					}
 				}
 				
@@ -4280,7 +4335,7 @@
 				var filterColumns = autoFilter.FilterColumns;
 				var worksheet = this.worksheet;
 
-				colId = this._getTrueColId(autoFilter, colId);
+				colId = this._getTrueColId(autoFilter, colId, true);
 
 				if (colId === null) {
 					return;
@@ -4794,30 +4849,44 @@
 				
 				return res;
 			},
-			
-			_cleanFilterColumnsAndSortState: function(autoFilterElement, activeCells)
-			{
+
+			_cleanFilterColumnsAndSortState: function (autoFilterElement, activeCells) {
 				var worksheet = this.worksheet;
 				var oldFilter = autoFilterElement.clone(null);
-				
-				if(autoFilterElement.SortState)
+
+				if (autoFilterElement.SortState) {
 					autoFilterElement.SortState = null;
-				
+				}
+
 				worksheet.setRowHidden(false, autoFilterElement.Ref.r1, autoFilterElement.Ref.r2);
-				
-				if(autoFilterElement.AutoFilter && autoFilterElement.AutoFilter.FilterColumns)
-				{
-					autoFilterElement.AutoFilter.FilterColumns = null;
+
+				var doClean = function(af) {
+					var filterColumns = af.FilterColumns;
+					if(filterColumns.length) {
+						var isAllClean = true;
+						for(var i = 0; i < filterColumns.length; i++) {
+							filterColumns[i].clean();
+							if(!filterColumns[i].isAllClean()) {
+								isAllClean = false;
+							}
+						}
+						if(isAllClean) {
+							af.FilterColumns = null;
+						}
+					}
+				};
+
+				if (autoFilterElement.AutoFilter && autoFilterElement.AutoFilter.FilterColumns) {
+					doClean(autoFilterElement.AutoFilter);
+				} else if (autoFilterElement.FilterColumns) {
+					doClean(autoFilterElement);
 				}
-				else if(autoFilterElement.FilterColumns)
-				{
-					autoFilterElement.FilterColumns = null;
-				}
-				
-				this._addHistoryObj(oldFilter, AscCH.historyitem_AutoFilter_CleanAutoFilter, {activeCells: activeCells}, null, activeCells);
+
+				this._addHistoryObj(oldFilter, AscCH.historyitem_AutoFilter_CleanAutoFilter, {activeCells: activeCells},
+					null, activeCells);
 
 				this._resetTablePartStyle();
-				
+
 				return oldFilter.Ref;
 			},
 			
@@ -4837,8 +4906,12 @@
 				{
 					var index = autoFilter.getIndexByColId(colId);
 					this._openHiddenRowsAfterDeleteColumn(autoFilter, colId);
-					
-					autoFilter.FilterColumns.splice(index, 1);
+
+					var filterColumn = autoFilter.FilterColumns[index];
+					filterColumn.clean();
+					if(filterColumn.isAllClean()) {
+						autoFilter.FilterColumns.splice(index, 1);
+					}
 					
 					this._resetTablePartStyle();
 				}
