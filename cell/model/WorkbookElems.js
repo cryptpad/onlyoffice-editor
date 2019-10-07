@@ -9143,6 +9143,7 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	prot["asc_updateSortList"] = prot.asc_updateSortList;
 	prot["asc_setHasHeaders"] = prot.asc_setHasHeaders;
 	prot["asc_setColumnSort"] = prot.asc_setColumnSort;
+	prot["asc_getLevelProps"] = prot.asc_getLevelProps;
 
 	window["Asc"]["CSortPropertiesLevel"] = window["Asc"].CSortPropertiesLevel = CSortPropertiesLevel;
 	prot = CSortPropertiesLevel.prototype;
