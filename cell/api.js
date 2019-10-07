@@ -2019,7 +2019,7 @@ var editor;
   };
 
   spreadsheet_api.prototype.asc_showWorksheet = function(index) {
-    if (typeof index === "number" && undefined !== index && null !== index) {
+    if (typeof index === "number") {
       var t = this;
       var ws = this.wbModel.getWorksheet(index);
       var isHidden = ws.getHidden();
