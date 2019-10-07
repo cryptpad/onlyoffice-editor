@@ -18517,11 +18517,11 @@
 		//заголовки
 		sortSettings.hasHeaders = dataHasHeaders;
 
-		var columnSort = true;
+		var columnSort = sortSettings.columnSort = true;
 
 		var getSortLevel = function(sortCondition) {
 			var level = new Asc.CSortPropertiesLevel();
-			var index = columnSort ? sortCondition.ref.c1 - modelSort.ref.c1 : sortCondition.ref.r1 - modelSort.ref.r1;
+			var index = columnSort ? sortCondition.Ref.c1 - modelSort.Ref.c1 : sortCondition.Ref.r1 - modelSort.Ref.r1;
 			var name = sortSettings.getNameColumnByIndex(index, modelSort.Ref);
 
 			level.index = index;
@@ -18532,7 +18532,7 @@
 			level.descending = sortCondition.ConditionDescending ? Asc.c_oAscSortOptions.Descending : Asc.c_oAscSortOptions.Ascending;
 			level.sortBy = sortCondition.ConditionSortBy;
 
-			var conditionSortBy = SortConditions.ConditionSortBy;
+			var conditionSortBy = sortCondition.ConditionSortBy;
 			var sortColor = null;
 			switch (conditionSortBy) {
 				case Asc.ESortBy.sortbyCellColor: {
@@ -18565,6 +18565,7 @@
 
 				level.color = ascColor;
 			}
+			return level;
 		};
 
 
@@ -18572,12 +18573,15 @@
 		var modelSort = this.model.sortState;
 		if(modelSort) {
 			if(!modelSort.columnSort) {
-				columnSort = false;
+				sortSettings.columnSort = columnSort = false;
 			}
 			//заполняем только в случае пересечения
-			if(selection.intersection(modelSort.ref)) {
-				for(var i = 0; i < modelSort.sortState.length; i++) {
-					sortSettings.levels.push(getSortLevel(modelSort.sortState[i]));
+			if(selection.intersection(modelSort.Ref)) {
+				for(var i = 0; i < modelSort.SortConditions.length; i++) {
+					if(!sortSettings.levels) {
+						sortSettings.levels = [];
+					}
+					sortSettings.levels.push(getSortLevel(modelSort.SortConditions[i]));
 				}
 			}
 		}

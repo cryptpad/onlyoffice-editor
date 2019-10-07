@@ -8734,7 +8734,6 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 
 		this._ws = ws;
 
-
 		return this;
 	}
 
