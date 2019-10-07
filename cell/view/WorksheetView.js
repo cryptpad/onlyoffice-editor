@@ -18622,11 +18622,11 @@
 
 		if(columnSort) {
 			for(j = selection.c1; j <= selection.c2; j++) {
-				sortSettings.sortList.push(getNameColumnByIndex(j - selection.c1), selection);
+				sortSettings.sortList.push(getNameColumnByIndex(j - selection.c1, selection));
 			}
 		} else {
 			for(j = selection.r1; j <= selection.r2; j++) {
-				sortSettings.sortList.push(getNameColumnByIndex(j - selection.r1), selection);
+				sortSettings.sortList.push(getNameColumnByIndex(j - selection.r1, selection));
 			}
 		}
 
@@ -18655,6 +18655,7 @@
 				sortCondition.ConditionSortBy = null;
 				sortCondition.ConditionDescending = null;
 				sortCondition.dxf = null;
+
 
 			}
 
