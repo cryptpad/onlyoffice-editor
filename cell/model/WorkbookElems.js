@@ -8810,6 +8810,29 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		}
 	};
 
+	CSortProperties.prototype.asc_getLevelProps = function (index) {
+		var t = this;
+
+		var selection = t._newSelection;
+		var r1 = this.columnSort ? selection.r1 : selection.r1 + index;
+		var r2 = this.columnSort ? selection.r2 : selection.r1 + index;
+		var c1 = this.columnSort ? selection.c1 + index : selection.c1;
+		var c2 = this.columnSort ? selection.c1 + index : selection.c2;
+		var range = new Asc.Range(c1, r1, c2, r2);
+
+		var levelInfo;
+		var rangeInfo = t._ws.af_getFilterTypes(range, !this.columnSort);
+		if(rangeInfo) {
+			levelInfo = new CSortLevelInfo();
+			this.colorsFill = rangeInfo.colors;
+			this.colorsFont = rangeInfo.fontColors;
+
+			this.isText = rangeInfo.text;
+		}
+
+		return levelInfo;
+	};
+
 	function CSortPropertiesLevel() {
 		this.index = null;
 		this.name = null;
@@ -8835,6 +8858,26 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	};
 	CSortPropertiesLevel.prototype.asc_getColor = function () {
 		return this.color;
+	};
+
+
+	function CSortLevelInfo() {
+		this.colorsFill = null;
+		this.colorsFont = null;
+
+		this.isText = null;
+
+		return this;
+	}
+
+	CSortLevelInfo.prototype.asc_getColorsFill = function () {
+		return this.colorsFill;
+	};
+	CSortLevelInfo.prototype.asc_getColorsFont = function () {
+		return this.colorsFont;
+	};
+	CSortLevelInfo.prototype.asc_getIsTextData = function () {
+		return this.isText;
 	};
 
 
@@ -9104,5 +9147,11 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	prot["asc_getSortBy"] = prot.asc_getSortBy;
 	prot["asc_getDescending"] = prot.asc_getDescending;
 	prot["asc_getColor"] = prot.asc_getColor;
+
+	window["Asc"]["CSortLevelInfo"] = window["Asc"].CSortLevelInfo = CSortLevelInfo;
+	prot = CSortLevelInfo.prototype;
+	prot["asc_getColorsFill"] = prot.asc_getColorsFill;
+	prot["asc_getColorsFont"] = prot.asc_getColorsFont;
+	prot["asc_getIsTextData"] = prot.asc_getIsTextData;
 
 })(window);
