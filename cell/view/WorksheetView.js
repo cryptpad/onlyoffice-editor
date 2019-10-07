@@ -15109,7 +15109,7 @@
 
 		var columnRange = new Asc.Range(colId + autoFilter.Ref.c1, autoFilter.Ref.r1 + 1, colId + autoFilter.Ref.c1, autoFilter.Ref.r2);
 
-        var filterTypes = this.af_getFilterTypes(columnRange);
+        var filterTypes = this.model.getRowColColors(columnRange);
         autoFilterObject.asc_setIsTextFilter(filterTypes.text);
         autoFilterObject.asc_setColorsFill(filterTypes.colors);
         autoFilterObject.asc_setColorsFont(filterTypes.fontColors);
@@ -15119,114 +15119,6 @@
         } else {
             this.handlers.trigger("setAutoFiltersDialog", autoFilterObject);
         }
-    };
-
-    WorksheetView.prototype.af_getFilterTypes = function (columnRange) {
-        var t = this;
-        var ws = this.model;
-        var res = {text: true, colors: [], fontColors: []};
-        var alreadyAddColors = {}, alreadyAddFontColors = {};
-
-        var getAscColor = function (color) {
-            var ascColor = new Asc.asc_CColor();
-            ascColor.asc_putR(color.getR());
-            ascColor.asc_putG(color.getG());
-            ascColor.asc_putB(color.getB());
-            ascColor.asc_putA(color.getA());
-
-            return ascColor;
-        };
-
-        var addFontColorsToArray = function (fontColor) {
-            var rgb = fontColor && null !== fontColor  ? fontColor.getRgb() : null;
-            if(rgb === 0) {
-                rgb = null;
-            }
-            var isDefaultFontColor = null === rgb;
-
-            if (true !== alreadyAddFontColors[rgb]) {
-                if (isDefaultFontColor) {
-                    res.fontColors.push(null);
-                    alreadyAddFontColors[null] = true;
-                } else {
-                    var ascFontColor = getAscColor(fontColor);
-                    res.fontColors.push(ascFontColor);
-                    alreadyAddFontColors[rgb] = true;
-                }
-            }
-        };
-
-        var addCellColorsToArray = function (color) {
-            var rgb = null !== color && color.fill && color.fill.bg() ? color.fill.bg().getRgb() : null;
-            var isDefaultCellColor = null === rgb;
-
-            if (true !== alreadyAddColors[rgb]) {
-                if (isDefaultCellColor) {
-                    res.colors.push(null);
-                    alreadyAddColors[null] = true;
-                } else {
-                    var ascColor = getAscColor(color.fill.bg());
-                    res.colors.push(ascColor);
-                    alreadyAddColors[rgb] = true;
-                }
-            }
-        };
-
-        var tempText = 0, tempDigit = 0;
-		ws.getRange3(columnRange.r1, columnRange.c1, columnRange.r2, columnRange.c1)._foreachNoEmpty(function(cell) {
-			//добавляем без цвета ячейку
-			if (!cell) {
-				if (true !== alreadyAddColors[null]) {
-					alreadyAddColors[null] = true;
-					res.colors.push(null);
-				}
-				return;
-			}
-
-			if (false === cell.isNullText()) {
-				var type = cell.getType();
-
-				if (type === 0) {
-					tempDigit++;
-				} else {
-					tempText++;
-				}
-			}
-
-			//font colors
-			var multiText = cell.getValueMultiText();
-			var fontColor = null;
-			var xfs = cell.getCompiledStyleCustom(false, true, true);
-			if (null !== multiText) {
-				for (var j = 0; j < multiText.length; j++) {
-					fontColor = multiText[j].format ? multiText[j].format.getColor() : null;
-					if(null !== fontColor) {
-						addFontColorsToArray(fontColor);
-					} else {
-						fontColor = xfs && xfs.font ? xfs.font.getColor() : null;
-						addFontColorsToArray(fontColor);
-					}
-				}
-			} else {
-				fontColor = xfs && xfs.font ? xfs.font.getColor() : null;
-				addFontColorsToArray(fontColor);
-			}
-
-			//cell colors
-			addCellColorsToArray(xfs);
-        });
-
-        //если один элемент в массиве, не отправляем его в меню
-        if (res.colors.length === 1) {
-            res.colors = [];
-        }
-        if (res.fontColors.length === 1) {
-            res.fontColors = [];
-        }
-
-        res.text = tempDigit <= tempText;
-
-        return res;
     };
 
     WorksheetView.prototype.af_changeSelectionTablePart = function (activeRange) {

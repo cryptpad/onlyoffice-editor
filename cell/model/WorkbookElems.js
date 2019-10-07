@@ -8825,7 +8825,7 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		var range = new Asc.Range(c1, r1, c2, r2);
 
 		var levelInfo;
-		var rangeInfo = t._ws.af_getFilterTypes(range, !this.columnSort);
+		var rangeInfo = t._ws.model.getRowColColors(range, !this.columnSort);
 		if(rangeInfo) {
 			levelInfo = new CSortLevelInfo();
 			this.colorsFill = rangeInfo.colors;
