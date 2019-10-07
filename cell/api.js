@@ -1814,8 +1814,7 @@ var editor;
     }
 
     if (!arrSheets) {
-      arrSheets = [];
-      arrSheets.push(this.wbModel.getActive());
+      arrSheets = [this.wbModel.getActive()];
     }
 
     var sheet, arrLocks = [];
@@ -2050,8 +2049,7 @@ var editor;
     }
 
     if (!arrSheets) {
-      arrSheets = [];
-      arrSheets.push(this.wbModel.getActive());
+      arrSheets = [this.wbModel.getActive()];
     }
 
     // Вдруг остался один лист
@@ -2126,8 +2124,7 @@ var editor;
     }
 
     if (!arrSheets) {
-      arrSheets = [];
-      arrSheets.push(this.wbModel.getActive());
+      arrSheets = [this.wbModel.getActive()];
     }
 
     // Check delete all
@@ -2189,8 +2186,7 @@ var editor;
     }
 
     if (!arrSheets) {
-      arrSheets = [];
-      arrSheets.push(this.wbModel.getActive());
+      arrSheets = [this.wbModel.getActive()];
     }
 
     var i, index, activeWs = this.wbModel.getActiveWs(), _where;
