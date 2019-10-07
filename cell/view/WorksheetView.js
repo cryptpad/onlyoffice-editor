@@ -18510,7 +18510,7 @@
 			return false;
 		}
 
-		sortSettings = new Asc.CSortProperties();
+		sortSettings = new Asc.CSortProperties(this);
 		//необходимо ещё сохранять значение старого селекта, чтобы при нажатии пользователя на отмену - откатить
 		sortSettings._oldSelect = oldSelection;
 
@@ -18519,42 +18519,10 @@
 
 		var columnSort = true;
 
-		var _generateName = function(index) {
-			//todo перевод!
-			var base = columnSort ? "Column" : "Row";
-			if(!dataHasHeaders) {
-				base = "(" + base + ")";
-			}
-
-			var text = columnSort ? t._getColumnTitle(index) : t._getRowTitle(index);
-			return base + text;
-		};
-
-		var getNameColumnByIndex = function(index, parentRef) {
-			//columnSort; dataHasHeaders
-			var row = columnSort ? parentRef.r1 : index + parentRef.r1;
-			var col = !columnSort ? parentRef.c1 : index + parentRef.c1;
-			//TODO проверить в 1 строке как должно работать
-			if(dataHasHeaders) {
-				if(columnSort) {
-					row--;
-				} else {
-					col--;
-				}
-			}
-			if(!dataHasHeaders) {
-				return _generateName(columnSort ? col : row);
-			} else {
-				var cell = t.model.getCell3(row, col);
-				var value = cell.getValueWithFormat();
-				return value !== "" ? value : _generateName(columnSort ? col : row);
-			}
-		};
-
 		var getSortLevel = function(sortCondition) {
 			var level = new Asc.CSortPropertiesLevel();
 			var index = columnSort ? sortCondition.ref.c1 - modelSort.ref.c1 : sortCondition.ref.r1 - modelSort.ref.r1;
-			var name = getNameColumnByIndex(index, modelSort.Ref);
+			var name = sortSettings.getNameColumnByIndex(index, modelSort.Ref);
 
 			level.index = index;
 			level.name = name;
@@ -18615,20 +18583,8 @@
 		}
 
 		sortSettings.columnSort = columnSort;
-		var j;
-		if(!sortSettings.sortList) {
-			sortSettings.sortList = [];
-		}
-
-		if(columnSort) {
-			for(j = selection.c1; j <= selection.c2; j++) {
-				sortSettings.sortList.push(getNameColumnByIndex(j - selection.c1, selection));
-			}
-		} else {
-			for(j = selection.r1; j <= selection.r2; j++) {
-				sortSettings.sortList.push(getNameColumnByIndex(j - selection.r1, selection));
-			}
-		}
+		sortSettings._newSelection = selection;
+		sortSettings.generateSortList();
 
 		return sortSettings;
 	};
