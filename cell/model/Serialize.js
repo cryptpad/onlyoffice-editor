@@ -511,7 +511,9 @@
         ConditionRef:4,
         ConditionSortBy:5,
         ConditionDescending:6,
-        ConditionDxfId:7
+        ConditionDxfId:7,
+        ColumnSort: 8,
+        SortMethod: 9
     };
     /** @enum */
     var c_oSer_AutoFilter =
@@ -1772,6 +1774,10 @@
             }
             if(null != sortState.CaseSensitive)
                 this.bs.WriteItem(c_oSer_SortState.CaseSensitive, function(){oThis.memory.WriteBool(sortState.CaseSensitive);});
+            if(null != sortState.ColumnSort)
+                this.bs.WriteItem(c_oSer_SortState.ColumnSort, function(){oThis.memory.WriteBool(sortState.ColumnSort);});
+            if(null != sortState.SortMethod)
+                this.bs.WriteItem(c_oSer_SortState.SortMethod, function(){oThis.memory.WriteByte(sortState.SortMethod);});
             if(null != sortState.SortConditions)
                 this.bs.WriteItem(c_oSer_SortState.SortConditions, function(){oThis.WriteSortConditions(sortState.SortConditions);});
         };
@@ -5375,6 +5381,10 @@
                 oSortState.Ref = AscCommonExcel.g_oRangeCache.getAscRange(this.stream.GetString2LE(length));
             else if ( c_oSer_SortState.CaseSensitive == type )
                 oSortState.CaseSensitive = this.stream.GetBool();
+            else if ( c_oSer_SortState.ColumnSort == type )
+                oSortState.ColumnSort = this.stream.GetBool();
+            else if ( c_oSer_SortState.SortMethod == type )
+                oSortState.SortMethod = this.stream.GetUChar();
             else if ( c_oSer_SortState.SortConditions == type )
             {
                 oSortState.SortConditions = [];

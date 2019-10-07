@@ -6427,6 +6427,8 @@ function RangeDataManagerElem(bbox, data)
 	function SortState() {
 		this.Ref = null;
 		this.CaseSensitive = null;
+		this.ColumnSort = null;//false
+		this.SortMethod = null;//none
 		this.SortConditions = null;
 	}
 
@@ -6434,6 +6436,8 @@ function RangeDataManagerElem(bbox, data)
 		var i, res = new SortState();
 		res.Ref = this.Ref ? this.Ref.clone() : null;
 		res.CaseSensitive = this.CaseSensitive;
+		res.ColumnSort = this.ColumnSort;
+		res.SortMethod = this.SortMethod;
 		if (this.SortConditions) {
 			res.SortConditions = [];
 			for (i = 0; i < this.SortConditions.length; ++i) {
