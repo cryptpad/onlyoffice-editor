@@ -2189,7 +2189,7 @@ var editor;
       arrSheets = [this.wbModel.getActive()];
     }
 
-    var i, index, activeWs = this.wbModel.getActiveWs(), _where;
+    var i, index, _where;
     for (i = 0; i < arrSheets.length; ++i) {
       arrSheets[i] = this.wbModel.getWorksheet(arrSheets[i]);
     }
@@ -2205,13 +2205,13 @@ var editor;
     }
 
     // Обновим текущий номер
-    this.asc_showWorksheet(activeWs.getIndex());
+    this.asc_showWorksheet(_where);
     // Посылаем callback об изменении списка листов
     this.sheetsChanged();
     History.EndTransaction();
   };
 
-  spreadsheet_api.prototype.asc_copyWorksheet = function(where, arrNames, arrSheets) {
+  spreadsheet_api.prototype.asc_copyWorksheet = function (where, arrNames, arrSheets) {
     // Проверка глобального лока
     if (this.collaborativeEditing.getGlobalLock()) {
       return false;
