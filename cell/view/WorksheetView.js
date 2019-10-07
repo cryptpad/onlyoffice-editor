@@ -18532,8 +18532,8 @@
 
 		var getNameColumnByIndex = function(index, parentRef) {
 			//columnSort; dataHasHeaders
-			var row = columnSort ? parentRef.r1 : index;
-			var col = !columnSort ? parentRef.c1 : index;
+			var row = columnSort ? parentRef.r1 : index + parentRef.r1;
+			var col = !columnSort ? parentRef.c1 : index + parentRef.c1;
 			//TODO проверить в 1 строке как должно работать
 			if(dataHasHeaders) {
 				if(columnSort) {
@@ -18543,11 +18543,11 @@
 				}
 			}
 			if(!dataHasHeaders) {
-				return _generateName(index);
+				return _generateName(columnSort ? col : row);
 			} else {
 				var cell = t.model.getCell3(row, col);
 				var value = cell.getValueWithFormat();
-				return value !== "" ? value : _generateName(index);
+				return value !== "" ? value : _generateName(columnSort ? col : row);
 			}
 		};
 
