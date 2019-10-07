@@ -2838,6 +2838,7 @@ function (window, undefined) {
 		pivotTable.checkChangedRange();
 
 		var value = bUndo ? Data.from : Data.to;
+		var valueFrom = bUndo ? Data.to : Data.from;
 		switch (Type) {
 			case AscCH.historyitem_PivotTable_StyleName:
 				pivotTable.asc_getStyleInfo()._setName(value, pivotTable, ws);
@@ -2880,6 +2881,15 @@ function (window, undefined) {
 				break;
 			case AscCH.historyitem_PivotTable_SetFillDownLabelsDefault:
 				pivotTable.asc_setFillDownLabelsDefault(value);
+				break;
+			case AscCH.historyitem_PivotTable_SetDataOnRows:
+				pivotTable.setDataOnRows(value);
+				break;
+			case AscCH.historyitem_PivotTable_SetAltText:
+				pivotTable.setTitle(value);
+				break;
+			case AscCH.historyitem_PivotTable_SetAltTextSummary:
+				pivotTable.setDescription(value);
 				break;
 			case AscCH.historyitem_PivotTable_AddPageField:
 				if (bUndo) {
@@ -2938,6 +2948,18 @@ function (window, undefined) {
 						pivotTable.removeDataField(Data.from, Data.to[i]);
 					}
 				}
+				break;
+			case AscCH.historyitem_PivotTable_MovePageField:
+				pivotTable.moveField(pivotTable.asc_getPageFields(), valueFrom, value);
+				break;
+			case AscCH.historyitem_PivotTable_MoveRowField:
+				pivotTable.moveField(pivotTable.asc_getRowFields(), valueFrom, value);
+				break;
+			case AscCH.historyitem_PivotTable_MoveColField:
+				pivotTable.moveField(pivotTable.asc_getColumnFields(), valueFrom, value);
+				break;
+			case AscCH.historyitem_PivotTable_MoveDataField:
+				pivotTable.moveField(pivotTable.asc_getDataFields(), valueFrom, value);
 				break;
 		}
 	};
