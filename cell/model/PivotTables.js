@@ -3658,16 +3658,23 @@ CT_pivotTableDefinition.prototype.asc_addField = function(api, index) {
 		this.asc_addRowField(api, index);
 	}
 };
-CT_pivotTableDefinition.prototype.asc_removeField = function(api, pivotIndex, dataIndex) {
+CT_pivotTableDefinition.prototype.asc_removeField = function(api, pivotIndex) {
 	var t = this;
 	api._changePivotWithLock(this, function(ws) {
-		var dataFields = t.asc_getDataFields();
-		if (0 <= dataIndex && dataIndex < dataFields.length) {
-			t.removeDataField(pivotIndex, dataIndex, true);
-		} else {
-			t.removeNoDataField(pivotIndex, true);
-			t.removeDataField(pivotIndex, dataIndex, true);
-		}
+		t.removeNoDataField(pivotIndex, true);
+		t.removeDataField(pivotIndex, undefined, true);
+	});
+};
+CT_pivotTableDefinition.prototype.asc_removeNoDataField = function(api, pivotIndex) {
+	var t = this;
+	api._changePivotWithLock(this, function(ws) {
+		t.removeNoDataField(pivotIndex, true);
+	});
+};
+CT_pivotTableDefinition.prototype.asc_removeDataField = function(api, pivotIndex, dataIndex) {
+	var t = this;
+	api._changePivotWithLock(this, function(ws) {
+		t.removeDataField(pivotIndex, dataIndex, true);
 	});
 };
 CT_pivotTableDefinition.prototype.asc_moveToPageField = function(api, pivotIndex, dataIndex) {
@@ -12467,6 +12474,8 @@ prot["asc_addColField"] = prot.asc_addColField;
 prot["asc_addDataField"] = prot.asc_addDataField;
 prot["asc_addField"] = prot.asc_addField;
 prot["asc_removeField"] = prot.asc_removeField;
+prot["asc_removeNoDataField"] = prot.asc_removeNoDataField;
+prot["asc_removeDataField"] = prot.asc_removeDataField;
 prot["asc_moveToPageField"] = prot.asc_moveToPageField;
 prot["asc_moveToRowField"] = prot.asc_moveToRowField;
 prot["asc_moveToColField"] = prot.asc_moveToColField;
