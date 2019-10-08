@@ -2189,23 +2189,36 @@ var editor;
       arrSheets = [this.wbModel.getActive()];
     }
 
-    var i, index, _where;
+    var active, sheet, i, index, _where;
+    var arrSheetsLeft = [], arrSheetsRight = [];
     for (i = 0; i < arrSheets.length; ++i) {
-      arrSheets[i] = this.wbModel.getWorksheet(arrSheets[i]);
+      index = arrSheets[i];
+      sheet = this.wbModel.getWorksheet(index);
+      ((index < where) ? arrSheetsLeft : arrSheetsRight).push(sheet);
+      if (!active) {
+        active = sheet;
+      }
     }
 
     History.Create_NewPoint();
     History.StartTransaction();
-    for (i = arrSheets.length - 1; i >= 0; --i) {
-      index = arrSheets[i].getIndex();
-      // Мы должны поместить слева от заданного значения, поэтому если идем вправо, то вычтем 1
-      _where = index < where ? (where - 1) : where;
-      this.wb.replaceWorksheet(index, _where);
-      this.wbModel.replaceWorksheet(index, _where);
+    for (i = 0, _where = where; i < arrSheetsRight.length; ++i, ++_where) {
+      index = arrSheetsRight[i].getIndex();
+      if (index !== _where) {
+        this.wb.replaceWorksheet(index, _where);
+        this.wbModel.replaceWorksheet(index, _where);
+      }
+    }
+    for (i = arrSheetsLeft.length - 1, _where = where - 1; i >= 0; --i, --_where) {
+      index = arrSheetsLeft[i].getIndex();
+      if (index !== _where) {
+        this.wb.replaceWorksheet(index, _where);
+        this.wbModel.replaceWorksheet(index, _where);
+      }
     }
 
     // Обновим текущий номер
-    this.asc_showWorksheet(_where);
+    this.asc_showWorksheet(active.getIndex());
     // Посылаем callback об изменении списка листов
     this.sheetsChanged();
     History.EndTransaction();
