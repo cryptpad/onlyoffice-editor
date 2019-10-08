@@ -18466,7 +18466,7 @@
 		if(modelSort) {
 			//в модели лежит флаг columnSort - если он true значит сортируем по строке(те перемещаем колонки)
 			//в настройках флаг columnSort - означает, что сортируем по колонке
-			if(modelSort.columnSort) {
+			if(modelSort.ColumnSort) {
 				sortSettings.columnSort = columnSort = false;
 			}
 			//заполняем только в случае пересечения
