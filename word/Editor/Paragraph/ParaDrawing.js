@@ -692,11 +692,24 @@ ParaDrawing.prototype.Set_Parent = function(oParent)
 };
 ParaDrawing.prototype.IsWatermark = function()
 {
+	if(!this.GraphicObj)
+	{
+		return false;
+	}
+	if(this.GraphicObj.getObjectType() !== AscDFH.historyitem_type_Shape && this.GraphicObj.getObjectType() !== AscDFH.historyitem_type_ImageShape)
+	{
+		return false;
+	}
 	if(this.Is_Inline())
 	{
 		return false;
 	}
-	var oContent = this.DocumentContent;
+	var oParagraph = this.GetParagraph();
+	if(!(oParagraph instanceof Paragraph))
+	{
+		return false;
+	}
+	var oContent = oParagraph.Parent;
 	if(!oContent || oContent.Is_DrawingShape(false))
 	{
 		return false;
@@ -706,11 +719,12 @@ ParaDrawing.prototype.IsWatermark = function()
 	{
 		return false;
 	}
-	if(oHdrFtr.Type === AscCommon.hdrftr_Footer)
+	if(!oContent.IsBlockLevelSdtContent())
 	{
 		return false;
 	}
-	return this.GraphicObj.isWatermark();
+	var oPr = oContent.Parent.Pr;
+	return AscCommon.isRealObject(oPr) && AscCommon.isRealObject(oPr.DocPartObj) && oPr.DocPartObj.Gallery === "Watermarks";
 };
 ParaDrawing.prototype.Set_ParaMath = function(ParaMath)
 {

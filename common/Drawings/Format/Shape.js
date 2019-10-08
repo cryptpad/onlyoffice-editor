@@ -5468,11 +5468,6 @@ CShape.prototype.isWatermark = function()
 CShape.prototype.getWatermarkProps = function()
 {
     var oProps = new Asc.CAscWatermarkProperties(), oTextPr, oRGBAColor, oInterfaceTextPr, oContent;
-    if(!this.isWatermark())
-    {
-        oProps.put_Type(Asc.c_oAscWatermarkType.None);
-        return oProps;
-    }
     oContent = this.getDocContent();
     oProps.put_Type(Asc.c_oAscWatermarkType.Text);
     oProps.put_IsDiagonal(!AscFormat.fApproxEqual(this.rot, 0.0));

@@ -10467,11 +10467,24 @@ CDocument.prototype.SetWatermarkProps = function(oProps)
     if(oWatermark)
     {
         var oDocState = this.GetSelectionState();
-
         var oContent = Header.Content;
         oContent.MoveCursorToEndPos(false);
-        oContent.AddToParagraph(oWatermark);
-
+        var oSdt = null, oElement;
+        for(var i = 0; i < oContent.Content.length; ++i)
+        {
+            oElement = oContent.Content[i];
+            if(oElement.GetType && oElement.GetType() === AscCommonWord.type_BlockLevelSdt)
+            {
+                oSdt = oElement;
+                break;
+            }
+        }
+        if(!oSdt)
+        {
+            oSdt = oContent.AddContentControl(Asc.c_oAscSdtLevelType.Block);
+        }
+        oSdt.SetDocPartObj(undefined, "Watermarks", true);
+        oSdt.AddToParagraph(oWatermark);
         this.SetSelectionState(oDocState);
     }
     this.Recalculate();
