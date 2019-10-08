@@ -1775,14 +1775,24 @@ var editor;
 		this.collaborativeEditing.lock([lockInfo], callback);
 	};
 
-  spreadsheet_api.prototype._addWorksheet = function (name, i) {
+  spreadsheet_api.prototype._addWorksheets = function (arrNames, where) {
+    // Проверка глобального лока
+    if (this.collaborativeEditing.getGlobalLock()) {
+      return false;
+    }
+
     var t = this;
     var addWorksheetCallback = function(res) {
       if (res) {
-        t.wbModel.createWorksheet(i, name);
-        t.wb.spliceWorksheet(i, 0, null);
+        History.Create_NewPoint();
+        History.StartTransaction();
+        for (var i = arrNames.length - 1; i >= 0; --i) {
+          t.wbModel.createWorksheet(where, arrNames[i]);
+          t.wb.spliceWorksheet(where, 0, null);
+        }
+        History.EndTransaction();
         if (!window["NATIVE_EDITOR_ENJINE"] || window['IS_NATIVE_EDITOR'] || window['DoctRendererMode']) {
-          t.asc_showWorksheet(i);
+          t.asc_showWorksheet(where);
           // Посылаем callback об изменении списка листов
           t.sheetsChanged();
 		}
@@ -2106,14 +2116,18 @@ var editor;
     return true;
   };
 
-  spreadsheet_api.prototype.asc_addWorksheet = function(name) {
+  spreadsheet_api.prototype.asc_addWorksheet = function (name) {
     var i = this.wbModel.getActive();
-    this._addWorksheet(name, i + 1);
+    this._addWorksheets([name], i + 1);
   };
 
-  spreadsheet_api.prototype.asc_insertWorksheet = function(name) {
+  spreadsheet_api.prototype.asc_insertWorksheet = function (arrNames) {
+    // Support old versions
+    if (!Array.isArray(arrNames)) {
+      arrNames = [arrNames];
+    }
     var i = this.wbModel.getActive();
-    this._addWorksheet(name, i);
+    this._addWorksheets(arrNames, i);
   };
 
   // Удаление листа
