@@ -18520,8 +18520,8 @@
 				t.model.getRange3(r1, c1, r2, c2)._foreachNoEmpty(function(cell) {
 					//TODO merged ?
 					var newVal = cell.getValueWithoutFormat();
-					index = columnSort ? cell.nCol : cell.nRow;
-					if(index === prevIndex && val === newVal) {
+					index = !columnSort ? cell.nCol : cell.nRow;
+					if(index === prevIndex + 1 && val === newVal) {
 						if(res[curRangeIndex]) {
 							res[curRangeIndex].end++;
 						} else {
@@ -18529,6 +18529,9 @@
 						}
 					} else {
 						val = newVal;
+						if(res[curRangeIndex]) {
+							curRangeIndex++;
+						}
 					}
 					prevIndex = index;
 				});
@@ -18548,21 +18551,21 @@
 				sortCondition.ConditionDescending = null;
 				sortCondition.dxf = null;
 
-				var index = props.level[i].index;
+				var index = props.levels[i].index;
 				var range;
 				if(i === 0) {
-					range = this.model.getRange3(selection.r1, selection.c1, selection.r2, selection.c2);
-					t.cellCommentator.sortComments(range.sort(props.descending, columnSort ? index + selection.c1 : index + selection.r1, props.color, null, !columnSort));
+					range = t.model.getRange3(selection.r1, selection.c1, selection.r2, selection.c2);
+					t.cellCommentator.sortComments(range.sort(props.levels[i].descending, columnSort ? index + selection.c1 : index + selection.r1, props.levels[i].color, null, !columnSort));
 				} else {
-					var ranges = getRepeatedRanges(props.level[i - 1].index);
+					var ranges = getRepeatedRanges(props.levels[i - 1].index);
 					for(var j = 0; j < ranges.length; j++) {
-						var r1 = columnSort ? ranges[j].start : selection.r1;
-						var r2 = columnSort ? ranges[j].end : selection.r2;
-						var c1 = columnSort ? selection.c1 : ranges[j].start;
-						var c2 = columnSort ? selection.c2 : ranges[j].end;
+						var r1 = columnSort ? ranges[j].start + selection.r1 : selection.r1;
+						var r2 = columnSort ? ranges[j].end + selection.r1 : selection.r2;
+						var c1 = columnSort ? selection.c1 : ranges[j].start + selection.c1;
+						var c2 = columnSort ? selection.c2 : ranges[j].end + selection.c1;
 
-						range = this.model.getRange3(r1, c1, r2, c2);
-						t.cellCommentator.sortComments(range.sort(props.descending, columnSort ? index + selection.c1 : index + selection.r1, props.color, null, !columnSort));
+						range = t.model.getRange3(r1, c1, r2, c2);
+						t.cellCommentator.sortComments(range.sort(props.levels[i].descending, columnSort ? index + selection.c1 : index + selection.r1, props.levels[i].color, null, !columnSort));
 					}
 				}
 			}
