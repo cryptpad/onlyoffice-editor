@@ -2339,6 +2339,7 @@ function CT_pivotTableDefinition(setDefaults) {
 	this.ascDefaultSubtotal = null;
 	this.ascSubtotalTop = null;
 	this.ascFillDownLabels = null;
+	this.ascDataRef = null;
 	this.ascAltText = null;
 	this.ascAltTextSummary = null;
 
@@ -3347,6 +3348,10 @@ CT_pivotTableDefinition.prototype.asc_select = function (api) {
 };
 CT_pivotTableDefinition.prototype.asc_set = function (api, newVal) {
 	var t = this;
+	if (null !== newVal.ascDataRef && newVal.ascDataRef !== t.asc_getDataRef() && !this.isValidDataRef(newVal.ascDataRef)) {
+		api.sendEvent('asc_onError', c_oAscError.ID.PivotLabledColumns, c_oAscError.Level.NoCritical);
+		return;
+	}
 	api._changePivotWithLock(this, function (ws) {
 		if (null !== newVal.name) {
 			t.asc_setName(newVal.name, true);
@@ -3374,6 +3379,9 @@ CT_pivotTableDefinition.prototype.asc_set = function (api, newVal) {
 		}
 		if (null != newVal.ascFillDownLabels) {
 			t.setFillDownLabelsDefault(newVal.ascFillDownLabels, true);
+		}
+		if (null !== newVal.ascDataRef && newVal.ascDataRef !== t.asc_getDataRef()) {
+			t.updateCacheData(newVal.ascDataRef);
 		}
 		if (null != newVal.ascAltText) {
 			t.setTitle(newVal.ascAltText, true);
@@ -3455,6 +3463,9 @@ CT_pivotTableDefinition.prototype.setFillDownLabelsDefault = function(newVal, ad
 	setTableProperty(this, oldVal, newVal, addToHistory, AscCH.historyitem_PivotTable_SetFillDownLabelsDefault, true);
 	this.pivotTableDefinitionX14.fillDownLabelsDefault = newVal;
 	//todo
+};
+CT_pivotTableDefinition.prototype.asc_setDataRef = function(newVal) {
+	this.ascDataRef = newVal;
 };
 CT_pivotTableDefinition.prototype.asc_setTitle = function(newVal) {
 	this.ascAltText = newVal;
@@ -3766,6 +3777,10 @@ CT_pivotTableDefinition.prototype.asc_refresh = function(api) {
 	} else {
 		api.sendEvent('asc_onError', c_oAscError.ID.PivotLabledColumns, c_oAscError.Level.NoCritical);
 	}
+};
+CT_pivotTableDefinition.prototype.asc_getDataRef = function() {
+	var worksheetSource = this.cacheDefinition.getWorksheetSource();
+	return worksheetSource.getDataRef();
 };
 CT_pivotTableDefinition.prototype.updateCacheData = function(dataRef) {
 	var newCacheDefinition = new CT_PivotCacheDefinition();
@@ -12419,6 +12434,7 @@ prot["asc_getPageOverThenDown"] = prot.asc_getPageOverThenDown;
 prot["asc_getRowGrandTotals"] = prot.asc_getRowGrandTotals;
 prot["asc_getColGrandTotals"] = prot.asc_getColGrandTotals;
 prot["asc_getShowHeaders"] = prot.asc_getShowHeaders;
+prot["asc_getDataRef"] = prot.asc_getDataRef;
 prot["asc_getTitle"] = prot.asc_getTitle;
 prot["asc_getDescription"] = prot.asc_getDescription;
 prot["asc_getStyleInfo"] = prot.asc_getStyleInfo;
@@ -12439,6 +12455,7 @@ prot["asc_setShowHeaders"] = prot.asc_setShowHeaders;
 prot["asc_setCompact"] = prot.asc_setCompact;
 prot["asc_setOutline"] = prot.asc_setOutline;
 prot["asc_setFillDownLabelsDefault"] = prot.asc_setFillDownLabelsDefault;
+prot["asc_setDataRef"] = prot.asc_setDataRef;
 prot["asc_setTitle"] = prot.asc_setTitle;
 prot["asc_setDescription"] = prot.asc_setDescription;
 prot["asc_setInsertBlankRow"] = prot.asc_setInsertBlankRow;
