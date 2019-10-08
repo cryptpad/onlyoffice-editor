@@ -18502,6 +18502,44 @@
 			sortState.Ref = null;
 			t.SortConditions = [];
 
+			/*var doSort = function(i, ) {
+
+			};*/
+
+			var getRepeatedRanges = function(_index) {
+				var r1 = columnSort ? selection.r1 : selection.r1 + _index;
+				var r2 = columnSort ? selection.r2 : selection.r1 + _index;
+				var c1 = columnSort ? selection.c1 + _index : selection.c1;
+				var c2 = columnSort ? selection.c1 + _index : selection.c2;
+
+				var index;
+				var val;
+				var res = [];
+				var curRangeIndex = 0;
+				var prevIndex;
+				t.model.getRange3(r1, c1, r2, c2)._foreachNoEmpty(function(cell) {
+					//TODO merged ?
+					var newVal = cell.getValueWithoutFormat();
+					index = columnSort ? cell.nCol : cell.nRow;
+					if(index === prevIndex && val === newVal) {
+						if(res[curRangeIndex]) {
+							res[curRangeIndex].end++;
+						} else {
+							res[curRangeIndex] = {start: index - 1, end: index};
+						}
+					} else {
+						val = newVal;
+					}
+					prevIndex = index;
+				});
+				return res;
+			};
+
+			History.Create_NewPoint();
+			History.StartTransaction();
+
+			var selection = props._newSelection;
+			var columnSort = props.columnSort;
 			for(var i = 0; i < props.levels.length; i++) {
 				var sortCondition = new AscCommonExcel.SortCondition();
 
@@ -18510,8 +18548,26 @@
 				sortCondition.ConditionDescending = null;
 				sortCondition.dxf = null;
 
+				var index = props.level[i].index;
+				var range;
+				if(i === 0) {
+					range = this.model.getRange3(selection.r1, selection.c1, selection.r2, selection.c2);
+					t.cellCommentator.sortComments(range.sort(props.descending, columnSort ? index + selection.c1 : index + selection.r1, props.color, null, !columnSort));
+				} else {
+					var ranges = getRepeatedRanges(props.level[i - 1].index);
+					for(var j = 0; j < ranges.length; j++) {
+						var r1 = columnSort ? ranges[j].start : selection.r1;
+						var r2 = columnSort ? ranges[j].end : selection.r2;
+						var c1 = columnSort ? selection.c1 : ranges[j].start;
+						var c2 = columnSort ? selection.c2 : ranges[j].end;
 
+						range = this.model.getRange3(r1, c1, r2, c2);
+						t.cellCommentator.sortComments(range.sort(props.descending, columnSort ? index + selection.c1 : index + selection.r1, props.color, null, !columnSort));
+					}
+				}
 			}
+
+			History.EndTransaction();
 
 		};
 
