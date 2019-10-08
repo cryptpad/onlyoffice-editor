@@ -18464,7 +18464,9 @@
 		//столбцы/строки с настройками
 		var modelSort = this.model.sortState;
 		if(modelSort) {
-			if(!modelSort.columnSort) {
+			//в модели лежит флаг columnSort - если он true значит сортируем по строке(те перемещаем колонки)
+			//в настройках флаг columnSort - означает, что сортируем по колонке
+			if(modelSort.columnSort) {
 				sortSettings.columnSort = columnSort = false;
 			}
 			//заполняем только в случае пересечения
