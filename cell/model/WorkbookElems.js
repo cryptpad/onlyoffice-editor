@@ -8760,6 +8760,9 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	CSortProperties.prototype.asc_setColumnSort = function (val) {
 		this.columnSort = val;
 	};
+	CSortProperties.prototype.asc_setLevels = function (val) {
+		this.levels = val;
+	};
 
 	CSortProperties.prototype.asc_updateSortList = function () {
 		//TODO change selection
@@ -8852,7 +8855,7 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		return this.hasHeaders;
 	};
 	CSortPropertiesLevel.prototype.asc_getName = function () {
-		return this.columnSort;
+		return this.name;
 	};
 	CSortPropertiesLevel.prototype.asc_getSortBy = function () {
 		return this.sortBy;
@@ -8862,6 +8865,21 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	};
 	CSortPropertiesLevel.prototype.asc_getColor = function () {
 		return this.color;
+	};
+	CSortPropertiesLevel.prototype.asc_setIndex = function (val) {
+		this.hasHeaders = val;
+	};
+	CSortPropertiesLevel.prototype.asc_setName = function (val) {
+		this.columnSort = name;
+	};
+	CSortPropertiesLevel.prototype.asc_getSortBy = function (val) {
+		this.sortBy = val;
+	};
+	CSortPropertiesLevel.prototype.asc_getDescending = function (val) {
+		this.descending = val;
+	};
+	CSortPropertiesLevel.prototype.asc_getColor = function (val) {
+		this.color = val;
 	};
 
 
@@ -9152,6 +9170,12 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	prot["asc_getSortBy"] = prot.asc_getSortBy;
 	prot["asc_getDescending"] = prot.asc_getDescending;
 	prot["asc_getColor"] = prot.asc_getColor;
+	prot["asc_setIndex"] = prot.asc_setIndex;
+	prot["asc_setName"] = prot.asc_setName;
+	prot["asc_setSortBy"] = prot.asc_setSortBy;
+	prot["asc_setDescending"] = prot.asc_setDescending;
+	prot["asc_setColor"] = prot.asc_setColor;
+	prot["asc_setLevels"] = prot.asc_setLevels;
 
 	window["Asc"]["CSortLevelInfo"] = window["Asc"].CSortLevelInfo = CSortLevelInfo;
 	prot = CSortLevelInfo.prototype;
