@@ -298,8 +298,8 @@ var DATA_CAPTION = 'Values';
 var GRAND_TOTAL_CAPTION = 'Grand Total';
 var ROW_HEADER_CAPTION = 'Row Labels';
 var COL_HEADER_CAPTION = 'Column Labels';
-var NEW_PIVOT_COLS_COUNT = 3;
-var NEW_PIVOT_ROWS_COUNT = 18;
+var NEW_PIVOT_LAST_COL_OFFSET = 2;
+var NEW_PIVOT_LAST_ROW_OFFSET = 17;
 var NEW_PIVOT_ROW = 2;
 var NEW_PIVOT_COL = 0;
 var cDate = Asc.cDate;
@@ -4173,8 +4173,8 @@ CT_pivotTableDefinition.prototype.updateLocation = function() {
 		location.firstDataRow = 0;
 		location.firstDataCol = 0;
 	} else {
-		location.ref.r2 = location.ref.r1 + NEW_PIVOT_ROWS_COUNT - 1;
-		location.ref.c2 = location.ref.c1 + NEW_PIVOT_COLS_COUNT - 1;
+		location.ref.r2 = location.ref.r1 + NEW_PIVOT_LAST_ROW_OFFSET;
+		location.ref.c2 = location.ref.c1 + NEW_PIVOT_LAST_COL_OFFSET;
 		location.firstHeaderRow = 1;
 		location.firstDataRow = 1;
 		location.firstDataCol = 0;
@@ -4273,10 +4273,13 @@ CT_pivotTableDefinition.prototype.changeGrandTotals = function (items, newVal) {
 	}
 	return res;
 };
-CT_pivotTableDefinition.prototype.isValidDataRef = function(dataRef) {
+CT_pivotTableDefinition.prototype.parseDataRef = function(dataRef) {
 	var worksheetSource = new CT_WorksheetSource();
 	worksheetSource.fromDataRef(dataRef);
-	var location = worksheetSource.getDataLocation();
+	return worksheetSource.getDataLocation();
+};
+CT_pivotTableDefinition.prototype.isValidDataRef = function(dataRef) {
+	var location = this.parseDataRef(dataRef);
 	if (location && location.range.getHeight() > 1) {
 		var header = this._prepareDataRange(location.ws, location.range.r1, location.range.c1, location.range.c2);
 		var headerCount = 0;
@@ -12397,6 +12400,8 @@ window['AscCommonExcel'].DATA_CAPTION = DATA_CAPTION;
 window['AscCommonExcel'].GRAND_TOTAL_CAPTION = GRAND_TOTAL_CAPTION;
 window['AscCommonExcel'].ROW_HEADER_CAPTION = ROW_HEADER_CAPTION;
 window['AscCommonExcel'].COL_HEADER_CAPTION = COL_HEADER_CAPTION;
+window['AscCommonExcel'].NEW_PIVOT_LAST_COL_OFFSET = NEW_PIVOT_LAST_COL_OFFSET;
+window['AscCommonExcel'].NEW_PIVOT_LAST_ROW_OFFSET = NEW_PIVOT_LAST_ROW_OFFSET;
 window['AscCommonExcel'].NEW_PIVOT_ROW = NEW_PIVOT_ROW;
 window['AscCommonExcel'].NEW_PIVOT_COL = NEW_PIVOT_COL;
 

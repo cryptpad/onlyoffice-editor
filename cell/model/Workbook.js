@@ -6235,6 +6235,38 @@
 		}
 		
 	};
+	Worksheet.prototype.checkPivotReportLocation = function(ranges, withWarning) {
+		var res = {error: c_oAscError.ID.No, warning: c_oAscError.ID.No};
+		for (var i = 0; i < ranges.length; ++i) {
+			this._checkPivotReportLocation(ranges[i], withWarning, res);
+			if (c_oAscError.ID.No !== res) {
+				break;
+			}
+		}
+		return res;
+	};
+	Worksheet.prototype._checkPivotReportLocation = function(range, withWarning, res) {
+		if (this.autoFilters.isIntersectionTable(range)) {
+			res.error = c_oAscError.ID.PivotOverlap;
+		}
+		if (this.inPivotTable(range)) {
+			res.error = c_oAscError.ID.PivotOverlap;
+		}
+		var merged = this.mergeManager.get(range);
+		if (merged.outer.length > 0) {
+			res.error = c_oAscError.ID.PastInMergeAreaError;
+		}
+		if (withWarning && c_oAscError.ID.No !== res.warning) {
+			if (merged.inner.length > 0) {
+				res.warning = c_oAscError.ID.PivotOverlap;
+			}
+			this.getRange3(range.r1, range.c1, range.r2, range.c2)._foreachNoEmptyByCol(function(cell) {
+				if (!cell.isNullTextString()) {
+					res.warning = c_oAscError.ID.PivotOverlap;
+				}
+			});
+		}
+	};
 	Worksheet.prototype.initPivotTables = function () {
 		for (var i = 0; i < this.pivotTables.length; ++i) {
 			this.pivotTables[i].init();
@@ -6276,7 +6308,7 @@
 	};
 	Worksheet.prototype.getPivotTableRanges = function (pivotTable) {
 		var res = [], pos;
-		if (this.pageFieldsPositions) {
+		if (pivotTable.pageFieldsPositions) {
 			for (var i = 0; i < pivotTable.pageFieldsPositions.length; ++i) {
 				pos = pivotTable.pageFieldsPositions[i];
 				res.push(new Asc.Range(pos.col, pos.row, pos.col + 1, pos.row));

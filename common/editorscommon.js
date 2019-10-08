@@ -2746,7 +2746,7 @@
 				}
 			}
 		}
-		else if(Asc.c_oAscSelectionDialogType.PivotTableData === dialogType)
+		else if(Asc.c_oAscSelectionDialogType.PivotTableData === dialogType || Asc.c_oAscSelectionDialogType.PivotTableReport === dialogType)
 		{
 			result = parserHelp.parse3DRef(dataRange);
 			if (result)
@@ -2829,7 +2829,17 @@
 					return c_oAscError.ID.PivotLabledColumns;
 				}
 			}
-
+			else if (Asc.c_oAscSelectionDialogType.PivotTableReport === dialogType)
+			{
+				var location = Asc.CT_pivotTableDefinition.prototype.parseDataRef(dataRange);
+				if (location) {
+					var newRange = new Asc.Range(location.range.c1, location.range.r1, location.range.c1 + AscCommonExcel.NEW_PIVOT_LAST_COL_OFFSET, location.range.r1 + AscCommonExcel.NEW_PIVOT_LAST_ROW_OFFSET);
+					var checkRes = location.ws.checkPivotReportLocation([newRange]);
+					return checkRes.error;
+				} else {
+					return Asc.c_oAscError.ID.DataRangeError
+				}
+			}
 		}
 		return Asc.c_oAscError.ID.No;
 	};
