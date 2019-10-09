@@ -2156,7 +2156,6 @@ var editor;
       if (res) {
         History.Create_NewPoint();
         History.StartTransaction();
-        t.wbModel.dependencyFormulas.lockRecal();
         // Нужно проверить все диаграммы, ссылающиеся на удаляемый лист
           t.wbModel.forEach(function (ws) {
 			  History.TurnOff();
@@ -2180,10 +2179,9 @@ var editor;
         if (-1 !== active) {
           t.asc_showWorksheet(active);
         }
+        History.EndTransaction();
         // Посылаем callback об изменении списка листов
         t.sheetsChanged();
-        t.wbModel.dependencyFormulas.unlockRecal();
-        History.EndTransaction();
       }
     };
 
