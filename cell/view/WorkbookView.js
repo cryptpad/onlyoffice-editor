@@ -799,9 +799,6 @@
     this.model.handlers.add("setDocumentModified", function(bIsModified) {
       self.Api.onUpdateDocumentModified(bIsModified);
     });
-    this.model.handlers.add("replaceWorksheet", function(from, to) {
-      self.replaceWorksheet(from, to);
-    });
     this.model.handlers.add("removeWorksheet", function(nIndex) {
       self.removeWorksheet(nIndex);
     });
@@ -1818,27 +1815,6 @@
     this.wsViews.splice(nIndex, 1);
     // Сбрасываем активный (чтобы не досчитывать после смены)
     this.wsActive = -1;
-  };
-
-  // Меняет местами 2 элемента просмотра
-  WorkbookView.prototype.replaceWorksheet = function(indexFrom, indexTo) {
-    // Только если есть активный
-    if (-1 !== this.wsActive) {
-      var ws = this.getWorksheet(this.wsActive);
-      // Останавливаем ввод данных в редакторе ввода
-      if (ws.getCellEditMode()) {
-        this._onStopCellEditing();
-      }
-      // Делаем очистку селекта
-      ws.cleanSelection();
-
-      this.stopTarget(ws);
-      this.wsActive = -1;
-      // Чтобы поменять, нужно его добавить
-      this.getWorksheet(indexTo);
-    }
-    var movedSheet = this.wsViews.splice(indexFrom, 1);
-    this.wsViews.splice(indexTo, 0, movedSheet[0]);
   };
 
   WorkbookView.prototype.stopTarget = function(ws) {

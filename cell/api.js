@@ -2217,23 +2217,21 @@ var editor;
     for (i = 0, _where = where; i < arrSheetsRight.length; ++i, ++_where) {
       index = arrSheetsRight[i].getIndex();
       if (index !== _where) {
-        this.wb.replaceWorksheet(index, _where);
         this.wbModel.replaceWorksheet(index, _where);
       }
     }
     for (i = arrSheetsLeft.length - 1, _where = where - 1; i >= 0; --i, --_where) {
       index = arrSheetsLeft[i].getIndex();
       if (index !== _where) {
-        this.wb.replaceWorksheet(index, _where);
         this.wbModel.replaceWorksheet(index, _where);
       }
     }
-
     // Обновим текущий номер
-    this.asc_showWorksheet(active.getIndex());
+    this.wbModel.setActive(active.getIndex());
+    this.wb.updateWorksheetByModel();
+    History.EndTransaction();
     // Посылаем callback об изменении списка листов
     this.sheetsChanged();
-    History.EndTransaction();
   };
 
   spreadsheet_api.prototype.asc_copyWorksheet = function (where, arrNames, arrSheets) {
