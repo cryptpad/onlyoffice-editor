@@ -805,9 +805,6 @@
     this.model.handlers.add("removeWorksheet", function(nIndex) {
       self.removeWorksheet(nIndex);
     });
-    this.model.handlers.add("spliceWorksheet", function() {
-      self.spliceWorksheet.apply(self, arguments);
-    });
     this.model.handlers.add("updateWorksheetByModel", function() {
       self.updateWorksheetByModel.apply(self, arguments);
     });
@@ -1698,6 +1695,9 @@
    * @returns {WorkbookView}
    */
   WorkbookView.prototype.showWorksheet = function (index, bLockDraw) {
+  	if (window["NATIVE_EDITOR_ENJINE"] && !window['IS_NATIVE_EDITOR'] && !window['DoctRendererMode']) {
+		return this;
+	}
     // ToDo disable method for assembly
 	var ws, wb = this.model;
 	if (asc_typeof(index) !== "number" || 0 > index) {
@@ -1732,7 +1732,6 @@
       // Делаем очистку селекта
       ws.cleanSelection();
       this.stopTarget(ws);
-
     }
 
     if (c_oAscSelectionDialogType.Chart === this.selectionDialogType) {
@@ -1851,28 +1850,6 @@
     }
   };
 
-  // Копирует элемент перед другим элементом
-  WorkbookView.prototype.copyWorksheet = function(index, insertBefore) {
-    // Только если есть активный
-    if (-1 !== this.wsActive) {
-      var ws = this.getWorksheet();
-      // Останавливаем ввод данных в редакторе ввода
-      if (ws.getCellEditMode()) {
-        this._onStopCellEditing();
-      }
-      // Делаем очистку селекта
-      ws.cleanSelection();
-
-      this.stopTarget(ws);
-      this.wsActive = -1;
-    }
-
-    if (null != insertBefore && insertBefore >= 0 && insertBefore < this.wsViews.length) {
-      // Помещаем нулевой элемент перед insertBefore
-      this.wsViews.splice(insertBefore, 0, null);
-    }
-  };
-
   WorkbookView.prototype.updateWorksheetByModel = function() {
     // ToDo Сделал небольшую заглушку с показом листа. Нужно как мне кажется перейти от wsViews на wsViewsId (хранить по id)
     var oldActiveWs;
@@ -1899,12 +1876,6 @@
     } else {
       this.wsActive = wsActive;
     }
-  };
-
-  WorkbookView.prototype.spliceWorksheet = function() {
-    this.stopTarget(null);
-    this.wsViews.splice.apply(this.wsViews, arguments);
-    this.wsActive = -1;
   };
 
   WorkbookView.prototype._canResize = function() {

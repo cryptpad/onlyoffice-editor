@@ -1788,14 +1788,11 @@ var editor;
         History.StartTransaction();
         for (var i = arrNames.length - 1; i >= 0; --i) {
           t.wbModel.createWorksheet(where, arrNames[i]);
-          t.wb.spliceWorksheet(where, 0, null);
         }
+        t.wb.updateWorksheetByModel();
         History.EndTransaction();
-        if (!window["NATIVE_EDITOR_ENJINE"] || window['IS_NATIVE_EDITOR'] || window['DoctRendererMode']) {
-          t.asc_showWorksheet(where);
-          // Посылаем callback об изменении списка листов
-          t.sheetsChanged();
-		}
+        // Посылаем callback об изменении списка листов
+        t.sheetsChanged();
       }
     };
 
@@ -2267,19 +2264,18 @@ var editor;
     var t = this;
     var copyWorksheet = function(res) {
       if (res) {
-        // ToDo перейти от wsViews на wsViewsId (сейчас вызываем раньше, чем в модели, т.к. там будет sortDependency
-        // и cleanCellCache, который создаст уже скопированный лист(и splice сработает неправильно))
+        // ToDo перейти от wsViews на wsViewsId
         History.Create_NewPoint();
         History.StartTransaction();
         var index;
         for (var i = arrSheets.length - 1; i >= 0; --i) {
           index = arrSheets[i].getIndex();
-          t.wb.copyWorksheet(index, where);
           t.wbModel.copyWorksheet(index, where, arrNames[i]);
         }
-        History.EndTransaction();
         // Делаем активным скопированный
-        t.asc_showWorksheet(where);
+        t.wb.setActive(where);
+        t.wb.updateWorksheetByModel();
+        History.EndTransaction();
         t.asc_setZoom(scale);
         // Посылаем callback об изменении списка листов
         t.sheetsChanged();
