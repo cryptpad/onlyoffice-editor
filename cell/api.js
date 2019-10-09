@@ -2273,7 +2273,7 @@ var editor;
           t.wbModel.copyWorksheet(index, where, arrNames[i]);
         }
         // Делаем активным скопированный
-        t.wb.setActive(where);
+        t.wbModel.setActive(where);
         t.wb.updateWorksheetByModel();
         History.EndTransaction();
         t.asc_setZoom(scale);
