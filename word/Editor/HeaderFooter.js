@@ -1543,17 +1543,11 @@ CHeaderFooterController.prototype =
         this.Pages[PageIndex] = new CHdrFtrPage();
         this.Pages[PageIndex].Header = Header;
         this.Pages[PageIndex].Footer = Footer;
-        var X, XLimit;
-        
-        var X      = SectPr.GetPageMarginLeft();
-        var XLimit = SectPr.GetPageWidth() - SectPr.GetPageMarginRight();
 
-        if (bEven)
-        {
-            X      = SectPr.GetPageMarginRight();
-            XLimit = SectPr.GetPageWidth() - SectPr.GetPageMarginLeft();
-        }
-        
+        var oFrame = SectPr.GetContentFrame(PageIndex);
+        var X      = oFrame.Left;
+        var XLimit = oFrame.Right;
+
         var bRecalcHeader = false;
 
         var HeaderDrawings, HeaderTables, FooterDrawings, FooterTables;

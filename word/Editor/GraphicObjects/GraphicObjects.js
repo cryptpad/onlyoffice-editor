@@ -1500,19 +1500,10 @@ CGraphicObjects.prototype =
         }
         else
         {
-            if(this.selectedObjects[0] && this.selectedObjects[0].parent && this.selectedObjects[0].parent.Is_Inline())
+            if(this.selectedObjects.length > 0)
             {
-                this.resetInternalSelection();
-                this.document.Remove(1, true);
+                this.resetSelection2();
                 this.document.AddInlineImage(W, H, Img, Chart, bFlow );
-            }
-            else
-            {
-                if(this.selectedObjects.length > 0)
-                {
-                    this.resetSelection2();
-                    this.document.AddInlineImage(W, H, Img, Chart, bFlow );
-                }
             }
         }
     },

@@ -8684,7 +8684,7 @@ Paragraph.prototype.RecalcCompiledPr = function(isForce)
 {
 	this.CompiledPr.NeedRecalc = true;
 
-	if (isForce)
+	if (isForce && this.bFromDocument)
 		this.private_CompileParaPr(true);
 };
 Paragraph.prototype.Recalc_RunsCompiledPr = function()

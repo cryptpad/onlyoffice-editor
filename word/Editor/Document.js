@@ -2553,10 +2553,17 @@ CDocument.prototype.private_FinalizeCheckTrackMove = function()
 		this.TrackMoveId = null;
 		this.RemoveTrackMoveMarks(sMoveId);
 
-		oMarks.To.Start.RemoveThisMarkFromDocument();
-		oMarks.To.End.RemoveThisMarkFromDocument();
-		oMarks.From.Start.RemoveThisMarkFromDocument();
-		oMarks.From.End.RemoveThisMarkFromDocument();
+		if (oMarks.To.Start)
+			oMarks.To.Start.RemoveThisMarkFromDocument();
+
+		if (oMarks.To.End)
+			oMarks.To.End.RemoveThisMarkFromDocument();
+
+		if (oMarks.From.Start)
+			oMarks.From.Start.RemoveThisMarkFromDocument();
+
+		if (oMarks.From.End)
+			oMarks.From.End.RemoveThisMarkFromDocument();
 
 		this.Action.Recalculate = true;
 	}
@@ -6452,10 +6459,24 @@ CDocument.prototype.SetDocumentMargin = function(oMargins, isFromRuler)
 	var R = undefined === oMargins.Right ? undefined : oSectPr.GetPageWidth() - oMargins.Right;
 	var B = undefined === oMargins.Bottom ? undefined : oSectPr.GetPageHeight() - oMargins.Bottom;
 
-	if (isFromRuler && this.IsMirrorMargins() && 1 === this.CurPage % 2)
+	if (isFromRuler)
 	{
-		L = oSectPr.GetPageWidth() - oMargins.Right;
-		R = oMargins.Left;
+		if (this.IsMirrorMargins() && 1 === this.CurPage % 2)
+		{
+			L = oSectPr.GetPageWidth() - oMargins.Right;
+			R = oMargins.Left;
+		}
+
+		var nGutter = oSectPr.GetGutter();
+		if (nGutter > 0.001)
+		{
+			if (this.IsGutterAtTop())
+				T = Math.max(0, T - nGutter);
+			else if (oSectPr.IsGutterRTL())
+				R = Math.max(0, R - nGutter);
+			else
+				L = Math.max(0, L - nGutter);
+		}
 	}
 
 	oSectPr.SetPageMargins(L, T, R, B);
@@ -13186,10 +13207,25 @@ CDocument.prototype.Update_ColumnsMarkupFromRuler = function(oNewMarkup)
 
 		oSectPr.Set_Columns_EqualWidth(oNewMarkup.EqualWidth);
 
+		var nLeft  = oNewMarkup.X;
+		var nRight = oSectPr.GetPageWidth() - oNewMarkup.R;
+
 		if (this.IsMirrorMargins() && 1 === oNewMarkup.PageIndex % 2)
-			oSectPr.SetPageMargins(oSectPr.GetPageWidth() - oNewMarkup.R, undefined, oNewMarkup.X, undefined);
-		else
-			oSectPr.SetPageMargins(oNewMarkup.X, undefined, oSectPr.GetPageWidth() - oNewMarkup.R, undefined);
+		{
+			nLeft  = oSectPr.GetPageWidth() - oNewMarkup.R;
+			nRight = oNewMarkup.X;
+		}
+
+		var nGutter = oSectPr.GetGutter();
+		if (nGutter > 0.001 && !this.IsGutterAtTop())
+		{
+			if (oSectPr.IsGutterRTL())
+				nRight = Math.max(0, nRight - nGutter);
+			else
+				nLeft = Math.max(0, nLeft - nGutter);
+		}
+
+		oSectPr.SetPageMargins(nLeft, undefined, nRight, undefined);
 
 		if (false === oNewMarkup.EqualWidth)
 		{
@@ -17158,14 +17194,14 @@ CDocument.prototype.controller_GetColumnSize = function()
 	var XLimit = oFrame.Right;
 
 	var ColumnsCount = oSectPr.GetColumnsCount();
-	for (var ColumnIndex = 0; ColumnIndex < ColumnAbs; ++ColumnIndex)
+	for (var ColumnIndex = 0; ColumnIndex < nColumnAbs; ++ColumnIndex)
 	{
 		X += oSectPr.GetColumnWidth(ColumnIndex);
 		X += oSectPr.GetColumnSpace(ColumnIndex);
 	}
 
-	if (ColumnsCount - 1 !== ColumnAbs)
-		XLimit = X + oSectPr.GetColumnWidth(ColumnAbs);
+	if (ColumnsCount - 1 !== nColumnAbs)
+		XLimit = X + oSectPr.GetColumnWidth(nColumnAbs);
 
 	return {
 		W : XLimit - X,

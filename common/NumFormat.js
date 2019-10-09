@@ -2537,6 +2537,32 @@ CellFormat.prototype =
 
 		}
 		return nType;
+	},
+	checkCultureInfoFontPicker: function() {
+		if (null !== this.sFormat) {
+			AscFonts.FontPickerByCharacter.getFontsByString(this.sFormat);
+		}
+		if (null !== this.oPositiveFormat && null !== this.oPositiveFormat.LCID) {
+			checkCultureInfoFontPicker(this.oPositiveFormat.LCID);
+		}
+		if (null !== this.oNegativeFormat && null !== this.oNegativeFormat.LCID) {
+			checkCultureInfoFontPicker(this.oNegativeFormat.LCID);
+		}
+		if (null !== this.oNullFormat && null !== this.oNullFormat.LCID) {
+			checkCultureInfoFontPicker(this.oNullFormat.LCID);
+		}
+		if (null !== this.oTextFormat && null !== this.oTextFormat.LCID) {
+			checkCultureInfoFontPicker(this.oTextFormat.LCID);
+		}
+		if (this.aComporationFormats) {
+			for (var i = 0, length = this.aComporationFormats.length; i < length; ++i) {
+				var oCurFormat = this.aComporationFormats[i];
+				if (null !== oCurFormat.LCID) {
+					checkCultureInfoFontPicker(oCurFormat.LCID);
+				}
+
+			}
+		}
 	}
 };
 var oDecodeGeneralFormatCache = {};
@@ -3710,8 +3736,8 @@ function setCurrentCultureInfo(val) {
     AscCommon.g_oDefaultCultureInfo = g_oDefaultCultureInfo = cultureInfoNew;
     return true;
 }
-	function checkCultureInfoFontPicker() {
-		var ci = g_oDefaultCultureInfo;
+	function checkCultureInfoFontPicker(LCID) {
+		var ci = g_aCultureInfos[LCID] || g_oDefaultCultureInfo;
 		AscFonts.FontPickerByCharacter.getFontsByString(ci.CurrencySymbol);
 		AscFonts.FontPickerByCharacter.getFontsByString(ci.NumberDecimalSeparator);
 		AscFonts.FontPickerByCharacter.getFontsByString(ci.NumberGroupSeparator);

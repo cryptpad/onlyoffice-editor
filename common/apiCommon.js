@@ -2091,6 +2091,7 @@
 		this.flipHInvert = null;
 		this.flipVInvert = null;
 		this.shadow = undefined;
+		this.anchor = null;
 	}
 
 	asc_CShapeProperty.prototype = {
@@ -2247,6 +2248,13 @@
 
 		asc_putShadow: function(v){
 			this.shadow = v;
+		},
+		asc_getAnchor: function(){
+			return this.anchor;
+		},
+
+		asc_putAnchor: function(v){
+			this.anchor = v;
 		}
 	};
 
@@ -2462,6 +2470,7 @@
 			this.flipH = obj.flipH != undefined ? obj.flipH : undefined;
 			this.flipV = obj.flipV != undefined ? obj.flipV : undefined;
 			this.resetCrop =  obj.resetCrop != undefined ? obj.resetCrop : undefined;
+			this.anchor =  obj.anchor != undefined ? obj.anchor : undefined;
 
 		} else {
 			this.CanBeFlow = true;
@@ -2510,6 +2519,7 @@
 			this.flipH = undefined;
 			this.flipV = undefined;
 			this.resetCrop = undefined;
+			this.anchor = undefined;
 		}
 	}
 
@@ -2843,6 +2853,13 @@
 
 		asc_putShadow: function(v){
 			this.shadow = v;
+		},
+		asc_getAnchor: function(){
+			return this.anchor;
+		},
+
+		asc_putAnchor: function(v){
+			this.anchor = v;
 		}
 	};
 
@@ -4724,8 +4741,10 @@
 	prot["put_FlipHInvert"] = prot["asc_putFlipHInvert"] = prot.asc_putFlipHInvert;
 	prot["get_FlipVInvert"] = prot["asc_getFlipVInvert"] = prot.asc_getFlipVInvert;
 	prot["put_FlipVInvert"] = prot["asc_putFlipVInvert"] = prot.asc_putFlipVInvert;
-	prot["put_shadow"] = prot.put_shadow = prot["asc_putShadow"] = prot.asc_putShadow;
-	prot["get_shadow"] = prot.get_shadow = prot["asc_getShadow"] = prot.asc_getShadow;
+	prot["put_Shadow"] = prot.put_Shadow = prot["put_shadow"] = prot.put_shadow = prot["asc_putShadow"] = prot.asc_putShadow;
+	prot["get_Shadow"] = prot.get_Shadow = prot["get_shadow"] = prot.get_shadow = prot["asc_getShadow"] = prot.asc_getShadow;
+	prot["put_Anchor"] = prot.put_Anchor = prot["asc_putAnchor"] = prot.asc_putAnchor;
+	prot["get_Anchor"] = prot.get_Anchor = prot["asc_getAnchor"] = prot.asc_getAnchor;
 
 	window["Asc"]["asc_TextArtProperties"] = window["Asc"].asc_TextArtProperties = asc_TextArtProperties;
 	prot = asc_TextArtProperties.prototype;
@@ -4851,6 +4870,12 @@
 	prot["get_ColumnSpace"] = prot["asc_getColumnSpace"] = prot.asc_getColumnSpace;
 	prot["put_ColumnSpace"] = prot["asc_putColumnSpace"] = prot.asc_putColumnSpace;
 	prot["asc_getSignatureId"] = prot["asc_getSignatureId"] = prot.asc_getSignatureId;
+
+	prot["put_Shadow"] = prot.put_Shadow = prot["put_shadow"] = prot.put_shadow = prot["asc_putShadow"] = prot.asc_putShadow;
+	prot["get_Shadow"] = prot.get_Shadow = prot["get_shadow"] = prot.get_shadow = prot["asc_getShadow"] = prot.asc_getShadow;
+
+	prot["put_Anchor"] = prot.put_Anchor = prot["asc_putAnchor"] = prot.asc_putAnchor;
+	prot["get_Anchor"] = prot.get_Anchor = prot["asc_getAnchor"] = prot.asc_getAnchor;
 
 
 

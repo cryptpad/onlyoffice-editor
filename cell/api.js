@@ -1814,8 +1814,7 @@ var editor;
     }
 
     if (!arrSheets) {
-      arrSheets = [];
-      arrSheets.push(this.wbModel.getActive());
+      arrSheets = [this.wbModel.getActive()];
     }
 
     var sheet, arrLocks = [];
@@ -2019,7 +2018,7 @@ var editor;
   };
 
   spreadsheet_api.prototype.asc_showWorksheet = function(index) {
-    if (typeof index === "number" && undefined !== index && null !== index) {
+    if (typeof index === "number") {
       var t = this;
       var ws = this.wbModel.getWorksheet(index);
       var isHidden = ws.getHidden();
@@ -2050,8 +2049,7 @@ var editor;
     }
 
     if (!arrSheets) {
-      arrSheets = [];
-      arrSheets.push(this.wbModel.getActive());
+      arrSheets = [this.wbModel.getActive()];
     }
 
     // Вдруг остался один лист
@@ -2126,8 +2124,7 @@ var editor;
     }
 
     if (!arrSheets) {
-      arrSheets = [];
-      arrSheets.push(this.wbModel.getActive());
+      arrSheets = [this.wbModel.getActive()];
     }
 
     // Check delete all
@@ -2189,11 +2186,10 @@ var editor;
     }
 
     if (!arrSheets) {
-      arrSheets = [];
-      arrSheets.push(this.wbModel.getActive());
+      arrSheets = [this.wbModel.getActive()];
     }
 
-    var i, index, activeWs = this.wbModel.getActiveWs(), _where;
+    var i, index, _where;
     for (i = 0; i < arrSheets.length; ++i) {
       arrSheets[i] = this.wbModel.getWorksheet(arrSheets[i]);
     }
@@ -2209,27 +2205,52 @@ var editor;
     }
 
     // Обновим текущий номер
-    this.asc_showWorksheet(activeWs.getIndex());
+    this.asc_showWorksheet(_where);
     // Посылаем callback об изменении списка листов
     this.sheetsChanged();
     History.EndTransaction();
   };
 
-  spreadsheet_api.prototype.asc_copyWorksheet = function(where, newName) {
+  spreadsheet_api.prototype.asc_copyWorksheet = function (where, arrNames, arrSheets) {
+    // Проверка глобального лока
+    if (this.collaborativeEditing.getGlobalLock()) {
+      return false;
+    }
+
+    // Support old versions
+    if (!Array.isArray(arrNames)) {
+      arrNames = [arrNames];
+    }
+    if (0 === arrNames.length) {
+      return false;
+    }
+    if (!arrSheets) {
+      arrSheets = [this.wbModel.getActive()];
+    }
+
     var scale = this.asc_getZoom();
-    var i = this.wbModel.getActive();
 
     // ToDo уйти от lock для листа при копировании
-    var sheetId = this.wbModel.getWorksheet(i).getId();
-    var lockInfo = this.collaborativeEditing.getLockInfo(c_oAscLockTypeElem.Sheet, /*subType*/null, sheetId, sheetId);
+    var sheet, arrLocks = [];
+    for (var i = 0; i < arrSheets.length; ++i) {
+      sheet = arrSheets[i] = this.wbModel.getWorksheet(arrSheets[i]);
+      arrLocks.push(this.collaborativeEditing.getLockInfo(c_oAscLockTypeElem.Sheet, /*subType*/null, sheet.getId(), sheet.getId()));
+    }
+
     var t = this;
     var copyWorksheet = function(res) {
       if (res) {
         // ToDo перейти от wsViews на wsViewsId (сейчас вызываем раньше, чем в модели, т.к. там будет sortDependency
         // и cleanCellCache, который создаст уже скопированный лист(и splice сработает неправильно))
         History.Create_NewPoint();
-        t.wb.copyWorksheet(i, where);
-        t.wbModel.copyWorksheet(i, where, newName);
+        History.StartTransaction();
+        var index;
+        for (var i = arrSheets.length - 1; i >= 0; --i) {
+          index = arrSheets[i].getIndex();
+          t.wb.copyWorksheet(index, where);
+          t.wbModel.copyWorksheet(index, where, arrNames[i]);
+        }
+        History.EndTransaction();
         // Делаем активным скопированный
         t.asc_showWorksheet(where);
         t.asc_setZoom(scale);
@@ -2238,7 +2259,7 @@ var editor;
       }
     };
 
-    this.collaborativeEditing.lock([lockInfo], copyWorksheet);
+    this.collaborativeEditing.lock(arrLocks, copyWorksheet);
   };
 
   spreadsheet_api.prototype.asc_cleanSelection = function() {
@@ -3414,8 +3435,13 @@ var editor;
   };
 
   spreadsheet_api.prototype.asc_setCellFormat = function(format) {
-    this.wb.setCellFormat(format);
-    this.wb.restoreFocus();
+    var t = this;
+    var numFormat = AscCommon.oNumFormatCache.get(format);
+    numFormat.checkCultureInfoFontPicker();
+    this._loadFonts([], function () {
+      t.wb.setCellFormat(format);
+      t.wb.restoreFocus();
+    });
   };
 
   spreadsheet_api.prototype.asc_setCellAngle = function(angle) {

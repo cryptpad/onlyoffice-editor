@@ -5293,6 +5293,15 @@ function CompareShapeProperties(shapeProp1, shapeProp2)
         _result_shape_prop.flipV = null;
     }
 
+    if(shapeProp1.anchor === shapeProp2.anchor)
+    {
+        _result_shape_prop.anchor = shapeProp1.anchor;
+    }
+    else
+    {
+        _result_shape_prop.anchor = null;
+    }
+
     if(shapeProp1.stroke == null || shapeProp2.stroke == null)
     {
         _result_shape_prop.stroke = null;

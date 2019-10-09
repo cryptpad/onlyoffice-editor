@@ -924,7 +924,6 @@
 			t.cellCommentator.updateActiveComment();
             t.cellCommentator.updateAreaComments();
             if (t.objectRender) {
-                t.objectRender.updateSizeDrawingObjects({target: c_oTargetType.ColumnResize, col: col});
                 if(bIsHidden !==  t.model.getColHidden(col)) {
                     t.objectRender.rebuildChartGraphicObjects([new asc_Range(col, 0, col, gc_nMaxRow0)]);
                 }
@@ -987,7 +986,6 @@
 			t.cellCommentator.updateActiveComment();
 			t.cellCommentator.updateAreaComments();
             if (t.objectRender) {
-                t.objectRender.updateSizeDrawingObjects({target: c_oTargetType.RowResize, row: row});
 				t.objectRender.rebuildChartGraphicObjects([new asc_Range(0, row, gc_nMaxCol0, row)]);
             }
 			if (viewMode) {
@@ -2098,10 +2096,29 @@
 			var drawingPrintOptions = {
 				ctx: drawingCtx, printPagesData: printPagesData
 			};
+            var oOldBaseTransform = drawingCtx.DocumentRenderer.m_oBaseTransform;
+            var oBaseTransform = new AscCommon.CMatrix();
+            oBaseTransform.sx = printScale;
+            oBaseTransform.sy = printScale;
+
+            var range = printPagesData.pageRange;
+
+             oBaseTransform.tx = asc_getcvt(0/*mm*/, 3/*px*/, this._getPPIX())*(printPagesData.pageClipRectLeft + (printPagesData.leftFieldInPx - printPagesData.pageClipRectLeft) * printScale) - (this.getCellLeft(range.c1, 3) - this.getCellLeft(0, 3))*printScale;
+             oBaseTransform.ty = asc_getcvt(0/*mm*/, 3/*px*/, this._getPPIX())*(printPagesData.pageClipRectTop + (printPagesData.topFieldInPx - printPagesData.pageClipRectTop) * printScale) - (this.getCellTop(range.r1, 3) - this.getCellTop(0, 3))*printScale;
+
+            drawingCtx.AddClipRect(printPagesData.pageClipRectLeft + (printPagesData.leftFieldInPx - printPagesData.pageClipRectLeft)*printScale,
+                printPagesData.pageClipRectTop + (printPagesData.topFieldInPx - printPagesData.pageClipRectTop)*printScale,
+                printPagesData.pageClipRectWidth*(printScale < 1 ? printScale : 1) ,
+                printPagesData.pageClipRectHeight*(printScale < 1 ? printScale : 1));
+
+            drawingCtx.DocumentRenderer.SetBaseTransform(oBaseTransform);
 			this.objectRender.showDrawingObjectsEx(false, null, drawingPrintOptions);
+            drawingCtx.DocumentRenderer.SetBaseTransform(oOldBaseTransform);
 			this.visibleRange = tmpVisibleRange;
 
-			if(this.groupWidth || this.groupHeight) {
+            drawingCtx.RemoveClipRect();
+
+            if(this.groupWidth || this.groupHeight) {
 				this.ignoreGroupSize = false;
 				this._calcHeaderColumnWidth();
 				this._calcHeaderRowHeight();
@@ -2290,8 +2307,8 @@
 	};
 
 	WorksheetView.prototype._changeFitToPage = function(width, height) {
-		var fitToHeightAuto = height === 0;
-		var fitToWidthAuto = width === 0;
+		var fitToHeightAuto = height === 0 || height === undefined;
+		var fitToWidthAuto = width === 0 || width === undefined;
 		this.model.setFitToPage(!fitToHeightAuto || !fitToWidthAuto);
 	};
 
@@ -14021,7 +14038,7 @@
             }
 
             if (null !== minChangeRow) {
-                t.objectRender.updateSizeDrawingObjects({target: c_oTargetType.RowResize, row: minChangeRow});
+                t.objectRender.updateSizeDrawingObjects({target: c_oTargetType.RowResize, row: minChangeRow}, true);
             }
         };
 		if (!window['AscCommonExcel'].filteringMode) {
@@ -14092,7 +14109,7 @@
             }
 
             if (null !== minChangeRow) {
-                t.objectRender.updateSizeDrawingObjects({target: c_oTargetType.RowResize, row: minChangeRow});
+                t.objectRender.updateSizeDrawingObjects({target: c_oTargetType.RowResize, row: minChangeRow}, true);
             }
         };
 		if (!window['AscCommonExcel'].filteringMode) {
@@ -14198,7 +14215,7 @@
                 }
 
                 if (null !== minChangeRow) {
-                    t.objectRender.updateSizeDrawingObjects({target: c_oTargetType.RowResize, row: minChangeRow});
+                    t.objectRender.updateSizeDrawingObjects({target: c_oTargetType.RowResize, row: minChangeRow}, true);
                 }
             }
 
@@ -18117,7 +18134,7 @@
 				t.objectRender.drawingArea.reinitRanges();
 			}
 			if (null !== updateDrawingObjectsInfo) {
-				t.objectRender.updateSizeDrawingObjects(updateDrawingObjectsInfo);
+				t.objectRender.updateSizeDrawingObjects(updateDrawingObjectsInfo, true);
 			}
 			if (null !== updateDrawingObjectsInfo2) {
 				t.objectRender.updateDrawingObject(updateDrawingObjectsInfo2.bInsert,

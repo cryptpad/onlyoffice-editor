@@ -8551,7 +8551,7 @@ function Binary_pPrReader(doc, oReadResult, stream)
             });
             if(null != oSize.W && null != oSize.H)
             {
-                oSectPr.Set_PageSize(oSize.W, oSize.H);
+                oSectPr.SetPageSize(oSize.W, oSize.H);
             }
             if(null != oSize.Orientation)
                 oSectPr.SetOrientation(oSize.Orientation, false);
