@@ -2169,16 +2169,10 @@ var editor;
 			  }
           });
 
-        // Удаляем Worksheet и получаем новый активный индекс (-1 означает, что ничего не удалилось)
-        var active, index;
         for (var i = 0; i < arrSheets.length; ++i) {
-          index = arrSheets[i].getIndex();
-          active = t.wbModel.removeWorksheet(index);
-          t.wb.removeWorksheet(index);
+          t.wbModel.removeWorksheet(arrSheets[i].getIndex());
         }
-        if (-1 !== active) {
-          t.asc_showWorksheet(active);
-        }
+        t.updateWorksheetByModel();
         History.EndTransaction();
         // Посылаем callback об изменении списка листов
         t.sheetsChanged();

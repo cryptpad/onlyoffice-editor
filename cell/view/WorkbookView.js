@@ -799,9 +799,6 @@
     this.model.handlers.add("setDocumentModified", function(bIsModified) {
       self.Api.onUpdateDocumentModified(bIsModified);
     });
-    this.model.handlers.add("removeWorksheet", function(nIndex) {
-      self.removeWorksheet(nIndex);
-    });
     this.model.handlers.add("updateWorksheetByModel", function() {
       self.updateWorksheetByModel.apply(self, arguments);
     });
@@ -1807,14 +1804,6 @@
     this.toggleAutoCorrectOptions(null, true);
     window['AscCommon'].g_specialPasteHelper.SpecialPasteButton_Hide();
     return this;
-  };
-
-  /** @param nIndex {Number} массив индексов */
-  WorkbookView.prototype.removeWorksheet = function(nIndex) {
-    this.stopTarget(null);
-    this.wsViews.splice(nIndex, 1);
-    // Сбрасываем активный (чтобы не досчитывать после смены)
-    this.wsActive = -1;
   };
 
   WorkbookView.prototype.stopTarget = function(ws) {
