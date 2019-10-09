@@ -1839,7 +1839,7 @@
       this.getWorksheet(indexTo);
     }
     var movedSheet = this.wsViews.splice(indexFrom, 1);
-    this.wsViews.splice(indexTo, 0, movedSheet[0])
+    this.wsViews.splice(indexTo, 0, movedSheet[0]);
   };
 
   WorkbookView.prototype.stopTarget = function(ws) {
