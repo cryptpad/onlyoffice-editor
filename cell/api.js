@@ -1789,6 +1789,7 @@ var editor;
         for (var i = arrNames.length - 1; i >= 0; --i) {
           t.wbModel.createWorksheet(where, arrNames[i]);
         }
+        t.wbModel.setActive(where);
         t.wb.updateWorksheetByModel();
         History.EndTransaction();
         // Посылаем callback об изменении списка листов
