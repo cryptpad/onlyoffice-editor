@@ -11643,7 +11643,7 @@
 			this.removeHyperlink(aHyperlinks.inner[i]);
 		History.EndTransaction();
 	};
-	Range.prototype.sort = function (nOption, nStartRowCol, sortColor, opt_guessHeader, opt_by_row) {
+	Range.prototype.sort = function (nOption, nStartRowCol, sortColor, opt_guessHeader, opt_by_row, opt_custom_sort) {
 		var bbox = this.bbox;
 		if (opt_guessHeader) {
 			//если тип ячеек первого и второго row попарно совпадает, то считаем первую строку заголовком
@@ -11689,7 +11689,7 @@
 
 		//get sort elems
 		//_getSortElems - for split big function
-		var elemObj = this._getSortElems(bbox, nStartRowCol, nOption, sortColor, opt_by_row);
+		var elemObj = this._getSortElems(bbox, nStartRowCol, nOption, sortColor, opt_by_row, opt_custom_sort);
 		var aSortElems = elemObj.aSortElems;
 		var nColFirst0 = elemObj.nColFirst0;
 		var nRowFirst0 = elemObj.nRowFirst0;
@@ -11794,7 +11794,7 @@
 		this.worksheet.workbook.dependencyFormulas.unlockRecal();
 		return oRes;
 	};
-	Range.prototype._getSortElems = function (bbox, nStartRowCol, nOption, sortColor, opt_by_row) {
+	Range.prototype._getSortElems = function (bbox, nStartRowCol, nOption, sortColor, opt_by_row, opt_custom_sort) {
 		var oThis = this;
 
 		var bAscent = false;
