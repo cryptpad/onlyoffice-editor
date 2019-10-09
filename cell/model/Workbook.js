@@ -12123,6 +12123,209 @@
 			History.LocalChange = false;
 		}
 	};
+
+
+
+
+
+	Range.prototype.sort2 = function (nOption, nStartRowCol, sortColor, opt_guessHeader, opt_by_row) {
+		var bbox = this.bbox;
+		if (opt_guessHeader) {
+			//если тип ячеек первого и второго row попарно совпадает, то считаем первую строку заголовком
+			//todo рассмотреть замерженые ячейки. стили тоже влияют, но непонятно как сравнивать border
+			var bIgnoreFirstRow = ignoreFirstRowSort(this.worksheet, bbox);
+
+			if (bIgnoreFirstRow) {
+				bbox = bbox.clone();
+				bbox.r1++;
+			}
+		}
+
+		//todo горизонтальная сортировка
+		var aMerged = this.worksheet.mergeManager.get(bbox);
+		if (aMerged.outer.length > 0 || (aMerged.inner.length > 0 && null == _isSameSizeMerged(bbox, aMerged.inner))) {
+			return null;
+		}
+
+		var nMergedWidth = 1;
+		var nMergedHeight = 1;
+		if (aMerged.inner.length > 0) {
+			var merged = aMerged.inner[0];
+			if (opt_by_row) {
+				nMergedWidth = merged.bbox.c2 - merged.bbox.c1 + 1;
+				//меняем nStartCol, потому что приходит колонка той ячейки, на которой начали выделение
+				nStartRowCol = merged.bbox.r1;
+			} else {
+				nMergedHeight = merged.bbox.r2 - merged.bbox.r1 + 1;
+				//меняем nStartCol, потому что приходит колонка той ячейки, на которой начали выделение
+				nStartRowCol = merged.bbox.c1;
+			}
+
+		}
+
+		this.worksheet.workbook.dependencyFormulas.lockRecal();
+
+		var oRes = null;
+		var oThis = this;
+		var bAscent = false;
+		if (nOption == Asc.c_oAscSortOptions.Ascending) {
+			bAscent = true;
+		}
+
+		var fromArray = [];
+		var toArray = [];
+
+		var nRowFirst0 = bbox.r1;
+		var nRowLast0 = bbox.r2;
+		var nColFirst0 = bbox.c1;
+		var nColLast0 = bbox.c2;
+
+		var bWholeCol = false;
+		var bWholeRow = false;
+		if (0 == nRowFirst0 && gc_nMaxRow0 == nRowLast0) {
+			bWholeCol = true;
+		}
+		if (0 == nColFirst0 && gc_nMaxCol0 == nColLast0) {
+			bWholeRow = true;
+		}
+
+		var colorFill = nOption === Asc.c_oAscSortOptions.ByColorFill;
+		var colorText = nOption === Asc.c_oAscSortOptions.ByColorFont;
+		var isSortColor = colorFill || colorText;
+
+		var start = opt_by_row ? nColFirst0 : nRowFirst0;
+		var end = opt_by_row ? nColLast0 : nRowLast0;
+		var count = 0;
+		for(var i = start; i <= end; i++) {
+			if((opt_by_row && !this.worksheet.getColHidden(i)) || (!opt_by_row && !this.worksheet.getRowHidden(i))) {
+				fromArray[count] = i;
+				toArray[count] = i;
+				count++;
+			}
+		}
+
+
+
+		function strcmp(str1, str2) {
+			return ( ( str1 == str2 ) ? 0 : ( ( str1 > str2 ) ? 1 : -1 ) );
+		}
+
+
+		//color sort
+		var colorFillCmp = function (color1, color2) {
+			var res = false;
+			//TODO возможно так сравнивать не правильно, позже пересмотреть
+			if (colorFill) {
+				res = (color1 !== null && color2 !== null && color1.rgb === color2.rgb) || (color1 === color2);
+			} else if (colorText && color1 && color1.length) {
+				for (var n = 0; n < color1.length; n++) {
+					if (color1[n] && color2 !== null && color1[n].rgb === color2.rgb) {
+						res = true;
+						break;
+					}
+				}
+			}
+
+			return res;
+		};
+
+
+		var t = this;
+		var getElem = function(row, col) {
+
+			var oCell;
+			t.worksheet._getCellNoEmpty(row, col, function(cell) {
+				oCell = cell;
+			});
+
+			var val = oCell.getValueWithoutFormat();
+
+			//for sort color
+			var colorFillCell, colorsTextCell = null;
+			if (colorFill) {
+				var styleCell = oCell.getCompiledStyleCustom(false, true, true);
+				colorFillCell = styleCell !== null && styleCell.fill ? styleCell.fill.bg() : null;
+			} else if (colorText) {
+				var value2 = oCell.getValue2();
+				for (var n = 0; n < value2.length; n++) {
+					if (null === colorsTextCell) {
+						colorsTextCell = [];
+					}
+
+					colorsTextCell.push(value2[n].format.getColor());
+				}
+			}
+
+			var res;
+			var nNumber = null;
+			var sText = null;
+			if ("" != val) {
+				var nVal = val - 0;
+				if (nVal == val) {
+					nNumber = nVal;
+				} else {
+					sText = val;
+				}
+				res = {num: nNumber, text: sText, colorFill: colorFillCell, colorsText: colorsTextCell};
+			} else if (isSortColor) {
+				res = {num: nNumber, text: sText, colorFill: colorFillCell, colorsText: colorsTextCell};
+			}
+			return res;
+		};
+
+		if (isSortColor) {
+			var newArrayNeedColor = [];
+			var newArrayAnotherColor = [];
+
+			for (var i = 0; i < aSortElems.length; i++) {
+				var color = colorFill ? aSortElems[i].colorFill : aSortElems[i].colorsText;
+				if (colorFillCmp(color, sortColor)) {
+					newArrayNeedColor.push(aSortElems[i]);
+				} else {
+					newArrayAnotherColor.push(aSortElems[i]);
+				}
+			}
+
+			aSortElems = newArrayNeedColor.concat(newArrayAnotherColor);
+		} else {
+			//TODO массив должен приходить с данными сортировки
+			var indexSearch = nStartRowCol;
+			toArray.sort(function (index1, index2) {
+				var res = 0;
+				var a = getElem(opt_by_row ? indexSearch : index1, opt_by_row ? index1 : indexSearch);
+				var b = getElem(opt_by_row ? indexSearch : index2, opt_by_row ? index2 : indexSearch);
+
+				var compare = function() {
+					if (null != a.text) {
+						if (null != b.text) {
+							res = strcmp(a.text.toUpperCase(), b.text.toUpperCase());
+						} else {
+							res = 1;
+						}
+					} else if (null != a.num) {
+						if (null != b.num) {
+							res = a.num - b.num;
+						} else {
+							res = -1;
+						}
+					}
+				};
+
+
+				if (0 == res) {
+					res = opt_by_row ? a.col - b.col : a.row - b.row;
+				} else if (!bAscent) {
+					res = -res;
+				}
+				return res;
+			});
+		}
+
+
+		return;
+	};
+
+
 	function _isSameSizeMerged(bbox, aMerged) {
 		var oRes = null;
 		var nWidth = null;
