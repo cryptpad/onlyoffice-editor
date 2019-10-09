@@ -629,8 +629,8 @@
 				//if apply a/f from context menu
 				var byCurCell = false;
 				if (autoFiltersObject && null === autoFiltersObject.automaticRowCount && currentFilter.isAutoFilter() && currentFilter.isApplyAutoFilter() === false) {
-					//TODO стоит заменить на expandRange ?
-					var automaticRange = this._getAdjacentCellsAF(currentFilter.Ref, true);
+
+					var automaticRange = this.expandRange(currentFilter.Ref, true);
 					var automaticRowCount = automaticRange.r2;
 
 					byCurCell = true;
@@ -1827,7 +1827,7 @@
 				if (curFilter.isAutoFilter() && curFilter.isApplyAutoFilter() === false)//нужно подхватить нижние ячейки в случае, если это не применен а/ф
 				{
 					//TODO стоит заменить на expandRange ?
-					var automaticRange = this._getAdjacentCellsAF(curFilter.Ref, true);
+					var automaticRange = this.expandRange(curFilter.Ref, true);
 					var automaticRowCount = automaticRange.r2;
 
 					if (automaticRowCount > maxFilterRow) {
@@ -3589,7 +3589,7 @@
 				return range;
 			},
 
-			expandRange: function(activeRange) {
+			expandRange: function(activeRange, ignoreFilter) {
 				var ws = this.worksheet;
 
 				//если вдруг встретили мерженную ячейку в диапазоне, расширяем
@@ -3815,7 +3815,7 @@
 						}
 					}
 				}
-				if(ws.AutoFilter && ws.AutoFilter.Ref) {
+				if(!ignoreFilter && ws.AutoFilter && ws.AutoFilter.Ref) {
 					if(doCropRange(ws.AutoFilter.Ref)) {
 						bIsChangedRange = true;
 					}
@@ -4114,7 +4114,7 @@
 				if (!isTablePart /*&& filter.isApplyAutoFilter() === false*/)//нужно подхватить нижние ячейки
 				{
 					//TODO стоит заменить на expandRange ?
-					var automaticRange = this._getAdjacentCellsAF(filter.Ref, true);
+					var automaticRange = this.expandRange(filter.Ref, true);
 					automaticRowCount = automaticRange.r2;
 
 					if (automaticRowCount > maxFilterRow) {

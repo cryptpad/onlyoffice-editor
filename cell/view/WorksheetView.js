@@ -8136,8 +8136,8 @@
 				//далее проверяем есть ли смежные ячейки у startCol/startRow
 				var activeCell = this.model.selectionRange.activeCell;
 				var activeCellRange = new Asc.Range(activeCell.col, activeCell.row, activeCell.col, activeCell.row);
-				//TODO стоит заменить на expandRange ?
-				var expandRange = this.model.autoFilters._getAdjacentCellsAF(activeCellRange);
+
+				var expandRange = this.model.autoFilters.expandRange(activeCellRange, true);
 
 				//если диапазон не расширяется за счет близлежащих ячеек - не выдаем сообщение и не расширяем
 				if(arn.isEqual(expandRange) || activeCellRange.isEqual(expandRange))
@@ -14924,12 +14924,10 @@
 				worksheet.workbook.handlers.trigger("asc_onError", c_oAscError.ID.AutoFilterDataRangeError,
 					c_oAscError.Level.NoCritical);
 				result = false;
-			} else if (!styleName && filterByCellContextMenu &&
-				false === worksheet.autoFilters._getAdjacentCellsAF(activeRange, this).isIntersect(activeRange)) {
+			} else if (!styleName && filterByCellContextMenu && false === worksheet.autoFilters._getAdjacentCellsAF(activeRange, this).isIntersect(activeRange)) {
 				//TODO _getAdjacentCellsAF стоит заменить на expandRange ?
 				//add filter to empty range
-				worksheet.workbook.handlers.trigger("asc_onError", c_oAscError.ID.AutoFilterDataRangeError,
-					c_oAscError.Level.NoCritical);
+				worksheet.workbook.handlers.trigger("asc_onError", c_oAscError.ID.AutoFilterDataRangeError, c_oAscError.Level.NoCritical);
 				result = false;
 			} else if (styleName && addFormatTableOptionsObj && addFormatTableOptionsObj.isTitle === false &&
 				worksheet.autoFilters._isEmptyCellsUnderRange(activeRange) == false &&
@@ -18483,6 +18481,8 @@
 		sortSettings.columnSort = columnSort;
 		sortSettings._newSelection = selection;
 		sortSettings.generateSortList();
+
+		this.setSortProps(sortSettings);
 
 		return sortSettings;
 	};
