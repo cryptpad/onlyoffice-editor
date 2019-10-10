@@ -74,7 +74,6 @@ var CTab;
 var c_oAscMouseMoveLockedObjectType;
 var c_oAscAlignH;
 var c_oAscAlignV;
-var c_oAscSectionBreakType;
 var CParagraphSearchMark;
 var c_oAscRevisionsChangeType;
 var c_oAscSdtLockType;
