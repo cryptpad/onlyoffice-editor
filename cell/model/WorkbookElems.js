@@ -8872,13 +8872,13 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	CSortPropertiesLevel.prototype.asc_setName = function (val) {
 		this.columnSort = name;
 	};
-	CSortPropertiesLevel.prototype.asc_getSortBy = function (val) {
+	CSortPropertiesLevel.prototype.asc_setSortBy = function (val) {
 		this.sortBy = val;
 	};
-	CSortPropertiesLevel.prototype.asc_getDescending = function (val) {
+	CSortPropertiesLevel.prototype.asc_setDescending = function (val) {
 		this.descending = val;
 	};
-	CSortPropertiesLevel.prototype.asc_getColor = function (val) {
+	CSortPropertiesLevel.prototype.asc_setColor = function (val) {
 		this.color = val;
 	};
 
@@ -9163,6 +9163,7 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	prot["asc_setHasHeaders"] = prot.asc_setHasHeaders;
 	prot["asc_setColumnSort"] = prot.asc_setColumnSort;
 	prot["asc_getLevelProps"] = prot.asc_getLevelProps;
+	prot["asc_setLevels"] = prot.asc_setLevels;
 
 	window["Asc"]["CSortPropertiesLevel"] = window["Asc"].CSortPropertiesLevel = CSortPropertiesLevel;
 	prot = CSortPropertiesLevel.prototype;
@@ -9176,7 +9177,6 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	prot["asc_setSortBy"] = prot.asc_setSortBy;
 	prot["asc_setDescending"] = prot.asc_setDescending;
 	prot["asc_setColor"] = prot.asc_setColor;
-	prot["asc_setLevels"] = prot.asc_setLevels;
 
 	window["Asc"]["CSortLevelInfo"] = window["Asc"].CSortLevelInfo = CSortLevelInfo;
 	prot = CSortLevelInfo.prototype;
