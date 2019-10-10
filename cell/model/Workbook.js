@@ -11820,6 +11820,12 @@
 			bWholeRow = true;
 		}
 
+		if(opt_custom_sort) {
+			nStartRowCol = opt_custom_sort[0].index;
+			nStartRowCol += opt_by_row ? bbox.r1 : bbox.c1;
+			bAscent = Asc.c_oAscSortOptions.Descending !== opt_custom_sort[0].descending;
+		}
+
 		var nLastRow0, nLastCol0;
 		if (opt_by_row) {
 			var oRangeRow = this.worksheet.getRange(new CellAddress(nStartRowCol, nColFirst0, 0), new CellAddress(nStartRowCol, nColLast0, 0));
@@ -11851,6 +11857,7 @@
 
 		//собираем массив обьектов для сортировки
 		var aSortElems = [];
+		var putElem = false;
 		var fAddSortElems = function (oCell, nRow0, nCol0) {
 			//не сортируем сткрытие строки
 			if ((opt_by_row && !oThis.worksheet.getColHidden(nCol0)) || (!opt_by_row && !oThis.worksheet.getRowHidden(nRow0))) {
@@ -11880,6 +11887,7 @@
 
 				var nNumber = null;
 				var sText = null;
+				var res;
 				if ("" != val) {
 					var nVal = val - 0;
 					if (nVal == val) {
@@ -11888,19 +11896,27 @@
 						sText = val;
 					}
 					if (opt_by_row) {
-						aSortElems.push({col: nCol0, num: nNumber, text: sText, colorFill: colorFillCell, colorsText: colorsTextCell});
+						res = {col: nCol0, num: nNumber, text: sText, colorFill: colorFillCell, colorsText: colorsTextCell};
 					} else {
-						aSortElems.push({row: nRow0, num: nNumber, text: sText, colorFill: colorFillCell, colorsText: colorsTextCell});
+						res = {row: nRow0, num: nNumber, text: sText, colorFill: colorFillCell, colorsText: colorsTextCell};
 					}
 				} else if (isSortColor) {
 					if (opt_by_row) {
-						aSortElems.push({col: nCol0, num: nNumber, text: sText, colorFill: colorFillCell, colorsText: colorsTextCell});
+						res = {col: nCol0, num: nNumber, text: sText, colorFill: colorFillCell, colorsText: colorsTextCell};
 					} else {
-						aSortElems.push({row: nRow0, num: nNumber, text: sText, colorFill: colorFillCell, colorsText: colorsTextCell});
+						res = {row: nRow0, num: nNumber, text: sText, colorFill: colorFillCell, colorsText: colorsTextCell};
 					}
+				}
+
+				if(!putElem) {
+					return res;
+				} else {
+					aSortElems.push(res);
 				}
 			}
 		};
+
+		putElem = true;
 		if (opt_by_row) {
 			if (nRowFirst0 == nStartRowCol) {
 				while (0 == aSortElems.length && nStartRowCol <= nLastRow0) {
@@ -11966,6 +11982,15 @@
 			return res;
 		};
 
+		var getSortElem = function(row, col) {
+			var oCell;
+			oThis.worksheet._getCellNoEmpty(row, col, function(cell) {
+				oCell = cell;
+			});
+			return oCell ? fAddSortElems(oCell, row, col) : null;
+		};
+
+		putElem = false;
 		if (isSortColor) {
 			var newArrayNeedColor = [];
 			var newArrayAnotherColor = [];
@@ -11983,21 +12008,46 @@
 		} else {
 			aSortElems.sort(function (a, b) {
 				var res = 0;
-				if (null != a.text) {
-					if (null != b.text) {
-						res = strcmp(a.text.toUpperCase(), b.text.toUpperCase());
-					} else {
-						res = 1;
+				var compare = function(_a, _b) {
+					if (null != _a.text) {
+						if (null != _b.text) {
+							res = strcmp(_a.text.toUpperCase(), _b.text.toUpperCase());
+						} else {
+							res = 1;
+						}
+					} else if (null != _a.num) {
+						if (null != _b.num) {
+							res = _a.num - _b.num;
+						} else {
+							res = -1;
+						}
 					}
-				} else if (null != a.num) {
-					if (null != b.num) {
-						res = a.num - b.num;
-					} else {
-						res = -1;
-					}
-				}
+				};
+
+				compare(a, b);
 				if (0 == res) {
-					res = opt_by_row ? a.col - b.col : a.row - b.row;
+					if(opt_custom_sort) {
+						for(var i = 1; i < opt_custom_sort.length; i++) {
+							var row1 = opt_by_row ? opt_custom_sort[i].index + bbox.r1 : a.row;
+							var col1 = !opt_by_row ? opt_custom_sort[i].index + bbox.c1 : a.col;
+							var row2 = opt_by_row ? opt_custom_sort[i].index + bbox.r1 : b.row;
+							var col2 = !opt_by_row ? opt_custom_sort[i].index + bbox.c1 : b.col;
+							var tempA = getSortElem(row1, col1);
+							var tempB = getSortElem(row2, col2);
+							compare(tempA, tempB);
+							var tempAscent = Asc.c_oAscSortOptions.Descending !== opt_custom_sort[i].descending;
+							if(res != 0) {
+								if(!tempAscent) {
+									res = -res;
+								}
+								break;
+							} else if(i === opt_custom_sort.length - 1) {
+								res = opt_by_row ? tempA.col - tempB.col : tempA.row - tempB.row;
+							}
+						}
+					} else {
+						res = opt_by_row ? a.col - b.col : a.row - b.row;
+					}
 				} else if (!bAscent) {
 					res = -res;
 				}
@@ -12286,7 +12336,7 @@
 				}
 			}
 
-			aSortElems = newArrayNeedColor.concat(newArrayAnotherColor);
+			var aSortElems = newArrayNeedColor.concat(newArrayAnotherColor);
 		} else {
 			//TODO массив должен приходить с данными сортировки
 			var indexSearch = nStartRowCol;

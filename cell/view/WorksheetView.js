@@ -10117,6 +10117,8 @@
                             t.handlers.trigger("slowOperation", true);
                         }
                        	var opt_by_rows = false;
+						//var props = t.getSortProps(true);
+                        //t.cellCommentator.sortComments(range.sort(val.type, opt_by_rows ? activeCell.row : activeCell.col, val.color, true, opt_by_rows, props.levels));
                         t.cellCommentator.sortComments(range.sort(val.type, opt_by_rows ? activeCell.row : activeCell.col, val.color, true, opt_by_rows));
                         break;
 
@@ -18558,7 +18560,14 @@
 			History.Create_NewPoint();
 			History.StartTransaction();
 
+
+			//(nOption, nStartRowCol, sortColor, opt_guessHeader, opt_by_row, opt_custom_sort)
+
 			var selection = props._newSelection;
+			var range = t.model.getRange3(selection.r1, selection.c1, selection.r2, selection.c2);
+			t.cellCommentator.sortComments(range.sort(null, null, null, null, null, props.levels));
+
+			/*var selection = props._newSelection;
 			var columnSort = props.columnSort;
 			for(var i = 0; i < props.levels.length; i++) {
 				var sortCondition = new AscCommonExcel.SortCondition();
@@ -18585,7 +18594,7 @@
 						t.cellCommentator.sortComments(range.sort(props.levels[i].descending, columnSort ? index + selection.c1 : index + selection.r1, props.levels[i].color, null, !columnSort));
 					}
 				}
-			}
+			}*/
 
 			History.EndTransaction();
 
