@@ -8831,10 +8831,10 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		var rangeInfo = t._ws.model.getRowColColors(range, !this.columnSort);
 		if(rangeInfo) {
 			levelInfo = new CSortLevelInfo();
-			this.colorsFill = rangeInfo.colors;
-			this.colorsFont = rangeInfo.fontColors;
+			levelInfo.colorsFill = rangeInfo.colors;
+			levelInfo.colorsFont = rangeInfo.fontColors;
 
-			this.isText = rangeInfo.text;
+			levelInfo.isText = rangeInfo.text;
 		}
 
 		return levelInfo;
