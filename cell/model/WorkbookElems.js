@@ -8852,7 +8852,7 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	}
 
 	CSortPropertiesLevel.prototype.asc_getIndex = function () {
-		return this.hasHeaders;
+		return this.index;
 	};
 	CSortPropertiesLevel.prototype.asc_getName = function () {
 		return this.name;
@@ -8867,10 +8867,10 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		return this.color;
 	};
 	CSortPropertiesLevel.prototype.asc_setIndex = function (val) {
-		this.hasHeaders = val;
+		this.index = val;
 	};
 	CSortPropertiesLevel.prototype.asc_setName = function (val) {
-		this.columnSort = name;
+		this.name = val;
 	};
 	CSortPropertiesLevel.prototype.asc_setSortBy = function (val) {
 		this.sortBy = val;
