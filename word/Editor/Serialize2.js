@@ -44,6 +44,7 @@ var align_Left = AscCommon.align_Left;
 var align_Center = AscCommon.align_Center;
 var align_Justify = AscCommon.align_Justify;
 var c_oAscWrapStyle = AscCommon.c_oAscWrapStyle;
+var c_oAscSectionBreakType    = Asc.c_oAscSectionBreakType;
 var Binary_CommonReader = AscCommon.Binary_CommonReader;
 var BinaryCommonWriter = AscCommon.BinaryCommonWriter;
 var c_oSerPaddingType = AscCommon.c_oSerPaddingType;

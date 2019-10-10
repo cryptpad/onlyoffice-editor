@@ -41,6 +41,8 @@
  * @constructor
  * @extends {CParagraphContentWithParagraphLikeContent}
  */
+
+var c_oAscSdtLockType = Asc.c_oAscSdtLockType;
 function CInlineLevelSdt()
 {
 	this.Id = AscCommon.g_oIdCounter.Get_NewId();

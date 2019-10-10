@@ -34,6 +34,7 @@
 
 // Import
 var g_oTextMeasurer = AscCommon.g_oTextMeasurer;
+var c_oAscSectionBreakType    = Asc.c_oAscSectionBreakType;
 
 // TODO: В колонтитулах быстрые пересчеты отключены. Надо реализовать.
 

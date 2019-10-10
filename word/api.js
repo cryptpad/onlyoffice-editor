@@ -73,6 +73,7 @@
 	var asc_CImgProperty            = Asc.asc_CImgProperty;
 	var asc_CShapeFill              = Asc.asc_CShapeFill;
 	var asc_CFillBlip               = Asc.asc_CFillBlip;
+	var c_oAscSdtLockType           = Asc.c_oAscSdtLockType;
 
 	function CAscSection()
 	{

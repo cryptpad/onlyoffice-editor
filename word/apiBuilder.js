@@ -40,6 +40,11 @@
 	 * @name Api
 	 */
 	var Api = window["Asc"]["asc_docs_api"] || window["Asc"]["spreadsheet_api"];
+	var c_oAscRevisionsChangeType = Asc.c_oAscRevisionsChangeType;
+	var c_oAscSectionBreakType    = Asc.c_oAscSectionBreakType;
+	var c_oAscSdtLockType         = Asc.c_oAscSdtLockType;
+	var c_oAscAlignH         = Asc.c_oAscAlignH;
+	var c_oAscAlignV         = Asc.c_oAscAlignV;
 
 	/**
 	 * Class representing a container for paragraphs and tables.

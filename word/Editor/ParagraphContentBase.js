@@ -31,6 +31,7 @@
  */
 
 "use strict";
+var c_oAscRevisionsChangeType = Asc.c_oAscRevisionsChangeType;
 function CParagraphContentBase()
 {
 	this.Type      = para_Unknown;

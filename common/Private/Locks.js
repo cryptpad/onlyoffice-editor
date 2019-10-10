@@ -33,6 +33,7 @@
 // Import
 var locktype_None = AscCommon.locktype_None;
 var locktype_Mine = AscCommon.locktype_Mine;
+var c_oAscSdtLockType = Asc.c_oAscSdtLockType;
 
 if(typeof CDocument !== "undefined")
 {
