@@ -18419,6 +18419,8 @@
 			return false;
 		}
 
+
+		this.setSelection(selection);
 		sortSettings = new Asc.CSortProperties(this);
 		//необходимо ещё сохранять значение старого селекта, чтобы при нажатии пользователя на отмену - откатить
 		sortSettings._oldSelect = oldSelection;
@@ -18522,8 +18524,8 @@
 			History.Create_NewPoint();
 			History.StartTransaction();
 
-
-			var selection = props._newSelection;
+			var selection = t.model.selectionRange.getLast();
+			//var selection = props._newSelection;
 
 			var columnSort = props.columnSort;
 			for(var i = 0; i < props.levels.length; i++) {
