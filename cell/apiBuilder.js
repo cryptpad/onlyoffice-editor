@@ -1058,7 +1058,7 @@
 			}
 			settings.style = nStyleIndex;
 			settings.inColumns = !bInRows;
-			settings.range = sDataRange;
+			settings.putRange(sDataRange);
 			var oChart = AscFormat.DrawingObjectsController.prototype.getChartSpace(this.worksheet, settings, true);
 			if(arguments.length === 8){//support old variant
 				oChart.setBDeleted(false);
