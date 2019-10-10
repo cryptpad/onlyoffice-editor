@@ -667,66 +667,70 @@ function GetNativeId()
 }
 
 // для работы с таймерами
-window.NativeSupportTimeouts = false;
+window.NativeSupportTimeouts = true;
 window.NativeTimeoutObject = {};
 
-function clearTimeout(_id)
+function clearTimeout(id)
 {
 	if (!window.NativeSupportTimeouts)
 		return;
 
-	window.NativeTimeoutObject["" + _id] = undefined;
-	window.native["ClearTimeout"](_id);
+	window.NativeTimeoutObject["" + id] = undefined;
+	window["native"]["ClearTimeout"](id);
 }
 function setTimeout(func, interval)
 {
 	if (!window.NativeSupportTimeouts)
 		return;
 
-	var _id = window.native["GenerateTimeoutId"](interval);
-	window.NativeTimeoutObject["" + _id] = func;
-	return _id;
+	var id = window["native"]["GenerateTimeoutId"](interval);
+	window.NativeTimeoutObject["" + id] = {"func": func, repeat: false};
+	return id;
 }
 
-window.native.Call_TimeoutFire = function (_id)
+function clearInterval(id)
 {
 	if (!window.NativeSupportTimeouts)
 		return;
 
-	var _prop = "" + _id;
-	var _func = window.NativeTimeoutObject[_prop];
-	window.NativeTimeoutObject[_prop] = undefined;
-
-	if (!_func)
-		return;
-
-	_func.call(null);
-	_func = null;
-};
-
-function clearInterval(_id)
-{
-	if (!window.NativeSupportTimeouts)
-		return;
-
-	window.NativeTimeoutObject["" + _id] = undefined;
-	window.native["ClearTimeout"](_id);
+	window.NativeTimeoutObject["" + id] = undefined;
+	window["native"]["ClearTimeout"](id);
 }
 function setInterval(func, interval)
 {
 	if (!window.NativeSupportTimeouts)
 		return;
 
-	var _intervalFunc = function ()
-	{
-		func.call(null);
-		setTimeout(func, interval);
-	};
-
-	var _id = window.native["GenerateTimeoutId"](interval);
-	window.NativeTimeoutObject["" + _id] = _intervalFunc;
-	return _id;
+	var id = window["native"]["GenerateTimeoutId"](interval);
+	window.NativeTimeoutObject["" + id] = {func: func, repeat: true, interval: interval};
+	return id;
 }
+
+window.native.Call_TimeoutFire = function (id)
+{
+	if (!window.NativeSupportTimeouts)
+		return;
+
+	var prop = "" + id;
+
+	var timeoutObject = window.NativeTimeoutObject[prop];
+	if (!timeoutObject) {
+		return;
+	}
+
+	window.NativeTimeoutObject[prop] = undefined;
+
+	if (!timeoutObject.func)
+		return;
+
+	timeoutObject.func.call(null);
+
+	if (timeoutObject.repeat) {
+		setInterval(timeoutObject.func, timeoutObject.interval);
+	}
+
+	timeoutObject.func = null;
+};
 
 window.clearTimeout = clearTimeout;
 window.setTimeout = setTimeout;
