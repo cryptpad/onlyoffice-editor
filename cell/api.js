@@ -2172,7 +2172,7 @@ var editor;
         for (var i = 0; i < arrSheets.length; ++i) {
           t.wbModel.removeWorksheet(arrSheets[i].getIndex());
         }
-        t.updateWorksheetByModel();
+        t.wb.updateWorksheetByModel();
         History.EndTransaction();
         // Посылаем callback об изменении списка листов
         t.sheetsChanged();
