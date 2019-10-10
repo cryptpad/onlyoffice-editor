@@ -711,7 +711,7 @@
 
 	function sendSaveFile(docId, userId, title, jwt, data, fError, fsuccess)
 	{
-		var cmd = {'id': docId, "userid": userId, "jwt": jwt, 'outputpath': title};
+		var cmd = {'id': docId, "userid": userId, "tokenSession": jwt, 'outputpath': title};
 		asc_ajax({
 			type:        'POST',
 			url:         sSaveFileLocalUrl + '/' + docId + '?cmd=' + encodeURIComponent(JSON.stringify(cmd)),
