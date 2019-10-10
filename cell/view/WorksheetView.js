@@ -18501,8 +18501,6 @@
 		sortSettings._newSelection = selection;
 		sortSettings.generateSortList();
 
-		this.setSortProps(sortSettings);
-
 		return sortSettings;
 	};
 
@@ -18521,9 +18519,49 @@
 			sortState.Ref = null;
 			t.SortConditions = [];
 
-			/*var doSort = function(i, ) {
+			History.Create_NewPoint();
+			History.StartTransaction();
 
-			};*/
+
+			var selection = props._newSelection;
+
+			var columnSort = props.columnSort;
+			for(var i = 0; i < props.levels.length; i++) {
+				var sortCondition = new AscCommonExcel.SortCondition();
+
+				sortCondition.Ref = null;
+				sortCondition.ConditionSortBy = null;
+				sortCondition.ConditionDescending = null;
+				sortCondition.dxf = null;
+
+				//TODO history
+			}
+
+			var range = t.model.getRange3(selection.r1, selection.c1, selection.r2, selection.c2);
+			t.cellCommentator.sortComments(range.sort(null, null, null, null, null, props.levels));
+
+			History.EndTransaction();
+
+		};
+
+		//TODO lock
+		callback();
+	};
+
+	WorksheetView.prototype.setSortProps2 = function(props) {
+		if(!props) {
+			return false;
+		}
+
+		var t = this;
+		//TODO отдельная обработка для таблиц
+		var callback = function() {
+			//формируем sortState из настроек
+			var sortState = new AscCommonExcel.SortState();
+
+			//? activeRange
+			sortState.Ref = null;
+			t.SortConditions = [];
 
 			var getRepeatedRanges = function(_index) {
 				var r1 = columnSort ? selection.r1 : selection.r1 + _index;
@@ -18561,15 +18599,9 @@
 			History.StartTransaction();
 
 
-			//(nOption, nStartRowCol, sortColor, opt_guessHeader, opt_by_row, opt_custom_sort)
-
 			var selection = props._newSelection;
-			var range = t.model.getRange3(selection.r1, selection.c1, selection.r2, selection.c2);
-			t.cellCommentator.sortComments(range.sort(null, null, null, null, null, props.levels));
-
-			/*var selection = props._newSelection;
 			var columnSort = props.columnSort;
-			for(var i = 0; i < props.levels.length; i++) {
+			for (var i = 0; i < props.levels.length; i++) {
 				var sortCondition = new AscCommonExcel.SortCondition();
 
 				sortCondition.Ref = null;
@@ -18579,22 +18611,26 @@
 
 				var index = props.levels[i].index;
 				var range;
-				if(i === 0) {
+				if (i === 0) {
 					range = t.model.getRange3(selection.r1, selection.c1, selection.r2, selection.c2);
-					t.cellCommentator.sortComments(range.sort(props.levels[i].descending, columnSort ? index + selection.c1 : index + selection.r1, props.levels[i].color, null, !columnSort));
+					t.cellCommentator.sortComments(
+						range.sort(props.levels[i].descending, columnSort ? index + selection.c1 : index + selection.r1,
+							props.levels[i].color, null, !columnSort));
 				} else {
 					var ranges = getRepeatedRanges(props.levels[i - 1].index);
-					for(var j = 0; j < ranges.length; j++) {
+					for (var j = 0; j < ranges.length; j++) {
 						var r1 = columnSort ? ranges[j].start + selection.r1 : selection.r1;
 						var r2 = columnSort ? ranges[j].end + selection.r1 : selection.r2;
 						var c1 = columnSort ? selection.c1 : ranges[j].start + selection.c1;
 						var c2 = columnSort ? selection.c2 : ranges[j].end + selection.c1;
 
 						range = t.model.getRange3(r1, c1, r2, c2);
-						t.cellCommentator.sortComments(range.sort(props.levels[i].descending, columnSort ? index + selection.c1 : index + selection.r1, props.levels[i].color, null, !columnSort));
+						t.cellCommentator.sortComments(range.sort(props.levels[i].descending,
+							columnSort ? index + selection.c1 : index + selection.r1, props.levels[i].color, null,
+							!columnSort));
 					}
 				}
-			}*/
+			}
 
 			History.EndTransaction();
 
