@@ -18507,7 +18507,7 @@
 	};
 
 	WorksheetView.prototype.setSortProps = function(props) {
-		if(!props) {
+		if(!props || !props.levels || !props.levels.length) {
 			return false;
 		}
 
