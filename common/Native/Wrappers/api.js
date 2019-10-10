@@ -6033,7 +6033,7 @@ function NativeOpenFile3(_params, documentInfo)
             translations = "";
         }
 
-        _api = new window["Asc"]["asc_docs_api"](translations);
+        window["API"] = _api = new window["Asc"]["asc_docs_api"](translations);
         
         AscCommon.g_clipboardBase.Init(_api);
 
@@ -6154,7 +6154,6 @@ function NativeOpenFile3(_params, documentInfo)
             initSpellCheckApi();
         }
     }
-    window["API"] = _api;
 }
 
 var DocumentPageSize = new function()
