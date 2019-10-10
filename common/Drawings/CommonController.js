@@ -9471,10 +9471,10 @@ DrawingObjectsController.prototype =
     {
         if(typeof Asc.asc_CParagraphProperty !== "undefined" && !(props instanceof Asc.asc_CParagraphProperty))
         {
-            if(props && props.ChartProperties && typeof props.ChartProperties.range === "string")
+            if(props && props.ChartProperties && typeof props.ChartProperties.getRange() === "string")
             {
                 var editor = window["Asc"]["editor"];
-                var check = parserHelp.checkDataRange(editor.wbModel, editor.wb, Asc.c_oAscSelectionDialogType.Chart, props.ChartProperties.range, true, !props.ChartProperties.inColumns, props.ChartProperties.type);
+                var check = parserHelp.checkDataRange(editor.wbModel, editor.wb, Asc.c_oAscSelectionDialogType.Chart, props.ChartProperties.getRange(), true, !props.ChartProperties.getInColumns(), props.ChartProperties.getType());
                 if(check === c_oAscError.ID.StockChartError || check === c_oAscError.ID.DataRangeError
                     || check === c_oAscError.ID.MaxDataSeriesError)
                 {

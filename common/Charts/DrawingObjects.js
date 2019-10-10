@@ -3383,7 +3383,7 @@ function DrawingObjects() {
                     }
 
                     var sRef = (new Asc.Range(final_bbox.c1, final_bbox.r1, final_bbox.c2, final_bbox.r2)).getName(AscCommonExcel.referenceType.A);
-                    options.range = parserHelp.get3DRef(worksheet.model.sName, sRef);
+                    options.putRange(parserHelp.get3DRef(worksheet.model.sName, sRef));
 
 					var chartSeries = AscFormat.getChartSeries(worksheet.model, options, catHeadersBBox, serHeadersBBox);
 					drawingObject.rebuildSeriesFromAsc(chartSeries);

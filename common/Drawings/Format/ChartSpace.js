@@ -16625,7 +16625,7 @@ function parseSeriesHeaders (ws, rangeBBox) {
 
 function getChartSeries (worksheet, options, catHeadersBBox, serHeadersBBox) {
 	var ws, range;
-	var result = parserHelp.parse3DRef(options.range);
+	var result = parserHelp.parse3DRef(options.getRange());
 	if (result) {
 		ws = worksheet.workbook.getWorksheetByName(result.sheet);
 		if (ws)

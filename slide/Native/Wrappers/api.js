@@ -570,7 +570,7 @@ function asc_menu_ReadChartPr(_params, _cursor)
             }
             case 18:
             {
-                _settings.range = _params[_cursor.pos++];
+                _settings.putRange(_params[_cursor.pos++]);
                 break;
             }
             case 19:
@@ -701,10 +701,11 @@ function asc_menu_WriteChartPr(_type, _chartPr, _stream)
     asc_menu_WriteAscValAxisSettings(16, _chartPr.horAxisProps, _stream);
     asc_menu_WriteAscValAxisSettings(17, _chartPr.vertAxisProps, _stream);
 
-    if (_chartPr.range !== undefined && _chartPr.range !== null)
+    var sRange = _chartPr.getRange();
+    if (sRange !== undefined && sRange !== null)
     {
         _stream["WriteByte"](18);
-        _stream["WriteString2"](_chartPr.range);
+        _stream["WriteString2"](sRange);
     }
 
     if (_chartPr.inColumns !== undefined && _chartPr.inColumns !== null)
