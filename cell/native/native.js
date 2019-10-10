@@ -3138,6 +3138,7 @@ var sdkCheck = true;
 // OfflineEditor
 //--------------------------------------------------------------------------------
 
+var _api = null;
 function OfflineEditor () {
     
     this.zoom = 1.0;
@@ -3887,7 +3888,7 @@ function OfflineEditor () {
             translations = "";
         }
 
-        _api = new window["Asc"]["spreadsheet_api"](translations);
+        window["API"] = _api = new window["Asc"]["spreadsheet_api"](translations);
         
         AscCommon.g_clipboardBase.Init(_api);
         

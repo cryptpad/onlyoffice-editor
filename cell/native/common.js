@@ -284,8 +284,6 @@ document.createComment = function() { return undefined; };
 document.documentElement = _null_object;
 document.body = _null_object;
 
-var _api = null;
-
 window.NativeSupportTimeouts = true;
 window.NativeTimeoutObject = {};
 
