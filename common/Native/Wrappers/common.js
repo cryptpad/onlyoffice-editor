@@ -460,7 +460,7 @@ function NativeOpenFileData(data, version, xlsx_file_path)
 		_api = new window["Asc"]["spreadsheet_api"]({});
 		_api.asc_nativeOpenFile(data, version, undefined, xlsx_file_path);
 	}
-	window["API"] = _api;
+	window["_api"] = window["API"] = _api;
 }
 
 function NativeOpenFile()
@@ -478,7 +478,7 @@ function NativeOpenFile()
 		_api = new window["Asc"]["spreadsheet_api"]();
 	}
 	_api.asc_nativeOpenFile(doc_bin);
-	window["API"] = _api;
+	window["_api"] = window["API"] = _api;
 }
 
 function NativeOpenFile2(_params)
@@ -525,7 +525,7 @@ function NativeOpenFile2(_params)
 		_api.asc_nativeOpenFile(doc_bin);
 	}
 
-	window["API"] = _api;
+	window["_api"] = window["API"] = _api;
 }
 
 function NativeCalculateFile()

@@ -6033,7 +6033,7 @@ function NativeOpenFile3(_params, documentInfo)
             translations = "";
         }
 
-        window["API"] = _api = new window["Asc"]["asc_docs_api"](translations);
+        window["_api"] = window["API"] = _api = new window["Asc"]["asc_docs_api"](translations);
         
         AscCommon.g_clipboardBase.Init(_api);
 

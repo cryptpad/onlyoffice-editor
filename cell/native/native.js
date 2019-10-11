@@ -3888,7 +3888,7 @@ function OfflineEditor () {
             translations = "";
         }
 
-        window["API"] = _api = new window["Asc"]["spreadsheet_api"](translations);
+        window["_api"] = window["API"] = _api = new window["Asc"]["spreadsheet_api"](translations);
         
         AscCommon.g_clipboardBase.Init(_api);
         
