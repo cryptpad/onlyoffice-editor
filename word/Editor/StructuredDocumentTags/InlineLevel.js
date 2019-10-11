@@ -62,6 +62,8 @@ function CInlineLevelSdt()
 
 	// Добавляем данный класс в таблицу Id (обязательно в конце конструктора)
 	g_oTableId.Add(this, this.Id);
+
+	this.SkipCheckBoxLock = false;
 }
 
 CInlineLevelSdt.prototype = Object.create(CParagraphContentWithParagraphLikeContent.prototype);
@@ -124,6 +126,9 @@ CInlineLevelSdt.prototype.Copy = function(isUseSelection, oPr)
 	oContentControl.SetContentControlLock(this.GetContentControlLock());
 	oContentControl.SetAppearance(this.GetAppearance());
 	oContentControl.SetColor(this.GetColor());
+
+	if (this.Pr.CheckBox)
+		oContentControl.SetCheckBoxPr(this.Pr.CheckBox);
 
 	return oContentControl;
 };
@@ -683,9 +688,11 @@ CInlineLevelSdt.prototype.CanBeDeleted = function()
  */
 CInlineLevelSdt.prototype.CanBeEdited = function()
 {
+	if (!this.SkipCheckBoxLock && this.IsCheckBox())
+		return false;
+
 	return (undefined === this.Pr.Lock || c_oAscSdtLockType.Unlocked === this.Pr.Lock || c_oAscSdtLockType.SdtLocked === this.Pr.Lock);
 };
-
 //----------------------------------------------------------------------------------------------------------------------
 // Функции совместного редактирования
 //----------------------------------------------------------------------------------------------------------------------
@@ -770,6 +777,107 @@ CInlineLevelSdt.prototype.IsSelectedOnlyThis = function()
 	}
 
 	return false;
+};
+/**
+ * Проверяем, является ли данный контейнер чекбоксом
+ * @returns {boolean}
+ */
+CInlineLevelSdt.prototype.IsCheckBox = function()
+{
+	return !!(this.Pr.CheckBox);
+};
+/**
+ * Применяем заданные настройки для чекобокса
+ * @param {CSdtCheckBoxPr} oCheckBoxPr
+ * @param {CTextPr} oTextPr
+ */
+CInlineLevelSdt.prototype.ApplyCheckBoxPr = function(oCheckBoxPr, oTextPr)
+{
+	if (undefined === this.Pr.CheckBox || !this.Pr.CheckBox.IsEqual(oCheckBoxPr))
+	{
+		if (this.IsPlaceHolder())
+			this.private_ReplacePlaceHolderWithContent(false);
+
+		this.SetCheckBoxPr(oCheckBoxPr);
+	}
+
+	if (this.IsCheckBox())
+	{
+		if (oTextPr)
+		{
+			if (this.Content[0] && para_Run === this.Content[0].Type)
+				this.Content[0].SetPr(oTextPr);
+		}
+
+		this.private_UpdateCheckBoxContent();
+	}
+};
+/**
+ * Выставляем настройки чекбокса
+ * @param {CSdtCheckBoxPr} oCheckBoxPr
+ */
+CInlineLevelSdt.prototype.SetCheckBoxPr = function(oCheckBoxPr)
+{
+	if (undefined === this.Pr.CheckBox || !this.Pr.CheckBox.IsEqual(oCheckBoxPr))
+	{
+		History.Add(new CChangesSdtPrCheckBox(this, this.Pr.CheckBox, oCheckBoxPr));
+		this.Pr.CheckBox = oCheckBoxPr;
+	}
+};
+/**
+ * Выставляем состояние чекбокса
+ */
+CInlineLevelSdt.prototype.ToggleCheckBox = function()
+{
+	if (!this.IsCheckBox())
+		return;
+
+	var isChecked = !this.Pr.CheckBox.Checked;
+	History.Add(new CChangesSdtPrCheckBoxChecked(this, this.Pr.CheckBox.Checked, isChecked));
+	this.Pr.CheckBox.Checked = isChecked;
+
+	this.private_UpdateCheckBoxContent();
+};
+/**
+ * Выключаем проверку невозможности редактирования данного объекта, из-за того что это чекбокс
+ * @param isSkip {boolean}
+ */
+CInlineLevelSdt.prototype.SkipCheckLockForCheckBox = function(isSkip)
+{
+	this.SkipCheckBoxLock = isSkip;
+};
+CInlineLevelSdt.prototype.private_UpdateCheckBoxContent = function()
+{
+	var isChecked = this.Pr.CheckBox.Checked;
+
+	if (this.Content.length <= 0)
+	{
+		this.AddToContent(0, new ParaRun(this.GetParagraph(), false), true);
+	}
+	else if (this.Content.length > 1 || para_Run !== this.Content[0].Type)
+	{
+		this.RemoveFromContent(0, this.Content.length, true);
+		this.AddToContent(0, new ParaRun(this.GetParagraph(), false), true);
+	}
+
+	var oRun = this.Content[0];
+	oRun.ClearContent();
+	oRun.AddText(String.fromCharCode(isChecked ? this.Pr.CheckBox.CheckedSymbol : this.Pr.CheckBox.UncheckedSymbol));
+
+	if (isChecked && this.Pr.CheckBox.CheckedFont)
+	{
+		oRun.Set_RFonts_Ascii({Index : -1, Name : this.Pr.CheckBox.CheckedFont});
+		oRun.Set_RFonts_HAnsi({Index : -1, Name : this.Pr.CheckBox.CheckedFont});
+		oRun.Set_RFonts_CS({Index : -1, Name : this.Pr.CheckBox.CheckedFont});
+		oRun.Set_RFonts_EastAsia({Index : -1, Name : this.Pr.CheckBox.CheckedFont});
+	}
+	else if (!isChecked && this.Pr.CheckBox.UncheckedFont)
+	{
+		oRun.Set_RFonts_Ascii({Index : -1, Name : this.Pr.CheckBox.UncheckedFont});
+		oRun.Set_RFonts_HAnsi({Index : -1, Name : this.Pr.CheckBox.UncheckedFont});
+		oRun.Set_RFonts_CS({Index : -1, Name : this.Pr.CheckBox.UncheckedFont});
+		oRun.Set_RFonts_EastAsia({Index : -1, Name : this.Pr.CheckBox.UncheckedFont});
+	}
 };
 //--------------------------------------------------------export--------------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};

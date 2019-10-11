@@ -109,6 +109,10 @@ if(typeof CDocument !== "undefined")
 
 		return bResult;
 	};
+	CDocument.prototype.IsSelectionLocked = function(nCheckType, oAdditionalData, isDontLockInFastMode, isIgnoreCanEditFlag)
+	{
+		return this.Document_Is_SelectionLocked(nCheckType, oAdditionalData, isDontLockInFastMode, isIgnoreCanEditFlag);
+	};
 	/**
 	 * Начинаем составную проверку на залоченность объектов
 	 * @param [isIgnoreCanEditFlag=false] игнорируем ли запрет на редактирование
@@ -860,8 +864,10 @@ CInlineLevelSdt.prototype.Document_Is_SelectionLocked = function(CheckType)
 {
 	if (CheckType === AscCommon.changestype_Paragraph_TextProperties)
 	{
+		this.SkipCheckLockForCheckBox(true);
 		if (!this.CanBeEdited())
 			AscCommon.CollaborativeEditing.Add_CheckLock(true);
+		this.SkipCheckLockForCheckBox(false);
 
 		return;
 	}
@@ -894,7 +900,7 @@ CInlineLevelSdt.prototype.Document_Is_SelectionLocked = function(CheckType)
 
 		if (c_oAscSdtLockType.SdtContentLocked === nContentControlLock
 			|| (c_oAscSdtLockType.SdtLocked === nContentControlLock && true !== bSelectedOnlyThis)
-			|| (c_oAscSdtLockType.ContentLocked === nContentControlLock && true === bSelectedOnlyThis))
+			|| (!this.CanBeEdited() && true === bSelectedOnlyThis))
 		{
 			return AscCommon.CollaborativeEditing.Add_CheckLock(true);
 		}
@@ -907,8 +913,7 @@ CInlineLevelSdt.prototype.Document_Is_SelectionLocked = function(CheckType)
 		|| AscCommon.changestype_Document_Content === CheckType
 		|| AscCommon.changestype_Document_Content_Add === CheckType
 		|| AscCommon.changestype_Image_Properties === CheckType)
-		&& (c_oAscSdtLockType.SdtContentLocked === nContentControlLock
-		|| c_oAscSdtLockType.ContentLocked === nContentControlLock))
+		&& !this.CanBeEdited())
 	{
 		return AscCommon.CollaborativeEditing.Add_CheckLock(true);
 	}

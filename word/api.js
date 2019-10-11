@@ -8378,6 +8378,87 @@ background-repeat: no-repeat;\
 
 		return oLogicDocument.GetSdtGlobalShowHighlight();
 	};
+	asc_docs_api.prototype.asc_AddContentControlCheckBox = function(oPr)
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return;
+
+		if (oPr && oPr.CheckedSymbol)
+			AscFonts.FontPickerByCharacter.getFontBySymbol(oPr.CheckedSymbol);
+		else
+			AscFonts.FontPickerByCharacter.getFontBySymbol(Asc.c_oAscSdtCheckBoxDefaults.CheckedSymbol);
+
+		if (oPr && oPr.UncheckedSymbol)
+			AscFonts.FontPickerByCharacter.getFontBySymbol(oPr.UncheckedSymbol);
+		else
+			AscFonts.FontPickerByCharacter.getFontBySymbol(Asc.c_oAscSdtCheckBoxDefaults.UncheckedSymbol);
+
+		var oFonts = {};
+		if (oPr && oPr.CheckedFont)
+			oFonts[oPr.CheckedFont] = true;
+		else
+			oFonts[Asc.c_oAscSdtCheckBoxDefaults.CheckedFont] = true;
+
+		if (oPr && oPr.UncheckedFont)
+			oFonts[oPr.UncheckedFont] = true;
+		else
+			oFonts[Asc.c_oAscSdtCheckBoxDefaults.UncheckedFont] = true;
+
+		AscCommon.Check_LoadingDataBeforePrepaste(this, oFonts, {}, function()
+		{
+			oLogicDocument.RemoveSelection();
+			if (!oLogicDocument.IsSelectionLocked(AscCommon.changestype_Paragraph_Content))
+			{
+				oLogicDocument.StartAction(AscDFH.historydescription_Document_AddContentControlCheckBox);
+				oLogicDocument.AddContentControlCheckBox(oPr);
+				oLogicDocument.Recalculate();
+				oLogicDocument.FinalizeAction();
+			}
+		});
+	};
+	asc_docs_api.prototype.asc_SetContentControlCheckBoxPr = function(oPr)
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument || !oPr)
+			return;
+
+		var oInfo           = oLogicDocument.GetSelectedElementsInfo({SkipTOC : true});
+		var oContentControl = oInfo.GetInlineLevelSdt();
+
+		if (!oContentControl || !oContentControl.IsCheckBox())
+			return;
+
+		if (oPr.CheckedSymbol)
+			AscFonts.FontPickerByCharacter.getFontBySymbol(oPr.CheckedSymbol);
+
+		if (oPr.UncheckedSymbol)
+			AscFonts.FontPickerByCharacter.getFontBySymbol(oPr.UncheckedSymbol);
+
+		var oFonts = {};
+		if (oPr.CheckedFont)
+			oFonts[oPr.CheckedFont] = true;
+
+		if (oPr.UncheckedFont)
+			oFonts[oPr.UncheckedFont] = true;
+
+		AscCommon.Check_LoadingDataBeforePrepaste(this, oFonts, {}, function()
+		{
+			var oParagraph = oContentControl.GetParagraph();
+			if (oParagraph && !oLogicDocument.IsSelectionLocked(AscCommon.changestype_None, {
+					Type      : AscCommon.changestype_2_ElementsArray_and_Type,
+					Elements  : [oParagraph],
+					CheckType : AscCommon.changestype_Paragraph_Properties
+				}))
+			{
+				oLogicDocument.StartAction(AscDFH.historydescription_Document_SetContentControlCheckBoxPr);
+				oContentControl.ApplyCheckBoxPr(oPr);
+				oLogicDocument.Recalculate();
+				oLogicDocument.UpdateTracks();
+				oLogicDocument.FinalizeAction();
+			}
+		});
+	};
 
 	asc_docs_api.prototype.asc_UncheckContentControlButtons = function()
 	{
@@ -10182,6 +10263,8 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_GetGlobalContentControlHighlightColor'] = asc_docs_api.prototype.asc_GetGlobalContentControlHighlightColor;
 	asc_docs_api.prototype['asc_SetGlobalContentControlShowHighlight']  = asc_docs_api.prototype.asc_SetGlobalContentControlShowHighlight;
 	asc_docs_api.prototype['asc_GetGlobalContentControlShowHighlight']  = asc_docs_api.prototype.asc_GetGlobalContentControlShowHighlight;
+	asc_docs_api.prototype['asc_AddContentControlCheckBox']             = asc_docs_api.prototype.asc_AddContentControlCheckBox;
+	asc_docs_api.prototype['asc_SetContentControlCheckBoxPr']           = asc_docs_api.prototype.asc_SetContentControlCheckBoxPr;
 
 
 	asc_docs_api.prototype['asc_BeginViewModeInReview']                 = asc_docs_api.prototype.asc_BeginViewModeInReview;

@@ -53,6 +53,8 @@ function CSdtPr()
 
 	this.Appearance = Asc.c_oAscSdtAppearance.Frame;
 	this.Color      = undefined;
+
+	this.CheckBox = undefined;
 }
 
 CSdtPr.prototype.Copy = function()
@@ -131,10 +133,15 @@ CSdtPr.prototype.Write_ToBinary = function(Writer)
 
 	if (undefined !== this.Color)
 	{
-		this.Color.WriteToBinary();
+		this.Color.WriteToBinary(Writer);
 		Flags |= 512;
 	}
 
+	if (undefined !== this.CheckBox)
+	{
+		this.CheckBox.WriteToBinary(Writer);
+		Flags |= 1024;
+	}
 
 	var EndPos = Writer.GetCurPosition();
 	Writer.Seek( StartPos );
@@ -176,6 +183,12 @@ CSdtPr.prototype.Read_FromBinary = function(Reader)
 	{
 		this.Color = new CDocumentColor();
 		this.Color.ReadFromBinary(Reader);
+	}
+
+	if (Flags & 1024)
+	{
+		this.CheckBox = new CSdtCheckBoxPr();
+		this.CheckBox.ReadFromBinary(Reader);
 	}
 };
 CSdtPr.prototype.IsBuiltInDocPart = function()
@@ -309,6 +322,68 @@ CSdtGlobalSettings.prototype.Read_FromBinary = function(oReader)
 	this.Color.ReadFromBinary(oReader);
 	this.ShowHighlight = oReader.GetBool();
 };
+
+/**
+ * Класс с настройками чекбокса
+ * @constructor
+ */
+function CSdtCheckBoxPr()
+{
+	this.Checked         = true;
+	this.CheckedSymbol   = Asc.c_oAscSdtCheckBoxDefaults.CheckedSymbol;
+	this.UncheckedSymbol = Asc.c_oAscSdtCheckBoxDefaults.UncheckedSymbol;
+	this.CheckedFont     = Asc.c_oAscSdtCheckBoxDefaults.CheckedFont;
+	this.UncheckedFont   = Asc.c_oAscSdtCheckBoxDefaults.UncheckedFont;
+}
+CSdtCheckBoxPr.prototype.Copy = function()
+{
+	var oCopy = new CSdtCheckBoxPr();
+
+	oCopy.Checked         = this.Checked;
+	oCopy.CheckedSymbol   = this.CheckedSymbol;
+	oCopy.CheckedFont     = this.CheckedFont;
+	oCopy.UncheckedSymbol = this.UncheckedSymbol;
+	oCopy.UncheckedFont   = this.UncheckedFont;
+
+	return oCopy;
+};
+CSdtCheckBoxPr.prototype.IsEqual = function(oOther)
+{
+	if (!oOther
+		|| oOther.Checked !== this.Checked
+		|| oOther.CheckedSymbol !== this.CheckedSymbol
+		|| oOther.CheckedFont !== this.CheckedFont
+		|| oOther.UncheckedSymbol !== this.UncheckedSymbol
+		|| oOther.UncheckedFont !== this.UncheckedFont)
+		return false;
+
+	return true;
+};
+CSdtCheckBoxPr.prototype.WriteToBinary = function(oWriter)
+{
+	oWriter.WriteBool(this.Checked);
+	oWriter.WriteString2(this.CheckedFont);
+	oWriter.WriteLong(this.CheckedSymbol);
+	oWriter.WriteString2(this.UncheckedFont);
+	oWriter.WriteLong(this.UncheckedSymbol);
+};
+CSdtCheckBoxPr.prototype.ReadFromBinary = function(oReader)
+{
+	this.Checked         = oReader.GetBool();
+	this.CheckedFont     = oReader.GetString2();
+	this.CheckedSymbol   = oReader.GetLong();
+	this.UncheckedFont   = oReader.GetString2();
+	this.UncheckedSymbol = oReader.GetLong();
+};
+CSdtCheckBoxPr.prototype.Write_ToBinary = function(oWriter)
+{
+	this.WriteToBinary(oWriter);
+};
+CSdtCheckBoxPr.prototype.Read_FromBinary = function(oReader)
+{
+	this.ReadFromBinary(oReader);
+};
+
 
 //--------------------------------------------------------export--------------------------------------------------------
 window['AscCommonWord']        = window['AscCommonWord'] || {};

@@ -9279,6 +9279,22 @@ CDocument.prototype.OnMouseUp = function(e, X, Y, PageIndex)
 		}
 	}
 
+	var oSelectedContent = this.GetSelectedElementsInfo();
+	var oInlineSdt       = oSelectedContent.GetInlineLevelSdt();
+	if (oInlineSdt && oInlineSdt.IsCheckBox())
+	{
+		oInlineSdt.SkipCheckLockForCheckBox(true);
+		if (!this.IsSelectionLocked(AscCommon.changestype_Paragraph_Content))
+		{
+			this.StartAction();
+			oInlineSdt.ToggleCheckBox();
+			this.Recalculate();
+			this.UpdateTracks();
+			this.FinalizeAction();
+		}
+		oInlineSdt.SkipCheckLockForCheckBox(false);
+	}
+
 	this.private_CheckCursorPosInFillingFormMode();
 
 	this.private_UpdateCursorXY(true, true);
@@ -13593,6 +13609,15 @@ CDocument.prototype.OnChangeSdtGlobalSettings = function()
 CDocument.prototype.IsSdtGlobalSettingsDefault = function()
 {
 	return this.Settings.SdtSettings.IsDefault();
+};
+CDocument.prototype.AddContentControlCheckBox = function()
+{
+	this.RemoveSelection();
+
+	var oTextPr = this.GetDirectTextPr();
+	var oCC = this.AddContentControl(c_oAscSdtLevelType.Inline);
+	oCC.ApplyCheckBoxPr(new CSdtCheckBoxPr(), oTextPr);
+	return oCC;
 };
 /**
  * Выставляем глобальный параметр, находится ли переплет наверху документа

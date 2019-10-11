@@ -766,8 +766,13 @@ ParaRun.prototype.private_AddItemToRun = function(nPos, Item)
 		this.Add_ToContent(nPos, Item, true);
 	}
 };
-
-
+/**
+ * Очищаем все содержимое данного рана
+ */
+ParaRun.prototype.ClearContent = function()
+{
+	this.RemoveFromContent(0, this.Content.length, true);
+};
 ParaRun.prototype.Remove = function(Direction, bOnAddText)
 {
     var TrackRevisions = null;
@@ -8109,16 +8114,21 @@ ParaRun.prototype.GetDiffPrChange = function()
 
 ParaRun.prototype.Set_Bold = function(Value)
 {
-    if ( Value !== this.Pr.Bold )
-    {
-        var OldValue = this.Pr.Bold;
-        this.Pr.Bold = Value;
+	return this.SetBold(Value);
+};
+/**
+ * @param isBold {boolean}
+ */
+ParaRun.prototype.SetBold = function(isBold)
+{
+	if (isBold !== this.Pr.Bold)
+	{
+		History.Add(new CChangesRunBold(this, this.Pr.Bold, isBold, this.private_IsCollPrChangeMine()));
+		this.Pr.Bold = isBold;
 
-        History.Add(new CChangesRunBold(this, OldValue, Value, this.private_IsCollPrChangeMine()));
-
-        this.Recalc_CompiledPr(true);
-        this.private_UpdateTrackRevisionOnChangeTextPr(true);
-    }
+		this.Recalc_CompiledPr(true);
+		this.private_UpdateTrackRevisionOnChangeTextPr(true);
+	}
 };
 
 ParaRun.prototype.Get_Bold = function()

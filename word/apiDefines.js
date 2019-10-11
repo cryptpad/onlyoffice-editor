@@ -183,6 +183,13 @@ var c_oAscHyperlinkAnchor = {
 };
 
 
+var c_oAscSdtCheckBoxDefaults = {
+	CheckedSymbol   : 0x2612,
+	UncheckedSymbol : 0x2610,
+	CheckedFont     : "MS Gothic",
+	UncheckedFont   : "MS Gothic"
+};
+
 window["flat_desine"] = false;
 
 //------------------------------------------------------------export---------------------------------------------------
@@ -274,3 +281,20 @@ window['AscCommon'].c_oSerFormat   = c_oSerFormat;
 window['AscCommon'].CurFileVersion = c_oSerFormat.Version;
 
 
+<<<<<<< .mine
+
+
+
+
+=======
+prot = window['Asc']['c_oAscWatermarkType'] = window['Asc'].c_oAscWatermarkType = c_oAscWatermarkType;
+prot['None'] = prot.None;
+prot['Text'] = prot.Text;
+prot['Image'] = prot.Image;
+>>>>>>> .theirs
+
+prot = window['Asc']['c_oAscSdtCheckBoxDefaults'] = window['Asc'].c_oAscSdtCheckBoxDefaults = c_oAscSdtCheckBoxDefaults;
+prot['CheckedSymbol']   = prot.CheckedSymbol;
+prot['UncheckedSymbol'] = prot.UncheckedSymbol;
+prot['CheckedFont']     = prot.CheckedFont;
+prot['UncheckedFont']   = prot.UncheckedFont;
