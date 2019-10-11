@@ -64,6 +64,7 @@ var MOVE_DELTA = AscFormat.MOVE_DELTA;
 
 var c_oAscRelativeFromH = Asc.c_oAscRelativeFromH;
 var c_oAscRelativeFromV = Asc.c_oAscRelativeFromV;
+var c_oAscSectionBreakType = Asc.c_oAscSectionBreakType;
 
 var para_Unknown                   = -1; //
 var para_RunBase                   = 0x0000; // Базовый элемент, он не должен использоваться как самостоятельный объект

@@ -34,6 +34,7 @@ window.IS_NATIVE_EDITOR = true;
 
 var sdkCheck = true;
 var spellCheck = true;
+var _api = null;
 
 window['SockJS'] = createSockJS();
 
@@ -6032,7 +6033,7 @@ function NativeOpenFile3(_params, documentInfo)
             translations = "";
         }
 
-        _api = new window["Asc"]["asc_docs_api"](translations);
+        window["API"] = _api = new window["Asc"]["asc_docs_api"](translations);
         
         AscCommon.g_clipboardBase.Init(_api);
 
@@ -6153,7 +6154,6 @@ function NativeOpenFile3(_params, documentInfo)
             initSpellCheckApi();
         }
     }
-    Api = _api;
 }
 
 var DocumentPageSize = new function()

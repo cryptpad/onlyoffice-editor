@@ -1776,7 +1776,7 @@
 
 	function CAscWatermarkProperties()
 	{
-		this.Type = c_oAscWatermarkType.None;
+		this.Type = Asc.c_oAscWatermarkType.None;
 
 		this.Text = null;
 		this.TextPr = null;

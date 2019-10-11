@@ -556,7 +556,7 @@
 			{
 				rData["serverVersion"] = versionHistory.serverVersion;
                 rData["closeonerror"] = versionHistory.isRequested;
-				rData["jwt"] = versionHistory.token;
+				rData["tokenHistory"] = versionHistory.token;
 				//чтобы результат пришел только этому соединению, а не всем кто в документе
 				rData["userconnectionid"] = this.CoAuthoringApi.getUserConnectionId();
 			}
@@ -1362,7 +1362,7 @@
 		oAdditionalData["c"] = 'save';
 		oAdditionalData["id"] = this.documentId;
 		oAdditionalData["userid"] = this.documentUserId;
-		oAdditionalData["jwt"] = this.CoAuthoringApi.get_jwt();
+		oAdditionalData["tokenSession"] = this.CoAuthoringApi.get_jwt();
 		oAdditionalData["outputformat"] = options.fileType;
 		oAdditionalData["title"] = AscCommon.changeFileExtention(this.documentTitle, AscCommon.getExtentionByFormat(options.fileType), Asc.c_nMaxDownloadTitleLen);
 		oAdditionalData["nobase64"] = isNoBase64;

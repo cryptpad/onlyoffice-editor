@@ -39,6 +39,8 @@
 
 var type_BlockLevelSdt = 0x0003;
 
+var c_oAscSdtLockType = Asc.c_oAscSdtLockType;
+
 /**
  * @param oParent - родительский класс
  * @param oLogicDocument {CDocument} - главный класс документа

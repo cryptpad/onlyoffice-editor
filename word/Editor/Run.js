@@ -39,6 +39,8 @@ var History = AscCommon.History;
 
 var c_oAscShdNil = Asc.c_oAscShdNil;
 
+var c_oAscRevisionsChangeType = Asc.c_oAscRevisionsChangeType;
+
 var reviewtype_Common = 0x00;
 var reviewtype_Remove = 0x01;
 var reviewtype_Add    = 0x02;

@@ -1994,7 +1994,7 @@ function sendImgUrls(api, images, callback, bExcel, bNotShowError, token) {
 
   var rData = {
     "id": api.documentId, "c": "imgurls", "userid": api.documentUserId, "saveindex": g_oDocumentUrls.getMaxIndex(),
-    "jwt": token, "data": images
+    "tokenDownload": token, "data": images
   };
   api.sync_StartAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.LoadImage);
 

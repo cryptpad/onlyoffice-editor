@@ -35,7 +35,7 @@
 // Import
 var changestype_2_ElementsArray_and_Type = AscCommon.changestype_2_ElementsArray_and_Type;
 var History = AscCommon.History;
-
+var c_oAscRevisionsChangeType = Asc.c_oAscRevisionsChangeType;
 //----------------------------------------------------------------------------------------------------------------------
 // Работаем с рецензированием
 //----------------------------------------------------------------------------------------------------------------------

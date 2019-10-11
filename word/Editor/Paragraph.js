@@ -44,6 +44,7 @@ var align_Left = AscCommon.align_Left;
 var align_Center = AscCommon.align_Center;
 var g_oTableId = AscCommon.g_oTableId;
 var g_oTextMeasurer = AscCommon.g_oTextMeasurer;
+var c_oAscRevisionsChangeType = Asc.c_oAscRevisionsChangeType;
 var History = AscCommon.History;
 
 var linerule_Exact = Asc.linerule_Exact;

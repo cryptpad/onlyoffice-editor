@@ -37,6 +37,7 @@ var align_Right = AscCommon.align_Right;
 var align_Left = AscCommon.align_Left;
 var align_Center = AscCommon.align_Center;
 var align_Justify = AscCommon.align_Justify;
+var c_oAscRevisionsChangeType = Asc.c_oAscRevisionsChangeType;
 var g_oTableId = AscCommon.g_oTableId;
 var History = AscCommon.History;
 

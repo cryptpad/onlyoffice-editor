@@ -42,6 +42,7 @@
 // Import
 var g_oTableId = AscCommon.g_oTableId;
 var History = AscCommon.History;
+var c_oAscSectionBreakType    = Asc.c_oAscSectionBreakType;
 
 var section_borders_DisplayAllPages     = 0x00;
 var section_borders_DisplayFirstPage    = 0x01;

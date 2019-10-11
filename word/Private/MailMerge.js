@@ -34,6 +34,7 @@
 
 // Import
 var c_oAscError = Asc.c_oAscError;
+var c_oAscSectionBreakType    = Asc.c_oAscSectionBreakType;
 
 //----------------------------------------------------------------------------------------------------------------------
 // Функции для работы с MailMerge

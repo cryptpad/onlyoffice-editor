@@ -445,13 +445,11 @@ function GetNativeEngine()
 }
 
 var native_renderer = null;
-var Api = null;
-var _api = null;
 
 function NativeOpenFileData(data, version, xlsx_file_path)
 {
 	window.NATIVE_DOCUMENT_TYPE = window.native.GetEditorType();
-
+	var _api;
 	if (window.NATIVE_DOCUMENT_TYPE == "presentation" || window.NATIVE_DOCUMENT_TYPE == "document")
 	{
 		_api = new window["Asc"]["asc_docs_api"]({});
@@ -460,9 +458,9 @@ function NativeOpenFileData(data, version, xlsx_file_path)
 	else
 	{
 		_api = new window["Asc"]["spreadsheet_api"]({});
-        _api.asc_nativeOpenFile(data, version, undefined, xlsx_file_path);
+		_api.asc_nativeOpenFile(data, version, undefined, xlsx_file_path);
 	}
-	Api = _api;
+	window["API"] = _api;
 }
 
 function NativeOpenFile()
@@ -470,18 +468,17 @@ function NativeOpenFile()
 	var doc_bin = window.native.GetFileString(window.native.GetFilePath());
 	window.NATIVE_DOCUMENT_TYPE = window.native.GetEditorType();
 
+	var _api;
 	if (window.NATIVE_DOCUMENT_TYPE == "presentation" || window.NATIVE_DOCUMENT_TYPE == "document")
 	{
 		_api = new window["Asc"]["asc_docs_api"]("");
-
-		_api.asc_nativeOpenFile(doc_bin);
 	}
 	else
 	{
 		_api = new window["Asc"]["spreadsheet_api"]();
-		_api.asc_nativeOpenFile(doc_bin);
 	}
-	Api = _api;
+	_api.asc_nativeOpenFile(doc_bin);
+	window["API"] = _api;
 }
 
 function NativeOpenFile2(_params)
@@ -491,6 +488,7 @@ function NativeOpenFile2(_params)
 	window.g_file_path = "native_open_file";
 	window.NATIVE_DOCUMENT_TYPE = window.native.GetEditorType();
 	var doc_bin = window.native.GetFileString(window.g_file_path);
+	var _api;
 	if (window.NATIVE_DOCUMENT_TYPE == "presentation" || window.NATIVE_DOCUMENT_TYPE == "document")
 	{
 		_api = new window["Asc"]["asc_docs_api"]("");
@@ -527,104 +525,78 @@ function NativeOpenFile2(_params)
 		_api.asc_nativeOpenFile(doc_bin);
 	}
 
-	Api = _api;
+	window["API"] = _api;
 }
 
 function NativeCalculateFile()
 {
-	_api.asc_nativeCalculateFile();
+	window["API"].asc_nativeCalculateFile();
 }
 
 function NativeApplyChangesData(data, isFull)
 {
-	if (window.NATIVE_DOCUMENT_TYPE == "presentation" || window.NATIVE_DOCUMENT_TYPE == "document")
-	{
-		_api.asc_nativeApplyChanges2(data, isFull);
-	}
-	else
-	{
-		_api.asc_nativeApplyChanges2(data, isFull);
-	}
+	window["API"].asc_nativeApplyChanges2(data, isFull);
 }
 
 function NativeApplyChanges()
 {
-	if (window.NATIVE_DOCUMENT_TYPE == "presentation" || window.NATIVE_DOCUMENT_TYPE == "document")
+	var __changes = [];
+	var _count_main = window.native.GetCountChanges();
+	for (var i = 0; i < _count_main; i++)
 	{
-		var __changes = [];
-		var _count_main = window.native.GetCountChanges();
-		for (var i = 0; i < _count_main; i++)
+		var _changes_file = window.native.GetChangesFile(i);
+		var _changes = JSON.parse(window.native.GetFileString(_changes_file));
+
+		for (var j = 0; j < _changes.length; j++)
 		{
-			var _changes_file = window.native.GetChangesFile(i);
-			var _changes = JSON.parse(window.native.GetFileString(_changes_file));
-
-			for (var j = 0; j < _changes.length; j++)
-			{
-				__changes.push(_changes[j]);
-			}
+			__changes.push(_changes[j]);
 		}
-		_api.asc_nativeApplyChanges(__changes);
 	}
-	else
-	{
-		var __changes = [];
-		var _count_main = window.native.GetCountChanges();
-		for (var i = 0; i < _count_main; i++)
-		{
-			var _changes_file = window.native.GetChangesFile(i);
-			var _changes = JSON.parse(window.native.GetFileString(_changes_file));
 
-			for (var j = 0; j < _changes.length; j++)
-			{
-				__changes.push(_changes[j]);
-			}
-		}
-
-		_api.asc_nativeApplyChanges(__changes);
-	}
+	window["API"].asc_nativeApplyChanges(__changes);
 }
 function NativeGetFileString()
 {
-	return _api.asc_nativeGetFile();
+	return window["API"].asc_nativeGetFile();
 }
 function NativeGetFileData()
 {
-	return _api.asc_nativeGetFileData();
+	return window["API"].asc_nativeGetFileData();
 }
 function NativeGetFileDataHtml()
 {
-	if (_api.asc_nativeGetHtml)
-		return _api.asc_nativeGetHtml();
+	if (window["API"].asc_nativeGetHtml)
+		return window["API"].asc_nativeGetHtml();
 	return "";
 }
 
 function NativeStartMailMergeByList(database)
 {
-	if (_api.asc_StartMailMergeByList)
-		return _api.asc_StartMailMergeByList(database);
+	if (window["API"].asc_StartMailMergeByList)
+		return window["API"].asc_StartMailMergeByList(database);
 	return undefined;
 }
 function NativePreviewMailMergeResult(index)
 {
-	if (_api.asc_PreviewMailMergeResult)
-		return _api.asc_PreviewMailMergeResult(index);
+	if (window["API"].asc_PreviewMailMergeResult)
+		return window["API"].asc_PreviewMailMergeResult(index);
 	return undefined;
 }
 function NativeGetMailMergeFiledValue(index, name)
 {
-	if (_api.asc_GetMailMergeFiledValue)
-		return _api.asc_GetMailMergeFiledValue(index, name);
+	if (window["API"].asc_GetMailMergeFiledValue)
+		return window["API"].asc_GetMailMergeFiledValue(index, name);
 	return "";
 }
 
 function GetNativeCountPages()
 {
-	return _api.asc_nativePrintPagesCount();
+	return window["API"].asc_nativePrintPagesCount();
 }
 
 function GetNativeFileDataPDF(_param)
 {
-	return _api.asc_nativeGetPDF(_param);
+	return window["API"].asc_nativeGetPDF(_param);
 }
 
 window.memory1 = null;
@@ -644,7 +616,7 @@ function GetNativePageBase64(pageIndex)
 
 	if (native_renderer == null)
 	{
-		native_renderer = _api.asc_nativeCheckPdfRenderer(window.memory1, window.memory2);
+		native_renderer = window["API"].asc_nativeCheckPdfRenderer(window.memory1, window.memory2);
 	}
 	else
 	{
@@ -652,13 +624,13 @@ function GetNativePageBase64(pageIndex)
 		window.memory2.ClearNoAttack();
 	}
 
-	_api.asc_nativePrint(native_renderer, pageIndex);
+	window["API"].asc_nativePrint(native_renderer, pageIndex);
 	return window.memory1;
 }
 
 function GetNativePageMeta(pageIndex)
 {
-	return _api.GetNativePageMeta(pageIndex);
+	return window["API"].GetNativePageMeta(pageIndex);
 }
 
 function GetNativeId()
@@ -670,69 +642,67 @@ function GetNativeId()
 window.NativeSupportTimeouts = true;
 window.NativeTimeoutObject = {};
 
-function setTimeout(func, interval) {
-    if (!window.NativeSupportTimeouts)
-        return;
+function clearTimeout(id)
+{
+	if (!window.NativeSupportTimeouts)
+		return;
 
-    var id = window["native"]["GenerateTimeoutId"](interval);
-    window.NativeTimeoutObject["" + id] = {"func": func, repeat: false};
+	window.NativeTimeoutObject["" + id] = undefined;
+	window["native"]["ClearTimeout"](id);
+}
+function setTimeout(func, interval)
+{
+	if (!window.NativeSupportTimeouts)
+		return;
 
-    return id;
+	var id = window["native"]["GenerateTimeoutId"](interval);
+	window.NativeTimeoutObject["" + id] = {"func": func, repeat: false};
+	return id;
 }
 
-function clearTimeout(id) {
-    if (!window.NativeSupportTimeouts)
-        return;
+function clearInterval(id)
+{
+	if (!window.NativeSupportTimeouts)
+		return;
 
-    window.NativeTimeoutObject["" + id] = undefined;
-    window["native"]["ClearTimeout"](id);
+	window.NativeTimeoutObject["" + id] = undefined;
+	window["native"]["ClearTimeout"](id);
 }
+function setInterval(func, interval)
+{
+	if (!window.NativeSupportTimeouts)
+		return;
 
-function setInterval(func, interval) {
-    if (!window.NativeSupportTimeouts)
-        return;
-
-    var id = window["native"]["GenerateTimeoutId"](interval);
-    window.NativeTimeoutObject["" + id] = {func: func, repeat: true, interval: interval};
-
-    return id;
-}
-function clearInterval(id) {
-    if (!window.NativeSupportTimeouts)
-        return;
-
-    window.NativeTimeoutObject["" + id] = undefined;
-    window["native"]["ClearTimeout"](id);
+	var id = window["native"]["GenerateTimeoutId"](interval);
+	window.NativeTimeoutObject["" + id] = {func: func, repeat: true, interval: interval};
+	return id;
 }
 
 window.native.Call_TimeoutFire = function (id)
 {
 	if (!window.NativeSupportTimeouts)
-			return;
+		return;
 
 	var prop = "" + id;
 
-	if (undefined === window.NativeTimeoutObject[prop]) {
-			return;
+	var timeoutObject = window.NativeTimeoutObject[prop];
+	if (!timeoutObject) {
+		return;
 	}
-
-	var func = window.NativeTimeoutObject[prop].func;
-	var repeat = window.NativeTimeoutObject[prop].repeat;
-	var interval = window.NativeTimeoutObject[prop].interval;
 
 	window.NativeTimeoutObject[prop] = undefined;
 
-	if (!func)
-			return;
+	if (!timeoutObject.func)
+		return;
 
-	func.call(null);
+	timeoutObject.func.call(null);
 
-	if (repeat) {
-			setInterval(func, interval);
+	if (timeoutObject.repeat) {
+		setInterval(timeoutObject.func, timeoutObject.interval);
 	}
 
-	func = null;
-}
+	timeoutObject.func = null;
+};
 
 window.clearTimeout = clearTimeout;
 window.setTimeout = setTimeout;
@@ -766,97 +736,97 @@ var global_memory_stream_menu = CreateNativeMemoryStream();
 // HTML page interface
 window.native.Call_OnUpdateOverlay = function (param)
 {
-	return _api.Call_OnUpdateOverlay(param);
+	return window["API"].Call_OnUpdateOverlay(param);
 };
 
 window.native.Call_OnMouseDown = function (e)
 {
-	return _api.Call_OnMouseDown(e);
+	return window["API"].Call_OnMouseDown(e);
 };
 window.native.Call_OnMouseUp = function (e)
 {
-	return _api.Call_OnMouseUp(e);
+	return window["API"].Call_OnMouseUp(e);
 };
 window.native.Call_OnMouseMove = function (e)
 {
-	return _api.Call_OnMouseMove(e);
+	return window["API"].Call_OnMouseMove(e);
 };
 window.native.Call_OnCheckMouseDown = function (e)
 {
-	return _api.Call_OnCheckMouseDown(e);
+	return window["API"].Call_OnCheckMouseDown(e);
 };
 
 window.native.Call_OnKeyDown = function (e)
 {
-	return _api.Call_OnKeyDown(e);
+	return window["API"].Call_OnKeyDown(e);
 };
 window.native.Call_OnKeyPress = function (e)
 {
-	return _api.Call_OnKeyPress(e);
+	return window["API"].Call_OnKeyPress(e);
 };
 window.native.Call_OnKeyUp = function (e)
 {
-	return _api.Call_OnKeyUp(e);
+	return window["API"].Call_OnKeyUp(e);
 };
 window.native.Call_OnKeyboardEvent = function (e)
 {
-	return _api.Call_OnKeyboardEvent(e);
+	return window["API"].Call_OnKeyboardEvent(e);
 };
 
 window.native.Call_CalculateResume = function ()
 {
-	return _api.Call_CalculateResume();
+	return window["API"].Call_CalculateResume();
 };
 
 window.native.Call_TurnOffRecalculate = function ()
 {
-	return _api.Call_TurnOffRecalculate();
+	return window["API"].Call_TurnOffRecalculate();
 };
 window.native.Call_TurnOnRecalculate = function ()
 {
-	return _api.Call_TurnOnRecalculate();
+	return window["API"].Call_TurnOnRecalculate();
 };
 
 window.native.Call_CheckTargetUpdate = function ()
 {
-	return _api.Call_CheckTargetUpdate();
+	return window["API"].Call_CheckTargetUpdate();
 };
 window.native.Call_Common = function (type, param)
 {
-	return _api.Call_Common(type, param);
+	return window["API"].Call_Common(type, param);
 };
 
 window.native.Call_HR_Tabs = function (arrT, arrP)
 {
-	return _api.Call_HR_Tabs(arrT, arrP);
+	return window["API"].Call_HR_Tabs(arrT, arrP);
 };
 window.native.Call_HR_Pr = function (_indent_left, _indent_right, _indent_first)
 {
-	return _api.Call_HR_Pr(_indent_left, _indent_right, _indent_first);
+	return window["API"].Call_HR_Pr(_indent_left, _indent_right, _indent_first);
 };
 window.native.Call_HR_Margins = function (_margin_left, _margin_right)
 {
-	return _api.Call_HR_Margins(_margin_left, _margin_right);
+	return window["API"].Call_HR_Margins(_margin_left, _margin_right);
 };
 window.native.Call_HR_Table = function (_params, _cols, _margins, _rows)
 {
-	return _api.Call_HR_Table(_params, _cols, _margins, _rows);
+	return window["API"].Call_HR_Table(_params, _cols, _margins, _rows);
 };
 
 window.native.Call_VR_Margins = function (_top, _bottom)
 {
-	return _api.Call_VR_Margins(_top, _bottom);
+	return window["API"].Call_VR_Margins(_top, _bottom);
 };
 window.native.Call_VR_Header = function (_header_top, _header_bottom)
 {
-	return _api.Call_VR_Header(_header_top, _header_bottom);
+	return window["API"].Call_VR_Header(_header_top, _header_bottom);
 };
 window.native.Call_VR_Table = function (_params, _cols, _margins, _rows)
 {
-	return _api.Call_VR_Table(_params, _cols, _margins, _rows);
+	return window["API"].Call_VR_Table(_params, _cols, _margins, _rows);
 };
 
 window.native.Call_Menu_Event = function (type, _params)
 {
-	return _api.Call_Menu_Event(type, _params);
+	return window["API"].Call_Menu_Event(type, _params);
 };

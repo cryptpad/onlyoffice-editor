@@ -46,6 +46,9 @@ var HANDLE_EVENT_MODE_CURSOR = AscFormat.HANDLE_EVENT_MODE_CURSOR;
 
 var asc_CImgProperty = Asc.asc_CImgProperty;
 
+var c_oAscAlignH         = Asc.c_oAscAlignH;
+var c_oAscAlignV         = Asc.c_oAscAlignV;
+
 function CGraphicObjects(document, drawingDocument, api)
 {
     this.api = api;

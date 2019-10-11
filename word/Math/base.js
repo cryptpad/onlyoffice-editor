@@ -35,7 +35,7 @@
 // Import
 var g_oTextMeasurer = AscCommon.g_oTextMeasurer;
 var History = AscCommon.History;
-
+var c_oAscRevisionsChangeType = Asc.c_oAscRevisionsChangeType;
 /** @enum {number} */
 var c_oAscMathInterfaceMatrixRowRule = {
     Single     : 0x00,

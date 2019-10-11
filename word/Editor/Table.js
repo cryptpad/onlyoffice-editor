@@ -60,6 +60,7 @@ var c_oAscXAlign = Asc.c_oAscXAlign;
 var c_oAscYAlign = Asc.c_oAscYAlign;
 var c_oAscVAnchor = Asc.c_oAscVAnchor;
 var c_oAscCellTextDirection = Asc.c_oAscCellTextDirection;
+var c_oAscRevisionsChangeType = Asc.c_oAscRevisionsChangeType;
     
 
 var table_Selection_Cell = 0x00; // Селектим целыми ячейками

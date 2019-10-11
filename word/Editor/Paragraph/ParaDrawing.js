@@ -48,6 +48,8 @@ var WRAPPING_TYPE_TOP_AND_BOTTOM = 0x04;
 
 var WRAP_HIT_TYPE_POINT   = 0x00;
 var WRAP_HIT_TYPE_SECTION = 0x01;
+var c_oAscAlignH         = Asc.c_oAscAlignH;
+var c_oAscAlignV         = Asc.c_oAscAlignV;
 
 /**
  * Оберточный класс для автофигур и картинок. Именно он непосредственно лежит в ране.

@@ -52,6 +52,8 @@ var c_oAscHAnchor = Asc.c_oAscHAnchor;
 var c_oAscXAlign = Asc.c_oAscXAlign;
 var c_oAscYAlign = Asc.c_oAscYAlign;
 var c_oAscVAnchor = Asc.c_oAscVAnchor;
+var c_oAscRevisionsChangeType = Asc.c_oAscRevisionsChangeType;
+var c_oAscSectionBreakType    = Asc.c_oAscSectionBreakType;
 
 var Page_Width     = 210;
 var Page_Height    = 297;

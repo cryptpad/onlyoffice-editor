@@ -73,6 +73,7 @@
 	var asc_CImgProperty            = Asc.asc_CImgProperty;
 	var asc_CShapeFill              = Asc.asc_CShapeFill;
 	var asc_CFillBlip               = Asc.asc_CFillBlip;
+	var c_oAscSdtLockType           = Asc.c_oAscSdtLockType;
 
 	function CAscSection()
 	{
@@ -7486,8 +7487,13 @@ background-repeat: no-repeat;\
 		}
 		else if (c_oAscFileType.JSON === fileType)
 		{
-			oAdditionalData['url']       = this.mailMergeFileData['url'];
-			oAdditionalData['format']    = this.mailMergeFileData['fileType'];
+			oAdditionalData['url'] = this.mailMergeFileData['url'];
+			oAdditionalData['format'] = this.mailMergeFileData['fileType'];
+			if (this.mailMergeFileData['token']) {
+				oAdditionalData['tokenDownload'] = this.mailMergeFileData['token'];
+				//remove to reduce message size
+				oAdditionalData['tokenSession'] = undefined;
+			}
 			// ToDo select csv params
 			oAdditionalData['codepage']  = AscCommon.c_oAscCodePageUtf8;
 			oAdditionalData['delimiter'] = AscCommon.c_oAscCsvDelimiter.Comma;
