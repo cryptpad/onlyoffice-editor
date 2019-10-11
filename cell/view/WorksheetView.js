@@ -2071,6 +2071,14 @@
 					printPagesData.leftFieldInPx - this.cellsLeft, offsetY);
 			}
 
+			var leftHeading = printPagesData.pageHeadings ? this.cellsLeft : 0;
+			var topHeading = printPagesData.pageHeadings ? this.cellsTop : 0;
+			var clipContentLeft = printPagesData.pageClipRectLeft + leftHeading;
+			var clipContentTop = printPagesData.pageClipRectTop + topHeading;
+			var clipContentWidth = this.getCellLeft(range.c2 + 1, 0) - this.cellsLeft;
+			var clipContentHeight = this.getCellTop(range.r2 + 1, 0) - this.cellsTop;
+			drawingCtx.AddClipRect(clipContentLeft, clipContentTop, clipContentWidth, clipContentHeight);
+
 			// Рисуем сетку
 			if (printPagesData.pageGridLines) {
 				var vector_koef = AscCommonExcel.vector_koef / this.getZoom();
@@ -2083,6 +2091,8 @@
 
 			// Отрисовываем ячейки и бордеры
 			this._drawCellsAndBorders(drawingCtx, range, offsetX, offsetY);
+
+			drawingCtx.RemoveClipRect();
 
 			if (transformMatrix) {
 				drawingCtx.setTransform(transformMatrix.sx, transformMatrix.shy, transformMatrix.shx,
@@ -2101,7 +2111,8 @@
             oBaseTransform.sx = printScale;
             oBaseTransform.sy = printScale;
 
-            var range = printPagesData.pageRange;
+			oBaseTransform.tx = asc_getcvt(0/*mm*/, 3/*px*/, this._getPPIX()) * (printPagesData.pageClipRectLeft + (printPagesData.leftFieldInPx - printPagesData.pageClipRectLeft) * printScale) - (this.getCellLeft(range.c1, 3) - this.getCellLeft(0, 3)) * printScale;
+			oBaseTransform.ty = asc_getcvt(0/*mm*/, 3/*px*/, this._getPPIX()) * (printPagesData.pageClipRectTop + (printPagesData.topFieldInPx - printPagesData.pageClipRectTop) * printScale) - (this.getCellTop(range.r1, 3) - this.getCellTop(0, 3)) * printScale;
 
              oBaseTransform.tx = asc_getcvt(0/*mm*/, 3/*px*/, this._getPPIX())*(printPagesData.pageClipRectLeft + (printPagesData.leftFieldInPx - printPagesData.pageClipRectLeft) * printScale) - (this.getCellLeft(range.c1, 3) - this.getCellLeft(0, 3))*printScale;
              oBaseTransform.ty = asc_getcvt(0/*mm*/, 3/*px*/, this._getPPIX())*(printPagesData.pageClipRectTop + (printPagesData.topFieldInPx - printPagesData.pageClipRectTop) * printScale) - (this.getCellTop(range.r1, 3) - this.getCellTop(0, 3))*printScale;
