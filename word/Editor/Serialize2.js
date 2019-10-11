@@ -982,7 +982,13 @@ var c_oSerSdt = {
 	Temporary: 34,
 	MultiLine: 35,
 	Appearance: 36,
-	Color: 37
+	Color: 37,
+	Checkbox: 38,
+	CheckboxChecked: 39,
+	CheckboxCheckedFont: 40,
+	CheckboxCheckedVal: 41,
+	CheckboxUncheckedFont: 42,
+	CheckboxUncheckedVal: 43
 };
 var c_oSerFFData = {
 	CalcOnExit: 0,
@@ -6134,8 +6140,30 @@ function BinaryDocumentTableWriter(memory, doc, oMapCommentId, oNumIdMap, copyPa
 		// if (null != val.MultiLine) {
 		// 	oThis.bs.WriteItem(c_oSerSdt.MultiLine, function (){oThis.memory.WriteBool(val.MultiLine);});
 		// }
+		if (undefined !== val.CheckBox) {
+			oThis.bs.WriteItem(c_oSerSdt.Checkbox, function (){oThis.WriteSdtCheckBox(val.CheckBox);});
+		}
 		if (undefined !== type) {
 			oThis.bs.WriteItem(c_oSerSdt.Type, function (){oThis.memory.WriteByte(type);});
+		}
+	};
+	this.WriteSdtCheckBox = function (val)
+	{
+		var oThis = this;
+		if (null != val.Checked) {
+			oThis.bs.WriteItem(c_oSerSdt.CheckboxChecked, function (){oThis.memory.WriteBool(val.Checked);});
+		}
+		if (null != val.CheckedFont) {
+			oThis.bs.WriteItem(c_oSerSdt.CheckboxCheckedFont, function (){oThis.memory.WriteString3(val.CheckedFont);});
+		}
+		if (null != val.CheckedSymbol) {
+			oThis.bs.WriteItem(c_oSerSdt.CheckboxCheckedVal, function (){oThis.memory.WriteLong(val.CheckedSymbol);});
+		}
+		if (null != val.UncheckedFont) {
+			oThis.bs.WriteItem(c_oSerSdt.CheckboxUncheckedFont, function (){oThis.memory.WriteString3(val.UncheckedFont);});
+		}
+		if (null != val.UncheckedSymbol) {
+			oThis.bs.WriteItem(c_oSerSdt.CheckboxUncheckedVal, function (){oThis.memory.WriteLong(val.UncheckedSymbol);});
 		}
 	};
 	this.WriteSdtComboBox = function (val)
@@ -12009,7 +12037,7 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
 			if (oSdt) {
 				var sdtPr = new AscCommonWord.CSdtPr();
 				res = this.bcr.Read1(length, function(t, l) {
-					return oThis.ReadSdtPr(t, l, sdtPr);
+					return oThis.ReadSdtPr(t, l, sdtPr, oSdt);
 				});
 				oSdt.SetPr(sdtPr);
 			} else {
@@ -12065,7 +12093,7 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
 		}
 		return res;
 	};
-	this.ReadSdtPr = function(type, length, oSdtPr) {
+	this.ReadSdtPr = function(type, length, oSdtPr, oSdt) {
 		var res = c_oSerConstants.ReadOk;
 		var oThis = this;
 		/*if (c_oSerSdt.Type === type) {
@@ -12133,6 +12161,29 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
 		// 	oSdtPr.Temporary = (this.stream.GetUChar() != 0);
 		// } else if (c_oSerSdt.MultiLine === type) {
 		// 	oSdtPr.MultiLine = (this.stream.GetUChar() != 0);
+		} else if (c_oSerSdt.Checkbox === type && oSdt.SetCheckBoxPr) {
+			var checkBoxPr = new CSdtCheckBoxPr();
+			res = this.bcr.Read1(length, function(t, l) {
+				return oThis.ReadSdtCheckBox(t, l, checkBoxPr);
+			});
+			oSdt.SetCheckBoxPr(checkBoxPr);
+		} else {
+			res = c_oSerConstants.ReadUnknown;
+		}
+		return res;
+	};
+	this.ReadSdtCheckBox = function(type, length, val) {
+		var res = c_oSerConstants.ReadOk;
+		if (c_oSerSdt.CheckboxChecked === type) {
+			val.Checked = this.stream.GetBool();
+		} else if (c_oSerSdt.CheckboxCheckedFont === type) {
+			val.CheckedFont = this.stream.GetString2LE(length);
+		} else if (c_oSerSdt.CheckboxCheckedVal === type) {
+			val.CheckedSymbol = this.stream.GetLong();
+		} else if (c_oSerSdt.CheckboxUncheckedFont === type) {
+			val.UncheckedFont = this.stream.GetString2LE(length);
+		} else if (c_oSerSdt.CheckboxUncheckedVal === type) {
+			val.UncheckedSymbol = this.stream.GetLong();
 		} else {
 			res = c_oSerConstants.ReadUnknown;
 		}
