@@ -34,7 +34,7 @@ var global_memory_stream_menu = CreateNativeMemoryStream();
 
 window.IS_NATIVE_EDITOR = true;
 
-
+var _api = null;
 
 var sdkCheck = true;
 var spellCheck = true;
@@ -3033,7 +3033,8 @@ function NativeOpenFileP(_params, documentInfo){
         translations = "";
     }
 
-    _api = new window["Asc"]["asc_docs_api"](translations);
+    window["_api"] = window["API"] = _api = new window["Asc"]["asc_docs_api"](translations);
+
     AscCommon.g_clipboardBase.Init(_api);
     _api.Native_Editor_Initialize_Settings(_params);
     window.documentInfo = documentInfo;
@@ -3128,7 +3129,7 @@ function NativeOpenFileP(_params, documentInfo){
         _api.asc_nativeOpenFile(doc_bin);
         _api.documentId = "1";
         _api.WordControl.m_oDrawingDocument.AfterLoad();
-        Api = _api;
+        window["_api"] = window["API"] = Api = _api;
         if (window.documentInfo["viewmode"]) {
             _api.ShowParaMarks = false;
             AscCommon.CollaborativeEditing.Set_GlobalLock(true);
@@ -3731,3 +3732,6 @@ window["AscCommon"].sendImgUrls = function(api, images, callback)
 	var _data = [];
 	callback(_data);
 };
+
+window["native"]["offline_of"] = function(_params, documentInfo) {NativeOpenFileP(_params, documentInfo);};
+
