@@ -2913,7 +2913,16 @@ function DrawingObjects() {
             var wsViews = Asc["editor"].wb.wsViews;
             var changedArr = [];
             for (var i = 0; i < data.length; ++i) {
-                changedArr.push(new BBoxInfo(worksheet.model, data[i]));
+                if(Array.isArray(data[i])) {
+                    var aData = data[i];
+                    for(var j = 0; j < aData.length; ++j) {
+
+                        changedArr.push(new BBoxInfo(aData[j].worksheet, aData[j].bbox));
+                    }
+                }
+                else {
+                    changedArr.push(new BBoxInfo(worksheet.model, data[i]));
+                }
             }
 
             for(i = 0; i < wsViews.length; ++i)
