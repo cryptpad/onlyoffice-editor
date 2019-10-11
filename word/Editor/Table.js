@@ -1930,24 +1930,26 @@ CTable.prototype.Set_Props = function(Props)
 	}
 
 	// TableBackground  (заливка таблицы)
-	if ("undefined" != typeof(Props.TableBackground))
+	if (undefined !== Props.TableBackground)
 	{
 		if (Props.TableBackground.Value != TablePr.Shd.Value || Props.TableBackground.Color.r != TablePr.Shd.Color.r || Props.TableBackground.Color.g != TablePr.Shd.Color.g || Props.TableBackground.Color.b != TablePr.Shd.Color.b)
 		{
 			this.Set_TableShd(Props.TableBackground.Value, Props.TableBackground.Color.r, Props.TableBackground.Color.g, Props.TableBackground.Color.b);
-			bRedraw = true;
-		}
 
-		// Удаляем собственную заливку ячеек
-		if (false === Props.CellSelect && false === bSpacing)
-		{
-			for (var CurRow = 0; CurRow < this.Content.length; CurRow++)
+			for (var nCurRow = 0, nRowsCount = this.GetRowsCount(); nCurRow < nRowsCount; ++nCurRow)
 			{
-				var Row = this.Content[CurRow];
-				for (var CurCell = 0; CurCell < Row.Get_CellsCount(); CurCell++)
+				var oRow = this.GetRow(nCurRow);
+				for (var nCurCell = 0, nCellsCount = oRow.GetCellsCount(); nCurCell < nCellsCount; ++nCurCell)
 				{
-					var Cell = Row.Get_Cell(CurCell);
-					Cell.Set_Shd({Value : Asc.c_oAscShdNil, Color : {r : 0, g : 0, b : 0}});
+					var oCell = oRow.GetCell(nCurCell);
+					oCell.Set_Shd({
+						Value : Props.TableBackground.Value,
+						Color : {
+							r : Props.TableBackground.Color.r,
+							g : Props.TableBackground.Color.g,
+							b : Props.TableBackground.Color.b
+						}
+					});
 				}
 			}
 		}
