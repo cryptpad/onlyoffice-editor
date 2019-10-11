@@ -1913,7 +1913,7 @@
 		var getPrintAreaRanges = function() {
 			var res = false;
 			AscCommonExcel.executeInR1C1Mode(false, function () {
-				res = AscCommonExcel.getRangeByRef(printArea.ref, t.model, true, true)
+				res = AscCommonExcel.getRangeByRef(printArea.ref, t.model, true, true, true)
 			});
 			return res && res.length ? res : null;
 		};
@@ -16466,7 +16466,7 @@
 
             var areaRefsArr;
 			AscCommonExcel.executeInR1C1Mode(false, function () {
-				areaRefsArr = AscCommonExcel.getRangeByRef(printArea.ref, t.model, true, true)
+				areaRefsArr = AscCommonExcel.getRangeByRef(printArea.ref, t.model, true, true, true)
 			});
             if(areaRefsArr && areaRefsArr.length) {
 				res = true;

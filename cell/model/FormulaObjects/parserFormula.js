@@ -4075,72 +4075,90 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 		}
 		return list;
 	}
-	function getRangeByRef(ref, ws, onlyRanges, checkMultiSelection) {
-		// ToDo in parser formula
-		if (ref[0] === '(') {
-			ref = ref.slice(1);
-		}
-		if (ref[ref.length - 1] === ')') {
-			ref = ref.slice(0, -1);
-		}
+	function getRangeByRef(ref, ws, onlyRanges, checkMultiSelection, checkFormula) {
 		var activeCell = ws.selectionRange.activeCell;
 		var bbox = new Asc.Range(activeCell.col, activeCell.row, activeCell.col, activeCell.row);
 		// ToDo in parser formula
 		var ranges = [];
-		var arrRefs = ref.split(',');
-		arrRefs.forEach(function (refItem) {
-			// ToDo in parser formula
-			var currentWorkbook = '[0]!';
-			if (0 === refItem.indexOf(currentWorkbook)) {
-				refItem = refItem.slice(currentWorkbook.length);
-			}
 
-			var _f = new AscCommonExcel.parserFormula(refItem, null, ws);
-			var parseResult = new AscCommonExcel.ParseResult([]);
-			if (_f.parse(null, null, parseResult)) {
-				parseResult.refPos.forEach(function (item) {
-					var ref;
-					switch (item.oper.type) {
-						case cElementType.table:
-						case cElementType.name:
-						case cElementType.name3D:
-							ref = item.oper.toRef(bbox, (checkMultiSelection && (item.oper.type === cElementType.name || item.oper.type === cElementType.name3D)));
-							break;
+		var pushRanges = function(item) {
+			var ref;
+			switch (item.oper.type) {
+				case cElementType.table:
+				case cElementType.name:
+				case cElementType.name3D:
+					ref = item.oper.toRef(bbox, (checkMultiSelection && (item.oper.type === cElementType.name || item.oper.type === cElementType.name3D)));
+					break;
+				case cElementType.cell:
+				case cElementType.cell3D:
+				case cElementType.cellsRange:
+				case cElementType.cellsRange3D:
+					ref = item.oper;
+					break;
+			}
+			if (ref) {
+				var pushRange = function(curRef) {
+					switch(curRef.type) {
 						case cElementType.cell:
 						case cElementType.cell3D:
 						case cElementType.cellsRange:
 						case cElementType.cellsRange3D:
-							ref = item.oper;
+							ranges.push(curRef.getRange());
+							break;
+						case cElementType.array:
+							if (!onlyRanges) {
+								ranges = curRef.getMatrix();
+							}
 							break;
 					}
-					if (ref) {
-						var pushRange = function(curRef) {
-							switch(curRef.type) {
-								case cElementType.cell:
-								case cElementType.cell3D:
-								case cElementType.cellsRange:
-								case cElementType.cellsRange3D:
-									ranges.push(curRef.getRange());
-									break;
-								case cElementType.array:
-									if (!onlyRanges) {
-										ranges = curRef.getMatrix();
-									}
-									break;
-							}
-						};
+				};
 
-						if(ref.length) {
-							for(var i = 0; i < ref.length; i++) {
-								pushRange(ref[i]);
-							}
-						} else {
-							pushRange(ref);
-						}
+				if(ref.length) {
+					for(var i = 0; i < ref.length; i++) {
+						pushRange(ref[i]);
 					}
-				});
+				} else {
+					pushRange(ref);
+				}
 			}
-		});
+		};
+
+		//TODO вызываю проверку на то, что это может быть формула только для печати. необходимо проверить везде - для этого необходимо просмотреть весь смежный функционал
+		var isFormula;
+		if(checkFormula && ref) {
+			var parseResult = new AscCommonExcel.ParseResult([]);
+			var parsed = new AscCommonExcel.parserFormula(ref, null, ws);
+			parsed.parse(undefined, undefined, parseResult);
+			isFormula = parsed.calculate();
+		}
+
+		if (isFormula && isFormula.type !== cElementType.error) {
+			pushRanges({oper: isFormula});
+		} else {
+			// ToDo in parser formula
+			if (ref[0] === '(') {
+				ref = ref.slice(1);
+			}
+			if (ref[ref.length - 1] === ')') {
+				ref = ref.slice(0, -1);
+			}
+
+			var arrRefs = ref.split(',');
+			arrRefs.forEach(function (refItem) {
+				// ToDo in parser formula
+				var currentWorkbook = '[0]!';
+				if (0 === refItem.indexOf(currentWorkbook)) {
+					refItem = refItem.slice(currentWorkbook.length);
+				}
+
+				var _f = new AscCommonExcel.parserFormula(refItem, null, ws);
+				var parseResult = new AscCommonExcel.ParseResult([]);
+				if (_f.parse(null, null, parseResult)) {
+					parseResult.refPos.forEach(pushRanges);
+				}
+			});
+		}
+
 		return ranges;
 	}
 
