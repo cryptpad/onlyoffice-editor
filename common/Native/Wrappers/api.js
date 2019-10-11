@@ -6387,3 +6387,5 @@ window["AscCommon"].sendImgUrls = function(api, images, callback)
 	var _data = [];
 	callback(_data);
 };
+
+window["native"]["offline_of"] = function(_params, documentInfo) {NativeOpenFile3(_params, documentInfo);};
