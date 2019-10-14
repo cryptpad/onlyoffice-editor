@@ -285,52 +285,6 @@ function NativeOpenFileData(data, version, xlsx_file_path)
 	}
 }
 
-// CALCULATE & PAGE COUNT
-function NativeCalculateFile()
-{
-    Api.asc_nativeCalculateFile();
-}
-function GetNativeCountPages()
-{
-    return Api.asc_nativePrintPagesCount();
-}
-
-// APPLY CHANGES
-function NativeApplyChangesData(data, isFull)
-{
-    Api.asc_nativeApplyChanges2(data, isFull);
-}
-
-// SAVE TO T-FORMAT
-function NativeGetFileData()
-{
-	return Api.asc_nativeGetFileData();
-}
-// SAVE TO HTML-FORMAT (WORD ONLY)
-function NativeGetFileDataHtml()
-{
-	return Api.asc_nativeGetHtml ? Api.asc_nativeGetHtml() : "";
-}
-// SAVE TO PDF
-function GetNativeFileDataPDF(_param)
-{
-    return Api.asc_nativeGetPDF(_param);
-}
-
-// MAIL MERGE
-function NativeStartMailMergeByList(database)
-{
-    return Api.asc_StartMailMergeByList ? Api.asc_StartMailMergeByList(database) : undefined;
-}
-function NativePreviewMailMergeResult(index)
-{
-    return Api.asc_PreviewMailMergeResult ? Api.asc_PreviewMailMergeResult(index) : undefined;
-}
-function NativeGetMailMergeFiledValue(index, name)
-{
-    return Api.asc_GetMailMergeFiledValue ? Api.asc_GetMailMergeFiledValue(index, name) : "";
-}
-
 window.clearTimeout = function() {};
 window.setTimeout = function() {};
 window.clearInterval = function() {};
