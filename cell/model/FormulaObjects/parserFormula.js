@@ -6439,9 +6439,8 @@ parserFormula.prototype.clone = function(formula, parent, ws) {
 		} else {
 			elem.range = AscCommonExcel.Range.prototype.createFromBBox(ws, bbox);
 		}
-		if (!AscCommonExcel.g_ProcessShared) {
+		//todo remove value at all
 		elem.value = bbox.getName();
-		}
 	};
 	parserFormula.prototype.changeDefName = function(from, to) {
 		var i, elem;
