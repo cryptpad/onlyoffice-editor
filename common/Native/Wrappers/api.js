@@ -6019,8 +6019,8 @@ function NativeOpenFile3(_params, documentInfo)
     window["CreateMainTextMeasurerWrapper"]();
 
     window.g_file_path = "native_open_file";
-    window.NATIVE_DOCUMENT_TYPE = window.native.GetEditorType();
-    var doc_bin = window.native.GetFileString(window.g_file_path);
+    window.NATIVE_DOCUMENT_TYPE = window["native"]["GetEditorType"]();
+    var doc_bin = window["native"]["GetFileString"](window.g_file_path);
     if (window.NATIVE_DOCUMENT_TYPE == "presentation" || window.NATIVE_DOCUMENT_TYPE == "document")
     {
         sdkCheck = documentInfo["sdkCheck"];
@@ -6034,6 +6034,7 @@ function NativeOpenFile3(_params, documentInfo)
         }
 
         window["_api"] = window["API"] = _api = new window["Asc"]["asc_docs_api"](translations);
+        window["_editor"] = window.editor;
         
         AscCommon.g_clipboardBase.Init(_api);
 
@@ -6131,8 +6132,8 @@ function NativeOpenFile3(_params, documentInfo)
 
 
         } else {
-            var doc_bin = window.native.GetFileString(window.g_file_path);
-            _api.asc_nativeOpenFile(doc_bin);
+            var doc_bin = window["native"]["GetFileString"](window.g_file_path);
+            _api["asc_nativeOpenFile"](doc_bin);
 
            	if (window.documentInfo["viewmode"]) {
             	_api.ShowParaMarks = false;
