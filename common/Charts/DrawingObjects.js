@@ -2916,8 +2916,10 @@ function DrawingObjects() {
                 if(Array.isArray(data[i])) {
                     var aData = data[i];
                     for(var j = 0; j < aData.length; ++j) {
-
-                        changedArr.push(new BBoxInfo(aData[j].worksheet, aData[j].bbox));
+                        var oRange = aData[j] && aData[j].range;
+                        if(oRange && oRange.worksheet && oRange.bbox){
+                            changedArr.push(new BBoxInfo(oRange.worksheet, oRange.bbox));
+                        }
                     }
                 }
                 else {
