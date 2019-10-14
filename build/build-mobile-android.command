@@ -29,8 +29,8 @@ mkdir "$1/presentations"
 
 npm install
 
-PRODUCT_VERSION=$PRODUCT_VERSION BUILD_NUMBER=$BUILD_NUMBER grunt --level=WHITESPACE_ONLY --mobile=true --noclosure=true --formatting=PRETTY_PRINT
-echo grunt --level=ADVANCED --mobile=true  --noclosure=true
+PRODUCT_VERSION=$PRODUCT_VERSION BUILD_NUMBER=$BUILD_NUMBER grunt --level=WHITESPACE_ONLY --mobile=true --formatting=PRETTY_PRINT
+echo grunt --level=ADVANCED --mobile=true
 
 printf $'\r' > temp.txt
 
