@@ -3733,5 +3733,5 @@ window["AscCommon"].sendImgUrls = function(api, images, callback)
 	callback(_data);
 };
 
-window["native"]["offline_of"] = function(_params, documentInfo) {NativeOpenFileP(_params, documentInfo);};
+window["native"]["offline_of"] = function(_params, documentInfo) { return NativeOpenFileP(_params, documentInfo); };
 
