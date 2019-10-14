@@ -2380,7 +2380,7 @@
 	prot['MoveFrom'] = c_oAscRevisionsMove.MoveFrom;
 
 
-	prot = window['Asc']['c_oAscRevisionsChangeType'] = c_oAscRevisionsChangeType;
+	prot = window['Asc']['c_oAscRevisionsChangeType'] = window['Asc'].c_oAscRevisionsChangeType = c_oAscRevisionsChangeType;
 	prot['Unknown']  = c_oAscRevisionsChangeType.Unknown;
 	prot['TextAdd']  = c_oAscRevisionsChangeType.TextAdd;
 	prot['TextRem']  = c_oAscRevisionsChangeType.TextRem;
@@ -2393,7 +2393,7 @@
 	prot['RowsRem']  = c_oAscRevisionsChangeType.RowsRem;
 	prot['MoveMark'] = c_oAscRevisionsChangeType.MoveMark;
 
-	prot = window['Asc']['c_oAscSectionBreakType'] = c_oAscSectionBreakType;
+	prot = window['Asc']['c_oAscSectionBreakType'] = window['Asc'].c_oAscSectionBreakType = c_oAscSectionBreakType;
 	prot['NextPage']   = c_oAscSectionBreakType.NextPage;
 	prot['OddPage']    = c_oAscSectionBreakType.OddPage;
 	prot['EvenPage']   = c_oAscSectionBreakType.EvenPage;
@@ -2401,14 +2401,14 @@
 	prot['Column']     = c_oAscSectionBreakType.Column;
 
 
-	prot = window['Asc']['c_oAscSdtLockType'] = c_oAscSdtLockType;
+	prot = window['Asc']['c_oAscSdtLockType'] = window['Asc'].c_oAscSdtLockType = c_oAscSdtLockType;
 	prot['ContentLocked']    = c_oAscSdtLockType.ContentLocked;
 	prot['SdtContentLocked'] = c_oAscSdtLockType.SdtContentLocked;
 	prot['SdtLocked']        = c_oAscSdtLockType.SdtLocked;
 	prot['Unlocked']         = c_oAscSdtLockType.Unlocked;
 
 
-	prot = window['Asc']['c_oAscAlignH'] = c_oAscAlignH;
+	prot = window['Asc']['c_oAscAlignH'] = window['Asc'].c_oAscAlignH = c_oAscAlignH;
 	prot['Center']  = c_oAscAlignH.Center;
 	prot['Inside']  = c_oAscAlignH.Inside;
 	prot['Left']    = c_oAscAlignH.Left;
@@ -2416,7 +2416,7 @@
 	prot['Right']   = c_oAscAlignH.Right;
 
 
-	prot = window['Asc']['c_oAscAlignV'] = c_oAscAlignV;
+	prot = window['Asc']['c_oAscAlignV'] = window['Asc'].c_oAscAlignV = c_oAscAlignV;
 	prot['Bottom']  = c_oAscAlignV.Bottom;
 	prot['Center']  = c_oAscAlignV.Center;
 	prot['Inside']  = c_oAscAlignV.Inside;
