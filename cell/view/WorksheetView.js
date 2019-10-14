@@ -2433,8 +2433,9 @@
 		var calcScaleByRanges = function(ranges) {
 			var tempWScale = null, tempHScale = null;
 			for(var i = 0; i < ranges.length; i++) {
-				tempWScale = doCalcScaleWidth(ranges[i].c1, ranges[i].c2);
-				tempHScale = doCalcScaleHeight(ranges[i].r1, ranges[i].r2);
+				var range = ranges[i].bbox ? ranges[i].bbox : ranges[i];
+				tempWScale = doCalcScaleWidth(range.c1, range.c2);
+				tempHScale = doCalcScaleHeight(range.r1, range.r2);
 				if(!wScale || (tempWScale && wScale > tempWScale)) {
 					wScale = tempWScale;
 				}
