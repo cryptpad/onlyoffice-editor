@@ -1791,6 +1791,7 @@ var editor;
         }
         t.wbModel.setActive(where);
         t.wb.updateWorksheetByModel();
+        t.wb.showWorksheet();
         History.EndTransaction();
         // Посылаем callback об изменении списка листов
         t.sheetsChanged();
@@ -2173,6 +2174,7 @@ var editor;
           t.wbModel.removeWorksheet(arrSheets[i].getIndex());
         }
         t.wb.updateWorksheetByModel();
+        t.wb.showWorksheet();
         History.EndTransaction();
         // Посылаем callback об изменении списка листов
         t.sheetsChanged();
@@ -2221,6 +2223,7 @@ var editor;
     // Обновим текущий номер
     this.wbModel.setActive(active.getIndex());
     this.wb.updateWorksheetByModel();
+    this.wb.showWorksheet();
     History.EndTransaction();
     // Посылаем callback об изменении списка листов
     this.sheetsChanged();
@@ -2266,8 +2269,8 @@ var editor;
         // Делаем активным скопированный
         t.wbModel.setActive(where);
         t.wb.updateWorksheetByModel();
+        t.wb.showWorksheet();
         History.EndTransaction();
-        t.asc_setZoom(scale);
         // Посылаем callback об изменении списка листов
         t.sheetsChanged();
       }
