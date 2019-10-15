@@ -2219,6 +2219,8 @@
 			if (this.TabColor)
 				res.TabColor = this.TabColor.clone();
 
+			res.FitToPage = this.FitToPage;
+
 			return res;
 		};
 

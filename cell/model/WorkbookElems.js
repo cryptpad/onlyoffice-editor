@@ -8141,6 +8141,19 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		if (null == this.footer)
 			this.footer = c_oAscPrintDefaultSettings.PageFooterField;
 	};
+	asc_CPageMargins.prototype.clone = function (ws) {
+		var res = new asc_CPageMargins(ws);
+
+		res.left = this.left;
+		res.right = this.right;
+		res.top = this.top;
+		res.bottom = this.bottom;
+
+		res.header = this.header;
+		res.footer = this.footer;
+
+		return res;
+	};
 	asc_CPageMargins.prototype.asc_getLeft = function () { return this.left; };
 	asc_CPageMargins.prototype.asc_getRight = function () { return this.right; };
 	asc_CPageMargins.prototype.asc_getTop = function () { return this.top; };
@@ -8245,6 +8258,32 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 
 		return this;
 	}
+	asc_CPageSetup.prototype.clone = function (ws) {
+		var res = new asc_CPageSetup(ws);
+
+		res.orientation = this.orientation;
+		res.width = this.width;
+		res.height = this.height;
+
+		res.fitToWidth = this.fitToWidth; //default -> 1, 0 -> automatic
+		res.fitToHeight = this.fitToHeight; //default -> 1, 0 -> automatic
+
+		res.blackAndWhite = this.blackAndWhite;
+		res.cellComments = this.cellComments; // none ST_CellComments
+		res.copies = this.copies;
+		res.draft = this.draft;
+		res.errors = this.errors; // displayed ST_PrintError
+		res.firstPageNumber = this.firstPageNumber;
+		res.pageOrder = this.pageOrder; // downThenOver ST_PageOrder
+		res.scale = this.scale;
+		res.useFirstPageNumber = this.useFirstPageNumber;
+		res.usePrinterDefaults = this.usePrinterDefaults;
+		res.horizontalDpi = this.horizontalDpi;
+		res.verticalDpi = this.verticalDpi;
+		res.paperUnits = this.paperUnits;
+
+		return res;
+	};
 	asc_CPageSetup.prototype.asc_getOrientation = function () { return this.orientation; };
 	asc_CPageSetup.prototype.asc_getWidth = function () { return this.width; };
 	asc_CPageSetup.prototype.asc_getHeight = function () { return this.height; };
@@ -8379,6 +8418,16 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 			this.gridLines = c_oAscPrintDefaultSettings.PageGridLines;
 		if (null == this.headings)
 			this.headings = c_oAscPrintDefaultSettings.PageHeadings;
+	};
+	asc_CPageOptions.prototype.clone = function (ws) {
+		var res = new asc_CPageOptions(ws);
+
+		res.pageMargins = this.pageMargins.clone();
+		res.pageSetup = this.pageSetup.clone();
+		res.gridLines = this.gridLines;
+		res.headings = this.headings;
+
+		return res;
 	};
 	asc_CPageOptions.prototype.asc_getPageMargins = function () { return this.pageMargins; };
 	asc_CPageOptions.prototype.asc_getPageSetup = function () { return this.pageSetup; };

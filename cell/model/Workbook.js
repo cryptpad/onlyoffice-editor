@@ -3521,6 +3521,10 @@
 				t.workbook.dependencyFormulas.addToBuildDependencyCell(cell);
 			}
 		});
+		
+		if(wsFrom.PagePrintOptions) {
+			this.PagePrintOptions = wsFrom.PagePrintOptions.clone(this);
+		}
 
 		//copy headers/footers
 		if(wsFrom.headerFooter) {

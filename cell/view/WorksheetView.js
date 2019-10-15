@@ -2262,13 +2262,19 @@
 			height = 0;
 		}
 
+		var fitToPageModel = this.model.sheetPr ? this.model.sheetPr.FitToPage : null;
+		var fitToHeightAuto = height === 0 || height === undefined;
+		var fitToWidthAuto = width === 0 || width === undefined;
+		var changedFitToPage = (!fitToHeightAuto || !fitToWidthAuto) !== fitToPageModel;
+
 		var fitToWidthModel = pageSetup.fitToWidth;
 		var changedWidth = width !== fitToWidthModel;
 		var fitToHeightModel = pageSetup.fitToHeight;
 		var changedHeight = height !== fitToHeightModel;
+
 		var changedScale = scale && scale !== pageSetup.asc_getScale();
 
-		if(changedWidth || changedHeight || changedScale) {
+		if(changedWidth || changedHeight || changedScale || changedFitToPage) {
 			History.Create_NewPoint();
 			History.StartTransaction();
 
