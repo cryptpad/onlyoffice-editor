@@ -3144,7 +3144,9 @@
 			}
 
 			for(var i in arrPagesPrint) {
-				t.getWorksheet(parseInt(i)).savePageOptions(arrPagesPrint[i], viewMode);
+				var ws = t.getWorksheet(parseInt(i));
+				ws.savePageOptions(arrPagesPrint[i], viewMode);
+				window["Asc"]["editor"]._onUpdateLayoutMenu(ws.model.Id);
 			}
 		};
 
