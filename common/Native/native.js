@@ -285,10 +285,10 @@ function NativeOpenFileData(data, version, xlsx_file_path)
 	}
 }
 
-window.clearTimeout = function() {};
-window.setTimeout = function() {};
-window.clearInterval = function() {};
-window.setInterval = function() {};
+var clearTimeout = window.clearTimeout = function() {};
+var setTimeout = window.setTimeout = function() {};
+var clearInterval = window.clearInterval = function() {};
+var setInterval = window.setInterval = function() {};
 
 var console = {
 	log: function (param) { window.native.ConsoleLog(param); },
