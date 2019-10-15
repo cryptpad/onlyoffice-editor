@@ -32,8 +32,6 @@
 
 var global_memory_stream_menu = CreateNativeMemoryStream();
 
-window.IS_NATIVE_EDITOR = true;
-
 var _api = null;
 
 var sdkCheck = true;

@@ -30,6 +30,8 @@
  *
  */
 
+window.IS_NATIVE_EDITOR = true;
+
 window.NativeSupportTimeouts = true;
 window.NativeTimeoutObject = {};
 

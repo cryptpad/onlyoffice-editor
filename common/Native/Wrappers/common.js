@@ -30,6 +30,8 @@
  *
  */
 
+window.IS_NATIVE_EDITOR = true;
+
 var native_renderer = null;
 
 function NativeOpenFile()

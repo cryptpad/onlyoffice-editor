@@ -30,8 +30,6 @@
  *
  */
 
-window.IS_NATIVE_EDITOR = true;
-
 var sdkCheck = true;
 var spellCheck = true;
 var _api = null;

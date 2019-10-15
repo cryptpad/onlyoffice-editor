@@ -42,6 +42,8 @@ window.location.host = "";
 window.location.href = "";
 window.location.pathname = "";
 
+window.XMLHttpRequest = function () {};
+
 window.NATIVE_EDITOR_ENJINE = true;
 window.NATIVE_EDITOR_ENJINE_SYNC_RECALC = true;
 
