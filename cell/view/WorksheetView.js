@@ -2143,6 +2143,7 @@
                     printPagesData.pageHeight);
                 window['Asc']['editor'].watermarkDraw.EndRenderer();
             }
+			this.stringRender.resetTransform(drawingCtx);
             drawingCtx.EndPage();
         }
     };
