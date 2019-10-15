@@ -34,179 +34,17 @@ window.IS_NATIVE_EDITOR = true;
 
 var native_renderer = null;
 
-function NativeOpenFile()
-{
-	var doc_bin = window.native.GetFileString(window.native.GetFilePath());
-	window.NATIVE_DOCUMENT_TYPE = window.native.GetEditorType();
-
-	var _api;
-	if (window.NATIVE_DOCUMENT_TYPE == "presentation" || window.NATIVE_DOCUMENT_TYPE == "document")
-	{
-		_api = new window["Asc"]["asc_docs_api"]("");
-	}
-	else
-	{
-		_api = new window["Asc"]["spreadsheet_api"]();
-	}
-	_api.asc_nativeOpenFile(doc_bin);
-	window["_api"] = window["API"] = _api;
-}
-
-function NativeOpenFile2(_params)
-{
-	window["CreateMainTextMeasurerWrapper"]();
-
-	window.g_file_path = "native_open_file";
-	window.NATIVE_DOCUMENT_TYPE = window.native.GetEditorType();
-	var doc_bin = window.native.GetFileString(window.g_file_path);
-	var _api;
-	if (window.NATIVE_DOCUMENT_TYPE == "presentation" || window.NATIVE_DOCUMENT_TYPE == "document")
-	{
-		_api = new window["Asc"]["asc_docs_api"]("");
-
-		if (undefined !== _api.Native_Editor_Initialize_Settings)
-		{
-			_api.Native_Editor_Initialize_Settings(_params);
-		}
-
-		_api.asc_nativeOpenFile(doc_bin);
-
-		if (_api.NativeAfterLoad)
-			_api.NativeAfterLoad();
-
-		// ToDo get_PropertyThemeColorSchemes method removed, now the only Event!!!!
-		/*if (_api.__SendThemeColorScheme)
-			_api.__SendThemeColorScheme();
-
-		if (_api.get_PropertyThemeColorSchemes)
-		{
-			var schemes = _api.get_PropertyThemeColorSchemes();
-			if (schemes)
-			{
-				var st = global_memory_stream_menu;
-				st["ClearNoAttack"]();
-				AscCommon.asc_WriteColorSchemes(schemes, st);
-				window["native"]["OnCallMenuEvent"](2404, st); // ASC_MENU_EVENT_TYPE_COLOR_SCHEMES
-			}
-		}*/
-	}
-	else
-	{
-		_api = new window["Asc"]["spreadsheet_api"]();
-		_api.asc_nativeOpenFile(doc_bin);
-	}
-
-	window["_api"] = window["API"] = _api;
-}
-
 function NativeCalculateFile()
 {
 	window["API"].asc_nativeCalculateFile();
 }
 
-function NativeApplyChangesData(data, isFull)
-{
-	window["API"].asc_nativeApplyChanges2(data, isFull);
-}
-
-function NativeApplyChanges()
-{
-	var __changes = [];
-	var _count_main = window.native.GetCountChanges();
-	for (var i = 0; i < _count_main; i++)
-	{
-		var _changes_file = window.native.GetChangesFile(i);
-		var _changes = JSON.parse(window.native.GetFileString(_changes_file));
-
-		for (var j = 0; j < _changes.length; j++)
-		{
-			__changes.push(_changes[j]);
-		}
-	}
-
-	window["API"].asc_nativeApplyChanges(__changes);
-}
-function NativeGetFileString()
-{
-	return window["API"].asc_nativeGetFile();
-}
-function NativeGetFileData()
-{
-	return window["API"].asc_nativeGetFileData();
-}
-function NativeGetFileDataHtml()
-{
-	if (window["API"].asc_nativeGetHtml)
-		return window["API"].asc_nativeGetHtml();
-	return "";
-}
-
-function NativeStartMailMergeByList(database)
-{
-	if (window["API"].asc_StartMailMergeByList)
-		return window["API"].asc_StartMailMergeByList(database);
-	return undefined;
-}
-function NativePreviewMailMergeResult(index)
-{
-	if (window["API"].asc_PreviewMailMergeResult)
-		return window["API"].asc_PreviewMailMergeResult(index);
-	return undefined;
-}
-function NativeGetMailMergeFiledValue(index, name)
-{
-	if (window["API"].asc_GetMailMergeFiledValue)
-		return window["API"].asc_GetMailMergeFiledValue(index, name);
-	return "";
-}
-
-function GetNativeCountPages()
-{
-	return window["API"].asc_nativePrintPagesCount();
-}
-
-function GetNativeFileDataPDF(_param)
-{
-	return window["API"].asc_nativeGetPDF(_param);
-}
-
 window.memory1 = null;
 window.memory2 = null;
-
-function GetNativePageBase64(pageIndex)
-{
-	if (null == window.memory1)
-		window.memory1 = CreateNativeMemoryStream();
-	else
-		window.memory1.ClearNoAttack();
-
-	if (null == window.memory2)
-		window.memory2 = CreateNativeMemoryStream();
-	else
-		window.memory2.ClearNoAttack();
-
-	if (native_renderer == null)
-	{
-		native_renderer = window["API"].asc_nativeCheckPdfRenderer(window.memory1, window.memory2);
-	}
-	else
-	{
-		window.memory1.ClearNoAttack();
-		window.memory2.ClearNoAttack();
-	}
-
-	window["API"].asc_nativePrint(native_renderer, pageIndex);
-	return window.memory1;
-}
 
 function GetNativePageMeta(pageIndex)
 {
 	return window["API"].GetNativePageMeta(pageIndex);
-}
-
-function GetNativeId()
-{
-	return window.native.GetFileId();
 }
 
 // для работы с таймерами
