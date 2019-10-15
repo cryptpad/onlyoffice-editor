@@ -2181,9 +2181,10 @@
 
 	//пересчитывать необходимо когда после открытия зашли в настройки печати
 	WorksheetView.prototype.recalcScale = function () {
-		var pageOptions = t.model.PagePrintOptions;
-		var width = pageOptions.asc_getFitToWidth();
-		var height = pageOptions.asc_getFitToHeight();
+		var pageOptions = this.model.PagePrintOptions;
+		var pageSetup = pageOptions.asc_getPageSetup();
+		var width = pageSetup.asc_getFitToWidth();
+		var height = pageSetup.asc_getFitToHeight();
 		this._setPrintScale(this.calcPrintScale(width, height));
 
 		//TODO нужно ли в данном случае лочить?
@@ -16241,6 +16242,7 @@
 
 			History.EndTransaction();
 
+			t.recalcScale();
 			t.changeViewPrintLines(true);
 
 			if(t.viewPrintLines) {
@@ -16268,6 +16270,7 @@
 
 			History.EndTransaction();
 
+			t.recalcScale();
 			t.changeViewPrintLines(true);
 
 			if(t.viewPrintLines) {
@@ -16299,6 +16302,7 @@
 
 			History.EndTransaction();
 
+			t.recalcScale();
 			t.changeViewPrintLines(true);
 
 			if(t.viewPrintLines) {
@@ -16321,6 +16325,7 @@
 			History.StartTransaction();
 
 			callback(val);
+			t.recalcScale();
 			t.changeViewPrintLines(true);
 
 			History.EndTransaction();
@@ -16347,6 +16352,7 @@
 			}
 
 			t.savePageOptions(obj, viewMode);
+			t.recalcScale();
 			t.changeViewPrintLines(true);
 
 			if(t.viewPrintLines) {
@@ -16383,6 +16389,7 @@
 
 			pageOptions.asc_setOptions(obj);
 
+			t.recalcScale();
 			t.changeViewPrintLines(true);
 			//window["Asc"]["editor"]._onUpdateLayoutMenu(this.model.nSheetId);
 
@@ -16461,6 +16468,7 @@
 						oldRef = oldDefName.asc_getRef();
 						newRef = getRangesStr(t.model.selectionRange.ranges, oldRef);
 						newDefName = new Asc.asc_CDefName("Print_Area", newRef, oldScope, false, null, null, true);
+						t.recalcScale();
 						t.changeViewPrintLines(true);
 						wb.editDefinedNames(oldDefName, newDefName);
 					}
