@@ -14271,6 +14271,11 @@
 		}
 
 		var sortProps = t.model.autoFilters.getPropForSort(cellId, ar, displayName);
+		if(bIsExpandRange && sortProps && sortProps.curFilter && sortProps.curFilter.isAutoFilter()) {
+			//в случае расширения диапазона если мы находимся внутри а/ф игнорируются натройки
+			sortProps = null;
+		}
+
 		var expandRange;
 		var selectionRange = t.model.selectionRange;
 		var activeCell = selectionRange.activeCell.clone();
