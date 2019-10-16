@@ -22,36 +22,33 @@ BUILD_NUMBER=$build
 CreateDir() {
     if [ ! -d $1 ]; then
         mkdir -p $1
-    else
-        rm -Rf $1
-        mkdir -p $1
     fi
 }
 
 CopyScriptTo() {
-    if [ ! -d $1 ]; then
-        echo "Create directory: $1"
+    DOCUMENTS_PATH=$1"/documents"
+    SPREADSHEETS_PATH=$1"/spreadsheets"
+    PRESENTATIONS_PATH=$1"/presentations"
 
-        CreateDir $1"/documents"
-        CreateDir $1"/spreadsheets"
-        CreateDir $1"/presentations"
-    fi
-    
+    CreateDir $DOCUMENTS_PATH
+    CreateDir $SPREADSHEETS_PATH
+    CreateDir $PRESENTATIONS_PATH
+
     printf $'\r' > temp.txt
 
     echo "Copy: word sdk-all.js"
-    cat "../../web-apps-pro/vendor/xregexp/xregexp-all-min.js" "temp.txt" "../../web-apps-pro/vendor/underscore/underscore-min.js" "temp.txt" "../common/native/wrappers/common.js" "temp.txt" "../common/native/jquery_native.js" "temp.txt" > "banners.js"
-    cat "banners.js" "../word/sdk-all-min.js" "../word/sdk-all.js" > $1"/documents/script.bin"
+    cat "../../web-apps-pro/vendor/xregexp/xregexp-all-min.js" "temp.txt" "../../web-apps-pro/vendor/underscore/underscore-min.js" "temp.txt" "../common/Native/Wrappers/common.js" "temp.txt" "../common/Native/jquery_native.js" "temp.txt" > "banners.js"
+    cat "banners.js" "../word/sdk-all-min.js" "../word/sdk-all.js" > $DOCUMENTS_PATH"/script.bin"
     rm -f -r "banners.js"
 
     echo "Copy: cell sdk-all.js"
-    cat "../../web-apps-pro/vendor/xregexp/xregexp-all-min.js" "temp.txt" "../../web-apps-pro/vendor/underscore/underscore-min.js" "temp.txt" "../cell/native/common.js" "temp.txt" "../common/native/jquery_native.js" "temp.txt" > "banners.js"
-    cat "banners.js" "../cell/sdk-all-min.js" "../cell/sdk-all.js" > $1"/spreadsheets/script.bin"
+    cat "../../web-apps-pro/vendor/xregexp/xregexp-all-min.js" "temp.txt" "../../web-apps-pro/vendor/underscore/underscore-min.js" "temp.txt" "../cell/native/common.js" "temp.txt" "../common/Native/jquery_native.js" "temp.txt" > "banners.js"
+    cat "banners.js" "../cell/sdk-all-min.js" "../cell/sdk-all.js" > $SPREADSHEETS_PATH"/script.bin"
     rm -f -r "banners.js"
 
     echo "Copy: slide sdk-all.js"
-    cat "../../web-apps-pro/vendor/xregexp/xregexp-all-min.js" "temp.txt" "../../web-apps-pro/vendor/underscore/underscore-min.js" "temp.txt" "../common/native/wrappers/common.js" "temp.txt" "../common/native/jquery_native.js" "temp.txt" > "banners.js"
-    cat "banners.js" "../slide/sdk-all-min.js" "../slide/sdk-all.js" > $1"/presentations/script.bin"
+    cat "../../web-apps-pro/vendor/xregexp/xregexp-all-min.js" "temp.txt" "../../web-apps-pro/vendor/underscore/underscore-min.js" "temp.txt" "../common/Native/Wrappers/common.js" "temp.txt" "../common/Native/jquery_native.js" "temp.txt" > "banners.js"
+    cat "banners.js" "../slide/sdk-all-min.js" "../slide/sdk-all.js" > $PRESENTATIONS_PATH"/script.bin"
     rm -f -r "banners.js"
 
     rm -f -r "temp.txt"
@@ -72,20 +69,30 @@ echo "----------------------------------------"
 echo "Compile SDKJS"
 echo "----------------------------------------"
 
-PRODUCT_VERSION=$PRODUCT_VERSION BUILD_NUMBER=$BUILD_NUMBER grunt --level=ADVANCED --mobile=true #--level=ADVANCED | WHITESPACE_ONLY
+PRODUCT_VERSION=$PRODUCT_VERSION BUILD_NUMBER=$BUILD_NUMBER grunt --level=WHITESPACE_ONLY --mobile=true #--level=ADVANCED | WHITESPACE_ONLY
 
 if [ -z "$1" ] ; then
     # iOS
     echo "----------------------------------------"
     echo "Copy SDKJS for iOS app"
     echo "----------------------------------------"
-    CopyScriptTo "../../mobile-apps/ios/Vendor/ONLYOFFICE/SDKData"
+
+    IOS_PATH="../../mobile-apps/ios/Vendor/ONLYOFFICE"
+
+    if [ -d $IOS_PATH ]; then
+        CopyScriptTo $IOS_PATH"/SDKData"
+    fi
 
     # Android
     echo "----------------------------------------"
     echo "Copy SDKJS for Android app"
     echo "----------------------------------------"
-    CopyScriptTo "../../documents-android/native/src/main/assets"
+
+    ANDROID_PATH="../../documents-android/native/src/main"
+
+    if [ -d $ANDROID_PATH ]; then
+        CopyScriptTo $ANDROID_PATH"/assets"
+    fi
 else
     # Custom path
     echo "----------------------------------------"
