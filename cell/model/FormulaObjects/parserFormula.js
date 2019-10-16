@@ -5084,8 +5084,26 @@ _func[cElementType.cell3D] = _func[cElementType.cell];
 	};
 	ParseResult.prototype.getElementByPos = function(pos) {
 		var curPos = 0;
+		var argCount = [], level = 0;
 		for (var i = 0; i < this.elems.length; ++i) {
 			curPos += this.elems[i].toLocaleString(/*AscCommonExcel.cFormulaFunctionToLocale*/).length;
+
+			//учитываем разделители аргументов
+			if("(" === this.elems[i].name) {
+				level++;
+			} else if(")" === this.elems[i].name) {
+				level--;
+			} else if (level){
+				if(!argCount[level]) {
+					argCount[level] = 1;
+				} else {
+					argCount[level]++;
+				}
+				if(argCount[level] > 1) {
+					curPos++;
+				}
+			}
+
 			if (curPos >= pos) {
 				return this.elems[i];
 			}
