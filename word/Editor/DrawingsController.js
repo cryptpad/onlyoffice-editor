@@ -402,6 +402,31 @@ CDrawingsController.prototype.GetCurrentParagraph = function(bIgnoreSelection, a
 CDrawingsController.prototype.GetSelectedElementsInfo = function(oInfo)
 {
 	this.DrawingObjects.getSelectedElementsInfo(oInfo);
+
+	var oDrawing = this.DrawingObjects.getMajorParaDrawing();
+	if (!oInfo.GetBlockLevelSdt() && !oInfo.GetInlineLevelSdt() && oDrawing)
+	{
+		var oRun = oDrawing.Get_Run();
+
+		if (oRun)
+		{
+			var arrDocPos = oRun.GetDocumentPositionFromObject();
+			for (var nIndex = arrDocPos.length - 1; nIndex >= 0; --nIndex)
+			{
+				var oClass = arrDocPos[nIndex].Class;
+				if (oClass instanceof CDocumentContent && oClass.Parent instanceof CBlockLevelSdt)
+				{
+					oInfo.SetBlockLevelSdt(oClass.Parent);
+					break;
+				}
+				else if (oClass instanceof CInlineLevelSdt)
+				{
+					oInfo.SetInlineLevelSdt(oClass);
+					break;
+				}
+			}
+		}
+	}
 };
 CDrawingsController.prototype.AddTableRow = function(bBefore)
 {

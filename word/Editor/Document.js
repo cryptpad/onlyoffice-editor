@@ -8937,46 +8937,69 @@ CDocument.prototype.OnKeyPress = function(e)
         if (this.IsFormFieldEditing() && ((true === e.ShiftKey && true === e.CtrlKey) || true !== e.CtrlKey))
             bFillingForm = true;
 
-        if (false === this.Document_Is_SelectionLocked(changestype_Paragraph_Content, null, true, bFillingForm))
-        {
-            this.StartAction(AscDFH.historydescription_Document_SpaceButton);
+		var oSelectedInfo = this.GetSelectedElementsInfo();
+		var oMath         = oSelectedInfo.Get_Math();
+		var oInlineSdt    = oSelectedInfo.GetInlineLevelSdt();
+		var oBlockSdt     = oSelectedInfo.GetBlockLevelSdt();
 
-            // Если мы находимся в формуле, тогда пытаемся выполнить автозамену
+		var oCheckBox;
 
-            var oSelectedInfo = this.GetSelectedElementsInfo();
-            var oMath         = oSelectedInfo.Get_Math();
+		if (oInlineSdt && oInlineSdt.IsCheckBox())
+			oCheckBox = oInlineSdt;
+		else if (oBlockSdt && oBlockSdt.IsCheckBox())
+			oCheckBox = oBlockSdt;
 
-            if (null !== oMath && true === oMath.Make_AutoCorrect())
-            {
-                // Ничего тут не делаем. Все делается в автозамене
-            }
-            else
-            {
-                if (true === e.ShiftKey && true === e.CtrlKey)
-                {
-                    this.DrawingDocument.TargetStart();
-                    this.DrawingDocument.TargetShow();
+		if (oCheckBox)
+		{
+			oCheckBox.SkipCheckLockForCheckBox(true);
+			if (!this.IsSelectionLocked(changestype_Paragraph_Content, null, true, bFillingForm))
+			{
+				this.StartAction(AscDFH.historydescription_Document_SpaceButton);
+				oCheckBox.ToggleCheckBox();
+				this.Recalculate();
+				this.FinalizeAction();
+			}
+			oCheckBox.SkipCheckLockForCheckBox(false);
+		}
+		else
+		{
+			if (false === this.Document_Is_SelectionLocked(changestype_Paragraph_Content, null, true, bFillingForm))
+			{
+				this.StartAction(AscDFH.historydescription_Document_SpaceButton);
 
-                    this.AddToParagraph(new ParaText(0x00A0));
-                }
-                else if (true === e.CtrlKey)
-                {
-                    this.ClearParagraphFormatting(false, true);
-                }
-                else
-                {
-                    this.DrawingDocument.TargetStart();
-                    this.DrawingDocument.TargetShow();
+				// Если мы находимся в формуле, тогда пытаемся выполнить автозамену
+				if (null !== oMath && true === oMath.Make_AutoCorrect())
+				{
+					// Ничего тут не делаем. Все делается в автозамене
+				}
+				else
+				{
+					if (true === e.ShiftKey && true === e.CtrlKey)
+					{
+						this.DrawingDocument.TargetStart();
+						this.DrawingDocument.TargetShow();
 
-                    this.CheckLanguageOnTextAdd = true;
-                    this.AddToParagraph(new ParaSpace());
-                    this.CheckLanguageOnTextAdd = false;
-                }
-            }
-            this.FinalizeAction();
-        }
+						this.AddToParagraph(new ParaText(0x00A0));
+					}
+					else if (true === e.CtrlKey)
+					{
+						this.ClearParagraphFormatting(false, true);
+					}
+					else
+					{
+						this.DrawingDocument.TargetStart();
+						this.DrawingDocument.TargetShow();
 
-        bRetValue = true;
+						this.CheckLanguageOnTextAdd = true;
+						this.AddToParagraph(new ParaSpace());
+						this.CheckLanguageOnTextAdd = false;
+					}
+				}
+				this.FinalizeAction();
+			}
+		}
+
+		bRetValue = true;
     }
 
 	if (true == bRetValue)
@@ -9281,18 +9304,20 @@ CDocument.prototype.OnMouseUp = function(e, X, Y, PageIndex)
 
 	var oSelectedContent = this.GetSelectedElementsInfo();
 	var oInlineSdt       = oSelectedContent.GetInlineLevelSdt();
-	if (oInlineSdt && oInlineSdt.IsCheckBox())
+	var oBlockSdt        = oSelectedContent.GetBlockLevelSdt();
+	if ((oInlineSdt && oInlineSdt.IsCheckBox()) || (oBlockSdt && oBlockSdt.IsCheckBox()))
 	{
-		oInlineSdt.SkipCheckLockForCheckBox(true);
+		var oCC = (oInlineSdt && oInlineSdt.IsCheckBox()) ? oInlineSdt : oBlockSdt;
+		oCC.SkipCheckLockForCheckBox(true);
 		if (!this.IsSelectionLocked(AscCommon.changestype_Paragraph_Content))
 		{
 			this.StartAction();
-			oInlineSdt.ToggleCheckBox();
+			oCC.ToggleCheckBox();
 			this.Recalculate();
 			this.UpdateTracks();
 			this.FinalizeAction();
 		}
-		oInlineSdt.SkipCheckLockForCheckBox(false);
+		oCC.SkipCheckLockForCheckBox(false);
 	}
 
 	this.private_CheckCursorPosInFillingFormMode();
@@ -10835,11 +10860,17 @@ CDocument.prototype.Refresh_RecalcData = function(Data)
 		});
 	}
 };
-CDocument.prototype.Refresh_RecalcData2 = function(Index, Page_rel)
+CDocument.prototype.Refresh_RecalcData2 = function(nIndex, nPageRel)
 {
+	if (-1 === nIndex)
+		return;
+
 	this.History.RecalcData_Add({
 		Type : AscDFH.historyitem_recalctype_Inline,
-		Data : {Pos : Index, PageNum : Page_rel}
+		Data : {
+			Pos     : nIndex,
+			PageNum : nPageRel
+		}
 	});
 };
 //----------------------------------------------------------------------------------------------------------------------
@@ -13610,6 +13641,10 @@ CDocument.prototype.IsSdtGlobalSettingsDefault = function()
 {
 	return this.Settings.SdtSettings.IsDefault();
 };
+/**
+ * Добавляем специальный контейнер в виде чекбокса
+ * @returns {CInlineLevelSdt | CBlockLevelSdt}
+ */
 CDocument.prototype.AddContentControlCheckBox = function()
 {
 	this.RemoveSelection();
@@ -13617,6 +13652,18 @@ CDocument.prototype.AddContentControlCheckBox = function()
 	var oTextPr = this.GetDirectTextPr();
 	var oCC = this.AddContentControl(c_oAscSdtLevelType.Inline);
 	oCC.ApplyCheckBoxPr(new CSdtCheckBoxPr(), oTextPr);
+	return oCC;
+};
+/**
+ * Добавляем специальный контейнер для картинок
+ * @returns {CInlineLevelSdt | CBlockLevelSdt}
+ */
+CDocument.prototype.AddContentControlPicture = function()
+{
+	this.RemoveSelection();
+
+	var oCC = this.AddContentControl(c_oAscSdtLevelType.Inline);
+	oCC.ApplyPicturePr(true);
 	return oCC;
 };
 /**

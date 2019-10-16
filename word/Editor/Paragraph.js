@@ -401,20 +401,19 @@ Paragraph.prototype.Get_FirstTextPr2 = function()
 	}
     return this.Get_CompiledPr2(false).TextPr;
 };
-Paragraph.prototype.GetAllDrawingObjects = function(DrawingObjs)
+Paragraph.prototype.GetAllDrawingObjects = function(arrDrawingObjects)
 {
-	if (undefined === DrawingObjs)
-		DrawingObjs = [];
+	if (!arrDrawingObjects)
+		arrDrawingObjects = [];
 
-	var Count = this.Content.length;
-	for (var Pos = 0; Pos < Count; Pos++)
+	for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
 	{
-		var Item = this.Content[Pos];
-		if (Item.GetAllDrawingObjects)
-			Item.GetAllDrawingObjects(DrawingObjs);
+		var oItem = this.Content[nPos];
+		if (oItem.GetAllDrawingObjects)
+			oItem.GetAllDrawingObjects(arrDrawingObjects);
 	}
 
-	return DrawingObjs;
+	return arrDrawingObjects;
 };
 Paragraph.prototype.GetAllComments = function(List)
 {
@@ -14303,6 +14302,25 @@ Paragraph.prototype.CheckTrackMoveMarkInSelection = function(isStart, isCheckTo)
 	}
 
 	return null;
+};
+/**
+ * Очищаем содержимое параграфа, оставляем в нем ровно 1 пустой параграф
+ */
+Paragraph.prototype.MakeSingleRunParagraph = function()
+{
+	if (this.Content.length <= 1)
+	{
+		this.AddToContent(0, new ParaRun(this, false), true);
+	}
+	else if (this.Content.length > 2 || para_Run !== this.Content[0].Type)
+	{
+		this.RemoveFromContent(0, this.Content.length - 1, true);
+		this.AddToContent(0, new ParaRun(this, false), true);
+	}
+
+	var oRun = this.Content[0];
+	oRun.ClearContent();
+	return oRun;
 };
 
 var pararecalc_0_All  = 0;

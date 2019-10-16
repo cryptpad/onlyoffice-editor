@@ -127,8 +127,11 @@ CInlineLevelSdt.prototype.Copy = function(isUseSelection, oPr)
 	oContentControl.SetAppearance(this.GetAppearance());
 	oContentControl.SetColor(this.GetColor());
 
-	if (this.Pr.CheckBox)
+	if (undefined !== this.Pr.CheckBox)
 		oContentControl.SetCheckBoxPr(this.Pr.CheckBox);
+
+	if (undefined !== this.Pr.Picture)
+		oContentControl.SetPicturePr(this.Pr.Picture);
 
 	return oContentControl;
 };
@@ -688,7 +691,7 @@ CInlineLevelSdt.prototype.CanBeDeleted = function()
  */
 CInlineLevelSdt.prototype.CanBeEdited = function()
 {
-	if (!this.SkipCheckBoxLock && this.IsCheckBox())
+	if (!this.SkipCheckBoxLock && (this.IsCheckBox() || this.IsPicture()))
 		return false;
 
 	return (undefined === this.Pr.Lock || c_oAscSdtLockType.Unlocked === this.Pr.Lock || c_oAscSdtLockType.SdtLocked === this.Pr.Lock);
@@ -878,6 +881,86 @@ CInlineLevelSdt.prototype.private_UpdateCheckBoxContent = function()
 		oRun.Set_RFonts_CS({Index : -1, Name : this.Pr.CheckBox.UncheckedFont});
 		oRun.Set_RFonts_EastAsia({Index : -1, Name : this.Pr.CheckBox.UncheckedFont});
 	}
+};
+/**
+ * Проверяем, является ли данный класс специальным контейнером для картинки
+ * @returns {boolean}
+ */
+CInlineLevelSdt.prototype.IsPicture = function()
+{
+	return (!!this.Pr.Picture);
+};
+/**
+ * Выставляем настройку того, что это контент контрол с картинкой
+ * @param isPicture {boolean}
+ */
+CInlineLevelSdt.prototype.SetPicturePr = function(isPicture)
+{
+	if (this.Pr.Picture !== isPicture)
+	{
+		History.Add(new CChangesSdtPrPicture(this, this.Pr.Picture, isPicture));
+		this.Pr.Picture = isPicture;
+	}
+};
+CInlineLevelSdt.prototype.private_UpdatePictureContent = function()
+{
+	if (!this.IsPicture())
+		return;
+
+	if (this.IsPlaceHolder())
+		this.ReplacePlaceHolderWithContent();
+
+	if (this.Content.length <= 0)
+	{
+		this.AddToContent(0, new ParaRun(this.GetParagraph(), false), true);
+	}
+	else if (this.Content.length > 1 || para_Run !== this.Content[0].Type)
+	{
+		this.RemoveFromContent(0, this.Content.length, true);
+		this.AddToContent(0, new ParaRun(this.GetParagraph(), false), true);
+	}
+
+	var oRun = this.Content[0];
+	oRun.ClearContent();
+
+	var oDrawingObjects = this.Paragraph && this.Paragraph.LogicDocument ? this.Paragraph.LogicDocument.DrawingObjects : null;
+	if (!oDrawingObjects)
+		return;
+
+	var nW = 50;
+	var nH = 50;
+
+	var oDrawing = new ParaDrawing(nW, nH, null, oDrawingObjects, this.Paragraph.LogicDocument, null);
+	var oImage   = oDrawingObjects.createImage("", 0, 0, nW, nH);
+	oImage.setParent(oDrawing);
+	oDrawing.Set_GraphicObject(oImage);
+
+	oRun.AddToContent(0, oDrawing);
+};
+/**
+ * Применяме к данному контейнеру настройку того, что это специальный контейнер для картинок
+ * @param isPicture {boolean}
+ */
+CInlineLevelSdt.prototype.ApplyPicturePr = function(isPicture)
+{
+	this.SetPicturePr(isPicture);
+	this.private_UpdatePictureContent();
+};
+/**
+ * Выделяем изображение, если это специальный контейнер для изображения
+ * @returns {boolean}
+ */
+CInlineLevelSdt.prototype.SelectPicture = function()
+{
+	if (!this.IsPicture() || !this.GetParagraph() || !this.GetParagraph().GetParent())
+		return false;
+
+	var arrDrawings = this.GetAllDrawingObjects();
+	if (arrDrawings.length <= 0)
+		return false;
+
+	this.GetParagraph().GetParent().Select_DrawingObject(arrDrawings[0].GetId());
+	return true;
 };
 //--------------------------------------------------------export--------------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};

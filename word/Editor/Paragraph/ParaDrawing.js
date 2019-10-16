@@ -1213,6 +1213,10 @@ ParaDrawing.prototype.Get_Id = function()
 {
 	return this.Id;
 };
+ParaDrawing.prototype.GetId = function()
+{
+	return this.Id;
+};
 ParaDrawing.prototype.setParagraphTabs = function(tabs)
 {
 	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.setParagraphTabs === "function")

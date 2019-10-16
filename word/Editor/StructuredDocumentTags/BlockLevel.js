@@ -66,6 +66,8 @@ function CBlockLevelSdt(oLogicDocument, oParent)
 
 	// Добавляем данный класс в таблицу Id (обязательно в конце конструктора)
 	g_oTableId.Add(this, this.Id);
+
+	this.SkipCheckBoxLock = false;
 }
 
 CBlockLevelSdt.prototype = Object.create(CDocumentContentElementBase.prototype);
@@ -84,6 +86,13 @@ CBlockLevelSdt.prototype.Copy = function(Parent)
 	}
 
 	oNew.SetPr(this.Pr);
+
+	if (undefined !== this.Pr.CheckBox)
+		oNew.SetCheckBoxPr(this.Pr.CheckBox);
+
+	if (undefined !== this.Pr.Picture)
+		oNew.SetPicturePr(this.Pr.Picture);
+
 	return oNew;
 };
 CBlockLevelSdt.prototype.GetType = function()
@@ -1459,6 +1468,9 @@ CBlockLevelSdt.prototype.CanBeDeleted = function()
  */
 CBlockLevelSdt.prototype.CanBeEdited = function()
 {
+	if (!this.SkipCheckBoxLock && (this.IsCheckBox() || this.IsPicture()))
+		return false;
+
 	return (undefined === this.Pr.Lock || c_oAscSdtLockType.Unlocked === this.Pr.Lock || c_oAscSdtLockType.SdtLocked === this.Pr.Lock);
 };
 /**
@@ -1531,6 +1543,174 @@ CBlockLevelSdt.prototype.CheckRunContent = function(fCheck)
 CBlockLevelSdt.prototype.IsTableCellSelection = function()
 {
 	return this.Content.IsTableCellSelection();
+};
+/**
+ * Проверяем, является ли данный контейнер чекбоксом
+ * @returns {boolean}
+ */
+CBlockLevelSdt.prototype.IsCheckBox = function()
+{
+	return !!(this.Pr.CheckBox);
+};
+/**
+ * Выключаем проверку невозможности редактирования данного объекта, из-за того что это чекбокс
+ * @param isSkip {boolean}
+ */
+CBlockLevelSdt.prototype.SkipCheckLockForCheckBox = function(isSkip)
+{
+	this.SkipCheckBoxLock = isSkip;
+};
+/**
+ * Применяем заданные настройки для чекобокса
+ * @param {CSdtCheckBoxPr} oCheckBoxPr
+ * @param {CTextPr} oTextPr
+ */
+CBlockLevelSdt.prototype.ApplyCheckBoxPr = function(oCheckBoxPr, oTextPr)
+{
+	if (undefined === this.Pr.CheckBox || !this.Pr.CheckBox.IsEqual(oCheckBoxPr))
+	{
+		if (this.IsPlaceHolder())
+			this.private_ReplacePlaceHolderWithContent(false);
+
+		this.SetCheckBoxPr(oCheckBoxPr);
+	}
+
+	if (this.IsCheckBox())
+	{
+		if (oTextPr)
+		{
+			if (this.Content.GetElementsCount() >= 1 && this.Content.GetElement(0).IsParagraph())
+			{
+				var oPara = this.Content.GetElement(0);
+
+				if (oPara.Content[0] && para_Run === oPara.Content[0].Type)
+					oPara.Content[0].SetPr(oTextPr);
+			}
+		}
+
+		this.private_UpdateCheckBoxContent();
+	}
+};
+/**
+ * Выставляем настройки чекбокса
+ * @param {CSdtCheckBoxPr} oCheckBoxPr
+ */
+CBlockLevelSdt.prototype.SetCheckBoxPr = function(oCheckBoxPr)
+{
+	if (undefined === this.Pr.CheckBox || !this.Pr.CheckBox.IsEqual(oCheckBoxPr))
+	{
+		History.Add(new CChangesSdtPrCheckBox(this, this.Pr.CheckBox, oCheckBoxPr));
+		this.Pr.CheckBox = oCheckBoxPr;
+	}
+};
+/**
+ * Выставляем состояние чекбокса
+ */
+CBlockLevelSdt.prototype.ToggleCheckBox = function()
+{
+	if (!this.IsCheckBox())
+		return;
+
+	var isChecked = !this.Pr.CheckBox.Checked;
+	History.Add(new CChangesSdtPrCheckBoxChecked(this, this.Pr.CheckBox.Checked, isChecked));
+	this.Pr.CheckBox.Checked = isChecked;
+
+	this.private_UpdateCheckBoxContent();
+};
+CBlockLevelSdt.prototype.private_UpdateCheckBoxContent = function()
+{
+	var isChecked = this.Pr.CheckBox.Checked;
+
+	var oPara = this.Content.MakeSingleParagraphContent();
+	var oRun  = oPara.MakeSingleRunParagraph();
+
+	oRun.ClearContent();
+	oRun.AddText(String.fromCharCode(isChecked ? this.Pr.CheckBox.CheckedSymbol : this.Pr.CheckBox.UncheckedSymbol));
+
+	if (isChecked && this.Pr.CheckBox.CheckedFont)
+	{
+		oRun.Set_RFonts_Ascii({Index : -1, Name : this.Pr.CheckBox.CheckedFont});
+		oRun.Set_RFonts_HAnsi({Index : -1, Name : this.Pr.CheckBox.CheckedFont});
+		oRun.Set_RFonts_CS({Index : -1, Name : this.Pr.CheckBox.CheckedFont});
+		oRun.Set_RFonts_EastAsia({Index : -1, Name : this.Pr.CheckBox.CheckedFont});
+	}
+	else if (!isChecked && this.Pr.CheckBox.UncheckedFont)
+	{
+		oRun.Set_RFonts_Ascii({Index : -1, Name : this.Pr.CheckBox.UncheckedFont});
+		oRun.Set_RFonts_HAnsi({Index : -1, Name : this.Pr.CheckBox.UncheckedFont});
+		oRun.Set_RFonts_CS({Index : -1, Name : this.Pr.CheckBox.UncheckedFont});
+		oRun.Set_RFonts_EastAsia({Index : -1, Name : this.Pr.CheckBox.UncheckedFont});
+	}
+};
+/**
+ * Проверяем, является ли данный класс специальным контейнером для картинки
+ * @returns {boolean}
+ */
+CBlockLevelSdt.prototype.IsPicture = function()
+{
+	return (!!this.Pr.Picture);
+};
+/**
+ * Выставляем настройку того, что это контент контрол с картинкой
+ * @param isPicture {boolean}
+ */
+CBlockLevelSdt.prototype.SetPicturePr = function(isPicture)
+{
+	if (this.Pr.Picture !== isPicture)
+	{
+		History.Add(new CChangesSdtPrPicture(this, this.Pr.Picture, isPicture));
+		this.Pr.Picture = isPicture;
+	}
+};
+CBlockLevelSdt.prototype.private_UpdatePictureContent = function()
+{
+	if (!this.IsPicture())
+		return;
+
+	if (this.IsPlaceHolder())
+		this.ReplacePlaceHolderWithContent();
+
+	var oPara = this.Content.MakeSingleParagraphContent();
+	var oRun  = oPara.MakeSingleRunParagraph();
+
+	var oDrawingObjects = this.LogicDocument ? this.LogicDocument.DrawingObjects : null;
+	if (!oDrawingObjects)
+		return;
+
+	var nW = 50;
+	var nH = 50;
+
+	var oDrawing = new ParaDrawing(nW, nH, null, oDrawingObjects, this.LogicDocument, null);
+	var oImage   = oDrawingObjects.createImage("", 0, 0, nW, nH);
+	oImage.setParent(oDrawing);
+	oDrawing.Set_GraphicObject(oImage);
+
+	oRun.AddToContent(0, oDrawing);
+};
+/**
+ * Применяме к данному контейнеру настройку того, что это специальный контейнер для картинок
+ * @param isPicture {boolean}
+ */
+CBlockLevelSdt.prototype.ApplyPicturePr = function(isPicture)
+{
+	this.SetPicturePr(isPicture);
+	this.private_UpdatePictureContent();
+};
+/**
+ * Выделяем изображение, если это специальный контейнер для изображения
+ * @returns {boolean}
+ */
+CBlockLevelSdt.prototype.SelectPicture = function()
+{
+	if (!this.IsPicture())
+		return false;
+
+	var arrDrawings = this.GetAllDrawingObjects();
+	if (arrDrawings.length <= 0)
+		return false;
+
+	this.Content.Select_DrawingObject(arrDrawings[0].GetId());
+	return true;
 };
 //--------------------------------------------------------export--------------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};

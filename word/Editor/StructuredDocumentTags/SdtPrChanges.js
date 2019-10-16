@@ -47,6 +47,7 @@ AscDFH.changesFactory[AscDFH.historyitem_SdtPr_Appearance]       = CChangesSdtPr
 AscDFH.changesFactory[AscDFH.historyitem_SdtPr_Color]            = CChangesSdtPrColor;
 AscDFH.changesFactory[AscDFH.historyitem_SdtPr_CheckBox]         = CChangesSdtPrCheckBox;
 AscDFH.changesFactory[AscDFH.historyitem_SdtPr_CheckBox_Checked] = CChangesSdtPrCheckBoxChecked;
+AscDFH.changesFactory[AscDFH.historyitem_SdtPr_Picture]          = CChangesSdtPrPicture;
 
 //----------------------------------------------------------------------------------------------------------------------
 // Карта зависимости изменений
@@ -82,6 +83,9 @@ AscDFH.changesRelationMap[AscDFH.historyitem_SdtPr_CheckBox] = [
 AscDFH.changesRelationMap[AscDFH.historyitem_SdtPr_CheckBox_Checked] = [
 	AscDFH.historyitem_SdtPr_CheckBox,
 	AscDFH.historyitem_SdtPr_CheckBox_Checked
+];
+AscDFH.changesRelationMap[AscDFH.historyitem_SdtPr_Picture] = [
+	AscDFH.historyitem_SdtPr_Picture
 ];
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -414,4 +418,19 @@ CChangesSdtPrCheckBoxChecked.prototype.Merge = function(oChange)
 		return false;
 
 	return true;
+};
+/**
+ * @constructor
+ * @extends {AscDFH.CChangesBaseBoolProperty}
+ */
+function CChangesSdtPrPicture(Class, Old, New, Color)
+{
+	AscDFH.CChangesBaseBoolProperty.call(this, Class, Old, New, Color);
+}
+CChangesSdtPrPicture.prototype = Object.create(AscDFH.CChangesBaseBoolProperty.prototype);
+CChangesSdtPrPicture.prototype.constructor = CChangesSdtPrPicture;
+CChangesSdtPrPicture.prototype.Type = AscDFH.historyitem_SdtPr_Picture;
+CChangesSdtPrPicture.prototype.private_SetValue = function(Value)
+{
+	this.Class.Pr.Picture = Value;
 };

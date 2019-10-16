@@ -55,6 +55,7 @@ function CSdtPr()
 	this.Color      = undefined;
 
 	this.CheckBox = undefined;
+	this.Picture  = false;
 }
 
 CSdtPr.prototype.Copy = function()

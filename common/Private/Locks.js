@@ -771,8 +771,11 @@ CBlockLevelSdt.prototype.Document_Is_SelectionLocked = function(CheckType, bChec
 
 	if (CheckType === AscCommon.changestype_Paragraph_TextProperties)
 	{
+		this.SkipCheckLockForCheckBox(true);
 		if (!this.CanBeEdited())
 			this.Lock.Check(this.GetId());
+		this.SkipCheckLockForCheckBox(false);
+
 
 		isCheckContentControlLock = false;
 	}
@@ -809,7 +812,7 @@ CBlockLevelSdt.prototype.Document_Is_SelectionLocked = function(CheckType, bChec
 
 		if (c_oAscSdtLockType.SdtContentLocked === nContentControlLock
 			|| (c_oAscSdtLockType.SdtLocked === nContentControlLock && true !== bSelectedOnlyThis)
-			|| (c_oAscSdtLockType.ContentLocked === nContentControlLock && true === bSelectedOnlyThis))
+			|| (!this.CanBeEdited() && true === bSelectedOnlyThis))
 		{
 			return AscCommon.CollaborativeEditing.Add_CheckLock(true);
 		}
@@ -822,8 +825,7 @@ CBlockLevelSdt.prototype.Document_Is_SelectionLocked = function(CheckType, bChec
 		}
 	}
 	else if (isCheckContentControlLock
-		&& (c_oAscSdtLockType.SdtContentLocked === nContentControlLock
-		|| c_oAscSdtLockType.ContentLocked === nContentControlLock))
+		&& !this.CanBeEdited())
 	{
 		return AscCommon.CollaborativeEditing.Add_CheckLock(true);
 	}

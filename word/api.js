@@ -8459,6 +8459,107 @@ background-repeat: no-repeat;\
 			}
 		});
 	};
+	asc_docs_api.prototype.asc_AddContentControlPicture = function()
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return;
+
+		oLogicDocument.RemoveSelection();
+		if (!oLogicDocument.IsSelectionLocked(AscCommon.changestype_Paragraph_Content))
+		{
+			oLogicDocument.StartAction(AscDFH.historydescription_Document_AddContentControlPicture);
+			oLogicDocument.AddContentControlPicture();
+			oLogicDocument.Recalculate();
+			oLogicDocument.FinalizeAction();
+		}
+	};
+	asc_docs_api.prototype.asc_SetContentControlPictureUrl = function(sUrl)
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument || AscCommon.isNullOrEmptyString(sUrl))
+			return;
+
+		var oInfo     = oLogicDocument.GetSelectedElementsInfo({SkipTOC : true});
+		var oInlineCC = oInfo.GetInlineLevelSdt();
+		var oBlockCC  = oInfo.GetBlockLevelSdt();
+		var oCC;
+
+		if (oInlineCC && oInlineCC.IsPicture())
+			oCC = oInlineCC;
+		else if (oBlockCC && oBlockCC.IsPicture())
+			oCC = oBlockCC;
+
+		if (!oCC || !oCC.SelectPicture())
+			return;
+
+		if (!oLogicDocument.IsSelectionLocked(AscCommon.changestype_Image_Properties))
+		{
+			var oImagePr = {
+				ImageUrl : sUrl
+			};
+
+			var sImageUrl = null, fReplaceCallback = null, sImageToDownLoad = "";
+
+			if (!g_oDocumentUrls.getImageLocal(sUrl))
+			{
+				sImageUrl        = sUrl;
+				fReplaceCallback = function(sUrl)
+				{
+					oImagePr.ImageUrl = sUrl;
+					sImageToDownLoad  = sUrl;
+				}
+			}
+
+			sImageToDownLoad = sUrl;
+
+			var oApi = this;
+			var fApplyCallback = function()
+			{
+				var _img = oApi.ImageLoader.LoadImage(sImageToDownLoad, 1);
+				if (null != _img)
+				{
+					oApi.WordControl.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_ApplyImagePrWithUrl);
+					oApi.WordControl.m_oLogicDocument.SetImageProps(oImagePr);
+					oApi.WordControl.m_oLogicDocument.FinalizeAction();
+				}
+				else
+				{
+					oApi.asyncImageEndLoaded2 = function(_image)
+					{
+						oApi.WordControl.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_ApplyImagePrWithUrlLong);
+						oApi.WordControl.m_oLogicDocument.SetImageProps(oImagePr);
+						oApi.WordControl.m_oLogicDocument.FinalizeAction();
+					}
+				}
+			};
+
+			if (sImageUrl)
+			{
+				if (window["AscDesktopEditor"])
+				{
+					var _url = window["AscDesktopEditor"]["LocalFileGetImageUrl"](sImageToDownLoad);
+					_url     = g_oDocumentUrls.getImageUrl(_url);
+					fReplaceCallback(_url);
+					fApplyCallback();
+					return;
+				}
+
+				AscCommon.sendImgUrls(this, [sImageToDownLoad], function(data)
+				{
+					if (data && data[0])
+					{
+						fReplaceCallback(data[0].url);
+						fApplyCallback();
+					}
+				}, false);
+			}
+			else
+			{
+				fApplyCallback();
+			}
+		}
+	};
 
 	asc_docs_api.prototype.asc_UncheckContentControlButtons = function()
 	{
@@ -10265,6 +10366,8 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_GetGlobalContentControlShowHighlight']  = asc_docs_api.prototype.asc_GetGlobalContentControlShowHighlight;
 	asc_docs_api.prototype['asc_AddContentControlCheckBox']             = asc_docs_api.prototype.asc_AddContentControlCheckBox;
 	asc_docs_api.prototype['asc_SetContentControlCheckBoxPr']           = asc_docs_api.prototype.asc_SetContentControlCheckBoxPr;
+	asc_docs_api.prototype['asc_AddContentControlPicture']              = asc_docs_api.prototype.asc_AddContentControlPicture;
+	asc_docs_api.prototype['asc_SetContentControlPictureUrl']           = asc_docs_api.prototype.asc_SetContentControlPictureUrl;
 
 
 	asc_docs_api.prototype['asc_BeginViewModeInReview']                 = asc_docs_api.prototype.asc_BeginViewModeInReview;

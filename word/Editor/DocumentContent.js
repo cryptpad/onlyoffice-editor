@@ -7189,9 +7189,12 @@ CDocumentContent.prototype.Refresh_RecalcData = function(Data)
 
 	this.Refresh_RecalcData2(0, CurPage);
 };
-CDocumentContent.prototype.Refresh_RecalcData2 = function(Index, Page_rel)
+CDocumentContent.prototype.Refresh_RecalcData2 = function(nIndex, nPageRel)
 {
-	this.Parent.Refresh_RecalcData2(this.StartPage + Page_rel);
+	if (-1 === nIndex)
+		return;
+
+	this.Parent.Refresh_RecalcData2(this.StartPage + nPageRel);
 };
 //-----------------------------------------------------------------------------------
 // Функции для работы с гиперссылками
@@ -8225,6 +8228,24 @@ CDocumentContent.prototype.GetPresentationField = function()
 CDocumentContent.prototype.IsTableCellSelection = function()
 {
 	return (this.Selection.Use && this.Selection.StartPos === this.Selection.EndPos && this.Content[this.Selection.StartPos].IsTable() && this.Content[this.Selection.StartPos].IsTableCellSelection());
+};
+/**
+ * Оставляем один пустой параграф в содержимом
+ * @returns {Paragraph}
+ */
+CDocumentContent.prototype.MakeSingleParagraphContent = function()
+{
+	if (this.Content.length <= 0)
+	{
+		this.AddToContent(0, new Paragraph(this.DrawingDocument, this));
+	}
+	else if (this.Content.length > 1 || !this.Content[0].IsParagraph())
+	{
+		this.RemoveFromContent(0, this.Content.length, true);
+		this.AddToContent(0, new Paragraph(this.DrawingDocument, this));
+	}
+
+	return this.Content[0];
 };
 
 

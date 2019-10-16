@@ -326,19 +326,22 @@ ParaRun.prototype.GetSelectedContent = function(oSelectedContent)
 	return null;
 };
 
-ParaRun.prototype.GetAllDrawingObjects = function(DrawingObjs)
+ParaRun.prototype.GetAllDrawingObjects = function(arrDrawingObjects)
 {
-    var Count = this.Content.length;
-    for ( var Index = 0; Index < Count; Index++ )
-    {
-        var Item = this.Content[Index];
+	if (!arrDrawingObjects)
+		arrDrawingObjects = [];
 
-        if ( para_Drawing === Item.Type )
-        {
-            DrawingObjs.push(Item);
-            Item.GetAllDrawingObjects(DrawingObjs);
-        }
-    }
+	for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
+	{
+		var oItem = this.Content[nPos];
+		if (para_Drawing === oItem.Type)
+		{
+			arrDrawingObjects.push(oItem);
+			oItem.GetAllDrawingObjects(arrDrawingObjects);
+		}
+	}
+
+	return arrDrawingObjects;
 };
 
 ParaRun.prototype.Clear_ContentChanges = function()
@@ -771,6 +774,9 @@ ParaRun.prototype.private_AddItemToRun = function(nPos, Item)
  */
 ParaRun.prototype.ClearContent = function()
 {
+	if (this.Content.length <= 0)
+		return;
+
 	this.RemoveFromContent(0, this.Content.length, true);
 };
 ParaRun.prototype.Remove = function(Direction, bOnAddText)
@@ -10896,12 +10902,24 @@ ParaRun.prototype.GetComplexFieldsArray = function(nType, arrComplexFields)
 	}
 };
 /**
- * Получаем количетсво элементов в ране
+ * Получаем количество элементов в ране
  * @returns {Number}
  */
 ParaRun.prototype.GetElementsCount = function()
 {
 	return this.Content.length;
+};
+/**
+ * Получаем элемент по заданной позиции
+ * @param nPos {number}
+ * @returns {?CRunElementBase}
+ */
+ParaRun.prototype.GetElement = function(nPos)
+{
+	if (nPos < 0 || nPos >= this.Content.length)
+		return null;
+
+	return this.Content[nPos];
 };
 /**
  * Проверяем является ли данный ран специальным, содержащим ссылку на сноску

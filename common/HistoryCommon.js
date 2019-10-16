@@ -1115,6 +1115,13 @@
 			case AscDFH.historydescription_Document_SetContentControlCheckBoxPr:
 				sString = "Document_SetContentControlCheckBoxPr";
 				break;
+			case AscDFH.historydescription_Document_AddContentControlPicture:
+				sString = "Document_AddContentControlPicture";
+				break;
+			case AscDFH.historydescription_Document_SetContentControlPictureUrl:
+				sString = "Document_SetContentControlPictureUrl";
+				break;
+
 		}
 		return sString;
 	}
@@ -1816,6 +1823,7 @@
 	window['AscDFH'].historyitem_SdtPr_Color            = window['AscDFH'].historyitem_type_SdtPr | 8;
 	window['AscDFH'].historyitem_SdtPr_CheckBox         = window['AscDFH'].historyitem_type_SdtPr | 9;
 	window['AscDFH'].historyitem_SdtPr_CheckBox_Checked = window['AscDFH'].historyitem_type_SdtPr | 10;
+	window['AscDFH'].historyitem_SdtPr_Picture          = window['AscDFH'].historyitem_type_SdtPr | 11;
 	//------------------------------------------------------------------------------------------------------------------
 	// Графические классы общего назначение (без привязки к конкретному классу)
 	//------------------------------------------------------------------------------------------------------------------
@@ -3145,6 +3153,8 @@
 	window['AscDFH'].historydescription_Document_RemoveTableCells                   = 0x0164;
 	window['AscDFH'].historydescription_Document_AddContentControlCheckBox          = 0x0165;
 	window['AscDFH'].historydescription_Document_SetContentControlCheckBoxPr        = 0x0166;
+	window['AscDFH'].historydescription_Document_AddContentControlPicture           = 0x0167;
+	window['AscDFH'].historydescription_Document_SetContentControlPictureUrl        = 0x0168;
 
 
 
