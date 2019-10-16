@@ -2465,8 +2465,8 @@ CellXfs.prototype =
 		if (!cache) {
 			cache = new CellXfs();
 			cache.border = this._mergeProperty(g_StyleCache.addBorder, xfs.border, this.border, isTable);
-			if (isTable && (g_StyleCache.firstXf === xfs || g_StyleCache.firstFill === xfs.fill)) {
-				if (g_StyleCache.firstFill === xfs.fill) {
+			if (isTable && (g_StyleCache.firstXf === xfs || g_StyleCache.normalXf.fill === xfs.fill)) {
+				if (g_StyleCache.normalXf.fill === xfs.fill) {
 					cache.fill = this._mergeProperty(g_StyleCache.addFill, this.fill, g_oDefaultFormat.Fill);
 				} else {
 					cache.fill = this._mergeProperty(g_StyleCache.addFill, this.fill, xfs.fill);
@@ -2475,14 +2475,14 @@ CellXfs.prototype =
 				cache.fill = this._mergeProperty(g_StyleCache.addFill, xfs.fill, this.fill);
 			}
 			var isTableColor = true;
-			if (isTable && (g_StyleCache.firstXf === xfs || g_StyleCache.firstFont === xfs.font)) {
-				if (g_StyleCache.firstFont === xfs.font) {
+			if (isTable && (g_StyleCache.firstXf === xfs || g_StyleCache.normalXf.font === xfs.font)) {
+				if (g_StyleCache.normalXf.font === xfs.font) {
 					cache.font = this._mergeProperty(g_StyleCache.addFont, g_oDefaultFormat.Font, this.font, isTable, isTableColor);
 				} else {
 					cache.font = this._mergeProperty(g_StyleCache.addFont, xfs.font, this.font, isTable, isTableColor);
 				}
 			} else {
-				isTableColor = isTable && xfs.font && xfs.font.c && xfs.font.c.isEqual(g_StyleCache.firstFont.c);
+				isTableColor = isTable && xfs.font && xfs.font.c && xfs.font.c.isEqual(g_StyleCache.normalXf.font.c);
 				cache.font = this._mergeProperty(g_StyleCache.addFont, xfs.font, this.font, isTable, isTableColor);
 			}
 			cache.num = this._mergeProperty(g_StyleCache.addNum, xfs.num, this.num);
@@ -3070,11 +3070,12 @@ function StyleManager(){
 }
 StyleManager.prototype =
 {
-	init: function(wb, firstXf, firstFont, firstFill, firstBorder) {
+	init: function(wb, firstXf, firstFont, firstFill, firstBorder, normalXf) {
 		g_StyleCache.firstXf = firstXf;
 		g_StyleCache.firstFont = firstFont;
 		g_StyleCache.firstFill = firstFill;
 		g_StyleCache.firstBorder = firstBorder;
+		g_StyleCache.normalXf = normalXf;
 		if(null != firstXf.font)
 			g_oDefaultFormat.Font = firstXf.font;
 		if(null != firstXf.fill)
@@ -3295,6 +3296,7 @@ StyleManager.prototype =
 		this.firstFont = null;
 		this.firstFill = null;
 		this.firstBorder = null;
+		this.normalXf =  new CellXfs();
 	}
 
 	StyleCache.prototype.addFont = function(newFont) {
