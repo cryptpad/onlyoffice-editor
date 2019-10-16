@@ -4010,11 +4010,7 @@
 					
 					newFilter = worksheet.createTablePart();
 					newFilter.Ref = ref;
-					
-					if(!bWithoutFilter)
-					{
-						newFilter.addAutoFilter();
-					}
+
 					
 					newFilter.TableStyleInfo = new AscCommonExcel.TableStyleInfo();
 					newFilter.TableStyleInfo.Name = style;
@@ -4035,6 +4031,11 @@
 						newFilter.TableStyleInfo.ShowFirstColumn = false;
 						newFilter.TableStyleInfo.ShowLastColumn = false;
 						newFilter.TableStyleInfo.ShowRowStripes = true;
+					}
+
+					if(!bWithoutFilter)
+					{
+						newFilter.addAutoFilter();
 					}
 					
 					newFilter.DisplayName = newTableName;
