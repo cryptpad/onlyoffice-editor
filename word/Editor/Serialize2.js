@@ -1167,6 +1167,21 @@ var c_oToNextParType = {
 	MoveToRangeStart: 4,
 	MoveToRangeEnd: 5
 };
+var ESdtType = {
+	sdttypeUnknown: 255,
+	sdttypeBibliography: 0,
+	sdttypeCitation: 1,
+	sdttypeComboBox: 2,
+	sdttypeDate: 3,
+	sdttypeDocPartList: 4,
+	sdttypeDocPartObj: 5,
+	sdttypeDropDownList: 6,
+	sdttypeEquation: 7,
+	sdttypeGroup: 8,
+	sdttypePicture: 9,
+	sdttypeRichText: 10,
+	sdttypeText: 11
+};
 
 	function getCommentAdditionalData (comment) {
 		var AdditionalData = "";
@@ -6061,7 +6076,7 @@ function BinaryDocumentTableWriter(memory, doc, oMapCommentId, oNumIdMap, copyPa
 	{
 		var oThis = this;
 		if (oSdt.Pr) {
-			oThis.bs.WriteItem(c_oSerSdt.Pr, function () { oThis.WriteSdtPr(oSdt.Pr); });
+			oThis.bs.WriteItem(c_oSerSdt.Pr, function () { oThis.WriteSdtPr(oSdt.Pr, oSdt); });
 		}
 		// if (oSdt.EndPr) {
 		// 	this.bs.WriteItem(c_oSerSdt.EndPr, function(){oThis.brPrs.Write_rPr(oSdt.EndPr, null, null);});
@@ -6073,7 +6088,7 @@ function BinaryDocumentTableWriter(memory, doc, oMapCommentId, oNumIdMap, copyPa
 			this.bs.WriteItem(c_oSerSdt.Content, function(){oThis.WriteParagraphContent(oSdt, false, false);});
 		}
 	};
-	this.WriteSdtPr = function (val)
+	this.WriteSdtPr = function (val, oSdt)
 	{
 		var oThis = this;
 		var type;
@@ -6143,8 +6158,8 @@ function BinaryDocumentTableWriter(memory, doc, oMapCommentId, oNumIdMap, copyPa
 		if (undefined !== val.CheckBox) {
 			oThis.bs.WriteItem(c_oSerSdt.Checkbox, function (){oThis.WriteSdtCheckBox(val.CheckBox);});
 		}
-		if (undefined !== type) {
-			oThis.bs.WriteItem(c_oSerSdt.Type, function (){oThis.memory.WriteByte(type);});
+		if (oSdt.IsPicture()) {
+			oThis.bs.WriteItem(c_oSerSdt.Type, function (){oThis.memory.WriteByte(ESdtType.sdttypePicture);});
 		}
 	};
 	this.WriteSdtCheckBox = function (val)
@@ -12096,9 +12111,12 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
 	this.ReadSdtPr = function(type, length, oSdtPr, oSdt) {
 		var res = c_oSerConstants.ReadOk;
 		var oThis = this;
-		/*if (c_oSerSdt.Type === type) {
-			oSdtPr.Type = this.stream.GetByte();
-		} else */if (c_oSerSdt.Alias === type) {
+		if (c_oSerSdt.Type === type) {
+			var type = this.stream.GetByte();
+			if (ESdtType.sdttypePicture === type) {
+				oSdt.SetPicturePr(true);
+			}
+		} else if (c_oSerSdt.Alias === type) {
 			oSdtPr.Alias = this.stream.GetString2LE(length);
 		} else if (c_oSerSdt.Appearance === type) {
 			var Appearance = this.stream.GetByte();
