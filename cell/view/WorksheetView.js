@@ -18518,26 +18518,37 @@
 			var sortState = new AscCommonExcel.SortState();
 
 			//? activeRange
-			sortState.Ref = null;
-			t.SortConditions = [];
+			var selection = t.model.selectionRange.getLast();
+			sortState.Ref = new Asc.Range(selection.c1, selection.r1, selection.c2, selection.r2);
 
 			History.Create_NewPoint();
 			History.StartTransaction();
 
-			var selection = t.model.selectionRange.getLast();
+
 			//var selection = props._newSelection;
 
 			var columnSort = props.columnSort;
 			for(var i = 0; i < props.levels.length; i++) {
 				var sortCondition = new AscCommonExcel.SortCondition();
-
-				sortCondition.Ref = null;
+				var level = props.levels[i];
+				var r1 = columnSort ? selection.r1 : level.index + selection.r1;
+				var c1 = columnSort ? selection.c1 + level.index : selection.c1;
+				var r2 = columnSort ? selection.r2 : level.index + selection.r1;
+				var c2  = columnSort ? selection.c1 + level.index : selection.c2;
+				sortCondition.Ref = new Asc.Range(c1, r1, c2, r2);
 				sortCondition.ConditionSortBy = null;
-				sortCondition.ConditionDescending = null;
+				sortCondition.ConditionDescending = level.descending;
 				sortCondition.dxf = null;
+
+				if(!sortState.SortConditions) {
+					sortState.SortConditions = [];
+				}
+
+				sortState.SortConditions.push(sortCondition);
 
 				//TODO history
 			}
+			t.model.sortState = sortState;
 
 			var range = t.model.getRange3(selection.r1, selection.c1, selection.r2, selection.c2);
 			t.cellCommentator.sortComments(range.sort(null, null, null, null, null, props.levels));
