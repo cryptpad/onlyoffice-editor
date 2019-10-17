@@ -10509,7 +10509,7 @@ CDocument.prototype.SetWatermarkProps = function(oProps)
     oWatermark = this.DrawingObjects.createWatermark(oProps);
     if(oWatermark)
     {
-        var oDocState = this.GetSelectionState();
+        var oDocState = this.Get_SelectionState2();
         var oContent = Header.Content;
         oContent.MoveCursorToEndPos(false);
         var oSdt = null, oElement;
@@ -10528,7 +10528,7 @@ CDocument.prototype.SetWatermarkProps = function(oProps)
         }
         oSdt.SetDocPartObj(undefined, "Watermarks", true);
         oSdt.AddToParagraph(oWatermark);
-        this.SetSelectionState(oDocState);
+        this.Set_SelectionState2(oDocState);
     }
     this.Recalculate();
     this.Document_UpdateInterfaceState();
