@@ -1130,7 +1130,7 @@ NumFormat.prototype =
 			else if(number === 0)
 			{
 				//TODO необходимо использовать cDate везде
-				stDate = new cDate(Date.UTC(1899,11,31,0,0,0));
+				stDate = new Asc.cDate(Date.UTC(1899,11,31,0,0,0));
 				day = stDate.getUTCDate();
 				dayWeek = ( stDate.getUTCDay() > 0) ? stDate.getUTCDay() - 1 : 6;
 				month = stDate.getUTCMonth();

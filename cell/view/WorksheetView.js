@@ -18559,13 +18559,13 @@
 				break;
 			}
 			case asc.c_oAscHeaderFooterField.date: {
-				curDate = new cDate();
+				curDate = new Asc.cDate();
 				curDateNum = curDate.getExcelDate();
 				res = api.asc_getLocaleExample(AscCommon.getShortDateFormat(), curDateNum);
 				break;
 			}
 			case asc.c_oAscHeaderFooterField.time: {
-				curDate = new cDate();
+				curDate = new Asc.cDate();
 				curDateNum = curDate.getExcelDateWithTime(true) - curDate.getTimezoneOffset()/(60*24);
 				res = api.asc_getLocaleExample(AscCommon.getShortTimeFormat(), curDateNum);
 				break;
