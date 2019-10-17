@@ -10120,6 +10120,7 @@
 						//var props = t.getSortProps(true);
                         //t.cellCommentator.sortComments(range.sort(val.type, opt_by_rows ? activeCell.row : activeCell.col, val.color, true, opt_by_rows, props.levels));
                         t.cellCommentator.sortComments(range.sort(val.type, opt_by_rows ? activeCell.row : activeCell.col, val.color, true, opt_by_rows));
+						t.setSortProps(t._generateSortProps(val.type, opt_by_rows ? activeCell.row : activeCell.col, val.color, true, opt_by_rows, range.bbox), true);
                         break;
 
 					case "customSort":
@@ -18457,12 +18458,12 @@
 			switch (conditionSortBy) {
 				case Asc.ESortBy.sortbyCellColor: {
 					level.sortBy = Asc.c_oAscSortOptions.ByColorFill;
-					sortColor = SortConditions.dxf && SortConditions.dxf.fill ? SortConditions.dxf.fill.bg() : null;
+					sortColor = sortCondition.dxf && sortCondition.dxf.fill ? sortCondition.dxf.fill.bg() : null;
 					break;
 				}
 				case Asc.ESortBy.sortbyFontColor: {
 					level.sortBy = Asc.c_oAscSortOptions.ByColorFont;
-					sortColor = SortConditions.dxf && SortConditions.dxf.font ? SortConditions.dxf.font.getColor() : null;
+					sortColor = sortCondition.dxf && sortCondition.dxf.font ? sortCondition.dxf.font.getColor() : null;
 					break;
 				}
 				case Asc.ESortBy.sortbyIcon: {
@@ -18515,7 +18516,7 @@
 		return sortSettings;
 	};
 
-	WorksheetView.prototype.setSortProps = function(props) {
+	WorksheetView.prototype.setSortProps = function(props, doNotSortRange) {
 		if(!props || !props.levels || !props.levels.length) {
 			return false;
 		}
@@ -18559,8 +18560,10 @@
 			}
 			t.model.sortState = sortState;
 
-			var range = t.model.getRange3(selection.r1, selection.c1, selection.r2, selection.c2);
-			t.cellCommentator.sortComments(range.sort(null, null, null, null, null, props.levels));
+			if(!doNotSortRange) {
+				var range = t.model.getRange3(selection.r1, selection.c1, selection.r2, selection.c2);
+				t.cellCommentator.sortComments(range.sort(null, null, null, null, null, props.levels));
+			}
 
 			History.EndTransaction();
 
@@ -18568,6 +18571,29 @@
 
 		//TODO lock
 		callback();
+	};
+
+	WorksheetView.prototype._generateSortProps = function(nOption, nStartRowCol, sortColor, opt_guessHeader, opt_by_row, range) {
+		var sortSettings = new Asc.CSortProperties(this);
+		var columnSort = sortSettings.columnSort = opt_by_row !== true;
+
+		var getSortLevel = function() {
+			var level = new Asc.CSortPropertiesLevel();
+
+			level.index = columnSort ? nStartRowCol - range.c1 : nStartRowCol - range.r1;
+
+			level.descending = nOption != Asc.c_oAscSortOptions.Ascending;
+			level.sortBy = nOption;
+			level.color = sortColor;
+
+			return level;
+		};
+
+		sortSettings.levels = [];
+		sortSettings.levels.push(getSortLevel());
+		sortSettings._newSelection = range;
+
+		return sortSettings;
 	};
 
 	WorksheetView.prototype.setSortProps2 = function(props) {
