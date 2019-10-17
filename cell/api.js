@@ -4057,7 +4057,7 @@ var editor;
 	spreadsheet_api.prototype.asc_setSortProps = function (props) {
 		var ws = this.wb && this.wb.getWorksheet();
 		if(ws) {
-			ws.setSortProps(props);
+			ws.setSelectionInfo("customSort", props);
 		}
 	};
 

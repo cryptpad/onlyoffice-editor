@@ -10122,6 +10122,15 @@
                         t.cellCommentator.sortComments(range.sort(val.type, opt_by_rows ? activeCell.row : activeCell.col, val.color, true, opt_by_rows));
                         break;
 
+					case "customSort":
+						if (isLargeRange && !callTrigger) {
+							callTrigger = true;
+							t.handlers.trigger("slowOperation", true);
+						}
+
+						t.setSortProps(val);
+						break;
+
                     case "empty":
                         if (isLargeRange && !callTrigger) {
                             callTrigger = true;
