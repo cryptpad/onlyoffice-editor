@@ -2035,10 +2035,6 @@ var editor;
         if (res) {
           t.wbModel.getWorksheet(index).setHidden(false);
           t.wb.showWorksheet(index);
-          if (isHidden) {
-            // Посылаем callback об изменении списка листов
-            t.sheetsChanged();
-          }
         }
       };
       if (isHidden) {
