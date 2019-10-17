@@ -2524,7 +2524,9 @@ CellFormat.prototype =
 		} else {
 			var info = format.getFormatCellsInfo();
 			var types = [c_oAscNumFormatType.Text, c_oAscNumFormatType.Percent, c_oAscNumFormatType.Scientific,
-				c_oAscNumFormatType.Number, c_oAscNumFormatType.Fraction];
+				c_oAscNumFormatType.Number, c_oAscNumFormatType.Fraction, c_oAscNumFormatType.Currency,
+				c_oAscNumFormatType.Accounting
+			];
 			for (var i = 0; i < types.length; ++i) {
 				var type = types[i];
 				info.asc_setType(type);
@@ -2534,7 +2536,6 @@ CellFormat.prototype =
 					break;
 				}
 			}
-
 		}
 		return nType;
 	},
