@@ -3198,7 +3198,7 @@ function BinaryPPTYLoader()
                                                 if(oEffect)
                                                 {
                                                     uni_fill.fill.Effects.push(oEffect);
-                                                    if(oEffect instanceof AscFormat.CAlphaModFix)
+                                                    if(oEffect instanceof AscFormat.CAlphaModFix && AscFormat.isRealNumber(oEffect.amt))
                                                     {
                                                         uni_fill.setTransparent(255 * oEffect.amt / 100000);
                                                     }
