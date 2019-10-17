@@ -2974,10 +2974,10 @@ Paragraph.prototype.Remove = function(nCount, isRemoveWholeElement, bRemoveOnlyS
 				{
 					if (para_Run === this.Content[Pos].Type)
 					{
-						if (para_Run == this.Content[Pos].Type && reviewtype_Add === this.Content[Pos].GetReviewType())
+						if (para_Run == this.Content[Pos].Type && this.Content[Pos].CanDeleteInReviewMode())
 							this.RemoveFromContent(Pos, 1);
 						else
-							this.Content[Pos].SetReviewType(reviewtype_Remove, false);
+							this.Content[Pos].SetReviewType(reviewtype_Remove, true);
 					}
 					else
 					{
