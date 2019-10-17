@@ -18537,8 +18537,8 @@
 
 			//var selection = props._newSelection;
 
-			var columnSort = !props.columnSort;
-			sortState.ColumnSort = columnSort;
+			var columnSort = props.columnSort;
+			sortState.ColumnSort = !columnSort;
 			for(var i = 0; i < props.levels.length; i++) {
 				var sortCondition = new AscCommonExcel.SortCondition();
 				var level = props.levels[i];
@@ -18563,7 +18563,7 @@
 
 			if(!doNotSortRange) {
 				var range = t.model.getRange3(selection.r1, selection.c1, selection.r2, selection.c2);
-				t.cellCommentator.sortComments(range.sort(null, null, null, null, columnSort, props.levels));
+				t.cellCommentator.sortComments(range.sort(null, null, null, null, !columnSort, props.levels));
 			}
 
 			History.EndTransaction();
