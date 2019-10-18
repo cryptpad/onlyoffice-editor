@@ -5942,11 +5942,8 @@ function RangeDataManagerElem(bbox, data)
 			return res;
 		}
 
-		for (var i = 0; i < this.TableColumns.length; i++) {
-			if (index === i) {
-				res = this.TableColumns[i].Name;
-				break;
-			}
+		if(this.TableColumns[index]) {
+			res = this.TableColumns[index].Name;
 		}
 
 		return res;
