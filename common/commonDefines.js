@@ -986,6 +986,16 @@
 		Bottom : 1
 	};
 
+	var c_oAscTabType = {
+		Bar     : 0x00,
+		Center  : 0x01,
+		Clear   : 0x02,
+		Decimal : 0x03,
+		Num     : 0x05,
+		Right   : 0x07,
+		Left    : 0x08
+	};
+
 	var c_oAscTabLeader = {
 		Dot        : 0x00,
 		Heavy      : 0x01,
@@ -2162,6 +2172,16 @@
 	prot["Hyphen"]     = c_oAscTabLeader.Hyphen;
 	prot["MiddleDot"]  = c_oAscTabLeader.MiddleDot;
 	prot["Underscore"] = c_oAscTabLeader.Underscore;
+
+	prot = window['Asc']['c_oAscTabType'] = window['Asc'].c_oAscTabType = c_oAscTabType;
+	prot["Bar"]     = c_oAscTabType.Bar;
+	prot["Center"]  = c_oAscTabType.Center;
+	prot["Clear"]   = c_oAscTabType.Clear;
+	prot["Decimal"] = c_oAscTabType.Decimal;
+	prot["Num"]     = c_oAscTabType.Num;
+	prot["Right"]   = c_oAscTabType.Right;
+	prot["Left"]    = c_oAscTabType.Left;
+
 
 	prot = window['Asc']['c_oAscRestrictionType'] = window['Asc'].c_oAscRestrictionType = c_oAscRestrictionType;
 	prot['None']           = c_oAscRestrictionType.None;

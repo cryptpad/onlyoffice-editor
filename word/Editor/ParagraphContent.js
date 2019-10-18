@@ -1379,13 +1379,13 @@ ParaNumbering.prototype.GetSourceWidth = function()
 };
 
 // TODO: Реализовать табы по точке и с чертой (tab_Bar tab_Decimal)
-var tab_Bar     = 0x00;
-var tab_Center  = 0x01;
-var tab_Clear   = 0x02;
-var tab_Decimal = 0x03;
-var tab_Num     = 0x05;
-var tab_Right   = 0x07;
-var tab_Left    = 0x08;
+var tab_Bar     = Asc.c_oAscTabType.Bar;
+var tab_Center  = Asc.c_oAscTabType.Center;
+var tab_Clear   = Asc.c_oAscTabType.Clear;
+var tab_Decimal = Asc.c_oAscTabType.Decimail;
+var tab_Num     = Asc.c_oAscTabType.Num;
+var tab_Right   = Asc.c_oAscTabType.Right;
+var tab_Left    = Asc.c_oAscTabType.Left;
 
 var tab_Symbol = 0x0022;//0x2192;
 
