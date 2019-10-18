@@ -1622,6 +1622,12 @@
 	baseEditorsApi.prototype.asc_cropFill = function()
 	{
 	};
+
+
+	//Remove All comments
+	baseEditorsApi.prototype.asc_RemoveAllComments = function(isMine, isCurrent)
+	{};
+
 	// Version History
 	baseEditorsApi.prototype.asc_showRevision   = function(newObj)
 	{
