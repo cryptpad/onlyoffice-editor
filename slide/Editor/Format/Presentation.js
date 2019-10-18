@@ -5580,18 +5580,8 @@ CPresentation.prototype =
         }
     },
 
-    Remove : function(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord)
+    RemoveCurrentComment: function()
     {
-        if(this.GetFocusObjType() === FOCUS_OBJECT_THUMBNAILS)
-        {
-            this.deleteSlides(this.GetSelectedSlides());
-            return;
-        }
-        if ( "undefined" === typeof(bRemoveOnlySelection) )
-            bRemoveOnlySelection = false;
-
-        var oController = this.GetCurrentController();
-
         if(!this.FocusOnNotes){
             var oCurSlide = this.Slides[this.CurPage];
             if(oCurSlide && oCurSlide.slideComments){
@@ -5607,9 +5597,27 @@ CPresentation.prototype =
                     }
                 }
                 if( i > -1){
-                    return;
+                    return true;
                 }
             }
+        }
+        return false;
+    },
+
+    Remove : function(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord)
+    {
+        if(this.GetFocusObjType() === FOCUS_OBJECT_THUMBNAILS)
+        {
+            this.deleteSlides(this.GetSelectedSlides());
+            return;
+        }
+        if ( "undefined" === typeof(bRemoveOnlySelection) )
+            bRemoveOnlySelection = false;
+
+        var oController = this.GetCurrentController();
+        if(this.RemoveCurrentComment())
+        {
+            return;
         }
         if(oController && oController.selectedObjects.length !== 0)
         {

@@ -4789,6 +4789,22 @@ background-repeat: no-repeat;\
 		}
 	};
 
+
+	//Remove All comments
+	asc_docs_api.prototype.asc_RemoveAllComments = function(isMine, isCurrent)
+	{
+
+		if (!this.WordControl.m_oLogicDocument)
+		{
+			return;
+		}
+		if(isCurrent)
+		{
+			this.WordControl.m_oLogicDocument.RemoveCurrentComment();
+		}
+	};
+
+
 	asc_docs_api.prototype.asc_changeComment = function(Id, AscCommentData)
 	{
 		if (null == this.WordControl.m_oLogicDocument)
@@ -7800,6 +7816,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_getMasterCommentId']              = asc_docs_api.prototype.asc_getMasterCommentId;
 	asc_docs_api.prototype['asc_getAnchorPosition']               = asc_docs_api.prototype.asc_getAnchorPosition;
 	asc_docs_api.prototype['asc_removeComment']                   = asc_docs_api.prototype.asc_removeComment;
+	asc_docs_api.prototype['asc_RemoveAllComments']               = asc_docs_api.prototype.asc_RemoveAllComments;
 	asc_docs_api.prototype['asc_changeComment']                   = asc_docs_api.prototype.asc_changeComment;
 	asc_docs_api.prototype['asc_selectComment']                   = asc_docs_api.prototype.asc_selectComment;
 	asc_docs_api.prototype['asc_showComment']                     = asc_docs_api.prototype.asc_showComment;
