@@ -10294,6 +10294,14 @@
 					window['AscCommon'].g_specialPasteHelper.Paste_Process_End();
 				}
 			}
+
+			if(prop === "paste") {
+				if(val.needDraw) {
+					t.draw();
+				} else {
+					val.needDraw = true;
+				}
+			}
         };
 
 		if ("paste" === prop) {
@@ -10628,14 +10636,13 @@
 			var arn = selectData[0];
 			var selectionRange = arn.clone(true);
 			if (bIsUpdate) {
-				if (isLargeRange) {
-					t.handlers.trigger("slowOperation", false);
-				}
-				t.isChanged = true;
-				t._cleanCache(arn);
-				t.changeWorksheet("update", {reinitRanges: true});
-				t.objectRender.rebuildChartGraphicObjects(selectData);
-                t.objectRender.showDrawingObjectsEx(true);
+				t._updateRange(arn);
+			}
+
+			if(val.needDraw) {
+				t.draw();
+			} else {
+				val.needDraw = true;
 			}
 
 			var oSelection = History.GetSelection();
