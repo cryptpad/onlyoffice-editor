@@ -1121,7 +1121,9 @@
 			case AscDFH.historydescription_Document_SetContentControlPictureUrl:
 				sString = "Document_SetContentControlPictureUrl";
 				break;
-
+			case AscDFH.historydescription_Document_RemoveAllComments:
+				sString = "Document_RemoveAllComments";
+				break;
 		}
 		return sString;
 	}
@@ -3155,7 +3157,7 @@
 	window['AscDFH'].historydescription_Document_SetContentControlCheckBoxPr        = 0x0166;
 	window['AscDFH'].historydescription_Document_AddContentControlPicture           = 0x0167;
 	window['AscDFH'].historydescription_Document_SetContentControlPictureUrl        = 0x0168;
-
+	window['AscDFH'].historydescription_Document_RemoveAllComments                  = 0x0169;
 
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

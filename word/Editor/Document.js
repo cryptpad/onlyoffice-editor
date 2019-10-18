@@ -11379,6 +11379,44 @@ CDocument.prototype.GetSelectionAnchorPos = function()
 
 	return {X0 : Coords0.X, X1 : Coords1.X, Y : Coords0.Y};
 };
+/**
+ * Получаем все комментарии по заданным параметрам
+ * @param isMine {boolean} удаляем только все свои комментарии
+ * @param isCurrent {boolean} удаляем только все комментарии, находящиеся в текущей позиции
+ * @returns {Array.string}
+ */
+CDocument.prototype.GetAllComments = function(isMine, isCurrent)
+{
+	var arrCommentsId = [];
+
+	if (isCurrent)
+	{
+		if (true === this.Comments.Is_Use())
+		{
+			var oCurPosXY   = this.GetCursorRealPosition();
+			var arrComments = this.Comments.Get_ByXY(this.CurPage, oCurPosXY.X, oCurPosXY.Y, docpostype_HdrFtr === this.GetDocPosType() ? comment_type_HdrFtr : comment_type_Common);
+
+			for (var nCommentIndex = 0, nCommentsCount = arrComments.length; nCommentIndex < nCommentsCount; ++nCommentIndex)
+			{
+				var oComment = arrComments[nCommentIndex];
+				if (oComment && (!isMine || oComment.IsCurrentUser()))
+					arrCommentsId.push(oComment.GetId());
+			}
+		}
+	}
+	else
+	{
+		var oComments = this.Comments.GetAllComments();
+		for (var sId in oComments)
+		{
+			var oComment = oComments[sId];
+			if (oComment && (!isMine || oComment.IsCurrentUser()))
+				arrCommentsId.push(oComment.GetId());
+		}
+	}
+
+	return arrCommentsId;
+};
 //----------------------------------------------------------------------------------------------------------------------
 // Функции для работы с textbox
 //----------------------------------------------------------------------------------------------------------------------

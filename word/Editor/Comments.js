@@ -508,6 +508,10 @@ function CComment(Parent, Data)
     // Добавляем данный класс в таблицу Id (обязательно в конце конструктора)
     g_oTableId.Add( this, this.Id );
 }
+CComment.prototype.GetId = function()
+{
+	return this.Id;
+};
 CComment.prototype.GetData = function()
 {
 	return this.Data;
@@ -529,6 +533,21 @@ CComment.prototype.GetDurableId = function()
 		return this.Data.m_nDurableId;
 
 	return -1;
+};
+/**
+ * Является ли текущий пользователем автором комментария
+ * @returns {boolean}
+ */
+CComment.prototype.IsCurrentUser = function()
+{
+	var oEditor = editor;
+	if (oEditor && oEditor.DocInfo && this.Data)
+	{
+		var sUserId = oEditor.DocInfo.get_UserId();
+		return (sUserId === this.Data.m_sUserId);
+	}
+
+	return true;
 };
 
 var comments_NoComment        = 0;
