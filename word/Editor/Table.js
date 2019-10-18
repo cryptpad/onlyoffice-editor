@@ -11227,11 +11227,11 @@ CTable.prototype.private_GetRowsInfo = function()
 	{
 		arrRowsInfo[nCurRow] = [];
 
-		var oRow = this.Content[nCurRow];
+		var oRow = this.GetRow(nCurRow);
 
-		var oBeforeInfo = oRow.Get_Before();
+		var oBeforeInfo = oRow.GetBefore();
 		if (oBeforeInfo.GridBefore > 0)
-			arrRowsInfo[nCurRow].push({W : this.TableSumGrid[oBeforeInfo.GridBefore - 1], Type : -1, GridSpan : 1});
+			arrRowsInfo[nCurRow].push({W : this.TableSumGrid[oBeforeInfo.Grid - 1], Type : -1, GridSpan : 1});
 
 		for (var nCurCell = 0, nCellsCount = oRow.GetCellsCount(); nCurCell < nCellsCount; ++nCurCell)
 		{
@@ -11249,13 +11249,24 @@ CTable.prototype.private_GetRowsInfo = function()
 			else
 			{
 				var nCurGridStart = oCellInfo.StartGridCol;
-				var nCurGridEnd   = nCurGridStart + oCell.Get_GridSpan() - 1;
+				var nCurGridEnd   = nCurGridStart + oCell.GetGridSpan() - 1;
 
-				arrRowsInfo[nCurRow].push({
-					W        : this.TableSumGrid[nCurGridEnd] - this.TableSumGrid[nCurGridStart - 1],
-					Type     : 0,
-					GridSpan : 1
-				});
+				if (undefined === this.TableSumGrid[nCurGridEnd] || undefined === this.TableSumGrid[nCurGridStart - 1])
+				{
+					arrRowsInfo[nCurRow].push({
+						W        : 0,
+						Type     : 0,
+						GridSpan : 1
+					});
+				}
+				else
+				{
+					arrRowsInfo[nCurRow].push({
+						W        : this.TableSumGrid[nCurGridEnd] - this.TableSumGrid[nCurGridStart - 1],
+						Type     : 0,
+						GridSpan : 1
+					});
+				}
 			}
 		}
 	}
