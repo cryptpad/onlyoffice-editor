@@ -18278,9 +18278,7 @@
 		t.cellCommentator.updateAreaComments();
 
 		if (t.objectRender) {
-			if (reinitRanges && t.objectRender.drawingArea) {
-				t.objectRender.drawingArea.reinitRanges();
-			}
+			t._updateDrawingArea();
 			if (null !== updateDrawingObjectsInfo) {
 				t.objectRender.updateSizeDrawingObjects(updateDrawingObjectsInfo, true);
 			}
