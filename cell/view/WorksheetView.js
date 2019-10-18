@@ -18266,10 +18266,6 @@
 		var t = this;
 
 		var oRecalcType = AscCommonExcel.recalcType.recalc;
-		var reinitRanges = false;
-		var updateDrawingObjectsInfo = null;
-		var updateDrawingObjectsInfo2 = null;//{bInsert: false, operType: c_oAscInsertOptions.InsertColumns, updateRange: arn}
-		var isUpdateCols = false, isUpdateRows = false;
 		var lockDraw = false;	// Параметр, при котором не будет отрисовки (т.к. мы просто обновляем информацию на неактивном листе)
 		var arrChangedRanges = [];
 
@@ -18286,13 +18282,6 @@
 
 		if (t.objectRender) {
 			t._updateDrawingArea();
-			if (null !== updateDrawingObjectsInfo) {
-				t.objectRender.updateSizeDrawingObjects(updateDrawingObjectsInfo, true);
-			}
-			if (null !== updateDrawingObjectsInfo2) {
-				t.objectRender.updateDrawingObject(updateDrawingObjectsInfo2.bInsert,
-					updateDrawingObjectsInfo2.operType, updateDrawingObjectsInfo2.updateRange);
-			}
 			t.model.onUpdateRanges(arrChangedRanges);
 			t.objectRender.rebuildChartGraphicObjects(arrChangedRanges);
 		}
@@ -18308,18 +18297,9 @@
 			t._updateGroups(true, undefined, undefined, true);
 		}
 
-
 		t.draw(lockDraw);
 
 		t.handlers.trigger("reinitializeScroll", AscCommonExcel.c_oAscScrollType.ScrollVertical | AscCommonExcel.c_oAscScrollType.ScrollHorizontal);
-
-		if (isUpdateCols) {
-			t._updateVisibleColsCount();
-		}
-		if (isUpdateRows) {
-			t._updateVisibleRowsCount();
-		}
-
 		t.handlers.trigger("selectionChanged");
 		t.handlers.trigger("selectionMathInfoChanged", t.getSelectionMathInfo());
 	};
