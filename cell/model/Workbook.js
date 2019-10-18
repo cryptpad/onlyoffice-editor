@@ -2761,7 +2761,9 @@
 					}
 					// TODO if(g_oUndoRedoGraphicObjects == item.oClass && item.oData.drawingData)
 					//     item.oData.drawingData.bCollaborativeChanges = true;
-					history.RedoAdd(oRedoObjectParam, item.oClass, item.nActionType, item.nSheetId, item.oRange, item.oData);
+					AscCommonExcel.executeInR1C1Mode(false, function () {
+						history.RedoAdd(oRedoObjectParam, item.oClass, item.nActionType, item.nSheetId, item.oRange, item.oData);
+					});
 				}
 			}
 			AscFonts.IsCheckSymbols = false;
@@ -2846,8 +2848,11 @@
 
 				var item = new UndoRedoItemSerializable();
 				item.Deserialize(stream);
-				if ((null != item.oClass || (item.oData && typeof item.oData.sChangedObjectId === "string")) && null != item.nActionType)
-					History.RedoAdd(oRedoObjectParam, item.oClass, item.nActionType, item.nSheetId, item.oRange, item.oData);
+				if ((null != item.oClass || (item.oData && typeof item.oData.sChangedObjectId === "string")) && null != item.nActionType){
+					AscCommonExcel.executeInR1C1Mode(false, function () {
+						History.RedoAdd(oRedoObjectParam, item.oClass, item.nActionType, item.nSheetId, item.oRange, item.oData);
+					});
+				}
 
 				_pos += _len;
 				stream.Seek2(_pos);
