@@ -2126,6 +2126,35 @@
 	{
 		var activeCell = AscCommonExcel.g_ActiveCell;
 		var colStr, rowStr, res = "";
+
+		var getColStr = function() {
+			var col;
+			if(c < 0) {
+				var tempCol = !isAbsCol && activeCell ? activeCell.c1 + 1 + c : c;
+				if(tempCol <= 0) {
+					tempCol = AscCommon.gc_nMaxCol + tempCol;
+				}
+				col = g_oCellAddressUtils.colnumToColstrFromWsView(tempCol);
+			} else {
+				col = g_oCellAddressUtils.colnumToColstrFromWsView(!isAbsCol && activeCell ? activeCell.c1 + 1 + c : c);
+			}
+			return col;
+		};
+
+		var getRowStr = function() {
+			var row;
+			if(r < 0) {
+				var tempRow = !isAbsRow && activeCell ? activeCell.r1 + 1 + r : r;
+				if(tempRow <= 0) {
+					tempRow = AscCommon.gc_nMaxRow + tempRow;
+				}
+				row = tempRow + "";
+			} else {
+				row = !isAbsRow && activeCell ? activeCell.r1 + 1 + r + "" : r + "";
+			}
+			return row;
+		};
+
 		if(r !== null && c !== null) {
 			if(isNaN(r)) {
 				r = 0;
@@ -2136,8 +2165,10 @@
 				isAbsCol = false;
 			}
 
-			colStr = g_oCellAddressUtils.colnumToColstrFromWsView(!isAbsCol && activeCell ? activeCell.c1 + 1 + c : c);
-			rowStr = !isAbsRow && activeCell ? activeCell.r1 + 1 + r : r;
+			colStr = getColStr();
+			rowStr = getRowStr();
+
+
 			if(isAbsCol) {
 				colStr = "$" + colStr;
 			}
@@ -2150,7 +2181,10 @@
 				c = 0;
 				isAbsCol = false;
 			}
-			colStr = g_oCellAddressUtils.colnumToColstrFromWsView(!isAbsCol && activeCell ? activeCell.c1 + 1 + c : c);
+
+			//colStr = g_oCellAddressUtils.colnumToColstrFromWsView(!isAbsCol && activeCell ? activeCell.c1 + 1 + c : c);
+			colStr = getColStr();
+
 			if(isAbsCol) {
 				colStr = "$" + colStr;
 			}
@@ -2160,7 +2194,10 @@
 				r = 0;
 				isAbsRow = false;
 			}
-			rowStr = !isAbsRow && activeCell ? activeCell.r1 + 1 + r + "" : r + "";
+
+			//rowStr = !isAbsRow && activeCell ? activeCell.r1 + 1 + r + "" : r + "";
+			rowStr = getRowStr();
+
 			if(isAbsRow) {
 				rowStr = "$" + rowStr;
 			}

@@ -1646,7 +1646,11 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 		}
 	};
 	cRef.prototype.toLocaleString = function () {
-		return this.range.getName();
+		if(this.range) {
+			return this.range.getName();
+		} else {
+			return this.value;
+		}
 	};
 	cRef.prototype.getRange = function () {
 		return this.range;
