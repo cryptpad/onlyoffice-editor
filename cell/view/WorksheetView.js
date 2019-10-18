@@ -2185,7 +2185,15 @@
 		var pageSetup = pageOptions.asc_getPageSetup();
 		var width = pageSetup.asc_getFitToWidth();
 		var height = pageSetup.asc_getFitToHeight();
-		this._setPrintScale(this.calcPrintScale(width, height));
+
+		if(!height && !width) {
+			return;
+		}
+
+		var calcScale = this.calcPrintScale(width, height);
+		if(!isNaN(calcScale)) {
+			this._setPrintScale(calcScale);
+		}
 
 		//TODO нужно ли в данном случае лочить?
 		//this._isLockedLayoutOptions(callback);
