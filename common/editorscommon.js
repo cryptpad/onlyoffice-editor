@@ -2833,7 +2833,7 @@
 			{
 				var location = Asc.CT_pivotTableDefinition.prototype.parseDataRef(dataRange);
 				if (location) {
-					var newRange = new Asc.Range(location.range.c1, location.range.r1, location.range.c1 + AscCommonExcel.NEW_PIVOT_LAST_COL_OFFSET, location.range.r1 + AscCommonExcel.NEW_PIVOT_LAST_ROW_OFFSET);
+					var newRange = new Asc.Range(location.bbox.c1, location.bbox.r1, location.bbox.c1 + AscCommonExcel.NEW_PIVOT_LAST_COL_OFFSET, location.bbox.r1 + AscCommonExcel.NEW_PIVOT_LAST_ROW_OFFSET);
 					var checkRes = location.ws.checkPivotReportLocation([newRange]);
 					return checkRes.error;
 				} else {

@@ -2299,6 +2299,32 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 		}
 		return bRes;
 	};
+	cStrucTable.prototype.geColumnHeadings = function() {
+		var res = [];
+		var table = this.wb.getTableByName(this.tableName);
+		if (!table) {
+			return res;
+		}
+		var from = 0;
+		var to = table.TableColumns.length - 1;
+		if (this.oneColumnIndex) {
+			from = to = this.oneColumnIndex.index;
+		} else if (this.colStartIndex && this.colEndIndex) {
+			from = this.colStartIndex.index;
+			to = this.colEndIndex.index;
+		}
+		if (this.hdtcstartIndex && this.hdtcendIndex) {
+			from = this.hdtcstartIndex.index;
+			to = this.hdtcendIndex.index;
+		}
+		for (var i = from; i <= to; ++i) {
+			res.push(table.TableColumns[i].Name);
+		}
+		return res;
+	};
+	cStrucTable.prototype.getWS = function () {
+		return this.ws;
+	};
 	cStrucTable.prototype.changeSheet = function(wsLast, wsNew) {
 		if (this.ws === wsLast) {
 			this.ws = wsNew;
@@ -2311,7 +2337,7 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 		var t = this;
 
 		var tryDiffHdtcIndex = function(oIndex) {
-			var table = t.wb.getTableByName(t.tableName, oIndex.wsID);
+			var table = t.wb.getTableByNameAndSheet(t.tableName, oIndex.wsID);
 			if(table) {
 				var tableColumnsCount = table.TableColumns.length;
 				var index = oIndex.index + offset.col;
@@ -7074,10 +7100,11 @@ parserFormula.prototype.clone = function(formula, parent, ws) {
 		}
 		return res;
 	};
-	parserFormula.prototype.getFirstElem = function() {
-		if(this.outStack.length > 0){
-			return this.outStack[this.outStack.length - 1];
-		}
+	parserFormula.prototype.getOutStackSize = function() {
+		return this.outStack.length;
+	};
+	parserFormula.prototype.getOutStackElem = function(index) {
+		return this.outStack[index];
 	};
 	parserFormula.prototype.getIndexNumber = function() {
 		return this._index;

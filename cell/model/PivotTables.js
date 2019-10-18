@@ -1910,7 +1910,7 @@ CT_PivotCacheDefinition.prototype.fromDataRef = function(dataRef) {
 	var location = this.cacheSource.worksheetSource.getDataLocation();
 	if (location) {
 		this.cacheFields = new CT_CacheFields();
-		this.cacheRecords.fromWorksheetRange(location.ws, location.range, this.cacheFields);
+		this.cacheRecords.fromWorksheetRange(location, this.cacheFields);
 	}
 };
 function CT_PivotCacheRecords() {
@@ -2122,114 +2122,124 @@ CT_PivotCacheRecords.prototype.convertToSharedItems = function(index, si) {
 CT_PivotCacheRecords.prototype.updateCacheData = function() {
 	this.cacheRecords.updateCacheData();
 };
-CT_PivotCacheRecords.prototype.fromWorksheetRange = function(ws, range, cacheFields) {
-	var nameDuplicateMap = new Map();
-	ws.getRange3(range.r1, range.c1, range.r1, range.c2)._foreachNoEmpty(function(cell) {
-		if (!cell.isNullTextString()) {
-			var text = cell.getValue();
-			var index = nameDuplicateMap.get(text);
-			if (undefined !== index) {
-				index++;
-				text = text + index;
-			} else {
-				index = 0;
+CT_PivotCacheRecords.prototype.fromWorksheetRange = function(location, cacheFields) {
+	var ws = location.ws;
+	var bbox = location.bbox;
+	var headings = location.headings;
+	if (!headings) {
+		headings = [];
+		ws.getRange3(bbox.r1, bbox.c1, bbox.r1, bbox.c2)._foreachNoEmpty(function(cell) {
+			if (!cell.isNullTextString()) {
+				headings.push(cell.getValue());
 			}
-			nameDuplicateMap.set(text, index);
-			var cacheField = new CT_CacheField();
-			cacheField.name = text;
-			cacheField.numFmtId = 0;
-			cacheField.sharedItems = new CT_SharedItems();
-			cacheFields.cacheField.push(cacheField);
-		}
-	});
-	if (range.getWidth() === cacheFields.cacheField.length) {
-		this._cols = [];
-		for (var i = 0; i < cacheFields.cacheField.length; ++i) {
-			var cacheField = cacheFields.cacheField[i];
-			var si = cacheField.sharedItems;
-			si.containsSemiMixedTypes = false;
-			si.containsNonDate = false;
-			si.containsString = false;
-			si.containsInteger = true;
-			si.maxValue = si.maxDate = Number.NEGATIVE_INFINITY;
-			si.minValue = si.minDate = Number.POSITIVE_INFINITY;
-			var records = new PivotRecords();
-			var lastRow = range.r1;
-			ws.getRange3(range.r1 + 1, range.c1 + i, range.r2, range.c1 + i)._foreachNoEmptyByCol(function(cell) {
-				if (!cell.isNullTextString()) {
-					if (lastRow + 1 < cell.nRow) {
-						records.addMissing(cell.nRow - lastRow - 1);
-					}
-					lastRow = cell.nRow;
-					switch (cell.getType()) {
-						case AscCommon.CellValueType.Number:
-							var num = cell.getNumberValue();
-							if (!cell.getNumFormat().isDateTimeFormat()) {
-								records.addNumber(num);
-								si.containsNumber = true;
-								si.containsNonDate = true;
-								si.minValue = Math.min(si.minValue, num);
-								si.maxValue = Math.max(si.maxValue, num);
-								if (si.containsInteger && !Number.isInteger(num)) {
-									si.containsInteger = false;
-								}
-							} else {
-								records.addDate(num);
-								si.containsDate = true;
-								si.minDate = Math.min(si.minDate, num);
-								si.maxDate = Math.max(si.maxDate, num);
-							}
-							break;
-						case AscCommon.CellValueType.String:
-							var text = cell.getValueWithoutFormat();
-							records.addString(text);
-							if (text.length > 255) {
-								si.longText = true;
-							}
-							si.containsString = true;
-							si.containsNonDate = true;
-							break;
-						case AscCommon.CellValueType.Bool:
-							records.addBool(cell.getBoolValue());
-							si.containsString = true;
-							si.containsNonDate = true;
-							break;
-						case AscCommon.CellValueType.Error:
-							records.addError(cell.getErrorValue());
-							si.containsString = true;
-							si.containsNonDate = true;
-							break;
-					}
-				} else {
-					records.addMissing(1);
-					si.containsBlank = true;
-				}
-			});
-			if (lastRow < range.r2) {
-				records.addMissing(range.r2 - lastRow);
-			}
-			this._cols.push(records);
-			if (si.containsString || si.containsBlank) {
-				si.containsSemiMixedTypes = true;
-			}
-			if ((si.containsDate + si.containsNumber + si.containsString) > 1) {
-				si.containsMixedTypes = true;
-			}
-			if (si.containsDate && si.containsNumber) {
-				si.containsNumber = false;
-			}
-			if (!si.containsDate) {
-				si.minDate = null;
-				si.maxDate = null;
-			}
-			if (!si.containsNumber) {
-				si.containsInteger = false;
-				si.minValue = null;
-				si.maxValue = null;
-			}
-		}
-		//todo trim missing
+		});
 	}
+	if(bbox.getWidth() !== headings.length){
+		return;
+	}
+	var nameDuplicateMap = new Map();
+	for (var i = 0; i < headings.length; ++i) {
+		var text = headings[i];
+		var index = nameDuplicateMap.get(text);
+		if (undefined !== index) {
+			index++;
+			text = text + index;
+		} else {
+			index = 0;
+		}
+		nameDuplicateMap.set(text, index);
+		var cacheField = new CT_CacheField();
+		cacheField.name = text;
+		cacheField.numFmtId = 0;
+		cacheField.sharedItems = new CT_SharedItems();
+		cacheFields.cacheField.push(cacheField);
+	}
+	this._cols = [];
+	for (var i = 0; i < cacheFields.cacheField.length; ++i) {
+		var cacheField = cacheFields.cacheField[i];
+		var si = cacheField.sharedItems;
+		si.containsSemiMixedTypes = false;
+		si.containsNonDate = false;
+		si.containsString = false;
+		si.containsInteger = true;
+		si.maxValue = si.maxDate = Number.NEGATIVE_INFINITY;
+		si.minValue = si.minDate = Number.POSITIVE_INFINITY;
+		var records = new PivotRecords();
+		var lastRow = bbox.r1;
+		ws.getRange3(bbox.r1 + 1, bbox.c1 + i, bbox.r2, bbox.c1 + i)._foreachNoEmptyByCol(function(cell) {
+			if (!cell.isNullTextString()) {
+				if (lastRow + 1 < cell.nRow) {
+					records.addMissing(cell.nRow - lastRow - 1);
+				}
+				lastRow = cell.nRow;
+				switch (cell.getType()) {
+					case AscCommon.CellValueType.Number:
+						var num = cell.getNumberValue();
+						if (!cell.getNumFormat().isDateTimeFormat()) {
+							records.addNumber(num);
+							si.containsNumber = true;
+							si.containsNonDate = true;
+							si.minValue = Math.min(si.minValue, num);
+							si.maxValue = Math.max(si.maxValue, num);
+							if (si.containsInteger && !Number.isInteger(num)) {
+								si.containsInteger = false;
+							}
+						} else {
+							records.addDate(num);
+							si.containsDate = true;
+							si.minDate = Math.min(si.minDate, num);
+							si.maxDate = Math.max(si.maxDate, num);
+						}
+						break;
+					case AscCommon.CellValueType.String:
+						var text = cell.getValueWithoutFormat();
+						records.addString(text);
+						if (text.length > 255) {
+							si.longText = true;
+						}
+						si.containsString = true;
+						si.containsNonDate = true;
+						break;
+					case AscCommon.CellValueType.Bool:
+						records.addBool(cell.getBoolValue());
+						si.containsString = true;
+						si.containsNonDate = true;
+						break;
+					case AscCommon.CellValueType.Error:
+						records.addError(cell.getErrorValue());
+						si.containsString = true;
+						si.containsNonDate = true;
+						break;
+				}
+			} else {
+				records.addMissing(1);
+				si.containsBlank = true;
+			}
+		});
+		if (lastRow < bbox.r2) {
+			records.addMissing(bbox.r2 - lastRow);
+		}
+		this._cols.push(records);
+		if (si.containsString || si.containsBlank) {
+			si.containsSemiMixedTypes = true;
+		}
+		if ((si.containsDate + si.containsNumber + si.containsString) > 1) {
+			si.containsMixedTypes = true;
+		}
+		if (si.containsDate && si.containsNumber) {
+			si.containsNumber = false;
+		}
+		if (!si.containsDate) {
+			si.minDate = null;
+			si.maxDate = null;
+		}
+		if (!si.containsNumber) {
+			si.containsInteger = false;
+			si.minValue = null;
+			si.maxValue = null;
+		}
+	}
+	//todo trim missing
 };
 function PivotTableChanged() {
 	this.oldRanges = null;
@@ -4318,16 +4328,13 @@ CT_pivotTableDefinition.prototype.parseDataRef = function(dataRef) {
 };
 CT_pivotTableDefinition.prototype.isValidDataRef = function(dataRef) {
 	var location = this.parseDataRef(dataRef);
-	if (location && location.range.getHeight() > 1) {
-		var header = this._prepareDataRange(location.ws, location.range.r1, location.range.c1, location.range.c2);
-		var headerCount = 0;
-		location.ws.getRange3(location.range.r1, location.range.c1, location.range.r1, location.range.c2)
-			._foreachNoEmptyByCol(function(cell) {
-				if (!cell.isNullTextString()) {
-					headerCount += 1;
-				}
-			});
-		return header.countCol === location.range.getWidth();
+	if (location && location.bbox.getHeight() > 0) {
+		if (location.headings) {
+			return location.headings.length === location.bbox.getWidth();
+		} else if (location.bbox.getHeight() > 1) {
+			var header = this._prepareDataRange(location.ws, location.bbox.r1, location.bbox.c1, location.bbox.c2);
+			return header.countCol === location.bbox.getWidth();
+		}
 	}
 	return false;
 };
@@ -6638,7 +6645,12 @@ CT_WorksheetSource.prototype.toXml = function(writer, name) {
 	writer.WriteXmlNodeEnd(name, true, true);
 };
 CT_WorksheetSource.prototype.getDataLocation = function() {
-	if (this.formula) {
+	if (this.formula && 1 === this.formula.getOutStackSize()) {
+		var elem = this.formula.getOutStackElem(0);
+		var headings;
+		if (elem.type === AscCommonExcel.cElementType.table) {
+			headings = elem.geColumnHeadings();
+		}
 		var val = this.formula.calculate();
 		if (val) {
 			switch (val.type) {
@@ -6646,7 +6658,7 @@ CT_WorksheetSource.prototype.getDataLocation = function() {
 				case AscCommonExcel.cElementType.cellsRange:
 				case AscCommonExcel.cElementType.cell3D:
 				case AscCommonExcel.cElementType.cellsRange3D:
-					return {ws: val.getWS(), range: val.getBBox0()};
+					return {ws: val.getWS(), bbox: val.getBBox0(), headings: headings};
 					break;
 			}
 		}
@@ -6668,8 +6680,8 @@ CT_WorksheetSource.prototype._updateAttributes = function() {
 	this.ref = null;
 	this.name = null;
 	this.sheet = null;
-	if (this.formula) {
-		var elem = this.formula.getFirstElem();
+	if (this.formula && 1 === this.formula.getOutStackSize()) {
+		var elem = this.formula.getOutStackElem(0);
 		if (elem) {
 			switch (elem.type) {
 				case AscCommonExcel.cElementType.cell:
@@ -6680,11 +6692,15 @@ CT_WorksheetSource.prototype._updateAttributes = function() {
 					this.ref = elem.getBBox0().getName();
 					break;
 				case AscCommonExcel.cElementType.name:
-					this.ref = elem.toString();
+					this.name = elem.toString();
 					break;
 				case AscCommonExcel.cElementType.name3D:
 					this.sheet = elem.getWS().getName();
-					this.ref = elem.toString();
+					this.name = AscCommonExcel.cName.prototype.toString.call(elem);
+					break;
+				case AscCommonExcel.cElementType.table:
+					//todo without '[]'
+					this.name = elem.toString();
 					break;
 			}
 		}

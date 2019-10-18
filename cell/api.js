@@ -2269,14 +2269,14 @@ var editor;
 		var t = this;
 		var location = Asc.CT_pivotTableDefinition.prototype.parseDataRef(pivotRef);
 		if (location) {
-			var newRange = new Asc.Range(location.range.c1, location.range.r1, location.range.c1 + AscCommonExcel.NEW_PIVOT_LAST_COL_OFFSET, location.range.r1 + AscCommonExcel.NEW_PIVOT_LAST_ROW_OFFSET);
+			var newRange = new Asc.Range(location.bbox.c1, location.bbox.r1, location.bbox.c1 + AscCommonExcel.NEW_PIVOT_LAST_COL_OFFSET, location.bbox.r1 + AscCommonExcel.NEW_PIVOT_LAST_ROW_OFFSET);
 			var checkRes = location.ws.checkPivotReportLocation([newRange], true);
 			if (Asc.c_oAscError.ID.No === checkRes.error) {
 				// if (Asc.c_oAscError.ID.No !== checkRes.warning){
 				// 	this.sendEvent('asc_onError', checkRes.warning, c_oAscError.Level.NoCritical);
 				// }
 				var wb = this.wbModel;
-				t._asc_insertPivot(wb, dataRef, location.ws, location.range);
+				t._asc_insertPivot(wb, dataRef, location.ws, location.bbox);
 			} else {
 				this.sendEvent('asc_onError', checkRes.error, c_oAscError.Level.NoCritical);
 			}

@@ -2921,7 +2921,18 @@
 		}
 		return res;
 	};
-	Workbook.prototype.getTableByName = function(tableName, wsID){
+	Workbook.prototype.getTableByName = function(tableName){
+		var res = null;
+		for (var i = 0, length = this.aWorksheets.length; i < length; ++i) {
+			var ws = this.aWorksheets[i];
+			res = ws.getTableByName(tableName);
+			if (res !== null) {
+				return res;
+			}
+		}
+		return res;
+	};
+	Workbook.prototype.getTableByNameAndSheet = function(tableName, wsID){
 		var res = null;
 		var ws = this.getWorksheetById(wsID);
 		return ws.getTableByName(tableName);
