@@ -2191,7 +2191,7 @@ var editor;
       arrSheets = [this.wbModel.getActive()];
     }
 
-    var active, sheet, i, index, _where;
+    var active, sheet, i, index, _where, arrLocks = [];
     var arrSheetsLeft = [], arrSheetsRight = [];
     for (i = 0; i < arrSheets.length; ++i) {
       index = arrSheets[i];
@@ -2200,29 +2200,38 @@ var editor;
       if (!active) {
         active = sheet;
       }
+      arrLocks.push(this.collaborativeEditing.getLockInfo(c_oAscLockTypeElem.Sheet, /*subType*/null, sheet.getId(), sheet.getId()));
     }
 
-    History.Create_NewPoint();
-    History.StartTransaction();
-    for (i = 0, _where = where; i < arrSheetsRight.length; ++i, ++_where) {
-      index = arrSheetsRight[i].getIndex();
-      if (index !== _where) {
-        this.wbModel.replaceWorksheet(index, _where);
+    var t = this;
+    var moveCallback = function (res) {
+      if (res) {
+        History.Create_NewPoint();
+        History.StartTransaction();
+        for (i = 0, _where = where; i < arrSheetsRight.length; ++i, ++_where) {
+          index = arrSheetsRight[i].getIndex();
+          if (index !== _where) {
+            t.wbModel.replaceWorksheet(index, _where);
+          }
+        }
+        for (i = arrSheetsLeft.length - 1, _where = where - 1; i >= 0; --i, --_where) {
+          index = arrSheetsLeft[i].getIndex();
+          if (index !== _where) {
+            t.wbModel.replaceWorksheet(index, _where);
+          }
+        }
+        // Обновим текущий номер
+        t.wbModel.setActive(active.getIndex());
+        t.wb.updateWorksheetByModel();
+        t.wb.showWorksheet();
+        History.EndTransaction();
+        // Посылаем callback об изменении списка листов
+        t.sheetsChanged();
       }
-    }
-    for (i = arrSheetsLeft.length - 1, _where = where - 1; i >= 0; --i, --_where) {
-      index = arrSheetsLeft[i].getIndex();
-      if (index !== _where) {
-        this.wbModel.replaceWorksheet(index, _where);
-      }
-    }
-    // Обновим текущий номер
-    this.wbModel.setActive(active.getIndex());
-    this.wb.updateWorksheetByModel();
-    this.wb.showWorksheet();
-    History.EndTransaction();
-    // Посылаем callback об изменении списка листов
-    this.sheetsChanged();
+    };
+
+    this.collaborativeEditing.lock(arrLocks, moveCallback);
+    return true;
   };
 
   spreadsheet_api.prototype.asc_copyWorksheet = function (where, arrNames, arrSheets) {
