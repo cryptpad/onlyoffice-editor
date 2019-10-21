@@ -2835,7 +2835,7 @@ function (window, undefined) {
 		if (!pivotTable) {
 			return;
 		}
-		pivotTable.checkChangedRange();
+		pivotTable.stashCurReportRange();
 
 		var value = bUndo ? Data.from : Data.to;
 		var valueFrom = bUndo ? Data.to : Data.from;
@@ -2997,7 +2997,7 @@ function (window, undefined) {
 		if (!field) {
 			return;
 		}
-		pivotTable.checkChangedRange();
+		pivotTable.stashCurReportRange();
 
 		var value = bUndo ? Data.from : Data.to;
 		switch (Type) {

@@ -2420,11 +2420,16 @@ CT_pivotTableDefinition.prototype.Get_Id = function () {
 CT_pivotTableDefinition.prototype.GetWS = function () {
 	return this.worksheet;
 };
-CT_pivotTableDefinition.prototype.checkChangedRange = function () {
+CT_pivotTableDefinition.prototype.stashCurReportRange = function () {
 	if (!this.changed.oldRanges) {
-		this.changed.oldRanges = this.worksheet.getPivotTableRanges(this);
+		this.changed.oldRanges = this.getReportRanges();
 	}
 	return this.changed.oldRanges;
+};
+CT_pivotTableDefinition.prototype.stashEmptyReportRange = function () {
+	if (!this.changed.oldRanges) {
+		this.changed.oldRanges = [];
+	}
 };
 CT_pivotTableDefinition.prototype.setChanged = function (data, style) {
 	this.changed.data = data || this.changed.data ;
@@ -3216,6 +3221,19 @@ CT_pivotTableDefinition.prototype.contains = function (col, row) {
 };
 CT_pivotTableDefinition.prototype.getRange = function () {
 	return this.location && this.location.ref;
+};
+CT_pivotTableDefinition.prototype.getReportRanges = function () {
+	var res = [], pos;
+	if (this.pageFieldsPositions) {
+		for (var i = 0; i < this.pageFieldsPositions.length; ++i) {
+			pos = this.pageFieldsPositions[i];
+			res.push(new Asc.Range(pos.col, pos.row, pos.col + 1, pos.row));
+		}
+	}
+
+	var pivotRange = this.getRange();
+	res.push(new Asc.Range(pivotRange.c1, pivotRange.r1, pivotRange.c2, pivotRange.r2));
+	return res;
 };
 CT_pivotTableDefinition.prototype.getFirstHeaderRow0 = function () {
 	return this.location && (this.location.firstHeaderRow + this.getColumnFieldsCount() - 1);

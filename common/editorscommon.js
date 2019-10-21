@@ -2834,8 +2834,7 @@
 				var location = Asc.CT_pivotTableDefinition.prototype.parseDataRef(dataRange);
 				if (location) {
 					var newRange = new Asc.Range(location.bbox.c1, location.bbox.r1, location.bbox.c1 + AscCommonExcel.NEW_PIVOT_LAST_COL_OFFSET, location.bbox.r1 + AscCommonExcel.NEW_PIVOT_LAST_ROW_OFFSET);
-					var checkRes = location.ws.checkPivotReportLocation([newRange]);
-					return checkRes.error;
+					return location.ws.checkPivotReportLocationForError([newRange]);
 				} else {
 					return Asc.c_oAscError.ID.DataRangeError
 				}

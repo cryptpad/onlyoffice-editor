@@ -6246,58 +6246,75 @@
 		}
 		
 	};
-	Worksheet.prototype.checkPivotReportLocation = function(ranges, withWarning) {
-		var res = {error: c_oAscError.ID.No, warning: c_oAscError.ID.No};
+	Worksheet.prototype.checkPivotReportLocationForError = function(ranges, exceptPivot) {
 		for (var i = 0; i < ranges.length; ++i) {
-			this._checkPivotReportLocation(ranges[i], withWarning, res);
-			if (c_oAscError.ID.No !== res) {
-				break;
+			var range = ranges[i];
+			if (this.autoFilters.isIntersectionTable(range)) {
+				return c_oAscError.ID.PivotOverlap;
+			}
+			if (this.inPivotTable(range, exceptPivot)) {
+				return c_oAscError.ID.PivotOverlap;
+			}
+			var merged = this.mergeManager.get(range);
+			if (merged.outer.length > 0) {
+				return c_oAscError.ID.PastInMergeAreaError;
 			}
 		}
-		return res;
+		return c_oAscError.ID.No;
 	};
-	Worksheet.prototype._checkPivotReportLocation = function(range, withWarning, res) {
-		if (this.autoFilters.isIntersectionTable(range)) {
-			res.error = c_oAscError.ID.PivotOverlap;
-		}
-		if (this.inPivotTable(range)) {
-			res.error = c_oAscError.ID.PivotOverlap;
-		}
-		var merged = this.mergeManager.get(range);
-		if (merged.outer.length > 0) {
-			res.error = c_oAscError.ID.PastInMergeAreaError;
-		}
-		if (withWarning && c_oAscError.ID.No !== res.warning) {
-			if (merged.inner.length > 0) {
-				res.warning = c_oAscError.ID.PivotOverlap;
-			}
-			this.getRange3(range.r1, range.c1, range.r2, range.c2)._foreachNoEmptyByCol(function(cell) {
-				if (!cell.isNullTextString()) {
-					res.warning = c_oAscError.ID.PivotOverlap;
-				}
+	Worksheet.prototype.checkPivotReportLocationForConfirm = function(ranges, changed) {
+		var t = this;
+		if (changed && changed.oldRanges && changed.data) {
+			changed.oldRanges.forEach(function(range) {
+				t.getRange3(range.r1, range.c1, range.r2, range.c2).cleanAll();
 			});
 		}
+		for (var i = 0; i < ranges.length; ++i) {
+			var range = ranges[i];
+			var merged = this.mergeManager.get(range);
+			if (merged.inner.length > 0) {
+				return c_oAscError.ID.PivotOverlap;
+			}
+			var warning = c_oAscError.ID.No;
+			this.getRange3(range.r1, range.c1, range.r2, range.c2)._foreachNoEmptyByCol(function(cell) {
+				if (!cell.isNullTextString()) {
+					warning = c_oAscError.ID.PivotOverlap;
+				}
+			});
+			if (c_oAscError.ID.No !== warning) {
+				return warning;
+			}
+		}
+		return c_oAscError.ID.No;
 	};
 	Worksheet.prototype.initPivotTables = function () {
 		for (var i = 0; i < this.pivotTables.length; ++i) {
 			this.pivotTables[i].init();
 		}
 	};
-	Worksheet.prototype.updatePivotTable = function(pivotTable, changed) {
+	Worksheet.prototype.updatePivotTable = function(pivotTable, changed, dataRow) {
 		if (!(changed.oldRanges && (changed.data || changed.style))) {
 			return;
 		}
-		var dataRow;
+		var t = this;
 		var multiplyRange = new AscCommonExcel.MultiplyRange(changed.oldRanges);
+		changed.oldRanges.forEach(function(range){
+			t.getRange3(range.r1, range.c1, range.r2, range.c2).clearTableStyle();
+		});
 		if (changed.data) {
-			dataRow = pivotTable.update();
-			multiplyRange.union2(new AscCommonExcel.MultiplyRange(this.getPivotTableRanges(pivotTable)));
+			if (!dataRow) {
+				dataRow = pivotTable.update();
+			}
+			var newRanges = pivotTable.getReportRanges();
+			newRanges.forEach(function(range){
+				t.getRange3(range.r1, range.c1, range.r2, range.c2).cleanAll();
+			});
+			if (dataRow) {
+				this._updatePivotTableCells(pivotTable, dataRow);
+			}
 		}
+		multiplyRange.union2(new AscCommonExcel.MultiplyRange(pivotTable.getReportRanges()));
 		var unionRange = multiplyRange.getUnionRange();
-		this.cleanPivotTableRanges(unionRange, changed.data, changed.data || changed.style);
-		if (dataRow) {
-			this._updatePivotTableCells(pivotTable, dataRow);
-		}
 		this.updatePivotTablesStyle(unionRange, true);
 		return unionRange;
 	};
@@ -6316,19 +6333,6 @@
 		cells = this.getRange3(pivotRange.r1, pivotRange.c1, pivotRange.r2, pivotRange.c2);
 		cells.clearTableStyle();
 		cells.cleanAll();
-	};
-	Worksheet.prototype.getPivotTableRanges = function (pivotTable) {
-		var res = [], pos;
-		if (pivotTable.pageFieldsPositions) {
-			for (var i = 0; i < pivotTable.pageFieldsPositions.length; ++i) {
-				pos = pivotTable.pageFieldsPositions[i];
-				res.push(new Asc.Range(pos.col, pos.row, pos.col + 1, pos.row));
-			}
-		}
-
-		var pivotRange = pivotTable.getRange();
-		res.push(new Asc.Range(pivotRange.c1, pivotRange.r1, pivotRange.c2, pivotRange.r2));
-		return res;
 	};
 	Worksheet.prototype.cleanPivotTableRanges = function(range, cleanData, cleanStyle) {
 		range = this.getRange3(range.r1, range.c1, range.r2, range.c2);
@@ -6906,9 +6910,9 @@
 			}
 		}
 	};
-	Worksheet.prototype.inPivotTable = function (range) {
+	Worksheet.prototype.inPivotTable = function (range, exceptPivot) {
 		return this.pivotTables.some(function (element) {
-			return element.intersection(range);
+			return exceptPivot !== element && element.intersection(range);
 		});
 	};
 	Worksheet.prototype.checkShiftPivotTable = function (range, offset) {

@@ -2265,20 +2265,31 @@ var editor;
 			this.sendEvent('asc_onError', c_oAscError.ID.PivotLabledColumns, c_oAscError.Level.NoCritical);
 		}
 	};
-	spreadsheet_api.prototype.asc_insertPivotExistingWorksheet = function(dataRef, pivotRef) {
+	spreadsheet_api.prototype.asc_insertPivotExistingWorksheet = function(dataRef, pivotRef, confirmation) {
 		var t = this;
 		var location = Asc.CT_pivotTableDefinition.prototype.parseDataRef(pivotRef);
 		if (location) {
 			var newRange = new Asc.Range(location.bbox.c1, location.bbox.r1, location.bbox.c1 + AscCommonExcel.NEW_PIVOT_LAST_COL_OFFSET, location.bbox.r1 + AscCommonExcel.NEW_PIVOT_LAST_ROW_OFFSET);
-			var checkRes = location.ws.checkPivotReportLocation([newRange], true);
-			if (Asc.c_oAscError.ID.No === checkRes.error) {
-				// if (Asc.c_oAscError.ID.No !== checkRes.warning){
-				// 	this.sendEvent('asc_onError', checkRes.warning, c_oAscError.Level.NoCritical);
-				// }
-				var wb = this.wbModel;
-				t._asc_insertPivot(wb, dataRef, location.ws, location.bbox);
+			var error = location.ws.checkPivotReportLocationForError([newRange]);
+			if (Asc.c_oAscError.ID.No === error) {
+				var warning = Asc.c_oAscError.ID.No;
+				if (!confirmation) {
+					warning = location.ws.checkPivotReportLocationForConfirm([newRange]);
+				}
+				if(Asc.c_oAscError.ID.No === warning){
+                    var wb = this.wbModel;
+                    t._asc_insertPivot(wb, dataRef, location.ws, location.bbox);
+                } else {
+					this.handlers.trigger("asc_onConfirmAction", Asc.c_oAscConfirm.ConfirmReplaceRange,
+						function(can) {
+							if (can) {
+								//repeate with whole checks because of collaboration changes
+								t.asc_insertPivotExistingWorksheet(dataRef, pivotRef, true);
+                            }
+						});
+				}
 			} else {
-				this.sendEvent('asc_onError', checkRes.error, c_oAscError.Level.NoCritical);
+				this.sendEvent('asc_onError', error, c_oAscError.Level.NoCritical);
 			}
 		} else {
 			this.sendEvent('asc_onError', Asc.c_oAscError.ID.DataRangeError, c_oAscError.Level.NoCritical);
@@ -4005,27 +4016,66 @@ var editor;
 			if (!res) {
 				return;
 			}
-			t._changePivot(pivot, callback);
+			t._changePivot(pivot, false, callback);
 		});
 	};
-	spreadsheet_api.prototype._changePivot = function(pivot, callback) {
-		var ws, wsModel;
+	spreadsheet_api.prototype._changePivot = function(pivot, confirmation, callback) {
+		var t = this;
+	    var ws, wsModel;
 		History.Create_NewPoint();
 		History.StartTransaction();
 		this.wbModel.dependencyFormulas.lockRecal();
 		wsModel = pivot.GetWS();
-		pivot.checkChangedRange();
+		pivot.stashCurReportRange();
 
 		callback(wsModel);
 
-		ws = this.wb.getWorksheet(wsModel.getIndex());
-		this._updatePivotTable(pivot, pivot.getAndCleanChanged(), wsModel, ws);
-		this.wbModel.dependencyFormulas.unlockRecal();
-		History.EndTransaction();
-		var pivotRange = pivot.getRange();
-		ws.setSelection(new Asc.Range(pivotRange.c1, pivotRange.r1, pivotRange.c1, pivotRange.r1));
-		this.wb._onWSSelectionChanged();
-		ws.draw();
+		var dataRow;
+		var error = Asc.c_oAscError.ID.No;
+		var warning = Asc.c_oAscError.ID.No;
+		var pivotChanged = pivot.getAndCleanChanged();
+		if (pivotChanged.data) {
+			dataRow = pivot.update();
+			error = wsModel.checkPivotReportLocationForError(pivot.getReportRanges(), pivot);
+			if (Asc.c_oAscError.ID.No === error && !confirmation) {
+				warning = wsModel.checkPivotReportLocationForConfirm(pivot.getReportRanges(), pivotChanged);
+			}
+		}
+		if (Asc.c_oAscError.ID.No === error && Asc.c_oAscError.ID.No === warning) {
+			this._changePivotEnd(pivot, wsModel, pivotChanged, dataRow, false);
+		} else {
+			this._changePivotEnd(pivot, wsModel, pivotChanged, dataRow, true);
+			pivot.stashEmptyReportRange();//to prevent clearTableStyle while undo
+			History.Undo();
+			History.Remove_LastPoint();
+			this._onUpdateDocumentCanUndoRedo();
+			if (Asc.c_oAscError.ID.No !== error) {
+				this.sendEvent('asc_onError', error, c_oAscError.Level.NoCritical);
+			} else {
+				this.handlers.trigger("asc_onConfirmAction", Asc.c_oAscConfirm.ConfirmReplaceRange,
+					function(can) {
+						if (can) {
+							//repeate with whole checks because of collaboration changes
+							t._changePivot(pivot, true, callback);
+						}
+					});
+			}
+		}
+	};
+	spreadsheet_api.prototype._changePivotEnd = function(pivot, wsModel, pivotChanged, dataRow, isFastEnd) {
+		if (isFastEnd) {
+			this.wbModel.dependencyFormulas.unlockRecal();
+			History.EndTransaction();
+		} else {
+			var ws = this.wb.getWorksheet(wsModel.getIndex());
+			this._updatePivotTable(pivot, pivotChanged, wsModel, ws, dataRow);
+			this.wbModel.dependencyFormulas.unlockRecal();
+			History.EndTransaction();
+			var pivotRange = pivot.getRange();
+			ws.setSelection(new Asc.Range(pivotRange.c1, pivotRange.r1, pivotRange.c1, pivotRange.r1));
+			this.wb._onWSSelectionChanged();
+			ws.draw();
+		}
 	};
 	spreadsheet_api.prototype.updatePivotTables = function() {
 		var t = this;
@@ -4037,8 +4087,8 @@ var editor;
 			}
 		});
 	};
-	spreadsheet_api.prototype._updatePivotTable = function(pivot, changed, wsModel, ws) {
-		var unionRange = wsModel.updatePivotTable(pivot, changed);
+	spreadsheet_api.prototype._updatePivotTable = function(pivot, changed, wsModel, ws, dataRow) {
+		var unionRange = wsModel.updatePivotTable(pivot, changed, dataRow);
 		if (unionRange) {
 			// ToDo update ranges, not big range
 			ws._onUpdateFormatTable(unionRange);
@@ -4200,6 +4250,8 @@ var editor;
   prot["asc_deleteWorksheet"] = prot.asc_deleteWorksheet;
   prot["asc_moveWorksheet"] = prot.asc_moveWorksheet;
   prot["asc_copyWorksheet"] = prot.asc_copyWorksheet;
+  prot["asc_insertPivotNewWorksheet"] = prot.asc_insertPivotNewWorksheet;
+  prot["asc_insertPivotExistingWorksheet"] = prot.asc_insertPivotExistingWorksheet;
   prot["asc_cleanSelection"] = prot.asc_cleanSelection;
   prot["asc_getZoom"] = prot.asc_getZoom;
   prot["asc_setZoom"] = prot.asc_setZoom;
