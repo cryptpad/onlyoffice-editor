@@ -1908,6 +1908,7 @@
 		var range, maxCell, t = this;
 		var printArea = !ignorePrintArea && this.model.workbook.getDefinesNames("Print_Area", this.model.getId());
 
+		this.recalcPrintScale();
 		//this.model.PagePrintOptions.pageSetup.scale  = 145;
 
 		var getPrintAreaRanges = function() {
@@ -2180,7 +2181,7 @@
 	};
 
 	//пересчитывать необходимо когда после открытия зашли в настройки печати
-	WorksheetView.prototype.recalcScale = function () {
+	WorksheetView.prototype.recalcPrintScale = function () {
 		var pageOptions = this.model.PagePrintOptions;
 		var pageSetup = pageOptions.asc_getPageSetup();
 		var width = pageSetup.asc_getFitToWidth();
@@ -16262,7 +16263,7 @@
 
 			History.EndTransaction();
 
-			t.recalcScale();
+			t.recalcPrintScale();
 			t.changeViewPrintLines(true);
 
 			if(t.viewPrintLines) {
@@ -16290,7 +16291,7 @@
 
 			History.EndTransaction();
 
-			t.recalcScale();
+			t.recalcPrintScale();
 			t.changeViewPrintLines(true);
 
 			if(t.viewPrintLines) {
@@ -16322,7 +16323,7 @@
 
 			History.EndTransaction();
 
-			t.recalcScale();
+			t.recalcPrintScale();
 			t.changeViewPrintLines(true);
 
 			if(t.viewPrintLines) {
@@ -16345,7 +16346,7 @@
 			History.StartTransaction();
 
 			callback(val);
-			t.recalcScale();
+			t.recalcPrintScale();
 			t.changeViewPrintLines(true);
 
 			History.EndTransaction();
@@ -16372,7 +16373,7 @@
 			}
 
 			t.savePageOptions(obj, viewMode);
-			t.recalcScale();
+			t.recalcPrintScale();
 			t.changeViewPrintLines(true);
 
 			if(t.viewPrintLines) {
@@ -16409,7 +16410,7 @@
 
 			pageOptions.asc_setOptions(obj);
 
-			t.recalcScale();
+			t.recalcPrintScale();
 			t.changeViewPrintLines(true);
 			//window["Asc"]["editor"]._onUpdateLayoutMenu(this.model.nSheetId);
 
@@ -16488,7 +16489,7 @@
 						oldRef = oldDefName.asc_getRef();
 						newRef = getRangesStr(t.model.selectionRange.ranges, oldRef);
 						newDefName = new Asc.asc_CDefName("Print_Area", newRef, oldScope, false, null, null, true);
-						t.recalcScale();
+						t.recalcPrintScale();
 						t.changeViewPrintLines(true);
 						wb.editDefinedNames(oldDefName, newDefName);
 					}
