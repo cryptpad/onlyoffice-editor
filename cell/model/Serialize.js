@@ -1498,10 +1498,10 @@
                     rangeTable = aTables[i].Ref;
 
                 if(!this.isCopyPaste || (this.isCopyPaste && rangeTable && this.isCopyPaste.isIntersect(rangeTable) && !ws.bExcludeHiddenRows))
-                    this.bs.WriteItem(c_oSer_TablePart.Table, function(){oThis.WriteTable(aTables[i]);});
+                    this.bs.WriteItem(c_oSer_TablePart.Table, function(){oThis.WriteTable(aTables[i], ws);});
             }
         };
-        this.WriteTable = function(table)
+        this.WriteTable = function(table, ws)
         {
             var oThis = this;
             //Ref
@@ -1529,8 +1529,10 @@
             if(null != table.SortState)
                 this.bs.WriteItem(c_oSer_TablePart.SortState, function(){oThis.WriteSortState(table.SortState);});
             //TableColumns
-            if(null != table.TableColumns)
+            if(null != table.TableColumns) {
+				table.syncTotalLabels(ws);
                 this.bs.WriteItem(c_oSer_TablePart.TableColumns, function(){oThis.WriteTableColumns(table.TableColumns);});
+			}
             //TableStyleInfo
             if(null != table.TableStyleInfo)
                 this.bs.WriteItem(c_oSer_TablePart.TableStyleInfo, function(){oThis.WriteTableStyleInfo(table.TableStyleInfo);});

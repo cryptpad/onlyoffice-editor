@@ -6063,6 +6063,30 @@ function RangeDataManagerElem(bbox, data)
 		return res;
 	};
 
+	TablePart.prototype.syncTotalLabels = function (ws) {
+		if(this.Ref) {
+			if(this.isTotalsRow()) {
+				for(var i = 0; i < this.TableColumns.length; i++) {
+					if(null !== this.TableColumns[i].TotalsRowLabel) {
+						var cell = ws.getCell3(this.Ref.r2, this.Ref.c1 + i);
+						if(cell.isFormula()) {
+							this.TableColumns[i].TotalsRowLabel = null;
+							if(null === this.TableColumns[i].TotalsRowFunction) {
+								this.TableColumns[i].TotalsRowFunction = Asc.ETotalsRowFunction.totalrowfunctionCustom;
+							}
+						} else {
+							var val = cell.getValue();
+							if(val !== this.TableColumns[i].TotalsRowLabel) {
+								this.TableColumns[i].TotalsRowLabel = val;
+							}
+						}
+					}
+				}
+			}
+		}
+	};
+
+
 	/** @constructor */
 	function AutoFilter() {
 		this.Ref = null;
