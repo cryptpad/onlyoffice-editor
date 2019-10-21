@@ -4224,7 +4224,7 @@
 								}
 							}
 						}
-					} else*/ if(colId > 0 && filter.isHideButton(colId - 1)) {
+					} else*/ if(colId > 0 && filter.isHideButton(colId - 1) && hasMerged) {
 						for(i = colId + ref.c1 - 1, length = Math.max(ref.c1, hasMerged.c1); i >= length; i--) {
 							if(!filter.isHideButton(i - ref.c1)) {
 								res = i + 1 - ref.c1;
