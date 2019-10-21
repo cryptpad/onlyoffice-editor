@@ -6036,9 +6036,9 @@ function NativeOpenFile3(_params, documentInfo)
         
         AscCommon.g_clipboardBase.Init(_api);
 
-        if (undefined !== _api.Native_Editor_Initialize_Settings)
+        if (undefined !== _api["Native_Editor_Initialize_Settings"])
         {
-            _api.Native_Editor_Initialize_Settings(_params);
+            _api["Native_Editor_Initialize_Settings"](_params);
         }
 
         window.documentInfo = documentInfo;
@@ -6145,10 +6145,7 @@ function NativeOpenFile3(_params, documentInfo)
                 _api.sendColorThemes(_api.WordControl.m_oLogicDocument.theme);
             }
 
-            if (_api.NativeAfterLoad)
-            {
-                _api.NativeAfterLoad();
-            }
+            _api["NativeAfterLoad"]();
 
             initSpellCheckApi();
         }
@@ -6283,8 +6280,7 @@ Asc['asc_docs_api'].prototype.openDocument = function(file)
         
         console.log("OPEN FILE ONLINE READ MODE");
        
-        if (_api.NativeAfterLoad)
-            _api.NativeAfterLoad();
+        _api["NativeAfterLoad"]();
      
         this.ImageLoader.bIsLoadDocumentFirst = true;
         
@@ -6304,9 +6300,8 @@ Asc['asc_docs_api'].prototype.openDocument = function(file)
         this.VersionHistory.changes = file.changes;
         this.VersionHistory.applyChanges(this);
     }
-
-    if (_api.NativeAfterLoad)
-        _api.NativeAfterLoad();
+       
+    _api["NativeAfterLoad"]();
 
     //console.log("ImageMap : " + JSON.stringify(this.WordControl.m_oLogicDocument));
 
