@@ -6447,6 +6447,34 @@ function RangeDataManagerElem(bbox, data)
 		return res;
 	};
 
+	SortState.prototype.getType = function() {
+		return AscCommonExcel.UndoRedoDataTypes.SortState;
+	};
+	SortState.prototype.Read_FromBinary2 = function(r) {
+		this.nRow = r.GetLong();
+		this.nCol = r.GetLong();
+
+		this.nLeft = r.GetLong();
+		this.nLeftOffset = r.GetLong();
+		this.nTop = r.GetLong();
+		this.nTopOffset = r.GetLong();
+		this.nRight = r.GetLong();
+	};
+	SortState.prototype.Write_ToBinary2 = function(w) {
+		w.WriteLong(this.nRow);
+		w.WriteLong(this.nCol);
+
+		w.WriteLong(this.nLeft);
+		w.WriteLong(this.nLeftOffset);
+		w.WriteLong(this.nTop);
+		w.WriteLong(this.nTopOffset);
+		w.WriteLong(this.nRight);
+	};
+	/*SortState.prototype.applyCollaborative = function (nSheetId, collaborativeEditing) {
+		this.nCol = collaborativeEditing.getLockMeColumn2(nSheetId, this.nCol);
+		this.nRow = collaborativeEditing.getLockMeRow2(nSheetId, this.nRow);
+	};*/
+
 	SortState.prototype.moveRef = function (col, row) {
 		var ref = this.Ref.clone();
 		ref.setOffset(new AscCommon.CellBase(row || 0, col || 0));

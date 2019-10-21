@@ -415,6 +415,8 @@ function (window, undefined) {
 		this.StyleGradientFill = 101;
 		this.StyleGradientFillStop = 102;
 
+		this.SortState = 115;
+
 		this.Create = function (nType) {
 			switch (nType) {
 				case this.ValueMultiTextElem:
