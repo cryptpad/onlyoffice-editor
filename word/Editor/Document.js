@@ -9497,7 +9497,7 @@ CDocument.prototype.Internal_Content_Add = function(Position, NewObject, bCheckL
 	this.private_RecalculateNumbering([NewObject]);
 	this.History.Add(new CChangesDocumentAddItem(this, Position, [NewObject]));
 	this.Content.splice(Position, 0, NewObject);
-	this.private_UpdateSelectionPosOnAdd(Position)
+	this.private_UpdateSelectionPosOnAdd(Position);
 	NewObject.Set_Parent(this);
 	NewObject.Set_DocumentNext(NextObj);
 	NewObject.Set_DocumentPrev(PrevObj);

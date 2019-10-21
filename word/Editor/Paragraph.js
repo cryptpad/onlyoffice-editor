@@ -691,6 +691,101 @@ Paragraph.prototype.CopyPr_Open = function(OtherParagraph)
 	OtherParagraph.TextPr.Apply_TextPr(this.TextPr.Value);
 };
 /**
+ * Обновляем позиции курсора и селекта во время добавления элементов
+ * @param nPosition {number}
+ * @param [nCount=1] {number}
+ */
+Paragraph.prototype.private_UpdateSelectionPosOnAdd = function(nPosition, nCount)
+{
+	if (this.Content.length <= 0)
+	{
+		this.CurPos.ContentPos  = 0;
+		this.Selection.StartPos = 0;
+		this.Selection.EndPos   = 0;
+		return;
+	}
+
+	if (undefined === nCount || null === nCount)
+		nCount = 1;
+
+	if (this.CurPos.ContentPos >= nPosition)
+		this.CurPos.ContentPos += nCount;
+
+	if (this.Selection.StartPos >= nPosition)
+		this.Selection.StartPos += nCount;
+
+	if (this.Selection.EndPos >= nPosition)
+		this.Selection.EndPos += nCount;
+
+	this.Selection.StartPos = Math.max(0, Math.min(this.Content.length - 1, this.Selection.StartPos));
+	this.Selection.EndPos   = Math.max(0, Math.min(this.Content.length - 1, this.Selection.EndPos));
+	this.CurPos.ContentPos  = Math.max(0, Math.min(this.Content.length - 1, this.CurPos.ContentPos));
+};
+/**
+ * Обновляем позиции курсора и селекта во время удаления элементов
+ * @param nPosition {number}
+ * @param nCount {number}
+ */
+Paragraph.prototype.private_UpdateSelectionPosOnRemove = function(nPosition, nCount)
+{
+	if (this.CurPos.ContentPos >= nPosition + nCount)
+	{
+		this.CurPos.ContentPos -= nCount;
+	}
+	else if (this.CurPos.ContentPos >= nPosition)
+	{
+		if (nPosition < this.Content.length)
+			this.CurPos.ContentPos = nPosition;
+		else if (nPosition > 0)
+			this.CurPos.ContentPos = nPosition - 1;
+		else
+			this.CurPos.ContentPos = 0;
+	}
+
+	if (this.Selection.StartPos <= this.Selection.EndPos)
+	{
+		if (this.Selection.StartPos >= nPosition + nCount)
+			this.Selection.StartPos -= nCount;
+		else if (this.Selection.StartPos >= nPosition)
+			this.Selection.StartPos = nPosition;
+
+		if (this.Selection.EndPos >= nPosition + nCount)
+			this.Selection.EndPos -= nCount;
+		else if (this.Selection.EndPos >= nPosition)
+			this.Selection.StartPos = nPosition - 1;
+
+		if (this.Selection.StartPos > this.Selection.EndPos)
+		{
+			this.Selection.Use = false;
+			this.Selection.StartPos = 0;
+			this.Selection.EndPos   = 0;
+		}
+	}
+	else
+	{
+		if (this.Selection.EndPos >= nPosition + nCount)
+			this.Selection.EndPos -= nCount;
+		else if (this.Selection.EndPos >= nPosition)
+			this.Selection.EndPos = nPosition;
+
+		if (this.Selection.StartPos >= nPosition + nCount)
+			this.Selection.StartPos -= nCount;
+		else if (this.Selection.StartPos >= nPosition)
+			this.Selection.StartPos = nPosition - 1;
+
+		if (this.Selection.EndPos > this.Selection.StartPos)
+		{
+			this.Selection.Use = false;
+			this.Selection.StartPos = 0;
+			this.Selection.EndPos   = 0;
+		}
+	}
+
+	this.Selection.StartPos = Math.max(0, Math.min(this.Content.length - 1, this.Selection.StartPos));
+	this.Selection.EndPos   = Math.max(0, Math.min(this.Content.length - 1, this.Selection.EndPos));
+	this.CurPos.ContentPos  = Math.max(0, Math.min(this.Content.length - 1, this.CurPos.ContentPos));
+};
+/**
  * Добавляем элемент в содержимое параграфа. (Здесь передвигаются все позиции
  * CurPos.ContentPos, Selection.StartPos, Selection.EndPos)
  */
@@ -701,30 +796,7 @@ Paragraph.prototype.Internal_Content_Add = function(Pos, Item, bCorrectPos)
 	this.private_UpdateTrackRevisions();
 	this.private_CheckUpdateBookmarks([Item]);
 	this.UpdateDocumentOutline();
-
-	if (this.CurPos.ContentPos >= Pos)
-	{
-		this.CurPos.ContentPos++;
-
-		if (this.CurPos.ContentPos >= this.Content.length)
-			this.CurPos.ContentPos = this.Content.length - 1;
-	}
-
-	if (this.Selection.StartPos >= Pos)
-	{
-		this.Selection.StartPos++;
-
-		if (this.Selection.StartPos >= this.Content.length)
-			this.Selection.StartPos = this.Content.length - 1;
-	}
-
-	if (this.Selection.EndPos >= Pos)
-	{
-		this.Selection.EndPos++;
-
-		if (this.Selection.EndPos >= this.Content.length)
-			this.Selection.EndPos = this.Content.length - 1;
-	}
+	this.private_UpdateSelectionPosOnAdd(Pos, 1);
 
 	// Обновляем позиции в NearestPos
 	var NearPosLen = this.NearPosArray.length;
@@ -828,30 +900,7 @@ Paragraph.prototype.Internal_Content_Remove = function(Pos)
 	this.private_UpdateTrackRevisions();
 	this.private_CheckUpdateBookmarks([Item]);
 	this.UpdateDocumentOutline();
-
-	if (this.Selection.StartPos > Pos)
-	{
-		this.Selection.StartPos--;
-
-		if (this.Selection.StartPos < 0)
-			this.Selection.StartPos = 0;
-	}
-
-	if (this.Selection.EndPos >= Pos)
-	{
-		this.Selection.EndPos--;
-
-		if (this.Selection.EndPos < 0)
-			this.Selection.EndPos = 0;
-	}
-
-	if (this.CurPos.ContentPos > Pos)
-	{
-		this.CurPos.ContentPos--;
-
-		if (this.CurPos.ContentPos < 0)
-			this.CurPos.ContentPos = 0;
-	}
+	this.private_UpdateSelectionPosOnRemove(Pos, 1);
 
 	// Обновляем позиции в NearestPos
 	var NearPosLen = this.NearPosArray.length;
@@ -971,6 +1020,7 @@ Paragraph.prototype.Internal_Content_Remove2 = function(Pos, Count)
 	}
 
 	this.Content.splice(Pos, Count);
+	this.private_UpdateSelectionPosOnRemove(Pos, Count);
 
 	// Комментарии удаляем после, чтобы не нарушить позиции
 	var CountCommentsToDelete = CommentsToDelete.length;
