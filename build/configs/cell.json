@@ -239,7 +239,6 @@
 			"../common/plugins.js"
 		],
 		"private": [
-			"../cell/Private/comments.js"
 		],
 		"builder": [
 		],
