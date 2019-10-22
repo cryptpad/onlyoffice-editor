@@ -813,6 +813,25 @@ CNum.prototype.FillFromAscNum = function(oAscNum)
 		this.SetLvl(oLvl, nLvl);
 	}
 };
+/**
+ * Проверяем похожие ли две заданные нумерации
+ * @param oNum {CNum}
+ * @returns {boolean}
+ */
+CNum.prototype.IsSimilar = function(oNum)
+{
+	if (!oNum)
+		return false;
+
+	for (var nLvl = 0; nLvl < 9; ++nLvl)
+	{
+		var oLvl = this.GetLvl(nLvl);
+		if (!oLvl.IsSimilar(oNum.GetLvl(nLvl)))
+			return false;
+	}
+
+	return true;
+};
 //----------------------------------------------------------------------------------------------------------------------
 // Undo/Redo функции
 //----------------------------------------------------------------------------------------------------------------------
