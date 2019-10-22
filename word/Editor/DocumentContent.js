@@ -73,17 +73,17 @@ function CDocumentContent(Parent, DrawingDocument, X, Y, XLimit, YLimit, Split, 
 	this.ColumnsCount = 1;
 
     this.Parent = Parent;
-    
+
     this.DrawingDocument = null;
     this.LogicDocument   = null;
     this.Styles          = null;
     this.Numbering       = null;
     this.DrawingObjects  = null;
-    
+
     if ( undefined !== DrawingDocument && null !== DrawingDocument )
     {
         this.DrawingDocument = DrawingDocument;
-        
+
         if ( undefined !== editor && true === editor.isDocumentEditor && !(bPresentation === true) && DrawingDocument.m_oLogicDocument )
         {
             this.LogicDocument   = DrawingDocument.m_oLogicDocument;
@@ -8251,6 +8251,61 @@ CDocumentContent.prototype.MakeSingleParagraphContent = function()
 
 	return this.Content[0];
 };
+CDocumentContent.prototype.AcceptRevisionChanges = function(nType, bAll)
+{
+	if (docpostype_Content === this.CurPos.Type || true === bAll)
+	{
+		this.private_AcceptRevisionChanges(nType, bAll);
+	}
+	else if (docpostype_DrawingObjects === this.CurPos.Type)
+	{
+		this.DrawingObjects.AcceptRevisionChanges(nType, bAll);
+	}
+};
+CDocumentContent.prototype.RejectRevisionChanges = function(nType, bAll)
+{
+	if (docpostype_Content === this.CurPos.Type || true === bAll)
+	{
+		this.private_RejectRevisionChanges(nType, bAll);
+	}
+	else if (docpostype_DrawingObjects === this.CurPos.Type)
+	{
+		this.DrawingObjects.RejectRevisionChanges(nType, bAll);
+	}
+};
+CDocumentContent.prototype.GetRevisionsChangeElement = function(SearchEngine)
+{
+	if (true === SearchEngine.IsFound())
+		return;
+
+	var Direction = SearchEngine.GetDirection();
+	var Pos = 0;
+	if (true !== SearchEngine.IsCurrentFound())
+	{
+		Pos = (true === this.Selection.Use ? (this.Selection.StartPos <= this.Selection.EndPos ? this.Selection.StartPos : this.Selection.EndPos) : this.CurPos.ContentPos);
+	}
+	else
+	{
+		if (Direction > 0)
+		{
+			Pos = 0;
+		}
+		else
+		{
+			Pos = this.Content.length - 1;
+		}
+	}
+
+	this.Content[Pos].GetRevisionsChangeElement(SearchEngine);
+	while (true !== SearchEngine.IsFound())
+	{
+		Pos = (Direction > 0 ? Pos + 1 : Pos - 1);
+		if (Pos >= this.Content.length || Pos < 0)
+			break;
+
+		this.Content[Pos].GetRevisionsChangeElement(SearchEngine);
+	}
+};
 
 
 function CDocumentContentStartState(DocContent)
@@ -8265,17 +8320,17 @@ function CDocumentContentStartState(DocContent)
 function CDocumentRecalculateObject()
 {
     this.StartPage = 0;
-    
+
     this.Pages    = [];
     this.Content  = [];
     this.ClipInfo = [];
 }
 
-CDocumentRecalculateObject.prototype = 
+CDocumentRecalculateObject.prototype =
 {
     Save : function(Doc)
     {
-        this.StartPage = Doc.StartPage;        
+        this.StartPage = Doc.StartPage;
         this.Pages     = Doc.Pages;
         this.ClipInfo  = Doc.ClipInfo;
 
@@ -8286,13 +8341,13 @@ CDocumentRecalculateObject.prototype =
             this.Content[Index] = Content[Index].SaveRecalculateObject();
         }
     },
-        
+
     Load : function(Doc)
     {
         Doc.StartPage = this.StartPage;
         Doc.Pages     = this.Pages;
         Doc.ClipInfo  = this.ClipInfo;
-        
+
         var Count = Doc.Content.length;
         for ( var Index = 0; Index < Count; Index++ )
         {
@@ -8312,7 +8367,7 @@ CDocumentRecalculateObject.prototype =
 
         return Height;
     },
-    
+
     Get_PageBounds : function(PageNum)
     {
         if ( this.Pages.length <= 0 )
@@ -8321,11 +8376,11 @@ CDocumentRecalculateObject.prototype =
         if ( PageNum < 0 || PageNum > this.Pages.length )
             return this.Pages[0].Bounds;
 
-        var Bounds = this.Pages[PageNum].Bounds;        
+        var Bounds = this.Pages[PageNum].Bounds;
 
         return Bounds;
     },
-    
+
     Get_DrawingFlowPos : function(FlowPos)
     {
         var Count = this.Content.length;
@@ -8334,7 +8389,7 @@ CDocumentRecalculateObject.prototype =
             this.Content[Index].Get_DrawingFlowPos( FlowPos );
         }
     }
-        
+
 };
 
 //--------------------------------------------------------export----------------------------------------------------

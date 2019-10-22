@@ -31,6 +31,7 @@
  */
 
 "use strict";
+var c_oAscRevisionsChangeType = Asc.c_oAscRevisionsChangeType;
 
 /**
  * Базовый класс для работы с содержимым документа (параграфы и таблицы).
@@ -1642,4 +1643,216 @@ CDocumentContentBase.prototype.CheckRunContent = function(fCheck)
 	}
 
 	return false;
+};
+CDocumentContentBase.prototype.private_AcceptRevisionChanges = function(nType, bAll)
+{
+	var oTrackManager = this.GetLogicDocument() ? this.GetLogicDocument().GetTrackRevisionsManager() : null;
+	if (!oTrackManager)
+		return;
+
+	var oTrackMove = oTrackManager.GetProcessTrackMove();
+
+	if (true === this.Selection.Use || true === bAll)
+	{
+		var StartPos = this.Selection.StartPos;
+		var EndPos   = this.Selection.EndPos;
+		if (StartPos > EndPos)
+		{
+			StartPos = this.Selection.EndPos;
+			EndPos   = this.Selection.StartPos;
+		}
+
+		var LastParaEnd;
+		if (true === bAll)
+		{
+			StartPos    = 0;
+			EndPos      = this.Content.length - 1;
+			LastParaEnd = true;
+		}
+		else
+		{
+			var LastElement = this.Content[EndPos];
+			LastParaEnd = (!LastElement.IsParagraph() || true === LastElement.Selection_CheckParaEnd());
+		}
+
+
+		if (undefined === nType || c_oAscRevisionsChangeType.ParaPr === nType)
+		{
+			for (var CurPos = StartPos; CurPos <= EndPos; CurPos++)
+			{
+				var Element = this.Content[CurPos];
+				if (type_Paragraph === Element.Get_Type() && (true === bAll || true === Element.IsSelectedAll()) && true === Element.HavePrChange())
+				{
+					Element.AcceptPrChange();
+				}
+			}
+		}
+
+		for (var nCurPos = StartPos; nCurPos <= EndPos; ++nCurPos)
+		{
+			var oElement = this.Content[nCurPos];
+			oElement.AcceptRevisionChanges(nType, bAll);
+		}
+
+		if (undefined === nType
+			|| c_oAscRevisionsChangeType.ParaAdd === nType
+			|| c_oAscRevisionsChangeType.ParaRem === nType
+			|| c_oAscRevisionsChangeType.RowsRem === nType
+			|| c_oAscRevisionsChangeType.RowsAdd === nType
+			|| c_oAscRevisionsChangeType.MoveMark === nType)
+		{
+			EndPos = (true === LastParaEnd ? EndPos : EndPos - 1);
+			for (var nCurPos = EndPos; nCurPos >= StartPos; --nCurPos)
+			{
+				var oElement = this.Content[nCurPos];
+				if (oElement.IsParagraph())
+				{
+					var nReviewType = oElement.GetReviewType();
+					var oReviewInfo = oElement.GetReviewInfo();
+
+					if (reviewtype_Add === nReviewType
+						&& (undefined === nType
+							|| c_oAscRevisionsChangeType.ParaAdd === nType
+							|| (c_oAscRevisionsChangeType.MoveMark === nType
+								&& oReviewInfo.IsMovedTo()
+								&& oTrackMove
+								&& !oTrackMove.IsFrom()
+								&& oTrackMove.GetUserId() === oReviewInfo.GetUserId())))
+					{
+						oElement.SetReviewType(reviewtype_Common);
+					}
+					else if (reviewtype_Remove === nReviewType
+						&& (undefined === nType
+							|| c_oAscRevisionsChangeType.ParaRem === nType
+							|| (c_oAscRevisionsChangeType.MoveMark === nType
+								&& oReviewInfo.IsMovedFrom()
+								&& oTrackMove
+								&& oTrackMove.IsFrom()
+								&& oTrackMove.GetUserId() === oReviewInfo.GetUserId())))
+					{
+						oElement.SetReviewType(reviewtype_Common);
+						this.ConcatParagraphs(nCurPos, true);
+					}
+				}
+				else if (oElement.IsTable())
+				{
+					// После принятия изменений у нас могла остаться пустая таблица, такую мы должны удалить
+					if (oElement.GetRowsCount() <= 0)
+					{
+						this.RemoveFromContent(nCurPos, 1, false);
+					}
+				}
+			}
+		}
+	}
+};
+CDocumentContentBase.prototype.private_RejectRevisionChanges = function(nType, bAll)
+{
+	var oTrackManager = this.GetLogicDocument() ? this.GetLogicDocument().GetTrackRevisionsManager() : null;
+	if (!oTrackManager)
+		return;
+
+	var oTrackMove = oTrackManager.GetProcessTrackMove();
+
+	if (true === this.Selection.Use || true === bAll)
+	{
+		var StartPos = this.Selection.StartPos;
+		var EndPos   = this.Selection.EndPos;
+		if (StartPos > EndPos)
+		{
+			StartPos = this.Selection.EndPos;
+			EndPos   = this.Selection.StartPos;
+		}
+
+		var LastParaEnd;
+		if (true === bAll)
+		{
+			StartPos    = 0;
+			EndPos      = this.Content.length - 1;
+			LastParaEnd = true;
+		}
+		else
+		{
+			var LastElement = this.Content[EndPos];
+			LastParaEnd = (!LastElement.IsParagraph() || true === LastElement.Selection_CheckParaEnd());
+		}
+
+		if (undefined === nType || c_oAscRevisionsChangeType.ParaPr === nType)
+		{
+			for (var CurPos = StartPos; CurPos <= EndPos; CurPos++)
+			{
+				var Element = this.Content[CurPos];
+				if (type_Paragraph === Element.Get_Type() && (true === bAll || true === Element.IsSelectedAll()) && true === Element.HavePrChange())
+				{
+					Element.RejectPrChange();
+				}
+			}
+		}
+
+		for (var nCurPos = StartPos; nCurPos <= EndPos; ++nCurPos)
+		{
+			var oElement = this.Content[nCurPos];
+			oElement.RejectRevisionChanges(nType, bAll);
+		}
+
+		if (undefined === nType
+			|| c_oAscRevisionsChangeType.ParaAdd === nType
+			|| c_oAscRevisionsChangeType.ParaRem === nType
+			|| c_oAscRevisionsChangeType.RowsRem === nType
+			|| c_oAscRevisionsChangeType.RowsAdd === nType
+			|| c_oAscRevisionsChangeType.MoveMark === nType)
+		{
+			EndPos = (true === LastParaEnd ? EndPos : EndPos - 1);
+			for (var nCurPos = EndPos; nCurPos >= StartPos; --nCurPos)
+			{
+				var oElement = this.Content[nCurPos];
+				if (oElement.IsParagraph())
+				{
+					var nReviewType = oElement.GetReviewType();
+					var oReviewInfo = oElement.GetReviewInfo();
+
+					if (reviewtype_Add === nReviewType
+						&& (undefined === nType
+							|| c_oAscRevisionsChangeType.ParaAdd === nType
+							|| (c_oAscRevisionsChangeType.MoveMark === nType
+								&& oReviewInfo.IsMovedTo()
+								&& oTrackMove
+								&& !oTrackMove.IsFrom()
+								&& oTrackMove.GetUserId() === oReviewInfo.GetUserId())))
+					{
+						oElement.SetReviewType(reviewtype_Common);
+						this.ConcatParagraphs(nCurPos, true);
+					}
+					else if (reviewtype_Remove === nReviewType
+						&& (undefined === nType
+							|| c_oAscRevisionsChangeType.ParaRem === nType
+							|| (c_oAscRevisionsChangeType.MoveMark === nType
+								&& oReviewInfo.IsMovedFrom()
+								&& oTrackMove
+								&& oTrackMove.IsFrom()
+								&& oTrackMove.GetUserId() === oReviewInfo.GetUserId())))
+					{
+						var oReviewInfo = oElement.GetReviewInfo();
+						var oPrevInfo   = oReviewInfo.GetPrevAdded();
+						if (oPrevInfo && c_oAscRevisionsChangeType.MoveMark !== nType)
+						{
+							oElement.SetReviewTypeWithInfo(reviewtype_Add, oPrevInfo.Copy());
+						}
+						else
+						{
+							oElement.SetReviewType(reviewtype_Common);
+						}
+					}
+				}
+				else if (oElement.IsTable())
+				{
+					// После принятия изменений у нас могла остаться пустая таблица, такую мы должны удалить
+					if (oElement.GetRowsCount() <= 0)
+					{
+						this.RemoveFromContent(nCurPos, 1, false);
+					}
+				}
+			}
+		}
+	}
 };

@@ -2435,6 +2435,23 @@ background-repeat: no-repeat;\
 		var actionType = this.mailMergeFileData ? c_oAscAsyncAction.MailMergeLoadFile : c_oAscAsyncAction.DownloadAs;
 		this.downloadAs(actionType, options);
 	};
+	asc_docs_api.prototype.asc_DownloadAsMailMerge         = function(typeFile, StartIndex, EndIndex, bIsDownload)
+	{
+		var oDocumentMailMerge = this.WordControl.m_oLogicDocument.Get_MailMergedDocument(StartIndex, EndIndex);
+		if (null != oDocumentMailMerge)
+		{
+			var actionType = null;
+			var options = new Asc.asc_CDownloadOptions(typeFile, true);
+			options.oDocumentMailMerge = oDocumentMailMerge;
+			options.errorDirect = c_oAscError.ID.MailMergeSaveFile;
+			if (bIsDownload) {
+				actionType = Asc.c_oAscAsyncAction.DownloadMerge;
+				options.isDownloadEvent = false;
+			}
+			this.downloadAs(actionType, options);
+		}
+		return null != oDocumentMailMerge;
+	};
 	asc_docs_api.prototype.Resize             = function()
 	{
 		if (false === this.bInit_word_control)
@@ -7926,23 +7943,6 @@ background-repeat: no-repeat;\
 	{
 		return this.WordControl.m_oLogicDocument.Get_MailMergeFieldValue(nIndex, sName);
 	};
-	asc_docs_api.prototype.asc_DownloadAsMailMerge         = function(typeFile, StartIndex, EndIndex, bIsDownload)
-	{
-		var oDocumentMailMerge = this.WordControl.m_oLogicDocument.Get_MailMergedDocument(StartIndex, EndIndex);
-		if (null != oDocumentMailMerge)
-		{
-			var actionType = null;
-			var options = new Asc.asc_CDownloadOptions(typeFile, true);
-			options.oDocumentMailMerge = oDocumentMailMerge;
-			options.errorDirect = c_oAscError.ID.MailMergeSaveFile;
-			if (bIsDownload) {
-				actionType = Asc.c_oAscAsyncAction.DownloadMerge;
-				options.isDownloadEvent = false;
-			}
-			this.downloadAs(actionType, options);
-		}
-		return null != oDocumentMailMerge;
-	};
 	//----------------------------------------------------------------------------------------------------------------------
 	// Работаем со стилями
 	//----------------------------------------------------------------------------------------------------------------------
@@ -7979,51 +7979,113 @@ background-repeat: no-repeat;\
 	//----------------------------------------------------------------------------------------------------------------------
 	asc_docs_api.prototype.asc_SetTrackRevisions               = function(bTrack)
 	{
+		var oLogicDocument = this.WordControl.m_oLogicDocument;
+		if (!oLogicDocument)
+			return;
+
+		return oLogicDocument.SetTrackRevisions(bTrack);
 	};
 	asc_docs_api.prototype.asc_IsTrackRevisions                = function()
 	{
-		return false;
+		var oLogicDocument = this.WordControl.m_oLogicDocument;
+		if (!oLogicDocument)
+			return false;
+
+		return oLogicDocument.IsTrackRevisions();
 	};
 	asc_docs_api.prototype.sync_BeginCatchRevisionsChanges     = function()
 	{
+		this.RevisionChangesStack = [];
 	};
 	asc_docs_api.prototype.sync_EndCatchRevisionsChanges       = function()
 	{
+		this.sendEvent("asc_onShowRevisionsChange", this.RevisionChangesStack);
 	};
 	asc_docs_api.prototype.asc_GetRevisionsChangesStack        = function()
 	{
+		return this.RevisionChangesStack;
 	};
 	asc_docs_api.prototype.sync_AddRevisionsChange             = function(Change)
 	{
+		this.RevisionChangesStack.push(Change);
 	};
-	asc_docs_api.prototype.asc_AcceptChanges                   = function(Change)
+	asc_docs_api.prototype.asc_AcceptChanges                   = function(oChange)
 	{
+		if (oChange)
+			this.WordControl.m_oLogicDocument.AcceptRevisionChange(oChange);
+		else
+			this.WordControl.m_oLogicDocument.AcceptRevisionChangesBySelection();
 	};
-	asc_docs_api.prototype.asc_RejectChanges                   = function(Change)
+	asc_docs_api.prototype.asc_RejectChanges                   = function(oChange)
 	{
+		if (oChange)
+			this.WordControl.m_oLogicDocument.RejectRevisionChange(oChange);
+		else
+			this.WordControl.m_oLogicDocument.RejectRevisionChangesBySelection();
 	};
-	asc_docs_api.prototype.asc_HaveRevisionsChanges            = function()
+	asc_docs_api.prototype.asc_HaveRevisionsChanges            = function(isCheckOwnChanges)
 	{
-		return false
+		if (!this.WordControl.m_oLogicDocument)
+			return false;
+		return this.WordControl.m_oLogicDocument.HaveRevisionChanges(isCheckOwnChanges);
 	};
 	asc_docs_api.prototype.asc_HaveNewRevisionsChanges         = function()
 	{
-		return false
+		return this.asc_HaveRevisionsChanges();
 	};
 	asc_docs_api.prototype.asc_GetNextRevisionsChange          = function()
 	{
+		return this.WordControl.m_oLogicDocument.GetNextRevisionChange();
 	};
 	asc_docs_api.prototype.asc_GetPrevRevisionsChange          = function()
 	{
+		return this.WordControl.m_oLogicDocument.GetPrevRevisionChange();
 	};
 	asc_docs_api.prototype.sync_UpdateRevisionsChangesPosition = function(X, Y)
 	{
+		this.sendEvent("asc_onUpdateRevisionsChangesPosition", X, Y);
 	};
 	asc_docs_api.prototype.asc_AcceptAllChanges                = function()
 	{
+		this.WordControl.m_oLogicDocument.AcceptAllRevisionChanges();
 	};
 	asc_docs_api.prototype.asc_RejectAllChanges                = function()
 	{
+		this.WordControl.m_oLogicDocument.RejectAllRevisionChanges();
+	};
+	asc_docs_api.prototype.asc_GetTrackRevisionsReportByAuthors= function()
+	{
+		var oResult = {};
+		var oAllChanges = this.WordControl.m_oLogicDocument.TrackRevisionsManager.Get_AllChanges();
+		for (var ParaId in oAllChanges)
+		{
+			var arrChanges = oAllChanges[ParaId];
+			for (var nIndex = 0, nCount = arrChanges.length; nIndex < nCount; ++nIndex)
+			{
+				var oChange   = arrChanges[nIndex];
+				var sUserName = oChange.get_UserName();
+				var nDateTime = oChange.get_DateTime();
+
+				if (!oResult[sUserName])
+					oResult[sUserName] = [];
+
+				var arrUserChanges = oResult[sUserName];
+
+				var nPos = 0;
+				var nLen = arrUserChanges.length;
+				while (nPos < nLen)
+				{
+					if (nDateTime < arrUserChanges[nPos].get_DateTime())
+						break;
+
+					nPos++;
+				}
+
+				arrUserChanges.splice(nPos, 0, oChange);
+			}
+		}
+
+		return oResult;
 	};
 	asc_docs_api.prototype.asc_FollowRevisionMove = function(oChange)
 	{
@@ -10530,6 +10592,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['sync_UpdateRevisionsChangesPosition']       = asc_docs_api.prototype.sync_UpdateRevisionsChangesPosition;
 	asc_docs_api.prototype['asc_AcceptAllChanges']                      = asc_docs_api.prototype.asc_AcceptAllChanges;
 	asc_docs_api.prototype['asc_RejectAllChanges']                      = asc_docs_api.prototype.asc_RejectAllChanges;
+	asc_docs_api.prototype['asc_GetTrackRevisionsReportByAuthors']      = asc_docs_api.prototype.asc_GetTrackRevisionsReportByAuthors;
 	asc_docs_api.prototype['asc_FollowRevisionMove']                    = asc_docs_api.prototype.asc_FollowRevisionMove;
 	asc_docs_api.prototype['asc_stopSaving']                            = asc_docs_api.prototype.asc_stopSaving;
 	asc_docs_api.prototype['asc_continueSaving']                        = asc_docs_api.prototype.asc_continueSaving;

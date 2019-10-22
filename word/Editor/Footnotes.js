@@ -3296,6 +3296,16 @@ CFootnotesController.prototype.IsTableCellSelection = function()
 
 	return false;
 };
+CFootnotesController.prototype.AcceptRevisionChanges = function(Type, bAll)
+{
+	if (null !== this.CurFootnote)
+		this.CurFootnote.AcceptRevisionChanges(Type, bAll);
+};
+CFootnotesController.prototype.RejectRevisionChanges = function(Type, bAll)
+{
+	if (null !== this.CurFootnote)
+		this.CurFootnote.RejectRevisionChanges(Type, bAll);
+};
 
 
 function CFootEndnotePageColumn()

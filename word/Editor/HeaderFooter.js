@@ -2713,6 +2713,16 @@ CHeaderFooterController.prototype.IsTableCellSelection = function()
 
 	return false;
 };
+CHeaderFooterController.prototype.AcceptRevisionChanges = function(Type, bAll)
+{
+    if (null !== this.CurHdrFtr)
+        this.CurHdrFtr.Content.AcceptRevisionChanges(Type, bAll);
+};
+CHeaderFooterController.prototype.RejectRevisionChanges = function(Type, bAll)
+{
+    if (null !== this.CurHdrFtr)
+        this.CurHdrFtr.Content.RejectRevisionChanges(Type, bAll);
+};
 
 
 function CHdrFtrPage()
