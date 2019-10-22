@@ -4751,6 +4751,20 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype.asc_addComment = function(AscCommentData)
 	{
+		//if ( true === CollaborativeEditing.Get_GlobalLock() )
+		//   return;
+
+		if (null == this.WordControl.m_oLogicDocument) {
+			return;
+		}
+
+		var CommentData = new CCommentData();
+		CommentData.Read_FromAscCommentData(AscCommentData);
+
+		var Comment = this.WordControl.m_oLogicDocument.AddComment(CommentData, AscCommentData.asc_getDocumentFlag());
+		if (Comment) {
+			return Comment.Get_Id();
+		}
 	};
 
 	asc_docs_api.prototype.asc_getMasterCommentId = function()
@@ -7948,7 +7962,6 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_continueSaving']                  = asc_docs_api.prototype.asc_continueSaving;
 	asc_docs_api.prototype['asc_undoAllChanges']                  = asc_docs_api.prototype.asc_undoAllChanges;
 	asc_docs_api.prototype['sync_ContextMenuCallback']            = asc_docs_api.prototype.sync_ContextMenuCallback;
-	asc_docs_api.prototype['asc_addComment']                      = asc_docs_api.prototype.asc_addComment;
 	asc_docs_api.prototype['asc_SetFastCollaborative']            = asc_docs_api.prototype.asc_SetFastCollaborative;
 	asc_docs_api.prototype['asc_isOffline']                       = asc_docs_api.prototype.asc_isOffline;
 	asc_docs_api.prototype['asc_getUrlType']                      = asc_docs_api.prototype.asc_getUrlType;

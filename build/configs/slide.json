@@ -217,7 +217,6 @@
 			"../common/plugins.js"
 		],
 		"private": [
-			"../slide/Private/comments.js",
 			"../common/Private/Locks.js"
 		],
 		"builder": [
