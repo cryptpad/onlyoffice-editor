@@ -7948,24 +7948,27 @@ background-repeat: no-repeat;\
 	//----------------------------------------------------------------------------------------------------------------------
 	asc_docs_api.prototype.asc_GetStyleFromFormatting = function()
 	{
-		return null;
+		return this.WordControl.m_oLogicDocument.GetStyleFromFormatting();
 	};
 	asc_docs_api.prototype.asc_AddNewStyle            = function(oStyle)
 	{
+		this.WordControl.m_oLogicDocument.Add_NewStyle(oStyle);
 	};
 	asc_docs_api.prototype.asc_RemoveStyle            = function(sName)
 	{
+		this.WordControl.m_oLogicDocument.Remove_Style(sName);
 	};
 	asc_docs_api.prototype.asc_RemoveAllCustomStyles  = function()
 	{
+		this.WordControl.m_oLogicDocument.Remove_AllCustomStyles();
 	};
 	asc_docs_api.prototype.asc_IsStyleDefault         = function(sName)
 	{
-		return true;
+		return this.WordControl.m_oLogicDocument.Is_StyleDefault(sName);
 	};
 	asc_docs_api.prototype.asc_IsDefaultStyleChanged  = function(sName)
 	{
-		return false;
+		return this.WordControl.m_oLogicDocument.Is_DefaultStyleChanged(sName);
 	};
 	asc_docs_api.prototype.asc_GetStyleNameById       = function(StyleId)
 	{

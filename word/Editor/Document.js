@@ -9400,6 +9400,76 @@ CDocument.prototype.GetNumbering = function()
 {
 	return this.Numbering;
 };
+/**
+ * Получаем стиль по выделенному фрагменту
+ */
+CDocument.prototype.GetStyleFromFormatting = function()
+{
+	return this.Controller.GetStyleFromFormatting();
+};
+/**
+ * Добавляем новый стиль (или заменяем старый с таким же названием).
+ * И сразу применяем его к выделенному фрагменту.
+ */
+CDocument.prototype.Add_NewStyle = function(oStyle)
+{
+	if (false === this.Document_Is_SelectionLocked(AscCommon.changestype_Document_Styles, {Type : AscCommon.changestype_2_AdditionalTypes, Types : [AscCommon.changestype_Paragraph_Properties]}))
+	{
+		this.StartAction(AscDFH.historydescription_Document_AddNewStyle);
+		var NewStyle = this.Styles.Create_StyleFromInterface(oStyle);
+		this.SetParagraphStyle(NewStyle.Get_Name());
+		this.Recalculate();
+		this.UpdateInterface();
+		this.FinalizeAction();
+	}
+};
+/**
+ * Удаляем заданный стиль по имени.
+ */
+CDocument.prototype.Remove_Style = function(sStyleName)
+{
+	var StyleId = this.Styles.GetStyleIdByName(sStyleName);
+	// Сначала проверим есть ли стиль с таким именем
+	if (null == StyleId)
+		return;
+
+	if (false === this.Document_Is_SelectionLocked(AscCommon.changestype_Document_Styles))
+	{
+		this.StartAction(AscDFH.historydescription_Document_RemoveStyle);
+		this.Styles.Remove_StyleFromInterface(StyleId);
+		this.Recalculate();
+		this.UpdateInterface();
+		this.FinalizeAction();
+	}
+};
+/**
+ * Удаляем все недефолтовые стили в документе.
+ */
+CDocument.prototype.Remove_AllCustomStyles = function()
+{
+	if (false === this.Document_Is_SelectionLocked(AscCommon.changestype_Document_Styles))
+	{
+		this.StartAction(AscDFH.historydescription_Document_RemoveAllCustomStyles);
+		this.Styles.Remove_AllCustomStylesFromInterface();
+		this.Recalculate();
+		this.UpdateInterface();
+		this.FinalizeAction();
+	}
+};
+/**
+ * Проверяем является ли заданный стиль дефолтовым.
+ */
+CDocument.prototype.Is_StyleDefault = function(sName)
+{
+	return this.Styles.Is_StyleDefault(sName);
+};
+/**
+ * Проверяем изменен ли дефолтовый стиль.
+ */
+CDocument.prototype.Is_DefaultStyleChanged = function(sName)
+{
+	return this.Styles.Is_DefaultStyleChanged(sName);
+};
 CDocument.prototype.Get_Styles = function()
 {
 	return this.Styles;

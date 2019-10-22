@@ -8865,6 +8865,429 @@ CStyles.prototype.GetStyleIdByName = function(sName, isReturnParaDefault)
 
 	return null;
 };
+CStyles.prototype.Create_StyleFromInterface = function(oAscStyle, bCheckLink)
+{
+	var sStyleName = oAscStyle.get_Name();
+	var sStyleId   = this.GetStyleIdByName(sStyleName);
+	if (null !== sStyleId)
+	{
+		var oStyle = this.Style[sStyleId];
+
+		var NewStyleParaPr = oAscStyle.get_ParaPr();
+		var NewStyleTextPr = oAscStyle.get_TextPr();
+
+		var BasedOnId = this.GetStyleIdByName(oAscStyle.get_BasedOn());
+		var NextId    = this.GetStyleIdByName(oAscStyle.get_Next());
+
+		oStyle.Set_Type(oAscStyle.get_Type());
+
+		if (BasedOnId === sStyleId || sStyleId === this.Default.Paragraph)
+		{
+			if (sStyleId !== this.Default.Paragraph)
+			{
+				var oBaseStyle      = this.Get(BasedOnId);
+				var oBasedBasesOnId = this.Get_Default_Paragraph();
+				if (oBaseStyle)
+				{
+					oBasedBasesOnId = oBaseStyle.Get_BasedOn();
+					if (oBaseStyle.Get_BasedOn() !== sStyleId)
+						oBasedBasesOnId = oBaseStyle.Get_BasedOn();
+				}
+
+				oStyle.Set_BasedOn(oBasedBasesOnId);
+			}
+			else
+			{
+				oStyle.Set_BasedOn(null);
+			}
+
+			var OldStyleParaPr = oStyle.ParaPr.Copy();
+			var OldStyleTextPr = oStyle.TextPr.Copy();
+			OldStyleParaPr.Merge(NewStyleParaPr);
+			OldStyleTextPr.Merge(NewStyleTextPr);
+			NewStyleParaPr = OldStyleParaPr;
+			NewStyleTextPr = OldStyleTextPr;
+		}
+		else
+		{
+			oStyle.Set_BasedOn(BasedOnId);
+		}
+
+		if (null === oStyle.Get_Next() || (null !== NextId && NextId !== sStyleId))
+		{
+			if (NextId === sStyleId)
+				oStyle.Set_Next(null);
+			else
+				oStyle.Set_Next(NextId);
+		}
+
+		var oAscLink   = oAscStyle.get_Link();
+		var sOldLinkId = oStyle.Get_Link();
+		if (sOldLinkId && this.Style[sOldLinkId])
+			oAscLink.put_Name(this.Style[sOldLinkId].GetName());
+		else
+			bCheckLink = false;
+
+		if (false != bCheckLink && null != oAscLink && undefined !== oAscLink)
+		{
+			var oLinkedStyle = this.Create_StyleFromInterface(oAscLink, false);
+			oStyle.Set_Link(oLinkedStyle.Get_Id());
+			oLinkedStyle.Set_Link(oStyle.Get_Id());
+		}
+
+		oStyle.Set_TextPr(NewStyleTextPr);
+		oStyle.Set_ParaPr(NewStyleParaPr, true);
+
+		return oStyle;
+	}
+	else
+	{
+		var oStyle = new CStyle();
+
+		var BasedOnId = this.GetStyleIdByName(oAscStyle.get_BasedOn());
+		oStyle.Set_BasedOn(BasedOnId);
+		oStyle.Set_Next(this.GetStyleIdByName(oAscStyle.get_Next()));
+		oStyle.Set_Type(oAscStyle.get_Type());
+		oStyle.Set_TextPr(oAscStyle.get_TextPr());
+		oStyle.Set_ParaPr(oAscStyle.get_ParaPr(), true);
+		oStyle.Set_Name(sStyleName);
+		oStyle.SetCustom(true);
+
+		if (styletype_Paragraph === oStyle.Get_Type())
+			oStyle.Set_QFormat(true);
+
+		var oAscLink = oAscStyle.get_Link();
+		if (false != bCheckLink && null != oAscLink && undefined !== oAscLink)
+		{
+			var oLinkedStyle = this.Create_StyleFromInterface(oAscLink, false);
+			oStyle.Set_Link(oLinkedStyle.Get_Id());
+			oLinkedStyle.Set_Link(oStyle.Get_Id());
+		}
+
+		this.Add(oStyle);
+		return oStyle;
+	}
+};
+CStyles.prototype.Remove_StyleFromInterface = function(StyleId)
+{
+	// Если этот стиль не один из стилей по умолчанию, тогда мы просто удаляем этот стиль
+	// и очищаем все параграфы с сылкой на этот стиль.
+
+	var Style = this.Style[StyleId];
+	if (StyleId == this.Default.Paragraph)
+	{
+		Style.Clear("Normal", null, null, styletype_Paragraph);
+		Style.CreateNormal();
+	}
+	else if (StyleId == this.Default.Character)
+	{
+		Style.Clear("Default Paragraph Font", null, null, styletype_Character);
+		Style.CreateDefaultParagraphFont();
+	}
+	else if (StyleId == this.Default.Numbering)
+	{
+		Style.Clear("No List", null, null, styletype_Numbering);
+		Style.CreateNoList();
+	}
+	else if (StyleId == this.Default.Table)
+	{
+		Style.Clear("Normal Table", null, null, styletype_Table);
+		Style.Create_NormalTable();
+	}
+	else if (StyleId == this.Default.TableGrid)
+	{
+		Style.Clear("Table Grid", this.Default.Table, null, styletype_Table);
+		Style.Create_TableGrid();
+	}
+	else if (StyleId == this.Default.Headings[0])
+	{
+		Style.Clear("Heading 1", this.Default.Paragraph, this.Default.Paragraph, styletype_Paragraph);
+		Style.CreateHeading(0);
+	}
+	else if (StyleId == this.Default.Headings[1])
+	{
+		Style.Clear("Heading 2", this.Default.Paragraph, this.Default.Paragraph, styletype_Paragraph);
+		Style.CreateHeading(1);
+	}
+	else if (StyleId == this.Default.Headings[2])
+	{
+		Style.Clear("Heading 3", this.Default.Paragraph, this.Default.Paragraph, styletype_Paragraph);
+		Style.CreateHeading(2);
+	}
+	else if (StyleId == this.Default.Headings[3])
+	{
+		Style.Clear("Heading 4", this.Default.Paragraph, this.Default.Paragraph, styletype_Paragraph);
+		Style.CreateHeading(3);
+	}
+	else if (StyleId == this.Default.Headings[4])
+	{
+		Style.Clear("Heading 5", this.Default.Paragraph, this.Default.Paragraph, styletype_Paragraph);
+		Style.CreateHeading(4);
+	}
+	else if (StyleId == this.Default.Headings[5])
+	{
+		Style.Clear("Heading 6", this.Default.Paragraph, this.Default.Paragraph, styletype_Paragraph);
+		Style.CreateHeading(5);
+	}
+	else if (StyleId == this.Default.Headings[6])
+	{
+		Style.Clear("Heading 7", this.Default.Paragraph, this.Default.Paragraph, styletype_Paragraph);
+		Style.CreateHeading(6);
+	}
+	else if (StyleId == this.Default.Headings[7])
+	{
+		Style.Clear("Heading 8", this.Default.Paragraph, this.Default.Paragraph, styletype_Paragraph);
+		Style.CreateHeading(7);
+	}
+	else if (StyleId == this.Default.Headings[8])
+	{
+		Style.Clear("Heading 9", this.Default.Paragraph, this.Default.Paragraph, styletype_Paragraph);
+		Style.CreateHeading(8);
+	}
+	else if (StyleId == this.Default.ParaList)
+	{
+		Style.Clear("List Paragraph", this.Default.Paragraph, null, styletype_Paragraph);
+		Style.CreateListParagraph();
+	}
+	else if (StyleId == this.Default.Header)
+	{
+		Style.Clear("Header", this.Default.Paragraph, null, styletype_Paragraph);
+		Style.CreateHeader();
+	}
+	else if (StyleId == this.Default.Footer)
+	{
+		Style.Clear("Footer", this.Default.Paragraph, null, styletype_Paragraph);
+		Style.CreateFooter();
+	}
+	else if (StyleId == this.Default.Hyperlink)
+	{
+		Style.Clear("Hyperlink", null, null, styletype_Character);
+		Style.CreateHyperlink();
+	}
+	else if (StyleId == this.Default.NoSpacing)
+	{
+		Style.Clear("No Spacing", this.Default.Paragraph, null, styletype_Paragraph);
+		Style.CreateNoSpacing();
+	}
+	else if (StyleId === this.Default.Title)
+	{
+		Style.Clear("Title", this.Default.Paragraph, this.Default.Paragraph, styletype_Paragraph);
+		Style.CreateTitle();
+	}
+	else if (StyleId === this.Default.Subtitle)
+	{
+		Style.Clear("Subtitle", this.Default.Paragraph, this.Default.Paragraph, styletype_Paragraph);
+		Style.CreateSubtitle();
+	}
+	else if (StyleId === this.Default.Quote)
+	{
+		Style.Clear("Quote", this.Default.Paragraph, this.Default.Paragraph, styletype_Paragraph);
+		Style.CreateQuote();
+	}
+	else if (StyleId === this.Default.IntenseQuote)
+	{
+		Style.Clear("Intense Quote", this.Default.Paragraph, this.Default.Paragraph, styletype_Paragraph);
+		Style.CreateIntenseQuote();
+	}
+	else
+	{
+		this.Remove(StyleId);
+
+		if (this.LogicDocument)
+		{
+			var AllParagraphs = this.LogicDocument.GetAllParagraphsByStyle([StyleId]);
+			var Count = AllParagraphs.length;
+			for (var Index = 0; Index < Count; Index++)
+			{
+				var Para = AllParagraphs[Index];
+				Para.Style_Remove();
+			}
+		}
+	}
+	this.Update_Interface(StyleId);
+};
+CStyles.prototype.Remove_AllCustomStylesFromInterface = function()
+{
+	for (var StyleId in this.Style)
+	{
+		var Style = this.Style[StyleId];
+		if ((styletype_Paragraph === Style.GetType() || styletype_Character === Style.GetType()) && true === Style.GetQFormat())
+		{
+			this.Remove_StyleFromInterface(StyleId);
+		}
+	}
+};
+CStyles.prototype.Is_StyleDefault = function(sStyleName)
+{
+	var StyleId = this.GetStyleIdByName(sStyleName);
+	if (null === StyleId)
+		return false;
+
+	if (StyleId == this.Default.Paragraph
+		|| StyleId == this.Default.Character
+		|| StyleId == this.Default.Numbering
+		|| StyleId == this.Default.Table
+		|| StyleId == this.Default.TableGrid
+		|| StyleId == this.Default.Headings[0]
+		|| StyleId == this.Default.Headings[1]
+		|| StyleId == this.Default.Headings[2]
+		|| StyleId == this.Default.Headings[3]
+		|| StyleId == this.Default.Headings[4]
+		|| StyleId == this.Default.Headings[5]
+		|| StyleId == this.Default.Headings[6]
+		|| StyleId == this.Default.Headings[7]
+		|| StyleId == this.Default.Headings[8]
+		|| StyleId == this.Default.ParaList
+		|| StyleId == this.Default.Header
+		|| StyleId == this.Default.Footer
+		|| StyleId == this.Default.Hyperlink
+		|| StyleId == this.Default.FootnoteText
+		|| StyleId == this.Default.FootnoteTextChar
+		|| StyleId == this.Default.FootnoteReference
+		|| StyleId == this.Default.NoSpacing
+		|| StyleId == this.Default.Title
+		|| StyleId == this.Default.Subtitle
+		|| StyleId == this.Default.Quote
+		|| StyleId == this.Default.IntenseQuote)
+	{
+		return true;
+	}
+
+	return false;
+};
+CStyles.prototype.Is_DefaultStyleChanged = function(sStyleName)
+{
+	if (true != this.Is_StyleDefault(sStyleName))
+		return false;
+
+	var StyleId = this.GetStyleIdByName(sStyleName);
+	if (null === StyleId)
+		return false;
+
+	var CurrentStyle = this.Style[StyleId];
+	this.LogicDocument.TurnOffHistory();
+
+	var Style = new CStyle();
+	if (StyleId == this.Default.Paragraph)
+	{
+		Style.Clear("Normal", null, null, styletype_Paragraph);
+		Style.CreateNormal();
+	}
+	else if (StyleId == this.Default.Character)
+	{
+		Style.Clear("Default Paragraph Font", null, null, styletype_Character);
+		Style.CreateDefaultParagraphFont();
+	}
+	else if (StyleId == this.Default.Numbering)
+	{
+		Style.Clear("No List", null, null, styletype_Numbering);
+		Style.CreateNoList();
+	}
+	else if (StyleId == this.Default.Table)
+	{
+		Style.Clear("Normal Table", null, null, styletype_Table);
+		Style.Create_NormalTable();
+	}
+	else if (StyleId == this.Default.TableGrid)
+	{
+		Style.Clear("Table Grid", this.Default.Table, null, styletype_Table);
+		Style.Create_TableGrid();
+	}
+	else if (StyleId == this.Default.Headings[0])
+	{
+		Style.Clear("Heading 1", this.Default.Paragraph, this.Default.Paragraph, styletype_Paragraph);
+		Style.CreateHeading(0);
+	}
+	else if (StyleId == this.Default.Headings[1])
+	{
+		Style.Clear("Heading 2", this.Default.Paragraph, this.Default.Paragraph, styletype_Paragraph);
+		Style.CreateHeading(1);
+	}
+	else if (StyleId == this.Default.Headings[2])
+	{
+		Style.Clear("Heading 3", this.Default.Paragraph, this.Default.Paragraph, styletype_Paragraph);
+		Style.CreateHeading(2);
+	}
+	else if (StyleId == this.Default.Headings[3])
+	{
+		Style.Clear("Heading 4", this.Default.Paragraph, this.Default.Paragraph, styletype_Paragraph);
+		Style.CreateHeading(3);
+	}
+	else if (StyleId == this.Default.Headings[4])
+	{
+		Style.Clear("Heading 5", this.Default.Paragraph, this.Default.Paragraph, styletype_Paragraph);
+		Style.CreateHeading(4);
+	}
+	else if (StyleId == this.Default.Headings[5])
+	{
+		Style.Clear("Heading 6", this.Default.Paragraph, this.Default.Paragraph, styletype_Paragraph);
+		Style.CreateHeading(5);
+	}
+	else if (StyleId == this.Default.Headings[6])
+	{
+		Style.Clear("Heading 7", this.Default.Paragraph, this.Default.Paragraph, styletype_Paragraph);
+		Style.CreateHeading(6);
+	}
+	else if (StyleId == this.Default.Headings[7])
+	{
+		Style.Clear("Heading 8", this.Default.Paragraph, this.Default.Paragraph, styletype_Paragraph);
+		Style.CreateHeading(7);
+	}
+	else if (StyleId == this.Default.Headings[8])
+	{
+		Style.Clear("Heading 9", this.Default.Paragraph, this.Default.Paragraph, styletype_Paragraph);
+		Style.CreateHeading(8);
+	}
+	else if (StyleId == this.Default.ParaList)
+	{
+		Style.Clear("List Paragraph", this.Default.Paragraph, null, styletype_Paragraph);
+		Style.CreateListParagraph();
+	}
+	else if (StyleId == this.Default.Header)
+	{
+		Style.Clear("Header", this.Default.Paragraph, null, styletype_Paragraph);
+		Style.CreateHeader();
+	}
+	else if (StyleId == this.Default.Footer)
+	{
+		Style.Clear("Footer", this.Default.Paragraph, null, styletype_Paragraph);
+		Style.CreateFooter();
+	}
+	else if (StyleId == this.Default.Hyperlink)
+	{
+		Style.Clear("Hyperlink", null, null, styletype_Character);
+		Style.CreateHyperlink();
+	}
+	else if (StyleId == this.Default.NoSpacing)
+	{
+		Style.Clear("No Spacing", this.Default.Paragraph, null, styletype_Paragraph);
+		Style.CreateNoSpacing();
+	}
+	else if (StyleId === this.Default.Title)
+	{
+		Style.Clear("Title", this.Default.Paragraph, this.Default.Paragraph, styletype_Paragraph);
+		Style.CreateTitle();
+	}
+	else if (StyleId === this.Default.Subtitle)
+	{
+		Style.Clear("Subtitle", this.Default.Paragraph, this.Default.Paragraph, styletype_Paragraph);
+		Style.CreateSubtitle();
+	}
+	else if (StyleId === this.Default.Quote)
+	{
+		Style.Clear("Quote", this.Default.Paragraph, this.Default.Paragraph, styletype_Paragraph);
+		Style.CreateQuote();
+	}
+	else if (StyleId === this.Default.IntenseQuote)
+	{
+		Style.Clear("Intense Quote", this.Default.Paragraph, this.Default.Paragraph, styletype_Paragraph);
+		Style.CreateIntenseQuote();
+	}
+
+	this.LogicDocument.TurnOnHistory();
+
+	return (true === Style.Is_Equal(CurrentStyle) ? false : true);
+};
 /**
  * Получаем идентификатор стиля по умолчанию для параграфов
  * @returns {string}

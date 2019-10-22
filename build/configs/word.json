@@ -213,7 +213,6 @@
 		],
 		"private": [
 			"../common/Private/versionHistory.js",
-			"../word/Private/StyleManager.js",
 			"../word/Private/TrackRevisions.js",
 			"../common/Private/Locks.js"
 		],
