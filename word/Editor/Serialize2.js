@@ -6161,6 +6161,9 @@ function BinaryDocumentTableWriter(memory, doc, oMapCommentId, oNumIdMap, copyPa
 		if (oSdt.IsPicture()) {
 			oThis.bs.WriteItem(c_oSerSdt.Type, function (){oThis.memory.WriteByte(ESdtType.sdttypePicture);});
 		}
+		else if (undefined !== type) {
+			oThis.bs.WriteItem(c_oSerSdt.Type, function (){oThis.memory.WriteByte(type);});
+		}
 	};
 	this.WriteSdtCheckBox = function (val)
 	{

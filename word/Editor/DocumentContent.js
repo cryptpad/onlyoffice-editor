@@ -1508,48 +1508,52 @@ CDocumentContent.prototype.GetAllParagraphs = function(Props, ParaArray)
 
 	return arrParagraphs;
 };
-// Специальная функция, используемая в колонтитулах для добавления номера страницы
-// При этом удаляются все параграфы. Добавляются два новых
-CDocumentContent.prototype.HdrFtr_AddPageNum             = function(Align, StyleId)
+/**
+ * Специальный пресет с номером страницы для колонтитула
+ * @param nAlignType
+ * @param sStyleId
+ */
+CDocumentContent.prototype.SetHdrFtrPageNum = function(nAlignType, sStyleId)
 {
-    this.RemoveSelection();
+	var arrDrawings = this.GetAllDrawingObjects();
+	var oWatermark  = null;
 
-    this.CurPos =
-    {
-        X          : 0,
-        Y          : 0,
-        ContentPos : 0,
-        RealX      : 0,
-        RealY      : 0,
-        Type       : docpostype_Content
-    };
+	for (var nIndex = 0, nCount = arrDrawings.length; nIndex < nCount; ++nIndex)
+	{
+		if (arrDrawings[nIndex].IsWatermark())
+		{
+			oWatermark = arrDrawings[nIndex];
+			break;
+		}
+	}
 
-    this.Selection.Use = false;
+	this.ClearContent(false);
 
-    // Удаляем все элементы
-    this.Internal_Content_RemoveAll();
+	var oPara1 = new Paragraph(this.DrawingDocument, this, this.bPresentation === true);
+	var oPara2 = new Paragraph(this.DrawingDocument, this, this.bPresentation === true);
 
-    // Добавляем 2 новых параграфа
-    var Para1 = new Paragraph(this.DrawingDocument, this, this.bPresentation === true);
-    var Para2 = new Paragraph(this.DrawingDocument, this, this.bPresentation === true);
+	this.AddToContent(0, oPara1);
+	this.AddToContent(1, oPara2);
 
-    this.Internal_Content_Add(0, Para1);
-    this.Internal_Content_Add(1, Para2);
+	oPara1.SetParagraphStyleById(sStyleId);
+	oPara2.SetParagraphStyleById(sStyleId);
 
-    Para1.Set_DocumentPrev(null);
-    Para1.Set_DocumentNext(Para2);
-    Para2.Set_DocumentPrev(Para1);
-    Para2.Set_DocumentNext(null);
+	if (oWatermark)
+	{
+		var oSdt = new CInlineLevelSdt();
+		oSdt.ReplacePlaceHolderWithContent();
+		oSdt.SetDocPartObj(undefined, "Watermarks", true);
+		oPara1.AddToContent(0, oSdt);
 
-    Para1.Style_Add(StyleId);
-    Para2.Style_Add(StyleId);
+		var oRun = oSdt.GetFirstRun();
+		if (oRun)
+			oRun.AddToContent(0, oWatermark);
+	}
 
-    Para1.Set_Align(Align, false);
-    var Run = new ParaRun(Para1, false);
-    Run.Add_ToContent(0, new ParaPageNum());
-    Para1.Add_ToContent(0, Run);
-
-    this.Recalculate();
+	oPara1.SetParagraphAlign(nAlignType);
+	var oRun = new ParaRun(oPara1, false);
+	oRun.AddToContent(0, new ParaPageNum());
+	oPara1.AddToContent(0, oRun);
 };
 CDocumentContent.prototype.Clear_Content                 = function()
 {

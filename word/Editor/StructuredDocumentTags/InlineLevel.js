@@ -127,6 +127,9 @@ CInlineLevelSdt.prototype.Copy = function(isUseSelection, oPr)
 	oContentControl.SetAppearance(this.GetAppearance());
 	oContentControl.SetColor(this.GetColor());
 
+	if (undefined !== this.Pr.DocPartObj)
+		oContentControl.SetDocPartObj(this.Pr.DocPartObj.Category, this.Pr.DocPartObj.Gallery, this.Pr.DocPartObj.Unique);
+
 	if (undefined !== this.Pr.CheckBox)
 		oContentControl.SetCheckBoxPr(this.Pr.CheckBox);
 
@@ -542,6 +545,9 @@ CInlineLevelSdt.prototype.SetPr = function(oPr)
 	this.SetContentControlLock(oPr.Lock);
 	this.SetContentControlId(oPr.Id);
 
+	if (undefined !== oPr.DocPartObj)
+		this.SetDocPartObj(oPr.DocPartObj.Category, oPr.DocPartObj.Gallery, oPr.DocPartObj.Unique);
+
 	if (undefined !== oPr.Appearance)
 		this.SetAppearance(oPr.Appearance);
 
@@ -627,6 +633,13 @@ CInlineLevelSdt.prototype.SetLabel = function(sLabel)
 CInlineLevelSdt.prototype.GetLabel = function()
 {
 	return (undefined !== this.Pr.Label ? this.Pr.Label : "");
+};
+CInlineLevelSdt.prototype.SetDocPartObj = function(sCategory, sGallery, isUnique)
+{
+	History.Add(new CChangesSdtPrDocPartObj(this, this.Pr.DocPartObj, {Category : sCategory, Gallery : sGallery, Unique : isUnique}));
+	this.Pr.DocPartObj.Category = sCategory;
+	this.Pr.DocPartObj.Gallery  = sGallery;
+	this.Pr.DocPartObj.Unique   = isUnique;
 };
 CInlineLevelSdt.prototype.SetContentControlLock = function(nLockType)
 {

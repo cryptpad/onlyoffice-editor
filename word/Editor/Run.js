@@ -11373,7 +11373,14 @@ ParaRun.prototype.CanDeleteInReviewMode = function()
 
 	return ((reviewtype_Add === nReviewType && oReviewInfo.IsCurrentUser() && (!oReviewInfo.IsMovedTo() || this.Paragraph.LogicDocument.TrackMoveRelocation)) || (reviewtype_Remove === nReviewType && oReviewInfo.IsPrevAddedByCurrentUser()));
 };
-
+/**
+ * Данная функция используется в иерархии классов для поиска первого рана
+ * @returns {ParaRun}
+ */
+ParaRun.prototype.GetFirstRun = function()
+{
+	return this;
+};
 
 function CParaRunStartState(Run)
 {

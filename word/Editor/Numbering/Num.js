@@ -814,7 +814,7 @@ CNum.prototype.FillFromAscNum = function(oAscNum)
 	}
 };
 /**
- * Проверяем похожие ли две заданные нумерации
+ * Проверяем похожи ли две заданные нумерации
  * @param oNum {CNum}
  * @returns {boolean}
  */

@@ -434,16 +434,16 @@ CHeaderFooter.prototype =
         return this.Content.CheckRange( X0, Y0, X1, Y1, _Y0, _Y1, X_lf, X_rf, 0, false, bMathWrap );
     },
 
-    AddPageNum : function(Align)
-    {
-        var StyleId = null;
-        if ( this.Type === hdrftr_Header )
-            StyleId = this.Get_Styles().Get_Default_Header();
-        else
-            StyleId = this.Get_Styles().Get_Default_Footer();
+    AddPageNum : function(nAlign)
+	{
+		var StyleId = null;
+		if (this.Type === hdrftr_Header)
+			StyleId = this.Get_Styles().Get_Default_Header();
+		else
+			StyleId = this.Get_Styles().Get_Default_Footer();
 
-        this.Content.HdrFtr_AddPageNum( Align, StyleId );
-    },
+		this.Content.SetHdrFtrPageNum(nAlign, StyleId);
+	},
 
     IsCell : function(isReturnCell)
     {

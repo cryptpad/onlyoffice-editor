@@ -401,6 +401,21 @@ Paragraph.prototype.Get_FirstTextPr2 = function()
 	}
     return this.Get_CompiledPr2(false).TextPr;
 };
+/**
+ * Получаем самый первый ран в параграфе
+ * @returns {?ParaRun}
+ */
+Paragraph.prototype.GetFirstRun = function()
+{
+	for (var nIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex)
+	{
+		var oRun = this.Content[nIndex].GetFirstRun();
+		if (oRun)
+			return oRun;
+	}
+
+	return null;
+};
 Paragraph.prototype.GetAllDrawingObjects = function(arrDrawingObjects)
 {
 	if (!arrDrawingObjects)

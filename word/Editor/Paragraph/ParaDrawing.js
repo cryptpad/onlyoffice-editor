@@ -721,12 +721,30 @@ ParaDrawing.prototype.IsWatermark = function()
 	{
 		return false;
 	}
-	if(!oContent.IsBlockLevelSdtContent())
-	{
+
+	var oRun = this.Get_Run();
+	if (!oRun)
 		return false;
+
+	var arrDocPos = oRun.GetDocumentPositionFromObject();
+	for (var nIndex = 0, nCount = arrDocPos.length; nIndex < nCount; ++nIndex)
+	{
+		var oClass = arrDocPos[nIndex].Class;
+		var oSdt   = null;
+		if (oClass instanceof CDocumentContent && oClass.Parent instanceof CBlockLevelSdt)
+			oSdt = oClass.Parent;
+		else if (oClass instanceof CInlineLevelSdt)
+			oSdt = oClass;
+
+		if (oSdt)
+		{
+			var oPr = oSdt.Pr;
+			if (AscCommon.isRealObject(oPr) && AscCommon.isRealObject(oPr.DocPartObj) && oPr.DocPartObj.Gallery === "Watermarks")
+				return true;
+		}
 	}
-	var oPr = oContent.Parent.Pr;
-	return AscCommon.isRealObject(oPr) && AscCommon.isRealObject(oPr.DocPartObj) && oPr.DocPartObj.Gallery === "Watermarks";
+
+	return false;
 };
 ParaDrawing.prototype.Set_ParaMath = function(ParaMath)
 {

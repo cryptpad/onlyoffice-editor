@@ -714,6 +714,15 @@ CParagraphContentBase.prototype.IsSolid = function()
 CParagraphContentBase.prototype.CorrectContentPos = function()
 {
 };
+/**
+ * Получаем самый первый ран в параграфе
+ * @returns {?ParaRun}
+ */
+CParagraphContentBase.prototype.GetFirstRun = function()
+{
+	return null;
+};
+
 
 /**
  * Это базовый класс для элементов содержимого(контент) параграфа, у которых есть свое содержимое.
@@ -3976,6 +3985,18 @@ CParagraphContentWithParagraphLikeContent.prototype.CorrectContentPos = function
 
 	this.Content[this.State.ContentPos].CorrectContentPos();
 };
+CParagraphContentWithParagraphLikeContent.prototype.GetFirstRun = function()
+{
+	for (var nIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex)
+	{
+		var oRun = this.Content[nIndex].GetFirstRun();
+		if (oRun)
+			return oRun;
+	}
+
+	return null;
+};
+
 //----------------------------------------------------------------------------------------------------------------------
 // Функции, которые должны быть реализованы в классах наследниках
 //----------------------------------------------------------------------------------------------------------------------
