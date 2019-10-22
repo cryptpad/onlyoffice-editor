@@ -4093,8 +4093,20 @@
 			this._calcPagesPrint(range, printOptions, null, printPages, null, null, true);
 		}
 
+		var pageSetupModel = printOptions.asc_getPageSetup();
+		var fitToWidth = pageSetupModel.asc_getFitToWidth();
+		var fitToHeight = pageSetupModel.asc_getFitToHeight();
+		var drawProp;
+		if(fitToWidth >= 1 && fitToHeight >= 1) {
+			return;
+		} else if(fitToWidth >= 1) {
+			drawProp = 1;
+		} else if(fitToHeight >= 1) {
+			drawProp = 2;
+		}
+
 		for (var i = 0, l = printPages.length; i < l; ++i) {
-			this._drawElements(this._drawSelectionElement, printPages[i].pageRange, AscCommonExcel.selectionLineType.Dash, new CColor(0, 0, 0));
+			this._drawElements(this._drawSelectionElement, printPages[i].pageRange, AscCommonExcel.selectionLineType.Dash, new CColor(0, 0, 0), undefined, drawProp);
 		}
 	};
 
@@ -4892,6 +4904,16 @@
         var drawRightSide = oIntersection.c2 === range.c2;
         var drawTopSide = oIntersection.r1 === range.r1;
         var drawBottomSide = oIntersection.r2 === range.r2;
+
+        if(args[4]) {
+        	if(args[4] === 1) {
+				drawLeftSide = false;
+				drawRightSide = false;
+			} else if(args[4] === 2){
+				drawTopSide = false;
+				drawBottomSide = false;
+			}
+		}
 
         var x1 = this._getColLeft(oIntersection.c1) - offsetX;
         var x2 = this._getColLeft(oIntersection.c2 + 1) - offsetX;
