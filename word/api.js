@@ -7795,51 +7795,153 @@ background-repeat: no-repeat;\
 	//----------------------------------------------------------------------------------------------------------------------
 	asc_docs_api.prototype.asc_StartMailMerge              = function(oData)
 	{
+		this.mailMergeFileData = oData;
+		this.asc_DownloadAs(new Asc.asc_CDownloadOptions(Asc.c_oAscFileType.JSON));
 	};
 	asc_docs_api.prototype.asc_StartMailMergeByList        = function(aList)
 	{
+		if (!aList || !aList.length || aList.length <= 0)
+			aList = [[]];
+
+		var aFields = aList[0];
+		if (!aFields || !aFields.length || aFields.length <= 0)
+			aFields = [];
+
+		// Пробегаемся по названиям полей и делаем следующее:
+		// Если название пустой, тогда задем ему имя "F<номер столбца>"
+		// Если название совпадает, тогда добавляем ему число, чтобы имя стало уникальным.
+
+		var UsedNames = {};
+		for (var Pos = 0, Count = aFields.length; Pos < Count; Pos++)
+		{
+			if ("" === aFields[Pos])
+				aFields[Pos] = "F" + (Pos + 1);
+
+			if (undefined !== UsedNames[aFields[Pos]])
+			{
+				var Add = 1;
+				var NewName = aFields[Pos] + Add;
+				while (undefined !== UsedNames[NewName])
+				{
+					Add++;
+					NewName = aFields[Pos] + Add;
+				}
+				aFields[Pos] = NewName;
+			}
+
+			UsedNames[aFields[Pos]] = 1;
+		}
+
+		var DstList = [];
+		var FieldsCount = aFields.length;
+		for (var Index = 1, Count = aList.length; Index < Count; Index++)
+		{
+			var oSrcElement = aList[Index];
+			var oDstElement = {};
+			for (var FieldIndex = 0; FieldIndex < FieldsCount; FieldIndex++)
+			{
+				var sFieldName = aFields[FieldIndex];
+				oDstElement[sFieldName] = oSrcElement[FieldIndex];
+			}
+
+			DstList.push(oDstElement);
+		}
+
+		this.WordControl.m_oLogicDocument.Start_MailMerge(DstList, aFields);
 	};
 	asc_docs_api.prototype.asc_GetReceptionsCount          = function()
 	{
+		return this.WordControl.m_oLogicDocument.Get_MailMergeReceptionsCount();
 	};
 	asc_docs_api.prototype.asc_GetMailMergeFieldsNameList  = function()
 	{
+		return this.WordControl.m_oLogicDocument.Get_MailMergeFieldsNameList();
 	};
 	asc_docs_api.prototype.asc_AddMailMergeField           = function(Name)
 	{
+		this.WordControl.m_oLogicDocument.Add_MailMergeField(Name);
 	};
 	asc_docs_api.prototype.asc_SetHighlightMailMergeFields = function(Value)
 	{
+		this.WordControl.m_oLogicDocument.Set_HightlighMailMergeFields(Value);
 	};
 	asc_docs_api.prototype.asc_PreviewMailMergeResult      = function(Index)
 	{
+		this.WordControl.m_oLogicDocument.Preview_MailMergeResult(Index);
 	};
 	asc_docs_api.prototype.asc_EndPreviewMailMergeResult   = function()
 	{
+		this.WordControl.m_oLogicDocument.EndPreview_MailMergeResult();
 	};
 	asc_docs_api.prototype.sync_StartMailMerge             = function()
 	{
+		this.sendEvent("asc_onStartMailMerge");
 	};
 	asc_docs_api.prototype.sync_PreviewMailMergeResult     = function(Index)
 	{
+		this.sendEvent("asc_onPreviewMailMergeResult", Index);
 	};
 	asc_docs_api.prototype.sync_EndPreviewMailMergeResult  = function()
 	{
+		this.sendEvent("asc_onEndPreviewMailMergeResult");
 	};
 	asc_docs_api.prototype.sync_HighlightMailMergeFields   = function(Value)
 	{
+		this.sendEvent("asc_onHighlightMailMergeFields", Value);
 	};
 	asc_docs_api.prototype.asc_getMailMergeData            = function()
 	{
+		return this.WordControl.m_oLogicDocument.Get_MailMergeReceptionsList();
 	};
 	asc_docs_api.prototype.asc_setMailMergeData            = function(aList)
 	{
+		this.asc_StartMailMergeByList(aList);
 	};
 	asc_docs_api.prototype.asc_sendMailMergeData           = function(oData)
 	{
+		var t = this;
+		var actionType = Asc.c_oAscAsyncAction.SendMailMerge;
+		oData.put_UserId(this.documentUserId);
+		oData.put_RecordCount(oData.get_RecordTo() - oData.get_RecordFrom() + 1);
+		var options = new Asc.asc_CDownloadOptions(Asc.c_oAscFileType.TXT);
+		options.oMailMergeSendData = oData;
+		options.callback = function(input) {
+			if (null != input && "sendmm" === input["type"])
+			{
+				if ("ok" != input["status"])
+				{
+					t.sendEvent("asc_onError", AscCommon.mapAscServerErrorToAscError(parseInt(input["data"])),
+						c_oAscError.Level.NoCritical);
+				}
+			}
+			else
+			{
+				t.sendEvent("asc_onError", c_oAscError.ID.Unknown, c_oAscError.Level.NoCritical);
+			}
+			t.sync_EndAction(Asc.c_oAscAsyncActionType.BlockInteraction, actionType);
+		};
+		this.downloadAs(actionType, options);
 	};
 	asc_docs_api.prototype.asc_GetMailMergeFiledValue      = function(nIndex, sName)
 	{
+		return this.WordControl.m_oLogicDocument.Get_MailMergeFieldValue(nIndex, sName);
+	};
+	asc_docs_api.prototype.asc_DownloadAsMailMerge         = function(typeFile, StartIndex, EndIndex, bIsDownload)
+	{
+		var oDocumentMailMerge = this.WordControl.m_oLogicDocument.Get_MailMergedDocument(StartIndex, EndIndex);
+		if (null != oDocumentMailMerge)
+		{
+			var actionType = null;
+			var options = new Asc.asc_CDownloadOptions(typeFile, true);
+			options.oDocumentMailMerge = oDocumentMailMerge;
+			options.errorDirect = c_oAscError.ID.MailMergeSaveFile;
+			if (bIsDownload) {
+				actionType = Asc.c_oAscAsyncAction.DownloadMerge;
+				options.isDownloadEvent = false;
+			}
+			this.downloadAs(actionType, options);
+		}
+		return null != oDocumentMailMerge;
 	};
 	//----------------------------------------------------------------------------------------------------------------------
 	// Работаем со стилями
