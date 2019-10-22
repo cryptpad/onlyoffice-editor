@@ -19857,7 +19857,9 @@
 		var section = this.sections[curType];
 
 		if(this.cellEditor) {
-			this.cellEditor.close();
+			if(section[c_nPortionLeft] && section[c_nPortionLeft].canvasObj) {
+				this.click(section[c_nPortionLeft].canvasObj.idParent);
+			}
 		}
 
 		this.curParentFocusId = null;
