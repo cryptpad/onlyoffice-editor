@@ -1906,7 +1906,8 @@
 		//this.fitToPages(1, 1);
 
 		var range, maxCell, t = this;
-		var printArea = !ignorePrintArea && this.model.workbook.getDefinesNames("Print_Area", this.model.getId());
+		var _printArea = this.model.workbook.getDefinesNames("Print_Area", this.model.getId());
+		var printArea = !ignorePrintArea && _printArea;
 
 		this.recalcPrintScale();
 		//this.model.PagePrintOptions.pageSetup.scale  = 145;
@@ -1927,10 +1928,10 @@
 		}
 
 		var printAreaRanges = !printOnlySelection && printArea ? getPrintAreaRanges() : null;
+		var pageSetup = pageOptions.asc_getPageSetup();
+		var fitToWidth = pageSetup.asc_getFitToWidth();
+		var fitToHeight = pageSetup.asc_getFitToHeight();
 		if (printOnlySelection) {
-			var pageSetup = pageOptions.asc_getPageSetup();
-			var fitToWidth = pageSetup.asc_getFitToWidth();
-			var fitToHeight = pageSetup.asc_getFitToHeight();
 			var tempPrintScale;
 			//подменяем scale на временный для печати выделенной области
 			if(fitToWidth || fitToHeight) {
@@ -1988,7 +1989,13 @@
 			maxRow = Math.max(maxRow, maxCell.row);
 
 			range = new asc_Range(0, 0, maxCol, maxRow);
-			this._calcPagesPrint(range, pageOptions, indexWorksheet, arrPages);
+
+			//подменяем scale на временный для печати выделенной области
+			if(_printArea && ignorePrintArea && (fitToWidth || fitToHeight)) {
+				tempPrintScale = this.calcPrintScale(fitToWidth, fitToHeight, null, ignorePrintArea);
+			}
+
+			this._calcPagesPrint(range, pageOptions, indexWorksheet, arrPages, tempPrintScale);
 		}
 
 		if(this.groupWidth || this.groupHeight) {
@@ -2337,7 +2344,7 @@
 		this.model.setFitToPage(!fitToHeightAuto || !fitToWidthAuto);
 	};
 
-	WorksheetView.prototype.calcPrintScale = function(width, height, bSelection) {
+	WorksheetView.prototype.calcPrintScale = function(width, height, bSelection, ignorePrintArea) {
 		var pageOptions = this.model.PagePrintOptions;
 		var pageMargins, pageSetup, pageGridLines, pageHeadings;
 		if (pageOptions) {
@@ -2466,7 +2473,7 @@
 			calcScaleByRanges(this._getSelection().ranges);
 		} else {
 			//TODO ignorePrintArea - необходимо протащить флаг!
-			var printArea = /*!ignorePrintArea &&*/ this.model.workbook.getDefinesNames("Print_Area", this.model.getId());
+			var printArea = !ignorePrintArea && this.model.workbook.getDefinesNames("Print_Area", this.model.getId());
 			var getPrintAreaRanges = function() {
 				var res = false;
 				AscCommonExcel.executeInR1C1Mode(false, function () {
