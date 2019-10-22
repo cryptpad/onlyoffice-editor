@@ -6121,6 +6121,31 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype.asc_addComment = function(AscCommentData)
 	{
+		if (true === AscCommon.CollaborativeEditing.Get_GlobalLock())
+			return;
+
+		var oLogicDocument = this.WordControl.m_oLogicDocument;
+
+		if (!oLogicDocument)
+			return;
+
+		// Комментарий без цитаты позволяем добавить всегда
+		if (true !== this.can_AddQuotedComment() || false === oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Paragraph_Content, null, true, oLogicDocument.IsEditCommentsMode()))
+		{
+			var CommentData = new CCommentData();
+			CommentData.Read_FromAscCommentData(AscCommentData);
+
+			this.WordControl.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_AddComment);
+			var Comment = this.WordControl.m_oLogicDocument.AddComment(CommentData, AscCommentData.asc_getDocumentFlag());
+			if (null != Comment)
+			{
+				this.sync_AddComment(Comment.Get_Id(), CommentData);
+			}
+
+			this.WordControl.m_oLogicDocument.FinalizeAction();
+
+			return Comment.Get_Id();
+		}
 	};
 
 	asc_docs_api.prototype.asc_removeComment = function(Id)
@@ -6176,6 +6201,52 @@ background-repeat: no-repeat;\
 			this.WordControl.m_oLogicDocument.ShowComment(Id);
 		else
 			this.WordControl.m_oLogicDocument.ShowComment([Id]);
+	};
+
+	asc_docs_api.prototype.asc_GetCommentsReportByAuthors = function()
+	{
+		var oReport = {};
+
+		function privateProcessCommentData(isTopComment, oCommentData)
+		{
+			var sUserName = oCommentData.GetUserName();
+			var nDateTime = oCommentData.GetDateTime();
+
+			if (!oReport[sUserName])
+				oReport[sUserName] = [];
+
+			var arrUserComments = oReport[sUserName];
+
+			var nPos = 0;
+			var nLen = arrUserComments.length;
+			while (nPos < nLen)
+			{
+				if (nDateTime < arrUserComments[nPos].Data.GetDateTime())
+					break;
+
+				nPos++;
+			}
+
+			arrUserComments.splice(nPos, 0, {Top : isTopComment, Data : oCommentData});
+
+			for (var nIndex = 0, nCount = oCommentData.GetRepliesCount(); nIndex < nCount; ++nIndex)
+			{
+				privateProcessCommentData(false, oCommentData.GetReply(nIndex))
+			}
+		}
+
+		var oLogicDocument = this.WordControl.m_oLogicDocument;
+		if (!oLogicDocument)
+			return oReport;
+
+		var oAllComments = oLogicDocument.Comments.GetAllComments();
+		for (var sId in oAllComments)
+		{
+			var oComment = oAllComments[sId];
+			privateProcessCommentData(true, oComment.GetData());
+		}
+
+		return oReport;
 	};
 
 	asc_docs_api.prototype.can_AddQuotedComment = function()
@@ -10209,6 +10280,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_changeComment']                         = asc_docs_api.prototype.asc_changeComment;
 	asc_docs_api.prototype['asc_selectComment']                         = asc_docs_api.prototype.asc_selectComment;
 	asc_docs_api.prototype['asc_showComment']                           = asc_docs_api.prototype.asc_showComment;
+	asc_docs_api.prototype['asc_GetCommentsReportByAuthors']            = asc_docs_api.prototype.asc_GetCommentsReportByAuthors;
 	asc_docs_api.prototype['can_AddQuotedComment']                      = asc_docs_api.prototype.can_AddQuotedComment;
 	asc_docs_api.prototype['sync_RemoveComment']                        = asc_docs_api.prototype.sync_RemoveComment;
 	asc_docs_api.prototype['sync_AddComment']                           = asc_docs_api.prototype.sync_AddComment;
@@ -10358,7 +10430,6 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_continueSaving']                        = asc_docs_api.prototype.asc_continueSaving;
 	asc_docs_api.prototype['asc_undoAllChanges']                        = asc_docs_api.prototype.asc_undoAllChanges;
 	asc_docs_api.prototype['asc_CloseFile']                             = asc_docs_api.prototype.asc_CloseFile;
-	asc_docs_api.prototype['asc_addComment']                            = asc_docs_api.prototype.asc_addComment;
 	asc_docs_api.prototype['asc_SetFastCollaborative']                  = asc_docs_api.prototype.asc_SetFastCollaborative;
 	asc_docs_api.prototype['asc_isOffline']                             = asc_docs_api.prototype.asc_isOffline;
 	asc_docs_api.prototype['asc_getUrlType']                            = asc_docs_api.prototype.asc_getUrlType;

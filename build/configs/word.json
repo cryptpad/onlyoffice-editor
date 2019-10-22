@@ -213,7 +213,6 @@
 		],
 		"private": [
 			"../common/Private/versionHistory.js",
-			"../word/Private/comments.js",
 			"../word/Private/StyleManager.js",
 			"../word/Private/MailMerge.js",
 			"../word/Private/TrackRevisions.js",
