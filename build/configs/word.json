@@ -205,6 +205,7 @@
 
 			"../word/apiBuilder.js",
 
+			"../common/versionHistory.js",
 			"../common/clipboard_base.js",
 			"../common/text_input.js",
 			"../common/Drawings/Format/OleObject.js",
@@ -212,7 +213,6 @@
 			"../common/plugins.js"
 		],
 		"private": [
-			"../common/Private/versionHistory.js",
 			"../common/Private/Locks.js"
 		],
 		"desktop": {

@@ -115,35 +115,3 @@
   prot["asc_setIsRequested"] = prot.asc_setIsRequested;
   prot["asc_setServerVersion"] = prot.asc_setServerVersion;
 })(window);
-
-AscCommon.baseEditorsApi.prototype.asc_showRevision = function(newObj) {
-  if (!newObj.docId) {
-    return;
-  }
-  if (this.isCoAuthoringEnable) {
-    this.asc_coAuthoringDisconnect();
-  }
-
-  var bUpdate = true;
-  if (null === this.VersionHistory) {
-    this.VersionHistory = new window["Asc"].asc_CVersionHistory(newObj);
-  } else {
-    bUpdate = this.VersionHistory.update(newObj);
-  }
-  // ToDo должно быть все общее
-  if (bUpdate) {
-    this.asc_CloseFile();
-
-    this.DocInfo.put_Id(this.VersionHistory.docId);
-    this.DocInfo.put_Url(this.VersionHistory.url);
-    this.documentUrlChanges = this.VersionHistory.urlChanges;
-    this.asc_setDocInfo(this.DocInfo);
-    this.asc_LoadDocument(this.VersionHistory);
-  } else if (this.VersionHistory.currentChangeId < newObj.currentChangeId) {
-    // Нужно только добавить некоторые изменения
-    AscCommon.CollaborativeEditing.Clear_CollaborativeMarks();
-    editor.VersionHistory.applyChanges(editor);
-    AscCommon.CollaborativeEditing.Apply_Changes();
-  }
-};
-AscCommon.baseEditorsApi.prototype['asc_showRevision'] = AscCommon.baseEditorsApi.prototype.asc_showRevision;
