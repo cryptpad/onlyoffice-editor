@@ -40,8 +40,6 @@ var changestype_Drawing_Props = AscCommon.changestype_Drawing_Props;
 var g_oTableId = AscCommon.g_oTableId;
 var isRealObject = AscCommon.isRealObject;
 var History = AscCommon.History;
-var locktype_None = AscCommon.locktype_None;
-var locktype_Mine = AscCommon.locktype_Mine;
 
 var CreateUnifillSolidFillSchemeColor = AscFormat.CreateUnifillSolidFillSchemeColor;
 
@@ -10713,7 +10711,7 @@ CPresentation.prototype =
 
         if(CheckType === AscCommon.changestype_Drawing_Props)
         {
-            if(cur_slide.deleteLock.Lock.Type !== locktype_Mine && cur_slide.deleteLock.Lock.Type !== locktype_None)
+            if(cur_slide.deleteLock.Lock.Type !== AscCommon.locktype_Mine && cur_slide.deleteLock.Lock.Type !== AscCommon.locktype_None)
                 return true;
             var selected_objects = oController.selectedObjects;
             for(var i = 0; i < selected_objects.length; ++i)
@@ -10757,7 +10755,7 @@ CPresentation.prototype =
             }
             else
             {
-                if(cur_slide.deleteLock.Lock.Type !== locktype_Mine && cur_slide.deleteLock.Lock.Type !== locktype_None)
+                if(cur_slide.deleteLock.Lock.Type !== AscCommon.locktype_Mine && cur_slide.deleteLock.Lock.Type !== AscCommon.locktype_None)
                     return true;
                 var check_obj =
                     {
@@ -10771,7 +10769,7 @@ CPresentation.prototype =
         }
         if(CheckType === AscCommon.changestype_AddShapes)
         {
-            if(cur_slide.deleteLock.Lock.Type !== locktype_Mine && cur_slide.deleteLock.Lock.Type !== locktype_None)
+            if(cur_slide.deleteLock.Lock.Type !== AscCommon.locktype_Mine && cur_slide.deleteLock.Lock.Type !== AscCommon.locktype_None)
                 return true;
             for(var i = 0; i < AdditionalData.length; ++i)
             {
@@ -10814,7 +10812,7 @@ CPresentation.prototype =
                 }
                 if(AscCommon.isRealObject(check_slide))
                 {
-                    if(check_slide.deleteLock.Lock.Type !== locktype_Mine && check_slide.deleteLock.Lock.Type !== locktype_None)
+                    if(check_slide.deleteLock.Lock.Type !== AscCommon.locktype_Mine && check_slide.deleteLock.Lock.Type !== AscCommon.locktype_None)
                         return true;
                     var check_obj =
                         {
@@ -10913,7 +10911,7 @@ CPresentation.prototype =
 
         if(CheckType === AscCommon.changestype_Text_Props)
         {
-            if(cur_slide.deleteLock.Lock.Type !== locktype_Mine && cur_slide.deleteLock.Lock.Type !== locktype_None)
+            if(cur_slide.deleteLock.Lock.Type !== AscCommon.locktype_Mine && cur_slide.deleteLock.Lock.Type !== AscCommon.locktype_None)
                 return true;
             var selected_objects = oController.selectedObjects;
             for(var i = 0; i < selected_objects.length; ++i)

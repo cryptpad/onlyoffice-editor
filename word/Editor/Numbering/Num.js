@@ -838,6 +838,36 @@ CNum.prototype.IsSimilar = function(oNum)
 CNum.prototype.Refresh_RecalcData = function(Data)
 {
 };
+CNum.prototype.Document_Is_SelectionLocked = function(nCheckType)
+{
+	return this.IsSelectionLocked(nCheckType);
+};
+CNum.prototype.IsSelectionLocked = function(nCheckType)
+{
+	switch (nCheckType)
+	{
+		case AscCommon.changestype_Paragraph_Content:
+		case AscCommon.changestype_Paragraph_Properties:
+		case AscCommon.changestype_Paragraph_AddText:
+		case AscCommon.changestype_Paragraph_TextProperties:
+		case AscCommon.changestype_ContentControl_Add:
+		{
+			this.Lock.Check(this.Get_Id());
+			break;
+		}
+		case AscCommon.changestype_Document_Content:
+		case AscCommon.changestype_Document_Content_Add:
+		case AscCommon.changestype_Image_Properties:
+		{
+			AscCommon.CollaborativeEditing.Add_CheckLock(true);
+			break;
+		}
+	}
+
+	var oAbstractNum = this.Numbering.GetAbstractNum(this.AbstractNumId);
+	if (oAbstractNum)
+		oAbstractNum.IsSelectionLocked(nCheckType);
+};
 //----------------------------------------------------------------------------------------------------------------------
 // Функции для работы с совместным редактирования
 //----------------------------------------------------------------------------------------------------------------------
