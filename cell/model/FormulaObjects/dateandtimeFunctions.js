@@ -1954,7 +1954,17 @@
 
 			while (daysCounter !== workdaysCount) {
 				currentDate = new cDate(currentDate.getTime() + diff * c_msPerDay);
-				if (currentDate.getUTCDay() !== 0 && currentDate.getUTCDay() !== 6 && !_includeInHolidays(currentDate, holidays)) {
+
+				//TODO поверить когда переходим через argVal0 = 60
+				var dayOfWeek;
+				var argVal0 = argClone && argClone[0] ? argClone[0].getValue() : null;
+				if(argVal0 !== null && argVal0 < 60) {
+					dayOfWeek = ( currentDate.getUTCDay() > 0) ? currentDate.getUTCDay() - 1 : 6;
+				} else {
+					dayOfWeek = currentDate.getUTCDay();
+				}
+
+				if (dayOfWeek !== 0 && dayOfWeek !== 6 && !_includeInHolidays(currentDate, holidays)) {
 					daysCounter += diff;
 				}
 			}
