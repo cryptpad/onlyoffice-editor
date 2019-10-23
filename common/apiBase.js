@@ -842,9 +842,20 @@
 	};
 	baseEditorsApi.prototype._onEndPermissions                   = function()
 	{
-		if (this.isOnFirstConnectEnd && this.isOnLoadLicense)
-		{
-			this.sendEvent('asc_onGetEditorPermissions', new AscCommon.asc_CAscEditorPermissions());
+		if (this.isOnFirstConnectEnd && this.isOnLoadLicense) {
+			var oResult = new AscCommon.asc_CAscEditorPermissions();
+			if (null !== this.licenseResult) {
+				var type = this.licenseResult['type'];
+				oResult.setLicenseType(type);
+				oResult.setCanBranding(this.licenseResult['branding']);
+				oResult.setCustomization(this.licenseResult['customization']);
+				oResult.setIsLight(this.licenseResult['light']);
+				oResult.setLicenseMode(this.licenseResult['mode']);
+				oResult.setRights(this.licenseResult['rights']);
+				oResult.setBuildVersion(this.licenseResult['buildVersion']);
+				oResult.setBuildNumber(this.licenseResult['buildNumber']);
+			}
+			this.sendEvent('asc_onGetEditorPermissions', oResult);
 		}
 	};
 	// GoTo

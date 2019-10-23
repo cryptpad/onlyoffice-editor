@@ -19,7 +19,6 @@
 			"../word/Editor/CollaborativeEditing.js",
 			"../common/macros.js",
 			"../common/apiBase.js",
-			"../common/Private/license.js",
 			"../word/apiCommon.js",
 			"../word/api.js"
 		],
