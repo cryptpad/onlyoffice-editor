@@ -24,15 +24,15 @@ GRUNT_ENV += BUILD_NUMBER=$(BUILD_NUMBER)
 GRUNT_ENV += APP_COPYRIGHT="$(APP_COPYRIGHT)"
 GRUNT_ENV += PUBLISHER_URL="$(PUBLISHER_URL)"
 
-WEBAPPS_DIR := web-apps-pro
+WEBAPPS_DIR := web-apps
 
 WEBAPPS = $(OUTPUT)/$(WEBAPPS_DIR)
 NODE_MODULES = build/node_modules ../$(WEBAPPS_DIR)/build/node_modules
 #PACKAGE_JSON = build/package.json ../$(WEBAPPS_DIR)/build/package.json
-WEBAPPS_FILES += ../$(WEBAPPS_DIR)/deploy/web-apps-pro/apps/api/documents/api.js
-WEBAPPS_FILES += ../$(WEBAPPS_DIR)/deploy/web-apps-pro/apps/documenteditor/main/app.js
-WEBAPPS_FILES += ../$(WEBAPPS_DIR)/deploy/web-apps-pro/apps/presentationeditor/main/app.js
-WEBAPPS_FILES += ../$(WEBAPPS_DIR)/deploy/web-apps-pro/apps/spreadsheeteditor/main/app.js
+WEBAPPS_FILES += ../$(WEBAPPS_DIR)/deploy/web-apps/apps/api/documents/api.js
+WEBAPPS_FILES += ../$(WEBAPPS_DIR)/deploy/web-apps/apps/documenteditor/main/app.js
+WEBAPPS_FILES += ../$(WEBAPPS_DIR)/deploy/web-apps/apps/presentationeditor/main/app.js
+WEBAPPS_FILES += ../$(WEBAPPS_DIR)/deploy/web-apps/apps/spreadsheeteditor/main/app.js
 SDKJS_FILES += word/sdk-all.js
 
 .PHONY: all desktop

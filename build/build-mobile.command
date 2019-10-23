@@ -37,18 +37,18 @@ CopyScriptTo() {
     printf $'\r' > temp.txt
 
     echo "Copy: word sdk-all.js"
-    cat "../../web-apps-pro/vendor/xregexp/xregexp-all-min.js" "temp.txt" "../../web-apps-pro/vendor/underscore/underscore-min.js" "temp.txt" "../common/Native/native.js" "temp.txt" "../common/Native/Wrappers/common.js" "temp.txt" "../common/Native/jquery_native.js" "temp.txt" > "banners.js"
+    cat "../../web-apps/vendor/xregexp/xregexp-all-min.js" "temp.txt" "../../web-apps/vendor/underscore/underscore-min.js" "temp.txt" "../common/Native/native.js" "temp.txt" "../common/Native/Wrappers/common.js" "temp.txt" "../common/Native/jquery_native.js" "temp.txt" > "banners.js"
 
     cat "banners.js" "../word/sdk-all-min.js" "../word/sdk-all.js" > $DOCUMENTS_PATH"/script.bin"
     rm -f -r "banners.js"
 
     echo "Copy: cell sdk-all.js"
-    cat "../../web-apps-pro/vendor/xregexp/xregexp-all-min.js" "temp.txt" "../../web-apps-pro/vendor/underscore/underscore-min.js" "temp.txt" "../common/Native/native.js" "temp.txt" "../cell/native/common.js" "temp.txt" "../common/Native/jquery_native.js" "temp.txt" > "banners.js"
+    cat "../../web-apps/vendor/xregexp/xregexp-all-min.js" "temp.txt" "../../web-apps/vendor/underscore/underscore-min.js" "temp.txt" "../common/Native/native.js" "temp.txt" "../cell/native/common.js" "temp.txt" "../common/Native/jquery_native.js" "temp.txt" > "banners.js"
     cat "banners.js" "../cell/sdk-all-min.js" "../cell/sdk-all.js" > $SPREADSHEETS_PATH"/script.bin"
     rm -f -r "banners.js"
 
     echo "Copy: slide sdk-all.js"
-    cat "../../web-apps-pro/vendor/xregexp/xregexp-all-min.js" "temp.txt" "../../web-apps-pro/vendor/underscore/underscore-min.js" "temp.txt" "../common/Native/native.js" "temp.txt" "../common/Native/Wrappers/common.js" "temp.txt" "../common/Native/jquery_native.js" "temp.txt" > "banners.js"
+    cat "../../web-apps/vendor/xregexp/xregexp-all-min.js" "temp.txt" "../../web-apps/vendor/underscore/underscore-min.js" "temp.txt" "../common/Native/native.js" "temp.txt" "../common/Native/Wrappers/common.js" "temp.txt" "../common/Native/jquery_native.js" "temp.txt" > "banners.js"
     cat "banners.js" "../slide/sdk-all-min.js" "../slide/sdk-all.js" > $PRESENTATIONS_PATH"/script.bin"
     rm -f -r "banners.js"
 
