@@ -14387,6 +14387,142 @@ Paragraph.prototype.MakeSingleRunParagraph = function()
 	oRun.ClearContent();
 	return oRun;
 };
+Paragraph.prototype.Document_Is_SelectionLocked = function(CheckType)
+{
+	var isSelectionUse = this.IsSelectionUse();
+	var arrContentControls = this.GetSelectedContentControls();
+	for (var nIndex = 0, nCount = arrContentControls.length; nIndex < nCount; ++nIndex)
+	{
+		if (arrContentControls[nIndex].IsSelectionUse() === isSelectionUse)
+			arrContentControls[nIndex].Document_Is_SelectionLocked(CheckType);
+	}
+
+	// Проверка для специального случая, когда мы переносим текст из параграфа в него самого. В такой ситуации надо
+	// проверять не только выделенную часть, но и место куда происходит вставка/перенос.
+	if (this.NearPosArray.length > 0)
+	{
+		var ParaState = this.GetSelectionState();
+		this.RemoveSelection();
+		this.Set_ParaContentPos(this.NearPosArray[0].NearPos.ContentPos, true, -1, -1);
+		arrContentControls = this.GetSelectedContentControls();
+
+		for (var nIndex = 0, nCount = arrContentControls.length; nIndex < nCount; ++nIndex)
+		{
+			if (false === arrContentControls[nIndex].IsSelectionUse())
+				arrContentControls[nIndex].Document_Is_SelectionLocked(CheckType);
+		}
+
+		this.SetSelectionState(ParaState, 0);
+	}
+
+	var bCheckContentControl = false;
+	switch ( CheckType )
+	{
+		case AscCommon.changestype_Paragraph_Content:
+		case AscCommon.changestype_Paragraph_Properties:
+		case AscCommon.changestype_Paragraph_AddText:
+		case AscCommon.changestype_Paragraph_TextProperties:
+		case AscCommon.changestype_ContentControl_Add:
+		case AscCommon.changestype_Document_Content:
+		case AscCommon.changestype_Document_Content_Add:
+		case AscCommon.changestype_Image_Properties:
+		{
+			this.Lock.Check( this.Get_Id() );
+			bCheckContentControl = true;
+			break;
+		}
+		case AscCommon.changestype_Remove:
+		{
+			// Если у нас нет выделения, и курсор стоит в начале, мы должны проверить в том же порядке, в каком
+			// идут проверки при удалении в команде Internal_Remove_Backward.
+			if ( true != this.Selection.Use && true == this.IsCursorAtBegin() )
+			{
+				var Pr = this.Get_CompiledPr2(false).ParaPr;
+				if ( undefined != this.GetNumPr() || Math.abs(Pr.Ind.FirstLine) > 0.001 || Math.abs(Pr.Ind.Left) > 0.001 )
+				{
+					// Надо проверить только текущий параграф, а это будет сделано далее
+				}
+				else
+				{
+					var Prev = this.Get_DocumentPrev();
+					if ( null != Prev && type_Paragraph === Prev.GetType() )
+						Prev.Lock.Check( Prev.Get_Id() );
+				}
+			}
+			// Если есть выделение, и знак параграфа попал в выделение ( и параграф выделен не целиком )
+			else if ( true === this.Selection.Use )
+			{
+				var StartPos = this.Selection.StartPos;
+				var EndPos   = this.Selection.EndPos;
+
+				if ( StartPos > EndPos )
+				{
+					var Temp = EndPos;
+					EndPos   = StartPos;
+					StartPos = Temp;
+				}
+
+				if ( EndPos >= this.Content.length - 1 && StartPos > this.Internal_GetStartPos() )
+				{
+					var Next = this.Get_DocumentNext();
+					if ( null != Next && type_Paragraph === Next.GetType() )
+						Next.Lock.Check( Next.Get_Id() );
+				}
+			}
+
+			this.Lock.Check( this.Get_Id() );
+			bCheckContentControl = true;
+			break;
+		}
+		case AscCommon.changestype_Delete:
+		{
+			// Если у нас нет выделения, и курсор стоит в конце, мы должны проверить следующий элемент
+			if ( true != this.Selection.Use && true === this.IsCursorAtEnd() )
+			{
+				var Next = this.Get_DocumentNext();
+				if ( null != Next && type_Paragraph === Next.GetType() )
+					Next.Lock.Check( Next.Get_Id() );
+			}
+			// Если есть выделение, и знак параграфа попал в выделение и параграф выделен не целиком
+			else if ( true === this.Selection.Use )
+			{
+				var StartPos = this.Selection.StartPos;
+				var EndPos   = this.Selection.EndPos;
+
+				if ( StartPos > EndPos )
+				{
+					var Temp = EndPos;
+					EndPos   = StartPos;
+					StartPos = Temp;
+				}
+
+				if ( EndPos >= this.Content.length - 1 && StartPos > this.Internal_GetStartPos() )
+				{
+					var Next = this.Get_DocumentNext();
+					if ( null != Next && type_Paragraph === Next.GetType() )
+						Next.Lock.Check( Next.Get_Id() );
+				}
+			}
+
+			this.Lock.Check( this.Get_Id() );
+			bCheckContentControl = true;
+			break;
+		}
+		case AscCommon.changestype_Document_SectPr:
+		case AscCommon.changestype_Table_Properties:
+		case AscCommon.changestype_Table_RemoveCells:
+		{
+			AscCommon.CollaborativeEditing.Add_CheckLock(true);
+			break;
+		}
+	}
+
+	if (bCheckContentControl && this.Parent && this.Parent.CheckContentControlEditingLock)
+		this.Parent.CheckContentControlEditingLock();
+};
+Paragraph.prototype.CheckContentControlDeletingLock = function()
+{
+};
 
 var pararecalc_0_All  = 0;
 var pararecalc_0_None = 1;

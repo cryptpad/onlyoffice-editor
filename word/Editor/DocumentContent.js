@@ -8233,6 +8233,83 @@ CDocumentContent.prototype.IsTableCellSelection = function()
 {
 	return (this.Selection.Use && this.Selection.StartPos === this.Selection.EndPos && this.Content[this.Selection.StartPos].IsTable() && this.Content[this.Selection.StartPos].IsTableCellSelection());
 };
+CDocumentContent.prototype.Document_Is_SelectionLocked = function(CheckType)
+{
+	if ( true === this.ApplyToAll )
+	{
+		var Count = this.Content.length;
+		for ( var Index = 0; Index < Count; Index++ )
+		{
+			this.Content[Index].Set_ApplyToAll( true );
+			this.Content[Index].Document_Is_SelectionLocked(CheckType);
+			this.Content[Index].Set_ApplyToAll( false );
+		}
+		return;
+	}
+	else
+	{
+		if ( docpostype_DrawingObjects === this.CurPos.Type )
+		{
+			this.LogicDocument.DrawingObjects.documentIsSelectionLocked(CheckType);
+		}
+		else if ( docpostype_Content == this.CurPos.Type )
+		{
+			switch ( this.Selection.Flag )
+			{
+				case selectionflag_Common :
+				{
+					if ( true === this.Selection.Use )
+					{
+						var StartPos = ( this.Selection.StartPos > this.Selection.EndPos ? this.Selection.EndPos : this.Selection.StartPos );
+						var EndPos   = ( this.Selection.StartPos > this.Selection.EndPos ? this.Selection.StartPos : this.Selection.EndPos );
+
+						if ( StartPos != EndPos && AscCommon.changestype_Delete === CheckType )
+							CheckType = AscCommon.changestype_Remove;
+
+						for ( var Index = StartPos; Index <= EndPos; Index++ )
+							this.Content[Index].Document_Is_SelectionLocked(CheckType);
+					}
+					else
+					{
+						var CurElement = this.Content[this.CurPos.ContentPos];
+
+						if ( AscCommon.changestype_Document_Content_Add === CheckType && type_Paragraph === CurElement.GetType() && true === CurElement.IsCursorAtEnd() )
+							AscCommon.CollaborativeEditing.Add_CheckLock(false);
+						else
+							this.Content[this.CurPos.ContentPos].Document_Is_SelectionLocked(CheckType);
+					}
+
+					break;
+				}
+				case selectionflag_Numbering:
+				{
+					var oNumPr = this.Selection.Data.CurPara.GetNumPr();
+					if (oNumPr)
+					{
+						var oNum = this.GetNumbering().GetNum(oNumPr.NumId);
+						oNum.IsSelectionLocked(CheckType);
+					}
+
+					this.Content[this.CurPos.ContentPos].Document_Is_SelectionLocked(CheckType);
+
+					break;
+				}
+			}
+		}
+	}
+};
+CDocumentContent.prototype.CheckContentControlEditingLock = function()
+{
+	if (this.Parent && this.Parent.CheckContentControlEditingLock)
+		this.Parent.CheckContentControlEditingLock();
+};
+CDocumentContent.prototype.CheckContentControlDeletingLock = function()
+{
+	for (var nIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex)
+	{
+		this.Content[nIndex].CheckContentControlDeletingLock();
+	}
+};
 /**
  * Оставляем один пустой параграф в содержимом
  * @returns {Paragraph}

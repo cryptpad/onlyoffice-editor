@@ -7170,6 +7170,30 @@ CStyle.prototype.IsParagraphStyle = function()
 {
 	return (this.Type === styletype_Paragraph);
 };
+CStyle.prototype.Document_Is_SelectionLocked = function(CheckType)
+{
+	switch ( CheckType )
+	{
+		case AscCommon.changestype_Paragraph_Content:
+		case AscCommon.changestype_Paragraph_Properties:
+		case AscCommon.changestype_Paragraph_AddText:
+		case AscCommon.changestype_Paragraph_TextProperties:
+		case AscCommon.changestype_ContentControl_Add:
+		case AscCommon.changestype_Document_Content:
+		case AscCommon.changestype_Document_Content_Add:
+		case AscCommon.changestype_Image_Properties:
+		case AscCommon.changestype_Remove:
+		case AscCommon.changestype_Delete:
+		case AscCommon.changestype_Document_SectPr:
+		case AscCommon.changestype_Table_Properties:
+		case AscCommon.changestype_Table_RemoveCells:
+		case AscCommon.changestype_HdrFtr:
+		{
+			AscCommon.CollaborativeEditing.Add_CheckLock(true);
+			break;
+		}
+	}
+};
 
 function CStyles(bCreateDefault)
 {
@@ -9421,6 +9445,30 @@ CStyles.prototype.GetAscStylesArray = function()
 CStyles.prototype.private_GetLogicDocument = function()
 {
 	return (editor && editor.WordControl && editor.WordControl.m_oLogicDocument ? editor.WordControl.m_oLogicDocument : null);
+};
+CStyles.prototype.Document_Is_SelectionLocked = function(CheckType)
+{
+	switch ( CheckType )
+	{
+		case AscCommon.changestype_Paragraph_Content:
+		case AscCommon.changestype_Paragraph_Properties:
+		case AscCommon.changestype_Paragraph_AddText:
+		case AscCommon.changestype_Paragraph_TextProperties:
+		case AscCommon.changestype_ContentControl_Add:
+		case AscCommon.changestype_Document_Content:
+		case AscCommon.changestype_Document_Content_Add:
+		case AscCommon.changestype_Image_Properties:
+		case AscCommon.changestype_Remove:
+		case AscCommon.changestype_Delete:
+		case AscCommon.changestype_Document_SectPr:
+		case AscCommon.changestype_Table_Properties:
+		case AscCommon.changestype_Table_RemoveCells:
+		case AscCommon.changestype_HdrFtr:
+		{
+			AscCommon.CollaborativeEditing.Add_CheckLock(true);
+			break;
+		}
+	}
 };
 
 function CDocumentColor(r,g,b, Auto)
