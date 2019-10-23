@@ -213,7 +213,6 @@
 			"../common/plugins.js"
 		],
 		"private": [
-			"../common/Private/Locks.js"
 		],
 		"desktop": {
 			"min": [

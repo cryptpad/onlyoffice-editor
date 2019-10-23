@@ -15053,6 +15053,125 @@ CTable.prototype.CheckRunContent = function(fCheck)
 
 	return false;
 };
+CTable.prototype.Document_Is_SelectionLocked = function(CheckType, bCheckInner)
+{
+	var bCheckContentControl = false;
+	switch (CheckType)
+	{
+		case AscCommon.changestype_Paragraph_Content:
+		case AscCommon.changestype_Paragraph_Properties:
+		case AscCommon.changestype_Paragraph_AddText:
+		case AscCommon.changestype_Paragraph_TextProperties:
+		case AscCommon.changestype_ContentControl_Add:
+		case AscCommon.changestype_Document_Content:
+		case AscCommon.changestype_Document_Content_Add:
+		case AscCommon.changestype_Delete:
+		case AscCommon.changestype_Image_Properties:
+		{
+			if (this.IsCellSelection())
+			{
+				var arrCells = this.GetSelectionArray();
+				var Count = arrCells.length;
+				for (var Index = 0; Index < Count; Index++)
+				{
+					var Pos  = arrCells[Index];
+					var Cell = this.Content[Pos.Row].Get_Cell(Pos.Cell);
+
+					Cell.Content.Set_ApplyToAll(true);
+					Cell.Content.Document_Is_SelectionLocked(CheckType);
+					Cell.Content.Set_ApplyToAll(false);
+				}
+			}
+			else if (this.CurCell)
+			{
+				this.CurCell.Content.Document_Is_SelectionLocked(CheckType);
+			}
+
+			bCheckContentControl = true;
+			break;
+		}
+		case AscCommon.changestype_Remove:
+		{
+			if (true === this.ApplyToAll || (true === this.Selection.Use && table_Selection_Cell === this.Selection.Type))
+			{
+				this.Lock.Check(this.Get_Id());
+
+				var arrCells = this.Internal_Get_SelectionArray();
+				for (var nIndex = 0, nCellsCount = arrCells.length; nIndex < nCellsCount; ++nIndex)
+				{
+					var Pos  = arrCells[nIndex];
+					var Cell = this.Content[Pos.Row].Get_Cell(Pos.Cell);
+					Cell.Content.CheckContentControlDeletingLock();
+				}
+			}
+			else
+			{
+				this.CurCell.Content.Document_Is_SelectionLocked(CheckType);
+			}
+
+			bCheckContentControl = true;
+			break;
+		}
+		case AscCommon.changestype_Table_Properties:
+		{
+			if ( false != bCheckInner && true === this.IsInnerTable() )
+				this.CurCell.Content.Document_Is_SelectionLocked( CheckType );
+			else
+				this.Lock.Check( this.Get_Id() );
+
+			bCheckContentControl = true;
+			break;
+		}
+		case AscCommon.changestype_Table_RemoveCells:
+		{
+			/*
+			 // Проверяем все ячейки
+			 if ( true === this.Selection.Use && table_Selection_Cell === this.Selection.Type )
+			 {
+			 var Count = this.Selection.Data.length;
+			 for ( var Index = 0; Index < Count; Index++ )
+			 {
+			 var Pos = this.Selection.Data[Index];
+			 var Cell = this.Content[Pos.Row].Get_Cell( Pos.Cell );
+			 Cell.Content.Document_Is_SelectionLocked( CheckType );
+			 }
+			 }
+			 else
+			 this.CurCell.Content.Document_Is_SelectionLocked( CheckType );
+			 */
+
+			// Проверяем саму таблицу
+
+			if ( false != bCheckInner && true === this.IsInnerTable() )
+				this.CurCell.Content.Document_Is_SelectionLocked( CheckType );
+			else
+				this.Lock.Check( this.Get_Id() );
+
+			bCheckContentControl = true;
+			break;
+		}
+		case AscCommon.changestype_Document_SectPr:
+		case AscCommon.changestype_HdrFtr:
+		{
+			AscCommon.CollaborativeEditing.Add_CheckLock(true);
+			break;
+		}
+	}
+
+	if (bCheckContentControl && this.Parent && this.Parent.CheckContentControlEditingLock)
+		this.Parent.CheckContentControlEditingLock();
+};
+CTable.prototype.CheckContentControlDeletingLock = function()
+{
+	for (var nCurRow = 0, nRowsCount = this.Content.length; nCurRow < nRowsCount; ++nCurRow)
+	{
+		var oRow = this.Content[nCurRow];
+		for (var nCurCell = 0, nCellsCount = oRow.Get_CellsCount(); nCurCell < nCellsCount; ++nCurCell)
+		{
+			oRow.Get_Cell(nCurCell).Content.CheckContentControlDeletingLock();
+		}
+	}
+};
 
 //----------------------------------------------------------------------------------------------------------------------
 // Класс  CTableLook
