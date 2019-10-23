@@ -638,3 +638,7 @@ CDrawingsController.prototype.IsTableCellSelection = function()
 
 	return false;
 };
+CDrawingsController.prototype.IsSelectionLocked = function(CheckType)
+{
+	this.DrawingObjects.documentIsSelectionLocked(CheckType);
+};

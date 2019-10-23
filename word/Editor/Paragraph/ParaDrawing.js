@@ -2761,7 +2761,13 @@ ParaDrawing.prototype.CheckContentControlEditingLock = function(){
         this.DocumentContent.CheckContentControlEditingLock();
 	}
 };
-
+ParaDrawing.prototype.Document_Is_SelectionLocked = function(CheckType)
+{
+	if(CheckType === AscCommon.changestype_Drawing_Props)
+	{
+		this.Lock.Check(this.Get_Id());
+	}
+};
 
 ParaDrawing.prototype.CheckContentControlDeletingLock = function(){
 	if(this.DocumentContent && this.DocumentContent.CheckContentControlDeletingLock){

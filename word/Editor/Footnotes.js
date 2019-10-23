@@ -3306,6 +3306,14 @@ CFootnotesController.prototype.RejectRevisionChanges = function(Type, bAll)
 	if (null !== this.CurFootnote)
 		this.CurFootnote.RejectRevisionChanges(Type, bAll);
 };
+CFootnotesController.prototype.IsSelectionLocked = function(CheckType)
+{
+	for (var sId in this.Selection.Footnotes)
+	{
+		var oFootnote = this.Selection.Footnotes[sId];
+		oFootnote.Document_Is_SelectionLocked(CheckType);
+	}
+};
 
 
 function CFootEndnotePageColumn()

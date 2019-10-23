@@ -2325,6 +2325,11 @@ CTableCell.prototype.GetBorders = function()
 		Left   : this.GetBorder(3)
 	};
 };
+CTableCell.prototype.CheckContentControlEditingLock = function()
+{
+    if (this.Row && this.Row.Table && this.Row.Table.Parent && this.Row.Table.Parent.CheckContentControlEditingLock)
+        this.Row.Table.Parent.CheckContentControlEditingLock();
+};
 
 function CTableCellRecalculateObject()
 {
