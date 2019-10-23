@@ -2723,6 +2723,15 @@ CHeaderFooterController.prototype.RejectRevisionChanges = function(Type, bAll)
     if (null !== this.CurHdrFtr)
         this.CurHdrFtr.Content.RejectRevisionChanges(Type, bAll);
 };
+CHeaderFooterController.prototype.Document_Is_SelectionLocked = function(nCheckType)
+{
+    // Любое действие внутри колонтитула лочит его
+    this.Lock.Check(this.Get_Id());
+
+    // Нужно запускать проверку дальше, чтобы проверить залоченность Sdt
+    if (this.CurHdrFtr)
+        this.CurHdrFtr.GetContent().Document_Is_SelectionLocked(nCheckType);
+};
 
 
 function CHdrFtrPage()

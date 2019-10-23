@@ -736,6 +736,25 @@ CComments.prototype.GetCommentIdByGuid = function(sGuid)
 
 	return "";
 };
+CComments.prototype.Document_Is_SelectionLocked = function(Id)
+{
+	if (Id instanceof Array)
+	{
+		for (var nIndex = 0, nCount = Id.length; nIndex < nCount; ++nIndex)
+		{
+			var sId = Id[nIndex];
+			var oComment = this.Get_ById(sId);
+			if (oComment)
+				oComment.Lock.Check(oComment.GetId());
+		}
+	}
+	else
+	{
+		var oComment = this.Get_ById(Id);
+		if (oComment)
+			oComment.Lock.Check(oComment.GetId());
+	}
+};
 
 /**
  * Класс для элемента начала/конца комментария в параграфе
