@@ -2345,6 +2345,13 @@
 	};
 
 	WorksheetView.prototype.calcPrintScale = function(width, height, bSelection, ignorePrintArea) {
+		//TODO для печати не нужно учитывать размер группы
+		if(this.groupWidth || this.groupHeight) {
+			this.ignoreGroupSize = true;
+			this._calcHeaderColumnWidth();
+			this._calcHeaderRowHeight();
+		}
+
 		var pageOptions = this.model.PagePrintOptions;
 		var pageMargins, pageSetup, pageGridLines, pageHeadings;
 		if (pageOptions) {
@@ -2521,6 +2528,12 @@
 		}
 		if(minScale > 100) {
 			minScale = 100;
+		}
+
+		if(this.groupWidth || this.groupHeight) {
+			this.ignoreGroupSize = false;
+			this._calcHeaderColumnWidth();
+			this._calcHeaderRowHeight();
 		}
 
 		return minScale;
