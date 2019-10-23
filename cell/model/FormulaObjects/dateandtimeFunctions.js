@@ -1947,6 +1947,7 @@
 		}
 
 		var calcDate = function (startdate, workdaysCount, holidays) {
+			workdaysCount = Math.floor(workdaysCount);
 			var diff = Math.sign(workdaysCount);
 			var daysCounter = 0;
 			var currentDate = new cDate(startdate);
