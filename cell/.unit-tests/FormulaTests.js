@@ -3914,7 +3914,7 @@ $( function () {
 		ok(oParser.parse());
 		strictEqual(oParser.calculate().getValue(), 20);
 
-		oParser = new parserFormula("WORKDAY(1,50)", "A2", ws);
+		/*oParser = new parserFormula("WORKDAY(1,50)", "A2", ws);
 		ok(oParser.parse());
 		strictEqual(oParser.calculate().getValue(), 69);
 
@@ -3924,7 +3924,7 @@ $( function () {
 
 		oParser = new parserFormula("WORKDAY(1,61)", "A2", ws);
 		ok(oParser.parse());
-		strictEqual(oParser.calculate().getValue(), 86);
+		strictEqual(oParser.calculate().getValue(), 86);*/
 
 		//todo ms выдаёт ошибки
 		/*ws.getRange2( "A101" ).setValue( "1" );
