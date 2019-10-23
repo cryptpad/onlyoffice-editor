@@ -6382,7 +6382,11 @@
 				var offset = new AscCommon.CellBase(0, 1);
 				for (var i = 0; i < colFields.length; ++i) {
 					var index = colFields[i].asc_getIndex();
-					cells.setValue(pivotFields[index].asc_getName() || cacheFields[index].asc_getName());
+					if (AscCommonExcel.st_VALUES !== index) {
+						cells.setValue(pivotFields[index].asc_getName() || cacheFields[index].asc_getName());
+					} else {
+						cells.setValue(pivotTable.dataCaption || AscCommonExcel.DATA_CAPTION);
+					}
 					cells.setOffset(offset);
 				}
 			}
@@ -6492,20 +6496,34 @@
 					this.getRange4(r1, c1).setValue(pivotTable.rowHeaderCaption || AscCommonExcel.ROW_HEADER_CAPTION);
 				}
 			} else {
-				index = rowFields[0].asc_getIndex();
 				cells = this.getRange4(r1, c1);
-				cells.setValue(pivotTable.getPivotFieldName(index));
+				index = rowFields[0].asc_getIndex();
+				if (AscCommonExcel.st_VALUES !== index) {
+					cells.setValue(pivotTable.getPivotFieldName(index));
+				} else {
+					cells.setValue(pivotTable.dataCaption || AscCommonExcel.DATA_CAPTION);
+				}
 			}
 		}
 		for (var i = 1; i < rowFields.length; ++i) {
 			index = rowFields[i - 1].asc_getIndex();
-			field = pivotFields[index];
-			if (field && !(field.compact && field.outline)) {
+			var isTabular;
+			if (AscCommonExcel.st_VALUES !== index) {
+				field = pivotFields[index];
+				isTabular = field && !(field.compact && field.outline);
+			} else {
+				isTabular = !(pivotTable.compact && pivotTable.outline);
+			}
+			if (isTabular) {
 				index = rowFields[i].asc_getIndex();
 				++c1;
 				if (pivotTable.showHeaders) {
 					cells = this.getRange4(r1, c1);
-					cells.setValue(pivotTable.getPivotFieldName(index));
+					if (AscCommonExcel.st_VALUES !== index) {
+						cells.setValue(pivotTable.getPivotFieldName(index));
+					} else {
+						cells.setValue(pivotTable.dataCaption || AscCommonExcel.DATA_CAPTION);
+					}
 				}
 			}
 			rowFieldsOffset[i] = c1 - pivotRange.c1;

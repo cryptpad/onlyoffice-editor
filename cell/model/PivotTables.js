@@ -4217,9 +4217,16 @@ CT_pivotTableDefinition.prototype.updateLocation = function() {
 		if (rowFields) {
 			location.firstDataCol = 1;
 			for (i = 0; i < rowFields.length - 1; ++i) {
-				var field = pivotFields[rowFields[i].asc_getIndex()];
-				if (field && !(field.compact && field.outline)) {
-					location.firstDataCol++;
+				var index = rowFields[i].asc_getIndex();
+				if (st_VALUES !== index) {
+					var field = pivotFields[index];
+					if (field && !(field.compact && field.outline)) {
+						location.firstDataCol++;
+					}
+				} else {
+					if (!(this.compact && this.outline)) {
+						location.firstDataCol++;
+					}
 				}
 			}
 		} else if (colFields && dataFields && 1 === dataFields.length) {
