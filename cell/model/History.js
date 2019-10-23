@@ -188,6 +188,9 @@ function (window, undefined) {
 	window['AscCH'].historyitem_PivotTable_PivotFieldSetSubtotals = 38;
 	window['AscCH'].historyitem_PivotTable_DataFieldSetName = 39;
 	window['AscCH'].historyitem_PivotTable_DataFieldSetSubtotal = 40;
+	window['AscCH'].historyitem_PivotTable_RowItems = 41;
+	window['AscCH'].historyitem_PivotTable_ColItems = 42;
+	window['AscCH'].historyitem_PivotTable_Location = 43;
 
 	window['AscCH'].historyitem_SharedFormula_ChangeFormula = 1;
 	window['AscCH'].historyitem_SharedFormula_ChangeShared = 2;

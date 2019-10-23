@@ -6302,14 +6302,12 @@
 			t.getRange3(range.r1, range.c1, range.r2, range.c2).clearTableStyle();
 		});
 		if (changed.data) {
-			if (!dataRow) {
-				dataRow = pivotTable.update();
-			}
-			var newRanges = pivotTable.getReportRanges();
-			newRanges.forEach(function(range){
-				t.getRange3(range.r1, range.c1, range.r2, range.c2).cleanAll();
-			});
+			pivotTable.init();
 			if (dataRow) {
+				var newRanges = pivotTable.getReportRanges();
+				newRanges.forEach(function(range){
+					t.getRange3(range.r1, range.c1, range.r2, range.c2).cleanAll();
+				});
 				this._updatePivotTableCells(pivotTable, dataRow);
 			}
 		}
@@ -6333,15 +6331,6 @@
 		cells = this.getRange3(pivotRange.r1, pivotRange.c1, pivotRange.r2, pivotRange.c2);
 		cells.clearTableStyle();
 		cells.cleanAll();
-	};
-	Worksheet.prototype.cleanPivotTableRanges = function(range, cleanData, cleanStyle) {
-		range = this.getRange3(range.r1, range.c1, range.r2, range.c2);
-		if (cleanStyle) {
-			range.clearTableStyle();
-		}
-		if (cleanData) {
-			range.cleanAll();
-		}
 	};
 	Worksheet.prototype._updatePivotTableCellsPage = function (pivotTable) {
 		for (var i = 0; i < pivotTable.pageFieldsPositions.length; ++i) {

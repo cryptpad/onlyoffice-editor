@@ -407,6 +407,9 @@ function (window, undefined) {
 
 		this.PivotTable = 80;
 		this.PivotField = 81;
+		this.PivotRowItems = 82;
+		this.PivotColItems = 83;
+		this.PivotLocation = 84;
 
 		this.Layout = 90;
 
@@ -556,6 +559,12 @@ function (window, undefined) {
 					return new UndoRedoData_PivotTable();
 				case this.PivotField:
 					return new UndoRedoData_PivotField();
+				case this.PivotRowItems:
+					return new CT_rowItems();
+				case this.PivotColItems:
+					return new CT_colItems();
+				case this.PivotLocation:
+					return new CT_Location();
 				case this.Layout:
 					return new UndoRedoData_Layout();
 				case this.ArrayFormula:
@@ -2960,6 +2969,15 @@ function (window, undefined) {
 				break;
 			case AscCH.historyitem_PivotTable_MoveDataField:
 				pivotTable.moveField(pivotTable.asc_getDataFields(), valueFrom, value);
+				break;
+			case AscCH.historyitem_PivotTable_RowItems:
+				pivotTable.setRowItems(value);
+				break;
+			case AscCH.historyitem_PivotTable_ColItems:
+				pivotTable.setColItems(value);
+				break;
+			case AscCH.historyitem_PivotTable_Location:
+				pivotTable.setLocation(value);
 				break;
 		}
 	};

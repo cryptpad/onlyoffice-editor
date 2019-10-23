@@ -4035,7 +4035,7 @@ var editor;
 		var warning = Asc.c_oAscError.ID.No;
 		var pivotChanged = pivot.getAndCleanChanged();
 		if (pivotChanged.data) {
-			dataRow = pivot.update();
+			dataRow = pivot.updateAfterEdit();
 			error = wsModel.checkPivotReportLocationForError(pivot.getReportRanges(), pivot);
 			if (Asc.c_oAscError.ID.No === error && !confirmation) {
 				warning = wsModel.checkPivotReportLocationForConfirm(pivot.getReportRanges(), pivotChanged);
