@@ -6451,24 +6451,38 @@ function RangeDataManagerElem(bbox, data)
 		return AscCommonExcel.UndoRedoDataTypes.SortState;
 	};
 	SortState.prototype.Read_FromBinary2 = function(r) {
-		this.nRow = r.GetLong();
-		this.nCol = r.GetLong();
+		var r1 = r.GetLong();
+		var c1 = r.GetLong();
+		var r2 = r.GetLong();
+		var c2 = r.GetLong();
 
-		this.nLeft = r.GetLong();
-		this.nLeftOffset = r.GetLong();
-		this.nTop = r.GetLong();
-		this.nTopOffset = r.GetLong();
-		this.nRight = r.GetLong();
+		this.Ref = new Asc.Range(c1, r1, c2, r2);
+
+		this.CaseSensitive = r.GetBool();
+		this.ColumnSort = r.GetBool();
+		this.SortMethod = r.GetBool();
+
+		var length = r.GetLong();
+		for (var i = 0; i < length; ++i) {
+			var reply = new SortCondition();
+			reply.Read_FromBinary2(r);
+			this.SortConditions.push(reply);
+		}
 	};
 	SortState.prototype.Write_ToBinary2 = function(w) {
-		w.WriteLong(this.nRow);
-		w.WriteLong(this.nCol);
+		w.WriteLong(this.Ref.r1);
+		w.WriteLong(this.Ref.c1);
+		w.WriteLong(this.Ref.r2);
+		w.WriteLong(this.Ref.c2);
 
-		w.WriteLong(this.nLeft);
-		w.WriteLong(this.nLeftOffset);
-		w.WriteLong(this.nTop);
-		w.WriteLong(this.nTopOffset);
-		w.WriteLong(this.nRight);
+		w.WriteBool(this.CaseSensitive);
+		w.WriteBool(this.ColumnSort);
+		w.WriteBool(this.SortMethod);
+
+		w.WriteLong(this.SortConditions ? this.SortConditions.length : 0);
+		for (var i = 0; i < this.SortConditions.length; ++i) {
+			this.SortConditions[i].Write_ToBinary2(w);
+		}
 	};
 	/*SortState.prototype.applyCollaborative = function (nSheetId, collaborativeEditing) {
 		this.nCol = collaborativeEditing.getLockMeColumn2(nSheetId, this.nCol);
@@ -7874,6 +7888,31 @@ SortCondition.prototype.clone = function() {
 	if (this.dxf)
 		res.dxf = this.dxf.clone();
 	return res;
+};
+SortCondition.prototype.Read_FromBinary2 = function(r) {
+	var r1 = r.GetLong();
+	var c1 = r.GetLong();
+	var r2 = r.GetLong();
+	var c2 = r.GetLong();
+
+	this.Ref = new Asc.Range(c1, r1, c2, r2);
+
+	this.ConditionSortBy = r.GetBool();
+	this.ConditionDescending = r.GetBool();
+	//?
+	//this.dxf = r.GetBool();
+};
+SortCondition.prototype.Write_ToBinary2 = function(w) {
+	w.WriteLong(this.Ref.r1);
+	w.WriteLong(this.Ref.c1);
+	w.WriteLong(this.Ref.r2);
+	w.WriteLong(this.Ref.c2);
+
+	w.WriteBool(this.ConditionSortBy);
+	w.WriteBool(this.ConditionDescending);
+
+	//?
+	//this.dxf
 };
 SortCondition.prototype.moveRef = function(col, row) {
 	var ref = this.Ref.clone();

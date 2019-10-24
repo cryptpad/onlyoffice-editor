@@ -18556,9 +18556,11 @@
 				}
 
 				sortState.SortConditions.push(sortCondition);
-
-				//TODO history
 			}
+
+			History.Add(AscCommonExcel.g_oUndoRedoSortState, AscCH.historyitem_SortState_Add, t.model.getId(), null,
+				new AscCommonExcel.UndoRedoData_FromTo(t.model.sortState, sortState));
+
 			t.model.sortState = sortState;
 
 			if(!doNotSortRange) {

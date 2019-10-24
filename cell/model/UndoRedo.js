@@ -559,6 +559,9 @@ function (window, undefined) {
 					return new UndoRedoData_Layout();
 				case this.ArrayFormula:
 					return new UndoRedoData_ArrayFormula();
+				case this.SortState:
+					return new AscCommonExcel.SortState();
+					break;
 			}
 			return null;
 		};
@@ -2713,6 +2716,49 @@ function (window, undefined) {
 		}
 	};
 
+	function UndoRedoSortState(wb) {
+		this.wb = wb;
+		this.nType = UndoRedoClassTypes.Add(function () {
+			return AscCommonExcel.g_oUndoRedoSortState;
+		});
+	}
+
+	UndoRedoSortState.prototype.getClassType = function () {
+		return this.nType;
+	};
+	UndoRedoSortState.prototype.Undo = function (Type, Data, nSheetId) {
+		this.UndoRedo(Type, Data, nSheetId, true);
+	};
+	UndoRedoSortState.prototype.Redo = function (Type, Data, nSheetId) {
+		this.UndoRedo(Type, Data, nSheetId, false);
+	};
+	UndoRedoSortState.prototype.UndoRedo = function (Type, Data, nSheetId, bUndo) {
+		var collaborativeEditing, to;
+		var oModel = (null == nSheetId) ? this.wb : this.wb.getWorksheetById(nSheetId);
+		var api = window["Asc"]["editor"];
+		if (!api.wb || !oModel) {
+			return;
+		}
+
+		var ws = (null == nSheetId) ? api.wb : api.wb.getWorksheetById(nSheetId);
+		Data.worksheet = ws;
+
+		//TODO добавить в модель
+		/*var cellCommentator = ws.cellCommentator;
+		if (bUndo) {
+			cellCommentator.Undo(Type, Data);
+		} else {
+			to = (Data.from || Data.to) ? Data.to : Data;
+			if (to && !to.bDocument && this.wb.bCollaborativeChanges) {
+				collaborativeEditing = this.wb.oApi.collaborativeEditing;
+				to.nRow = collaborativeEditing.getLockOtherRow2(nSheetId, to.nRow);
+				to.nCol = collaborativeEditing.getLockOtherColumn2(nSheetId, to.nCol);
+			}
+
+			cellCommentator.Redo(Type, Data);
+		}*/
+	};
+
 	function UndoRedoAutoFilters(wb) {
 		this.wb = wb;
 		this.nType = UndoRedoClassTypes.Add(function () {
@@ -3062,6 +3108,7 @@ function (window, undefined) {
 	window['AscCommonExcel'].UndoRedoRedoLayout = UndoRedoRedoLayout;
 	window['AscCommonExcel'].UndoRedoArrayFormula = UndoRedoArrayFormula;
 	window['AscCommonExcel'].UndoRedoHeaderFooter = UndoRedoHeaderFooter;
+	window['AscCommonExcel'].UndoRedoSortState = UndoRedoSortState;
 
 	window['AscCommonExcel'].g_oUndoRedoWorkbook = null;
 	window['AscCommonExcel'].g_oUndoRedoCell = null;
