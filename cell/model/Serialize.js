@@ -1990,7 +1990,7 @@
 		this.oFillMap.add(g_StyleCache.firstFill);
 		//second fill is equal to first (in Excel it is different, but it does not matter - they are ignored)
 		this.oFillMap.addNoCheck(g_StyleCache.firstFill);
-        this.oBorderMap.addNoCheck(g_StyleCache.firstBorder);
+		this.oBorderMap.add(g_StyleCache.firstBorder);
 		this.oXfsMap.add(g_StyleCache.firstXf);
 	};
 	StylesForWrite.prototype.add = function(xf) {
@@ -5684,6 +5684,10 @@
 						if (!normalXf) {
 							XfIdTmp = oCellStyle.XfId = 0;
 							normalXf = newXf;
+							//default fontid is always 0
+							if (oStyleObject.aCellStyleXfs[XfIdTmp]) {
+								oStyleObject.aCellStyleXfs[XfIdTmp].fontid = 0;
+							}
 						} else {
 							continue;
 						}
