@@ -6451,33 +6451,62 @@ function RangeDataManagerElem(bbox, data)
 		return AscCommonExcel.UndoRedoDataTypes.SortState;
 	};
 	SortState.prototype.Read_FromBinary2 = function(r) {
-		var r1 = r.GetLong();
-		var c1 = r.GetLong();
-		var r2 = r.GetLong();
-		var c2 = r.GetLong();
+		if (r.GetBool()) {
+			var r1 = r.GetLong();
+			var c1 = r.GetLong();
+			var r2 = r.GetLong();
+			var c2 = r.GetLong();
 
-		this.Ref = new Asc.Range(c1, r1, c2, r2);
-
-		this.CaseSensitive = r.GetBool();
-		this.ColumnSort = r.GetBool();
-		this.SortMethod = r.GetBool();
+			this.Ref = new Asc.Range(c1, r1, c2, r2);
+		}
+		if (r.GetBool()) {
+			this.CaseSensitive = r.GetBool();
+		}
+		if (r.GetBool()) {
+			this.ColumnSort = r.GetBool();
+		}
+		if (r.GetBool()) {
+			this.SortMethod = r.GetBool();
+		}
 
 		var length = r.GetLong();
 		for (var i = 0; i < length; ++i) {
 			var reply = new SortCondition();
 			reply.Read_FromBinary2(r);
+			if(!this.SortConditions) {
+				this.SortConditions = [];
+			}
 			this.SortConditions.push(reply);
 		}
 	};
 	SortState.prototype.Write_ToBinary2 = function(w) {
-		w.WriteLong(this.Ref.r1);
-		w.WriteLong(this.Ref.c1);
-		w.WriteLong(this.Ref.r2);
-		w.WriteLong(this.Ref.c2);
-
-		w.WriteBool(this.CaseSensitive);
-		w.WriteBool(this.ColumnSort);
-		w.WriteBool(this.SortMethod);
+		if (null != this.Ref) {
+			w.WriteBool(true);
+			w.WriteLong(this.Ref.r1);
+			w.WriteLong(this.Ref.c1);
+			w.WriteLong(this.Ref.r2);
+			w.WriteLong(this.Ref.c2);
+		} else {
+			w.WriteBool(false);
+		}
+		if (null != this.CaseSensitive) {
+			w.WriteBool(true);
+			w.WriteBool(this.CaseSensitive);
+		} else {
+			w.WriteBool(false);
+		}
+		if (null != this.ColumnSort) {
+			w.WriteBool(true);
+			w.WriteBool(this.ColumnSort);
+		} else {
+			w.WriteBool(false);
+		}
+		if (null != this.SortMethod) {
+			w.WriteBool(true);
+			w.WriteBool(this.SortMethod);
+		} else {
+			w.WriteBool(false);
+		}
 
 		w.WriteLong(this.SortConditions ? this.SortConditions.length : 0);
 		for (var i = 0; i < this.SortConditions.length; ++i) {
@@ -7890,26 +7919,46 @@ SortCondition.prototype.clone = function() {
 	return res;
 };
 SortCondition.prototype.Read_FromBinary2 = function(r) {
-	var r1 = r.GetLong();
-	var c1 = r.GetLong();
-	var r2 = r.GetLong();
-	var c2 = r.GetLong();
+	if (r.GetBool()) {
+		var r1 = r.GetLong();
+		var c1 = r.GetLong();
+		var r2 = r.GetLong();
+		var c2 = r.GetLong();
 
-	this.Ref = new Asc.Range(c1, r1, c2, r2);
+		this.Ref = new Asc.Range(c1, r1, c2, r2);
+	}
+	if (r.GetBool()) {
+		this.ConditionSortBy = r.GetBool();
+	}
+	if (r.GetBool()) {
+		this.ConditionDescending = r.GetBool();
+	}
 
-	this.ConditionSortBy = r.GetBool();
-	this.ConditionDescending = r.GetBool();
 	//?
 	//this.dxf = r.GetBool();
 };
 SortCondition.prototype.Write_ToBinary2 = function(w) {
-	w.WriteLong(this.Ref.r1);
-	w.WriteLong(this.Ref.c1);
-	w.WriteLong(this.Ref.r2);
-	w.WriteLong(this.Ref.c2);
-
-	w.WriteBool(this.ConditionSortBy);
-	w.WriteBool(this.ConditionDescending);
+	if (null != this.Ref) {
+		w.WriteBool(true);
+		w.WriteLong(this.Ref.r1);
+		w.WriteLong(this.Ref.c1);
+		w.WriteLong(this.Ref.r2);
+		w.WriteLong(this.Ref.c2);
+	} else {
+		w.WriteBool(false);
+	}
+	if (null != this.ConditionSortBy) {
+		w.WriteBool(true);
+		w.WriteBool(ConditionSortBy);
+	} else {
+		w.WriteBool(false);
+	}
+	if (null != this.ConditionSortBy) {
+		w.WriteBool(true);
+		w.WriteBool(ConditionDescending);
+	} else {
+		w.WriteBool(false);
+	}
 
 	//?
 	//this.dxf

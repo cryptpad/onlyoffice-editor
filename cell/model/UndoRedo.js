@@ -2743,20 +2743,7 @@ function (window, undefined) {
 		var ws = (null == nSheetId) ? api.wb : api.wb.getWorksheetById(nSheetId);
 		Data.worksheet = ws;
 
-		//TODO добавить в модель
-		/*var cellCommentator = ws.cellCommentator;
-		if (bUndo) {
-			cellCommentator.Undo(Type, Data);
-		} else {
-			to = (Data.from || Data.to) ? Data.to : Data;
-			if (to && !to.bDocument && this.wb.bCollaborativeChanges) {
-				collaborativeEditing = this.wb.oApi.collaborativeEditing;
-				to.nRow = collaborativeEditing.getLockOtherRow2(nSheetId, to.nRow);
-				to.nCol = collaborativeEditing.getLockOtherColumn2(nSheetId, to.nCol);
-			}
-
-			cellCommentator.Redo(Type, Data);
-		}*/
+		ws.model.sortState = bUndo ? Data.from : Data.to;
 	};
 
 	function UndoRedoAutoFilters(wb) {

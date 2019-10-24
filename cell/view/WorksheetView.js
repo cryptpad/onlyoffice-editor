@@ -18559,7 +18559,7 @@
 			}
 
 			History.Add(AscCommonExcel.g_oUndoRedoSortState, AscCH.historyitem_SortState_Add, t.model.getId(), null,
-				new AscCommonExcel.UndoRedoData_FromTo(t.model.sortState, sortState));
+				new AscCommonExcel.UndoRedoData_FromTo(t.model.sortState ? t.model.sortState.clone() : null, sortState ? sortState.clone() : null));
 
 			t.model.sortState = sortState;
 
