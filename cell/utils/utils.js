@@ -2248,12 +2248,12 @@
 		/** @constructor */
 		function asc_CFindOptions() {
 			this.findWhat = "";							// текст, который ищем
-			this.wordIndex = 0;                         // индекс текущего слова
+			this.wordsIndex = 0;                         // индекс текущего слова
 			this.scanByRows = true;						// просмотр по строкам/столбцам
 			this.scanForward = true;					// поиск вперед/назад
 			this.isMatchCase = false;					// учитывать регистр
 			this.isWholeCell = false;	                // ячейка целиком
-			this.isChangeSingleWord = false;		    // изменение только одного слова	
+			this.isSpellCheck = false;		    // изменение вызванное в проверке орфографии	
 			this.scanOnOnlySheet = true;				// искать только на листе/в книге
 			this.lookIn = Asc.c_oAscFindLookIn.Formulas;	// искать в формулах/значениях/примечаниях
 
@@ -2273,15 +2273,16 @@
 			this.sheetIndex = -1;
 			this.error = false;
 		}
+
 		asc_CFindOptions.prototype.clone = function () {
 			var result = new asc_CFindOptions();
-			result.wordIndex = this.wordIndex;
+			result.wordsIndex = this.wordsIndex;
 			result.findWhat = this.findWhat;
 			result.scanByRows = this.scanByRows;
 			result.scanForward = this.scanForward;
 			result.isMatchCase = this.isMatchCase;
 			result.isWholeCell = this.isWholeCell;
-			result.isChangeSingleWord = 	this.isChangeSingleWord;	
+			result.isSpellCheck = this.isSpellCheck;	
 			result.scanOnOnlySheet = this.scanOnOnlySheet;		
 			result.lookIn = this.lookIn;
 
@@ -2300,6 +2301,7 @@
 			result.error = this.error;
 			return result;
 		};
+
 		asc_CFindOptions.prototype.isEqual = function (obj) {
 			return obj && this.isEqual2(obj) && this.scanForward === obj.scanForward &&
 				this.scanOnOnlySheet === obj.scanOnOnlySheet;
@@ -2407,13 +2409,20 @@
 
 		function CSpellcheckState() {
 			this.lastSpellInfo = null;
-			this.lastIndex = -1;
+			this.lastIndex = 0;
 
 			this.lockSpell = false;
 			this.startCell = null;
 			this.currentCell = null;
 			this.iteration = false;
-			this.wordIndex = null;
+			this.ignoreWords = {};
+			this.changeWords = {};
+			this.cellsChange = [];
+			this.newWord = null;
+			this.cellText = null;
+			this.newCellText = null;
+			this.isStart = false;
+			this.afterReplace = false;
 		}
 
 		CSpellcheckState.prototype.init = function (startCell) {
@@ -2424,16 +2433,23 @@
 		};
 		CSpellcheckState.prototype.clean = function () {
 			this.lastSpellInfo = null;
-			this.lastIndex = -1;
+			this.lastIndex = 0;
 
 			this.lockSpell = false;
 			this.startCell = null;
 			this.currentCell = null;
 			this.iteration = false;
+			this.ignoreWords = {};
+			this.changeWords = {};
+			this.cellsChange = [];
+			this.newWord = null;
+			this.cellText = null;
+			this.newCellText = null;
+			this.afterReplace = false;
 		};
 		CSpellcheckState.prototype.nextRow = function () {
 			this.lastSpellInfo = null;
-			this.lastIndex = -1;
+			this.lastIndex = 0;
 
 			this.currentCell.row += 1;
 			this.currentCell.col = 0;
