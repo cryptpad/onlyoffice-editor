@@ -2957,19 +2957,24 @@
 			return res;
 		};
 
+		var vector_koef = AscCommonExcel.vector_koef / this.getZoom();
+		if (AscCommon.AscBrowser.isRetina) {
+			vector_koef /= AscCommon.AscBrowser.retinaPixelRatio;
+		}
+
 		var scaleWithDoc = this.model.headerFooter.getScaleWithDoc();
 		var printScale = (scaleWithDoc === null || scaleWithDoc === true) ? this.getPrintScale() : 1;
 
 		var margins = this.model.PagePrintOptions.asc_getPageMargins();
-		var width = printPagesData.pageWidth / AscCommonExcel.vector_koef;
-		var height = printPagesData.pageHeight / AscCommonExcel.vector_koef;
+		var width = printPagesData.pageWidth / vector_koef;
+		var height = printPagesData.pageHeight / vector_koef;
 
 		//это стандартный маргин для случая, если alignWithMargins = true
 		//TODO необходимо перепроверить размер маргина
 		var defaultMargin = 17.8;
 		var alignWithMargins = this.model.headerFooter.getAlignWithMargins();
-		var left =  alignWithMargins ? margins.left / AscCommonExcel.vector_koef : defaultMargin / AscCommonExcel.vector_koef;
-		var right = alignWithMargins ? margins.right / AscCommonExcel.vector_koef : defaultMargin / AscCommonExcel.vector_koef;
+		var left =  alignWithMargins ? margins.left / vector_koef : defaultMargin / vector_koef;
+		var right = alignWithMargins ? margins.right / vector_koef : defaultMargin / vector_koef;
 		var top = margins.header / AscCommonExcel.vector_koef;
 		var bottom = margins.footer / AscCommonExcel.vector_koef;
 
