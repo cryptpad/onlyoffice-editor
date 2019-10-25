@@ -2536,6 +2536,10 @@
 
   // Печать
   WorkbookView.prototype.printSheets = function(printPagesData, pdfDocRenderer) {
+    //change zoom on default
+    var viewZoom = this.getZoom();
+    this.changeZoom(1);
+
   	var pdfPrinter = new AscCommonExcel.CPdfPrinter(this.fmgrGraphics[3], this.m_oFont);
   	if (pdfDocRenderer) {
 		pdfPrinter.DocumentRenderer = pdfDocRenderer;
@@ -2557,6 +2561,9 @@
         ws.drawForPrint(pdfPrinter, printPagesData.arrPages[i], i, printPagesData.arrPages.length);
       }
     }
+
+    this.changeZoom(viewZoom);
+
     return pdfPrinter;
   };
 
@@ -2574,6 +2581,10 @@
   	if (!adjustPrint) {
   		adjustPrint = new Asc.asc_CAdjustPrint();
 	}
+
+    var viewZoom = this.getZoom();
+    this.changeZoom(1);
+
     var printPagesData = new asc_CPrintPagesData();
     var printType = adjustPrint.asc_getPrintType();
     if (printType === Asc.c_oAscPrintType.ActiveSheets) {
@@ -2591,6 +2602,9 @@
     if (AscCommonExcel.c_kMaxPrintPages === printPagesData.arrPages.length) {
       this.handlers.trigger("asc_onError", c_oAscError.ID.PrintMaxPagesCount, c_oAscError.Level.NoCritical);
     }
+
+    this.changeZoom(viewZoom);
+
     return printPagesData;
   };
 
