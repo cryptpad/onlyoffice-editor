@@ -1124,6 +1124,15 @@
 			case AscDFH.historydescription_Document_RemoveAllComments:
 				sString = "Document_RemoveAllComments";
 				break;
+			case AscDFH.historydescription_Document_AddContentControlList:
+				sString = "Document_AddContentControlList";
+				break;
+			case AscDFH.historydescription_Document_SetContentControlListPr:
+				sString = "Document_SetContentControlListPr";
+				break;
+			case AscDFH.historydescription_Document_SelectContentControlListItem:
+				sString = "Document_SelectContentControlListItem";
+				break;
 		}
 		return sString;
 	}
@@ -1826,6 +1835,8 @@
 	window['AscDFH'].historyitem_SdtPr_CheckBox         = window['AscDFH'].historyitem_type_SdtPr | 9;
 	window['AscDFH'].historyitem_SdtPr_CheckBox_Checked = window['AscDFH'].historyitem_type_SdtPr | 10;
 	window['AscDFH'].historyitem_SdtPr_Picture          = window['AscDFH'].historyitem_type_SdtPr | 11;
+	window['AscDFH'].historyitem_SdtPr_ComboBox         = window['AscDFH'].historyitem_type_SdtPr | 12;
+	window['AscDFH'].historyitem_SdtPr_DropDownList     = window['AscDFH'].historyitem_type_SdtPr | 13;
 	//------------------------------------------------------------------------------------------------------------------
 	// Графические классы общего назначение (без привязки к конкретному классу)
 	//------------------------------------------------------------------------------------------------------------------
@@ -3158,7 +3169,9 @@
 	window['AscDFH'].historydescription_Document_AddContentControlPicture           = 0x0167;
 	window['AscDFH'].historydescription_Document_SetContentControlPictureUrl        = 0x0168;
 	window['AscDFH'].historydescription_Document_RemoveAllComments                  = 0x0169;
-
+	window['AscDFH'].historydescription_Document_AddContentControlList              = 0x016a;
+	window['AscDFH'].historydescription_Document_SetContentControlListPr            = 0x016b;
+	window['AscDFH'].historydescription_Document_SelectContentControlListItem       = 0x016c;
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

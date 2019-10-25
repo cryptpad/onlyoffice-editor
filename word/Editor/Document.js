@@ -8951,7 +8951,7 @@ CDocument.prototype.OnKeyPress = function(e)
 
 		if (oCheckBox)
 		{
-			oCheckBox.SkipCheckLockForCheckBox(true);
+			oCheckBox.SkipSpecialContentControlLock(true);
 			if (!this.IsSelectionLocked(changestype_Paragraph_Content, null, true, bFillingForm))
 			{
 				this.StartAction(AscDFH.historydescription_Document_SpaceButton);
@@ -8959,7 +8959,7 @@ CDocument.prototype.OnKeyPress = function(e)
 				this.Recalculate();
 				this.FinalizeAction();
 			}
-			oCheckBox.SkipCheckLockForCheckBox(false);
+			oCheckBox.SkipSpecialContentControlLock(false);
 		}
 		else
 		{
@@ -9308,7 +9308,7 @@ CDocument.prototype.OnMouseUp = function(e, X, Y, PageIndex)
 	if ((oInlineSdt && oInlineSdt.IsCheckBox()) || (oBlockSdt && oBlockSdt.IsCheckBox()))
 	{
 		var oCC = (oInlineSdt && oInlineSdt.IsCheckBox()) ? oInlineSdt : oBlockSdt;
-		oCC.SkipCheckLockForCheckBox(true);
+		oCC.SkipSpecialContentControlLock(true);
 		if (!this.IsSelectionLocked(AscCommon.changestype_Paragraph_Content))
 		{
 			this.StartAction();
@@ -9317,7 +9317,7 @@ CDocument.prototype.OnMouseUp = function(e, X, Y, PageIndex)
 			this.UpdateTracks();
 			this.FinalizeAction();
 		}
-		oCC.SkipCheckLockForCheckBox(false);
+		oCC.SkipSpecialContentControlLock(false);
 	}
 
 	this.private_CheckCursorPosInFillingFormMode();
@@ -13968,6 +13968,30 @@ CDocument.prototype.AddContentControlPicture = function()
 
 	var oCC = this.AddContentControl(c_oAscSdtLevelType.Inline);
 	oCC.ApplyPicturePr(true);
+	return oCC;
+};
+/**
+ * Добавляем контйенер с полем для спискам
+ * @param oPr {?CSdtComboBoxPr}
+ */
+CDocument.prototype.AddContentControlComboBox = function(oPr)
+{
+	this.RemoveSelection();
+
+	var oCC = this.AddContentControl(c_oAscSdtLevelType.Inline);
+	oCC.ApplyComboBoxPr(oPr);
+	return oCC;
+};
+/**
+ * Добавляем контейнер с выпалающим списком
+ * @param oPr {?CSdtComboBoxPr}
+ */
+CDocument.prototype.AddContentControlDropDownList = function(oPr)
+{
+	this.RemoveSelection();
+
+	var oCC = this.AddContentControl(c_oAscSdtLevelType.Inline);
+	oCC.ApplyDropDownListPr(oPr);
 	return oCC;
 };
 /**
@@ -18666,6 +18690,20 @@ CDocument.prototype.RemoveContentControlWrapper = function(Id)
 };
 CDocument.prototype.GetContentControl = function(Id)
 {
+	if (undefined === Id)
+	{
+		var oInfo          = this.GetSelectedElementsInfo({SkipTOC : true});
+		var oInlineControl = oInfo.GetInlineLevelSdt();
+		var oBlockControl  = oInfo.GetBlockLevelSdt();
+
+		if (oInlineControl)
+			return oInlineControl;
+		else if (oBlockControl)
+			return oBlockControl;
+
+		return null;
+	}
+
 	return this.TableId.Get_ById(Id);
 };
 CDocument.prototype.ClearContentControl = function(Id)

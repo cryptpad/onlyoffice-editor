@@ -56,6 +56,8 @@ function CSdtPr()
 
 	this.CheckBox = undefined;
 	this.Picture  = false;
+	this.ComboBox = undefined;
+	this.DropDown = undefined;
 }
 
 CSdtPr.prototype.Copy = function()
@@ -69,6 +71,17 @@ CSdtPr.prototype.Copy = function()
 	oPr.Lock       = this.Lock;
 	oPr.Appearance = this.Appearance;
 	oPr.Color      = (this.Color ? this.Color.Copy() : undefined);
+
+	if (this.CheckBox)
+		oPr.CheckBox = this.CheckBox.Copy();
+
+	oPr.Picture = this.Picture;
+
+	if (this.ComboBox)
+		oPr.ComboBox = this.ComboBox.Copy();
+
+	if (this.DropDown)
+		oPr.DropDown = this.DropDown.Copy();
 
 	return oPr;
 };
@@ -144,10 +157,28 @@ CSdtPr.prototype.Write_ToBinary = function(Writer)
 		Flags |= 1024;
 	}
 
+	if (undefined !== this.Picture)
+	{
+		Writer.WriteBool(this.Picture);
+		Flags |= 2048;
+	}
+
+	if (undefined !== this.ComboBox)
+	{
+		this.ComboBox.WriteToBinary(Writer);
+		Flags |= 4096;
+	}
+
+	if (undefined !== this.DropDown)
+	{
+		this.DropDown.WriteToBinary(Writer);
+		Flags |= 8192;
+	}
+
 	var EndPos = Writer.GetCurPosition();
-	Writer.Seek( StartPos );
-	Writer.WriteLong( Flags );
-	Writer.Seek( EndPos );
+	Writer.Seek(StartPos);
+	Writer.WriteLong(Flags);
+	Writer.Seek(EndPos);
 };
 CSdtPr.prototype.Read_FromBinary = function(Reader)
 {
@@ -190,6 +221,21 @@ CSdtPr.prototype.Read_FromBinary = function(Reader)
 	{
 		this.CheckBox = new CSdtCheckBoxPr();
 		this.CheckBox.ReadFromBinary(Reader);
+	}
+
+	if (Flags & 2048)
+		this.Picture = Reader.GetBool();
+
+	if (Flags & 4096)
+	{
+		this.ComboBox = new CSdtComboBoxPr();
+		this.ComboBox.ReadFromBinary(Reader);
+	}
+
+	if (Flags & 8192)
+	{
+		this.DropDown = new CSdtComboBoxPr();
+		this.DropDown.ReadFromBinary(Reader);
 	}
 };
 CSdtPr.prototype.IsBuiltInDocPart = function()
@@ -381,6 +427,128 @@ CSdtCheckBoxPr.prototype.Write_ToBinary = function(oWriter)
 	this.WriteToBinary(oWriter);
 };
 CSdtCheckBoxPr.prototype.Read_FromBinary = function(oReader)
+{
+	this.ReadFromBinary(oReader);
+};
+
+/**
+ * Класс, представляющий элемент списка Combobox или DropDownList
+ * @constructor
+ */
+function CSdtListItem()
+{
+	this.DisplayText = "";
+	this.Value       = "";
+}
+CSdtListItem.prototype.Copy = function()
+{
+	var oItem = new CSdtListItem();
+	oItem.DisplayText = this.DisplayText;
+	oItem.Value       = this.Value;
+	return oItem;
+};
+CSdtListItem.prototype.IsEqual = function(oItem)
+{
+	return (this.DisplayText === oItem.DisplayText && this.Value === oItem.Value);
+};
+CSdtListItem.prototype.WriteToBinary = function(oWriter)
+{
+	oWriter.WriteString2(this.DisplayText);
+	oWriter.WriteString2(this.Value);
+};
+CSdtListItem.prototype.ReadFromBinary = function(oReader)
+{
+	this.DisplayText = oReader.GetString2();
+	this.Value       = oReader.GetString2();
+};
+
+/**
+ * Класс с настройками для выпадающего списка
+ * @constructor
+ */
+function CSdtComboBoxPr()
+{
+	this.ListItems = [];
+	this.LastValue = -1;
+}
+CSdtComboBoxPr.prototype.Copy = function()
+{
+	var oList = new CSdtComboBoxPr();
+
+	oList.LastValue = this.LastValue;
+	oList.ListItems = [];
+
+	for (var nIndex = 0, nCount = this.ListItems.length; nIndex < nCount; ++nIndex)
+	{
+		oList.ListItems.push(this.ListItems[nIndex].Copy());
+	}
+
+	return oList;
+};
+CSdtComboBoxPr.prototype.IsEqual = function(oOther)
+{
+	if (!oOther || this.LastValue !== oOther.LastValue || this.ListItems.length !== oOther.ListItems.length)
+		return false;
+
+	for (var nIndex = 0, nCount = this.ListItems.length; nIndex < nCount; ++nIndex)
+	{
+		if (!this.ListItems[nIndex].IsEqual(oOther.ListItems[nIndex]))
+			return false;
+	}
+
+	return true;
+};
+CSdtComboBoxPr.prototype.AddItem = function(sDisplay, sValue)
+{
+	if (null !== this.GetTextByValue(sValue))
+		return false;
+
+	var oItem = new CSdtListItem();
+	oItem.DisplayText = sDisplay;
+	oItem.Value       = sValue;
+	this.ListItems.push(oItem);
+
+	return true;
+};
+CSdtComboBoxPr.prototype.GetTextByValue = function(sValue)
+{
+	if (!sValue || "" === sValue)
+		return null;
+
+	for (var nIndex = 0, nCount = this.ListItems.length; nIndex < nCount; ++nIndex)
+	{
+		if (this.ListItems[nIndex].Value === sValue)
+			return this.ListItems[nIndex].DisplayText;
+	}
+
+	return null;
+};
+CSdtComboBoxPr.prototype.WriteToBinary = function(oWriter)
+{
+	oWriter.WriteLong(this.LastValue);
+	oWriter.WriteLong(this.ListItems.length);
+	for (var nIndex = 0, nCount = this.ListItems.length; nIndex < nCount; ++nIndex)
+	{
+		this.ListItems[nIndex].WriteToBinary(oWriter);
+	}
+};
+CSdtComboBoxPr.prototype.ReadFromBinary = function(oReader)
+{
+	this.LastValue = oReader.GetLong();
+
+	var nCount = oReader.GetLong();
+	for (var nIndex = 0; nIndex < nCount; ++nIndex)
+	{
+		var oItem = new CSdtListItem();
+		oItem.ReadFromBinary(oReader);
+		this.ListItems.push(oItem);
+	}
+};
+CSdtComboBoxPr.prototype.Write_ToBinary = function(oWriter)
+{
+	this.WriteToBinary(oWriter);
+};
+CSdtComboBoxPr.prototype.Read_FromBinary = function(oReader)
 {
 	this.ReadFromBinary(oReader);
 };

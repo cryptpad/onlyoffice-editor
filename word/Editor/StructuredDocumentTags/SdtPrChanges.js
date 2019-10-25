@@ -48,6 +48,8 @@ AscDFH.changesFactory[AscDFH.historyitem_SdtPr_Color]            = CChangesSdtPr
 AscDFH.changesFactory[AscDFH.historyitem_SdtPr_CheckBox]         = CChangesSdtPrCheckBox;
 AscDFH.changesFactory[AscDFH.historyitem_SdtPr_CheckBox_Checked] = CChangesSdtPrCheckBoxChecked;
 AscDFH.changesFactory[AscDFH.historyitem_SdtPr_Picture]          = CChangesSdtPrPicture;
+AscDFH.changesFactory[AscDFH.historyitem_SdtPr_ComboBox]         = CChangesSdtPrComboBox;
+AscDFH.changesFactory[AscDFH.historyitem_SdtPr_DropDownList]     = CChangesSdtPrDropDownList;
 
 //----------------------------------------------------------------------------------------------------------------------
 // Карта зависимости изменений
@@ -86,6 +88,12 @@ AscDFH.changesRelationMap[AscDFH.historyitem_SdtPr_CheckBox_Checked] = [
 ];
 AscDFH.changesRelationMap[AscDFH.historyitem_SdtPr_Picture] = [
 	AscDFH.historyitem_SdtPr_Picture
+];
+AscDFH.changesRelationMap[AscDFH.historyitem_SdtPr_ComboBox] = [
+	AscDFH.historyitem_SdtPr_ComboBox
+];
+AscDFH.changesRelationMap[AscDFH.historyitem_SdtPr_DropDownList] = [
+	AscDFH.historyitem_SdtPr_DropDownList
 ];
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -433,4 +441,42 @@ CChangesSdtPrPicture.prototype.Type = AscDFH.historyitem_SdtPr_Picture;
 CChangesSdtPrPicture.prototype.private_SetValue = function(Value)
 {
 	this.Class.Pr.Picture = Value;
+};
+/**
+ * @constructor
+ * @extends {AscDFH.CChangesBaseObjectProperty}
+ */
+function CChangesSdtPrComboBox(Class, Old, New)
+{
+	AscDFH.CChangesBaseObjectProperty.call(this, Class, Old, New);
+}
+CChangesSdtPrComboBox.prototype = Object.create(AscDFH.CChangesBaseObjectProperty.prototype);
+CChangesSdtPrComboBox.prototype.constructor = CChangesSdtPrComboBox;
+CChangesSdtPrComboBox.prototype.Type = AscDFH.historyitem_SdtPr_ComboBox;
+CChangesSdtPrComboBox.prototype.private_SetValue = function(Value)
+{
+	this.Class.Pr.ComboBox = Value;
+};
+CChangesSdtPrComboBox.prototype.private_CreateObject = function()
+{
+	return new CSdtComboBoxPr();
+};
+/**
+ * @constructor
+ * @extends {AscDFH.CChangesBaseObjectProperty}
+ */
+function CChangesSdtPrDropDownList(Class, Old, New)
+{
+	AscDFH.CChangesBaseObjectProperty.call(this, Class, Old, New);
+}
+CChangesSdtPrDropDownList.prototype = Object.create(AscDFH.CChangesBaseObjectProperty.prototype);
+CChangesSdtPrDropDownList.prototype.constructor = CChangesSdtPrDropDownList;
+CChangesSdtPrDropDownList.prototype.Type = AscDFH.historyitem_SdtPr_DropDownList;
+CChangesSdtPrDropDownList.prototype.private_SetValue = function(Value)
+{
+	this.Class.Pr.DropDown = Value;
+};
+CChangesSdtPrDropDownList.prototype.private_CreateObject = function()
+{
+	return new CSdtComboBoxPr();
 };

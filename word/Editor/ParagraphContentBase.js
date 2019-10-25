@@ -722,6 +722,14 @@ CParagraphContentBase.prototype.GetFirstRun = function()
 {
 	return null;
 };
+/**
+ * Делаем данный элемент, состоящим из одного рана и возвращаем его, либо возвращаем null
+ * @returns {?ParaRun}
+ */
+CParagraphContentBase.prototype.MakeSingleRunElement = function()
+{
+	return null;
+};
 
 
 /**
@@ -3995,6 +4003,20 @@ CParagraphContentWithParagraphLikeContent.prototype.GetFirstRun = function()
 	}
 
 	return null;
+};
+CParagraphContentWithParagraphLikeContent.prototype.MakeSingleRunElement = function()
+{
+	if (this.Content.length !== 1 || para_Run !== this.Content[0].Type)
+	{
+		if (this.Content.length > 0)
+			this.RemoveFromContent(0, this.Content.length, true);
+
+		this.AddToContent(0, new ParaRun(this, false), true);
+	}
+
+	var oRun = this.Content[0];
+	oRun.ClearContent();
+	return oRun;
 };
 
 //----------------------------------------------------------------------------------------------------------------------

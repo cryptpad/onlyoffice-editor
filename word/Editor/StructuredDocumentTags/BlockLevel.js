@@ -67,7 +67,7 @@ function CBlockLevelSdt(oLogicDocument, oParent)
 	// Добавляем данный класс в таблицу Id (обязательно в конце конструктора)
 	g_oTableId.Add(this, this.Id);
 
-	this.SkipCheckBoxLock = false;
+	this.SkipSpecialLock = false;
 }
 
 CBlockLevelSdt.prototype = Object.create(CDocumentContentElementBase.prototype);
@@ -92,6 +92,12 @@ CBlockLevelSdt.prototype.Copy = function(Parent)
 
 	if (undefined !== this.Pr.Picture)
 		oNew.SetPicturePr(this.Pr.Picture);
+
+	if (undefined !== this.Pr.ComboBox)
+		oNew.SetComboBoxPr(this.Pr.ComboBox);
+
+	if (undefined !== this.Pr.DropDown)
+		oNew.SetDropDownListPr(this.Pr.DropDown);
 
 	return oNew;
 };
@@ -540,7 +546,16 @@ CBlockLevelSdt.prototype.Add = function(oParaItem)
 	if (oParaItem && oParaItem.Type !== para_TextPr)
 		this.private_ReplacePlaceHolderWithContent();
 
-	return this.Content.AddToParagraph(oParaItem);
+	if (oParaItem && para_TextPr === oParaItem.Type && (this.IsComboBox() || this.IsDropDownList()))
+	{
+		this.Content.SetApplyToAll(true);
+		this.Content.AddToParagraph(oParaItem);
+		this.Content.SetApplyToAll(false);
+	}
+	else
+	{
+		return this.Content.AddToParagraph(oParaItem);
+	}
 };
 CBlockLevelSdt.prototype.PreDelete = function()
 {
@@ -1468,7 +1483,7 @@ CBlockLevelSdt.prototype.CanBeDeleted = function()
  */
 CBlockLevelSdt.prototype.CanBeEdited = function()
 {
-	if (!this.SkipCheckBoxLock && (this.IsCheckBox() || this.IsPicture()))
+	if (!this.SkipSpecialLock && (this.IsCheckBox() || this.IsPicture() || this.IsDropDownList()))
 		return false;
 
 	return (undefined === this.Pr.Lock || c_oAscSdtLockType.Unlocked === this.Pr.Lock || c_oAscSdtLockType.SdtLocked === this.Pr.Lock);
@@ -1556,9 +1571,9 @@ CBlockLevelSdt.prototype.IsCheckBox = function()
  * Выключаем проверку невозможности редактирования данного объекта, из-за того что это чекбокс
  * @param isSkip {boolean}
  */
-CBlockLevelSdt.prototype.SkipCheckLockForCheckBox = function(isSkip)
+CBlockLevelSdt.prototype.SkipSpecialContentControlLock = function(isSkip)
 {
-	this.SkipCheckBoxLock = isSkip;
+	this.SkipSpecialLock = isSkip;
 };
 /**
  * Применяем заданные настройки для чекобокса
@@ -1712,6 +1727,117 @@ CBlockLevelSdt.prototype.SelectPicture = function()
 	this.Content.Select_DrawingObject(arrDrawings[0].GetId());
 	return true;
 };
+/**
+ * Проверяем является ли данный контейнер специальным для поля со списком
+ * @returns {boolean}
+ */
+CBlockLevelSdt.prototype.IsComboBox = function()
+{
+	return (undefined !== this.Pr.ComboBox);
+};
+/**
+ * @param oPr {CSdtComboBoxPr}
+ */
+CBlockLevelSdt.prototype.SetComboBoxPr = function(oPr)
+{
+	if (undefined === this.Pr.ComboBox || !this.Pr.ComboBox.IsEqual(oPr))
+	{
+		History.Add(new CChangesSdtPrComboBox(this, this.Pr.ComboBox, oPr));
+		this.Pr.ComboBox = oPr;
+	}
+};
+/**
+ * Проверяем является ли данный контейнер специальным для выпадающего списка
+ * @returns {boolean}
+ */
+CBlockLevelSdt.prototype.IsDropDownList = function()
+{
+	return (undefined !== this.Pr.DropDown);
+};
+/**
+ * @param oPr {CSdtComboBoxPr}
+ */
+CBlockLevelSdt.prototype.SetDropDownListPr = function(oPr)
+{
+	if (undefined === this.Pr.DropDown || !this.Pr.DropDown.IsEqual(oPr))
+	{
+		History.Add(new CChangesSdtPrDropDownList(this, this.Pr.DropDown, oPr));
+		this.Pr.DropDown = oPr;
+	}
+};
+/**
+ * Применяем к данному контейнеру настройки того, что это специальный контйенер для поля со списком
+ * @param oPr {CSdtComboBoxPr}
+ */
+CBlockLevelSdt.prototype.ApplyComboBoxPr = function(oPr)
+{
+	this.SetComboBoxPr(oPr);
+	this.SelectListItem();
+};
+/**
+ * Применяем к данному контейнеру настройки того, что это специальный контейнер для выпадающего списка
+ * @param oPr {CSdtComboBoxPr}
+ */
+CBlockLevelSdt.prototype.ApplyDropDownListPr = function(oPr)
+{
+	this.SetDropDownListPr(oPr);
+	this.SelectListItem();
+};
+/**
+ * Заполняем контейнер текстом в зависимости от выбранного элемента в списке
+ * @param sValue {string}
+ */
+CBlockLevelSdt.prototype.SelectListItem = function(sValue)
+{
+	var oList = null;
+	if (this.IsComboBox())
+		oList = this.Pr.ComboBox;
+	else if (this.IsDropDownList())
+		oList = this.Pr.DropDown;
+
+	if (!oList)
+		return;
+
+	var sText = oList.GetTextByValue(sValue);
+	if (null === sText)
+	{
+		this.private_ReplaceContentWithPlaceHolder();
+		this.private_UpdatePlaceHolderListContent();
+	}
+	else
+	{
+		this.private_ReplacePlaceHolderWithContent();
+		var oRun = this.private_UpdateListContent();
+		if (oRun)
+			oRun.AddText(sText);
+	}
+};
+CBlockLevelSdt.prototype.private_UpdateListContent = function()
+{
+	if (this.IsPlaceHolder())
+		return null;
+
+	var oParagraph = this.Content.MakeSingleParagraphContent();
+	if (!oParagraph)
+		return null;
+
+	var oRun = oParagraph.MakeSingleRunParagraph();
+	if (!oRun)
+		return null;
+
+	return oRun;
+};
+CBlockLevelSdt.prototype.private_UpdatePlaceHolderListContent = function()
+{
+	if (!this.IsPlaceHolder())
+		return;
+
+	var oRun = this.PlaceHolder.MakeSingleRunParagraph();
+	if (!oRun)
+		return;
+
+	oRun.AddText(AscCommon.translateManager.getValue("Choose an item."));
+};
 CBlockLevelSdt.prototype.Document_Is_SelectionLocked = function(CheckType, bCheckInner)
 {
 	if (AscCommon.changestype_Document_Content_Add === CheckType && this.Content.IsCursorAtBegin())
@@ -1721,10 +1847,10 @@ CBlockLevelSdt.prototype.Document_Is_SelectionLocked = function(CheckType, bChec
 
 	if (CheckType === AscCommon.changestype_Paragraph_TextProperties)
 	{
-		this.SkipCheckLockForCheckBox(true);
+		this.SkipSpecialContentControlLock(true);
 		if (!this.CanBeEdited())
 			this.Lock.Check(this.GetId());
-		this.SkipCheckLockForCheckBox(false);
+		this.SkipSpecialContentControlLock(false);
 
 
 		isCheckContentControlLock = false;

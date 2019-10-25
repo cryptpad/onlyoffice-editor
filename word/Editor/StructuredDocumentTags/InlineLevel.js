@@ -63,7 +63,7 @@ function CInlineLevelSdt()
 	// Добавляем данный класс в таблицу Id (обязательно в конце конструктора)
 	g_oTableId.Add(this, this.Id);
 
-	this.SkipCheckBoxLock = false;
+	this.SkipSpecialLock = false;
 }
 
 CInlineLevelSdt.prototype = Object.create(CParagraphContentWithParagraphLikeContent.prototype);
@@ -106,6 +106,9 @@ CInlineLevelSdt.prototype.Copy = function(isUseSelection, oPr)
 
 	if (!this.IsPlaceHolder())
 	{
+		if (nStartPos <= nEndPos)
+			oContentControl.RemoveFromContent(0, this.Content.length);
+
 		for (var nCurPos = nStartPos; nCurPos <= nEndPos; ++nCurPos)
 		{
 			var oItem = this.Content[nCurPos];
@@ -135,6 +138,12 @@ CInlineLevelSdt.prototype.Copy = function(isUseSelection, oPr)
 
 	if (undefined !== this.Pr.Picture)
 		oContentControl.SetPicturePr(this.Pr.Picture);
+
+	if (undefined !== this.Pr.ComboBox)
+		oContentControl.SetComboBoxPr(this.Pr.ComboBox);
+
+	if (undefined !== this.Pr.DropDown)
+		oContentControl.SetDropDownListPr(this.Pr.DropDown);
 
 	return oContentControl;
 };
@@ -472,6 +481,13 @@ CInlineLevelSdt.prototype.SetParagraph = function(oParagraph)
 	this.PlaceHolder.SetParagraph(oParagraph);
 	CParagraphContentWithParagraphLikeContent.prototype.SetParagraph.apply(this, arguments);
 };
+CInlineLevelSdt.prototype.Apply_TextPr = function(TextPr, IncFontSize, ApplyToAll)
+{
+	if (this.IsDropDownList() || this.IsComboBox())
+		CParagraphContentWithParagraphLikeContent.prototype.Apply_TextPr.call(this, TextPr, IncFontSize, true);
+	else
+		CParagraphContentWithParagraphLikeContent.prototype.Apply_TextPr.call(this, TextPr, IncFontSize, ApplyToAll);
+};
 /**
  * Активен PlaceHolder сейчас или нет
  * @returns {boolean}
@@ -704,7 +720,7 @@ CInlineLevelSdt.prototype.CanBeDeleted = function()
  */
 CInlineLevelSdt.prototype.CanBeEdited = function()
 {
-	if (!this.SkipCheckBoxLock && (this.IsCheckBox() || this.IsPicture()))
+	if (!this.SkipSpecialLock && (this.IsCheckBox() || this.IsPicture() || this.IsDropDownList()))
 		return false;
 
 	return (undefined === this.Pr.Lock || c_oAscSdtLockType.Unlocked === this.Pr.Lock || c_oAscSdtLockType.SdtLocked === this.Pr.Lock);
@@ -855,29 +871,21 @@ CInlineLevelSdt.prototype.ToggleCheckBox = function()
 	this.private_UpdateCheckBoxContent();
 };
 /**
- * Выключаем проверку невозможности редактирования данного объекта, из-за того что это чекбокс
+ * Выключаем проверку невозможности редактирования данного объекта, из-за того что специальный контейнер
  * @param isSkip {boolean}
  */
-CInlineLevelSdt.prototype.SkipCheckLockForCheckBox = function(isSkip)
+CInlineLevelSdt.prototype.SkipSpecialContentControlLock = function(isSkip)
 {
-	this.SkipCheckBoxLock = isSkip;
+	this.SkipSpecialLock = isSkip;
 };
 CInlineLevelSdt.prototype.private_UpdateCheckBoxContent = function()
 {
 	var isChecked = this.Pr.CheckBox.Checked;
 
-	if (this.Content.length <= 0)
-	{
-		this.AddToContent(0, new ParaRun(this.GetParagraph(), false), true);
-	}
-	else if (this.Content.length > 1 || para_Run !== this.Content[0].Type)
-	{
-		this.RemoveFromContent(0, this.Content.length, true);
-		this.AddToContent(0, new ParaRun(this.GetParagraph(), false), true);
-	}
+	var oRun = this.MakeSingleRunElement();
+	if (!oRun)
+		return;
 
-	var oRun = this.Content[0];
-	oRun.ClearContent();
 	oRun.AddText(String.fromCharCode(isChecked ? this.Pr.CheckBox.CheckedSymbol : this.Pr.CheckBox.UncheckedSymbol));
 
 	if (isChecked && this.Pr.CheckBox.CheckedFont)
@@ -923,18 +931,9 @@ CInlineLevelSdt.prototype.private_UpdatePictureContent = function()
 	if (this.IsPlaceHolder())
 		this.ReplacePlaceHolderWithContent();
 
-	if (this.Content.length <= 0)
-	{
-		this.AddToContent(0, new ParaRun(this.GetParagraph(), false), true);
-	}
-	else if (this.Content.length > 1 || para_Run !== this.Content[0].Type)
-	{
-		this.RemoveFromContent(0, this.Content.length, true);
-		this.AddToContent(0, new ParaRun(this.GetParagraph(), false), true);
-	}
-
-	var oRun = this.Content[0];
-	oRun.ClearContent();
+	var oRun = this.MakeSingleRunElement();
+	if (!oRun)
+		return;
 
 	var oDrawingObjects = this.Paragraph && this.Paragraph.LogicDocument ? this.Paragraph.LogicDocument.DrawingObjects : null;
 	if (!oDrawingObjects)
@@ -975,14 +974,114 @@ CInlineLevelSdt.prototype.SelectPicture = function()
 	this.GetParagraph().GetParent().Select_DrawingObject(arrDrawings[0].GetId());
 	return true;
 };
+/**
+ * Проверяем является ли данный контейнер специальным для поля со списком
+ * @returns {boolean}
+ */
+CInlineLevelSdt.prototype.IsComboBox = function()
+{
+	return (undefined !== this.Pr.ComboBox);
+};
+/**
+ * @param oPr {CSdtComboBoxPr}
+ */
+CInlineLevelSdt.prototype.SetComboBoxPr = function(oPr)
+{
+	if (undefined === this.Pr.ComboBox || !this.Pr.ComboBox.IsEqual(oPr))
+	{
+		History.Add(new CChangesSdtPrComboBox(this, this.Pr.ComboBox, oPr));
+		this.Pr.ComboBox = oPr;
+	}
+};
+/**
+ * Проверяем является ли данный контейнер специальным для выпадающего списка
+ * @returns {boolean}
+ */
+CInlineLevelSdt.prototype.IsDropDownList = function()
+{
+	return (undefined !== this.Pr.DropDown);
+};
+/**
+ * @param oPr {CSdtComboBoxPr}
+ */
+CInlineLevelSdt.prototype.SetDropDownListPr = function(oPr)
+{
+	if (undefined === this.Pr.DropDown || !this.Pr.DropDown.IsEqual(oPr))
+	{
+		History.Add(new CChangesSdtPrDropDownList(this, this.Pr.DropDown, oPr));
+		this.Pr.DropDown = oPr;
+	}
+};
+/**
+ * Применяем к данному контейнеру настройки того, что это специальный контйенер для поля со списком
+ * @param oPr {CSdtComboBoxPr}
+ */
+CInlineLevelSdt.prototype.ApplyComboBoxPr = function(oPr)
+{
+	this.SetComboBoxPr(oPr);
+	this.SelectListItem();
+};
+/**
+ * Применяем к данному контейнеру настройки того, что это специальный контейнер для выпадающего списка
+ * @param oPr {CSdtComboBoxPr}
+ */
+CInlineLevelSdt.prototype.ApplyDropDownListPr = function(oPr)
+{
+	this.SetDropDownListPr(oPr);
+	this.SelectListItem();
+};
+/**
+ * Заполняем контейнер текстом в зависимости от выбранного элемента в списке
+ * @param sValue {string}
+ */
+CInlineLevelSdt.prototype.SelectListItem = function(sValue)
+{
+	var oList = null;
+	if (this.IsComboBox())
+		oList = this.Pr.ComboBox;
+	else if (this.IsDropDownList())
+		oList = this.Pr.DropDown;
+
+	if (!oList)
+		return;
+
+	var sText = oList.GetTextByValue(sValue);
+	if (null === sText)
+	{
+		this.ReplaceContentWithPlaceHolder();
+		this.private_UpdatePlaceHolderListContent();
+	}
+	else
+	{
+		this.ReplacePlaceHolderWithContent();
+		var oRun = this.private_UpdateListContent();
+		if (oRun)
+			oRun.AddText(sText);
+	}
+};
+CInlineLevelSdt.prototype.private_UpdateListContent = function()
+{
+	if (this.IsPlaceHolder())
+		return null;
+
+	return this.MakeSingleRunElement();
+};
+CInlineLevelSdt.prototype.private_UpdatePlaceHolderListContent = function()
+{
+	if (!this.IsPlaceHolder())
+		return;
+
+	this.PlaceHolder.ClearContent();
+	this.PlaceHolder.AddText(AscCommon.translateManager.getValue("Choose an item."));
+};
 CInlineLevelSdt.prototype.Document_Is_SelectionLocked = function(CheckType)
 {
 	if (CheckType === AscCommon.changestype_Paragraph_TextProperties)
 	{
-		this.SkipCheckLockForCheckBox(true);
+		this.SkipSpecialContentControlLock(true);
 		if (!this.CanBeEdited())
 			AscCommon.CollaborativeEditing.Add_CheckLock(true);
-		this.SkipCheckLockForCheckBox(false);
+		this.SkipSpecialContentControlLock(false);
 
 		return;
 	}
