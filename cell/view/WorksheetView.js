@@ -18409,31 +18409,54 @@
 		//перед этой функцией необходимо вызвать getSelectionSortInfo - необходимо ли расширять
 		//bExpand - ответ от этой функции, который протаскивается через интерфейс
 		//если мультиселект - дизейбл кнопки sort
-
-
-		//если пустой дипазон, выдаём ошибку
 		var selection = t.model.selectionRange.getLast();
 		var oldSelection = selection.clone();
-		if(bExpand) {
-			selection = t.model.autoFilters.expandRange(selection);
+
+		var modelSort, dataHasHeaders, columnSort;
+		var tables = t.model.autoFilters.getTableIntersectionRange(selection);
+		if(tables && tables.length) {
+			if(tables && tables && tables.length === 1 && tables[0].Ref.containsRange(selection)) {
+				selection = tables[0].getRangeWithoutHeaderFooter();
+				columnSort = true;
+				dataHasHeaders = true;
+				modelSort = tables[0].SortState;
+			} else {
+				this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.LockedAllError, c_oAscError.Level.NoCritical);
+				return false;
+			}
+		} else if(t.model.AutoFilter && t.model.AutoFilter.Ref && t.model.AutoFilter.Ref.intersection(selection)) {
+			var autoFilter = t.model.AutoFilter;
+			if(autoFilter.Ref.containsRange(selection)) {
+				selection = autoFilter.getRangeWithoutHeaderFooter();
+				columnSort = true;
+				dataHasHeaders = true;
+				modelSort = autoFilter.SortState;
+			} else {
+				this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.LockedAllError, c_oAscError.Level.NoCritical);
+				return false;
+			}
+		} else {
+			if(bExpand) {
+				selection = t.model.autoFilters.expandRange(selection);
+			}
+
+			//в модели лежит флаг columnSort - если он true значит сортируем по строке(те перемещаем колонки)
+			//в настройках флаг columnSort - означает, что сортируем по колонке
+			modelSort = this.model.sortState;
+			columnSort = modelSort ? !modelSort.ColumnSort : true;
+
+			dataHasHeaders = columnSort ? window['AscCommonExcel'].ignoreFirstRowSort(t.model, selection) : false;
+			//для columnSort - добавлять с1++
+			if (dataHasHeaders) {
+				selection.r1++;
+			}
+
+			//если пустой дипазон, выдаём ошибку
+			if(t.model.autoFilters._isEmptyRange(selection, 0)) {
+				this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.LockedAllError, c_oAscError.Level.NoCritical);
+				return false;
+			}
 		}
-
-		//в модели лежит флаг columnSort - если он true значит сортируем по строке(те перемещаем колонки)
-		//в настройках флаг columnSort - означает, что сортируем по колонке
-		var modelSort = this.model.sortState;
-		var columnSort = modelSort ? !modelSort.ColumnSort : true;
-
-		var dataHasHeaders = columnSort ? window['AscCommonExcel'].ignoreFirstRowSort(t.model, selection) : false;
-		//для columnSort - добавлять с1++
-		if (dataHasHeaders) {
-			selection.r1++;
-		}
-
-		if(t.model.autoFilters._isEmptyRange(selection, 0)) {
-			this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.LockedAllError, c_oAscError.Level.NoCritical);
-			return false;
-		}
-
 
 		this.setSelection(selection);
 		sortSettings = new Asc.CSortProperties(this);
@@ -18443,6 +18466,7 @@
 		//заголовки
 		sortSettings.hasHeaders = dataHasHeaders;
 		sortSettings.columnSort = columnSort;
+
 
 		var getSortLevel = function(sortCondition) {
 			var level = new Asc.CSortPropertiesLevel();

@@ -8903,6 +8903,8 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		var t = this;
 		var _generateName = function(index) {
 			//todo перевод!
+			//AscCommon.translateManager.getValue("Column")
+			//AscCommon.translateManager.getValue("Row")
 			var base = t.columnSort ? "Column" : "Row";
 			var text = t.columnSort ? t._ws._getColumnTitle(index) : t._ws._getRowTitle(index);
 			text = base + " " + text;
