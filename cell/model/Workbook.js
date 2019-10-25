@@ -11910,7 +11910,7 @@
 
 				if(!putElem) {
 					return res;
-				} else {
+				} else if(res) {
 					aSortElems.push(res);
 				}
 			}
