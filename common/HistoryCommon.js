@@ -1588,7 +1588,7 @@
 	window['AscDFH'].historyitem_Comment_TypeInfo = window['AscDFH'].historyitem_type_Comment | 2;
 	window['AscDFH'].historyitem_Comment_Position = window['AscDFH'].historyitem_type_Comment | 3;
 	//------------------------------------------------------------------------------------------------------------------
-	// Типы изменений в классе CComments
+	// Типы изменений в классе AscCommon.CComments
 	//------------------------------------------------------------------------------------------------------------------
 	window['AscDFH'].historyitem_Comments_Add    = window['AscDFH'].historyitem_type_Comments | 1;
 	window['AscDFH'].historyitem_Comments_Remove = window['AscDFH'].historyitem_type_Comments | 2;
@@ -1800,7 +1800,7 @@
 	window['AscDFH'].historyitem_Section_PageMargins_Gutter  = window['AscDFH'].historyitem_type_Section | 32;
 	window['AscDFH'].historyitem_Section_Gutter_RTL          = window['AscDFH'].historyitem_type_Section | 33;
 	//------------------------------------------------------------------------------------------------------------------
-	// Типы изменений в классе ParaComment
+	// Типы изменений в классе AscCommon.ParaComment
 	//------------------------------------------------------------------------------------------------------------------
 	window['AscDFH'].historyitem_ParaComment_CommentId = window['AscDFH'].historyitem_type_ParaComment | 1;
 	//------------------------------------------------------------------------------------------------------------------

@@ -7394,7 +7394,7 @@ function BinaryFileReader(doc, openParams)
 		var setting = this.oReadResult.setting;        
 		var fInitCommentData = function(comment)
 		{
-			var oCommentObj = new CCommentData();
+			var oCommentObj = new AscCommon.CCommentData();
 			if(null != comment.UserName)
 				oCommentObj.m_sUserName = comment.UserName;
 			if(null != comment.Initials)
@@ -7424,7 +7424,7 @@ function BinaryFileReader(doc, openParams)
 		for(var i in this.oReadResult.oComments)
 		{
 			var oOldComment = this.oReadResult.oComments[i];
-			var oNewComment = new CComment(this.Document.Comments, fInitCommentData(oOldComment));
+			var oNewComment = new AscCommon.CComment(this.Document.Comments, fInitCommentData(oOldComment));
 			this.Document.Comments.Add(oNewComment);
 			oCommentsNewId[oOldComment.Id] = oNewComment;
 		}
@@ -7736,7 +7736,7 @@ function BinaryFileReader(doc, openParams)
 		var setting = this.oReadResult.setting;        
 		var fInitCommentData = function(comment)
 		{
-			var oCommentObj = new CCommentData();
+			var oCommentObj = new AscCommon.CCommentData();
 			if(null != comment.UserName)
 				oCommentObj.m_sUserName = comment.UserName;
 			if(null != comment.Initials)
@@ -7778,7 +7778,7 @@ function BinaryFileReader(doc, openParams)
 				if(m_sQuoteText)
 					oOldComment.m_sQuoteText = m_sQuoteText;
 				
-				var oNewComment = new CComment(document.Comments, fInitCommentData(oOldComment))
+				var oNewComment = new AscCommon.CComment(document.Comments, fInitCommentData(oOldComment))
 				document.Comments.Add(oNewComment);
 				oCommentsNewId[oOldComment.Id] = oNewComment;
 			}
@@ -10529,7 +10529,7 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
 					this.nCurCommentsCount++;
 					this.oCurComments[oCommon.Id] = "";
 				}
-				oCommon.oParaComment = new ParaComment(true, oCommon.Id);
+				oCommon.oParaComment = new AscCommon.ParaComment(true, oCommon.Id);
 				oParStruct.addToContent(oCommon.oParaComment);
 			}
         }
@@ -10556,7 +10556,7 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
 					this.nCurCommentsCount--;
 					delete this.oCurComments[oCommon.Id];
 				}
-				oCommon.oParaComment = new ParaComment(false, oCommon.Id);
+				oCommon.oParaComment = new AscCommon.ParaComment(false, oCommon.Id);
 				oParStruct.addToContent(oCommon.oParaComment);
 			}
         }

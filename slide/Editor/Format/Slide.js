@@ -1554,7 +1554,7 @@ function fLoadComments(oObject, authors)
 
         if (0 == _wc.WriteParentAuthorId || 0 == _wc.WriteParentCommentId)
         {
-            var commentData = new CCommentData();
+            var commentData = new AscCommon.CCommentData();
 
             commentData.m_sText = _wc.WriteText;
             commentData.m_sUserId = ("" + _wc.WriteAuthorId);
@@ -1582,14 +1582,14 @@ function fLoadComments(oObject, authors)
 
                 _wc.ParceAdditionalData(commentData);
 
-                var comment = new CComment(oComments, new CCommentData());
+                var comment = new AscCommon.CComment(oComments, new AscCommon.CCommentData());
                 comment.setPosition(_wc.x / 22.66, _wc.y / 22.66);
                 _comments.push(comment);
             }
         }
         else
         {
-            var commentData = new CCommentData();
+            var commentData = new AscCommon.CCommentData();
 
             commentData.m_sText = _wc.WriteText;
             commentData.m_sUserId = ("" + _wc.WriteAuthorId);

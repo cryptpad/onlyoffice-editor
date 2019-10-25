@@ -6149,7 +6149,7 @@ background-repeat: no-repeat;\
 		// Комментарий без цитаты позволяем добавить всегда
 		if (true !== this.can_AddQuotedComment() || false === oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Paragraph_Content, null, true, oLogicDocument.IsEditCommentsMode()))
 		{
-			var CommentData = new CCommentData();
+			var CommentData = new AscCommon.CCommentData();
 			CommentData.Read_FromAscCommentData(AscCommentData);
 
 			this.WordControl.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_AddComment);

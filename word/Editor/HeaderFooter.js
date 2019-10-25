@@ -2579,7 +2579,7 @@ CHeaderFooterController.prototype =
 		if (null != this.CurHdrFtr)
 		{
 			// Отмечаем, что данный комментарий добавлен к колонтитулу
-			Comment.Set_TypeInfo(comment_type_HdrFtr, this.CurHdrFtr);
+			Comment.Set_TypeInfo(AscCommon.comment_type_HdrFtr, this.CurHdrFtr);
 			this.CurHdrFtr.AddComment(Comment);
 		}
 	},

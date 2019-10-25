@@ -11045,7 +11045,7 @@ CPresentation.prototype =
         if(oSlideComments)
         {
             History.Create_NewPoint(AscDFH.historydescription_Presentation_AddComment);
-            var Comment = new CComment( oSlideComments, CommentData );
+            var Comment = new AscCommon.CComment( oSlideComments, CommentData );
             if(this.Document_Is_SelectionLocked(AscCommon.changestype_AddComment, Comment, this.IsEditCommentsMode()) === false)
             {
                 if(!bAll)

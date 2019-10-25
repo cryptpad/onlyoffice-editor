@@ -8724,7 +8724,7 @@ PasteProcessor.prototype =
 								if(!oThis.needAddCommentEnd) {
 									oThis.needAddCommentEnd = [];
 								}
-								oThis.needAddCommentEnd.push(new ParaComment(false, oThis.msoComments[idAnchor[1]].start));
+								oThis.needAddCommentEnd.push(new AscCommon.ParaComment(false, oThis.msoComments[idAnchor[1]].start));
 								delete oThis.msoComments[idAnchor[1]];
 							}
 						}
@@ -8739,7 +8739,7 @@ PasteProcessor.prototype =
 					if(commentId && undefined !== commentId[1]) {
 						var startComment = oThis.msoComments[commentId[1]];
 						if(startComment && !startComment.start) {
-							//добавляем комментарий CComment и получаем его id
+							//добавляем комментарий AscCommon.CComment и получаем его id
 							var newCCommentId = oThis._addComment({Date: pPr["mso-comment-date"], Text: startComment.text});
 							//удаляем из map
 							oThis.msoComments[commentId[1]].start = newCCommentId;
@@ -8747,7 +8747,7 @@ PasteProcessor.prototype =
 							if(!oThis.needAddCommentStart) {
 								oThis.needAddCommentStart = [];
 							}
-							oThis.needAddCommentStart.push(new ParaComment(true, newCCommentId));
+							oThis.needAddCommentStart.push(new AscCommon.ParaComment(true, newCCommentId));
 						}
 					}
 				}
@@ -9524,7 +9524,7 @@ PasteProcessor.prototype =
 			return res;
 		};
 		var fInitCommentData = function (comment) {
-			var oCommentObj = new CCommentData();
+			var oCommentObj = new AscCommon.CCommentData();
 			oCommentObj.m_nDurableId = AscCommon.CreateUInt32();
 			if (null != comment.UserName) {
 				oCommentObj.m_sUserName = comment.UserName;
@@ -9558,7 +9558,7 @@ PasteProcessor.prototype =
 		var isIntoDocumentContent = this.oDocument instanceof CDocumentContent ? true : false;
 		var document = this.oDocument && isIntoDocumentContent && !isIntoShape ? this.oDocument.LogicDocument : this.oDocument;
 
-		var oNewComment = new CComment(document.Comments, fInitCommentData(oOldComment));
+		var oNewComment = new AscCommon.CComment(document.Comments, fInitCommentData(oOldComment));
 		document.Comments.Add(oNewComment);
 
 		//посылаем событие о добавлении комментариев

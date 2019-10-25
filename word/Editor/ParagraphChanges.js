@@ -375,7 +375,7 @@ CChangesParagraphAddItem.prototype.Load = function(Color)
 				var Comment = AscCommon.g_oTableId.Get_ById(Element.CommentId);
 
 				// При копировании не всегда сразу заполняется правильно CommentId
-				if (null != Comment && Comment instanceof CComment)
+				if (null != Comment && Comment instanceof AscCommon.CComment)
 				{
 					if (true === Element.Start)
 						Comment.Set_StartId(oParagraph.Get_Id());

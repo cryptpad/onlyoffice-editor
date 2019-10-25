@@ -499,7 +499,7 @@ CSelectedContent.prototype =
                         DocumentComments.Add(NewComment);
                         editor.sync_AddComment(NewComment.Get_Id(), NewComment.Data);
 
-                        // поправим Id в самих элементах ParaComment
+                        // поправим Id в самих элементах AscCommon.ParaComment
                         for (var Pos2 = 0; Pos2 < Count2; Pos2++)
                         {
                             var Element = this.Comments[Pos2].Comment;
@@ -1879,8 +1879,8 @@ function CDocument(DrawingDocument, isMainLogicDocument)
 
     this.HighlightColor = null;
 
-    if(typeof CComments !== "undefined")
-        this.Comments = new CComments();
+    if(typeof AscCommon.CComments !== "undefined")
+        this.Comments = new AscCommon.CComments();
 
     this.Lock = new AscCommon.CLock();
 
@@ -9197,7 +9197,7 @@ CDocument.prototype.OnMouseUp = function(e, X, Y, PageIndex)
 	{
 		if (true === this.Comments.Is_Use())
 		{
-			var Type = ( docpostype_HdrFtr === this.CurPos.Type ? comment_type_HdrFtr : comment_type_Common );
+			var Type = ( docpostype_HdrFtr === this.CurPos.Type ? AscCommon.comment_type_HdrFtr : AscCommon.comment_type_Common );
 
 			// Проверяем не попали ли мы в комментарий
 			var arrComments = this.Comments.Get_ByXY(PageIndex, X, Y, Type);
@@ -11463,7 +11463,7 @@ CDocument.prototype.AddComment = function(CommentData, isForceGlobal)
 	if (true === isForceGlobal || true != this.CanAddComment())
 	{
 		CommentData.Set_QuoteText(null);
-		var Comment = new CComment(this.Comments, CommentData);
+		var Comment = new AscCommon.CComment(this.Comments, CommentData);
 		this.Comments.Add(Comment);
 
 		// Обновляем информацию для Undo/Redo
@@ -11490,7 +11490,7 @@ CDocument.prototype.AddComment = function(CommentData, isForceGlobal)
 		}
 		CommentData.Set_QuoteText(QuotedText);
 
-		var Comment = new CComment(this.Comments, CommentData);
+		var Comment = new AscCommon.CComment(this.Comments, CommentData);
 		this.Comments.Add(Comment);
 		this.Controller.AddComment(Comment);
 
@@ -11660,7 +11660,7 @@ CDocument.prototype.GetAllComments = function(isMine, isCurrent)
 		if (true === this.Comments.Is_Use())
 		{
 			var oCurPosXY   = this.GetCursorRealPosition();
-			var arrComments = this.Comments.Get_ByXY(this.CurPage, oCurPosXY.X, oCurPosXY.Y, docpostype_HdrFtr === this.GetDocPosType() ? comment_type_HdrFtr : comment_type_Common);
+			var arrComments = this.Comments.Get_ByXY(this.CurPage, oCurPosXY.X, oCurPosXY.Y, docpostype_HdrFtr === this.GetDocPosType() ? AscCommon.comment_type_HdrFtr : AscCommon.comment_type_Common);
 
 			for (var nCommentIndex = 0, nCommentsCount = arrComments.length; nCommentIndex < nCommentsCount; ++nCommentIndex)
 			{

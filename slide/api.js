@@ -4758,7 +4758,7 @@ background-repeat: no-repeat;\
 			return;
 		}
 
-		var CommentData = new CCommentData();
+		var CommentData = new AscCommon.CCommentData();
 		CommentData.Read_FromAscCommentData(AscCommentData);
 
 		var Comment = this.WordControl.m_oLogicDocument.AddComment(CommentData, AscCommentData.asc_getDocumentFlag());
