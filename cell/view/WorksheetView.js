@@ -18418,7 +18418,12 @@
 			selection = t.model.autoFilters.expandRange(selection);
 		}
 
-		var dataHasHeaders = window['AscCommonExcel'].ignoreFirstRowSort(t.model, selection);
+		//в модели лежит флаг columnSort - если он true значит сортируем по строке(те перемещаем колонки)
+		//в настройках флаг columnSort - означает, что сортируем по колонке
+		var modelSort = this.model.sortState;
+		var columnSort = modelSort ? !modelSort.ColumnSort : true;
+
+		var dataHasHeaders = columnSort ? window['AscCommonExcel'].ignoreFirstRowSort(t.model, selection) : false;
 		//для columnSort - добавлять с1++
 		if (dataHasHeaders) {
 			selection.r1++;
@@ -18437,8 +18442,7 @@
 
 		//заголовки
 		sortSettings.hasHeaders = dataHasHeaders;
-
-		var columnSort = sortSettings.columnSort = true;
+		sortSettings.columnSort = columnSort;
 
 		var getSortLevel = function(sortCondition) {
 			var level = new Asc.CSortPropertiesLevel();
@@ -18491,13 +18495,7 @@
 
 
 		//столбцы/строки с настройками
-		var modelSort = this.model.sortState;
 		if(modelSort) {
-			//в модели лежит флаг columnSort - если он true значит сортируем по строке(те перемещаем колонки)
-			//в настройках флаг columnSort - означает, что сортируем по колонке
-			if(modelSort.ColumnSort) {
-				sortSettings.columnSort = columnSort = false;
-			}
 			//заполняем только в случае пересечения
 			if(selection.intersection(modelSort.Ref)) {
 				for(var i = 0; i < modelSort.SortConditions.length; i++) {
@@ -18509,7 +18507,6 @@
 			}
 		}
 
-		sortSettings.columnSort = columnSort;
 		sortSettings._newSelection = selection;
 		sortSettings.generateSortList();
 
@@ -18548,7 +18545,7 @@
 				var c2  = columnSort ? selection.c1 + level.index : selection.c2;
 				sortCondition.Ref = new Asc.Range(c1, r1, c2, r2);
 				sortCondition.ConditionSortBy = null;
-				sortCondition.ConditionDescending = level.descending;
+				sortCondition.ConditionDescending = Asc.c_oAscSortOptions.Descending === level.descending;
 				sortCondition.dxf = null;
 
 				if(!sortState.SortConditions) {
@@ -18569,7 +18566,6 @@
 			}
 
 			History.EndTransaction();
-
 		};
 
 		//TODO lock
