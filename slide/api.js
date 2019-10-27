@@ -2669,7 +2669,7 @@ background-repeat: no-repeat;\
 	 1.1.1         - SubType = 2
 	 маркированный - SubType = 3
 	 */
-	asc_docs_api.prototype.put_ListType = function(type, subtype)
+	asc_docs_api.prototype.put_ListType = function(type, subtype, fSize, oUnicolor)
 	{
 		var oPresentation = this.WordControl.m_oLogicDocument;
 		var sBullet = "";
@@ -2726,13 +2726,10 @@ background-repeat: no-repeat;\
 
 			var NumberInfo =
 			{
-				Type    : 0,
-				SubType : -1
+				Type     : type,
+				SubType  : subtype
 			};
-
-			NumberInfo.Type    = type;
-			NumberInfo.SubType = subtype;
-			oPresentation.SetParagraphNumbering(NumberInfo);
+			oPresentation.SetParagraphNumbering(NumberInfo, fSize, oUnicolor);
 		};
 		if(sBullet.length > 0)
 		{

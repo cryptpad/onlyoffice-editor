@@ -12402,6 +12402,10 @@ function ApplyPresetToChartSpace(oChartSpace, aPreset, bCreate){
 
 
     function fGetFontByNumInfo(Type, SubType){
+        if(!AscFormat.isRealNumber(Type) || !AscFormat.isRealNumber(SubType))
+        {
+            return null;
+        }
         if(SubType >= 0){
             if(Type === 0){
                 switch(SubType)
@@ -12431,6 +12435,10 @@ function ApplyPresetToChartSpace(oChartSpace, aPreset, bCreate){
     }
 
     function fGetPresentationBulletByNumInfo(NumInfo){
+        if(!AscFormat.isRealNumber(NumInfo.Type) || !AscFormat.isRealNumber(NumInfo.SubType))
+        {
+            return null;
+        }
         var bullet = new AscFormat.CBullet();
         if(NumInfo.SubType < 0)
         {
