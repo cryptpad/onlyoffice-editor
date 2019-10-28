@@ -393,8 +393,6 @@ SlideLayout.prototype =
             }
             this.recalcInfo.recalculateBounds = false;
         }
-
-
     },
 
     recalculate2: function()
@@ -590,8 +588,25 @@ SlideLayout.prototype =
         }
     },
 
-    Refresh_RecalcData: function()
-    {},
+    addToRecalculate: function()
+    {
+        History.RecalcData_Add({Type: AscDFH.historyitem_recalctype_Drawing, Object: this});
+    },
+
+    Refresh_RecalcData: function(data)
+    {
+        if(data)
+        {
+            switch(data.Type)
+            {
+                case AscDFH.historyitem_SlideLayoutAddToSpTree:
+                {
+                    this.addToRecalculate();
+                    break;
+                }
+            }
+        }
+    },
 
     Clear_ContentChanges: function () {
     },

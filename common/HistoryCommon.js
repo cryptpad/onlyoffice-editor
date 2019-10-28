@@ -3172,6 +3172,7 @@
 	window['AscDFH'].historydescription_Document_AddContentControlList              = 0x016a;
 	window['AscDFH'].historydescription_Document_SetContentControlListPr            = 0x016b;
 	window['AscDFH'].historydescription_Document_SelectContentControlListItem       = 0x016c;
+	window['AscDFH'].historydescription_Presentation_AddToLayout                    = 0x016d;
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

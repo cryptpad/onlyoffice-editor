@@ -4375,6 +4375,7 @@ CPresentation.prototype =
             this.SearchEngine.ClearOnRecalc = false;
         }
         var _RecalcData = RecalcData ? RecalcData : History.Get_RecalcData(), key, recalcMap, bSync = true, i, bRedrawAllSlides = false, aToRedrawSlides = [], redrawSlideIndexMap = {}, slideIndex;
+        var bAttack = undefined;
         this.updateSlideIndexes();
         var b_check_layout = false;
         var bRedrawNotes = false;
@@ -4459,6 +4460,18 @@ CPresentation.prototype =
                 {
                     var oDrawingObject = _RecalcData.Drawings.Map[key];
                     oDrawingObject.recalculate();
+                    if(oDrawingObject.parent instanceof AscCommonSlide.SlideLayout)
+                    {
+                        oDrawingObject.parent.ImageBase64 = "";
+                        b_check_layout = true;
+                        bAttack = true;
+                    }
+                    if(oDrawingObject instanceof AscCommonSlide.SlideLayout)
+                    {
+                        oDrawingObject.ImageBase64 = "";
+                        b_check_layout = true;
+                        bAttack = true;
+                    }
                     if(oDrawingObject.getSlideIndex)
                     {
                         slideIndex = oDrawingObject.getSlideIndex();
@@ -4530,7 +4543,7 @@ CPresentation.prototype =
             }
             else if(b_check_layout)
             {
-                this.DrawingDocument.m_oWordControl.CheckLayouts();
+                this.DrawingDocument.m_oWordControl.CheckLayouts(bAttack);
             }
             if(this.needSelectPages.length > 0)
             {
@@ -11360,6 +11373,37 @@ CPresentation.prototype =
         }
     },
 
+    AddToLayout: function()
+    {
+        if(this.FocusOnNotes)
+        {
+            return;
+        }
+        var oSlide = this.Slides[this.CurPage];
+        if(!oSlide)
+        {
+            return;
+        }
+        var oController = oSlide.graphicObjects;
+        var oPresentation = this;
+        oController.checkSelectedObjectsAndCallback(function(){
+            var oSelectionState = oPresentation.Get_SelectionState2();
+            var spTree = oSlide.cSld.spTree;
+            var oLayout = oSlide.Layout;
+            for(var i = spTree.length - 1; i > -1; i--)
+            {
+                var oSp = spTree[i];
+                if(spTree[i].selected && !spTree[i].isPlaceholder())
+                {
+                    oSlide.removeFromSpTreeByPos(i);
+                    oSp.setParent(oLayout);
+                    oLayout.shapeAdd(oLayout.cSld.spTree.length, oSp);
+                }
+            }
+            oPresentation.Set_SelectionState2(oSelectionState);
+        }, [], false, AscDFH.historydescription_Presentation_AddToLayout);
+    },
+
     StartAddShape: function(preset, _is_apply)
     {
         if(this.Slides[this.CurPage])
@@ -11621,7 +11665,7 @@ CPresentation.prototype.StartAction = function(nDescription)
 };
 CPresentation.prototype.FinalizeAction = function()
 {
-
+    this.Recalculate();
 };
 
 
