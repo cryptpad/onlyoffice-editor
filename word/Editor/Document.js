@@ -13947,15 +13947,19 @@ CDocument.prototype.IsSdtGlobalSettingsDefault = function()
 };
 /**
  * Добавляем специальный контейнер в виде чекбокса
+ * @param oPr {?CSdtCheckBoxPr}
  * @returns {CInlineLevelSdt | CBlockLevelSdt}
  */
-CDocument.prototype.AddContentControlCheckBox = function()
+CDocument.prototype.AddContentControlCheckBox = function(oPr)
 {
 	this.RemoveSelection();
 
+	if (!oPr)
+		oPr = new CSdtCheckBoxPr();
+
 	var oTextPr = this.GetDirectTextPr();
 	var oCC = this.AddContentControl(c_oAscSdtLevelType.Inline);
-	oCC.ApplyCheckBoxPr(new CSdtCheckBoxPr(), oTextPr);
+	oCC.ApplyCheckBoxPr(oPr, oTextPr);
 	return oCC;
 };
 /**
@@ -13978,6 +13982,9 @@ CDocument.prototype.AddContentControlComboBox = function(oPr)
 {
 	this.RemoveSelection();
 
+	if (!oPr)
+		oPr = new CSdtComboBoxPr();
+
 	var oCC = this.AddContentControl(c_oAscSdtLevelType.Inline);
 	oCC.ApplyComboBoxPr(oPr);
 	return oCC;
@@ -13990,8 +13997,26 @@ CDocument.prototype.AddContentControlDropDownList = function(oPr)
 {
 	this.RemoveSelection();
 
+	if (!oPr)
+		oPr = new CSdtComboBoxPr();
+
 	var oCC = this.AddContentControl(c_oAscSdtLevelType.Inline);
 	oCC.ApplyDropDownListPr(oPr);
+	return oCC;
+};
+/**
+ * Добавляем специальный контейнер с выбором даты
+ * @param oPr {?CSdtDatePickerPr}
+ */
+CDocument.prototype.AddContentControlDatePicker = function(oPr)
+{
+	this.RemoveSelection();
+
+	if (!oPr)
+		oPr = new CSdtDatePickerPr();
+
+	var oCC = this.AddContentControl(c_oAscSdtLevelType.Inline);
+	oCC.ApplyDatePickerPr(oPr);
 	return oCC;
 };
 /**

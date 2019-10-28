@@ -1552,6 +1552,23 @@
 		Image      : 2
 	};
 
+	var c_oAscCalendarType = {
+		Gregorian            : 0,
+		GregorianArabic      : 1,
+		GregorianMeFrench    : 2,
+		GregorianUs          : 3,
+		GregorianXlitEnglish : 4,
+		GregorianXlitFrench  : 5,
+		Hebrew               : 6,
+		Hijri                : 7,
+		Japan                : 8,
+		Korea                : 9,
+		None                 : 10,
+		Saka                 : 11,
+		Taiwan               : 12,
+		Thai                 : 13
+	};
+
 	//------------------------------------------------------------export--------------------------------------------------
 	var prot;
 	window['Asc']                          = window['Asc'] || {};
@@ -2447,5 +2464,21 @@
 	prot['None'] = prot.None;
 	prot['Text'] = prot.Text;
 	prot['Image'] = prot.Image;
+
+	prot = window['Asc']['c_oAscCalendarType'] = window['Asc'].c_oAscCalendarType = c_oAscCalendarType;
+	prot['Gregorian']            = c_oAscCalendarType.Gregorian;
+	prot['GregorianArabic']      = c_oAscCalendarType.GregorianArabic;
+	prot['GregorianMeFrench']    = c_oAscCalendarType.GregorianMeFrench;
+	prot['GregorianUs']          = c_oAscCalendarType.GregorianUs;
+	prot['GregorianXlitEnglish'] = c_oAscCalendarType.GregorianXlitEnglish;
+	prot['GregorianXlitFrench']  = c_oAscCalendarType.GregorianXlitFrench;
+	prot['Hebrew']               = c_oAscCalendarType.Hebrew;
+	prot['Hijri']                = c_oAscCalendarType.Hijri;
+	prot['Japan']                = c_oAscCalendarType.Japan;
+	prot['Korea']                = c_oAscCalendarType.Korea;
+	prot['None']                 = c_oAscCalendarType.None;
+	prot['Saka']                 = c_oAscCalendarType.Saka;
+	prot['Taiwan']               = c_oAscCalendarType.Taiwan;
+	prot['Thai']                 = c_oAscCalendarType.Thai;
 
 })(window);

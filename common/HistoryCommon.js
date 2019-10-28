@@ -1133,6 +1133,13 @@
 			case AscDFH.historydescription_Document_SelectContentControlListItem:
 				sString = "Document_SelectContentControlListItem";
 				break;
+			case AscDFH.historydescription_Document_AddContentControlDatePicker:
+				sString = "Document_AddContentControlDatePicker";
+				break;
+			case AscDFH.historydescription_Document_SetContentControlDatePickerPr:
+				sString = "Document_SetContentControlDatePickerPr";
+				break;
+
 		}
 		return sString;
 	}
@@ -1837,6 +1844,7 @@
 	window['AscDFH'].historyitem_SdtPr_Picture          = window['AscDFH'].historyitem_type_SdtPr | 11;
 	window['AscDFH'].historyitem_SdtPr_ComboBox         = window['AscDFH'].historyitem_type_SdtPr | 12;
 	window['AscDFH'].historyitem_SdtPr_DropDownList     = window['AscDFH'].historyitem_type_SdtPr | 13;
+	window['AscDFH'].historyitem_SdtPr_DatePicker       = window['AscDFH'].historyitem_type_SdtPr | 14;
 	//------------------------------------------------------------------------------------------------------------------
 	// Графические классы общего назначение (без привязки к конкретному классу)
 	//------------------------------------------------------------------------------------------------------------------
@@ -3172,7 +3180,9 @@
 	window['AscDFH'].historydescription_Document_AddContentControlList              = 0x016a;
 	window['AscDFH'].historydescription_Document_SetContentControlListPr            = 0x016b;
 	window['AscDFH'].historydescription_Document_SelectContentControlListItem       = 0x016c;
-	window['AscDFH'].historydescription_Presentation_AddToLayout                    = 0x016d;
+	window['AscDFH'].historydescription_Document_AddContentControlDatePicker        = 0x016d;
+	window['AscDFH'].historydescription_Document_SetContentControlDatePickerPr      = 0x016e;
+	window['AscDFH'].historydescription_Presentation_AddToLayout                    = 0x016f;
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

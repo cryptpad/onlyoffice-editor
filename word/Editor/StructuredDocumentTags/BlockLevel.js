@@ -99,6 +99,9 @@ CBlockLevelSdt.prototype.Copy = function(Parent)
 	if (undefined !== this.Pr.DropDown)
 		oNew.SetDropDownListPr(this.Pr.DropDown);
 
+	if (undefined !== this.Pr.Date)
+		oNew.SetDatePickerPr(this.Pr.Date);
+
 	return oNew;
 };
 CBlockLevelSdt.prototype.GetType = function()
@@ -1837,6 +1840,56 @@ CBlockLevelSdt.prototype.private_UpdatePlaceHolderListContent = function()
 		return;
 
 	oRun.AddText(AscCommon.translateManager.getValue("Choose an item."));
+};
+/**
+ * Проверяем является ли данный контейнер специальным для даты
+ * @returns {boolean}
+ */
+CBlockLevelSdt.prototype.IsDatePicker = function()
+{
+	return (undefined !== this.Pr.Date);
+};
+/**
+ * @param oPr {CSdtDatePickerPr}
+ */
+CBlockLevelSdt.prototype.SetDatePickerPr = function(oPr)
+{
+	if (undefined === this.Pr.Date || !this.Pr.Date.IsEqual(oPr))
+	{
+		var _oPr = oPr ? oPr.Copy() : undefined;
+		History.Add(new CChangesSdtPrDatePicker(this, this.Pr.Date, _oPr));
+		this.Pr.Date = _oPr;
+	}
+};
+/**
+ * Применяем к данному контейнеру настройки того, что это специальный контйенер для даты
+ * @param oPr {CSdtDatePickerPr}
+ */
+CBlockLevelSdt.prototype.ApplyDatePickerPr = function(oPr)
+{
+	this.SetDatePickerPr(oPr);
+
+	if (!this.IsDatePicker())
+		return;
+
+	var oRun = this.private_UpdateDatePickerContent();
+	if (oRun)
+		oRun.AddText(this.Pr.Date.ToString());
+};
+CBlockLevelSdt.prototype.private_UpdateDatePickerContent = function()
+{
+	if (this.IsPlaceHolder())
+		return this.ReplacePlaceHolderWithContent();
+
+	var oParagraph = this.Content.MakeSingleParagraphContent();
+	if (!oParagraph)
+		return null;
+
+	var oRun = oParagraph.MakeSingleRunParagraph();
+	if (!oRun)
+		return null;
+
+	return oRun;
 };
 CBlockLevelSdt.prototype.Document_Is_SelectionLocked = function(CheckType, bCheckInner)
 {

@@ -145,6 +145,9 @@ CInlineLevelSdt.prototype.Copy = function(isUseSelection, oPr)
 	if (undefined !== this.Pr.DropDown)
 		oContentControl.SetDropDownListPr(this.Pr.DropDown);
 
+	if (undefined !== this.Pr.Date)
+		oContentControl.SetDatePickerPr(this.Pr.Date);
+
 	return oContentControl;
 };
 CInlineLevelSdt.prototype.GetSelectedContent = function(oSelectedContent)
@@ -852,8 +855,9 @@ CInlineLevelSdt.prototype.SetCheckBoxPr = function(oCheckBoxPr)
 {
 	if (undefined === this.Pr.CheckBox || !this.Pr.CheckBox.IsEqual(oCheckBoxPr))
 	{
-		History.Add(new CChangesSdtPrCheckBox(this, this.Pr.CheckBox, oCheckBoxPr));
-		this.Pr.CheckBox = oCheckBoxPr;
+		var _oCheckBox = oCheckBoxPr ? oCheckBoxPr.Copy() : undefined;
+		History.Add(new CChangesSdtPrCheckBox(this, this.Pr.CheckBox, _oCheckBox));
+		this.Pr.CheckBox = _oCheckBox;
 	}
 };
 /**
@@ -989,8 +993,9 @@ CInlineLevelSdt.prototype.SetComboBoxPr = function(oPr)
 {
 	if (undefined === this.Pr.ComboBox || !this.Pr.ComboBox.IsEqual(oPr))
 	{
-		History.Add(new CChangesSdtPrComboBox(this, this.Pr.ComboBox, oPr));
-		this.Pr.ComboBox = oPr;
+		var _oPr = oPr ? oPr.Copy() : undefined;
+		History.Add(new CChangesSdtPrComboBox(this, this.Pr.ComboBox, _oPr));
+		this.Pr.ComboBox = _oPr;
 	}
 };
 /**
@@ -1008,8 +1013,9 @@ CInlineLevelSdt.prototype.SetDropDownListPr = function(oPr)
 {
 	if (undefined === this.Pr.DropDown || !this.Pr.DropDown.IsEqual(oPr))
 	{
-		History.Add(new CChangesSdtPrDropDownList(this, this.Pr.DropDown, oPr));
-		this.Pr.DropDown = oPr;
+		var _oPr = oPr ? oPr.Copy() : undefined;
+		History.Add(new CChangesSdtPrDropDownList(this, this.Pr.DropDown, _oPr));
+		this.Pr.DropDown = _oPr;
 	}
 };
 /**
@@ -1073,6 +1079,48 @@ CInlineLevelSdt.prototype.private_UpdatePlaceHolderListContent = function()
 
 	this.PlaceHolder.ClearContent();
 	this.PlaceHolder.AddText(AscCommon.translateManager.getValue("Choose an item."));
+};
+/**
+ * Проверяем является ли данный контейнер специальным для даты
+ * @returns {boolean}
+ */
+CInlineLevelSdt.prototype.IsDatePicker = function()
+{
+	return (undefined !== this.Pr.Date);
+};
+/**
+ * @param oPr {CSdtDatePickerPr}
+ */
+CInlineLevelSdt.prototype.SetDatePickerPr = function(oPr)
+{
+	if (undefined === this.Pr.Date || !this.Pr.Date.IsEqual(oPr))
+	{
+		var _oPr = oPr ? oPr.Copy() : undefined;
+		History.Add(new CChangesSdtPrDatePicker(this, this.Pr.Date, _oPr));
+		this.Pr.Date = _oPr;
+	}
+};
+/**
+ * Применяем к данному контейнеру настройки того, что это специальный контйенер для даты
+ * @param oPr {CSdtDatePickerPr}
+ */
+CInlineLevelSdt.prototype.ApplyDatePickerPr = function(oPr)
+{
+	this.SetDatePickerPr(oPr);
+
+	if (!this.IsDatePicker())
+		return;
+
+	var oRun = this.private_UpdateDatePickerContent();
+	if (oRun)
+		oRun.AddText(this.Pr.Date.ToString());
+};
+CInlineLevelSdt.prototype.private_UpdateDatePickerContent = function()
+{
+	if (this.IsPlaceHolder())
+		this.ReplacePlaceHolderWithContent();
+
+	return this.MakeSingleRunElement();
 };
 CInlineLevelSdt.prototype.Document_Is_SelectionLocked = function(CheckType)
 {

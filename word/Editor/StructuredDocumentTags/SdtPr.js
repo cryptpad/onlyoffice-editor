@@ -58,6 +58,7 @@ function CSdtPr()
 	this.Picture  = false;
 	this.ComboBox = undefined;
 	this.DropDown = undefined;
+	this.Date     = undefined;
 }
 
 CSdtPr.prototype.Copy = function()
@@ -82,6 +83,9 @@ CSdtPr.prototype.Copy = function()
 
 	if (this.DropDown)
 		oPr.DropDown = this.DropDown.Copy();
+
+	if (this.Date)
+		oPr.Date = this.Date.Copy();
 
 	return oPr;
 };
@@ -175,6 +179,12 @@ CSdtPr.prototype.Write_ToBinary = function(Writer)
 		Flags |= 8192;
 	}
 
+	if (undefined !== this.Date)
+	{
+		this.Date.WriteToBinary(Writer);
+		Flags |= 16384;
+	}
+
 	var EndPos = Writer.GetCurPosition();
 	Writer.Seek(StartPos);
 	Writer.WriteLong(Flags);
@@ -236,6 +246,12 @@ CSdtPr.prototype.Read_FromBinary = function(Reader)
 	{
 		this.DropDown = new CSdtComboBoxPr();
 		this.DropDown.ReadFromBinary(Reader);
+	}
+
+	if (Flags & 16384)
+	{
+		this.Date = new CSdtDatePickerPr();
+		this.Date.ReadToBinary(Reader);
 	}
 };
 CSdtPr.prototype.IsBuiltInDocPart = function()
@@ -549,6 +565,70 @@ CSdtComboBoxPr.prototype.Write_ToBinary = function(oWriter)
 	this.WriteToBinary(oWriter);
 };
 CSdtComboBoxPr.prototype.Read_FromBinary = function(oReader)
+{
+	this.ReadFromBinary(oReader);
+};
+
+/**
+ * Класс с настройками для даты
+ * @constructor
+ */
+function CSdtDatePickerPr()
+{
+	this.FullDate   = "2019-10-18T00:00:00Z";
+	this.LangId     = 1033;
+	this.DateFormat = "dd.MM.yyyy";
+	this.Calendar   = Asc.c_oAscCalendarType.Gregorian;
+}
+CSdtDatePickerPr.prototype.Copy = function()
+{
+	var oDate = new CSdtDatePickerPr();
+
+	oDate.FullDate   = this.FullDate;
+	oDate.LangId     = this.LangId;
+	oDate.DateFormat = this.DateFormat;
+	oDate.Calendar   = this.Calendar;
+
+	return oDate;
+};
+CSdtDatePickerPr.prototype.IsEqual = function(oDate)
+{
+	return (oDate && this.FullDate === oDate.FullDate && this.LangId === oDate.LangId && this.DateFormat === oDate.DateFormat && this.Calendar === oDate.Calendar);
+};
+CSdtDatePickerPr.prototype.ToString = function()
+{
+	var oFormat = AscCommon.oNumFormatCache.get(this.DateFormat);
+	if (oFormat)
+	{
+		var oCultureInfo = AscCommon.g_aCultureInfos[this.LangId];
+		if (!oCultureInfo)
+			oCultureInfo = AscCommon.g_aCultureInfos[1033];
+
+		var oDateTime = new Asc.cDate(this.FullDate);
+		return oFormat.formatToChart(oDateTime.getExcelDate() + (oDateTime.getHours() * 60 * 60 + oDateTime.getMinutes() * 60 + oDateTime.getSeconds()) / AscCommonExcel.c_sPerDay, 15, oCultureInfo);
+	}
+
+	return this.FullDate;
+};
+CSdtDatePickerPr.prototype.WriteToBinary = function(oWriter)
+{
+	oWriter.WriteString2(this.FullDate);
+	oWriter.WriteLong(this.LangId);
+	oWriter.WriteString2(this.DateFormat);
+	oWriter.WriteLong(this.Calendar);
+};
+CSdtDatePickerPr.prototype.ReadFromBinary = function(oReader)
+{
+	this.FullDate   = oReader.GetString2();
+	this.LangId     = oReader.GetLong();
+	this.DateFormat = oReader.GetString2();
+	this.Calendar   = oReader.GetLong();
+};
+CSdtDatePickerPr.prototype.Write_ToBinary = function(oWriter)
+{
+	this.WriteToBinary(oWriter);
+};
+CSdtDatePickerPr.prototype.Read_FromBinary = function(oReader)
 {
 	this.ReadFromBinary(oReader);
 };

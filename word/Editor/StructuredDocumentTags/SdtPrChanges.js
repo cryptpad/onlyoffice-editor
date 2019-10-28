@@ -50,6 +50,7 @@ AscDFH.changesFactory[AscDFH.historyitem_SdtPr_CheckBox_Checked] = CChangesSdtPr
 AscDFH.changesFactory[AscDFH.historyitem_SdtPr_Picture]          = CChangesSdtPrPicture;
 AscDFH.changesFactory[AscDFH.historyitem_SdtPr_ComboBox]         = CChangesSdtPrComboBox;
 AscDFH.changesFactory[AscDFH.historyitem_SdtPr_DropDownList]     = CChangesSdtPrDropDownList;
+AscDFH.changesFactory[AscDFH.historyitem_SdtPr_DatePicker]       = CChangesSdtPrDatePicker;
 
 //----------------------------------------------------------------------------------------------------------------------
 // Карта зависимости изменений
@@ -94,6 +95,9 @@ AscDFH.changesRelationMap[AscDFH.historyitem_SdtPr_ComboBox] = [
 ];
 AscDFH.changesRelationMap[AscDFH.historyitem_SdtPr_DropDownList] = [
 	AscDFH.historyitem_SdtPr_DropDownList
+];
+AscDFH.changesRelationMap[AscDFH.historyitem_SdtPr_DatePicker] = [
+	AscDFH.historyitem_SdtPr_DatePicker
 ];
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -479,4 +483,23 @@ CChangesSdtPrDropDownList.prototype.private_SetValue = function(Value)
 CChangesSdtPrDropDownList.prototype.private_CreateObject = function()
 {
 	return new CSdtComboBoxPr();
+};
+/**
+ * @constructor
+ * @extends {AscDFH.CChangesBaseObjectProperty}
+ */
+function CChangesSdtPrDatePicker(Class, Old, New)
+{
+	AscDFH.CChangesBaseObjectProperty.call(this, Class, Old, New);
+}
+CChangesSdtPrDatePicker.prototype = Object.create(AscDFH.CChangesBaseObjectProperty.prototype);
+CChangesSdtPrDatePicker.prototype.constructor = CChangesSdtPrDatePicker;
+CChangesSdtPrDatePicker.prototype.Type = AscDFH.historyitem_SdtPr_DatePicker;
+CChangesSdtPrDatePicker.prototype.private_SetValue = function(Value)
+{
+	this.Class.Pr.Date = Value;
+};
+CChangesSdtPrDatePicker.prototype.private_CreateObject = function()
+{
+	return new CSdtDatePickerPr();
 };

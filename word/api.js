@@ -8877,6 +8877,63 @@ background-repeat: no-repeat;\
 			oLogicDocument.FinalizeAction();
 		}
 	};
+	asc_docs_api.prototype.asc_AddContentControlDatePicker = function(oPr)
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return;
+
+		oLogicDocument.RemoveSelection();
+		if (!oLogicDocument.IsSelectionLocked(AscCommon.changestype_Paragraph_Content))
+		{
+			oLogicDocument.StartAction(AscDFH.historydescription_Document_AddContentControlList);
+			oLogicDocument.AddContentControlDatePicker(oPr);
+			oLogicDocument.Recalculate();
+			oLogicDocument.FinalizeAction();
+		}
+	};
+	asc_docs_api.prototype.asc_SetContentControlDatePickerPr = function(oPr, sId)
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return;
+
+		var isLocked        = true;
+		var oContentControl = oLogicDocument.GetContentControl(sId);
+		if (!oContentControl || !oContentControl.IsDatePicker())
+			return;
+
+		if (c_oAscSdtLevelType.Block === oContentControl.GetContentControlType())
+		{
+			isLocked = oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_None, {
+				Type      : AscCommon.changestype_2_ElementsArray_and_Type,
+				Elements  : [oContentControl],
+				CheckType : AscCommon.changestype_ContentControl_Properties
+			});
+		}
+		else if (c_oAscSdtLevelType.Inline === oContentControl.GetContentControlType())
+		{
+			var oParagraph = oContentControl.GetParagraph();
+			if (oParagraph)
+			{
+				isLocked = oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_None, {
+					Type      : AscCommon.changestype_2_ElementsArray_and_Type,
+					Elements  : [oParagraph],
+					CheckType : AscCommon.changestype_Paragraph_Properties
+				});
+			}
+		}
+
+		if (false === isLocked)
+		{
+			oLogicDocument.StartAction(AscDFH.historydescription_Document_SetContentControlListPr);
+			oContentControl.ApplyDatePickerPr(oPr);
+			oLogicDocument.Recalculate();
+			oLogicDocument.UpdateInterface();
+			oLogicDocument.UpdateTracks();
+			oLogicDocument.FinalizeAction();
+		}
+	};
 
 	asc_docs_api.prototype.asc_UncheckContentControlButtons = function()
 	{
@@ -10690,6 +10747,8 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_AddContentControlList']                 = asc_docs_api.prototype.asc_AddContentControlList;
 	asc_docs_api.prototype['asc_SetContentControlListPr']               = asc_docs_api.prototype.asc_SetContentControlListPr;
 	asc_docs_api.prototype['asc_SelectContentControlListItem']          = asc_docs_api.prototype.asc_SelectContentControlListItem;
+	asc_docs_api.prototype['asc_AddContentControlDatePicker']           = asc_docs_api.prototype.asc_AddContentControlDatePicker;
+	asc_docs_api.prototype['asc_SetContentControlDatePickerPr']         = asc_docs_api.prototype.asc_SetContentControlDatePickerPr;
 
 
 	asc_docs_api.prototype['asc_BeginViewModeInReview']                 = asc_docs_api.prototype.asc_BeginViewModeInReview;
