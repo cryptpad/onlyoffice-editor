@@ -18477,7 +18477,6 @@
 		var t = this;
 
 		//todo добавить локи
-		//todo отдельная обработка для форматированных таблиц
 
 		//перед этой функцией необходимо вызвать getSelectionSortInfo - необходимо ли расширять
 		//bExpand - ответ от этой функции, который протаскивается через интерфейс
@@ -18616,13 +18615,14 @@
 		}
 
 		var t = this;
+		var selection = t.model.selectionRange.getLast();
+
 		//TODO отдельная обработка для таблиц
-		var callback = function() {
+		var callback = function(obj) {
 			//формируем sortState из настроек
 			var sortState = new AscCommonExcel.SortState();
 
 			//? activeRange
-			var selection = t.model.selectionRange.getLast();
 			sortState.Ref = new Asc.Range(selection.c1, selection.r1, selection.c2, selection.r2);
 
 			History.Create_NewPoint();
@@ -18655,7 +18655,14 @@
 			History.Add(AscCommonExcel.g_oUndoRedoSortState, AscCH.historyitem_SortState_Add, t.model.getId(), null,
 				new AscCommonExcel.UndoRedoData_FromTo(t.model.sortState ? t.model.sortState.clone() : null, sortState ? sortState.clone() : null));
 
-			t.model.sortState = sortState;
+			if(obj) {
+				obj.SortState = sortState;
+			} else {
+				t.model.sortState = sortState;
+				if(!obj.isAutoFilter()) {
+					t._onUpdateFormatTable(selection, false);
+				}
+			}
 
 			if(!doNotSortRange) {
 				var range = t.model.getRange3(selection.r1, selection.c1, selection.r2, selection.c2);
@@ -18665,8 +18672,55 @@
 			History.EndTransaction();
 		};
 
+		var callbackFilterOrTables = function(obj) {
+			History.Create_NewPoint();
+			History.StartTransaction();
+
+
+			var rgbColor = color ? new AscCommonExcel.RgbColor((color.asc_getR() << 16) + (color.asc_getG() << 8) + color.asc_getB()) : null;
+
+			var bTable = !obj.isAutoFilter();
+			for(var i = 0; i < levels.length; i++) {
+				var sortCondition = new AscCommonExcel.SortCondition();
+				var level = props.levels[i];
+				var r1 = columnSort ? selection.r1 : level.index + selection.r1;
+				var c1 = columnSort ? selection.c1 + level.index : selection.c1;
+				var r2 = columnSort ? selection.r2 : level.index + selection.r1;
+				var c2  = columnSort ? selection.c1 + level.index : selection.c2;
+				sortCondition.Ref = new Asc.Range(c1, r1, c2, r2);
+				sortCondition.ConditionSortBy = null;
+				sortCondition.ConditionDescending = Asc.c_oAscSortOptions.Descending === level.descending;
+				sortCondition.dxf = null;
+
+				if(!obj.sortState.SortConditions) {
+					obj.sortState.SortConditions = [];
+				}
+
+				obj.sortState.SortConditions.push(sortCondition);
+			}
+
+			History.Add(AscCommonExcel.g_oUndoRedoSortState, AscCH.historyitem_SortState_Add, t.model.getId(), null,
+				new AscCommonExcel.UndoRedoData_FromTo(t.model.sortState ? t.model.sortState.clone() : null, sortState ? sortState.clone() : null));
+
+			if(!doNotSortRange) {
+				var range = t.model.getRange3(selection.r1, selection.c1, selection.r2, selection.c2);
+				t.cellCommentator.sortComments(range.sort(null, null, null, null, false, props.levels));
+			}
+
+			t._onUpdateFormatTable(selection, false);
+
+			History.EndTransaction();
+		};
+
 		//TODO lock
-		callback();
+		var tables = t.model.autoFilters.getTableIntersectionRange(selection);
+		var obj = t.model;
+		if(tables && tables.length) {
+			obj = tables[0];
+		} else if(t.model.AutoFilter && t.model.AutoFilter.Ref && t.model.AutoFilter.Ref.intersection(selection)) {
+			obj = t.model.AutoFilter;
+		}
+		callback(obj);
 	};
 
 	WorksheetView.prototype._generateSortProps = function(nOption, nStartRowCol, sortColor, opt_guessHeader, opt_by_row, range) {
