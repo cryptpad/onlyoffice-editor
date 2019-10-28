@@ -2951,7 +2951,8 @@
 				str.text = getFragmentText(portion[i].text);
 				str.format = portion[i].format.clone();
 				//TODO уменьшаю только размер текста. пересмотреть!
-				str.format.fs = AscCommonExcel.g_oDefaultFormat.Font.fs * printScale;
+				var fSize = str.format.fs ? str.format.fs : AscCommonExcel.g_oDefaultFormat.Font.fs;
+				str.format.fs = fSize * printScale;
 				res.push(str);
 			}
 			return res;
