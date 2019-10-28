@@ -8357,7 +8357,7 @@ Paragraph.prototype.GetNumberingCompiledPr = function()
 //----------------------------------------------------------------------------------------------------------------------
 // Функции для работы с нумерацией параграфов в презентациях
 //----------------------------------------------------------------------------------------------------------------------
-Paragraph.prototype.Add_PresentationNumbering = function(_Bullet, Size, Unicolor)
+Paragraph.prototype.Add_PresentationNumbering = function(_Bullet, Size, AscColor)
 {
 	var ParaPr                 = this.Get_CompiledPr2(false).ParaPr;
 	var _OldBullet = this.Pr.Bullet;
@@ -8455,6 +8455,31 @@ Paragraph.prototype.Add_PresentationNumbering = function(_Bullet, Size, Unicolor
 				this.Set_Ind({Left : undefined, FirstLine : undefined}, true);
 			}
 		}
+	}
+	if(AscFormat.isRealNumber(Size) || AscCommon.isRealObject(AscColor))
+	{
+		var oBullet;
+		if(this.Pr.Bullet)
+		{
+			oBullet = this.Pr.Bullet.createDuplicate();
+		}
+		else
+		{
+			oBullet = new AscFormat.CBullet();
+		}
+		if(AscFormat.isRealNumber(Size))
+		{
+			oBullet.bulletSize = new AscFormat.CBulletSize();
+			oBullet.bulletSize.type = AscFormat.BULLET_TYPE_SIZE_PCT;
+			oBullet.bulletSize.val = (Size * 100000) >> 0;
+		}
+		if(AscCommon.isRealObject(AscColor))
+		{
+			oBullet.bulletColor = new AscFormat.CBulletColor();
+			oBullet.bulletColor.type = AscFormat.BULLET_TYPE_COLOR_CLR;
+			oBullet.bulletColor.UniColor = AscFormat.CorrectUniColor(AscColor, _unifill.fill.color, 0);
+		}
+		this.Set_Bullet(oBullet);
 	}
 };
 Paragraph.prototype.Get_PresentationNumbering = function()
