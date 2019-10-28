@@ -1377,6 +1377,9 @@ background-repeat: no-repeat;\
                             </div>";
 		}
 
+		if (this.HtmlElement)
+			_innerHTML += this.HtmlElement.innerHTML;
+
 		if (this.HtmlElement != null)
 		{
 			this.HtmlElement.style.backgroundColor = AscCommonSlide.GlobalSkin.BackgroundColor;
