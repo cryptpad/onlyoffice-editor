@@ -64,6 +64,14 @@
 			e.stopPropagation();
 	};
 
+	var isUsePointerEvents = (AscBrowser.isChrome && (AscBrowser.chromeVersion > 70) || AscBrowser.isMozilla) ? true : false;
+
+	AscCommon.addMouseEvent = function(elem, type, handler)
+	{
+		var _type = (isUsePointerEvents ? "onpointer" : "onmouse") + type;
+		elem[_type] = handler;
+	};
+
 	function CMouseEventHandler()
 	{
 		this.X = 0;                            // позиция курсора X
@@ -461,30 +469,8 @@
 
 	function InitCaptureEvents()
 	{
-		window.onmousemove = function(event)
-		{
-			return Window_OnMouseMove(event)
-		};
-		window.onmouseup   = function(event)
-		{
-			return Window_OnMouseUp(event)
-		};
-		/*
-		 var parent = window;
-		 while (true)
-		 {
-		 if (!parent)
-		 return;
-
-		 parent.onmousemove  = function(event){return Window_OnMouseMove(event)};
-		 parent.onmouseup    = function(event){return Window_OnMouseUp(event)};
-
-		 if (parent == parent.parent)
-		 return;
-
-		 parent = parent.parent;
-		 }
-		 */
+		AscCommon.addMouseEvent(window, "move", Window_OnMouseMove);
+        AscCommon.addMouseEvent(window, "up", Window_OnMouseUp);
 	}
 
 	function Window_OnMouseMove(e)
@@ -492,11 +478,11 @@
 		if (!global_mouseEvent.IsLocked)
 			return;
 
-		if ((undefined != global_mouseEvent.Sender) && (null != global_mouseEvent.Sender) &&
-			(undefined != global_mouseEvent.Sender.onmousemove) && (null != global_mouseEvent.Sender.onmousemove))
+        var _type = isUsePointerEvents ? "onpointermove" : "onmousemove";
+		if (global_mouseEvent.Sender && global_mouseEvent.Sender[_type])
 		{
 			global_mouseEvent.IsLockedEvent = true;
-			global_mouseEvent.Sender.onmousemove(e);
+			global_mouseEvent.Sender[_type](e);
 			global_mouseEvent.IsLockedEvent = false;
 		}
 	}
@@ -508,10 +494,10 @@
 			MouseUpLock.MouseUpLockedSend = true;
 			if (global_mouseEvent.IsLocked)
 			{
-				if ((undefined != global_mouseEvent.Sender) && (null != global_mouseEvent.Sender) &&
-					(undefined != global_mouseEvent.Sender.onmouseup) && (null != global_mouseEvent.Sender.onmouseup))
+                var _type = isUsePointerEvents ? "onpointerup" : "onmouseup";
+                if (global_mouseEvent.Sender && global_mouseEvent.Sender[_type])
 				{
-					global_mouseEvent.Sender.onmouseup(e, true);
+					global_mouseEvent.Sender[_type](e, true);
 
 					if (global_mouseEvent.IsLocked) // не все хотят пользоваться локами
 						global_mouseEvent.UnLockMouse();
