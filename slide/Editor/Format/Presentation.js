@@ -8038,31 +8038,6 @@ CPresentation.prototype =
                 if(target_content)
                 {
                     target_content.Document_UpdateInterfaceState();
-                    /* if(para_pr)
-                     {
-                     editor.UpdateParagraphProp( para_pr, flag );
-
-                     editor.sync_PrLineSpacingCallBack(para_pr.Spacing);
-                     //if(selected_objects.length === 1 )
-                     //{
-                     //    if ( "undefined" != typeof(para_props.Tabs) && null != para_props.Tabs )
-                     //        editor.Update_ParaTab( Default_Tab_Stop, para_props.Tabs );//TODO:
-                     //}
-                     }
-                     if(text_pr)
-                     {
-                     editor.UpdateTextPr(text_pr);
-                     }
-
-                     var Hyperlink = this.IsCursorInHyperlink(false);
-                     if (Hyperlink )
-                     {
-                     var HyperText = new CParagraphGetText();
-                     Hyperlink.Get_Text( HyperText );
-                     var HyperProps = new CHyperlinkProperty(Hyperlink);
-                     HyperProps.put_Text( HyperText.Text );
-                     editor.sync_HyperlinkPropCallback(HyperProps);
-                     }*/
                 }
                 else{
                     if(text_pr){

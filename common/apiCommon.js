@@ -1864,6 +1864,52 @@
 			this.ListType = (undefined != obj.ListType) ? obj.ListType : undefined;
 			this.OutlineLvl = (undefined != obj.OutlineLvl) ? obj.OutlineLvl : undefined;
 			this.OutlineLvlStyle = (undefined != obj.OutlineLvlStyle) ? obj.OutlineLvlStyle : false;
+			this.BulletSize = undefined;
+			this.BulletColor = undefined;
+			var oBullet = obj.Bullet;
+			if(oBullet)
+			{
+				this.BulletSize = 1.0;
+				if(oBullet.bulletSize)
+				{
+					switch (oBullet.bulletSize.type)
+					{
+						case AscFormat.BULLET_TYPE_SIZE_NONE:
+						{
+							break;
+						}
+						case AscFormat.BULLET_TYPE_SIZE_TX:
+						{
+							break;
+						}
+						case AscFormat.BULLET_TYPE_SIZE_PCT:
+						{
+							this.BulletSize = oBullet.bulletSize.val / 100000.0;
+							break;
+						}
+						case AscFormat.BULLET_TYPE_SIZE_PTS:
+						{
+							break;
+						}
+					}
+				}
+				this.BulletColor = CreateAscColorCustom(0, 0, 0);
+				if(oBullet.bulletColor)
+				{
+					if(oBullet.bulletColor.UniColor)
+					{
+						this.BulletColor = CreateAscColor(oBullet.bulletColor.UniColor);
+					}
+				}
+				else 
+				{
+					if(obj.Unifill)
+					{
+						var RGBA = obj.Unifill.getRGBAColor();
+						this.BulletColor = CreateAscColorCustom(RGBA.R, RGBA.G, RGBA.B);
+					}	
+				}
+			}
 		} else {
 			//ContextualSpacing : false,            // Удалять ли интервал между параграфами одинакового стиля
 			//
@@ -1907,6 +1953,8 @@
 			this.ListType = undefined;
 			this.OutlineLvl = undefined;
 			this.OutlineLvlStyle = false;
+			this.BulletSize = undefined;
+			this.BulletColor = undefined;
 		}
 	}
 
@@ -2012,6 +2060,14 @@
 			this.OutlineLvl = nLvl;
 		}, asc_getOutlineLvlStyle: function() {
 			return this.OutlineLvlStyle;
+		}, asc_putBulletSize: function(size) {
+			this.BulletSize = size;
+		}, asc_getBulletSize: function() {
+			return this.BulletSize;
+		}, asc_putBulletColor: function(color) {
+			this.BulletColor = color;
+		}, asc_getBulletColor: function() {
+			return this.BulletColor;
 		}
 	};
 
@@ -4688,6 +4744,10 @@
 	prot["get_OutlineLvl"] = prot["asc_getOutlineLvl"] = prot.asc_getOutlineLvl;
 	prot["put_OutlineLvl"] = prot["asc_putOutLineLvl"] = prot.asc_putOutLineLvl;
 	prot["get_OutlineLvlStyle"] = prot["asc_getOutlineLvlStyle"] = prot.asc_getOutlineLvlStyle;
+	prot["put_BulletSize"] = prot["asc_putBulletSize"] = prot.asc_putBulletSize;
+	prot["get_BulletSize"] = prot["asc_getBulletSize"] = prot.asc_getBulletSize;
+	prot["put_BulletColor"] = prot["asc_putBulletColor"] = prot.asc_putBulletColor;
+	prot["get_BulletColor"] = prot["asc_getBulletColor"] = prot.asc_getBulletColor;
 
 	window["AscCommon"].asc_CTexture = asc_CTexture;
 	prot = asc_CTexture.prototype;
