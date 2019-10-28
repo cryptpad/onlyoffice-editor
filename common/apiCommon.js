@@ -657,8 +657,9 @@
 		this.separator = null;
 		this.horAxisProps = null;
 		this.vertAxisProps = null;
-		this.range = null;
 		this.inColumns = null;
+
+		this.aRanges = [];
 
 		this.showMarker = null;
 		this.bLine = null;
@@ -748,9 +749,14 @@
                     return false;
                 }
             }
-            if(this.range !== oPr.range){
+            if(this.aRanges.length !== oPr.aRanges.length){
                 return false;
             }
+			for(var i = 0; i < this.aRanges.length; ++i) {
+				if(this.aRanges[i] !== oPr.aRanges[i]) {
+					return false;
+				}
+			}
             if(!this.equalBool(this.inColumns, oPr.inColumns)){
                 return false;
             }
@@ -790,6 +796,18 @@
 			return this.bLine;
 		},
 
+		putRanges: function(aRanges) {
+			if(Array.isArray(aRanges)) {
+				this.aRanges = aRanges;
+			}
+			else {
+				this.aRanges.length = 0;
+			}
+		},
+
+		getRanges: function(aRanges) {
+			return this.aRanges;
+		},
 
 		putSmooth: function (v) {
 			this.smooth = v;
@@ -808,11 +826,15 @@
 		},
 
 		putRange: function (range) {
-			this.range = range;
+			this.aRanges.length = 0;
+			this.aRanges[0] = range;
 		},
 
 		getRange: function () {
-			return this.range;
+			if(this.aRanges.length > 0) {
+				return this.aRanges[0];
+			}
+			return null;
 		},
 
 		putInColumns: function (inColumns) {
@@ -4442,6 +4464,8 @@
 	prot["getVertAxisProps"] = prot.getVertAxisProps;
 	prot["putRange"] = prot.putRange;
 	prot["getRange"] = prot.getRange;
+	prot["putRanges"] = prot.putRanges;
+	prot["getRanges"] = prot.getRanges;
 	prot["putInColumns"] = prot.putInColumns;
 	prot["getInColumns"] = prot.getInColumns;
 	prot["putShowMarker"] = prot.putShowMarker;

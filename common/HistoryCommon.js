@@ -1109,6 +1109,30 @@
 			case AscDFH.historydescription_Document_RemoveTableCells:
 				sString = "Document_RemoveTableCells";
 				break;
+			case AscDFH.historydescription_Document_AddContentControlCheckBox:
+				sString = "Document_AddContentControlCheckBox";
+				break;
+			case AscDFH.historydescription_Document_SetContentControlCheckBoxPr:
+				sString = "Document_SetContentControlCheckBoxPr";
+				break;
+			case AscDFH.historydescription_Document_AddContentControlPicture:
+				sString = "Document_AddContentControlPicture";
+				break;
+			case AscDFH.historydescription_Document_SetContentControlPictureUrl:
+				sString = "Document_SetContentControlPictureUrl";
+				break;
+			case AscDFH.historydescription_Document_RemoveAllComments:
+				sString = "Document_RemoveAllComments";
+				break;
+			case AscDFH.historydescription_Document_AddContentControlList:
+				sString = "Document_AddContentControlList";
+				break;
+			case AscDFH.historydescription_Document_SetContentControlListPr:
+				sString = "Document_SetContentControlListPr";
+				break;
+			case AscDFH.historydescription_Document_SelectContentControlListItem:
+				sString = "Document_SelectContentControlListItem";
+				break;
 		}
 		return sString;
 	}
@@ -1564,7 +1588,7 @@
 	window['AscDFH'].historyitem_Comment_TypeInfo = window['AscDFH'].historyitem_type_Comment | 2;
 	window['AscDFH'].historyitem_Comment_Position = window['AscDFH'].historyitem_type_Comment | 3;
 	//------------------------------------------------------------------------------------------------------------------
-	// Типы изменений в классе CComments
+	// Типы изменений в классе AscCommon.CComments
 	//------------------------------------------------------------------------------------------------------------------
 	window['AscDFH'].historyitem_Comments_Add    = window['AscDFH'].historyitem_type_Comments | 1;
 	window['AscDFH'].historyitem_Comments_Remove = window['AscDFH'].historyitem_type_Comments | 2;
@@ -1776,7 +1800,7 @@
 	window['AscDFH'].historyitem_Section_PageMargins_Gutter  = window['AscDFH'].historyitem_type_Section | 32;
 	window['AscDFH'].historyitem_Section_Gutter_RTL          = window['AscDFH'].historyitem_type_Section | 33;
 	//------------------------------------------------------------------------------------------------------------------
-	// Типы изменений в классе ParaComment
+	// Типы изменений в классе AscCommon.ParaComment
 	//------------------------------------------------------------------------------------------------------------------
 	window['AscDFH'].historyitem_ParaComment_CommentId = window['AscDFH'].historyitem_type_ParaComment | 1;
 	//------------------------------------------------------------------------------------------------------------------
@@ -1800,14 +1824,19 @@
 	//------------------------------------------------------------------------------------------------------------------
 	// Типы изменений в классе CSdtPr
 	//------------------------------------------------------------------------------------------------------------------
-	window['AscDFH'].historyitem_SdtPr_Alias      = window['AscDFH'].historyitem_type_SdtPr | 1;
-	window['AscDFH'].historyitem_SdtPr_Id         = window['AscDFH'].historyitem_type_SdtPr | 2;
-	window['AscDFH'].historyitem_SdtPr_Tag        = window['AscDFH'].historyitem_type_SdtPr | 3;
-	window['AscDFH'].historyitem_SdtPr_Label      = window['AscDFH'].historyitem_type_SdtPr | 4;
-	window['AscDFH'].historyitem_SdtPr_Lock       = window['AscDFH'].historyitem_type_SdtPr | 5;
-	window['AscDFH'].historyitem_SdtPr_DocPartObj = window['AscDFH'].historyitem_type_SdtPr | 6;
-	window['AscDFH'].historyitem_SdtPr_Appearance = window['AscDFH'].historyitem_type_SdtPr | 7;
-	window['AscDFH'].historyitem_SdtPr_Color      = window['AscDFH'].historyitem_type_SdtPr | 8;
+	window['AscDFH'].historyitem_SdtPr_Alias            = window['AscDFH'].historyitem_type_SdtPr | 1;
+	window['AscDFH'].historyitem_SdtPr_Id               = window['AscDFH'].historyitem_type_SdtPr | 2;
+	window['AscDFH'].historyitem_SdtPr_Tag              = window['AscDFH'].historyitem_type_SdtPr | 3;
+	window['AscDFH'].historyitem_SdtPr_Label            = window['AscDFH'].historyitem_type_SdtPr | 4;
+	window['AscDFH'].historyitem_SdtPr_Lock             = window['AscDFH'].historyitem_type_SdtPr | 5;
+	window['AscDFH'].historyitem_SdtPr_DocPartObj       = window['AscDFH'].historyitem_type_SdtPr | 6;
+	window['AscDFH'].historyitem_SdtPr_Appearance       = window['AscDFH'].historyitem_type_SdtPr | 7;
+	window['AscDFH'].historyitem_SdtPr_Color            = window['AscDFH'].historyitem_type_SdtPr | 8;
+	window['AscDFH'].historyitem_SdtPr_CheckBox         = window['AscDFH'].historyitem_type_SdtPr | 9;
+	window['AscDFH'].historyitem_SdtPr_CheckBox_Checked = window['AscDFH'].historyitem_type_SdtPr | 10;
+	window['AscDFH'].historyitem_SdtPr_Picture          = window['AscDFH'].historyitem_type_SdtPr | 11;
+	window['AscDFH'].historyitem_SdtPr_ComboBox         = window['AscDFH'].historyitem_type_SdtPr | 12;
+	window['AscDFH'].historyitem_SdtPr_DropDownList     = window['AscDFH'].historyitem_type_SdtPr | 13;
 	//------------------------------------------------------------------------------------------------------------------
 	// Графические классы общего назначение (без привязки к конкретному классу)
 	//------------------------------------------------------------------------------------------------------------------
@@ -3135,8 +3164,15 @@
 	window['AscDFH'].historydescription_Presentation_AddSlideNumber                 = 0x0162;
 	window['AscDFH'].historydescription_Document_SetParagraphOutlineLvl             = 0x0163;
 	window['AscDFH'].historydescription_Document_RemoveTableCells                   = 0x0164;
-
-
+	window['AscDFH'].historydescription_Document_AddContentControlCheckBox          = 0x0165;
+	window['AscDFH'].historydescription_Document_SetContentControlCheckBoxPr        = 0x0166;
+	window['AscDFH'].historydescription_Document_AddContentControlPicture           = 0x0167;
+	window['AscDFH'].historydescription_Document_SetContentControlPictureUrl        = 0x0168;
+	window['AscDFH'].historydescription_Document_RemoveAllComments                  = 0x0169;
+	window['AscDFH'].historydescription_Document_AddContentControlList              = 0x016a;
+	window['AscDFH'].historydescription_Document_SetContentControlListPr            = 0x016b;
+	window['AscDFH'].historydescription_Document_SelectContentControlListItem       = 0x016c;
+	window['AscDFH'].historydescription_Presentation_AddToLayout                    = 0x016d;
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

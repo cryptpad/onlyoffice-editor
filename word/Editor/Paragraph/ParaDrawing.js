@@ -48,6 +48,8 @@ var WRAPPING_TYPE_TOP_AND_BOTTOM = 0x04;
 
 var WRAP_HIT_TYPE_POINT   = 0x00;
 var WRAP_HIT_TYPE_SECTION = 0x01;
+var c_oAscAlignH         = Asc.c_oAscAlignH;
+var c_oAscAlignV         = Asc.c_oAscAlignV;
 
 /**
  * Оберточный класс для автофигур и картинок. Именно он непосредственно лежит в ране.
@@ -692,11 +694,24 @@ ParaDrawing.prototype.Set_Parent = function(oParent)
 };
 ParaDrawing.prototype.IsWatermark = function()
 {
+	if(!this.GraphicObj)
+	{
+		return false;
+	}
+	if(this.GraphicObj.getObjectType() !== AscDFH.historyitem_type_Shape && this.GraphicObj.getObjectType() !== AscDFH.historyitem_type_ImageShape)
+	{
+		return false;
+	}
 	if(this.Is_Inline())
 	{
 		return false;
 	}
-	var oContent = this.DocumentContent;
+	var oParagraph = this.GetParagraph();
+	if(!(oParagraph instanceof Paragraph))
+	{
+		return false;
+	}
+	var oContent = oParagraph.Parent;
 	if(!oContent || oContent.Is_DrawingShape(false))
 	{
 		return false;
@@ -706,11 +721,30 @@ ParaDrawing.prototype.IsWatermark = function()
 	{
 		return false;
 	}
-	if(oHdrFtr.Type === AscCommon.hdrftr_Footer)
-	{
+
+	var oRun = this.Get_Run();
+	if (!oRun)
 		return false;
+
+	var arrDocPos = oRun.GetDocumentPositionFromObject();
+	for (var nIndex = 0, nCount = arrDocPos.length; nIndex < nCount; ++nIndex)
+	{
+		var oClass = arrDocPos[nIndex].Class;
+		var oSdt   = null;
+		if (oClass instanceof CDocumentContent && oClass.Parent instanceof CBlockLevelSdt)
+			oSdt = oClass.Parent;
+		else if (oClass instanceof CInlineLevelSdt)
+			oSdt = oClass;
+
+		if (oSdt)
+		{
+			var oPr = oSdt.Pr;
+			if (AscCommon.isRealObject(oPr) && AscCommon.isRealObject(oPr.DocPartObj) && oPr.DocPartObj.Gallery === "Watermarks")
+				return true;
+		}
 	}
-	return this.GraphicObj.isWatermark();
+
+	return false;
 };
 ParaDrawing.prototype.Set_ParaMath = function(ParaMath)
 {
@@ -1194,6 +1228,10 @@ ParaDrawing.prototype.Copy = function()
 	return c;
 };
 ParaDrawing.prototype.Get_Id = function()
+{
+	return this.Id;
+};
+ParaDrawing.prototype.GetId = function()
 {
 	return this.Id;
 };
@@ -2723,7 +2761,13 @@ ParaDrawing.prototype.CheckContentControlEditingLock = function(){
         this.DocumentContent.CheckContentControlEditingLock();
 	}
 };
-
+ParaDrawing.prototype.Document_Is_SelectionLocked = function(CheckType)
+{
+	if(CheckType === AscCommon.changestype_Drawing_Props)
+	{
+		this.Lock.Check(this.Get_Id());
+	}
+};
 
 ParaDrawing.prototype.CheckContentControlDeletingLock = function(){
 	if(this.DocumentContent && this.DocumentContent.CheckContentControlDeletingLock){

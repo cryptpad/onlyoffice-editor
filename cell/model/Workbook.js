@@ -2761,7 +2761,9 @@
 					}
 					// TODO if(g_oUndoRedoGraphicObjects == item.oClass && item.oData.drawingData)
 					//     item.oData.drawingData.bCollaborativeChanges = true;
-					history.RedoAdd(oRedoObjectParam, item.oClass, item.nActionType, item.nSheetId, item.oRange, item.oData);
+					AscCommonExcel.executeInR1C1Mode(false, function () {
+						history.RedoAdd(oRedoObjectParam, item.oClass, item.nActionType, item.nSheetId, item.oRange, item.oData);
+					});
 				}
 			}
 			AscFonts.IsCheckSymbols = false;
@@ -2846,8 +2848,11 @@
 
 				var item = new UndoRedoItemSerializable();
 				item.Deserialize(stream);
-				if ((null != item.oClass || (item.oData && typeof item.oData.sChangedObjectId === "string")) && null != item.nActionType)
-					History.RedoAdd(oRedoObjectParam, item.oClass, item.nActionType, item.nSheetId, item.oRange, item.oData);
+				if ((null != item.oClass || (item.oData && typeof item.oData.sChangedObjectId === "string")) && null != item.nActionType){
+					AscCommonExcel.executeInR1C1Mode(false, function () {
+						History.RedoAdd(oRedoObjectParam, item.oClass, item.nActionType, item.nSheetId, item.oRange, item.oData);
+					});
+				}
 
 				_pos += _len;
 				stream.Seek2(_pos);
@@ -3522,6 +3527,10 @@
 				t.workbook.dependencyFormulas.addToBuildDependencyCell(cell);
 			}
 		});
+		
+		if(wsFrom.PagePrintOptions) {
+			this.PagePrintOptions = wsFrom.PagePrintOptions.clone(this);
+		}
 
 		//copy headers/footers
 		if(wsFrom.headerFooter) {
@@ -4080,17 +4089,18 @@
 	Worksheet.prototype.setHidden = function (hidden) {
 		var bOldHidden = this.bHidden, wb = this.workbook, wsActive = wb.getActiveWs(), oVisibleWs = null;
 		this.bHidden = hidden;
-		if (true == this.bHidden && this.getIndex() == wsActive.getIndex())
-		{
-			oVisibleWs = wb.findSheetNoHidden(this.getIndex());
+		if (bOldHidden != hidden) {
+			if (true == this.bHidden && this.getIndex() == wsActive.getIndex()) {
+				oVisibleWs = wb.findSheetNoHidden(this.getIndex());
+			} else if (false == this.bHidden && this.getIndex() !== wsActive.getIndex()) {
+				oVisibleWs = this;
+			}
 			if (null != oVisibleWs) {
 				var nNewIndex = oVisibleWs.getIndex();
 				wb.setActive(nNewIndex);
 				if (!wb.bUndoChanges && !wb.bRedoChanges)
 					wb.handlers.trigger("undoRedoHideSheet", nNewIndex);
 			}
-		}
-		if (bOldHidden != hidden) {
 			History.Create_NewPoint();
 			History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_Hide, this.getId(), null, new UndoRedoData_FromTo(bOldHidden, hidden));
 			if (null != oVisibleWs) {

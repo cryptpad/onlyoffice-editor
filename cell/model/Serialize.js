@@ -1419,6 +1419,7 @@
 		this.QuotePrefix = null;
 		this.align = null;
 		this.PivotButton = null;
+		this.XfId = null;
 	}
 	function ReadColorSpreadsheet2(bcr, length) {
 		var output = null;
@@ -1500,10 +1501,10 @@
                     rangeTable = aTables[i].Ref;
 
                 if(!this.isCopyPaste || (this.isCopyPaste && rangeTable && this.isCopyPaste.isIntersect(rangeTable) && !ws.bExcludeHiddenRows))
-                    this.bs.WriteItem(c_oSer_TablePart.Table, function(){oThis.WriteTable(aTables[i]);});
+                    this.bs.WriteItem(c_oSer_TablePart.Table, function(){oThis.WriteTable(aTables[i], ws);});
             }
         };
-        this.WriteTable = function(table)
+        this.WriteTable = function(table, ws)
         {
             var oThis = this;
             //Ref
@@ -1531,8 +1532,10 @@
             if(null != table.SortState)
                 this.bs.WriteItem(c_oSer_TablePart.SortState, function(){oThis.WriteSortState(table.SortState);});
             //TableColumns
-            if(null != table.TableColumns)
+            if(null != table.TableColumns) {
+				table.syncTotalLabels(ws);
                 this.bs.WriteItem(c_oSer_TablePart.TableColumns, function(){oThis.WriteTableColumns(table.TableColumns);});
+			}
             //TableStyleInfo
             if(null != table.TableStyleInfo)
                 this.bs.WriteItem(c_oSer_TablePart.TableStyleInfo, function(){oThis.WriteTableStyleInfo(table.TableStyleInfo);});
@@ -1994,7 +1997,7 @@
 		this.oFillMap.add(g_StyleCache.firstFill);
 		//second fill is equal to first (in Excel it is different, but it does not matter - they are ignored)
 		this.oFillMap.addNoCheck(g_StyleCache.firstFill);
-        this.oBorderMap.addNoCheck(g_StyleCache.firstBorder);
+		this.oBorderMap.add(g_StyleCache.firstBorder);
 		this.oXfsMap.add(g_StyleCache.firstXf);
 	};
 	StylesForWrite.prototype.add = function(xf) {
@@ -5604,16 +5607,37 @@
         };
         this.InitStyleManager = function (oStyleObject)
         {
-			var i, firstFont, firstFill, firstBorder, firstXf;
+			var i, xf, firstFont, firstFill, normalFill, firstBorder, firstXf, newXf, oCellStyle;
 			if (0 === oStyleObject.aFonts.length) {
 				oStyleObject.aFonts[0] = new AscCommonExcel.Font();
 				oStyleObject.aFonts[0].initDefault(this.wb);
 			}
 			if (0 === oStyleObject.aCellXfs.length) {
-				var xf = new OpenXf();
-				xf.fontid = xf.fillid = xf.borderid = xf.numid = 0;
+				xf = new OpenXf();
+				xf.fontid = xf.fillid = xf.borderid = xf.numid = xf.XfId = 0;
 				oStyleObject.aCellXfs[0] = xf;
 			}
+			if (0 === oStyleObject.aCellStyleXfs.length) {
+				xf = new OpenXf();
+				xf.fontid = xf.fillid = xf.borderid = xf.numid = 0;
+				oStyleObject.aCellStyleXfs[0] = xf;
+			}
+			var hasNormalStyle = false;
+			for (i = 0; i < oStyleObject.aCellStyles.length; ++i) {
+				oCellStyle = oStyleObject.aCellStyles[i];
+				if (0 === oCellStyle.BuiltinId) {
+					hasNormalStyle = true;
+					break;
+				}
+			}
+			if (!hasNormalStyle) {
+				oCellStyle = new AscCommonExcel.CCellStyle();
+				oCellStyle.Name = "Normal";
+				oCellStyle.BuiltinId = 0;
+				oCellStyle.XfId = 0;
+				oStyleObject.aCellStyles.push(oCellStyle);
+			}
+
 			var defFont = oStyleObject.aFonts[oStyleObject.aCellXfs[0].fontid];
 			if (defFont) {
 				defFont.initDefault(this.wb);
@@ -5641,50 +5665,59 @@
 				oStyleObject.aBorders[i] = g_StyleCache.addBorder(oStyleObject.aBorders[i]);
 			}
             firstBorder = oStyleObject.aBorders[0];
-			for (var XfIdTmp in oStyleObject.aCellStyleXfs) {
-				var xf = oStyleObject.aCellStyleXfs[XfIdTmp];
+			for (i = 0; i < oStyleObject.aCellStyleXfs.length; ++i) {
+				xf = oStyleObject.aCellStyleXfs[i];
 				if (xf.align) {
 					xf.align = g_StyleCache.addAlign(xf.align);
 				}
 			}
 			for (i = 0; i < oStyleObject.aCellXfs.length; ++i) {
-				var xf = oStyleObject.aCellXfs[i];
+				xf = oStyleObject.aCellXfs[i];
 				if (xf.align) {
 					xf.align = g_StyleCache.addAlign(xf.align);
 				}
 			}
-			for (var i = 0; i < this.Dxfs.length; ++i) {
+			for (i = 0; i < this.Dxfs.length; ++i) {
 				this.Dxfs[i] = g_StyleCache.addXf(this.Dxfs[i]);
 			}
 
             // ToDo убрать - это заглушка
             var arrStyleMap = {};
-            // Начнем с 1, т.к. 2 зарегистрировано для normal
-            var nIndexStyleMap = 1;
+			var nIndexStyleMap = 1;//0 reserver for Normal style
             var XfIdTmp;
             // Список имен для стилей
             var oCellStyleNames = {};
+			var normalXf = null;
 
-            for (var nIndex in oStyleObject.aCellStyles) {
-                if (!oStyleObject.aCellStyles.hasOwnProperty(nIndex))
-                    continue;
-
-                var oCellStyle = oStyleObject.aCellStyles[nIndex];
-                var oCellStyleXfs = oStyleObject.aCellStyleXfs[oCellStyle.XfId];
-                // Если есть стиль, но нет описания, то уберем этот стиль (Excel делает также)
-                if (null == oCellStyleXfs)
-                    continue;
-
-                var newXf = new AscCommonExcel.CellXfs();
+			for (i = 0; i < oStyleObject.aCellStyles.length; ++i) {
+				oCellStyle = oStyleObject.aCellStyles[i];
+				newXf = new AscCommonExcel.CellXfs();
                 // XfId
                 XfIdTmp = oCellStyle.XfId;
                 if (null !== XfIdTmp) {
-                    if (0 !== XfIdTmp) {
+					if (0 === oCellStyle.BuiltinId) {
+						arrStyleMap[XfIdTmp] = 0;
+						if (!normalXf) {
+							XfIdTmp = oCellStyle.XfId = 0;
+							normalXf = newXf;
+							//default fontid is always 0
+							if (oStyleObject.aCellStyleXfs[XfIdTmp]) {
+								oStyleObject.aCellStyleXfs[XfIdTmp].fontid = 0;
+							}
+						} else {
+							continue;
+						}
+					} else {
                         arrStyleMap[XfIdTmp] = nIndexStyleMap;
                         oCellStyle.XfId = nIndexStyleMap++;
                     }
                 } else
                     continue;	// Если его нет, то это ошибка по спецификации
+
+				var oCellStyleXfs = oStyleObject.aCellStyleXfs[XfIdTmp];
+				// Если есть стиль, но нет описания, то уберем этот стиль (Excel делает также)
+				if (null == oCellStyleXfs)
+					continue;
 
                 // Border
                 if (null != oCellStyleXfs.borderid) {
@@ -5757,7 +5790,7 @@
 
             for(var i = 0, length = oStyleObject.aCellXfs.length; i < length; ++i) {
                 var xfs = oStyleObject.aCellXfs[i];
-                var newXf = new AscCommonExcel.CellXfs();
+				newXf = new AscCommonExcel.CellXfs();
 
                 if(null != xfs.borderid)
                 {
@@ -5809,7 +5842,7 @@
 			if (firstXf && !this.isCopyPaste) {
 				//addXf with force flag should be last operation
 				firstXf = g_StyleCache.addXf(firstXf, true);
-				this.oStyleManager.init(this.wb, firstXf, firstFont, firstFill, firstBorder);
+				this.oStyleManager.init(this.wb, firstXf, firstFont, firstFill, firstBorder, normalXf);
 			}
             for(var i in oStyleObject.oCustomTableStyles)
             {

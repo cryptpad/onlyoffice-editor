@@ -233,7 +233,7 @@ function CEditorPage(api)
 	this.m_nZoomType  = 2; // 0 - custom, 1 - fitToWodth, 2 - fitToPage
 
 	this.m_oBoundsController = new AscFormat.CBoundsController();
-	this.m_nTabsType         = 0;
+	this.m_nTabsType         = tab_Left;
 
 	this.m_dScrollY     = 0;
 	this.m_dScrollX     = 0;

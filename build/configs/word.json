@@ -19,7 +19,6 @@
 			"../word/Editor/CollaborativeEditing.js",
 			"../common/macros.js",
 			"../common/apiBase.js",
-			"../common/Private/license.js",
 			"../word/apiCommon.js",
 			"../word/api.js"
 		],
@@ -205,6 +204,7 @@
 
 			"../word/apiBuilder.js",
 
+			"../common/versionHistory.js",
 			"../common/clipboard_base.js",
 			"../common/text_input.js",
 			"../common/Drawings/Format/OleObject.js",
@@ -212,12 +212,6 @@
 			"../common/plugins.js"
 		],
 		"private": [
-			"../common/Private/versionHistory.js",
-			"../word/Private/comments.js",
-			"../word/Private/StyleManager.js",
-			"../word/Private/MailMerge.js",
-			"../word/Private/TrackRevisions.js",
-			"../common/Private/Locks.js"
 		],
 		"desktop": {
 			"min": [

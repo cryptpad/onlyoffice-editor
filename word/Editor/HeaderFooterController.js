@@ -554,3 +554,7 @@ CHdrFtrController.prototype.IsTableCellSelection = function()
 {
 	return this.HdrFtr.IsTableCellSelection();
 };
+CHdrFtrController.prototype.IsSelectionLocked = function(CheckType)
+{
+	this.HdrFtr.Document_Is_SelectionLocked(CheckType);
+};

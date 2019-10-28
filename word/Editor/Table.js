@@ -60,6 +60,7 @@ var c_oAscXAlign = Asc.c_oAscXAlign;
 var c_oAscYAlign = Asc.c_oAscYAlign;
 var c_oAscVAnchor = Asc.c_oAscVAnchor;
 var c_oAscCellTextDirection = Asc.c_oAscCellTextDirection;
+var c_oAscRevisionsChangeType = Asc.c_oAscRevisionsChangeType;
     
 
 var table_Selection_Cell = 0x00; // Селектим целыми ячейками
@@ -1929,24 +1930,26 @@ CTable.prototype.Set_Props = function(Props)
 	}
 
 	// TableBackground  (заливка таблицы)
-	if ("undefined" != typeof(Props.TableBackground))
+	if (undefined !== Props.TableBackground)
 	{
 		if (Props.TableBackground.Value != TablePr.Shd.Value || Props.TableBackground.Color.r != TablePr.Shd.Color.r || Props.TableBackground.Color.g != TablePr.Shd.Color.g || Props.TableBackground.Color.b != TablePr.Shd.Color.b)
 		{
 			this.Set_TableShd(Props.TableBackground.Value, Props.TableBackground.Color.r, Props.TableBackground.Color.g, Props.TableBackground.Color.b);
-			bRedraw = true;
-		}
 
-		// Удаляем собственную заливку ячеек
-		if (false === Props.CellSelect && false === bSpacing)
-		{
-			for (var CurRow = 0; CurRow < this.Content.length; CurRow++)
+			for (var nCurRow = 0, nRowsCount = this.GetRowsCount(); nCurRow < nRowsCount; ++nCurRow)
 			{
-				var Row = this.Content[CurRow];
-				for (var CurCell = 0; CurCell < Row.Get_CellsCount(); CurCell++)
+				var oRow = this.GetRow(nCurRow);
+				for (var nCurCell = 0, nCellsCount = oRow.GetCellsCount(); nCurCell < nCellsCount; ++nCurCell)
 				{
-					var Cell = Row.Get_Cell(CurCell);
-					Cell.Set_Shd({Value : Asc.c_oAscShdNil, Color : {r : 0, g : 0, b : 0}});
+					var oCell = oRow.GetCell(nCurCell);
+					oCell.Set_Shd({
+						Value : Props.TableBackground.Value,
+						Color : {
+							r : Props.TableBackground.Color.r,
+							g : Props.TableBackground.Color.g,
+							b : Props.TableBackground.Color.b
+						}
+					});
 				}
 			}
 		}
@@ -7449,7 +7452,7 @@ CTable.prototype.SetParagraphIndent = function(Ind)
 		return this.CurCell.Content.SetParagraphIndent(Ind);
 	}
 };
-CTable.prototype.Set_ParagraphPresentationNumbering = function(NumInfo)
+CTable.prototype.Set_ParagraphPresentationNumbering = function(NumInfo, Size, Unicolor)
 {
 	if (true === this.ApplyToAll || ( true === this.Selection.Use && table_Selection_Cell === this.Selection.Type && this.Selection.Data.length > 0 ))
 	{
@@ -7462,7 +7465,7 @@ CTable.prototype.Set_ParagraphPresentationNumbering = function(NumInfo)
 
 			var Cell_Content = Cell.Content;
 			Cell_Content.Set_ApplyToAll(true);
-			Cell.Content.Set_ParagraphPresentationNumbering(NumInfo);
+			Cell.Content.Set_ParagraphPresentationNumbering(NumInfo, Size, Unicolor);
 			Cell_Content.Set_ApplyToAll(false);
 		}
 
@@ -7474,7 +7477,7 @@ CTable.prototype.Set_ParagraphPresentationNumbering = function(NumInfo)
 		}
 	}
 	else
-		return this.CurCell.Content.Set_ParagraphPresentationNumbering(NumInfo);
+		return this.CurCell.Content.Set_ParagraphPresentationNumbering(NumInfo, Size, Unicolor);
 };
 CTable.prototype.Increase_ParagraphLevel = function(bIncrease)
 {
@@ -11224,11 +11227,11 @@ CTable.prototype.private_GetRowsInfo = function()
 	{
 		arrRowsInfo[nCurRow] = [];
 
-		var oRow = this.Content[nCurRow];
+		var oRow = this.GetRow(nCurRow);
 
-		var oBeforeInfo = oRow.Get_Before();
+		var oBeforeInfo = oRow.GetBefore();
 		if (oBeforeInfo.GridBefore > 0)
-			arrRowsInfo[nCurRow].push({W : this.TableSumGrid[oBeforeInfo.GridBefore - 1], Type : -1, GridSpan : 1});
+			arrRowsInfo[nCurRow].push({W : this.TableSumGrid[oBeforeInfo.Grid - 1], Type : -1, GridSpan : 1});
 
 		for (var nCurCell = 0, nCellsCount = oRow.GetCellsCount(); nCurCell < nCellsCount; ++nCurCell)
 		{
@@ -11246,13 +11249,24 @@ CTable.prototype.private_GetRowsInfo = function()
 			else
 			{
 				var nCurGridStart = oCellInfo.StartGridCol;
-				var nCurGridEnd   = nCurGridStart + oCell.Get_GridSpan() - 1;
+				var nCurGridEnd   = nCurGridStart + oCell.GetGridSpan() - 1;
 
-				arrRowsInfo[nCurRow].push({
-					W        : this.TableSumGrid[nCurGridEnd] - this.TableSumGrid[nCurGridStart - 1],
-					Type     : 0,
-					GridSpan : 1
-				});
+				if (undefined === this.TableSumGrid[nCurGridEnd] || undefined === this.TableSumGrid[nCurGridStart - 1])
+				{
+					arrRowsInfo[nCurRow].push({
+						W        : 0,
+						Type     : 0,
+						GridSpan : 1
+					});
+				}
+				else
+				{
+					arrRowsInfo[nCurRow].push({
+						W        : this.TableSumGrid[nCurGridEnd] - this.TableSumGrid[nCurGridStart - 1],
+						Type     : 0,
+						GridSpan : 1
+					});
+				}
 			}
 		}
 	}
@@ -15038,6 +15052,125 @@ CTable.prototype.CheckRunContent = function(fCheck)
 	}
 
 	return false;
+};
+CTable.prototype.Document_Is_SelectionLocked = function(CheckType, bCheckInner)
+{
+	var bCheckContentControl = false;
+	switch (CheckType)
+	{
+		case AscCommon.changestype_Paragraph_Content:
+		case AscCommon.changestype_Paragraph_Properties:
+		case AscCommon.changestype_Paragraph_AddText:
+		case AscCommon.changestype_Paragraph_TextProperties:
+		case AscCommon.changestype_ContentControl_Add:
+		case AscCommon.changestype_Document_Content:
+		case AscCommon.changestype_Document_Content_Add:
+		case AscCommon.changestype_Delete:
+		case AscCommon.changestype_Image_Properties:
+		{
+			if (this.IsCellSelection())
+			{
+				var arrCells = this.GetSelectionArray();
+				var Count = arrCells.length;
+				for (var Index = 0; Index < Count; Index++)
+				{
+					var Pos  = arrCells[Index];
+					var Cell = this.Content[Pos.Row].Get_Cell(Pos.Cell);
+
+					Cell.Content.Set_ApplyToAll(true);
+					Cell.Content.Document_Is_SelectionLocked(CheckType);
+					Cell.Content.Set_ApplyToAll(false);
+				}
+			}
+			else if (this.CurCell)
+			{
+				this.CurCell.Content.Document_Is_SelectionLocked(CheckType);
+			}
+
+			bCheckContentControl = true;
+			break;
+		}
+		case AscCommon.changestype_Remove:
+		{
+			if (true === this.ApplyToAll || (true === this.Selection.Use && table_Selection_Cell === this.Selection.Type))
+			{
+				this.Lock.Check(this.Get_Id());
+
+				var arrCells = this.Internal_Get_SelectionArray();
+				for (var nIndex = 0, nCellsCount = arrCells.length; nIndex < nCellsCount; ++nIndex)
+				{
+					var Pos  = arrCells[nIndex];
+					var Cell = this.Content[Pos.Row].Get_Cell(Pos.Cell);
+					Cell.Content.CheckContentControlDeletingLock();
+				}
+			}
+			else
+			{
+				this.CurCell.Content.Document_Is_SelectionLocked(CheckType);
+			}
+
+			bCheckContentControl = true;
+			break;
+		}
+		case AscCommon.changestype_Table_Properties:
+		{
+			if ( false != bCheckInner && true === this.IsInnerTable() )
+				this.CurCell.Content.Document_Is_SelectionLocked( CheckType );
+			else
+				this.Lock.Check( this.Get_Id() );
+
+			bCheckContentControl = true;
+			break;
+		}
+		case AscCommon.changestype_Table_RemoveCells:
+		{
+			/*
+			 // Проверяем все ячейки
+			 if ( true === this.Selection.Use && table_Selection_Cell === this.Selection.Type )
+			 {
+			 var Count = this.Selection.Data.length;
+			 for ( var Index = 0; Index < Count; Index++ )
+			 {
+			 var Pos = this.Selection.Data[Index];
+			 var Cell = this.Content[Pos.Row].Get_Cell( Pos.Cell );
+			 Cell.Content.Document_Is_SelectionLocked( CheckType );
+			 }
+			 }
+			 else
+			 this.CurCell.Content.Document_Is_SelectionLocked( CheckType );
+			 */
+
+			// Проверяем саму таблицу
+
+			if ( false != bCheckInner && true === this.IsInnerTable() )
+				this.CurCell.Content.Document_Is_SelectionLocked( CheckType );
+			else
+				this.Lock.Check( this.Get_Id() );
+
+			bCheckContentControl = true;
+			break;
+		}
+		case AscCommon.changestype_Document_SectPr:
+		case AscCommon.changestype_HdrFtr:
+		{
+			AscCommon.CollaborativeEditing.Add_CheckLock(true);
+			break;
+		}
+	}
+
+	if (bCheckContentControl && this.Parent && this.Parent.CheckContentControlEditingLock)
+		this.Parent.CheckContentControlEditingLock();
+};
+CTable.prototype.CheckContentControlDeletingLock = function()
+{
+	for (var nCurRow = 0, nRowsCount = this.Content.length; nCurRow < nRowsCount; ++nCurRow)
+	{
+		var oRow = this.Content[nCurRow];
+		for (var nCurCell = 0, nCellsCount = oRow.Get_CellsCount(); nCurCell < nCellsCount; ++nCurCell)
+		{
+			oRow.Get_Cell(nCurCell).Content.CheckContentControlDeletingLock();
+		}
+	}
 };
 
 //----------------------------------------------------------------------------------------------------------------------

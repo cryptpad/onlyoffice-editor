@@ -2371,7 +2371,7 @@ function DrawingObjects() {
         _this.controller.setMathProps(MathProps);
     }
 
-    _this.setListType = function(type, subtype)
+    _this.setListType = function(type, subtype, size, unicolor)
     {
         var NumberInfo =
             {
@@ -2381,7 +2381,7 @@ function DrawingObjects() {
 
         NumberInfo.Type    = type;
         NumberInfo.SubType = subtype;
-        _this.controller.checkSelectedObjectsAndCallback(_this.controller.setParagraphNumbering, [AscFormat.fGetPresentationBulletByNumInfo(NumberInfo)], false, AscDFH.historydescription_Presentation_SetParagraphNumbering);
+        _this.controller.checkSelectedObjectsAndCallback(_this.controller.setParagraphNumbering, [AscFormat.fGetPresentationBulletByNumInfo(NumberInfo), size, unicolor], false, AscDFH.historydescription_Presentation_SetParagraphNumbering);
     };
 
     _this.editImageDrawingObject = function(imageUrl) {
@@ -2913,7 +2913,18 @@ function DrawingObjects() {
             var wsViews = Asc["editor"].wb.wsViews;
             var changedArr = [];
             for (var i = 0; i < data.length; ++i) {
-                changedArr.push(new BBoxInfo(worksheet.model, data[i]));
+                if(Array.isArray(data[i])) {
+                    var aData = data[i];
+                    for(var j = 0; j < aData.length; ++j) {
+                        var oRange = aData[j] && aData[j].range;
+                        if(oRange && oRange.worksheet && oRange.bbox){
+                            changedArr.push(new BBoxInfo(oRange.worksheet, oRange.bbox));
+                        }
+                    }
+                }
+                else {
+                    changedArr.push(new BBoxInfo(worksheet.model, data[i]));
+                }
             }
 
             for(i = 0; i < wsViews.length; ++i)
@@ -3383,7 +3394,7 @@ function DrawingObjects() {
                     }
 
                     var sRef = (new Asc.Range(final_bbox.c1, final_bbox.r1, final_bbox.c2, final_bbox.r2)).getName(AscCommonExcel.referenceType.A);
-                    options.range = parserHelp.get3DRef(worksheet.model.sName, sRef);
+                    options.putRange(parserHelp.get3DRef(worksheet.model.sName, sRef));
 
 					var chartSeries = AscFormat.getChartSeries(worksheet.model, options, catHeadersBBox, serHeadersBBox);
 					drawingObject.rebuildSeriesFromAsc(chartSeries);

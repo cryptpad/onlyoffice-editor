@@ -6065,8 +6065,22 @@ CChartSpace.prototype.getValAxisCrossType = function()
                 }
                 var oNumFmt = oAxis.numFmt;
                 var oNumFormat = null;
-                if(oNumFmt && typeof oNumFmt.formatCode === "string"){
-                    oNumFormat = oNumFormatCache.get(oNumFmt.formatCode);
+                var sFormatCode = null;
+                if(oNumFmt){
+                    if(!oNumFmt.sourceLinked) {
+                        if(oNumFmt && typeof oNumFmt.formatCode === "string"){
+                            sFormatCode = oNumFmt.formatCode;
+                        }
+                    }
+                    else {
+                        var aPoints = AscFormat.getPtsFromSeries(oSeries);
+                        if(aPoints[0] && typeof aPoints[0].formatCode === "string" && aPoints[0].formatCode.length > 0){
+                            sFormatCode = aPoints[0].formatCode;
+                        }
+                    }
+                }
+                if(typeof sFormatCode === "string"){
+                    oNumFormat = oNumFormatCache.get(sFormatCode);
                 }
                 else{
                     if(oSeries){
@@ -6083,7 +6097,7 @@ CChartSpace.prototype.getValAxisCrossType = function()
                             }
                             else {
                                 if(oSeries.getFormatCode){
-                                    var sFormatCode = oSeries.getFormatCode();
+                                    sFormatCode = oSeries.getFormatCode();
                                     if(sFormatCode === "string" && sFormatCode.length > 0){
                                         oNumFormat = oNumFormatCache.get(sFormatCode);
                                     }
@@ -6091,6 +6105,9 @@ CChartSpace.prototype.getValAxisCrossType = function()
                             }
                         }
                     }
+                }
+                if(!oNumFormat) {
+                    oNumFormat = oNumFormatCache.get("General");
                 }
                 for(var t = 0; t < aVal.length; ++t){
                     var fCalcValue = aVal[t]*fMultiplier;
@@ -16625,7 +16642,7 @@ function parseSeriesHeaders (ws, rangeBBox) {
 
 function getChartSeries (worksheet, options, catHeadersBBox, serHeadersBBox) {
 	var ws, range;
-	var result = parserHelp.parse3DRef(options.range);
+	var result = parserHelp.parse3DRef(options.getRange());
 	if (result) {
 		ws = worksheet.workbook.getWorksheetByName(result.sheet);
 		if (ws)

@@ -4010,11 +4010,7 @@
 					
 					newFilter = worksheet.createTablePart();
 					newFilter.Ref = ref;
-					
-					if(!bWithoutFilter)
-					{
-						newFilter.addAutoFilter();
-					}
+
 					
 					newFilter.TableStyleInfo = new AscCommonExcel.TableStyleInfo();
 					newFilter.TableStyleInfo.Name = style;
@@ -4035,6 +4031,11 @@
 						newFilter.TableStyleInfo.ShowFirstColumn = false;
 						newFilter.TableStyleInfo.ShowLastColumn = false;
 						newFilter.TableStyleInfo.ShowRowStripes = true;
+					}
+
+					if(!bWithoutFilter)
+					{
+						newFilter.addAutoFilter();
 					}
 					
 					newFilter.DisplayName = newTableName;
@@ -4223,7 +4224,7 @@
 								}
 							}
 						}
-					} else*/ if(colId > 0 && filter.isHideButton(colId - 1)) {
+					} else*/ if(colId > 0 && filter.isHideButton(colId - 1) && hasMerged) {
 						for(i = colId + ref.c1 - 1, length = Math.max(ref.c1, hasMerged.c1); i >= length; i--) {
 							if(!filter.isHideButton(i - ref.c1)) {
 								res = i + 1 - ref.c1;

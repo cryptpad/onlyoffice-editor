@@ -39,6 +39,8 @@ var History = AscCommon.History;
 
 var c_oAscShdNil = Asc.c_oAscShdNil;
 
+var c_oAscRevisionsChangeType = Asc.c_oAscRevisionsChangeType;
+
 var reviewtype_Common = 0x00;
 var reviewtype_Remove = 0x01;
 var reviewtype_Add    = 0x02;
@@ -324,19 +326,22 @@ ParaRun.prototype.GetSelectedContent = function(oSelectedContent)
 	return null;
 };
 
-ParaRun.prototype.GetAllDrawingObjects = function(DrawingObjs)
+ParaRun.prototype.GetAllDrawingObjects = function(arrDrawingObjects)
 {
-    var Count = this.Content.length;
-    for ( var Index = 0; Index < Count; Index++ )
-    {
-        var Item = this.Content[Index];
+	if (!arrDrawingObjects)
+		arrDrawingObjects = [];
 
-        if ( para_Drawing === Item.Type )
-        {
-            DrawingObjs.push(Item);
-            Item.GetAllDrawingObjects(DrawingObjs);
-        }
-    }
+	for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
+	{
+		var oItem = this.Content[nPos];
+		if (para_Drawing === oItem.Type)
+		{
+			arrDrawingObjects.push(oItem);
+			oItem.GetAllDrawingObjects(arrDrawingObjects);
+		}
+	}
+
+	return arrDrawingObjects;
 };
 
 ParaRun.prototype.Clear_ContentChanges = function()
@@ -764,8 +769,16 @@ ParaRun.prototype.private_AddItemToRun = function(nPos, Item)
 		this.Add_ToContent(nPos, Item, true);
 	}
 };
+/**
+ * Очищаем все содержимое данного рана
+ */
+ParaRun.prototype.ClearContent = function()
+{
+	if (this.Content.length <= 0)
+		return;
 
-
+	this.RemoveFromContent(0, this.Content.length, true);
+};
 ParaRun.prototype.Remove = function(Direction, bOnAddText)
 {
     var TrackRevisions = null;
@@ -774,11 +787,9 @@ ParaRun.prototype.Remove = function(Direction, bOnAddText)
 
     var Selection = this.State.Selection;
 
-    var ReviewType  = this.GetReviewType();
-    var oReviewInfo = this.GetReviewInfo();
-    if (true === TrackRevisions && (reviewtype_Add !== ReviewType || !oReviewInfo.IsCurrentUser() || (oReviewInfo.IsMovedTo() && !this.Paragraph.LogicDocument.TrackMoveRelocation)) && (reviewtype_Remove !== ReviewType || !oReviewInfo.IsPrevAddedByCurrentUser()))
+    if (true === TrackRevisions && !this.CanDeleteInReviewMode())
     {
-    	if (reviewtype_Remove === ReviewType)
+    	if (reviewtype_Remove === this.GetReviewType())
 		{
 			// Тут мы ничего не делаем, просто перешагиваем через удаленный текст
 			if (true !== Selection.Use)
@@ -5268,8 +5279,8 @@ ParaRun.prototype.Draw_HighLights = function(PDSH)
                 if ( para_Drawing === ItemType && !Item.Is_Inline() )
                     break;
 
-                if ( CommentsFlag != comments_NoComment )
-                    aComm.Add( Y0, Y1, X, X + ItemWidthVisible, 0, 0, 0, 0, { Active : CommentsFlag === comments_ActiveComment ? true : false, CommentId : arrComments } );
+                if ( CommentsFlag != AscCommon.comments_NoComment )
+                    aComm.Add( Y0, Y1, X, X + ItemWidthVisible, 0, 0, 0, 0, { Active : CommentsFlag === AscCommon.comments_ActiveComment ? true : false, CommentId : arrComments } );
                 else if ( highlight_None != HighLight )
                     aHigh.Add( Y0, Y1, X, X + ItemWidthVisible, 0, HighLight.r, HighLight.g, HighLight.b, undefined, HighLight );
 
@@ -5288,8 +5299,8 @@ ParaRun.prototype.Draw_HighLights = function(PDSH)
                 // Пробелы в конце строки (и строку состоящую из пробелов) не подчеркиваем, не зачеркиваем и не выделяем
                 if ( PDSH.Spaces > 0 )
                 {
-                    if ( CommentsFlag != comments_NoComment )
-                        aComm.Add( Y0, Y1, X, X + ItemWidthVisible, 0, 0, 0, 0, { Active : CommentsFlag === comments_ActiveComment ? true : false, CommentId : arrComments } );
+                    if ( CommentsFlag != AscCommon.comments_NoComment )
+                        aComm.Add( Y0, Y1, X, X + ItemWidthVisible, 0, 0, 0, 0, { Active : CommentsFlag === AscCommon.comments_ActiveComment ? true : false, CommentId : arrComments } );
                     else if ( highlight_None != HighLight )
                         aHigh.Add( Y0, Y1, X, X + ItemWidthVisible, 0, HighLight.r, HighLight.g, HighLight.b, undefined, HighLight );
 
@@ -5325,8 +5336,8 @@ ParaRun.prototype.Draw_HighLights = function(PDSH)
 
 				if (Item.IsNumValue())
 				{
-					if ( CommentsFlag != comments_NoComment )
-						aComm.Add( Y0, Y1, X, X + ItemWidthVisible, 0, 0, 0, 0, { Active : CommentsFlag === comments_ActiveComment ? true : false, CommentId : arrComments } );
+					if ( CommentsFlag != AscCommon.comments_NoComment )
+						aComm.Add( Y0, Y1, X, X + ItemWidthVisible, 0, 0, 0, 0, { Active : CommentsFlag === AscCommon.comments_ActiveComment ? true : false, CommentId : arrComments } );
 					else if ( highlight_None != HighLight )
 						aHigh.Add( Y0, Y1, X, X + ItemWidthVisible, 0, HighLight.r, HighLight.g, HighLight.b, undefined, HighLight );
 
@@ -8107,16 +8118,21 @@ ParaRun.prototype.GetDiffPrChange = function()
 
 ParaRun.prototype.Set_Bold = function(Value)
 {
-    if ( Value !== this.Pr.Bold )
-    {
-        var OldValue = this.Pr.Bold;
-        this.Pr.Bold = Value;
+	return this.SetBold(Value);
+};
+/**
+ * @param isBold {boolean}
+ */
+ParaRun.prototype.SetBold = function(isBold)
+{
+	if (isBold !== this.Pr.Bold)
+	{
+		History.Add(new CChangesRunBold(this, this.Pr.Bold, isBold, this.private_IsCollPrChangeMine()));
+		this.Pr.Bold = isBold;
 
-        History.Add(new CChangesRunBold(this, OldValue, Value, this.private_IsCollPrChangeMine()));
-
-        this.Recalc_CompiledPr(true);
-        this.private_UpdateTrackRevisionOnChangeTextPr(true);
-    }
+		this.Recalc_CompiledPr(true);
+		this.private_UpdateTrackRevisionOnChangeTextPr(true);
+	}
 };
 
 ParaRun.prototype.Get_Bold = function()
@@ -10884,12 +10900,24 @@ ParaRun.prototype.GetComplexFieldsArray = function(nType, arrComplexFields)
 	}
 };
 /**
- * Получаем количетсво элементов в ране
+ * Получаем количество элементов в ране
  * @returns {Number}
  */
 ParaRun.prototype.GetElementsCount = function()
 {
 	return this.Content.length;
+};
+/**
+ * Получаем элемент по заданной позиции
+ * @param nPos {number}
+ * @returns {?CRunElementBase}
+ */
+ParaRun.prototype.GetElement = function(nPos)
+{
+	if (nPos < 0 || nPos >= this.Content.length)
+		return null;
+
+	return this.Content[nPos];
 };
 /**
  * Проверяем является ли данный ран специальным, содержащим ссылку на сноску
@@ -11334,7 +11362,25 @@ ParaRun.prototype.GetLastTrackMoveMark = function()
 
 	return null;
 };
+/**
+ * Можно ли удалять данный ран во время рецензирования
+ * @returns {boolean}
+ */
+ParaRun.prototype.CanDeleteInReviewMode = function()
+{
+	var nReviewType = this.GetReviewType();
+	var oReviewInfo = this.GetReviewInfo();
 
+	return ((reviewtype_Add === nReviewType && oReviewInfo.IsCurrentUser() && (!oReviewInfo.IsMovedTo() || this.Paragraph.LogicDocument.TrackMoveRelocation)) || (reviewtype_Remove === nReviewType && oReviewInfo.IsPrevAddedByCurrentUser()));
+};
+/**
+ * Данная функция используется в иерархии классов для поиска первого рана
+ * @returns {ParaRun}
+ */
+ParaRun.prototype.GetFirstRun = function()
+{
+	return this;
+};
 
 function CParaRunStartState(Run)
 {

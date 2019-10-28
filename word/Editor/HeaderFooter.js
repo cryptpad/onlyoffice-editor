@@ -434,16 +434,16 @@ CHeaderFooter.prototype =
         return this.Content.CheckRange( X0, Y0, X1, Y1, _Y0, _Y1, X_lf, X_rf, 0, false, bMathWrap );
     },
 
-    AddPageNum : function(Align)
-    {
-        var StyleId = null;
-        if ( this.Type === hdrftr_Header )
-            StyleId = this.Get_Styles().Get_Default_Header();
-        else
-            StyleId = this.Get_Styles().Get_Default_Footer();
+    AddPageNum : function(nAlign)
+	{
+		var StyleId = null;
+		if (this.Type === hdrftr_Header)
+			StyleId = this.Get_Styles().Get_Default_Header();
+		else
+			StyleId = this.Get_Styles().Get_Default_Footer();
 
-        this.Content.HdrFtr_AddPageNum( Align, StyleId );
-    },
+		this.Content.SetHdrFtrPageNum(nAlign, StyleId);
+	},
 
     IsCell : function(isReturnCell)
     {
@@ -2579,7 +2579,7 @@ CHeaderFooterController.prototype =
 		if (null != this.CurHdrFtr)
 		{
 			// Отмечаем, что данный комментарий добавлен к колонтитулу
-			Comment.Set_TypeInfo(comment_type_HdrFtr, this.CurHdrFtr);
+			Comment.Set_TypeInfo(AscCommon.comment_type_HdrFtr, this.CurHdrFtr);
 			this.CurHdrFtr.AddComment(Comment);
 		}
 	},
@@ -2712,6 +2712,25 @@ CHeaderFooterController.prototype.IsTableCellSelection = function()
 		return this.CurHdrFtr.GetContent().IsTableCellSelection();
 
 	return false;
+};
+CHeaderFooterController.prototype.AcceptRevisionChanges = function(Type, bAll)
+{
+    if (null !== this.CurHdrFtr)
+        this.CurHdrFtr.Content.AcceptRevisionChanges(Type, bAll);
+};
+CHeaderFooterController.prototype.RejectRevisionChanges = function(Type, bAll)
+{
+    if (null !== this.CurHdrFtr)
+        this.CurHdrFtr.Content.RejectRevisionChanges(Type, bAll);
+};
+CHeaderFooterController.prototype.Document_Is_SelectionLocked = function(nCheckType)
+{
+    // Любое действие внутри колонтитула лочит его
+    this.Lock.Check(this.Get_Id());
+
+    // Нужно запускать проверку дальше, чтобы проверить залоченность Sdt
+    if (this.CurHdrFtr)
+        this.CurHdrFtr.GetContent().Document_Is_SelectionLocked(nCheckType);
 };
 
 

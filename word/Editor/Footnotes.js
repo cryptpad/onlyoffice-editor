@@ -3296,6 +3296,24 @@ CFootnotesController.prototype.IsTableCellSelection = function()
 
 	return false;
 };
+CFootnotesController.prototype.AcceptRevisionChanges = function(Type, bAll)
+{
+	if (null !== this.CurFootnote)
+		this.CurFootnote.AcceptRevisionChanges(Type, bAll);
+};
+CFootnotesController.prototype.RejectRevisionChanges = function(Type, bAll)
+{
+	if (null !== this.CurFootnote)
+		this.CurFootnote.RejectRevisionChanges(Type, bAll);
+};
+CFootnotesController.prototype.IsSelectionLocked = function(CheckType)
+{
+	for (var sId in this.Selection.Footnotes)
+	{
+		var oFootnote = this.Selection.Footnotes[sId];
+		oFootnote.Document_Is_SelectionLocked(CheckType);
+	}
+};
 
 
 function CFootEndnotePageColumn()

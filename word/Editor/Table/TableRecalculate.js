@@ -31,6 +31,7 @@
  */
 
 "use strict";
+var c_oAscSectionBreakType    = Asc.c_oAscSectionBreakType;
 CTable.prototype.Recalculate_Page = function(PageIndex)
 {
 	this.SetIsRecalculated(true);

@@ -46,6 +46,9 @@ var HANDLE_EVENT_MODE_CURSOR = AscFormat.HANDLE_EVENT_MODE_CURSOR;
 
 var asc_CImgProperty = Asc.asc_CImgProperty;
 
+var c_oAscAlignH         = Asc.c_oAscAlignH;
+var c_oAscAlignV         = Asc.c_oAscAlignV;
+
 function CGraphicObjects(document, drawingDocument, api)
 {
     this.api = api;
@@ -4197,6 +4200,43 @@ CGraphicObjects.prototype =
             }
         }
     }
+};
+CGraphicObjects.prototype.Document_Is_SelectionLocked = function(CheckType)
+{
+    if(CheckType === AscCommon.changestype_ColorScheme)
+    {
+        this.Lock.Check(this.Get_Id());
+    }
+};
+CGraphicObjects.prototype.documentIsSelectionLocked = function(CheckType)
+{
+    var oDrawing, i;
+    var bDelete = (AscCommon.changestype_Delete === CheckType || AscCommon.changestype_Remove === CheckType);
+    if(AscCommon.changestype_Drawing_Props === CheckType
+        || AscCommon.changestype_Image_Properties === CheckType
+        || AscCommon.changestype_Delete === CheckType
+        || AscCommon.changestype_Remove === CheckType
+        || AscCommon.changestype_Paragraph_Content === CheckType
+        || AscCommon.changestype_Paragraph_TextProperties === CheckType
+        || AscCommon.changestype_Paragraph_AddText === CheckType
+        || AscCommon.changestype_ContentControl_Add === CheckType
+        || AscCommon.changestype_Paragraph_Properties === CheckType
+        || AscCommon.changestype_Document_Content_Add === CheckType)
+    {
+        for(i = 0; i < this.selectedObjects.length; ++i)
+        {
+            oDrawing = this.selectedObjects[i].parent;
+            if(bDelete)
+            {
+                oDrawing.CheckContentControlDeletingLock();
+            }
+            oDrawing.Lock.Check(oDrawing.Get_Id());
+        }
+    }
+
+    var oDocContent = this.getTargetDocContent();
+    if (oDocContent)
+        oDocContent.Document_Is_SelectionLocked(CheckType);
 };
 
 function ComparisonByZIndexSimpleParent(obj1, obj2)

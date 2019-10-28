@@ -986,6 +986,16 @@
 		Bottom : 1
 	};
 
+	var c_oAscTabType = {
+		Bar     : 0x00,
+		Center  : 0x01,
+		Clear   : 0x02,
+		Decimal : 0x03,
+		Num     : 0x05,
+		Right   : 0x07,
+		Left    : 0x08
+	};
+
 	var c_oAscTabLeader = {
 		Dot        : 0x00,
 		Heavy      : 0x01,
@@ -1470,6 +1480,76 @@
 		NoMove   : 0,
 		MoveTo   : 1,
 		MoveFrom : 2
+	};
+
+	/** @enum {number} */
+	var c_oAscRevisionsChangeType = {
+		Unknown : 0x00,
+		TextAdd : 0x01,
+		TextRem : 0x02,
+		ParaAdd : 0x03,
+		ParaRem : 0x04,
+		TextPr  : 0x05,
+		ParaPr  : 0x06,
+		TablePr : 0x07,
+		RowsAdd : 0x08,
+		RowsRem : 0x09,
+
+		MoveMark       : 0xFE, // специальный внутренний тип, для обозначения меток переноса
+		MoveMarkRemove : 0xFF  // внутреннний тип, для удаления отметок переноса внутри параграфов и таблиц
+	};
+
+
+	/** @enum {number} */
+	var c_oAscSectionBreakType = {
+		NextPage   : 0x00,
+		OddPage    : 0x01,
+		EvenPage   : 0x02,
+		Continuous : 0x03,
+		Column     : 0x04
+	};
+
+
+	var c_oAscSdtLockType = {
+		ContentLocked    : 0x00,
+		SdtContentLocked : 0x01,
+		SdtLocked        : 0x02,
+		Unlocked         : 0x03
+	};
+
+
+	/**
+	 * Типы горизонтального прилегания для автофигур.
+	 * @type {{Center: number, Inside: number, Left: number, Outside: number, Right: number}}
+	 * @enum {number}
+	 */
+	var c_oAscAlignH = {
+		Center  : 0x00,
+		Inside  : 0x01,
+		Left    : 0x02,
+		Outside : 0x03,
+		Right   : 0x04
+	};
+
+	/**
+	 * Типы вертикального прилегания для автофигур.
+	 * @type {{Bottom: number, Center: number, Inside: number, Outside: number, Top: number}}
+	 * @enum {number}
+	 */
+	var c_oAscAlignV = {
+		Bottom  : 0x00,
+		Center  : 0x01,
+		Inside  : 0x02,
+		Outside : 0x03,
+		Top     : 0x04
+	};
+
+
+
+	var c_oAscWatermarkType = {
+		None       : 0,
+		Text       : 1,
+		Image      : 2
 	};
 
 	//------------------------------------------------------------export--------------------------------------------------
@@ -2093,6 +2173,16 @@
 	prot["MiddleDot"]  = c_oAscTabLeader.MiddleDot;
 	prot["Underscore"] = c_oAscTabLeader.Underscore;
 
+	prot = window['Asc']['c_oAscTabType'] = window['Asc'].c_oAscTabType = c_oAscTabType;
+	prot["Bar"]     = c_oAscTabType.Bar;
+	prot["Center"]  = c_oAscTabType.Center;
+	prot["Clear"]   = c_oAscTabType.Clear;
+	prot["Decimal"] = c_oAscTabType.Decimal;
+	prot["Num"]     = c_oAscTabType.Num;
+	prot["Right"]   = c_oAscTabType.Right;
+	prot["Left"]    = c_oAscTabType.Left;
+
+
 	prot = window['Asc']['c_oAscRestrictionType'] = window['Asc'].c_oAscRestrictionType = c_oAscRestrictionType;
 	prot['None']           = c_oAscRestrictionType.None;
 	prot['OnlyForms']      = c_oAscRestrictionType.OnlyForms;
@@ -2308,4 +2398,54 @@
 	prot['NoMove']   = c_oAscRevisionsMove.NoMove;
 	prot['MoveTo']   = c_oAscRevisionsMove.MoveTo;
 	prot['MoveFrom'] = c_oAscRevisionsMove.MoveFrom;
+
+
+	prot = window['Asc']['c_oAscRevisionsChangeType'] = window['Asc'].c_oAscRevisionsChangeType = c_oAscRevisionsChangeType;
+	prot['Unknown']  = c_oAscRevisionsChangeType.Unknown;
+	prot['TextAdd']  = c_oAscRevisionsChangeType.TextAdd;
+	prot['TextRem']  = c_oAscRevisionsChangeType.TextRem;
+	prot['ParaAdd']  = c_oAscRevisionsChangeType.ParaAdd;
+	prot['ParaRem']  = c_oAscRevisionsChangeType.ParaRem;
+	prot['TextPr']   = c_oAscRevisionsChangeType.TextPr;
+	prot['ParaPr']   = c_oAscRevisionsChangeType.ParaPr;
+	prot['TablePr']  = c_oAscRevisionsChangeType.TablePr;
+	prot['RowsAdd']  = c_oAscRevisionsChangeType.RowsAdd;
+	prot['RowsRem']  = c_oAscRevisionsChangeType.RowsRem;
+	prot['MoveMark'] = c_oAscRevisionsChangeType.MoveMark;
+
+	prot = window['Asc']['c_oAscSectionBreakType'] = window['Asc'].c_oAscSectionBreakType = c_oAscSectionBreakType;
+	prot['NextPage']   = c_oAscSectionBreakType.NextPage;
+	prot['OddPage']    = c_oAscSectionBreakType.OddPage;
+	prot['EvenPage']   = c_oAscSectionBreakType.EvenPage;
+	prot['Continuous'] = c_oAscSectionBreakType.Continuous;
+	prot['Column']     = c_oAscSectionBreakType.Column;
+
+
+	prot = window['Asc']['c_oAscSdtLockType'] = window['Asc'].c_oAscSdtLockType = c_oAscSdtLockType;
+	prot['ContentLocked']    = c_oAscSdtLockType.ContentLocked;
+	prot['SdtContentLocked'] = c_oAscSdtLockType.SdtContentLocked;
+	prot['SdtLocked']        = c_oAscSdtLockType.SdtLocked;
+	prot['Unlocked']         = c_oAscSdtLockType.Unlocked;
+
+
+	prot = window['Asc']['c_oAscAlignH'] = window['Asc'].c_oAscAlignH = c_oAscAlignH;
+	prot['Center']  = c_oAscAlignH.Center;
+	prot['Inside']  = c_oAscAlignH.Inside;
+	prot['Left']    = c_oAscAlignH.Left;
+	prot['Outside'] = c_oAscAlignH.Outside;
+	prot['Right']   = c_oAscAlignH.Right;
+
+
+	prot = window['Asc']['c_oAscAlignV'] = window['Asc'].c_oAscAlignV = c_oAscAlignV;
+	prot['Bottom']  = c_oAscAlignV.Bottom;
+	prot['Center']  = c_oAscAlignV.Center;
+	prot['Inside']  = c_oAscAlignV.Inside;
+	prot['Outside'] = c_oAscAlignV.Outside;
+	prot['Top']     = c_oAscAlignV.Top;
+
+	prot = window['Asc']['c_oAscWatermarkType'] = window['Asc'].c_oAscWatermarkType = c_oAscWatermarkType;
+	prot['None'] = prot.None;
+	prot['Text'] = prot.Text;
+	prot['Image'] = prot.Image;
+
 })(window);

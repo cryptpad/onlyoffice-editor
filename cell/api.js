@@ -1776,17 +1776,26 @@ var editor;
 		this.collaborativeEditing.lock([lockInfo], callback);
 	};
 
-  spreadsheet_api.prototype._addWorksheet = function (name, i) {
+  spreadsheet_api.prototype._addWorksheets = function (arrNames, where) {
+    // Проверка глобального лока
+    if (this.collaborativeEditing.getGlobalLock()) {
+      return false;
+    }
+
     var t = this;
     var addWorksheetCallback = function(res) {
       if (res) {
-        t.wbModel.createWorksheet(i, name);
-        t.wb.spliceWorksheet(i, 0, null);
-        if (!window["NATIVE_EDITOR_ENJINE"] || window['IS_NATIVE_EDITOR'] || window['DoctRendererMode']) {
-          t.asc_showWorksheet(i);
-          // Посылаем callback об изменении списка листов
-          t.sheetsChanged();
-		}
+        History.Create_NewPoint();
+        History.StartTransaction();
+        for (var i = arrNames.length - 1; i >= 0; --i) {
+          t.wbModel.createWorksheet(where, arrNames[i]);
+        }
+        t.wbModel.setActive(where);
+        t.wb.updateWorksheetByModel();
+        t.wb.showWorksheet();
+        History.EndTransaction();
+        // Посылаем callback об изменении списка листов
+        t.sheetsChanged();
       }
     };
 
@@ -2027,10 +2036,6 @@ var editor;
         if (res) {
           t.wbModel.getWorksheet(index).setHidden(false);
           t.wb.showWorksheet(index);
-          if (isHidden) {
-            // Посылаем callback об изменении списка листов
-            t.sheetsChanged();
-          }
         }
       };
       if (isHidden) {
@@ -2107,14 +2112,18 @@ var editor;
     return true;
   };
 
-  spreadsheet_api.prototype.asc_addWorksheet = function(name) {
+  spreadsheet_api.prototype.asc_addWorksheet = function (name) {
     var i = this.wbModel.getActive();
-    this._addWorksheet(name, i + 1);
+    this._addWorksheets([name], i + 1);
   };
 
-  spreadsheet_api.prototype.asc_insertWorksheet = function(name) {
+  spreadsheet_api.prototype.asc_insertWorksheet = function (arrNames) {
+    // Support old versions
+    if (!Array.isArray(arrNames)) {
+      arrNames = [arrNames];
+    }
     var i = this.wbModel.getActive();
-    this._addWorksheet(name, i);
+    this._addWorksheets(arrNames, i);
   };
 
   // Удаление листа
@@ -2145,7 +2154,6 @@ var editor;
       if (res) {
         History.Create_NewPoint();
         History.StartTransaction();
-        t.wbModel.dependencyFormulas.lockRecal();
         // Нужно проверить все диаграммы, ссылающиеся на удаляемый лист
           t.wbModel.forEach(function (ws) {
 			  History.TurnOff();
@@ -2159,20 +2167,14 @@ var editor;
 			  }
           });
 
-        // Удаляем Worksheet и получаем новый активный индекс (-1 означает, что ничего не удалилось)
-        var active, index;
         for (var i = 0; i < arrSheets.length; ++i) {
-          index = arrSheets[i].getIndex();
-          active = t.wbModel.removeWorksheet(index);
-          t.wb.removeWorksheet(index);
+          t.wbModel.removeWorksheet(arrSheets[i].getIndex());
         }
-        if (-1 !== active) {
-          t.asc_showWorksheet(active);
-        }
+        t.wb.updateWorksheetByModel();
+        t.wb.showWorksheet();
+        History.EndTransaction();
         // Посылаем callback об изменении списка листов
         t.sheetsChanged();
-        t.wbModel.dependencyFormulas.unlockRecal();
-        History.EndTransaction();
       }
     };
 
@@ -2190,26 +2192,47 @@ var editor;
       arrSheets = [this.wbModel.getActive()];
     }
 
-    var i, index, _where;
+    var active, sheet, i, index, _where, arrLocks = [];
+    var arrSheetsLeft = [], arrSheetsRight = [];
     for (i = 0; i < arrSheets.length; ++i) {
-      arrSheets[i] = this.wbModel.getWorksheet(arrSheets[i]);
+      index = arrSheets[i];
+      sheet = this.wbModel.getWorksheet(index);
+      ((index < where) ? arrSheetsLeft : arrSheetsRight).push(sheet);
+      if (!active) {
+        active = sheet;
+      }
+      arrLocks.push(this.collaborativeEditing.getLockInfo(c_oAscLockTypeElem.Sheet, /*subType*/null, sheet.getId(), sheet.getId()));
     }
 
-    History.Create_NewPoint();
-    History.StartTransaction();
-    for (i = arrSheets.length - 1; i >= 0; --i) {
-      index = arrSheets[i].getIndex();
-      // Мы должны поместить слева от заданного значения, поэтому если идем вправо, то вычтем 1
-      _where = index < where ? (where - 1) : where;
-      this.wb.replaceWorksheet(index, _where);
-      this.wbModel.replaceWorksheet(index, _where);
-    }
+    var t = this;
+    var moveCallback = function (res) {
+      if (res) {
+        History.Create_NewPoint();
+        History.StartTransaction();
+        for (i = 0, _where = where; i < arrSheetsRight.length; ++i, ++_where) {
+          index = arrSheetsRight[i].getIndex();
+          if (index !== _where) {
+            t.wbModel.replaceWorksheet(index, _where);
+          }
+        }
+        for (i = arrSheetsLeft.length - 1, _where = where - 1; i >= 0; --i, --_where) {
+          index = arrSheetsLeft[i].getIndex();
+          if (index !== _where) {
+            t.wbModel.replaceWorksheet(index, _where);
+          }
+        }
+        // Обновим текущий номер
+        t.wbModel.setActive(active.getIndex());
+        t.wb.updateWorksheetByModel();
+        t.wb.showWorksheet();
+        History.EndTransaction();
+        // Посылаем callback об изменении списка листов
+        t.sheetsChanged();
+      }
+    };
 
-    // Обновим текущий номер
-    this.asc_showWorksheet(_where);
-    // Посылаем callback об изменении списка листов
-    this.sheetsChanged();
-    History.EndTransaction();
+    this.collaborativeEditing.lock(arrLocks, moveCallback);
+    return true;
   };
 
   spreadsheet_api.prototype.asc_copyWorksheet = function (where, arrNames, arrSheets) {
@@ -2241,20 +2264,19 @@ var editor;
     var t = this;
     var copyWorksheet = function(res) {
       if (res) {
-        // ToDo перейти от wsViews на wsViewsId (сейчас вызываем раньше, чем в модели, т.к. там будет sortDependency
-        // и cleanCellCache, который создаст уже скопированный лист(и splice сработает неправильно))
+        // ToDo перейти от wsViews на wsViewsId
         History.Create_NewPoint();
         History.StartTransaction();
         var index;
         for (var i = arrSheets.length - 1; i >= 0; --i) {
           index = arrSheets[i].getIndex();
-          t.wb.copyWorksheet(index, where);
           t.wbModel.copyWorksheet(index, where, arrNames[i]);
         }
-        History.EndTransaction();
         // Делаем активным скопированный
-        t.asc_showWorksheet(where);
-        t.asc_setZoom(scale);
+        t.wbModel.setActive(where);
+        t.wb.updateWorksheetByModel();
+        t.wb.showWorksheet();
+        History.EndTransaction();
         // Посылаем callback об изменении списка листов
         t.sheetsChanged();
       }
@@ -2714,6 +2736,8 @@ var editor;
 
   // Cell comment interface
   spreadsheet_api.prototype.asc_addComment = function(oComment) {
+    var oPlace = oComment.bDocument ? this.wb : this.wb.getWorksheet();
+    oPlace.cellCommentator.addComment(oComment);
   };
 
   spreadsheet_api.prototype.asc_changeComment = function(id, oComment) {
@@ -3208,23 +3232,23 @@ var editor;
 		this._isLockedSparkline(id, changeSparkline);
 	};
 
-    spreadsheet_api.prototype.asc_setListType = function (type, subtype) {
+    spreadsheet_api.prototype.asc_setListType = function (type, subtype, size, unicolor) {
       var t = this;
         var sNeedFont = AscFormat.fGetFontByNumInfo(type, subtype);
       if(typeof sNeedFont === "string" && sNeedFont.length > 0){
           var t = this, fonts = {};
           fonts[sNeedFont] = 1;
-          t._loadFonts(fonts, function() {t.asc_setListType2(type, subtype);});
+          t._loadFonts(fonts, function() {t.asc_setListType2(type, subtype, size, unicolor);});
       }
       else{
-          t.asc_setListType2(type, subtype);
+          t.asc_setListType2(type, subtype, size, unicolor);
       }
     };
-    spreadsheet_api.prototype.asc_setListType2 = function (type, subtype) {
+    spreadsheet_api.prototype.asc_setListType2 = function (type, subtype, size, unicolor) {
         var oWorksheet = this.wb.getWorksheet();
         if(oWorksheet){
             if(oWorksheet.isSelectOnShape){
-                return oWorksheet.objectRender.setListType(type, subtype);
+                return oWorksheet.objectRender.setListType(type, subtype, size, unicolor);
             }
         }
     };
