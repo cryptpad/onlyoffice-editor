@@ -416,6 +416,7 @@ function (window, undefined) {
 		this.StyleGradientFillStop = 102;
 
 		this.SortState = 115;
+		this.SortStateData = 116;
 
 		this.Create = function (nType) {
 			switch (nType) {
@@ -561,6 +562,9 @@ function (window, undefined) {
 					return new UndoRedoData_ArrayFormula();
 				case this.SortState:
 					return new AscCommonExcel.SortState();
+					break;
+				case this.SortStateData:
+					return new AscCommonExcel.UndoRedoData_SortState();
 					break;
 			}
 			return null;
@@ -1767,6 +1771,55 @@ function (window, undefined) {
 		}
 	};
 
+	function UndoRedoData_SortState(from, to, bFilter, tableName) {
+		this.from = from;
+		this.to = to;
+		this.bFilter = bFilter;
+		this.tableName = tableName;
+	}
+
+	UndoRedoData_SortState.prototype.Properties = {
+		from: 0, to: 1, bFilter: 2, tableName: 3
+	};
+	UndoRedoData_SortState.prototype.getType = function () {
+		return UndoRedoDataTypes.SortStateData;
+	};
+	UndoRedoData_SortState.prototype.getProperties = function () {
+		return this.Properties;
+	};
+	UndoRedoData_SortState.prototype.getProperty = function (nType) {
+		switch (nType) {
+			case this.Properties.from:
+				return this.from;
+				break;
+			case this.Properties.to:
+				return this.to;
+				break;
+			case this.Properties.bFilter:
+				return this.bFilter;
+				break;
+			case this.Properties.tableName:
+				return this.tableName;
+				break;
+		}
+		return null;
+	};
+	UndoRedoData_SortState.prototype.setProperty = function (nType, value) {
+		switch (nType) {
+			case this.Properties.from:
+				this.from = value;
+				break;
+			case this.Properties.to:
+				this.to = value;
+				break;
+			case this.Properties.bFilter:
+				this.bFilter = value;
+				break;
+			case this.Properties.tableName:
+				this.tableName = value;
+				break;
+		}
+	};
 
 	//для применения изменений
 	var UndoRedoClassTypes = new function () {
@@ -2743,7 +2796,16 @@ function (window, undefined) {
 		var ws = (null == nSheetId) ? api.wb : api.wb.getWorksheetById(nSheetId);
 		Data.worksheet = ws;
 
-		ws.model.sortState = bUndo ? Data.from : Data.to;
+		if(Data.bFilter) {
+			if(Data.tableName) {
+				var table = ws.model.autoFilters._getFilterByDisplayName(Data.tableName);
+				table.SortState = bUndo ? Data.from : Data.to;
+			} else {
+				ws.model.AutoFilter.SortState = bUndo ? Data.from : Data.to;
+			}
+		} else {
+			ws.model.sortState = bUndo ? Data.from : Data.to;
+		}
 	};
 
 	function UndoRedoAutoFilters(wb) {
@@ -3083,6 +3145,7 @@ function (window, undefined) {
 	window['AscCommonExcel'].UndoRedoData_AutoFilter = UndoRedoData_AutoFilter;
 	window['AscCommonExcel'].UndoRedoData_SingleProperty = UndoRedoData_SingleProperty;
 	window['AscCommonExcel'].UndoRedoData_ArrayFormula = UndoRedoData_ArrayFormula;
+	window['AscCommonExcel'].UndoRedoData_SortState = UndoRedoData_SortState;
 	window['AscCommonExcel'].UndoRedoWorkbook = UndoRedoWorkbook;
 	window['AscCommonExcel'].UndoRedoCell = UndoRedoCell;
 	window['AscCommonExcel'].UndoRedoWoorksheet = UndoRedoWoorksheet;

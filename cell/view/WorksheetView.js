@@ -14621,7 +14621,7 @@
             if (range.isIntersect(updatedRange)) {
                 var row = range.r1;
 
-				var sortCondition = filter.isApplySortConditions() ? filter.SortState.SortConditions[0] : null;
+				var sortConditions = filter.isApplySortConditions() ? filter.SortState.SortConditions : null;
                 for (var col = range.c1; col <= range.c2; col++) {
                     if (col >= updatedRange.c1 && col <= updatedRange.c2) {
                         var isSetFilter = false;
@@ -14655,11 +14655,14 @@
 
                         }
 
-						if(sortCondition && sortCondition.Ref)
+						if(sortConditions && sortConditions.length)
 						{
-							if(colId === sortCondition.Ref.c1 - range.c1)
-							{
-								isSortState = !!(sortCondition.ConditionDescending);
+							for(var i = 0; i < sortConditions.length; i++) {
+								var sortCondition = sortConditions[i];
+								if(colId === sortCondition.Ref.c1 - range.c1)
+								{
+									isSortState = !!(sortCondition.ConditionDescending);
+								}
 							}
 						}
 
@@ -15167,35 +15170,39 @@
         var sortVal = null;
         var sortColor = null;
         if (filter && filter.SortState && filter.SortState.SortConditions && filter.SortState.SortConditions[0]) {
-            var SortConditions = filter.SortState.SortConditions[0];
-            if (rangeButton.c1 == SortConditions.Ref.c1) {
+            var SortConditions = filter.SortState.SortConditions;
 
-                var conditionSortBy = SortConditions.ConditionSortBy;
-                switch (conditionSortBy) {
-                    case Asc.ESortBy.sortbyCellColor:
-                    {
-                        sortVal = Asc.c_oAscSortOptions.ByColorFill;
-                        sortColor = SortConditions.dxf && SortConditions.dxf.fill ? SortConditions.dxf.fill.bg() : null;
-                        break;
-                    }
-                    case Asc.ESortBy.sortbyFontColor:
-                    {
-                        sortVal = Asc.c_oAscSortOptions.ByColorFont;
-                        sortColor = SortConditions.dxf && SortConditions.dxf.font ? SortConditions.dxf.font.getColor() : null;
-                        break;
-                    }
-                    default:
-                    {
-                        if (filter.SortState.SortConditions[0].ConditionDescending) {
-                            sortVal = Asc.c_oAscSortOptions.Descending;
-                        } else {
-                            sortVal = Asc.c_oAscSortOptions.Ascending;
-                        }
+            for(var i = 0; i < SortConditions.length; i++) {
+				var sortCondition = SortConditions[i];
+            	if (rangeButton.c1 == sortCondition.Ref.c1) {
 
-                        break;
-                    }
-                }
-            }
+					var conditionSortBy = SortConditions.ConditionSortBy;
+					switch (conditionSortBy) {
+						case Asc.ESortBy.sortbyCellColor:
+						{
+							sortVal = Asc.c_oAscSortOptions.ByColorFill;
+							sortColor = sortCondition.dxf && sortCondition.dxf.fill ? sortCondition.dxf.fill.bg() : null;
+							break;
+						}
+						case Asc.ESortBy.sortbyFontColor:
+						{
+							sortVal = Asc.c_oAscSortOptions.ByColorFont;
+							sortColor = sortCondition.dxf && sortCondition.dxf.font ? sortCondition.dxf.font.getColor() : null;
+							break;
+						}
+						default:
+						{
+							if (sortCondition.ConditionDescending) {
+								sortVal = Asc.c_oAscSortOptions.Descending;
+							} else {
+								sortVal = Asc.c_oAscSortOptions.Ascending;
+							}
+
+							break;
+						}
+					}
+				}
+			}
         }
 
         var ascColor = null;
@@ -18652,62 +18659,26 @@
 				sortState.SortConditions.push(sortCondition);
 			}
 
-			History.Add(AscCommonExcel.g_oUndoRedoSortState, AscCH.historyitem_SortState_Add, t.model.getId(), null,
-				new AscCommonExcel.UndoRedoData_FromTo(t.model.sortState ? t.model.sortState.clone() : null, sortState ? sortState.clone() : null));
-
 			if(obj) {
+				History.Add(AscCommonExcel.g_oUndoRedoSortState, AscCH.historyitem_SortState_Add, t.model.getId(), null,
+					new AscCommonExcel.UndoRedoData_SortState(obj.sortState ? obj.sortState.clone() : null, sortState ? sortState.clone() : null, true, obj.DisplayName));
+
 				obj.SortState = sortState;
-			} else {
-				t.model.sortState = sortState;
+
 				if(!obj.isAutoFilter()) {
 					t._onUpdateFormatTable(selection, false);
 				}
+			} else {
+				History.Add(AscCommonExcel.g_oUndoRedoSortState, AscCH.historyitem_SortState_Add, t.model.getId(), null,
+					new AscCommonExcel.UndoRedoData_SortState(t.model.sortState ? t.model.sortState.clone() : null, sortState ? sortState.clone() : null));
+
+				t.model.sortState = sortState;
 			}
 
 			if(!doNotSortRange) {
 				var range = t.model.getRange3(selection.r1, selection.c1, selection.r2, selection.c2);
 				t.cellCommentator.sortComments(range.sort(null, null, null, null, !columnSort, props.levels));
 			}
-
-			History.EndTransaction();
-		};
-
-		var callbackFilterOrTables = function(obj) {
-			History.Create_NewPoint();
-			History.StartTransaction();
-
-
-			var rgbColor = color ? new AscCommonExcel.RgbColor((color.asc_getR() << 16) + (color.asc_getG() << 8) + color.asc_getB()) : null;
-
-			var bTable = !obj.isAutoFilter();
-			for(var i = 0; i < levels.length; i++) {
-				var sortCondition = new AscCommonExcel.SortCondition();
-				var level = props.levels[i];
-				var r1 = columnSort ? selection.r1 : level.index + selection.r1;
-				var c1 = columnSort ? selection.c1 + level.index : selection.c1;
-				var r2 = columnSort ? selection.r2 : level.index + selection.r1;
-				var c2  = columnSort ? selection.c1 + level.index : selection.c2;
-				sortCondition.Ref = new Asc.Range(c1, r1, c2, r2);
-				sortCondition.ConditionSortBy = null;
-				sortCondition.ConditionDescending = Asc.c_oAscSortOptions.Descending === level.descending;
-				sortCondition.dxf = null;
-
-				if(!obj.sortState.SortConditions) {
-					obj.sortState.SortConditions = [];
-				}
-
-				obj.sortState.SortConditions.push(sortCondition);
-			}
-
-			History.Add(AscCommonExcel.g_oUndoRedoSortState, AscCH.historyitem_SortState_Add, t.model.getId(), null,
-				new AscCommonExcel.UndoRedoData_FromTo(t.model.sortState ? t.model.sortState.clone() : null, sortState ? sortState.clone() : null));
-
-			if(!doNotSortRange) {
-				var range = t.model.getRange3(selection.r1, selection.c1, selection.r2, selection.c2);
-				t.cellCommentator.sortComments(range.sort(null, null, null, null, false, props.levels));
-			}
-
-			t._onUpdateFormatTable(selection, false);
 
 			History.EndTransaction();
 		};
