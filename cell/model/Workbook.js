@@ -2650,6 +2650,9 @@
 			for (i = 0; i < formulas.length; ++i) {
 				ftFormula = formulas[i];
 				ws = wbSnapshot.getWorksheetById(ftFormula.elem.nSheetId);
+				if(!ws) {
+					ws = new AscCommonExcel.Worksheet(wbSnapshot, -1);
+				}
 				if (ws) {
 					ftFormula.parsed = new parserFormula(ftFormula.formula, ftFormula, ws);
 					ftFormula.parsed.parse();
