@@ -4020,24 +4020,35 @@ var editor;
 	};
 	spreadsheet_api.prototype._changePivot = function(pivot, confirmation, callback) {
 		var t = this;
-	    var ws, wsModel;
 		History.Create_NewPoint();
 		History.StartTransaction();
 		this.wbModel.dependencyFormulas.lockRecal();
-		wsModel = pivot.GetWS();
+		var wsModel = pivot.GetWS();
+		var ws = this.wb.getWorksheet(wsModel.getIndex());
 		pivot.stashCurReportRange();
 
 		callback(wsModel);
 
-		var dataRow;
-		var error = Asc.c_oAscError.ID.No;
-		var warning = Asc.c_oAscError.ID.No;
+		var dataRow, reportRanges;
 		var pivotChanged = pivot.getAndCleanChanged();
 		if (pivotChanged.data) {
 			dataRow = pivot.updateAfterEdit();
-			error = wsModel.checkPivotReportLocationForError(pivot.getReportRanges(), pivot);
+			reportRanges = pivot.getReportRanges();
+			ws._isLockedCells(new AscCommonExcel.MultiplyRange(reportRanges).getUnionRange(), null, function(res) {
+				t._changePivotOnLock(res, pivot, wsModel, pivotChanged, dataRow, reportRanges, confirmation);
+			});
+		} else {
+			this._changePivotOnLock(true, pivot, wsModel, pivotChanged, dataRow, reportRanges, confirmation);
+		}
+	};
+	spreadsheet_api.prototype._changePivotOnLock = function(isSuccess, pivot, wsModel, pivotChanged, dataRow, reportRanges, confirmation) {
+		var t = this;
+		var error = isSuccess ? Asc.c_oAscError.ID.No : Asc.c_oAscError.ID.PivotOverlap;
+		var warning = Asc.c_oAscError.ID.No;
+		if (Asc.c_oAscError.ID.No === error && pivotChanged.data) {
+			error = wsModel.checkPivotReportLocationForError(reportRanges, pivot);
 			if (Asc.c_oAscError.ID.No === error && !confirmation) {
-				warning = wsModel.checkPivotReportLocationForConfirm(pivot.getReportRanges(), pivotChanged);
+				warning = wsModel.checkPivotReportLocationForConfirm(reportRanges, pivotChanged);
 			}
 		}
 		if (Asc.c_oAscError.ID.No === error && Asc.c_oAscError.ID.No === warning) {
