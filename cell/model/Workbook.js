@@ -3087,6 +3087,15 @@
 		}
 		return null;
 	};
+	Workbook.prototype.getPivotTableById = function(id) {
+		for (var i = 0, l = this.aWorksheets.length; i < l; ++i) {
+			var pivot = this.aWorksheets[i].getPivotTableById(id);
+			if (pivot) {
+				return pivot;
+			}
+		}
+		return null;
+	};
 	Workbook.prototype.getPivotCacheByDataRef = function(dataRef) {
 		for (var i = 0, l = this.aWorksheets.length; i < l; ++i) {
 			var cache = this.aWorksheets[i].getPivotCacheByDataRef(dataRef);
@@ -6293,14 +6302,14 @@
 		}
 	};
 	Worksheet.prototype.updatePivotTable = function(pivotTable, changed, dataRow) {
-		if (!(changed.oldRanges && (changed.data || changed.style))) {
+		if (!changed.data && !changed.style) {
 			return;
 		}
 		var t = this;
-		var multiplyRange = new AscCommonExcel.MultiplyRange(changed.oldRanges);
-		changed.oldRanges.forEach(function(range){
-			t.getRange3(range.r1, range.c1, range.r2, range.c2).clearTableStyle();
-		});
+		var multiplyRange = new AscCommonExcel.MultiplyRange([]);
+		if(changed.oldRanges){
+			multiplyRange.union2(new AscCommonExcel.MultiplyRange(changed.oldRanges));
+		}
 		if (changed.data) {
 			pivotTable.init();
 			if (dataRow) {
@@ -6938,7 +6947,6 @@
 	Worksheet.prototype.deletePivotTable = function (id) {
 		for (var i = 0; i < this.pivotTables.length; ++i) {
 			if (id === this.pivotTables[i].Get_Id()) {
-				this.clearPivotTable(this.pivotTables[i]);
 				this.pivotTables.splice(i, 1);
 				break;
 			}
@@ -6946,9 +6954,11 @@
 	};
 	Worksheet.prototype.deletePivotTables = function (range) {
 		for (var i = 0; i < this.pivotTables.length; ++i) {
-			if (this.pivotTables[i].intersection(range)) {
-				this.clearPivotTable(this.pivotTables[i]);
-				History.Add(new AscDFH.CChangesPivotTableDefinitionDelete(this.pivotTables[i]));
+			var pivotTable = this.pivotTables[i];
+			if (pivotTable.intersection(range)) {
+				this.clearPivotTable(pivotTable);
+				History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_PivotDelete, this.getId(), null,
+					new AscCommonExcel.UndoRedoData_PivotTableRedo(pivotTable.Get_Id(), pivotTable, null));
 				this.pivotTables.splice(i--, 1);
 			}
 		}
@@ -6974,23 +6984,41 @@
 		}
 		return res;
 	};
-	Worksheet.prototype.getPivotCacheByDataRef = function(dataRef) {
+	Worksheet.prototype.getPivotTableById = function (id) {
 		var res = null;
 		for (var i = 0; i < this.pivotTables.length; ++i) {
-			var pivotTable = this.pivotTables[i];
-			if (pivotTable.cacheDefinition) {
-				var worksheetSource = pivotTable.cacheDefinition.getWorksheetSource();
-				if (worksheetSource && dataRef === worksheetSource.getDataRef()) {
-					res = pivotTable.cacheDefinition;
-					break;
-				}
+			if (this.pivotTables[i].Get_Id() === id) {
+				res = this.pivotTables[i];
+				break;
 			}
 		}
 		return res;
 	};
-	Worksheet.prototype.insertPivotTable = function (pivotTable) {
+	Worksheet.prototype.getPivotCacheByDataRef = function(dataRef) {
+		var res = null;
+		for (var i = 0; i < this.pivotTables.length; ++i) {
+			var pivotTable = this.pivotTables[i];
+			if (dataRef === pivotTable.asc_getDataRef()) {
+				res = pivotTable.cacheDefinition;
+				break;
+			}
+		}
+		return res;
+	};
+	Worksheet.prototype.insertPivotTable = function (pivotTable, addToHistory, checkCacheDefinition, changed) {
 		pivotTable.worksheet = this;
+		pivotTable.setChanged(false, true);
+		if (checkCacheDefinition) {
+			var cacheDefinition = this.workbook.getPivotCacheByDataRef(pivotTable.asc_getDataRef());
+			if (cacheDefinition) {
+				pivotTable.setCacheDefinition(cacheDefinition);
+			}
+		}
 		this.pivotTables.push(pivotTable);
+		if (addToHistory) {
+			History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_PivotAdd, this.getId(), null,
+				new AscCommonExcel.UndoRedoData_BinaryWrapper(pivotTable));
+		}
 	};
 	Worksheet.prototype.getPivotTableButtons = function (range) {
 		var res = [];

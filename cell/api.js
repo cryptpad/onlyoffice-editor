@@ -2305,8 +2305,7 @@ var editor;
 		}
 		pivotTable.asc_create(ws, pivotName, cacheDefinition, location);
 		this._changePivotWithLock(pivotTable, function() {
-			ws.insertPivotTable(pivotTable);
-			pivotTable.setChanged(true);
+			ws.insertPivotTable(pivotTable, true, false);
 		});
 	};
 

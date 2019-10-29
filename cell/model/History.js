@@ -69,6 +69,8 @@ function (window, undefined) {
 	window['AscCH'].historyitem_Worksheet_ChangeHyperlink = 26;
 	window['AscCH'].historyitem_Worksheet_SetTabColor = 27;
 	window['AscCH'].historyitem_Worksheet_RowHide = 28;
+// Frozen cell
+	window['AscCH'].historyitem_Worksheet_ChangeFrozenCell = 30;
 	window['AscCH'].historyitem_Worksheet_SetDisplayGridlines = 31;
 	window['AscCH'].historyitem_Worksheet_SetDisplayHeadings = 32;
 	window['AscCH'].historyitem_Worksheet_GroupRow = 33;
@@ -78,8 +80,8 @@ function (window, undefined) {
 	window['AscCH'].historyitem_Worksheet_SetSummaryRight = 37;
 	window['AscCH'].historyitem_Worksheet_SetSummaryBelow = 38;
 	window['AscCH'].historyitem_Worksheet_SetFitToPage = 39;
-// Frozen cell
-	window['AscCH'].historyitem_Worksheet_ChangeFrozenCell = 30;
+	window['AscCH'].historyitem_Worksheet_PivotAdd = 40;
+	window['AscCH'].historyitem_Worksheet_PivotDelete = 41;
 
 	window['AscCH'].historyitem_RowCol_Fontname = 1;
 	window['AscCH'].historyitem_RowCol_Fontsize = 2;
