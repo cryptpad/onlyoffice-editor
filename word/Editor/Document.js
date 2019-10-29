@@ -4963,26 +4963,24 @@ CDocument.prototype.AddDropCap = function(bInText)
 	// Определим параграф, к которому мы будем добавлять буквицу
 	var Pos = -1;
 
-	if (false === this.Selection.Use && type_Paragraph === this.Content[this.CurPos.ContentPos].GetType())
+	if (false === this.Selection.Use)
 		Pos = this.CurPos.ContentPos;
-	else if (true === this.Selection.Use && this.Selection.StartPos <= this.Selection.EndPos && type_Paragraph === this.Content[this.Selection.StartPos].GetType())
+	else if (true === this.Selection.Use && this.Selection.StartPos <= this.Selection.EndPos)
 		Pos = this.Selection.StartPos;
-	else if (true === this.Selection.Use && this.Selection.StartPos > this.Selection.EndPos && type_Paragraph === this.Content[this.Selection.EndPos].GetType())
+	else if (true === this.Selection.Use && this.Selection.StartPos > this.Selection.EndPos)
 		Pos = this.Selection.EndPos;
 
-	if (-1 === Pos)
+	if (-1 === Pos || !this.Content[Pos].IsParagraph())
 		return;
 
 	var OldParagraph = this.Content[Pos];
+	if (!this.IsSelectionUse() && !OldParagraph.SelectFirstLetter())
+		return;
 
 	if (OldParagraph.Lines.length <= 0)
 		return;
 
-	if (false === this.Document_Is_SelectionLocked(changestype_None, {
-			Type      : changestype_2_Element_and_Type,
-			Element   : OldParagraph,
-			CheckType : changestype_Paragraph_Content
-		}))
+	if (!this.IsSelectionLocked(changestype_Paragraph_Content))
 	{
 		this.StartAction(AscDFH.historydescription_Document_AddDropCap);
 

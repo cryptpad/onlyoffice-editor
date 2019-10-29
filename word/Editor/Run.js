@@ -11381,6 +11381,20 @@ ParaRun.prototype.GetFirstRun = function()
 {
 	return this;
 };
+ParaRun.prototype.GetFirstRunElementPos = function(nType, oStartPos, oEndPos, nDepth)
+{
+	for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
+	{
+		if (nType === this.Content[nPos].Type)
+		{
+			oStartPos.Update(nPos, nDepth);
+			oEndPos.Update(nPos + 1, nDepth);
+			return true;
+		}
+	}
+
+	return false;
+};
 
 function CParaRunStartState(Run)
 {

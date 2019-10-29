@@ -737,6 +737,18 @@ CParagraphContentBase.prototype.MakeSingleRunElement = function()
 CParagraphContentBase.prototype.ClearContent = function()
 {
 };
+/**
+ * Получаем позиции до и после первого элемента у рана заданного типа
+ * @param nType {number}
+ * @param oStartPos {CParagraphContentPos}
+ * @param oEndPos {CParagraphContentPos}
+ * @param nDepth {number} глубина данного элемента
+ * @returns {boolean}
+ */
+CParagraphContentBase.prototype.GetFirstRunElementPos = function(nType, oStartPos, oEndPos, nDepth)
+{
+	return false;
+};
 
 
 /**
@@ -4031,6 +4043,19 @@ CParagraphContentWithParagraphLikeContent.prototype.ClearContent = function()
 		return;
 
 	this.RemoveFromContent(0, this.Content.length, true);
+};
+CParagraphContentWithParagraphLikeContent.prototype.GetFirstRunElementPos = function(nType, oStartPos, oEndPos, nDepth)
+{
+	for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
+	{
+		oStartPos.Update(nPos, nDepth);
+		oEndPos.Update(nPos, nDepth);
+
+		if (this.Content[nPos].GetFirstRunElementPos(nType, oStartPos, oEndPos, nDepth + 1))
+			return true;
+	}
+
+	return false;
 };
 
 //----------------------------------------------------------------------------------------------------------------------

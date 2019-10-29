@@ -11001,6 +11001,30 @@ Paragraph.prototype.Split_DropCap = function(NewParagraph)
 
 	return null;
 };
+/**
+ * Выделяем первый символьный элемент в параграфе, если он есть
+ * @returns {boolean}
+ */
+Paragraph.prototype.SelectFirstLetter = function()
+{
+	var oStartPos = new CParagraphContentPos();
+	var oEndPos   = new CParagraphContentPos();
+
+	for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
+	{
+		oStartPos.Update(nPos, 0);
+		oEndPos.Update(nPos, 0);
+		if (this.Content[nPos].GetFirstRunElementPos(para_Text, oStartPos, oEndPos, 1))
+		{
+			this.StartSelectionFromCurPos();
+			this.SetSelectionContentPos(oStartPos, oEndPos, false);
+			this.Document_SetThisElementCurrent();
+			return true;
+		}
+	}
+
+	return false;
+};
 Paragraph.prototype.Update_DropCapByLines = function(TextPr, Count, LineH, LineTA, LineTD, Before)
 {
 	if (null === TextPr)
