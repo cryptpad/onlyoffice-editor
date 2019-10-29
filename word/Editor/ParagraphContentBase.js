@@ -730,6 +730,13 @@ CParagraphContentBase.prototype.MakeSingleRunElement = function()
 {
 	return null;
 };
+/**
+ * Очищаем полностью содержимое данного элемента
+ * !!!ПУСТОЙ РАН ТУТ НЕ ДОБАВЛЯЕТСЯ!!!
+ */
+CParagraphContentBase.prototype.ClearContent = function()
+{
+};
 
 
 /**
@@ -4017,6 +4024,13 @@ CParagraphContentWithParagraphLikeContent.prototype.MakeSingleRunElement = funct
 	var oRun = this.Content[0];
 	oRun.ClearContent();
 	return oRun;
+};
+CParagraphContentWithParagraphLikeContent.prototype.ClearContent = function()
+{
+	if (this.Content.length <= 0)
+		return;
+
+	this.RemoveFromContent(0, this.Content.length, true);
 };
 
 //----------------------------------------------------------------------------------------------------------------------

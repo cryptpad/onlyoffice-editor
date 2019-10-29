@@ -107,7 +107,7 @@ CInlineLevelSdt.prototype.Copy = function(isUseSelection, oPr)
 	if (!this.IsPlaceHolder())
 	{
 		if (nStartPos <= nEndPos)
-			oContentControl.RemoveFromContent(0, this.Content.length);
+			oContentControl.ClearContent();
 
 		for (var nCurPos = nStartPos; nCurPos <= nEndPos; ++nCurPos)
 		{
