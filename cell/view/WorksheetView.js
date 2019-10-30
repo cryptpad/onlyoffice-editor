@@ -10685,6 +10685,10 @@
 			var arn = selectData[0];
 			var selectionRange = arn.clone(true);
 			if (bIsUpdate) {
+				if (isLargeRange) {
+					t.handlers.trigger("slowOperation", false);
+				}
+
 				t._updateRange(arn);
 			}
 
