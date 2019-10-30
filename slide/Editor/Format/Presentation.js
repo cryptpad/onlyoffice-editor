@@ -10238,6 +10238,10 @@ CPresentation.prototype =
             for(var i = 0; i < _array.length; ++i)
             {
                 var slide = this.Slides[_array[i]];
+                if(!AscFormat.isRealNumber(layout_index))
+                {
+                    layout = slide.Layout;
+                }
                 slide.setLayout(layout);
                 for(var j = slide.cSld.spTree.length-1; j  > -1 ; --j)
                 {
@@ -10343,14 +10347,19 @@ CPresentation.prototype =
                     if(layout.cSld.spTree[j].isPlaceholder())
                     {
                         var _ph_type = layout.cSld.spTree[j].getPhType();
-                        if(_ph_type != AscFormat.phType_dt && _ph_type != AscFormat.phType_ftr && _ph_type != AscFormat.phType_hdr && _ph_type != AscFormat.phType_sldNum)
+                        var hf = layout.Master.hf;
+                        var bIsSpecialPh = _ph_type === AscFormat.phType_dt || _ph_type === AscFormat.phType_ftr || _ph_type === AscFormat.phType_hdr || _ph_type === AscFormat.phType_sldNum;
+                        if(!bIsSpecialPh || hf && ((_ph_type === AscFormat.phType_dt && (hf.dt !== false)) ||
+                            (_ph_type === AscFormat.phType_ftr && (hf.ftr !== false)) ||
+                            (_ph_type === AscFormat.phType_hdr && (hf.hdr !== false)) ||
+                            (_ph_type === AscFormat.phType_sldNum && (hf.sldNum !== false))))
                         {
                             var matching_shape =  slide.getMatchingShape(layout.cSld.spTree[j].getPlaceholderType(), layout.cSld.spTree[j].getPlaceholderIndex(), layout.cSld.spTree[j].getIsSingleBody ? layout.cSld.spTree[j].getIsSingleBody() : false);
                             if(matching_shape == null && layout.cSld.spTree[j])
                             {
                                 var sp = layout.cSld.spTree[j].copy();
                                 sp.setParent(slide);
-                                sp.clearContent && sp.clearContent();
+                                !bIsSpecialPh && sp.clearContent && sp.clearContent();
                                 slide.addToSpTreeToPos(slide.cSld.spTree.length, sp)
                             }
                         }
