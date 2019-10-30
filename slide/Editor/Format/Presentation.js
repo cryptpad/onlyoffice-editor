@@ -5630,6 +5630,7 @@ CPresentation.prototype =
             {
                 this.Slides[i].removeMyComments();
             }
+            this.Recalculate();
         }
     },
 
@@ -5655,6 +5656,7 @@ CPresentation.prototype =
             {
                 this.Slides[i].removeAllComments();
             }
+            this.Recalculate();
         }
     },
     GetAllComments: function(aAllComments)
@@ -10862,54 +10864,6 @@ CPresentation.prototype =
                     }
                 }
             }
-            var comment = AscCommon.g_oTableId.Get_ById(AdditionalData);
-            if(AscCommon.isRealObject(comment))
-            {
-                var slides = this.Slides;
-                var check_slide = null;
-                for(var i = 0; i < slides.length; ++i)
-                {
-                    if(slides[i].slideComments)
-                    {
-                        var comments = slides[i].slideComments.comments;
-                        for(var j = 0; j < comments.length; ++j)
-                        {
-                            if(comments[j] === comment)
-                            {
-                                check_slide = slides[i];
-                                break;
-                            }
-                        }
-                        if(j < comments.length)
-                        {
-                            break;
-                        }
-                    }
-                }
-                if(AscCommon.isRealObject(check_slide))
-                {
-                    if(check_slide.deleteLock.Lock.Type !== AscCommon.locktype_Mine && check_slide.deleteLock.Lock.Type !== AscCommon.locktype_None)
-                        return true;
-                    var check_obj =
-                        {
-                            "type": c_oAscLockTypeElemPresentation.Object,
-                            "slideId": slide_id,
-                            "objId": comment.Get_Id(),
-                            "guid": comment.Get_Id()
-                        };
-                    comment.Lock.Check(check_obj);
-                }
-                else
-                {
-                    return true;
-                }
-            }
-            else
-            {
-                return true;
-            }
-
-
         }
 
         if(CheckType === AscCommon.changestype_SlideBg)

@@ -1833,11 +1833,16 @@ SlideComments.prototype =
     removeMyComments: function()
     {
         var oCommentDataCopy;
+        if(!editor.DocInfo)
+        {
+            return;
+        }
+        var sUserId = editor.DocInfo.get_UserId();
         for(var i = this.comments.length - 1; i > -1; --i)
         {
             var oComment = this.comments[i];
             var oCommentData = oComment.Data;
-            if(oCommentData.m_sUserId === AscCommon.g_oIdCounter.m_sUserId)
+            if(oCommentData.m_sUserId === sUserId)
             {
                 History.Add(new AscDFH.CChangesDrawingsContentComments(this, AscDFH.historyitem_SlideCommentsRemoveComment, i, this.comments.splice(i, 1), false));
                 editor.sync_RemoveComment(oComment.Get_Id());
@@ -1847,7 +1852,7 @@ SlideComments.prototype =
                 oCommentDataCopy = null;
                 for(var j = oCommentData.m_aReplies.length - 1; j > -1 ; --j)
                 {
-                    if(oCommentData.m_aReplies[j].m_sUserId === AscCommon.g_oIdCounter.m_sUserId)
+                    if(oCommentData.m_aReplies[j].m_sUserId === sUserId)
                     {
                         if(!oCommentDataCopy)
                         {
@@ -1899,11 +1904,16 @@ SlideComments.prototype =
 
     getAllMyComments: function(aAllComments, oSlide)
     {
+        if(!editor.DocInfo)
+        {
+            return;
+        }
+        var sUserId = editor.DocInfo.get_UserId();
         for(var i = 0; i < this.comments.length; ++i)
         {
             var oComment = this.comments[i];
             var oCommentData = oComment.Data;
-            if(oCommentData.m_sUserId === AscCommon.g_oIdCounter.m_sUserId)
+            if(oCommentData.m_sUserId === sUserId)
             {
                 aAllComments.push({comment: oComment, slide: oSlide});
             }
@@ -1911,7 +1921,7 @@ SlideComments.prototype =
             {
                 for(var j = 0; j < oCommentData.m_aReplies.length; ++j)
                 {
-                    if(oCommentData.m_aReplies[j].m_sUserId === AscCommon.g_oIdCounter.m_sUserId)
+                    if(oCommentData.m_aReplies[j].m_sUserId === sUserId)
                     {
                         aAllComments.push({comment: oComment, slide: oSlide});
                         break;
