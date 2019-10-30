@@ -11142,63 +11142,29 @@ CDocument.prototype.Document_Is_SelectionLocked = function(CheckType, Additional
 	if (!this.CanEdit() && true !== isIgnoreCanEditFlag)
 		return true;
 
-	if (true === AscCommon.CollaborativeEditing.Get_GlobalLock())
+	if (true === this.CollaborativeEditing.Get_GlobalLock())
 		return true;
 
-	AscCommon.CollaborativeEditing.OnStart_CheckLock();
+	this.CollaborativeEditing.OnStart_CheckLock();
 
 	this.private_DocumentIsSelectionLocked(CheckType);
 
-	if ("undefined" != typeof(AdditionalData) && null != AdditionalData)
+	if (AdditionalData)
 	{
-		if (AscCommon.changestype_2_InlineObjectMove === AdditionalData.Type)
+		if (undefined !== AdditionalData.length)
 		{
-			var PageNum = AdditionalData.PageNum;
-			var X       = AdditionalData.X;
-			var Y       = AdditionalData.Y;
-
-			var NearestPara = this.Get_NearestPos(PageNum, X, Y).Paragraph;
-			NearestPara.Document_Is_SelectionLocked(AscCommon.changestype_Document_Content);
-		}
-		else if (AscCommon.changestype_2_HdrFtr === AdditionalData.Type)
-		{
-			this.HdrFtr.Document_Is_SelectionLocked(AscCommon.changestype_HdrFtr);
-		}
-		else if (AscCommon.changestype_2_Comment === AdditionalData.Type)
-		{
-			this.Comments.Document_Is_SelectionLocked(AdditionalData.Id);
-		}
-		else if (AscCommon.changestype_2_Element_and_Type === AdditionalData.Type)
-		{
-			AdditionalData.Element.Document_Is_SelectionLocked(AdditionalData.CheckType, false);
-		}
-		else if (AscCommon.changestype_2_ElementsArray_and_Type === AdditionalData.Type)
-		{
-			var Count = AdditionalData.Elements.length;
-			for (var Index = 0; Index < Count; Index++)
+			for (var nIndex = 0, nCount = AdditionalData.length; nIndex < nCount; ++nIndex)
 			{
-				AdditionalData.Elements[Index].Document_Is_SelectionLocked(AdditionalData.CheckType, false);
+				this.private_IsSelectionLockedAdditional(AdditionalData[nIndex]);
 			}
 		}
-		else if (AscCommon.changestype_2_Element_and_Type_Array === AdditionalData.Type)
+		else
 		{
-			var nCount = Math.min(AdditionalData.Elements.length, AdditionalData.CheckTypes.length);
-			for (var nIndex = 0; nIndex < nCount; ++nIndex)
-			{
-				AdditionalData.Elements[nIndex].Document_Is_SelectionLocked(AdditionalData.CheckTypes[nIndex], false);
-			}
-		}
-		else if (AscCommon.changestype_2_AdditionalTypes === AdditionalData.Type)
-		{
-			var Count = AdditionalData.Types.length;
-			for (var Index = 0; Index < Count; ++Index)
-			{
-				this.private_DocumentIsSelectionLocked(AdditionalData.Types[Index]);
-			}
+			this.private_IsSelectionLockedAdditional(AdditionalData);
 		}
 	}
 
-	var bResult = AscCommon.CollaborativeEditing.OnEnd_CheckLock(DontLockInFastMode);
+	var bResult = this.CollaborativeEditing.OnEnd_CheckLock(DontLockInFastMode);
 
 	if (true === bResult)
 	{
@@ -11208,6 +11174,57 @@ CDocument.prototype.Document_Is_SelectionLocked = function(CheckType, Additional
 	}
 
 	return bResult;
+};
+CDocument.prototype.private_IsSelectionLockedAdditional = function(oAdditionalData)
+{
+	if (oAdditionalData)
+	{
+		if (AscCommon.changestype_2_InlineObjectMove === oAdditionalData.Type)
+		{
+			var PageNum = oAdditionalData.PageNum;
+			var X       = oAdditionalData.X;
+			var Y       = oAdditionalData.Y;
+
+			var NearestPara = this.Get_NearestPos(PageNum, X, Y).Paragraph;
+			NearestPara.Document_Is_SelectionLocked(AscCommon.changestype_Document_Content);
+		}
+		else if (AscCommon.changestype_2_HdrFtr === oAdditionalData.Type)
+		{
+			this.HdrFtr.Document_Is_SelectionLocked(AscCommon.changestype_HdrFtr);
+		}
+		else if (AscCommon.changestype_2_Comment === oAdditionalData.Type)
+		{
+			this.Comments.Document_Is_SelectionLocked(oAdditionalData.Id);
+		}
+		else if (AscCommon.changestype_2_Element_and_Type === oAdditionalData.Type)
+		{
+			oAdditionalData.Element.Document_Is_SelectionLocked(oAdditionalData.CheckType, false);
+		}
+		else if (AscCommon.changestype_2_ElementsArray_and_Type === oAdditionalData.Type)
+		{
+			var Count = oAdditionalData.Elements.length;
+			for (var Index = 0; Index < Count; Index++)
+			{
+				oAdditionalData.Elements[Index].Document_Is_SelectionLocked(oAdditionalData.CheckType, false);
+			}
+		}
+		else if (AscCommon.changestype_2_Element_and_Type_Array === oAdditionalData.Type)
+		{
+			var nCount = Math.min(oAdditionalData.Elements.length, oAdditionalData.CheckTypes.length);
+			for (var nIndex = 0; nIndex < nCount; ++nIndex)
+			{
+				oAdditionalData.Elements[nIndex].Document_Is_SelectionLocked(oAdditionalData.CheckTypes[nIndex], false);
+			}
+		}
+		else if (AscCommon.changestype_2_AdditionalTypes === oAdditionalData.Type)
+		{
+			var Count = oAdditionalData.Types.length;
+			for (var Index = 0; Index < Count; ++Index)
+			{
+				this.private_DocumentIsSelectionLocked(oAdditionalData.Types[Index]);
+			}
+		}
+	}
 };
 CDocument.prototype.IsSelectionLocked = function(nCheckType, oAdditionalData, isDontLockInFastMode, isIgnoreCanEditFlag)
 {

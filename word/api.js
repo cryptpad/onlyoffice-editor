@@ -3279,19 +3279,38 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype.paraApply = function(Props)
 	{
-		var Additional = undefined;
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return;
+
+		var arrAdditional = [];
 		if (undefined != Props.DefaultTab)
-			Additional = {
-				Type      : AscCommon.changestype_2_Element_and_Type,
-				Element   : this.WordControl.m_oLogicDocument,
-				CheckType : AscCommon.changestype_Document_SectPr
-			};
-
-		if (false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(changestype_Paragraph_Properties, Additional))
 		{
-			this.WordControl.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_SetParagraphPr);
+			arrAdditional.push({
+				Type      : AscCommon.changestype_2_Element_and_Type,
+				Element   : oLogicDocument,
+				CheckType : AscCommon.changestype_Document_SectPr
+			});
+		}
 
-			// TODO: Сделать так, чтобы пересчет был всего 1 здесь
+		if (undefined !== Props.Subscript
+			|| undefined !== Props.Strikeout
+			|| undefined !== Props.DStrikeout
+			|| undefined !== Props.SmallCaps
+			|| undefined !== Props.AllCaps
+			|| undefined !== Props.TextSpacing
+			|| undefined !== Props.Position)
+		{
+			arrAdditional.push({
+				Type  : AscCommon.changestype_2_AdditionalTypes,
+				Types : [AscCommon.changestype_Paragraph_TextProperties]
+			});
+		}
+
+		if (!oLogicDocument.IsSelectionLocked(changestype_Paragraph_Properties, arrAdditional))
+		{
+			oLogicDocument.StartAction(AscDFH.historydescription_Document_SetParagraphPr);
+
 			if ("undefined" != typeof(Props.ContextualSpacing) && null != Props.ContextualSpacing)
 				this.WordControl.m_oLogicDocument.SetParagraphContextualSpacing(Props.ContextualSpacing);
 
@@ -3421,9 +3440,10 @@ background-repeat: no-repeat;\
 			if (undefined != Props.Position)
 				TextPr.Position = Props.Position;
 
-			this.WordControl.m_oLogicDocument.AddToParagraph(new AscCommonWord.ParaTextPr(TextPr));
-			this.WordControl.m_oLogicDocument.UpdateInterface();
-			this.WordControl.m_oLogicDocument.FinalizeAction();
+			oLogicDocument.AddToParagraph(new AscCommonWord.ParaTextPr(TextPr));
+			oLogicDocument.Recalculate();
+			oLogicDocument.UpdateInterface();
+			oLogicDocument.FinalizeAction();
 		}
 	};
 
