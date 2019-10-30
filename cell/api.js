@@ -3339,7 +3339,7 @@ var editor;
       
       var replaceWords = [];
       for (var key in changeWords) {
-        replaceWords.push([key, changeWords[key]]);
+        replaceWords.push([AscCommonExcel.getFindRegExp(key, options), changeWords[key]]);
       }
       if(replaceWords.length === 0) {
         replaceWords = null;

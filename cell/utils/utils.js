@@ -282,6 +282,29 @@
 			};
 		}
 
+		function getFindRegExp(value, options) {
+			var findFlags = "g"; // Заменяем все вхождения
+			// Не чувствителен к регистру
+			if (true !== options.isMatchCase) {
+				findFlags += "i";
+			}
+			value = value
+				.replace(/(\\)/g, "\\\\").replace(/(\^)/g, "\\^")
+				.replace(/(\()/g, "\\(").replace(/(\))/g, "\\)")
+				.replace(/(\+)/g, "\\+").replace(/(\[)/g, "\\[")
+				.replace(/(\])/g, "\\]").replace(/(\{)/g, "\\{")
+				.replace(/(\})/g, "\\}").replace(/(\$)/g, "\\$")
+				.replace(/(\.)/g, "\\.")
+				.replace(/(~)?\*/g, function ($0, $1) {
+					return $1 ? $0 : '(.*)';
+				})
+				.replace(/(~)?\?/g, function ($0, $1) {
+					return $1 ? $0 : '.';
+				})
+				.replace(/(~\*)/g, "\\*").replace(/(~\?)/g, "\\?");
+			return new RegExp(value, findFlags);
+		}
+
 		var referenceType = {
 			A: 0,			// Absolute
 			ARRC: 1,	// Absolute row; relative column
@@ -2257,6 +2280,7 @@
 			this.scanOnOnlySheet = true;				// искать только на листе/в книге
 			this.lookIn = Asc.c_oAscFindLookIn.Formulas;	// искать в формулах/значениях/примечаниях
 
+			this.findRegExp = null;
 			this.replaceWith = "";						// текст, на который заменяем (если у нас замена)
 			this.isReplaceAll = false;					// заменить все (если у нас замена)
 
@@ -2706,6 +2730,7 @@
 		window["Asc"].profileTime = profileTime;
 		window["AscCommonExcel"].getMatchingBorder = getMatchingBorder;
 		window["AscCommonExcel"].WordSplitting = WordSplitting;
+		window["AscCommonExcel"].getFindRegExp = getFindRegExp;
 		window["Asc"].outputDebugStr = outputDebugStr;
 		window["Asc"].isNumberInfinity = isNumberInfinity;
 		window["Asc"].trim = trim;

@@ -12949,10 +12949,6 @@
 	};
 
 	WorksheetView.prototype.replaceCellText = function (options, lockDraw, callback) {
-		if (!options.isMatchCase) {
-			options.findWhat = options.findWhat.toLowerCase();
-		}
-
 		// Очищаем результаты
 		options.countFind = 0;
 		options.countReplace = 0;
@@ -12999,64 +12995,15 @@
                 return callback(options);
             }
 
-            var valueForSearching = options.findWhat;
-            var i = 0;
-            if (replaceWords) {
-                valueForSearching = replaceWords[i][0];
-            }
-
-            while (valueForSearching) {
-                var findFlags = "g"; // Заменяем все вхождения
-                // Не чувствителен к регистру
-                if (true !== options.isMatchCase) {
-                    findFlags += "i";
-                }
-                if (options.isSpellCheck && options.findWhat && !replaceWords) {
-                    findFlags = "y";
-                }
-                valueForSearching = valueForSearching
-                    .replace(/(\\)/g, "\\\\").replace(/(\^)/g, "\\^")
-                    .replace(/(\()/g, "\\(").replace(/(\))/g, "\\)")
-                    .replace(/(\+)/g, "\\+").replace(/(\[)/g, "\\[")
-                    .replace(/(\])/g, "\\]").replace(/(\{)/g, "\\{")
-                    .replace(/(\})/g, "\\}").replace(/(\$)/g, "\\$")
-                    .replace(/(\.)/g, "\\.")
-                    .replace(/(~)?\*/g, function ($0, $1) {
-                        return $1 ? $0 : '(.*)';
-                    })
-                    .replace(/(~)?\?/g, function ($0, $1) {
-                        return $1 ? $0 : '.';
-                    })
-                    .replace(/(~\*)/g, "\\*").replace(/(~\?)/g, "\\?");
-
-                valueForSearching = new RegExp(valueForSearching, findFlags);
-
-                if (!options.isSpellCheck)
-                    break;
-                if (options.findWhat && !replaceWords) {
-                    options.findWhat = null;
-                    break;
-                }
-                if (replaceWords) {
-                    options.replaceWords[i][0] = valueForSearching;
-                    ++i;
-                    if (replaceWords[i]) {
-                        valueForSearching = options.replaceWords[i][0];
-                    } else {
-                        valueForSearching = options.findWhat;
-                        replaceWords = null;
-                    }
-                }
-            }
             options.indexInArray = 0;
             options.countFind = aReplaceCells.length;
             options.countReplace = 0;
             if (options.isReplaceAll && false === this.collaborativeEditing.getCollaborativeEditing()) {
                 this._isLockedCells(aReplaceCells, /*subType*/null, function () {
-                    t._replaceCellText(aReplaceCells, valueForSearching, options, lockDraw, callback, true);
+                    t._replaceCellText(aReplaceCells, options, lockDraw, callback, true);
                 });
             } else {
-                this._replaceCellText(aReplaceCells, valueForSearching, options, lockDraw, callback, false);
+                this._replaceCellText(aReplaceCells, options, lockDraw, callback, false);
             }
         };
 
@@ -13072,52 +13019,45 @@
                     var cell = aReplaceCells[options.indexInArray];
                     ++options.indexInArray;
                     if (false !== isSuccess) {
-                        var i = 0;
-                        if (options.isSpellCheck && !valueForSearching && options.replaceWords) {
-                            valueForSearching = options.replaceWords[i][0];
-                        }
-                        while (valueForSearching) {
-                            var c = t._getVisibleCell(cell.c1, cell.r1);
-                            var cellValue = c.getValueForEdit();
+						var c = t._getVisibleCell(cell.c1, cell.r1);
+						var cellValue = c.getValueForEdit();
 
-                            cellValue = cellValue.replace(valueForSearching, function () {
-                                var replaceWith = options.replaceWith;
-                                if (options.replaceWith === null) {
-                                    replaceWith = options.replaceWords[i][1];
-                                }
-                                ++options.countReplace;
-                                return replaceWith;
-                            });
+                    	// Check replace cell for spell. Replace full cell to fix skip first words (otherwise replace)
+                    	if (!options.isSpellCheck) {
+							cellValue = cellValue.replace(options.findRegExp, function () {
+								++options.countReplace;
+								return options.replaceWith;
+							});
+						} else {
+							// ToDo replace one command
+							if (1 === options.indexInArray) {
+								cellValue = options.replaceWith;
+							} else {
+								for (var i = 0; i < options.replaceWords.length; ++i) {
+									cellValue = cellValue.replace(options.replaceWords[i][0], function () {
+										return options.replaceWords[i][1];
+									});
+								}
+							}
+						}
 
-                            var v, newValue;
-                            // get first fragment and change its text
-                            v = c.getValueForEdit2().slice(0, 1);
-                            // Создаем новый массив, т.к. getValueForEdit2 возвращает ссылку
-                            newValue = [];
-                            newValue[0] = new AscCommonExcel.Fragment({ text: cellValue, format: v[0].format.clone() });
+						var v, newValue;
+						// get first fragment and change its text
+						v = c.getValueForEdit2().slice(0, 1);
+						// Создаем новый массив, т.к. getValueForEdit2 возвращает ссылку
+						newValue = [];
+						newValue[0] = new AscCommonExcel.Fragment({ text: cellValue, format: v[0].format.clone() });
 
-                            if (!t._saveCellValueAfterEdit(c, newValue, /*flags*/undefined, /*isNotHistory*/true,
-                            /*lockDraw*/true)) {
-                                options.error = true;
-                                t.draw(lockDraw);
-                                return callback(options);
-                            }
-                            if (!options.isSpellCheck)
-                                break;
-                            valueForSearching = null;
-                            if (options.replaceWith === null) {
-                                ++i;
-                            }
-                            if (options.replaceWith || !options.replaceWords[i]) {
-                                options.replaceWith = null;
-                                break;
-                            }
-                            valueForSearching = options.replaceWords[i][0];
-                        }
+						if (!t._saveCellValueAfterEdit(c, newValue, /*flags*/undefined, /*isNotHistory*/true,
+							/*lockDraw*/true)) {
+							options.error = true;
+							t.draw(lockDraw);
+							return callback(options);
+						}
                     }
 
                     window.setTimeout(function () {
-                        t._replaceCellText(aReplaceCells, valueForSearching, options, lockDraw, callback, oneUser);
+                        t._replaceCellText(aReplaceCells, options, lockDraw, callback, oneUser);
                     }, 1);
                 };
 
