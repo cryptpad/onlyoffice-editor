@@ -604,6 +604,21 @@ Slide.prototype =
         }
     },
 
+    removeMyComments: function()
+    {
+        if(AscCommon.isRealObject(this.slideComments))
+        {
+            this.slideComments.removeMyComments();
+        }
+    },
+    removeAllComments: function()
+    {
+        if(AscCommon.isRealObject(this.slideComments))
+        {
+            this.slideComments.removeAllComments();
+        }
+    },
+
     removeComment: function(id)
     {
         if(AscCommon.isRealObject(this.slideComments))
@@ -615,6 +630,22 @@ Slide.prototype =
     addToRecalculate: function()
     {
         History.RecalcData_Add({Type: AscDFH.historyitem_recalctype_Drawing, Object: this});
+    },
+
+    getAllMyComments: function(aAllComments)
+    {
+        if(this.slideComments)
+        {
+            this.slideComments.getAllMyComments(aAllComments, this);
+        }
+    },
+
+    getAllComments: function(aAllComments)
+    {
+        if(this.slideComments)
+        {
+            this.slideComments.getAllComments(aAllComments, this);
+        }
     },
 
     Refresh_RecalcData: function(data)
@@ -1774,8 +1805,6 @@ SlideComments.prototype =
         return null;
     },
 
-
-
     changeComment: function(id, commentData)
     {
         for(var i = 0; i < this.comments.length; ++i)
@@ -1801,6 +1830,52 @@ SlideComments.prototype =
         }
     },
 
+    removeMyComments: function()
+    {
+        var oCommentDataCopy;
+        for(var i = this.comments.length - 1; i > -1; --i)
+        {
+            var oComment = this.comments[i];
+            var oCommentData = oComment.Data;
+            if(oCommentData.m_sUserId === AscCommon.g_oIdCounter.m_sUserId)
+            {
+                History.Add(new AscDFH.CChangesDrawingsContentComments(this, AscDFH.historyitem_SlideCommentsRemoveComment, i, this.comments.splice(i, 1), false));
+                editor.sync_RemoveComment(oComment.Get_Id());
+            }
+            else
+            {
+                oCommentDataCopy = null;
+                for(var j = oCommentData.m_aReplies.length - 1; j > -1 ; --j)
+                {
+                    if(oCommentData.m_aReplies[j].m_sUserId === AscCommon.g_oIdCounter.m_sUserId)
+                    {
+                        if(!oCommentDataCopy)
+                        {
+                            oCommentDataCopy = oCommentData.Copy();
+                        }
+                        oCommentDataCopy.m_aReplies.splice(j, 1);
+                        break;
+                    }
+                }
+                if(oCommentDataCopy)
+                {
+                    oComment.Set_Data(oCommentDataCopy);
+                    editor.sync_ChangeCommentData( oComment.Get_Id(), oCommentDataCopy);
+                }
+            }
+        }
+    },
+
+    removeAllComments: function()
+    {
+        for(var i = this.comments.length - 1; i > -1; --i)
+        {
+            var oComment = this.comments[i];
+            History.Add(new AscDFH.CChangesDrawingsContentComments(this, AscDFH.historyitem_SlideCommentsRemoveComment, i, this.comments.splice(i, 1), false));
+            editor.sync_RemoveComment(oComment.Get_Id());
+        }
+    },
+
     removeSelectedComment: function()
     {
         var comment = this.getSelectedComment();
@@ -1820,6 +1895,38 @@ SlideComments.prototype =
             }
         }
         return null;
+    },
+
+    getAllMyComments: function(aAllComments, oSlide)
+    {
+        for(var i = 0; i < this.comments.length; ++i)
+        {
+            var oComment = this.comments[i];
+            var oCommentData = oComment.Data;
+            if(oCommentData.m_sUserId === AscCommon.g_oIdCounter.m_sUserId)
+            {
+                aAllComments.push({comment: oComment, slide: oSlide});
+            }
+            else
+            {
+                for(var j = 0; j < oCommentData.m_aReplies.length; ++j)
+                {
+                    if(oCommentData.m_aReplies[j].m_sUserId === AscCommon.g_oIdCounter.m_sUserId)
+                    {
+                        aAllComments.push({comment: oComment, slide: oSlide});
+                        break;
+                    }
+                }
+            }
+        }
+    },
+    getAllComments: function(aAllComments, oSlide)
+    {
+        for(var i = 0; i < this.comments.length; ++i)
+        {
+            var oComment = this.comments[i];
+            aAllComments.push({comment: oComment, slide: oSlide});
+        }
     },
 
     recalculate: function()

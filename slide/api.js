@@ -4799,9 +4799,11 @@ background-repeat: no-repeat;\
 			return;
 		}
 		var bPresComments = (oComments === this.WordControl.m_oLogicDocument.comments);
-		var nCheckType = bPresComments ?  AscCommon.changestype_AddComment : AscCommon.changestype_MoveComment;
-		var oCheckData = bPresComments ? comment : Id;
-		if (this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(nCheckType, oCheckData, this.WordControl.m_oLogicDocument.IsEditCommentsMode()) === false)
+		var oCheckData = {
+			comment: comment,
+			slide: bPresComments ? null : oComments.slide
+		};
+		if (this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_MoveComment, [oCheckData], this.WordControl.m_oLogicDocument.IsEditCommentsMode()) === false)
 		{
 			this.WordControl.m_oLogicDocument.Create_NewHistoryPoint(AscDFH.historydescription_Presentation_RemoveComment);
 			this.WordControl.m_oLogicDocument.RemoveComment(Id, true);
@@ -4821,6 +4823,17 @@ background-repeat: no-repeat;\
 		{
 			this.WordControl.m_oLogicDocument.RemoveCurrentComment();
 		}
+		else
+		{
+			if(isMine)
+			{
+				this.WordControl.m_oLogicDocument.RemoveMyComments();
+			}
+			else
+			{
+				this.WordControl.m_oLogicDocument.RemoveAllComments();
+			}
+		}
 	};
 
 
@@ -4829,14 +4842,9 @@ background-repeat: no-repeat;\
 		if (null == this.WordControl.m_oLogicDocument)
 			return;
 
-		//if ( false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(changestype_MoveComment, Id ) )
-		{
-			var CommentData = new AscCommon.CCommentData();
-			CommentData.Read_FromAscCommentData(AscCommentData);
-
-			this.WordControl.m_oLogicDocument.EditComment(Id, CommentData);
-
-		}
+		var CommentData = new AscCommon.CCommentData();
+		CommentData.Read_FromAscCommentData(AscCommentData);
+		this.WordControl.m_oLogicDocument.EditComment(Id, CommentData);
 	};
 
 	asc_docs_api.prototype.asc_selectComment = function(Id)

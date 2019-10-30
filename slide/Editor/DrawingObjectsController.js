@@ -124,16 +124,22 @@ DrawingObjectsController.prototype.handleOleObjectDoubleClick = function(drawing
 DrawingObjectsController.prototype.checkSelectedObjectsAndCallback = function(callback, args, bNoSendProps, nHistoryPointType, aAdditionaObjects)
 {
     var check_type = AscCommon.changestype_Drawing_Props, comment;
+    var aCommentData = undefined;
     if(this.drawingObjects.slideComments)
     {
         comment = this.drawingObjects.slideComments.getSelectedComment();
         if(comment)
         {
             check_type = AscCommon.changestype_MoveComment;
-            comment = comment.Get_Id();
+            aCommentData = [
+                {
+                    comment: comment,
+                    slide: this.drawingObjects
+                }
+            ];
         }
     }
-    if(editor.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(check_type, comment, undefined, aAdditionaObjects) === false)
+    if(editor.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(check_type, aCommentData, undefined, aAdditionaObjects) === false)
     {
         var nPointType = AscFormat.isRealNumber(nHistoryPointType) ? nHistoryPointType : AscDFH.historydescription_CommonControllerCheckSelected;
         History.Create_NewPoint(nPointType);
@@ -219,16 +225,22 @@ DrawingObjectsController.prototype.resetSelect = function()
 DrawingObjectsController.prototype.checkSelectedObjectsAndFireCallback = function(callback, args)
 {
     var check_type = AscCommon.changestype_Drawing_Props, comment;
+    var aCommentData = undefined;
     if(this.drawingObjects.slideComments)
     {
         comment = this.drawingObjects.slideComments.getSelectedComment();
         if(comment)
         {
             check_type = AscCommon.changestype_MoveComment;
-            comment = comment.Get_Id();
+            aCommentData = [
+                {
+                    comment: comment,
+                    slide: this.drawingObjects
+                }
+            ];
         }
     }
-    if(editor.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(check_type, comment) === false)
+    if(editor.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(check_type, aCommentData) === false)
     {
         callback.apply(this, args);
         this.startRecalculate();
@@ -447,7 +459,14 @@ MoveCommentState.prototype =
 
     onMouseUp: function(e, x, y, pageIndex)
     {
-        if(editor.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_MoveComment, this.comment.Get_Id(), editor.WordControl.m_oLogicDocument.IsEditCommentsMode()) === false)
+        var oPresentation = editor.WordControl.m_oLogicDocument;
+        var aCommentsData = [
+            {
+                comment: this.comment,
+                slide: this.drawingObjects.drawingObjects
+            }
+        ];
+        if(oPresentation.Document_Is_SelectionLocked(AscCommon.changestype_MoveComment, aCommentsData, oPresentation.IsEditCommentsMode()) === false)
         {
             History.Create_NewPoint(AscDFH.historydescription_Presentation_MoveComments);
             var tracks = this.drawingObjects.arrTrackObjects;
