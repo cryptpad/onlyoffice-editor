@@ -276,8 +276,11 @@ CHistory.prototype =
 
         if (null != Point)
             this.Document.SetSelectionState( Point.State );
-		
-		window['AscCommon'].g_specialPasteHelper.SpecialPasteButton_Hide(true);
+
+		if(!window['AscCommon'].g_specialPasteHelper.pasteStart)
+		{
+			window['AscCommon'].g_specialPasteHelper.SpecialPasteButton_Hide();
+		}
 		
         return this.RecalculateData;
     },
