@@ -4013,6 +4013,7 @@ var editor;
 		var t = this;
 		this._isLockedPivot(pivot, function(res) {
 			if (!res) {
+				this.sendEvent('asc_onError', error, Asc.c_oAscError.ID.PivotOverlap);
 				return;
 			}
 			t._changePivot(pivot, false, callback);

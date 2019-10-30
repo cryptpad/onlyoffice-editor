@@ -2496,13 +2496,6 @@ CT_pivotTableDefinition.prototype.Read_FromBinary2 = function (r) {
 		this.cacheDefinition.Read_FromBinary2(r);
 	}
 };
-CT_pivotTableDefinition.prototype.getBinaryData = function () {
-	var w = new AscCommon.CMemory(true);
-	w.CheckSize(1000);
-	w.WriteString2(this.Id);
-	this.Write_ToBinary2(w);
-	return w;
-};
 CT_pivotTableDefinition.prototype.readAttributes = function(attr, uq) {
 	if (attr()) {
 		var vals = attr();
@@ -3890,12 +3883,16 @@ CT_pivotTableDefinition.prototype.updateCacheData = function(dataRef) {
 	var newCTRowFields = this._updateCacheDataUpdateRowColFieldsIndexes(true, this.asc_getRowFields(), newCTDataFields, pivotFieldsMap);
 	var newCTColFields = this._updateCacheDataUpdateRowColFieldsIndexes(false, this.asc_getColumnFields(), newCTDataFields, pivotFieldsMap);
 
+	var oldPivot = new AscCommonExcel.UndoRedoData_BinaryWrapper(this);
 	this.cacheDefinition = newCacheDefinition;
 	this.pivotFields = newCTPivotFields;
 	this.dataFields = newCTDataFields;
 	this.rowFields = newCTRowFields;
 	this.colFields = newCTColFields;
 	this.setChanged(true);
+	var newPivot = new AscCommonExcel.UndoRedoData_BinaryWrapper(this);
+	History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_PivotReplace, this.worksheet.getId(),
+		null, new AscCommonExcel.UndoRedoData_PivotTableRedo(this.Get_Id(), oldPivot, newPivot));
 };
 CT_pivotTableDefinition.prototype.setCacheDefinition = function(newCacheDefinition) {
 	this.cacheDefinition = newCacheDefinition;

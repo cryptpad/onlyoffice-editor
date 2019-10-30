@@ -82,6 +82,7 @@ function (window, undefined) {
 	window['AscCH'].historyitem_Worksheet_SetFitToPage = 39;
 	window['AscCH'].historyitem_Worksheet_PivotAdd = 40;
 	window['AscCH'].historyitem_Worksheet_PivotDelete = 41;
+	window['AscCH'].historyitem_Worksheet_PivotReplace = 42;
 
 	window['AscCH'].historyitem_RowCol_Fontname = 1;
 	window['AscCH'].historyitem_RowCol_Fontsize = 2;

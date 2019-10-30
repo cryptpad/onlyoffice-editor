@@ -1241,7 +1241,7 @@ function (window, undefined) {
 		this.from = from;
 		this.to = to;
 	}
-	UndoRedoData_PivotTableRedo.prototype = UndoRedoData_PivotTable.prototype;
+	UndoRedoData_PivotTableRedo.prototype = Object.create(UndoRedoData_PivotTable.prototype);
 	UndoRedoData_PivotTableRedo.prototype.Properties = {
 		pivot: 0, to: 2
 	};
@@ -1296,20 +1296,37 @@ function (window, undefined) {
 	};
 
 	function UndoRedoData_BinaryWrapper(data) {
-		this.data = data;
-		this.binary = data ? data.getBinaryData() : null;
+		this.binary = null;
+		this.len = 0;
+		this.Id = null;
+		if (data) {
+			var memory = new AscCommon.CMemory(true);
+			memory.CheckSize(1000);
+			data.Write_ToBinary2(memory);
+			this.Id = data.Get_Id();
+			this.len = memory.GetCurPosition();
+			this.binary = memory.GetData();
+		}
 	}
 	UndoRedoData_BinaryWrapper.prototype.getType = function () {
 		return UndoRedoDataTypes.BinaryWrapper;
 	};
 	UndoRedoData_BinaryWrapper.prototype.Write_ToBinary2 = function (writer) {
-		writer.Copy(this.binary, 0, this.binary.GetCurPosition());
+		writer.WriteString2(this.Id);
+		writer.WriteLong(this.len);
+		writer.WriteBuffer(this.binary, 0, this.len);
 	};
 	UndoRedoData_BinaryWrapper.prototype.Read_FromBinary2 = function (reader) {
-		var id = reader.GetString2();
-		this.data = AscCommon.g_oTableId.GetClassFromFactory(reader.GetLong());
-		this.data.Id = id;
-		this.data.Read_FromBinary2(reader);
+		this.Id = reader.GetString2();
+		this.len = reader.GetLong();
+		this.binary = reader.GetBuffer(this.len);
+	};
+	UndoRedoData_BinaryWrapper.prototype.getData = function () {
+		var reader = new AscCommon.FT_Stream2(this.binary, this.len);
+		var data = AscCommon.g_oTableId.GetClassFromFactory(reader.GetLong());
+		data.Id = this.Id;
+		data.Read_FromBinary2(reader);
+		return data;
 	};
 
 	function UndoRedoData_Layout(from, to) {
@@ -2621,24 +2638,24 @@ function (window, undefined) {
 			ws.setFitToPage(bUndo ? Data.from : Data.to);
 		} else if (AscCH.historyitem_Worksheet_PivotAdd === Type) {
 			if (bUndo) {
-				var pivotTable = ws.getPivotTableById(Data.data.Get_Id());
-				if (pivotTable) {
-					pivotTable.stashCurReportRange();
-					ws.deletePivotTable(pivotTable.Get_Id());
-				}
+				ws.deletePivotTable(Data.Id);
 			} else {
-				ws.insertPivotTable(Data.data, false, true);
+				var pivot = Data.getData();
+				pivot.init();
+				ws.insertPivotTable(pivot, false, true);
 			}
 		} else if (AscCH.historyitem_Worksheet_PivotDelete === Type) {
 			if (bUndo) {
 				ws.insertPivotTable(Data.from, false, true);
 			} else {
-				var pivotTable = ws.getPivotTableById(Data.pivot);
-				if (pivotTable) {
-					pivotTable.stashCurReportRange();
-					ws.deletePivotTable(pivotTable.Get_Id());
-				}
+				ws.deletePivotTable(Data.pivot);
 			}
+		} else if (AscCH.historyitem_Worksheet_PivotReplace === Type) {
+			ws.deletePivotTable(Data.pivot);
+			var data = bUndo ? Data.from : Data.to;
+			var pivot = data.getData();
+			pivot.init();
+			ws.insertPivotTable(pivot, false, true);
 		}
 	};
 	UndoRedoWoorksheet.prototype.forwardTransformationIsAffect = function (Type) {
