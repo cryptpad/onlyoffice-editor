@@ -2877,7 +2877,9 @@ function CDrawingDocument()
 
 	this.OnEndRecalculate = function (isFull, isBreak)
 	{
-		window['AscCommon'].g_specialPasteHelper.SpecialPasteButtonById_Show();
+		if(isFull) {
+			window['AscCommon'].g_specialPasteHelper.SpecialPasteButtonById_Show();
+		}
 
 		if (this.m_oWordControl)
 			this.m_oWordControl.m_oApi.checkLastWork();
