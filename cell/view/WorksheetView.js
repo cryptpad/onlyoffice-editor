@@ -13007,8 +13007,7 @@
             }
         };
 
-        WorksheetView.prototype._replaceCellText =
-            function (aReplaceCells, valueForSearching, options, lockDraw, callback, oneUser) {
+        WorksheetView.prototype._replaceCellText = function (aReplaceCells, options, lockDraw, callback, oneUser) {
                 var t = this;
                 if (options.indexInArray >= aReplaceCells.length) {
                     this.draw(lockDraw);
