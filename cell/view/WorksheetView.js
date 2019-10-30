@@ -12988,8 +12988,6 @@
 
         WorksheetView.prototype._replaceCellsText = function (aReplaceCells, options, lockDraw, callback) {
             var t = this;
-            var replaceWords = options.replaceWords;
-
             if (this.model.inPivotTable(aReplaceCells)) {
                 options.error = true;
                 return callback(options);
