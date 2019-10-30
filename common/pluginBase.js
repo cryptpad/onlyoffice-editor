@@ -80,7 +80,10 @@
             }
 
             if (type == "init")
+            {
                 window.Asc.plugin.info = pluginData;
+                window.Asc.plugin.checkPixelRatio();
+            }
 
             if (!window.Asc.plugin.tr || !window.Asc.plugin.tr_init)
             {

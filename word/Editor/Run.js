@@ -11392,7 +11392,6 @@ ParaRun.prototype.GetFirstRunElementPos = function(nType, oStartPos, oEndPos, nD
 			return true;
 		}
 	}
-
 	return false;
 };
 
