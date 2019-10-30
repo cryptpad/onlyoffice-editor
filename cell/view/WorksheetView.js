@@ -15607,7 +15607,7 @@
 					if(checkShift(table.Ref)) {
 						//сдвиг диапазона вниз
 						lockRange = Asc.Range(table.Ref.c1, table.Ref.r2 + 1, table.Ref.c2, gc_nMaxRow0);
-						res = table.Ref;
+						res = Asc.Range(table.Ref.c1, table.Ref.r1, table.Ref.c2, table.Ref.r2 + 1);
 					} else if(!this.model.autoFilters._isEmptyRange(range, 0)){
 						sendError();
 						res = false;
