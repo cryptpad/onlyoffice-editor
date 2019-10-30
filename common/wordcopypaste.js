@@ -3922,6 +3922,7 @@ PasteProcessor.prototype =
 		var defaultTableStyleId = presentation.DefaultTableStyleId;
 		parseContent(aContent.content);
 
+		var onlyImages = false;
 		if(drawings && drawings.length)
 		{
 			//если массив содержит только изображения
@@ -3930,6 +3931,7 @@ PasteProcessor.prototype =
 				if(true === this._isParagraphContainsOnlyDrawing(elements[0].Element))
 				{
 					elements = [];
+					onlyImages = true;
 				}
 			}
 
@@ -3972,8 +3974,12 @@ PasteProcessor.prototype =
 					presentation.Check_CursorMoveRight();
 					presentation.Document_UpdateInterfaceState();
 
-					var props = [Asc.c_oSpecialPasteProps.destinationFormatting, Asc.c_oSpecialPasteProps.keepTextOnly];
-					oThis._setSpecialPasteShowOptionsPresentation(props);
+					if(!onlyImages) {
+						var props = [Asc.c_oSpecialPasteProps.destinationFormatting, Asc.c_oSpecialPasteProps.keepTextOnly];
+						oThis._setSpecialPasteShowOptionsPresentation(props);
+					} else {
+						window['AscCommon'].g_specialPasteHelper.CleanButtonInfo();
+					}
 				} else {
 					window['AscCommon'].g_specialPasteHelper.CleanButtonInfo();
 				}
