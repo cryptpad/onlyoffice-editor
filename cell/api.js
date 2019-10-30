@@ -3053,7 +3053,7 @@ var editor;
         this.spellcheckState.lockSpell = false;
         this.spellcheckState.lastIndex = lastIndex;
         var currIndex = cellsInfo[lastIndex];
-        if (currIndex && (currIndex["col"] !== activeCell["col"] || currIndex["row"] !== activeCell["row"])) {
+        if (currIndex && (currIndex["col"] !== activeCell.col || currIndex["row"] !== activeCell.row)) {
           var currentCellIsInactive = true;
         }
         while (isStart && currentCellIsInactive && usrCorrect[lastIndex]) {
@@ -3170,7 +3170,7 @@ var editor;
         }
       }
 
-      while (cellsInfo[lastIndex]["col"] === activeCell["col"] && cellsInfo[lastIndex]["row"] === activeCell["row"]) {
+      while (cellsInfo[lastIndex]["col"] === activeCell.col && cellsInfo[lastIndex]["row"] === activeCell.row) {
         var letterDifference = null;
         var word = usrWords[lastIndex];
         var newWord = this.spellcheckState.newWord;
@@ -3299,10 +3299,11 @@ var editor;
         "wordsIndex": wordsIndexArray
       });
     } else {
+      this.handlers.trigger("asc_onSpellCheckVariantsFound", new AscCommon.asc_CSpellCheckProperty());
       if (this.spellcheckState.cellsChange.length !== 0) {
+        this.spellcheckState.lockSpell = true;
         this.asc_replaceMisspelledWords(this.spellcheckState.lastFindOptions);
       }
-      this.handlers.trigger("asc_onSpellCheckVariantsFound", new AscCommon.asc_CSpellCheckProperty());
       this.spellcheckState.isStart = false;
     }
   };
@@ -3330,7 +3331,6 @@ var editor;
       var changeWords = this.spellcheckState.changeWords;
       var cellText = this.spellcheckState.cellText;
       var newCellText = this.spellcheckState.newCellText;
-      this.spellcheckState.lockSpell = true;
       
       if (!newCellText) { 
         cellText = null; 
@@ -3347,30 +3347,29 @@ var editor;
       options.findWhat = cellText;
       options.replaceWith = newCellText;
       options.replaceWords = replaceWords;
-      ws._replaceCellsText(cellsChange, options, false, function () {
-        var lastSpell = t.spellcheckState.lastSpellInfo;
-        t.spellcheckState.newWord = null;
-        t.spellcheckState.newCellText = null;
-        t.spellcheckState.lockSpell = false;
-        options.indexInArray = 0;
-        t.spellcheckState.cellsChange = [];
 
+      ws._replaceCellsText(cellsChange, options, false, function () {
+        t.spellcheckState.cellsChange = [];
+        options.indexInArray = 0;
+        var lastSpell = t.spellcheckState.lastSpellInfo;
         if (lastSpell) {
           var lastIndex = t.spellcheckState.lastIndex;
           var cellInfo = lastSpell.cellsInfo[lastIndex];
           var activeCell = ws.model.selectionRange.activeCell;
-          var dc = cellInfo["col"] - activeCell["col"];
-          var dr = cellInfo["row"] - activeCell["row"];
+          var dc = cellInfo["col"] - activeCell.col;
+          var dr = cellInfo["row"] - activeCell.row;
           t.spellcheckState.lockSpell = true;
           ws.changeSelectionStartPoint(dc, dr);
           t.spellcheckState.lockSpell = false;
-
-          var cellText = t.asc_getCellInfo().text;
-          t.spellcheckState.cellText = cellText;
+          t.spellcheckState.newWord = null;
+          t.spellcheckState.newCellText = null;
           t.spellcheckState.afterReplace = true;
           t.spellcheckState.lastIndex = 0;
+          t.spellcheckState.cellText = t.asc_getCellInfo().text;
           t.asc_nextWord();
+          return;
         }
+        t.spellcheckState.lockSpell = false;
       });
     };
 
