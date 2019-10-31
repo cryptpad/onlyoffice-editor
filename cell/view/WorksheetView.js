@@ -18677,7 +18677,7 @@
 
 			if(!doNotSortRange) {
 				var range = t.model.getRange3(selection.r1, selection.c1, selection.r2, selection.c2);
-				t.cellCommentator.sortComments(range.sort(null, null, null, null, !columnSort, props.levels));
+				t.cellCommentator.sortComments(range.sort(null, null, null, null, !columnSort, sortState));
 			}
 
 			History.EndTransaction();
@@ -18685,7 +18685,7 @@
 
 		//TODO lock
 		var tables = t.model.autoFilters.getTableIntersectionRange(selection);
-		var obj = t.model;
+		var obj;
 		if(tables && tables.length) {
 			obj = tables[0];
 		} else if(t.model.AutoFilter && t.model.AutoFilter.Ref && t.model.AutoFilter.Ref.intersection(selection)) {

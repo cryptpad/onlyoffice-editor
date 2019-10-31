@@ -11830,10 +11830,11 @@
 			bWholeRow = true;
 		}
 
-		if(opt_custom_sort) {
-			nStartRowCol = opt_custom_sort[0].index;
-			nStartRowCol += opt_by_row ? bbox.r1 : bbox.c1;
-			bAscent = Asc.c_oAscSortOptions.Descending !== opt_custom_sort[0].descending;
+		var sortConditions;
+		if(opt_custom_sort && opt_custom_sort.SortConditions) {
+			sortConditions = opt_custom_sort.SortConditions;
+			nStartRowCol = opt_by_row ? sortConditions[0].Ref.r1 : sortConditions[0].Ref.c1;
+			bAscent = !sortConditions[0].ConditionDescending;
 		}
 
 		var nLastRow0, nLastCol0;
@@ -12036,22 +12037,24 @@
 
 				compare(a, b);
 				if (0 == res) {
-					if(opt_custom_sort) {
-						for(var i = 1; i < opt_custom_sort.length; i++) {
-							var row1 = opt_by_row ? opt_custom_sort[i].index + bbox.r1 : a.row;
-							var col1 = !opt_by_row ? opt_custom_sort[i].index + bbox.c1 : a.col;
-							var row2 = opt_by_row ? opt_custom_sort[i].index + bbox.r1 : b.row;
-							var col2 = !opt_by_row ? opt_custom_sort[i].index + bbox.c1 : b.col;
+					if(sortConditions) {
+						for(var i = 1; i < sortConditions.length; i++) {
+							var row = sortConditions[i].Ref.r1;
+							var col = sortConditions[i].Ref.c1;
+							var row1 = opt_by_row ? row : a.row;
+							var col1 = !opt_by_row ? col : a.col;
+							var row2 = opt_by_row ? row : b.row;
+							var col2 = !opt_by_row ? col : b.col;
 							var tempA = getSortElem(row1, col1);
 							var tempB = getSortElem(row2, col2);
 							compare(tempA, tempB);
-							var tempAscent = Asc.c_oAscSortOptions.Descending !== opt_custom_sort[i].descending;
+							var tempAscent = !sortConditions[i].ConditionDescending;
 							if(res != 0) {
 								if(!tempAscent) {
 									res = -res;
 								}
 								break;
-							} else if(i === opt_custom_sort.length - 1) {
+							} else if(i === sortConditions.length - 1) {
 								res = opt_by_row ? tempA.col - tempB.col : tempA.row - tempB.row;
 							}
 						}
