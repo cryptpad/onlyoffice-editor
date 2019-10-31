@@ -5855,10 +5855,10 @@ CPresentation.prototype =
         this.Document_UpdateInterfaceState();
     },
 
-	SetParagraphNumbering : function(NumInfo, Size, Unicolor)
+	SetParagraphNumbering : function(NumInfo, Size, Unicolor, nNumStartAt)
     {
         var oController = this.GetCurrentController();
-        oController && oController.checkSelectedObjectsAndCallback(oController.setParagraphNumbering, [this.Get_PresentationBulletByNumInfo(NumInfo), Size, Unicolor], false, AscDFH.historydescription_Presentation_SetParagraphNumbering);
+        oController && oController.checkSelectedObjectsAndCallback(oController.setParagraphNumbering, [this.Get_PresentationBulletByNumInfo(NumInfo), Size, Unicolor, nNumStartAt], false, AscDFH.historydescription_Presentation_SetParagraphNumbering);
         this.Document_UpdateInterfaceState();   //TODO
     },
 

@@ -8376,22 +8376,18 @@ Paragraph.prototype.GetNumberingCompiledPr = function()
 //----------------------------------------------------------------------------------------------------------------------
 // Функции для работы с нумерацией параграфов в презентациях
 //----------------------------------------------------------------------------------------------------------------------
-Paragraph.prototype.Add_PresentationNumbering = function(_Bullet, Size, AscColor)
+Paragraph.prototype.Add_PresentationNumbering = function(_Bullet, Size, AscColor, nNumStartAt)
 {
 	var ParaPr                 = this.Get_CompiledPr2(false).ParaPr;
 	var _OldBullet = this.Pr.Bullet;
-	this.Pr.Bullet             = undefined;
 	this.CompiledPr.NeedRecalc = true;
 
-	if(_Bullet)
-	{
-
-	}
 	var oBullet2;
 	if (_Bullet)
 	{
 		oBullet2 = _Bullet;
 
+		this.Pr.Bullet             = undefined;
 		var oTheme = this.Get_Theme();
 		var oColorMap = this.Get_ColorMap();
 		var oUndefParaPr = this.Get_CompiledPr2(false).ParaPr;
@@ -8475,10 +8471,10 @@ Paragraph.prototype.Add_PresentationNumbering = function(_Bullet, Size, AscColor
 		}
 	}
 
-	if(AscFormat.isRealNumber(Size) || AscCommon.isRealObject(AscColor))
+	if(AscFormat.isRealNumber(Size) || AscFormat.isRealNumber(nNumStartAt) || AscCommon.isRealObject(AscColor))
 	{
 		var oBullet;
-		var oParaPr = this.Get_CompiledPr2(false).ParaPr;
+		var oParaPr = this.Get_CompiledPr2(false).ParaPr;;
 		if(oParaPr.Bullet)
 		{
 			oBullet = oParaPr.Bullet.createDuplicate();
@@ -8494,6 +8490,10 @@ Paragraph.prototype.Add_PresentationNumbering = function(_Bullet, Size, AscColor
 				oBullet.bulletColor = new AscFormat.CBulletColor();
 				oBullet.bulletColor.type = AscFormat.BULLET_TYPE_COLOR_CLR;
 				oBullet.bulletColor.UniColor = AscFormat.CorrectUniColor(AscColor, oBullet.bulletColor.UniColor, 0);
+			}
+			if(AscFormat.isRealNumber(nNumStartAt) && oBullet.bulletType)
+			{
+				oBullet.bulletType.startAt = nNumStartAt;
 			}
 			this.Set_Bullet(oBullet);
 		}

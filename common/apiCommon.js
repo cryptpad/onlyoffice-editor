@@ -1866,6 +1866,7 @@
 			this.OutlineLvlStyle = (undefined != obj.OutlineLvlStyle) ? obj.OutlineLvlStyle : false;
 			this.BulletSize = undefined;
 			this.BulletColor = undefined;
+			this.NumStartAt = undefined;
 			var oBullet = obj.Bullet;
 			if(oBullet)
 			{
@@ -1908,6 +1909,14 @@
 						var RGBA = obj.Unifill.getRGBAColor();
 						this.BulletColor = CreateAscColorCustom(RGBA.R, RGBA.G, RGBA.B);
 					}	
+				}
+
+				if(oBullet.bulletType)
+				{
+					if(oBullet.bulletType.AutoNumType > 0)
+					{
+						this.NumStartAt = AscFormat.isRealNumber(oBullet.bulletType.startAt) ? Math.max(1, oBullet.bulletType.startAt) : 1;
+					}
 				}
 			}
 		} else {
@@ -1955,6 +1964,7 @@
 			this.OutlineLvlStyle = false;
 			this.BulletSize = undefined;
 			this.BulletColor = undefined;
+			this.NumStartAt = undefined;
 		}
 	}
 
@@ -2068,6 +2078,10 @@
 			this.BulletColor = color;
 		}, asc_getBulletColor: function() {
 			return this.BulletColor;
+		}, asc_putNumStartAt: function(NumStartAt) {
+			this.NumStartAt = NumStartAt;
+		}, asc_getNumStartAt: function() {
+			return this.NumStartAt;
 		}
 	};
 
@@ -4748,6 +4762,8 @@
 	prot["get_BulletSize"] = prot["asc_getBulletSize"] = prot.asc_getBulletSize;
 	prot["put_BulletColor"] = prot["asc_putBulletColor"] = prot.asc_putBulletColor;
 	prot["get_BulletColor"] = prot["asc_getBulletColor"] = prot.asc_getBulletColor;
+	prot["put_NumStartAt"] = prot["asc_putNumStartAt"] = prot.asc_putNumStartAt;
+	prot["get_NumStartAt"] = prot["asc_getNumStartAt"] = prot.asc_getNumStartAt;
 
 	window["AscCommon"].asc_CTexture = asc_CTexture;
 	prot = asc_CTexture.prototype;
