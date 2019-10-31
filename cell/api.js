@@ -3098,7 +3098,6 @@ var editor;
       } else if (type === "suggest") {
         this.handlers.trigger("asc_onSpellCheckVariantsFound", new AscCommon.asc_CSpellCheckProperty(e["usrWords"][0], null, e["usrSuggest"][0], null, null));
         var cellInfo = e["cellInfo"];
-        var ws = this.wb.getWorksheet();
         var dc = cellInfo.col - ws.model.selectionRange.activeCell.col;
         var dr = cellInfo.row - ws.model.selectionRange.activeCell.row;
         this.spellcheckState.lockSpell = true;
