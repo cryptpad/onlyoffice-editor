@@ -3153,9 +3153,10 @@ var editor;
     var ws = this.wb.getWorksheet();
     var activeCell = ws.model.selectionRange.activeCell;
     var lastSpell = this.spellcheckState.lastSpellInfo;
-    var cellsInfo = lastSpell["cellsInfo"];
+    var cellsInfo;
 
     if (lastSpell) {
+      cellsInfo = lastSpell["cellsInfo"];
       var usrWords = lastSpell["usrWords"];
       var usrCorrect = lastSpell["usrCorrect"];
       var wordsIndex = lastSpell["wordsIndex"];
