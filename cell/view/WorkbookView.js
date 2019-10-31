@@ -1480,7 +1480,7 @@
         /*isHideCursor*/isHideCursor, /*isQuickInput*/isQuickInput, selectionRange);
       t.input.disabled = false;
 
-      t.Api.cleanSpelling();
+      t.Api.cleanSpelling(true);
 
       // Эвент на обновление состояния редактора
       t.cellEditor._updateEditorState();
