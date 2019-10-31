@@ -3586,6 +3586,7 @@ CGraphicObjects.prototype =
 
             for(i = 0; i < this.arrTrackObjects.length; ++i)
                 this.arrTrackObjects[i].track(Pos - arrBounds[i].minX, 0, this.arrTrackObjects[i].originalObject.selectStartPage);
+            move_state.bSamePos = false;
             move_state.onMouseUp({}, 0, 0, 0);
         }
     },
@@ -3605,6 +3606,7 @@ CGraphicObjects.prototype =
 
             for(i = 0; i < this.arrTrackObjects.length; ++i)
                 this.arrTrackObjects[i].track(Pos - arrBounds[i].maxX, 0, this.arrTrackObjects[i].originalObject.selectStartPage);
+            move_state.bSamePos = false;
             move_state.onMouseUp({}, 0, 0, 0);
         }
     },
@@ -3624,6 +3626,7 @@ CGraphicObjects.prototype =
 
             for(i = 0; i < this.arrTrackObjects.length; ++i)
                 this.arrTrackObjects[i].track(0, Pos - arrBounds[i].minY, this.arrTrackObjects[i].originalObject.selectStartPage);
+            move_state.bSamePos = false;
             move_state.onMouseUp({}, 0, 0, 0);
         }
     },
@@ -3643,6 +3646,7 @@ CGraphicObjects.prototype =
 
             for(i = 0; i < this.arrTrackObjects.length; ++i)
                 this.arrTrackObjects[i].track(0, Pos - arrBounds[i].maxY, this.arrTrackObjects[i].originalObject.selectStartPage);
+            move_state.bSamePos = false;
             move_state.onMouseUp({}, 0, 0, 0);
         }
     },
@@ -3662,6 +3666,7 @@ CGraphicObjects.prototype =
 
             for(i = 0; i < this.arrTrackObjects.length; ++i)
                 this.arrTrackObjects[i].track(Pos - (arrBounds[i].maxX - arrBounds[i].minX)/2 - arrBounds[i].minX, 0, this.arrTrackObjects[i].originalObject.selectStartPage);
+            move_state.bSamePos = false;
             move_state.onMouseUp({}, 0, 0, 0);
         }
     },
@@ -3681,6 +3686,7 @@ CGraphicObjects.prototype =
 
             for(i = 0; i < this.arrTrackObjects.length; ++i)
                 this.arrTrackObjects[i].track(0, Pos - (arrBounds[i].maxY - arrBounds[i].minY)/2 - arrBounds[i].minY, this.arrTrackObjects[i].originalObject.selectStartPage);
+            move_state.bSamePos = false;
             move_state.onMouseUp({}, 0, 0, 0);
         }
     },
@@ -3752,6 +3758,7 @@ CGraphicObjects.prototype =
                 sortObjects[i].trackObject.track(lastPos -  sortObjects[i].trackObject.originalObject.x, 0, sortObjects[i].trackObject.originalObject.selectStartPage);
                 lastPos += (gap + (sortObjects[i].boundsObject.maxX - sortObjects[i].boundsObject.minX));
             }
+            move_state.bSamePos = false;
             move_state.onMouseUp({}, 0, 0, 0);
         }
     },
@@ -3821,6 +3828,7 @@ CGraphicObjects.prototype =
                 sortObjects[i].trackObject.track(0, lastPos -  sortObjects[i].trackObject.originalObject.y, sortObjects[i].trackObject.originalObject.selectStartPage);
                 lastPos += (gap + (sortObjects[i].boundsObject.maxY - sortObjects[i].boundsObject.minY));
             }
+            move_state.bSamePos = false;
             move_state.onMouseUp({}, 0, 0, 0);
         }
     },
