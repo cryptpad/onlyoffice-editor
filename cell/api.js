@@ -3011,17 +3011,19 @@ var editor;
     }
   };
 
-  // spellCheck
-  spreadsheet_api.prototype.cleanSpelling = function () {
-    if (!this.spellcheckState.lockSpell && this.spellcheckState.startCell) {
-      if (this.spellcheckState.cellsChange.length !== 0) {
-        this.asc_replaceMisspelledWords(this.spellcheckState.lastFindOptions);
+    // spellCheck
+    spreadsheet_api.prototype.cleanSpelling = function () {
+      if (!this.spellcheckState.lockSpell && this.spellcheckState.startCell) {
+        var cellsChange = this.spellcheckState.cellsChange;
+        var lastFindOptions = this.spellcheckState.lastFindOptions;
+        if (cellsChange.length !== 0) {
+          this.asc_replaceMisspelledWords(lastFindOptions);
+        }
+        this.handlers.trigger("asc_onSpellCheckVariantsFound", null);
+        this.spellcheckState.isStart = false;
+        this.spellcheckState.clean();
       }
-      this.handlers.trigger("asc_onSpellCheckVariantsFound", null);
-      this.spellcheckState.isStart = false;
-      this.spellcheckState.clean();
-    }
-  };
+    };
 
     spreadsheet_api.prototype.SpellCheck_CallBack = function (e) {
       this.spellcheckState.lockSpell = false;

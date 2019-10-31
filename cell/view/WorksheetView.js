@@ -13027,7 +13027,7 @@
 							});
 						} else {
 							// ToDo replace one command
-							if (1 === options.indexInArray) {
+							if (1 === options.indexInArray && options.replaceWith) {
 								cellValue = options.replaceWith;
 							} else {
 								for (var i = 0; i < options.replaceWords.length; ++i) {
