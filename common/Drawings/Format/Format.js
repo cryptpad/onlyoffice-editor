@@ -4802,6 +4802,19 @@ CUniFill.prototype =
         this.transparent = transparent;
     },
 
+    getUniColor: function()
+    {
+        if(this.fill && this.fill instanceof CSolidFill &&  this.fill.color)
+        {
+            return this.fill.color;
+        }
+        else
+        {
+            var RGBA = this.getRGBAColor();
+            return CreateUniColorRGB(RGBA.R, RGBA.G, RGBA.B);
+        }
+    },
+
     Set_FromObject: function(o)
     {
         //TODO:

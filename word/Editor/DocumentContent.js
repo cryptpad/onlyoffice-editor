@@ -5700,6 +5700,17 @@ CDocumentContent.prototype.Interface_Update_ParaPr    = function()
 			editor.Update_ParaTab(DefaultTab, ParaPr.Tabs);
 		}
 
+        if(ParaPr.Bullet)
+		{
+			var oBullet = ParaPr.Bullet;
+			if(oBullet)
+			{
+				if(oBullet.bulletColor &&  oBullet.bulletColor.UniColor)
+				{
+					oBullet.bulletColor.UniColor.check(this.Get_Theme(), this.Get_ColorMap());
+				}
+			}
+		}
         if (this.LogicDocument)
         {
             var SelectedInfo = this.LogicDocument.GetSelectedElementsInfo();

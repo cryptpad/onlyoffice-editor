@@ -2625,6 +2625,11 @@ background-repeat: no-repeat;\
 
 				if (undefined != Props.Position)
 					TextPr.Position = Props.Position;
+
+				if(undefined != Props.BulletSize || undefined != Props.BulletColor)
+				{
+					graphicObjects.setParagraphNumbering(null, Props.BulletSize, Props.BulletColor)
+				}
 				graphicObjects.paragraphAdd(new AscCommonWord.ParaTextPr(TextPr));
 				_presentation.Recalculate();
 				_presentation.Document_UpdateInterfaceState();

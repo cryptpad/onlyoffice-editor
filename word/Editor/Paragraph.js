@@ -7848,6 +7848,25 @@ Paragraph.prototype.GetCalculatedParaPr = function()
 	if (undefined !== ParaPr.OutlineLvl && undefined === this.Pr.OutlineLvl)
 		ParaPr.OutlineLvlStyle = true;
 
+	if(ParaPr.Bullet)
+	{
+		if(!ParaPr.Bullet.bulletColor || !ParaPr.Bullet.bulletColor.UniColor)
+		{
+			var oFirstRunPr = this.Get_FirstTextPr();
+			var oBulletColor = new AscFormat.CBulletColor();
+
+			if(oFirstRunPr.Unifill)
+			{
+				oBulletColor.UniColor = oFirstRunPr.Unifill.getUniColor();
+			}
+			else
+			{
+				oBulletColor.UniColor = AscFormat.CreateUniColorRGB(0, 0, 0);
+			}
+			ParaPr.Bullet.bulletColor = oBulletColor;
+		}
+	}
+
 	return ParaPr;
 };
 /**
@@ -8364,68 +8383,66 @@ Paragraph.prototype.Add_PresentationNumbering = function(_Bullet, Size, AscColor
 	this.Pr.Bullet             = undefined;
 	this.CompiledPr.NeedRecalc = true;
 
+	if(_Bullet)
+	{
+
+	}
 	var oBullet2;
 	if (_Bullet)
 	{
 		oBullet2 = _Bullet;
-	}
-	else
-	{
-		oBullet2                 = new AscFormat.CBullet();
-		oBullet2.bulletType      = new AscFormat.CBulletType();
-		oBullet2.bulletType.type = AscFormat.BULLET_TYPE_BULLET_NONE;
-	}
-	var oTheme = this.Get_Theme();
-	var oColorMap = this.Get_ColorMap();
-	var oUndefParaPr = this.Get_CompiledPr2(false).ParaPr;
-	var NewType      = oBullet2.getBulletType();
-	var UndefType    = oUndefParaPr.Bullet ? oUndefParaPr.Bullet.getBulletType(oTheme, oColorMap) : numbering_presentationnumfrmt_None;
-	var LeftInd;
 
-	if (NewType === UndefType)
-	{
-		if (NewType === numbering_presentationnumfrmt_Char)//буллеты
+		var oTheme = this.Get_Theme();
+		var oColorMap = this.Get_ColorMap();
+		var oUndefParaPr = this.Get_CompiledPr2(false).ParaPr;
+		var NewType      = oBullet2.getBulletType();
+		var UndefType    = oUndefParaPr.Bullet ? oUndefParaPr.Bullet.getBulletType(oTheme, oColorMap) : numbering_presentationnumfrmt_None;
+		var LeftInd;
+
+		if (NewType === UndefType)
 		{
-			var oUndefPresentationBullet = oUndefParaPr.Bullet.getPresentationBullet(oTheme, oColorMap);
-			var oNewPresentationBullet   = oBullet2.getPresentationBullet(oTheme, oColorMap);
-			if (oUndefPresentationBullet.m_sChar === oNewPresentationBullet.m_sChar)//символы совпали. ничего выставлять не надо.
+			if (NewType === numbering_presentationnumfrmt_Char)//буллеты
 			{
-                this.Pr.Bullet = _OldBullet;
+				var oUndefPresentationBullet = oUndefParaPr.Bullet.getPresentationBullet(oTheme, oColorMap);
+				var oNewPresentationBullet   = oBullet2.getPresentationBullet(oTheme, oColorMap);
+				if (oUndefPresentationBullet.m_sChar === oNewPresentationBullet.m_sChar)//символы совпали. ничего выставлять не надо.
+				{
+					this.Pr.Bullet = _OldBullet;
+					this.Set_Bullet(undefined);
+				}
+				else
+				{
+					this.Pr.Bullet = _OldBullet;
+					this.Set_Bullet(oBullet2.createDuplicate());//тип совпал, но не совпали символы. выставляем Bullet.
+																// Indent в данном случае не выставляем как это делает
+																// PowerPoint.
+				}
+			}
+			else //нумерация или отсутствие нумерации
+			{
+				this.Pr.Bullet = _OldBullet;
 				this.Set_Bullet(undefined);
+			}
+			this.Set_Ind({Left : undefined, FirstLine : undefined}, true);
+		}
+		else//тип не совпал. выставляем буллет, а также проверим нужно ли выставлять Indent.
+		{
+			this.Pr.Bullet = _OldBullet;
+			this.Set_Bullet(oBullet2.createDuplicate());
+			LeftInd = Math.min(ParaPr.Ind.Left, ParaPr.Ind.Left + ParaPr.Ind.FirstLine);
+			var oFirstRunPr = this.Get_FirstTextPr2();
+			var Indent = oFirstRunPr.FontSize*0.305954545 + 2.378363636;
+			if (NewType === numbering_presentationnumfrmt_Char)
+			{
+				this.Set_Ind({Left : LeftInd + Indent, FirstLine : -Indent}, false);
+			}
+			else if (NewType === numbering_presentationnumfrmt_None)
+			{
+				this.Set_Ind({FirstLine : 0, Left : LeftInd}, false);
 			}
 			else
 			{
-                this.Pr.Bullet = _OldBullet;
-				this.Set_Bullet(oBullet2.createDuplicate());//тип совпал, но не совпали символы. выставляем Bullet.
-															// Indent в данном случае не выставляем как это делает
-															// PowerPoint.
-			}
-		}
-		else //нумерация или отсутствие нумерации
-		{
-            this.Pr.Bullet = _OldBullet;
-			this.Set_Bullet(undefined);
-		}
-		this.Set_Ind({Left : undefined, FirstLine : undefined}, true);
-	}
-	else//тип не совпал. выставляем буллет, а также проверим нужно ли выставлять Indent.
-	{
-        this.Pr.Bullet = _OldBullet;
-		this.Set_Bullet(oBullet2.createDuplicate());
-		LeftInd = Math.min(ParaPr.Ind.Left, ParaPr.Ind.Left + ParaPr.Ind.FirstLine);
-		var oFirstRunPr = this.Get_FirstTextPr2();
-		var Indent = oFirstRunPr.FontSize*0.305954545 + 2.378363636;
-		if (NewType === numbering_presentationnumfrmt_Char)
-		{
-			this.Set_Ind({Left : LeftInd + Indent, FirstLine : -Indent}, false);
-		}
-		else if (NewType === numbering_presentationnumfrmt_None)
-		{
-			this.Set_Ind({FirstLine : 0, Left : LeftInd}, false);
-		}
-		else
-		{
-			var oArabicAlphaMap =
+				var oArabicAlphaMap =
 					{
 						numbering_presentationnumfrmt_ArabicPeriod  : true,
 						numbering_presentationnumfrmt_ArabicParenR  : true,
@@ -8434,52 +8451,52 @@ Paragraph.prototype.Add_PresentationNumbering = function(_Bullet, Size, AscColor
 						numbering_presentationnumfrmt_AlphaUcParenR : true,
 						numbering_presentationnumfrmt_AlphaUcPeriod : true
 					};
-			var oRomanMap       =
+				var oRomanMap       =
 					{
 						numbering_presentationnumfrmt_RomanUcPeriod : true,
 						numbering_presentationnumfrmt_RomanLcPeriod : true
 					};
-			if (!(oArabicAlphaMap[NewType] && oArabicAlphaMap[UndefType] || oRomanMap[NewType] && oRomanMap[UndefType]))
-			{
-				if (oArabicAlphaMap[NewType])
+				if (!(oArabicAlphaMap[NewType] && oArabicAlphaMap[UndefType] || oRomanMap[NewType] && oRomanMap[UndefType]))
 				{
-					this.Set_Ind({Left : LeftInd + Indent, FirstLine : -Indent}, false);
+					if (oArabicAlphaMap[NewType])
+					{
+						this.Set_Ind({Left : LeftInd + Indent, FirstLine : -Indent}, false);
+					}
+					else
+					{
+						this.Set_Ind({Left : LeftInd + Indent, FirstLine : -Indent}, false);
+					}
 				}
 				else
 				{
-					this.Set_Ind({Left : LeftInd + Indent, FirstLine : -Indent}, false);
+					this.Set_Ind({Left : undefined, FirstLine : undefined}, true);
 				}
-			}
-			else
-			{
-				this.Set_Ind({Left : undefined, FirstLine : undefined}, true);
 			}
 		}
 	}
+
 	if(AscFormat.isRealNumber(Size) || AscCommon.isRealObject(AscColor))
 	{
 		var oBullet;
-		if(this.Pr.Bullet)
+		var oParaPr = this.Get_CompiledPr2(false).ParaPr;
+		if(oParaPr.Bullet)
 		{
-			oBullet = this.Pr.Bullet.createDuplicate();
+			oBullet = oParaPr.Bullet.createDuplicate();
+
+			if(AscFormat.isRealNumber(Size))
+			{
+				oBullet.bulletSize = new AscFormat.CBulletSize();
+				oBullet.bulletSize.type = AscFormat.BULLET_TYPE_SIZE_PCT;
+				oBullet.bulletSize.val = (Size * 1000) >> 0;
+			}
+			if(AscCommon.isRealObject(AscColor))
+			{
+				oBullet.bulletColor = new AscFormat.CBulletColor();
+				oBullet.bulletColor.type = AscFormat.BULLET_TYPE_COLOR_CLR;
+				oBullet.bulletColor.UniColor = AscFormat.CorrectUniColor(AscColor, oBullet.bulletColor.UniColor, 0);
+			}
+			this.Set_Bullet(oBullet);
 		}
-		else
-		{
-			oBullet = new AscFormat.CBullet();
-		}
-		if(AscFormat.isRealNumber(Size))
-		{
-			oBullet.bulletSize = new AscFormat.CBulletSize();
-			oBullet.bulletSize.type = AscFormat.BULLET_TYPE_SIZE_PCT;
-			oBullet.bulletSize.val = (Size * 100000) >> 0;
-		}
-		if(AscCommon.isRealObject(AscColor))
-		{
-			oBullet.bulletColor = new AscFormat.CBulletColor();
-			oBullet.bulletColor.type = AscFormat.BULLET_TYPE_COLOR_CLR;
-			oBullet.bulletColor.UniColor = AscFormat.CorrectUniColor(AscColor, _unifill.fill.color, 0);
-		}
-		this.Set_Bullet(oBullet);
 	}
 };
 Paragraph.prototype.Get_PresentationNumbering = function()

@@ -1869,7 +1869,7 @@
 			var oBullet = obj.Bullet;
 			if(oBullet)
 			{
-				this.BulletSize = 1.0;
+				this.BulletSize = 100;
 				if(oBullet.bulletSize)
 				{
 					switch (oBullet.bulletSize.type)
@@ -1884,7 +1884,7 @@
 						}
 						case AscFormat.BULLET_TYPE_SIZE_PCT:
 						{
-							this.BulletSize = oBullet.bulletSize.val / 100000.0;
+							this.BulletSize = oBullet.bulletSize.val / 1000.0;
 							break;
 						}
 						case AscFormat.BULLET_TYPE_SIZE_PTS:
