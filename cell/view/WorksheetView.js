@@ -14190,7 +14190,7 @@
                     }
                 }
 
-                var sort = sortRange.sort(type, startCol, rgbColor);
+                var sort = sortRange.sort(type, startCol, rgbColor, null, null, null, sortState);
                 t.cellCommentator.sortComments(sort);
             }
 
@@ -18691,7 +18691,9 @@
 		} else if(t.model.AutoFilter && t.model.AutoFilter.Ref && t.model.AutoFilter.Ref.intersection(selection)) {
 			obj = t.model.AutoFilter;
 		}
-		callback(obj);
+
+
+		this._isLockedAll(callback(obj));
 	};
 
 	WorksheetView.prototype._generateSortProps = function(nOption, nStartRowCol, sortColor, opt_guessHeader, opt_by_row, range) {
