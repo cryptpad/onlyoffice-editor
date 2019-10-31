@@ -2504,30 +2504,26 @@ ParaRun.prototype.GetSelectDirection = function()
     return -1;
 };
 
-ParaRun.prototype.Can_AddDropCap = function()
+ParaRun.prototype.CanAddDropCap = function()
 {
-    var Count = this.Content.length;
+	var Count = this.Content.length;
 
-    for ( var Pos = 0; Pos < Count; Pos++ )
-    {
-        var Item = this.Content[Pos];
-        var ItemType = Item.Type;
+	for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
+	{
+		switch (this.Content[nPos].Type)
+		{
+			case para_Text:
+				return true;
 
-        switch ( ItemType )
-        {
-            case para_Text:
-                return true;
+			case para_Space:
+			case para_Tab:
+			case para_PageNum:
+			case para_PageCount:
+				return false;
+		}
+	}
 
-            case para_Space:
-            case para_Tab:
-            case para_PageNum:
-            case para_PageCount:
-                return false;
-
-        }
-    }
-
-    return null;
+	return null;
 };
 
 ParaRun.prototype.Get_TextForDropCap = function(DropCapText, UseContentPos, ContentPos, Depth)

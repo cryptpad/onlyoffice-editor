@@ -1709,7 +1709,7 @@ ParaMath.prototype.Clear_TextFormatting = function( DefHyper )
 {
 };
 
-ParaMath.prototype.Can_AddDropCap = function()
+ParaMath.prototype.CanAddDropCap = function()
 {
     return false;
 };

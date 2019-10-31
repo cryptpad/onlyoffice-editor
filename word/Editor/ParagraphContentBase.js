@@ -155,9 +155,24 @@ CParagraphContentBase.prototype.GetSelectDirection = function()
 CParagraphContentBase.prototype.Clear_TextFormatting = function( DefHyper )
 {
 };
-CParagraphContentBase.prototype.Can_AddDropCap = function()
+/**
+ * Проверяем можно ли добавлять буквицу
+ * @returns {null | boolean}
+ */
+CParagraphContentBase.prototype.CanAddDropCap = function()
 {
 	return null;
+};
+/**
+ * Проверяем можно ли использовать селект для добавления буквицы
+ * @param isUsePos {boolean}
+ * @param oEndPos {CParagraphContentPos}
+ * @param nDepth {number}
+ * @returns {boolean}
+ */
+CParagraphContentBase.prototype.CheckSelectionForDropCap = function(isUsePos, oEndPos, nDepth)
+{
+	return true;
 };
 CParagraphContentBase.prototype.Get_TextForDropCap = function(DropCapText, UseContentPos, ContentPos, Depth)
 {
@@ -1847,17 +1862,27 @@ CParagraphContentWithParagraphLikeContent.prototype.Clear_TextFormatting = funct
         Item.Clear_TextFormatting();
     }
 };
-CParagraphContentWithParagraphLikeContent.prototype.Can_AddDropCap = function()
+CParagraphContentWithParagraphLikeContent.prototype.CanAddDropCap = function()
 {
-    for (var Pos = 0, Count = this.Content.length; Pos < Count; Pos++)
-    {
-        var ItemResult = this.Content[Pos].Can_AddDropCap();
+	for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
+	{
+		var bResult = this.Content[nPos].CanAddDropCap();
+		if (null !== bResult)
+			return bResult;
+	}
 
-        if (null !== ItemResult)
-            return ItemResult;
-    }
+	return null;
+};
+CParagraphContentWithParagraphLikeContent.prototype.CheckSelectionForDropCap = function(isUsePos, oEndPos, nDepth)
+{
+	var nEndPos = isUsePos ? oEndPos.Get(nDepth) : this.Content.length - 1;
+	for (var nPos = 0; nPos <= nEndPos; ++nPos)
+	{
+		if (!this.Content[nPos].CheckSelectionForDropCap(nPos === nEndPos && isUsePos, oEndPos, nDepth + 1))
+			return false;
+	}
 
-    return null;
+	return true;
 };
 CParagraphContentWithParagraphLikeContent.prototype.Get_TextForDropCap = function(DropCapText, UseContentPos, ContentPos, Depth)
 {

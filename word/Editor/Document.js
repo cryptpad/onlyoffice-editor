@@ -4974,6 +4974,10 @@ CDocument.prototype.AddDropCap = function(bInText)
 		return;
 
 	var OldParagraph = this.Content[Pos];
+
+	if (this.IsSelectionUse() && !OldParagraph.CheckSelectionForDropCap())
+		this.RemoveSelection();
+
 	if (!this.IsSelectionUse() && !OldParagraph.SelectFirstLetter())
 		return;
 
@@ -5008,6 +5012,7 @@ CDocument.prototype.AddDropCap = function(bInText)
 		this.Recalculate();
 		this.UpdateInterface();
 		this.UpdateRulers();
+		this.UpdateTracks();
 		this.FinalizeAction();
 	}
 };
@@ -6592,7 +6597,7 @@ CDocument.prototype.Interface_Update_ParaPr = function()
 			if (null != Para && undefined === Para.Get_FramePr())
 			{
 				var Prev = Para.Get_DocumentPrev();
-				if ((null === Prev || type_Paragraph != Prev.GetType() || undefined === Prev.Get_FramePr() || undefined === Prev.Get_FramePr().DropCap) && true === Para.Can_AddDropCap())
+				if ((null === Prev || type_Paragraph != Prev.GetType() || undefined === Prev.Get_FramePr() || undefined === Prev.Get_FramePr().DropCap) && true === Para.CanAddDropCap())
 					ParaPr.CanAddDropCap = true;
 			}
 		}

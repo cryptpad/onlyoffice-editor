@@ -491,6 +491,17 @@ CInlineLevelSdt.prototype.Apply_TextPr = function(TextPr, IncFontSize, ApplyToAl
 	else
 		CParagraphContentWithParagraphLikeContent.prototype.Apply_TextPr.call(this, TextPr, IncFontSize, ApplyToAll);
 };
+CInlineLevelSdt.prototype.CanAddDropCap = function()
+{
+	if (!this.CanBeEdited() || this.IsPlaceHolder())
+		return false;
+
+	return CParagraphContentWithParagraphLikeContent.prototype.CanAddDropCap.apply(this, arguments);
+};
+CInlineLevelSdt.prototype.CheckSelectionForDropCap = function(isUsePos, oEndPos, nDepth)
+{
+	return false;
+};
 /**
  * Активен PlaceHolder сейчас или нет
  * @returns {boolean}

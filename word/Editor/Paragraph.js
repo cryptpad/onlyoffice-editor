@@ -10940,15 +10940,17 @@ Paragraph.prototype.Supplement_FramePr = function(FramePr)
 	FramePr.Brd = ParaPr.Brd;
 	FramePr.Shd = ParaPr.Shd;
 };
-Paragraph.prototype.Can_AddDropCap = function()
+/**
+ * Можно ли добавлять буквицу
+ * @returns {boolean}
+ */
+Paragraph.prototype.CanAddDropCap = function()
 {
-	var Count = this.Content.length;
-	for (var Pos = 0; Pos < Count; Pos++)
+	for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
 	{
-		var TempRes = this.Content[Pos].Can_AddDropCap();
-
-		if (null !== TempRes)
-			return TempRes;
+		var bResult = this.Content[nPos].CanAddDropCap();
+		if (null !== bResult)
+			return bResult;
 	}
 
 	return false;
@@ -11041,6 +11043,27 @@ Paragraph.prototype.SelectFirstLetter = function()
 	}
 
 	return false;
+};
+/**
+ * Проверяем можно ли добавлять буквицу с заданным выделением
+ * @returns {boolean}
+ */
+Paragraph.prototype.CheckSelectionForDropCap = function()
+{
+	var oSelectionStart = this.Get_ParaContentPos(true, true);
+	var oSelectionEnd   = this.Get_ParaContentPos(true, false);
+
+	if (0 <= oSelectionStart.Compare(oSelectionEnd))
+		oSelectionEnd = oSelectionStart;
+
+	var nEndPos = oSelectionEnd.Get(0);
+	for (var nPos = 0; nPos <= nEndPos; ++nPos)
+	{
+		if (!this.Content[nPos].CheckSelectionForDropCap(nPos === nEndPos, oSelectionEnd, 1))
+			return false;
+	}
+
+	return true;
 };
 Paragraph.prototype.Update_DropCapByLines = function(TextPr, Count, LineH, LineTA, LineTD, Before)
 {
