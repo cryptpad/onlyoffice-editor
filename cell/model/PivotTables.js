@@ -347,7 +347,7 @@ function setTableProperty(pivot, oldVal, newVal, addToHistory, historyType, chan
 	}
 	if (addToHistory) {
 		History.Add(AscCommonExcel.g_oUndoRedoPivotTables, historyType, pivot.worksheet.getId(), null,
-			new AscCommonExcel.UndoRedoData_PivotTable(pivot.asc_getName(), oldVal, newVal));
+			new AscCommonExcel.UndoRedoData_PivotTable(pivot.Get_Id(), oldVal, newVal));
 	}
 	if (pivot && changeData) {
 		pivot.setChanged(true);
@@ -359,7 +359,7 @@ function setFieldProperty(pivot, index, oldVal, newVal, addToHistory, historyTyp
 	}
 	if (addToHistory) {
 		History.Add(AscCommonExcel.g_oUndoRedoPivotFields, historyType, pivot.worksheet.getId(), null,
-			new AscCommonExcel.UndoRedoData_PivotField(pivot.asc_getName(), index, oldVal, newVal));
+			new AscCommonExcel.UndoRedoData_PivotField(pivot.Get_Id(), index, oldVal, newVal));
 	}
 	if (pivot && changeData) {
 		pivot.setChanged(true);
@@ -3622,7 +3622,7 @@ CT_pivotTableDefinition.prototype.addDataField = function(pivotIndex, insertInde
 	if (addToHistory) {
 		History.Add(AscCommonExcel.g_oUndoRedoPivotTables, AscCH.historyitem_PivotTable_AddDataField,
 			this.worksheet ? this.worksheet.getId() : null, null,
-			new AscCommonExcel.UndoRedoData_PivotTable(this.asc_getName(), pivotIndex, insertIndex));
+			new AscCommonExcel.UndoRedoData_PivotTable(this.Get_Id(), pivotIndex, insertIndex));
 	}
 	this.setChanged(true);
 };
@@ -3666,7 +3666,7 @@ CT_pivotTableDefinition.prototype.addRowField = function(pivotIndex, insertIndex
 	if (addToHistory) {
 		History.Add(AscCommonExcel.g_oUndoRedoPivotTables, AscCH.historyitem_PivotTable_AddRowField,
 			this.worksheet ? this.worksheet.getId() : null, null,
-			new AscCommonExcel.UndoRedoData_PivotTable(this.asc_getName(), pivotIndex, insertIndex));
+			new AscCommonExcel.UndoRedoData_PivotTable(this.Get_Id(), pivotIndex, insertIndex));
 	}
 	this.setChanged(true);
 };
@@ -3690,7 +3690,7 @@ CT_pivotTableDefinition.prototype.addColField = function(pivotIndex, insertIndex
 	if (addToHistory) {
 		History.Add(AscCommonExcel.g_oUndoRedoPivotTables, AscCH.historyitem_PivotTable_AddColField,
 			this.worksheet ? this.worksheet.getId() : null, null,
-			new AscCommonExcel.UndoRedoData_PivotTable(this.asc_getName(), pivotIndex, insertIndex));
+			new AscCommonExcel.UndoRedoData_PivotTable(this.Get_Id(), pivotIndex, insertIndex));
 	}
 	this.setChanged(true);
 };
@@ -3715,7 +3715,7 @@ CT_pivotTableDefinition.prototype.addPageField = function(pivotIndex, insertInde
 	if (addToHistory) {
 		History.Add(AscCommonExcel.g_oUndoRedoPivotTables, AscCH.historyitem_PivotTable_AddPageField,
 			this.worksheet ? this.worksheet.getId() : null, null,
-			new AscCommonExcel.UndoRedoData_PivotTable(this.asc_getName(), pivotIndex, insertIndex));
+			new AscCommonExcel.UndoRedoData_PivotTable(this.Get_Id(), pivotIndex, insertIndex));
 	}
 	this.setChanged(true);
 };
@@ -3853,7 +3853,7 @@ CT_pivotTableDefinition.prototype.moveField = function(arr, from, to, addToHisto
 		if (addToHistory) {
 			History.Add(AscCommonExcel.g_oUndoRedoPivotTables, historyType,
 						this.worksheet ? this.worksheet.getId() : null, null,
-						new AscCommonExcel.UndoRedoData_PivotTable(this.asc_getName(), from, to));
+						new AscCommonExcel.UndoRedoData_PivotTable(this.Get_Id(), from, to));
 		}
 		this.setChanged(true);
 	}
@@ -4096,7 +4096,7 @@ CT_pivotTableDefinition.prototype.setRowItems = function(rowItems, addToHistory)
 	if (addToHistory) {
 		History.Add(AscCommonExcel.g_oUndoRedoPivotTables, AscCH.historyitem_PivotTable_RowItems,
 			this.worksheet ? this.worksheet.getId() : null, null,
-			new AscCommonExcel.UndoRedoData_PivotTable(this.asc_getName(), this.rowItems, rowItems));
+			new AscCommonExcel.UndoRedoData_PivotTable(this.Get_Id(), this.rowItems, rowItems));
 	}
 	this.rowItems = rowItems;
 };
@@ -4104,7 +4104,7 @@ CT_pivotTableDefinition.prototype.setColItems = function(colItems, addToHistory)
 	if (addToHistory) {
 		History.Add(AscCommonExcel.g_oUndoRedoPivotTables, AscCH.historyitem_PivotTable_ColItems,
 			this.worksheet ? this.worksheet.getId() : null, null,
-			new AscCommonExcel.UndoRedoData_PivotTable(this.asc_getName(), this.colItems, colItems));
+			new AscCommonExcel.UndoRedoData_PivotTable(this.Get_Id(), this.colItems, colItems));
 	}
 	this.colItems = colItems;
 };
@@ -4262,7 +4262,7 @@ CT_pivotTableDefinition.prototype.setLocation = function(location, addToHistory)
 	if (addToHistory) {
 		History.Add(AscCommonExcel.g_oUndoRedoPivotTables, AscCH.historyitem_PivotTable_Location,
 					this.worksheet ? this.worksheet.getId() : null, null,
-					new AscCommonExcel.UndoRedoData_PivotTable(this.asc_getName(), this.location, location));
+					new AscCommonExcel.UndoRedoData_PivotTable(this.Get_Id(), this.location, location));
 	}
 	this.location = location;
 };
@@ -4369,7 +4369,7 @@ CT_pivotTableDefinition.prototype.removeNoDataField = function (pivotIndex, addT
 		if (addToHistory) {
 			History.Add(AscCommonExcel.g_oUndoRedoPivotTables, historyType,
 				this.worksheet ? this.worksheet.getId() : null, null,
-				new AscCommonExcel.UndoRedoData_PivotTable(this.asc_getName(), pivotIndex, deleteIndex));
+				new AscCommonExcel.UndoRedoData_PivotTable(this.Get_Id(), pivotIndex, deleteIndex));
 		}
 		pivotField.axis = null;
 		this.setChanged(true);
@@ -4390,7 +4390,7 @@ CT_pivotTableDefinition.prototype.removeDataField = function (pivotIndex, dataIn
 	if (addToHistory) {
 		History.Add(AscCommonExcel.g_oUndoRedoPivotTables, AscCH.historyitem_PivotTable_RemoveDataField,
 			this.worksheet ? this.worksheet.getId() : null, null,
-			new AscCommonExcel.UndoRedoData_PivotTable(this.asc_getName(), pivotIndex, removed));
+			new AscCommonExcel.UndoRedoData_PivotTable(this.Get_Id(), pivotIndex, removed));
 	}
 	this.setChanged(true);
 };
@@ -6586,7 +6586,7 @@ CT_PivotTableStyle.prototype._setName = function (newVal, pivot, ws) {
 	if (History.Is_On() && this.name !== newVal) {
 		History.Add(AscCommonExcel.g_oUndoRedoPivotTables, AscCH.historyitem_PivotTable_StyleName,
 			ws ? ws.getId() : null, null,
-			new AscCommonExcel.UndoRedoData_PivotTable(pivot && pivot.asc_getName(), this.name, newVal));
+			new AscCommonExcel.UndoRedoData_PivotTable(pivot && pivot.Get_Id(), this.name, newVal));
 	}
 	this.name = newVal;
 	pivot.setChanged(false, true);
@@ -6595,7 +6595,7 @@ CT_PivotTableStyle.prototype._setShowRowHeaders = function (newVal, pivot, ws) {
 	if (History.Is_On() && this.showRowHeaders !== newVal) {
 		History.Add(AscCommonExcel.g_oUndoRedoPivotTables, AscCH.historyitem_PivotTable_StyleShowRowHeaders,
 			ws ? ws.getId() : null, null,
-			new AscCommonExcel.UndoRedoData_PivotTable(pivot && pivot.asc_getName(), this.showRowHeaders, newVal));
+			new AscCommonExcel.UndoRedoData_PivotTable(pivot && pivot.Get_Id(), this.showRowHeaders, newVal));
 	}
 	this.showRowHeaders = newVal;
 	pivot.setChanged(false, true);
@@ -6604,7 +6604,7 @@ CT_PivotTableStyle.prototype._setShowColHeaders = function (newVal, pivot, ws) {
 	if (History.Is_On() && this.showColHeaders !== newVal) {
 		History.Add(AscCommonExcel.g_oUndoRedoPivotTables, AscCH.historyitem_PivotTable_StyleShowColHeaders,
 			ws ? ws.getId() : null, null,
-			new AscCommonExcel.UndoRedoData_PivotTable(pivot && pivot.asc_getName(), this.showColHeaders, newVal));
+			new AscCommonExcel.UndoRedoData_PivotTable(pivot && pivot.Get_Id(), this.showColHeaders, newVal));
 	}
 	this.showColHeaders = newVal;
 	pivot.setChanged(false, true);
@@ -6613,7 +6613,7 @@ CT_PivotTableStyle.prototype._setShowRowStripes = function (newVal, pivot, ws) {
 	if (History.Is_On() && this.showRowStripes !== newVal) {
 		History.Add(AscCommonExcel.g_oUndoRedoPivotTables, AscCH.historyitem_PivotTable_StyleShowRowStripes,
 			ws ? ws.getId() : null, null,
-			new AscCommonExcel.UndoRedoData_PivotTable(pivot && pivot.asc_getName(), this.showRowStripes, newVal));
+			new AscCommonExcel.UndoRedoData_PivotTable(pivot && pivot.Get_Id(), this.showRowStripes, newVal));
 	}
 	this.showRowStripes = newVal;
 	pivot.setChanged(false, true);
@@ -6622,7 +6622,7 @@ CT_PivotTableStyle.prototype._setShowColStripes = function (newVal, pivot, ws) {
 	if (History.Is_On() && this.showColStripes !== newVal) {
 		History.Add(AscCommonExcel.g_oUndoRedoPivotTables, AscCH.historyitem_PivotTable_StyleShowColStripes,
 			ws ? ws.getId() : null, null,
-			new AscCommonExcel.UndoRedoData_PivotTable(pivot && pivot.asc_getName(), this.showColStripes, newVal));
+			new AscCommonExcel.UndoRedoData_PivotTable(pivot && pivot.Get_Id(), this.showColStripes, newVal));
 	}
 	this.showColStripes = newVal;
 	pivot.setChanged(false, true);

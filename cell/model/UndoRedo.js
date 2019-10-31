@@ -2912,7 +2912,7 @@ function (window, undefined) {
 		if (!ws) {
 			return;
 		}
-		var pivotTable = ws.getPivotTableByName(Data.pivot);
+		var pivotTable = ws.getPivotTableById(Data.pivot);
 		if (!pivotTable) {
 			return;
 		}
@@ -3074,7 +3074,7 @@ function (window, undefined) {
 		if (!ws) {
 			return;
 		}
-		var pivotTable = ws.getPivotTableByName(Data.pivot);
+		var pivotTable = ws.getPivotTableById(Data.pivot);
 		if (!pivotTable) {
 			return;
 		}

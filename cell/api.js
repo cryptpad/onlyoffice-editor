@@ -1777,7 +1777,7 @@ var editor;
 
 	spreadsheet_api.prototype._isLockedPivot = function (pivot, callback) {
 		var lockInfo = this.collaborativeEditing.getLockInfo(c_oAscLockTypeElem.Object, /*subType*/null,
-			this.asc_getActiveWorksheetId(), pivot.asc_getName());
+			this.asc_getActiveWorksheetId(), pivot.Get_Id());
 		this.collaborativeEditing.lock([lockInfo], callback);
 	};
 
@@ -4013,7 +4013,7 @@ var editor;
 		var t = this;
 		this._isLockedPivot(pivot, function(res) {
 			if (!res) {
-				this.sendEvent('asc_onError', error, Asc.c_oAscError.ID.PivotOverlap);
+				t.sendEvent('asc_onError', Asc.c_oAscError.ID.PivotOverlap, c_oAscError.Level.NoCritical);
 				return;
 			}
 			t._changePivot(pivot, false, callback);

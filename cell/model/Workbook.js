@@ -862,14 +862,10 @@
 		},
 		getNextPivotName: function() {
 			var sNewName;
-			var collaborativeIndexUser = "";
-			if (this.wb.oApi.collaborativeEditing.getCollaborativeEditing()) {
-				collaborativeIndexUser = "_" + this.wb.oApi.CoAuthoringApi.get_indexUser();
-			}
 			do {
 				this.pivotNameIndex++;
 				var tableName = AscCommon.translateManager.getValue(this.pivotNamePattern);
-				sNewName = tableName + this.pivotNameIndex + collaborativeIndexUser;
+				sNewName = tableName + this.pivotNameIndex;
 			} while (this.wb.getPivotTableByName(sNewName));
 			return sNewName;
 		},
