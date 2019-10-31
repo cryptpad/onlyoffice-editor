@@ -12959,10 +12959,6 @@
 	};
 
 	WorksheetView.prototype.replaceCellText = function (options, lockDraw, callback) {
-		if (!options.isMatchCase) {
-			options.findWhat = options.findWhat.toLowerCase();
-		}
-
 		// Очищаем результаты
 		options.countFind = 0;
 		options.countReplace = 0;
@@ -13000,97 +12996,81 @@
 		return this._replaceCellsText(aReplaceCells, options, lockDraw, callback);
 	};
 
-	WorksheetView.prototype._replaceCellsText = function (aReplaceCells, options, lockDraw, callback) {
-		var t = this;
+        WorksheetView.prototype._replaceCellsText = function (aReplaceCells, options, lockDraw, callback) {
+            var t = this;
+            if (this.model.inPivotTable(aReplaceCells)) {
+                options.error = true;
+                return callback(options);
+            }
 
-		if (this.model.inPivotTable(aReplaceCells)) {
-			options.error = true;
-			return callback(options);
-        }
+            options.indexInArray = 0;
+            options.countFind = aReplaceCells.length;
+            options.countReplace = 0;
+            if (options.isReplaceAll && false === this.collaborativeEditing.getCollaborativeEditing()) {
+                this._isLockedCells(aReplaceCells, /*subType*/null, function () {
+                    t._replaceCellText(aReplaceCells, options, lockDraw, callback, true);
+                });
+            } else {
+                this._replaceCellText(aReplaceCells, options, lockDraw, callback, false);
+            }
+        };
 
-		var findFlags = "g"; // Заменяем все вхождения
-		if (true !== options.isMatchCase) {
-			findFlags += "i";
-		} // Не чувствителен к регистру
+        WorksheetView.prototype._replaceCellText = function (aReplaceCells, options, lockDraw, callback, oneUser) {
+                var t = this;
+                if (options.indexInArray >= aReplaceCells.length) {
+                    this.draw(lockDraw);
+                    return callback(options);
+                }
 
-		var valueForSearching = options.findWhat
-			.replace(/(\\)/g, "\\\\").replace(/(\^)/g, "\\^")
-			.replace(/(\()/g, "\\(").replace(/(\))/g, "\\)")
-			.replace(/(\+)/g, "\\+").replace(/(\[)/g, "\\[")
-			.replace(/(\])/g, "\\]").replace(/(\{)/g, "\\{")
-			.replace(/(\})/g, "\\}").replace(/(\$)/g, "\\$")
-			.replace(/(\.)/g, "\\.")
-			.replace(/(~)?\*/g, function ($0, $1) {
-				return $1 ? $0 : '(.*)';
-			})
-			.replace(/(~)?\?/g, function ($0, $1) {
-				return $1 ? $0 : '.';
-			})
-			.replace(/(~\*)/g, "\\*").replace(/(~\?)/g, "\\?");
-		valueForSearching = new RegExp(valueForSearching, findFlags);
+                var onReplaceCallback = function (isSuccess) {
+                    var cell = aReplaceCells[options.indexInArray];
+                    ++options.indexInArray;
+                    if (false !== isSuccess) {
+						var c = t._getVisibleCell(cell.c1, cell.r1);
+						var cellValue = c.getValueForEdit();
 
-		options.indexInArray = 0;
-		options.countFind = aReplaceCells.length;
-		options.countReplace = 0;
-		if (options.isReplaceAll && false === this.collaborativeEditing.getCollaborativeEditing()) {
-			this._isLockedCells(aReplaceCells, /*subType*/null, function () {
-				t._replaceCellText(aReplaceCells, valueForSearching, options, lockDraw, callback, true);
-			});
-		} else {
-			this._replaceCellText(aReplaceCells, valueForSearching, options, lockDraw, callback, false);
-		}
-	};
+                    	// Check replace cell for spell. Replace full cell to fix skip first words (otherwise replace)
+                    	if (!options.isSpellCheck) {
+							cellValue = cellValue.replace(options.findRegExp, function () {
+								++options.countReplace;
+								return options.replaceWith;
+							});
+						} else {
+							// ToDo replace one command
+							if (1 === options.indexInArray && options.replaceWith) {
+								cellValue = options.replaceWith;
+							} else {
+								for (var i = 0; i < options.replaceWords.length; ++i) {
+									cellValue = cellValue.replace(options.replaceWords[i][0], function () {
+										return options.replaceWords[i][1];
+									});
+								}
+							}
+						}
 
-	WorksheetView.prototype._replaceCellText =
-		function (aReplaceCells, valueForSearching, options, lockDraw, callback, oneUser) {
-			var t = this;
-			if (options.indexInArray >= aReplaceCells.length) {
-				this.draw(lockDraw);
-				return callback(options);
-			}
+						var v, newValue;
+						// get first fragment and change its text
+						v = c.getValueForEdit2().slice(0, 1);
+						// Создаем новый массив, т.к. getValueForEdit2 возвращает ссылку
+						newValue = [];
+						newValue[0] = new AscCommonExcel.Fragment({ text: cellValue, format: v[0].format.clone() });
 
-			var onReplaceCallback = function (isSuccess) {
-				var cell = aReplaceCells[options.indexInArray];
-				++options.indexInArray;
-				if (false !== isSuccess) {
-					var c = t._getVisibleCell(cell.c1, cell.r1);
-                    var cellValue = c.getValueForEdit();
-                   
-                    if (options.isChangeSingleWord) {
-                        valueForSearching.lastIndex = options.wordsIndex;
-                        var lastIndex = valueForSearching.exec(cellValue);
-                        valueForSearching = new RegExp(valueForSearching, "y");
-                        valueForSearching.lastIndex = lastIndex.index;
+						if (!t._saveCellValueAfterEdit(c, newValue, /*flags*/undefined, /*isNotHistory*/true,
+							/*lockDraw*/true)) {
+							options.error = true;
+							t.draw(lockDraw);
+							return callback(options);
+						}
                     }
 
-					cellValue = cellValue.replace(valueForSearching, function() {
-						++options.countReplace;
-						return options.replaceWith;
-					});
-
-					var v, newValue;
-					// get first fragment and change its text
-					v = c.getValueForEdit2().slice(0, 1);
-					// Создаем новый массив, т.к. getValueForEdit2 возвращает ссылку
-					newValue = [];
-					newValue[0] = new AscCommonExcel.Fragment({text: cellValue, format: v[0].format.clone()});
-
-					if (!t._saveCellValueAfterEdit(c, newValue, /*flags*/undefined, /*isNotHistory*/true,
-                            /*lockDraw*/true)) {
-						options.error = true;
-						t.draw(lockDraw);
-						return callback(options);
-					}
-				}
-
-				window.setTimeout(function () {
-					t._replaceCellText(aReplaceCells, valueForSearching, options, lockDraw, callback, oneUser);
-				}, 1);
-			};
+                    window.setTimeout(function () {
+                        t._replaceCellText(aReplaceCells, options, lockDraw, callback, oneUser);
+                    }, 1);
+                };
 
 			return oneUser ? onReplaceCallback(true) :
 				this._isLockedCells(aReplaceCells[options.indexInArray], /*subType*/null, onReplaceCallback);
-		};
+		};   
 
 	WorksheetView.prototype.findCell = function (reference) {
 		var mc;

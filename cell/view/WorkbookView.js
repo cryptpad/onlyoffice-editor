@@ -1480,7 +1480,7 @@
         /*isHideCursor*/isHideCursor, /*isQuickInput*/isQuickInput, selectionRange);
       t.input.disabled = false;
 
-      t.Api.cleanSpelling();
+      t.Api.cleanSpelling(true);
 
       // Эвент на обновление состояния редактора
       t.cellEditor._updateEditorState();
@@ -2364,6 +2364,11 @@
 
   // Замена текста в листе
   WorkbookView.prototype.replaceCellText = function(options) {
+  	if (!options.isMatchCase) {
+  		options.findWhat = options.findWhat.toLowerCase();
+  	}
+  	options.findRegExp = AscCommonExcel.getFindRegExp(options.findWhat, options);
+
     var ws = this.getWorksheet();
     // Останавливаем ввод данных в редакторе ввода
     if (ws.getCellEditMode()) {
