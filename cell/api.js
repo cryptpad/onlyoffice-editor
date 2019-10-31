@@ -3151,17 +3151,17 @@ var editor;
     }
 
     var ws = this.wb.getWorksheet();
+    var activeCell = ws.model.selectionRange.activeCell;
     var lastSpell = this.spellcheckState.lastSpellInfo;
+    var cellsInfo = lastSpell["cellsInfo"];
 
     if (lastSpell) {
       var usrWords = lastSpell["usrWords"];
       var usrCorrect = lastSpell["usrCorrect"];
-      var cellsInfo = lastSpell["cellsInfo"];
       var wordsIndex = lastSpell["wordsIndex"];
       var ignoreWords = this.spellcheckState.ignoreWords;
       var changeWords = this.spellcheckState.changeWords;
       var lastIndex = this.spellcheckState.lastIndex;
-      var activeCell = ws.model.selectionRange.activeCell;
       this.spellcheckState.cellText = this.asc_getCellInfo().text;
       var cellText = this.spellcheckState.newCellText || this.spellcheckState.cellText;
       var afterReplace = this.spellcheckState.afterReplace;
@@ -3230,7 +3230,6 @@ var editor;
       return;
     }
 
-    var activeCell = ws.model.selectionRange.activeCell;
     if (!this.spellcheckState.startCell) {
       this.spellcheckState.startCell = activeCell.clone();
       if (this.spellcheckState.startCell.col > maxC) {
@@ -3250,7 +3249,7 @@ var editor;
 
     var langArray = [];
     var wordsArray = [];
-    var cellsInfo = [];
+    cellsInfo = [];
     var wordsIndexArray = [];
     var isEnd = false;
 
