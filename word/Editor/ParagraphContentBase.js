@@ -185,7 +185,7 @@ CParagraphContentBase.prototype.Remove_StartTabs = function(TabsCounter)
 {
 	return true;
 };
-CParagraphContentBase.prototype.Copy = function(Selected)
+CParagraphContentBase.prototype.Copy = function(Selected, oPr, isCopyReviewPr)
 {
 	return new this.constructor();
 };
@@ -975,36 +975,36 @@ CParagraphContentWithParagraphLikeContent.prototype.Get_Type = function()
 {
     return this.Type;
 };
-CParagraphContentWithParagraphLikeContent.prototype.Copy = function(Selected, oPr)
+CParagraphContentWithParagraphLikeContent.prototype.Copy = function(Selected, oPr, isCopyReviewPr)
 {
-    var NewElement = new this.constructor();
+	var NewElement = new this.constructor();
 
-    var StartPos = 0;
-    var EndPos   = this.Content.length - 1;
+	var StartPos = 0;
+	var EndPos   = this.Content.length - 1;
 
-    if ( true === Selected && true === this.State.Selection.Use )
-    {
-        StartPos = this.State.Selection.StartPos;
-        EndPos   = this.State.Selection.EndPos;
+	if (true === Selected && true === this.State.Selection.Use)
+	{
+		StartPos = this.State.Selection.StartPos;
+		EndPos   = this.State.Selection.EndPos;
 
-        if ( StartPos > EndPos )
-        {
-            StartPos = this.State.Selection.EndPos;
-            EndPos   = this.State.Selection.StartPos;
-        }
-    }
+		if (StartPos > EndPos)
+		{
+			StartPos = this.State.Selection.EndPos;
+			EndPos   = this.State.Selection.StartPos;
+		}
+	}
 
-    for ( var CurPos = StartPos; CurPos <= EndPos; CurPos++ )
-    {
-        var Item = this.Content[CurPos];
+	for (var CurPos = StartPos; CurPos <= EndPos; CurPos++)
+	{
+		var Item = this.Content[CurPos];
 
-        if ( StartPos === CurPos || EndPos === CurPos )
-            NewElement.Add_ToContent( CurPos - StartPos, Item.Copy(Selected, oPr) );
-        else
-            NewElement.Add_ToContent( CurPos - StartPos, Item.Copy(false, oPr) );
-    }
+		if (StartPos === CurPos || EndPos === CurPos)
+			NewElement.Add_ToContent(CurPos - StartPos, Item.Copy(Selected, oPr, isCopyReviewPr));
+		else
+			NewElement.Add_ToContent(CurPos - StartPos, Item.Copy(false, oPr, isCopyReviewPr));
+	}
 
-    return NewElement;
+	return NewElement;
 };
 CParagraphContentWithParagraphLikeContent.prototype.GetSelectedContent = function(oSelectedContent)
 {
@@ -1067,7 +1067,7 @@ CParagraphContentWithParagraphLikeContent.prototype.CopyContent = function(Selec
         }
         else
         {
-            CopyContent.push(Item.Copy(false));
+            CopyContent.push(Item.Copy(false, undefined, true));
         }
     }
 

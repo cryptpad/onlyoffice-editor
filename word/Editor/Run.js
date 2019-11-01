@@ -2506,8 +2506,6 @@ ParaRun.prototype.GetSelectDirection = function()
 
 ParaRun.prototype.CanAddDropCap = function()
 {
-	var Count = this.Content.length;
-
 	for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
 	{
 		switch (this.Content[nPos].Type)

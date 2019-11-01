@@ -280,7 +280,7 @@ Paragraph.prototype.Copy = function(Parent, DrawingDocument, oPr)
 	oPr.Paragraph = Para;
 
 	// Копируем настройки
-	Para.Set_Pr(this.Pr.Copy());
+	Para.Set_Pr(this.Pr.Copy(true));
 
 	if (this.LogicDocument && null !== this.LogicDocument.CopyNumberingMap && undefined !== Para.Pr.NumPr && undefined !== Para.Pr.NumPr.NumId)
 	{
@@ -303,7 +303,7 @@ Paragraph.prototype.Copy = function(Parent, DrawingDocument, oPr)
 		if (para_Comment === Item.Type && true === oPr.SkipComments)
 			continue;
 
-		Para.Internal_Content_Add(Para.Content.length, Item.Copy(false, oPr), false);
+		Para.Internal_Content_Add(Para.Content.length, Item.Copy(false, oPr, true), false);
 	}
 
 	// TODO: Как только переделаем para_End, переделать тут
@@ -312,10 +312,9 @@ Paragraph.prototype.Copy = function(Parent, DrawingDocument, oPr)
 	var EndRun = new ParaRun(Para);
 	EndRun.Add_ToContent(0, new ParaEnd());
 	Para.Internal_Content_Add(Para.Content.length, EndRun, false);
-	EndRun.Set_Pr(this.TextPr.Value.Copy());
 
-	if (this.LogicDocument && (this.LogicDocument.RecalcTableHeader || this.LogicDocument.MoveDrawing))
-		EndRun.SetReviewTypeWithInfo(this.GetReviewType(), this.GetReviewInfo());
+	EndRun.Set_Pr(this.TextPr.Value.Copy());
+	EndRun.SetReviewTypeWithInfo(this.GetReviewType(), this.GetReviewInfo().Copy(), false);
 
 	// Добавляем секцию в конце
 	if (undefined !== this.SectPr)
@@ -7681,7 +7680,7 @@ Paragraph.prototype.GetSelectedContent = function(oSelectedContent)
 			oPara = new Paragraph(this.DrawingDocument, this.Parent, !this.bFromDocument);
 
 			// Копируем настройки
-			oPara.Set_Pr(this.Pr.Copy());
+			oPara.Set_Pr(this.Pr.Copy(true));
 			oPara.TextPr.Set_Value(this.TextPr.Value.Copy());
 
 			// Копируем содержимое параграфа
@@ -7705,7 +7704,7 @@ Paragraph.prototype.GetSelectedContent = function(oSelectedContent)
 				{
 					if (Item.Type !== para_RevisionMove)
 					{
-						oPara.Internal_Content_Add(nParaPos, Item.Copy(false), false);
+						oPara.Internal_Content_Add(nParaPos, Item.Copy(false, undefined, true), false);
 						nParaPos++;
 					}
 				}
@@ -7722,7 +7721,41 @@ Paragraph.prototype.GetSelectedContent = function(oSelectedContent)
 	}
 
 	if (oPara)
+	{
+		if (oSelectedContent.IsSaveNumberingValues() && this.GetParent())
+		{
+			var oParent    = this.GetParent();
+			var oNumPr     = this.GetNumPr();
+			var oPrevNumPr = this.GetPrChangeNumPr();
+
+			var oNumInfo     = oNumPr ? oParent.CalculateNumberingValues(this, oNumPr, true) : null;
+			var oPrevNumInfo = oPrevNumPr ? oParent.CalculateNumberingValues(this. oPrevNumPr, true) : null;
+
+			oPara.SaveNumberingValues(oNumInfo, oPrevNumInfo);
+		}
+
 		oSelectedContent.Add(new CSelectedElement(oPara, isAllSelected));
+	}
+};
+/**
+ * Задаем сохраненное значение нумерации для данного параграфа (используется при печати выделенного фрагмента)
+ * @param arrNumInfo
+ * @param arrPrevNumInfo
+ */
+Paragraph.prototype.SaveNumberingValues = function(arrNumInfo, arrPrevNumInfo)
+{
+	this.SavedNumberingValues = {
+		NumInfo     : arrNumInfo,
+		PrevNumInfo : arrPrevNumInfo
+	};
+};
+/**
+ * Получаем сохраненное значение нумерации для заданного параграфа (используется при печати выделенного фрагмента)
+ * @returns {{NumInfo: *, PrevNumInfo: *}|*}
+ */
+Paragraph.prototype.GetSavedNumberingValues = function()
+{
+	return this.SavedNumberingValues;
 };
 Paragraph.prototype.GetCalculatedTextPr = function()
 {

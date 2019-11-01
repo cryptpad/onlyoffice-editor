@@ -346,6 +346,8 @@ function CSelectedContent()
     this.Comments       = [];
     this.Maths          = [];
 
+    this.SaveNumberingValues = false;
+
     this.HaveShape        = false;
     this.MoveDrawing      = false; // Только для переноса автофигур
     this.HaveMath         = false;
@@ -701,6 +703,22 @@ CSelectedContent.prototype.SetLastSection = function(oSectPr)
 CSelectedContent.prototype.GetLastSection = function()
 {
 	return this.LastSection;
+};
+/**
+ * Сохранять значения нумерации
+ * @param {boolean} isSave
+ */
+CSelectedContent.prototype.SetSaveNumberingValues = function(isSave)
+{
+	this.SaveNumberingValues = isSave;
+};
+/**
+ * Заппрашиваем, нужно ли сохранять расчитанные значения нумерации
+ * @returns {boolean}
+ */
+CSelectedContent.prototype.IsSaveNumberingValues = function()
+{
+	return this.SaveNumberingValues;
 };
 
 
@@ -7590,9 +7608,10 @@ CDocument.prototype.OnEndTextDrag = function(NearPos, bCopy)
 /**
  * В данной функции мы получаем выделенную часть документа в формате класса CSelectedContent.
  * @param bUseHistory - нужна ли запись в историю созданных классов. (при drag-n-drop нужна, при копировании не нужна)
+ * @param oPr {{SaveNumberingValues : boolean}} дополнительные настройки
  * @returns {CSelectedContent}
  */
-CDocument.prototype.GetSelectedContent = function(bUseHistory)
+CDocument.prototype.GetSelectedContent = function(bUseHistory, oPr)
 {
 	// При копировании нам не нужно, чтобы новые классы помечались как созданные в рецензировании, а при перетаскивании
 	// нужно.
@@ -7610,6 +7629,13 @@ CDocument.prototype.GetSelectedContent = function(bUseHistory)
 	}
 
 	var oSelectedContent = new CSelectedContent();
+
+	if (oPr)
+	{
+		if (undefined !== oPr.SaveNumberingValues)
+			oSelectedContent.SetSaveNumberingValues(oPr.SaveNumberingValues);
+	}
+
 	oSelectedContent.SetMoveTrack(isTrack, this.TrackMoveId);
 	this.Controller.GetSelectedContent(oSelectedContent);
 	oSelectedContent.On_EndCollectElements(this, false);

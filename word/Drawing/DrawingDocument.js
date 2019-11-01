@@ -9011,11 +9011,14 @@ function CDrawingDocument()
             };
 
             var _srcDoc = this.m_oLogicDocument;
+            var _isTrackRevision = this.m_oLogicDocument.IsTrackRevisions();
+            if (_isTrackRevision)
+            	this.m_oLogicDocument.SetTrackRevisions(false);
             var _document = new CDocument(_drDocument, false);
             var _srcDrawngObjects = _srcDoc.DrawingObjects;
             _srcDoc.DrawingObjects = _document.DrawingObjects;
 
-            var _selection = _srcDoc.GetSelectedContent(false);
+            var _selection = _srcDoc.GetSelectedContent(false, {SaveNumberingValues : true});
             _drDocument.m_oLogicDocument = _document;
             AscCommon.History.Document = _srcDoc;
             var _paragraph = _document.GetCurrentParagraph();
@@ -9041,7 +9044,15 @@ function CDrawingDocument()
             for (var i = 0; i < _selection.DrawingObjects.length; i++)
                 _document.DrawingObjects.addGraphicObject(_selection.DrawingObjects[i]);
 
-            _document.Insert_Content(_selection, _nearpos);
+            if (_selection.Elements.length)
+			{
+				_document.RemoveFromContent(0, _document.Content.length, false);
+				for (var i = 0, count = _selection.Elements.length; i < count; i++)
+				{
+					_document.AddToContent(i, _selection.Elements[i].Element, false);
+				}
+			}
+
             _document.UpdateAllSectionsInfo();
 
             var old = window["NATIVE_EDITOR_ENJINE_SYNC_RECALC"];
@@ -9054,6 +9065,9 @@ function CDrawingDocument()
             _srcDoc.DrawingObjects = _srcDrawngObjects;
 
             this.printedDocument = _document;
+
+            if (_isTrackRevision)
+            	this.m_oLogicDocument.SetTrackRevisions(true);
         }
         catch (err)
         {

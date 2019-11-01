@@ -167,12 +167,17 @@ ParaComment.prototype =
     {
     },
 
-    Can_AddDropCap : function()
+    CanAddDropCap : function()
     {
         return null;
     },
 
-    Get_TextForDropCap : function(DropCapText, UseContentPos, ContentPos, Depth)
+	CheckSelectionForDropCap : function(isUsePos, oEndPos, nDepth)
+	{
+		return true;
+	},
+
+	Get_TextForDropCap : function(DropCapText, UseContentPos, ContentPos, Depth)
     {
     },
 
