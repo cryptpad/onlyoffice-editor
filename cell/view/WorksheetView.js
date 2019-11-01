@@ -18506,7 +18506,7 @@
 						}
 
 						var fromCollapsed = this._getGroupCollapsed(collapsedFrom, bCol);
-						if(fromCollapsed !== this._getGroupCollapsed(collapsedTo, bCol)) {
+						if(fromCollapsed !== this._getGroupCollapsed(collapsedTo, bCol) && collapsedTo > 0 && collapsedFrom > 0) {
 							collapsedIndexes[collapsedTo] = fromCollapsed;
 						}
 					}
