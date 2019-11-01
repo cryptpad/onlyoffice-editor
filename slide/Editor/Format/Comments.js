@@ -1212,5 +1212,7 @@ window['AscCommon'].comment_type_HdrFtr = comment_type_HdrFtr;
 window['AscCommon'].CCommentData = CCommentData;
 window['AscCommon'].CComment = CComment;
 window['AscCommon'].ParaComment = ParaComment;
+window['AscCommon'].CCommentAuthor = CCommentAuthor;
+window['AscCommon'].CWriteCommentData = CWriteCommentData;
 
 })(window);

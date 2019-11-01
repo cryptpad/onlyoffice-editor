@@ -11570,7 +11570,7 @@ CPresentation.prototype =
             var _author = this.CommentAuthors[_autID];
             if (!_author)
             {
-                this.CommentAuthors[_autID] = new CCommentAuthor();
+                this.CommentAuthors[_autID] = new AscCommon.CCommentAuthor();
                 _author = this.CommentAuthors[_autID];
                 _author.Name = _data.m_sUserName;
                 _author.Calculate();
@@ -11582,7 +11582,7 @@ CPresentation.prototype =
             _author.LastId++;
             _commId = _author.LastId;
 
-            var _new_data = new CWriteCommentData();
+            var _new_data = new AscCommon.CWriteCommentData();
             _new_data.Data = _data;
             _new_data.WriteAuthorId = _author.Id;
             _new_data.WriteCommentId = _commId;
@@ -11605,7 +11605,7 @@ CPresentation.prototype =
                 var _author2 = this.CommentAuthors[_autID2];
                 if (!_author2)
                 {
-                    this.CommentAuthors[_autID2] = new CCommentAuthor();
+                    this.CommentAuthors[_autID2] = new AscCommon.CCommentAuthor();
                     _author2 = this.CommentAuthors[_autID2];
                     _author2.Name = _data2.m_sUserName;
                     _author2.Calculate();
@@ -11616,7 +11616,7 @@ CPresentation.prototype =
 
                 _author2.LastId++;
 
-                var _new_data2 = new CWriteCommentData();
+                var _new_data2 = new AscCommon.CWriteCommentData();
                 _new_data2.Data = _data2;
                 _new_data2.WriteAuthorId = _author2.Id;
                 _new_data2.WriteCommentId = _author2.LastId;
