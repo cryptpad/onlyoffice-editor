@@ -2244,6 +2244,9 @@
 
 			res.FitToPage = this.FitToPage;
 
+			res.SummaryBelow = this.SummaryBelow;
+			res.SummaryRight = this.SummaryRight;
+
 			return res;
 		};
 
