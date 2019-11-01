@@ -3699,7 +3699,7 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
 
 					isHiddenCFPart = PRS.ComplexFields.IsComplexFieldCode();
 
-					if (Item.IsSeparate())
+					if (Item.IsSeparate() && !isHiddenCFPart)
 					{
 						// Специальная ветка, для полей PAGE и NUMPAGES, находящихся в колонтитуле
 						var oComplexField = Item.GetComplexField();
@@ -3716,17 +3716,26 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
 						if (oHdrFtr && oComplexField)
 						{
 							var oInstruction = oComplexField.GetInstruction();
-							if (oInstruction && (fieldtype_NUMPAGES === oInstruction.GetType() || fieldtype_PAGE === oInstruction.GetType()))
+							if (oInstruction && (fieldtype_NUMPAGES === oInstruction.GetType() || fieldtype_PAGE === oInstruction.GetType() || fieldtype_FORMULA === oInstruction.GetType()))
 							{
 								if (fieldtype_NUMPAGES === oInstruction.GetType())
 								{
 									oHdrFtr.Add_PageCountElement(Item);
 								}
-								else
+								else if (fieldtype_PAGE === oInstruction.GetType())
 								{
 									var LogicDocument = Para.LogicDocument;
 									var SectionPage   = LogicDocument.Get_SectionPageNumInfo2(Para.Get_AbsolutePage(PRS.Page)).CurPage;
 									Item.SetNumValue(SectionPage);
+								}
+								else
+								{
+									var sValue = oComplexField.CalculateValue();
+									var nValue = parseInt(sValue);
+									if (isNaN(nValue))
+										nValue = 0;
+
+									Item.SetNumValue(nValue);
 								}
 							}
 
