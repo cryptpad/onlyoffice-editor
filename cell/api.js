@@ -3381,6 +3381,10 @@ var editor;
     this.asc_nextWord();
   };
 
+  spreadsheet_api.prototype.asc_cancelSpellCheck = function() {
+    this.cleanSpelling();
+  }
+  
   // Frozen pane
   spreadsheet_api.prototype.asc_freezePane = function () {
     this.wb.getWorksheet().freezePane();
@@ -4497,6 +4501,7 @@ var editor;
   prot["asc_ignoreMisspelledWord"] = prot.asc_ignoreMisspelledWord;
   prot["asc_spellCheckAddToDictionary"] = prot.asc_spellCheckAddToDictionary;
   prot["asc_spellCheckClearDictionary"] = prot.asc_spellCheckClearDictionary;
+  prot["asc_cancelSpellCheck"] = prot.asc_cancelSpellCheck;
 
   // Frozen pane
   prot["asc_freezePane"] = prot.asc_freezePane;
