@@ -8400,7 +8400,7 @@ CTable.prototype.Get_TableStyleColBandSize = function()
 };
 CTable.prototype.Get_ShapeStyleForPara = function()
 {
-	return this.Parent.Get_ShapeStyleForPara();
+	return this.Parent ? this.Parent.Get_ShapeStyleForPara() : null;
 };
 CTable.prototype.Set_TableW = function(Type, W)
 {

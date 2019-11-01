@@ -1786,20 +1786,23 @@ CTableCell.prototype =
     },
 
     Read_FromBinary2 : function(Reader)
-    {
-        // String   : Id ячейки
-        // Variable : TableCell.Pr
-        // String   : Id DocumentContent
+	{
+		// String   : Id ячейки
+		// Variable : TableCell.Pr
+		// String   : Id DocumentContent
 
-        this.Id = Reader.GetString2();
-        this.Pr = new CTableCellPr();
-        this.Pr.Read_FromBinary( Reader );
-        this.Recalc_CompiledPr();
+		this.Id = Reader.GetString2();
+		this.Pr = new CTableCellPr();
+		this.Pr.Read_FromBinary(Reader);
+		this.Recalc_CompiledPr();
 
-        this.Content = AscCommon.g_oTableId.Get_ById( Reader.GetString2() );
+		this.Content = AscCommon.g_oTableId.Get_ById(Reader.GetString2());
 
-        AscCommon.CollaborativeEditing.Add_NewObject( this );
-    },
+		if (this.Content)
+			this.Content.Parent = this;
+
+		AscCommon.CollaborativeEditing.Add_NewObject(this);
+	},
 
     Load_LinkData : function(LinkData)
     {

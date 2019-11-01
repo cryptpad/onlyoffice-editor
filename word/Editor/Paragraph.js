@@ -8871,7 +8871,11 @@ Paragraph.prototype.private_CompileParaPr = function(isForce)
 			this.PresentationPr.Bullet = this.CompiledPr.Pr.ParaPr.Get_PresentationBullet(this.Get_Theme(), this.Get_ColorMap());
 			this.Numbering.Bullet      = this.PresentationPr.Bullet;
 		}
-		this.CompiledPr.NeedRecalc = false;
+
+		if (isForce && (true === AscCommon.g_oIdCounter.m_bLoad || true === AscCommon.g_oIdCounter.m_bRead))
+			this.CompiledPr.NeedRecalc = true;
+		else
+			this.CompiledPr.NeedRecalc = false;
 	}
 	else
 	{
