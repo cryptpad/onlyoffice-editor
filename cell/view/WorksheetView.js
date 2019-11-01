@@ -18493,12 +18493,14 @@
 
 		var modelSort, dataHasHeaders, columnSort;
 		var tables = t.model.autoFilters.getTableIntersectionRange(selection);
+		var filterInside;
 		if(tables && tables.length) {
 			if(tables && tables && tables.length === 1 && tables[0].Ref.containsRange(selection)) {
 				selection = tables[0].getRangeWithoutHeaderFooter();
 				columnSort = true;
 				dataHasHeaders = true;
 				modelSort = tables[0].SortState;
+				filterInside = true;
 			} else {
 				this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.LockedAllError, c_oAscError.Level.NoCritical);
 				return false;
@@ -18510,6 +18512,7 @@
 				columnSort = true;
 				dataHasHeaders = true;
 				modelSort = autoFilter.SortState;
+				filterInside = true;
 			} else {
 				this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.LockedAllError, c_oAscError.Level.NoCritical);
 				return false;
@@ -18545,6 +18548,7 @@
 		//заголовки
 		sortSettings.hasHeaders = dataHasHeaders;
 		sortSettings.columnSort = columnSort;
+		sortSettings.filterInside = filterInside;
 
 
 		var getSortLevel = function(sortCondition) {

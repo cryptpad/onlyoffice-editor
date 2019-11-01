@@ -8923,6 +8923,7 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		this.levels = null;
 
 		this.sortList = null;//массив, порядковый номер - его индекс в levels
+		this.filterInside = null;
 
 		this._ws = ws;
 
@@ -8940,6 +8941,9 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	};
 	CSortProperties.prototype.asc_getSortList = function () {
 		return this.sortList;
+	};
+	CSortProperties.prototype.asc_getFilterInside = function () {
+		return this.filterInside;
 	};
 
 	CSortProperties.prototype.asc_setHasHeaders = function (val) {
@@ -9351,6 +9355,7 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	prot["asc_setColumnSort"] = prot.asc_setColumnSort;
 	prot["asc_getLevelProps"] = prot.asc_getLevelProps;
 	prot["asc_setLevels"] = prot.asc_setLevels;
+	prot["asc_getFilterInside"] = prot.asc_getFilterInside;
 
 	window["Asc"]["CSortPropertiesLevel"] = window["Asc"].CSortPropertiesLevel = CSortPropertiesLevel;
 	prot = CSortPropertiesLevel.prototype;
