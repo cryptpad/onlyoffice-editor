@@ -1970,7 +1970,17 @@ function trimString( str ){
     return str.replace(/^\s+|\s+$/g, '') ;
 }
 function sendImgUrls(api, images, callback, bExcel, bNotShowError, token) {
-
+  if (window["NATIVE_EDITOR_ENJINE"] === true && window["IS_NATIVE_EDITOR"] !== true)
+  {
+    var _data = [];
+    for (var i = 0; i < images.length; i++)
+    {
+      var _url = window["native"]["getImageUrl"](images[i]);
+      _data[i] = {url:images[i], path:("media/" + _url)};
+    }
+    callback(_data);
+    return;
+  }
   if (window["AscDesktopEditor"])
   {
     // correct local images
