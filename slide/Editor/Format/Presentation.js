@@ -6137,6 +6137,7 @@ CPresentation.prototype =
     GetTableStyleIdMap : function(oMap)
     {
         var oSlide;
+        var oObjectsMap = {};
         for(var i = 0; i < this.Slides.length; ++i)
         {
             oSlide = this.Slides[i];
@@ -6144,6 +6145,22 @@ CPresentation.prototype =
             if(oSlide.notes)
             {
                 this.CollectStyleId(oMap, oSlide.notes.cSld.spTree);
+            }
+            if(oSlide.Layout)
+            {
+                if(!oObjectsMap[oSlide.Layout.Id])
+                {
+                    this.CollectStyleId(oMap, oSlide.Layout.cSld.spTree);
+                    oObjectsMap[oSlide.Layout.Id] = true;
+                }
+                if(oSlide.Layout.Master)
+                {
+                    if(!oObjectsMap[oSlide.Layout.Master.Id])
+                    {
+                        this.CollectStyleId(oMap, oSlide.Layout.Master.cSld.spTree);
+                        oObjectsMap[oSlide.Layout.Master.Id] = true;
+                    }
+                }
             }
         }
     },
