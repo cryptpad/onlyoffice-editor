@@ -1243,9 +1243,6 @@ CDocumentContent.prototype.Draw                           = function(nPageIndex,
         pGraphics.AddClipRect(ClipInfo.X0, Bounds.Top - Correction, Math.abs(ClipInfo.X1 - ClipInfo.X0), Bounds.Bottom - Bounds.Top + Correction);
     }
 
-    if (this.LogicDocument)
-        this.LogicDocument.DrawingObjects.drawBehindObjectsByContent(this.Get_AbsolutePage(CurPage), pGraphics, this);
-
     var Page_StartPos = this.Pages[CurPage].Pos;
     var Page_EndPos   = this.Pages[CurPage].EndPos;
     for (var Index = Page_StartPos; Index <= Page_EndPos; Index++)
