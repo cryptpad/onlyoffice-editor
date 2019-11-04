@@ -11383,6 +11383,7 @@ CPresentation.prototype =
             var oSelectionState = oPresentation.Get_SelectionState2();
             var spTree = oSlide.cSld.spTree;
             var oLayout = oSlide.Layout;
+            var k = 0;
             for(var i = spTree.length - 1; i > -1; i--)
             {
                 var oSp = spTree[i];
@@ -11390,7 +11391,8 @@ CPresentation.prototype =
                 {
                     oSlide.removeFromSpTreeByPos(i);
                     oSp.setParent(oLayout);
-                    oLayout.shapeAdd(oLayout.cSld.spTree.length, oSp);
+                    oLayout.shapeAdd(oLayout.cSld.spTree.length - k, oSp);
+                    ++k;
                 }
             }
             oPresentation.Set_SelectionState2(oSelectionState);
