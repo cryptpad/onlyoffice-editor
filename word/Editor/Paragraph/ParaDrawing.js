@@ -2574,6 +2574,16 @@ ParaDrawing.prototype.setParagraphStyle = function(style)
 	if (isRealObject(this.GraphicObj) && typeof  this.GraphicObj.setParagraphStyle === "function")
 		this.GraphicObj.setParagraphStyle(style);
 };
+
+ParaDrawing.prototype.CopyComments = function()
+{
+	if(!this.GraphicObj)
+	{
+		return;
+	}
+	this.GraphicObj.copyComments(this.LogicDocument);
+};
+
 ParaDrawing.prototype.copy = function()
 {
 	var c = new ParaDrawing(this.Extent.W, this.Extent.H, null, editor.WordControl.m_oLogicDocument.DrawingDocument, null, null);
