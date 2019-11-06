@@ -3184,6 +3184,7 @@
 	window['AscDFH'].historydescription_Document_AddContentControlDatePicker        = 0x016d;
 	window['AscDFH'].historydescription_Document_SetContentControlDatePickerPr      = 0x016e;
 	window['AscDFH'].historydescription_Presentation_AddToLayout                    = 0x016f;
+	window['AscDFH'].historydescription_Presentation_FitImagesToSlide               = 0x0170;
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

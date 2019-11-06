@@ -11482,6 +11482,16 @@ CPresentation.prototype =
         return oCurrentController.cropFill();
     },
 
+    FitImagesToSlide: function()
+    {
+        var oCurrentController = this.GetCurrentController();
+        if(!oCurrentController)
+        {
+            return;
+        }
+        oCurrentController.fitImagesToSlide();
+    },
+
     AddTextArt: function(nStyle)
     {
         if(this.Slides[this.CurPage])
