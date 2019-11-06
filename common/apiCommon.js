@@ -2765,30 +2765,6 @@
 			{
 				return new asc_CImageSize(50, 50, false);
 			}
-			var _section_select;
-			if(api.WordControl && api.WordControl.m_oLogicDocument)
-			{
-				_section_select = api.WordControl.m_oLogicDocument.Get_PageSizesByDrawingObjects();
-			}
-			var _page_width = AscCommon.Page_Width;
-			var _page_height = AscCommon.Page_Height;
-			var _page_x_left_margin = AscCommon.X_Left_Margin;
-			var _page_y_top_margin = AscCommon.Y_Top_Margin;
-			var _page_x_right_margin = AscCommon.X_Right_Margin;
-			var _page_y_bottom_margin = AscCommon.Y_Bottom_Margin;
-
-			if (_section_select)
-			{
-				if (_section_select.W)
-				{
-					_page_width = _section_select.W;
-				}
-
-				if (_section_select.H)
-				{
-					_page_height = _section_select.H;
-				}
-			}
 
 			var origW = 0;
 			var origH = 0;
@@ -2810,29 +2786,10 @@
 
 			if (origW != 0 && origH != 0)
 			{
-				var _w = Math.max(1, _page_width - (_page_x_left_margin + _page_x_right_margin));
-				var _h = Math.max(1, _page_height - (_page_y_top_margin + _page_y_bottom_margin));
-
-				var bIsCorrect = false;
-
 				var __w = Math.max((origW * AscCommon.g_dKoef_pix_to_mm), 1);
 				var __h = Math.max((origH * AscCommon.g_dKoef_pix_to_mm), 1);
 
-				var dKoef = Math.max(__w / _w, __h / _h);
-				if (dKoef > 1)
-				{
-					_w = Math.max(5, __w / dKoef);
-					_h = Math.max(5, __h / dKoef);
-
-					bIsCorrect = true;
-				}
-				else
-				{
-					_w = __w;
-					_h = __h;
-				}
-
-				return new asc_CImageSize(_w, _h, bIsCorrect);
+				return new asc_CImageSize(__w, __h, true);
 			}
 			return new asc_CImageSize(50, 50, false);
 		},
