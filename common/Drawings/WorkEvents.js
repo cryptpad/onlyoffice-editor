@@ -475,15 +475,19 @@
 
 	function Window_OnMouseMove(e)
 	{
-		if (!global_mouseEvent.IsLocked)
+		if (!global_mouseEvent.IsLocked || !global_mouseEvent.Sender)
 			return;
 
-        var _type = isUsePointerEvents ? "onpointermove" : "onmousemove";
-		if (global_mouseEvent.Sender && global_mouseEvent.Sender[_type])
+        var types = isUsePointerEvents ? ["onpointermove", "onmousemove"] : ["onmousemove", "onpointermove"];
+        for (var i = 0; i < 2; i++)
 		{
-			global_mouseEvent.IsLockedEvent = true;
-			global_mouseEvent.Sender[_type](e);
-			global_mouseEvent.IsLockedEvent = false;
+            if (global_mouseEvent.Sender[types[i]])
+            {
+                global_mouseEvent.IsLockedEvent = true;
+                global_mouseEvent.Sender[types[i]](e);
+                global_mouseEvent.IsLockedEvent = false;
+                break;
+            }
 		}
 	}
 
@@ -492,16 +496,19 @@
 		if (false === MouseUpLock.MouseUpLockedSend)
 		{
 			MouseUpLock.MouseUpLockedSend = true;
-			if (global_mouseEvent.IsLocked)
+			if (global_mouseEvent.IsLocked && global_mouseEvent.Sender)
 			{
-                var _type = isUsePointerEvents ? "onpointerup" : "onmouseup";
-                if (global_mouseEvent.Sender && global_mouseEvent.Sender[_type])
-				{
-					global_mouseEvent.Sender[_type](e, true);
-
-					if (global_mouseEvent.IsLocked) // не все хотят пользоваться локами
-						global_mouseEvent.UnLockMouse();
-				}
+                var types = isUsePointerEvents ? ["onpointerup", "onmouseup"] : ["onmouseup", "onpointerup"];
+                for (var i = 0; i < 2; i++)
+                {
+                    if (global_mouseEvent.Sender[types[i]])
+                    {
+                        global_mouseEvent.Sender[types[i]](e, true);
+                        if (global_mouseEvent.IsLocked)
+                        	global_mouseEvent.UnLockMouse();
+                        break;
+                    }
+                }
 			}
 		}
 
