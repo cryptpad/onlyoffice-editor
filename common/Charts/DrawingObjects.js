@@ -3669,20 +3669,9 @@ function DrawingObjects() {
             if(selectedObjects[0].isImage()){
                 var imageUrl = selectedObjects[0].getImageUrl();
 
-                var _image = api.ImageLoader.map_image_index[AscCommon.getFullImageSrc2(imageUrl)];
-                if (_image != undefined && _image.Image != null && _image.Status == AscFonts.ImageLoadStatus.Complete) {
-
-                    var _w = 1, _h = 1;
-                    var bIsCorrect = false;
-                    if (_image.Image != null) {
-
-                        bIsCorrect = true;
-                        _w = Math.max( pxToMm(_image.Image.width), 1 );
-                        _h = Math.max( pxToMm(_image.Image.height), 1 );
-                    }
-
-                    return new AscCommon.asc_CImageSize( _w, _h, bIsCorrect);
-                }
+                var oImagePr = new Asc.asc_CImgProperty();
+                oImagePr.asc_putImageUrl(imageUrl);
+                return oImagePr.asc_getOriginSize(api);
             }
         }
         return new AscCommon.asc_CImageSize( 50, 50, false );
