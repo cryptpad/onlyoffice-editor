@@ -557,42 +557,35 @@ function CEditorPage(api)
 		this.arrayEventHandlers[1] = new AscCommon.button_eventHandlers("", "0px 0px", "0px -16px", "0px -32px", this.m_oPanelRight_buttonPrevPage, this.onPrevPage);
 		this.arrayEventHandlers[2] = new AscCommon.button_eventHandlers("", "0px -48px", "0px -64px", "0px -80px", this.m_oPanelRight_buttonNextPage, this.onNextPage);
 
-		this.m_oLeftRuler_buttonsTabs.HtmlElement.onclick = this.onButtonTabsClick;//new Function("onButtonTabsClick();");
+		this.m_oLeftRuler_buttonsTabs.HtmlElement.onclick = this.onButtonTabsClick;
 
-		this.m_oEditor.HtmlElement.onmousedown = this.onMouseDown;//new Function("event", "return Editor_OnMouseDown(event);");
-		this.m_oEditor.HtmlElement.onmousemove = this.onMouseMove;//new Function("event", "return Editor_OnMouseMove(event);");
-		this.m_oEditor.HtmlElement.onmouseup   = this.onMouseUp;//new Function("event", "return Editor_OnMouseUp(event);");
+        AscCommon.addMouseEvent(this.m_oEditor.HtmlElement, "down", this.onMouseDown);
+        AscCommon.addMouseEvent(this.m_oEditor.HtmlElement, "move", this.onMouseMove);
+        AscCommon.addMouseEvent(this.m_oEditor.HtmlElement, "up", this.onMouseUp);
 
-		this.m_oOverlay.HtmlElement.onmousedown = this.onMouseDown;//new Function("event", "return Editor_OnMouseDown(event);");
-		this.m_oOverlay.HtmlElement.onmousemove = this.onMouseMove;//new Function("event", "return Editor_OnMouseMove(event);");
-		this.m_oOverlay.HtmlElement.onmouseup   = this.onMouseUp;//new Function("event", "return Editor_OnMouseUp(event);");
+        AscCommon.addMouseEvent(this.m_oOverlay.HtmlElement, "down", this.onMouseDown);
+        AscCommon.addMouseEvent(this.m_oOverlay.HtmlElement, "move", this.onMouseMove);
+        AscCommon.addMouseEvent(this.m_oOverlay.HtmlElement, "up", this.onMouseUp);
 
 		var _cur         = document.getElementById('id_target_cursor');
-		_cur.onmousedown = this.onMouseDown;//new Function("event", "return Editor_OnMouseDown(event);");
-		_cur.onmousemove = this.onMouseMove;//new Function("event", "return Editor_OnMouseMove(event);");
-		_cur.onmouseup   = this.onMouseUp;//new Function("event", "return Editor_OnMouseUp(event);");
+        AscCommon.addMouseEvent(_cur, "down", this.onMouseDown);
+        AscCommon.addMouseEvent(_cur, "move", this.onMouseMove);
+        AscCommon.addMouseEvent(_cur, "up", this.onMouseUp);
 
-		this.m_oMainContent.HtmlElement.onmousewheel = this.onMouseWhell;//new Function("event", "return Editor_OnMouseWhell(event);");
+		this.m_oMainContent.HtmlElement.onmousewheel = this.onMouseWhell;
 		if (this.m_oMainContent.HtmlElement.addEventListener)
 		{
 			//this.m_oMainContent.HtmlElement.addEventListener("DOMMouseScroll", new Function("event", "return Editor_OnMouseWhell(event);"), false);
 			this.m_oMainContent.HtmlElement.addEventListener("DOMMouseScroll", this.onMouseWhell, false);
 		}
 
-		this.m_oTopRuler_horRuler.HtmlElement.onmousedown = this.horRulerMouseDown;//new Function("event", "horRulerMouseDown(event);");
-		this.m_oTopRuler_horRuler.HtmlElement.onmouseup   = this.horRulerMouseUp;//new Function("event", "horRulerMouseUp(event);");
-		this.m_oTopRuler_horRuler.HtmlElement.onmousemove = this.horRulerMouseMove;//new Function("event", "horRulerMouseMove(event);");
+        AscCommon.addMouseEvent(this.m_oTopRuler_horRuler.HtmlElement, "down", this.horRulerMouseDown);
+        AscCommon.addMouseEvent(this.m_oTopRuler_horRuler.HtmlElement, "move", this.horRulerMouseMove);
+        AscCommon.addMouseEvent(this.m_oTopRuler_horRuler.HtmlElement, "up", this.horRulerMouseUp);
 
-		this.m_oLeftRuler_vertRuler.HtmlElement.onmousedown = this.verRulerMouseDown;//new Function("event", "verRulerMouseDown(event);");
-		this.m_oLeftRuler_vertRuler.HtmlElement.onmouseup   = this.verRulerMouseUp;//new Function("event", "verRulerMouseUp(event);");
-		this.m_oLeftRuler_vertRuler.HtmlElement.onmousemove = this.verRulerMouseMove;//new Function("event", "verRulerMouseMove(event);");
-
-		/*
-		 // теперь все делает AscCommon.InitBrowserSystemContext
-		 window.onkeydown = this.onKeyDown;//Editor_OnKeyDown;
-		 window.onkeypress = this.onKeyPress;//Editor_OnKeyPress;
-		 window.onkeyup = this.onKeyUp;
-		 */
+        AscCommon.addMouseEvent(this.m_oLeftRuler_vertRuler.HtmlElement, "down", this.verRulerMouseDown);
+        AscCommon.addMouseEvent(this.m_oLeftRuler_vertRuler.HtmlElement, "move", this.verRulerMouseMove);
+        AscCommon.addMouseEvent(this.m_oLeftRuler_vertRuler.HtmlElement, "up", this.verRulerMouseUp);
 
 		this.m_oBody.HtmlElement.oncontextmenu = function(e)
 		{
