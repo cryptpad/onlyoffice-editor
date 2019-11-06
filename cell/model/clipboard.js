@@ -2545,7 +2545,12 @@
 			
 			_checkPasteFromBinaryExcel: function(worksheet, isWriteError, insertWorksheet)
 			{
-				var activeCellsPasteFragment = AscCommonExcel.g_oRangeCache.getAscRange(this.activeRange);
+				var t = this;
+				var activeCellsPasteFragment = false;
+				AscCommonExcel.executeInR1C1Mode(false, function () {
+					activeCellsPasteFragment = AscCommonExcel.g_oRangeCache.getAscRange(t.activeRange);
+				});
+
 				var lastRange = worksheet.model.selectionRange.getLast();
 				var rMax = (activeCellsPasteFragment.r2 - activeCellsPasteFragment.r1) + lastRange.r1;
 				var cMax = (activeCellsPasteFragment.c2 - activeCellsPasteFragment.c1) + lastRange.c1;

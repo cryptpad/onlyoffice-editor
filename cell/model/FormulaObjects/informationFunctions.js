@@ -564,16 +564,16 @@
 				res = arg0;
 			} else {
 				if (arg0.ws) {
-					res = new cNumber(arg0.ws.nSheetId);
+					res = new cNumber(arg0.ws.index + 1);
 				} else if (arg0.wsFrom) {
-					var sheet1 = arg0.wsFrom.nSheetId;
-					var sheet2 = arg0.wsTo.nSheetId;
+					var sheet1 = arg0.wsFrom.index + 1;
+					var sheet2 = arg0.wsTo.index + 1;
 					res = new cNumber(Math.min(sheet1, sheet2));
 				} else if (cElementType.string === arg0.type) {
 					var arg0Val = arg0.getValue();
 					var curWorksheet = ws.workbook.getWorksheetByName(arg0Val);
-					if (curWorksheet && undefined !== curWorksheet.nSheetId) {
-						res = new cNumber(curWorksheet.nSheetId);
+					if (curWorksheet && undefined !== curWorksheet.index) {
+						res = new cNumber(curWorksheet.index + 1);
 					}
 				}
 			}

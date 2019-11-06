@@ -1021,8 +1021,8 @@ function handleChartElements(drawing, drawingObjectsController, e, dTx, dTy, gro
 					var oAxObj = t.catAxisChart[j];
 					if(oAxObj && oAxObj.paths)
 					{
-						if(oAxObj.catAx.compiledMajorGridLines && oAxObj.catAx.compiledMajorGridLines.isVisible()
-							&& AscFormat.isRealNumber(oAxObj.paths.gridLines))
+						if(oAxObj.catAx && oAxObj.catAx.compiledMajorGridLines && oAxObj.catAx.compiledMajorGridLines.isVisible()
+							&& AscFormat.isRealNumber(oAxObj.paths.gridLines))//TODo Date Ax vehicle log book1.xlsx
 						{
 							var oPath = drawing.pathMemory.GetPath(oAxObj.paths.gridLines);
 							if(oPath.hitInPath(oCanvas, dTx, dTy))
@@ -1036,7 +1036,7 @@ function handleChartElements(drawing, drawingObjectsController, e, dTx, dTy, gro
 								break;
 							}
 						}
-						if(!bSeries && oAxObj.catAx.compiledMinorGridLines && oAxObj.catAx.compiledMinorGridLines.isVisible()
+						if(!bSeries && oAxObj.catAx && oAxObj.catAx.compiledMinorGridLines && oAxObj.catAx.compiledMinorGridLines.isVisible()
 							&& AscFormat.isRealNumber(oAxObj.paths.minorGridLines))
 						{
 							var oPath = drawing.pathMemory.GetPath(oAxObj.paths.minorGridLines);

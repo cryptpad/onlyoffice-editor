@@ -31,6 +31,11 @@
  */
 
 "use strict";
+(/**
+ * @param {Window} window
+ * @param {undefined} undefined
+ */
+    function (window, undefined) {
 
 // Import
 var g_oTableId = AscCommon.g_oTableId;
@@ -508,6 +513,10 @@ function CComment(Parent, Data)
     // Добавляем данный класс в таблицу Id (обязательно в конце конструктора)
     g_oTableId.Add( this, this.Id );
 }
+CComment.prototype.GetId = function()
+{
+	return this.Id;
+};
 CComment.prototype.GetData = function()
 {
 	return this.Data;
@@ -529,6 +538,21 @@ CComment.prototype.GetDurableId = function()
 		return this.Data.m_nDurableId;
 
 	return -1;
+};
+/**
+ * Является ли текущий пользователем автором комментария
+ * @returns {boolean}
+ */
+CComment.prototype.IsCurrentUser = function()
+{
+	var oEditor = editor;
+	if (oEditor && oEditor.DocInfo && this.Data)
+	{
+		var sUserId = oEditor.DocInfo.get_UserId();
+		return (sUserId === this.Data.m_sUserId);
+	}
+
+	return true;
 };
 
 var comments_NoComment        = 0;
@@ -717,6 +741,25 @@ CComments.prototype.GetCommentIdByGuid = function(sGuid)
 
 	return "";
 };
+CComments.prototype.Document_Is_SelectionLocked = function(Id)
+{
+	if (Id instanceof Array)
+	{
+		for (var nIndex = 0, nCount = Id.length; nIndex < nCount; ++nIndex)
+		{
+			var sId = Id[nIndex];
+			var oComment = this.Get_ById(sId);
+			if (oComment)
+				oComment.Lock.Check(oComment.GetId());
+		}
+	}
+	else
+	{
+		var oComment = this.Get_ById(Id);
+		if (oComment)
+			oComment.Lock.Check(oComment.GetId());
+	}
+};
 
 /**
  * Класс для элемента начала/конца комментария в параграфе
@@ -779,7 +822,7 @@ ParaComment.prototype.Recalculate_Range_Spaces = function(PRSA, CurLine, CurRang
 	var X    = PRSA.X;
 	var Y    = Para.Pages[CurPage].Y + Para.Lines[CurLine].Y - Para.Lines[CurLine].Metrics.Ascent;
 	var H    = Para.Lines[CurLine].Metrics.Ascent + Para.Lines[CurLine].Metrics.Descent;
-	var Page = Para.Get_StartPage_Absolute() + CurPage;
+	var Page = Para.GetAbsolutePage(CurPage);
 
 	if (comment_type_HdrFtr === Comment.m_oTypeInfo.Type)
 	{
@@ -887,7 +930,16 @@ ParaComment.prototype.IsCommentStart = function()
 //--------------------------------------------------------export----------------------------------------------------
 window['AscCommon'] = window['AscCommon'] || {};
 
+window['AscCommon'].comments_NoComment = comments_NoComment;
+window['AscCommon'].comments_NonActiveComment = comments_NonActiveComment;
+window['AscCommon'].comments_ActiveComment = comments_ActiveComment;
+
+window['AscCommon'].comment_type_Common = comment_type_Common;
+window['AscCommon'].comment_type_HdrFtr = comment_type_HdrFtr;
+
 window['AscCommon'].CCommentData = CCommentData;
 window['AscCommon'].CComments    = CComments;
 window['AscCommon'].CComment     = CComment;
 window['AscCommon'].ParaComment  = ParaComment;
+
+})(window);

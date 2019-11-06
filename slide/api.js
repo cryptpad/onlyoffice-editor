@@ -1377,6 +1377,9 @@ background-repeat: no-repeat;\
                             </div>";
 		}
 
+		if (this.HtmlElement)
+			_innerHTML += this.HtmlElement.innerHTML;
+
 		if (this.HtmlElement != null)
 		{
 			this.HtmlElement.style.backgroundColor = AscCommonSlide.GlobalSkin.BackgroundColor;
@@ -1610,7 +1613,7 @@ background-repeat: no-repeat;\
 		this.sendEvent("asc_onVert", vert);
 	};
 
-	asc_docs_api.prototype.UpdateParagraphProp = function(ParaPr, bParaPr)
+	asc_docs_api.prototype.UpdateParagraphProp = function(ParaPr)
 	{
 
 		ParaPr.StyleName  = "";
@@ -1630,14 +1633,14 @@ background-repeat: no-repeat;\
 		ParaPr.SmallCaps   = TextPr.SmallCaps;
 		ParaPr.TextSpacing = TextPr.Spacing;
 		ParaPr.Position    = TextPr.Position;
+		ParaPr.Unifill     = TextPr.Unifill;
 		ParaPr.ListType = AscFormat.fGetListTypeFromBullet(ParaPr.Bullet);
 		this.sync_ParaSpacingLine(ParaPr.Spacing);
 		this.Update_ParaInd(ParaPr.Ind);
 		this.sync_PrAlignCallBack(ParaPr.Jc);
 		this.sync_ParaStyleName(ParaPr.StyleName);
 		this.sync_ListType(ParaPr.ListType);
-		if (!(bParaPr === true))
-			this.sync_PrPropCallback(ParaPr);
+		this.sync_PrPropCallback(ParaPr);
 	};
 	/*----------------------------------------------------------------*/
 	/*functions for working with clipboard, document*/
@@ -2622,6 +2625,11 @@ background-repeat: no-repeat;\
 
 				if (undefined != Props.Position)
 					TextPr.Position = Props.Position;
+
+				if(undefined != Props.BulletSize || undefined != Props.BulletColor || undefined != Props.NumStartAt)
+				{
+					graphicObjects.setParagraphNumbering(null, Props.BulletSize, Props.BulletColor, Props.NumStartAt)
+				}
 				graphicObjects.paragraphAdd(new AscCommonWord.ParaTextPr(TextPr));
 				_presentation.Recalculate();
 				_presentation.Document_UpdateInterfaceState();
@@ -2669,7 +2677,7 @@ background-repeat: no-repeat;\
 	 1.1.1         - SubType = 2
 	 маркированный - SubType = 3
 	 */
-	asc_docs_api.prototype.put_ListType = function(type, subtype)
+	asc_docs_api.prototype.put_ListType = function(type, subtype, fSize, oUnicolor, nNumStartAt)
 	{
 		var oPresentation = this.WordControl.m_oLogicDocument;
 		var sBullet = "";
@@ -2726,13 +2734,10 @@ background-repeat: no-repeat;\
 
 			var NumberInfo =
 			{
-				Type    : 0,
-				SubType : -1
+				Type     : type,
+				SubType  : subtype
 			};
-
-			NumberInfo.Type    = type;
-			NumberInfo.SubType = subtype;
-			oPresentation.SetParagraphNumbering(NumberInfo);
+			oPresentation.SetParagraphNumbering(NumberInfo, fSize, oUnicolor, nNumStartAt);
 		};
 		if(sBullet.length > 0)
 		{
@@ -3881,6 +3886,11 @@ background-repeat: no-repeat;\
 	{
 		this.asc_addImage();
 	};
+
+	asc_docs_api.prototype.asc_AddToLayout      = function()
+	{
+		this.WordControl.m_oLogicDocument.AddToLayout();
+	};
 	asc_docs_api.prototype.StartAddShape = function(prst, is_apply)
 	{
 		this.WordControl.m_oLogicDocument.StartAddShape(prst, is_apply);
@@ -4391,6 +4401,16 @@ background-repeat: no-repeat;\
 		}
 		return null;
 	};
+
+	asc_docs_api.prototype.asc_FitImagesToSlide   = function()
+	{
+		if(!this.WordControl || !this.WordControl.m_oLogicDocument)
+		{
+			return;
+		}
+		this.WordControl.m_oLogicDocument.FitImagesToSlide();
+	};
+
 	/*callbacks*/
 	asc_docs_api.prototype.sync_AddImageCallback = function()
 	{
@@ -4751,6 +4771,20 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype.asc_addComment = function(AscCommentData)
 	{
+		//if ( true === CollaborativeEditing.Get_GlobalLock() )
+		//   return;
+
+		if (null == this.WordControl.m_oLogicDocument) {
+			return;
+		}
+
+		var CommentData = new AscCommon.CCommentData();
+		CommentData.Read_FromAscCommentData(AscCommentData);
+
+		var Comment = this.WordControl.m_oLogicDocument.AddComment(CommentData, AscCommentData.asc_getDocumentFlag());
+		if (Comment) {
+			return Comment.Get_Id();
+		}
 	};
 
 	asc_docs_api.prototype.asc_getMasterCommentId = function()
@@ -4780,28 +4814,52 @@ background-repeat: no-repeat;\
 			return;
 		}
 		var bPresComments = (oComments === this.WordControl.m_oLogicDocument.comments);
-		var nCheckType = bPresComments ?  AscCommon.changestype_AddComment : AscCommon.changestype_MoveComment;
-		var oCheckData = bPresComments ? comment : Id;
-		if (this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(nCheckType, oCheckData, this.WordControl.m_oLogicDocument.IsEditCommentsMode()) === false)
+		var oCheckData = {
+			comment: comment,
+			slide: bPresComments ? null : oComments.slide
+		};
+		if (this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_MoveComment, [oCheckData], this.WordControl.m_oLogicDocument.IsEditCommentsMode()) === false)
 		{
 			this.WordControl.m_oLogicDocument.Create_NewHistoryPoint(AscDFH.historydescription_Presentation_RemoveComment);
 			this.WordControl.m_oLogicDocument.RemoveComment(Id, true);
 		}
 	};
 
+
+	//Remove All comments
+	asc_docs_api.prototype.asc_RemoveAllComments = function(isMine, isCurrent)
+	{
+
+		if (!this.WordControl.m_oLogicDocument)
+		{
+			return;
+		}
+		if(isCurrent)
+		{
+			this.WordControl.m_oLogicDocument.RemoveCurrentComment();
+		}
+		else
+		{
+			if(isMine)
+			{
+				this.WordControl.m_oLogicDocument.RemoveMyComments();
+			}
+			else
+			{
+				this.WordControl.m_oLogicDocument.RemoveAllComments();
+			}
+		}
+	};
+
+
 	asc_docs_api.prototype.asc_changeComment = function(Id, AscCommentData)
 	{
 		if (null == this.WordControl.m_oLogicDocument)
 			return;
 
-		//if ( false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(changestype_MoveComment, Id ) )
-		{
-			var CommentData = new AscCommon.CCommentData();
-			CommentData.Read_FromAscCommentData(AscCommentData);
-
-			this.WordControl.m_oLogicDocument.EditComment(Id, CommentData);
-
-		}
+		var CommentData = new AscCommon.CCommentData();
+		CommentData.Read_FromAscCommentData(AscCommentData);
+		this.WordControl.m_oLogicDocument.EditComment(Id, CommentData);
 	};
 
 	asc_docs_api.prototype.asc_selectComment = function(Id)
@@ -6197,6 +6255,13 @@ background-repeat: no-repeat;\
 
 		var _master = this.WordControl.MasterLayouts;
 		this.WordControl.m_oLogicDocument.changeLayout(_array, this.WordControl.MasterLayouts, layout_index);
+	};
+	asc_docs_api.prototype.ResetSlide = function()
+	{
+		var _array = this.WordControl.m_oLogicDocument.GetSelectedSlides();
+
+		var _master = this.WordControl.MasterLayouts;
+		this.WordControl.m_oLogicDocument.changeLayout(_array, this.WordControl.MasterLayouts, undefined);
 	};
 
 	asc_docs_api.prototype.put_ShapesAlign = function(type, alignType)
@@ -7753,6 +7818,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['ChangeArtImageFromFile']              = asc_docs_api.prototype.ChangeArtImageFromFile;
 	asc_docs_api.prototype['AddImage']                            = asc_docs_api.prototype.AddImage;
 	asc_docs_api.prototype['asc_addImage']                        = asc_docs_api.prototype.asc_addImage;
+	asc_docs_api.prototype['asc_AddToLayout']                     = asc_docs_api.prototype.asc_AddToLayout;
 	asc_docs_api.prototype['StartAddShape']                       = asc_docs_api.prototype.StartAddShape;
 	asc_docs_api.prototype['AddTextArt']                          = asc_docs_api.prototype.AddTextArt;
 	asc_docs_api.prototype['asc_canEditCrop']                     = asc_docs_api.prototype.asc_canEditCrop;
@@ -7774,6 +7840,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['set_ImgDistanceFromText']             = asc_docs_api.prototype.set_ImgDistanceFromText;
 	asc_docs_api.prototype['set_PositionOnPage']                  = asc_docs_api.prototype.set_PositionOnPage;
 	asc_docs_api.prototype['get_OriginalSizeImage']               = asc_docs_api.prototype.get_OriginalSizeImage;
+	asc_docs_api.prototype['asc_FitImagesToSlide']                = asc_docs_api.prototype.asc_FitImagesToSlide;
 	asc_docs_api.prototype['asc_onCloseChartFrame']               = asc_docs_api.prototype.asc_onCloseChartFrame;
 	asc_docs_api.prototype['sync_AddImageCallback']               = asc_docs_api.prototype.sync_AddImageCallback;
 	asc_docs_api.prototype['sync_ImgPropCallback']                = asc_docs_api.prototype.sync_ImgPropCallback;
@@ -7800,6 +7867,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_getMasterCommentId']              = asc_docs_api.prototype.asc_getMasterCommentId;
 	asc_docs_api.prototype['asc_getAnchorPosition']               = asc_docs_api.prototype.asc_getAnchorPosition;
 	asc_docs_api.prototype['asc_removeComment']                   = asc_docs_api.prototype.asc_removeComment;
+	asc_docs_api.prototype['asc_RemoveAllComments']               = asc_docs_api.prototype.asc_RemoveAllComments;
 	asc_docs_api.prototype['asc_changeComment']                   = asc_docs_api.prototype.asc_changeComment;
 	asc_docs_api.prototype['asc_selectComment']                   = asc_docs_api.prototype.asc_selectComment;
 	asc_docs_api.prototype['asc_showComment']                     = asc_docs_api.prototype.asc_showComment;
@@ -7887,6 +7955,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['ChangeTheme']                         = asc_docs_api.prototype.ChangeTheme;
 	asc_docs_api.prototype['StartLoadTheme']                      = asc_docs_api.prototype.StartLoadTheme;
 	asc_docs_api.prototype['EndLoadTheme']                        = asc_docs_api.prototype.EndLoadTheme;
+	asc_docs_api.prototype['ResetSlide']                          = asc_docs_api.prototype.ResetSlide;
 	asc_docs_api.prototype['ChangeLayout']                        = asc_docs_api.prototype.ChangeLayout;
 	asc_docs_api.prototype['put_ShapesAlign']                     = asc_docs_api.prototype.put_ShapesAlign;
 	asc_docs_api.prototype['DistributeHorizontally']              = asc_docs_api.prototype.DistributeHorizontally;
@@ -7931,7 +8000,6 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_continueSaving']                  = asc_docs_api.prototype.asc_continueSaving;
 	asc_docs_api.prototype['asc_undoAllChanges']                  = asc_docs_api.prototype.asc_undoAllChanges;
 	asc_docs_api.prototype['sync_ContextMenuCallback']            = asc_docs_api.prototype.sync_ContextMenuCallback;
-	asc_docs_api.prototype['asc_addComment']                      = asc_docs_api.prototype.asc_addComment;
 	asc_docs_api.prototype['asc_SetFastCollaborative']            = asc_docs_api.prototype.asc_SetFastCollaborative;
 	asc_docs_api.prototype['asc_isOffline']                       = asc_docs_api.prototype.asc_isOffline;
 	asc_docs_api.prototype['asc_getUrlType']                      = asc_docs_api.prototype.asc_getUrlType;

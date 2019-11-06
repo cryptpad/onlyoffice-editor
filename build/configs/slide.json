@@ -19,7 +19,6 @@
 			"../slide/Editor/CollaborativeEditing.js",
 			"../common/macros.js",
 			"../common/apiBase.js",
-			"../common/Private/license.js",
 			"../word/apiCommon.js",
 			"../slide/api.js"
 		],
@@ -217,8 +216,6 @@
 			"../common/plugins.js"
 		],
 		"private": [
-			"../slide/Private/comments.js",
-			"../common/Private/Locks.js"
 		],
 		"builder": [
 		],

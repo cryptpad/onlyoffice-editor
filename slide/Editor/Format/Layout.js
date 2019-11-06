@@ -393,8 +393,6 @@ SlideLayout.prototype =
             }
             this.recalcInfo.recalculateBounds = false;
         }
-
-
     },
 
     recalculate2: function()
@@ -590,8 +588,25 @@ SlideLayout.prototype =
         }
     },
 
-    Refresh_RecalcData: function()
-    {},
+    addToRecalculate: function()
+    {
+        History.RecalcData_Add({Type: AscDFH.historyitem_recalctype_Drawing, Object: this});
+    },
+
+    Refresh_RecalcData: function(data)
+    {
+        if(data)
+        {
+            switch(data.Type)
+            {
+                case AscDFH.historyitem_SlideLayoutAddToSpTree:
+                {
+                    this.addToRecalculate();
+                    break;
+                }
+            }
+        }
+    },
 
     Clear_ContentChanges: function () {
     },
@@ -622,7 +637,7 @@ SlideLayout.prototype =
 
             if (0 == _wc.WriteParentAuthorId || 0 == _wc.WriteParentCommentId)
             {
-                var commentData = new CCommentData();
+                var commentData = new AscCommon.CCommentData();
 
                 commentData.m_sText = _wc.WriteText;
                 commentData.m_sUserId = ("" + _wc.WriteAuthorId);
@@ -643,14 +658,14 @@ SlideLayout.prototype =
                     _comments_id.push(_wc.WriteCommentId);
                     _comments_data.push(commentData);
 
-                    var comment = new CComment(undefined, null);
+                    var comment = new AscCommon.CComment(undefined, null);
                     comment.setPosition(_wc.x / 25.4, _wc.y / 25.4);
                     _comments.push(comment);
                 }
             }
             else
             {
-                var commentData = new CCommentData();
+                var commentData = new AscCommon.CCommentData();
 
                 commentData.m_sText = _wc.WriteText;
                 commentData.m_sUserId = ("" + _wc.WriteAuthorId);

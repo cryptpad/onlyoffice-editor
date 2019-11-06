@@ -797,7 +797,7 @@ CNumberingLvl.prototype.ResetNumberedText = function(nLvl)
  */
 CNumberingLvl.prototype.IsSimilar = function(oLvl)
 {
-	if (this.Format !== oLvl.Format || this.LvlText.length !== oLvl.LvlText.length)
+	if (!oLvl || this.Format !== oLvl.Format || this.LvlText.length !== oLvl.LvlText.length)
 		return false;
 
 	for (var nIndex = 0, nCount = this.LvlText.length; nIndex < nCount; ++nIndex)

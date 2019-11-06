@@ -31,6 +31,11 @@
  */
 
 "use strict";
+(/**
+ * @param {Window} window
+ * @param {undefined} undefined
+ */
+    function (window, undefined) {
 
 // Import
 var g_oTableId = AscCommon.g_oTableId;
@@ -162,12 +167,17 @@ ParaComment.prototype =
     {
     },
 
-    Can_AddDropCap : function()
+    CanAddDropCap : function()
     {
         return null;
     },
 
-    Get_TextForDropCap : function(DropCapText, UseContentPos, ContentPos, Depth)
+	CheckSelectionForDropCap : function(isUsePos, oEndPos, nDepth)
+	{
+		return true;
+	},
+
+	Get_TextForDropCap : function(DropCapText, UseContentPos, ContentPos, Depth)
     {
     },
 
@@ -1191,6 +1201,18 @@ CComment.prototype =
 
 //--------------------------------------------------------export----------------------------------------------------
 window['AscCommon'] = window['AscCommon'] || {};
+
+window['AscCommon'].comments_NoComment = comments_NoComment;
+window['AscCommon'].comments_NonActiveComment = comments_NonActiveComment;
+window['AscCommon'].comments_ActiveComment = comments_ActiveComment;
+
+window['AscCommon'].comment_type_Common = comment_type_Common;
+window['AscCommon'].comment_type_HdrFtr = comment_type_HdrFtr;
+
 window['AscCommon'].CCommentData = CCommentData;
 window['AscCommon'].CComment = CComment;
 window['AscCommon'].ParaComment = ParaComment;
+window['AscCommon'].CCommentAuthor = CCommentAuthor;
+window['AscCommon'].CWriteCommentData = CWriteCommentData;
+
+})(window);

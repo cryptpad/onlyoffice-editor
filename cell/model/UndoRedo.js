@@ -1988,6 +1988,8 @@ function (window, undefined) {
 		if (AscCH.historyitem_Workbook_DefinedNamesChange === Type) {
 			if (Data.newName && Data.newName.Ref) {
 				return {formula: Data.newName.Ref};
+			} else if(Data.to && Data.to.ref) {
+				return {formula: Data.to.ref};
 			}
 		} else if (AscCH.historyitem_Workbook_SheetAdd === Type) {
 			return {name: Data.name};
@@ -2000,6 +2002,10 @@ function (window, undefined) {
 		} else if (AscCH.historyitem_Cell_ChangeValue === Type) {
 			if (Data && Data.newName) {
 				Data.newName.Ref = getRes.formula;
+			}
+		} else if(AscCH.historyitem_Workbook_DefinedNamesChange === Type) {
+			if(Data.to && Data.to.ref) {
+				Data.to.ref = getRes.formula;
 			}
 		}
 		return null;

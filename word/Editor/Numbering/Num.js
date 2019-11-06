@@ -813,11 +813,60 @@ CNum.prototype.FillFromAscNum = function(oAscNum)
 		this.SetLvl(oLvl, nLvl);
 	}
 };
+/**
+ * Проверяем похожи ли две заданные нумерации
+ * @param oNum {CNum}
+ * @returns {boolean}
+ */
+CNum.prototype.IsSimilar = function(oNum)
+{
+	if (!oNum)
+		return false;
+
+	for (var nLvl = 0; nLvl < 9; ++nLvl)
+	{
+		var oLvl = this.GetLvl(nLvl);
+		if (!oLvl.IsSimilar(oNum.GetLvl(nLvl)))
+			return false;
+	}
+
+	return true;
+};
 //----------------------------------------------------------------------------------------------------------------------
 // Undo/Redo функции
 //----------------------------------------------------------------------------------------------------------------------
 CNum.prototype.Refresh_RecalcData = function(Data)
 {
+};
+CNum.prototype.Document_Is_SelectionLocked = function(nCheckType)
+{
+	return this.IsSelectionLocked(nCheckType);
+};
+CNum.prototype.IsSelectionLocked = function(nCheckType)
+{
+	switch (nCheckType)
+	{
+		case AscCommon.changestype_Paragraph_Content:
+		case AscCommon.changestype_Paragraph_Properties:
+		case AscCommon.changestype_Paragraph_AddText:
+		case AscCommon.changestype_Paragraph_TextProperties:
+		case AscCommon.changestype_ContentControl_Add:
+		{
+			this.Lock.Check(this.Get_Id());
+			break;
+		}
+		case AscCommon.changestype_Document_Content:
+		case AscCommon.changestype_Document_Content_Add:
+		case AscCommon.changestype_Image_Properties:
+		{
+			AscCommon.CollaborativeEditing.Add_CheckLock(true);
+			break;
+		}
+	}
+
+	var oAbstractNum = this.Numbering.GetAbstractNum(this.AbstractNumId);
+	if (oAbstractNum)
+		oAbstractNum.IsSelectionLocked(nCheckType);
 };
 //----------------------------------------------------------------------------------------------------------------------
 // Функции для работы с совместным редактирования

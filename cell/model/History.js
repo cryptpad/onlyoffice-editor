@@ -916,6 +916,9 @@ CHistory.prototype.TurnOn = function()
 
 CHistory.prototype.StartTransaction = function()
 {
+	if (this.IsEndTransaction() && this.workbook) {
+		this.workbook.dependencyFormulas.lockRecal();
+	}
 	this.Transaction++;
 };
 
@@ -924,6 +927,9 @@ CHistory.prototype.EndTransaction = function()
 	this.Transaction--;
 	if(this.Transaction < 0)
 		this.Transaction = 0;
+	if (this.IsEndTransaction() && this.workbook) {
+		this.workbook.dependencyFormulas.unlockRecal();
+	}
 };
 /** @returns {boolean} */
 CHistory.prototype.IsEndTransaction = function()

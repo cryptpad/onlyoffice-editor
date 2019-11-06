@@ -4802,6 +4802,19 @@ CUniFill.prototype =
         this.transparent = transparent;
     },
 
+    getUniColor: function()
+    {
+        if(this.fill && this.fill instanceof CSolidFill &&  this.fill.color)
+        {
+            return this.fill.color;
+        }
+        else
+        {
+            var RGBA = this.getRGBAColor();
+            return CreateUniColorRGB(RGBA.R, RGBA.G, RGBA.B);
+        }
+    },
+
     Set_FromObject: function(o)
     {
         //TODO:
@@ -10156,6 +10169,24 @@ function CompareBullets(bullet1, bullet2)
                     ret.bulletType.type = bullet1.bulletType.type;
                 }
                 break;
+            }
+        }
+
+        if(bullet1.bulletSize && bullet2.bulletSize
+        && bullet1.bulletSize.val === bullet2.bulletSize.val
+        && bullet1.bulletSize.type === bullet2.bulletSize.type)
+        {
+            ret.bulletSize = bullet1.bulletSize;
+        }
+        if(bullet1.bulletColor && bullet1.bulletColor
+        && bullet1.bulletColor.type ===  bullet2.bulletColor.type)
+        {
+            ret.bulletColor = new CBulletColor()
+            ret.bulletColor.type =  bullet2.bulletColor.type;
+            ret.bulletColor.UniColor = bullet1.bulletColor.UniColor.compare(bullet2.bulletColor.UniColor);
+            if(!ret.bulletColor.UniColor.color)
+            {
+                ret.bulletColor = null;
             }
         }
         return ret;

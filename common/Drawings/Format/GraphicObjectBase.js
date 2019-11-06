@@ -1694,6 +1694,29 @@
         }
     };
 
+    CGraphicObjectBase.prototype.copyComments = function(oLogicDocument)
+    {
+        if(!oLogicDocument)
+        {
+            return;
+        }
+        var aDocContents = [];
+        this.getAllDocContents(aDocContents);
+        var oldTrackMoveId = oLogicDocument.TrackMoveId;
+        oLogicDocument.TrackMoveId = null;
+        for(var i = 0; i < aDocContents.length; ++i)
+        {
+            var oContent = aDocContents[i];
+            var oSelectedContent = new CSelectedContent();
+            var oSelectionState = oContent.GetSelectionState();
+            oContent.SelectAll();
+            oContent.GetSelectedContent(oSelectedContent);
+            oContent.SetSelectionState(oSelectionState, oSelectionState.length - 1);
+            oSelectedContent.On_EndCollectElements(oLogicDocument, false);
+        }
+        oLogicDocument.TrackMoveId = oldTrackMoveId;
+    };
+
 
 
     function CRelSizeAnchor(){

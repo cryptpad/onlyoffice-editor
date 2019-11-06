@@ -3198,7 +3198,7 @@ function BinaryPPTYLoader()
                                                 if(oEffect)
                                                 {
                                                     uni_fill.fill.Effects.push(oEffect);
-                                                    if(oEffect instanceof AscFormat.CAlphaModFix)
+                                                    if(oEffect instanceof AscFormat.CAlphaModFix && AscFormat.isRealNumber(oEffect.amt))
                                                     {
                                                         uni_fill.setTransparent(255 * oEffect.amt / 100000);
                                                     }
@@ -4253,7 +4253,7 @@ function BinaryPPTYLoader()
                     {
                         s.Skip2(1);
 
-                        var _comment = new CWriteCommentData();
+                        var _comment = new AscCommon.CWriteCommentData();
 
                         var _end_rec3 = s.cur + s.GetLong() + 4;
 
@@ -5938,6 +5938,13 @@ function BinaryPPTYLoader()
                     var binary_length;
                     switch(oleType)
                     {
+                        case 0:
+                        {
+                            binary_length = s.GetULong();
+                            ole.setBinaryData(s.data.slice(s.cur, s.cur + binary_length));
+                            s.Seek2(s.cur + binary_length);
+                            break;
+                        }
                         case 1:
                         {
                             ole.setObjectFile("maskFile.docx");
@@ -10790,7 +10797,7 @@ function CPres()
                                 {
                                     s.Skip2(1);
 
-                                    var _author = new CCommentAuthor();
+                                    var _author = new AscCommon.CCommentAuthor();
 
                                     var _end_rec3 = s.cur + s.GetLong() + 4;
                                     s.Skip2(1); // start attributes
@@ -11620,6 +11627,13 @@ function CPres()
                         var binary_length;
                         switch(oleType)
                         {
+                            case 0:
+                            {
+                                binary_length = s.GetULong();
+                                ole.setBinaryData(s.data.slice(s.cur, s.cur + binary_length));
+                                s.Seek2(s.cur + binary_length);
+                                break;
+                            }
                             case 1:
                             {
                                 ole.setObjectFile("maskFile.docx");

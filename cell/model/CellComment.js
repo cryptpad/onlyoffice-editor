@@ -874,6 +874,36 @@ CCellCommentator.prototype.findComment = function(id) {
 };
 
 CCellCommentator.prototype.addComment = function(comment, bIsNotUpdate) {
+	var t = this;
+	var oComment = comment;
+	var bChange = false;
+	oComment.wsId = this.model.getId();
+	oComment.setId();
+
+	if (!oComment.bDocument) {
+		if (!bIsNotUpdate) {
+			var activeCell = this.model.selectionRange.activeCell;
+			oComment.asc_putCol(activeCell.col);
+			oComment.asc_putRow(activeCell.row);
+		}
+
+		var existComment = this.getComment(oComment.nCol, oComment.nRow, false);
+		if (existComment) {
+			oComment = existComment;
+			bChange = true;
+		}
+	}
+
+	var onAddCommentCallback = function (isSuccess) {
+		if (false === isSuccess)
+			return;
+		t._addComment(oComment, bChange, bIsNotUpdate);
+	};
+	if (bIsNotUpdate) {
+		onAddCommentCallback(true);
+	} else {
+		this.isLockedComment(oComment, onAddCommentCallback);
+	}
 };
 
 CCellCommentator.prototype.changeComment = function(id, oComment, bChangeCoords, bNoEvent, bNoAscLock, bNoDraw) {

@@ -46,6 +46,9 @@ var HANDLE_EVENT_MODE_CURSOR = AscFormat.HANDLE_EVENT_MODE_CURSOR;
 
 var asc_CImgProperty = Asc.asc_CImgProperty;
 
+var c_oAscAlignH         = Asc.c_oAscAlignH;
+var c_oAscAlignV         = Asc.c_oAscAlignV;
+
 function CGraphicObjects(document, drawingDocument, api)
 {
     this.api = api;
@@ -3583,6 +3586,7 @@ CGraphicObjects.prototype =
 
             for(i = 0; i < this.arrTrackObjects.length; ++i)
                 this.arrTrackObjects[i].track(Pos - arrBounds[i].minX, 0, this.arrTrackObjects[i].originalObject.selectStartPage);
+            move_state.bSamePos = false;
             move_state.onMouseUp({}, 0, 0, 0);
         }
     },
@@ -3602,6 +3606,7 @@ CGraphicObjects.prototype =
 
             for(i = 0; i < this.arrTrackObjects.length; ++i)
                 this.arrTrackObjects[i].track(Pos - arrBounds[i].maxX, 0, this.arrTrackObjects[i].originalObject.selectStartPage);
+            move_state.bSamePos = false;
             move_state.onMouseUp({}, 0, 0, 0);
         }
     },
@@ -3621,6 +3626,7 @@ CGraphicObjects.prototype =
 
             for(i = 0; i < this.arrTrackObjects.length; ++i)
                 this.arrTrackObjects[i].track(0, Pos - arrBounds[i].minY, this.arrTrackObjects[i].originalObject.selectStartPage);
+            move_state.bSamePos = false;
             move_state.onMouseUp({}, 0, 0, 0);
         }
     },
@@ -3640,6 +3646,7 @@ CGraphicObjects.prototype =
 
             for(i = 0; i < this.arrTrackObjects.length; ++i)
                 this.arrTrackObjects[i].track(0, Pos - arrBounds[i].maxY, this.arrTrackObjects[i].originalObject.selectStartPage);
+            move_state.bSamePos = false;
             move_state.onMouseUp({}, 0, 0, 0);
         }
     },
@@ -3659,6 +3666,7 @@ CGraphicObjects.prototype =
 
             for(i = 0; i < this.arrTrackObjects.length; ++i)
                 this.arrTrackObjects[i].track(Pos - (arrBounds[i].maxX - arrBounds[i].minX)/2 - arrBounds[i].minX, 0, this.arrTrackObjects[i].originalObject.selectStartPage);
+            move_state.bSamePos = false;
             move_state.onMouseUp({}, 0, 0, 0);
         }
     },
@@ -3678,6 +3686,7 @@ CGraphicObjects.prototype =
 
             for(i = 0; i < this.arrTrackObjects.length; ++i)
                 this.arrTrackObjects[i].track(0, Pos - (arrBounds[i].maxY - arrBounds[i].minY)/2 - arrBounds[i].minY, this.arrTrackObjects[i].originalObject.selectStartPage);
+            move_state.bSamePos = false;
             move_state.onMouseUp({}, 0, 0, 0);
         }
     },
@@ -3749,6 +3758,7 @@ CGraphicObjects.prototype =
                 sortObjects[i].trackObject.track(lastPos -  sortObjects[i].trackObject.originalObject.x, 0, sortObjects[i].trackObject.originalObject.selectStartPage);
                 lastPos += (gap + (sortObjects[i].boundsObject.maxX - sortObjects[i].boundsObject.minX));
             }
+            move_state.bSamePos = false;
             move_state.onMouseUp({}, 0, 0, 0);
         }
     },
@@ -3818,6 +3828,7 @@ CGraphicObjects.prototype =
                 sortObjects[i].trackObject.track(0, lastPos -  sortObjects[i].trackObject.originalObject.y, sortObjects[i].trackObject.originalObject.selectStartPage);
                 lastPos += (gap + (sortObjects[i].boundsObject.maxY - sortObjects[i].boundsObject.minY));
             }
+            move_state.bSamePos = false;
             move_state.onMouseUp({}, 0, 0, 0);
         }
     },
@@ -4197,6 +4208,43 @@ CGraphicObjects.prototype =
             }
         }
     }
+};
+CGraphicObjects.prototype.Document_Is_SelectionLocked = function(CheckType)
+{
+    if(CheckType === AscCommon.changestype_ColorScheme)
+    {
+        this.Lock.Check(this.Get_Id());
+    }
+};
+CGraphicObjects.prototype.documentIsSelectionLocked = function(CheckType)
+{
+    var oDrawing, i;
+    var bDelete = (AscCommon.changestype_Delete === CheckType || AscCommon.changestype_Remove === CheckType);
+    if(AscCommon.changestype_Drawing_Props === CheckType
+        || AscCommon.changestype_Image_Properties === CheckType
+        || AscCommon.changestype_Delete === CheckType
+        || AscCommon.changestype_Remove === CheckType
+        || AscCommon.changestype_Paragraph_Content === CheckType
+        || AscCommon.changestype_Paragraph_TextProperties === CheckType
+        || AscCommon.changestype_Paragraph_AddText === CheckType
+        || AscCommon.changestype_ContentControl_Add === CheckType
+        || AscCommon.changestype_Paragraph_Properties === CheckType
+        || AscCommon.changestype_Document_Content_Add === CheckType)
+    {
+        for(i = 0; i < this.selectedObjects.length; ++i)
+        {
+            oDrawing = this.selectedObjects[i].parent;
+            if(bDelete)
+            {
+                oDrawing.CheckContentControlDeletingLock();
+            }
+            oDrawing.Lock.Check(oDrawing.Get_Id());
+        }
+    }
+
+    var oDocContent = this.getTargetDocContent();
+    if (oDocContent)
+        oDocContent.Document_Is_SelectionLocked(CheckType);
 };
 
 function ComparisonByZIndexSimpleParent(obj1, obj2)

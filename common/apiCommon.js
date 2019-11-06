@@ -657,8 +657,9 @@
 		this.separator = null;
 		this.horAxisProps = null;
 		this.vertAxisProps = null;
-		this.range = null;
 		this.inColumns = null;
+
+		this.aRanges = [];
 
 		this.showMarker = null;
 		this.bLine = null;
@@ -748,9 +749,14 @@
                     return false;
                 }
             }
-            if(this.range !== oPr.range){
+            if(this.aRanges.length !== oPr.aRanges.length){
                 return false;
             }
+			for(var i = 0; i < this.aRanges.length; ++i) {
+				if(this.aRanges[i] !== oPr.aRanges[i]) {
+					return false;
+				}
+			}
             if(!this.equalBool(this.inColumns, oPr.inColumns)){
                 return false;
             }
@@ -790,6 +796,18 @@
 			return this.bLine;
 		},
 
+		putRanges: function(aRanges) {
+			if(Array.isArray(aRanges)) {
+				this.aRanges = aRanges;
+			}
+			else {
+				this.aRanges.length = 0;
+			}
+		},
+
+		getRanges: function(aRanges) {
+			return this.aRanges;
+		},
 
 		putSmooth: function (v) {
 			this.smooth = v;
@@ -808,11 +826,15 @@
 		},
 
 		putRange: function (range) {
-			this.range = range;
+			this.aRanges.length = 0;
+			this.aRanges[0] = range;
 		},
 
 		getRange: function () {
-			return this.range;
+			if(this.aRanges.length > 0) {
+				return this.aRanges[0];
+			}
+			return null;
 		},
 
 		putInColumns: function (inColumns) {
@@ -1842,6 +1864,61 @@
 			this.ListType = (undefined != obj.ListType) ? obj.ListType : undefined;
 			this.OutlineLvl = (undefined != obj.OutlineLvl) ? obj.OutlineLvl : undefined;
 			this.OutlineLvlStyle = (undefined != obj.OutlineLvlStyle) ? obj.OutlineLvlStyle : false;
+			this.BulletSize = undefined;
+			this.BulletColor = undefined;
+			this.NumStartAt = undefined;
+			var oBullet = obj.Bullet;
+			if(oBullet)
+			{
+				this.BulletSize = 100;
+				if(oBullet.bulletSize)
+				{
+					switch (oBullet.bulletSize.type)
+					{
+						case AscFormat.BULLET_TYPE_SIZE_NONE:
+						{
+							break;
+						}
+						case AscFormat.BULLET_TYPE_SIZE_TX:
+						{
+							break;
+						}
+						case AscFormat.BULLET_TYPE_SIZE_PCT:
+						{
+							this.BulletSize = oBullet.bulletSize.val / 1000.0;
+							break;
+						}
+						case AscFormat.BULLET_TYPE_SIZE_PTS:
+						{
+							break;
+						}
+					}
+				}
+				this.BulletColor = CreateAscColorCustom(0, 0, 0);
+				if(oBullet.bulletColor)
+				{
+					if(oBullet.bulletColor.UniColor)
+					{
+						this.BulletColor = CreateAscColor(oBullet.bulletColor.UniColor);
+					}
+				}
+				else 
+				{
+					if(obj.Unifill)
+					{
+						var RGBA = obj.Unifill.getRGBAColor();
+						this.BulletColor = CreateAscColorCustom(RGBA.R, RGBA.G, RGBA.B);
+					}	
+				}
+
+				if(oBullet.bulletType)
+				{
+					if(oBullet.bulletType.AutoNumType > 0)
+					{
+						this.NumStartAt = AscFormat.isRealNumber(oBullet.bulletType.startAt) ? Math.max(1, oBullet.bulletType.startAt) : 1;
+					}
+				}
+			}
 		} else {
 			//ContextualSpacing : false,            // Удалять ли интервал между параграфами одинакового стиля
 			//
@@ -1885,6 +1962,9 @@
 			this.ListType = undefined;
 			this.OutlineLvl = undefined;
 			this.OutlineLvlStyle = false;
+			this.BulletSize = undefined;
+			this.BulletColor = undefined;
+			this.NumStartAt = undefined;
 		}
 	}
 
@@ -1990,6 +2070,18 @@
 			this.OutlineLvl = nLvl;
 		}, asc_getOutlineLvlStyle: function() {
 			return this.OutlineLvlStyle;
+		}, asc_putBulletSize: function(size) {
+			this.BulletSize = size;
+		}, asc_getBulletSize: function() {
+			return this.BulletSize;
+		}, asc_putBulletColor: function(color) {
+			this.BulletColor = color;
+		}, asc_getBulletColor: function() {
+			return this.BulletColor;
+		}, asc_putNumStartAt: function(NumStartAt) {
+			this.NumStartAt = NumStartAt;
+		}, asc_getNumStartAt: function() {
+			return this.NumStartAt;
 		}
 	};
 
@@ -2673,30 +2765,6 @@
 			{
 				return new asc_CImageSize(50, 50, false);
 			}
-			var _section_select;
-			if(api.WordControl && api.WordControl.m_oLogicDocument)
-			{
-				_section_select = api.WordControl.m_oLogicDocument.Get_PageSizesByDrawingObjects();
-			}
-			var _page_width = AscCommon.Page_Width;
-			var _page_height = AscCommon.Page_Height;
-			var _page_x_left_margin = AscCommon.X_Left_Margin;
-			var _page_y_top_margin = AscCommon.Y_Top_Margin;
-			var _page_x_right_margin = AscCommon.X_Right_Margin;
-			var _page_y_bottom_margin = AscCommon.Y_Bottom_Margin;
-
-			if (_section_select)
-			{
-				if (_section_select.W)
-				{
-					_page_width = _section_select.W;
-				}
-
-				if (_section_select.H)
-				{
-					_page_height = _section_select.H;
-				}
-			}
 
 			var origW = 0;
 			var origH = 0;
@@ -2718,29 +2786,10 @@
 
 			if (origW != 0 && origH != 0)
 			{
-				var _w = Math.max(1, _page_width - (_page_x_left_margin + _page_x_right_margin));
-				var _h = Math.max(1, _page_height - (_page_y_top_margin + _page_y_bottom_margin));
-
-				var bIsCorrect = false;
-
 				var __w = Math.max((origW * AscCommon.g_dKoef_pix_to_mm), 1);
 				var __h = Math.max((origH * AscCommon.g_dKoef_pix_to_mm), 1);
 
-				var dKoef = Math.max(__w / _w, __h / _h);
-				if (dKoef > 1)
-				{
-					_w = Math.max(5, __w / dKoef);
-					_h = Math.max(5, __h / dKoef);
-
-					bIsCorrect = true;
-				}
-				else
-				{
-					_w = __w;
-					_h = __h;
-				}
-
-				return new asc_CImageSize(_w, _h, bIsCorrect);
+				return new asc_CImageSize(__w, __h, true);
 			}
 			return new asc_CImageSize(50, 50, false);
 		},
@@ -4442,6 +4491,8 @@
 	prot["getVertAxisProps"] = prot.getVertAxisProps;
 	prot["putRange"] = prot.putRange;
 	prot["getRange"] = prot.getRange;
+	prot["putRanges"] = prot.putRanges;
+	prot["getRanges"] = prot.getRanges;
 	prot["putInColumns"] = prot.putInColumns;
 	prot["getInColumns"] = prot.getInColumns;
 	prot["putShowMarker"] = prot.putShowMarker;
@@ -4664,6 +4715,12 @@
 	prot["get_OutlineLvl"] = prot["asc_getOutlineLvl"] = prot.asc_getOutlineLvl;
 	prot["put_OutlineLvl"] = prot["asc_putOutLineLvl"] = prot.asc_putOutLineLvl;
 	prot["get_OutlineLvlStyle"] = prot["asc_getOutlineLvlStyle"] = prot.asc_getOutlineLvlStyle;
+	prot["put_BulletSize"] = prot["asc_putBulletSize"] = prot.asc_putBulletSize;
+	prot["get_BulletSize"] = prot["asc_getBulletSize"] = prot.asc_getBulletSize;
+	prot["put_BulletColor"] = prot["asc_putBulletColor"] = prot.asc_putBulletColor;
+	prot["get_BulletColor"] = prot["asc_getBulletColor"] = prot.asc_getBulletColor;
+	prot["put_NumStartAt"] = prot["asc_putNumStartAt"] = prot.asc_putNumStartAt;
+	prot["get_NumStartAt"] = prot["asc_getNumStartAt"] = prot.asc_getNumStartAt;
 
 	window["AscCommon"].asc_CTexture = asc_CTexture;
 	prot = asc_CTexture.prototype;

@@ -1970,7 +1970,17 @@ function trimString( str ){
     return str.replace(/^\s+|\s+$/g, '') ;
 }
 function sendImgUrls(api, images, callback, bExcel, bNotShowError, token) {
-
+  if (window["NATIVE_EDITOR_ENJINE"] === true && window["IS_NATIVE_EDITOR"] !== true)
+  {
+    var _data = [];
+    for (var i = 0; i < images.length; i++)
+    {
+      var _url = window["native"]["getImageUrl"](images[i]);
+      _data[i] = {url:images[i], path:("media/" + _url)};
+    }
+    callback(_data);
+    return;
+  }
   if (window["AscDesktopEditor"])
   {
     // correct local images
@@ -1994,7 +2004,7 @@ function sendImgUrls(api, images, callback, bExcel, bNotShowError, token) {
 
   var rData = {
     "id": api.documentId, "c": "imgurls", "userid": api.documentUserId, "saveindex": g_oDocumentUrls.getMaxIndex(),
-    "jwt": token, "data": images
+    "tokenDownload": token, "data": images
   };
   api.sync_StartAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.LoadImage);
 
@@ -3922,6 +3932,7 @@ PasteProcessor.prototype =
 		var defaultTableStyleId = presentation.DefaultTableStyleId;
 		parseContent(aContent.content);
 
+		var onlyImages = false;
 		if(drawings && drawings.length)
 		{
 			//если массив содержит только изображения
@@ -3930,6 +3941,7 @@ PasteProcessor.prototype =
 				if(true === this._isParagraphContainsOnlyDrawing(elements[0].Element))
 				{
 					elements = [];
+					onlyImages = true;
 				}
 			}
 
@@ -3972,8 +3984,12 @@ PasteProcessor.prototype =
 					presentation.Check_CursorMoveRight();
 					presentation.Document_UpdateInterfaceState();
 
-					var props = [Asc.c_oSpecialPasteProps.destinationFormatting, Asc.c_oSpecialPasteProps.keepTextOnly];
-					oThis._setSpecialPasteShowOptionsPresentation(props);
+					if(!onlyImages) {
+						var props = [Asc.c_oSpecialPasteProps.destinationFormatting, Asc.c_oSpecialPasteProps.keepTextOnly];
+						oThis._setSpecialPasteShowOptionsPresentation(props);
+					} else {
+						window['AscCommon'].g_specialPasteHelper.CleanButtonInfo();
+					}
 				} else {
 					window['AscCommon'].g_specialPasteHelper.CleanButtonInfo();
 				}
@@ -8724,7 +8740,7 @@ PasteProcessor.prototype =
 								if(!oThis.needAddCommentEnd) {
 									oThis.needAddCommentEnd = [];
 								}
-								oThis.needAddCommentEnd.push(new ParaComment(false, oThis.msoComments[idAnchor[1]].start));
+								oThis.needAddCommentEnd.push(new AscCommon.ParaComment(false, oThis.msoComments[idAnchor[1]].start));
 								delete oThis.msoComments[idAnchor[1]];
 							}
 						}
@@ -8739,7 +8755,7 @@ PasteProcessor.prototype =
 					if(commentId && undefined !== commentId[1]) {
 						var startComment = oThis.msoComments[commentId[1]];
 						if(startComment && !startComment.start) {
-							//добавляем комментарий CComment и получаем его id
+							//добавляем комментарий AscCommon.CComment и получаем его id
 							var newCCommentId = oThis._addComment({Date: pPr["mso-comment-date"], Text: startComment.text});
 							//удаляем из map
 							oThis.msoComments[commentId[1]].start = newCCommentId;
@@ -8747,7 +8763,7 @@ PasteProcessor.prototype =
 							if(!oThis.needAddCommentStart) {
 								oThis.needAddCommentStart = [];
 							}
-							oThis.needAddCommentStart.push(new ParaComment(true, newCCommentId));
+							oThis.needAddCommentStart.push(new AscCommon.ParaComment(true, newCCommentId));
 						}
 					}
 				}
@@ -9524,7 +9540,7 @@ PasteProcessor.prototype =
 			return res;
 		};
 		var fInitCommentData = function (comment) {
-			var oCommentObj = new CCommentData();
+			var oCommentObj = new AscCommon.CCommentData();
 			oCommentObj.m_nDurableId = AscCommon.CreateUInt32();
 			if (null != comment.UserName) {
 				oCommentObj.m_sUserName = comment.UserName;
@@ -9558,7 +9574,7 @@ PasteProcessor.prototype =
 		var isIntoDocumentContent = this.oDocument instanceof CDocumentContent ? true : false;
 		var document = this.oDocument && isIntoDocumentContent && !isIntoShape ? this.oDocument.LogicDocument : this.oDocument;
 
-		var oNewComment = new CComment(document.Comments, fInitCommentData(oOldComment));
+		var oNewComment = new AscCommon.CComment(document.Comments, fInitCommentData(oOldComment));
 		document.Comments.Add(oNewComment);
 
 		//посылаем событие о добавлении комментариев

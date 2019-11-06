@@ -604,6 +604,21 @@ Slide.prototype =
         }
     },
 
+    removeMyComments: function()
+    {
+        if(AscCommon.isRealObject(this.slideComments))
+        {
+            this.slideComments.removeMyComments();
+        }
+    },
+    removeAllComments: function()
+    {
+        if(AscCommon.isRealObject(this.slideComments))
+        {
+            this.slideComments.removeAllComments();
+        }
+    },
+
     removeComment: function(id)
     {
         if(AscCommon.isRealObject(this.slideComments))
@@ -615,6 +630,22 @@ Slide.prototype =
     addToRecalculate: function()
     {
         History.RecalcData_Add({Type: AscDFH.historyitem_recalctype_Drawing, Object: this});
+    },
+
+    getAllMyComments: function(aAllComments)
+    {
+        if(this.slideComments)
+        {
+            this.slideComments.getAllMyComments(aAllComments, this);
+        }
+    },
+
+    getAllComments: function(aAllComments)
+    {
+        if(this.slideComments)
+        {
+            this.slideComments.getAllComments(aAllComments, this);
+        }
     },
 
     Refresh_RecalcData: function(data)
@@ -1554,7 +1585,7 @@ function fLoadComments(oObject, authors)
 
         if (0 == _wc.WriteParentAuthorId || 0 == _wc.WriteParentCommentId)
         {
-            var commentData = new CCommentData();
+            var commentData = new AscCommon.CCommentData();
 
             commentData.m_sText = _wc.WriteText;
             commentData.m_sUserId = ("" + _wc.WriteAuthorId);
@@ -1582,14 +1613,14 @@ function fLoadComments(oObject, authors)
 
                 _wc.ParceAdditionalData(commentData);
 
-                var comment = new CComment(oComments, new CCommentData());
+                var comment = new AscCommon.CComment(oComments, new AscCommon.CCommentData());
                 comment.setPosition(_wc.x / 22.66, _wc.y / 22.66);
                 _comments.push(comment);
             }
         }
         else
         {
-            var commentData = new CCommentData();
+            var commentData = new AscCommon.CCommentData();
 
             commentData.m_sText = _wc.WriteText;
             commentData.m_sUserId = ("" + _wc.WriteAuthorId);
@@ -1774,8 +1805,6 @@ SlideComments.prototype =
         return null;
     },
 
-
-
     changeComment: function(id, commentData)
     {
         for(var i = 0; i < this.comments.length; ++i)
@@ -1801,6 +1830,57 @@ SlideComments.prototype =
         }
     },
 
+    removeMyComments: function()
+    {
+        var oCommentDataCopy;
+        if(!editor.DocInfo)
+        {
+            return;
+        }
+        var sUserId = editor.DocInfo.get_UserId();
+        for(var i = this.comments.length - 1; i > -1; --i)
+        {
+            var oComment = this.comments[i];
+            var oCommentData = oComment.Data;
+            if(oCommentData.m_sUserId === sUserId)
+            {
+                History.Add(new AscDFH.CChangesDrawingsContentComments(this, AscDFH.historyitem_SlideCommentsRemoveComment, i, this.comments.splice(i, 1), false));
+                editor.sync_RemoveComment(oComment.Get_Id());
+            }
+            else
+            {
+                oCommentDataCopy = null;
+                for(var j = oCommentData.m_aReplies.length - 1; j > -1 ; --j)
+                {
+                    if(oCommentData.m_aReplies[j].m_sUserId === sUserId)
+                    {
+                        if(!oCommentDataCopy)
+                        {
+                            oCommentDataCopy = oCommentData.Copy();
+                        }
+                        oCommentDataCopy.m_aReplies.splice(j, 1);
+                        break;
+                    }
+                }
+                if(oCommentDataCopy)
+                {
+                    oComment.Set_Data(oCommentDataCopy);
+                    editor.sync_ChangeCommentData( oComment.Get_Id(), oCommentDataCopy);
+                }
+            }
+        }
+    },
+
+    removeAllComments: function()
+    {
+        for(var i = this.comments.length - 1; i > -1; --i)
+        {
+            var oComment = this.comments[i];
+            History.Add(new AscDFH.CChangesDrawingsContentComments(this, AscDFH.historyitem_SlideCommentsRemoveComment, i, this.comments.splice(i, 1), false));
+            editor.sync_RemoveComment(oComment.Get_Id());
+        }
+    },
+
     removeSelectedComment: function()
     {
         var comment = this.getSelectedComment();
@@ -1820,6 +1900,43 @@ SlideComments.prototype =
             }
         }
         return null;
+    },
+
+    getAllMyComments: function(aAllComments, oSlide)
+    {
+        if(!editor.DocInfo)
+        {
+            return;
+        }
+        var sUserId = editor.DocInfo.get_UserId();
+        for(var i = 0; i < this.comments.length; ++i)
+        {
+            var oComment = this.comments[i];
+            var oCommentData = oComment.Data;
+            if(oCommentData.m_sUserId === sUserId)
+            {
+                aAllComments.push({comment: oComment, slide: oSlide});
+            }
+            else
+            {
+                for(var j = 0; j < oCommentData.m_aReplies.length; ++j)
+                {
+                    if(oCommentData.m_aReplies[j].m_sUserId === sUserId)
+                    {
+                        aAllComments.push({comment: oComment, slide: oSlide});
+                        break;
+                    }
+                }
+            }
+        }
+    },
+    getAllComments: function(aAllComments, oSlide)
+    {
+        for(var i = 0; i < this.comments.length; ++i)
+        {
+            var oComment = this.comments[i];
+            aAllComments.push({comment: oComment, slide: oSlide});
+        }
     },
 
     recalculate: function()

@@ -4377,6 +4377,15 @@ CShape.prototype.check_bounds = function (checker) {
 
 CShape.prototype.getBase64Img = function ()
 {
+    if(this.parent)
+    {
+        if(this.parent.kind === AscFormat.TYPE_KIND.LAYOUT
+            || this.parent.kind === AscFormat.TYPE_KIND.MASTER
+            || this.parent.kind === AscFormat.TYPE_KIND.NOTES
+            || this.parent.kind === AscFormat.TYPE_KIND.NOTES_MASTER){
+            return ""
+        }
+    }
     if(typeof this.cachedImage === "string" && this.cachedImage.length > 0)
     {
         return this.cachedImage;
@@ -5468,11 +5477,6 @@ CShape.prototype.isWatermark = function()
 CShape.prototype.getWatermarkProps = function()
 {
     var oProps = new Asc.CAscWatermarkProperties(), oTextPr, oRGBAColor, oInterfaceTextPr, oContent;
-    if(!this.isWatermark())
-    {
-        oProps.put_Type(Asc.c_oAscWatermarkType.None);
-        return oProps;
-    }
     oContent = this.getDocContent();
     oProps.put_Type(Asc.c_oAscWatermarkType.Text);
     oProps.put_IsDiagonal(!AscFormat.fApproxEqual(this.rot, 0.0));
