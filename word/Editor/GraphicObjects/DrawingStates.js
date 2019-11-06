@@ -742,11 +742,12 @@ RotateState.prototype =
 
                                 var oOriginalRun = original.Parent.Get_DrawingObjectRun(original.Id);
 
+                                // Всегда создаем копию при переносе, чтобы не было проблем при совместном редактировании
+                                var originalCopy = original.Copy();
+                                originalCopy.CopyComments();
                                 original.Remove_FromDocument(false);
                                 aNearestPos[i].Paragraph.Check_NearestPos(aNearestPos[i]);
 
-                                // Всегда создаем копию при переносе, чтобы не было проблем при совместном редактировании
-                                var originalCopy = original.Copy();
                                 originalCopy.Set_XYForAdd(bounds.posX, bounds.posY, aNearestPos[i], pageIndex);
                                 originalCopy.Add_ToDocument(aNearestPos[i], false, null, oOriginalRun);
 
