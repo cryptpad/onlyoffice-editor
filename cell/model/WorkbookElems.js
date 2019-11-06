@@ -1450,10 +1450,13 @@ var g_oFontProperties = {
 	PatternFill.prototype.getHatchOffset = function () {
 		return AscCommon.global_hatch_offsets[hatchFromExcelToWord(this.patternType)];
 	};
-	PatternFill.prototype.fromColor = function(color) {
-		this.patternType = c_oAscPatternType.Solid;
+	PatternFill.prototype.fromParams = function(type, color) {
+		this.patternType = type;
 		this.fgColor = color;
 		this.bgColor = color;
+	};
+	PatternFill.prototype.fromColor = function(color) {
+		this.fromParams(c_oAscPatternType.Solid, color);
 	};
 	PatternFill.prototype.getHash = function() {
 		if (!this._hash) {
@@ -1631,6 +1634,14 @@ var g_oFontProperties = {
 		if (color) {
 			this.patternFill = new PatternFill();
 			this.patternFill.fromColor(color);
+		}
+	};
+	Fill.prototype.fromPatternParams = function (type, color) {
+		this.patternFill = null;
+		this.gradientFill = null;
+		if (null !== type) {
+			this.patternFill = new PatternFill();
+			this.patternFill.fromParams(type, color);
 		}
 	};
 	Fill.prototype.getHash = function () {
@@ -3070,10 +3081,11 @@ function StyleManager(){
 }
 StyleManager.prototype =
 {
-	init: function(wb, firstXf, firstFont, firstFill, firstBorder, normalXf) {
+	init: function(wb, firstXf, firstFont, firstFill, secondFill, firstBorder, normalXf) {
 		g_StyleCache.firstXf = firstXf;
 		g_StyleCache.firstFont = firstFont;
 		g_StyleCache.firstFill = firstFill;
+		g_StyleCache.secondFill = secondFill;
 		g_StyleCache.firstBorder = firstBorder;
 		g_StyleCache.normalXf = normalXf;
 		if(null != firstXf.font)
@@ -3295,6 +3307,7 @@ StyleManager.prototype =
 		this.firstXf =  new CellXfs();
 		this.firstFont = null;
 		this.firstFill = null;
+		this.secondFill = null;
 		this.firstBorder = null;
 		this.normalXf =  new CellXfs();
 	}

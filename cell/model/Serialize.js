@@ -1956,9 +1956,6 @@
 		}
 		return index;
 	};
-	StyleWriteMap.prototype.addNoCheck = function(elem) {
-		this.elems.push(elem);
-	};
 	function XfForWrite(xf) {
 		this.xf = xf;
 		this.fontid = 0;
@@ -1988,8 +1985,7 @@
 	StylesForWrite.prototype.init = function() {
 		this.oFontMap.add(g_StyleCache.firstFont);
 		this.oFillMap.add(g_StyleCache.firstFill);
-		//second fill is equal to first (in Excel it is different, but it does not matter - they are ignored)
-		this.oFillMap.addNoCheck(g_StyleCache.firstFill);
+		this.oFillMap.add(g_StyleCache.secondFill);
 		this.oBorderMap.add(g_StyleCache.firstBorder);
 		this.oXfsMap.add(g_StyleCache.firstXf);
 	};
@@ -5591,7 +5587,7 @@
         };
         this.InitStyleManager = function (oStyleObject)
         {
-			var i, xf, firstFont, firstFill, normalFill, firstBorder, firstXf, newXf, oCellStyle;
+			var i, xf, firstFont, firstFill, secondFill, firstBorder, firstXf, newXf, oCellStyle;
 			if (0 === oStyleObject.aFonts.length) {
 				oStyleObject.aFonts[0] = new AscCommonExcel.Font();
 				oStyleObject.aFonts[0].initDefault(this.wb);
@@ -5636,13 +5632,19 @@
 				oStyleObject.aFills[i] = g_StyleCache.addFill(oStyleObject.aFills[i]);
 			}
 			//addXf with force flag should be last operation
+			firstFill = new AscCommonExcel.Fill();
+			firstFill.fromPatternParams(AscCommonExcel.c_oAscPatternType.None, null);
+			secondFill = new AscCommonExcel.Fill();
+			secondFill.fromPatternParams(AscCommonExcel.c_oAscPatternType.Gray125, null);
 			if (!this.isCopyPaste) {
-				firstFill = g_StyleCache.addFill(new AscCommonExcel.Fill(), true);
+				firstFill = g_StyleCache.addFill(firstFill, true);
+				secondFill = g_StyleCache.addFill(secondFill, true);
 			} else {
-				firstFill = g_StyleCache.addFill(new AscCommonExcel.Fill());
+				firstFill = g_StyleCache.addFill(firstFill);
+				secondFill = g_StyleCache.addFill(secondFill);
 			}
 			oStyleObject.aFills[0] = firstFill;
-			oStyleObject.aFills[1] = firstFill;
+			oStyleObject.aFills[1] = secondFill;
 
 			oStyleObject.aBorders[0] = new AscCommonExcel.Border();
 			for (i = 0; i < oStyleObject.aBorders.length; ++i) {
@@ -5826,7 +5828,7 @@
 			if (firstXf && !this.isCopyPaste) {
 				//addXf with force flag should be last operation
 				firstXf = g_StyleCache.addXf(firstXf, true);
-				this.oStyleManager.init(this.wb, firstXf, firstFont, firstFill, firstBorder, normalXf);
+				this.oStyleManager.init(this.wb, firstXf, firstFont, firstFill, secondFill, firstBorder, normalXf);
 			}
             for(var i in oStyleObject.oCustomTableStyles)
             {
