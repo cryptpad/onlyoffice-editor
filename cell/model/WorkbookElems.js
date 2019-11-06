@@ -1725,7 +1725,7 @@ var g_oFontProperties = {
 		}
 	};
 	Fill.prototype.asc_getPatternFill = function () {
-		return this.patternFill;
+		return this.patternFill && this.patternFill.notEmpty() ? this.patternFill : null;
 	};
 	Fill.prototype.asc_setPatternFill = function (value) {
 		this.patternFill = value;
