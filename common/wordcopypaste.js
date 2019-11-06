@@ -1918,9 +1918,9 @@ function CopyPasteCorrectString(str)
     return res;
 }
 
-function Editor_Paste_Exec(api, _format, data1, data2, text_data, specialPasteProps)
+function Editor_Paste_Exec(api, _format, data1, data2, text_data, specialPasteProps, callback)
 {
-    var oPasteProcessor = new PasteProcessor(api, true, true, false);
+    var oPasteProcessor = new PasteProcessor(api, true, true, false, undefined, callback);
 	window['AscCommon'].g_specialPasteHelper.endRecalcDocument = false;
 
 	if(undefined === specialPasteProps)
@@ -1976,7 +1976,7 @@ function sendImgUrls(api, images, callback, bExcel, bNotShowError, token) {
     for (var i = 0; i < images.length; i++)
     {
       var _url = window["native"]["getImageUrl"](images[i]);
-      _data[i] = {url:images[i], path:("media/" + _url)};
+      _data[i] = { url: images[i], path : AscCommon.g_oDocumentUrls.getImageUrl(_url) };
     }
     callback(_data);
     return;
@@ -1996,11 +1996,11 @@ function sendImgUrls(api, images, callback, bExcel, bNotShowError, token) {
       return AscCommon.EncryptionWorker.addCryproImagesFromUrls(images, callback);
   }
 
-  	if(window["IS_NATIVE_EDITOR"])
-  	{
-		callback([]);
-		return;
-	}
+  if(window["IS_NATIVE_EDITOR"])
+  {
+	callback([]);
+	return;
+  }
 
   var rData = {
     "id": api.documentId, "c": "imgurls", "userid": api.documentUserId, "saveindex": g_oDocumentUrls.getMaxIndex(),
@@ -2047,7 +2047,7 @@ function sendImgUrls(api, images, callback, bExcel, bNotShowError, token) {
   };
   AscCommon.sendCommand(api, null, rData);
 }
-function PasteProcessor(api, bUploadImage, bUploadFonts, bNested, pasteInExcel)
+function PasteProcessor(api, bUploadImage, bUploadFonts, bNested, pasteInExcel, pasteCallback)
 {
     this.oRootNode = null;
     this.api = api;
@@ -2065,6 +2065,7 @@ function PasteProcessor(api, bUploadImage, bUploadFonts, bNested, pasteInExcel)
 	
 	this.pasteInExcel = pasteInExcel;
 	this.pasteInPresentationShape = null;
+	this.pasteCallback = pasteCallback;
 	
 	this.maxTableCell = null;
 
@@ -3408,7 +3409,7 @@ PasteProcessor.prototype =
 		return map;
 	},
 
-	Start : function(node, nodeDisplay, bDuplicate, fromBinary, text)
+	Start : function(node, nodeDisplay, bDuplicate, fromBinary, text, callback)
     {
 		//PASTE
 		var tempPresentation = !PasteElementsId.g_bIsDocumentCopyPaste && editor && editor.WordControl ? editor.WordControl.m_oLogicDocument : null;
@@ -3528,6 +3529,9 @@ PasteProcessor.prototype =
 				oThis.InsertInDocument();
 				if (oThis.aContent.bAddNewStyles) {
 					oThis.api.GenerateStyles();
+				}
+				if (oThis.pasteCallback) {
+					oThis.pasteCallback();
 				}
 			}
 		};
@@ -3813,7 +3817,9 @@ PasteProcessor.prototype =
 				if (aContent.bAddNewStyles) {
 					oThis.api.GenerateStyles();
 				}
-				oThis.api.continueInsertDocumentUrls();
+				if (oThis.pasteCallback) {
+					oThis.pasteCallback();
+				}
 			}
 		};
 
@@ -4061,6 +4067,9 @@ PasteProcessor.prototype =
 				oThis.InsertInDocument();
 				if (aContent.bAddNewStyles) {
 					oThis.api.GenerateStyles();
+				}
+				if (oThis.pasteCallback) {
+					oThis.pasteCallback();
 				}
 			}
 		};
@@ -4862,6 +4871,12 @@ PasteProcessor.prototype =
 				}
 				if(bTurnOffTrackRevisions){
 					oThis.api.WordControl.m_oLogicDocument.TrackRevisions = true;
+				}
+				if(false === oThis.bNested)
+				{
+					if (oThis.pasteCallback) {
+						oThis.pasteCallback();
+					}
 				}
 			};
 

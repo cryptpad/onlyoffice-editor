@@ -249,12 +249,13 @@ ParaDrawing.prototype.canRotate = function()
 };
 ParaDrawing.prototype.GetParagraph = function()
 {
-	return this.Parent;
+	return this.Get_ParentParagraph();
 };
 ParaDrawing.prototype.Get_Run = function()
 {
-	if (this.Parent)
-		return this.Parent.Get_DrawingObjectRun(this.Id);
+	var oParagraph = this.Get_ParentParagraph();
+	if (oParagraph)
+		return oParagraph.Get_DrawingObjectRun(this.Id);
 
 	return null;
 };

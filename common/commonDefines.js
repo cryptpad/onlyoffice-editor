@@ -215,7 +215,11 @@
 
 			NoDataToParse : -601,
 
-			CannotUngroupError : -700
+			CannotUngroupError : -700,
+
+			UplDocumentSize         : -751,
+			UplDocumentExt          : -752,
+			UplDocumentFileCount    : -753,
 		}
 	};
 

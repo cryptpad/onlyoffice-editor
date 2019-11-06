@@ -527,8 +527,31 @@
 					if (_current["Url"] !== undefined)
 					{
 						// insert/replace document
-						this.api.insertDocumentUrlsData = {imageMap: null, documents: [{url : _current["Url"], format: _current["Format"]}], endCallback : function(_api) {
+						this.api.insertDocumentUrlsData = {imageMap: null, documents: [{url : _current["Url"], format: _current["Format"], token: _current["Token"]}], convertCallback: function(_api, url) {
+							_api.insertDocumentUrlsData.imageMap = url;
+							AscCommon.loadFileContent(url['output.bin'], function(httpRequest) {
+								var stream;
+								if (null === httpRequest || !(stream = AscCommon.initStreamFromResponse(httpRequest))) {
+									_api.endInsertDocumentUrls();
+									_api.sendEvent("asc_onError", c_oAscError.ID.MailMergeLoadFile,
+										c_oAscError.Level.NoCritical);
+									return;
+								}
+								_api.asc_PasteData(AscCommon.c_oAscClipboardDataFormat.Internal, stream, undefined,
+									undefined, true, function() {
+										_api.WordControl.m_oLogicDocument.MoveCursorRight(false, false, true);
+										_api.WordControl.m_oLogicDocument.Recalculate();
 
+										if (_api.insertDocumentUrlsData.documents.length > 0) {
+											var options = new Asc.asc_CDownloadOptions(Asc.c_oAscFileType.CANVAS_WORD);
+											options.isNaturalDownload = true;
+											_api.asc_DownloadAs(options);
+										} else {
+											_api.endInsertDocumentUrls();
+										}
+									});
+							}, "arraybuffer");
+						}, endCallback : function(_api) {
 							_blockStd.Content.Remove_FromContent(_blockStd.Content.GetElementsCount() - 1 , 1);
 							_blockStd.MoveCursorToEndPos(false, false);
 
@@ -2100,7 +2123,7 @@ background-repeat: no-repeat;\
 		}
 	};
 
-	asc_docs_api.prototype.asc_PasteData = function(_format, data1, data2, text_data, useCurrentPoint)
+	asc_docs_api.prototype.asc_PasteData = function(_format, data1, data2, text_data, useCurrentPoint, callback)
 	{
 	    if (AscCommon.CollaborativeEditing.Get_GlobalLock())
 	        return;
@@ -2117,7 +2140,7 @@ background-repeat: no-repeat;\
 				_logicDoc.StartAction(AscDFH.historydescription_Document_PasteHotKey);
 			}
 
-			AscCommon.Editor_Paste_Exec(this, _format, data1, data2, text_data);
+			AscCommon.Editor_Paste_Exec(this, _format, data1, data2, text_data, undefined, callback);
 
 			if (!useCurrentPoint) {
 				//_logicDoc.FinalizeAction();
@@ -2553,39 +2576,13 @@ background-repeat: no-repeat;\
 				}
 			});
 		}
-		else if (this.insertDocumentUrlsData)
+		else if (this.insertDocumentUrlsData && this.insertDocumentUrlsData.convertCallback)
 		{
-			t.insertDocumentUrlsData.imageMap = url;
-			AscCommon.loadFileContent(url['output.bin'], function(httpRequest)
-			{
-				var stream;
-				if (null === httpRequest || !(stream = AscCommon.initStreamFromResponse(httpRequest)))
-				{
-					t.endInsertDocumentUrls();
-					t.sendEvent("asc_onError", c_oAscError.ID.MailMergeLoadFile, c_oAscError.Level.NoCritical);
-					return;
-				}
-				t.asc_PasteData(AscCommon.c_oAscClipboardDataFormat.Internal, stream, undefined, undefined, true);
-			}, "arraybuffer");
+			this.insertDocumentUrlsData.convertCallback(this, url);
 		}
 		else
 		{
 			AscCommon.baseEditorsApi.prototype.processSavedFile.call(this, url, downloadType);
-		}
-	};
-	asc_docs_api.prototype.continueInsertDocumentUrls = function()
-	{
-		if(this.insertDocumentUrlsData)
-		{
-			this.WordControl.m_oLogicDocument.MoveCursorRight(false, false, true);
-			this.WordControl.m_oLogicDocument.Recalculate();
-		}
-		if (this.insertDocumentUrlsData && this.insertDocumentUrlsData.documents.length > 0) {
-			var options = new Asc.asc_CDownloadOptions(Asc.c_oAscFileType.CANVAS_WORD);
-			options.isNaturalDownload = true;
-			this.asc_DownloadAs(options);
-		} else {
-			this.endInsertDocumentUrls();
 		}
 	};
 	asc_docs_api.prototype.endInsertDocumentUrls = function()
@@ -7634,9 +7631,18 @@ background-repeat: no-repeat;\
 		else if (this.insertDocumentUrlsData)
 		{
 			var last = this.insertDocumentUrlsData.documents.shift();
-			oAdditionalData['url']       = last['url'];
-			oAdditionalData['format']    = last['format'];
+			oAdditionalData['url'] = last['url'];
+			oAdditionalData['format'] = last['format'];
+			if (last['token']) {
+				oAdditionalData['tokenDownload'] = last['token'];
+				//remove to reduce message size
+				oAdditionalData['tokenSession'] = undefined;
+			}
 			oAdditionalData['outputurls']= true;
+			// ToDo select txt params
+			oAdditionalData["codepage"] = AscCommon.c_oAscCodePageUtf8;
+
+			dataContainer.data = last['data'];
 		}
 		else if (c_oAscFileType.HTML === fileType && null == options.oDocumentMailMerge && null == options.oMailMergeSendData)
 		{

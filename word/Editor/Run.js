@@ -115,7 +115,8 @@ function ParaRun(Paragraph, bMathRun)
 		&& editor.WordControl.m_oLogicDocument
 		&& true === editor.WordControl.m_oLogicDocument.IsTrackRevisions()
 		&& !editor.WordControl.m_oLogicDocument.RecalcTableHeader
-		&& !editor.WordControl.m_oLogicDocument.MoveDrawing)
+		&& !editor.WordControl.m_oLogicDocument.MoveDrawing
+		&& !(this.Paragraph && !this.Paragraph.bFromDocument))
 	{
 		this.ReviewType = reviewtype_Add;
 		this.ReviewInfo.Update();
