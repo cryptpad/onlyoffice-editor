@@ -12452,7 +12452,7 @@ function ApplyPresetToChartSpace(oChartSpace, aPreset, bCreate){
     }
 
     function fGetPresentationBulletByNumInfo(NumInfo){
-        if(!AscFormat.isRealNumber(NumInfo.Type) || !AscFormat.isRealNumber(NumInfo.SubType))
+        if(!AscFormat.isRealNumber(NumInfo.Type) && !AscFormat.isRealNumber(NumInfo.SubType))
         {
             return null;
         }
