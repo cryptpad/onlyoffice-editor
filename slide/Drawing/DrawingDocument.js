@@ -1106,6 +1106,9 @@ function CDrawingDocument()
 			this.m_oWordControl.MobileTouchManager.ClearContextMenu();
 		}
 
+        if (this.TransitionSlide && this.TransitionSlide.IsPlaying())
+			this.TransitionSlide.End(true);
+
 		editor.sendEvent("asc_onDocumentChanged");
 
 		if (true === this.m_bIsSearching)
