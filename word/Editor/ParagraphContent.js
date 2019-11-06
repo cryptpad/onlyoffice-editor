@@ -1844,7 +1844,7 @@ ParaFootnoteReference.prototype.GetFootnote = function()
 {
 	return this.Footnote;
 };
-ParaFootnoteReference.prototype.UpdateNumber = function(PRS)
+ParaFootnoteReference.prototype.UpdateNumber = function(PRS, isKeepNumber)
 {
 	if (this.Footnote && true !== PRS.IsFastRecalculate() && PRS.TopDocument instanceof CDocument)
 	{
@@ -1857,12 +1857,15 @@ ParaFootnoteReference.prototype.UpdateNumber = function(PRS)
 		var oLogicDocument       = this.Footnote.Get_LogicDocument();
 		var oFootnotesController = oLogicDocument.GetFootnotesController();
 
-		this.NumFormat = nNumFormat;
-		this.Number    = oFootnotesController.GetFootnoteNumberOnPage(nPageAbs, nColumnAbs, oSectPr) + nAdditional;
+		if (!isKeepNumber)
+		{
+			this.NumFormat = nNumFormat;
+			this.Number    = oFootnotesController.GetFootnoteNumberOnPage(nPageAbs, nColumnAbs, oSectPr) + nAdditional;
 
-		// Если данная сноска не участвует в нумерации, просто уменьшаем ей номер на 1, для упрощения работы
-		if (this.IsCustomMarkFollows())
-			this.Number--;
+			// Если данная сноска не участвует в нумерации, просто уменьшаем ей номер на 1, для упрощения работы
+			if (this.IsCustomMarkFollows())
+				this.Number--;
+		}
 
 		this.private_Measure();
 		this.Footnote.SetNumber(this.Number, oSectPr, this.IsCustomMarkFollows());

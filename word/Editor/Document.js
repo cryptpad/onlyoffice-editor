@@ -1935,6 +1935,7 @@ function CDocument(DrawingDocument, isMainLogicDocument)
 	this.TrackMoveRelocation       = false; // Перенос ранее перенесенного текста внутри рецензирования
 	this.RemoveEmptySelection      = true;  // При обновлении селекта, если он пустой тогда сбрасываем его
 	this.MoveDrawing               = false; // Происходит ли сейчас перенос автофигуры
+	this.PrintSelection            = false; // Печатаем выделенный фрагмент
 
 	// Параметры для случая, когда мы не можем сразу перерисовать треки и нужно перерисовывать их на таймере пересчета
 	this.NeedUpdateTracksOnRecalc = false;

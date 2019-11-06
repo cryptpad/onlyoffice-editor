@@ -9011,12 +9011,14 @@ function CDrawingDocument()
             };
 
             var _srcDoc = this.m_oLogicDocument;
+            _srcDoc.PrintSelection = true;
             var _isTrackRevision = this.m_oLogicDocument.IsTrackRevisions();
             if (_isTrackRevision)
             	this.m_oLogicDocument.SetTrackRevisions(false);
             var _document = new CDocument(_drDocument, false);
             var _srcDrawngObjects = _srcDoc.DrawingObjects;
             _srcDoc.DrawingObjects = _document.DrawingObjects;
+			_document.PrintSelection = true;
 
             var _selection = _srcDoc.GetSelectedContent(false, {SaveNumberingValues : true});
             _drDocument.m_oLogicDocument = _document;
@@ -9033,6 +9035,7 @@ function CDrawingDocument()
             _document.Styles = _srcDoc.Styles.Copy();
             _document.theme = _srcDoc.theme.createDuplicate();
             _document.clrSchemeMap = _srcDoc.clrSchemeMap.createDuplicate();
+			_document.Footnotes = _srcDoc.Footnotes.Copy(_document);
 
             var oLastSectPr = _selection.GetLastSection();
 			if (oLastSectPr)
@@ -9063,6 +9066,7 @@ function CDrawingDocument()
             editor.WordControl.m_oLogicDocument = _srcDoc;
             editor.WordControl.m_oDrawingDocument = this;
             _srcDoc.DrawingObjects = _srcDrawngObjects;
+			_srcDoc.PrintSelection = false;
 
             this.printedDocument = _document;
 

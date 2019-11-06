@@ -2866,7 +2866,7 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
 						{
 							if (this.GetLogicDocument() && !this.GetLogicDocument().RecalcTableHeader)
 							{
-								Item.UpdateNumber(PRS);
+								Item.UpdateNumber(PRS, this.GetLogicDocument().PrintSelection);
 								PRS.AddFootnoteReference(Item, PRS.GetCurrentContentPos(Pos));
 							}
 							else
