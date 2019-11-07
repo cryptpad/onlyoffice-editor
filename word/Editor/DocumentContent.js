@@ -158,7 +158,7 @@ CDocumentContent.prototype.Save_StartState = function()
 {
     this.StartState = new CDocumentContentStartState(this);
 };
-CDocumentContent.prototype.Copy = function(Parent, DrawingDocument)
+CDocumentContent.prototype.Copy = function(Parent, DrawingDocument, oPr)
 {
 	var DC = new CDocumentContent(Parent, DrawingDocument ? DrawingDocument : this.DrawingDocument, 0, 0, 0, 0, this.Split, this.TurnOffInnerWrap, this.bPresentation);
 
@@ -168,12 +168,12 @@ CDocumentContent.prototype.Copy = function(Parent, DrawingDocument)
 	var Count = this.Content.length;
 	for (var Index = 0; Index < Count; Index++)
 	{
-		DC.Internal_Content_Add(Index, this.Content[Index].Copy(DC, DrawingDocument), false);
+		DC.Internal_Content_Add(Index, this.Content[Index].Copy(DC, DrawingDocument, oPr), false);
 	}
 
 	return DC;
 };
-CDocumentContent.prototype.Copy2 = function(OtherDC)
+CDocumentContent.prototype.Copy2 = function(OtherDC, oPr)
 {
 	// Копируем содержимое
 	this.Internal_Content_RemoveAll();
@@ -181,7 +181,7 @@ CDocumentContent.prototype.Copy2 = function(OtherDC)
 	var Count = OtherDC.Content.length;
 	for (var Index = 0; Index < Count; Index++)
 	{
-		this.Internal_Content_Add(Index, OtherDC.Content[Index].Copy(this), false);
+		this.Internal_Content_Add(Index, OtherDC.Content[Index].Copy(this, this.DrawingDocument, oPr), false);
 	}
 };
 CDocumentContent.prototype.Copy3 = function(Parent)//для заголовков диаграмм

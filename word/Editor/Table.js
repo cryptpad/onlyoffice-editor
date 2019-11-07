@@ -2581,7 +2581,7 @@ CTable.prototype.GetPrevElementEndInfo = function(RowIndex)
 //----------------------------------------------------------------------------------------------------------------------
 // Функции к которым идет обращение из родительского класса
 //----------------------------------------------------------------------------------------------------------------------
-CTable.prototype.Copy = function(Parent)
+CTable.prototype.Copy = function(Parent, DrawingDocument, oPr)
 {
 	var TableGrid = this.private_CopyTableGrid();
 	var Table     = new CTable(this.DrawingDocument, Parent, this.Inline, 0, 0, TableGrid, this.bPresentation);
@@ -2602,7 +2602,7 @@ CTable.prototype.Copy = function(Parent)
 	var Rows = this.Content.length;
 	for (var Index = 0; Index < Rows; Index++)
 	{
-		Table.Content[Index] = this.Content[Index].Copy(Table);
+		Table.Content[Index] = this.Content[Index].Copy(Table, oPr);
 		History.Add(new CChangesTableAddRow(Table, Index, [Table.Content[Index]]));
 	}
 

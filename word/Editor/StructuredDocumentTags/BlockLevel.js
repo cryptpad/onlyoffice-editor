@@ -81,14 +81,14 @@ CBlockLevelSdt.prototype.IsBlockLevel = function()
 {
 	return true;
 };
-CBlockLevelSdt.prototype.Copy = function(Parent)
+CBlockLevelSdt.prototype.Copy = function(Parent, DrawingDocument, oPr)
 {
 	var oNew = new CBlockLevelSdt(this.LogicDocument, Parent ? Parent : this.Parent);
 
 	if (!this.IsPlaceHolder())
 	{
 		oNew.private_ReplacePlaceHolderWithContent();
-		oNew.Content.Copy2(this.Content);
+		oNew.Content.Copy2(this.Content, oPr);
 		if (oNew.IsEmpty())
 			oNew.private_ReplaceContentWithPlaceHolder();
 	}

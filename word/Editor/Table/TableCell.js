@@ -136,7 +136,7 @@ CTableCell.prototype =
     },
 
 
-    Copy : function(Row)
+    Copy : function(Row, oPr)
     {
         var Cell = new CTableCell(Row);
 
@@ -144,7 +144,7 @@ CTableCell.prototype =
         Cell.Copy_Pr( this.Pr.Copy(), false );
 
         // Копируем содержимое ячейки
-        Cell.Content.Copy2( this.Content );
+		Cell.Content.Copy2(this.Content, oPr);
 
         // Скопируем BorderInfo и метрики, чтобы при копировании строки целиком не надо было их пересчитывать
         Cell.BorderInfo.Top                = this.BorderInfo.Top;
