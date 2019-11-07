@@ -1573,6 +1573,15 @@
 		Thai                 : 13
 	};
 
+	var c_oAscContentControlSpecificType = {
+		None         : 0,
+		CheckBox     : 1,
+		Picture      : 2,
+		ComboBox     : 3,
+		DropDownList : 4,
+		DateTime     : 5
+	};
+
 	//------------------------------------------------------------export--------------------------------------------------
 	var prot;
 	window['Asc']                          = window['Asc'] || {};
@@ -2484,5 +2493,13 @@
 	prot['Saka']                 = c_oAscCalendarType.Saka;
 	prot['Taiwan']               = c_oAscCalendarType.Taiwan;
 	prot['Thai']                 = c_oAscCalendarType.Thai;
+
+	prot = window['Asc']['c_oAscContentControlSpecificType'] = window['Asc'].c_oAscContentControlSpecificType = c_oAscContentControlSpecificType;
+	prot['None']         = c_oAscContentControlSpecificType.None;
+	prot['CheckBox']     = c_oAscContentControlSpecificType.CheckBox;
+	prot['Picture']      = c_oAscContentControlSpecificType.Picture;
+	prot['ComboBox']     = c_oAscContentControlSpecificType.ComboBox;
+	prot['DropDownList'] = c_oAscContentControlSpecificType.DropDownList;
+	prot['DateTime']     = c_oAscContentControlSpecificType.DateTime;
 
 })(window);

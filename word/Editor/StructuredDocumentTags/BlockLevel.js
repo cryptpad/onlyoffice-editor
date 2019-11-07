@@ -73,6 +73,14 @@ function CBlockLevelSdt(oLogicDocument, oParent)
 CBlockLevelSdt.prototype = Object.create(CDocumentContentElementBase.prototype);
 CBlockLevelSdt.prototype.constructor = CBlockLevelSdt;
 
+CBlockLevelSdt.prototype.IsInlineLevel = function()
+{
+	return false;
+};
+CBlockLevelSdt.prototype.IsBlockLevel = function()
+{
+	return true;
+};
 CBlockLevelSdt.prototype.Copy = function(Parent)
 {
 	var oNew = new CBlockLevelSdt(this.LogicDocument, Parent ? Parent : this.Parent);
@@ -1399,36 +1407,12 @@ CBlockLevelSdt.prototype.SetContentControlPr = function(oPr)
 	if (!oPr || this.IsBuiltInTableOfContents())
 		return;
 
-	if (undefined !== oPr.Tag)
-		this.SetTag(oPr.Tag);
-
-	if (undefined !== oPr.Id)
-		this.SetContentControlId(oPr.Id);
-
-	if (undefined !== oPr.Lock)
-		this.SetContentControlLock(oPr.Lock);
-
-	if (undefined !== oPr.Alias)
-		this.SetAlias(oPr.Alias);
-
-	if (undefined !== oPr.Appearance)
-		this.SetAppearance(oPr.Appearance);
-
-	if (undefined !== oPr.Color)
-		this.SetColor(oPr.Color);
+	oPr.SetToContentControl(this);
 };
 CBlockLevelSdt.prototype.GetContentControlPr = function()
 {
 	var oPr = new CContentControlPr(c_oAscSdtLevelType.Block);
-
-	oPr.Tag        = this.GetTag();
-	oPr.Id         = this.Pr.Id;
-	oPr.Lock       = this.Pr.Lock;
-	oPr.InternalId = this.GetId();
-	oPr.Alias      = this.GetAlias();
-	oPr.Appearance = this.GetAppearance();
-	oPr.Color      = this.GetColor();
-
+	oPr.FillFromContentControl(this);
 	return oPr;
 };
 CBlockLevelSdt.prototype.Restart_CheckSpelling = function()
@@ -1622,6 +1606,14 @@ CBlockLevelSdt.prototype.SetCheckBoxPr = function(oCheckBoxPr)
 	}
 };
 /**
+ * Получаем настройки для чекбокса
+ * @returns {?CSdtCheckBoxPr}
+ */
+CBlockLevelSdt.prototype.GetCheckBoxPr = function()
+{
+	return this.Pr.CheckBox;
+};
+/**
  * Выставляем состояние чекбокса
  */
 CBlockLevelSdt.prototype.ToggleCheckBox = function()
@@ -1750,6 +1742,13 @@ CBlockLevelSdt.prototype.SetComboBoxPr = function(oPr)
 	}
 };
 /**
+ * @returns {?CSdtComboBoxPr}
+ */
+CBlockLevelSdt.prototype.GetComboBoxPr = function()
+{
+	return this.Pr.ComboBox;
+};
+/**
  * Проверяем является ли данный контейнер специальным для выпадающего списка
  * @returns {boolean}
  */
@@ -1767,6 +1766,13 @@ CBlockLevelSdt.prototype.SetDropDownListPr = function(oPr)
 		History.Add(new CChangesSdtPrDropDownList(this, this.Pr.DropDown, oPr));
 		this.Pr.DropDown = oPr;
 	}
+};
+/**
+ * @returns {?CSdtComboBoxPr}
+ */
+CBlockLevelSdt.prototype.GetDropDownListPr = function()
+{
+	return this.Pr.DropDown;
 };
 /**
  * Применяем к данному контейнеру настройки того, что это специальный контйенер для поля со списком
@@ -1860,6 +1866,13 @@ CBlockLevelSdt.prototype.SetDatePickerPr = function(oPr)
 		History.Add(new CChangesSdtPrDatePicker(this, this.Pr.Date, _oPr));
 		this.Pr.Date = _oPr;
 	}
+};
+/**
+ * @returns {?CSdtDatePickerPr}
+ */
+CBlockLevelSdt.prototype.GetDatePickerPr = function()
+{
+	return this.Pr.Date;
 };
 /**
  * Применяем к данному контейнеру настройки того, что это специальный контйенер для даты

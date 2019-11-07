@@ -69,7 +69,14 @@ function CInlineLevelSdt()
 CInlineLevelSdt.prototype = Object.create(CParagraphContentWithParagraphLikeContent.prototype);
 CInlineLevelSdt.prototype.constructor = CInlineLevelSdt;
 
-
+CInlineLevelSdt.prototype.IsInlineLevel = function()
+{
+	return true;
+};
+CInlineLevelSdt.prototype.IsBlockLevel = function()
+{
+	return false;
+};
 CInlineLevelSdt.prototype.Get_Id = function()
 {
 	return this.Id;
@@ -688,36 +695,12 @@ CInlineLevelSdt.prototype.SetContentControlPr = function(oPr)
 	if (!oPr)
 		return;
 
-	if (undefined !== oPr.Tag)
-		this.SetTag(oPr.Tag);
-
-	if (undefined !== oPr.Id)
-		this.SetContentControlId(oPr.Id);
-
-	if (undefined !== oPr.Lock)
-		this.SetContentControlLock(oPr.Lock);
-
-	if (undefined !== oPr.Alias)
-		this.SetAlias(oPr.Alias);
-
-	if (undefined !== oPr.Appearance)
-		this.SetAppearance(oPr.Appearance);
-
-	if (undefined !== oPr.Color)
-		this.SetColor(oPr.Color);
+	oPr.SetToContentControl(this);
 };
 CInlineLevelSdt.prototype.GetContentControlPr = function()
 {
 	var oPr = new CContentControlPr(c_oAscSdtLevelType.Inline);
-
-	oPr.Tag        = this.GetTag();
-	oPr.Id         = this.Pr.Id;
-	oPr.Lock       = this.Pr.Lock;
-	oPr.InternalId = this.GetId();
-	oPr.Alias      = this.GetAlias();
-	oPr.Appearance = this.GetAppearance();
-	oPr.Color      = this.GetColor();
-
+	oPr.FillFromContentControl(this);
 	return oPr;
 };
 /**
@@ -872,6 +855,14 @@ CInlineLevelSdt.prototype.SetCheckBoxPr = function(oCheckBoxPr)
 	}
 };
 /**
+ * Получаем настройки для чекбокса
+ * @returns {?CSdtCheckBoxPr}
+ */
+CInlineLevelSdt.prototype.GetCheckBoxPr = function()
+{
+	return this.Pr.CheckBox;
+};
+/**
  * Выставляем состояние чекбокса
  */
 CInlineLevelSdt.prototype.ToggleCheckBox = function()
@@ -1010,6 +1001,13 @@ CInlineLevelSdt.prototype.SetComboBoxPr = function(oPr)
 	}
 };
 /**
+ * @returns {?CSdtComboBoxPr}
+ */
+CInlineLevelSdt.prototype.GetComboBoxPr = function()
+{
+	return this.Pr.ComboBox;
+};
+/**
  * Проверяем является ли данный контейнер специальным для выпадающего списка
  * @returns {boolean}
  */
@@ -1028,6 +1026,13 @@ CInlineLevelSdt.prototype.SetDropDownListPr = function(oPr)
 		History.Add(new CChangesSdtPrDropDownList(this, this.Pr.DropDown, _oPr));
 		this.Pr.DropDown = _oPr;
 	}
+};
+/**
+ * @returns {?CSdtComboBoxPr}
+ */
+CInlineLevelSdt.prototype.GetDropDownListPr = function()
+{
+	return this.Pr.DropDown;
 };
 /**
  * Применяем к данному контейнеру настройки того, что это специальный контйенер для поля со списком
@@ -1110,6 +1115,13 @@ CInlineLevelSdt.prototype.SetDatePickerPr = function(oPr)
 		History.Add(new CChangesSdtPrDatePicker(this, this.Pr.Date, _oPr));
 		this.Pr.Date = _oPr;
 	}
+};
+/**
+ * @returns {?CSdtDatePickerPr}
+ */
+CInlineLevelSdt.prototype.GetDatePickerPr = function()
+{
+	return this.Pr.Date;
 };
 /**
  * Применяем к данному контейнеру настройки того, что это специальный контйенер для даты
