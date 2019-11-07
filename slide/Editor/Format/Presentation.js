@@ -8607,7 +8607,10 @@ CPresentation.prototype =
                     }
                 }
                 if(!bFind){
-                    this.CurPage = this.Slides.length - 1;
+                    if(this.CurPage >= this.Slides.length)
+                    {
+                        this.CurPage = this.Slides.length - 1;
+                    }
                     this.bGoToPage = true;
                     if(this.Slides[this.CurPage]){
                         var oDrawingObjects = this.Slides[this.CurPage].graphicObjects;
