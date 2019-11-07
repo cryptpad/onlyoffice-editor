@@ -417,6 +417,7 @@
 				ifr.style.overflow = 'hidden';
 				ifr.style.zIndex   = -1000;
 				ifr.setAttribute("frameBorder", "0");
+				ifr.setAttribute("allow", "autoplay");
 				document.body.appendChild(ifr);
 
 				if (runObject.startData.getAttribute("resize") !== true)
