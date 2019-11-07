@@ -409,7 +409,7 @@
 				ifr.id             = runObject.frameId;
 				var _add           = plugin.baseUrl == "" ? this.path : plugin.baseUrl;
 				ifr.src            = _add + plugin.variations[runObject.currentVariation].url + "?lang=" + this.language;
-				ifr.style.position = AscCommon.AscBrowser.isIE ? 'fixed' : "absolute";
+				ifr.style.position = (AscCommon.AscBrowser.isIE || AscCommon.AscBrowser.isMozilla) ? 'fixed' : "absolute";
 				ifr.style.top      = '-100px';
 				ifr.style.left     = '0px';
 				ifr.style.width    = '10000px';
