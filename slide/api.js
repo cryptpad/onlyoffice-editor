@@ -1328,7 +1328,7 @@ background-repeat: no-repeat;\
 	{
 		this.CreateCSS();
 
-		var _innerHTML = "<div id=\"id_panel_thumbnails\" class=\"block_elem\" style=\"background-color:" + AscCommonSlide.GlobalSkin.BackgroundColorThumbnails + ";\">\
+		var _innerHTML = "<div id=\"id_panel_thumbnails\" class=\"block_elem\" style=\"touch-action:none;background-color:" + AscCommonSlide.GlobalSkin.BackgroundColorThumbnails + ";\">\
 									<div id=\"id_panel_thumbnails_split\" class=\"block_elem\" style=\"pointer-events:none;background-color:" + AscCommonSlide.GlobalSkin.BackgroundColorThumbnails + ";\"></div>\
 		                            <canvas id=\"id_thumbnails_background\" class=\"block_elem\" style=\"-ms-touch-action: none;-webkit-user-select: none;z-index:1\"></canvas>\
 		                            <canvas id=\"id_thumbnails\" class=\"block_elem\" style=\"-ms-touch-action: none;-webkit-user-select: none;z-index:2\"></canvas>\
@@ -1336,7 +1336,7 @@ background-repeat: no-repeat;\
 									    <div id=\"panel_right_scroll_thmbnl\" class=\"block_elem\" style=\"left:0;top:0;width:1px;height:6000px;\"></div>\
 									</div>\
 		                        </div>\
-		                    <div id=\"id_main_parent\" class=\"block_elem\" style=\"-ms-touch-action: none;-moz-user-select:none;-khtml-user-select:none;user-select:none;overflow:hidden;border-left-width: 1px;border-left-color:" + AscCommonSlide.GlobalSkin.BorderSplitterColor + "; border-left-style: solid;\" UNSELECTABLE=\"on\">\
+		                    <div id=\"id_main_parent\" class=\"block_elem\" style=\"touch-action:none;-ms-touch-action: none;-moz-user-select:none;-khtml-user-select:none;user-select:none;overflow:hidden;border-left-width: 1px;border-left-color:" + AscCommonSlide.GlobalSkin.BorderSplitterColor + "; border-left-style: solid;\" UNSELECTABLE=\"on\">\
                             <div id=\"id_main\" class=\"block_elem\" style=\"z-index:5;-ms-touch-action: none;-moz-user-select:none;-khtml-user-select:none;user-select:none;background-color:" + AscCommonSlide.GlobalSkin.BackgroundColor + ";overflow:hidden;\" UNSELECTABLE=\"on\">\
 								<div id=\"id_panel_left\" class=\"block_elem\">\
 									<canvas id=\"id_buttonTabs\" class=\"block_elem\"></canvas>\

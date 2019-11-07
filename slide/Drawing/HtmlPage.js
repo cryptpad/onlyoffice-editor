@@ -452,6 +452,7 @@ function CEditorPage(api)
 		}
 
 		this.m_oBody = CreateControlContainer(this.Name);
+        this.m_oBody.HtmlElement.style.touchAction = "none";
 
 		this.Splitter1Pos    = 67.5;
         this.Splitter1PosSetUp = this.Splitter1Pos;

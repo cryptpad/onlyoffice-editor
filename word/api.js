@@ -1147,7 +1147,7 @@ background-repeat: no-repeat;\
 		this.CreateCSS();
 
 		if (this.HtmlElement != null)
-			this.HtmlElement.innerHTML = ("<div id=\"id_main\" class=\"block_elem\" style=\"-ms-touch-action: none;-moz-user-select:none;-khtml-user-select:none;user-select:none;background-color:" + AscCommonWord.GlobalSkin.BackgroundColor + ";overflow:hidden;\" UNSELECTABLE=\"on\">\
+			this.HtmlElement.innerHTML = ("<div id=\"id_main\" class=\"block_elem\" style=\"touch-action:none;-ms-touch-action: none;-moz-user-select:none;-khtml-user-select:none;user-select:none;background-color:" + AscCommonWord.GlobalSkin.BackgroundColor + ";overflow:hidden;\" UNSELECTABLE=\"on\">\
 								<div id=\"id_panel_left\" class=\"block_elem\">\
 									<canvas id=\"id_buttonTabs\" class=\"block_elem\"></canvas>\
 									<canvas id=\"id_vert_ruler\" class=\"block_elem\"></canvas>\
@@ -1161,7 +1161,7 @@ background-repeat: no-repeat;\
 									    <canvas id=\"id_target_cursor\" class=\"block_elem\" width=\"1\" height=\"1\" style=\"touch-action:none;-ms-touch-action: none;-webkit-user-select: none;width:2px;height:13px;z-index:4;\"></canvas>\
                                     </div>\
 								</div>\
-									<div id=\"id_panel_right\" class=\"block_elem\" style=\"margin-right:1px;background-color:" + AscCommonWord.GlobalSkin.BackgroundScroll + ";\">\
+									<div id=\"id_panel_right\" class=\"block_elem\" style=\"touch-action:none;margin-right:1px;background-color:" + AscCommonWord.GlobalSkin.BackgroundScroll + ";\">\
 									<div id=\"id_buttonRulers\" class=\"block_elem buttonRuler\"></div>\
 									<div id=\"id_vertical_scroll\" style=\"left:0;top:0px;width:14px;overflow:hidden;position:absolute;\">\
 									<div id=\"panel_right_scroll\" class=\"block_elem\" style=\"left:0;top:0;width:1px;height:6000px;\"></div>\
@@ -1169,7 +1169,7 @@ background-repeat: no-repeat;\
 									<div id=\"id_buttonPrevPage\" class=\"block_elem buttonPrevPage\"></div>\
 									<div id=\"id_buttonNextPage\" class=\"block_elem buttonNextPage\"></div>\
 								</div>\
-									<div id=\"id_horscrollpanel\" class=\"block_elem\" style=\"margin-bottom:1px;background-color:" + AscCommonWord.GlobalSkin.BackgroundScroll + ";\">\
+									<div id=\"id_horscrollpanel\" class=\"block_elem\" style=\"touch-action:none;margin-bottom:1px;background-color:" + AscCommonWord.GlobalSkin.BackgroundScroll + ";\">\
 									<div id=\"id_horizontal_scroll\" style=\"left:0px;top:0;height:14px;overflow:hidden;position:absolute;width:100%;\">\
 										<div id=\"panel_hor_scroll\" class=\"block_elem\" style=\"left:0;top:0;width:6000px;height:1px;\"></div>\
 									</div>\
