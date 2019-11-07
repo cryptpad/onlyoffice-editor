@@ -317,7 +317,9 @@ Paragraph.prototype.Copy = function(Parent, DrawingDocument, oPr)
 	Para.Internal_Content_Add(Para.Content.length, EndRun, false);
 
 	EndRun.Set_Pr(this.TextPr.Value.Copy());
-	EndRun.SetReviewTypeWithInfo(this.GetReviewType(), this.GetReviewInfo().Copy(), false);
+
+	if (oPr.CopyReviewPr)
+		EndRun.SetReviewTypeWithInfo(this.GetReviewType(), this.GetReviewInfo().Copy(), false);
 
 	// Добавляем секцию в конце
 	if (undefined !== this.SectPr)
