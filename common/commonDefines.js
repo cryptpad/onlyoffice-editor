@@ -219,7 +219,7 @@
 
 			UplDocumentSize         : -751,
 			UplDocumentExt          : -752,
-			UplDocumentFileCount    : -753,
+			UplDocumentFileCount    : -753
 		}
 	};
 
