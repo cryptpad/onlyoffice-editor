@@ -9702,6 +9702,10 @@ DrawingObjectsController.prototype =
                 this.setDefaultTabSize( Props.DefaultTab );
             }
 
+            if(undefined != Props.BulletSize || undefined != Props.BulletColor || undefined != Props.NumStartAt)
+            {
+                this.setParagraphNumbering(null, Props.BulletSize, Props.BulletColor, Props.NumStartAt)
+            }
 
             // TODO: как только разъединят настройки параграфа и текста переделать тут
             var TextPr = new CTextPr();
