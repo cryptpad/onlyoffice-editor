@@ -1781,33 +1781,38 @@ var editor;
 		this.collaborativeEditing.lock([lockInfo], callback);
 	};
 
-  spreadsheet_api.prototype._addWorksheets = function (arrNames, where) {
-    // Проверка глобального лока
-    if (this.collaborativeEditing.getGlobalLock()) {
-      return false;
-    }
-
-    var t = this;
-    var addWorksheetCallback = function(res) {
-      if (res) {
-        History.Create_NewPoint();
-        History.StartTransaction();
-        for (var i = arrNames.length - 1; i >= 0; --i) {
-          t.wbModel.createWorksheet(where, arrNames[i]);
-        }
-        t.wbModel.setActive(where);
-        t.wb.updateWorksheetByModel();
-        t.wb.showWorksheet();
-        History.EndTransaction();
-        // Посылаем callback об изменении списка листов
-        t.sheetsChanged();
-      }
-    };
-
-    var lockInfo = this.collaborativeEditing.getLockInfo(c_oAscLockTypeElem.Sheet, /*subType*/null,
-      AscCommonExcel.c_oAscLockAddSheet, AscCommonExcel.c_oAscLockAddSheet);
-    this.collaborativeEditing.lock([lockInfo], addWorksheetCallback);
-  };
+	spreadsheet_api.prototype._isLockedAddWorksheets = function(callback) {
+		// Проверка глобального лока
+		if (this.collaborativeEditing.getGlobalLock()) {
+			return false;
+		}
+		var lockInfo = this.collaborativeEditing.getLockInfo(c_oAscLockTypeElem.Sheet, /*subType*/null,
+			AscCommonExcel.c_oAscLockAddSheet, AscCommonExcel.c_oAscLockAddSheet);
+		this.collaborativeEditing.lock([lockInfo], callback);
+	};
+	spreadsheet_api.prototype._addWorksheets = function(arrNames, where) {
+		var t = this;
+		this._isLockedAddWorksheets(function(res) {
+			if (res) {
+				t._addWorksheetsWithoutLock(arrNames, where);
+			}
+		});
+	};
+	spreadsheet_api.prototype._addWorksheetsWithoutLock = function (arrNames, where) {
+		var res = [];
+		History.Create_NewPoint();
+		History.StartTransaction();
+		for (var i = arrNames.length - 1; i >= 0; --i) {
+			res.push(this.wbModel.createWorksheet(where, arrNames[i]));
+		}
+		this.wbModel.setActive(where);
+		this.wb.updateWorksheetByModel();
+		this.wb.showWorksheet();
+		History.EndTransaction();
+		// Посылаем callback об изменении списка листов
+		this.sheetsChanged();
+		return res;
+	};
 
   // Workbook interface
 
@@ -2294,10 +2299,18 @@ var editor;
 		var t = this;
 		if (Asc.CT_pivotTableDefinition.prototype.isValidDataRef(dataRef)) {
 			var wb = this.wbModel;
-			this._addWorksheets([newSheetName], wb.getActive(), function(ws) {
-				if (ws) {
+			this._isLockedAddWorksheets(function(res) {
+				if (res) {
+					History.Create_NewPoint();
+					History.StartTransaction();
+					var worksheets = t._addWorksheetsWithoutLock([newSheetName], wb.getActive());
+					var ws = worksheets[0];
 					var range = new Asc.Range(AscCommonExcel.NEW_PIVOT_COL, AscCommonExcel.NEW_PIVOT_ROW, AscCommonExcel.NEW_PIVOT_COL, AscCommonExcel.NEW_PIVOT_ROW);
 					t._asc_insertPivot(wb, dataRef, ws, range);
+					History.EndTransaction();
+				} else {
+					//todo
+					t.sendEvent('asc_onError', c_oAscError.ID.LockedCellPivot, c_oAscError.Level.NoCritical);
 				}
 			});
 		} else {
@@ -4233,6 +4246,10 @@ var editor;
     };
 
 	spreadsheet_api.prototype._changePivotWithLock = function (pivot, callback) {
+		// Проверка глобального лока
+		if (this.collaborativeEditing.getGlobalLock()) {
+			return false;
+		}
 		var t = this;
 		this._isLockedPivot(pivot, function(res) {
 			if (!res) {
