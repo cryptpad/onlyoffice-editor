@@ -277,6 +277,9 @@ Paragraph.prototype.Copy = function(Parent, DrawingDocument, oPr)
 	if (!oPr)
 		oPr = {};
 
+	if (false !== oPr.CopyReviewPr)
+		oPr.CopyReviewPr = true;
+
 	oPr.Paragraph = Para;
 
 	// Копируем настройки
@@ -303,7 +306,7 @@ Paragraph.prototype.Copy = function(Parent, DrawingDocument, oPr)
 		if (para_Comment === Item.Type && true === oPr.SkipComments)
 			continue;
 
-		Para.Internal_Content_Add(Para.Content.length, Item.Copy(false, oPr, true), false);
+		Para.Internal_Content_Add(Para.Content.length, Item.Copy(false, oPr), false);
 	}
 
 	// TODO: Как только переделаем para_End, переделать тут
@@ -7704,7 +7707,7 @@ Paragraph.prototype.GetSelectedContent = function(oSelectedContent)
 				{
 					if (Item.Type !== para_RevisionMove)
 					{
-						oPara.Internal_Content_Add(nParaPos, Item.Copy(false, undefined, true), false);
+						oPara.Internal_Content_Add(nParaPos, Item.Copy(false, {CopyReviewPr : true}), false);
 						nParaPos++;
 					}
 				}

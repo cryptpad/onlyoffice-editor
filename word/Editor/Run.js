@@ -183,10 +183,12 @@ ParaRun.prototype.Save_StartState = function()
 //-----------------------------------------------------------------------------------
 // Функции для работы с содержимым данного рана
 //-----------------------------------------------------------------------------------
-ParaRun.prototype.Copy = function(Selected, oPr, isCopyReviewPr)
+ParaRun.prototype.Copy = function(Selected, oPr)
 {
 	if (!oPr)
 		oPr = {};
+
+	var isCopyReviewPr = oPr.CopyReviewPr;
 
     var bMath = this.Type == para_Math_Run ? true : false;
 
@@ -284,7 +286,7 @@ ParaRun.prototype.Copy2 = function()
 
 ParaRun.prototype.CopyContent = function(Selected)
 {
-    return [this.Copy(Selected, undefined, true)];
+    return [this.Copy(Selected, {CopyReviewPr : true})];
 };
 ParaRun.prototype.GetSelectedContent = function(oSelectedContent)
 {
@@ -295,7 +297,7 @@ ParaRun.prototype.GetSelectedContent = function(oSelectedContent)
 
 		if (reviewtype_Add === nReviewType || reviewtype_Common === nReviewType)
 		{
-			var oRun = this.Copy(true, undefined, false);
+			var oRun = this.Copy(true, {CopyReviewPr : false});
 
 			if (oReviewInfo.IsMovedTo() || oReviewInfo.IsMovedFrom())
 				oSelectedContent.SetMovedParts(true);
@@ -321,7 +323,7 @@ ParaRun.prototype.GetSelectedContent = function(oSelectedContent)
 	}
 	else
 	{
-		return this.Copy(true, undefined, true);
+		return this.Copy(true, {CopyReviewPr : true});
 	}
 
 	return null;

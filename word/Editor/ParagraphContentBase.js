@@ -975,7 +975,7 @@ CParagraphContentWithParagraphLikeContent.prototype.Get_Type = function()
 {
     return this.Type;
 };
-CParagraphContentWithParagraphLikeContent.prototype.Copy = function(Selected, oPr, isCopyReviewPr)
+CParagraphContentWithParagraphLikeContent.prototype.Copy = function(Selected, oPr)
 {
 	var NewElement = new this.constructor();
 
@@ -999,9 +999,9 @@ CParagraphContentWithParagraphLikeContent.prototype.Copy = function(Selected, oP
 		var Item = this.Content[CurPos];
 
 		if (StartPos === CurPos || EndPos === CurPos)
-			NewElement.Add_ToContent(CurPos - StartPos, Item.Copy(Selected, oPr, isCopyReviewPr));
+			NewElement.Add_ToContent(CurPos - StartPos, Item.Copy(Selected, oPr));
 		else
-			NewElement.Add_ToContent(CurPos - StartPos, Item.Copy(false, oPr, isCopyReviewPr));
+			NewElement.Add_ToContent(CurPos - StartPos, Item.Copy(false, oPr));
 	}
 
 	return NewElement;
@@ -1067,7 +1067,7 @@ CParagraphContentWithParagraphLikeContent.prototype.CopyContent = function(Selec
         }
         else
         {
-            CopyContent.push(Item.Copy(false, undefined, true));
+            CopyContent.push(Item.Copy(false, {CopyReviewPr : true}));
         }
     }
 
