@@ -45,12 +45,6 @@
 
 		var c_oAscSelectionType = Asc.c_oAscSelectionType;
 
-		var c_oAscShiftType = {
-			None  : 0,
-			Move  : 1,
-			Change: 2
-		};
-
 
 		/** @const */
 		var kLeftLim1 = .999999999999999;
@@ -457,8 +451,7 @@
 			var isDelete = offset && (offset.col < 0 || offset.row < 0);
 			if (isHor) {
 				if (this.r1 <= range.r1 && range.r2 <= this.r2 && this.c1 <= range.c2) {
-					return (this.c1 < range.c1 || (!isDelete && this.c1 === range.c1 && this.c2 === range.c1)) ?
-						c_oAscShiftType.Move : c_oAscShiftType.Change;
+					return true;
 				} else if (isDelete && this.c1 <= range.c1 && range.c2 <= this.c2) {
 					var topIn = this.r1 <= range.r1 && range.r1 <= this.r2;
 					var bottomIn = this.r1 <= range.r2 && range.r2 <= this.r2;
@@ -466,15 +459,14 @@
 				}
 			} else {
 				if (this.c1 <= range.c1 && range.c2 <= this.c2 && this.r1 <= range.r2) {
-					return (this.r1 < range.r1 || (!isDelete && this.r1 === range.r1 && this.r2 === range.r1)) ?
-						c_oAscShiftType.Move : c_oAscShiftType.Change;
+					return true;
 				} else if (isDelete && this.r1 <= range.r1 && range.r2 <= this.r2) {
 					var leftIn = this.c1 <= range.c1 && range.c1 <= this.c2;
 					var rightIn = this.c1 <= range.c2 && range.c2 <= this.c2;
 					return leftIn || rightIn;
 				}
 			}
-			return c_oAscShiftType.None;
+			return false;
 		};
 
 		Range.prototype.difference = function(range) {
@@ -2723,7 +2715,6 @@
 		window['AscCommonExcel'].g_ActiveCell = null; // Active Cell for calculate (in R1C1 mode for relative cell)
 		window['AscCommonExcel'].g_R1C1Mode = false; // No calculate in R1C1 mode
 		window['AscCommonExcel'].kCurCells = "se-cells";
-		window["AscCommonExcel"].c_oAscShiftType = c_oAscShiftType;
 		window["AscCommonExcel"].recalcType = recalcType;
 		window["AscCommonExcel"].sizePxinPt = sizePxinPt;
 		window['AscCommonExcel'].c_sPerDay = c_sPerDay;

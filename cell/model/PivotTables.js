@@ -1641,9 +1641,13 @@ function CT_PivotCacheDefinition() {
 	this.extLst = null;
 	//editor
 	this.cacheRecords = null;
+	this.Id = AscCommon.g_oIdCounter.Get_NewId();
 }
 CT_PivotCacheDefinition.prototype.getType = function() {
 	return AscCommonExcel.UndoRedoDataTypes.PivotCacheDefinition;
+};
+CT_PivotCacheDefinition.prototype.Get_Id = function () {
+	return this.Id;
 };
 CT_PivotCacheDefinition.prototype.Write_ToBinary2 = function(w) {
 	toXmlWithLength(w, this);
@@ -2391,7 +2395,6 @@ function CT_pivotTableDefinition(setDefaults) {
 
 	this.worksheet = null;
 	this.Id = AscCommon.g_oIdCounter.Get_NewId();
-	AscCommon.g_oTableId.Add(this, this.Id);
 }
 CT_pivotTableDefinition.prototype.setDefaults = function () {
 	this.dataOnRows = false;
@@ -2451,6 +2454,14 @@ CT_pivotTableDefinition.prototype.Get_Id = function () {
 };
 CT_pivotTableDefinition.prototype.GetWS = function () {
 	return this.worksheet;
+};
+CT_pivotTableDefinition.prototype.clone = function () {
+	//todo cacheDefinition
+	var data = new AscCommonExcel.UndoRedoData_BinaryWrapper(this);
+	var pivot = data.getData();
+	pivot.Id = AscCommon.g_oIdCounter.Get_NewId();
+	pivot.init();
+	return pivot;
 };
 CT_pivotTableDefinition.prototype.stashCurReportRange = function () {
 	var t = this;
@@ -3245,9 +3256,11 @@ CT_pivotTableDefinition.prototype.hasCompact = function () {
 CT_pivotTableDefinition.prototype.intersection = function (range) {
 	return (this.location && this.location.intersection(range)) || this.pageFieldsIntersection(range);
 };
-CT_pivotTableDefinition.prototype.isIntersectForShift = function (range, offset) {
-	var ref = this.location && (this.location.refWithPage || this.location.ref);
-	return (ref && range.isIntersectForShift(ref, offset));
+CT_pivotTableDefinition.prototype.isInRange = function(bbox) {
+	var ranges = this.getReportRanges();
+	return ranges.every(function(range) {
+		return bbox.containsRange(range);
+	});
 };
 CT_pivotTableDefinition.prototype.pageFieldsIntersection = function (range) {
 	return this.pageFieldsPositions && this.pageFieldsPositions.some(function (element) {
@@ -4266,6 +4279,12 @@ CT_pivotTableDefinition.prototype.setLocation = function(location, addToHistory)
 					new AscCommonExcel.UndoRedoData_PivotTable(this.Get_Id(), this.location, location));
 	}
 	this.location = location;
+	this.setChanged(false, true);
+};
+CT_pivotTableDefinition.prototype.setOffset = function(offset, addToHistory) {
+	var location = this.location.clone();
+	location.ref.setOffset(offset);
+	this.setLocation(location, addToHistory);
 };
 CT_pivotTableDefinition.prototype.updateLocation = function() {
 	//todo refWithPage
