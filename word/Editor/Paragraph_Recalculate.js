@@ -3326,6 +3326,10 @@ CParagraphRecalculateStateWrap.prototype =
             // Найдем настройки для первого текстового элемента
             var FirstTextPr = Para.Get_FirstTextPr2();
 
+            if(BulletNum > 32767)
+            {
+                BulletNum -= 32767;
+            }
             NumberingItem.Bullet = Bullet;
             NumberingItem.BulletNum = BulletNum;
             NumberingItem.Measure(g_oTextMeasurer, FirstTextPr, Para.Get_Theme(), Para.Get_ColorMap());
