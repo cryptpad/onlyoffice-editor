@@ -315,7 +315,7 @@ CContentControlPr.prototype.SetToContentControl = function(oContentControl)
 	if (undefined !== this.Id)
 		oContentControl.SetContentControlId(this.Id);
 
-	if (undefined !== oPr.Lock)
+	if (undefined !== this.Lock)
 		oContentControl.SetContentControlLock(this.Lock);
 
 	if (undefined !== this.Alias)
