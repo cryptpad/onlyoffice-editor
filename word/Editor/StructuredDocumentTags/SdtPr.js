@@ -328,16 +328,16 @@ CContentControlPr.prototype.SetToContentControl = function(oContentControl)
 		oContentControl.SetColor(this.Color);
 
 	if (undefined !== this.CheckBoxPr)
-		oContentControl.ApplyCheckBoxPr(this.CheckBoxPr);
+		oContentControl.SetCheckBoxPr(this.CheckBoxPr);
 
 	if (undefined !== this.ComboBoxPr)
-		oContentControl.ApplyComboBoxPr(this.ComboBoxPr);
+		oContentControl.SetComboBoxPr(this.ComboBoxPr);
 
 	if (undefined !== this.DropDownPr)
-		oContentControl.ApplyDropDownListPr(this.DropDownPr);
+		oContentControl.SetDropDownListPr(this.DropDownPr);
 
 	if (undefined !== this.DateTimePr)
-		oContentControl.ApplyDatePickerPr(this.DateTimePr);
+		oContentControl.SetDatePickerPr(this.DateTimePr);
 };
 CContentControlPr.prototype.GetId = function()
 {

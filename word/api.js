@@ -8519,6 +8519,7 @@ background-repeat: no-repeat;\
 			{
 				oLogicDocument.StartAction(AscDFH.historydescription_Document_ChangeContentControlProperties);
 				oContentControl.SetContentControlPr(oContentControlPr);
+				oLogicDocument.Recalculate();
 				oLogicDocument.UpdateInterface();
 				oLogicDocument.UpdateSelection();
 				oLogicDocument.FinalizeAction();

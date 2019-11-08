@@ -14030,7 +14030,10 @@ CDocument.prototype.AddContentControlComboBox = function(oPr)
 	this.RemoveSelection();
 
 	if (!oPr)
+	{
 		oPr = new CSdtComboBoxPr();
+		oPr.AddItem(AscCommon.translateManager.getValue("Choose an item."), "");
+	}
 
 	var oCC = this.AddContentControl(c_oAscSdtLevelType.Inline);
 	oCC.ApplyComboBoxPr(oPr);
@@ -14045,7 +14048,10 @@ CDocument.prototype.AddContentControlDropDownList = function(oPr)
 	this.RemoveSelection();
 
 	if (!oPr)
+	{
 		oPr = new CSdtComboBoxPr();
+		oPr.AddItem(AscCommon.translateManager.getValue("Choose an item."), "");
+	}
 
 	var oCC = this.AddContentControl(c_oAscSdtLevelType.Inline);
 	oCC.ApplyDropDownListPr(oPr);
