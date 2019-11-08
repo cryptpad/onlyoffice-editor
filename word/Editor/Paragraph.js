@@ -7886,25 +7886,6 @@ Paragraph.prototype.GetCalculatedParaPr = function()
 	if (undefined !== ParaPr.OutlineLvl && undefined === this.Pr.OutlineLvl)
 		ParaPr.OutlineLvlStyle = true;
 
-	if(ParaPr.Bullet)
-	{
-		if(!ParaPr.Bullet.bulletColor || !ParaPr.Bullet.bulletColor.UniColor)
-		{
-			var oFirstRunPr = this.Get_FirstTextPr();
-			var oBulletColor = new AscFormat.CBulletColor();
-
-			if(oFirstRunPr.Unifill)
-			{
-				oBulletColor.UniColor = oFirstRunPr.Unifill.getUniColor();
-			}
-			else
-			{
-				oBulletColor.UniColor = AscFormat.CreateUniColorRGB(0, 0, 0);
-			}
-			ParaPr.Bullet.bulletColor = oBulletColor;
-		}
-	}
-
 	return ParaPr;
 };
 /**

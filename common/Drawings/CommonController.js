@@ -9109,6 +9109,18 @@ DrawingObjectsController.prototype =
                     if(TextPr.RFonts.CS)
                         TextPr.RFonts.CS.Name        = theme.themeElements.fontScheme.checkFont(TextPr.RFonts.CS.Name);
                 }
+                var oBullet = ParaPr.Bullet;
+                if(oBullet && oBullet.bulletColor)
+                {
+                    if(oBullet.bulletColor.UniColor)
+                    {
+                        oBullet.bulletColor.UniColor.check(theme, this.getColorMap());
+                    }
+                }
+                if(TextPr.Unifill)
+                {
+                    ParaPr.Unifill = TextPr.Unifill;
+                }
             }
 
             if(bParaLocked)
