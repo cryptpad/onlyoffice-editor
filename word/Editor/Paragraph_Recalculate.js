@@ -3292,15 +3292,15 @@ CParagraphRecalculateStateWrap.prototype =
             var Level = Para.PresentationPr.Level;
             var Bullet = Para.PresentationPr.Bullet;
 
-            var BulletNum = 0;
+            var BulletNum = 1;
             if (Bullet.Get_Type() >= numbering_presentationnumfrmt_ArabicPeriod)
             {
                 var Prev = Para.Prev;
+                BulletNum = Bullet.Get_StartAt();
                 while (null != Prev && type_Paragraph === Prev.GetType())
                 {
                     var PrevLevel = Prev.PresentationPr.Level;
                     var PrevBullet = Prev.Get_PresentationNumbering();
-
                     // Если предыдущий параграф более низкого уровня, тогда его не учитываем
                     if (Level < PrevLevel)
                     {
@@ -3309,7 +3309,7 @@ CParagraphRecalculateStateWrap.prototype =
                     }
                     else if (Level > PrevLevel)
                         break;
-                    else if (PrevBullet.Get_Type() === Bullet.Get_Type() && PrevBullet.Get_StartAt() === PrevBullet.Get_StartAt())
+                    else if (PrevBullet.Get_Type() === Bullet.Get_Type() && Bullet.Get_StartAt() === PrevBullet.Get_StartAt())
                     {
                         if (true != Prev.IsEmpty())
                             BulletNum++;
@@ -3317,7 +3317,9 @@ CParagraphRecalculateStateWrap.prototype =
                         Prev = Prev.Prev;
                     }
                     else
+                    {
                         break;
+                    }
                 }
             }
 
@@ -3325,7 +3327,7 @@ CParagraphRecalculateStateWrap.prototype =
             var FirstTextPr = Para.Get_FirstTextPr2();
 
             NumberingItem.Bullet = Bullet;
-            NumberingItem.BulletNum = BulletNum + 1;
+            NumberingItem.BulletNum = BulletNum;
             NumberingItem.Measure(g_oTextMeasurer, FirstTextPr, Para.Get_Theme(), Para.Get_ColorMap());
 
 
