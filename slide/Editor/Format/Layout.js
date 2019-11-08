@@ -81,6 +81,7 @@ AscDFH.drawingsChangesMap[AscDFH.historyitem_SlideLayoutSetClrMapOverride]    = 
 AscDFH.drawingsChangesMap[AscDFH.historyitem_SlideLayoutSetSize]              = function(oClass, value){oClass.Width = value.a; oClass.Height = value.b;};
 
 AscDFH.drawingContentChanges[AscDFH.historyitem_SlideLayoutAddToSpTree] = function(oClass){
+    oClass.recalcInfo.recalculateBounds = true;
     return oClass.cSld.spTree;
 };
 
@@ -601,6 +602,7 @@ SlideLayout.prototype =
             {
                 case AscDFH.historyitem_SlideLayoutAddToSpTree:
                 {
+                    this.recalcInfo.recalculateBounds = true;
                     this.addToRecalculate();
                     break;
                 }
