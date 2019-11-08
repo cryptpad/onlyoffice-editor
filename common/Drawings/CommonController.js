@@ -3658,15 +3658,8 @@ DrawingObjectsController.prototype =
                 {
                     var oBlipFill = objects_by_type.images[i].blipFill.createDuplicate();
                     oBlipFill.tile = null;
-                    oBlipFill.stretch = null;
+                    oBlipFill.stretch = true;
                     oBlipFill.srcRect = null;
-                    if(!oBlipFill.srcRect){
-                        oBlipFill.srcRect = new AscFormat.CSrcRect();
-                        oBlipFill.srcRect.l = 0;
-                        oBlipFill.srcRect.t = 0;
-                        oBlipFill.srcRect.r = 100;
-                        oBlipFill.srcRect.b = 100;
-                    }
                     objects_by_type.images[i].setBlipFill(oBlipFill);
                 }
 
