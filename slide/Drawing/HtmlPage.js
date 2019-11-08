@@ -4171,7 +4171,13 @@ function CEditorPage(api)
 		if (-1 != this.m_oDrawingDocument.SlideCurrent)
 			master = this.m_oLogicDocument.Slides[this.m_oDrawingDocument.SlideCurrent].Layout.Master;
 		else
-			master = this.m_oLogicDocument.slideMasters[0];
+		{
+			master = this.m_oLogicDocument.lastMaster;
+			if(!master)
+			{
+				master = this.m_oLogicDocument.slideMasters[0];
+			}
+		}
 
 		if (this.MasterLayouts != master || Math.abs(this.m_oLayoutDrawer.WidthMM - this.m_oLogicDocument.Width) > MOVE_DELTA || Math.abs(this.m_oLayoutDrawer.HeightMM - this.m_oLogicDocument.Height) > MOVE_DELTA || bIsAttack === true)
 		{
