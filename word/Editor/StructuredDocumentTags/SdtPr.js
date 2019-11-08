@@ -776,20 +776,29 @@ CSdtDatePickerPr.prototype.IsEqual = function(oDate)
 {
 	return (oDate && this.FullDate === oDate.FullDate && this.LangId === oDate.LangId && this.DateFormat === oDate.DateFormat && this.Calendar === oDate.Calendar);
 };
-CSdtDatePickerPr.prototype.ToString = function()
+CSdtDatePickerPr.prototype.ToString = function(sFormat, sFullDate, nLangId)
 {
-	var oFormat = AscCommon.oNumFormatCache.get(this.DateFormat);
+	if (undefined === sFormat)
+		sFormat = this.DateFormat;
+
+	if (undefined === sFullDate)
+		sFullDate = this.FullDate;
+
+	if (undefined === nLangId)
+		nLangId = this.LangId;
+
+	var oFormat = AscCommon.oNumFormatCache.get(sFormat);
 	if (oFormat)
 	{
-		var oCultureInfo = AscCommon.g_aCultureInfos[this.LangId];
+		var oCultureInfo = AscCommon.g_aCultureInfos[nLangId];
 		if (!oCultureInfo)
 			oCultureInfo = AscCommon.g_aCultureInfos[1033];
 
-		var oDateTime = new Asc.cDate(this.FullDate);
+		var oDateTime = new Asc.cDate(sFullDate);
 		return oFormat.formatToChart(oDateTime.getExcelDate() + (oDateTime.getHours() * 60 * 60 + oDateTime.getMinutes() * 60 + oDateTime.getSeconds()) / AscCommonExcel.c_sPerDay, 15, oCultureInfo);
 	}
 
-	return this.FullDate;
+	return sFullDate;
 };
 CSdtDatePickerPr.prototype.WriteToBinary = function(oWriter)
 {
@@ -844,6 +853,24 @@ CSdtDatePickerPr.prototype.GetCalendar = function()
 CSdtDatePickerPr.prototype.SetCalendar = function(nCalendar)
 {
 	this.Calendar = nCalendar;
+};
+CSdtDatePickerPr.prototype.GetFormatsExamples = function()
+{
+	return [
+		"MM/DD/YYYY",
+		"dddd\\,\\ mmmm\\ dd\\,\\ yyyy",
+		"DD\\ MMMM\\ YYYY",
+		"MMMM\\ DD\\,\\ YYYY",
+		"DD-MMM-YY",
+		"MMMM\\ YY",
+		"MMM-YY",
+		"MM/DD/YYYY\\ hh:mm\\ AM/PM",
+		"MM/DD/YYYY\\ hh:mm:ss\\ AM/PM",
+		"hh:mm",
+		"hh:mm:ss",
+		"hh:mm\\ AM/PM",
+		"hh:mm:ss:\\ AM/PM"
+	];
 };
 
 //--------------------------------------------------------export--------------------------------------------------------
@@ -903,11 +930,13 @@ CSdtComboBoxPr.prototype['get_ItemValue']       = CSdtComboBoxPr.prototype.GetIt
 window['AscCommon'].CSdtDatePickerPr    = CSdtDatePickerPr;
 window['AscCommon']['CSdtDatePickerPr'] = CSdtDatePickerPr;
 
-CSdtDatePickerPr.prototype['get_FullDate']   = CSdtDatePickerPr.prototype.GetFullDate;
-CSdtDatePickerPr.prototype['put_FullDate']   = CSdtDatePickerPr.prototype.SetFullDate;
-CSdtDatePickerPr.prototype['get_LangId']     = CSdtDatePickerPr.prototype.GetLangId;
-CSdtDatePickerPr.prototype['put_LangId']     = CSdtDatePickerPr.prototype.SetLangId;
-CSdtDatePickerPr.prototype['get_DateFormat'] = CSdtDatePickerPr.prototype.GetDateFormat;
-CSdtDatePickerPr.prototype['put_DateFormat'] = CSdtDatePickerPr.prototype.SetDateFormat;
-CSdtDatePickerPr.prototype['get_Calendar']   = CSdtDatePickerPr.prototype.GetCalendar;
-CSdtDatePickerPr.prototype['put_Calendar']   = CSdtDatePickerPr.prototype.SetCalendar;
+CSdtDatePickerPr.prototype['get_FullDate']        = CSdtDatePickerPr.prototype.GetFullDate;
+CSdtDatePickerPr.prototype['put_FullDate']        = CSdtDatePickerPr.prototype.SetFullDate;
+CSdtDatePickerPr.prototype['get_LangId']          = CSdtDatePickerPr.prototype.GetLangId;
+CSdtDatePickerPr.prototype['put_LangId']          = CSdtDatePickerPr.prototype.SetLangId;
+CSdtDatePickerPr.prototype['get_DateFormat']      = CSdtDatePickerPr.prototype.GetDateFormat;
+CSdtDatePickerPr.prototype['put_DateFormat']      = CSdtDatePickerPr.prototype.SetDateFormat;
+CSdtDatePickerPr.prototype['get_Calendar']        = CSdtDatePickerPr.prototype.GetCalendar;
+CSdtDatePickerPr.prototype['put_Calendar']        = CSdtDatePickerPr.prototype.SetCalendar;
+CSdtDatePickerPr.prototype['get_FormatsExamples'] = CSdtDatePickerPr.prototype.GetFormatsExamples;
+CSdtDatePickerPr.prototype['get_String']          = CSdtDatePickerPr.prototype.ToString;
