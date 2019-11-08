@@ -4465,12 +4465,34 @@ CPresentation.prototype =
                         oDrawingObject.parent.ImageBase64 = "";
                         b_check_layout = true;
                         bAttack = true;
+                        for(i = 0; i < this.Slides.length; ++i)
+                        {
+                            if(this.Slides[i].Layout === oDrawingObject.parent)
+                            {
+                                if(redrawSlideIndexMap[i] !== true )
+                                {
+                                    redrawSlideIndexMap[i] = true;
+                                    aToRedrawSlides.push(i);
+                                }
+                            }
+                        }
                     }
                     if(oDrawingObject instanceof AscCommonSlide.SlideLayout)
                     {
                         oDrawingObject.ImageBase64 = "";
                         b_check_layout = true;
                         bAttack = true;
+                        for(i = 0; i < this.Slides.length; ++i)
+                        {
+                            if(this.Slides[i].Layout === oDrawingObject)
+                            {
+                                if(redrawSlideIndexMap[i] !== true )
+                                {
+                                    redrawSlideIndexMap[i] = true;
+                                    aToRedrawSlides.push(i);
+                                }
+                            }
+                        }
                     }
                     if(oDrawingObject.getSlideIndex)
                     {
