@@ -3179,47 +3179,25 @@ CT_pivotTableDefinition.prototype.toXml = function(writer) {
 CT_pivotTableDefinition.prototype.init = function () {
 	this.isInit = true;
 	this.pageFieldsPositions = [];
-
-	var rowPageCount = 0, colPageCount = 0;
-
-	if (this.pageFields) {
-		var wrap, pageOverThenDown;
-		var l = this.pageFields.pageField.length;
-		var dr;
-		if (0 < l) {
-			if (this.pageWrap) {
-				dr = this.pageOverThenDown ? Math.ceil(l / this.pageWrap) : Math.min(this.pageWrap, l);
+	var pageField = this.asc_getPageFields();
+	var rowPageCount = 0, colPageCount = 0, r, c;
+	if (pageField) {
+		var pageFieldSize = this.getPageFieldSize();
+		rowPageCount = pageFieldSize.row;
+		colPageCount = pageFieldSize.col;
+		var range = this.getRange();
+		var baseCol = range.c1;
+		var baseRow = range.r1 - pageFieldSize.row - 1;
+		var pageWrap = this.pageWrap || Number.MAX_VALUE;
+		for (var i = 0; i < pageField.length; ++i) {
+			if (this.pageOverThenDown) {
+				r = Math.floor(i / pageWrap);
+				c = 3 * (i % pageWrap);
 			} else {
-				dr = this.pageOverThenDown ? 1 : l;
+				r = (i % pageWrap);
+				c = 3 * Math.floor(i / pageWrap);
 			}
-			var range = this.getRange();
-			var _c = range.c1;
-			var _r = range.r1 - 1 - dr;
-			var c = _c, r = _r;
-			var minC = _c, minR = _r, maxC = _c, maxR = _r;
-
-			for (var i = 0; i < l; ++i) {
-				this.pageFieldsPositions.push(new AscCommon.CellBase(r, c));
-				maxR = Math.max(maxR, r);
-				maxC = Math.max(maxC, c);
-
-				wrap = (this.pageWrap && 0 === (i + 1) % this.pageWrap);
-				pageOverThenDown = this.pageOverThenDown;
-				if (wrap) {
-					_r += pageOverThenDown;
-					_c += !pageOverThenDown;
-					pageOverThenDown = !pageOverThenDown;
-				}
-				if (pageOverThenDown) {
-					r = _r;
-					c += 3;
-				} else {
-					++r;
-					c = _c;
-				}
-			}
-			rowPageCount = maxR - minR + 1;
-			colPageCount = (maxC - minC) / 3 + 1;
+			this.pageFieldsPositions.push(new AscCommon.CellBase(Math.max(0, baseRow + r), Math.max(0, baseCol + c)));
 		}
 	}
 
@@ -4286,8 +4264,22 @@ CT_pivotTableDefinition.prototype.setOffset = function(offset, addToHistory) {
 	location.ref.setOffset(offset);
 	this.setLocation(location, addToHistory);
 };
+CT_pivotTableDefinition.prototype.getPageFieldSize = function() {
+	var res = new AscCommon.CellBase(0, 0);
+	var pageField = this.asc_getPageFields();
+	if (pageField) {
+		var len = pageField.length;
+		if (this.pageWrap) {
+			res.row = this.pageOverThenDown ? Math.ceil(len / this.pageWrap) : Math.min(this.pageWrap, len);
+			res.col = this.pageOverThenDown ? Math.min(this.pageWrap, len) : Math.ceil(len / this.pageWrap);
+		} else {
+			res.row = this.pageOverThenDown ? 1 : len;
+			res.col = this.pageOverThenDown ? len : 1;
+		}
+	}
+	return res;
+};
 CT_pivotTableDefinition.prototype.updateLocation = function() {
-	//todo refWithPage
 	//todo showHeaders
 	var i;
 	var location = this.location.clone();
@@ -4343,6 +4335,10 @@ CT_pivotTableDefinition.prototype.updateLocation = function() {
 		location.firstHeaderRow = 1;
 		location.firstDataRow = 1;
 		location.firstDataCol = 0;
+	}
+	var pageFieldOffset = this.getPageFieldSize();
+	if (location.ref.r1 - pageFieldOffset.row - 1 < 0) {
+		location.ref.setOffset(new AscCommon.CellBase(-location.ref.r1 + pageFieldOffset.row + 1, 0));
 	}
 	this.setLocation(location, true);
 };
@@ -5893,8 +5889,6 @@ function CT_Location() {
 	this.firstDataCol = null;
 	this.rowPageCount = 0;
 	this.colPageCount = 0;
-// private
-	this.refWithPage = null;
 }
 CT_Location.prototype.clone = function() {
 	var res = new CT_Location();
@@ -5968,19 +5962,8 @@ CT_Location.prototype.contains = function (col, row) {
 	return this.ref && this.ref.contains(col, row);
 };
 CT_Location.prototype.setPageCount = function (row, col) {
-	var c2;
 	this.rowPageCount = row;
 	this.colPageCount = col;
-	if (this.ref) {
-		this.refWithPage = this.ref.clone();
-		if (this.rowPageCount) {
-			this.refWithPage.setOffsetFirst(new AscCommon.CellBase(- (this.rowPageCount + 1), 0));
-		}
-		c2 = this.colPageCount * 3 - 1 - 1;
-		if (c2 > this.refWithPage.c2) {
-			this.refWithPage.setOffsetLast(new AscCommon.CellBase(0, c2 - this.refWithPage.c2));
-		}
-	}
 };
 CT_Location.prototype.getType = function() {
 	return AscCommonExcel.UndoRedoDataTypes.PivotLocation;

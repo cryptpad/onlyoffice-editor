@@ -4276,13 +4276,13 @@ var editor;
 			dataRow = pivot.updateAfterEdit();
 			reportRanges = pivot.getReportRanges();
 			ws._isLockedCells(new AscCommonExcel.MultiplyRange(reportRanges).getUnionRange(), null, function(res) {
-				t._changePivotOnLock(res, pivot, wsModel, pivotChanged, dataRow, reportRanges, confirmation);
+				t._changePivotOnLock(res, pivot, wsModel, pivotChanged, dataRow, reportRanges, confirmation, callback);
 			});
 		} else {
-			this._changePivotOnLock(true, pivot, wsModel, pivotChanged, dataRow, reportRanges, confirmation);
+			this._changePivotOnLock(true, pivot, wsModel, pivotChanged, dataRow, reportRanges, confirmation, callback);
 		}
 	};
-	spreadsheet_api.prototype._changePivotOnLock = function(isSuccess, pivot, wsModel, pivotChanged, dataRow, reportRanges, confirmation) {
+	spreadsheet_api.prototype._changePivotOnLock = function(isSuccess, pivot, wsModel, pivotChanged, dataRow, reportRanges, confirmation, callback) {
 		var t = this;
 		var error = isSuccess ? Asc.c_oAscError.ID.No : Asc.c_oAscError.ID.PivotOverlap;
 		var warning = Asc.c_oAscError.ID.No;
