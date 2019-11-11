@@ -67,9 +67,13 @@ function CheckObjectLine(obj)
 
 function CheckWordArtTextPr(oRun)
 {
-    var oTextPr = oRun.Get_CompiledPr();
-    if(oTextPr.TextFill || (oTextPr.TextOutline && oTextPr.TextOutline.Fill && oTextPr.TextOutline.Fill.fill && oTextPr.TextOutline.Fill.fill.type !==  Asc.c_oAscFill.FILL_TYPE_NOFILL) || (oTextPr.Unifill && oTextPr.Unifill.fill && (oTextPr.Unifill.fill.type !== c_oAscFill.FILL_TYPE_SOLID || oTextPr.Unifill.transparent != null && oTextPr.Unifill.transparent < 254.5)))
-        return true;
+    if(oRun instanceof AscCommonWord.ParaRun)
+    {
+        var oTextPr = oRun.Get_CompiledPr();
+        if(oTextPr.TextFill || (oTextPr.TextOutline && oTextPr.TextOutline.Fill && oTextPr.TextOutline.Fill.fill && oTextPr.TextOutline.Fill.fill.type !==  Asc.c_oAscFill.FILL_TYPE_NOFILL) ||
+            (oTextPr.Unifill && oTextPr.Unifill.fill && (oTextPr.Unifill.fill.type !== c_oAscFill.FILL_TYPE_SOLID || oTextPr.Unifill.transparent != null && oTextPr.Unifill.transparent < 254.5)))
+            return true;
+    }
     return false;
 }
 

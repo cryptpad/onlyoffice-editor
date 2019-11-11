@@ -1202,6 +1202,10 @@ CShape.prototype.setStartPage = function(pageIndex, bNoResetSelectPage, bCheckCo
         {
             if(this.bWordShape && content.CheckRunContent(function(oRun)
 				{
+				    if(oRun instanceof AscCommon.ParaComment)
+                    {
+                        return true;
+                    }
 					for (var i = 0; i < oRun.Content.length; ++i)
 					{
 						var oItem = oRun.Content[i];

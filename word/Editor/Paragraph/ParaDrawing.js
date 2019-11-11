@@ -1395,11 +1395,12 @@ ParaDrawing.prototype.updatePosition3 = function(pageIndex, x, y, oldPageNum)
 	{
 		this.graphicObjects.removeById(oldPageNum, this.Get_Id());
 	}
+	var bChangePageIndex = this.pageIndex !== pageIndex;
 	this.setPageIndex(pageIndex);
 	if (typeof this.GraphicObj.setStartPage === "function")
 	{
 		var bIsHfdFtr = this.DocumentContent && this.DocumentContent.IsHdrFtr();
-		this.GraphicObj.setStartPage(pageIndex, bIsHfdFtr, bIsHfdFtr);
+		this.GraphicObj.setStartPage(pageIndex, bIsHfdFtr, bIsHfdFtr || bChangePageIndex);
 	}
 	if (!(this.DocumentContent && this.DocumentContent.IsHdrFtr() && this.DocumentContent.Get_StartPage_Absolute() !== pageIndex))
 	{
