@@ -8428,9 +8428,16 @@ Paragraph.prototype.Add_PresentationNumbering = function(_Bullet, Size, AscColor
 				else
 				{
 					this.Pr.Bullet = _OldBullet;
-					if(_OldBullet && _OldBullet.bulletSize && !oBullet2.bulletSize)
+					if(_OldBullet)
 					{
-						oBullet2.bulletSize = _OldBullet.bulletSize.createDuplicate();
+						if(_OldBullet.bulletSize && !oBullet2.bulletSize)
+						{
+							oBullet2.bulletSize = _OldBullet.bulletSize.createDuplicate();
+						}
+						if(_OldBullet.bulletColor && !oBullet2.bulletColor)
+						{
+							oBullet2.bulletColor = _OldBullet.bulletColor.createDuplicate();
+						}
 					}
 					this.Set_Bullet(oBullet2.createDuplicate());//тип совпал, но не совпали символы. выставляем Bullet.
 																// Indent в данном случае не выставляем как это делает
@@ -8447,9 +8454,16 @@ Paragraph.prototype.Add_PresentationNumbering = function(_Bullet, Size, AscColor
 		else//тип не совпал. выставляем буллет, а также проверим нужно ли выставлять Indent.
 		{
 			this.Pr.Bullet = _OldBullet;
-			if(_OldBullet && _OldBullet.bulletSize && !oBullet2.bulletSize)
+			if(_OldBullet )
 			{
-				oBullet2.bulletSize = _OldBullet.bulletSize.createDuplicate();
+				if(_OldBullet.bulletSize && !oBullet2.bulletSize)
+				{
+					oBullet2.bulletSize = _OldBullet.bulletSize.createDuplicate();
+				}
+				if(_OldBullet.bulletColor && !oBullet2.bulletColor)
+				{
+					oBullet2.bulletColor = _OldBullet.bulletColor.createDuplicate();
+				}
 			}
 			this.Set_Bullet(oBullet2.createDuplicate());
 			LeftInd = Math.min(ParaPr.Ind.Left, ParaPr.Ind.Left + ParaPr.Ind.FirstLine);
