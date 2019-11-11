@@ -15151,7 +15151,6 @@ CTable.prototype.Document_Is_SelectionLocked = function(CheckType, bCheckInner)
 			break;
 		}
 		case AscCommon.changestype_Document_SectPr:
-		case AscCommon.changestype_HdrFtr:
 		{
 			AscCommon.CollaborativeEditing.Add_CheckLock(true);
 			break;
