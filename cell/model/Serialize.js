@@ -3892,7 +3892,7 @@
                     {
                         var oCurDrawingToWrite = AscFormat.ExecuteNoHistory(function()
                         {
-                            var oRet = oDrawing.graphicObject.copy();
+                            var oRet = oDrawing.graphicObject.copy(undefined);
                             var oMetrics = oDrawing.getGraphicObjectMetrics();
                             AscFormat.SetXfrmFromMetrics(oRet, oMetrics);
                             return oRet;

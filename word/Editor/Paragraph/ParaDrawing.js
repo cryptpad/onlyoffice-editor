@@ -1184,13 +1184,15 @@ ParaDrawing.prototype.Can_AddNumbering = function()
 
 	return false;
 };
-ParaDrawing.prototype.Copy = function()
+ParaDrawing.prototype.Copy = function(oPr)
 {
 	var c = new ParaDrawing(this.Extent.W, this.Extent.H, null, editor.WordControl.m_oLogicDocument.DrawingDocument, null, null);
 	c.Set_DrawingType(this.DrawingType);
 	if (isRealObject(this.GraphicObj))
 	{
-		c.Set_GraphicObject(this.GraphicObj.copy());
+		var oCopyPr = new AscFormat.CCopyObjectProperties();
+		oCopyPr.contentCopyPr = oPr;
+		c.Set_GraphicObject(this.GraphicObj.copy(oCopyPr));
 		c.GraphicObj.setParent(c);
 	}
 
@@ -2591,7 +2593,7 @@ ParaDrawing.prototype.copy = function()
 	c.Set_DrawingType(this.DrawingType);
 	if (isRealObject(this.GraphicObj))
 	{
-		var g = this.GraphicObj.copy(c);
+		var g = this.GraphicObj.copy(undefined);
 		c.Set_GraphicObject(g);
 		g.setParent(c);
 	}

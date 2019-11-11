@@ -3894,8 +3894,9 @@ CChartSpace.prototype.clearFormatting = function(bNoClearShapeProps)
         this.selection.upBars = null;
     };
 
-CChartSpace.prototype.copy = function(drawingDocument)
+CChartSpace.prototype.copy = function(oPr)
 {
+    var drawingDocument = oPr && oPr.drawingDocument;
     var copy = new CChartSpace();
     if(this.chart)
     {
@@ -3932,11 +3933,11 @@ CChartSpace.prototype.copy = function(drawingDocument)
     copy.setStyle(this.style);
     if(this.txPr)
     {
-        copy.setTxPr(this.txPr.createDuplicate(drawingDocument))
+        copy.setTxPr(this.txPr.createDuplicate(oPr))
     }
     for(var i = 0; i < this.userShapes.length; ++i)
     {
-        copy.addUserShape(undefined, this.userShapes[i].copy(drawingDocument));
+        copy.addUserShape(undefined, this.userShapes[i].copy(oPr));
     }
     copy.setThemeOverride(this.themeOverride);
     copy.setBDeleted(this.bDeleted);
@@ -3949,13 +3950,21 @@ CChartSpace.prototype.copy = function(drawingDocument)
 CChartSpace.prototype.convertToWord = function(document)
 {
     this.setBDeleted(true);
-    var oCopy = this.copy();
+    var oPr = undefined;
+    if(document && document.DrawingDocument)
+    {
+        oPr = new AscFormat.CCopyObjectProperties();
+        oPr.drawingDocument = document.DrawingDocument;
+    }
+    var oCopy = this.copy(oPr);
     oCopy.setBDeleted(false);
     return oCopy;
 };
 CChartSpace.prototype.convertToPPTX = function(drawingDocument, worksheet)
 {
-    var copy = this.copy(drawingDocument);
+    var oPr = new AscFormat.CCopyObjectProperties();
+    oPr.drawingDocument = drawingDocument;
+    var copy = this.copy(oPr);
     copy.setBDeleted(false);
     copy.setWorksheet(worksheet);
     copy.setParent(null);
@@ -12465,7 +12474,10 @@ function fSaveChartObjectSourceFormatting(oObject, oObjectCopy, oTheme, oColorMa
 
 CChartSpace.prototype.getCopyWithSourceFormatting = function(oIdMap)
 {
-    var oCopy = this.copy(this.getDrawingDocument());
+    var oPr = new AscFormat.CCopyObjectProperties();
+    oPr.idMap = oIdMap;
+    oPr.drawingDocument = this.getDrawingDocument();
+    var oCopy = this.copy(oPr);
     oCopy.updateLinks();
     if(oIdMap){
         oIdMap[this.Id] = oCopy.Id;

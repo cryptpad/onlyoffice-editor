@@ -351,6 +351,15 @@
        return true;
     };
 
+
+    function CCopyObjectProperties()
+    {
+        this.drawingDocument = null;
+        this.idMap = null;
+        this.bSaveSourceFormatting = null;
+        this.contentCopyPr = null;
+    }
+
     /**
      * Base class for all graphic objects
      * @constructor
@@ -1773,11 +1782,11 @@
         this.parent = object;
     };
 
-    CRelSizeAnchor.prototype.copy = function(drawingDocument){
+    CRelSizeAnchor.prototype.copy = function(oPr){
         var copy = new CRelSizeAnchor();
         copy.setFromTo(this.fromX, this.fromY, this.toX, this.toY);
         if(this.object){
-            copy.setObject(this.object.copy(drawingDocument));
+            copy.setObject(this.object.copy(oPr));
         }
         return copy;
     };
@@ -1861,11 +1870,11 @@
         this.parent = object;
     };
 
-    CAbsSizeAnchor.prototype.copy = function(drawingDocument){
+    CAbsSizeAnchor.prototype.copy = function(oPr){
         var copy = new CRelSizeAnchor();
         copy.setFromTo(this.fromX, this.fromY, this.toX, this.toY);
         if(this.object){
-            copy.setObject(this.object.copy(drawingDocument));
+            copy.setObject(this.object.copy(oPr));
         }
         return copy;
     };
@@ -1924,12 +1933,13 @@
 
 
     window['AscFormat'] = window['AscFormat'] || {};
-    window['AscFormat'].CGraphicObjectBase = CGraphicObjectBase;
-    window['AscFormat'].CGraphicBounds     = CGraphicBounds;
-    window['AscFormat'].checkNormalRotate  = checkNormalRotate;
-    window['AscFormat'].normalizeRotate    = normalizeRotate;
-    window['AscFormat'].CRelSizeAnchor    = CRelSizeAnchor;
-    window['AscFormat'].CAbsSizeAnchor    = CAbsSizeAnchor;
-    window['AscFormat'].CalculateSrcRect    = CalculateSrcRect;
-    window['AscFormat'].LOCKS_MASKS        = LOCKS_MASKS;
+    window['AscFormat'].CGraphicObjectBase    = CGraphicObjectBase;
+    window['AscFormat'].CGraphicBounds        = CGraphicBounds;
+    window['AscFormat'].checkNormalRotate     = checkNormalRotate;
+    window['AscFormat'].normalizeRotate       = normalizeRotate;
+    window['AscFormat'].CRelSizeAnchor        = CRelSizeAnchor;
+    window['AscFormat'].CAbsSizeAnchor        = CAbsSizeAnchor;
+    window['AscFormat'].CalculateSrcRect      = CalculateSrcRect;
+    window['AscFormat'].CCopyObjectProperties = CCopyObjectProperties;
+    window['AscFormat'].LOCKS_MASKS           = LOCKS_MASKS;
 })(window);

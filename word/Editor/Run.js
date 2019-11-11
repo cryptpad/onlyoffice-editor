@@ -258,7 +258,7 @@ ParaRun.prototype.Copy = function(Selected, oPr)
 				&& (para_FootnoteReference !== Item.Type || true !== oPr.SkipFootnoteReference)
 				&& ((para_FieldChar !== Item.Type && para_InstrText !== Item.Type) || true !== oPr.SkipComplexFields))
 			{
-				NewRun.Add_ToContent(AddedPos, Item.Copy(), false);
+				NewRun.Add_ToContent(AddedPos, Item.Copy(oPr), false);
 				AddedPos++;
 			}
 		}
@@ -267,7 +267,7 @@ ParaRun.prototype.Copy = function(Selected, oPr)
     return NewRun;
 };
 
-ParaRun.prototype.Copy2 = function()
+ParaRun.prototype.Copy2 = function(oPr)
 {
     var NewRun = new ParaRun(this.Paragraph);
 
@@ -279,7 +279,7 @@ ParaRun.prototype.Copy2 = function()
     for ( var CurPos = StartPos; CurPos < EndPos; CurPos++ )
     {
         var Item = this.Content[CurPos];
-        NewRun.Add_ToContent( CurPos - StartPos, Item.Copy(), false );
+        NewRun.Add_ToContent( CurPos - StartPos, Item.Copy(oPr), false );
     }
     return NewRun;
 };

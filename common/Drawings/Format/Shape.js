@@ -898,7 +898,7 @@ function SetXfrmFromMetrics(oDrawing, metrics)
         this.signer2 =  AscFormat.readString(reader);
         this.email =  AscFormat.readString(reader);
     };
-    CSignatureLine.prototype.copy = function(){
+    CSignatureLine.prototype.copy = function(oPr){
         var ret = new CSignatureLine();
         ret.id =  this.id;
         ret.signer = this.signer;
@@ -2608,7 +2608,7 @@ CShape.prototype.selectionCheck = function (X, Y, PageAbs, NearPos) {
     return false;
 };
 
-CShape.prototype.fillObject = function(copy){
+CShape.prototype.fillObject = function(copy, oPr){
     if (this.nvSpPr)
         copy.setNvSpPr(this.nvSpPr.createDuplicate());
     if (this.spPr) {
@@ -2626,7 +2626,7 @@ CShape.prototype.fillObject = function(copy){
         copy.setBodyPr(this.bodyPr.createDuplicate());
     }
     if (this.textBoxContent) {
-        copy.setTextBoxContent(this.textBoxContent.Copy(copy));
+        copy.setTextBoxContent(this.textBoxContent.Copy(copy, oPr && oPr.drawingDocument, oPr && oPr.contentCopyPr));
     }
     if(this.signatureLine && copy.setSignature){
         copy.setSignature(this.signatureLine.copy());
@@ -2639,9 +2639,9 @@ CShape.prototype.fillObject = function(copy){
     copy.cachedPixW = this.cachedPixW;
 };
 
-CShape.prototype.copy = function () {
+CShape.prototype.copy = function (oPr) {
     var copy = new CShape();
-    this.fillObject(copy);
+    this.fillObject(copy, oPr);
     return copy;
 };
 
@@ -5915,7 +5915,7 @@ CShape.prototype.getColumnNumber = function(){
     };
 
     CShape.prototype.getCopyWithSourceFormatting = function(){
-        var oCopy = this.copy();
+        var oCopy = this.copy(undefined);
         if(this.pen || this.brush){
             if(!oCopy.spPr){
                 oCopy.setSpPr(AscFormat.CSpPr());

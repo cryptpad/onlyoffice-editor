@@ -1852,14 +1852,11 @@
 
 				var aCopies = [];
 				var oIdMap = {};
+				var oCopyPr = new AscFormat.CCopyObjectProperties();
+				oCopyPr.idMap = oIdMap;
 				ws.objectRender.controller.resetSelection();
 				for (var i = 0; i < data.Drawings.length; i++) {
-					var _copy;
-					if (data.Drawings[i].graphicObject.getObjectType() === AscDFH.historyitem_type_GroupShape) {
-						_copy = data.Drawings[i].graphicObject.copy(oIdMap);
-					} else {
-						_copy = data.Drawings[i].graphicObject.copy();
-					}
+					var _copy = data.Drawings[i].graphicObject.copy(oCopyPr);
 					oIdMap[data.Drawings[i].graphicObject.Id] = _copy.Id;
 					data.Drawings[i].graphicObject = _copy;
 					aCopies.push(data.Drawings[i].graphicObject);

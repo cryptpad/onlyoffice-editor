@@ -149,6 +149,8 @@ SlideLayout.prototype =
     createDuplicate: function(IdMap)
     {
         var oIdMap = IdMap || {};
+        var oPr = new AscFormat.CCopyObjectProperties();
+        oPr.idMap = oIdMap;
         var copy = new SlideLayout();
         if(typeof this.cSld.name === "string" && this.cSld.name.length > 0)
         {
@@ -161,15 +163,8 @@ SlideLayout.prototype =
         for(var i = 0; i < this.cSld.spTree.length; ++i)
         {
             var _copy;
-            if(this.cSld.spTree[i].getObjectType() === AscDFH.historyitem_type_GroupShape){
-                _copy = this.cSld.spTree[i].copy(oIdMap);
-            }
-            else{
-                _copy = this.cSld.spTree[i].copy();
-            }
-            if(AscCommon.isRealObject(oIdMap)){
-                oIdMap[this.cSld.spTree[i].Id] = _copy.Id;
-            }
+            _copy = this.cSld.spTree[i].copy(oPr);
+            oIdMap[this.cSld.spTree[i].Id] = _copy.Id;
             copy.shapeAdd(copy.cSld.spTree.length, _copy);
             copy.cSld.spTree[copy.cSld.spTree.length - 1].setParent2(copy);
         }

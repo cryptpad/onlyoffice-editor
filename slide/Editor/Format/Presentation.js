@@ -56,13 +56,10 @@ function DrawingCopyObject(Drawing, X, Y, ExtX, ExtY, ImageUrl)
 DrawingCopyObject.prototype.copy = function(oIdMap){
 
     var _copy = this.Drawing;
+    var oPr = new AscFormat.CCopyObjectProperties();
+    oPr.idMap = oIdMap;
     if(this.Drawing){
-        if(this.Drawing.getObjectType() === AscDFH.historyitem_type_GroupShape){
-            _copy = this.Drawing.copy(oIdMap);
-        }
-        else{
-            _copy = this.Drawing.copy();
-        }
+        _copy = this.Drawing.copy(oPr);
         if(AscCommon.isRealObject(oIdMap)){
             oIdMap[this.Drawing.Id] = _copy.Id;
         }
@@ -158,10 +155,12 @@ PresentationSelectedContent.prototype.copy = function()
 
 
     oIdMap = {};
+    var oPr = new AscFormat.CCopyObjectProperties();
+    oPr.idMap = oIdMap;
     var aDrawingsCopy = [];
     for(i = 0; i < this.Drawings.length; ++i)
     {
-        ret.Drawings.push(this.Drawings[i].copy(oIdMap));
+        ret.Drawings.push(this.Drawings[i].copy(oPr));
         if(ret.Drawings[ret.Drawings.length - 1].Drawing)
         {
             aDrawingsCopy.push(ret.Drawings[ret.Drawings.length - 1].Drawing);
@@ -3170,7 +3169,7 @@ CPresentation.prototype =
                                     oSp = oLayout.getMatchingShape(AscFormat.phType_sldNum, null, false, {});
                                     if(oSp)
                                     {
-                                        oSp = oSp.copy();
+                                        oSp = oSp.copy(undefined);
                                         oSlide.addToSpTreeToPos(undefined, oSp);
                                         oSp.setParent(oSlide);
                                     }
@@ -3237,7 +3236,7 @@ CPresentation.prototype =
                                     oSp = oLayout.getMatchingShape(AscFormat.phType_ftr, null, false, {});
                                     if(oSp)
                                     {
-                                        oSp = oSp.copy();
+                                        oSp = oSp.copy(undefined);
                                         oSlide.addToSpTreeToPos(undefined, oSp);
                                         oSp.setParent(oSlide);
                                     }
@@ -3315,7 +3314,7 @@ CPresentation.prototype =
                                     oSp = oLayout.getMatchingShape(AscFormat.phType_hdr, null, false, {});
                                     if(oSp)
                                     {
-                                        oSp = oSp.copy();
+                                        oSp = oSp.copy(undefined);
                                         oSlide.addToSpTreeToPos(undefined, oSp);
                                         oSp.setParent(oSlide);
                                     }
@@ -3452,7 +3451,7 @@ CPresentation.prototype =
                                     oSp = oLayout.getMatchingShape(AscFormat.phType_dt, null, false, {});
                                     if(oSp)
                                     {
-                                        oSp = oSp.copy();
+                                        oSp = oSp.copy(undefined);
                                         oSlide.addToSpTreeToPos(undefined, oSp);
                                         oSp.setParent(oSlide);
                                     }
@@ -3530,7 +3529,7 @@ CPresentation.prototype =
                                 oSp = oLayout.getMatchingShape(AscFormat.phType_sldNum, null, false, {});
                                 if(oSp)
                                 {
-                                    oSp = oSp.copy();
+                                    oSp = oSp.copy(undefined);
                                     oSlide.addToSpTreeToPos(undefined, oSp);
                                     oSp.setParent(oSlide);
                                 }
@@ -3555,7 +3554,7 @@ CPresentation.prototype =
                                 oSp = oLayout.getMatchingShape(AscFormat.phType_ftr, null, false, {});
                                 if(oSp)
                                 {
-                                    oSp = oSp.copy();
+                                    oSp = oSp.copy(undefined);
                                     oSlide.addToSpTreeToPos(undefined, oSp);
                                     oSp.setParent(oSlide);
                                 }
@@ -3589,7 +3588,7 @@ CPresentation.prototype =
                                 oSp = oLayout.getMatchingShape(AscFormat.phType_hdr, null, false, {});
                                 if(oSp)
                                 {
-                                    oSp = oSp.copy();
+                                    oSp = oSp.copy(undefined);
                                     oSlide.addToSpTreeToPos(undefined, oSp);
                                     oSp.setParent(oSlide);
                                 }
@@ -3640,7 +3639,7 @@ CPresentation.prototype =
                                 oSp = oLayout.getMatchingShape(AscFormat.phType_dt, null, false, {});
                                 if(oSp)
                                 {
-                                    oSp = oSp.copy();
+                                    oSp = oSp.copy(undefined);
                                     oSlide.addToSpTreeToPos(undefined, oSp);
                                     oSp.setParent(oSlide);
                                 }
@@ -8703,7 +8702,7 @@ CPresentation.prototype =
                             {
                                 if(target_text_object.graphicObject)
                                 {
-                                    var GraphicFrame = target_text_object.copy();
+                                    var GraphicFrame = target_text_object.copy(undefined);
                                     var SelectedContent = new CSelectedContent();
                                     target_text_object.graphicObject.GetSelectedContent(SelectedContent);
                                     var Table = SelectedContent.Elements[0].Element;
@@ -8829,7 +8828,7 @@ CPresentation.prototype =
                             }
                             if(oTargetTextObject.getObjectType() === AscDFH.historyitem_type_GraphicFrame && !oDocContent){
                                 if(oTargetTextObject.graphicObject){
-                                    oGraphicFrame = oTargetTextObject.copy();
+                                    oGraphicFrame = oTargetTextObject.copy(undefined);
                                     oSelectedContent = new CSelectedContent();
                                     oTargetTextObject.graphicObject.GetSelectedContent(oSelectedContent);
                                     oTable = oSelectedContent.Elements[0].Element;
@@ -10159,7 +10158,7 @@ CPresentation.prototype =
                         (_ph_type === AscFormat.phType_hdr && (hf.hdr !== false)) ||
                         (_ph_type === AscFormat.phType_sldNum && (hf.sldNum !== false))))
                     {
-                        sp = layout.cSld.spTree[i].copy();
+                        sp = layout.cSld.spTree[i].copy(undefined);
                         sp.setParent(new_slide);
                         !bIsSpecialPh && sp.clearContent && sp.clearContent();
                         new_slide.addToSpTreeToPos(new_slide.cSld.spTree.length, sp);
@@ -10201,7 +10200,7 @@ CPresentation.prototype =
                         (_ph_type === AscFormat.phType_hdr && (hf.hdr !== false)) ||
                         (_ph_type === AscFormat.phType_sldNum && (hf.sldNum !== false))))
                     {
-                        sp = layout.cSld.spTree[i].copy();
+                        sp = layout.cSld.spTree[i].copy(undefined);
                         sp.setParent(new_slide);
                         !bIsSpecialPh && sp.clearContent && sp.clearContent();
                         new_slide.addToSpTreeToPos(new_slide.cSld.spTree.length, sp);
@@ -10450,7 +10449,7 @@ CPresentation.prototype =
                             var matching_shape =  slide.getMatchingShape(layout.cSld.spTree[j].getPlaceholderType(), layout.cSld.spTree[j].getPlaceholderIndex(), layout.cSld.spTree[j].getIsSingleBody ? layout.cSld.spTree[j].getIsSingleBody() : false);
                             if(matching_shape == null && layout.cSld.spTree[j])
                             {
-                                var sp = layout.cSld.spTree[j].copy();
+                                var sp = layout.cSld.spTree[j].copy(undefined);
                                 sp.setParent(slide);
                                 !bIsSpecialPh && sp.clearContent && sp.clearContent();
                                 slide.addToSpTreeToPos(slide.cSld.spTree.length, sp)
@@ -11758,6 +11757,9 @@ CPresentation.prototype.UpdateUndoRedo = function()
 function collectSelectedObjects(aSpTree, aCollectArray, bRecursive, oIdMap, bSourceFormatting)
 {
     var oSp;
+    var oPr = new AscFormat.CCopyObjectProperties();
+    oPr.idMap = oIdMap;
+    oPr.bSaveSourceFormatting = bSourceFormatting;
     for(var i = 0; i < aSpTree.length; ++i)
     {
         oSp = aSpTree[i];
@@ -11769,11 +11771,11 @@ function collectSelectedObjects(aSpTree, aCollectArray, bRecursive, oIdMap, bSou
         {
             var oCopy;
             if(oSp.getObjectType() === AscDFH.historyitem_type_GroupShape){
-                oCopy = oSp.copy(oIdMap, bSourceFormatting);
+                oCopy = oSp.copy(oPr);
             }
             else{
                 if(!bSourceFormatting){
-                    oCopy = oSp.copy();
+                    oCopy = oSp.copy(oPr);
                     if(oSp.isPlaceholder && oSp.isPlaceholder())
                     {
                         oCopy.x = oSp.x;

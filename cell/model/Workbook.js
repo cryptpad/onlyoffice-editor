@@ -3549,7 +3549,7 @@
 			AscFormat.NEW_WORKSHEET_DRAWING_DOCUMENT = oNewWs.DrawingDocument;
 			for (i = 0; i < this.Drawings.length; ++i) {
 				var drawingObject = drawingObjects.cloneDrawingObject(this.Drawings[i]);
-				drawingObject.graphicObject = this.Drawings[i].graphicObject.copy();
+				drawingObject.graphicObject = this.Drawings[i].graphicObject.copy(undefined);
 				drawingObject.graphicObject.setWorksheet(oNewWs);
 				drawingObject.graphicObject.addToDrawingObjects();
 				var drawingBase = this.Drawings[i];

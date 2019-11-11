@@ -3586,11 +3586,12 @@ PasteProcessor.prototype =
 				if (false === oThis.bNested) {
 					var oIdMap = {};
 					var aCopies = [];
-
+                    var oCopyPr = new AscFormat.CCopyObjectProperties();
+                    oCopyPr.idMap = oIdMap;
                     var l = null, t = null, r = null, b = null, oXfrm;
 
 					for (var i = 0; i < arr_shapes.length; ++i) {
-						shape = arr_shapes[i].graphicObject.copy();
+						shape = arr_shapes[i].graphicObject.copy(oCopyPr);
 						aCopies.push(shape);
 						oIdMap[arr_shapes[i].graphicObject.Id] = shape.Id;
 						shape.worksheet = null;
