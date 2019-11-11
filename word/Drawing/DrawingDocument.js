@@ -2709,6 +2709,13 @@ function CDrawingDocument()
 
     this.printedDocument = null; // selection print
 
+	// placeholders
+	this.placeholders = new AscCommon.CreateDrawingPlaceholders();
+	this.placeholders.registerCallback(AscCommon.PlaceholderButtonType.Image, function() {
+		console.log("IMAGE CLICK!!!");
+	});
+	this.placeholders.update([AscCommon.CreateDrawingPlaceholder(0, [AscCommon.PlaceholderButtonType.Image], 0, { x : 10, y : 10, w : 100, h : 100 }, null)]);
+
 	this.showTarget = function (isShow)
 	{
 		if (this.TargetHtmlElementBlock)
@@ -8134,6 +8141,10 @@ function CDrawingDocument()
 			}
 		}
 
+        var _page = this.m_arrPages[pos.Page];
+		if (this.placeholders.onPointerDown(pos.X, pos.Y, pos.Page, _page.drawingPage, _page.width_mm, _page.height_mm))
+			return true;
+
 		return false;
 	};
 
@@ -8481,6 +8492,15 @@ function CDrawingDocument()
 
 		if (isChangeHover)
 			oWordControl.OnUpdateOverlay();
+
+        var _page = this.m_arrPages[pos.Page];
+        if (this.placeholders.onPointerMove(pos.X, pos.Y, pos.Page, _page.drawingPage, _page.width_mm, _page.height_mm))
+		{
+            oWordControl.ShowOverlay();
+            oWordControl.OnUpdateOverlay();
+            oWordControl.EndUpdateOverlay();
+            return true;
+		}
 
 		return false;
 	};

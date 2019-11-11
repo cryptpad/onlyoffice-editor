@@ -119,8 +119,26 @@
 		};
 	}
 
+	Placeholder.prototype.getCenterInPixels = function(pixelsRect, pageWidthMM, pageHeightMM)
+    {
+        var cx = this.anchor.rect.x + this.anchor.rect.w / 2;
+        var cy = this.anchor.rect.y + this.anchor.rect.h / 2;
+        if (this.anchor.transform)
+        {
+            var tmpCx = cx;
+            var tmpCy = cy;
+            cx = this.anchor.transform.TransformPointX(tmpCx, tmpCy);
+            cy = this.anchor.transform.TransformPointX(tmpCy, tmpCy);
+        }
+
+        return {
+            x : (0.5 + pixelsRect.left + cx * (pixelsRect.right - pixelsRect.left) / pageWidthMM) >> 0,
+            y : (0.5 + pixelsRect.top + cy * (pixelsRect.bottom - pixelsRect.top) / pageHeightMM) >> 0
+        };
+    };
+
 	// расчет всех ректов кнопок
-    Placeholder.prototype.getButtonRects = function()
+    Placeholder.prototype.getButtonRects = function(pointCenter)
 	{
         var ButtonSize = AscCommon.AscBrowser.convertToRetinaValue(ButtonSize1x, true);
         var ButtonBetweenSize = AscCommon.AscBrowser.convertToRetinaValue(ButtonBetweenSize1x, true);
@@ -129,8 +147,8 @@
 		var buttonsCount = this.buttons.length;
 		var countColumn = (buttonsCount < 3) ? buttonsCount : (this.buttons.length + 1) >> 1;
 
-		var xStart = this.anchor.rect.x + (this.anchor.rect.w - (countColumn * ButtonSize + (countColumn - 1) * ButtonBetweenSize)) >> 1;
-		var yStart = this.anchor.rect.y + ((buttonsCount == countColumn) ? (this.anchor.rect.h - ButtonSize) : (this.anchor.rect.h - (2 * ButtonSize + ButtonBetweenSize))) >> 1;
+		var xStart = pointCenter.x - ((countColumn * ButtonSize + (countColumn - 1) * ButtonBetweenSize) >> 1);
+        var yStart = pointCenter.y - (((buttonsCount == countColumn) ? ButtonSize : (2 * ButtonSize + ButtonBetweenSize)) >> 1);
 
 		var ret = [];
 		var x = xStart;
@@ -155,51 +173,29 @@
         return ret;
 	};
 
-	Placeholder.prototype.applyTransformToPoint = function(x, y)
-	{
-		var ret = { x : x, y : y };
-		if (this.anchor.transform)
-		{
-            if (global_MatrixTransformer.IsIdentity2(this.anchor.transform))
-			{
-				ret.x -= this.anchor.transform.tx;
-                ret.y -= this.anchor.transform.ty;
-			}
-			else
-			{
-                var invertTransform = global_MatrixTransformer.Invert(this.anchor.transform);
-                ret.x = invertTransform.TransformPointX(x, y);
-                ret.y = invertTransform.TransformPointY(x, y);
-			}
-		}
-        return { x : _x, y : _y };
-	};
-
-    Placeholder.prototype.isInside = function(x, y)
+	Placeholder.prototype.isInside = function(x, y, pixelsRect, pageWidthMM, pageHeightMM)
     {
-    	var point = this.applyTransformToPoint(x, y);
-        var rect = this.anchor.rect;
-
-        var isInsideMain = (point.x >= rect.x) && (point.x <= (rect.x + rect.w)) && (point.y >= rect.y) && (point.y <= (rect.y + rect.h));
-    	if (!isInsideMain)
-    		return -1;
-
-    	var rects = this.getButtonRects();
+        var pointCenter = this.getCenterInPixels(pixelsRect, pageWidthMM, pageHeightMM);
+    	var rects = this.getButtonRects(pointCenter);
         var ButtonSize = AscCommon.AscBrowser.convertToRetinaValue(ButtonSize1x, true);
 
+        var px = (0.5 + pixelsRect.left + x * (pixelsRect.right - pixelsRect.left) / pageWidthMM) >> 0;
+        var py = (0.5 + pixelsRect.top + y * (pixelsRect.bottom - pixelsRect.top) / pageWidthMM) >> 0;
+
+        var rect;
     	for (var i = 0; i < rects.length; i++)
 		{
 			rect = rects[i];
-			if ((point.x >= rect.x) && (point.x <= (rect.x + ButtonSize)) && (point.y >= rect.y) && (point.y <= (rect.y + ButtonSize)))
+			if ((px >= rect.x) && (px <= (rect.x + ButtonSize)) && (py >= rect.y) && (py <= (rect.y + ButtonSize)))
 				return i;
 		}
 
 		return -1;
     };
 
-    Placeholder.prototype.onPointerDown = function(e, x, y)
+    Placeholder.prototype.onPointerDown = function(x, y, pixelsRect, pageWidthMM, pageHeightMM)
     {
-        var indexButton = this.isInside(x, y);
+        var indexButton = this.isInside(x, y, pixelsRect, pageWidthMM, pageHeightMM);
 
 		if (-1 == indexButton)
 			return false;
@@ -208,9 +204,9 @@
 		return true;
     };
 
-    Placeholder.prototype.onPointerMove = function(e, x, y)
+    Placeholder.prototype.onPointerMove = function(x, y, pixelsRect, pageWidthMM, pageHeightMM)
     {
-        var indexButton = this.isInside(x, y);
+        var indexButton = this.isInside(x, y, pixelsRect, pageWidthMM, pageHeightMM);
         var isUpdate = false;
 
         for (var i = 0; i < this.buttons.length; i++)
@@ -236,13 +232,27 @@
         return isUpdate;
     };
 
-    Placeholder.prototype.onPointerUp = function(e, x, y)
+    Placeholder.prototype.onPointerUp = function(x, y, pixelsRect, pageWidthMM, pageHeightMM)
     {
 		// ничего. нажимаем сразу при down
     };
 
-    Placeholder.prototype.draw = function(overlay, rect)
+    Placeholder.prototype.draw = function(overlay, pixelsRect, pageWidthMM, pageHeightMM)
 	{
+        var pointCenter = this.getCenterInPixels(pixelsRect, pageWidthMM, pageHeightMM);
+        var rects = this.getButtonRects(pointCenter);
+
+        var ButtonSize = AscCommon.AscBrowser.convertToRetinaValue(ButtonSize1x, true);
+        var ctx = overlay.m_oContext;
+        for (var i = 0; i < this.buttons.length; i++)
+        {
+            overlay.CheckPoint(rects[i].x, rects[i].y);
+            overlay.CheckPoint(rects[i].x + ButtonSize, rects[i].y + ButtonSize);
+
+            var img = this.events.icons.get(this.buttons[i]);
+            if (img)
+                ctx.drawImage(img, rects[i].x, rects[i].y, ButtonSize, ButtonSize);
+        }
 	};
 	
 	function Placeholders()
@@ -264,29 +274,46 @@
         this.callbacks[type] && this.callbacks[type](obj);
     };
 
-    Placeholders.prototype.onPointerDown = function(e, x, y)
+    Placeholders.prototype.draw = function(overlay, page, pixelsRect, pageWidthMM, pageHeightMM)
+    {
+        for (var i = 0; i < this.objects.length; i++)
+        {
+            if (this.objects[i].anchor.page != page)
+                continue;
+
+            this.objects[i].draw(overlay, pixelsRect, pageWidthMM, pageHeightMM);
+        }
+    };
+
+    Placeholders.prototype.onPointerDown = function(x, y, page, pixelsRect, pageWidthMM, pageHeightMM)
 	{
 		for (var i = 0; i < this.objects.length; i++)
 		{
-			if (this.objects.onPointerDown(e, x, y))
+		    if (this.objects[i].anchor.page != page)
+		        continue;
+
+			if (this.objects[i].onPointerDown(x, y, pixelsRect, pageWidthMM, pageHeightMM))
 				return true;
 		}
 		return false;
 	};
 
-    Placeholders.prototype.onPointerMove = function(e, x, y)
+    Placeholders.prototype.onPointerMove = function(x, y, page)
     {
         var isUpdate = false;
         for (var i = 0; i < this.objects.length; i++)
         {
-            isUpdate |= this.objects.onPointerMove(e, x, y);
+            if (this.objects[i].anchor.page != page)
+                continue;
+
+            isUpdate |= this.objects[i].onPointerMove(x, y, pixelsRect, pageWidthMM, pageHeightMM);
         }
         // обновить оверлей
         if (isUpdate && this.onUpdate)
             this.onUpdate();
     };
 
-    Placeholders.prototype.onPointerUp = function(e, x, y)
+    Placeholders.prototype.onPointerUp = function(x, y, pixelsRect, pageWidthMM, pageHeightMM)
     {
         return false;
     };
@@ -340,5 +367,7 @@
 
         this.onUpdate && this.onUpdate();
     };
+
+    AscCommon.CreateDrawingPlaceholders();
 
 })(window);

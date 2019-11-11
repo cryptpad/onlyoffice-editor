@@ -3047,6 +3047,15 @@ function CEditorPage(api)
 
 			drDoc.DrawContentControlsTrack(overlay);
 
+            if (drDoc.placeholders.objects.length > 0)
+            {
+                for (var indP = drDoc.m_lDrawingFirst; indP <= drDoc.m_lDrawingEnd; indP++)
+                {
+                    var drawPage = drDoc.m_arrPages[_page].drawingPage;
+                    drDoc.placeholders.draw(overlay, indP, drawPage.left, drawPage.top, drawPage.right - drawPage.left, drawPage.bottom - drawPage.top);
+                }
+            }
+
 			if (drDoc.TableOutlineDr.bIsTracked)
 			{
 				drDoc.DrawTableTrack(overlay);
