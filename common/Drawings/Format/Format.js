@@ -10178,7 +10178,7 @@ function CompareBullets(bullet1, bullet2)
         {
             ret.bulletSize = bullet1.bulletSize;
         }
-        if(bullet1.bulletColor && bullet1.bulletColor
+        if(bullet1.bulletColor && bullet2.bulletColor
         && bullet1.bulletColor.type ===  bullet2.bulletColor.type)
         {
             ret.bulletColor = new CBulletColor()
