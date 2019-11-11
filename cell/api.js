@@ -3056,11 +3056,11 @@ var editor;
         this.spellcheckState.lockSpell = false;
         this.spellcheckState.lastIndex = lastIndex;
         var currIndex = cellsInfo[lastIndex];
-        if (currIndex && (currIndex["col"] !== activeCell.col || currIndex["row"] !== activeCell.row)) {
+        if (currIndex && (currIndex.col !== activeCell.col || currIndex.row !== activeCell.row)) {
           var currentCellIsInactive = true;
         }
         while (isStart && currentCellIsInactive && usrCorrect[lastIndex]) {
-          if (!cellsInfo[lastIndex + 1] || cellsInfo[lastIndex + 1]["col"] !== cellsInfo[lastIndex]["col"]) {
+          if (!cellsInfo[lastIndex + 1] || cellsInfo[lastIndex + 1].col !== cellsInfo[lastIndex].col) {
             var cell = cellsInfo[lastIndex];
             cellsChange.push(new Asc.Range(cell.col, cell.row, cell.col, cell.row));
           }
@@ -3074,7 +3074,7 @@ var editor;
         }
 
         var cellStartIndex = 0;
-        while (cellsInfo[cellStartIndex]["col"] !== cellsInfo[lastIndex]["col"]) {
+        while (cellsInfo[cellStartIndex].col !== cellsInfo[lastIndex].col) {
           cellStartIndex++;
         }
         e["usrWords"].splice(0, cellStartIndex);
@@ -3173,7 +3173,7 @@ var editor;
         }
       }
 
-      while (cellsInfo[lastIndex]["col"] === activeCell.col && cellsInfo[lastIndex]["row"] === activeCell.row) {
+      while (cellsInfo[lastIndex].col === activeCell.col && cellsInfo[lastIndex].row === activeCell.row) {
         var letterDifference = null;
         var word = usrWords[lastIndex];
         var newWord = this.spellcheckState.newWord;
@@ -3191,7 +3191,7 @@ var editor;
           cellText = cellText.replace(valueForSearching, replaceWith);
           if (letterDifference !== 0) {
             var j = lastIndex + 1;
-            while (j < usrWords.length && cellsInfo[j].col === cellsInfo[lastIndex]["col"]) {
+            while (j < usrWords.length && cellsInfo[j].col === cellsInfo[lastIndex].col) {
               wordsIndex[j] += letterDifference;
               j++;
             }
@@ -3357,8 +3357,8 @@ var editor;
           var lastIndex = t.spellcheckState.lastIndex;
           var cellInfo = lastSpell.cellsInfo[lastIndex];
           var activeCell = ws.model.selectionRange.activeCell;
-          var dc = cellInfo["col"] - activeCell.col;
-          var dr = cellInfo["row"] - activeCell.row;
+          var dc = cellInfo.col - activeCell.col;
+          var dr = cellInfo.row - activeCell.row;
           t.spellcheckState.lockSpell = true;
           ws.changeSelectionStartPoint(dc, dr);
           t.spellcheckState.lockSpell = false;
