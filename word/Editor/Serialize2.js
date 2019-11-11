@@ -7437,8 +7437,8 @@ function BinaryFileReader(doc, openParams)
 					bToDelete = false;
 					if(null != item.QuoteText)
 						oCommentObj.Data.m_sQuoteText = item.QuoteText;
-					item.Start.oParaComment.Set_CommentId(oCommentObj.Get_Id());
-					item.End.oParaComment.Set_CommentId(oCommentObj.Get_Id());
+					item.Start.oParaComment.SetCommentId(oCommentObj.Get_Id());
+					item.End.oParaComment.SetCommentId(oCommentObj.Get_Id());
 				}
 			}
 			if(bToDelete){
@@ -7790,8 +7790,8 @@ function BinaryFileReader(doc, openParams)
 				if(oCommentObj)
 				{
 					bToDelete = false;
-					item.Start.oParaComment.Set_CommentId(oCommentObj.Get_Id());
-					item.End.oParaComment.Set_CommentId(oCommentObj.Get_Id());
+					item.Start.oParaComment.SetCommentId(oCommentObj.Get_Id());
+					item.End.oParaComment.SetCommentId(oCommentObj.Get_Id());
 				}
 			}
 			if(bToDelete){

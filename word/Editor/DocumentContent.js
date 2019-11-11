@@ -198,6 +198,55 @@ CDocumentContent.prototype.Copy3 = function(Parent)//для заголовков
 	}
 	return DC;
 };
+/**
+ * В текущем содержимом получаем все комментарии и создаем их копии. Это иногда нужно делать во время функции
+ * копирования, чтобы создавать новый уникальный комментарий с новым Id. Обрабатываются ТОЛЬКО комментарии, у которых
+ * начало и конец лежат в данном контейнере.
+ */
+CDocumentContent.prototype.CreateDuplicateComments = function()
+{
+	var arrComments = this.GetAllComments();
+
+	var oComments = {};
+	for (var nIndex = 0, nCount = arrComments.length; nIndex < nCount; ++nIndex)
+	{
+		var oMark      = arrComments[nIndex].Comment;
+		var sCommentId = oMark.GetCommentId();
+
+		if (!oComments[sCommentId])
+			oComments[sCommentId] = {Start : null, End : null};
+
+		if (oMark.IsCommentStart())
+			oComments[sCommentId].Start = oMark;
+		else
+			oComments[sCommentId].End = oMark;
+	}
+
+	var oLogicDocument = this.LogicDocument ? this.LogicDocument : editor.WordControl.m_oLogicDocument;
+	if (!oLogicDocument)
+		return;
+
+	var oDocumentComments = oLogicDocument.Comments;
+	for (var sId in oComments)
+	{
+		var oItem = oComments[sId];
+
+		if (oItem.Start && oItem.End)
+		{
+			var oOldComment = oDocumentComments.GetById(sId);
+			if (oOldComment)
+			{
+				var oNewComment = oOldComment.Copy();
+				oDocumentComments.Add(oNewComment);
+
+				oLogicDocument.GetApi().sync_AddComment(oNewComment.GetId(), oNewComment.GetData());
+
+				oItem.Start.SetCommentId(oNewComment.GetId());
+				oItem.End.SetCommentId(oNewComment.GetId());
+			}
+		}
+	}
+};
 //-----------------------------------------------------------------------------------
 // Функции, к которым идет обращение из контента
 //-----------------------------------------------------------------------------------

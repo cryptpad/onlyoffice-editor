@@ -90,7 +90,7 @@ ParaComment.prototype =
         return this.Id;
     },
 
-    Set_CommentId : function(NewCommentId)
+    SetCommentId : function(NewCommentId)
     {
     },
 

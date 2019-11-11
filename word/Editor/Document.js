@@ -507,7 +507,7 @@ CSelectedContent.prototype =
                             var Element = this.Comments[Pos2].Comment;
                             if (Id === Element.CommentId)
                             {
-                                Element.Set_CommentId(NewComment.Get_Id());
+                                Element.SetCommentId(NewComment.GetId());
                             }
                         }
                     }

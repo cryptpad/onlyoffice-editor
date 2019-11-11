@@ -760,6 +760,13 @@ CComments.prototype.Document_Is_SelectionLocked = function(Id)
 			oComment.Lock.Check(oComment.GetId());
 	}
 };
+CComments.prototype.GetById = function(sId)
+{
+	if (this.m_aComments[sId])
+		return this.m_aComments[sId];
+
+	return null;
+};
 
 /**
  * Класс для элемента начала/конца комментария в параграфе
@@ -798,14 +805,6 @@ ParaComment.prototype.Get_Id = function()
 ParaComment.prototype.GetId = function()
 {
 	return this.Get_Id();
-};
-ParaComment.prototype.Set_CommentId = function(NewCommentId)
-{
-	if (this.CommentId !== NewCommentId)
-	{
-		History.Add(new CChangesParaCommentCommentId(this, this.CommentId, NewCommentId));
-		this.CommentId = NewCommentId;
-	}
 };
 ParaComment.prototype.Copy = function(Selected)
 {
@@ -916,7 +915,11 @@ ParaComment.prototype.Read_FromBinary2 = function(Reader)
 };
 ParaComment.prototype.SetCommentId = function(sCommentId)
 {
-	this.Set_CommentId(sCommentId);
+	if (this.CommentId !== sCommentId)
+	{
+		History.Add(new CChangesParaCommentCommentId(this, this.CommentId, sCommentId));
+		this.CommentId = sCommentId;
+	}
 };
 ParaComment.prototype.GetCommentId = function()
 {
