@@ -5162,7 +5162,7 @@ window["buildCryptoFile_End"] = function(url, error, hash, password)
 			AscCommon.sendSaveFile(_editor.documentId, _editor.documentUserId, "output" + ext, _editor.asc_getSessionToken(), fileData, function(err) {
 
                 _editor.sync_EndAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.Save);
-                _editor.sendEvent("asc_onError", Asc.c_oAscError.ID.ConvertationOpenError, Asc.c_oAscError.Level.Critical);
+                _editor.sendEvent("asc_onError", Asc.c_oAscError.ID.ConvertationSaveError, Asc.c_oAscError.Level.Critical);
 
                 window["AscDesktopEditor"]["buildCryptedEnd"](false);
 
