@@ -214,7 +214,7 @@
         return ret;
 	};
 
-	Placeholder.prototype.isInside = function(x, y, pixelsRect, pageWidthMM, pageHeightMM)
+	Placeholder.prototype.isInside = function(x, y, pixelsRect, pageWidthMM, pageHeightMM, pointMenu)
     {
         var pointCenter = this.getCenterInPixels(pixelsRect, pageWidthMM, pageHeightMM);
         var scale = {
@@ -232,7 +232,14 @@
 		{
 			rect = rects[i];
 			if ((px >= rect.x) && (px <= (rect.x + ButtonSize)) && (py >= rect.y) && (py <= (rect.y + ButtonSize)))
-				return i;
+			{
+			    if (pointMenu)
+			    {
+                    pointMenu.x = rect.x;
+                    pointMenu.y = rect.y;
+                }
+                return i;
+            }
 		}
 
 		return -1;
@@ -240,7 +247,8 @@
 
     Placeholder.prototype.onPointerDown = function(x, y, pixelsRect, pageWidthMM, pageHeightMM)
     {
-        var indexButton = this.isInside(x, y, pixelsRect, pageWidthMM, pageHeightMM);
+        var pointMenu = { x : 0, y : 0 };
+        var indexButton = this.isInside(x, y, pixelsRect, pageWidthMM, pageHeightMM, pointMenu);
 
 		if (-1 == indexButton)
 			return false;
@@ -267,7 +275,15 @@
             this.events.document.m_oWordControl.EndUpdateOverlay();
         }
 
-		this.events.callCallback(this.buttons[indexButton], this);
+        var xCoord = pointMenu.x;
+		var yCoord = pointMenu.y;
+        if (true == this.events.document.m_oWordControl.m_bIsRuler)
+        {
+            xCoord += (5 * g_dKoef_mm_to_pix) >> 0;
+            yCoord += (7 * g_dKoef_mm_to_pix) >> 0;
+        }
+        
+		this.events.callCallback(this.buttons[indexButton], this, xCoord, yCoord);
 		return true;
     };
 
@@ -400,6 +416,19 @@
         // TODO:
     };
 
+    Placeholders.prototype.closeAllActive = function()
+    {
+        for (var i = 0; i < this.objects.length; i++)
+        {
+            var obj = this.objects[i];
+            for (var j = 0; j < obj.states.length; j++)
+            {
+                if (obj.states[j] == AscCommon.PlaceholderButtonState.Active)
+                    obj.states[j] = AscCommon.PlaceholderButtonState.None;
+            }
+        }
+    };
+
     Placeholders.prototype.draw = function(overlay, page, pixelsRect, pageWidthMM, pageHeightMM)
     {
         for (var i = 0; i < this.objects.length; i++)
@@ -453,7 +482,7 @@
 
     Placeholders.prototype.onPointerUp = function(x, y, pixelsRect, pageWidthMM, pageHeightMM)
     {
-        return false;
+        return this.onPointerMove(x, y, pixelsRect, pageWidthMM, pageHeightMM);
     };
 
     Placeholders.prototype.update = function(objects)

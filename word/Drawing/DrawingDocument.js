@@ -8592,6 +8592,10 @@ function CDrawingDocument()
 			return true;
 		}
 
+        var _page = this.m_arrPages[pos.Page];
+        if (this.placeholders.onPointerUp(pos.X, pos.Y, pos.Page, _page.drawingPage, _page.width_mm, _page.height_mm))
+            return true;
+
 		return false;
 	}
 

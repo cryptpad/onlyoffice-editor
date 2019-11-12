@@ -3502,6 +3502,9 @@ function CDrawingDocument()
 			return true;
 		}
 
+        if (this.placeholders.onPointerUp(pos.X, pos.Y, pos.Page, this.SlideCurrectRect, this.m_oLogicDocument.Width, this.m_oLogicDocument.Height))
+            return true;
+
 		return false;
 	};
 
