@@ -8290,6 +8290,38 @@ CDocumentContent.prototype.IsTableCellSelection = function()
 {
 	return (this.Selection.Use && this.Selection.StartPos === this.Selection.EndPos && this.Content[this.Selection.StartPos].IsTable() && this.Content[this.Selection.StartPos].IsTableCellSelection());
 };
+/**
+ * Проверяем можно ли редактировать все контейнеры, находящиеся в данном классе
+ * @returns {boolean}
+ */
+CDocumentContent.prototype.CanEditAllContentControls = function()
+{
+	var arrCC = this.GetAllContentControls();
+
+	for (var nIndex = 0, nCount = arrCC.length; nIndex < nCount; ++nIndex)
+	{
+		if (!arrCC[nIndex].CanBeEdited())
+			return false;
+	}
+
+	return true;
+};
+/**
+ * Проверяем можно ли удалять все контейнеры, находящиеся в данном классе
+ * @returns {boolean}
+ */
+CCDocumentContent.prototype.CanDeleteAllContentControls = function()
+{
+	var arrCC = this.GetAllContentControls();
+
+	for (var nIndex = 0, nCount = arrCC.length; nIndex < nCount; ++nIndex)
+	{
+		if (!arrCC[nIndex].CanBeDeleted())
+			return false;
+	}
+
+	return true;
+};
 CDocumentContent.prototype.Document_Is_SelectionLocked = function(CheckType)
 {
 	if ( true === this.ApplyToAll )
