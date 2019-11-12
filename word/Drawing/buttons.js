@@ -38,9 +38,11 @@
 
     AscCommon.PlaceholderButtonType = {
     	Image : 0,
-		Video : 1,
+        ImageUrl : 1,
 		Chart : 2,
-		Table : 3
+		Table : 3,
+        Video : 4,
+        Audio : 5
 	};
 
     AscCommon.PlaceholderButtonState = {
@@ -49,8 +51,9 @@
         Over : 2
     };
 
-    var ButtonSize1x = 28;
-    var ButtonBetweenSize1x = 6;
+    var ButtonSize1x = 42;
+    var ButtonImageSize1x = 28;
+    var ButtonBetweenSize1x = 8;
 
     function PlaceholderIcons()
     {
@@ -67,23 +70,43 @@
                 this.images[1].onload = function() { this.asc_complete = true; };
                 this.images[1].src = "../../../../sdkjs/common/Images/placeholders/" + url + "@2x.png";
             };
+            this.loadActive = function(url)
+            {
+                this.images[2] = new Image();
+                this.images[2].onload = function() { this.asc_complete = true; };
+                this.images[2].src = "../../../../sdkjs/common/Images/placeholders/" + url + "_active.png";
+
+                this.images[3] = new Image();
+                this.images[3].onload = function() { this.asc_complete = true; };
+                this.images[3].src = "../../../../sdkjs/common/Images/placeholders/" + url + "_active@2x.png";
+            };
             this.get = function()
             {
                 var index = AscCommon.AscBrowser.isRetina ? 1 : 0;
+                return this.images[index].asc_complete ? this.images[index] : null;
+            };
+            this.getActive = function()
+            {
+                var index = AscCommon.AscBrowser.isRetina ? 3 : 2;
                 return this.images[index].asc_complete ? this.images[index] : null;
             };
         }
 
         this.images = [];
 
-        this.register = function(type, url)
+        this.register = function(type, url, support_active)
         {
             this.images[type] = new PI();
             this.images[type].load(type, url);
+            support_active && this.images[type].loadActive(url);
         };
         this.get = function(type)
         {
         	return this.images[type] ? this.images[type].get() : null;
+        };
+        this.getActive = function(type)
+        {
+            return this.images[type] ? this.images[type].getActive() : null;
         };
     }
 
@@ -142,7 +165,7 @@
     };
 
 	// расчет всех ректов кнопок
-    Placeholder.prototype.getButtonRects = function(pointCenter)
+    Placeholder.prototype.getButtonRects = function(pointCenter, scale)
 	{
 	    //координаты ретины - масштабируются при отрисовке
         var ButtonSize = ButtonSize1x;//AscCommon.AscBrowser.convertToRetinaValue(ButtonSize1x, true);
@@ -155,6 +178,15 @@
 
 		var sizeAllHor = (countColumn * ButtonSize + (countColumn - 1) * ButtonBetweenSize);
         var sizeAllHor2 = (countColumn2 * ButtonSize + (countColumn2 - 1) * ButtonBetweenSize);
+        var sizeAllVer = buttonsCount > 0 ? ButtonSize : 0;
+        if (buttonsCount > countColumn)
+            sizeAllVer += (ButtonSize + ButtonBetweenSize);
+
+        var parentW = (this.anchor.rect.w * scale.x) >> 1;
+        var parentH = (this.anchor.rect.h * scale.y) >> 1;
+
+        if ((parentW + (ButtonBetweenSize << 1)) < sizeAllHor || (parentH + (ButtonBetweenSize << 1)) < sizeAllVer)
+            return [];
 
 		var xStart = pointCenter.x - (sizeAllHor >> 1);
         var yStart = pointCenter.y - (((buttonsCount == countColumn) ? ButtonSize : (2 * ButtonSize + ButtonBetweenSize)) >> 1);
@@ -185,7 +217,11 @@
 	Placeholder.prototype.isInside = function(x, y, pixelsRect, pageWidthMM, pageHeightMM)
     {
         var pointCenter = this.getCenterInPixels(pixelsRect, pageWidthMM, pageHeightMM);
-    	var rects = this.getButtonRects(pointCenter);
+        var scale = {
+            x : (pixelsRect.right - pixelsRect.left) / pageWidthMM,
+            y : (pixelsRect.bottom - pixelsRect.top) / pageHeightMM
+        };
+    	var rects = this.getButtonRects(pointCenter, scale);
         var ButtonSize = ButtonSize1x;//AscCommon.AscBrowser.convertToRetinaValue(ButtonSize1x, true);
 
         var px = (0.5 + pixelsRect.left + x * (pixelsRect.right - pixelsRect.left) / pageWidthMM) >> 0;
@@ -209,6 +245,28 @@
 		if (-1 == indexButton)
 			return false;
 
+		if (this.states[indexButton] == AscCommon.PlaceholderButtonState.Active)
+        {
+            this.states[indexButton] = AscCommon.PlaceholderButtonState.Over;
+            this.events.document.m_oWordControl.OnUpdateOverlay();
+            this.events.document.m_oWordControl.EndUpdateOverlay();
+
+            this.events.closeCallback(this.buttons[indexButton], this);
+            return;
+        }
+        else if (this.events.mapActive[this.buttons[indexButton]])
+        {
+            for (var i = 0; i < this.buttons.length; i++)
+            {
+                if (indexButton != i)
+                    this.states[i] = AscCommon.PlaceholderButtonState.None;
+            }
+
+            this.states[indexButton] = AscCommon.PlaceholderButtonState.Active;
+            this.events.document.m_oWordControl.OnUpdateOverlay();
+            this.events.document.m_oWordControl.EndUpdateOverlay();
+        }
+
 		this.events.callCallback(this.buttons[indexButton], this);
 		return true;
     };
@@ -223,7 +281,7 @@
         {
             if (i == indexButton)
             {
-                if (this.states[i] != AscCommon.PlaceholderButtonState.Over)
+                if (this.states[i] == AscCommon.PlaceholderButtonState.None)
                 {
                     this.states[i] = AscCommon.PlaceholderButtonState.Over;
                     isUpdate = true;
@@ -231,7 +289,7 @@
             }
             else
             {
-                if (this.states[i] != AscCommon.PlaceholderButtonState.None)
+                if (this.states[i] == AscCommon.PlaceholderButtonState.Over)
                 {
                     this.states[i] = AscCommon.PlaceholderButtonState.None;
                     isUpdate = true;
@@ -251,22 +309,55 @@
     Placeholder.prototype.draw = function(overlay, pixelsRect, pageWidthMM, pageHeightMM)
 	{
         var pointCenter = this.getCenterInPixels(pixelsRect, pageWidthMM, pageHeightMM);
-        var rects = this.getButtonRects(pointCenter);
+        var scale = {
+            x : (pixelsRect.right - pixelsRect.left) / pageWidthMM,
+            y : (pixelsRect.bottom - pixelsRect.top) / pageHeightMM
+        };
+        var rects = this.getButtonRects(pointCenter, scale);
 
         var ButtonSize = ButtonSize1x;//AscCommon.AscBrowser.convertToRetinaValue(ButtonSize1x, true);
+        var ButtonImageSize = ButtonImageSize1x;//AscCommon.AscBrowser.convertToRetinaValue(ButtonImageSize1x, true);
+        var offsetImage = (ButtonSize - ButtonImageSize) >> 1;
+
         var ctx = overlay.m_oContext;
         for (var i = 0; i < this.buttons.length; i++)
         {
             overlay.CheckPoint(rects[i].x, rects[i].y);
             overlay.CheckPoint(rects[i].x + ButtonSize, rects[i].y + ButtonSize);
 
-            var img = this.events.icons.get(this.buttons[i]);
+            var img = (this.states[i] == AscCommon.PlaceholderButtonState.Active) ? this.events.icons.getActive(this.buttons[i]) : this.events.icons.get(this.buttons[i]);
             if (img)
             {
                 var oldGlobalAlpha = ctx.globalAlpha;
 
-                ctx.globalAlpha = oldGlobalAlpha * ((this.states[i] == AscCommon.PlaceholderButtonState.Over) ? 1 : 0.5);
-                ctx.drawImage(img, rects[i].x, rects[i].y, ButtonSize, ButtonSize);
+                ctx.globalAlpha = ((this.states[i] == AscCommon.PlaceholderButtonState.None) ? 0.75 : 1);
+
+                /* первый вариант
+                ctx.beginPath();
+                ctx.fillStyle = "#F1F1F1";
+                ctx.fillRect(rects[i].x, rects[i].y, ButtonSize, ButtonSize);
+                ctx.beginPath();
+                */
+
+                // второй вариант
+                ctx.beginPath();
+                ctx.fillStyle = (this.states[i] == AscCommon.PlaceholderButtonState.Active) ? "#7D858C" : "#F1F1F1";
+                var x = rects[i].x;
+                var y = rects[i].y;
+                var r = 4;
+                ctx.moveTo(x + r, y);
+                ctx.lineTo(x + ButtonSize - r, y);
+                ctx.quadraticCurveTo(x + ButtonSize, y, x + ButtonSize, y + r);
+                ctx.lineTo(x + ButtonSize, y + ButtonSize - r);
+                ctx.quadraticCurveTo(x + ButtonSize, y + ButtonSize, x + ButtonSize - r, y + ButtonSize);
+                ctx.lineTo(x + r, y + ButtonSize);
+                ctx.quadraticCurveTo(x, y + ButtonSize, x, y + ButtonSize - r);
+                ctx.lineTo(x, y + r);
+                ctx.quadraticCurveTo(x, y, x + r, y);
+                ctx.fill();
+                ctx.beginPath();
+
+                ctx.drawImage(img, rects[i].x + offsetImage, rects[i].y + offsetImage, ButtonImageSize, ButtonImageSize);
 
                 ctx.globalAlpha = oldGlobalAlpha;
             }
@@ -282,11 +373,16 @@
 
 		this.icons = new PlaceholderIcons();
 		this.icons.register(AscCommon.PlaceholderButtonType.Image, "image");
-        this.icons.register(AscCommon.PlaceholderButtonType.ImageUrl, "image_url");
-        this.icons.register(AscCommon.PlaceholderButtonType.Table, "table");
-        this.icons.register(AscCommon.PlaceholderButtonType.Chart, "chart");
+        //this.icons.register(AscCommon.PlaceholderButtonType.ImageUrl, "image_url");
+        this.icons.register(AscCommon.PlaceholderButtonType.Table, "table", true);
+        this.icons.register(AscCommon.PlaceholderButtonType.Chart, "chart", true);
         this.icons.register(AscCommon.PlaceholderButtonType.Audio, "audio");
         this.icons.register(AscCommon.PlaceholderButtonType.Video, "video");
+
+        // типы, которые поддерживают состояние Active
+        this.mapActive = [];
+        this.mapActive[AscCommon.PlaceholderButtonType.Table] = true;
+        this.mapActive[AscCommon.PlaceholderButtonType.Chart] = true;
     }
 
 	Placeholders.prototype.registerCallback = function(type, callback)
@@ -297,6 +393,11 @@
     Placeholders.prototype.callCallback = function(type, obj)
     {
         this.callbacks[type] && this.callbacks[type](obj);
+    };
+
+    Placeholders.prototype.closeCallback = function(type, obj)
+    {
+        // TODO:
     };
 
     Placeholders.prototype.draw = function(overlay, page, pixelsRect, pageWidthMM, pageHeightMM)
