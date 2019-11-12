@@ -2678,6 +2678,9 @@
 		ws.cellCommentator.removeComment(id);
 		this.cellCommentator.removeComment(id);
 	};
+	WorkbookView.prototype.removeAllComments = function (isMine, isCurrent) {
+
+	};
 
   /*
    * @param {c_oAscRenderingModeType} mode Режим отрисовки

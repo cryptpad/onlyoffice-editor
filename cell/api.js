@@ -2765,6 +2765,9 @@ var editor;
   spreadsheet_api.prototype.asc_removeComment = function(id) {
     this.wb.removeComment(id);
   };
+
+  spreadsheet_api.prototype.asc_RemoveAllComments = function(isMine, isCurrent) {
+  	this.wb.removeAllComments(isMine, isCurrent);
   };
 
   spreadsheet_api.prototype.asc_showComments = function (isShowSolved) {
@@ -4454,6 +4457,7 @@ var editor;
   prot["asc_changeComment"] = prot.asc_changeComment;
   prot["asc_findComment"] = prot.asc_findComment;
   prot["asc_removeComment"] = prot.asc_removeComment;
+  prot["asc_RemoveAllComments"] = prot.asc_RemoveAllComments;
   prot["asc_showComment"] = prot.asc_showComment;
   prot["asc_selectComment"] = prot.asc_selectComment;
 
