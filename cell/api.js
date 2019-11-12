@@ -2763,9 +2763,8 @@ var editor;
   };
 
   spreadsheet_api.prototype.asc_removeComment = function(id) {
-    var ws = this.wb.getWorksheet();
-    ws.cellCommentator.removeComment(id);
-    this.wb.cellCommentator.removeComment(id);
+    this.wb.removeComment(id);
+  };
   };
 
   spreadsheet_api.prototype.asc_showComments = function (isShowSolved) {

@@ -2673,6 +2673,11 @@
 			this.drawWS();
 		}
 	};
+	WorkbookView.prototype.removeComment = function (id) {
+		var ws = this.getWorksheet();
+		ws.cellCommentator.removeComment(id);
+		this.cellCommentator.removeComment(id);
+	};
 
   /*
    * @param {c_oAscRenderingModeType} mode Режим отрисовки
