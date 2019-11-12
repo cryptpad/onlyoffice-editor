@@ -8310,7 +8310,7 @@ CDocumentContent.prototype.CanEditAllContentControls = function()
  * Проверяем можно ли удалять все контейнеры, находящиеся в данном классе
  * @returns {boolean}
  */
-CCDocumentContent.prototype.CanDeleteAllContentControls = function()
+CDocumentContent.prototype.CanDeleteAllContentControls = function()
 {
 	var arrCC = this.GetAllContentControls();
 
