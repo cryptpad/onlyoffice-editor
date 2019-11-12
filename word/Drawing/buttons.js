@@ -50,22 +50,22 @@
     };
 
     var ButtonSize1x = 28;
-    var ButtonBetweenSize1x = 16;
+    var ButtonBetweenSize1x = 6;
 
     function PlaceholderIcons()
     {
         function PI()
         {
             this.images = [];
-            this.load = function(type, url);
+            this.load = function(type, url)
             {
                 this.images[0] = new Image();
                 this.images[0].onload = function() { this.asc_complete = true; };
                 this.images[0].src = "../../../../sdkjs/common/Images/content_control_" + url + ".png";
 
-                this.images[2] = new Image();
-                this.images[2].onload = function() { this.asc_complete = true; };
-                this.images[2].src = "../../../../sdkjs/common/Images/content_control_" + url + "_2x.png";
+                this.images[1] = new Image();
+                this.images[1].onload = function() { this.asc_complete = true; };
+                this.images[1].src = "../../../../sdkjs/common/Images/content_control_" + url + "_2x.png";
             };
             this.get = function()
             {
@@ -95,6 +95,10 @@
 		placeholder.anchor.page = page;
 		placeholder.anchor.rect = rect;
         placeholder.anchor.transform = transform;
+
+        for (var i = 0; i < placeholder.buttons.length; i++)
+            placeholder.states[i] = AscCommon.PlaceholderButtonState.None;
+
         return placeholder;
 	};
 
@@ -128,7 +132,7 @@
             var tmpCx = cx;
             var tmpCy = cy;
             cx = this.anchor.transform.TransformPointX(tmpCx, tmpCy);
-            cy = this.anchor.transform.TransformPointX(tmpCy, tmpCy);
+            cy = this.anchor.transform.TransformPointY(tmpCx, tmpCy);
         }
 
         return {
@@ -140,8 +144,9 @@
 	// расчет всех ректов кнопок
     Placeholder.prototype.getButtonRects = function(pointCenter)
 	{
-        var ButtonSize = AscCommon.AscBrowser.convertToRetinaValue(ButtonSize1x, true);
-        var ButtonBetweenSize = AscCommon.AscBrowser.convertToRetinaValue(ButtonBetweenSize1x, true);
+	    //координаты ретины - масштабируются при отрисовке
+        var ButtonSize = ButtonSize1x;//AscCommon.AscBrowser.convertToRetinaValue(ButtonSize1x, true);
+        var ButtonBetweenSize = ButtonBetweenSize1x;//AscCommon.AscBrowser.convertToRetinaValue(ButtonBetweenSize1x, true);
 
 		// максимум 2 ряда
 		var buttonsCount = this.buttons.length;
@@ -177,10 +182,10 @@
     {
         var pointCenter = this.getCenterInPixels(pixelsRect, pageWidthMM, pageHeightMM);
     	var rects = this.getButtonRects(pointCenter);
-        var ButtonSize = AscCommon.AscBrowser.convertToRetinaValue(ButtonSize1x, true);
+        var ButtonSize = ButtonSize1x;//AscCommon.AscBrowser.convertToRetinaValue(ButtonSize1x, true);
 
         var px = (0.5 + pixelsRect.left + x * (pixelsRect.right - pixelsRect.left) / pageWidthMM) >> 0;
-        var py = (0.5 + pixelsRect.top + y * (pixelsRect.bottom - pixelsRect.top) / pageWidthMM) >> 0;
+        var py = (0.5 + pixelsRect.top + y * (pixelsRect.bottom - pixelsRect.top) / pageHeightMM) >> 0;
 
         var rect;
     	for (var i = 0; i < rects.length; i++)
@@ -204,11 +209,12 @@
 		return true;
     };
 
-    Placeholder.prototype.onPointerMove = function(x, y, pixelsRect, pageWidthMM, pageHeightMM)
+    Placeholder.prototype.onPointerMove = function(x, y, pixelsRect, pageWidthMM, pageHeightMM, checker)
     {
         var indexButton = this.isInside(x, y, pixelsRect, pageWidthMM, pageHeightMM);
-        var isUpdate = false;
 
+        // может в кнопку-то и не попали, но состояние могло смениться => нужно перерисовать интерфейс
+        var isUpdate = false;
         for (var i = 0; i < this.buttons.length; i++)
         {
             if (i == indexButton)
@@ -229,7 +235,8 @@
             }
         }
 
-        return isUpdate;
+        checker.isNeedUpdateOverlay |= isUpdate;
+        return (-1 != indexButton);
     };
 
     Placeholder.prototype.onPointerUp = function(x, y, pixelsRect, pageWidthMM, pageHeightMM)
@@ -242,7 +249,7 @@
         var pointCenter = this.getCenterInPixels(pixelsRect, pageWidthMM, pageHeightMM);
         var rects = this.getButtonRects(pointCenter);
 
-        var ButtonSize = AscCommon.AscBrowser.convertToRetinaValue(ButtonSize1x, true);
+        var ButtonSize = ButtonSize1x;//AscCommon.AscBrowser.convertToRetinaValue(ButtonSize1x, true);
         var ctx = overlay.m_oContext;
         for (var i = 0; i < this.buttons.length; i++)
         {
@@ -251,12 +258,21 @@
 
             var img = this.events.icons.get(this.buttons[i]);
             if (img)
+            {
+                var oldGlobalAlpha = ctx.globalAlpha;
+
+                ctx.globalAlpha = oldGlobalAlpha * ((this.states[i] == AscCommon.PlaceholderButtonState.Over) ? 1 : 0.5);
                 ctx.drawImage(img, rects[i].x, rects[i].y, ButtonSize, ButtonSize);
+
+                ctx.globalAlpha = oldGlobalAlpha;
+            }
         }
 	};
 	
-	function Placeholders()
+	function Placeholders(drDocument)
 	{
+	    this.document = drDocument;
+
 		this.callbacks = [];
 		this.objects = [];
 
@@ -298,19 +314,31 @@
 		return false;
 	};
 
-    Placeholders.prototype.onPointerMove = function(x, y, page)
+    Placeholders.prototype.onPointerMove = function(x, y, page, pixelsRect, pageWidthMM, pageHeightMM)
     {
-        var isUpdate = false;
+        var checker = { isNeedUpdateOverlay : false };
+        var isButton = false;
         for (var i = 0; i < this.objects.length; i++)
         {
             if (this.objects[i].anchor.page != page)
                 continue;
 
-            isUpdate |= this.objects[i].onPointerMove(x, y, pixelsRect, pageWidthMM, pageHeightMM);
+            isButton |= this.objects[i].onPointerMove(x, y, pixelsRect, pageWidthMM, pageHeightMM, checker);
         }
+
+        if (isButton)
+            this.document.SetCursorType("default");
+
         // обновить оверлей
-        if (isUpdate && this.onUpdate)
-            this.onUpdate();
+        if (checker.isNeedUpdateOverlay && this.document.m_oWordControl)
+        {
+            this.document.m_oWordControl.OnUpdateOverlay();
+
+            if (isButton)
+                this.document.m_oWordControl.EndUpdateOverlay();
+        }
+
+        return isButton;
     };
 
     Placeholders.prototype.onPointerUp = function(x, y, pixelsRect, pageWidthMM, pageHeightMM)
@@ -365,9 +393,9 @@
 			this.objects[i].events = this;
 		}
 
-        this.onUpdate && this.onUpdate();
+        this.document.m_oWordControl && this.document.m_oWordControl.OnUpdateOverlay();
     };
 
-    AscCommon.CreateDrawingPlaceholders();
+    AscCommon.DrawingPlaceholders = Placeholders;
 
 })(window);

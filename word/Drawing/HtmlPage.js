@@ -3051,8 +3051,8 @@ function CEditorPage(api)
             {
                 for (var indP = drDoc.m_lDrawingFirst; indP <= drDoc.m_lDrawingEnd; indP++)
                 {
-                    var drawPage = drDoc.m_arrPages[_page].drawingPage;
-                    drDoc.placeholders.draw(overlay, indP, drawPage.left, drawPage.top, drawPage.right - drawPage.left, drawPage.bottom - drawPage.top);
+                    var _page = drDoc.m_arrPages[indP];
+                    drDoc.placeholders.draw(overlay, indP, _page.drawingPage, _page.width_mm, _page.height_mm);
                 }
             }
 

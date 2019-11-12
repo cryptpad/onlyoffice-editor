@@ -3571,6 +3571,11 @@ function CEditorPage(api)
 			drDoc.AutoShapesTrack.CurrentPageInfo = _oldCurPageInfo;
 		}
 
+        if (drDoc.placeholders.objects.length > 0 && drDoc.SlideCurrent >= 0)
+        {
+        	drDoc.placeholders.draw(overlay, drDoc.SlideCurrent, drDoc.SlideCurrectRect, this.m_oLogicDocument.Width, this.m_oLogicDocument.Height);
+        }
+
 		drDoc.DrawHorVerAnchor();
 
 		return true;
