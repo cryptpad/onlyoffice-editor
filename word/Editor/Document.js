@@ -12258,12 +12258,12 @@ CDocument.prototype.GetSectionIndexByElementIndex = function(ElementIndex)
 };
 
 /**
- * Определяем использовать ли заливку текста в особых случаях, когда вызывается заливка параграфа.
- * @param bUse
+ * Определяем использовать ли заливку текста в особых случаях, когда вызывается заливка параграфа
+ * @param isUse {boolean}
  */
-CDocument.prototype.Set_UseTextShd = function(bUse)
+CDocument.prototype.SetUseTextShd = function(isUse)
 {
-	this.UseTextShd = bUse;
+	this.UseTextShd = isUse;
 };
 CDocument.prototype.RecalculateFromStart = function(bUpdateStates)
 {

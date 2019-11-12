@@ -3938,12 +3938,15 @@ background-repeat: no-repeat;\
 	};
 	asc_docs_api.prototype.put_ParagraphShade     = function(is_flag, color, isOnlyPara)
 	{
-		if (false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(changestype_Paragraph_Properties))
+		if (!this.WordControl.m_oLogicDocument.IsSelectionLocked(AscCommon.changestype_Paragraph_Properties, {
+			Type  : AscCommon.changestype_2_AdditionalTypes,
+			Types : [AscCommon.changestype_Paragraph_TextProperties]
+		}))
 		{
 			this.WordControl.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_SetParagraphShd);
 
 			if (true === isOnlyPara)
-				this.WordControl.m_oLogicDocument.Set_UseTextShd(false);
+				this.WordControl.m_oLogicDocument.SetUseTextShd(false);
 
 			if (false === is_flag)
 				this.WordControl.m_oLogicDocument.SetParagraphShd({Value : Asc.c_oAscShdNil});
@@ -3963,7 +3966,7 @@ background-repeat: no-repeat;\
 				});
 			}
 
-			this.WordControl.m_oLogicDocument.Set_UseTextShd(true);
+			this.WordControl.m_oLogicDocument.SetUseTextShd(true);
 			this.WordControl.m_oLogicDocument.FinalizeAction();
 		}
 	};
