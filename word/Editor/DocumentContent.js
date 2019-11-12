@@ -6633,40 +6633,28 @@ CDocumentContent.prototype.RemoveTableColumn = function()
 };
 CDocumentContent.prototype.MergeTableCells = function()
 {
-	if (docpostype_DrawingObjects == this.CurPos.Type)
+	if (docpostype_DrawingObjects === this.CurPos.Type)
 	{
 		return this.LogicDocument.DrawingObjects.tableMergeCells();
 	}
-	else if (docpostype_Content == this.CurPos.Type && ( ( true === this.Selection.Use && this.Selection.StartPos == this.Selection.EndPos && type_Paragraph !== this.Content[this.Selection.StartPos].GetType() ) || ( false == this.Selection.Use && type_Paragraph !== this.Content[this.CurPos.ContentPos].GetType() ) ))
+	else if (docpostype_Content === this.CurPos.Type)
 	{
-		var Pos = 0;
-		if (true === this.Selection.Use)
-			Pos = this.Selection.StartPos;
-		else
-			Pos = this.CurPos.ContentPos;
-
-		this.Content[Pos].MergeTableCells();
-		return true;
+		var nPos = true === this.Selection.Use ? this.Selection.StartPos : this.CurPos.ContentPos;
+		return this.Content[nPos].MergeTableCells();
 	}
 
 	return false;
 };
-CDocumentContent.prototype.SplitTableCells = function(Cols, Rows)
+CDocumentContent.prototype.SplitTableCells = function(nCols, nRows)
 {
-	if (docpostype_DrawingObjects == this.CurPos.Type)
+	if (docpostype_DrawingObjects === this.CurPos.Type)
 	{
 		return this.LogicDocument.DrawingObjects.tableSplitCell();
 	}
-	else if (docpostype_Content == this.CurPos.Type && ( ( true === this.Selection.Use && this.Selection.StartPos == this.Selection.EndPos && type_Paragraph !== this.Content[this.Selection.StartPos].GetType() ) || ( false == this.Selection.Use && type_Paragraph !== this.Content[this.CurPos.ContentPos].GetType() ) ))
+	else if (docpostype_Content === this.CurPos.Type)
 	{
-		var Pos = 0;
-		if (true === this.Selection.Use)
-			Pos = this.Selection.StartPos;
-		else
-			Pos = this.CurPos.ContentPos;
-
-		this.Content[Pos].SplitTableCells(Rows, Cols);
-		return true;
+		var nPos = true === this.Selection.Use ? this.Selection.StartPos : this.CurPos.ContentPos;
+		return this.Content[nPos].SplitTableCells(nCols, nRows);
 	}
 
 	return false;
@@ -6788,15 +6776,10 @@ CDocumentContent.prototype.CanSplitTableCells = function()
 	{
 		return this.LogicDocument.DrawingObjects.tableCheckSplit();
 	}
-	else if (docpostype_Content == this.CurPos.Type && ( ( true === this.Selection.Use && this.Selection.StartPos == this.Selection.EndPos && type_Paragraph !== this.Content[this.Selection.StartPos].GetType() ) || ( false == this.Selection.Use && type_Paragraph !== this.Content[this.CurPos.ContentPos].GetType() ) ))
+	else if (docpostype_Content == this.CurPos.Type)
 	{
-		var Pos = 0;
-		if (true === this.Selection.Use)
-			Pos = this.Selection.StartPos;
-		else
-			Pos = this.CurPos.ContentPos;
-
-		return this.Content[Pos].CanSplitTableCells();
+		var nPos = true === this.Selection.Use ? this.Selection.StartPos : this.CurPos.ContentPos;
+		return this.Content[nPos].CanSplitTableCells();
 	}
 
 	return false;

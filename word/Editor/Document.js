@@ -18019,19 +18019,10 @@ CDocument.prototype.controller_DistributeTableCells = function(isHorizontally)
 
 	return false;
 };
-CDocument.prototype.controller_SplitTableCells = function(Cols, Rows)
+CDocument.prototype.controller_SplitTableCells = function(nCols, nRows)
 {
-	if ((true === this.Selection.Use && this.Selection.StartPos == this.Selection.EndPos && type_Paragraph !== this.Content[this.Selection.StartPos].GetType())
-		|| (false == this.Selection.Use && type_Paragraph !== this.Content[this.CurPos.ContentPos].GetType()))
-	{
-		var Pos = 0;
-		if (true === this.Selection.Use)
-			Pos = this.Selection.StartPos;
-		else
-			Pos = this.CurPos.ContentPos;
-
-		this.Content[Pos].SplitTableCells(Rows, Cols);
-	}
+	var nPos = true === this.Selection.Use ? this.Selection.StartPos : this.CurPos.ContentPos;
+	this.Content[nPos].SplitTableCells(nCols, nRows);
 };
 CDocument.prototype.controller_RemoveTableCells = function()
 {
@@ -18123,19 +18114,8 @@ CDocument.prototype.controller_CanMergeTableCells = function()
 };
 CDocument.prototype.controller_CanSplitTableCells = function()
 {
-	if ((true === this.Selection.Use && this.Selection.StartPos == this.Selection.EndPos && type_Paragraph !== this.Content[this.Selection.StartPos].GetType())
-		|| (false == this.Selection.Use && type_Paragraph !== this.Content[this.CurPos.ContentPos].GetType()))
-	{
-		var Pos = 0;
-		if (true === this.Selection.Use)
-			Pos = this.Selection.StartPos;
-		else
-			Pos = this.CurPos.ContentPos;
-
-		return this.Content[Pos].CanSplitTableCells();
-	}
-
-	return false;
+	var nPos = true === this.Selection.Use ? this.Selection.StartPos : this.CurPos.ContentPos;
+	return this.Content[nPos].CanSplitTableCells();
 };
 CDocument.prototype.controller_UpdateInterfaceState = function()
 {

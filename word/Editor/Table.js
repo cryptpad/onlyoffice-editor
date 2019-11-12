@@ -9066,7 +9066,7 @@ CTable.prototype.MergeTableCells = function(isClearMerge)
 /**
  * Разделяем текущую ячейку
  */
-CTable.prototype.SplitTableCells = function(Rows, Cols)
+CTable.prototype.SplitTableCells = function(Cols, Rows)
 {
 	var bApplyToInnerTable = false;
 	if (false === this.Selection.Use || ( true === this.Selection.Use && table_Selection_Text === this.Selection.Type ))
