@@ -1799,10 +1799,10 @@ ParaFootnoteReference.prototype.Measure = function(Context, TextPr, MathInfo, Ru
 	this.Run = Run;
 	this.private_Measure();
 };
-ParaFootnoteReference.prototype.Copy = function()
+ParaFootnoteReference.prototype.Copy = function(oPr)
 {
 	var oFootnote = this.Footnote.Parent.CreateFootnote();
-	oFootnote.Copy2(this.Footnote);
+	oFootnote.Copy2(this.Footnote, oPr);
 
 	var oRef = new ParaFootnoteReference(oFootnote);
 
