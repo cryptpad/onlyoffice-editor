@@ -61,11 +61,11 @@
             {
                 this.images[0] = new Image();
                 this.images[0].onload = function() { this.asc_complete = true; };
-                this.images[0].src = "../../../../sdkjs/common/Images/content_control_" + url + ".png";
+                this.images[0].src = "../../../../sdkjs/common/Images/placeholders/" + url + ".png";
 
                 this.images[1] = new Image();
                 this.images[1].onload = function() { this.asc_complete = true; };
-                this.images[1].src = "../../../../sdkjs/common/Images/content_control_" + url + "_2x.png";
+                this.images[1].src = "../../../../sdkjs/common/Images/placeholders/" + url + "@2x.png";
             };
             this.get = function()
             {
@@ -151,8 +151,12 @@
 		// максимум 2 ряда
 		var buttonsCount = this.buttons.length;
 		var countColumn = (buttonsCount < 3) ? buttonsCount : (this.buttons.length + 1) >> 1;
+		var countColumn2 = buttonsCount - countColumn;
 
-		var xStart = pointCenter.x - ((countColumn * ButtonSize + (countColumn - 1) * ButtonBetweenSize) >> 1);
+		var sizeAllHor = (countColumn * ButtonSize + (countColumn - 1) * ButtonBetweenSize);
+        var sizeAllHor2 = (countColumn2 * ButtonSize + (countColumn2 - 1) * ButtonBetweenSize);
+
+		var xStart = pointCenter.x - (sizeAllHor >> 1);
         var yStart = pointCenter.y - (((buttonsCount == countColumn) ? ButtonSize : (2 * ButtonSize + ButtonBetweenSize)) >> 1);
 
 		var ret = [];
@@ -166,7 +170,7 @@
 			i++;
 		}
 
-        x = xStart;
+		x = xStart + ((sizeAllHor - sizeAllHor2) >> 1);
         y = yStart + ButtonSize + ButtonBetweenSize;
         while (i < buttonsCount)
         {
@@ -277,7 +281,12 @@
 		this.objects = [];
 
 		this.icons = new PlaceholderIcons();
-		this.icons.register(AscCommon.PlaceholderButtonType.Image, "img2");
+		this.icons.register(AscCommon.PlaceholderButtonType.Image, "image");
+        this.icons.register(AscCommon.PlaceholderButtonType.ImageUrl, "image_url");
+        this.icons.register(AscCommon.PlaceholderButtonType.Table, "table");
+        this.icons.register(AscCommon.PlaceholderButtonType.Chart, "chart");
+        this.icons.register(AscCommon.PlaceholderButtonType.Audio, "audio");
+        this.icons.register(AscCommon.PlaceholderButtonType.Video, "video");
     }
 
 	Placeholders.prototype.registerCallback = function(type, callback)
