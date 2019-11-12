@@ -260,7 +260,7 @@
             this.events.document.m_oWordControl.EndUpdateOverlay();
 
             this.events.closeCallback(this.buttons[indexButton], this);
-            return;
+            return true;
         }
         else if (this.events.mapActive[this.buttons[indexButton]])
         {
