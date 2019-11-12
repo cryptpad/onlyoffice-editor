@@ -6562,9 +6562,12 @@ ParaRun.prototype.Get_WordStartPos = function(SearchPos, ContentPos, Depth, UseC
             {
                 CurPos--;
 
-                // Выходим из данного рана
-                if ( CurPos < 0 )
-                    return;
+				if (CurPos < 0)
+				{
+					SearchPos.Pos.Update(0, Depth);
+					SearchPos.UpdatePos = true;
+					return;
+				}
             }
             else
             {
@@ -6618,8 +6621,8 @@ ParaRun.prototype.Get_WordStartPos = function(SearchPos, ContentPos, Depth, UseC
         }
         else
         {
-            SearchPos.Pos.Update( CurPos, Depth );
-            NeedUpdate = true;
+			SearchPos.Pos.Update(CurPos, Depth);
+			NeedUpdate = true;
         }
     }
 
@@ -6633,8 +6636,6 @@ ParaRun.prototype.Get_WordEndPos = function(SearchPos, ContentPos, Depth, UseCon
     var ContentLen = this.Content.length;
     if ( CurPos >= ContentLen )
         return;
-
-    var NeedUpdate = false;
 
 	var isFieldCode  = SearchPos.IsComplexFieldCode();
 	var isFieldValue = SearchPos.IsComplexFieldValue();
@@ -6676,9 +6677,12 @@ ParaRun.prototype.Get_WordEndPos = function(SearchPos, ContentPos, Depth, UseCon
 
                 CurPos++;
 
-                // Выходим из рана
-                if ( CurPos >= ContentLen )
-                    return;
+				if (CurPos >= ContentLen)
+				{
+					SearchPos.Pos.Update(CurPos, Depth);
+					SearchPos.UpdatePos = true;
+					return;
+				}
             }
             else
             {
@@ -6719,8 +6723,12 @@ ParaRun.prototype.Get_WordEndPos = function(SearchPos, ContentPos, Depth, UseCon
         }
     }
 
-    if ( CurPos >= ContentLen )
-        return;
+	if (CurPos >= ContentLen)
+	{
+		SearchPos.Pos.Update(CurPos, Depth);
+		SearchPos.UpdatePos = true;
+		return;
+	}
 
 
     // На втором этапе мы смотрим на каком элементе мы встали: если это не пробел, тогда
@@ -6759,8 +6767,8 @@ ParaRun.prototype.Get_WordEndPos = function(SearchPos, ContentPos, Depth, UseCon
         }
 
         // Обновляем позицию в конце каждого рана (хуже от этого не будет)
-        SearchPos.Pos.Update( CurPos, Depth );
-        SearchPos.UpdatePos = true;
+		SearchPos.Pos.Update(CurPos, Depth);
+		SearchPos.UpdatePos = true;
     }
 };
 

@@ -5151,7 +5151,20 @@ Paragraph.prototype.Get_WordStartPos = function(SearchPos, ContentPos)
 
 	CurPos--;
 
-	var Count = this.Content.length;
+	if (SearchPos.Shift && CurPos >= 0 && this.Content[CurPos].IsStopCursorOnEntryExit())
+	{
+		SearchPos.Found = true;
+		return;
+	}
+
+	if (CurPos >= 0 && this.Content[CurPos + 1].IsStopCursorOnEntryExit())
+	{
+		this.Content[CurPos].Get_EndPos(false, SearchPos.Pos, Depth + 1);
+		SearchPos.Pos.Update(CurPos, Depth);
+		SearchPos.Found = true;
+		return;
+	}
+
 	while (CurPos >= 0)
 	{
 		this.Content[CurPos].Get_WordStartPos(SearchPos, ContentPos, Depth + 1, false);
@@ -5163,13 +5176,24 @@ Paragraph.prototype.Get_WordStartPos = function(SearchPos, ContentPos)
 			return;
 
 		CurPos--;
+
+		if (SearchPos.Shift && CurPos >= 0 && this.Content[CurPos].IsStopCursorOnEntryExit())
+		{
+			SearchPos.Found = true;
+			return;
+		}
+
+		if (CurPos >= 0 && this.Content[CurPos + 1].IsStopCursorOnEntryExit())
+		{
+			this.Content[CurPos].Get_EndPos(false, SearchPos.Pos, Depth + 1);
+			SearchPos.Pos.Update(CurPos, Depth);
+			SearchPos.Found = true;
+			return;
+		}
 	}
 
-	// Случай, когда слово шло с самого начала параграфа
-	if (true === SearchPos.Shift)
-	{
+	if (SearchPos.Shift)
 		SearchPos.Found = true;
-	}
 };
 Paragraph.prototype.Get_WordEndPos = function(SearchPos, ContentPos, StepEnd)
 {
@@ -5189,6 +5213,21 @@ Paragraph.prototype.Get_WordEndPos = function(SearchPos, ContentPos, StepEnd)
 	CurPos++;
 
 	var Count = this.Content.length;
+
+	if (SearchPos.Shift && CurPos < Count && this.Content[CurPos].IsStopCursorOnEntryExit())
+	{
+		SearchPos.Found = true;
+		return;
+	}
+
+	if (CurPos < Count && this.Content[CurPos - 1].IsStopCursorOnEntryExit())
+	{
+		this.Content[CurPos].Get_StartPos(SearchPos.Pos, Depth + 1);
+		SearchPos.Pos.Update(CurPos, Depth);
+		SearchPos.Found = true;
+		return;
+	}
+
 	while (CurPos < Count)
 	{
 		this.Content[CurPos].Get_WordEndPos(SearchPos, ContentPos, Depth + 1, false, StepEnd);
@@ -5200,13 +5239,24 @@ Paragraph.prototype.Get_WordEndPos = function(SearchPos, ContentPos, StepEnd)
 			return;
 
 		CurPos++;
+
+		if (SearchPos.Shift && CurPos < Count && this.Content[CurPos].IsStopCursorOnEntryExit())
+		{
+			SearchPos.Found = true;
+			return;
+		}
+
+		if (CurPos < Count && this.Content[CurPos - 1].IsStopCursorOnEntryExit())
+		{
+			this.Content[CurPos].Get_StartPos(SearchPos.Pos, Depth + 1);
+			SearchPos.Pos.Update(CurPos, Depth);
+			SearchPos.Found = true;
+			return;
+		}
 	}
 
-	// Случай, когда слово шло с самого начала параграфа
-	if (true === SearchPos.Shift)
-	{
+	if (SearchPos.Shift)
 		SearchPos.Found = true;
-	}
 };
 Paragraph.prototype.Get_EndRangePos = function(SearchPos, ContentPos)
 {
