@@ -2711,14 +2711,6 @@ function CDrawingDocument()
 
 	// placeholders
 	this.placeholders = new AscCommon.DrawingPlaceholders(this);
-	this.placeholders.registerCallback(AscCommon.PlaceholderButtonType.Image, function() {
-		console.log("IMAGE CLICK!!!");
-	});
-	this.placeholders.update([
-			AscCommon.CreateDrawingPlaceholder(0, [AscCommon.PlaceholderButtonType.Image, AscCommon.PlaceholderButtonType.Video, AscCommon.PlaceholderButtonType.Audio, AscCommon.PlaceholderButtonType.Table, AscCommon.PlaceholderButtonType.Chart], 0, { x : 10, y : 10, w : 100, h : 100 }, null),
-        	AscCommon.CreateDrawingPlaceholder(0, [AscCommon.PlaceholderButtonType.Image], 0, { x : 100, y : 100, w : 100, h : 100 }, null)
-		]
-	);
 
 	this.showTarget = function (isShow)
 	{
