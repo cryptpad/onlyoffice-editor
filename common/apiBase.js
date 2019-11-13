@@ -1829,6 +1829,10 @@
 			arr[i].Image = AscCommon.g_oUserTexturePresets[i];
 			arrToDownload.push(AscCommon.g_oUserTexturePresets[i]);
 		}
+		if(this.editorId === c_oEditorId.Word)
+		{
+			arrToDownload.push(AscCommon.g_sWordPlaceholderImage);
+		}
 		this.ImageLoader.LoadImagesWithCallback(arrToDownload, function () {
 
 		}, 0);

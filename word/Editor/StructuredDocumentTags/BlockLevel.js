@@ -1691,7 +1691,7 @@ CBlockLevelSdt.prototype.private_UpdatePictureContent = function()
 	var nH = 50;
 
 	var oDrawing = new ParaDrawing(nW, nH, null, oDrawingObjects, this.LogicDocument, null);
-	var oImage   = oDrawingObjects.createImage("", 0, 0, nW, nH);
+	var oImage   = oDrawingObjects.createImage(AscCommon.g_sWordPlaceholderImage, 0, 0, nW, nH);
 	oImage.setParent(oDrawing);
 	oDrawing.Set_GraphicObject(oImage);
 
