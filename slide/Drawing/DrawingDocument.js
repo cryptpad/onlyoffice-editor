@@ -3444,11 +3444,6 @@ function CDrawingDocument()
 		return false;
 	};
 
-	this.checkMouseDown_DrawingOnUp = function (pos)
-	{
-		return false;
-	};
-
 	this.checkMouseMove_Drawing = function (pos)
 	{
 		var oWordControl = this.m_oWordControl;

@@ -7966,7 +7966,7 @@ CDocument.prototype.UpdateCursorType = function(X, Y, PageAbs, MouseEvent)
 
 	this.Api.sync_MouseMoveStartCallback();
 
-	this.DrawingDocument.OnDrawContentControl(null, c_oContentControlTrack.Hover);
+	this.DrawingDocument.OnDrawContentControl(null, AscCommon.ContentControlTrack.Hover);
 
 	var nDocPosType = this.GetDocPosType();
 	if (docpostype_HdrFtr === nDocPosType)
@@ -10430,7 +10430,7 @@ CDocument.prototype.private_UpdateTracks = function(bSelection, bEmptySelection)
 	else if (oBlockLevelSdt)
 		oBlockLevelSdt.DrawContentControlsTrack(false);
 	else
-		this.DrawingDocument.OnDrawContentControl(null, c_oContentControlTrack.In);
+		this.DrawingDocument.OnDrawContentControl(null, AscCommon.ContentControlTrack.In);
 
 	var oField = oSelectedInfo.Get_Field();
 	if (null !== oField && (fieldtype_MERGEFIELD !== oField.Get_FieldType() || true !== this.MailMergeFieldsHighlight))

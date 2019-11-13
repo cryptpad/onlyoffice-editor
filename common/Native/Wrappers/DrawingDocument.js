@@ -47,19 +47,6 @@ var g_dKoef_mm_to_pix = AscCommon.g_dKoef_mm_to_pix;
 var _canvas_tables = null;
 var _table_styles = null;
 
-var c_oContentControlTrack = {
-	Hover 	: 0,
-	In 		: 1
-};
-
-function CContentControlTrack(_id, _type, _rects, _transform)
-{
-	this.id = (undefined == _id) ? -1 : _id;
-	this.type = (undefined == _type) ? -1 : _type;
-	this.rects = (undefined == _rects) ? null : _rects;
-	this.transform = (undefined == _transform) ? null : _transform;
-}
-
 function CColumnsMarkupColumn()
 {
 	this.W = 0;
@@ -966,17 +953,6 @@ CDrawingDocument.prototype =
             }
         }
     },
-
-	  ContentControlsSaveLast : function()
-    {},
-
-    ContentControlsCheckLast : function()
-  	{
-  		return false;
-  	},
-
-  	DrawContentControlsTrack : function(overlay)
-    {},
 
   	OnDrawContentControl : function(id, type, rects, transform)
   	{},

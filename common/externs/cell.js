@@ -56,7 +56,6 @@ var RULER_OBJECT_TYPE_TABLE;
 var RULER_OBJECT_TYPE_COLUMNS;
 
 var CColumnsMarkup;
-var c_oContentControlTrack;
 var c_oAscCollaborativeMarksShowType;
 var c_oAscTableSelectionType;
 var c_oAscHyperlinkAnchor;

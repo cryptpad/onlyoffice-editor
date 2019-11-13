@@ -1728,7 +1728,7 @@ function CEditorPage(api)
 
 		if (!oWordControl.IsUpdateOverlayOnEndCheck)
 		{
-			if (oWordControl.m_oDrawingDocument.ContentControlsCheckLast())
+			if (oWordControl.m_oDrawingDocument.contentControls && oWordControl.m_oDrawingDocument.contentControls.ContentControlsCheckLast())
 				oWordControl.OnUpdateOverlay();
 		}
 
@@ -1834,13 +1834,6 @@ function CEditorPage(api)
 		var is_drawing = oWordControl.m_oDrawingDocument.checkMouseUp_Drawing(pos);
 		if (is_drawing === true)
 			return;
-
-		var is_drawing_on_up = oWordControl.m_oDrawingDocument.checkMouseDown_DrawingOnUp(pos);
-		if (is_drawing_on_up)
-		{
-			// не посылаем в документ.
-			return;
-		}
 
 		if (null != oWordControl.m_oDrawingDocument.m_oDocumentRenderer)
 		{
@@ -3045,7 +3038,7 @@ function CEditorPage(api)
 				}
 			}
 
-			drDoc.DrawContentControlsTrack(overlay);
+			drDoc.contentControls && drDoc.contentControls.DrawContentControlsTrack(overlay);
 
             if (drDoc.placeholders.objects.length > 0)
             {
