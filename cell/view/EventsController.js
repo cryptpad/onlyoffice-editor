@@ -1430,7 +1430,7 @@
 					} else if (t.targetInfo.target === c_oTargetType.FilterObject && 2 === button) {
 						this.handlers.trigger('onContextMenu', null);
 						return;
-					} else if (t.targetInfo.commentIndexes && this.canEdit()) {
+					} else if (t.targetInfo.commentIndexes && t.handlers.trigger('isRestrictionComments')) {
 						t._commentCellClick(event);
 					} else if (t.targetInfo.target === c_oTargetType.MoveResizeRange && this.canEdit()) {
 						this.isMoveResizeRange = true;
