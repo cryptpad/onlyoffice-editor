@@ -2742,7 +2742,14 @@ DrawingObjectsController.prototype =
         {
             if(docContentFunction === CDocumentContent.prototype.AddToParagraph && args[0].Type === para_TextPr || docContentFunction === CDocumentContent.prototype.PasteFormatting)
             {
-                this.applyDocContentFunction(docContentFunction, args, tableFunction);
+                var fDocContentCallback = function()
+                {
+                    if(this.CanEditAllContentControls())
+                    {
+                        docContentFunction.apply(this, args);
+                    }
+                };
+                this.applyDocContentFunction(fDocContentCallback, args, tableFunction);
             }
             else if(this.selectedObjects.length === 1 && ((this.selectedObjects[0].getObjectType() === AscDFH.historyitem_type_Shape && !CheckLinePresetForParagraphAdd(this.selectedObjects[0].getPresetGeom()) && !this.selectedObjects[0].signatureLine) || this.selectedObjects[0].getObjectType() === AscDFH.historyitem_type_GraphicFrame))
             {
