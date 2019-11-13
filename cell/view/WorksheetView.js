@@ -10075,7 +10075,7 @@
                 var isLargeRange = t._isLargeRange(range.bbox);
                 var canChangeColWidth = c_oAscCanChangeColWidth.none;
 
-				if (prop !== "paste" && t.model.autoFilters.bIsExcludeHiddenRows(arn, activeCell)) {
+				if (prop !== "paste" && t.model.autoFilters.bIsExcludeHiddenRows(range, activeCell)) {
 					t.model.excludeHiddenRows(true);
 				}
 
@@ -10178,9 +10178,9 @@
                                 range.unmerge();
                                 break;
                             case c_oAscMergeOptions.MergeAcross:
-                                for (res = arn.r1; res <= arn.r2; ++res) {
-                                    t.model.getRange3(res, arn.c1, res, arn.c2).merge(val);
-                                    cell = new asc_Range(arn.c1, res, arn.c2, res);
+                                for (res = range.r1; res <= range.r2; ++res) {
+                                    t.model.getRange3(res, range.c1, res, range.c2).merge(val);
+                                    cell = new asc_Range(range.c1, res, range.c2, res);
                                     t.cellCommentator.mergeComments(cell);
                                 }
                                 break;
@@ -10207,9 +10207,9 @@
 							case c_oAscCleanOptions.All:
 							    range.cleanAll();
 								t.model.deletePivotTables(range.bbox);
-								t.model.removeSparklines(arn);
+								t.model.removeSparklines(range);
 								// Удаляем комментарии
-                                t.cellCommentator.deleteCommentsRange(arn);
+                                t.cellCommentator.deleteCommentsRange(range);
 								break;
 							case c_oAscCleanOptions.Text:
 							case c_oAscCleanOptions.Formula:
@@ -10220,16 +10220,16 @@
 							    range.cleanFormat();
 								break;
 							case c_oAscCleanOptions.Comments:
-							    t.cellCommentator.deleteCommentsRange(arn);
+							    t.cellCommentator.deleteCommentsRange(range);
 								break;
 							case c_oAscCleanOptions.Hyperlinks:
 							    range.cleanHyperlinks();
 								break;
 							case c_oAscCleanOptions.Sparklines:
-								t.model.removeSparklines(arn);
+								t.model.removeSparklines(range);
 								break;
 							case c_oAscCleanOptions.SparklineGroups:
-								t.model.removeSparklineGroups(arn);
+								t.model.removeSparklineGroups(range);
 								break;
                         }
 
@@ -10238,15 +10238,15 @@
 						// Если нужно удалить автофильтры - удаляем
 						if (window['AscCommonExcel'].filteringMode) {
 							if (val === c_oAscCleanOptions.All || val === c_oAscCleanOptions.Text) {
-								t.model.autoFilters.isEmptyAutoFilters(arn);
+								t.model.autoFilters.isEmptyAutoFilters(range);
 							} else if (val === c_oAscCleanOptions.Format) {
-								t.model.autoFilters.cleanFormat(arn);
+								t.model.autoFilters.cleanFormat(range);
 							}
 						}
 
                         // Вызываем функцию пересчета для заголовков форматированной таблицы
                         if (val === c_oAscCleanOptions.All || val === c_oAscCleanOptions.Text) {
-                            t.model.autoFilters.renameTableColumn(arn);
+                            t.model.autoFilters.renameTableColumn(range);
                         }
 
                         /* возвращаем отрисовку. и перерисовываем ячейки с предварительным пересчетом */
@@ -10300,7 +10300,7 @@
 								r = mc ? mc.r1 : activeCell.row;
 								t.model.getRange3(r, c, r, c).setValue(val.asc_getText());
 								// Вызываем функцию пересчета для заголовков форматированной таблицы
-								t.model.autoFilters.renameTableColumn(arn);
+								t.model.autoFilters.renameTableColumn(range);
 							}
 
                             val.hyperlinkModel.Ref = range;
