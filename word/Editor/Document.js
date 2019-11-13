@@ -1518,6 +1518,7 @@ function CSelectedElementsInfo(oPr)
 	this.m_oCell              = null;  // Выделенная ячейка (специальная ситуация, когда выделена ровно одна ячейка)
 	this.m_oBlockLevelSdt     = null;  // Если мы находимся в классе CBlockLevelSdt
 	this.m_oInlineLevelSdt    = null;  // Если мы находимся в классе CInlineLevelSdt (важно, что мы находимся внутри класса)
+	this.m_arrSdts            = [];    // Список всех контейнеров, попавших в селект
 	this.m_arrComplexFields   = [];
 	this.m_oPageNum           = null;
 	this.m_oPagesCount        = null;
@@ -1610,6 +1611,7 @@ CSelectedElementsInfo.prototype.GetParagraph = function()
 CSelectedElementsInfo.prototype.SetBlockLevelSdt = function(oSdt)
 {
 	this.m_oBlockLevelSdt = oSdt;
+	this.m_arrSdts.push(oSdt);
 };
 /**
  * @returns {?CBlockLevelSdt}
@@ -1621,6 +1623,7 @@ CSelectedElementsInfo.prototype.GetBlockLevelSdt = function()
 CSelectedElementsInfo.prototype.SetInlineLevelSdt = function(oSdt)
 {
 	this.m_oInlineLevelSdt = oSdt;
+	this.m_arrSdts.push(oSdt);
 };
 /**
  * @returns {?CInlineLevelSdt}
@@ -1628,6 +1631,10 @@ CSelectedElementsInfo.prototype.SetInlineLevelSdt = function(oSdt)
 CSelectedElementsInfo.prototype.GetInlineLevelSdt = function()
 {
 	return this.m_oInlineLevelSdt;
+};
+CSelectedElementsInfo.prototype.GetAllSdts = function()
+{
+	return this.m_arrSdts;
 };
 CSelectedElementsInfo.prototype.SetComplexFields = function(arrComplexFields)
 {
@@ -7522,21 +7529,22 @@ CDocument.prototype.OnEndTextDrag = function(NearPos, bCopy)
         var Para = NearPos.Paragraph;
 
         var oSelectInfo = this.GetSelectedElementsInfo();
-        if (oSelectInfo.GetInlineLevelSdt() || oSelectInfo.GetBlockLevelSdt())
+        var arrSdts     = oSelectInfo.GetAllSdts();
+        if (arrSdts.length > 0 && !bCopy)
 		{
-			// Контейнер, который запрещено удалять, нельзя и переносить
-			if (!bCopy
-				&& ((oSelectInfo.GetInlineLevelSdt() && !oSelectInfo.GetInlineLevelSdt().CanBeDeleted())
-				|| (oSelectInfo.GetBlockLevelSdt() && !oSelectInfo.GetBlockLevelSdt().CanBeDeleted())))
+			for (var nIndex = 0, nCount = arrSdts.length; nIndex < nCount; ++nIndex)
 			{
-				this.DragAndDropAction   = false;
-				this.TrackMoveId         = null;
-				this.TrackMoveRelocation = false;
+				var oSdt = arrSdts[nIndex];
+				if ((!oSdt.CanBeDeleted() && oSdt.IsSelectedAll()) || (!oSdt.CanBeEdited() && !oSdt.IsSelectedAll()))
+				{
+					this.DragAndDropAction   = false;
+					this.TrackMoveId         = null;
+					this.TrackMoveRelocation = false;
 
-				this.FinalizeAction();
-				return;
+					this.FinalizeAction();
+					return;
+				}
 			}
-
 			this.SetCheckContentControlsLock(false);
 		}
 
