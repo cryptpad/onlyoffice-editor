@@ -47,6 +47,5 @@ var c_oAscRevisionsObjectType;
 var CParagraphBookmark;
 var CPolygonPoint;
 var c_oAscMouseMoveLockedObjectType;
-var c_oContentControlTrack;
 var c_oAscSdtLevelType;
 var c_oAscWrapStyle2;

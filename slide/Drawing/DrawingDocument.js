@@ -995,6 +995,9 @@ function CDrawingDocument()
 
 	this.isTabButtonShow = true;
 
+    // placeholders
+    this.placeholders = new AscCommon.DrawingPlaceholders(this);
+
 	this.MoveTargetInInputContext = function()
 	{
 		if (AscCommon.g_inputContext)
@@ -3435,11 +3438,9 @@ function CDrawingDocument()
 	// mouse events
 	this.checkMouseDown_Drawing = function (pos)
 	{
-		return false;
-	};
+        if (this.placeholders.onPointerDown(pos.X, pos.Y, pos.Page, this.SlideCurrectRect, this.m_oLogicDocument.Width, this.m_oLogicDocument.Height))
+            return true;
 
-	this.checkMouseDown_DrawingOnUp = function (pos)
-	{
 		return false;
 	};
 
@@ -3465,6 +3466,9 @@ function CDrawingDocument()
 			return true;
 		}
 
+		if (this.placeholders.onPointerMove(pos.X, pos.Y, pos.Page, this.SlideCurrectRect, this.m_oLogicDocument.Width, this.m_oLogicDocument.Height))
+            return true;
+
 		return false;
 	};
 
@@ -3484,6 +3488,9 @@ function CDrawingDocument()
 			oWordControl.EndUpdateOverlay();
 			return true;
 		}
+
+        if (this.placeholders.onPointerUp(pos.X, pos.Y, pos.Page, this.SlideCurrectRect, this.m_oLogicDocument.Width, this.m_oLogicDocument.Height))
+            return true;
 
 		return false;
 	};

@@ -8967,7 +8967,7 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype.asc_UncheckContentControlButtons = function()
 	{
-		var _controls = this.WordControl.m_oDrawingDocument.ContentControlObjects;
+		var _controls = (this.WordControl && this.WordControl.m_oDrawingDocument && this.WordControl.m_oDrawingDocument.contentControls) ? this.WordControl.m_oDrawingDocument.contentControls.ContentControlObjects : [];
 		for (var i = 0; i < _controls.length; i++)
 		{
 			_controls[i].ActiveButtonIndex = -2;
