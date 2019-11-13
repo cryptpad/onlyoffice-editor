@@ -8843,13 +8843,8 @@ CDocument.prototype.OnKeyDown = function(e)
             var oMath         = oSelectedInfo.Get_Math();
             if (null === oMath)
             {
-                if (false === this.Document_Is_SelectionLocked(changestype_Paragraph_Content))
-                {
-                    this.StartAction(AscDFH.historydescription_Document_AddMathHotKey);
-                    this.AddToParagraph(new MathMenu());
-					this.FinalizeAction();
-                    bRetValue = keydownresult_PreventAll;
-                }
+            	this.Api.asc_AddMath();
+				bRetValue = keydownresult_PreventAll;
             }
         }
     }
