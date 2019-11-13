@@ -4588,6 +4588,10 @@ CPresentation.prototype =
         }
         this.slidesToUnlock.length = 0;
         this.private_UpdateCursorXY(true, true);
+        if(this.Slides[this.CurPage])
+        {
+            this.DrawingDocument.placeholders.update(this.Slides[this.CurPage].getPlaceholdersControls());
+        }
     },
 
     updateSlideIndexes: function()
@@ -8361,6 +8365,10 @@ CPresentation.prototype =
             this.DrawingDocument.Notes_OnRecalculate(this.CurPage, this.Slides[this.CurPage].NotesWidth, this.Slides[this.CurPage].getNotesHeight());
             editor.asc_hideComments();
             this.Document_UpdateInterfaceState();
+            if(this.Slides[this.CurPage])
+            {
+                this.DrawingDocument.placeholders.update(this.Slides[this.CurPage].getPlaceholdersControls());
+            }
             return true;
         }
 

@@ -1718,6 +1718,107 @@
         }
     };
 
+    CGraphicObjectBase.prototype.createPlaceholderControl = function()
+    {
+        var phType = this.getPhType();
+        var aButtons = [];
+        switch (phType)
+        {
+            case AscFormat.phType_body:
+            {
+                aButtons.push(AscCommon.PlaceholderButtonType.Table);
+                aButtons.push(AscCommon.PlaceholderButtonType.Chart);
+                aButtons.push(AscCommon.PlaceholderButtonType.Image);
+                aButtons.push(AscCommon.PlaceholderButtonType.ImageUrl);
+                aButtons.push(AscCommon.PlaceholderButtonType.Video);
+                aButtons.push(AscCommon.PlaceholderButtonType.Audio);
+                break;
+            }
+            case AscFormat.phType_chart:
+            {
+                aButtons.push(AscCommon.PlaceholderButtonType.Chart);
+                break;
+            }
+            case AscFormat.phType_clipArt:
+            {
+                aButtons.push(AscCommon.PlaceholderButtonType.Image);
+                aButtons.push(AscCommon.PlaceholderButtonType.ImageUrl);
+                break;
+            }
+            case AscFormat.phType_ctrTitle:
+            {
+                break;
+            }
+            case AscFormat.phType_dgm:
+            {
+                break;
+            }
+            case AscFormat.phType_dt:
+            {
+                break;
+            }
+            case AscFormat.phType_ftr:
+            {
+                break;
+            }
+            case AscFormat.phType_hdr:
+            {
+                break;
+            }
+            case AscFormat.phType_media:
+            {
+                aButtons.push(AscCommon.PlaceholderButtonType.Audio);
+                aButtons.push(AscCommon.PlaceholderButtonType.Video);
+                break;
+            }
+            case AscFormat.phType_obj:
+            {
+                aButtons.push(AscCommon.PlaceholderButtonType.Table);
+                aButtons.push(AscCommon.PlaceholderButtonType.Chart);
+                aButtons.push(AscCommon.PlaceholderButtonType.Image);
+                aButtons.push(AscCommon.PlaceholderButtonType.ImageUrl);
+                aButtons.push(AscCommon.PlaceholderButtonType.Video);
+                aButtons.push(AscCommon.PlaceholderButtonType.Audio);
+                break;
+            }
+            case AscFormat.phType_pic:
+            {
+
+                aButtons.push(AscCommon.PlaceholderButtonType.Image);
+                aButtons.push(AscCommon.PlaceholderButtonType.ImageUrl);
+                break;
+            }
+            case AscFormat.phType_sldImg:
+            {
+                aButtons.push(AscCommon.PlaceholderButtonType.Image);
+                aButtons.push(AscCommon.PlaceholderButtonType.ImageUrl);
+                break;
+            }
+            case AscFormat.phType_sldNum:
+            {
+                break;
+            }
+            case AscFormat.phType_subTitle:
+            {
+                break;
+            }
+            case AscFormat.phType_tbl:
+            {
+                aButtons.push(AscCommon.PlaceholderButtonType.Table);
+                break;
+            }
+            case AscFormat.phType_title:
+            {
+                break;
+            }
+        }
+        var nSlideNum = 0;
+        if(this.parent.getObjectType && this.parent.getObjectType() === AscDFH.historyitem_type_Slide)
+        {
+            nSlideNum = this.parent.num;
+        }
+        return  AscCommon.CreateDrawingPlaceholder(this.Id, aButtons, nSlideNum, { x : 0, y : 0, w : this.extX, h : this.extY }, this.transform);
+    };
 
 
     function CRelSizeAnchor(){

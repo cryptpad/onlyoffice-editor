@@ -1412,7 +1412,24 @@ Slide.prototype =
         return false;
     },
 
-
+    getPlaceholdersControls: function()
+    {
+        var ret = [];
+        var aSpTree = this.cSld.spTree;
+        for(var i = 0; i < aSpTree.length; ++i)
+        {
+            var oSp = aSpTree[i];
+            if(oSp.isEmptyPlaceholder())
+            {
+                var oPlaceholder = oSp.createPlaceholderControl();
+                if(oPlaceholder.buttons.length > 0)
+                {
+                    ret.push(oPlaceholder);
+                }
+            }
+        }
+        return ret;
+    },
 
     convertPixToMM: function(pix)
     {

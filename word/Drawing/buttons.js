@@ -504,15 +504,15 @@
 			if (this.objects[i].page != objects[i].page)
 				return this._onUpdate(objects);
 
-			t1 = this.objects[i].rect;
-            t2 = objects[i].rect;
+			t1 = this.objects[i].anchor.rect;
+            t2 = objects[i].anchor.rect;
 
             if (Math.abs(t1.x - t2.x) > 0.001 || Math.abs(t1.y - t2.y) > 0.001 ||
                 Math.abs(t1.w - t2.w) > 0.001 || Math.abs(t1.h - t2.h) > 0.001)
             	return this._onUpdate(objects);
 
-            t1 = this.objects[i].transform;
-            t2 = objects[i].transform;
+            t1 = this.objects[i].anchor.transform;
+            t2 = objects[i].anchor.transform;
 
             if (!t1 && !t2)
             	continue;
