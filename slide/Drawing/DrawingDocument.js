@@ -3438,7 +3438,7 @@ function CDrawingDocument()
 	// mouse events
 	this.checkMouseDown_Drawing = function (pos)
 	{
-        if (this.placeholders.onPointerDown(pos.X, pos.Y, pos.Page, this.SlideCurrectRect, this.m_oLogicDocument.Width, this.m_oLogicDocument.Height))
+        if (this.placeholders.onPointerDown(pos, this.SlideCurrectRect, this.m_oLogicDocument.Width, this.m_oLogicDocument.Height))
             return true;
 
 		return false;
@@ -3466,7 +3466,7 @@ function CDrawingDocument()
 			return true;
 		}
 
-		if (this.placeholders.onPointerMove(pos.X, pos.Y, pos.Page, this.SlideCurrectRect, this.m_oLogicDocument.Width, this.m_oLogicDocument.Height))
+		if (this.placeholders.onPointerMove(pos, this.SlideCurrectRect, this.m_oLogicDocument.Width, this.m_oLogicDocument.Height))
             return true;
 
 		return false;
@@ -3489,7 +3489,7 @@ function CDrawingDocument()
 			return true;
 		}
 
-        if (this.placeholders.onPointerUp(pos.X, pos.Y, pos.Page, this.SlideCurrectRect, this.m_oLogicDocument.Width, this.m_oLogicDocument.Height))
+        if (this.placeholders.onPointerUp(pos, this.SlideCurrectRect, this.m_oLogicDocument.Width, this.m_oLogicDocument.Height))
             return true;
 
 		return false;
