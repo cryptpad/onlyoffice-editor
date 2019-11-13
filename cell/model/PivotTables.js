@@ -2455,13 +2455,22 @@ CT_pivotTableDefinition.prototype.Get_Id = function () {
 CT_pivotTableDefinition.prototype.GetWS = function () {
 	return this.worksheet;
 };
+CT_pivotTableDefinition.prototype.setWS = function (ws) {
+	this.worksheet = ws;
+};
 CT_pivotTableDefinition.prototype.clone = function () {
-	//todo cacheDefinition
 	var data = new AscCommonExcel.UndoRedoData_BinaryWrapper(this);
 	var pivot = data.getData();
 	pivot.Id = AscCommon.g_oIdCounter.Get_NewId();
 	pivot.init();
 	return pivot;
+};
+CT_pivotTableDefinition.prototype.cloneShallow = function () {
+	var oldCacheDefinition = this.cacheDefinition;
+	this.cacheDefinition = null;
+	var newPivot = this.clone();
+	this.cacheDefinition = newPivot.cacheDefinition = oldCacheDefinition;
+	return newPivot;
 };
 CT_pivotTableDefinition.prototype.stashCurReportRange = function () {
 	var t = this;

@@ -2688,12 +2688,15 @@
 			this.oBinaryWorksheetsTableWriter.wb.forEach(function(ws) {
 				for (var i = 0; i < ws.pivotTables.length; ++i) {
 					var pivotTable = ws.pivotTables[i];
+					if (oThis.isCopyPaste && !pivotTable.isInRange(oThis.isCopyPaste)) {
+						return;
+					}
 					if (pivotTable.cacheDefinition) {
 						var pivotCache = pivotCaches[pivotTable.cacheDefinition.Get_Id()];
 						if (!pivotCache) {
 							pivotCache = {id: pivotCacheIndex++, cache: pivotTable.cacheDefinition};
 							pivotCaches[pivotTable.cacheDefinition.Get_Id()] = pivotCache;
-                        }
+						}
 						pivotTable.cacheId = pivotCache.id;
 					}
 				}
@@ -3165,7 +3168,7 @@
 				this.bs.WriteItem(c_oSerWorksheetsTypes.ConditionalFormatting, function(){oThis.WriteConditionalFormatting(ws.aConditionalFormattingRules[i]);});
 			}
 			for (i = 0; i < ws.pivotTables.length; ++i) {
-				this.bs.WriteItem(c_oSerWorksheetsTypes.PivotTable, function(){oThis.WritePivotTable(ws.pivotTables[i])});
+				this.bs.WriteItem(c_oSerWorksheetsTypes.PivotTable, function(){oThis.WritePivotTable(ws.pivotTables[i], oThis.isCopyPaste)});
 			}
             if (null !== ws.headerFooter) {
                 this.bs.WriteItem(c_oSerWorksheetsTypes.HeaderFooter, function () {oThis.WriteHeaderFooter(ws.headerFooter);});
@@ -4626,8 +4629,12 @@
                 this.memory.WriteString2(oSparkline.sqRef.getName());
 			}
 		}
-		this.WritePivotTable = function(pivotTable)
+		this.WritePivotTable = function(pivotTable, isCopyPaste)
 		{
+			if (isCopyPaste && !pivotTable.isInRange(this.isCopyPaste)) {
+				return;
+			}
+
 			var oThis = this;
 			if (null != pivotTable.cacheId) {
 				this.bs.WriteItem(c_oSer_PivotTypes.cacheId, function() {oThis.memory.WriteLong(pivotTable.cacheId);});
@@ -6511,9 +6518,10 @@
         };
     }
     /** @constructor */
-    function Binary_WorkbookTableReader(stream, oWorkbook, bwtr)
+    function Binary_WorkbookTableReader(stream, oReadResult, oWorkbook, bwtr)
     {
         this.stream = stream;
+        this.oReadResult = oReadResult;
         this.oWorkbook = oWorkbook;
         this.bcr = new Binary_CommonReader(this.stream);
         this.bwtr = bwtr;
@@ -6562,7 +6570,7 @@
 			}
 			else if (c_oSerWorkbookTypes.JsaProject == type)
 			{
-				this.oWorkbook.oApi.macros.SetData(AscCommon.GetStringUtf8(this.stream, length));
+				this.oReadResult.macros = AscCommon.GetStringUtf8(this.stream, length);
 			}
             else if (c_oSerWorkbookTypes.Comments == type)
             {
@@ -6574,19 +6582,51 @@
 			{
 				this.oWorkbook.connections = this.stream.GetBuffer(length);
 			}
+			else if (c_oSerWorkbookTypes.PivotCaches == type)
+			{
+				res = this.bcr.Read1(length, function(t,l){
+					return oThis.ReadPivotCaches(t,l);
+				});
+			}
             else
                 res = c_oSerConstants.ReadUnknown;
             return res;
         };
+		this.ReadPivotCaches = function(type, length)
+		{
+			var res = c_oSerConstants.ReadOk;
+			var oThis = this;
+			if ( c_oSerWorkbookTypes.PivotCache == type ) {
+				var pivotCache = new Asc.CT_PivotCacheDefinition();
+				res = this.bcr.Read1(length, function(t,l){
+					return oThis.ReadPivotCache(t,l, pivotCache);
+				});
+				this.oReadResult.pivotCacheDefinitions[pivotCache.id] = pivotCache;
+			} else
+				res = c_oSerConstants.ReadUnknown;
+			return res;
+		};
+		this.ReadPivotCache = function(type, length, pivotCache)
+		{
+			var res = c_oSerConstants.ReadOk;
+			if ( c_oSer_PivotTypes.id == type ) {
+				pivotCache.id = this.stream.GetLong();
+			} else if ( c_oSer_PivotTypes.cache == type ) {
+				new openXml.SaxParserBase().parse(AscCommon.GetStringUtf8(this.stream, length), pivotCache);
+			} else if ( c_oSer_PivotTypes.record == type ) {
+				var cacheRecords = new Asc.CT_PivotCacheRecords();
+				new openXml.SaxParserBase().parse(AscCommon.GetStringUtf8(this.stream, length), cacheRecords);
+				pivotCache.cacheRecords = cacheRecords;
+			} else
+				res = c_oSerConstants.ReadUnknown;
+			return res;
+		};
+
         this.ReadWorkbookPr = function(type, length, WorkbookPr)
         {
             var res = c_oSerConstants.ReadOk;
             if ( c_oSerWorkbookPrTypes.Date1904 == type )
-            {
                 WorkbookPr.Date1904 = this.stream.GetBool();
-                AscCommon.bDate1904 = WorkbookPr.Date1904;
-                AscCommonExcel.c_DateCorrectConst = AscCommon.bDate1904?AscCommonExcel.c_Date1904Const:AscCommonExcel.c_Date1900Const;
-            }
             else if ( c_oSerWorkbookPrTypes.DateCompatibility == type )
                 WorkbookPr.DateCompatibility = this.stream.GetBool();
 			else if ( c_oSerWorkbookPrTypes.HidePivotFieldList == type ) {
@@ -7109,6 +7149,29 @@
 				res = this.bcr.Read1(length, function(t, l) {
 					return oThis.ReadDataValidations(t, l, oWorksheet.dataValidations);
 				});
+			} else if (c_oSerWorksheetsTypes.PivotTable === type && typeof Asc.CT_pivotTableDefinition != "undefined") {
+				var data = {table: null, cacheId: null};
+				res = this.bcr.Read1(length, function(t, l) {
+					return oThis.ReadPivotCopyPaste(t, l, data);
+				});
+				var cacheDefinition = this.oReadResult.pivotCacheDefinitions[data.cacheId];
+				if(data.table && cacheDefinition){
+					data.table.cacheDefinition = cacheDefinition;
+					oWorksheet.insertPivotTable(data.table);
+				}
+			} else
+				res = c_oSerConstants.ReadUnknown;
+			return res;
+		};
+		this.ReadPivotCopyPaste = function(type, length, data)
+		{
+			var res = c_oSerConstants.ReadOk;
+			var oThis = this;
+			if (c_oSer_PivotTypes.cacheId == type) {
+				data.cacheId = this.stream.GetLong();
+			} else if (c_oSer_PivotTypes.table == type) {
+				data.table = new Asc.CT_pivotTableDefinition(true);
+				new openXml.SaxParserBase().parse(AscCommon.GetStringUtf8(this.stream, length), data.table);
 			} else
 				res = c_oSerConstants.ReadUnknown;
 			return res;
@@ -9018,7 +9081,9 @@
         this.oReadResult = {
             tableCustomFunc: [],
 			sheetData: [],
-			stylesTableReader: null
+			stylesTableReader: null,
+			pivotCacheDefinitions: {},
+			macros: null
         };
         this.getbase64DecodedData = function(szSrc)
         {
@@ -9306,6 +9371,12 @@
                 if(c_oSerConstants.ReadOk == res)
                     res = new BinaryPersonReader(this.stream, personList).Read();
             }
+			if(null != nWorkbookTableOffset)
+			{
+				res = this.stream.Seek(nWorkbookTableOffset);
+				if(c_oSerConstants.ReadOk == res)
+					res = (new Binary_WorkbookTableReader(this.stream, this.oReadResult, wb, bwtr)).Read();
+			}
 			var bwtr = new Binary_WorksheetTableReader(this.stream, this.oReadResult, wb, aSharedStrings, aCellXfs, aDxfs, oMediaArray, personList, this.copyPasteObj);
             if(c_oSerConstants.ReadOk == res)
             {
@@ -9357,16 +9428,10 @@
                 }
             }
             //todo инициализация формул из-за именованных диапазонов перенесена в wb.init ее надо вызывать в любом случае(Rev: 61959)
-            //надо вернуть чтение Binary_WorkbookTableReader, когда будем реализовывать копирования именованных диапазонов
-            if(!this.copyPasteObj.isCopyPaste)
+			if(!this.copyPasteObj.isCopyPaste)
             {
-                if(null != nWorkbookTableOffset)
-                {
-                    res = this.stream.Seek(nWorkbookTableOffset);
-                    if(c_oSerConstants.ReadOk == res)
-                        res = (new Binary_WorkbookTableReader(this.stream, wb, bwtr)).Read();
-                }
 				bwtr.ReadSheetDataExternal(false);
+				this.PostLoadPrepare(wb);
                 wb.init(this.oReadResult.tableCustomFunc, false, true);
             } else {
 				bwtr.ReadSheetDataExternal(true);
@@ -9376,6 +9441,16 @@
             }
             return res;
         };
+		this.PostLoadPrepare = function(wb)
+		{
+			if (wb.WorkbookPr && null != wb.WorkbookPr.Date1904) {
+				AscCommon.bDate1904 = wb.WorkbookPr.Date1904;
+				AscCommonExcel.c_DateCorrectConst = AscCommon.bDate1904?AscCommonExcel.c_Date1904Const:AscCommonExcel.c_Date1900Const;
+			}
+			if (this.oReadResult.macros) {
+				wb.oApi.macros.SetData(this.oReadResult.macros);
+			}
+		}
     }
     function CTableStyles()
     {

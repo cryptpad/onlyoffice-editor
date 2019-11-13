@@ -3497,6 +3497,9 @@
 		}
 		if(wsFrom.AutoFilter)
 			this.AutoFilter = wsFrom.AutoFilter.clone();
+		for (i = 0; i < wsFrom.pivotTables.length; ++i) {
+			this.insertPivotTable(wsFrom.pivotTables[i].cloneShallow());
+		}
 		for (i in wsFrom.aCols) {
 			var col = wsFrom.aCols[i];
 			if(null != col)
@@ -6354,15 +6357,13 @@
 		if(changed.oldRanges){
 			multiplyRange.union2(new AscCommonExcel.MultiplyRange(changed.oldRanges));
 		}
-		if (changed.data) {
-			pivotTable.init();
-			if (dataRow) {
-				var newRanges = pivotTable.getReportRanges();
-				newRanges.forEach(function(range){
-					t.getRange3(range.r1, range.c1, range.r2, range.c2).cleanAll();
-				});
-				this._updatePivotTableCells(pivotTable, dataRow);
-			}
+		pivotTable.init();
+		if (changed.data && dataRow) {
+			var newRanges = pivotTable.getReportRanges();
+			newRanges.forEach(function(range) {
+				t.getRange3(range.r1, range.c1, range.r2, range.c2).cleanAll();
+			});
+			this._updatePivotTableCells(pivotTable, dataRow);
 		}
 		multiplyRange.union2(new AscCommonExcel.MultiplyRange(pivotTable.getReportRanges()));
 		var unionRange = multiplyRange.getUnionRange();
@@ -6382,12 +6383,14 @@
 		});
 	};
 	Worksheet.prototype._updatePivotTableCellsPage = function (pivotTable) {
-		for (var i = 0; i < pivotTable.pageFieldsPositions.length; ++i) {
-			var pos = pivotTable.pageFieldsPositions[i];
-			var cells = this.getRange4(pos.row, pos.col);
-			cells.setValue(pivotTable.getPageFieldName(i));
-			cells = this.getRange4(pos.row, pos.col + 1);
-			cells.setValue('(All)');
+		if (pivotTable.pageFieldsPositions) {
+			for (var i = 0; i < pivotTable.pageFieldsPositions.length; ++i) {
+				var pos = pivotTable.pageFieldsPositions[i];
+				var cells = this.getRange4(pos.row, pos.col);
+				cells.setValue(pivotTable.getPageFieldName(i));
+				cells = this.getRange4(pos.row, pos.col + 1);
+				cells.setValue('(All)');
+			}
 		}
 	};
 	Worksheet.prototype._updatePivotTableCellsHeader = function (pivotTable) {
@@ -6957,7 +6960,7 @@
 		for (var i = 0; i < this.pivotTables.length; ++i) {
 			pivotTable = this.pivotTables[i];
 			if (pivotTable.isInRange(bboxShift)) {
-				this.workbook.oApi._changePivot(pivotTable, true, function() {
+				this.workbook.oApi._changePivotSimple(pivotTable, false, function() {
 					pivotTable.setOffset(offset, true);
 				});
 			}
@@ -6971,7 +6974,7 @@
 			if (pivotTable.isInRange(range)) {
 				var newPivot = pivotTable.clone();
 				newPivot.setOffset(offset, false);
-				this.workbook.oApi._changePivot(newPivot, true, function() {
+				this.workbook.oApi._changePivotSimple(newPivot, true, function() {
 					t.insertPivotTable(newPivot, true, false);
 				});
 			}
@@ -7117,11 +7120,13 @@
 				continue;
 			}
 
-			for (j = 0; j < pivotTable.pageFieldsPositions.length; ++j) {
-				pos = pivotTable.pageFieldsPositions[j];
-				cell = new AscCommon.CellBase(pos.row, pos.col + 1);
-				if (range.contains2(cell)) {
-					res.push(cell);
+			if (pivotTable.pageFieldsPositions) {
+				for (j = 0; j < pivotTable.pageFieldsPositions.length; ++j) {
+					pos = pivotTable.pageFieldsPositions[j];
+					cell = new AscCommon.CellBase(pos.row, pos.col + 1);
+					if (range.contains2(cell)) {
+						res.push(cell);
+					}
 				}
 			}
 

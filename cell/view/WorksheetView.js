@@ -10366,6 +10366,19 @@
 					t.handlers.trigger("onErrorEvent", c_oAscError.ID.CannotChangeFormulaArray, c_oAscError.Level.NoCritical);
 					return false;
 				}
+				if (val.data.pivotTables.length > 0) {
+					var intersectionTableParts = this.model.autoFilters.getTableIntersectionRange(newRange);
+					for (var i = 0; i < intersectionTableParts.length; i++) {
+						if(intersectionTableParts[i] && intersectionTableParts[i].Ref && !newRange.containsRange(intersectionTableParts[i].Ref)) {
+							t.handlers.trigger("onErrorEvent", c_oAscError.ID.PivotOverlap, c_oAscError.Level.NoCritical);
+							return false;
+						}
+					}
+				}
+				if(this.model._isPivotsIntersectRangeButNotInIt(newRange)) {
+					t.handlers.trigger("onErrorEvent", c_oAscError.ID.LockedCellPivot, c_oAscError.Level.NoCritical);
+					return false;
+				}
             }
         } else if (onlyActive) {
 			checkRange.push(new asc_Range(activeCell.col, activeCell.row, activeCell.col, activeCell.row));
@@ -10375,7 +10388,7 @@
 			});
 		}
 
-		if (("merge" === prop || "paste" === prop || "sort" === prop || "hyperlink" === prop || "rh" === prop) &&
+		if (("merge" === prop || "sort" === prop || "hyperlink" === prop || "rh" === prop) &&
 			this.model.inPivotTable(checkRange)) {
 			this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.LockedCellPivot,
 				c_oAscError.Level.NoCritical);
@@ -10516,10 +10529,10 @@
 		//добавляем форматированные таблицы
 		var arnToRange = t.model.selectionRange.getLast();
         var tablesMap = null, intersectionRangeWithTableParts;
+		var activeRange = AscCommonExcel.g_clipboardExcel.pasteProcessor.activeRange;
+		var refInsertBinary = AscCommonExcel.g_oRangeCache.getAscRange(activeRange);
         if (fromBinary && val.TableParts && val.TableParts.length && specialPasteProps.formatTable) {
             var range, tablePartRange, tables = val.TableParts, diffRow, diffCol, curTable, bIsAddTable;
-            var activeRange = AscCommonExcel.g_clipboardExcel.pasteProcessor.activeRange;
-            var refInsertBinary = AscCommonExcel.g_oRangeCache.getAscRange(activeRange);
             for (var i = 0; i < tables.length; i++) {
                 curTable = tables[i];
                 tablePartRange = curTable.Ref;
@@ -10572,6 +10585,19 @@
 			}
         }
 
+		if (specialPasteProps.formatTable) {
+			t.model.deletePivotTables(pasteToRange);
+		}
+		if (fromBinary && val.pivotTables.length && specialPasteProps.formatTable) {
+			for (var i = 0; i < val.pivotTables.length; i++) {
+				var pivot = val.pivotTables[i];
+				pivot.setWS(t.model);
+				pivot.setOffset(new AscCommon.CellBase(arnToRange.r1 - refInsertBinary.r1, arnToRange.c1 - refInsertBinary.c1));
+				t.model.workbook.oApi._changePivotSimple(pivot, true, function() {
+					t.model.insertPivotTable(pivot, true, true);
+				});
+			}
+		}
 
         //делаем unmerge ф/т
         intersectionRangeWithTableParts = t.model.autoFilters._intersectionRangeWithTableParts(arnToRange);

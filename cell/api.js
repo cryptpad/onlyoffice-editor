@@ -4282,6 +4282,26 @@ var editor;
 			this._changePivotOnLock(true, pivot, wsModel, pivotChanged, dataRow, reportRanges, confirmation, callback);
 		}
 	};
+	spreadsheet_api.prototype._changePivotSimple = function(pivot, isInsert, callback) {
+		var t = this;
+		var wsModel = pivot.GetWS();
+		var ws = this.wb.getWorksheet(wsModel.getIndex());
+		if (isInsert) {
+			pivot.stashEmptyReportRange();
+		} else {
+			pivot.stashCurReportRange();
+		}
+
+		callback(wsModel);
+
+		var dataRow, reportRanges;
+		var pivotChanged = pivot.getAndCleanChanged();
+		if (pivotChanged.data) {
+			dataRow = pivot.updateAfterEdit();
+			reportRanges = pivot.getReportRanges();
+		}
+		this._updatePivotTable(pivot, pivotChanged, wsModel, ws, dataRow);
+	};
 	spreadsheet_api.prototype._changePivotOnLock = function(isSuccess, pivot, wsModel, pivotChanged, dataRow, reportRanges, confirmation, callback) {
 		var t = this;
 		var error = isSuccess ? Asc.c_oAscError.ID.No : Asc.c_oAscError.ID.PivotOverlap;
