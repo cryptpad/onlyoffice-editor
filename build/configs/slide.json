@@ -130,6 +130,7 @@
 
 			"../word/Drawing/Graphics.js",
 			"../word/Drawing/ShapeDrawer.js",
+			"../word/Drawing/buttons.js",
 
 			"../slide/Drawing/Transitions.js",
 			"../slide/Drawing/DrawingDocument.js",

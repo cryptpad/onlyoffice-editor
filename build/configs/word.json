@@ -181,6 +181,7 @@
 
 			"../word/Drawing/Graphics.js",
 			"../word/Drawing/ShapeDrawer.js",
+			"../word/Drawing/buttons.js",
 
 			"../word/Drawing/DrawingDocument.js",
 			"../word/Drawing/GraphicsEvents.js",
