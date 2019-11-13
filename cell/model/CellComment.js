@@ -465,8 +465,7 @@ CCellCommentator.prototype.isLockedComment = function(oComment, callbackFunc) {
 
 	CCellCommentator.prototype.drawCommentCells = function () {
 
-		if (!(this.canEdit() || this.worksheet.handlers.trigger('isRestrictionComments')) || this.hiddenComments() ||
-			window["NATIVE_EDITOR_ENJINE"]) {
+		if (this.hiddenComments() || window["NATIVE_EDITOR_ENJINE"]) {
 			return;
 		}
 
