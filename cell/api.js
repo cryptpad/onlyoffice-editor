@@ -3357,7 +3357,7 @@ var editor;
         var lastSpell = t.spellcheckState.lastSpellInfo;
         if (lastSpell) {
           var lastIndex = t.spellcheckState.lastIndex;
-          var cellInfo = lastSpell.cellsInfo[lastIndex];
+          var cellInfo = lastSpell["cellsInfo"][lastIndex];
           var activeCell = ws.model.selectionRange.activeCell;
           var dc = cellInfo.col - activeCell.col;
           var dr = cellInfo.row - activeCell.row;
