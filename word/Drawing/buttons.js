@@ -394,7 +394,7 @@
 
 		this.icons = new PlaceholderIcons();
 		this.icons.register(AscCommon.PlaceholderButtonType.Image, "image");
-        //this.icons.register(AscCommon.PlaceholderButtonType.ImageUrl, "image_url");
+        this.icons.register(AscCommon.PlaceholderButtonType.ImageUrl, "image_url");
         this.icons.register(AscCommon.PlaceholderButtonType.Table, "table", true);
         this.icons.register(AscCommon.PlaceholderButtonType.Chart, "chart", true);
         this.icons.register(AscCommon.PlaceholderButtonType.Audio, "audio");
