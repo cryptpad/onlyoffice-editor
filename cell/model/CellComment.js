@@ -461,7 +461,7 @@ CCellCommentator.prototype.isLockedComment = function(oComment, callbackFunc) {
 	};
 
 	CCellCommentator.prototype.drawCommentCells = function () {
-		if (this.hiddenComments() || window["NATIVE_EDITOR_ENJINE"]) {
+		if (this.hiddenComments() || window["NATIVE_EDITOR_ENJINE"] || null === this.model.getId()) {
 			return;
 		}
 
