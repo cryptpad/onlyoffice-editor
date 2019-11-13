@@ -389,9 +389,6 @@ CCellCommentator.sStartCommentId = 'comment_';
 // Public methods
 //-----------------------------------------------------------------------------------
 
-CCellCommentator.prototype.canEdit = function () {
-	return this.worksheet.handlers.trigger('canEdit');
-};
 CCellCommentator.prototype.isLockedComment = function(oComment, callbackFunc) {
 	var objectGuid = oComment.asc_getId();
 	if (objectGuid) {
@@ -464,7 +461,6 @@ CCellCommentator.prototype.isLockedComment = function(oComment, callbackFunc) {
 	};
 
 	CCellCommentator.prototype.drawCommentCells = function () {
-
 		if (this.hiddenComments() || window["NATIVE_EDITOR_ENJINE"]) {
 			return;
 		}
