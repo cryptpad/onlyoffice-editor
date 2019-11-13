@@ -2685,7 +2685,7 @@
 	WorkbookView.prototype.removeAllComments = function (isMine, isCurrent) {
 		var range;
 		var ws = this.getWorksheet();
-		isMine = isMine ? (this.DocInfo && this.DocInfo.get_UserId()) : null;
+		isMine = isMine ? (this.Api.DocInfo && this.Api.DocInfo.get_UserId()) : null;
 		History.Create_NewPoint();
 		History.StartTransaction();
 		if (isCurrent) {

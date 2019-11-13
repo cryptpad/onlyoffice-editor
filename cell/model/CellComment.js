@@ -403,12 +403,12 @@ CCellCommentator.prototype.isLockedComment = function(oComment, callbackFunc) {
 	}
 };
 
-	CCellCommentator.prototype.getCommentsRange = function (range, isMine) {
+	CCellCommentator.prototype.getCommentsRange = function (range, sUserId) {
 		var res = [];
 		var aComments = this.model.aComments;
 		for (var i = 0; i < aComments.length; ++i) {
 			var comment = aComments[i];
-			if (range.contains(comment.nCol, comment.nRow) && (!isMine || isMine === comment.sUserId)) {
+			if (range.contains(comment.nCol, comment.nRow) && (!sUserId || sUserId === comment.sUserId)) {
 				res.push(comment.clone());
 			}
 		}
@@ -443,8 +443,28 @@ CCellCommentator.prototype.isLockedComment = function(oComment, callbackFunc) {
 		}
 	};
 
-	CCellCommentator.prototype.deleteCommentsRange = function (range, isMine) {
-		this._deleteCommentsRange(this.getCommentsRange(range, isMine));
+	CCellCommentator.prototype.deleteCommentsRange = function (range, sUserId) {
+		this._deleteCommentsRange(this.getCommentsRange(range, sUserId));
+		// Delete replies
+		if (sUserId) {
+			var replies, change, newComment, comments = this.getCommentsRange(range);
+			for (var i = 0; i < comments.length; ++i) {
+				change = false;
+				newComment = comments[i].clone();
+				replies = newComment.aReplies;
+				newComment.aReplies = [];
+				for (var j = 0; j < replies.length; ++j) {
+					if (replies[j].sUserId === sUserId) {
+						change = true;
+					} else {
+						newComment.aReplies.push(replies[j]);
+					}
+				}
+				if (change) {
+					this.changeComment(newComment.nId, newComment);
+				}
+			}
+		}
 	};
 	CCellCommentator.prototype._deleteCommentsRange = function (comments) {
 		History.StartTransaction();
