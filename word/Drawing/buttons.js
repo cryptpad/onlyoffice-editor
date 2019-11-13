@@ -333,6 +333,8 @@
             y : (pixelsRect.bottom - pixelsRect.top) / pageHeightMM
         };
         var rects = this.getButtonRects(pointCenter, scale);
+        if (rects.length != this.buttons.length)
+            return;
 
         var ButtonSize = ButtonSize1x;//AscCommon.AscBrowser.convertToRetinaValue(ButtonSize1x, true);
         var ButtonImageSize = ButtonImageSize1x;//AscCommon.AscBrowser.convertToRetinaValue(ButtonImageSize1x, true);

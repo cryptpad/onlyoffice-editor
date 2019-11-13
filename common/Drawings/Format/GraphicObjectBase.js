@@ -1724,7 +1724,7 @@
         var aButtons = [];
         switch (phType)
         {
-            case AscFormat.phType_body:
+            case null:
             {
                 aButtons.push(AscCommon.PlaceholderButtonType.Table);
                 aButtons.push(AscCommon.PlaceholderButtonType.Chart);
@@ -1732,6 +1732,10 @@
                 aButtons.push(AscCommon.PlaceholderButtonType.ImageUrl);
                 aButtons.push(AscCommon.PlaceholderButtonType.Video);
                 aButtons.push(AscCommon.PlaceholderButtonType.Audio);
+                break;
+            }
+            case AscFormat.phType_body:
+            {
                 break;
             }
             case AscFormat.phType_chart:
