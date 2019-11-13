@@ -2275,14 +2275,18 @@
 		this.getWorksheet().setSelectionInfo("format", format);
 	};
 
-  WorkbookView.prototype.emptyCells = function(options) {
-    if (!this.getCellEditMode()) {
-      this.getWorksheet().emptySelection(options);
-      this.restoreFocus();
-    } else {
-      this.cellEditor.empty(options);
-    }
-  };
+	WorkbookView.prototype.emptyCells = function (options) {
+		if (!this.getCellEditMode()) {
+			if (Asc.c_oAscCleanOptions.Comments === options) {
+				this.removeAllComments(false, true);
+			} else {
+				this.getWorksheet().emptySelection(options);
+			}
+			this.restoreFocus();
+		} else {
+			this.cellEditor.empty(options);
+		}
+	};
 
   WorkbookView.prototype.setSelectionDialogMode = function(selectionDialogType, selectRange) {
     if (selectionDialogType === this.selectionDialogType) {
@@ -2679,7 +2683,21 @@
 		this.cellCommentator.removeComment(id);
 	};
 	WorkbookView.prototype.removeAllComments = function (isMine, isCurrent) {
-
+		var range;
+		var ws = this.getWorksheet();
+		isMine = isMine ? (this.DocInfo && this.DocInfo.get_UserId()) : null;
+		History.Create_NewPoint();
+		History.StartTransaction();
+		if (isCurrent) {
+			ws._getSelection().ranges.forEach(function (item) {
+				ws.cellCommentator.deleteCommentsRange(item, isMine);
+			});
+		} else {
+			range = new Asc.Range(0, 0, AscCommon.gc_nMaxCol0, AscCommon.gc_nMaxRow0);
+			this.cellCommentator.deleteCommentsRange(range, isMine);
+			ws.cellCommentator.deleteCommentsRange(range, isMine);
+		}
+		History.EndTransaction();
 	};
 
   /*

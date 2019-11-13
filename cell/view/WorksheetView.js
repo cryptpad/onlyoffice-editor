@@ -10219,9 +10219,6 @@
 							case c_oAscCleanOptions.Format:
 							    range.cleanFormat();
 								break;
-							case c_oAscCleanOptions.Comments:
-							    t.cellCommentator.deleteCommentsRange(range);
-								break;
 							case c_oAscCleanOptions.Hyperlinks:
 							    range.cleanHyperlinks();
 								break;

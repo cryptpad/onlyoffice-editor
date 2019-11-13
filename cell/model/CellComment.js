@@ -406,12 +406,12 @@ CCellCommentator.prototype.isLockedComment = function(oComment, callbackFunc) {
 	}
 };
 
-	CCellCommentator.prototype.getCommentsRange = function (range) {
+	CCellCommentator.prototype.getCommentsRange = function (range, isMine) {
 		var res = [];
 		var aComments = this.model.aComments;
 		for (var i = 0; i < aComments.length; ++i) {
 			var comment = aComments[i];
-			if (range.contains(comment.nCol, comment.nRow)) {
+			if (range.contains(comment.nCol, comment.nRow) && (!isMine || isMine === comment.sUserId)) {
 				res.push(comment.clone());
 			}
 		}
@@ -446,8 +446,8 @@ CCellCommentator.prototype.isLockedComment = function(oComment, callbackFunc) {
 		}
 	};
 
-	CCellCommentator.prototype.deleteCommentsRange = function (range) {
-		this._deleteCommentsRange(this.getCommentsRange(range));
+	CCellCommentator.prototype.deleteCommentsRange = function (range, isMine) {
+		this._deleteCommentsRange(this.getCommentsRange(range, isMine));
 	};
 	CCellCommentator.prototype._deleteCommentsRange = function (comments) {
 		History.StartTransaction();
