@@ -3856,7 +3856,7 @@
 							oRun.AddText(sCustomText);
 						}
 
-						oNewParagraph.Internal_Content_Add(i, oRun, false);
+						oNewParagraph.Internal_Content_Add(j, oRun, false);
 					}
 					oContent.Internal_Content_Add(oContent.Content.length, oNewParagraph);
 				}
