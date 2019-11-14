@@ -14316,8 +14316,12 @@
 		}
 
 		var sortProps = t.model.autoFilters.getPropForSort(cellId, ar, displayName);
-		if(bIsExpandRange && sortProps && sortProps.curFilter && sortProps.curFilter.isAutoFilter()) {
-			//в случае расширения диапазона если мы находимся внутри а/ф игнорируются натройки
+		var cloneSortProps = sortProps;
+		var isFilter = sortProps && sortProps.curFilter && sortProps.curFilter.isAutoFilter();
+		var filterRef;
+		if(bIsExpandRange && isFilter) {
+			//в случае расширения диапазона если мы находимся внутри а/ф игнорируются наcтройки
+			filterRef = sortProps.curFilter.Ref;
 			sortProps = null;
 		}
 
@@ -14333,6 +14337,8 @@
 				var bIgnoreFirstRow = window['AscCommonExcel'].ignoreFirstRowSort(t.model, expandRange);
 				if (bIgnoreFirstRow) {
 					expandRange.r1++;
+				} else if(expandRange && filterRef && filterRef.containsRange(expandRange) && expandRange.r1 === filterRef.r1) {
+					sortProps = cloneSortProps;
 				}
 			}
 		}
