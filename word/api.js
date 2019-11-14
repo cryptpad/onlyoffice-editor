@@ -7254,7 +7254,8 @@ background-repeat: no-repeat;\
 		LogicDocument.OnMouseUp(global_mouseEvent, 0, 0, pageNumber);
 		LogicDocument.OnMouseMove(global_mouseEvent, 0, 0, pageNumber);
 		LogicDocument.MoveCursorLeft();
-		LogicDocument.Document_UpdateInterfaceState();
+		LogicDocument.UpdateInterface();
+		LogicDocument.UpdateSelection();
 
 		global_mouseEvent.ClickCount = oldClickCount;
 
@@ -7286,7 +7287,8 @@ background-repeat: no-repeat;\
 		LogicDocument.OnMouseUp(global_mouseEvent, 0, AscCommon.Page_Height, pageNumber);
 		LogicDocument.OnMouseMove(global_mouseEvent, 0, 0, pageNumber);
 		LogicDocument.MoveCursorLeft();
-		LogicDocument.Document_UpdateInterfaceState();
+		LogicDocument.UpdateInterface();
+		LogicDocument.UpdateSelection();
 
 		global_mouseEvent.ClickCount = oldClickCount;
 
