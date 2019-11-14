@@ -3757,6 +3757,13 @@
                 if (_oldTrackRevision)
                     oApi.WordControl.m_oLogicDocument.TrackRevisions = false;
 
+                var bRemoveDocument = false;
+                if(oApi.WordControl && !oApi.WordControl.m_oLogicDocument)
+				{
+					bRemoveDocument = true;
+					oApi.WordControl.m_oLogicDocument = new CDocument();
+					oApi.WordControl.m_oDrawingDocument.m_oLogicDocument = oApi.WordControl.m_oLogicDocument;
+				}
                 oShape.setBDeleted(false);
 				oShape.spPr = new AscFormat.CSpPr();
 				oShape.spPr.setParent(oShape);
@@ -3910,6 +3917,11 @@
 
 				AscCommon.IsShapeToImageConverter = false;
 
+				if(bRemoveDocument)
+				{
+					oApi.WordControl.m_oLogicDocument = null;
+					oApi.WordControl.m_oDrawingDocument.m_oLogicDocument = null;
+				}
 				if (window.editor)
 				{
                     oApi.ShowParaMarks = oldShowParaMarks;
