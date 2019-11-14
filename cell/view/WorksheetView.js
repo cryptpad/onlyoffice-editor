@@ -11309,6 +11309,8 @@
 				pastedRangeProps.angle = align.getAngle();
 				//hyperlink
 				pastedRangeProps.hyperlinkObj = newVal.getHyperlink();
+
+				pastedRangeProps.font = newVal.getFont();
 			}
 
 			var tableDxf = getTableDxf(pasteRow, pasteCol, newVal);
@@ -11483,9 +11485,6 @@
 
 		//set formula - for paste from binary
 		var calculateValueAndBinaryFormula = function (newVal, firstRange, range) {
-			var skipFormat = null;
-			var noSkipVal = null;
-
 			var cellValueData = specialPasteProps.cellStyle ? newVal.getValueData() : null;
 			if (cellValueData && cellValueData.value) {
 				if (!specialPasteProps.formula) {
@@ -11502,22 +11501,9 @@
 			var sFormula = newVal.getFormula();
 			var sId = newVal.getName();
 			var value2 = newVal.getValue2();
-			var isFromula = !!sFormula;
-			for (var nF = 0; nF < value2.length; nF++) {
-				if (value2[nF] && value2[nF].format && value2[nF].format.getSkip()) {
-					skipFormat = true;
-				} else if (value2[nF] && value2[nF].format && !value2[nF].format.getSkip()) {
-					noSkipVal = nF;
-				}
-			}
-
+			
 			//TODO вместо range где возможно использовать cell
-			if (value2.length === 1 || isFromula !== false || (skipFormat != null && noSkipVal != null)) {
-				var numStyle = 0;
-				if (skipFormat != null && noSkipVal != null) {
-					numStyle = noSkipVal;
-				}
-
+			if (value2.length === 1 || sFormula) {
 				//formula
 				if (sFormula && !isOneMerge) {
 
@@ -11583,8 +11569,6 @@
 						}
 
 						rangeStyle.formula = {range: range, val: "=" + assemb, arrayRef: arrayFormulaRef};
-
-						//arrFormula.push({range: range, val: "=" + assemb});
 					}
 				} else {
 					newVal.getLeftTopCellNoEmpty(function (cellFrom) {
@@ -11595,24 +11579,12 @@
 							} else {
 								range = firstRange;
 							}
-							rangeStyle.cellValueData2 =
-								{valueData: cellFrom.getValueData(), row: range.bbox.r1, col: range.bbox.c1};
+							rangeStyle.cellValueData2 = {valueData: cellFrom.getValueData(), row: range.bbox.r1, col: range.bbox.c1};
 						}
 					});
 				}
-
-				if (!isOneMerge)//settings for text
-				{
-					var _format = value2[numStyle].format;
-					if(_format) {
-						_format = _format.clone();
-						_format.setRepeat(null);
-					}
-					rangeStyle.font = _format;
-				}
 			} else {
 				rangeStyle.value2 = value2;
-				//firstRange.setValue2(value2);
 			}
 		};
 
