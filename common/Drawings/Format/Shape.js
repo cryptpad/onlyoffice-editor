@@ -737,7 +737,10 @@ function fHandleContent(aContent, oMax){
         }
         else if(oContentElement.Get_Type() === type_Table)
         {
-
+            if(oContentElement.Bounds.Right > oMax.max_width)
+            {
+                oMax.max_width = oContentElement.Bounds.Right;
+            }
         }
         else if(oContentElement.Get_Type() === type_BlockLevelSdt)
         {
