@@ -187,7 +187,7 @@
 
         this.copyOutEnabled = (config['copyoutenabled'] !== false);
 
-		this.watermarkDraw = config['watermark_on_draw'] ? new AscCommon.CWatermarkOnDraw(config['watermark_on_draw']) : null;
+		this.watermarkDraw = config['watermark_on_draw'] ? new AscCommon.CWatermarkOnDraw(config['watermark_on_draw'], this) : null;
 
 		this.SaveAfterMacros = false;
 
@@ -2241,52 +2241,8 @@
 				}
 				case "watermark_on_draw":
 				{
-					this.watermarkDraw = obj[prop] ? new AscCommon.CWatermarkOnDraw(obj[prop]) : null;
-					if (this.watermarkDraw)
-						this.watermarkDraw.CheckParams(this);
-
-					// refresh!!!
-					switch (this.editorId)
-					{
-						case c_oEditorId.Word:
-						{
-							if (this.WordControl)
-							{
-								if (this.watermarkDraw)
-								{
-									this.watermarkDraw.zoom = this.WordControl.m_nZoomValue / 100;
-									this.watermarkDraw.Generate();
-								}
-
-								this.WordControl.OnRePaintAttack();
-							}
-
-							break;
-						}
-						case c_oEditorId.Presentation:
-						{
-							if (this.WordControl)
-							{
-								if (this.watermarkDraw)
-								{
-									this.watermarkDraw.zoom = this.WordControl.m_nZoomValue / 100;
-									this.watermarkDraw.Generate();
-								}
-
-								this.WordControl.OnRePaintAttack();
-							}
-							break;
-						}
-						case c_oEditorId.Spreadsheet:
-						{
-							var ws = this.wb && this.wb.getWorksheet();
-							if (ws && ws.objectRender && ws.objectRender) {
-								ws.objectRender.OnUpdateOverlay();
-							}
-							break;
-						}
-					}
-
+					this.watermarkDraw = obj[prop] ? new AscCommon.CWatermarkOnDraw(obj[prop], this) : null;
+					this.watermarkDraw.checkOnReady();
 					break;
 				}
 				case "hideContentControlTrack":

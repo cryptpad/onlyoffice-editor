@@ -2964,7 +2964,7 @@ function CDrawingDocument()
 			context.beginPath();
 		}
 
-		if (this.m_oWordControl.m_oApi.watermarkDraw)
+		if (this.m_oWordControl.m_oApi.watermarkDraw && this.m_oWordControl.m_oLogicDocument)
 			this.m_oWordControl.m_oApi.watermarkDraw.Draw(page.drawingPage.cachedImage.image.ctx, w, h);
 
 		//var EndTime = new Date().getTime();

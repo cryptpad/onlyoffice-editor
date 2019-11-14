@@ -3640,7 +3640,7 @@
         return this.Variants;
     };
 
-    function CWatermarkOnDraw(htmlContent)
+    function CWatermarkOnDraw(htmlContent, api)
 	{
 		// example content:
 		/*
@@ -3681,6 +3681,9 @@
 		}
 		*/
 
+		this.api = api;
+		this.isFontsLoaded = false;
+
 		this.inputContentSrc = htmlContent;
 		if (typeof this.inputContentSrc === "object")
 			this.inputContentSrc = JSON.stringify(this.inputContentSrc);
@@ -3696,49 +3699,46 @@
 		this.zoom = 1;
 		this.calculatezoom = -1;
 
-		this.CheckParams = function(api)
+		this.contentObjects = null;
+
+		this.CheckParams = function()
 		{
-			this.replaceMap["%user_name%"] = api.User.userName;
+			this.replaceMap["%user_name%"] = this.api.User.userName;
+
+            var content = this.inputContentSrc;
+            for (var key in this.replaceMap)
+            {
+                if (!this.replaceMap.hasOwnProperty(key))
+                    continue;
+                content = content.replace(new RegExp(key, 'g'), this.replaceMap[key]);
+            }
+            this.contentObjects = {};
+            try {
+                var _objTmp = JSON.parse(content);
+                this.contentObjects = _objTmp;
+            }
+            catch (err) {
+            }
+
+            this.transparent = (undefined == this.contentObjects['transparent']) ? 0.3 : this.contentObjects['transparent'];
 		};
 
 		this.Generate = function()
 		{
+			if (!this.isFontsLoaded)
+				return;
+
 			if (this.zoom == this.calculatezoom)
 				return;
 
 			this.calculatezoom = this.zoom;
-
-			var content = this.inputContentSrc;
-			for (var key in this.replaceMap)
-			{
-				if (!this.replaceMap.hasOwnProperty(key))
-					continue;
-
-				content = content.replace(new RegExp(key, 'g'), this.replaceMap[key]);
-			}
-
-			var _obj = {};
-			try
-			{
-				var _objTmp = JSON.parse(content);
-				_obj = _objTmp;
-			}
-			catch (err)
-			{
-
-			}
-
-			this.transparent = (undefined == _obj['transparent']) ? 0.3 : _obj['transparent'];
-
-			this.privateGenerateShape(_obj);
-
-			//var _data = this.image.toDataURL("image/png");
-			//console.log(_data);
+			this.privateGenerateShape(this.contentObjects);
+			//console.log( this.image.toDataURL("image/png"));
 		};
 
 		this.Draw = function(context, dw_or_dx, dh_or_dy, dw, dh)
 		{
-			if (!this.image)
+			if (!this.image || !this.isFontsLoaded)
 				return;
 
 			var x = 0;
@@ -3790,6 +3790,7 @@
 
 		this.privateGenerateShape = function(obj)
 		{
+
 			AscFormat.ExecuteNoHistory(function(obj) {
 
                 var oShape = new AscFormat.CShape();
@@ -3823,6 +3824,13 @@
                 if (_oldTrackRevision)
                     oApi.WordControl.m_oLogicDocument.TrackRevisions = false;
 
+                var bRemoveDocument = false;
+                if(oApi.WordControl && !oApi.WordControl.m_oLogicDocument)
+				{
+					bRemoveDocument = true;
+					oApi.WordControl.m_oLogicDocument = new CDocument();
+					oApi.WordControl.m_oDrawingDocument.m_oLogicDocument = oApi.WordControl.m_oLogicDocument;
+				}
                 oShape.setBDeleted(false);
 				oShape.spPr = new AscFormat.CSpPr();
 				oShape.spPr.setParent(oShape);
@@ -3882,7 +3890,7 @@
 						oNewParagraph.Set_Shd(oShd, true);
 					}
 					if(AscFormat.isRealNumber(oCurParS['linespacing'])){
-						oNewParagraph.Set_Spacing({Line: oCurParS['linespacing'], LineRule: Asc.linerule_Auto}, true);
+						oNewParagraph.Set_Spacing({Line: oCurParS['linespacing'], Before: 0, After: 0, LineRule: Asc.linerule_Auto}, true);
 					}
 					var aRunsS = oCurParS['runs'];
 					for(var j = 0; j < aRunsS.length; ++j){
@@ -3914,17 +3922,20 @@
 							oRun.AddText(sCustomText);
 						}
 
-						oNewParagraph.Internal_Content_Add(i, oRun, false);
+						oNewParagraph.Internal_Content_Add(j, oRun, false);
 					}
 					oContent.Internal_Content_Add(oContent.Content.length, oNewParagraph);
 				}
 
+				var bLoad = AscCommon.g_oIdCounter.m_bLoad;
+				AscCommon.g_oIdCounter.Set_Load(false);
 				oShape.recalculate();
 				if (oShape.bWordShape)
 				{
 					oShape.recalculateText();
 				}
 
+				AscCommon.g_oIdCounter.Set_Load(bLoad);
 				var oldShowParaMarks;
 				if (window.editor)
 				{
@@ -3976,6 +3987,11 @@
 
 				AscCommon.IsShapeToImageConverter = false;
 
+				if(bRemoveDocument)
+				{
+					oApi.WordControl.m_oLogicDocument = null;
+					oApi.WordControl.m_oDrawingDocument.m_oLogicDocument = null;
+				}
 				if (window.editor)
 				{
                     oApi.ShowParaMarks = oldShowParaMarks;
@@ -3985,7 +4001,92 @@
 					oApi.WordControl.m_oLogicDocument.TrackRevisions = true;
 
 			}, this, [obj]);
+
 		};
+
+		this.onReady = function()
+		{
+			this.isFontsLoaded = true;
+            var oApi = this.api;
+
+            switch (oApi.editorId)
+            {
+                case AscCommon.c_oEditorId.Word:
+                {
+                    if (oApi.WordControl)
+                    {
+                        if (oApi.watermarkDraw)
+                        {
+                            oApi.watermarkDraw.zoom = oApi.WordControl.m_nZoomValue / 100;
+                            oApi.watermarkDraw.Generate();
+                        }
+
+                        oApi.WordControl.OnRePaintAttack();
+                    }
+
+                    break;
+                }
+                case AscCommon.c_oEditorId.Presentation:
+                {
+                    if (oApi.WordControl)
+                    {
+                        if (oApi.watermarkDraw)
+                        {
+                            oApi.watermarkDraw.zoom = oApi.WordControl.m_nZoomValue / 100;
+                            oApi.watermarkDraw.Generate();
+                        }
+
+                        oApi.WordControl.OnRePaintAttack();
+                    }
+                    break;
+                }
+                case AscCommon.c_oEditorId.Spreadsheet:
+                {
+                    var ws = oApi.wb && oApi.wb.getWorksheet();
+                    if (ws && ws.objectRender && ws.objectRender)
+                    {
+                        ws.objectRender.OnUpdateOverlay();
+                    }
+                    break;
+                }
+            }
+		};
+
+		this.checkOnReady = function()
+		{
+            this.CheckParams();
+
+            var fonts = [];
+            var pars = this.contentObjects['paragraphs'];
+            var i, j;
+            for (i = 0; i < pars.length; i++)
+            {
+                var runs = pars[i]['runs'];
+                for (j = 0; j < runs.length; j++)
+                {
+                    if (undefined !== runs[j]["font-family"])
+                        fonts.push(runs[j]["font-family"]);
+                }
+            }
+
+            for (i = 0; i < fonts.length; i++)
+            {
+                fonts[i] = new AscFonts.CFont(g_fontApplication.GetFontInfoName(fonts[i]), 0, "", 0, null);
+            }
+
+			if (false === AscCommon.g_font_loader.CheckFontsNeedLoading(fonts))
+            {
+                this.onReady();
+                return false;
+            }
+
+            this.api.asyncMethodCallback = function() {
+                var oApi = Asc['editor'] || editor;
+                oApi.watermarkDraw.onReady();
+            };
+
+            AscCommon.g_font_loader.LoadDocumentFonts2(fonts);
+		}
 	}
 
 	// ----------------------------- plugins ------------------------------- //
