@@ -4282,7 +4282,7 @@ var editor;
 			this._changePivotOnLock(true, pivot, wsModel, pivotChanged, dataRow, reportRanges, confirmation, callback);
 		}
 	};
-	spreadsheet_api.prototype._changePivotSimple = function(pivot, isInsert, callback) {
+	spreadsheet_api.prototype._changePivotSimple = function(pivot, isInsert, needUpdateView, callback) {
 		var t = this;
 		var wsModel = pivot.GetWS();
 		var ws = this.wb.getWorksheet(wsModel.getIndex());
@@ -4294,13 +4294,12 @@ var editor;
 
 		callback(wsModel);
 
-		var dataRow, reportRanges;
+		var dataRow;
 		var pivotChanged = pivot.getAndCleanChanged();
 		if (pivotChanged.data) {
 			dataRow = pivot.updateAfterEdit();
-			reportRanges = pivot.getReportRanges();
 		}
-		this._updatePivotTable(pivot, pivotChanged, wsModel, ws, dataRow);
+		this._updatePivotTable(pivot, pivotChanged, wsModel, ws, dataRow, needUpdateView);
 	};
 	spreadsheet_api.prototype._changePivotOnLock = function(isSuccess, pivot, wsModel, pivotChanged, dataRow, reportRanges, confirmation, callback) {
 		var t = this;
@@ -4339,7 +4338,7 @@ var editor;
 			History.EndTransaction();
 		} else {
 			var ws = this.wb.getWorksheet(wsModel.getIndex());
-			this._updatePivotTable(pivot, pivotChanged, wsModel, ws, dataRow);
+			this._updatePivotTable(pivot, pivotChanged, wsModel, ws, dataRow, true);
 			this.wbModel.dependencyFormulas.unlockRecal();
 			History.EndTransaction();
 			var pivotRange = pivot.getRange();
@@ -4354,13 +4353,13 @@ var editor;
 			var ws = t.wb.getWorksheet(wsModel.getIndex());
 			for (var i = 0; i < wsModel.pivotTables.length; ++i) {
 				var pivot = wsModel.pivotTables[i];
-				t._updatePivotTable(pivot, pivot.getAndCleanChanged(), wsModel, ws);
+				t._updatePivotTable(pivot, pivot.getAndCleanChanged(), wsModel, ws, undefined, true);
 			}
 		});
 	};
-	spreadsheet_api.prototype._updatePivotTable = function(pivot, changed, wsModel, ws, dataRow) {
+	spreadsheet_api.prototype._updatePivotTable = function(pivot, changed, wsModel, ws, dataRow, needUpdateView) {
 		var unionRange = wsModel.updatePivotTable(pivot, changed, dataRow);
-		if (unionRange) {
+		if (unionRange && needUpdateView) {
 			// ToDo update ranges, not big range
 			ws._onUpdateFormatTable(unionRange);
 		}

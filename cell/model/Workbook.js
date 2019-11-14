@@ -5525,7 +5525,7 @@
 				this.copyPivotTable(oBBoxFrom, offset);
 			} else {
 				this.deletePivotTablesOnMove(oBBoxFrom, oBBoxTo);
-				this.updatePivotOffset(oBBoxFrom, offset);
+				this.movePivotOffset(oBBoxFrom, offset);
 			}
 		}
 	};
@@ -5801,7 +5801,7 @@
 		var renameRes = this.renameDependencyNodes(offset, oBBox);
 		var redrawTablesArr = this.autoFilters.insertColumn( oBBox, dif );
 		if (false == this.workbook.bUndoChanges && false == this.workbook.bRedoChanges) {
-			this.updatePivotOffset(oActualRange, offset);
+			this.updatePivotOffset(oBBox, offset);
 		}
 
 		this.getRange3(oBBox.r1, oBBox.c1, oBBox.r2, oBBox.c2)._foreachNoEmpty(function(cell){
@@ -5835,7 +5835,7 @@
 		var renameRes = this.renameDependencyNodes(offset, oBBox);
 		var redrawTablesArr = this.autoFilters.insertRows("delCell", oBBox, c_oAscDeleteOptions.DeleteCellsAndShiftTop);
 		if (false == this.workbook.bUndoChanges && false == this.workbook.bRedoChanges) {
-			this.updatePivotOffset(oActualRange, offset);
+			this.updatePivotOffset(oBBox, offset);
 		}
 
 		this.getRange3(oBBox.r1, oBBox.c1, oBBox.r2, oBBox.c2)._foreachNoEmpty(function(cell){
@@ -5865,7 +5865,7 @@
 		var renameRes = this.renameDependencyNodes(offset, oBBox);
 		var redrawTablesArr = this.autoFilters.insertColumn( oBBox, dif, displayNameFormatTable );
 		if (false == this.workbook.bUndoChanges && false == this.workbook.bRedoChanges) {
-			this.updatePivotOffset(oActualRange, offset);
+			this.updatePivotOffset(oBBox, offset);
 		}
 
 		this._updateFormulasParents(oActualRange.r1, oActualRange.c1, oActualRange.r2, oActualRange.c2, oBBox, offset, renameRes.shiftedShared);
@@ -5922,7 +5922,7 @@
 				displayNameFormatTable);
 		}
 		if (false == this.workbook.bUndoChanges && false == this.workbook.bRedoChanges) {
-			this.updatePivotOffset(oActualRange, offset);
+			this.updatePivotOffset(oBBox, offset);
 		}
 
 		this._updateFormulasParents(oActualRange.r1, oActualRange.c1, oActualRange.r2, oActualRange.c2, oBBox, offset, renameRes.shiftedShared);
@@ -6955,12 +6955,18 @@
 		}
 	};
 	Worksheet.prototype.updatePivotOffset = function (range, offset) {
-		var pivotTable;
+		if (offset.row < 0 || offset.col < 0) {
+			this.deletePivotTables(range);
+		}
 		var bboxShift = AscCommonExcel.shiftGetBBox(range, 0 !== offset.col);
+		this.movePivotOffset(bboxShift, offset);
+	};
+	Worksheet.prototype.movePivotOffset = function (range, offset) {
+		var pivotTable;
 		for (var i = 0; i < this.pivotTables.length; ++i) {
 			pivotTable = this.pivotTables[i];
-			if (pivotTable.isInRange(bboxShift)) {
-				this.workbook.oApi._changePivotSimple(pivotTable, false, function() {
+			if (pivotTable.isInRange(range)) {
+				this.workbook.oApi._changePivotSimple(pivotTable, false, false, function() {
 					pivotTable.setOffset(offset, true);
 				});
 			}
@@ -6974,7 +6980,7 @@
 			if (pivotTable.isInRange(range)) {
 				var newPivot = pivotTable.clone();
 				newPivot.setOffset(offset, false);
-				this.workbook.oApi._changePivotSimple(newPivot, true, function() {
+				this.workbook.oApi._changePivotSimple(newPivot, true, false, function() {
 					t.insertPivotTable(newPivot, true, false);
 				});
 			}
@@ -6986,6 +6992,9 @@
 		});
 	};
 	Worksheet.prototype.checkShiftPivotTable = function (range, offset) {
+		if ((offset.row < 0 || offset.col < 0) && this._isPivotsIntersectRangeButNotInIt(range)) {
+			return true;
+		}
 		return this._isPivotsIntersectRangeButNotInIt(AscCommonExcel.shiftGetBBox(range, 0 !== offset.col));
 	};
 	Worksheet.prototype.checkMovePivotTable = function(arnFrom, arnTo, ctrlKey) {
@@ -7035,10 +7044,10 @@
 		this.clearPivotTableCell(pivotTable);
 		History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_PivotDelete, this.getId(), null,
 			new AscCommonExcel.UndoRedoData_PivotTableRedo(pivotTable.Get_Id(), pivotTable, null));
-		this.pivotTables.splice(index--, 1);
+		this.pivotTables.splice(index, 1);
 	};
 	Worksheet.prototype.deletePivotTables = function (range) {
-		for (var i = 0; i < this.pivotTables.length; ++i) {
+		for (var i = this.pivotTables.length - 1; i >= 0; --i) {
 			var pivotTable = this.pivotTables[i];
 			if (pivotTable.intersection(range)) {
 				this._deletePivotTable(this.pivotTables, pivotTable, i);
@@ -7047,7 +7056,7 @@
 		return true;
 	};
 	Worksheet.prototype.deletePivotTablesOnMove = function (from, to) {
-		for (var i = 0; i < this.pivotTables.length; ++i) {
+		for (var i = this.pivotTables.length - 1; i >= 0; --i) {
 			var pivotTable = this.pivotTables[i];
 			if (pivotTable.isInRange(to) && !pivotTable.isInRange(from)) {
 				this._deletePivotTable(this.pivotTables, pivotTable, i);
