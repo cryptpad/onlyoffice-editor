@@ -174,7 +174,7 @@ CShape.prototype.recalcWrapPolygon = function()
 CShape.prototype.addToRecalculate = function()
 {
     var oLogicDoc = this.getLogicDocument();
-    if(oLogicDoc)
+    if(oLogicDoc && oLogicDoc.DrawingObjects)
     {
         oLogicDoc.DrawingObjects.addToRecalculate(this);//TODO: надо уходить от editor'а;
     }

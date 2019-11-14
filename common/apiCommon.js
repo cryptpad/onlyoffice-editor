@@ -3724,6 +3724,18 @@
 
 		this.privateGenerateShape = function(obj)
 		{
+			var isLogicDocument = editor.WordControl.m_oLogicDocument ? true : false;
+			if (!isLogicDocument)
+			{
+				editor.WordControl.m_oLogicDocument = {
+					DrawingDocument : editor.WordControl.m_oDrawingDocument,
+                    DrawingObjects : null,
+					theme : null,
+					Get_ColorMap : function() { return { color_map : null }; },
+                    IsTrackRevisions : function() { return false; }
+				};
+			}
+
 			AscFormat.ExecuteNoHistory(function(obj) {
 
                 var oShape = new AscFormat.CShape();
@@ -3931,6 +3943,9 @@
 					oApi.WordControl.m_oLogicDocument.TrackRevisions = true;
 
 			}, this, [obj]);
+
+            if (!isLogicDocument)
+				delete editor.WordControl.m_oLogicDocument;
 		};
 	}
 
