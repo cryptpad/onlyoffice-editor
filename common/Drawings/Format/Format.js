@@ -11168,7 +11168,7 @@ function CorrectUniFill(asc_fill, unifill, editorId)
 
                 if (undefined != _colors && undefined != _positions)
                 {
-                    if (_colors.length == _positions.length)
+                    if (_colors.length === _positions.length)
                     {
                         if(ret.fill.colors.length === _colors.length){
                             for (var i = 0; i < _colors.length; i++){
@@ -11179,6 +11179,7 @@ function CorrectUniFill(asc_fill, unifill, editorId)
                             }
                         }
                         else{
+                            ret.fill.colors.length = 0;
                             for (var i = 0; i < _colors.length; i++){
                                 var _gs = new CGs();
                                 _gs.color = CorrectUniColor(_colors[i], _gs.color, editorId);
