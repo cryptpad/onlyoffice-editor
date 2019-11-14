@@ -11603,8 +11603,12 @@
 
 				if (!isOneMerge)//settings for text
 				{
-					rangeStyle.font = value2[numStyle].format;
-					//range.setFont(value2[numStyle].format);
+					var _format = value2[numStyle].format;
+					if(_format) {
+						_format = _format.clone();
+						_format.setRepeat(null);
+					}
+					rangeStyle.font = _format;
 				}
 			} else {
 				rangeStyle.value2 = value2;
