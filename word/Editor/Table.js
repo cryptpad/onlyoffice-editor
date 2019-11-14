@@ -4577,7 +4577,7 @@ CTable.prototype.GetSelectionBounds = function()
 {
 	if (true === this.ApplyToAll || ( true === this.Selection.Use && table_Selection_Cell === this.Selection.Type && this.Selection.Data.length > 0 ))
 	{
-		var Cells_array = this.Internal_Get_SelectionArray();
+		var Cells_array = this.GetSelectionArray();
 
 		var StartPos = Cells_array[0];
 		var EndPos   = Cells_array[Cells_array.length - 1];
@@ -4637,7 +4637,7 @@ CTable.prototype.GetSelectionAnchorPos = function()
 {
 	if (true === this.ApplyToAll || ( true === this.Selection.Use && table_Selection_Cell === this.Selection.Type && this.Selection.Data.length > 0 ))
 	{
-		var Cells_array = this.Internal_Get_SelectionArray();
+		var Cells_array = this.GetSelectionArray();
 
 		var Pos  = Cells_array[0];
 		var Row  = this.Content[Pos.Row];
@@ -5566,7 +5566,7 @@ CTable.prototype.CheckPosInSelection = function(X, Y, CurPage, NearPos)
 	{
 		if ((true === this.Selection.Use && table_Selection_Cell === this.Selection.Type) || true === this.ApplyToAll)
 		{
-			var Cells_array = this.Internal_Get_SelectionArray();
+			var Cells_array = this.GetSelectionArray();
 			for (var Index = 0; Index < Cells_array.length; Index++)
 			{
 				var CurPos      = Cells_array[Index];
@@ -5676,7 +5676,7 @@ CTable.prototype.IsSelectionToEnd = function()
 {
 	if (true === this.ApplyToAll || (true === this.Selection.Use && table_Selection_Cell === this.Selection.Type && this.Selection.Data.length > 0))
 	{
-		var Cells_array = this.Internal_Get_SelectionArray();
+		var Cells_array = this.GetSelectionArray();
 		var Len         = Cells_array.length;
 
 		if (Len < 1)
@@ -5858,7 +5858,7 @@ CTable.prototype.AddToParagraph = function(ParaItem, bRecalculate)
 {
 	if (para_TextPr === ParaItem.Type && ( true === this.ApplyToAll || ( true === this.Selection.Use && table_Selection_Cell === this.Selection.Type && this.Selection.Data.length > 0 ) ))
 	{
-		var Cells_array = this.Internal_Get_SelectionArray();
+		var Cells_array = this.GetSelectionArray();
 		for (var Index = 0; Index < Cells_array.length; Index++)
 		{
 			var Pos  = Cells_array[Index];
@@ -5895,7 +5895,7 @@ CTable.prototype.ClearParagraphFormatting = function(isClearParaPr, isClearTextP
 {
 	if (true === this.ApplyToAll || (true === this.Selection.Use && table_Selection_Cell === this.Selection.Type && this.Selection.Data.length > 0))
 	{
-		var Cells_array = this.Internal_Get_SelectionArray();
+		var Cells_array = this.GetSelectionArray();
 		for (var Index = 0; Index < Cells_array.length; Index++)
 		{
 			var Pos  = Cells_array[Index];
@@ -5917,7 +5917,7 @@ CTable.prototype.PasteFormatting = function(TextPr, ParaPr, ApplyPara)
 {
 	if (true === this.ApplyToAll || ( true === this.Selection.Use && table_Selection_Cell === this.Selection.Type && this.Selection.Data.length > 0 ))
 	{
-		var Cells_array = this.Internal_Get_SelectionArray();
+		var Cells_array = this.GetSelectionArray();
 		for (var Index = 0; Index < Cells_array.length; Index++)
 		{
 			var Pos  = Cells_array[Index];
@@ -5939,7 +5939,7 @@ CTable.prototype.Remove = function(Count, bOnlyText, bRemoveOnlySelection, bOnTe
 {
 	if (true === this.ApplyToAll || ( true === this.Selection.Use && table_Selection_Cell === this.Selection.Type && this.Selection.Data.length > 0 ))
 	{
-		var Cells_array = this.Internal_Get_SelectionArray();
+		var Cells_array = this.GetSelectionArray();
 
 		if (true === bOnTextAdd && Cells_array.length > 0)
 		{
@@ -5963,7 +5963,7 @@ CTable.prototype.Remove = function(Count, bOnlyText, bRemoveOnlySelection, bOnTe
 		}
 		else
 		{
-			var Cells_array = this.Internal_Get_SelectionArray();
+			var Cells_array = this.GetSelectionArray();
 			for (var Index = 0; Index < Cells_array.length; Index++)
 			{
 				var Pos  = Cells_array[Index];
@@ -7368,7 +7368,7 @@ CTable.prototype.SetParagraphAlign = function(Align)
 {
 	if (true === this.ApplyToAll || (true === this.Selection.Use && table_Selection_Cell === this.Selection.Type && this.Selection.Data.length > 0))
 	{
-		var Cells_array = this.Internal_Get_SelectionArray();
+		var Cells_array = this.GetSelectionArray();
 		for (var Index = 0; Index < Cells_array.length; Index++)
 		{
 			var Pos  = Cells_array[Index];
@@ -7390,7 +7390,7 @@ CTable.prototype.SetParagraphDefaultTabSize = function(TabSize)
 {
 	if (true === this.ApplyToAll || (true === this.Selection.Use && table_Selection_Cell === this.Selection.Type && this.Selection.Data.length > 0))
 	{
-		var Cells_array = this.Internal_Get_SelectionArray();
+		var Cells_array = this.GetSelectionArray();
 		for (var Index = 0; Index < Cells_array.length; Index++)
 		{
 			var Pos  = Cells_array[Index];
@@ -7412,7 +7412,7 @@ CTable.prototype.SetParagraphSpacing = function(Spacing)
 {
 	if (true === this.ApplyToAll || ( true === this.Selection.Use && table_Selection_Cell === this.Selection.Type && this.Selection.Data.length > 0 ))
 	{
-		var Cells_array = this.Internal_Get_SelectionArray();
+		var Cells_array = this.GetSelectionArray();
 		for (var Index = 0; Index < Cells_array.length; Index++)
 		{
 			var Pos  = Cells_array[Index];
@@ -7434,7 +7434,7 @@ CTable.prototype.SetParagraphIndent = function(Ind)
 {
 	if (true === this.ApplyToAll || ( true === this.Selection.Use && table_Selection_Cell === this.Selection.Type && this.Selection.Data.length > 0 ))
 	{
-		var Cells_array = this.Internal_Get_SelectionArray();
+		var Cells_array = this.GetSelectionArray();
 		for (var Index = 0; Index < Cells_array.length; Index++)
 		{
 			var Pos  = Cells_array[Index];
@@ -7456,7 +7456,7 @@ CTable.prototype.Set_ParagraphPresentationNumbering = function(NumInfo, Size, Un
 {
 	if (true === this.ApplyToAll || ( true === this.Selection.Use && table_Selection_Cell === this.Selection.Type && this.Selection.Data.length > 0 ))
 	{
-		var Cells_array = this.Internal_Get_SelectionArray();
+		var Cells_array = this.GetSelectionArray();
 		for (var Index = 0; Index < Cells_array.length; Index++)
 		{
 			var Pos  = Cells_array[Index];
@@ -7483,7 +7483,7 @@ CTable.prototype.Increase_ParagraphLevel = function(bIncrease)
 {
 	if (true === this.ApplyToAll || ( true === this.Selection.Use && table_Selection_Cell === this.Selection.Type && this.Selection.Data.length > 0 ))
 	{
-		var Cells_array = this.Internal_Get_SelectionArray();
+		var Cells_array = this.GetSelectionArray();
 		for (var Index = 0; Index < Cells_array.length; Index++)
 		{
 			var Pos  = Cells_array[Index];
@@ -7510,7 +7510,7 @@ CTable.prototype.SetParagraphShd = function(Shd)
 {
 	if (true === this.ApplyToAll || ( true === this.Selection.Use && table_Selection_Cell === this.Selection.Type && this.Selection.Data.length > 0 ))
 	{
-		var Cells_array = this.Internal_Get_SelectionArray();
+		var Cells_array = this.GetSelectionArray();
 		for (var Index = 0; Index < Cells_array.length; Index++)
 		{
 			var Pos  = Cells_array[Index];
@@ -7532,7 +7532,7 @@ CTable.prototype.SetParagraphStyle = function(Name)
 {
 	if (true === this.ApplyToAll || ( true === this.Selection.Use && table_Selection_Cell === this.Selection.Type && this.Selection.Data.length > 0 ))
 	{
-		var Cells_array = this.Internal_Get_SelectionArray();
+		var Cells_array = this.GetSelectionArray();
 		for (var Index = 0; Index < Cells_array.length; Index++)
 		{
 			var Pos  = Cells_array[Index];
@@ -7554,7 +7554,7 @@ CTable.prototype.SetParagraphTabs = function(Tabs)
 {
 	if (true === this.ApplyToAll || ( true === this.Selection.Use && table_Selection_Cell === this.Selection.Type && this.Selection.Data.length > 0 ))
 	{
-		var Cells_array = this.Internal_Get_SelectionArray();
+		var Cells_array = this.GetSelectionArray();
 		for (var Index = 0; Index < Cells_array.length; Index++)
 		{
 			var Pos  = Cells_array[Index];
@@ -7576,7 +7576,7 @@ CTable.prototype.SetParagraphContextualSpacing = function(Value)
 {
 	if (true === this.ApplyToAll || ( true === this.Selection.Use && table_Selection_Cell === this.Selection.Type && this.Selection.Data.length > 0 ))
 	{
-		var Cells_array = this.Internal_Get_SelectionArray();
+		var Cells_array = this.GetSelectionArray();
 		for (var Index = 0; Index < Cells_array.length; Index++)
 		{
 			var Pos  = Cells_array[Index];
@@ -7598,7 +7598,7 @@ CTable.prototype.SetParagraphPageBreakBefore = function(Value)
 {
 	if (true === this.ApplyToAll || ( true === this.Selection.Use && table_Selection_Cell === this.Selection.Type && this.Selection.Data.length > 0 ))
 	{
-		var Cells_array = this.Internal_Get_SelectionArray();
+		var Cells_array = this.GetSelectionArray();
 		for (var Index = 0; Index < Cells_array.length; Index++)
 		{
 			var Pos  = Cells_array[Index];
@@ -7620,7 +7620,7 @@ CTable.prototype.SetParagraphKeepLines = function(Value)
 {
 	if (true === this.ApplyToAll || ( true === this.Selection.Use && table_Selection_Cell === this.Selection.Type && this.Selection.Data.length > 0 ))
 	{
-		var Cells_array = this.Internal_Get_SelectionArray();
+		var Cells_array = this.GetSelectionArray();
 		for (var Index = 0; Index < Cells_array.length; Index++)
 		{
 			var Pos  = Cells_array[Index];
@@ -7642,7 +7642,7 @@ CTable.prototype.SetParagraphKeepNext = function(Value)
 {
 	if (true === this.ApplyToAll || ( true === this.Selection.Use && table_Selection_Cell === this.Selection.Type && this.Selection.Data.length > 0 ))
 	{
-		var Cells_array = this.Internal_Get_SelectionArray();
+		var Cells_array = this.GetSelectionArray();
 		for (var Index = 0; Index < Cells_array.length; Index++)
 		{
 			var Pos  = Cells_array[Index];
@@ -7664,7 +7664,7 @@ CTable.prototype.SetParagraphWidowControl = function(Value)
 {
 	if (true === this.ApplyToAll || ( true === this.Selection.Use && table_Selection_Cell === this.Selection.Type && this.Selection.Data.length > 0 ))
 	{
-		var Cells_array = this.Internal_Get_SelectionArray();
+		var Cells_array = this.GetSelectionArray();
 		for (var Index = 0; Index < Cells_array.length; Index++)
 		{
 			var Pos  = Cells_array[Index];
@@ -7686,7 +7686,7 @@ CTable.prototype.SetParagraphBorders = function(Borders)
 {
 	if (true === this.ApplyToAll || ( true === this.Selection.Use && table_Selection_Cell === this.Selection.Type && this.Selection.Data.length > 0 ))
 	{
-		var Cells_array = this.Internal_Get_SelectionArray();
+		var Cells_array = this.GetSelectionArray();
 		for (var Index = 0; Index < Cells_array.length; Index++)
 		{
 			var Pos  = Cells_array[Index];
@@ -7742,7 +7742,7 @@ CTable.prototype.IncreaseDecreaseFontSize = function(bIncrease)
 {
 	if (true === this.ApplyToAll || ( true === this.Selection.Use && table_Selection_Cell === this.Selection.Type && this.Selection.Data.length > 0 ))
 	{
-		var Cells_array = this.Internal_Get_SelectionArray();
+		var Cells_array = this.GetSelectionArray();
 		for (var Index = 0; Index < Cells_array.length; Index++)
 		{
 			var Pos  = Cells_array[Index];
@@ -10463,7 +10463,7 @@ CTable.prototype.RemoveTableCells = function()
 	if (true === bApplyToInnerTable)
 		return true;
 
-	var arrSelectedCells = this.GetSelectionArray();
+	var arrSelectedCells = this.GetSelectionArray(true);
 
 	var arrDeleteInfo = [];
 	var arrRowsInfo   = [];
@@ -12030,34 +12030,6 @@ CTable.prototype.Internal_CheckNullBorder = function(Border)
 
 	return true;
 };
-CTable.prototype.Internal_Get_SelectionArray = function()
-{
-	var SelectionArray = [];
-	if (true === this.ApplyToAll)
-	{
-		SelectionArray = [];
-		for (var CurRow = 0; CurRow < this.Content.length; CurRow++)
-		{
-			var Row = this.Content[CurRow];
-			for (var CurCell = 0; CurCell < Row.Get_CellsCount(); CurCell++)
-			{
-				var Cell   = Row.Get_Cell(CurCell);
-				var Vmerge = Cell.GetVMerge();
-
-				if (vmerge_Continue === Vmerge)
-					continue;
-
-				SelectionArray.push({Cell : CurCell, Row : CurRow});
-			}
-		}
-	}
-	else if (true === this.Selection.Use && table_Selection_Cell === this.Selection.Type)
-		SelectionArray = this.Selection.Data;
-	else if (this.CurCell)
-		SelectionArray = [{Cell : this.CurCell.Index, Row : this.CurCell.Row.Index}];
-
-	return SelectionArray;
-};
 CTable.prototype.Internal_Get_TableMinWidth = function()
 {
 	var MinWidth = 0;
@@ -12301,11 +12273,90 @@ CTable.prototype.private_UpdateTableRulerOnBorderMove = function(Pos)
 };
 /**
  * Получаем массив позиций ячеек, попавших в выделение
+ * @param {boolean} isAddMergedCells - добавляем ли в массив смерженные вертикально ячейки
  * @returns {{Cell : number, Row : number}[]}
  */
-CTable.prototype.GetSelectionArray = function()
+CTable.prototype.GetSelectionArray = function(isAddMergedCells)
 {
-	return this.Internal_Get_SelectionArray();
+	var arrSelectionArray = [];
+	if (true === this.ApplyToAll)
+	{
+		arrSelectionArray = [];
+		for (var nCurRow = 0, nRowsCount = this.GetRowsCount(); nCurRow < nRowsCount; ++nCurRow)
+		{
+			var oRow = this.GetRow(nCurRow);
+			for (var nCurCell = 0, nCellsCount = oRow.GetCellsCount(); nCurCell < nCellsCount; ++nCurCell)
+			{
+				var oCell = oRow.GetCell(nCurCell);
+				if (vmerge_Continue !== oCell.GetVMerge() || isAddMergedCells)
+				{
+					arrSelectionArray.push({
+						Cell : nCurCell,
+						Row  : nCurRow
+					});
+				}
+			}
+		}
+	}
+	else if (true === this.Selection.Use && table_Selection_Cell === this.Selection.Type)
+	{
+		arrSelectionArray = this.Selection.Data;
+
+		if (isAddMergedCells)
+		{
+			for (var nIndex = 0, nCount = this.Selection.Data.length; nIndex < nCount; ++nIndex)
+			{
+				var nCurRow  = this.Selection.Data[nIndex].Row;
+				var nCurCell = this.Selection.Data[nIndex].Cell;
+
+				var oRow  = this.GetRow(nCurRow);
+				var oCell = oRow.GetCell(nCurCell);
+
+				var arrMergedCells = this.private_GetMergedCells(nCurRow, oRow.GetCellInfo(nCurCell).StartGridCol, oCell.GetGridSpan());
+				for (var nMergeIndex = 0, nMergedCount = arrMergedCells.length; nMergeIndex < nMergedCount; ++nMergeIndex)
+				{
+					var nMCell = arrMergedCells[nMergeIndex].GetIndex();
+					var nMRow  = arrMergedCells[nMergeIndex].GetRow().GetIndex();
+
+					var isAdded = false;
+					for (var nTempIndex = 0, nTempCount = arrSelectionArray.length; nTempIndex < nTempCount; ++nTempIndex)
+					{
+						if (nMRow === arrSelectionArray[nTempIndex].Row && nMCell === arrSelectionArray[nTempIndex].Cell)
+						{
+							isAdded = true;
+							break;
+						}
+						else if (nMRow < arrSelectionArray[nTempIndex].Row || (nMRow === arrSelectionArray[nTempIndex].Row && nMCell < arrSelectionArray[nTempIndex].Cell))
+						{
+							isAdded = true;
+							arrSelectionArray.splice(nTempIndex, 0, {
+								Cell : nMCell,
+								Row  : nMRow
+							});
+							break;
+						}
+					}
+
+					if (!isAdded)
+					{
+						arrSelectionArray.push({
+							Cell : nMCell,
+							Row  : nMRow
+						});
+					}
+				}
+			}
+		}
+	}
+	else if (this.CurCell)
+	{
+		arrSelectionArray = [{
+			Cell : this.CurCell.Index,
+			Row  : this.CurCell.Row.Index
+		}];
+	}
+
+	return arrSelectionArray;
 };
 /**
  * Считаем количество соединенных вертикально ячеек на заданной странице
@@ -12428,7 +12479,7 @@ CTable.prototype.StartSelectionFromCurPos = function()
 };
 CTable.prototype.GetStyleFromFormatting = function()
 {
-    var SelectionArray = this.Internal_Get_SelectionArray();
+    var SelectionArray = this.GetSelectionArray();
     if (SelectionArray.length > 0)
     {
         var Pos = SelectionArray[0];
@@ -15096,7 +15147,7 @@ CTable.prototype.Document_Is_SelectionLocked = function(CheckType, bCheckInner)
 			{
 				this.Lock.Check(this.Get_Id());
 
-				var arrCells = this.Internal_Get_SelectionArray();
+				var arrCells = this.GetSelectionArray();
 				for (var nIndex = 0, nCellsCount = arrCells.length; nIndex < nCellsCount; ++nIndex)
 				{
 					var Pos  = arrCells[nIndex];
