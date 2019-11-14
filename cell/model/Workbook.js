@@ -8710,9 +8710,13 @@
 							oCurFormat.assign(oCurtext.format);
 						} else {
 							oCurFormat.assign(cellfont);
+							oCurFormat.setSkip(false);
+							oCurFormat.setRepeat(false);
 						}
 					} else {
 						oCurFormat.assign(cellfont);
+						oCurFormat.setSkip(false);
+						oCurFormat.setRepeat(false);
 						if (null != oCurtext.format) {
 							oCurFormat.assignFromObject(oCurtext.format);
 						}
