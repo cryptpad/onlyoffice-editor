@@ -10235,9 +10235,9 @@
 						// Если нужно удалить автофильтры - удаляем
 						if (window['AscCommonExcel'].filteringMode) {
 							if (val === c_oAscCleanOptions.All || val === c_oAscCleanOptions.Text) {
-								t.model.autoFilters.isEmptyAutoFilters(range);
+								t.model.autoFilters.isEmptyAutoFilters(range.bbox);
 							} else if (val === c_oAscCleanOptions.Format) {
-								t.model.autoFilters.cleanFormat(range);
+								t.model.autoFilters.cleanFormat(range.bbox);
 							}
 						}
 
