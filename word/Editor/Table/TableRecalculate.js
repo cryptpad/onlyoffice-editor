@@ -522,11 +522,7 @@ CTable.prototype.private_RecalculateGrid = function()
 				}
 				else
 				{
-					if (MinMargin[CurGridCol] < CellMarginsLeftW)
-						MinMargin[CurGridCol] = CellMarginsLeftW;
-
-					if (MinMargin[CurGridCol + GridSpan - 1] < CellMarginsRightW)
-						MinMargin[CurGridCol + GridSpan - 1] = CellMarginsRightW;
+					// Мы не можем быть уверены в какой промежуток попадают отступы ячейки
 				}
 
                 // На самом деле, случай 1 === GridSpan нормально обработается и как случай GridSpan > 1,
