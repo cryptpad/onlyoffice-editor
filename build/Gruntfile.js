@@ -336,6 +336,8 @@ module.exports = function(grunt) {
 							cwd: '../common/',
 							src: [
 								'Images/*',
+								'Images/placeholders/*',
+								'Images/content_controls/*',
 								'Native/*.js',
 								'libfont/js/fonts.*',
 								'libfont/wasm/fonts.*'
