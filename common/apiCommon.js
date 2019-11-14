@@ -3724,17 +3724,6 @@
 
 		this.privateGenerateShape = function(obj)
 		{
-			var isLogicDocument = editor.WordControl.m_oLogicDocument ? true : false;
-			if (!isLogicDocument)
-			{
-				editor.WordControl.m_oLogicDocument = {
-					DrawingDocument : editor.WordControl.m_oDrawingDocument,
-                    DrawingObjects : null,
-					theme : null,
-					Get_ColorMap : function() { return { color_map : null }; },
-                    IsTrackRevisions : function() { return false; }
-				};
-			}
 
 			AscFormat.ExecuteNoHistory(function(obj) {
 
@@ -3872,12 +3861,15 @@
 					oContent.Internal_Content_Add(oContent.Content.length, oNewParagraph);
 				}
 
+				var bLoad = AscCommon.g_oIdCounter.m_bLoad
+				AscCommon.g_oIdCounter.Set_Load(false);
 				oShape.recalculate();
 				if (oShape.bWordShape)
 				{
 					oShape.recalculateText();
 				}
 
+				AscCommon.g_oIdCounter.Set_Load(bLoad);
 				var oldShowParaMarks;
 				if (window.editor)
 				{
@@ -3944,8 +3936,6 @@
 
 			}, this, [obj]);
 
-            if (!isLogicDocument)
-				delete editor.WordControl.m_oLogicDocument;
 		};
 	}
 
