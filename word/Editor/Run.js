@@ -7413,6 +7413,11 @@ ParaRun.prototype.Internal_Compile_Pr = function ()
 		}
 	}
 
+	if (TextPr.TextFill)
+		TextPr.TextFill.check(this.Paragraph.Get_Theme(), this.Paragraph.Get_ColorMap());
+	else if (TextPr.Unifill)
+		TextPr.Unifill.check(this.Paragraph.Get_Theme(), this.Paragraph.Get_ColorMap());
+
 	// Для совместимости со старыми версиями запишем FontFamily
 	TextPr.FontFamily.Name  = TextPr.RFonts.Ascii.Name;
 	TextPr.FontFamily.Index = TextPr.RFonts.Ascii.Index;
