@@ -2007,7 +2007,7 @@
     {
     };
 
-    baseEditorsApi.prototype["registerPlaceholderCallback"] = function(type, callback)
+    baseEditorsApi.prototype["asc_registerPlaceholderCallback"] = function(type, callback)
     {
     	if (this.WordControl && this.WordControl.m_oDrawingDocument && this.WordControl.m_oDrawingDocument.placeholders)
 		{

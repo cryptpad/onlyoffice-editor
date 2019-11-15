@@ -420,14 +420,14 @@
 		this.callbacks[type] = callback;
 	};
 
-    Placeholders.prototype.callCallback = function(type, obj)
+    Placeholders.prototype.callCallback = function(type, obj, xCoord, yCoord)
     {
-        this.callbacks[type] && this.callbacks[type](obj);
+        this.callbacks[type] && this.callbacks[type](obj, xCoord, yCoord);
     };
 
     Placeholders.prototype.closeCallback = function(type, obj)
     {
-        // TODO:
+        this.document.m_oWordControl.m_oApi.sendEvent("asc_onHidePlaceholderActions");
     };
 
     Placeholders.prototype.closeAllActive = function()
