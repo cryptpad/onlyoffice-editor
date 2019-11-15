@@ -6110,27 +6110,10 @@ CPresentation.prototype =
             var ret = oController.getParagraphTextPr();
             if(ret)
             {
-
-                if(ret.RFonts){
-                    var oTheme = oController.getTheme();
-                    if(oTheme)
-                    {
-                        if(ret.RFonts.Ascii){
-                            ret.RFonts.Ascii.Name = oTheme.themeElements.fontScheme.checkFont(ret.RFonts.Ascii.Name);
-                        }
-                        if(ret.RFonts.EastAsia){
-                            ret.RFonts.EastAsia.Name = oTheme.themeElements.fontScheme.checkFont(ret.RFonts.EastAsia.Name);
-                        }
-                        if(ret.RFonts.HAnsi){
-                            ret.RFonts.HAnsi.Name = oTheme.themeElements.fontScheme.checkFont(ret.RFonts.HAnsi.Name);
-                        }
-                        if(ret.RFonts.CS){
-                            ret.RFonts.CS.Name = oTheme.themeElements.fontScheme.checkFont(ret.RFonts.CS.Name);
-                        }
-                        if(ret.FontFamily && ret.FontFamily.Name){
-                            ret.FontFamily.Name = oTheme.themeElements.fontScheme.checkFont(ret.FontFamily.Name);
-                        }
-                    }
+                var oTheme = oController.getTheme();
+                if(oTheme)
+                {
+                    ret.ReplaceThemeFonts(oTheme.themeElements.fontScheme);
                 }
                 return ret;
             }
@@ -8050,21 +8033,7 @@ CPresentation.prototype =
                 }
                 editor.textArtPreviewManager.clear();
                 var theme = graphic_objects.getTheme();
-                if(text_pr.RFonts)
-                {
-                    if(text_pr.RFonts.Ascii)
-                        text_pr.RFonts.Ascii.Name    = theme.themeElements.fontScheme.checkFont(text_pr.RFonts.Ascii.Name);
-                    if(text_pr.RFonts.EastAsia)
-                        text_pr.RFonts.EastAsia.Name = theme.themeElements.fontScheme.checkFont(text_pr.RFonts.EastAsia.Name);
-                    if(text_pr.RFonts.HAnsi)
-                        text_pr.RFonts.HAnsi.Name    = theme.themeElements.fontScheme.checkFont(text_pr.RFonts.HAnsi.Name);
-                    if(text_pr.RFonts.CS)
-                        text_pr.RFonts.CS.Name       = theme.themeElements.fontScheme.checkFont(text_pr.RFonts.CS.Name);
-                }
-                if(text_pr.FontFamily)
-                {
-                    text_pr.FontFamily.Name = theme.themeElements.fontScheme.checkFont(text_pr.FontFamily.Name);
-                }
+                text_pr.ReplaceThemeFonts(theme.themeElements.fontScheme);
                 editor.sync_PrLineSpacingCallBack(para_pr.Spacing);
                 if(!target_content)
                 {

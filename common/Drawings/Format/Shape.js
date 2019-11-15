@@ -6124,20 +6124,7 @@ function checkDrawingsTransformBeforePaste(oEndContent, oSourceContent, oTempPar
 
 
 function SaveSourceFormattingTextPr(oTextPr, oTheme, oColorMap) {
-    if(oTextPr.RFonts){
-        if(oTextPr.RFonts.Ascii){
-            oTextPr.RFonts.Ascii.Name = oTheme.themeElements.fontScheme.checkFont(oTextPr.RFonts.Ascii.Name);
-        }
-        if(oTextPr.RFonts.EastAsia){
-            oTextPr.RFonts.EastAsia.Name = oTheme.themeElements.fontScheme.checkFont(oTextPr.RFonts.EastAsia.Name);
-        }
-        if(oTextPr.RFonts.HAnsi){
-            oTextPr.RFonts.HAnsi.Name = oTheme.themeElements.fontScheme.checkFont(oTextPr.RFonts.HAnsi.Name);
-        }
-        if(oTextPr.RFonts.CS){
-            oTextPr.RFonts.CS.Name = oTheme.themeElements.fontScheme.checkFont(oTextPr.RFonts.CS.Name);
-        }
-    }
+    oTextPr.ReplaceThemeFonts(oTheme.themeElements.fontScheme);
     if(oTextPr.Unifill){
         oTextPr.Unifill.check(oTheme, oColorMap);
         oTextPr.Unifill = oTextPr.Unifill.saveSourceFormatting();

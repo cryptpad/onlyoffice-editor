@@ -6428,27 +6428,10 @@ CDocument.prototype.GetCalculatedTextPr = function()
 	var ret = this.Controller.GetCalculatedTextPr();
     if(ret)
     {
-
-        if(ret.RFonts){
-            var oTheme = this.Get_Theme();
-            if(oTheme)
-            {
-                if(ret.RFonts.Ascii){
-                    ret.RFonts.Ascii.Name = oTheme.themeElements.fontScheme.checkFont(ret.RFonts.Ascii.Name);
-                }
-                if(ret.RFonts.EastAsia){
-                    ret.RFonts.EastAsia.Name = oTheme.themeElements.fontScheme.checkFont(ret.RFonts.EastAsia.Name);
-                }
-                if(ret.RFonts.HAnsi){
-                    ret.RFonts.HAnsi.Name = oTheme.themeElements.fontScheme.checkFont(ret.RFonts.HAnsi.Name);
-                }
-                if(ret.RFonts.CS){
-                    ret.RFonts.CS.Name = oTheme.themeElements.fontScheme.checkFont(ret.RFonts.CS.Name);
-                }
-                if(ret.FontFamily && ret.FontFamily.Name){
-                    ret.FontFamily.Name = oTheme.themeElements.fontScheme.checkFont(ret.FontFamily.Name);
-                }
-            }
+        var oTheme = this.Get_Theme();
+        if(oTheme)
+        {
+            ret.ReplaceThemeFonts(oTheme.themeElements.fontScheme);
         }
         return ret;
     }
@@ -6666,21 +6649,7 @@ CDocument.prototype.Interface_Update_TextPr = function()
 		var theme = this.Get_Theme();
 		if (theme && theme.themeElements && theme.themeElements.fontScheme)
 		{
-			if (TextPr.FontFamily)
-			{
-				TextPr.FontFamily.Name = theme.themeElements.fontScheme.checkFont(TextPr.FontFamily.Name);
-			}
-			if (TextPr.RFonts)
-			{
-				if (TextPr.RFonts.Ascii)
-					TextPr.RFonts.Ascii.Name = theme.themeElements.fontScheme.checkFont(TextPr.RFonts.Ascii.Name);
-				if (TextPr.RFonts.EastAsia)
-					TextPr.RFonts.EastAsia.Name = theme.themeElements.fontScheme.checkFont(TextPr.RFonts.EastAsia.Name);
-				if (TextPr.RFonts.HAnsi)
-					TextPr.RFonts.HAnsi.Name = theme.themeElements.fontScheme.checkFont(TextPr.RFonts.HAnsi.Name);
-				if (TextPr.RFonts.CS)
-					TextPr.RFonts.CS.Name = theme.themeElements.fontScheme.checkFont(TextPr.RFonts.CS.Name);
-			}
+            TextPr.ReplaceThemeFonts(theme.themeElements.fontScheme);
 		}
 		if (TextPr.Unifill)
 		{

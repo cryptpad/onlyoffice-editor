@@ -8552,23 +8552,7 @@
         var textPr = this.objectRender.controller.getParagraphTextPr();
         var theme = this.objectRender.controller.getTheme();
         if (textPr && theme && theme.themeElements && theme.themeElements.fontScheme) {
-            if (textPr.FontFamily) {
-                textPr.FontFamily.Name = theme.themeElements.fontScheme.checkFont(textPr.FontFamily.Name);
-            }
-            if (textPr.RFonts) {
-                if (textPr.RFonts.Ascii) {
-                    textPr.RFonts.Ascii.Name = theme.themeElements.fontScheme.checkFont(textPr.RFonts.Ascii.Name);
-                }
-                if (textPr.RFonts.EastAsia) {
-                    textPr.RFonts.EastAsia.Name = theme.themeElements.fontScheme.checkFont(textPr.RFonts.EastAsia.Name);
-                }
-                if (textPr.RFonts.HAnsi) {
-                    textPr.RFonts.HAnsi.Name = theme.themeElements.fontScheme.checkFont(textPr.RFonts.HAnsi.Name);
-                }
-                if (textPr.RFonts.CS) {
-                    textPr.RFonts.CS.Name = theme.themeElements.fontScheme.checkFont(textPr.RFonts.CS.Name);
-                }
-            }
+            textPr.ReplaceThemeFonts(theme.themeElements.fontScheme);
         }
 
         var paraPr = this.objectRender.controller.getParagraphParaPr();

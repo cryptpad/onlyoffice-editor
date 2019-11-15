@@ -5446,17 +5446,39 @@ CDocumentContent.prototype.GetTableProps = function()
 CDocumentContent.prototype.GetCalculatedParaPr = function()
 {
 	var Result_ParaPr = new CParaPr();
+	var FirstTextPr, FirstTextPrTmp, oBullet;
 
 	if (true === this.ApplyToAll)
 	{
 		var StartPr = this.Content[0].GetCalculatedParaPr();
 		var Pr      = StartPr.Copy();
 		Pr.Locked   = StartPr.Locked;
-
+		if(this.bPresentation)
+		{
+			if(this.Content[0].GetType() === type_Paragraph)
+			{
+				FirstTextPr = this.Content[0].Get_FirstTextPr2();
+			}
+		}
 		for (var Index = 1; Index < this.Content.length; Index++)
 		{
 			var TempPr = this.Content[Index].GetCalculatedParaPr();
 			Pr         = Pr.Compare(TempPr);
+			if(this.bPresentation)
+			{
+				if(this.Content[Index].GetType() === type_Paragraph)
+				{
+					FirstTextPrTmp = this.Content[Index].Get_FirstTextPr2();
+					if(!FirstTextPr)
+					{
+						FirstTextPr = FirstTextPrTmp;
+					}
+					else
+					{
+						FirstTextPr = FirstTextPr.Compare(FirstTextPrTmp);
+					}
+				}
+			}
 		}
 
 		if (Pr.Ind.Left == UnknownValue)
@@ -5473,6 +5495,17 @@ CDocumentContent.prototype.GetCalculatedParaPr = function()
 		if (Result_ParaPr.Shd && Result_ParaPr.Shd.Unifill)
 		{
 			Result_ParaPr.Shd.Unifill.check(this.Get_Theme(), this.Get_ColorMap());
+		}
+		if(Result_ParaPr.Bullet)
+		{
+			oBullet = Result_ParaPr.Bullet;
+			if(oBullet)
+			{
+				if(oBullet.bulletColor &&  oBullet.bulletColor.UniColor)
+				{
+					oBullet.bulletColor.UniColor.check(this.Get_Theme(), this.Get_ColorMap());
+				}
+			}
 		}
 		return Result_ParaPr;
 	}
@@ -5498,10 +5531,32 @@ CDocumentContent.prototype.GetCalculatedParaPr = function()
 			var Pr      = StartPr.Copy();
 			Pr.Locked   = StartPr.Locked;
 
+			if(this.bPresentation)
+			{
+				if(this.Content[StartPos].GetType() === type_Paragraph)
+				{
+					FirstTextPr = this.Content[StartPos].Get_FirstTextPr2();
+				}
+			}
 			for (var Index = StartPos + 1; Index <= EndPos; Index++)
 			{
 				var TempPr = this.Content[Index].GetCalculatedParaPr();
 				Pr         = Pr.Compare(TempPr);
+				if(this.bPresentation)
+				{
+					if(this.Content[Index].GetType() === type_Paragraph)
+					{
+						FirstTextPrTmp = this.Content[Index].Get_FirstTextPr2();
+						if(!FirstTextPr)
+						{
+							FirstTextPr = FirstTextPrTmp;
+						}
+						else
+						{
+							FirstTextPr = FirstTextPr.Compare(FirstTextPrTmp);
+						}
+					}
+				}
 			}
 
 			if (undefined === Pr.Ind.Left)
@@ -5523,16 +5578,42 @@ CDocumentContent.prototype.GetCalculatedParaPr = function()
 			{
 				Result_ParaPr             = Item.GetCalculatedParaPr().Copy();
 				Result_ParaPr.CanAddTable = (true === Result_ParaPr.Locked ? Item.IsCursorAtEnd() : true) && !(this.bPresentation === true);
+				if(this.bPresentation)
+				{
+					FirstTextPr = Item.Get_FirstTextPr2();
+				}
 			}
 			else
 			{
 				Result_ParaPr = Item.GetCalculatedParaPr();
 			}
 		}
-
 		if (Result_ParaPr.Shd && Result_ParaPr.Shd.Unifill)
 		{
 			Result_ParaPr.Shd.Unifill.check(this.Get_Theme(), this.Get_ColorMap());
+		}
+		if(Result_ParaPr.Bullet)
+		{
+			oBullet = Result_ParaPr.Bullet;
+			var oTheme = this.Get_Theme();
+			var oColorMap = this.Get_ColorMap();
+			if(oBullet)
+			{
+				if(oBullet.bulletColor &&  oBullet.bulletColor.UniColor)
+				{
+					oBullet.bulletColor.UniColor.check(oTheme, oColorMap);
+				}
+			}
+			if(FirstTextPr)
+			{
+				Result_ParaPr.FirstTextPr = FirstTextPr;
+
+				if(FirstTextPr.Unifill)
+				{
+					FirstTextPr.Unifill.check(oTheme, oColorMap);
+				}
+				FirstTextPr.ReplaceThemeFonts(oTheme.themeElements.fontScheme);
+			}
 		}
 		return Result_ParaPr;
 	}
@@ -5746,17 +5827,7 @@ CDocumentContent.prototype.Interface_Update_ParaPr    = function()
 			editor.Update_ParaTab(DefaultTab, ParaPr.Tabs);
 		}
 
-        if(ParaPr.Bullet)
-		{
-			var oBullet = ParaPr.Bullet;
-			if(oBullet)
-			{
-				if(oBullet.bulletColor &&  oBullet.bulletColor.UniColor)
-				{
-					oBullet.bulletColor.UniColor.check(this.Get_Theme(), this.Get_ColorMap());
-				}
-			}
-		}
+
         if (this.LogicDocument)
         {
             var SelectedInfo = this.LogicDocument.GetSelectedElementsInfo();
@@ -5790,21 +5861,7 @@ CDocumentContent.prototype.Interface_Update_TextPr    = function()
         var theme = this.Get_Theme();
         if (theme && theme.themeElements && theme.themeElements.fontScheme)
         {
-            if (TextPr.FontFamily)
-            {
-                TextPr.FontFamily.Name = theme.themeElements.fontScheme.checkFont(TextPr.FontFamily.Name);
-            }
-            if (TextPr.RFonts)
-            {
-                if (TextPr.RFonts.Ascii)
-                    TextPr.RFonts.Ascii.Name = theme.themeElements.fontScheme.checkFont(TextPr.RFonts.Ascii.Name);
-                if (TextPr.RFonts.EastAsia)
-                    TextPr.RFonts.EastAsia.Name = theme.themeElements.fontScheme.checkFont(TextPr.RFonts.EastAsia.Name);
-                if (TextPr.RFonts.HAnsi)
-                    TextPr.RFonts.HAnsi.Name = theme.themeElements.fontScheme.checkFont(TextPr.RFonts.HAnsi.Name);
-                if (TextPr.RFonts.CS)
-                    TextPr.RFonts.CS.Name = theme.themeElements.fontScheme.checkFont(TextPr.RFonts.CS.Name);
-            }
+			TextPr.ReplaceThemeFonts(theme.themeElements.fontScheme);
         }
         editor.UpdateTextPr(TextPr);
     }

@@ -1867,9 +1867,12 @@
 			this.BulletSize = undefined;
 			this.BulletColor = undefined;
 			this.NumStartAt = undefined;
+			this.BulletFont = undefined;
+			this.BulletSymbol = undefined;
 			var oBullet = obj.Bullet;
 			if(oBullet)
 			{
+				var FirstTextPr = obj.FirstTextPr;
 				this.BulletSize = 100;
 				if(oBullet.bulletSize)
 				{
@@ -1904,11 +1907,22 @@
 				}
 				else 
 				{
-					if(obj.Unifill)
+					if(FirstTextPr && FirstTextPr.Unifill)
 					{
-						var RGBA = obj.Unifill.getRGBAColor();
-						this.BulletColor = CreateAscColorCustom(RGBA.R, RGBA.G, RGBA.B);
-					}	
+						if(FirstTextPr.Unifill.fill instanceof AscFormat.CSolidFill && FirstTextPr.Unifill.fill.color)
+						{
+							this.BulletColor = CreateAscColor(FirstTextPr.Unifill.fill.color);
+						}
+						else
+						{
+							var RGBA = FirstTextPr.Unifill.getRGBAColor();
+							this.BulletColor = CreateAscColorCustom(RGBA.R, RGBA.G, RGBA.B);
+						}
+					}
+					else
+					{
+						this.BulletColor = CreateAscColorCustom(0, 0, 0);
+					}
 				}
 
 				if(oBullet.bulletType)
@@ -1917,6 +1931,17 @@
 					{
 						this.NumStartAt = AscFormat.isRealNumber(oBullet.bulletType.startAt) ? Math.max(1, oBullet.bulletType.startAt) : 1;
 					}
+				}
+				if(oBullet.bulletTypeface
+					&& oBullet.bulletTypeface.type === AscFormat.BULLET_TYPE_TYPEFACE_BUFONT
+					&& typeof oBullet.bulletTypeface.typeface === "string"
+					&& oBullet.bulletTypeface.typeface.length > 0)
+				{
+					this.BulletFont = oBullet.bulletTypeface.typeface;
+				}
+				else
+				{
+					
 				}
 			}
 		} else {

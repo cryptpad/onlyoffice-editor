@@ -12610,6 +12610,39 @@ CTextPr.prototype.Compare = function(TextPr)
 
 	return this;
 };
+
+CTextPr.prototype.ReplaceThemeFonts = function(oFontScheme)
+{
+	if(this.RFonts && oFontScheme)
+	{
+		if(this.RFonts.Ascii)
+		{
+			this.RFonts.Ascii.Name     = oFontScheme.checkFont(this.RFonts.Ascii.Name);
+			this.RFonts.Ascii.Index    =  -1;
+		}
+		if(this.RFonts.EastAsia)
+		{
+			this.RFonts.EastAsia.Name  = oFontScheme.checkFont(this.RFonts.EastAsia.Name);
+			this.RFonts.EastAsia.Index = -1;
+		}
+		if(this.RFonts.HAnsi)
+		{
+			this.RFonts.HAnsi.Name     = oFontScheme.checkFont(this.RFonts.HAnsi.Name);
+			this.RFonts.HAnsi.Index    = -1;
+		}
+		if(this.RFonts.CS)
+		{
+			this.RFonts.CS.Name        = oFontScheme.checkFont(this.RFonts.CS.Name);
+			this.RFonts.CS.Index       = -1;
+		}
+	}
+	if(this.FontFamily)
+	{
+		this.FontFamily.Name = oFontScheme.checkFont(this.FontFamily.Name);
+		this.FontFamily.Index = -1;
+	}
+};
+
 CTextPr.prototype.Write_ToBinary = function(Writer)
 {
 	var StartPos = Writer.GetCurPosition();

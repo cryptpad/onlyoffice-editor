@@ -1633,7 +1633,6 @@ background-repeat: no-repeat;\
 		ParaPr.SmallCaps   = TextPr.SmallCaps;
 		ParaPr.TextSpacing = TextPr.Spacing;
 		ParaPr.Position    = TextPr.Position;
-		ParaPr.Unifill     = TextPr.Unifill;
 		ParaPr.ListType = AscFormat.fGetListTypeFromBullet(ParaPr.Bullet);
 		this.sync_ParaSpacingLine(ParaPr.Spacing);
 		this.Update_ParaInd(ParaPr.Ind);
