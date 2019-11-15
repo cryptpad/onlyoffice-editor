@@ -2007,6 +2007,29 @@
     {
     };
 
+    baseEditorsApi.prototype["asc_insertSymbol"] = function(familyName, code)
+    {
+        AscFonts.FontPickerByCharacter.checkTextLight([code], true);
+
+        var fonts = [new AscFonts.CFont(g_fontApplication.GetFontInfoName(familyName), 0, "", 0, null)];
+        AscFonts.FontPickerByCharacter.extendFonts(fonts);
+
+        if (false === AscCommon.g_font_loader.CheckFontsNeedLoading(fonts))
+        {
+            this.Begin_CompositeInput();
+            this.Replace_CompositeText([code]);
+            this.End_CompositeInput();
+            return;
+        }
+
+        this.asyncMethodCallback = function() {
+            this.Begin_CompositeInput();
+            this.Replace_CompositeText([code]);
+            this.End_CompositeInput();
+        };
+        AscCommon.g_font_loader.LoadDocumentFonts2(fonts);
+    };
+
     baseEditorsApi.prototype["asc_registerPlaceholderCallback"] = function(type, callback)
     {
     	if (this.WordControl && this.WordControl.m_oDrawingDocument && this.WordControl.m_oDrawingDocument.placeholders)
