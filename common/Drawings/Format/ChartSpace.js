@@ -16652,221 +16652,222 @@ function parseSeriesHeaders (ws, rangeBBox) {
 	return headers;
 }
 
+
+function getNumCache(ws, c1, c2, r1, r2) {
+
+        // (c1 == c2) || (r1 == r2)
+        var cache = [], cell, item;
+
+        if ( c1 == c2 ) {		// vertical cache
+            for (var row = r1; row <= r2; row++) {
+                cell = ws.getCell3(row, c1);
+
+                item = {};
+                item.numFormatStr = cell.getNumFormatStr();
+                item.isDateTimeFormat = cell.getNumFormat().isDateTimeFormat();
+                item.val = cell.getValue();
+                item.isHidden = ws.getColHidden(c1) || ws.getRowHidden(row);
+                cache.push(item);
+            }
+        } else /*r1 == r2*/ {		// horizontal cache
+            for (var col = c1; col <= c2; col++) {
+                cell = ws.getCell3(r1, col, 0);
+                item = {};
+                item.numFormatStr = cell.getNumFormatStr();
+                item.isDateTimeFormat = cell.getNumFormat().isDateTimeFormat();
+                item.val = cell.getValue();
+                item.isHidden = ws.getColHidden(col) || ws.getRowHidden(r1);
+                cache.push(item);
+            }
+        }
+
+        return cache;
+    }
+
 function getChartSeries (worksheet, options, catHeadersBBox, serHeadersBBox) {
 	var ws, range;
-	var result = parserHelp.parse3DRef(options.getRange());
-	if (result) {
-		ws = worksheet.workbook.getWorksheetByName(result.sheet);
-		if (ws)
-			range = ws.getRange2(result.range);
-	}
-
-	if (!range)
-		return null;
-
-	var bbox = range.getBBox0();
-	var nameIndex = 1;
-
-	var i, series = [];
-
-	function getNumCache(c1, c2, r1, r2) {
-
-		// (c1 == c2) || (r1 == r2)
-		var cache = [], cell, item;
-
-		if ( c1 == c2 ) {		// vertical cache
-			for (var row = r1; row <= r2; row++) {
-				cell = ws.getCell3(row, c1);
-
-				item = {};
-				item.numFormatStr = cell.getNumFormatStr();
-				item.isDateTimeFormat = cell.getNumFormat().isDateTimeFormat();
-				item.val = cell.getValue();
-				item.isHidden = ws.getColHidden(c1) || ws.getRowHidden(row);
-				cache.push(item);
-			}
-		} else /*r1 == r2*/ {		// horizontal cache
-			for (var col = c1; col <= c2; col++) {
-				cell = ws.getCell3(r1, col, 0);
-				item = {};
-				item.numFormatStr = cell.getNumFormatStr();
-				item.isDateTimeFormat = cell.getNumFormat().isDateTimeFormat();
-				item.val = cell.getValue();
-				item.isHidden = ws.getColHidden(col) || ws.getRowHidden(r1);
-				cache.push(item);
-			}
-		}
-
-		return cache;
-	}
-
-	var parsedHeaders = parseSeriesHeaders(ws, bbox);
-
-    var data_bbox = {r1: bbox.r1, r2: bbox.r2, c1: bbox.c1, c2: bbox.c2};
-    if(parsedHeaders.bTop)
+    var nameIndex = 1;
+    var aRanges = options.getRanges();
+    var i, series = [];
+    for(var nRangeIndex = 0; nRangeIndex < aRanges.length; ++nRangeIndex)
     {
-        ++data_bbox.r1;
-    }
-    else
-    {
-        if(!options.getInColumns())
+        var result = parserHelp.parse3DRef(aRanges[nRangeIndex]);
+        if (result) {
+            ws = worksheet.workbook.getWorksheetByName(result.sheet);
+            if (ws)
+                range = ws.getRange2(result.range);
+        }
+
+        if (!range)
+            continue;
+
+        var bbox = range.getBBox0();
+        var parsedHeaders = parseSeriesHeaders(ws, bbox);
+        var data_bbox = {r1: bbox.r1, r2: bbox.r2, c1: bbox.c1, c2: bbox.c2};
+        if(parsedHeaders.bTop)
         {
-            if(catHeadersBBox && catHeadersBBox.c1 === data_bbox.c1 && catHeadersBBox.c2 === data_bbox.c2 && catHeadersBBox.r1 === catHeadersBBox.r2 && catHeadersBBox.r1 === data_bbox.r1)
-            {
-                ++data_bbox.r1;
-            }
+            ++data_bbox.r1;
         }
         else
         {
-            if(serHeadersBBox && serHeadersBBox.c1 === data_bbox.c1 && serHeadersBBox.c2 === data_bbox.c2 && serHeadersBBox.r1 === serHeadersBBox.r2 && serHeadersBBox.r1 === data_bbox.r1)
+            if(!options.getInColumns())
             {
-                ++data_bbox.r1;
+                if(catHeadersBBox && catHeadersBBox.c1 === data_bbox.c1 && catHeadersBBox.c2 === data_bbox.c2 && catHeadersBBox.r1 === catHeadersBBox.r2 && catHeadersBBox.r1 === data_bbox.r1)
+                {
+                    ++data_bbox.r1;
+                }
             }
-        }
-    }
-
-    if(parsedHeaders.bLeft)
-    {
-        ++data_bbox.c1;
-    }
-    else
-    {
-        if(!options.getInColumns())
-        {
-            if(serHeadersBBox && serHeadersBBox.c1 === serHeadersBBox.c2 && serHeadersBBox.r1 === data_bbox.r1 && serHeadersBBox.r2 === data_bbox.r2 && serHeadersBBox.c1 === data_bbox.c1)
-            {
-                ++data_bbox.c1;
-            }
-        }
-        else
-        {
-            if(catHeadersBBox && catHeadersBBox.c1 === catHeadersBBox.c2 && catHeadersBBox.r1 === data_bbox.r1 && catHeadersBBox.r2 === data_bbox.r2 && catHeadersBBox.c1 === data_bbox.c1)
-            {
-                ++data_bbox.c1;
-            }
-        }
-    }
-
-	var bIsScatter = (Asc.c_oAscChartTypeSettings.scatter <= options.type && options.type <= Asc.c_oAscChartTypeSettings.scatterSmoothMarker);
-	var top_header_bbox, left_header_bbox, ser, startCell, endCell, formulaCell, start, end, formula, numCache, sStartCellId, sEndCellId;
-	if (!options.getInColumns()) {
-		if(parsedHeaders.bTop)
-			top_header_bbox = {r1: bbox.r1, c1: data_bbox.c1, r2: bbox.r1, c2: data_bbox.c2};
-		else if(catHeadersBBox && catHeadersBBox.c1 === data_bbox.c1 && catHeadersBBox.c2 === data_bbox.c2 && catHeadersBBox.r1 === catHeadersBBox.r2)
-			top_header_bbox = {r1: catHeadersBBox.r1, c1: catHeadersBBox.c1, r2: catHeadersBBox.r1, c2:catHeadersBBox.c2};
-
-		if(parsedHeaders.bLeft)
-			left_header_bbox = {r1: data_bbox.r1, r2: data_bbox.r2, c1: bbox.c1, c2: bbox.c1};
-		else if(serHeadersBBox && serHeadersBBox.c1 === serHeadersBBox.c2 && serHeadersBBox.r1 === data_bbox.r1 && serHeadersBBox.r2 === data_bbox.r2)
-			left_header_bbox = {r1: serHeadersBBox.r1, c1: serHeadersBBox.c1, r2: serHeadersBBox.r1, c2: serHeadersBBox.c2};
-
-		for (i = data_bbox.r1; i <= data_bbox.r2; ++i) {
-			ser = new AscFormat.asc_CChartSeria();
-			startCell = new CellAddress(i, data_bbox.c1, 0);
-			endCell = new CellAddress(i, data_bbox.c2, 0);
-
-			ser.isHidden = !!ws.getRowHidden(i);
-
-			// Val
-            sStartCellId = startCell.getIDAbsolute();
-            sEndCellId = endCell.getIDAbsolute();
-            ser.Val.Formula = parserHelp.get3DRef(ws.sName, sStartCellId === sEndCellId ?
-                sStartCellId : sStartCellId + ':' + sEndCellId);
-			ser.Val.NumCache = getNumCache(data_bbox.c1, data_bbox.c2, i, i);
-
-			if(left_header_bbox)
-			{
-				formulaCell = new CellAddress( i, left_header_bbox.c1, 0 );
-				ser.TxCache.Formula = parserHelp.get3DRef(ws.sName, formulaCell.getIDAbsolute());
-			}
-			// xVal
-
-			if(top_header_bbox)
-			{
-				start = new CellAddress(top_header_bbox.r1, top_header_bbox.c1, 0);
-				end = new CellAddress(top_header_bbox.r1, top_header_bbox.c2, 0);
-
-				formula = parserHelp.get3DRef(ws.sName, start.getIDAbsolute() + ':' + end.getIDAbsolute());
-				numCache = getNumCache(top_header_bbox.c1, top_header_bbox.c2, top_header_bbox.r1, top_header_bbox.r1 );
-
-				if (bIsScatter)
-				{
-					ser.xVal.Formula = formula;
-					ser.xVal.NumCache = numCache;
-				}
-				else
-				{
-					ser.Cat.Formula = formula;
-					ser.Cat.NumCache = numCache;
-				}
-			}
-
-			ser.TxCache.Tx = left_header_bbox ? (ws.getCell3(i, left_header_bbox.c1).getValue()) :
-				(AscCommon.translateManager.getValue('Series') + " " + nameIndex);
-			series.push(ser);
-			nameIndex++;
-		}
-	} else {
-		if(parsedHeaders.bTop)
-			top_header_bbox = {r1: bbox.r1, c1: data_bbox.c1, r2: bbox.r1, c2: data_bbox.c2};
-		else if(serHeadersBBox && serHeadersBBox.r1 === serHeadersBBox.r2 && serHeadersBBox.c1 === data_bbox.c1 && serHeadersBBox.c2 === data_bbox.c2)
-			top_header_bbox = {r1: serHeadersBBox.r1, c1: serHeadersBBox.c1, r2: serHeadersBBox.r2, c2: serHeadersBBox.c2};
-
-		if(parsedHeaders.bLeft)
-			left_header_bbox = {r1: data_bbox.r1, c1: bbox.c1, r2: data_bbox.r2, c2: bbox.c1};
-		else if(catHeadersBBox && catHeadersBBox.c1 === catHeadersBBox.c2 && catHeadersBBox.r1 === data_bbox.r1 && catHeadersBBox.r2 === data_bbox.r2)
-			left_header_bbox = {r1: catHeadersBBox.r1, c1: catHeadersBBox.c1, r2: catHeadersBBox.r2, c2: catHeadersBBox.c2};
-
-
-		for (i = data_bbox.c1; i <= data_bbox.c2; i++) {
-
-			ser = new AscFormat.asc_CChartSeria();
-			startCell = new CellAddress(data_bbox.r1, i, 0);
-			endCell = new CellAddress(data_bbox.r2, i, 0);
-
-			ser.isHidden = !!ws.getColHidden(i);
-
-			// Val
-            sStartCellId = startCell.getIDAbsolute();
-            sEndCellId = endCell.getIDAbsolute();
-            if (sStartCellId == sEndCellId)
-                ser.Val.Formula =  parserHelp.get3DRef(ws.sName, sStartCellId);
             else
-                ser.Val.Formula = parserHelp.get3DRef(ws.sName, sStartCellId + ':' + sEndCellId);
-			ser.Val.NumCache = getNumCache(i, i, data_bbox.r1, bbox.r2);
+            {
+                if(serHeadersBBox && serHeadersBBox.c1 === data_bbox.c1 && serHeadersBBox.c2 === data_bbox.c2 && serHeadersBBox.r1 === serHeadersBBox.r2 && serHeadersBBox.r1 === data_bbox.r1)
+                {
+                    ++data_bbox.r1;
+                }
+            }
+        }
+
+        if(parsedHeaders.bLeft)
+        {
+            ++data_bbox.c1;
+        }
+        else
+        {
+            if(!options.getInColumns())
+            {
+                if(serHeadersBBox && serHeadersBBox.c1 === serHeadersBBox.c2 && serHeadersBBox.r1 === data_bbox.r1 && serHeadersBBox.r2 === data_bbox.r2 && serHeadersBBox.c1 === data_bbox.c1)
+                {
+                    ++data_bbox.c1;
+                }
+            }
+            else
+            {
+                if(catHeadersBBox && catHeadersBBox.c1 === catHeadersBBox.c2 && catHeadersBBox.r1 === data_bbox.r1 && catHeadersBBox.r2 === data_bbox.r2 && catHeadersBBox.c1 === data_bbox.c1)
+                {
+                    ++data_bbox.c1;
+                }
+            }
+        }
+
+        var bIsScatter = (Asc.c_oAscChartTypeSettings.scatter <= options.type && options.type <= Asc.c_oAscChartTypeSettings.scatterSmoothMarker);
+        var top_header_bbox, left_header_bbox, ser, startCell, endCell, formulaCell, start, end, formula, numCache, sStartCellId, sEndCellId;
+        if (!options.getInColumns()) {
+            if(parsedHeaders.bTop)
+                top_header_bbox = {r1: bbox.r1, c1: data_bbox.c1, r2: bbox.r1, c2: data_bbox.c2};
+            else if(catHeadersBBox && catHeadersBBox.c1 === data_bbox.c1 && catHeadersBBox.c2 === data_bbox.c2 && catHeadersBBox.r1 === catHeadersBBox.r2)
+                top_header_bbox = {r1: catHeadersBBox.r1, c1: catHeadersBBox.c1, r2: catHeadersBBox.r1, c2:catHeadersBBox.c2};
+
+            if(parsedHeaders.bLeft)
+                left_header_bbox = {r1: data_bbox.r1, r2: data_bbox.r2, c1: bbox.c1, c2: bbox.c1};
+            else if(serHeadersBBox && serHeadersBBox.c1 === serHeadersBBox.c2 && serHeadersBBox.r1 === data_bbox.r1 && serHeadersBBox.r2 === data_bbox.r2)
+                left_header_bbox = {r1: serHeadersBBox.r1, c1: serHeadersBBox.c1, r2: serHeadersBBox.r1, c2: serHeadersBBox.c2};
+
+            for (i = data_bbox.r1; i <= data_bbox.r2; ++i) {
+                ser = new AscFormat.asc_CChartSeria();
+                startCell = new CellAddress(i, data_bbox.c1, 0);
+                endCell = new CellAddress(i, data_bbox.c2, 0);
+
+                ser.isHidden = !!ws.getRowHidden(i);
+
+                // Val
+                sStartCellId = startCell.getIDAbsolute();
+                sEndCellId = endCell.getIDAbsolute();
+                ser.Val.Formula = parserHelp.get3DRef(ws.sName, sStartCellId === sEndCellId ?
+                    sStartCellId : sStartCellId + ':' + sEndCellId);
+                ser.Val.NumCache = getNumCache(ws, data_bbox.c1, data_bbox.c2, i, i);
+
+                if(left_header_bbox)
+                {
+                    formulaCell = new CellAddress( i, left_header_bbox.c1, 0 );
+                    ser.TxCache.Formula = parserHelp.get3DRef(ws.sName, formulaCell.getIDAbsolute());
+                }
+                // xVal
+
+                if(top_header_bbox)
+                {
+                    start = new CellAddress(top_header_bbox.r1, top_header_bbox.c1, 0);
+                    end = new CellAddress(top_header_bbox.r1, top_header_bbox.c2, 0);
+
+                    formula = parserHelp.get3DRef(ws.sName, start.getIDAbsolute() + ':' + end.getIDAbsolute());
+                    numCache = getNumCache(ws, top_header_bbox.c1, top_header_bbox.c2, top_header_bbox.r1, top_header_bbox.r1 );
+
+                    if (bIsScatter)
+                    {
+                        ser.xVal.Formula = formula;
+                        ser.xVal.NumCache = numCache;
+                    }
+                    else
+                    {
+                        ser.Cat.Formula = formula;
+                        ser.Cat.NumCache = numCache;
+                    }
+                }
+
+                ser.TxCache.Tx = left_header_bbox ? (ws.getCell3(i, left_header_bbox.c1).getValue()) :
+                    (AscCommon.translateManager.getValue('Series') + " " + nameIndex);
+                series.push(ser);
+                nameIndex++;
+            }
+        } else {
+            if(parsedHeaders.bTop)
+                top_header_bbox = {r1: bbox.r1, c1: data_bbox.c1, r2: bbox.r1, c2: data_bbox.c2};
+            else if(serHeadersBBox && serHeadersBBox.r1 === serHeadersBBox.r2 && serHeadersBBox.c1 === data_bbox.c1 && serHeadersBBox.c2 === data_bbox.c2)
+                top_header_bbox = {r1: serHeadersBBox.r1, c1: serHeadersBBox.c1, r2: serHeadersBBox.r2, c2: serHeadersBBox.c2};
+
+            if(parsedHeaders.bLeft)
+                left_header_bbox = {r1: data_bbox.r1, c1: bbox.c1, r2: data_bbox.r2, c2: bbox.c1};
+            else if(catHeadersBBox && catHeadersBBox.c1 === catHeadersBBox.c2 && catHeadersBBox.r1 === data_bbox.r1 && catHeadersBBox.r2 === data_bbox.r2)
+                left_header_bbox = {r1: catHeadersBBox.r1, c1: catHeadersBBox.c1, r2: catHeadersBBox.r2, c2: catHeadersBBox.c2};
 
 
-			if ( left_header_bbox )
-			{
-				start = new CellAddress(left_header_bbox.r1, left_header_bbox.c1, 0);
-				end = new CellAddress(left_header_bbox.r2, left_header_bbox.c1, 0);
+            for (i = data_bbox.c1; i <= data_bbox.c2; i++) {
 
-				formula = parserHelp.get3DRef(ws.sName, start.getIDAbsolute() + ':' + end.getIDAbsolute());
-				numCache = getNumCache( left_header_bbox.c1, left_header_bbox.c1, left_header_bbox.r1, left_header_bbox.r2 );
+                ser = new AscFormat.asc_CChartSeria();
+                startCell = new CellAddress(data_bbox.r1, i, 0);
+                endCell = new CellAddress(data_bbox.r2, i, 0);
 
-				if (bIsScatter) {
-					ser.xVal.Formula = formula;
-					ser.xVal.NumCache = numCache;
-				}
-				else {
-					ser.Cat.Formula = formula;
-					ser.Cat.NumCache = numCache;
-				}
-			}
+                ser.isHidden = !!ws.getColHidden(i);
 
-			if (top_header_bbox)
-			{
-				formulaCell = new CellAddress( top_header_bbox.r1, i, 0 );
-				ser.TxCache.Formula = parserHelp.get3DRef(ws.sName, formulaCell.getIDAbsolute());
-			}
+                // Val
+                sStartCellId = startCell.getIDAbsolute();
+                sEndCellId = endCell.getIDAbsolute();
+                if (sStartCellId == sEndCellId)
+                    ser.Val.Formula =  parserHelp.get3DRef(ws.sName, sStartCellId);
+                else
+                    ser.Val.Formula = parserHelp.get3DRef(ws.sName, sStartCellId + ':' + sEndCellId);
+                ser.Val.NumCache = getNumCache(ws, i, i, data_bbox.r1, bbox.r2);
 
-			ser.TxCache.Tx = top_header_bbox ? (ws.getCell3(top_header_bbox.r1, i).getValue()) :
-				(AscCommon.translateManager.getValue('Series') + " " + nameIndex);
-			series.push(ser);
-			nameIndex++;
-		}
-	}
 
+                if ( left_header_bbox )
+                {
+                    start = new CellAddress(left_header_bbox.r1, left_header_bbox.c1, 0);
+                    end = new CellAddress(left_header_bbox.r2, left_header_bbox.c1, 0);
+
+                    formula = parserHelp.get3DRef(ws.sName, start.getIDAbsolute() + ':' + end.getIDAbsolute());
+                    numCache = getNumCache(ws, left_header_bbox.c1, left_header_bbox.c1, left_header_bbox.r1, left_header_bbox.r2 );
+
+                    if (bIsScatter) {
+                        ser.xVal.Formula = formula;
+                        ser.xVal.NumCache = numCache;
+                    }
+                    else {
+                        ser.Cat.Formula = formula;
+                        ser.Cat.NumCache = numCache;
+                    }
+                }
+
+                if (top_header_bbox)
+                {
+                    formulaCell = new CellAddress( top_header_bbox.r1, i, 0 );
+                    ser.TxCache.Formula = parserHelp.get3DRef(ws.sName, formulaCell.getIDAbsolute());
+                }
+
+                ser.TxCache.Tx = top_header_bbox ? (ws.getCell3(top_header_bbox.r1, i).getValue()) :
+                    (AscCommon.translateManager.getValue('Series') + " " + nameIndex);
+                series.push(ser);
+                nameIndex++;
+            }
+        }
+    }
 	return {series: series, parsedHeaders: parsedHeaders};
 }
 

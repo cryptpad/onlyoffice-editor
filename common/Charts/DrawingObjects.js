@@ -3900,9 +3900,9 @@ function DrawingObjects() {
                 }
                 settings.putInColumns(nRows > nCols);
             }
-            var oRangeValue = worksheet.getSelectionRangeValue();
-            if(oRangeValue){
-                settings.putRange(oRangeValue.asc_getName());
+            var aRangeValues = worksheet.getSelectionRangeValues();
+            if(aRangeValues){
+                settings.putRanges2(aRangeValues);
             }
 
             settings.putStyle(2);
