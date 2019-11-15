@@ -4628,13 +4628,13 @@ CDocumentContent.prototype.SetParagraphIndent = function(Ind)
 		}
 	}
 };
-CDocumentContent.prototype.Set_ParagraphPresentationNumbering = function(Bullet, Size, Unicolor, nNumStartAt)
+CDocumentContent.prototype.Set_ParagraphPresentationNumbering = function(Bullet, Pr)
 {
     if (true === this.ApplyToAll)
     {
         for (var Index = 0; Index < this.Content.length; Index++)
         {
-            this.Content[Index].Add_PresentationNumbering(Bullet, Size, Unicolor, nNumStartAt);
+            this.Content[Index].Add_PresentationNumbering(Bullet, Pr);
         }
         return;
     }
@@ -4655,12 +4655,12 @@ CDocumentContent.prototype.Set_ParagraphPresentationNumbering = function(Bullet,
 
         for (var Index = StartPos; Index <= EndPos; Index++)
         {
-            this.Content[Index].Add_PresentationNumbering(Bullet, Size, Unicolor, nNumStartAt);
+            this.Content[Index].Add_PresentationNumbering(Bullet, Pr);
         }
         this.Recalculate();
         return;
     }
-    this.Content[this.CurPos.ContentPos].Add_PresentationNumbering(Bullet, Size, Unicolor, nNumStartAt);
+    this.Content[this.CurPos.ContentPos].Add_PresentationNumbering(Bullet, Pr);
     this.Recalculate();
 };
 CDocumentContent.prototype.Can_IncreaseParagraphLevel         = function(bIncrease)

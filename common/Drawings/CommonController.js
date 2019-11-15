@@ -9702,7 +9702,7 @@ DrawingObjectsController.prototype =
 
             if(undefined != Props.BulletSize || undefined != Props.BulletColor || undefined != Props.NumStartAt)
             {
-                this.setParagraphNumbering(null, Props.BulletSize, Props.BulletColor, Props.NumStartAt)
+                this.setParagraphNumbering(null, Props)
             }
 
             // TODO: как только разъединят настройки параграфа и текста переделать тут

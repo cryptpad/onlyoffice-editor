@@ -1925,13 +1925,7 @@
 					}
 				}
 
-				if(oBullet.bulletType)
-				{
-					if(oBullet.bulletType.AutoNumType > 0)
-					{
-						this.NumStartAt = AscFormat.isRealNumber(oBullet.bulletType.startAt) ? Math.max(1, oBullet.bulletType.startAt) : 1;
-					}
-				}
+				this.BulletFont = "";
 				if(oBullet.bulletTypeface
 					&& oBullet.bulletTypeface.type === AscFormat.BULLET_TYPE_TYPEFACE_BUFONT
 					&& typeof oBullet.bulletTypeface.typeface === "string"
@@ -1941,7 +1935,27 @@
 				}
 				else
 				{
-					
+					if(FirstTextPr && FirstTextPr.FontFamily && typeof FirstTextPr.FontFamily.Name === "string"
+						&& FirstTextPr.FontFamily.Name.length > 0)
+					{
+						this.BulletFont = FirstTextPr.FontFamily.Name;
+					}
+				}
+
+
+				if(oBullet.bulletType)
+				{
+					if(oBullet.bulletType.AutoNumType > 0)
+					{
+						this.NumStartAt = AscFormat.isRealNumber(oBullet.bulletType.startAt) ? Math.max(1, oBullet.bulletType.startAt) : 1;
+					}
+					else
+					{
+						if(oBullet.bulletType.type === AscFormat.BULLET_TYPE_BULLET_CHAR)
+						{
+							this.BulletSymbol = oBullet.bulletType.Char;
+						}
+					}
 				}
 			}
 		} else {
@@ -1990,6 +2004,8 @@
 			this.BulletSize = undefined;
 			this.BulletColor = undefined;
 			this.NumStartAt = undefined;
+			this.BulletFont = undefined;
+			this.BulletSymbol = undefined;
 		}
 	}
 
@@ -2107,6 +2123,20 @@
 			this.NumStartAt = NumStartAt;
 		}, asc_getNumStartAt: function() {
 			return this.NumStartAt;
+		},
+
+		asc_getBulletFont: function() {
+			return this.BulletFont;
+		},
+		asc_putBulletFont: function(v) {
+			this.BulletFont = v;
+		},
+
+		asc_getBulletSymbol: function() {
+			return this.BulletSymbol;
+		},
+		asc_putBulletSymbol: function(v) {
+			this.BulletSymbol = v;
 		}
 	};
 
@@ -4847,6 +4877,11 @@
 	prot["get_BulletColor"] = prot["asc_getBulletColor"] = prot.asc_getBulletColor;
 	prot["put_NumStartAt"] = prot["asc_putNumStartAt"] = prot.asc_putNumStartAt;
 	prot["get_NumStartAt"] = prot["asc_getNumStartAt"] = prot.asc_getNumStartAt;
+	prot["get_BulletFont"]   = prot["asc_getBulletFont"] = prot.asc_getBulletFont;
+	prot["put_BulletFont"]   = prot["asc_putBulletFont"] = prot.asc_putBulletFont;
+	prot["get_BulletSymbol"] = prot["asc_getBulletSymbol"] = prot.asc_getBulletSymbol;
+	prot["put_BulletSymbol"] = prot["asc_putBulletSymbol"] = prot.asc_putBulletSymbol;
+
 
 	window["AscCommon"].asc_CTexture = asc_CTexture;
 	prot = asc_CTexture.prototype;

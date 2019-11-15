@@ -1003,28 +1003,6 @@ CShape.prototype.convertToWord = function (document) {
                 var cur_par = paragraphs[i];
                 var new_paragraph = ConvertParagraphToWord(cur_par, new_content);
                 new_content.Internal_Content_Add(i, new_paragraph, false);
-                /*var bullet = cur_par.Pr.Bullet;
-                 if(bullet && bullet.bulletType && bullet.bulletType.type !== AscFormat.BULLET_TYPE_BULLET_NONE)
-                 {
-                 switch(bullet.bulletType.type)
-                 {
-                 case AscFormat.BULLET_TYPE_BULLET_CHAR:
-                 case AscFormat.BULLET_TYPE_BULLET_BLIP :
-                 {
-                 _bullet.m_nType = numbering_presentationnumfrmt_Char;
-                 _bullet.m_sChar = _final_bullet.bulletType.Char[0];
-                 _cur_paragraph.Add_PresentationNumbering(_bullet, true);
-                 break;
-                 }
-                 case AscFormat.BULLET_TYPE_BULLET_AUTONUM :
-                 {
-                 _bullet.m_nType = g_NumberingArr[_final_bullet.bulletType.AutoNumType];
-                 _bullet.m_nStartAt = _final_bullet.bulletType.startAt;
-                 _cur_paragraph.Add_PresentationNumbering(_bullet, true);
-                 break;
-                 }
-                 }
-                 } */
             }
             c.setTextBoxContent(new_content);
         }

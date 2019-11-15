@@ -2627,7 +2627,7 @@ background-repeat: no-repeat;\
 
 				if(undefined != Props.BulletSize || undefined != Props.BulletColor || undefined != Props.NumStartAt)
 				{
-					graphicObjects.setParagraphNumbering(null, Props.BulletSize, Props.BulletColor, Props.NumStartAt)
+					graphicObjects.setParagraphNumbering(null, Props)
 				}
 				graphicObjects.paragraphAdd(new AscCommonWord.ParaTextPr(TextPr));
 				_presentation.Recalculate();
@@ -2676,7 +2676,7 @@ background-repeat: no-repeat;\
 	 1.1.1         - SubType = 2
 	 маркированный - SubType = 3
 	 */
-	asc_docs_api.prototype.put_ListType = function(type, subtype, fSize, oUnicolor, nNumStartAt)
+	asc_docs_api.prototype.put_ListType = function(type, subtype)
 	{
 		var oPresentation = this.WordControl.m_oLogicDocument;
 		var sBullet = "";
@@ -2736,7 +2736,7 @@ background-repeat: no-repeat;\
 				Type     : type,
 				SubType  : subtype
 			};
-			oPresentation.SetParagraphNumbering(NumberInfo, fSize, oUnicolor, nNumStartAt);
+			oPresentation.SetParagraphNumbering(NumberInfo);
 		};
 		if(sBullet.length > 0)
 		{
