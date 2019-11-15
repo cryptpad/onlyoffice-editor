@@ -1579,7 +1579,9 @@
 		Picture      : 2,
 		ComboBox     : 3,
 		DropDownList : 4,
-		DateTime     : 5
+		DateTime     : 5,
+
+		TOC          : 10
 	};
 
 	//------------------------------------------------------------export--------------------------------------------------
@@ -2501,5 +2503,6 @@
 	prot['ComboBox']     = c_oAscContentControlSpecificType.ComboBox;
 	prot['DropDownList'] = c_oAscContentControlSpecificType.DropDownList;
 	prot['DateTime']     = c_oAscContentControlSpecificType.DateTime;
+	prot['TOC']          = c_oAscContentControlSpecificType.TOC;
 
 })(window);

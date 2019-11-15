@@ -2004,6 +2004,32 @@ CBlockLevelSdt.prototype.CheckContentControlDeletingLock = function()
 
 	this.Content.CheckContentControlEditingLock();
 };
+/**
+ * Получаем типа данного контейнера
+ * @returns {Asc.c_oAscContentControlSpecificType}
+ */
+CBlockLevelSdt.prototype.GetSpecificType = function()
+{
+	if (this.IsBuiltInTableOfContents())
+		return Asc.c_oAscContentControlSpecificType.TOC;
+
+	if (this.IsCheckBox())
+		return Asc.c_oAscContentControlSpecificType.CheckBox;
+
+	if (this.IsPicture())
+		return Asc.c_oAscContentControlSpecificType.Picture;
+
+	if (this.IsComboBox())
+		return Asc.c_oAscContentControlSpecificType.ComboBox;
+
+	if (this.IsDropDownList())
+		return Asc.c_oAscContentControlSpecificType.DropDownList;
+
+	if (this.IsDatePicker())
+		return Asc.c_oAscContentControlSpecificType.DateTime;
+
+	return Asc.c_oAscContentControlSpecificType.None;
+};
 //--------------------------------------------------------export--------------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};
 window['AscCommonWord'].CBlockLevelSdt = CBlockLevelSdt;

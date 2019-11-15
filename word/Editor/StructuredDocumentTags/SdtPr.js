@@ -406,22 +406,7 @@ CContentControlPr.prototype.SetColor = function(r, g, b)
 CContentControlPr.prototype.GetSpecificType = function()
 {
 	if (!this.CC)
-		return Asc.c_oAscContentControlSpecificType.None;
-
-	if (this.CC.IsCheckBox())
-		return Asc.c_oAscContentControlSpecificType.CheckBox;
-
-	if (this.CC.IsPicture())
-		return Asc.c_oAscContentControlSpecificType.Picture;
-
-	if (this.CC.IsComboBox())
-		return Asc.c_oAscContentControlSpecificType.ComboBox;
-
-	if (this.CC.IsDropDownList())
-		return Asc.c_oAscContentControlSpecificType.DropDownList;
-
-	if (this.CC.IsDatePicker())
-		return Asc.c_oAscContentControlSpecificType.DateTime;
+		return this.CC.GetSpecificType();
 
 	return Asc.c_oAscContentControlSpecificType.None;
 };
