@@ -2229,7 +2229,8 @@ background-repeat: no-repeat;\
 				_X = elem.X + w;
 			}
 
-			var _PageNum = this.WordControl.m_oLogicDocument.CurPage;
+			var oParaPos = elem.GetCurrentParaPos();
+			var _PageNum = elem.GetAbsolutePage(oParaPos.Page);
 
 			specialPasteHelper.buttonInfo.fixPosition = {x: _X, y: _Y, pageNum: _PageNum};
 

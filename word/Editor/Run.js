@@ -1491,7 +1491,7 @@ ParaRun.prototype.AddInstrText = function(sString, nPos)
 };
 
 // Определим строку и отрезок текущей позиции
-ParaRun.prototype.Get_CurrentParaPos = function()
+ParaRun.prototype.GetCurrentParaPos = function()
 {
     var Pos = this.State.ContentPos;
 

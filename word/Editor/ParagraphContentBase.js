@@ -564,7 +564,7 @@ CParagraphContentBase.prototype.Selection_CheckParaContentPos = function(Content
 	return true;
 };
 //----------------------------------------------------------------------------------------------------------------------
-CParagraphContentBase.prototype.Get_CurrentParaPos = function()
+CParagraphContentBase.prototype.GetCurrentParaPos = function()
 {
 	return new CParaPos(this.StartRange, this.StartLine, 0, 0);
 };
@@ -1595,12 +1595,12 @@ CParagraphContentWithParagraphLikeContent.prototype.Remove = function(Direction,
 
     return true;
 };
-CParagraphContentWithParagraphLikeContent.prototype.Get_CurrentParaPos = function()
+CParagraphContentWithParagraphLikeContent.prototype.GetCurrentParaPos = function()
 {
     var CurPos = this.State.ContentPos;
 
     if (CurPos >= 0 && CurPos < this.Content.length)
-        return this.Content[CurPos].Get_CurrentParaPos();
+        return this.Content[CurPos].GetCurrentParaPos();
 
     return new CParaPos(this.StartRange, this.StartLine, 0, 0);
 };

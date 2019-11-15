@@ -1063,10 +1063,14 @@ Paragraph.prototype.Refresh_ContentChanges = function()
 {
 	this.m_oContentChanges.Refresh();
 };
-Paragraph.prototype.Get_CurrentParaPos = function()
+/**
+ * Получаем текущую позицию внутри параграфа
+ * @returns {CParaPos}
+ */
+Paragraph.prototype.GetCurrentParaPos = function()
 {
 	// Сначала определим строку и отрезок
-	var ParaPos = this.Content[this.CurPos.ContentPos].Get_CurrentParaPos();
+	var ParaPos = this.Content[this.CurPos.ContentPos].GetCurrentParaPos();
 
 	if (-1 !== this.CurPos.Line)
 	{
@@ -1321,7 +1325,7 @@ Paragraph.prototype.Internal_Recalculate_CurPos = function(Pos, UpdateCurPos, Up
 		};
 	}
 
-	var LinePos = this.Get_CurrentParaPos();
+	var LinePos = this.GetCurrentParaPos();
 
 	if (-1 === LinePos.Line || LinePos.Line >= this.Lines.length)
 	{
@@ -5538,7 +5542,7 @@ Paragraph.prototype.MoveCursorUp = function(AddToSelect)
 	}
 	else
 	{
-		var LinePos = this.Get_CurrentParaPos();
+		var LinePos = this.GetCurrentParaPos();
 		var CurLine = LinePos.Line;
 
 		if (true === AddToSelect)
@@ -5639,7 +5643,7 @@ Paragraph.prototype.MoveCursorDown = function(AddToSelect)
 	}
 	else
 	{
-		var LinePos = this.Get_CurrentParaPos();
+		var LinePos = this.GetCurrentParaPos();
 		var CurLine = LinePos.Line;
 
 		if (true === AddToSelect)
