@@ -2927,7 +2927,20 @@ var editor;
       }, true);
     }
     else{
-      ws.objectRender.setGraphicObjectProps(props);
+      if(undefined != props.BulletSymbol && undefined != props.BulletFont) {
+        var t = this;
+          var fonts = {};
+          fonts[props.BulletFont] = 1;
+          t._loadFonts(fonts, function() {
+            AscFonts.FontPickerByCharacter.checkText(props.BulletSymbol, this, function () {
+              ws.objectRender.setGraphicObjectProps(props);
+            });
+          });
+
+      }
+      else {
+        ws.objectRender.setGraphicObjectProps(props);
+      }
     }
 
 

@@ -9700,8 +9700,10 @@ DrawingObjectsController.prototype =
                 this.setDefaultTabSize( Props.DefaultTab );
             }
 
-            if(undefined != Props.BulletSize || undefined != Props.BulletColor || undefined != Props.NumStartAt)
+            if(undefined != Props.BulletSize || undefined != Props.BulletColor || undefined != Props.NumStartAt
+                || undefined != Props.BulletSymbol && undefined != Props.BulletFont)
             {
+              //  if()
                 this.setParagraphNumbering(null, Props)
             }
 

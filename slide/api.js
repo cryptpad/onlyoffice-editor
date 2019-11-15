@@ -2555,11 +2555,12 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype.paraApply = function(Props)
 	{
+
 		var _presentation = editor.WordControl.m_oLogicDocument;
-        var graphicObjects = _presentation.GetCurrentController();
+		var graphicObjects = _presentation.GetCurrentController();
 		if (graphicObjects)
 		{
-			graphicObjects.checkSelectedObjectsAndCallback(function()
+			var fCallback = function()
 			{
 
 				if ("undefined" != typeof(Props.Ind) && null != Props.Ind)
@@ -2625,14 +2626,45 @@ background-repeat: no-repeat;\
 				if (undefined != Props.Position)
 					TextPr.Position = Props.Position;
 
-				if(undefined != Props.BulletSize || undefined != Props.BulletColor || undefined != Props.NumStartAt)
+				if(undefined != Props.BulletSize || undefined != Props.BulletColor || undefined != Props.NumStartAt ||
+					(typeof Props.BulletFont === "string" && Props.BulletFont.length > 0
+					&& typeof Props.BulletSymbol === "string" && Props.BulletSymbol.length > 0))
 				{
 					graphicObjects.setParagraphNumbering(null, Props)
 				}
 				graphicObjects.paragraphAdd(new AscCommonWord.ParaTextPr(TextPr));
 				_presentation.Recalculate();
 				_presentation.Document_UpdateInterfaceState();
-			}, [], false, AscDFH.historydescription_Presentation_ParaApply);
+			};
+
+			if(typeof Props.BulletFont === "string" && Props.BulletFont.length > 0
+				&& typeof Props.BulletSymbol === "string" && Props.BulletSymbol.length > 0)
+			{
+				var loader   = AscCommon.g_font_loader;
+				var fontinfo = AscFonts.g_fontApplication.GetFontInfo(Props.BulletFont);
+				var isasync  = loader.LoadFont(fontinfo);
+				if (false === isasync)
+				{
+					AscFonts.FontPickerByCharacter.checkText(Props.BulletSymbol, this, function () {
+						graphicObjects.checkSelectedObjectsAndCallback(fCallback, [], false, AscDFH.historydescription_Presentation_ParaApply);
+					});
+				}
+				else
+				{
+					this.asyncMethodCallback = function()
+					{
+						AscFonts.FontPickerByCharacter.checkText(Props.BulletSymbol, this, function () {
+							graphicObjects.checkSelectedObjectsAndCallback(fCallback, [], false, AscDFH.historydescription_Presentation_ParaApply);
+						});
+					}
+				}
+			}
+			else
+			{
+				graphicObjects.checkSelectedObjectsAndCallback(fCallback, [], false, AscDFH.historydescription_Presentation_ParaApply);
+			}
+
+
 		}
 	};
 
