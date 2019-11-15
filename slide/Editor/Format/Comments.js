@@ -497,7 +497,7 @@ ParaComment.prototype.SetParagraph = function(Paragraph)
 {
 	this.Paragraph = Paragraph;
 };
-ParaComment.prototype.Get_CurrentParaPos = function()
+ParaComment.prototype.GetCurrentParaPos = function()
 {
     return new CParaPos(this.StartRange, this.StartLine, 0, 0);
 };
