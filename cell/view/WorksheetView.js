@@ -785,6 +785,17 @@
         return this._getRange(lastRange.c1, lastRange.r1, lastRange.c2, lastRange.r2);
     };
 
+    WorksheetView.prototype.getSelectedRanges = function () {
+        var ret = [];
+        var aRanges = this.model.selectionRange.ranges;
+        var oRange;
+        for(var i = 0; i < aRanges.length; ++i) {
+            oRange = aRanges[i];
+            ret.push(this._getRange(oRange.c1, oRange.r1, oRange.c2, oRange.r2))
+        }
+        return ret;
+    };
+
     WorksheetView.prototype.resize = function (isUpdate) {
         if (isUpdate) {
             this._initCellsArea(AscCommonExcel.recalcType.newLines);
@@ -8348,19 +8359,35 @@
 			AscCommonExcel.referenceType.A : AscCommonExcel.referenceType.R);
     };
 
-	WorksheetView.prototype.getSelectionRangeValue = function () {
-		// ToDo проблема с выбором целого столбца/строки
-		var ar = this.model.selectionRange.getLast().clone(true);
-		var sAbsName = ar.getAbsName();
-		var sName = (c_oAscSelectionDialogType.FormatTable === this.selectionDialogType) ? sAbsName :
-			parserHelp.get3DRef(this.model.getName(), sAbsName);
-		var type = ar.type;
-		var selectionRangeValueObj = new AscCommonExcel.asc_CSelectionRangeValue();
-		selectionRangeValueObj.asc_setName(sName);
-		selectionRangeValueObj.asc_setType(type);
+    WorksheetView.prototype.getSelectionRangeValues = function () {
+        var ret = [];
+        var aRanges = this.model.selectionRange.ranges;
+        for(var  i = 0; i < aRanges.length; ++i)
+        {
+            ret.push(this._getRangeValue(aRanges[i].clone(true)))
+        }
+        return ret;
+    };
 
-		return selectionRangeValueObj;
+
+    WorksheetView.prototype.getSelectionRangeValue = function () {
+		// ToDo проблема с выбором целого столбца/строки
+		return this._getRangeValue(this.model.selectionRange.getLast().clone(true));
 	};
+
+
+    WorksheetView.prototype._getRangeValue = function (ar) {
+        // ToDo проблема с выбором целого столбца/строки
+        var sAbsName = ar.getAbsName();
+        var sName = (c_oAscSelectionDialogType.FormatTable === this.selectionDialogType) ? sAbsName :
+            parserHelp.get3DRef(this.model.getName(), sAbsName);
+        var type = ar.type;
+        var selectionRangeValueObj = new AscCommonExcel.asc_CSelectionRangeValue();
+        selectionRangeValueObj.asc_setName(sName);
+        selectionRangeValueObj.asc_setType(type);
+
+        return selectionRangeValueObj;
+    };
 
     WorksheetView.prototype.getSelectionInfo = function () {
         return this.objectRender.selectedGraphicObjectsExists() ? this._getSelectionInfoObject() :
