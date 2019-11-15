@@ -11471,7 +11471,7 @@
 			transposeRange = formulaProps.transposeRange;
 		}
 
-		var value2ToValue = function (value2) {
+		/*var value2ToValue = function (value2) {
 			var res = "";
 
 			if (value2 && value2.length) {
@@ -11481,7 +11481,7 @@
 			}
 
 			return res;
-		};
+		};*/
 
 		//set formula - for paste from binary
 		var calculateValueAndBinaryFormula = function (newVal, firstRange, range) {
@@ -11500,10 +11500,8 @@
 
 			var sFormula = newVal.getFormula();
 			var sId = newVal.getName();
-			var value2 = newVal.getValue2();
-			
-			//TODO вместо range где возможно использовать cell
-			if (value2.length === 1 || sFormula) {
+
+			if (sFormula) {
 				//formula
 				if (sFormula && !isOneMerge) {
 
@@ -11570,21 +11568,7 @@
 
 						rangeStyle.formula = {range: range, val: "=" + assemb, arrayRef: arrayFormulaRef};
 					}
-				} else {
-					newVal.getLeftTopCellNoEmpty(function (cellFrom) {
-						if (cellFrom) {
-							var range;
-							if (isOneMerge && range && range.bbox) {
-								range = t._getCell(range.bbox.c1, range.bbox.r1);
-							} else {
-								range = firstRange;
-							}
-							rangeStyle.cellValueData2 = {valueData: cellFrom.getValueData(), row: range.bbox.r1, col: range.bbox.c1};
-						}
-					});
 				}
-			} else {
-				rangeStyle.value2 = value2;
 			}
 		};
 
@@ -11684,13 +11668,13 @@
 			t.model._getCell(rangeStyle.cellValueData2.row, rangeStyle.cellValueData2.col, function (cell) {
 				cell.setValueData(rangeStyle.cellValueData2.valueData);
 			});
-		} else if (rangeStyle.value2 && specialPasteProps.font && specialPasteProps.val) {
+		} /*else if (rangeStyle.value2 && specialPasteProps.font && specialPasteProps.val) {
 			if (formulaProps) {
 				firstRange.setValue2(rangeStyle.value2);
 			} else {
 				range.setValue2(rangeStyle.value2);
 			}
-		} else if (rangeStyle.cellValueData && specialPasteProps.val) {
+		}*/ else if (rangeStyle.cellValueData && specialPasteProps.val) {
 			range.setValueData(rangeStyle.cellValueData);
 		} else if (null != rangeStyle.val && specialPasteProps.val) {
 			//TODO возможно стоит всегда вызывать setValueData и тип выставлять в зависимости от val
@@ -11703,9 +11687,9 @@
 			} else {
 				range.setValue(rangeStyle.val);
 			}
-		} else if (rangeStyle.value2 && specialPasteProps.val) {
+		} /*else if (rangeStyle.value2 && specialPasteProps.val) {
 			range.setValue(value2ToValue(rangeStyle.value2));
-		}
+		}*/
 
 		//alignVertical
 		if (undefined !== rangeStyle.alignVertical && specialPasteProps.alignVertical) {
