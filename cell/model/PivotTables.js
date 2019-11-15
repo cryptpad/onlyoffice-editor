@@ -2011,7 +2011,7 @@ CT_PivotCacheRecords.prototype.toXml = function(writer) {
 	writer.WriteXmlNodeEnd("pivotCacheRecords");
 };
 CT_PivotCacheRecords.prototype.getRowsCount = function() {
-	return this._cols && this._cols[0] && this._cols[0].getSize();
+	return this._cols && this._cols[0] && this._cols[0].getSize() || 0;
 };
 CT_PivotCacheRecords.prototype.get = function(row, col) {
 	var col = this._cols[col];

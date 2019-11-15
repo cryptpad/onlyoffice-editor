@@ -2359,6 +2359,7 @@ var editor;
 		this._changePivotWithLock(pivotTable, function() {
 			ws.insertPivotTable(pivotTable, true, false);
 		});
+		return pivotTable;
 	};
 
 	spreadsheet_api.prototype.asc_refreshAllPivots = function() {
@@ -4265,7 +4266,6 @@ var editor;
 		History.StartTransaction();
 		this.wbModel.dependencyFormulas.lockRecal();
 		var wsModel = pivot.GetWS();
-		var ws = this.wb.getWorksheet(wsModel.getIndex());
 		pivot.stashCurReportRange();
 
 		callback(wsModel);
@@ -4275,6 +4275,7 @@ var editor;
 		if (pivotChanged.data) {
 			dataRow = pivot.updateAfterEdit();
 			reportRanges = pivot.getReportRanges();
+			var ws = this.wb.getWorksheet(wsModel.getIndex());
 			ws._isLockedCells(new AscCommonExcel.MultiplyRange(reportRanges).getUnionRange(), null, function(res) {
 				t._changePivotOnLock(res, pivot, wsModel, pivotChanged, dataRow, reportRanges, confirmation, callback);
 			});

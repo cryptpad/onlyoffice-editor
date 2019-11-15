@@ -2793,8 +2793,6 @@
 				{
 					range = AscCommonExcel.g_oRangeCache.getAscRange(result.range);
 				}
-			} else {
-				range = AscCommonExcel.g_oRangeCache.getAscRange(dataRange);
 			}
 			if (!range) {
 				range = AscCommon.rx_defName.test(dataRange);
