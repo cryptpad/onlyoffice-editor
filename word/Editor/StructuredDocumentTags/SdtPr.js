@@ -337,7 +337,7 @@ CContentControlPr.prototype.SetToContentControl = function(oContentControl)
 		oContentControl.SetDropDownListPr(this.DropDownPr);
 
 	if (undefined !== this.DateTimePr)
-		oContentControl.SetDatePickerPr(this.DateTimePr);
+		oContentControl.ApplyDatePickerPr(this.DateTimePr);
 };
 CContentControlPr.prototype.GetId = function()
 {
