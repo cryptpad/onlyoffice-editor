@@ -7972,13 +7972,13 @@ SortCondition.prototype.Write_ToBinary2 = function(w) {
 	}
 	if (null != this.ConditionSortBy) {
 		w.WriteBool(true);
-		w.WriteBool(ConditionSortBy);
+		w.WriteBool(this.ConditionSortBy);
 	} else {
 		w.WriteBool(false);
 	}
-	if (null != this.ConditionSortBy) {
+	if (null != this.ConditionDescending) {
 		w.WriteBool(true);
-		w.WriteBool(ConditionDescending);
+		w.WriteBool(this.ConditionDescending);
 	} else {
 		w.WriteBool(false);
 	}
