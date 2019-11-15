@@ -2300,13 +2300,19 @@ Paragraph.prototype.private_RecalculateMoveLineToNextPage = function(CurLine, Cu
 			if (CompatibilityMode <= document_compatibility_mode_Word14)
 			{
 				if (null != this.Get_DocumentPrev() && true != this.Parent.IsTableCellContent() && 0 === CurPage)
+				{
 					CurLine = 0;
+					PRS.RunRecalcInfoBreak = null;
+				}
 			}
 			else if (CompatibilityMode >= document_compatibility_mode_Word15)
 			{
 				// TODO: Разобраться с 2016 вордом
 				if (null != this.Get_DocumentPrev() && 0 === CurPage)
+				{
 					CurLine = 0;
+					PRS.RunRecalcInfoBreak = null;
+				}
 			}
 		}
 
