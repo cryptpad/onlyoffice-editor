@@ -3726,11 +3726,12 @@
 							if (!aResult.props.addImagesFromWord) {
 								aResult.props.addImagesFromWord = [];
 							}
-							aResult.props.addImagesFromWord.push(
-								{image: paraRunContent[pR], col: innerCol + col, row: row});
+
+							var drawing = this._checkDrawingList(paraRunContent[pR]);
+							aResult.props.addImagesFromWord.push({image: drawing, col: innerCol + col, row: row});
 
 							if (null === this.isUsuallyPutImages) {
-								this._addImageToMap(paraRunContent[pR]);
+								this._addImageToMap(drawing);
 							}
 
 							break;
@@ -3789,6 +3790,40 @@
 				aResult.props._images.push(sImageUrl);
 			},
 
+
+			_checkDrawingList: function(drawing) {
+				var t = this;
+				var checkParagraph = function(paragraph) {
+					//TODO не могу получить в данном случае GetNumPr
+					/*var LvlPr = null;
+					var Lvl = null;
+					var oNumPr = paragraph.GetNumPr ? paragraph.GetNumPr() : null;
+					var numberingText = null;
+					var formatText;
+					if (oNumPr != null) {
+						var oNum = paragraph.Parent.GetNumbering().GetNum(oNumPr.NumId);
+						if (oNum) {
+							LvlPr = oNum.GetLvl(oNumPr.Lvl);
+							Lvl = oNumPr.Lvl;
+						}
+
+						numberingText = t._parseNumbering(paragraph);
+
+
+						var text = t._getAllNumberingText(Lvl, numberingText);
+						formatText = this._getPrParaRun(paraPr, LvlPr.GetTextPr());
+					}*/
+				};
+
+				if(drawing.GraphicObj && drawing.GraphicObj.textBoxContent && drawing.GraphicObj.textBoxContent.Content) {
+					var content = drawing.GraphicObj.textBoxContent.Content;
+					for(var i = 0; i < content.length; i++) {
+						checkParagraph(content[i]);
+					}
+				}
+
+				return drawing;
+			},
 
 			_getBorders: function (cellTable, top, left, oldBorders) {
 				var borders = cellTable.elem.Get_Borders();
