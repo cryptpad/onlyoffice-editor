@@ -2007,6 +2007,21 @@
     {
     };
 
+    baseEditorsApi.prototype["registerPlaceholderCallback"] = function(type, callback)
+    {
+    	if (this.WordControl && this.WordControl.m_oDrawingDocument && this.WordControl.m_oDrawingDocument.placeholders)
+		{
+            this.WordControl.m_oDrawingDocument.placeholders.registerCallback(type, callback);
+		}
+    };
+    baseEditorsApi.prototype["asc_uncheckPlaceholders"] = function()
+    {
+        if (this.WordControl && this.WordControl.m_oDrawingDocument && this.WordControl.m_oDrawingDocument.placeholders)
+        {
+            this.WordControl.m_oDrawingDocument.placeholders.closeAllActive();
+        }
+    };
+
     baseEditorsApi.prototype["pluginMethod_GetFontList"] = function()
     {
     	return AscFonts.g_fontApplication.g_fontSelections.SerializeList();

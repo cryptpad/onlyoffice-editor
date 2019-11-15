@@ -48,6 +48,15 @@
         Audio : 5
 	};
 
+    var exportObj = AscCommon.PlaceholderButtonType;
+    AscCommon["PlaceholderButtonType"] = exportObj;
+    exportObj["Image"] = exportObj.Image;
+    exportObj["ImageUrl"] = exportObj.ImageUrl;
+    exportObj["Chart"] = exportObj.Chart;
+    exportObj["Table"] = exportObj.Table;
+    exportObj["Video"] = exportObj.Video;
+    exportObj["Audio"] = exportObj.Audio;
+
     AscCommon.PlaceholderButtonState = {
         None : 0,
         Active : 1,
@@ -423,15 +432,21 @@
 
     Placeholders.prototype.closeAllActive = function()
     {
+        var isUpdate = false;
         for (var i = 0; i < this.objects.length; i++)
         {
             var obj = this.objects[i];
             for (var j = 0; j < obj.states.length; j++)
             {
                 if (obj.states[j] == AscCommon.PlaceholderButtonState.Active)
+                {
+                    isUpdate = true;
                     obj.states[j] = AscCommon.PlaceholderButtonState.None;
+                }
             }
         }
+        if (isUpdate)
+            this.document.m_oWordControl.OnUpdateOverlay();
     };
 
     Placeholders.prototype.draw = function(overlay, page, pixelsRect, pageWidthMM, pageHeightMM)
