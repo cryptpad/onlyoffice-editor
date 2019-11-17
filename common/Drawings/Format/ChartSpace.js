@@ -16684,14 +16684,117 @@ function getNumCache(ws, c1, c2, r1, r2) {
         return cache;
     }
 
-function getChartSeries (worksheet, options, catHeadersBBox, serHeadersBBox) {
+function getChartSeries (worksheet, options, catHeadersBBox, serHeadersBBox)
+{
 	var ws, range;
     var nameIndex = 1;
     var aRanges = options.getRanges();
-    var i, series = [];
-    for(var nRangeIndex = 0; nRangeIndex < aRanges.length; ++nRangeIndex)
+    var i, series = [], bbox;
+    var result;
+    var oWorksheet = null, r1 = null, r2 = null, c1 = null, c2 = null, r1temp, r2temp, c1temp, c2temp, bRows = null;
+    var nSumRows = 0, nSumCols = 0;
+    var nRangeIndex;
+    //check special cases
+    if(aRanges.length > 1)
     {
-        var result = parserHelp.parse3DRef(aRanges[nRangeIndex]);
+        for(nRangeIndex = 0; nRangeIndex < aRanges.length; ++nRangeIndex)
+        {
+            result = parserHelp.parse3DRef(aRanges[nRangeIndex]);
+            if(!result)
+            {
+                break;
+            }
+            if (result)
+            {
+                ws = worksheet.workbook.getWorksheetByName(result.sheet);
+                if(!ws)
+                {
+                    break;
+                }
+                if (ws)
+                {
+                    range = ws.getRange2(result.range);
+                    if (!range)
+                    {
+                        break;
+                    }
+
+                    bbox = range.getBBox0();
+                    r1temp = Math.min(bbox.r1, bbox.r1);
+                    r2temp = Math.max(bbox.r1, bbox.r2);
+                    c1temp = Math.min(bbox.c1, bbox.c1);
+                    c2temp = Math.max(bbox.c1, bbox.c2);
+                    nSumRows += (r2temp - r1temp);
+                    nSumCols += (c2temp - c1temp);
+                    if (!oWorksheet)
+                    {
+                        oWorksheet = ws;
+                        r1 = r1temp;
+                        r2 = r2temp;
+                        c1 = c1temp;
+                        c2 = c2temp;
+                    }
+                    else
+                    {
+                        if(oWorksheet !== ws)
+                        {
+                            break;
+                        }
+                        if(r1temp === r1 && r2temp === r2)
+                        {
+                            if(bRows === null)
+                            {
+                                bRows = true;
+                            }
+                            else
+                            {
+                                if(bRows === false)
+                                {
+                                    break;
+                                }
+                            }
+                        }
+                        else if(c1temp === c1 && c2temp === c2)
+                        {
+                            if(bRows === null)
+                            {
+                                bRows = false;
+                            }
+                            else
+                            {
+                                if(bRows === true)
+                                {
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        if(i === aRanges.length)
+        {
+            if(bRows)
+            {
+                if(nSumCols > (r2 - r1))
+                {
+
+                }
+            }
+            else
+            {
+                if(nSumRows > (c2 - c1))
+                {
+
+                }
+            }
+        }
+    }
+
+    for(nRangeIndex = 0; nRangeIndex < aRanges.length; ++nRangeIndex)
+    {
+        result = parserHelp.parse3DRef(aRanges[nRangeIndex]);
         if (result) {
             ws = worksheet.workbook.getWorksheetByName(result.sheet);
             if (ws)
@@ -16701,7 +16804,7 @@ function getChartSeries (worksheet, options, catHeadersBBox, serHeadersBBox) {
         if (!range)
             continue;
 
-        var bbox = range.getBBox0();
+        bbox = range.getBBox0();
         var parsedHeaders = parseSeriesHeaders(ws, bbox);
         var data_bbox = {r1: bbox.r1, r2: bbox.r2, c1: bbox.c1, c2: bbox.c2};
         if(parsedHeaders.bTop)
