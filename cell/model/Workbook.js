@@ -11830,11 +11830,14 @@
 			bWholeRow = true;
 		}
 
-		var sortConditions;
+		var sortConditions, caseSensitive;
 		if(opt_custom_sort && opt_custom_sort.SortConditions) {
 			sortConditions = opt_custom_sort.SortConditions;
 			nStartRowCol = opt_by_row ? sortConditions[0].Ref.r1 : sortConditions[0].Ref.c1;
 			bAscent = !sortConditions[0].ConditionDescending;
+		}
+		if(opt_custom_sort) {
+			caseSensitive = opt_custom_sort.CaseSensitive;
 		}
 
 		var nLastRow0, nLastCol0;
@@ -12022,7 +12025,9 @@
 				var compare = function(_a, _b) {
 					if (null != _a.text) {
 						if (null != _b.text) {
-							res = strcmp(_a.text.toUpperCase(), _b.text.toUpperCase());
+							var val1 = caseSensitive ? _a.text : _a.text.toUpperCase();
+							var val2 = caseSensitive ? _b.text : _b.text.toUpperCase();
+							res = strcmp(val1, val2);
 						} else {
 							res = 1;
 						}

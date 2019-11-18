@@ -8922,6 +8922,8 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		this._newSelection = null;
 		this.hasHeaders = null;
 		this.columnSort = null;
+		this.caseSensative = null;
+
 		this.levels = null;
 
 		this.sortList = null;//массив, порядковый номер - его индекс в levels
@@ -8939,6 +8941,9 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	};
 	CSortProperties.prototype.asc_getColumnSort = function () {
 		return this.columnSort;
+	};
+	CSortProperties.prototype.asc_getCaseSensitive = function () {
+		return this.caseSensative;
 	};
 	CSortProperties.prototype.asc_getLevels = function () {
 		return this.levels;
@@ -8971,6 +8976,9 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	};
 	CSortProperties.prototype.asc_setColumnSort = function (val) {
 		this.columnSort = val;
+	};
+	CSortProperties.prototype.asc_setCaseSensitive = function (val) {
+		this.caseSensative = val;
 	};
 	CSortProperties.prototype.asc_setLevels = function (val) {
 		this.levels = val;
@@ -9378,6 +9386,8 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	prot["asc_getFilterInside"] = prot.asc_getFilterInside;
 	prot["asc_getLockChangeHeaders"] = prot.asc_getLockChangeHeaders;
 	prot["asc_getLockChangeOrientation"] = prot.asc_getLockChangeOrientation;
+	prot["asc_getCaseSensitive"] = prot.asc_getCaseSensitive;
+	prot["asc_setCaseSensitive"] = prot.asc_setCaseSensitive;
 
 	window["Asc"]["CSortPropertiesLevel"] = window["Asc"].CSortPropertiesLevel = CSortPropertiesLevel;
 	prot = CSortPropertiesLevel.prototype;

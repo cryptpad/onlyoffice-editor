@@ -18493,7 +18493,7 @@
 
 		var modelSort, dataHasHeaders, columnSort;
 		var tables = t.model.autoFilters.getTableIntersectionRange(selection);
-		var lockChangeHeaders, lockChangeOrientation;
+		var lockChangeHeaders, lockChangeOrientation, caseSenstitive;
 		if(tables && tables.length) {
 			if(tables && tables && tables.length === 1 && tables[0].Ref.containsRange(selection)) {
 				selection = tables[0].getRangeWithoutHeaderFooter();
@@ -18528,6 +18528,7 @@
 			//в настройках флаг columnSort - означает, что сортируем по колонке
 			modelSort = this.model.sortState;
 			columnSort = modelSort ? !modelSort.ColumnSort : true;
+			caseSenstitive = modelSort ? modelSort.CaseSensititve : false;
 
 			if(selection.r1 === selection.r2 || !columnSort) {
 				lockChangeHeaders = true;
@@ -18563,6 +18564,8 @@
 		//заголовки
 		sortSettings.hasHeaders = dataHasHeaders;
 		sortSettings.columnSort = columnSort;
+
+		sortSettings.caseSenstitive = caseSenstitive;
 
 		sortSettings.lockChangeHeaders = lockChangeHeaders;
 		sortSettings.lockChangeOrientation = lockChangeOrientation;
@@ -18660,6 +18663,7 @@
 
 			var columnSort = props.columnSort;
 			sortState.ColumnSort = !columnSort;
+			sortState.CaseSensitive = props.caseSensitive;
 			for(var i = 0; i < props.levels.length; i++) {
 				var sortCondition = new AscCommonExcel.SortCondition();
 				var level = props.levels[i];
