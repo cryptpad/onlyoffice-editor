@@ -11837,7 +11837,9 @@
 			bAscent = !sortConditions[0].ConditionDescending;
 		}
 		if(opt_custom_sort) {
-			caseSensitive = opt_custom_sort.CaseSensitive;
+			//caseSensitive = opt_custom_sort.CaseSensitive;
+			//пока игнорируем данный флаг, поскольку сравнения строк в excel при сортировке работает иначе(например - "Green" > "green")
+			//возможно, стоит воспользоваться функцией localeCompare - но для этого необходимо проверить грамотное ли сравнение будет
 		}
 
 		var nLastRow0, nLastCol0;
@@ -12003,7 +12005,7 @@
 			});
 			return oCell ? fAddSortElems(oCell, row, col) : null;
 		};
-
+		caseSensitive = true;
 		putElem = false;
 		if (isSortColor) {
 			var newArrayNeedColor = [];
