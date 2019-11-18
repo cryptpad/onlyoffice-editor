@@ -8983,6 +8983,9 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		//TODO change selection
 		this.generateSortList();
 	};
+	//TODO delete
+	CSortProperties.prototype.asc_getFilterInside = function () {
+	};
 	CSortProperties.prototype.generateSortList = function () {
 		this.sortList = [];
 
