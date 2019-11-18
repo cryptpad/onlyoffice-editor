@@ -18493,14 +18493,15 @@
 
 		var modelSort, dataHasHeaders, columnSort;
 		var tables = t.model.autoFilters.getTableIntersectionRange(selection);
-		var filterInside;
+		var lockChangeHeaders, lockChangeOrientation;
 		if(tables && tables.length) {
 			if(tables && tables && tables.length === 1 && tables[0].Ref.containsRange(selection)) {
 				selection = tables[0].getRangeWithoutHeaderFooter();
 				columnSort = true;
 				dataHasHeaders = true;
 				modelSort = tables[0].SortState;
-				filterInside = true;
+				lockChangeHeaders = true;
+				lockChangeOrientation = true;
 			} else {
 				this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.LockedAllError, c_oAscError.Level.NoCritical);
 				return false;
@@ -18512,7 +18513,8 @@
 				columnSort = true;
 				dataHasHeaders = true;
 				modelSort = autoFilter.SortState;
-				filterInside = true;
+				lockChangeHeaders = true;
+				lockChangeOrientation = true;
 			} else {
 				this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.LockedAllError, c_oAscError.Level.NoCritical);
 				return false;
@@ -18527,7 +18529,20 @@
 			modelSort = this.model.sortState;
 			columnSort = modelSort ? !modelSort.ColumnSort : true;
 
-			dataHasHeaders = columnSort ? window['AscCommonExcel'].ignoreFirstRowSort(t.model, selection) : false;
+			if(selection.r1 === selection.r2 || !columnSort) {
+				lockChangeHeaders = true;
+				dataHasHeaders = false;
+			}
+
+			if(columnSort) {
+				if(modelSort) {
+					dataHasHeaders = !modelSort.Ref.isEqual(selection) ? modelSort._hasHeaders : false;
+				} else {
+					dataHasHeaders = window['AscCommonExcel'].ignoreFirstRowSort(t.model, selection);
+				}
+			}
+
+
 			//для columnSort - добавлять с1++
 			if (dataHasHeaders) {
 				selection.r1++;
@@ -18548,8 +18563,9 @@
 		//заголовки
 		sortSettings.hasHeaders = dataHasHeaders;
 		sortSettings.columnSort = columnSort;
-		sortSettings.filterInside = filterInside;
 
+		sortSettings.lockChangeHeaders = lockChangeHeaders;
+		sortSettings.lockChangeOrientation = lockChangeOrientation;
 
 		var getSortLevel = function(sortCondition) {
 			var level = new Asc.CSortPropertiesLevel();
@@ -18676,6 +18692,7 @@
 				History.Add(AscCommonExcel.g_oUndoRedoSortState, AscCH.historyitem_SortState_Add, t.model.getId(), null,
 					new AscCommonExcel.UndoRedoData_SortState(t.model.sortState ? t.model.sortState.clone() : null, sortState ? sortState.clone() : null));
 
+				sortState._hasHeaders = props.hasHeaders;
 				t.model.sortState = sortState;
 			}
 

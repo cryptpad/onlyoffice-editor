@@ -7931,6 +7931,8 @@ function SortCondition() {
 	this.ConditionSortBy = null;
 	this.ConditionDescending = null;
 	this.dxf = null;
+
+	this._hasHeaders = null;
 }
 SortCondition.prototype.clone = function() {
 	var res = new SortCondition();
@@ -8923,7 +8925,9 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		this.levels = null;
 
 		this.sortList = null;//массив, порядковый номер - его индекс в levels
-		this.filterInside = null;
+
+		this.lockChangeHeaders = null;
+		this.lockChangeOrientation = null;
 
 		this._ws = ws;
 
@@ -8943,10 +8947,26 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		return this.sortList;
 	};
 	CSortProperties.prototype.asc_getFilterInside = function () {
+		//TODO удалить
+		//теперь отдельно lockChangeHeaders/lockChangeOrientation
 		return this.filterInside;
+	};
+	CSortProperties.prototype.asc_getLockChangeHeaders = function () {
+		return this.lockChangeHeaders;
+	};
+	CSortProperties.prototype.asc_getLockChangeOrientation = function () {
+		return this.lockChangeOrientation;
 	};
 
 	CSortProperties.prototype.asc_setHasHeaders = function (val) {
+		if (this._newSelection && this.hasHeaders !== val) {
+			if(val) {
+				this._newSelection.r1++;
+			} else {
+				this._newSelection.r1--;
+			}
+			this._ws.setSelection(this._newSelection);
+		}
 		this.hasHeaders = val;
 	};
 	CSortProperties.prototype.asc_setColumnSort = function (val) {
@@ -9356,6 +9376,8 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	prot["asc_getLevelProps"] = prot.asc_getLevelProps;
 	prot["asc_setLevels"] = prot.asc_setLevels;
 	prot["asc_getFilterInside"] = prot.asc_getFilterInside;
+	prot["asc_getLockChangeHeaders"] = prot.asc_getLockChangeHeaders;
+	prot["asc_getLockChangeOrientation"] = prot.asc_getLockChangeOrientation;
 
 	window["Asc"]["CSortPropertiesLevel"] = window["Asc"].CSortPropertiesLevel = CSortPropertiesLevel;
 	prot = CSortPropertiesLevel.prototype;
