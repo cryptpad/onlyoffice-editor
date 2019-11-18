@@ -5203,12 +5203,15 @@ CDocument.prototype.CheckRange = function(X0, Y0, X1, Y1, _Y0, _Y1, X_lf, X_rf, 
 	var HdrFtrRanges = this.HdrFtr.CheckRange(X0, Y0, X1, Y1, _Y0, _Y1, X_lf, X_rf, PageNum, bMathWrap);
 	return this.DrawingObjects.CheckRange(X0, Y0, X1, Y1, _Y0, _Y1, X_lf, X_rf, PageNum, HdrFtrRanges, null, bMathWrap);
 };
-CDocument.prototype.AddToParagraph = function(ParaItem, bRecalculate)
+CDocument.prototype.AddToParagraph = function(oParaItem, bRecalculate)
 {
-	if (this.IsNumberingSelection())
+	if (!oParaItem)
+		return;
+
+	if (this.IsNumberingSelection() && para_TextPr !== oParaItem.Type)
 		this.RemoveSelection();
 
-	this.Controller.AddToParagraph(ParaItem, bRecalculate);
+	this.Controller.AddToParagraph(oParaItem, bRecalculate);
 };
 /**
  * Очищаем форматирование внутри селекта
@@ -15994,12 +15997,6 @@ CDocument.prototype.controller_AddToParagraph = function(ParaItem, bRecalculate)
 						var oNumPr = this.Selection.Data.CurPara.GetNumPr();
 						var oNum   = this.GetNumbering().GetNum(oNumPr.NumId);
 						oNum.ApplyTextPr(oNumPr.Lvl, ParaItem.Value);
-
-						if (false != bRecalculate)
-						{
-							this.Recalculate();
-						}
-
 						break;
 					}
 				}
