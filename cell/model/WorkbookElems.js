@@ -8951,18 +8951,12 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	CSortProperties.prototype.asc_getSortList = function () {
 		return this.sortList;
 	};
-	CSortProperties.prototype.asc_getFilterInside = function () {
-		//TODO удалить
-		//теперь отдельно lockChangeHeaders/lockChangeOrientation
-		return this.filterInside;
-	};
 	CSortProperties.prototype.asc_getLockChangeHeaders = function () {
 		return this.lockChangeHeaders;
 	};
 	CSortProperties.prototype.asc_getLockChangeOrientation = function () {
 		return this.lockChangeOrientation;
 	};
-
 	CSortProperties.prototype.asc_setHasHeaders = function (val) {
 		var oldVal = !!this.hasHeaders;
 		if (this._newSelection && oldVal !== val) {
@@ -9384,7 +9378,6 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	prot["asc_setColumnSort"] = prot.asc_setColumnSort;
 	prot["asc_getLevelProps"] = prot.asc_getLevelProps;
 	prot["asc_setLevels"] = prot.asc_setLevels;
-	prot["asc_getFilterInside"] = prot.asc_getFilterInside;
 	prot["asc_getLockChangeHeaders"] = prot.asc_getLockChangeHeaders;
 	prot["asc_getLockChangeOrientation"] = prot.asc_getLockChangeOrientation;
 	prot["asc_getCaseSensitive"] = prot.asc_getCaseSensitive;
