@@ -2940,12 +2940,6 @@ CDocumentContent.prototype.AddToParagraph = function(ParaItem, bRecalculate)
 							var oNumPr = this.Selection.Data.CurPara.GetNumPr();
 							var oNum   = this.GetNumbering().GetNum(oNumPr.NumId);
 							oNum.ApplyTextPr(oNumPr.Lvl, ParaItem.Value);
-
-							if (false != bRecalculate)
-							{
-								this.Recalculate();
-							}
-
 							break;
 						}
 					}
