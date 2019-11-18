@@ -8964,7 +8964,8 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	};
 
 	CSortProperties.prototype.asc_setHasHeaders = function (val) {
-		if (this._newSelection && this.hasHeaders !== val) {
+		var oldVal = !!this.hasHeaders;
+		if (this._newSelection && oldVal !== val) {
 			if(val) {
 				this._newSelection.r1++;
 			} else {
