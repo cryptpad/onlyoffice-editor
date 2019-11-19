@@ -954,7 +954,7 @@ CDrawingDocument.prototype =
         }
     },
 
-  	OnDrawContentControl : function(id, type, rects, transform)
+  	OnDrawContentControl : function(ctrl, state, rects)
   	{},
 
     // current page

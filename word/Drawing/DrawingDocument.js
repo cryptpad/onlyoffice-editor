@@ -4290,9 +4290,9 @@ function CDrawingDocument()
 		}
 	};
 
-	this.OnDrawContentControl = function(id, type, rects, transform, name, name_advanced, button_types, color)
+	this.OnDrawContentControl = function(obj, state, geom)
 	{
-		return this.contentControls.OnDrawContentControl(id, type, rects, transform, name, name_advanced, button_types, color);
+		return this.contentControls.OnDrawContentControl(obj, state, geom);
 	};
 
 	this.private_DrawMathTrack = function (overlay, oPath, shift, color, dKoefX, dKoefY, drPage)

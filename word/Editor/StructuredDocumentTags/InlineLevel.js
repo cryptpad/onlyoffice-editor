@@ -412,11 +412,7 @@ CInlineLevelSdt.prototype.DrawContentControlsTrack = function(isHover)
 		return;
 	}
 
-	var sName      = this.GetAlias();
-	var isBuiltIn  = false;
-	var arrButtons = [];
-
-	oDrawingDocument.OnDrawContentControl(this.GetId(), isHover ? AscCommon.ContentControlTrack.Hover : AscCommon.ContentControlTrack.In, this.GetBoundingPolygon(), this.Paragraph.Get_ParentTextTransform(), sName, isBuiltIn, arrButtons, this.GetColor());
+	oDrawingDocument.OnDrawContentControl(this, isHover ? AscCommon.ContentControlTrack.Hover : AscCommon.ContentControlTrack.In, this.GetBoundingPolygon());
 };
 CInlineLevelSdt.prototype.SelectContentControl = function()
 {

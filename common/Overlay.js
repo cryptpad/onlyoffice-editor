@@ -511,6 +511,12 @@ COverlay.prototype =
         this.m_oContext.arc(x,y,r,0,Math.PI*2,false);
         //this.m_oContext.closePath();
     },
+    AddEllipse2 : function(x,y,r)
+    {
+        this.m_oContext.moveTo(x+r,y);
+        this.m_oContext.arc(x,y,r,0,Math.PI*2,false);
+        //this.m_oContext.closePath();
+    },
 
 	AddDiamond : function(x,y,r)
 	{
