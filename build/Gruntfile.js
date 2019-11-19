@@ -324,7 +324,8 @@ module.exports = function(grunt) {
 						slideJs,
 						word + cache,
 						cell + cache,
-						slide + cache
+						slide + cache,
+						deploy
 					]
 				}
 			},

@@ -6526,8 +6526,11 @@ ParaRun.prototype.Get_WordStartPos = function(SearchPos, ContentPos, Depth, UseC
 {
     var CurPos = ( true === UseContentPos ? ContentPos.Get(Depth) - 1 : this.Content.length - 1 );
 
-    if ( CurPos < 0 )
-        return;
+	if (CurPos < 0)
+	{
+		SearchPos.Pos.Update(CurPos, Depth);
+		return;
+	}
 
     SearchPos.Shift = true;
 
@@ -6634,8 +6637,11 @@ ParaRun.prototype.Get_WordEndPos = function(SearchPos, ContentPos, Depth, UseCon
     var CurPos = ( true === UseContentPos ? ContentPos.Get(Depth) : 0 );
 
     var ContentLen = this.Content.length;
-    if ( CurPos >= ContentLen )
-        return;
+	if (CurPos >= ContentLen)
+	{
+		SearchPos.Pos.Update(CurPos, Depth);
+		return;
+	}
 
 	var isFieldCode  = SearchPos.IsComplexFieldCode();
 	var isFieldValue = SearchPos.IsComplexFieldValue();

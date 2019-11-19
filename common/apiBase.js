@@ -2011,7 +2011,7 @@
     {
         AscFonts.FontPickerByCharacter.checkTextLight([code], true);
 
-        var fonts = [new AscFonts.CFont(g_fontApplication.GetFontInfoName(familyName), 0, "", 0, null)];
+        var fonts = [new AscFonts.CFont(AscFonts.g_fontApplication.GetFontInfoName(familyName), 0, "", 0, null)];
         AscFonts.FontPickerByCharacter.extendFonts(fonts);
 
         if (false === AscCommon.g_font_loader.CheckFontsNeedLoading(fonts))
