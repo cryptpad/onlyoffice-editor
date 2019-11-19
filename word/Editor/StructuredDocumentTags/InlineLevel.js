@@ -1252,6 +1252,10 @@ CInlineLevelSdt.prototype.GetSpecificType = function()
 
 	return Asc.c_oAscContentControlSpecificType.None;
 };
+CInlineLevelSdt.prototype.Get_ParentTextTransform = function()
+{
+	return this.Paragraph.Get_ParentTextTransform();
+};
 //--------------------------------------------------------export--------------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};
 window['AscCommonWord'].CInlineLevelSdt = CInlineLevelSdt;
