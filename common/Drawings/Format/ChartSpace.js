@@ -448,41 +448,6 @@ var G_O_VISITED_HLINK_COLOR = CreateUniFillSolidFillWidthTintOrShade(CreateUnifi
 var G_O_HLINK_COLOR = CreateUniFillSolidFillWidthTintOrShade(CreateUnifillSolidFillSchemeColorByIndex(11), 0);
 var G_O_NO_ACTIVE_COMMENT_BRUSH = AscFormat.CreateUniFillByUniColor(AscFormat.CreateUniColorRGB(248, 231, 195));
 var G_O_ACTIVE_COMMENT_BRUSH = AscFormat.CreateUniFillByUniColor(AscFormat.CreateUniColorRGB(240, 200, 120));
-/*function addPointToMap(map, worksheet, row, col, pt)
-{
-    if(!Array.isArray(map[worksheet.getId()+""]))
-    {
-        map[worksheet.getId()+""] = [];
-    }
-    if(!Array.isArray(map[worksheet.getId()+""][row]))
-    {
-        map[worksheet.getId()+""][row] = [];
-    }
-    if(!Array.isArray(map[worksheet.getId()+""][row][col]))
-    {
-        map[worksheet.getId()+""][row][col] = [];
-    }
-    map[worksheet.getId()+""][row][col].push(pt);
-}
-
-
-function checkPointInMap(map, worksheet, row, col)
-{
-    if(map[worksheet.getId() + ""] && map[worksheet.getId() + ""][row] && map[worksheet.getId() + ""][row][col])
-    {
-        var cell = worksheet.getCell3(row, col);
-        var pts = map[worksheet.getId() + ""][row][col];
-        for(var i = 0; i < pts.length; ++i)
-        {
-            pts[i].setVal(cell.getValue());
-        }
-        return true;
-    }
-    else
-    {
-        return false;
-    }
-}*/
 
 
     var CChangesDrawingsBool = AscDFH.CChangesDrawingsBool;
@@ -829,7 +794,6 @@ function checkPointInMap(map, worksheet, row, col)
         return this.maxMinWidth >= 0.0 ? this.maxMinWidth : 0.0;
     };
 
-
     CLabelsBox.prototype.hit = function(x, y){
         var tx, ty;
         if(this.chartSpace && this.chartSpace.invertTransform)
@@ -928,8 +892,7 @@ function checkPointInMap(map, worksheet, row, col)
 
     CLabelsBox.prototype.layoutHorRotated = function(fAxisY, fDistance, fXStart, fXEnd, fInterval, bOnTickMark){
 
-
-        var bTickLblSkip = AscFormat.isRealNumber(this.axis.tickLblSkip) ? true : false;
+        var bTickLblSkip = AscFormat.isRealNumber(this.axis.tickLblSkip);
         if(bTickLblSkip){
             this.layoutHorRotated2(this.aLabels, fAxisY, fDistance, fXStart, fInterval, bOnTickMark);
         }
@@ -1262,7 +1225,6 @@ function checkPointInMap(map, worksheet, row, col)
         this.maxVal = 0.0;
         this.aStrings = [];
     }
-    var oIdentityMatrix = new AscCommon.CMatrix();
 
     function CChartSpace()
 {
@@ -1403,7 +1365,8 @@ CChartSpace.prototype.drawSelect = function(drawingDocument, nPageIndex)
                 if(AscFormat.isRealNumber(this.selection.legendEntry))
                 {
                     var oEntry = this.chart.legend.findCalcEntryByIdx(this.selection.legendEntry);
-                    if(oEntry){
+                    if(oEntry)
+                    {
                         drawingDocument.DrawTrack(AscFormat.TYPE_TRACK.CHART_TEXT, oEntry.transformText, 0, 0, oEntry.contentWidth, oEntry.contentHeight, false, false);
                     }
                 }
@@ -1814,41 +1777,30 @@ CChartSpace.prototype.loadDocumentStateAfterLoadChanges = function(state)
     this.selection.hiLowLines = null;
     this.selection.upBars = null;
     this.selection.downBars = null;
-    var bRet = false;
-    if(state.DrawingsSelectionState){
+    var bRet = false, aTitles, i;
+    if(state.DrawingsSelectionState) {
         var chartSelection = state.DrawingsSelectionState.chartSelection;
-        if(chartSelection){
-            if(this.chart){
-                if(chartSelection.title){
-                    if(this.chart.title === chartSelection.title){
-                        this.selection.title = this.chart.title;
-                        bRet = true;
-                    }
-                    else{
-                        var plot_area = this.chart.plotArea;
-                        if(plot_area){
-                            for(var i = 0; i < plot_area.axId.length; ++i){
-                                var axis = plot_area.axId[i];
-                                if(axis && axis.title === chartSelection.title){
-                                    this.selection.title = axis.title;
-                                    bRet = true;
-                                    break;
-                                }
-                            }
+        if(chartSelection) {
+            if(this.chart) {
+                if(chartSelection.title) {
+                    aTitles = this.getAllTitles();
+                    for(i = 0; i < aTitles.length; ++i) {
+                        if(aTitles[i] === chartSelection.title) {
+                            this.selection.title = aTitles[i];
+                            bRet = true;
+                            break;
                         }
                     }
-                    if(this.selection.title){
-                        if(this.selection.title === chartSelection.textSelection){
+                    if(this.selection.title) {
+                        if(this.selection.title === chartSelection.textSelection) {
                             var oTitleContent = this.selection.title.getDocContent();
-                            if(oTitleContent && oTitleContent === chartSelection.content){
+                            if(oTitleContent && oTitleContent === chartSelection.content) {
                                 this.selection.textSelection = this.selection.title;
-                                if (true === state.DrawingSelection)
-                                {
+                                if (true === state.DrawingSelection) {
                                     oTitleContent.SetContentPosition(state.StartPos, 0, 0);
                                     oTitleContent.SetContentSelection(state.StartPos, state.EndPos, 0, 0, 0);
                                 }
-                                else
-                                {
+                                else {
                                     oTitleContent.SetContentPosition(state.Pos, 0, 0);
                                 }
                             }

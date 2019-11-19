@@ -1115,7 +1115,7 @@ function handleInternalChart(drawing, drawingObjectsController, e, x, y, group, 
         var legend = drawing.getLegend();
         if(legend && !window["NATIVE_EDITOR_ENJINE"] && legend.hit(x, y) && bClickFlag)
         {
-            if(drawing.selection.legend != legend)
+            if(drawing.selection.legend !== legend)
             {
                 if(drawingObjectsController.handleEventMode === HANDLE_EVENT_MODE_HANDLE)
                 {
