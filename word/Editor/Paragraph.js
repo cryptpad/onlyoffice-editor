@@ -8604,7 +8604,7 @@ Paragraph.prototype.Add_PresentationNumbering = function(_Bullet, Pr)
 					{
 						oBullet.bulletType.type = AscFormat.BULLET_TYPE_BULLET_CHAR;
 						oBullet.bulletType.Char = BulletSymbol;
-						oBullet.bulletTypeface = new CBulletTypeface();
+						oBullet.bulletTypeface = new AscFormat.CBulletTypeface();
 						oBullet.bulletTypeface.type = AscFormat.BULLET_TYPE_TYPEFACE_BUFONT;
 						oBullet.bulletTypeface.typeface = BulletFont;
 					}
