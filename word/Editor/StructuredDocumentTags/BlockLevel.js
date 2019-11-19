@@ -856,18 +856,7 @@ CBlockLevelSdt.prototype.DrawContentControlsTrack = function(isHover)
 		arrRects.push({X : oBounds.Left, Y : oBounds.Top, R : oBounds.Right, B : oBounds.Bottom, Page : nPageAbs});
 	}
 
-	var sName      = this.GetAlias();
-	var isBuiltIn  = false;
-	var arrButtons = [];
-
-	if (this.IsBuiltInTableOfContents())
-	{
-		sName      = AscCommon.translateManager.getValue("Table of Contents");
-		isBuiltIn  = true;
-		arrButtons.push(1);
-	}
-
-	oDrawingDocument.OnDrawContentControl(this.GetId(), isHover ? AscCommon.ContentControlTrack.Hover : AscCommon.ContentControlTrack.In, arrRects, this.Get_ParentTextTransform(), sName, isBuiltIn, arrButtons, this.GetColor());
+	oDrawingDocument.OnDrawContentControl(this, isHover ? AscCommon.ContentControlTrack.Hover : AscCommon.ContentControlTrack.In, arrRects);
 };
 CBlockLevelSdt.prototype.AddContentControl = function(nContentControlType)
 {
