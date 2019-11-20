@@ -136,8 +136,8 @@
 
 
     var kCurFormatPainterExcel = "se-formatpainter";
-    AscCommon.g_oHtmlCursor.register(AscCommonExcel.kCurCells, "plus", ["plus", 6, 6], "cell");
-	AscCommon.g_oHtmlCursor.register(kCurFormatPainterExcel, "plus_copy", ["plus_copy", 6, 12], "pointer");
+    AscCommon.g_oHtmlCursor.register(AscCommonExcel.kCurCells, "plus", "6 6", "cell");
+	AscCommon.g_oHtmlCursor.register(kCurFormatPainterExcel, "plus_copy", "6 12", "pointer");
 
     var kNewLine = "\n";
 

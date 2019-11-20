@@ -802,6 +802,8 @@
 		this.isPaintFormat              = c_oAscFormatPainterState.kOff;
 		this.isMarkerFormat             = false;
 		this.isStartAddShape            = false;
+		this.isDrawTablePen				= false;
+        this.isDrawTableErase			= false;
 		this.addShapePreset             = "";
 		this.isShowTableEmptyLine       = true;
 		this.isShowTableEmptyLineAttack = false;
@@ -7370,11 +7372,42 @@ background-repeat: no-repeat;\
 		}
 	};
 
-	asc_docs_api.prototype.sync_MarkerFormatCallback = function(value)
-	{
-		this.isMarkerFormat = value;
-		return this.sendEvent("asc_onMarkerFormatChanged", value);
-	};
+    asc_docs_api.prototype.sync_MarkerFormatCallback = function(value)
+    {
+        this.isMarkerFormat = value;
+        return this.sendEvent("asc_onMarkerFormatChanged", value);
+    };
+
+    asc_docs_api.prototype.SetTableDrawMode = function(value)
+    {
+    	if (!this.WordControl || !this.WordControl.m_oLogicDocument)
+    		return;
+
+        this.isDrawTablePen = value;
+        this.WordControl.m_oLogicDocument.DrawTableMode.Draw = value;
+
+    };
+    asc_docs_api.prototype.sync_TableDrawModeCallback = function(value)
+    {
+        this.isDrawTablePen = value;
+        this.WordControl.m_oLogicDocument.DrawTableMode.Draw = value;
+        return this.sendEvent("asc_onTableDrawModeChanged", value);
+    };
+    asc_docs_api.prototype.SetTableEraseMode = function(value)
+    {
+        if (!this.WordControl || !this.WordControl.m_oLogicDocument)
+            return;
+
+        this.isDrawTableErase = value;
+        this.WordControl.m_oLogicDocument.DrawTableMode.Erase = value;
+
+    };
+    asc_docs_api.prototype.sync_TableEraseModeCallback = function(value)
+    {
+        this.isDrawTableErase = value;
+        this.WordControl.m_oLogicDocument.DrawTableMode.Erase = value;
+        return this.sendEvent("asc_onTableEraseModeChanged", value);
+    };
 
 	asc_docs_api.prototype.StartAddShape = function(sPreset, is_apply)
 	{

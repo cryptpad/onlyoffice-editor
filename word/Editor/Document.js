@@ -8006,15 +8006,7 @@ CDocument.prototype.UpdateCursorType = function(X, Y, PageAbs, MouseEvent)
 	this.DrawingDocument.OnDrawContentControl(null, AscCommon.ContentControlTrack.Hover);
 
 	var nDocPosType = this.GetDocPosType();
-	if (this.DrawTableMode.Draw)
-	{
-		this.DrawingDocument.SetCursorType("pointer", new AscCommon.CMouseMoveData());
-	}
-	else if (this.DrawTableMode.Erase)
-	{
-		this.DrawingDocument.SetCursorType("no-drop", new AscCommon.CMouseMoveData());
-	}
-	else if (docpostype_HdrFtr === nDocPosType)
+	if (docpostype_HdrFtr === nDocPosType)
 	{
 		this.HeaderFooterController.UpdateCursorType(X, Y, PageAbs, MouseEvent);
 	}
@@ -8342,11 +8334,11 @@ CDocument.prototype.OnKeyDown = function(e)
         // 3. Если у нас сейчас происходит форматирование по образцу, тогда его отменяем
         // 4. Если у нас выделена автофигура (в колонтитуле или документе), тогда снимаем выделение с нее
         // 5. Если мы просто находимся в колонтитуле (автофигура не выделена) выходим из колонтитула
-		if (this.DrawTableMode.Draw || this.DrawTableMode.Erase)
+		if (editor.isDrawTablePen || editor.isDrawTableErase)
 		{
-			this.DrawTableMode.Draw  = false;
-			this.DrawTableMode.Erase = false;
-			this.DrawingDocument.DrawTableClear(editor.WordControl.m_oOverlayApi);
+            editor.isDrawTablePen && editor.sync_TableDrawModeCallback(false);
+            editor.isDrawTableErase && editor.sync_TableEraseModeCallback(false);
+            this.UpdateCursorType(this.CurPos.RealX, this.CurPos.RealY, this.CurPage, new AscCommon.CMouseEventHandler());
 		}
 		else if (true === this.DrawingDocument.IsTrackText())
         {
@@ -8839,20 +8831,6 @@ CDocument.prototype.OnKeyDown = function(e)
         bUpdateSelection = false;
         bRetValue        = keydownresult_PreventAll;
     }
-	else if (e.KeyCode == 112 && true === e.CtrlKey) // Ctrl + F1
-	{
-		this.DrawTableMode.Draw  = !this.DrawTableMode.Draw;
-		this.DrawTableMode.Erase = false;
-
-		bRetValue = keydownresult_PreventAll;
-	}
-	else if (e.KeyCode == 113 && true === e.CtrlKey) // Ctrl + F2
-	{
-		this.DrawTableMode.Draw  = false;
-		this.DrawTableMode.Erase = !this.DrawTableMode.Erase;
-
-		bRetValue = keydownresult_PreventAll;
-	}
 	else if (e.KeyCode == 120) // F9 - обновление полей
 	{
 		this.UpdateFields(true);
@@ -9240,11 +9218,6 @@ CDocument.prototype.OnMouseUp = function(e, X, Y, PageIndex)
 		this.DrawTableMode.EndX = X;
 		this.DrawTableMode.EndY = Y;
 
-		console.log("End X " + X);
-		console.log("End Y " + Y);
-
-		this.DrawingDocument.DrawTableClear(editor.WordControl.m_oOverlayApi);
-
 		this.DrawTable();
 
 		this.DrawTableMode.StartX = -1;
@@ -9496,10 +9469,8 @@ CDocument.prototype.OnMouseMove = function(e, X, Y, PageIndex)
 
 	if (this.DrawTableMode.Draw || this.DrawTableMode.Erase)
 	{
-		// TODO: отрисовка
-		if (this.DrawTableMode.Start)
-			this.DrawingDocument.DrawTable(editor.WordControl.m_oOverlayApi, this.DrawTableMode.StartX, this.DrawTableMode.StartY, X, Y, PageIndex);
-
+	    if (this.DrawTableMode.Start)
+            this.DrawingDocument.OnUpdateOverlay();
 		return;
 	}
 

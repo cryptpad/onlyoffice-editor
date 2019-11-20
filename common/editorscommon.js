@@ -412,23 +412,18 @@
 
 		this.value = function(param)
 		{
-			var _map = this.map;
-			if ((window["AscDesktopEditor"] && !AscCommon.AscBrowser.isMacOs) && AscCommon.AscBrowser.isRetina)
-				_map = this.mapRetina;
-
-			return _map[param] ? _map[param] : param;
+			var ret = this.map[param];
+			if (AscCommon.AscBrowser.isRetina && this.mapRetina[param])
+				ret = this.mapRetina[param];
+			return ret ? ret : param;
 		};
 
-		this.register = function(type, url_ie, url_main, default_css_value)
+		this.register = function(type, name, target, default_css_value)
 		{
-			if (AscBrowser.isIE)
+			if (AscBrowser.isIE || AscBrowser.isIeEdge)
 			{
-				var isTestRetinaNeed = (url_ie.lastIndexOf(".cur") == (url_ie.length - 4)) ? false : true;
-
-				if (isTestRetinaNeed)
-					this.map[type] = ("url(../../../../sdkjs/common/Images/" + url_ie + (AscBrowser.isRetina ? "_2x" : "") + ".cur), " + default_css_value);
-				else
-					this.map[type] = ("url(../../../../sdkjs/common/Images/" + url_ie + "), " + default_css_value);
+				this.map[type] = ("url(../../../../sdkjs/common/Images/cursors/" + name + ".cur), " + default_css_value);
+                this.mapRetina[type] = ("url(../../../../sdkjs/common/Images/cursors/" + name + "_2x.cur), " + default_css_value);
 			}
 			else if (window.opera)
 			{
@@ -436,8 +431,8 @@
 			}
 			else
 			{
-				this.map[type] = ("url('../../../../sdkjs/common/Images/" + url_main[0] + ".png') " + url_main[1] + " " + url_main[2] + ", " + default_css_value);
-                this.mapRetina[type] = ("url('../../../../sdkjs/common/Images/" + url_main[0] + "_2x.png') " + (url_main[1] << 1) + " " + (url_main[2] << 1) + ", " + default_css_value);
+                this.map[type] = "url('../../../../sdkjs/common/Images/cursors/" + name + ".svg') " + target +
+									", url('../../../../sdkjs/common/Images/cursors/" + name + ".png') " + target + ", " + default_css_value;
 			}
 		};
 	}
@@ -2991,7 +2986,7 @@
 
 	var g_oHtmlCursor = new CHTMLCursor();
 	var kCurFormatPainterWord = 'de-formatpainter';
-	g_oHtmlCursor.register(kCurFormatPainterWord, "text_copy", ["text_copy", 2, 11], "pointer");
+	g_oHtmlCursor.register(kCurFormatPainterWord, "text_copy", "2 11", "pointer");
 
 	function asc_ajax(obj)
 	{

@@ -2389,10 +2389,12 @@ function CDrawingDocument()
 {
 	this.IsLockObjectsEnable = false;
 
-	AscCommon.g_oHtmlCursor.register("de-markerformat", "marker_format", ["marker_format", 14, 8], "pointer");
-	AscCommon.g_oHtmlCursor.register("select-table-row", "select_row", ["select_row", 10, 5], "default");
-	AscCommon.g_oHtmlCursor.register("select-table-column", "select_column", ["select_column", 5, 10], "default");
-	AscCommon.g_oHtmlCursor.register("select-table-cell", "select_cell", ["select_cell", 9, 0], "default");
+	AscCommon.g_oHtmlCursor.register("de-markerformat", "marker_format", "14 8", "pointer");
+	AscCommon.g_oHtmlCursor.register("select-table-row", "select_row", "10 5", "default");
+	AscCommon.g_oHtmlCursor.register("select-table-column", "select_column", "5 10", "default");
+	AscCommon.g_oHtmlCursor.register("select-table-cell", "select_cell", "9 0", "default");
+    AscCommon.g_oHtmlCursor.register("de-tablepen", "pen", "0 0", "pointer");
+    AscCommon.g_oHtmlCursor.register("de-tableeraser", "eraser", "0 0", "pointer");
 
 	this.m_oWordControl = null;
 	this.m_oLogicDocument = null;
@@ -2564,12 +2566,21 @@ function CDrawingDocument()
 	{
 		if ("" == this.m_sLockedCursorType)
 		{
-			if (AscCommon.c_oAscFormatPainterState.kOff !== this.m_oWordControl.m_oApi.isPaintFormat && "text" == sType)
-				this.m_oWordControl.m_oMainContent.HtmlElement.style.cursor = AscCommon.g_oHtmlCursor.value(AscCommon.kCurFormatPainterWord);
-			else if (this.m_oWordControl.m_oApi.isMarkerFormat && "text" == sType)
-				this.m_oWordControl.m_oMainContent.HtmlElement.style.cursor = AscCommon.g_oHtmlCursor.value("de-markerformat");
-			else
-				this.m_oWordControl.m_oMainContent.HtmlElement.style.cursor = AscCommon.g_oHtmlCursor.value(sType);
+            if ("text" == sType)
+            {
+                if (AscCommon.c_oAscFormatPainterState.kOff !== this.m_oWordControl.m_oApi.isPaintFormat)
+                    this.m_oWordControl.m_oMainContent.HtmlElement.style.cursor = AscCommon.g_oHtmlCursor.value(AscCommon.kCurFormatPainterWord);
+                else if (this.m_oWordControl.m_oApi.isMarkerFormat)
+                    this.m_oWordControl.m_oMainContent.HtmlElement.style.cursor = AscCommon.g_oHtmlCursor.value("de-markerformat");
+                else if (this.m_oWordControl.m_oApi.isDrawTablePen)
+                    this.m_oWordControl.m_oMainContent.HtmlElement.style.cursor = AscCommon.g_oHtmlCursor.value("de-tablepen");
+                else if (this.m_oWordControl.m_oApi.isDrawTableErase)
+                    this.m_oWordControl.m_oMainContent.HtmlElement.style.cursor = AscCommon.g_oHtmlCursor.value("de-tableeraser");
+                else
+                    this.m_oWordControl.m_oMainContent.HtmlElement.style.cursor = AscCommon.g_oHtmlCursor.value(sType);
+            }
+            else
+                this.m_oWordControl.m_oMainContent.HtmlElement.style.cursor = AscCommon.g_oHtmlCursor.value(sType);
 		}
 		else
 			this.m_oWordControl.m_oMainContent.HtmlElement.style.cursor = AscCommon.g_oHtmlCursor.value(this.m_sLockedCursorType);
@@ -5296,6 +5307,11 @@ function CDrawingDocument()
 	{
 		this.m_oWordControl.OnUpdateOverlay();
 	}
+
+    this.OnUpdateOverlay = function ()
+    {
+        this.m_oWordControl.OnUpdateOverlay();
+    }
 
 	this.Set_RulerState_Start = function ()
 	{
