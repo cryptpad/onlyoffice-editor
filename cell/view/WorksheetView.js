@@ -10162,9 +10162,9 @@
                                 range.unmerge();
                                 break;
                             case c_oAscMergeOptions.MergeAcross:
-                                for (res = range.r1; res <= range.r2; ++res) {
-                                    t.model.getRange3(res, range.c1, res, range.c2).merge(val);
-                                    cell = new asc_Range(range.c1, res, range.c2, res);
+                                for (res = range.bbox.r1; res <= range.bbox.r2; ++res) {
+                                    t.model.getRange3(res, range.bbox.c1, res, range.bbox.c2).merge(val);
+                                    cell = new asc_Range(range.bbox.c1, res, range.bbox.c2, res);
                                     t.cellCommentator.mergeComments(cell);
                                 }
                                 break;
@@ -10191,9 +10191,9 @@
 							case c_oAscCleanOptions.All:
 							    range.cleanAll();
 								t.model.deletePivotTables(range.bbox);
-								t.model.removeSparklines(range);
+								t.model.removeSparklines(range.bbox);
 								// Удаляем комментарии
-                                t.cellCommentator.deleteCommentsRange(range);
+                                t.cellCommentator.deleteCommentsRange(range.bbox);
 								break;
 							case c_oAscCleanOptions.Text:
 							case c_oAscCleanOptions.Formula:
@@ -10207,10 +10207,10 @@
 							    range.cleanHyperlinks();
 								break;
 							case c_oAscCleanOptions.Sparklines:
-								t.model.removeSparklines(range);
+								t.model.removeSparklines(range.bbox);
 								break;
 							case c_oAscCleanOptions.SparklineGroups:
-								t.model.removeSparklineGroups(range);
+								t.model.removeSparklineGroups(range.bbox);
 								break;
                         }
 
@@ -10281,7 +10281,7 @@
 								r = mc ? mc.r1 : activeCell.row;
 								t.model.getRange3(r, c, r, c).setValue(val.asc_getText());
 								// Вызываем функцию пересчета для заголовков форматированной таблицы
-								t.model.autoFilters.renameTableColumn(range);
+								t.model.autoFilters.renameTableColumn(range.bbox);
 							}
 
                             val.hyperlinkModel.Ref = range;
