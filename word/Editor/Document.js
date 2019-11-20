@@ -1640,7 +1640,7 @@ CSelectedElementsInfo.prototype.CanDeleteBlockSdts = function()
 {
 	for (var nIndex = 0, nCount = this.m_arrSdts.length; nIndex < nCount; ++nIndex)
 	{
-		if (this.m_arrSdts[nIndex].IsBlockLevel() && !this.m_arrSdts[nIndex].CanBeDeleted())
+		if (this.m_arrSdts[nIndex].IsBlockLevel() && !this.m_arrSdts[nIndex].CanBeDeleted() && this.m_arrSdts[nIndex].IsSelectedAll())
 			return false;
 	}
 
@@ -1660,7 +1660,7 @@ CSelectedElementsInfo.prototype.CanDeleteInlineSdts = function()
 {
 	for (var nIndex = 0, nCount = this.m_arrSdts.length; nIndex < nCount; ++nIndex)
 	{
-		if (this.m_arrSdts[nIndex].IsInlineLevel() && !this.m_arrSdts[nIndex].CanBeDeleted())
+		if (this.m_arrSdts[nIndex].IsInlineLevel() && !this.m_arrSdts[nIndex].CanBeDeleted() && this.m_arrSdts[nIndex].IsSelectedAll())
 			return false;
 	}
 
@@ -6677,10 +6677,10 @@ CDocument.prototype.Interface_Update_ParaPr = function()
 		if (oMath && !oMath.Is_Inline())
 			ParaPr.Jc = oMath.Get_Align();
 
-		oSelectedInfo.CanDeleteBlockCC  = oSelectedInfo.CanDeleteBlockSdts();
-		oSelectedInfo.CanEditBlockCC    = oSelectedInfo.CanEditBlockSdts();
-		oSelectedInfo.CanDeleteInlineCC = oSelectedInfo.CanDeleteInlineSdts();
-		oSelectedInfo.CanEditInlineCC   = oSelectedInfo.CanEditInlineSdts();
+		ParaPr.CanDeleteBlockCC  = oSelectedInfo.CanDeleteBlockSdts();
+		ParaPr.CanEditBlockCC    = oSelectedInfo.CanEditBlockSdts();
+		ParaPr.CanDeleteInlineCC = oSelectedInfo.CanDeleteInlineSdts();
+		ParaPr.CanEditInlineCC   = oSelectedInfo.CanEditInlineSdts();
 
 		if (undefined != ParaPr.Tabs)
 			this.Api.Update_ParaTab(AscCommonWord.Default_Tab_Stop, ParaPr.Tabs);

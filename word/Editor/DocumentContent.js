@@ -5819,10 +5819,10 @@ CDocumentContent.prototype.Interface_Update_ParaPr    = function()
 			if (oMath && !oMath.Is_Inline())
 				oParaPr.Jc = oMath.Get_Align();
 
-			oSelectedInfo.CanDeleteBlockCC  = oSelectedInfo.CanDeleteBlockSdts();
-			oSelectedInfo.CanEditBlockCC    = oSelectedInfo.CanEditBlockSdts();
-			oSelectedInfo.CanDeleteInlineCC = oSelectedInfo.CanDeleteInlineSdts();
-			oSelectedInfo.CanEditInlineCC   = oSelectedInfo.CanEditInlineSdts();
+			ParaPr.CanDeleteBlockCC  = oSelectedInfo.CanDeleteBlockSdts();
+			ParaPr.CanEditBlockCC    = oSelectedInfo.CanEditBlockSdts();
+			ParaPr.CanDeleteInlineCC = oSelectedInfo.CanDeleteInlineSdts();
+			ParaPr.CanEditInlineCC   = oSelectedInfo.CanEditInlineSdts();
 		}
 
 		if (oParaPr.Tabs)
