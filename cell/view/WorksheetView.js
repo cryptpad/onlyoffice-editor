@@ -12736,6 +12736,16 @@
                 r2 = lastSelection.r2;
             }
 
+            var r;
+            for (r = r1; r <= r2; ++r) {
+				if (t.model.getRowCustomHeight(r)) {
+					break;
+				}
+			}
+            if (r2 < r) {
+            	return;
+			}
+
             History.Create_NewPoint();
             var oSelection = History.GetSelection();
             if (null != oSelection) {
