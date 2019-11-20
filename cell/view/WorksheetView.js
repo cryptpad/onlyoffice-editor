@@ -16587,7 +16587,7 @@
 		var res = null;
 		var up = true, down = true;
 		var fProcess = function(val){
-			var outLineLevel = val.getOutlineLevel();
+			var outLineLevel = val ? val.getOutlineLevel() : null;
 
 			//levelMap[val.index] = {level: outLineLevel, collapsed: false};
 			if(bUpdateOnlyRowLevelMap) {
@@ -16678,7 +16678,7 @@
 				if(start < 0) {
 					break;
 				}
-				bCol ? fProcess(this.model._getCol(start)) : this.model._getRow(start, fProcess);
+				bCol ? fProcess(this.model._getColNoEmptyWithAll(start)) : this.model._getRowNoEmptyWithAll(start, fProcess);
 			}
 
 			var maxCount = bCol ? this.model.getColsCount() : this.model.getRowsCount();
@@ -16688,7 +16688,7 @@
 				if(end > maxCount || end > cMaxCount) {
 					break;
 				}
-				bCol ? fProcess(this.model._getCol(start)) : this.model._getRow(start, fProcess);
+				bCol ? fProcess(this.model._getColNoEmptyWithAll(start)) : this.model._getRowNoEmptyWithAll(start, fProcess);
 			}
 		}
 
@@ -16724,27 +16724,6 @@
 			groupArr = bCol ? this.arrColGroups : this.arrRowGroups;
 			groupArr = groupArr ? groupArr.groupArr : null;
 		}
-		/*if(groupArr) {
-			var addCollapsed = function(val) {
-				if(val.getCollapsed()) {
-					if(!levelMap[val.index]) {
-						levelMap[val.index] = {level: 0, collapsed: true};
-					} else {
-						levelMap[val.index].collapsed = true;
-					}
-				}
-			};
-
-
-			for(i = 0; i < groupArr.length; i++) {
-				if (groupArr[i]) {
-					for (j = 0; j < groupArr[i].length; j++) {
-						index = groupArr[i][j].end + 1;
-						bCol ? addCollapsed(this.model._getCol(index)) : this.model._getRow(index, addCollapsed);
-					}
-				}
-			}
-		}*/
 
 		return {groupArr: res/*, levelMap: levelMap*/};
 	};
@@ -17257,35 +17236,6 @@
 		var h = buttonSize - 1;
 
 		return {x: x, y: y, w: w, h: h, size: bCol ? colW : rowH, pos: bCol ? endPosX : endPosY};
-	};
-
-	WorksheetView.prototype._getGroupLevel2 = function(index, bCol) {
-		var fProcess = function() {
-			var outLineLevel = val.getOutlineLevel();
-			return {level: outLineLevel, collapsed: false};
-		};
-		var levelObj = bCol ? fProcess(this.model._getCol(index)) : this.model._getRow(index, fProcess);
-		var groupArr = bCol ? this.arrColGroups : this.arrRowGroups;
-		if(groupArr) {
-			var addCollapsed = function(val) {
-				if(val.getCollapsed()) {
-					levelObj.collapsed = true;
-				}
-			};
-
-
-			for(var i = 0; i < groupArr.length; i++) {
-				if (groupArr[i]) {
-					for (var j = 0; j < groupArr[i].length; j++) {
-						if(index >= groupArr[i][j].start && index <= groupArr[i][j].end) {
-							bCol ? addCollapsed(this.model._getCol(groupArr[i][j].end + 1)) : this.model._getRow(groupArr[i][j].end + 1, addCollapsed);
-						}
-					}
-				}
-			}
-		}
-
-		return levelObj;
 	};
 
 	WorksheetView.prototype._getGroupLevel = function(index, bCol) {
