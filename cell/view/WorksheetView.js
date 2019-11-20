@@ -10227,7 +10227,7 @@
 
                         // Вызываем функцию пересчета для заголовков форматированной таблицы
                         if (val === c_oAscCleanOptions.All || val === c_oAscCleanOptions.Text) {
-                            t.model.autoFilters.renameTableColumn(range);
+                            t.model.autoFilters.renameTableColumn(range.bbox);
                         }
 
                         /* возвращаем отрисовку. и перерисовываем ячейки с предварительным пересчетом */
