@@ -11832,7 +11832,7 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 
 									}
 									Cells.reverse();
-									for (let cell of Cells)
+									for (var cell of Cells)
 									{
 										// this.CurCell = cell;
 										// this.RemoveTableCells();
@@ -11904,7 +11904,7 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 
 									}
 									Cells.reverse();
-									for (let cell of Cells)
+									for (var cell of Cells)
 									{
 										// this.CurCell = cell;
 										// this.RemoveTableCells();
@@ -11990,7 +11990,7 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 								}
 								
 								// Удаление ячеек
-								for (let cell of Cells)
+								for (var cell of Cells)
 								{
 									// this.CurCell = cell;
 									// this.RemoveTableCells();
@@ -12027,7 +12027,7 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 								if (TempCell.Get_Border(2).Value === 0)
 								{	
 									Cells.reverse();
-									for (let cell of Cells)
+									for (var cell of Cells)
 									{
 										this.CurCell = cell;
 										this.RemoveTableCells();
@@ -12048,7 +12048,7 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 								if (TempCell.Get_Border(2).Value === 0)
 								{
 									Cells.reverse();
-									for (let cell of Cells)
+									for (var cell of Cells)
 									{
 										this.CurCell = cell;
 										this.RemoveTableCells();
@@ -12085,7 +12085,7 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 							{
 								Cells.push(TempCell);
 								Cells.reverse();
-								for (let cell of Cells)
+								for (var cell of Cells)
 								{
 									this.CurCell = cell;
 									this.RemoveTableCells();
@@ -12153,7 +12153,7 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 						
 					}
 					// Если отсутвуют все внутренние и внешние границы у строки - удаляем её
-					for (let cur_pos of this.Selection.Data)
+					for (var cur_pos of this.Selection.Data)
 					{
 						if (this.Content[cur_pos.Row].CellsInfo.length === 1)
 						{
@@ -12179,7 +12179,7 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 									
 						}
 					}
-					for (let cur_pos of this.Selection.Data)
+					for (var cur_pos of this.Selection.Data)
 					{
 						var Cell = this.Content[cur_pos.Row].Get_Cell(cur_pos.Cell);
 						var Row 		 = this.Content[cur_pos.Row];
@@ -12261,7 +12261,7 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 
 												}
 												Cells.reverse();
-												for (let cell of Cells)
+												for (var cell of Cells)
 												{
 													// this.CurCell = cell;
 													// this.RemoveTableCells();
@@ -12333,7 +12333,7 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 
 												}
 												Cells.reverse();
-												for (let cell of Cells)
+												for (var cell of Cells)
 												{
 													// this.CurCell = cell;
 													// this.RemoveTableCells();
@@ -12420,7 +12420,7 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 											}
 											
 											// Удаление ячеек
-											for (let cell of Cells)
+											for (var cell of Cells)
 											{
 												// this.CurCell = cell;
 												// this.RemoveTableCells();
@@ -12457,7 +12457,7 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 											if (TempCell.Get_Border(2).Value === 0)
 											{	
 												Cells.reverse();
-												for (let cell of Cells)
+												for (var cell of Cells)
 												{
 													this.CurCell = cell;
 													this.RemoveTableCells();
@@ -12478,7 +12478,7 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 											if (TempCell.Get_Border(2).Value === 0)
 											{
 												Cells.reverse();
-												for (let cell of Cells)
+												for (var cell of Cells)
 												{
 													this.CurCell = cell;
 													this.RemoveTableCells();
@@ -12514,7 +12514,7 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 										{
 											Cells.push(TempCell);
 											Cells.reverse();
-											for (let cell of Cells)
+											for (var cell of Cells)
 											{
 												this.CurCell = cell;
 												this.RemoveTableCells();
@@ -12595,7 +12595,7 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 				{
 					this.Selection.Data = [];
 					try_again = false;
-					for (let cell_pos of newSelectionData[Index])
+					for (var cell_pos of newSelectionData[Index])
 						this.Selection.Data.push(cell_pos);
 
 					for (var Index2 = 0; Index < newSelectionData.length; Index2++)
@@ -12604,7 +12604,7 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 							continue;
 						if ("undefined" === typeof(newSelectionData[Index2]))
 							break;
-						for (let cell_pos2 of newSelectionData[Index2])
+						for (var cell_pos2 of newSelectionData[Index2])
 							this.Selection.Data.push(cell_pos2);
 						
 						var newTemp = this.Internal_CheckMerge();
@@ -12918,7 +12918,7 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 		
 		if (newSelectionData.length >= 1)
 		{
-			for (let Item of newSelectionData)
+			for (var Item of newSelectionData)
 				newTempSelectionData.push(Item[0]);
 		}
 		// если остались ячейки которые нельзя объединить, удаляем между ними и между объединенными границы
@@ -13068,7 +13068,7 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 			
 			// Если объединить ячейки нельзя, стираем все границы под выделением, 
 			// если у ячейки отсутсвуют все внешние границы - удаляем её
-			for (let cur_pos of newTempSelectionData)
+			for (var cur_pos of newTempSelectionData)
 			{
 				var Cell = this.Content[cur_pos.Row].Get_Cell(cur_pos.Cell);
 				var Row 		 = this.Content[cur_pos.Row];
@@ -13206,7 +13206,7 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 									if (TempCell.Get_Border(2).Value === 0)
 									{
 										// Cells.reverse();
-										// for (let cell of Cells)
+										// for (var cell of Cells)
 										// {
 										// 	this.CurCell = cell;
 										// 	this.RemoveTableCells();
@@ -13269,7 +13269,7 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 						for (var curCell = 0; curCell < this.Content[curRow].CellsInfo.length; curCell++)
 						{
 							var isContinue = false;
-							for (let cur_cell of Cells)
+							for (var cur_cell of Cells)
 								if (curCell === cur_cell.Index && curRow === cur_cell.Row.Index)
 								{
 									var grid_span   = cur_cell.Get_GridSpan();
@@ -13328,7 +13328,7 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 						}
 
 					}	
-					for (let cur_cell of Cells)
+					for (var cur_cell of Cells)
 					{
 						cur_cell.Row.RemoveCell(cur_cell.Index);
 					}
@@ -13336,7 +13336,7 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 				}
 				else if (isRigth)
 				{
-					for (let cell of Cells)
+					for (var cell of Cells)
 					{
 						this.CurCell = cell;
 						this.RemoveTableCells();
