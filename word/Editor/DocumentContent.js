@@ -5800,49 +5800,49 @@ CDocumentContent.prototype.GetDirectParaPr = function()
 // Обновляем данные в интерфейсе о свойствах параграфа
 CDocumentContent.prototype.Interface_Update_ParaPr    = function()
 {
-    var ParaPr = this.GetCalculatedParaPr();
+	var oParaPr = this.GetCalculatedParaPr();
 
-    if (null != ParaPr)
-    {
-        ParaPr.CanAddDropCap = false;
+	var oApi = editor;
+	if (oParaPr && oApi)
+	{
+		oParaPr.CanAddDropCap = false;
 
-        if (this.LogicDocument)
-        {
-            var oSelectedInfo = this.LogicDocument.GetSelectedElementsInfo();
-            var Math          = oSelectedInfo.Get_Math();
-            if (null !== Math)
-                ParaPr.CanAddImage = false;
-            else
-                ParaPr.CanAddImage = true;
-        }
+		if (this.LogicDocument)
+		{
+			var oSelectedInfo = this.LogicDocument.GetSelectedElementsInfo({CheckAllSelection : true});
+			var oMath         = oSelectedInfo.Get_Math();
+			if (oMath)
+				oParaPr.CanAddImage = false;
+			else if (false !== oParaPr.CanAddImage)
+				oParaPr.CanAddImage = true;
 
-        if (undefined != ParaPr.Tabs && editor){
-			var DefaultTab = ParaPr.DefaultTab != null ? ParaPr.DefaultTab : AscCommonWord.Default_Tab_Stop;
-			editor.Update_ParaTab(DefaultTab, ParaPr.Tabs);
+			if (oMath && !oMath.Is_Inline())
+				oParaPr.Jc = oMath.Get_Align();
+
+			oSelectedInfo.CanDeleteBlockCC  = oSelectedInfo.CanDeleteBlockSdts();
+			oSelectedInfo.CanEditBlockCC    = oSelectedInfo.CanEditBlockSdts();
+			oSelectedInfo.CanDeleteInlineCC = oSelectedInfo.CanDeleteInlineSdts();
+			oSelectedInfo.CanEditInlineCC   = oSelectedInfo.CanEditInlineSdts();
 		}
 
+		if (oParaPr.Tabs)
+		{
+			var DefaultTab = oParaPr.DefaultTab != null ? oParaPr.DefaultTab : AscCommonWord.Default_Tab_Stop;
+			oApi.Update_ParaTab(DefaultTab, oParaPr.Tabs);
+		}
 
-        if (this.LogicDocument)
-        {
-            var SelectedInfo = this.LogicDocument.GetSelectedElementsInfo();
-            var Math         = SelectedInfo.Get_Math();
-            if (null !== Math && true !== Math.Is_Inline())
-                ParaPr.Jc = Math.Get_Align();
+		// Если мы находимся внутри автофигуры, тогда нам надо проверить лок параграфа, в котором находится автофигура
+		if (this.LogicDocument && docpostype_DrawingObjects === this.LogicDocument.CurPos.Type && true !== oParaPr.Locked)
+		{
+			var ParaDrawing = this.LogicDocument.DrawingObjects.getMajorParaDrawing();
+			if (ParaDrawing)
+			{
+				oParaPr.Locked = ParaDrawing.Lock.Is_Locked();
+			}
+		}
 
-            // Если мы находимся внутри автофигуры, тогда нам надо проверить лок параграфа, в котором находится автофигура
-            if (docpostype_DrawingObjects === this.LogicDocument.CurPos.Type && true !== ParaPr.Locked)
-            {
-                var ParaDrawing = this.LogicDocument.DrawingObjects.getMajorParaDrawing();
-                if (ParaDrawing)
-                {
-                    ParaPr.Locked = ParaDrawing.Lock.Is_Locked();
-                }
-            }
-        }
-
-        if (editor)
-            editor.UpdateParagraphProp(ParaPr);
-    }
+		oApi.UpdateParagraphProp(oParaPr);
+	}
 };
 // Обновляем данные в интерфейсе о свойствах текста
 CDocumentContent.prototype.Interface_Update_TextPr    = function()

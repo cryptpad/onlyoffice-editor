@@ -1958,6 +1958,12 @@
 					}
 				}
 			}
+
+			this.CanDeleteBlockCC  = undefined !== obj.CanDeleteBlockCC ? obj.CanDeleteBlockCC : true;
+			this.CanEditBlockCC    = undefined !== obj.CanEditBlockCC ? obj.CanEditBlockCC : true;
+			this.CanDeleteInlineCC = undefined !== obj.CanDeleteInlineCC ? obj.CanDeleteInlineCC : true;
+			this.CanEditInlineCC   = undefined !== obj.CanEditInlineCC ? obj.CanEditInlineCC : true;
+
 		} else {
 			//ContextualSpacing : false,            // Удалять ли интервал между параграфами одинакового стиля
 			//
@@ -2006,6 +2012,11 @@
 			this.NumStartAt = undefined;
 			this.BulletFont = undefined;
 			this.BulletSymbol = undefined;
+
+			this.CanDeleteBlockCC  = true;
+			this.CanEditBlockCC    = true;
+			this.CanDeleteInlineCC = true;
+			this.CanEditInlineCC   = true;
 		}
 	}
 
@@ -2137,6 +2148,18 @@
 		},
 		asc_putBulletSymbol: function(v) {
 			this.BulletSymbol = v;
+		},
+		asc_canDeleteBlockContentControl: function() {
+			return this.CanDeleteBlockCC;
+		},
+		asc_canEditBlockContentControl: function() {
+			return this.CanEditBlockCC;
+		},
+		asc_canDeleteInlineContentControl: function() {
+			return this.CanDeleteInlineCC;
+		},
+		asc_canEditInlineContentControl: function() {
+			return this.CanEditInlineCC;
 		}
 	};
 
@@ -4881,7 +4904,10 @@
 	prot["put_BulletFont"]   = prot["asc_putBulletFont"] = prot.asc_putBulletFont;
 	prot["get_BulletSymbol"] = prot["asc_getBulletSymbol"] = prot.asc_getBulletSymbol;
 	prot["put_BulletSymbol"] = prot["asc_putBulletSymbol"] = prot.asc_putBulletSymbol;
-
+	prot["can_DeleteBlockContentControl"] = prot["asc_canDeleteBlockContentControl"] = prot.asc_canDeleteBlockContentControl;
+	prot["can_EditBlockContentControl"] = prot["asc_canEditBlockContentControl"] = prot.asc_canEditBlockContentControl;
+	prot["can_DeleteInlineContentControl"] = prot["asc_canDeleteInlineContentControl"] = prot.asc_canDeleteInlineContentControl;
+	prot["can_EditInlineContentControl"] = prot["asc_canEditInlineContentControl"] = prot.asc_canEditInlineContentControl;
 
 	window["AscCommon"].asc_CTexture = asc_CTexture;
 	prot = asc_CTexture.prototype;

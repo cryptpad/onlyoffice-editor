@@ -1636,6 +1636,46 @@ CSelectedElementsInfo.prototype.GetAllSdts = function()
 {
 	return this.m_arrSdts;
 };
+CSelectedElementsInfo.prototype.CanDeleteBlockSdts = function()
+{
+	for (var nIndex = 0, nCount = this.m_arrSdts.length; nIndex < nCount; ++nIndex)
+	{
+		if (this.m_arrSdts[nIndex].IsBlockLevel() && !this.m_arrSdts[nIndex].CanBeDeleted())
+			return false;
+	}
+
+	return true;
+};
+CSelectedElementsInfo.prototype.CanEditBlockSdts = function()
+{
+	for (var nIndex = 0, nCount = this.m_arrSdts.length; nIndex < nCount; ++nIndex)
+	{
+		if (this.m_arrSdts[nIndex].IsBlockLevel() && !this.m_arrSdts[nIndex].CanBeEdited())
+			return false;
+	}
+
+	return true;
+};
+CSelectedElementsInfo.prototype.CanDeleteInlineSdts = function()
+{
+	for (var nIndex = 0, nCount = this.m_arrSdts.length; nIndex < nCount; ++nIndex)
+	{
+		if (this.m_arrSdts[nIndex].IsInlineLevel() && !this.m_arrSdts[nIndex].CanBeDeleted())
+			return false;
+	}
+
+	return true;
+};
+CSelectedElementsInfo.prototype.CanEditInlineSdts = function()
+{
+	for (var nIndex = 0, nCount = this.m_arrSdts.length; nIndex < nCount; ++nIndex)
+	{
+		if (this.m_arrSdts[nIndex].IsInlineLevel() && !this.m_arrSdts[nIndex].CanBeEdited())
+			return false;
+	}
+
+	return true;
+};
 CSelectedElementsInfo.prototype.SetComplexFields = function(arrComplexFields)
 {
 	this.m_arrComplexFields = arrComplexFields;
@@ -6614,12 +6654,21 @@ CDocument.prototype.Interface_Update_ParaPr = function()
 			}
 		}
 
-		var oSelectedInfo = this.GetSelectedElementsInfo();
-		var Math          = oSelectedInfo.Get_Math();
-		if (null !== Math)
+		var oSelectedInfo = this.GetSelectedElementsInfo({CheckAllSelection : true});
+		var oMath         = oSelectedInfo.Get_Math();
+
+		if (oMath)
 			ParaPr.CanAddImage = false;
 		else
 			ParaPr.CanAddImage = true;
+
+		if (oMath && !oMath.Is_Inline())
+			ParaPr.Jc = oMath.Get_Align();
+
+		oSelectedInfo.CanDeleteBlockCC  = oSelectedInfo.CanDeleteBlockSdts();
+		oSelectedInfo.CanEditBlockCC    = oSelectedInfo.CanEditBlockSdts();
+		oSelectedInfo.CanDeleteInlineCC = oSelectedInfo.CanDeleteInlineSdts();
+		oSelectedInfo.CanEditInlineCC   = oSelectedInfo.CanEditInlineSdts();
 
 		if (undefined != ParaPr.Tabs)
 			this.Api.Update_ParaTab(AscCommonWord.Default_Tab_Stop, ParaPr.Tabs);
@@ -6629,10 +6678,6 @@ CDocument.prototype.Interface_Update_ParaPr = function()
 			ParaPr.Shd.Unifill.check(this.theme, this.Get_ColorMap());
 		}
 
-		var SelectedInfo = this.GetSelectedElementsInfo();
-		var Math         = SelectedInfo.Get_Math();
-		if (null !== Math && true !== Math.Is_Inline())
-			ParaPr.Jc = Math.Get_Align();
 
 		this.Api.UpdateParagraphProp(ParaPr);
 	}
