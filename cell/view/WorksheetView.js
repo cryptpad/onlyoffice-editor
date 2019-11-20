@@ -12724,58 +12724,31 @@
         });
     };
 
-    WorksheetView.prototype.autoFitRowHeight = function (row1, row2) {
+    WorksheetView.prototype.autoFitRowHeight = function (r1, r2) {
         var t = this;
         var onChangeHeightCallback = function (isSuccess) {
             if (false === isSuccess) {
                 return;
             }
-            if (null === row1) {
+            if (null === r1) {
                 var lastSelection = t.model.selectionRange.getLast();
-                row1 = lastSelection.r1;
-                row2 = lastSelection.r2;
+                r1 = lastSelection.r1;
+                r2 = lastSelection.r2;
             }
 
             History.Create_NewPoint();
             var oSelection = History.GetSelection();
             if (null != oSelection) {
                 oSelection = oSelection.clone();
-                oSelection.assign(0, row1, gc_nMaxCol0, row2);
+                oSelection.assign(0, r1, gc_nMaxCol0, r2);
                 History.SetSelection(oSelection);
                 History.SetSelectionRedo(oSelection);
             }
             History.StartTransaction();
 
-            var height, col, ct, mc;
-            for (var r = row1; r <= row2; ++r) {
-                height = t.defaultRowHeightPx;
-
-                var l = t.model.getColsCount();
-                for (col = 0; col < l; ++col) {
-                    ct = t._getCellTextCache(col, r);
-                    if (ct === undefined) {
-                        continue;
-                    }
-                    if (ct.flags.isMerged()) {
-                        mc = ct.flags.merged;
-                        // Для замерженных ячеек (с 2-мя или более строками) оптимизировать не нужно
-                        if (mc.r1 !== mc.r2) {
-                            continue;
-                        }
-                    }
-
-                    height = Math.max(height, ct.metrics.height);
-                }
-
-                t.model.setRowBestFit(true, Math.min(height, t.maxRowHeightPx) * asc_getcvt(0, 1, t._getPPIY()), r, r);
-            }
-
-            t.nRowsCount = 0;
-            t._calcHeightRows(AscCommonExcel.recalcType.recalc);
-            t._updateVisibleRowsCount();
-            t._cleanCache(new asc_Range(0, row1, t.cols.length - 1, row2));
-			t._updateDrawingArea();
-            t.changeWorksheet("update");
+			t.model.setRowBestFit(true, AscCommonExcel.oDefaultMetrics.RowHeight, r1, r2);
+			t._updateRange(new Asc.Range(0, r1, gc_nMaxCol0, r2));
+			t.draw();
             History.EndTransaction();
         };
         return this._isLockedAll(onChangeHeightCallback);
