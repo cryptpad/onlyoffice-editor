@@ -405,7 +405,7 @@ CContentControlPr.prototype.SetColor = function(r, g, b)
 };
 CContentControlPr.prototype.GetSpecificType = function()
 {
-	if (!this.CC)
+	if (this.CC)
 		return this.CC.GetSpecificType();
 
 	return Asc.c_oAscContentControlSpecificType.None;
