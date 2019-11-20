@@ -1745,12 +1745,21 @@ CTableCell.prototype =
 
         // Изменения в текущей ячейке могут вызвать изменения в следующей или предыдущей ячейках.
 		// Например, когда у нас сквозная есть нумерация внутри ячеек
-		var nCurCell = this.GetIndex();
-		if (nCurCell > 0)
-			oTable.RecalcInfo.Add_Cell(oRow.GetCell(nCurCell - 1));
+		var nCurCell    = this.GetIndex();
+		var nCellsCount = oRow.GetCellsCount();
+		if (nCurCell > 0 && nCellsCount > 0)
+		{
+			var oPrevCell = oRow.GetCell(nCurCell <= nCellsCount ? nCurCell - 1 : nCellsCount - 1);
+			if (oPrevCell)
+				oTable.RecalcInfo.Add_Cell(oPrevCell);
+		}
 
-		if (nCurCell < oRow.GetCellsCount() - 1)
-			oTable.RecalcInfo.Add_Cell(oRow.GetCell(nCurCell + 1));
+		if (nCurCell < nCellsCount - 1 && nCurCell >= 0 && nCellsCount > 0)
+		{
+			var oNextCell = oRow.GetCell(nCurCell + 1);
+			if (oNextCell)
+				oTable.RecalcInfo.Add_Cell(oRow.GetCell(nCurCell + 1));
+		}
 
         var TablePr = oTable.Get_CompiledPr(false).TablePr;
         if (tbllayout_AutoFit === TablePr.TableLayout)
