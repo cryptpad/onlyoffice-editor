@@ -591,6 +591,13 @@
         Date : 4
     };
 
+    var exportObj = AscCommon.CCButtonType;
+    AscCommon["CCButtonType"] = exportObj;
+    exportObj["Name"] = exportObj.Name;
+    exportObj["Toc"] = exportObj.Toc;
+    exportObj["Combo"] = exportObj.Combo;
+    exportObj["Date"] = exportObj.Date;
+
     AscCommon.ContentControlTrack = {
         Hover 	: 0,
         In 		: 1
@@ -652,6 +659,17 @@
 
             return this.images[type].get(isActive);
         };
+
+        this.generateComboImages = function()
+        {
+            var size = 20;
+            var image1 = document.createElement("canvas");
+            image1.width = size;
+            image1.height = size;
+            var ctx1 = image1.getContext("2d");
+            var data1 = ctx1.createImageData(size, size);
+            var pixels1 = data1.data;
+        };
     }
 
     function CContentControlTrack(parent, obj, state, geom)
@@ -697,7 +715,6 @@
         this.Name = this.base.GetAlias();
         if (this.base.IsBuiltInTableOfContents && this.base.IsBuiltInTableOfContents())
             this.Name = AscCommon.translateManager.getValue("Table of Contents");
-        this.NameWidth = 0;
 
         this.Color = this.base.GetColor();
 
@@ -947,7 +964,7 @@
             case Asc.c_oAscContentControlSpecificType.DropDownList:
             case Asc.c_oAscContentControlSpecificType.DateTime:
             {
-                if (this.parent.document.m_oWordControl.m_oApi.isViewMode)
+                if (this.IsNoButtonsIsFillingForm)
                     break;
 
                 var len = arrY.length;
@@ -969,6 +986,36 @@
             }
             default:
                 break;
+        }
+    };
+    CContentControlTrack.prototype.GetButtonObj = function(indexButton)
+    {
+        var button = AscCommon.CCButtonType.Name;
+        if (indexButton >= 0 && indexButton < this.Buttons.length)
+            button = this.Buttons[indexButton];
+        if (indexButton == this.Buttons.length)
+        {
+            switch (this.type)
+            {
+                case Asc.c_oAscContentControlSpecificType.ComboBox:
+                case Asc.c_oAscContentControlSpecificType.DropDownList:
+                {
+                    button = AscCommon.CCButtonType.Combo;
+                    break;
+                }
+                case Asc.c_oAscContentControlSpecificType.DateTime:
+                {
+                    button = AscCommon.CCButtonType.Date;
+                    break;
+                }
+            }
+        }
+
+        return {
+            "obj" : this.base,
+            "type" : this.type,
+            "button" : button,
+            "pr" : this.base.GetContentControlPr ? this.base.GetContentControlPr() : null
         }
     };
     CContentControlTrack.prototype.Copy = function()
@@ -1878,7 +1925,7 @@
                                 }
 
                                 var posOnScreen = this.document.ConvertCoordsToCursorWR(xCC, yCC, _object.Pos.Page);
-                                oWordControl.m_oApi.sendEvent("asc_onShowContentControlsActions", 0, posOnScreen.X, posOnScreen.Y);
+                                oWordControl.m_oApi.sendEvent("asc_onShowContentControlsActions", _object.GetButtonObj(-1), posOnScreen.X, posOnScreen.Y);
                             }
 
                             oWordControl.ShowOverlay();
@@ -1923,7 +1970,7 @@
                                         }
 
                                         var posOnScreen = this.document.ConvertCoordsToCursorWR(xCC, yCC, _object.Pos.Page);
-                                        oWordControl.m_oApi.sendEvent("asc_onShowContentControlsActions", indexB + 1, posOnScreen.X, posOnScreen.Y);
+                                        oWordControl.m_oApi.sendEvent("asc_onShowContentControlsActions", _object.GetButtonObj(indexB), posOnScreen.X, posOnScreen.Y);
                                     }
 
                                     oWordControl.ShowOverlay();
@@ -1981,7 +2028,7 @@
                                 }
 
                                 var posOnScreen = this.document.ConvertCoordsToCursorWR(xCC, yCC, rectCombo.Page);
-                                oWordControl.m_oApi.sendEvent("asc_onShowContentControlsActions", indexB + 1, posOnScreen.X, posOnScreen.Y);
+                                oWordControl.m_oApi.sendEvent("asc_onShowContentControlsActions", _object.GetButtonObj(indexB), posOnScreen.X, posOnScreen.Y);
                             }
 
                             oWordControl.ShowOverlay();
