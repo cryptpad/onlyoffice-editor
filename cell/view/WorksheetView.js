@@ -16745,6 +16745,7 @@
 			range = this.visibleRange;
 		} else {
 			//expand
+			range = range.clone();
 			var bHidden = false;
 			var checkHidden = function(val) {
 				if(val && val.getHidden()) {
