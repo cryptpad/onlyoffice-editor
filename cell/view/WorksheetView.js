@@ -12730,11 +12730,6 @@
             if (false === isSuccess) {
                 return;
             }
-            if (null === r1) {
-                var lastSelection = t.model.selectionRange.getLast();
-                r1 = lastSelection.r1;
-                r2 = lastSelection.r2;
-            }
 
             var r;
             for (r = r1; r <= r2; ++r) {
@@ -12761,6 +12756,11 @@
 			t.draw();
             History.EndTransaction();
         };
+		if (null === r1) {
+			var lastSelection = this.model.selectionRange.getLast();
+			r1 = lastSelection.r1;
+			r2 = lastSelection.r2;
+		}
         return this._isLockedAll(onChangeHeightCallback);
     };
 
