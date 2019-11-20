@@ -16753,64 +16753,6 @@
 		var t = this;
 		if ( !range ) {
 			range = this.visibleRange;
-		} else {
-			//expand
-			range = range.clone();
-			var bHidden = false;
-			var checkHidden = function(val) {
-				if(val && val.getHidden()) {
-					bHidden = true;
-				}
-			};
-			while(true) {
-				if((bCol && range.c1 - 1 <= 0) || (!bCol && range.r1 - 1 <= 0)) {
-					break;
-				}
-				bHidden = false;
-				if(bCol) {
-					checkHidden(this.model._getCol(range.c1 - 1));
-				} else {
-					this.model._getRow(range.r1 - 1, checkHidden);
-				}
-				if(bHidden) {
-					bCol ? range.c1-- : range.r1--;
-				} else {
-					break;
-				}
-			}
-			var maxCount = bCol ? this.model.getColsCount() : this.model.getRowsCount();
-			while(true) {
-				if((bCol && range.c2 + 1 >= maxCount) || (!bCol && range.r2 + 1 >= maxCount)) {
-					break;
-				}
-				bHidden = false;
-				if(bCol) {
-					checkHidden(this.model._getCol(range.c2 + 1));
-				} else {
-					this.model._getRow(range.r2 + 1, checkHidden);
-				}
-				if(bHidden) {
-					bCol ? range.c2++ : range.r2++;
-				} else {
-					break;
-				}
-			}
-			/*if(bCol) {
-				checkHidden(this.model._getCol(range.c1));
-			} else {
-				this.model._getRow(range.r1, checkHidden);
-			}
-			if(bHidden) {
-				bCol ? range.c1-- : range.r1--;
-			}*/
-			if(bCol) {
-				checkHidden(this.model._getCol(range.c2));
-			} else {
-				this.model._getRow(range.r2, checkHidden);
-			}
-			if(bHidden) {
-				bCol ? range.c2++ : range.r2++;
-			}
 		}
 
 		this._drawGroupDataMenu(drawingCtx, bCol);
