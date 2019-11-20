@@ -17420,13 +17420,16 @@
 				res = outLineLevel;
 			}
 		};
+
+		var _allProps = bCol ? this.model.getAllCol() :  this.model.getAllRow();
+		var allOutLineLevel = _allProps ? _allProps.getOutlineLevel() : 0;
 		if(bCol) {
 			this.model.getRange3(0, 0, 0, gc_nMaxCol0)._foreachColNoEmpty(func);
 		} else {
 			this.model.getRange3(0, 0, gc_nMaxRow0, 0)._foreachRowNoEmpty(func);
 		}
 
-		return res;
+		return allOutLineLevel > res ? allOutLineLevel : res;
 	};
 
 	WorksheetView.prototype.getGroupCommonWidth = function (level, bCol) {
