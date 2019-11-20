@@ -6526,15 +6526,11 @@ ParaRun.prototype.Get_WordStartPos = function(SearchPos, ContentPos, Depth, UseC
 {
     var CurPos = ( true === UseContentPos ? ContentPos.Get(Depth) - 1 : this.Content.length - 1 );
 
-	if (CurPos < 0)
-	{
-		SearchPos.Pos.Update(CurPos, Depth);
+	SearchPos.UpdatePos = false;
+	if (CurPos < 0 || this.Content.length <= 0)
 		return;
-	}
 
     SearchPos.Shift = true;
-
-    var NeedUpdate = false;
 
 	var isFieldCode  = SearchPos.IsComplexFieldCode();
 	var isFieldValue = SearchPos.IsComplexFieldValue();
@@ -6586,7 +6582,7 @@ ParaRun.prototype.Get_WordStartPos = function(SearchPos, ContentPos, Depth, UseC
                 SearchPos.Pos.Update( CurPos, Depth );
                 SearchPos.Stage       = 1;
                 SearchPos.Punctuation = this.Content[CurPos].IsPunctuation();
-                NeedUpdate            = true;
+				SearchPos.UpdatePos   = true;
 
                 break;
             }
@@ -6625,23 +6621,20 @@ ParaRun.prototype.Get_WordStartPos = function(SearchPos, ContentPos, Depth, UseC
         else
         {
 			SearchPos.Pos.Update(CurPos, Depth);
-			NeedUpdate = true;
+			SearchPos.UpdatePos = true;
         }
     }
-
-    SearchPos.UpdatePos = NeedUpdate;
 };
 
 ParaRun.prototype.Get_WordEndPos = function(SearchPos, ContentPos, Depth, UseContentPos, StepEnd)
 {
     var CurPos = ( true === UseContentPos ? ContentPos.Get(Depth) : 0 );
 
+	SearchPos.UpdatePos = false;
+
     var ContentLen = this.Content.length;
-	if (CurPos >= ContentLen)
-	{
-		SearchPos.Pos.Update(CurPos, Depth);
+	if (CurPos >= ContentLen || ContentLen <= 0)
 		return;
-	}
 
 	var isFieldCode  = SearchPos.IsComplexFieldCode();
 	var isFieldValue = SearchPos.IsComplexFieldValue();
