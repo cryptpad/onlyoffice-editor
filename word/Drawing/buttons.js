@@ -662,13 +662,51 @@
 
         this.generateComboImages = function()
         {
-            var size = 20;
-            var image1 = document.createElement("canvas");
-            image1.width = size;
-            image1.height = size;
-            var ctx1 = image1.getContext("2d");
-            var data1 = ctx1.createImageData(size, size);
-            var pixels1 = data1.data;
+            var imageCC = new CCI();
+            this.images[AscCommon.CCButtonType.Combo] = imageCC;
+            imageCC.type = AscCommon.CCButtonType.Combo;
+
+            for (var i = 0; i < 4; i++)
+            {
+                var size = (i > 1) ? 40 : 20;
+
+                var image = document.createElement("canvas");
+                image.width = size;
+                image.height = size;
+
+                var ctx = image.getContext("2d");
+                var data = ctx.createImageData(size, size);
+                var px = data.data;
+
+                var len = (size >> 1) - 1;
+                var count = (len + 1) >> 1;
+                var x = (size - len) >> 1;
+                var y = (size - count) >> 1;
+
+                var color = (0x01 === (0x01 & i)) ? 255 : 0;
+
+                while ( len > 0 )
+                {
+                    var ind = 4 * (size * y + x);
+                    for ( var j = 0; j < len; j++ )
+                    {
+                        px[ind++] = color;
+                        px[ind++] = color;
+                        px[ind++] = color;
+                        px[ind++] = 255;
+                    }
+
+                    x += 1;
+                    y += 1;
+                    len -= 2;
+                }
+
+                ctx.putImageData(data, 0, 0);
+
+                image.asc_complete = true;
+
+                imageCC.images[i] = image;
+            }
         };
     }
 
@@ -1045,6 +1083,7 @@
         this.icons = new CCIcons();
         this.icons.register(AscCommon.CCButtonType.Toc, "toc");
         this.icons.register(AscCommon.CCButtonType.Image, "img");
+        this.icons.generateComboImages();
 
         this.ContentControlObjects = [];
         this.ContentControlObjectsLast = [];
@@ -1558,6 +1597,10 @@
                                 ctx.fill();
                                 ctx.stroke();
                                 ctx.beginPath();
+
+                                var image = this.icons.getImage(AscCommon.CCButtonType.Combo, _object.Buttons.length == _object.ActiveButtonIndex);
+                                if (image && 7 < (_b - _y))
+                                    ctx.drawImage(image, _x, _y + ((_b - _y - 20) >> 1) + 0.5, 20, 20);
                             }
                         }
                         else
@@ -1767,6 +1810,11 @@
                                 ctx.stroke();
                                 ctx.lineWidth = 1;
                                 ctx.beginPath();
+
+                                var image = this.icons.getImage(AscCommon.CCButtonType.Combo, _object.Buttons.length == _object.ActiveButtonIndex);
+                                var scaleY_7 = 7 / _koefY;
+                                if (image && scaleY_7 < (_b - _y))
+                                    ctx.drawImage(image, _x, _y + ((_b - _y - scaleY_20) >> 1) + 0.5, scaleX_20, scaleY_20);
                             }
 
                             // рисуем единую обводку
@@ -2018,7 +2066,7 @@
                             {
                                 _object.ActiveButtonIndex = indexB;
 
-                                var xCC = rectCombo.X + _object.OffsetX;
+                                var xCC = rectCombo.X + _object.OffsetX + 20 / koefX;
                                 var yCC = rectCombo.Y + rectCombo.H + _object.OffsetY;
                                 if (_object.transform)
                                 {
