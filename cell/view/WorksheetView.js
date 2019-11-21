@@ -16607,6 +16607,8 @@
 				} else if(val.index === res[level][index].end + 1) {
 					res[level][index].end++;
 					tempNeedPush = false;
+				} else if(val.index >= res[level][index].start && val.index <= res[level][index].end) {
+					tempNeedPush = false;
 				}
 
 				return tempNeedPush;
@@ -16665,6 +16667,23 @@
 				}
 			}
 		};
+
+
+		var _allProps = bCol ? this.model.oAllCol : null/*this.model.oSheetFormatPr.oAllRow*/;
+		var allOutLineLevel = _allProps ? _allProps.getOutlineLevel() : 0;
+		if(!allOutLineLevel) {
+			//allOutLineLevel = bCol ? this.model.oSheetFormatPr.nOutlineLevelCol : null/*this.model.oSheetFormatPr.nOutlineLevelRow*/;
+		}
+
+		if(allOutLineLevel) {
+			if(!res) {
+				res = [];
+			}
+			if(!res[allOutLineLevel]) {
+				res[allOutLineLevel] = [];
+			}
+			res[allOutLineLevel].push({start: 0, end: bCol ? gc_nMaxCol0 : gc_nMaxRow0});
+		}
 
 		if(bCol) {
 			this.model.getRange3(0, start, 0, end)._foreachColNoEmpty(fProcess);
@@ -17243,11 +17262,8 @@
 		var fProcess = function(val) {
 			res = val ? val.getOutlineLevel() : 0;
 		};
-		if(bCol) {
-			this.model.getRange3(0, index, 0, index)._foreachColNoEmpty(fProcess);
-		} else {
-			this.model.getRange3(index, 0, index, 0)._foreachRowNoEmpty(fProcess);
-		}
+		bCol ? fProcess(this.model._getColNoEmptyWithAll(index)) : this.model._getRowNoEmptyWithAll(index, fProcess);
+
 		return res;
 	};
 
@@ -17256,11 +17272,7 @@
 		var getCollapsed = function(val) {
 			res =  val ? val.getCollapsed() : false;
 		};
-		if(bCol) {
-			this.model.getRange3(0, index, 0, index)._foreachColNoEmpty(getCollapsed);
-		} else {
-			this.model.getRange3(index, 0, index, 0)._foreachRowNoEmpty(getCollapsed);
-		}
+		bCol ? getCollapsed(this.model._getColNoEmptyWithAll(index)) : this.model._getRowNoEmptyWithAll(index, getCollapsed);
 		return res;
 	};
 
@@ -17269,11 +17281,7 @@
 		var callback = function(val) {
 			res =  val ? val.getHidden() : false;
 		};
-		if(bCol) {
-			this.model.getRange3(0, index, 0, index)._foreachColNoEmpty(callback);
-		} else {
-			this.model.getRange3(index, 0, index, 0)._foreachRowNoEmpty(callback);
-		}
+		bCol ? callback(this.model._getColNoEmptyWithAll(index)) : this.model._getRowNoEmptyWithAll(index, callback);
 		return res;
 	};
 
@@ -17631,6 +17639,7 @@
 			}
 		};
 		if(bCol) {
+			//TODO не учитывается oAllCol
 			if(_summaryRight) {
 				this.model.getRange3(0, target.col - 1,0, target.col)._foreachColNoEmpty(func);
 			} else {
