@@ -6868,6 +6868,11 @@ function CDrawingDocument()
 			this.m_oWordControl.MobileTouchManager.CheckSelectRects();
 	}
 
+    this.DrawCustomTableMode = function(overlay, obj, isPen)
+	{
+		console.log(obj);
+	}
+
 	// mouse events
 	this.checkMouseDown_Drawing = function (pos)
 	{
