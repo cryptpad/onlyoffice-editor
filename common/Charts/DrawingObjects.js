@@ -3955,47 +3955,51 @@ function DrawingObjects() {
 
         // if(!drawing.bbox || drawing.bbox.worksheet !== worksheet.model)
         //     return;
-
+        //TODO: check worksheet
         var BBoxObjects = drawing.getDataRanges();
         var BB, range;
-
-
-
-        if(BBoxObjects.bbox) {
-
-            if(BBoxObjects.bbox.seriesBBox) {
-
+        var oSelectedSeries = drawing.getSelectedSeries();
+        var oSelectionRange;
+        var aActiveRanges = [];
+        if(BBoxObjects.bbox)
+        {
+            if(BBoxObjects.bbox.seriesBBox)
+            {
                 BB = BBoxObjects.bbox.seriesBBox;
                 range = asc.Range(BB.c1, BB.r1, BB.c2, BB.r2, true);
                 worksheet.isChartAreaEditMode = true;
-                worksheet.arrActiveChartRanges[0].assign2(range);
-
+                oSelectionRange = new AscCommonExcel.SelectionRange(worksheet);
+                oSelectionRange.separated = AscCommon.isRealObject(oSelectedSeries);
+                oSelectionRange.chartRangeIndex = 0;
+                oSelectionRange.vert = BB.bVert;
+                oSelectionRange.assign2(range);
+                aActiveRanges.push(oSelectionRange);
             }
-            if(BBoxObjects.bbox.serBBox) {
-
+            if(BBoxObjects.bbox.serBBox)
+            {
                 BB = BBoxObjects.bbox.serBBox;
                 range = asc.Range(BB.c1, BB.r1, BB.c2, BB.r2, true);
-
                 worksheet.isChartAreaEditMode = true;
-                worksheet.arrActiveChartRanges[1] = new AscCommonExcel.SelectionRange(worksheet);
-                worksheet.arrActiveChartRanges[1].assign2(range);
-                // worksheet._drawElements(worksheet._drawSelectionElement,
-                //     asc.Range(drawing.bbox.serBBox.c1, drawing.bbox.serBBox.r1, drawing.bbox.serBBox.c2,
-                //         drawing.bbox.serBBox.r2, true), AscCommonExcel.selectionLineType.Selection | AscCommonExcel.selectionLineType.Resize,
-                //     AscCommonExcel.c_oAscFormulaRangeBorderColor[1]);
+                oSelectionRange = new AscCommonExcel.SelectionRange(worksheet);
+                oSelectionRange.separated = AscCommon.isRealObject(oSelectedSeries);
+                oSelectionRange.chartRangeIndex = 1;
+                oSelectionRange.assign2(range);
+                aActiveRanges.push(oSelectionRange);
             }
             if(BBoxObjects.bbox.catBBox)
             {
                 BB = BBoxObjects.bbox.catBBox;
                 range = asc.Range(BB.c1, BB.r1, BB.c2, BB.r2, true);
                 worksheet.isChartAreaEditMode = true;
-                worksheet.arrActiveChartRanges[2] = new AscCommonExcel.SelectionRange(worksheet);
-                worksheet.arrActiveChartRanges[2].assign2(range);
-                // worksheet._drawElements(worksheet._drawSelectionElement,
-                //     asc.Range(drawing.bbox.catBBox.c1, drawing.bbox.catBBox.r1, drawing.bbox.catBBox.c2,
-                //         drawing.bbox.catBBox.r2, true), AscCommonExcel.selectionLineType.Selection | AscCommonExcel.selectionLineType.Resize,
-                //     AscCommonExcel.c_oAscFormulaRangeBorderColor[2]);
+                oSelectionRange = new AscCommonExcel.SelectionRange(worksheet);
+                oSelectionRange.separated = AscCommon.isRealObject(oSelectedSeries);
+                oSelectionRange.chartRangeIndex = 2;
+                oSelectionRange.assign2(range);
+                aActiveRanges.push(oSelectionRange);
             }
+        }
+        if(aActiveRanges.length > 0) {
+            worksheet.arrActiveChartRanges = aActiveRanges;
             worksheet._drawSelection();
         }
     };
