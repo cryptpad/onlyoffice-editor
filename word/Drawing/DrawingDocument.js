@@ -6868,9 +6868,71 @@ function CDrawingDocument()
 			this.m_oWordControl.MobileTouchManager.CheckSelectRects();
 	}
 
-    this.DrawCustomTableMode = function(overlay, obj, isPen)
+    this.DrawCustomTableMode = function(overlay, drawObj, logicObj, isPen)
 	{
-		console.log(obj);
+		var ctx = overlay.m_oContext;
+
+        var page = this.m_arrPages[logicObj.Page];
+        if (!page)
+            return false;
+
+        var drawingPage = page.drawingPage;
+        var koefX = (drawingPage.right - drawingPage.left) / page.width_mm;
+        var koefY = (drawingPage.bottom - drawingPage.top) / page.height_mm;
+
+        var x1, y1, x2, y2;
+
+		if (isPen)
+		{
+			ctx.strokeStyle = "#000000";
+			ctx.lineWidth = 1;
+
+            x1 = ((drawingPage.left + koefX * drawObj.X1) >> 0) + 0.5;
+            y1 = ((drawingPage.top + koefY * drawObj.Y1) >> 0) + 0.5;
+            x2 = ((drawingPage.left + koefX * drawObj.X2) >> 0) + 0.5;
+            y2 = ((drawingPage.top + koefY * drawObj.Y2) >> 0) + 0.5;
+
+            overlay.CheckPoint(x1, y1);
+            overlay.CheckPoint(x2, y2);
+
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+            ctx.beginPath();
+		}
+		else
+		{
+            ctx.strokeStyle = "rgba(255, 123, 123, 0.75)";
+            ctx.lineWidth = 1;
+
+            x1 = ((drawingPage.left + koefX * logicObj.StartX) >> 0) + 0.5;
+            y1 = ((drawingPage.top + koefY * logicObj.StartY) >> 0) + 0.5;
+            x2 = ((drawingPage.left + koefX * logicObj.EndX) >> 0) + 0.5;
+            y2 = ((drawingPage.top + koefY * logicObj.EndY) >> 0) + 0.5;
+
+            overlay.CheckPoint(x1, y1);
+            overlay.CheckPoint(x2, y2);
+
+            this.AutoShapesTrack.AddRectDashClever(ctx, x1, y1, x2, y2, 2, 2, true);
+            ctx.beginPath();
+
+            ctx.lineWidth = 2;
+
+            for (var i = 0; i < drawObj.length; i++)
+            {
+                x1 = (drawingPage.left + koefX * drawObj[i].X1) >> 0;
+                y1 = (drawingPage.top + koefY * drawObj[i].Y1) >> 0;
+                x2 = (drawingPage.left + koefX * drawObj[i].X2) >> 0;
+                y2 = (drawingPage.top + koefY * drawObj[i].Y2) >> 0;
+
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(x2, y2);
+            }
+
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.lineWidth = 1;
+		}
 	}
 
 	// mouse events
