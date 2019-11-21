@@ -9687,83 +9687,138 @@
         var rowByY = this._findRowUnderCursor(y, /*canReturnNull*/false, false).row;
         var type, i;
         var indexFormulaRange = targetInfo.indexFormulaRange;
-        var oActiveRange = this.arrActiveChartRanges[indexFormulaRange], oValActiveRange, oValRange, bVert, colDelta, rowDelta;
-        var ar = oActiveRange.getLast().clone();
+        var oActiveRange = this.arrActiveChartRanges[indexFormulaRange], oValRange, bVert, colDelta, rowDelta;
+        var ar = oActiveRange.getLast().clone(), arTmp;
         var oRange;
-        var oTopActiveRange, oLeftActiveRange, oValActiveRange;
-        for(i = 0; i < thi)
+        var oTopActiveRange = null, oLeftActiveRange = null, oValActiveRange = null;
+        var r1, r2, c1, c2;
 
         if(oActiveRange.separated) {
         }
         else {
-            oValActiveRange = this.arrActiveChartRanges[0];
-            bVert = oValActiveRange.vert;
+
+            for(i = 0; i < this.arrActiveChartRanges.length; ++i) {
+                if(this.arrActiveChartRanges[i].chartRangeIndex === 0) {
+                    oValActiveRange = this.arrActiveChartRanges[i];
+                }
+                else if(this.arrActiveChartRanges[i].chartRangeIndex === 1) {
+                    if(oValActiveRange) {
+                        if(oValActiveRange.vert) {
+                            oLeftActiveRange = this.arrActiveChartRanges[i];
+                        }
+                        else {
+                            oTopActiveRange = this.arrActiveChartRanges[i];
+                        }
+                    }
+                }
+                else if(this.arrActiveChartRanges[i].chartRangeIndex === 2) {
+                    if(oValActiveRange) {
+                        if(oValActiveRange.vert) {
+                            oTopActiveRange = this.arrActiveChartRanges[i];
+                        }
+                        else {
+                            oLeftActiveRange = this.arrActiveChartRanges[i];
+                        }
+                    }
+                }
+            }
+            if(!oValActiveRange) {
+                return;
+            }
             if(oActiveRange.chartRangeIndex === 0) {
                 switch (targetInfo.cursor) {
-                    case kCurNEResize: {
+                    case kCurNEResize:
+                    case kCurSEResize:{
+                        if (colByX < this.startCellMoveResizeRange2.c1) {
+                            ar.c2 = this.startCellMoveResizeRange2.c1;
+                            ar.c1 = colByX;
+                        } else if (colByX > this.startCellMoveResizeRange2.c1) {
+                            ar.c1 = this.startCellMoveResizeRange2.c1;
+                            ar.c2 = colByX;
+                        } else {
+                            ar.c1 = this.startCellMoveResizeRange2.c1;
+                            ar.c2 = this.startCellMoveResizeRange2.c1
+                        }
+
+                        if (rowByY < this.startCellMoveResizeRange2.r1) {
+                            ar.r2 = this.startCellMoveResizeRange2.r2;
+                            ar.r1 = rowByY;
+                        } else if (rowByY > this.startCellMoveResizeRange2.r1) {
+                            ar.r1 = this.startCellMoveResizeRange2.r1;
+                            ar.r2 = rowByY;
+                        } else {
+                            ar.r1 = this.startCellMoveResizeRange2.r1;
+                            ar.r2 = this.startCellMoveResizeRange2.r1;
+                        }
+
+                        if(oLeftActiveRange) {
+                            oRange = oLeftActiveRange.getLast();
+                            if(oRange) {
+                                if(ar.c1 <= oRange.c2) {
+                                    ar.c1 = oRange.c2 + 1;
+                                }
+                            }
+                        }
+                        if(oTopActiveRange) {
+                            oRange = oTopActiveRange.getLast();
+                            if(oRange) {
+                                if(ar.r1 <= oRange.r2) {
+                                    ar.r1 = oRange.r2 + 1;
+                                }
+                            }
+                        }
                         break;
                     }
 
-                    case kCurSEResize: {
-                        break;
-                    }
                     case kCurMove: {
                         colDelta = colByX - this.startCellMoveResizeRange2.c1;
                         rowDelta = rowByY - this.startCellMoveResizeRange2.r1;
-                        if(colDelta < 0)
-                        {
+                        if(colDelta < 0) {
                             oRange = null;
-                            for(i = 0; i < this.arrActiveChartRanges.length; ++i) {
-                                if(bVert) {
-                                    if(this.arrActiveChartRanges[i].chartRangeIndex === 1) {
-                                        oRange = this.arrActiveChartRanges[i].getLast();
-                                        break;
+                            if(oLeftActiveRange) {
+                                oRange = oLeftActiveRange.getLast();
+                                if(oRange) {
+                                    if(this.startCellMoveResizeRange.c1 + colDelta <= oRange.c2) {
+                                        colDelta += (oRange.c2 - (this.startCellMoveResizeRange.c1 + colDelta) + 1);
                                     }
-                                }
-                                else {
-                                    if(this.arrActiveChartRanges[i].chartRangeIndex === 2) {
-                                        oRange = this.arrActiveChartRanges[i].getLast();
-                                        break;
-                                    }
-                                }
-                            }
-                            if(oRange) {
-                                if(this.startCellMoveResizeRange.c1 + colDelta <= oRange.c2) {
-                                    colDelta += (oRange.c2 - (this.startCellMoveResizeRange.c1 + colDelta) + 1);
                                 }
                             }
                         }
                         if(rowDelta < 0) {
                             oRange = null;
-                            for(i = 0; i < this.arrActiveChartRanges.length; ++i) {
-                                if(bVert) {
-                                    if(this.arrActiveChartRanges[i].chartRangeIndex === 2) {
-                                        oRange = this.arrActiveChartRanges[i].getLast();
-                                        break;
+                            if(oTopActiveRange) {
+                                oRange = oTopActiveRange.getLast();
+                                if(oRange) {
+                                    if(this.startCellMoveResizeRange.r1 + rowDelta <= oRange.r2) {
+                                        rowDelta += (oRange.r2 - (this.startCellMoveResizeRange.r1 + rowDelta) + 1);
                                     }
-                                }
-                                else {
-                                    if(this.arrActiveChartRanges[i].chartRangeIndex === 1) {
-                                        oRange = this.arrActiveChartRanges[i].getLast();
-                                        break;
-                                    }
-                                }
-                            }
-                            if(oRange) {
-                                if(this.startCellMoveResizeRange.r1 + rowDelta <= oRange.r2) {
-                                    rowDelta += (oRange.r2 - (this.startCellMoveResizeRange.r1 + rowDelta) + 1);
                                 }
                             }
                         }
+                        ar.r1 = r1 = this.startCellMoveResizeRange.r1 + rowDelta;
+                        ar.r2 = r2 = this.startCellMoveResizeRange.r2 + rowDelta;
+                        ar.c1 = c1 = this.startCellMoveResizeRange.c1 + colDelta;
+                        ar.c2 = c2 = this.startCellMoveResizeRange.c2 + colDelta;
                         break;
                     }
 
                 }
-                if (targetInfo.cursor == kCurNEResize || targetInfo.cursor == kCurSEResize) {
-                    this.startCellMoveResizeRange
+                oValActiveRange.getLast().assign2(ar);
+                if(oLeftActiveRange) {
+                    arTmp = oLeftActiveRange.getLast().clone();
+                    arTmp.r1 = ar.r1;
+                    arTmp.r2 = ar.r2;
+                    oLeftActiveRange.getLast().assign2(arTmp);
+                }
+                if(oTopActiveRange) {
+                    arTmp = oTopActiveRange.getLast().clone();
+                    arTmp.c1 = ar.c1;
+                    arTmp.c2 = ar.c2;
+                    oTopActiveRange.getLast().assign2(arTmp);
                 }
             }
         }
+        this._drawSelection();
     };
 
     WorksheetView.prototype.changeSelectionMoveResizeRangeHandle = function (x, y, targetInfo, editor) {
@@ -9803,14 +9858,14 @@
             }
             return null;
         }
-        
-        if(targetInfo.targetArr !== 0) {
-            return this.changeChartSelectionMoveResizeRangeHandle(x, y, targetInfo, editor);
-        }
+
         // Очищаем выделение, будем рисовать заново
         // this.cleanSelection();
         this.overlayCtx.clear();
 
+        if(targetInfo.targetArr !== 0) {
+            return this.changeChartSelectionMoveResizeRangeHandle(x, y, targetInfo, editor);
+        }
         if (targetInfo.cursor == kCurNEResize || targetInfo.cursor == kCurSEResize) {
 
             if (colByX < this.startCellMoveResizeRange2.c1) {
