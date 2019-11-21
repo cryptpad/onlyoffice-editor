@@ -9467,6 +9467,14 @@ CDocument.prototype.OnMouseMove = function(e, X, Y, PageIndex)
 	if (PageIndex < 0)
 		return;
 
+	if (this.DrawTableMode.Start
+		&& (PageIndex !== this.DrawTableMode.Page)
+		&& (this.DrawTableMode.Draw || this.DrawTableMode.Erase))
+	{
+		this.DrawTableMode.EndX = X;
+		this.DrawTableMode.EndY = Y;
+	}
+
 
 	if (true === this.Selection.Start)
 		this.private_UpdateTargetForCollaboration();
