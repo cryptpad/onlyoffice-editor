@@ -1772,7 +1772,7 @@
 					}
 					if (!bInsertMath) {
 						paragraph.Check_NearestPos(NearPos);
-						target_doc_content.Insert_Content(selectedContent, NearPos);
+						target_doc_content.InsertContent(selectedContent, NearPos);
 					}
 					var oTargetTextObject = AscFormat.getTargetTextObject(worksheet.objectRender.controller);
 					oTargetTextObject && oTargetTextObject.checkExtentsByDocContent &&

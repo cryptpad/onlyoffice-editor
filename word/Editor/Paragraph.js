@@ -14731,6 +14731,20 @@ Paragraph.prototype.Document_Is_SelectionLocked = function(CheckType)
 Paragraph.prototype.CheckContentControlDeletingLock = function()
 {
 };
+/**
+ * Получаем NearestPos по текущей позиции
+ * @return {NearestPos}
+ */
+Paragraph.prototype.GetCurrentAnchorPosition = function()
+{
+	var oNearPos = {
+		Paragraph  : this,
+		ContentPos : this.Get_ParaContentPos(false, false)
+	};
+
+	this.Check_NearestPos(oNearPos);
+	return oNearPos;
+};
 
 var pararecalc_0_All  = 0;
 var pararecalc_0_None = 1;

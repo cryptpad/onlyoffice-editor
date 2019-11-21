@@ -7627,8 +7627,8 @@ CDocument.prototype.OnEndTextDrag = function(NearPos, bCopy)
 
             this.RemoveSelection(true);
 
-            // Выделение выставляется внутри функции Insert_Content
-            Para.Parent.Insert_Content(DocContent, NearPos);
+            // Выделение выставляется внутри функции InsertContent
+            Para.Parent.InsertContent(DocContent, NearPos);
 
 			this.Recalculate();
             this.UpdateSelection();
@@ -7750,7 +7750,7 @@ CDocument.prototype.Can_InsertContent = function(SelectedContent, NearPos)
 
 	return true;
 };
-CDocument.prototype.Insert_Content = function(SelectedContent, NearPos)
+CDocument.prototype.InsertContent = function(SelectedContent, NearPos)
 {
 	var Para        = NearPos.Paragraph;
 	var ParaNearPos = Para.Get_ParaNearestPos(NearPos);
@@ -20755,6 +20755,71 @@ CDocument.prototype.DrawTable = function()
 		}
 
 		this.Recalculate();
+		this.FinalizeAction();
+	}
+};
+/**
+ * Добавляем текст в текущую позицию с заданными текстовыми настройками
+ * @param sText {string}
+ * @param oTextPr {?CTextPr}
+ * @param isMoveCursorOutside {boolean} выводим ли курсор за пределы нового рана
+ */
+CDocument.prototype.AddText = function(sText, oTextPr, isMoveCursorOutside)
+{
+	if (!this.IsSelectionLocked(AscCommon.changestype_Paragraph_AddText))
+	{
+		this.StartAction(AscDFH.historydescription_Document_AddTextWithProperties);
+
+		this.RemoveBeforePaste();
+
+		var oCurrentTextPr = this.GetDirectTextPr();
+
+		var oParagraph = this.GetCurrentParagraph();
+		if (oParagraph && oParagraph.GetParent())
+		{
+			var oTempPara = new Paragraph(this.GetDrawingDocument(), oParagraph.GetParent());
+			var oRun      = new ParaRun(oTempPara, false);
+			oRun.AddText(sText);
+			oTempPara.AddToContent(0, oRun);
+
+			oRun.SetPr(oCurrentTextPr.Copy());
+			if (oTextPr)
+				oRun.ApplyPr(oTextPr);
+
+			var oAnchorPos = oParagraph.GetCurrentAnchorPosition();
+
+			var oSelectedContent = new CSelectedContent();
+			var oSelectedElement = new CSelectedElement();
+
+			oSelectedElement.Element     = oTempPara;
+			oSelectedElement.SelectedAll = false;
+			oSelectedContent.Add(oSelectedElement);
+
+			oSelectedContent.On_EndCollectElements(this, false);
+
+			oParagraph.GetParent().InsertContent(oSelectedContent, oAnchorPos);
+
+			if (this.IsSelectionUse())
+			{
+				if (isMoveCursorOutside)
+				{
+					this.RemoveSelection();
+					oRun.MoveCursorOutsideElement(false);
+				}
+				else
+				{
+					this.MoveCursorRight(false, false, true);
+				}
+			}
+			else if (isMoveCursorOutside)
+			{
+				oRun.MoveCursorOutsideElement(false);
+			}
+		}
+
+		this.Recalculate();
+		this.UpdateInterface();
+		this.UpdateSelection();
 		this.FinalizeAction();
 	}
 };

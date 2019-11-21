@@ -7441,7 +7441,7 @@ CPresentation.prototype =
                                 }
                                 oController.resetSelection(false, false);
                                 oSelectedContent = oSelectedContent.copy();
-                                oParagraph.Parent.Insert_Content(oSelectedContent.DocContent, NearPos);
+                                oParagraph.Parent.InsertContent(oSelectedContent.DocContent, NearPos);
                                 oController.onMouseUp(AscCommon.global_mouseEvent, AscCommon.global_mouseEvent.X, AscCommon.global_mouseEvent.Y);
                                 NearPos.Paragraph.Document_SetThisElementCurrent(false);
                                 this.Recalculate();
@@ -7481,7 +7481,7 @@ CPresentation.prototype =
                             }
                             this.Slides[this.CurPage].graphicObjects.resetSelection(undefined, false);
                             oSelectedContent = oSelectedContent.copy();
-                            this.Insert_Content(oSelectedContent);
+                            this.InsertContent(oSelectedContent);
                             var oShape = this.Slides[this.CurPage].graphicObjects.selectedObjects[0];
                             if(oShape)
                             {
@@ -8877,7 +8877,7 @@ CPresentation.prototype =
                                         oParagraph.Check_NearestPos(oNearPos);
                                         bOldVal = oDocContentForDraw.MoveDrawing;
                                         oDocContentForDraw.MoveDrawing = true;
-                                        oDocContentForDraw.Insert_Content(oSelectedContent2, oNearPos);
+                                        oDocContentForDraw.InsertContent(oSelectedContent2, oNearPos);
                                         oDocContentForDraw.MoveDrawing = bOldVal;
 
 
@@ -9219,7 +9219,7 @@ CPresentation.prototype =
         paragraph.Check_NearestPos(NearPos);
         var old_val = oDocContent.MoveDrawing;
         oDocContent.MoveDrawing = true;
-        shape.txBody.content.Insert_Content(oDocContent, NearPos);
+        shape.txBody.content.InsertContent(oDocContent, NearPos);
         oDocContent.MoveDrawing = old_val;
         var body_pr = shape.getBodyPr();
         var w = shape.txBody.getMaxContentWidth(this.Width/2, true) + body_pr.lIns + body_pr.rIns;
@@ -9237,7 +9237,7 @@ CPresentation.prototype =
     * @param {Array} aContents
     * @param {number} nIndex
     * */
-    Insert_Content2: function(aContents, nIndex)
+    InsertContent2: function(aContents, nIndex)
     {
         //nIndex = 1;
         var oContent, oSlide, i, j, bEndFormatting = (nIndex === 0), oSourceContent, kw = 1.0, kh = 1.0;
@@ -9459,7 +9459,7 @@ CPresentation.prototype =
                 }
             }
         }
-        var bRet = this.Insert_Content(oContent);
+        var bRet = this.InsertContent(oContent);
         if(bNeedGenerateThumbnails)
         {
             for(i = 0; i < this.slideMasters.length; ++i)
@@ -9471,7 +9471,7 @@ CPresentation.prototype =
         return bRet;
     },
 
-    Insert_Content : function(Content)
+    InsertContent : function(Content)
     {
         var bInsert = false;
         var selected_slides = this.GetSelectedSlides(), i;
@@ -9523,7 +9523,7 @@ CPresentation.prototype =
                     oContent.GetSelectedContent(oSelectedContent);
                     var PresentSelContent = new PresentationSelectedContent();
                     PresentSelContent.DocContent = oSelectedContent;
-                    this.Insert_Content(PresentSelContent);
+                    this.InsertContent(PresentSelContent);
                     this.Check_CursorMoveRight();
                     return;
                 }
@@ -9664,7 +9664,7 @@ CPresentation.prototype =
                                     bInsertMath = true;
                                 }
                             }
-                            !bInsertMath && target_doc_content.Insert_Content(Content.DocContent, NearPos);
+                            !bInsertMath && target_doc_content.InsertContent(Content.DocContent, NearPos);
                         }
                         var oTargetTextObject = AscFormat.getTargetTextObject(this.Slides[this.CurPage].graphicObjects);
                         oTargetTextObject && oTargetTextObject.checkExtentsByDocContent && oTargetTextObject.checkExtentsByDocContent();

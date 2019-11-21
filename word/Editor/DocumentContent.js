@@ -4121,7 +4121,7 @@ CDocumentContent.prototype.GetSelectedContent = function(SelectedContent)
 		}
 	}
 };
-CDocumentContent.prototype.Insert_Content                     = function(SelectedContent, NearPos)
+CDocumentContent.prototype.InsertContent = function(SelectedContent, NearPos)
 {
     var Para        = NearPos.Paragraph;
     var ParaNearPos = Para.Get_ParaNearestPos(NearPos);

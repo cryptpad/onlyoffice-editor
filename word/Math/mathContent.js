@@ -1677,7 +1677,7 @@ CMathContent.prototype.private_CorrectContent = function()
             CurrPos += 2;
 
         }
-        else if(bDeleteEmptyRun && false == Current.Is_CheckingNearestPos()) // если NearPosArray не нулевой длины, то это вызов происходит на Insert_Content, не удаляем пустые Run
+        else if(bDeleteEmptyRun && false == Current.Is_CheckingNearestPos()) // если NearPosArray не нулевой длины, то это вызов происходит на InsertContent, не удаляем пустые Run
         {
             this.Remove_FromContent(CurrPos, 1);
 

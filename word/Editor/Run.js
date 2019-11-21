@@ -8046,6 +8046,10 @@ ParaRun.prototype.Apply_Pr = function(TextPr)
 			return this.Paragraph.TextPr.Apply_TextPr(TextPr);
 	}
 };
+ParaRun.prototype.ApplyPr = function(oTextPr)
+{
+	return this.Apply_Pr(oTextPr);
+};
 
 ParaRun.prototype.HavePrChange = function()
 {
