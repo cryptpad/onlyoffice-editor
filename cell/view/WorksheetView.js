@@ -9691,12 +9691,11 @@
         var ar = oActiveRange.getLast().clone(), arTmp;
         var oRange;
         var oTopActiveRange = null, oLeftActiveRange = null, oValActiveRange = null;
-        var r1, r2, c1, c2;
+        var r1 = null, r2 = null, c1 = null, c2 = null;
 
         if(oActiveRange.separated) {
         }
         else {
-
             for(i = 0; i < this.arrActiveChartRanges.length; ++i) {
                 if(this.arrActiveChartRanges[i].chartRangeIndex === 0) {
                     oValActiveRange = this.arrActiveChartRanges[i];
@@ -9725,54 +9724,57 @@
             if(!oValActiveRange) {
                 return;
             }
-            if(oActiveRange.chartRangeIndex === 0) {
-                switch (targetInfo.cursor) {
-                    case kCurNEResize:
-                    case kCurSEResize:{
+            switch (targetInfo.cursor) {
+                case kCurNEResize:
+                case kCurSEResize:{
+
+                    if(oValActiveRange === oActiveRange || oTopActiveRange === oActiveRange) {
                         if (colByX < this.startCellMoveResizeRange2.c1) {
-                            ar.c2 = this.startCellMoveResizeRange2.c1;
-                            ar.c1 = colByX;
+                            c2 = this.startCellMoveResizeRange2.c1;
+                            c1 = colByX;
                         } else if (colByX > this.startCellMoveResizeRange2.c1) {
-                            ar.c1 = this.startCellMoveResizeRange2.c1;
-                            ar.c2 = colByX;
+                            c1 = this.startCellMoveResizeRange2.c1;
+                            c2 = colByX;
                         } else {
-                            ar.c1 = this.startCellMoveResizeRange2.c1;
-                            ar.c2 = this.startCellMoveResizeRange2.c1
+                            c1 = this.startCellMoveResizeRange2.c1;
+                            c2 = this.startCellMoveResizeRange2.c1
                         }
-
-                        if (rowByY < this.startCellMoveResizeRange2.r1) {
-                            ar.r2 = this.startCellMoveResizeRange2.r2;
-                            ar.r1 = rowByY;
-                        } else if (rowByY > this.startCellMoveResizeRange2.r1) {
-                            ar.r1 = this.startCellMoveResizeRange2.r1;
-                            ar.r2 = rowByY;
-                        } else {
-                            ar.r1 = this.startCellMoveResizeRange2.r1;
-                            ar.r2 = this.startCellMoveResizeRange2.r1;
-                        }
-
-                        if(oLeftActiveRange) {
-                            oRange = oLeftActiveRange.getLast();
-                            if(oRange) {
-                                if(ar.c1 <= oRange.c2) {
-                                    ar.c1 = oRange.c2 + 1;
-                                }
-                            }
-                        }
-                        if(oTopActiveRange) {
-                            oRange = oTopActiveRange.getLast();
-                            if(oRange) {
-                                if(ar.r1 <= oRange.r2) {
-                                    ar.r1 = oRange.r2 + 1;
-                                }
-                            }
-                        }
-                        break;
                     }
 
-                    case kCurMove: {
+                    if(oValActiveRange === oActiveRange || oLeftActiveRange === oActiveRange) {
+                        if (rowByY < this.startCellMoveResizeRange2.r1) {
+                            r2 = this.startCellMoveResizeRange2.r2;
+                            r1 = rowByY;
+                        } else if (rowByY > this.startCellMoveResizeRange2.r1) {
+                            r1 = this.startCellMoveResizeRange2.r1;
+                            r2 = rowByY;
+                        } else {
+                            r1 = this.startCellMoveResizeRange2.r1;
+                            r2 = this.startCellMoveResizeRange2.r1;
+                        }
+                    }
+
+                    if(oLeftActiveRange && oLeftActiveRange !== oActiveRange) {
+                        oRange = oLeftActiveRange.getLast();
+                        if(oRange) {
+                            if(c1 <= oRange.c2) {
+                                c1 = oRange.c2 + 1;
+                            }
+                        }
+                    }
+                    if(oTopActiveRange && oTopActiveRange !== oActiveRange) {
+                        oRange = oTopActiveRange.getLast();
+                        if(oRange) {
+                            if(r1 <= oRange.r2) {
+                                r1 = oRange.r2 + 1;
+                            }
+                        }
+                    }
+                    break;
+                }
+                case kCurMove: {
+                    if(oActiveRange === oValActiveRange || oActiveRange === oTopActiveRange) {
                         colDelta = colByX - this.startCellMoveResizeRange2.c1;
-                        rowDelta = rowByY - this.startCellMoveResizeRange2.r1;
                         if(colDelta < 0) {
                             oRange = null;
                             if(oLeftActiveRange) {
@@ -9784,6 +9786,11 @@
                                 }
                             }
                         }
+                        c1 = this.startCellMoveResizeRange.c1 + colDelta;
+                        c2 = this.startCellMoveResizeRange.c2 + colDelta;
+                    }
+                    if(oActiveRange === oValActiveRange || oActiveRange === oLeftActiveRange) {
+                        rowDelta = rowByY - this.startCellMoveResizeRange2.r1;
                         if(rowDelta < 0) {
                             oRange = null;
                             if(oTopActiveRange) {
@@ -9795,27 +9802,40 @@
                                 }
                             }
                         }
-                        ar.r1 = r1 = this.startCellMoveResizeRange.r1 + rowDelta;
-                        ar.r2 = r2 = this.startCellMoveResizeRange.r2 + rowDelta;
-                        ar.c1 = c1 = this.startCellMoveResizeRange.c1 + colDelta;
-                        ar.c2 = c2 = this.startCellMoveResizeRange.c2 + colDelta;
-                        break;
+                        r1 = this.startCellMoveResizeRange.r1 + rowDelta;
+                        r2 = this.startCellMoveResizeRange.r2 + rowDelta;
                     }
 
+                    break;
                 }
-                oValActiveRange.getLast().assign2(ar);
-                if(oLeftActiveRange) {
-                    arTmp = oLeftActiveRange.getLast().clone();
-                    arTmp.r1 = ar.r1;
-                    arTmp.r2 = ar.r2;
-                    oLeftActiveRange.getLast().assign2(arTmp);
+            }
+            if(oValActiveRange) {
+                arTmp = oValActiveRange.getLast().clone();
+                if(r1 !== null && r2 !== null) {
+                    arTmp.r1 = r1;
+                    arTmp.r2 = r2;
                 }
-                if(oTopActiveRange) {
-                    arTmp = oTopActiveRange.getLast().clone();
-                    arTmp.c1 = ar.c1;
-                    arTmp.c2 = ar.c2;
-                    oTopActiveRange.getLast().assign2(arTmp);
+                if(c1 !== null && c2 !== null) {
+                    arTmp.c1 = c1;
+                    arTmp.c2 = c2;
                 }
+                oValActiveRange.getLast().assign2(arTmp);
+            }
+            if(oLeftActiveRange) {
+                arTmp = oLeftActiveRange.getLast().clone();
+                if(r1 !== null && r2 !== null) {
+                    arTmp.r1 = r1;
+                    arTmp.r2 = r2;
+                }
+                oLeftActiveRange.getLast().assign2(arTmp);
+            }
+            if(oTopActiveRange) {
+                arTmp = oTopActiveRange.getLast().clone();
+                if(c1 !== null && c2 !== null) {
+                    arTmp.c1 = c1;
+                    arTmp.c2 = c2;
+                }
+                oTopActiveRange.getLast().assign2(arTmp);
             }
         }
         this._drawSelection();
