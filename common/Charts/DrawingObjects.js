@@ -3957,28 +3957,45 @@ function DrawingObjects() {
         //     return;
 
         var BBoxObjects = drawing.getDataRanges();
-        if (!window["IS_NATIVE_EDITOR"]) {
-            if(BBoxObjects.bbox) {
-                if(BBoxObjects.bbox.serBBox) {
-                    worksheet._drawElements(worksheet._drawSelectionElement,
-                        asc.Range(drawing.bbox.serBBox.c1, drawing.bbox.serBBox.r1, drawing.bbox.serBBox.c2,
-                            drawing.bbox.serBBox.r2, true), AscCommonExcel.selectionLineType.Selection | AscCommonExcel.selectionLineType.Resize,
-                        AscCommonExcel.c_oAscFormulaRangeBorderColor[1]);
-                }
-                if(BBoxObjects.bbox.catBBox)
-                {
-                    worksheet._drawElements(worksheet._drawSelectionElement,
-                        asc.Range(drawing.bbox.catBBox.c1, drawing.bbox.catBBox.r1, drawing.bbox.catBBox.c2,
-                            drawing.bbox.catBBox.r2, true), AscCommonExcel.selectionLineType.Selection | AscCommonExcel.selectionLineType.Resize,
-                        AscCommonExcel.c_oAscFormulaRangeBorderColor[2]);
-                }
-            }
-        }
+        var BB, range;
+
+
 
         if(BBoxObjects.bbox) {
-            var BB = BBoxObjects.bbox.seriesBBox;
-            var range = asc.Range(BB.c1, BB.r1, BB.c2, BB.r2, true);
-            worksheet.setChartRange(range);
+
+            if(BBoxObjects.bbox.seriesBBox) {
+
+                BB = BBoxObjects.bbox.seriesBBox;
+                range = asc.Range(BB.c1, BB.r1, BB.c2, BB.r2, true);
+                worksheet.isChartAreaEditMode = true;
+                worksheet.arrActiveChartRanges[0].assign2(range);
+
+            }
+            if(BBoxObjects.bbox.serBBox) {
+
+                BB = drawing.bbox.serBBox;
+                range = asc.Range(BB.c1, BB.r1, BB.c2, BB.r2, true);
+
+                worksheet.isChartAreaEditMode = true;
+                worksheet.arrActiveChartRanges[1] = new AscCommonExcel.SelectionRange(worksheet);
+                worksheet.arrActiveChartRanges[1].assign2(range);
+                // worksheet._drawElements(worksheet._drawSelectionElement,
+                //     asc.Range(drawing.bbox.serBBox.c1, drawing.bbox.serBBox.r1, drawing.bbox.serBBox.c2,
+                //         drawing.bbox.serBBox.r2, true), AscCommonExcel.selectionLineType.Selection | AscCommonExcel.selectionLineType.Resize,
+                //     AscCommonExcel.c_oAscFormulaRangeBorderColor[1]);
+            }
+            if(BBoxObjects.bbox.catBBox)
+            {
+                BB = drawing.bbox.catBBox;
+                range = asc.Range(BB.c1, BB.r1, BB.c2, BB.r2, true);
+                worksheet.isChartAreaEditMode = true;
+                worksheet.arrActiveChartRanges[2] = new AscCommonExcel.SelectionRange(worksheet);
+                worksheet.arrActiveChartRanges[2].assign2(range);
+                // worksheet._drawElements(worksheet._drawSelectionElement,
+                //     asc.Range(drawing.bbox.catBBox.c1, drawing.bbox.catBBox.r1, drawing.bbox.catBBox.c2,
+                //         drawing.bbox.catBBox.r2, true), AscCommonExcel.selectionLineType.Selection | AscCommonExcel.selectionLineType.Resize,
+                //     AscCommonExcel.c_oAscFormulaRangeBorderColor[2]);
+            }
             worksheet._drawSelection();
         }
     };
