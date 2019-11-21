@@ -7386,6 +7386,8 @@ background-repeat: no-repeat;\
         this.isDrawTablePen = value;
         this.WordControl.m_oLogicDocument.DrawTableMode.Draw = value;
 
+        if (this.isDrawTablePen && this.isDrawTableErase)
+			this.SetTableEraseMode(false);
     };
     asc_docs_api.prototype.sync_TableDrawModeCallback = function(value)
     {
@@ -7401,6 +7403,8 @@ background-repeat: no-repeat;\
         this.isDrawTableErase = value;
         this.WordControl.m_oLogicDocument.DrawTableMode.Erase = value;
 
+        if (this.isDrawTableErase && this.isDrawTablePen)
+            this.SetTableDrawMode(false);
     };
     asc_docs_api.prototype.sync_TableEraseModeCallback = function(value)
     {
