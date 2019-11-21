@@ -2513,6 +2513,13 @@ CDocument.prototype.FinalizeAction = function(isCheckEmptyAction)
 
 	if (this.Action.Depth > 0)
 	{
+		// Если на каждое действие создавалась точка, но последнее действие оказалось пустым
+		if (this.Action.Depth + 1 === this.Action.PointsCount && this.History.Is_LastPointEmpty())
+		{
+			this.History.Remove_LastPoint();
+			this.Action.PointsCount--;
+		}
+
 		this.Action.Depth--;
 		return;
 	}
