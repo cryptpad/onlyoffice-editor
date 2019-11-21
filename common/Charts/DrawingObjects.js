@@ -3973,7 +3973,7 @@ function DrawingObjects() {
             }
             if(BBoxObjects.bbox.serBBox) {
 
-                BB = drawing.bbox.serBBox;
+                BB = BBoxObjects.bbox.serBBox;
                 range = asc.Range(BB.c1, BB.r1, BB.c2, BB.r2, true);
 
                 worksheet.isChartAreaEditMode = true;
@@ -3986,7 +3986,7 @@ function DrawingObjects() {
             }
             if(BBoxObjects.bbox.catBBox)
             {
-                BB = drawing.bbox.catBBox;
+                BB = BBoxObjects.bbox.catBBox;
                 range = asc.Range(BB.c1, BB.r1, BB.c2, BB.r2, true);
                 worksheet.isChartAreaEditMode = true;
                 worksheet.arrActiveChartRanges[2] = new AscCommonExcel.SelectionRange(worksheet);

@@ -4059,7 +4059,7 @@ CChartSpace.prototype.rebuildSeriesData = function(oValRange, oCatRange, oTxRang
 {
     var oSeries = this.getSelectedSeries();
     var oBBox, i, nSeriesIndex, startCell, endCell, aSeries;
-    var sStartCellId, sEndCellId, oNumRef, oCat, oStrRef, oTx;
+    var oCat, oTx;
     var oWorksheet = this.worksheet;//TODO
     if(oSeries)
     {
