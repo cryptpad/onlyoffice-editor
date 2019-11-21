@@ -2393,8 +2393,8 @@ function CDrawingDocument()
 	AscCommon.g_oHtmlCursor.register("select-table-row", "select_row", "10 5", "default");
 	AscCommon.g_oHtmlCursor.register("select-table-column", "select_column", "5 10", "default");
 	AscCommon.g_oHtmlCursor.register("select-table-cell", "select_cell", "9 0", "default");
-    AscCommon.g_oHtmlCursor.register("de-tablepen", "pen", "0 0", "pointer");
-    AscCommon.g_oHtmlCursor.register("de-tableeraser", "eraser", "0 0", "pointer");
+    AscCommon.g_oHtmlCursor.register("de-tablepen", "pen", "1 16", "pointer");
+    AscCommon.g_oHtmlCursor.register("de-tableeraser", "eraser", "8 19", "pointer");
 
 	this.m_oWordControl = null;
 	this.m_oLogicDocument = null;
