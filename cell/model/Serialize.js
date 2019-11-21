@@ -3585,13 +3585,10 @@
                 this.memory.WriteByte(c_oSerPropLenType.Double);
                 this.memory.WriteDouble2(ws.oSheetFormatPr.dDefaultColWidth);
             }
-			var oAllCol = ws.getAllCol();
-			if(oAllCol){
-				if (oAllCol.getOutlineLevel() > 0) {
-					this.memory.WriteByte(c_oSerSheetFormatPrTypes.OutlineLevelCol);
-					this.memory.WriteByte(c_oSerPropLenType.Long);
-					this.memory.WriteLong(oAllCol.getOutlineLevel());
-				}
+			if (ws.oSheetFormatPr.nOutlineLevelCol > 0) {
+				this.memory.WriteByte(c_oSerSheetFormatPrTypes.OutlineLevelCol);
+				this.memory.WriteByte(c_oSerPropLenType.Long);
+				this.memory.WriteLong(ws.oSheetFormatPr.nOutlineLevelCol);
 			}
             if(null !== ws.oSheetFormatPr.oAllRow) {
                 var oAllRow = ws.oSheetFormatPr.oAllRow;
@@ -7276,8 +7273,7 @@
             }
             else if ( c_oSerSheetFormatPrTypes.OutlineLevelCol == type )
             {
-                var oAllCol = oWorksheet.getAllCol();
-                oAllCol.setOutlineLevel(this.stream.GetULongLE());
+				oWorksheet.oSheetFormatPr.nOutlineLevelCol = this.stream.GetULongLE();
             }
             else if ( c_oSerSheetFormatPrTypes.OutlineLevelRow == type )
             {
