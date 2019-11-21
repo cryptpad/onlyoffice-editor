@@ -9468,7 +9468,7 @@ CDocument.prototype.OnMouseMove = function(e, X, Y, PageIndex)
 		return;
 
 	if (this.DrawTableMode.Start
-		&& (PageIndex !== this.DrawTableMode.Page)
+		&& (PageIndex === this.DrawTableMode.Page)
 		&& (this.DrawTableMode.Draw || this.DrawTableMode.Erase))
 	{
 		this.DrawTableMode.EndX = X;
