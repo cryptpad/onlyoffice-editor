@@ -2450,6 +2450,8 @@
 			this.newCellText = null;
 			this.isStart = false;
 			this.afterReplace = false;
+			this.isIgnoreUppercase = false;
+			this.isIgnoreNumbers = false;
 		}
 
 		CSpellcheckState.prototype.init = function (startCell) {

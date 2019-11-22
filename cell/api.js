@@ -3059,6 +3059,13 @@ var editor;
         var activeCell = ws.model.selectionRange.activeCell;
 
         for (var i = 0; i < usrWords.length; i++) {
+          if (this.spellcheckState.isIgnoreNumbers) {
+            var isNumberInStr = /\d+/;
+            if (usrWords[i].match(isNumberInStr)) {
+              usrCorrect[i] = true;
+            }
+          }
+
           if (ignoreWords[usrWords[i]] || changeWords[usrWords[i]]) {
             usrCorrect[i] = true;
           }
@@ -3181,9 +3188,15 @@ var editor;
       this.spellcheckState.cellText = this.asc_getCellInfo().text;
       var cellText = this.spellcheckState.newCellText || this.spellcheckState.cellText;
       var afterReplace = this.spellcheckState.afterReplace;
+      var isIgnoreUppercase = this.spellcheckState.isIgnoreUppercase;
 
       for (var i = 0; i < usrWords.length; i++) {
-        if (ignoreWords[usrWords[i]] || changeWords[usrWords[i]]) {
+        var usrWord = usrWords[i];
+        if (isIgnoreUppercase) {
+          usrWord = usrWord.toLowerCase();
+        }
+
+        if (ignoreWords[usrWord] || changeWords[usrWord]) {
           usrCorrect[i] = true;
         }
       }
@@ -3191,6 +3204,10 @@ var editor;
       while (cellsInfo[lastIndex].col === activeCell.col && cellsInfo[lastIndex].row === activeCell.row) {
         var letterDifference = null;
         var word = usrWords[lastIndex];
+
+        if (this.spellcheckState.isIgnoreUppercase) {
+          word = usrWords[lastIndex].toLowerCase();
+        }
         var newWord = this.spellcheckState.newWord;
 
         if (newWord) {
@@ -3201,7 +3218,7 @@ var editor;
 
         if (letterDifference !== null) {
           var replaceWith = newWord || changeWords[word];
-          var valueForSearching = new RegExp(word, "y");
+          var valueForSearching = new RegExp(usrWords[lastIndex], "y");
           valueForSearching.lastIndex = wordsIndex[lastIndex];
           cellText = cellText.replace(valueForSearching, replaceWith);
           if (letterDifference !== 0) {
@@ -3335,7 +3352,11 @@ var editor;
     options.isMatchCase = true;
     
     if (replaceAll === true) {
-      this.spellcheckState.changeWords[variantsFound.Word] = newWord;
+      if (!this.spellcheckState.isIgnoreUppercase) {
+        this.spellcheckState.changeWords[variantsFound.Word] = newWord;
+      } else {
+        this.spellcheckState.changeWords[variantsFound.Word.toLowerCase()] = newWord;
+      }
       options.isReplaceAll = true;
     } 
       this.spellcheckState.lockSpell = false;
@@ -3355,7 +3376,11 @@ var editor;
         cellText = null; 
         newCellText = null;
       }
-      
+
+      if (this.spellcheckState.isIgnoreUppercase) {
+        options.isMatchCase = false;
+      }
+
       var replaceWords = [];
       for (var key in changeWords) {
         replaceWords.push([AscCommonExcel.getFindRegExp(key, options), changeWords[key]]);
@@ -3391,10 +3416,29 @@ var editor;
 
   spreadsheet_api.prototype.asc_ignoreMisspelledWord = function(spellCheckProperty, ignoreAll) {
     if (ignoreAll) {
-      this.spellcheckState.ignoreWords[spellCheckProperty.Word] = spellCheckProperty.Word;
+      var word = spellCheckProperty.Word;
+      if (!this.spellcheckState.isIgnoreUppercase) {
+        this.spellcheckState.ignoreWords[word] = word;
+      } else {
+        this.spellcheckState.ignoreWords[word.toLowerCase()] = word;
+      }
     }
     this.asc_nextWord();
   };
+
+    spreadsheet_api.prototype.asc_ignoreNumbers = function (isIgnore) {
+      this.spellcheckState.isIgnoreNumbers = true;
+      if (!isIgnore) {
+        this.spellcheckState.isIgnoreNumbers = false;
+      }
+    };
+
+    spreadsheet_api.prototype.asc_ignoreUppercase = function (isIgnore) {
+      this.spellcheckState.isIgnoreUppercase = true;
+      if (!isIgnore) {
+        this.spellcheckState.isIgnoreUppercase = false;
+      }
+    };
 
   spreadsheet_api.prototype.asc_cancelSpellCheck = function() {
     this.cleanSpelling();
@@ -4518,6 +4562,8 @@ var editor;
   prot["asc_spellCheckAddToDictionary"] = prot.asc_spellCheckAddToDictionary;
   prot["asc_spellCheckClearDictionary"] = prot.asc_spellCheckClearDictionary;
   prot["asc_cancelSpellCheck"] = prot.asc_cancelSpellCheck;
+  prot["asc_ignoreNumbers"] = prot.asc_ignoreNumbers;
+  prot["asc_ignoreUppercase"] = prot.asc_ignoreUppercase;
 
   // Frozen pane
   prot["asc_freezePane"] = prot.asc_freezePane;
