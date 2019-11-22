@@ -9698,7 +9698,7 @@
                 case kCurNEResize:
                 case kCurSEResize:{
 
-                    if(oActiveRange.chartRangeIndex === 0 || oActiveRange.chartRangeIndex === 2) {
+                    if(oActiveRange.chartRangeIndex === 2) {
                         if (colByX < this.startCellMoveResizeRange2.c1) {
                             c2 = this.startCellMoveResizeRange2.c1;
                             c1 = colByX;
@@ -10033,25 +10033,12 @@
             d.row = 0;
         }
 
-        if (0 == targetInfo.targetArr) {
-            var _p = this.arrActiveFormulaRanges[indexFormulaRange].cursorePos, _l = this.arrActiveFormulaRanges[indexFormulaRange].formulaRangeLength;
-            this.arrActiveFormulaRanges[indexFormulaRange].getLast().assign2(ar.clone(true));
-            this.arrActiveFormulaRanges[indexFormulaRange].cursorePos = _p;
-            this.arrActiveFormulaRanges[indexFormulaRange].formulaRangeLength = _l;
-            newFormulaRange = this.arrActiveFormulaRanges[indexFormulaRange].getLast();
-        } else {
-            var oChartActiveRange = this.arrActiveChartRanges[indexFormulaRange];
-            if(!oChartActiveRange.separated)
-            {
+        var _p = this.arrActiveFormulaRanges[indexFormulaRange].cursorePos, _l = this.arrActiveFormulaRanges[indexFormulaRange].formulaRangeLength;
+        this.arrActiveFormulaRanges[indexFormulaRange].getLast().assign2(ar.clone(true));
+        this.arrActiveFormulaRanges[indexFormulaRange].cursorePos = _p;
+        this.arrActiveFormulaRanges[indexFormulaRange].formulaRangeLength = _l;
+        newFormulaRange = this.arrActiveFormulaRanges[indexFormulaRange].getLast();
 
-            }
-            else
-            {
-
-            }
-            this.arrActiveChartRanges[indexFormulaRange].getLast().assign2(ar.clone(true));
-            this.moveRangeDrawingObjectTo = ar.clone();
-        }
         this._drawSelection();
 
         if (newFormulaRange) {
@@ -10160,7 +10147,8 @@
 
     WorksheetView.prototype.applyMoveResizeRangeHandle = function ( target ) {
         if ( -1 == target.targetArr && !this.startCellMoveResizeRange.isEqual( this.moveRangeDrawingObjectTo ) ) {
-            this.objectRender.moveRangeDrawingObject( this.startCellMoveResizeRange, this.moveRangeDrawingObjectTo );
+            this.objectRender.applyMoveResizeRange(this.arrActiveChartRanges);
+            //this.objectRender.moveRangeDrawingObject( this.startCellMoveResizeRange, this.moveRangeDrawingObjectTo );
         }
 
         this.startCellMoveResizeRange = null;

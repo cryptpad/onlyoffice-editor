@@ -4093,9 +4093,9 @@ CChartSpace.prototype.rebuildSeriesData = function(oValRange, oCatRange, oTxRang
         {
             if(!oSeries.tx)
             {
-                oSeries.setTx(new AscFormat.CCat());
+                oSeries.setTx(new AscFormat.CTx());
             }
-            oTx = oSeries.cat;
+            oTx = oSeries.tx;
             if(!oTx.strRef)
             {
                 oTx.setStrRef(new AscFormat.CStrRef());
@@ -4111,11 +4111,13 @@ CChartSpace.prototype.rebuildSeriesData = function(oValRange, oCatRange, oTxRang
         }
         aSeries = this.getAllSeries();
         var oLastChart = this.chart.plotArea.charts[this.chart.plotArea.charts.length - 1];
+
         if(aSeries.length > 0)
         {
             oBBox = this._recalculateBBox(this.getAllSeries()).bbox;
+            var bVert = oBBox.seriesBBox && oBBox.seriesBBox.bVert;
             var nStartIndex, nEndIndex;
-            if(oBBox.bVert)
+            if(bVert)
             {
                 nStartIndex = oValRange.r1;
                 nEndIndex = oValRange.r2;
@@ -4147,7 +4149,7 @@ CChartSpace.prototype.rebuildSeriesData = function(oValRange, oCatRange, oTxRang
                 {
                     oSeries.val.setNumRef(new AscFormat.CNumRef());
                 }
-                if(oBBox.bVert)
+                if(bVert)
                 {
                     this._setRefF(oSeries.val.numRef, oWorksheet, i, i, oValRange.c1, oValRange.c2);
                 }
@@ -4172,14 +4174,14 @@ CChartSpace.prototype.rebuildSeriesData = function(oValRange, oCatRange, oTxRang
                 {
                     if(!oSeries.tx)
                     {
-                        oSeries.setTx(new AscFormat.CCat());
+                        oSeries.setTx(new AscFormat.CTx());
                     }
-                    oTx = oSeries.cat;
+                    oTx = oSeries.tx;
                     if(!oTx.strRef)
                     {
                         oTx.setStrRef(new AscFormat.CStrRef());
                     }
-                    if(oBBox.bVert)
+                    if(bVert)
                     {
                         this._setRefF(oTx.strRef, oWorksheet, i, i, oTxRange.c1, oTxRange.c2);
                     }
@@ -4189,10 +4191,34 @@ CChartSpace.prototype.rebuildSeriesData = function(oValRange, oCatRange, oTxRang
                     }
                 }
             }
+            var nLastIndex = nEndIndex - nStartIndex;
+            for(i = aSeries.length - 1; i > nLastIndex; --i) {
+                this._removeSeriesFromChart(aSeries[i])
+            }
         }
     }
 };
 
+    CChartSpace.prototype._removeSeriesFromChart = function (oSeries) {
+        //TODO: Add this method to each chart type
+        if(oSeries.parent) {
+            var oChart = oSeries.parent;
+            var aSeries = oChart.series;
+            if(Array.isArray(aSeries)) {
+                if(aSeries[oSeries.idx] === oSeries) {
+                    oChart.removeSeries(oSeries.idx);
+                }
+                else {
+                    for(var i = 0; i < aSeries.length; ++i) {
+                        if(aSeries[i] === oSeries) {
+                            oChart.removeSeries(i);
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    };
 
     CChartSpace.prototype._setRefF = function(oRef, oWorksheet, r1, r2, c1, c2)
     {

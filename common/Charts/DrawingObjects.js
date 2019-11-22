@@ -3298,6 +3298,34 @@ function DrawingObjects() {
         }
     };
 
+    _this.applyMoveResizeRange = function(aActiveRanges) {
+        var oChart = null, i;
+        var aSelectedObjects = _this.controller.selection.groupSelection ? _this.controller.selection.groupSelection.selectedObjects : _this.controller.selectedObjects;
+        if(aSelectedObjects.length === 1
+            && aSelectedObjects[0].getObjectType() === AscDFH.historyitem_type_ChartSpace) {
+            oChart = aSelectedObjects[0];
+        }
+        else {
+            return;
+        }
+
+        var oValRange = null, oCatRange = null, oTxRange = null;
+        for(i = 0; i < aActiveRanges.length; ++i) {
+            if(aActiveRanges[i].chartRangeIndex === 0) {
+                oValRange = aActiveRanges[i].getLast().clone();
+            }
+            else if(aActiveRanges[i].chartRangeIndex === 1) {
+                oTxRange = aActiveRanges[i].getLast().clone();
+            }
+            else if(aActiveRanges[i].chartRangeIndex === 2) {
+                oCatRange = aActiveRanges[i].getLast().clone();
+            }
+        }
+        _this.controller.checkSelectedObjectsAndCallback(function () {
+            oChart.rebuildSeriesData(oValRange, oCatRange, oTxRange);
+        }, [aActiveRanges], false, AscDFH.historydescription_ChartDrawingObjects);
+    };
+
 
     _this.moveRangeDrawingObject = function(oBBoxFrom, oBBoxTo) {
 
