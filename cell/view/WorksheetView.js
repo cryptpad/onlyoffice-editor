@@ -17735,9 +17735,9 @@
 			asc_applyFunction(functionModelAction);
 
 			if(bCol) {
-				t._updateAfterChangeGroup(undefined, null);
+				t._updateAfterChangeGroup(undefined, null, true);
 			} else {
-				t._updateAfterChangeGroup(null);
+				t._updateAfterChangeGroup(null, null, true);
 			}
 		};
 
@@ -18130,7 +18130,7 @@
 		}
 	};
 
-	WorksheetView.prototype._updateAfterChangeGroup = function(updateRow, updateCol) {
+	WorksheetView.prototype._updateAfterChangeGroup = function(updateRow, updateCol, changeRowCol) {
 		var t = this;
 
 		var oRecalcType = AscCommonExcel.recalcType.recalc;
@@ -18138,7 +18138,8 @@
 		var arrChangedRanges = [];
 
 		t._initCellsArea(oRecalcType);
-		if (oRecalcType) {
+
+		if(changeRowCol) {
 			t.cache.reset();
 		}
 		t._cleanCellsTextMetricsCache();
