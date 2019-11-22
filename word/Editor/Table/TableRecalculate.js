@@ -62,6 +62,9 @@ CTable.prototype.Recalculate_Page = function(PageIndex)
 	if (Result & recalcresult_NextElement)
 		this.RecalcInfo.Reset(false);
 
+	if (Result & recalcresult_NextElement && window['AscCommon'].g_specialPasteHelper && window['AscCommon'].g_specialPasteHelper.showButtonIdParagraph === this.GetId())
+		window['AscCommon'].g_specialPasteHelper.SpecialPasteButtonById_Show();
+
 	return Result;
 };
 CTable.prototype.Recalculate_SkipPage = function(PageIndex)

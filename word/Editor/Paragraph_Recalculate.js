@@ -406,7 +406,7 @@ Paragraph.prototype.Recalculate_Page = function(CurPage)
 
     this.Parent.RecalcInfo.Reset_WidowControl();
 
-    if (recalcresult_NextElement === RecalcResult && window['AscCommon'].g_specialPasteHelper && window['AscCommon'].g_specialPasteHelper.showButtonIdParagraph === this.GetId())
+    if (RecalcResult & recalcresult_NextElement && window['AscCommon'].g_specialPasteHelper && window['AscCommon'].g_specialPasteHelper.showButtonIdParagraph === this.GetId())
 		window['AscCommon'].g_specialPasteHelper.SpecialPasteButtonById_Show();
 
     return RecalcResult;

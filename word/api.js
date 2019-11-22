@@ -2231,8 +2231,7 @@ background-repeat: no-repeat;\
 				_X = elem.X + w;
 			}
 
-			var oParaPos = elem.GetCurrentParaPos();
-			var _PageNum = elem.GetAbsolutePage(oParaPos.Page);
+			var _PageNum = elem.GetCurrentPageAbsolute();
 
 			specialPasteHelper.buttonInfo.fixPosition = {x: _X, y: _Y, pageNum: _PageNum};
 
