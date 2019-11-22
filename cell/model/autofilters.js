@@ -3932,13 +3932,13 @@
 				if(range.r1 < minRow) {
 					range.r1 = minRow;
 				}
-				if(range.r2 > maxRow) {
+				if(range.r2 > maxRow && maxRow >= range.r1) {
 					range.r2 = maxRow;
 				}
 				if(range.c1 < minCol) {
 					range.c1 = minCol;
 				}
-				if(range.c2 > maxCol) {
+				if(range.c2 > maxCol && maxCol >= range.c1) {
 					range.c2 = maxCol;
 				}
 

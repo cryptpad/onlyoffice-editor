@@ -1396,6 +1396,13 @@ CBlockLevelSdt.prototype.SetContentControlPr = function(oPr)
 	if (!oPr || this.IsBuiltInTableOfContents())
 		return;
 
+	if (oPr && !(oPr instanceof CContentControlPr))
+	{
+		var oTemp = new CContentControlPr(c_oAscSdtLockType.Block);
+		oTemp.FillFromObject(oPr);
+		oPr = oTemp;
+	}
+
 	oPr.SetToContentControl(this);
 };
 CBlockLevelSdt.prototype.GetContentControlPr = function()

@@ -9291,7 +9291,7 @@ DrawingObjectsController.prototype =
                     if(oSelectedContent.Elements.length > 0){
                         oSelectedContent.Elements[oSelectedContent.Elements.length - 1].SelectedAll = false;
                     }
-                    oContent.Insert_Content(oSelectedContent, oNearestPos);
+                    oContent.InsertContent(oSelectedContent, oNearestPos);
                     oContent.Selection.Start    = false;
                     oContent.Selection.Use      = false;
                     oContent.Selection.StartPos = 0;
@@ -9339,7 +9339,7 @@ DrawingObjectsController.prototype =
                 {
                     oNearestPos = { Paragraph: paragraph, ContentPos: paragraph.Get_ParaContentPos(false, false) };
                     paragraph.Check_NearestPos(oNearestPos);
-                    oContent.Insert_Content(oSelectedContent, oNearestPos);
+                    oContent.InsertContent(oSelectedContent, oNearestPos);
                     oShape.bSelectedText = false;
                 }
                 else

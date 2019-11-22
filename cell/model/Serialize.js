@@ -3585,16 +3585,11 @@
                 this.memory.WriteByte(c_oSerPropLenType.Double);
                 this.memory.WriteDouble2(ws.oSheetFormatPr.dDefaultColWidth);
             }
-            if (ws.oSheetFormatPr.nOutlineLevelCol > 0) {
-                this.memory.WriteByte(c_oSerSheetFormatPrTypes.OutlineLevelCol);
-                this.memory.WriteByte(c_oSerPropLenType.Long);
-                this.memory.WriteLong(ws.oSheetFormatPr.nOutlineLevelCol);
-            }
-            if (ws.oSheetFormatPr.nOutlineLevelRow > 0) {
-                this.memory.WriteByte(c_oSerSheetFormatPrTypes.OutlineLevelRow);
-                this.memory.WriteByte(c_oSerPropLenType.Long);
-                this.memory.WriteLong(ws.oSheetFormatPr.nOutlineLevelRow);
-            }
+			if (ws.oSheetFormatPr.nOutlineLevelCol > 0) {
+				this.memory.WriteByte(c_oSerSheetFormatPrTypes.OutlineLevelCol);
+				this.memory.WriteByte(c_oSerPropLenType.Long);
+				this.memory.WriteLong(ws.oSheetFormatPr.nOutlineLevelCol);
+			}
             if(null !== ws.oSheetFormatPr.oAllRow) {
                 var oAllRow = ws.oSheetFormatPr.oAllRow;
                 if(oAllRow.h)
@@ -3614,6 +3609,11 @@
                     this.memory.WriteByte(c_oSerSheetFormatPrTypes.ZeroHeight);
                     this.memory.WriteByte(c_oSerPropLenType.Byte);
                     this.memory.WriteBool(true);
+                }
+                if (oAllRow.getOutlineLevel() > 0) {
+                    this.memory.WriteByte(c_oSerSheetFormatPrTypes.OutlineLevelRow);
+                    this.memory.WriteByte(c_oSerPropLenType.Long);
+                    this.memory.WriteLong(oAllRow.getOutlineLevel());
                 }
             }
         };
@@ -7273,11 +7273,12 @@
             }
             else if ( c_oSerSheetFormatPrTypes.OutlineLevelCol == type )
             {
-                oWorksheet.oSheetFormatPr.nOutlineLevelCol = this.stream.GetULongLE();
+				oWorksheet.oSheetFormatPr.nOutlineLevelCol = this.stream.GetULongLE();
             }
             else if ( c_oSerSheetFormatPrTypes.OutlineLevelRow == type )
             {
-                oWorksheet.oSheetFormatPr.nOutlineLevelRow = this.stream.GetULongLE();
+                var oAllRow = oWorksheet.getAllRow();
+                oAllRow.setOutlineLevel(this.stream.GetULongLE());
             }
             else
                 res = c_oSerConstants.ReadUnknown;

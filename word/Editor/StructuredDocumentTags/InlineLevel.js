@@ -717,6 +717,13 @@ CInlineLevelSdt.prototype.SetContentControlPr = function(oPr)
 	if (!oPr)
 		return;
 
+	if (oPr && !(oPr instanceof CContentControlPr))
+	{
+		var oTemp = new CContentControlPr(c_oAscSdtLockType.Inline);
+		oTemp.FillFromObject(oPr);
+		oPr = oTemp;
+	}
+
 	oPr.SetToContentControl(this);
 };
 CInlineLevelSdt.prototype.GetContentControlPr = function()

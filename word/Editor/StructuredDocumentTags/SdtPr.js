@@ -280,6 +280,29 @@ function CContentControlPr(nType)
 	this.DropDownPr = undefined;
 	this.DateTimePr = undefined;
 }
+CContentControlPr.prototype.FillFromObject = function(oPr)
+{
+	if (undefined !== oPr.Id)
+		this.Id = oPr.Id;
+
+	if (undefined !== oPr.Tag)
+		this.Tag = oPr.Tag;
+
+	if (undefined !== oPr.Alias)
+		this.Alias = oPr.Alias;
+
+	if (undefined !== oPr.Lock)
+		this.Lock  = oPr.Lock;
+
+	if (undefined !== oPr.InternalId)
+		this.InternalId = oPr.InternalId;
+
+	if (undefined !== oPr.Appearance)
+		this.Appearance = oPr.Appearance;
+
+	if (undefined !== oPr.Color)
+		this.Color = oPr.Color;
+};
 CContentControlPr.prototype.FillFromContentControl = function(oContentControl)
 {
 	if (!oContentControl)
@@ -405,7 +428,7 @@ CContentControlPr.prototype.SetColor = function(r, g, b)
 };
 CContentControlPr.prototype.GetSpecificType = function()
 {
-	if (!this.CC)
+	if (this.CC)
 		return this.CC.GetSpecificType();
 
 	return Asc.c_oAscContentControlSpecificType.None;

@@ -2263,8 +2263,7 @@ PasteProcessor.prototype =
 
         var paragraph = oDoc.GetCurrentParagraph();
         if (null != paragraph) {
-            var NearPos = { Paragraph: paragraph, ContentPos: paragraph.Get_ParaContentPos(false, false) };
-            paragraph.Check_NearestPos(NearPos);
+            var NearPos = paragraph.GetCurrentAnchorPosition();
             //делаем небольшой сдвиг по y, потому что сама точка TargetPos для двухстрочного параграфа определяется как верхняя
             //var NearPos = oDoc.Get_NearestPos(this.oLogicDocument.TargetPos.PageNum, this.oLogicDocument.TargetPos.X, this.oLogicDocument.TargetPos.Y + 0.05);//0.05 == 2pix
 
@@ -2375,7 +2374,7 @@ PasteProcessor.prototype =
 
             if(!bPasteMath)
             {
-                paragraph.Parent.Insert_Content(oSelectedContent, NearPos);
+                paragraph.Parent.InsertContent(oSelectedContent, NearPos);
             }
 
 			//если вставляем таблицу в ячейку таблицы
@@ -3116,7 +3115,7 @@ PasteProcessor.prototype =
 			presentationSelectedContent.DocContent.Elements[i] = oSelectedElement;
 		}
 
-		if(presentation.Insert_Content(presentationSelectedContent)) {
+		if(presentation.InsertContent(presentationSelectedContent)) {
 			presentation.Recalculate();
 			presentation.Check_CursorMoveRight();
 			presentation.Document_UpdateInterfaceState();
@@ -3660,7 +3659,7 @@ PasteProcessor.prototype =
 					presentationSelectedContent.Drawings = arr_shapes;
 
 
-					if(presentation.Insert_Content(presentationSelectedContent)) {
+					if(presentation.InsertContent(presentationSelectedContent)) {
 						presentation.Recalculate();
 
 						presentation.Check_CursorMoveRight();
@@ -3761,7 +3760,7 @@ PasteProcessor.prototype =
 			var paste_callback_presentation = function () {
 				if (false == oThis.bNested) {
 
-					if(presentation.Insert_Content(presentationSelectedContent)) {
+					if(presentation.InsertContent(presentationSelectedContent)) {
 						presentation.Recalculate();
 
 						presentation.Check_CursorMoveRight();
@@ -3986,7 +3985,7 @@ PasteProcessor.prototype =
 					}
 				}
 
-				if(presentation.Insert_Content(presentationSelectedContent)) {
+				if(presentation.InsertContent(presentationSelectedContent)) {
 					presentation.Recalculate();
 					presentation.Check_CursorMoveRight();
 					presentation.Document_UpdateInterfaceState();
@@ -4267,7 +4266,7 @@ PasteProcessor.prototype =
 
 			var paste_callback = function(){
 				if (false === oThis.bNested) {
-					var bPaste = presentation.Insert_Content2(aContents, nIndex);
+					var bPaste = presentation.InsertContent2(aContents, nIndex);
 
 					presentation.Recalculate();
                     presentation.Check_CursorMoveRight();
@@ -4807,7 +4806,7 @@ PasteProcessor.prototype =
 					var presentationSelectedContent = new PresentationSelectedContent();
 					presentationSelectedContent.Drawings = arrShapes;
 
-					var bPaste = presentation.Insert_Content(presentationSelectedContent);
+					var bPaste = presentation.InsertContent(presentationSelectedContent);
 					presentation.Recalculate();
 					presentation.Check_CursorMoveRight();
 					presentation.Document_UpdateInterfaceState();

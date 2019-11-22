@@ -4138,6 +4138,11 @@ CParagraphContentWithParagraphLikeContent.prototype.GetFirstRunElementPos = func
 
 	return false;
 };
+CParagraphContentWithParagraphLikeContent.prototype.SetIsRecalculated = function(isRecalculated)
+{
+	if (!isRecalculated && this.GetParagraph())
+		this.GetParagraph().SetIsRecalculated(false);
+};
 
 //----------------------------------------------------------------------------------------------------------------------
 // Функции, которые должны быть реализованы в классах наследниках

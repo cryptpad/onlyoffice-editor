@@ -3080,6 +3080,16 @@ function CEditorPage(api)
 				drDoc.AutoShapesTrack.PageIndex       = _oldPage;
 				drDoc.AutoShapesTrack.CurrentPageInfo = _oldCurPageInfo;
 			}
+			
+			if (this.m_oApi.isDrawTablePen || this.m_oApi.isDrawTableErase)
+			{
+				var logicObj = this.m_oLogicDocument.DrawTableMode;
+				if (logicObj.Start && logicObj.Table)
+				{
+					drDoc.DrawCustomTableMode(overlay, logicObj.Table.GetDrawLine(logicObj.StartX, logicObj.StartY, logicObj.EndX, logicObj.EndY,
+						logicObj.Page, this.m_oApi.isDrawTablePen), logicObj, this.m_oApi.isDrawTablePen);
+				}
+			}
 
 			drDoc.DrawHorVerAnchor();
 		}

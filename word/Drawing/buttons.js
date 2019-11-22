@@ -591,6 +591,13 @@
         Date : 4
     };
 
+    var exportObj = AscCommon.CCButtonType;
+    AscCommon["CCButtonType"] = exportObj;
+    exportObj["Name"] = exportObj.Name;
+    exportObj["Toc"] = exportObj.Toc;
+    exportObj["Combo"] = exportObj.Combo;
+    exportObj["Date"] = exportObj.Date;
+
     AscCommon.ContentControlTrack = {
         Hover 	: 0,
         In 		: 1
@@ -652,6 +659,55 @@
 
             return this.images[type].get(isActive);
         };
+
+        this.generateComboImages = function()
+        {
+            var imageCC = new CCI();
+            this.images[AscCommon.CCButtonType.Combo] = imageCC;
+            imageCC.type = AscCommon.CCButtonType.Combo;
+
+            for (var i = 0; i < 4; i++)
+            {
+                var size = (i > 1) ? 40 : 20;
+
+                var image = document.createElement("canvas");
+                image.width = size;
+                image.height = size;
+
+                var ctx = image.getContext("2d");
+                var data = ctx.createImageData(size, size);
+                var px = data.data;
+
+                var len = (size >> 1) - 1;
+                var count = (len + 1) >> 1;
+                var x = (size - len) >> 1;
+                var y = (size - count) >> 1;
+
+                var color = (0x01 === (0x01 & i)) ? 255 : 0;
+
+                while ( len > 0 )
+                {
+                    var ind = 4 * (size * y + x);
+                    for ( var j = 0; j < len; j++ )
+                    {
+                        px[ind++] = color;
+                        px[ind++] = color;
+                        px[ind++] = color;
+                        px[ind++] = 255;
+                    }
+
+                    x += 1;
+                    y += 1;
+                    len -= 2;
+                }
+
+                ctx.putImageData(data, 0, 0);
+
+                image.asc_complete = true;
+
+                imageCC.images[i] = image;
+            }
+        };
     }
 
     function CContentControlTrack(parent, obj, state, geom)
@@ -697,7 +753,6 @@
         this.Name = this.base.GetAlias();
         if (this.base.IsBuiltInTableOfContents && this.base.IsBuiltInTableOfContents())
             this.Name = AscCommon.translateManager.getValue("Table of Contents");
-        this.NameWidth = 0;
 
         this.Color = this.base.GetColor();
 
@@ -947,7 +1002,7 @@
             case Asc.c_oAscContentControlSpecificType.DropDownList:
             case Asc.c_oAscContentControlSpecificType.DateTime:
             {
-                if (this.parent.document.m_oWordControl.m_oApi.isViewMode)
+                if (this.IsNoButtonsIsFillingForm)
                     break;
 
                 var len = arrY.length;
@@ -969,6 +1024,36 @@
             }
             default:
                 break;
+        }
+    };
+    CContentControlTrack.prototype.GetButtonObj = function(indexButton)
+    {
+        var button = AscCommon.CCButtonType.Name;
+        if (indexButton >= 0 && indexButton < this.Buttons.length)
+            button = this.Buttons[indexButton];
+        if (indexButton == this.Buttons.length)
+        {
+            switch (this.type)
+            {
+                case Asc.c_oAscContentControlSpecificType.ComboBox:
+                case Asc.c_oAscContentControlSpecificType.DropDownList:
+                {
+                    button = AscCommon.CCButtonType.Combo;
+                    break;
+                }
+                case Asc.c_oAscContentControlSpecificType.DateTime:
+                {
+                    button = AscCommon.CCButtonType.Date;
+                    break;
+                }
+            }
+        }
+
+        return {
+            "obj" : this.base,
+            "type" : this.type,
+            "button" : button,
+            "pr" : this.base.GetContentControlPr ? this.base.GetContentControlPr() : null
         }
     };
     CContentControlTrack.prototype.Copy = function()
@@ -998,6 +1083,7 @@
         this.icons = new CCIcons();
         this.icons.register(AscCommon.CCButtonType.Toc, "toc");
         this.icons.register(AscCommon.CCButtonType.Image, "img");
+        this.icons.generateComboImages();
 
         this.ContentControlObjects = [];
         this.ContentControlObjectsLast = [];
@@ -1511,6 +1597,10 @@
                                 ctx.fill();
                                 ctx.stroke();
                                 ctx.beginPath();
+
+                                var image = this.icons.getImage(AscCommon.CCButtonType.Combo, _object.Buttons.length == _object.ActiveButtonIndex);
+                                if (image && 7 < (_b - _y))
+                                    ctx.drawImage(image, _x, _y + ((_b - _y - 20) >> 1) + 0.5, 20, 20);
                             }
                         }
                         else
@@ -1720,6 +1810,11 @@
                                 ctx.stroke();
                                 ctx.lineWidth = 1;
                                 ctx.beginPath();
+
+                                var image = this.icons.getImage(AscCommon.CCButtonType.Combo, _object.Buttons.length == _object.ActiveButtonIndex);
+                                var scaleY_7 = 7 / _koefY;
+                                if (image && scaleY_7 < (_b - _y))
+                                    ctx.drawImage(image, _x, _y + ((_b - _y - scaleY_20) >> 1) + 0.5, scaleX_20, scaleY_20);
                             }
 
                             // рисуем единую обводку
@@ -1878,7 +1973,7 @@
                                 }
 
                                 var posOnScreen = this.document.ConvertCoordsToCursorWR(xCC, yCC, _object.Pos.Page);
-                                oWordControl.m_oApi.sendEvent("asc_onShowContentControlsActions", 0, posOnScreen.X, posOnScreen.Y);
+                                oWordControl.m_oApi.sendEvent("asc_onShowContentControlsActions", _object.GetButtonObj(-1), posOnScreen.X, posOnScreen.Y);
                             }
 
                             oWordControl.ShowOverlay();
@@ -1923,7 +2018,7 @@
                                         }
 
                                         var posOnScreen = this.document.ConvertCoordsToCursorWR(xCC, yCC, _object.Pos.Page);
-                                        oWordControl.m_oApi.sendEvent("asc_onShowContentControlsActions", indexB + 1, posOnScreen.X, posOnScreen.Y);
+                                        oWordControl.m_oApi.sendEvent("asc_onShowContentControlsActions", _object.GetButtonObj(indexB), posOnScreen.X, posOnScreen.Y);
                                     }
 
                                     oWordControl.ShowOverlay();
@@ -1971,7 +2066,7 @@
                             {
                                 _object.ActiveButtonIndex = indexB;
 
-                                var xCC = rectCombo.X + _object.OffsetX;
+                                var xCC = rectCombo.X + _object.OffsetX + 20 / koefX;
                                 var yCC = rectCombo.Y + rectCombo.H + _object.OffsetY;
                                 if (_object.transform)
                                 {
@@ -1981,7 +2076,7 @@
                                 }
 
                                 var posOnScreen = this.document.ConvertCoordsToCursorWR(xCC, yCC, rectCombo.Page);
-                                oWordControl.m_oApi.sendEvent("asc_onShowContentControlsActions", indexB + 1, posOnScreen.X, posOnScreen.Y);
+                                oWordControl.m_oApi.sendEvent("asc_onShowContentControlsActions", _object.GetButtonObj(indexB), posOnScreen.X, posOnScreen.Y);
                             }
 
                             oWordControl.ShowOverlay();

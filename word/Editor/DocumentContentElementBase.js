@@ -1027,7 +1027,7 @@ CDocumentContentElementBase.prototype.SetIsRecalculated = function(isRecalculate
 	this.Recalculated = isRecalculated;
 };
 /**
- * Узнаем рассчитан ли данный параграф
+ * Узнаем рассчитан ли данный элемент
  * @returns {boolean}
  */
 CDocumentContentElementBase.prototype.IsRecalculated = function()

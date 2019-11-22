@@ -2389,10 +2389,12 @@ function CDrawingDocument()
 {
 	this.IsLockObjectsEnable = false;
 
-	AscCommon.g_oHtmlCursor.register("de-markerformat", "marker_format", ["marker_format", 14, 8], "pointer");
-	AscCommon.g_oHtmlCursor.register("select-table-row", "select_row", ["select_row", 10, 5], "default");
-	AscCommon.g_oHtmlCursor.register("select-table-column", "select_column", ["select_column", 5, 10], "default");
-	AscCommon.g_oHtmlCursor.register("select-table-cell", "select_cell", ["select_cell", 9, 0], "default");
+	AscCommon.g_oHtmlCursor.register("de-markerformat", "marker_format", "14 8", "pointer");
+	AscCommon.g_oHtmlCursor.register("select-table-row", "select_row", "10 5", "default");
+	AscCommon.g_oHtmlCursor.register("select-table-column", "select_column", "5 10", "default");
+	AscCommon.g_oHtmlCursor.register("select-table-cell", "select_cell", "9 0", "default");
+    AscCommon.g_oHtmlCursor.register("de-tablepen", "pen", "1 16", "pointer");
+    AscCommon.g_oHtmlCursor.register("de-tableeraser", "eraser", "8 19", "pointer");
 
 	this.m_oWordControl = null;
 	this.m_oLogicDocument = null;
@@ -2564,12 +2566,21 @@ function CDrawingDocument()
 	{
 		if ("" == this.m_sLockedCursorType)
 		{
-			if (AscCommon.c_oAscFormatPainterState.kOff !== this.m_oWordControl.m_oApi.isPaintFormat && "text" == sType)
-				this.m_oWordControl.m_oMainContent.HtmlElement.style.cursor = AscCommon.g_oHtmlCursor.value(AscCommon.kCurFormatPainterWord);
-			else if (this.m_oWordControl.m_oApi.isMarkerFormat && "text" == sType)
-				this.m_oWordControl.m_oMainContent.HtmlElement.style.cursor = AscCommon.g_oHtmlCursor.value("de-markerformat");
-			else
-				this.m_oWordControl.m_oMainContent.HtmlElement.style.cursor = AscCommon.g_oHtmlCursor.value(sType);
+            if ("text" == sType)
+            {
+                if (AscCommon.c_oAscFormatPainterState.kOff !== this.m_oWordControl.m_oApi.isPaintFormat)
+                    this.m_oWordControl.m_oMainContent.HtmlElement.style.cursor = AscCommon.g_oHtmlCursor.value(AscCommon.kCurFormatPainterWord);
+                else if (this.m_oWordControl.m_oApi.isMarkerFormat)
+                    this.m_oWordControl.m_oMainContent.HtmlElement.style.cursor = AscCommon.g_oHtmlCursor.value("de-markerformat");
+                else if (this.m_oWordControl.m_oApi.isDrawTablePen)
+                    this.m_oWordControl.m_oMainContent.HtmlElement.style.cursor = AscCommon.g_oHtmlCursor.value("de-tablepen");
+                else if (this.m_oWordControl.m_oApi.isDrawTableErase)
+                    this.m_oWordControl.m_oMainContent.HtmlElement.style.cursor = AscCommon.g_oHtmlCursor.value("de-tableeraser");
+                else
+                    this.m_oWordControl.m_oMainContent.HtmlElement.style.cursor = AscCommon.g_oHtmlCursor.value(sType);
+            }
+            else
+                this.m_oWordControl.m_oMainContent.HtmlElement.style.cursor = AscCommon.g_oHtmlCursor.value(sType);
 		}
 		else
 			this.m_oWordControl.m_oMainContent.HtmlElement.style.cursor = AscCommon.g_oHtmlCursor.value(this.m_sLockedCursorType);
@@ -5297,6 +5308,11 @@ function CDrawingDocument()
 		this.m_oWordControl.OnUpdateOverlay();
 	}
 
+    this.OnUpdateOverlay = function ()
+    {
+        this.m_oWordControl.OnUpdateOverlay();
+    }
+
 	this.Set_RulerState_Start = function ()
 	{
 		this.UpdateRulerStateFlag = true;
@@ -6850,6 +6866,73 @@ function CDrawingDocument()
 	{
 		if (this.m_oWordControl && this.m_oWordControl.MobileTouchManager)
 			this.m_oWordControl.MobileTouchManager.CheckSelectRects();
+	}
+
+    this.DrawCustomTableMode = function(overlay, drawObj, logicObj, isPen)
+	{
+		var ctx = overlay.m_oContext;
+
+        var page = this.m_arrPages[logicObj.Page];
+        if (!page)
+            return false;
+
+        var drawingPage = page.drawingPage;
+        var koefX = (drawingPage.right - drawingPage.left) / page.width_mm;
+        var koefY = (drawingPage.bottom - drawingPage.top) / page.height_mm;
+
+        var x1, y1, x2, y2;
+
+		if (isPen)
+		{
+			ctx.strokeStyle = "#000000";
+			ctx.lineWidth = 1;
+
+            x1 = ((drawingPage.left + koefX * drawObj.X1) >> 0) + 0.5;
+            y1 = ((drawingPage.top + koefY * drawObj.Y1) >> 0) + 0.5;
+            x2 = ((drawingPage.left + koefX * drawObj.X2) >> 0) + 0.5;
+            y2 = ((drawingPage.top + koefY * drawObj.Y2) >> 0) + 0.5;
+
+            overlay.CheckPoint(x1, y1);
+            overlay.CheckPoint(x2, y2);
+
+            ctx.moveTo(x1, y1);
+            ctx.lineTo(x2, y2);
+            ctx.stroke();
+            ctx.beginPath();
+		}
+		else
+		{
+            ctx.strokeStyle = "rgba(255, 123, 123, 0.75)";
+            ctx.lineWidth = 1;
+
+            x1 = ((drawingPage.left + koefX * logicObj.StartX) >> 0) + 0.5;
+            y1 = ((drawingPage.top + koefY * logicObj.StartY) >> 0) + 0.5;
+            x2 = ((drawingPage.left + koefX * logicObj.EndX) >> 0) + 0.5;
+            y2 = ((drawingPage.top + koefY * logicObj.EndY) >> 0) + 0.5;
+
+            overlay.CheckPoint(x1, y1);
+            overlay.CheckPoint(x2, y2);
+
+            this.AutoShapesTrack.AddRectDashClever(ctx, x1, y1, x2, y2, 2, 2, true);
+            ctx.beginPath();
+
+            ctx.lineWidth = 2;
+
+            for (var i = 0; i < drawObj.length; i++)
+            {
+                x1 = (drawingPage.left + koefX * drawObj[i].X1) >> 0;
+                y1 = (drawingPage.top + koefY * drawObj[i].Y1) >> 0;
+                x2 = (drawingPage.left + koefX * drawObj[i].X2) >> 0;
+                y2 = (drawingPage.top + koefY * drawObj[i].Y2) >> 0;
+
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(x2, y2);
+            }
+
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.lineWidth = 1;
+		}
 	}
 
 	// mouse events
