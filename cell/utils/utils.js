@@ -262,7 +262,7 @@
 			var wordsIndexArray = [];
 			for (var i = 0; i < str.length; i++) {
 				var nCharCode = str.charCodeAt(i);
-				if (AscCommon.g_aPunctuation[nCharCode] !== undefined || nCharCode === 32) {
+				if (AscCommon.g_aPunctuation[nCharCode] !== undefined || nCharCode === 32 || nCharCode === 10) {
 					if (trueLetter) {
 						trueLetter = false;
 						index++;
