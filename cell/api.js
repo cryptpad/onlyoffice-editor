@@ -3127,7 +3127,8 @@ var editor;
         if ((dc !== 0 || dr !== 0) && isStart && lastOptions) {
           this.asc_replaceMisspelledWords(lastOptions);
         } else {
-          ws.changeSelectionStartPoint(dc, dr);
+          var d = ws.changeSelectionStartPoint(dc, dr);
+          this.controller.scroll(d);
           this.spellcheckState.lockSpell = false;
         }
         this.spellcheckState.isStart = true;
@@ -3400,7 +3401,8 @@ var editor;
           var dc = cellInfo.col - activeCell.col;
           var dr = cellInfo.row - activeCell.row;
           t.spellcheckState.lockSpell = true;
-          ws.changeSelectionStartPoint(dc, dr);
+          var d = ws.changeSelectionStartPoint(dc, dr);
+          t.controller.scroll(d);
           t.spellcheckState.lockSpell = false;
           t.spellcheckState.newWord = null;
           t.spellcheckState.newCellText = null;
