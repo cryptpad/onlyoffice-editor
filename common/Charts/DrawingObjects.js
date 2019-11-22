@@ -3989,42 +3989,74 @@ function DrawingObjects() {
         var oSelectedSeries = drawing.getSelectedSeries();
         var oSelectionRange;
         var aActiveRanges = [];
-        if(BBoxObjects.bbox)
+
+        var oSeriesBBox = null, oTxBBox = null, oCatBBox = null;
+        if(!oSelectedSeries)
         {
-            if(BBoxObjects.bbox.seriesBBox)
-            {
-                BB = BBoxObjects.bbox.seriesBBox;
-                range = asc.Range(BB.c1, BB.r1, BB.c2, BB.r2, true);
-                worksheet.isChartAreaEditMode = true;
-                oSelectionRange = new AscCommonExcel.SelectionRange(worksheet);
-                oSelectionRange.separated = AscCommon.isRealObject(oSelectedSeries);
-                oSelectionRange.chartRangeIndex = 0;
-                oSelectionRange.vert = BB.bVert;
-                oSelectionRange.assign2(range);
-                aActiveRanges.push(oSelectionRange);
+            if(BBoxObjects.bbox
+                && BBoxObjects.bbox.worksheet === worksheet.model) {
+                oSeriesBBox = BBoxObjects.bbox.seriesBBox;
+                oTxBBox = BBoxObjects.bbox.serBBox;
+                oCatBBox = BBoxObjects.bbox.catBBox;
             }
-            if(BBoxObjects.bbox.serBBox)
-            {
-                BB = BBoxObjects.bbox.serBBox;
-                range = asc.Range(BB.c1, BB.r1, BB.c2, BB.r2, true);
-                worksheet.isChartAreaEditMode = true;
-                oSelectionRange = new AscCommonExcel.SelectionRange(worksheet);
-                oSelectionRange.separated = AscCommon.isRealObject(oSelectedSeries);
-                oSelectionRange.chartRangeIndex = 1;
-                oSelectionRange.assign2(range);
-                aActiveRanges.push(oSelectionRange);
+        }
+        else {
+            if(BBoxObjects.bbox) {
+                if(BBoxObjects.bbox.worksheet === worksheet.model) {
+                    oSeriesBBox = BBoxObjects.bbox.seriesBBox;
+                    oTxBBox = BBoxObjects.bbox.serBBox;
+                    oCatBBox = BBoxObjects.bbox.catBBox;
+                }
             }
-            if(BBoxObjects.bbox.catBBox)
-            {
-                BB = BBoxObjects.bbox.catBBox;
-                range = asc.Range(BB.c1, BB.r1, BB.c2, BB.r2, true);
-                worksheet.isChartAreaEditMode = true;
-                oSelectionRange = new AscCommonExcel.SelectionRange(worksheet);
-                oSelectionRange.separated = AscCommon.isRealObject(oSelectedSeries);
-                oSelectionRange.chartRangeIndex = 2;
-                oSelectionRange.assign2(range);
-                aActiveRanges.push(oSelectionRange);
+            if(!oSeriesBBox) {
+                if(BBoxObjects.seriesBBoxes.length === 1) {
+                    oSeriesBBox = BBoxObjects.seriesBBoxes[0];
+                }
             }
+            if(!oTxBBox) {
+                if(BBoxObjects.seriesTitlesBBoxes.length === 1) {
+                    oSeriesBBox = BBoxObjects.seriesTitlesBBoxes[0];
+                }
+            }
+            if(!oCatBBox) {
+                if(BBoxObjects.catTitlesBBoxes.length === 1) {
+                    oSeriesBBox = BBoxObjects.catTitlesBBoxes[0];
+                }
+            }
+        }
+        if(oSeriesBBox)
+        {
+            BB = oSeriesBBox;
+            range = asc.Range(BB.c1, BB.r1, BB.c2, BB.r2, true);
+            worksheet.isChartAreaEditMode = true;
+            oSelectionRange = new AscCommonExcel.SelectionRange(worksheet);
+            oSelectionRange.separated = AscCommon.isRealObject(oSelectedSeries);
+            oSelectionRange.chartRangeIndex = 0;
+            oSelectionRange.vert = BB.bVert;
+            oSelectionRange.assign2(range);
+            aActiveRanges.push(oSelectionRange);
+        }
+        if(oTxBBox)
+        {
+            BB = oTxBBox;
+            range = asc.Range(BB.c1, BB.r1, BB.c2, BB.r2, true);
+            worksheet.isChartAreaEditMode = true;
+            oSelectionRange = new AscCommonExcel.SelectionRange(worksheet);
+            oSelectionRange.separated = AscCommon.isRealObject(oSelectedSeries);
+            oSelectionRange.chartRangeIndex = 1;
+            oSelectionRange.assign2(range);
+            aActiveRanges.push(oSelectionRange);
+        }
+        if(oCatBBox)
+        {
+            BB = oCatBBox;
+            range = asc.Range(BB.c1, BB.r1, BB.c2, BB.r2, true);
+            worksheet.isChartAreaEditMode = true;
+            oSelectionRange = new AscCommonExcel.SelectionRange(worksheet);
+            oSelectionRange.separated = AscCommon.isRealObject(oSelectedSeries);
+            oSelectionRange.chartRangeIndex = 2;
+            oSelectionRange.assign2(range);
+            aActiveRanges.push(oSelectionRange);
         }
         if(aActiveRanges.length > 0) {
             worksheet.arrActiveChartRanges = aActiveRanges;

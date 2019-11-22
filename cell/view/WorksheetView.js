@@ -9697,55 +9697,43 @@
             switch (targetInfo.cursor) {
                 case kCurNEResize:
                 case kCurSEResize:{
-
-                    if(oActiveRange.chartRangeIndex === 2) {
-                        if (colByX < this.startCellMoveResizeRange2.c1) {
-                            c2 = this.startCellMoveResizeRange2.c1;
-                            c1 = colByX;
-                        } else if (colByX > this.startCellMoveResizeRange2.c1) {
-                            c1 = this.startCellMoveResizeRange2.c1;
-                            c2 = colByX;
-                        } else {
-                            c1 = this.startCellMoveResizeRange2.c1;
-                            c2 = this.startCellMoveResizeRange2.c1
-                        }
-                        if (rowByY < this.startCellMoveResizeRange2.r1) {
-                            r2 = this.startCellMoveResizeRange2.r2;
-                            r1 = rowByY;
-                        } else if (rowByY > this.startCellMoveResizeRange2.r1) {
-                            r1 = this.startCellMoveResizeRange2.r1;
-                            r2 = rowByY;
-                        } else {
-                            r1 = this.startCellMoveResizeRange2.r1;
-                            r2 = this.startCellMoveResizeRange2.r1;
-                        }
+                    if (colByX < this.startCellMoveResizeRange2.c1) {
+                        c2 = this.startCellMoveResizeRange2.c1;
+                        c1 = colByX;
+                    } else if (colByX > this.startCellMoveResizeRange2.c1) {
+                        c1 = this.startCellMoveResizeRange2.c1;
+                        c2 = colByX;
+                    } else {
+                        c1 = this.startCellMoveResizeRange2.c1;
+                        c2 = this.startCellMoveResizeRange2.c1
                     }
-                    else {
+                    if (rowByY < this.startCellMoveResizeRange2.r1) {
+                        r2 = this.startCellMoveResizeRange2.r2;
+                        r1 = rowByY;
+                    } else if (rowByY > this.startCellMoveResizeRange2.r1) {
+                        r1 = this.startCellMoveResizeRange2.r1;
+                        r2 = rowByY;
+                    } else {
+                        r1 = this.startCellMoveResizeRange2.r1;
+                        r2 = this.startCellMoveResizeRange2.r1;
+                    }
+                    if(oActiveRange.chartRangeIndex !== 2)  {
                         if(Math.abs(ar.c2 - ar.c1) > Math.abs(ar.r2 - ar.r1)) {
                             r1 = Math.min(ar.r1, ar.r2);
                             r2 = r1;
-                            c1 = Math.min(this.startCellMoveResizeRange.c1, this.startCellMoveResizeRange.c2, colByX);
-                            c2 = Math.max(this.startCellMoveResizeRange.c1, this.startCellMoveResizeRange.c2, colByX);
                         }
                         else if(Math.abs(ar.c2 - ar.c1) < Math.abs(ar.r2 - ar.r1)) {
-
-                            r1 = Math.min(this.startCellMoveResizeRange.r1, this.startCellMoveResizeRange.r2, rowByY);
-                            r2 = Math.max(this.startCellMoveResizeRange.r1, this.startCellMoveResizeRange.r2, rowByY);
                             c1 = Math.min(ar.c1, ar.c2);
                             c2 = c1;
                         }
                         else {
                             if(Math.abs(this.startCellMoveResizeRange2.c1 - colByX) > Math.abs(this.startCellMoveResizeRange2.r1 - rowByY)){
-                                c1 = Math.min(this.startCellMoveResizeRange.c1, this.startCellMoveResizeRange.c2, colByX);
-                                c2 = Math.max(this.startCellMoveResizeRange.c1, this.startCellMoveResizeRange.c2, colByX);
                                 r1 = Math.min(ar.r1, ar.r2);
                                 r2 = r1;
                             }
                             else {
                                 c1 = Math.min(ar.c1, ar.c2);
                                 c2 = c1;
-                                r1 = Math.min(this.startCellMoveResizeRange.r1, this.startCellMoveResizeRange.r2, rowByY);
-                                r2 = Math.max(this.startCellMoveResizeRange.r1, this.startCellMoveResizeRange.r2, rowByY);
                             }
                         }
                     }

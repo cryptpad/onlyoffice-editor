@@ -4137,10 +4137,11 @@ CChartSpace.prototype.rebuildSeriesData = function(oValRange, oCatRange, oTxRang
                 else
                 {
                     oSeries = oLastChart.series[0] ? oLastChart.series[0].createDuplicate() : oLastChart.getSeriesConstructor();
+                    oLastChart.addSer(oSeries);
                     //TODO: fills and strokes
                 }
-                oSeries.setIdx(i);
-                oSeries.setOrder(i);
+                oSeries.setIdx(nSeriesIndex);
+                oSeries.setOrder(nSeriesIndex);
                 if(!oSeries.val)
                 {
                     oSeries.setVal(new AscFormat.CYVal());
@@ -5156,22 +5157,24 @@ CChartSpace.prototype.getRangeObjectStr = function()
 
                 if(cat_title_f)
                 {
-                    if(b_vert)
-                    {
-                        if(cat_title_f.c1 !== bbox.seriesBBox.c1
-                            || cat_title_f.c2 !== bbox.seriesBBox.c2
-                            || cat_title_f.r1 !== cat_title_f.r1)
+                    if(!this.getSelectedSeries()) {
+                        if(b_vert)
                         {
-                            cat_title_f = null;
+                            if(cat_title_f.c1 !== bbox.seriesBBox.c1
+                                || cat_title_f.c2 !== bbox.seriesBBox.c2
+                                || cat_title_f.r1 !== cat_title_f.r1)
+                            {
+                                cat_title_f = null;
+                            }
                         }
-                    }
-                    else
-                    {
-                        if(cat_title_f.c1 !== cat_title_f.c2
-                            || cat_title_f.r1 !== bbox.seriesBBox.r1
-                            || cat_title_f.r2 !== bbox.seriesBBox.r2)
+                        else
                         {
-                            cat_title_f = null;
+                            if(cat_title_f.c1 !== cat_title_f.c2
+                                || cat_title_f.r1 !== bbox.seriesBBox.r1
+                                || cat_title_f.r2 !== bbox.seriesBBox.r2)
+                            {
+                                cat_title_f = null;
+                            }
                         }
                     }
                     bbox.catBBox = cat_title_f;
