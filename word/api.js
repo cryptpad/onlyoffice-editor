@@ -7387,11 +7387,18 @@ background-repeat: no-repeat;\
 
         if (this.isDrawTablePen && this.isDrawTableErase)
 			this.SetTableEraseMode(false);
+
+        this.WordControl.m_oDrawingDocument.UnlockCursorType();
+        if (this.isDrawTablePen)
+            this.WordControl.m_oDrawingDocument.LockCursorType("de-tablepen");
     };
     asc_docs_api.prototype.sync_TableDrawModeCallback = function(value)
     {
         this.isDrawTablePen = value;
         this.WordControl.m_oLogicDocument.DrawTableMode.Draw = value;
+        if (!this.isDrawTablePen)
+            this.WordControl.m_oDrawingDocument.UnlockCursorType();
+
         return this.sendEvent("asc_onTableDrawModeChanged", value);
     };
     asc_docs_api.prototype.SetTableEraseMode = function(value)
@@ -7404,11 +7411,18 @@ background-repeat: no-repeat;\
 
         if (this.isDrawTableErase && this.isDrawTablePen)
             this.SetTableDrawMode(false);
+
+        this.WordControl.m_oDrawingDocument.UnlockCursorType();
+        if (this.isDrawTableErase)
+            this.WordControl.m_oDrawingDocument.LockCursorType("de-tableeraser");
     };
     asc_docs_api.prototype.sync_TableEraseModeCallback = function(value)
     {
         this.isDrawTableErase = value;
         this.WordControl.m_oLogicDocument.DrawTableMode.Erase = value;
+        if (!this.isDrawTableErase)
+            this.WordControl.m_oDrawingDocument.UnlockCursorType();
+
         return this.sendEvent("asc_onTableEraseModeChanged", value);
     };
 
