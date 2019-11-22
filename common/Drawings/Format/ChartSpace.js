@@ -4061,33 +4061,63 @@ CChartSpace.prototype.rebuildSeriesData = function(oValRange, oCatRange, oTxRang
     var oBBox, i, nSeriesIndex, startCell, endCell, aSeries;
     var oCat, oTx;
     var oWorksheet = this.worksheet;//TODO
+    var bScatter;
     if(oSeries)
     {
+        bScatter = oSeries.getObjectType() === AscDFH.historyitem_type_ScatterSer;
         if(oValRange)
         {
-            if(!oSeries.val)
-            {
-                oSeries.setVal(new AscFormat.CYVal());
+            if(!bScatter) {
+                if(!oSeries.val)
+                {
+                    oSeries.setVal(new AscFormat.CYVal());
+                }
+                if(!oSeries.val.numRef)
+                {
+                    oSeries.val.setNumRef(new AscFormat.CNumRef());
+                }
+                this._setRefF(oSeries.val.numRef, oWorksheet, oValRange.r1, oValRange.r2, oValRange.c1, oValRange.c2);
             }
-            if(!oSeries.val.numRef)
-            {
-                oSeries.val.setNumRef(new AscFormat.CNumRef());
+            else {
+
+                if(!oSeries.yVal)
+                {
+                    oSeries.setYVal(new AscFormat.CYVal());
+                }
+                if(!oSeries.yVal.numRef)
+                {
+                    oSeries.yVal.setNumRef(new AscFormat.CNumRef());
+                }
+                this._setRefF(oSeries.yVal.numRef, oWorksheet, oValRange.r1, oValRange.r2, oValRange.c1, oValRange.c2);
             }
-            this._setRefF(oSeries.val.numRef, oWorksheet, oValRange.r1, oValRange.r2, oValRange.c1, oValRange.c2);
         }
 
         if(oCatRange)
         {
-            if(!oSeries.cat)
-            {
-                oSeries.setCat(new AscFormat.CCat());
+            if(!bScatter) {
+                if(!oSeries.cat)
+                {
+                    oSeries.setCat(new AscFormat.CCat());
+                }
+                oCat = oSeries.cat;
+                if(!oCat.strRef)
+                {
+                    oCat.setStrRef(new AscFormat.CStrRef());
+                }
+                this._setRefF(oCat.strRef, oWorksheet, oCatRange.r1, oCatRange.r2, oCatRange.c1, oCatRange.c2);
             }
-            oCat = oSeries.cat;
-            if(!oCat.strRef)
-            {
-                oCat.setStrRef(new AscFormat.CStrRef());
+            else {
+                if(!oSeries.xVal)
+                {
+                    oSeries.setXVal(new AscFormat.CXVal());
+                }
+                oCat = oSeries.xVal;
+                if(!oCat.strRef)
+                {
+                    oCat.setStrRef(new AscFormat.CStrRef());
+                }
+                this._setRefF(oCat.strRef, oWorksheet, oCatRange.r1, oCatRange.r2, oCatRange.c1, oCatRange.c2);
             }
-            this._setRefF(oCat.strRef, oWorksheet, oCatRange.r1, oCatRange.r2, oCatRange.c1, oCatRange.c2);
         }
         if(oTxRange)
         {
@@ -4142,32 +4172,61 @@ CChartSpace.prototype.rebuildSeriesData = function(oValRange, oCatRange, oTxRang
                 }
                 oSeries.setIdx(nSeriesIndex);
                 oSeries.setOrder(nSeriesIndex);
-                if(!oSeries.val)
-                {
-                    oSeries.setVal(new AscFormat.CYVal());
+                bScatter = oSeries.getObjectType() === AscDFH.historyitem_type_ScatterSer;
+                var oNumRef;
+                if(!bScatter) {
+                    if(!oSeries.val)
+                    {
+                        oSeries.setVal(new AscFormat.CYVal());
+                    }
+                    if(!oSeries.val.numRef)
+                    {
+                        oSeries.val.setNumRef(new AscFormat.CNumRef());
+                    }
+                    oNumRef = oSeries.val.numRef;
                 }
-                if(!oSeries.val.numRef)
-                {
-                    oSeries.val.setNumRef(new AscFormat.CNumRef());
+                else {
+                    if(!oSeries.yVal)
+                    {
+                        oSeries.setYVal(new AscFormat.CYVal());
+                    }
+                    if(!oSeries.yVal.numRef)
+                    {
+                        oSeries.yVal.setNumRef(new AscFormat.CNumRef());
+                    }
+                    oNumRef = oSeries.yVal.numRef;
                 }
                 if(bVert)
                 {
-                    this._setRefF(oSeries.val.numRef, oWorksheet, i, i, oValRange.c1, oValRange.c2);
+                    this._setRefF(oNumRef, oWorksheet, i, i, oValRange.c1, oValRange.c2);
                 }
                 else
                 {
-                    this._setRefF(oSeries.val.numRef, oWorksheet, oValRange.r1, oValRange.r2, i, i);
+                    this._setRefF(oNumRef, oWorksheet, oValRange.r1, oValRange.r2, i, i);
                 }
                 if(oCatRange)
                 {
-                    if(!oSeries.cat)
-                    {
-                        oSeries.setCat(new AscFormat.CCat());
+                    if(!bScatter) {
+                        if(!oSeries.cat)
+                        {
+                            oSeries.setCat(new AscFormat.CCat());
+                        }
+                        oCat = oSeries.cat;
+                        if(!oCat.strRef)
+                        {
+                            oCat.setStrRef(new AscFormat.CStrRef());
+                        }
                     }
-                    oCat = oSeries.cat;
-                    if(!oCat.strRef)
-                    {
-                        oCat.setStrRef(new AscFormat.CStrRef());
+                    else {
+                        if(!oSeries.xVal)
+                        {
+                            oSeries.setXVal(new AscFormat.CXVal());
+                        }
+                        oCat = oSeries.xVal;
+                        if(!oCat.strRef)
+                        {
+                            oCat.setStrRef(new AscFormat.CStrRef());
+                        }
                     }
                     this._setRefF(oCat.strRef, oWorksheet, oCatRange.r1, oCatRange.r2, oCatRange.c1, oCatRange.c2);
                 }
