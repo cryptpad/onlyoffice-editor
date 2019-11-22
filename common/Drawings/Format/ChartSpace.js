@@ -4106,7 +4106,12 @@ CChartSpace.prototype.rebuildSeriesData = function(oValRange, oCatRange, oTxRang
         }
         if(oCatRange)
         {
-            aSeries = this.getAllSeries();
+            if(bScatter) {
+                aSeries = this.getAllSeries();
+            }
+            else {
+                aSeries = [oSeries];
+            }
             for(i = 0; i < aSeries.length; ++i) {
                 oSeries = aSeries[i];
                 if(!bScatter) {
