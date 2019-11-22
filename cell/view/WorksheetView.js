@@ -18234,6 +18234,20 @@
 			History.Create_NewPoint();
 			History.StartTransaction();
 
+			var ar = t.model.selectionRange.getLast();
+			var _type = ar.getType();
+			if(_type === c_oAscSelectionType.RangeMax || _type === c_oAscSelectionType.RangeRow) {
+				if(t.model.oAllCol) {
+					t.model.oAllCol.setOutlineLevel(0);
+				}
+			}
+			if(_type === c_oAscSelectionType.RangeMax || _type === c_oAscSelectionType.RangeCol) {
+				if(t.model.oSheetFormatPr && t.model.oSheetFormatPr.oAllRow) {
+					t.model.oSheetFormatPr.oAllRow.setOutlineLevel(0);
+				}
+			}
+
+
 			for(var j in doChangeRowArr) {
 				t.model.setRowHidden(false, doChangeRowArr[j].r1, doChangeRowArr[j].r2);
 				t.model.setOutlineRow(0, doChangeRowArr[j].r1, doChangeRowArr[j].r2);
