@@ -33,10 +33,9 @@
 $(function() {
 	QUnit.config.autostart = false;
 
-	// function getReportValues(pivot) {
+	// function getValues(ws, range) {
 	// 	var res = [];
-	// 	var range = new AscCommonExcel.MultiplyRange(pivot.getReportRanges()).getUnionRange();
-	// 	pivot.GetWS().getRange3(range.r1, range.c1, range.r2, range.c2)._foreach(function(cell, r, c, r1, c1) {
+	// 	ws.getRange3(range.r1, range.c1, range.r2, range.c2)._foreach(function(cell, r, c, r1, c1) {
 	// 		if (!res[r - r1]) {
 	// 			res[r - r1] = [];
 	// 		}
@@ -44,12 +43,36 @@ $(function() {
 	// 	});
 	// 	return res;
 	// }
+	// function getReportValues(pivot) {
+	// 	return getValues(pivot.GetWS(), new AscCommonExcel.MultiplyRange(pivot.getReportRanges()).getUnionRange());
+	// }
 	//
 	// function getTestMatrix(ws) {
 	// 	if (!ws || !ws.pivotTables[0]) {
 	// 		return "";
 	// 	}
-	// 	var res = getReportValues(ws.pivotTables[0]);
+	// 	var str = "";
+	// 	for(var i = 0; i < ws.pivotTables.length; ++i){
+	// 		var res = getReportValues(ws.pivotTables[i]);
+	// 		str += ws.pivotTables[i].asc_getName() + "\n";
+	// 		str += "[\n";
+	// 		for (var j = 0; j < res.length; ++j) {
+	// 			str += JSON.stringify(res[j]);
+	// 			if (j + 1 < res.length) {
+	// 				str += ",\n";
+	// 			} else {
+	// 				str += "\n";
+	// 			}
+	// 		}
+	// 		str += "]\n";
+	// 	}
+	// 	return str;
+	// };
+	// function getTestValuesMatrix(ws, range) {
+	// 	if (!ws || !range) {
+	// 		return "";
+	// 	}
+	// 	var res = getValues(ws, range);
 	// 	var str = "[\n";
 	// 	for (var i = 0; i < res.length; ++i) {
 	// 		str += JSON.stringify(res[i]);
@@ -63,6 +86,7 @@ $(function() {
 	// 	return str;
 	// };
 	// baseEditorsApi.prototype.onDocumentContentReady = function() {
+	// 	// console.log(getTestValuesMatrix(this.wbModel.aWorksheets[1], AscCommonExcel.g_oRangeCache.getAscRange("B41:H52")));
 	// 	console.log(getTestMatrix(this.wbModel.aWorksheets[0]));
 	// };
 
@@ -121,6 +145,12 @@ $(function() {
 
 	var reportRange = AscCommonExcel.g_oRangeCache.getAscRange("A3");
 	var testDataRange = AscCommonExcel.g_oRangeCache.getAscRange("B2:H13");
+	var testDataRange2 = AscCommonExcel.g_oRangeCache.getAscRange("J2:P13");
+	var testDataRange3 = AscCommonExcel.g_oRangeCache.getAscRange("B15:H26");
+	var testDataRange4 = AscCommonExcel.g_oRangeCache.getAscRange("J15:P26");
+	var testDataRange5 = AscCommonExcel.g_oRangeCache.getAscRange("B28:H39");
+	var testDataRange6 = AscCommonExcel.g_oRangeCache.getAscRange("J28:P39");
+	var testDataRange7 = AscCommonExcel.g_oRangeCache.getAscRange("B41:H52");
 	var testData = [
 		["Region", "Gender", "Style", "Ship date", "Units", "Price", "Cost"],
 		["East", "Boy", "Tee", "38383", "12", "11.04", "10.42"],
@@ -135,14 +165,111 @@ $(function() {
 		["West", "Girl", "Tee", "38383", "15", "13.42", "13.29"],
 		["West", "Girl", "Golf", "38383", "15", "11.48", "10.67"]
 	];
-	fillData(wsData, testDataRange);
+	var testData2 = [
+		["Region","Gender","Style","Ship date","Units","Price","Cost"],
+		["East","Boy","Tee","38383","12","11.05","10.42"],
+		["East","Boy","Golf","38383","12","","12.6"],
+		["East","Boy","Fancy","38383","12","11.96","11.74"],
+		["East","Girl","Tee","38383","10","","10.56"],
+		["East","Girl","Golf","38383","10","12.12","11.95"],
+		["East","Girl","Fancy","38383","10","","13.33"],
+		["West","Boy","Tee","38383","11","11.44","10.94"],
+		["West","Boy","Golf","38383","11","12.63","11.73"],
+		["West","Boy","Fancy","38383","11","12.06","11.51"],
+		["West","Girl","Tee","38383","15","13.42","13.29"],
+		["West","Girl","Golf","38383","15","11.48","10.67"]
+	];
+	var testData3 = [
+		["Region","Gender","Style","Ship date","Units","Price","Cost"],
+		["East","Boy","Tee","38383","12","11.05","10.42"],
+		["East","Boy","Golf","38383","12","q","12.6"],
+		["East","Boy","Fancy","38383","12","11.96","11.74"],
+		["East","Girl","Tee","38383","10","w","10.56"],
+		["East","Girl","Golf","38383","10","12.12","11.95"],
+		["East","Girl","Fancy","38383","10","e","13.33"],
+		["West","Boy","Tee","38383","11","11.44","10.94"],
+		["West","Boy","Golf","38383","11","12.63","11.73"],
+		["West","Boy","Fancy","38383","11","12.06","11.51"],
+		["West","Girl","Tee","38383","15","13.42","13.29"],
+		["West","Girl","Golf","38383","15","11.48","10.67"]
+	];
+	var testData4 = [
+		["Region","Gender","Style","Ship date","Units","Price","Cost"],
+		["East","Boy","Tee","38383","12","11.05","10.42"],
+		["East","Boy","Golf","38383","12","TRUE","12.6"],
+		["East","Boy","Fancy","38383","12","11.96","11.74"],
+		["East","Girl","Tee","38383","10","FALSE","10.56"],
+		["East","Girl","Golf","38383","10","12.12","11.95"],
+		["East","Girl","Fancy","38383","10","TRUE","13.33"],
+		["West","Boy","Tee","38383","11","11.44","10.94"],
+		["West","Boy","Golf","38383","11","12.63","11.73"],
+		["West","Boy","Fancy","38383","11","12.06","11.51"],
+		["West","Girl","Tee","38383","15","13.42","13.29"],
+		["West","Girl","Golf","38383","15","11.48","10.67"]
+	];
+	var testData5 = [
+		["Region","Gender","Style","Ship date","Units","Price","Cost"],
+		["East","Boy","Tee","38383","12","11.04","10.42"],
+		["East","Boy","Golf","38383","12","#N/A","12.6"],
+		["East","Boy","Fancy","38383","12","11.96","11.74"],
+		["East","Girl","Tee","38383","10","#N/A","10.56"],
+		["East","Girl","Golf","38383","10","12.12","11.95"],
+		["East","Girl","Fancy","38383","10","#N/A","13.33"],
+		["West","Boy","Tee","38383","11","11.44","10.94"],
+		["West","Boy","Golf","38383","11","12.63","11.73"],
+		["West","Boy","Fancy","38383","11","12.06","11.51"],
+		["West","Girl","Tee","38383","15","13.42","13.29"],
+		["West","Girl","Golf","38383","15","11.48","10.67"]
+	];
+	var testData6 = [
+		["Region","Gender","Style","Ship date","Units","Price","Cost"],
+		["East","Boy","Tee","38383","12","11.04","10.42"],
+		["East","Boy","Golf","38383","12","1/13/1900","12.6"],
+		["East","Boy","Fancy","38383","12","11.96","11.74"],
+		["East","Girl","Tee","38383","10","1/11/1900","10.56"],
+		["East","Girl","Golf","38383","10","12.12","11.95"],
+		["East","Girl","Fancy","38383","10","1/13/1900","13.33"],
+		["West","Boy","Tee","38383","11","11.44","10.94"],
+		["West","Boy","Golf","38383","11","12.63","11.73"],
+		["West","Boy","Fancy","38383","11","12.06","11.51"],
+		["West","Girl","Tee","38383","15","13.42","13.29"],
+		["West","Girl","Golf","38383","15","11.48","10.67"]
+	];
+	var testData7 = [
+		["Region","Gender","Style","Ship date","Units","Price","Cost"],
+		["East","Boy","Tee","38383","12","","10.42"],
+		["East","Boy","Golf","38383","12","","12.6"],
+		["East","Boy","Fancy","38383","12","","11.74"],
+		["East","Girl","Tee","38383","10","q","10.56"],
+		["East","Girl","Golf","38383","10","","11.95"],
+		["East","Girl","Fancy","38383","10","","13.33"],
+		["West","Boy","Tee","38383","11","q","10.94"],
+		["West","Boy","Golf","38383","11","1","11.73"],
+		["West","Boy","Fancy","38383","11","","11.51"],
+		["West","Girl","Tee","38383","15","1","13.29"],
+		["West","Girl","Golf","38383","15","2","10.67"]
+	];
+
+	fillData(wsData, testData, testDataRange);
+	fillData(wsData, testData2, testDataRange2);
+	fillData(wsData, testData3, testDataRange3);
+	fillData(wsData, testData4, testDataRange4);
+	fillData(wsData, testData5, testDataRange5);
+	fillData(wsData, testData6, testDataRange6);
+	fillData(wsData, testData7, testDataRange7);
 	var dataRef = wsData.getName() + "!" + testDataRange.getName();
+	var dataRef2 = wsData.getName() + "!" + testDataRange2.getName();
+	var dataRef3 = wsData.getName() + "!" + testDataRange3.getName();
+	var dataRef4 = wsData.getName() + "!" + testDataRange4.getName();
+	var dataRef5 = wsData.getName() + "!" + testDataRange5.getName();
+	var dataRef6 = wsData.getName() + "!" + testDataRange6.getName();
+	var dataRef7 = wsData.getName() + "!" + testDataRange7.getName();
 	var pivotStyle = "PivotStyleDark23";
 
-	function fillData(ws, range) {
+	function fillData(ws, data, range) {
 		var range = ws.getRange4(range.r1, range.c1);
-		for (var i = 0; i < testData.length; ++i) {
-			var row = testData[i];
+		for (var i = 0; i < data.length; ++i) {
+			var row = data[i];
 			for (var j = 0; j < row.length; ++j) {
 				range.setOffset(new AscCommon.CellBase(i, j));
 				range.setValue(row[j]);
@@ -2103,6 +2230,76 @@ $(function() {
 			["Cost","(All)","","",""],
 			["","","","",""],
 			["","","","",""]
+		],
+		"data_values1":[
+			["Row Labels","Count of Price1","Count of Price2","Min of Price3","Max of Price4","Sum of Price5","Average of Price6","Product of Price7","StdDev of Price8","StdDevp of Price9","Var of Price10","Varp of Price11"],
+			["East","6","6","11.04","13.74","73.13","12.18833333","3221490.641","1.028132611","0.938552372","1.057056667","0.880880556"],
+			["Boy","3","3","11.04","13","36","12","1716.4992","0.980612054","0.800666389","0.9616","0.641066667"],
+			["Girl","3","3","11.27","13.74","37.13","12.37666667","1876.779576","1.254843948","1.024575793","1.574633333","1.049755556"],
+			["West","5","5","11.44","13.42","61.03","12.206","268454.7463","0.834973053","0.746822603","0.69718","0.557744"],
+			["Boy","3","3","11.44","12.63","36.13","12.04333333","1742.515632","0.595175044","0.485958389","0.354233333","0.236155556"],
+			["Girl","2","2","11.48","13.42","24.9","12.45","154.0616","1.371787156","0.97","1.8818","0.9409"],
+			["Grand Total","11","11","11.04","13.74","134.16","12.19636364","8.64824E+11","0.898601944","0.856783337","0.807485455","0.734077686"]
+		],
+		"data_values2": [
+			["Row Labels","Count of Price1","Count of Price2","Min of Price3","Max of Price4","Sum of Price5","Average of Price6","Product of Price7","StdDev of Price8","StdDevp of Price9","Var of Price10","Varp of Price11"],
+			["East","3","3","11.05","12.12","35.13","11.71","1601.75496","0.577148161","0.4712395","0.3331","0.222066667"],
+			["Boy","2","2","11.05","11.96","23.01","11.505","132.158","0.643467171","0.455","0.41405","0.207025"],
+			["Girl","1","1","12.12","12.12","12.12","12.12","12.12","#DIV/0!","0","#DIV/0!","0"],
+			["West","5","5","11.44","13.42","61.03","12.206","268454.7463","0.834973053","0.746822603","0.69718","0.557744"],
+			["Boy","3","3","11.44","12.63","36.13","12.04333333","1742.515632","0.595175044","0.485958389","0.354233333","0.236155556"],
+			["Girl","2","2","11.48","13.42","24.9","12.45","154.0616","1.371787156","0.97","1.8818","0.9409"],
+			["Grand Total","8","8","11.05","13.42","96.16","12.02","429998721.4","0.747968678","0.699660632","0.559457143","0.489525"]
+		],
+		"data_values3": [
+			["Row Labels","Count of Price1","Count of Price2","Min of Price3","Max of Price4","Sum of Price5","Average of Price6","Product of Price7","StdDev of Price8","StdDevp of Price9","Var of Price10","Varp of Price11"],
+			["East","6","3","11.05","12.12","35.13","11.71","1601.75496","0.577148161","0.4712395","0.3331","0.222066667"],
+			["Boy","3","2","11.05","11.96","23.01","11.505","132.158","0.643467171","0.455","0.41405","0.207025"],
+			["Girl","3","1","12.12","12.12","12.12","12.12","12.12","#DIV/0!","0","#DIV/0!","0"],
+			["West","5","5","11.44","13.42","61.03","12.206","268454.7463","0.834973053","0.746822603","0.69718","0.557744"],
+			["Boy","3","3","11.44","12.63","36.13","12.04333333","1742.515632","0.595175044","0.485958389","0.354233333","0.236155556"],
+			["Girl","2","2","11.48","13.42","24.9","12.45","154.0616","1.371787156","0.97","1.8818","0.9409"],
+			["Grand Total","11","8","11.05","13.42","96.16","12.02","429998721.4","0.747968678","0.699660632","0.559457143","0.489525"]
+		],
+		"data_values4": [
+			["Row Labels","Count of Price1","Count of Price2","Min of Price3","Max of Price4","Sum of Price5","Average of Price6","Product of Price7","StdDev of Price8","StdDevp of Price9","Var of Price10","Varp of Price11"],
+			["East","6","3","11.05","12.12","35.13","11.71","1601.75496","0.577148161","0.4712395","0.3331","0.222066667"],
+			["Boy","3","2","11.05","11.96","23.01","11.505","132.158","0.643467171","0.455","0.41405","0.207025"],
+			["Girl","3","1","12.12","12.12","12.12","12.12","12.12","#DIV/0!","0","#DIV/0!","0"],
+			["West","5","5","11.44","13.42","61.03","12.206","268454.7463","0.834973053","0.746822603","0.69718","0.557744"],
+			["Boy","3","3","11.44","12.63","36.13","12.04333333","1742.515632","0.595175044","0.485958389","0.354233333","0.236155556"],
+			["Girl","2","2","11.48","13.42","24.9","12.45","154.0616","1.371787156","0.97","1.8818","0.9409"],
+			["Grand Total","11","8","11.05","13.42","96.16","12.02","429998721.4","0.747968678","0.699660632","0.559457143","0.489525"]
+		],
+		"data_values5": [
+			["Row Labels","Count of Price1","Count of Price2","Min of Price3","Max of Price4","Sum of Price5","Average of Price6","Product of Price7","StdDev of Price8","StdDevp of Price9","Var of Price10","Varp of Price11"],
+			["East","#N/A","#N/A","#N/A","#N/A","#N/A","#N/A","#N/A","#N/A","#N/A","#N/A","#N/A"],
+			["Boy","3","2","#N/A","#N/A","#N/A","#N/A","#N/A","#N/A","#N/A","#N/A","#N/A"],
+			["Girl","3","1","#N/A","#N/A","#N/A","#N/A","#N/A","#N/A","#N/A","#N/A","#N/A"],
+			["West","5","5","11.44","13.42","61.03","12.206","268454.7463","0.834973053","0.746822603","0.69718","0.557744"],
+			["Boy","3","3","11.44","12.63","36.13","12.04333333","1742.515632","0.595175044","0.485958389","0.354233333","0.236155556"],
+			["Girl","2","2","11.48","13.42","24.9","12.45","154.0616","1.371787156","0.97","1.8818","0.9409"],
+			["Grand Total","#N/A","#N/A","#N/A","#N/A","#N/A","#N/A","#N/A","#N/A","#N/A","#N/A","#N/A"]
+		],
+		"data_values6": [
+			["Row Labels","Count of Price1","Count of Price2","Min of Price3","Max of Price4","Sum of Price5","Average of Price6","Product of Price7","StdDev of Price8","StdDevp of Price9","Var of Price10","Varp of Price11"],
+			["East","6","6","11.04","13.74","73.13","12.18833333","3221490.641","1.028132611","0.938552372","1.057056667","0.880880556"],
+			["Boy","3","3","11.04","13","36","12","1716.4992","0.980612054","0.800666389","0.9616","0.641066667"],
+			["Girl","3","3","11.27","13.74","37.13","12.37666667","1876.779576","1.254843948","1.024575793","1.574633333","1.049755556"],
+			["West","5","5","11.44","13.42","61.03","12.206","268454.7463","0.834973053","0.746822603","0.69718","0.557744"],
+			["Boy","3","3","11.44","12.63","36.13","12.04333333","1742.515632","0.595175044","0.485958389","0.354233333","0.236155556"],
+			["Girl","2","2","11.48","13.42","24.9","12.45","154.0616","1.371787156","0.97","1.8818","0.9409"],
+			["Grand Total","11","11","11.04","13.74","134.16","12.19636364","8.64824E+11","0.898601944","0.856783337","0.807485455","0.734077686"]
+		],
+		"data_values7": [
+			["Row Labels","Count of Price1","Count of Price2","Min of Price3","Max of Price4","Sum of Price5","Average of Price6","Product of Price7","StdDev of Price8","StdDevp of Price9","Var of Price10","Varp of Price11"],
+			["East","1","0","0","0","0","#DIV/0!","0","#DIV/0!","#DIV/0!","#DIV/0!","#DIV/0!"],
+			["Boy","","","","","","","","","","",""],
+			["Girl","1","0","0","0","0","#DIV/0!","0","#DIV/0!","#DIV/0!","#DIV/0!","#DIV/0!"],
+			["West","4","3","1","2","4","1.333333333","2","0.577350269","0.471404521","0.333333333","0.222222222"],
+			["Boy","2","1","1","1","1","1","1","#DIV/0!","0","#DIV/0!","0"],
+			["Girl","2","2","1","2","3","1.5","2","0.707106781","0.5","0.5","0.25"],
+			["Grand Total","5","3","1","2","4","1.333333333","2","0.577350269","0.471404521","0.333333333","0.222222222"]
 		]
 	};
 
@@ -2268,7 +2465,7 @@ $(function() {
 		});
 	}
 
-	function testSubtotal(layout) {
+	function testLayoutSubtotal(layout) {
 		test("Test: Subtotal " + layout, function() {
 			var props;
 			var pivot = api._asc_insertPivot(wb, dataRef, ws, reportRange);
@@ -2373,11 +2570,79 @@ $(function() {
 		});
 	}
 
-	function testPivotMisc() {
-		test("Test: misc", function() {
+	function testDataValues() {
+		test("Test: data values", function() {
 			var pivot = api._asc_insertPivot(wb, dataRef, ws, reportRange);
 			pivot.asc_getStyleInfo().asc_setName(api, pivot, pivotStyle);
 
+			AscCommon.History.Clear();
+			checkHistoryOperation(pivot, standards["data_values1"], "values1", function() {
+				pivot.asc_addRowField(api, 0);
+				pivot.asc_addRowField(api, 1);
+				var i;
+				var types = [c_oAscDataConsolidateFunction.Count, c_oAscDataConsolidateFunction.CountNums, c_oAscDataConsolidateFunction.Min,
+					c_oAscDataConsolidateFunction.Max, c_oAscDataConsolidateFunction.Sum, c_oAscDataConsolidateFunction.Average,
+					c_oAscDataConsolidateFunction.Product, c_oAscDataConsolidateFunction.StdDev, c_oAscDataConsolidateFunction.StdDevp,
+					c_oAscDataConsolidateFunction.Var, c_oAscDataConsolidateFunction.Varp];
+				for (i = 0; i < types.length; ++i) {
+					pivot.asc_addDataField(api, 5);
+				}
+				var dataFields = pivot.asc_getDataFields();
+				for (i = 0; i < types.length; ++i) {
+					var dataField = dataFields[i];
+					var props = new Asc.CT_DataField();
+					props.asc_setName(AscCommonExcel.ToName_ST_DataConsolidateFunction(types[i]) + " of " + pivot.getPivotFieldName(5) + (i + 1));
+					props.asc_setSubtotal(types[i]);
+					dataField.asc_set(api, pivot, i, props);
+				}
+			});
+
+			checkHistoryOperation(pivot, standards["data_values2"], "values2", function() {
+				var props = new Asc.CT_pivotTableDefinition();
+				props.asc_setDataRef(dataRef2);
+				pivot.asc_set(api, props);
+			});
+
+			checkHistoryOperation(pivot, standards["data_values3"], "values3", function() {
+				var props = new Asc.CT_pivotTableDefinition();
+				props.asc_setDataRef(dataRef3);
+				pivot.asc_set(api, props);
+			});
+
+			checkHistoryOperation(pivot, standards["data_values4"], "values4", function() {
+				var props = new Asc.CT_pivotTableDefinition();
+				props.asc_setDataRef(dataRef4);
+				pivot.asc_set(api, props);
+			});
+
+			checkHistoryOperation(pivot, standards["data_values5"], "values5", function() {
+				var props = new Asc.CT_pivotTableDefinition();
+				props.asc_setDataRef(dataRef5);
+				pivot.asc_set(api, props);
+			});
+
+			checkHistoryOperation(pivot, standards["data_values6"], "values6", function() {
+				var props = new Asc.CT_pivotTableDefinition();
+				props.asc_setDataRef(dataRef6);
+				pivot.asc_set(api, props);
+			});
+
+			checkHistoryOperation(pivot, standards["data_values7"], "values7", function() {
+				var props = new Asc.CT_pivotTableDefinition();
+				props.asc_setDataRef(dataRef7);
+				pivot.asc_set(api, props);
+			});
+
+			ws.deletePivotTables(new AscCommonExcel.MultiplyRange(pivot.getReportRanges()).getUnionRange());
+		});
+	}
+
+	function testPivotMisc() {
+		test("Test: misc", function() {
+			var pivot = api._asc_insertPivot(wb, dataRef2, ws, reportRange);
+			pivot.asc_getStyleInfo().asc_setName(api, pivot, pivotStyle);
+
+			AscCommon.History.Clear();
 			checkHistoryOperation(pivot, standards["compact_0row_0col_0data"], "misc", function(){
 				var props = new Asc.CT_pivotTableDefinition();
 				props.asc_setName("new<&>pivot name");
@@ -2430,13 +2695,15 @@ $(function() {
 
 		testLayoutValues("tabular");
 
-		testSubtotal("compact");
+		testLayoutSubtotal("compact");
 
-		testSubtotal("tabular");
+		testLayoutSubtotal("tabular");
 
 		testPivotInsertBlankRow();
 
 		testPivotPageFilterLayout();
+
+		testDataValues();
 
 		testPivotMisc();
 	}

@@ -2236,7 +2236,6 @@ CT_PivotCacheRecords.prototype.fromWorksheetRange = function(location, cacheFiel
 						break;
 				}
 			} else {
-				records.addMissing(1);
 				si.containsBlank = true;
 			}
 		});
@@ -12625,6 +12624,7 @@ window['AscCommonExcel'].NEW_PIVOT_ROW = NEW_PIVOT_ROW;
 window['AscCommonExcel'].NEW_PIVOT_COL = NEW_PIVOT_COL;
 
 window['AscCommonExcel'].ToName_ST_ItemType = ToName_ST_ItemType;
+window['AscCommonExcel'].ToName_ST_DataConsolidateFunction = ToName_ST_DataConsolidateFunction;
 
 window['Asc']['CT_PivotCacheDefinition'] = window['Asc'].CT_PivotCacheDefinition = CT_PivotCacheDefinition;
 
