@@ -4091,34 +4091,6 @@ CChartSpace.prototype.rebuildSeriesData = function(oValRange, oCatRange, oTxRang
                 this._setRefF(oSeries.yVal.numRef, oWorksheet, oValRange.r1, oValRange.r2, oValRange.c1, oValRange.c2);
             }
         }
-
-        if(oCatRange)
-        {
-            if(!bScatter) {
-                if(!oSeries.cat)
-                {
-                    oSeries.setCat(new AscFormat.CCat());
-                }
-                oCat = oSeries.cat;
-                if(!oCat.strRef)
-                {
-                    oCat.setStrRef(new AscFormat.CStrRef());
-                }
-                this._setRefF(oCat.strRef, oWorksheet, oCatRange.r1, oCatRange.r2, oCatRange.c1, oCatRange.c2);
-            }
-            else {
-                if(!oSeries.xVal)
-                {
-                    oSeries.setXVal(new AscFormat.CXVal());
-                }
-                oCat = oSeries.xVal;
-                if(!oCat.strRef)
-                {
-                    oCat.setStrRef(new AscFormat.CStrRef());
-                }
-                this._setRefF(oCat.strRef, oWorksheet, oCatRange.r1, oCatRange.r2, oCatRange.c1, oCatRange.c2);
-            }
-        }
         if(oTxRange)
         {
             if(!oSeries.tx)
@@ -4131,6 +4103,37 @@ CChartSpace.prototype.rebuildSeriesData = function(oValRange, oCatRange, oTxRang
                 oTx.setStrRef(new AscFormat.CStrRef());
             }
             this._setRefF(oTx.strRef, oWorksheet,oTxRange.r1, oTxRange.r2, oTxRange.c1, oTxRange.c2);
+        }
+        if(oCatRange)
+        {
+            aSeries = this.getAllSeries();
+            for(i = 0; i < aSeries.length; ++i) {
+                oSeries = aSeries[i];
+                if(!bScatter) {
+                    if(!oSeries.cat)
+                    {
+                        oSeries.setCat(new AscFormat.CCat());
+                    }
+                    oCat = oSeries.cat;
+                    if(!oCat.strRef)
+                    {
+                        oCat.setStrRef(new AscFormat.CStrRef());
+                    }
+                    this._setRefF(oCat.strRef, oWorksheet, oCatRange.r1, oCatRange.r2, oCatRange.c1, oCatRange.c2);
+                }
+                else {
+                    if(!oSeries.xVal)
+                    {
+                        oSeries.setXVal(new AscFormat.CXVal());
+                    }
+                    oCat = oSeries.xVal;
+                    if(!oCat.strRef)
+                    {
+                        oCat.setStrRef(new AscFormat.CStrRef());
+                    }
+                    this._setRefF(oCat.strRef, oWorksheet, oCatRange.r1, oCatRange.r2, oCatRange.c1, oCatRange.c2);
+                }
+            }
         }
     }
     else
@@ -4935,7 +4938,7 @@ CChartSpace.prototype.getRangeObjectStr = function()
         var seriesTitlesBBoxes = [];
         var catTitlesBBoxes = [];
 
-
+        var oSelectedSeries = this.getSelectedSeries();
         var series_bboxes = [], cat_bboxes = [], ser_titles_bboxes = [];
         var series_sheet, cur_bbox, parsed_formulas;
         if(Array.isArray(series) && series.length > 0)
@@ -5055,10 +5058,13 @@ CChartSpace.prototype.getRangeObjectStr = function()
                         cur_bbox = parsed_formulas[0].bbox;
                         if(cur_bbox)
                         {
-                            if(cur_bbox.r1 !== cur_bbox.r2 || cur_bbox.c1 !== cur_bbox.c2)
-                            {
-                                series_title_f = null;
-                                continue;
+                            if(!oSelectedSeries) {
+                                if(cur_bbox.r1 !== cur_bbox.r2 || cur_bbox.c1 !== cur_bbox.c2)
+                                {
+                                    series_title_f = null;
+                                    continue;
+                                }
+
                             }
                             if(!AscFormat.isRealBool(b_titles_vert))
                             {
@@ -5070,8 +5076,10 @@ CChartSpace.prototype.getRangeObjectStr = function()
                                         b_titles_vert = false;
                                     else
                                     {
-                                        series_title_f = null;
-                                        continue;
+                                        if(!oSelectedSeries) {
+                                            series_title_f = null;
+                                            continue;
+                                        }
                                     }
                                 }
                             }
@@ -5079,18 +5087,20 @@ CChartSpace.prototype.getRangeObjectStr = function()
                             {
                                 if(b_titles_vert)
                                 {
-                                    if( cur_bbox.r1 - series_title_f[series_title_f.length-1].r1 !== 1)
-                                    {
-                                        series_title_f = null;
-                                        continue;
+                                    if(!oSelectedSeries) {
+                                        if (cur_bbox.r1 - series_title_f[series_title_f.length - 1].r1 !== 1) {
+                                            series_title_f = null;
+                                            continue;
+                                        }
                                     }
                                 }
                                 else
                                 {
-                                    if( cur_bbox.c1 - series_title_f[series_title_f.length-1].c1 !== 1)
-                                    {
-                                        series_title_f = null;
-                                        continue;
+                                    if(!oSelectedSeries) {
+                                        if (cur_bbox.c1 - series_title_f[series_title_f.length - 1].c1 !== 1) {
+                                            series_title_f = null;
+                                            continue;
+                                        }
                                     }
                                 }
                             }
@@ -5098,8 +5108,10 @@ CChartSpace.prototype.getRangeObjectStr = function()
                         }
                         else
                         {
-                            series_title_f = null;
-                            continue;
+                            if(!oSelectedSeries) {
+                                series_title_f = null;
+                                continue;
+                            }
                         }
                     }
                 }
