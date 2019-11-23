@@ -5734,7 +5734,16 @@ CChartSpace.prototype.checkCatByNumRef = function(oThis, ser, cat, bVertical)
 
 CChartSpace.prototype.recalculateReferences = function()
 {
-    this.resetSelection(false);
+    var oSelectedSeries = this.getSelectedSeries();
+    if(!oSelectedSeries)
+    {
+        this.resetSelection(false);
+    }
+    else
+    {
+        this.selection.datPoint = null;
+        this.selection.markers = null;
+    }
     var worksheet = this.worksheet;
     //this.pointsMap = {};
     if(!worksheet)
