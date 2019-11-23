@@ -16819,11 +16819,15 @@ function parseSeriesHeaders (ws, rangeBBox) {
 		if (rangeBBox.c2 - rangeBBox.c1 > 0) {
 
 		    var nStartIndex = (rangeBBox.r1 === rangeBBox.r2) ? rangeBBox.r1 : (rangeBBox.r1 + 1);
+            cell = ws.getCell3(rangeBBox.r1 , rangeBBox.c1);
+            if(cell.isEmptyTextString()) {
+                headers.bLeft = true;
+            }
 			for (i = nStartIndex; i <= rangeBBox.r2; i++) {
 				cell = ws.getCell3(i, rangeBBox.c1);
 				value = cell.getValue();
                 numFormatType = cell.getNumFormatType();
-                if(!AscCommon.isNumber(value) && (value != ""))
+                if(!AscCommon.isNumber(value) && (value !== ""))
                 {
                     bLeftOnlyDateTime = false;
                     headers.bLeft = true;
@@ -16836,13 +16840,17 @@ function parseSeriesHeaders (ws, rangeBBox) {
 		}
 
 		if (rangeBBox.r2 - rangeBBox.r1 > 0) {
+            cell = ws.getCell3(rangeBBox.r1 , rangeBBox.c1);
+            if(cell.isEmptyTextString()) {
+                headers.bTop = true;
+            }
             var nStartIndex = (rangeBBox.c1 === rangeBBox.c2) ? rangeBBox.c1 : (rangeBBox.c1 + 1);
 			for (i = nStartIndex; i <= rangeBBox.c2; i++) {
 
 				cell = ws.getCell3(rangeBBox.r1, i);
 				value = cell.getValue();
                 numFormatType= cell.getNumFormatType();
-                if(!AscCommon.isNumber(value) && value != "")
+                if(!AscCommon.isNumber(value) && value !== "")
                 {
                     bTopOnlyDateTime = false;
                     headers.bTop = true;
