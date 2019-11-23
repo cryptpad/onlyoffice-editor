@@ -6884,7 +6884,7 @@ function CDrawingDocument()
 
 		if (isPen)
 		{
-			ctx.strokeStyle = "#000000";
+			ctx.strokeStyle = (drawObj.Color === "Red") ? "#FF7B7B" : "#000000";
 			ctx.lineWidth = 1;
 
             x1 = ((drawingPage.left + koefX * drawObj.X1) >> 0) + 0.5;
@@ -6905,10 +6905,10 @@ function CDrawingDocument()
             ctx.strokeStyle = "rgba(255, 123, 123, 0.75)";
             ctx.lineWidth = 1;
 
-            x1 = ((drawingPage.left + koefX * logicObj.StartX) >> 0) + 0.5;
-            y1 = ((drawingPage.top + koefY * logicObj.StartY) >> 0) + 0.5;
-            x2 = ((drawingPage.left + koefX * logicObj.EndX) >> 0) + 0.5;
-            y2 = ((drawingPage.top + koefY * logicObj.EndY) >> 0) + 0.5;
+            x1 = ((drawingPage.left + koefX * logicObj.StartX) >> 0);
+            y1 = ((drawingPage.top + koefY * logicObj.StartY) >> 0);
+            x2 = ((drawingPage.left + koefX * logicObj.EndX) >> 0);
+            y2 = ((drawingPage.top + koefY * logicObj.EndY) >> 0);
 
             overlay.CheckPoint(x1, y1);
             overlay.CheckPoint(x2, y2);
@@ -6921,9 +6921,12 @@ function CDrawingDocument()
             for (var i = 0; i < drawObj.length; i++)
             {
                 x1 = (drawingPage.left + koefX * drawObj[i].X1) >> 0;
-                y1 = (drawingPage.top + koefY * drawObj[i].Y1) >> 0;
+                y1 = (drawingPage.top  + koefY * drawObj[i].Y1) >> 0;
                 x2 = (drawingPage.left + koefX * drawObj[i].X2) >> 0;
-                y2 = (drawingPage.top + koefY * drawObj[i].Y2) >> 0;
+                y2 = (drawingPage.top  + koefY * drawObj[i].Y2) >> 0;
+
+                overlay.CheckPoint(x1, y1);
+                overlay.CheckPoint(x2, y2);
 
                 ctx.moveTo(x1, y1);
                 ctx.lineTo(x2, y2);

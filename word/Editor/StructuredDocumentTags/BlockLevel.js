@@ -149,6 +149,9 @@ CBlockLevelSdt.prototype.Recalculate_Page = function(CurPage)
 
 	var RecalcResult = this.Content.Recalculate_Page(CurPage, true);
 
+	if (recalcresult2_End === RecalcResult && window['AscCommon'].g_specialPasteHelper && window['AscCommon'].g_specialPasteHelper.showButtonIdParagraph === this.GetId())
+		window['AscCommon'].g_specialPasteHelper.SpecialPasteButtonById_Show();
+
 	if (recalcresult2_End === RecalcResult)
 		return recalcresult_NextElement;
 	else if (recalcresult2_NextPage === RecalcResult)
