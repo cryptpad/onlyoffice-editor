@@ -6041,8 +6041,8 @@ CDocumentContent.prototype.Selection_SetStart = function(X, Y, CurPage, MouseEve
 	var isTopDocumentContent = this === this.GetTopDocumentContent();
 
 	// Сначала проверим, не попали ли мы в один из "плавающих" объектов
-	var bInText      = null !== this.IsInText(X, Y, AbsPage);
-	var bTableBorder = null !== this.IsTableBorder(X, Y, AbsPage);
+	var bInText      = null !== this.IsInText(X, Y, CurPage);
+	var bTableBorder = null !== this.IsTableBorder(X, Y, CurPage);
 	var nInDrawing   = this.LogicDocument && this.LogicDocument.DrawingObjects.IsInDrawingObject(X, Y, AbsPage, this);
 
 	if (this.Parent instanceof CHeaderFooter && ( nInDrawing === DRAWING_ARRAY_TYPE_BEFORE || nInDrawing === DRAWING_ARRAY_TYPE_INLINE || ( false === bTableBorder && false === bInText && nInDrawing >= 0 ) ))
@@ -6279,7 +6279,7 @@ CDocumentContent.prototype.Selection_SetEnd = function(X, Y, CurPage, MouseEvent
 		{
 			this.Selection.Use = false;
 
-			if (this.IsInText(X, Y, this.Get_AbsolutePage(this.CurPage)))
+			if (this.IsInText(X, Y, this.CurPage))
 			{
 				if (null != this.Selection.Data && this.Selection.Data.Hyperlink)
 				{

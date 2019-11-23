@@ -262,7 +262,7 @@
 			var wordsIndexArray = [];
 			for (var i = 0; i < str.length; i++) {
 				var nCharCode = str.charCodeAt(i);
-				if (AscCommon.g_aPunctuation[nCharCode] !== undefined || nCharCode === 32) {
+				if (AscCommon.g_aPunctuation[nCharCode] !== undefined || nCharCode === 32 || nCharCode === 10) {
 					if (trueLetter) {
 						trueLetter = false;
 						index++;
@@ -2450,6 +2450,8 @@
 			this.newCellText = null;
 			this.isStart = false;
 			this.afterReplace = false;
+			this.isIgnoreUppercase = false;
+			this.isIgnoreNumbers = false;
 		}
 
 		CSpellcheckState.prototype.init = function (startCell) {

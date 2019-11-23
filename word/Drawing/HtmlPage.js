@@ -1767,6 +1767,14 @@ function CEditorPage(api)
 		oWordControl.m_oLogicDocument.OnMouseMove(global_mouseEvent, pos.X, pos.Y, pos.Page);
 		oWordControl.EndUpdateOverlay();
 	};
+
+	this.UnlockCursorTypeOnMouseUp = function()
+	{
+		if (this.m_oApi.isDrawTablePen || this.m_oApi.isDrawTableErase)
+			return;
+		this.m_oDrawingDocument.UnlockCursorType();
+	};
+
 	this.onMouseUp    = function(e, bIsWindow, isTouch)
 	{
 		oThis.m_oApi.checkLastWork();
@@ -1824,7 +1832,7 @@ function CEditorPage(api)
 		if (oWordControl.m_oDrawingDocument.IsFreezePage(pos.Page))
 			return;
 
-		oWordControl.m_oDrawingDocument.UnlockCursorType();
+		oWordControl.UnlockCursorTypeOnMouseUp();
 
 		oWordControl.StartUpdateOverlay();
 
@@ -1959,7 +1967,7 @@ function CEditorPage(api)
 		if (oWordControl.m_oDrawingDocument.IsFreezePage(pos.Page))
 			return;
 
-		oWordControl.m_oDrawingDocument.UnlockCursorType();
+		oWordControl.UnlockCursorTypeOnMouseUp();
 
 		oWordControl.StartUpdateOverlay();
 

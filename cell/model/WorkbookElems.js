@@ -4029,7 +4029,8 @@ Hyperlink.prototype = {
 	Col.prototype.getIndex = function () {
 		return this.index;
 	};
-	Col.prototype.setOutlineLevel = function (val, bDel) {
+	Col.prototype.setOutlineLevel = function (val, bDel, notAddHistory) {
+		var oldVal = this.outlineLevel;
 		if(null !== val) {
 			this.outlineLevel = val;
 		} else {
@@ -4045,6 +4046,10 @@ Hyperlink.prototype = {
 		} else {
 			//TODO ?
 			//this._hasChanged = true;
+		}
+
+		if (!notAddHistory && History.Is_On() && oldVal != this.outlineLevel) {
+			History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_GroupCol, this.ws.getId(), this._getUpdateRange(), new UndoRedoData_IndexSimpleProp(this.index, false, oldVal, this.outlineLevel));
 		}
 	};
 	Col.prototype.getOutlineLevel = function () {
@@ -4195,7 +4200,7 @@ Hyperlink.prototype = {
 			}
 			this.setHidden(prop.hd);
 			this.setCustomHeight(prop.CustomHeight);
-			this.setOutlineLevel(prop.OutlineLevel);
+			this.setOutlineLevel(prop.OutlineLevel, null, true);
 		}
 	};
 	Row.prototype.getStyle = function () {
@@ -4404,7 +4409,8 @@ Hyperlink.prototype = {
 		}
 		this._hasChanged = true;
 	};
-	Row.prototype.setOutlineLevel = function (val, bDel) {
+	Row.prototype.setOutlineLevel = function (val, bDel, notAddHistory) {
+		var oldProps = this.outlineLevel;
 		if(null !== val) {
 			this.outlineLevel = val;
 		} else {
@@ -4419,6 +4425,10 @@ Hyperlink.prototype = {
 			this.outlineLevel = c_maxOutlineLevel;
 		} else {
 			this._hasChanged = true;
+		}
+
+		if(!notAddHistory && History.Is_On() && oldProps != this.outlineLevel) {
+			History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_GroupRow, this.ws.getId(), this._getUpdateRange(), new UndoRedoData_IndexSimpleProp(this.index, true, oldProps, this.outlineLevel));
 		}
 	};
 	Row.prototype.getOutlineLevel = function () {
@@ -4486,7 +4496,7 @@ Hyperlink.prototype = {
 		var ht = stream.GetUShortLE();
 		stream.Skip2(1);
 		var byteExtra2 = stream.GetUChar();
-		this.setOutlineLevel(byteExtra2 & 0x7);
+		this.setOutlineLevel(byteExtra2 & 0x7, null, true);
 		if (0 !== (byteExtra2 & 0x8)) {
 			this.setCollapsed(true);
 		}

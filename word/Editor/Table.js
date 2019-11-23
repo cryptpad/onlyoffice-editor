@@ -13508,6 +13508,10 @@ CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPage, drawMode)
 	X1_origin += X1; 
 	X2_origin += X2;
 
+	// Приводим к координатам таблицы
+	X1 					= X1-this.Pages[0].X; 
+	X2 					= X2-this.Pages[0].X;
+
 	if (drawMode === true)
 	{
 		// Рисуем вертикальную линию
@@ -13550,7 +13554,7 @@ CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPage, drawMode)
 
 			}
 
-			var Rows = [];        // массив строк подлежащих делению (которые мы режем)
+			var Rows = [];        // массив номеров строк подлежащих делению (которые мы режем)
 
 			for (var curRow = this.Pages[curColumn].FirstRow; curRow <= this.Pages[curColumn].LastRow; curRow++) 
 			{
@@ -13564,18 +13568,21 @@ CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPage, drawMode)
 					Rows.push(curRow);
 			}
 			
-			if (Y2 - Y1 >= this.RowsInfo[Rows[0]].Y[curColumn]/2)
+			if (Y2 - Y1 >= this.RowsInfo[Rows[0]].H[curColumn]/2)
 			{
+				//if (Math.abs(this.Content[RowNumb[0]].CellsInfo[curCell].X_cell_start))
 				var Vline = 
 				{
 					X1  : X1_origin,
 					X2  : X1_origin,
 					Y1 : this.RowsInfo[Rows[0]].Y[curColumn],
 					Y2 : this.RowsInfo[Rows[Rows.length - 1]].Y[curColumn] + this.RowsInfo[Rows[Rows.length - 1]].H[curColumn],
-					Color : "Grey"
+					Color : "Grey",
+					Bold  : false
+					
 				};
 			}
-			else if (Y2 - Y1 < this.RowsInfo[Rows[0]].Y[curColumn]/2)
+			else if (Y2 - Y1 < this.RowsInfo[Rows[0]].H[curColumn]/2)
 			{
 				var Vline = 
 				{
@@ -13583,7 +13590,8 @@ CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPage, drawMode)
 					X2  : X2_origin,
 					Y1 : Y1,
 					Y2 : Y2,
-					Color : "Red"
+					Color : "Red",
+					Bold  : false
 				};
 			}
 			
@@ -13594,6 +13602,7 @@ CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPage, drawMode)
 		else if (Math.abs(X2 - X1) > 2 && Math.abs(Y2 - Y1) < 3)
 		{
 			var curColumn = 0;
+
 			if (X1 === X2)
 				return;
 			if (X1 > X2)
@@ -13650,27 +13659,85 @@ CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPage, drawMode)
 				}
 
 			}
-			if (X2 - X1 >= CellsNumb[CellsNumb.length - 1].Metrics.X_cell_end - CellsNumb[0].Metrics.X_cell_start/2)
+			if (X2 - X1 >= (this.Content[RowNumb[0]].Get_Cell(CellsNumb[0]).Metrics.X_cell_end - this.Content[RowNumb[0]].Get_Cell(CellsNumb[0]).Metrics.X_cell_start)/2)
 			{
-				var Hline = 
+				if (Math.abs(this.RowsInfo[RowNumb[0]].Y[curColumn] - Y1) < 2)
 				{
-					Y1 : Y1,
-					Y2 : Y1,
-					X1 : CellsNumb[0].Metrics.X_cell_start + this.Pages[curColumn].X,
-					X2 : CellsNumb[CellsNumb.length - 1].Metrics.X_cell_end + this.Pages[curColumn].X,
-					Color : "Grey"
-				};
+					var Hline = 
+					{
+						Y1 : this.RowsInfo[RowNumb[0]].Y[curColumn],
+						Y2 : this.RowsInfo[RowNumb[0]].Y[curColumn],
+						X1 : this.Content[RowNumb[0]].Get_Cell(CellsNumb[0]).Metrics.X_cell_start + this.Pages[curColumn].X,
+						X2 : this.Content[RowNumb[0]].Get_Cell(CellsNumb[CellsNumb.length - 1]).Metrics.X_cell_end + this.Pages[curColumn].X,
+						Color : "Grey",
+						Bold  : true
+					};
+				}
+				else if (Math.abs(this.RowsInfo[RowNumb[0]].Y[curColumn] + this.RowsInfo[RowNumb[0]].H[curColumn] - Y1) < 2)
+				{
+					var Hline = 
+					{
+						Y1 : this.RowsInfo[RowNumb[0]].Y[curColumn] + this.RowsInfo[RowNumb[0]].H[curColumn],
+						Y2 : this.RowsInfo[RowNumb[0]].Y[curColumn] + this.RowsInfo[RowNumb[0]].H[curColumn],
+						X1 : X1_origin,
+						X2 : X2_origin,
+						Color : "Grey",
+						Bold  : true
+					};
+				}
+				else 
+				{
+					var Hline = 
+					{
+						Y1 : Y1,
+						Y2 : Y1,
+						X1 : this.Content[RowNumb[0]].Get_Cell(CellsNumb[0]).Metrics.X_cell_start + this.Pages[curColumn].X,
+						X2 : this.Content[RowNumb[0]].Get_Cell(CellsNumb[CellsNumb.length - 1]).Metrics.X_cell_end + this.Pages[curColumn].X,
+						Color : "Grey",
+						Bold  : false
+					};
+				}
+				
 			}
-			else if (X2 - X1 < CellsNumb[CellsNumb.length - 1].Metrics.X_cell_end - CellsNumb[0].Metrics.X_cell_start/2)
+			else if (X2 - X1 < (this.Content[RowNumb[0]].Get_Cell(CellsNumb[0]).Metrics.X_cell_end - this.Content[RowNumb[0]].Get_Cell(CellsNumb[0]).Metrics.X_cell_start)/2)
 			{
-				var Hline = 
+				if (Math.abs(this.RowsInfo[RowNumb[0]].Y[curColumn] - Y1) < 2)
 				{
-					Y1 : Y1,
-					Y2 : Y2,
-					X1 : X1_origin,
-					X2 : X2,
-					Color : "Grey"
-				};
+					var Hline = 
+					{
+						Y1 : this.RowsInfo[RowNumb[0]].Y[curColumn],
+						Y2 : this.RowsInfo[RowNumb[0]].Y[curColumn],
+						X1 : X1_origin,
+						X2 : X2_origin,
+						Color : "Grey",
+						Bold  : true
+					};
+				}
+				else if (Math.abs(this.RowsInfo[RowNumb[0]].Y[curColumn] + this.RowsInfo[RowNumb[0]].H[curColumn] - Y1) < 2)
+				{
+					var Hline = 
+					{
+						Y1 : this.RowsInfo[RowNumb[0]].Y[curColumn] + this.RowsInfo[RowNumb[0]].H[curColumn],
+						Y2 : this.RowsInfo[RowNumb[0]].Y[curColumn] + this.RowsInfo[RowNumb[0]].H[curColumn],
+						X1 : X1_origin,
+						X2 : X2_origin,
+						Color : "Grey",
+						Bold  : true
+					};
+				}
+				else 
+				{
+					var Hline = 
+					{
+						Y1 : Y1,
+						Y2 : Y2,
+						X1 : X1_origin,
+						X2 : X2_origin,
+						Color : "Grey",
+						Bold  : false
+					};
+				}
+				
 			}
 			
 			return Hline;
@@ -13695,17 +13762,6 @@ CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPage, drawMode)
 		var Borders	 	    = [];
 		this.Selection.Data = [];
 		var SizeOfIndent	= this.Pages[0].X;
-
-		// Прямоугольник удаления 
-		var Rect = 
-		{
-			X1 : X1_origin,
-			X2 : X2_origin, 
-			Y1 : Y1,
-			Y2 : Y2,
-			Color : "Red"
-		};
-		Borders.push(Rect); // Всегда первый в массиве 
 
  		// Определяем в какую колонку попадаем
 		if (this.Pages.length > 1)
@@ -13810,8 +13866,8 @@ CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPage, drawMode)
 										{
 											var Line = 
 											{
-												X1 : TempCell.Metrics.X_cell_start + SizeOfIndent,
-												X2 : TempCell.Metrics.X_cell_start + SizeOfIndent,
+												X1 : TempCell.Metrics.X_cell_start,
+												X2 : TempCell.Metrics.X_cell_start,
 												Y1 : TempCell.Temp.Y,
 												Y2 : TempCell.Temp.Y + rowHsum,
 												Color : "Red"
@@ -13822,8 +13878,8 @@ CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPage, drawMode)
 										{
 											var Line = 
 											{
-												X1 : TempCell.Metrics.X_cell_end + SizeOfIndent,
-												X2 : TempCell.Metrics.X_cell_end + SizeOfIndent,
+												X1 : TempCell.Metrics.X_cell_end,
+												X2 : TempCell.Metrics.X_cell_end,
 												Y1 : TempCell.Temp.Y,
 												Y2 : TempCell.Temp.Y + rowHsum,
 												Color : "Red"
@@ -13834,8 +13890,8 @@ CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPage, drawMode)
 										{
 											var Line = 
 											{
-												X1 : TempCell.Metrics.X_cell_start + SizeOfIndent,
-												X2 : TempCell.Metrics.X_cell_end + SizeOfIndent,
+												X1 : TempCell.Metrics.X_cell_start,
+												X2 : TempCell.Metrics.X_cell_end,
 												Y1 : TempCell.Temp.Y,
 												Y2 : TempCell.Temp.Y,
 												Color : "Red"
@@ -13846,8 +13902,8 @@ CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPage, drawMode)
 										{
 											var Line = 
 											{
-												X1 : TempCell.Metrics.X_cell_start + SizeOfIndent,
-												X2 : TempCell.Metrics.X_cell_end + SizeOfIndent,
+												X1 : TempCell.Metrics.X_cell_start,
+												X2 : TempCell.Metrics.X_cell_end,
 												Y1 : TempCell.Temp.Y + rowHsum,
 												Y2 : TempCell.Temp.Y + rowHsum,
 												Color : "Red"
@@ -13914,8 +13970,8 @@ CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPage, drawMode)
 										{
 											var Line = 
 											{
-												X1 : TempCell.Metrics.X_cell_start + SizeOfIndent,
-												X2 : TempCell.Metrics.X_cell_start + SizeOfIndent,
+												X1 : TempCell.Metrics.X_cell_start,
+												X2 : TempCell.Metrics.X_cell_start,
 												Y1 : TempCell.Temp.Y,
 												Y2 : TempCell.Temp.Y + rowHsum,
 												Color : "Red"
@@ -13926,8 +13982,8 @@ CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPage, drawMode)
 										{
 											var Line = 
 											{
-												X1 : TempCell.Metrics.X_cell_end + SizeOfIndent,
-												X2 : TempCell.Metrics.X_cell_end + SizeOfIndent,
+												X1 : TempCell.Metrics.X_cell_end,
+												X2 : TempCell.Metrics.X_cell_end,
 												Y1 : TempCell.Temp.Y,
 												Y2 : TempCell.Temp.Y + rowHsum,
 												Color : "Red"
@@ -13938,8 +13994,8 @@ CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPage, drawMode)
 										{
 											var Line = 
 											{
-												X1 : TempCell.Metrics.X_cell_start + SizeOfIndent,
-												X2 : TempCell.Metrics.X_cell_end + SizeOfIndent,
+												X1 : TempCell.Metrics.X_cell_start,
+												X2 : TempCell.Metrics.X_cell_end,
 												Y1 : TempCell.Temp.Y,
 												Y2 : TempCell.Temp.Y,
 												Color : "Red"
@@ -13950,8 +14006,8 @@ CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPage, drawMode)
 										{
 											var Line = 
 											{
-												X1 : TempCell.Metrics.X_cell_start + SizeOfIndent,
-												X2 : TempCell.Metrics.X_cell_end + SizeOfIndent,
+												X1 : TempCell.Metrics.X_cell_start,
+												X2 : TempCell.Metrics.X_cell_end,
 												Y1 : TempCell.Temp.Y + rowHsum,
 												Y2 : TempCell.Temp.Y + rowHsum,
 												Color : "Red"
@@ -14015,8 +14071,8 @@ CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPage, drawMode)
 										{
 											var Line = 
 											{
-												X1 : TempCell.Metrics.X_cell_start + SizeOfIndent,
-												X2 : TempCell.Metrics.X_cell_start + SizeOfIndent,
+												X1 : TempCell.Metrics.X_cell_start,
+												X2 : TempCell.Metrics.X_cell_start,
 												Y1 : TempCell.Temp.Y,
 												Y2 : TempCell.Temp.Y + rowHsum,
 												Color : "Red"
@@ -14027,8 +14083,8 @@ CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPage, drawMode)
 										{
 											var Line = 
 											{
-												X1 : TempCell.Metrics.X_cell_end + SizeOfIndent,
-												X2 : TempCell.Metrics.X_cell_end + SizeOfIndent,
+												X1 : TempCell.Metrics.X_cell_end,
+												X2 : TempCell.Metrics.X_cell_end,
 												Y1 : TempCell.Temp.Y,
 												Y2 : TempCell.Temp.Y + rowHsum,
 												Color : "Red"
@@ -14039,8 +14095,8 @@ CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPage, drawMode)
 										{
 											var Line = 
 											{
-												X1 : TempCell.Metrics.X_cell_start + SizeOfIndent,
-												X2 : TempCell.Metrics.X_cell_end + SizeOfIndent,
+												X1 : TempCell.Metrics.X_cell_start,
+												X2 : TempCell.Metrics.X_cell_end,
 												Y1 : TempCell.Temp.Y,
 												Y2 : TempCell.Temp.Y,
 												Color : "Red"
@@ -14051,8 +14107,8 @@ CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPage, drawMode)
 										{
 											var Line = 
 											{
-												X1 : TempCell.Metrics.X_cell_start + SizeOfIndent,
-												X2 : TempCell.Metrics.X_cell_end + SizeOfIndent,
+												X1 : TempCell.Metrics.X_cell_start,
+												X2 : TempCell.Metrics.X_cell_end,
 												Y1 : TempCell.Temp.Y + rowHsum,
 												Y2 : TempCell.Temp.Y + rowHsum,
 												Color : "Red"
@@ -14076,13 +14132,22 @@ CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPage, drawMode)
 		{
 			for (var Index2 = Index + 1; Index2 < Borders.length; Index2++)
 			{
-				if (Borders[Index] == Borders[Index+ 1])
+				if (Borders[Index].X1 == Borders[Index+ 1].X1)
 				{
-					Borders.splice(Index2, 1);
-					Index2--;
+					if (Borders[Index].X2 == Borders[Index+ 1].X2)
+					{
+						if (Borders[Index].Y1 == Borders[Index+ 1].Y1)
+						{
+							if (Borders[Index].Y2 == Borders[Index+ 1].Y2)
+							{
+								Borders.splice(Index2, 1);
+								Index2--;
+							}
+						}
+					}
+					
 				}
 			}
-			
 		}
 		return Borders;
 	}
