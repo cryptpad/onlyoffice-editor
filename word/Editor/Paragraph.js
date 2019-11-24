@@ -11731,27 +11731,30 @@ Paragraph.prototype.Write_ToBinary2 = function(Writer)
 
 	Writer.WriteString2("" + this.Id);
 
-	var PrForWrite, TextPrForWrite;
+	var PrForWrite, TextPrForWrite, ContentForWrite;
 	if (this.StartState)
 	{
 		PrForWrite     = this.StartState.Pr;
 		TextPrForWrite = this.StartState.TextPr;
+		ContentForWrite = this.StartState.Content;
+		this.StartState = null;
 	}
 	else
 	{
 		PrForWrite     = this.Pr;
 		TextPrForWrite = this.TextPr;
+		ContentForWrite = this.Content;
 	}
 
 	PrForWrite.Write_ToBinary(Writer);
 	Writer.WriteString2("" + TextPrForWrite.Get_Id());
 
-	var Count = this.Content.length;
+	var Count = ContentForWrite.length;
 	Writer.WriteLong(Count);
 
 	for (var Index = 0; Index < Count; Index++)
 	{
-		Writer.WriteString2("" + this.Content[Index].Get_Id());
+		Writer.WriteString2("" + ContentForWrite[Index].Get_Id());
 	}
 
 	Writer.WriteBool(this.bFromDocument);
