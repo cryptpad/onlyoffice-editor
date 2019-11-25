@@ -19,8 +19,10 @@
 			"../word/Editor/CollaborativeEditing.js",
 			"../common/macros.js",
 			"../common/apiBase.js",
+			"../common/apiBase_plugins.js",
 			"../word/apiCommon.js",
-			"../word/api.js"
+			"../word/api.js",
+			"../word/api_plugins.js"
 		],
 		"common": [
 			"../common/downloaderfiles.js",

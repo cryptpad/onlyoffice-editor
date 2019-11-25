@@ -20,6 +20,7 @@
 			"../cell/model/CollaborativeEditing.js",
 			"../common/macros.js",
 			"../common/apiBase.js",
+			"../common/apiBase_plugins.js",
 			"../word/apiCommon.js",
 			"../cell/api.js"
 		],
