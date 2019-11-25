@@ -11887,10 +11887,10 @@
 
 				//for sort color
 				var colorFillCell, colorsTextCell = null;
-				if (colorFill) {
+				if (colorFill || opt_custom_sort) {
 					var styleCell = oCell.getCompiledStyleCustom(false, true, true);
 					colorFillCell = styleCell !== null && styleCell.fill ? styleCell.fill.bg() : null;
-				} else if (colorText) {
+				} else if (colorText || opt_custom_sort) {
 					var value2 = oCell.getValue2();
 					for (var n = 0; n < value2.length; n++) {
 						if (null === colorsTextCell) {
@@ -11981,12 +11981,12 @@
 
 
 		//color sort
-		var colorFillCmp = function (color1, color2) {
+		var colorFillCmp = function (color1, color2, _customCellColor) {
 			var res = false;
 			//TODO возможно так сравнивать не правильно, позже пересмотреть
-			if (colorFill) {
+			if (colorFill || _customCellColor === true) {
 				res = (color1 !== null && color2 !== null && color1.rgb === color2.rgb) || (color1 === color2);
-			} else if (colorText && color1 && color1.length) {
+			} else if ((colorText || _customCellColor === false) && color1 && color1.length) {
 				for (var n = 0; n < color1.length; n++) {
 					if (color1[n] && color2 !== null && color1[n].rgb === color2.rgb) {
 						res = true;
@@ -12024,25 +12024,45 @@
 		} else {
 			aSortElems.sort(function (a, b) {
 				var res = 0;
-				var compare = function(_a, _b) {
-					if (null != _a.text) {
-						if (null != _b.text) {
-							var val1 = caseSensitive ? _a.text : _a.text.toUpperCase();
-							var val2 = caseSensitive ? _b.text : _b.text.toUpperCase();
-							res = strcmp(val1, val2);
-						} else {
+				var compare = function(_a, _b, _sortCondition) {
+					//если есть opt_custom_sort(->sortConditions) - тогда может быть несколько условий сортировки
+					//в данном случае идём по отдельной ветке и по-другому обрабатываем сортировку по цвету
+					//TODO стоит рассмотреть вариант одной обработки для разных вариантов сортировки
+					if(_sortCondition && (_sortCondition.ConditionSortBy === Asc.ESortBy.sortbyCellColor || _sortCondition.ConditionSortBy === Asc.ESortBy.sortbyFontColor)) {
+						var _isCellColor = _sortCondition.ConditionSortBy === Asc.ESortBy.sortbyCellColor;
+						var _color1 = _isCellColor ? _a.colorFill : _a.colorsText;
+						var _color2 = _isCellColor ? _b.colorFill : _b.colorsText;
+						var _sortColor = _isCellColor ? _sortCondition.dxf.fill.bg() : _sortCondition.dxf.font.getColor();
+						var cmp1 = colorFillCmp(_color1, _sortColor, _isCellColor);
+						var cmp2 = colorFillCmp(_color2, _sortColor, _isCellColor);
+
+						if(cmp1 === cmp2) {
+							res = 0;
+						} else if(cmp1 && !cmp2) {
+							res = -1;
+						} else if(!cmp1 && cmp2) {
 							res = 1;
 						}
-					} else if (null != _a.num) {
-						if (null != _b.num) {
-							res = _a.num - _b.num;
-						} else {
-							res = -1;
+					} else {
+						if (null != _a.text) {
+							if (null != _b.text) {
+								var val1 = caseSensitive ? _a.text : _a.text.toUpperCase();
+								var val2 = caseSensitive ? _b.text : _b.text.toUpperCase();
+								res = strcmp(val1, val2);
+							} else {
+								res = 1;
+							}
+						} else if (null != _a.num) {
+							if (null != _b.num) {
+								res = _a.num - _b.num;
+							} else {
+								res = -1;
+							}
 						}
 					}
 				};
 
-				compare(a, b);
+				compare(a, b, sortConditions ? sortConditions[0] : null);
 				if (0 == res) {
 					if(sortConditions) {
 						for(var i = 1; i < sortConditions.length; i++) {
