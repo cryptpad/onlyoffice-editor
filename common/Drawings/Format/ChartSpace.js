@@ -4062,11 +4062,42 @@ CChartSpace.prototype.rebuildSeriesData = function(oValRange, oCatRange, oTxRang
     var oCat, oTx;
     var oWorksheet = this.worksheet;//TODO
     var bScatter;
+
+    var oFirstSpPrPreset = 0;
+    var oFirstSpPrMarkerPrst = 0;
+    var bAccent1Background = false;
+    var style = AscFormat.CHART_STYLE_MANAGER.getStyleByIndex(this.style);
+    var nPointCount = 0;
     if(oSeries)
     {
+
         bScatter = oSeries.getObjectType() === AscDFH.historyitem_type_ScatterSer;
         if(oValRange)
         {
+            if(oSeries.getObjectType() === AscDFH.historyitem_type_PieSeries)
+            {
+                if(oSeries.dPt[0] && oSeries.dPt[0].spPr){
+                    oFirstSpPrPreset = AscFormat.CollectSettingsSpPr(oSeries.dPt[0].spPr);
+                }
+                if(oFirstSpPrPreset)
+                {
+                    if(this.spPr && this.spPr.Fill && this.spPr.Fill.fill && this.spPr.Fill.fill.color && this.spPr.Fill.fill.color.color
+                        && this.spPr.Fill.fill.color.color.type === window['Asc'].c_oAscColor.COLOR_TYPE_SCHEME &&  this.spPr.Fill.fill.color.color.id === 0){
+                        bAccent1Background = true;
+                    }
+                    nPointCount = Math.max(oValRange.r2 - oValRange.r1 + 1, oValRange.c2 - oValRange.c1 + 1);
+                    base_fills = AscFormat.getArrayFillsFromBase(style.fill2, nPointCount);
+                    AscFormat.removeDPtsFromSeries(oSeries);
+                    for(var j = 0; j < nPointCount; ++j)
+                    {
+                        var oDPt = new AscFormat.CDPt();
+                        oDPt.setBubble3D(false);
+                        oDPt.setIdx(j);
+                        AscFormat.ApplySpPr(oFirstSpPrPreset, oDPt, j, base_fills, bAccent1Background);
+                        oSeries.addDPt(oDPt);
+                    }
+                }
+            }
             if(!bScatter) {
                 if(!oSeries.val)
                 {
@@ -4150,17 +4181,16 @@ CChartSpace.prototype.rebuildSeriesData = function(oValRange, oCatRange, oTxRang
         aSeries = this.getAllSeries();
         var oLastChart = this.chart.plotArea.charts[this.chart.plotArea.charts.length - 1];
 
+        bScatter = oLastChart.getObjectType() === AscDFH.historyitem_type_ScatterChart;
         if(aSeries.length > 0)
         {
 
 
-            var bAccent1Background = false;
-            if(this.spPr && this.spPr.Fill && this.spPr.Fill.fill && this.spPr.Fill.fill.color && this.spPr.Fill.fill.color.color
+            if(!bScatter && this.spPr && this.spPr.Fill && this.spPr.Fill.fill && this.spPr.Fill.fill.color && this.spPr.Fill.fill.color.color
                 && this.spPr.Fill.fill.color.color.type === window['Asc'].c_oAscColor.COLOR_TYPE_SCHEME &&  this.spPr.Fill.fill.color.color.id === 0){
                 bAccent1Background = true;
             }
 
-            var oFirstSpPrPreset = 0;
             if(oLastChart.getObjectType() === AscDFH.historyitem_type_PieChart || oLastChart.getObjectType() === AscDFH.historyitem_type_DoughnutChart){
                 if(oLastChart.series[0] && oLastChart.series[0].dPt[0] && oLastChart.series[0].dPt[0].spPr){
                     oFirstSpPrPreset = AscFormat.CollectSettingsSpPr(oLastChart.series[0].dPt[0].spPr);
@@ -4170,13 +4200,16 @@ CChartSpace.prototype.rebuildSeriesData = function(oValRange, oCatRange, oTxRang
                 if(oLastChart.series[0]){
                     oFirstSpPrPreset = AscFormat.CollectSettingsSpPr(oLastChart.series[0].spPr);
                 }
+                if(oLastChart.series[0] && oLastChart.series[0].marker){
+                    oFirstSpPrMarkerPrst = AscFormat.CollectSettingsSpPr(oLastChart.series[0].marker.spPr);
+                }
             }
+
 
 
             oBBox = this._recalculateBBox(this.getAllSeries()).bbox;
             var bVert = oBBox.seriesBBox && oBBox.seriesBBox.bVert;
             var nStartIndex, nEndIndex;
-            var nPointCount = 0;
             var style, base_fills;
             if(bVert)
             {
@@ -4205,24 +4238,33 @@ CChartSpace.prototype.rebuildSeriesData = function(oValRange, oCatRange, oTxRang
                 {
                     oSeries = oLastChart.series[0] ? oLastChart.series[0].createDuplicate() : oLastChart.getSeriesConstructor();
                     oLastChart.addSer(oSeries);
-                    if(oLastChart.getObjectType() === AscDFH.historyitem_type_PieChart || oLastChart.getObjectType() === AscDFH.historyitem_type_DoughnutChart)
+
+                }
+                if(oLastChart.getObjectType() === AscDFH.historyitem_type_PieChart || oLastChart.getObjectType() === AscDFH.historyitem_type_DoughnutChart)
+                {
+                    if(oFirstSpPrPreset)
                     {
-                        if(oFirstSpPrPreset)
+                        base_fills = AscFormat.getArrayFillsFromBase(style.fill2, nPointCount);
+                        AscFormat.removeDPtsFromSeries(oSeries);
+                        for(var j = 0; j < nPointCount; ++j)
                         {
-                            base_fills = AscFormat.getArrayFillsFromBase(style.fill2, nPointCount);
-                            for(var j = 0; j < nPointCount; ++j)
-                            {
-                                var oDPt = new AscFormat.CDPt();
-                                oDPt.setBubble3D(false);
-                                oDPt.setIdx(j);
-                                AscFormat.ApplySpPr(oFirstSpPrPreset, oDPt, j, base_fills, bAccent1Background);
-                                oSeries.addDPt(oDPt);
-                            }
+                            var oDPt = new AscFormat.CDPt();
+                            oDPt.setBubble3D(false);
+                            oDPt.setIdx(j);
+                            AscFormat.ApplySpPr(oFirstSpPrPreset, oDPt, j, base_fills, bAccent1Background);
+                            oSeries.addDPt(oDPt);
                         }
                     }
-                    else
+                }
+                else
+                {
+                    if(oFirstSpPrPreset)
                     {
                         AscFormat.ApplySpPr(oFirstSpPrPreset, oSeries, nSeriesIndex, base_fills, bAccent1Background);
+                    }
+                    if(oFirstSpPrMarkerPrst && oSeries.marker)
+                    {
+                        AscFormat.ApplySpPr(oFirstSpPrMarkerPrst, oSeries.marker, nSeriesIndex, base_fills, bAccent1Background);
                     }
                 }
                 oSeries.setIdx(nSeriesIndex);
