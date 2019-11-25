@@ -5324,6 +5324,13 @@ PasteProcessor.prototype =
 		    if(!this.oDocument.bPresentation)
             {
                 fonts = this._convertTableFromExcel(aContentExcel);
+				if(this.aContent && this.aContent.length === 1 && 1 === this.aContent[0].Rows && this.aContent[0].Content[0]) {
+					var _content = this.aContent[0].Content[0];
+					if (_content && _content.Content && 1 === _content.Content.length && _content.Content[0].Content &&
+						_content.Content[0].Content.Content[0]) {
+						this.aContent[0] = _content.Content[0].Content.Content[0];
+					}
+				}
             }
             else
             {
