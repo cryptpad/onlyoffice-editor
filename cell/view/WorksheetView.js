@@ -18658,9 +18658,6 @@
 			History.Create_NewPoint();
 			History.StartTransaction();
 
-
-			//var selection = props._newSelection;
-
 			var columnSort = props.columnSort;
 			sortState.ColumnSort = !columnSort;
 			sortState.CaseSensitive = props.caseSensitive;
@@ -18674,7 +18671,46 @@
 				sortCondition.Ref = new Asc.Range(c1, r1, c2, r2);
 				sortCondition.ConditionSortBy = null;
 				sortCondition.ConditionDescending = Asc.c_oAscSortOptions.Descending === level.descending;
-				sortCondition.dxf = null;
+
+				var conditionSortBy = level.sortBy;
+				var sortColor = null, newDxf;
+				switch (conditionSortBy) {
+					case Asc.c_oAscSortOptions.ByColorFill: {
+						sortCondition.ConditionSortBy = Asc.ESortBy.sortbyCellColor;
+						sortColor = level.color;
+						sortColor = sortColor ? new AscCommonExcel.RgbColor((sortColor.asc_getR() << 16) + (sortColor.asc_getG() << 8) + sortColor.asc_getB()) : null;
+
+						newDxf = new AscCommonExcel.CellXfs();
+						newDxf.fill = new AscCommonExcel.Fill();
+						newDxf.fill.fromColor(sortColor);
+
+						break;
+					}
+					case Asc.c_oAscSortOptions.ByColorFont: {
+						sortCondition.ConditionSortBy = Asc.ESortBy.sortbyFontColor;
+						sortColor = level.color;
+						sortColor = sortColor ? new AscCommonExcel.RgbColor((sortColor.asc_getR() << 16) + (sortColor.asc_getG() << 8) + sortColor.asc_getB()) : null;
+
+						newDxf = new AscCommonExcel.CellXfs();
+						newDxf.font = new AscCommonExcel.Font();
+						newDxf.font.setColor(sortColor);
+
+						break;
+					}
+					case Asc.c_oAscSortOptions.ByIcon: {
+						sortCondition.ConditionSortBy = Asc.ESortBy.sortbyIcon;
+						break;
+					}
+					default: {
+						sortCondition.ConditionSortBy = Asc.ESortBy.sortbyValue;
+						break;
+					}
+				}
+
+				if(newDxf) {
+					sortCondition.dxf = AscCommonExcel.g_StyleCache.addXf(newDxf);
+				}
+
 
 				if(!sortState.SortConditions) {
 					sortState.SortConditions = [];
