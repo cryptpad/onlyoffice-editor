@@ -9691,7 +9691,7 @@
         var ar = oActiveRange.getLast().clone(), arTmp;
         var oRange;
         var oTopActiveRange = null, oLeftActiveRange = null, oValActiveRange = null;
-        var r1 = null, r2 = null, c1 = null, c2 = null;
+        var r1 = null, r2 = null, c1 = null, c2 = null, delta;
 
         if(oActiveRange.separated) {
             switch (targetInfo.cursor) {
@@ -9743,9 +9743,19 @@
                     colDelta = colByX - this.startCellMoveResizeRange2.c1;
                     c1 = this.startCellMoveResizeRange.c1 + colDelta;
                     c2 = this.startCellMoveResizeRange.c2 + colDelta;
+                    delta = Math.min(c1, c2);
+                    if(delta < 0) {
+                        c1 -= delta;
+                        c2 -= delta;
+                    }
                     rowDelta = rowByY - this.startCellMoveResizeRange2.r1;
                     r1 = this.startCellMoveResizeRange.r1 + rowDelta;
                     r2 = this.startCellMoveResizeRange.r2 + rowDelta;
+                    delta = Math.min(r1, r2);
+                    if(delta < 0) {
+                        r1 -= delta;
+                        r2 -= delta;
+                    }
                     break;
                 }
             }
@@ -9853,6 +9863,11 @@
                         }
                         c1 = this.startCellMoveResizeRange.c1 + colDelta;
                         c2 = this.startCellMoveResizeRange.c2 + colDelta;
+                        delta = Math.min(c1, c2);
+                        if(delta < 0) {
+                            c1 -= delta;
+                            c2 -= delta;
+                        }
                     }
                     if(oActiveRange === oValActiveRange || oActiveRange === oLeftActiveRange) {
                         rowDelta = rowByY - this.startCellMoveResizeRange2.r1;
@@ -9869,6 +9884,11 @@
                         }
                         r1 = this.startCellMoveResizeRange.r1 + rowDelta;
                         r2 = this.startCellMoveResizeRange.r2 + rowDelta;
+                        delta = Math.min(r1, r2);
+                        if(delta < 0) {
+                            r1 -= delta;
+                            r2 -= delta;
+                        }
                     }
 
                     break;
