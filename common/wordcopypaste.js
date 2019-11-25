@@ -3543,10 +3543,22 @@ PasteProcessor.prototype =
 			return null;
 		}
 
+		var oldLocale = AscCommon.g_oDefaultCultureInfo ? AscCommon.g_oDefaultCultureInfo.LCID : AscCommon.g_oDefaultCultureInfo;
+		AscCommon.setCurrentCultureInfo(aContentExcel.workbook.Core.language);
+		var revertLocale = function() {
+			if(oldLocale) {
+				AscCommon.setCurrentCultureInfo(oldLocale);
+			} else {
+				AscCommon.g_oDefaultCultureInfo = oldLocale;
+			}
+		};
+
 		var aContent;
 		if (window['AscCommon'].g_specialPasteHelper.specialPasteStart &&
 			Asc.c_oSpecialPasteProps.keepTextOnly === window['AscCommon'].g_specialPasteHelper.specialPasteProps) {
 			aContent = oThis._convertExcelBinary(aContentExcel);
+			revertLocale();
+
 			oThis.aContent = aContent.content;
 			fPrepasteCallback();
 		} else if (aContentExcel.arrImages && aContentExcel.arrImages.length) {
@@ -3555,11 +3567,15 @@ PasteProcessor.prototype =
 				var oImageMap = {};
 				ResetNewUrls(data, oObjectsForDownload.aUrls, oObjectsForDownload.aBuilderImagesByUrl, oImageMap);
 				var aContent = oThis._convertExcelBinary(aContentExcel);
+				revertLocale();
+
 				oThis.aContent = aContent.content;
 				oThis.api.pre_Paste(aContent.fonts, oImageMap, fPrepasteCallback);
 			}, null, true);
 		} else {
 			aContent = oThis._convertExcelBinary(aContentExcel);
+			revertLocale();
+
 			oThis.aContent = aContent.content;
 			oThis.api.pre_Paste(aContent.fonts, aContent.images, fPrepasteCallback);
 		}
