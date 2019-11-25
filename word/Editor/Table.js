@@ -13483,13 +13483,49 @@ CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPage, drawMode)
 	X1 					= X1-this.Pages[0].X; 
 	X2 					= X2-this.Pages[0].X;
 
+	var Y_Under = false;
+	var Y_Over 	= false;
+	var curColumn = 0;
+	// Определяем в какую колонку попадаем
+	if (this.Pages.length > 1)
+	{
+		for (var Index = 0; Index < this.Pages.length; Index++) 
+		{
+			if (X1 > this.Pages[Index].X - this.Pages[0].X + (this.Pages[0].XLimit - this.Pages[1].X) && X1 < this.Pages[Index].XLimit - this.Pages[0].X) 
+			{
+				curColumn = Index;
+				if (CurPage >= 1)
+					curColumn = CurPage * this.Pages.length - 1;
+			}
+
+		}
+		//Приводим к относительным координатам
+		X1 = X1 - (this.Pages[curColumn].X - this.Pages[curColumn].X - (this.Pages[0].X - this.Pages[curColumn].X));
+		X2 = X2 - (this.Pages[curColumn].X - this.Pages[curColumn].X - (this.Pages[0].X - this.Pages[curColumn].X));
+	}
+
 	
+
 	if (drawMode === true)
 	{
+		// Пока что при рисовании вне таблицы не создается новая ячейка, поэтому пока лучше просто возвращать линию
+		if (Y1 <= this.RowsInfo[this.Pages[curColumn].FirstRow].Y[curColumn] || Y1 >= this.RowsInfo[this.Pages[curColumn].LastRow].Y[curColumn] + this.RowsInfo[this.Pages[curColumn].LastRow].H[curColumn])
+		{
+			var Line = 
+			{
+				X1  : X1_origin,
+				X2  : X2_origin,
+				Y1 : Y1,
+				Y2 : Y2,
+				Color : "Red",
+				Bold  : false
+			};
+			return Line;
+		}
 		// Рисуем вертикальную линию
 		if (Math.abs(Y2 - Y1) > 2 && Math.abs(X2 - X1) < 3)
 		{
-			var curColumn = 0;
+			//var curColumn = 0;
 
 			//если поставили просто точку => выход из функции
 			if (Y1 === Y2)
@@ -13502,28 +13538,6 @@ CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPage, drawMode)
 				cache = Y2;
 				Y2 = Y1;
 				Y1 = cache;
-			}
-
-			// Определяем в какую колонку попадаем
-			if (this.Pages.length > 1)
-			{
-				for (var Index = 0; Index < this.Pages.length; Index++) 
-				{
-					if (X1 > this.Pages[Index].X - this.Pages[0].X + (this.Pages[0].XLimit - this.Pages[1].X) && X1 < this.Pages[Index].XLimit - this.Pages[0].X) 
-					{
-						curColumn = Index;
-						if (CurPage >= 1) 
-						{
-							curColumn = CurPage * this.Pages.length - 1;
-						}
-							
-					}
-
-				}
-				//Приводим к относительным координатам 
-				X1 = X1 - (this.Pages[curColumn].X - this.Pages[CurPage].X - (this.Pages[0].X - this.Pages[CurPage].X));
-				X2 = X2 - (this.Pages[curColumn].X - this.Pages[CurPage].X - (this.Pages[0].X - this.Pages[CurPage].X));
-
 			}
 
 			var Rows = [];        // массив номеров строк подлежащих делению (которые мы режем)
@@ -13573,7 +13587,7 @@ CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPage, drawMode)
 		// Рисуем горизонтальную линию 
 		else if (Math.abs(X2 - X1) > 2 && Math.abs(Y2 - Y1) < 3)
 		{
-			var curColumn = 0;
+			//var curColumn = 0;
 
 			if (X1 === X2)
 				return;
@@ -13585,24 +13599,7 @@ CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPage, drawMode)
 				X1 = cache;
 			}
 
-			// Определяем в какую колонку попадаем
-			if (this.Pages.length > 1)
-			{
-				for (var Index = 0; Index < this.Pages.length; Index++) 
-				{
-					if (X1 > this.Pages[Index].X - this.Pages[0].X + (this.Pages[0].XLimit - this.Pages[1].X) && X1 < this.Pages[Index].XLimit - this.Pages[0].X) 
-					{
-						curColumn = Index;
-						if (CurPage >= 1)
-							curColumn = CurPage * this.Pages.length - 1;
-					}
-
-				}
-				//Приводим к относительным координатам
-				X1 = X1 - (this.Pages[curColumn].X - this.Pages[CurPage].X - (this.Pages[0].X - this.Pages[CurPage].X));
-				X2 = X2 - (this.Pages[curColumn].X - this.Pages[CurPage].X - (this.Pages[0].X - this.Pages[CurPage].X));
-
-			}
+			
 
 			var RowNumb = []; // Строка, попавшая в вертикальное разбиение 
 			var CellsNumb = []; // Массив номеров ячеек, попавших в вертикальное разбиение
@@ -13730,6 +13727,8 @@ CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPage, drawMode)
 	}
 	else if (drawMode === false)
 	{
+		
+
 		if (X1 > X2)
 		{
 			var cache; 
@@ -13751,25 +13750,9 @@ CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPage, drawMode)
 		this.Selection.Data = [];
 		var SizeOfIndent	= this.Pages[0].X;
 
- 		// Определяем в какую колонку попадаем
-		if (this.Pages.length > 1)
-		{
-			for (var Index = 0; Index < this.Pages.length; Index++) 
-			{
-				if (X1 > this.Pages[Index].X - this.Pages[0].X + (this.Pages[0].XLimit - this.Pages[1].X) && X1 < this.Pages[Index].XLimit - this.Pages[0].X) 
-				{
-					curColumn = Index;
-					if (CurPage >= 1)
-						curColumn = CurPage * this.Pages.length - 1;
-				}
+ 		
 
-			}
-			//Приводим к относительным координатам
-			X1 = X1 - (this.Pages[curColumn].X - this.Pages[curColumn].X - (this.Pages[0].X - this.Pages[curColumn].X));
-			X2 = X2 - (this.Pages[curColumn].X - this.Pages[curColumn].X - (this.Pages[0].X - this.Pages[curColumn].X));
-
-			SizeOfIndent += (this.Pages[curColumn].X - this.Pages[curColumn].X - (this.Pages[0].X - this.Pages[curColumn].X));
-		}
+		SizeOfIndent += (this.Pages[curColumn].X - this.Pages[curColumn].X - (this.Pages[0].X - this.Pages[curColumn].X));
 
 		for (var curRow = this.Pages[curColumn].FirstRow; curRow <= this.Pages[curColumn].LastRow; curRow++) 
 		{
@@ -14110,17 +14093,17 @@ CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPage, drawMode)
 		}
 
 		// Удаление одинаковых линий
-		for (var Index1 = 1; Index1 < Borders.length - 1; Index1++)
+		for (var Index1 = 0; Index1 <= Borders.length - 1; Index1++)
 		{
-			for (var Index2 = Index + 1; Index2 < Borders.length; Index2++)
+			for (var Index2 = Index1 + 1; Index2 < Borders.length; Index2++)
 			{
-				if (Borders[Index].X1 == Borders[Index+ 1].X1)
+				if (Borders[Index1].X1 == Borders[Index2].X1)
 				{
-					if (Borders[Index].X2 == Borders[Index+ 1].X2)
+					if (Borders[Index1].X2 == Borders[Index2].X2)
 					{
-						if (Borders[Index].Y1 == Borders[Index+ 1].Y1)
+						if (Borders[Index1].Y1 == Borders[Index2].Y1)
 						{
-							if (Borders[Index].Y2 == Borders[Index+ 1].Y2)
+							if (Borders[Index1].Y2 == Borders[Index2].Y2)
 							{
 								Borders.splice(Index2, 1);
 								Index2--;
