@@ -2181,6 +2181,7 @@ function DrawingObjects() {
 
     _this.calculateObjectMetrics = function (object, width, height) {
         // Обработка картинок большого разрешения
+        var bCorrect = false;
         var metricCoeff = 1;
 
         var coordsFrom = _this.calculateCoords(object.from);
@@ -2193,6 +2194,7 @@ function DrawingObjects() {
 
             width = areaWidth;
             height /= metricCoeff;
+            bCorrect = true;
         }
 
         var areaHeight = worksheet._getRowTop(worksheet.getLastVisibleRow()) - worksheet._getRowTop(worksheet.getFirstVisibleRow(true)); 	// по высоте
@@ -2201,6 +2203,7 @@ function DrawingObjects() {
 
             height = areaHeight;
             width /= metricCoeff;
+            bCorrect = true;
         }
 
         var toCell = worksheet.findCellByXY(realLeftOffset + width, realTopOffset + height, true, false, false);
@@ -2208,6 +2211,7 @@ function DrawingObjects() {
         object.to.colOff = pxToMm(toCell.colOff);
         object.to.row = toCell.row;
         object.to.rowOff = pxToMm(toCell.rowOff);
+        return bCorrect;
     };
 
 
@@ -2224,11 +2228,26 @@ function DrawingObjects() {
             drawingObject.from.col = isOption ? options.cell.col : activeCell.col;
             drawingObject.from.row = isOption ? options.cell.row : activeCell.row;
 
-            _this.calculateObjectMetrics(drawingObject, isOption ? options.width : _image.Image.width, isOption ? options.height : _image.Image.height);
+            var oSize;
+            if(!isOption) {
+                var oImgP = new Asc.asc_CImgProperty();
+                oImgP.ImageUrl = _image.src;
+                oSize = oImgP.asc_getOriginSize(api);
+            }
+            else {
+                oSize = new asc_CImageSize(Math.max((options.width * AscCommon.g_dKoef_pix_to_mm), 1),
+                    Math.max((options.height * AscCommon.g_dKoef_pix_to_mm), 1), true);
+            }
+            var bCorrect = _this.calculateObjectMetrics(drawingObject, mmToPx(oSize.asc_getImageWidth()), mmToPx(oSize.asc_getImageHeight()));
 
             var coordsFrom = _this.calculateCoords(drawingObject.from);
             var coordsTo = _this.calculateCoords(drawingObject.to);
-            _this.controller.addImageFromParams(_image.src, pxToMm(coordsFrom.x) + MOVE_DELTA, pxToMm(coordsFrom.y) + MOVE_DELTA, pxToMm(coordsTo.x - coordsFrom.x), pxToMm(coordsTo.y - coordsFrom.y));
+            if(bCorrect) {
+                _this.controller.addImageFromParams(_image.src, pxToMm(coordsFrom.x) + MOVE_DELTA, pxToMm(coordsFrom.y) + MOVE_DELTA, pxToMm(coordsTo.x - coordsFrom.x), pxToMm(coordsTo.y - coordsFrom.y));
+            }
+            else {
+                _this.controller.addImageFromParams(_image.src, pxToMm(coordsFrom.x) + MOVE_DELTA, pxToMm(coordsFrom.y) + MOVE_DELTA, oSize.asc_getImageWidth(), oSize.asc_getImageHeight());
+            }
         }
     };
 

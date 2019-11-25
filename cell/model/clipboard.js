@@ -537,10 +537,18 @@
 						wb.Core = new window['AscCommon'].CCore();
 					}
 
+					//подменяем identifier/creator для того, чтобы протащить id
 					var oldCreator = wb.Core.creator;
 					var oldIdentifier = wb.Core.identifier;
+					var oldLanguage = wb.Core.language;
 					wb.Core.creator = wb.oApi && wb.oApi.CoAuthoringApi ? wb.oApi.CoAuthoringApi.getUserConnectionId() : null;
 					wb.Core.identifier = wb.oApi && wb.oApi.DocInfo ? wb.oApi.DocInfo.Id : null;
+					//так же необходимо протащить локаль, для этого использую поля language
+					//и записываю туда номер локали, предварительно конвертируя его в строку
+					//пока буду использовать его только при вставке в документы, а в документах устанавливать -> AscCommon.setCurrentCultureInfo(val)
+					var locale = wb.oApi.asc_getLocale();
+					wb.Core.language = undefined != locale ? locale.toString() : null;
+
 
 					//WRITE
 					var oBinaryFileWriter = new AscCommonExcel.BinaryFileWriter(wb, selectionRange);
@@ -553,6 +561,7 @@
 					} else {
 						wb.Core.creator = oldCreator;
 						wb.Core.identifier = oldIdentifier;
+						wb.Core.language = oldLanguage;
 					}
 				}
 
