@@ -189,7 +189,7 @@ module.exports = function(grunt) {
 		if (!Array.isArray(addons)) {
 			addons = [addons];
 		}
-		addons.forEach(element => configs.append(path.join('../../', element)));
+		addons.forEach(element => configs.append(grunt.file.isDir(element) ? element : path.join('../../', element)));
 
 		if (!configs.valid()) {
 			return;
