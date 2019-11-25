@@ -11890,7 +11890,8 @@
 				if (colorFill || opt_custom_sort) {
 					var styleCell = oCell.getCompiledStyleCustom(false, true, true);
 					colorFillCell = styleCell !== null && styleCell.fill ? styleCell.fill.bg() : null;
-				} else if (colorText || opt_custom_sort) {
+				}
+				if (colorText || opt_custom_sort) {
 					var value2 = oCell.getValue2();
 					for (var n = 0; n < value2.length; n++) {
 						if (null === colorsTextCell) {
