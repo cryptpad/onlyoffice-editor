@@ -4152,19 +4152,48 @@ CChartSpace.prototype.rebuildSeriesData = function(oValRange, oCatRange, oTxRang
 
         if(aSeries.length > 0)
         {
+
+
+            var bAccent1Background = false;
+            if(this.spPr && this.spPr.Fill && this.spPr.Fill.fill && this.spPr.Fill.fill.color && this.spPr.Fill.fill.color.color
+                && this.spPr.Fill.fill.color.color.type === window['Asc'].c_oAscColor.COLOR_TYPE_SCHEME &&  this.spPr.Fill.fill.color.color.id === 0){
+                bAccent1Background = true;
+            }
+
+            var oFirstSpPrPreset = 0;
+            if(oLastChart.getObjectType() === AscDFH.historyitem_type_PieChart || oLastChart.getObjectType() === AscDFH.historyitem_type_DoughnutChart){
+                if(oLastChart.series[0] && oLastChart.series[0].dPt[0] && oLastChart.series[0].dPt[0].spPr){
+                    oFirstSpPrPreset = AscFormat.CollectSettingsSpPr(oLastChart.series[0].dPt[0].spPr);
+                }
+            }
+            else{
+                if(oLastChart.series[0]){
+                    oFirstSpPrPreset = AscFormat.CollectSettingsSpPr(oLastChart.series[0].spPr);
+                }
+            }
+
+
             oBBox = this._recalculateBBox(this.getAllSeries()).bbox;
             var bVert = oBBox.seriesBBox && oBBox.seriesBBox.bVert;
             var nStartIndex, nEndIndex;
+            var nPointCount = 0;
+            var style, base_fills;
             if(bVert)
             {
                 nStartIndex = oValRange.r1;
                 nEndIndex = oValRange.r2;
+                nPointCount = oValRange.c2 - oValRange.c1 + 1;
             }
             else
             {
                 nStartIndex = oValRange.c1;
                 nEndIndex = oValRange.c2;
+                nPointCount = oValRange.r2 - oValRange.r1 + 1;
             }
+
+            style = AscFormat.CHART_STYLE_MANAGER.getStyleByIndex(this.style);
+            base_fills = AscFormat.getArrayFillsFromBase(style.fill2, nEndIndex - nStartIndex + 1);
+
             for(i = nStartIndex; i <= nEndIndex; ++i)
             {
                 nSeriesIndex = i - nStartIndex;
@@ -4176,7 +4205,25 @@ CChartSpace.prototype.rebuildSeriesData = function(oValRange, oCatRange, oTxRang
                 {
                     oSeries = oLastChart.series[0] ? oLastChart.series[0].createDuplicate() : oLastChart.getSeriesConstructor();
                     oLastChart.addSer(oSeries);
-                    //TODO: fills and strokes
+                    if(oLastChart.getObjectType() === AscDFH.historyitem_type_PieChart || oLastChart.getObjectType() === AscDFH.historyitem_type_DoughnutChart)
+                    {
+                        if(oFirstSpPrPreset)
+                        {
+                            base_fills = AscFormat.getArrayFillsFromBase(style.fill2, nPointCount);
+                            for(var j = 0; j < nPointCount; ++j)
+                            {
+                                var oDPt = new AscFormat.CDPt();
+                                oDPt.setBubble3D(false);
+                                oDPt.setIdx(j);
+                                AscFormat.ApplySpPr(oFirstSpPrPreset, oDPt, j, base_fills, bAccent1Background);
+                                oSeries.addDPt(oDPt);
+                            }
+                        }
+                    }
+                    else
+                    {
+                        AscFormat.ApplySpPr(oFirstSpPrPreset, oSeries, nSeriesIndex, base_fills, bAccent1Background);
+                    }
                 }
                 oSeries.setIdx(nSeriesIndex);
                 oSeries.setOrder(nSeriesIndex);
