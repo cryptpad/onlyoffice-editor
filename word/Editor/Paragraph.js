@@ -7439,6 +7439,17 @@ Paragraph.prototype.GetSelectionBounds = function()
 			}
 		}
 	}
+	else
+	{
+		var oPos = this.GetTargetPos();
+
+		_StartX   = oPos.X;
+		_StartY   = oPos.Y;
+		_EndX     = oPos.X;
+		_EndY     = oPos.Y + oPos.Height;
+		StartPage = this.CurPos.PagesPos;
+		EndPage   = this.CurPos.PagesPos;
+	}
 
 	if (null === BeginRect)
 		BeginRect = {

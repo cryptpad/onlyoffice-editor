@@ -2204,34 +2204,16 @@ background-repeat: no-repeat;\
 			var id = specialPasteHelper.showButtonIdParagraph;
 			var elem = g_oTableId.Get_ById(id);
 
-			var _X, _Y;
-			if(elem.GetTargetPos)
-			{
-				var testPos = elem.GetTargetPos();
-				var diffX = 0;
-				var diffY = 0;
-				if(testPos.Transform)
-				{
-					diffX = testPos.Transform.tx;
-					diffY = testPos.Transform.ty;
-				}
-
-				_Y = testPos.Y + testPos.Height + diffY;
-				_X = testPos.X + diffX;
-			}
-			else
-			{
-				var w = 0, h = 0;
-				if(elem.AnchorPosition)
-				{
-					h = elem.AnchorPosition.H;
-					w = elem.AnchorPosition.W;
-				}
-				_Y = elem.Y + h;
-				_X = elem.X + w;
-			}
-
+			var _X       = elem.X;
+			var _Y       = elem.Y;
 			var _PageNum = elem.GetCurrentPageAbsolute();
+			var oBounds  = elem.GetSelectionBounds();
+			if (oBounds && oBounds.End)
+			{
+				_X       = oBounds.End.X + oBounds.End.W;
+				_Y       = oBounds.End.Y + oBounds.End.H;
+				_PageNum = oBounds.End.Page;
+			}
 
 			specialPasteHelper.buttonInfo.fixPosition = {x: _X, y: _Y, pageNum: _PageNum};
 

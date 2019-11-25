@@ -7737,6 +7737,10 @@ CDocumentContent.prototype.GetSelectionBounds = function()
 			return Result;
 		}
 	}
+	else if (this.Content[this.CurPos.ContentPos])
+	{
+		return this.Content[this.CurPos.ContentPos].GetSelectionBounds();
+	}
 
 	return null;
 };
