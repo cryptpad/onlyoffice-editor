@@ -242,7 +242,7 @@ function handleSelectedObjects(drawingObjectsController, e, x, y, group, pageInd
             }
             if(!ret)
             {
-                
+
                 if(selected_objects[i].hitInBoundingRect(tx, ty))
                 {
                     if(window["IS_NATIVE_EDITOR"])
@@ -779,7 +779,7 @@ function handleChartElements(drawing, drawingObjectsController, e, dTx, dTy, gro
 											}
                                         }
                                     }
-									
+
 									aFrontPaths = aPointsPaths[l].darkPaths;
 									  if(!bSeries && Array.isArray(aFrontPaths))
                                     {
@@ -970,7 +970,7 @@ function handleChartElements(drawing, drawingObjectsController, e, dTx, dTy, gro
                 }
                 else
                 {
-					
+
                     if(!bSeries && AscFormat.isRealNumber(t.chart.sortZIndexPaths[i].frontPaths))
                     {
                         var oPath = drawing.pathMemory.GetPath(t.chart.sortZIndexPaths[i].frontPaths);
@@ -1110,12 +1110,12 @@ function handleInternalChart(drawing, drawingObjectsController, e, x, y, group, 
     var ret = false, i, title;
     if(drawing.hit(x, y))
     {
-        var bClickFlag = drawingObjectsController.handleEventMode === AscFormat.HANDLE_EVENT_MODE_CURSOR || e.ClickCount < 2;
+        var bClickFlag =  !window["IS_NATIVE_EDITOR"] && (drawingObjectsController.handleEventMode === AscFormat.HANDLE_EVENT_MODE_CURSOR || e.ClickCount < 2);
         var selector = group ? group : drawingObjectsController;
         var legend = drawing.getLegend();
-        if(legend && !window["NATIVE_EDITOR_ENJINE"] && legend.hit(x, y) && bClickFlag)
+        if(legend && legend.hit(x, y) && bClickFlag)
         {
-            if(drawing.selection.legend != legend)
+            if(drawing.selection.legend !== legend)
             {
                 if(drawingObjectsController.handleEventMode === HANDLE_EVENT_MODE_HANDLE)
                 {
@@ -1176,7 +1176,7 @@ function handleInternalChart(drawing, drawingObjectsController, e, x, y, group, 
         }
 
 
-        if(!window["NATIVE_EDITOR_ENJINE"] && bClickFlag){
+        if(bClickFlag){
 
             var aCharts = drawing.chart.plotArea.charts;
             var series = drawing.getAllSeries();
@@ -1302,7 +1302,7 @@ function handleInternalChart(drawing, drawingObjectsController, e, x, y, group, 
         //todo gridlines
 
         //plotArea
-        if(bClickFlag && !window["IS_NATIVE_EDITOR"]){
+        if(bClickFlag){
             var oChartSizes = drawing.getChartSizes(true);
             var oInvertTransform = drawing.invertTransform;
             var dTx = oInvertTransform.TransformPointX(x, y);
