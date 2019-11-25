@@ -86,8 +86,10 @@ $(function() {
 	// 	return str;
 	// };
 	// baseEditorsApi.prototype.onDocumentContentReady = function() {
-	// 	// console.log(getTestValuesMatrix(this.wbModel.aWorksheets[1], AscCommonExcel.g_oRangeCache.getAscRange("B41:H52")));
-	// 	console.log(getTestMatrix(this.wbModel.aWorksheets[0]));
+	// 	if(this.wbModel){
+	// 		// console.log(getTestValuesMatrix(this.wbModel.aWorksheets[1], AscCommonExcel.g_oRangeCache.getAscRange("B41:H52")));
+	// 		console.log(getTestMatrix(this.wbModel.aWorksheets[0]));
+	// 	}
 	// };
 
 	Asc.spreadsheet_api.prototype._init = function() {
@@ -221,14 +223,15 @@ $(function() {
 		["West","Girl","Tee","38383","15","13.42","13.29"],
 		["West","Girl","Golf","38383","15","11.48","10.67"]
 	];
+	//todo date
 	var testData6 = [
 		["Region","Gender","Style","Ship date","Units","Price","Cost"],
 		["East","Boy","Tee","38383","12","11.04","10.42"],
-		["East","Boy","Golf","38383","12","1/13/1900","12.6"],
+		["East","Boy","Golf","38383","12","13","12.6"],
 		["East","Boy","Fancy","38383","12","11.96","11.74"],
-		["East","Girl","Tee","38383","10","1/11/1900","10.56"],
+		["East","Girl","Tee","38383","10","11.27","10.56"],
 		["East","Girl","Golf","38383","10","12.12","11.95"],
-		["East","Girl","Fancy","38383","10","1/13/1900","13.33"],
+		["East","Girl","Fancy","38383","10","13.74","13.33"],
 		["West","Boy","Tee","38383","11","11.44","10.94"],
 		["West","Boy","Golf","38383","11","12.63","11.73"],
 		["West","Boy","Fancy","38383","11","12.06","11.51"],
@@ -246,8 +249,8 @@ $(function() {
 		["West","Boy","Tee","38383","11","q","10.94"],
 		["West","Boy","Golf","38383","11","1","11.73"],
 		["West","Boy","Fancy","38383","11","","11.51"],
-		["West","Girl","Tee","38383","15","1","13.29"],
-		["West","Girl","Golf","38383","15","2","10.67"]
+		["West","Girl","Tee","38383","15","2","13.29"],
+		["West","Girl","Golf","38383","15","3","10.67"]
 	];
 
 	fillData(wsData, testData, testDataRange);
@@ -333,6 +336,7 @@ $(function() {
 		AscCommon.History.Undo();
 		wb.DeserializeHistory(changes);
 		checkReportValues(pivot, getReportValues(pivot), standards, message + "_changes");
+		return wb.getPivotTableById(pivot.Get_Id());
 	}
 
 
@@ -2296,10 +2300,76 @@ $(function() {
 			["East","1","0","0","0","0","#DIV/0!","0","#DIV/0!","#DIV/0!","#DIV/0!","#DIV/0!"],
 			["Boy","","","","","","","","","","",""],
 			["Girl","1","0","0","0","0","#DIV/0!","0","#DIV/0!","#DIV/0!","#DIV/0!","#DIV/0!"],
-			["West","4","3","1","2","4","1.333333333","2","0.577350269","0.471404521","0.333333333","0.222222222"],
+			["West","4","3","1","3","6","2","6","1","0.816496581","1","0.666666667"],
 			["Boy","2","1","1","1","1","1","1","#DIV/0!","0","#DIV/0!","0"],
-			["Girl","2","2","1","2","3","1.5","2","0.707106781","0.5","0.5","0.25"],
-			["Grand Total","5","3","1","2","4","1.333333333","2","0.577350269","0.471404521","0.333333333","0.222222222"]
+			["Girl","2","2","2","3","5","2.5","6","0.707106781","0.5","0.5","0.25"],
+			["Grand Total","5","3","1","3","6","2","6","1","0.816496581","1","0.666666667"]
+		],
+		"fieldSubtotalNone": [
+			["Sum of Price","Column Labels","","",""],
+			["Row Labels","Fancy","Golf","Tee","Grand Total"],
+			["East","","","",""],
+			["Boy","11.96","13","11.04","36"],
+			["Girl","13.74","12.12","11.27","37.13"],
+			["West","","","",""],
+			["Boy","12.06","12.63","11.44","36.13"],
+			["Girl","","11.48","13.42","24.9"],
+			["Grand Total","37.76","49.23","47.17","134.16"]
+		],
+		"fieldSubtotalAuto": [
+			["Sum of Price","Column Labels","","",""],
+			["Row Labels","Fancy","Golf","Tee","Grand Total"],
+			["East","25.7","25.12","22.31","73.13"],
+			["Boy","11.96","13","11.04","36"],
+			["Girl","13.74","12.12","11.27","37.13"],
+			["West","12.06","24.11","24.86","61.03"],
+			["Boy","12.06","12.63","11.44","36.13"],
+			["Girl","","11.48","13.42","24.9"],
+			["Grand Total","37.76","49.23","47.17","134.16"]
+		],
+		"fieldSubtotalCustom": [
+			["Sum of Price","Column Labels","","",""],
+			["Row Labels","Fancy","Golf","Tee","Grand Total"],
+			["East","2","2","2","6"],
+			["Boy","11.96","13","11.04","36"],
+			["Girl","13.74","12.12","11.27","37.13"],
+			["West","1","2","2","5"],
+			["Boy","12.06","12.63","11.44","36.13"],
+			["Girl","","11.48","13.42","24.9"],
+			["Grand Total","37.76","49.23","47.17","134.16"]
+		],
+		"fieldSubtotalAll": [
+			["Sum of Price","Column Labels","","",""],
+			["Row Labels","Fancy","Golf","Tee","Grand Total"],
+			["East","","","",""],
+			["Boy","11.96","13","11.04","36"],
+			["Girl","13.74","12.12","11.27","37.13"],
+			["East Sum","25.7","25.12","22.31","73.13"],
+			["East Count","2","2","2","6"],
+			["East Average","12.85","12.56","11.155","12.18833333"],
+			["East Max","13.74","13","11.27","13.74"],
+			["East Min","11.96","12.12","11.04","11.04"],
+			["East Product","164.3304","157.56","124.4208","3221490.641"],
+			["East Count","2","2","2","6"],
+			["East StdDev","1.258650071","0.622253967","0.16263456","1.028132611"],
+			["East StdDevp","0.89","0.44","0.115","0.938552372"],
+			["East Var","1.5842","0.3872","0.02645","1.057056667"],
+			["East Varp","0.7921","0.1936","0.013225","0.880880556"],
+			["West","","","",""],
+			["Boy","12.06","12.63","11.44","36.13"],
+			["Girl","","11.48","13.42","24.9"],
+			["West Sum","12.06","24.11","24.86","61.03"],
+			["West Count","1","2","2","5"],
+			["West Average","12.06","12.055","12.43","12.206"],
+			["West Max","12.06","12.63","13.42","13.42"],
+			["West Min","12.06","11.48","11.44","11.44"],
+			["West Product","12.06","144.9924","153.5248","268454.7463"],
+			["West Count","1","2","2","5"],
+			["West StdDev","#DIV/0!","0.813172798","1.400071427","0.834973053"],
+			["West StdDevp","0","0.575","0.99","0.746822603"],
+			["West Var","#DIV/0!","0.66125","1.9602","0.69718"],
+			["West Varp","0","0.330625","0.9801","0.557744"],
+			["Grand Total","37.76","49.23","47.17","134.16"]
 		]
 	};
 
@@ -2336,15 +2406,15 @@ $(function() {
 			AscCommon.History.Clear();
 			checkReportValues(pivot, getReportValues(pivot), standards[prefix + "_0data"], "0data");
 
-			checkHistoryOperation(pivot, standards[prefix + "_1data"], "1data", function(){
+			pivot = checkHistoryOperation(pivot, standards[prefix + "_1data"], "1data", function(){
 				pivot.asc_addDataField(api, 5);
 			});
 
-			checkHistoryOperation(pivot, standards[prefix + "_2data_col"], "2data_col", function(){
+			pivot = checkHistoryOperation(pivot, standards[prefix + "_2data_col"], "2data_col", function(){
 				pivot.asc_addDataField(api, 6);
 			});
 
-			checkHistoryOperation(pivot, standards[prefix + "_2data_row"], "2data_row", function(){
+			pivot = checkHistoryOperation(pivot, standards[prefix + "_2data_row"], "2data_row", function(){
 				pivot.asc_moveToRowField(api, Asc.st_VALUES);
 			});
 
@@ -2441,23 +2511,23 @@ $(function() {
 			AscCommon.History.Clear();
 			checkReportValues(pivot, getReportValues(pivot), standards[layout + "_2row_2col_2data_col"], "col3");
 
-			checkHistoryOperation(pivot, standards[layout + "_2row_2col_2data_col2"], "col2", function(){
+			pivot = checkHistoryOperation(pivot, standards[layout + "_2row_2col_2data_col2"], "col2", function(){
 				pivot.asc_moveColField(api, 2, 1);
 			});
 
-			checkHistoryOperation(pivot, standards[layout + "_2row_2col_2data_col1"], "col1", function(){
+			pivot = checkHistoryOperation(pivot, standards[layout + "_2row_2col_2data_col1"], "col1", function(){
 				pivot.asc_moveColField(api, 1, 0);
 			});
 
-			checkHistoryOperation(pivot, standards[layout + "_2row_2col_2data_row"], "row3", function(){
+			pivot = checkHistoryOperation(pivot, standards[layout + "_2row_2col_2data_row"], "row3", function(){
 				pivot.asc_moveToRowField(api, Asc.st_VALUES);
 			});
 
-			checkHistoryOperation(pivot, standards[layout + "_2row_2col_2data_row2"], "row2", function(){
+			pivot = checkHistoryOperation(pivot, standards[layout + "_2row_2col_2data_row2"], "row2", function(){
 				pivot.asc_moveRowField(api, 2, 1);
 			});
 
-			checkHistoryOperation(pivot, standards[layout + "_2row_2col_2data_row1"], "row1", function(){
+			pivot = checkHistoryOperation(pivot, standards[layout + "_2row_2col_2data_row1"], "row1", function(){
 				pivot.asc_moveRowField(api, 1, 0);
 			});
 
@@ -2480,20 +2550,20 @@ $(function() {
 			pivot.asc_addRowField(api, 4);
 
 			AscCommon.History.Clear();
-			checkHistoryOperation(pivot, standards["subtotal_" + layout + "_none"], "none", function(){
+			pivot = checkHistoryOperation(pivot, standards["subtotal_" + layout + "_none"], "none", function(){
 				props = new Asc.CT_pivotTableDefinition();
 				props.asc_setDefaultSubtotal(false);
 				pivot.asc_set(api, props);
 			});
 
-			checkHistoryOperation(pivot, standards["subtotal_" + layout + "_bottom"], "bottom", function(){
+			pivot = checkHistoryOperation(pivot, standards["subtotal_" + layout + "_bottom"], "bottom", function(){
 				props = new Asc.CT_pivotTableDefinition();
 				props.asc_setDefaultSubtotal(true);
 				props.asc_setSubtotalTop(false);
 				pivot.asc_set(api, props);
 			});
 
-			checkHistoryOperation(pivot, standards["subtotal_" + layout + "_top"], "top", function(){
+			pivot = checkHistoryOperation(pivot, standards["subtotal_" + layout + "_top"], "top", function(){
 				props = new Asc.CT_pivotTableDefinition();
 				props.asc_setDefaultSubtotal(true);
 				props.asc_setSubtotalTop(true);
@@ -2512,19 +2582,19 @@ $(function() {
 			pivot.asc_addDataField(api, 6);
 
 			AscCommon.History.Clear();
-			checkHistoryOperation(pivot, standards["insertBlankRow_1row"], "1row", function(){
+			pivot = checkHistoryOperation(pivot, standards["insertBlankRow_1row"], "1row", function(){
 				pivot.asc_addRowField(api, 0);
 			});
 
-			checkHistoryOperation(pivot, standards["insertBlankRow_2row"], "2row", function(){
+			pivot = checkHistoryOperation(pivot, standards["insertBlankRow_2row"], "2row", function(){
 				pivot.asc_moveToRowField(api, Asc.st_VALUES);
 			});
 
-			checkHistoryOperation(pivot, standards["insertBlankRow_3row"], "3row", function(){
+			pivot = checkHistoryOperation(pivot, standards["insertBlankRow_3row"], "3row", function(){
 				pivot.asc_addRowField(api, 1);
 			});
 
-			checkHistoryOperation(pivot, standards["insertBlankRow_4row"], "4row", function(){
+			pivot = checkHistoryOperation(pivot, standards["insertBlankRow_4row"], "4row", function(){
 				pivot.asc_addRowField(api, 2);
 			});
 
@@ -2538,32 +2608,80 @@ $(function() {
 			pivot.asc_getStyleInfo().asc_setName(api, pivot, pivotStyle);
 
 			AscCommon.History.Clear();
-			checkHistoryOperation(pivot, standards["filter_downThenOver1"], "downThenOver1", function(){
+			pivot = checkHistoryOperation(pivot, standards["filter_downThenOver1"], "downThenOver1", function(){
 				pivot.asc_addPageField(api, 0);
 			});
 
-			checkHistoryOperation(pivot, standards["filter_downThenOver3"], "downThenOver3", function(){
+			pivot = checkHistoryOperation(pivot, standards["filter_downThenOver3"], "downThenOver3", function(){
 				pivot.asc_addPageField(api, 1);
 				pivot.asc_addPageField(api, 2);
 			});
 
-			checkHistoryOperation(pivot, standards["filter_downThenOver3_2wrap"], "downThenOver3_2wrap", function(){
+			pivot = checkHistoryOperation(pivot, standards["filter_downThenOver3_2wrap"], "downThenOver3_2wrap", function(){
 				var props = new Asc.CT_pivotTableDefinition();
 				props.asc_setPageWrap(2);
 				pivot.asc_set(api, props);
 			});
 
-			checkHistoryOperation(pivot, standards["filter_downThenOver7_2wrap"], "downThenOver7_2wrap", function(){
+			pivot = checkHistoryOperation(pivot, standards["filter_downThenOver7_2wrap"], "downThenOver7_2wrap", function(){
 				pivot.asc_addPageField(api, 3);
 				pivot.asc_addPageField(api, 4);
 				pivot.asc_addPageField(api, 5);
 				pivot.asc_addPageField(api, 6);
 			});
 
-			checkHistoryOperation(pivot, standards["filter_overThenDown7_2wrap"], "overThenDown7_2wrap", function(){
+			pivot = checkHistoryOperation(pivot, standards["filter_overThenDown7_2wrap"], "overThenDown7_2wrap", function(){
 				var props = new Asc.CT_pivotTableDefinition();
 				props.asc_setPageOverThenDown(true);
 				pivot.asc_set(api, props);
+			});
+
+			ws.deletePivotTables(new AscCommonExcel.MultiplyRange(pivot.getReportRanges()).getUnionRange());
+		});
+	}
+
+	function testFieldSubtotal() {
+		test("Test: Field Subtotal", function() {
+			var pivot = api._asc_insertPivot(wb, dataRef, ws, reportRange);
+			pivot.asc_getStyleInfo().asc_setName(api, pivot, pivotStyle);
+			pivot.asc_addRowField(api, 0);
+			pivot.asc_addRowField(api, 1);
+			pivot.asc_addColField(api, 2);
+			pivot.asc_addDataField(api, 5);
+
+			AscCommon.History.Clear();
+
+			pivot = checkHistoryOperation(pivot, standards["fieldSubtotalNone"], "fieldSubtotalNone", function() {
+				var pivotField = pivot.asc_getPivotFields()[0];
+				var props = new CT_PivotField();
+				props.asc_setDefaultSubtotal(false);
+				pivotField.asc_set(api, pivot, 0, props);
+			});
+
+			pivot = checkHistoryOperation(pivot, standards["fieldSubtotalAuto"], "fieldSubtotalAuto", function() {
+				var pivotField = pivot.asc_getPivotFields()[0];
+				var props = new CT_PivotField();
+				props.asc_setDefaultSubtotal(true);
+				pivotField.asc_set(api, pivot, 0, props);
+			});
+
+			pivot = checkHistoryOperation(pivot, standards["fieldSubtotalCustom"], "fieldSubtotalCustom", function() {
+				var pivotField = pivot.asc_getPivotFields()[0];
+				var props = new CT_PivotField();
+				props.asc_setDefaultSubtotal(true);
+				props.asc_setSubtotals([Asc.c_oAscItemType.Count]);
+				pivotField.asc_set(api, pivot, 0, props);
+			});
+
+			pivot = checkHistoryOperation(pivot, standards["fieldSubtotalAll"], "fieldSubtotalAll", function() {
+				var pivotField = pivot.asc_getPivotFields()[0];
+				var props = new CT_PivotField();
+				props.asc_setDefaultSubtotal(true);
+				props.asc_setSubtotals([Asc.c_oAscItemType.Sum, Asc.c_oAscItemType.Count, Asc.c_oAscItemType.Avg,
+					Asc.c_oAscItemType.Max, Asc.c_oAscItemType.Min, Asc.c_oAscItemType.Product,
+					Asc.c_oAscItemType.CountA, Asc.c_oAscItemType.StdDev, Asc.c_oAscItemType.StdDevP,
+					Asc.c_oAscItemType.Var, Asc.c_oAscItemType.VarP]);
+				pivotField.asc_set(api, pivot, 0, props);
 			});
 
 			ws.deletePivotTables(new AscCommonExcel.MultiplyRange(pivot.getReportRanges()).getUnionRange());
@@ -2576,7 +2694,7 @@ $(function() {
 			pivot.asc_getStyleInfo().asc_setName(api, pivot, pivotStyle);
 
 			AscCommon.History.Clear();
-			checkHistoryOperation(pivot, standards["data_values1"], "values1", function() {
+			pivot = checkHistoryOperation(pivot, standards["data_values1"], "values1", function() {
 				pivot.asc_addRowField(api, 0);
 				pivot.asc_addRowField(api, 1);
 				var i;
@@ -2597,37 +2715,37 @@ $(function() {
 				}
 			});
 
-			checkHistoryOperation(pivot, standards["data_values2"], "values2", function() {
+			pivot = checkHistoryOperation(pivot, standards["data_values2"], "values2", function() {
 				var props = new Asc.CT_pivotTableDefinition();
 				props.asc_setDataRef(dataRef2);
 				pivot.asc_set(api, props);
 			});
 
-			checkHistoryOperation(pivot, standards["data_values3"], "values3", function() {
+			pivot = checkHistoryOperation(pivot, standards["data_values3"], "values3", function() {
 				var props = new Asc.CT_pivotTableDefinition();
 				props.asc_setDataRef(dataRef3);
 				pivot.asc_set(api, props);
 			});
 
-			checkHistoryOperation(pivot, standards["data_values4"], "values4", function() {
+			pivot = checkHistoryOperation(pivot, standards["data_values4"], "values4", function() {
 				var props = new Asc.CT_pivotTableDefinition();
 				props.asc_setDataRef(dataRef4);
 				pivot.asc_set(api, props);
 			});
 
-			checkHistoryOperation(pivot, standards["data_values5"], "values5", function() {
+			pivot = checkHistoryOperation(pivot, standards["data_values5"], "values5", function() {
 				var props = new Asc.CT_pivotTableDefinition();
 				props.asc_setDataRef(dataRef5);
 				pivot.asc_set(api, props);
 			});
 
-			checkHistoryOperation(pivot, standards["data_values6"], "values6", function() {
+			pivot = checkHistoryOperation(pivot, standards["data_values6"], "values6", function() {
 				var props = new Asc.CT_pivotTableDefinition();
 				props.asc_setDataRef(dataRef6);
 				pivot.asc_set(api, props);
 			});
 
-			checkHistoryOperation(pivot, standards["data_values7"], "values7", function() {
+			pivot = checkHistoryOperation(pivot, standards["data_values7"], "values7", function() {
 				var props = new Asc.CT_pivotTableDefinition();
 				props.asc_setDataRef(dataRef7);
 				pivot.asc_set(api, props);
@@ -2643,7 +2761,7 @@ $(function() {
 			pivot.asc_getStyleInfo().asc_setName(api, pivot, pivotStyle);
 
 			AscCommon.History.Clear();
-			checkHistoryOperation(pivot, standards["compact_0row_0col_0data"], "misc", function(){
+			pivot = checkHistoryOperation(pivot, standards["compact_0row_0col_0data"], "misc", function(){
 				var props = new Asc.CT_pivotTableDefinition();
 				props.asc_setName("new<&>pivot name");
 				props.asc_setTitle("Title");
@@ -2702,6 +2820,8 @@ $(function() {
 		testPivotInsertBlankRow();
 
 		testPivotPageFilterLayout();
+
+		testFieldSubtotal();
 
 		testDataValues();
 

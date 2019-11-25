@@ -107,7 +107,7 @@
 		return this.mean;
 	};
 	StatisticOnlineAlgorithm.prototype.getProduct = function() {
-		return this.product;
+		return this.countNums > 0 ? this.product : 0;
 	};
 	StatisticOnlineAlgorithm.prototype.getVar = function() {
 		return this.countNums > 1 ? (this.M2 / (this.countNums - 1)) : 0;
@@ -121,7 +121,7 @@
 	StatisticOnlineAlgorithm.prototype.getStdDevP = function() {
 		return Math.sqrt(this.getVarP());
 	};
-	StatisticOnlineAlgorithm.prototype.getCellValue = function(dataType, rowType, colType) {
+	StatisticOnlineAlgorithm.prototype.getCellValue = function(dataType, fieldType, rowType, colType) {
 		var oCellValue;
 		if (0 === this.count && 0 === this.countNums) {
 			return oCellValue;
@@ -134,6 +134,9 @@
 			return oCellValue;
 		}
 		var type = dataType;
+		if (Asc.c_oAscItemType.Default !== fieldType && Asc.c_oAscItemType.Data !== fieldType && Asc.c_oAscItemType.Blank !== fieldType && Asc.c_oAscItemType.Grand !== fieldType) {
+			type = fieldType;
+		}
 		if (Asc.c_oAscItemType.Default !== rowType && Asc.c_oAscItemType.Data !== rowType && Asc.c_oAscItemType.Blank !== rowType && Asc.c_oAscItemType.Grand !== rowType) {
 			type = rowType;
 			if (Asc.c_oAscItemType.Default !== colType && Asc.c_oAscItemType.Data !== colType && Asc.c_oAscItemType.Blank !== colType && Asc.c_oAscItemType.Grand !== colType) {
@@ -144,10 +147,10 @@
 		}
 		switch (type) {
 			case Asc.c_oAscItemType.Count:
-				oCellValue.number = this.getCount();
+				oCellValue.number = this.getCountNums();
 				break;
 			case Asc.c_oAscItemType.CountA:
-				oCellValue.number = this.getCountNums();
+				oCellValue.number = this.getCount();
 				break;
 			case Asc.c_oAscItemType.Max:
 				oCellValue.number = this.countNums > 0 ? this.getMax() : 0;

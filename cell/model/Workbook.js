@@ -6588,7 +6588,7 @@
 		var c1 = pivotRange.c1 + location.firstDataCol;
 		var curDataRow = dataRow;
 		var dataByRowIndex = [curDataRow];
-		var fieldIndex, field, fieldItem, dataByColIndex, dataField;
+		var fieldIndex, field, fieldItem, dataByColIndex, dataField, rowFieldSubtotal;
 		for (var rowItemsIndex = 0; rowItemsIndex < rowItems.length; ++rowItemsIndex) {
 			var rowItem = rowItems[rowItemsIndex];
 			if (Asc.c_oAscItemType.Blank === rowItem.t) {
@@ -6596,11 +6596,13 @@
 			}
 			var rowR = rowItem.getR();
 			curDataRow = dataByRowIndex[rowR];
+			rowFieldSubtotal = Asc.c_oAscItemType.Default;
 			if (Asc.c_oAscItemType.Grand !== rowItem.t && rowFields) {
 				for (var rowItemsXIndex = 0; rowItemsXIndex < rowItem.x.length; ++rowItemsXIndex) {
 					fieldIndex = rowFields[rowR + rowItemsXIndex].asc_getIndex();
 					if (AscCommonExcel.st_VALUES !== fieldIndex) {
 						field = pivotFields[fieldIndex];
+						rowFieldSubtotal = field.getSubtotalType();
 						fieldItem = field.getItem(rowItem.x[rowItemsXIndex].getV());
 						curDataRow = curDataRow.vals[fieldItem.x];
 					}
@@ -6612,8 +6614,8 @@
 			}
 			//todo
 			if (Asc.c_oAscItemType.Data !== rowItem.t || !rowFields || rowR + rowItem.x.length === rowFields.length ||
-				(AscCommonExcel.st_VALUES !== fieldIndex && pivotFields[fieldIndex].asc_getDefaultSubtotal() &&
-				pivotFields[fieldIndex].asc_getSubtotalTop() && rowR > valuesIndex)) {
+				(AscCommonExcel.st_VALUES !== fieldIndex && pivotFields[fieldIndex].checkSubtotalTop() &&
+				rowR > valuesIndex)) {
 				dataByColIndex = [curDataRow];
 				for (var colItemsIndex = 0; colItemsIndex < colItems.length; ++colItemsIndex) {
 					var colItem = colItems[colItemsIndex];
@@ -6636,7 +6638,8 @@
 					if (curDataRow) {
 						var dataIndex = Math.max(rowItem.i, colItem.i);
 						dataField = dataFields[dataIndex];
-						var oCellValue = curDataRow.total[dataIndex].getCellValue(dataField.subtotal, rowItem.t, colItem.t);
+						var total = curDataRow.total[dataIndex];
+						var oCellValue = total.getCellValue(dataField.subtotal, rowFieldSubtotal, rowItem.t, colItem.t);
 						if (oCellValue) {
 							var cells = this.getRange4(r1 + rowItemsIndex, c1 + colItemsIndex);
 							cells.setValueData(new AscCommonExcel.UndoRedoData_CellValueData(null, oCellValue));

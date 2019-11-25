@@ -52,8 +52,8 @@ var c_oAscFieldSortType = {
 };
 var c_oAscDataConsolidateFunction = {
 	Average: 1,
-	Count: 2,
-	CountNums: 3,
+	CountNums: 2,
+	Count: 3,
 	Max: 4,
 	Min: 5,
 	Product: 6,
@@ -8502,6 +8502,13 @@ CT_PivotField.prototype.checkSubtotal = function() {
 		newItem.t = subtotals[i];
 		this.items.item.push(newItem);
 	}
+};
+CT_PivotField.prototype.checkSubtotalTop = function() {
+	return this.asc_getSubtotalTop() && 1 === this.asc_getSubtotals(true).length;
+};
+CT_PivotField.prototype.getSubtotalType = function() {
+	var subtotals = this.asc_getSubtotals(true);
+	return 1 === subtotals.length ? subtotals[0] : Asc.c_oAscItemType.Default;
 };
 CT_PivotField.prototype.asc_set = function (api, pivot, index, newVal) {
 	var t = this;
