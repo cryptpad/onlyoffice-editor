@@ -9001,6 +9001,17 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 			}
 		}
 	};
+	CSortProperties.prototype.asc_addBySortList = function (sRange) {
+		//при количестве строк/столбцов более 500, добавляем по одной строке/одному столбцу
+		var selection = this._newSelection;
+		var range = AscCommonExcel.g_oRangeCache.getAscRange(sRange);
+		if(this.columnSort) {
+			this.sortList.push(this.getNameColumnByIndex(range.c1 - selection.c1, selection));
+		} else {
+			this.sortList.push(this.getNameColumnByIndex(range.r1 - selection.r1, selection));
+		}
+		return this.sortList.length - 1;
+	};
 	CSortProperties.prototype.getNameColumnByIndex = function (index, parentRef) {
 		var t = this;
 		var _generateName = function(index) {
@@ -9385,6 +9396,7 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	prot["asc_getLockChangeOrientation"] = prot.asc_getLockChangeOrientation;
 	prot["asc_getCaseSensitive"] = prot.asc_getCaseSensitive;
 	prot["asc_setCaseSensitive"] = prot.asc_setCaseSensitive;
+	prot["asc_addBySortList"] = prot.asc_addBySortList;
 
 	window["Asc"]["CSortPropertiesLevel"] = window["Asc"].CSortPropertiesLevel = CSortPropertiesLevel;
 	prot = CSortPropertiesLevel.prototype;
