@@ -2938,10 +2938,9 @@ var editor;
         var t = this;
           var fonts = {};
           fonts[props.BulletFont] = 1;
+          AscFonts.FontPickerByCharacter.checkTextLight(props.BulletSymbol);
           t._loadFonts(fonts, function() {
-            AscFonts.FontPickerByCharacter.checkText(props.BulletSymbol, this, function () {
-              ws.objectRender.setGraphicObjectProps(props);
-            });
+            ws.objectRender.setGraphicObjectProps(props);
           });
 
       }

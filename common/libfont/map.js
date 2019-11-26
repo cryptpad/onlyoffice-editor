@@ -2935,6 +2935,7 @@ function CApplicationFonts()
                 return objDst.MapDst[i];
             }
         }
+        return src;
     };
 
     this.GetFontFile = function(name, lStyle)
