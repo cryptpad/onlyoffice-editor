@@ -18520,7 +18520,11 @@
 				return false;
 			}
 		} else {
-			if(bExpand) {
+			var type = selection.getType();
+			if(c_oAscSelectionType.RangeMax === type || c_oAscSelectionType.RangeRow === type || c_oAscSelectionType.RangeCol === type ) {
+				//TODO возможно стоит обрезать в любом случае после expand
+				selection =  t.model.autoFilters.cutRangeByDefinedCells(selection);
+			} else if(bExpand) {
 				selection = t.model.autoFilters.expandRange(selection);
 			}
 
