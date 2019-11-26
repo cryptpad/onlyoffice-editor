@@ -18783,6 +18783,19 @@
 
 		return sortSettings;
 	};
+
+	WorksheetView.prototype.checkCustomSortRange = function (range, bRow) {
+		var res = null;
+		var ar = this.model.selectionRange.getLast();
+
+		if((bRow && range.r1 !== range.r2) || (!bRow && range.c1 !== range.c2)) {
+			res = c_oAscError.ID.CustomSortMoreOneSelectedError;
+		} else if(!((bRow && range.r1 >= ar.r1 && range.r1 <= ar.r2) || (!bRow && range.c1 >= ar.c1 && range.c1 <= ar.c2))) {
+			res = c_oAscError.ID.CustomSortNotOriginalSelectError;
+		}
+
+		return res;
+	};
 	
 
 	//HEADER/FOOTER

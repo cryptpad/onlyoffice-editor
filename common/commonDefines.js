@@ -215,7 +215,10 @@
 
 			NoDataToParse : -601,
 
-			CannotUngroupError : -700
+			CannotUngroupError : -700,
+
+			CustomSortMoreOneSelectedError: -800,
+			CustomSortNotOriginalSelectError: -801
 		}
 	};
 
@@ -1693,6 +1696,8 @@
 	prot['DataEncrypted']                    = prot.DataEncrypted;
 	prot['NoDataToParse']                    = prot.NoDataToParse;
 	prot['CannotUngroupError']               = prot.CannotUngroupError;
+	prot['CustomSortMoreOneSelectedError']   = prot.CustomSortMoreOneSelectedError;
+	prot['CustomSortNotOriginalSelectError'] = prot.CustomSortNotOriginalSelectError;
 	window['Asc']['c_oAscAsyncAction']       = window['Asc'].c_oAscAsyncAction = c_oAscAsyncAction;
 	prot                                     = c_oAscAsyncAction;
 	prot['Open']                             = prot.Open;
