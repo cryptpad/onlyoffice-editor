@@ -294,9 +294,15 @@ var editor;
       }
     }
   };
-	spreadsheet_api.prototype.asc_getLocale = function() {
-		return AscCommon.g_oDefaultCultureInfo.LCID;
-	};
+  spreadsheet_api.prototype.asc_getLocale = function () {
+    return AscCommon.g_oDefaultCultureInfo.LCID;
+  };
+  spreadsheet_api.prototype.asc_getDecimaleparator = function () {
+    return AscCommon.g_oDefaultCultureInfo.numberDecimalSeparator;
+  };
+  spreadsheet_api.prototype.asc_getGroupSeparator = function () {
+    return AscCommon.g_oDefaultCultureInfo.numberGroupSeparator;
+  };
   spreadsheet_api.prototype._openDocument = function(data) {
     this.wbModel = new AscCommonExcel.Workbook(this.handlers, this);
     this.initGlobalObjects(this.wbModel);
@@ -4327,6 +4333,8 @@ var editor;
   prot["asc_getLocaleCurrency"] = prot.asc_getLocaleCurrency;
   prot["asc_setLocale"] = prot.asc_setLocale;
   prot["asc_getLocale"] = prot.asc_getLocale;
+  prot["asc_getDecimalSeparator"] = prot.asc_getDecimalSeparator;
+  prot["asc_getGroupSeparator"] = prot.asc_getGroupSeparator;
   prot["asc_getEditorPermissions"] = prot.asc_getEditorPermissions;
   prot["asc_LoadDocument"] = prot.asc_LoadDocument;
   prot["asc_DownloadAs"] = prot.asc_DownloadAs;
