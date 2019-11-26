@@ -3066,7 +3066,7 @@ var editor;
             }
           }
 
-          if (ignoreWords[usrWords[i]] || changeWords[usrWords[i]]) {
+          if (ignoreWords[usrWords[i]] || changeWords[usrWords[i]] || usrWords[i].length <= 2) {
             usrCorrect[i] = true;
           }
         }
