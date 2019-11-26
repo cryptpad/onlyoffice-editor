@@ -1731,6 +1731,7 @@
     {
         var phType = this.getPhType();
         var aButtons = [];
+        var isLocalDesktop = window["AscDesktopEditor"] && window["AscDesktopEditor"]["IsLocalFile"] && window["AscDesktopEditor"]["IsLocalFile"]();
         switch (phType)
         {
             case null:
@@ -1739,8 +1740,11 @@
                 aButtons.push(AscCommon.PlaceholderButtonType.Chart);
                 aButtons.push(AscCommon.PlaceholderButtonType.Image);
                 aButtons.push(AscCommon.PlaceholderButtonType.ImageUrl);
-                aButtons.push(AscCommon.PlaceholderButtonType.Video);
-                aButtons.push(AscCommon.PlaceholderButtonType.Audio);
+                if(isLocalDesktop)
+                {
+                    aButtons.push(AscCommon.PlaceholderButtonType.Video);
+                    aButtons.push(AscCommon.PlaceholderButtonType.Audio);
+                }
                 break;
             }
             case AscFormat.phType_body:
@@ -1780,8 +1784,11 @@
             }
             case AscFormat.phType_media:
             {
-                aButtons.push(AscCommon.PlaceholderButtonType.Audio);
-                aButtons.push(AscCommon.PlaceholderButtonType.Video);
+                if(isLocalDesktop)
+                {
+                    aButtons.push(AscCommon.PlaceholderButtonType.Video);
+                    aButtons.push(AscCommon.PlaceholderButtonType.Audio);
+                }
                 break;
             }
             case AscFormat.phType_obj:
@@ -1790,8 +1797,11 @@
                 aButtons.push(AscCommon.PlaceholderButtonType.Chart);
                 aButtons.push(AscCommon.PlaceholderButtonType.Image);
                 aButtons.push(AscCommon.PlaceholderButtonType.ImageUrl);
-                aButtons.push(AscCommon.PlaceholderButtonType.Video);
-                aButtons.push(AscCommon.PlaceholderButtonType.Audio);
+                if(isLocalDesktop)
+                {
+                    aButtons.push(AscCommon.PlaceholderButtonType.Video);
+                    aButtons.push(AscCommon.PlaceholderButtonType.Audio);
+                }
                 break;
             }
             case AscFormat.phType_pic:
