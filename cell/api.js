@@ -297,7 +297,7 @@ var editor;
   spreadsheet_api.prototype.asc_getLocale = function () {
     return AscCommon.g_oDefaultCultureInfo.LCID;
   };
-  spreadsheet_api.prototype.asc_getDecimaleparator = function () {
+  spreadsheet_api.prototype.asc_getDecimalSeparator = function () {
     return AscCommon.g_oDefaultCultureInfo.numberDecimalSeparator;
   };
   spreadsheet_api.prototype.asc_getGroupSeparator = function () {
