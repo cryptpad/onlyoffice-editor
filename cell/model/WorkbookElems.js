@@ -8979,33 +8979,40 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		this.levels = val;
 	};
 
-	CSortProperties.prototype.asc_updateSortList = function () {
+	CSortProperties.prototype.asc_updateSortList = function (saveIndexes) {
 		//TODO change selection
-		this.generateSortList();
+		this.generateSortList(saveIndexes);
 	};
 	//TODO delete
 	CSortProperties.prototype.asc_getFilterInside = function () {
 	};
-	CSortProperties.prototype.generateSortList = function () {
-		this.sortList = [];
-
-		//TODO необходимо перегенерировать его с учётом имеющихся данных(при активации флага hasHeaders)
+	CSortProperties.prototype.generateSortList = function (saveIndexes) {
 		var maxCount = 500;
 		var selection = this._newSelection;
 		var j;
-		if(this.columnSort) {
-			for(j = selection.c1; j <= selection.c2; j++) {
-				if(j - selection.c1 === maxCount) {
-					break;
-				}
-				this.sortList.push(this.getNameColumnByIndex(j - selection.c1, selection));
+
+		if(saveIndexes && this.sortList && this.sortList.length) {
+			var newSortList = [];
+			for(j in this.sortList) {
+				newSortList[j] = this.getNameColumnByIndex(parseInt(j), selection);
 			}
+			this.sortList = newSortList;
 		} else {
-			for(j = selection.r1; j <= selection.r2; j++) {
-				if(j - selection.c1 === maxCount) {
-					break;
+			this.sortList = [];
+			if(this.columnSort) {
+				for(j = selection.c1; j <= selection.c2; j++) {
+					if(j - selection.c1 === maxCount) {
+						break;
+					}
+					this.sortList.push(this.getNameColumnByIndex(j - selection.c1, selection));
 				}
-				this.sortList.push(this.getNameColumnByIndex(j - selection.r1, selection));
+			} else {
+				for(j = selection.r1; j <= selection.r2; j++) {
+					if(j - selection.c1 === maxCount) {
+						break;
+					}
+					this.sortList.push(this.getNameColumnByIndex(j - selection.r1, selection));
+				}
 			}
 		}
 	};
