@@ -5161,42 +5161,54 @@ PasteProcessor.prototype =
 			return paraRun;
 		};
 
-		var newParagraph = getNewParagraph();
-		var insertText = "";
 
+		var _addToRun = function(_nUnicode) {
+			var Item;
+			if (0x2009 === _nUnicode || 9 === _nUnicode) {
+				Item = new ParaTab();
+			} else if (0x20 !== _nUnicode && 0xA0 !== _nUnicode) {
+				Item = new ParaText(_nUnicode);
+			} else {
+				Item = new ParaSpace();
+			}
+
+			//add text
+			newParaRun.AddToContent(-1, Item, false);
+		};
+
+		var newParagraph = getNewParagraph();
+		var partTextCount = 0;
+		var newParaRun = getNewParaRun();
 		for (var oIterator = text.getUnicodeIterator(); oIterator.check(); oIterator.next()) {
 			var pos = oIterator.position();
-			var _char = text.charAt(pos);
-			var _charCode = oIterator.value();
-			var newParaRun;
-			if(0x0A === _charCode ||  pos === Count - 1){
-				if(pos === Count - 1 && 0x0A !== _charCode){
-					insertText += _char;
+			var nUnicode = oIterator.value();
+
+			if(0x0A === nUnicode ||  pos === Count - 1){
+				if(pos === Count - 1 && 0x0A !== nUnicode){
+					_addToRun(nUnicode);
 				}
-				
-				newParaRun = getNewParaRun();
-				addTextIntoRun(newParaRun, insertText);
+
 				newParagraph.Internal_Content_Add(newParagraph.Content.length - 1, newParaRun, false);
 				this.aContent.push(newParagraph);
 
-				insertText = "";
 				newParagraph = getNewParagraph();
-			} else if(insertText.length === Asc.c_dMaxParaRunContentLength){//max run length
-				insertText += _char;
 				newParaRun = getNewParaRun();
-				addTextIntoRun(newParaRun, insertText);
+				partTextCount = 0;
+			} else if(partTextCount === Asc.c_dMaxParaRunContentLength){//max run length
+				_addToRun(nUnicode);
+
 				newParagraph.Internal_Content_Add(newParagraph.Content.length - 1, newParaRun, false);
-				insertText = "";
-			} else if(13 === _charCode) {
+				newParaRun = getNewParaRun();
+				partTextCount = 0;
+			} else if(13 === nUnicode) {
 				continue;
 			} else {
-				insertText += _char;
+				partTextCount++;
+				_addToRun(nUnicode);
 			}
 		}
 
-		if(insertText !== "") {
-			newParaRun = getNewParaRun();
-			addTextIntoRun(newParaRun, insertText);
+		if(partTextCount) {
 			newParagraph.Internal_Content_Add(newParagraph.Content.length - 1, newParaRun, false);
 			this.aContent.push(newParagraph);
 		}
