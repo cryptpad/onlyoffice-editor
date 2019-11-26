@@ -2580,6 +2580,7 @@ CAutoshapeTrack.prototype =
             return;
 
         var overlay = this.m_oOverlay;
+        overlay.SetBaseTransform();
         var ctx = overlay.m_oContext;
 
         this.CurrentPageInfo = overlay.m_oHtmlPage.GetDrawingPageInfo(this.PageIndex);
@@ -2638,6 +2639,7 @@ CAutoshapeTrack.prototype =
             return;
 
         var overlay = this.m_oOverlay;
+        overlay.SetBaseTransform();
         var ctx = overlay.m_oContext;
 
         this.CurrentPageInfo = overlay.m_oHtmlPage.GetDrawingPageInfo(this.PageIndex);
