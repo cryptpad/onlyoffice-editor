@@ -9020,12 +9020,10 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		//при количестве строк/столбцов более 500, добавляем по одной строке/одному столбцу
 		var selection = this._newSelection;
 		var range = AscCommonExcel.g_oRangeCache.getAscRange(sRange);
-		if(this.columnSort) {
-			this.sortList.push(this.getNameColumnByIndex(range.c1 - selection.c1, selection));
-		} else {
-			this.sortList.push(this.getNameColumnByIndex(range.r1 - selection.r1, selection));
-		}
-		return this.sortList.length - 1;
+		var index = this.columnSort ? range.c1 - selection.c1 : range.r1 - selection.r1;
+		this.sortList[index] = this.getNameColumnByIndex(index, selection);
+
+		return index;
 	};
 	CSortProperties.prototype.getNameColumnByIndex = function (index, parentRef) {
 		var t = this;
