@@ -2693,27 +2693,7 @@ CShape.prototype.recalculateTextStyles = function (level) {
             }
             else{
                 if (this.isPlaceholder() && !(this instanceof AscFormat.CGraphicFrame)) {
-                    switch (this.getPlaceholderType()) {
-                        case AscFormat.phType_ctrTitle:
-                        case AscFormat.phType_title:
-                        {
-                            master_ppt_styles = parent_objects.master.txStyles.titleStyle;
-                            break;
-                        }
-                        case AscFormat.phType_body:
-                        case AscFormat.phType_subTitle:
-                        case AscFormat.phType_obj:
-                        case null:
-                        {
-                            master_ppt_styles = parent_objects.master.txStyles.bodyStyle;
-                            break;
-                        }
-                        default:
-                        {
-                            master_ppt_styles = parent_objects.master.txStyles.otherStyle;
-                            break;
-                        }
-                    }
+                    master_ppt_styles = parent_objects.master.txStyles.getStyleByPhType(this.getPlaceholderType());
                 }
                 else {
                     master_ppt_styles = parent_objects.master.txStyles.otherStyle;

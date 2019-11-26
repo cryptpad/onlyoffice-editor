@@ -836,7 +836,7 @@ DrawingObjectsController.prototype =
         var oNvPr;
         if(this.document || this.drawingObjects && this.drawingObjects.cSld){
             if(/*e.CtrlKey*/true){
-                oNvPr = drawing.getNvProps();
+                oNvPr = drawing.getCNvProps();
                 if(oNvPr && oNvPr.hlinkClick && oNvPr.hlinkClick.id !== null){
                     if(this.handleEventMode === HANDLE_EVENT_MODE_HANDLE){
                         if(e.CtrlKey || this.isSlideShow()){
@@ -881,7 +881,7 @@ DrawingObjectsController.prototype =
             }
         }
         else if(this.drawingObjects && this.drawingObjects.getWorksheetModel){
-            oNvPr = drawing.getNvProps();
+            oNvPr = drawing.getCNvProps();
             if(oNvPr && oNvPr.hlinkClick && oNvPr.hlinkClick.id !== null){
 
                 if(this.handleEventMode === HANDLE_EVENT_MODE_HANDLE) {

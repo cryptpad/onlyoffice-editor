@@ -8854,6 +8854,29 @@ CTextStyles.prototype =
         return this.Id;
     },
 
+    getStyleByPhType: function(phType)
+    {
+        switch (phType) {
+            case AscFormat.phType_ctrTitle:
+            case AscFormat.phType_title:
+            {
+                return this.titleStyle;
+            }
+            case AscFormat.phType_body:
+            case AscFormat.phType_subTitle:
+            case AscFormat.phType_obj:
+            case null:
+            {
+                return this.bodyStyle;
+            }
+            default:
+            {
+                break;
+            }
+        }
+        return this.otherStyle;
+    },
+
     createDuplicate: function()
     {
         var ret = new CTextStyles();

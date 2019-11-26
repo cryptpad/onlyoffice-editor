@@ -1006,10 +1006,18 @@
         return this.nvSpPr || this.nvPicPr || this.nvGrpSpPr || this.nvGraphicFramePr || null;
     };
 
-    CGraphicObjectBase.prototype.getNvProps = function(){
+    CGraphicObjectBase.prototype.getCNvProps = function(){
         var oUniNvPr = this.getUniNvProps();
         if(oUniNvPr){
             return oUniNvPr.cNvPr;
+        }
+        return null;
+    };
+
+    CGraphicObjectBase.prototype.getNvProps = function(){
+        var oUniNvPr = this.getUniNvProps();
+        if(oUniNvPr){
+            return oUniNvPr.nvPr;
         }
         return null;
     };
@@ -1019,7 +1027,7 @@
         if(undefined === sTitle || null === sTitle){
             return;
         }
-        var oNvPr = this.getNvProps();
+        var oNvPr = this.getCNvProps();
         if(oNvPr){
             oNvPr.setTitle(sTitle ? sTitle : null);
         }
@@ -1029,14 +1037,14 @@
         if(undefined === sDescription || null === sDescription){
             return;
         }
-        var oNvPr = this.getNvProps();
+        var oNvPr = this.getCNvProps();
         if(oNvPr){
             oNvPr.setDescr(sDescription ? sDescription : null);
         }
     };
 
     CGraphicObjectBase.prototype.getTitle = function(){
-        var oNvPr = this.getNvProps();
+        var oNvPr = this.getCNvProps();
         if(oNvPr){
             return oNvPr.title ? oNvPr.title : undefined;
         }
@@ -1044,7 +1052,7 @@
     };
 
     CGraphicObjectBase.prototype.getDescription = function(){
-        var oNvPr = this.getNvProps();
+        var oNvPr = this.getCNvProps();
         if(oNvPr){
             return oNvPr.descr ? oNvPr.descr : undefined;
         }

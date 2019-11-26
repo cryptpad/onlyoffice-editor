@@ -9533,42 +9533,73 @@ CPresentation.prototype =
                     for(i = 0; i < Content.Drawings.length; ++i)
                     {
                         var bInsertShape = true;
-                        if(Content.Drawings[i].Drawing.isEmptyPlaceholder()){
+                        var oCopyObject = Content.Drawings[i];
+                        var oSp = oCopyObject.Drawing;
+                        var oSlidePh, oLayoutPlaceholder;
+
+                        var nType, nIdx;
+                        if(oSp.isPlaceholder())
+                        {
                             var oInfo = {};
-                            var nType = Content.Drawings[i].Drawing.getPlaceholderType();
-                            var nIdx = Content.Drawings[i].Drawing.getPlaceholderIndex();
-                            var oLayoutPlaceholder = this.Slides[this.CurPage].Layout.getMatchingShape(nType, nIdx, false, oInfo);
-                            if(!oLayoutPlaceholder ||  oInfo.bBadMatch){
-                                bInsertShape = false;
-                            }
-                            else{
-                                var oSlidePh = this.Slides[this.CurPage].getMatchingShape(nType, nIdx, false, oInfo);
-                                if(oSlidePh){
+                            nType = oSp.getPlaceholderType();
+                            nIdx = oSp.getPlaceholderIndex();
+                            oSlidePh = this.Slides[this.CurPage].getMatchingShape(nType, nIdx, false, oInfo);
+                            oLayoutPlaceholder = this.Slides[this.CurPage].Layout.getMatchingShape(nType, nIdx, false, oInfo);
+                            if(oSp.isEmptyPlaceholder()){
+                                if(!oLayoutPlaceholder ||  oInfo.bBadMatch){
                                     bInsertShape = false;
+                                }
+                                else{
+                                    if(oSlidePh){
+                                        bInsertShape = false;
+                                    }
                                 }
                             }
                         }
                         if(bInsertShape)
                         {
-                            if(Content.Drawings[i].Drawing.bDeleted)
+                            if(oSp.bDeleted)
                             {
-                                if(Content.Drawings[i].Drawing.setBDeleted2)
+                                if(oSp.setBDeleted2)
                                 {
-                                    Content.Drawings[i].Drawing.setBDeleted2(false);
+                                    oSp.setBDeleted2(false);
                                 }
-                                else if(Content.Drawings[i].Drawing.setBDeleted)
+                                else if(oSp.setBDeleted)
                                 {
-                                    Content.Drawings[i].Drawing.setBDeleted(false);
+                                    oSp.setBDeleted(false);
                                 }
                             }
-                            Content.Drawings[i].Drawing.setParent2(this.Slides[this.CurPage]);
-                            if(Content.Drawings[i].Drawing.getObjectType() === AscDFH.historyitem_type_GraphicFrame)
+                            oSp.setParent2(this.Slides[this.CurPage]);
+                            if(oSp.getObjectType() === AscDFH.historyitem_type_GraphicFrame)
                             {
-                                this.Check_GraphicFrameRowHeight(Content.Drawings[i].Drawing);
+                                this.Check_GraphicFrameRowHeight(oSp);
                             }
-                            Content.Drawings[i].Drawing.addToDrawingObjects();
-                            Content.Drawings[i].Drawing.checkExtentsByDocContent && Content.Drawings[i].Drawing.checkExtentsByDocContent();
-                            this.Slides[this.CurPage].graphicObjects.selectObject(Content.Drawings[i].Drawing, 0);
+                            oSp.addToDrawingObjects();
+                            oSp.checkExtentsByDocContent && oSp.checkExtentsByDocContent();
+                            if(oSp.isPlaceholder())
+                            {
+                                if(oSlidePh || !oLayoutPlaceholder)
+                                {
+                                    var oNvProps = oSp.getNvProps();
+                                    if(oNvProps && oNvProps.ph)
+                                    {
+                                        if(oSp.txBody)
+                                        {
+                                            var oParentObjects = oSp.getParentObjects();
+                                            if(oParentObjects && oParentObjects.master && oParentObjects.master.txStyles)
+                                            {
+                                                var oLstStyles = oParentObjects.master.txStyles.getStyleByPhType(nType);
+                                                if(oLstStyles)
+                                                {
+                                                    oSp.txBody.setLstStyle(oLstStyles);
+                                                }
+                                            }
+                                        }
+                                        oNvProps.setPh(null);
+                                    }
+                                }
+                            }
+                            this.Slides[this.CurPage].graphicObjects.selectObject(oSp, 0);
                             bInsert = true;
                         }
                     }
