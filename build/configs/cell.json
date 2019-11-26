@@ -239,8 +239,6 @@
 			"../common/Drawings/Format/DrawingContent.js",
 			"../common/plugins.js"
 		],
-		"private": [
-		],
 		"builder": [
 		],
 		"desktop": {

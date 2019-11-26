@@ -155,9 +155,6 @@ module.exports = function(grunt) {
 			});
 			result = result.concat(config['mobile']);
 		}
-		if (!grunt.option('noprivate')) {
-			result = result.concat(config['private']);
-		}
 		if (grunt.option('desktop')) {
 			result = result.concat(config['desktop']['common']);
 		}
