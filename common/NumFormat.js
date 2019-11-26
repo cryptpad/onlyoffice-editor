@@ -3731,10 +3731,10 @@ function escapeRegExp(string) {
 }
 function setCurrentCultureInfo(val) {
     var cultureInfoNew = g_aCultureInfos[val];
-    if (!cultureInfoNew || AscCommon.g_oDefaultCultureInfo === cultureInfoNew) {
+    if (!cultureInfoNew || g_oDefaultCultureInfo === cultureInfoNew) {
         return false;
     }
-    AscCommon.g_oDefaultCultureInfo = g_oDefaultCultureInfo = cultureInfoNew;
+    g_oDefaultCultureInfo = cultureInfoNew;
     return true;
 }
 	function checkCultureInfoFontPicker(LCID) {
@@ -3777,9 +3777,9 @@ function setCurrentCultureInfo(val) {
 		return true;
 	}
 	function getShortDateMonthFormat(bDate, bYear, opt_cultureInfo) {
-		var cultureInfo = opt_cultureInfo ? opt_cultureInfo : AscCommon.g_oDefaultCultureInfo;
+		var cultureInfo = opt_cultureInfo ? opt_cultureInfo : g_oDefaultCultureInfo;
 		var separator;
-		if ('/' == AscCommon.g_oDefaultCultureInfo.DateSeparator) {
+		if ('/' == g_oDefaultCultureInfo.DateSeparator) {
 			separator = '-';
 		} else {
 			separator = '/';
@@ -3801,7 +3801,7 @@ function setCurrentCultureInfo(val) {
 		return sRes;
 	}
 	function getShortDateFormat(opt_cultureInfo) {
-		var cultureInfo = opt_cultureInfo ? opt_cultureInfo : AscCommon.g_oDefaultCultureInfo;
+		var cultureInfo = opt_cultureInfo ? opt_cultureInfo : g_oDefaultCultureInfo;
 		var dateElems = [];
 		for (var i = 0; i < cultureInfo.ShortDatePattern.length; ++i) {
 			switch (cultureInfo.ShortDatePattern[i]) {
@@ -3829,7 +3829,7 @@ function setCurrentCultureInfo(val) {
 	}
 
 	function getShortDateFormat2(day, month, year, opt_cultureInfo) {
-		var cultureInfo = opt_cultureInfo ? opt_cultureInfo : AscCommon.g_oDefaultCultureInfo;
+		var cultureInfo = opt_cultureInfo ? opt_cultureInfo : g_oDefaultCultureInfo;
 		var dateElems = [];
 		for (var i = 0; i < cultureInfo.ShortDatePattern.length; ++i) {
 			switch (cultureInfo.ShortDatePattern[i]) {
@@ -3857,7 +3857,7 @@ function setCurrentCultureInfo(val) {
 	}
 
 	function getShortTimeFormat(opt_cultureInfo) {
-		var cultureInfo = opt_cultureInfo ? opt_cultureInfo : AscCommon.g_oDefaultCultureInfo;
+		var cultureInfo = opt_cultureInfo ? opt_cultureInfo : g_oDefaultCultureInfo;
 		if (cultureInfo.AMDesignator.length > 0 && cultureInfo.PMDesignator.length > 0) {
 			return 'h:mm AM/PM;@';
 		} else {
@@ -3874,7 +3874,7 @@ function setCurrentCultureInfo(val) {
 	}
 
 	function getNumberFormat(opt_cultureInfo, opt_separate, opt_fraction, opt_red) {
-		var cultureInfo = opt_cultureInfo ? opt_cultureInfo : AscCommon.g_oDefaultCultureInfo;
+		var cultureInfo = opt_cultureInfo ? opt_cultureInfo : g_oDefaultCultureInfo;
 		var numberFormat = getNumberFormatSimple(opt_separate, opt_fraction);
 		var red = opt_red ? '[Red]' : '';
 
@@ -3897,13 +3897,13 @@ function setCurrentCultureInfo(val) {
 	}
 
 	function getLocaleFormat(opt_cultureInfo, opt_currency) {
-		var cultureInfo = opt_cultureInfo ? opt_cultureInfo : AscCommon.g_oDefaultCultureInfo;
+		var cultureInfo = opt_cultureInfo ? opt_cultureInfo : g_oDefaultCultureInfo;
 		var symbol = opt_currency ? cultureInfo.CurrencySymbol : '';
 		return '[$' + symbol + '-' + cultureInfo.LCID.toString(16).toUpperCase() + ']';
 	}
 
 	function getCurrencyFormatSimple(opt_cultureInfo, opt_fraction, opt_currency, opt_currencyLocale, opt_red) {
-		var cultureInfo = opt_cultureInfo ? opt_cultureInfo : AscCommon.g_oDefaultCultureInfo;
+		var cultureInfo = opt_cultureInfo ? opt_cultureInfo : g_oDefaultCultureInfo;
 		var numberFormat = getNumberFormatSimple(true, opt_fraction);
 		var signCurrencyFormat;
 		var signCurrencyFormatEnd;
@@ -4005,7 +4005,7 @@ function setCurrentCultureInfo(val) {
 	}
 
 	function getCurrencyFormatSimple2(opt_cultureInfo, opt_fraction, opt_currency, opt_negative) {
-		var cultureInfo = opt_cultureInfo ? opt_cultureInfo : AscCommon.g_oDefaultCultureInfo;
+		var cultureInfo = opt_cultureInfo ? opt_cultureInfo : g_oDefaultCultureInfo;
 		var numberFormat = getNumberFormatSimple(true, opt_fraction);
 		var signCurrencyFormat;
 		var signCurrencyFormatEnd;
@@ -4050,7 +4050,7 @@ function setCurrentCultureInfo(val) {
 	}
 
 	function getCurrencyFormat(opt_cultureInfo, opt_fraction, opt_currency, opt_currencyLocale) {
-		var cultureInfo = opt_cultureInfo ? opt_cultureInfo : AscCommon.g_oDefaultCultureInfo;
+		var cultureInfo = opt_cultureInfo ? opt_cultureInfo : g_oDefaultCultureInfo;
 		var numberFormat = getNumberFormatSimple(true, opt_fraction);
 		var nullSignFormat = '* "-"';
 		if (opt_fraction) {
