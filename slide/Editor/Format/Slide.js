@@ -894,6 +894,20 @@ Slide.prototype =
         this.shapeAdd(pos, obj);
     },
 
+    replaceSp: function(oPh, oObject)
+    {
+        var aSpTree = this.cSld.spTree;
+        for(var i = aSpTree.length - 1; i > -1; --i)
+        {
+            if(aSpTree[i] === oPh)
+            {
+                this.removeFromSpTreeByPos(i);
+                this.addToSpTreeToPos(i, oObject);
+                break;
+            }
+        }
+    },
+
     setCSldName: function(name)
     {
        History.Add(new AscDFH.CChangesDrawingsString(this, AscDFH.historyitem_SlideSetCSldName, this.cSld.name, name));

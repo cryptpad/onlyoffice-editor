@@ -3417,9 +3417,9 @@ background-repeat: no-repeat;\
 
 	/*----------------------------------------------------------------*/
 	/*functions for working with table*/
-	asc_docs_api.prototype.put_Table               = function(col, row)
+	asc_docs_api.prototype.put_Table               = function(col, row, placeholder)
 	{
-		this.WordControl.m_oLogicDocument.Add_FlowTable(col, row);
+		this.WordControl.m_oLogicDocument.Add_FlowTable(col, row, placeholder);
 	};
 	asc_docs_api.prototype.addRowAbove             = function(count)
 	{
@@ -6934,7 +6934,7 @@ background-repeat: no-repeat;\
 		return this.WordControl.m_oLogicDocument.GetChartObject(type);
 	};
 
-	asc_docs_api.prototype.asc_addChartDrawingObject = function(chartBinary)
+	asc_docs_api.prototype.asc_addChartDrawingObject = function(chartBinary, Placeholder)
 	{
 		/**/
 
@@ -6944,7 +6944,7 @@ background-repeat: no-repeat;\
 			//if ( false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(changestype_Drawing_Props) )
 			{
 				AscFonts.IsCheckSymbols = true;
-				this.WordControl.m_oLogicDocument.addChart(chartBinary, true);
+				this.WordControl.m_oLogicDocument.addChart(chartBinary, true, Placeholder);
 				AscFonts.IsCheckSymbols = false;
 			}
 		}
