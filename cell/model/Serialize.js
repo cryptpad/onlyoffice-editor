@@ -789,7 +789,9 @@
         Chart: 7,
         Ext: 8,
         pptxDrawing: 9,
-        Chart2: 10
+        Chart2: 10,
+        ObjectName: 11,
+        EditAs: 12
     };
     /** @enum */
     var c_oSer_Pane = {
@@ -3917,6 +3919,7 @@
             {
                 case c_oAscCellAnchorType.cellanchorTwoCell:
                 {
+                    //this.bs.WriteItem(c_oSer_DrawingType.EditAs, function(){oThis.memory.WriteByte(oDrawing.EditAs);});
                     this.bs.WriteItem(c_oSer_DrawingType.From, function(){oThis.WriteFromTo(oDrawing.from);});
                     this.bs.WriteItem(c_oSer_DrawingType.To, function(){oThis.WriteFromTo(oDrawing.to);});
                     break;
@@ -7729,16 +7732,17 @@
             if ( c_oSerWorksheetsTypes.Drawing == type )
             {
                 var objectRender = new AscFormat.DrawingObjects();
-                var oFlags = {from: false, to: false, pos: false, ext: false};
+                var oFlags = {from: false, to: false, pos: false, ext: false, EditAs: c_oAscCellAnchorType.cellanchorTwoCell};
                 var oNewDrawing = objectRender.createDrawingObject();
                 res = this.bcr.Read1(length, function(t, l) {
                     return oThis.ReadDrawing(t, l, oNewDrawing, oFlags);
                 });
                 if(null != oNewDrawing.graphicObject)
                 {
-                    if(false != oFlags.from && false != oFlags.to)
+                    if(false != oFlags.from && false != oFlags.to) {
                         oNewDrawing.Type = c_oAscCellAnchorType.cellanchorTwoCell;
-                    else if(false != oFlags.from && false != oFlags.ext)
+                        //oNewDrawing.EditAs = oFlags.EditAs;
+                    } else if(false != oFlags.from && false != oFlags.ext)
                         oNewDrawing.Type = c_oAscCellAnchorType.cellanchorOneCell;
                     else if(false != oFlags.pos && false != oFlags.ext)
                         oNewDrawing.Type = c_oAscCellAnchorType.cellanchorAbsolute;
@@ -7775,6 +7779,8 @@
             var oThis = this;
             if ( c_oSer_DrawingType.Type == type )
                 oDrawing.Type = this.stream.GetUChar();
+            else if ( c_oSer_DrawingType.EditAs == type )
+                oFlags.EditAs = this.stream.GetUChar();
             else if ( c_oSer_DrawingType.From == type )
             {
                 oFlags.from = true;
