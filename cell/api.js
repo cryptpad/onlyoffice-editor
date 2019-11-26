@@ -83,7 +83,9 @@ var editor;
     this.fontRenderingMode = Asc.c_oAscFontRenderingModeType.hintingAndSubpixeling;
     this.wb = null;
     this.wbModel = null;
-    this.tmpLocale = null;
+    this.tmpLCID = null;
+    this.tmpDecimalSeparator = null;
+    this.tmpGroupSeparator = null;
     this.tmpLocalization = null;
 
     // spellcheck
@@ -270,15 +272,14 @@ var editor;
       return new AscCommon.asc_CListType(AscFormat.fGetListTypeFromBullet(oParaPr && oParaPr.Bullet));
   };
 
-    spreadsheet_api.prototype.asc_setLocale = function(val) {
+  spreadsheet_api.prototype.asc_setLocale = function (LCID, decimalSeparator, groupSeparator) {
     if (!this.isLoadFullApi) {
-      this.tmpLocale = val;
+      this.tmpLCID = LCID;
+      this.tmpDecimalSeparator = decimalSeparator;
+      this.tmpGroupSeparator = groupSeparator;
       return;
     }
-    if (null === val) {
-      return;
-    }
-    if (AscCommon.setCurrentCultureInfo(val)) {
+    if (AscCommon.setCurrentCultureInfo(LCID, decimalSeparator, groupSeparator)) {
       parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSeparator);
       if (this.wbModel) {
         AscCommon.oGeneralEditFormatCache.cleanCache();
@@ -286,7 +287,7 @@ var editor;
         this.wbModel.rebuildColors();
         if (this.isDocumentLoadComplete) {
           AscCommon.checkCultureInfoFontPicker();
-          this._loadFonts([], function() {
+          this._loadFonts([], function () {
             this._onUpdateAfterApplyChanges();
           });
         }
@@ -4206,7 +4207,7 @@ var editor;
 		this.controller = new AscCommonExcel.asc_CEventsController();
 
 		this.formulasList = AscCommonExcel.getFormulasInfo();
-		this.asc_setLocale(this.tmpLocale);
+		this.asc_setLocale(this.tmpLCID, this.tmpDecimalSeparator, this.tmpGroupSeparator);
 		this.asc_setLocalization(this.tmpLocalization);
 		this.asc_setViewMode(this.isViewMode);
 

@@ -224,7 +224,7 @@
 	 * @param {number} LCID
 	 */
 	Api.prototype.SetLocale = function(LCID) {
-		this.asc_setLocale(LCID);
+		this.asc_setLocale(LCID, null, null);
 	};
 	
 	/**
