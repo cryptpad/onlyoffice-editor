@@ -9024,14 +9024,14 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 			this.sortList = [];
 			if(this.columnSort) {
 				for(j = selection.c1; j <= selection.c2; j++) {
-					if(j - selection.c1 === maxCount) {
+					if(j - selection.c1 > maxCount) {
 						break;
 					}
 					this.sortList.push(this.getNameColumnByIndex(j - selection.c1, selection));
 				}
 			} else {
 				for(j = selection.r1; j <= selection.r2; j++) {
-					if(j - selection.c1 === maxCount) {
+					if(j - selection.r1 > maxCount) {
 						break;
 					}
 					this.sortList.push(this.getNameColumnByIndex(j - selection.r1, selection));
