@@ -4154,11 +4154,11 @@ background-repeat: no-repeat;\
 			}
 		}
 	};
-	asc_docs_api.prototype.AddImageUrl  = function(url, imgProp, token)
+	asc_docs_api.prototype.AddImageUrl  = function(url, imgProp, token, placeholder)
 	{
 		if (g_oDocumentUrls.getLocal(url))
 		{
-			this.AddImageUrlAction(url);
+			this.AddImageUrlAction(url, placeholder);
 		}
 		else
 		{
@@ -4166,13 +4166,13 @@ background-repeat: no-repeat;\
             AscCommon.sendImgUrls(this, [url], function(data) {
 
                 if (data && data[0])
-                    t.AddImageUrlAction(data[0].url);
+                    t.AddImageUrlAction(data[0].url, placeholder);
 
             }, false, undefined, token);
 		}
 	};
 
-	asc_docs_api.prototype.AddImageUrlActionCallback = function(_image)
+	asc_docs_api.prototype.AddImageUrlActionCallback = function(_image, placeholder)
 	{
 		var _w = AscCommon.Page_Width - (AscCommon.X_Left_Margin + AscCommon.X_Right_Margin);
 		var _h = AscCommon.Page_Height - (AscCommon.Y_Top_Margin + AscCommon.Y_Bottom_Margin);
@@ -4244,23 +4244,23 @@ background-repeat: no-repeat;\
 				src = srcLocal;
 			}
 
-			this.WordControl.m_oLogicDocument.Add_FlowImage(_w, _h, src);
+			this.WordControl.m_oLogicDocument.addImages([_image], placeholder);
 		}
 	};
 
-	asc_docs_api.prototype.AddImageUrlAction = function(url)
+	asc_docs_api.prototype.AddImageUrlAction = function(url, placeholder)
 	{
 		var _image = this.ImageLoader.LoadImage(url, 1);
 		if (null != _image)
 		{
-			this.AddImageUrlActionCallback(_image);
+			this.AddImageUrlActionCallback(_image, placeholder);
 		}
 		else
 		{
 			this.sync_StartAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.LoadImage);
 			this.asyncImageEndLoaded2 = function(_image)
 			{
-				this.AddImageUrlActionCallback(_image);
+				this.AddImageUrlActionCallback(_image, placeholder);
 				this.sync_EndAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.LoadImage);
 
 				this.asyncImageEndLoaded2 = null;
@@ -5394,14 +5394,14 @@ background-repeat: no-repeat;\
 		this.asyncImageEndLoaded2 = fCallback;
 	};
 
-	asc_docs_api.prototype.asyncImageEndLoaded = function(_image)
+	asc_docs_api.prototype.asyncImageEndLoaded = function(_image, placeholder)
 	{
 		// отжать заморозку меню
 		if (this.asyncImageEndLoaded2)
-			this.asyncImageEndLoaded2(_image);
+			this.asyncImageEndLoaded2(_image, placeholder);
 		else
 		{
-			this.WordControl.m_oLogicDocument.Add_FlowImage(50, 50, _image.src);
+			this.WordControl.m_oLogicDocument.addImages([_image], placeholder);
 		}
 	};
 

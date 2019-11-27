@@ -5217,30 +5217,49 @@ CPresentation.prototype =
         this.Document_UpdateInterfaceState();
     },
 
-    Add_FlowImage : function(W, H, Img)
-    {
-        if(this.Slides[this.CurPage])
-        {
-            editor.WordControl.Thumbnails && editor.WordControl.Thumbnails.SetFocusElement(FOCUS_OBJECT_MAIN);
-            this.FocusOnNotes = false;
-            var oController = this.Slides[this.CurPage].graphicObjects;
-            History.Create_NewPoint(AscDFH.historydescription_Presentation_AddFlowImage);
-            var Image = oController.createImage(Img, (this.Slides[this.CurPage].Width - W)/2, (this.Slides[this.CurPage].Height - H)/2, W, H);
-            Image.setParent(this.Slides[this.CurPage]);
-            Image.addToDrawingObjects();
-            oController.resetSelection();
-            oController.selectObject(Image, 0);
-            this.Recalculate();
-            this.Document_UpdateInterfaceState();
-            this.CheckEmptyPlaceholderNotes();
-        }
-    },
-
-    addImages: function(aImages){
+    addImages: function(aImages, placeholder){
         if(this.Slides[this.CurPage] && aImages.length){
             editor.WordControl.Thumbnails && editor.WordControl.Thumbnails.SetFocusElement(FOCUS_OBJECT_MAIN);
             this.FocusOnNotes = false;
             var oController = this.Slides[this.CurPage].graphicObjects;
+            if(placeholder && aImages.length === 1){
+                var oPh = AscCommon.g_oTableId.Get_ById(placeholder.id);
+                if(oPh)
+                {
+                    var oPh = AscCommon.g_oTableId.Get_ById(placeholder.id);
+                    if(oPh)
+                    {
+                        if(this.Document_Is_SelectionLocked( AscCommon.changestype_Drawing_Props, undefined, undefined, [oPh]))
+                        {
+                            return;
+                        }
+                        History.Create_NewPoint(AscDFH.historydescription_Presentation_AddFlowImage);
+                        oController.resetSelection();
+                        var _w, _h;
+                        var _image = aImages[0];
+                        _w = oPh.extX;
+                        _h = oPh.extY;
+                        var __w = Math.max((_image.Image.width * AscCommon.g_dKoef_pix_to_mm), 1);
+                        var __h = Math.max((_image.Image.height * AscCommon.g_dKoef_pix_to_mm), 1);
+                        var fKoeff = Math.min(_w/__w, _h/__h);
+                        _w      = Math.max(5, __w*fKoeff);
+                        _h      = Math.max(5, __h*fKoeff);
+                        var Image = oController.createImage(_image.src, oPh.x + oPh.extX / 2.0 - _w / 2.0, oPh.y + oPh.extY / 2.0 - _h / 2.0, _w, _h, _image.videoUrl, _image.audioUrl);
+                        this.Slides[this.CurPage].replaceSp(oPh, Image);
+                        Image.setParent(this.Slides[this.CurPage]);
+                        Image.addToDrawingObjects();
+                        oController.selectObject(Image, 0);
+                        this.Recalculate();
+                        this.Document_UpdateInterfaceState();
+                        this.CheckEmptyPlaceholderNotes();
+                        return;
+                    }
+                    else
+                    {
+                        return;
+                    }
+                }
+            }
             History.Create_NewPoint(AscDFH.historydescription_Presentation_AddFlowImage);
             oController.resetSelection();
             var _w, _h;
@@ -5430,13 +5449,13 @@ CPresentation.prototype =
             oPh = AscCommon.g_oTableId.Get_ById(Placeholder.id);
             if(oPh)
             {
-                Width = oPh.extX;
-                X = oPh.x;
-                Y = oPh.y;
                 if(this.Document_Is_SelectionLocked( AscCommon.changestype_Drawing_Props, undefined, undefined, [oPh]))
                 {
                     return;
                 }
+                Width = oPh.extX;
+                X = oPh.x;
+                Y = oPh.y;
             }
             else
             {
@@ -9641,7 +9660,7 @@ CPresentation.prototype =
                                             if(oParentObjects && oParentObjects.master && oParentObjects.master.txStyles)
                                             {
 
-                                                var oLstStylesTmp = oParentObjects.master.txStyles.getStyleByPhType(nType);
+                                                oLstStylesTmp = oParentObjects.master.txStyles.getStyleByPhType(nType);
                                                 if(oLstStylesTmp)
                                                 {
                                                     oLstStyles.merge(oLstStylesTmp);
