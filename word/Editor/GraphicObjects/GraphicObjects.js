@@ -444,7 +444,7 @@ CGraphicObjects.prototype =
         }
         if (TrackRevisions)
         {
-            this.document.SetTrackRevisions(false);
+            this.document.SetTrackRevisions(true);
         }
         return oParaDrawing;
     },
