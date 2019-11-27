@@ -264,7 +264,7 @@
         _elem = document.createElement("div");
         _elem.id = "pmpastehtml";
 
-        if (this.editorId == c_oEditorId.Word || this.editorId == c_oEditorId.Presentation)
+        if (this.editorId == AscCommon.c_oEditorId.Word || this.editorId == AscCommon.c_oEditorId.Presentation)
         {
             var textPr = this.get_TextProps();
             if (textPr)
@@ -282,7 +282,7 @@
                     _elem.style.color = "rgb(0,0,0)";
             }
         }
-        else if (this.editorId == c_oEditorId.Spreadsheet)
+        else if (this.editorId == AscCommon.c_oEditorId.Spreadsheet)
         {
             var props = this.asc_getCellInfo();
 
@@ -529,7 +529,7 @@
                 }
                 case "hideContentControlTrack":
                 {
-                    if (this.editorId === c_oEditorId.Word && this.WordControl && this.WordControl.m_oLogicDocument)
+                    if (this.editorId === AscCommon.c_oEditorId.Word && this.WordControl && this.WordControl.m_oLogicDocument)
                         this.WordControl.m_oLogicDocument.SetForceHideContentControlTrack(obj[prop]);
 
                     break;
