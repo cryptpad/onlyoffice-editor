@@ -5252,6 +5252,7 @@ CPresentation.prototype =
                         this.Recalculate();
                         this.Document_UpdateInterfaceState();
                         this.CheckEmptyPlaceholderNotes();
+                        this.DrawingDocument.m_oWordControl.OnUpdateOverlay();
                         return;
                     }
                     else
@@ -5371,6 +5372,8 @@ CPresentation.prototype =
                 _this.Recalculate();
                 _this.Document_UpdateInterfaceState();
                 _this.CheckEmptyPlaceholderNotes();
+
+                this.DrawingDocument.m_oWordControl.OnUpdateOverlay();
             }, false, false, false);
         }
         else
@@ -5378,6 +5381,8 @@ CPresentation.prototype =
             _this.Recalculate();
             _this.Document_UpdateInterfaceState();
             _this.CheckEmptyPlaceholderNotes();
+
+            this.DrawingDocument.m_oWordControl.OnUpdateOverlay();
         }
     },
 
@@ -5481,6 +5486,8 @@ CPresentation.prototype =
         this.Recalculate();
         this.Document_UpdateInterfaceState();
         this.Document_UpdateSelectionState();
+
+        this.DrawingDocument.m_oWordControl.OnUpdateOverlay();
 
     },
 

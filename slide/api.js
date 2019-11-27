@@ -4133,10 +4133,10 @@ background-repeat: no-repeat;\
 		return this.WordControl.m_oLogicDocument.canUnGroup();
 	};
 
-	asc_docs_api.prototype._addImageUrl = function(urls)
+	asc_docs_api.prototype._addImageUrl = function(urls, placeholder)
 	{
 		if(this.isImageChangeUrl || this.isShapeImageChangeUrl || this.isSlideImageChangeUrl || this.isTextArtChangeUrl){
-            this.AddImageUrl(urls[0]);
+            this.AddImageUrl(urls[0], undefined, undefined, placeholder);
 		}
 		else{
 			if(this.ImageLoader){
@@ -4149,7 +4149,7 @@ background-repeat: no-repeat;\
                             aImages.push(_image);
 						}
 					}
-                    oApi.WordControl.m_oLogicDocument.addImages(aImages);
+                    oApi.WordControl.m_oLogicDocument.addImages(aImages, placeholder);
                 }, []);
 			}
 		}

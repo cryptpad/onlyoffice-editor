@@ -1463,12 +1463,12 @@
 	baseEditorsApi.prototype._addImageUrl                        = function()
 	{
 	};
-	baseEditorsApi.prototype.asc_addImage                        = function()
+	baseEditorsApi.prototype.asc_addImage                        = function(placeholder)
 	{
 		var t = this;
 		AscCommon.ShowImageFileDialog(this.documentId, this.documentUserId, this.CoAuthoringApi.get_jwt(), function(error, files)
 		{
-			t._uploadCallback(error, files);
+			t._uploadCallback(error, files, placeholder);
 		}, function(error)
 		{
 			if (c_oAscError.ID.No !== error)
@@ -1478,7 +1478,7 @@
 			t.sync_StartAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.UploadImage);
 		});
 	};
-	baseEditorsApi.prototype._uploadCallback                     = function(error, files)
+	baseEditorsApi.prototype._uploadCallback                     = function(error, files, placeholder)
 	{
 		var t = this;
 		if (c_oAscError.ID.No !== error)
@@ -1496,7 +1496,7 @@
 				}
 				else
 				{
-					t._addImageUrl(urls);
+					t._addImageUrl(urls, placeholder);
 				}
 				t.sync_EndAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.UploadImage);
 			});
