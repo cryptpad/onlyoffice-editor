@@ -4590,7 +4590,8 @@ CPresentation.prototype =
         this.private_UpdateCursorXY(true, true);
         if(this.Slides[this.CurPage])
         {
-            this.DrawingDocument.placeholders.update(this.Slides[this.CurPage].getPlaceholdersControls());
+            if (this.DrawingDocument.placeholders)
+                this.DrawingDocument.placeholders.update(this.Slides[this.CurPage].getPlaceholdersControls());
         }
     },
 
@@ -8367,7 +8368,8 @@ CPresentation.prototype =
             this.Document_UpdateInterfaceState();
             if(this.Slides[this.CurPage])
             {
-                this.DrawingDocument.placeholders.update(this.Slides[this.CurPage].getPlaceholdersControls());
+                if (this.DrawingDocument.placeholders)
+                    this.DrawingDocument.placeholders.update(this.Slides[this.CurPage].getPlaceholdersControls());
             }
             return true;
         }
