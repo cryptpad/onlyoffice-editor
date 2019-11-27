@@ -109,9 +109,11 @@
 		this.allFontsMap = [];
 	}
 
-	var c_nPortionLeft = 0;
-	var c_nPortionCenter = 1;
-	var c_nPortionRight = 2;
+	var c_oPortionPosition = {
+		left: 0,
+		center: 1,
+		right: 2
+	};
 
 	var c_nPortionLeftHeader = 0;
 	var c_nPortionCenterHeader = 1;
@@ -126,7 +128,7 @@
 		this.date = date;
 
 		this.font = new AscCommonExcel.Font();
-		this.currPortion = c_nPortionCenter;
+		this.currPortion = c_oPortionPosition.center;
 		this.str = "";
 
 		var nState = c_nText;
@@ -162,15 +164,15 @@
 							this.str.push(cChar);
 							break;
 						case 'L':
-							this.setPortion(c_nPortionLeft);
+							this.setPortion(c_oPortionPosition.left);
 							this.font = new AscCommonExcel.Font();
 							break;
 						case 'C':
-							this.setPortion(c_nPortionCenter);
+							this.setPortion(c_oPortionPosition.center);
 							this.font = new AscCommonExcel.Font();
 							break;
 						case 'R':
-							this.setPortion(c_nPortionRight);
+							this.setPortion(c_oPortionPosition.right);
 							this.font = new AscCommonExcel.Font();
 							break;
 						case 'P':   //page number
@@ -428,15 +430,15 @@
 
 	HeaderFooterParser.prototype.assembleText = function () {
 		var newStr = "";
-		var curPortionLeft = this.assemblePortionText(c_nPortionLeft);
+		var curPortionLeft = this.assemblePortionText(c_oPortionPosition.left);
 		if(curPortionLeft) {
 			newStr += curPortionLeft;
 		}
-		var curPortionCenter = this.assemblePortionText(c_nPortionCenter);
+		var curPortionCenter = this.assemblePortionText(c_oPortionPosition.center);
 		if(curPortionCenter) {
 			newStr += curPortionCenter;
 		}
-		var curPortionRight = this.assemblePortionText(c_nPortionRight);
+		var curPortionRight = this.assemblePortionText(c_oPortionPosition.right);
 		if(curPortionRight) {
 			newStr += curPortionRight;
 		}
@@ -468,15 +470,15 @@
 	HeaderFooterParser.prototype.assemblePortionText = function (cPortion) {
 		var symbolPortion;
 		switch (cPortion) {
-			case c_nPortionLeft: {
+			case c_oPortionPosition.left: {
 				symbolPortion = "L";
 				break;
 			}
-			case c_nPortionCenter: {
+			case c_oPortionPosition.center: {
 				symbolPortion = "C";
 				break;
 			}
-			case c_nPortionRight: {
+			case c_oPortionPosition.right: {
 				symbolPortion = "R";
 				break;
 			}
@@ -1103,25 +1105,25 @@
 				curHeaderFooter.parser.portions = newPortions;
 			}
 
-			if(t.sections[type][c_nPortionLeft] && t.sections[type][c_nPortionLeft].changed) {
-				curHeaderFooter.parser.portions[c_nPortionLeft] = t._convertFragments(t.sections[type][c_nPortionLeft].fragments);
+			if(t.sections[type][c_oPortionPosition.left] && t.sections[type][c_oPortionPosition.left].changed) {
+				curHeaderFooter.parser.portions[c_oPortionPosition.left] = t._convertFragments(t.sections[type][c_oPortionPosition.left].fragments);
 			}
-			if(t.sections[type][c_nPortionCenter] && t.sections[type][c_nPortionCenter].changed) {
-				curHeaderFooter.parser.portions[c_nPortionCenter] = t._convertFragments(t.sections[type][c_nPortionCenter].fragments);
+			if(t.sections[type][c_oPortionPosition.center] && t.sections[type][c_oPortionPosition.center].changed) {
+				curHeaderFooter.parser.portions[c_oPortionPosition.center] = t._convertFragments(t.sections[type][c_oPortionPosition.center].fragments);
 			}
-			if(t.sections[type][c_nPortionRight] && t.sections[type][c_nPortionRight].changed) {
-				curHeaderFooter.parser.portions[c_nPortionRight] = t._convertFragments(t.sections[type][c_nPortionRight].fragments);
+			if(t.sections[type][c_oPortionPosition.right] && t.sections[type][c_oPortionPosition.right].changed) {
+				curHeaderFooter.parser.portions[c_oPortionPosition.right] = t._convertFragments(t.sections[type][c_oPortionPosition.right].fragments);
 			}
 
 			var oData = curHeaderFooter.parser.assembleText();
 			if(oData.str && oData.str.length >= Asc.c_oAscMaxHeaderFooterLength) {
 				var maxLength = oData.left.length;
-				var section = c_nPortionLeft;
+				var section = c_oPortionPosition.left;
 				if(oData.right.length > oData.left.length && oData.right.length > oData.center.length) {
-					section = c_nPortionRight;
+					section = c_oPortionPosition.right;
 					maxLength = oData.right.length;
 				} else if(oData.center.length > oData.left.length && oData.center.length > oData.right.length) {
-					section = c_nPortionCenter;
+					section = c_oPortionPosition.center;
 					maxLength = oData.center.length;
 				}
 
@@ -1168,16 +1170,16 @@
 			}
 
 			var isChanged = false;
-			if(this.sections[i][c_nPortionLeft] && this.sections[i][c_nPortionLeft].changed) {
-				curHeaderFooter.parser.portions[c_nPortionLeft] = this._convertFragments(this.sections[i][c_nPortionLeft].fragments);
+			if(this.sections[i][c_oPortionPosition.left] && this.sections[i][c_oPortionPosition.left].changed) {
+				curHeaderFooter.parser.portions[c_oPortionPosition.left] = this._convertFragments(this.sections[i][c_oPortionPosition.left].fragments);
 				isChanged = true;
 			}
-			if(this.sections[i][c_nPortionCenter] && this.sections[i][c_nPortionCenter].changed) {
-				curHeaderFooter.parser.portions[c_nPortionCenter] = this._convertFragments(this.sections[i][c_nPortionCenter].fragments);
+			if(this.sections[i][c_oPortionPosition.center] && this.sections[i][c_oPortionPosition.center].changed) {
+				curHeaderFooter.parser.portions[c_oPortionPosition.center] = this._convertFragments(this.sections[i][c_oPortionPosition.center].fragments);
 				isChanged = true;
 			}
-			if(this.sections[i][c_nPortionRight] && this.sections[i][c_nPortionRight].changed) {
-				curHeaderFooter.parser.portions[c_nPortionRight] = this._convertFragments(this.sections[i][c_nPortionRight].fragments);
+			if(this.sections[i][c_oPortionPosition.right] && this.sections[i][c_oPortionPosition.right].changed) {
+				curHeaderFooter.parser.portions[c_oPortionPosition.right] = this._convertFragments(this.sections[i][c_oPortionPosition.right].fragments);
 				isChanged = true;
 			}
 			//нужно добавлять в историю
@@ -1359,8 +1361,8 @@
 		var section = this.sections[curType];
 
 		if(this.cellEditor) {
-			if(section[c_nPortionLeft] && section[c_nPortionLeft].canvasObj) {
-				this.click(section[c_nPortionLeft].canvasObj.idParent);
+			if(section[c_oPortionPosition.left] && section[c_oPortionPosition.left].canvasObj) {
+				this.click(section[c_oPortionPosition.left].canvasObj.idParent);
 			}
 		}
 
@@ -1469,9 +1471,9 @@
 			this.sections[pageHeaderType] = [];
 
 			//создаём секции, если они уже не созданы
-			this.sections[pageHeaderType][c_nPortionLeft] = new CHeaderFooterEditorSection(pageHeaderType, c_nPortionLeftHeader, this.canvas[c_nPortionLeftHeader]);
-			this.sections[pageHeaderType][c_nPortionCenter] = new CHeaderFooterEditorSection(pageHeaderType, c_nPortionCenterHeader, this.canvas[c_nPortionCenterHeader]);
-			this.sections[pageHeaderType][c_nPortionRight] = new CHeaderFooterEditorSection(pageHeaderType, c_nPortionRightHeader, this.canvas[c_nPortionRightHeader]);
+			this.sections[pageHeaderType][c_oPortionPosition.left] = new CHeaderFooterEditorSection(pageHeaderType, c_nPortionLeftHeader, this.canvas[c_nPortionLeftHeader]);
+			this.sections[pageHeaderType][c_oPortionPosition.center] = new CHeaderFooterEditorSection(pageHeaderType, c_nPortionCenterHeader, this.canvas[c_nPortionCenterHeader]);
+			this.sections[pageHeaderType][c_oPortionPosition.right] = new CHeaderFooterEditorSection(pageHeaderType, c_nPortionRightHeader, this.canvas[c_nPortionRightHeader]);
 
 			//получаем из модели необходимый нам элемент
 			curPageHF = this._getCurPageHF(pageHeaderType);
@@ -1482,15 +1484,15 @@
 				parser = curPageHF.parser.portions;
 				leftFragments = getFragments(parser[0]);
 				if(null !== leftFragments) {
-					this.sections[pageHeaderType][c_nPortionLeft].fragments = leftFragments;
+					this.sections[pageHeaderType][c_oPortionPosition.left].fragments = leftFragments;
 				}
 				centerFragments = getFragments(parser[1]);
 				if(null !== centerFragments) {
-					this.sections[pageHeaderType][c_nPortionCenter].fragments = centerFragments;
+					this.sections[pageHeaderType][c_oPortionPosition.center].fragments = centerFragments;
 				}
 				rightFragments = getFragments(parser[2]);
 				if(null !== rightFragments) {
-					this.sections[pageHeaderType][c_nPortionRight].fragments = rightFragments;
+					this.sections[pageHeaderType][c_oPortionPosition.right].fragments = rightFragments;
 				}
 			}
 		}
@@ -1500,9 +1502,9 @@
 			this.sections[pageFooterType] = [];
 
 			//создаём секции, если они уже не созданы
-			this.sections[pageFooterType][c_nPortionLeft] = new CHeaderFooterEditorSection(pageFooterType, c_nPortionLeftFooter, this.canvas[c_nPortionLeftFooter]);
-			this.sections[pageFooterType][c_nPortionCenter] = new CHeaderFooterEditorSection(pageFooterType, c_nPortionCenterFooter, this.canvas[c_nPortionCenterFooter]);
-			this.sections[pageFooterType][c_nPortionRight] = new CHeaderFooterEditorSection(pageFooterType, c_nPortionRightFooter, this.canvas[c_nPortionRightFooter]);
+			this.sections[pageFooterType][c_oPortionPosition.left] = new CHeaderFooterEditorSection(pageFooterType, c_nPortionLeftFooter, this.canvas[c_nPortionLeftFooter]);
+			this.sections[pageFooterType][c_oPortionPosition.center] = new CHeaderFooterEditorSection(pageFooterType, c_nPortionCenterFooter, this.canvas[c_nPortionCenterFooter]);
+			this.sections[pageFooterType][c_oPortionPosition.right] = new CHeaderFooterEditorSection(pageFooterType, c_nPortionRightFooter, this.canvas[c_nPortionRightFooter]);
 
 			//получаем из модели необходимый нам элемент
 			curPageHF = this._getCurPageHF(pageFooterType);
@@ -1513,27 +1515,27 @@
 				parser = curPageHF.parser.portions;
 				leftFragments = getFragments(parser[0]);
 				if(null !== leftFragments) {
-					this.sections[pageFooterType][c_nPortionLeft].fragments = leftFragments;
+					this.sections[pageFooterType][c_oPortionPosition.left].fragments = leftFragments;
 				}
 				centerFragments = getFragments(parser[1]);
 				if(null !== centerFragments) {
-					this.sections[pageFooterType][c_nPortionCenter].fragments = centerFragments;
+					this.sections[pageFooterType][c_oPortionPosition.center].fragments = centerFragments;
 				}
 				rightFragments = getFragments(parser[2]);
 				if(null !== rightFragments) {
-					this.sections[pageFooterType][c_nPortionRight].fragments = rightFragments;
+					this.sections[pageFooterType][c_oPortionPosition.right].fragments = rightFragments;
 				}
 			}
 		}
 
 
 		//DRAW AFTER OPEN MENU
-		this.sections[pageHeaderType][c_nPortionLeft].drawText();
-		this.sections[pageHeaderType][c_nPortionCenter].drawText();
-		this.sections[pageHeaderType][c_nPortionRight].drawText();
-		this.sections[pageFooterType][c_nPortionLeft].drawText();
-		this.sections[pageFooterType][c_nPortionCenter].drawText();
-		this.sections[pageFooterType][c_nPortionRight].drawText();
+		this.sections[pageHeaderType][c_oPortionPosition.left].drawText();
+		this.sections[pageHeaderType][c_oPortionPosition.center].drawText();
+		this.sections[pageHeaderType][c_oPortionPosition.right].drawText();
+		this.sections[pageFooterType][c_oPortionPosition.left].drawText();
+		this.sections[pageFooterType][c_oPortionPosition.center].drawText();
+		this.sections[pageFooterType][c_oPortionPosition.right].drawText();
 	};
 
 	CHeaderFooterEditor.prototype._getHeaderFooterType = function(type, bFooter) {
@@ -1832,6 +1834,8 @@
 	window['AscCommonExcel'] = window['AscCommonExcel'] || {};
 
 	window["AscCommonExcel"].HeaderFooterParser = HeaderFooterParser;
+	window["AscCommonExcel"].CHeaderFooterEditorSection = CHeaderFooterEditorSection;
+
 	window["AscCommonExcel"].CHeaderFooterEditor = window["AscCommonExcel"]["CHeaderFooterEditor"] = CHeaderFooterEditor;
 	var prot = CHeaderFooterEditor.prototype;
 	prot["click"] 	= prot.click;
@@ -1861,5 +1865,7 @@
 	prot["getScaleWithDoc"] = prot.getScaleWithDoc;
 
 	prot["getPageType"] = prot.getPageType;
+
+	window['AscCommonExcel']['c_oPortionPosition'] = c_oPortionPosition;
 
 })(window);

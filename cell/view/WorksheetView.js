@@ -2916,7 +2916,7 @@
 
 		if(curHeader) {
 			if(!curHeader.parser) {
-				curHeader.parser = new HeaderFooterParser();
+				curHeader.parser = new AscCommonExcel.HeaderFooterParser();
 				curHeader.parser.parse(curHeader.str);
 			}
 			this._drawHeaderFooterText(drawingCtx, printPagesData, curHeader.parser, indexPrintPage, countPrintPages);
@@ -2934,7 +2934,7 @@
 
 		if(curFooter) {
 			if(!curFooter.parser) {
-				curFooter.parser = new HeaderFooterParser();
+				curFooter.parser = new AscCommonExcel.HeaderFooterParser();
 				curFooter.parser.parse(curFooter.str);
 			}
 			this._drawHeaderFooterText(drawingCtx, printPagesData, curFooter.parser, indexPrintPage, countPrintPages, true);
@@ -3006,7 +3006,7 @@
 			//добавляю флаги для учета переноса строки
 			var cellFlags = new AscCommonExcel.CellFlags();
 			cellFlags.wrapText = true;
-			cellFlags.textAlign = CHeaderFooterEditorSection.prototype.getAlign.call(null, index);
+			cellFlags.textAlign = window["AscCommonExcel"].CHeaderFooterEditorSection.prototype.getAlign.call(null, index);
 			var fragments = getFragments(portion);
 			t.stringRender.setString(fragments, cellFlags);
 
@@ -3014,17 +3014,17 @@
 			var textMetrics = t.stringRender._measureChars(maxWidth);
 			var x, y;
 			switch(index) {
-				case c_nPortionLeft: {
+				case window["AscCommonExcel"].c_oPortionPosition.left: {
 					x = left;
 					y = !bFooter ? top : footerStartPos - textMetrics.height;
 					break;
 				}
-				case c_nPortionCenter: {
+				case window["AscCommonExcel"].c_oPortionPosition.center: {
 					x = ((width - left - right) / 2 + left) - textMetrics.width / 2;
 					y = !bFooter ? top : footerStartPos - textMetrics.height;
 					break;
 				}
-				case c_nPortionRight: {
+				case window["AscCommonExcel"].c_oPortionPosition.right: {
 					x = width - right - textMetrics.width;
 					y = !bFooter ? top : footerStartPos - textMetrics.height;
 					break;
