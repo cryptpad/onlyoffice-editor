@@ -1856,3 +1856,11 @@ CDocumentContentBase.prototype.private_RejectRevisionChanges = function(nType, b
 		}
 	}
 };
+/**
+ * Вычисляем ли мы сейчас нижнюю границу секции для случая, когда следующая секция расположена на той же странице
+ * @returns {boolean}
+ */
+CDocumentContentBase.prototype.IsCalculatingContinuousSectionBottomLine = function()
+{
+	return false;
+};

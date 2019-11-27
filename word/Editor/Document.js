@@ -4448,6 +4448,17 @@ CDocument.prototype.private_CheckUnusedFields = function()
 			oSeparateChar.SetUse(false);
 	}
 };
+CDocument.prototype.IsCalculatingContinuousSectionBottomLine = function()
+{
+	var nPageIndex    = this.FullRecalc.PageIndex;
+	var nSectionIndex = this.FullRecalc.SectionIndex;
+
+	if (!this.Pages[nPageIndex] || !this.Pages[nPageIndex].Sections[nSectionIndex])
+		return false;
+
+	var oPageSection = this.Pages[nPageIndex].Sections[nSectionIndex];
+	return oPageSection.Is_CalculatingSectionBottomLine();
+};
 /**
  * Получаем номер рассчитанной страницы, с которой начинается заданный элемент
  * @param nElementPos

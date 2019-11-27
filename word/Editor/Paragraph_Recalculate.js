@@ -1461,7 +1461,7 @@ Paragraph.prototype.private_RecalculateLinePosition    = function(CurLine, CurPa
 		// TODO: Здесь нужно сделать корректировку YLimit с учетом сносок. Надо разобраться почему вообще здесь
 		// используется this.YLimit вместо Page.YLimit
 
-		if (false === this.Parent.IsTableCellContent() && Bottom > this.YLimit && Bottom - this.YLimit <= ParaPr.Spacing.After)
+		if (!this.Parent.IsCalculatingContinuousSectionBottomLine() && false === this.Parent.IsTableCellContent() && Bottom > this.YLimit && Bottom - this.YLimit <= ParaPr.Spacing.After)
 			Bottom = this.YLimit;
 	}
 
