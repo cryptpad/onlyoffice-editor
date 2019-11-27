@@ -5320,11 +5320,19 @@ CPresentation.prototype =
             var oPh = AscCommon.g_oTableId.Get_ById(Placeholder.id);
             if(oPh)
             {
+                if(this.Document_Is_SelectionLocked( AscCommon.changestype_Drawing_Props, undefined, undefined, [oPh]))
+                {
+                    return;
+                }
                 PosX  = oPh.x;
                 PosY  = oPh.y;
                 Image.spPr.xfrm.setExtX(oPh.extX);
                 Image.spPr.xfrm.setExtY(oPh.extY);
                 oSlide.replaceSp(oPh, Image);
+            }
+            else
+            {
+                return;
             }
         }
         else
@@ -5416,8 +5424,7 @@ CPresentation.prototype =
         if(!this.Slides[this.CurPage])
             return;
 
-        History.Create_NewPoint(AscDFH.historydescription_Presentation_AddFlowTable);
-        var nCheckType = AscCommon.changestype_AddShape, Width = undefined, Height = undefined, oPh, X = undefined, Y = undefined;
+        var Width = undefined, Height = undefined, oPh, X = undefined, Y = undefined;
         if(Placeholder)
         {
             oPh = AscCommon.g_oTableId.Get_ById(Placeholder.id);
@@ -5426,8 +5433,17 @@ CPresentation.prototype =
                 Width = oPh.extX;
                 X = oPh.x;
                 Y = oPh.y;
+                if(this.Document_Is_SelectionLocked( AscCommon.changestype_Drawing_Props, undefined, undefined, [oPh]))
+                {
+                    return;
+                }
+            }
+            else
+            {
+                return;
             }
         }
+        History.Create_NewPoint(AscDFH.historydescription_Presentation_AddFlowTable);
         var graphic_frame = this.Create_TableGraphicFrame(Cols, Rows, this.Slides[this.CurPage], this.DefaultTableStyleId, Width, Height, X, Y);
         var oSlide = this.Slides[this.CurPage];
         editor.WordControl.Thumbnails && editor.WordControl.Thumbnails.SetFocusElement(FOCUS_OBJECT_MAIN);
@@ -9616,17 +9632,38 @@ CPresentation.prototype =
                                     var oNvProps = oSp.getNvProps();
                                     if(oNvProps && oNvProps.ph)
                                     {
+
+
                                         if(oSp.txBody)
                                         {
-                                            var oParentObjects = oSp.getParentObjects();
+                                            var oLstStyles = new AscFormat.TextListStyle(), oLstStylesTmp, oParentObjects;
+                                            oParentObjects = oSp.getParentObjects();
                                             if(oParentObjects && oParentObjects.master && oParentObjects.master.txStyles)
                                             {
-                                                var oLstStyles = oParentObjects.master.txStyles.getStyleByPhType(nType);
-                                                if(oLstStyles)
+
+                                                var oLstStylesTmp = oParentObjects.master.txStyles.getStyleByPhType(nType);
+                                                if(oLstStylesTmp)
                                                 {
-                                                    oSp.txBody.setLstStyle(oLstStyles);
+                                                    oLstStyles.merge(oLstStylesTmp);
                                                 }
                                             }
+
+                                            var aHierarhy = oSp.getHierarchy();
+                                            var oBodyPr = new AscFormat.CBodyPr();
+                                            for(var s = aHierarhy.length - 1; s > -1; --s)
+                                            {
+                                                if(aHierarhy[s])
+                                                {
+                                                    if(aHierarhy[s].txBody)
+                                                    {
+                                                        oLstStyles.merge(aHierarhy[s].txBody.lstStyle);
+                                                        oBodyPr.merge(aHierarhy[s].txBody.bodyPr);
+                                                    }
+                                                }
+                                            }
+                                            oLstStyles.merge(oSp.txBody.lstStyle);
+                                            oSp.txBody.setLstStyle(oLstStyles);
+                                            oSp.txBody.setBodyPr(oBodyPr);
                                         }
                                         oNvProps.setPh(null);
                                     }

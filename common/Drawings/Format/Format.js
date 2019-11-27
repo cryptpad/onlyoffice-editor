@@ -10637,8 +10637,6 @@ function TextListStyle()
 
     for (var i = 0; i < 10; i++)
         this.levels[i] = null;
-
-
 }
 
 TextListStyle.prototype =
@@ -10692,6 +10690,28 @@ TextListStyle.prototype =
         }
     },
 
+
+    merge: function(oTextListStyle)
+    {
+        if(!oTextListStyle)
+        {
+            return;
+        }
+        for(var i = 0; i < this.levels.length; ++i)
+        {
+            if(oTextListStyle.levels[i])
+            {
+                if(this.levels[i])
+                {
+                    this.levels[i].Merge(oTextListStyle.levels[i]);
+                }
+                else
+                {
+                    this.levels[i] = oTextListStyle.levels[i].Copy();
+                }
+            }
+        }
+    },
 
     Document_Get_AllFontNames: function(AllFonts){
         for(var i = 0; i < 10; ++i){
