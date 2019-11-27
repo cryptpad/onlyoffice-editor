@@ -14026,7 +14026,7 @@ CDocument.prototype.Get_SectionProps = function()
 	var CurPos = this.CurPos.ContentPos;
 	var SectPr = this.SectionsInfo.Get_SectPr(CurPos).SectPr;
 
-	return new Asc.CDocumentSectionProps(SectPr);
+	return new Asc.CDocumentSectionProps(SectPr, this);
 };
 /**
  * Получаем ширину текущей колонки
