@@ -13594,6 +13594,12 @@
 			History.EndTransaction();
 		}
 
+		if(isFormula && !applyByArray) {
+			c._foreach(function(cell){
+				cell._adjustCellFormat();
+			});
+		}
+
 		if (oAutoExpansionTable && !applyByArray) {
 			var callback = function () {
 				var options = {
