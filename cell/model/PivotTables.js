@@ -4126,13 +4126,13 @@ CT_pivotTableDefinition.prototype.updateRowColItems = function () {
 	if (rowFields) {
 		rowItems = new CT_rowItems();
 		indexValues = this.getRowFieldsValuesIndex();
-		this._updateRowColItemsRecursively(0, dataRow, undefined, rowItems.i, rowFields, false, pivotFields, 0, dataFields, indexValues);
+		this._updateRowColItemsRecursively(0, dataRow, undefined, rowItems.i, rowFields, false, pivotFields, 0, dataFields, indexValues, false);
 		this._updateRowColItemsGrandTotal(this.rowGrandTotals, indexValues, rowItems.i, rowFields, dataFields);
 	}
 	if (colFields) {
 		colItems = new CT_colItems();
 		indexValues = this.getColumnFieldsValuesIndex();
-		this._updateRowColItemsRecursively(0, {vals: dataRow.subtotal}, undefined, colItems.i, colFields, true, pivotFields, 0, dataFields, indexValues);
+		this._updateRowColItemsRecursively(0, {vals: dataRow.subtotal}, undefined, colItems.i, colFields, true, pivotFields, 0, dataFields, indexValues, false);
 		this._updateRowColItemsGrandTotal(this.colGrandTotals, indexValues, colItems.i, colFields, dataFields);
 	}
 	if (rowFields || colFields || dataFields) {
@@ -4149,7 +4149,7 @@ CT_pivotTableDefinition.prototype.updateRowColItems = function () {
 	this.setColItems(colItems, true);
 	return dataRow;
 };
-CT_pivotTableDefinition.prototype._updateRowColItemsRecursively = function(index, dataMap, parentI, items, fields, isCol, pivotFields, dataIndex, dataFields, indexValues) {
+CT_pivotTableDefinition.prototype._updateRowColItemsRecursively = function(index, dataMap, parentI, items, fields, isCol, pivotFields, dataIndex, dataFields, indexValues, showAll) {
 	if (index >= fields.length) {
 		return;
 	}
@@ -4162,7 +4162,7 @@ CT_pivotTableDefinition.prototype._updateRowColItemsRecursively = function(index
 				if (dataField) {
 					pivotField = pivotFields[dataField.asc_getIndex()];
 					if (pivotField) {
-						this._updateRowColItemsRecursivelyElem(index, dataMap, items, fields, isCol, pivotField, pivotFields, indexItem, dataFields, indexItem, parentI, indexValues);
+						this._updateRowColItemsRecursivelyElem(index, dataMap, items, fields, isCol, pivotField, pivotFields, indexItem, dataFields, indexItem, parentI, indexValues, showAll);
 						parentI = null;
 					}
 				}
@@ -4174,9 +4174,15 @@ CT_pivotTableDefinition.prototype._updateRowColItemsRecursively = function(index
 			for (indexItem = 0; indexItem < pivotField.items.item.length; ++indexItem) {
 				item = pivotField.items.item[indexItem];
 				if (Asc.c_oAscItemType.Data === item.t) {
-					subDataMap = pivotField.showAll ? new PivotDataElem(dataFields.length) : dataMap.vals[item.x];
+					subDataMap = dataMap.vals[item.x];
+					if(!subDataMap && (showAll || pivotField.showAll)){
+						showAll = showAll || pivotField.showAll;
+						subDataMap = new PivotDataElem(dataFields.length);
+					} else {
+						showAll = false;
+					}
 					if (subDataMap) {
-						this._updateRowColItemsRecursivelyElem(index, subDataMap, items, fields, isCol, pivotField, pivotFields, dataIndex, dataFields, indexItem, parentI, indexValues);
+						this._updateRowColItemsRecursivelyElem(index, subDataMap, items, fields, isCol, pivotField, pivotFields, dataIndex, dataFields, indexItem, parentI, indexValues, showAll);
 						parentI = null;
 					}
 				}
@@ -4184,7 +4190,7 @@ CT_pivotTableDefinition.prototype._updateRowColItemsRecursively = function(index
 		}
 	}
 };
-CT_pivotTableDefinition.prototype._updateRowColItemsRecursivelyElem = function(index, dataMap, items, fields, isCol, parentPivotField, pivotFields, dataIndex, dataFields, indexItem, parentI, indexValues) {
+CT_pivotTableDefinition.prototype._updateRowColItemsRecursivelyElem = function(index, dataMap, items, fields, isCol, parentPivotField, pivotFields, dataIndex, dataFields, indexItem, parentI, indexValues, showAll) {
 	var newI, newParentI, i, j;
 	var newX = new CT_X();
 	newX.v = indexItem;
@@ -4201,7 +4207,7 @@ CT_pivotTableDefinition.prototype._updateRowColItemsRecursivelyElem = function(i
 		newParentI = isTabular ? newI : undefined;
 	}
 	this._updateRowColItemsRecursively(index + 1, dataMap, newParentI, items,
-			fields,	isCol, pivotFields, dataIndex, dataFields, indexValues);
+			fields,	isCol, pivotFields, dataIndex, dataFields, indexValues, showAll);
 	var subtotals;
 	var subtotalTop = true;
 	var x = fields[index].x;

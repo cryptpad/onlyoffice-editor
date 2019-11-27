@@ -6600,13 +6600,14 @@
 			if (Asc.c_oAscItemType.Grand !== rowItem.t && rowFields) {
 				for (var rowItemsXIndex = 0; rowItemsXIndex < rowItem.x.length; ++rowItemsXIndex) {
 					fieldIndex = rowFields[rowR + rowItemsXIndex].asc_getIndex();
-					if (AscCommonExcel.st_VALUES !== fieldIndex) {
+					if (curDataRow && AscCommonExcel.st_VALUES !== fieldIndex) {
 						field = pivotFields[fieldIndex];
 						rowFieldSubtotal = field.getSubtotalType();
 						fieldItem = field.getItem(rowItem.x[rowItemsXIndex].getV());
 						curDataRow = curDataRow.vals[fieldItem.x];
 					}
-					dataByRowIndex[rowR + rowItemsXIndex + 1] = curDataRow;
+					dataByRowIndex.length = rowR + rowItemsXIndex + 1;
+					dataByRowIndex[dataByRowIndex.length] = curDataRow;
 					if (!curDataRow) {
 						break;
 					}
