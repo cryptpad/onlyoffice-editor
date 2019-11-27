@@ -3034,11 +3034,13 @@ var editor;
 
     // spellCheck
     spreadsheet_api.prototype.cleanSpelling = function (isCellEditing) {
-      if (!this.spellcheckState.lockSpell && this.spellcheckState.startCell) {
-        var cellsChange = this.spellcheckState.cellsChange;
-        var lastFindOptions = this.spellcheckState.lastFindOptions;
-        if (cellsChange.length !== 0 && lastFindOptions && !isCellEditing) {
-          this.asc_replaceMisspelledWords(lastFindOptions);
+      if (!this.spellcheckState.lockSpell) {
+        if (this.spellcheckState.startCell) {
+          var cellsChange = this.spellcheckState.cellsChange;
+          var lastFindOptions = this.spellcheckState.lastFindOptions;
+          if (cellsChange.length !== 0 && lastFindOptions && !isCellEditing) {
+            this.asc_replaceMisspelledWords(lastFindOptions);
+          }
         }
         this.handlers.trigger("asc_onSpellCheckVariantsFound", null);
         this.spellcheckState.isStart = false;
