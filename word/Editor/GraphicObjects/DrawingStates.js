@@ -540,7 +540,7 @@ MoveInlineObject.prototype =
             {
 				this.drawingObjects.document.StartAction(AscDFH.historydescription_Document_CopyAndMoveInlineObject);
                 var new_para_drawing = new ParaDrawing(this.majorObject.parent.Extent.W, this.majorObject.parent.Extent.H, null, this.drawingObjects.drawingDocument, null, null);
-                var drawing = this.majorObject.copy();
+                var drawing = this.majorObject.copy(undefined);
                 drawing.setParent(new_para_drawing);
                 new_para_drawing.Set_GraphicObject(drawing);
                 new_para_drawing.Add_ToDocument(this.InlinePos, false);
@@ -742,11 +742,12 @@ RotateState.prototype =
 
                                 var oOriginalRun = original.Parent.Get_DrawingObjectRun(original.Id);
 
+                                // Всегда создаем копию при переносе, чтобы не было проблем при совместном редактировании
+                                var originalCopy = original.Copy();
+                                originalCopy.CopyComments();
                                 original.Remove_FromDocument(false);
                                 aNearestPos[i].Paragraph.Check_NearestPos(aNearestPos[i]);
 
-                                // Всегда создаем копию при переносе, чтобы не было проблем при совместном редактировании
-                                var originalCopy = original.Copy();
                                 originalCopy.Set_XYForAdd(bounds.posX, bounds.posY, aNearestPos[i], pageIndex);
                                 originalCopy.Add_ToDocument(aNearestPos[i], false, null, oOriginalRun);
 
@@ -1277,7 +1278,7 @@ MoveInGroupState.prototype =
                 this.group.resetSelection();
                 for(i = 0; i < tracks.length; ++i)
                 {
-                    var copy = tracks[i].originalObject.copy();
+                    var copy = tracks[i].originalObject.copy(undefined);
                     copy.setGroup(tracks[i].originalObject.group);
                     copy.group.addToSpTree(copy.group.length, copy);
                     tracks[i].originalObject = copy;

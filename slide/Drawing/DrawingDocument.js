@@ -995,6 +995,9 @@ function CDrawingDocument()
 
 	this.isTabButtonShow = true;
 
+    // placeholders
+    this.placeholders = new AscCommon.DrawingPlaceholders(this);
+
 	this.MoveTargetInInputContext = function()
 	{
 		if (AscCommon.g_inputContext)
@@ -1105,6 +1108,9 @@ function CDrawingDocument()
 		{
 			this.m_oWordControl.MobileTouchManager.ClearContextMenu();
 		}
+
+        if (this.TransitionSlide && this.TransitionSlide.IsPlaying())
+			this.TransitionSlide.End(true);
 
 		editor.sendEvent("asc_onDocumentChanged");
 
@@ -3432,11 +3438,9 @@ function CDrawingDocument()
 	// mouse events
 	this.checkMouseDown_Drawing = function (pos)
 	{
-		return false;
-	};
+        if (this.placeholders.onPointerDown(pos, this.SlideCurrectRect, this.m_oLogicDocument.Width, this.m_oLogicDocument.Height))
+            return true;
 
-	this.checkMouseDown_DrawingOnUp = function (pos)
-	{
 		return false;
 	};
 
@@ -3462,6 +3466,9 @@ function CDrawingDocument()
 			return true;
 		}
 
+		if (this.placeholders.onPointerMove(pos, this.SlideCurrectRect, this.m_oLogicDocument.Width, this.m_oLogicDocument.Height))
+            return true;
+
 		return false;
 	};
 
@@ -3481,6 +3488,9 @@ function CDrawingDocument()
 			oWordControl.EndUpdateOverlay();
 			return true;
 		}
+
+        if (this.placeholders.onPointerUp(pos, this.SlideCurrectRect, this.m_oLogicDocument.Width, this.m_oLogicDocument.Height))
+            return true;
 
 		return false;
 	};

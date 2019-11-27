@@ -542,9 +542,9 @@ DrawingObjectsController.prototype.convertPixToMM = function(pix)
     return _ret;
 };
 
-DrawingObjectsController.prototype.setParagraphNumbering = function(Bullet, Size, Unicolor)
+DrawingObjectsController.prototype.setParagraphNumbering = function(Bullet, Pr)
 {
-    this.applyDocContentFunction(CDocumentContent.prototype.Set_ParagraphPresentationNumbering, [Bullet, Size, Unicolor], CTable.prototype.Set_ParagraphPresentationNumbering);
+    this.applyDocContentFunction(CDocumentContent.prototype.Set_ParagraphPresentationNumbering, [Bullet, Pr], CTable.prototype.Set_ParagraphPresentationNumbering);
 };
 
 DrawingObjectsController.prototype.setParagraphIndent = function(Indent)

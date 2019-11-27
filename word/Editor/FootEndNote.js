@@ -61,6 +61,12 @@ function CFootEndnote(DocumentController)
 CFootEndnote.prototype = Object.create(CDocumentContent.prototype);
 CFootEndnote.prototype.constructor = CFootEndnote;
 
+CFootEndnote.prototype.Copy = function(oDocumentController)
+{
+	var oNote = new CFootEndnote(oDocumentController);
+	oNote.Copy2(this);
+	return oNote;
+};
 CFootEndnote.prototype.GetElementPageIndex = function(nPageAbs, nColumnAbs)
 {
 	// Функция аналогична Document.private_GetElementPageIndex

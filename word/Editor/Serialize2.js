@@ -1180,7 +1180,8 @@ var ESdtType = {
 	sdttypeGroup: 8,
 	sdttypePicture: 9,
 	sdttypeRichText: 10,
-	sdttypeText: 11
+	sdttypeText: 11,
+	sdttypeCheckBox: 12
 };
 
 	function getCommentAdditionalData (comment) {
@@ -2462,23 +2463,21 @@ function Binary_pPrWriter(memory, oNumIdMap, oBinaryHeaderFooterTableWriter, sav
 	this.WriteNumFmt = function(fmt)
 	{
 		var oThis = this;
-		if (fmt) {
-			var val;
-			switch (fmt) {
-				case Asc.c_oAscNumberingFormat.None: val = 48; break;
-				case Asc.c_oAscNumberingFormat.Bullet: val = 5; break;
-				case Asc.c_oAscNumberingFormat.Decimal: val = 13; break;
-				case Asc.c_oAscNumberingFormat.LowerRoman: val = 47; break;
-				case Asc.c_oAscNumberingFormat.UpperRoman: val = 61; break;
-				case Asc.c_oAscNumberingFormat.LowerLetter: val = 46; break;
-				case Asc.c_oAscNumberingFormat.UpperLetter: val = 60; break;
-				case Asc.c_oAscNumberingFormat.DecimalZero: val = 21; break;
-				case Asc.c_oAscNumberingFormat.DecimalEnclosedCircle: val = 14; break;
+		var val;
+		switch (fmt) {
+			case Asc.c_oAscNumberingFormat.None: val = 48; break;
+			case Asc.c_oAscNumberingFormat.Bullet: val = 5; break;
+			case Asc.c_oAscNumberingFormat.Decimal: val = 13; break;
+			case Asc.c_oAscNumberingFormat.LowerRoman: val = 47; break;
+			case Asc.c_oAscNumberingFormat.UpperRoman: val = 61; break;
+			case Asc.c_oAscNumberingFormat.LowerLetter: val = 46; break;
+			case Asc.c_oAscNumberingFormat.UpperLetter: val = 60; break;
+			case Asc.c_oAscNumberingFormat.DecimalZero: val = 21; break;
+			case Asc.c_oAscNumberingFormat.DecimalEnclosedCircle: val = 14; break;
 
-				default: val = 13; break;
-			}
-			this.bs.WriteItem(c_oSerNumTypes.NumFmtVal, function(){oThis.memory.WriteByte(val);});
+			default: val = 13; break;
 		}
+		this.bs.WriteItem(c_oSerNumTypes.NumFmtVal, function(){oThis.memory.WriteByte(val);});
 	};
     this.WritePageSize = function(sectPr, oDocument)
     {
@@ -6099,9 +6098,6 @@ function BinaryDocumentTableWriter(memory, doc, oMapCommentId, oNumIdMap, copyPa
 		if (null != val.Appearance) {
 			oThis.bs.WriteItem(c_oSerSdt.Appearance, function (){oThis.memory.WriteByte(val.Appearance);});
 		}
-		// if (null != val.ComboBox) {
-		// 	oThis.bs.WriteItem(c_oSerSdt.ComboBox, function (){oThis.WriteSdtComboBox(val.ComboBox);});
-		// }
 		if (null != val.Color) {
 			var rPr = new CTextPr();
 			rPr.Color = val.Color;
@@ -6115,13 +6111,6 @@ function BinaryDocumentTableWriter(memory, doc, oMapCommentId, oNumIdMap, copyPa
 		// }
 		// if (null != val.DocPartList) {
 		// 	oThis.bs.WriteItem(c_oSerSdt.DocPartList, function (){oThis.WriteDocPartList(val.DocPartList);});
-		// }
-		if (val.IsBuiltInDocPart()) {
-			type = 5;
-			oThis.bs.WriteItem(c_oSerSdt.DocPartObj, function (){oThis.WriteDocPartList(val.DocPartObj);});
-		}
-		// if (null != val.DropDownList) {
-		// 	oThis.bs.WriteItem(c_oSerSdt.DropDownList, function (){oThis.WriteSdtComboBox(val.DropDownList);});
 		// }
 		if (null != val.Id) {
 			oThis.bs.WriteItem(c_oSerSdt.Id, function (){oThis.memory.WriteLong(val.Id);});
@@ -6155,13 +6144,22 @@ function BinaryDocumentTableWriter(memory, doc, oMapCommentId, oNumIdMap, copyPa
 		// if (null != val.MultiLine) {
 		// 	oThis.bs.WriteItem(c_oSerSdt.MultiLine, function (){oThis.memory.WriteBool(val.MultiLine);});
 		// }
-		if (undefined !== val.CheckBox) {
+		if (oSdt.IsComboBox()) {
+			type = ESdtType.sdttypeComboBox;
+			oThis.bs.WriteItem(c_oSerSdt.ComboBox, function (){oThis.WriteSdtComboBox(oSdt.GetComboBoxPr());});
+		} else if (oSdt.IsPicture()) {
+			type = ESdtType.sdttypePicture;
+		} else if (val.IsBuiltInDocPart()) {
+			type = ESdtType.sdttypeDocPartObj;
+			oThis.bs.WriteItem(c_oSerSdt.DocPartObj, function (){oThis.WriteDocPartList(val.DocPartObj);});
+		} else if (oSdt.IsDropDownList()) {
+			type = ESdtType.sdttypeDropDownList;
+			oThis.bs.WriteItem(c_oSerSdt.DropDownList, function (){oThis.WriteSdtComboBox(oSdt.GetDropDownListPr());});
+		} else if (undefined !== val.CheckBox) {
+			type = ESdtType.sdttypeCheckBox;
 			oThis.bs.WriteItem(c_oSerSdt.Checkbox, function (){oThis.WriteSdtCheckBox(val.CheckBox);});
 		}
-		if (oSdt.IsPicture()) {
-			oThis.bs.WriteItem(c_oSerSdt.Type, function (){oThis.memory.WriteByte(ESdtType.sdttypePicture);});
-		}
-		else if (undefined !== type) {
+		if (undefined !== type) {
 			oThis.bs.WriteItem(c_oSerSdt.Type, function (){oThis.memory.WriteByte(type);});
 		}
 	};
@@ -6187,20 +6185,20 @@ function BinaryDocumentTableWriter(memory, doc, oMapCommentId, oNumIdMap, copyPa
 	this.WriteSdtComboBox = function (val)
 	{
 		var oThis = this;
-		if (null != val.LastValue) {
-			this.memory.WriteByte(c_oSerSdt.LastValue);
-			this.memory.WriteString2(val.LastValue);
-		}
-		if (null != val.List) {
-			for(var  i = 0 ; i < val.List.length; ++i){
-				oThis.bs.WriteItem(c_oSerSdt.SdtListItem, function (){oThis.WriteSdtListItem(val.List[i]);});
+		// if (null != val.LastValue) {
+		// 	this.memory.WriteByte(c_oSerSdt.LastValue);
+		// 	this.memory.WriteString2(val.LastValue);
+		// }
+		if (null != val.ListItems) {
+			for(var  i = 0 ; i < val.ListItems.length; ++i){
+				oThis.bs.WriteItem(c_oSerSdt.SdtListItem, function (){oThis.WriteSdtListItem(val.ListItems[i]);});
 			}
 		}
 	};
 	this.WriteSdtListItem = function (val)
 	{
 		var oThis = this;
-		if (null != val.DisplayText) {
+		if (null != val.DisplayText && "" !== val.DisplayText) {
 			this.memory.WriteByte(c_oSerSdt.DisplayText);
 			this.memory.WriteString2(val.DisplayText);
 		}
@@ -7439,8 +7437,8 @@ function BinaryFileReader(doc, openParams)
 					bToDelete = false;
 					if(null != item.QuoteText)
 						oCommentObj.Data.m_sQuoteText = item.QuoteText;
-					item.Start.oParaComment.Set_CommentId(oCommentObj.Get_Id());
-					item.End.oParaComment.Set_CommentId(oCommentObj.Get_Id());
+					item.Start.oParaComment.SetCommentId(oCommentObj.Get_Id());
+					item.End.oParaComment.SetCommentId(oCommentObj.Get_Id());
 				}
 			}
 			if(bToDelete){
@@ -7792,8 +7790,8 @@ function BinaryFileReader(doc, openParams)
 				if(oCommentObj)
 				{
 					bToDelete = false;
-					item.Start.oParaComment.Set_CommentId(oCommentObj.Get_Id());
-					item.End.oParaComment.Set_CommentId(oCommentObj.Get_Id());
+					item.Start.oParaComment.SetCommentId(oCommentObj.Get_Id());
+					item.End.oParaComment.SetCommentId(oCommentObj.Get_Id());
 				}
 			}
 			if(bToDelete){
@@ -12126,11 +12124,12 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
 			if(Appearance == Asc.c_oAscSdtAppearance.Frame || Appearance == Asc.c_oAscSdtAppearance.Hidden){
 				oSdtPr.Appearance = Appearance;
 			}
-		// } else if (c_oSerSdt.ComboBox === type) {
-		// 	oSdtPr.ComboBox = {};
-		// 	res = this.bcr.Read1(length, function(t, l) {
-		// 		return oThis.ReadSdtComboBox(t, l, oSdtPr.ComboBox);
-		// 	});
+		} else if (c_oSerSdt.ComboBox === type) {
+			var comboBox = new CSdtComboBoxPr();
+			res = this.bcr.Read1(length, function(t, l) {
+				return oThis.ReadSdtComboBox(t, l, comboBox);
+			});
+			oSdt.SetComboBoxPr(comboBox);
 		} else if (c_oSerSdt.Color === type) {
 			var textPr = new CTextPr();
 			res = this.brPrr.Read(length, textPr, null);
@@ -12156,11 +12155,12 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
 			res = this.bcr.Read1(length, function(t, l) {
 				return oThis.ReadDocPartList(t, l, oSdtPr.DocPartObj);
 			});
-		// } else if (c_oSerSdt.DropDownList === type) {
-		// 	oSdtPr.DropDownList = {};
-		// 	res = this.bcr.Read1(length, function(t, l) {
-		// 		return oThis.ReadSdtComboBox(t, l, oSdtPr.DropDownList);
-		// 	});
+		} else if (c_oSerSdt.DropDownList === type) {
+			var comboBox = new CSdtComboBoxPr();
+			res = this.bcr.Read1(length, function(t, l) {
+				return oThis.ReadSdtComboBox(t, l, comboBox);
+			});
+			oSdt.SetDropDownListPr(comboBox);
 		} else if (c_oSerSdt.Id === type) {
 			oSdtPr.Id = this.stream.GetLongLE();
 		} else if (c_oSerSdt.Label === type) {
@@ -12213,17 +12213,14 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
 	this.ReadSdtComboBox = function(type, length, val) {
 		var res = c_oSerConstants.ReadOk;
 		var oThis = this;
-		if (c_oSerSdt.LastValue === type) {
+		/*if (c_oSerSdt.LastValue === type) {
 			val.LastValue = this.stream.GetString2LE(length);
-		} else if (c_oSerSdt.SdtListItem === type) {
-			var listItem = {};
+		} else */if (c_oSerSdt.SdtListItem === type) {
+			var listItem = new CSdtListItem();
 			res = this.bcr.Read1(length, function(t, l) {
 				return oThis.ReadSdtListItem(t, l, listItem);
 			});
-			if (!val.List) {
-				val.List = [];
-			}
-			val.List.push(listItem);
+			val.ListItems.push(listItem);
 		} else {
 			res = c_oSerConstants.ReadUnknown;
 		}

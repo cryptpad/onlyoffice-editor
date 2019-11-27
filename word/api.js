@@ -527,8 +527,31 @@
 					if (_current["Url"] !== undefined)
 					{
 						// insert/replace document
-						this.api.insertDocumentUrlsData = {imageMap: null, documents: [{url : _current["Url"], format: _current["Format"]}], endCallback : function(_api) {
+						this.api.insertDocumentUrlsData = {imageMap: null, documents: [{url : _current["Url"], format: _current["Format"], token: _current["Token"]}], convertCallback: function(_api, url) {
+							_api.insertDocumentUrlsData.imageMap = url;
+							AscCommon.loadFileContent(url['output.bin'], function(httpRequest) {
+								var stream;
+								if (null === httpRequest || !(stream = AscCommon.initStreamFromResponse(httpRequest))) {
+									_api.endInsertDocumentUrls();
+									_api.sendEvent("asc_onError", c_oAscError.ID.MailMergeLoadFile,
+										c_oAscError.Level.NoCritical);
+									return;
+								}
+								_api.asc_PasteData(AscCommon.c_oAscClipboardDataFormat.Internal, stream, undefined,
+									undefined, true, function() {
+										_api.WordControl.m_oLogicDocument.MoveCursorRight(false, false, true);
+										_api.WordControl.m_oLogicDocument.Recalculate();
 
+										if (_api.insertDocumentUrlsData.documents.length > 0) {
+											var options = new Asc.asc_CDownloadOptions(Asc.c_oAscFileType.CANVAS_WORD);
+											options.isNaturalDownload = true;
+											_api.asc_DownloadAs(options);
+										} else {
+											_api.endInsertDocumentUrls();
+										}
+									});
+							}, "arraybuffer");
+						}, endCallback : function(_api) {
 							_blockStd.Content.Remove_FromContent(_blockStd.Content.GetElementsCount() - 1 , 1);
 							_blockStd.MoveCursorToEndPos(false, false);
 
@@ -779,6 +802,8 @@
 		this.isPaintFormat              = c_oAscFormatPainterState.kOff;
 		this.isMarkerFormat             = false;
 		this.isStartAddShape            = false;
+		this.isDrawTablePen				= false;
+        this.isDrawTableErase			= false;
 		this.addShapePreset             = "";
 		this.isShowTableEmptyLine       = true;
 		this.isShowTableEmptyLineAttack = false;
@@ -1124,7 +1149,7 @@ background-repeat: no-repeat;\
 		this.CreateCSS();
 
 		if (this.HtmlElement != null)
-			this.HtmlElement.innerHTML = ("<div id=\"id_main\" class=\"block_elem\" style=\"-ms-touch-action: none;-moz-user-select:none;-khtml-user-select:none;user-select:none;background-color:" + AscCommonWord.GlobalSkin.BackgroundColor + ";overflow:hidden;\" UNSELECTABLE=\"on\">\
+			this.HtmlElement.innerHTML = ("<div id=\"id_main\" class=\"block_elem\" style=\"touch-action:none;-ms-touch-action: none;-moz-user-select:none;-khtml-user-select:none;user-select:none;background-color:" + AscCommonWord.GlobalSkin.BackgroundColor + ";overflow:hidden;\" UNSELECTABLE=\"on\">\
 								<div id=\"id_panel_left\" class=\"block_elem\">\
 									<canvas id=\"id_buttonTabs\" class=\"block_elem\"></canvas>\
 									<canvas id=\"id_vert_ruler\" class=\"block_elem\"></canvas>\
@@ -1138,7 +1163,7 @@ background-repeat: no-repeat;\
 									    <canvas id=\"id_target_cursor\" class=\"block_elem\" width=\"1\" height=\"1\" style=\"touch-action:none;-ms-touch-action: none;-webkit-user-select: none;width:2px;height:13px;z-index:4;\"></canvas>\
                                     </div>\
 								</div>\
-									<div id=\"id_panel_right\" class=\"block_elem\" style=\"margin-right:1px;background-color:" + AscCommonWord.GlobalSkin.BackgroundScroll + ";\">\
+									<div id=\"id_panel_right\" class=\"block_elem\" style=\"touch-action:none;margin-right:1px;background-color:" + AscCommonWord.GlobalSkin.BackgroundScroll + ";\">\
 									<div id=\"id_buttonRulers\" class=\"block_elem buttonRuler\"></div>\
 									<div id=\"id_vertical_scroll\" style=\"left:0;top:0px;width:14px;overflow:hidden;position:absolute;\">\
 									<div id=\"panel_right_scroll\" class=\"block_elem\" style=\"left:0;top:0;width:1px;height:6000px;\"></div>\
@@ -1146,7 +1171,7 @@ background-repeat: no-repeat;\
 									<div id=\"id_buttonPrevPage\" class=\"block_elem buttonPrevPage\"></div>\
 									<div id=\"id_buttonNextPage\" class=\"block_elem buttonNextPage\"></div>\
 								</div>\
-									<div id=\"id_horscrollpanel\" class=\"block_elem\" style=\"margin-bottom:1px;background-color:" + AscCommonWord.GlobalSkin.BackgroundScroll + ";\">\
+									<div id=\"id_horscrollpanel\" class=\"block_elem\" style=\"touch-action:none;margin-bottom:1px;background-color:" + AscCommonWord.GlobalSkin.BackgroundScroll + ";\">\
 									<div id=\"id_horizontal_scroll\" style=\"left:0px;top:0;height:14px;overflow:hidden;position:absolute;width:100%;\">\
 										<div id=\"panel_hor_scroll\" class=\"block_elem\" style=\"left:0;top:0;width:6000px;height:1px;\"></div>\
 									</div>\
@@ -2100,7 +2125,7 @@ background-repeat: no-repeat;\
 		}
 	};
 
-	asc_docs_api.prototype.asc_PasteData = function(_format, data1, data2, text_data, useCurrentPoint)
+	asc_docs_api.prototype.asc_PasteData = function(_format, data1, data2, text_data, useCurrentPoint, callback)
 	{
 	    if (AscCommon.CollaborativeEditing.Get_GlobalLock())
 	        return;
@@ -2117,7 +2142,7 @@ background-repeat: no-repeat;\
 				_logicDoc.StartAction(AscDFH.historydescription_Document_PasteHotKey);
 			}
 
-			AscCommon.Editor_Paste_Exec(this, _format, data1, data2, text_data);
+			AscCommon.Editor_Paste_Exec(this, _format, data1, data2, text_data, undefined, callback);
 
 			if (!useCurrentPoint) {
 				//_logicDoc.FinalizeAction();
@@ -2179,34 +2204,16 @@ background-repeat: no-repeat;\
 			var id = specialPasteHelper.showButtonIdParagraph;
 			var elem = g_oTableId.Get_ById(id);
 
-			var _X, _Y;
-			if(elem.GetTargetPos)
+			var _X       = elem.X;
+			var _Y       = elem.Y;
+			var _PageNum = elem.GetCurrentPageAbsolute();
+			var oBounds  = elem.GetSelectionBounds();
+			if (oBounds && oBounds.End)
 			{
-				var testPos = elem.GetTargetPos();
-				var diffX = 0;
-				var diffY = 0;
-				if(testPos.Transform)
-				{
-					diffX = testPos.Transform.tx;
-					diffY = testPos.Transform.ty;
-				}
-
-				_Y = testPos.Y + testPos.Height + diffY;
-				_X = testPos.X + diffX;
+				_X       = oBounds.End.X + oBounds.End.W;
+				_Y       = oBounds.End.Y + oBounds.End.H;
+				_PageNum = oBounds.End.Page;
 			}
-			else
-			{
-				var w = 0, h = 0;
-				if(elem.AnchorPosition)
-				{
-					h = elem.AnchorPosition.H;
-					w = elem.AnchorPosition.W;
-				}
-				_Y = elem.Y + h;
-				_X = elem.X + w;
-			}
-
-			var _PageNum = this.WordControl.m_oLogicDocument.CurPage;
 
 			specialPasteHelper.buttonInfo.fixPosition = {x: _X, y: _Y, pageNum: _PageNum};
 
@@ -2553,39 +2560,13 @@ background-repeat: no-repeat;\
 				}
 			});
 		}
-		else if (this.insertDocumentUrlsData)
+		else if (this.insertDocumentUrlsData && this.insertDocumentUrlsData.convertCallback)
 		{
-			t.insertDocumentUrlsData.imageMap = url;
-			AscCommon.loadFileContent(url['output.bin'], function(httpRequest)
-			{
-				var stream;
-				if (null === httpRequest || !(stream = AscCommon.initStreamFromResponse(httpRequest)))
-				{
-					t.endInsertDocumentUrls();
-					t.sendEvent("asc_onError", c_oAscError.ID.MailMergeLoadFile, c_oAscError.Level.NoCritical);
-					return;
-				}
-				t.asc_PasteData(AscCommon.c_oAscClipboardDataFormat.Internal, stream, undefined, undefined, true);
-			}, "arraybuffer");
+			this.insertDocumentUrlsData.convertCallback(this, url);
 		}
 		else
 		{
 			AscCommon.baseEditorsApi.prototype.processSavedFile.call(this, url, downloadType);
-		}
-	};
-	asc_docs_api.prototype.continueInsertDocumentUrls = function()
-	{
-		if(this.insertDocumentUrlsData)
-		{
-			this.WordControl.m_oLogicDocument.MoveCursorRight(false, false, true);
-			this.WordControl.m_oLogicDocument.Recalculate();
-		}
-		if (this.insertDocumentUrlsData && this.insertDocumentUrlsData.documents.length > 0) {
-			var options = new Asc.asc_CDownloadOptions(Asc.c_oAscFileType.CANVAS_WORD);
-			options.isNaturalDownload = true;
-			this.asc_DownloadAs(options);
-		} else {
-			this.endInsertDocumentUrls();
 		}
 	};
 	asc_docs_api.prototype.endInsertDocumentUrls = function()
@@ -2969,7 +2950,8 @@ background-repeat: no-repeat;\
 					}
 				}));
 
-				this.UpdateInterfaceState();
+				this.WordControl.m_oLogicDocument.Recalculate();
+				this.WordControl.m_oLogicDocument.UpdateInterface();
 				this.WordControl.m_oLogicDocument.FinalizeAction();
 			}
 		}
@@ -2980,8 +2962,8 @@ background-repeat: no-repeat;\
 		{
 			this.WordControl.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_SetTextFontSize);
 			this.WordControl.m_oLogicDocument.AddToParagraph(new AscCommonWord.ParaTextPr({FontSize : Math.min(size, 100)}));
-
-			this.UpdateInterfaceState();
+			this.WordControl.m_oLogicDocument.Recalculate();
+			this.WordControl.m_oLogicDocument.UpdateInterface();
 			this.WordControl.m_oLogicDocument.FinalizeAction();
 		}
 	};
@@ -2992,7 +2974,8 @@ background-repeat: no-repeat;\
 		{
 			this.WordControl.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_SetTextBold);
 			this.WordControl.m_oLogicDocument.AddToParagraph(new AscCommonWord.ParaTextPr({Bold : value}));
-			this.UpdateInterfaceState();
+			this.WordControl.m_oLogicDocument.Recalculate();
+			this.WordControl.m_oLogicDocument.UpdateInterface();
 			this.WordControl.m_oLogicDocument.FinalizeAction();
 		}
 	};
@@ -3002,7 +2985,8 @@ background-repeat: no-repeat;\
 		{
 			this.WordControl.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_SetTextItalic);
 			this.WordControl.m_oLogicDocument.AddToParagraph(new AscCommonWord.ParaTextPr({Italic : value}));
-			this.UpdateInterfaceState();
+			this.WordControl.m_oLogicDocument.Recalculate();
+			this.WordControl.m_oLogicDocument.UpdateInterface();
 			this.WordControl.m_oLogicDocument.FinalizeAction();
 		}
 	};
@@ -3012,7 +2996,8 @@ background-repeat: no-repeat;\
 		{
 			this.WordControl.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_SetTextUnderline);
 			this.WordControl.m_oLogicDocument.AddToParagraph(new AscCommonWord.ParaTextPr({Underline : value}));
-			this.UpdateInterfaceState();
+			this.WordControl.m_oLogicDocument.Recalculate();
+			this.WordControl.m_oLogicDocument.UpdateInterface();
 			this.WordControl.m_oLogicDocument.FinalizeAction();
 		}
 	};
@@ -3025,7 +3010,8 @@ background-repeat: no-repeat;\
 				Strikeout  : value,
 				DStrikeout : false
 			}));
-			this.UpdateInterfaceState();
+			this.WordControl.m_oLogicDocument.Recalculate();
+			this.WordControl.m_oLogicDocument.UpdateInterface();
 			this.WordControl.m_oLogicDocument.FinalizeAction();
 		}
 	};
@@ -3038,7 +3024,8 @@ background-repeat: no-repeat;\
 				DStrikeout : value,
 				Strikeout  : false
 			}));
-			this.UpdateInterfaceState();
+			this.WordControl.m_oLogicDocument.Recalculate();
+			this.WordControl.m_oLogicDocument.UpdateInterface();
 			this.WordControl.m_oLogicDocument.FinalizeAction();
 		}
 	};
@@ -3048,7 +3035,8 @@ background-repeat: no-repeat;\
 		{
 			this.WordControl.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_SetTextSpacing);
 			this.WordControl.m_oLogicDocument.AddToParagraph(new AscCommonWord.ParaTextPr({Spacing : value}));
-			this.UpdateInterfaceState();
+			this.WordControl.m_oLogicDocument.Recalculate();
+			this.WordControl.m_oLogicDocument.UpdateInterface();
 			this.WordControl.m_oLogicDocument.FinalizeAction();
 		}
 	};
@@ -3062,7 +3050,8 @@ background-repeat: no-repeat;\
 				Caps      : value,
 				SmallCaps : false
 			}));
-			this.UpdateInterfaceState();
+			this.WordControl.m_oLogicDocument.Recalculate();
+			this.WordControl.m_oLogicDocument.UpdateInterface();
 			this.WordControl.m_oLogicDocument.FinalizeAction();
 		}
 	};
@@ -3076,7 +3065,8 @@ background-repeat: no-repeat;\
 				SmallCaps : value,
 				Caps      : false
 			}));
-			this.UpdateInterfaceState();
+			this.WordControl.m_oLogicDocument.Recalculate();
+			this.WordControl.m_oLogicDocument.UpdateInterface();
 			this.WordControl.m_oLogicDocument.FinalizeAction();
 		}
 	};
@@ -3088,7 +3078,8 @@ background-repeat: no-repeat;\
 		{
 			this.WordControl.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_SetTextPosition);
 			this.WordControl.m_oLogicDocument.AddToParagraph(new AscCommonWord.ParaTextPr({Position : value}));
-			this.UpdateInterfaceState();
+			this.WordControl.m_oLogicDocument.Recalculate();
+			this.WordControl.m_oLogicDocument.UpdateInterface();
 			this.WordControl.m_oLogicDocument.FinalizeAction();
 		}
 	};
@@ -3100,7 +3091,8 @@ background-repeat: no-repeat;\
 			this.WordControl.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_SetTextLang);
 			this.WordControl.m_oLogicDocument.AddToParagraph(new AscCommonWord.ParaTextPr({Lang : {Val : value}}));
 			this.WordControl.m_oLogicDocument.Spelling.Check_CurParas();
-			this.UpdateInterfaceState();
+			this.WordControl.m_oLogicDocument.Recalculate();
+			this.WordControl.m_oLogicDocument.UpdateInterface();
 			this.WordControl.m_oLogicDocument.FinalizeAction();
 		}
 	};
@@ -3112,7 +3104,8 @@ background-repeat: no-repeat;\
 		{
 			this.WordControl.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_SetParagraphLineSpacing);
 			this.WordControl.m_oLogicDocument.SetParagraphSpacing({LineRule : Type, Line : Value});
-			this.UpdateInterfaceState();
+			this.WordControl.m_oLogicDocument.Recalculate();
+			this.WordControl.m_oLogicDocument.UpdateInterface();
 			this.WordControl.m_oLogicDocument.FinalizeAction();
 		}
 	};
@@ -3157,6 +3150,8 @@ background-repeat: no-repeat;\
 		{
 			this.WordControl.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_IncFontSize);
 			this.WordControl.m_oLogicDocument.IncreaseDecreaseFontSize(true);
+			this.WordControl.m_oLogicDocument.Recalculate();
+			this.WordControl.m_oLogicDocument.UpdateInterface();
 			this.WordControl.m_oLogicDocument.FinalizeAction();
 		}
 	};
@@ -3166,6 +3161,8 @@ background-repeat: no-repeat;\
 		{
 			this.WordControl.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_DecFontSize);
 			this.WordControl.m_oLogicDocument.IncreaseDecreaseFontSize(false);
+			this.WordControl.m_oLogicDocument.Recalculate();
+			this.WordControl.m_oLogicDocument.UpdateInterface();
 			this.WordControl.m_oLogicDocument.FinalizeAction();
 		}
 	};
@@ -3279,19 +3276,38 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype.paraApply = function(Props)
 	{
-		var Additional = undefined;
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return;
+
+		var arrAdditional = [];
 		if (undefined != Props.DefaultTab)
-			Additional = {
-				Type      : AscCommon.changestype_2_Element_and_Type,
-				Element   : this.WordControl.m_oLogicDocument,
-				CheckType : AscCommon.changestype_Document_SectPr
-			};
-
-		if (false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(changestype_Paragraph_Properties, Additional))
 		{
-			this.WordControl.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_SetParagraphPr);
+			arrAdditional.push({
+				Type      : AscCommon.changestype_2_Element_and_Type,
+				Element   : oLogicDocument,
+				CheckType : AscCommon.changestype_Document_SectPr
+			});
+		}
 
-			// TODO: Сделать так, чтобы пересчет был всего 1 здесь
+		if (undefined !== Props.Subscript
+			|| undefined !== Props.Strikeout
+			|| undefined !== Props.DStrikeout
+			|| undefined !== Props.SmallCaps
+			|| undefined !== Props.AllCaps
+			|| undefined !== Props.TextSpacing
+			|| undefined !== Props.Position)
+		{
+			arrAdditional.push({
+				Type  : AscCommon.changestype_2_AdditionalTypes,
+				Types : [AscCommon.changestype_Paragraph_TextProperties]
+			});
+		}
+
+		if (!oLogicDocument.IsSelectionLocked(changestype_Paragraph_Properties, arrAdditional))
+		{
+			oLogicDocument.StartAction(AscDFH.historydescription_Document_SetParagraphPr);
+
 			if ("undefined" != typeof(Props.ContextualSpacing) && null != Props.ContextualSpacing)
 				this.WordControl.m_oLogicDocument.SetParagraphContextualSpacing(Props.ContextualSpacing);
 
@@ -3421,9 +3437,10 @@ background-repeat: no-repeat;\
 			if (undefined != Props.Position)
 				TextPr.Position = Props.Position;
 
-			this.WordControl.m_oLogicDocument.AddToParagraph(new AscCommonWord.ParaTextPr(TextPr));
-			this.WordControl.m_oLogicDocument.UpdateInterface();
-			this.WordControl.m_oLogicDocument.FinalizeAction();
+			oLogicDocument.AddToParagraph(new AscCommonWord.ParaTextPr(TextPr));
+			oLogicDocument.Recalculate();
+			oLogicDocument.UpdateInterface();
+			oLogicDocument.FinalizeAction();
 		}
 	};
 
@@ -3915,18 +3932,22 @@ background-repeat: no-repeat;\
 				this.WordControl.m_oLogicDocument.AddToParagraph(new AscCommonWord.ParaTextPr({Unifill : Unifill}));
 			}
 
-			this.UpdateInterfaceState();
+			this.WordControl.m_oLogicDocument.Recalculate();
+			this.WordControl.m_oLogicDocument.UpdateInterface();
 			this.WordControl.m_oLogicDocument.FinalizeAction();
 		}
 	};
 	asc_docs_api.prototype.put_ParagraphShade     = function(is_flag, color, isOnlyPara)
 	{
-		if (false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(changestype_Paragraph_Properties))
+		if (!this.WordControl.m_oLogicDocument.IsSelectionLocked(AscCommon.changestype_Paragraph_Properties, {
+			Type  : AscCommon.changestype_2_AdditionalTypes,
+			Types : [AscCommon.changestype_Paragraph_TextProperties]
+		}))
 		{
 			this.WordControl.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_SetParagraphShd);
 
 			if (true === isOnlyPara)
-				this.WordControl.m_oLogicDocument.Set_UseTextShd(false);
+				this.WordControl.m_oLogicDocument.SetUseTextShd(false);
 
 			if (false === is_flag)
 				this.WordControl.m_oLogicDocument.SetParagraphShd({Value : Asc.c_oAscShdNil});
@@ -3946,7 +3967,7 @@ background-repeat: no-repeat;\
 				});
 			}
 
-			this.WordControl.m_oLogicDocument.Set_UseTextShd(true);
+			this.WordControl.m_oLogicDocument.SetUseTextShd(true);
 			this.WordControl.m_oLogicDocument.FinalizeAction();
 		}
 	};
@@ -7234,7 +7255,8 @@ background-repeat: no-repeat;\
 		LogicDocument.OnMouseUp(global_mouseEvent, 0, 0, pageNumber);
 		LogicDocument.OnMouseMove(global_mouseEvent, 0, 0, pageNumber);
 		LogicDocument.MoveCursorLeft();
-		LogicDocument.Document_UpdateInterfaceState();
+		LogicDocument.UpdateInterface();
+		LogicDocument.UpdateSelection();
 
 		global_mouseEvent.ClickCount = oldClickCount;
 
@@ -7266,7 +7288,8 @@ background-repeat: no-repeat;\
 		LogicDocument.OnMouseUp(global_mouseEvent, 0, AscCommon.Page_Height, pageNumber);
 		LogicDocument.OnMouseMove(global_mouseEvent, 0, 0, pageNumber);
 		LogicDocument.MoveCursorLeft();
-		LogicDocument.Document_UpdateInterfaceState();
+		LogicDocument.UpdateInterface();
+		LogicDocument.UpdateSelection();
 
 		global_mouseEvent.ClickCount = oldClickCount;
 
@@ -7330,11 +7353,60 @@ background-repeat: no-repeat;\
 		}
 	};
 
-	asc_docs_api.prototype.sync_MarkerFormatCallback = function(value)
-	{
-		this.isMarkerFormat = value;
-		return this.sendEvent("asc_onMarkerFormatChanged", value);
-	};
+    asc_docs_api.prototype.sync_MarkerFormatCallback = function(value)
+    {
+        this.isMarkerFormat = value;
+        return this.sendEvent("asc_onMarkerFormatChanged", value);
+    };
+
+    asc_docs_api.prototype.SetTableDrawMode = function(value)
+    {
+    	if (!this.WordControl || !this.WordControl.m_oLogicDocument)
+    		return;
+
+        this.isDrawTablePen = value;
+        this.WordControl.m_oLogicDocument.DrawTableMode.Draw = value;
+
+        if (this.isDrawTablePen && this.isDrawTableErase)
+			this.SetTableEraseMode(false);
+
+        this.WordControl.m_oDrawingDocument.UnlockCursorType();
+        if (this.isDrawTablePen)
+            this.WordControl.m_oDrawingDocument.LockCursorType("de-tablepen");
+    };
+    asc_docs_api.prototype.sync_TableDrawModeCallback = function(value)
+    {
+        this.isDrawTablePen = value;
+        this.WordControl.m_oLogicDocument.DrawTableMode.Draw = value;
+        if (!this.isDrawTablePen)
+            this.WordControl.m_oDrawingDocument.UnlockCursorType();
+
+        return this.sendEvent("asc_onTableDrawModeChanged", value);
+    };
+    asc_docs_api.prototype.SetTableEraseMode = function(value)
+    {
+        if (!this.WordControl || !this.WordControl.m_oLogicDocument)
+            return;
+
+        this.isDrawTableErase = value;
+        this.WordControl.m_oLogicDocument.DrawTableMode.Erase = value;
+
+        if (this.isDrawTableErase && this.isDrawTablePen)
+            this.SetTableDrawMode(false);
+
+        this.WordControl.m_oDrawingDocument.UnlockCursorType();
+        if (this.isDrawTableErase)
+            this.WordControl.m_oDrawingDocument.LockCursorType("de-tableeraser");
+    };
+    asc_docs_api.prototype.sync_TableEraseModeCallback = function(value)
+    {
+        this.isDrawTableErase = value;
+        this.WordControl.m_oLogicDocument.DrawTableMode.Erase = value;
+        if (!this.isDrawTableErase)
+            this.WordControl.m_oDrawingDocument.UnlockCursorType();
+
+        return this.sendEvent("asc_onTableEraseModeChanged", value);
+    };
 
 	asc_docs_api.prototype.StartAddShape = function(sPreset, is_apply)
 	{
@@ -7614,9 +7686,18 @@ background-repeat: no-repeat;\
 		else if (this.insertDocumentUrlsData)
 		{
 			var last = this.insertDocumentUrlsData.documents.shift();
-			oAdditionalData['url']       = last['url'];
-			oAdditionalData['format']    = last['format'];
+			oAdditionalData['url'] = last['url'];
+			oAdditionalData['format'] = last['format'];
+			if (last['token']) {
+				oAdditionalData['tokenDownload'] = last['token'];
+				//remove to reduce message size
+				oAdditionalData['tokenSession'] = undefined;
+			}
 			oAdditionalData['outputurls']= true;
+			// ToDo select txt params
+			oAdditionalData["codepage"] = AscCommon.c_oAscCodePageUtf8;
+
+			dataContainer.data = last['data'];
 		}
 		else if (c_oAscFileType.HTML === fileType && null == options.oDocumentMailMerge && null == options.oMailMergeSendData)
 		{
@@ -8493,6 +8574,7 @@ background-repeat: no-repeat;\
 			{
 				oLogicDocument.StartAction(AscDFH.historydescription_Document_ChangeContentControlProperties);
 				oContentControl.SetContentControlPr(oContentControlPr);
+				oLogicDocument.Recalculate();
 				oLogicDocument.UpdateInterface();
 				oLogicDocument.UpdateSelection();
 				oLogicDocument.FinalizeAction();
@@ -8877,10 +8959,67 @@ background-repeat: no-repeat;\
 			oLogicDocument.FinalizeAction();
 		}
 	};
+	asc_docs_api.prototype.asc_AddContentControlDatePicker = function(oPr)
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return;
+
+		oLogicDocument.RemoveSelection();
+		if (!oLogicDocument.IsSelectionLocked(AscCommon.changestype_Paragraph_Content))
+		{
+			oLogicDocument.StartAction(AscDFH.historydescription_Document_AddContentControlList);
+			oLogicDocument.AddContentControlDatePicker(oPr);
+			oLogicDocument.Recalculate();
+			oLogicDocument.FinalizeAction();
+		}
+	};
+	asc_docs_api.prototype.asc_SetContentControlDatePickerPr = function(oPr, sId)
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return;
+
+		var isLocked        = true;
+		var oContentControl = oLogicDocument.GetContentControl(sId);
+		if (!oContentControl || !oContentControl.IsDatePicker())
+			return;
+
+		if (c_oAscSdtLevelType.Block === oContentControl.GetContentControlType())
+		{
+			isLocked = oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_None, {
+				Type      : AscCommon.changestype_2_ElementsArray_and_Type,
+				Elements  : [oContentControl],
+				CheckType : AscCommon.changestype_ContentControl_Properties
+			});
+		}
+		else if (c_oAscSdtLevelType.Inline === oContentControl.GetContentControlType())
+		{
+			var oParagraph = oContentControl.GetParagraph();
+			if (oParagraph)
+			{
+				isLocked = oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_None, {
+					Type      : AscCommon.changestype_2_ElementsArray_and_Type,
+					Elements  : [oParagraph],
+					CheckType : AscCommon.changestype_Paragraph_Properties
+				});
+			}
+		}
+
+		if (false === isLocked)
+		{
+			oLogicDocument.StartAction(AscDFH.historydescription_Document_SetContentControlListPr);
+			oContentControl.ApplyDatePickerPr(oPr);
+			oLogicDocument.Recalculate();
+			oLogicDocument.UpdateInterface();
+			oLogicDocument.UpdateTracks();
+			oLogicDocument.FinalizeAction();
+		}
+	};
 
 	asc_docs_api.prototype.asc_UncheckContentControlButtons = function()
 	{
-		var _controls = this.WordControl.m_oDrawingDocument.ContentControlObjects;
+		var _controls = (this.WordControl && this.WordControl.m_oDrawingDocument && this.WordControl.m_oDrawingDocument.contentControls) ? this.WordControl.m_oDrawingDocument.contentControls.ContentControlObjects : [];
 		for (var i = 0; i < _controls.length; i++)
 		{
 			_controls[i].ActiveButtonIndex = -2;
@@ -9895,181 +10034,6 @@ background-repeat: no-repeat;\
 			this.WordControl.m_oDrawingDocument.SetDrawImagePlaceContents(id, props);
 	};
 
-	/************************* Plugins "methods" ************************/
-	window["asc_docs_api"].prototype["pluginMethod_OpenFile"] = function(binaryFile, fields, baseUrl)
-	{
-		this.asc_CloseFile();
-
-		this.FontLoader.IsLoadDocumentFonts2 = true;
-		this.OpenDocument2(this.DocumentUrl, binaryFile);
-
-		if (fields)
-			this.asc_SetBlockChainData(fields);
-
-		this.restrictions = Asc.c_oAscRestrictionType.OnlyForms;
-	};
-	window["asc_docs_api"].prototype["pluginMethod_GetFields"] = function()
-	{
-		return this.asc_GetBlockChainData();
-	};
-
-	window["asc_docs_api"].prototype["pluginMethod_InsertAndReplaceContentControls"] = function(arrDocuments)
-	{
-		var _worker = new CContentControlPluginWorker(this, arrDocuments);
-		return _worker.start();
-	};
-	window["asc_docs_api"].prototype["pluginMethod_RemoveContentControls"] = function(arrDocuments)
-	{
-		var _worker = new CContentControlPluginWorker(this, arrDocuments);
-		return _worker.delete();
-	};
-	window["asc_docs_api"].prototype["pluginMethod_GetAllContentControls"] = function()
-	{
-		var _blocks = this.WordControl.m_oLogicDocument.GetAllContentControls();
-		var _ret = [];
-		var _obj = null;
-		for (var i = 0; i < _blocks.length; i++)
-		{
-			_obj = _blocks[i].GetContentControlPr();
-			_ret.push({"Tag" : _obj.Tag, "Id" : _obj.Id, "Lock" : _obj.Lock, "InternalId" : _obj.InternalId});
-		}
-		return _ret;
-	};
-	window["asc_docs_api"].prototype["pluginMethod_AddContentControl"] = function(type, pr)
-	{
-		var _content_control_pr;
-		if (pr)
-		{
-			_content_control_pr = new AscCommon.CContentControlPr();
-			_content_control_pr.Id = pr["Id"];
-			_content_control_pr.Tag = pr["Tag"];
-			_content_control_pr.Lock = pr["Lock"];
-
-            _content_control_pr.Alias = pr["Alias"];
-
-            if (undefined !== pr["Appearance"])
-            	_content_control_pr.Appearance = pr["Appearance"];
-
-            if (undefined !== pr["Color"])
-                _content_control_pr.Color = new Asc.asc_CColor(pr["Color"]["R"], pr["Color"]["G"], pr["Color"]["B"]);
-		}
-
-		var _obj = this.asc_AddContentControl(type, _content_control_pr);
-		if (!_obj)
-			return undefined;
-		return {"Tag" : _obj.Tag, "Id" : _obj.Id, "Lock" : _obj.Lock, "InternalId" : _obj.InternalId};
-	};
-	window["asc_docs_api"].prototype["pluginMethod_RemoveContentControl"] = function(id)
-	{
-		return this.asc_RemoveContentControlWrapper(id);
-	};
-	window["asc_docs_api"].prototype["pluginMethod_GetCurrentContentControl"] = function()
-	{
-		return this.asc_GetCurrentContentControl();
-	};
-    window["asc_docs_api"].prototype["pluginMethod_GetCurrentContentControlPr"] = function()
-    {
-        return this.asc_GetContentControlProperties();
-    };
-	window["asc_docs_api"].prototype["pluginMethod_SelectContentControl"] = function(id)
-	{
-		var oLogicDocument = this.private_GetLogicDocument();
-		if (!oLogicDocument)
-			return;
-
-		oLogicDocument.SelectContentControl(id);
-	};
-	window["asc_docs_api"].prototype["pluginMethod_MoveCursorToContentControl"] = function(id, isBegin)
-	{
-		var oLogicDocument = this.private_GetLogicDocument();
-		if (!oLogicDocument)
-			return;
-
-		oLogicDocument.MoveCursorToContentControl(id, isBegin);
-	};
-	window["asc_docs_api"].prototype["pluginMethod_GetSelectedText"] = function()
-	{
-		var oLogicDocument = this.private_GetLogicDocument();
-		if (!oLogicDocument)
-			return;
-
-		return oLogicDocument.GetSelectedText(false, {NewLine : true, NewLineParagraph : true});
-	};
-	window["asc_docs_api"].prototype["pluginMethod_RemoveSelectedContent"] = function()
-	{
-		var oLogicDocument = this.private_GetLogicDocument();
-		if (!oLogicDocument || !oLogicDocument.IsSelectionUse())
-			return;
-
-		if (false === oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Remove, null, true, oLogicDocument.IsFormFieldEditing()))
-		{
-			oLogicDocument.StartAction(AscDFH.historydescription_Document_BackSpaceButton);
-			oLogicDocument.Remove(-1, true);
-			oLogicDocument.FinalizeAction();
-		}
-	};
-	window["asc_docs_api"].prototype["pluginMethod_AddComment"] = function(sMessage, sAuthorName)
-	{
-		var oData = new asc_CCommentDataWord();
-
-		if (sMessage)
-			oData.asc_putText(sMessage);
-
-		if (sAuthorName)
-			oData.asc_putUserName(sAuthorName);
-
-		this.asc_addComment(oData);
-	};
-	window["asc_docs_api"].prototype["pluginMethod_MoveCursorToStart"] = function(isMoveToMainContent)
-	{
-		var oLogicDocument = this.private_GetLogicDocument();
-		if (oLogicDocument)
-		{
-			if (isMoveToMainContent)
-				oLogicDocument.MoveCursorToStartOfDocument();
-			else
-				oLogicDocument.MoveCursorToStartPos(false);
-		}
-	};
-	window["asc_docs_api"].prototype["pluginMethod_MoveCursorToEnd"] = function(isMoveToMainContent)
-	{
-		var oLogicDocument = this.private_GetLogicDocument();
-		if (oLogicDocument)
-		{
-			if (isMoveToMainContent)
-				oLogicDocument.MoveCursorToStartOfDocument();
-
-			oLogicDocument.MoveCursorToEndPos(false);
-		}
-	};
-	/**
-	 * Find and replace text.
-	 * @param {Object} oProperties The properties for find and replace.
-	 * @param {string} oProperties.searchString Search string.
-	 * @param {string} oProperties.replaceString Replacement string.
-	 * @param {string} [oProperties.matchCase=true]
-	 *
-	 */
-	window["asc_docs_api"].prototype["pluginMethod_SearchAndReplace"] = function(oProperties)
-	{
-		var sSearch     = oProperties["searchString"];
-		var sReplace    = oProperties["replaceString"];
-		var isMatchCase = undefined !== oProperties["matchCase"] ? oProperties.matchCase : true;
-
-		var oSearchEngine = this.WordControl.m_oLogicDocument.Search(sSearch, {MatchCase : isMatchCase});
-		if (!oSearchEngine)
-			return;
-
-		this.WordControl.m_oLogicDocument.Search_Replace(sReplace, true, null, false);
-	};
-
-	window["asc_docs_api"].prototype["pluginMethod_GetFileHTML"] = function()
-	{
-		return this.ContentToHTML(true);
-	};
-
-	/********************************************************************/
-
 	asc_docs_api.prototype.asc_OnHideContextMenu = function()
 	{
 		if (this.WordControl.MobileTouchManager)
@@ -10690,6 +10654,8 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_AddContentControlList']                 = asc_docs_api.prototype.asc_AddContentControlList;
 	asc_docs_api.prototype['asc_SetContentControlListPr']               = asc_docs_api.prototype.asc_SetContentControlListPr;
 	asc_docs_api.prototype['asc_SelectContentControlListItem']          = asc_docs_api.prototype.asc_SelectContentControlListItem;
+	asc_docs_api.prototype['asc_AddContentControlDatePicker']           = asc_docs_api.prototype.asc_AddContentControlDatePicker;
+	asc_docs_api.prototype['asc_SetContentControlDatePickerPr']         = asc_docs_api.prototype.asc_SetContentControlDatePickerPr;
 
 
 	asc_docs_api.prototype['asc_BeginViewModeInReview']                 = asc_docs_api.prototype.asc_BeginViewModeInReview;
@@ -10734,6 +10700,8 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_AddBlankPage']                          = asc_docs_api.prototype.asc_AddBlankPage;
     asc_docs_api.prototype['sendEvent']         						= asc_docs_api.prototype.sendEvent;
 
+    asc_docs_api.prototype['SetTableDrawMode']         					= asc_docs_api.prototype.SetTableDrawMode;
+    asc_docs_api.prototype['SetTableEraseMode']         				= asc_docs_api.prototype.SetTableEraseMode;
 
 	// mobile
 	asc_docs_api.prototype["asc_GetDefaultTableStyles"]             	= asc_docs_api.prototype.asc_GetDefaultTableStyles;

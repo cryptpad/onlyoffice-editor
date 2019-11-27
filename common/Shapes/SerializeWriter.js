@@ -259,6 +259,8 @@ function CBinaryFileWriter()
     };
     this.WriteString2 = function(text)
     {
+        if ("string" != typeof text)
+            text = text + "";
         var count = text.length & 0x7FFFFFFF;
         var countWrite = 2 * count;
         this.WriteULong(count);

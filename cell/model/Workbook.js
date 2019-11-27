@@ -2650,6 +2650,9 @@
 			for (i = 0; i < formulas.length; ++i) {
 				ftFormula = formulas[i];
 				ws = wbSnapshot.getWorksheetById(ftFormula.elem.nSheetId);
+				if(!ws) {
+					ws = new AscCommonExcel.Worksheet(wbSnapshot, -1);
+				}
 				if (ws) {
 					ftFormula.parsed = new parserFormula(ftFormula.formula, ftFormula, ws);
 					ftFormula.parsed.parse();
@@ -3547,7 +3550,7 @@
 			AscFormat.NEW_WORKSHEET_DRAWING_DOCUMENT = oNewWs.DrawingDocument;
 			for (i = 0; i < this.Drawings.length; ++i) {
 				var drawingObject = drawingObjects.cloneDrawingObject(this.Drawings[i]);
-				drawingObject.graphicObject = this.Drawings[i].graphicObject.copy();
+				drawingObject.graphicObject = this.Drawings[i].graphicObject.copy(undefined);
 				drawingObject.graphicObject.setWorksheet(oNewWs);
 				drawingObject.graphicObject.addToDrawingObjects();
 				var drawingBase = this.Drawings[i];
@@ -4802,27 +4805,16 @@
 	Worksheet.prototype.setGroupCol = function (bDel, start, stop) {
 		var oThis = this;
 		var fProcessCol = function(col){
-			var oOldProps = col.getOutlineLevel();
 			col.setOutlineLevel(null, bDel);
-			var oNewProps = col.getOutlineLevel();
-
-			if(oOldProps !== oNewProps) {
-				History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_GroupCol, oThis.getId(), col._getUpdateRange(), new UndoRedoData_IndexSimpleProp(col.index, true, oOldProps, oNewProps));
-			}
 		};
 
 		this.getRange3(0, start, 0, stop)._foreachCol(fProcessCol);
 	};
 	Worksheet.prototype.setOutlineCol = function (val, start, stop) {
 		var oThis = this;
-		var fProcessCol = function(col){
-			var oOldProps = col.getOutlineLevel();
-			col.setOutlineLevel(val);
-			var oNewProps = col.getOutlineLevel();
 
-			if(oOldProps !== oNewProps) {
-				History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_GroupCol, oThis.getId(), col._getUpdateRange(), new UndoRedoData_IndexSimpleProp(col.index, true, oOldProps, oNewProps));
-			}
+		var fProcessCol = function(col){
+			col.setOutlineLevel(val);
 		};
 
 		this.getRange3(0, start, 0, stop)._foreachCol(fProcessCol);
@@ -5101,13 +5093,7 @@
 	Worksheet.prototype.setGroupRow = function (bDel, start, stop) {
 		var oThis = this;
 		var fProcessRow = function(row){
-			var oOldProps = row.getOutlineLevel();
 			row.setOutlineLevel(null, bDel);
-			var oNewProps = row.getOutlineLevel();
-
-			if(oOldProps !== oNewProps) {
-				History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_GroupRow, oThis.getId(), row._getUpdateRange(), new UndoRedoData_IndexSimpleProp(row.index, true, oOldProps, oNewProps));
-			}
 		};
 
 		this.getRange3(start,0,stop, 0)._foreachRow(fProcessRow);
@@ -5115,13 +5101,7 @@
 	Worksheet.prototype.setOutlineRow = function (val, start, stop) {
 		var oThis = this;
 		var fProcessRow = function(row){
-			var oOldProps = row.getOutlineLevel();
 			row.setOutlineLevel(val);
-			var oNewProps = row.getOutlineLevel();
-
-			if(oOldProps !== oNewProps) {
-				History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_GroupRow, oThis.getId(), row._getUpdateRange(), new UndoRedoData_IndexSimpleProp(row.index, true, oOldProps, oNewProps));
-			}
 		};
 
 		this.getRange3(start,0,stop, 0)._foreachRow(fProcessRow);
@@ -8821,9 +8801,13 @@
 							oCurFormat.assign(oCurtext.format);
 						} else {
 							oCurFormat.assign(cellfont);
+							oCurFormat.setSkip(false);
+							oCurFormat.setRepeat(false);
 						}
 					} else {
 						oCurFormat.assign(cellfont);
+						oCurFormat.setSkip(false);
+						oCurFormat.setRepeat(false);
 						if (null != oCurtext.format) {
 							oCurFormat.assignFromObject(oCurtext.format);
 						}

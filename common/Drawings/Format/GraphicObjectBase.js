@@ -351,6 +351,15 @@
        return true;
     };
 
+
+    function CCopyObjectProperties()
+    {
+        this.drawingDocument = null;
+        this.idMap = null;
+        this.bSaveSourceFormatting = null;
+        this.contentCopyPr = null;
+    }
+
     /**
      * Base class for all graphic objects
      * @constructor
@@ -997,10 +1006,18 @@
         return this.nvSpPr || this.nvPicPr || this.nvGrpSpPr || this.nvGraphicFramePr || null;
     };
 
-    CGraphicObjectBase.prototype.getNvProps = function(){
+    CGraphicObjectBase.prototype.getCNvProps = function(){
         var oUniNvPr = this.getUniNvProps();
         if(oUniNvPr){
             return oUniNvPr.cNvPr;
+        }
+        return null;
+    };
+
+    CGraphicObjectBase.prototype.getNvProps = function(){
+        var oUniNvPr = this.getUniNvProps();
+        if(oUniNvPr){
+            return oUniNvPr.nvPr;
         }
         return null;
     };
@@ -1010,7 +1027,7 @@
         if(undefined === sTitle || null === sTitle){
             return;
         }
-        var oNvPr = this.getNvProps();
+        var oNvPr = this.getCNvProps();
         if(oNvPr){
             oNvPr.setTitle(sTitle ? sTitle : null);
         }
@@ -1020,14 +1037,14 @@
         if(undefined === sDescription || null === sDescription){
             return;
         }
-        var oNvPr = this.getNvProps();
+        var oNvPr = this.getCNvProps();
         if(oNvPr){
             oNvPr.setDescr(sDescription ? sDescription : null);
         }
     };
 
     CGraphicObjectBase.prototype.getTitle = function(){
-        var oNvPr = this.getNvProps();
+        var oNvPr = this.getCNvProps();
         if(oNvPr){
             return oNvPr.title ? oNvPr.title : undefined;
         }
@@ -1035,7 +1052,7 @@
     };
 
     CGraphicObjectBase.prototype.getDescription = function(){
-        var oNvPr = this.getNvProps();
+        var oNvPr = this.getCNvProps();
         if(oNvPr){
             return oNvPr.descr ? oNvPr.descr : undefined;
         }
@@ -1676,6 +1693,15 @@
         return  CalculateSrcRect(this.transform, oShapeDrawer, this.cropObject.invertTransform, this.cropObject.extX, this.cropObject.extY);
     };
 
+    CGraphicObjectBase.prototype.getLogicDocument = function()
+    {
+        var oApi = editor || Asc['editor'];
+        if(oApi && oApi.WordControl)
+        {
+            return oApi.WordControl.m_oLogicDocument;
+        }
+        return null;
+    };
 
 
     CGraphicObjectBase.prototype.updatePosition = function(x, y) {
@@ -1694,6 +1720,136 @@
         }
     };
 
+    CGraphicObjectBase.prototype.copyComments = function(oLogicDocument)
+    {
+        if(!oLogicDocument)
+        {
+            return;
+        }
+
+        var aDocContents = [];
+        this.getAllDocContents(aDocContents);
+        for(var i = 0; i < aDocContents.length; ++i)
+        {
+        	aDocContents[i].CreateDuplicateComments();
+        }
+    };
+
+    CGraphicObjectBase.prototype.createPlaceholderControl = function()
+    {
+        var phType = this.getPhType();
+        var aButtons = [];
+        var isLocalDesktop = window["AscDesktopEditor"] && window["AscDesktopEditor"]["IsLocalFile"] && window["AscDesktopEditor"]["IsLocalFile"]();
+        switch (phType)
+        {
+            case null:
+            {
+                aButtons.push(AscCommon.PlaceholderButtonType.Table);
+                aButtons.push(AscCommon.PlaceholderButtonType.Chart);
+                aButtons.push(AscCommon.PlaceholderButtonType.Image);
+                aButtons.push(AscCommon.PlaceholderButtonType.ImageUrl);
+                if(isLocalDesktop)
+                {
+                    aButtons.push(AscCommon.PlaceholderButtonType.Video);
+                    aButtons.push(AscCommon.PlaceholderButtonType.Audio);
+                }
+                break;
+            }
+            case AscFormat.phType_body:
+            {
+                break;
+            }
+            case AscFormat.phType_chart:
+            {
+                aButtons.push(AscCommon.PlaceholderButtonType.Chart);
+                break;
+            }
+            case AscFormat.phType_clipArt:
+            {
+                aButtons.push(AscCommon.PlaceholderButtonType.Image);
+                aButtons.push(AscCommon.PlaceholderButtonType.ImageUrl);
+                break;
+            }
+            case AscFormat.phType_ctrTitle:
+            {
+                break;
+            }
+            case AscFormat.phType_dgm:
+            {
+                break;
+            }
+            case AscFormat.phType_dt:
+            {
+                break;
+            }
+            case AscFormat.phType_ftr:
+            {
+                break;
+            }
+            case AscFormat.phType_hdr:
+            {
+                break;
+            }
+            case AscFormat.phType_media:
+            {
+                if(isLocalDesktop)
+                {
+                    aButtons.push(AscCommon.PlaceholderButtonType.Video);
+                    aButtons.push(AscCommon.PlaceholderButtonType.Audio);
+                }
+                break;
+            }
+            case AscFormat.phType_obj:
+            {
+                aButtons.push(AscCommon.PlaceholderButtonType.Table);
+                aButtons.push(AscCommon.PlaceholderButtonType.Chart);
+                aButtons.push(AscCommon.PlaceholderButtonType.Image);
+                aButtons.push(AscCommon.PlaceholderButtonType.ImageUrl);
+                if(isLocalDesktop)
+                {
+                    aButtons.push(AscCommon.PlaceholderButtonType.Video);
+                    aButtons.push(AscCommon.PlaceholderButtonType.Audio);
+                }
+                break;
+            }
+            case AscFormat.phType_pic:
+            {
+
+                aButtons.push(AscCommon.PlaceholderButtonType.Image);
+                aButtons.push(AscCommon.PlaceholderButtonType.ImageUrl);
+                break;
+            }
+            case AscFormat.phType_sldImg:
+            {
+                aButtons.push(AscCommon.PlaceholderButtonType.Image);
+                aButtons.push(AscCommon.PlaceholderButtonType.ImageUrl);
+                break;
+            }
+            case AscFormat.phType_sldNum:
+            {
+                break;
+            }
+            case AscFormat.phType_subTitle:
+            {
+                break;
+            }
+            case AscFormat.phType_tbl:
+            {
+                aButtons.push(AscCommon.PlaceholderButtonType.Table);
+                break;
+            }
+            case AscFormat.phType_title:
+            {
+                break;
+            }
+        }
+        var nSlideNum = 0;
+        if(this.parent.getObjectType && this.parent.getObjectType() === AscDFH.historyitem_type_Slide)
+        {
+            nSlideNum = this.parent.num;
+        }
+        return  AscCommon.CreateDrawingPlaceholder(this.Id, aButtons, nSlideNum, { x : 0, y : 0, w : this.extX, h : this.extY }, this.transform);
+    };
 
 
     function CRelSizeAnchor(){
@@ -1750,11 +1906,11 @@
         this.parent = object;
     };
 
-    CRelSizeAnchor.prototype.copy = function(drawingDocument){
+    CRelSizeAnchor.prototype.copy = function(oPr){
         var copy = new CRelSizeAnchor();
         copy.setFromTo(this.fromX, this.fromY, this.toX, this.toY);
         if(this.object){
-            copy.setObject(this.object.copy(drawingDocument));
+            copy.setObject(this.object.copy(oPr));
         }
         return copy;
     };
@@ -1838,11 +1994,11 @@
         this.parent = object;
     };
 
-    CAbsSizeAnchor.prototype.copy = function(drawingDocument){
+    CAbsSizeAnchor.prototype.copy = function(oPr){
         var copy = new CRelSizeAnchor();
         copy.setFromTo(this.fromX, this.fromY, this.toX, this.toY);
         if(this.object){
-            copy.setObject(this.object.copy(drawingDocument));
+            copy.setObject(this.object.copy(oPr));
         }
         return copy;
     };
@@ -1901,12 +2057,13 @@
 
 
     window['AscFormat'] = window['AscFormat'] || {};
-    window['AscFormat'].CGraphicObjectBase = CGraphicObjectBase;
-    window['AscFormat'].CGraphicBounds     = CGraphicBounds;
-    window['AscFormat'].checkNormalRotate  = checkNormalRotate;
-    window['AscFormat'].normalizeRotate    = normalizeRotate;
-    window['AscFormat'].CRelSizeAnchor    = CRelSizeAnchor;
-    window['AscFormat'].CAbsSizeAnchor    = CAbsSizeAnchor;
-    window['AscFormat'].CalculateSrcRect    = CalculateSrcRect;
-    window['AscFormat'].LOCKS_MASKS        = LOCKS_MASKS;
+    window['AscFormat'].CGraphicObjectBase    = CGraphicObjectBase;
+    window['AscFormat'].CGraphicBounds        = CGraphicBounds;
+    window['AscFormat'].checkNormalRotate     = checkNormalRotate;
+    window['AscFormat'].normalizeRotate       = normalizeRotate;
+    window['AscFormat'].CRelSizeAnchor        = CRelSizeAnchor;
+    window['AscFormat'].CAbsSizeAnchor        = CAbsSizeAnchor;
+    window['AscFormat'].CalculateSrcRect      = CalculateSrcRect;
+    window['AscFormat'].CCopyObjectProperties = CCopyObjectProperties;
+    window['AscFormat'].LOCKS_MASKS           = LOCKS_MASKS;
 })(window);

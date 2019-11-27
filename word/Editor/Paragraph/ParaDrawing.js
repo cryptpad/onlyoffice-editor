@@ -249,12 +249,13 @@ ParaDrawing.prototype.canRotate = function()
 };
 ParaDrawing.prototype.GetParagraph = function()
 {
-	return this.Parent;
+	return this.Get_ParentParagraph();
 };
 ParaDrawing.prototype.Get_Run = function()
 {
-	if (this.Parent)
-		return this.Parent.Get_DrawingObjectRun(this.Id);
+	var oParagraph = this.Get_ParentParagraph();
+	if (oParagraph)
+		return oParagraph.Get_DrawingObjectRun(this.Id);
 
 	return null;
 };
@@ -1183,13 +1184,15 @@ ParaDrawing.prototype.Can_AddNumbering = function()
 
 	return false;
 };
-ParaDrawing.prototype.Copy = function()
+ParaDrawing.prototype.Copy = function(oPr)
 {
 	var c = new ParaDrawing(this.Extent.W, this.Extent.H, null, editor.WordControl.m_oLogicDocument.DrawingDocument, null, null);
 	c.Set_DrawingType(this.DrawingType);
 	if (isRealObject(this.GraphicObj))
 	{
-		c.Set_GraphicObject(this.GraphicObj.copy());
+		var oCopyPr = new AscFormat.CCopyObjectProperties();
+		oCopyPr.contentCopyPr = oPr;
+		c.Set_GraphicObject(this.GraphicObj.copy(oCopyPr));
 		c.GraphicObj.setParent(c);
 	}
 
@@ -1392,11 +1395,12 @@ ParaDrawing.prototype.updatePosition3 = function(pageIndex, x, y, oldPageNum)
 	{
 		this.graphicObjects.removeById(oldPageNum, this.Get_Id());
 	}
+	var bChangePageIndex = this.pageIndex !== pageIndex;
 	this.setPageIndex(pageIndex);
 	if (typeof this.GraphicObj.setStartPage === "function")
 	{
 		var bIsHfdFtr = this.DocumentContent && this.DocumentContent.IsHdrFtr();
-		this.GraphicObj.setStartPage(pageIndex, bIsHfdFtr, bIsHfdFtr);
+		this.GraphicObj.setStartPage(pageIndex, bIsHfdFtr, bIsHfdFtr || bChangePageIndex);
 	}
 	if (!(this.DocumentContent && this.DocumentContent.IsHdrFtr() && this.DocumentContent.Get_StartPage_Absolute() !== pageIndex))
 	{
@@ -1686,7 +1690,7 @@ ParaDrawing.prototype.Add_ToDocument = function(NearPos, bRecalculate, RunPr, Ru
 	SelectedContent.Add(SelectedElement);
 	SelectedContent.Set_MoveDrawing(true);
 
-	NearPos.Paragraph.Parent.Insert_Content(SelectedContent, NearPos);
+	NearPos.Paragraph.Parent.InsertContent(SelectedContent, NearPos);
 	NearPos.Paragraph.Clear_NearestPosArray();
 	NearPos.Paragraph.Correct_Content();
 
@@ -2574,13 +2578,23 @@ ParaDrawing.prototype.setParagraphStyle = function(style)
 	if (isRealObject(this.GraphicObj) && typeof  this.GraphicObj.setParagraphStyle === "function")
 		this.GraphicObj.setParagraphStyle(style);
 };
+
+ParaDrawing.prototype.CopyComments = function()
+{
+	if(!this.GraphicObj)
+	{
+		return;
+	}
+	this.GraphicObj.copyComments(this.LogicDocument);
+};
+
 ParaDrawing.prototype.copy = function()
 {
 	var c = new ParaDrawing(this.Extent.W, this.Extent.H, null, editor.WordControl.m_oLogicDocument.DrawingDocument, null, null);
 	c.Set_DrawingType(this.DrawingType);
 	if (isRealObject(this.GraphicObj))
 	{
-		var g = this.GraphicObj.copy(c);
+		var g = this.GraphicObj.copy(undefined);
 		c.Set_GraphicObject(g);
 		g.setParent(c);
 	}

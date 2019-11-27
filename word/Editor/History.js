@@ -276,8 +276,11 @@ CHistory.prototype =
 
         if (null != Point)
             this.Document.SetSelectionState( Point.State );
-		
-		window['AscCommon'].g_specialPasteHelper.SpecialPasteButton_Hide(true);
+
+		if(!window['AscCommon'].g_specialPasteHelper.specialPasteStart)
+		{
+			window['AscCommon'].g_specialPasteHelper.SpecialPasteButton_Hide(true);
+		}
 		
         return this.RecalculateData;
     },
@@ -470,7 +473,7 @@ CHistory.prototype =
 				Len : Binary_Len
 			},
 
-			NeedRecalc : !this.MinorChanges
+			NeedRecalc : !this.MinorChanges && (!_Class || _Class.IsNeedRecalculate())
 		};
 
 		this.Points[this.Index].Items.push(Item);

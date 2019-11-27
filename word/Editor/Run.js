@@ -115,7 +115,8 @@ function ParaRun(Paragraph, bMathRun)
 		&& editor.WordControl.m_oLogicDocument
 		&& true === editor.WordControl.m_oLogicDocument.IsTrackRevisions()
 		&& !editor.WordControl.m_oLogicDocument.RecalcTableHeader
-		&& !editor.WordControl.m_oLogicDocument.MoveDrawing)
+		&& !editor.WordControl.m_oLogicDocument.MoveDrawing
+		&& !(this.Paragraph && !this.Paragraph.bFromDocument))
 	{
 		this.ReviewType = reviewtype_Add;
 		this.ReviewInfo.Update();
@@ -182,10 +183,12 @@ ParaRun.prototype.Save_StartState = function()
 //-----------------------------------------------------------------------------------
 // Функции для работы с содержимым данного рана
 //-----------------------------------------------------------------------------------
-ParaRun.prototype.Copy = function(Selected, oPr, isCopyReviewPr)
+ParaRun.prototype.Copy = function(Selected, oPr)
 {
 	if (!oPr)
 		oPr = {};
+
+	var isCopyReviewPr = oPr.CopyReviewPr;
 
     var bMath = this.Type == para_Math_Run ? true : false;
 
@@ -255,7 +258,7 @@ ParaRun.prototype.Copy = function(Selected, oPr, isCopyReviewPr)
 				&& (para_FootnoteReference !== Item.Type || true !== oPr.SkipFootnoteReference)
 				&& ((para_FieldChar !== Item.Type && para_InstrText !== Item.Type) || true !== oPr.SkipComplexFields))
 			{
-				NewRun.Add_ToContent(AddedPos, Item.Copy(), false);
+				NewRun.Add_ToContent(AddedPos, Item.Copy(oPr), false);
 				AddedPos++;
 			}
 		}
@@ -264,7 +267,7 @@ ParaRun.prototype.Copy = function(Selected, oPr, isCopyReviewPr)
     return NewRun;
 };
 
-ParaRun.prototype.Copy2 = function()
+ParaRun.prototype.Copy2 = function(oPr)
 {
     var NewRun = new ParaRun(this.Paragraph);
 
@@ -276,14 +279,14 @@ ParaRun.prototype.Copy2 = function()
     for ( var CurPos = StartPos; CurPos < EndPos; CurPos++ )
     {
         var Item = this.Content[CurPos];
-        NewRun.Add_ToContent( CurPos - StartPos, Item.Copy(), false );
+        NewRun.Add_ToContent( CurPos - StartPos, Item.Copy(oPr), false );
     }
     return NewRun;
 };
 
 ParaRun.prototype.CopyContent = function(Selected)
 {
-    return [this.Copy(Selected, undefined, true)];
+    return [this.Copy(Selected, {CopyReviewPr : true})];
 };
 ParaRun.prototype.GetSelectedContent = function(oSelectedContent)
 {
@@ -294,7 +297,7 @@ ParaRun.prototype.GetSelectedContent = function(oSelectedContent)
 
 		if (reviewtype_Add === nReviewType || reviewtype_Common === nReviewType)
 		{
-			var oRun = this.Copy(true, undefined, false);
+			var oRun = this.Copy(true, {CopyReviewPr : false});
 
 			if (oReviewInfo.IsMovedTo() || oReviewInfo.IsMovedFrom())
 				oSelectedContent.SetMovedParts(true);
@@ -320,7 +323,7 @@ ParaRun.prototype.GetSelectedContent = function(oSelectedContent)
 	}
 	else
 	{
-		return this.Copy(true, undefined, true);
+		return this.Copy(true, {CopyReviewPr : true});
 	}
 
 	return null;
@@ -1488,7 +1491,7 @@ ParaRun.prototype.AddInstrText = function(sString, nPos)
 };
 
 // Определим строку и отрезок текущей позиции
-ParaRun.prototype.Get_CurrentParaPos = function()
+ParaRun.prototype.GetCurrentParaPos = function()
 {
     var Pos = this.State.ContentPos;
 
@@ -2504,30 +2507,24 @@ ParaRun.prototype.GetSelectDirection = function()
     return -1;
 };
 
-ParaRun.prototype.Can_AddDropCap = function()
+ParaRun.prototype.CanAddDropCap = function()
 {
-    var Count = this.Content.length;
+	for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
+	{
+		switch (this.Content[nPos].Type)
+		{
+			case para_Text:
+				return true;
 
-    for ( var Pos = 0; Pos < Count; Pos++ )
-    {
-        var Item = this.Content[Pos];
-        var ItemType = Item.Type;
+			case para_Space:
+			case para_Tab:
+			case para_PageNum:
+			case para_PageCount:
+				return false;
+		}
+	}
 
-        switch ( ItemType )
-        {
-            case para_Text:
-                return true;
-
-            case para_Space:
-            case para_Tab:
-            case para_PageNum:
-            case para_PageCount:
-                return false;
-
-        }
-    }
-
-    return null;
+	return null;
 };
 
 ParaRun.prototype.Get_TextForDropCap = function(DropCapText, UseContentPos, ContentPos, Depth)
@@ -2872,7 +2869,7 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
 						{
 							if (this.GetLogicDocument() && !this.GetLogicDocument().RecalcTableHeader)
 							{
-								Item.UpdateNumber(PRS);
+								Item.UpdateNumber(PRS, this.GetLogicDocument().PrintSelection);
 								PRS.AddFootnoteReference(Item, PRS.GetCurrentContentPos(Pos));
 							}
 							else
@@ -3705,7 +3702,7 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
 
 					isHiddenCFPart = PRS.ComplexFields.IsComplexFieldCode();
 
-					if (Item.IsSeparate())
+					if (Item.IsSeparate() && !isHiddenCFPart)
 					{
 						// Специальная ветка, для полей PAGE и NUMPAGES, находящихся в колонтитуле
 						var oComplexField = Item.GetComplexField();
@@ -3722,17 +3719,26 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
 						if (oHdrFtr && oComplexField)
 						{
 							var oInstruction = oComplexField.GetInstruction();
-							if (oInstruction && (fieldtype_NUMPAGES === oInstruction.GetType() || fieldtype_PAGE === oInstruction.GetType()))
+							if (oInstruction && (fieldtype_NUMPAGES === oInstruction.GetType() || fieldtype_PAGE === oInstruction.GetType() || fieldtype_FORMULA === oInstruction.GetType()))
 							{
 								if (fieldtype_NUMPAGES === oInstruction.GetType())
 								{
 									oHdrFtr.Add_PageCountElement(Item);
 								}
-								else
+								else if (fieldtype_PAGE === oInstruction.GetType())
 								{
 									var LogicDocument = Para.LogicDocument;
 									var SectionPage   = LogicDocument.Get_SectionPageNumInfo2(Para.Get_AbsolutePage(PRS.Page)).CurPage;
 									Item.SetNumValue(SectionPage);
+								}
+								else
+								{
+									var sValue = oComplexField.CalculateValue();
+									var nValue = parseInt(sValue);
+									if (isNaN(nValue))
+										nValue = 0;
+
+									Item.SetNumValue(nValue);
 								}
 							}
 
@@ -6520,12 +6526,11 @@ ParaRun.prototype.Get_WordStartPos = function(SearchPos, ContentPos, Depth, UseC
 {
     var CurPos = ( true === UseContentPos ? ContentPos.Get(Depth) - 1 : this.Content.length - 1 );
 
-    if ( CurPos < 0 )
-        return;
+	SearchPos.UpdatePos = false;
+	if (CurPos < 0 || this.Content.length <= 0)
+		return;
 
     SearchPos.Shift = true;
-
-    var NeedUpdate = false;
 
 	var isFieldCode  = SearchPos.IsComplexFieldCode();
 	var isFieldValue = SearchPos.IsComplexFieldValue();
@@ -6556,9 +6561,12 @@ ParaRun.prototype.Get_WordStartPos = function(SearchPos, ContentPos, Depth, UseC
             {
                 CurPos--;
 
-                // Выходим из данного рана
-                if ( CurPos < 0 )
-                    return;
+				if (CurPos < 0)
+				{
+					SearchPos.Pos.Update(0, Depth);
+					SearchPos.UpdatePos = true;
+					return;
+				}
             }
             else
             {
@@ -6574,7 +6582,7 @@ ParaRun.prototype.Get_WordStartPos = function(SearchPos, ContentPos, Depth, UseC
                 SearchPos.Pos.Update( CurPos, Depth );
                 SearchPos.Stage       = 1;
                 SearchPos.Punctuation = this.Content[CurPos].IsPunctuation();
-                NeedUpdate            = true;
+				SearchPos.UpdatePos   = true;
 
                 break;
             }
@@ -6612,23 +6620,21 @@ ParaRun.prototype.Get_WordStartPos = function(SearchPos, ContentPos, Depth, UseC
         }
         else
         {
-            SearchPos.Pos.Update( CurPos, Depth );
-            NeedUpdate = true;
+			SearchPos.Pos.Update(CurPos, Depth);
+			SearchPos.UpdatePos = true;
         }
     }
-
-    SearchPos.UpdatePos = NeedUpdate;
 };
 
 ParaRun.prototype.Get_WordEndPos = function(SearchPos, ContentPos, Depth, UseContentPos, StepEnd)
 {
     var CurPos = ( true === UseContentPos ? ContentPos.Get(Depth) : 0 );
 
-    var ContentLen = this.Content.length;
-    if ( CurPos >= ContentLen )
-        return;
+	SearchPos.UpdatePos = false;
 
-    var NeedUpdate = false;
+    var ContentLen = this.Content.length;
+	if (CurPos >= ContentLen || ContentLen <= 0)
+		return;
 
 	var isFieldCode  = SearchPos.IsComplexFieldCode();
 	var isFieldValue = SearchPos.IsComplexFieldValue();
@@ -6670,9 +6676,12 @@ ParaRun.prototype.Get_WordEndPos = function(SearchPos, ContentPos, Depth, UseCon
 
                 CurPos++;
 
-                // Выходим из рана
-                if ( CurPos >= ContentLen )
-                    return;
+				if (CurPos >= ContentLen)
+				{
+					SearchPos.Pos.Update(CurPos, Depth);
+					SearchPos.UpdatePos = true;
+					return;
+				}
             }
             else
             {
@@ -6713,8 +6722,12 @@ ParaRun.prototype.Get_WordEndPos = function(SearchPos, ContentPos, Depth, UseCon
         }
     }
 
-    if ( CurPos >= ContentLen )
-        return;
+	if (CurPos >= ContentLen)
+	{
+		SearchPos.Pos.Update(CurPos, Depth);
+		SearchPos.UpdatePos = true;
+		return;
+	}
 
 
     // На втором этапе мы смотрим на каком элементе мы встали: если это не пробел, тогда
@@ -6753,8 +6766,8 @@ ParaRun.prototype.Get_WordEndPos = function(SearchPos, ContentPos, Depth, UseCon
         }
 
         // Обновляем позицию в конце каждого рана (хуже от этого не будет)
-        SearchPos.Pos.Update( CurPos, Depth );
-        SearchPos.UpdatePos = true;
+		SearchPos.Pos.Update(CurPos, Depth);
+		SearchPos.UpdatePos = true;
     }
 };
 
@@ -7399,6 +7412,11 @@ ParaRun.prototype.Internal_Compile_Pr = function ()
 		}
 	}
 
+	if (TextPr.TextFill)
+		TextPr.TextFill.check(this.Paragraph.Get_Theme(), this.Paragraph.Get_ColorMap());
+	else if (TextPr.Unifill)
+		TextPr.Unifill.check(this.Paragraph.Get_Theme(), this.Paragraph.Get_ColorMap());
+
 	// Для совместимости со старыми версиями запишем FontFamily
 	TextPr.FontFamily.Name  = TextPr.RFonts.Ascii.Name;
 	TextPr.FontFamily.Index = TextPr.RFonts.Ascii.Index;
@@ -8027,6 +8045,10 @@ ParaRun.prototype.Apply_Pr = function(TextPr)
 		if (para_End === this.Content[nPos].Type)
 			return this.Paragraph.TextPr.Apply_TextPr(TextPr);
 	}
+};
+ParaRun.prototype.ApplyPr = function(oTextPr)
+{
+	return this.Apply_Pr(oTextPr);
 };
 
 ParaRun.prototype.HavePrChange = function()
@@ -11380,6 +11402,19 @@ ParaRun.prototype.CanDeleteInReviewMode = function()
 ParaRun.prototype.GetFirstRun = function()
 {
 	return this;
+};
+ParaRun.prototype.GetFirstRunElementPos = function(nType, oStartPos, oEndPos, nDepth)
+{
+	for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
+	{
+		if (nType === this.Content[nPos].Type)
+		{
+			oStartPos.Update(nPos, nDepth);
+			oEndPos.Update(nPos + 1, nDepth);
+			return true;
+		}
+	}
+	return false;
 };
 
 function CParaRunStartState(Run)

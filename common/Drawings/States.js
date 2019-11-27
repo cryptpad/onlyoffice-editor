@@ -613,18 +613,13 @@ RotateState.prototype =
                 var i, copy;
                 this.drawingObjects.resetSelection();
                 var oIdMap = {};
+                var oCopyPr = new AscFormat.CCopyObjectProperties();
+                oCopyPr.idMap = oIdMap;
                 var aCopies = [];
                 History.Create_NewPoint(AscDFH.historydescription_CommonDrawings_CopyCtrl);
                 for(i = 0; i < tracks.length; ++i)
                 {
-                    if(tracks[i].originalObject.getObjectType() === AscDFH.historyitem_type_GroupShape){
-
-                        copy = tracks[i].originalObject.copy(oIdMap);
-                    }
-                    else{
-
-                        copy = tracks[i].originalObject.copy();
-                    }
+                    copy = tracks[i].originalObject.copy(oCopyPr);
                     oIdMap[tracks[i].originalObject.Id] = copy.Id;
                     this.drawingObjects.drawingObjects.getWorksheetModel && copy.setWorksheet(this.drawingObjects.drawingObjects.getWorksheetModel());
                     if(this.drawingObjects.drawingObjects && this.drawingObjects.drawingObjects.cSld)
@@ -668,17 +663,12 @@ RotateState.prototype =
                     this.drawingObjects.checkSelectedObjectsAndCallback(function(){
                         var oIdMap = {};
                         var aCopies = [];
+                        var oCopyPr = new AscFormat.CCopyObjectProperties();
+                        oCopyPr.idMap = oIdMap;
                         group.resetSelection();
                         for(i = 0; i < tracks.length; ++i)
                         {
-                            if(tracks[i].originalObject.getObjectType() === AscDFH.historyitem_type_GroupShape){
-
-                                copy = tracks[i].originalObject.copy(oIdMap);
-                            }
-                            else{
-
-                                copy = tracks[i].originalObject.copy();
-                            }
+                            copy = tracks[i].originalObject.copy(oCopyPr);
                             aCopies.push(copy);
                             oThis.drawingObjects.drawingObjects.getWorksheetModel && copy.setWorksheet(oThis.drawingObjects.drawingObjects.getWorksheetModel());
                             if(oThis.drawingObjects.drawingObjects && oThis.drawingObjects.drawingObjects.cSld)

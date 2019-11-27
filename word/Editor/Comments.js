@@ -760,6 +760,13 @@ CComments.prototype.Document_Is_SelectionLocked = function(Id)
 			oComment.Lock.Check(oComment.GetId());
 	}
 };
+CComments.prototype.GetById = function(sId)
+{
+	if (this.m_aComments[sId])
+		return this.m_aComments[sId];
+
+	return null;
+};
 
 /**
  * Класс для элемента начала/конца комментария в параграфе
@@ -799,14 +806,6 @@ ParaComment.prototype.GetId = function()
 {
 	return this.Get_Id();
 };
-ParaComment.prototype.Set_CommentId = function(NewCommentId)
-{
-	if (this.CommentId !== NewCommentId)
-	{
-		History.Add(new CChangesParaCommentCommentId(this, this.CommentId, NewCommentId));
-		this.CommentId = NewCommentId;
-	}
-};
 ParaComment.prototype.Copy = function(Selected)
 {
 	return new ParaComment(this.Start, this.CommentId);
@@ -822,7 +821,7 @@ ParaComment.prototype.Recalculate_Range_Spaces = function(PRSA, CurLine, CurRang
 	var X    = PRSA.X;
 	var Y    = Para.Pages[CurPage].Y + Para.Lines[CurLine].Y - Para.Lines[CurLine].Metrics.Ascent;
 	var H    = Para.Lines[CurLine].Metrics.Ascent + Para.Lines[CurLine].Metrics.Descent;
-	var Page = Para.Get_StartPage_Absolute() + CurPage;
+	var Page = Para.GetAbsolutePage(CurPage);
 
 	if (comment_type_HdrFtr === Comment.m_oTypeInfo.Type)
 	{
@@ -916,7 +915,11 @@ ParaComment.prototype.Read_FromBinary2 = function(Reader)
 };
 ParaComment.prototype.SetCommentId = function(sCommentId)
 {
-	this.Set_CommentId(sCommentId);
+	if (this.CommentId !== sCommentId)
+	{
+		History.Add(new CChangesParaCommentCommentId(this, this.CommentId, sCommentId));
+		this.CommentId = sCommentId;
+	}
 };
 ParaComment.prototype.GetCommentId = function()
 {
@@ -927,6 +930,10 @@ ParaComment.prototype.IsCommentStart = function()
 	return this.Start;
 };
 
+ParaComment.prototype.CheckRunContent = function(fCheck)
+{
+    return fCheck(this);
+};
 //--------------------------------------------------------export----------------------------------------------------
 window['AscCommon'] = window['AscCommon'] || {};
 

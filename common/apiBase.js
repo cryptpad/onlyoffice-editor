@@ -187,7 +187,7 @@
 
         this.copyOutEnabled = (config['copyoutenabled'] !== false);
 
-		this.watermarkDraw = config['watermark_on_draw'] ? new AscCommon.CWatermarkOnDraw(config['watermark_on_draw']) : null;
+		this.watermarkDraw = config['watermark_on_draw'] ? new AscCommon.CWatermarkOnDraw(config['watermark_on_draw'], this) : null;
 
 		this.SaveAfterMacros = false;
 
@@ -1589,9 +1589,6 @@
 		}
 	};
 
-    baseEditorsApi.prototype["pluginMethod_AddOleObject"] = baseEditorsApi.prototype.asc_addOleObject;
-    baseEditorsApi.prototype["pluginMethod_EditOleObject"] = baseEditorsApi.prototype.asc_editOleObject;
-
 	baseEditorsApi.prototype.asc_addOleObjectAction = function(sLocalUrl, sData, sApplicationId, fWidth, fHeight)
 	{
 	};
@@ -1829,6 +1826,10 @@
 			arr[i].Image = AscCommon.g_oUserTexturePresets[i];
 			arrToDownload.push(AscCommon.g_oUserTexturePresets[i]);
 		}
+		if(this.editorId === c_oEditorId.Word)
+		{
+			arrToDownload.push(AscCommon.g_sWordPlaceholderImage);
+		}
 		this.ImageLoader.LoadImagesWithCallback(arrToDownload, function () {
 
 		}, 0);
@@ -2003,534 +2004,42 @@
     {
     };
 
-    baseEditorsApi.prototype["pluginMethod_GetFontList"] = function()
+    baseEditorsApi.prototype["asc_insertSymbol"] = function(familyName, code)
     {
-    	return AscFonts.g_fontApplication.g_fontSelections.SerializeList();
-    };
+        AscFonts.FontPickerByCharacter.checkTextLight([code], true);
 
-    baseEditorsApi.prototype["pluginMethod_InputText"] = function(text, textReplace)
-    {
-        if (this.isViewMode || !AscCommon.g_inputContext)
-        	return;
+        var fonts = [new AscFonts.CFont(AscFonts.g_fontApplication.GetFontInfoName(familyName), 0, "", 0, null)];
+        AscFonts.FontPickerByCharacter.extendFonts(fonts);
 
-        var codes = [];
-        for (var i = text.getUnicodeIterator(); i.check(); i.next())
-			codes.push(i.value());
-
-        if (textReplace)
+        if (false === AscCommon.g_font_loader.CheckFontsNeedLoading(fonts))
         {
-            for (var i = 0; i < textReplace.length; i++)
-                AscCommon.g_inputContext.emulateKeyDownApi(8);
+            this.Begin_CompositeInput();
+            this.Replace_CompositeText([code]);
+            this.End_CompositeInput();
+            return;
         }
 
-        AscCommon.g_inputContext.apiInputText(codes);
-        AscCommon.g_inputContext.keyPressInput = "";
-    };
-
-	baseEditorsApi.prototype["pluginMethod_PasteHtml"] = function(htmlText)
-	{
-		if (!AscCommon.g_clipboardBase)
-			return null;
-
-		var _elem = document.getElementById("pmpastehtml");
-		if (_elem)
-			return;
-
-		_elem = document.createElement("div");
-		_elem.id = "pmpastehtml";
-
-		if (this.editorId == c_oEditorId.Word || this.editorId == c_oEditorId.Presentation)
-		{
-			var textPr = this.get_TextProps();
-			if (textPr)
-			{
-				if (undefined !== textPr.TextPr.FontSize)
-					_elem.style.fontSize = textPr.TextPr.FontSize + "pt";
-
-				_elem.style.fontWeight = (true === textPr.TextPr.Bold) ? "bold" : "normal";
-				_elem.style.fontStyle = (true === textPr.TextPr.Italic) ? "italic" : "normal";
-
-				var _color = textPr.TextPr.Color;
-				if (_color)
-                    _elem.style.color = "rgb(" + _color.r + "," + _color.g + "," + _color.b + ")";
-				else
-                    _elem.style.color = "rgb(0,0,0)";
-			}
-		}
-		else if (this.editorId == c_oEditorId.Spreadsheet)
-		{
-			var props = this.asc_getCellInfo();
-
-			if (props && props.font)
-			{
-				if (undefined != props.font.size)
-					_elem.style.fontSize = props.font.size + "pt";
-
-				_elem.style.fontWeight = (true === props.font.bold) ? "bold" : "normal";
-				_elem.style.fontStyle = (true === props.font.italic) ? "italic" : "normal";
-			}
-		}
-
-		_elem.innerHTML = htmlText;
-		document.body.appendChild(_elem);
-		this.incrementCounterLongAction();
-		var b_old_save_format = AscCommon.g_clipboardBase.bSaveFormat;
-        AscCommon.g_clipboardBase.bSaveFormat = true;
-		this.asc_PasteData(AscCommon.c_oAscClipboardDataFormat.HtmlElement, _elem);
-		this.decrementCounterLongAction();
-
-		if (true)
-		{
-			var fCallback = function ()
-            {
-                document.body.removeChild(_elem);
-                _elem = null;
-                AscCommon.g_clipboardBase.bSaveFormat = b_old_save_format;
-            };
-			if(this.checkLongActionCallback(fCallback, null)){
-                fCallback();
-			}
-		}
-		else
-		{
-			document.body.removeChild(_elem);
-			_elem = null;
-            AscCommon.g_clipboardBase.bSaveFormat = b_old_save_format;
-		}
-	};
-
-	baseEditorsApi.prototype["pluginMethod_PasteText"] = function(text)
-	{
-		if (!AscCommon.g_clipboardBase)
-			return null;
-
-		this.asc_PasteData(AscCommon.c_oAscClipboardDataFormat.Text, text);
-	};
-
-	baseEditorsApi.prototype["pluginMethod_GetMacros"] = function()
-	{
-		return this.asc_getMacros();
-	};
-
-	baseEditorsApi.prototype["pluginMethod_SetMacros"] = function(data)
-	{
-		return this.asc_setMacros(data);
-	};
-
-	baseEditorsApi.prototype["pluginMethod_StartAction"] = function(type, description)
-	{
-		this.sync_StartAction((type == "Block") ? c_oAscAsyncActionType.BlockInteraction : c_oAscAsyncActionType.Information, description);
-	};
-
-	baseEditorsApi.prototype["pluginMethod_EndAction"] = function(type, description, status)
-	{
-		this.sync_EndAction((type == "Block") ? c_oAscAsyncActionType.BlockInteraction : c_oAscAsyncActionType.Information, description);
-
-		if (window["AscDesktopEditor"] && status != null && status != "")
-		{
-			// error!!!
-            if (!window["AscDesktopEditor"]["IsLocalFile"]())
-			{
-                this.sendEvent("asc_onError", "Encryption error: " + status + ". The file was not compiled.", c_oAscError.Level.Critical);
-                window["AscDesktopEditor"]["CryptoMode"] = 0;
-			}
-			else
-			{
-                this.sendEvent("asc_onError", "Encryption error: " + status + ". End-to-end encryption mode is disabled.", c_oAscError.Level.NoCritical);
-                window["AscDesktopEditor"]["CryptoMode"] = 0;
-
-                if (undefined !== window.LastUserSavedIndex)
-				{
-                    AscCommon.History.UserSavedIndex = window.LastUserSavedIndex;
-
-                    if (this.editorId == AscCommon.c_oEditorId.Spreadsheet)
-                        this.onUpdateDocumentModified(AscCommon.History.Have_Changes());
-                    else
-                        this.UpdateInterfaceState();
-				}
-			}
-
-            window.LastUserSavedIndex = undefined;
-            setTimeout(function() {
-
-                window["AscDesktopEditor"]["buildCryptedEnd"](false);
-
-            }, 500);
-
-			return;
-		}
-
-        window.LastUserSavedIndex = undefined;
-        if (this._callbackPluginEndAction)
-		{
-			this._callbackPluginEndAction.call(this);
-		}
-	};
-
-    baseEditorsApi.prototype["pluginMethod_OnEncryption"] = function(obj)
-    {
-        var _editor = window["Asc"]["editor"] ? window["Asc"]["editor"] : window.editor;
-        switch (obj.type)
-        {
-            case "generatePassword":
-            {
-                if ("" == obj["password"])
-                {
-                    _editor.sendEvent("asc_onError", "There is no connection with the blockchain", c_oAscError.Level.Critical);
-                    return;
-                }
-
-                var _ret = _editor.asc_nativeGetFile3();
-                AscCommon.EncryptionWorker.isPasswordCryptoPresent = true;
-				_editor.currentDocumentInfoNext = obj["docinfo"];
-                window["AscDesktopEditor"]["buildCryptedStart"](_ret.data, _ret.header, obj["password"], obj["docinfo"] ? obj["docinfo"] : "");
-                break;
-            }
-            case "getPasswordByFile":
-            {
-                if ("" != obj["password"])
-                {
-                    var _param = ("<m_sPassword>" + AscCommon.CopyPasteCorrectString(obj["password"]) + "</m_sPassword>");
-                    _editor.currentPassword = obj["password"];
-                    _editor.currentDocumentHash = obj["hash"];
-                    _editor.currentDocumentInfo = obj["docinfo"];
-
-                    AscCommon.EncryptionWorker.isPasswordCryptoPresent = true;
-
-                    if (window.isNativeOpenPassword)
-                    {
-                        window["AscDesktopEditor"]["NativeViewerOpen"](obj["password"]);
-                    }
-                    else
-					{
-						window["AscDesktopEditor"]["SetAdvancedOptions"](_param);
-                    }
-                }
-                else
-                {
-                    this._onNeedParams(undefined, true);
-                }
-                break;
-            }
-            case "encryptData":
-            case "decryptData":
-            {
-                AscCommon.EncryptionWorker.receiveChanges(obj);
-                break;
-            }
-        }
-    };
-
-	baseEditorsApi.prototype["pluginMethod_SetProperties"] = function(obj)
-	{
-		if (!obj)
-			return;
-
-		for (var prop in obj)
-		{
-			switch (prop)
-			{
-				case "copyoutenabled":
-				{
-					this.copyOutEnabled = obj[prop];
-					break;
-				}
-				case "watermark_on_draw":
-				{
-					this.watermarkDraw = obj[prop] ? new AscCommon.CWatermarkOnDraw(obj[prop]) : null;
-					if (this.watermarkDraw)
-						this.watermarkDraw.CheckParams(this);
-
-					// refresh!!!
-					switch (this.editorId)
-					{
-						case c_oEditorId.Word:
-						{
-							if (this.WordControl)
-							{
-								if (this.watermarkDraw)
-								{
-									this.watermarkDraw.zoom = this.WordControl.m_nZoomValue / 100;
-									this.watermarkDraw.Generate();
-								}
-
-								this.WordControl.OnRePaintAttack();
-							}
-
-							break;
-						}
-						case c_oEditorId.Presentation:
-						{
-							if (this.WordControl)
-							{
-								if (this.watermarkDraw)
-								{
-									this.watermarkDraw.zoom = this.WordControl.m_nZoomValue / 100;
-									this.watermarkDraw.Generate();
-								}
-
-								this.WordControl.OnRePaintAttack();
-							}
-							break;
-						}
-						case c_oEditorId.Spreadsheet:
-						{
-							var ws = this.wb && this.wb.getWorksheet();
-							if (ws && ws.objectRender && ws.objectRender) {
-								ws.objectRender.OnUpdateOverlay();
-							}
-							break;
-						}
-					}
-
-					break;
-				}
-				case "hideContentControlTrack":
-				{
-					if (this.editorId === c_oEditorId.Word && this.WordControl && this.WordControl.m_oLogicDocument)
-						this.WordControl.m_oLogicDocument.SetForceHideContentControlTrack(obj[prop]);
-
-					break;
-				}
-				default:
-					break;
-			}
-		}
-	};
-
-    baseEditorsApi.prototype.privateDropEvent = function(obj)
-    {
-    	if (!obj || !obj.type)
-    		return;
-
-        var e = {
-            pageX : obj["x"],
-            pageY : obj["y"]
+        this.asyncMethodCallback = function() {
+            this.Begin_CompositeInput();
+            this.Replace_CompositeText([code]);
+            this.End_CompositeInput();
         };
-
-        switch (obj.type)
-        {
-            case "onbeforedrop":
-			{
-                this.beginInlineDropTarget(e);
-				break;
-			}
-            case "ondrop":
-            {
-                this.endInlineDropTarget(e);
-
-                if (obj["html"])
-                    this["pluginMethod_PasteHtml"](obj["html"]);
-                else if (obj["text"])
-                    this["pluginMethod_PasteText"](obj["text"]);
-
-                break;
-            }
-            default:
-                break;
-        }
+        AscCommon.g_font_loader.LoadDocumentFonts2(fonts);
     };
 
-	// input helper
-    baseEditorsApi.prototype.getTargetOnBodyCoords = function()
+    baseEditorsApi.prototype["asc_registerPlaceholderCallback"] = function(type, callback)
     {
-        var ret = { X : 0, Y : 0, W : 0, H : 0, TargetH : 0 };
-        ret.W = Math.max(document.documentElement.clientWidth, window.innerWidth || 0);
-        ret.H = Math.max(document.documentElement.clientHeight, window.innerHeight || 0);
-
-        switch (this.editorId)
-        {
-            case c_oEditorId.Word:
-			{
-                ret.X += this.WordControl.X;
-                ret.Y += this.WordControl.Y;
-                ret.X += (this.WordControl.m_oMainView.AbsolutePosition.L * AscCommon.g_dKoef_mm_to_pix);
-                ret.Y += (this.WordControl.m_oMainView.AbsolutePosition.T * AscCommon.g_dKoef_mm_to_pix);
-                ret.X += (this.WordControl.m_oDrawingDocument.TargetHtmlElementLeft);
-                ret.Y += (this.WordControl.m_oDrawingDocument.TargetHtmlElementTop);
-
-                ret.X >>= 0;
-                ret.Y >>= 0;
-
-                ret.TargetH = (this.WordControl.m_oDrawingDocument.m_dTargetSize * this.WordControl.m_nZoomValue * AscCommon.g_dKoef_mm_to_pix / 100) >> 0;
-				break;
-			}
-            case c_oEditorId.Presentation:
-            {
-				ret.X += this.WordControl.X;
-				ret.Y += this.WordControl.Y;
-
-				ret.X += (this.WordControl.m_oMainParent.AbsolutePosition.L * AscCommon.g_dKoef_mm_to_pix);
-
-				if (!this.WordControl.m_oLogicDocument.IsFocusOnNotes())
-				{
-					ret.Y += (this.WordControl.m_oMainView.AbsolutePosition.T * AscCommon.g_dKoef_mm_to_pix);
-				}
-				else
-				{
-					ret.Y += (this.WordControl.m_oNotesContainer.AbsolutePosition.T * AscCommon.g_dKoef_mm_to_pix);
-				}
-
-				ret.X += (this.WordControl.m_oDrawingDocument.TargetHtmlElementLeft);
-				ret.Y += (this.WordControl.m_oDrawingDocument.TargetHtmlElementTop);
-
-				ret.X >>= 0;
-				ret.Y >>= 0;
-
-				ret.TargetH = (this.WordControl.m_oDrawingDocument.m_dTargetSize * this.WordControl.m_nZoomValue * AscCommon.g_dKoef_mm_to_pix / 100) >> 0;
-                break;
-            }
-            case c_oEditorId.Spreadsheet:
-            {
-                var off, selectionType = this.asc_getCellInfo().asc_getFlags().asc_getSelectionType();
-                if (this.asc_getCellEditMode())
-				{
-					// cell edit
-					var cellEditor = this.wb.cellEditor;
-					ret.X = cellEditor.curLeft;
-					ret.Y = cellEditor.curTop;
-					ret.TargetH = cellEditor.curHeight;
-					off = cellEditor.cursor;
-				}
-				else if (Asc.c_oAscSelectionType.RangeShapeText === selectionType ||
-					Asc.c_oAscSelectionType.RangeChartText === selectionType)
-                {
-					// shape target
-					var drDoc = this.wb.getWorksheet().objectRender.controller.drawingDocument;
-					ret.X = drDoc.TargetHtmlElementLeft;
-					ret.Y = drDoc.TargetHtmlElementTop;
-					ret.TargetH = drDoc.m_dTargetSize * this.asc_getZoom() * AscCommon.g_dKoef_mm_to_pix;
-					off = this.HtmlElement;
-                }
-
-				if (off) {
-					off = jQuery(off).offset();
-					if (off)
-					{
-						ret.X += off.left;
-						ret.Y += off.top;
-					}
-				}
-
-				ret.X >>= 0;
-				ret.Y >>= 0;
-				ret.TargetH >>= 0;
-                break;
-            }
-        }
-        return ret;
-    };
-
-    baseEditorsApi.prototype["pluginMethod_ShowInputHelper"] = function(guid, w, h, isKeyboardTake)
-    {
-        var _frame = document.getElementById("iframe_" + guid);
-        if (!_frame)
-            return;
-
-        var _offset = this.getTargetOnBodyCoords();
-        if (w > _offset.W)
-            w = _offset.W;
-        if (h > _offset.H)
-            h = _offset.H;
-
-        var _offsetToFrame = 10;
-        var _r = _offset.X + _offsetToFrame + w;
-        var _t = _offset.Y - _offsetToFrame - h;
-        var _b = _offset.Y + _offset.TargetH + _offsetToFrame + h;
-
-        var _x = _offset.X + _offsetToFrame;
-        if (_r > _offset.W)
-            _x += (_offset.W - _r);
-
-        var _y = 0;
-
-        if (_b < _offset.H)
-        {
-            _y = _offset.Y + _offset.TargetH + _offsetToFrame;
-        }
-        else if (_t > 0)
-        {
-            _y = _t;
-        }
-        else
-        {
-            _y = _offset.Y + _offset.TargetH + _offsetToFrame;
-            h += (_offset.H - _b);
-        }
-
-        _frame.style.left = _x + "px";
-        _frame.style.top = _y + "px";
-        _frame.style.width = w + "px";
-        _frame.style.height = h + "px";
-
-        if (!this.isMobileVersion)
-        	_frame.style.zIndex = 1000;
-        else
-            _frame.style.zIndex = 5001;
-
-        if (!_frame.style.boxShadow)
-        {
-        	_frame.style.boxShadow = "0 6px 12px rgba(0, 0, 0, 0.175)";
-            _frame.style.webkitBoxShadow = "0 6px 12px rgba(0, 0, 0, 0.175)";
-            //_frame.style.borderRadius = "3px";
-        }
-
-
-        if (isKeyboardTake)
-        {
-            _frame.setAttribute("oo_editor_input", "true");
-            _frame.focus();
-        }
-        else
-        {
-            _frame.removeAttribute("oo_editor_input");
-            if (AscCommon.g_inputContext)
-            {
-                AscCommon.g_inputContext.isNoClearOnFocus = true;
-                AscCommon.g_inputContext.HtmlArea.focus();
-            }
-        }
-
-        if (AscCommon.g_inputContext)
-        {
-            AscCommon.g_inputContext.isInputHelpersPresent = true;
-            AscCommon.g_inputContext.isInputHelpers[guid] = true;
-        }
-    };
-
-    baseEditorsApi.prototype["pluginMethod_UnShowInputHelper"] = function(guid, isclear)
-    {
-        var _frame = document.getElementById("iframe_" + guid);
-        if (!_frame)
-            return;
-
-        _frame.style.width = "10px";
-        _frame.style.height = "10px";
-        _frame.removeAttribute("oo_editor_input");
-
-        _frame.style.zIndex = -1000;
-
-        if (AscCommon.g_inputContext && AscCommon.g_inputContext.HtmlArea)
+    	if (this.WordControl && this.WordControl.m_oDrawingDocument && this.WordControl.m_oDrawingDocument.placeholders)
 		{
-			AscCommon.g_inputContext.HtmlArea.focus();
-
-			if (AscCommon.g_inputContext.isInputHelpers[guid])
-				delete AscCommon.g_inputContext.isInputHelpers[guid];
-
-			var count = 0;
-			for (var test in AscCommon.g_inputContext.isInputHelpers)
-			{
-				if (AscCommon.g_inputContext.isInputHelpers[test])
-					count++;
-            }
-
-            AscCommon.g_inputContext.isInputHelpersPresent = (0 != count);
-        }
-
-        if (AscCommon.g_inputContext && isclear)
-		{
-            AscCommon.g_inputContext.keyPressInput = "";
+            this.WordControl.m_oDrawingDocument.placeholders.registerCallback(type, callback);
 		}
+    };
+    baseEditorsApi.prototype["asc_uncheckPlaceholders"] = function()
+    {
+        if (this.WordControl && this.WordControl.m_oDrawingDocument && this.WordControl.m_oDrawingDocument.placeholders)
+        {
+            this.WordControl.m_oDrawingDocument.placeholders.closeAllActive();
+        }
     };
 
     // Builder

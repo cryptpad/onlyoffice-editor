@@ -1450,10 +1450,13 @@ var g_oFontProperties = {
 	PatternFill.prototype.getHatchOffset = function () {
 		return AscCommon.global_hatch_offsets[hatchFromExcelToWord(this.patternType)];
 	};
-	PatternFill.prototype.fromColor = function(color) {
-		this.patternType = c_oAscPatternType.Solid;
+	PatternFill.prototype.fromParams = function(type, color) {
+		this.patternType = type;
 		this.fgColor = color;
 		this.bgColor = color;
+	};
+	PatternFill.prototype.fromColor = function(color) {
+		this.fromParams(c_oAscPatternType.Solid, color);
 	};
 	PatternFill.prototype.getHash = function() {
 		if (!this._hash) {
@@ -1633,6 +1636,14 @@ var g_oFontProperties = {
 			this.patternFill.fromColor(color);
 		}
 	};
+	Fill.prototype.fromPatternParams = function (type, color) {
+		this.patternFill = null;
+		this.gradientFill = null;
+		if (null !== type) {
+			this.patternFill = new PatternFill();
+			this.patternFill.fromParams(type, color);
+		}
+	};
 	Fill.prototype.getHash = function () {
 		if (!this._hash) {
 			this._hash = (this.patternFill ? this.patternFill.getHash() : '') + '|';
@@ -1714,7 +1725,7 @@ var g_oFontProperties = {
 		}
 	};
 	Fill.prototype.asc_getPatternFill = function () {
-		return this.patternFill;
+		return this.patternFill && this.patternFill.notEmpty() ? this.patternFill : null;
 	};
 	Fill.prototype.asc_setPatternFill = function (value) {
 		this.patternFill = value;
@@ -3070,10 +3081,11 @@ function StyleManager(){
 }
 StyleManager.prototype =
 {
-	init: function(wb, firstXf, firstFont, firstFill, firstBorder, normalXf) {
+	init: function(wb, firstXf, firstFont, firstFill, secondFill, firstBorder, normalXf) {
 		g_StyleCache.firstXf = firstXf;
 		g_StyleCache.firstFont = firstFont;
 		g_StyleCache.firstFill = firstFill;
+		g_StyleCache.secondFill = secondFill;
 		g_StyleCache.firstBorder = firstBorder;
 		g_StyleCache.normalXf = normalXf;
 		if(null != firstXf.font)
@@ -3295,6 +3307,7 @@ StyleManager.prototype =
 		this.firstXf =  new CellXfs();
 		this.firstFont = null;
 		this.firstFill = null;
+		this.secondFill = null;
 		this.firstBorder = null;
 		this.normalXf =  new CellXfs();
 	}
@@ -4016,7 +4029,8 @@ Hyperlink.prototype = {
 	Col.prototype.getIndex = function () {
 		return this.index;
 	};
-	Col.prototype.setOutlineLevel = function (val, bDel) {
+	Col.prototype.setOutlineLevel = function (val, bDel, notAddHistory) {
+		var oldVal = this.outlineLevel;
 		if(null !== val) {
 			this.outlineLevel = val;
 		} else {
@@ -4032,6 +4046,10 @@ Hyperlink.prototype = {
 		} else {
 			//TODO ?
 			//this._hasChanged = true;
+		}
+
+		if (!notAddHistory && History.Is_On() && oldVal != this.outlineLevel) {
+			History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_GroupCol, this.ws.getId(), this._getUpdateRange(), new UndoRedoData_IndexSimpleProp(this.index, false, oldVal, this.outlineLevel));
 		}
 	};
 	Col.prototype.getOutlineLevel = function () {
@@ -4182,7 +4200,7 @@ Hyperlink.prototype = {
 			}
 			this.setHidden(prop.hd);
 			this.setCustomHeight(prop.CustomHeight);
-			this.setOutlineLevel(prop.OutlineLevel);
+			this.setOutlineLevel(prop.OutlineLevel, null, true);
 		}
 	};
 	Row.prototype.getStyle = function () {
@@ -4391,7 +4409,8 @@ Hyperlink.prototype = {
 		}
 		this._hasChanged = true;
 	};
-	Row.prototype.setOutlineLevel = function (val, bDel) {
+	Row.prototype.setOutlineLevel = function (val, bDel, notAddHistory) {
+		var oldProps = this.outlineLevel;
 		if(null !== val) {
 			this.outlineLevel = val;
 		} else {
@@ -4406,6 +4425,10 @@ Hyperlink.prototype = {
 			this.outlineLevel = c_maxOutlineLevel;
 		} else {
 			this._hasChanged = true;
+		}
+
+		if(!notAddHistory && History.Is_On() && oldProps != this.outlineLevel) {
+			History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_GroupRow, this.ws.getId(), this._getUpdateRange(), new UndoRedoData_IndexSimpleProp(this.index, true, oldProps, this.outlineLevel));
 		}
 	};
 	Row.prototype.getOutlineLevel = function () {
@@ -4473,7 +4496,7 @@ Hyperlink.prototype = {
 		var ht = stream.GetUShortLE();
 		stream.Skip2(1);
 		var byteExtra2 = stream.GetUChar();
-		this.setOutlineLevel(byteExtra2 & 0x7);
+		this.setOutlineLevel(byteExtra2 & 0x7, null, true);
 		if (0 !== (byteExtra2 & 0x8)) {
 			this.setCollapsed(true);
 		}

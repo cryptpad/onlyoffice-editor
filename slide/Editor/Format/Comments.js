@@ -90,7 +90,7 @@ ParaComment.prototype =
         return this.Id;
     },
 
-    Set_CommentId : function(NewCommentId)
+    SetCommentId : function(NewCommentId)
     {
     },
 
@@ -167,12 +167,17 @@ ParaComment.prototype =
     {
     },
 
-    Can_AddDropCap : function()
+    CanAddDropCap : function()
     {
         return null;
     },
 
-    Get_TextForDropCap : function(DropCapText, UseContentPos, ContentPos, Depth)
+	CheckSelectionForDropCap : function(isUsePos, oEndPos, nDepth)
+	{
+		return true;
+	},
+
+	Get_TextForDropCap : function(DropCapText, UseContentPos, ContentPos, Depth)
     {
     },
 
@@ -492,7 +497,7 @@ ParaComment.prototype.SetParagraph = function(Paragraph)
 {
 	this.Paragraph = Paragraph;
 };
-ParaComment.prototype.Get_CurrentParaPos = function()
+ParaComment.prototype.GetCurrentParaPos = function()
 {
     return new CParaPos(this.StartRange, this.StartLine, 0, 0);
 };
@@ -1207,5 +1212,7 @@ window['AscCommon'].comment_type_HdrFtr = comment_type_HdrFtr;
 window['AscCommon'].CCommentData = CCommentData;
 window['AscCommon'].CComment = CComment;
 window['AscCommon'].ParaComment = ParaComment;
+window['AscCommon'].CCommentAuthor = CCommentAuthor;
+window['AscCommon'].CWriteCommentData = CWriteCommentData;
 
 })(window);

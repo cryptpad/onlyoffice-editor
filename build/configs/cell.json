@@ -20,6 +20,7 @@
 			"../cell/model/CollaborativeEditing.js",
 			"../common/macros.js",
 			"../common/apiBase.js",
+			"../common/apiBase_plugins.js",
 			"../word/apiCommon.js",
 			"../cell/api.js"
 		],
@@ -124,6 +125,7 @@
 			"../cell/model/Serialize.js",
 			"../cell/model/ConditionalFormatting.js",
 			"../cell/model/DataValidation.js",
+			"../cell/model/HeaderFooter.js",
 			"../cell/model/CellInfo.js",
 			"../cell/view/mobileTouch.js",
 			"../cell/view/StringRender.js",
@@ -236,10 +238,6 @@
 			"../common/Drawings/Format/OleObject.js",
 			"../common/Drawings/Format/DrawingContent.js",
 			"../common/plugins.js"
-		],
-		"private": [
-		],
-		"builder": [
 		],
 		"desktop": {
 			"min": [

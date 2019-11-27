@@ -792,7 +792,9 @@
         Chart: 7,
         Ext: 8,
         pptxDrawing: 9,
-        Chart2: 10
+        Chart2: 10,
+        ObjectName: 11,
+        EditAs: 12
     };
     /** @enum */
     var c_oSer_Pane = {
@@ -1963,9 +1965,6 @@
 		}
 		return index;
 	};
-	StyleWriteMap.prototype.addNoCheck = function(elem) {
-		this.elems.push(elem);
-	};
 	function XfForWrite(xf) {
 		this.xf = xf;
 		this.fontid = 0;
@@ -1995,8 +1994,7 @@
 	StylesForWrite.prototype.init = function() {
 		this.oFontMap.add(g_StyleCache.firstFont);
 		this.oFillMap.add(g_StyleCache.firstFill);
-		//second fill is equal to first (in Excel it is different, but it does not matter - they are ignored)
-		this.oFillMap.addNoCheck(g_StyleCache.firstFill);
+		this.oFillMap.add(g_StyleCache.secondFill);
 		this.oBorderMap.add(g_StyleCache.firstBorder);
 		this.oXfsMap.add(g_StyleCache.firstXf);
 	};
@@ -3601,16 +3599,11 @@
                 this.memory.WriteByte(c_oSerPropLenType.Double);
                 this.memory.WriteDouble2(ws.oSheetFormatPr.dDefaultColWidth);
             }
-            if (ws.oSheetFormatPr.nOutlineLevelCol > 0) {
-                this.memory.WriteByte(c_oSerSheetFormatPrTypes.OutlineLevelCol);
-                this.memory.WriteByte(c_oSerPropLenType.Long);
-                this.memory.WriteLong(ws.oSheetFormatPr.nOutlineLevelCol);
-            }
-            if (ws.oSheetFormatPr.nOutlineLevelRow > 0) {
-                this.memory.WriteByte(c_oSerSheetFormatPrTypes.OutlineLevelRow);
-                this.memory.WriteByte(c_oSerPropLenType.Long);
-                this.memory.WriteLong(ws.oSheetFormatPr.nOutlineLevelRow);
-            }
+			if (ws.oSheetFormatPr.nOutlineLevelCol > 0) {
+				this.memory.WriteByte(c_oSerSheetFormatPrTypes.OutlineLevelCol);
+				this.memory.WriteByte(c_oSerPropLenType.Long);
+				this.memory.WriteLong(ws.oSheetFormatPr.nOutlineLevelCol);
+			}
             if(null !== ws.oSheetFormatPr.oAllRow) {
                 var oAllRow = ws.oSheetFormatPr.oAllRow;
                 if(oAllRow.h)
@@ -3630,6 +3623,11 @@
                     this.memory.WriteByte(c_oSerSheetFormatPrTypes.ZeroHeight);
                     this.memory.WriteByte(c_oSerPropLenType.Byte);
                     this.memory.WriteBool(true);
+                }
+                if (oAllRow.getOutlineLevel() > 0) {
+                    this.memory.WriteByte(c_oSerSheetFormatPrTypes.OutlineLevelRow);
+                    this.memory.WriteByte(c_oSerPropLenType.Long);
+                    this.memory.WriteLong(oAllRow.getOutlineLevel());
                 }
             }
         };
@@ -3908,7 +3906,7 @@
                     {
                         var oCurDrawingToWrite = AscFormat.ExecuteNoHistory(function()
                         {
-                            var oRet = oDrawing.graphicObject.copy();
+                            var oRet = oDrawing.graphicObject.copy(undefined);
                             var oMetrics = oDrawing.getGraphicObjectMetrics();
                             AscFormat.SetXfrmFromMetrics(oRet, oMetrics);
                             return oRet;
@@ -3933,6 +3931,7 @@
             {
                 case c_oAscCellAnchorType.cellanchorTwoCell:
                 {
+                    //this.bs.WriteItem(c_oSer_DrawingType.EditAs, function(){oThis.memory.WriteByte(oDrawing.EditAs);});
                     this.bs.WriteItem(c_oSer_DrawingType.From, function(){oThis.WriteFromTo(oDrawing.from);});
                     this.bs.WriteItem(c_oSer_DrawingType.To, function(){oThis.WriteFromTo(oDrawing.to);});
                     break;
@@ -5607,7 +5606,7 @@
         };
         this.InitStyleManager = function (oStyleObject)
         {
-			var i, xf, firstFont, firstFill, normalFill, firstBorder, firstXf, newXf, oCellStyle;
+			var i, xf, firstFont, firstFill, secondFill, firstBorder, firstXf, newXf, oCellStyle;
 			if (0 === oStyleObject.aFonts.length) {
 				oStyleObject.aFonts[0] = new AscCommonExcel.Font();
 				oStyleObject.aFonts[0].initDefault(this.wb);
@@ -5652,13 +5651,19 @@
 				oStyleObject.aFills[i] = g_StyleCache.addFill(oStyleObject.aFills[i]);
 			}
 			//addXf with force flag should be last operation
+			firstFill = new AscCommonExcel.Fill();
+			firstFill.fromPatternParams(AscCommonExcel.c_oAscPatternType.None, null);
+			secondFill = new AscCommonExcel.Fill();
+			secondFill.fromPatternParams(AscCommonExcel.c_oAscPatternType.Gray125, null);
 			if (!this.isCopyPaste) {
-				firstFill = g_StyleCache.addFill(new AscCommonExcel.Fill(), true);
+				firstFill = g_StyleCache.addFill(firstFill, true);
+				secondFill = g_StyleCache.addFill(secondFill, true);
 			} else {
-				firstFill = g_StyleCache.addFill(new AscCommonExcel.Fill());
+				firstFill = g_StyleCache.addFill(firstFill);
+				secondFill = g_StyleCache.addFill(secondFill);
 			}
 			oStyleObject.aFills[0] = firstFill;
-			oStyleObject.aFills[1] = firstFill;
+			oStyleObject.aFills[1] = secondFill;
 
 			oStyleObject.aBorders[0] = new AscCommonExcel.Border();
 			for (i = 0; i < oStyleObject.aBorders.length; ++i) {
@@ -5842,7 +5847,7 @@
 			if (firstXf && !this.isCopyPaste) {
 				//addXf with force flag should be last operation
 				firstXf = g_StyleCache.addXf(firstXf, true);
-				this.oStyleManager.init(this.wb, firstXf, firstFont, firstFill, firstBorder, normalXf);
+				this.oStyleManager.init(this.wb, firstXf, firstFont, firstFill, secondFill, firstBorder, normalXf);
 			}
             for(var i in oStyleObject.oCustomTableStyles)
             {
@@ -7291,11 +7296,12 @@
             }
             else if ( c_oSerSheetFormatPrTypes.OutlineLevelCol == type )
             {
-                oWorksheet.oSheetFormatPr.nOutlineLevelCol = this.stream.GetULongLE();
+				oWorksheet.oSheetFormatPr.nOutlineLevelCol = this.stream.GetULongLE();
             }
             else if ( c_oSerSheetFormatPrTypes.OutlineLevelRow == type )
             {
-                oWorksheet.oSheetFormatPr.nOutlineLevelRow = this.stream.GetULongLE();
+                var oAllRow = oWorksheet.getAllRow();
+                oAllRow.setOutlineLevel(this.stream.GetULongLE());
             }
             else
                 res = c_oSerConstants.ReadUnknown;
@@ -7746,16 +7752,17 @@
             if ( c_oSerWorksheetsTypes.Drawing == type )
             {
                 var objectRender = new AscFormat.DrawingObjects();
-                var oFlags = {from: false, to: false, pos: false, ext: false};
+                var oFlags = {from: false, to: false, pos: false, ext: false, EditAs: c_oAscCellAnchorType.cellanchorTwoCell};
                 var oNewDrawing = objectRender.createDrawingObject();
                 res = this.bcr.Read1(length, function(t, l) {
                     return oThis.ReadDrawing(t, l, oNewDrawing, oFlags);
                 });
                 if(null != oNewDrawing.graphicObject)
                 {
-                    if(false != oFlags.from && false != oFlags.to)
+                    if(false != oFlags.from && false != oFlags.to) {
                         oNewDrawing.Type = c_oAscCellAnchorType.cellanchorTwoCell;
-                    else if(false != oFlags.from && false != oFlags.ext)
+                        //oNewDrawing.EditAs = oFlags.EditAs;
+                    } else if(false != oFlags.from && false != oFlags.ext)
                         oNewDrawing.Type = c_oAscCellAnchorType.cellanchorOneCell;
                     else if(false != oFlags.pos && false != oFlags.ext)
                         oNewDrawing.Type = c_oAscCellAnchorType.cellanchorAbsolute;
@@ -7792,6 +7799,8 @@
             var oThis = this;
             if ( c_oSer_DrawingType.Type == type )
                 oDrawing.Type = this.stream.GetUChar();
+            else if ( c_oSer_DrawingType.EditAs == type )
+                oFlags.EditAs = this.stream.GetUChar();
             else if ( c_oSer_DrawingType.From == type )
             {
                 oFlags.from = true;
