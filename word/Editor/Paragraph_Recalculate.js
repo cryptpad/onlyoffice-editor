@@ -3063,18 +3063,14 @@ CParagraphRecalculateStateWrap.prototype =
 
 			var NumPr = ParaPr.NumPr;
 
+			if (NumPr && (undefined === NumPr.NumId || 0 === NumPr.NumId || "0" === NumPr.NumId))
+				NumPr = undefined;
+
+			if (oPrevNumPr && (undefined === oPrevNumPr.NumId || 0 === oPrevNumPr.NumId || "0" === oPrevNumPr.NumId || undefined === oPrevNumPr.Lvl))
+				oPrevNumPr = undefined;
+
 			var isHaveNumbering = false;
-			if ((undefined === Para.Get_SectionPr()
-				|| true !== Para.IsEmpty())
-				&& ((NumPr
-				&& undefined !== NumPr.NumId
-				&& 0 !== NumPr.NumId
-				&& "0" !== NumPr.NumId)
-				|| (oPrevNumPr
-				&& undefined !== oPrevNumPr.NumId
-				&& undefined !== oPrevNumPr.Lvl
-				&& 0 !== oPrevNumPr.NumId
-				&& "0" !== oPrevNumPr.NumId)))
+			if ((undefined === Para.Get_SectionPr() || true !== Para.IsEmpty()) && (NumPr || oPrevNumPr))
 			{
 				isHaveNumbering = true;
 			}

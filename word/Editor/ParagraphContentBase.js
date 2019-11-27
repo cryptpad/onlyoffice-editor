@@ -1455,10 +1455,10 @@ CParagraphContentWithParagraphLikeContent.prototype.Remove = function(Direction,
 				{
 					if (para_Run === this.Content[nCurPos].Type)
 					{
-						if (para_Run == this.Content[nCurPos].Type && reviewtype_Add === this.Content[nCurPos].GetReviewType())
+						if (para_Run == this.Content[nCurPos].Type && this.Content[nCurPos].CanDeleteInReviewMode())
 							this.RemoveFromContent(nCurPos, 1);
 						else
-							this.Content[nCurPos].SetReviewType(reviewtype_Remove, false);
+							this.Content[nCurPos].SetReviewType(reviewtype_Remove, true);
 					}
 					else
 					{

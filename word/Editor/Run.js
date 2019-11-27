@@ -774,11 +774,9 @@ ParaRun.prototype.Remove = function(Direction, bOnAddText)
 
     var Selection = this.State.Selection;
 
-    var ReviewType  = this.GetReviewType();
-    var oReviewInfo = this.GetReviewInfo();
-    if (true === TrackRevisions && (reviewtype_Add !== ReviewType || !oReviewInfo.IsCurrentUser() || (oReviewInfo.IsMovedTo() && !this.Paragraph.LogicDocument.TrackMoveRelocation)) && (reviewtype_Remove !== ReviewType || !oReviewInfo.IsPrevAddedByCurrentUser()))
+    if (true === TrackRevisions && !this.CanDeleteInReviewMode())
     {
-    	if (reviewtype_Remove === ReviewType)
+    	if (reviewtype_Remove === this.GetReviewType())
 		{
 			// Тут мы ничего не делаем, просто перешагиваем через удаленный текст
 			if (true !== Selection.Use)
@@ -11281,6 +11279,17 @@ ParaRun.prototype.GetLastTrackMoveMark = function()
 	}
 
 	return null;
+};
+/**
+ * Можно ли удалять данный ран во время рецензирования
+ * @returns {boolean}
+ */
+ParaRun.prototype.CanDeleteInReviewMode = function()
+{
+	var nReviewType = this.GetReviewType();
+	var oReviewInfo = this.GetReviewInfo();
+
+	return ((reviewtype_Add === nReviewType && oReviewInfo.IsCurrentUser() && (!oReviewInfo.IsMovedTo() || this.Paragraph.LogicDocument.TrackMoveRelocation)) || (reviewtype_Remove === nReviewType && oReviewInfo.IsPrevAddedByCurrentUser()));
 };
 
 

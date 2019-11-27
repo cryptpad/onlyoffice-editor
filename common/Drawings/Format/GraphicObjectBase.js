@@ -1655,6 +1655,15 @@
         return  CalculateSrcRect(this.transform, oShapeDrawer, this.cropObject.invertTransform, this.cropObject.extX, this.cropObject.extY);
     };
 
+    CGraphicObjectBase.prototype.getLogicDocument = function()
+    {
+        var oApi = editor || Asc['editor'];
+        if(oApi && oApi.WordControl)
+        {
+            return oApi.WordControl.m_oLogicDocument;
+        }
+        return null;
+    };
 
 
     CGraphicObjectBase.prototype.updatePosition = function(x, y) {

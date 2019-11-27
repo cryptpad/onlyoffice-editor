@@ -7530,8 +7530,8 @@ CDocument.prototype.GetSelectedContent = function(bUseHistory)
 {
 	// При копировании нам не нужно, чтобы новые классы помечались как созданные в рецензировании, а при перетаскивании
 	// нужно.
-	var isTrack = this.IsTrackRevisions() && !bUseHistory;
-	if (isTrack)
+	var isTrack = this.IsTrackRevisions();
+	if (isTrack && !bUseHistory)
 		this.SetTrackRevisions(false);
 
 	var bNeedTurnOffTableId = g_oTableId.m_bTurnOff === false && true !== bUseHistory;
@@ -7556,7 +7556,7 @@ CDocument.prototype.GetSelectedContent = function(bUseHistory)
 		g_oTableId.m_bTurnOff = false;
 	}
 
-	if (isTrack)
+	if (isTrack && !bUseHistory)
 		this.SetTrackRevisions(true);
 
 	return oSelectedContent;
