@@ -9104,6 +9104,10 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		return levelInfo;
 	};
 
+	CSortProperties.prototype.asc_getRangeStr = function () {
+		return this._newSelection.getAbsName();
+	};
+
 	function CSortPropertiesLevel() {
 		this.index = null;
 		this.name = null;
@@ -9433,6 +9437,7 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	prot["asc_getCaseSensitive"] = prot.asc_getCaseSensitive;
 	prot["asc_setCaseSensitive"] = prot.asc_setCaseSensitive;
 	prot["asc_addBySortList"] = prot.asc_addBySortList;
+	prot["asc_getRangeStr"] = prot.asc_getRangeStr;
 
 	window["Asc"]["CSortPropertiesLevel"] = window["Asc"].CSortPropertiesLevel = CSortPropertiesLevel;
 	prot = CSortPropertiesLevel.prototype;
