@@ -46,7 +46,7 @@ module.exports = function(grunt) {
 	}
 	function fixPath(arrPaths, basePath = '') {
 		arrPaths.forEach((element, index) => {
-			console.log(arrPaths[index] = path.join(basePath, element));
+			arrPaths[index] = path.join(basePath, element);
 		});
 	}
 	function getConfigs() {
@@ -59,6 +59,13 @@ module.exports = function(grunt) {
 		addons.forEach(element => configs.append(grunt.file.isDir(element) ? element : path.join('../../', element)));
 
 		return configs;
+	}
+	function writeScripts(config, name) {
+		const develop = '../develop/sdkjs/';
+		const fileName = 'scripts.js';
+		const files = getFilesMin(config).concat(getFilesAll(config));
+		fixPath(files, '../../../../sdkjs/build/');
+		grunt.file.write(path.join(develop, name, fileName), 'var scrpipts = [\n\t"' + files.join('",\n\t"') + '"\n];');
 	}
 
 	function CConfig(pathConfigs) {
@@ -468,5 +475,28 @@ module.exports = function(grunt) {
 			}
 		})
 	});
+	grunt.registerTask('clean-develop', 'Clean develop scripts', function () {
+		const develop = '../develop/sdkjs/';
+		grunt.initConfig({
+			clean: {
+				tmp: {
+					options: {
+						force: true
+					}, src: [develop]
+				}
+			}
+		});
+	});
+	grunt.registerTask('build-develop', 'Build develop scripts', function () {
+		const configs = getConfigs();
+		if (!configs.valid()) {
+			return;
+		}
+
+		writeScripts(configs.word['sdk'], 'word');
+		writeScripts(configs.cell['sdk'], 'cell');
+		writeScripts(configs.slide['sdk'], 'slide');
+	});
 	grunt.registerTask('default', ['build-sdk', 'concat', 'closure-compiler', 'clean', 'license', 'splitfile', 'concat', 'replace', 'clean', 'copy']);
+	grunt.registerTask('develop', ['clean-develop', 'clean', 'build-develop']);
 };
