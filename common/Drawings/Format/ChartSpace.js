@@ -1491,7 +1491,10 @@ CChartSpace.prototype.drawSelect = function(drawingDocument, nPageIndex)
                         }
                         else
                         {
-                            Paths = seriesPaths[this.selection.series];
+                            if (Array.isArray(seriesPaths))
+                            {
+                                Paths = seriesPaths[this.selection.series];
+                            }
                         }
 
                         if(Array.isArray(Paths))

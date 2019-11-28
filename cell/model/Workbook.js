@@ -3559,6 +3559,10 @@
 																 drawingBase.ext.cy);
 				if(drawingObject.graphicObject.setDrawingBaseType){
 					drawingObject.graphicObject.setDrawingBaseType(drawingBase.Type);
+					if(drawingBase.Type === AscCommon.c_oAscCellAnchorType.cellanchorTwoCell)
+					{
+						drawingObject.graphicObject.setDrawingBaseEditAs(AscCommon.c_oAscCellAnchorType.cellanchorTwoCell);
+					}
 				}
 				oNewWs.Drawings[oNewWs.Drawings.length - 1] = drawingObject;
 			}

@@ -3645,6 +3645,10 @@ DrawingObjectsController.prototype =
             {
                 CheckSpPrXfrm3(this.selectedObjects[i]);
                 this.selectedObjects[i].setDrawingBaseType(props.anchor);
+                if(props.anchor === AscCommon.c_oAscCellAnchorType.cellanchorTwoCell)
+                {
+                    this.selectedObjects[i].setDrawingBaseEditAs(AscCommon.c_oAscCellAnchorType.cellanchorTwoCell);
+                }
                 this.selectedObjects[i].checkDrawingBaseCoords();
             }
         }

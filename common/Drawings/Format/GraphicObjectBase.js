@@ -40,6 +40,7 @@
 
     AscDFH.changesFactory[AscDFH.historyitem_AutoShapes_SetLocks] = AscDFH.CChangesDrawingsLong;
     AscDFH.changesFactory[AscDFH.historyitem_AutoShapes_SetDrawingBaseType] = AscDFH.CChangesDrawingsLong;
+    AscDFH.changesFactory[AscDFH.historyitem_AutoShapes_SetDrawingBaseEditAs] = AscDFH.CChangesDrawingsLong;
     AscDFH.changesFactory[AscDFH.historyitem_AutoShapes_SetWorksheet] = AscDFH.CChangesDrawingsString;
     AscDFH.changesFactory[AscDFH.historyitem_ShapeSetBDeleted] = AscDFH.CChangesDrawingsBool;
 
@@ -57,6 +58,12 @@
     drawingsChangesMap[AscDFH.historyitem_AutoShapes_SetDrawingBaseType] = function(oClass, value){
         if(oClass.drawingBase){
             oClass.drawingBase.Type = value;
+            oClass.handleUpdateExtents();
+        }
+    };
+    drawingsChangesMap[AscDFH.historyitem_AutoShapes_SetDrawingBaseEditAs] = function(oClass, value){
+        if(oClass.drawingBase){
+            oClass.drawingBase.editAs = value;
             oClass.handleUpdateExtents();
         }
     };
@@ -488,7 +495,7 @@
     CGraphicObjectBase.prototype.normalize = function () {
         var new_off_x, new_off_y, new_ext_x, new_ext_y;
         var xfrm = this.spPr.xfrm;
-        if (!isRealObject(this.group)) {
+        if (!AscCommon.isRealObject(this.group)) {
             new_off_x = xfrm.offX;
             new_off_y = xfrm.offY;
             new_ext_x = xfrm.extX;
@@ -830,16 +837,27 @@
             this.handleUpdateExtents();
         }
     };
-    CGraphicObjectBase.prototype.setDrawingBasePos = function(fPosX, fPosY){
-        if(this.drawingBase && this.drawingBase.Pos){
+    CGraphicObjectBase.prototype.setDrawingBaseEditAs = function(nType){
+        if(this.drawingBase){
+            History.Add(new AscDFH.CChangesDrawingsLong(this, AscDFH.historyitem_AutoShapes_SetDrawingBaseEditAs, this.drawingBase.editAs, nType));
+            this.drawingBase.editAs = nType;
+            this.handleUpdateExtents();
+        }
+    };
+    CGraphicObjectBase.prototype.setDrawingBasePos = function(fPosX, fPosY)
+    {
+        if(this.drawingBase && this.drawingBase.Pos)
+        {
             History.Add(new AscDFH.CChangesDrawingsObjectNoId(this, AscDFH.historyitem_AutoShapes_SetDrawingBasePos, new CDrawingBaseCoordsWritable(this.drawingBase.Pos.X, this.drawingBase.Pos.Y), new CDrawingBaseCoordsWritable(fPosX, fPosY)));
             this.drawingBase.Pos.X = fPosX;
             this.drawingBase.Pos.Y = fPosY;
             this.handleUpdatePosition();
         }
     };
-    CGraphicObjectBase.prototype.setDrawingBaseExt = function(fExtX, fExtY){
-        if(this.drawingBase && this.drawingBase.ext){
+    CGraphicObjectBase.prototype.setDrawingBaseExt = function(fExtX, fExtY)
+    {
+        if(this.drawingBase && this.drawingBase.ext)
+        {
             History.Add(new AscDFH.CChangesDrawingsObjectNoId(this, AscDFH.historyitem_AutoShapes_SetDrawingBaseExt, new CDrawingBaseCoordsWritable(this.drawingBase.ext.cx, this.drawingBase.ext.cy), new CDrawingBaseCoordsWritable(fExtX, fExtY)));
             this.drawingBase.ext.cx = fExtX;
             this.drawingBase.ext.cy = fExtY;
@@ -1206,7 +1224,7 @@
 
 
     CGraphicObjectBase.prototype.getFullRotate = function () {
-        return !isRealObject(this.group) ? this.rot : this.rot + this.group.getFullRotate();
+        return !AscCommon.isRealObject(this.group) ? this.rot : this.rot + this.group.getFullRotate();
     };
 
     CGraphicObjectBase.prototype.getAspect = function (num) {
@@ -1216,19 +1234,19 @@
     };
 
     CGraphicObjectBase.prototype.getFullFlipH = function () {
-        if (!isRealObject(this.group))
+        if (!AscCommon.isRealObject(this.group))
             return this.flipH;
         return this.group.getFullFlipH() ? !this.flipH : this.flipH;
     };
 
     CGraphicObjectBase.prototype.getFullFlipV = function () {
-        if (!isRealObject(this.group))
+        if (!AscCommon.isRealObject(this.group))
             return this.flipV;
         return this.group.getFullFlipV() ? !this.flipV : this.flipV;
     };
 
     CGraphicObjectBase.prototype.getMainGroup = function () {
-        if(!isRealObject(this.group)){
+        if(!AscCommon.isRealObject(this.group)){
             if(this.getObjectType() === AscDFH.historyitem_type_GroupShape || this.getObjectType() === AscDFH.historyitem_type_LockedCanvas){
                 return this;
             }
