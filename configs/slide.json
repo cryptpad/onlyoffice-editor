@@ -252,8 +252,7 @@
 			"common/libfont/manager.js",
 			"common/libfont/textmeasurer.js"
 		],
-		"map": "sdk-all.js.map",
-		"log": "../slide/Build/Log"
+		"map": "sdk-all.js.map"
 	},
 	"source_map": {
 		"url": "http://localhost:8080/sdkjs/slide"
