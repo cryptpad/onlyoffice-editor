@@ -6106,9 +6106,6 @@ function BinaryDocumentTableWriter(memory, doc, oMapCommentId, oNumIdMap, copyPa
 		// if (null != val.DataBinding) {
 		// 	oThis.bs.WriteItem(c_oSerSdt.DataBinding, function (){oThis.WriteSdtPrDataBinding(val.DataBinding);});
 		// }
-		// if (null != val.PrDate) {
-		// 	oThis.bs.WriteItem(c_oSerSdt.PrDate, function (){oThis.WriteSdtPrDate(val.PrDate);});
-		// }
 		// if (null != val.DocPartList) {
 		// 	oThis.bs.WriteItem(c_oSerSdt.DocPartList, function (){oThis.WriteDocPartList(val.DocPartList);});
 		// }
@@ -6155,6 +6152,9 @@ function BinaryDocumentTableWriter(memory, doc, oMapCommentId, oNumIdMap, copyPa
 		} else if (oSdt.IsDropDownList()) {
 			type = ESdtType.sdttypeDropDownList;
 			oThis.bs.WriteItem(c_oSerSdt.DropDownList, function (){oThis.WriteSdtComboBox(oSdt.GetDropDownListPr());});
+		} else if (oSdt.IsDatePicker()) {
+			type = ESdtType.sdttypeDate;
+			oThis.bs.WriteItem(c_oSerSdt.PrDate, function (){oThis.WriteSdtPrDate(oSdt.GetDatePickerPr());});
 		} else if (undefined !== val.CheckBox) {
 			type = ESdtType.sdttypeCheckBox;
 			oThis.bs.WriteItem(c_oSerSdt.Checkbox, function (){oThis.WriteSdtCheckBox(val.CheckBox);});
@@ -6237,13 +6237,13 @@ function BinaryDocumentTableWriter(memory, doc, oMapCommentId, oNumIdMap, copyPa
 			this.memory.WriteByte(c_oSerSdt.DateFormat);
 			this.memory.WriteString2(val.DateFormat);
 		}
-		if (null != val.Lid) {
-			this.memory.WriteByte(c_oSerSdt.Lid);
-			this.memory.WriteString2(val.Lid);
-		}
-		if (null != val.StoreMappedDataAs) {
-			oThis.bs.WriteItem(c_oSerSdt.StoreMappedDataAs, function (){oThis.memory.WriteByte(val.StoreMappedDataAs);});
-		}
+		// if (null != val.Lid) {
+		// 	this.memory.WriteByte(c_oSerSdt.Lid);
+		// 	this.memory.WriteString2(val.Lid);
+		// }
+		// if (null != val.StoreMappedDataAs) {
+		// 	oThis.bs.WriteItem(c_oSerSdt.StoreMappedDataAs, function (){oThis.memory.WriteByte(val.StoreMappedDataAs);});
+		// }
 	};
 	this.WriteDocPartList = function (val)
 	{
@@ -12141,11 +12141,12 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
 		// 	res = this.bcr.Read1(length, function(t, l) {
 		// 		return oThis.ReadSdtPrDataBinding(t, l, oSdtPr.DataBinding);
 		// 	});
-		// } else if (c_oSerSdt.PrDate === type) {
-		// 	oSdtPr.PrDate = {};
-		// 	res = this.bcr.Read1(length, function(t, l) {
-		// 		return oThis.ReadSdtPrDate(t, l, oSdtPr.PrDate);
-		// 	});
+		} else if (c_oSerSdt.PrDate === type) {
+			var datePicker = new CSdtDatePickerPr();
+			res = this.bcr.Read1(length, function(t, l) {
+				return oThis.ReadSdtPrDate(t, l, datePicker);
+			});
+			oSdt.SetDatePickerPr(datePicker);
 		// } else if (c_oSerSdt.DocPartList === type) {
 		// 	oSdtPr.DocPartList = {};
 		// 	res = this.bcr.Read1(length, function(t, l) {
@@ -12261,10 +12262,10 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
 			val.Calendar = this.stream.GetUChar();
 		} else if (c_oSerSdt.DateFormat === type) {
 			val.DateFormat = this.stream.GetString2LE(length);
-		} else if (c_oSerSdt.Lid === type) {
-			val.Lid = this.stream.GetString2LE(length);
-		} else if (c_oSerSdt.StoreMappedDataAs === type) {
-			val.StoreMappedDataAs = this.stream.GetUChar();
+		// } else if (c_oSerSdt.Lid === type) {
+		// 	val.Lid = this.stream.GetString2LE(length);
+		// } else if (c_oSerSdt.StoreMappedDataAs === type) {
+		// 	val.StoreMappedDataAs = this.stream.GetUChar();
 		} else {
 			res = c_oSerConstants.ReadUnknown;
 		}
