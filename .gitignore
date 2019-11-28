@@ -24,6 +24,7 @@ slide/themes/themes.js
 *~
 .DS_Store
 /deploy
+/develop
 cell/sdk-all.props.js.map
 cell/sdk-all.vars.js.map
 slide/sdk-all.props.js.map
