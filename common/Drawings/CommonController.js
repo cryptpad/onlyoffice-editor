@@ -6476,7 +6476,7 @@ DrawingObjectsController.prototype =
                             return;
                         }
                     }
-                }
+                };
                 if(this.selection.groupSelection)
                 {
                     for(i = 0; i < this.selection.groupSelection.arrGraphicObjects.length; ++i)
@@ -7983,7 +7983,7 @@ DrawingObjectsController.prototype =
         var selection_state = state[_state_index];
         this.clearPreTrackObjects();
         this.clearTrackObjects();
-        this.resetSelection();
+        this.resetSelection(undefined, true, undefined);
         this.changeCurrentState(new AscFormat.NullState(this));
         if(selection_state.textObject && !selection_state.textObject.bDeleted)
         {
@@ -8196,7 +8196,7 @@ DrawingObjectsController.prototype =
                     && (!bSlide || oDrawingSelectionState.chartObject.parent === this.drawingObjects))
                 {
                     this.selectObject(oDrawingSelectionState.chartObject, bDocument ? (oDrawingSelectionState.chartObject.parent ? oDrawingSelectionState.chartObject.parent.PageNum : nPageIndex) : nPageIndex);
-                    oDrawingSelectionState.chartObject.resetSelection();
+                    oDrawingSelectionState.chartObject.resetSelection(undefined, true, undefined);
                     if(oDrawingSelectionState.chartObject.loadDocumentStateAfterLoadChanges(oSelectionState))
                     {
                         this.selection.chartSelection = oDrawingSelectionState.chartObject;
