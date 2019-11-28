@@ -20437,7 +20437,7 @@ CDocument.prototype.ParseTableFormulaInstrLine = function(sInstrLine)
 CDocument.prototype.AddCaption = function(oPr)
 {
 
-    this.Create_NewHistoryPoint(0);
+    this.StartAction(AscDFH.historydescription_Document_AddCaption);
     var NewParagraph;
     if(this.CurPos.Type === docpostype_DrawingObjects)
     {

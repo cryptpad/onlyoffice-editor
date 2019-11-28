@@ -3189,6 +3189,7 @@
 	window['AscDFH'].historydescription_Presentation_AddToLayout                    = 0x016f;
 	window['AscDFH'].historydescription_Presentation_FitImagesToSlide               = 0x0170;
 	window['AscDFH'].historydescription_Document_AddTextWithProperties              = 0x0171;
+	window['AscDFH'].historydescription_Document_AddCaption                         = 0x0172;
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
