@@ -49,6 +49,17 @@ module.exports = function(grunt) {
 			console.log(arrPaths[index] = path.join(basePath, element));
 		});
 	}
+	function getConfigs() {
+		const configs = new CConfig(grunt.option('src') || '../');
+
+		let addons = grunt.option('addon') || [];
+		if (!Array.isArray(addons)) {
+			addons = [addons];
+		}
+		addons.forEach(element => configs.append(grunt.file.isDir(element) ? element : path.join('../../', element)));
+
+		return configs;
+	}
 
 	function CConfig(pathConfigs) {
 		this.fonts = null;
@@ -180,17 +191,11 @@ module.exports = function(grunt) {
 	grunt.loadNpmTasks('grunt-split-file');
 
 	grunt.registerTask('build-sdk', 'Build SDK', function () {
-		let configs = new CConfig(grunt.option('src'));
-
-		let addons = grunt.option('addon') || [];
-		if (!Array.isArray(addons)) {
-			addons = [addons];
-		}
-		addons.forEach(element => configs.append(grunt.file.isDir(element) ? element : path.join('../../', element)));
-
+		const configs = getConfigs();
 		if (!configs.valid()) {
 			return;
 		}
+
 		const configWord = configs.word['sdk'];
 		const configCell = configs.cell['sdk'];
 		const configSlide = configs.slide['sdk'];
