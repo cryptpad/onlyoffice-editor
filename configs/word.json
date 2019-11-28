@@ -251,7 +251,6 @@
 			"../word/Drawing/mobileTouchManager.js",
 			"../word/Drawing/HtmlPage.js"
 		],
-		"dst": "../word",
 		"map": "sdk-all.js.map",
 		"log": "../word/Build/Log"
 	},

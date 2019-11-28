@@ -277,7 +277,6 @@
 			"../common/Scrolls/mobileTouchManagerBase.js",
 			"../cell/view/mobileTouch.js"
 		],
-		"dst": "../cell",
 		"map": "sdk-all.js.map",
 		"log": "../cell/Build/Log"
 	},

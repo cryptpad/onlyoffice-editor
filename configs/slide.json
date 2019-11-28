@@ -252,7 +252,6 @@
 			"../common/libfont/manager.js",
 			"../common/libfont/textmeasurer.js"
 		],
-		"dst": "../slide",
 		"map": "sdk-all.js.map",
 		"log": "../slide/Build/Log"
 	},
