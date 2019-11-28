@@ -10463,6 +10463,27 @@ ParaRun.prototype.Is_UseInParagraph = function()
 
     return true;
 };
+/**
+ * Получаем позицию данного рана в родительском параграфе
+ * @param nInObjectPos {?number}
+ * @returns {?CParagraphContentPos}
+ */
+ParaRun.prototype.GetParagraphContentPosFromObject = function(nInObjectPos)
+{
+	if (undefined === nInObjectPos)
+		nInObjectPos = 0;
+
+	var oParagraph = this.GetParagraph();
+	if (!oParagraph)
+		return null;
+
+	var oContentPos = oParagraph.GetPosByElement(this);
+	if (!oContentPos)
+		return null;
+
+	oContentPos.Add(nInObjectPos);
+	return oContentPos;
+};
 ParaRun.prototype.Displace_BreakOperator = function(isForward, bBrkBefore, CountOperators)
 {
     var bResult = true;

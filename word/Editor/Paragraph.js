@@ -4995,6 +4995,10 @@ Paragraph.prototype.Get_PosByElement = function(Class)
 
 	return null;
 };
+Paragraph.prototype.GetPosByElement = function(oClass)
+{
+	return this.Get_PosByElement(oClass);
+};
 /**
  * Получаем список классов по заданной позиции
  */
@@ -12378,6 +12382,10 @@ Paragraph.prototype.Get_ElementByPos = function(ContentPos)
     var CurPos = ContentPos.Get(0);
     return this.Content[CurPos].Get_ElementByPos(ContentPos, 1);
 };
+Paragraph.prototype.GetElementByPos = function(oParaContentPos)
+{
+	return this.Get_ElementByPos(oParaContentPos);
+};
 Paragraph.prototype.private_RecalculateTextMetrics = function(TextMetrics)
 {
     for (var Index = 0, Count = this.Content.length; Index < Count; Index++)
@@ -14753,7 +14761,8 @@ Paragraph.prototype.GetCurrentAnchorPosition = function()
 {
 	var oNearPos = {
 		Paragraph  : this,
-		ContentPos : this.Get_ParaContentPos(false, false)
+		ContentPos : this.Get_ParaContentPos(false, false),
+		transform  : this.Get_ParentTextTransform()
 	};
 
 	this.Check_NearestPos(oNearPos);
@@ -15254,6 +15263,24 @@ CParagraphContentPos.prototype =
 CParagraphContentPos.prototype.GetDepth = function()
 {
 	return this.Depth - 1;
+};
+/**
+ * Получаем позицию NerestPos
+ * @param oParagraph
+ */
+CParagraphContentPos.prototype.ToAnchorPos = function(oParagraph)
+{
+	if (!oParagraph)
+		return;
+
+	var oNearPos = {
+		Paragraph  : oParagraph,
+		ContentPos : this,
+		transform  : oParagraph.Get_ParentTextTransform()
+	};
+
+	oParagraph.Check_NearestPos(oNearPos);
+	return oNearPos;
 };
 
 function CComplexFieldStatePos(oComplexField, isFieldCode)

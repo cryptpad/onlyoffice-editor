@@ -7586,6 +7586,9 @@ CDocument.prototype.OnEndTextDrag = function(NearPos, bCopy)
 
         NearPos.Paragraph.Check_NearestPos(NearPos);
 
+		var oDocPos = this.AnchorPositionToDocumentPosition(NearPos);
+		this.TrackDocumentPositions([oDocPos]);
+
 		if (!bCopy)
 		{
 			this.DragAndDropAction = true;
@@ -7680,7 +7683,15 @@ CDocument.prototype.OnEndTextDrag = function(NearPos, bCopy)
 
             this.RemoveSelection(true);
 
-            // Выделение выставляется внутри функции InsertContent
+			this.RefreshDocumentPositions([oDocPos]);
+			var oTempNearPos = this.DocumentPositionToAnchorPosition(oDocPos);
+			if (oTempNearPos)
+			{
+				NearPos = oTempNearPos;
+				Para    = NearPos.Paragraph;
+			}
+
+			// Выделение выставляется внутри функции InsertContent
             Para.Parent.InsertContent(DocContent, NearPos);
 
 			this.Recalculate();
@@ -20898,7 +20909,79 @@ CDocument.prototype.AddText = function(sText, oTextPr, isMoveCursorOutside)
 		this.FinalizeAction();
 	}
 };
+/**
+ * Список позиций, которые мы собираемся отслеживать
+ * @param arrPositions
+ */
+CDocument.prototype.TrackDocumentPositions = function(arrPositions)
+{
+	this.CollaborativeEditing.Clear_DocumentPositions();
 
+	for (var nIndex = 0, nCount = arrPositions.length; nIndex < nCount; ++nIndex)
+	{
+		this.CollaborativeEditing.Add_DocumentPosition(arrPositions[nIndex]);
+	}
+};
+/**
+ * Обновляем отслеживаемые позиции
+ * @param arrPositions
+ */
+CDocument.prototype.RefreshDocumentPositions = function(arrPositions)
+{
+	for (var nIndex = 0, nCount = arrPositions.length; nIndex < nCount; ++nIndex)
+	{
+		this.CollaborativeEditing.Update_DocumentPosition(arrPositions[nIndex]);
+	}
+};
+/**
+ * Конвертируем позицию в документе в специальную позицию NearestPos
+ * @param oDocPos
+ * @returns {NearestPos}
+ */
+CDocument.prototype.DocumentPositionToAnchorPosition = function(oDocPos)
+{
+	var oRun, nInRunPos = -1;
+	for (var nIndex = oDocPos.length - 1; nIndex >= 0; --nIndex)
+	{
+		if (oDocPos[nIndex].Class instanceof ParaRun)
+		{
+			oRun      = oDocPos[nIndex].Class;
+			nInRunPos = oDocPos[nIndex].Position;
+			break;
+		}
+	}
+
+	if (!oRun)
+		return;
+
+	var oParaContentPos = oRun.GetParagraphContentPosFromObject(nInRunPos);
+	var oParagraph      = oRun.GetParagraph();
+
+	if (!oParagraph || !oParaContentPos)
+		return;
+
+	return oParaContentPos.ToAnchorPos(oParagraph);
+};
+/**
+ * Конвертируем NearesPos в позицию документа
+ * @param oAnchorPos {NearestPos}
+ * @returns {*}
+ */
+CDocument.prototype.AnchorPositionToDocumentPosition = function(oAnchorPos)
+{
+	var oParagraph = oAnchorPos.Paragraph;
+	var oRun       = oParagraph.GetElementByPos(oAnchorPos.ContentPos);
+
+	if (!oRun || !(oRun instanceof ParaRun))
+		return null;
+
+	var nInRunPos = oAnchorPos.ContentPos.Get(oAnchorPos.ContentPos.GetDepth());
+
+	var oDocPos = oRun.GetDocumentPositionFromObject();
+	oDocPos.push({Class : oRun, Position : nInRunPos});
+
+	return oDocPos;
+};
 
 function CDocumentSelectionState()
 {
