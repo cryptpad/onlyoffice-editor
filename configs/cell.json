@@ -276,10 +276,6 @@
 			"vendor/iscroll.js",
 			"common/Scrolls/mobileTouchManagerBase.js",
 			"cell/view/mobileTouch.js"
-		],
-		"map": "sdk-all.js.map"
-	},
-	"source_map": {
-		"url": "http://localhost:8080/sdkjs/cell"
+		]
 	}
 }
