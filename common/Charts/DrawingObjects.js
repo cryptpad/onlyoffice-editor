@@ -1287,10 +1287,10 @@ function DrawingObjects() {
     function DrawingBase(ws) {
         this.worksheet = ws;
 
-		this.imageUrl = "";
 		this.Type = c_oAscCellAnchorType.cellanchorTwoCell;
 		this.Pos = { X: 0, Y: 0 };
 
+		this.editAs = c_oAscCellAnchorType.cellanchorTwoCell;
 		this.from = new CCellObjectInfo();
 		this.to = new CCellObjectInfo();
 		this.ext = { cx: 0, cy: 0 };
@@ -1302,11 +1302,6 @@ function DrawingObjects() {
         {
             from: new CCellObjectInfo(),
             to  : new CCellObjectInfo()
-        };
-
-		this.flags = {
-            anchorUpdated: false,
-            lockState: c_oAscLockTypes.kLockTypeNone
         };
     }
 
@@ -1674,6 +1669,7 @@ function DrawingObjects() {
         var copyObject = _this.createDrawingObject();
 
         copyObject.Type = object.Type;
+        copyObject.editAs = object.editAs;
         copyObject.Pos.X = object.Pos.X;
         copyObject.Pos.Y = object.Pos.Y;
         copyObject.ext.cx = object.ext.cx;

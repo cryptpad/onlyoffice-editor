@@ -3919,7 +3919,7 @@
             {
                 case c_oAscCellAnchorType.cellanchorTwoCell:
                 {
-                    //this.bs.WriteItem(c_oSer_DrawingType.EditAs, function(){oThis.memory.WriteByte(oDrawing.EditAs);});
+                    this.bs.WriteItem(c_oSer_DrawingType.EditAs, function(){oThis.memory.WriteByte(oDrawing.editAs);});
                     this.bs.WriteItem(c_oSer_DrawingType.From, function(){oThis.WriteFromTo(oDrawing.from);});
                     this.bs.WriteItem(c_oSer_DrawingType.To, function(){oThis.WriteFromTo(oDrawing.to);});
                     break;
@@ -7732,7 +7732,7 @@
             if ( c_oSerWorksheetsTypes.Drawing == type )
             {
                 var objectRender = new AscFormat.DrawingObjects();
-                var oFlags = {from: false, to: false, pos: false, ext: false, EditAs: c_oAscCellAnchorType.cellanchorTwoCell};
+                var oFlags = {from: false, to: false, pos: false, ext: false, editAs: c_oAscCellAnchorType.cellanchorTwoCell};
                 var oNewDrawing = objectRender.createDrawingObject();
                 res = this.bcr.Read1(length, function(t, l) {
                     return oThis.ReadDrawing(t, l, oNewDrawing, oFlags);
@@ -7741,7 +7741,7 @@
                 {
                     if(false != oFlags.from && false != oFlags.to) {
                         oNewDrawing.Type = c_oAscCellAnchorType.cellanchorTwoCell;
-                        //oNewDrawing.EditAs = oFlags.EditAs;
+                        oNewDrawing.editAs = oFlags.editAs;
                     } else if(false != oFlags.from && false != oFlags.ext)
                         oNewDrawing.Type = c_oAscCellAnchorType.cellanchorOneCell;
                     else if(false != oFlags.pos && false != oFlags.ext)
@@ -7780,7 +7780,7 @@
             if ( c_oSer_DrawingType.Type == type )
                 oDrawing.Type = this.stream.GetUChar();
             else if ( c_oSer_DrawingType.EditAs == type )
-                oFlags.EditAs = this.stream.GetUChar();
+                oFlags.editAs = this.stream.GetUChar();
             else if ( c_oSer_DrawingType.From == type )
             {
                 oFlags.from = true;
@@ -7922,7 +7922,6 @@
                 if(null != src)
                 {
                   oDrawing.image.src = src;
-                  oDrawing.imageUrl = src;
                 }
             }
             else

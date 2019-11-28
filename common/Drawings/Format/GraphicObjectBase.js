@@ -868,7 +868,18 @@
     };
     CGraphicObjectBase.prototype.getDrawingBaseType = function()
     {
-        return this.drawingBase ? this.drawingBase.Type : null;
+        if(this.drawingBase)
+        {
+            if(this.drawingBase.Type === AscCommon.c_oAscCellAnchorType.cellanchorTwoCell)
+            {
+                if(this.drawingBase.editAs !== null)
+                {
+                    return this.drawingBase.editAs;
+                }
+            }
+            return this.drawingBase.Type;
+        }
+        return null;
     };
 
     CGraphicObjectBase.prototype.checkDrawingBaseCoords = function()

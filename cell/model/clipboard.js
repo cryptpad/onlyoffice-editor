@@ -976,8 +976,7 @@
 				var arrImages = [];
 				if (images) {
 					for (var i = 0; i < images.length; i++) {
-						if ((images[i].graphicObject && images[i].graphicObject.selected === true) ||
-							(images[i].flags.selected === true)) {
+						if ((images[i].graphicObject && images[i].graphicObject.selected === true)) {
 							arrImages[n] = i;
 							n++;
 						}
