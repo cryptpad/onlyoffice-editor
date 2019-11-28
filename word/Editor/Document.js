@@ -597,6 +597,11 @@ CSelectedContent.prototype =
 				{
 					var oEndRun = oEndParagraph.GetParaEndRun();
 					oEndRun.AddAfterParaEnd(new CRunRevisionMove(false, false, LogicDocument.TrackMoveId));
+
+					var oInfo = new CReviewInfo();
+					oInfo.Update();
+					oInfo.SetMove(Asc.c_oAscRevisionsMove.MoveTo);
+					oEndRun.SetReviewTypeWithInfo(reviewtype_Add, oInfo, false);
 				}
 				else
 				{
@@ -13857,7 +13862,7 @@ CDocument.prototype.Set_ColumnsProps = function(ColumnsProps)
 
 		// К селекту мы применяем колонки не так как ворд.
 		// Элементы попавшие в селект полностью входят в  новую секцию, даже если они выделены частично.
-		
+
 		var nStartPos  = this.Selection.StartPos;
 		var nEndPos    = this.Selection.EndPos;
 		var nDirection = 1;
@@ -15346,10 +15351,10 @@ CDocument.prototype.End_CompositeInput = function()
 		return;
 
 	var nLen = this.CompositeInput.Length;
-	
+
 	var oRun = this.CompositeInput.Run;
 	oRun.Set_CompositeInput(null);
-	
+
 	if (0 === nLen && true === this.History.CanRemoveLastPoint() && true === this.CompositeInput.CanUndo)
 	{
 		this.Document_Undo();
@@ -21860,6 +21865,32 @@ CTrackRevisionsManager.prototype.AddVisibleChange = function(oChange)
 				}
 			}
 		}
+		else if (oVisChange.IsComplexChange() && oChange.IsComplexChange())
+		{
+			var arrVisSC    = oVisChange.GetSimpleChanges();
+			var arrChangeSC = oChange.GetSimpleChanges();
+
+			var isEqual = false;
+			if (arrVisSC.length === arrChangeSC.length)
+			{
+				isEqual = true;
+				for (var nSimpleIndex = 0, nSimplesCount = arrVisSC.length; nSimpleIndex < nSimplesCount; ++nSimpleIndex)
+				{
+					if (arrVisSC[nSimpleIndex] !== arrChangeSC[nSimpleIndex])
+					{
+						isEqual = false;
+						break;
+					}
+				}
+			}
+
+			if (isEqual)
+				return;
+		}
+		else if (oChange === oVisChange)
+		{
+			return;
+		}
 	}
 
     this.VisibleChanges.push(oChange);
@@ -21996,7 +22027,7 @@ CTrackRevisionsManager.prototype.Get_AllChangesLogicDocuments = function()
 CTrackRevisionsManager.prototype.GetChangeRelatedParagraphs = function(oChange, bAccept)
 {
 	var oRelatedParas = {};
-	
+
 	if (oChange.IsComplexChange())
 	{
 		var arrSimpleChanges = oChange.GetSimpleChanges();
@@ -22009,7 +22040,7 @@ CTrackRevisionsManager.prototype.GetChangeRelatedParagraphs = function(oChange, 
 	{
 		this.private_GetChangeRelatedParagraphs(oChange, bAccept, oRelatedParas);
 	}
-	
+
     return this.private_ConvertParagraphsObjectToArray(oRelatedParas);
 };
 CTrackRevisionsManager.prototype.private_GetChangeRelatedParagraphs = function(oChange, bAccept, oRelatedParas)
@@ -22272,8 +22303,8 @@ CTrackRevisionsManager.prototype.private_CheckChangeObject = function(sId)
 		if (this.private_CompareDocumentPositions(oDocPos, oTempDocPos) < 0)
 		{
 			nAddPosition = nIndex;
-			break;		
-		}	
+			break;
+		}
 	}
 
 	if (-1 === nAddPosition)
@@ -22338,7 +22369,7 @@ CTrackRevisionsManager.prototype.private_RemoveChangeObject = function(sId)
  * @returns {CRevisionsChange}
  */
 CTrackRevisionsManager.prototype.CollectMoveChange = function(oChange)
-{	
+{
 	var isFrom = c_oAscRevisionsChangeType.TextRem === oChange.GetType() || c_oAscRevisionsChangeType.ParaRem === oChange.GetType() || (c_oAscRevisionsChangeType.MoveMark === oChange.GetType() && oChange.GetValue().IsFrom());
 
 	var nStartIndex  = -1;
@@ -22363,7 +22394,7 @@ CTrackRevisionsManager.prototype.CollectMoveChange = function(oChange)
 		return oChange;
 
 	var isStart = false;
-	
+
 	for (var nIndex = nSearchIndex; nIndex >= 0; --nIndex)
 	{
 		var arrCurChanges = this.Changes[this.ChangesOutline[nIndex].GetId()];
@@ -22401,7 +22432,7 @@ CTrackRevisionsManager.prototype.CollectMoveChange = function(oChange)
 							{
 								nStartIndex  = nIndex;
 								oStartChange = oCurChange;
-								break;									
+								break;
 							}
 						}
 						else if (oCurChange !== oChange)
@@ -22424,7 +22455,7 @@ CTrackRevisionsManager.prototype.CollectMoveChange = function(oChange)
 
 	var sValue     = "";
 	var arrChanges = [oStartChange];
-	
+
 	isStart = false;
 	nDeep   = 0;
 	var isEnd = false;
