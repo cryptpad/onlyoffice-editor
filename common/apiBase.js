@@ -2506,7 +2506,7 @@
 	//----------------------------------------------------------addons----------------------------------------------------
     baseEditorsApi.prototype["asc_isSupportFeature"] = function(type)
 	{
-		return (window["Asc"] && window["Asc"]["Addons"][type] === true) ? true : false;
+		return (window["Asc"] && window["Asc"]["Addons"] && window["Asc"]["Addons"][type] === true) ? true : false;
 	};
 
 	//----------------------------------------------------------export----------------------------------------------------
