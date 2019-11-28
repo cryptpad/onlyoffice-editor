@@ -15537,12 +15537,16 @@ CDocument.prototype.RemoveAllFootnotes = function()
 	{
 		this.StartAction(AscDFH.historydescription_Document_RemoveAllFootnotes);
 
+		var sDefaultStyleId = this.GetStyles().GetDefaultFootnoteReference();
 		for (var nIndex = 0, nCount = arrFootnotes.length; nIndex < nCount; ++nIndex)
 		{
 			var oRef = arrRefs[nIndex];
 			var oRun = arrRuns[nIndex];
 
 			oRun.RemoveElement(oRef);
+
+			if (oRun.GetRStyle() === sDefaultStyleId)
+				oRun.SetRStyle(undefined);
 		}
 
 		this.Recalculate();

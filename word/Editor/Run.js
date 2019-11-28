@@ -8353,6 +8353,14 @@ ParaRun.prototype.Get_RStyle = function()
 {
 	return this.Get_CompiledPr(false).RStyle;
 };
+ParaRun.prototype.GetRStyle = function()
+{
+	return this.Get_RStyle();
+};
+ParaRun.prototype.SetRStyle = function(sStyleId)
+{
+	this.Set_RStyle(sStyleId);
+};
 
 ParaRun.prototype.Set_Spacing = function(Value)
 {
