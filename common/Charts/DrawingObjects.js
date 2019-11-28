@@ -2471,7 +2471,7 @@ function DrawingObjects() {
         _this.controller.checkSelectedObjectsAndCallback(_this.controller.setParagraphNumbering, [AscFormat.fGetPresentationBulletByNumInfo(NumberInfo), size, unicolor, nNumStartAt], false, AscDFH.historydescription_Presentation_SetParagraphNumbering);
     };
 
-    _this.editImageDrawingObject = function(imageUrl) {
+    _this.editImageDrawingObject = function(imageUrl, obj) {
 
         if ( imageUrl ) {
             var _image = api.ImageLoader.LoadImage(imageUrl, 1);
@@ -2482,13 +2482,12 @@ function DrawingObjects() {
                     worksheet.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.UplImageUrl, c_oAscError.Level.NoCritical);
                 }
                 else {
-                    if ( api.isImageChangeUrl ) {
+                    if ( obj && obj.isImageChangeUrl ) {
                         var imageProp = new Asc.asc_CImgProperty();
                         imageProp.ImageUrl = _image.src;
                         _this.setGraphicObjectProps(imageProp);
-                        api.isImageChangeUrl = false;
                     }
-                    else if ( api.isShapeImageChangeUrl ) {
+                    else if ( obj && obj.isShapeImageChangeUrl ) {
                         var imgProps = new Asc.asc_CImgProperty();
                         var shapeProp = new Asc.asc_CShapeProperty();
                         imgProps.ShapeProperties = shapeProp;
@@ -2496,16 +2495,13 @@ function DrawingObjects() {
                         shapeProp.fill.type = Asc.c_oAscFill.FILL_TYPE_BLIP;
                         shapeProp.fill.fill = new Asc.asc_CFillBlip();
                         shapeProp.fill.fill.asc_putUrl(_image.src);
-                        if(api.textureType !== null && api.textureType !== undefined){
-                            shapeProp.fill.fill.asc_putType(api.textureType);
+                        if(obj.textureType !== null && obj.textureType !== undefined){
+                            shapeProp.fill.fill.asc_putType(obj.textureType);
                         }
-                        api.textureType = null;
                         _this.setGraphicObjectProps(imgProps);
-                        api.isShapeImageChangeUrl = false;
                     }
-                    else if(api.isTextArtChangeUrl)
+                    else if(obj && obj.isTextArtChangeUrl)
                     {
-
                         var imgProps = new Asc.asc_CImgProperty();
                         var AscShapeProp = new Asc.asc_CShapeProperty();
                         imgProps.ShapeProperties = AscShapeProp;
@@ -2513,15 +2509,13 @@ function DrawingObjects() {
                         oFill.type = Asc.c_oAscFill.FILL_TYPE_BLIP;
                         oFill.fill = new Asc.asc_CFillBlip();
                         oFill.fill.asc_putUrl(imageUrl);
-                        if(api.textureType !== null && api.textureType !== undefined){
-                            oFill.fill.asc_putType(api.textureType);
+                        if(obj.textureType !== null && obj.textureType !== undefined){
+                            oFill.fill.asc_putType(obj.textureType);
                         }
-                        api.textureType = null;
                         AscShapeProp.textArtProperties = new Asc.asc_TextArtProperties();
                         AscShapeProp.textArtProperties.asc_putFill(oFill);
 
                         _this.setGraphicObjectProps(imgProps);
-                        api.isTextArtChangeUrl = false;
                     }
 
                     _this.showDrawingObjects(true);
@@ -3865,6 +3859,25 @@ function DrawingObjects() {
                 _this.controller.setGraphicObjectProps( objectProperties );
             } else {
                 _img = api.ImageLoader.LoadImage(objectProperties.ShapeProperties.fill.fill.url, 1);
+                if ( null != _img ) {
+                    _this.controller.setGraphicObjectProps( objectProperties );
+                }
+                else {
+                    _this.asyncImageEndLoaded = function(_image) {
+                        _this.controller.setGraphicObjectProps( objectProperties );
+                        _this.asyncImageEndLoaded = null;
+                    }
+                }
+            }
+        }
+        else if ( objectProperties.ShapeProperties && objectProperties.ShapeProperties.textArtProperties &&
+            objectProperties.ShapeProperties.textArtProperties.Fill && objectProperties.ShapeProperties.textArtProperties.Fill.fill &&
+            !AscCommon.isNullOrEmptyString(objectProperties.ShapeProperties.textArtProperties.Fill.fill.url) ) {
+
+            if (window['IS_NATIVE_EDITOR']) {
+                _this.controller.setGraphicObjectProps( objectProperties );
+            } else {
+                _img = api.ImageLoader.LoadImage(objectProperties.ShapeProperties.textArtProperties.Fill.fill.url, 1);
                 if ( null != _img ) {
                     _this.controller.setGraphicObjectProps( objectProperties );
                 }

@@ -115,11 +115,6 @@ var editor;
     this.isStartAddShape = false;
     this.shapeElementId = null;
     this.textArtElementId = null;
-    this.isImageChangeUrl = false;
-    this.isShapeImageChangeUrl = false;
-    this.isTextArtChangeUrl = false;
-    this.textureType = null;
-
 
 	  // Styles sizes
       this.styleThumbnailWidth = 112;
@@ -2607,11 +2602,11 @@ var editor;
     // ToDo заменить на общую функцию для всех
     this.asc_addImage();
   };
-  spreadsheet_api.prototype._addImageUrl = function(urls) {
+  spreadsheet_api.prototype._addImageUrl = function(urls, obj) {
     var ws = this.wb.getWorksheet();
     if (ws) {
-      if (this.isImageChangeUrl || this.isShapeImageChangeUrl || this.isTextArtChangeUrl) {
-        ws.objectRender.editImageDrawingObject(urls[0]);
+      if (obj && (obj.isImageChangeUrl || obj.isShapeImageChangeUrl || obj.isTextArtChangeUrl)) {
+        ws.objectRender.editImageDrawingObject(urls[0], obj);
       } else {
         ws.objectRender.addImageDrawingObject(urls, null);
       }
@@ -2914,6 +2909,16 @@ var editor;
         }
       }
     }
+    else if(props.ShapeProperties && props.ShapeProperties.textArtProperties &&
+        props.ShapeProperties.textArtProperties.Fill && props.ShapeProperties.textArtProperties.Fill.fill &&
+        !AscCommon.isNullOrEmptyString(props.ShapeProperties.textArtProperties.Fill.fill.url)){
+      if(!g_oDocumentUrls.getImageLocal(props.ShapeProperties.textArtProperties.Fill.fill.url)){
+        sImageUrl = props.ShapeProperties.textArtProperties.Fill.fill.url;
+        fReplaceCallback = function(sLocalUrl){
+          props.ShapeProperties.textArtProperties.Fill.fill.url = sLocalUrl;
+        }
+      }
+    }
     if(fReplaceCallback) {
 
       if (window["AscDesktopEditor"]) {
@@ -2962,20 +2967,15 @@ var editor;
   };
 
   spreadsheet_api.prototype.asc_changeImageFromFile = function() {
-    this.isImageChangeUrl = true;
-    this.asc_addImage();
+    this.asc_addImage({isImageChangeUrl: true});
   };
 
   spreadsheet_api.prototype.asc_changeShapeImageFromFile = function(type) {
-    this.isShapeImageChangeUrl = true;
-    this.textureType = type;
-    this.asc_addImage();
+    this.asc_addImage({isShapeImageChangeUrl: true, textureType: type});
   };
 
   spreadsheet_api.prototype.asc_changeArtImageFromFile = function(type) {
-    this.isTextArtChangeUrl = true;
-    this.textureType = type;
-    this.asc_addImage();
+    this.asc_addImage({isTextArtChangeUrl: true, textureType: type});
   };
 
   spreadsheet_api.prototype.asc_putPrLineSpacing = function(type, value) {

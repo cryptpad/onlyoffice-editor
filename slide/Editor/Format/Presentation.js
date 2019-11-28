@@ -5222,7 +5222,7 @@ CPresentation.prototype =
             editor.WordControl.Thumbnails && editor.WordControl.Thumbnails.SetFocusElement(FOCUS_OBJECT_MAIN);
             this.FocusOnNotes = false;
             var oController = this.Slides[this.CurPage].graphicObjects;
-            if(placeholder && aImages.length === 1){
+            if(placeholder && undefined !== placeholder.id && aImages.length === 1){
                 var oPh = AscCommon.g_oTableId.Get_ById(placeholder.id);
                 if(oPh)
                 {

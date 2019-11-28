@@ -606,10 +606,6 @@
 		this.bInit_word_control = false;
 		this.isDocumentModify   = false;
 
-		this.isImageChangeUrl      = false;
-		this.isShapeImageChangeUrl = false;
-		this.isSlideImageChangeUrl = false;
-		this.textureType = null;
         this.tmpFontRenderingMode = null;
 
 		this.isPasteFonts_Images = false;
@@ -3891,26 +3887,19 @@ background-repeat: no-repeat;\
 	/*functions for working with images*/
 	asc_docs_api.prototype.ChangeImageFromFile      = function()
 	{
-		this.isImageChangeUrl = true;
-		this.asc_addImage();
+		this.asc_addImage({isImageChangeUrl: true});
 	};
 	asc_docs_api.prototype.ChangeShapeImageFromFile = function(type)
 	{
-		this.isShapeImageChangeUrl = true;
-		this.textureType = type;
-		this.asc_addImage();
+		this.asc_addImage({isShapeImageChangeUrl: true, textureType: type});
 	};
 	asc_docs_api.prototype.ChangeSlideImageFromFile = function(type)
 	{
-		this.isSlideImageChangeUrl = true;
-        this.textureType = type;
-		this.asc_addImage();
+		this.asc_addImage({isSlideImageChangeUrl: true, textureType: type});
 	};
 	asc_docs_api.prototype.ChangeArtImageFromFile   = function(type)
 	{
-		this.isTextArtChangeUrl = true;
-        this.textureType = type;
-		this.asc_addImage();
+		this.asc_addImage({isTextArtChangeUrl: true, textureType: type});
 	};
 
 	asc_docs_api.prototype.AddImage      = function()
@@ -4133,10 +4122,10 @@ background-repeat: no-repeat;\
 		return this.WordControl.m_oLogicDocument.canUnGroup();
 	};
 
-	asc_docs_api.prototype._addImageUrl = function(urls, placeholder)
+	asc_docs_api.prototype._addImageUrl = function(urls, obj)
 	{
-		if(this.isImageChangeUrl || this.isShapeImageChangeUrl || this.isSlideImageChangeUrl || this.isTextArtChangeUrl){
-            this.AddImageUrl(urls[0], undefined, undefined, placeholder);
+		if(obj && (obj.isImageChangeUrl || obj.isShapeImageChangeUrl || obj.isSlideImageChangeUrl || obj.isTextArtChangeUrl)){
+            this.AddImageUrl(urls[0], undefined, undefined, obj);
 		}
 		else{
 			if(this.ImageLoader){
@@ -4149,16 +4138,16 @@ background-repeat: no-repeat;\
                             aImages.push(_image);
 						}
 					}
-                    oApi.WordControl.m_oLogicDocument.addImages(aImages, placeholder);
+                    oApi.WordControl.m_oLogicDocument.addImages(aImages, obj);
                 }, []);
 			}
 		}
 	};
-	asc_docs_api.prototype.AddImageUrl  = function(url, imgProp, token, placeholder)
+	asc_docs_api.prototype.AddImageUrl  = function(url, imgProp, token, obj)
 	{
 		if (g_oDocumentUrls.getLocal(url))
 		{
-			this.AddImageUrlAction(url, placeholder);
+			this.AddImageUrlAction(url, obj);
 		}
 		else
 		{
@@ -4166,13 +4155,13 @@ background-repeat: no-repeat;\
             AscCommon.sendImgUrls(this, [url], function(data) {
 
                 if (data && data[0])
-                    t.AddImageUrlAction(data[0].url, placeholder);
+                    t.AddImageUrlAction(data[0].url, obj);
 
             }, false, undefined, token);
 		}
 	};
 
-	asc_docs_api.prototype.AddImageUrlActionCallback = function(_image, placeholder)
+	asc_docs_api.prototype.AddImageUrlActionCallback = function(_image, obj)
 	{
 		var _w = AscCommon.Page_Width - (AscCommon.X_Left_Margin + AscCommon.X_Right_Margin);
 		var _h = AscCommon.Page_Height - (AscCommon.Y_Top_Margin + AscCommon.Y_Bottom_Margin);
@@ -4185,56 +4174,49 @@ background-repeat: no-repeat;\
 		}
 
 		var src = _image.src;
-		if (this.isShapeImageChangeUrl)
+		if (obj && obj.isShapeImageChangeUrl)
 		{
 			var AscShapeProp       = new Asc.asc_CShapeProperty();
 			AscShapeProp.fill      = new asc_CShapeFill();
 			AscShapeProp.fill.type = c_oAscFill.FILL_TYPE_BLIP;
 			AscShapeProp.fill.fill = new asc_CFillBlip();
 			AscShapeProp.fill.fill.asc_putUrl(src);
-			if(this.textureType !== null && this.textureType !== undefined){
-                AscShapeProp.fill.fill.asc_putType(this.textureType);
+			if(obj.textureType !== null && obj.textureType !== undefined){
+                AscShapeProp.fill.fill.asc_putType(obj.textureType);
 			}
 			this.ShapeApply(AscShapeProp);
-			this.isShapeImageChangeUrl = false;
-			this.textureType = null;
 		}
-		else if (this.isSlideImageChangeUrl)
+		else if (obj && obj.isSlideImageChangeUrl)
 		{
 			var AscSlideProp             = new CAscSlideProps();
 			AscSlideProp.Background      = new asc_CShapeFill();
 			AscSlideProp.Background.type = c_oAscFill.FILL_TYPE_BLIP;
 			AscSlideProp.Background.fill = new asc_CFillBlip();
 			AscSlideProp.Background.fill.asc_putUrl(src);
-			if(this.textureType !== null && this.textureType !== undefined){
-                AscSlideProp.Background.fill.asc_putType(this.textureType);
+			if(obj.textureType !== null && obj.textureType !== undefined){
+                AscSlideProp.Background.fill.asc_putType(obj.textureType);
 			}
 			this.SetSlideProps(AscSlideProp);
-			this.isSlideImageChangeUrl = false;
-			this.textureType = null;
 		}
-		else if (this.isImageChangeUrl)
+		else if (obj && obj.isImageChangeUrl)
 		{
 			var AscImageProp      = new Asc.asc_CImgProperty();
 			AscImageProp.ImageUrl = src;
 			this.ImgApply(AscImageProp);
-			this.isImageChangeUrl = false;
 		}
-		else if (this.isTextArtChangeUrl)
+		else if (obj && obj.isTextArtChangeUrl)
 		{
 			var AscShapeProp = new Asc.asc_CShapeProperty();
 			var oFill        = new asc_CShapeFill();
 			oFill.type       = c_oAscFill.FILL_TYPE_BLIP;
 			oFill.fill       = new asc_CFillBlip();
 			oFill.fill.asc_putUrl(src);
-            if(this.textureType !== null && this.textureType !== undefined){
-				oFill.fill.asc_putType(this.textureType);
+            if(obj.textureType !== null && obj.textureType !== undefined){
+				oFill.fill.asc_putType(obj.textureType);
             }
 			AscShapeProp.textArtProperties = new Asc.asc_TextArtProperties();
 			AscShapeProp.textArtProperties.asc_putFill(oFill);
 			this.ShapeApply(AscShapeProp);
-			this.isTextArtChangeUrl = false;
-			this.textureType = null;
 		}
 		else
 		{
@@ -4244,23 +4226,23 @@ background-repeat: no-repeat;\
 				src = srcLocal;
 			}
 
-			this.WordControl.m_oLogicDocument.addImages([_image], placeholder);
+			this.WordControl.m_oLogicDocument.addImages([_image], obj);
 		}
 	};
 
-	asc_docs_api.prototype.AddImageUrlAction = function(url, placeholder)
+	asc_docs_api.prototype.AddImageUrlAction = function(url, obj)
 	{
 		var _image = this.ImageLoader.LoadImage(url, 1);
 		if (null != _image)
 		{
-			this.AddImageUrlActionCallback(_image, placeholder);
+			this.AddImageUrlActionCallback(_image, obj);
 		}
 		else
 		{
 			this.sync_StartAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.LoadImage);
 			this.asyncImageEndLoaded2 = function(_image)
 			{
-				this.AddImageUrlActionCallback(_image, placeholder);
+				this.AddImageUrlActionCallback(_image, obj);
 				this.sync_EndAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.LoadImage);
 
 				this.asyncImageEndLoaded2 = null;

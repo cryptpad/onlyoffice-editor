@@ -394,7 +394,10 @@ AscCommon.InitDragAndDrop = function(oHtmlElement, callback) {
                 {
                     if (window["AscDesktopEditor"]["IsImageFile"](_files[i]))
                     {
-                        window["DesktopOfflineAppDocumentAddImageEnd"](_files[i]);
+						if (_files[i] == "")
+							continue;
+						var _url = window["AscDesktopEditor"]["LocalFileGetImageUrl"](_files[i]);
+						editor.AddImageUrlAction(AscCommon.g_oDocumentUrls.getImageUrl(_url));
                         break;
                     }
                 }
