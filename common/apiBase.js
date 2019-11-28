@@ -2503,6 +2503,12 @@
 		reader.readAsText(new Blob([buffer]), encoding);
 	};
 
+	//----------------------------------------------------------addons----------------------------------------------------
+    baseEditorsApi.prototype["asc_isSupportFeature"] = function(type)
+	{
+		return (Asc["Addons"][type] === true);
+	};
+
 	//----------------------------------------------------------export----------------------------------------------------
 	window['AscCommon']                = window['AscCommon'] || {};
 	window['AscCommon'].baseEditorsApi = baseEditorsApi;
