@@ -18902,7 +18902,7 @@ WorksheetView.prototype.getSortProps = function(bExpand) {
 
 		if((bRow && range.r1 !== range.r2) || (!bRow && range.c1 !== range.c2)) {
 			res = c_oAscError.ID.CustomSortMoreOneSelectedError;
-		} else if(((bRow && (range.r1 < ar.r1 || range.r1 > ar.r2)) || (!bRow && (range.c1 < ar.c1 && range.c1 > ar.c2)))) {
+		} else if(((bRow && (range.r1 < ar.r1 || range.r1 > ar.r2)) || (!bRow && (range.c1 < ar.c1 || range.c1 > ar.c2)))) {
 			res = c_oAscError.ID.CustomSortNotOriginalSelectError;
 		}
 
