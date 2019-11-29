@@ -18591,7 +18591,7 @@
 		return formulaRef ? formulaRef : activeCellRange;
 	};
 
-WorksheetView.prototype.getSortProps = function(bExpand) {
+	WorksheetView.prototype.getSortProps = function(bExpand) {
 		var sortSettings = null;
 		var t = this;
 
@@ -18704,7 +18704,17 @@ WorksheetView.prototype.getSortProps = function(bExpand) {
 			switch (conditionSortBy) {
 				case Asc.ESortBy.sortbyCellColor: {
 					level.sortBy = Asc.c_oAscSortOptions.ByColorFill;
-					sortColor = sortCondition.dxf && sortCondition.dxf.fill ? sortCondition.dxf.fill.bg() : null;
+					sortColor = sortCondition.dxf.fill.patternFill.bgColor;
+					if(sortCondition.dxf && sortCondition.dxf.fill) {
+						if(sortCondition.dxf.fill && sortCondition.dxf.fill.patternFill) {
+							if(sortCondition.dxf.fill.patternFill.bgColor) {
+								sortColor = sortCondition.dxf.fill.patternFill.bgColor;
+							} else if(sortCondition.dxf.fill.patternFill.fgColor) {
+								sortColor = sortCondition.dxf.fill.patternFill.fgColor;
+							}
+						}
+					}
+					//sortColor = sortCondition.dxf && sortCondition.dxf.fill ? sortCondition.dxf.fill.bg() : null;
 					break;
 				}
 				case Asc.ESortBy.sortbyFontColor: {
@@ -18907,7 +18917,8 @@ WorksheetView.prototype.getSortProps = function(bExpand) {
 		}
 
 		return res;
-	};	//------------------------------------------------------------export---------------------------------------------------
+	};
+	//------------------------------------------------------------export---------------------------------------------------
     window['AscCommonExcel'] = window['AscCommonExcel'] || {};
 	window["AscCommonExcel"].CellFlags = CellFlags;
     window["AscCommonExcel"].WorksheetView = WorksheetView;
