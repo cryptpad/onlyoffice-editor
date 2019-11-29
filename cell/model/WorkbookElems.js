@@ -9038,6 +9038,14 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 				}
 			}
 		}
+
+		if(this.levels) {
+			for(var i = 0; i < this.levels.length; i++) {
+				if(!this.sortList[this.levels[i].index]) {
+					this.sortList[this.levels[i].index] = this.getNameColumnByIndex(this.levels[i].index, selection);
+				}
+			}
+		}
 	};
 	CSortProperties.prototype.asc_addBySortList = function (sRange) {
 		//при количестве строк/столбцов более 500, добавляем по одной строке/одному столбцу
