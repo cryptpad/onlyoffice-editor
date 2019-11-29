@@ -10348,20 +10348,26 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 			if (Rows.length === 0)
 				return;
 
-			// заполняем массив строк с ширинами ячеек 	
-			for (var curRow = 0; curRow < this.Content.length; curRow++) {
+			var NarrowCell = false; // является ли делимая ячейка узкой (меньше чем минимальный размер)
+			// заполняем массив rowsInfo строк с ширинами ячеек 	
+			for (var curRow = 0; curRow < this.Content.length; curRow++) 
+			{
 				var cellsInfo = []; // информация о ячейке
 				for (var curCell = 0; curCell < this.Content[curRow].CellsInfo.length; curCell++) 
 				{
-					if ((X1 >= this.Content[curRow].CellsInfo[curCell].X_cell_start) && (X2 <= this.Content[curRow].CellsInfo[curCell].X_cell_end)) {
+					if ((X1 >= this.Content[curRow].CellsInfo[curCell].X_cell_start) && (X2 <= this.Content[curRow].CellsInfo[curCell].X_cell_end)) 
+					{
 
 						if (Rows.indexOf(curRow) != -1) //проверка на наличие строки curRow в массиве строк которые мы выделили 
 						{
 							var X_start = this.Content[curRow].CellsInfo[curCell].X_cell_start;
 							var X_end = this.Content[curRow].CellsInfo[curCell].X_cell_end;
 							var Row = this.Content[curRow];
-							var Cell = this.Content[curRow].Get_Cell(curCell);  //текущая ячейка
-							var Grid_start = this.Content[curRow].Get_CellInfo(curCell).StartGridCol;
+							var Cell = Row.Get_Cell(curCell);  //текущая ячейка
+							var Grid_start = Row.Get_CellInfo(curCell).StartGridCol;
+							var Grid_span    = Cell.Get_GridSpan();
+							var VMerge_count = this.Internal_GetVertMergeCount(curRow, Grid_start, Grid_span);
+							
 
 							//сделаем разбиение по горизонтали
 							// Найдем позиции новых колонок в сетке
@@ -10378,32 +10384,44 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 							// В этих условиях мы проверяем допустимая ли ширина ячеек нами нарисована, 
 							// если меньше допустимой, устанавливаем ширину равную минимальной допустимой
 							// если ширина делимой ячейки Span_width < Minw*2 то выдаем ошибку
-							if (Grid_width_1 < MinW) {
+							if (Grid_width_1 < MinW) 
+							{
+
 								Grid_width_1 = MinW;
 								Grid_width_2 = Span_width - Grid_width_1;
 								if (Grid_width_2 < MinW)
+								{
 									Grid_width_2 = MinW;
-								if (Span_width < Grid_width_1 + Grid_width_2) {
+									NarrowCell = true;
+								}
+									
+								if (Span_width < Grid_width_1 + Grid_width_2) 
+								{
 									Span_width = Grid_width_1 + Grid_width_2;
-
 								}
 
 							}
-							else if (Grid_width_2 < MinW) {
+							else if (Grid_width_2 < MinW) 
+							{
 								Grid_width_2 = MinW;
 								Grid_width_1 = Span_width - Grid_width_2;
 								if (Grid_width_1 < MinW)
+								{
 									Grid_width_1 = MinW;
-								if (Span_width < Grid_width_1 + Grid_width_2) {
+									NarrowCell = true;
+								}
+									
+								if (Span_width < Grid_width_1 + Grid_width_2) 
+								{
 									Span_width = Grid_width_1 + Grid_width_2;
-
 								}
 
 							}
 
 							//Проверяем есть ли GridBefore у строки перед первой ячейкой, если да, то учитываем это в сетке
 							//GridBefore строки должен совпадать с Grid_Start ячейки(перед которой отступ), чтобы условие выполнилось ровно один раз
-							if (this.Content[curRow].Get_Before().GridBefore >= 1 && Grid_start === this.Content[curRow].Get_Before().GridBefore) {
+							if (this.Content[curRow].Get_Before().GridBefore >= 1 && Grid_start === this.Content[curRow].Get_Before().GridBefore) 
+							{
 								var cell_Indent =
 								{
 									W: X_end - Span_width,
@@ -10428,8 +10446,48 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 							cellsInfo[cellsInfo.length] = cell_1;
 							cellsInfo[cellsInfo.length] = cell_2;
 
+							if (NarrowCell && Cell.GetVMerge() !== 2)
+							{
+								
+								for (var Index = curCell + 1; Index < this.Content[curRow].Content.length; Index++)
+								{
+									var Temp_Row1 		   = this.Content[curRow];
+									var Temp_Cell1 		   = Temp_Row1.Get_Cell(Index);  
+									var Temp_Grid_start1   = Temp_Row1.Get_CellInfo(Index).StartGridCol;
+									var Temp_Grid_span1    = Temp_Cell1.Get_GridSpan();
+									var Temp_VMerge_count1 = this.Internal_GetVertMergeCount(curRow, Temp_Grid_start1, Temp_Grid_span1);
+
+									var Temp_Row2 		   = this.Content[curRow + VMerge_count];
+
+									if (Temp_Row2 !== null && Temp_Row2 !== undefined)
+									{
+										for (var newIndex = 0; newIndex < Temp_Row2.Content.length; newIndex++)
+										{
+											var Temp_Cell2		   = Temp_Row2.Get_Cell(newIndex);  
+											var Temp_Grid_start2   = Temp_Row2.Get_CellInfo(newIndex).StartGridCol;
+											var Temp_Grid_span2    = Temp_Cell2.Get_GridSpan();
+
+											if (Temp_Grid_start2 === Temp_Grid_start1)
+											{
+												if (Temp_Cell2.GetVMerge() === 2)
+												{
+													Temp_Cell2.SetVMerge(vmerge_Restart);
+												}
+											}
+										}
+									}
+									
+									if (Temp_Cell1.GetVMerge() === 2)
+									{
+										Temp_Cell1.SetVMerge(vmerge_Restart);
+									}
+								}
+								
+							}
+							
 						}
-						else {
+						else 
+						{
 							var Grid_start = this.Content[curRow].Get_CellInfo(curCell).StartGridCol;
 							var X_start = this.Content[curRow].CellsInfo[curCell].X_cell_start;
 							var X_end = this.Content[curRow].CellsInfo[curCell].X_cell_end;
@@ -10437,7 +10495,8 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 
 							//Проверяем есть ли GridBefore у строки перед первой ячейкой, если да, то учитываем это в сетке
 							//GridBefore строки должен совпадать с Grid_Start ячейки(перед которой отступ), чтобы условие выполнилось ровно один раз
-							if (this.Content[curRow].Get_Before().GridBefore >= 1 && Grid_start === this.Content[curRow].Get_Before().GridBefore) {
+							if (this.Content[curRow].Get_Before().GridBefore >= 1 && Grid_start === this.Content[curRow].Get_Before().GridBefore)
+							{
 								var cell_Indent =
 								{
 									W: X_end - cellWidth,
@@ -10466,7 +10525,8 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 
 						//Проверяем есть ли отступ у строки перед первой ячейкой,  если да, то учитываем это в сетке
 						//GridBefore строки должен совпадать с Grid_Start ячейки(перед которой отступ), чтобы условие выполнилось ровно один раз
-						if (this.Content[curRow].Get_Before().GridBefore >= 1 && Grid_start === this.Content[curRow].Get_Before().GridBefore) {
+						if (this.Content[curRow].Get_Before().GridBefore >= 1 && Grid_start === this.Content[curRow].Get_Before().GridBefore) 
+						{
 							var cell_Indent =
 							{
 								W: X_end - cellWidth,
@@ -10492,7 +10552,8 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 			}
 
 			//заполнение массива Grid_spans (используется в горизонтальном разбиении)
-			for (var curRow = 0; curRow < this.Content.length; curRow++) {
+			for (var curRow = 0; curRow < this.Content.length; curRow++) 
+			{
 				for (var curCell = 0; curCell < this.Content[curRow].CellsInfo.length; curCell++) {
 					if ((X1 >= this.Content[curRow].CellsInfo[curCell].X_cell_start) && (X2 <= this.Content[curRow].CellsInfo[curCell].X_cell_end)) {
 						if (Rows.indexOf(curRow) != -1) {
@@ -10512,7 +10573,8 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 			}
 
 			//Добавляем новые ячейки в горизонтальном разбиении 
-			for (var curRow = 0; curRow < this.Content.length; curRow++) {
+			for (var curRow = 0; curRow < this.Content.length; curRow++) 
+			{
 				for (var curCell = 0; curCell < this.Content[curRow].CellsInfo.length; curCell++) {
 					if ((X1 >= this.Content[curRow].CellsInfo[curCell].X_cell_start) && (X2 <= this.Content[curRow].CellsInfo[curCell].X_cell_end)) {
 						//проверка текущей строки на наличие в массиве Rows
@@ -10705,7 +10767,7 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
 						CellsNumb.push(curCell);
 
 				}
-
+				
 			}
 			
 			// Здесь мы определяем в какую колонку мы попали
@@ -13541,6 +13603,7 @@ CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPage, drawMode)
 			}
 
 			var Rows = [];        // массив номеров строк подлежащих делению (которые мы режем)
+			var CellsNumb = [];
 
 			for (var curRow = this.Pages[curColumn].FirstRow; curRow <= this.Pages[curColumn].LastRow; curRow++) 
 			{
@@ -13554,6 +13617,73 @@ CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPage, drawMode)
 					Rows.push(curRow);
 			}
 			
+			for (var Index = 0; Index < Rows.length; Index++)
+			{
+				for (var curCell = 0; curCell < this.Content[Rows[Index]].CellsInfo.length; curCell++)
+				{
+					if (X1 > this.Content[Rows[Index]].CellsInfo[curCell].X_cell_start && X1 < this.Content[Rows[Index]].CellsInfo[curCell].X_cell_end)
+						CellsNumb[Rows[Index]] = curCell;
+					else if (CellsNumb.length === 0)
+						continue;
+					else if (this.Content[Rows[Index]].CellsInfo[curCell].X_cell_start < X2)
+						CellsNumb[Rows[Index]] = curCell;
+				}
+			}
+			
+			var firstRowHeight = 0;
+			
+			var Cell 		   = this.Content[Rows[0]].Get_Cell(CellsNumb[Rows[0]]);
+			var Row 		   = this.Content[Rows[0]];
+			var Grid_start   = Row.Get_CellInfo(CellsNumb[Rows[0]]).StartGridCol;
+			var Grid_span    = Cell.Get_GridSpan();
+			var VMerge_count = this.Internal_GetVertMergeCount(Rows[0], Grid_start, Grid_span);
+
+			var StartRow = Rows[0];
+			var EndRow 	 = Rows[Rows.length - 1];
+
+			label1 : for (var Index = Rows[0]; Index >= 0; Index--)
+			{
+				for (var Index2 = 0; Index2 < this.Content[Index].Content.length; Index2++)
+				{
+					var TempCell = this.Content[Index].Get_Cell(Index2);
+					var TempRow  = this.Content[Index];
+					var Temp_Grid_start   = TempRow.Get_CellInfo(Index2).StartGridCol;
+
+					if (Grid_start === Temp_Grid_start)
+					{
+						if (TempCell.GetVMerge() === 1)
+						{
+							StartRow = Index;
+							break label1;
+						}
+						else 
+							continue;
+					}
+				}
+			}
+			label2 : for (var Index = Rows[Rows.length - 1]; Index < this.Content.length; Index++)
+			{
+				for (var Index2 = 0; Index2 < this.Content[Index].Content.length; Index2++)
+				{
+					var TempCell = this.Content[Index].Get_Cell(Index2);
+					var TempRow  = this.Content[Index];
+					var Temp_Grid_start   = TempRow.Get_CellInfo(Index2).StartGridCol;
+					var Temp_Grid_span    = TempCell.Get_GridSpan();
+					var Temp_VMerge_count = this.Internal_GetVertMergeCount(Index, Temp_Grid_start, Temp_Grid_span);
+
+					if (Grid_start === Temp_Grid_start)
+					{
+						if (Temp_VMerge_count === 1)
+						{
+							EndRow = Index;
+							break label2;
+						}
+						else 
+							continue;
+					}
+				}
+			}
+
 			if (Y2 - Y1 >= this.RowsInfo[Rows[0]].H[curColumn]/2)
 			{
 				//if (Math.abs(this.Content[RowNumb[0]].CellsInfo[curCell].X_cell_start))
@@ -13561,8 +13691,8 @@ CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPage, drawMode)
 				{
 					X1  : X1_origin,
 					X2  : X1_origin,
-					Y1 : this.RowsInfo[Rows[0]].Y[curColumn],
-					Y2 : this.RowsInfo[Rows[Rows.length - 1]].Y[curColumn] + this.RowsInfo[Rows[Rows.length - 1]].H[curColumn],
+					Y1 : this.RowsInfo[StartRow].Y[curColumn],
+					Y2 : this.RowsInfo[EndRow].Y[curColumn] + this.RowsInfo[EndRow].H[curColumn],
 					Color : "Grey",
 					Bold  : false
 					
@@ -13584,7 +13714,7 @@ CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPage, drawMode)
 			return Vline;
 			
 		}	
-		// Рисуем горизонтальную линию 
+		// Рисуем г��ризонтальную линию 
 		else if (Math.abs(X2 - X1) > 2 && Math.abs(Y2 - Y1) < 3)
 		{
 			//var curColumn = 0;
@@ -13612,22 +13742,20 @@ CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPage, drawMode)
 			}
 
 			// Заполнение Cells 
-			if (CurPage === 0)
+			
+			if (RowNumb.length === 0)
+				return;
+			for (var curCell = 0; curCell < this.Content[RowNumb[0]].CellsInfo.length; curCell++)
 			{
-				if (RowNumb.length === 0)
-					return;
-				for (var curCell = 0; curCell < this.Content[RowNumb[0]].CellsInfo.length; curCell++)
-				{
-					if (X1 > this.Content[RowNumb[0]].CellsInfo[curCell].X_cell_start && X1 < this.Content[RowNumb[0]].CellsInfo[curCell].X_cell_end)
-						CellsNumb.push(curCell);
-					else if (CellsNumb.length === 0)
-						continue;
-					else if (this.Content[RowNumb[0]].CellsInfo[curCell].X_cell_start < X2)
-						CellsNumb.push(curCell);
-
-				}
-
+				if (X1 > this.Content[RowNumb[0]].CellsInfo[curCell].X_cell_start && X1 < this.Content[RowNumb[0]].CellsInfo[curCell].X_cell_end)
+					CellsNumb.push(curCell);
+				else if (CellsNumb.length === 0)
+					continue;
+				else if (this.Content[RowNumb[0]].CellsInfo[curCell].X_cell_start < X2)
+					CellsNumb.push(curCell);
 			}
+				
+			
 			if (X2 - X1 >= (this.Content[RowNumb[0]].Get_Cell(CellsNumb[0]).Metrics.X_cell_end - this.Content[RowNumb[0]].Get_Cell(CellsNumb[0]).Metrics.X_cell_start)/2)
 			{
 				if (Math.abs(this.RowsInfo[RowNumb[0]].Y[curColumn] - Y1) < 2)
@@ -13727,8 +13855,6 @@ CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPage, drawMode)
 	}
 	else if (drawMode === false)
 	{
-		
-
 		if (X1 > X2)
 		{
 			var cache; 
