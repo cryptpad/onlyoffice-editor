@@ -245,10 +245,15 @@
 				navigator.platform + ' isLoadFullApi: ' + t.isLoadFullApi + ' isDocumentLoadComplete: ' +
 				t.isDocumentLoadComplete + ' StackTrace: ' + (errorObj ? errorObj.stack : "");
 			t.CoAuthoringApi.sendChangesError(msg);
-			if (t.isLoadFullApi && t.isDocumentLoadComplete) {
-				//todo disconnect and downloadAs ability
-				t.sendEvent("asc_onError", Asc.c_oAscError.ID.EditingError, c_oAscError.Level.NoCritical);
-				t.asc_setViewMode(true);
+			if (t.isLoadFullApi ) {
+				if(t.isDocumentLoadComplete) {
+					//todo disconnect and downloadAs ability
+					t.sendEvent("asc_onError", Asc.c_oAscError.ID.EditingError, c_oAscError.Level.NoCritical);
+					t.asc_setViewMode(true);
+				}
+				else {
+					t.sendEvent("asc_onError", Asc.c_oAscError.ID.ConvertationOpenError, c_oAscError.Level.Critical);
+				}
 			}
 			if (oldOnError) {
 				return oldOnError.apply(this, arguments);
