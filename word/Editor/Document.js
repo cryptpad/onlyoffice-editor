@@ -20859,7 +20859,7 @@ CDocument.prototype.DrawTable = function()
  * @param oTextPr {?CTextPr}
  * @param isMoveCursorOutside {boolean} выводим ли курсор за пределы нового рана
  */
-CDocument.prototype.AddText = function(sText, oTextPr, isMoveCursorOutside)
+CDocument.prototype.AddTextWithPr = function(sText, oTextPr, isMoveCursorOutside)
 {
 	if (!this.IsSelectionLocked(AscCommon.changestype_Paragraph_AddText))
 	{
