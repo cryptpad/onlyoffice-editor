@@ -18704,7 +18704,6 @@
 			switch (conditionSortBy) {
 				case Asc.ESortBy.sortbyCellColor: {
 					level.sortBy = Asc.c_oAscSortOptions.ByColorFill;
-					sortColor = sortCondition.dxf.fill.patternFill.bgColor;
 					if(sortCondition.dxf && sortCondition.dxf.fill) {
 						if(sortCondition.dxf.fill && sortCondition.dxf.fill.patternFill) {
 							if(sortCondition.dxf.fill.patternFill.bgColor) {
