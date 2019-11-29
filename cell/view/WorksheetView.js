@@ -2133,10 +2133,12 @@
 			oBaseTransform.tx = asc_getcvt(0/*mm*/, 3/*px*/, this._getPPIX()) * ( -offsetCols * printScale  +  printPagesData.pageClipRectLeft + (printPagesData.leftFieldInPx - printPagesData.pageClipRectLeft) * printScale) - (this.getCellLeft(range.c1, 3) - this.getCellLeft(0, 3)) * printScale;
 			oBaseTransform.ty = asc_getcvt(0/*mm*/, 3/*px*/, this._getPPIX()) * (printPagesData.pageClipRectTop + (printPagesData.topFieldInPx - printPagesData.pageClipRectTop) * printScale) - (this.getCellTop(range.r1, 3) - this.getCellTop(0, 3)) * printScale;
 
+
+
             drawingCtx.AddClipRect(printPagesData.pageClipRectLeft + (printPagesData.leftFieldInPx - printPagesData.pageClipRectLeft)*printScale,
                 printPagesData.pageClipRectTop + (printPagesData.topFieldInPx - printPagesData.pageClipRectTop)*printScale,
-                printPagesData.pageClipRectWidth*(printScale < 1 ? printScale : 1) ,
-                printPagesData.pageClipRectHeight*(printScale < 1 ? printScale : 1));
+                printPagesData.pageClipRectWidth*(printScale) ,
+                printPagesData.pageClipRectHeight*(printScale));
 
             drawingCtx.DocumentRenderer.SetBaseTransform(oBaseTransform);
 			this.objectRender.showDrawingObjectsEx(false, null, drawingPrintOptions);
