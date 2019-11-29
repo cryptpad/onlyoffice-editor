@@ -2169,7 +2169,7 @@ CT_PivotCacheRecords.prototype.fromWorksheetRange = function(location, cacheFiel
 			index++;
 			text = text + index;
 		} else {
-			index = 0;
+			index = 1;
 		}
 		nameDuplicateMap.set(text, index);
 		var cacheField = new CT_CacheField();
@@ -3610,13 +3610,26 @@ CT_pivotTableDefinition.prototype.addDataField = function(pivotIndex, insertInde
 	} else {
 		newField.subtotal = c_oAscDataConsolidateFunction.Count;
 	}
-	//todo check duplicates
-	newField.name = ToName_ST_DataConsolidateFunction(newField.subtotal) + " of " + this.getPivotFieldName(pivotIndex);
-	newField.baseField = 0;
-	newField.baseItem = 0;
 	if (!this.dataFields) {
 		this.dataFields = new CT_DataFields();
 	}
+
+	var newName = ToName_ST_DataConsolidateFunction(newField.subtotal) + " of " + this.getPivotFieldName(pivotIndex);
+	if (this.dataFields.checkDuplicateName(newName)) {
+		var lastChar = newName.slice(-1);
+		var delimiter = "";
+		if ("0" <= lastChar && lastChar <= "9") {
+			delimiter = "_";
+		}
+		var index = 2;
+		while (this.dataFields.checkDuplicateName(newName + delimiter + index)) {
+			index++;
+		}
+		newName = newName + delimiter + index;
+	}
+	newField.name = newName;
+	newField.baseField = 0;
+	newField.baseItem = 0;
 	insertIndex = this.dataFields.add(newField, insertIndex);
 	this.checkValuesField();
 	if (addToHistory) {
@@ -6366,6 +6379,15 @@ CT_DataFields.prototype.remove = function(index, dataIndex) {
 CT_DataFields.prototype.getCount = function () {
 	return this.dataField.length;
 };
+CT_DataFields.prototype.checkDuplicateName = function(name) {
+	for (var i = 0; i < this.dataField.length; ++i) {
+		if (name === this.dataField[i].name) {
+			return true;
+		}
+	}
+	return false;
+};
+
 function CT_Formats() {
 //Attributes
 //	this.count = null;//0

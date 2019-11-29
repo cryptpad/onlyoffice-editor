@@ -153,6 +153,7 @@ $(function() {
 	var testDataRange5 = AscCommonExcel.g_oRangeCache.getAscRange("B28:H39");
 	var testDataRange6 = AscCommonExcel.g_oRangeCache.getAscRange("J28:P39");
 	var testDataRange7 = AscCommonExcel.g_oRangeCache.getAscRange("B41:H52");
+	var testDataRangeHeader = AscCommonExcel.g_oRangeCache.getAscRange("B54:O55");
 	var testData = [
 		["Region", "Gender", "Style", "Ship date", "Units", "Price", "Cost"],
 		["East", "Boy", "Tee", "38383", "12", "11.04", "10.42"],
@@ -252,6 +253,14 @@ $(function() {
 		["West","Girl","Tee","38383","15","2","13.29"],
 		["West","Girl","Golf","38383","15","3","10.67"]
 	];
+	var multiElem1 = new AscCommonExcel.CMultiTextElem();
+	multiElem1.text = "qwe";
+	var multiElem2 = new AscCommonExcel.CMultiTextElem();
+	multiElem2.text = "rty";
+	var testDataHeader = [
+		["1","qwe","TRUE","#DIV/0!","1.234567891","12345678912", {format: "0.00", value: new AscCommonExcel.CCellValue({number: 1})},{format: "$#,##0.00", value: new AscCommonExcel.CCellValue({number: 2})},{format: "dddd\\, mmmm dd\\, yyyy", value: new AscCommonExcel.CCellValue({number: 3})},{format: "0.00%", value: new AscCommonExcel.CCellValue({number: 4})},{format: "0.00E+00", value: new AscCommonExcel.CCellValue({number: 5})},{value: new AscCommonExcel.CCellValue({multiText: [multiElem1, multiElem2]})},"1","qwe"],
+		["1","1","1","1","1","1","1","1","1","1","1","1","1","1"]
+	];
 
 	fillData(wsData, testData, testDataRange);
 	fillData(wsData, testData2, testDataRange2);
@@ -260,13 +269,16 @@ $(function() {
 	fillData(wsData, testData5, testDataRange5);
 	fillData(wsData, testData6, testDataRange6);
 	fillData(wsData, testData7, testDataRange7);
+	fillData(wsData, testDataHeader, testDataRangeHeader);
 	var dataRef = wsData.getName() + "!" + testDataRange.getName();
+	var dataRef1Row = wsData.getName() + "!" + new Asc.Range(testDataRange.c1, testDataRange.r1, testDataRange.c2, testDataRange.r1 + 1).getName();
 	var dataRef2 = wsData.getName() + "!" + testDataRange2.getName();
 	var dataRef3 = wsData.getName() + "!" + testDataRange3.getName();
 	var dataRef4 = wsData.getName() + "!" + testDataRange4.getName();
 	var dataRef5 = wsData.getName() + "!" + testDataRange5.getName();
 	var dataRef6 = wsData.getName() + "!" + testDataRange6.getName();
 	var dataRef7 = wsData.getName() + "!" + testDataRange7.getName();
+	var dataRefHeader = wsData.getName() + "!" + testDataRangeHeader.getName();
 	var pivotStyle = "PivotStyleDark23";
 
 	function fillData(ws, data, range) {
@@ -275,7 +287,17 @@ $(function() {
 			var row = data[i];
 			for (var j = 0; j < row.length; ++j) {
 				range.setOffset(new AscCommon.CellBase(i, j));
-				range.setValue(row[j]);
+				var val = row[j];
+				if ("string" === typeof val) {
+					range.setValue(val);
+				} else {
+					if (val.value) {
+						range.setValueData(new AscCommonExcel.UndoRedoData_CellValueData(null, val.value));
+					}
+					if (val.format) {
+						range.setNumFormat(val.format);
+					}
+				}
 				range.setOffset(new AscCommon.CellBase(-i, -j));
 			}
 		}
@@ -2596,6 +2618,31 @@ $(function() {
 			["","","",""],
 			["Total Sum of Price","","","134.16"],
 			["Total Sum of Cost","","","128.74"]
+		],
+		"longHeader":[
+			["Sum of Price","Gender","Style"],
+			["","Boy",""],
+			["Region","Tee",""],
+			["East","11.04",""]
+		],
+		"headerRename":[
+			["1","(All)","",""],
+			["qwe","(All)","",""],
+			["TRUE","(All)","",""],
+			["#DIV/0!","(All)","",""],
+			["1.234567891","(All)","",""],
+			["12345678912","(All)","",""],
+			["1.00","(All)","",""],
+			["$2.00","(All)","",""],
+			["Tuesday, January 03, 1900","(All)","",""],
+			["400.00%","(All)","",""],
+			["5.00E+00","(All)","",""],
+			["qwerty","(All)","",""],
+			["12","(All)","",""],
+			["qwe2","(All)","",""],
+			["","","",""],
+			["Sum of 1","Sum of 1_2","Sum of qwe","Sum of qwe2"],
+			["1","1","1","1"]
 		]
 	};
 
@@ -3018,9 +3065,39 @@ $(function() {
 		});
 	}
 
+	function testHeaderRename() {
+		test("Test: header rename", function() {
+			var pivot = api._asc_insertPivot(wb, dataRefHeader, ws, reportRange);
+			pivot.asc_getStyleInfo().asc_setName(api, pivot, pivotStyle);
+
+			AscCommon.History.Clear();
+			pivot = checkHistoryOperation(pivot, standards["headerRename"], "header rename", function(){
+				pivot.asc_addPageField(api, 0);
+				pivot.asc_addPageField(api, 1);
+				pivot.asc_addPageField(api, 2);
+				pivot.asc_addPageField(api, 3);
+				pivot.asc_addPageField(api, 4);
+				pivot.asc_addPageField(api, 5);
+				pivot.asc_addPageField(api, 6);
+				pivot.asc_addPageField(api, 7);
+				pivot.asc_addPageField(api, 8);
+				pivot.asc_addPageField(api, 9);
+				pivot.asc_addPageField(api, 10);
+				pivot.asc_addPageField(api, 11);
+				pivot.asc_addPageField(api, 12);
+				pivot.asc_addPageField(api, 13);
+				pivot.asc_addDataField(api, 0);
+				pivot.asc_addDataField(api, 0);
+				pivot.asc_addDataField(api, 1);
+				pivot.asc_addDataField(api, 1);
+			});
+			ws.deletePivotTables(new AscCommonExcel.MultiplyRange(pivot.getReportRanges()).getUnionRange());
+		});
+	}
+
 	function testPivotMisc() {
 		test("Test: misc", function() {
-			var pivot = api._asc_insertPivot(wb, dataRef2, ws, reportRange);
+			var pivot = api._asc_insertPivot(wb, dataRef1Row, ws, reportRange);
 			pivot.asc_getStyleInfo().asc_setName(api, pivot, pivotStyle);
 
 			AscCommon.History.Clear();
@@ -3032,15 +3109,28 @@ $(function() {
 				pivot.asc_set(api, props);
 			});
 
+			pivot = checkHistoryOperation(pivot, standards["longHeader"], "longHeader", function(){
+				pivot.asc_addRowField(api, 0);
+				pivot.asc_addColField(api, 1);
+				pivot.asc_addColField(api, 2);
+				pivot.asc_addDataField(api, 5);
+				var props = new Asc.CT_pivotTableDefinition();
+				props.asc_setCompact(false);
+				props.asc_setOutline(true);
+				props.asc_setRowGrandTotals(false);
+				props.asc_setColGrandTotals(false);
+				pivot.asc_set(api, props);
+				var pivotField = pivot.asc_getPivotFields()[1];
+				props = new CT_PivotField();
+				props.asc_setDefaultSubtotal(false);
+				pivotField.asc_set(api, pivot, 1, props);
+			});
+
 			ws.deletePivotTables(new AscCommonExcel.MultiplyRange(pivot.getReportRanges()).getUnionRange());
 
 			// prot["asc_setShowHeaders"] = prot.asc_setShowHeaders;
 			// prot["asc_setFillDownLabelsDefault"] = prot.asc_setFillDownLabelsDefault;
-			// prot["asc_setDataRef"] = prot.asc_setDataRef;
-			// prot["asc_addPageField"] = prot.asc_addPageField;
-			// prot["asc_addRowField"] = prot.asc_addRowField;
-			// prot["asc_addColField"] = prot.asc_addColField;
-			// prot["asc_addDataField"] = prot.asc_addDataField;
+
 			// prot["asc_addField"] = prot.asc_addField;
 			// prot["asc_removeField"] = prot.asc_removeField;
 			// prot["asc_removeNoDataField"] = prot.asc_removeNoDataField;
@@ -3089,6 +3179,8 @@ $(function() {
 		testFieldSubtotal();
 
 		testDataValues();
+
+		testHeaderRename();
 
 		testPivotMisc();
 	}
