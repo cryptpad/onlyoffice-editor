@@ -3486,6 +3486,10 @@ CPresentation.prototype.setHFProperties = function (oProps, bAll) {
             }
         }
         this.Recalculate();
+        this.Document_UpdateSelectionState();
+        this.Document_UpdateUndoRedoState();
+        this.Document_UpdateInterfaceState();
+        this.Document_UpdateRulersState();
     }
 };
 
