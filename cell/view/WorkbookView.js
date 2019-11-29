@@ -1279,9 +1279,6 @@
   WorkbookView.prototype._onResizeElementDone = function(target, x, y, isResizeModeMove) {
     var ws = this.getWorksheet();
     if (isResizeModeMove) {
-      if (ws.objectRender) {
-        ws.objectRender.saveSizeDrawingObjects();
-      }
       if (target.target === c_oTargetType.ColumnResize) {
         ws.changeColumnWidth(target.col, x, target.mouseX);
       } else if (target.target === c_oTargetType.RowResize) {

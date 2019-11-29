@@ -1294,7 +1294,6 @@ function DrawingObjects() {
 		this.from = new CCellObjectInfo();
 		this.to = new CCellObjectInfo();
 		this.ext = { cx: 0, cy: 0 };
-		this.size = { width: 0, height: 0 };
 
 		this.graphicObject = null; // CImage, CShape, GroupShape or CChartAsGroup
 
@@ -4279,16 +4278,6 @@ function DrawingObjects() {
     _this.getSelectedDrawingObjectsCount = function() {
         var selectedObjects = _this.controller.selection.groupSelection ? this.controller.selection.groupSelection.selectedObjects : this.controller.selectedObjects;
         return selectedObjects.length;
-    };
-
-    _this.saveSizeDrawingObjects = function() {
-
-        for (var i = 0; i < aObjects.length; i++) {
-            var obj = aObjects[i];
-
-            obj.size.width = obj.getWidthFromTo();
-            obj.size.height = obj.getHeightFromTo();
-        }
     };
 
     _this.checkCursorDrawingObject = function(x, y) {
