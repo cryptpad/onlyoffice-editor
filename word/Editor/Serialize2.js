@@ -6237,10 +6237,11 @@ function BinaryDocumentTableWriter(memory, doc, oMapCommentId, oNumIdMap, copyPa
 			this.memory.WriteByte(c_oSerSdt.DateFormat);
 			this.memory.WriteString2(val.DateFormat);
 		}
-		// if (null != val.Lid) {
-		// 	this.memory.WriteByte(c_oSerSdt.Lid);
-		// 	this.memory.WriteString2(val.Lid);
-		// }
+		var lid = g_oLcidIdToNameMap[val.LangId];
+		if (lid) {
+			this.memory.WriteByte(c_oSerSdt.Lid);
+			this.memory.WriteString2(lid);
+		}
 		// if (null != val.StoreMappedDataAs) {
 		// 	oThis.bs.WriteItem(c_oSerSdt.StoreMappedDataAs, function (){oThis.memory.WriteByte(val.StoreMappedDataAs);});
 		// }
@@ -12262,8 +12263,9 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
 			val.Calendar = this.stream.GetUChar();
 		} else if (c_oSerSdt.DateFormat === type) {
 			val.DateFormat = this.stream.GetString2LE(length);
-		// } else if (c_oSerSdt.Lid === type) {
-		// 	val.Lid = this.stream.GetString2LE(length);
+		} else if (c_oSerSdt.Lid === type) {
+			var langId = g_oLcidNameToIdMap[this.stream.GetString2LE(length)];
+			val.LangId = langId || val.LangId;
 		// } else if (c_oSerSdt.StoreMappedDataAs === type) {
 		// 	val.StoreMappedDataAs = this.stream.GetUChar();
 		} else {
