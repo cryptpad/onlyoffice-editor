@@ -2394,7 +2394,7 @@ CChartSpace.prototype.changeSize = CShape.prototype.changeSize;
                 }
             }
         }
-        else if(AscFormat.isRealNumber(this.selection.hiLowLines))
+        else if(AscCommon.isRealObject(this.selection.hiLowLines))
         {
             ret = AscFormat.CreateNoFillUniFill();
         }
@@ -2553,7 +2553,7 @@ CChartSpace.prototype.changeSize = CShape.prototype.changeSize;
                 }
             }
         }
-        else if(AscFormat.isRealNumber(this.selection.hiLowLines))
+        else if(AscCommon.isRealObject(this.selection.hiLowLines))
         {
             if(oChart && oChart.calculatedHiLowLines
                 && oChart.calculatedHiLowLines.Fill)
@@ -2622,7 +2622,7 @@ CChartSpace.prototype.canFill = function()
 	{
 		return false;//TODO
 	}
-	if(AscFormat.isRealNumber(this.selection.hiLowLines))
+	if(AscCommon.isRealObject(this.selection.hiLowLines))
 	{
 		return false;
 	}
