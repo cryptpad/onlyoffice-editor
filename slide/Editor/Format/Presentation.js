@@ -3129,15 +3129,13 @@ CPresentation.prototype.setHFProperties = function (oProps, bAll) {
                                     oSp = oMaster.sldLayoutLst[j].getMatchingShape(AscFormat.phType_ftr, null, false, {});
                                     oContent = oSp && oSp.getDocContent && oSp.getDocContent();
                                     if (oContent) {
-                                        oContent.ClearContent(true);
-                                        AscFormat.AddToContentFromString(oContent, sText);
+                                        AscFormat.CheckContentTextAndAdd(oContent, sText);
                                     }
                                 }
                                 oSp = oMaster.getMatchingShape(AscFormat.phType_ftr, null, false, {});
                                 oContent = oSp && oSp.getDocContent && oSp.getDocContent();
                                 if (oContent) {
-                                    oContent.ClearContent(true);
-                                    AscFormat.AddToContentFromString(oContent, sText);
+                                    AscFormat.CheckContentTextAndAdd(oContent, sText);
                                 }
                             }
                         }
@@ -3153,8 +3151,7 @@ CPresentation.prototype.setHFProperties = function (oProps, bAll) {
                             } else {
                                 oContent = oSp.getDocContent && oSp.getDocContent();
                                 if (oContent && typeof sText === "string") {
-                                    oContent.ClearContent(true);
-                                    AscFormat.AddToContentFromString(oContent, sText);
+                                    AscFormat.CheckContentTextAndAdd(oContent, sText);
                                 }
                             }
                         } else {
@@ -3185,15 +3182,13 @@ CPresentation.prototype.setHFProperties = function (oProps, bAll) {
                                     oSp = oMaster.sldLayoutLst[j].getMatchingShape(AscFormat.phType_hdr, null, false, {});
                                     oContent = oSp && oSp.getDocContent && oSp.getDocContent();
                                     if (oContent) {
-                                        oContent.ClearContent(true);
-                                        AscFormat.AddToContentFromString(oContent, sText);
+                                        AscFormat.CheckContentTextAndAdd(oContent, sText);
                                     }
                                 }
                                 oSp = oMaster.getMatchingShape(AscFormat.phType_hdr, null, false, {});
                                 oContent = oSp && oSp.getDocContent && oSp.getDocContent();
                                 if (oContent) {
-                                    oContent.ClearContent(true);
-                                    AscFormat.AddToContentFromString(oContent, sText);
+                                    AscFormat.CheckContentTextAndAdd(oContent, sText);
                                 }
                             }
                         }
@@ -3211,8 +3206,7 @@ CPresentation.prototype.setHFProperties = function (oProps, bAll) {
                             } else {
                                 oContent = oSp.getDocContent && oSp.getDocContent();
                                 if (oContent && typeof sText === "string") {
-                                    oContent.ClearContent(true);
-                                    AscFormat.AddToContentFromString(oContent, sText);
+                                    AscFormat.CheckContentTextAndAdd(oContent, sText);
                                 }
                             }
                         } else {
@@ -3259,8 +3253,8 @@ CPresentation.prototype.setHFProperties = function (oProps, bAll) {
                                         if (oSp) {
                                             oContent = oSp.getDocContent && oSp.getDocContent();
                                             if (oContent) {
-                                                oContent.ClearContent(true);
                                                 if (sDateTime) {
+                                                    oContent.ClearContent(true);
                                                     oParagraph = oContent.Content[0];
                                                     oFld = new AscCommonWord.CPresentationField(oParagraph);
                                                     oFld.SetGuid(AscCommon.CreateGUID());
@@ -3273,7 +3267,7 @@ CPresentation.prototype.setHFProperties = function (oProps, bAll) {
                                                     }
                                                     oParagraph.Internal_Content_Add(0, oFld);
                                                 } else {
-                                                    AscFormat.AddToContentFromString(oContent, sCustomDateTime);
+                                                    AscFormat.CheckContentTextAndAdd(oContent, sCustomDateTime);
                                                 }
                                             }
                                         }
@@ -3282,8 +3276,8 @@ CPresentation.prototype.setHFProperties = function (oProps, bAll) {
                                     if (oSp) {
                                         oContent = oSp.getDocContent && oSp.getDocContent();
                                         if (oContent) {
-                                            oContent.ClearContent(true);
                                             if (sDateTime) {
+                                                oContent.ClearContent(true);
                                                 oParagraph = oContent.Content[0];
                                                 oFld = new AscCommonWord.CPresentationField(oParagraph);
                                                 oFld.SetGuid(AscCommon.CreateGUID());
@@ -3296,7 +3290,7 @@ CPresentation.prototype.setHFProperties = function (oProps, bAll) {
                                                 }
                                                 oParagraph.Internal_Content_Add(0, oFld);
                                             } else {
-                                                AscFormat.AddToContentFromString(oContent, sCustomDateTime);
+                                                AscFormat.CheckContentTextAndAdd(oContent, sCustomDateTime);
                                             }
                                         }
                                     }
@@ -3315,8 +3309,8 @@ CPresentation.prototype.setHFProperties = function (oProps, bAll) {
                             } else {
                                 oContent = oSp.getDocContent && oSp.getDocContent();
                                 if (oContent) {
-                                    oContent.ClearContent(true);
                                     if (sDateTime) {
+                                        oContent.ClearContent(true);
                                         oParagraph = oContent.Content[0];
                                         oFld = new AscCommonWord.CPresentationField(oParagraph);
                                         oFld.SetGuid(AscCommon.CreateGUID());
@@ -3329,7 +3323,7 @@ CPresentation.prototype.setHFProperties = function (oProps, bAll) {
                                         }
                                         oParagraph.Internal_Content_Add(0, oFld);
                                     } else {
-                                        AscFormat.AddToContentFromString(oContent, sCustomDateTime);
+                                        AscFormat.CheckContentTextAndAdd(oContent, sCustomDateTime);
                                     }
                                 }
                             }
@@ -3392,8 +3386,7 @@ CPresentation.prototype.setHFProperties = function (oProps, bAll) {
                         if (oSp) {
                             oContent = oSp.getDocContent && oSp.getDocContent();
                             if (oContent && typeof sText === "string") {
-                                oContent.ClearContent(true);
-                                AscFormat.AddToContentFromString(oContent, sText);
+                                AscFormat.CheckContentTextAndAdd(oContent, sText);
                             }
                         }
                     } else {
@@ -3418,8 +3411,7 @@ CPresentation.prototype.setHFProperties = function (oProps, bAll) {
                         if (oSp) {
                             oContent = oSp.getDocContent && oSp.getDocContent();
                             if (oContent && typeof sText === "string") {
-                                oContent.ClearContent(true);
-                                AscFormat.AddToContentFromString(oContent, sText);
+                                AscFormat.CheckContentTextAndAdd(oContent, sText);
                             }
                         }
                     } else {
@@ -3457,8 +3449,8 @@ CPresentation.prototype.setHFProperties = function (oProps, bAll) {
                         } else {
                             oContent = oSp.getDocContent && oSp.getDocContent();
                             if (oContent) {
-                                oContent.ClearContent(true);
                                 if (sDateTime) {
+                                    oContent.ClearContent(true);
                                     oParagraph = oContent.Content[0];
                                     oFld = new AscCommonWord.CPresentationField(oParagraph);
                                     oFld.SetGuid(AscCommon.CreateGUID());
@@ -3471,7 +3463,7 @@ CPresentation.prototype.setHFProperties = function (oProps, bAll) {
                                     }
                                     oParagraph.Internal_Content_Add(0, oFld);
                                 } else {
-                                    AscFormat.AddToContentFromString(oContent, sCustomDateTime);
+                                    AscFormat.CheckContentTextAndAdd(oContent, sCustomDateTime);
                                 }
                             }
                         }
