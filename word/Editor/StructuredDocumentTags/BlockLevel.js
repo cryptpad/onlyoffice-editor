@@ -89,8 +89,6 @@ CBlockLevelSdt.prototype.Copy = function(Parent, DrawingDocument, oPr)
 	{
 		oNew.private_ReplacePlaceHolderWithContent();
 		oNew.Content.Copy2(this.Content, oPr);
-		if (oNew.IsEmpty())
-			oNew.private_ReplaceContentWithPlaceHolder();
 	}
 
 	oNew.SetPr(this.Pr);
@@ -102,13 +100,22 @@ CBlockLevelSdt.prototype.Copy = function(Parent, DrawingDocument, oPr)
 		oNew.SetPicturePr(this.Pr.Picture);
 
 	if (undefined !== this.Pr.ComboBox)
+	{
 		oNew.SetComboBoxPr(this.Pr.ComboBox);
+		oNew.private_UpdatePlaceHolderListContent();
+	}
 
 	if (undefined !== this.Pr.DropDown)
+	{
 		oNew.SetDropDownListPr(this.Pr.DropDown);
+		oNew.private_UpdatePlaceHolderListContent();
+	}
 
 	if (undefined !== this.Pr.Date)
 		oNew.SetDatePickerPr(this.Pr.Date);
+
+	if (oNew.IsEmpty())
+		oNew.private_ReplaceContentWithPlaceHolder();
 
 	return oNew;
 };
@@ -1837,9 +1844,6 @@ CBlockLevelSdt.prototype.private_UpdateListContent = function()
 };
 CBlockLevelSdt.prototype.private_UpdatePlaceHolderListContent = function()
 {
-	if (!this.IsPlaceHolder())
-		return;
-
 	var oRun = this.PlaceHolder.MakeSingleRunParagraph();
 	if (!oRun)
 		return;

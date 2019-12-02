@@ -127,9 +127,6 @@ CInlineLevelSdt.prototype.Copy = function(isUseSelection, oPr)
 		}
 	}
 
-	if (oContentControl.IsEmpty())
-		oContentControl.ReplaceContentWithPlaceHolder();
-
 	oContentControl.SetLabel(this.GetLabel());
 	oContentControl.SetTag(this.GetTag());
 	oContentControl.SetAlias(this.GetAlias());
@@ -147,13 +144,22 @@ CInlineLevelSdt.prototype.Copy = function(isUseSelection, oPr)
 		oContentControl.SetPicturePr(this.Pr.Picture);
 
 	if (undefined !== this.Pr.ComboBox)
+	{
 		oContentControl.SetComboBoxPr(this.Pr.ComboBox);
+		oContentControl.private_UpdatePlaceHolderListContent();
+	}
 
 	if (undefined !== this.Pr.DropDown)
+	{
 		oContentControl.SetDropDownListPr(this.Pr.DropDown);
+		oContentControl.private_UpdatePlaceHolderListContent();
+	}
 
 	if (undefined !== this.Pr.Date)
 		oContentControl.SetDatePickerPr(this.Pr.Date);
+
+	if (oContentControl.IsEmpty())
+		oContentControl.ReplaceContentWithPlaceHolder();
 
 	return oContentControl;
 };
@@ -1119,9 +1125,6 @@ CInlineLevelSdt.prototype.private_UpdateListContent = function()
 };
 CInlineLevelSdt.prototype.private_UpdatePlaceHolderListContent = function()
 {
-	if (!this.IsPlaceHolder())
-		return;
-
 	this.PlaceHolder.ClearContent();
 	this.PlaceHolder.AddText(AscCommon.translateManager.getValue("Choose an item."));
 };
