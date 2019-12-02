@@ -1726,8 +1726,8 @@
 		}
 
 		//TODO при сравнении резальтатов рассчета страниц в зависимости от scale - LO выдаёт похожие результаты, MS - другие. Необходимо пересмотреть!
-		var pageWidthWithFieldsHeadings = ((pageWidth - pageRightField) / vector_koef - leftFieldInPx) / scale;
-		var pageHeightWithFieldsHeadings = ((pageHeight - pageBottomField) / vector_koef - topFieldInPx) / scale;
+		var pageWidthWithFieldsHeadings = ((pageWidth - pageRightField) / vector_koef - leftFieldInPx);
+		var pageHeightWithFieldsHeadings = ((pageHeight - pageBottomField) / vector_koef - topFieldInPx);
 
 		var currentColIndex = range.c1;
 		var currentWidth = 0;
@@ -1757,7 +1757,7 @@
 			newPagePrint.topFieldInPx = topFieldInPx;
 
 			for (rowIndex = currentRowIndex; rowIndex <= range.r2; ++rowIndex) {
-				var currentRowHeight = this._getRowHeight(rowIndex);
+				var currentRowHeight = this._getRowHeight(rowIndex) * scale;
 				if (!bFitToHeight && currentHeight + currentRowHeight > pageHeightWithFieldsHeadings) {
 					// Закончили рисовать страницу
 					rowIndex = rowIndex;
@@ -1765,7 +1765,7 @@
 				}
 				if (isCalcColumnsWidth) {
 					for (colIndex = currentColIndex; colIndex <= range.c2; ++colIndex) {
-						var currentColWidth = this._getColumnWidth(colIndex);
+						var currentColWidth = this._getColumnWidth(colIndex) * scale;
 						if (bIsAddOffset) {
 							newPagePrint.startOffset = ++nCountOffset;
 							newPagePrint.startOffsetPx = (pageWidthWithFieldsHeadings * newPagePrint.startOffset);
@@ -2049,12 +2049,16 @@
 			//draw header/footer
 			this._drawHeaderFooter(drawingCtx, printPagesData, indexPrintPage, countPrintPages);
 
-			/*drawingCtx.AddClipRect(printPagesData.pageClipRectLeft, printPagesData.pageClipRectTop,
-				printPagesData.pageClipRectWidth, printPagesData.pageClipRectHeight);*/
-
 			var printScale = printPagesData.scale ? printPagesData.scale : this.getPrintScale();
 
-			//drawingCtx.BeginPage(printPagesData.pageWidth, printPagesData.pageHeight);
+			//pageClipRectWidth - ширина страницы без учёта измененного(*scale) хеадера - как при 100%
+			//поэтому при расчтетах из него вычетаем размер заголовка как при 100%
+			//смещение слева/сверху рассчитывается с учётом измененной ширины заголовков - поэтому домножаем её на printScale
+			var headerWidth = printPagesData.pageHeadings ? this.cellsLeft : 0;/*printPagesData.leftFieldInPx - printPagesData.pageClipRectLeft*/
+			var headerHeight = printPagesData.pageHeadings ? this.cellsTop : 0;/*printPagesData.topFieldInPx - printPagesData.pageClipRectTop*/
+			var _clipWidth = printPagesData.pageClipRectWidth - (headerWidth - headerWidth*printScale);
+			var _clipHeight = printPagesData.pageClipRectHeight - (headerHeight - headerHeight*printScale);
+			drawingCtx.AddClipRect(printPagesData.pageClipRectLeft, printPagesData.pageClipRectTop, _clipWidth, _clipHeight);
 
 			var transformMatrix;
 			if (printScale !== 1 && drawingCtx.Transform) {
@@ -2067,10 +2071,6 @@
 				drawingCtx.setTransform(printScale, drawingCtx.Transform.shy, drawingCtx.Transform.shx, printScale,
 					leftDiff / mmToPx, topDiff / mmToPx);
 			}
-
-			//TODO пересмотреть условие printScale < 1 ? printScale
-			drawingCtx.AddClipRect(printPagesData.pageClipRectLeft, printPagesData.pageClipRectTop,
-				printPagesData.pageClipRectWidth / (printScale < 1 ? printScale : 1), printPagesData.pageClipRectHeight / (printScale < 1 ? printScale : 1));
 
 			var offsetCols = printPagesData.startOffsetPx;
 			var range = printPagesData.pageRange;
@@ -2090,13 +2090,16 @@
 					printPagesData.leftFieldInPx - this.cellsLeft, offsetY);
 			}
 
-			var leftHeading = printPagesData.pageHeadings ? this.cellsLeft : 0;
+			//********проверить при больших значениях scale справа раньше обрезается таблица
+
+
+			/*var leftHeading = printPagesData.pageHeadings ? this.cellsLeft : 0;
 			var topHeading = printPagesData.pageHeadings ? this.cellsTop : 0;
 			var clipContentLeft = printPagesData.pageClipRectLeft + leftHeading;
 			var clipContentTop = printPagesData.pageClipRectTop + topHeading;
 			var clipContentWidth = this.getCellLeft(range.c2 + 1, 0) - this.cellsLeft;
 			var clipContentHeight = this.getCellTop(range.r2 + 1, 0) - this.cellsTop;
-			drawingCtx.AddClipRect(clipContentLeft, clipContentTop, clipContentWidth, clipContentHeight);
+			drawingCtx.AddClipRect(clipContentLeft, clipContentTop, clipContentWidth, clipContentHeight);*/
 
 			// Рисуем сетку
 			if (printPagesData.pageGridLines) {
@@ -2134,11 +2137,9 @@
 			oBaseTransform.ty = asc_getcvt(0/*mm*/, 3/*px*/, this._getPPIX()) * (printPagesData.pageClipRectTop + (printPagesData.topFieldInPx - printPagesData.pageClipRectTop) * printScale) - (this.getCellTop(range.r1, 3) - this.getCellTop(0, 3)) * printScale;
 
 
-
-            drawingCtx.AddClipRect(printPagesData.pageClipRectLeft + (printPagesData.leftFieldInPx - printPagesData.pageClipRectLeft)*printScale,
-                printPagesData.pageClipRectTop + (printPagesData.topFieldInPx - printPagesData.pageClipRectTop)*printScale,
-                printPagesData.pageClipRectWidth*(printScale) ,
-                printPagesData.pageClipRectHeight*(printScale));
+            drawingCtx.AddClipRect(printPagesData.pageClipRectLeft + headerWidth*printScale,
+                printPagesData.pageClipRectTop + headerHeight*printScale, printPagesData.pageClipRectWidth - headerWidth,
+                printPagesData.pageClipRectHeight - headerHeight);
 
             drawingCtx.DocumentRenderer.SetBaseTransform(oBaseTransform);
 			this.objectRender.showDrawingObjectsEx(false, null, drawingPrintOptions);
