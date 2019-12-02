@@ -2090,17 +2090,6 @@
 					printPagesData.leftFieldInPx - this.cellsLeft, offsetY);
 			}
 
-			//********проверить при больших значениях scale справа раньше обрезается таблица
-
-
-			/*var leftHeading = printPagesData.pageHeadings ? this.cellsLeft : 0;
-			var topHeading = printPagesData.pageHeadings ? this.cellsTop : 0;
-			var clipContentLeft = printPagesData.pageClipRectLeft + leftHeading;
-			var clipContentTop = printPagesData.pageClipRectTop + topHeading;
-			var clipContentWidth = this.getCellLeft(range.c2 + 1, 0) - this.cellsLeft;
-			var clipContentHeight = this.getCellTop(range.r2 + 1, 0) - this.cellsTop;
-			drawingCtx.AddClipRect(clipContentLeft, clipContentTop, clipContentWidth, clipContentHeight);*/
-
 			// Рисуем сетку
 			if (printPagesData.pageGridLines) {
 				var vector_koef = AscCommonExcel.vector_koef / this.getZoom();
