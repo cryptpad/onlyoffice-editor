@@ -4749,7 +4749,7 @@
 	prot["get_ForSelectedCells"] = prot["asc_getForSelectedCells"] = prot.asc_getForSelectedCells;
 	prot["put_ForSelectedCells"] = prot["asc_putForSelectedCells"] = prot.asc_putForSelectedCells;
 
-	window["Asc"]["asc_CParagraphBorders"] = asc_CParagraphBorders;
+	window["Asc"]["asc_CParagraphBorders"] = window["Asc"].asc_CParagraphBorders = asc_CParagraphBorders;
 	prot = asc_CParagraphBorders.prototype;
 	prot["get_Left"] = prot["asc_getLeft"] = prot.asc_getLeft;
 	prot["put_Left"] = prot["asc_putLeft"] = prot.asc_putLeft;
