@@ -20597,8 +20597,6 @@ CDocument.prototype.AddCaption = function(oPr)
             NewRun.AddText(sAdditional + " ");
             NewParagraph.Internal_Content_Add(nCurPos++, NewRun, false);
         }
-        NewParagraph.MoveCursorToEndPos();
-        NewParagraph.Document_SetThisElementCurrent(true);
 
 
 
@@ -20646,7 +20644,8 @@ CDocument.prototype.AddCaption = function(oPr)
                 this.FinalizeAction();
             }
         }
-        oComplexField.SelectFieldValue();
+        NewParagraph.MoveCursorToEndPos();
+        NewParagraph.Document_SetThisElementCurrent(true);
     }
     this.Recalculate();
     this.FinalizeAction();
