@@ -2802,6 +2802,8 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
 	// TODO: Сделать возможность показывать инструкцию
     var isHiddenCFPart = PRS.ComplexFields.IsComplexFieldCode();
 
+    PRS.CheckUpdateLBP(Pos, Depth);
+
     if (false === StartWord && true === FirstItemOnLine && XEnd - X < 0.001 && RangesCount > 0)
     {
         NewRange = true;
