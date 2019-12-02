@@ -207,6 +207,8 @@ module.exports = function(grunt) {
 		const configCell = configs.cell['sdk'];
 		const configSlide = configs.slide['sdk'];
 
+		const deploy = '../deploy/sdkjs/';
+
 		// crete empty.js for polyfills
 		const emptyJs = 'empty.js';
 		grunt.file.write(emptyJs, '');
@@ -317,7 +319,8 @@ module.exports = function(grunt) {
 						sdkAllTmp,
 						sdkWordTmp,
 						sdkCellTmp,
-						sdkSlideTmp
+						sdkSlideTmp,
+						deploy
 					]
 				}
 			}
@@ -326,34 +329,32 @@ module.exports = function(grunt) {
 	grunt.registerTask('license', 'Add license', function () {
 		const appCopyright = "Copyright (C) Ascensio System SIA 2012-" + grunt.template.today('yyyy') +". All rights reserved";
 		const publisherUrl = "https://www.onlyoffice.com/";
-		var cache = '*.cache';
-		var fonts = '../common/libfont/';
-		var word = '../word/';
-		var cell = '../cell/';
-		var slide = '../slide/';
-		var polyfill = 'polyfill.js';
-		var fontsWasm = 'fontswasm.js';
-		var fontsJs = 'fontsjs.js';
-		var fontFile = 'fonts.js';
-		var wordJs = 'word.js';
-		var cellJs = 'cell.js';
-		var slideJs = 'slide.js';
-		var license = 'license.header';
-		var deploy = '../deploy/sdkjs/';
-		var sdkjspattern = 'sdk-*.js';
-		var splitLine;
+		const fonts = '../common/libfont/';
+		const deploy = '../deploy/sdkjs/';
+		const word = path.join(deploy, 'word');
+		const cell = path.join(deploy, 'cell');
+		const slide = path.join(deploy, 'slide');
+		const polyfill = 'polyfill.js';
+		const fontsWasm = 'fontswasm.js';
+		const fontsJs = 'fontsjs.js';
+		const fontFile = 'fonts.js';
+		const wordJs = 'word.js';
+		const cellJs = 'cell.js';
+		const slideJs = 'slide.js';
+		const license = 'license.header';
+		let splitLine;
 		if ('ADVANCED' === level) {
 			splitLine = ('PRETTY_PRINT' === formatting) ? 'window.split = "split";' : 'window.split="split";';
 		} else {
 			splitLine = ('PRETTY_PRINT' === formatting) ? 'window["split"] = "split";' : 'window["split"]="split";';
 		}
-		var splitOptions = {
+		const splitOptions = {
 			separator: splitLine,
 			prefix: ["sdk-all-min", "sdk-all"]
 		};
 
-		var concatSdk = {files:{}};
-		var concatSdkFiles = concatSdk['files'];
+		const concatSdk = {files:{}};
+		const concatSdkFiles = concatSdk['files'];
 		concatSdkFiles[fontsWasm] = [license, fontsWasm];
 		concatSdkFiles[fontsJs] = [license, fontsJs];
 		concatSdkFiles[getSdkPath(true, word)] = [license, polyfill, getSdkPath(true, word)];
@@ -401,9 +402,9 @@ module.exports = function(grunt) {
 					files: [
 						{src: [fontsWasm], dest: path.join(fonts, 'wasm', fontFile)},
 						{src: [fontsJs], dest: path.join(fonts, 'js', fontFile)},
-						{src: [getSdkPath(true, word), getSdkPath(false, word)], dest: word},
-						{src: [getSdkPath(true, cell), getSdkPath(false, cell)], dest: cell},
-						{src: [getSdkPath(true, slide), getSdkPath(false, slide)], dest: slide}
+						{src: [getSdkPath(true, word), getSdkPath(false, word)], dest: word + '/'},
+						{src: [getSdkPath(true, cell), getSdkPath(false, cell)], dest: cell + '/'},
+						{src: [getSdkPath(true, slide), getSdkPath(false, slide)], dest: slide + '/'}
 					]
 				}
 			},
@@ -418,11 +419,7 @@ module.exports = function(grunt) {
 						fontsJs,
 						wordJs,
 						cellJs,
-						slideJs,
-						word + cache,
-						cell + cache,
-						slide + cache,
-						deploy
+						slideJs
 					]
 				}
 			},
@@ -445,30 +442,15 @@ module.exports = function(grunt) {
 						},
 						{
 							expand: true,
-							src: path.join(word, sdkjspattern),
-							dest: path.join(deploy, 'word')
-						},
-						{
-							expand: true,
 							cwd: path.join(cell, 'css'),
 							src: '*.css',
 							dest: path.join(deploy, 'cell', 'css')
 						},
 						{
 							expand: true,
-							src: path.join(cell, sdkjspattern),
-							dest: path.join(deploy, 'cell')
-						},
-						{
-							expand: true,
 							cwd: path.join(slide, 'themes'),
 							src: '**/**',
 							dest: path.join(deploy, 'slide', 'themes')
-						},
-						{
-							expand: true,
-							src: path.join(slide, sdkjspattern),
-							dest: path.join(deploy, 'slide')
 						}
 					]
 				}
