@@ -20590,7 +20590,6 @@ CDocument.prototype.AddCaption = function(oPr)
         oComplexField.SetInstructionLine(sInstruction);
         oComplexField.SetSeparateChar(oSeparateChar);
         oComplexField.SetEndChar(oEndChar);
-        oComplexField.Update(false, false);
         var sAdditional = oPr.get_Additional();
         if(typeof sAdditional === "string" && sAdditional.length > 0)
         {
@@ -20600,6 +20599,54 @@ CDocument.prototype.AddCaption = function(oPr)
         }
         NewParagraph.MoveCursorToEndPos();
         NewParagraph.Document_SetThisElementCurrent(true);
+
+
+
+        var aFields = [];
+
+        oComplexField.Update(false, false);
+        this.GetAllSeqFieldsByType(oPr.get_Label(), aFields);
+        for(var i = 0; i < aFields.length; ++i)
+        {
+            if(aFields[i] === oComplexField)
+            {
+                break;
+            }
+        }
+        aFields = aFields.slice(i, aFields.length - i);
+        var arrParagraphs = [];
+        for (var nIndex = 0, nCount = aFields.length; nIndex < nCount; ++nIndex)
+        {
+            var oField = aFields[nIndex];
+            if (oField instanceof CComplexField)
+            {
+                oField.SelectField();
+                arrParagraphs = arrParagraphs.concat(this.GetCurrentParagraph(false, true));
+            }
+            else if (oField instanceof ParaField)
+            {
+                if (oField.GetParagraph())
+                    arrParagraphs.push(oField.GetParagraph());
+            }
+        }
+
+        if(arrParagraphs.length > 0)
+        {
+            if (!this.Document_Is_SelectionLocked(changestype_None, {
+                Type      : changestype_2_ElementsArray_and_Type,
+                Elements  : arrParagraphs,
+                CheckType : changestype_Paragraph_Content
+            }))
+            {
+                this.StartAction(AscDFH.historydescription_Document_UpdateFields);
+                for(i = 0; i < aFields.length; ++i)
+                {
+                    aFields[i].Update(false, false);
+                }
+                this.FinalizeAction();
+            }
+        }
+        oComplexField.SelectFieldValue();
     }
     this.Recalculate();
     this.FinalizeAction();
