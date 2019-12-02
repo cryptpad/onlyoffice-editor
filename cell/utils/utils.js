@@ -302,6 +302,10 @@
 					return $1 ? $0 : '.';
 				})
 				.replace(/(~\*)/g, "\\*").replace(/(~\?)/g, "\\?");
+
+			if (options.isWholeWord)
+				value = '\\b' + value + '\\b';
+				
 			return new RegExp(value, findFlags);
 		}
 
@@ -2278,7 +2282,8 @@
 			this.scanByRows = true;						// просмотр по строкам/столбцам
 			this.scanForward = true;					// поиск вперед/назад
 			this.isMatchCase = false;					// учитывать регистр
-			this.isWholeCell = false;	                // ячейка целиком
+			this.isWholeCell = false;	              
+			this.isWholeWord = false;                
 			this.isSpellCheck = false;		    // изменение вызванное в проверке орфографии	
 			this.scanOnOnlySheet = true;				// искать только на листе/в книге
 			this.lookIn = Asc.c_oAscFindLookIn.Formulas;	// искать в формулах/значениях/примечаниях
@@ -2309,6 +2314,7 @@
 			result.scanForward = this.scanForward;
 			result.isMatchCase = this.isMatchCase;
 			result.isWholeCell = this.isWholeCell;
+			result.isWholeWord = this.isWholeWord;  
 			result.isSpellCheck = this.isSpellCheck;	
 			result.scanOnOnlySheet = this.scanOnOnlySheet;		
 			result.lookIn = this.lookIn;
@@ -2353,6 +2359,7 @@
 		asc_CFindOptions.prototype.asc_setScanForward = function (val) {this.scanForward = val;};
 		asc_CFindOptions.prototype.asc_setIsMatchCase = function (val) {this.isMatchCase = val;};
 		asc_CFindOptions.prototype.asc_setIsWholeCell = function (val) {this.isWholeCell = val;};
+		asc_CFindOptions.prototype.asc_setIsWholeWord = function (val) {this.isWholeWord = val;};
 		asc_CFindOptions.prototype.asc_changeSingleWord = function (val) { this.isChangeSingleWord = val; };	
 		asc_CFindOptions.prototype.asc_setScanOnOnlySheet = function (val) {this.scanOnOnlySheet = val;};
 		asc_CFindOptions.prototype.asc_setLookIn = function (val) {this.lookIn = val;};

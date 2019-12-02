@@ -3391,6 +3391,7 @@ var editor;
       }
 
       var replaceWords = [];
+      options.isWholeWord = true;
       for (var key in changeWords) {
         replaceWords.push([AscCommonExcel.getFindRegExp(key, options), changeWords[key]]);
       }

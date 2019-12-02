@@ -6882,6 +6882,13 @@
 		if (true !== options.isMatchCase) {
 			options.findWhat = options.findWhat.toLowerCase();
 		}
+
+		if(options.isWholeWord) {
+			var length = options.findWhat.length;
+			options.findWhat = '\\b' + options.findWhat + '\\b';
+			options.findWhat = new RegExp(options.findWhat, "g");
+			options.findWhat.length = length;
+		}
 		var selectionRange = options.selectionRange || this.selectionRange;
 		var lastRange = selectionRange.getLast();
 		var activeCell = selectionRange.activeCell;
@@ -7340,8 +7347,13 @@
 		if (true !== options.isMatchCase) {
 			cellText = cellText.toLowerCase();
 		}
-		return (0 <= cellText.indexOf(options.findWhat)) &&
-			(true !== options.isWholeCell || options.findWhat.length === cellText.length);
+		var isWordEnter = cellText.indexOf(options.findWhat);
+		if (options.findWhat instanceof RegExp && options.isWholeWord) {
+			isWordEnter = cellText.search(options.findWhat);
+		}
+		return (0 <= isWordEnter) &&
+		(true !== options.isWholeCell || options.findWhat.length === cellText.length);
+	
 	};
 	Cell.prototype.isNullText=function(){
 		return this.isNullTextString() && !this.formulaParsed;
