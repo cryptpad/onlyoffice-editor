@@ -769,6 +769,8 @@
 		};
 	}
 
+    AscCommonWord.CContentControlPluginWorker = CContentControlPluginWorker;
+
 	// пользоваться так:
 	// подрубить его последним из скриптов к страничке
 	// и вызвать, после подгрузки (конец метода OnInit <- Drawing/HtmlPage.js)
