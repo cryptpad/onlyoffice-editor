@@ -384,6 +384,7 @@ CGraphicObjects.prototype =
             oContent.AddToParagraph(new ParaTextPr(oTextPr));
             oContent.SetParagraphAlign(AscCommon.align_Center);
             oContent.SetParagraphSpacing({Before : 0, After: 0,  LineRule : Asc.linerule_Auto, Line : 1.0});
+            oContent.SetParagraphIndent({FirstLine:0, Left:0, Right:0});
             oContent.Set_ApplyToAll(false);
             var oBodyPr = oDrawing.getBodyPr().createDuplicate();
             oBodyPr.rot = 0;
