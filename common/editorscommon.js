@@ -2810,7 +2810,7 @@
 	 */
 	parserHelper.prototype.checkDataRange = function (model, wb, dialogType, dataRange, fullCheck, isRows, chartType)
 	{
-		var result, range, sheetModel;
+		var result, range, sheetModel, checkChangeRange;
 		if (Asc.c_oAscSelectionDialogType.Chart === dialogType)
 		{
 			result = parserHelp.parse3DRef(dataRange);
@@ -2879,7 +2879,13 @@
 			else if (Asc.c_oAscSelectionDialogType.FormatTableChangeRange === dialogType)
 			{
 				// ToDo убрать эту проверку, заменить на более грамотную после правки функции _searchFilters
-				var checkChangeRange = wb.getWorksheet().af_checkChangeRange(range);
+				checkChangeRange = wb.getWorksheet().af_checkChangeRange(range);
+				if (null !== checkChangeRange)
+					return checkChangeRange;
+			}
+			else if(Asc.c_oAscSelectionDialogType.CustomSort === dialogType)
+			{
+				checkChangeRange = wb.getWorksheet().checkCustomSortRange(range, isRows);
 				if (null !== checkChangeRange)
 					return checkChangeRange;
 			}

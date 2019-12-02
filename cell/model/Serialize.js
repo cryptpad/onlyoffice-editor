@@ -304,7 +304,8 @@
 		DataValidations: 32,
 		QueryTable: 33,
 		Controls: 34,
-		XlsbPos: 35
+		XlsbPos: 35,
+		SortState: 36
     };
     /** @enum */
     var c_oSerWorksheetPropTypes =
@@ -510,7 +511,9 @@
         ConditionRef:4,
         ConditionSortBy:5,
         ConditionDescending:6,
-        ConditionDxfId:7
+        ConditionDxfId:7,
+        ColumnSort: 8,
+        SortMethod: 9
     };
     /** @enum */
     var c_oSer_AutoFilter =
@@ -1776,6 +1779,10 @@
             }
             if(null != sortState.CaseSensitive)
                 this.bs.WriteItem(c_oSer_SortState.CaseSensitive, function(){oThis.memory.WriteBool(sortState.CaseSensitive);});
+            if(null != sortState.ColumnSort)
+                this.bs.WriteItem(c_oSer_SortState.ColumnSort, function(){oThis.memory.WriteBool(sortState.ColumnSort);});
+            if(null != sortState.SortMethod)
+                this.bs.WriteItem(c_oSer_SortState.SortMethod, function(){oThis.memory.WriteByte(sortState.SortMethod);});
             if(null != sortState.SortConditions)
                 this.bs.WriteItem(c_oSer_SortState.SortConditions, function(){oThis.WriteSortConditions(sortState.SortConditions);});
         };
@@ -3146,6 +3153,11 @@
             {
                 oBinaryTableWriter = new BinaryTableWriter(this.memory, this.aDxfs);
                 this.bs.WriteItem(c_oSerWorksheetsTypes.Autofilter, function(){oBinaryTableWriter.WriteAutoFilter(ws.AutoFilter);});
+            }
+            if(null != ws.sortState && !this.isCopyPaste)
+            {
+                oBinaryTableWriter = new BinaryTableWriter(this.memory, this.aDxfs);
+                this.bs.WriteItem(c_oSerWorksheetsTypes.SortState, function(){oBinaryTableWriter.WriteSortState(ws.sortState);});
             }
             if(null != ws.TableParts && ws.TableParts.length > 0)
             {
@@ -5371,6 +5383,10 @@
                 oSortState.Ref = AscCommonExcel.g_oRangeCache.getAscRange(this.stream.GetString2LE(length));
             else if ( c_oSer_SortState.CaseSensitive == type )
                 oSortState.CaseSensitive = this.stream.GetBool();
+            else if ( c_oSer_SortState.ColumnSort == type )
+                oSortState.ColumnSort = this.stream.GetBool();
+            else if ( c_oSer_SortState.SortMethod == type )
+                oSortState.SortMethod = this.stream.GetUChar();
             else if ( c_oSer_SortState.SortConditions == type )
             {
                 oSortState.SortConditions = [];
@@ -7042,9 +7058,13 @@
                 res = this.bcr.Read1(length, function(t,l){
                     return oBinary_TableReader.ReadAutoFilter(t,l, oWorksheet.AutoFilter);
                 });
-            }
-            else if ( c_oSerWorksheetsTypes.TableParts == type )
-            {
+            } else if (c_oSerWorksheetsTypes.SortState === type) {
+                oBinary_TableReader = new Binary_TableReader(this.stream, this.oReadResult, oWorksheet, this.Dxfs);
+                oWorksheet.sortState = new AscCommonExcel.SortState();
+                res = this.bcr.Read1(length, function(t, l) {
+                    return oBinary_TableReader.ReadSortState(t, l, oWorksheet.sortState);
+                });
+            } else if (c_oSerWorksheetsTypes.TableParts == type) {
                 oBinary_TableReader = new Binary_TableReader(this.stream, this.oReadResult, oWorksheet, this.Dxfs);
                 oBinary_TableReader.Read(length, oWorksheet.TableParts);
             } else if ( c_oSerWorksheetsTypes.Comments == type

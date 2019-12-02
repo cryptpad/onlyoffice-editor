@@ -327,6 +327,7 @@ var editor;
     AscCommonExcel.g_oUndoRedoLayout = new AscCommonExcel.UndoRedoRedoLayout(wbModel);
     AscCommonExcel.g_oUndoRedoHeaderFooter = new AscCommonExcel.UndoRedoHeaderFooter(wbModel);
     AscCommonExcel.g_oUndoRedoArrayFormula = new AscCommonExcel.UndoRedoArrayFormula(wbModel);
+    AscCommonExcel.g_oUndoRedoSortState = new AscCommonExcel.UndoRedoSortState(wbModel);
   };
 
   spreadsheet_api.prototype.asc_DownloadAs = function (options) {
@@ -4318,6 +4319,21 @@ var editor;
 		return ws && ws.sheetPr ? ws.sheetPr.SummaryBelow : true;
 	};
 
+	spreadsheet_api.prototype.asc_getSortProps = function (bExpand) {
+		var ws = this.wb && this.wb.getWorksheet();
+		if(ws) {
+			return ws.getSortProps(bExpand);
+		}
+	};
+
+	spreadsheet_api.prototype.asc_setSortProps = function (props) {
+		var ws = this.wb && this.wb.getWorksheet();
+		if(ws) {
+			ws.setSelectionInfo("customSort", props);
+		}
+	};
+
+
   /*
    * Export
    * -----------------------------------------------------------------------------
@@ -4711,4 +4727,8 @@ var editor;
 
   // mobile
   prot["asc_Remove"] = prot.asc_Remove;
+
+  prot["asc_getSortProps"] = prot.asc_getSortProps;
+  prot["asc_setSortProps"] = prot.asc_setSortProps;
+
 })(window);
