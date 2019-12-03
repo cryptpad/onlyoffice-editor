@@ -65,7 +65,7 @@ module.exports = function(grunt) {
 		const fileName = 'scripts.js';
 		const files = getFilesMin(config).concat(getFilesAll(config));
 		fixPath(files, '../../../../sdkjs/build/');
-		grunt.file.write(path.join(develop, name, fileName), 'var scrpipts = [\n\t"' + files.join('",\n\t"') + '"\n];');
+		grunt.file.write(path.join(develop, name, fileName), 'var sdk_scripts = [\n\t"' + files.join('",\n\t"') + '"\n];');
 	}
 
 	function CConfig(pathConfigs) {
