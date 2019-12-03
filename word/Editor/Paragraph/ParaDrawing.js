@@ -217,7 +217,7 @@ ParaDrawing.prototype.GetSelectedContent = function(SelectedContent)
 };
 ParaDrawing.prototype.Search_GetId = function(bNext, bCurrent)
 {
-	if (isRealObject(this.GraphicObj) && typeof  this.GraphicObj.Search_GetId === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof  this.GraphicObj.Search_GetId === "function")
 		return this.GraphicObj.Search_GetId(bNext, bCurrent);
 	return null;
 };
@@ -245,7 +245,7 @@ ParaDrawing.prototype.GetAllDrawingObjects = function(DrawingObjects)
 };
 ParaDrawing.prototype.canRotate = function()
 {
-	return isRealObject(this.GraphicObj) && typeof this.GraphicObj.canRotate == "function" && this.GraphicObj.canRotate();
+	return AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.canRotate == "function" && this.GraphicObj.canRotate();
 };
 ParaDrawing.prototype.GetParagraph = function()
 {
@@ -600,8 +600,8 @@ ParaDrawing.prototype.Set_BehindDoc = function(BehindDoc)
 };
 ParaDrawing.prototype.Set_GraphicObject = function(graphicObject)
 {
-	var oldId = isRealObject(this.GraphicObj) ? this.GraphicObj.Get_Id() : null;
-	var newId = isRealObject(graphicObject) ? graphicObject.Get_Id() : null;
+	var oldId = AscCommon.isRealObject(this.GraphicObj) ? this.GraphicObj.Get_Id() : null;
+	var newId = AscCommon.isRealObject(graphicObject) ? graphicObject.Get_Id() : null;
 
 	History.Add(new CChangesParaDrawingGraphicObject(this, oldId, newId));
 
@@ -772,7 +772,7 @@ ParaDrawing.prototype.SetSizeRelV  = function(oSize)
 };
 ParaDrawing.prototype.getXfrmExtX = function()
 {
-	if (isRealObject(this.GraphicObj) && isRealObject(this.GraphicObj.spPr) && isRealObject(this.GraphicObj.spPr.xfrm) && AscFormat.isRealNumber(this.GraphicObj.spPr.xfrm.extX))
+	if (AscCommon.isRealObject(this.GraphicObj) && AscCommon.isRealObject(this.GraphicObj.spPr) && AscCommon.isRealObject(this.GraphicObj.spPr.xfrm) && AscFormat.isRealNumber(this.GraphicObj.spPr.xfrm.extX))
 		return this.GraphicObj.spPr.xfrm.extX;
 	if (AscFormat.isRealNumber(this.Extent.W))
 		return this.Extent.W;
@@ -780,7 +780,7 @@ ParaDrawing.prototype.getXfrmExtX = function()
 };
 ParaDrawing.prototype.getXfrmExtY = function()
 {
-	if (isRealObject(this.GraphicObj) && isRealObject(this.GraphicObj.spPr) && isRealObject(this.GraphicObj.spPr.xfrm) && AscFormat.isRealNumber(this.GraphicObj.spPr.xfrm.extY))
+	if (AscCommon.isRealObject(this.GraphicObj) && AscCommon.isRealObject(this.GraphicObj.spPr) && AscCommon.isRealObject(this.GraphicObj.spPr.xfrm) && AscFormat.isRealNumber(this.GraphicObj.spPr.xfrm.extY))
 		return this.GraphicObj.spPr.xfrm.extY;
 	if (AscFormat.isRealNumber(this.Extent.H))
 		return this.Extent.H;
@@ -788,7 +788,7 @@ ParaDrawing.prototype.getXfrmExtY = function()
 };
 ParaDrawing.prototype.getXfrmRot = function()
 {
-	if (isRealObject(this.GraphicObj) && isRealObject(this.GraphicObj.spPr) && isRealObject(this.GraphicObj.spPr.xfrm) && AscFormat.isRealNumber(this.GraphicObj.spPr.xfrm.rot))
+	if (AscCommon.isRealObject(this.GraphicObj) && AscCommon.isRealObject(this.GraphicObj.spPr) && AscCommon.isRealObject(this.GraphicObj.spPr.xfrm) && AscFormat.isRealNumber(this.GraphicObj.spPr.xfrm.rot))
 		return this.GraphicObj.spPr.xfrm.rot;
 	return 0;
 };
@@ -833,7 +833,7 @@ ParaDrawing.prototype.Get_Bounds = function()
 };
 ParaDrawing.prototype.Search = function(Str, Props, SearchEngine, Type)
 {
-	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.Search === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.Search === "function")
 	{
 		this.GraphicObj.Search(Str, Props, SearchEngine, Type)
 	}
@@ -851,7 +851,7 @@ ParaDrawing.prototype.Set_Props = function(Props)
 		this.Set_DrawingType(c_oAscWrapStyle2.Inline === Props.WrappingStyle ? drawing_Inline : drawing_Anchor);
 		if (c_oAscWrapStyle2.Inline === Props.WrappingStyle)
 		{
-			if (isRealObject(this.GraphicObj.bounds) && AscFormat.isRealNumber(this.GraphicObj.bounds.w) && AscFormat.isRealNumber(this.GraphicObj.bounds.h))
+			if (AscCommon.isRealObject(this.GraphicObj.bounds) && AscFormat.isRealNumber(this.GraphicObj.bounds.w) && AscFormat.isRealNumber(this.GraphicObj.bounds.h))
 			{
 				this.CheckWH();
 			}
@@ -1188,7 +1188,7 @@ ParaDrawing.prototype.Copy = function(oPr)
 {
 	var c = new ParaDrawing(this.Extent.W, this.Extent.H, null, editor.WordControl.m_oLogicDocument.DrawingDocument, null, null);
 	c.Set_DrawingType(this.DrawingType);
-	if (isRealObject(this.GraphicObj))
+	if (AscCommon.isRealObject(this.GraphicObj))
 	{
 		var oCopyPr = new AscFormat.CCopyObjectProperties();
 		oCopyPr.contentCopyPr = oPr;
@@ -1240,12 +1240,12 @@ ParaDrawing.prototype.GetId = function()
 };
 ParaDrawing.prototype.setParagraphTabs = function(tabs)
 {
-	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.setParagraphTabs === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.setParagraphTabs === "function")
 		this.GraphicObj.setParagraphTabs(tabs);
 };
 ParaDrawing.prototype.IsMovingTableBorder = function()
 {
-	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.IsMovingTableBorder === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.IsMovingTableBorder === "function")
 		return this.GraphicObj.IsMovingTableBorder();
 	return false;
 };
@@ -1376,7 +1376,7 @@ ParaDrawing.prototype.Reset_SavedPosition = function()
 };
 ParaDrawing.prototype.setParagraphBorders = function(val)
 {
-	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.setParagraphBorders === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.setParagraphBorders === "function")
 		this.GraphicObj.setParagraphBorders(val);
 };
 ParaDrawing.prototype.deselect = function()
@@ -1423,14 +1423,14 @@ ParaDrawing.prototype.updatePosition3 = function(pageIndex, x, y, oldPageNum)
 };
 ParaDrawing.prototype.calculateAfterChangeTheme = function()
 {
-	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.calculateAfterChangeTheme === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.calculateAfterChangeTheme === "function")
 	{
 		this.GraphicObj.calculateAfterChangeTheme();
 	}
 };
 ParaDrawing.prototype.selectionIsEmpty = function()
 {
-	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.selectionIsEmpty === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.selectionIsEmpty === "function")
 		return this.GraphicObj.selectionIsEmpty();
 	return false;
 };
@@ -1760,7 +1760,7 @@ ParaDrawing.prototype.Refresh_RecalcData = function(Data)
 {
 	if (undefined != this.Parent && null != this.Parent)
 	{
-		if (isRealObject(Data))
+		if (AscCommon.isRealObject(Data))
 		{
 			switch (Data.Type)
 			{
@@ -1829,102 +1829,102 @@ ParaDrawing.prototype.Refresh_RecalcData2 = function(Data)
 //----------------------------------------------------------------------------------------------------------------------
 ParaDrawing.prototype.hyperlinkCheck = function(bCheck)
 {
-	if (isRealObject(this.GraphicObj) && typeof  this.GraphicObj.hyperlinkCheck === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof  this.GraphicObj.hyperlinkCheck === "function")
 		return this.GraphicObj.hyperlinkCheck(bCheck);
 	return null;
 };
 ParaDrawing.prototype.hyperlinkCanAdd = function(bCheckInHyperlink)
 {
-	if (isRealObject(this.GraphicObj) && typeof  this.GraphicObj.hyperlinkCanAdd === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof  this.GraphicObj.hyperlinkCanAdd === "function")
 		return this.GraphicObj.hyperlinkCanAdd(bCheckInHyperlink);
 	return false;
 };
 ParaDrawing.prototype.hyperlinkRemove = function()
 {
-	if (isRealObject(this.GraphicObj) && typeof  this.GraphicObj.hyperlinkCanAdd === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof  this.GraphicObj.hyperlinkCanAdd === "function")
 		return this.GraphicObj.hyperlinkRemove();
 	return false;
 };
 ParaDrawing.prototype.hyperlinkModify = function( HyperProps )
 {
-	if (isRealObject(this.GraphicObj) && typeof  this.GraphicObj.hyperlinkModify === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof  this.GraphicObj.hyperlinkModify === "function")
 		return this.GraphicObj.hyperlinkModify(HyperProps);
 };
 ParaDrawing.prototype.hyperlinkAdd = function( HyperProps )
 {
-	if (isRealObject(this.GraphicObj) && typeof  this.GraphicObj.hyperlinkAdd === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof  this.GraphicObj.hyperlinkAdd === "function")
 		return this.GraphicObj.hyperlinkAdd(HyperProps);
 };
 ParaDrawing.prototype.documentStatistics = function(stat)
 {
-	if (isRealObject(this.GraphicObj) && typeof  this.GraphicObj.documentStatistics === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof  this.GraphicObj.documentStatistics === "function")
 		this.GraphicObj.documentStatistics(stat);
 };
 ParaDrawing.prototype.documentCreateFontCharMap = function(fontMap)
 {
-	if (isRealObject(this.GraphicObj) && typeof  this.GraphicObj.documentCreateFontCharMap === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof  this.GraphicObj.documentCreateFontCharMap === "function")
 		this.GraphicObj.documentCreateFontCharMap(fontMap);
 };
 ParaDrawing.prototype.documentCreateFontMap = function(fontMap)
 {
-	if (isRealObject(this.GraphicObj) && typeof  this.GraphicObj.documentCreateFontMap === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof  this.GraphicObj.documentCreateFontMap === "function")
 		this.GraphicObj.documentCreateFontMap(fontMap);
 };
 ParaDrawing.prototype.tableCheckSplit = function()
 {
-	if (isRealObject(this.GraphicObj) && typeof  this.GraphicObj.tableCheckSplit === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof  this.GraphicObj.tableCheckSplit === "function")
 		return this.GraphicObj.tableCheckSplit();
 	return false;
 };
 ParaDrawing.prototype.tableCheckMerge = function()
 {
-	if (isRealObject(this.GraphicObj) && typeof  this.GraphicObj.tableCheckMerge === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof  this.GraphicObj.tableCheckMerge === "function")
 		return this.GraphicObj.tableCheckMerge();
 	return false;
 };
 ParaDrawing.prototype.tableSelect = function( Type )
 {
-	if (isRealObject(this.GraphicObj) && typeof  this.GraphicObj.tableSelect === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof  this.GraphicObj.tableSelect === "function")
 		return this.GraphicObj.tableSelect(Type);
 };
 ParaDrawing.prototype.tableRemoveTable = function()
 {
-	if (isRealObject(this.GraphicObj) && typeof  this.GraphicObj.tableRemoveTable === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof  this.GraphicObj.tableRemoveTable === "function")
 		return this.GraphicObj.tableRemoveTable();
 };
 ParaDrawing.prototype.tableSplitCell = function(Cols, Rows)
 {
-	if (isRealObject(this.GraphicObj) && typeof  this.GraphicObj.tableSplitCell === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof  this.GraphicObj.tableSplitCell === "function")
 		return this.GraphicObj.tableSplitCell(Cols, Rows);
 };
 ParaDrawing.prototype.tableMergeCells = function(Cols, Rows)
 {
-	if (isRealObject(this.GraphicObj) && typeof  this.GraphicObj.tableMergeCells === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof  this.GraphicObj.tableMergeCells === "function")
 		return this.GraphicObj.tableMergeCells(Cols, Rows);
 };
 ParaDrawing.prototype.tableRemoveCol = function()
 {
-	if (isRealObject(this.GraphicObj) && typeof  this.GraphicObj.tableRemoveCol === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof  this.GraphicObj.tableRemoveCol === "function")
 		return this.GraphicObj.tableRemoveCol();
 };
 ParaDrawing.prototype.tableAddCol = function(bBefore)
 {
-	if (isRealObject(this.GraphicObj) && typeof  this.GraphicObj.tableAddCol === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof  this.GraphicObj.tableAddCol === "function")
 		return this.GraphicObj.tableAddCol(bBefore);
 };
 ParaDrawing.prototype.tableRemoveRow = function()
 {
-	if (isRealObject(this.GraphicObj) && typeof  this.GraphicObj.tableRemoveRow === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof  this.GraphicObj.tableRemoveRow === "function")
 		return this.GraphicObj.tableRemoveRow();
 };
 ParaDrawing.prototype.tableAddRow = function(bBefore)
 {
-	if (isRealObject(this.GraphicObj) && typeof  this.GraphicObj.tableAddRow === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof  this.GraphicObj.tableAddRow === "function")
 		return this.GraphicObj.tableAddRow(bBefore);
 };
 ParaDrawing.prototype.getCurrentParagraph = function(bIgnoreSelection, arrSelectedParagraphs)
 {
-	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.getCurrentParagraph === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.getCurrentParagraph === "function")
 		return this.GraphicObj.getCurrentParagraph(bIgnoreSelection, arrSelectedParagraphs);
 
 	if (this.Parent instanceof Paragraph)
@@ -1932,50 +1932,50 @@ ParaDrawing.prototype.getCurrentParagraph = function(bIgnoreSelection, arrSelect
 };
 ParaDrawing.prototype.getSelectedText = function(bClearText, oPr)
 {
-	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.getSelectedText === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.getSelectedText === "function")
 		return this.GraphicObj.getSelectedText(bClearText, oPr);
 	return "";
 };
 ParaDrawing.prototype.getCurPosXY = function()
 {
-	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.getCurPosXY === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.getCurPosXY === "function")
 		return this.GraphicObj.getCurPosXY();
 	return {X : 0, Y : 0};
 };
 ParaDrawing.prototype.setParagraphKeepLines = function(Value)
 {
-	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.setParagraphKeepLines === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.setParagraphKeepLines === "function")
 		return this.GraphicObj.setParagraphKeepLines(Value);
 };
 ParaDrawing.prototype.setParagraphKeepNext = function(Value)
 {
-	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.setParagraphKeepNext === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.setParagraphKeepNext === "function")
 		return this.GraphicObj.setParagraphKeepNext(Value);
 };
 ParaDrawing.prototype.setParagraphWidowControl = function(Value)
 {
-	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.setParagraphWidowControl === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.setParagraphWidowControl === "function")
 		return this.GraphicObj.setParagraphWidowControl(Value);
 };
 ParaDrawing.prototype.setParagraphPageBreakBefore = function(Value)
 {
-	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.setParagraphPageBreakBefore === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.setParagraphPageBreakBefore === "function")
 		return this.GraphicObj.setParagraphPageBreakBefore(Value);
 };
 ParaDrawing.prototype.isTextSelectionUse = function()
 {
-	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.isTextSelectionUse === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.isTextSelectionUse === "function")
 		return this.GraphicObj.isTextSelectionUse();
 	return false;
 };
 ParaDrawing.prototype.paragraphFormatPaste = function( CopyTextPr, CopyParaPr, Bool )
 {
-	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.isTextSelectionUse === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.isTextSelectionUse === "function")
 		return this.GraphicObj.paragraphFormatPaste(CopyTextPr, CopyParaPr, Bool);
 };
 ParaDrawing.prototype.getNearestPos = function(x, y, pageIndex)
 {
-	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.getNearestPos === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.getNearestPos === "function")
 		return this.GraphicObj.getNearestPos(x, y, pageIndex);
 	return null;
 };
@@ -2033,7 +2033,7 @@ ParaDrawing.prototype.Load_LinkData = function()
 };
 ParaDrawing.prototype.draw = function(graphics, PDSE)
 {
-	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.draw === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.draw === "function")
 	{
 		graphics.SaveGrState();
 		var bInline = this.Is_Inline();
@@ -2053,14 +2053,14 @@ ParaDrawing.prototype.draw = function(graphics, PDSE)
 };
 ParaDrawing.prototype.drawAdjustments = function()
 {
-	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.drawAdjustments === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.drawAdjustments === "function")
 	{
 		this.GraphicObj.drawAdjustments();
 	}
 };
 ParaDrawing.prototype.getTransformMatrix = function()
 {
-	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.getTransformMatrix === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.getTransformMatrix === "function")
 	{
 		return this.GraphicObj.getTransformMatrix();
 	}
@@ -2068,7 +2068,7 @@ ParaDrawing.prototype.getTransformMatrix = function()
 };
 ParaDrawing.prototype.getExtensions = function()
 {
-	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.getExtensions === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.getExtensions === "function")
 	{
 		return this.GraphicObj.getExtensions();
 	}
@@ -2076,7 +2076,7 @@ ParaDrawing.prototype.getExtensions = function()
 };
 ParaDrawing.prototype.isGroup = function()
 {
-	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.isGroup === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.isGroup === "function")
 		return this.GraphicObj.isGroup();
 	return false;
 };
@@ -2092,7 +2092,7 @@ ParaDrawing.prototype.isShapeChild = function(bRetShape)
 		cur_doc_content = oCell.Row.Table.Parent;
 	}
 
-	if (isRealObject(cur_doc_content.Parent) && typeof cur_doc_content.Parent.getObjectType === "function" && cur_doc_content.Parent.getObjectType() === AscDFH.historyitem_type_Shape)
+	if (AscCommon.isRealObject(cur_doc_content.Parent) && typeof cur_doc_content.Parent.getObjectType === "function" && cur_doc_content.Parent.getObjectType() === AscDFH.historyitem_type_Shape)
 		return bRetShape ? cur_doc_content.Parent : true;
 
 	return bRetShape ? null : false;
@@ -2147,7 +2147,7 @@ ParaDrawing.prototype.checkShapeChildAndGetTopParagraph = function(paragraph)
 };
 ParaDrawing.prototype.hit = function(x, y)
 {
-	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.hit === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.hit === "function")
 	{
 		return this.GraphicObj.hit(x, y);
 	}
@@ -2155,7 +2155,7 @@ ParaDrawing.prototype.hit = function(x, y)
 };
 ParaDrawing.prototype.hitToTextRect = function(x, y)
 {
-	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.hitToTextRect === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.hitToTextRect === "function")
 	{
 		return this.GraphicObj.hitToTextRect(x, y);
 	}
@@ -2163,7 +2163,7 @@ ParaDrawing.prototype.hitToTextRect = function(x, y)
 };
 ParaDrawing.prototype.cursorGetPos = function()
 {
-	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.cursorGetPos === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.cursorGetPos === "function")
 	{
 		return this.GraphicObj.cursorGetPos();
 	}
@@ -2171,7 +2171,7 @@ ParaDrawing.prototype.cursorGetPos = function()
 };
 ParaDrawing.prototype.getResizeCoefficients = function(handleNum, x, y)
 {
-	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.getResizeCoefficients === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.getResizeCoefficients === "function")
 	{
 		return this.GraphicObj.getResizeCoefficients(handleNum, x, y);
 	}
@@ -2179,7 +2179,7 @@ ParaDrawing.prototype.getResizeCoefficients = function(handleNum, x, y)
 };
 ParaDrawing.prototype.getParagraphParaPr = function()
 {
-	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.getParagraphParaPr === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.getParagraphParaPr === "function")
 	{
 		return this.GraphicObj.getParagraphParaPr();
 	}
@@ -2187,7 +2187,7 @@ ParaDrawing.prototype.getParagraphParaPr = function()
 };
 ParaDrawing.prototype.getParagraphTextPr = function()
 {
-	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.getParagraphTextPr === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.getParagraphTextPr === "function")
 	{
 		return this.GraphicObj.getParagraphTextPr();
 	}
@@ -2195,7 +2195,7 @@ ParaDrawing.prototype.getParagraphTextPr = function()
 };
 ParaDrawing.prototype.getAngle = function(x, y)
 {
-	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.getAngle === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.getAngle === "function")
 		return this.GraphicObj.getAngle(x, y);
 	return 0;
 };
@@ -2209,7 +2209,7 @@ ParaDrawing.prototype.calculateSnapArrays = function()
 };
 ParaDrawing.prototype.recalculateCurPos = function()
 {
-	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.recalculateCurPos === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.recalculateCurPos === "function")
 	{
 		this.GraphicObj.recalculateCurPos();
 	}
@@ -2225,7 +2225,7 @@ ParaDrawing.prototype.Get_PageNum = function()
 };
 ParaDrawing.prototype.GetAllParagraphs = function(Props, ParaArray)
 {
-	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.GetAllParagraphs === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.GetAllParagraphs === "function")
 		this.GraphicObj.GetAllParagraphs(Props, ParaArray);
 };
 ParaDrawing.prototype.GetAllDocContents = function(aDocContents)
@@ -2239,47 +2239,47 @@ ParaDrawing.prototype.GetAllDocContents = function(aDocContents)
 };
 ParaDrawing.prototype.getTableProps = function()
 {
-	if (isRealObject(this.GraphicObj) && typeof  this.GraphicObj.getTableProps === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof  this.GraphicObj.getTableProps === "function")
 		return this.GraphicObj.getTableProps();
 	return null;
 };
 ParaDrawing.prototype.canGroup = function()
 {
-	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.canGroup === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.canGroup === "function")
 		return this.GraphicObj.canGroup();
 	return false;
 };
 ParaDrawing.prototype.canUnGroup = function()
 {
-	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.canGroup === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.canGroup === "function")
 		return this.GraphicObj.canUnGroup();
 	return false;
 };
 ParaDrawing.prototype.select = function(pageIndex)
 {
 	this.selected = true;
-	if (isRealObject(this.GraphicObj) && typeof  this.GraphicObj.select === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof  this.GraphicObj.select === "function")
 		this.GraphicObj.select(pageIndex);
 
 };
 ParaDrawing.prototype.paragraphClearFormatting = function(isClearParaPr, isClearTextPr)
 {
-	if (isRealObject(this.GraphicObj) && typeof  this.GraphicObj.paragraphAdd === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof  this.GraphicObj.paragraphAdd === "function")
 		this.GraphicObj.paragraphClearFormatting(isClearParaPr, isClearTextPr);
 };
 ParaDrawing.prototype.paragraphAdd = function(paraItem, bRecalculate)
 {
-	if (isRealObject(this.GraphicObj) && typeof  this.GraphicObj.paragraphAdd === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof  this.GraphicObj.paragraphAdd === "function")
 		this.GraphicObj.paragraphAdd(paraItem, bRecalculate);
 };
 ParaDrawing.prototype.setParagraphShd = function(Shd)
 {
-	if (isRealObject(this.GraphicObj) && typeof  this.GraphicObj.setParagraphShd === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof  this.GraphicObj.setParagraphShd === "function")
 		this.GraphicObj.setParagraphShd(Shd);
 };
 ParaDrawing.prototype.getArrayWrapPolygons = function()
 {
-	if ((isRealObject(this.GraphicObj) && typeof this.GraphicObj.getArrayWrapPolygons === "function"))
+	if ((AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.getArrayWrapPolygons === "function"))
 		return this.GraphicObj.getArrayWrapPolygons();
 
 	return [];
@@ -2297,152 +2297,152 @@ ParaDrawing.prototype.getArrayWrapIntervals = function(x0, y0, x1, y1, Y0Sp, Y1S
 };
 ParaDrawing.prototype.setAllParagraphNumbering = function(numInfo)
 {
-	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.addInlineTable === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.addInlineTable === "function")
 		this.GraphicObj.setAllParagraphNumbering(numInfo);
 };
 ParaDrawing.prototype.addNewParagraph = function(bRecalculate)
 {
-	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.addNewParagraph === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.addNewParagraph === "function")
 		this.GraphicObj.addNewParagraph(bRecalculate);
 };
 ParaDrawing.prototype.addInlineTable = function(cols, rows)
 {
-	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.addInlineTable === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.addInlineTable === "function")
 		this.GraphicObj.addInlineTable(cols, rows);
 };
 ParaDrawing.prototype.applyTextPr = function(paraItem, bRecalculate)
 {
-	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.applyTextPr === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.applyTextPr === "function")
 		this.GraphicObj.applyTextPr(paraItem, bRecalculate);
 };
 ParaDrawing.prototype.allIncreaseDecFontSize = function(bIncrease)
 {
-	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.allIncreaseDecFontSize === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.allIncreaseDecFontSize === "function")
 		this.GraphicObj.allIncreaseDecFontSize(bIncrease);
 };
 ParaDrawing.prototype.setParagraphNumbering = function(NumInfo)
 {
-	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.allIncreaseDecFontSize === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.allIncreaseDecFontSize === "function")
 		this.GraphicObj.setParagraphNumbering(NumInfo);
 };
 ParaDrawing.prototype.allIncreaseDecIndent = function(bIncrease)
 {
-	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.allIncreaseDecIndent === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.allIncreaseDecIndent === "function")
 		this.GraphicObj.allIncreaseDecIndent(bIncrease);
 };
 ParaDrawing.prototype.allSetParagraphAlign = function(align)
 {
-	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.allSetParagraphAlign === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.allSetParagraphAlign === "function")
 		this.GraphicObj.allSetParagraphAlign(align);
 };
 ParaDrawing.prototype.paragraphIncreaseDecFontSize = function(bIncrease)
 {
-	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.paragraphIncreaseDecFontSize === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.paragraphIncreaseDecFontSize === "function")
 		this.GraphicObj.paragraphIncreaseDecFontSize(bIncrease);
 };
 ParaDrawing.prototype.paragraphIncreaseDecIndent = function(bIncrease)
 {
-	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.paragraphIncreaseDecIndent === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.paragraphIncreaseDecIndent === "function")
 		this.GraphicObj.paragraphIncreaseDecIndent(bIncrease);
 };
 ParaDrawing.prototype.setParagraphAlign = function(align)
 {
-	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.setParagraphAlign === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.setParagraphAlign === "function")
 		this.GraphicObj.setParagraphAlign(align);
 };
 ParaDrawing.prototype.setParagraphSpacing = function(Spacing)
 {
-	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.setParagraphSpacing === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.setParagraphSpacing === "function")
 		this.GraphicObj.setParagraphSpacing(Spacing);
 };
 ParaDrawing.prototype.updatePosition = function(x, y)
 {
-	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.updatePosition === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.updatePosition === "function")
 	{
 		this.GraphicObj.updatePosition(x, y);
 	}
 };
 ParaDrawing.prototype.updatePosition2 = function(x, y)
 {
-	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.updatePosition === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.updatePosition === "function")
 	{
 		this.GraphicObj.updatePosition2(x, y);
 	}
 };
 ParaDrawing.prototype.addInlineImage = function(W, H, Img, chart, bFlow)
 {
-	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.addInlineImage === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.addInlineImage === "function")
 		this.GraphicObj.addInlineImage(W, H, Img, chart, bFlow);
 };
 ParaDrawing.prototype.addSignatureLine = function(oSignatureDrawing)
 {
-	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.addSignatureLine === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.addSignatureLine === "function")
 		this.GraphicObj.addSignatureLine(oSignatureDrawing);
 };
 ParaDrawing.prototype.canAddComment = function()
 {
-	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.canAddComment === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.canAddComment === "function")
 		return this.GraphicObj.canAddComment();
 	return false;
 };
 ParaDrawing.prototype.addComment = function(commentData)
 {
-	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.addComment === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.addComment === "function")
 		return this.GraphicObj.addComment(commentData);
 };
 ParaDrawing.prototype.selectionSetStart = function(x, y, event, pageIndex)
 {
-	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.selectionSetStart === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.selectionSetStart === "function")
 		this.GraphicObj.selectionSetStart(x, y, event, pageIndex);
 };
 ParaDrawing.prototype.selectionSetEnd = function(x, y, event, pageIndex)
 {
-	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.selectionSetEnd === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.selectionSetEnd === "function")
 		this.GraphicObj.selectionSetEnd(x, y, event, pageIndex);
 };
 ParaDrawing.prototype.selectionRemove = function()
 {
-	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.selectionRemove === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.selectionRemove === "function")
 		this.GraphicObj.selectionRemove();
 };
 ParaDrawing.prototype.updateSelectionState = function()
 {
-	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.updateSelectionState === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.updateSelectionState === "function")
 		this.GraphicObj.updateSelectionState();
 };
 ParaDrawing.prototype.cursorMoveLeft = function(AddToSelect, Word)
 {
-	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.cursorMoveLeft === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.cursorMoveLeft === "function")
 		this.GraphicObj.cursorMoveLeft(AddToSelect, Word);
 };
 ParaDrawing.prototype.cursorMoveRight = function(AddToSelect, Word)
 {
-	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.cursorMoveRight === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.cursorMoveRight === "function")
 		this.GraphicObj.cursorMoveRight(AddToSelect, Word);
 };
 ParaDrawing.prototype.cursorMoveUp = function(AddToSelect)
 {
-	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.cursorMoveUp === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.cursorMoveUp === "function")
 		this.GraphicObj.cursorMoveUp(AddToSelect);
 };
 ParaDrawing.prototype.cursorMoveDown = function(AddToSelect)
 {
-	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.cursorMoveDown === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.cursorMoveDown === "function")
 		this.GraphicObj.cursorMoveDown(AddToSelect);
 };
 ParaDrawing.prototype.cursorMoveEndOfLine = function(AddToSelect)
 {
-	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.cursorMoveEndOfLine === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.cursorMoveEndOfLine === "function")
 		this.GraphicObj.cursorMoveEndOfLine(AddToSelect);
 };
 ParaDrawing.prototype.cursorMoveStartOfLine = function(AddToSelect)
 {
-	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.cursorMoveStartOfLine === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.cursorMoveStartOfLine === "function")
 		this.GraphicObj.cursorMoveStartOfLine(AddToSelect);
 };
 ParaDrawing.prototype.remove = function(Count, isRemoveWholeElement, bRemoveOnlySelection, bOnTextAdd)
 {
-	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.remove === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.remove === "function")
 		this.GraphicObj.remove(Count, isRemoveWholeElement, bRemoveOnlySelection, bOnTextAdd);
 };
 ParaDrawing.prototype.hitToWrapPolygonPoint = function(x, y)
@@ -2498,18 +2498,18 @@ ParaDrawing.prototype.hitToWrapPolygonPoint = function(x, y)
 };
 ParaDrawing.prototype.documentGetAllFontNames = function(AllFonts)
 {
-	if (isRealObject(this.GraphicObj) && typeof  this.GraphicObj.documentGetAllFontNames === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof  this.GraphicObj.documentGetAllFontNames === "function")
 		this.GraphicObj.documentGetAllFontNames(AllFonts);
 };
 ParaDrawing.prototype.isCurrentElementParagraph = function()
 {
-	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.isCurrentElementParagraph === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.isCurrentElementParagraph === "function")
 		return this.GraphicObj.isCurrentElementParagraph();
 	return false;
 };
 ParaDrawing.prototype.isCurrentElementTable = function()
 {
-	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.isCurrentElementTable === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.isCurrentElementTable === "function")
 		return this.GraphicObj.isCurrentElementTable();
 	return false;
 };
@@ -2517,7 +2517,7 @@ ParaDrawing.prototype.canChangeWrapPolygon = function()
 {
 	if (this.Is_Inline())
 		return false;
-	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.canChangeWrapPolygon === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.canChangeWrapPolygon === "function")
 		return this.GraphicObj.canChangeWrapPolygon();
 	return false;
 };
@@ -2534,7 +2534,7 @@ ParaDrawing.prototype.getBounds = function()
 };
 ParaDrawing.prototype.getWrapContour = function()
 {
-	if (isRealObject(this.wrappingPolygon))
+	if (AscCommon.isRealObject(this.wrappingPolygon))
 	{
 		var kw         = 1 / 36000;
 		var kh         = 1 / 36000;
@@ -2565,17 +2565,17 @@ ParaDrawing.prototype.GetWatermarkProps = function()
 };
 ParaDrawing.prototype.documentSearch = function(String, search_Common)
 {
-	if (isRealObject(this.GraphicObj) && typeof this.GraphicObj.documentSearch === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.documentSearch === "function")
 		this.GraphicObj.documentSearch(String, search_Common)
 };
 ParaDrawing.prototype.setParagraphContextualSpacing = function(Value)
 {
-	if (isRealObject(this.GraphicObj) && typeof  this.GraphicObj.setParagraphContextualSpacing === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof  this.GraphicObj.setParagraphContextualSpacing === "function")
 		this.GraphicObj.setParagraphContextualSpacing(Value);
 };
 ParaDrawing.prototype.setParagraphStyle = function(style)
 {
-	if (isRealObject(this.GraphicObj) && typeof  this.GraphicObj.setParagraphStyle === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof  this.GraphicObj.setParagraphStyle === "function")
 		this.GraphicObj.setParagraphStyle(style);
 };
 
@@ -2592,7 +2592,7 @@ ParaDrawing.prototype.copy = function()
 {
 	var c = new ParaDrawing(this.Extent.W, this.Extent.H, null, editor.WordControl.m_oLogicDocument.DrawingDocument, null, null);
 	c.Set_DrawingType(this.DrawingType);
-	if (isRealObject(this.GraphicObj))
+	if (AscCommon.isRealObject(this.GraphicObj))
 	{
 		var g = this.GraphicObj.copy(undefined);
 		c.Set_GraphicObject(g);
@@ -2616,7 +2616,7 @@ ParaDrawing.prototype.OnContentReDraw = function()
 };
 ParaDrawing.prototype.getBase64Img = function()
 {
-	if (isRealObject(this.GraphicObj) && typeof  this.GraphicObj.getBase64Img === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof  this.GraphicObj.getBase64Img === "function")
 		return this.GraphicObj.getBase64Img();
 	return null;
 };
@@ -2624,7 +2624,7 @@ ParaDrawing.prototype.isPointInObject = function(x, y, pageIndex)
 {
 	if (this.pageIndex === pageIndex)
 	{
-		if (isRealObject(this.GraphicObj))
+		if (AscCommon.isRealObject(this.GraphicObj))
 		{
 			var hit         = (typeof  this.GraphicObj.hit === "function") ? this.GraphicObj.hit(x, y) : false;
 			var hit_to_text = (typeof  this.GraphicObj.hitToTextRect === "function") ? this.GraphicObj.hitToTextRect(x, y) : false;
