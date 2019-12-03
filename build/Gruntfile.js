@@ -409,9 +409,9 @@ module.exports = function(grunt) {
 					files: [
 						{src: [fontsWasm], dest: path.join(fonts, 'wasm', fontFile)},
 						{src: [fontsJs], dest: path.join(fonts, 'js', fontFile)},
-						{src: [getSdkPath(true, word), getSdkPath(false, word)], dest: word + '/'},
-						{src: [getSdkPath(true, cell), getSdkPath(false, cell)], dest: cell + '/'},
-						{src: [getSdkPath(true, slide), getSdkPath(false, slide)], dest: slide + '/'}
+						{expand: true, flatten: true, src: [getSdkPath(true, word), getSdkPath(false, word)], dest: word + '/'},
+						{expand: true, flatten: true, src: [getSdkPath(true, cell), getSdkPath(false, cell)], dest: cell + '/'},
+						{expand: true, flatten: true, src: [getSdkPath(true, slide), getSdkPath(false, slide)], dest: slide + '/'}
 					]
 				}
 			},
