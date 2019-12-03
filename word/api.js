@@ -8700,7 +8700,7 @@ background-repeat: no-repeat;\
 
 		AscCommon.Check_LoadingDataBeforePrepaste(this, oFonts, {}, function()
 		{
-			oLogicDocument.RemoveSelection();
+			oLogicDocument.RemoveTextSelection();
 			if (!oLogicDocument.IsSelectionLocked(AscCommon.changestype_Paragraph_Content))
 			{
 				oLogicDocument.StartAction(AscDFH.historydescription_Document_AddContentControlCheckBox);
@@ -8756,7 +8756,7 @@ background-repeat: no-repeat;\
 		if (!oLogicDocument)
 			return;
 
-		oLogicDocument.RemoveSelection();
+		oLogicDocument.RemoveTextSelection();
 		if (!oLogicDocument.IsSelectionLocked(AscCommon.changestype_Paragraph_Content))
 		{
 			oLogicDocument.StartAction(AscDFH.historydescription_Document_AddContentControlPicture);
@@ -8848,7 +8848,7 @@ background-repeat: no-repeat;\
 		if (!oLogicDocument)
 			return;
 
-		oLogicDocument.RemoveSelection();
+		oLogicDocument.RemoveTextSelection();
 		if (!oLogicDocument.IsSelectionLocked(AscCommon.changestype_Paragraph_Content))
 		{
 			oLogicDocument.StartAction(AscDFH.historydescription_Document_AddContentControlList);
@@ -8962,7 +8962,7 @@ background-repeat: no-repeat;\
 		if (!oLogicDocument)
 			return;
 
-		oLogicDocument.RemoveSelection();
+		oLogicDocument.RemoveTextSelection();
 		if (!oLogicDocument.IsSelectionLocked(AscCommon.changestype_Paragraph_Content))
 		{
 			oLogicDocument.StartAction(AscDFH.historydescription_Document_AddContentControlList);
