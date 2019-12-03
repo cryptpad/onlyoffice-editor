@@ -69,7 +69,7 @@ module.exports = function(grunt) {
 	function writeScripts(config, name) {
 		const develop = '../develop/sdkjs/';
 		const fileName = 'scripts.js';
-		const files = ['../common/applyDocumentChanges.js'].concat(getFilesMin(config), getFilesAll(config));
+		const files = ['../common/applyDocumentChanges.js', '../common/AllFonts.js'].concat(getFilesMin(config), getFilesAll(config));
 		fixUrl(files, '../../../../sdkjs/build/');
 
 		grunt.file.write(path.join(develop, name, fileName), 'var sdk_scripts = [\n\t"' + files.join('",\n\t"') + '"\n];');
