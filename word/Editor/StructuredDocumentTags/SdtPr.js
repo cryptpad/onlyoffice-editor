@@ -531,7 +531,7 @@ CSdtGlobalSettings.prototype.Read_FromBinary = function(oReader)
  */
 function CSdtCheckBoxPr()
 {
-	this.Checked         = true;
+	this.Checked         = false;
 	this.CheckedSymbol   = Asc.c_oAscSdtCheckBoxDefaults.CheckedSymbol;
 	this.UncheckedSymbol = Asc.c_oAscSdtCheckBoxDefaults.UncheckedSymbol;
 	this.CheckedFont     = Asc.c_oAscSdtCheckBoxDefaults.CheckedFont;
