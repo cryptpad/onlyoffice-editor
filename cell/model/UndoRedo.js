@@ -2972,6 +2972,9 @@ function (window, undefined) {
 			case AscCH.historyitem_PivotTable_SetDataOnRows:
 				pivotTable.setDataOnRows(value);
 				break;
+			case AscCH.historyitem_PivotTable_SetDataPosition:
+				pivotTable.setDataPosition(value);
+				break;
 			case AscCH.historyitem_PivotTable_SetAltText:
 				pivotTable.setTitle(value);
 				break;

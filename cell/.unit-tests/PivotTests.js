@@ -2731,6 +2731,136 @@ $(function() {
 			["Boy","","","","","","","3","3","36.13","3","3","36.13","3","3","36","3","3","36","","","","","","","6","6","72.13"],
 			["Girl","3","3","37.13","3","3","37.13","","","","","","","","","","","","","2","2","24.9","2","2","24.9","5","5","62.03"],
 			["Grand Total","3","3","37.13","3","3","37.13","3","3","36.13","3","3","36.13","3","3","36","3","3","36","2","2","24.9","2","2","24.9","11","11","134.16"]
+		],
+		"dataOnCols":[
+			["Row Labels","Sum of Price","Sum of Cost"],
+			["East","73.13","70.6"],
+			["Boy","36","34.76"],
+			["Fancy","11.96","11.74"],
+			["Golf","13","12.6"],
+			["Tee","11.04","10.42"],
+			["Girl","37.13","35.84"],
+			["Fancy","13.74","13.33"],
+			["Golf","12.12","11.95"],
+			["Tee","11.27","10.56"],
+			["West","61.03","58.14"],
+			["Boy","36.13","34.18"],
+			["Fancy","12.06","11.51"],
+			["Golf","12.63","11.73"],
+			["Tee","11.44","10.94"],
+			["Girl","24.9","23.96"],
+			["Golf","11.48","10.67"],
+			["Tee","13.42","13.29"],
+			["Grand Total","134.16","128.74"]
+		],
+		"dataOnRows":[
+			["Row Labels",""],
+			["East",""],
+			["Boy",""],
+			["Fancy",""],
+			["Sum of Price","11.96"],
+			["Sum of Cost","11.74"],
+			["Golf",""],
+			["Sum of Price","13"],
+			["Sum of Cost","12.6"],
+			["Tee",""],
+			["Sum of Price","11.04"],
+			["Sum of Cost","10.42"],
+			["Boy Sum of Price","36"],
+			["Boy Sum of Cost","34.76"],
+			["Girl",""],
+			["Fancy",""],
+			["Sum of Price","13.74"],
+			["Sum of Cost","13.33"],
+			["Golf",""],
+			["Sum of Price","12.12"],
+			["Sum of Cost","11.95"],
+			["Tee",""],
+			["Sum of Price","11.27"],
+			["Sum of Cost","10.56"],
+			["Girl Sum of Price","37.13"],
+			["Girl Sum of Cost","35.84"],
+			["East Sum of Price","73.13"],
+			["East Sum of Cost","70.6"],
+			["West",""],
+			["Boy",""],
+			["Fancy",""],
+			["Sum of Price","12.06"],
+			["Sum of Cost","11.51"],
+			["Golf",""],
+			["Sum of Price","12.63"],
+			["Sum of Cost","11.73"],
+			["Tee",""],
+			["Sum of Price","11.44"],
+			["Sum of Cost","10.94"],
+			["Boy Sum of Price","36.13"],
+			["Boy Sum of Cost","34.18"],
+			["Girl",""],
+			["Golf",""],
+			["Sum of Price","11.48"],
+			["Sum of Cost","10.67"],
+			["Tee",""],
+			["Sum of Price","13.42"],
+			["Sum of Cost","13.29"],
+			["Girl Sum of Price","24.9"],
+			["Girl Sum of Cost","23.96"],
+			["West Sum of Price","61.03"],
+			["West Sum of Cost","58.14"],
+			["Total Sum of Price","134.16"],
+			["Total Sum of Cost","128.74"]
+		],
+		"dataPosition":[
+			["Row Labels",""],
+			["East",""],
+			["Boy",""],
+			["Sum of Price",""],
+			["Fancy","11.96"],
+			["Golf","13"],
+			["Tee","11.04"],
+			["Sum of Cost",""],
+			["Fancy","11.74"],
+			["Golf","12.6"],
+			["Tee","10.42"],
+			["Boy Sum of Price","36"],
+			["Boy Sum of Cost","34.76"],
+			["Girl",""],
+			["Sum of Price",""],
+			["Fancy","13.74"],
+			["Golf","12.12"],
+			["Tee","11.27"],
+			["Sum of Cost",""],
+			["Fancy","13.33"],
+			["Golf","11.95"],
+			["Tee","10.56"],
+			["Girl Sum of Price","37.13"],
+			["Girl Sum of Cost","35.84"],
+			["East Sum of Price","73.13"],
+			["East Sum of Cost","70.6"],
+			["West",""],
+			["Boy",""],
+			["Sum of Price",""],
+			["Fancy","12.06"],
+			["Golf","12.63"],
+			["Tee","11.44"],
+			["Sum of Cost",""],
+			["Fancy","11.51"],
+			["Golf","11.73"],
+			["Tee","10.94"],
+			["Boy Sum of Price","36.13"],
+			["Boy Sum of Cost","34.18"],
+			["Girl",""],
+			["Sum of Price",""],
+			["Golf","11.48"],
+			["Tee","13.42"],
+			["Sum of Cost",""],
+			["Golf","10.67"],
+			["Tee","13.29"],
+			["Girl Sum of Price","24.9"],
+			["Girl Sum of Cost","23.96"],
+			["West Sum of Price","61.03"],
+			["West Sum of Cost","58.14"],
+			["Total Sum of Price","134.16"],
+			["Total Sum of Cost","128.74"]
 		]
 	};
 
@@ -3183,7 +3313,7 @@ $(function() {
 		});
 	}
 
-	function testPivotFieldManipulation() {
+	function testPivotManipulationField() {
 		test("Test: Field Manipulation", function() {
 			var pivot = api._asc_insertPivot(wb, dataRef, ws, reportRange);
 			pivot.asc_getStyleInfo().asc_setName(api, pivot, pivotStyle);
@@ -3251,6 +3381,73 @@ $(function() {
 				pivot.asc_removeNoDataField(api, 0);
 				pivot.asc_removeDataField(api, 5, 0);
 				pivot.asc_removeField(api, 6);
+			});
+
+			ws.deletePivotTables(new AscCommonExcel.MultiplyRange(pivot.getReportRanges()).getUnionRange());
+		});
+	}
+
+	function testPivotManipulationValues() {
+		test("Test: manipulation values", function() {
+			var pivot = api._asc_insertPivot(wb, dataRef, ws, reportRange);
+			pivot.asc_getStyleInfo().asc_setName(api, pivot, pivotStyle);
+			pivot.asc_addRowField(api, 0);
+			pivot.asc_addRowField(api, 1);
+			pivot.asc_addRowField(api, 2);
+			pivot.asc_addDataField(api, 5);
+
+
+			AscCommon.History.Clear();
+			pivot = checkHistoryOperation(pivot, standards["dataOnCols"], "dataOnCols1", function(){
+				pivot.asc_addDataField(api, 6);
+				pivot.asc_removeDataField(api, 6, 1);
+				pivot.asc_addDataField(api, 6);
+			});
+
+			pivot = checkHistoryOperation(pivot, standards["dataOnRows"], "dataOnRows2", function(){
+				pivot.asc_moveToPageField(api, Asc.st_VALUES);
+				pivot.asc_moveToColField(api, Asc.st_VALUES);
+				pivot.asc_moveToDataField(api, Asc.st_VALUES);
+				pivot.asc_moveToRowField(api, Asc.st_VALUES);
+				pivot.asc_removeDataField(api, 6, 1);
+				pivot.asc_addDataField(api, 6);
+			});
+
+			pivot = checkHistoryOperation(pivot, standards["dataPosition"], "dataPosition3", function(){
+				pivot.asc_moveRowField(api, 3, 2);
+				pivot.asc_removeDataField(api, 6, 1);
+				pivot.asc_addDataField(api, 6);
+			});
+
+			pivot = checkHistoryOperation(pivot, standards["dataPosition"], "dataPosition22", function(){
+				pivot.asc_removeDataField(api, 6, 1);
+				pivot.asc_addDataField(api, 6);
+			});
+
+			pivot = checkHistoryOperation(pivot, standards["dataPosition"], "dataPosition4", function(){
+				pivot.asc_removeField(api, 0);
+				pivot.asc_removeField(api, 1);
+				pivot.asc_removeField(api, 2);
+				pivot.asc_removeDataField(api, 6, 1);
+				pivot.asc_addRowField(api, 0);
+				pivot.asc_addRowField(api, 1);
+				pivot.asc_addRowField(api, 2);
+				pivot.asc_addDataField(api, 6);
+			});
+
+			pivot = checkHistoryOperation(pivot, standards["dataOnRows"], "dataOnRows5", function(){
+				pivot.asc_moveToColField(api, Asc.st_VALUES);
+				pivot.asc_moveToRowField(api, Asc.st_VALUES);
+			});
+
+			pivot = checkHistoryOperation(pivot, standards["dataOnRows"], "dataOnRows6", function(){
+				pivot.asc_moveRowField(api, 3, 2);
+				pivot.asc_removeField(api, 2);
+				pivot.asc_removeDataField(api, 6, 1);
+				pivot.asc_addDataField(api, 6);
+				pivot.asc_removeDataField(api, 6, 1);
+				pivot.asc_addRowField(api, 2);
+				pivot.asc_addDataField(api, 6);
 			});
 
 			ws.deletePivotTables(new AscCommonExcel.MultiplyRange(pivot.getReportRanges()).getUnionRange());
@@ -3332,7 +3529,9 @@ $(function() {
 
 		testHeaderRename();
 
-		testPivotFieldManipulation();
+		testPivotManipulationField();
+
+		testPivotManipulationValues();
 
 		testPivotMisc();
 	}
