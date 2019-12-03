@@ -49,6 +49,12 @@ module.exports = function(grunt) {
 			arrPaths[index] = path.join(basePath, element);
 		});
 	}
+	function fixUrl(arrPaths, basePath = '') {
+		const url = require('url');
+		arrPaths.forEach((element, index) => {
+			arrPaths[index] = url.resolve(basePath, element);
+		});
+	}
 	function getConfigs() {
 		const configs = new CConfig(grunt.option('src') || '../');
 
@@ -64,7 +70,8 @@ module.exports = function(grunt) {
 		const develop = '../develop/sdkjs/';
 		const fileName = 'scripts.js';
 		const files = getFilesMin(config).concat(getFilesAll(config));
-		fixPath(files, '../../../../sdkjs/build/');
+		fixUrl(files, '../../../../sdkjs/build/');
+
 		grunt.file.write(path.join(develop, name, fileName), 'var sdk_scripts = [\n\t"' + files.join('",\n\t"') + '"\n];');
 	}
 
