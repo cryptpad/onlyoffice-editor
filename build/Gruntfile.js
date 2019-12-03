@@ -449,15 +449,15 @@ module.exports = function(grunt) {
 						},
 						{
 							expand: true,
-							cwd: path.join(cell, 'css'),
+							cwd: '../cell/css',
 							src: '*.css',
-							dest: path.join(deploy, 'cell', 'css')
+							dest: path.join(cell, 'css')
 						},
 						{
 							expand: true,
-							cwd: path.join(slide, 'themes'),
+							cwd: '../slide/themes',
 							src: '**/**',
-							dest: path.join(deploy, 'slide', 'themes')
+							dest: path.join(slide, 'themes')
 						}
 					]
 				}
