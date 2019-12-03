@@ -2797,6 +2797,9 @@
 			if (!range) {
 				range = AscCommon.rx_defName.test(dataRange);
 			}
+			if (!range) {
+				range = parserHelp.isTable(dataRange, 0, true);
+			}
 		}
 		else
 			range = AscCommonExcel.g_oRangeCache.getAscRange(dataRange);

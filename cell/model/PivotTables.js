@@ -2192,8 +2192,8 @@ CT_PivotCacheRecords.prototype.fromWorksheetRange = function(location, cacheFiel
 		si.maxValue = si.maxDate = Number.NEGATIVE_INFINITY;
 		si.minValue = si.minDate = Number.POSITIVE_INFINITY;
 		var records = new PivotRecords();
-		var lastRow = bbox.r1;
-		ws.getRange3(bbox.r1 + 1, bbox.c1 + i, bbox.r2, bbox.c1 + i)._foreachNoEmptyByCol(function(cell) {
+		var lastRow = location.headings ? bbox.r1 - 1 : bbox.r1;
+		ws.getRange3(lastRow + 1, bbox.c1 + i, bbox.r2, bbox.c1 + i)._foreachNoEmptyByCol(function(cell) {
 			if (!cell.isNullTextString()) {
 				if (lastRow + 1 < cell.nRow) {
 					records.addMissing(cell.nRow - lastRow - 1);
