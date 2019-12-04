@@ -160,6 +160,9 @@ $(function() {
 	var testDataRangeTable = AscCommonExcel.g_oRangeCache.getAscRange("B57:H68");
 	var testDataRangeDefName = AscCommonExcel.g_oRangeCache.getAscRange("J57:P68");
 	var testDataRangeDefNameLocal = AscCommonExcel.g_oRangeCache.getAscRange("R57:X68");
+	var testDataRefreshFieldSettings = AscCommonExcel.g_oRangeCache.getAscRange("B70:H81");
+	var testDataRefreshRecords = AscCommonExcel.g_oRangeCache.getAscRange("J70:P81");
+	var testDataRefreshStructure = AscCommonExcel.g_oRangeCache.getAscRange("R70:X81");
 	var testData = [
 		["Region", "Gender", "Style", "Ship date", "Units", "Price", "Cost"],
 		["East", "Boy", "Tee", "38383", "12", "11.04", "10.42"],
@@ -266,6 +269,34 @@ $(function() {
 		["1","qwe","TRUE","#DIV/0!","1.234567891","12345678912", {format: "0.00", value: new AscCommonExcel.CCellValue({number: 1})},{format: "$#,##0.00", value: new AscCommonExcel.CCellValue({number: 2})},{format: "dddd\\, mmmm dd\\, yyyy", value: new AscCommonExcel.CCellValue({number: 3})},{format: "0.00%", value: new AscCommonExcel.CCellValue({number: 4})},{format: "0.00E+00", value: new AscCommonExcel.CCellValue({number: 5})},{value: new AscCommonExcel.CCellValue({multiText: [multiElem1, multiElem2]})},"1","qwe"],
 		["1","1","1","1","1","1","1","1","1","1","1","1","1","1"]
 	];
+	var testDataRecords = [
+		["Region","Gender","Style","Ship date","Units","Price","Cost"],
+		["East","Boy","Tee","38383","12","11.04","10.42"],
+		["East","Boy","Golf","100000","12","13","12.6"],
+		["East","Boy","Fancy","10","12","11.96","11.74"],
+		["North","Girl","Tee","38383","10","11.27","10.56"],
+		["East","Dog","Golf","38383","10","12.12","11.95"],
+		["East","Girl","Fancy","38383","10","13.74","13.33"],
+		["West","Boy","WWW","38383","11","11.44","10.94"],
+		["West","Boy","Golf","38383","11","12.63","11.73"],
+		["West","Boy","Fancy","38383","11","12.06","11.51"],
+		["West","Girl","BBB","38383","15","13.42","13.29"],
+		["West","Girl","Golf","38383","15","11.48","10.67"]
+	];
+	var testDataStructure = [
+		["NewField","Region","Style","NewUnits","Price","Gender","Cost"],
+		["East","11.04","East","12","East","Boy","1"],
+		["East","13","East","12","East","Boy","2"],
+		["East","11.96","East","12","East","Boy","3"],
+		["East","11.27","East","10","East","Girl","4"],
+		["East","12.12","East","10","East","Girl","5"],
+		["East","13.74","East","10","East","Girl","6"],
+		["West","11.44","West","11","West","Boy","7"],
+		["West","12.63","West","11","West","Boy","8"],
+		["West","12.06","West","11","West","Boy","9"],
+		["West","13.42","West","15","West","Girl","10"],
+		["West","11.48","West","15","West","Girl","11"]
+	];
 
 	fillData(wsData, testData, testDataRange);
 	fillData(wsData, testData2, testDataRange2);
@@ -291,6 +322,9 @@ $(function() {
 	defNameLocal.Ref = wsData.getName() + "!" + testDataRangeDefNameLocal.getAbsName();
 	defNameLocal.LocalSheetId = wsData.getId();
 	api.asc_setDefinedNames(defNameLocal);
+	fillData(wsData, testData, testDataRefreshFieldSettings);
+	fillData(wsData, testDataRecords, testDataRefreshRecords);
+	fillData(wsData, testDataStructure, testDataRefreshStructure);
 
 	var dataRef = wsData.getName() + "!" + testDataRange.getName();
 	var dataRef1Row = wsData.getName() + "!" + new Asc.Range(testDataRange.c1, testDataRange.r1, testDataRange.c2, testDataRange.r1 + 1).getName();
@@ -305,6 +339,9 @@ $(function() {
 	var dataRefTableColumn = tableName + '[[Gender]:[Price]]';
 	var dataRefDefName = defNameName;
 	var dataRefDefNameLocal = wsData.getName() + "!" + defNameLocalName;
+	var dataRefFieldSettings = wsData.getName() + "!" + testDataRefreshFieldSettings.getName();
+	var dataRefRecords = wsData.getName() + "!" + testDataRefreshRecords.getName();
+	var dataRefStructure = wsData.getName() + "!" + testDataRefreshStructure.getName();
 
 
 	function fillData(ws, data, range) {
@@ -2891,6 +2928,71 @@ $(function() {
 			["West Sum of Cost","58.14"],
 			["Total Sum of Price","134.16"],
 			["Total Sum of Cost","128.74"]
+		],
+		"refreshFieldSettings":[
+			["RenamedUnits","(All)","","","","","","","","","","","",""],
+			["Cost","(All)","","","","","","","","","","","",""],
+			["","","","","","","","","","","","","",""],
+			["","","Column Labels","","","","","","","","","","",""],
+			["","","Fancy","","","Golf","","","Tee","","","Total Average of Price","Total Count of Region","Total Sum of Cost"],
+			["","","38383","","","38383","","","38383","","","","",""],
+			["Row Labels","Gender","Average of Price","Count of Region","Sum of Cost","Average of Price","Count of Region","Sum of Cost","Average of Price","Count of Region","Sum of Cost","","",""],
+			["East","Boy","11.96","1","11.74","13","1","12.6","11.04","1","10.42","12","3","34.76"],
+			["","Girl","13.74","1","13.33","12.12","1","11.95","11.27","1","10.56","12.37666667","3","35.84"],
+			["East Average","","12.85","#DIV/0!","12.535","12.56","#DIV/0!","12.275","11.155","#DIV/0!","10.49","12.18833333","#DIV/0!","11.76666667"],
+			["West","Boy","12.06","1","11.51","12.63","1","11.73","11.44","1","10.94","12.04333333","3","34.18"],
+			["","Girl","","","","11.48","1","10.67","13.42","1","13.29","12.45","2","23.96"],
+			["West Average","","12.06","#DIV/0!","11.51","12.055","#DIV/0!","11.2","12.43","#DIV/0!","12.115","12.206","#DIV/0!","11.628"],
+			["Grand Total","","12.58666667","3","36.58","12.3075","4","46.95","11.7925","4","45.21","12.19636364","11","128.74"]
+		],
+		"refreshRecords":[
+			["RenamedUnits","(All)","","","","","","","","","","","","","","","","","","","","","","","",""],
+			["Cost","(All)","","","","","","","","","","","","","","","","","","","","","","","",""],
+			["","","","","","","","","","","","","","","","","","","","","","","","","",""],
+			["","","Column Labels","","","","","","","","","","","","","","","","","","","","","","",""],
+			["","","Fancy","","","","","","Golf","","","","","","Tee","","","WWW","","","BBB","","","Total Average of Price","Total Count of Region","Total Sum of Cost"],
+			["","","38383","","","10","","","38383","","","100000","","","38383","","","38383","","","38383","","","","",""],
+			["Row Labels","Gender","Average of Price","Count of Region","Sum of Cost","Average of Price","Count of Region","Sum of Cost","Average of Price","Count of Region","Sum of Cost","Average of Price","Count of Region","Sum of Cost","Average of Price","Count of Region","Sum of Cost","Average of Price","Count of Region","Sum of Cost","Average of Price","Count of Region","Sum of Cost","","",""],
+			["East","Boy","","","","11.96","1","11.74","","","","13","1","12.6","11.04","1","10.42","","","","","","","12","3","34.76"],
+			["","Girl","13.74","1","13.33","","","","","","","","","","","","","","","","","","","13.74","1","13.33"],
+			["","Dog","","","","","","","12.12","1","11.95","","","","","","","","","","","","","12.12","1","11.95"],
+			["East Average","","13.74","#DIV/0!","13.33","11.96","#DIV/0!","11.74","12.12","#DIV/0!","11.95","13","#DIV/0!","12.6","11.04","#DIV/0!","10.42","","","","","","","12.372","#DIV/0!","12.008"],
+			["West","Boy","12.06","1","11.51","","","","12.63","1","11.73","","","","","","","11.44","1","10.94","","","","12.04333333","3","34.18"],
+			["","Girl","","","","","","","11.48","1","10.67","","","","","","","","","","13.42","1","13.29","12.45","2","23.96"],
+			["West Average","","12.06","#DIV/0!","11.51","","","","12.055","#DIV/0!","11.2","","","","","","","11.44","#DIV/0!","10.94","13.42","#DIV/0!","13.29","12.206","#DIV/0!","11.628"],
+			["North","Girl","","","","","","","","","","","","","11.27","1","10.56","","","","","","","11.27","1","10.56"],
+			["North Average","","","","","","","","","","","","","","11.27","#DIV/0!","10.56","","","","","","","11.27","#DIV/0!","10.56"],
+			["Grand Total","","12.9","2","24.84","11.96","1","11.74","12.07666667","3","34.35","13","1","12.6","11.155","2","20.98","11.44","1","10.94","13.42","1","13.29","12.19636364","11","128.74"]
+		],
+		"refreshStructure":[
+			["Cost","(All)","","","","","","","","",""],
+			["","","","","","","","","","",""],
+			["","","Column Labels","","","","","","","",""],
+			["","","East","","","West","","","Total Average of Price","Total Count of Region","Total Sum of Cost"],
+			["Row Labels","Gender","Average of Price","Count of Region","Sum of Cost","Average of Price","Count of Region","Sum of Cost","","",""],
+			["11.04","Boy","#DIV/0!","1","1","","","","#DIV/0!","1","1"],
+			["11.04 Average","","#DIV/0!","11.04","1","","","","#DIV/0!","11.04","1"],
+			["13","Boy","#DIV/0!","1","2","","","","#DIV/0!","1","2"],
+			["13 Average","","#DIV/0!","13","2","","","","#DIV/0!","13","2"],
+			["11.96","Boy","#DIV/0!","1","3","","","","#DIV/0!","1","3"],
+			["11.96 Average","","#DIV/0!","11.96","3","","","","#DIV/0!","11.96","3"],
+			["11.27","Girl","#DIV/0!","1","4","","","","#DIV/0!","1","4"],
+			["11.27 Average","","#DIV/0!","11.27","4","","","","#DIV/0!","11.27","4"],
+			["12.12","Girl","#DIV/0!","1","5","","","","#DIV/0!","1","5"],
+			["12.12 Average","","#DIV/0!","12.12","5","","","","#DIV/0!","12.12","5"],
+			["13.74","Girl","#DIV/0!","1","6","","","","#DIV/0!","1","6"],
+			["13.74 Average","","#DIV/0!","13.74","6","","","","#DIV/0!","13.74","6"],
+			["11.44","Boy","","","","#DIV/0!","1","7","#DIV/0!","1","7"],
+			["11.44 Average","","","","","#DIV/0!","11.44","7","#DIV/0!","11.44","7"],
+			["12.63","Boy","","","","#DIV/0!","1","8","#DIV/0!","1","8"],
+			["12.63 Average","","","","","#DIV/0!","12.63","8","#DIV/0!","12.63","8"],
+			["12.06","Boy","","","","#DIV/0!","1","9","#DIV/0!","1","9"],
+			["12.06 Average","","","","","#DIV/0!","12.06","9","#DIV/0!","12.06","9"],
+			["13.42","Girl","","","","#DIV/0!","1","10","#DIV/0!","1","10"],
+			["13.42 Average","","","","","#DIV/0!","13.42","10","#DIV/0!","13.42","10"],
+			["11.48","Girl","","","","#DIV/0!","1","11","#DIV/0!","1","11"],
+			["11.48 Average","","","","","#DIV/0!","11.48","11","#DIV/0!","11.48","11"],
+			["Grand Total","","#DIV/0!","6","21","#DIV/0!","5","45","#DIV/0!","11","66"]
 		]
 	};
 
@@ -3484,6 +3586,68 @@ $(function() {
 		});
 	}
 
+	function testDataRefresh() {
+		test("Test: data refresh", function() {
+			var pivotField, props;
+			var pivot = api._asc_insertPivot(wb, dataRef, ws, reportRange);
+			pivot.asc_getStyleInfo().asc_setName(api, pivot, pivotStyle);
+			pivot.asc_addRowField(api, 0);
+			pivot.asc_addRowField(api, 1);
+			pivot.asc_addColField(api, 2);
+			pivot.asc_addColField(api, 3);
+			pivot.asc_addPageField(api, 4);
+			pivot.asc_addPageField(api, 6);
+			pivot.asc_addDataField(api, 5);
+			pivot.asc_addDataField(api, 0);
+			pivot.asc_addDataField(api, 6);
+
+			pivotField = pivot.asc_getPivotFields()[0];
+			props = new CT_PivotField();
+			props.asc_setCompact(false);
+			props.asc_setOutline(false);
+			props.asc_setSubtotals([Asc.c_oAscItemType.Avg]);
+			pivotField.asc_set(api, pivot, 0, props);
+
+			pivotField = pivot.asc_getPivotFields()[2];
+			props = new CT_PivotField();
+			props.asc_setDefaultSubtotal(false);
+			pivotField.asc_set(api, pivot, 2, props);
+
+			pivotField = pivot.asc_getPivotFields()[4];
+			props = new CT_PivotField();
+			props.asc_setName("RenamedUnits");
+			pivotField.asc_set(api, pivot, 4, props);
+
+			var dataField = pivot.asc_getDataFields()[0];
+			props = new Asc.CT_DataField();
+			props.asc_setName(AscCommonExcel.ToName_ST_DataConsolidateFunction(Asc.c_oAscItemType.Avg) + " of " + pivot.getPivotFieldName(5));
+			props.asc_setSubtotal(Asc.c_oAscItemType.Avg);
+			dataField.asc_set(api, pivot, 0, props);
+
+
+			AscCommon.History.Clear();
+			pivot = checkHistoryOperation(pivot, standards["refreshFieldSettings"], "refreshFieldSettings", function(){
+				var props = new Asc.CT_pivotTableDefinition();
+				props.asc_setDataRef(dataRefFieldSettings);
+				pivot.asc_set(api, props);
+			});
+
+			pivot = checkHistoryOperation(pivot, standards["refreshRecords"], "refreshRecords", function(){
+				var props = new Asc.CT_pivotTableDefinition();
+				props.asc_setDataRef(dataRefRecords);
+				pivot.asc_set(api, props);
+			});
+
+			pivot = checkHistoryOperation(pivot, standards["refreshStructure"], "refreshStructure", function(){
+				var props = new Asc.CT_pivotTableDefinition();
+				props.asc_setDataRef(dataRefStructure);
+				pivot.asc_set(api, props);
+			});
+
+			ws.deletePivotTables(new AscCommonExcel.MultiplyRange(pivot.getReportRanges()).getUnionRange());
+		});
+	}
+
 	function testDataSource() {
 		test("Test: data source", function() {
 			var pivot = api._asc_insertPivot(wb, dataRefTable, ws, reportRange);
@@ -3579,42 +3743,44 @@ $(function() {
 	function startTests() {
 		QUnit.start();
 
-		testValidations();
-
-		testLayout("compact");
-
-		testLayout("outline");
-
-		testLayout("tabular");
-
-		testLayoutValues("compact");
-
-		testLayoutValues("outline");
-
-		testLayoutValues("tabular");
-
-		testLayoutSubtotal("compact");
-
-		testLayoutSubtotal("tabular");
-
-		testPivotInsertBlankRow();
-
-		testPivotPageFilterLayout();
-
-		testFieldProperty();
-
-		testFieldSubtotal();
-
-		testDataValues();
-
-		testHeaderRename();
-
-		testPivotManipulationField();
-
-		testPivotManipulationValues();
-
-		testDataSource();
-
-		testPivotMisc();
+		// testValidations();
+		//
+		// testLayout("compact");
+		//
+		// testLayout("outline");
+		//
+		// testLayout("tabular");
+		//
+		// testLayoutValues("compact");
+		//
+		// testLayoutValues("outline");
+		//
+		// testLayoutValues("tabular");
+		//
+		// testLayoutSubtotal("compact");
+		//
+		// testLayoutSubtotal("tabular");
+		//
+		// testPivotInsertBlankRow();
+		//
+		// testPivotPageFilterLayout();
+		//
+		// testFieldProperty();
+		//
+		// testFieldSubtotal();
+		//
+		// testDataValues();
+		//
+		// testHeaderRename();
+		//
+		// testPivotManipulationField();
+		//
+		// testPivotManipulationValues();
+		//
+		testDataRefresh();
+		//
+		// testDataSource();
+		//
+		// testPivotMisc();
 	}
 });
