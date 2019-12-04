@@ -10946,7 +10946,7 @@
 		var selectData;
 
 		var callbackLoadFonts = function() {
-			selectData = selectData.selectData;
+			selectData = selectData ? selectData.selectData : null;
 			if(!selectData) {
 				return;
 			}
@@ -11042,7 +11042,7 @@
 			}
 
             History.EndTransaction();
-			if(selectData.adjustFormatArr && selectData.adjustFormatArr.length) {
+			if(selectData && selectData.adjustFormatArr && selectData.adjustFormatArr.length) {
 				for(i = 0; i < selectData.adjustFormatArr.length; i++) {
 					selectData.adjustFormatArr[i]._foreach(function(cell){
 						cell._adjustCellFormat();
