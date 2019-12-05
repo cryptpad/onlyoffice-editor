@@ -4096,6 +4096,75 @@ var editor;
       }
     }
 
+
+    if(_param && false) {
+	   var layoutOptions = JSON.parse(_param);
+	   var spreadsheetLayout = layoutOptions ? layoutOptions["spreadsheetLayout"] : null;
+	   if(spreadsheetLayout && spreadsheetLayout["ignorePrintArea"]) {
+		   _adjustPrint.asc_setIgnorePrintArea(spreadsheetLayout["ignorePrintArea"]);
+       }
+
+	   _adjustPrint.asc_setPrintType(Asc.c_oAscPrintType.EntireWorkbook);
+
+       var ws, newPrintOptions;
+	   var _orientation = spreadsheetLayout ? spreadsheetLayout["orientation"] : null;
+	   if(_orientation === "portrait") {
+		   _orientation = c_oAscPageOrientation.PagePortrait;
+       } else if(_orientation === "landscape") {
+		   _orientation = c_oAscPageOrientation.PageLandscape;
+       } else {
+		   _orientation = null;
+       }
+       //need number
+	   var _fitToWidth = spreadsheetLayout && AscCommon.isNumber( spreadsheetLayout["fitToWidth"]) ? spreadsheetLayout["fitToWidth"] : null;
+	   var _fitToHeight = spreadsheetLayout && AscCommon.isNumber( spreadsheetLayout["fitToHeight"]) ? spreadsheetLayout["fitToHeight"] : null;
+	   var _scale = spreadsheetLayout && AscCommon.isNumber( spreadsheetLayout["scale"]) ? spreadsheetLayout["scale"] : null;
+	   //need true/false
+	   var _headings = spreadsheetLayout && (true === spreadsheetLayout["headings"] || false === spreadsheetLayout["headings"])? spreadsheetLayout["headings"] : null;
+	   var _gridLines = spreadsheetLayout && (true === spreadsheetLayout["gridLines"] || false === spreadsheetLayout["gridLines"])? spreadsheetLayout["headings"] : null;
+       //convert in mm
+	   var _pageSize = spreadsheetLayout ? spreadsheetLayout["pageSize"] : null;
+	   var _margins = spreadsheetLayout ? spreadsheetLayout["margins"] : null;
+
+	   for (var index = 0; index < this.wbModel.getWorksheetCount(); ++index) {
+		   ws = this.wbModel.getWorksheet(index);
+           newPrintOptions = ws.PagePrintOptions.clone();
+           //regionalSettings ?
+
+		   var _pageSetup = newPrintOptions.pageSetup;
+           if(_orientation) {
+               _pageSetup.orientation = _orientation;
+           }
+           if(_fitToWidth || _fitToHeight) {
+               _pageSetup.fitToWidth = _fitToWidth;
+               _pageSetup.fitToHeight = _fitToHeight;
+           } else if(_scale) {
+               _pageSetup.scale = _scale;
+			   _pageSetup.fitToWidth = 0;
+			   _pageSetup.fitToHeight = 0;
+           }
+		   if(_headings) {
+			   newPrintOptions.headings = _orientation;
+		   }
+		   if(_gridLines) {
+			   newPrintOptions.gridLines = _gridLines;
+		   }
+		   if(_pageSize) {
+			   _pageSetup.width = _pageSize.width;
+			   _pageSetup.height = _pageSize.height;
+           }
+           var pageMargins = newPrintOptions.pageMargins;
+           if(_margins) {
+			   pageMargins.left = _margins.left;
+			   pageMargins.right = _margins.right;
+			   pageMargins.top = _margins.top;
+			   pageMargins.bottom = _margins.bottom;
+           }
+
+		   _adjustPrint.pageOptionsMap[index] = newPrintOptions;
+	   }
+    }
+
     var _printPagesData = this.wb.calcPagesPrint(_adjustPrint);
 
     if (undefined === _printer && _page === undefined) {
