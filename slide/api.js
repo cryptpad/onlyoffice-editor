@@ -3264,10 +3264,11 @@ background-repeat: no-repeat;\
 		var _color;
 		if (unifill.fill == null)
 			return;
-		else if (unifill.fill.type == c_oAscFill.FILL_TYPE_SOLID)
+		var color;
+		if (unifill.fill.type == c_oAscFill.FILL_TYPE_SOLID)
 		{
 			_color    = unifill.getRGBAColor();
-			var color = AscCommon.CreateAscColor(unifill.fill.color);
+			color = AscCommon.CreateAscColor(unifill.fill.color);
 			color.asc_putR(_color.R);
 			color.asc_putG(_color.G);
 			color.asc_putB(_color.B);
@@ -3276,7 +3277,14 @@ background-repeat: no-repeat;\
 		else if (unifill.fill.type == c_oAscFill.FILL_TYPE_GRAD)
 		{
 			_color    = unifill.getRGBAColor();
-			var color = AscCommon.CreateAscColor(unifill.fill.colors[0].color);
+			if(unifill.fill.colors[0] && unifill.fill.colors[0].color)
+			{
+				color = AscCommon.CreateAscColor(unifill.fill.colors[0].color);
+			}
+			else
+			{
+				color = new Asc.asc_CColor();
+			}
 			color.asc_putR(_color.R);
 			color.asc_putG(_color.G);
 			color.asc_putB(_color.B);
@@ -3285,7 +3293,7 @@ background-repeat: no-repeat;\
 		else
 		{
 			_color    = unifill.getRGBAColor();
-			var color = new Asc.asc_CColor();
+			color = new Asc.asc_CColor();
 			color.asc_putR(_color.R);
 			color.asc_putG(_color.G);
 			color.asc_putB(_color.B);
