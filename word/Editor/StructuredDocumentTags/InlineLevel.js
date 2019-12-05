@@ -923,9 +923,42 @@ CInlineLevelSdt.prototype.private_UpdateCheckBoxContent = function()
 {
 	var isChecked = this.Pr.CheckBox.Checked;
 
-	var oRun = this.MakeSingleRunElement();
-	if (!oRun)
-		return;
+	var oRun;
+	if (this.GetParagraph() && this.GetParagraph().GetLogicDocument() && this.GetParagraph().GetLogicDocument().IsTrackRevisions())
+	{
+		var oFirstRun = this.GetFirstRun();
+		var oTextPr   = oFirstRun ? oFirstRun.GetDirectTextPr() : new CTextPr();
+
+		this.SelectAll();
+		this.Remove();
+		this.RemoveSelection();
+
+		oRun = new ParaRun(this.GetParagraph(), false);
+		oRun.SetPr(oTextPr);
+		this.AddToContent(0, oRun);
+
+		if (2 === this.Content.length
+			&& para_Run === this.Content[0].Type
+			&& para_Run === this.Content[1].Type
+			&& reviewtype_Add === this.Content[0].GetReviewType()
+			&& reviewtype_Remove === this.Content[1].GetReviewType()
+			&& this.Content[0].GetReviewInfo().IsCurrentUser()
+			&& this.Content[1].GetReviewInfo().IsCurrentUser()
+			&& ((isChecked
+			&& String.fromCharCode(this.Pr.CheckBox.CheckedSymbol) === this.Content[1].GetText())
+			|| (!isChecked
+			&& String.fromCharCode(this.Pr.CheckBox.UncheckedSymbol) === this.Content[1].GetText())))
+		{
+			this.RemoveFromContent(1, 1);
+			oRun.SetReviewType(reviewtype_Common);
+		}
+	}
+	else
+	{
+		oRun = this.MakeSingleRunElement();
+		if (!oRun)
+			return;
+	}
 
 	oRun.AddText(String.fromCharCode(isChecked ? this.Pr.CheckBox.CheckedSymbol : this.Pr.CheckBox.UncheckedSymbol));
 
@@ -1103,17 +1136,67 @@ CInlineLevelSdt.prototype.SelectListItem = function(sValue)
 		return;
 
 	var sText = oList.GetTextByValue(sValue);
-	if (null === sText)
+
+	if (this.GetParagraph() && this.GetParagraph().GetLogicDocument() && this.GetParagraph().GetLogicDocument().IsTrackRevisions())
 	{
-		this.ReplaceContentWithPlaceHolder();
-		this.private_UpdatePlaceHolderListContent();
+		if (!sText && this.IsPlaceHolder())
+			return;
+
+		var oFirstRun = this.GetFirstRun();
+		var oTextPr   = oFirstRun ? oFirstRun.GetDirectTextPr() : new CTextPr();
+
+		if (!this.IsPlaceHolder())
+		{
+			this.SelectAll();
+			this.Remove();
+			this.RemoveSelection();
+		}
+		else
+		{
+			this.ReplacePlaceHolderWithContent();
+		}
+
+		if (!sText && this.IsEmpty())
+		{
+			this.ReplaceContentWithPlaceHolder();
+			this.private_UpdatePlaceHolderListContent();
+		}
+
+		if (sText)
+		{
+			var oRun;
+			if (this.IsEmpty())
+			{
+				oRun = this.MakeSingleRunElement();
+				if (!oRun)
+					return;
+
+				oRun.SetReviewType(reviewtype_Add);
+			}
+			else
+			{
+				oRun = new ParaRun(this.GetParagraph(), false);
+				this.AddToContent(this.GetContentLength(), oRun);
+			}
+
+			oRun.SetPr(oTextPr);
+			oRun.AddText(sText);
+		}
 	}
 	else
 	{
-		this.ReplacePlaceHolderWithContent();
-		var oRun = this.private_UpdateListContent();
-		if (oRun)
-			oRun.AddText(sText);
+		if (null === sText)
+		{
+			this.ReplaceContentWithPlaceHolder();
+			this.private_UpdatePlaceHolderListContent();
+		}
+		else
+		{
+			this.ReplacePlaceHolderWithContent();
+			var oRun = this.private_UpdateListContent();
+			if (oRun)
+				oRun.AddText(sText);
+		}
 	}
 };
 CInlineLevelSdt.prototype.private_UpdateListContent = function()
@@ -1166,16 +1249,70 @@ CInlineLevelSdt.prototype.ApplyDatePickerPr = function(oPr)
 	if (!this.IsDatePicker())
 		return;
 
-	var oRun = this.private_UpdateDatePickerContent();
-	if (oRun)
-		oRun.AddText(this.Pr.Date.ToString());
+	this.private_UpdateDatePickerContent();
 };
 CInlineLevelSdt.prototype.private_UpdateDatePickerContent = function()
 {
+	if (!this.Pr.Date)
+		return;
+
 	if (this.IsPlaceHolder())
 		this.ReplacePlaceHolderWithContent();
 
-	return this.MakeSingleRunElement();
+	var oRun;
+	var sText = this.Pr.Date.ToString();
+	if (this.GetParagraph() && this.GetParagraph().GetLogicDocument() && this.GetParagraph().GetLogicDocument().IsTrackRevisions())
+	{
+		if (!sText && this.IsPlaceHolder())
+			return;
+
+		var oFirstRun = this.GetFirstRun();
+		var oTextPr   = oFirstRun ? oFirstRun.GetDirectTextPr() : new CTextPr();
+
+		if (!this.IsPlaceHolder())
+		{
+			this.SelectAll();
+			this.Remove();
+			this.RemoveSelection();
+		}
+		else
+		{
+			this.ReplacePlaceHolderWithContent();
+		}
+
+		if (!sText && this.IsEmpty())
+		{
+			this.ReplaceContentWithPlaceHolder();
+			this.private_UpdatePlaceHolderListContent();
+		}
+
+		if (sText)
+		{
+			var oRun;
+			if (this.IsEmpty())
+			{
+				oRun = this.MakeSingleRunElement();
+				if (!oRun)
+					return;
+
+				oRun.SetReviewType(reviewtype_Add);
+			}
+			else
+			{
+				oRun = new ParaRun(this.GetParagraph(), false);
+				this.AddToContent(this.GetContentLength(), oRun);
+			}
+
+			oRun.SetPr(oTextPr);
+		}
+	}
+	else
+	{
+		oRun = this.MakeSingleRunElement();
+	}
+
+	if (oRun)
+		oRun.AddText(sText);
 };
 CInlineLevelSdt.prototype.Document_Is_SelectionLocked = function(CheckType)
 {

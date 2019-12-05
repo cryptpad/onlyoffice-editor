@@ -210,6 +210,14 @@ Paragraph.prototype.GetType = function()
 {
 	return type_Paragraph;
 };
+/**
+ * Получаем ссылку на глобальный класс документа
+ * @returns {CDocument}
+ */
+Paragraph.prototype.GetLogicDocument = function()
+{
+	return this.LogicDocument;
+};
 Paragraph.prototype.Save_StartState = function()
 {
 	this.StartState = new CParagraphStartState(this);

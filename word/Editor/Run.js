@@ -414,6 +414,24 @@ ParaRun.prototype.Get_Text = function(Text)
     }
 };
 
+/**
+ * Получем текст из данного рана
+ * @param oText
+ * @returns {string}
+ */
+ParaRun.prototype.GetText = function(oText)
+{
+	if (!oText)
+	{
+		oText = {
+			Text : ""
+		};
+	}
+
+	this.Get_Text(oText);
+	return oText.Text;
+};
+
 // Проверяем пустой ли ран
 ParaRun.prototype.Is_Empty = function(oProps)
 {
