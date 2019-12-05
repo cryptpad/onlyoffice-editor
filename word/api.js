@@ -8775,7 +8775,7 @@ background-repeat: no-repeat;\
 		if (!oCC || !oCC.IsPicture() || !oCC.SelectPicture())
 			return;
 
-		if (!oLogicDocument.IsSelectionLocked(AscCommon.changestype_Image_Properties))
+		if (!oLogicDocument.IsSelectionLocked(AscCommon.changestype_Image_Properties, undefined, false, oLogicDocument.IsFormFieldEditing()))
 		{
 			var oImagePr = {
 				ImageUrl : sUrl
@@ -8925,7 +8925,7 @@ background-repeat: no-repeat;\
 				Type      : AscCommon.changestype_2_ElementsArray_and_Type,
 				Elements  : [oContentControl],
 				CheckType : AscCommon.changestype_ContentControl_Remove
-			});
+			}, false, oLogicDocument.IsFormFieldEditing());
 		}
 		else if (c_oAscSdtLevelType.Inline === oContentControl.GetContentControlType())
 		{
@@ -8939,7 +8939,7 @@ background-repeat: no-repeat;\
 					Type      : AscCommon.changestype_2_ElementsArray_and_Type,
 					Elements  : [oParagraph],
 					CheckType : AscCommon.changestype_Remove
-				});
+				}, false, oLogicDocument.IsFormFieldEditing());
 
 				oLogicDocument.LoadDocumentState(oState);
 			}
@@ -8988,7 +8988,7 @@ background-repeat: no-repeat;\
 				Type      : AscCommon.changestype_2_ElementsArray_and_Type,
 				Elements  : [oContentControl],
 				CheckType : AscCommon.changestype_ContentControl_Properties
-			});
+			}, false, oLogicDocument.IsFormFieldEditing());
 		}
 		else if (c_oAscSdtLevelType.Inline === oContentControl.GetContentControlType())
 		{
@@ -8999,7 +8999,7 @@ background-repeat: no-repeat;\
 					Type      : AscCommon.changestype_2_ElementsArray_and_Type,
 					Elements  : [oParagraph],
 					CheckType : AscCommon.changestype_Paragraph_Properties
-				});
+				}, false, oLogicDocument.IsFormFieldEditing());
 			}
 		}
 

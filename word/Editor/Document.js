@@ -9516,7 +9516,7 @@ CDocument.prototype.OnMouseUp = function(e, X, Y, PageIndex)
 	{
 		var oCC = (oInlineSdt && oInlineSdt.IsCheckBox()) ? oInlineSdt : oBlockSdt;
 		oCC.SkipSpecialContentControlLock(true);
-		if (!this.IsSelectionLocked(AscCommon.changestype_Paragraph_Content))
+		if (!this.IsSelectionLocked(AscCommon.changestype_Paragraph_Content, null, true, this.IsFillingFormMode()))
 		{
 			this.StartAction();
 			oCC.ToggleCheckBox();
