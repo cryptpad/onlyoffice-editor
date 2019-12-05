@@ -8950,6 +8950,8 @@ background-repeat: no-repeat;\
 		{
 			oLogicDocument.StartAction(AscDFH.historydescription_Document_SelectContentControlListItem);
 			oContentControl.SelectListItem(sValue);
+			oLogicDocument.RemoveSelection();
+			oContentControl.MoveCursorToContentControl(true);
 			oLogicDocument.Recalculate();
 			oLogicDocument.UpdateInterface();
 			oLogicDocument.UpdateTracks();
