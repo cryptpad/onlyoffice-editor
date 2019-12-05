@@ -4865,28 +4865,6 @@
 		return NaN;
 	}
 
-	function getTimeISO8601(dateStr) {
-		if (dateStr) {
-			if (dateStr.endsWith("Z")) {
-				return Date.parse(dateStr);
-			} else {
-				return Date.parse(dateStr + "Z");
-			}
-		}
-		return NaN;
-	}
-
-	function getTimeISO8601(dateStr) {
-		if (dateStr) {
-			if (dateStr.endsWith("Z")) {
-				return Date.parse(dateStr);
-			} else {
-				return Date.parse(dateStr + "Z");
-			}
-		}
-		return NaN;
-	}
-
 	function valueToMmType(value) {
 		var oVal = parseFloat(value);
 		var oType;
