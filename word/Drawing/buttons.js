@@ -935,7 +935,7 @@
                     arrY.push({ X : curRect.X, R : curRect.R, Y : curRect.Y, Page : curRect.Page, allX : [curRect.X, curRect.R] });
                     ++countY;
                 }
-                if ((0x02 != (0x02 & counter2)) && (Math.abs(curRect.B < curRect.Y) > eps))
+                if ((0x02 != (0x02 & counter2)) && (Math.abs(curRect.B - curRect.Y) > eps))
                 {
                     arrY.push({ X : curRect.X, R : curRect.R, Y : curRect.B, Page : curRect.Page, allX : [curRect.X, curRect.R] });
                     ++countY;
