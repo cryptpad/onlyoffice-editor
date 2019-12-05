@@ -4122,9 +4122,21 @@ var editor;
 	   //need true/false
 	   var _headings = spreadsheetLayout && (true === spreadsheetLayout["headings"] || false === spreadsheetLayout["headings"])? spreadsheetLayout["headings"] : null;
 	   var _gridLines = spreadsheetLayout && (true === spreadsheetLayout["gridLines"] || false === spreadsheetLayout["gridLines"])? spreadsheetLayout["headings"] : null;
-       //convert in mm
+       //convert to mm
 	   var _pageSize = spreadsheetLayout ? spreadsheetLayout["pageSize"] : null;
+	   if(_pageSize) {
+	     var width = AscCommon.valueToMm(_pageSize["width"]);
+	     var height = AscCommon.valueToMm(_pageSize["height"]);
+	     _pageSize = null !== width && null !== height ? {width: width, height: height} : null;
+       }
 	   var _margins = spreadsheetLayout ? spreadsheetLayout["margins"] : null;
+	   if(_margins) {
+         var left = AscCommon.valueToMm(_margins["left"]);
+         var right = AscCommon.valueToMm(_margins["right"]);
+         var top = AscCommon.valueToMm(_margins["top"]);
+         var bottom = AscCommon.valueToMm(_margins["bottom"]);
+         _margins = null !== left && null !== right && null !== top && null !== bottom ? {left: left, right: right, top: top, bottom: bottom} : null;
+       }
 
 	   for (var index = 0; index < this.wbModel.getWorksheetCount(); ++index) {
 		   ws = this.wbModel.getWorksheet(index);

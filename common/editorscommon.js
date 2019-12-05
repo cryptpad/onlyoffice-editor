@@ -4865,6 +4865,68 @@
 		return NaN;
 	}
 
+	function getTimeISO8601(dateStr) {
+		if (dateStr) {
+			if (dateStr.endsWith("Z")) {
+				return Date.parse(dateStr);
+			} else {
+				return Date.parse(dateStr + "Z");
+			}
+		}
+		return NaN;
+	}
+
+	function getTimeISO8601(dateStr) {
+		if (dateStr) {
+			if (dateStr.endsWith("Z")) {
+				return Date.parse(dateStr);
+			} else {
+				return Date.parse(dateStr + "Z");
+			}
+		}
+		return NaN;
+	}
+
+	function valueToMmType(value) {
+		var oVal = parseFloat(value);
+		var oType;
+		if (!isNaN(oVal)) {
+			if (-1 !== value.indexOf("%")) {
+				oType = "%";
+				oVal /= 100;
+			} else if (-1 !== value.indexOf("px")) {
+				oType = "px";
+				oVal *= g_dKoef_pix_to_mm;
+			} else if (-1 !== value.indexOf("in")) {
+				oType = "in";
+				oVal *= g_dKoef_in_to_mm;
+			} else if (-1 !== value.indexOf("cm")) {
+				oType = "cm";
+				oVal *= 10;
+			} else if (-1 !== value.indexOf("mm")) {
+				oType = "mm";
+			} else if (-1 !== value.indexOf("pt")) {
+				oType = "pt";
+				oVal *= g_dKoef_pt_to_mm;
+			} else if (-1 !== value.indexOf("pc")) {
+				oType = "pc";
+				oVal *= g_dKoef_pc_to_mm;
+			} else {
+				oType = "none";
+			}
+			return {val: oVal, type: oType};
+		}
+		return null;
+	}
+
+	function valueToMm(value) {
+		var obj = valueToMmType(value);
+		if (obj && "%" !== obj.type && "none" !== obj.type) {
+			return obj.val;
+		}
+		return null;
+	}
+
 	//------------------------------------------------------------export---------------------------------------------------
 	window['AscCommon'] = window['AscCommon'] || {};
 	window["AscCommon"].getSockJs = getSockJs;
@@ -4962,6 +5024,9 @@
 
 	window["AscCommon"].parseText = parseText;
 	window["AscCommon"].getTimeISO8601 = getTimeISO8601;
+
+	window["AscCommon"].valueToMm = valueToMm;
+	window["AscCommon"].valueToMmType = valueToMmType;
 })(window);
 
 window["asc_initAdvancedOptions"] = function(_code, _file_hash, _docInfo)
