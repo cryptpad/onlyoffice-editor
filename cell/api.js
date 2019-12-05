@@ -4156,7 +4156,7 @@ var editor;
 			   _pageSetup.fitToHeight = 0;
            }
 		   if(_headings) {
-			   newPrintOptions.headings = _orientation;
+			   newPrintOptions.headings = _headings;
 		   }
 		   if(_gridLines) {
 			   newPrintOptions.gridLines = _gridLines;
@@ -4173,6 +4173,9 @@ var editor;
 			   pageMargins.bottom = _margins.bottom;
            }
 
+           if(!_adjustPrint.pageOptionsMap) {
+              _adjustPrint.pageOptionsMap = [];
+           }
 		   _adjustPrint.pageOptionsMap[index] = newPrintOptions;
 	   }
     }
