@@ -4100,8 +4100,9 @@ var editor;
     if(_param && false) {
 	   var layoutOptions = JSON.parse(_param);
 	   var spreadsheetLayout = layoutOptions ? layoutOptions["spreadsheetLayout"] : null;
-	   if(spreadsheetLayout && spreadsheetLayout["ignorePrintArea"]) {
-		   _adjustPrint.asc_setIgnorePrintArea(spreadsheetLayout["ignorePrintArea"]);
+		var _ignorePrintArea = spreadsheetLayout && (true === spreadsheetLayout["ignorePrintArea"] || false === spreadsheetLayout["ignorePrintArea"])? spreadsheetLayout["ignorePrintArea"] : null;
+	   if(null !== _ignorePrintArea) {
+		   _adjustPrint.asc_setIgnorePrintArea(_ignorePrintArea);
        }
 
 	   _adjustPrint.asc_setPrintType(Asc.c_oAscPrintType.EntireWorkbook);
@@ -4109,9 +4110,9 @@ var editor;
        var ws, newPrintOptions;
 	   var _orientation = spreadsheetLayout ? spreadsheetLayout["orientation"] : null;
 	   if(_orientation === "portrait") {
-		   _orientation = c_oAscPageOrientation.PagePortrait;
+		   _orientation = Asc.c_oAscPageOrientation.PagePortrait;
        } else if(_orientation === "landscape") {
-		   _orientation = c_oAscPageOrientation.PageLandscape;
+		   _orientation = Asc.c_oAscPageOrientation.PageLandscape;
        } else {
 		   _orientation = null;
        }
@@ -4144,7 +4145,7 @@ var editor;
            //regionalSettings ?
 
 		   var _pageSetup = newPrintOptions.pageSetup;
-           if(_orientation) {
+           if(null !== _orientation) {
                _pageSetup.orientation = _orientation;
            }
            if(_fitToWidth || _fitToHeight) {
@@ -4155,10 +4156,10 @@ var editor;
 			   _pageSetup.fitToWidth = 0;
 			   _pageSetup.fitToHeight = 0;
            }
-		   if(_headings) {
+		   if(null !== _headings) {
 			   newPrintOptions.headings = _headings;
 		   }
-		   if(_gridLines) {
+		   if(null !== _gridLines) {
 			   newPrintOptions.gridLines = _gridLines;
 		   }
 		   if(_pageSize) {
