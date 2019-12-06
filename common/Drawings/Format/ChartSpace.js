@@ -15831,12 +15831,12 @@ function CreateLineChart(chartSeries, type, bUseCache, oOptions, b3D)
         series.setSmooth(false);
         series.setVal(new AscFormat.CYVal());
         FillValNum(series.val, asc_series[i].Val, bUseCache);
-        if(parsedHeaders.bTop && !bInCols || bInCols && parsedHeaders.bLeft)
+        if(asc_series[i].Cat && typeof asc_series[i].Cat.Formula === "string" && asc_series[i].Cat.Formula.length > 0)
         {
             series.setCat(new AscFormat.CCat());
             FillCatStr(series.cat, asc_series[i].Cat, bUseCache);
         }
-        if((parsedHeaders.bLeft && !bInCols || bInCols && parsedHeaders.bTop) && asc_series[i].TxCache && typeof asc_series[i].TxCache.Formula === "string" && asc_series[i].TxCache.Formula.length > 0)
+        if( asc_series[i].TxCache && typeof asc_series[i].TxCache.Formula === "string" && asc_series[i].TxCache.Formula.length > 0)
         {
             FillSeriesTx(series, asc_series[i].TxCache, bUseCache);
         }
@@ -15968,12 +15968,12 @@ function CreateBarChart(chartSeries, type, bUseCache, oOptions, b3D, bDepth)
         series.setInvertIfNegative(false);
         series.setVal(new AscFormat.CYVal());
         FillValNum(series.val, asc_series[i].Val, bUseCache);
-        if(parsedHeaders.bTop && !bInCols || bInCols && parsedHeaders.bLeft)
+        if(asc_series[i].Cat && typeof asc_series[i].Cat.Formula === "string" && asc_series[i].Cat.Formula.length > 0)
         {
             series.setCat(new AscFormat.CCat());
             FillCatStr(series.cat, asc_series[i].Cat, bUseCache);
         }
-        if((parsedHeaders.bLeft && !bInCols || bInCols && parsedHeaders.bTop) && asc_series[i].TxCache && typeof asc_series[i].TxCache.Formula === "string" && asc_series[i].TxCache.Formula.length > 0)
+        if(asc_series[i].TxCache && typeof asc_series[i].TxCache.Formula === "string" && asc_series[i].TxCache.Formula.length > 0)
         {
             FillSeriesTx(series, asc_series[i].TxCache, bUseCache);
         }
@@ -16241,12 +16241,12 @@ function CreateAreaChart(chartSeries, type, bUseCache, oOptions)
         series.setOrder(i);
         series.setVal(new AscFormat.CYVal());
         FillValNum(series.val, asc_series[i].Val, bUseCache);
-        if(parsedHeaders.bTop && !bInCols || bInCols && parsedHeaders.bLeft)
+        if(asc_series[i].Cat && typeof asc_series[i].Cat.Formula === "string" && asc_series[i].Cat.Formula.length > 0)
         {
             series.setCat(new AscFormat.CCat());
             FillCatStr(series.cat, asc_series[i].Cat, bUseCache);
         }
-        if((parsedHeaders.bLeft && !bInCols || bInCols && parsedHeaders.bTop) && asc_series[i].TxCache && typeof asc_series[i].TxCache.Formula === "string" && asc_series[i].TxCache.Formula.length > 0)
+        if(asc_series[i].TxCache && typeof asc_series[i].TxCache.Formula === "string" && asc_series[i].TxCache.Formula.length > 0)
         {
             FillSeriesTx(series, asc_series[i].TxCache, bUseCache);
         }
@@ -16359,12 +16359,12 @@ function CreatePieChart(chartSeries, bDoughnut, bUseCache, oOptions, b3D)
         series.setVal(new AscFormat.CYVal());
         var val = series.val;
         FillValNum(series.val, asc_series[i].Val, bUseCache);
-        if(parsedHeaders.bTop && !bInCols || bInCols && parsedHeaders.bLeft)
+        if(asc_series[i].Cat && typeof asc_series[i].Cat.Formula === "string" && asc_series[i].Cat.Formula.length > 0)
         {
             series.setCat(new AscFormat.CCat());
             FillCatStr(series.cat, asc_series[i].Cat, bUseCache);
         }
-        if((parsedHeaders.bLeft && !bInCols || bInCols && parsedHeaders.bTop) && asc_series[i].TxCache && typeof asc_series[i].TxCache.Formula === "string" && asc_series[i].TxCache.Formula.length > 0)
+        if(asc_series[i].TxCache && typeof asc_series[i].TxCache.Formula === "string" && asc_series[i].TxCache.Formula.length > 0)
         {
             FillSeriesTx(series, asc_series[i].TxCache, bUseCache);
         }
@@ -16512,7 +16512,7 @@ function CreateScatterChart(chartSeries, bUseCache, oOptions)
     var first_series = null;
     var start_index = 0;
     var minus = 0;
-    if(parsedHeaders.bTop && !bInCols || bInCols && parsedHeaders.bLeft)
+    if(asc_series[i].Cat && typeof asc_series[i].Cat.Formula === "string" && asc_series[i].Cat.Formula.length > 0)
     {
         oXVal = new AscFormat.CXVal();
         FillCatStr(oXVal, asc_series[0].xVal, bUseCache);
@@ -16813,12 +16813,12 @@ function CreateStockChart(chartSeries, bUseCache, oOptions)
             series.setOrder(i);
             series.setVal(new AscFormat.CYVal());
             FillValNum(series.val, asc_series[i].Val, bUseCache);
-            if(parsedHeaders.bTop && !bInCols || bInCols && parsedHeaders.bLeft)
+            if(asc_series[i].Cat && typeof asc_series[i].Cat.Formula === "string" && asc_series[i].Cat.Formula.length > 0)
             {
                 series.setCat(new AscFormat.CCat());
                 FillCatStr(series.cat, asc_series[i].Cat, bUseCache);
             }
-            if((parsedHeaders.bLeft && !bInCols || bInCols && parsedHeaders.bTop) && asc_series[i].TxCache && typeof asc_series[i].TxCache.Formula === "string" && asc_series[i].TxCache.Formula.length > 0)
+            if(asc_series[i].TxCache && typeof asc_series[i].TxCache.Formula === "string" && asc_series[i].TxCache.Formula.length > 0)
             {
                 FillSeriesTx(series, asc_series[i].TxCache, bUseCache);
             }
@@ -17158,8 +17158,7 @@ function getChartSeries (worksheet, options, catHeadersBBox, serHeadersBBox)
                     r2temp = Math.max(bbox.r1, bbox.r2);
                     c1temp = Math.min(bbox.c1, bbox.c1);
                     c2temp = Math.max(bbox.c1, bbox.c2);
-                    nSumRows += (r2temp - r1temp);
-                    nSumCols += (c2temp - c1temp);
+
                     if (!oWorksheet)
                     {
                         oWorksheet = ws;
@@ -17203,6 +17202,14 @@ function getChartSeries (worksheet, options, catHeadersBBox, serHeadersBBox)
                             }
                         }
                     }
+                    if(bRows === null || bRows === true)
+                    {
+                        nSumCols += (c2temp - c1temp + 1);
+                    }
+                    if(bRows === null || bRows === false)
+                    {
+                        nSumRows += (r2temp - r1temp + 1);
+                    }
                 }
             }
         }
@@ -17211,90 +17218,145 @@ function getChartSeries (worksheet, options, catHeadersBBox, serHeadersBBox)
         {
             if(bRows)
             {
-                if(nSumCols > (r2 - r1 + 1))
+                aBBoxes.sort(function(a, b){
+                   return Math.min(a.c1, a.c2) - Math.min(b.c1, b.c2);
+                });
+                parsedHeaders = parseSeriesHeaders(oWorksheet, aBBoxes[0]);
+                if(parsedHeaders.bLeft)
                 {
-                    aBBoxes.sort(function(a, b){
-                       return Math.min(a.c1, a.c2) - Math.min(b.c1, b.c2);
-                    });
-                    parsedHeaders = parseSeriesHeaders(oWorksheet, aBBoxes[0]);
-                    if(parsedHeaders.bLeft)
+                    --nSumCols;
+                    ++c1;
+                }
+                if(parsedHeaders.bTop)
+                {
+                    ++r1;
+                }
+                if(nSumCols >= (r2 - r1 + 1))//series by rows
+                {
+                    for(i = r1; i <= r2; ++i)
                     {
-                        --nSumCols;
-                    }
-                    if(parsedHeaders.bTop)
-                    {
-                        ++r1;
-                    }
-                    if(nSumCols > (r2 - r1 + 1))
-                    {
-
-                        for(i = r1; i <= r2; ++i)
+                        ser = new AscFormat.asc_CChartSeria();
+                        series.push(ser);
+                        sFormula = "(";
+                        if(parsedHeaders.bLeft)
                         {
-                            ser = new AscFormat.asc_CChartSeria();
-                            series.push(ser);
-                            sFormula = "(";
-                            if(parsedHeaders.bLeft)
+                            formulaCell = new CellAddress( i, Math.min(aBBoxes[0].c1, aBBoxes[0].c2), 0 );
+                            ser.TxCache.Formula = parserHelp.get3DRef(oWorksheet.sName, formulaCell.getIDAbsolute());
+                        }
+
+
+                        if(parsedHeaders.bTop)
+                        {
+                            sCatFormula = "(";
+                            aCatCache = [];
+                        }
+                        for(j = 0; j < aBBoxes.length; ++j)
+                        {
+                            bbox = aBBoxes[j];
+                            if(j === 0 && parsedHeaders.bLeft)
                             {
-                                formulaCell = new CellAddress( i, Math.min(aBBoxes[0].c1, aBBoxes[0].c2), 0 );
-                                ser.TxCache.Formula = parserHelp.get3DRef(oWorksheet.sName, formulaCell.getIDAbsolute());
+                                if(Math.max(bbox.c1, bbox.c2) - Math.min(bbox.c1, bbox.c2) === 0)
+                                {
+                                    continue;
+                                }
+                                nStartCol = Math.min(bbox.c1, bbox.c2) + 1;
                             }
+                            else
+                            {
+                                nStartCol = Math.min(bbox.c1, bbox.c2);
+                            }
+                            startCell = new CellAddress(i, nStartCol, 0);
+                            endCell = new CellAddress(i, Math.max(bbox.c1, bbox.c2), 0);
 
+                            ser.isHidden = !!ws.getRowHidden(i);
 
+                            // Val
+                            sStartCellId = startCell.getIDAbsolute();
+                            sEndCellId = endCell.getIDAbsolute();
+                            if(sFormula.length > 1)
+                            {
+                                sFormula += ",";
+                            }
+                            sFormula += parserHelp.get3DRef(ws.sName, sStartCellId === sEndCellId ?
+                                sStartCellId : sStartCellId + ':' + sEndCellId);
+                            ser.Val.NumCache = ser.Val.NumCache.concat(getNumCache(ws, nStartCol, Math.max(bbox.c1, bbox.c2), i, i));
                             if(parsedHeaders.bTop)
                             {
-                                sCatFormula = "(";
-                                aCatCache = [];
-                            }
-                            for(j = 0; j < aBBoxes.length; ++j)
-                            {
-                                bbox = aBBoxes[j];
-                                if(j === 0 && parsedHeaders.bLeft)
-                                {
-                                    if(Math.max(bbox.c1, bbox.c2) - Math.min(bbox.c1, bbox.c2) === 1)
-                                    {
-                                        continue;
-                                    }
-                                    nStartCol = Math.min(bbox.c1, bbox.c2) + 1;
-                                }
-                                else
-                                {
-                                    nStartCol = Math.min(bbox.c1, bbox.c2);
-                                }
-                                startCell = new CellAddress(i, nStartCol, 0);
-                                endCell = new CellAddress(i, Math.max(bbox.c1, bbox.c2), 0);
-
-                                ser.isHidden = !!ws.getRowHidden(i);
-
-                                // Val
+                                aCatCache = aCatCache.concat(getNumCache(ws, nStartCol, Math.max(bbox.c1, bbox.c2), Math.min(aBBoxes[0].r1, aBBoxes[0].r2) - 1, Math.min(aBBoxes[0].r1, aBBoxes[0].r2) - 1));
+                                startCell = new CellAddress(r1 - 1, nStartCol, 0);
+                                endCell = new CellAddress(r1 - 1, Math.max(bbox.c1, bbox.c2), 0);
                                 sStartCellId = startCell.getIDAbsolute();
                                 sEndCellId = endCell.getIDAbsolute();
-                                if(sFormula.length > 1)
+                                if(sCatFormula.length > 1)
                                 {
-                                    sFormula += ",";
+                                    sCatFormula += ",";
                                 }
-                                sFormula += parserHelp.get3DRef(ws.sName, sStartCellId === sEndCellId ?
+                                sCatFormula += parserHelp.get3DRef(ws.sName, sStartCellId === sEndCellId ?
                                     sStartCellId : sStartCellId + ':' + sEndCellId);
-                                ser.Val.NumCache = ser.Val.NumCache.concat(getNumCache(ws, nStartCol, Math.max(bbox.c1, bbox.c2), i, i));
-                                if(parsedHeaders.bTop)
-                                {
-                                    aCatCache = aCatCache.concat(getNumCache(ws, nStartCol, Math.max(bbox.c1, bbox.c2), Math.min(aBBoxes[0].r1, aBBoxes[0].r2) - 1, Math.min(aBBoxes[0].r1, aBBoxes[0].r2) - 1));
-                                    startCell = new CellAddress(r1 - 1, nStartCol, 0);
-                                    endCell = new CellAddress(r1 - 1, Math.max(bbox.c1, bbox.c2), 0);
-                                    sStartCellId = startCell.getIDAbsolute();
-                                    sEndCellId = endCell.getIDAbsolute();
-                                    if(sCatFormula.length > 1)
-                                    {
-                                        sCatFormula += ",";
-                                    }
-                                    sCatFormula += parserHelp.get3DRef(ws.sName, sStartCellId === sEndCellId ?
-                                        sStartCellId : sStartCellId + ':' + sEndCellId);
-                                }
                             }
-                            sFormula += ")";
-                            ser.Val.Formula = sFormula;
-                            if(parsedHeaders.bTop)
+                        }
+                        sFormula += ")";
+                        ser.Val.Formula = sFormula;
+                        if(parsedHeaders.bTop)
+                        {
+                            sCatFormula += ")";
+                            if (bIsScatter)
                             {
-                                sCatFormula += ")";
+                                ser.xVal.Formula = sCatFormula;
+                                ser.xVal.NumCache = aCatCache;
+                            }
+                            else
+                            {
+                                ser.Cat.Formula = sCatFormula;
+                                ser.Cat.NumCache = aCatCache;
+                            }
+                        }
+                    }
+                    return {series: series, parsedHeaders: parsedHeaders};
+                }
+                else //series by cols
+                {
+                    for(i = 0; i < aBBoxes.length; ++i)
+                    {
+                        bbox = aBBoxes[i];
+                        if(i === 0 && parsedHeaders.bLeft)
+                        {
+                            if(Math.max(bbox.c1, bbox.c2) - Math.min(bbox.c1, bbox.c2) === 0)
+                            {
+                                continue;
+                            }
+                            nStartCol = Math.min(bbox.c1, bbox.c2) + 1;
+                        }
+                        else
+                        {
+                            nStartCol = Math.min(bbox.c1, bbox.c2);
+                        }
+
+                        for(j = nStartCol; j <= Math.max(bbox.c1, bbox.c2); ++j)
+                        {
+                            startCell = new CellAddress(r1, j, 0);
+                            endCell = new CellAddress(r2, j, 0);
+
+
+                            ser = new AscFormat.asc_CChartSeria();
+                            series.push(ser);
+                            ser.isHidden = !!ws.getColHidden(j);
+
+                            // Val
+                            sStartCellId = startCell.getIDAbsolute();
+                            sEndCellId = endCell.getIDAbsolute();
+                            ser.Val.Formula = parserHelp.get3DRef(ws.sName, sStartCellId === sEndCellId ?
+                                sStartCellId : sStartCellId + ':' + sEndCellId);
+                            ser.Val.NumCache = getNumCache(ws, j, j, r1, r2);
+                            if(parsedHeaders.bLeft)
+                            {
+                                aCatCache = getNumCache(ws, Math.min(aBBoxes[0].c1, aBBoxes[0].c2), Math.min(aBBoxes[0].c1, aBBoxes[0].c2), Math.min(aBBoxes[0].r1, aBBoxes[0].r2), Math.max(aBBoxes[0].r1, aBBoxes[0].r2));
+                                startCell = new CellAddress(Math.min(r1, r2), Math.min(aBBoxes[0].c1, aBBoxes[0].c2), 0);
+                                endCell = new CellAddress(Math.max(r1, r2), Math.min(aBBoxes[0].c1, aBBoxes[0].c2), 0);
+                                sStartCellId = startCell.getIDAbsolute();
+                                sEndCellId = endCell.getIDAbsolute();
+                                sCatFormula = parserHelp.get3DRef(ws.sName, sStartCellId === sEndCellId ?
+                                    sStartCellId : sStartCellId + ':' + sEndCellId);
                                 if (bIsScatter)
                                 {
                                     ser.xVal.Formula = sCatFormula;
@@ -17306,28 +17368,33 @@ function getChartSeries (worksheet, options, catHeadersBBox, serHeadersBBox)
                                     ser.Cat.NumCache = aCatCache;
                                 }
                             }
+                            if(parsedHeaders.bTop)
+                            {
+                                formulaCell = new CellAddress( Math.min(aBBoxes[0].r1, aBBoxes[0].r2), j, 0 );
+                                ser.TxCache.Formula = parserHelp.get3DRef(oWorksheet.sName, formulaCell.getIDAbsolute());
+                            }
                         }
-                        return {series: series, parsedHeaders: parsedHeaders};
                     }
+                    return {series: series, parsedHeaders: parsedHeaders};
                 }
             }
             else
             {
+                aBBoxes.sort(function(a, b){
+                    return Math.min(a.r1, a.r2) - Math.min(b.r1, b.r2);
+                });
+                parsedHeaders = parseSeriesHeaders(oWorksheet, aBBoxes[0]);
+                if(parsedHeaders.bTop)
+                {
+                    --nSumRows;
+                    ++r1;
+                }
+                if(parsedHeaders.bLeft)
+                {
+                    ++c1;
+                }
                 if(nSumRows > (c2 - c1 + 1))
                 {
-
-                    aBBoxes.sort(function(a, b){
-                        return Math.min(a.r1, a.r2) - Math.min(b.r1, b.r2);
-                    });
-                    parsedHeaders = parseSeriesHeaders(oWorksheet, aBBoxes[0]);
-                    if(parsedHeaders.bTop)
-                    {
-                        --nSumRows;
-                    }
-                    if(parsedHeaders.bLeft)
-                    {
-                        ++c1;
-                    }
                     if(nSumRows > (c2 - c1 + 1))
                     {
                         for(i = c1; i <= c2; ++i)
@@ -17352,7 +17419,7 @@ function getChartSeries (worksheet, options, catHeadersBBox, serHeadersBBox)
                                 bbox = aBBoxes[j];
                                 if(j === 0 && parsedHeaders.bTop)
                                 {
-                                    if(Math.max(bbox.r1, bbox.r2) - Math.min(bbox.r1, bbox.r2) === 1)
+                                    if(Math.max(bbox.r1, bbox.r2) - Math.min(bbox.r1, bbox.r2) === 0)
                                     {
                                         continue;
                                     }
@@ -17411,6 +17478,69 @@ function getChartSeries (worksheet, options, catHeadersBBox, serHeadersBBox)
                         }
                         return {series: series, parsedHeaders: parsedHeaders};
                     }
+                }
+                else
+                {
+                    for(i = 0; i < aBBoxes.length; ++i)
+                    {
+                        bbox = aBBoxes[i];
+                        if(i === 0 && parsedHeaders.bTop)
+                        {
+                            if(Math.max(bbox.r1, bbox.r2) - Math.min(bbox.r1, bbox.r2) === 0)
+                            {
+                                continue;
+                            }
+                            nStartRow = Math.min(bbox.r1, bbox.r2) + 1;
+                        }
+                        else
+                        {
+                            nStartRow = Math.min(bbox.r1, bbox.r2);
+                        }
+
+                        for(j = nStartRow; j <= Math.max(bbox.r1, bbox.r2); ++j)
+                        {
+                            startCell = new CellAddress(j, c1, 0);
+                            endCell = new CellAddress(j, c2, 0);
+
+
+                            ser = new AscFormat.asc_CChartSeria();
+                            series.push(ser);
+                            ser.isHidden = !!ws.getColHidden(j);
+
+                            // Val
+                            sStartCellId = startCell.getIDAbsolute();
+                            sEndCellId = endCell.getIDAbsolute();
+                            ser.Val.Formula = parserHelp.get3DRef(ws.sName, sStartCellId === sEndCellId ?
+                                sStartCellId : sStartCellId + ':' + sEndCellId);
+                            ser.Val.NumCache = getNumCache(ws, c1, c2, j, j);
+                            if(parsedHeaders.bTop)
+                            {
+                                aCatCache = getNumCache(ws, Math.min(c1, c2), Math.max(c1, c2), Math.min(aBBoxes[0].r1, aBBoxes[0].r2), Math.min(aBBoxes[0].r1, aBBoxes[0].r2));
+                                startCell = new CellAddress(Math.min(aBBoxes[0].r1, aBBoxes[0].r2), Math.min(c1, c2), 0);
+                                endCell = new CellAddress(Math.min(aBBoxes[0].r1, aBBoxes[0].r2), Math.max(c1, c2), 0);
+                                sStartCellId = startCell.getIDAbsolute();
+                                sEndCellId = endCell.getIDAbsolute();
+                                sCatFormula = parserHelp.get3DRef(ws.sName, sStartCellId === sEndCellId ?
+                                    sStartCellId : sStartCellId + ':' + sEndCellId);
+                                if (bIsScatter)
+                                {
+                                    ser.xVal.Formula = sCatFormula;
+                                    ser.xVal.NumCache = aCatCache;
+                                }
+                                else
+                                {
+                                    ser.Cat.Formula = sCatFormula;
+                                    ser.Cat.NumCache = aCatCache;
+                                }
+                            }
+                            if(parsedHeaders.bLeft)
+                            {
+                                formulaCell = new CellAddress( j, Math.min(aBBoxes[0].c1, aBBoxes[0].c2), 0 );
+                                ser.TxCache.Formula = parserHelp.get3DRef(oWorksheet.sName, formulaCell.getIDAbsolute());
+                            }
+                        }
+                    }
+                    return {series: series, parsedHeaders: parsedHeaders};
                 }
             }
         }
