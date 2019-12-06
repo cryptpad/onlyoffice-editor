@@ -1485,7 +1485,8 @@ CChartSpace.prototype.drawSelect = function(drawingDocument, nPageIndex)
                     {
                         var seriesPaths = this.selection.markers ? oDrawChart.paths.points : oDrawChart.paths.series;
                         var Paths;
-                        if(oDrawChart.chart && oDrawChart.chart.getObjectType() === AscDFH.historyitem_type_PieChart && oDrawChart.properties3d)
+                        var b3dPie = oDrawChart.chart.getObjectType() === AscDFH.historyitem_type_PieChart && AscFormat.CChartsDrawer.prototype._isSwitchCurrent3DChart(this) && this.chartObj.processor3D;
+                        if(oDrawChart.chart && b3dPie)
                         {
                             Paths = seriesPaths;
                         }
@@ -1518,14 +1519,19 @@ CChartSpace.prototype.drawSelect = function(drawingDocument, nPageIndex)
                                             // frontPath: []
                                             // insidePath: 1188
                                             // upPath: 1213
-                                            if(AscFormat.isRealNumber(aPointsPaths2[z].upPath))
+                                            if(AscFormat.isRealNumber(aPointsPaths2[z].downPath) && !b3dPie)
                                             {
                                                 oPath = this.GetPath(aPointsPaths2[z].downPath);
                                                 oPath.drawTracks(drawingDocument, this.transform);
                                             }
+                                            if(AscFormat.isRealNumber(aPointsPaths2[z].upPath))
+                                            {
+                                                oPath = this.GetPath(aPointsPaths2[z].upPath);
+                                                oPath.drawTracks(drawingDocument, this.transform);
+                                            }
 											
 											var aFrontPaths = aPointsPaths2[z].frontPath || aPointsPaths2[z].frontPaths;
-                                            if(Array.isArray(aFrontPaths))
+                                            if(Array.isArray(aFrontPaths) && !b3dPie)
                                             {
                                                 for(var s = 0; s < aFrontPaths.length; ++s)
                                                 {
