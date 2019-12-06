@@ -292,11 +292,13 @@ var editor;
   spreadsheet_api.prototype.asc_getLocale = function () {
     return AscCommon.g_oDefaultCultureInfo.LCID;
   };
-  spreadsheet_api.prototype.asc_getDecimalSeparator = function () {
-    return AscCommon.g_oDefaultCultureInfo.NumberDecimalSeparator;
+  spreadsheet_api.prototype.asc_getDecimalSeparator = function (culture) {
+  	var cultureInfo = AscCommon.g_aCultureInfos[culture] || AscCommon.g_oDefaultCultureInfo;
+    return cultureInfo.NumberDecimalSeparator;
   };
-  spreadsheet_api.prototype.asc_getGroupSeparator = function () {
-    return AscCommon.g_oDefaultCultureInfo.NumberGroupSeparator;
+  spreadsheet_api.prototype.asc_getGroupSeparator = function (culture) {
+  	var cultureInfo = AscCommon.g_aCultureInfos[culture] || AscCommon.g_oDefaultCultureInfo;
+  	return cultureInfo.NumberGroupSeparator;
   };
   spreadsheet_api.prototype._openDocument = function(data) {
     this.wbModel = new AscCommonExcel.Workbook(this.handlers, this);
