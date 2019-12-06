@@ -1485,8 +1485,8 @@ CChartSpace.prototype.drawSelect = function(drawingDocument, nPageIndex)
                     {
                         var seriesPaths = this.selection.markers ? oDrawChart.paths.points : oDrawChart.paths.series;
                         var Paths;
-                        var b3dPie = oDrawChart.chart.getObjectType() === AscDFH.historyitem_type_PieChart && AscFormat.CChartsDrawer.prototype._isSwitchCurrent3DChart(this) && this.chartObj.processor3D;
-                        if(oDrawChart.chart && b3dPie)
+                        var b3dPie = oDrawChart.chart.getObjectType() === AscDFH.historyitem_type_PieChart;
+                        if( b3dPie)
                         {
                             Paths = seriesPaths;
                         }
@@ -1613,6 +1613,50 @@ CChartSpace.prototype.drawSelect = function(drawingDocument, nPageIndex)
                                                 oPath = this.GetPath(aPointsPaths2[z]);
                                                 oPath.drawTracks(drawingDocument, this.transform);
                                             }
+                                            else if(AscCommon.isRealObject(aPointsPaths2[z]))
+                                            {
+                                                // downPath: 1230
+                                                // frontPath: []
+                                                // insidePath: 1188
+                                                // upPath: 1213
+                                                if(AscFormat.isRealNumber(aPointsPaths2[z].downPath) && !b3dPie)
+                                                {
+                                                    oPath = this.GetPath(aPointsPaths2[z].downPath);
+                                                    oPath.drawTracks(drawingDocument, this.transform);
+                                                }
+                                                if(AscFormat.isRealNumber(aPointsPaths2[z].upPath))
+                                                {
+                                                    oPath = this.GetPath(aPointsPaths2[z].upPath);
+                                                    oPath.drawTracks(drawingDocument, this.transform);
+                                                }
+
+                                                var aFrontPaths = aPointsPaths2[z].frontPath || aPointsPaths2[z].frontPaths;
+                                                if(Array.isArray(aFrontPaths) && !b3dPie)
+                                                {
+                                                    for(var s = 0; s < aFrontPaths.length; ++s)
+                                                    {
+                                                        if(AscFormat.isRealNumber(aFrontPaths[s]))
+                                                        {
+                                                            oPath = this.GetPath(aFrontPaths[s]);
+                                                            oPath.drawTracks(drawingDocument, this.transform);
+                                                        }
+                                                    }
+                                                }
+                                                aFrontPaths = aPointsPaths2[z].darkPaths;
+                                                if(Array.isArray(aFrontPaths))
+                                                {
+                                                    for(var s = 0; s < aFrontPaths.length; ++s)
+                                                    {
+                                                        if(AscFormat.isRealNumber(aFrontPaths[s]))
+                                                        {
+                                                            oPath = this.GetPath(aFrontPaths[s]);
+                                                            oPath.drawTracks(drawingDocument, this.transform);
+                                                        }
+                                                    }
+                                                }
+
+                                            }
+
                                         }
                                     }
 									else
