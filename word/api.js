@@ -8923,6 +8923,13 @@ background-repeat: no-repeat;\
 			return;
 
 		oContentControl.SkipSpecialContentControlLock(true);
+
+		if (!oContentControl.CanBeEdited())
+		{
+			oContentControl.SkipSpecialContentControlLock(false);
+			return;
+		}
+
 		var isLocked = false;
 		if (c_oAscSdtLevelType.Block === oContentControl.GetContentControlType())
 		{
