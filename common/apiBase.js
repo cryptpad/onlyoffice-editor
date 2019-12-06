@@ -548,6 +548,10 @@
 		var rData                  = null;
 		if (!(this.DocInfo && this.DocInfo.get_OfflineApp()))
 		{
+			var locale = this.asc_getLocale() || undefined;
+			if (typeof locale === "string") {
+				locale = g_oLcidNameToIdMap[locale];
+			}
 			rData = {
 				"c"             : 'open',
 				"id"            : this.documentId,
@@ -555,6 +559,7 @@
 				"format"        : this.documentFormat,
 				"url"           : this.documentUrl,
 				"title"         : this.documentTitle,
+				"lcid"          : locale,
 				"nobase64"      : true
 			};
 			if (versionHistory)

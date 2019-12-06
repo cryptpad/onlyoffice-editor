@@ -1236,7 +1236,10 @@
 	{
 		this.locale = val;
 	};
-
+	asc_docs_api.prototype.asc_getLocale = function()
+	{
+		return this.locale;
+	};
 	asc_docs_api.prototype.SetThemesPath = function(path)
 	{
 	    if (this.standartThemesStatus == 0)
@@ -7643,6 +7646,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_getEditorPermissions']            = asc_docs_api.prototype.asc_getEditorPermissions;
 	asc_docs_api.prototype['asc_setDocInfo']                      = asc_docs_api.prototype.asc_setDocInfo;
 	asc_docs_api.prototype['asc_setLocale']                       = asc_docs_api.prototype.asc_setLocale;
+	asc_docs_api.prototype['asc_getLocale']                       = asc_docs_api.prototype.asc_getLocale;
 	asc_docs_api.prototype['asc_LoadDocument']                    = asc_docs_api.prototype.asc_LoadDocument;
 	asc_docs_api.prototype['SetThemesPath']                       = asc_docs_api.prototype.SetThemesPath;
 	asc_docs_api.prototype['InitEditor']                          = asc_docs_api.prototype.InitEditor;

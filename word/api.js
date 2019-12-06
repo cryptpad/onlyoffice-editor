@@ -1080,6 +1080,11 @@
 		this.InterfaceLocale = val;
 	};
 
+	asc_docs_api.prototype.asc_getLocale = function()
+	{
+		return this.InterfaceLocale;
+	};
+
 	asc_docs_api.prototype.ChangeReaderMode  = function()
 	{
 		return this.WordControl.ChangeReaderMode();
@@ -10167,6 +10172,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_getEditorPermissions']                  = asc_docs_api.prototype.asc_getEditorPermissions;
 	asc_docs_api.prototype['asc_setDocInfo']                            = asc_docs_api.prototype.asc_setDocInfo;
 	asc_docs_api.prototype['asc_setLocale']                             = asc_docs_api.prototype.asc_setLocale;
+	asc_docs_api.prototype['asc_getLocale']                             = asc_docs_api.prototype.asc_getLocale;
 	asc_docs_api.prototype['asc_LoadDocument']                          = asc_docs_api.prototype.asc_LoadDocument;
 	asc_docs_api.prototype['SetTextBoxInputMode']                       = asc_docs_api.prototype.SetTextBoxInputMode;
 	asc_docs_api.prototype['GetTextBoxInputMode']                       = asc_docs_api.prototype.GetTextBoxInputMode;
