@@ -550,7 +550,11 @@
 		{
 			var locale = this.asc_getLocale() || undefined;
 			if (typeof locale === "string") {
-				locale = g_oLcidNameToIdMap[locale];
+				if (Asc.g_oLcidNameToIdMap) {
+					locale = Asc.g_oLcidNameToIdMap[locale];
+				} else {
+					locale = undefined;
+				}
 			}
 			rData = {
 				"c"             : 'open',

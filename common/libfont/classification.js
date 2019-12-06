@@ -1337,3 +1337,7 @@ var g_oLcidIdToNameMap = {};
 
 var g_font_detector = new window.CDetectFontUse();
 g_font_detector.Init();
+
+window['Asc'] = window['Asc'] || {};
+window['Asc'].g_oLcidNameToIdMap = g_oLcidNameToIdMap;
+window['Asc'].g_oLcidIdToNameMap = g_oLcidIdToNameMap;

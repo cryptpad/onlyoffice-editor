@@ -2084,7 +2084,7 @@ function CBinaryFileWriter()
             oThis._WriteUChar1(4, _cap);
         }
 
-        oThis._WriteString2(10, g_oLcidIdToNameMap[rPr.Lang.Val]);
+        oThis._WriteString2(10, Asc.g_oLcidIdToNameMap[rPr.Lang.Val]);
 
         var _strike = null;
         if (rPr.DStrikeout === true)
