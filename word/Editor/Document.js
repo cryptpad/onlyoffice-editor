@@ -22273,6 +22273,9 @@ CTrackRevisionsManager.prototype.GetNewMoveId = function()
 };
 CTrackRevisionsManager.prototype.RegisterMoveMark = function(oMark)
 {
+	if (this.LogicDocument && this.LogicDocument.PrintSelection)
+		return;
+
 	if (!oMark)
 		return;
 
@@ -22315,6 +22318,9 @@ CTrackRevisionsManager.prototype.RegisterMoveMark = function(oMark)
 };
 CTrackRevisionsManager.prototype.UnregisterMoveMark = function(oMark)
 {
+	if (this.LogicDocument && this.LogicDocument.PrintSelection)
+		return;
+
 	if (!oMark)
 		return;
 
