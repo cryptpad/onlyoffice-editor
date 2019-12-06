@@ -513,7 +513,7 @@ CComplexField.prototype.private_UpdateFORMULA = function()
 		};
 		oParagraph.Check_NearestPos(oNearPos);
 		oSelectedContent.DoNotAddEmptyPara = true;
-		oParagraph.Parent.Insert_Content(oSelectedContent, oNearPos);
+		oParagraph.Parent.InsertContent(oSelectedContent, oNearPos);
 	}
 	else
 	{
@@ -790,7 +790,7 @@ CComplexField.prototype.private_UpdateTOC = function()
 
 	oSelectedContent.DoNotAddEmptyPara = true;
 
-	oParagraph.Parent.Insert_Content(oSelectedContent, oNearPos);
+	oParagraph.Parent.InsertContent(oSelectedContent, oNearPos);
 };
 CComplexField.prototype.private_UpdatePAGEREF = function()
 {

@@ -406,6 +406,9 @@ Paragraph.prototype.Recalculate_Page = function(CurPage)
 
     this.Parent.RecalcInfo.Reset_WidowControl();
 
+    if (RecalcResult & recalcresult_NextElement && window['AscCommon'].g_specialPasteHelper && window['AscCommon'].g_specialPasteHelper.showButtonIdParagraph === this.GetId())
+		window['AscCommon'].g_specialPasteHelper.SpecialPasteButtonById_Show();
+
     return RecalcResult;
 };
 
@@ -1458,7 +1461,7 @@ Paragraph.prototype.private_RecalculateLinePosition    = function(CurLine, CurPa
 		// TODO: Здесь нужно сделать корректировку YLimit с учетом сносок. Надо разобраться почему вообще здесь
 		// используется this.YLimit вместо Page.YLimit
 
-		if (false === this.Parent.IsTableCellContent() && Bottom > this.YLimit && Bottom - this.YLimit <= ParaPr.Spacing.After)
+		if (!this.Parent.IsCalculatingContinuousSectionBottomLine() && false === this.Parent.IsTableCellContent() && Bottom > this.YLimit && Bottom - this.YLimit <= ParaPr.Spacing.After)
 			Bottom = this.YLimit;
 	}
 
@@ -2297,13 +2300,19 @@ Paragraph.prototype.private_RecalculateMoveLineToNextPage = function(CurLine, Cu
 			if (CompatibilityMode <= document_compatibility_mode_Word14)
 			{
 				if (null != this.Get_DocumentPrev() && true != this.Parent.IsTableCellContent() && 0 === CurPage)
+				{
 					CurLine = 0;
+					PRS.RunRecalcInfoBreak = null;
+				}
 			}
 			else if (CompatibilityMode >= document_compatibility_mode_Word15)
 			{
 				// TODO: Разобраться с 2016 вордом
 				if (null != this.Get_DocumentPrev() && 0 === CurPage)
+				{
 					CurLine = 0;
+					PRS.RunRecalcInfoBreak = null;
+				}
 			}
 		}
 
@@ -2850,6 +2859,7 @@ function CParagraphRecalculateStateWrap(Para)
                                                       // отрезка или строки, если что-то не умещается (например,
                                                       // если у нас не убирается слово, то разрыв ставим перед ним)
 	this.LastItem       = null;                       // Последний непробельный элемент
+	this.UpdateLBP      = true;                       // Флаг для первичного обновления позиции переноса в отрезке
 
 
     this.RunRecalcInfoLast  = null; // RecalcInfo последнего рана
@@ -2982,6 +2992,7 @@ CParagraphRecalculateStateWrap.prototype =
 		this.LineBreakPos   = new CParagraphContentPos();
 		this.LineBreakFirst = true;
 		this.LastItem       = null;
+		this.UpdateLBP      = true;
 
         // for ParaMath
         this.bMath_OneLine    = false;
@@ -3292,15 +3303,15 @@ CParagraphRecalculateStateWrap.prototype =
             var Level = Para.PresentationPr.Level;
             var Bullet = Para.PresentationPr.Bullet;
 
-            var BulletNum = 0;
+            var BulletNum = 1;
             if (Bullet.Get_Type() >= numbering_presentationnumfrmt_ArabicPeriod)
             {
                 var Prev = Para.Prev;
+                BulletNum = Bullet.Get_StartAt();
                 while (null != Prev && type_Paragraph === Prev.GetType())
                 {
                     var PrevLevel = Prev.PresentationPr.Level;
                     var PrevBullet = Prev.Get_PresentationNumbering();
-
                     // Если предыдущий параграф более низкого уровня, тогда его не учитываем
                     if (Level < PrevLevel)
                     {
@@ -3309,7 +3320,7 @@ CParagraphRecalculateStateWrap.prototype =
                     }
                     else if (Level > PrevLevel)
                         break;
-                    else if (PrevBullet.Get_Type() === Bullet.Get_Type() && PrevBullet.Get_StartAt() === PrevBullet.Get_StartAt())
+                    else if (PrevBullet.Get_Type() === Bullet.Get_Type() && Bullet.Get_StartAt() === PrevBullet.Get_StartAt())
                     {
                         if (true != Prev.IsEmpty())
                             BulletNum++;
@@ -3317,15 +3328,21 @@ CParagraphRecalculateStateWrap.prototype =
                         Prev = Prev.Prev;
                     }
                     else
+                    {
                         break;
+                    }
                 }
             }
 
             // Найдем настройки для первого текстового элемента
             var FirstTextPr = Para.Get_FirstTextPr2();
 
+            if(BulletNum > 32767)
+            {
+                BulletNum -= 32767;
+            }
             NumberingItem.Bullet = Bullet;
-            NumberingItem.BulletNum = BulletNum + 1;
+            NumberingItem.BulletNum = BulletNum;
             NumberingItem.Measure(g_oTextMeasurer, FirstTextPr, Para.Get_Theme(), Para.Get_ColorMap());
 
 
@@ -3475,6 +3492,15 @@ CParagraphRecalculateStateWrap.prototype.SetMathRecalcInfoLine = function(nLine)
 CParagraphRecalculateStateWrap.prototype.IsCondensedSpaces = function()
 {
 	return this.CondensedSpaces;
+};
+CParagraphRecalculateStateWrap.prototype.CheckUpdateLBP = function(nInRunPos)
+{
+	 if (this.UpdateLBP)
+	 {
+		 this.UpdateLBP = false;
+		 this.LineBreakPos.Set(this.CurPos);
+		 this.LineBreakPos.Add(nInRunPos);
+	 }
 };
 
 function CParagraphRecalculateStateCounter()

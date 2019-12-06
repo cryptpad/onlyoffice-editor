@@ -1564,9 +1564,9 @@ ParaMath.prototype.GetSelectContent = function()
     return this.Root.GetSelectContent();
 };
 
-ParaMath.prototype.Get_CurrentParaPos = function()
+ParaMath.prototype.GetCurrentParaPos = function()
 {
-    return this.Root.Get_CurrentParaPos();
+    return this.Root.GetCurrentParaPos();
 };
 
 ParaMath.prototype.Apply_TextPr = function(TextPr, IncFontSize, ApplyToAll)

@@ -1728,7 +1728,7 @@ function CEditorPage(api)
 
 		if (!oWordControl.IsUpdateOverlayOnEndCheck)
 		{
-			if (oWordControl.m_oDrawingDocument.ContentControlsCheckLast())
+			if (oWordControl.m_oDrawingDocument.contentControls && oWordControl.m_oDrawingDocument.contentControls.ContentControlsCheckLast())
 				oWordControl.OnUpdateOverlay();
 		}
 
@@ -1767,6 +1767,14 @@ function CEditorPage(api)
 		oWordControl.m_oLogicDocument.OnMouseMove(global_mouseEvent, pos.X, pos.Y, pos.Page);
 		oWordControl.EndUpdateOverlay();
 	};
+
+	this.UnlockCursorTypeOnMouseUp = function()
+	{
+		if (this.m_oApi.isDrawTablePen || this.m_oApi.isDrawTableErase)
+			return;
+		this.m_oDrawingDocument.UnlockCursorType();
+	};
+
 	this.onMouseUp    = function(e, bIsWindow, isTouch)
 	{
 		oThis.m_oApi.checkLastWork();
@@ -1824,7 +1832,7 @@ function CEditorPage(api)
 		if (oWordControl.m_oDrawingDocument.IsFreezePage(pos.Page))
 			return;
 
-		oWordControl.m_oDrawingDocument.UnlockCursorType();
+		oWordControl.UnlockCursorTypeOnMouseUp();
 
 		oWordControl.StartUpdateOverlay();
 
@@ -1834,13 +1842,6 @@ function CEditorPage(api)
 		var is_drawing = oWordControl.m_oDrawingDocument.checkMouseUp_Drawing(pos);
 		if (is_drawing === true)
 			return;
-
-		var is_drawing_on_up = oWordControl.m_oDrawingDocument.checkMouseDown_DrawingOnUp(pos);
-		if (is_drawing_on_up)
-		{
-			// не посылаем в документ.
-			return;
-		}
 
 		if (null != oWordControl.m_oDrawingDocument.m_oDocumentRenderer)
 		{
@@ -1966,7 +1967,7 @@ function CEditorPage(api)
 		if (oWordControl.m_oDrawingDocument.IsFreezePage(pos.Page))
 			return;
 
-		oWordControl.m_oDrawingDocument.UnlockCursorType();
+		oWordControl.UnlockCursorTypeOnMouseUp();
 
 		oWordControl.StartUpdateOverlay();
 
@@ -3045,7 +3046,16 @@ function CEditorPage(api)
 				}
 			}
 
-			drDoc.DrawContentControlsTrack(overlay);
+			drDoc.contentControls && drDoc.contentControls.DrawContentControlsTrack(overlay);
+
+            if (drDoc.placeholders.objects.length > 0)
+            {
+                for (var indP = drDoc.m_lDrawingFirst; indP <= drDoc.m_lDrawingEnd; indP++)
+                {
+                    var _page = drDoc.m_arrPages[indP];
+                    drDoc.placeholders.draw(overlay, indP, _page.drawingPage, _page.width_mm, _page.height_mm);
+                }
+            }
 
 			if (drDoc.TableOutlineDr.bIsTracked)
 			{
@@ -3077,6 +3087,16 @@ function CEditorPage(api)
 
 				drDoc.AutoShapesTrack.PageIndex       = _oldPage;
 				drDoc.AutoShapesTrack.CurrentPageInfo = _oldCurPageInfo;
+			}
+			
+			if (this.m_oApi.isDrawTablePen || this.m_oApi.isDrawTableErase)
+			{
+				var logicObj = this.m_oLogicDocument.DrawTableMode;
+				if (logicObj.Start && logicObj.Table)
+				{
+					drDoc.DrawCustomTableMode(overlay, logicObj.Table.GetDrawLine(logicObj.StartX, logicObj.StartY, logicObj.EndX, logicObj.EndY,
+						logicObj.Page, this.m_oApi.isDrawTablePen), logicObj, this.m_oApi.isDrawTablePen);
+				}
 			}
 
 			drDoc.DrawHorVerAnchor();

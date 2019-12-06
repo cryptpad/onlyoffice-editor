@@ -1139,7 +1139,9 @@
 			case AscDFH.historydescription_Document_SetContentControlDatePickerPr:
 				sString = "Document_SetContentControlDatePickerPr";
 				break;
-
+			case AscDFH.historydescription_Document_AddTextWithProperties:
+				sString = "Document_AddTextWithProperties";
+				break;
 		}
 		return sString;
 	}
@@ -1857,6 +1859,7 @@
 	window['AscDFH'].historyitem_AutoShapes_SetDrawingBaseType       = window['AscDFH'].historyitem_type_CommonShape | 107;
 	window['AscDFH'].historyitem_AutoShapes_SetDrawingBaseExt        = window['AscDFH'].historyitem_type_CommonShape | 108;
 	window['AscDFH'].historyitem_AutoShapes_SetDrawingBasePos        = window['AscDFH'].historyitem_type_CommonShape | 109;
+	window['AscDFH'].historyitem_AutoShapes_SetDrawingBaseEditAs     = window['AscDFH'].historyitem_type_CommonShape | 110;
 
 	window['AscDFH'].historyitem_ChartFormatSetChart = window['AscDFH'].historyitem_type_CommonShape | 201;
 
@@ -3183,6 +3186,8 @@
 	window['AscDFH'].historydescription_Document_SetContentControlDatePickerPr      = 0x016e;
 	window['AscDFH'].historydescription_Presentation_AddToLayout                    = 0x016f;
 	window['AscDFH'].historydescription_Presentation_FitImagesToSlide               = 0x0170;
+	window['AscDFH'].historydescription_Document_AddTextWithProperties              = 0x0171;
+	window['AscDFH'].historydescription_Document_AddCaption                         = 0x0172;
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

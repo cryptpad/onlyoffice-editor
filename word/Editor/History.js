@@ -473,7 +473,7 @@ CHistory.prototype =
 				Len : Binary_Len
 			},
 
-			NeedRecalc : !this.MinorChanges
+			NeedRecalc : !this.MinorChanges && (!_Class || _Class.IsNeedRecalculate())
 		};
 
 		this.Points[this.Index].Items.push(Item);

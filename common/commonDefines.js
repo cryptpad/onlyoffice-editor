@@ -217,7 +217,14 @@
 
 			NoDataToParse : -601,
 
-			CannotUngroupError : -700
+			CannotUngroupError : -700,
+
+			UplDocumentSize         : -751,
+			UplDocumentExt          : -752,
+			UplDocumentFileCount    : -753,
+
+			CustomSortMoreOneSelectedError: -800,
+			CustomSortNotOriginalSelectError: -801
 		}
 	};
 
@@ -1571,6 +1578,17 @@
 		Thai                 : 13
 	};
 
+	var c_oAscContentControlSpecificType = {
+		None         : 0,
+		CheckBox     : 1,
+		Picture      : 2,
+		ComboBox     : 3,
+		DropDownList : 4,
+		DateTime     : 5,
+
+		TOC          : 10
+	};
+
 	//------------------------------------------------------------export--------------------------------------------------
 	var prot;
 	window['Asc']                          = window['Asc'] || {};
@@ -1712,6 +1730,8 @@
 	prot['DataEncrypted']                    = prot.DataEncrypted;
 	prot['NoDataToParse']                    = prot.NoDataToParse;
 	prot['CannotUngroupError']               = prot.CannotUngroupError;
+	prot['CustomSortMoreOneSelectedError']   = prot.CustomSortMoreOneSelectedError;
+	prot['CustomSortNotOriginalSelectError'] = prot.CustomSortNotOriginalSelectError;
 	window['Asc']['c_oAscAsyncAction']       = window['Asc'].c_oAscAsyncAction = c_oAscAsyncAction;
 	prot                                     = c_oAscAsyncAction;
 	prot['Open']                             = prot.Open;
@@ -2482,5 +2502,14 @@
 	prot['Saka']                 = c_oAscCalendarType.Saka;
 	prot['Taiwan']               = c_oAscCalendarType.Taiwan;
 	prot['Thai']                 = c_oAscCalendarType.Thai;
+
+	prot = window['Asc']['c_oAscContentControlSpecificType'] = window['Asc'].c_oAscContentControlSpecificType = c_oAscContentControlSpecificType;
+	prot['None']         = c_oAscContentControlSpecificType.None;
+	prot['CheckBox']     = c_oAscContentControlSpecificType.CheckBox;
+	prot['Picture']      = c_oAscContentControlSpecificType.Picture;
+	prot['ComboBox']     = c_oAscContentControlSpecificType.ComboBox;
+	prot['DropDownList'] = c_oAscContentControlSpecificType.DropDownList;
+	prot['DateTime']     = c_oAscContentControlSpecificType.DateTime;
+	prot['TOC']          = c_oAscContentControlSpecificType.TOC;
 
 })(window);

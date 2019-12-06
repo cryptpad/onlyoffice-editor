@@ -3729,13 +3729,28 @@ var g_oFormatParser = new FormatParser();
 function escapeRegExp(string) {
     return string.replace(/([.*+?^=!:${}()|\[\]\/\\])/g, "\\$1");
 }
-function setCurrentCultureInfo(val) {
-    var cultureInfoNew = g_aCultureInfos[val];
-    if (!cultureInfoNew || AscCommon.g_oDefaultCultureInfo === cultureInfoNew) {
-        return false;
-    }
-    AscCommon.g_oDefaultCultureInfo = g_oDefaultCultureInfo = cultureInfoNew;
-    return true;
+function setCurrentCultureInfo (LCID, decimalSeparator, groupSeparator) {
+	var res = false;
+	var cultureInfoNew = g_aCultureInfos[LCID];
+	if (cultureInfoNew) {
+		if (LCID !== g_oLCID) {
+			g_oLCID = LCID;
+			AscCommon.g_oDefaultCultureInfo = g_oDefaultCultureInfo = JSON.parse(JSON.stringify(cultureInfoNew)); // ToDo clone
+			res = true;
+		}
+
+		decimalSeparator = (null != decimalSeparator) ? decimalSeparator : cultureInfoNew.numberDecimalSeparator;
+		if (decimalSeparator !== g_oDefaultCultureInfo.numberDecimalSeparator) {
+			g_oDefaultCultureInfo.numberDecimalSeparator = decimalSeparator;
+			res = true;
+		}
+		groupSeparator = (null != groupSeparator) ? groupSeparator : cultureInfoNew.numberGroupSeparator;
+		if (groupSeparator !== g_oDefaultCultureInfo.numberGroupSeparator) {
+			g_oDefaultCultureInfo.numberGroupSeparator = groupSeparator;
+			res = true;
+		}
+	}
+	return res;
 }
 	function checkCultureInfoFontPicker(LCID) {
 		var ci = g_aCultureInfos[LCID] || g_oDefaultCultureInfo;
@@ -3777,9 +3792,9 @@ function setCurrentCultureInfo(val) {
 		return true;
 	}
 	function getShortDateMonthFormat(bDate, bYear, opt_cultureInfo) {
-		var cultureInfo = opt_cultureInfo ? opt_cultureInfo : AscCommon.g_oDefaultCultureInfo;
+		var cultureInfo = opt_cultureInfo ? opt_cultureInfo : g_oDefaultCultureInfo;
 		var separator;
-		if ('/' == AscCommon.g_oDefaultCultureInfo.DateSeparator) {
+		if ('/' == g_oDefaultCultureInfo.DateSeparator) {
 			separator = '-';
 		} else {
 			separator = '/';
@@ -3801,7 +3816,7 @@ function setCurrentCultureInfo(val) {
 		return sRes;
 	}
 	function getShortDateFormat(opt_cultureInfo) {
-		var cultureInfo = opt_cultureInfo ? opt_cultureInfo : AscCommon.g_oDefaultCultureInfo;
+		var cultureInfo = opt_cultureInfo ? opt_cultureInfo : g_oDefaultCultureInfo;
 		var dateElems = [];
 		for (var i = 0; i < cultureInfo.ShortDatePattern.length; ++i) {
 			switch (cultureInfo.ShortDatePattern[i]) {
@@ -3829,7 +3844,7 @@ function setCurrentCultureInfo(val) {
 	}
 
 	function getShortDateFormat2(day, month, year, opt_cultureInfo) {
-		var cultureInfo = opt_cultureInfo ? opt_cultureInfo : AscCommon.g_oDefaultCultureInfo;
+		var cultureInfo = opt_cultureInfo ? opt_cultureInfo : g_oDefaultCultureInfo;
 		var dateElems = [];
 		for (var i = 0; i < cultureInfo.ShortDatePattern.length; ++i) {
 			switch (cultureInfo.ShortDatePattern[i]) {
@@ -3857,7 +3872,7 @@ function setCurrentCultureInfo(val) {
 	}
 
 	function getShortTimeFormat(opt_cultureInfo) {
-		var cultureInfo = opt_cultureInfo ? opt_cultureInfo : AscCommon.g_oDefaultCultureInfo;
+		var cultureInfo = opt_cultureInfo ? opt_cultureInfo : g_oDefaultCultureInfo;
 		if (cultureInfo.AMDesignator.length > 0 && cultureInfo.PMDesignator.length > 0) {
 			return 'h:mm AM/PM;@';
 		} else {
@@ -3874,7 +3889,7 @@ function setCurrentCultureInfo(val) {
 	}
 
 	function getNumberFormat(opt_cultureInfo, opt_separate, opt_fraction, opt_red) {
-		var cultureInfo = opt_cultureInfo ? opt_cultureInfo : AscCommon.g_oDefaultCultureInfo;
+		var cultureInfo = opt_cultureInfo ? opt_cultureInfo : g_oDefaultCultureInfo;
 		var numberFormat = getNumberFormatSimple(opt_separate, opt_fraction);
 		var red = opt_red ? '[Red]' : '';
 
@@ -3897,13 +3912,13 @@ function setCurrentCultureInfo(val) {
 	}
 
 	function getLocaleFormat(opt_cultureInfo, opt_currency) {
-		var cultureInfo = opt_cultureInfo ? opt_cultureInfo : AscCommon.g_oDefaultCultureInfo;
+		var cultureInfo = opt_cultureInfo ? opt_cultureInfo : g_oDefaultCultureInfo;
 		var symbol = opt_currency ? cultureInfo.CurrencySymbol : '';
 		return '[$' + symbol + '-' + cultureInfo.LCID.toString(16).toUpperCase() + ']';
 	}
 
 	function getCurrencyFormatSimple(opt_cultureInfo, opt_fraction, opt_currency, opt_currencyLocale, opt_red) {
-		var cultureInfo = opt_cultureInfo ? opt_cultureInfo : AscCommon.g_oDefaultCultureInfo;
+		var cultureInfo = opt_cultureInfo ? opt_cultureInfo : g_oDefaultCultureInfo;
 		var numberFormat = getNumberFormatSimple(true, opt_fraction);
 		var signCurrencyFormat;
 		var signCurrencyFormatEnd;
@@ -4005,7 +4020,7 @@ function setCurrentCultureInfo(val) {
 	}
 
 	function getCurrencyFormatSimple2(opt_cultureInfo, opt_fraction, opt_currency, opt_negative) {
-		var cultureInfo = opt_cultureInfo ? opt_cultureInfo : AscCommon.g_oDefaultCultureInfo;
+		var cultureInfo = opt_cultureInfo ? opt_cultureInfo : g_oDefaultCultureInfo;
 		var numberFormat = getNumberFormatSimple(true, opt_fraction);
 		var signCurrencyFormat;
 		var signCurrencyFormatEnd;
@@ -4050,7 +4065,7 @@ function setCurrentCultureInfo(val) {
 	}
 
 	function getCurrencyFormat(opt_cultureInfo, opt_fraction, opt_currency, opt_currencyLocale) {
-		var cultureInfo = opt_cultureInfo ? opt_cultureInfo : AscCommon.g_oDefaultCultureInfo;
+		var cultureInfo = opt_cultureInfo ? opt_cultureInfo : g_oDefaultCultureInfo;
 		var numberFormat = getNumberFormatSimple(true, opt_fraction);
 		var nullSignFormat = '* "-"';
 		if (opt_fraction) {
@@ -4481,7 +4496,8 @@ var g_aCultureInfos = {
 	30764: {LCID: 30764, Name: "az-Latn", CurrencyPositivePattern: 3, CurrencyNegativePattern: 8, CurrencySymbol: "₼", NumberDecimalSeparator: ",", NumberGroupSeparator: ".", NumberGroupSizes: [3], DayNames: ["bazar", "bazar ertəsi", "çərşənbə axşamı", "çərşənbə", "cümə axşamı", "cümə", "şənbə"], AbbreviatedDayNames: ["B.", "B.E.", "Ç.A.", "Ç.", "C.A.", "C.", "Ş."], MonthNames: ["Yanvar", "Fevral", "Mart", "Aprel", "May", "İyun", "İyul", "Avqust", "Sentyabr", "Oktyabr", "Noyabr", "Dekabr", ""], AbbreviatedMonthNames: ["yan", "fev", "mar", "apr", "may", "iyn", "iyl", "avq", "sen", "okt", "noy", "dek", ""], MonthGenitiveNames: ["yanvar", "fevral", "mart", "aprel", "may", "iyun", "iyul", "avqust", "sentyabr", "oktyabr", "noyabr", "dekabr", ""], AbbreviatedMonthGenitiveNames: [], AMDesignator: "AM", PMDesignator: "PM", DateSeparator: ".", TimeSeparator: ":", ShortDatePattern: "135"},
 	31748: {LCID: 31748, Name: "zh-Hant", CurrencyPositivePattern: 0, CurrencyNegativePattern: 0, CurrencySymbol: "HK$", NumberDecimalSeparator: ".", NumberGroupSeparator: ",", NumberGroupSizes: [3], DayNames: ["星期日", "星期一", "星期二", "星期三", "星期四", "星期五", "星期六"], AbbreviatedDayNames: ["週日", "週一", "週二", "週三", "週四", "週五", "週六"], MonthNames: ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月", ""], AbbreviatedMonthNames: ["一月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "十一月", "十二月", ""], MonthGenitiveNames: [], AbbreviatedMonthGenitiveNames: [], AMDesignator: "上午", PMDesignator: "下午", DateSeparator: "/", TimeSeparator: ":", ShortDatePattern: "025"},
 };
-var g_oDefaultCultureInfo = g_aCultureInfos[1033];//en-US//1033//fr-FR//1036//basq//1069//ru-Ru//1049//hindi//1081
+var g_oDefaultCultureInfo, g_oLCID;
+setCurrentCultureInfo(1033);//en-US//1033//fr-FR//1036//basq//1069//ru-Ru//1049//hindi//1081
 
     //---------------------------------------------------------export---------------------------------------------------
     window['AscCommon'] = window['AscCommon'] || {};

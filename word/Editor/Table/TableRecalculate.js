@@ -62,6 +62,9 @@ CTable.prototype.Recalculate_Page = function(PageIndex)
 	if (Result & recalcresult_NextElement)
 		this.RecalcInfo.Reset(false);
 
+	if (Result & recalcresult_NextElement && window['AscCommon'].g_specialPasteHelper && window['AscCommon'].g_specialPasteHelper.showButtonIdParagraph === this.GetId())
+		window['AscCommon'].g_specialPasteHelper.SpecialPasteButtonById_Show();
+
 	return Result;
 };
 CTable.prototype.Recalculate_SkipPage = function(PageIndex)
@@ -522,11 +525,7 @@ CTable.prototype.private_RecalculateGrid = function()
 				}
 				else
 				{
-					if (MinMargin[CurGridCol] < CellMarginsLeftW)
-						MinMargin[CurGridCol] = CellMarginsLeftW;
-
-					if (MinMargin[CurGridCol + GridSpan - 1] < CellMarginsRightW)
-						MinMargin[CurGridCol + GridSpan - 1] = CellMarginsRightW;
+					// Мы не можем быть уверены в какой промежуток попадают отступы ячейки
 				}
 
                 // На самом деле, случай 1 === GridSpan нормально обработается и как случай GridSpan > 1,

@@ -90,6 +90,26 @@ CFootnotesController.prototype.Get_Id = function()
 	return this.Id;
 };
 /**
+ *
+ * @param oLogicDocument
+ * @returns {CFootnotesController}
+ */
+CFootnotesController.prototype.Copy = function(oLogicDocument)
+{
+	var oFootnotes = new CFootnotesController(oLogicDocument);
+
+	for (var sId in this.Footnote)
+	{
+		oFootnotes.AddFootnote(this.Footnote[sId].Copy(oFootnotes));
+	}
+
+	oFootnotes.SetSeparator(this.SeparatorFootnote ? this.SeparatorFootnote.Copy(oFootnotes) : null);
+	oFootnotes.SetContinuationSeparator(this.ContinuationSeparatorFootnote ? this.ContinuationSeparatorFootnote.Copy(oFootnotes) : null);
+	oFootnotes.SetContinuationNotice(this.ContinuationNoticeFootnote ? this.ContinuationNoticeFootnote.Copy(oFootnotes) : null);
+
+	return oFootnotes;
+};
+/**
  * Начальная инициализация после загрузки всех файлов.
  */
 CFootnotesController.prototype.ResetSpecialFootnotes = function()

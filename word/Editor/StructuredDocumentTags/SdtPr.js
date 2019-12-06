@@ -264,6 +264,7 @@ CSdtPr.prototype.IsBuiltInDocPart = function()
 
 function CContentControlPr(nType)
 {
+	this.CC         = null;
 	this.Id         = undefined;
 	this.Tag        = undefined;
 	this.Alias      = undefined;
@@ -273,63 +274,150 @@ function CContentControlPr(nType)
 
 	this.Appearance = Asc.c_oAscSdtAppearance.Frame;
 	this.Color      = undefined;
+
+	this.CheckBoxPr = undefined;
+	this.ComboBoxPr = undefined;
+	this.DropDownPr = undefined;
+	this.DateTimePr = undefined;
 }
-CContentControlPr.prototype.get_Id = function()
+CContentControlPr.prototype.FillFromObject = function(oPr)
+{
+	if (undefined !== oPr.Id)
+		this.Id = oPr.Id;
+
+	if (undefined !== oPr.Tag)
+		this.Tag = oPr.Tag;
+
+	if (undefined !== oPr.Alias)
+		this.Alias = oPr.Alias;
+
+	if (undefined !== oPr.Lock)
+		this.Lock  = oPr.Lock;
+
+	if (undefined !== oPr.InternalId)
+		this.InternalId = oPr.InternalId;
+
+	if (undefined !== oPr.Appearance)
+		this.Appearance = oPr.Appearance;
+
+	if (undefined !== oPr.Color)
+		this.Color = oPr.Color;
+};
+CContentControlPr.prototype.FillFromContentControl = function(oContentControl)
+{
+	if (!oContentControl)
+		return;
+
+	this.CC         = oContentControl;
+	this.CCType     = oContentControl.IsBlockLevel() ? c_oAscSdtLevelType.Block : c_oAscSdtLevelType.Inline;
+	this.Id         = oContentControl.Pr.Id;
+	this.Lock       = oContentControl.Pr.Lock;
+	this.InternalId = oContentControl.GetId();
+	this.Tag        = oContentControl.GetTag();
+	this.Alias      = oContentControl.GetAlias();
+	this.Appearance = oContentControl.GetAppearance();
+	this.Color      = oContentControl.GetColor();
+
+	if (oContentControl.IsCheckBox())
+		this.CheckBoxPr = oContentControl.GetCheckBoxPr().Copy();
+	else if (oContentControl.IsComboBox())
+		this.ComboBoxPr = oContentControl.GetComboBoxPr().Copy();
+	else if (oContentControl.IsDropDownList())
+		this.DropDownPr = oContentControl.GetDropDownListPr().Copy();
+	else if (oContentControl.IsDatePicker())
+		this.DateTimePr = oContentControl.GetDatePickerPr().Copy();
+};
+CContentControlPr.prototype.SetToContentControl = function(oContentControl)
+{
+	if (!oContentControl)
+		return;
+
+	if (undefined !== this.Tag)
+		oContentControl.SetTag(this.Tag);
+
+	if (undefined !== this.Id)
+		oContentControl.SetContentControlId(this.Id);
+
+	if (undefined !== this.Lock)
+		oContentControl.SetContentControlLock(this.Lock);
+
+	if (undefined !== this.Alias)
+		oContentControl.SetAlias(this.Alias);
+
+	if (undefined !== this.Appearance)
+		oContentControl.SetAppearance(this.Appearance);
+
+	if (undefined !== this.Color)
+		oContentControl.SetColor(this.Color);
+
+	if (undefined !== this.CheckBoxPr)
+		oContentControl.SetCheckBoxPr(this.CheckBoxPr);
+
+	if (undefined !== this.ComboBoxPr)
+		oContentControl.SetComboBoxPr(this.ComboBoxPr);
+
+	if (undefined !== this.DropDownPr)
+		oContentControl.SetDropDownListPr(this.DropDownPr);
+
+	if (undefined !== this.DateTimePr)
+		oContentControl.ApplyDatePickerPr(this.DateTimePr);
+};
+CContentControlPr.prototype.GetId = function()
 {
 	return this.Id;
 };
-CContentControlPr.prototype.put_Id = function(Id)
+CContentControlPr.prototype.SetId = function(Id)
 {
 	this.Id = Id;
 };
-CContentControlPr.prototype.get_Tag = function()
+CContentControlPr.prototype.GetTag = function()
 {
 	return this.Tag;
 };
-CContentControlPr.prototype.put_Tag = function(sTag)
+CContentControlPr.prototype.SetTag = function(sTag)
 {
 	this.Tag = sTag;
 };
-CContentControlPr.prototype.get_Lock = function()
+CContentControlPr.prototype.GetLock = function()
 {
 	return this.Lock;
 };
-CContentControlPr.prototype.put_Lock = function(nLock)
+CContentControlPr.prototype.SetLock = function(nLock)
 {
 	this.Lock = nLock;
 };
-CContentControlPr.prototype.get_InternalId = function()
+CContentControlPr.prototype.GetInternalId = function()
 {
 	return this.InternalId;
 };
-CContentControlPr.prototype.get_ContentControlType = function()
+CContentControlPr.prototype.GetContentControlType = function()
 {
 	return this.CCType;
 };
-CContentControlPr.prototype.get_Alias = function()
+CContentControlPr.prototype.GetAlias = function()
 {
 	return this.Alias;
 };
-CContentControlPr.prototype.put_Alias = function(sAlias)
+CContentControlPr.prototype.SetAlias = function(sAlias)
 {
 	this.Alias = sAlias;
 };
-CContentControlPr.prototype.get_Appearance = function()
+CContentControlPr.prototype.GetAppearance = function()
 {
 	return this.Appearance;
 };
-CContentControlPr.prototype.put_Appearance = function(nAppearance)
+CContentControlPr.prototype.SetAppearance = function(nAppearance)
 {
 	this.Appearance = nAppearance;
 };
-CContentControlPr.prototype.get_Color = function()
+CContentControlPr.prototype.GetColor = function()
 {
 	if (!this.Color)
 		return null;
 
 	return new Asc.asc_CColor(this.Color.r, this.Color.g, this.Color.b);
 };
-CContentControlPr.prototype.put_Color = function(r, g, b)
+CContentControlPr.prototype.SetColor = function(r, g, b)
 {
 	if (undefined === r)
 		this.Color = undefined;
@@ -337,6 +425,57 @@ CContentControlPr.prototype.put_Color = function(r, g, b)
 		this.Color = null;
 	else
 		this.Color = new CDocumentColor(r, g, b);
+};
+CContentControlPr.prototype.GetSpecificType = function()
+{
+	if (this.CC)
+		return this.CC.GetSpecificType();
+
+	return Asc.c_oAscContentControlSpecificType.None;
+};
+CContentControlPr.prototype.GetCheckBoxPr = function()
+{
+	if (this.CC && this.CC.IsCheckBox())
+		return this.CheckBoxPr;
+
+	return null;
+};
+CContentControlPr.prototype.SetCheckBoxPr = function(oPr)
+{
+	this.CheckBoxPr = oPr;
+};
+CContentControlPr.prototype.GetComboBoxPr = function()
+{
+	if (this.CC && this.CC.IsComboBox())
+		return this.ComboBoxPr;
+
+	return null;
+};
+CContentControlPr.prototype.SetComboBoxPr = function(oPr)
+{
+	this.ComboBoxPr = oPr;
+};
+CContentControlPr.prototype.GetDropDownListPr = function()
+{
+	if (this.CC && this.CC.IsDropDownList())
+		return this.DropDownPr;
+
+	return null;
+};
+CContentControlPr.prototype.SetDropDownListPr = function(oPr)
+{
+	this.DropDownPr = oPr;
+};
+CContentControlPr.prototype.GetDateTimePr = function()
+{
+	if (this.CC && this.CC.IsDatePicker())
+		return this.DateTimePr;
+
+	return null;
+};
+CContentControlPr.prototype.SetDateTimePr = function(oPr)
+{
+	this.DateTimePr = oPr;
 };
 
 /**
@@ -392,7 +531,7 @@ CSdtGlobalSettings.prototype.Read_FromBinary = function(oReader)
  */
 function CSdtCheckBoxPr()
 {
-	this.Checked         = true;
+	this.Checked         = false;
 	this.CheckedSymbol   = Asc.c_oAscSdtCheckBoxDefaults.CheckedSymbol;
 	this.UncheckedSymbol = Asc.c_oAscSdtCheckBoxDefaults.UncheckedSymbol;
 	this.CheckedFont     = Asc.c_oAscSdtCheckBoxDefaults.CheckedFont;
@@ -445,6 +584,38 @@ CSdtCheckBoxPr.prototype.Write_ToBinary = function(oWriter)
 CSdtCheckBoxPr.prototype.Read_FromBinary = function(oReader)
 {
 	this.ReadFromBinary(oReader);
+};
+CSdtCheckBoxPr.prototype.GetCheckedSymbol = function()
+{
+	return this.CheckedSymbol;
+};
+CSdtCheckBoxPr.prototype.SetCheckedSymbol = function(nSymbol)
+{
+	this.CheckedSymbol = nSymbol;
+};
+CSdtCheckBoxPr.prototype.GetCheckedFont = function()
+{
+	return this.CheckedFont;
+};
+CSdtCheckBoxPr.prototype.SetCheckedFont = function(sFont)
+{
+	this.CheckedFont = sFont;
+};
+CSdtCheckBoxPr.prototype.GetUncheckedSymbol = function()
+{
+	return this.UncheckedSymbol;
+};
+CSdtCheckBoxPr.prototype.SetUncheckedSymbol = function(nSymbol)
+{
+	this.UncheckedSymbol = nSymbol;
+};
+CSdtCheckBoxPr.prototype.GetUncheckedFont = function()
+{
+	return this.UncheckedFont;
+};
+CSdtCheckBoxPr.prototype.SetUncheckedFont = function(sFont)
+{
+	this.UncheckedFont = sFont;
 };
 
 /**
@@ -568,6 +739,24 @@ CSdtComboBoxPr.prototype.Read_FromBinary = function(oReader)
 {
 	this.ReadFromBinary(oReader);
 };
+CSdtComboBoxPr.prototype.GetItemsCount = function()
+{
+	return this.ListItems.length;
+};
+CSdtComboBoxPr.prototype.GetItemDisplayText = function(nIndex)
+{
+	if (!this.ListItems[nIndex])
+		return "";
+
+	return this.ListItems[nIndex].DisplayText;
+};
+CSdtComboBoxPr.prototype.GetItemValue = function(nIndex)
+{
+	if (!this.ListItems[nIndex])
+		return "";
+
+	return this.ListItems[nIndex].Value;
+};
 
 /**
  * Класс с настройками для даты
@@ -595,20 +784,29 @@ CSdtDatePickerPr.prototype.IsEqual = function(oDate)
 {
 	return (oDate && this.FullDate === oDate.FullDate && this.LangId === oDate.LangId && this.DateFormat === oDate.DateFormat && this.Calendar === oDate.Calendar);
 };
-CSdtDatePickerPr.prototype.ToString = function()
+CSdtDatePickerPr.prototype.ToString = function(sFormat, sFullDate, nLangId)
 {
-	var oFormat = AscCommon.oNumFormatCache.get(this.DateFormat);
+	if (undefined === sFormat)
+		sFormat = this.DateFormat;
+
+	if (undefined === sFullDate)
+		sFullDate = this.FullDate;
+
+	if (undefined === nLangId)
+		nLangId = this.LangId;
+
+	var oFormat = AscCommon.oNumFormatCache.get(sFormat);
 	if (oFormat)
 	{
-		var oCultureInfo = AscCommon.g_aCultureInfos[this.LangId];
+		var oCultureInfo = AscCommon.g_aCultureInfos[nLangId];
 		if (!oCultureInfo)
 			oCultureInfo = AscCommon.g_aCultureInfos[1033];
 
-		var oDateTime = new Asc.cDate(this.FullDate);
+		var oDateTime = new Asc.cDate(sFullDate);
 		return oFormat.formatToChart(oDateTime.getExcelDate() + (oDateTime.getHours() * 60 * 60 + oDateTime.getMinutes() * 60 + oDateTime.getSeconds()) / AscCommonExcel.c_sPerDay, 15, oCultureInfo);
 	}
 
-	return this.FullDate;
+	return sFullDate;
 };
 CSdtDatePickerPr.prototype.WriteToBinary = function(oWriter)
 {
@@ -632,7 +830,56 @@ CSdtDatePickerPr.prototype.Read_FromBinary = function(oReader)
 {
 	this.ReadFromBinary(oReader);
 };
-
+CSdtDatePickerPr.prototype.GetFullDate = function()
+{
+	return this.FullDate;
+};
+CSdtDatePickerPr.prototype.SetFullDate = function(sFullDate)
+{
+	this.FullDate = sFullDate;
+};
+CSdtDatePickerPr.prototype.GetLangId = function()
+{
+	return this.LangId;
+};
+CSdtDatePickerPr.prototype.SetLangId = function(nLangId)
+{
+	this.LangId = nLangId;
+};
+CSdtDatePickerPr.prototype.GetDateFormat = function()
+{
+	return this.DateFormat;
+};
+CSdtDatePickerPr.prototype.SetDateFormat = function(sDateFormat)
+{
+	this.DateFormat = sDateFormat;
+};
+CSdtDatePickerPr.prototype.GetCalendar = function()
+{
+	return this.Calendar;
+};
+CSdtDatePickerPr.prototype.SetCalendar = function(nCalendar)
+{
+	this.Calendar = nCalendar;
+};
+CSdtDatePickerPr.prototype.GetFormatsExamples = function()
+{
+	return [
+		"MM/DD/YYYY",
+		"dddd\\,\\ mmmm\\ dd\\,\\ yyyy",
+		"DD\\ MMMM\\ YYYY",
+		"MMMM\\ DD\\,\\ YYYY",
+		"DD-MMM-YY",
+		"MMMM\\ YY",
+		"MMM-YY",
+		"MM/DD/YYYY\\ hh:mm\\ AM/PM",
+		"MM/DD/YYYY\\ hh:mm:ss\\ AM/PM",
+		"hh:mm",
+		"hh:mm:ss",
+		"hh:mm\\ AM/PM",
+		"hh:mm:ss:\\ AM/PM"
+	];
+};
 
 //--------------------------------------------------------export--------------------------------------------------------
 window['AscCommonWord']        = window['AscCommonWord'] || {};
@@ -643,17 +890,61 @@ window['AscCommon'] = window['AscCommon'] || {};
 window['AscCommon'].CContentControlPr    = CContentControlPr;
 window['AscCommon']['CContentControlPr'] = CContentControlPr;
 
-CContentControlPr.prototype['get_Id']                 = CContentControlPr.prototype.get_Id;
-CContentControlPr.prototype['put_Id']                 = CContentControlPr.prototype.put_Id;
-CContentControlPr.prototype['get_Tag']                = CContentControlPr.prototype.get_Tag;
-CContentControlPr.prototype['put_Tag']                = CContentControlPr.prototype.put_Tag;
-CContentControlPr.prototype['get_Lock']               = CContentControlPr.prototype.get_Lock;
-CContentControlPr.prototype['put_Lock']               = CContentControlPr.prototype.put_Lock;
-CContentControlPr.prototype['get_InternalId']         = CContentControlPr.prototype.get_InternalId;
-CContentControlPr.prototype['get_ContentControlType'] = CContentControlPr.prototype.get_ContentControlType;
-CContentControlPr.prototype['get_Alias']              = CContentControlPr.prototype.get_Alias;
-CContentControlPr.prototype['put_Alias']              = CContentControlPr.prototype.put_Alias;
-CContentControlPr.prototype['get_Appearance']         = CContentControlPr.prototype.get_Appearance;
-CContentControlPr.prototype['put_Appearance']         = CContentControlPr.prototype.put_Appearance;
-CContentControlPr.prototype['get_Color']              = CContentControlPr.prototype.get_Color;
-CContentControlPr.prototype['put_Color']              = CContentControlPr.prototype.put_Color;
+CContentControlPr.prototype['get_Id']                 = CContentControlPr.prototype.GetId;
+CContentControlPr.prototype['put_Id']                 = CContentControlPr.prototype.SetId;
+CContentControlPr.prototype['get_Tag']                = CContentControlPr.prototype.GetTag;
+CContentControlPr.prototype['put_Tag']                = CContentControlPr.prototype.SetTag;
+CContentControlPr.prototype['get_Lock']               = CContentControlPr.prototype.GetLock;
+CContentControlPr.prototype['put_Lock']               = CContentControlPr.prototype.SetLock;
+CContentControlPr.prototype['get_InternalId']         = CContentControlPr.prototype.GetInternalId;
+CContentControlPr.prototype['get_ContentControlType'] = CContentControlPr.prototype.GetContentControlType;
+CContentControlPr.prototype['get_Alias']              = CContentControlPr.prototype.GetAlias;
+CContentControlPr.prototype['put_Alias']              = CContentControlPr.prototype.SetAlias;
+CContentControlPr.prototype['get_Appearance']         = CContentControlPr.prototype.GetAppearance;
+CContentControlPr.prototype['put_Appearance']         = CContentControlPr.prototype.SetAppearance;
+CContentControlPr.prototype['get_Color']              = CContentControlPr.prototype.GetColor;
+CContentControlPr.prototype['put_Color']              = CContentControlPr.prototype.SetColor;
+CContentControlPr.prototype['get_SpecificType']       = CContentControlPr.prototype.GetSpecificType;
+CContentControlPr.prototype['get_CheckBoxPr']         = CContentControlPr.prototype.GetCheckBoxPr;
+CContentControlPr.prototype['put_CheckBoxPr']         = CContentControlPr.prototype.SetCheckBoxPr;
+CContentControlPr.prototype['get_ComboBoxPr']         = CContentControlPr.prototype.GetComboBoxPr;
+CContentControlPr.prototype['put_ComboBoxPr']         = CContentControlPr.prototype.SetComboBoxPr;
+CContentControlPr.prototype['get_DropDownListPr']     = CContentControlPr.prototype.GetDropDownListPr;
+CContentControlPr.prototype['put_DropDownListPr']     = CContentControlPr.prototype.SetDropDownListPr;
+CContentControlPr.prototype['get_DateTimePr']         = CContentControlPr.prototype.GetDateTimePr;
+CContentControlPr.prototype['put_DateTimePr']         = CContentControlPr.prototype.SetDateTimePr;
+
+window['AscCommon'].CSdtCheckBoxPr    = CSdtCheckBoxPr;
+window['AscCommon']['CSdtCheckBoxPr'] = CSdtCheckBoxPr;
+
+CSdtCheckBoxPr.prototype['get_CheckedSymbol']   = CSdtCheckBoxPr.prototype.GetCheckedSymbol;
+CSdtCheckBoxPr.prototype['put_CheckedSymbol']   = CSdtCheckBoxPr.prototype.SetCheckedSymbol;
+CSdtCheckBoxPr.prototype['get_CheckedFont']     = CSdtCheckBoxPr.prototype.GetCheckedFont;
+CSdtCheckBoxPr.prototype['put_CheckedFont']     = CSdtCheckBoxPr.prototype.SetCheckedFont;
+CSdtCheckBoxPr.prototype['get_UncheckedSymbol'] = CSdtCheckBoxPr.prototype.GetUncheckedSymbol;
+CSdtCheckBoxPr.prototype['put_UncheckedSymbol'] = CSdtCheckBoxPr.prototype.SetUncheckedSymbol;
+CSdtCheckBoxPr.prototype['get_UncheckedFont']   = CSdtCheckBoxPr.prototype.GetUncheckedFont;
+CSdtCheckBoxPr.prototype['put_UncheckedFont']   = CSdtCheckBoxPr.prototype.SetUncheckedFont;
+
+window['AscCommon'].CSdtComboBoxPr    = CSdtComboBoxPr;
+window['AscCommon']['CSdtComboBoxPr'] = CSdtComboBoxPr;
+
+CSdtComboBoxPr.prototype['add_Item']            = CSdtComboBoxPr.prototype.AddItem;
+CSdtComboBoxPr.prototype['get_TextByValue']     = CSdtComboBoxPr.prototype.GetTextByValue;
+CSdtComboBoxPr.prototype['get_ItemsCount']      = CSdtComboBoxPr.prototype.GetItemsCount;
+CSdtComboBoxPr.prototype['get_ItemDisplayText'] = CSdtComboBoxPr.prototype.GetItemDisplayText;
+CSdtComboBoxPr.prototype['get_ItemValue']       = CSdtComboBoxPr.prototype.GetItemValue;
+
+window['AscCommon'].CSdtDatePickerPr    = CSdtDatePickerPr;
+window['AscCommon']['CSdtDatePickerPr'] = CSdtDatePickerPr;
+
+CSdtDatePickerPr.prototype['get_FullDate']        = CSdtDatePickerPr.prototype.GetFullDate;
+CSdtDatePickerPr.prototype['put_FullDate']        = CSdtDatePickerPr.prototype.SetFullDate;
+CSdtDatePickerPr.prototype['get_LangId']          = CSdtDatePickerPr.prototype.GetLangId;
+CSdtDatePickerPr.prototype['put_LangId']          = CSdtDatePickerPr.prototype.SetLangId;
+CSdtDatePickerPr.prototype['get_DateFormat']      = CSdtDatePickerPr.prototype.GetDateFormat;
+CSdtDatePickerPr.prototype['put_DateFormat']      = CSdtDatePickerPr.prototype.SetDateFormat;
+CSdtDatePickerPr.prototype['get_Calendar']        = CSdtDatePickerPr.prototype.GetCalendar;
+CSdtDatePickerPr.prototype['put_Calendar']        = CSdtDatePickerPr.prototype.SetCalendar;
+CSdtDatePickerPr.prototype['get_FormatsExamples'] = CSdtDatePickerPr.prototype.GetFormatsExamples;
+CSdtDatePickerPr.prototype['get_String']          = CSdtDatePickerPr.prototype.ToString;

@@ -83,7 +83,9 @@ var editor;
     this.fontRenderingMode = Asc.c_oAscFontRenderingModeType.hintingAndSubpixeling;
     this.wb = null;
     this.wbModel = null;
-    this.tmpLocale = null;
+    this.tmpLCID = null;
+    this.tmpDecimalSeparator = null;
+    this.tmpGroupSeparator = null;
     this.tmpLocalization = null;
 
     // spellcheck
@@ -113,11 +115,6 @@ var editor;
     this.isStartAddShape = false;
     this.shapeElementId = null;
     this.textArtElementId = null;
-    this.isImageChangeUrl = false;
-    this.isShapeImageChangeUrl = false;
-    this.isTextArtChangeUrl = false;
-    this.textureType = null;
-
 
 	  // Styles sizes
       this.styleThumbnailWidth = 112;
@@ -270,15 +267,14 @@ var editor;
       return new AscCommon.asc_CListType(AscFormat.fGetListTypeFromBullet(oParaPr && oParaPr.Bullet));
   };
 
-    spreadsheet_api.prototype.asc_setLocale = function(val) {
+  spreadsheet_api.prototype.asc_setLocale = function (LCID, decimalSeparator, groupSeparator) {
     if (!this.isLoadFullApi) {
-      this.tmpLocale = val;
+      this.tmpLCID = LCID;
+      this.tmpDecimalSeparator = decimalSeparator;
+      this.tmpGroupSeparator = groupSeparator;
       return;
     }
-    if (null === val) {
-      return;
-    }
-    if (AscCommon.setCurrentCultureInfo(val)) {
+    if (AscCommon.setCurrentCultureInfo(LCID, decimalSeparator, groupSeparator)) {
       parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSeparator);
       if (this.wbModel) {
         AscCommon.oGeneralEditFormatCache.cleanCache();
@@ -286,16 +282,22 @@ var editor;
         this.wbModel.rebuildColors();
         if (this.isDocumentLoadComplete) {
           AscCommon.checkCultureInfoFontPicker();
-          this._loadFonts([], function() {
+          this._loadFonts([], function () {
             this._onUpdateAfterApplyChanges();
           });
         }
       }
     }
   };
-	spreadsheet_api.prototype.asc_getLocale = function() {
-		return AscCommon.g_oDefaultCultureInfo.LCID;
-	};
+  spreadsheet_api.prototype.asc_getLocale = function () {
+    return AscCommon.g_oDefaultCultureInfo.LCID;
+  };
+  spreadsheet_api.prototype.asc_getDecimalSeparator = function () {
+    return AscCommon.g_oDefaultCultureInfo.numberDecimalSeparator;
+  };
+  spreadsheet_api.prototype.asc_getGroupSeparator = function () {
+    return AscCommon.g_oDefaultCultureInfo.numberGroupSeparator;
+  };
   spreadsheet_api.prototype._openDocument = function(data) {
     this.wbModel = new AscCommonExcel.Workbook(this.handlers, this);
     this.initGlobalObjects(this.wbModel);
@@ -326,6 +328,7 @@ var editor;
     AscCommonExcel.g_oUndoRedoLayout = new AscCommonExcel.UndoRedoRedoLayout(wbModel);
     AscCommonExcel.g_oUndoRedoHeaderFooter = new AscCommonExcel.UndoRedoHeaderFooter(wbModel);
     AscCommonExcel.g_oUndoRedoArrayFormula = new AscCommonExcel.UndoRedoArrayFormula(wbModel);
+    AscCommonExcel.g_oUndoRedoSortState = new AscCommonExcel.UndoRedoSortState(wbModel);
   };
 
   spreadsheet_api.prototype.asc_DownloadAs = function (options) {
@@ -2687,11 +2690,11 @@ var editor;
     // ToDo заменить на общую функцию для всех
     this.asc_addImage();
   };
-  spreadsheet_api.prototype._addImageUrl = function(urls) {
+  spreadsheet_api.prototype._addImageUrl = function(urls, obj) {
     var ws = this.wb.getWorksheet();
     if (ws) {
-      if (this.isImageChangeUrl || this.isShapeImageChangeUrl || this.isTextArtChangeUrl) {
-        ws.objectRender.editImageDrawingObject(urls[0]);
+      if (obj && (obj.isImageChangeUrl || obj.isShapeImageChangeUrl || obj.isTextArtChangeUrl)) {
+        ws.objectRender.editImageDrawingObject(urls[0], obj);
       } else {
         ws.objectRender.addImageDrawingObject(urls, null);
       }
@@ -2850,9 +2853,11 @@ var editor;
   };
 
   spreadsheet_api.prototype.asc_removeComment = function(id) {
-    var ws = this.wb.getWorksheet();
-    ws.cellCommentator.removeComment(id);
-    this.wb.cellCommentator.removeComment(id);
+    this.wb.removeComment(id);
+  };
+
+  spreadsheet_api.prototype.asc_RemoveAllComments = function(isMine, isCurrent) {
+  	this.wb.removeAllComments(isMine, isCurrent);
   };
 
   spreadsheet_api.prototype.asc_showComments = function (isShowSolved) {
@@ -2992,6 +2997,16 @@ var editor;
         }
       }
     }
+    else if(props.ShapeProperties && props.ShapeProperties.textArtProperties &&
+        props.ShapeProperties.textArtProperties.Fill && props.ShapeProperties.textArtProperties.Fill.fill &&
+        !AscCommon.isNullOrEmptyString(props.ShapeProperties.textArtProperties.Fill.fill.url)){
+      if(!g_oDocumentUrls.getImageLocal(props.ShapeProperties.textArtProperties.Fill.fill.url)){
+        sImageUrl = props.ShapeProperties.textArtProperties.Fill.fill.url;
+        fReplaceCallback = function(sLocalUrl){
+          props.ShapeProperties.textArtProperties.Fill.fill.url = sLocalUrl;
+        }
+      }
+    }
     if(fReplaceCallback) {
 
       if (window["AscDesktopEditor"]) {
@@ -3012,7 +3027,19 @@ var editor;
       }, true);
     }
     else{
-      ws.objectRender.setGraphicObjectProps(props);
+      if(undefined != props.BulletSymbol && undefined != props.BulletFont) {
+        var t = this;
+          var fonts = {};
+          fonts[props.BulletFont] = 1;
+          AscFonts.FontPickerByCharacter.checkTextLight(props.BulletSymbol);
+          t._loadFonts(fonts, function() {
+            ws.objectRender.setGraphicObjectProps(props);
+          });
+
+      }
+      else {
+        ws.objectRender.setGraphicObjectProps(props);
+      }
     }
 
 
@@ -3028,20 +3055,15 @@ var editor;
   };
 
   spreadsheet_api.prototype.asc_changeImageFromFile = function() {
-    this.isImageChangeUrl = true;
-    this.asc_addImage();
+    this.asc_addImage({isImageChangeUrl: true});
   };
 
   spreadsheet_api.prototype.asc_changeShapeImageFromFile = function(type) {
-    this.isShapeImageChangeUrl = true;
-    this.textureType = type;
-    this.asc_addImage();
+    this.asc_addImage({isShapeImageChangeUrl: true, textureType: type});
   };
 
   spreadsheet_api.prototype.asc_changeArtImageFromFile = function(type) {
-    this.isTextArtChangeUrl = true;
-    this.textureType = type;
-    this.asc_addImage();
+    this.asc_addImage({isTextArtChangeUrl: true, textureType: type});
   };
 
   spreadsheet_api.prototype.asc_putPrLineSpacing = function(type, value) {
@@ -3100,11 +3122,13 @@ var editor;
 
     // spellCheck
     spreadsheet_api.prototype.cleanSpelling = function (isCellEditing) {
-      if (!this.spellcheckState.lockSpell && this.spellcheckState.startCell) {
-        var cellsChange = this.spellcheckState.cellsChange;
-        var lastFindOptions = this.spellcheckState.lastFindOptions;
-        if (cellsChange.length !== 0 && lastFindOptions && !isCellEditing) {
-          this.asc_replaceMisspelledWords(lastFindOptions);
+      if (!this.spellcheckState.lockSpell) {
+        if (this.spellcheckState.startCell) {
+          var cellsChange = this.spellcheckState.cellsChange;
+          var lastFindOptions = this.spellcheckState.lastFindOptions;
+          if (cellsChange.length !== 0 && lastFindOptions && !isCellEditing) {
+            this.asc_replaceMisspelledWords(lastFindOptions);
+          }
         }
         this.handlers.trigger("asc_onSpellCheckVariantsFound", null);
         this.spellcheckState.isStart = false;
@@ -3131,7 +3155,14 @@ var editor;
         var activeCell = ws.model.selectionRange.activeCell;
 
         for (var i = 0; i < usrWords.length; i++) {
-          if (ignoreWords[usrWords[i]] || changeWords[usrWords[i]]) {
+          if (this.spellcheckState.isIgnoreNumbers) {
+            var isNumberInStr = /\d+/;
+            if (usrWords[i].match(isNumberInStr)) {
+              usrCorrect[i] = true;
+            }
+          }
+
+          if (ignoreWords[usrWords[i]] || changeWords[usrWords[i]] || usrWords[i].length === 1) {
             usrCorrect[i] = true;
           }
         }
@@ -3143,11 +3174,11 @@ var editor;
         this.spellcheckState.lockSpell = false;
         this.spellcheckState.lastIndex = lastIndex;
         var currIndex = cellsInfo[lastIndex];
-        if (currIndex && (currIndex["col"] !== activeCell.col || currIndex["row"] !== activeCell.row)) {
+        if (currIndex && (currIndex.col !== activeCell.col || currIndex.row !== activeCell.row)) {
           var currentCellIsInactive = true;
         }
         while (isStart && currentCellIsInactive && usrCorrect[lastIndex]) {
-          if (!cellsInfo[lastIndex + 1] || cellsInfo[lastIndex + 1]["col"] !== cellsInfo[lastIndex]["col"]) {
+          if (!cellsInfo[lastIndex + 1] || cellsInfo[lastIndex + 1].col !== cellsInfo[lastIndex].col) {
             var cell = cellsInfo[lastIndex];
             cellsChange.push(new Asc.Range(cell.col, cell.row, cell.col, cell.row));
           }
@@ -3161,7 +3192,7 @@ var editor;
         }
 
         var cellStartIndex = 0;
-        while (cellsInfo[cellStartIndex]["col"] !== cellsInfo[lastIndex]["col"]) {
+        while (cellsInfo[cellStartIndex].col !== cellsInfo[lastIndex].col) {
           cellStartIndex++;
         }
         e["usrWords"].splice(0, cellStartIndex);
@@ -3192,7 +3223,8 @@ var editor;
         if ((dc !== 0 || dr !== 0) && isStart && lastOptions) {
           this.asc_replaceMisspelledWords(lastOptions);
         } else {
-          ws.changeSelectionStartPoint(dc, dr);
+          var d = ws.changeSelectionStartPoint(dc, dr);
+          this.controller.scroll(d);
           this.spellcheckState.lockSpell = false;
         }
         this.spellcheckState.isStart = true;
@@ -3253,16 +3285,26 @@ var editor;
       this.spellcheckState.cellText = this.asc_getCellInfo().text;
       var cellText = this.spellcheckState.newCellText || this.spellcheckState.cellText;
       var afterReplace = this.spellcheckState.afterReplace;
+      var isIgnoreUppercase = this.spellcheckState.isIgnoreUppercase;
 
       for (var i = 0; i < usrWords.length; i++) {
-        if (ignoreWords[usrWords[i]] || changeWords[usrWords[i]]) {
+        var usrWord = usrWords[i];
+        if (isIgnoreUppercase) {
+          usrWord = usrWord.toLowerCase();
+        }
+
+        if (ignoreWords[usrWord] || changeWords[usrWord]) {
           usrCorrect[i] = true;
         }
       }
 
-      while (cellsInfo[lastIndex]["col"] === activeCell.col && cellsInfo[lastIndex]["row"] === activeCell.row) {
+      while (cellsInfo[lastIndex].col === activeCell.col && cellsInfo[lastIndex].row === activeCell.row) {
         var letterDifference = null;
         var word = usrWords[lastIndex];
+
+        if (this.spellcheckState.isIgnoreUppercase) {
+          word = usrWords[lastIndex].toLowerCase();
+        }
         var newWord = this.spellcheckState.newWord;
 
         if (newWord) {
@@ -3273,12 +3315,12 @@ var editor;
 
         if (letterDifference !== null) {
           var replaceWith = newWord || changeWords[word];
-          var valueForSearching = new RegExp(word, "y");
+          var valueForSearching = new RegExp(usrWords[lastIndex], "y");
           valueForSearching.lastIndex = wordsIndex[lastIndex];
           cellText = cellText.replace(valueForSearching, replaceWith);
           if (letterDifference !== 0) {
             var j = lastIndex + 1;
-            while (j < usrWords.length && cellsInfo[j].col === cellsInfo[lastIndex]["col"]) {
+            while (j < usrWords.length && cellsInfo[j].col === cellsInfo[lastIndex].col) {
               wordsIndex[j] += letterDifference;
               j++;
             }
@@ -3407,7 +3449,11 @@ var editor;
     options.isMatchCase = true;
     
     if (replaceAll === true) {
-      this.spellcheckState.changeWords[variantsFound.Word] = newWord;
+      if (!this.spellcheckState.isIgnoreUppercase) {
+        this.spellcheckState.changeWords[variantsFound.Word] = newWord;
+      } else {
+        this.spellcheckState.changeWords[variantsFound.Word.toLowerCase()] = newWord;
+      }
       options.isReplaceAll = true;
     } 
       this.spellcheckState.lockSpell = false;
@@ -3427,8 +3473,13 @@ var editor;
         cellText = null; 
         newCellText = null;
       }
-      
+
+      if (this.spellcheckState.isIgnoreUppercase) {
+        options.isMatchCase = false;
+      }
+
       var replaceWords = [];
+      options.isWholeWord = true;
       for (var key in changeWords) {
         replaceWords.push([AscCommonExcel.getFindRegExp(key, options), changeWords[key]]);
       }
@@ -3442,12 +3493,13 @@ var editor;
         var lastSpell = t.spellcheckState.lastSpellInfo;
         if (lastSpell) {
           var lastIndex = t.spellcheckState.lastIndex;
-          var cellInfo = lastSpell.cellsInfo[lastIndex];
+          var cellInfo = lastSpell["cellsInfo"][lastIndex];
           var activeCell = ws.model.selectionRange.activeCell;
-          var dc = cellInfo["col"] - activeCell.col;
-          var dr = cellInfo["row"] - activeCell.row;
+          var dc = cellInfo.col - activeCell.col;
+          var dr = cellInfo.row - activeCell.row;
           t.spellcheckState.lockSpell = true;
-          ws.changeSelectionStartPoint(dc, dr);
+          var d = ws.changeSelectionStartPoint(dc, dr);
+          t.controller.scroll(d);
           t.spellcheckState.lockSpell = false;
           t.spellcheckState.newWord = null;
           t.spellcheckState.newCellText = null;
@@ -3463,10 +3515,29 @@ var editor;
 
   spreadsheet_api.prototype.asc_ignoreMisspelledWord = function(spellCheckProperty, ignoreAll) {
     if (ignoreAll) {
-      this.spellcheckState.ignoreWords[spellCheckProperty.Word] = spellCheckProperty.Word;
+      var word = spellCheckProperty.Word;
+      if (!this.spellcheckState.isIgnoreUppercase) {
+        this.spellcheckState.ignoreWords[word] = word;
+      } else {
+        this.spellcheckState.ignoreWords[word.toLowerCase()] = word;
+      }
     }
     this.asc_nextWord();
   };
+
+    spreadsheet_api.prototype.asc_ignoreNumbers = function (isIgnore) {
+      this.spellcheckState.isIgnoreNumbers = true;
+      if (!isIgnore) {
+        this.spellcheckState.isIgnoreNumbers = false;
+      }
+    };
+
+    spreadsheet_api.prototype.asc_ignoreUppercase = function (isIgnore) {
+      this.spellcheckState.isIgnoreUppercase = true;
+      if (!isIgnore) {
+        this.spellcheckState.isIgnoreUppercase = false;
+      }
+    };
 
   spreadsheet_api.prototype.asc_cancelSpellCheck = function() {
     this.cleanSpelling();
@@ -4112,6 +4183,91 @@ var editor;
       }
     }
 
+
+    if(_param && false) {
+	   var layoutOptions = JSON.parse(_param);
+	   var spreadsheetLayout = layoutOptions ? layoutOptions["spreadsheetLayout"] : null;
+		var _ignorePrintArea = spreadsheetLayout && (true === spreadsheetLayout["ignorePrintArea"] || false === spreadsheetLayout["ignorePrintArea"])? spreadsheetLayout["ignorePrintArea"] : null;
+	   if(null !== _ignorePrintArea) {
+		   _adjustPrint.asc_setIgnorePrintArea(_ignorePrintArea);
+       }
+
+	   _adjustPrint.asc_setPrintType(Asc.c_oAscPrintType.EntireWorkbook);
+
+       var ws, newPrintOptions;
+	   var _orientation = spreadsheetLayout ? spreadsheetLayout["orientation"] : null;
+	   if(_orientation === "portrait") {
+		   _orientation = Asc.c_oAscPageOrientation.PagePortrait;
+       } else if(_orientation === "landscape") {
+		   _orientation = Asc.c_oAscPageOrientation.PageLandscape;
+       } else {
+		   _orientation = null;
+       }
+       //need number
+	   var _fitToWidth = spreadsheetLayout && AscCommon.isNumber( spreadsheetLayout["fitToWidth"]) ? spreadsheetLayout["fitToWidth"] : null;
+	   var _fitToHeight = spreadsheetLayout && AscCommon.isNumber( spreadsheetLayout["fitToHeight"]) ? spreadsheetLayout["fitToHeight"] : null;
+	   var _scale = spreadsheetLayout && AscCommon.isNumber( spreadsheetLayout["scale"]) ? spreadsheetLayout["scale"] : null;
+	   //need true/false
+	   var _headings = spreadsheetLayout && (true === spreadsheetLayout["headings"] || false === spreadsheetLayout["headings"])? spreadsheetLayout["headings"] : null;
+	   var _gridLines = spreadsheetLayout && (true === spreadsheetLayout["gridLines"] || false === spreadsheetLayout["gridLines"])? spreadsheetLayout["headings"] : null;
+       //convert to mm
+	   var _pageSize = spreadsheetLayout ? spreadsheetLayout["pageSize"] : null;
+	   if(_pageSize) {
+	     var width = AscCommon.valueToMm(_pageSize["width"]);
+	     var height = AscCommon.valueToMm(_pageSize["height"]);
+	     _pageSize = null !== width && null !== height ? {width: width, height: height} : null;
+       }
+	   var _margins = spreadsheetLayout ? spreadsheetLayout["margins"] : null;
+	   if(_margins) {
+         var left = AscCommon.valueToMm(_margins["left"]);
+         var right = AscCommon.valueToMm(_margins["right"]);
+         var top = AscCommon.valueToMm(_margins["top"]);
+         var bottom = AscCommon.valueToMm(_margins["bottom"]);
+         _margins = null !== left && null !== right && null !== top && null !== bottom ? {left: left, right: right, top: top, bottom: bottom} : null;
+       }
+
+	   for (var index = 0; index < this.wbModel.getWorksheetCount(); ++index) {
+		   ws = this.wbModel.getWorksheet(index);
+           newPrintOptions = ws.PagePrintOptions.clone();
+           //regionalSettings ?
+
+		   var _pageSetup = newPrintOptions.pageSetup;
+           if(null !== _orientation) {
+               _pageSetup.orientation = _orientation;
+           }
+           if(_fitToWidth || _fitToHeight) {
+               _pageSetup.fitToWidth = _fitToWidth;
+               _pageSetup.fitToHeight = _fitToHeight;
+           } else if(_scale) {
+               _pageSetup.scale = _scale;
+			   _pageSetup.fitToWidth = 0;
+			   _pageSetup.fitToHeight = 0;
+           }
+		   if(null !== _headings) {
+			   newPrintOptions.headings = _headings;
+		   }
+		   if(null !== _gridLines) {
+			   newPrintOptions.gridLines = _gridLines;
+		   }
+		   if(_pageSize) {
+			   _pageSetup.width = _pageSize.width;
+			   _pageSetup.height = _pageSize.height;
+           }
+           var pageMargins = newPrintOptions.pageMargins;
+           if(_margins) {
+			   pageMargins.left = _margins.left;
+			   pageMargins.right = _margins.right;
+			   pageMargins.top = _margins.top;
+			   pageMargins.bottom = _margins.bottom;
+           }
+
+           if(!_adjustPrint.pageOptionsMap) {
+              _adjustPrint.pageOptionsMap = [];
+           }
+		   _adjustPrint.pageOptionsMap[index] = newPrintOptions;
+	   }
+    }
+
     var _printPagesData = this.wb.calcPagesPrint(_adjustPrint);
 
     if (undefined === _printer && _page === undefined) {
@@ -4232,7 +4388,7 @@ var editor;
 		this.controller = new AscCommonExcel.asc_CEventsController();
 
 		this.formulasList = AscCommonExcel.getFormulasInfo();
-		this.asc_setLocale(this.tmpLocale);
+		this.asc_setLocale(this.tmpLCID, this.tmpDecimalSeparator, this.tmpGroupSeparator);
 		this.asc_setLocalization(this.tmpLocalization);
 		this.asc_setViewMode(this.isViewMode);
 
@@ -4424,6 +4580,21 @@ var editor;
 		return ws && ws.sheetPr ? ws.sheetPr.SummaryBelow : true;
 	};
 
+	spreadsheet_api.prototype.asc_getSortProps = function (bExpand) {
+		var ws = this.wb && this.wb.getWorksheet();
+		if(ws) {
+			return ws.getSortProps(bExpand);
+		}
+	};
+
+	spreadsheet_api.prototype.asc_setSortProps = function (props) {
+		var ws = this.wb && this.wb.getWorksheet();
+		if(ws) {
+			ws.setSelectionInfo("customSort", props);
+		}
+	};
+
+
   /*
    * Export
    * -----------------------------------------------------------------------------
@@ -4441,6 +4612,8 @@ var editor;
   prot["asc_getLocaleCurrency"] = prot.asc_getLocaleCurrency;
   prot["asc_setLocale"] = prot.asc_setLocale;
   prot["asc_getLocale"] = prot.asc_getLocale;
+  prot["asc_getDecimalSeparator"] = prot.asc_getDecimalSeparator;
+  prot["asc_getGroupSeparator"] = prot.asc_getGroupSeparator;
   prot["asc_getEditorPermissions"] = prot.asc_getEditorPermissions;
   prot["asc_LoadDocument"] = prot.asc_LoadDocument;
   prot["asc_DownloadAs"] = prot.asc_DownloadAs;
@@ -4634,6 +4807,7 @@ var editor;
   prot["asc_changeComment"] = prot.asc_changeComment;
   prot["asc_findComment"] = prot.asc_findComment;
   prot["asc_removeComment"] = prot.asc_removeComment;
+  prot["asc_RemoveAllComments"] = prot.asc_RemoveAllComments;
   prot["asc_showComment"] = prot.asc_showComment;
   prot["asc_selectComment"] = prot.asc_selectComment;
 
@@ -4681,6 +4855,8 @@ var editor;
   prot["asc_spellCheckAddToDictionary"] = prot.asc_spellCheckAddToDictionary;
   prot["asc_spellCheckClearDictionary"] = prot.asc_spellCheckClearDictionary;
   prot["asc_cancelSpellCheck"] = prot.asc_cancelSpellCheck;
+  prot["asc_ignoreNumbers"] = prot.asc_ignoreNumbers;
+  prot["asc_ignoreUppercase"] = prot.asc_ignoreUppercase;
 
   // Frozen pane
   prot["asc_freezePane"] = prot.asc_freezePane;
@@ -4815,4 +4991,8 @@ var editor;
 
   // mobile
   prot["asc_Remove"] = prot.asc_Remove;
+
+  prot["asc_getSortProps"] = prot.asc_getSortProps;
+  prot["asc_setSortProps"] = prot.asc_setSortProps;
+
 })(window);

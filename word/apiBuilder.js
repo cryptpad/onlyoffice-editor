@@ -1496,7 +1496,7 @@
 		if (!this.Document.Can_InsertContent(oSelectedContent, oNearestPos))
 			return false;
 
-		oParagraph.Parent.Insert_Content(oSelectedContent, oNearestPos);
+		oParagraph.Parent.InsertContent(oSelectedContent, oNearestPos);
 		oParagraph.Clear_NearestPosArray();
 		this.Document.RemoveSelection(true);
 		return true;

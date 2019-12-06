@@ -90,7 +90,7 @@ CNum.prototype.Copy = function()
 
 	for (var nLvl = 0; nLvl < 9; ++nLvl)
 	{
-		if (this.LvlOverride[nLvl])
+		if (this.LvlOverride[nLvl] && this.LvlOverride[nLvl].NumberingLvl)
 			oNum.SetLvlOverride(this.LvlOverride[nLvl].GetLvl().Copy(), nLvl, this.LvlOverride[nLvl].GetStartOverride());
 	}
 

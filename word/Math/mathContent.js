@@ -1677,7 +1677,7 @@ CMathContent.prototype.private_CorrectContent = function()
             CurrPos += 2;
 
         }
-        else if(bDeleteEmptyRun && false == Current.Is_CheckingNearestPos()) // если NearPosArray не нулевой длины, то это вызов происходит на Insert_Content, не удаляем пустые Run
+        else if(bDeleteEmptyRun && false == Current.Is_CheckingNearestPos()) // если NearPosArray не нулевой длины, то это вызов происходит на InsertContent, не удаляем пустые Run
         {
             this.Remove_FromContent(CurrPos, 1);
 
@@ -3616,12 +3616,12 @@ CMathContent.prototype.Recalculate_CurPos = function(_X, _Y, CurrentRun, _CurRan
 
     return this.Content[_EndPos].Recalculate_CurPos(_X, _Y, CurrentRun, _CurRange, _CurLine, _CurPage, UpdateCurPos, UpdateTarget, ReturnTarget);
 };
-CMathContent.prototype.Get_CurrentParaPos = function()
+CMathContent.prototype.GetCurrentParaPos = function()
 {
-    if ( this.CurPos >= 0 && this.CurPos < this.Content.length )
-        return this.Content[this.CurPos].Get_CurrentParaPos();
+	if (this.CurPos >= 0 && this.CurPos < this.Content.length)
+		return this.Content[this.CurPos].GetCurrentParaPos();
 
-    return new CParaPos( this.StartRange, this.StartLine, 0, 0 );
+	return new CParaPos(this.StartRange, this.StartLine, 0, 0);
 };
 CMathContent.prototype.Get_ParaContentPos = function(bSelection, bStart, ContentPos, bUseCorrection)
 {

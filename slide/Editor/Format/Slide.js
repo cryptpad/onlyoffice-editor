@@ -249,6 +249,8 @@ Slide.prototype =
     createDuplicate: function(IdMap)
     {
         var oIdMap = IdMap || {};
+        var oPr = new AscFormat.CCopyObjectProperties();
+        oPr.idMap = oIdMap;
         var copy = new Slide(this.presentation, this.Layout, 0), i;
         if(typeof this.cSld.name === "string" && this.cSld.name.length > 0)
         {
@@ -260,17 +262,8 @@ Slide.prototype =
         }
         for(i = 0; i < this.cSld.spTree.length; ++i)
         {
-            var _copy;
-
-            if(this.cSld.spTree[i].getObjectType() === AscDFH.historyitem_type_GroupShape){
-                _copy = this.cSld.spTree[i].copy(oIdMap);
-            }
-            else{
-                _copy = this.cSld.spTree[i].copy();
-            }
-            if(AscCommon.isRealObject(oIdMap)){
-                oIdMap[this.cSld.spTree[i].Id] = _copy.Id;
-            }
+            var _copy = this.cSld.spTree[i].copy(oPr);
+            oIdMap[this.cSld.spTree[i].Id] = _copy.Id;
             copy.shapeAdd(copy.cSld.spTree.length, _copy);
             copy.cSld.spTree[copy.cSld.spTree.length - 1].setParent2(copy);
         }
@@ -901,6 +894,20 @@ Slide.prototype =
         this.shapeAdd(pos, obj);
     },
 
+    replaceSp: function(oPh, oObject)
+    {
+        var aSpTree = this.cSld.spTree;
+        for(var i = aSpTree.length - 1; i > -1; --i)
+        {
+            if(aSpTree[i] === oPh)
+            {
+                this.removeFromSpTreeByPos(i);
+                this.addToSpTreeToPos(i, oObject);
+                break;
+            }
+        }
+    },
+
     setCSldName: function(name)
     {
        History.Add(new AscDFH.CChangesDrawingsString(this, AscDFH.historyitem_SlideSetCSldName, this.cSld.name, name));
@@ -946,7 +953,7 @@ Slide.prototype =
             oSelector.normalize();
         }
         for(i = 0; i < aSelectedObjects.length; ++i){
-            var oCopy = aSelectedObjects[i].copy();
+            var oCopy = aSelectedObjects[i].copy(undefined);
             oCopy.x = aSelectedObjects[i].x;
             oCopy.y = aSelectedObjects[i].y;
             oCopy.extX = aSelectedObjects[i].extX;
@@ -1419,7 +1426,24 @@ Slide.prototype =
         return false;
     },
 
-
+    getPlaceholdersControls: function()
+    {
+        var ret = [];
+        var aSpTree = this.cSld.spTree;
+        for(var i = 0; i < aSpTree.length; ++i)
+        {
+            var oSp = aSpTree[i];
+            if(oSp.isEmptyPlaceholder())
+            {
+                var oPlaceholder = oSp.createPlaceholderControl();
+                if(oPlaceholder.buttons.length > 0)
+                {
+                    ret.push(oPlaceholder);
+                }
+            }
+        }
+        return ret;
+    },
 
     convertPixToMM: function(pix)
     {

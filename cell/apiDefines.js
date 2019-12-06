@@ -61,7 +61,9 @@ var c_oAscSortOptions = {
   Ascending: 1,
   Descending: 2,
   ByColorFill: 3,
-  ByColorFont: 4
+  ByColorFont: 4,
+  ByIcon: 5,
+  ByValue: 6
 };
 
 var c_oAscBorderOptions = {
@@ -105,8 +107,9 @@ var c_oAscSelectionDialogType = {
   FormatTable: 1,
   Chart: 2,
   FormatTableChangeRange: 4,
-  PivotTableData: 5,
-  PivotTableReport: 6
+  CustomSort: 5,
+  PivotTableData: 6,
+  PivotTableReport: 7
 };
 
 var c_oAscScrollType = {
@@ -491,6 +494,8 @@ var c_oAscPopUpSelectorType = {
   prot['Descending'] = prot.Descending;
   prot['ByColorFill'] = prot.ByColorFill;
   prot['ByColorFont'] = prot.ByColorFont;
+  prot['ByIcon'] = prot.ByIcon;
+  prot['ByValue'] = prot.ByValue;
   window['Asc']['c_oAscConfirm'] = window['Asc'].c_oAscConfirm = c_oAscConfirm;
   prot = c_oAscConfirm;
   prot['ConfirmReplaceRange'] = prot.ConfirmReplaceRange;
@@ -534,6 +539,7 @@ var c_oAscPopUpSelectorType = {
   prot['FormatTable'] = prot.FormatTable;
   prot['Chart'] = prot.Chart;
   prot['FormatTableChangeRange'] = prot.FormatTableChangeRange;
+  prot['CustomSort'] = prot.CustomSort;
   window['Asc']['c_oAscHyperlinkType'] = window['Asc'].c_oAscHyperlinkType = c_oAscHyperlinkType;
   prot = c_oAscHyperlinkType;
   prot['WebLink'] = prot.WebLink;

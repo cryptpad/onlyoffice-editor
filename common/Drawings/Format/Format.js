@@ -7488,6 +7488,11 @@ CSpPr.prototype =
         return duplicate;
     },
 
+    hasRGBFill: function(){
+       return this.Fill && this.Fill.fill && this.Fill.fill.color
+       && this.Fill.fill.color.color && this.Fill.fill.color.color.type === c_oAscColor.COLOR_TYPE_SRGB;
+    },
+
     checkUniFillRasterImageId: function(unifill)
     {
         if(unifill && unifill.fill && typeof unifill.fill.RasterImageId === "string" && unifill.fill.RasterImageId.length > 0)
@@ -8854,6 +8859,29 @@ CTextStyles.prototype =
         return this.Id;
     },
 
+    getStyleByPhType: function(phType)
+    {
+        switch (phType) {
+            case AscFormat.phType_ctrTitle:
+            case AscFormat.phType_title:
+            {
+                return this.titleStyle;
+            }
+            case AscFormat.phType_body:
+            case AscFormat.phType_subTitle:
+            case AscFormat.phType_obj:
+            case null:
+            {
+                return this.bodyStyle;
+            }
+            default:
+            {
+                break;
+            }
+        }
+        return this.otherStyle;
+    },
+
     createDuplicate: function()
     {
         var ret = new CTextStyles();
@@ -10178,7 +10206,7 @@ function CompareBullets(bullet1, bullet2)
         {
             ret.bulletSize = bullet1.bulletSize;
         }
-        if(bullet1.bulletColor && bullet1.bulletColor
+        if(bullet1.bulletColor && bullet2.bulletColor
         && bullet1.bulletColor.type ===  bullet2.bulletColor.type)
         {
             ret.bulletColor = new CBulletColor()
@@ -10614,8 +10642,6 @@ function TextListStyle()
 
     for (var i = 0; i < 10; i++)
         this.levels[i] = null;
-
-
 }
 
 TextListStyle.prototype =
@@ -10669,6 +10695,28 @@ TextListStyle.prototype =
         }
     },
 
+
+    merge: function(oTextListStyle)
+    {
+        if(!oTextListStyle)
+        {
+            return;
+        }
+        for(var i = 0; i < this.levels.length; ++i)
+        {
+            if(oTextListStyle.levels[i])
+            {
+                if(this.levels[i])
+                {
+                    this.levels[i].Merge(oTextListStyle.levels[i]);
+                }
+                else
+                {
+                    this.levels[i] = oTextListStyle.levels[i].Copy();
+                }
+            }
+        }
+    },
 
     Document_Get_AllFontNames: function(AllFonts){
         for(var i = 0; i < 10; ++i){
@@ -11168,7 +11216,7 @@ function CorrectUniFill(asc_fill, unifill, editorId)
 
                 if (undefined != _colors && undefined != _positions)
                 {
-                    if (_colors.length == _positions.length)
+                    if (_colors.length === _positions.length)
                     {
                         if(ret.fill.colors.length === _colors.length){
                             for (var i = 0; i < _colors.length; i++){
@@ -11179,6 +11227,7 @@ function CorrectUniFill(asc_fill, unifill, editorId)
                             }
                         }
                         else{
+                            ret.fill.colors.length = 0;
                             for (var i = 0; i < _colors.length; i++){
                                 var _gs = new CGs();
                                 _gs.color = CorrectUniColor(_colors[i], _gs.color, editorId);

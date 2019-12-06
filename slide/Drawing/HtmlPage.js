@@ -452,6 +452,7 @@ function CEditorPage(api)
 		}
 
 		this.m_oBody = CreateControlContainer(this.Name);
+        this.m_oBody.HtmlElement.style.touchAction = "none";
 
 		this.Splitter1Pos    = 67.5;
         this.Splitter1PosSetUp = this.Splitter1Pos;
@@ -2346,13 +2347,6 @@ function CEditorPage(api)
 		if (is_drawing === true)
 			return;
 
-		var is_drawing_on_up = oWordControl.m_oDrawingDocument.checkMouseDown_DrawingOnUp(pos);
-		if (is_drawing_on_up)
-		{
-			// не посылаем в документ.
-			return;
-		}
-
 		oWordControl.m_oLogicDocument.OnMouseUp(global_mouseEvent, pos.X, pos.Y, pos.Page);
 
 		oWordControl.m_bIsMouseUpSend = false;
@@ -3570,6 +3564,11 @@ function CEditorPage(api)
 			drDoc.AutoShapesTrack.CurrentPageInfo = _oldCurPageInfo;
 		}
 
+        if (drDoc.placeholders.objects.length > 0 && drDoc.SlideCurrent >= 0)
+        {
+        	drDoc.placeholders.draw(overlay, drDoc.SlideCurrent, drDoc.SlideCurrectRect, this.m_oLogicDocument.Width, this.m_oLogicDocument.Height);
+        }
+
 		drDoc.DrawHorVerAnchor();
 
 		return true;
@@ -4170,7 +4169,13 @@ function CEditorPage(api)
 		if (-1 != this.m_oDrawingDocument.SlideCurrent)
 			master = this.m_oLogicDocument.Slides[this.m_oDrawingDocument.SlideCurrent].Layout.Master;
 		else
-			master = this.m_oLogicDocument.slideMasters[0];
+		{
+			master = this.m_oLogicDocument.lastMaster;
+			if(!master)
+			{
+				master = this.m_oLogicDocument.slideMasters[0];
+			}
+		}
 
 		if (this.MasterLayouts != master || Math.abs(this.m_oLayoutDrawer.WidthMM - this.m_oLogicDocument.Width) > MOVE_DELTA || Math.abs(this.m_oLayoutDrawer.HeightMM - this.m_oLogicDocument.Height) > MOVE_DELTA || bIsAttack === true)
 		{

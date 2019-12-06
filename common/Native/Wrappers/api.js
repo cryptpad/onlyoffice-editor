@@ -53,7 +53,7 @@ Asc['asc_docs_api'].prototype.Internal_Update_Ind_Right = function(Right)
 Asc['asc_docs_api'].prototype["NativeAfterLoad"] = function()
 {
     this.WordControl.m_oDrawingDocument.AfterLoad();
-    this.WordControl.m_oLogicDocument.Set_UseTextShd(false);
+    this.WordControl.m_oLogicDocument.SetUseTextShd(false);
 };
 Asc['asc_docs_api'].prototype["GetNativePageMeta"] = function(pageIndex)
 {
@@ -664,7 +664,7 @@ function asc_menu_WriteParaBorder(_type, _border, _stream)
 // PARAASCBORDERS
 function asc_menu_ReadParaBorders(_params, _cursor)
 {
-    var _border = new asc_CParagraph();
+    var _border = new Asc.asc_CParagraphBorders();
     var _continue = true;
     while (_continue)
     {
@@ -5000,39 +5000,19 @@ Asc['asc_docs_api'].prototype.AddImageUrlActionNative = function(src, _w, _h, _p
   _w = Math.max(5, boundingWidth);
   _h = Math.max(5, boundingHeight);  
 
-  if (this.isShapeImageChangeUrl)
+  if (false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(changestype_Paragraph_Content))
   {
-    var AscShapeProp       = new Asc.asc_CShapeProperty();
-    AscShapeProp.fill      = new Asc.asc_CShapeFill();
-    AscShapeProp.fill.type = c_oAscFill.FILL_TYPE_BLIP;
-    AscShapeProp.fill.fill = new Asc.asc_CFillBlip();
-    AscShapeProp.fill.fill.asc_putUrl(src);
-    this.ImgApply(new Asc.asc_CImgProperty({ShapeProperties : AscShapeProp}));
-    this.isShapeImageChangeUrl = false;
-  }
-  else if (this.isImageChangeUrl)
-  {
-    var AscImageProp      = new Asc.asc_CImgProperty();
-    AscImageProp.ImageUrl = src;
-    this.ImgApply(AscImageProp);
-    this.isImageChangeUrl = false;
-  }
-  else
-  {
-    if (false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(changestype_Paragraph_Content))
+    var imageLocal = AscCommon.g_oDocumentUrls.getImageLocal(src);
+    if (imageLocal)
     {
-      var imageLocal = AscCommon.g_oDocumentUrls.getImageLocal(src);
-      if (imageLocal)
-      {
-        src = imageLocal;
-      }
-      this.WordControl.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_AddImageUrlLong);
-      //if (undefined === imgProp || undefined === imgProp.WrappingStyle || 0 == imgProp.WrappingStyle)
-        this.WordControl.m_oLogicDocument.AddInlineImage(_w, _h, src);
-      //else
-      //  this.WordControl.m_oLogicDocument.AddInlineImage(_w, _h, src, null, true);
-      this.WordControl.m_oLogicDocument.FinalizeAction();
+      src = imageLocal;
     }
+    this.WordControl.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_AddImageUrlLong);
+    //if (undefined === imgProp || undefined === imgProp.WrappingStyle || 0 == imgProp.WrappingStyle)
+      this.WordControl.m_oLogicDocument.AddInlineImage(_w, _h, src);
+    //else
+    //  this.WordControl.m_oLogicDocument.AddInlineImage(_w, _h, src, null, true);
+    this.WordControl.m_oLogicDocument.FinalizeAction();
   }
 };
 

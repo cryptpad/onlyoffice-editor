@@ -629,8 +629,8 @@
 				//if apply a/f from context menu
 				var byCurCell = false;
 				if (autoFiltersObject && null === autoFiltersObject.automaticRowCount && currentFilter.isAutoFilter() && currentFilter.isApplyAutoFilter() === false) {
-					//TODO стоит заменить на expandRange ?
-					var automaticRange = this._getAdjacentCellsAF(currentFilter.Ref, true);
+
+					var automaticRange = this.expandRange(currentFilter.Ref, true);
 					var automaticRowCount = automaticRange.r2;
 
 					byCurCell = true;
@@ -1699,18 +1699,14 @@
 
 					var cellIdRange = new Asc.Range(startCol, filterRef.r1, startCol, filterRef.r1);
 
-					curFilter.SortState.SortConditions[0].Ref =
-						new Asc.Range(startCol, filterRef.r1, startCol, filterRef.r2);
-					curFilter.SortState.SortConditions[0].ConditionDescending =
-						type !== Asc.c_oAscSortOptions.Ascending;
+					curFilter.SortState.SortConditions[0].Ref = new Asc.Range(startCol, filterRef.r1, startCol, filterRef.r2);
+					curFilter.SortState.SortConditions[0].ConditionDescending = type !== Asc.c_oAscSortOptions.Ascending;
 
 					if (curFilter.TableStyleInfo) {
 						t._setColorStyleTable(curFilter.Ref, curFilter);
 					}
 
-					t._addHistoryObj({oldFilter: oldFilter}, AscCH.historyitem_AutoFilter_Sort,
-						{activeCells: cellIdRange, type: type, cellId: cellId, displayName: displayName}, null,
-						curFilter.Ref);
+					t._addHistoryObj({oldFilter: oldFilter}, AscCH.historyitem_AutoFilter_Sort, {activeCells: cellIdRange, type: type, cellId: cellId, displayName: displayName}, null, curFilter.Ref);
 					History.EndTransaction();
 				};
 
@@ -1739,8 +1735,7 @@
 
 					var cellIdRange = new Asc.Range(startCol, filterRef.r1, startCol, filterRef.r1);
 
-					curFilter.SortState.SortConditions[0].Ref =
-						new Asc.Range(startCol, filterRef.r1, startCol, filterRef.r2);
+					curFilter.SortState.SortConditions[0].Ref = new Asc.Range(startCol, filterRef.r1, startCol, filterRef.r2);
 					var newDxf = new AscCommonExcel.CellXfs();
 
 					if (type === Asc.c_oAscSortOptions.ByColorFill) {
@@ -1844,7 +1839,7 @@
 				if (curFilter.isAutoFilter() && curFilter.isApplyAutoFilter() === false)//нужно подхватить нижние ячейки в случае, если это не применен а/ф
 				{
 					//TODO стоит заменить на expandRange ?
-					var automaticRange = this._getAdjacentCellsAF(curFilter.Ref, true);
+					var automaticRange = this.expandRange(curFilter.Ref, true);
 					var automaticRowCount = automaticRange.r2;
 
 					if (automaticRowCount > maxFilterRow) {
@@ -3606,7 +3601,7 @@
 				return range;
 			},
 
-			expandRange: function(activeRange) {
+			expandRange: function(activeRange, ignoreFilter) {
 				var ws = this.worksheet;
 
 				//если вдруг встретили мерженную ячейку в диапазоне, расширяем
@@ -3832,7 +3827,7 @@
 						}
 					}
 				}
-				if(ws.AutoFilter && ws.AutoFilter.Ref) {
+				if(!ignoreFilter && ws.AutoFilter && ws.AutoFilter.Ref) {
 					if(doCropRange(ws.AutoFilter.Ref)) {
 						bIsChangedRange = true;
 					}
@@ -3949,13 +3944,13 @@
 				if(range.r1 < minRow) {
 					range.r1 = minRow;
 				}
-				if(range.r2 > maxRow) {
+				if(range.r2 > maxRow && maxRow >= range.r1) {
 					range.r2 = maxRow;
 				}
 				if(range.c1 < minCol) {
 					range.c1 = minCol;
 				}
-				if(range.c2 > maxCol) {
+				if(range.c2 > maxCol && maxCol >= range.c1) {
 					range.c2 = maxCol;
 				}
 
@@ -4132,7 +4127,7 @@
 				if (!isTablePart /*&& filter.isApplyAutoFilter() === false*/)//нужно подхватить нижние ячейки
 				{
 					//TODO стоит заменить на expandRange ?
-					var automaticRange = this._getAdjacentCellsAF(filter.Ref, true);
+					var automaticRange = this.expandRange(filter.Ref, true);
 					automaticRowCount = automaticRange.r2;
 
 					if (automaticRowCount > maxFilterRow) {

@@ -806,6 +806,10 @@ CDocumentContentElementBase.prototype.Get_CurrentPage_Relative = function()
 {
 	return this.private_GetRelativePageIndex(0);
 };
+CDocumentContentElementBase.prototype.GetCurrentPageAbsolute = function()
+{
+	return this.Get_CurrentPage_Absolute();
+};
 CDocumentContentElementBase.prototype.GetAbsolutePage = function(CurPage)
 {
 	return this.private_GetAbsolutePageIndex(CurPage);
@@ -1027,7 +1031,7 @@ CDocumentContentElementBase.prototype.SetIsRecalculated = function(isRecalculate
 	this.Recalculated = isRecalculated;
 };
 /**
- * Узнаем рассчитан ли данный параграф
+ * Узнаем рассчитан ли данный элемент
  * @returns {boolean}
  */
 CDocumentContentElementBase.prototype.IsRecalculated = function()

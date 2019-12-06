@@ -384,6 +384,7 @@ CGraphicObjects.prototype =
             oContent.AddToParagraph(new ParaTextPr(oTextPr));
             oContent.SetParagraphAlign(AscCommon.align_Center);
             oContent.SetParagraphSpacing({Before : 0, After: 0,  LineRule : Asc.linerule_Auto, Line : 1.0});
+            oContent.SetParagraphIndent({FirstLine:0, Left:0, Right:0});
             oContent.Set_ApplyToAll(false);
             var oBodyPr = oDrawing.getBodyPr().createDuplicate();
             oBodyPr.rot = 0;
@@ -444,7 +445,7 @@ CGraphicObjects.prototype =
         }
         if (TrackRevisions)
         {
-            this.document.SetTrackRevisions(false);
+            this.document.SetTrackRevisions(true);
         }
         return oParaDrawing;
     },
@@ -1870,21 +1871,7 @@ CGraphicObjects.prototype =
             var theme = this.document.Get_Theme();
             if(theme && theme.themeElements && theme.themeElements.fontScheme)
             {
-                if(TextPr.FontFamily)
-                {
-                    TextPr.FontFamily.Name =  theme.themeElements.fontScheme.checkFont(TextPr.FontFamily.Name);
-                }
-                if(TextPr.RFonts)
-                {
-                    if(TextPr.RFonts.Ascii)
-                        TextPr.RFonts.Ascii.Name     = theme.themeElements.fontScheme.checkFont(TextPr.RFonts.Ascii.Name);
-                    if(TextPr.RFonts.EastAsia)
-                        TextPr.RFonts.EastAsia.Name  = theme.themeElements.fontScheme.checkFont(TextPr.RFonts.EastAsia.Name);
-                    if(TextPr.RFonts.HAnsi)
-                        TextPr.RFonts.HAnsi.Name     = theme.themeElements.fontScheme.checkFont(TextPr.RFonts.HAnsi.Name);
-                    if(TextPr.RFonts.CS)
-                        TextPr.RFonts.CS.Name        = theme.themeElements.fontScheme.checkFont(TextPr.RFonts.CS.Name);
-                }
+                TextPr.ReplaceThemeFonts(theme.themeElements.fontScheme);
             }
             editor.UpdateTextPr(TextPr);
         }
@@ -1959,21 +1946,7 @@ CGraphicObjects.prototype =
                 var theme = this.document.Get_Theme();
                 if(theme && theme.themeElements && theme.themeElements.fontScheme)
                 {
-                    if(TextPr.FontFamily)
-                    {
-                        TextPr.FontFamily.Name =  theme.themeElements.fontScheme.checkFont(TextPr.FontFamily.Name);
-                    }
-                    if(TextPr.RFonts)
-                    {
-                        if(TextPr.RFonts.Ascii)
-                            TextPr.RFonts.Ascii.Name     = theme.themeElements.fontScheme.checkFont(TextPr.RFonts.Ascii.Name);
-                        if(TextPr.RFonts.EastAsia)
-                            TextPr.RFonts.EastAsia.Name  = theme.themeElements.fontScheme.checkFont(TextPr.RFonts.EastAsia.Name);
-                        if(TextPr.RFonts.HAnsi)
-                            TextPr.RFonts.HAnsi.Name     = theme.themeElements.fontScheme.checkFont(TextPr.RFonts.HAnsi.Name);
-                        if(TextPr.RFonts.CS)
-                            TextPr.RFonts.CS.Name        = theme.themeElements.fontScheme.checkFont(TextPr.RFonts.CS.Name);
-                    }
+                    TextPr.ReplaceThemeFonts(theme.themeElements.fontScheme);
                 }
                 editor.UpdateParagraphProp(para_pr);
                 editor.UpdateTextPr(TextPr);

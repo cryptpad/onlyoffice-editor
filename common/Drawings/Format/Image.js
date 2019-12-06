@@ -137,7 +137,7 @@ CImageShape.prototype.setStyle = function(pr)
     this.style = pr;
 };
 
-CImageShape.prototype.copy = function()
+CImageShape.prototype.copy = function(oPr)
 {
     var copy = new CImageShape();
 
@@ -369,14 +369,14 @@ CImageShape.prototype.getBase64Img = CShape.prototype.getBase64Img;
 CImageShape.prototype.convertToWord = function(document)
 {
     this.setBDeleted(true);
-    var oCopy = this.copy();
+    var oCopy = this.copy(undefined);
     oCopy.setBDeleted(false);
     return oCopy;
 };
 
 CImageShape.prototype.convertToPPTX = function(drawingDocument, worksheet)
 {
-    var ret = this.copy();
+    var ret = this.copy(undefined);
     ret.setWorksheet(worksheet);
     ret.setParent(null);
     ret.setBDeleted(false);

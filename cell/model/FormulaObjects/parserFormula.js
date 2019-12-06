@@ -50,8 +50,6 @@ function (window, undefined) {
 	var cDate = Asc.cDate;
   var bIsSupportArrayFormula = true;
 
-  var prot;
-
   var c_oAscError = Asc.c_oAscError;
 
 	var TOK_TYPE_OPERAND = 1;

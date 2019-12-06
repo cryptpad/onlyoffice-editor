@@ -67,9 +67,13 @@ function CheckObjectLine(obj)
 
 function CheckWordArtTextPr(oRun)
 {
-    var oTextPr = oRun.Get_CompiledPr();
-    if(oTextPr.TextFill || (oTextPr.TextOutline && oTextPr.TextOutline.Fill && oTextPr.TextOutline.Fill.fill && oTextPr.TextOutline.Fill.fill.type !==  Asc.c_oAscFill.FILL_TYPE_NOFILL) || (oTextPr.Unifill && oTextPr.Unifill.fill && (oTextPr.Unifill.fill.type !== c_oAscFill.FILL_TYPE_SOLID || oTextPr.Unifill.transparent != null && oTextPr.Unifill.transparent < 254.5)))
-        return true;
+    if(oRun instanceof AscCommonWord.ParaRun)
+    {
+        var oTextPr = oRun.Get_CompiledPr();
+        if(oTextPr.TextFill || (oTextPr.TextOutline && oTextPr.TextOutline.Fill && oTextPr.TextOutline.Fill.fill && oTextPr.TextOutline.Fill.fill.type !==  Asc.c_oAscFill.FILL_TYPE_NOFILL) ||
+            (oTextPr.Unifill && oTextPr.Unifill.fill && (oTextPr.Unifill.fill.type !== c_oAscFill.FILL_TYPE_SOLID || oTextPr.Unifill.transparent != null && oTextPr.Unifill.transparent < 254.5)))
+            return true;
+    }
     return false;
 }
 
@@ -733,7 +737,10 @@ function fHandleContent(aContent, oMax){
         }
         else if(oContentElement.Get_Type() === type_Table)
         {
-
+            if(oContentElement.Bounds.Right > oMax.max_width)
+            {
+                oMax.max_width = oContentElement.Bounds.Right;
+            }
         }
         else if(oContentElement.Get_Type() === type_BlockLevelSdt)
         {
@@ -898,7 +905,7 @@ function SetXfrmFromMetrics(oDrawing, metrics)
         this.signer2 =  AscFormat.readString(reader);
         this.email =  AscFormat.readString(reader);
     };
-    CSignatureLine.prototype.copy = function(){
+    CSignatureLine.prototype.copy = function(oPr){
         var ret = new CSignatureLine();
         ret.id =  this.id;
         ret.signer = this.signer;
@@ -996,28 +1003,6 @@ CShape.prototype.convertToWord = function (document) {
                 var cur_par = paragraphs[i];
                 var new_paragraph = ConvertParagraphToWord(cur_par, new_content);
                 new_content.Internal_Content_Add(i, new_paragraph, false);
-                /*var bullet = cur_par.Pr.Bullet;
-                 if(bullet && bullet.bulletType && bullet.bulletType.type !== AscFormat.BULLET_TYPE_BULLET_NONE)
-                 {
-                 switch(bullet.bulletType.type)
-                 {
-                 case AscFormat.BULLET_TYPE_BULLET_CHAR:
-                 case AscFormat.BULLET_TYPE_BULLET_BLIP :
-                 {
-                 _bullet.m_nType = numbering_presentationnumfrmt_Char;
-                 _bullet.m_sChar = _final_bullet.bulletType.Char[0];
-                 _cur_paragraph.Add_PresentationNumbering(_bullet, true);
-                 break;
-                 }
-                 case AscFormat.BULLET_TYPE_BULLET_AUTONUM :
-                 {
-                 _bullet.m_nType = g_NumberingArr[_final_bullet.bulletType.AutoNumType];
-                 _bullet.m_nStartAt = _final_bullet.bulletType.startAt;
-                 _cur_paragraph.Add_PresentationNumbering(_bullet, true);
-                 break;
-                 }
-                 }
-                 } */
             }
             c.setTextBoxContent(new_content);
         }
@@ -2608,7 +2593,7 @@ CShape.prototype.selectionCheck = function (X, Y, PageAbs, NearPos) {
     return false;
 };
 
-CShape.prototype.fillObject = function(copy){
+CShape.prototype.fillObject = function(copy, oPr){
     if (this.nvSpPr)
         copy.setNvSpPr(this.nvSpPr.createDuplicate());
     if (this.spPr) {
@@ -2626,7 +2611,7 @@ CShape.prototype.fillObject = function(copy){
         copy.setBodyPr(this.bodyPr.createDuplicate());
     }
     if (this.textBoxContent) {
-        copy.setTextBoxContent(this.textBoxContent.Copy(copy));
+        copy.setTextBoxContent(this.textBoxContent.Copy(copy, oPr && oPr.drawingDocument, oPr && oPr.contentCopyPr));
     }
     if(this.signatureLine && copy.setSignature){
         copy.setSignature(this.signatureLine.copy());
@@ -2639,9 +2624,9 @@ CShape.prototype.fillObject = function(copy){
     copy.cachedPixW = this.cachedPixW;
 };
 
-CShape.prototype.copy = function () {
+CShape.prototype.copy = function (oPr) {
     var copy = new CShape();
-    this.fillObject(copy);
+    this.fillObject(copy, oPr);
     return copy;
 };
 
@@ -2708,27 +2693,7 @@ CShape.prototype.recalculateTextStyles = function (level) {
             }
             else{
                 if (this.isPlaceholder() && !(this instanceof AscFormat.CGraphicFrame)) {
-                    switch (this.getPlaceholderType()) {
-                        case AscFormat.phType_ctrTitle:
-                        case AscFormat.phType_title:
-                        {
-                            master_ppt_styles = parent_objects.master.txStyles.titleStyle;
-                            break;
-                        }
-                        case AscFormat.phType_body:
-                        case AscFormat.phType_subTitle:
-                        case AscFormat.phType_obj:
-                        case null:
-                        {
-                            master_ppt_styles = parent_objects.master.txStyles.bodyStyle;
-                            break;
-                        }
-                        default:
-                        {
-                            master_ppt_styles = parent_objects.master.txStyles.otherStyle;
-                            break;
-                        }
-                    }
+                    master_ppt_styles = parent_objects.master.txStyles.getStyleByPhType(this.getPlaceholderType());
                 }
                 else {
                     master_ppt_styles = parent_objects.master.txStyles.otherStyle;
@@ -5915,7 +5880,7 @@ CShape.prototype.getColumnNumber = function(){
     };
 
     CShape.prototype.getCopyWithSourceFormatting = function(){
-        var oCopy = this.copy();
+        var oCopy = this.copy(undefined);
         if(this.pen || this.brush){
             if(!oCopy.spPr){
                 oCopy.setSpPr(AscFormat.CSpPr());
@@ -6117,20 +6082,7 @@ function checkDrawingsTransformBeforePaste(oEndContent, oSourceContent, oTempPar
 
 
 function SaveSourceFormattingTextPr(oTextPr, oTheme, oColorMap) {
-    if(oTextPr.RFonts){
-        if(oTextPr.RFonts.Ascii){
-            oTextPr.RFonts.Ascii.Name = oTheme.themeElements.fontScheme.checkFont(oTextPr.RFonts.Ascii.Name);
-        }
-        if(oTextPr.RFonts.EastAsia){
-            oTextPr.RFonts.EastAsia.Name = oTheme.themeElements.fontScheme.checkFont(oTextPr.RFonts.EastAsia.Name);
-        }
-        if(oTextPr.RFonts.HAnsi){
-            oTextPr.RFonts.HAnsi.Name = oTheme.themeElements.fontScheme.checkFont(oTextPr.RFonts.HAnsi.Name);
-        }
-        if(oTextPr.RFonts.CS){
-            oTextPr.RFonts.CS.Name = oTheme.themeElements.fontScheme.checkFont(oTextPr.RFonts.CS.Name);
-        }
-    }
+    oTextPr.ReplaceThemeFonts(oTheme.themeElements.fontScheme);
     if(oTextPr.Unifill){
         oTextPr.Unifill.check(oTheme, oColorMap);
         oTextPr.Unifill = oTextPr.Unifill.saveSourceFormatting();
