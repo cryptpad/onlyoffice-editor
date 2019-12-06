@@ -15697,6 +15697,7 @@
 
 		var sendError = function() {
 			ws.workbook.handlers.trigger("asc_onError", c_oAscError.ID.AutoFilterChangeFormatTableError, c_oAscError.Level.NoCritical);
+			t.handlers.trigger("selectionChanged");
 		};
 
 		var checkShift = function(range) {
