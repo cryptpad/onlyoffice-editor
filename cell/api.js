@@ -293,10 +293,10 @@ var editor;
     return AscCommon.g_oDefaultCultureInfo.LCID;
   };
   spreadsheet_api.prototype.asc_getDecimalSeparator = function () {
-    return AscCommon.g_oDefaultCultureInfo.numberDecimalSeparator;
+    return AscCommon.g_oDefaultCultureInfo.NumberDecimalSeparator;
   };
   spreadsheet_api.prototype.asc_getGroupSeparator = function () {
-    return AscCommon.g_oDefaultCultureInfo.numberGroupSeparator;
+    return AscCommon.g_oDefaultCultureInfo.NumberGroupSeparator;
   };
   spreadsheet_api.prototype._openDocument = function(data) {
     this.wbModel = new AscCommonExcel.Workbook(this.handlers, this);
