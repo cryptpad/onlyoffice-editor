@@ -127,6 +127,15 @@ CInlineLevelSdt.prototype.Copy = function(isUseSelection, oPr)
 		}
 	}
 
+	this.private_CopyPrTo(oContentControl);
+
+	if (oContentControl.IsEmpty())
+		oContentControl.ReplaceContentWithPlaceHolder();
+
+	return oContentControl;
+};
+CInlineLevelSdt.prototype.private_CopyPrTo = function(oContentControl)
+{
 	oContentControl.SetLabel(this.GetLabel());
 	oContentControl.SetTag(this.GetTag());
 	oContentControl.SetAlias(this.GetAlias());
@@ -157,15 +166,12 @@ CInlineLevelSdt.prototype.Copy = function(isUseSelection, oPr)
 
 	if (undefined !== this.Pr.Date)
 		oContentControl.SetDatePickerPr(this.Pr.Date);
-
-	if (oContentControl.IsEmpty())
-		oContentControl.ReplaceContentWithPlaceHolder();
-
-	return oContentControl;
 };
 CInlineLevelSdt.prototype.GetSelectedContent = function(oSelectedContent)
 {
 	var oNewElement = new CInlineLevelSdt();
+	this.private_CopyPrTo(oNewElement);
+
 	if (this.IsPlaceHolder())
 	{
 		return oNewElement;
