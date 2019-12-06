@@ -15091,7 +15091,11 @@ CDocument.prototype.AcceptAllRevisionChanges = function(isSkipCheckLock, isCheck
 	var _isCheckEmptyAction = (false !== isCheckEmptyAction);
 
 	var RelatedParas = this.TrackRevisionsManager.Get_AllChangesRelatedParagraphs(true);
-	if (true === isSkipCheckLock || false === this.Document_Is_SelectionLocked(AscCommon.changestype_None, { Type : changestype_2_ElementsArray_and_Type, Elements : RelatedParas, CheckType : AscCommon.changestype_Paragraph_Content}))
+	if (true === isSkipCheckLock || false === this.IsSelectionLocked(AscCommon.changestype_None, {
+			Type      : changestype_2_ElementsArray_and_Type,
+			Elements  : RelatedParas,
+			CheckType : AscCommon.changestype_Paragraph_Properties
+		}))
 	{
 		this.StartAction(AscDFH.historydescription_Document_AcceptAllRevisionChanges);
 
@@ -15131,7 +15135,11 @@ CDocument.prototype.RejectAllRevisionChanges = function(isSkipCheckLock, isCheck
 	var _isCheckEmptyAction = (false !== isCheckEmptyAction);
 
 	var RelatedParas = this.TrackRevisionsManager.Get_AllChangesRelatedParagraphs(false);
-	if (true === isSkipCheckLock || false === this.Document_Is_SelectionLocked(AscCommon.changestype_None, { Type : changestype_2_ElementsArray_and_Type, Elements : RelatedParas, CheckType : AscCommon.changestype_Paragraph_Content}))
+	if (true === isSkipCheckLock || false === this.IsSelectionLocked(AscCommon.changestype_None, {
+			Type      : changestype_2_ElementsArray_and_Type,
+			Elements  : RelatedParas,
+			CheckType : AscCommon.changestype_Paragraph_Properties
+		}))
 	{
 		this.StartAction(AscDFH.historydescription_Document_RejectAllRevisionChanges);
 
