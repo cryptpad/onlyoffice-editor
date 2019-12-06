@@ -299,7 +299,7 @@ ParaRun.prototype.GetSelectedContent = function(oSelectedContent)
 		{
 			var oRun = this.Copy(true, {CopyReviewPr : false});
 
-			if (oReviewInfo.IsMovedTo() || oReviewInfo.IsMovedFrom())
+			if (reviewtype_Common !== nReviewType && (oReviewInfo.IsMovedTo() || oReviewInfo.IsMovedFrom()))
 				oSelectedContent.SetMovedParts(true);
 
 			if (oSelectedContent.IsMoveTrack())
