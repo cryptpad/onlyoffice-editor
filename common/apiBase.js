@@ -548,7 +548,7 @@
 		var rData                  = null;
 		if (!(this.DocInfo && this.DocInfo.get_OfflineApp()))
 		{
-			var locale = this.asc_getLocale() || undefined;
+			var locale = !window['NATIVE_EDITOR_ENJINE'] && this.asc_getLocale() || undefined;
 			if (typeof locale === "string") {
 				if (Asc.g_oLcidNameToIdMap) {
 					locale = Asc.g_oLcidNameToIdMap[locale];
