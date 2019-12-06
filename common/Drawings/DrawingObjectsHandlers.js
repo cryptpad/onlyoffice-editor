@@ -1032,7 +1032,7 @@ function handleChartElements(drawing, drawingObjectsController, e, dTx, dTy, gro
 								selector.selectObject(drawing, pageIndex);
 								selector.selection.chartSelection = drawing;
 								drawing.selection.axis = oAxObj.catAx;
-								drawing.selection.majorGridlines = oAxObj.paths.gridLines;
+								drawing.selection.majorGridlines = true;
 								break;
 							}
 						}
@@ -1047,7 +1047,7 @@ function handleChartElements(drawing, drawingObjectsController, e, dTx, dTy, gro
 								selector.selectObject(drawing, pageIndex);
 								selector.selection.chartSelection = drawing;
 								drawing.selection.axis = oAxObj.catAx;
-								drawing.selection.minorGridlines = oAxObj.paths.minorGridLines;
+								drawing.selection.minorGridlines = true;
 								break;
 							}
 						}
@@ -1074,7 +1074,7 @@ function handleChartElements(drawing, drawingObjectsController, e, dTx, dTy, gro
 									selector.selectObject(drawing, pageIndex);
 									selector.selection.chartSelection = drawing;
 									drawing.selection.axis = oAxObj.valAx;
-									drawing.selection.majorGridlines = oAxObj.paths.gridLines;
+									drawing.selection.majorGridlines = true;
 									break;
 								}
 							}
@@ -1089,7 +1089,7 @@ function handleChartElements(drawing, drawingObjectsController, e, dTx, dTy, gro
 									selector.selectObject(drawing, pageIndex);
 									selector.selection.chartSelection = drawing;
 									drawing.selection.axis = oAxObj.valAx;
-									drawing.selection.minorGridlines = oAxObj.paths.minorGridLines;
+									drawing.selection.minorGridlines = true;
 									break;
 								}
 							}
