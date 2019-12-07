@@ -4229,12 +4229,12 @@ CChartSpace.prototype.rebuildSeriesData = function(oValRange, oCatRange, oTxRang
         }
         if(oCatRange)
         {
-            if(bScatter) {
+            //if(bScatter) {
                 aSeries = this.getAllSeries();
-            }
-            else {
-                aSeries = [oSeries];
-            }
+            // }
+            // else {
+            //     aSeries = [oSeries];
+            // }
             for(i = 0; i < aSeries.length; ++i) {
                 oSeries = aSeries[i];
                 if(!bScatter) {
@@ -5399,14 +5399,8 @@ CChartSpace.prototype.getRangeObjectStr = function()
                     worksheet: first_series_sheet
                 };
 
-
-                bbox.seriesBBox = {
-                    r1: series_f[0].r1,
-                    r2: series_f[series_f.length-1].r2,
-                    c1: series_f[0].c1,
-                    c2: series_f[series_f.length-1].c2,
-                    bVert: b_vert
-                };
+                bbox.seriesBBox = new window["Asc"].Range(series_f[0].c1, series_f[0].r1, series_f[series_f.length-1].c2, series_f[series_f.length-1].r2, false);
+                bbox.seriesBBox.bVert = b_vert;
 
 
                 seriesBBoxes.push(new BBoxInfo(first_series_sheet, bbox.seriesBBox));
@@ -5442,12 +5436,8 @@ CChartSpace.prototype.getRangeObjectStr = function()
                 }
                 if(Array.isArray(series_title_f))
                 {
-                    bbox.serBBox = {
-                        r1: series_title_f[0].r1,
-                        r2: series_title_f[series_title_f.length-1].r2,
-                        c1: series_title_f[0].c1,
-                        c2: series_title_f[series_title_f.length-1].c2
-                    };
+
+                    bbox.serBBox = new window["Asc"].Range(series_title_f[0].c1, series_title_f[0].r1, series_title_f[series_title_f.length-1].c2, series_title_f[series_title_f.length-1].r2, false);
                     seriesTitlesBBoxes.push(new BBoxInfo(first_series_sheet, bbox.serBBox));
                 }
             }

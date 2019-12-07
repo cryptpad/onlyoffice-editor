@@ -4129,7 +4129,7 @@ function DrawingObjects() {
         var BB, range;
         var oSelectedSeries = drawing.getSelectedSeries();
         var oSelectionRange;
-        var aActiveRanges = [];
+        var aActiveRanges = [], aCheckRanges, i, j;
 
         var oSeriesBBox = null, oTxBBox = null, oCatBBox = null;
         if(!oSelectedSeries)
@@ -4139,6 +4139,17 @@ function DrawingObjects() {
                 oSeriesBBox = BBoxObjects.bbox.seriesBBox;
                 oTxBBox = BBoxObjects.bbox.serBBox;
                 oCatBBox = BBoxObjects.bbox.catBBox;
+                aCheckRanges = [oSeriesBBox, oTxBBox, oCatBBox];
+                for(i = 0; i < aCheckRanges.length; ++i)
+                {
+                    for(j = i + 1; j < aCheckRanges.length; ++j)
+                    {
+                        if(aCheckRanges[i] && aCheckRanges[j] && aCheckRanges[i].isIntersect && aCheckRanges[i].isIntersect(aCheckRanges[j]))
+                        {
+                            return;
+                        }
+                    }
+                }
             }
         }
         else {
