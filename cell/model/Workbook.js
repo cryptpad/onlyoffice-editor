@@ -6618,7 +6618,8 @@
 								fieldItem = field.getItem(colItem.x[colItemsXIndex].getV());
 								curDataRow = curDataRow.subtotal[fieldItem.x];
 							}
-							dataByColIndex[colR + colItemsXIndex + 1] = curDataRow;
+							dataByColIndex.length = colR + colItemsXIndex + 1;
+							dataByColIndex[dataByColIndex.length] = curDataRow;
 							if (!curDataRow) {
 								break;
 							}

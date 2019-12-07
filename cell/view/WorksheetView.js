@@ -10661,7 +10661,7 @@
 					t.handlers.trigger("onErrorEvent", c_oAscError.ID.CannotChangeFormulaArray, c_oAscError.Level.NoCritical);
 					return false;
 				}
-				if (val.data.pivotTables.length > 0) {
+				if (val.data && val.data.pivotTables && val.data.pivotTables.length > 0) {
 					var intersectionTableParts = this.model.autoFilters.getTableIntersectionRange(newRange);
 					for (var i = 0; i < intersectionTableParts.length; i++) {
 						if(intersectionTableParts[i] && intersectionTableParts[i].Ref && !newRange.containsRange(intersectionTableParts[i].Ref)) {
@@ -10824,10 +10824,11 @@
 		//добавляем форматированные таблицы
 		var arnToRange = t.model.selectionRange.getLast();
         var tablesMap = null, intersectionRangeWithTableParts;
-		var activeRange = AscCommonExcel.g_clipboardExcel.pasteProcessor.activeRange;
-		var refInsertBinary = AscCommonExcel.g_oRangeCache.getAscRange(activeRange);
+		var refInsertBinary;
         if (fromBinary && val.TableParts && val.TableParts.length && specialPasteProps.formatTable) {
             var range, tablePartRange, tables = val.TableParts, diffRow, diffCol, curTable, bIsAddTable;
+			var activeRange = AscCommonExcel.g_clipboardExcel.pasteProcessor.activeRange;
+			refInsertBinary = AscCommonExcel.g_oRangeCache.getAscRange(activeRange);
             for (var i = 0; i < tables.length; i++) {
                 curTable = tables[i];
                 tablePartRange = curTable.Ref;
@@ -10883,7 +10884,7 @@
 		if (specialPasteProps.formatTable) {
 			t.model.deletePivotTables(pasteToRange);
 		}
-		if (fromBinary && val.pivotTables.length && specialPasteProps.formatTable) {
+		if (fromBinary && refInsertBinary && val.pivotTables && val.pivotTables.length && specialPasteProps.formatTable) {
 			for (var i = 0; i < val.pivotTables.length; i++) {
 				var pivot = val.pivotTables[i];
 				pivot.setWS(t.model);

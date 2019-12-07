@@ -3743,44 +3743,44 @@ $(function() {
 	function startTests() {
 		QUnit.start();
 
-		// testValidations();
-		//
-		// testLayout("compact");
-		//
-		// testLayout("outline");
-		//
-		// testLayout("tabular");
-		//
-		// testLayoutValues("compact");
-		//
-		// testLayoutValues("outline");
-		//
-		// testLayoutValues("tabular");
-		//
-		// testLayoutSubtotal("compact");
-		//
-		// testLayoutSubtotal("tabular");
-		//
-		// testPivotInsertBlankRow();
-		//
-		// testPivotPageFilterLayout();
-		//
-		// testFieldProperty();
-		//
-		// testFieldSubtotal();
-		//
-		// testDataValues();
-		//
-		// testHeaderRename();
-		//
-		// testPivotManipulationField();
-		//
-		// testPivotManipulationValues();
-		//
+		testValidations();
+
+		testLayout("compact");
+
+		testLayout("outline");
+
+		testLayout("tabular");
+
+		testLayoutValues("compact");
+
+		testLayoutValues("outline");
+
+		testLayoutValues("tabular");
+
+		testLayoutSubtotal("compact");
+
+		testLayoutSubtotal("tabular");
+
+		testPivotInsertBlankRow();
+
+		testPivotPageFilterLayout();
+
+		testFieldProperty();
+
+		testFieldSubtotal();
+
+		testDataValues();
+
+		testHeaderRename();
+
+		testPivotManipulationField();
+
+		testPivotManipulationValues();
+
 		testDataRefresh();
-		//
-		// testDataSource();
-		//
-		// testPivotMisc();
+
+		testDataSource();
+
+		testPivotMisc();
 	}
 });
