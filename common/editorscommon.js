@@ -4874,10 +4874,10 @@
 				oVal /= 100;
 			} else if (-1 !== value.indexOf("px")) {
 				oType = "px";
-				oVal *= g_dKoef_pix_to_mm;
+				oVal *= AscCommon.g_dKoef_pix_to_mm;
 			} else if (-1 !== value.indexOf("in")) {
 				oType = "in";
-				oVal *= g_dKoef_in_to_mm;
+				oVal *= AscCommonWord.g_dKoef_in_to_mm;
 			} else if (-1 !== value.indexOf("cm")) {
 				oType = "cm";
 				oVal *= 10;
@@ -4885,10 +4885,10 @@
 				oType = "mm";
 			} else if (-1 !== value.indexOf("pt")) {
 				oType = "pt";
-				oVal *= g_dKoef_pt_to_mm;
+				oVal *= AscCommonWord.g_dKoef_pt_to_mm;
 			} else if (-1 !== value.indexOf("pc")) {
 				oType = "pc";
-				oVal *= g_dKoef_pc_to_mm;
+				oVal *= AscCommonWord.g_dKoef_pc_to_mm;
 			} else {
 				oType = "none";
 			}
