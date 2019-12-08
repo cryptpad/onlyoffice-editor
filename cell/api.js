@@ -290,7 +290,7 @@ var editor;
     }
   };
   spreadsheet_api.prototype.asc_getLocale = function () {
-    return AscCommon.g_oDefaultCultureInfo.LCID;
+    return this.isLoadFullApi ? AscCommon.g_oDefaultCultureInfo.LCID : this.tmpLCID;
   };
   spreadsheet_api.prototype.asc_getDecimalSeparator = function (culture) {
   	var cultureInfo = AscCommon.g_aCultureInfos[culture] || AscCommon.g_oDefaultCultureInfo;
