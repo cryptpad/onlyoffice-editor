@@ -6236,6 +6236,10 @@ CPresentation.prototype.OnKeyDown = function (e) {
                         editor.WordControl.GoToPage(_last_selected_slide_num);
                         editor.WordControl.m_oLogicDocument.addNextSlide();
                     }
+                    else if(this.Slides.length === 0) {
+                        editor.WordControl.m_oLogicDocument.addNextSlide();
+                        editor.WordControl.GoToPage(0);
+                    }
                 }
             }
         }

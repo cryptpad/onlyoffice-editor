@@ -5346,6 +5346,10 @@ function CThumbnailsManager()
 							this.m_oWordControl.m_oLogicDocument.addNextSlide();
 							return false;
 						}
+						else if(this.m_oWordControl.m_oLogicDocument.Slides.length === 0) {
+							this.m_oWordControl.m_oLogicDocument.addNextSlide();
+							this.m_oWordControl.GoToPage(0);
+						}
 					}
 				}
 				break;
