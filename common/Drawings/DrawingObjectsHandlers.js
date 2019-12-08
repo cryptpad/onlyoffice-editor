@@ -409,7 +409,15 @@ function handleShapeImage(drawing, drawingObjectsController, e, x, y, group, pag
                 return false
             }
         }
-        return drawingObjectsController.handleTextHit(drawing, e, x, y, group, pageIndex, bWord);
+        var oTextObject = AscFormat.getTargetTextObject(drawingObjectsController);
+        if(!e.CtrlKey && !e.ShiftKey || oTextObject === drawing)
+        {
+            return drawingObjectsController.handleTextHit(drawing, e, x, y, group, pageIndex, bWord);
+        }
+        else
+        {
+            return drawingObjectsController.handleMoveHit(drawing, e, x, y, group, false, pageIndex, bWord);
+        }
     }
     return false;
 }
@@ -462,7 +470,15 @@ function handleShapeImageInGroup(drawingObjectsController, drawing, shape, e, x,
                 return false
             }
         }
-        return drawingObjectsController.handleTextHit(shape, e, x, y, drawing, pageIndex, bWord);
+        var oTextObject = AscFormat.getTargetTextObject(drawingObjectsController);
+        if(!e.CtrlKey && !e.ShiftKey || oTextObject === drawing)
+        {
+            return drawingObjectsController.handleTextHit(shape, e, x, y, drawing, pageIndex, bWord);
+        }
+        else
+        {
+            return drawingObjectsController.handleMoveHit(drawing, e, x, y, null, false, pageIndex, true);
+        }
     }
 }
 
