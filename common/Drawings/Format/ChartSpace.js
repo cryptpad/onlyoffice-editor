@@ -2665,7 +2665,7 @@ CChartSpace.prototype.changeSize = CShape.prototype.changeSize;
         }
         else if(this.selection.axis)
         {
-            if(AscFormat.isRealNumber(this.selection.majorGridlines))
+            if(this.selection.majorGridlines)
             {
                 if(this.selection.axis.majorGridlines && this.selection.axis.majorGridlines.ln && this.selection.axis.majorGridlines.ln.Fill)
                 {
@@ -5905,14 +5905,14 @@ CChartSpace.prototype.checkCatByNumRef = function(oThis, ser, cat, bVertical)
 CChartSpace.prototype.recalculateReferences = function()
 {
     var oSelectedSeries = this.getSelectedSeries();
-    if(oSelectedSeries)
+    if(AscFormat.isRealNumber(this.selection.series))
     {
-        this.selection.datPoint = null;
-        this.selection.markers = null;
-    }
-    else
-    {
-        this.resetSelection(false);
+        if(!oSelectedSeries)
+        {
+            this.selection.series = null;
+            this.selection.datPoint = null;
+            this.selection.markers = null;
+        }
     }
     var worksheet = this.worksheet;
     //this.pointsMap = {};
