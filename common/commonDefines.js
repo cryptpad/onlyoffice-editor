@@ -2132,6 +2132,9 @@
 	prot['DataEncrypted']                    = prot.DataEncrypted;
 	prot['NoDataToParse']                    = prot.NoDataToParse;
 	prot['CannotUngroupError']               = prot.CannotUngroupError;
+	prot['UplDocumentSize']                  = prot.UplDocumentSize;
+	prot['UplDocumentExt']                   = prot.UplDocumentExt;
+	prot['UplDocumentFileCount']             = prot.UplDocumentFileCount;
 	prot['CustomSortMoreOneSelectedError']   = prot.CustomSortMoreOneSelectedError;
 	prot['CustomSortNotOriginalSelectError'] = prot.CustomSortNotOriginalSelectError;
 	window['Asc']['c_oAscAsyncAction']       = window['Asc'].c_oAscAsyncAction = c_oAscAsyncAction;
