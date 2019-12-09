@@ -9917,14 +9917,15 @@ background-repeat: no-repeat;\
 	{
 	};
 
-	window["asc_docs_api"].prototype["asc_nativePrint"] = function(_printer, _page, _opt)
+	window["asc_docs_api"].prototype["asc_nativePrint"] = function(_printer, _page, _options)
 	{
 		if (undefined === _printer && _page === undefined)
 		{
 			if (undefined !== window["AscDesktopEditor"])
 			{
+                var isSelection = (_options && _options["printOptions"] && _options["printOptions"]["selection"]) ? true : false;
 				var _drawing_document = this.WordControl.m_oDrawingDocument;
-                if ((_opt & 0x01) == 0x01)
+                if (isSelection)
                 	_drawing_document.GenerateSelectionPrint();
 
                 var _drawing_document_print = _drawing_document.printedDocument ? _drawing_document.printedDocument.DrawingDocument : _drawing_document;
@@ -9970,10 +9971,10 @@ background-repeat: no-repeat;\
 		return this.WordControl.m_oDrawingDocument.m_lPagesCount;
 	};
 
-	window["asc_docs_api"].prototype["asc_nativeGetPDF"] = function(_param)
+	window["asc_docs_api"].prototype["asc_nativeGetPDF"] = function(options)
 	{
 		var pagescount = this["asc_nativePrintPagesCount"]();
-		if (0x0100 & _param)
+		if (options && options["printOptions"] && options["printOptions"]["onlyFirstPage"])
             pagescount = 1;
 
 		var _renderer                  = new AscCommon.CDocumentRenderer();
@@ -9984,7 +9985,7 @@ background-repeat: no-repeat;\
 
 		for (var i = 0; i < pagescount; i++)
 		{
-			this["asc_nativePrint"](_renderer, i);
+			this["asc_nativePrint"](_renderer, i, options);
 		}
 
 		this.ShowParaMarks = _bOldShowMarks;

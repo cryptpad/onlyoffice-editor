@@ -4075,17 +4075,17 @@ var editor;
   spreadsheet_api.prototype.asc_nativeCalculate = function() {
   };
 
-  spreadsheet_api.prototype.asc_nativePrint = function (_printer, _page, _param) {
+  spreadsheet_api.prototype.asc_nativePrint = function (_printer, _page, _options) {
     var _adjustPrint = (window.AscDesktopEditor_PrintOptions && window.AscDesktopEditor_PrintOptions.advancedOptions) || new Asc.asc_CAdjustPrint();
     window.AscDesktopEditor_PrintOptions = undefined;
 
     var pageSetup;
     var countWorksheets = this.wbModel.getWorksheetCount();
 
-    if(_param) {
-	   var layoutOptions = JSON.parse(_param);
-	   var spreadsheetLayout = layoutOptions ? layoutOptions["spreadsheetLayout"] : null;
-		var _ignorePrintArea = spreadsheetLayout && (true === spreadsheetLayout["ignorePrintArea"] || false === spreadsheetLayout["ignorePrintArea"])? spreadsheetLayout["ignorePrintArea"] : null;
+    if(_options) {
+       var isOnlyFirstPage = (_options && _options["printOptions"] && _options["printOptions"]["onlyFirstPage"]) ? true : false;
+	   var spreadsheetLayout = _options["spreadsheetLayout"];
+	   var _ignorePrintArea = spreadsheetLayout && (true === spreadsheetLayout["ignorePrintArea"] || false === spreadsheetLayout["ignorePrintArea"])? spreadsheetLayout["ignorePrintArea"] : null;
 	   if(null !== _ignorePrintArea) {
 		   _adjustPrint.asc_setIgnorePrintArea(_ignorePrintArea);
        } else {
@@ -4127,45 +4127,45 @@ var editor;
        }
 
 	   for (var index = 0; index < this.wbModel.getWorksheetCount(); ++index) {
-		   ws = this.wbModel.getWorksheet(index);
+           ws = this.wbModel.getWorksheet(index);
            newPrintOptions = ws.PagePrintOptions.clone();
            //regionalSettings ?
 
-		   var _pageSetup = newPrintOptions.pageSetup;
-           if(null !== _orientation) {
+           var _pageSetup = newPrintOptions.pageSetup;
+           if (null !== _orientation) {
                _pageSetup.orientation = _orientation;
            }
-           if(_fitToWidth || _fitToHeight) {
+           if (_fitToWidth || _fitToHeight) {
                _pageSetup.fitToWidth = _fitToWidth;
                _pageSetup.fitToHeight = _fitToHeight;
-           } else if(_scale) {
+           } else if (_scale) {
                _pageSetup.scale = _scale;
-			   _pageSetup.fitToWidth = 0;
-			   _pageSetup.fitToHeight = 0;
+               _pageSetup.fitToWidth = 0;
+               _pageSetup.fitToHeight = 0;
            }
-		   if(null !== _headings) {
-			   newPrintOptions.headings = _headings;
-		   }
-		   if(null !== _gridLines) {
-			   newPrintOptions.gridLines = _gridLines;
-		   }
-		   if(_pageSize) {
-			   _pageSetup.width = _pageSize.width;
-			   _pageSetup.height = _pageSize.height;
+           if (null !== _headings) {
+               newPrintOptions.headings = _headings;
+           }
+           if (null !== _gridLines) {
+               newPrintOptions.gridLines = _gridLines;
+           }
+           if (_pageSize) {
+               _pageSetup.width = _pageSize.width;
+               _pageSetup.height = _pageSize.height;
            }
            var pageMargins = newPrintOptions.pageMargins;
-           if(_margins) {
-			   pageMargins.left = _margins.left;
-			   pageMargins.right = _margins.right;
-			   pageMargins.top = _margins.top;
-			   pageMargins.bottom = _margins.bottom;
+           if (_margins) {
+               pageMargins.left = _margins.left;
+               pageMargins.right = _margins.right;
+               pageMargins.top = _margins.top;
+               pageMargins.bottom = _margins.bottom;
            }
 
-           if(!_adjustPrint.pageOptionsMap) {
-              _adjustPrint.pageOptionsMap = [];
+           if (!_adjustPrint.pageOptionsMap) {
+               _adjustPrint.pageOptionsMap = [];
            }
-		   _adjustPrint.pageOptionsMap[index] = newPrintOptions;
-	   }
+           _adjustPrint.pageOptionsMap[index] = newPrintOptions;
+       }
     }
 
     var _printPagesData = this.wb.calcPagesPrint(_adjustPrint);
@@ -4228,8 +4228,8 @@ var editor;
     return 1;
   };
 
-  spreadsheet_api.prototype.asc_nativeGetPDF = function(_param) {
-    var _ret = this.asc_nativePrint(undefined, undefined, _param);
+  spreadsheet_api.prototype.asc_nativeGetPDF = function(options) {
+    var _ret = this.asc_nativePrint(undefined, undefined, options);
 
     window["native"]["Save_End"]("", _ret.GetCurPosition());
     return _ret.data;
