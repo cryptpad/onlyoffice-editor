@@ -16328,8 +16328,16 @@
                 return;
             }
 
-            t._isLockedCells(lockRange, null, callback);
-        };
+			var callbackLockAll = function(_success) {
+				if (false === _success) {
+					return;
+				}
+
+				t._isLockedCells(lockRange, null, callback);
+			};
+
+			t._isLockedAll(callbackLockAll);
+		};
 
         //лочим данный именованный диапазон при смене размера ф/т
         var defNameId = t.model.workbook.dependencyFormulas.getDefNameByName(tableName, t.model.getId());
