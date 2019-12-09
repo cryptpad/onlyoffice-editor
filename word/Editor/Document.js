@@ -14890,7 +14890,7 @@ CDocument.prototype.AcceptRevisionChange = function(oChange)
 		if (false === this.Document_Is_SelectionLocked(AscCommon.changestype_None, {
 			Type      : changestype_2_ElementsArray_and_Type,
 			Elements  : arrRelatedParas,
-			CheckType : AscCommon.changestype_Paragraph_Content
+			CheckType : AscCommon.changestype_Paragraph_Properties
 		}))
 		{
 			this.StartAction(AscDFH.historydescription_Document_AcceptRevisionChange);
@@ -14967,7 +14967,7 @@ CDocument.prototype.RejectRevisionChange = function(oChange)
 		if (false === this.Document_Is_SelectionLocked(AscCommon.changestype_None, {
 			Type      : changestype_2_ElementsArray_and_Type,
 			Elements  : arrRelatedParas,
-			CheckType : AscCommon.changestype_Paragraph_Content
+			CheckType : AscCommon.changestype_Paragraph_Properties
 		}))
 		{
 			this.StartAction(AscDFH.historydescription_Document_RejectRevisionChange);

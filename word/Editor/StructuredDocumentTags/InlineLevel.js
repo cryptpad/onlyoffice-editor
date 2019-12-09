@@ -1405,6 +1405,26 @@ CInlineLevelSdt.prototype.Get_ParentTextTransform = function()
 {
 	return this.Paragraph.Get_ParentTextTransform();
 };
+CInlineLevelSdt.prototype.AcceptRevisionChanges = function(Type, bAll)
+{
+	if (this.IsCheckBox() || this.IsDropDownList() || this.IsComboBox() || this.IsPicture() || this.IsDatePicker())
+	{
+		Type = undefined;
+		bAll = true;
+	}
+
+	CParagraphContentWithParagraphLikeContent.prototype.AcceptRevisionChanges.call(this, Type, bAll);
+};
+CInlineLevelSdt.prototype.RejectRevisionChanges = function(Type, bAll)
+{
+	if (this.IsCheckBox() || this.IsDropDownList() || this.IsComboBox() || this.IsPicture() || this.IsDatePicker())
+	{
+		Type = undefined;
+		bAll = true;
+	}
+
+	CParagraphContentWithParagraphLikeContent.prototype.RejectRevisionChanges.call(this, Type, bAll);
+};
 //--------------------------------------------------------export--------------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};
 window['AscCommonWord'].CInlineLevelSdt = CInlineLevelSdt;
