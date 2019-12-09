@@ -194,10 +194,10 @@
         if (buttonsCount > countColumn)
             sizeAllVer += (ButtonSize + ButtonBetweenSize);
 
-        var parentW = (this.anchor.rect.w * scale.x) >> 1;
-        var parentH = (this.anchor.rect.h * scale.y) >> 1;
+        var parentW = (this.anchor.rect.w * scale.x) >> 0;
+        var parentH = (this.anchor.rect.h * scale.y) >> 0;
 
-        if ((parentW + (ButtonBetweenSize << 1)) < sizeAllHor || (parentH + (ButtonBetweenSize << 1)) < sizeAllVer)
+        if ((sizeAllHor + (ButtonBetweenSize << 1)) > parentW || (sizeAllVer + (ButtonBetweenSize << 1)) > parentH)
             return [];
 
 		var xStart = pointCenter.x - (sizeAllHor >> 1);
@@ -289,12 +289,26 @@
 
         var xCoord = pointMenu.x;
 		var yCoord = pointMenu.y;
-        if (true == this.events.document.m_oWordControl.m_bIsRuler)
+
+        var word_control = this.events.document.m_oWordControl;
+        switch (word_control.m_oApi.editorId)
         {
-            xCoord += (5 * g_dKoef_mm_to_pix) >> 0;
-            yCoord += (7 * g_dKoef_mm_to_pix) >> 0;
+            case AscCommon.c_oEditorId.Word:
+                if (true === word_control.m_oWordControl.m_bIsRuler)
+                {
+                    xCoord += (5 * g_dKoef_mm_to_pix) >> 0;
+                    yCoord += (7 * g_dKoef_mm_to_pix) >> 0;
+                }
+                break;
+            case AscCommon.c_oEditorId.Presentation:
+                xCoord += ((word_control.m_oMainParent.AbsolutePosition.L + word_control.m_oMainView.AbsolutePosition.L) * g_dKoef_mm_to_pix) >> 0;
+                yCoord += ((word_control.m_oMainParent.AbsolutePosition.T + word_control.m_oMainView.AbsolutePosition.T) * g_dKoef_mm_to_pix) >> 0;
+                yCoord += ButtonSize1x;
+                break;
+            default:
+                break;
         }
-        
+
 		this.events.callCallback(this.buttons[indexButton], this, xCoord, yCoord);
 		return true;
     };
@@ -360,7 +374,7 @@
             {
                 var oldGlobalAlpha = ctx.globalAlpha;
 
-                ctx.globalAlpha = ((this.states[i] == AscCommon.PlaceholderButtonState.None) ? 0.75 : 1);
+                ctx.globalAlpha = ((this.states[i] == AscCommon.PlaceholderButtonState.None) ? 0.5 : 1);
 
                 /* первый вариант
                 ctx.beginPath();
