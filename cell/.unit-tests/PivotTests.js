@@ -2876,6 +2876,27 @@ $(function() {
 			["Total Sum of Price","134.16"],
 			["Total Sum of Cost","128.74"]
 		],
+		"dataOnRowsValues":[
+			["Row Labels"],
+			["East"],
+			["Boy"],
+			["Fancy"],
+			["Golf"],
+			["Tee"],
+			["Girl"],
+			["Fancy"],
+			["Golf"],
+			["Tee"],
+			["West"],
+			["Boy"],
+			["Fancy"],
+			["Golf"],
+			["Tee"],
+			["Girl"],
+			["Golf"],
+			["Tee"],
+			["Grand Total"]
+		],
 		"dataPosition":[
 			["Row Labels",""],
 			["East",""],
@@ -3203,6 +3224,9 @@ $(function() {
 			pivot.asc_getStyleInfo().asc_setName(api, pivot, pivotStyle);
 			pivot.asc_addDataField(api, 5);
 			pivot.asc_addDataField(api, 6);
+			var props = new Asc.CT_pivotTableDefinition();
+			props.asc_setInsertBlankRow(true);
+			pivot.asc_set(api, props);
 
 			AscCommon.History.Clear();
 			pivot = checkHistoryOperation(pivot, standards["insertBlankRow_1row"], "1row", function(){
@@ -3580,6 +3604,20 @@ $(function() {
 				pivot.asc_removeDataField(api, 6, 1);
 				pivot.asc_addRowField(api, 2);
 				pivot.asc_addDataField(api, 6);
+			});
+
+			pivot = checkHistoryOperation(pivot, standards["dataOnRows"], "dataOnRows6", function(){
+				pivot.asc_moveRowField(api, 3, 2);
+				pivot.asc_removeField(api, 2);
+				pivot.asc_removeDataField(api, 6, 1);
+				pivot.asc_addDataField(api, 6);
+				pivot.asc_removeDataField(api, 6, 1);
+				pivot.asc_addRowField(api, 2);
+				pivot.asc_addDataField(api, 6);
+			});
+
+			pivot = checkHistoryOperation(pivot, standards["dataOnRowsValues"], "dataOnRowsValues", function(){
+				pivot.asc_removeNoDataField(api, Asc.st_VALUES);
 			});
 
 			ws.deletePivotTables(new AscCommonExcel.MultiplyRange(pivot.getReportRanges()).getUnionRange());

@@ -3980,6 +3980,7 @@ CT_pivotTableDefinition.prototype._updateCacheDataUpdatePivotFieldsIndexes = fun
 		var newIndex = cacheDefinitionMap.get(oldCacheField.asc_getName());
 		if (undefined !== newIndex && oldPivotField) {
 			this._updateCacheDataUpdatePivotFieldsIndexesItems(oldCacheField, oldPivotField, newIndex, newCacheDefinition);
+			//oldPivotField.items = null;
 			newPivotFields[newIndex] = oldPivotField;
 			pivotFieldsMap.set(i, newIndex);
 		}
@@ -3987,7 +3988,7 @@ CT_pivotTableDefinition.prototype._updateCacheDataUpdatePivotFieldsIndexes = fun
 };
 CT_pivotTableDefinition.prototype._updateCacheDataUpdatePivotFieldsIndexesItems = function(oldCacheField, oldPivotField, newIndex, newCacheDefinition) {
 	var newCacheFields = newCacheDefinition.getFields();
-	if (null !== oldPivotField.items && newCacheFields, newCacheFields[newIndex]) {
+	if (null !== oldPivotField.items && newCacheFields && newCacheFields[newIndex]) {
 		this.checkPivotFieldItem(newIndex, oldPivotField, newCacheDefinition.cacheRecords, newCacheFields[newIndex], oldCacheField);
 	}
 };
@@ -4070,7 +4071,7 @@ CT_pivotTableDefinition.prototype.checkPivotFieldItems = function(index) {
 	}
 };
 CT_pivotTableDefinition.prototype.checkPivotFieldItem = function(index, pivotField, cacheRecords, cacheField, oldCacheField) {
-	var item, i, j, equalMap = {};
+	var item, i, j, newItem, equalMap = {};
 	var newItems = new CT_Items();
 	if (!(cacheField.sharedItems && cacheField.sharedItems.Items.getSize() > 0)) {
 		if(!cacheField.sharedItems){
@@ -4101,7 +4102,7 @@ CT_pivotTableDefinition.prototype.checkPivotFieldItem = function(index, pivotFie
 	}
 	for (i = 0; i < cacheField.sharedItems.Items.getSize(); ++i) {
 		if(!equalMap[i]){
-			var newItem = new CT_Item();
+			newItem = new CT_Item();
 			newItem.x = i;
 			newItems.item.push(newItem);
 		}
@@ -4331,7 +4332,7 @@ CT_pivotTableDefinition.prototype._updateRowColItemsRecursivelyElem = function(i
 			}
 		}
 	}
-	if (!isCol && parentPivotField.insertBlankRow && index < fields.length - 1) {
+	if (!isCol && parentPivotField.insertBlankRow && index !== indexValues && index < fields.length - 1) {
 		newX = new CT_X();
 		newX.v = indexItem;
 		newI = new CT_I();
