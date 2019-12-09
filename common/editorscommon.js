@@ -3943,12 +3943,6 @@
 
 	var g_oIdCounter = new CIdCounter();
 
-	window["SetDoctRendererParams"] = function (_params)
-	{
-		if (_params["retina"] === true)
-			AscBrowser.isRetina = true;
-	};
-
 	window.Asc.g_signature_drawer = null;
 	function CSignatureDrawer(id, api, w, h)
 	{
