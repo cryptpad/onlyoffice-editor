@@ -9033,9 +9033,8 @@ background-repeat: no-repeat;\
 		if (!oLogicDocument)
 			return;
 
-		var isLocked        = true;
 		var oContentControl = oLogicDocument.GetContentControl(sId);
-		if (!oContentControl || !oContentControl.IsDatePicker() || oContentControl.CanBeEdited())
+		if (!oContentControl || !oContentControl.IsDatePicker() || !oContentControl.CanBeEdited())
 			return;
 
 		this.asc_SetContentControlDatePickerPr(oPr, sId);
