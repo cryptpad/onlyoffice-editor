@@ -4082,29 +4082,14 @@ var editor;
     var pageSetup;
     var countWorksheets = this.wbModel.getWorksheetCount();
 
-    var isOnePage = ((_param & 0x0100) == 0x0100);
-    var isIgnorePrintArea = ((_param & 0x1000) == 0x1000);
-    if(isIgnorePrintArea) {
-		_adjustPrint.asc_setIgnorePrintArea(true);
-    }
-
-    _param &= 0xFF;
-    if (1 == _param) {
-      _adjustPrint.asc_setPrintType(Asc.c_oAscPrintType.EntireWorkbook);
-      for (var j = 0; j < countWorksheets; ++j) {
-        pageSetup = this.wbModel.getWorksheet(j).PagePrintOptions.asc_getPageSetup();
-        pageSetup.asc_setFitToWidth(true);
-        pageSetup.asc_setFitToHeight(true);
-      }
-    }
-
-
-    if(_param && false) {
+    if(_param) {
 	   var layoutOptions = JSON.parse(_param);
 	   var spreadsheetLayout = layoutOptions ? layoutOptions["spreadsheetLayout"] : null;
 		var _ignorePrintArea = spreadsheetLayout && (true === spreadsheetLayout["ignorePrintArea"] || false === spreadsheetLayout["ignorePrintArea"])? spreadsheetLayout["ignorePrintArea"] : null;
 	   if(null !== _ignorePrintArea) {
 		   _adjustPrint.asc_setIgnorePrintArea(_ignorePrintArea);
+       } else {
+		   _adjustPrint.asc_setIgnorePrintArea(true);
        }
 
 	   _adjustPrint.asc_setPrintType(Asc.c_oAscPrintType.EntireWorkbook);
