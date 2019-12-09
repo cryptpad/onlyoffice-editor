@@ -16363,7 +16363,7 @@ function CreatePieChart(chartSeries, bDoughnut, bUseCache, oOptions, b3D)
     }
     pie_chart.setFirstSliceAng(0);
     if(bDoughnut)
-        pie_chart.setHoleSize(50);
+        pie_chart.setHoleSize(75);
     chart.setLegend(new AscFormat.CLegend());
     var legend = chart.legend;
     legend.setLegendPos(c_oAscChartLegendShowSettings.right);
