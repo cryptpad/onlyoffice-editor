@@ -1265,7 +1265,10 @@
     {
         AscFormat.ExecuteNoHistory(
             function(){
-                if(this.recalculateTransform){
+                if(this.recalculateSizes){
+                    this.recalculateSizes();
+                }
+                else if(this.recalculateTransform){
                     this.recalculateTransform();
                 }
             }, this, []
