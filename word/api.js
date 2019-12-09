@@ -9027,6 +9027,19 @@ background-repeat: no-repeat;\
 			oLogicDocument.FinalizeAction();
 		}
 	};
+	asc_docs_api.prototype.asc_SetContentControlDatePickerDate = function(oPr, sId)
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return;
+
+		var isLocked        = true;
+		var oContentControl = oLogicDocument.GetContentControl(sId);
+		if (!oContentControl || !oContentControl.IsDatePicker() || oContentControl.CanBeEdited())
+			return;
+
+		this.asc_SetContentControlDatePickerPr(oPr, sId);
+	};
 
 	asc_docs_api.prototype.asc_UncheckContentControlButtons = function()
 	{
@@ -10668,7 +10681,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_SelectContentControlListItem']          = asc_docs_api.prototype.asc_SelectContentControlListItem;
 	asc_docs_api.prototype['asc_AddContentControlDatePicker']           = asc_docs_api.prototype.asc_AddContentControlDatePicker;
 	asc_docs_api.prototype['asc_SetContentControlDatePickerPr']         = asc_docs_api.prototype.asc_SetContentControlDatePickerPr;
-
+	asc_docs_api.prototype['asc_SetContentControlDatePickerDate']       = asc_docs_api.prototype.asc_SetContentControlDatePickerDate;
 
 	asc_docs_api.prototype['asc_BeginViewModeInReview']                 = asc_docs_api.prototype.asc_BeginViewModeInReview;
 	asc_docs_api.prototype['asc_EndViewModeInReview']                   = asc_docs_api.prototype.asc_EndViewModeInReview;
