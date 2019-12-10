@@ -18987,25 +18987,31 @@
 	WorksheetView.prototype._doSort = function (range, nOption, nStartRowCol, sortColor, opt_guessHeader, opt_by_row, opt_custom_sort) {
 		var res;
 
-		/*var bordersArr = [];
+		var bordersArr = [];
 		range._foreachNoEmpty(function(cell, row, col) {
 			if(!bordersArr[row]) {
 				bordersArr[row] = [];
 			}
-			bordersArr[row][col] = cell.getBorder();
-			cell.setBorder(null);
-		});*/
+			var style = cell ? cell.getStyle() : null;
+			if(style && style.border) {
+				bordersArr[row][col] = style.border;
+				cell.setBorder(null);
+			}
+		});
 		res = range.sort(nOption, nStartRowCol, sortColor, opt_guessHeader, opt_by_row, opt_custom_sort);
-		/*for(var i = 0; i < bordersArr.length; i++) {
+		for(var i = 0; i < bordersArr.length; i++) {
 			if(bordersArr[i]) {
 				for(var j = 0; j < bordersArr[i].length; j++) {
 					if(bordersArr[i][j]) {
-						var cell = this.model.getCell3(i, j);
-						cell.setBorder(bordersArr[i][j]);
+						var curBorder = bordersArr[i][j];
+						this.model._getCell(i, j, function(cell) {
+							cell.setBorder(curBorder);
+						});
+
 					}
 				}
 			}
-		}*/
+		}
 
 		return res;
 	};
