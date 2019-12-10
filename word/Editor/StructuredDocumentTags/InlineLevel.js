@@ -87,6 +87,14 @@ CInlineLevelSdt.prototype.GetId = function()
 };
 CInlineLevelSdt.prototype.Add = function(Item)
 {
+	if (this.IsPlaceHolder() && para_TextPr === Item.Type)
+	{
+		var oTempTextPr = this.Pr.TextPr.Copy();
+		oTempTextPr.Merge(Item.Value);
+		this.SetDefaultTextPr(oTempTextPr);
+		return;
+	}
+
 	this.private_ReplacePlaceHolderWithContent();
 	CParagraphContentWithParagraphLikeContent.prototype.Add.apply(this, arguments);
 };
@@ -136,6 +144,7 @@ CInlineLevelSdt.prototype.Copy = function(isUseSelection, oPr)
 };
 CInlineLevelSdt.prototype.private_CopyPrTo = function(oContentControl)
 {
+	oContentControl.SetDefaultTextPr(this.GetDefaultTextPr());
 	oContentControl.SetLabel(this.GetLabel());
 	oContentControl.SetTag(this.GetTag());
 	oContentControl.SetAlias(this.GetAlias());
@@ -527,6 +536,13 @@ CInlineLevelSdt.prototype.SetParagraph = function(oParagraph)
 };
 CInlineLevelSdt.prototype.Apply_TextPr = function(TextPr, IncFontSize, ApplyToAll)
 {
+	if (this.IsPlaceHolder() || ApplyToAll || this.IsSelectedAll())
+	{
+		var oTempTextPr = this.Pr.TextPr.Copy();
+		oTempTextPr.Merge(TextPr);
+		this.SetDefaultTextPr(oTempTextPr);
+	}
+
 	if (this.IsDropDownList() || this.IsComboBox())
 		CParagraphContentWithParagraphLikeContent.prototype.Apply_TextPr.call(this, TextPr, IncFontSize, true);
 	else
@@ -558,13 +574,11 @@ CInlineLevelSdt.prototype.private_ReplacePlaceHolderWithContent = function(bMath
 
 	this.RemoveSelection();
 	this.MoveCursorToStartPos();
-	var oTextPr = this.GetDirectTextPr();
 
 	this.RemoveFromContent(0, this.GetElementsCount());
 
 	var oRun = new ParaRun(undefined, bMathRun);
-	if (oTextPr)
-		oRun.SetPr(oTextPr.Copy());
+	oRun.SetPr(this.Pr.TextPr.Copy());
 
 	this.AddToContent(0, oRun);
 	this.RemoveSelection();
@@ -610,6 +624,7 @@ CInlineLevelSdt.prototype.GetContentControlType = function()
 };
 CInlineLevelSdt.prototype.SetPr = function(oPr)
 {
+	this.SetDefaultTextPr(oPr.TextPr);
 	this.SetAlias(oPr.Alias);
 	this.SetTag(oPr.Tag);
 	this.SetLabel(oPr.Label);
@@ -624,6 +639,26 @@ CInlineLevelSdt.prototype.SetPr = function(oPr)
 
 	if (undefined !== oPr.Color)
 		this.SetColor(oPr.Color);
+};
+/**
+ * Выставляем настройки текста по умолчанию для данного контрола
+ * @param {CTextPr} oTextPr
+ */
+CInlineLevelSdt.prototype.SetDefaultTextPr = function(oTextPr)
+{
+	if (oTextPr && !this.Pr.TextPr.IsEqual(oTextPr))
+	{
+		History.Add(new CChangesSdtPrTextPr(this, this.Pr.TextPr, oTextPr));
+		this.Pr.TextPr = oTextPr;
+	}
+};
+/**
+ * Получаем настройки для текста по умолчанию
+ * @returns {CTextPr}
+ */
+CInlineLevelSdt.prototype.GetDefaultTextPr = function()
+{
+	return this.Pr.TextPr;
 };
 CInlineLevelSdt.prototype.SetAlias = function(sAlias)
 {

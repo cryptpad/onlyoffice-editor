@@ -13765,6 +13765,7 @@ Paragraph.prototype.AddContentControl = function(nContentControlType)
 			}
 
 			var oContentControl = new CInlineLevelSdt();
+			oContentControl.SetDefaultTextPr(this.GetDirectTextPr());
 
 			if (nEndPos < nStartPos)
 			{
@@ -13804,6 +13805,7 @@ Paragraph.prototype.AddContentControl = function(nContentControlType)
 	else
 	{
 		var oContentControl = new CInlineLevelSdt();
+		oContentControl.SetDefaultTextPr(this.GetDirectTextPr());
 		this.Add(oContentControl);
 
 		var oContentControlPos = this.Get_PosByElement(oContentControl);

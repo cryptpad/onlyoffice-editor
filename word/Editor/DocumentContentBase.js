@@ -999,6 +999,7 @@ CDocumentContentBase.prototype.private_AddContentControl = function(nContentCont
 			else
 			{
 				var oSdt = new CBlockLevelSdt(editor.WordControl.m_oLogicDocument, this);
+				oSdt.SetDefaultTextPr(this.GetDirectTextPr());
 
 				var oLogicDocument = this instanceof CDocument ? this : this.LogicDocument;
 				oLogicDocument.RemoveCommentsOnPreDelete = false;
@@ -1038,6 +1039,7 @@ CDocumentContentBase.prototype.private_AddContentControl = function(nContentCont
 			if (type_Paragraph === oElement.GetType())
 			{
 				var oSdt = new CBlockLevelSdt(editor.WordControl.m_oLogicDocument, this);
+				oSdt.SetDefaultTextPr(this.GetDirectTextPr());
 
 				var nContentPos = this.CurPos.ContentPos;
 				if (oElement.IsCursorAtBegin())

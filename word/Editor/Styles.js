@@ -13193,6 +13193,9 @@ CTextPr.prototype.isEqual = function(TextPrOld, TextPrNew)
 };
 CTextPr.prototype.Is_Equal = function(TextPr)
 {
+	if (!TextPr)
+		return false;
+
 	if (this.Bold !== TextPr.Bold)
 		return false;
 
@@ -13300,6 +13303,10 @@ CTextPr.prototype.Is_Equal = function(TextPr)
 	}
 
 	return true;
+};
+CTextPr.prototype.IsEqual = function(oTextPr)
+{
+	return this.Is_Equal(oTextPr);
 };
 CTextPr.prototype.Is_Empty = function()
 {

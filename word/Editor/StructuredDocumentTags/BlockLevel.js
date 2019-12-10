@@ -565,7 +565,15 @@ CBlockLevelSdt.prototype.Is_Empty = function()
 CBlockLevelSdt.prototype.Add = function(oParaItem)
 {
 	if (oParaItem && oParaItem.Type !== para_TextPr)
+	{
 		this.private_ReplacePlaceHolderWithContent();
+	}
+	else if (oParaItem && oParaItem.Type !== para_TextPr && this.IsPlaceHolder())
+	{
+		var oTempTextPr = this.Pr.TextPr.Copy();
+		oTempTextPr.Merge(oParaItem.Value);
+		this.SetDefaultTextPr(oTempTextPr);
+	}
 
 	if (oParaItem && para_TextPr === oParaItem.Type && (this.IsComboBox() || this.IsDropDownList()))
 	{
@@ -1279,6 +1287,7 @@ CBlockLevelSdt.prototype.SetPr = function(oPr)
 	if (!oPr || this.IsBuiltInTableOfContents())
 		return;
 
+	this.SetDefaultTextPr(oPr.TextPr);
 	this.SetAlias(oPr.Alias);
 	this.SetTag(oPr.Tag);
 	this.SetLabel(oPr.Label);
@@ -1293,6 +1302,26 @@ CBlockLevelSdt.prototype.SetPr = function(oPr)
 
 	if (undefined !== oPr.Color)
 		this.SetColor(oPr.Color);
+};
+/**
+ * Выставляем настройки текста по умолчанию для данного контрола
+ * @param {CTextPr} oTextPr
+ */
+CBlockLevelSdt.prototype.SetDefaultTextPr = function(oTextPr)
+{
+	if (oTextPr && !this.Pr.TextPr.IsEqual(oTextPr))
+	{
+		History.Add(new CChangesSdtPrTextPr(this, this.Pr.TextPr, oTextPr));
+		this.Pr.TextPr = oTextPr;
+	}
+};
+/**
+ * Получаем настройки для текста по умолчанию
+ * @returns {CTextPr}
+ */
+CBlockLevelSdt.prototype.GetDefaultTextPr = function()
+{
+	return this.Pr.TextPr;
 };
 CBlockLevelSdt.prototype.SetAlias = function(sAlias)
 {
@@ -1494,24 +1523,14 @@ CBlockLevelSdt.prototype.private_ReplacePlaceHolderWithContent = function()
 	if (!this.IsPlaceHolder())
 		return;
 
-	var oTextPr = null;
-	if (this.Content.GetElementsCount() && this.Content.GetElement(0).IsParagraph())
-	{
-		this.Content.GetElement(0).MoveCursorToStartPos();
-		oTextPr = this.Content.GetElement(0).GetFirstRunPr();
-	}
-
 	this.Content.RemoveFromContent(0, this.Content.GetElementsCount(), false);
 
 	var oParagraph = new Paragraph(this.LogicDocument ? this.LogicDocument.GetDrawingDocument() : null, this.Content, false);
 	oParagraph.Correct_Content();
 
-	if (oTextPr)
-	{
-		oParagraph.SelectAll();
-		oParagraph.ApplyTextPr(oTextPr);
-		oParagraph.RemoveSelection();
-	}
+	oParagraph.SelectAll();
+	oParagraph.ApplyTextPr(this.Pr.TextPr);
+	oParagraph.RemoveSelection();
 
 	this.Content.AddToContent(0, oParagraph);
 	this.Content.RemoveSelection();

@@ -59,6 +59,8 @@ function CSdtPr()
 	this.ComboBox = undefined;
 	this.DropDown = undefined;
 	this.Date     = undefined;
+
+	this.TextPr = new CTextPr();
 }
 
 CSdtPr.prototype.Copy = function()
@@ -87,10 +89,14 @@ CSdtPr.prototype.Copy = function()
 	if (this.Date)
 		oPr.Date = this.Date.Copy();
 
+	oPr.TextPr = this.TextPr.Copy();
+
 	return oPr;
 };
 CSdtPr.prototype.Write_ToBinary = function(Writer)
 {
+	this.TextPr.WriteToBinary(Writer);
+
 	var StartPos = Writer.GetCurPosition();
 	Writer.Skip(4);
 	var Flags = 0;
@@ -185,6 +191,7 @@ CSdtPr.prototype.Write_ToBinary = function(Writer)
 		Flags |= 16384;
 	}
 
+
 	var EndPos = Writer.GetCurPosition();
 	Writer.Seek(StartPos);
 	Writer.WriteLong(Flags);
@@ -192,6 +199,9 @@ CSdtPr.prototype.Write_ToBinary = function(Writer)
 };
 CSdtPr.prototype.Read_FromBinary = function(Reader)
 {
+	this.TextPr = new CTextPr();
+	this.TextPr.ReadFromBinary(Reader);
+
 	var Flags = Reader.GetLong();
 
 	if (Flags & 1)
