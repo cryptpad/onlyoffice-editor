@@ -8195,7 +8195,7 @@ background-repeat: no-repeat;\
 		this.isDocumentLoadComplete = false;
 
 		var oLogicDocument = this.WordControl.m_oLogicDocument;
-		oLogicDocument.Stop_Recalculate();
+		oLogicDocument.StopRecalculate();
 		oLogicDocument.Stop_CheckSpelling();
 		AscCommon.pptx_content_loader.ImageMapChecker = {};
 

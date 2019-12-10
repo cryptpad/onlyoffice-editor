@@ -4502,15 +4502,19 @@ CDocument.prototype.Reset_RecalculateCache                   = function()
 
     this.Footnotes.ResetRecalculateCache();
 };
-CDocument.prototype.Stop_Recalculate                         = function()
+/**
+ * Останавливаем процесс пересчета (если пересчет был запущен и он долгий)
+ * @constructor
+ */
+CDocument.prototype.StopRecalculate = function()
 {
-    if (null != this.FullRecalc.Id)
-    {
-        clearTimeout(this.FullRecalc.Id);
-        this.FullRecalc.Id = null;
-    }
+	if (null != this.FullRecalc.Id)
+	{
+		clearTimeout(this.FullRecalc.Id);
+		this.FullRecalc.Id = null;
+	}
 
-    this.DrawingDocument.OnStartRecalculate(0);
+	this.DrawingDocument.OnStartRecalculate(0);
 };
 CDocument.prototype.OnContentRecalculate                     = function(bNeedRecalc, PageNum, DocumentIndex)
 {

@@ -4269,7 +4269,7 @@ CPresentation.prototype.GenerateThumbnails = function (_drawerThemes, _drawerLay
     }
 };
 
-CPresentation.prototype.Stop_Recalculate = function () {
+CPresentation.prototype.StopRecalculate = function () {
     this.clearThemeTimeouts();
 //        this.DrawingDocument.OnStartRecalculate( 0 );
 };
