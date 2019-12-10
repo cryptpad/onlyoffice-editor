@@ -1866,7 +1866,10 @@ CBlockLevelSdt.prototype.SelectListItem = function(sValue)
 	if (this.LogicDocument && this.LogicDocument.IsTrackRevisions())
 	{
 		if (!sText && this.IsPlaceHolder())
+		{
+			this.private_UpdatePlaceHolderListContent();
 			return;
+		}
 
 		var oFirstParagraph = this.GetFirstParagraph();
 		var oFirstRun       = oFirstParagraph ? oFirstParagraph.GetFirstRun() : null;

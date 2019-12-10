@@ -1146,7 +1146,10 @@ CInlineLevelSdt.prototype.SelectListItem = function(sValue)
 	if (this.GetParagraph() && this.GetParagraph().GetLogicDocument() && this.GetParagraph().GetLogicDocument().IsTrackRevisions())
 	{
 		if (!sText && this.IsPlaceHolder())
+		{
+			this.private_UpdatePlaceHolderListContent();
 			return;
+		}
 
 		var oFirstRun = this.GetFirstRun();
 		var oTextPr   = oFirstRun ? oFirstRun.GetDirectTextPr() : new CTextPr();
