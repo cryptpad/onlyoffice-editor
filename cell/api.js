@@ -290,13 +290,15 @@ var editor;
     }
   };
   spreadsheet_api.prototype.asc_getLocale = function () {
-    return AscCommon.g_oDefaultCultureInfo.LCID;
+    return this.isLoadFullApi ? AscCommon.g_oDefaultCultureInfo.LCID : this.tmpLCID;
   };
-  spreadsheet_api.prototype.asc_getDecimalSeparator = function () {
-    return AscCommon.g_oDefaultCultureInfo.numberDecimalSeparator;
+  spreadsheet_api.prototype.asc_getDecimalSeparator = function (culture) {
+  	var cultureInfo = AscCommon.g_aCultureInfos[culture] || AscCommon.g_oDefaultCultureInfo;
+    return cultureInfo.NumberDecimalSeparator;
   };
-  spreadsheet_api.prototype.asc_getGroupSeparator = function () {
-    return AscCommon.g_oDefaultCultureInfo.numberGroupSeparator;
+  spreadsheet_api.prototype.asc_getGroupSeparator = function (culture) {
+  	var cultureInfo = AscCommon.g_aCultureInfos[culture] || AscCommon.g_oDefaultCultureInfo;
+  	return cultureInfo.NumberGroupSeparator;
   };
   spreadsheet_api.prototype._openDocument = function(data) {
     this.wbModel = new AscCommonExcel.Workbook(this.handlers, this);
@@ -327,6 +329,7 @@ var editor;
     AscCommonExcel.g_oUndoRedoLayout = new AscCommonExcel.UndoRedoRedoLayout(wbModel);
     AscCommonExcel.g_oUndoRedoHeaderFooter = new AscCommonExcel.UndoRedoHeaderFooter(wbModel);
     AscCommonExcel.g_oUndoRedoArrayFormula = new AscCommonExcel.UndoRedoArrayFormula(wbModel);
+    AscCommonExcel.g_oUndoRedoSortState = new AscCommonExcel.UndoRedoSortState(wbModel);
   };
 
   spreadsheet_api.prototype.asc_DownloadAs = function (options) {
@@ -3391,6 +3394,7 @@ var editor;
       }
 
       var replaceWords = [];
+      options.isWholeWord = true;
       for (var key in changeWords) {
         replaceWords.push([AscCommonExcel.getFindRegExp(key, options), changeWords[key]]);
       }
@@ -4071,27 +4075,97 @@ var editor;
   spreadsheet_api.prototype.asc_nativeCalculate = function() {
   };
 
-  spreadsheet_api.prototype.asc_nativePrint = function (_printer, _page, _param) {
+  spreadsheet_api.prototype.asc_nativePrint = function (_printer, _page, _options) {
     var _adjustPrint = (window.AscDesktopEditor_PrintOptions && window.AscDesktopEditor_PrintOptions.advancedOptions) || new Asc.asc_CAdjustPrint();
     window.AscDesktopEditor_PrintOptions = undefined;
 
     var pageSetup;
     var countWorksheets = this.wbModel.getWorksheetCount();
 
-    var isOnePage = ((_param & 0x0100) == 0x0100);
-    var isIgnorePrintArea = ((_param & 0x1000) == 0x1000);
-    if(isIgnorePrintArea) {
-		_adjustPrint.asc_setIgnorePrintArea(true);
-    }
+    if(_options) {
+       var isOnlyFirstPage = (_options && _options["printOptions"] && _options["printOptions"]["onlyFirstPage"]) ? true : false;
+	   var spreadsheetLayout = _options["spreadsheetLayout"];
+	   var _ignorePrintArea = spreadsheetLayout && (true === spreadsheetLayout["ignorePrintArea"] || false === spreadsheetLayout["ignorePrintArea"])? spreadsheetLayout["ignorePrintArea"] : null;
+	   if(null !== _ignorePrintArea) {
+		   _adjustPrint.asc_setIgnorePrintArea(_ignorePrintArea);
+       } else {
+		   _adjustPrint.asc_setIgnorePrintArea(true);
+       }
 
-    _param &= 0xFF;
-    if (1 == _param) {
-      _adjustPrint.asc_setPrintType(Asc.c_oAscPrintType.EntireWorkbook);
-      for (var j = 0; j < countWorksheets; ++j) {
-        pageSetup = this.wbModel.getWorksheet(j).PagePrintOptions.asc_getPageSetup();
-        pageSetup.asc_setFitToWidth(true);
-        pageSetup.asc_setFitToHeight(true);
-      }
+	   _adjustPrint.asc_setPrintType(Asc.c_oAscPrintType.EntireWorkbook);
+
+       var ws, newPrintOptions;
+	   var _orientation = spreadsheetLayout ? spreadsheetLayout["orientation"] : null;
+	   if(_orientation === "portrait") {
+		   _orientation = Asc.c_oAscPageOrientation.PagePortrait;
+       } else if(_orientation === "landscape") {
+		   _orientation = Asc.c_oAscPageOrientation.PageLandscape;
+       } else {
+		   _orientation = null;
+       }
+       //need number
+	   var _fitToWidth = spreadsheetLayout && AscCommon.isNumber( spreadsheetLayout["fitToWidth"]) ? spreadsheetLayout["fitToWidth"] : null;
+	   var _fitToHeight = spreadsheetLayout && AscCommon.isNumber( spreadsheetLayout["fitToHeight"]) ? spreadsheetLayout["fitToHeight"] : null;
+	   var _scale = spreadsheetLayout && AscCommon.isNumber( spreadsheetLayout["scale"]) ? spreadsheetLayout["scale"] : null;
+	   //need true/false
+	   var _headings = spreadsheetLayout && (true === spreadsheetLayout["headings"] || false === spreadsheetLayout["headings"])? spreadsheetLayout["headings"] : null;
+	   var _gridLines = spreadsheetLayout && (true === spreadsheetLayout["gridLines"] || false === spreadsheetLayout["gridLines"])? spreadsheetLayout["headings"] : null;
+       //convert to mm
+	   var _pageSize = spreadsheetLayout ? spreadsheetLayout["pageSize"] : null;
+	   if(_pageSize) {
+	     var width = AscCommon.valueToMm(_pageSize["width"]);
+	     var height = AscCommon.valueToMm(_pageSize["height"]);
+	     _pageSize = null !== width && null !== height ? {width: width, height: height} : null;
+       }
+	   var _margins = spreadsheetLayout ? spreadsheetLayout["margins"] : null;
+	   if(_margins) {
+         var left = AscCommon.valueToMm(_margins["left"]);
+         var right = AscCommon.valueToMm(_margins["right"]);
+         var top = AscCommon.valueToMm(_margins["top"]);
+         var bottom = AscCommon.valueToMm(_margins["bottom"]);
+         _margins = null !== left && null !== right && null !== top && null !== bottom ? {left: left, right: right, top: top, bottom: bottom} : null;
+       }
+
+	   for (var index = 0; index < this.wbModel.getWorksheetCount(); ++index) {
+           ws = this.wbModel.getWorksheet(index);
+           newPrintOptions = ws.PagePrintOptions.clone();
+           //regionalSettings ?
+
+           var _pageSetup = newPrintOptions.pageSetup;
+           if (null !== _orientation) {
+               _pageSetup.orientation = _orientation;
+           }
+           if (_fitToWidth || _fitToHeight) {
+               _pageSetup.fitToWidth = _fitToWidth;
+               _pageSetup.fitToHeight = _fitToHeight;
+           } else if (_scale) {
+               _pageSetup.scale = _scale;
+               _pageSetup.fitToWidth = 0;
+               _pageSetup.fitToHeight = 0;
+           }
+           if (null !== _headings) {
+               newPrintOptions.headings = _headings;
+           }
+           if (null !== _gridLines) {
+               newPrintOptions.gridLines = _gridLines;
+           }
+           if (_pageSize) {
+               _pageSetup.width = _pageSize.width;
+               _pageSetup.height = _pageSize.height;
+           }
+           var pageMargins = newPrintOptions.pageMargins;
+           if (_margins) {
+               pageMargins.left = _margins.left;
+               pageMargins.right = _margins.right;
+               pageMargins.top = _margins.top;
+               pageMargins.bottom = _margins.bottom;
+           }
+
+           if (!_adjustPrint.pageOptionsMap) {
+               _adjustPrint.pageOptionsMap = [];
+           }
+           _adjustPrint.pageOptionsMap[index] = newPrintOptions;
+       }
     }
 
     var _printPagesData = this.wb.calcPagesPrint(_adjustPrint);
@@ -4154,8 +4228,8 @@ var editor;
     return 1;
   };
 
-  spreadsheet_api.prototype.asc_nativeGetPDF = function(_param) {
-    var _ret = this.asc_nativePrint(undefined, undefined, _param);
+  spreadsheet_api.prototype.asc_nativeGetPDF = function(options) {
+    var _ret = this.asc_nativePrint(undefined, undefined, options);
 
     window["native"]["Save_End"]("", _ret.GetCurPosition());
     return _ret.data;
@@ -4316,6 +4390,21 @@ var editor;
 		var ws = this.wbModel.getActiveWs();
 		return ws && ws.sheetPr ? ws.sheetPr.SummaryBelow : true;
 	};
+
+	spreadsheet_api.prototype.asc_getSortProps = function (bExpand) {
+		var ws = this.wb && this.wb.getWorksheet();
+		if(ws) {
+			return ws.getSortProps(bExpand);
+		}
+	};
+
+	spreadsheet_api.prototype.asc_setSortProps = function (props) {
+		var ws = this.wb && this.wb.getWorksheet();
+		if(ws) {
+			ws.setSelectionInfo("customSort", props);
+		}
+	};
+
 
   /*
    * Export
@@ -4710,4 +4799,8 @@ var editor;
 
   // mobile
   prot["asc_Remove"] = prot.asc_Remove;
+
+  prot["asc_getSortProps"] = prot.asc_getSortProps;
+  prot["asc_setSortProps"] = prot.asc_setSortProps;
+
 })(window);

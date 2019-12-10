@@ -548,6 +548,14 @@
 		var rData                  = null;
 		if (!(this.DocInfo && this.DocInfo.get_OfflineApp()))
 		{
+			var locale = !window['NATIVE_EDITOR_ENJINE'] && this.asc_getLocale() || undefined;
+			if (typeof locale === "string") {
+				if (Asc.g_oLcidNameToIdMap) {
+					locale = Asc.g_oLcidNameToIdMap[locale];
+				} else {
+					locale = undefined;
+				}
+			}
 			rData = {
 				"c"             : 'open',
 				"id"            : this.documentId,
@@ -555,6 +563,7 @@
 				"format"        : this.documentFormat,
 				"url"           : this.documentUrl,
 				"title"         : this.documentTitle,
+				"lcid"          : locale,
 				"nobase64"      : true
 			};
 			if (versionHistory)

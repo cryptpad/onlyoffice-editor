@@ -89,8 +89,6 @@ CBlockLevelSdt.prototype.Copy = function(Parent, DrawingDocument, oPr)
 	{
 		oNew.private_ReplacePlaceHolderWithContent();
 		oNew.Content.Copy2(this.Content, oPr);
-		if (oNew.IsEmpty())
-			oNew.private_ReplaceContentWithPlaceHolder();
 	}
 
 	oNew.SetPr(this.Pr);
@@ -102,13 +100,22 @@ CBlockLevelSdt.prototype.Copy = function(Parent, DrawingDocument, oPr)
 		oNew.SetPicturePr(this.Pr.Picture);
 
 	if (undefined !== this.Pr.ComboBox)
+	{
 		oNew.SetComboBoxPr(this.Pr.ComboBox);
+		oNew.private_UpdatePlaceHolderListContent();
+	}
 
 	if (undefined !== this.Pr.DropDown)
+	{
 		oNew.SetDropDownListPr(this.Pr.DropDown);
+		oNew.private_UpdatePlaceHolderListContent();
+	}
 
 	if (undefined !== this.Pr.Date)
 		oNew.SetDatePickerPr(this.Pr.Date);
+
+	if (oNew.IsEmpty())
+		oNew.private_ReplaceContentWithPlaceHolder();
 
 	return oNew;
 };
@@ -1630,10 +1637,58 @@ CBlockLevelSdt.prototype.private_UpdateCheckBoxContent = function()
 {
 	var isChecked = this.Pr.CheckBox.Checked;
 
-	var oPara = this.Content.MakeSingleParagraphContent();
-	var oRun  = oPara.MakeSingleRunParagraph();
+	var oRun;
+	if (this.LogicDocument && this.LogicDocument.IsTrackRevisions())
+	{
+		var oFirstParagraph = this.GetFirstParagraph();
+		var oFirstRun       = oFirstParagraph ? oFirstParagraph.GetFirstRun() : null;
+		var oTextPr         = oFirstRun ? oFirstRun.GetDirectTextPr() : new CTextPr();
 
-	oRun.ClearContent();
+		this.SelectAll();
+		this.Remove();
+		this.RemoveSelection();
+
+		oFirstParagraph = null;
+
+		var oDocContent = this.Content;
+		if (oDocContent.Content.length <= 0 || !oDocContent.Content[0].IsParagraph())
+		{
+			oFirstParagraph = new Paragraph(this.LogicDocument.GetDrawingDocument(), oDocContent);
+			oDocContent.AddToContent(0, oFirstParagraph);
+		}
+		else
+		{
+			oFirstParagraph = oDocContent.Content[0];
+		}
+		oFirstParagraph.SetReviewType(reviewtype_Common);
+
+		oRun = new ParaRun(oFirstParagraph, false);
+		oRun.SetPr(oTextPr);
+		oFirstParagraph.AddToContent(0, oRun);
+
+		if (3 === oFirstParagraph.Content.length
+			&& para_Run === oFirstParagraph.Content[0].Type
+			&& para_Run === oFirstParagraph.Content[1].Type
+			&& reviewtype_Add === oFirstParagraph.Content[0].GetReviewType()
+			&& reviewtype_Remove === oFirstParagraph.Content[1].GetReviewType()
+			&& oFirstParagraph.Content[0].GetReviewInfo().IsCurrentUser()
+			&& oFirstParagraph.Content[1].GetReviewInfo().IsCurrentUser()
+			&& ((isChecked
+			&& String.fromCharCode(this.Pr.CheckBox.CheckedSymbol) === oFirstParagraph.Content[1].GetText())
+			|| (!isChecked
+			&& String.fromCharCode(this.Pr.CheckBox.UncheckedSymbol) === oFirstParagraph.Content[1].GetText())))
+		{
+			oFirstParagraph.RemoveFromContent(1, 1);
+			oRun.SetReviewType(reviewtype_Common);
+		}
+	}
+	else
+	{
+		var oPara = this.Content.MakeSingleParagraphContent();
+		oRun  = oPara.MakeSingleRunParagraph();
+		oRun.ClearContent();
+	}
+
 	oRun.AddText(String.fromCharCode(isChecked ? this.Pr.CheckBox.CheckedSymbol : this.Pr.CheckBox.UncheckedSymbol));
 
 	if (isChecked && this.Pr.CheckBox.CheckedFont)
@@ -1807,17 +1862,86 @@ CBlockLevelSdt.prototype.SelectListItem = function(sValue)
 		return;
 
 	var sText = oList.GetTextByValue(sValue);
-	if (null === sText)
+
+	if (this.LogicDocument && this.LogicDocument.IsTrackRevisions())
 	{
-		this.private_ReplaceContentWithPlaceHolder();
-		this.private_UpdatePlaceHolderListContent();
+		if (!sText && this.IsPlaceHolder())
+		{
+			this.private_UpdatePlaceHolderListContent();
+			return;
+		}
+
+		var oFirstParagraph = this.GetFirstParagraph();
+		var oFirstRun       = oFirstParagraph ? oFirstParagraph.GetFirstRun() : null;
+		var oTextPr         = oFirstRun ? oFirstRun.GetDirectTextPr() : new CTextPr();
+
+		if (!this.IsPlaceHolder())
+		{
+			this.SelectAll();
+			this.Remove();
+			this.RemoveSelection();
+		}
+		else
+		{
+			this.ReplacePlaceHolderWithContent();
+		}
+
+		if (!sText && this.IsEmpty())
+		{
+			this.ReplaceContentWithPlaceHolder();
+			this.private_UpdatePlaceHolderListContent();
+		}
+
+		if (sText)
+		{
+			var oRun, oParagraph;
+			if (this.IsEmpty())
+			{
+				oParagraph = this.Content.MakeSingleParagraphContent();
+				if (!oParagraph)
+					return;
+
+				oRun = oParagraph.MakeSingleRunParagraph();
+				if (!oRun)
+					return;
+
+				oRun.SetReviewType(reviewtype_Add);
+			}
+			else
+			{
+				if (this.Content.Content[this.Content.Content.length - 1].IsParagraph())
+				{
+					oParagraph = this.Content.Content[this.Content.Content.length - 1];
+				}
+				else
+				{
+					oParagraph = new Paragraph(this.LogicDocument.GetDrawingDocument(), this.Content);
+					this.Content.AddToParagraph(this.Content.length, oParagraph);
+				}
+
+				oRun = new ParaRun(oParagraph, false);
+				oParagraph.AddToContent(oParagraph.GetContentLength() - 1, oRun);
+			}
+			oParagraph.SetReviewType(reviewtype_Common);
+
+			oRun.SetPr(oTextPr);
+			oRun.AddText(sText);
+		}
 	}
 	else
 	{
-		this.private_ReplacePlaceHolderWithContent();
-		var oRun = this.private_UpdateListContent();
-		if (oRun)
-			oRun.AddText(sText);
+		if (null === sText)
+		{
+			this.private_ReplaceContentWithPlaceHolder();
+			this.private_UpdatePlaceHolderListContent();
+		}
+		else
+		{
+			this.private_ReplacePlaceHolderWithContent();
+			var oRun = this.private_UpdateListContent();
+			if (oRun)
+				oRun.AddText(sText);
+		}
 	}
 };
 CBlockLevelSdt.prototype.private_UpdateListContent = function()
@@ -1837,9 +1961,6 @@ CBlockLevelSdt.prototype.private_UpdateListContent = function()
 };
 CBlockLevelSdt.prototype.private_UpdatePlaceHolderListContent = function()
 {
-	if (!this.IsPlaceHolder())
-		return;
-
 	var oRun = this.PlaceHolder.MakeSingleRunParagraph();
 	if (!oRun)
 		return;
@@ -1884,24 +2005,93 @@ CBlockLevelSdt.prototype.ApplyDatePickerPr = function(oPr)
 	if (!this.IsDatePicker())
 		return;
 
-	var oRun = this.private_UpdateDatePickerContent();
-	if (oRun)
-		oRun.AddText(this.Pr.Date.ToString());
+	this.private_UpdateDatePickerContent();
 };
 CBlockLevelSdt.prototype.private_UpdateDatePickerContent = function()
 {
+	if (!this.Pr.Date)
+		return;
+
 	if (this.IsPlaceHolder())
 		return this.ReplacePlaceHolderWithContent();
 
-	var oParagraph = this.Content.MakeSingleParagraphContent();
-	if (!oParagraph)
-		return null;
+	var oRun;
+	var sText = this.Pr.Date.ToString();
 
-	var oRun = oParagraph.MakeSingleRunParagraph();
-	if (!oRun)
-		return null;
+	if (this.LogicDocument && this.LogicDocument.IsTrackRevisions())
+	{
+		if (!sText && this.IsPlaceHolder())
+			return;
 
-	return oRun;
+		var oFirstParagraph = this.GetFirstParagraph();
+		var oFirstRun       = oFirstParagraph ? oFirstParagraph.GetFirstRun() : null;
+		var oTextPr         = oFirstRun ? oFirstRun.GetDirectTextPr() : new CTextPr();
+
+		if (!this.IsPlaceHolder())
+		{
+			this.SelectAll();
+			this.Remove();
+			this.RemoveSelection();
+		}
+		else
+		{
+			this.ReplacePlaceHolderWithContent();
+		}
+
+		if (!sText && this.IsEmpty())
+		{
+			this.ReplaceContentWithPlaceHolder();
+			this.private_UpdatePlaceHolderListContent();
+		}
+
+		if (sText)
+		{
+			var oRun, oParagraph;
+			if (this.IsEmpty())
+			{
+				oParagraph = this.Content.MakeSingleParagraphContent();
+				if (!oParagraph)
+					return;
+
+				oRun = oParagraph.MakeSingleRunParagraph();
+				if (!oRun)
+					return;
+
+				oRun.SetReviewType(reviewtype_Add);
+			}
+			else
+			{
+				if (this.Content.Content[this.Content.Content.length - 1].IsParagraph())
+				{
+					oParagraph = this.Content.Content[this.Content.Content.length - 1];
+				}
+				else
+				{
+					oParagraph = new Paragraph(this.LogicDocument.GetDrawingDocument(), this.Content);
+					this.Content.AddToParagraph(this.Content.length, oParagraph);
+				}
+
+				oRun = new ParaRun(oParagraph, false);
+				oParagraph.AddToContent(oParagraph.GetContentLength() - 1, oRun);
+			}
+			oParagraph.SetReviewType(reviewtype_Common);
+
+			oRun.SetPr(oTextPr);
+		}
+	}
+	else
+	{
+		var oParagraph = this.Content.MakeSingleParagraphContent();
+		if (!oParagraph)
+			return;
+
+		oRun = oParagraph.MakeSingleRunParagraph();
+		if (!oRun)
+			return;
+	}
+
+	if (oRun)
+		oRun.AddText(sText);
 };
 CBlockLevelSdt.prototype.Document_Is_SelectionLocked = function(CheckType, bCheckInner)
 {

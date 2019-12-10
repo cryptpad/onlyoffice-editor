@@ -195,6 +195,8 @@ window["flat_desine"] = false;
 //------------------------------------------------------------export---------------------------------------------------
 var prot;
 window['Asc'] = window['Asc'] || {};
+window['AscCommonWord'] = window['AscCommonWord'] || {};
+
 prot          = window['Asc']['c_oAscWrapStyle2'] = c_oAscWrapStyle2;
 prot['Inline']       = c_oAscWrapStyle2.Inline;
 prot['Square']       = c_oAscWrapStyle2.Square;

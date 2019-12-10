@@ -7488,6 +7488,11 @@ CSpPr.prototype =
         return duplicate;
     },
 
+    hasRGBFill: function(){
+       return this.Fill && this.Fill.fill && this.Fill.fill.color
+       && this.Fill.fill.color.color && this.Fill.fill.color.color.type === c_oAscColor.COLOR_TYPE_SRGB;
+    },
+
     checkUniFillRasterImageId: function(unifill)
     {
         if(unifill && unifill.fill && typeof unifill.fill.RasterImageId === "string" && unifill.fill.RasterImageId.length > 0)

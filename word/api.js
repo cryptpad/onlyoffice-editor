@@ -769,6 +769,8 @@
 		};
 	}
 
+    AscCommonWord.CContentControlPluginWorker = CContentControlPluginWorker;
+
 	// пользоваться так:
 	// подрубить его последним из скриптов к страничке
 	// и вызвать, после подгрузки (конец метода OnInit <- Drawing/HtmlPage.js)
@@ -1076,6 +1078,11 @@
 	asc_docs_api.prototype.asc_setLocale = function(val)
 	{
 		this.InterfaceLocale = val;
+	};
+
+	asc_docs_api.prototype.asc_getLocale = function()
+	{
+		return this.InterfaceLocale;
 	};
 
 	asc_docs_api.prototype.ChangeReaderMode  = function()
@@ -8698,7 +8705,7 @@ background-repeat: no-repeat;\
 
 		AscCommon.Check_LoadingDataBeforePrepaste(this, oFonts, {}, function()
 		{
-			oLogicDocument.RemoveSelection();
+			oLogicDocument.RemoveTextSelection();
 			if (!oLogicDocument.IsSelectionLocked(AscCommon.changestype_Paragraph_Content))
 			{
 				oLogicDocument.StartAction(AscDFH.historydescription_Document_AddContentControlCheckBox);
@@ -8754,7 +8761,7 @@ background-repeat: no-repeat;\
 		if (!oLogicDocument)
 			return;
 
-		oLogicDocument.RemoveSelection();
+		oLogicDocument.RemoveTextSelection();
 		if (!oLogicDocument.IsSelectionLocked(AscCommon.changestype_Paragraph_Content))
 		{
 			oLogicDocument.StartAction(AscDFH.historydescription_Document_AddContentControlPicture);
@@ -8773,7 +8780,7 @@ background-repeat: no-repeat;\
 		if (!oCC || !oCC.IsPicture() || !oCC.SelectPicture())
 			return;
 
-		if (!oLogicDocument.IsSelectionLocked(AscCommon.changestype_Image_Properties))
+		if (!oLogicDocument.IsSelectionLocked(AscCommon.changestype_Image_Properties, undefined, false, oLogicDocument.IsFormFieldEditing()))
 		{
 			var oImagePr = {
 				ImageUrl : sUrl
@@ -8846,7 +8853,7 @@ background-repeat: no-repeat;\
 		if (!oLogicDocument)
 			return;
 
-		oLogicDocument.RemoveSelection();
+		oLogicDocument.RemoveTextSelection();
 		if (!oLogicDocument.IsSelectionLocked(AscCommon.changestype_Paragraph_Content))
 		{
 			oLogicDocument.StartAction(AscDFH.historydescription_Document_AddContentControlList);
@@ -8916,6 +8923,13 @@ background-repeat: no-repeat;\
 			return;
 
 		oContentControl.SkipSpecialContentControlLock(true);
+
+		if (!oContentControl.CanBeEdited())
+		{
+			oContentControl.SkipSpecialContentControlLock(false);
+			return;
+		}
+
 		var isLocked = false;
 		if (c_oAscSdtLevelType.Block === oContentControl.GetContentControlType())
 		{
@@ -8923,7 +8937,7 @@ background-repeat: no-repeat;\
 				Type      : AscCommon.changestype_2_ElementsArray_and_Type,
 				Elements  : [oContentControl],
 				CheckType : AscCommon.changestype_ContentControl_Remove
-			});
+			}, false, oLogicDocument.IsFormFieldEditing());
 		}
 		else if (c_oAscSdtLevelType.Inline === oContentControl.GetContentControlType())
 		{
@@ -8937,7 +8951,7 @@ background-repeat: no-repeat;\
 					Type      : AscCommon.changestype_2_ElementsArray_and_Type,
 					Elements  : [oParagraph],
 					CheckType : AscCommon.changestype_Remove
-				});
+				}, false, oLogicDocument.IsFormFieldEditing());
 
 				oLogicDocument.LoadDocumentState(oState);
 			}
@@ -8948,6 +8962,8 @@ background-repeat: no-repeat;\
 		{
 			oLogicDocument.StartAction(AscDFH.historydescription_Document_SelectContentControlListItem);
 			oContentControl.SelectListItem(sValue);
+			oLogicDocument.RemoveSelection();
+			oContentControl.MoveCursorToContentControl(true);
 			oLogicDocument.Recalculate();
 			oLogicDocument.UpdateInterface();
 			oLogicDocument.UpdateTracks();
@@ -8960,7 +8976,7 @@ background-repeat: no-repeat;\
 		if (!oLogicDocument)
 			return;
 
-		oLogicDocument.RemoveSelection();
+		oLogicDocument.RemoveTextSelection();
 		if (!oLogicDocument.IsSelectionLocked(AscCommon.changestype_Paragraph_Content))
 		{
 			oLogicDocument.StartAction(AscDFH.historydescription_Document_AddContentControlList);
@@ -8986,7 +9002,7 @@ background-repeat: no-repeat;\
 				Type      : AscCommon.changestype_2_ElementsArray_and_Type,
 				Elements  : [oContentControl],
 				CheckType : AscCommon.changestype_ContentControl_Properties
-			});
+			}, false, oLogicDocument.IsFormFieldEditing());
 		}
 		else if (c_oAscSdtLevelType.Inline === oContentControl.GetContentControlType())
 		{
@@ -8997,7 +9013,7 @@ background-repeat: no-repeat;\
 					Type      : AscCommon.changestype_2_ElementsArray_and_Type,
 					Elements  : [oParagraph],
 					CheckType : AscCommon.changestype_Paragraph_Properties
-				});
+				}, false, oLogicDocument.IsFormFieldEditing());
 			}
 		}
 
@@ -9010,6 +9026,18 @@ background-repeat: no-repeat;\
 			oLogicDocument.UpdateTracks();
 			oLogicDocument.FinalizeAction();
 		}
+	};
+	asc_docs_api.prototype.asc_SetContentControlDatePickerDate = function(oPr, sId)
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return;
+
+		var oContentControl = oLogicDocument.GetContentControl(sId);
+		if (!oContentControl || !oContentControl.IsDatePicker() || !oContentControl.CanBeEdited())
+			return;
+
+		this.asc_SetContentControlDatePickerPr(oPr, sId);
 	};
 
 	asc_docs_api.prototype.asc_UncheckContentControlButtons = function()
@@ -9889,14 +9917,15 @@ background-repeat: no-repeat;\
 	{
 	};
 
-	window["asc_docs_api"].prototype["asc_nativePrint"] = function(_printer, _page, _opt)
+	window["asc_docs_api"].prototype["asc_nativePrint"] = function(_printer, _page, _options)
 	{
 		if (undefined === _printer && _page === undefined)
 		{
 			if (undefined !== window["AscDesktopEditor"])
 			{
+                var isSelection = (_options && _options["printOptions"] && _options["printOptions"]["selection"]) ? true : false;
 				var _drawing_document = this.WordControl.m_oDrawingDocument;
-                if ((_opt & 0x01) == 0x01)
+                if (isSelection)
                 	_drawing_document.GenerateSelectionPrint();
 
                 var _drawing_document_print = _drawing_document.printedDocument ? _drawing_document.printedDocument.DrawingDocument : _drawing_document;
@@ -9942,10 +9971,10 @@ background-repeat: no-repeat;\
 		return this.WordControl.m_oDrawingDocument.m_lPagesCount;
 	};
 
-	window["asc_docs_api"].prototype["asc_nativeGetPDF"] = function(_param)
+	window["asc_docs_api"].prototype["asc_nativeGetPDF"] = function(options)
 	{
 		var pagescount = this["asc_nativePrintPagesCount"]();
-		if (0x0100 & _param)
+		if (options && options["printOptions"] && options["printOptions"]["onlyFirstPage"])
             pagescount = 1;
 
 		var _renderer                  = new AscCommon.CDocumentRenderer();
@@ -9956,7 +9985,7 @@ background-repeat: no-repeat;\
 
 		for (var i = 0; i < pagescount; i++)
 		{
-			this["asc_nativePrint"](_renderer, i);
+			this["asc_nativePrint"](_renderer, i, options);
 		}
 
 		this.ShowParaMarks = _bOldShowMarks;
@@ -10163,6 +10192,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_getEditorPermissions']                  = asc_docs_api.prototype.asc_getEditorPermissions;
 	asc_docs_api.prototype['asc_setDocInfo']                            = asc_docs_api.prototype.asc_setDocInfo;
 	asc_docs_api.prototype['asc_setLocale']                             = asc_docs_api.prototype.asc_setLocale;
+	asc_docs_api.prototype['asc_getLocale']                             = asc_docs_api.prototype.asc_getLocale;
 	asc_docs_api.prototype['asc_LoadDocument']                          = asc_docs_api.prototype.asc_LoadDocument;
 	asc_docs_api.prototype['SetTextBoxInputMode']                       = asc_docs_api.prototype.SetTextBoxInputMode;
 	asc_docs_api.prototype['GetTextBoxInputMode']                       = asc_docs_api.prototype.GetTextBoxInputMode;
@@ -10651,7 +10681,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_SelectContentControlListItem']          = asc_docs_api.prototype.asc_SelectContentControlListItem;
 	asc_docs_api.prototype['asc_AddContentControlDatePicker']           = asc_docs_api.prototype.asc_AddContentControlDatePicker;
 	asc_docs_api.prototype['asc_SetContentControlDatePickerPr']         = asc_docs_api.prototype.asc_SetContentControlDatePickerPr;
-
+	asc_docs_api.prototype['asc_SetContentControlDatePickerDate']       = asc_docs_api.prototype.asc_SetContentControlDatePickerDate;
 
 	asc_docs_api.prototype['asc_BeginViewModeInReview']                 = asc_docs_api.prototype.asc_BeginViewModeInReview;
 	asc_docs_api.prototype['asc_EndViewModeInReview']                   = asc_docs_api.prototype.asc_EndViewModeInReview;

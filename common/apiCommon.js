@@ -1807,6 +1807,18 @@
 			return this.Before;
 		}, asc_getAfter: function () {
 			return this.After;
+		},
+		asc_putLine: function(v) {
+			this.Line = v;
+		},
+		asc_putLineRule: function(v){
+			this.LineRule = v;
+		},
+		asc_putBefore: function(v){
+			this.Before = v;
+		},
+		asc_putAfter: function(v){
+			this.After = v;
 		}
 	};
 
@@ -4749,7 +4761,7 @@
 	prot["get_ForSelectedCells"] = prot["asc_getForSelectedCells"] = prot.asc_getForSelectedCells;
 	prot["put_ForSelectedCells"] = prot["asc_putForSelectedCells"] = prot.asc_putForSelectedCells;
 
-	window["Asc"]["asc_CParagraphBorders"] = asc_CParagraphBorders;
+	window["Asc"]["asc_CParagraphBorders"] = window["Asc"].asc_CParagraphBorders = asc_CParagraphBorders;
 	prot = asc_CParagraphBorders.prototype;
 	prot["get_Left"] = prot["asc_getLeft"] = prot.asc_getLeft;
 	prot["put_Left"] = prot["asc_putLeft"] = prot.asc_putLeft;
@@ -4839,9 +4851,13 @@
 	window["AscCommon"].asc_CParagraphSpacing = asc_CParagraphSpacing;
 	prot = asc_CParagraphSpacing.prototype;
 	prot["get_Line"] = prot["asc_getLine"] = prot.asc_getLine;
+	prot["put_Line"] = prot["asc_putLine"] = prot.asc_putLine;
 	prot["get_LineRule"] = prot["asc_getLineRule"] = prot.asc_getLineRule;
+	prot["put_LineRule"] = prot["asc_putLineRule"] = prot.asc_putLineRule;
 	prot["get_Before"] = prot["asc_getBefore"] = prot.asc_getBefore;
+	prot["put_Before"] = prot["asc_putBefore"] = prot.asc_putBefore;
 	prot["get_After"] = prot["asc_getAfter"] = prot.asc_getAfter;
+	prot["put_After"] = prot["asc_putAfter"] = prot.asc_putAfter;
 
 	window["Asc"]["asc_CParagraphInd"] = window["Asc"].asc_CParagraphInd = asc_CParagraphInd;
 	prot = asc_CParagraphInd.prototype;

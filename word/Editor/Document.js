@@ -3730,7 +3730,7 @@ CDocument.prototype.Recalculate_PageColumn                   = function()
                 this.CurPage = PageIndex; // TODO: переделать
         }
 
-        if (docpostype_Content === this.GetDocPosType() && ((true !== this.Selection.Use && Index > this.CurPos.ContentPos) || (true === this.Selection.Use && Index > this.Selection.EndPos && Index > this.Selection.StartPos)))
+        if (docpostype_Content === this.GetDocPosType() && ((true !== this.Selection.Use && Index === this.CurPos.ContentPos + 1) || (true === this.Selection.Use && Index === (Math.max(this.Selection.EndPos, this.Selection.StartPos) + 1))))
             this.private_UpdateCursorXY(true, true);
     }
 
@@ -9516,7 +9516,7 @@ CDocument.prototype.OnMouseUp = function(e, X, Y, PageIndex)
 	{
 		var oCC = (oInlineSdt && oInlineSdt.IsCheckBox()) ? oInlineSdt : oBlockSdt;
 		oCC.SkipSpecialContentControlLock(true);
-		if (!this.IsSelectionLocked(AscCommon.changestype_Paragraph_Content))
+		if (!this.IsSelectionLocked(AscCommon.changestype_Paragraph_Content, null, true, this.IsFillingFormMode()))
 		{
 			this.StartAction();
 			oCC.ToggleCheckBox();
@@ -14202,7 +14202,7 @@ CDocument.prototype.IsSdtGlobalSettingsDefault = function()
  */
 CDocument.prototype.AddContentControlCheckBox = function(oPr)
 {
-	this.RemoveSelection();
+	this.RemoveTextSelection();
 
 	if (!oPr)
 		oPr = new CSdtCheckBoxPr();
@@ -14218,7 +14218,7 @@ CDocument.prototype.AddContentControlCheckBox = function(oPr)
  */
 CDocument.prototype.AddContentControlPicture = function()
 {
-	this.RemoveSelection();
+	this.RemoveTextSelection();
 
 	var oCC = this.AddContentControl(c_oAscSdtLevelType.Inline);
 	oCC.ApplyPicturePr(true);
@@ -14230,7 +14230,7 @@ CDocument.prototype.AddContentControlPicture = function()
  */
 CDocument.prototype.AddContentControlComboBox = function(oPr)
 {
-	this.RemoveSelection();
+	this.RemoveTextSelection();
 
 	if (!oPr)
 	{
@@ -14248,7 +14248,7 @@ CDocument.prototype.AddContentControlComboBox = function(oPr)
  */
 CDocument.prototype.AddContentControlDropDownList = function(oPr)
 {
-	this.RemoveSelection();
+	this.RemoveTextSelection();
 
 	if (!oPr)
 	{
@@ -14266,7 +14266,7 @@ CDocument.prototype.AddContentControlDropDownList = function(oPr)
  */
 CDocument.prototype.AddContentControlDatePicker = function(oPr)
 {
-	this.RemoveSelection();
+	this.RemoveTextSelection();
 
 	if (!oPr)
 		oPr = new CSdtDatePickerPr();
@@ -14890,7 +14890,7 @@ CDocument.prototype.AcceptRevisionChange = function(oChange)
 		if (false === this.Document_Is_SelectionLocked(AscCommon.changestype_None, {
 			Type      : changestype_2_ElementsArray_and_Type,
 			Elements  : arrRelatedParas,
-			CheckType : AscCommon.changestype_Paragraph_Content
+			CheckType : AscCommon.changestype_Paragraph_Properties
 		}))
 		{
 			this.StartAction(AscDFH.historydescription_Document_AcceptRevisionChange);
@@ -14967,7 +14967,7 @@ CDocument.prototype.RejectRevisionChange = function(oChange)
 		if (false === this.Document_Is_SelectionLocked(AscCommon.changestype_None, {
 			Type      : changestype_2_ElementsArray_and_Type,
 			Elements  : arrRelatedParas,
-			CheckType : AscCommon.changestype_Paragraph_Content
+			CheckType : AscCommon.changestype_Paragraph_Properties
 		}))
 		{
 			this.StartAction(AscDFH.historydescription_Document_RejectRevisionChange);
@@ -15091,7 +15091,11 @@ CDocument.prototype.AcceptAllRevisionChanges = function(isSkipCheckLock, isCheck
 	var _isCheckEmptyAction = (false !== isCheckEmptyAction);
 
 	var RelatedParas = this.TrackRevisionsManager.Get_AllChangesRelatedParagraphs(true);
-	if (true === isSkipCheckLock || false === this.Document_Is_SelectionLocked(AscCommon.changestype_None, { Type : changestype_2_ElementsArray_and_Type, Elements : RelatedParas, CheckType : AscCommon.changestype_Paragraph_Content}))
+	if (true === isSkipCheckLock || false === this.IsSelectionLocked(AscCommon.changestype_None, {
+			Type      : changestype_2_ElementsArray_and_Type,
+			Elements  : RelatedParas,
+			CheckType : AscCommon.changestype_Paragraph_Properties
+		}))
 	{
 		this.StartAction(AscDFH.historydescription_Document_AcceptAllRevisionChanges);
 
@@ -15131,7 +15135,11 @@ CDocument.prototype.RejectAllRevisionChanges = function(isSkipCheckLock, isCheck
 	var _isCheckEmptyAction = (false !== isCheckEmptyAction);
 
 	var RelatedParas = this.TrackRevisionsManager.Get_AllChangesRelatedParagraphs(false);
-	if (true === isSkipCheckLock || false === this.Document_Is_SelectionLocked(AscCommon.changestype_None, { Type : changestype_2_ElementsArray_and_Type, Elements : RelatedParas, CheckType : AscCommon.changestype_Paragraph_Content}))
+	if (true === isSkipCheckLock || false === this.IsSelectionLocked(AscCommon.changestype_None, {
+			Type      : changestype_2_ElementsArray_and_Type,
+			Elements  : RelatedParas,
+			CheckType : AscCommon.changestype_Paragraph_Properties
+		}))
 	{
 		this.StartAction(AscDFH.historydescription_Document_RejectAllRevisionChanges);
 
@@ -20487,6 +20495,7 @@ CDocument.prototype.AddCaption = function(oPr)
 					}
                     oNewDrawing.Set_XYForAdd(oDrawing.X, Y, oNearestPos, oDrawing.PageNum);
                     oShape.setBodyPr(oBodyPr);
+                    oNewDrawing.Set_Parent(oNearestPos.Paragraph);
 					oNewDrawing.Add_ToDocument(oNearestPos, false);
 					oNewDrawing.CheckWH();
 					var oContent = oShape.getDocContent();
@@ -20589,13 +20598,59 @@ CDocument.prototype.AddCaption = function(oPr)
         oComplexField.SetInstructionLine(sInstruction);
         oComplexField.SetSeparateChar(oSeparateChar);
         oComplexField.SetEndChar(oEndChar);
-        oComplexField.Update(false, false);
         var sAdditional = oPr.get_Additional();
         if(typeof sAdditional === "string" && sAdditional.length > 0)
         {
             NewRun = new ParaRun(NewParagraph, false);
             NewRun.AddText(sAdditional + " ");
             NewParagraph.Internal_Content_Add(nCurPos++, NewRun, false);
+        }
+
+
+
+        var aFields = [];
+
+        oComplexField.Update(false, false);
+        this.GetAllSeqFieldsByType(oPr.get_Label(), aFields);
+        for(var i = 0; i < aFields.length; ++i)
+        {
+            if(aFields[i] === oComplexField)
+            {
+                break;
+            }
+        }
+        aFields = aFields.slice(i, aFields.length - i);
+        var arrParagraphs = [];
+        for (var nIndex = 0, nCount = aFields.length; nIndex < nCount; ++nIndex)
+        {
+            var oField = aFields[nIndex];
+            if (oField instanceof CComplexField)
+            {
+                oField.SelectField();
+                arrParagraphs = arrParagraphs.concat(this.GetCurrentParagraph(false, true));
+            }
+            else if (oField instanceof ParaField)
+            {
+                if (oField.GetParagraph())
+                    arrParagraphs.push(oField.GetParagraph());
+            }
+        }
+
+        if(arrParagraphs.length > 0)
+        {
+            if (!this.Document_Is_SelectionLocked(changestype_None, {
+                Type      : changestype_2_ElementsArray_and_Type,
+                Elements  : arrParagraphs,
+                CheckType : changestype_Paragraph_Content
+            }))
+            {
+                this.StartAction(AscDFH.historydescription_Document_UpdateFields);
+                for(i = 0; i < aFields.length; ++i)
+                {
+                    aFields[i].Update(false, false);
+                }
+                this.FinalizeAction();
+            }
         }
         NewParagraph.MoveCursorToEndPos();
         NewParagraph.Document_SetThisElementCurrent(true);
@@ -20859,7 +20914,7 @@ CDocument.prototype.DrawTable = function()
  * @param oTextPr {?CTextPr}
  * @param isMoveCursorOutside {boolean} выводим ли курсор за пределы нового рана
  */
-CDocument.prototype.AddText = function(sText, oTextPr, isMoveCursorOutside)
+CDocument.prototype.AddTextWithPr = function(sText, oTextPr, isMoveCursorOutside)
 {
 	if (!this.IsSelectionLocked(AscCommon.changestype_Paragraph_AddText))
 	{
@@ -22226,6 +22281,9 @@ CTrackRevisionsManager.prototype.GetNewMoveId = function()
 };
 CTrackRevisionsManager.prototype.RegisterMoveMark = function(oMark)
 {
+	if (this.LogicDocument && this.LogicDocument.PrintSelection)
+		return;
+
 	if (!oMark)
 		return;
 
@@ -22268,6 +22326,9 @@ CTrackRevisionsManager.prototype.RegisterMoveMark = function(oMark)
 };
 CTrackRevisionsManager.prototype.UnregisterMoveMark = function(oMark)
 {
+	if (this.LogicDocument && this.LogicDocument.PrintSelection)
+		return;
+
 	if (!oMark)
 		return;
 

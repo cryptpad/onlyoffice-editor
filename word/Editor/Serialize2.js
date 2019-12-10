@@ -2909,19 +2909,19 @@ function Binary_rPrWriter(memory, saveParams)
 			{
 				this.memory.WriteByte(c_oSerProp_rPrType.Lang);
 				this.memory.WriteByte(c_oSerPropLenType.Variable);
-				this.memory.WriteString2(g_oLcidIdToNameMap[rPr.Lang.Val]);
+				this.memory.WriteString2(Asc.g_oLcidIdToNameMap[rPr.Lang.Val]);
 			}
 			if(null != rPr.Lang.Bidi)
 			{
 				this.memory.WriteByte(c_oSerProp_rPrType.LangBidi);
 				this.memory.WriteByte(c_oSerPropLenType.Variable);
-				this.memory.WriteString2(g_oLcidIdToNameMap[rPr.Lang.Bidi]);
+				this.memory.WriteString2(Asc.g_oLcidIdToNameMap[rPr.Lang.Bidi]);
 			}
 			if(null != rPr.Lang.EastAsia)
 			{
 				this.memory.WriteByte(c_oSerProp_rPrType.LangEA);
 				this.memory.WriteByte(c_oSerPropLenType.Variable);
-				this.memory.WriteString2(g_oLcidIdToNameMap[rPr.Lang.EastAsia]);
+				this.memory.WriteString2(Asc.g_oLcidIdToNameMap[rPr.Lang.EastAsia]);
 			}
 		}
 		if (null != rPr.Unifill || (null != rPr.Color && rPr.Color.Auto)) {
@@ -6237,7 +6237,7 @@ function BinaryDocumentTableWriter(memory, doc, oMapCommentId, oNumIdMap, copyPa
 			this.memory.WriteByte(c_oSerSdt.DateFormat);
 			this.memory.WriteString2(val.DateFormat);
 		}
-		var lid = g_oLcidIdToNameMap[val.LangId];
+		var lid = Asc.g_oLcidIdToNameMap[val.LangId];
 		if (lid) {
 			this.memory.WriteByte(c_oSerSdt.Lid);
 			this.memory.WriteString2(lid);
@@ -9123,7 +9123,7 @@ function Binary_rPrReader(doc, oReadResult, stream)
 				if(null == rPr.Lang)
 					rPr.Lang = new CLang();
 				var sLang = this.stream.GetString2LE(length);
-				var nLcid = g_oLcidNameToIdMap[sLang];
+				var nLcid = Asc.g_oLcidNameToIdMap[sLang];
 				if(null != nLcid)
 					rPr.Lang.Val = nLcid;
                 break;
@@ -9131,7 +9131,7 @@ function Binary_rPrReader(doc, oReadResult, stream)
 				if(null == rPr.Lang)
 					rPr.Lang = new CLang();
 				var sLang = this.stream.GetString2LE(length);
-				var nLcid = g_oLcidNameToIdMap[sLang];
+				var nLcid = Asc.g_oLcidNameToIdMap[sLang];
 				if(null != nLcid)
 					rPr.Lang.Bidi = nLcid;
                 break;
@@ -9139,7 +9139,7 @@ function Binary_rPrReader(doc, oReadResult, stream)
 				if(null == rPr.Lang)
 					rPr.Lang = new CLang();
 				var sLang = this.stream.GetString2LE(length);
-				var nLcid = g_oLcidNameToIdMap[sLang];
+				var nLcid = Asc.g_oLcidNameToIdMap[sLang];
 				if(null != nLcid)
 					rPr.Lang.EastAsia = nLcid;
                 break;
@@ -12264,7 +12264,7 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
 		} else if (c_oSerSdt.DateFormat === type) {
 			val.DateFormat = this.stream.GetString2LE(length);
 		} else if (c_oSerSdt.Lid === type) {
-			var langId = g_oLcidNameToIdMap[this.stream.GetString2LE(length)];
+			var langId = Asc.g_oLcidNameToIdMap[this.stream.GetString2LE(length)];
 			val.LangId = langId || val.LangId;
 		// } else if (c_oSerSdt.StoreMappedDataAs === type) {
 		// 	val.StoreMappedDataAs = this.stream.GetUChar();

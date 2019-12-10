@@ -184,6 +184,8 @@ function (window, undefined) {
 	window['AscCH'].historyitem_Different_First = 9;
 	window['AscCH'].historyitem_Different_Odd_Even = 10;
 
+	window['AscCH'].historyitem_SortState_Add = 1;
+
 function CHistory()
 {
 	this.workbook = null;

@@ -6473,6 +6473,8 @@ function RangeDataManagerElem(bbox, data)
 	function SortState() {
 		this.Ref = null;
 		this.CaseSensitive = null;
+		this.ColumnSort = null;//false
+		this.SortMethod = null;//none
 		this.SortConditions = null;
 	}
 
@@ -6480,6 +6482,8 @@ function RangeDataManagerElem(bbox, data)
 		var i, res = new SortState();
 		res.Ref = this.Ref ? this.Ref.clone() : null;
 		res.CaseSensitive = this.CaseSensitive;
+		res.ColumnSort = this.ColumnSort;
+		res.SortMethod = this.SortMethod;
 		if (this.SortConditions) {
 			res.SortConditions = [];
 			for (i = 0; i < this.SortConditions.length; ++i) {
@@ -6488,6 +6492,77 @@ function RangeDataManagerElem(bbox, data)
 		}
 		return res;
 	};
+
+	SortState.prototype.getType = function() {
+		return AscCommonExcel.UndoRedoDataTypes.SortState;
+	};
+	SortState.prototype.Read_FromBinary2 = function(r) {
+		if (r.GetBool()) {
+			var r1 = r.GetLong();
+			var c1 = r.GetLong();
+			var r2 = r.GetLong();
+			var c2 = r.GetLong();
+
+			this.Ref = new Asc.Range(c1, r1, c2, r2);
+		}
+		if (r.GetBool()) {
+			this.CaseSensitive = r.GetBool();
+		}
+		if (r.GetBool()) {
+			this.ColumnSort = r.GetBool();
+		}
+		if (r.GetBool()) {
+			this.SortMethod = r.GetBool();
+		}
+
+		var length = r.GetLong();
+		for (var i = 0; i < length; ++i) {
+			var reply = new SortCondition();
+			reply.Read_FromBinary2(r);
+			if(!this.SortConditions) {
+				this.SortConditions = [];
+			}
+			this.SortConditions.push(reply);
+		}
+	};
+	SortState.prototype.Write_ToBinary2 = function(w) {
+		if (null != this.Ref) {
+			w.WriteBool(true);
+			w.WriteLong(this.Ref.r1);
+			w.WriteLong(this.Ref.c1);
+			w.WriteLong(this.Ref.r2);
+			w.WriteLong(this.Ref.c2);
+		} else {
+			w.WriteBool(false);
+		}
+		if (null != this.CaseSensitive) {
+			w.WriteBool(true);
+			w.WriteBool(this.CaseSensitive);
+		} else {
+			w.WriteBool(false);
+		}
+		if (null != this.ColumnSort) {
+			w.WriteBool(true);
+			w.WriteBool(this.ColumnSort);
+		} else {
+			w.WriteBool(false);
+		}
+		if (null != this.SortMethod) {
+			w.WriteBool(true);
+			w.WriteBool(this.SortMethod);
+		} else {
+			w.WriteBool(false);
+		}
+
+		w.WriteLong(this.SortConditions ? this.SortConditions.length : 0);
+		for (var i = 0; i < this.SortConditions.length; ++i) {
+			this.SortConditions[i].Write_ToBinary2(w);
+		}
+	};
+	/*SortState.prototype.applyCollaborative = function (nSheetId, collaborativeEditing) {
+		this.nCol = collaborativeEditing.getLockMeColumn2(nSheetId, this.nCol);
+		this.nRow = collaborativeEditing.getLockMeRow2(nSheetId, this.nRow);
+	};*/
 
 	SortState.prototype.moveRef = function (col, row) {
 		var ref = this.Ref.clone();
@@ -7879,6 +7954,8 @@ function SortCondition() {
 	this.ConditionSortBy = null;
 	this.ConditionDescending = null;
 	this.dxf = null;
+
+	this._hasHeaders = null;
 }
 SortCondition.prototype.clone = function() {
 	var res = new SortCondition();
@@ -7888,6 +7965,51 @@ SortCondition.prototype.clone = function() {
 	if (this.dxf)
 		res.dxf = this.dxf.clone();
 	return res;
+};
+SortCondition.prototype.Read_FromBinary2 = function(r) {
+	if (r.GetBool()) {
+		var r1 = r.GetLong();
+		var c1 = r.GetLong();
+		var r2 = r.GetLong();
+		var c2 = r.GetLong();
+
+		this.Ref = new Asc.Range(c1, r1, c2, r2);
+	}
+	if (r.GetBool()) {
+		this.ConditionSortBy = r.GetBool();
+	}
+	if (r.GetBool()) {
+		this.ConditionDescending = r.GetBool();
+	}
+
+	//?
+	//this.dxf = r.GetBool();
+};
+SortCondition.prototype.Write_ToBinary2 = function(w) {
+	if (null != this.Ref) {
+		w.WriteBool(true);
+		w.WriteLong(this.Ref.r1);
+		w.WriteLong(this.Ref.c1);
+		w.WriteLong(this.Ref.r2);
+		w.WriteLong(this.Ref.c2);
+	} else {
+		w.WriteBool(false);
+	}
+	if (null != this.ConditionSortBy) {
+		w.WriteBool(true);
+		w.WriteBool(this.ConditionSortBy);
+	} else {
+		w.WriteBool(false);
+	}
+	if (null != this.ConditionDescending) {
+		w.WriteBool(true);
+		w.WriteBool(this.ConditionDescending);
+	} else {
+		w.WriteBool(false);
+	}
+
+	//?
+	//this.dxf
 };
 SortCondition.prototype.moveRef = function(col, row) {
 	var ref = this.Ref.clone();
@@ -8818,6 +8940,244 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		}
 	};
 
+	function CSortProperties(ws) {
+		this._oldSelect = null;
+		this._newSelection = null;
+		this.hasHeaders = null;
+		this.columnSort = null;
+		this.caseSensative = null;
+
+		this.levels = null;
+
+		this.sortList = null;//массив, порядковый номер - его индекс в levels
+
+		this.lockChangeHeaders = null;
+		this.lockChangeOrientation = null;
+
+		this._ws = ws;
+
+		return this;
+	}
+
+	CSortProperties.prototype.asc_getHasHeaders = function () {
+		return this.hasHeaders;
+	};
+	CSortProperties.prototype.asc_getColumnSort = function () {
+		return this.columnSort;
+	};
+	CSortProperties.prototype.asc_getCaseSensitive = function () {
+		return this.caseSensative;
+	};
+	CSortProperties.prototype.asc_getLevels = function () {
+		return this.levels;
+	};
+	CSortProperties.prototype.asc_getSortList = function () {
+		return this.sortList;
+	};
+	CSortProperties.prototype.asc_getLockChangeHeaders = function () {
+		return this.lockChangeHeaders;
+	};
+	CSortProperties.prototype.asc_getLockChangeOrientation = function () {
+		return this.lockChangeOrientation;
+	};
+	CSortProperties.prototype.asc_setHasHeaders = function (val) {
+		var oldVal = !!this.hasHeaders;
+		if (this._newSelection && oldVal !== val) {
+			if(val) {
+				this._newSelection.r1++;
+			} else {
+				this._newSelection.r1--;
+			}
+			this._ws.setSelection(this._newSelection);
+		}
+		this.hasHeaders = val;
+	};
+	CSortProperties.prototype.asc_setColumnSort = function (val) {
+		this.columnSort = val;
+	};
+	CSortProperties.prototype.asc_setCaseSensitive = function (val) {
+		this.caseSensative = val;
+	};
+	CSortProperties.prototype.asc_setLevels = function (val) {
+		this.levels = val;
+	};
+
+	CSortProperties.prototype.asc_updateSortList = function (saveIndexes) {
+		//TODO change selection
+		this.generateSortList(saveIndexes);
+	};
+	//TODO delete
+	CSortProperties.prototype.asc_getFilterInside = function () {
+	};
+	CSortProperties.prototype.generateSortList = function (saveIndexes) {
+		var maxCount = 500;
+		var selection = this._newSelection;
+		var j;
+
+		if(saveIndexes && this.sortList && this.sortList.length) {
+			var newSortList = [];
+			for(j in this.sortList) {
+				newSortList[j] = this.getNameColumnByIndex(parseInt(j), selection);
+			}
+			this.sortList = newSortList;
+		} else {
+			this.sortList = [];
+			if(this.columnSort) {
+				for(j = selection.c1; j <= selection.c2; j++) {
+					if(j - selection.c1 >= maxCount) {
+						break;
+					}
+					this.sortList.push(this.getNameColumnByIndex(j - selection.c1, selection));
+				}
+			} else {
+				for(j = selection.r1; j <= selection.r2; j++) {
+					if(j - selection.r1 >= maxCount) {
+						break;
+					}
+					this.sortList.push(this.getNameColumnByIndex(j - selection.r1, selection));
+				}
+			}
+		}
+
+		if(this.levels) {
+			for(var i = 0; i < this.levels.length; i++) {
+				if(!this.sortList[this.levels[i].index]) {
+					this.sortList[this.levels[i].index] = this.getNameColumnByIndex(this.levels[i].index, selection);
+				}
+			}
+		}
+	};
+	CSortProperties.prototype.asc_addBySortList = function (sRange) {
+		//при количестве строк/столбцов более 500, добавляем по одной строке/одному столбцу
+		var selection = this._newSelection;
+		var range = AscCommonExcel.g_oRangeCache.getAscRange(sRange);
+		var index = this.columnSort ? range.c1 - selection.c1 : range.r1 - selection.r1;
+		this.sortList[index] = this.getNameColumnByIndex(index, selection);
+
+		return index;
+	};
+	CSortProperties.prototype.getNameColumnByIndex = function (index, parentRef) {
+		var t = this;
+		var _generateName = function(index) {
+			var base = t.columnSort ? AscCommon.translateManager.getValue("Column") : AscCommon.translateManager.getValue("Row");
+			var text = t.columnSort ? t._ws._getColumnTitle(index) : t._ws._getRowTitle(index);
+			text = base + " " + text;
+			if(t.hasHeaders) {
+				text = "(" + text + ")";
+			}
+			return text;
+		};
+
+		//columnSort; dataHasHeaders
+		var row = this.columnSort ? parentRef.r1 : index + parentRef.r1;
+		var col = !this.columnSort ? parentRef.c1 : index + parentRef.c1;
+		//TODO проверить в 1 строке как должно работать
+		if(this.hasHeaders) {
+			if(this.columnSort) {
+				row--;
+			} else {
+				col--;
+			}
+		}
+
+		if(!this.hasHeaders) {
+			return _generateName(this.columnSort ? col : row);
+		} else {
+			var cell = t._ws.model.getCell3(row, col);
+			var value = cell.getValueWithFormat();
+			return value !== "" ? value : _generateName(this.columnSort ? col : row);
+		}
+	};
+
+	CSortProperties.prototype.asc_getLevelProps = function (index) {
+		var t = this;
+
+		var selection = t._newSelection;
+		var r1 = this.columnSort ? selection.r1 : selection.r1 + index;
+		var r2 = this.columnSort ? selection.r2 : selection.r1 + index;
+		var c1 = this.columnSort ? selection.c1 + index : selection.c1;
+		var c2 = this.columnSort ? selection.c1 + index : selection.c2;
+		var range = new Asc.Range(c1, r1, c2, r2);
+
+		var levelInfo;
+		var rangeInfo = t._ws.model.getRowColColors(range, !this.columnSort);
+		if(rangeInfo) {
+			levelInfo = new CSortLevelInfo();
+			levelInfo.colorsFill = rangeInfo.colors;
+			levelInfo.colorsFont = rangeInfo.fontColors;
+
+			levelInfo.isText = rangeInfo.text;
+		}
+
+		return levelInfo;
+	};
+
+	CSortProperties.prototype.asc_getRangeStr = function () {
+		return this._newSelection.getAbsName();
+	};
+
+	function CSortPropertiesLevel() {
+		this.index = null;
+		this.name = null;
+
+		this.sortBy = null;
+		this.descending = null;
+		this.color = null;
+
+		return this;
+	}
+
+	CSortPropertiesLevel.prototype.asc_getIndex = function () {
+		return this.index;
+	};
+	CSortPropertiesLevel.prototype.asc_getName = function () {
+		return this.name;
+	};
+	CSortPropertiesLevel.prototype.asc_getSortBy = function () {
+		return this.sortBy;
+	};
+	CSortPropertiesLevel.prototype.asc_getDescending = function () {
+		return this.descending;
+	};
+	CSortPropertiesLevel.prototype.asc_getColor = function () {
+		return this.color;
+	};
+	CSortPropertiesLevel.prototype.asc_setIndex = function (val) {
+		this.index = val;
+	};
+	CSortPropertiesLevel.prototype.asc_setName = function (val) {
+		this.name = val;
+	};
+	CSortPropertiesLevel.prototype.asc_setSortBy = function (val) {
+		this.sortBy = val;
+	};
+	CSortPropertiesLevel.prototype.asc_setDescending = function (val) {
+		this.descending = val;
+	};
+	CSortPropertiesLevel.prototype.asc_setColor = function (val) {
+		this.color = val;
+	};
+
+
+	function CSortLevelInfo() {
+		this.colorsFill = null;
+		this.colorsFont = null;
+
+		this.isText = null;
+
+		return this;
+	}
+
+	CSortLevelInfo.prototype.asc_getColorsFill = function () {
+		return this.colorsFill;
+	};
+	CSortLevelInfo.prototype.asc_getColorsFont = function () {
+		return this.colorsFont;
+	};
+	CSortLevelInfo.prototype.asc_getIsTextData = function () {
+		return this.isText;
+	};
+
 
 	//----------------------------------------------------------export----------------------------------------------------
 	var prot;
@@ -9068,4 +9428,42 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 
 	window["Asc"]["CHeaderFooter"] = window["Asc"].CHeaderFooter = CHeaderFooter;
 	window["Asc"]["CHeaderFooterData"] = window["Asc"].CHeaderFooterData = CHeaderFooterData;
+
+	window["Asc"]["CSortProperties"] = window["Asc"].CSortProperties = CSortProperties;
+	prot = CSortProperties.prototype;
+	prot["asc_getHasHeaders"] = prot.asc_getHasHeaders;
+	prot["asc_getColumnSort"] = prot.asc_getColumnSort;
+	prot["asc_getLevels"] = prot.asc_getLevels;
+	prot["asc_getSortList"] = prot.asc_getSortList;
+	prot["asc_updateSortList"] = prot.asc_updateSortList;
+	prot["asc_setHasHeaders"] = prot.asc_setHasHeaders;
+	prot["asc_setColumnSort"] = prot.asc_setColumnSort;
+	prot["asc_getLevelProps"] = prot.asc_getLevelProps;
+	prot["asc_setLevels"] = prot.asc_setLevels;
+	prot["asc_getLockChangeHeaders"] = prot.asc_getLockChangeHeaders;
+	prot["asc_getLockChangeOrientation"] = prot.asc_getLockChangeOrientation;
+	prot["asc_getCaseSensitive"] = prot.asc_getCaseSensitive;
+	prot["asc_setCaseSensitive"] = prot.asc_setCaseSensitive;
+	prot["asc_addBySortList"] = prot.asc_addBySortList;
+	prot["asc_getRangeStr"] = prot.asc_getRangeStr;
+
+	window["Asc"]["CSortPropertiesLevel"] = window["Asc"].CSortPropertiesLevel = CSortPropertiesLevel;
+	prot = CSortPropertiesLevel.prototype;
+	prot["asc_getIndex"] = prot.asc_getIndex;
+	prot["asc_getName"] = prot.asc_getName;
+	prot["asc_getSortBy"] = prot.asc_getSortBy;
+	prot["asc_getDescending"] = prot.asc_getDescending;
+	prot["asc_getColor"] = prot.asc_getColor;
+	prot["asc_setIndex"] = prot.asc_setIndex;
+	prot["asc_setName"] = prot.asc_setName;
+	prot["asc_setSortBy"] = prot.asc_setSortBy;
+	prot["asc_setDescending"] = prot.asc_setDescending;
+	prot["asc_setColor"] = prot.asc_setColor;
+
+	window["Asc"]["CSortLevelInfo"] = window["Asc"].CSortLevelInfo = CSortLevelInfo;
+	prot = CSortLevelInfo.prototype;
+	prot["asc_getColorsFill"] = prot.asc_getColorsFill;
+	prot["asc_getColorsFont"] = prot.asc_getColorsFont;
+	prot["asc_getIsTextData"] = prot.asc_getIsTextData;
+
 })(window);

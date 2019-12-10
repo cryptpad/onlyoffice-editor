@@ -664,7 +664,7 @@ function asc_menu_WriteParaBorder(_type, _border, _stream)
 // PARAASCBORDERS
 function asc_menu_ReadParaBorders(_params, _cursor)
 {
-    var _border = new asc_CParagraph();
+    var _border = new Asc.asc_CParagraphBorders();
     var _continue = true;
     while (_continue)
     {

@@ -299,7 +299,7 @@ ParaRun.prototype.GetSelectedContent = function(oSelectedContent)
 		{
 			var oRun = this.Copy(true, {CopyReviewPr : false});
 
-			if (oReviewInfo.IsMovedTo() || oReviewInfo.IsMovedFrom())
+			if (reviewtype_Common !== nReviewType && (oReviewInfo.IsMovedTo() || oReviewInfo.IsMovedFrom()))
 				oSelectedContent.SetMovedParts(true);
 
 			if (oSelectedContent.IsMoveTrack())
@@ -412,6 +412,24 @@ ParaRun.prototype.Get_Text = function(Text)
         if ( true === bBreak )
             break;
     }
+};
+
+/**
+ * Получем текст из данного рана
+ * @param oText
+ * @returns {string}
+ */
+ParaRun.prototype.GetText = function(oText)
+{
+	if (!oText)
+	{
+		oText = {
+			Text : ""
+		};
+	}
+
+	this.Get_Text(oText);
+	return oText.Text;
 };
 
 // Проверяем пустой ли ран
@@ -2801,6 +2819,8 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
 
 	// TODO: Сделать возможность показывать инструкцию
     var isHiddenCFPart = PRS.ComplexFields.IsComplexFieldCode();
+
+    PRS.CheckUpdateLBP(Pos, Depth);
 
     if (false === StartWord && true === FirstItemOnLine && XEnd - X < 0.001 && RangesCount > 0)
     {

@@ -2859,6 +2859,7 @@ function CParagraphRecalculateStateWrap(Para)
                                                       // отрезка или строки, если что-то не умещается (например,
                                                       // если у нас не убирается слово, то разрыв ставим перед ним)
 	this.LastItem       = null;                       // Последний непробельный элемент
+	this.UpdateLBP      = true;                       // Флаг для первичного обновления позиции переноса в отрезке
 
 
     this.RunRecalcInfoLast  = null; // RecalcInfo последнего рана
@@ -2991,6 +2992,7 @@ CParagraphRecalculateStateWrap.prototype =
 		this.LineBreakPos   = new CParagraphContentPos();
 		this.LineBreakFirst = true;
 		this.LastItem       = null;
+		this.UpdateLBP      = true;
 
         // for ParaMath
         this.bMath_OneLine    = false;
@@ -3490,6 +3492,15 @@ CParagraphRecalculateStateWrap.prototype.SetMathRecalcInfoLine = function(nLine)
 CParagraphRecalculateStateWrap.prototype.IsCondensedSpaces = function()
 {
 	return this.CondensedSpaces;
+};
+CParagraphRecalculateStateWrap.prototype.CheckUpdateLBP = function(nInRunPos)
+{
+	 if (this.UpdateLBP)
+	 {
+		 this.UpdateLBP = false;
+		 this.LineBreakPos.Set(this.CurPos);
+		 this.LineBreakPos.Add(nInRunPos);
+	 }
 };
 
 function CParagraphRecalculateStateCounter()

@@ -3739,14 +3739,14 @@ function setCurrentCultureInfo (LCID, decimalSeparator, groupSeparator) {
 			res = true;
 		}
 
-		decimalSeparator = (null != decimalSeparator) ? decimalSeparator : cultureInfoNew.numberDecimalSeparator;
-		if (decimalSeparator !== g_oDefaultCultureInfo.numberDecimalSeparator) {
-			g_oDefaultCultureInfo.numberDecimalSeparator = decimalSeparator;
+		decimalSeparator = (null != decimalSeparator) ? decimalSeparator : cultureInfoNew.NumberDecimalSeparator;
+		if (decimalSeparator !== g_oDefaultCultureInfo.NumberDecimalSeparator) {
+			g_oDefaultCultureInfo.NumberDecimalSeparator = decimalSeparator;
 			res = true;
 		}
-		groupSeparator = (null != groupSeparator) ? groupSeparator : cultureInfoNew.numberGroupSeparator;
-		if (groupSeparator !== g_oDefaultCultureInfo.numberGroupSeparator) {
-			g_oDefaultCultureInfo.numberGroupSeparator = groupSeparator;
+		groupSeparator = (null != groupSeparator) ? groupSeparator : cultureInfoNew.NumberGroupSeparator;
+		if (groupSeparator !== g_oDefaultCultureInfo.NumberGroupSeparator) {
+			g_oDefaultCultureInfo.NumberGroupSeparator = groupSeparator;
 			res = true;
 		}
 	}

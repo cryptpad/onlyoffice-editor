@@ -210,6 +210,14 @@ Paragraph.prototype.GetType = function()
 {
 	return type_Paragraph;
 };
+/**
+ * Получаем ссылку на глобальный класс документа
+ * @returns {CDocument}
+ */
+Paragraph.prototype.GetLogicDocument = function()
+{
+	return this.LogicDocument;
+};
 Paragraph.prototype.Save_StartState = function()
 {
 	this.StartState = new CParagraphStartState(this);
@@ -3019,9 +3027,13 @@ Paragraph.prototype.Remove = function(nCount, isRemoveWholeElement, bRemoveOnlyS
 
 			this.DeleteCommentOnRemove = false;
 
+			var isStartDeleted = false;
+			var isEndDeleted   = false;
+
 			if (this.Content[EndPos].IsSolid())
 			{
 				this.RemoveFromContent(EndPos, 1);
+				isEndDeleted = true;
 
 				if (this.Content.length <= 1)
 				{
@@ -3048,7 +3060,8 @@ Paragraph.prototype.Remove = function(nCount, isRemoveWholeElement, bRemoveOnlyS
 				// Последние 2 элемента не удаляем (один для para_End, второй для всего остального)
 				if (EndPos < this.Content.length - 2 && true === this.Content[EndPos].Is_Empty() && true !== this.Content[EndPos].Is_CheckingNearestPos())
 				{
-					this.Internal_Content_Remove(EndPos);
+					this.RemoveFromContent(EndPos, 1);
+					isEndDeleted = true;
 
 					this.CurPos.ContentPos = EndPos;
 					this.Content[EndPos].MoveCursorToStartPos();
@@ -3085,6 +3098,7 @@ Paragraph.prototype.Remove = function(nCount, isRemoveWholeElement, bRemoveOnlyS
 			if (this.Content[StartPos].IsSolid())
 			{
 				this.RemoveFromContent(StartPos, 1);
+				isStartDeleted = true;
 
 				if (this.Content.length <= 1)
 				{
@@ -3099,10 +3113,8 @@ Paragraph.prototype.Remove = function(nCount, isRemoveWholeElement, bRemoveOnlyS
 				// Мы не удаляем последний элемент с ParaEnd
 				if (StartPos <= this.Content.length - 2 && true === this.Content[StartPos].Is_Empty() && true !== this.Content[StartPos].Is_CheckingNearestPos() && ((nCount > -1 && true !== bOnAddText) || para_Run !== this.Content[StartPos].Type))
 				{
-					if (this.Selection.StartPos === this.Selection.EndPos)
-						this.Selection.Use = false;
-
-					this.Internal_Content_Remove(StartPos);
+					this.RemoveFromContent(StartPos, 1);
+					isStartDeleted = true;
 				}
 				else if (isFootnoteRefRun)
 				{
@@ -3122,6 +3134,9 @@ Paragraph.prototype.Remove = function(nCount, isRemoveWholeElement, bRemoveOnlyS
 
 				this.CurPos.ContentPos = StartPos;
 			}
+
+			if (isStartDeleted && isEndDeleted)
+				this.Selection.Use = false;
 
 			if (nCount > -1 && true !== bOnAddText)
 			{

@@ -8605,7 +8605,7 @@ function BinaryPPTYLoader()
                 case 10:
                 {
                     var lang = s.GetString2();
-                    var nLcid = g_oLcidNameToIdMap[lang];
+                    var nLcid = Asc.g_oLcidNameToIdMap[lang];
                     if(nLcid)
                         rPr.Lang.Val = nLcid;
                     break;

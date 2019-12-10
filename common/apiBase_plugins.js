@@ -379,7 +379,7 @@
      */
     Api.prototype["pluginMethod_StartAction"] = function(type, description)
     {
-        this.sync_StartAction((type == "Block") ? c_oAscAsyncActionType.BlockInteraction : c_oAscAsyncActionType.Information, description);
+        this.sync_StartAction((type == "Block") ? Asc.c_oAscAsyncActionType.BlockInteraction : Asc.c_oAscAsyncActionType.Information, description);
     };
 
     /**
@@ -392,7 +392,7 @@
      */
     Api.prototype["pluginMethod_EndAction"] = function(type, description, status)
     {
-        this.sync_EndAction((type == "Block") ? c_oAscAsyncActionType.BlockInteraction : c_oAscAsyncActionType.Information, description);
+        this.sync_EndAction((type == "Block") ? Asc.c_oAscAsyncActionType.BlockInteraction : Asc.c_oAscAsyncActionType.Information, description);
 
         if (window["AscDesktopEditor"] && status != null && status != "")
         {

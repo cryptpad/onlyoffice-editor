@@ -3026,7 +3026,7 @@
 	 */
 	ApiTextPr.prototype.SetLanguage = function(sLangId)
 	{
-		var nLcid = g_oLcidNameToIdMap[sLangId];
+		var nLcid = Asc.g_oLcidNameToIdMap[sLangId];
 		if (undefined !== nLcid)
 		{
 			this.TextPr.Lang.Val = nLcid;

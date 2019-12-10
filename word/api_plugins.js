@@ -93,7 +93,7 @@
      */
     window["asc_docs_api"].prototype["pluginMethod_InsertAndReplaceContentControls"] = function(arrDocuments)
     {
-        var _worker = new CContentControlPluginWorker(this, arrDocuments);
+        var _worker = new AscCommonWord.CContentControlPluginWorker(this, arrDocuments);
         return _worker.start();
     };
     /**
@@ -105,7 +105,7 @@
      */
     window["asc_docs_api"].prototype["pluginMethod_RemoveContentControls"] = function(arrDocuments)
     {
-        var _worker = new CContentControlPluginWorker(this, arrDocuments);
+        var _worker = new AscCommonWord.CContentControlPluginWorker(this, arrDocuments);
         return _worker.delete();
     };
     /**

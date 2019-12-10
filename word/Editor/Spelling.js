@@ -156,7 +156,7 @@ CDocumentSpelling.prototype =
 			{
 				var oParagraph = this.CheckPara[sId];
 
-				if (!oParagraph.ContinueCheckSpelling(false))
+				if (oParagraph.IsUseInDocument() && !oParagraph.ContinueCheckSpelling(false))
 					break;
 
 				delete this.CheckPara[sId];
