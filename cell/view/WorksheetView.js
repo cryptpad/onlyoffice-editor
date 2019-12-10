@@ -10480,7 +10480,7 @@
                        	var opt_by_rows = false;
 						//var props = t.getSortProps(true);
                         //t.cellCommentator.sortComments(range.sort(val.type, opt_by_rows ? activeCell.row : activeCell.col, val.color, true, opt_by_rows, props.levels));
-                        t.cellCommentator.sortComments(range.sort(val.type, opt_by_rows ? activeCell.row : activeCell.col, val.color, true, opt_by_rows));
+                        t.cellCommentator.sortComments(t._doSort(range, val.type, opt_by_rows ? activeCell.row : activeCell.col, val.color, true, opt_by_rows));
 						t.setSortProps(t._generateSortProps(val.type, opt_by_rows ? activeCell.row : activeCell.col, val.color, true, opt_by_rows, range.bbox), true);
                         break;
 
@@ -14434,7 +14434,7 @@
                     }
                 }
 
-                var sort = sortRange.sort(type, startCol, rgbColor, null, null, null, sortState);
+				var sort = t._doSort(sortRange, type, startCol, rgbColor, null, null, null, sortState);
                 t.cellCommentator.sortComments(sort);
             }
 
@@ -14632,11 +14632,10 @@
 				History.Create_NewPoint();
                 History.StartTransaction();
 
-                var rgbColor = color ?
-                  new AscCommonExcel.RgbColor((color.asc_getR() << 16) + (color.asc_getG() << 8) + color.asc_getB()) :
-                  null;
+                var rgbColor = color ? new AscCommonExcel.RgbColor((color.asc_getR() << 16) + (color.asc_getG() << 8) + color.asc_getB()) : null;
 
-                var sort = sortProps.sortRange.sort(type, sortProps.startCol, rgbColor);
+
+                var sort = t._doSort(sortProps.sortRange, type, sortProps.startCol, rgbColor)
                 t.cellCommentator.sortComments(sort);
                 t.model.autoFilters.sortColFilter(type, cellId, ar, sortProps, displayName, rgbColor);
 
@@ -18930,7 +18929,7 @@
 
 			if(!doNotSortRange) {
 				var range = t.model.getRange3(selection.r1, selection.c1, selection.r2, selection.c2);
-				t.cellCommentator.sortComments(range.sort(null, null, null, null, !columnSort, sortState));
+				t.cellCommentator.sortComments(t._doSort(range, null, null, null, null, !columnSort, sortState));
 			}
 
 			History.EndTransaction();
@@ -18984,6 +18983,33 @@
 
 		return res;
 	};
+
+	WorksheetView.prototype._doSort = function (range, nOption, nStartRowCol, sortColor, opt_guessHeader, opt_by_row, opt_custom_sort) {
+		var res;
+
+		/*var bordersArr = [];
+		range._foreachNoEmpty(function(cell, row, col) {
+			if(!bordersArr[row]) {
+				bordersArr[row] = [];
+			}
+			bordersArr[row][col] = cell.getBorder();
+			cell.setBorder(null);
+		});*/
+		res = range.sort(nOption, nStartRowCol, sortColor, opt_guessHeader, opt_by_row, opt_custom_sort);
+		/*for(var i = 0; i < bordersArr.length; i++) {
+			if(bordersArr[i]) {
+				for(var j = 0; j < bordersArr[i].length; j++) {
+					if(bordersArr[i][j]) {
+						var cell = this.model.getCell3(i, j);
+						cell.setBorder(bordersArr[i][j]);
+					}
+				}
+			}
+		}*/
+
+		return res;
+	};
+
 	//------------------------------------------------------------export---------------------------------------------------
     window['AscCommonExcel'] = window['AscCommonExcel'] || {};
 	window["AscCommonExcel"].CellFlags = CellFlags;
