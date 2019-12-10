@@ -6332,6 +6332,7 @@ CChartSpace.prototype.getValAxisCrossType = function()
         var oPlotArea = this.chart.plotArea, i;
         var nAxisType = oAxis.getObjectType();
         var oSeries = oPlotArea.getSeriesWithSmallestIndexForAxis(oAxis);
+        var bCat = false;
         switch(nAxisType){
             case AscDFH.historyitem_type_DateAx:
             case AscDFH.historyitem_type_CatAx:{
@@ -6358,6 +6359,7 @@ CChartSpace.prototype.getValAxisCrossType = function()
                         oLit = oCat.numLit;
                     }
                     if(oLit){
+                        bCat = true;
                         var oLitFormat = null, oPtFormat = null;
                         if(typeof oLit.formatCode === "string" && oLit.formatCode.length > 0){
                             oLitFormat = oNumFormatCache.get(oLit.formatCode);
@@ -6437,7 +6439,7 @@ CChartSpace.prototype.getValAxisCrossType = function()
                     nTickLblSkip = AscFormat.isRealNumber(oAxis.tickLblSkip) ? oAxis.tickLblSkip : (nPtsLength < SKIP_LBL_LIMIT ? 1 : (Math.floor(nPtsLength/SKIP_LBL_LIMIT) + 1));
                     var nStartLength = aStrings.length;
                     for(i = aStrings.length; i < nPtsLength; ++i){
-                        if(!bTickSkip || (((nStartLength + i) % nTickLblSkip) === 0)){
+                        if(!bCat && (!bTickSkip || (((nStartLength + i) % nTickLblSkip) === 0))){
                             if(oLitFormatDate){
                                 aStrings.push(oLitFormatDate.formatToChart(i + 1));
                             }
