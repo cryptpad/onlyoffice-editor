@@ -3446,7 +3446,8 @@ CPresentation.prototype.setHFProperties = function (oProps, bAll) {
                                 oSlide.addToSpTreeToPos(undefined, oSp);
                                 oSp.setParent(oSlide);
                             }
-                        } else {
+                        } 
+                        if(oSp) {
                             oContent = oSp.getDocContent && oSp.getDocContent();
                             if (oContent) {
                                 if (sDateTime) {
