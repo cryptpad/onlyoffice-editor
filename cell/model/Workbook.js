@@ -12045,16 +12045,16 @@
 							res = 1;
 						}
 					} else {
-						if (null != _a.text) {
-							if (null != _b.text) {
+						if (_a && null != _a.text) {
+							if (_b && null != _b.text) {
 								var val1 = caseSensitive ? _a.text : _a.text.toUpperCase();
 								var val2 = caseSensitive ? _b.text : _b.text.toUpperCase();
 								res = strcmp(val1, val2);
 							} else {
 								res = 1;
 							}
-						} else if (null != _a.num) {
-							if (null != _b.num) {
+						} else if (_a && null != _a.num) {
+							if (_b && null != _b.num) {
 								res = _a.num - _b.num;
 							} else {
 								res = -1;
@@ -12082,7 +12082,7 @@
 									res = -res;
 								}
 								break;
-							} else if(i === sortConditions.length - 1) {
+							} else if(i === sortConditions.length - 1 && tempA && tempB) {
 								res = opt_by_row ? tempA.col - tempB.col : tempA.row - tempB.row;
 							}
 						}
