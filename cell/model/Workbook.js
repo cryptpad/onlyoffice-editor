@@ -7099,7 +7099,7 @@
 		return res;
 	};
 
-	Worksheet.prototype.getRowColColors = function (columnRange, byRow) {
+	Worksheet.prototype.getRowColColors = function (columnRange, byRow, notCheckOneColor) {
 		var ws = this;
 		var res = {text: true, colors: [], fontColors: []};
 		var alreadyAddColors = {}, alreadyAddFontColors = {};
@@ -7198,10 +7198,10 @@
 		});
 
 		//если один элемент в массиве, не отправляем его в меню
-		if (res.colors.length === 1) {
+		if (res.colors.length === 1 && !notCheckOneColor) {
 			res.colors = [];
 		}
-		if (res.fontColors.length === 1) {
+		if (res.fontColors.length === 1 && !notCheckOneColor) {
 			res.fontColors = [];
 		}
 
