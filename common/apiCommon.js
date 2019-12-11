@@ -1968,7 +1968,7 @@
 				{
 					if(oBullet.bulletType.AutoNumType > 0)
 					{
-						this.NumStartAt = AscFormat.isRealNumber(oBullet.bulletType.startAt) ? Math.max(1, oBullet.bulletType.startAt) : 1;
+						this.NumStartAt = AscFormat.isRealNumber(oBullet.bulletType.startAt) ? Math.max(1, oBullet.bulletType.startAt) : null;
 					}
 					else
 					{

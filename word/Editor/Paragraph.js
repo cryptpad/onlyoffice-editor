@@ -8616,7 +8616,7 @@ Paragraph.prototype.Add_PresentationNumbering = function(_Bullet, Pr)
 				{
 					if(AscFormat.isRealNumber(nNumStartAt))
 					{
-						oBullet.bulletType.startAt = nNumStartAt;
+						oBullet.bulletType.startAt = nNumStartAt !== 1 ? nNumStartAt : null;
 					}
 					if(typeof BulletSymbol === "string" && BulletSymbol.length > 0
 						&& typeof BulletFont === "string" && BulletFont.length > 0)
@@ -8656,6 +8656,43 @@ Paragraph.prototype.Set_PresentationLevel = function(Level)
 		this.Recalc_RunsCompiledPr();
 		this.private_UpdateTrackRevisionOnChangeParaPr(true);
 	}
+};
+Paragraph.prototype.GetBulletNum = function()
+{
+	var Level = this.PresentationPr.Level;
+	var Bullet = this.PresentationPr.Bullet;
+
+	var BulletNum = null;
+	if (Bullet.Get_Type() >= numbering_presentationnumfrmt_ArabicPeriod)
+	{
+		var Prev = this.Prev;
+		BulletNum = Bullet.Get_StartAt();
+		while (null != Prev && type_Paragraph === Prev.GetType())
+		{
+			var PrevLevel = Prev.PresentationPr.Level;
+			var PrevBullet = Prev.Get_PresentationNumbering();
+			// Если предыдущий параграф более низкого уровня, тогда его не учитываем
+			if (Level < PrevLevel)
+			{
+				Prev = Prev.Prev;
+				continue;
+			}
+			else if (Level > PrevLevel)
+				break;
+			else if (PrevBullet.Get_Type() === Bullet.Get_Type() && Bullet.Get_StartAt() === PrevBullet.Get_StartAt())
+			{
+				if (true != Prev.IsEmpty())
+					BulletNum++;
+
+				Prev = Prev.Prev;
+			}
+			else
+			{
+				break;
+			}
+		}
+	}
+	return BulletNum;
 };
 //----------------------------------------------------------------------------------------------------------------------
 /**

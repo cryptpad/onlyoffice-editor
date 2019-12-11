@@ -10192,6 +10192,10 @@ function CompareBullets(bullet1, bullet2)
                 {
                     ret.bulletType.startAt = bullet1.bulletType.startAt;
                 }
+                else
+                {
+                    ret.bulletType.startAt = undefined;
+                }
                 if(bullet1.bulletType.type === bullet2.bulletType.type)
                 {
                     ret.bulletType.type = bullet1.bulletType.type;

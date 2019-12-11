@@ -5549,8 +5549,13 @@ CDocumentContent.prototype.GetCalculatedParaPr = function()
 				{
 					oBullet.bulletColor.UniColor.check(this.Get_Theme(), this.Get_ColorMap());
 				}
+				if(oBullet.bulletType.startAt !== undefined)
+				{
+					oBullet.bulletType.startAt = this.Content[0].GetBulletNum();
+				}
 			}
 		}
+
 		return Result_ParaPr;
 	}
 
@@ -5560,10 +5565,11 @@ CDocumentContent.prototype.GetCalculatedParaPr = function()
 	}
 	else //if ( docpostype_Content === this.CurPos.Type )
 	{
+		var StartPos, EndPos;
 		if (true === this.Selection.Use && selectionflag_Common === this.Selection.Flag)
 		{
-			var StartPos = this.Selection.StartPos;
-			var EndPos   = this.Selection.EndPos;
+			StartPos = this.Selection.StartPos;
+			EndPos   = this.Selection.EndPos;
 			if (EndPos < StartPos)
 			{
 				var Temp = StartPos;
@@ -5617,6 +5623,7 @@ CDocumentContent.prototype.GetCalculatedParaPr = function()
 		}
 		else
 		{
+			StartPos = this.CurPos.ContentPos;
 			var Item = this.Content[this.CurPos.ContentPos];
 			if (type_Paragraph == Item.GetType())
 			{
@@ -5646,6 +5653,10 @@ CDocumentContent.prototype.GetCalculatedParaPr = function()
 				if(oBullet.bulletColor &&  oBullet.bulletColor.UniColor)
 				{
 					oBullet.bulletColor.UniColor.check(oTheme, oColorMap);
+				}
+				if(oBullet.bulletType.startAt !== undefined)
+				{
+					oBullet.bulletType.startAt = this.Content[StartPos].GetBulletNum();
 				}
 			}
 			if(FirstTextPr)

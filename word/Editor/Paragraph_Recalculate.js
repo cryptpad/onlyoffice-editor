@@ -3303,41 +3303,15 @@ CParagraphRecalculateStateWrap.prototype =
             var Level = Para.PresentationPr.Level;
             var Bullet = Para.PresentationPr.Bullet;
 
-            var BulletNum = 1;
-            if (Bullet.Get_Type() >= numbering_presentationnumfrmt_ArabicPeriod)
+            var BulletNum = Para.GetBulletNum();
+            if(BulletNum === null)
             {
-                var Prev = Para.Prev;
-                BulletNum = Bullet.Get_StartAt();
-                while (null != Prev && type_Paragraph === Prev.GetType())
-                {
-                    var PrevLevel = Prev.PresentationPr.Level;
-                    var PrevBullet = Prev.Get_PresentationNumbering();
-                    // Если предыдущий параграф более низкого уровня, тогда его не учитываем
-                    if (Level < PrevLevel)
-                    {
-                        Prev = Prev.Prev;
-                        continue;
-                    }
-                    else if (Level > PrevLevel)
-                        break;
-                    else if (PrevBullet.Get_Type() === Bullet.Get_Type() && Bullet.Get_StartAt() === PrevBullet.Get_StartAt())
-                    {
-                        if (true != Prev.IsEmpty())
-                            BulletNum++;
-
-                        Prev = Prev.Prev;
-                    }
-                    else
-                    {
-                        break;
-                    }
-                }
+                BulletNum = 1;
             }
-
             // Найдем настройки для первого текстового элемента
             var FirstTextPr = Para.Get_FirstTextPr2();
 
-            if(BulletNum > 32767)
+            while(BulletNum > 32767)
             {
                 BulletNum -= 32767;
             }
