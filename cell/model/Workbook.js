@@ -12075,7 +12075,7 @@
 							var col2 = !opt_by_row ? col : b.col;
 							var tempA = getSortElem(row1, col1);
 							var tempB = getSortElem(row2, col2);
-							compare(tempA, tempB);
+							compare(tempA, tempB, sortConditions[i]);
 							var tempAscent = !sortConditions[i].ConditionDescending;
 							if(res != 0) {
 								if(!tempAscent) {
