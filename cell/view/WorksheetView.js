@@ -1628,7 +1628,7 @@
     };
 
     // ----- Drawing for print -----
-    WorksheetView.prototype._calcPagesPrint = function(range, pageOptions, indexWorksheet, arrPages, printScale) {
+    WorksheetView.prototype._calcPagesPrint = function(range, pageOptions, indexWorksheet, arrPages, printScale, adjustPrint) {
         if (0 > range.r2 || 0 > range.c2) {
 			// Ничего нет
             return;
@@ -1639,8 +1639,7 @@
 			vector_koef /= AscCommon.AscBrowser.retinaPixelRatio;
 		}
 
-		//TODO  в данный момент с этот флаг не используется. нужно проверить и убрать.
-		var bPageLayout = arguments[4];
+		var isOnlyFirstPage = adjustPrint && adjustPrint.isOnlyFirstPage;
 
         //TODO убрать использование bFitToWidth/bFitToHeight. сейчас всё должно регулироваться скейлингом
 		var bFitToWidth = false;
@@ -1737,9 +1736,13 @@
 
 		var bIsAddOffset = false;
 		var nCountOffset = 0;
+		var nCountPages = 0;
 
-		var t = this;
 		while (AscCommonExcel.c_kMaxPrintPages > arrPages.length) {
+			if(isOnlyFirstPage && nCountPages > 0) {
+				break;
+			}
+
 			var newPagePrint = new asc_CPagePrint();
 
 			var colIndex = currentColIndex, rowIndex = currentRowIndex, pageRange;
@@ -1797,8 +1800,7 @@
 
 					if (bFitToWidth) {
 						newPagePrint.pageClipRectWidth = Math.max(currentWidth, newPagePrint.pageClipRectWidth);
-						newPagePrint.pageWidth =
-							newPagePrint.pageClipRectWidth * vector_koef + (pageLeftField + pageRightField);
+						newPagePrint.pageWidth = newPagePrint.pageClipRectWidth * vector_koef + (pageLeftField + pageRightField);
 					} else {
 						newPagePrint.pageClipRectWidth = Math.min(currentWidth, newPagePrint.pageClipRectWidth);
 					}
@@ -1813,8 +1815,7 @@
 			}
 			if (bFitToHeight) {
 				newPagePrint.pageClipRectHeight = Math.max(currentHeight, newPagePrint.pageClipRectHeight);
-				newPagePrint.pageHeight =
-					newPagePrint.pageClipRectHeight * vector_koef + (pageTopField + pageBottomField);
+				newPagePrint.pageHeight = newPagePrint.pageClipRectHeight * vector_koef + (pageTopField + pageBottomField);
 			} else {
 				newPagePrint.pageClipRectHeight = Math.min(currentHeight, newPagePrint.pageClipRectHeight);
 			}
@@ -1839,6 +1840,7 @@
 				newPagePrint.scale = printScale / 100;
 			}
 			arrPages.push(newPagePrint);
+			nCountPages++;
 
 			if (bIsAddOffset) {
 				// Мы еще не дорисовали колонку
@@ -1913,9 +1915,10 @@
 		return new AscCommon.CellBase(maxRow, maxCol);
 	};
 
-    WorksheetView.prototype.calcPagesPrint = function (pageOptions, printOnlySelection, indexWorksheet, arrPages, arrRanges, ignorePrintArea, doNotRecalc) {
+    WorksheetView.prototype.calcPagesPrint = function (pageOptions, printOnlySelection, indexWorksheet, arrPages, arrRanges, adjustPrint, doNotRecalc) {
 		var range, maxCell, t = this;
 		var _printArea = this.model.workbook.getDefinesNames("Print_Area", this.model.getId());
+		var ignorePrintArea = adjustPrint ? adjustPrint.asc_getIgnorePrintArea() : null;
 		var printArea = !ignorePrintArea && _printArea;
 
 		this.recalcPrintScale();
@@ -1982,7 +1985,7 @@
 					range = new asc_Range(0, 0, maxCell.col, maxCell.row);
 				}
 
-				this._calcPagesPrint(range, pageOptions, indexWorksheet, arrPages, tempPrintScale);
+				this._calcPagesPrint(range, pageOptions, indexWorksheet, arrPages, tempPrintScale, adjustPrint);
 			}
 		} else if(printArea && printAreaRanges) {
 
@@ -2005,7 +2008,7 @@
 				if(!doNotRecalc) {
 					this._prepareCellTextMetricsCache(range);
 				}
-				this._calcPagesPrint(range, pageOptions, indexWorksheet, arrPages, tempPrintScale);
+				this._calcPagesPrint(range, pageOptions, indexWorksheet, arrPages, tempPrintScale, adjustPrint);
 			}
 		} else {
 			range = new asc_Range(0, 0, this.model.getColsCount() - 1, this.model.getRowsCount() - 1);
@@ -2031,7 +2034,7 @@
 				tempPrintScale = checkCustomScaleProps();
 			}
 
-			this._calcPagesPrint(range, pageOptions, indexWorksheet, arrPages, tempPrintScale);
+			this._calcPagesPrint(range, pageOptions, indexWorksheet, arrPages, tempPrintScale, adjustPrint);
 		}
 
 		if(this.groupWidth || this.groupHeight) {

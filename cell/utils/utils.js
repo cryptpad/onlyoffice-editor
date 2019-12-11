@@ -2090,6 +2090,8 @@
 			this.pageOptionsMap = null;
 			this.ignorePrintArea = null;
 
+			this.isOnlyFirstPage = null;
+
 			// ToDo сюда же start и end page index
 
 			return this;

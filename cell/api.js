@@ -4083,7 +4083,11 @@ var editor;
     var countWorksheets = this.wbModel.getWorksheetCount();
 
     if(_options) {
-       var isOnlyFirstPage = (_options && _options["printOptions"] && _options["printOptions"]["onlyFirstPage"]) ? true : false;
+      //печатаем только 1 страницу первой книги
+      var isOnlyFirstPage = _options["printOptions"] && _options["printOptions"]["onlyFirstPage"];
+       if(isOnlyFirstPage) {
+		   _adjustPrint.isOnlyFirstPage = true;
+       }
 	   var spreadsheetLayout = _options["spreadsheetLayout"];
 	   var _ignorePrintArea = spreadsheetLayout && (true === spreadsheetLayout["ignorePrintArea"] || false === spreadsheetLayout["ignorePrintArea"])? spreadsheetLayout["ignorePrintArea"] : null;
 	   if(null !== _ignorePrintArea) {
