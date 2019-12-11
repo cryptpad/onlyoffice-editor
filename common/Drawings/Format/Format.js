@@ -10561,9 +10561,9 @@ var BULLET_TYPE_BULLET_BLIP		= 3;
 function CBulletType()
 {
     this.type = null;//BULLET_TYPE_BULLET_NONE;
-    this.Char = "*";
-    this.AutoNumType = 0;
-    this.startAt = 1;
+    this.Char = null;
+    this.AutoNumType = null;
+    this.startAt = null;
 }
 
 CBulletType.prototype =

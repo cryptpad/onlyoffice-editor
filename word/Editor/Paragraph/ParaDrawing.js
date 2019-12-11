@@ -1472,7 +1472,7 @@ ParaDrawing.prototype.Set_XYForAdd = function(X, Y, NearPos, PageNum)
 			this.SetSkipOnRecalculate(true);
             oLogicDocument.TurnOff_InterfaceEvents();
             oLogicDocument.Recalculate();
-            oLogicDocument.TurnOn_InterfaceEvents(false)
+            oLogicDocument.TurnOn_InterfaceEvents(false);
 			this.SetSkipOnRecalculate(false);
 		}
 
