@@ -1287,7 +1287,6 @@ CBlockLevelSdt.prototype.SetPr = function(oPr)
 	if (!oPr || this.IsBuiltInTableOfContents())
 		return;
 
-	this.SetDefaultTextPr(oPr.TextPr);
 	this.SetAlias(oPr.Alias);
 	this.SetTag(oPr.Tag);
 	this.SetLabel(oPr.Label);

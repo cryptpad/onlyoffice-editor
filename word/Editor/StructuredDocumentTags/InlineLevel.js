@@ -624,7 +624,6 @@ CInlineLevelSdt.prototype.GetContentControlType = function()
 };
 CInlineLevelSdt.prototype.SetPr = function(oPr)
 {
-	this.SetDefaultTextPr(oPr.TextPr);
 	this.SetAlias(oPr.Alias);
 	this.SetTag(oPr.Tag);
 	this.SetLabel(oPr.Label);
