@@ -6122,9 +6122,10 @@ function BinaryDocumentTableWriter(memory, doc, oMapCommentId, oNumIdMap, copyPa
 		// 	this.memory.WriteByte(c_oSerSdt.PlaceHolder);
 		// 	this.memory.WriteString2(val.PlaceHolder);
 		// }
-		// if (null != val.RPr) {
-		// 	this.bs.WriteItem(c_oSerSdt.RPr, function(){oThis.brPrs.Write_rPr(val.RPr, null, null);});
-		// }
+		var rPr = oSdt.GetDefaultTextPr();
+		if (rPr) {
+			this.bs.WriteItem(c_oSerSdt.RPr, function(){oThis.brPrs.Write_rPr(rPr, null, null);});
+		}
 		// if (null != val.ShowingPlcHdr) {
 		// 	oThis.bs.WriteItem(c_oSerSdt.ShowingPlcHdr, function (){oThis.memory.WriteBool(val.ShowingPlcHdr);});
 		// }
@@ -12171,9 +12172,10 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
 			oSdtPr.Lock = this.stream.GetByte();
 		// } else if (c_oSerSdt.PlaceHolder === type) {
 		// 	oSdtPr.PlaceHolder = this.stream.GetString2LE(length);
-		// } else if (c_oSerSdt.RPr === type) {
-		// 	oSdtPr.RPr = new CTextPr();
-		// 	res = this.brPrr.Read(length, oSdtPr.RPr, null);
+		} else if (c_oSerSdt.RPr === type) {
+			var rPr = new CTextPr();
+			res = this.brPrr.Read(length, rPr, null);
+			oSdt.SetDefaultTextPr(rPr);
 		// } else if (c_oSerSdt.ShowingPlcHdr === type) {
 		// 	oSdtPr.ShowingPlcHdr = (this.stream.GetUChar() != 0);
 		// } else if (c_oSerSdt.TabIndex === type) {
