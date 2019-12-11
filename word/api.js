@@ -7698,6 +7698,7 @@ background-repeat: no-repeat;\
 			oAdditionalData['outputurls']= true;
 			// ToDo select txt params
 			oAdditionalData["codepage"] = AscCommon.c_oAscCodePageUtf8;
+			dataContainer.data = last.data;
 		}
 		else if (c_oAscFileType.HTML === fileType && null == options.oDocumentMailMerge && null == options.oMailMergeSendData)
 		{
