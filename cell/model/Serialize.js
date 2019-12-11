@@ -10026,4 +10026,8 @@
 
     window["Asc"].getBinaryOtherTableGVar = getBinaryOtherTableGVar;
     window["Asc"].ReadDefTableStyles = ReadDefTableStyles;
+
+	window["AscCommonExcel"].BinaryStylesTableWriter = BinaryStylesTableWriter;
+	window["AscCommonExcel"].Binary_StylesTableReader = Binary_StylesTableReader;
+
 })(window);

@@ -7976,14 +7976,25 @@ SortCondition.prototype.Read_FromBinary2 = function(r) {
 		this.Ref = new Asc.Range(c1, r1, c2, r2);
 	}
 	if (r.GetBool()) {
-		this.ConditionSortBy = r.GetBool();
+		this.ConditionSortBy = r.GetLong();
 	}
 	if (r.GetBool()) {
 		this.ConditionDescending = r.GetBool();
 	}
 
-	//?
-	//this.dxf = r.GetBool();
+	if (r.GetBool()) {
+		var api_sheet = Asc['editor'];
+		var wb = api_sheet.wbModel;
+		var bsr = new AscCommonExcel.Binary_StylesTableReader(r, wb);
+		var bcr = new AscCommon.Binary_CommonReader(r);
+		var oDxf = new AscCommonExcel.CellXfs();
+		r.GetUChar();
+		var length = r.GetULongLE();
+		bcr.Read1(length, function(t,l){
+			return bsr.ReadDxf(t,l,oDxf);
+		});
+		this.dxf = oDxf;
+	}
 };
 SortCondition.prototype.Write_ToBinary2 = function(w) {
 	if (null != this.Ref) {
@@ -7997,7 +8008,7 @@ SortCondition.prototype.Write_ToBinary2 = function(w) {
 	}
 	if (null != this.ConditionSortBy) {
 		w.WriteBool(true);
-		w.WriteBool(this.ConditionSortBy);
+		w.WriteLong(this.ConditionSortBy);
 	} else {
 		w.WriteBool(false);
 	}
@@ -8008,8 +8019,14 @@ SortCondition.prototype.Write_ToBinary2 = function(w) {
 		w.WriteBool(false);
 	}
 
-	//?
-	//this.dxf
+	if(null != this.dxf) {
+		var dxf = this.dxf;
+		w.WriteBool(true);
+		var oBinaryStylesTableWriter = new AscCommonExcel.BinaryStylesTableWriter(w);
+		oBinaryStylesTableWriter.bs.WriteItem(0, function(){oBinaryStylesTableWriter.WriteDxf(dxf);});
+	}else {
+		w.WriteBool(false);
+	}
 };
 SortCondition.prototype.moveRef = function(col, row) {
 	var ref = this.Ref.clone();
