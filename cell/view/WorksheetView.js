@@ -18864,12 +18864,13 @@
 				sortCondition.ConditionDescending = Asc.c_oAscSortOptions.Descending === level.descending;
 
 				var conditionSortBy = level.sortBy;
-				var sortColor = null, newDxf;
+				var sortColor = null, newDxf, isRgbColor;
 				switch (conditionSortBy) {
 					case Asc.c_oAscSortOptions.ByColorFill: {
 						sortCondition.ConditionSortBy = Asc.ESortBy.sortbyCellColor;
 						sortColor = level.color;
-						sortColor = sortColor ? new AscCommonExcel.RgbColor((sortColor.asc_getR() << 16) + (sortColor.asc_getG() << 8) + sortColor.asc_getB()) : null;
+						isRgbColor = sortColor && sortColor.getType && sortColor.getType() === AscCommonExcel.UndoRedoDataTypes.RgbColor;
+						sortColor = sortColor && !isRgbColor ? new AscCommonExcel.RgbColor((sortColor.asc_getR() << 16) + (sortColor.asc_getG() << 8) + sortColor.asc_getB()) : null;
 
 						newDxf = new AscCommonExcel.CellXfs();
 						newDxf.fill = new AscCommonExcel.Fill();
@@ -18880,7 +18881,8 @@
 					case Asc.c_oAscSortOptions.ByColorFont: {
 						sortCondition.ConditionSortBy = Asc.ESortBy.sortbyFontColor;
 						sortColor = level.color;
-						sortColor = sortColor ? new AscCommonExcel.RgbColor((sortColor.asc_getR() << 16) + (sortColor.asc_getG() << 8) + sortColor.asc_getB()) : null;
+						isRgbColor = sortColor && sortColor.getType && sortColor.getType() === AscCommonExcel.UndoRedoDataTypes.RgbColor;
+						sortColor = sortColor && !isRgbColor ? new AscCommonExcel.RgbColor((sortColor.asc_getR() << 16) + (sortColor.asc_getG() << 8) + sortColor.asc_getB()) : null;
 
 						newDxf = new AscCommonExcel.CellXfs();
 						newDxf.font = new AscCommonExcel.Font();
