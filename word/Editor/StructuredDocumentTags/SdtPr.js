@@ -707,6 +707,11 @@ CSdtComboBoxPr.prototype.AddItem = function(sDisplay, sValue)
 
 	return true;
 };
+CSdtComboBoxPr.prototype.Clear = function()
+{
+	this.ListItems = [];
+	this.LastValue = -1;
+};
 CSdtComboBoxPr.prototype.GetTextByValue = function(sValue)
 {
 	if (!sValue || "" === sValue)
@@ -940,6 +945,7 @@ window['AscCommon'].CSdtComboBoxPr    = CSdtComboBoxPr;
 window['AscCommon']['CSdtComboBoxPr'] = CSdtComboBoxPr;
 
 CSdtComboBoxPr.prototype['add_Item']            = CSdtComboBoxPr.prototype.AddItem;
+CSdtComboBoxPr.prototype['clear']               = CSdtComboBoxPr.prototype.Clear;
 CSdtComboBoxPr.prototype['get_TextByValue']     = CSdtComboBoxPr.prototype.GetTextByValue;
 CSdtComboBoxPr.prototype['get_ItemsCount']      = CSdtComboBoxPr.prototype.GetItemsCount;
 CSdtComboBoxPr.prototype['get_ItemDisplayText'] = CSdtComboBoxPr.prototype.GetItemDisplayText;
