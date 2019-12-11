@@ -115,18 +115,7 @@ function Paragraph(DrawingDocument, Parent, bFromPresentation)
         Range : 0
     }; //new ParaEnd();
     
-    this.CurPos  =
-    {
-        X           : 0,
-        Y           : 0,
-        ContentPos  : 0,  // Ближайшая позиция в контенте (между элементами)
-        Line        : -1,
-        Range       : -1,
-        RealX       : 0, // позиция курсора, без учета расположения букв
-        RealY       : 0, // это актуально для клавиш вверх и вниз
-        PagesPos    : 0  // позиция в массиве this.Pages
-    };
-
+    this.CurPos    = new CParagraphCurPos();
     this.Selection = new CParagraphSelection();
     
     this.DrawingDocument = null;
@@ -14626,6 +14615,13 @@ Paragraph.prototype.MakeSingleRunParagraph = function()
 };
 Paragraph.prototype.Document_Is_SelectionLocked = function(CheckType)
 {
+	var oState = null;
+	if (this.IsApplyToAll())
+	{
+		oState = this.SaveSelectionState();
+		this.SelectAll();
+	}
+
 	var isSelectionUse = this.IsSelectionUse();
 	var arrContentControls = this.GetSelectedContentControls();
 	for (var nIndex = 0, nCount = arrContentControls.length; nIndex < nCount; ++nIndex)
@@ -14754,11 +14750,11 @@ Paragraph.prototype.Document_Is_SelectionLocked = function(CheckType)
 		}
 	}
 
+	if (oState)
+		this.LoadSelectionState(oState);
+
 	if (bCheckContentControl && this.Parent && this.Parent.CheckContentControlEditingLock)
 		this.Parent.CheckContentControlEditingLock();
-};
-Paragraph.prototype.CheckContentControlDeletingLock = function()
-{
 };
 /**
  * Получаем NearestPos по текущей позиции
@@ -14775,6 +14771,60 @@ Paragraph.prototype.GetCurrentAnchorPosition = function()
 	this.Check_NearestPos(oNearPos);
 	return oNearPos;
 };
+/**
+ * Сохраняем состояние селекта
+ * @returns {CParagraphSelectionState}
+ */
+Paragraph.prototype.SaveSelectionState = function()
+{
+	var oState = new CParagraphSelectionState();
+
+	oState.Selection.Use           = this.Selection.Use;
+	oState.Selection.Start         = this.Selection.Start;
+	oState.Selection.Flag          = this.Selection.Flag;
+	oState.Selection.StartManually = this.Selection.StartManually;
+	oState.Selection.EndManually   = this.Selection.EndManually;
+
+	oState.CurPos.X          = this.CurPos.X;
+	oState.CurPos.Y          = this.CurPos.Y;
+	oState.CurPos.ContentPos = this.CurPos.ContentPos;
+	oState.CurPos.Line       = this.CurPos.Line;
+	oState.CurPos.Range      = this.CurPos.Range;
+	oState.CurPos.RealX      = this.CurPos.RealX;
+	oState.CurPos.RealY      = this.CurPos.RealY;
+	oState.CurPos.PagesPos   = this.CurPos.PagesPos;
+
+	oState.ContentPos = this.Get_ParaContentPos(false, false, false);
+	oState.StartPos   = this.Get_ParaContentPos(true, true, false);
+	oState.EndPos     = this.Get_ParaContentPos(true, false, false);
+
+	return oState;
+};
+/**
+ * Загружаем состояние селекта
+ * @param {CParagraphSelectionState} oState
+ */
+Paragraph.prototype.LoadSelectionState = function(oState)
+{
+	this.Set_ParaContentPos(oState.ContentPos, false, -1, -1, false);
+	this.Set_SelectionContentPos(oState.StartPos, oState.EndPos, false);
+
+	this.Selection.Use           = oState.Selection.Use;
+	this.Selection.Start         = oState.Selection.Start;
+	this.Selection.Flag          = oState.Selection.Flag;
+	this.Selection.StartManually = oState.Selection.StartManually;
+	this.Selection.EndManually   = oState.Selection.EndManually;
+
+	this.CurPos.X          = oState.CurPos.X;
+	this.CurPos.Y          = oState.CurPos.Y;
+	this.CurPos.ContentPos = oState.CurPos.ContentPos;
+	this.CurPos.Line       = oState.CurPos.Line;
+	this.CurPos.Range      = oState.CurPos.Range;
+	this.CurPos.RealX      = oState.CurPos.RealX;
+	this.CurPos.RealY      = oState.CurPos.RealY;
+	this.CurPos.PagesPos   = oState.CurPos.PagesPos;
+};
+
 
 var pararecalc_0_All  = 0;
 var pararecalc_0_None = 1;
@@ -15123,6 +15173,18 @@ CParaDrawingRangeLines.prototype =
         }
     }
 };
+
+function CParagraphCurPos()
+{
+	this.X           = 0;
+	this.Y           = 0;
+	this.ContentPos  = 0;  // Ближайшая позиция в контенте (между элементами)
+	this.Line        = -1;
+	this.Range       = -1;
+	this.RealX       = 0;  // позиция курсора, без учета расположения букв
+	this.RealY       = 0;  // это актуально для клавиш вверх и вниз
+	this.PagesPos    = 0;  // позиция в массиве this.Pages
+}
 
 function CParagraphSelection()
 {
@@ -16689,6 +16751,16 @@ CParagraphRevisionsChangesChecker.prototype.Get_PrChangeUserId = function()
 {
     return this.TextPr.UserId;
 };
+
+function CParagraphSelectionState()
+{
+	this.ContentPos = new CParagraphContentPos();
+	this.StartPos   = new CParagraphContentPos();
+	this.EndPos     = new CParagraphContentPos();
+
+	this.Selection  = new CParagraphSelection();
+	this.CurPos     = new CParagraphCurPos();
+}
 
 //--------------------------------------------------------export----------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};

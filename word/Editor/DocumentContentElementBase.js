@@ -705,9 +705,6 @@ CDocumentContentElementBase.prototype.IsSelectedAll = function()
 {
 	return false;
 };
-CDocumentContentElementBase.prototype.CheckContentControlDeletingLock = function()
-{
-};
 CDocumentContentElementBase.prototype.GetLastRangeVisibleBounds = function()
 {
 	return {

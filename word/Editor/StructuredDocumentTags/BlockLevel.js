@@ -2199,19 +2199,6 @@ CBlockLevelSdt.prototype.CheckContentControlEditingLock = function()
 	if (this.Parent && this.Parent.CheckContentControlEditingLock)
 		this.Parent.CheckContentControlEditingLock();
 };
-CBlockLevelSdt.prototype.CheckContentControlDeletingLock = function()
-{
-	var isCheckContentControlLock = this.LogicDocument ? this.LogicDocument.IsCheckContentControlsLock() : true;
-	if (!isCheckContentControlLock)
-		return;
-
-	var nContentControlLock = this.GetContentControlLock();
-
-	if (c_oAscSdtLockType.SdtContentLocked === nContentControlLock || c_oAscSdtLockType.SdtLocked === nContentControlLock)
-		return AscCommon.CollaborativeEditing.Add_CheckLock(true);
-
-	this.Content.CheckContentControlEditingLock();
-};
 /**
  * Получаем типа данного контейнера
  * @returns {Asc.c_oAscContentControlSpecificType}

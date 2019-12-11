@@ -2783,9 +2783,14 @@ ParaDrawing.prototype.Document_Is_SelectionLocked = function(CheckType)
 	}
 };
 
-ParaDrawing.prototype.CheckContentControlDeletingLock = function(){
-	if(this.DocumentContent && this.DocumentContent.CheckContentControlDeletingLock){
-        this.DocumentContent.CheckContentControlDeletingLock();
+ParaDrawing.prototype.CheckDeletingLock = function()
+{
+	var arrDocContents = this.GetAllDocContents();
+	for (var nIndex = 0, nCount = arrDocContents.length; nIndex < nCount; ++nIndex)
+	{
+		arrDocContents[nIndex].Set_ApplyToAll(true);
+		arrDocContents[nIndex].Document_Is_SelectionLocked(AscCommon.changestype_Remove);
+		arrDocContents[nIndex].Set_ApplyToAll(false);
 	}
 };
 ParaDrawing.prototype.GetAllFields = function(isUseSelection, arrFields)

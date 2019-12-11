@@ -19028,19 +19028,23 @@ CTable.prototype.Document_Is_SelectionLocked = function(CheckType, bCheckInner)
 		}
 		case AscCommon.changestype_Remove:
 		{
-			if (true === this.ApplyToAll || (true === this.Selection.Use && table_Selection_Cell === this.Selection.Type))
+			if (this.IsCellSelection())
 			{
 				this.Lock.Check(this.Get_Id());
 
 				var arrCells = this.GetSelectionArray();
 				for (var nIndex = 0, nCellsCount = arrCells.length; nIndex < nCellsCount; ++nIndex)
 				{
-					var Pos  = arrCells[nIndex];
-					var Cell = this.Content[Pos.Row].Get_Cell(Pos.Cell);
-					Cell.Content.CheckContentControlDeletingLock();
+					var oPos         = arrCells[nIndex];
+					var oCell        = this.GetRow(oPos.Row).GetCell(oPos.Cell);
+					var oCellContent = oCell.GetContent();
+
+					oCellContent.Set_ApplyToAll(true);
+					oCellContent.Document_Is_SelectionLocked(CheckType);
+					oCellContent.Set_ApplyToAll(false);
 				}
 			}
-			else
+			else if (this.CurCell)
 			{
 				this.CurCell.Content.Document_Is_SelectionLocked(CheckType);
 			}
@@ -19095,17 +19099,6 @@ CTable.prototype.Document_Is_SelectionLocked = function(CheckType, bCheckInner)
 
 	if (bCheckContentControl && this.Parent && this.Parent.CheckContentControlEditingLock)
 		this.Parent.CheckContentControlEditingLock();
-};
-CTable.prototype.CheckContentControlDeletingLock = function()
-{
-	for (var nCurRow = 0, nRowsCount = this.Content.length; nCurRow < nRowsCount; ++nCurRow)
-	{
-		var oRow = this.Content[nCurRow];
-		for (var nCurCell = 0, nCellsCount = oRow.Get_CellsCount(); nCurCell < nCellsCount; ++nCurCell)
-		{
-			oRow.Get_Cell(nCurCell).Content.CheckContentControlDeletingLock();
-		}
-	}
 };
 
 //----------------------------------------------------------------------------------------------------------------------

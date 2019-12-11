@@ -4209,7 +4209,7 @@ CGraphicObjects.prototype.documentIsSelectionLocked = function(CheckType)
             oDrawing = this.selectedObjects[i].parent;
             if(bDelete)
             {
-                oDrawing.CheckContentControlDeletingLock();
+                oDrawing.CheckDeletingLock();
             }
             oDrawing.Lock.Check(oDrawing.Get_Id());
         }

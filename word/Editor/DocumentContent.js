@@ -8430,13 +8430,6 @@ CDocumentContent.prototype.CheckContentControlEditingLock = function()
 	if (this.Parent && this.Parent.CheckContentControlEditingLock)
 		this.Parent.CheckContentControlEditingLock();
 };
-CDocumentContent.prototype.CheckContentControlDeletingLock = function()
-{
-	for (var nIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex)
-	{
-		this.Content[nIndex].CheckContentControlDeletingLock();
-	}
-};
 /**
  * Оставляем один пустой параграф в содержимом
  * @returns {Paragraph}
