@@ -11998,13 +11998,13 @@
 			t.model._getCell(rangeStyle.cellValueData2.row, rangeStyle.cellValueData2.col, function (cell) {
 				cell.setValueData(rangeStyle.cellValueData2.valueData);
 			});
-		} /*else if (rangeStyle.value2 && specialPasteProps.font && specialPasteProps.val) {
-			if (formulaProps) {
+		} else if (rangeStyle.value2 && specialPasteProps.font && specialPasteProps.val) {
+			if (formulaProps && firstRange) {
 				firstRange.setValue2(rangeStyle.value2);
 			} else {
 				range.setValue2(rangeStyle.value2);
 			}
-		}*/ else if (rangeStyle.cellValueData && specialPasteProps.val) {
+		} else if (rangeStyle.cellValueData && specialPasteProps.val) {
 			range.setValueData(rangeStyle.cellValueData);
 		} else if (null != rangeStyle.val && specialPasteProps.val) {
 			//TODO возможно стоит всегда вызывать setValueData и тип выставлять в зависимости от val
