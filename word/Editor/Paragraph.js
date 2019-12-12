@@ -9008,6 +9008,7 @@ Paragraph.prototype.private_CompileParaPr = function(isForce)
 			this.PresentationPr.Level  = AscFormat.isRealNumber(this.Pr.Lvl) ? this.Pr.Lvl : 0;
 			this.PresentationPr.Bullet = this.CompiledPr.Pr.ParaPr.Get_PresentationBullet(this.Get_Theme(), this.Get_ColorMap());
 			this.Numbering.Bullet      = this.PresentationPr.Bullet;
+			this.CompiledPr.Pr.ParaPr.Lvl = this.PresentationPr.Level;
 		}
 
 		if (isForce && (true === AscCommon.g_oIdCounter.m_bLoad || true === AscCommon.g_oIdCounter.m_bRead))

@@ -5553,6 +5553,10 @@ CDocumentContent.prototype.GetCalculatedParaPr = function()
 				{
 					oBullet.bulletType.startAt = this.Content[0].GetBulletNum();
 				}
+				if(!AscFormat.isRealNumber(Result_ParaPr.Lvl))
+				{
+					oBullet.bulletType.startAt = undefined;
+				}
 			}
 		}
 
@@ -5657,6 +5661,10 @@ CDocumentContent.prototype.GetCalculatedParaPr = function()
 				if(oBullet.bulletType.startAt !== undefined)
 				{
 					oBullet.bulletType.startAt = this.Content[StartPos].GetBulletNum();
+				}
+				if(!AscFormat.isRealNumber(Result_ParaPr.Lvl))
+				{
+					oBullet.bulletType.startAt = undefined;
 				}
 			}
 			if(FirstTextPr)
