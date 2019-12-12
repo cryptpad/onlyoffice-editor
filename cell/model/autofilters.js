@@ -55,8 +55,6 @@
 
 		var prot;
 
-		var maxIndividualValues = 10000;
-
 		var g_oAutoFiltersOptionsElementsProperties = {
 			val		    : 0,
 			visible	    : 1,
@@ -4125,7 +4123,7 @@
 				var individualCount = 0, count = 0;
 				for (var i = ref.r1 + 1; i <= maxFilterRow; i++) {
 					//max strings
-					if (individualCount > maxIndividualValues) {
+					if (individualCount >= Asc.c_oAscMaxFilterListLength) {
 						break;
 					}
 
