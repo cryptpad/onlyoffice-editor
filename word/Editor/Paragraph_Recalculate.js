@@ -3311,10 +3311,20 @@ CParagraphRecalculateStateWrap.prototype =
             // Найдем настройки для первого текстового элемента
             var FirstTextPr = Para.Get_FirstTextPr2();
 
-            while(BulletNum > 32767)
+
+            if(BulletNum > 32767)
             {
-                BulletNum -= 32767;
+                BulletNum = (BulletNum % 32767);
             }
+            if (Bullet.Get_Type() >= numbering_presentationnumfrmt_AlphaLcParenR)
+            {
+                if(BulletNum > 780)
+                {
+                    BulletNum = (BulletNum % 780);
+                }
+            }
+
+
             NumberingItem.Bullet = Bullet;
             NumberingItem.BulletNum = BulletNum;
             NumberingItem.Measure(g_oTextMeasurer, FirstTextPr, Para.Get_Theme(), Para.Get_ColorMap());
