@@ -136,7 +136,7 @@
 			"cell/view/WorksheetView.js",
 			"cell/view/DrawingObjectsController.js",
 			"cell/model/DrawingObjects/Graphics.js",
-			"cell/model/DrawingObjects/ShapeDrawer.js",
+			"word/Drawing/ShapeDrawer.js",
 			"cell/model/DrawingObjects/DrawingDocument.js",
 			"cell/model/DrawingObjects/GlobalCounters.js",
 			"cell/model/DrawingObjects/Format/ShapePrototype.js",
@@ -266,7 +266,7 @@
 		"exclude_mobile": [
 			"common/Overlay.js",
 			"common/Controls.js",
-			"cell/model/DrawingObjects/ShapeDrawer.js",
+			"word/Drawing/ShapeDrawer.js",
 			"cell/model/DrawingObjects/DrawingDocument.js",
 			"common/libfont/rasterheap.js",
 			"common/libfont/glyphstring.js",
