@@ -4269,6 +4269,9 @@
 		var renameRes = this.renameDependencyNodes(offset, oActualRange);
 		var redrawTablesArr = this.autoFilters.insertRows("delCell", oActualRange, c_oAscDeleteOptions.DeleteRows);
 		this.updatePivotOffset(oActualRange, offset);
+		if (false == this.workbook.bUndoChanges && false == this.workbook.bRedoChanges) {
+			this.updateSortStateOffset(oActualRange, offset);
+		}
 
 		var collapsedInfo = null, lastRowIndex;
 		var oDefRowPr = new AscCommonExcel.UndoRedoData_RowProp();
@@ -4355,6 +4358,9 @@
 		var renameRes = this.renameDependencyNodes(offset, oActualRange);
 		var redrawTablesArr = this.autoFilters.insertRows("insCell", oActualRange, c_oAscInsertOptions.InsertColumns);
 		this.updatePivotOffset(oActualRange, offset);
+		if (false == this.workbook.bUndoChanges && false == this.workbook.bRedoChanges) {
+			this.updateSortStateOffset(oActualRange, offset);
+		}
 
 		this._updateFormulasParents(index, 0, gc_nMaxRow0, gc_nMaxCol0, oActualRange, offset, renameRes.shiftedShared);
 		var borders;
@@ -4422,6 +4428,9 @@
 		var renameRes = this.renameDependencyNodes(offset, oActualRange);
 		var redrawTablesArr = this.autoFilters.insertColumn(oActualRange, nDif);
 		this.updatePivotOffset(oActualRange, offset);
+		if (false == this.workbook.bUndoChanges && false == this.workbook.bRedoChanges) {
+			this.updateSortStateOffset(oActualRange, offset);
+		}
 
 		var collapsedInfo = null, lastRowIndex;
 		var oDefColPr = new AscCommonExcel.UndoRedoData_ColProp();
@@ -4486,6 +4495,9 @@
 		var renameRes = this.renameDependencyNodes(offset, oActualRange);
 		var redrawTablesArr = this.autoFilters.insertColumn(oActualRange, count);
 		this.updatePivotOffset(oActualRange, offset);
+		if (false == this.workbook.bUndoChanges && false == this.workbook.bRedoChanges) {
+			this.updateSortStateOffset(oActualRange, offset);
+		}
 
 		this._updateFormulasParents(0, index, gc_nMaxRow0, gc_nMaxCol0, oActualRange, offset, renameRes.shiftedShared);
 		var borders;
@@ -5708,6 +5720,9 @@
 		//renameDependencyNodes before move cells to store current location in history
 		var renameRes = this.renameDependencyNodes(offset, oBBox);
 		var redrawTablesArr = this.autoFilters.insertColumn( oBBox, dif );
+		if (false == this.workbook.bUndoChanges && false == this.workbook.bRedoChanges) {
+			this.updateSortStateOffset(oBBox, offset);
+		}
 
 		this.getRange3(oBBox.r1, oBBox.c1, oBBox.r2, oBBox.c2)._foreachNoEmpty(function(cell){
 			t._removeCell(null, null, cell);
@@ -5739,6 +5754,9 @@
 		//renameDependencyNodes before move cells to store current location in history
 		var renameRes = this.renameDependencyNodes(offset, oBBox);
 		var redrawTablesArr = this.autoFilters.insertRows("delCell", oBBox, c_oAscDeleteOptions.DeleteCellsAndShiftTop);
+		if (false == this.workbook.bUndoChanges && false == this.workbook.bRedoChanges) {
+			this.updateSortStateOffset(oBBox, offset);
+		}
 
 		this.getRange3(oBBox.r1, oBBox.c1, oBBox.r2, oBBox.c2)._foreachNoEmpty(function(cell){
 			t._removeCell(null, null, cell);
@@ -5766,6 +5784,9 @@
 		//renameDependencyNodes before move cells to store current location in history
 		var renameRes = this.renameDependencyNodes(offset, oBBox);
 		var redrawTablesArr = this.autoFilters.insertColumn( oBBox, dif, displayNameFormatTable );
+		if (false == this.workbook.bUndoChanges && false == this.workbook.bRedoChanges) {
+			this.updateSortStateOffset(oBBox, offset);
+		}
 
 		this._updateFormulasParents(oActualRange.r1, oActualRange.c1, oActualRange.r2, oActualRange.c2, oBBox, offset, renameRes.shiftedShared);
 		var borders;
@@ -5821,6 +5842,10 @@
 				displayNameFormatTable);
 		}
 		this._updateFormulasParents(oActualRange.r1, oActualRange.c1, oActualRange.r2, oActualRange.c2, oBBox, offset, renameRes.shiftedShared);
+		if (false == this.workbook.bUndoChanges && false == this.workbook.bRedoChanges) {
+			this.updateSortStateOffset(oBBox, offset);
+		}
+
 		var borders;
 		if (nTop > 0 && !this.workbook.bUndoChanges) {
 			borders = this._getBordersForInsert(oBBox, true);
@@ -7208,6 +7233,49 @@
 		res.text = tempDigit <= tempText;
 
 		return res;
+	};
+
+	Worksheet.prototype.updateSortStateOffset = function (range, offset) {
+		if(!this.sortState) {
+			return;
+		}
+		var bAlreadyDel = false;
+		if (offset.row < 0 || offset.col < 0) {
+			//смотрим, не попал ли в выделение целиком
+			bAlreadyDel = this.deleteSortState(range);
+		}
+		if(!bAlreadyDel) {
+			var bboxShift = AscCommonExcel.shiftGetBBox(range, 0 !== offset.col);
+			//проверяем, не сдвинулся ли целиком
+			if(!this.moveSortState(bboxShift, offset)) {
+				//осталось проверить на изменение диапазона
+				this.sortState.shift(range, offset, this, true);
+			}
+		}
+	};
+
+	Worksheet.prototype.deleteSortState = function (range) {
+		if(this.sortState && range.containsRange(this.sortState.Ref)) {
+			this._deleteSortState();
+			return true;
+		}
+		return false;
+	};
+
+	Worksheet.prototype._deleteSortState = function () {
+		var oldSortState = this.sortState.clone();
+		this.sortState = null;
+		History.Add(AscCommonExcel.g_oUndoRedoSortState, AscCH.historyitem_SortState_Add, this.getId(), null,
+			new AscCommonExcel.UndoRedoData_SortState(oldSortState, null));
+		return true;
+	};
+
+	Worksheet.prototype.moveSortState = function (range, offset) {
+		if(this.sortState && range.containsRange(this.sortState.Ref)) {
+			this.sortState.setOffset(offset, this, true);
+			return true;
+		}
+		return false;
 	};
 
 

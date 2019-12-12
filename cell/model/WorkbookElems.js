@@ -6605,6 +6605,94 @@ function RangeDataManagerElem(bbox, data)
 		return bIsSortStateDelete;
 	};
 
+	SortState.prototype.setOffset = function(offset, ws, addToHistory) {
+		var oldSortState = this.clone();
+		var ref = this.Ref.clone();
+		ref.setOffset(offset);
+		this.Ref = ref;
+
+		if (this.SortConditions) {
+			for (var i = 0; i < this.SortConditions.length; ++i) {
+				this.SortConditions[i].setOffset(offset);
+			}
+		}
+
+		if (addToHistory) {
+			History.Add(AscCommonExcel.g_oUndoRedoSortState, AscCH.historyitem_SortState_Add, ws.getId(), null,
+				new AscCommonExcel.UndoRedoData_SortState(oldSortState, this.clone()));
+		}
+	};
+
+	SortState.prototype.shift = function(range, offset, ws, addToHistory) {
+		var oldSortState = this.clone();
+
+		var from = this.Ref;
+		var to = null;
+		var bAdd = offset.row > 0 || offset.col > 0;
+		var bHor = 0 != offset.col;
+		var nTemp1, nTemp2;
+		if (bHor) {
+			if (from.c1 < range.c1 && range.r1 <= from.r1 && from.r2 <= range.r2) {
+				if (bAdd) {
+					to = from.clone();
+					to.setOffsetLast(new AscCommon.CellBase(0, range.c2 - range.c1 + 1));
+				} else {
+					to = from.clone();
+					nTemp1 = from.c2 - range.c1 + 1;
+					nTemp2 = range.c2 - range.c1 + 1;
+					to.setOffsetLast(new AscCommon.CellBase(0, -Math.min(nTemp1, nTemp2)));
+				}
+			}
+		} else {
+			if (from.r1 < range.r1 && range.c1 <= from.c1 && from.c2 <= range.c2) {
+				if (bAdd) {
+					to = from.clone();
+					to.setOffsetLast(new AscCommon.CellBase(range.r2 - range.r1 + 1, 0));
+				} else {
+					to = from.clone();
+					nTemp1 = from.r2 - range.r1 + 1;
+					nTemp2 = range.r2 - range.r1 + 1;
+					to.setOffsetLast(new AscCommon.CellBase(-Math.min(nTemp1, nTemp2), 0));
+				}
+			}
+		}
+
+		if (null != to) {
+			this.Ref = to;
+			if (this.SortConditions) {
+				var deleteIndexes = [];
+				for (var i = 0; i < this.SortConditions.length; ++i) {
+					var sortCondition = this.SortConditions[i];
+					var ref = sortCondition.Ref;
+					if (offset.row < 0 || offset.col < 0) {
+						//смотрим, не попал ли в выделение целиком
+						if(range.containsRange(ref)) {
+							deleteIndexes[i] = true;
+						}
+					}
+					if(!deleteIndexes[i]) {
+						var bboxShift = AscCommonExcel.shiftGetBBox(range, 0 !== offset.col);
+						//проверяем, не сдвинулся ли целиком
+						if(bboxShift.containsRange(ref)) {
+							sortCondition.setOffset(offset);
+						} else {
+							//осталось проверить на изменение диапазона
+							sortCondition.shift(range, offset, this.ColumnSort);
+						}
+					}
+				}
+				for(var j in deleteIndexes) {
+					this.SortConditions.splice(j, 1);
+				}
+			}
+		}
+
+		if (addToHistory && null != to) {
+			History.Add(AscCommonExcel.g_oUndoRedoSortState, AscCH.historyitem_SortState_Add, ws.getId(), null,
+				new AscCommonExcel.UndoRedoData_SortState(oldSortState, this.clone()));
+		}
+	};
+
 
 	/** @constructor */
 	function TableColumn() {
@@ -8067,6 +8155,12 @@ SortCondition.prototype.changeColumns = function(activeRange, isDelete) {
 	return bIsDeleteCurSortCondition;
 };
 
+SortCondition.prototype.setOffset = function(offset) {
+	var ref = this.Ref.clone();
+	ref.setOffset(offset);
+	this.Ref = ref;
+};
+
 SortCondition.prototype.getSortType = function() {
 	var res = null;
 
@@ -8118,6 +8212,43 @@ SortCondition.prototype.applySort = function(type, ref, color) {
 		this.ConditionDescending = type !== Asc.c_oAscSortOptions.Ascending;
 	}
 
+};
+
+SortCondition.prototype.shift = function(range, offset, bColumnSort) {
+	var from = this.Ref;
+	var to = null;
+	var bAdd = offset.row > 0 || offset.col > 0;
+	var bHor = 0 != offset.col;
+	var nTemp1, nTemp2;
+	var diff = bHor ? range.c1 + offset.col - 1 : range.r1 + offset.row;
+	if (bHor && bColumnSort) {
+		if (from.c1 < range.c1 && range.r1 <= from.r1 && from.r2 <= range.r2) {
+			if (bAdd) {
+				to = from.clone();
+				to.setOffsetLast(new AscCommon.CellBase(0, range.c2 - range.c1 + 1));
+			} else {
+				to = from.clone();
+				nTemp1 = from.c2 - range.c1 + 1;
+				nTemp2 = range.c2 - range.c1 + 1;
+				to.setOffsetLast(new AscCommon.CellBase(0, -Math.min(nTemp1, nTemp2)));
+			}
+		}
+	} else if(!bColumnSort) {
+		if (from.r1 < range.r1 && range.c1 <= from.c1 && from.c2 <= range.c2) {
+			if (bAdd) {
+				to = from.clone();
+				to.setOffsetLast(new AscCommon.CellBase(range.r2 - range.r1 + 1, 0));
+			} else {
+				to = from.clone();
+				nTemp1 = from.r2 - range.r1 + 1;
+				nTemp2 = range.r2 - range.r1 + 1;
+				to.setOffsetLast(new AscCommon.CellBase(-Math.min(nTemp1, nTemp2), 0));
+			}
+		}
+	}
+	if(null != to) {
+		this.Ref = to;
+	}
 };
 
 function AutoFilterDateElem(start, end, dateTimeGrouping) {
