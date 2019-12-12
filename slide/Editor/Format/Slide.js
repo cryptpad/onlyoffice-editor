@@ -1420,7 +1420,7 @@ Slide.prototype =
       //  var sp_tree = this.cSld.spTree;
       //  for(var i = 0; i < sp_tree.length; ++i)
       //  {
-      //      if(sp_tree[i].Lock.Type !== locktype_Mine && sp_tree[i].Lock.Type !== AscCommon.locktype_None)
+      //      if(sp_tree[i].Lock.Type !== AscCommon.locktype_Mine && sp_tree[i].Lock.Type !== AscCommon.locktype_None)
       //          return true;
       //  }
         return false;
