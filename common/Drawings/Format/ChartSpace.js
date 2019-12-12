@@ -17194,6 +17194,10 @@ function getChartSeries (worksheet, options, catHeadersBBox, serHeadersBBox)
                                 }
                             }
                         }
+                        else
+                        {
+                            break;
+                        }
                     }
                     if(bRows === null || bRows === true)
                     {
@@ -17539,8 +17543,11 @@ function getChartSeries (worksheet, options, catHeadersBBox, serHeadersBBox)
         }
     }
 
+    var oFirstBBox;
     for(nRangeIndex = 0; nRangeIndex < aRanges.length; ++nRangeIndex)
     {
+        top_header_bbox = null;
+        left_header_bbox = null;
         result = parserHelp.parse3DRef(aRanges[nRangeIndex]);
         if (result) {
             ws = worksheet.workbook.getWorksheetByName(result.sheet);
@@ -17552,11 +17559,18 @@ function getChartSeries (worksheet, options, catHeadersBBox, serHeadersBBox)
             continue;
 
         bbox = range.getBBox0();
-        parsedHeaders = parseSeriesHeaders(ws, bbox);
+        if(nRangeIndex === 0)
+        {
+            oFirstBBox = bbox;
+            parsedHeaders = parseSeriesHeaders(ws, bbox);
+        }
         var data_bbox = {r1: bbox.r1, r2: bbox.r2, c1: bbox.c1, c2: bbox.c2};
         if(parsedHeaders.bTop)
         {
-            ++data_bbox.r1;
+            if(oFirstBBox && bbox.r1 === oFirstBBox.r1)
+            {
+                ++data_bbox.r1;
+            }
         }
         else
         {
@@ -17578,7 +17592,10 @@ function getChartSeries (worksheet, options, catHeadersBBox, serHeadersBBox)
 
         if(parsedHeaders.bLeft)
         {
-            ++data_bbox.c1;
+            if(oFirstBBox && oFirstBBox.c1 === bbox.c1)
+            {
+                ++data_bbox.c1;
+            }
         }
         else
         {
@@ -17600,12 +17617,22 @@ function getChartSeries (worksheet, options, catHeadersBBox, serHeadersBBox)
 
         if (!options.getInColumns()) {
             if(parsedHeaders.bTop)
-                top_header_bbox = {r1: bbox.r1, c1: data_bbox.c1, r2: bbox.r1, c2: data_bbox.c2};
+            {
+                if(oFirstBBox && oFirstBBox.r1 === bbox.r1)
+                {
+                    top_header_bbox = {r1: bbox.r1, c1: data_bbox.c1, r2: bbox.r1, c2: data_bbox.c2};
+                }
+            }
             else if(catHeadersBBox && catHeadersBBox.c1 === data_bbox.c1 && catHeadersBBox.c2 === data_bbox.c2 && catHeadersBBox.r1 === catHeadersBBox.r2)
                 top_header_bbox = {r1: catHeadersBBox.r1, c1: catHeadersBBox.c1, r2: catHeadersBBox.r1, c2:catHeadersBBox.c2};
 
             if(parsedHeaders.bLeft)
-                left_header_bbox = {r1: data_bbox.r1, r2: data_bbox.r2, c1: bbox.c1, c2: bbox.c1};
+            {
+                if(oFirstBBox && oFirstBBox.c1 === bbox.c1)
+                {
+                    left_header_bbox = {r1: data_bbox.r1, r2: data_bbox.r2, c1: bbox.c1, c2: bbox.c1};
+                }
+            }
             else if(serHeadersBBox && serHeadersBBox.c1 === serHeadersBBox.c2 && serHeadersBBox.r1 === data_bbox.r1 && serHeadersBBox.r2 === data_bbox.r2)
                 left_header_bbox = {r1: serHeadersBBox.r1, c1: serHeadersBBox.c1, r2: serHeadersBBox.r1, c2: serHeadersBBox.c2};
 
@@ -17656,13 +17683,19 @@ function getChartSeries (worksheet, options, catHeadersBBox, serHeadersBBox)
                 nameIndex++;
             }
         } else {
-            if(parsedHeaders.bTop)
-                top_header_bbox = {r1: bbox.r1, c1: data_bbox.c1, r2: bbox.r1, c2: data_bbox.c2};
+            if(parsedHeaders.bTop) {
+                if(oFirstBBox && oFirstBBox.r1 === bbox.r1) {
+                    top_header_bbox = {r1: bbox.r1, c1: data_bbox.c1, r2: bbox.r1, c2: data_bbox.c2};
+                }
+            }
             else if(serHeadersBBox && serHeadersBBox.r1 === serHeadersBBox.r2 && serHeadersBBox.c1 === data_bbox.c1 && serHeadersBBox.c2 === data_bbox.c2)
                 top_header_bbox = {r1: serHeadersBBox.r1, c1: serHeadersBBox.c1, r2: serHeadersBBox.r2, c2: serHeadersBBox.c2};
 
-            if(parsedHeaders.bLeft)
-                left_header_bbox = {r1: data_bbox.r1, c1: bbox.c1, r2: data_bbox.r2, c2: bbox.c1};
+            if(parsedHeaders.bLeft) {
+                if(oFirstBBox && oFirstBBox.c1 === bbox.c1) {
+                    left_header_bbox = {r1: data_bbox.r1, c1: bbox.c1, r2: data_bbox.r2, c2: bbox.c1};
+                }
+            }
             else if(catHeadersBBox && catHeadersBBox.c1 === catHeadersBBox.c2 && catHeadersBBox.r1 === data_bbox.r1 && catHeadersBBox.r2 === data_bbox.r2)
                 left_header_bbox = {r1: catHeadersBBox.r1, c1: catHeadersBBox.c1, r2: catHeadersBBox.r2, c2: catHeadersBBox.c2};
 
