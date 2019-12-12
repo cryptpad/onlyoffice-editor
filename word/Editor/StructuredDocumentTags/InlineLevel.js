@@ -420,7 +420,7 @@ CInlineLevelSdt.prototype.GetBoundingPolygon = function()
 
 	return this.BoundsPaths;
 };
-CInlineLevelSdt.prototype.DrawContentControlsTrack = function(isHover)
+CInlineLevelSdt.prototype.DrawContentControlsTrack = function(isHover, X, Y, nCurPage)
 {
 	if (!this.Paragraph && this.Paragraph.LogicDocument)
 		return;
@@ -431,6 +431,24 @@ CInlineLevelSdt.prototype.DrawContentControlsTrack = function(isHover)
 	{
 		oDrawingDocument.OnDrawContentControl(null, isHover ? AscCommon.ContentControlTrack.Hover : AscCommon.ContentControlTrack.In);
 		return;
+	}
+
+	if (undefined !== X && undefined !== Y && undefined !== nCurPage)
+	{
+		var isHit = false;
+
+		for (var sKey in this.Bounds)
+		{
+			var oBound = this.Bounds[sKey];
+			if (oBound.PageInternal === nCurPage && oBound.X <= X && X <= oBound.X + oBound.W && oBound.Y <= Y && oBound.Y + oBound.H)
+			{
+				isHit = true;
+				break;
+			}
+		}
+
+		if (!isHit)
+			return;
 	}
 
 	oDrawingDocument.OnDrawContentControl(this, isHover ? AscCommon.ContentControlTrack.Hover : AscCommon.ContentControlTrack.In, this.GetBoundingPolygon());

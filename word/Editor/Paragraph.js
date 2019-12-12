@@ -10410,7 +10410,7 @@ Paragraph.prototype.UpdateCursorType = function(X, Y, CurPage)
 	var oContentControl = oInfo.GetInlineLevelSdt();
 	var oHyperlink      = oInfo.GetHyperlink();
 	if (oContentControl)
-		oContentControl.DrawContentControlsTrack(true);
+		oContentControl.DrawContentControlsTrack(true, X, Y, CurPage);
 
 	var Footnote  = this.CheckFootnote(X, Y, CurPage);
 

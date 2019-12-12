@@ -263,7 +263,7 @@ CBlockLevelSdt.prototype.UpdateCursorType = function(X, Y, CurPage)
 		this.LogicDocument.Api.sync_MouseMoveCallback(MMData);
 	}
 
-	this.DrawContentControlsTrack(true);
+	this.DrawContentControlsTrack(true, X, Y, CurPage);
 	return this.Content.UpdateCursorType(X, Y, CurPage);
 };
 CBlockLevelSdt.prototype.Selection_SetStart = function(X, Y, CurPage, MouseEvent, isTableBorder)
@@ -850,7 +850,7 @@ CBlockLevelSdt.prototype.GetSelectionAnchorPos = function()
 {
 	return this.Content.GetSelectionAnchorPos();
 };
-CBlockLevelSdt.prototype.DrawContentControlsTrack = function(isHover)
+CBlockLevelSdt.prototype.DrawContentControlsTrack = function(isHover, X, Y, nCurPage)
 {
 	if (!this.IsRecalculated())
 		return;
@@ -864,14 +864,33 @@ CBlockLevelSdt.prototype.DrawContentControlsTrack = function(isHover)
 		return;
 	}
 
-	for (var nCurPage = 0, nPagesCount = this.GetPagesCount(); nCurPage < nPagesCount; ++nCurPage)
+	for (var nPageIndex = 0, nPagesCount = this.GetPagesCount(); nPageIndex < nPagesCount; ++nPageIndex)
 	{
-		if (this.IsEmptyPage(nCurPage))
+		if (this.IsEmptyPage(nPageIndex))
 			continue;
 
-		var nPageAbs = this.Get_AbsolutePage(nCurPage);
-		var oBounds = this.Content.GetContentBounds(nCurPage);
+		var nPageAbs = this.GetAbsolutePage(nPageIndex);
+		var oBounds = this.Content.GetContentBounds(nPageIndex);
 		arrRects.push({X : oBounds.Left, Y : oBounds.Top, R : oBounds.Right, B : oBounds.Bottom, Page : nPageAbs});
+	}
+
+	if (undefined !== X && undefined !== Y && undefined !== nCurPage)
+	{
+		var nPageAbs = this.GetAbsolutePage(nCurPage);
+		var isHit    = false;
+
+		for (var nIndex = 0, nCount = arrRects.length; nIndex < nCount; ++nIndex)
+		{
+			var oRect = arrRects[nIndex];
+			if (nPageAbs === oRect.Page && oRect.X <= X && X <= oRect.R && oRect.Y <= Y && Y <= oRect.B)
+			{
+				isHit = true;
+				break;
+			}
+		}
+
+		if (!isHit)
+			return;
 	}
 
 	oDrawingDocument.OnDrawContentControl(this, isHover ? AscCommon.ContentControlTrack.Hover : AscCommon.ContentControlTrack.In, arrRects);
