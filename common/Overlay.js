@@ -944,7 +944,7 @@ CAutoshapeTrack.prototype =
         var x4 = dx4 >> 0;
         var y4 = dy4 >> 0;
 
-        var _eps = 0.001;
+        var _eps = 0.01;
         if (Math.abs(dx1 - dx3) < _eps &&
             Math.abs(dx2 - dx4) < _eps &&
             Math.abs(dy1 - dy2) < _eps &&
@@ -973,7 +973,7 @@ CAutoshapeTrack.prototype =
             nIsCleverWithTransform = true;
             nType = 1;
 
-            if (true)
+            if (false)
             {
                 if (x1 > x2)
                 {
