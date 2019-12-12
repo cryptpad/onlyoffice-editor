@@ -44,10 +44,17 @@ module.exports = function(grunt) {
 		}
 		return config;
 	}
-	function fixPath(arrPaths, basePath = '') {
-		arrPaths.forEach((element, index) => {
-			arrPaths[index] = path.join(basePath, element);
-		});
+	function fixPath(obj, basePath = '') {
+		function fixPathArray(arrPaths, basePath = '') {
+			arrPaths.forEach((element, index) => {
+				arrPaths[index] = path.join(basePath, element);
+			});
+		}
+		if (Array.isArray(obj))
+			return fixPathArray(obj, basePath);
+		for (let prop in obj) {
+			fixPath(obj[prop], basePath);
+		}
 	}
 	function fixUrl(arrPaths, basePath = '') {
 		const url = require('url');
@@ -94,8 +101,7 @@ module.exports = function(grunt) {
 		const slide = loadConfig(pathConfigs, 'slide');
 
 		if (fonts) {
-			fixPath(fonts['js'], basePath);
-			fixPath(fonts['wasm'], basePath);
+			fixPath(fonts, basePath);
 
 			if (this.fonts) {
 				this.fonts['js'] = this.fonts['js'].concat(fonts['js']);
@@ -114,11 +120,7 @@ module.exports = function(grunt) {
 			}
 		}
 		if (word) {
-			fixPath(word['sdk']['min'], basePath);
-			fixPath(word['sdk']['common'], basePath);
-			fixPath(word['sdk']['mobile'], basePath);
-			fixPath(word['sdk']['mobile_banners']['min'], basePath);
-			fixPath(word['sdk']['mobile_banners']['common'], basePath);
+			fixPath(word['sdk'], basePath);
 
 			if (this.word) {
 				this.word['sdk']['min'] = this.word['sdk']['min'].concat(word['sdk']['min']);
@@ -128,11 +130,7 @@ module.exports = function(grunt) {
 			}
 		}
 		if (cell) {
-			fixPath(cell['sdk']['min'], basePath);
-			fixPath(cell['sdk']['common'], basePath);
-			fixPath(cell['sdk']['mobile'], basePath);
-			fixPath(cell['sdk']['mobile_banners']['min'], basePath);
-			fixPath(cell['sdk']['mobile_banners']['common'], basePath);
+			fixPath(cell['sdk'], basePath);
 
 			if (this.cell) {
 				this.cell['sdk']['min'] = this.cell['sdk']['min'].concat(cell['sdk']['min']);
@@ -142,11 +140,7 @@ module.exports = function(grunt) {
 			}
 		}
 		if (slide) {
-			fixPath(slide['sdk']['min'], basePath);
-			fixPath(slide['sdk']['common'], basePath);
-			fixPath(slide['sdk']['mobile'], basePath);
-			fixPath(slide['sdk']['mobile_banners']['min'], basePath);
-			fixPath(slide['sdk']['mobile_banners']['common'], basePath);
+			fixPath(slide['sdk'], basePath);
 
 			if (this.slide) {
 				this.slide['sdk']['min'] = this.slide['sdk']['min'].concat(slide['sdk']['min']);
