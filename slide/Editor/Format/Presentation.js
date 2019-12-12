@@ -4787,7 +4787,6 @@ CPresentation.prototype.addImages = function (aImages, placeholder) {
                     this.Recalculate();
                     this.Document_UpdateInterfaceState();
                     this.CheckEmptyPlaceholderNotes();
-                    this.DrawingDocument.m_oWordControl.OnUpdateOverlay();
                     return;
                 } else {
                     return;
@@ -4987,10 +4986,6 @@ CPresentation.prototype.Add_FlowTable = function (Cols, Rows, Placeholder) {
     graphic_frame.graphicObject.MoveCursorToStartPos();
     this.Recalculate();
     this.Document_UpdateInterfaceState();
-    this.Document_UpdateSelectionState();
-
-    this.DrawingDocument.m_oWordControl.OnUpdateOverlay();
-
 };
 
 
