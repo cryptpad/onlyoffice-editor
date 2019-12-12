@@ -464,7 +464,8 @@ CTableCell.prototype =
 
     Get_ShapeStyleForPara: function()
     {
-        return this.Row.Table.Get_ShapeStyleForPara();
+    	var oTable = this.GetTable();
+        return oTable ? oTable.Get_ShapeStyleForPara() : null;
     },
 
 
@@ -476,12 +477,14 @@ CTableCell.prototype =
         if ( Asc.c_oAscShdNil !== Shd.Value )
             return Shd.Get_Color2(this.Get_Theme(), this.Get_ColorMap());
 
-        return this.Row.Table.Get_TextBackGroundColor();
+        var oTable = this.GetTable();
+        return oTable ? oTable.Get_TextBackGroundColor() : null;
     },
 
     Get_Numbering : function()
     {
-        return this.Row.Table.Get_Numbering();
+    	var oTable = this.GetTable();
+        return oTable ? oTable.Get_Numbering() : null;
     },
 
     IsCell : function(isReturnCell)
