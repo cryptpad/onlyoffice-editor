@@ -16504,14 +16504,15 @@ function CreateScatterChart(chartSeries, bUseCache, oOptions)
     var first_series = null;
     var start_index = 0;
     var minus = 0;
-    if(asc_series[i].Cat && typeof asc_series[i].Cat.Formula === "string" && asc_series[i].Cat.Formula.length > 0)
+    first_series = asc_series.length > 1 ? asc_series[0] : null;
+
+    if(first_series && first_series.xVal && typeof first_series.xVal.Formula === "string" && first_series.xVal.Formula.length > 0)
     {
         oXVal = new AscFormat.CXVal();
-        FillCatStr(oXVal, asc_series[0].xVal, bUseCache);
+        FillCatStr(oXVal, first_series.xVal, bUseCache);
     }
     else
     {
-        first_series = asc_series.length > 1 ? asc_series[0] : null;
         start_index = asc_series.length > 1 ? 1 : 0;
         minus = start_index === 1 ? 1 : 0;
         if(first_series)
@@ -16531,7 +16532,7 @@ function CreateScatterChart(chartSeries, bUseCache, oOptions)
         }
         series.setYVal(new AscFormat.CYVal());
         FillValNum(series.yVal, asc_series[i].Val, bUseCache);
-        if((parsedHeaders.bLeft && !bInCols || bInCols && parsedHeaders.bTop) && asc_series[i].TxCache && typeof asc_series[i].TxCache.Formula === "string" && asc_series[i].TxCache.Formula.length > 0)
+        if(asc_series[i].TxCache && typeof asc_series[i].TxCache.Formula === "string" && asc_series[i].TxCache.Formula.length > 0)
         {
             FillSeriesTx(series, asc_series[i].TxCache, bUseCache)
         }
