@@ -5832,9 +5832,13 @@ Paragraph.prototype.MoveCursorToStartPos = function(AddToSelect)
 		this.CurPos.ContentPos = 0;
 		this.CurPos.Line       = -1;
 		this.CurPos.Range      = -1;
-		this.Content[0].MoveCursorToStartPos();
-		this.Correct_ContentPos(false);
-		this.Correct_ContentPos2();
+
+		if (this.Content.length > 0)
+		{
+			this.Content[0].MoveCursorToStartPos();
+			this.Correct_ContentPos(false);
+			this.Correct_ContentPos2();
+		}
 	}
 };
 Paragraph.prototype.MoveCursorToEndPos = function(AddToSelect, StartSelectFromEnd)
