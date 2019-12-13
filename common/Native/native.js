@@ -287,6 +287,8 @@ function NativeOpenFileData(data, version, xlsx_file_path, options)
 	else
 	{
         Api = new window["Asc"]["spreadsheet_api"]({});
+        if (options && undefined !== options["locale"])
+            Api.asc_setLocale(options["locale"]);
         Api.asc_nativeOpenFile(data, version, undefined, xlsx_file_path);
 	}
 }
