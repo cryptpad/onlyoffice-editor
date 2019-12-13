@@ -4508,13 +4508,13 @@ CDocument.prototype.Reset_RecalculateCache                   = function()
  */
 CDocument.prototype.StopRecalculate = function()
 {
-	if (null != this.FullRecalc.Id)
+	if (this.FullRecalc.Id)
 	{
 		clearTimeout(this.FullRecalc.Id);
 		this.FullRecalc.Id = null;
+		this.DrawingDocument.OnEndRecalculate(false);
+		this.RecalcInfo.Set_NeedRecalculateFromStart(true);
 	}
-
-	this.DrawingDocument.OnStartRecalculate(0);
 };
 CDocument.prototype.OnContentRecalculate                     = function(bNeedRecalc, PageNum, DocumentIndex)
 {
