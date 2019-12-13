@@ -7658,7 +7658,10 @@ function CDrawingDocument()
                 OnEndRecalculate : function (isFull, isBreak) {
                     if (isFull && !isBreak)
                         this.m_lPagesCount = this.m_lCountCalculatePages;
-                }
+                },
+                ConvetToPageCoords : function() { return { Page : -1, X : 0, Y : 0 } },
+                GetDotsPerMM : function(v) { return v * g_dKoef_mm_to_pix },
+                GetMMPerDot : function(v) { return v / this.GetDotsPerMM(1) }
             };
 
             var _srcDoc = this.m_oLogicDocument;
