@@ -5358,7 +5358,7 @@ function CStylesPainter()
 }
 CStylesPainter.prototype =
 {
-GenerateStyles: function(_api, ds)
+    GenerateStyles: function(_api, ds)
     {
         if (_api.WordControl.bIsRetinaSupport)
         {
@@ -5451,8 +5451,7 @@ GenerateStyles: function(_api, ds)
             var style = styles[i];
             if (true == style.qFormat)
             {
-                this.defaultStyles.push({ Name: AscCommon.translateManager.getValue(style.Name), Style: style });
-                //this.drawStyle(_graphics, style, _api);
+                this.defaultStyles.push({ Name: style.Name, Style: style });
             }
         }
     },
@@ -5480,12 +5479,11 @@ GenerateStyles: function(_api, ds)
                 var index = (res) ? res[1] - 1 : -1;
 
                 var _dr_style = __Styles.Get_Pr(i, styletype_Paragraph);
-                _dr_style.Name = AscCommon.translateManager.getValue(style.Name);
+                _dr_style.Name = style.Name;
                 _dr_style.Id = i;
 
-                //this.drawStyle(_graphics, _dr_style, _api);
-
                 var _name = _dr_style.Name;
+                
                 // алгоритм смены имени
                 if (style.Default)
                 {
@@ -5536,7 +5534,7 @@ GenerateStyles: function(_api, ds)
 
         var par = new AscCommonWord.Paragraph(_api.WordControl.m_oDrawingDocument, _dc, 0, 0, 0, 0, false);
         var run = new AscCommonWord.ParaRun(par, false);
-        run.AddText(style.Name);
+        run.AddText(AscCommon.translateManager.getValue(style.Name));
 
         _dc.Internal_Content_Add(0, par, false);
         par.Add_ToContent(0, run);
@@ -5634,7 +5632,7 @@ GenerateStyles: function(_api, ds)
         _stream["ClearNoAttack"]();
 
         _stream["WriteByte"](0);
-        _stream["WriteString2"](AscCommon.translateManager.getValue(style.Name));
+        _stream["WriteString2"](style.Name);
 
         _api.WordControl.m_oDrawingDocument.Native["DD_EndNativeDraw"](_stream);
         graphics.ClearParams();
