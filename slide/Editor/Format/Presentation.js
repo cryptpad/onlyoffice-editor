@@ -5031,7 +5031,7 @@ CPresentation.prototype.Create_TableGraphicFrame = function (Cols, Rows, Parent,
     graphic_frame.setNvSpPr(new AscFormat.UniNvPr());
 
     var table = new CTable(this.DrawingDocument, graphic_frame, Inline, Rows, Cols, Grid, true);
-    table.Reset(0, 0, W, 100000, 0, 0, 1);
+    table.Reset(Inline ? X : 0, Inline ? Y : 0, W, 100000, 0, 0, 1, 0);
     if (!Inline) {
         table.Set_PositionH(Asc.c_oAscHAnchor.Page, false, 0);
         table.Set_PositionV(Asc.c_oAscVAnchor.Page, false, 0);
@@ -7298,7 +7298,7 @@ CPresentation.prototype.CheckTableStyles = function (Slide, TableLook) {
         AscFormat.ExecuteNoHistory(function () {
             for (var key in this.TableStylesIdMap) {
                 if (this.TableStylesIdMap[key]) {
-                    this.TablesForInterface[index] = this.Create_TableGraphicFrame(5, 5, Slide, key, W, H, _x_mar, _y_mar, true);
+                    this.TablesForInterface[index] = this.Create_TableGraphicFrame(5, 5, Slide, key, W, H - 17, _x_mar, _y_mar, true);
                     this.TablesForInterface[index].setBDeleted(true);
                     index++;
                 }
