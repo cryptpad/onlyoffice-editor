@@ -18681,6 +18681,7 @@
 		var selection = t.model.selectionRange.getLast();
 		var oldSelection = selection.clone();
 
+		var autoFilter = t.model.AutoFilter;
 		var modelSort, dataHasHeaders, columnSort;
 		var tables = t.model.autoFilters.getTableIntersectionRange(selection);
 		var lockChangeHeaders, lockChangeOrientation, caseSenstitive;
@@ -18696,19 +18697,13 @@
 				t.workbook.handlers.trigger("asc_onError", c_oAscError.ID.AutoFilterDataRangeError, c_oAscError.Level.NoCritical);
 				return false;
 			}
-		} else if(t.model.AutoFilter && t.model.AutoFilter.Ref && t.model.AutoFilter.Ref.intersection(selection)) {
-			var autoFilter = t.model.AutoFilter;
-			if(autoFilter.Ref.containsRange(selection)) {
-				selection = autoFilter.getRangeWithoutHeaderFooter();
-				columnSort = true;
-				dataHasHeaders = true;
-				modelSort = autoFilter.SortState;
-				lockChangeHeaders = true;
-				lockChangeOrientation = true;
-			} else {
-				t.workbook.handlers.trigger("asc_onError", c_oAscError.ID.AutoFilterDataRangeError, c_oAscError.Level.NoCritical);
-				return false;
-			}
+		} else if(autoFilter && autoFilter.Ref && (autoFilter.Ref.isEqual(selection) || (selection.isOneCell() && autoFilter.Ref.containsRange(selection)))) {
+			selection = autoFilter.getRangeWithoutHeaderFooter();
+			columnSort = true;
+			dataHasHeaders = true;
+			modelSort = autoFilter.SortState;
+			lockChangeHeaders = true;
+			lockChangeOrientation = true;
 		} else {
 			var type = selection.getType();
 			if(c_oAscSelectionType.RangeMax === type || c_oAscSelectionType.RangeRow === type || c_oAscSelectionType.RangeCol === type ) {
