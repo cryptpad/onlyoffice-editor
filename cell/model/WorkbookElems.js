@@ -9141,14 +9141,6 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		this.hasHeaders = val;
 	};
 	CSortProperties.prototype.asc_setColumnSort = function (val) {
-		var lockChangeHeaders = null;
-		if(this._newSelection) {
-			if(val === true) {
-				lockChangeHeaders = this._newSelection.r1 === this._newSelection.r2;
-			}
-			this.lockChangeHeaders = lockChangeHeaders;
-		}
-
 		this.columnSort = val;
 	};
 	CSortProperties.prototype.asc_setCaseSensitive = function (val) {

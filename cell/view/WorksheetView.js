@@ -18724,8 +18724,11 @@
 			columnSort = modelSort ? !modelSort.ColumnSort : true;
 			caseSenstitive = modelSort ? modelSort.CaseSensititve : false;
 
-			if(selection.r1 === selection.r2 || !columnSort) {
-				lockChangeHeaders = true;
+			var isOneRow = selection.r1 === selection.r2;
+			if(isOneRow || !columnSort) {
+				if(isOneRow) {
+					lockChangeHeaders = true;
+				}
 				dataHasHeaders = false;
 			}
 
