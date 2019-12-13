@@ -1838,6 +1838,8 @@
 			//чтобы передать временный scale(допустим при печати выделенного) добавляем его в pagePrint
 			if(printScale) {
 				newPagePrint.scale = printScale / 100;
+			} else if(scale) {
+				newPagePrint.scale = scale;
 			}
 			arrPages.push(newPagePrint);
 			nCountPages++;
@@ -1922,6 +1924,13 @@
 		var printArea = !ignorePrintArea && _printArea;
 
 		this.recalcPrintScale();
+
+		var oldPagePrintOptions;
+		if(this.model.PagePrintOptions) {
+			oldPagePrintOptions = this.model.PagePrintOptions;
+			this.model.PagePrintOptions = pageOptions;
+		}
+
 		//this.model.PagePrintOptions.pageSetup.scale  = 145;
 
 		var getPrintAreaRanges = function() {
@@ -1947,24 +1956,20 @@
 
 		//проверяем, не пришли ли настройки масштабирование, отличные от тех, которые лежат в модели
 		var checkCustomScaleProps = function() {
-			var _res = null;
+			var _res;
 
 			var _pageOptions = t.model.PagePrintOptions;
 			var _pageSetup = _pageOptions.asc_getPageSetup();
-			var width = _pageSetup.asc_getFitToWidth();
-			var height = _pageSetup.asc_getFitToHeight();
 			var modelScale = _pageSetup.asc_getScale();
 
-			if(width !== fitToWidth || height !== fitToHeight) {
-				if(fitToWidth || fitToHeight) {
-					_res = t.calcPrintScale(fitToWidth, fitToHeight);
-				} else if(_scale !== modelScale) {
-					_res = _scale;
-				}
-			} else if(_scale !== modelScale) {
-				_res = _scale;
+			if(fitToWidth || fitToHeight) {
+				_res = t.calcPrintScale(fitToWidth, fitToHeight);
 			}
-			return _res;
+			if(_res !== null && _res !== modelScale) {
+				return _res;
+			}
+
+			return null;
 		};
 
 		if (printOnlySelection) {
@@ -2035,6 +2040,10 @@
 			}
 
 			this._calcPagesPrint(range, pageOptions, indexWorksheet, arrPages, tempPrintScale, adjustPrint);
+		}
+
+		if(oldPagePrintOptions) {
+			this.model.PagePrintOptions = oldPagePrintOptions;
 		}
 
 		if(this.groupWidth || this.groupHeight) {
