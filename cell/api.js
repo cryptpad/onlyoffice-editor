@@ -3068,6 +3068,7 @@ var editor;
         this.spellcheckState.wordsIndex = e["wordsIndex"];
         var lastIndex = this.spellcheckState.lastIndex;
         var activeCell = ws.model.selectionRange.activeCell;
+        var isIgnoreUppercase = this.spellcheckState.isIgnoreUppercase;
 
         for (var i = 0; i < usrWords.length; i++) {
           if (this.spellcheckState.isIgnoreNumbers) {
@@ -3076,8 +3077,9 @@ var editor;
               usrCorrect[i] = true;
             }
           }
-
-          if (ignoreWords[usrWords[i]] || changeWords[usrWords[i]] || usrWords[i].length === 1) {
+         
+          if (ignoreWords[usrWords[i]] || changeWords[usrWords[i]] || usrWords[i].length === 1 
+            || (isIgnoreUppercase && usrWords[i].toUpperCase() === usrWords[i])) {
             usrCorrect[i] = true;
           }
         }
@@ -3200,13 +3202,9 @@ var editor;
       this.spellcheckState.cellText = this.asc_getCellInfo().text;
       var cellText = this.spellcheckState.newCellText || this.spellcheckState.cellText;
       var afterReplace = this.spellcheckState.afterReplace;
-      var isIgnoreUppercase = this.spellcheckState.isIgnoreUppercase;
 
       for (var i = 0; i < usrWords.length; i++) {
         var usrWord = usrWords[i];
-        if (isIgnoreUppercase) {
-          usrWord = usrWord.toLowerCase();
-        }
 
         if (ignoreWords[usrWord] || changeWords[usrWord]) {
           usrCorrect[i] = true;
@@ -3431,11 +3429,7 @@ var editor;
   spreadsheet_api.prototype.asc_ignoreMisspelledWord = function(spellCheckProperty, ignoreAll) {
     if (ignoreAll) {
       var word = spellCheckProperty.Word;
-      if (!this.spellcheckState.isIgnoreUppercase) {
         this.spellcheckState.ignoreWords[word] = word;
-      } else {
-        this.spellcheckState.ignoreWords[word.toLowerCase()] = word;
-      }
     }
     this.asc_nextWord();
   };
