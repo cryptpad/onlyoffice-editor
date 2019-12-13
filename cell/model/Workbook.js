@@ -11985,7 +11985,7 @@
 					} else {
 						res = {row: nRow0, num: nNumber, text: sText, colorFill: colorFillCell, colorsText: colorsTextCell};
 					}
-				} else if (isSortColor) {
+				} else if (isSortColor || (opt_custom_sort && (colorFillCell || colorsTextCell))) {
 					if (opt_by_row) {
 						res = {col: nCol0, num: nNumber, text: sText, colorFill: colorFillCell, colorsText: colorsTextCell};
 					} else {
