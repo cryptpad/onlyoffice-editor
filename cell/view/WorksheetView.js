@@ -18693,7 +18693,7 @@
 				lockChangeHeaders = true;
 				lockChangeOrientation = true;
 			} else {
-				this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.LockedAllError, c_oAscError.Level.NoCritical);
+				t.workbook.handlers.trigger("asc_onError", c_oAscError.ID.AutoFilterDataRangeError, c_oAscError.Level.NoCritical);
 				return false;
 			}
 		} else if(t.model.AutoFilter && t.model.AutoFilter.Ref && t.model.AutoFilter.Ref.intersection(selection)) {
@@ -18706,7 +18706,7 @@
 				lockChangeHeaders = true;
 				lockChangeOrientation = true;
 			} else {
-				this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.LockedAllError, c_oAscError.Level.NoCritical);
+				t.workbook.handlers.trigger("asc_onError", c_oAscError.ID.AutoFilterDataRangeError, c_oAscError.Level.NoCritical);
 				return false;
 			}
 		} else {
@@ -18748,7 +18748,7 @@
 
 			//если пустой дипазон, выдаём ошибку
 			if(t.model.autoFilters._isEmptyRange(selection, 0)) {
-				this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.LockedAllError, c_oAscError.Level.NoCritical);
+				t.workbook.handlers.trigger("asc_onError", c_oAscError.ID.AutoFilterDataRangeError, c_oAscError.Level.NoCritical);
 				return false;
 			}
 		}
