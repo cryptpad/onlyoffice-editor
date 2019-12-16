@@ -12118,15 +12118,22 @@
 								var val1 = caseSensitive ? _a.text : _a.text.toUpperCase();
 								var val2 = caseSensitive ? _b.text : _b.text.toUpperCase();
 								res = strcmp(val1, val2);
-							} else {
+							} else if(_b && null != _b.num) {
 								res = 1;
+							} else {
+								res = -1;
 							}
 						} else if (_a && null != _a.num) {
 							if (_b && null != _b.num) {
 								res = _a.num - _b.num;
-							} else {
+							} else if(_b && null != _b.text) {
 								res = -1;
+							} else {
+								res = 1;
+
 							}
+						} else if(_b && (null != _b.num || null != _b.text)){
+							res = 1;
 						}
 					}
 				};
