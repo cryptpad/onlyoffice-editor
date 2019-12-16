@@ -12093,6 +12093,7 @@
 		} else {
 			aSortElems.sort(function (a, b) {
 				var res = 0;
+				var nullVal = false;
 				var compare = function(_a, _b, _sortCondition) {
 					//если есть opt_custom_sort(->sortConditions) - тогда может быть несколько условий сортировки
 					//в данном случае идём по отдельной ветке и по-другому обрабатываем сортировку по цвету
@@ -12122,6 +12123,7 @@
 								res = 1;
 							} else {
 								res = -1;
+								nullVal = true;
 							}
 						} else if (_a && null != _a.num) {
 							if (_b && null != _b.num) {
@@ -12129,11 +12131,12 @@
 							} else if(_b && null != _b.text) {
 								res = -1;
 							} else {
-								res = 1;
-
+								res = -1;
+								nullVal = true;
 							}
 						} else if(_b && (null != _b.num || null != _b.text)){
 							res = 1;
+							nullVal = true;
 						}
 					}
 				};
@@ -12164,7 +12167,7 @@
 					} else {
 						res = opt_by_row ? a.col - b.col : a.row - b.row;
 					}
-				} else if (!bAscent) {
+				} else if (!bAscent && !nullVal) {
 					res = -res;
 				}
 				return res;
