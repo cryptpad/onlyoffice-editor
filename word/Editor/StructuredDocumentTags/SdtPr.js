@@ -779,7 +779,7 @@ CSdtComboBoxPr.prototype.GetItemValue = function(nIndex)
  */
 function CSdtDatePickerPr()
 {
-	this.FullDate   = "2019-10-18T00:00:00Z";
+	this.FullDate   = (new Date()).toJSON();
 	this.LangId     = 1033;
 	this.DateFormat = "dd.MM.yyyy";
 	this.Calendar   = Asc.c_oAscCalendarType.Gregorian;
