@@ -16124,7 +16124,7 @@ function DocReadResult(doc) {
 };
 DocReadResult.prototype = {
 	isDocumentPasting: function(){
-		var api = editor || window["Asc"]["editor"];
+		var api = window["Asc"]["editor"] || editor;
 		if(api) {
 			return this.bCopyPaste && AscCommon.c_oEditorId.Word === api.getEditorId();
 		}
