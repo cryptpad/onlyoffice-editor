@@ -4126,7 +4126,10 @@ CDocumentContent.prototype.InsertContent = function(SelectedContent, NearPos)
     var Para        = NearPos.Paragraph;
     var ParaNearPos = Para.Get_ParaNearestPos(NearPos);
     var LastClass   = ParaNearPos.Classes[ParaNearPos.Classes.length - 1];
-    if (para_Math_Run === LastClass.Type)
+
+	this.private_CheckSelectedContentBeforePaste(SelectedContent, NearPos);
+
+	if (para_Math_Run === LastClass.Type)
     {
         var MathRun        = LastClass;
         var NewMathRun     = MathRun.Split(ParaNearPos.NearPos.ContentPos, ParaNearPos.Classes.length - 1);

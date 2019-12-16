@@ -2273,22 +2273,6 @@ PasteProcessor.prototype =
 			var oSelectedContent = new CSelectedContent();
 			var tableSpecialPaste = false;
 
-			// Если мы вставляем в специальный контент контрол, тогда производим простую вставку текста
-			var oParaState = paragraph.SaveSelectionState();
-			paragraph.RemoveSelection();
-			paragraph.Set_ParaContentPos(NearPos.ContentPos, false, -1, -1, false);
-			var arrContentControls = paragraph.GetSelectedContentControls();
-			paragraph.LoadSelectionState(oParaState);
-
-			for (var nIndex = 0, nCount = arrContentControls.length; nIndex < nCount; ++nIndex)
-			{
-				if (arrContentControls[nIndex].IsComboBox() || arrContentControls[nIndex].IsDropDownList())
-				{
-					bIsSpecialPaste = true;
-					specialPasteHelper.specialPasteProps = Asc.c_oSpecialPasteProps.keepTextOnly;
-				}
-			}
-
 			if(bIsSpecialPaste){
 				if (Asc.c_oSpecialPasteProps.insertAsNestedTable === specialPasteHelper.specialPasteProps ||
 					Asc.c_oSpecialPasteProps.overwriteCells === specialPasteHelper.specialPasteProps)

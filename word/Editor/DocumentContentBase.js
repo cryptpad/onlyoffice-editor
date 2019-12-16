@@ -1866,3 +1866,28 @@ CDocumentContentBase.prototype.IsCalculatingContinuousSectionBottomLine = functi
 {
 	return false;
 };
+/**
+ * Проверяем содержимое, которые мы вставляем, в зависимости от места куда оно вставляется
+ * @param oSelectedContent {CSelectedContent}
+ * @param oAnchorPos {NearestPos}
+ */
+CDocumentContentBase.prototype.private_CheckSelectedContentBeforePaste = function(oSelectedContent, oAnchorPos)
+{
+	var oParagraph = oAnchorPos.Paragraph;
+
+	// Если мы вставляем в специальный контент контрол, тогда производим простую вставку текста
+	var oParaState = oParagraph.SaveSelectionState();
+	oParagraph.RemoveSelection();
+	oParagraph.Set_ParaContentPos(oAnchorPos.ContentPos, false, -1, -1, false);
+	var arrContentControls = oParagraph.GetSelectedContentControls();
+	oParagraph.LoadSelectionState(oParaState);
+
+	for (var nIndex = 0, nCount = arrContentControls.length; nIndex < nCount; ++nIndex)
+	{
+		if (arrContentControls[nIndex].IsComboBox() || arrContentControls[nIndex].IsDropDownList())
+		{
+			oSelectedContent.ConvertToText();
+			break;
+		}
+	}
+};

@@ -767,6 +767,28 @@ CSelectedContent.prototype.IsSaveNumberingValues = function()
 {
 	return this.SaveNumberingValues;
 };
+/**
+ * Конвертируем элементы в один элемент с простым текстом
+ */
+CSelectedContent.prototype.ConvertToText = function()
+{
+	var oParagraph = new Paragraph(editor.WordControl.m_oDrawingDocument);
+
+	var sText = "";
+	for (var nIndex = 0, nCount = this.Elements.length; nIndex < nCount; ++nIndex)
+	{
+		var oElement = this.Elements[nIndex].Element;
+		if (oElement.IsParagraph())
+			sText += oElement.GetText();
+	}
+
+	var oRun = new ParaRun(oParagraph, null);
+	oRun.AddText(sText);
+	oParagraph.AddToContent(0, oRun);
+
+	this.Elements.length = 0;
+	this.Elements.push(new CSelectedElement(oParagraph, false));
+};
 
 
 function CDocumentRecalculateState()
@@ -7828,6 +7850,9 @@ CDocument.prototype.InsertContent = function(SelectedContent, NearPos)
 	var Para        = NearPos.Paragraph;
 	var ParaNearPos = Para.Get_ParaNearestPos(NearPos);
 	var LastClass   = ParaNearPos.Classes[ParaNearPos.Classes.length - 1];
+
+	this.private_CheckSelectedContentBeforePaste(SelectedContent, NearPos);
+
 	if (para_Math_Run === LastClass.Type)
 	{
 		var MathRun        = LastClass;
