@@ -779,7 +779,7 @@ CSdtComboBoxPr.prototype.GetItemValue = function(nIndex)
  */
 function CSdtDatePickerPr()
 {
-	this.FullDate   = (new Date()).toJSON();
+	this.FullDate   = (new Date()).toISOString().slice(0, 19) + 'Z';
 	this.LangId     = 1033;
 	this.DateFormat = "dd.MM.yyyy";
 	this.Calendar   = Asc.c_oAscCalendarType.Gregorian;
@@ -851,7 +851,8 @@ CSdtDatePickerPr.prototype.GetFullDate = function()
 };
 CSdtDatePickerPr.prototype.SetFullDate = function(sFullDate)
 {
-	this.FullDate = sFullDate;
+	var oDate = sFullDate instanceof Date ? sFullDate : new Date(sFullDate);
+	this.FullDate = oDate.toISOString().slice(0, 19) + 'Z';
 };
 CSdtDatePickerPr.prototype.GetLangId = function()
 {
