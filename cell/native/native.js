@@ -2128,7 +2128,14 @@ function asc_ReadCBorder(s, p) {
         {
             case 0:
             {
-                style = s[p.pos++];
+                var type = s[p.pos++];
+                if (type == "thin") {
+                    style = Asc.c_oAscBorderStyles.Thin;
+                } else if (type == "medium") {
+                    style = Asc.c_oAscBorderStyles.Medium; 
+                } else if (type == "thick") {
+                    style = Asc.c_oAscBorderStyles.Thick; 
+                }
                 break;
             }
             case 1:
