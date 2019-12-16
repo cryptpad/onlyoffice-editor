@@ -2942,6 +2942,23 @@ function DrawingObjects() {
                     _this.checkSparklineGroupMinMaxVal(oSparklineGroup);
                 }, _this, []);
             }
+            
+            if(oDrawingContext instanceof AscCommonExcel.CPdfPrinter)
+            {
+                graphics.SaveGrState();
+                var _baseTransform;
+                if(!oDrawingContext.Transform)
+                {
+                    _baseTransform = new AscCommon.CMatrix();
+                }
+                else
+                {
+                    _baseTransform = oDrawingContext.Transform.CreateDublicate();
+                }
+                _baseTransform.sx /= nSparklineMultiplier;
+                _baseTransform.sy /= nSparklineMultiplier;
+                graphics.SetBaseTransform(_baseTransform);
+            }
             for(j = 0; j < oSparklineGroup.arrSparklines.length; ++j) {
 				sparkline = oSparklineGroup.arrSparklines[j];
 				if (!sparkline.checkInRange(range)) {
@@ -2953,23 +2970,15 @@ function DrawingObjects() {
 					sparkline.oCacheView.initFromSparkline(sparkline, oSparklineGroup, worksheet);
                 }
 
-                if(oDrawingContext instanceof AscCommonExcel.CPdfPrinter)
-                {
-                    graphics.SaveGrState();
-                    var _baseTransform = new AscCommon.CMatrix();
-                    _baseTransform.sx /= nSparklineMultiplier;
-                    _baseTransform.sy /= nSparklineMultiplier;
-
-                    graphics.SetBaseTransform(_baseTransform);
-                }
 
 				sparkline.oCacheView.draw(graphics, offsetX, offsetY);
 
-                if(oDrawingContext instanceof AscCommonExcel.CPdfPrinter)
-                {
-                    graphics.SetBaseTransform(null);
-                    graphics.RestoreGrState();
-                }
+                
+            }
+            if(oDrawingContext instanceof AscCommonExcel.CPdfPrinter)
+            {
+                graphics.SetBaseTransform(null);
+                graphics.RestoreGrState();
             }
         }
         if(oDrawingContext instanceof AscCommonExcel.CPdfPrinter)

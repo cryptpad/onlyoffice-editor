@@ -3401,11 +3401,18 @@
 							} else {
 								return;
 							}
-
                             if(ctx instanceof AscCommonExcel.CPdfPrinter)
                             {
                                 graphics.SaveGrState();
-                                var _baseTransform = new AscCommon.CMatrix();
+                                var _baseTransform;
+                                if(!ctx.Transform)
+                                {
+                                    _baseTransform = new AscCommon.CMatrix();
+                                }
+                                else
+                                {
+                                    _baseTransform = ctx.Transform;
+                                }
                                 graphics.SetBaseTransform(_baseTransform);
                             }
 
@@ -3523,12 +3530,21 @@
 
                                 var oUniFill = new AscFormat.builder_CreateBlipFill(img, "stretch");
 
-                                if(context instanceof AscCommonExcel.CPdfPrinter)
+                                if(ctx instanceof AscCommonExcel.CPdfPrinter)
                                 {
                                     graphics.SaveGrState();
-                                    var _baseTransform = new AscCommon.CMatrix();
+                                    var _baseTransform;
+                                    if(!ctx.Transform)
+                                    {
+                                        _baseTransform = new AscCommon.CMatrix();
+                                    }
+                                    else
+                                    {
+                                        _baseTransform = ctx.Transform;
+                                    }
                                     graphics.SetBaseTransform(_baseTransform);
                                 }
+    
 
                                 graphics.save();
                                 var oMatrix = new AscCommon.CMatrix();
