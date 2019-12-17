@@ -18780,8 +18780,8 @@
 
 		var getSortLevel = function(sortCondition) {
 			var level = new Asc.CSortPropertiesLevel();
-			var index = columnSort ? sortCondition.Ref.c1 - modelSort.Ref.c1 : sortCondition.Ref.r1 - modelSort.Ref.r1;
-			var name = sortSettings.getNameColumnByIndex(index, modelSort.Ref);
+			var index = columnSort ? sortCondition.Ref.c1 - selection.c1 : sortCondition.Ref.r1 - selection.r1;
+			var name = sortSettings.getNameColumnByIndex(index, selection);
 
 			level.index = index;
 			level.name = name;
@@ -18842,10 +18842,13 @@
 			//заполняем только в случае пересечения
 			if(selection.intersection(modelSort.Ref)) {
 				for(var i = 0; i < modelSort.SortConditions.length; i++) {
-					if(!sortSettings.levels) {
-						sortSettings.levels = [];
+					if(modelSort.SortConditions[i].Ref.intersection(selection)) {
+						if(!sortSettings.levels) {
+							sortSettings.levels = [];
+						}
+
+						sortSettings.levels.push(getSortLevel(modelSort.SortConditions[i]));
 					}
-					sortSettings.levels.push(getSortLevel(modelSort.SortConditions[i]));
 				}
 			}
 		}
