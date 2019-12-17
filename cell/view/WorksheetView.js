@@ -18711,6 +18711,8 @@
 		var modelSort, dataHasHeaders, columnSort;
 		var tables = t.model.autoFilters.getTableIntersectionRange(selection);
 		var lockChangeHeaders, lockChangeOrientation, caseSensitive;
+		//проверяем, возможно находится рядом а/ф
+		var tryExpandRange = t.model.autoFilters.expandRange(selection, true);
 		if(tables && tables.length) {
 			if(tables && tables && tables.length === 1 && tables[0].Ref.containsRange(selection)) {
 				selection = tables[0].getRangeWithoutHeaderFooter();
@@ -18723,7 +18725,7 @@
 				t.workbook.handlers.trigger("asc_onError", c_oAscError.ID.AutoFilterDataRangeError, c_oAscError.Level.NoCritical);
 				return false;
 			}
-		} else if(autoFilter && autoFilter.Ref && (autoFilter.Ref.isEqual(selection) || (selection.isOneCell() && autoFilter.Ref.containsRange(selection)))) {
+		} else if(autoFilter && autoFilter.Ref && (autoFilter.Ref.isEqual(selection) || (selection.isOneCell() && (autoFilter.Ref.containsRange(selection) || autoFilter.Ref.containsRange(tryExpandRange))))) {
 			selection = autoFilter.getRangeWithoutHeaderFooter();
 			columnSort = true;
 			dataHasHeaders = true;
@@ -18736,7 +18738,7 @@
 				//TODO возможно стоит обрезать в любом случае после expand
 				selection =  t.model.autoFilters.cutRangeByDefinedCells(selection);
 			} else if(bExpand) {
-				selection = t.model.autoFilters.expandRange(selection);
+				selection = tryExpandRange ? tryExpandRange : t.model.autoFilters.expandRange(selection, true);
 			}
 
 			//в модели лежит флаг columnSort - если он true значит сортируем по строке(те перемещаем колонки)
