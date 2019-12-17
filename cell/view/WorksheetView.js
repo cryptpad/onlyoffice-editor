@@ -1897,10 +1897,10 @@
 			}
 			if(!hiddenRow && 0 < t._getColumnWidth(c)){
 				var style = cell.getStyle();
-				if (style && ((style.fill && style.fill.notEmpty()) || (style.border && style.border.notEmpty()))) {
+				//if (style && ((style.fill && style.fill.notEmpty()) || (style.border && style.border.notEmpty()))) {
 					maxCol = Math.max(maxCol, c);
 					maxRow = Math.max(maxRow, r);
-				}
+				//}
 				var ct = t._getCellTextCache(c, r);
 				if (ct !== undefined) {
 					rightSide = 0;
@@ -1987,7 +1987,7 @@
 					}
 				} else {
 					maxCell = this._checkPrintRange(range, doNotRecalc);
-					range = new asc_Range(0, 0, maxCell.col, maxCell.row);
+					range = new asc_Range(range.c1, range.r1, maxCell.col, maxCell.row);
 				}
 
 				this._calcPagesPrint(range, pageOptions, indexWorksheet, arrPages, tempPrintScale, adjustPrint);
@@ -2006,13 +2006,19 @@
 					continue;
 				}
 
+				if (c_oAscSelectionType.RangeCells === range.getType()) {
+					if(!doNotRecalc) {
+						this._prepareCellTextMetricsCache(range);
+					}
+				} else {
+					maxCell = this._checkPrintRange(range, doNotRecalc);
+					range = new asc_Range(range.c1, range.r1, maxCell.col, maxCell.row);
+				}
+
 				if(arrRanges) {
 					arrRanges.push(range);
 				}
 
-				if(!doNotRecalc) {
-					this._prepareCellTextMetricsCache(range);
-				}
 				this._calcPagesPrint(range, pageOptions, indexWorksheet, arrPages, tempPrintScale, adjustPrint);
 			}
 		} else {
