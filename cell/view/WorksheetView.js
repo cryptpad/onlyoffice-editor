@@ -18734,12 +18734,11 @@
 			lockChangeOrientation = true;
 		} else {
 			var type = selection.getType();
-			if(c_oAscSelectionType.RangeMax === type || c_oAscSelectionType.RangeRow === type || c_oAscSelectionType.RangeCol === type ) {
-				//TODO возможно стоит обрезать в любом случае после expand
-				selection =  t.model.autoFilters.cutRangeByDefinedCells(selection);
-			} else if(bExpand) {
+
+			if(bExpand) {
 				selection = tryExpandRange ? tryExpandRange : t.model.autoFilters.expandRange(selection, true);
 			}
+			selection =  t.model.autoFilters.cutRangeByDefinedCells(selection);
 
 			//в модели лежит флаг columnSort - если он true значит сортируем по строке(те перемещаем колонки)
 			//в настройках флаг columnSort - означает, что сортируем по колонке
