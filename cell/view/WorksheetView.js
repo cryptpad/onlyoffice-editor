@@ -18704,7 +18704,7 @@
 		var autoFilter = t.model.AutoFilter;
 		var modelSort, dataHasHeaders, columnSort;
 		var tables = t.model.autoFilters.getTableIntersectionRange(selection);
-		var lockChangeHeaders, lockChangeOrientation, caseSenstitive;
+		var lockChangeHeaders, lockChangeOrientation, caseSensitive;
 		if(tables && tables.length) {
 			if(tables && tables && tables.length === 1 && tables[0].Ref.containsRange(selection)) {
 				selection = tables[0].getRangeWithoutHeaderFooter();
@@ -18737,7 +18737,7 @@
 			//в настройках флаг columnSort - означает, что сортируем по колонке
 			modelSort = this.model.sortState;
 			columnSort = modelSort ? !modelSort.ColumnSort : true;
-			caseSenstitive = modelSort ? modelSort.CaseSensititve : false;
+			caseSensitive = modelSort ? modelSort.CaseSensitive : false;
 
 			var isOneRow = selection.r1 === selection.r2;
 			if(isOneRow || !columnSort) {
@@ -18777,7 +18777,7 @@
 		sortSettings.hasHeaders = dataHasHeaders;
 		sortSettings.columnSort = columnSort;
 
-		sortSettings.caseSenstitive = caseSenstitive;
+		sortSettings.caseSensitive = caseSensitive;
 
 		sortSettings.lockChangeHeaders = lockChangeHeaders;
 		sortSettings.lockChangeOrientation = lockChangeOrientation;
@@ -19024,11 +19024,11 @@
 
 		var bordersArr = [];
 		range._foreachNoEmpty(function(cell, row, col) {
-			if(!bordersArr[row]) {
-				bordersArr[row] = [];
-			}
 			var style = cell ? cell.getStyle() : null;
 			if(style && style.border) {
+				if(!bordersArr[row]) {
+					bordersArr[row] = [];
+				}
 				bordersArr[row][col] = style.border;
 				cell.setBorder(null);
 			}

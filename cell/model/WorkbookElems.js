@@ -9093,7 +9093,7 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		this._newSelection = null;
 		this.hasHeaders = null;
 		this.columnSort = null;
-		this.caseSensative = null;
+		this.caseSensitive = null;
 
 		this.levels = null;
 
@@ -9114,7 +9114,7 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		return this.columnSort;
 	};
 	CSortProperties.prototype.asc_getCaseSensitive = function () {
-		return this.caseSensative;
+		return this.caseSensitive;
 	};
 	CSortProperties.prototype.asc_getLevels = function () {
 		return this.levels;
@@ -9144,7 +9144,7 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		this.columnSort = val;
 	};
 	CSortProperties.prototype.asc_setCaseSensitive = function (val) {
-		this.caseSensative = val;
+		this.caseSensitive = val;
 	};
 	CSortProperties.prototype.asc_setLevels = function (val) {
 		this.levels = val;
