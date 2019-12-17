@@ -12030,7 +12030,11 @@
 				range.setValue2(rangeStyle.value2);
 			}
 		} else if (rangeStyle.cellValueData && specialPasteProps.val) {
-			range.setValueData(rangeStyle.cellValueData);
+			if (formulaProps && firstRange) {
+				firstRange.setValueData(rangeStyle.cellValueData);
+			} else {
+				range.setValueData(rangeStyle.cellValueData);
+			}
 		} else if (null != rangeStyle.val && specialPasteProps.val) {
 			//TODO возможно стоит всегда вызывать setValueData и тип выставлять в зависимости от val
 			if (rangeStyle.val[0] === "'") {
