@@ -396,9 +396,10 @@ CTable.prototype.private_RecalculateGrid = function()
         //    у ячейки GridSpan > 1, тогда MinMargin учитывается только в первую колнонку,
         //    а MinContent распределяется равномерно по всем колонкам.
 
-        var LeftMargin = 0, RightMargin = 0;
-        var RowsCount = this.Content.length;
-        for ( var CurRow = 0; CurRow < RowsCount; CurRow++ )
+        this.private_RecalculateGridMinMargins(MinMargin);
+
+		var RowsCount = this.Content.length;
+		for ( var CurRow = 0; CurRow < RowsCount; CurRow++ )
         {
             var Row = this.Content[CurRow];
 
@@ -477,10 +478,7 @@ CTable.prototype.private_RecalculateGrid = function()
                 var CellMin      = CellMinMax.Min;
                 var CellMax      = CellMinMax.Max;
                 var GridSpan     = Cell.Get_GridSpan();
-                var CellMargins  = Cell.GetMargins();
                 var CellW        = Cell.Get_W();
-                var CellRBorder  = Cell.Get_Border(1);
-                var CellLBorder  = Cell.Get_Border(3);
                 var CellWW       = null;
 
                 var Add = ( ( 0 === CurCell || CellsCount - 1 === CurCell ) ? 3 / 2 * SpacingW : SpacingW );
@@ -492,41 +490,6 @@ CTable.prototype.private_RecalculateGrid = function()
                     CellWW = CellW.W + Add;
                 else if (tblwidth_Pct === CellW.Type)
                     CellWW = PctWidth * CellW.W / 100 + Add;
-
-				var CellMarginsLeftW = 0, CellMarginsRightW = 0;
-				if (null !== Spacing)
-				{
-					CellMarginsLeftW  = CellMargins.Left.W;
-					CellMarginsRightW = CellMargins.Right.W;
-
-					if (border_None !== CellRBorder.Value)
-						CellMarginsRightW += CellRBorder.Size;
-
-					if (border_None !== CellLBorder.Value)
-						CellMarginsLeftW += CellLBorder.Size;
-				}
-				else
-				{
-					if (border_None !== CellRBorder.Value)
-						CellMarginsRightW += Math.max(CellRBorder.Size / 2, CellMargins.Right.W);
-					else
-						CellMarginsRightW += CellMargins.Right.W;
-
-					if (border_None !== CellLBorder.Value)
-						CellMarginsLeftW += Math.max(CellLBorder.Size / 2, CellMargins.Left.W);
-					else
-						CellMarginsLeftW += CellMargins.Left.W;
-				}
-
-				if (GridSpan <= 1)
-				{
-					if (MinMargin[CurGridCol] < CellMarginsLeftW + CellMarginsRightW)
-						MinMargin[CurGridCol] = CellMarginsLeftW + CellMarginsRightW;
-				}
-				else
-				{
-					// Мы не можем быть уверены в какой промежуток попадают отступы ячейки
-				}
 
                 // На самом деле, случай 1 === GridSpan нормально обработается и как случай GridSpan > 1,
                 // но поскольку он наиболее распространен, делаем его обработку максимально быстрой (без циклов)
@@ -596,12 +559,6 @@ CTable.prototype.private_RecalculateGrid = function()
 						}
 					}
                 }
-
-                if ( 0 === CurRow && 0 === CurCell )
-                    LeftMargin = CellMargins.Left.W;
-
-                if ( 0 === CurRow && CellsCount - 1 === CurCell )
-                    RightMargin = CellMargins.Right.W;
 
                 CurGridCol += GridSpan;
             }
@@ -932,6 +889,63 @@ CTable.prototype.private_RecalculateGrid = function()
     }
 
     this.RecalcInfo.TableGrid = false;
+};
+CTable.prototype.private_RecalculateGridMinMargins = function(arrMinMargins)
+{
+	for (var nCurRow = 0, nRowsCount = this.GetRowsCount(); nCurRow < nRowsCount; ++nCurRow)
+	{
+		var oRow      = this.GetRow(nCurRow);
+		var isSpacing = null !== oRow.GetCellSpacing();
+
+		var nCurGridCol = oRow.GetBefore().Grid;
+		for (var nCurCell = 0, nCellsCount = oRow.GetCellsCount(); nCurCell < nCellsCount; ++nCurCell)
+		{
+			var oCell        = oRow.GetCell(nCurCell);
+			var nGridSpan    = oCell.GetGridSpan();
+			var oCellMargins = oCell.GetMargins();
+			var oCellRBorder = oCell.GetBorder(1);
+			var oCellLBorder = oCell.GetBorder(3);
+
+			var nCellMarginsLeftW  = 0;
+			var nCellMarginsRightW = 0;
+
+			if (isSpacing)
+			{
+				nCellMarginsLeftW  = oCellMargins.Left.W;
+				nCellMarginsRightW = oCellMargins.Right.W;
+
+				if (border_None !== oCellRBorder.Value)
+					nCellMarginsRightW += oCellRBorder.Size;
+
+				if (border_None !== oCellLBorder.Value)
+					nCellMarginsLeftW += oCellLBorder.Size;
+			}
+			else
+			{
+				if (border_None !== oCellRBorder.Value)
+					nCellMarginsRightW += Math.max(oCellRBorder.Size / 2, oCellMargins.Right.W);
+				else
+					nCellMarginsRightW += oCellMargins.Right.W;
+
+				if (border_None !== oCellLBorder.Value)
+					nCellMarginsLeftW += Math.max(oCellLBorder.Size / 2, oCellMargins.Left.W);
+				else
+					nCellMarginsLeftW += oCellMargins.Left.W;
+			}
+
+			if (nGridSpan <= 1)
+			{
+				if (arrMinMargins[nCurGridCol] < nCellMarginsLeftW + nCellMarginsRightW)
+					arrMinMargins[nCurGridCol] = nCellMarginsLeftW + nCellMarginsRightW;
+			}
+			else
+			{
+				// Мы не можем быть уверены в какой промежуток попадают отступы ячейки
+			}
+
+			nCurGridCol += nGridSpan;
+		}
+	}
 };
 CTable.prototype.private_RecalculateBorders = function()
 {
