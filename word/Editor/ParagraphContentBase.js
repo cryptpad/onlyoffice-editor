@@ -327,9 +327,14 @@ CParagraphContentBase.prototype.Check_PageBreak = function()
 {
 	return false;
 };
-CParagraphContentBase.prototype.Check_BreakPageEnd = function(PBChecker)
+/**
+ * Проверяем нужно ли разрывать страницу после заданного PageBreak элемента
+ * @param oPBChecker {CParagraphCheckSplitPageOnPageBreak}
+ * @returns {boolean}
+ */
+CParagraphContentBase.prototype.CheckSplitPageOnPageBreak = function(oPBChecker)
 {
-	return true;
+	return false;
 };
 CParagraphContentBase.prototype.Recalculate_CurPos = function(X, Y, CurrentRun, _CurRange, _CurLine, CurPage, UpdateCurPos, UpdateTarget, ReturnTarget)
 {
@@ -2287,18 +2292,15 @@ CParagraphContentWithParagraphLikeContent.prototype.Check_PageBreak = function()
 
     return false;
 };
-CParagraphContentWithParagraphLikeContent.prototype.Check_BreakPageEnd = function(PBChecker)
+CParagraphContentWithParagraphLikeContent.prototype.CheckSplitPageOnPageBreak = function(oPBChecker)
 {
-    var ContentLen = this.Content.length;
-    for ( var CurPos = 0; CurPos < ContentLen; CurPos++ )
-    {
-        var Element = this.Content[CurPos];
+	for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
+	{
+		if (this.Content[nPos].CheckSplitPageOnPageBreak(oPBChecker))
+			return true;
+	}
 
-        if ( true !== Element.Check_BreakPageEnd(PBChecker) )
-            return false;
-    }
-
-    return true;
+	return false;
 };
 CParagraphContentWithParagraphLikeContent.prototype.Get_ParaPosByContentPos = function(ContentPos, Depth)
 {

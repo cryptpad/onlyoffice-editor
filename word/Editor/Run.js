@@ -3659,7 +3659,7 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
 							continue;
 						}
 
-						if (break_Page === Item.BreakType && true === Para.Check_BreakPageEnd(Item))
+						if (break_Page === Item.BreakType && !Para.CheckSplitPageOnPageBreak(Item))
                             continue;
 
                         Item.Flags.NewLine = true;
@@ -4838,33 +4838,28 @@ ParaRun.prototype.Check_PageBreak = function()
     return false;
 };
 
-ParaRun.prototype.Check_BreakPageEnd = function(PBChecker)
+ParaRun.prototype.CheckSplitPageOnPageBreak = function(oChecker)
 {
-    var ContentLen = this.Content.length;
-    for ( var CurPos = 0; CurPos < ContentLen; CurPos++ )
-    {
-        var Item = this.Content[CurPos];
+	for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
+	{
+		var oItem = this.Content[nPos];
 
-        if ( true === PBChecker.FindPB )
-        {
-            if ( Item === PBChecker.PageBreak )
-            {
-                PBChecker.FindPB = false;
-                PBChecker.PageBreak.Flags.NewLine = true;
-            }
-        }
-        else
-        {
-            var ItemType = Item.Type;
+		if (oChecker.IsFindPageBreak())
+		{
+			oChecker.CheckPageBreakItem(oItem);
+		}
+		else
+		{
+			var nItemType = oItem.Type;
 
-            if ( para_End === ItemType )
-                return true;
-            else if ( para_Drawing !== ItemType || drawing_Anchor !== Item.Get_DrawingType() )
-                return false;
-        }
-    }
+			if (para_End === nItemType && !oChecker.IsSplitPageBreakAndParaMark())
+				return false;
+			else if (para_Drawing !== nItemType || drawing_Anchor !== oItem.Get_DrawingType())
+				return true;
+		}
+	}
 
-    return true;
+	return false;
 };
 
 ParaRun.prototype.RecalculateMinMaxContentWidth = function(MinMax)

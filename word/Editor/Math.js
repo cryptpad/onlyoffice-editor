@@ -2424,9 +2424,9 @@ ParaMath.prototype.Check_PageBreak = function()
     return false;
 };
 
-ParaMath.prototype.Check_BreakPageEnd = function(PBChecker)
+ParaMath.prototype.CheckSplitPageOnPageBreak = function(oPBChecker)
 {
-    return false;
+	return true;
 };
 ParaMath.prototype.Get_ParaPosByContentPos = function(ContentPos, Depth)
 {

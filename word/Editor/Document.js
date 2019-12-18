@@ -1863,6 +1863,9 @@ function CDocumentSettings()
     this.DecimalSymbol = undefined;
     this.GutterAtTop   = false;
     this.MirrorMargins = false;
+
+    // Compatibility
+    this.SplitPageBreakAndParaMark = false;
 }
 
 /**
@@ -14215,6 +14218,10 @@ CDocument.prototype.SetSdtGlobalShowHighlight = function(isShow)
 CDocument.prototype.OnChangeSdtGlobalSettings = function()
 {
 	this.GetApi().sync_OnChangeSdtGlobalSettings();
+};
+CDocument.prototype.IsSplitPageBreakAndParaMark = function()
+{
+	return this.Settings.SplitPageBreakAndParaMark;
 };
 /**
  * Проверяем все ли параметры SdtSettings выставлены по умолчанию

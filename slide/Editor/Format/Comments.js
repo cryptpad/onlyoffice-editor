@@ -282,9 +282,9 @@ ParaComment.prototype =
         return false;
     },
 
-    Check_BreakPageEnd : function(PBChecker)
+    CheckSplitPageOnPageBreak : function(oPBChecker)
     {
-        return true;
+        return false;
     },
 
     Recalculate_CurPos : function(X, Y, CurrentRun, _CurRange, _CurLine, CurPage, UpdateCurPos, UpdateTarget, ReturnTarget)

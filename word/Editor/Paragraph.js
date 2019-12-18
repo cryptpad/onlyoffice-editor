@@ -1284,24 +1284,31 @@ Paragraph.prototype.Check_PageBreak = function()
 
 	return false;
 };
-Paragraph.prototype.Check_BreakPageEnd = function(Item)
+/**
+ * Проверяем нужно ли разрывать страницу после заданного PageBreak элемента
+ * @param oPageBreakItem {ParaNewLine}
+ * @returns {boolean}
+ */
+Paragraph.prototype.CheckSplitPageOnPageBreak = function(oPageBreakItem)
 {
 	// Последний параграф с разрывом страницы не проверяем. Так делает Word.
-	if (this.Parent instanceof CDocument && null === this.Get_DocumentNext())
-		return false;
+	// Учитываем разрыв страницы/колонки, только если мы находимся в главной части документа, либо
+	// во вложенной в нее SdtContent (вложение может быть многоуровневым)
+	var oParent = this.Parent;
+	while (oParent instanceof CDocumentContent && oParent.IsBlockLevelSdtContent())
+		oParent = oParent.GetParent().GetParent();
 
-	var PBChecker = new CParagraphCheckPageBreakEnd(Item);
+	if (oParent instanceof CDocument && !this.GetNextParagraph())
+		return true;
 
-	var ContentLen = this.Content.length;
-	for (var CurPos = 0; CurPos < ContentLen; CurPos++)
+	var oChecker = new CParagraphCheckSplitPageOnPageBreak(oPageBreakItem, this.GetLogicDocument());
+	for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
 	{
-		var Element = this.Content[CurPos];
-
-		if (true !== Element.Check_BreakPageEnd(PBChecker))
-			return false;
+		if (this.Content[nPos].CheckSplitPageOnPageBreak(oChecker))
+			return true;
 	}
 
-	return true;
+	return false;
 };
 /**
  * Пересчитываем заданную позицию элемента или текущую позицию курсора.
@@ -16130,11 +16137,29 @@ function CParagraphDrawSelectionRange()
 //----------------------------------------------------------------------------------------------------------------------
 //
 //----------------------------------------------------------------------------------------------------------------------
-function CParagraphCheckPageBreakEnd(PageBreak)
+function CParagraphCheckSplitPageOnPageBreak(oPageBreakItem, oLogicDocument)
 {
-    this.PageBreak = PageBreak;
+    this.PageBreak = oPageBreakItem;
     this.FindPB    = true;
+
+    this.SplitPageBreakAndParaMark = oLogicDocument ? oLogicDocument.IsSplitPageBreakAndParaMark() : false;
 }
+CParagraphCheckSplitPageOnPageBreak.prototype.IsSplitPageBreakAndParaMark = function()
+{
+	return this.SplitPageBreakAndParaMark;
+};
+CParagraphCheckSplitPageOnPageBreak.prototype.IsFindPageBreak = function()
+{
+	return this.FindPB;
+};
+CParagraphCheckSplitPageOnPageBreak.prototype.CheckPageBreakItem = function(oRunItem)
+{
+	if (oRunItem === this.PageBreak)
+	{
+		this.FindPB                  = false;
+		this.PageBreak.Flags.NewLine = true;
+	}
+};
 
 function CParagraphGetText()
 {
