@@ -6637,6 +6637,240 @@ function CDrawingDocument()
 		editor.isViewMode = _oldTurn;
 	}
 
+    this.SetDrawImagePreviewMargins = function(id, props)
+	{
+        var parent =  document.getElementById(id);
+        if (!parent)
+            return;
+
+        var width_px = parent.clientWidth;
+        var height_px = parent.clientHeight;
+
+        var canvas = parent.firstChild;
+        if (!canvas)
+		{
+            canvas = document.createElement('canvas');
+            canvas.style.cssText = "pointer-events: none;padding:0;margin:0;user-select:none;";
+            canvas.style.width = width_px + "px";
+            canvas.style.height = height_px + "px";
+            parent.appendChild(canvas);
+		}
+
+		canvas.width = AscCommon.AscBrowser.convertToRetinaValue(width_px, true);
+        canvas.height = AscCommon.AscBrowser.convertToRetinaValue(height_px, true);
+
+        var ctx = canvas.getContext("2d");
+
+        if (AscCommon.AscBrowser.retinaPixelRatio >= 2)
+        	ctx.setTransform(2, 0, 0, 2, 0, 0);
+
+        var offset = 10;
+        var page_width_mm = props.W;
+        var page_height_mm = props.H;
+
+        if (Asc.c_oAscPageOrientation.PageLandscape == props.Orient)
+		{
+			var tmp = page_width_mm;
+            page_width_mm = page_height_mm;
+            page_height_mm = tmp;
+		}
+
+		var isMirror = props.MirrorMargins;
+        var pageRects = [];
+
+        var w_px = width_px - (offset << 1);
+        var h_px = height_px - (offset << 1);
+
+        var aspectParent = w_px / h_px;
+        var aspectPage = page_width_mm / page_height_mm;
+        if (!isMirror)
+        {
+            if (aspectPage > aspectParent)
+            {
+            	pageRects.push({X : offset, Y : 0, W : w_px, H : 0});
+            	pageRects[0].H = (pageRects[0].W / aspectPage) >> 0;
+            	pageRects[0].Y = offset + ((h_px - pageRects[0].H) >> 1);
+            }
+            else
+			{
+                pageRects.push({X : 0, Y : offset, W : 0, H : h_px});
+                pageRects[0].W = (pageRects[0].H * aspectPage) >> 0;
+                pageRects[0].X = offset + ((w_px - pageRects[0].W) >> 1);
+			}
+		}
+		else
+		{
+			var w_px_2 = (w_px - offset) >> 1;
+            aspectParent = w_px_2 / h_px;
+
+            if (aspectPage > aspectParent)
+            {
+                pageRects.push({X : offset, Y : 0, W : w_px_2, H : 0});
+                pageRects[0].H = (pageRects[0].W / aspectPage) >> 0;
+                pageRects[0].Y = offset + ((h_px - pageRects[0].H) >> 1);
+
+                pageRects.push({X : offset + ((w_px + offset) >> 1), Y : 0, W : w_px_2, H : 0});
+                pageRects[1].H = pageRects[0].H;
+                pageRects[1].Y = pageRects[0].Y;
+            }
+            else
+            {
+                pageRects.push({X : 0, Y : offset, W : 0, H : h_px});
+                pageRects[0].W = (pageRects[0].H * aspectPage) >> 0;
+                pageRects[0].X = offset + ((w_px_2 - pageRects[0].W) >> 1);
+
+                pageRects.push({X : 0, Y : offset, W : 0, H : h_px});
+                pageRects[1].W = pageRects[0].W;
+                pageRects[1].X = offset + ((w_px + offset) >> 1) + ((w_px_2 - pageRects[0].W) >> 1);
+            }
+		}
+
+		var gutterSize = (props.Gutter * pageRects[0].W / page_width_mm) >> 0;
+        var gutterPos = 0; // left
+		if (props.GutterRTL)
+			gutterPos = 1;
+		if (props.GutterAtTop)
+			gutterPos = 2; // top
+		if (isMirror)
+			gutterPos = 1; // right
+
+		ctx.fillStyle = "#FFFFFF";
+        ctx.strokeStyle = "#000000";
+        ctx.lineWidth = 1;
+        for (var page = 0; page < pageRects.length; page++)
+		{
+			// page
+			ctx.beginPath();
+			ctx.rect(pageRects[page].X + 0.5, pageRects[page].Y + 0.5, pageRects[page].W, pageRects[page].H);
+			ctx.fill();
+			ctx.stroke();
+
+			// gutter
+			if (gutterSize > 0)
+			{
+                ctx.setLineDash([2, 2]);
+                var gutterEvenOdd = 0;
+				switch (gutterPos)
+				{
+					case 0:
+					{
+                        var x = pageRects[page].X + 0.5;
+						for (var i = 0; i < gutterSize; i++)
+						{
+							ctx.moveTo(x + i, pageRects[page].Y + gutterEvenOdd);
+                            ctx.lineTo(x + i, pageRects[page].Y + pageRects[page].H);
+                            ctx.stroke();
+                            ctx.beginPath();
+                            gutterEvenOdd = (0 === gutterEvenOdd) ? 2 : 0;
+                        }
+						break;
+					}
+					case 1:
+					{
+                        var x = pageRects[page].X + pageRects[page].W - 0.5;
+                        for (var i = 0; i < gutterSize; i++)
+                        {
+                            ctx.moveTo(x - i, pageRects[page].Y + gutterEvenOdd);
+                            ctx.lineTo(x - i, pageRects[page].Y + pageRects[page].H);
+                            ctx.stroke();
+                            ctx.beginPath();
+                            gutterEvenOdd = (0 === gutterEvenOdd) ? 2 : 0;
+                        }
+						break;
+					}
+					case 2:
+					{
+                        var y = pageRects[page].Y + 0.5;
+                        for (var i = 0; i < gutterSize; i++)
+                        {
+                            ctx.moveTo(pageRects[page].X + gutterEvenOdd, y + i);
+                            ctx.lineTo(pageRects[page].X + pageRects[page].W, y + i);
+                            ctx.stroke();
+                            ctx.beginPath();
+                            gutterEvenOdd = (0 === gutterEvenOdd) ? 2 : 0;
+                        }
+						break;
+					}
+					default:
+						break;
+				}
+                ctx.setLineDash([]);
+            }
+
+            // text lines
+			var left = props.Left;
+			var top = props.Top;
+			var right = props.Right;
+			var bottom = props.Bottom;
+
+			if (0 == page && isMirror)
+			{
+				var tmp = left;
+				left = right;
+				right = tmp;
+			}
+
+			switch (gutterPos)
+			{
+				case 0:
+				{
+					left += props.Gutter;
+					break;
+				}
+				case 1:
+				{
+                    right += props.Gutter;
+					break;
+				}
+				case 2:
+				{
+                    top += props.Gutter;
+					break;
+				}
+				default:
+					break;
+			}
+
+			var l = pageRects[page].X + ((left * pageRects[page].W / page_width_mm) >> 0);
+            var t = pageRects[page].Y + ((top * pageRects[page].H / page_height_mm) >> 0);
+            var r = pageRects[page].X + (pageRects[page].W - ((right * pageRects[page].W / page_width_mm) >> 0));
+            var b = pageRects[page].Y + (pageRects[page].H - ((bottom * pageRects[page].H / page_height_mm) >> 0));
+
+            if (l >= r || t >= b)
+            	continue;
+
+            var lf = l + (((r - l) / 8) >> 0);
+            var rf = l + (((r - l) / 3) >> 0);
+
+            var cur = t;
+            while (cur < b)
+			{
+				ctx.moveTo(lf, cur + 0.5); ctx.lineTo(r, cur + 0.5);
+
+				cur += 2;
+				if (cur >= b) break;
+
+                ctx.moveTo(l, cur + 0.5); ctx.lineTo(r, cur + 0.5);
+
+                cur += 2;
+                if (cur >= b) break;
+
+                ctx.moveTo(l, cur + 0.5); ctx.lineTo(r, cur + 0.5);
+
+                cur += 2;
+                if (cur >= b) break;
+
+                ctx.moveTo(l, cur + 0.5); ctx.lineTo(rf, cur + 0.5);
+
+                cur += 6;
+			}
+			ctx.stroke();
+            ctx.beginPath();
+
+            gutterPos = 0;
+		}
+	}
+
 	this.StartTableStylesCheck = function ()
 	{
 		this.TableStylesCheckLookFlag = true;
