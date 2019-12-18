@@ -3613,7 +3613,7 @@ background-repeat: no-repeat;\
 			return -1;
 
 		var oNumPr = oLogicDocument.GetSelectedNum(true);
-		if (!oNumPr || !oNumPr.Lvl)
+		if (!oNumPr || undefined === oNumPr.Lvl || null === oNumPr.Lvl)
 			return -1;
 
 		return oNumPr.Lvl;
