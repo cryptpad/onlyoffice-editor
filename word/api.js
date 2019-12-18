@@ -3708,7 +3708,7 @@ background-repeat: no-repeat;\
 		{
 			oLogicDocument.StartAction(AscDFH.historydescription_Document_ChangeNumLvl);
 
-			if (oAscNumberingLvl instanceof CAscNumberingLvl)
+			if (oAscNumberingLvl instanceof Asc.CAscNumberingLvl)
 			{
 				var oNumberingLvl = new CNumberingLvl();
 				oNumberingLvl.FillFromAscNumberingLvl(oAscNumberingLvl);
