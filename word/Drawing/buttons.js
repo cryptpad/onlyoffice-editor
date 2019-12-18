@@ -726,6 +726,9 @@
 
     function CContentControlTrack(parent, obj, state, geom)
     {
+        if (window["NATIVE_EDITOR_ENJINE"])
+            return;
+
         // contentControls
         this.parent = parent;
 
