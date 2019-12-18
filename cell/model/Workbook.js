@@ -12231,13 +12231,13 @@
 
 		var tempRange = this.worksheet.getRange3(oBBox.r1, oBBox.c1, oBBox.r2, oBBox.c2);
 		var func = opt_by_row ? tempRange._foreachNoEmptyByCol : tempRange._foreachNoEmpty;
-		func.apply(tempRange, (function (cell) {
+		func.apply(tempRange, [(function (cell) {
 			var ws = t.worksheet;
 			var formula = cell.getFormulaParsed();
 			if (formula) {
 				var cellWithFormula = formula.getParent();
-				var nTo = oSortedIndexes[nFrom];
 				var nFrom = opt_by_row ? cell.nCol : cell.nRow;
+				var nTo = oSortedIndexes[nFrom];
 				if (null != nTo) {
 					if (opt_by_row) {
 						cell.changeOffset(new AscCommon.CellBase(0, nTo - nFrom), true, true);
@@ -12254,7 +12254,7 @@
 				}
 				ws.workbook.dependencyFormulas.addToChangedCell(cellWithFormula);
 			}
-		}));
+		})]);
 
 
 		var tempSheetMemory, nIndexFrom, nIndexTo, j;
