@@ -10218,8 +10218,10 @@ CTable.prototype.AddTableColumn = function(bBefore)
 	this.private_RecalculateGrid();
 	this.Internal_Recalculate_1();
 };
-CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPage, drawMode)
+CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPageStart, CurPageEnd, drawMode)
 {
+	var CurPage = CurPageStart;
+
 	this.RemoveSelection(); // сбрасываем выделение
 
 	// Приводим к координатам таблицы

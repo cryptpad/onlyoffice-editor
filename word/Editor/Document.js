@@ -20905,13 +20905,12 @@ CDocument.prototype.DrawTable = function()
 			CheckType : AscCommon.changestype_Table_Properties
 		}))
 	{
-		// TODO: Нужно учесть колонки
-
 		var oTable          = this.DrawTableMode.Table;
-		var nTablePageIndex = oTable.Parent.private_GetElementPageIndex(oTable.GetIndex(), this.DrawTableMode.Page, 0, 1);
+		var nTablePageStart = oTable.Parent.private_GetElementPageIndexByXY(oTable.GetIndex(), this.DrawTableMode.StartX, this.DrawTableMode.StartY, this.DrawTableMode.Page);
+		var nTablePageEnd   = oTable.Parent.private_GetElementPageIndexByXY(oTable.GetIndex(), this.DrawTableMode.EndX, this.DrawTableMode.EndY, this.DrawTableMode.Page);
 
 		this.StartAction();
-		oTable.DrawTableCells(this.DrawTableMode.StartX, this.DrawTableMode.StartY, this.DrawTableMode.EndX, this.DrawTableMode.EndY, nTablePageIndex, this.DrawTableMode.Draw);
+		oTable.DrawTableCells(this.DrawTableMode.StartX, this.DrawTableMode.StartY, this.DrawTableMode.EndX, this.DrawTableMode.EndY, nTablePageStart, nTablePageEnd, this.DrawTableMode.Draw);
 
 		if (oTable.GetRowsCount() <= 0 && oTable.GetParent())
 		{
