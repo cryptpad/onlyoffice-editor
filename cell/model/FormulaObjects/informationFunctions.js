@@ -52,8 +52,112 @@
 	var cElementType = AscCommonExcel.cElementType;
 
 	cFormulaFunctionGroup['Information'] = cFormulaFunctionGroup['Information'] || [];
-	cFormulaFunctionGroup['Information'].push(cERROR_TYPE, cISBLANK, cISERR, cISERROR, cISEVEN, cISFORMULA, cISLOGICAL,
+	cFormulaFunctionGroup['Information'].push(/*cCell , */cERROR_TYPE, cISBLANK, cISERR, cISERROR, cISEVEN, cISFORMULA, cISLOGICAL,
 		cISNA, cISNONTEXT, cISNUMBER, cISODD, cISREF, cISTEXT, cN, cNA, cSHEET, cSHEETS, cTYPE);
+
+
+	/**
+	 * @constructor
+	 * @extends {AscCommonExcel.cBaseFunction}
+	 */
+	function cCell() {
+	}
+
+	//***array-formula***
+	cCell.prototype = Object.create(cBaseFunction.prototype);
+	cCell.prototype.constructor = cCell;
+	cCell.prototype.name = 'CELL';
+	cCell.prototype.argumentsMin = 1;
+	cCell.prototype.argumentsMax = 2;
+	cCell.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.area_to_ref;
+	cCell.prototype.Calculate = function (arg) {
+		var arg0 = arg[0];
+		var arg1 = arg[1];
+		arg0 = arg0.tocString();
+
+		if (arg0 instanceof cError) {
+			return arg0;
+		} else {
+			var str = arg0.toString().toUpperCase();
+
+			var cell, bbox;
+			if(arg1) {
+				if (cElementType.cell === arg1.type || cElementType.cell3D === arg1.type ||
+					cElementType.cellsRange === arg1.type || cElementType.cellsRange3D === arg1.type) {
+					bbox = arg1.getRange();
+					bbox = bbox && bbox.bbox;
+				} else {
+					return new cError(cErrorType.wrong_name);
+				}
+			}
+
+			var res;
+			switch (str) {
+				case "COL": {
+					res = new cNumber(bbox.c1 + 1);
+					break;
+				}
+				case "ROW": {
+					res = new cNumber(bbox.r1 + 1);
+					break;
+				}
+				case "SHEET": {
+					//ms excel returns 1?
+					res = new cNumber(1);
+					break;
+				}
+				case "ADDRESS": {
+					res = new Asc.Range(bbox.c1, bbox.r1, bbox.c1, bbox.r1);
+					res = new cString(res.getName());
+					break;
+				}
+				case "FILENAME": {
+					res = new cEmpty();
+					break;
+				}
+				case "COORD": {
+
+					break;
+				}
+				case "CONTENTS": {
+
+					break;
+				}
+				case "TYPE": {
+
+					break;
+				}
+				case "WIDTH": {
+
+					break;
+				}
+				case "PREFIX": {
+
+					break;
+				}
+				case "PROTECT": {
+
+					break;
+				}
+				case "FORMAT": {
+
+					break
+				}
+				case "COLOR": {
+
+					break
+				}
+				case "PARENTHESES": {
+					break
+				}
+				default: {
+					return new cError(cErrorType.wrong_value_type);
+				}
+			}
+
+			return res ? res : new cError(cErrorType.wrong_value_type);
+		}
+	};
 
 	/**
 	 * @constructor

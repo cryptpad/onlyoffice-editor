@@ -18733,8 +18733,6 @@
 			lockChangeHeaders = true;
 			lockChangeOrientation = true;
 		} else {
-			var type = selection.getType();
-
 			if(bExpand) {
 				selection = tryExpandRange ? tryExpandRange : t.model.autoFilters.expandRange(selection, true);
 			}
