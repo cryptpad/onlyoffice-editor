@@ -14245,6 +14245,9 @@ CDocument.prototype.AddContentControlCheckBox = function(oPr)
 
 	var oTextPr = this.GetDirectTextPr();
 	var oCC = this.AddContentControl(c_oAscSdtLevelType.Inline);
+	if (!oCC)
+		return;
+
 	oCC.ApplyCheckBoxPr(oPr, oTextPr);
 	return oCC;
 };
@@ -14257,6 +14260,9 @@ CDocument.prototype.AddContentControlPicture = function()
 	this.RemoveTextSelection();
 
 	var oCC = this.AddContentControl(c_oAscSdtLevelType.Inline);
+	if (!oCC)
+		return null;
+
 	oCC.ApplyPicturePr(true);
 	return oCC;
 };
@@ -14275,6 +14281,9 @@ CDocument.prototype.AddContentControlComboBox = function(oPr)
 	}
 
 	var oCC = this.AddContentControl(c_oAscSdtLevelType.Inline);
+	if (!oCC)
+		return null;
+
 	oCC.ApplyComboBoxPr(oPr);
 	return oCC;
 };
@@ -14293,6 +14302,9 @@ CDocument.prototype.AddContentControlDropDownList = function(oPr)
 	}
 
 	var oCC = this.AddContentControl(c_oAscSdtLevelType.Inline);
+	if (!oCC)
+		return null;
+
 	oCC.ApplyDropDownListPr(oPr);
 	return oCC;
 };
@@ -14308,6 +14320,9 @@ CDocument.prototype.AddContentControlDatePicker = function(oPr)
 		oPr = new CSdtDatePickerPr();
 
 	var oCC = this.AddContentControl(c_oAscSdtLevelType.Inline);
+	if (!oCC)
+		return null;
+
 	oCC.ApplyDatePickerPr(oPr);
 	return oCC;
 };
@@ -19670,7 +19685,7 @@ CDocument.prototype.AddTableOfContents = function(sHeading, oPr, oSdt)
 		else
 		{
 			this.Remove(1, true, true, true);
-			var oSdt = this.AddContentControl(c_oAscSdtLevelType.Block);
+			oSdt = this.AddContentControl(c_oAscSdtLevelType.Block);
 
 			if (sHeading)
 			{
