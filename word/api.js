@@ -3708,9 +3708,21 @@ background-repeat: no-repeat;\
 		{
 			oLogicDocument.StartAction(AscDFH.historydescription_Document_ChangeNumLvl);
 
-			var oNumberingLvl = new CNumberingLvl();
-			oNumberingLvl.FillFromAscNumberingLvl(oAscNumberingLvl);
-			oNum.SetLvl(oNumberingLvl, nLvl);
+			if (oAscNumberingLvl instanceof CAscNumberingLvl)
+			{
+				var oNumberingLvl = new CNumberingLvl();
+				oNumberingLvl.FillFromAscNumberingLvl(oAscNumberingLvl);
+				oNum.SetLvl(oNumberingLvl, nLvl);
+			}
+			else if (undefined !== oAscNumberingLvl.length && oAscNumberingLvl.length === nLvl.length)
+			{
+				for (var nIndex = 0, nCount = oAscNumberingLvl.length; nIndex < nCount; ++nIndex)
+				{
+					var oNumberingLvl = new CNumberingLvl();
+					oNumberingLvl.FillFromAscNumberingLvl(oAscNumberingLvl[nIndex]);
+					oNum.SetLvl(oNumberingLvl, nLvl[nIndex]);
+				}
+			}
 
 			oLogicDocument.Recalculate();
 			oLogicDocument.UpdateInterface();
