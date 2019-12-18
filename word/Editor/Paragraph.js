@@ -14855,8 +14855,12 @@ Paragraph.prototype.SaveSelectionState = function()
  */
 Paragraph.prototype.LoadSelectionState = function(oState)
 {
+	this.RemoveSelection();
+
 	this.Set_ParaContentPos(oState.ContentPos, false, -1, -1, false);
-	this.Set_SelectionContentPos(oState.StartPos, oState.EndPos, false);
+
+	if (oState.Selection.Use)
+		this.Set_SelectionContentPos(oState.StartPos, oState.EndPos, false);
 
 	this.Selection.Use           = oState.Selection.Use;
 	this.Selection.Start         = oState.Selection.Start;
