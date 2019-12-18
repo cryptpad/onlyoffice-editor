@@ -6803,6 +6803,11 @@ function CDrawingDocument()
 			var right = props.Right;
 			var bottom = props.Bottom;
 
+			if (left < 0) left = -left;
+            if (top < 0) top = -top;
+            if (right < 0) right = -right;
+            if (bottom < 0) bottom = -bottom;
+
 			if (0 == page && isMirror)
 			{
 				var tmp = left;
