@@ -13388,17 +13388,36 @@ CTextPr.prototype.SetColor = function(nR, nG, nB, isAuto)
 };
 CTextPr.prototype.GetAscColor = function()
 {
-	if (this.Color)
+	if (this.Unifill && this.Unifill.fill && this.Unifill.fill.type === Asc.c_oAscFill.FILL_TYPE_SOLID && this.Unifill.fill.color)
+	{
+		return AscCommon.CreateAscColor(this.Unifill.fill.color);
+	}
+	else if (this.Color)
+	{
 		return AscCommon.CreateAscColorCustom(this.Color.r, this.Color.g, this.Color.b, this.Color.Auto);
+	}
 
 	return undefined;
 };
 CTextPr.prototype.SetAscColor = function(oAscColor)
 {
-	if (oAscColor)
-		this.Color = new CDocumentColor(oAscColor.r, oAscColor.g, oAscColor.b, oAscColor.Auto);
+	if (!oAscColor)
+	{
+		this.Color   = undefined;
+		this.Unifill = undefined;
+	}
+	else if (true === oAscColor.Auto)
+	{
+		this.Color   = new CDocumentColor(0, 0, 0, true);
+		this.Unifill = undefined;
+	}
 	else
-		this.Color = undefined;
+	{
+		this.Color              = undefined;
+		this.Unifill            = new AscFormat.CUniFill();
+		this.Unifill.fill       = new AscFormat.CSolidFill();
+		this.Unifill.fill.color = AscFormat.CorrectUniColor(oAscColor, this.Unifill.fill.color, 1);
+	}
 };
 CTextPr.prototype.GetVertAlign = function()
 {
