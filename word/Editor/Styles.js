@@ -13417,6 +13417,11 @@ CTextPr.prototype.SetAscColor = function(oAscColor)
 		this.Unifill            = new AscFormat.CUniFill();
 		this.Unifill.fill       = new AscFormat.CSolidFill();
 		this.Unifill.fill.color = AscFormat.CorrectUniColor(oAscColor, this.Unifill.fill.color, 1);
+
+		var oLogicDocument = editor && editor.private_GetLogicDocument() ? editor.private_GetLogicDocument() : null;
+		if (oLogicDocument)
+			this.Unifill.check(oLogicDocument.GetTheme(), oLogicDocument.GetColorMap());
+
 	}
 };
 CTextPr.prototype.GetVertAlign = function()

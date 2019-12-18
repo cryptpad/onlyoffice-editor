@@ -2412,9 +2412,17 @@ CDocument.prototype.Get_Theme                      = function()
 {
     return this.theme;
 };
+CDocument.prototype.GetTheme = function()
+{
+	return this.Get_Theme();
+};
 CDocument.prototype.Get_ColorMap                   = function()
 {
     return this.clrSchemeMap;
+};
+CDocument.prototype.GetColorMap = function()
+{
+	return this.Get_ColorMap();
 };
 /**
  * Начинаем новое действие, связанное с изменением документа
