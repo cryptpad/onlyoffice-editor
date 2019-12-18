@@ -13386,6 +13386,20 @@ CTextPr.prototype.SetColor = function(nR, nG, nB, isAuto)
 	else
 		this.Color = new CDocumentColor(nR, nG, nB, isAuto);
 };
+CTextPr.prototype.GetAscColor = function()
+{
+	if (this.Color)
+		return AscCommon.CreateAscColorCustom(this.Color.r, this.Color.g, this.Color.b, this.Color.Auto);
+
+	return undefined;
+};
+CTextPr.prototype.SetAscColor = function(oAscColor)
+{
+	if (oAscColor)
+		this.Color = new CDocumentColor(oAscColor.r, oAscColor.g, oAscColor.b, oAscColor.Auto);
+	else
+		this.Color = undefined;
+};
 CTextPr.prototype.GetVertAlign = function()
 {
     return this.VertAlign;
@@ -13727,8 +13741,8 @@ CTextPr.prototype['get_Strikeout']  = CTextPr.prototype.get_Strikeout  = CTextPr
 CTextPr.prototype['put_Strikeout']  = CTextPr.prototype.put_Strikeout  = CTextPr.prototype.SetStrikeout;
 CTextPr.prototype['get_Underline']  = CTextPr.prototype.get_Underline  = CTextPr.prototype['Get_Underline']  = CTextPr.prototype.GetUnderline;
 CTextPr.prototype['put_Underline']  = CTextPr.prototype.put_Underline  = CTextPr.prototype.SetUnderline;
-CTextPr.prototype['get_Color']      = CTextPr.prototype.get_Color      = CTextPr.prototype['Get_Color']      = CTextPr.prototype.GetColor;
-CTextPr.prototype['put_Color']      = CTextPr.prototype.put_Color      = CTextPr.prototype.SetColor;
+CTextPr.prototype['get_Color']      = CTextPr.prototype.get_Color      = CTextPr.prototype['Get_Color']      = CTextPr.prototype.GetAscColor;
+CTextPr.prototype['put_Color']      = CTextPr.prototype.put_Color      = CTextPr.prototype.SetAscColor;
 CTextPr.prototype['get_VertAlign']  = CTextPr.prototype.get_VertAlign  = CTextPr.prototype['Get_VertAlign']  = CTextPr.prototype.GetVertAlign;
 CTextPr.prototype['put_VertAlign']  = CTextPr.prototype.put_VertAlign  = CTextPr.prototype.SetVertAlign;
 CTextPr.prototype['get_Highlight']  = CTextPr.prototype.get_Highlight  = CTextPr.prototype['Get_Highlight']  = CTextPr.prototype.GetHighlight;
