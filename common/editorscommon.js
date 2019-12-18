@@ -3774,37 +3774,47 @@
 		for(var i = 0; i <  AscCommon.g_oUserColorScheme.length; ++i)
 		{
 			var tmp = AscCommon.g_oUserColorScheme[i];
-			if(tmp.name === sName)
+			if(tmp && tmp.name === sName)
 			{
-				var scheme = new AscFormat.ClrScheme(), _c;
-				scheme.name = tmp.name;
-
-				_c = tmp.get_dk1();
-				scheme.colors[8] = AscFormat.CreateUniColorRGB(_c.r, _c.g, _c.b);
-				_c = tmp.get_lt1();
-				scheme.colors[12] = AscFormat.CreateUniColorRGB(_c.r, _c.g, _c.b);
-				_c = tmp.get_dk2();
-				scheme.colors[9] = AscFormat.CreateUniColorRGB(_c.r, _c.g, _c.b);
-				_c = tmp.get_lt2();
-				scheme.colors[13] = AscFormat.CreateUniColorRGB(_c.r, _c.g, _c.b);
-				_c = tmp.get_accent1();
-				scheme.colors[0] = AscFormat.CreateUniColorRGB(_c.r, _c.g, _c.b);
-				_c = tmp.get_accent2();
-				scheme.colors[1] = AscFormat.CreateUniColorRGB(_c.r, _c.g, _c.b);
-				_c = tmp.get_accent3();
-				scheme.colors[2] = AscFormat.CreateUniColorRGB(_c.r, _c.g, _c.b);
-				_c = tmp.get_accent4();
-				scheme.colors[3] = AscFormat.CreateUniColorRGB(_c.r, _c.g, _c.b);
-				_c = tmp.get_accent5();
-				scheme.colors[4] = AscFormat.CreateUniColorRGB(_c.r, _c.g, _c.b);
-				_c = tmp.get_accent6();
-				scheme.colors[5] = AscFormat.CreateUniColorRGB(_c.r, _c.g, _c.b);
-				_c = tmp.get_hlink();
-				scheme.colors[11] = AscFormat.CreateUniColorRGB(_c.r, _c.g, _c.b);
-				_c = tmp.get_folHlink();
-				scheme.colors[10] = AscFormat.CreateUniColorRGB(_c.r, _c.g, _c.b);
-				return scheme;
+				return getColorSchemeByIdx(i);
 			}
+		}
+		return null;
+	}
+
+
+	function getColorSchemeByIdx(idx) {
+		var tmp = AscCommon.g_oUserColorScheme[idx];
+		if(tmp)
+		{
+			var scheme = new AscFormat.ClrScheme(), _c;
+			scheme.name = tmp.name;
+
+			_c = tmp.get_dk1();
+			scheme.colors[8] = AscFormat.CreateUniColorRGB(_c.r, _c.g, _c.b);
+			_c = tmp.get_lt1();
+			scheme.colors[12] = AscFormat.CreateUniColorRGB(_c.r, _c.g, _c.b);
+			_c = tmp.get_dk2();
+			scheme.colors[9] = AscFormat.CreateUniColorRGB(_c.r, _c.g, _c.b);
+			_c = tmp.get_lt2();
+			scheme.colors[13] = AscFormat.CreateUniColorRGB(_c.r, _c.g, _c.b);
+			_c = tmp.get_accent1();
+			scheme.colors[0] = AscFormat.CreateUniColorRGB(_c.r, _c.g, _c.b);
+			_c = tmp.get_accent2();
+			scheme.colors[1] = AscFormat.CreateUniColorRGB(_c.r, _c.g, _c.b);
+			_c = tmp.get_accent3();
+			scheme.colors[2] = AscFormat.CreateUniColorRGB(_c.r, _c.g, _c.b);
+			_c = tmp.get_accent4();
+			scheme.colors[3] = AscFormat.CreateUniColorRGB(_c.r, _c.g, _c.b);
+			_c = tmp.get_accent5();
+			scheme.colors[4] = AscFormat.CreateUniColorRGB(_c.r, _c.g, _c.b);
+			_c = tmp.get_accent6();
+			scheme.colors[5] = AscFormat.CreateUniColorRGB(_c.r, _c.g, _c.b);
+			_c = tmp.get_hlink();
+			scheme.colors[11] = AscFormat.CreateUniColorRGB(_c.r, _c.g, _c.b);
+			_c = tmp.get_folHlink();
+			scheme.colors[10] = AscFormat.CreateUniColorRGB(_c.r, _c.g, _c.b);
+			return scheme;
 		}
 		return null;
 	}
@@ -3816,56 +3826,79 @@
 		var elem, _c;
 		var _rgba = {R: 0, G: 0, B: 0, A: 255};
 		elem = new AscCommon.CAscColorScheme();
+		elem.scheme = _scheme;
 		elem.name = _scheme.name;
 
 		_scheme.colors[8].Calculate(theme, null, null, null, _rgba);
 		_c = _scheme.colors[8].RGBA;
-		elem.colors.push(new AscCommon.CColor(_c.R, _c.G, _c.B));
+		elem.putColor(new AscCommon.CColor(_c.R, _c.G, _c.B));
 
 		_scheme.colors[12].Calculate(theme, null, null, null, _rgba);
 		_c = _scheme.colors[12].RGBA;
-		elem.colors.push(new AscCommon.CColor(_c.R, _c.G, _c.B));
+		elem.putColor(new AscCommon.CColor(_c.R, _c.G, _c.B));
 
 		_scheme.colors[9].Calculate(theme, null, null, null, _rgba);
 		_c = _scheme.colors[9].RGBA;
-		elem.colors.push(new AscCommon.CColor(_c.R, _c.G, _c.B));
+		elem.putColor(new AscCommon.CColor(_c.R, _c.G, _c.B));
 
 		_scheme.colors[13].Calculate(theme, null, null, null, _rgba);
 		_c = _scheme.colors[13].RGBA;
-		elem.colors.push(new AscCommon.CColor(_c.R, _c.G, _c.B));
+		elem.putColor(new AscCommon.CColor(_c.R, _c.G, _c.B));
 
 		_scheme.colors[0].Calculate(theme, null, null, null, _rgba);
 		_c = _scheme.colors[0].RGBA;
-		elem.colors.push(new AscCommon.CColor(_c.R, _c.G, _c.B));
+		elem.putColor(new AscCommon.CColor(_c.R, _c.G, _c.B));
 
 		_scheme.colors[1].Calculate(theme, null, null, null, _rgba);
 		_c = _scheme.colors[1].RGBA;
-		elem.colors.push(new AscCommon.CColor(_c.R, _c.G, _c.B));
+		elem.putColor(new AscCommon.CColor(_c.R, _c.G, _c.B));
 
 		_scheme.colors[2].Calculate(theme, null, null, null, _rgba);
 		_c = _scheme.colors[2].RGBA;
-		elem.colors.push(new AscCommon.CColor(_c.R, _c.G, _c.B));
+		elem.putColor(new AscCommon.CColor(_c.R, _c.G, _c.B));
 
 		_scheme.colors[3].Calculate(theme, null, null, null, _rgba);
 		_c = _scheme.colors[3].RGBA;
-		elem.colors.push(new AscCommon.CColor(_c.R, _c.G, _c.B));
+		elem.putColor(new AscCommon.CColor(_c.R, _c.G, _c.B));
 
 		_scheme.colors[4].Calculate(theme, null, null, null, _rgba);
 		_c = _scheme.colors[4].RGBA;
-		elem.colors.push(new AscCommon.CColor(_c.R, _c.G, _c.B));
+		elem.putColor(new AscCommon.CColor(_c.R, _c.G, _c.B));
 
 		_scheme.colors[5].Calculate(theme, null, null, null, _rgba);
 		_c = _scheme.colors[5].RGBA;
-		elem.colors.push(new AscCommon.CColor(_c.R, _c.G, _c.B));
+		elem.putColor(new AscCommon.CColor(_c.R, _c.G, _c.B));
 
 		_scheme.colors[11].Calculate(theme, null, null, null, _rgba);
 		_c = _scheme.colors[11].RGBA;
-		elem.colors.push(new AscCommon.CColor(_c.R, _c.G, _c.B));
+		elem.putColor(new AscCommon.CColor(_c.R, _c.G, _c.B));
 
 		_scheme.colors[10].Calculate(theme, null, null, null, _rgba);
 		_c = _scheme.colors[10].RGBA;
-		elem.colors.push(new AscCommon.CColor(_c.R, _c.G, _c.B));
+		elem.putColor(new AscCommon.CColor(_c.R, _c.G, _c.B));
 		return elem;
+	}
+
+	function getIndexColorSchemeInArray(result, asc_color_scheme) {
+		for(var j = 0; j < result.length; ++j) {
+			if(result[j].isEqual(asc_color_scheme)) {
+				return j;
+			}
+		}
+		return -1;
+	}
+
+	function checkAddColorScheme(result, asc_color_scheme, nStartIndex) {
+		var nIndex =  getIndexColorSchemeInArray(result, asc_color_scheme);
+		if(nIndex > -1){
+			return nIndex;
+		}
+		var nStartIndex_ = nStartIndex;
+		if(nStartIndex === null) {
+			nStartIndex_ = result.length;
+		}
+		result.splice(nStartIndex_, 0, asc_color_scheme);
+		return nStartIndex_;
 	}
 
 	function isEastAsianScript(value)
@@ -4964,7 +4997,10 @@
     window["AscCommon"].loadScript = loadScript;
 	window["AscCommon"].getAltGr = getAltGr;
 	window["AscCommon"].getColorSchemeByName = getColorSchemeByName;
+	window["AscCommon"].getColorSchemeByIdx = getColorSchemeByIdx;
 	window["AscCommon"].getAscColorScheme = getAscColorScheme;
+	window["AscCommon"].checkAddColorScheme = checkAddColorScheme;
+	window["AscCommon"].getIndexColorSchemeInArray = getIndexColorSchemeInArray;
 	window["AscCommon"].isEastAsianScript = isEastAsianScript;
 
 	window["AscCommon"].JSZipWrapper = JSZipWrapper;

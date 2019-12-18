@@ -6704,19 +6704,12 @@ background-repeat: no-repeat;\
 	};
 
 
-
-	asc_docs_api.prototype.asc_GetCurrentColorSchemeName            = function()
+	asc_docs_api.prototype.getCurrentTheme = function ()
 	{
 		if (null == this.WordControl.m_oLogicDocument)
-			return "";
+			return null;
 
-		var oTheme = this.WordControl.m_oLogicDocument.theme;
-		var oClrScheme = oTheme && oTheme.themeElements && oTheme.themeElements.clrScheme;
-		if(oClrScheme && typeof oClrScheme.name === "string")
-		{
-			return oClrScheme.name;
-		}
-		return "";
+		return this.WordControl.m_oLogicDocument.theme;
 	};
 
 	asc_docs_api.prototype.ChangeColorScheme            = function(sSchemeName)
@@ -6734,6 +6727,46 @@ background-repeat: no-repeat;\
 		{
 			scheme = theme.getExtraClrScheme(sSchemeName);
 		}
+		if(!scheme)
+		{
+			return;
+		}
+		if (this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_ColorScheme) === false)
+		{
+			this.WordControl.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_ChangeColorScheme);
+			theme.changeColorScheme(scheme);
+			this.WordControl.m_oDrawingDocument.CheckGuiControlColors();
+			this.chartPreviewManager.clearPreviews();
+			this.textArtPreviewManager.clear();
+			this.sendEvent("asc_onUpdateChartStyles");
+			this.WordControl.m_oLogicDocument.Recalculate();
+			this.WordControl.m_oLogicDocument.FinalizeAction();
+
+
+			// TODO:
+			this.WordControl.m_oDrawingDocument.ClearCachePages();
+			this.WordControl.OnScroll();
+
+			this.WordControl.m_oDrawingDocument.CheckGuiControlColors();
+			this.WordControl.m_oLogicDocument.Document_UpdateInterfaceState();
+		}
+
+	};
+	asc_docs_api.prototype.asc_ChangeColorSchemeByIdx            = function(nIdx)
+	{
+		if (null == this.WordControl.m_oLogicDocument)
+			return;
+
+		var _changer = this.WordControl.m_oLogicDocument.DrawingObjects;
+		if (null == _changer)
+			return;
+
+		var theme = this.getCurrentTheme();
+		if(!theme)
+		{
+			return;
+		}
+		var scheme = this.getColorSchemeByIdx(nIdx);
 		if(!scheme)
 		{
 			return;
@@ -10542,8 +10575,8 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asyncFontsDocumentEndLoaded']               = asc_docs_api.prototype.asyncFontsDocumentEndLoaded;
 	asc_docs_api.prototype['CreateFontsCharMap']                        = asc_docs_api.prototype.CreateFontsCharMap;
 	asc_docs_api.prototype['sync_SendThemeColors']                      = asc_docs_api.prototype.sync_SendThemeColors;
-	asc_docs_api.prototype['asc_GetCurrentColorSchemeName']             = asc_docs_api.prototype.asc_GetCurrentColorSchemeName;
 	asc_docs_api.prototype['ChangeColorScheme']                         = asc_docs_api.prototype.ChangeColorScheme;
+	asc_docs_api.prototype['asc_ChangeColorSchemeByIdx']                = asc_docs_api.prototype.asc_ChangeColorSchemeByIdx;
 	asc_docs_api.prototype['UpdateInterfaceState']                      = asc_docs_api.prototype.UpdateInterfaceState;
 	asc_docs_api.prototype['asyncFontEndLoaded']                        = asc_docs_api.prototype.asyncFontEndLoaded;
 	asc_docs_api.prototype['asyncImageEndLoaded']                       = asc_docs_api.prototype.asyncImageEndLoaded;

@@ -2978,7 +2978,21 @@
 		//не делаем Duplicate потому что предполагаем что схема не будет менять частями, а только обьектом целиком.
 		History.Add(AscCommonExcel.g_oUndoRedoWorkbook, AscCH.historyitem_Workbook_ChangeColorScheme, null,
 			null, new AscCommonExcel.UndoRedoData_ClrScheme(this.theme.themeElements.clrScheme, scheme));
-		this.theme.themeElements.clrScheme = scheme;
+		this.theme.changeColorScheme(scheme);
+		this.rebuildColors();
+		return true;
+	};
+	Workbook.prototype.changeColorSchemeByIdx = function (nIdx) {
+
+		var scheme = this.oApi.getColorSchemeByIdx(nIdx);
+		if(!scheme) {
+			return;
+		}
+		History.Create_NewPoint();
+		//не делаем Duplicate потому что предполагаем что схема не будет менять частями, а только обьектом целиком.
+		History.Add(AscCommonExcel.g_oUndoRedoWorkbook, AscCH.historyitem_Workbook_ChangeColorScheme, null,
+			null, new AscCommonExcel.UndoRedoData_ClrScheme(this.theme.themeElements.clrScheme, scheme));
+		this.theme.changeColorScheme(scheme);
 		this.rebuildColors();
 		return true;
 	};

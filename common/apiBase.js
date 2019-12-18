@@ -1875,36 +1875,85 @@
 		Obj.Generate2();
 	};
 
+	baseEditorsApi.prototype.getCurrentColorScheme = function()
+	{
+		var oTheme = this.getCurrentTheme();
+		return oTheme && oTheme.themeElements && oTheme.themeElements.clrScheme;
+	};
+
+
 	baseEditorsApi.prototype.asc_GetCurrentColorSchemeName = function()
 	{
+		var oClrScheme = this.getCurrentColorScheme();
+		if(oClrScheme && typeof oClrScheme.name === "string")
+		{
+			return oClrScheme.name;
+		}
 		return "";
 	};
 
-	baseEditorsApi.prototype.sendColorThemes = function (theme) {
+	baseEditorsApi.prototype.asc_GetCurrentColorSchemeIndex = function()
+	{
+		var oTheme = this.getCurrentTheme();
+		if(!oTheme)
+		{
+			return -1;
+		}
+		return this.getColorSchemes(oTheme).index;
+	};
+
+	baseEditorsApi.prototype.getCurrentTheme = function()
+	{
+		return null;
+	};
+
+	baseEditorsApi.prototype.getColorSchemes = function(theme)
+	{
 		var result = AscCommon.g_oUserColorScheme.slice();
 		// theme colors
-		var _extra = theme.extraClrSchemeLst;
-		var _count = _extra.length;
-		var oNameMap = {};
-		var nStartIndex = result.length;
-		for (var i = 0; i < _count; ++i) {
-			var _scheme = _extra[i].clrScheme;
-			if(oNameMap[_scheme.name]) {
-				continue;
-			}
-			oNameMap[_scheme.name] = true;
-            result.push(AscCommon.getAscColorScheme(_scheme, theme));
-		}
+		var asc_color_scheme, _scheme, i;
+		var aCustomSchemes = theme.getExtraAscColorSchemes();
 		_scheme = theme.themeElements && theme.themeElements.clrScheme;
-		if(_scheme)
-		{
-			if(!AscCommon.getColorSchemeByName(_scheme.name) && !oNameMap[_scheme.name])
-			{
-				result.splice(nStartIndex, 0, AscCommon.getAscColorScheme(_scheme, theme));
+		var nIndex = -1;
+		if(_scheme) {
+			asc_color_scheme = AscCommon.getAscColorScheme(_scheme, theme);
+			nIndex = AscCommon.getIndexColorSchemeInArray(result, asc_color_scheme);
+			if(nIndex === -1) {
+				aCustomSchemes.push(asc_color_scheme);
+			}
+			aCustomSchemes.sort(function (a, b) {
+				return a.name > b.name;
+			});
+
+			result = result.concat(aCustomSchemes);
+
+			if(nIndex === -1) {
+				for (i = 0; i < result.length; ++i) {
+					if (result[i] === asc_color_scheme) {
+						nIndex = i;
+						break;
+					}
+				}
 			}
 		}
-		this.sendEvent("asc_onSendThemeColorSchemes", result);
-		return result;
+		return {schemes: result, index: nIndex};
+	};
+
+	baseEditorsApi.prototype.getColorSchemeByIdx = function(nIdx)
+	{
+		var scheme = AscCommon.getColorSchemeByIdx(nIdx);
+		if(!scheme) {
+			var oSchemes = this.getColorSchemes(this.getCurrentTheme());
+			var oAscScheme = oSchemes.schemes[nIdx];
+			scheme = oAscScheme && oAscScheme.scheme;
+		}
+		return scheme;
+	};
+
+
+	baseEditorsApi.prototype.sendColorThemes = function (theme)
+	{
+		this.sendEvent("asc_onSendThemeColorSchemes", this.getColorSchemes(theme).schemes);
 	};
 
 
@@ -2532,5 +2581,7 @@
 	prot['asc_showRevision'] = prot.asc_showRevision;
 	prot['asc_getAdvancedOptions'] = prot.asc_getAdvancedOptions;
 	prot['asc_Print'] = prot.asc_Print;
+	prot['asc_GetCurrentColorSchemeName'] = prot.asc_GetCurrentColorSchemeName;
+	prot['asc_GetCurrentColorSchemeIndex'] = prot.asc_GetCurrentColorSchemeIndex;
 
 })(window);

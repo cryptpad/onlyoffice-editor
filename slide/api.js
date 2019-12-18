@@ -4586,19 +4586,14 @@ background-repeat: no-repeat;\
 		this.sendEvent("asc_onSendThemeColors", colors, standart_colors);
 	};
 
-	asc_docs_api.prototype.asc_GetCurrentColorSchemeName = function()
+	asc_docs_api.prototype.getCurrentTheme = function()
 	{
 		if (null == this.WordControl.m_oLogicDocument)
-			return "";
+			return null;
 
-		var oTheme = this.WordControl.MasterLayouts.Theme;
-		var oClrScheme = oTheme && oTheme.themeElements && oTheme.themeElements.clrScheme;
-		if(oClrScheme && typeof oClrScheme.name === "string")
-		{
-			return oClrScheme.name;
-		}
-		return "";
+		return this.WordControl.MasterLayouts.Theme;
 	};
+
 
 	asc_docs_api.prototype.ChangeColorScheme = function(sSchemeName)
 	{
@@ -4612,6 +4607,16 @@ background-repeat: no-repeat;\
 		}
 		if(!scheme)
 		{
+			return;
+		}
+		this.WordControl.m_oLogicDocument.changeColorScheme(scheme);
+		this.WordControl.m_oDrawingDocument.CheckGuiControlColors();
+	};
+
+	asc_docs_api.prototype.asc_ChangeColorSchemeByIdx = function(nIdx)
+	{
+		var scheme = this.getColorSchemeByIdx(nIdx);
+		if(!scheme) {
 			return;
 		}
 		this.WordControl.m_oLogicDocument.changeColorScheme(scheme);
@@ -7881,8 +7886,8 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['sync_countPagesCallback']             = asc_docs_api.prototype.sync_countPagesCallback;
 	asc_docs_api.prototype['sync_currentPageCallback']            = asc_docs_api.prototype.sync_currentPageCallback;
 	asc_docs_api.prototype['sync_SendThemeColors']                = asc_docs_api.prototype.sync_SendThemeColors;
-	asc_docs_api.prototype['asc_GetCurrentColorSchemeName']       = asc_docs_api.prototype.asc_GetCurrentColorSchemeName;
 	asc_docs_api.prototype['ChangeColorScheme']                   = asc_docs_api.prototype.ChangeColorScheme;
+	asc_docs_api.prototype['asc_ChangeColorSchemeByIdx']          = asc_docs_api.prototype.asc_ChangeColorSchemeByIdx;
 	asc_docs_api.prototype['asc_enableKeyEvents']                 = asc_docs_api.prototype.asc_enableKeyEvents;
 	asc_docs_api.prototype['asc_showComments']                    = asc_docs_api.prototype.asc_showComments;
 	asc_docs_api.prototype['asc_hideComments']                    = asc_docs_api.prototype.asc_hideComments;

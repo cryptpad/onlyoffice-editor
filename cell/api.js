@@ -3843,15 +3843,9 @@ var editor;
     }
   };
 
-  spreadsheet_api.prototype.asc_GetCurrentColorSchemeName = function()
+  spreadsheet_api.prototype.getCurrentTheme = function()
   {
-    var oTheme = this.wbModel && this.wbModel.theme;
-    var oClrScheme = oTheme && oTheme.themeElements && oTheme.themeElements.clrScheme;
-    if(oClrScheme && typeof oClrScheme.name === "string")
-    {
-      return oClrScheme.name;
-    }
-    return "";
+     return this.wbModel && this.wbModel.theme;
   };
 
 	spreadsheet_api.prototype.asc_ChangeColorScheme = function (sSchemeName) {
@@ -3869,6 +3863,24 @@ var editor;
 			sheetId);
 		this.collaborativeEditing.lock([lockInfo], onChangeColorScheme);
 	};
+
+  spreadsheet_api.prototype.asc_ChangeColorSchemeByIdx = function (nIdx) {
+    var t = this;
+    var onChangeColorScheme = function (res) {
+      if (res) {
+        if (t.wbModel.changeColorSchemeByIdx(nIdx)) {
+          t.asc_AfterChangeColorScheme();
+        }
+      }
+    };
+    // ToDo поправить заглушку, сделать новый тип lock element-а
+    var sheetId = -1; // Делаем не существующий лист и не существующий объект
+    var lockInfo = this.collaborativeEditing.getLockInfo(c_oAscLockTypeElem.Object, /*subType*/null, sheetId,
+        sheetId);
+    this.collaborativeEditing.lock([lockInfo], onChangeColorScheme);
+  };
+
+
   spreadsheet_api.prototype.asc_AfterChangeColorScheme = function() {
     this.asc_CheckGuiControlColors();
     this.asc_ApplyColorScheme(true);
@@ -4713,8 +4725,8 @@ var editor;
   prot["asc_calculate"] = prot.asc_calculate;
   prot["asc_setFontRenderingMode"] = prot.asc_setFontRenderingMode;
   prot["asc_setSelectionDialogMode"] = prot.asc_setSelectionDialogMode;
-  prot["asc_GetCurrentColorSchemeName"] = prot.asc_GetCurrentColorSchemeName;
   prot["asc_ChangeColorScheme"] = prot.asc_ChangeColorScheme;
+  prot["asc_ChangeColorSchemeByIdx"] = prot.asc_ChangeColorSchemeByIdx;
   prot["asc_setListType"] = prot.asc_setListType;
   prot["asc_getCurrentListType"] = prot.asc_getCurrentListType;
   /////////////////////////////////////////////////////////////////////////

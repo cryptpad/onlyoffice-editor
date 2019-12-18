@@ -1321,6 +1321,10 @@
 			return (this.r === Color.r && this.g === Color.g && this.b === Color.b && this.a === Color.a);
 		}, Copy: function () {
 			return new CColor(this.r, this.g, this.b, this.a);
+		},
+
+		getVal: function () {
+			return (((this.r << 16) & 0xFF0000) + ((this.g << 8)&0xFF00)+this.b);
 		}
 	};
 
@@ -3236,6 +3240,8 @@
 	function CAscColorScheme() {
 		this.colors = [];
 		this.name = "";
+		this.scheme = null;
+		this.summ = 0;
 	}
 
 	CAscColorScheme.prototype.get_colors = function () {
@@ -3280,6 +3286,27 @@
 	CAscColorScheme.prototype.get_folHlink = function () {
 		return this.colors[11];
 	};
+	CAscColorScheme.prototype.putColor = function (color) {
+		this.colors.push(color);
+		this.summ += color.getVal();
+	};
+	CAscColorScheme.prototype.isEqual = function (oColorScheme) {
+		if(this.summ === oColorScheme.summ)
+		{
+			for(var i = 0; i < this.colors.length; ++i)
+			{
+				var oColor1 = this.colors[i];
+				var oColor2 = oColorScheme.colors[i];
+				if(!(!oColor1 && !oColor2 || oColor2 && oColor2 && oColor1.Compare(oColor2)))
+				{
+					return false;
+				}
+			}
+			return true;
+		}
+		return false;
+	};
+
 
 	//-----------------------------------------------------------------
 	// События движения мыши

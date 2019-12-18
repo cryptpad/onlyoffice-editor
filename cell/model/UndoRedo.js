@@ -1436,11 +1436,8 @@ function (window, undefined) {
 		return UndoRedoDataTypes.ClrScheme;
 	};
 	UndoRedoData_ClrScheme.prototype.Write_ToBinary2 = function (writer) {
-		this.newVal.Write_ToBinary(writer);
 	};
 	UndoRedoData_ClrScheme.prototype.Read_FromBinary2 = function (reader) {
-		this.newVal = new AscFormat.ClrScheme();
-		this.newVal.Read_FromBinary(reader);
 	};
 
 	function UndoRedoData_AutoFilter() {
@@ -1906,11 +1903,6 @@ function (window, undefined) {
 			wb.handlers.trigger("updateWorksheetByModel");
 		} else if (AscCH.historyitem_Workbook_ChangeColorScheme == Type) {
 			bNeedTrigger = false;
-			if (bUndo) {
-				wb.theme.themeElements.clrScheme = Data.oldVal;
-			} else {
-				wb.theme.themeElements.clrScheme = Data.newVal;
-			}
 			wb.rebuildColors();
 			wb.oApi.asc_AfterChangeColorScheme();
 		} else if (AscCH.historyitem_Workbook_DefinedNamesChange === Type ||
