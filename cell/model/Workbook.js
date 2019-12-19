@@ -12088,7 +12088,7 @@
 			});
 			return oCell ? fAddSortElems(oCell, row, col) : null;
 		};
-		caseSensitive = true;
+		
 		putElem = false;
 		if (isSortColor) {
 			var newArrayNeedColor = [];
