@@ -1892,7 +1892,12 @@
                 this.ContentControlObjects.splice(0, 1);
             }
 
-            this.ContentControlObjects.push(new CContentControlTrack(this, obj, state, geom));
+            var isNormal = true;
+            if (Array.isArray(geom) && geom.length === 0)
+                isNormal = false;
+
+            if (isNormal)
+                this.ContentControlObjects.push(new CContentControlTrack(this, obj, state, geom));
 
             if (isActiveRemove)
                 this.document.m_oWordControl.m_oApi.sendEvent("asc_onHideContentControlsActions");
