@@ -364,38 +364,38 @@ ParaRun.prototype.Refresh_ContentChanges = function()
 
 ParaRun.prototype.Get_Text = function(Text)
 {
-    if ( null === Text.Text )
-        return;
+	if (null === Text.Text)
+		return;
 
-    var ContentLen = this.Content.length;
+	var ContentLen = this.Content.length;
 
-    for ( var CurPos = 0; CurPos < ContentLen; CurPos++ )
-    {
-        var Item = this.Content[CurPos];
-        var ItemType = Item.Type;
+	for (var CurPos = 0; CurPos < ContentLen; CurPos++)
+	{
+		var Item     = this.Content[CurPos];
+		var ItemType = Item.Type;
 
-        var bBreak = false;
+		var bBreak = false;
 
-        switch ( ItemType )
-        {
-            case para_Drawing:
-            case para_PageNum:
-            case para_PageCount:
-            {
+		switch (ItemType)
+		{
+			case para_Drawing:
+			case para_PageNum:
+			case para_PageCount:
+			{
 				if (true === Text.BreakOnNonText)
 				{
 					Text.Text = null;
-					bBreak = true;
+					bBreak    = true;
 				}
 
-                break;
-            }
+				break;
+			}
 			case para_End:
 			{
 				if (true === Text.BreakOnNonText)
 				{
 					Text.Text = null;
-					bBreak = true;
+					bBreak    = true;
 				}
 
 				if (true === Text.ParaEndToSpace)
@@ -404,14 +404,23 @@ ParaRun.prototype.Get_Text = function(Text)
 				break;
 			}
 
-            case para_Text : Text.Text += String.fromCharCode(Item.Value); break;
-            case para_Space:
-            case para_Tab  : Text.Text += " "; break;
-        }
+			case para_Text :
+			{
+				Text.Text += String.fromCharCode(Item.Value);
+				break;
+			}
+			case para_Space:
+			case para_NewLine:
+			case para_Tab:
+			{
+				Text.Text += " ";
+				break;
+			}
+		}
 
-        if ( true === bBreak )
-            break;
-    }
+		if (true === bBreak)
+			break;
+	}
 };
 
 /**
