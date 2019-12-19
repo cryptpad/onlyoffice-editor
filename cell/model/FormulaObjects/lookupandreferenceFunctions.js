@@ -177,6 +177,9 @@ function (window, undefined) {
 		refType = refType.getValue();
 		A1RefType = A1RefType.toBool();
 
+		rowNumber = parseInt(rowNumber);
+		colNumber = parseInt(colNumber);
+
 		if (refType > 4 || refType < 1 || rowNumber < 1 || rowNumber > AscCommon.gc_nMaxRow || colNumber < 1 ||
 			colNumber > AscCommon.gc_nMaxCol) {
 			return new cError(cErrorType.wrong_value_type);

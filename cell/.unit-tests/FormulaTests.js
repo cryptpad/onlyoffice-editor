@@ -12803,6 +12803,10 @@ $( function () {
 		ok( oParser.parse(), "ADDRESS(1,7,,,)" );
 		strictEqual( oParser.calculate().getValue(), "$G$1", "ADDRESS(1,7,,,)");
 
+		oParser = new parserFormula( "ADDRESS(2.123,3.3213,2)", "A2", ws );
+		ok( oParser.parse(), "ADDRESS(2.123,3.3213,2)" );
+		strictEqual( oParser.calculate().getValue(), "C$2", "ADDRESS(2.123,3.3213,2)");
+
 		testArrayFormula2("ADDRESS", 2, 5);
 	} );
 
