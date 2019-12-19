@@ -894,16 +894,24 @@ CDocumentPageSection.prototype.Calculate_BottomLine = function(isIncrease)
 {
     if (0 === this.IterationsCount)
     {
-        var SumHeight = 0;
-        for (var ColumnIndex = 0, ColumnsCount = this.Columns.length; ColumnIndex < ColumnsCount; ++ColumnIndex)
-        {
-            if (true !== this.Columns[ColumnIndex].Empty)
-            {
-                SumHeight += this.Columns[ColumnIndex].Bounds.Bottom - this.Y;
-            }
-        }
+		// Пытаемся заранее спрогнозировать позицию, где должно быть разделение. Учитывая, что колонки могут быть разной
+		// ширины, мы расчитываем суммарную занимаемую текстом область. Делим ее по колонкам, с учетом их суммарной
+		// ширины. И закладываемся на ошибку в расчете в 20%, поэтому коэффициент 0.8
 
-        this.CurrentY = this.Y + SumHeight / ColumnsCount;
+		var nSumArea = 0, nSumWidth = 0;
+		for (var nColumnIndex = 0, nColumnsCount = this.Columns.length; nColumnIndex < nColumnsCount; ++nColumnIndex)
+		{
+			var oColumn = this.Columns[nColumnIndex];
+			if (true !== oColumn.Empty)
+				nSumArea += (oColumn.Bounds.Bottom - this.Y) * (oColumn.XLimit - oColumn.X);
+
+			nSumWidth += oColumn.XLimit - oColumn.X;
+		}
+
+		if (nSumWidth > 0.001)
+			this.CurrentY = this.Y + 0.8 * nSumArea / nSumWidth;
+		else
+			this.CurrentY = this.Y;
     }
     else
     {
