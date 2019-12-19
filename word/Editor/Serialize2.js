@@ -1031,7 +1031,10 @@ var c_oSerCompat = {
 	CompatSetting: 0,
 	CompatName: 1,
 	CompatUri: 2,
-	CompatValue: 3
+	CompatValue: 3,
+	Flags1: 4,
+	Flags2: 5,
+	Flags3: 6
 };
 var ETblStyleOverrideType = {
 	tblstyleoverridetypeBand1Horz:  0,
@@ -6434,6 +6437,11 @@ function BinarySettingsTableWriter(memory, doc, saveParams)
 		this.bs.WriteItem(c_oSerCompat.CompatSetting, function() {oThis.WriteCompatSetting("overrideTableStyleFontSizeAndJustification", "http://schemas.microsoft.com/office/word", "1");});
 		this.bs.WriteItem(c_oSerCompat.CompatSetting, function() {oThis.WriteCompatSetting("enableOpenTypeFeatures", "http://schemas.microsoft.com/office/word", "1");});
 		this.bs.WriteItem(c_oSerCompat.CompatSetting, function() {oThis.WriteCompatSetting("doNotFlipMirrorIndents", "http://schemas.microsoft.com/office/word", "1");});
+		var flags2 = 0;
+		if (this.saveParams.isCompatible) {
+			flags2 |= (oThis.Document.IsSplitPageBreakAndParaMark() ? 1 : 0) << 27;
+		}
+		this.bs.WriteItem(c_oSerCompat.Flags2, function() {oThis.memory.WriteULong(flags2);});
 	};
 	this.WriteCompatSetting = function(name, uri, value)
 	{
@@ -7514,6 +7522,10 @@ function BinaryFileReader(doc, openParams)
 		if (null !== this.oReadResult.compatibilityMode) {
 			this.Document.Settings.CompatibilityMode = this.oReadResult.compatibilityMode;
 		}
+		if (this.oReadResult.SplitPageBreakAndParaMark) {
+			this.Document.Settings.SplitPageBreakAndParaMark = this.oReadResult.SplitPageBreakAndParaMark;
+		}
+
         this.Document.On_EndLoad();
 		//чтобы удалялся stream с бинарником
 		pptx_content_loader.Clear(true);
@@ -15778,8 +15790,10 @@ function Binary_SettingsTableReader(doc, oReadResult, stream)
 			if ("compatibilityMode" === compat.name && "http://schemas.microsoft.com/office/word" === compat.url) {
 				this.oReadResult.compatibilityMode = parseInt(compat.value);
 			}
-		}
-		else
+		} else if (c_oSerCompat.Flags2 === type) {
+			var flags2 = this.stream.GetULong(length);
+			this.oReadResult.SplitPageBreakAndParaMark = 0 != ((flags2 >> 27) & 1);
+		} else
 			res = c_oSerConstants.ReadUnknown;
 		return res;
 	};
@@ -16169,6 +16183,7 @@ function DocReadResult(doc) {
 	this.Application;
 	this.AppVersion;
 	this.compatibilityMode = null;
+	this.SplitPageBreakAndParaMark = false;
 	this.bdtr = null;
 	this.runsToSplit = [];
 	this.bCopyPaste = false;
