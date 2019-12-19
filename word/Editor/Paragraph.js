@@ -5848,6 +5848,22 @@ Paragraph.prototype.MoveCursorToStartPos = function(AddToSelect)
 		}
 	}
 };
+Paragraph.prototype.SkipPageColumnBreaks = function()
+{
+	if (this.Selection.Use)
+		return;
+
+	var oRunItem = this.GetNextRunElement();
+	while (oRunItem && para_NewLine === oRunItem.Type && oRunItem.IsPageOrColumnBreak())
+	{
+		this.MoveCursorRight();
+		var oNextRunItem = this.GetNextRunElement();
+		if (oNextRunItem === oRunItem)
+			return;
+
+		oRunItem = oNextRunItem;
+	}
+};
 Paragraph.prototype.MoveCursorToEndPos = function(AddToSelect, StartSelectFromEnd)
 {
 	if (true === AddToSelect)
