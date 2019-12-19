@@ -3382,7 +3382,12 @@ function CEditorPage(api)
 			return false;
 
 		if (this.m_oApi.isReporterMode)
-			return false;
+		{
+			this.m_oEditor.HtmlElement.style.display = 'none';
+            this.m_oOverlay.HtmlElement.style.display = 'none';
+			this.m_oScrollHor.HtmlElement.style.display = 'none';
+            return false;
+        }
 
 		this.m_bIsHorScrollVisible = this.checkNeedHorScrollValue(this.m_dDocumentWidth);
 
