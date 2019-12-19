@@ -556,9 +556,26 @@ CInlineLevelSdt.prototype.Apply_TextPr = function(TextPr, IncFontSize, ApplyToAl
 {
 	if (this.IsPlaceHolder() || ApplyToAll || this.IsSelectedAll())
 	{
-		var oTempTextPr = this.Pr.TextPr.Copy();
-		oTempTextPr.Merge(TextPr);
-		this.SetDefaultTextPr(oTempTextPr);
+		if (undefined !== IncFontSize)
+		{
+			var oCompiledTextPr = this.Get_CompiledTextPr(false);
+			if (oCompiledTextPr)
+			{
+				var oNewTextPr = new CTextPr();
+				oNewTextPr.FontSize   = FontSize_IncreaseDecreaseValue(IncFontSize, oCompiledTextPr.FontSize);
+				oNewTextPr.FontSizeCS = FontSize_IncreaseDecreaseValue(IncFontSize, oCompiledTextPr.FontSizeCS);
+
+				var oTempTextPr = this.Pr.TextPr.Copy();
+				oTempTextPr.Merge(oNewTextPr);
+				this.SetDefaultTextPr(oTempTextPr);
+			}
+		}
+		else
+		{
+			var oTempTextPr = this.Pr.TextPr.Copy();
+			oTempTextPr.Merge(TextPr);
+			this.SetDefaultTextPr(oTempTextPr);
+		}
 	}
 
 	if (this.IsDropDownList() || this.IsComboBox())
