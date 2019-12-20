@@ -8777,6 +8777,20 @@ Paragraph.prototype.Get_CompiledPr = function()
 			NextEl = NextEl.Get_DocumentNext();
 	}
 
+	if (PrevEl && PrevEl.IsParagraph())
+	{
+		var oPrevPr = PrevEl.Get_CompiledPr2(false).ParaPr;
+		if (true === this.private_CompareBorderSettings(oPrevPr, Pr.ParaPr) && undefined === PrevEl.Get_SectionPr() && true !== Pr.ParaPr.PageBreakBefore)
+		{
+			Pr.ParaPr.Brd.First   = false;
+			Pr.ParaPr.Brd.Between = oPrevPr.Brd.Between.Copy();
+		}
+		else
+		{
+			Pr.ParaPr.Brd.First = true;
+		}
+	}
+
 	if (oPrevParagraph && StyleId === oPrevParagraph.Style_Get() && Pr.ParaPr.ContextualSpacing)
 	{
 		Pr.ParaPr.Spacing.Before = 0;
@@ -8808,16 +8822,6 @@ Paragraph.prototype.Get_CompiledPr = function()
 				Prev_After = 0;
 
 			Pr.ParaPr.Spacing.Before = Math.max(Prev_After, Cur_Before) - Prev_After;
-		}
-
-		if (true === this.private_CompareBorderSettings(Prev_Pr, Pr.ParaPr) && undefined === PrevEl.Get_SectionPr() && true !== Pr.ParaPr.PageBreakBefore)
-		{
-			Pr.ParaPr.Brd.First   = false;
-			Pr.ParaPr.Brd.Between = Prev_Pr.Brd.Between.Copy();
-		}
-		else
-		{
-			Pr.ParaPr.Brd.First = true;
 		}
 	}
 	else if (null === PrevEl)
@@ -8875,6 +8879,15 @@ Paragraph.prototype.Get_CompiledPr = function()
 			Pr.ParaPr.Spacing.Before = 0;
 	}
 
+	if (NextEl && NextEl.IsParagraph())
+	{
+		var oNextPr = NextEl.Get_CompiledPr2(false).ParaPr;
+		if (true === this.private_CompareBorderSettings(oNextPr, Pr.ParaPr) && undefined === this.Get_SectionPr() && (undefined === NextEl.Get_SectionPr() || true !== NextEl.IsEmpty()) && true !== oNextPr.PageBreakBefore)
+			Pr.ParaPr.Brd.Last = false;
+		else
+			Pr.ParaPr.Brd.Last = true;
+	}
+
 	if (oNextParagraph && StyleId === oNextParagraph.Style_Get() && Pr.ParaPr.ContextualSpacing)
 	{
 		Pr.ParaPr.Spacing.After = 0;
@@ -8884,9 +8897,6 @@ Paragraph.prototype.Get_CompiledPr = function()
 		if (NextEl.IsParagraph())
 		{
 			var NextStyle       = NextEl.Style_Get();
-			var Next_Pr         = NextEl.Get_CompiledPr2(false).ParaPr;
-			var Next_Before     = Next_Pr.Spacing.Before;
-			var Next_BeforeAuto = Next_Pr.Spacing.BeforeAutoSpacing;
 			var Cur_After       = Pr.ParaPr.Spacing.After;
 			var Cur_AfterAuto   = Pr.ParaPr.Spacing.AfterAutoSpacing;
 			var Next_NumPr      = NextEl.GetNumPr();
@@ -8895,11 +8905,6 @@ Paragraph.prototype.Get_CompiledPr = function()
 				Pr.ParaPr.Spacing.After = 0;
 			else
 				Pr.ParaPr.Spacing.After = this.Internal_CalculateAutoSpacing(Cur_After, Cur_AfterAuto, this);
-
-			if (true === this.private_CompareBorderSettings(Next_Pr, Pr.ParaPr) && undefined === this.Get_SectionPr() && (undefined === NextEl.Get_SectionPr() || true !== NextEl.IsEmpty()) && true !== Next_Pr.PageBreakBefore)
-				Pr.ParaPr.Brd.Last = false;
-			else
-				Pr.ParaPr.Brd.Last = true;
 		}
 		else if (NextEl.IsTable() || NextEl.IsBlockLevelSdt())
 		{
