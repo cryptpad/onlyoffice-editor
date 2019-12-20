@@ -2777,7 +2777,8 @@ CParagraphContentWithParagraphLikeContent.prototype.Get_WordEndPos = function(Se
 	{
 		this.Content[CurPos].Get_StartPos(SearchPos.Pos, Depth + 1);
 		SearchPos.Pos.Update(CurPos, Depth);
-		SearchPos.Found = true;
+		SearchPos.Found     = true;
+		SearchPos.UpdatePos = true;
 		return;
 	}
 
@@ -2807,7 +2808,8 @@ CParagraphContentWithParagraphLikeContent.prototype.Get_WordEndPos = function(Se
 		{
 			this.Content[CurPos].Get_StartPos(SearchPos.Pos, Depth + 1);
 			SearchPos.Pos.Update(CurPos, Depth);
-			SearchPos.Found = true;
+			SearchPos.Found     = true;
+			SearchPos.UpdatePos = true;
 			return;
 		}
 	}
