@@ -2155,7 +2155,7 @@ CChartSpace.prototype.applyLabelsFunction = function(fCallback, value)
                 fCallback(ser.dLbls, value, this.getDrawingDocument(), 10);
                 for(var i = 0; i < pts.length; ++i)
                 {
-                    var dLbl  = ser.dLbls.findDLblByIdx(pts[i].idx);
+                    var dLbl  = ser.dLbls && ser.dLbls.findDLblByIdx(pts[i].idx);
                     if(dLbl)
                     {
                         if(ser.dLbls.txPr && !dLbl.txPr)
@@ -2171,7 +2171,7 @@ CChartSpace.prototype.applyLabelsFunction = function(fCallback, value)
                 var pt = pts[this.selection.dataLbl];
                 if(pt)
                 {
-                    var dLbl  = ser.dLbls.findDLblByIdx(pt.idx);
+                    var dLbl  = ser.dLbls &&  ser.dLbls.findDLblByIdx(pt.idx);
                     if(!dLbl)
                     {
                         dLbl = new AscFormat.CDLbl();
@@ -2392,7 +2392,7 @@ CChartSpace.prototype.changeSize = CShape.prototype.changeSize;
                     var pt = pts[this.selection.dataLbl];
                     if(pt)
                     {
-                        var dLbl  = ser.dLbls.findDLblByIdx(pt.idx);
+                        var dLbl  = ser.dLbls &&  ser.dLbls.findDLblByIdx(pt.idx);
                         if(dLbl && dLbl.spPr && dLbl.spPr.Fill && dLbl.spPr.Fill.fill)
                         {
                             ret = dLbl.spPr.Fill;
@@ -2551,7 +2551,7 @@ CChartSpace.prototype.changeSize = CShape.prototype.changeSize;
                     var pt = pts[this.selection.dataLbl];
                     if(pt)
                     {
-                        var dLbl  = ser.dLbls.findDLblByIdx(pt.idx);
+                        var dLbl  = ser.dLbls && ser.dLbls.findDLblByIdx(pt.idx);
                         if(dLbl && dLbl.spPr && dLbl.spPr.ln && dLbl.spPr.ln.Fill)
                         {
                             ret = dLbl.spPr.ln;
@@ -2780,7 +2780,7 @@ CChartSpace.prototype.changeFill = function (unifill)
                 var pt = pts[this.selection.dataLbl];
                 if(pt)
                 {
-                    var dLbl  = ser.dLbls.findDLblByIdx(pt.idx);
+                    var dLbl  = ser.dLbls && ser.dLbls.findDLblByIdx(pt.idx);
                     if(!dLbl)
                     {
                         dLbl = new AscFormat.CDLbl();
@@ -3098,7 +3098,7 @@ CChartSpace.prototype.changeLine = function (line)
                 var pt = pts[this.selection.dataLbl];
                 if(pt)
                 {
-                    var dLbl  = ser.dLbls.findDLblByIdx(pt.idx);
+                    var dLbl  = ser.dLbls && ser.dLbls.findDLblByIdx(pt.idx);
                     if(!dLbl)
                     {
                         dLbl = new AscFormat.CDLbl();
@@ -3884,7 +3884,7 @@ CChartSpace.prototype.clearFormatting = function(bNoClearShapeProps)
                     var pt = pts[this.selection.dataLbl];
                     if(pt)
                     {
-                        var dLbl  = ser.dLbls.findDLblByIdx(pt.idx);
+                        var dLbl  = ser.dLbls && ser.dLbls.findDLblByIdx(pt.idx);
                         if(!dLbl)
                         {
                             dLbl = new AscFormat.CDLbl();

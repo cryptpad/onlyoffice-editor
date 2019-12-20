@@ -12350,7 +12350,7 @@ function CorrectUniColor(asc_color, unicolor, flag)
                             ser.dLbls.setShowBubbleSize(false);
                         }
                     }
-                    var dLbl  = ser.dLbls.findDLblByIdx(nPointIndex);
+                    var dLbl  = ser.dLbls && ser.dLbls.findDLblByIdx(nPointIndex);
                     if(!dLbl)
                     {
                         dLbl = new AscFormat.CDLbl();
