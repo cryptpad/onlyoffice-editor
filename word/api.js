@@ -7694,6 +7694,7 @@ background-repeat: no-repeat;\
 		if (c_oAscAsyncAction.SendMailMerge === actionType)
 		{
 			oAdditionalData["c"] = 'sendmm';
+			oAdditionalData["userindex"] = this.CoAuthoringApi.get_indexUser();
 		}
 		else if (!this.WordControl.m_oLogicDocument)
 		{
@@ -7778,22 +7779,25 @@ background-repeat: no-repeat;\
 			oAdditionalData["mailmergesend"] = options.oMailMergeSendData;
 			var MailMergeMap                 = this.WordControl.m_oLogicDocument.MailMergeMap;
 			var aJsonOut                     = [];
-			if (MailMergeMap.length > 0)
+			if (MailMergeMap)
 			{
-				var oFirstRow = MailMergeMap[0];
-				var aRowOut   = [];
-				for (var i in oFirstRow)
-					aRowOut.push(i);
-				aJsonOut.push(aRowOut);
-			}
-			//todo может надо запоминать порядок for in в первом столбце, если for in будет по-разному обходить строки
-			for (var i = 0; i < MailMergeMap.length; ++i)
-			{
-				var oRow    = MailMergeMap[i];
-				var aRowOut = [];
-				for (var j in oRow)
-					aRowOut.push(oRow[j]);
-				aJsonOut.push(aRowOut);
+				if (MailMergeMap.length > 0)
+				{
+					var oFirstRow = MailMergeMap[0];
+					var aRowOut   = [];
+					for (var i in oFirstRow)
+						aRowOut.push(i);
+					aJsonOut.push(aRowOut);
+				}
+				//todo может надо запоминать порядок for in в первом столбце, если for in будет по-разному обходить строки
+				for (var i = 0; i < MailMergeMap.length; ++i)
+				{
+					var oRow    = MailMergeMap[i];
+					var aRowOut = [];
+					for (var j in oRow)
+						aRowOut.push(oRow[j]);
+					aJsonOut.push(aRowOut);
+				}
 			}
 			var editorData = dataContainer.data;
 			dataContainer.data = JSON.stringify(aJsonOut);
