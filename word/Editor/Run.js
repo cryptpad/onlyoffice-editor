@@ -4358,7 +4358,13 @@ ParaRun.prototype.Recalculate_Range_Spaces = function(PRSA, _CurLine, _CurRange,
                 var X_Right_Margin  = PageLimits.XLimit - PageFields.XLimit;
                 var Y_Bottom_Margin = PageLimits.YLimit - PageFields.YLimit;
 
-                if (true === Para.Parent.IsTableCellContent() && (true !== Item.Use_TextWrap() || false === Item.IsLayoutInCell()))
+                var isTableCellContent = Para.Parent.IsTableCellContent();
+                var isUseWrap          = Item.Use_TextWrap();
+                var isLayoutInCell     = Item.IsLayoutInCell();
+
+                // TODO: Надо здесь почистить все, а то названия переменных путаются, и некоторые имеют неправильное значение
+
+                if (isTableCellContent && (!isUseWrap || !isLayoutInCell))
                 {
                     X_Left_Field   = LD_PageFields.X;
                     Y_Top_Field    = LD_PageFields.Y;
@@ -4382,7 +4388,7 @@ ParaRun.prototype.Recalculate_Range_Spaces = function(PRSA, _CurLine, _CurRange,
                 var Bottom_Margin = Y_Bottom_Margin;
                 var Page_H        = Page_Height;
 
-                if ( true === Para.Parent.IsTableCellContent() && true == Item.Use_TextWrap() )
+                if (isTableCellContent && isUseWrap)
                 {
                     Top_Margin    = 0;
                     Bottom_Margin = 0;
@@ -4390,7 +4396,7 @@ ParaRun.prototype.Recalculate_Range_Spaces = function(PRSA, _CurLine, _CurRange,
                 }
 
                 var PageLimitsOrigin = Para.Parent.Get_PageLimits(PageRel);
-                if (true === Para.Parent.IsTableCellContent() && false === Item.IsLayoutInCell())
+                if (isTableCellContent && !isLayoutInCell)
                 {
                     PageLimitsOrigin = LogicDocument.Get_PageLimits(PageAbs);
                     var PageFieldsOrigin = LogicDocument.Get_PageFields(PageAbs);
@@ -4398,17 +4404,20 @@ ParaRun.prototype.Recalculate_Range_Spaces = function(PRSA, _CurLine, _CurRange,
                     ColumnEndX   = PageFieldsOrigin.XLimit;
                 }
 
-                if ( true != Item.Use_TextWrap() )
+                if (!isUseWrap)
                 {
                     PageFields.X      = X_Left_Field;
                     PageFields.Y      = Y_Top_Field;
                     PageFields.XLimit = X_Right_Field;
                     PageFields.YLimit = Y_Bottom_Field;
 
-                    PageLimits.X = 0;
-                    PageLimits.Y = 0;
-                    PageLimits.XLimit = Page_Width;
-                    PageLimits.YLimit = Page_Height;
+					if (!isTableCellContent || !isLayoutInCell)
+					{
+						PageLimits.X      = 0;
+						PageLimits.Y      = 0;
+						PageLimits.XLimit = Page_Width;
+						PageLimits.YLimit = Page_Height;
+					}
                 }
 
                 if ( true === Item.Is_Inline() || true === Para.Parent.Is_DrawingShape() )
@@ -4461,7 +4470,7 @@ ParaRun.prototype.Recalculate_Range_Spaces = function(PRSA, _CurLine, _CurRange,
                     // запоминаем текущий объект. В функции Internal_Recalculate_2 пересчитываем
                     // его позицию и сообщаем ее внешнему классу.
 
-                    if ( true === Item.Use_TextWrap() )
+                    if (isUseWrap)
                     {
                         var LogicDocument = Para.Parent;
                         var LDRecalcInfo  = Para.Parent.RecalcInfo;
@@ -4496,7 +4505,7 @@ ParaRun.prototype.Recalculate_Range_Spaces = function(PRSA, _CurLine, _CurRange,
                                 LDRecalcInfo.Reset();
                                 Item.Reset_SavedPosition();
                             }
-                            else if ( true === Para.Parent.IsTableCellContent() )
+                            else if (isTableCellContent)
                             {
                                 // Картинка не на нужной странице, но так как это таблица
                                 // мы пересчитываем заново текущую страницу, а не предыдущую
