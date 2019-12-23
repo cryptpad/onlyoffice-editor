@@ -2073,7 +2073,24 @@ function CDocument(DrawingDocument, isMainLogicDocument)
 		EndX   : -1,
 		EndY   : -1,
 		Page   : -1,
-		Table  : null
+
+		Table          : null,
+		TablePageStart : -1,
+		TablePageEnd   : -1,
+
+		UpdateTablePages : function()
+		{
+			if (this.Table)
+			{
+				this.TablePageStart = this.Table.Parent.private_GetElementPageIndexByXY(this.Table.GetIndex(), this.StartX, this.StartY, this.Page);
+				this.TablePageEnd   = this.Table.Parent.private_GetElementPageIndexByXY(this.Table.GetIndex(), this.EndX, this.EndY, this.Page);
+			}
+			else
+			{
+				this.TablePageStart = -1;
+				this.TablePageEnd   = -1;
+			}
+		}
 	};
 
 	// Параметры для случая, когда мы не можем сразу перерисовать треки и нужно перерисовывать их на таймере пересчета
@@ -9246,12 +9263,7 @@ CDocument.prototype.OnMouseDown = function(e, X, Y, PageIndex)
 			}
 		}
 
-		console.log("DrawTable: " + this.DrawTableMode.Draw ? "Draw" : "Erase");
-		console.log("Start X " + X);
-		console.log("Start Y " + Y);
-		console.log("Page " + PageIndex);
-		console.log("Table");
-		console.log(this.DrawTableMode.Table);
+		this.DrawTableMode.UpdateTablePages();
 
 		return;
 	}
@@ -9341,6 +9353,7 @@ CDocument.prototype.OnMouseUp = function(e, X, Y, PageIndex)
 
 		this.DrawTableMode.EndX = X;
 		this.DrawTableMode.EndY = Y;
+		this.DrawTableMode.UpdateTablePages();
 
 		this.DrawTable();
 
@@ -9590,6 +9603,7 @@ CDocument.prototype.OnMouseMove = function(e, X, Y, PageIndex)
 	{
 		this.DrawTableMode.EndX = X;
 		this.DrawTableMode.EndY = Y;
+		this.DrawTableMode.UpdateTablePages();
 	}
 
 
@@ -20936,12 +20950,10 @@ CDocument.prototype.DrawTable = function()
 			CheckType : AscCommon.changestype_Table_Properties
 		}))
 	{
-		var oTable          = this.DrawTableMode.Table;
-		var nTablePageStart = oTable.Parent.private_GetElementPageIndexByXY(oTable.GetIndex(), this.DrawTableMode.StartX, this.DrawTableMode.StartY, this.DrawTableMode.Page);
-		var nTablePageEnd   = oTable.Parent.private_GetElementPageIndexByXY(oTable.GetIndex(), this.DrawTableMode.EndX, this.DrawTableMode.EndY, this.DrawTableMode.Page);
+		var oTable = this.DrawTableMode.Table;
 
 		this.StartAction();
-		oTable.DrawTableCells(this.DrawTableMode.StartX, this.DrawTableMode.StartY, this.DrawTableMode.EndX, this.DrawTableMode.EndY, nTablePageStart, nTablePageEnd, this.DrawTableMode.Draw);
+		oTable.DrawTableCells(this.DrawTableMode.StartX, this.DrawTableMode.StartY, this.DrawTableMode.EndX, this.DrawTableMode.EndY, this.DrawTableMode.TablePageStart, this.DrawTableMode.TablePageEnd, this.DrawTableMode.Draw);
 
 		if (oTable.GetRowsCount() <= 0 && oTable.GetParent())
 		{
