@@ -149,6 +149,17 @@ CNum.prototype.SetLvl = function(oNumberingLvl, nLvl)
 	}
 };
 /**
+ * Заполняем настройки уровня из интерфейсного класса
+ * @param oAscNumberingLvl {CAscNumberingLvl}
+ * @param nLvl {number} 0..8
+ */
+CNum.prototype.SetAscLvl = function(oAscNumberingLvl, nLvl)
+{
+	var oNumberingLvl = new CNumberingLvl();
+	oNumberingLvl.FillFromAscNumberingLvl(oAscNumberingLvl);
+	this.SetLvl(oNumberingLvl, nLvl);
+};
+/**
  * Делаем заданный уровень заданного пресета
  * @param nLvl {number} 0..8
  * @param nType {c_oAscNumberingLevel}

@@ -3710,17 +3710,13 @@ background-repeat: no-repeat;\
 
 			if (oAscNumberingLvl instanceof Asc.CAscNumberingLvl)
 			{
-				var oNumberingLvl = new CNumberingLvl();
-				oNumberingLvl.FillFromAscNumberingLvl(oAscNumberingLvl);
-				oNum.SetLvl(oNumberingLvl, nLvl);
+				oNum.SetAscLvl(oAscNumberingLvl, nLvl);
 			}
 			else if (undefined !== oAscNumberingLvl.length && oAscNumberingLvl.length === nLvl.length)
 			{
 				for (var nIndex = 0, nCount = oAscNumberingLvl.length; nIndex < nCount; ++nIndex)
 				{
-					var oNumberingLvl = new CNumberingLvl();
-					oNumberingLvl.FillFromAscNumberingLvl(oAscNumberingLvl[nIndex]);
-					oNum.SetLvl(oNumberingLvl, nLvl[nIndex]);
+					oNum.SetAscLvl(oAscNumberingLvl[nIndex], nLvl[nIndex]);
 				}
 			}
 
