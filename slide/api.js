@@ -687,6 +687,7 @@
 
 	asc_docs_api.prototype.sendEvent = function()
 	{
+        this.sendInternalEvent.apply(this, arguments);
 		var name = arguments[0];
 		if (_callbacks.hasOwnProperty(name))
 		{

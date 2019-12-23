@@ -534,6 +534,10 @@
 
                     break;
                 }
+                case "disableAutostartMacros":
+                {
+                    this.disableAutostartMacros = true;
+                }
                 default:
                     break;
             }

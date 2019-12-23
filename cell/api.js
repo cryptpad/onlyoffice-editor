@@ -130,6 +130,7 @@ var editor;
   spreadsheet_api.prototype = Object.create(AscCommon.baseEditorsApi.prototype);
   spreadsheet_api.prototype.constructor = spreadsheet_api;
   spreadsheet_api.prototype.sendEvent = function() {
+    this.sendInternalEvent.apply(this, arguments);
     this.handlers.trigger.apply(this.handlers, arguments);
   };
 

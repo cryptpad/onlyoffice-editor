@@ -181,6 +181,7 @@
 
 		this.currentPassword = "";
 
+		this.disableAutostartMacros = false;
 		this.macros = null;
 
         this.openFileCryptBinary = null;
@@ -194,6 +195,10 @@
 		// Spell Checking
 		this.SpellCheckApi = new AscCommon.CSpellCheckApi();
 		this.isSpellCheckEnable = true;
+
+		// macros & plugins events
+		this.internalEvents = {};
+
 		return this;
 	}
 
@@ -688,6 +693,8 @@
 
 		if (this.DocInfo)
 			this["pluginMethod_SetProperties"](this.DocInfo.asc_getOptions());
+
+		this.macros && !this.disableAutostartMacros && this.macros.runAuto();
 	};
 	// Save
 	baseEditorsApi.prototype.processSavedFile                    = function(url, downloadType)
@@ -2570,6 +2577,38 @@
     baseEditorsApi.prototype["asc_isSupportFeature"] = function(type)
 	{
 		return (window["Asc"] && window["Asc"]["Addons"] && window["Asc"]["Addons"][type] === true) ? true : false;
+	};
+
+    // ---------------------------------------------------- internal events ----------------------------------------------
+    baseEditorsApi.prototype["attachEvent"] = function(name, callback, listenerId)
+    {
+    	if (!this.internalEvents.hasOwnProperty(name))
+            this.internalEvents[name] = {};
+        this.internalEvents[name]["" + ((undefined === listenerId) ? 0 : listenerId)] = callback;
+    };
+    baseEditorsApi.prototype["detachEvent"] = function(name, listenerId)
+    {
+        if (!this.internalEvents.hasOwnProperty(name))
+        	return;
+        var obj = this.internalEvents[name];
+        var prop = "" + ((undefined === listenerId) ? 0 : listenerId);
+        if (obj[prop])
+        	delete obj[prop];
+        if (0 === Object.getOwnPropertyNames(obj).length)
+        	delete this.internalEvents[name];
+    };
+    baseEditorsApi.prototype.sendInternalEvent = function()
+	{
+        var name = arguments[0];
+        if (this.internalEvents.hasOwnProperty(name))
+        {
+            var obj = this.internalEvents[name];
+            for (var prop in obj)
+			{
+				obj[prop].apply(this || window, Array.prototype.slice.call(arguments, 1));
+			}
+        }
+        return false;
 	};
 
 	//----------------------------------------------------------export----------------------------------------------------
