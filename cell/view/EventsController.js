@@ -1319,8 +1319,18 @@
 
 		/** @param event {MouseEvent} */
 		asc_CEventsController.prototype._onMouseDown = function (event) {
-			// Update state for device without cursor
-			this._onMouseMove(event);
+
+
+			var t = this;
+			var ctrlKey = !AscCommon.getAltGr(event) && (event.metaKey || event.ctrlKey);
+			var coord = t._getCoordinates(event);
+			event.isLocked = t.isMousePressed = true;
+			// Shapes
+			var graphicsInfo = t.handlers.trigger("getGraphicsInfo", coord.x, coord.y);
+			if(!graphicsInfo) {
+				// Update state for device without cursor
+				this._onMouseMove(event);
+			}
 
 			if (AscCommon.g_inputContext) {
 				AscCommon.g_inputContext.externalChangeFocus();
@@ -1328,10 +1338,6 @@
 
 			AscCommon.global_mouseEvent.LockMouse();
 
-			var t = this;
-			var ctrlKey = !AscCommon.getAltGr(event) && (event.metaKey || event.ctrlKey);
-			var coord = t._getCoordinates(event);
-			event.isLocked = t.isMousePressed = true;
 
 			if (t.handlers.trigger("isGlobalLockEditCell")) {
 				return;
@@ -1343,8 +1349,6 @@
 
 			var button = AscCommon.getMouseButton(event);
 
-			// Shapes
-			var graphicsInfo = t.handlers.trigger("getGraphicsInfo", coord.x, coord.y);
 			if (asc["editor"].isStartAddShape || graphicsInfo) {
 				// При выборе диапазона не нужно выделять автофигуру
 				if (t.isSelectionDialogMode) {

@@ -4632,6 +4632,12 @@ ClickCounter.prototype.mouseDownEvent = function(x, y, button) {
         button = 0;
 
 	var _eps = 3 * global_mouseEvent.KoefPixToMM;
+
+    var oApi = Asc && Asc.editor;
+    if(oApi && oApi.isMobileVersion && (!window["NATIVE_EDITOR_ENJINE"]))
+    {
+        _eps *= 2;
+    }
 	if ((Math.abs(global_mouseEvent.X - global_mouseEvent.LastX) > _eps) || (Math.abs(global_mouseEvent.Y - global_mouseEvent.LastY) > _eps))
 	{
 		// not only move!!! (touch - fast click in different places)
