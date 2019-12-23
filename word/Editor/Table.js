@@ -14467,8 +14467,10 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPageStart, CurPage
 		}
 	}
 };
-CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPage, drawMode)
+CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPageStart, CurPageEnd, drawMode)
 {
+	var CurPage = CurPageStart;
+
 	var X1_origin = 0;
 	var X2_origin = 0;
 	X1_origin += X1; 
@@ -15277,7 +15279,7 @@ CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPage, drawMode)
 		}
 		return Borders;
 	}
-}
+};
 /**
  * @param NewMarkup - новая разметка таблицы
  * @param bCol      - где произошли изменения (в колонках или строках)

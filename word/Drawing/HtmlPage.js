@@ -3095,7 +3095,7 @@ function CEditorPage(api)
 				if (logicObj.Start && logicObj.Table)
 				{
 					drDoc.DrawCustomTableMode(overlay, logicObj.Table.GetDrawLine(logicObj.StartX, logicObj.StartY, logicObj.EndX, logicObj.EndY,
-						logicObj.Page, this.m_oApi.isDrawTablePen), logicObj, this.m_oApi.isDrawTablePen);
+						logicObj.TablePageStart, logicObj.TablePageEnd, this.m_oApi.isDrawTablePen), logicObj, this.m_oApi.isDrawTablePen);
 				}
 			}
 
