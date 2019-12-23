@@ -3214,10 +3214,6 @@ var editor;
       while (cellsInfo[lastIndex].col === activeCell.col && cellsInfo[lastIndex].row === activeCell.row) {
         var letterDifference = null;
         var word = usrWords[lastIndex];
-
-        if (this.spellcheckState.isIgnoreUppercase) {
-          word = usrWords[lastIndex].toLowerCase();
-        }
         var newWord = this.spellcheckState.newWord;
 
         if (newWord) {
@@ -3387,16 +3383,13 @@ var editor;
         newCellText = null;
       }
 
-      if (this.spellcheckState.isIgnoreUppercase) {
-        options.isMatchCase = false;
-      }
-
       var replaceWords = [];
       options.isWholeWord = true;
       for (var key in changeWords) {
         replaceWords.push([AscCommonExcel.getFindRegExp(key, options), changeWords[key]]);
       }
       options.findWhat = cellText;
+      options.isMatchCase = true;
       options.replaceWith = newCellText;
       options.replaceWords = replaceWords;
 
