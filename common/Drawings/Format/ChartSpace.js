@@ -6493,7 +6493,12 @@ CChartSpace.prototype.getValAxisCrossType = function()
                             sFormatCode = aPoints[0].formatCode;
                         }
                         else {
-                            if(this.worksheet) {
+                            if(oSeries.parent && oSeries.parent.getObjectType
+                                && (oSeries.parent.getObjectType() === AscDFH.historyitem_type_BarChart  && oSeries.parent.grouping ===  AscFormat.BAR_GROUPING_PERCENT_STACKED
+                                || oSeries.parent.getObjectType() !== AscDFH.historyitem_type_BarChart && oSeries.parent.grouping === AscFormat.GROUPING_PERCENT_STACKED)) {
+                                sFormatCode = "0%";
+                            }
+                            else if(this.worksheet) {
                                 var oBBox = this._recalculateBBox([oSeries]);
                                 if(oBBox && oBBox.seriesBBoxes[0] && oBBox.seriesBBoxes[0].bbox) {
                                     var cell = this.worksheet.getCell3(oBBox.seriesBBoxes[0].bbox.r1, oBBox.seriesBBoxes[0].bbox.c1);
