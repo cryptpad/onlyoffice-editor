@@ -10224,13 +10224,15 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPageStart, CurPage
 
 	this.RemoveSelection(); // сбрасываем выделение
 
+	var curColumn = CurPage;
 	// Приводим к координатам таблицы
-	X1 					= X1-this.Pages[0].X; 
-	X2 					= X2-this.Pages[0].X;
+	X1 					= X1 - this.Pages[curColumn].X; 
+	X2 					= X2 - this.Pages[curColumn].X;
+	
 	// Если рисуем (ctrl + F1)
 	if (drawMode === true)
 	{
-		var curColumn = 0; // номер колонки (колонка страницы, в которой находится таблица)
+		
 		
 		// Если делаем просто щелчок по границе
 		if (X1 === X2 && Y1 === Y2)
@@ -10251,70 +10253,7 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPageStart, CurPage
 
 			
 
-			// Определяем в какую колонку попадаем
-			if (this.Pages.length >= 1)
-			{
-				var IndentOfColumns = 0;
-				var SearchLength 	= 0;
-				var SearchIndex  	= 0;
-
-				if (CurPage != 0 && this.IsStartFromNewPage())
-				{
-					if (this.Pages.length > 2)
-					{
-						IndentOfColumns = this.Pages[2].X - this.Pages[1].XLimit;
-					}
-					else 
-					{
-						IndentOfColumns = this.Parent.Pages[CurPage].Width - this.Pages[1].X;
-					}
-				}
-				else 
-				{
-					if (this.Pages.length > 1)
-					{
-						IndentOfColumns = this.Pages[1].X - this.Pages[0].XLimit;
-					}
-					else 
-					{
-						IndentOfColumns = this.Parent.Pages[CurPage].Width - this.Pages[0].X;
-					}
-				}
-
-				if (this.ColumnsCount > this.Pages.length)
-				{
-					SearchLength = this.Pages.length;
-				}
-				else 
-				{
-					if (CurPage >= 1)
-					{
-						SearchLength = CurPage * this.Pages.length;
-						SearchIndex  = CurPage * this.ColumnsCount;
-					}
-					else 
-					{
-						SearchLength = this.ColumnsCount;
-					}
-
-				}
-				for (var Index = SearchIndex; Index < SearchLength; Index++) 
-				{
-					if (Math.abs(X1) > this.Pages[Index].X - this.Pages[0].X - IndentOfColumns/2 && Math.abs(X1) < this.Pages[Index].XLimit - this.Pages[0].X + IndentOfColumns/2) 
-					{
-						curColumn = Index;
-					}
-				}
-				
-				//Приводим к относительным координатам
-				X1 = X1 - (this.Pages[curColumn].X - this.Pages[CurPage].X - (this.Pages[0].X - this.Pages[CurPage].X));
-				X2 = X2 - (this.Pages[curColumn].X - this.Pages[CurPage].X - (this.Pages[0].X - this.Pages[CurPage].X));
-
-				if (curColumn === 0 && CurPage >= 1)
-				{
-					curColumn = CurPage * this.Pages.length - 1;
-				}
-			}
+			
 			
 			// Начинаем поиск границы по которой произведен щелчок
 			for (var curRow = this.Pages[curColumn].FirstRow; curRow <= this.Pages[curColumn].LastRow; curRow++)
@@ -10936,70 +10875,9 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPageStart, CurPage
 			}
 
 
-			//здесь мы определяем в какую колонку мы попали
+			
 			if (Rows.length === 0) 
 			{
-				var IndentOfColumns = 0;
-				var SearchLength 	= 0;
-				var SearchIndex  	= 0;
-
-				if (CurPage != 0 && this.IsStartFromNewPage())
-				{
-					if (this.Pages.length > 2)
-					{
-						IndentOfColumns = this.Pages[2].X - this.Pages[1].XLimit;
-					}
-					else 
-					{
-						IndentOfColumns = this.Parent.Pages[CurPage].Width - this.Pages[1].X;
-					}
-				}
-				else 
-				{
-					if (this.Pages.length > 1)
-					{
-						IndentOfColumns = this.Pages[1].X - this.Pages[0].XLimit;
-					}
-					else 
-					{
-						IndentOfColumns = this.Parent.Pages[CurPage].Width - this.Pages[0].X;
-					}
-				}
-				
-				if (this.ColumnsCount > this.Pages.length)
-				{
-					SearchLength = this.Pages.length;
-				}
-				else 
-				{
-					if (CurPage >= 1)
-					{
-						SearchLength = CurPage * this.Pages.length;
-						SearchIndex  = CurPage * this.ColumnsCount;
-					}
-					else 
-					{
-						SearchLength = this.ColumnsCount;
-					}
-
-				}
-				for (var Index = SearchIndex; Index < SearchLength; Index++) 
-				{
-					if (Math.abs(X1) > this.Pages[Index].X - this.Pages[0].X - IndentOfColumns/2 && Math.abs(X1) < this.Pages[Index].XLimit - this.Pages[0].X + IndentOfColumns/2)  
-					{
-						curColumn = Index;
-					}
-				}
-				
-				//Приводим к относительным координатам
-				X1 = X1 - (this.Pages[curColumn].X - this.Pages[CurPage].X - (this.Pages[0].X - this.Pages[CurPage].X));
-				X2 = X2 - (this.Pages[curColumn].X - this.Pages[CurPage].X - (this.Pages[0].X - this.Pages[CurPage].X));
-
-				if (curColumn === 0 && CurPage >= 1)
-				{
-					curColumn = CurPage * this.Pages.length - 1;
-				}
-				
 
 				// Заполнение массива Rows с учетом колонки в которую попали 
 				for (var curRow = this.Pages[curColumn].FirstRow; curRow <= this.Pages[curColumn].LastRow; curRow++) 
@@ -11510,70 +11388,9 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPageStart, CurPage
 				
 			}
 			
-			// Здесь мы определяем в какую колонку мы попали
+			
 			if (CellsNumb.length === 0)
 			{
-				var IndentOfColumns = 0;
-				var SearchLength 	= 0;
-				var SearchIndex  	= 0;
-
-				if (CurPage != 0 && this.IsStartFromNewPage())
-				{
-					if (this.Pages.length > 2)
-					{
-						IndentOfColumns = this.Pages[2].X - this.Pages[1].XLimit;
-					}
-					else 
-					{
-						IndentOfColumns = this.Parent.Pages[CurPage].Width - this.Pages[1].X;
-					}
-				}
-				else 
-				{
-					if (this.Pages.length > 1)
-					{
-						IndentOfColumns = this.Pages[1].X - this.Pages[0].XLimit;
-					}
-					else 
-					{
-						IndentOfColumns = this.Parent.Pages[CurPage].Width - this.Pages[0].X;
-					}
-				}
-
-				if (this.ColumnsCount > this.Pages.length)
-				{
-					SearchLength = this.Pages.length;
-				}
-				else 
-				{
-					if (CurPage >= 1)
-					{
-						SearchLength = CurPage * this.Pages.length;
-						SearchIndex  = CurPage * this.ColumnsCount;
-					}
-					else 
-					{
-						SearchLength = this.ColumnsCount;
-					}
-
-				}
-				for (var Index = SearchIndex; Index < SearchLength; Index++) 
-				{
-					if (Math.abs(X1) > this.Pages[Index].X - this.Pages[0].X - IndentOfColumns/2 && Math.abs(X1) < this.Pages[Index].XLimit - this.Pages[0].X + IndentOfColumns/2)  
-					{
-						curColumn = Index;
-					}
-				}
-				//Приводим к относительным координатам
-				X1 = X1 - (this.Pages[curColumn].X - this.Pages[CurPage].X - (this.Pages[0].X - this.Pages[CurPage].X));
-				X2 = X2 - (this.Pages[curColumn].X - this.Pages[CurPage].X - (this.Pages[0].X - this.Pages[CurPage].X));
-
-				if (curColumn === 0 && CurPage >= 1)
-				{
-					curColumn = CurPage * this.Pages.length - 1;
-				}
-			
-
 				// Вычисление RowNumb с учетом колонки в которую попали 
 				for (var curRow = this.Pages[curColumn].FirstRow; curRow <= this.Pages[curColumn].LastRow; curRow++) 
 				{
@@ -11777,7 +11594,7 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPageStart, CurPage
 		var canDel 		  = false;
 		var oldRows  	  = []; 
 		var oldCells 	  = [];
-		var curColumn 	  = 0; 
+		
 
 		for (var curRow = 0; curRow < this.Content.length; curRow++)
 		{
@@ -11817,69 +11634,7 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPageStart, CurPage
 		{
 			var two_cells = false;
 
-			// Определяем в какую колонку попадаем
-			if (this.Pages.length >= 1)
-			{
-				var IndentOfColumns = 0;
-				var SearchLength 	= 0;
-				var SearchIndex  	= 0;
-
-				if (CurPage != 0 && this.IsStartFromNewPage())
-				{
-					if (this.Pages.length > 2)
-					{
-						IndentOfColumns = this.Pages[2].X - this.Pages[1].XLimit;
-					}
-					else 
-					{
-						IndentOfColumns = this.Parent.Pages[CurPage].Width - this.Pages[1].X;
-					}
-				}
-				else 
-				{
-					if (this.Pages.length > 1)
-					{
-						IndentOfColumns = this.Pages[1].X - this.Pages[0].XLimit;
-					}
-					else 
-					{
-						IndentOfColumns = this.Parent.Pages[CurPage].Width - this.Pages[0].X;
-					}
-				}
-
-				if (this.ColumnsCount > this.Pages.length)
-				{
-					SearchLength = this.Pages.length;
-				}
-				else 
-				{
-					if (CurPage >= 1)
-					{
-						SearchLength = CurPage * this.Pages.length;
-						SearchIndex  = CurPage * this.ColumnsCount;
-					}
-					else 
-					{
-						SearchLength = this.ColumnsCount;
-					}
-
-				}
-				for (var Index = SearchIndex; Index < SearchLength; Index++) 
-				{
-					if (Math.abs(X1) > this.Pages[Index].X - this.Pages[0].X - IndentOfColumns/2 && Math.abs(X1) < this.Pages[Index].XLimit - this.Pages[0].X + IndentOfColumns/2)  
-					{
-						curColumn = Index;
-					}
-				}
-				//Приводим к относительным координатам
-				X1 = X1 - (this.Pages[curColumn].X - this.Pages[CurPage].X - (this.Pages[0].X - this.Pages[CurPage].X));
-				X2 = X2 - (this.Pages[curColumn].X - this.Pages[CurPage].X - (this.Pages[0].X - this.Pages[CurPage].X));
-
-				if (curColumn === 0 && CurPage >= 1)
-				{
-					curColumn = CurPage * this.Pages.length - 1;
-				}
-			}
+			
 			
 			// Начинаем поиск границы по которой произведен щелчок
 			for (var curRow = this.Pages[curColumn].FirstRow; curRow <= this.Pages[curColumn].LastRow; curRow++)
@@ -12260,72 +12015,6 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPageStart, CurPage
 			}
 			
 			
-			// Определяем в какую колонку попадаем
-			if (this.Pages.length >= 1)
-			{
-				var IndentOfColumns = 0;
-				var SearchLength 	= 0;
-				var SearchIndex  	= 0;
-
-				if (CurPage != 0 && this.IsStartFromNewPage())
-				{
-					if (this.Pages.length > 2)
-					{
-						IndentOfColumns = this.Pages[2].X - this.Pages[1].XLimit;
-					}
-					else 
-					{
-						IndentOfColumns = this.Parent.Pages[CurPage].Width - this.Pages[1].X;
-					}
-				}
-				else 
-				{
-					if (this.Pages.length > 1)
-					{
-						IndentOfColumns = this.Pages[1].X - this.Pages[0].XLimit;
-					}
-					else 
-					{
-						IndentOfColumns = this.Parent.Pages[CurPage].Width - this.Pages[0].X;
-					}
-				}
-
-				if (this.ColumnsCount > this.Pages.length)
-				{
-					SearchLength = this.Pages.length;
-				}
-				else 
-				{
-					if (CurPage >= 1)
-					{
-						SearchLength = CurPage * this.Pages.length;
-						SearchIndex  = CurPage * this.ColumnsCount;
-					}
-					else 
-					{
-						SearchLength = this.ColumnsCount;
-					}
-
-				}
-				for (var Index = SearchIndex; Index < SearchLength; Index++) 
-				{
-					if (Math.abs(X1) > this.Pages[Index].X - this.Pages[0].X - IndentOfColumns/2 && Math.abs(X1) < this.Pages[Index].XLimit - this.Pages[0].X + IndentOfColumns/2) 
-					{
-						curColumn = Index;
-					}
-				}
-				
-				//Приводим к относительным координатам
-				X1 = X1 - (this.Pages[curColumn].X - this.Pages[CurPage].X - (this.Pages[0].X - this.Pages[CurPage].X));
-				X2 = X2 - (this.Pages[curColumn].X - this.Pages[CurPage].X - (this.Pages[0].X - this.Pages[CurPage].X));
-
-				if (curColumn === 0 && CurPage >= 1)
-				{
-					curColumn = CurPage * this.Pages.length - 1;
-				}
-			}
-			
-
 			// Заполняем массив Rows строками, которые попали под выделение 
 			for (var curRow = this.Pages[curColumn].FirstRow; curRow <= this.Pages[curColumn].LastRow; curRow++) 
 			{
@@ -14471,18 +14160,20 @@ CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPageStart, CurPageEnd
 {
 	var CurPage = CurPageStart;
 
+
 	var X1_origin = 0;
 	var X2_origin = 0;
 	X1_origin += X1; 
 	X2_origin += X2;
 
+	var curColumn = CurPageStart;
 	// Приводим к координатам таблицы
-	X1 					= X1-this.Pages[0].X; 
-	X2 					= X2-this.Pages[0].X;
+	X1 					= X1 - this.Pages[curColumn].X; 
+	X2 					= X2 - this.Pages[curColumn].X;
 
 	var Y_Under = false;
 	var Y_Over 	= false;
-	var curColumn = 0;
+	
 	
 	//если рисуем линию снизу вверх
 	// if (Y1 > Y2) 
@@ -14499,70 +14190,7 @@ CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPageStart, CurPageEnd
 		X2 = X1;
 		X1 = cache;
 	}
-	// Определяем в какую колонку попадаем
-	if (this.Pages.length >= 1)
-	{
-		var IndentOfColumns = 0;
-		var SearchLength 	= 0;
-		var SearchIndex  	= 0;
-
-		if (CurPage != 0 && this.IsStartFromNewPage())
-		{
-			if (this.Pages.length > 2)
-			{
-				IndentOfColumns = this.Pages[2].X - this.Pages[1].XLimit;
-			}
-			else 
-			{
-				IndentOfColumns = this.Parent.Pages[CurPage].Width - this.Pages[1].X;
-			}
-		}
-		else 
-		{
-			if (this.Pages.length > 1)
-			{
-				IndentOfColumns = this.Pages[1].X - this.Pages[0].XLimit;
-			}
-			else 
-			{
-				IndentOfColumns = this.Parent.Pages[CurPage].Width - this.Pages[0].X;
-			}
-		}
-
-		if (this.ColumnsCount > this.Pages.length)
-		{
-			SearchLength = this.Pages.length;
-		}
-		else 
-		{
-			if (CurPage >= 1)
-			{
-				SearchLength = CurPage * this.Pages.length;
-				SearchIndex  = CurPage * this.ColumnsCount;
-			}
-			else 
-			{
-				SearchLength = this.ColumnsCount;
-			}
-
-		}
-		for (var Index = SearchIndex; Index < SearchLength; Index++) 
-		{
-			if (Math.abs(X1) > this.Pages[Index].X - this.Pages[0].X - IndentOfColumns/2 && Math.abs(X1) < this.Pages[Index].XLimit - this.Pages[0].X + IndentOfColumns/2) 
-			{
-				curColumn = Index;
-			}
-		}
-		
-		//Приводим к относительным координатам
-		X1 = X1 - (this.Pages[curColumn].X - this.Pages[CurPage].X - (this.Pages[0].X - this.Pages[CurPage].X));
-		X2 = X2 - (this.Pages[curColumn].X - this.Pages[CurPage].X - (this.Pages[0].X - this.Pages[CurPage].X));
-
-		if (curColumn === 0 && CurPage >= 1)
-		{
-			curColumn = CurPage * this.Pages.length - 1;
-		}
-	}
+	
 
 
 	if (drawMode === true)
@@ -14584,7 +14212,7 @@ CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPageStart, CurPageEnd
 		// Рисуем вертикальную линию
 		if (Math.abs(Y2 - Y1) > 2 && Math.abs(X2 - X1) < 3)
 		{
-			//var curColumn = 0;
+			
 
 			//если поставили просто точку => выход из функции
 			if (Y1 === Y2)
@@ -14741,7 +14369,7 @@ CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPageStart, CurPageEnd
 		// Рисуем горизонтальную линию 
 		else if (Math.abs(X2 - X1) > 2 && Math.abs(Y2 - Y1) < 3)
 		{
-			//var curColumn = 0;
+			
 
 			if (X1 === X2)
 				return;
