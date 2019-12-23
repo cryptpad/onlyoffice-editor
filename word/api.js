@@ -8904,6 +8904,7 @@ background-repeat: no-repeat;\
 				oLogicDocument.AddContentControlDropDownList(oPr);
 
 			oLogicDocument.Recalculate();
+			oLogicDocument.UpdateSelection();
 			oLogicDocument.FinalizeAction();
 		}
 	};
@@ -9022,6 +9023,7 @@ background-repeat: no-repeat;\
 			oLogicDocument.StartAction(AscDFH.historydescription_Document_AddContentControlList);
 			oLogicDocument.AddContentControlDatePicker(oPr);
 			oLogicDocument.Recalculate();
+			oLogicDocument.UpdateSelection();
 			oLogicDocument.FinalizeAction();
 		}
 	};

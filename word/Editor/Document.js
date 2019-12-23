@@ -14315,6 +14315,7 @@ CDocument.prototype.AddContentControlComboBox = function(oPr)
 		return null;
 
 	oCC.ApplyComboBoxPr(oPr);
+	oCC.SelectContentControl();
 	return oCC;
 };
 /**
@@ -14336,6 +14337,7 @@ CDocument.prototype.AddContentControlDropDownList = function(oPr)
 		return null;
 
 	oCC.ApplyDropDownListPr(oPr);
+	oCC.SelectContentControl();
 	return oCC;
 };
 /**
@@ -14354,6 +14356,7 @@ CDocument.prototype.AddContentControlDatePicker = function(oPr)
 		return null;
 
 	oCC.ApplyDatePickerPr(oPr);
+	oCC.SelectContentControl();
 	return oCC;
 };
 /**
