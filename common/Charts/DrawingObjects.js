@@ -3261,23 +3261,16 @@ function DrawingObjects() {
                         obj.to.rowOff = metrics.to.rowOff;
                         */
 
-                        var coords = _this.calculateCoords(metrics.from);
 
+                        obj.graphicObject.setDrawingBaseCoords(metrics.from.col, metrics.from.colOff, metrics.from.row, metrics.from.rowOff,
+                            metrics.to.col, metrics.to.colOff, metrics.to.row, metrics.to.rowOff, obj.Pos.X, obj.Pos.Y, obj.ext.cx, obj.ext.cy);
+                        obj.graphicObject.recalculate();
 
                         if(obj.graphicObject.spPr && obj.graphicObject.spPr.xfrm){
-                            var rot = AscFormat.isRealNumber(obj.graphicObject.spPr.xfrm.rot) ? obj.graphicObject.spPr.xfrm.rot : 0;
-                            rot = AscFormat.normalizeRotate(rot);
-                            if (AscFormat.checkNormalRotate(rot))
-                            {
-                                obj.graphicObject.spPr.xfrm.setOffX(pxToMm(coords.x));
-                                obj.graphicObject.spPr.xfrm.setOffY(pxToMm(coords.y));
-                            }
-                            else
-                            {
-                                obj.graphicObject.spPr.xfrm.setOffX(pxToMm(coords.x) - obj.graphicObject.spPr.xfrm.extX/2 + obj.graphicObject.spPr.xfrm.extY/2);
-                                obj.graphicObject.spPr.xfrm.setOffY(pxToMm(coords.y) - obj.graphicObject.spPr.xfrm.extY/2 + obj.graphicObject.spPr.xfrm.extX/2);
-                            }
-                            obj.graphicObject.checkDrawingBaseCoords();
+                            obj.graphicObject.spPr.xfrm.setOffX(obj.graphicObject.x);
+                            obj.graphicObject.spPr.xfrm.setOffY(obj.graphicObject.y);
+                            obj.graphicObject.spPr.xfrm.setExtX(obj.graphicObject.extX);
+                            obj.graphicObject.spPr.xfrm.setExtY(obj.graphicObject.extY);
                         }
                         obj.graphicObject.recalculate();
                         bNeedRedraw = true;
