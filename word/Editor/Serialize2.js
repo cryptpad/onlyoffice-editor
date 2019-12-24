@@ -6437,6 +6437,11 @@ function BinarySettingsTableWriter(memory, doc, saveParams)
 		this.bs.WriteItem(c_oSerCompat.CompatSetting, function() {oThis.WriteCompatSetting("overrideTableStyleFontSizeAndJustification", "http://schemas.microsoft.com/office/word", "1");});
 		this.bs.WriteItem(c_oSerCompat.CompatSetting, function() {oThis.WriteCompatSetting("enableOpenTypeFeatures", "http://schemas.microsoft.com/office/word", "1");});
 		this.bs.WriteItem(c_oSerCompat.CompatSetting, function() {oThis.WriteCompatSetting("doNotFlipMirrorIndents", "http://schemas.microsoft.com/office/word", "1");});
+		var flags1 = 0;
+		if (this.saveParams.isCompatible) {
+			flags1 |= (oThis.Document.IsDoNotExpandShiftReturn() ? 1 : 0) << 10;
+		}
+		this.bs.WriteItem(c_oSerCompat.Flags1, function() {oThis.memory.WriteULong(flags1);});
 		var flags2 = 0;
 		if (this.saveParams.isCompatible) {
 			flags2 |= (oThis.Document.IsSplitPageBreakAndParaMark() ? 1 : 0) << 27;
@@ -7524,6 +7529,9 @@ function BinaryFileReader(doc, openParams)
 		}
 		if (this.oReadResult.SplitPageBreakAndParaMark) {
 			this.Document.Settings.SplitPageBreakAndParaMark = this.oReadResult.SplitPageBreakAndParaMark;
+		}
+		if (this.oReadResult.DoNotExpandShiftReturn) {
+			this.Document.Settings.DoNotExpandShiftReturn = this.oReadResult.DoNotExpandShiftReturn;
 		}
 
         this.Document.On_EndLoad();
@@ -15790,6 +15798,9 @@ function Binary_SettingsTableReader(doc, oReadResult, stream)
 			if ("compatibilityMode" === compat.name && "http://schemas.microsoft.com/office/word" === compat.url) {
 				this.oReadResult.compatibilityMode = parseInt(compat.value);
 			}
+		} else if (c_oSerCompat.Flags1 === type) {
+			var flags1 = this.stream.GetULong(length);
+			this.oReadResult.DoNotExpandShiftReturn = 0 != ((flags1 >> 10) & 1);
 		} else if (c_oSerCompat.Flags2 === type) {
 			var flags2 = this.stream.GetULong(length);
 			this.oReadResult.SplitPageBreakAndParaMark = 0 != ((flags2 >> 27) & 1);
@@ -16184,6 +16195,7 @@ function DocReadResult(doc) {
 	this.AppVersion;
 	this.compatibilityMode = null;
 	this.SplitPageBreakAndParaMark = false;
+	this.DoNotExpandShiftReturn = false;
 	this.bdtr = null;
 	this.runsToSplit = [];
 	this.bCopyPaste = false;
