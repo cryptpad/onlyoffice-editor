@@ -3312,16 +3312,16 @@ CParagraphRecalculateStateWrap.prototype =
             var FirstTextPr = Para.Get_FirstTextPr2();
 
 
-            if(BulletNum > 32767)
-            {
-                BulletNum = (BulletNum % 32767);
-            }
             if (Bullet.Get_Type() >= numbering_presentationnumfrmt_AlphaLcParenR)
             {
                 if(BulletNum > 780)
                 {
                     BulletNum = (BulletNum % 780);
                 }
+            }
+            if(BulletNum > 32767)
+            {
+                BulletNum = (BulletNum % 32767);
             }
 
 
