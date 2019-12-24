@@ -10220,6 +10220,7 @@ CTable.prototype.AddTableColumn = function(bBefore)
 };
 CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPageStart, CurPageEnd, drawMode)
 {
+	
 	var CurPage = CurPageStart;
 
 	this.RemoveSelection(); // сбрасываем выделение
@@ -10228,7 +10229,12 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPageStart, CurPage
 	// Приводим к координатам таблицы
 	X1 					= X1 - this.Pages[curColumn].X; 
 	X2 					= X2 - this.Pages[curColumn].X;
+
 	
+	if (Y1 < 0)
+		Y1 = 0;
+	if (Y2 < 0)
+		Y2 = 0;
 	// Если рисуем (ctrl + F1)
 	if (drawMode === true)
 	{
@@ -11370,6 +11376,10 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPageStart, CurPage
 				if (Y1 > this.RowsInfo[curRow].Y[curColumn] && Y1 < (this.RowsInfo[curRow].Y[curColumn] + this.RowsInfo[curRow].H[curColumn]))
 					RowNumb[0] = curRow;
 			}
+
+			if (X1 < 0 )
+				X1 = this.Content[RowNumb[0]].CellsInfo[0].X_cell_start;
+			
 			// Заполнение Cells 
 			if (CurPage === 0)
 			{
@@ -11377,7 +11387,7 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPageStart, CurPage
 					return;
 				for (var curCell = 0; curCell < this.Content[RowNumb[0]].CellsInfo.length; curCell++)
 				{
-					if (X1 > this.Content[RowNumb[0]].CellsInfo[curCell].X_cell_start && X1 < this.Content[RowNumb[0]].CellsInfo[curCell].X_cell_end)
+					if (X1 >= this.Content[RowNumb[0]].CellsInfo[curCell].X_cell_start && X1 <= this.Content[RowNumb[0]].CellsInfo[curCell].X_cell_end)
 						CellsNumb.push(curCell);
 					else if (CellsNumb.length === 0)
 						continue;
@@ -14160,6 +14170,8 @@ CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPageStart, CurPageEnd
 {
 	var CurPage = CurPageStart;
 
+	
+		
 
 	var X1_origin = 0;
 	var X2_origin = 0;
@@ -14170,6 +14182,15 @@ CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPageStart, CurPageEnd
 	// Приводим к координатам таблицы
 	X1 					= X1 - this.Pages[curColumn].X; 
 	X2 					= X2 - this.Pages[curColumn].X;
+
+	if (X1 < 0 )
+		X1 = 0;
+	if (X2 < 0)
+		X2 = 0;
+	if (Y1 < 0)
+		Y1 = 0;
+	if (Y2 < 0)
+		Y2 = 0;
 
 	var Y_Under = false;
 	var Y_Over 	= false;
@@ -14393,13 +14414,15 @@ CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPageStart, CurPageEnd
 					RowNumb[0] = curRow;
 			}
 
+			if (X1 < 0 )
+				X1 = this.Content[RowNumb[0]].CellsInfo[0].X_cell_start;
+
 			// Заполнение Cells 
-			
 			if (RowNumb.length === 0)
 				return;
 			for (var curCell = 0; curCell < this.Content[RowNumb[0]].CellsInfo.length; curCell++)
 			{
-				if (X1 > this.Content[RowNumb[0]].CellsInfo[curCell].X_cell_start && X1 < this.Content[RowNumb[0]].CellsInfo[curCell].X_cell_end)
+				if (X1 >= this.Content[RowNumb[0]].CellsInfo[curCell].X_cell_start && X1 <= this.Content[RowNumb[0]].CellsInfo[curCell].X_cell_end)
 					CellsNumb.push(curCell);
 				else if (CellsNumb.length === 0)
 					continue;
@@ -14422,7 +14445,7 @@ CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPageStart, CurPageEnd
 				return Line;
 			} 
 			
-			if (X2 - X1 >= (this.Content[RowNumb[0]].Get_Cell(CellsNumb[0]).Metrics.X_cell_end - this.Content[RowNumb[0]].Get_Cell(CellsNumb[0]).Metrics.X_cell_start)/2)
+			if (Math.abs(X2_origin - X1_origin) >= (this.Content[RowNumb[0]].Get_Cell(CellsNumb[0]).Metrics.X_cell_end - this.Content[RowNumb[0]].Get_Cell(CellsNumb[0]).Metrics.X_cell_start)/2)
 			{
 				if (Math.abs(this.RowsInfo[RowNumb[0]].Y[curColumn] - Y1) < 2)
 				{
@@ -14462,7 +14485,7 @@ CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPageStart, CurPageEnd
 				}
 				
 			}
-			else if (X2 - X1 < (this.Content[RowNumb[0]].Get_Cell(CellsNumb[0]).Metrics.X_cell_end - this.Content[RowNumb[0]].Get_Cell(CellsNumb[0]).Metrics.X_cell_start)/2)
+			else if (Math.abs(X2_origin - X1_origin) < (this.Content[RowNumb[0]].Get_Cell(CellsNumb[0]).Metrics.X_cell_end - this.Content[RowNumb[0]].Get_Cell(CellsNumb[0]).Metrics.X_cell_start)/2)
 			{
 				if (Math.abs(this.RowsInfo[RowNumb[0]].Y[curColumn] - Y1) < 2)
 				{
@@ -14470,8 +14493,8 @@ CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPageStart, CurPageEnd
 					{
 						Y1 : this.RowsInfo[RowNumb[0]].Y[curColumn],
 						Y2 : this.RowsInfo[RowNumb[0]].Y[curColumn],
-						X1 : X1_origin,
-						X2 : X2_origin,
+						X1 : this.Content[RowNumb[0]].Get_Cell(CellsNumb[0]).Metrics.X_cell_start + this.Pages[curColumn].X,
+						X2 : this.Content[RowNumb[0]].Get_Cell(CellsNumb[CellsNumb.length - 1]).Metrics.X_cell_end + this.Pages[curColumn].X,
 						Color : "Grey",
 						Bold  : true
 					};
