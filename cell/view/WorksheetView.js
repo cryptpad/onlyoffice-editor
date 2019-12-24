@@ -18828,7 +18828,7 @@
 				}
 				case Asc.ESortBy.sortbyFontColor: {
 					level.sortBy = Asc.c_oAscSortOptions.ByColorFont;
-					sortColor = sortCondition.dxf && sortCondition.dxf.font ? sortCondition.dxf.font.getColor() : null;
+					sortColor = sortCondition.dxf && sortCondition.dxf.font && sortCondition.dxf.font.c ? sortCondition.dxf.font.getColor() : null;
 					break;
 				}
 				case Asc.ESortBy.sortbyIcon: {
