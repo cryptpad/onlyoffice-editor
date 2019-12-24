@@ -6876,6 +6876,34 @@ function CDrawingDocument()
 		}
 	}
 
+	this.SetDrawImagePreviewBullet = function(id, props)
+	{
+        var parent =  document.getElementById(id);
+        if (!parent)
+            return;
+
+        var width_px = parent.clientWidth;
+        var height_px = parent.clientHeight;
+
+        var canvas = parent.firstChild;
+        if (!canvas)
+        {
+            canvas = document.createElement('canvas');
+            canvas.style.cssText = "pointer-events: none;padding:0;margin:0;user-select:none;";
+            canvas.style.width = width_px + "px";
+            canvas.style.height = height_px + "px";
+            parent.appendChild(canvas);
+        }
+
+        canvas.width = AscCommon.AscBrowser.convertToRetinaValue(width_px, true);
+        canvas.height = AscCommon.AscBrowser.convertToRetinaValue(height_px, true);
+
+        var ctx = canvas.getContext("2d");
+
+        if (AscCommon.AscBrowser.retinaPixelRatio >= 2)
+            ctx.setTransform(2, 0, 0, 2, 0, 0);
+	}
+
 	this.StartTableStylesCheck = function ()
 	{
 		this.TableStylesCheckLookFlag = true;

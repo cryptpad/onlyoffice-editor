@@ -10111,6 +10111,12 @@ background-repeat: no-repeat;\
             this.WordControl.m_oDrawingDocument.SetDrawImagePreviewMargins(id, props);
     };
 
+    asc_docs_api.prototype.SetDrawImagePreviewBullet = function(id, props)
+    {
+        if (this.WordControl.m_oDrawingDocument)
+            this.WordControl.m_oDrawingDocument.SetDrawImagePreviewBullet(id, props);
+    };
+
 	asc_docs_api.prototype.asc_OnHideContextMenu = function()
 	{
 		if (this.WordControl.MobileTouchManager)
@@ -10713,6 +10719,7 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype["SetDrawImagePlaceContents"]					= asc_docs_api.prototype.SetDrawImagePlaceContents;
     asc_docs_api.prototype["SetDrawImagePreviewMargins"]				= asc_docs_api.prototype.SetDrawImagePreviewMargins;
+    asc_docs_api.prototype["SetDrawImagePreviewBullet"]					= asc_docs_api.prototype.SetDrawImagePreviewBullet;
 
 	asc_docs_api.prototype["asc_AddContentControl"]                     = asc_docs_api.prototype.asc_AddContentControl;
 	asc_docs_api.prototype["asc_RemoveContentControl"]                  = asc_docs_api.prototype.asc_RemoveContentControl;
