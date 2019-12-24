@@ -8564,6 +8564,11 @@ Paragraph.prototype.Add_PresentationNumbering = function(_Bullet, Pr)
 				{
 					oBullet2.bulletColor = _OldBullet.bulletColor.createDuplicate();
 				}
+				if(_OldBullet.bulletType && AscFormat.isRealNumber(_OldBullet.bulletType.startAt)
+					&& (oBullet2.bulletType && !AscFormat.isRealNumber(oBullet2.bulletType.startAt)))
+				{
+					oBullet2.bulletType.startAt = _OldBullet.bulletType.startAt;
+				}
 			}
 			this.Set_Bullet(oBullet2.createDuplicate());
 			LeftInd = Math.min(ParaPr.Ind.Left, ParaPr.Ind.Left + ParaPr.Ind.FirstLine);
