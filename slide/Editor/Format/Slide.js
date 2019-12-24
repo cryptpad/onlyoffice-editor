@@ -903,6 +903,20 @@ Slide.prototype =
             {
                 this.removeFromSpTreeByPos(i);
                 this.addToSpTreeToPos(i, oObject);
+
+                var oNvProps = oObject.getNvProps && oObject.getNvProps();
+                if(oNvProps)
+                {
+                    var oNvPropsPh = oPh.getNvProps && oPh.getNvProps();
+                    if(oPh)
+                    {
+                        var oPhPr = oNvPropsPh.ph;
+                        if(oPhPr)
+                        {
+                            oNvProps.setPh(oPhPr.createDuplicate());
+                        }
+                    }
+                }
                 break;
             }
         }
