@@ -10666,11 +10666,11 @@
             }
 
 			//в случае, если вставляем из глобального буфера, транзакцию закрываем внутри функции _loadDataBeforePaste на callbacks от загрузки шрифтов и картинок
-			if (prop !== "paste" || (prop === "paste" && val.fromBinary)) {
+			if (prop !== "paste"/* || (prop === "paste" && val.fromBinary)*/) {
 				History.EndTransaction();
-				if(prop === "paste") {
+				/*if(prop === "paste") {
 					window['AscCommon'].g_specialPasteHelper.Paste_Process_End();
-				}
+				}*/
 			}
 
 			if(prop === "paste") {
@@ -11011,6 +11011,8 @@
 		var selectData;
 
 		var callbackLoadFonts = function() {
+			_doPaste();
+
 			selectData = selectData ? selectData.selectData : null;
 			if(!selectData) {
 				return;
@@ -11041,86 +11043,93 @@
 			}
 		};
 
-		var fromBinaryExcel = val.fromBinary;
-		//paste from excel binary
-		if(fromBinaryExcel)
-		{
-			AscCommonExcel.executeInR1C1Mode(false, function () {
-				selectData = t._pasteData(isLargeRange, fromBinaryExcel, pasteContent, bIsUpdate, pasteToRange);
-			});
-		}
-		else
-		{
-			var imagesFromWord = pasteContent.props.addImagesFromWord;
-			if (imagesFromWord && imagesFromWord.length != 0 && !(window["Asc"]["editor"] && window["Asc"]["editor"].isChartEditor) && specialPasteProps.images) {
-				var oObjectsForDownload = AscCommon.GetObjectsForImageDownload(pasteContent.props._aPastedImages);
-				var oImageMap;
+		var _doPaste = function() {
 
-				//if already load images on server
-				if (AscCommonExcel.g_clipboardExcel.pasteProcessor.alreadyLoadImagesOnServer === true) {
-					oImageMap = {};
-					for (var i = 0, length = oObjectsForDownload.aBuilderImagesByUrl.length; i < length; ++i) {
-						var url = oObjectsForDownload.aUrls[i];
+			var fromBinaryExcel = val.fromBinary;
+			//paste from excel binary
+			if(fromBinaryExcel)
+			{
+				AscCommonExcel.executeInR1C1Mode(false, function () {
+					selectData = t._pasteData(isLargeRange, fromBinaryExcel, pasteContent, bIsUpdate, pasteToRange);
+				});
 
-						//get name from array already load on server urls
-						var name = AscCommonExcel.g_clipboardExcel.pasteProcessor.oImages[url];
-						var aImageElem = oObjectsForDownload.aBuilderImagesByUrl[i];
-						if (name) {
-							if (Array.isArray(aImageElem)) {
-								for (var j = 0; j < aImageElem.length; ++j) {
-									var imageElem = aImageElem[j];
-									if (null != imageElem) {
-										imageElem.SetUrl(name);
+				History.EndTransaction();
+				window['AscCommon'].g_specialPasteHelper.Paste_Process_End();
+			}
+			else
+			{
+				var imagesFromWord = pasteContent.props.addImagesFromWord;
+				if (imagesFromWord && imagesFromWord.length != 0 && !(window["Asc"]["editor"] && window["Asc"]["editor"].isChartEditor) && specialPasteProps.images) {
+					var oObjectsForDownload = AscCommon.GetObjectsForImageDownload(pasteContent.props._aPastedImages);
+					var oImageMap;
+
+					//if already load images on server
+					if (AscCommonExcel.g_clipboardExcel.pasteProcessor.alreadyLoadImagesOnServer === true) {
+						oImageMap = {};
+						for (var i = 0, length = oObjectsForDownload.aBuilderImagesByUrl.length; i < length; ++i) {
+							var url = oObjectsForDownload.aUrls[i];
+
+							//get name from array already load on server urls
+							var name = AscCommonExcel.g_clipboardExcel.pasteProcessor.oImages[url];
+							var aImageElem = oObjectsForDownload.aBuilderImagesByUrl[i];
+							if (name) {
+								if (Array.isArray(aImageElem)) {
+									for (var j = 0; j < aImageElem.length; ++j) {
+										var imageElem = aImageElem[j];
+										if (null != imageElem) {
+											imageElem.SetUrl(name);
+										}
 									}
 								}
+								oImageMap[i] = name;
+							} else {
+								oImageMap[i] = url;
 							}
-							oImageMap[i] = name;
-						} else {
-							oImageMap[i] = url;
 						}
-					}
 
-					AscCommonExcel.executeInR1C1Mode(false, function () {
-						selectData = t._pasteData(isLargeRange, fromBinaryExcel, pasteContent, bIsUpdate, pasteToRange);
-					});
-					AscCommonExcel.g_clipboardExcel.pasteProcessor._insertImagesFromBinaryWord(t, pasteContent, oImageMap);
-				} else {
-					oImageMap = pasteContent.props.oImageMap;
-					if (window["NATIVE_EDITOR_ENJINE"]) {
-						//TODO для мобильных приложений  - не рабочий код!
-						AscCommon.ResetNewUrls(pasteContent.props.data, oObjectsForDownload.aUrls, oObjectsForDownload.aBuilderImagesByUrl, oImageMap);
 						AscCommonExcel.executeInR1C1Mode(false, function () {
 							selectData = t._pasteData(isLargeRange, fromBinaryExcel, pasteContent, bIsUpdate, pasteToRange);
 						});
 						AscCommonExcel.g_clipboardExcel.pasteProcessor._insertImagesFromBinaryWord(t, pasteContent, oImageMap);
 					} else {
-						AscCommonExcel.executeInR1C1Mode(false, function () {
-							selectData = t._pasteData(isLargeRange, fromBinaryExcel, pasteContent, bIsUpdate, pasteToRange);
-						});
-						AscCommonExcel.g_clipboardExcel.pasteProcessor._insertImagesFromBinaryWord(t, pasteContent, oImageMap);
+						oImageMap = pasteContent.props.oImageMap;
+						if (window["NATIVE_EDITOR_ENJINE"]) {
+							//TODO для мобильных приложений  - не рабочий код!
+							AscCommon.ResetNewUrls(pasteContent.props.data, oObjectsForDownload.aUrls, oObjectsForDownload.aBuilderImagesByUrl, oImageMap);
+							AscCommonExcel.executeInR1C1Mode(false, function () {
+								selectData = t._pasteData(isLargeRange, fromBinaryExcel, pasteContent, bIsUpdate, pasteToRange);
+							});
+							AscCommonExcel.g_clipboardExcel.pasteProcessor._insertImagesFromBinaryWord(t, pasteContent, oImageMap);
+						} else {
+							AscCommonExcel.executeInR1C1Mode(false, function () {
+								selectData = t._pasteData(isLargeRange, fromBinaryExcel, pasteContent, bIsUpdate, pasteToRange);
+							});
+							AscCommonExcel.g_clipboardExcel.pasteProcessor._insertImagesFromBinaryWord(t, pasteContent, oImageMap);
+						}
 					}
-				}
-			} else {
-				AscCommonExcel.executeInR1C1Mode(false, function () {
-					selectData = t._pasteData(isLargeRange, fromBinaryExcel, pasteContent, bIsUpdate, pasteToRange, val.bText);
-				});
-			}
-
-            History.EndTransaction();
-			if(selectData && selectData.adjustFormatArr && selectData.adjustFormatArr.length) {
-				for(i = 0; i < selectData.adjustFormatArr.length; i++) {
-					selectData.adjustFormatArr[i]._foreach(function(cell){
-						cell._adjustCellFormat();
+				} else {
+					AscCommonExcel.executeInR1C1Mode(false, function () {
+						selectData = t._pasteData(isLargeRange, fromBinaryExcel, pasteContent, bIsUpdate, pasteToRange, val.bText);
 					});
 				}
+
+				if(selectData && selectData.adjustFormatArr && selectData.adjustFormatArr.length) {
+					for(i = 0; i < selectData.adjustFormatArr.length; i++) {
+						selectData.adjustFormatArr[i]._foreach(function(cell){
+							cell._adjustCellFormat();
+						});
+					}
+				}
+
+				History.EndTransaction();
+				window['AscCommon'].g_specialPasteHelper.Paste_Process_End();
 			}
 
-            window['AscCommon'].g_specialPasteHelper.Paste_Process_End();
-		}
+		};
 
 		var fonts = pasteContent.props && pasteContent.props.fontsNew ? pasteContent.props.fontsNew : val.fontsNew;
 		//загрузка шрифтов, в случае удачи на callback вставляем текст
-		t._loadFonts( fonts, callbackLoadFonts);
+		t._loadFonts(fonts, callbackLoadFonts);
     };
 
     WorksheetView.prototype._pasteFromHTML = function (pasteContent, isCheckSelection, specialPasteProps) {
