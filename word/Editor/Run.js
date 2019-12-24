@@ -3678,6 +3678,8 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
                     }
                     else
                     {
+                    	PRS.BreakLine = true;
+
                         NewRange = true;
                         EmptyLine = false;
 						TextOnLine = true;

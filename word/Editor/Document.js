@@ -1874,6 +1874,7 @@ function CDocumentSettings()
 
     // Compatibility
     this.SplitPageBreakAndParaMark = false;
+	this.DoNotExpandShiftReturn    = false;
 }
 
 /**
@@ -14252,6 +14253,10 @@ CDocument.prototype.OnChangeSdtGlobalSettings = function()
 CDocument.prototype.IsSplitPageBreakAndParaMark = function()
 {
 	return this.Settings.SplitPageBreakAndParaMark;
+};
+CDocument.prototype.IsDoNotExpandShiftReturn = function()
+{
+	return this.Settings.DoNotExpandShiftReturn;
 };
 /**
  * Проверяем все ли параметры SdtSettings выставлены по умолчанию
