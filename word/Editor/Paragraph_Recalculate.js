@@ -1187,6 +1187,9 @@ Paragraph.prototype.private_RecalculateLineInfo        = function(CurLine, CurPa
 
     if (true === PRS.TextOnLine)
     	this.Lines[CurLine].Info |= paralineinfo_TextOnLine;
+
+    if (true === PRS.BreakLine)
+    	this.Lines[CurLine].Info |= paralineinfo_BreakLine;
 };
 
 Paragraph.prototype.private_RecalculateLineMetrics     = function(CurLine, CurPage, PRS, ParaPr)
@@ -1575,7 +1578,10 @@ Paragraph.prototype.private_RecalculateLineCheckRanges = function(CurLine, CurPa
 	}
 
 	if (this.LogicDocument && this.LogicDocument.GetCompatibilityMode && this.LogicDocument.GetCompatibilityMode() >= document_compatibility_mode_Word15)
+	{
 		Bottom = Bottom2;
+		Top2   = Top;
+	}
 
     if ( true === this.Use_Wrap() )
         Ranges2 = this.Parent.CheckRange(Left, Top, Right, Bottom, Top2, Bottom2, PageFields.X, PageFields.XLimit, this.private_GetRelativePageIndex(CurPage), true, PRS.MathNotInline);
@@ -1811,6 +1817,8 @@ Paragraph.prototype.private_RecalculateLineAlign       = function(CurLine, CurPa
     var Line        = this.Lines[CurLine];
     var RangesCount = Line.Ranges.length;
 
+    var isDoNotExpandShiftReturn = this.LogicDocument ? this.LogicDocument.IsDoNotExpandShiftReturn() : false;
+
     for (var CurRange = 0; CurRange < RangesCount; CurRange++)
     {
         var Range = Line.Ranges[CurRange];
@@ -1929,7 +1937,7 @@ Paragraph.prototype.private_RecalculateLineAlign       = function(CurLine, CurPa
             }
 
             // В последнем отрезке последней строки не делаем текст "по ширине"
-            if (CurLine === this.ParaEnd.Line && CurRange === this.ParaEnd.Range)
+            if ((CurLine === this.ParaEnd.Line && CurRange === this.ParaEnd.Range) || (this.Lines[CurLine].Info & paralineinfo_BreakLine && isDoNotExpandShiftReturn))
             {
                 JustifyWord  = 0;
                 JustifySpace = 0;
@@ -2410,6 +2418,7 @@ var paralineinfo_BreakRealPage = 0x0010; // В строке есть PageBreak
 var paralineinfo_BadLeftTab    = 0x0020; // В строке есть левый таб, который правее правой границы
 var paralineinfo_Notes         = 0x0040; // В строке есть сноски
 var paralineinfo_TextOnLine    = 0x0080; // Есть ли в строке текст
+var paralineinfo_BreakLine     = 0x0100; // Строка закончилась переносом строки
 
 function CParaLine()
 {
@@ -2813,6 +2822,7 @@ function CParagraphRecalculateStateWrap(Para)
     this.BreakPageLineEmpty = false;
     this.BreakRealPageLine  = false; // Разрыв страницы документа (не только параграфа) в данной строке
     this.BadLeftTab         = false; // Левый таб правее правой границы
+	this.BreakLine          = false; // Строка закончилась принудительным разрывом
 
 	this.ComplexFields = new CParagraphComplexFieldsInfo();
 
@@ -2934,6 +2944,7 @@ CParagraphRecalculateStateWrap.prototype =
 
         this.EmptyLine           = true;
         this.BreakPageLine       = false;
+        this.BreakLine           = false;
         this.End                 = false;
         this.UseFirstLine        = false;
         this.BreakRealPageLine   = false;
@@ -2977,6 +2988,7 @@ CParagraphRecalculateStateWrap.prototype =
     {
         this.LastTab.Reset();
 
+        this.BreakLine       = false;
         this.SpaceLen        = 0;
         this.WordLen         = 0;
         this.SpacesCount     = 0;

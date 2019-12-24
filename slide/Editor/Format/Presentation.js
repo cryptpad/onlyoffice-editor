@@ -10357,6 +10357,13 @@ CPresentation.prototype.FinalizeAction = function () {
     this.Recalculate();
 };
 
+CPresentation.prototype.IsSplitPageBreakAndParaMark = function() {
+	return false;
+};
+CPresentation.prototype.IsDoNotExpandShiftReturn = function() {
+	return false;
+};
+
 
 CPresentation.prototype.IsActionInProgress = function () {
 };

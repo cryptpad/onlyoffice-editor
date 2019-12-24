@@ -51,8 +51,57 @@
 	var cFormulaFunctionGroup = AscCommonExcel.cFormulaFunctionGroup;
 	var cElementType = AscCommonExcel.cElementType;
 
+	function getCellFormat(ws, row, col) {
+		var res = new cString("G");
+		var formatInfo, sFormat, numFormat;
+		ws.getCell3(row, col)._foreachNoEmpty(function (cell) {
+			numFormat = cell ? cell.getNumFormat() : null;
+			formatInfo = numFormat ? numFormat.getTypeInfo() : null;
+			sFormat = numFormat ? numFormat.sFormat : null;
+		});
+
+		//такие форматы как дата не поддерживаются
+		//TODO функция нуждается в доработке
+		if(formatInfo) {
+			var postfix = "";
+			if(numFormat && (numFormat.oNegativeFormat && numFormat.oNegativeFormat.Color !== -1)) {
+				postfix += "-";
+			}
+			if(numFormat && numFormat.oPositiveFormat && numFormat.oPositiveFormat.formatString.indexOf('(') != -1) {
+				postfix += "()";
+			}
+
+			var formatPart;
+			if(formatInfo.type === Asc.c_oAscNumFormatType.Number) {
+				formatPart = "F";
+			} else if(formatInfo.type === Asc.c_oAscNumFormatType.Currency || formatInfo.type === Asc.c_oAscNumFormatType.Accounting) {
+				formatPart = "С";
+			} else if(formatInfo.type === Asc.c_oAscNumFormatType.Percent) {
+				formatPart = "P";
+			} else if(formatInfo.type === Asc.c_oAscNumFormatType.Scientific) {
+				formatPart = "S";
+			}
+
+			if(formatPart) {
+				res = new cString(formatPart + formatInfo.decimalPlaces + postfix);
+			}
+		}
+
+		return res;
+	}
+
+	function getNumFormat(ws, row, col) {
+		var numFormat = null;
+
+		ws.getCell3(row, col)._foreachNoEmpty(function (cell) {
+			numFormat = cell ? cell.getNumFormat() : null;
+		});
+
+		return numFormat;
+	}
+
 	cFormulaFunctionGroup['Information'] = cFormulaFunctionGroup['Information'] || [];
-	cFormulaFunctionGroup['Information'].push(/*cCell , */cERROR_TYPE, cISBLANK, cISERR, cISERROR, cISEVEN, cISFORMULA, cISLOGICAL,
+	cFormulaFunctionGroup['Information'].push(cCell , cERROR_TYPE, cISBLANK, cISERR, cISERROR, cISEVEN, cISFORMULA, cISLOGICAL,
 		cISNA, cISNONTEXT, cISNUMBER, cISODD, cISREF, cISTEXT, cN, cNA, cSHEET, cSHEETS, cTYPE);
 
 
@@ -67,10 +116,15 @@
 	cCell.prototype = Object.create(cBaseFunction.prototype);
 	cCell.prototype.constructor = cCell;
 	cCell.prototype.name = 'CELL';
-	cCell.prototype.argumentsMin = 1;
+	cCell.prototype.argumentsMin = 2;
 	cCell.prototype.argumentsMax = 2;
+	cCell.prototype.ca = true;
 	cCell.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.area_to_ref;
-	cCell.prototype.Calculate = function (arg) {
+	cCell.prototype.Calculate = function (arg, opt_bbox, opt_defName, ws) {
+		//специально ввожу ограничения - минимум 2 аргумента
+		//в случае одного аргумента необходимо следить всегда за последней измененной ячейкой
+		//так же при сборке необходимо записывать данные об последней измененной ячейке
+		//нужно дли это ?
 		var arg0 = arg[0];
 		var arg1 = arg[1];
 		arg0 = arg0.tocString();
@@ -91,7 +145,7 @@
 				}
 			}
 
-			var res;
+			var res, numFormat;
 			switch (str) {
 				case "COL": {
 					res = new cNumber(bbox.c1 + 1);
@@ -102,13 +156,14 @@
 					break;
 				}
 				case "SHEET": {
+					//нет в офф. документации
 					//ms excel returns 1?
 					res = new cNumber(1);
 					break;
 				}
 				case "ADDRESS": {
 					res = new Asc.Range(bbox.c1, bbox.r1, bbox.c1, bbox.r1);
-					res = new cString(res.getName());
+					res = new cString(res.getAbsName());
 					break;
 				}
 				case "FILENAME": {
@@ -116,38 +171,95 @@
 					break;
 				}
 				case "COORD": {
-
+					//нет в офф. документации
 					break;
 				}
 				case "CONTENTS": {
-
+					res = arg1.getValue();
 					break;
 				}
 				case "TYPE": {
-
+					// b = blank; l = string (label); v = otherwise (value)
+					res = arg1.getValue();
+					if(res.type === cElementType.empty) {
+						res = new cString("b");
+					} else if(res.type === cElementType.string) {
+						res = new cString("l");
+					} else {
+						res = new cString("v");
+					}
 					break;
 				}
 				case "WIDTH": {
+					//return array
+					//{width 1 column; is default}
+					var col = ws._getCol(bbox.c1);
+					var props = col ? col.getWidthProp() : null;
+					var isDefault = !props.CustomWidth;
+					var width, colWidthPx;
+					if(isDefault) {
+						var defaultColWidthChars = ws.charCountToModelColWidth(ws.getBaseColWidth());
+						colWidthPx = ws.modelColWidthToColWidth(defaultColWidthChars);
+						colWidthPx = Asc.ceil(colWidthPx / 8) * 8;
+						width = ws.colWidthToCharCount(colWidthPx);
+					} else {
+						colWidthPx = ws.modelColWidthToColWidth(props.width);
+						width = ws.colWidthToCharCount(colWidthPx);
+					}
+
+					if(props) {
+						res = new cArray();
+						res.addElement(new cNumber(Math.round(width)));
+						res.addElement(new cBool(isDefault));
+					}
 
 					break;
 				}
 				case "PREFIX": {
+					// ' = left; " = right; ^ = centered; \ =
+					cell = ws.getCell3(bbox.r1, bbox.c1);
+					var align = cell.getAlign();
+					var alignHorizontal = align.getAlignHorizontal();
+					if(alignHorizontal === null || alignHorizontal === AscCommon.align_Left) {
+						res = new cString("'");
+					} else if(alignHorizontal === AscCommon.align_Right) {
+						res = new cString('"');
+					} else if(alignHorizontal === AscCommon.align_Center) {
+						res = new cString('^');
+					} /*else if(alignHorizontal === AscCommon.align_Fill) {
+						res = new cString("\/");
+					}*/ else {
+						res = new cString('');
+					}
 
 					break;
 				}
 				case "PROTECT": {
-
+					//TODO
+					//default - protect, do not support on open
+					res = new cNumber(1);
 					break;
 				}
 				case "FORMAT": {
-
+					res = getCellFormat(ws, bbox.r1, bbox.c1);
 					break
 				}
 				case "COLOR": {
-
+					numFormat = getNumFormat(ws, bbox.r1, bbox.c1);
+					if(numFormat && (numFormat.oNegativeFormat && numFormat.oNegativeFormat.Color !== -1)) {
+						res = new cNumber(1);
+					} else {
+						res = new cNumber(0);
+					}
 					break
 				}
 				case "PARENTHESES": {
+					numFormat = getNumFormat(ws, bbox.r1, bbox.c1);
+					if(numFormat && numFormat.oPositiveFormat && numFormat.oPositiveFormat.formatString.indexOf('(') != -1) {
+						res = new cNumber(1);
+					} else {
+						res = new cNumber(0);
+					}
 					break
 				}
 				default: {
