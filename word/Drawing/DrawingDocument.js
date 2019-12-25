@@ -6876,7 +6876,7 @@ function CDrawingDocument()
 		}
 	}
 
-	this.SetDrawImagePreviewBullet = function(id, props)
+	this.SetDrawImagePreviewBullet = function(id, props, level)
 	{
         var parent =  document.getElementById(id);
         if (!parent)
@@ -6902,6 +6902,76 @@ function CDrawingDocument()
 
         if (AscCommon.AscBrowser.retinaPixelRatio >= 2)
             ctx.setTransform(2, 0, 0, 2, 0, 0);
+
+        if (undefined === level)
+        {
+            var offsetBase = 10;
+            var line_w = 4;
+            // считаем расстояние между линиями
+            var line_distance = (((height_px - (offsetBase << 1)) - line_w * 10) / 9) >> 0;
+            // убираем погрешность в offset
+            var offset = (height_px - (line_w * 10 + line_distance * 9)) >> 1;
+
+            ctx.lineWidth = 4;
+            ctx.strokeStyle = "#CBCBCB";
+            var y = offset + 2;
+            ctx.moveTo(offsetBase, y); ctx.lineTo(width_px - offsetBase, y); y += (line_w + line_distance);
+            ctx.moveTo(offsetBase, y); ctx.lineTo(width_px - offsetBase, y); y += (line_w + line_distance);
+            ctx.stroke();
+            ctx.beginPath();
+            var text_base_offset_x = offset + (12.5 * AscCommon.g_dKoef_mm_to_pix) >> 0;
+            ctx.strokeStyle = "#000000";
+            ctx.moveTo(text_base_offset_x, y); ctx.lineTo(width_px - offsetBase, y); y += (line_w + line_distance);
+            ctx.moveTo(text_base_offset_x, y); ctx.lineTo(width_px - offsetBase, y); y += (line_w + line_distance);
+            ctx.moveTo(text_base_offset_x, y); ctx.lineTo(width_px - offsetBase, y); y += (line_w + line_distance);
+            ctx.moveTo(text_base_offset_x, y); ctx.lineTo(width_px - offsetBase, y); y += (line_w + line_distance);
+            ctx.moveTo(text_base_offset_x, y); ctx.lineTo(width_px - offsetBase, y); y += (line_w + line_distance);
+            ctx.moveTo(text_base_offset_x, y); ctx.lineTo(width_px - offsetBase, y); y += (line_w + line_distance);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.strokeStyle = "#CBCBCB";
+            ctx.moveTo(offsetBase, y); ctx.lineTo(width_px - offsetBase, y); y += (line_w + line_distance);
+            ctx.moveTo(offsetBase, y); ctx.lineTo(width_px - offsetBase, y); y += (line_w + line_distance);
+            ctx.stroke();
+            ctx.beginPath();
+        }
+        else
+        {
+            var offsetBase = 10;
+            var line_w = 4;
+            // считаем расстояние между линиями
+            var line_distance = (((height_px - (offsetBase << 1)) - line_w * 10) / 9) >> 0;
+            // убираем погрешность в offset
+            var offset = (height_px - (line_w * 10 + line_distance * 9)) >> 1;
+            var current = level;
+
+            ctx.lineWidth = 4;
+            ctx.strokeStyle = "#CBCBCB";
+            var y = offset + 2;
+            var text_base_offset_x = offset;
+            var text_base_offset_dist = (0.5 * 12.5 * AscCommon.g_dKoef_mm_to_pix) >> 0;
+            for (var i = 0; i < 9; i++)
+			{
+				if (i == current)
+				{
+					ctx.strokeStyle = "#000000";
+                    ctx.moveTo(text_base_offset_x, y); ctx.lineTo(width_px - offsetBase, y); y += (line_w + line_distance);
+                    ctx.moveTo(text_base_offset_x, y); ctx.lineTo(width_px - offsetBase, y);
+                    ctx.stroke();
+                    ctx.strokeStyle = "#CBCBCB";
+
+				}
+				else
+				{
+                    ctx.moveTo(text_base_offset_x, y); ctx.lineTo(width_px - offsetBase, y);
+                    ctx.stroke();
+				}
+				ctx.beginPath();
+                text_base_offset_x += text_base_offset_dist;
+                y += (line_w + line_distance);
+			}
+        }
+
 	}
 
 	this.StartTableStylesCheck = function ()
