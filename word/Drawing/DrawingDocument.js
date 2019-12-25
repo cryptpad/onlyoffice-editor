@@ -6876,7 +6876,7 @@ function CDrawingDocument()
 		}
 	}
 
-	this.SetDrawImagePreviewBullet = function(id, props, level)
+	this.SetDrawImagePreviewBullet = function(id, props, level, is_multi_level)
 	{
         var parent =  document.getElementById(id);
         if (!parent)
@@ -6889,7 +6889,7 @@ function CDrawingDocument()
         if (!canvas)
         {
             canvas = document.createElement('canvas');
-            canvas.style.cssText = "pointer-events: none;padding:0;margin:0;user-select:none;";
+            canvas.style.cssText = "padding:0;margin:0;user-select:none;";
             canvas.style.width = width_px + "px";
             canvas.style.height = height_px + "px";
             parent.appendChild(canvas);
@@ -6903,7 +6903,45 @@ function CDrawingDocument()
         if (AscCommon.AscBrowser.retinaPixelRatio >= 2)
             ctx.setTransform(2, 0, 0, 2, 0, 0);
 
-        if (undefined === level)
+        canvas.is_multi_level = is_multi_level;
+        canvas.level = level;
+
+        AscCommon.addMouseEvent(canvas, "down", function(e) {
+        	AscCommon.stopEvent(e);
+        	if (true !== this.is_multi_level)
+        		return;
+
+            var offsetBase = 10;
+            var line_w = 4;
+            var height = parseInt(this.style.height);
+            var line_distance = (((height - (offsetBase << 1)) - line_w * 10) / 9) >> 0;
+            var offset = (height - (line_w * 10 + line_distance * 9)) >> 1;
+            var current = this.currentLevel;
+
+            var yPos = e.pageY;
+            if (undefined === yPos)
+                yPos = e.clientY;
+            yPos = (yPos * AscCommon.AscBrowser.zoom);
+            yPos -= this.getBoundingClientRect().y;
+
+            var level = 8;
+            var y = offset + 2;
+            for (var i = 0; i < 9; i++)
+            {
+                y += (line_w + line_distance);
+                if (i == current)
+                    y += (line_w + line_distance);
+
+                if (yPos < (y - ((line_w + line_distance) >> 1)))
+                {
+                    level = i;
+                    break;
+                }
+            }
+            editor.sendEvent("asc_onPreviewLevelChange", level);
+        });
+
+        if (!is_multi_level)
         {
             var offsetBase = 10;
             var line_w = 4;
@@ -6944,6 +6982,7 @@ function CDrawingDocument()
             // убираем погрешность в offset
             var offset = (height_px - (line_w * 10 + line_distance * 9)) >> 1;
             var current = level;
+            canvas.currentLevel = level;
 
             ctx.lineWidth = 4;
             ctx.strokeStyle = "#CBCBCB";
@@ -6971,7 +7010,6 @@ function CDrawingDocument()
                 y += (line_w + line_distance);
 			}
         }
-
 	}
 
 	this.StartTableStylesCheck = function ()

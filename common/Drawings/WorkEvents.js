@@ -71,6 +71,12 @@
 		var _type = (isUsePointerEvents ? "onpointer" : "onmouse") + type;
 		elem[_type] = handler;
 	};
+    AscCommon.removeMouseEvent = function(elem, type)
+    {
+        var _type = (isUsePointerEvents ? "onpointer" : "onmouse") + type;
+        if (elem[_type])
+        	delete elem[_type];
+    };
 
 	function CMouseEventHandler()
 	{

@@ -10111,10 +10111,10 @@ background-repeat: no-repeat;\
             this.WordControl.m_oDrawingDocument.SetDrawImagePreviewMargins(id, props);
     };
 
-    asc_docs_api.prototype.SetDrawImagePreviewBullet = function(id, props, level)
+    asc_docs_api.prototype.SetDrawImagePreviewBullet = function(id, props, level, is_multi_level)
     {
         if (this.WordControl.m_oDrawingDocument)
-            this.WordControl.m_oDrawingDocument.SetDrawImagePreviewBullet(id, props, level);
+            this.WordControl.m_oDrawingDocument.SetDrawImagePreviewBullet(id, props, level, is_multi_level);
     };
 
 	asc_docs_api.prototype.asc_OnHideContextMenu = function()
