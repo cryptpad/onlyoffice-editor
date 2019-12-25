@@ -4850,6 +4850,10 @@ CChartSpace.prototype.documentGetAllFontNames = function(allFonts)
             this.userShapes[i].object.documentGetAllFontNames(allFonts);
         }
     }
+    if(this.themeOverride && this.themeOverride.themeElements && this.themeOverride.themeElements.fontScheme)
+    {
+        AscFormat.checkThemeFonts(allFonts, this.themeOverride.themeElements.fontScheme);
+    }
 };
 CChartSpace.prototype.documentCreateFontMap = function(allFonts)
 {
