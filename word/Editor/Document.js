@@ -18981,6 +18981,13 @@ CDocument.prototype.OnContentControlTrackEnd = function(Id, NearestPos, isCopy)
 };
 CDocument.prototype.AddContentControl = function(nContentControlType)
 {
+	if (this.IsDrawingSelected())
+	{
+		var oDrawing = this.DrawingObjects.getMajorParaDrawing();
+		if (oDrawing)
+			oDrawing.SelectAsText();
+	}
+
 	return this.Controller.AddContentControl(nContentControlType);
 };
 CDocument.prototype.GetAllContentControls = function()
@@ -21131,6 +21138,14 @@ CDocument.prototype.AnchorPositionToDocumentPosition = function(oAnchorPos)
 	oDocPos.push({Class : oRun, Position : nInRunPos});
 
 	return oDocPos;
+};
+/**
+ * Выделена ли сейчас автофигура (проверяем с учетом колонтитулов)
+ * @returns {boolean}
+ */
+CDocument.prototype.IsDrawingSelected = function()
+{
+	return (docpostype_DrawingObjects === this.GetDocPosType() || (docpostype_HdrFtr === this.CurPos.Type && null != this.HdrFtr.CurHdrFtr && docpostype_DrawingObjects === this.HdrFtr.CurHdrFtr.Content.CurPos.Type));
 };
 
 function CDocumentSelectionState()

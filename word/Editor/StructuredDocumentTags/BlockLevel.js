@@ -1768,23 +1768,38 @@ CBlockLevelSdt.prototype.private_UpdatePictureContent = function()
 	if (!this.IsPicture())
 		return;
 
+	var arrDrawings = this.GetAllDrawingObjects();
+
 	if (this.IsPlaceHolder())
 		this.ReplacePlaceHolderWithContent();
+
+	var oDrawing;
+	for (var nIndex = 0, nCount = arrDrawings.length; nIndex < nCount; ++nIndex)
+	{
+		if (arrDrawings[nIndex].IsPicture())
+		{
+			oDrawing = arrDrawings[nIndex];
+			break;
+		}
+	}
 
 	var oPara = this.Content.MakeSingleParagraphContent();
 	var oRun  = oPara.MakeSingleRunParagraph();
 
-	var oDrawingObjects = this.LogicDocument ? this.LogicDocument.DrawingObjects : null;
-	if (!oDrawingObjects)
-		return;
+	if (!oDrawing)
+	{
+		var oDrawingObjects = this.LogicDocument ? this.LogicDocument.DrawingObjects : null;
+		if (!oDrawingObjects)
+			return;
 
-	var nW = 50;
-	var nH = 50;
+		var nW = 50;
+		var nH = 50;
 
-	var oDrawing = new ParaDrawing(nW, nH, null, oDrawingObjects, this.LogicDocument, null);
-	var oImage   = oDrawingObjects.createImage(AscCommon.g_sWordPlaceholderImage, 0, 0, nW, nH);
-	oImage.setParent(oDrawing);
-	oDrawing.Set_GraphicObject(oImage);
+		oDrawing   = new ParaDrawing(nW, nH, null, oDrawingObjects, this.LogicDocument, null);
+		var oImage = oDrawingObjects.createImage(AscCommon.g_sWordPlaceholderImage, 0, 0, nW, nH);
+		oImage.setParent(oDrawing);
+		oDrawing.Set_GraphicObject(oImage);
+	}
 
 	oRun.AddToContent(0, oDrawing);
 };

@@ -251,6 +251,10 @@ ParaDrawing.prototype.GetParagraph = function()
 {
 	return this.Get_ParentParagraph();
 };
+ParaDrawing.prototype.GetRun = function()
+{
+	return this.Get_Run();
+};
 ParaDrawing.prototype.Get_Run = function()
 {
 	var oParagraph = this.Get_ParentParagraph();
@@ -1667,6 +1671,29 @@ ParaDrawing.prototype.Get_ParentParagraph = function()
 		return this.Parent.Paragraph;
 	return null;
 };
+ParaDrawing.prototype.SelectAsText = function()
+{
+	var oParagraph = this.GetParagraph();
+	var oRun       = this.GetRun();
+	if (!oParagraph || !oRun)
+		return;
+
+	var oDocument = oParagraph.GetLogicDocument();
+	if (!oDocument)
+		return;
+
+	oDocument.RemoveSelection();
+
+	oRun.Make_ThisElementCurrent(false);
+	oRun.SetCursorPosition(oRun.GetElementPosition(this));
+
+	var oStartPos = oDocument.GetContentPosition(false);
+	oRun.SetCursorPosition(oRun.GetElementPosition(this) + 1);
+	var oEndPos = oDocument.GetContentPosition(false);
+
+	oDocument.RemoveSelection();
+	oDocument.SetSelectionByContentPositions(oStartPos, oEndPos);
+};
 ParaDrawing.prototype.Add_ToDocument = function(NearPos, bRecalculate, RunPr, Run)
 {
 	NearPos.Paragraph.Check_NearestPos(NearPos);
@@ -2808,6 +2835,14 @@ ParaDrawing.prototype.GetAllSeqFieldsByType = function(sType, aFields)
 	{
 		return this.GraphicObj.GetAllSeqFieldsByType(sType, aFields);
 	}
+};
+/**
+ * Является ли данная автофигура картинкой
+ * @returns {boolean}
+ */
+ParaDrawing.prototype.IsPicture = function()
+{
+	return (this.GraphicObj.getObjectType() === AscDFH.historyitem_type_ImageShape);
 };
 
 /**
