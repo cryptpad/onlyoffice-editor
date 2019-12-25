@@ -7279,7 +7279,6 @@
 			this.sortState.shift(range, offset, this, true);
 			this.moveSortState(bboxShift, offset);
 		}
-		console.log(this.sortState.Ref.getName());
 	};
 
 	Worksheet.prototype.deleteSortState = function (range) {
