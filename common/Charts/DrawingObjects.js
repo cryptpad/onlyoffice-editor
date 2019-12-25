@@ -4350,7 +4350,7 @@ function DrawingObjects() {
     };
 
     _this.beginCompositeInput = function(){
-        History.Create_NewPoint(AscDFH.historydescription_Document_CompositeInput);
+
         _this.controller.CreateDocContent();
         _this.drawingDocument.TargetStart();
         _this.drawingDocument.TargetShow();
@@ -4378,13 +4378,12 @@ function DrawingObjects() {
         oRun.Set_CompositeInput(_this.CompositeInput);
         _this.controller.startRecalculate();
         _this.sendGraphicObjectProps();
-        return true;
     };
 
     _this.Begin_CompositeInput = function(){
-        if(_this.controller){
-            _this.controller.checkSelectedObjectsAndCallback(_this.beginCompositeInput, [], false, AscDFH.historydescription_Document_CompositeInput);
-        }
+
+        History.Create_NewPoint(AscDFH.historydescription_Document_CompositeInput);
+        _this.beginCompositeInput();
     };
 
 
