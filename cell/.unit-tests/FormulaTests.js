@@ -5374,6 +5374,75 @@ $( function () {
 		testArrayFormula2("CEILING", 2, 2);
     } );
 
+	test( "Test: \"CELL\"", function () {
+
+		ws.getRange2( "J2" ).setValue( "1" );
+		ws.getRange2( "J3" ).setValue( "test" );
+		ws.getRange2( "J4" ).setValue( "test2" );
+
+
+		oParser = new parserFormula( 'CELL("address",J3)', "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "$J$3" );
+
+		oParser = new parserFormula( 'CELL("address",J3:O12)', "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "$J$3" );
+
+		oParser = new parserFormula( 'CELL("col",J3)', "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 10 );
+
+		oParser = new parserFormula( 'CELL("col",J3:O12)', "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 10 );
+
+		oParser = new parserFormula( 'CELL("row",J3)', "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 3 );
+
+		oParser = new parserFormula( 'CELL("row",J3:O12)', "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 3 );
+
+		oParser = new parserFormula( 'CELL("color",J3)', "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 0 );
+
+		oParser = new parserFormula( 'CELL("color",J3:O12)', "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 0 );
+
+		oParser = new parserFormula( 'CELL("contents",J3)', "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "test" );
+
+		oParser = new parserFormula( 'CELL("contents",J3:O12)', "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "test" );
+
+		oParser = new parserFormula( 'CELL("contents",J4:O12)', "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "test2" );
+
+		oParser = new parserFormula( 'CELL("contents",J5:O12)', "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), 0 );
+
+		oParser = new parserFormula( 'CELL("prefix",J3)', "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "'" );
+
+		/*oParser = new parserFormula( 'CELL("prefix",J2)', "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "" );*/
+
+		oParser = new parserFormula( 'CELL("prefix",J6:O12)', "A1", ws );
+		ok( oParser.parse() );
+		strictEqual( oParser.calculate().getValue(), "" );
+
+	} );
+
 
     /*
      * Statistical Function
