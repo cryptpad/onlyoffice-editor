@@ -6637,7 +6637,7 @@ function CDrawingDocument()
 		editor.isViewMode = _oldTurn;
 	}
 
-    this.SetDrawImagePreviewMargins = function(id, props)
+	this.SetDrawImagePreviewMargins = function(id, props)
 	{
         var parent =  document.getElementById(id);
         if (!parent)
@@ -6876,8 +6876,89 @@ function CDrawingDocument()
 		}
 	}
 
+    this.privateGetParagraphByString = function(level, x, y, lineHeight, ctx, w, h)
+    {
+        var text = "";
+        for (var i = 0; i < level.Text.length; i++)
+        {
+            switch (level.Text[i].Type)
+            {
+                case Asc.c_oAscNumberingLvlTextType.Text:
+                    text += level.Text[i].Value;
+                    break;
+                case Asc.c_oAscNumberingLvlTextType.Num:
+                    text += AscCommon.IntToNumberFormat(/*level.Text[i].Value + 1*/1, level.Format);
+                    break;
+                default:
+                    break;
+            }
+        }
+
+        var api = this.m_oWordControl.m_oApi;
+
+        History.TurnOff();
+        var oldViewMode = api.isViewMode;
+        var oldMarks = api.ShowParaMarks;
+
+        api.isViewMode = true;
+        api.ShowParaMarks = false;
+
+        var par = new Paragraph(this, this.m_oWordControl.m_oLogicDocument);
+        par.MoveCursorToStartPos();
+
+        //par.Pr = level.ParaPr.Copy();
+		par.Pr = new CParaPr();
+        var textPr = level.TextPr.Copy();
+        textPr.FontSize = textPr.FontSizeCS = ((2 * lineHeight * 72 / 96) >> 0) / 2;
+
+        var parRun = new ParaRun(par);
+        parRun.Set_Pr(textPr);
+        parRun.AddText(text);
+        par.AddToContent(0, parRun);
+
+        par.Reset(0, 0, 1000, 1000, 0, 0, 1);
+        par.Recalculate_Page(0);
+
+        var baseLineOffset = par.Lines[0].Y;
+        var bounds = par.Get_PageBounds(0);
+
+        var parW = par.Lines[0].Ranges[0].W * AscCommon.g_dKoef_mm_to_pix;
+        var parH = (bounds.Bottom - bounds.Top) * AscCommon.g_dKoef_mm_to_pix;
+
+        var yOffset = y + lineHeight - ((baseLineOffset * g_dKoef_mm_to_pix) >> 0);
+        var xOffset = x;
+        switch (level.Align)
+        {
+            case AscCommon.align_Right:
+                xOffset -= parW;
+                break;
+            case AscCommon.align_Center:
+                xOffset -= (parW >> 1);
+                break;
+            default:
+                break;
+        }
+
+        var graphics = new AscCommon.CGraphics();
+        graphics.init(ctx, w, h, w * AscCommon.g_dKoef_pix_to_mm, h * AscCommon.g_dKoef_pix_to_mm);
+        graphics.m_oFontManager = AscCommon.g_fontManager;
+
+        graphics.m_oCoordTransform.tx = xOffset;
+        graphics.m_oCoordTransform.ty = yOffset;
+
+        graphics.transform(1, 0, 0, 1, 0, 0);
+
+        par.Draw(0, graphics);
+
+        History.TurnOn();
+        api.isViewMode = oldViewMode;
+        api.ShowParaMarks = oldMarks;
+    };
+
 	this.SetDrawImagePreviewBullet = function(id, props, level, is_multi_level)
 	{
+        //console.log(level);
+		//console.log(props);
         var parent =  document.getElementById(id);
         if (!parent)
             return;
@@ -6950,6 +7031,8 @@ function CDrawingDocument()
             // убираем погрешность в offset
             var offset = (height_px - (line_w * 10 + line_distance * 9)) >> 1;
 
+            var textYs = [];
+
             ctx.lineWidth = 4;
             ctx.strokeStyle = "#CBCBCB";
             var y = offset + 2;
@@ -6957,12 +7040,17 @@ function CDrawingDocument()
             ctx.moveTo(offsetBase, y); ctx.lineTo(width_px - offsetBase, y); y += (line_w + line_distance);
             ctx.stroke();
             ctx.beginPath();
-            var text_base_offset_x = offset + (12.5 * AscCommon.g_dKoef_mm_to_pix) >> 0;
+            var text_base_offset_x = offset + (6.25 + (6.25 * (level + 1) * AscCommon.g_dKoef_mm_to_pix)) >> 0;
+            if (text_base_offset_x > (width_px - offsetBase - 20))
+            	text_base_offset_x = width_px - offsetBase - 20;
             ctx.strokeStyle = "#000000";
+            textYs.push(y - (line_distance >> 1));
             ctx.moveTo(text_base_offset_x, y); ctx.lineTo(width_px - offsetBase, y); y += (line_w + line_distance);
             ctx.moveTo(text_base_offset_x, y); ctx.lineTo(width_px - offsetBase, y); y += (line_w + line_distance);
+            textYs.push(y - (line_distance >> 1));
             ctx.moveTo(text_base_offset_x, y); ctx.lineTo(width_px - offsetBase, y); y += (line_w + line_distance);
             ctx.moveTo(text_base_offset_x, y); ctx.lineTo(width_px - offsetBase, y); y += (line_w + line_distance);
+            textYs.push(y - (line_distance >> 1));
             ctx.moveTo(text_base_offset_x, y); ctx.lineTo(width_px - offsetBase, y); y += (line_w + line_distance);
             ctx.moveTo(text_base_offset_x, y); ctx.lineTo(width_px - offsetBase, y); y += (line_w + line_distance);
             ctx.stroke();
@@ -6972,6 +7060,12 @@ function CDrawingDocument()
             ctx.moveTo(offsetBase, y); ctx.lineTo(width_px - offsetBase, y); y += (line_w + line_distance);
             ctx.stroke();
             ctx.beginPath();
+
+            for (var i = 0; i < textYs.length; i++)
+			{
+				this.privateGetParagraphByString(props.Lvl[level], text_base_offset_x - ((6.25 * AscCommon.g_dKoef_mm_to_pix) >> 0),
+                    textYs[i], line_distance, ctx, width_px, height_px);
+            }
         }
         else
         {
@@ -6987,8 +7081,8 @@ function CDrawingDocument()
             ctx.lineWidth = 4;
             ctx.strokeStyle = "#CBCBCB";
             var y = offset + 2;
-            var text_base_offset_x = offset;
-            var text_base_offset_dist = (0.5 * 12.5 * AscCommon.g_dKoef_mm_to_pix) >> 0;
+            var text_base_offset_x = offset + ((6.25 * AscCommon.g_dKoef_mm_to_pix) >> 0);
+            var text_base_offset_dist = (6.25 * AscCommon.g_dKoef_mm_to_pix) >> 0;
             for (var i = 0; i < 9; i++)
 			{
 				if (i == current)
