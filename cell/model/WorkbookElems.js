@@ -6642,6 +6642,11 @@ function RangeDataManagerElem(bbox, data)
 					nTemp2 = range.c2 - range.c1 + 1;
 					to.setOffsetLast(new AscCommon.CellBase(0, -Math.min(nTemp1, nTemp2)));
 				}
+			} else if(range.c1 <= from.c1 && range.c2 >= from.c1 && range.c2 <= from.c2 && range.r1 <= from.r1 && from.r2 <= range.r2 && !bAdd) {
+				to = from.clone();
+				nTemp1 = range.c2 - from.c1 + 1;
+				nTemp2 = range.c2 - range.c1 + 1;
+				to.setOffsetFirst(new AscCommon.CellBase(0, Math.min(nTemp1, nTemp2)));
 			}
 		} else {
 			if (from.r1 < range.r1 && range.c1 <= from.c1 && from.c2 <= range.c2) {
@@ -6654,6 +6659,11 @@ function RangeDataManagerElem(bbox, data)
 					nTemp2 = range.r2 - range.r1 + 1;
 					to.setOffsetLast(new AscCommon.CellBase(-Math.min(nTemp1, nTemp2), 0));
 				}
+			} else if(range.r1 <= from.r1 && range.r2 >= from.r1 && range.r2 <= from.r2 && range.c1 <= from.c1 && from.c2 <= range.c2 && !bAdd) {
+				to = from.clone();
+				nTemp1 = range.r2 - from.r1 + 1;
+				nTemp2 = range.r2 - range.r1 + 1;
+				to.setOffsetFirst(new AscCommon.CellBase(Math.min(nTemp1, nTemp2), 0));
 			}
 		}
 
