@@ -4402,10 +4402,14 @@ var editor;
 		}
 	};
 
-	spreadsheet_api.prototype.asc_setSortProps = function (props) {
+	spreadsheet_api.prototype.asc_setSortProps = function (props, bCancel) {
 		var ws = this.wb && this.wb.getWorksheet();
 		if(ws) {
-			ws.setSelectionInfo("customSort", props);
+		  if(bCancel) {
+		    ws.setSortProps(props, null, true);
+          }	else {
+		    ws.setSelectionInfo("customSort", props);
+          }
 		}
 	};
 

@@ -18763,7 +18763,7 @@
 
 			if(columnSort) {
 				if(modelSort) {
-					dataHasHeaders = !modelSort.Ref.isEqual(selection) ? modelSort._hasHeaders : false;
+					dataHasHeaders = /*!modelSort.Ref.isEqual(selection) ?*/ modelSort._hasHeaders /*: false*/;
 				} else {
 					dataHasHeaders = window['AscCommonExcel'].ignoreFirstRowSort(t.model, selection);
 				}
@@ -18877,7 +18877,12 @@
 		return sortSettings;
 	};
 
-	WorksheetView.prototype.setSortProps = function(props, doNotSortRange) {
+	WorksheetView.prototype.setSortProps = function(props, doNotSortRange, bCancel) {
+		if(bCancel && props && props.selection) {
+			this.setSelection(props.selection.clone());
+			return;
+		}
+
 		if(!props || !props.levels || !props.levels.length) {
 			return false;
 		}
@@ -18979,6 +18984,9 @@
 			if(!doNotSortRange) {
 				var range = t.model.getRange3(selection.r1, selection.c1, selection.r2, selection.c2);
 				t.cellCommentator.sortComments(t._doSort(range, null, null, null, null, !columnSort, sortState));
+			}
+			if(props && props.selection) {
+				t.setSelection(props.selection.clone());
 			}
 
 			History.EndTransaction();
