@@ -607,6 +607,8 @@ CInlineLevelSdt.prototype.private_ReplacePlaceHolderWithContent = function(bMath
 	if (!this.IsPlaceHolder())
 		return;
 
+	var isUseSelection = this.IsSelectionUse();
+
 	this.RemoveSelection();
 	this.MoveCursorToStartPos();
 
@@ -618,15 +620,23 @@ CInlineLevelSdt.prototype.private_ReplacePlaceHolderWithContent = function(bMath
 	this.AddToContent(0, oRun);
 	this.RemoveSelection();
 	this.MoveCursorToStartPos();
+
+	if (isUseSelection)
+		this.SelectAll();
 };
 CInlineLevelSdt.prototype.private_ReplaceContentWithPlaceHolder = function()
 {
 	if (this.IsPlaceHolder())
 		return;
 
+	var isUseSelection = this.IsSelectionUse();
+
 	this.RemoveFromContent(0, this.GetElementsCount());
 	this.AddToContent(0, this.PlaceHolder);
 	this.SelectContentControl();
+
+	if (isUseSelection)
+		this.SelectAll();
 };
 CInlineLevelSdt.prototype.Set_SelectionContentPos = function(StartContentPos, EndContentPos, Depth, StartFlag, EndFlag)
 {
