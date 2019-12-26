@@ -14285,6 +14285,11 @@ CDocument.prototype.AddContentControlCheckBox = function(oPr)
 		return;
 
 	oCC.ApplyCheckBoxPr(oPr, oTextPr);
+	oCC.MoveCursorToStartPos();
+
+	this.UpdateSelection();
+	this.UpdateTracks();
+
 	return oCC;
 };
 /**
