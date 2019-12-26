@@ -2081,19 +2081,42 @@
         var fonts = [new AscFonts.CFont(AscFonts.g_fontApplication.GetFontInfoName(familyName), 0, "", 0, null)];
         AscFonts.FontPickerByCharacter.extendFonts(fonts);
 
+        this.asyncMethodCallback = function() {
+
+            switch (this.editorId)
+            {
+                case c_oEditorId.Word:
+                {
+                	var textPr = new CTextPr();
+                	textPr.RFonts = new CRFonts();
+                	textPr.RFonts.Set_All(familyName, -1);
+                	this.WordControl.m_oLogicDocument.AddTextWithPr(new AscCommon.CUnicodeStringEmulator([code]), textPr, true);
+                    break;
+                }
+                case c_oEditorId.Presentation:
+                {
+                    this.Begin_CompositeInput();
+                    this.Replace_CompositeText([code]);
+                    this.End_CompositeInput();
+                    break;
+                }
+                case c_oEditorId.Spreadsheet:
+                {
+                    this.Begin_CompositeInput();
+                    this.Replace_CompositeText([code]);
+                    this.End_CompositeInput();
+                    break;
+                }
+            }
+        };
+
         if (false === AscCommon.g_font_loader.CheckFontsNeedLoading(fonts))
         {
-            this.Begin_CompositeInput();
-            this.Replace_CompositeText([code]);
-            this.End_CompositeInput();
+            this.asyncMethodCallback();
+            this.asyncMethodCallback = undefined;
             return;
         }
 
-        this.asyncMethodCallback = function() {
-            this.Begin_CompositeInput();
-            this.Replace_CompositeText([code]);
-            this.End_CompositeInput();
-        };
         AscCommon.g_font_loader.LoadDocumentFonts2(fonts);
     };
 

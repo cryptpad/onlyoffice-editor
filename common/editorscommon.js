@@ -930,6 +930,45 @@
 		return sUnicode;
 	}
 
+	function CUnicodeStringEmulator(array)
+	{
+        this.arr = array;
+        this.len = this.arr.length;
+        this.pos = 0;
+    }
+
+    CUnicodeStringEmulator.prototype =
+	{
+		getUnicodeIterator : function()
+		{
+			return this;
+		},
+
+        isOutside : function()
+        {
+            return (this.pos >= this.len);
+        },
+        isInside : function()
+        {
+            return (this.pos < this.len);
+        },
+        value : function()
+        {
+            if (this.pos >= this.len)
+                return 0;
+            return this.arr[this.pos];
+        },
+        next : function()
+        {
+            this.pos++;
+        },
+        position : function()
+        {
+            return this.pos;
+        }
+	};
+    CUnicodeStringEmulator.prototype.check = CUnicodeStringEmulator.prototype.isInside;
+
     function CUnicodeIterator(str)
     {
         this._position = 0;
@@ -5035,6 +5074,8 @@
 
 	window["AscCommon"].valueToMm = valueToMm;
 	window["AscCommon"].valueToMmType = valueToMmType;
+
+	window["AscCommon"].CUnicodeStringEmulator = CUnicodeStringEmulator;
 })(window);
 
 window["asc_initAdvancedOptions"] = function(_code, _file_hash, _docInfo)
