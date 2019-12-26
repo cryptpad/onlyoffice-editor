@@ -2086,18 +2086,12 @@
             switch (this.editorId)
             {
                 case c_oEditorId.Word:
+                case c_oEditorId.Presentation:
                 {
                 	var textPr = new CTextPr();
                 	textPr.RFonts = new CRFonts();
                 	textPr.RFonts.Set_All(familyName, -1);
                 	this.WordControl.m_oLogicDocument.AddTextWithPr(new AscCommon.CUnicodeStringEmulator([code]), textPr, true);
-                    break;
-                }
-                case c_oEditorId.Presentation:
-                {
-                    this.Begin_CompositeInput();
-                    this.Replace_CompositeText([code]);
-                    this.End_CompositeInput();
                     break;
                 }
                 case c_oEditorId.Spreadsheet:
