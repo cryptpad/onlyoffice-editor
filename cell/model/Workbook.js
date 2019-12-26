@@ -11763,7 +11763,7 @@
 
 		//todo горизонтальная сортировка
 		var aMerged = this.worksheet.mergeManager.get(bbox);
-		if (aMerged.outer.length > 0 || (aMerged.inner.length > 0 && null == _isSameSizeMerged(bbox, aMerged.inner))) {
+		if (aMerged.outer.length > 0 || (aMerged.inner.length > 0 && null == _isSameSizeMerged(bbox, aMerged.inner, true))) {
 			return null;
 		}
 
@@ -12320,74 +12320,87 @@
 		}
 	};
 
-	function _isSameSizeMerged(bbox, aMerged) {
+	function _isSameSizeMerged(bbox, aMerged, checkProportion) {
 		var oRes = null;
 		var nWidth = null;
 		var nHeight = null;
-		for(var i = 0, length = aMerged.length; i < length; i++)
-		{
+		for (var i = 0, length = aMerged.length; i < length; i++) {
 			var mergedBBox = aMerged[i].bbox;
 			var nCurWidth = mergedBBox.c2 - mergedBBox.c1 + 1;
 			var nCurHeight = mergedBBox.r2 - mergedBBox.r1 + 1;
-			if(null == nWidth || null == nHeight)
-			{
+			if (null == nWidth || null == nHeight) {
 				nWidth = nCurWidth;
 				nHeight = nCurHeight;
-			}
-			else if(nCurWidth != nWidth || nCurHeight != nHeight)
-			{
+			} else if (nCurWidth != nWidth || nCurHeight != nHeight) {
 				nWidth = null;
 				nHeight = null;
 				break;
 			}
 		}
-		if(null != nWidth && null != nHeight)
-		{
+		if (null != nWidth && null != nHeight) {
+			var getRowColArr = function (byCol) {
+				var _aRowColTest = byCol ? new Array(nBBoxWidth) : new Array(nBBoxHeight);
+				for (var i = 0, length = aMerged.length; i < length; i++) {
+					var merged = aMerged[i];
+					var j;
+					if (byCol) {
+						for (j = merged.bbox.c1; j <= merged.bbox.c2; j++) {
+							_aRowColTest[j - bbox.c1] = 1;
+						}
+					} else {
+						for (j = merged.bbox.r1; j <= merged.bbox.r2; j++) {
+							_aRowColTest[j - bbox.r1] = 1;
+						}
+					}
+
+				}
+				return _aRowColTest;
+			};
+			var checkArr = function (_aRowColTest) {
+				var _res = null;
+				var bExistNull = false;
+				for (var i = 0, length = _aRowColTest.length; i < length; i++) {
+					if (null == _aRowColTest[i]) {
+						bExistNull = true;
+						break;
+					}
+				}
+				if (!bExistNull) {
+					_res = true;
+				}
+
+				return _res;
+			};
+
 			//проверяем что merge ячеки полностью заполняют область
 			var nBBoxWidth = bbox.c2 - bbox.c1 + 1;
 			var nBBoxHeight = bbox.r2 - bbox.r1 + 1;
-			if(nBBoxWidth == nWidth || nBBoxHeight == nHeight)
-			{
+			if (checkProportion && nBBoxWidth % nWidth === 0 && nBBoxHeight % nHeight === 0) {
+				aRowColTest = getRowColArr();
+				bRes = checkArr(aRowColTest);
+				if (bRes) {
+					aRowColTest = getRowColArr(true);
+					bRes = checkArr(aRowColTest);
+				}
+				if (bRes) {
+					oRes = {width: nWidth, height: nHeight};
+				}
+			} else if (nBBoxWidth == nWidth || nBBoxHeight == nHeight) {
 				var bRes = false;
 				var aRowColTest = null;
-				if(nBBoxWidth == nWidth && nBBoxHeight == nHeight)
+				if (nBBoxWidth == nWidth && nBBoxHeight == nHeight) {
 					bRes = true;
-				else if(nBBoxWidth == nWidth)
-				{
-					aRowColTest = new Array(nBBoxHeight);
-					for(var i = 0, length = aMerged.length; i < length; i++)
-					{
-						var merged = aMerged[i];
-						for(var j = merged.bbox.r1; j <= merged.bbox.r2; j++)
-							aRowColTest[j - bbox.r1] = 1;
-					}
+				} else if (nBBoxWidth == nWidth) {
+					aRowColTest = getRowColArr();
+				} else if (nBBoxHeight == nHeight) {
+					aRowColTest = getRowColArr(true);
 				}
-				else if(nBBoxHeight == nHeight)
-				{
-					aRowColTest = new Array(nBBoxWidth);
-					for(var i = 0, length = aMerged.length; i < length; i++)
-					{
-						var merged = aMerged[i];
-						for(var j = merged.bbox.c1; j <= merged.bbox.c2; j++)
-							aRowColTest[j - bbox.c1] = 1;
-					}
+				if (null != aRowColTest) {
+					bRes = checkArr(aRowColTest);
 				}
-				if(null != aRowColTest)
-				{
-					var bExistNull = false;
-					for(var i = 0, length = aRowColTest.length; i < length; i++)
-					{
-						if(null == aRowColTest[i])
-						{
-							bExistNull = true;
-							break;
-						}
-					}
-					if(!bExistNull)
-						bRes = true;
-				}
-				if(bRes)
+				if (bRes) {
 					oRes = {width: nWidth, height: nHeight};
+				}
 			}
 		}
 		return oRes;
