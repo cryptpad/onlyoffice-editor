@@ -1804,6 +1804,9 @@
 		this.textFlags.wrapOnlyNL = true;
 	};
 
+	CellEditor.prototype._addCharCodes = function (arrCharCodes) {
+		return this._addChars(this.getTextFromCharCodes(arrCharCodes));
+	};
 	CellEditor.prototype._addChars = function (str, pos, isRange) {
 		var length = str.length;
 		if (!this._checkMaxCellLength(length)) {
@@ -2879,6 +2882,19 @@
 		return {x: x, y: y};
 	};
 
+	CellEditor.prototype.getTextFromCharCodes = function (arrCharCodes) {
+		var code, codePt, newText = '';
+		for (var i = 0; i < arrCharCodes.length; ++i) {
+			code = arrCharCodes[i];
+			if (code < 0x10000) {
+				newText += String.fromCharCode(code);
+			} else {
+				codePt = code - 0x10000;
+				newText += String.fromCharCode(0xD800 + (codePt >> 10), 0xDC00 + (codePt & 0x3FF));
+			}
+		}
+		return newText;
+	};
 	CellEditor.prototype.Begin_CompositeInput = function () {
 		if (this.selectionBegin === this.selectionEnd) {
 			this.beginCompositePos = this.cursorPos;
@@ -2894,16 +2910,7 @@
 			return;
 		}
 
-		var code, codePt, newText = '';
-		for (var i = 0; i < arrCharCodes.length; ++i) {
-			code = arrCharCodes[i];
-			if (code < 0x10000) {
-				newText += String.fromCharCode(code);
-			} else {
-				codePt = code - 0x10000;
-				newText += String.fromCharCode(0xD800 + (codePt >> 10), 0xDC00 + (codePt & 0x3FF));
-			}
-		}
+		var newText = this.getTextFromCharCodes(arrCharCodes);
 		this.replaceText(this.beginCompositePos, this.compositeLength, newText);
 		this.compositeLength = newText.length;
 

@@ -2076,7 +2076,8 @@
 
     baseEditorsApi.prototype["asc_insertSymbol"] = function(familyName, code)
     {
-        AscFonts.FontPickerByCharacter.checkTextLight([code], true);
+		var arrCharCodes = [code];
+        AscFonts.FontPickerByCharacter.checkTextLight(arrCharCodes, true);
 
         var fonts = [new AscFonts.CFont(AscFonts.g_fontApplication.GetFontInfoName(familyName), 0, "", 0, null)];
         AscFonts.FontPickerByCharacter.extendFonts(fonts);
@@ -2091,14 +2092,12 @@
                 	var textPr = new CTextPr();
                 	textPr.RFonts = new CRFonts();
                 	textPr.RFonts.Set_All(familyName, -1);
-                	this.WordControl.m_oLogicDocument.AddTextWithPr(new AscCommon.CUnicodeStringEmulator([code]), textPr, true);
+                	this.WordControl.m_oLogicDocument.AddTextWithPr(new AscCommon.CUnicodeStringEmulator(arrCharCodes), textPr, true);
                     break;
                 }
                 case c_oEditorId.Spreadsheet:
                 {
-                    this.Begin_CompositeInput();
-                    this.Replace_CompositeText([code]);
-                    this.End_CompositeInput();
+                	this.AddTextWithPr(familyName, arrCharCodes);
                     break;
                 }
             }
