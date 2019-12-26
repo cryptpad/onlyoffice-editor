@@ -6939,6 +6939,29 @@ function CDrawingDocument()
                 break;
         }
 
+        // debug: text rect:
+        //ctx.beginPath();
+        //ctx.fillStyle = "#FFFF00";
+        //ctx.fillRect(xOffset, y, parW, parH);
+        //ctx.beginPath();
+
+		var backTextWidth = parW + 4; // 4 - чтобы линия никогде не была 'совсем рядом'
+		switch (level.Suff)
+		{
+			case Asc.c_oAscNumberingSuff.Space:
+			case Asc.c_oAscNumberingSuff.None:
+				backTextWidth += 4;
+				break;
+			case Asc.c_oAscNumberingSuff.Tab:
+				break;
+			default:
+				break;
+		}
+
+        ctx.fillStyle = "#FFFFFF";
+        ctx.fillRect(xOffset, y, parW, lineHeight);
+        ctx.beginPath();
+
         var graphics = new AscCommon.CGraphics();
         graphics.init(ctx, w, h, w * AscCommon.g_dKoef_pix_to_mm, h * AscCommon.g_dKoef_pix_to_mm);
         graphics.m_oFontManager = AscCommon.g_fontManager;
@@ -6957,8 +6980,6 @@ function CDrawingDocument()
 
 	this.SetDrawImagePreviewBullet = function(id, props, level, is_multi_level)
 	{
-        //console.log(level);
-		//console.log(props);
         var parent =  document.getElementById(id);
         if (!parent)
             return;
@@ -7044,13 +7065,13 @@ function CDrawingDocument()
             if (text_base_offset_x > (width_px - offsetBase - 20))
             	text_base_offset_x = width_px - offsetBase - 20;
             ctx.strokeStyle = "#000000";
-            textYs.push(y - (line_distance >> 1));
+            textYs.push(y - ((line_w + line_distance) >> 1));
             ctx.moveTo(text_base_offset_x, y); ctx.lineTo(width_px - offsetBase, y); y += (line_w + line_distance);
             ctx.moveTo(text_base_offset_x, y); ctx.lineTo(width_px - offsetBase, y); y += (line_w + line_distance);
-            textYs.push(y - (line_distance >> 1));
+            textYs.push(y - ((line_w + line_distance) >> 1));
             ctx.moveTo(text_base_offset_x, y); ctx.lineTo(width_px - offsetBase, y); y += (line_w + line_distance);
             ctx.moveTo(text_base_offset_x, y); ctx.lineTo(width_px - offsetBase, y); y += (line_w + line_distance);
-            textYs.push(y - (line_distance >> 1));
+            textYs.push(y - ((line_w + line_distance) >> 1));
             ctx.moveTo(text_base_offset_x, y); ctx.lineTo(width_px - offsetBase, y); y += (line_w + line_distance);
             ctx.moveTo(text_base_offset_x, y); ctx.lineTo(width_px - offsetBase, y); y += (line_w + line_distance);
             ctx.stroke();
@@ -7083,8 +7104,11 @@ function CDrawingDocument()
             var y = offset + 2;
             var text_base_offset_x = offset + ((6.25 * AscCommon.g_dKoef_mm_to_pix) >> 0);
             var text_base_offset_dist = (6.25 * AscCommon.g_dKoef_mm_to_pix) >> 0;
+
+            var textYs = [];
             for (var i = 0; i < 9; i++)
 			{
+                textYs.push({x: text_base_offset_x - ((6.25 * AscCommon.g_dKoef_mm_to_pix) >> 0), y: y - ((line_w + line_distance) >> 1)});
 				if (i == current)
 				{
 					ctx.strokeStyle = "#000000";
@@ -7092,7 +7116,6 @@ function CDrawingDocument()
                     ctx.moveTo(text_base_offset_x, y); ctx.lineTo(width_px - offsetBase, y);
                     ctx.stroke();
                     ctx.strokeStyle = "#CBCBCB";
-
 				}
 				else
 				{
@@ -7100,9 +7123,15 @@ function CDrawingDocument()
                     ctx.stroke();
 				}
 				ctx.beginPath();
+
                 text_base_offset_x += text_base_offset_dist;
                 y += (line_w + line_distance);
 			}
+
+			for (var i = 0; i < 9; i++)
+			{
+                this.privateGetParagraphByString(props.Lvl[i], textYs[i].x, textYs[i].y, line_distance, ctx, width_px, height_px);
+            }
         }
 	}
 
