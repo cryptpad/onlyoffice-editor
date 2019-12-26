@@ -2058,7 +2058,7 @@ CParagraphContentWithParagraphLikeContent.prototype.Get_PosInParent = function(P
 CParagraphContentWithParagraphLikeContent.prototype.Correct_Content = function()
 {
     if (this.Content.length < 0)
-        this.Add_ToContent(0, new ParaRun(this.Paragraph, false));
+        this.Add_ToContent(0, new ParaRun(this.GetParagraph(), false));
 };
 CParagraphContentWithParagraphLikeContent.prototype.CorrectContent = function()
 {
@@ -4129,7 +4129,7 @@ CParagraphContentWithParagraphLikeContent.prototype.MakeSingleRunElement = funct
 		if (this.Content.length > 0)
 			this.RemoveFromContent(0, this.Content.length, true);
 
-		this.AddToContent(0, new ParaRun(this, false), true);
+		this.AddToContent(0, new ParaRun(this.GetParagraph(), false), true);
 	}
 
 	var oRun = this.Content[0];
