@@ -7386,6 +7386,11 @@ DrawingObjectsController.prototype =
                     {
                         oRun.MoveCursorOutsideElement(false);
                     }
+                    var oTargetTextObject = getTargetTextObject(this);
+                    if(oTargetTextObject && oTargetTextObject.checkExtentsByDocContent)
+                    {
+                        oTargetTextObject.checkExtentsByDocContent();
+                    }
                 }
 
             }
