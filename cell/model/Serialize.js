@@ -3040,7 +3040,7 @@
             }
         };
     }
-	function BinaryWorksheetsTableWriter(memory, wb, oSharedStrings, aDxfs, personList, isCopyPaste, bsw)
+	function BinaryWorksheetsTableWriter(memory, wb, oSharedStrings, aDxfs, personList, isCopyPaste, bsw, saveThreadedComments)
     {
         this.memory = memory;
         this.bs = new BinaryCommonWriter(this.memory);
@@ -3051,6 +3051,7 @@
         this.personList = personList;
 		this.stylesForWrite = bsw.stylesForWrite;
         this.isCopyPaste = isCopyPaste;
+        this.saveThreadedComments = saveThreadedComments;
         this.sharedFormulas = {};
 		this.sharedFormulasIndex = 0;
         this._getCrc32FromObjWithProperty = function(val)
@@ -4229,9 +4230,11 @@
             this.memory.WriteByte(c_oSerPropLenType.Byte);
             this.memory.WriteBool(comment.coords.bSizeWithCells);
 
-            this.memory.WriteByte(c_oSer_Comments.ThreadedComment);
-            this.memory.WriteByte(c_oSerPropLenType.Variable);
-            this.bs.WriteItemWithLength(function(){oThis.WriteThreadedComment(comment);});
+            if (this.saveThreadedComments) {
+                this.memory.WriteByte(c_oSer_Comments.ThreadedComment);
+                this.memory.WriteByte(c_oSerPropLenType.Variable);
+                this.bs.WriteItemWithLength(function(){oThis.WriteThreadedComment(comment);});
+            }
         };
         this.WriteCommentDatas = function(data)
         {
@@ -4841,11 +4844,12 @@
         };
     }
     /** @constructor */
-    function BinaryFileWriter(wb, isCopyPaste)
+    function BinaryFileWriter(wb, isCopyPaste, saveThreadedComments)
     {
         this.Memory = new AscCommon.CMemory();
         this.wb = wb;
         this.isCopyPaste = isCopyPaste;
+        this.saveThreadedComments = saveThreadedComments;
         this.nLastFilePos = 0;
         this.nRealTableCount = 0;
         this.bs = new BinaryCommonWriter(this.Memory);
@@ -4913,7 +4917,7 @@
             var aDxfs = [];
             var personList = [];
 			var oBinaryStylesTableWriter = new BinaryStylesTableWriter(this.Memory, this.wb, aDxfs);
-			var oBinaryWorksheetsTableWriter = new BinaryWorksheetsTableWriter(this.Memory, this.wb, oSharedStrings, aDxfs, personList, this.isCopyPaste, oBinaryStylesTableWriter);
+			var oBinaryWorksheetsTableWriter = new BinaryWorksheetsTableWriter(this.Memory, this.wb, oSharedStrings, aDxfs, personList, this.isCopyPaste, oBinaryStylesTableWriter, this.saveThreadedComments);
             this.WriteTable(c_oSerTableTypes.Workbook, new BinaryWorkbookTableWriter(this.Memory, this.wb, oBinaryWorksheetsTableWriter, this.isCopyPaste));
             //Worksheets
             this.WriteTable(c_oSerTableTypes.Worksheets, oBinaryWorksheetsTableWriter);
