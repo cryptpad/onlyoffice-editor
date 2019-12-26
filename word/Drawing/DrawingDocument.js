@@ -6925,7 +6925,7 @@ function CDrawingDocument()
         var parW = par.Lines[0].Ranges[0].W * AscCommon.g_dKoef_mm_to_pix;
         var parH = (bounds.Bottom - bounds.Top) * AscCommon.g_dKoef_mm_to_pix;
 
-        var yOffset = y + lineHeight - ((baseLineOffset * g_dKoef_mm_to_pix) >> 0);
+        var yOffset = y - ((baseLineOffset * g_dKoef_mm_to_pix) >> 0);
         var xOffset = x;
         switch (level.Align)
         {
@@ -6959,19 +6959,28 @@ function CDrawingDocument()
 		}
 
         ctx.fillStyle = "#FFFFFF";
-        ctx.fillRect(xOffset, y, parW, lineHeight);
+        ctx.fillRect(xOffset, y - lineHeight, parW, lineHeight + (lineHeight >> 1));
         ctx.beginPath();
 
+        ctx.save();
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+
         var graphics = new AscCommon.CGraphics();
-        graphics.init(ctx, w, h, w * AscCommon.g_dKoef_pix_to_mm, h * AscCommon.g_dKoef_pix_to_mm);
+        graphics.init(ctx,
+			AscCommon.AscBrowser.convertToRetinaValue(w, true),
+			AscCommon.AscBrowser.convertToRetinaValue(h, true),
+			w * AscCommon.g_dKoef_pix_to_mm, h * AscCommon.g_dKoef_pix_to_mm);
         graphics.m_oFontManager = AscCommon.g_fontManager;
 
-        graphics.m_oCoordTransform.tx = xOffset;
-        graphics.m_oCoordTransform.ty = yOffset;
+        graphics.m_oCoordTransform.tx = AscCommon.AscBrowser.convertToRetinaValue(xOffset, true);
+        graphics.m_oCoordTransform.ty = AscCommon.AscBrowser.convertToRetinaValue(yOffset, true);
 
         graphics.transform(1, 0, 0, 1, 0, 0);
 
         par.Draw(0, graphics);
+
+        ctx.restore();
+        ctx.restore();
 
         History.TurnOn();
         api.isViewMode = oldViewMode;
@@ -7065,13 +7074,13 @@ function CDrawingDocument()
             if (text_base_offset_x > (width_px - offsetBase - 20))
             	text_base_offset_x = width_px - offsetBase - 20;
             ctx.strokeStyle = "#000000";
-            textYs.push(y - ((line_w + line_distance) >> 1));
+            textYs.push(y + line_w);
             ctx.moveTo(text_base_offset_x, y); ctx.lineTo(width_px - offsetBase, y); y += (line_w + line_distance);
             ctx.moveTo(text_base_offset_x, y); ctx.lineTo(width_px - offsetBase, y); y += (line_w + line_distance);
-            textYs.push(y - ((line_w + line_distance) >> 1));
+            textYs.push(y + line_w);
             ctx.moveTo(text_base_offset_x, y); ctx.lineTo(width_px - offsetBase, y); y += (line_w + line_distance);
             ctx.moveTo(text_base_offset_x, y); ctx.lineTo(width_px - offsetBase, y); y += (line_w + line_distance);
-            textYs.push(y - ((line_w + line_distance) >> 1));
+            textYs.push(y + line_w);
             ctx.moveTo(text_base_offset_x, y); ctx.lineTo(width_px - offsetBase, y); y += (line_w + line_distance);
             ctx.moveTo(text_base_offset_x, y); ctx.lineTo(width_px - offsetBase, y); y += (line_w + line_distance);
             ctx.stroke();
@@ -7108,7 +7117,7 @@ function CDrawingDocument()
             var textYs = [];
             for (var i = 0; i < 9; i++)
 			{
-                textYs.push({x: text_base_offset_x - ((6.25 * AscCommon.g_dKoef_mm_to_pix) >> 0), y: y - ((line_w + line_distance) >> 1)});
+                textYs.push({x: text_base_offset_x - ((6.25 * AscCommon.g_dKoef_mm_to_pix) >> 0), y: y + line_w});
 				if (i == current)
 				{
 					ctx.strokeStyle = "#000000";
