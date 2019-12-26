@@ -2205,8 +2205,8 @@ background-repeat: no-repeat;\
 		if(specialPasteShowOptions && null !== specialPasteHelper.showButtonIdParagraph)
 		{
 			var isUpdate = specialPasteShowOptions.cellCoord;
-			var id = specialPasteHelper.showButtonIdParagraph;
-			var elem = g_oTableId.Get_ById(id);
+			var id       = specialPasteHelper.showButtonIdParagraph;
+			var elem     = g_oTableId.Get_ById(id);
 
 			var _X       = elem.X;
 			var _Y       = elem.Y;
@@ -2219,13 +2219,23 @@ background-repeat: no-repeat;\
 				_PageNum = oBounds.End.Page;
 			}
 
-			specialPasteHelper.buttonInfo.fixPosition = {x: _X, y: _Y, pageNum: _PageNum};
+			var oTransform = elem.Get_ParentTextTransform();
+			if (oTransform)
+			{
+				var __X = oTransform.TransformPointX(_X, _Y);
+				var __Y = oTransform.TransformPointY(_X, _Y);
 
-			var _coord = this.WordControl.m_oLogicDocument.DrawingDocument.ConvertCoordsToCursorWR(_X, _Y, _PageNum);
-			var curCoord = new AscCommon.asc_CRect( _coord.X, _coord.Y, 0, 0 );
+				_X = __X;
+				_Y = __Y;
+			}
+
+			specialPasteHelper.buttonInfo.fixPosition = {x : _X, y : _Y, pageNum : _PageNum};
+
+			var _coord   = this.WordControl.m_oLogicDocument.DrawingDocument.ConvertCoordsToCursorWR(_X, _Y, _PageNum);
+			var curCoord = new AscCommon.asc_CRect(_coord.X, _coord.Y, 0, 0);
 			specialPasteShowOptions.asc_setCellCoord(curCoord);
 
-			if(isUpdate)
+			if (isUpdate)
 			{
 				specialPasteShowOptions.options = [];
 				this.asc_UpdateSpecialPasteButton(specialPasteShowOptions);
