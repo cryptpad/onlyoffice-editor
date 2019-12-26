@@ -14709,7 +14709,7 @@ CChartSpace.prototype.updateLinks = function()
             this.cachedCanvas.height = nHeight;
             ctx = this.cachedCanvas.getContext('2d');
             var g = new AscCommon.CGraphics();
-            g.init(ctx, nWidth, nHeight, dWidth, dHeight);
+            g.init(ctx, nWidth, nHeight, nWidth / graphics.m_oCoordTransform.sx , nHeight / graphics.m_oCoordTransform.sy);
             g.m_oFontManager = AscCommon.g_fontManager;
             g.m_oCoordTransform.tx = -((this.transform.tx - dBorderW) * graphics.m_oCoordTransform.sx + 0.5) >> 0;
             g.m_oCoordTransform.ty = -((this.transform.ty - dBorderW) * graphics.m_oCoordTransform.sy + 0.5) >> 0;
