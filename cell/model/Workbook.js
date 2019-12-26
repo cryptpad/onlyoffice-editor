@@ -3494,7 +3494,7 @@
 		}
 		if(null != wsFrom.aComments) {
 			for (i = 0; i < wsFrom.aComments.length; i++) {
-				var comment = wsFrom.aComments[i].clone()
+				var comment = wsFrom.aComments[i].clone(true);
 				comment.wsId = this.getId();
 				comment.nId = "sheet" + comment.wsId + "_" + (i + 1);
 				this.aComments.push(comment);

@@ -193,13 +193,13 @@ function (window, undefined) {
 		this.coords = null;
 	}
 
-	asc_CCommentData.prototype.clone = function () {
+	asc_CCommentData.prototype.clone = function (uniqueGuid) {
 		var res = new asc_CCommentData();
-		res.updateData(this);
+		res.updateData(this, uniqueGuid);
 		res.coords = this.coords ? this.coords.clone() : null;
 		return res;
 	};
-	asc_CCommentData.prototype.updateData = function (comment) {
+	asc_CCommentData.prototype.updateData = function (comment, uniqueGuid) {
 		this.bHidden = comment.bHidden;
 		this.wsId = comment.wsId;
 		this.nCol = comment.nCol;
@@ -207,7 +207,9 @@ function (window, undefined) {
 		this.nId = comment.nId;
 		this.oParent = comment.oParent;
 		this.nLevel = (null === this.oParent) ? 0 : this.oParent.asc_getLevel() + 1;
-		this.sGuid = comment.sGuid;
+		if (!uniqueGuid) {
+			this.sGuid = comment.sGuid;
+		}
 		this.sProviderId = comment.sProviderId;
 
 		// Common
@@ -221,7 +223,7 @@ function (window, undefined) {
 		this.aReplies = [];
 
 		for (var i = 0; i < comment.aReplies.length; i++) {
-			this.aReplies.push(comment.aReplies[i].clone());
+			this.aReplies.push(comment.aReplies[i].clone(uniqueGuid));
 		}
 	};
 	asc_CCommentData.prototype.guid = function () {
@@ -403,13 +405,13 @@ CCellCommentator.prototype.isLockedComment = function(oComment, callbackFunc) {
 	}
 };
 
-	CCellCommentator.prototype.getCommentsRange = function (range, sUserId) {
+	CCellCommentator.prototype.getCommentsRange = function (range, sUserId, copy) {
 		var res = [];
 		var aComments = this.model.aComments;
 		for (var i = 0; i < aComments.length; ++i) {
 			var comment = aComments[i];
 			if (range.contains(comment.nCol, comment.nRow) && (!sUserId || sUserId === comment.sUserId)) {
-				res.push(comment.clone());
+				res.push(comment.clone(copy));
 			}
 		}
 		return res;
@@ -425,7 +427,7 @@ CCellCommentator.prototype.isLockedComment = function(oComment, callbackFunc) {
 
 			modelTo.workbook.handlers.trigger("asc_onHideComment");
 
-			var comments = this.getCommentsRange(from);
+			var comments = this.getCommentsRange(from, undefined, copy);
 			if (!copy) {
 				this._deleteCommentsRange(comments);
 			}
