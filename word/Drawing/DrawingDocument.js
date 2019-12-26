@@ -6987,8 +6987,61 @@ function CDrawingDocument()
         api.ShowParaMarks = oldMarks;
     };
 
-	this.SetDrawImagePreviewBullet = function(id, props, level, is_multi_level)
+	this.SetDrawImagePreviewBullet = function(id, props, level, is_multi_level, isNoCheckFonts)
 	{
+		if (!isNoCheckFonts)
+		{
+            // check need load fonts
+            var fontsDict = {};
+            for (var i = 0, count = props.Lvl.length; i < count; i++)
+            {
+                var curLvl = props.Lvl[i];
+                var text = "";
+                for (var j = 0; j < curLvl.Text.length; j++)
+                {
+                    switch (curLvl.Text[j].Type)
+					{
+                        case Asc.c_oAscNumberingLvlTextType.Text:
+                            text += curLvl.Text[j].Value;
+                            break;
+                        case Asc.c_oAscNumberingLvlTextType.Num:
+                            text += AscCommon.IntToNumberFormat(/*level.Text[i].Value + 1*/1, curLvl.Format);
+                            break;
+                        default:
+                            break;
+                    }
+                }
+                AscFonts.FontPickerByCharacter.checkTextLight(text);
+
+                if (curLvl.TextPr && curLvl.TextPr.RFonts)
+                {
+                    if (curLvl.TextPr.RFonts.Ascii) fontsDict[curLvl.TextPr.RFonts.Ascii.Name] = true;
+                    if (curLvl.TextPr.RFonts.EastAsia) fontsDict[curLvl.TextPr.RFonts.EastAsia.Name] = true;
+                    if (curLvl.TextPr.RFonts.HAnsi) fontsDict[curLvl.TextPr.RFonts.HAnsi.Name] = true;
+                    if (curLvl.TextPr.RFonts.CS) fontsDict[curLvl.TextPr.RFonts.CS.Name] = true;
+                }
+            }
+
+            var fonts = [];
+            for (var familyName in fontsDict)
+            {
+                fonts.push(new AscFonts.CFont(AscFonts.g_fontApplication.GetFontInfoName(familyName), 0, "", 0, null));
+            }
+            AscFonts.FontPickerByCharacter.extendFonts(fonts);
+
+            if (false === AscCommon.g_font_loader.CheckFontsNeedLoading(fonts))
+            {
+                return this.SetDrawImagePreviewBullet(id, props, level, is_multi_level, true);
+            }
+
+            this.m_oWordControl.m_oApi.asyncMethodCallback = function()
+			{
+                this.WordControl.m_oDrawingDocument.SetDrawImagePreviewBullet(id, props, level, is_multi_level, true);
+            };
+            AscCommon.g_font_loader.LoadDocumentFonts2(fonts);
+            return;
+        }
+
         var parent =  document.getElementById(id);
         if (!parent)
             return;
