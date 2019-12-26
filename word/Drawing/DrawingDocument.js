@@ -6876,7 +6876,7 @@ function CDrawingDocument()
 		}
 	}
 
-    this.privateGetParagraphByString = function(level, x, y, lineHeight, ctx, w, h)
+    this.privateGetParagraphByString = function(level, levelNum, counterCurrent, x, y, lineHeight, ctx, w, h)
     {
         var text = "";
         for (var i = 0; i < level.Text.length; i++)
@@ -6887,7 +6887,10 @@ function CDrawingDocument()
                     text += level.Text[i].Value;
                     break;
                 case Asc.c_oAscNumberingLvlTextType.Num:
-                    text += AscCommon.IntToNumberFormat(/*level.Text[i].Value + 1*/1, level.Format);
+                    var correctNum = 1;
+                    if (levelNum === level.Text[i].Value)
+                        correctNum = counterCurrent;
+                    text += AscCommon.IntToNumberFormat(correctNum, level.Format);
                     break;
                 default:
                     break;
@@ -7005,7 +7008,7 @@ function CDrawingDocument()
                             text += curLvl.Text[j].Value;
                             break;
                         case Asc.c_oAscNumberingLvlTextType.Num:
-                            text += AscCommon.IntToNumberFormat(/*level.Text[i].Value + 1*/1, curLvl.Format);
+                            text += AscCommon.IntToNumberFormat(1, curLvl.Format);
                             break;
                         default:
                             break;
@@ -7146,7 +7149,7 @@ function CDrawingDocument()
 
             for (var i = 0; i < textYs.length; i++)
 			{
-				this.privateGetParagraphByString(props.Lvl[level], text_base_offset_x - ((6.25 * AscCommon.g_dKoef_mm_to_pix) >> 0),
+				this.privateGetParagraphByString(props.Lvl[level], level, i + 1, text_base_offset_x - ((6.25 * AscCommon.g_dKoef_mm_to_pix) >> 0),
                     textYs[i], line_distance, ctx, width_px, height_px);
             }
         }
@@ -7192,7 +7195,7 @@ function CDrawingDocument()
 
 			for (var i = 0; i < 9; i++)
 			{
-                this.privateGetParagraphByString(props.Lvl[i], textYs[i].x, textYs[i].y, line_distance, ctx, width_px, height_px);
+                this.privateGetParagraphByString(props.Lvl[i], level, 1, textYs[i].x, textYs[i].y, line_distance, ctx, width_px, height_px);
             }
         }
 	}
