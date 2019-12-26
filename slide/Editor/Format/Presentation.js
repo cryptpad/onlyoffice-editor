@@ -10182,6 +10182,22 @@ CPresentation.prototype.FitImagesToSlide = function () {
     oCurrentController.fitImagesToSlide();
 };
 
+
+/**
+ * Добавляем текст в текущую позицию с заданными текстовыми настройками
+ * @param sText {string}
+ * @param oTextPr {?CTextPr}
+ * @param isMoveCursorOutside {boolean} выводим ли курсор за пределы нового рана
+ */
+CPresentation.prototype.AddTextWithPr = function(sText, oTextPr, isMoveCursorOutside)
+{
+    var oCurrentController = this.GetCurrentController();
+    if (!oCurrentController) {
+        return;
+    }
+    oCurrentController.addTextWithPr(sText, oTextPr, isMoveCursorOutside);
+};
+
 CPresentation.prototype.AddTextArt = function (nStyle) {
     if (this.Slides[this.CurPage]) {
         var oDrawingObjects = this.Slides[this.CurPage].graphicObjects;
