@@ -18785,7 +18785,7 @@
 		this.setSelection(selection);
 		sortSettings = new Asc.CSortProperties(this);
 		//необходимо ещё сохранять значение старого селекта, чтобы при нажатии пользователя на отмену - откатить
-		sortSettings._oldSelect = oldSelection;
+		sortSettings.selection = oldSelection;
 
 		//заголовки
 		sortSettings.hasHeaders = dataHasHeaders;

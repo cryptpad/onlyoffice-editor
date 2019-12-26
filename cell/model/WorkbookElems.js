@@ -9099,7 +9099,7 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	};
 
 	function CSortProperties(ws) {
-		this._oldSelect = null;
+		this.selection = null;
 		this._newSelection = null;
 		this.hasHeaders = null;
 		this.columnSort = null;
@@ -9272,6 +9272,14 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 
 	CSortProperties.prototype.asc_getRangeStr = function () {
 		return this._newSelection.getAbsName();
+	};
+
+	CSortProperties.prototype.asc_getSelection = function () {
+		return this.selection;
+	};
+
+	CSortProperties.prototype.asc_setSelection = function (val) {
+		this.selection = val;
 	};
 
 	function CSortPropertiesLevel() {
@@ -9604,6 +9612,8 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	prot["asc_setCaseSensitive"] = prot.asc_setCaseSensitive;
 	prot["asc_addBySortList"] = prot.asc_addBySortList;
 	prot["asc_getRangeStr"] = prot.asc_getRangeStr;
+	prot["asc_getSelection"] = prot.asc_getSelection;
+	prot["asc_setSelection"] = prot.asc_setSelection;
 
 	window["Asc"]["CSortPropertiesLevel"] = window["Asc"].CSortPropertiesLevel = CSortPropertiesLevel;
 	prot = CSortPropertiesLevel.prototype;
