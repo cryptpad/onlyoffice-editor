@@ -769,7 +769,7 @@
 		};
 	}
 
-    AscCommonWord.CContentControlPluginWorker = CContentControlPluginWorker;
+    AscCommon.CContentControlPluginWorker = CContentControlPluginWorker;
 
 	// пользоваться так:
 	// подрубить его последним из скриптов к страничке
