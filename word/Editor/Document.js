@@ -19002,7 +19002,7 @@ CDocument.prototype.OnContentControlTrackEnd = function(Id, NearestPos, isCopy)
 };
 CDocument.prototype.AddContentControl = function(nContentControlType)
 {
-	if (this.IsDrawingSelected())
+	if (this.IsDrawingSelected() && !this.DrawingObjects.getTargetDocContent())
 	{
 		var oDrawing = this.DrawingObjects.getMajorParaDrawing();
 		if (oDrawing)
