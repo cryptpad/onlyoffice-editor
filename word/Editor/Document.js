@@ -7688,9 +7688,14 @@ CDocument.prototype.OnEndTextDrag = function(NearPos, bCopy)
 
         var Para = NearPos.Paragraph;
 
-        var oSelectInfo = this.GetSelectedElementsInfo();
-        var arrSdts     = oSelectInfo.GetAllSdts();
-        if (arrSdts.length > 0 && !bCopy)
+		// Нам нужно отдельно проверить локи для контент контролов, поэтому мы отключаем стандартную проверку
+		// в функции IsSelectionLocked и отдельно проверяем вставляемую часть и место куда мы вставляем на наличие
+		// залоченных контент контролов
+		this.SetCheckContentControlsLock(false);
+
+		var oSelectInfo = this.GetSelectedElementsInfo();
+		var arrSdts     = oSelectInfo.GetAllSdts();
+		if (arrSdts.length > 0 && !bCopy)
 		{
 			for (var nIndex = 0, nCount = arrSdts.length; nIndex < nCount; ++nIndex)
 			{
@@ -7705,12 +7710,22 @@ CDocument.prototype.OnEndTextDrag = function(NearPos, bCopy)
 					return;
 				}
 			}
-			this.SetCheckContentControlsLock(false);
+		}
+
+		var isLocked = false;
+
+		var oParaNearPos = Para.Get_ParaNearestPos(NearPos);
+		var oLastClass   = oParaNearPos.Classes[oParaNearPos.Classes.length - 1];
+		if (oLastClass instanceof ParaRun)
+		{
+			arrSdts = oLastClass.GetParentContentControls();
+			if (arrSdts.length > 0 && !arrSdts[arrSdts.length - 1].CanBeEdited())
+				isLocked = true;
 		}
 
         // Если мы копируем, тогда не надо проверять выделенные параграфы, а если переносим, тогда проверяем
         var CheckChangesType = (true !== bCopy ? AscCommon.changestype_Document_Content : changestype_None);
-        if (false === this.Document_Is_SelectionLocked(CheckChangesType, {
+        if (!isLocked && !this.IsSelectionLocked(CheckChangesType, {
                 Type      : changestype_2_ElementsArray_and_Type,
                 Elements  : [Para],
                 CheckType : changestype_Paragraph_Content

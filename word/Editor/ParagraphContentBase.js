@@ -680,6 +680,26 @@ CParagraphContentBase.prototype.GetDocumentPositionFromObject = function(arrPosA
 	return arrPosArray;
 };
 /**
+ * Получаем массив всех конент контролов, внутри которых лежит данный класс
+ * @returns {Array}
+ */
+CParagraphContentBase.prototype.GetParentContentControls = function()
+{
+	var oDocPos = [{Class : this, Pos : 0}];
+	this.GetDocumentPositionFromObject(oDocPos);
+
+	var arrContentControls = [];
+	for (var nIndex = 0, nCount = oDocPos.length; nIndex < nCount; ++nIndex)
+	{
+		if (oDocPos[nIndex].Class instanceof CInlineLevelSdt)
+			arrContentControls.push(oDocPos[nIndex].Class);
+		else if (oDocPos[nIndex].Class instanceof CDocumentContent && oDocPos[nIndex].Class.Parent instanceof CBlockLevelSdt)
+			arrContentControls.push(oDocPos[nIndex].Class.Parent);
+	}
+
+	return arrContentControls;
+};
+/**
  * Проверяем есть ли выделение внутри объекта
  * @returns {boolean}
  */
