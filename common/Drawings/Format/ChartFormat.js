@@ -1879,7 +1879,22 @@ CDLbl.prototype =
             var max_content_width = max_box_width - 2*SCALE_INSET_COEFF;
 
             var content = this.txBody.content;
+
+
+
+
+            var sParPasteId = null;
+            if(window['AscCommon'].g_specialPasteHelper && window['AscCommon'].g_specialPasteHelper.showButtonIdParagraph)
+            {
+                sParPasteId = window['AscCommon'].g_specialPasteHelper.showButtonIdParagraph;
+                window['AscCommon'].g_specialPasteHelper.showButtonIdParagraph = null;
+            }
+
             content.RecalculateContent(max_content_width, 20000, 0);
+            if(sParPasteId)
+            {
+                window['AscCommon'].g_specialPasteHelper.showButtonIdParagraph = sParPasteId;
+            }
             // content.Reset(0, 0, max_content_width, 20000);
             //
             // content.Recalculate_Page(0, true);
