@@ -401,8 +401,6 @@ CDrawingsController.prototype.GetCurrentParagraph = function(bIgnoreSelection, a
 };
 CDrawingsController.prototype.GetSelectedElementsInfo = function(oInfo)
 {
-	this.DrawingObjects.getSelectedElementsInfo(oInfo);
-
 	var oDrawing = this.DrawingObjects.getMajorParaDrawing();
 	if (!oInfo.GetBlockLevelSdt() && !oInfo.GetInlineLevelSdt() && oDrawing)
 	{
@@ -427,6 +425,8 @@ CDrawingsController.prototype.GetSelectedElementsInfo = function(oInfo)
 			}
 		}
 	}
+
+	this.DrawingObjects.getSelectedElementsInfo(oInfo);
 };
 CDrawingsController.prototype.AddTableRow = function(bBefore)
 {

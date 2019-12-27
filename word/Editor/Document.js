@@ -1595,6 +1595,7 @@ function CSelectedElementsInfo(oPr)
 	this.m_oCell              = null;  // Выделенная ячейка (специальная ситуация, когда выделена ровно одна ячейка)
 	this.m_oBlockLevelSdt     = null;  // Если мы находимся в классе CBlockLevelSdt
 	this.m_oInlineLevelSdt    = null;  // Если мы находимся в классе CInlineLevelSdt (важно, что мы находимся внутри класса)
+	this.m_bSdtOverDrawing    = false; // Последний контент контрол обернут вокруг Drawing
 	this.m_arrSdts            = [];    // Список всех контейнеров, попавших в селект
 	this.m_arrComplexFields   = [];
 	this.m_oPageNum           = null;
@@ -1641,6 +1642,8 @@ function CSelectedElementsInfo(oPr)
     this.Set_Drawing = function(nDrawing)
     {
         this.m_nDrawing = nDrawing;
+
+		this.m_bSdtOverDrawing = true;
     };
 
     this.Is_DrawingObjSelected = function()
@@ -1689,6 +1692,7 @@ CSelectedElementsInfo.prototype.SetBlockLevelSdt = function(oSdt)
 {
 	this.m_oBlockLevelSdt = oSdt;
 	this.m_arrSdts.push(oSdt);
+	this.m_bSdtOverDrawing = false;
 };
 /**
  * @returns {?CBlockLevelSdt}
@@ -1701,6 +1705,7 @@ CSelectedElementsInfo.prototype.SetInlineLevelSdt = function(oSdt)
 {
 	this.m_oInlineLevelSdt = oSdt;
 	this.m_arrSdts.push(oSdt);
+	this.m_bSdtOverDrawing = false;
 };
 /**
  * @returns {?CInlineLevelSdt}
@@ -1708,6 +1713,10 @@ CSelectedElementsInfo.prototype.SetInlineLevelSdt = function(oSdt)
 CSelectedElementsInfo.prototype.GetInlineLevelSdt = function()
 {
 	return this.m_oInlineLevelSdt;
+};
+CSelectedElementsInfo.prototype.IsSdtOverDrawing = function()
+{
+	return this.m_bSdtOverDrawing;
 };
 CSelectedElementsInfo.prototype.GetAllSdts = function()
 {
@@ -8437,7 +8446,7 @@ CDocument.prototype.OnKeyDown = function(e)
 			var CheckType = ( e.ShiftKey || e.CtrlKey ? changestype_Paragraph_Content : AscCommon.changestype_Document_Content_Add );
 
 			var bCanPerform = true;
-			if ((oSelectedInfo.GetInlineLevelSdt() && (!e.ShiftKey || e.CtrlKey)) || (oSelectedInfo.Get_Field() && oSelectedInfo.Get_Field().IsFillingForm()))
+			if ((oSelectedInfo.GetInlineLevelSdt() && !oSelectedInfo.IsSdtOverDrawing() && (!e.ShiftKey || e.CtrlKey)) || (oSelectedInfo.Get_Field() && oSelectedInfo.Get_Field().IsFillingForm()))
 				bCanPerform = false;
 
             if (bCanPerform && (docpostype_DrawingObjects === this.CurPos.Type ||
