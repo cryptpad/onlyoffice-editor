@@ -10719,6 +10719,13 @@
 			t.handlers.trigger("onErrorEvent", c_oAscError.ID.CannotChangeFormulaArray, c_oAscError.Level.NoCritical);
 			return;
 		}
+		if("sort" === prop) {
+			var aMerged = this.model.mergeManager.get(checkRange);
+			if (aMerged.outer.length > 0 || (aMerged.inner.length > 0 && null == window['AscCommonExcel']._isSameSizeMerged(checkRange, aMerged.inner, true))) {
+				t.handlers.trigger("onErrorEvent", c_oAscError.ID.CannotFillRange, c_oAscError.Level.NoCritical);
+				return;
+			}
+		}
 		this._isLockedCells(checkRange, /*subType*/null, onSelectionCallback);
     };
 
@@ -18889,6 +18896,12 @@
 
 		var t = this;
 		var selection = t.model.selectionRange.getLast();
+
+		var aMerged = this.model.mergeManager.get(selection);
+		if (aMerged.outer.length > 0 || (aMerged.inner.length > 0 && null == window['AscCommonExcel']._isSameSizeMerged(selection, aMerged.inner, true))) {
+			t.handlers.trigger("onErrorEvent", c_oAscError.ID.CannotFillRange, c_oAscError.Level.NoCritical);
+			return;
+		}
 
 		//TODO отдельная обработка для таблиц
 		var callback = function(obj) {

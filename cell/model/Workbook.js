@@ -13645,4 +13645,6 @@
 	window['AscCommonExcel'].getCompiledStyleFromArray = getCompiledStyleFromArray;
 	window['AscCommonExcel'].ignoreFirstRowSort = ignoreFirstRowSort;
 	window['AscCommonExcel'].tryTranslateToPrintArea = tryTranslateToPrintArea;
+	window['AscCommonExcel']._isSameSizeMerged = _isSameSizeMerged;
+
 })(window);
