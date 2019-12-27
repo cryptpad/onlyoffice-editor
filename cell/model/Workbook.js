@@ -11966,6 +11966,25 @@
 			}
 		}
 
+		var aMerged = this.worksheet.mergeManager.get(this.bbox);
+		var checkMerged = function(_cell) {
+			var res = null;
+
+			if(aMerged && aMerged.inner && aMerged.inner.length > 0) {
+				for(var i = 0; i < aMerged.inner.length; i++) {
+					if(aMerged.inner[i].bbox.contains(_cell.nCol, _cell.nRow)) {
+						if(aMerged.inner[i].bbox.r1 === _cell.nRow && aMerged.inner[i].bbox.c1 === _cell.nCol) {
+							return true;
+						} else {
+							return false;
+						}
+					}
+				}
+			}
+
+			return res;
+		};
+
 		//собираем массив обьектов для сортировки
 		var aSortElems = [];
 		var putElem = false;
@@ -11979,6 +11998,10 @@
 					nLastCol0 = nCol0;
 				}
 				var val = oCell.getValueWithoutFormat();
+
+				if(opt_custom_sort && false === checkMerged(oCell)) {
+					return;
+				}
 
 				//for sort color
 				var colorFillCell, colorsTextCell = null;
@@ -12126,6 +12149,9 @@
 					//в данном случае идём по отдельной ветке и по-другому обрабатываем сортировку по цвету
 					//TODO стоит рассмотреть вариант одной обработки для разных вариантов сортировки
 					if(_sortCondition && (_sortCondition.ConditionSortBy === Asc.ESortBy.sortbyCellColor || _sortCondition.ConditionSortBy === Asc.ESortBy.sortbyFontColor)) {
+						if(!_a || !_b) {
+							return res;
+						}
 						var _isCellColor = _sortCondition.ConditionSortBy === Asc.ESortBy.sortbyCellColor;
 						var _color1 = _isCellColor ? _a.colorFill : _a.colorsText;
 						var _color2 = _isCellColor ? _b.colorFill : _b.colorsText;
