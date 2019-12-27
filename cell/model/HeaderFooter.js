@@ -1866,6 +1866,6 @@
 
 	prot["getPageType"] = prot.getPageType;
 
-	window['AscCommonExcel']['c_oPortionPosition'] = c_oPortionPosition;
+	window['AscCommonExcel'].c_oPortionPosition = c_oPortionPosition;
 
 })(window);
