@@ -11380,52 +11380,27 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPageStart, CurPage
 					RowNumb[0] = curRow;
 			}
 
+			if (RowNumb.length === 0)
+				return; 
+				
 			if (X1 < 0 )
 				X1 = this.Content[RowNumb[0]].CellsInfo[0].X_cell_start;
 			
-			// Заполнение Cells 
-			if (CurPage === 0)
-			{
-				if (RowNumb.length === 0)
-					return;
-				for (var curCell = 0; curCell < this.Content[RowNumb[0]].CellsInfo.length; curCell++)
-				{
-					if (X1 >= this.Content[RowNumb[0]].CellsInfo[curCell].X_cell_start && X1 <= this.Content[RowNumb[0]].CellsInfo[curCell].X_cell_end)
-						CellsNumb.push(curCell);
-					else if (CellsNumb.length === 0)
-						continue;
-					else if (this.Content[RowNumb[0]].CellsInfo[curCell].X_cell_start < X2)
-						CellsNumb.push(curCell);
-
-				}
-				
-			}
 			
+			for (var curCell = 0; curCell < this.Content[RowNumb[0]].CellsInfo.length; curCell++)
+			{
+				if (X1 > this.Content[RowNumb[0]].CellsInfo[curCell].X_cell_start && X1 < this.Content[RowNumb[0]].CellsInfo[curCell].X_cell_end)
+					CellsNumb.push(curCell);
+				else if (CellsNumb.length === 0)
+					continue;
+				else if (this.Content[RowNumb[0]].CellsInfo[curCell].X_cell_start < X2)
+					CellsNumb.push(curCell);
+			}
 			
 			if (CellsNumb.length === 0)
-			{
-				// Вычисление RowNumb с учетом колонки в которую попали 
-				for (var curRow = this.Pages[curColumn].FirstRow; curRow <= this.Pages[curColumn].LastRow; curRow++) 
-				{
-					if (Y1 > this.RowsInfo[curRow].Y[curColumn] && Y1 < (this.RowsInfo[curRow].Y[curColumn] + this.RowsInfo[curRow].H[curColumn]))
-						RowNumb[0] = curRow;
-				}
+				return;
 
-				for (var curCell = 0; curCell < this.Content[RowNumb[0]].CellsInfo.length; curCell++)
-				{
-					if (X1 > this.Content[RowNumb[0]].CellsInfo[curCell].X_cell_start && X1 < this.Content[RowNumb[0]].CellsInfo[curCell].X_cell_end)
-						CellsNumb.push(curCell);
-					else if (CellsNumb.length === 0)
-						continue;
-					else if (this.Content[RowNumb[0]].CellsInfo[curCell].X_cell_start < X2)
-						CellsNumb.push(curCell);
-
-				}
-
-			
-			}
-			
-			// Если хотим разделить ячейку с VMerge > 1 и линия находится близка к линии строки, то отрисовываем линию 
+			// Если хотим разделить ячейку с VMerge > 1 и линия находится близка к линии строки, то делим ячейку по этой линии 
 			for (var curCell = 0; curCell < this.Content[RowNumb[0]].CellsInfo.length; curCell++)
 			{
 				if (CellsNumb.indexOf(curCell) != -1) //проверка ячейки на наличие в массиве Cells 
@@ -12618,6 +12593,9 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPageStart, CurPage
 				{
 					for (var curRow = Cell.Row.Index; curRow >= 0; curRow-- )
 					{
+						if (this.Content.length === 0)
+							return;
+							
 						var TempRow  =  this.Content[curRow];
 						var TempCell = this.Content[curRow].Get_Cell(0);
 						
