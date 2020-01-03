@@ -10429,9 +10429,11 @@ function collectSelectedObjects(aSpTree, aCollectArray, bRecursive, oIdMap, bSou
             var oCopy;
             if (oSp.getObjectType() === AscDFH.historyitem_type_GroupShape) {
                 oCopy = oSp.copy(oPr);
+                oCopy.setParent(oSp.parent);
             } else {
                 if (!bSourceFormatting) {
                     oCopy = oSp.copy(oPr);
+                    oCopy.setParent(oSp.parent);
                     if (oSp.isPlaceholder && oSp.isPlaceholder()) {
                         oCopy.x = oSp.x;
                         oCopy.y = oSp.y;
@@ -10442,6 +10444,7 @@ function collectSelectedObjects(aSpTree, aCollectArray, bRecursive, oIdMap, bSou
                     }
                 } else {
                     oCopy = oSp.getCopyWithSourceFormatting();
+                    oCopy.setParent(oSp.parent);
                 }
 
             }
