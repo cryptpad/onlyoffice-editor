@@ -2626,16 +2626,19 @@ CDocumentContent.prototype.AddImages = function(aImages){
                 W = Math.max(1, ColumnSize.W);
                 H = Math.max(1, ColumnSize.H);
 
-                var _image = aImages[i];
-                var __w = Math.max((_image.Image.width * AscCommon.g_dKoef_pix_to_mm), 1);
-                var __h = Math.max((_image.Image.height * AscCommon.g_dKoef_pix_to_mm), 1);
-                W      = Math.max(5, Math.min(W, __w));
-                H      = Math.max(5, Math.min((W * __h / __w)));
-                Drawing   = new ParaDrawing(W, H, null, this.DrawingDocument, this, null);
-                var Image = this.DrawingObjects.createImage(_image.src, 0, 0, W, H);
-                Image.setParent(Drawing);
-                Drawing.Set_GraphicObject(Image);
-                this.AddToParagraph(Drawing);
+				var _image = aImages[i];
+				if(_image.Image)
+				{
+					var __w = Math.max((_image.Image.width * AscCommon.g_dKoef_pix_to_mm), 1);
+					var __h = Math.max((_image.Image.height * AscCommon.g_dKoef_pix_to_mm), 1);
+					W      = Math.max(5, Math.min(W, __w));
+					H      = Math.max(5, Math.min((W * __h / __w)));
+					Drawing   = new ParaDrawing(W, H, null, this.DrawingDocument, this, null);
+					var Image = this.DrawingObjects.createImage(_image.src, 0, 0, W, H);
+					Image.setParent(Drawing);
+					Drawing.Set_GraphicObject(Image);
+					this.AddToParagraph(Drawing);
+				}
 			}
 
 			if(aImages.length === 1)

@@ -4760,7 +4760,7 @@ CPresentation.prototype.addImages = function (aImages, placeholder) {
         editor.WordControl.Thumbnails && editor.WordControl.Thumbnails.SetFocusElement(FOCUS_OBJECT_MAIN);
         this.FocusOnNotes = false;
         var oController = this.Slides[this.CurPage].graphicObjects;
-        if (placeholder && undefined !== placeholder.id && aImages.length === 1) {
+        if (placeholder && undefined !== placeholder.id && aImages.length === 1 && aImages[0].Image) {
             var oPh = AscCommon.g_oTableId.Get_ById(placeholder.id);
             if (oPh) {
                 var oPh = AscCommon.g_oTableId.Get_ById(placeholder.id);
@@ -4798,17 +4798,19 @@ CPresentation.prototype.addImages = function (aImages, placeholder) {
         var _w, _h;
         for (var i = 0; i < aImages.length; ++i) {
             var _image = aImages[i];
-            _w = this.Slides[this.CurPage].Width;
-            _h = this.Slides[this.CurPage].Height;
-            var __w = Math.max((_image.Image.width * AscCommon.g_dKoef_pix_to_mm), 1);
-            var __h = Math.max((_image.Image.height * AscCommon.g_dKoef_pix_to_mm), 1);
-            var fKoeff = Math.min(1.0, 1.0 / Math.max(__w / _w, __h / _h));
-            _w = Math.max(5, __w * fKoeff);
-            _h = Math.max(5, __h * fKoeff);
-            var Image = oController.createImage(_image.src, (this.Slides[this.CurPage].Width - _w) / 2, (this.Slides[this.CurPage].Height - _h) / 2, _w, _h, _image.videoUrl, _image.audioUrl);
-            Image.setParent(this.Slides[this.CurPage]);
-            Image.addToDrawingObjects();
-            oController.selectObject(Image, 0);
+            if(_image.Image) {
+                _w = this.Slides[this.CurPage].Width;
+                _h = this.Slides[this.CurPage].Height;
+                var __w = Math.max((_image.Image.width * AscCommon.g_dKoef_pix_to_mm), 1);
+                var __h = Math.max((_image.Image.height * AscCommon.g_dKoef_pix_to_mm), 1);
+                var fKoeff = Math.min(1.0, 1.0 / Math.max(__w / _w, __h / _h));
+                _w = Math.max(5, __w * fKoeff);
+                _h = Math.max(5, __h * fKoeff);
+                var Image = oController.createImage(_image.src, (this.Slides[this.CurPage].Width - _w) / 2, (this.Slides[this.CurPage].Height - _h) / 2, _w, _h, _image.videoUrl, _image.audioUrl);
+                Image.setParent(this.Slides[this.CurPage]);
+                Image.addToDrawingObjects();
+                oController.selectObject(Image, 0);
+            }
         }
         this.Recalculate();
         this.Document_UpdateInterfaceState();
