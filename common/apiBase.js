@@ -2089,9 +2089,8 @@
                 case c_oEditorId.Word:
                 case c_oEditorId.Presentation:
                 {
-                	var textPr = new CTextPr();
-                	textPr.RFonts = new CRFonts();
-                	textPr.RFonts.Set_All(familyName, -1);
+					var textPr = new AscCommonWord.CTextPr();
+					textPr.SetFontFamily(familyName);
                 	this.WordControl.m_oLogicDocument.AddTextWithPr(new AscCommon.CUnicodeStringEmulator(arrCharCodes), textPr, true);
                     break;
                 }
