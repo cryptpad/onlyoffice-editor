@@ -839,6 +839,7 @@ define([
             },
 
             applyLicense: function() {
+                /*
                 if (this._state.licenseType) {
                     var license = this._state.licenseType,
                         buttons = ['ok'],
@@ -886,6 +887,7 @@ define([
                         }
                     });
                 }
+                */
             },
 
             disableEditing: function(disable) {
@@ -907,6 +909,7 @@ define([
                 var licType = params ? params.asc_getLicenseType() : Asc.c_oLicenseResult.Error;
 
                 if ( params && !(this.appOptions.isEditDiagram || this.appOptions.isEditMailMerge)) {
+                    /*
                     if (Asc.c_oLicenseResult.Expired === licType || Asc.c_oLicenseResult.Error === licType || Asc.c_oLicenseResult.ExpiredTrial === licType) {
                         Common.UI.warning({
                             title: this.titleLicenseExp,
@@ -916,6 +919,7 @@ define([
                         });
                         return;
                     }
+                    */
 
                     if ( this.onServerVersion(params.asc_getBuildVersion()) ) return;
 
@@ -1624,6 +1628,7 @@ define([
             },
 
             onServerVersion: function(buildVersion) {
+                /*
                 if (this.changeServerVersion) return true;
 
                 if (DocsAPI.DocEditor.version() !== buildVersion && !window.compareVersions) {
@@ -1639,6 +1644,7 @@ define([
                     });
                     return true;
                 }
+                */
                 return false;
             },
 

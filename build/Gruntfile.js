@@ -518,14 +518,9 @@ module.exports = function(grunt) {
                                                             'copy', 'svgmin', 'inline', 'json-minify',
                                                             'replace:writeVersion', 'replace:prepareHelp', 'clean:postbuild']);
 
-    grunt.registerTask('deploy-app-mobile',             ['mobile-app-init', 'clean:deploy', 'cssmin', 'copy:template-backup',
-                                                            'htmlmin', 'requirejs', 'concat', 'copy:template-restore',
-                                                            'clean:template-backup', 'copy:localization', 'copy:index-page',
-                                                            'copy:images-app', 'json-minify',
-                                                            'replace:writeVersion', 'replace:fixResourceUrl']);
+    grunt.registerTask('deploy-app-mobile',             []);
 
-    grunt.registerTask('deploy-app-embed',              ['embed-app-init', 'clean:prebuild', 'uglify', 'less', 'copy', 
-                                                            'clean:postbuild']);
+    grunt.registerTask('deploy-app-embed',              []);
 
     doRegisterInitializeAppTask('common',               'Common',               'common.json');
     doRegisterInitializeAppTask('documenteditor',       'DocumentEditor',       'documenteditor.json');
