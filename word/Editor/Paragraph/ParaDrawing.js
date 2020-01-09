@@ -1599,10 +1599,18 @@ ParaDrawing.prototype.Use_TextWrap = function()
 ParaDrawing.prototype.Draw_Selection = function()
 {
 	var Padding = this.DrawingDocument.GetMMPerDot(6);
-	var extX = this.getXfrmExtX();
-	var extY = this.getXfrmExtY();
+	var extX, extY;
+	if(this.GraphicObj)
+	{
+		extX = this.GraphicObj.extX;
+		extY = this.GraphicObj.extY;
+	}
+	else
+	{
+		extX = this.getXfrmExtX();
+		extY = this.getXfrmExtY();
+	}
 	var rot = this.getXfrmRot();
-	var X, Y, W, H;
 	if(AscFormat.checkNormalRotate(rot))
 	{
 		this.DrawingDocument.AddPageSelection(this.PageNum, this.X - this.EffectExtent.L - Padding, this.Y - this.EffectExtent.T - Padding, this.EffectExtent.L + extX + this.EffectExtent.R + 2 * Padding, this.EffectExtent.T + extY + this.EffectExtent.B + 2 * Padding);
