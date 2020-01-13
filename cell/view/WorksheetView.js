@@ -5897,9 +5897,13 @@
         }
 
         var rowHeight = this._getRowHeight(row);
-
+        
         // ToDo dDigitsCount нужно рассчитывать исходя не из дефалтового шрифта и размера, а исходя из текущего шрифта и размера ячейки
-        str = c.getValue2(dDigitsCount, makeFnIsGoodNumFormat(fl, colWidth));
+        if (angle === 0) {
+            str = c.getValue2(dDigitsCount, makeFnIsGoodNumFormat(fl, colWidth));
+        } else {
+            str = c.getValue2();
+        }
         var ha = c.getAlignHorizontalByValue(align.getAlignHorizontal());
         var maxW = fl.wrapText || fl.shrinkToFit || mergeType || asc.isFixedWidthCell(str) ?
           this._calcMaxWidth(col, row, mc) : undefined;
@@ -5941,21 +5945,32 @@
 
 //  NOTE: если проекция строчки на Y больше высоты ячейки подставлять # и рисовать все по центру
 
-//                    if (fl.isNumberFormat) {
-//                        var prj = Math.abs(Math.sin(angle * Math.PI / 180.0) * tm.width);
-//                        if (prj > rowHeight) {
-//                            //if (maxW === undefined) {}
-//                            maxW = rowHeight / Math.abs(Math.cos(angle * Math.PI / 180.0));
-//                            str  =  c.getValue2(gc_nMaxDigCountView, makeFnIsGoodNumFormat(fl, maxW));
-//
-//                            for (i = 0; i < str.length; ++i) {
-//                                var f = str[i].format;
-//                                if (f) f.repeat = true;
-//                            }
-//
-//                            tm   =  this._roundTextMetrics(this.stringRender.measureString(str, fl, maxW));
-//                        }
-//                    }
+            if (fl.isNumberFormat) {
+                var textMetricWidth  = textW;
+                if (textBound.width > textW) {
+                    textMetricWidth = textBound.width;
+                }
+                if (textBound.height > textW) {
+                    textMetricWidth = textBound.height;
+                }
+                var prj = Math.ceil(Math.abs(Math.sin(angle * Math.PI / 180.0) * textMetricWidth));
+                if (prj >= rowHeight) {
+                    maxW = rowHeight;
+                    str = c.getValue2(dDigitsCount, makeFnIsGoodNumFormat(fl, rowHeight));
+                    tm = this._roundTextMetrics(this.stringRender.measureString(str, fl, maxW));
+                    if (str[0].format.repeat) {
+                        var angleSin = Math.sin(angle * Math.PI / 180.0);
+                        if (angle > 0) {
+                            textBound.dx = (colWidth - tm.height) / 2;
+                        } 
+                        if (angle < 0) {
+                            textBound.dx = (colWidth - tm.height * angleSin) / 2;
+                            textBound.dy = (rowHeight - tm.width) / 2;
+                        } 
+                        ha = 0;
+                    }
+                }
+            }
         }
 
         var cache = this._fetchCellCache(col, row);
@@ -6058,7 +6073,10 @@
 			newHeight = Math.min(this.maxRowHeightPx, Math.max(oldHeight, newHeight));
 			if (newHeight !== oldHeight) {
 				if (this.updateRowHeightValuePx) {
-					this.updateRowHeightValuePx = newHeight;
+                    if(cache.angle !== 0) {
+                        newHeight += 5;
+                    }
+                    this.updateRowHeightValuePx = newHeight;
 				}
 				rowInfo.height = Asc.round(newHeight * this.getZoom());
 				History.TurnOff();
