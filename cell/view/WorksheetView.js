@@ -10988,13 +10988,26 @@
 		//for special paste
 		if(!window['AscCommon'].g_specialPasteHelper.specialPasteStart)
 		{
+			var checkTablesPaste = function() {
+				var _res = false;
+				if(val.TableParts && val.TableParts.length && activeCellsPasteFragment) {
+					for(var i = 0; i < val.TableParts.length; i++) {
+						if(activeCellsPasteFragment.containsRange(val.TableParts[i].Ref)) {
+							_res = true;
+							break;
+						}
+					}
+				}
+				return _res;
+			};
+
 			//var specialPasteShowOptions = new Asc.SpecialPasteShowOptions();
 			var allowedSpecialPasteProps;
 			var sProps = Asc.c_oSpecialPasteProps;
 			if(fromBinary)
 			{
 				allowedSpecialPasteProps = [sProps.paste, sProps.pasteOnlyFormula, sProps.formulaNumberFormat, sProps.formulaAllFormatting, sProps.formulaWithoutBorders, sProps.formulaColumnWidth,  sProps.pasteOnlyValues, sProps.valueNumberFormat, sProps.valueAllFormating, sProps.pasteOnlyFormating/*, sProps.link*/];
-				if(!(val.TableParts && val.TableParts.length))
+				if(!checkTablesPaste())
 				{
 					//add transpose property
 					allowedSpecialPasteProps.push(sProps.transpose);
