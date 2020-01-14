@@ -5549,21 +5549,25 @@ PasteProcessor.prototype =
 					oCurRun.Pr.Underline = format.getUnderline() !== 2;
 
 					//text
-					var value = value2[n].text;
-					for (var oIterator = value.getUnicodeIterator(); oIterator.check(); oIterator.next()) {
-						var nUnicode = oIterator.value();
+					if(true === format.skip || true === format.repeat) {
+						oCurRun.AddToContent(-1, new ParaSpace(), false);
+					} else {
+						var value = value2[n].text;
+						for (var oIterator = value.getUnicodeIterator(); oIterator.check(); oIterator.next()) {
+							var nUnicode = oIterator.value();
 
-						var Item;
-						if(0x0A === nUnicode || 0x0D === nUnicode) {
-							Item = new ParaNewLine(break_Line);
-						} else if (0x20 !== nUnicode && 0xA0 !== nUnicode && 0x2009 !== nUnicode) {
-							Item = new ParaText(nUnicode);
-						} else {
-							Item = new ParaSpace();
+							var Item;
+							if(0x0A === nUnicode || 0x0D === nUnicode) {
+								Item = new ParaNewLine(break_Line);
+							} else if (0x20 !== nUnicode && 0xA0 !== nUnicode && 0x2009 !== nUnicode) {
+								Item = new ParaText(nUnicode);
+							} else {
+								Item = new ParaSpace();
+							}
+
+							//add text
+							oCurRun.AddToContent(-1, Item, false);
 						}
-
-						//add text
-						oCurRun.AddToContent(-1, Item, false);
 					}
 
 					//add run
