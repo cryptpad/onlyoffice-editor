@@ -5506,8 +5506,31 @@ PasteProcessor.prototype =
 					}
 				}
 
-				var oCurPar = oCurCell.Content.Content[0];
 				var align = range.getAlign();
+				var textAngle = align ? align.getAngle() : null;
+				if (textAngle === 90) {
+					oCurCell.Pr.TextDirection = c_oAscCellTextDirection.BTLR;
+				} else if (textAngle === -90) {
+					oCurCell.Pr.TextDirection = c_oAscCellTextDirection.TBRL;
+				}
+
+				var vAlign = align ? align.getAlignVertical() : null;
+				switch (vAlign) {
+					case Asc.c_oAscVAlign.Bottom:
+						oCurCell.Pr.VAlign = vertalignjc_Bottom;
+						break;
+					case Asc.c_oAscVAlign.Center:
+					case Asc.c_oAscVAlign.Dist:
+					case Asc.c_oAscVAlign.Just:
+						oCurCell.Pr.VAlign = vertalignjc_Center;
+						break;
+					case Asc.c_oAscVAlign.Top:
+						oCurCell.Pr.VAlign = vertalignjc_Top;
+						break;
+				}
+
+
+				var oCurPar = oCurCell.Content.Content[0];
 				if(align) {
 					var type = range.getType();
 					if(null != align.hor) {
