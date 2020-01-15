@@ -3698,9 +3698,13 @@ CMathContent.prototype.IsSelectionEmpty = function()
 
     return false;
 };
-CMathContent.prototype.GetSelectContent = function()
+CMathContent.prototype.GetSelectContent = function(isAll)
 {
-    if (false === this.Selection.Use)
+	if (true === isAll)
+	{
+		return {Content : this, Start : 0, End : this.Content.length - 1};
+	}
+    else if (false === this.Selection.Use)
     {
         if (para_Math_Composition === this.Content[this.CurPos].Type)
             return this.Content[this.CurPos].GetSelectContent();
