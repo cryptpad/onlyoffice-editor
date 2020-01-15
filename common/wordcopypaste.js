@@ -5509,7 +5509,7 @@ PasteProcessor.prototype =
 				var oCurPar = oCurCell.Content.Content[0];
 				var align = range.getAlign();
 				if(align) {
-					var type = range.getType()
+					var type = range.getType();
 					if(null != align.hor) {
 						oCurPar.Pr.Jc = align.hor;
 					} else if(null === type|| AscCommon.CellValueType.Number === type) {
