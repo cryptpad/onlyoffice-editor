@@ -5547,6 +5547,7 @@ PasteProcessor.prototype =
 					oCurRun.Pr.Italic = format.getItalic();
 					oCurRun.Pr.Strikeout = format.getStrikeout();
 					oCurRun.Pr.Underline = format.getUnderline() !== 2;
+					oCurRun.Pr.VertAlign = format.va;
 
 					//text
 					if(true === format.skip || true === format.repeat) {
