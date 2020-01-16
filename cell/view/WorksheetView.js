@@ -349,6 +349,7 @@
         this.updateResize = false;
         // Флаг, сигнализирует о том, что мы сменили zoom, но это не активный лист (поэтому как только будем показывать, нужно перерисовать и пересчитать кеш)
         this.updateZoom = false;
+        this.isZooming = false;
         // ToDo Флаг-заглушка, для того, чтобы на mobile не было изменения высоты строк при zoom (по правильному высота просто не должна меняться)
         this.notUpdateRowHeight = false;
 
@@ -826,6 +827,7 @@
 
     WorksheetView.prototype.changeZoom = function (isUpdate) {
         if (isUpdate) {
+            this.isZooming = true;
             this.notUpdateRowHeight = true;
             this.cleanSelection();
 			this._updateGroupsWidth();
@@ -843,6 +845,7 @@
             this.handlers.trigger("onDocumentPlaceChanged");
             this._updateDrawingArea();
             this.updateZoom = false;
+            this.isZooming = false;
             this.notUpdateRowHeight = false;
         } else {
             this.updateZoom = true;
@@ -5996,8 +5999,9 @@
         if (!angle && (cto.leftSide !== 0 || cto.rightSide !== 0)) {
             this._addErasedBordersToCache(col - cto.leftSide, col + cto.rightSide, row);
         }
-
-        this._updateRowHeight(cache, row, maxW, colWidth);
+        if (!this.isZooming) {
+            this._updateRowHeight(cache, row, maxW, colWidth);
+        }
 
         return mc ? mc.c2 : col;
     };
@@ -6071,24 +6075,22 @@
 			var newHeight = tm.height;
 			var oldHeight = this.updateRowHeightValuePx || AscCommonExcel.convertPtToPx(this._getRowHeightReal(row));
 			if (cache.angle && textBound) {
-				newHeight = Math.max(oldHeight, textBound.height);
+                newHeight = Math.max(oldHeight, textBound.height / this.getZoom());
 			}
-
 			newHeight = Math.min(this.maxRowHeightPx, Math.max(oldHeight, newHeight));
 			if (newHeight !== oldHeight) {
+                var indent = 5;
+                newHeight += indent;
 				if (this.updateRowHeightValuePx) {
-                    if(cache.angle !== 0) {
-                        newHeight += 5;
-                    }
                     this.updateRowHeightValuePx = newHeight;
 				}
 				rowInfo.height = Asc.round(newHeight * this.getZoom());
 				History.TurnOff();
-				res = newHeight;
+				res = newHeight * this.getZoom();
 				var oldExcludeCollapsed = this.model.bExcludeCollapsed;
 				this.model.bExcludeCollapsed = true;
 				// ToDo delete setRowHeight here
-				this.model.setRowHeight(AscCommonExcel.convertPxToPt(newHeight), row, row, false);
+				this.model.setRowHeight(AscCommonExcel.convertPxToPt(newHeight / this.getZoom()), row, row, false);
 				this.model.bExcludeCollapsed = oldExcludeCollapsed;
 				History.TurnOn();
 
@@ -13059,6 +13061,7 @@
                 } 
             }
         }
+        width = width / this.getZoom();
         this.canChangeColWidth = c_oAscCanChangeColWidth.none;
 
         var pad, cc, cw;
