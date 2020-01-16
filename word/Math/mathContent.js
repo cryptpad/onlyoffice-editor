@@ -7529,7 +7529,7 @@ CMathContent.prototype.GetTextContent = function(bSelectedText) {
             getAndPushTextContent(elem.Content[0], false);
             addText((elem.Pr.type == 1) ? "┴" : "┬");
 			//аргумент
-            getAndPushTextContent(elem.Content[1], checkBracket(elem.Content[1].GetTextContent().str));
+            getAndPushTextContent(elem.Content[1], true);
 		}
 
 	};
