@@ -10911,6 +10911,7 @@
                     displayName: newDisplayName
                 };
                 t.model.autoFilters.addAutoFilter(curTable.TableStyleInfo.Name, range.bbox, true, true, props);
+				bIsAddTable = true;
                 if (null === tablesMap) {
                     tablesMap = {};
                 }
@@ -10920,7 +10921,9 @@
 
 			if(bIsAddTable)
 			{
-				t._isLockedDefNames(null, null);
+				t._isLockedAll(function() {
+					t._isLockedDefNames(null, null)
+				});
 			}
         }
 
