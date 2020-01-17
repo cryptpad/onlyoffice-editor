@@ -6079,7 +6079,7 @@
 			}
 			newHeight = Math.min(this.maxRowHeightPx, Math.max(oldHeight, newHeight));
 			if (newHeight !== oldHeight) {
-                var indent = 5;
+                var indent = 2;
                 newHeight += indent;
 				if (this.updateRowHeightValuePx) {
                     this.updateRowHeightValuePx = newHeight;

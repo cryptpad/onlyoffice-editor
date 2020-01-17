@@ -242,7 +242,9 @@
          * @param {Number} maxWidth
          */
         StringRender.prototype.getTransformBound = function(angle, w, h, textW, alignHorizontal, alignVertical, maxWidth) {
-
+			var ctx = this.drawingCtx;
+			var indent = 1.5 * ctx.getZoom();
+			
             // TODO: добавить padding по сторонам
 
             this.angle          =   0;  //  angle;
@@ -267,7 +269,9 @@
                 isVertBottom    = (Asc.c_oAscVAlign.Bottom === alignVertical),
                 isVertCenter    = (Asc.c_oAscVAlign.Center === alignVertical || Asc.c_oAscVAlign.Dist === alignVertical || Asc.c_oAscVAlign.Just === alignVertical),
                 isVertTop       = (Asc.c_oAscVAlign.Top    === alignVertical);
-
+			
+				tm.height = tm.height * ctx.getZoom();
+				
             if (isVertBottom) {
                 if (angle < 0) {
                     if (isHorzLeft) {
@@ -281,7 +285,7 @@
                         dx = w - posv + 2;
                         offsetX = - (w - posv) - angleSin * tm.height - 2;
 					}
-					dy -= 1.5;
+					dy -= indent;
                 } else {
                     if (isHorzLeft) {
 
@@ -294,21 +298,21 @@
                         dx = w  - posv + 1 + 1 - tm.height * angleSin;
                         offsetX = - w  - posv + 1 + 1 - tm.height * angleSin;
 					}
-					dy -= 1.5;
+					dy -= indent;
                 }
 
                 if (posh < h) {
                     if (angle < 0) {
-                        dy = h - (posh + angleCos * tm.height) - 1.5;
+                        dy = (h - (posh + angleCos * tm.height) - indent);
                     }
                     else {
-                        dy = h - angleCos * tm.height - 1.5;
+                        dy = (h - angleCos * tm.height - indent);
                     }
                 } else {
                     if (angle > 0) {
-                        dy = h - angleCos * tm.height - 1.5;
+                        dy = (h - angleCos * tm.height - indent);
                     } else {
-						dy += 1.5;
+						dy += indent;
 					}
                 }
             }
@@ -383,7 +387,7 @@
 
                     dy = Math.min(h + tm.height * angleCos, posh);
 				}
-				dy += 1.5;
+				dy += indent;
             }
 
             var bound = { dx: dx, dy: dy, height: 0, width: 0, offsetX: offsetX};
