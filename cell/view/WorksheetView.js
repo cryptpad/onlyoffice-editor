@@ -6142,9 +6142,7 @@
         if (!angle && (cto.leftSide !== 0 || cto.rightSide !== 0)) {
             this._addErasedBordersToCache(col - cto.leftSide, col + cto.rightSide, row);
         }
-        if (!this.isZooming) {
             this._updateRowHeight(cache, row, maxW, colWidth);
-        }
 
         return mc ? mc.c2 : col;
     };
@@ -6221,8 +6219,11 @@
                 newHeight = Math.max(oldHeight, textBound.height / this.getZoom());
 			}
 			newHeight = Math.min(this.maxRowHeightPx, Math.max(oldHeight, newHeight));
-			if (newHeight !== oldHeight) {
+			if (newHeight !== oldHeight || this.isZooming) {
                 var indent = 2;
+             if(cache.flags.wrapText) {
+                    indent = 0;
+                }
                 newHeight += indent;
 				if (this.updateRowHeightValuePx) {
                     this.updateRowHeightValuePx = newHeight;
@@ -6232,8 +6233,6 @@
 				res = newHeight * this.getZoom();
 				var oldExcludeCollapsed = this.model.bExcludeCollapsed;
 				this.model.bExcludeCollapsed = true;
-				// ToDo delete setRowHeight here
-				this.model.setRowHeight(AscCommonExcel.convertPxToPt(newHeight / this.getZoom()), row, row, false);
 				this.model.bExcludeCollapsed = oldExcludeCollapsed;
 				History.TurnOn();
 
