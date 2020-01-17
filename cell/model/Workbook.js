@@ -718,13 +718,25 @@
 		addDefNameOpen: function(name, ref, sheetIndex, hidden, isTable) {
 			var sheetId = this.wb.getSheetIdByIndex(sheetIndex);
 			var isXLNM = null;
-			if(name === "_xlnm.Print_Area") {
-				name = "Print_Area";
+			var XLNMName = this._checkXlnmName(name);
+			if(null !== XLNMName) {
+				name = XLNMName;
 				isXLNM = true;
 			}
 			var defName = new DefName(this.wb, name, ref, sheetId, hidden, isTable, isXLNM);
 			this._addDefName(defName);
 			return defName;
+		},
+		_checkXlnmName: function(name) {
+			var supportName = {"Print_Area": 1, "Print_Titles": 1};
+
+			var prefix = "_xlnm.";
+			var parseName = name.split(prefix)[1];
+			if(supportName[parseName]) {
+				return parseName;
+			}
+
+			return null;
 		},
 		addDefName: function(name, ref, sheetId, hidden, isTable, isXLNM) {
 			var defName = new DefName(this.wb, name, ref, sheetId, hidden, isTable, isXLNM);
