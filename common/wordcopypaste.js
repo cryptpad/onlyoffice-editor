@@ -8624,6 +8624,10 @@ PasteProcessor.prototype =
 						bAddParagraph = true;
 						oThis._Commit_Br(0, node, pPr);
 						oThis._AddToParagraph(new ParaNewLine(break_Page));
+					} else if(AscCommon.g_clipboardBase.pastedFrom === AscCommon.c_oClipboardPastedFrom.Excel) {
+						bAddParagraph = oThis._Decide_AddParagraph(node.parentNode, pPr, bAddParagraph);
+						oThis._Commit_Br(0, node, pPr);
+						oThis._AddToParagraph(new ParaNewLine(break_Line));
 					} else {
 						bAddParagraph = oThis._Decide_AddParagraph(node.parentNode, pPr, bAddParagraph, false);
 						oThis.nBrCount++;//oThis._AddToParagraph( new ParaNewLine( break_Line ) );

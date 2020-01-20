@@ -3657,6 +3657,7 @@
 				var aResult = this.aResult;
 				var paragraphFontFamily = paraPr.TextPr.FontFamily.Name;
 				var cloneNewItem, formatText;
+				var newLine = "\n";
 
 				var cTextPr = prevTextPr ? prevTextPr : paraRun.Get_CompiledPr();
 				if (cTextPr && !(paraRunContent.length === 1 && paraRunContent[0] instanceof ParaEnd))//settings for text
@@ -3701,9 +3702,13 @@
 							break;
 						}
 						case para_NewLine: {
-							pushData();
-							row++;
-							innerCol = 0;
+							if(AscCommon.g_clipboardBase.pastedFrom === AscCommon.c_oClipboardPastedFrom.Excel) {
+								text += newLine;
+							} else {
+								pushData();
+								row++;
+								innerCol = 0;
+							}
 
 							break;
 						}
@@ -4327,7 +4332,7 @@
 					if(elem.Content[i] && elem.Content[i].Content) {
 						for(var j = 0; j < elem.Content[i].Content.length; j++)
 						{
-							if(elem.Content[i].Content[j] && para_NewLine === elem.Content[i].Content[j].GetType()) {
+							if(elem.Content[i].Content[j] && para_NewLine === elem.Content[i].Content[j].GetType() && AscCommon.g_clipboardBase.pastedFrom !== AscCommon.c_oClipboardPastedFrom.Excel) {
 								oNewElem.height++;
 							}
 						}
