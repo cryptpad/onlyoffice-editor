@@ -8344,7 +8344,12 @@ PasteProcessor.prototype =
 					oThis._commit_rPr(oTargetNode, bUseOnlyInherit);
 				}
 
-				//TODO поправить проблему с лишними прообелами в начале новой строки при копировании из MS EXCEL ячеек с текстом, разделенным alt+enter
+				//для проблемы с лишними прообелами в начале новой строки при копировании из MS EXCEL ячеек с текстом, разделенным alt+enter
+				var ignoreFirstSpaces = false;
+				if(AscCommon.g_clipboardBase.pastedFrom === AscCommon.c_oClipboardPastedFrom.Excel) {
+					ignoreFirstSpaces = true;
+				}
+
 				//bIsPreviousSpace - игнорируем несколько пробелов подряд
 				var bIsPreviousSpace = false, clonePr;
 				for (var oIterator = value.getUnicodeIterator(); oIterator.check(); oIterator.next())
@@ -8363,6 +8368,13 @@ PasteProcessor.prototype =
 
 
 					var nUnicode = oIterator.value();
+					if(ignoreFirstSpaces) {
+						if(nUnicode === 32) {
+							continue;
+						} else {
+							ignoreFirstSpaces = false;
+						}
+					}
 
 					if (bPresentation)
 					{
