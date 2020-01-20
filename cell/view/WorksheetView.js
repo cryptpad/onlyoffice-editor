@@ -13510,11 +13510,23 @@
 
         WorksheetView.prototype._replaceCellText = function (aReplaceCells, options, lockDraw, callback, oneUser) {
                 var t = this;
+                var needLockCell = !oneUser;
+                var isSC = options.isSpellCheck;
                 if (options.indexInArray >= aReplaceCells.length) {
                     this.draw(lockDraw);
                     return callback(options);
                 }
-
+            if (!oneUser && isSC) {
+                needLockCell = false;
+                var cell = aReplaceCells[options.indexInArray];
+                ++options.indexInArray;
+                var cellValue = t._getVisibleCell(cell.c1, cell.r1).getValueForEdit();
+                var newCellValue = AscCommonExcel.replaceSpellCheckWords(cellValue, options);
+                if (cellValue !== newCellValue) {
+                    needLockCell = true;
+                }
+                --options.indexInArray;
+            }
                 var onReplaceCallback = function (isSuccess) {
                     var cell = aReplaceCells[options.indexInArray];
                     ++options.indexInArray;
@@ -13523,22 +13535,13 @@
 						var cellValue = c.getValueForEdit();
 
                     	// Check replace cell for spell. Replace full cell to fix skip first words (otherwise replace)
-                    	if (!options.isSpellCheck) {
+                    	if (!isSC) {
 							cellValue = cellValue.replace(options.findRegExp, function () {
 								++options.countReplace;
 								return options.replaceWith;
 							});
 						} else {
-							// ToDo replace one command
-							if (1 === options.indexInArray && options.replaceWith) {
-								cellValue = options.replaceWith;
-							} else {
-								for (var i = 0; i < options.replaceWords.length; ++i) {
-									cellValue = cellValue.replace(options.replaceWords[i][0], function () {
-										return options.replaceWords[i][1];
-									});
-								}
-							}
+                           cellValue = AscCommonExcel.replaceSpellCheckWords(cellValue, options);
 						}
 
 						var v, newValue;
@@ -13561,8 +13564,8 @@
                     }, 1);
                 };
 
-			return oneUser ? onReplaceCallback(true) :
-				this._isLockedCells(aReplaceCells[options.indexInArray], /*subType*/null, onReplaceCallback);
+            return !needLockCell ? onReplaceCallback(true) :
+                this._isLockedCells(aReplaceCells[options.indexInArray], /*subType*/null, onReplaceCallback); 
 		};   
 
 	WorksheetView.prototype.findCell = function (reference) {
