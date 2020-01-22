@@ -7800,6 +7800,7 @@ CDocument.prototype.OnEndTextDrag = function(NearPos, bCopy)
 					this.TrackMoveRelocation = false;
 
 					this.FinalizeAction();
+					this.SetCheckContentControlsLock(true);
 					return;
 				}
 			}
