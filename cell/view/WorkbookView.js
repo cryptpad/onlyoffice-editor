@@ -930,7 +930,7 @@
     this.lastSendInfoRange = ws.model.selectionRange.clone();
     this.lastSendInfoRangeIsSelectOnShape = ws.getSelectionShape();
   };
-  WorkbookView.prototype._onWSSelectionChanged = function() {
+  WorkbookView.prototype._onWSSelectionChanged = function(isSaving) {
     this._updateSelectionInfo();
 
     // При редактировании ячейки не нужно пересылать изменения
@@ -947,7 +947,9 @@
     this.handlers.trigger("asc_onSelectionChanged", this.oSelectionInfo);
     this.handlers.trigger("asc_onSelectionEnd");
     this._onInputMessage();
-    this.Api.cleanSpelling();
+    if (!isSaving) {
+      this.Api.cleanSpelling();
+    }
   };
 
   WorkbookView.prototype._onInputMessage = function () {
