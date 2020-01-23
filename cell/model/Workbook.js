@@ -2018,7 +2018,6 @@
 
 		if(!bNoBuildDep){
 			this.dependencyFormulas.initOpen();
-			this.dependencyFormulas.calcTree();
 		}
 		if (bSnapshot) {
 			this.snapshot = this._getSnapshot();
