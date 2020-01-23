@@ -6221,7 +6221,7 @@
 			newHeight = Math.min(this.maxRowHeightPx, Math.max(oldHeight, newHeight));
 			if (newHeight !== oldHeight || this.isZooming) {
                 var indent = 2;
-             if(cache.flags.wrapText) {
+             if(cache.flags && cache.flags.wrapText) {
                     indent = 0;
                 }
                 newHeight += indent;
