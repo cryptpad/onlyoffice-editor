@@ -1040,7 +1040,7 @@
     }
   };
 
-  WorkbookView.prototype._onChangeSelection = function (isStartPoint, dc, dr, isCoord, isCtrl, callback) {
+  WorkbookView.prototype._onChangeSelection = function (isStartPoint, dc, dr, isCoord, isCtrl, callback, x, y) {
     var ws = this.getWorksheet();
     var t = this;
     var d = isStartPoint ? ws.changeSelectionStartPoint(dc, dr, isCoord, isCtrl) :
@@ -1060,6 +1060,7 @@
     		t.timerEnd = true;
     		},1000);
     }
+    t._onUpdateWorksheet(x, y, isCtrl);
     asc_applyFunction(callback, d);
   };
 
@@ -1153,7 +1154,10 @@
 		}
     } else {
       ct = ws.getCursorTypeFromXY(x, y);
-
+      if (t.controller) {
+        t.controller.mouseX = x;
+        t.controller.mouseY = y;
+      }
       if (this.timerId !== null) {
       	clearTimeout(this.timerId);
       	this.timerId = null;
