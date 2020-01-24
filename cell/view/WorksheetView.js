@@ -13168,6 +13168,7 @@
             var angle = align.getAngle();
             var angleSin = Math.sin(angle * Math.PI / 180.0);
             var angleCos = Math.cos(angle * Math.PI / 180.0);
+            var calcWidth;
 
             if (ct.metrics.height > this.maxRowHeightPx) {
                 if (isMerged) {
@@ -13193,15 +13194,15 @@
                     lastHeight = tm.height;
                     maxW += this.maxDigitWidth;
                 }
-                width = Math.max(width, tm.width);
-                width = Math.abs(Math.max(width, tm.width) * angleCos) +  Math.abs(ct.metrics.height * angleSin);
+				calcWidth = Math.abs(tm.width * angleCos) + Math.abs(ct.metrics.height * angleSin);
             } else {
-                width = Math.abs(Math.max(width, ct.metrics.width) * angleCos) +  Math.abs(ct.metrics.height * angleSin);
+				calcWidth = Math.abs(ct.metrics.width * angleCos) +  Math.abs(ct.metrics.height * angleSin);
                 filterButton = this.af_getSizeButton(col, row);
-                if (null !== filterButton && CellValueType.String === ct.cellType) {
-                    width += filterButton.width;
-                } 
+				if (null !== filterButton && CellValueType.String === ct.cellType) {
+					width += filterButton.width;
+				}
             }
+			width = Math.max(width, calcWidth);
         }
         width = width / this.getZoom();
         this.canChangeColWidth = c_oAscCanChangeColWidth.none;
