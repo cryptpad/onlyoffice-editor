@@ -8147,11 +8147,8 @@
 
     WorksheetView.prototype._moveActiveCellToOffset = function (activeCell, dc, dr) {
         var ar = this._getSelection().getLast();
-        var mc = this.model.getMergedByCell(activeCell.row, activeCell.col);
-        var c = mc ? (dc < 0 ? mc.c1 : dc > 0 ? Math.min(mc.c2, this.nColsCount - 1 - dc) : activeCell.col) :
-          activeCell.col;
-        var r = mc ? (dr < 0 ? mc.r1 : dr > 0 ? Math.min(mc.r2, this.nRowsCount - 1 - dr) : activeCell.row) :
-          activeCell.row;
+        var c =  activeCell.col;
+        var r =  activeCell.row;
         var p = this._calcCellPosition(c, r, dc, dr);
         ar.assign(p.col, p.row, p.col, p.row);
         this.model.selectionRange.setCell(p.row, p.col);
