@@ -3640,6 +3640,24 @@
 							allParaFont = null;
 							break;
 						}
+						case para_InlineLevelSdt://*InlineLevelSdt*
+						{
+							//TODO allParaFont ? 
+							for (h = 0; h < content[n].Content.length; h++) {
+								switch (content[n].Content[h].Type) {
+									case para_Run://*paraRun*
+									{
+										paraRunObj = this._parseParaRun(content[n].Content[h], oNewItem, paraPr, innerCol, row, col, text);
+
+										oNewItem = paraRunObj.oNewItem;
+										innerCol = paraRunObj.col;
+										row = paraRunObj.row;
+										break;
+									}
+								}
+							}
+							break;
+						}
 					}
 				}
 
@@ -4332,7 +4350,7 @@
 					if(elem.Content[i] && elem.Content[i].Content) {
 						for(var j = 0; j < elem.Content[i].Content.length; j++)
 						{
-							if(elem.Content[i].Content[j] && para_NewLine === elem.Content[i].Content[j].GetType() && AscCommon.g_clipboardBase.pastedFrom !== AscCommon.c_oClipboardPastedFrom.Excel) {
+							if(elem.Content[i].Content[j] && para_NewLine === elem.Content[i].Content[j].GetType()) {
 								oNewElem.height++;
 							}
 						}
