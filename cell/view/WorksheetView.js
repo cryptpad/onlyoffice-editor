@@ -13461,14 +13461,16 @@
 			var findResult = this.model.lastFindOptions.findResults.values;
 			for (var row in findResult) {
 				for (var col in findResult[row]) {
+                    var r = row; 
+                    var c = col;
 					if (!this.model.lastFindOptions.scanByRows) {
-						tmp = col;
-						col = row;
-						row = tmp;
+						tmp = c;
+						c = r;
+						r = tmp;
 					}
-					col |= 0;
-					row |= 0;
-					aReplaceCells.push(new Asc.Range(col, row, col, row));
+					c |= 0;
+					r |= 0;
+					aReplaceCells.push(new Asc.Range(c, r, c, r));
 				}
 			}
 		} else {
