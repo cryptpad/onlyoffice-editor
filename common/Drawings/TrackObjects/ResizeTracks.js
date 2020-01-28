@@ -1008,6 +1008,11 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
                 }
 
             }
+
+            if(this.chartSpace)
+            {
+                global_MatrixTransformer.MultiplyAppend(_transform, this.chartSpace.transform);
+            }
             if(this.originalObject.cropObject)
             {
                 var oShapeDrawer = new AscCommon.CShapeDrawer();
@@ -1145,6 +1150,30 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
         this.trackEnd = function(bWord)
         {
             if(!this.bIsTracked){
+                return;
+            }
+            if(this.chartSpace)
+            {
+                var oObjectToSet = this.originalObject;
+                if(!oObjectToSet.layout)
+                {
+                    oObjectToSet.setLayout(new AscFormat.CLayout());
+                }
+                var pos = this.chartSpace.chartObj.recalculatePositionText(this.originalObject);
+                oObjectToSet.layout.setXMode(AscFormat.LAYOUT_MODE_EDGE);
+                oObjectToSet.layout.setYMode(AscFormat.LAYOUT_MODE_EDGE);
+                if(oObjectToSet instanceof AscFormat.CPlotArea)
+                {
+                    oObjectToSet.layout.setLayoutTarget(AscFormat.LAYOUT_TARGET_INNER);
+                }
+                var fLayoutX = this.chartSpace.calculateLayoutByPos(pos.x, oObjectToSet.layout.xMode, this.resizedPosX, this.chartSpace.extX);
+                var fLayoutY = this.chartSpace.calculateLayoutByPos(pos.y, oObjectToSet.layout.yMode, this.resizedPosY, this.chartSpace.extY);
+                var fLayoutW = this.chartSpace.calculateLayoutBySize(this.resizedPosX, oObjectToSet.layout.wMode, this.chartSpace.extX, this.resizedExtX);
+                var fLayoutH = this.chartSpace.calculateLayoutBySize(this.resizedPosY, oObjectToSet.layout.hMode, this.chartSpace.extY, this.resizedExtY);
+                oObjectToSet.layout.setX(fLayoutX);
+                oObjectToSet.layout.setY(fLayoutY);
+                oObjectToSet.layout.setW(fLayoutW);
+                oObjectToSet.layout.setH(fLayoutH);
                 return;
             }
             if(!this.bConnector || !this.oSpPr){

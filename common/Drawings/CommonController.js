@@ -1700,6 +1700,44 @@ DrawingObjectsController.prototype =
     },
 
 
+    handleChartTitleMoveHit: function(title, e, x, y, drawing, group, pageIndex)
+    {
+        var selector = group ? group : this;
+        if(this.handleEventMode === HANDLE_EVENT_MODE_HANDLE)
+        {
+            this.checkChartTextSelection();
+            selector.resetSelection();
+            selector.selectObject(drawing, pageIndex);
+            selector.selection.chartSelection = drawing;
+            if(title.select)
+            {
+                drawing.selectTitle(title, pageIndex);
+            }
+
+            this.arrPreTrackObjects.length = 0;
+            this.arrPreTrackObjects.push(new AscFormat.MoveChartObjectTrack(title, drawing));
+            this.changeCurrentState(new AscFormat.PreMoveState(this, x, y, false, false, drawing, true, true));
+            this.updateSelectionState();
+            this.updateOverlay();
+
+            if(Asc["editor"] && Asc["editor"].wb)
+            {
+                var ws = Asc["editor"].wb.getWorksheet();
+                if(ws){
+                    var ct = ws.getCursorTypeFromXY(ws.objectRender.lastX, ws.objectRender.lastY);
+                    if(ct){
+                        Asc["editor"].wb._onUpdateCursor(ct.cursor);
+                    }
+                }
+            }
+            return true;
+        }
+        else
+        {
+            return {objectId: drawing.Get_Id(), cursorType: "move", bMarker: false};
+        }
+    },
+
     recalculateCurPos: function(bUpdateX, bUpdateY)
 	{
 		var oTargetDocContent = this.getTargetDocContent(undefined, true);
@@ -10887,6 +10925,10 @@ function GetMinSnapDistanceXObject(pointX, arrGrObjects)
     for(var i = 0; i < arrGrObjects.length; ++i)
     {
         var cur_snap_arr_x = arrGrObjects[i].snapArrayX;
+        if(!cur_snap_arr_x)
+        {
+            continue;
+        }
         var count = cur_snap_arr_x.length;
         for(var snap_index  = 0; snap_index < count; ++snap_index)
         {
@@ -10916,6 +10958,10 @@ function GetMinSnapDistanceYObject(pointY, arrGrObjects)
     for(var i = 0; i < arrGrObjects.length; ++i)
     {
         var cur_snap_arr_y = arrGrObjects[i].snapArrayY;
+        if(!cur_snap_arr_y)
+        {
+            continue;
+        }
         var count = cur_snap_arr_y.length;
         for(var snap_index  = 0; snap_index < count; ++snap_index)
         {

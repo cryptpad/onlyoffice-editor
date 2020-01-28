@@ -58,6 +58,7 @@ function (window, undefined) {
     drawingsChangesMap[AscDFH.historyitem_DLbl_SetSpPr]           = function(oClass, value){oClass.spPr           = value;};
     drawingsChangesMap[AscDFH.historyitem_DLbl_SetTx]             = function(oClass, value){oClass.tx             = value;};
     drawingsChangesMap[AscDFH.historyitem_DLbl_SetTxPr]           = function(oClass, value){oClass.txPr           = value;};
+    drawingsChangesMap[AscDFH.historyitem_DLbl_SetParent]           = function(oClass, value){oClass.parent           = value;};
     drawingsChangesMap[AscDFH.historyitem_PlotArea_SetCatAx]      = function(oClass, value){oClass.catAx  = value;};
     drawingsChangesMap[AscDFH.historyitem_PlotArea_SetDateAx]     = function(oClass, value){oClass.dateAx = value;};
     drawingsChangesMap[AscDFH.historyitem_PlotArea_SetDTable]     = function(oClass, value){oClass.dTable = value;};
@@ -263,6 +264,7 @@ function (window, undefined) {
     drawingsChangesMap[AscDFH.historyitem_Layout_SetXMode]                    = function(oClass, value){oClass.xMode        = value;};
     drawingsChangesMap[AscDFH.historyitem_Layout_SetY]                        = function(oClass, value){oClass.y            = value;};
     drawingsChangesMap[AscDFH.historyitem_Layout_SetYMode]                    = function(oClass, value){oClass.yMode        = value;};
+    drawingsChangesMap[AscDFH.historyitem_Layout_SetParent]                    = function(oClass, value){oClass.parent        = value;};
     drawingsChangesMap[AscDFH.historyitem_Legend_SetLayout]                   = function(oClass, value){oClass.layout       = value;};
     drawingsChangesMap[AscDFH.historyitem_Legend_SetLegendPos]                = function(oClass, value){oClass.legendPos  = value;};
     drawingsChangesMap[AscDFH.historyitem_Legend_SetOverlay]                  = function(oClass, value){oClass.overlay   = value;};
@@ -618,6 +620,7 @@ function (window, undefined) {
     AscDFH.changesFactory[AscDFH.historyitem_Layout_SetW                       ] = window['AscDFH'].CChangesDrawingsDouble;
     AscDFH.changesFactory[AscDFH.historyitem_Layout_SetX                       ] = window['AscDFH'].CChangesDrawingsDouble;
     AscDFH.changesFactory[AscDFH.historyitem_Layout_SetY                       ] = window['AscDFH'].CChangesDrawingsDouble;
+    AscDFH.changesFactory[AscDFH.historyitem_Layout_SetParent                  ] = window['AscDFH'].CChangesDrawingsObject;
     AscDFH.changesFactory[AscDFH.historyitem_OfPieChart_SetSplitPos            ] = window['AscDFH'].CChangesDrawingsDouble;
     AscDFH.changesFactory[AscDFH.historyitem_PictureOptions_SetPictureStackUnit] = window['AscDFH'].CChangesDrawingsDouble;
     AscDFH.changesFactory[AscDFH.historyitem_Scaling_SetLogBase                ] = window['AscDFH'].CChangesDrawingsDouble2;
@@ -646,6 +649,7 @@ function (window, undefined) {
     AscDFH.changesFactory[AscDFH.historyitem_DLbl_SetSpPr                          ] = window['AscDFH'].CChangesDrawingsObject;
     AscDFH.changesFactory[AscDFH.historyitem_DLbl_SetTx                            ] = window['AscDFH'].CChangesDrawingsObject;
     AscDFH.changesFactory[AscDFH.historyitem_DLbl_SetTxPr                          ] = window['AscDFH'].CChangesDrawingsObject;
+    AscDFH.changesFactory[AscDFH.historyitem_DLbl_SetParent                        ] = window['AscDFH'].CChangesDrawingsObject;
     AscDFH.changesFactory[AscDFH.historyitem_PlotArea_SetDTable                    ] = window['AscDFH'].CChangesDrawingsObject;
     AscDFH.changesFactory[AscDFH.historyitem_PlotArea_SetLayout                    ] = window['AscDFH'].CChangesDrawingsObject;
     AscDFH.changesFactory[AscDFH.historyitem_PlotArea_SetSpPr                      ] = window['AscDFH'].CChangesDrawingsObject;
@@ -1110,6 +1114,7 @@ CDLbl.prototype =
         return c;
     },
 
+
     checkShapeChildTransform: function(transform)
     {
         this.updatePosition(this.posX, this.posY);
@@ -1191,6 +1196,148 @@ CDLbl.prototype =
     recalculateBrush: CShape.prototype.recalculateBrush,
     recalculatePen: CShape.prototype.recalculatePen,
     check_bounds: CShape.prototype.check_bounds,
+    getInvertTransform: CShape.prototype.getInvertTransform,
+    getDocContent: CShape.prototype.getDocContent,
+    updateSelectionState: function(){
+        if(this.txBody && this.txBody.content)
+        {
+            if(!this.txBody.content.DrawingDocument)
+            {
+                if(this.chart)
+                {
+                    var oDrawingDocument = this.chart.getDrawingDocument();
+                    if(oDrawingDocument)
+                    {
+                        this.txBody.content.DrawingDocument = oDrawingDocument;
+                        var aContent = this.txBody.content.Content;
+                        for(var i = 0; i < aContent.length; ++i)
+                        {
+                            aContent[i].DrawingDocument = oDrawingDocument;
+                        }
+                    }
+                }
+
+            }
+        }
+        CShape.prototype.updateSelectionState.call(this);
+    },
+    selectionSetStart: CShape.prototype.selectionSetStart,
+    selectionSetEnd: CShape.prototype.selectionSetEnd,
+    getDrawingDocument: function () {
+        return this.chart && this.chart.getDrawingDocument && this.chart.getDrawingDocument();
+    },
+    checkHitToBounds: function (x, y) {
+        var oInvertTransform = this.getInvertTransform();
+        var _x, _y;
+        if(oInvertTransform) {
+            _x = oInvertTransform.TransformPointX(x, y);
+            _y = oInvertTransform.TransformPointY(x, y);
+        }
+        else {
+            _x = x - this.transform.tx;
+            _y = y - this.transform.ty;
+        }
+
+        return _x >= 0 && _x <= this.extX && _y >= 0 && _y < this.extY;
+    },
+
+    getCanvasContext: function()
+    {
+        return this.chart && this.chart.getCanvasContext();
+    },
+
+    convertPixToMM: function(pix)
+    {
+        return this.chart && this.chart.convertPixToMM(pix);
+    },
+
+    checkDlbl: function()
+    {
+        if(this.series && this.pt)
+        {
+            var oSeries = this.series;
+            if(oSeries)
+            {
+                var oDlbls;
+                if(!oSeries.dLbls)
+                {
+                    var oChart = oSeries.parent;
+                    if(oChart && oChart.dLbls)
+                    {
+                        oDlbls = oChart.dLbls.createDuplicate();
+                    }
+                    else
+                    {
+                        oDlbls = new AscFormat.CDLbls();
+                    }
+                    oSeries.setDLbls(oDlbls);
+                }
+                else
+                {
+                    oDlbls = oSeries.dLbls;
+                }
+                var dLbl  = oDlbls.findDLblByIdx(this.pt.idx);
+                if(!dLbl)
+                {
+                    dLbl = this.createDuplicate();
+                    dLbl.setDelete(undefined);
+                    dLbl.setIdx(this.pt.idx);
+                    dLbl.setParent(oSeries.dLbls);
+                    oSeries.dLbls.addDLbl(dLbl);
+                    dLbl.series  = oSeries;
+                }
+                dLbl.series = this.series;
+                dLbl.chart = this.chart;
+                return dLbl;
+            }
+        }
+        return null;
+    },
+
+    checkDocContent: function()
+    {
+        var oDlbl = this.checkDlbl();
+        if(oDlbl)
+        {
+            oDlbl.txBody = this.txBody;
+            CTitle.prototype.checkDocContent.call(oDlbl);
+            this.txBody = oDlbl.tx.rich;
+            if(oDlbl.tx && oDlbl.tx.rich && oDlbl.tx.rich.content)
+            {
+                if(!oDlbl.tx.rich.content.DrawingDocument)
+                {
+                    if(this.chart)
+                    {
+                        var oDrawingDocument = this.chart.getDrawingDocument();
+                        if(oDrawingDocument)
+                        {
+                            oDlbl.tx.rich.content.DrawingDocument = oDrawingDocument;
+                            var aContent = oDlbl.tx.rich.content.Content;
+                            for(var i = 0; i < aContent.length; ++i)
+                            {
+                                aContent[i].DrawingDocument = oDrawingDocument;
+                            }
+                        }
+                    }
+
+                }
+            }
+        }
+    },
+
+    applyTextFunction: function(docContentFunction, tableFunction, args)
+    {
+        var oDlbl = this.checkDlbl();
+        if(!oDlbl)
+        {
+            return;
+        }
+
+        if(oDlbl.tx && oDlbl.tx.rich && oDlbl.tx.rich.content)
+        {
+            docContentFunction.apply(oDlbl.tx.rich.content, args);
+        }
+    },
 
     hit: function(x, y)
     {
@@ -1198,6 +1345,14 @@ CDLbl.prototype =
         var ty = this.invertTransform.TransformPointY(x, y);
         return tx>=0 && tx <= this.extX && ty >=0 && ty <=this.extY;
     },
+
+    hitInPath: CShape.prototype.hitInPath,
+
+    hitInInnerArea: CShape.prototype.hitInInnerArea,
+
+    hitInBoundingRect:  CShape.prototype.hitInBoundingRect,
+
+    hitInTextRect: CShape.prototype.hitInTextRect,
 
     getCompiledStyle: function()
     {
@@ -1632,21 +1787,34 @@ CDLbl.prototype =
 
     Get_Theme: function()
     {
-        if(this.chart){
+        if(this.chart)
+        {
             return this.chart.Get_Theme();
+        }
+        else
+        {
+            if(this.series && this.series.Get_Theme)
+            {
+                return this.series.Get_Theme();
+            }
         }
         return null;
 
     },
     Get_ColorMap: function()
     {
-        if(this.chart){
+        if(this.chart)
+        {
             return this.chart.Get_ColorMap();
         }
-        else {
-            return AscFormat.G_O_DEFAULT_COLOR_MAP;
+        else
+        {
+            if(this.series && this.series.Get_ColorMap)
+            {
+                return this.series.Get_ColorMap();
+            }
         }
-
+        return AscFormat.G_O_DEFAULT_COLOR_MAP;
     },
 
     Get_AbsolutePage: function()
@@ -2113,6 +2281,10 @@ CDLbl.prototype =
         this.invertTransformText = global_MatrixTransformer.Invert(this.transformText);
     },
 
+
+
+
+
     setPosition2: function(x, y)
     {
         this.x = x;
@@ -2178,6 +2350,14 @@ CDLbl.prototype =
         this.Id = r.GetString2();
     },
 
+    setParent: function(pr)
+    {
+        (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_DLbl_SetParent, this.parent, pr));
+        this.parent = pr;
+        this.Refresh_RecalcData2();
+    },
+
+
     setDelete: function(pr)
     {
         (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsBool(this, AscDFH.historyitem_DLbl_SetDelete, this.bDelete, pr));
@@ -2198,6 +2378,10 @@ CDLbl.prototype =
     {
         (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_DLbl_SetLayout, this.layout, pr));
         this.layout = pr;
+        if(this.layout)
+        {
+            this.layout.setParent(this);
+        }
     },
     setNumFmt: function(pr)
     {
@@ -2272,11 +2456,18 @@ CDLbl.prototype =
         this.Refresh_RecalcData2();
     },
 
-    Refresh_RecalcData2: function()
+    Refresh_RecalcData2: function(pageIndex)
     {
         if(this.parent && this.parent.Refresh_RecalcData2)
         {
-            this.parent.Refresh_RecalcData2();
+            this.parent.Refresh_RecalcData2(pageIndex, this);
+        }
+        else
+        {
+            if(this.chart)
+            {
+                this.chart.Refresh_RecalcData2(pageIndex, this);
+            }
         }
     }
 };
@@ -2305,6 +2496,18 @@ function CPlotArea()
     this.m_oAxIdContentChanges = new AscCommon.CContentChanges();
     //
 
+    this.posX = 0;
+    this.posY = 0;
+    this.x = 0;
+    this.y = 0;
+    this.rot = 0;
+    this.extX = 5;
+    this.extY = 5;
+
+    this.localTransform = new AscCommon.CMatrix();
+    this.transform = new AscCommon.CMatrix();
+    this.invertTransform = new AscCommon.CMatrix();
+    
     this.Id = g_oIdCounter.Get_NewId();
     g_oTableId.Add(this, this.Id);
 }
@@ -2372,6 +2575,32 @@ CPlotArea.prototype =
                 break;
             }
         }
+    },
+
+
+    Refresh_RecalcData2: function(data)
+    {
+        if(this.parent && this.parent.Refresh_RecalcData2)
+        {
+            this.parent.Refresh_RecalcData2(data);
+        }
+    },
+
+    checkShapeChildTransform: function(t)
+    {
+        this.transform = this.localTransform.CreateDublicate();
+        global_MatrixTransformer.MultiplyAppend(this.transform, t);
+        this.invertTransform = global_MatrixTransformer.Invert(this.transform);
+    },
+
+    updatePosition: function(x, y)
+    {
+        this.posX = x;
+        this.posY = y;
+        this.transform = this.localTransform.CreateDublicate();
+        global_MatrixTransformer.TranslateAppend(this.transform, x, y);
+
+        this.invertTransform = global_MatrixTransformer.Invert(this.transform);
     },
 
     getContentChangesByType: function(type){
@@ -2612,6 +2841,10 @@ CPlotArea.prototype =
     {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_PlotArea_SetLayout, this.layout, pr));
         this.layout = pr;
+        if(this.layout)
+        {
+            this.layout.setParent(this);
+        }
     },
 
 
@@ -2710,6 +2943,57 @@ CPlotArea.prototype =
         {
             this.parent.handleUpdateLn();
         }
+    },
+
+
+    getCompiledLine: CShape.prototype.getCompiledLine,
+    getCompiledFill: CShape.prototype.getCompiledFill,
+    getCompiledTransparent: CShape.prototype.getCompiledTransparent,
+    check_bounds: CShape.prototype.check_bounds,
+    getCardDirectionByNum: CShape.prototype.getCardDirectionByNum,
+    getNumByCardDirection: CShape.prototype.getNumByCardDirection,
+    getResizeCoefficients: CShape.prototype.getResizeCoefficients,
+    getInvertTransform: CShape.prototype.getInvertTransform,
+    getTransformMatrix: CShape.prototype.getTransformMatrix,
+    hitToHandles: CShape.prototype.hitToHandles,
+    getFullFlipH: CShape.prototype.getFullFlipH,
+    getFullFlipV: CShape.prototype.getFullFlipV,
+    getAspect: CShape.prototype.getAspect,
+    getGeom: CShape.prototype.getGeom,
+
+    convertPixToMM: function(pix)
+    {
+        return this.parent && this.parent.parent && this.parent.parent.convertPixToMM(pix);
+    },
+    hitInBoundingRect: CShape.prototype.hitInBoundingRect,
+    hitInInnerArea: CShape.prototype.hitInInnerArea,
+    hitInPath: CShape.prototype.hitInPath,
+    checkHitToBounds: function (x, y)
+    {
+        CDLbl.prototype.checkHitToBounds.call(this, x, y);
+    },
+    getCanvasContext: function()
+    {
+        return this.parent && this.parent.parent && this.parent.parent.getCanvasContext();
+    },
+
+    canRotate: function()
+    {
+        return false;
+    },
+
+    getNoChangeAspect: function () {
+        return false;
+    },
+    isChart: function()
+    {
+        return false;
+    },
+
+
+    canMove: function()
+    {
+        return true;
     }
 };
 
@@ -3761,11 +4045,6 @@ CAreaSeries.prototype =
         this.parent = pr;
             }
 };
-
-var TYPE_AXIS_CAT = 0;
-var TYPE_AXIS_DATE = 1;
-var TYPE_AXIS_SER = 2;
-var TYPE_AXIS_VAL = 3;
 
 var AX_POS_L = 0;
 var AX_POS_T = 1;
@@ -6950,7 +7229,7 @@ CDLbls.prototype =
         this.dLbl.push(pr);
         if(pr)
         {
-            pr.parent = this;
+            pr.setParent(this);
         }
     },
     removeDLbl: function(nIndex)
@@ -7088,7 +7367,6 @@ function CDPt()
     {
         recalcLbl: true
     };
-    this.compiledLbl = null;
 
     this.Id = g_oIdCounter.Get_NewId();
     g_oTableId.Add(this, this.Id);
@@ -7714,6 +7992,7 @@ function CLayout()
     this.xMode = null;
     this.y = null;
     this.yMode = null;
+    this.parent = null;
 
     this.Id = g_oIdCounter.Get_NewId();
     g_oTableId.Add(this, this.Id);
@@ -7725,8 +8004,13 @@ CLayout.prototype =
     {
         return this.Id;
     },
-    Refresh_RecalcData: function()
-    {},
+    Refresh_RecalcData: function(Data)
+    {
+        if(this.parent && this.parent.Refresh_RecalcData2)
+        {
+            this.parent.Refresh_RecalcData2();
+        }
+    },
 
     Write_ToBinary2: function (w)
     {
@@ -7757,6 +8041,12 @@ CLayout.prototype =
     getObjectType: function()
     {
         return AscDFH.historyitem_type_Layout;
+    },
+
+    setParent: function(pr)
+    {
+        History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_Layout_SetParent, this.parent, pr));
+        this.parent = pr;
     },
 
     setH: function(pr)
@@ -7811,7 +8101,7 @@ CLayout.prototype =
     {
         History.Add(new CChangesDrawingsLong(this, AscDFH.historyitem_Layout_SetYMode, this.yMode, pr));
         this.yMode = pr;
-            }
+    }
 };
 
 function CLegend()
@@ -7823,6 +8113,9 @@ function CLegend()
     this.spPr = null;
     this.txPr = null;
 
+    this.rot = 0;
+    this.flipH = false;
+    this.flipV = false;
     this.x = null;
     this.y = null;
     this.extX = null;
@@ -7837,7 +8130,7 @@ function CLegend()
     this.localTransform = new CMatrix();
 
 
-    this.m_oLegendEntryesContentChanges = new AscCommon.CContentChanges()
+    this.m_oLegendEntryesContentChanges = new AscCommon.CContentChanges();
 
     this.Id = g_oIdCounter.Get_NewId();
     g_oTableId.Add(this, this.Id);
@@ -7853,6 +8146,10 @@ CLegend.prototype =
         this.Refresh_RecalcData2();
     },
 
+
+    convertPixToMM: function(pix){
+        return this.parent && this.parent.parent && this.parent.parent.convertPixToMM && this.parent.parent.convertPixToMM(pix);
+    },
 
     getContentChangesByType: function(type){
         switch(type){
@@ -7960,6 +8257,52 @@ CLegend.prototype =
     getCompiledFill: CShape.prototype.getCompiledFill,
     getCompiledTransparent: CShape.prototype.getCompiledTransparent,
     check_bounds: CShape.prototype.check_bounds,
+    getCardDirectionByNum: CShape.prototype.getCardDirectionByNum,
+    getNumByCardDirection: CShape.prototype.getNumByCardDirection,
+    getResizeCoefficients: CShape.prototype.getResizeCoefficients,
+    getInvertTransform: CShape.prototype.getInvertTransform,
+    getTransformMatrix: CShape.prototype.getTransformMatrix,
+    hitToHandles: CShape.prototype.hitToHandles,
+    getFullFlipH: CShape.prototype.getFullFlipH,
+    getFullFlipV: CShape.prototype.getFullFlipV,
+    getAspect: CShape.prototype.getAspect,
+    getGeom: CShape.prototype.getGeom,
+
+
+    hitInBoundingRect: CShape.prototype.hitInBoundingRect,
+    hitInInnerArea: CShape.prototype.hitInInnerArea,
+    hitInPath: CShape.prototype.hitInPath,
+    checkHitToBounds: function (x, y)
+    {
+        CDLbl.prototype.checkHitToBounds.call(this, x, y);
+    },
+    getCanvasContext: function()
+    {
+        return  CDLbl.prototype.getCanvasContext.call(this);
+    },
+
+    canRotate: function()
+    {
+        return false;
+    },
+
+    getNoChangeAspect: function () {
+        return false;
+    },
+    isChart: function()
+    {
+        return false;
+    },
+
+
+    canMove: function()
+    {
+        return true;
+    },
+    selectObject: function()
+    {
+
+    },
     getHierarchy: function(){return this.chart ? this.chart.getHierarchy() : []},
     isEmptyPlaceholder: function()
     {
@@ -7986,6 +8329,7 @@ CLegend.prototype =
         var t_y = this.invertTransform.TransformPointY(x, y);
         return t_x >= 0 && t_y >= 0 && t_x <= this.extX && t_y <=this.extY;
     },
+
 
     setPosition: function(x, y)
     {
@@ -8113,6 +8457,10 @@ CLegend.prototype =
     {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_Legend_SetLayout, this.layout, layout));
         this.layout = layout;
+        if(this.layout)
+        {
+            this.layout.setParent(this);
+        }
     },
     addLegendEntry: function(legendEntry)
     {
@@ -12528,12 +12876,7 @@ CTitle.prototype =
     recalculateGeometry: CShape.prototype.recalculateGeometry,
     getTransform : CShape.prototype.getTransform ,
 
-    checkHitToBounds: function(x, y)
-    {
-        var _x = x - this.transform.tx;
-        var _y = y - this.transform.ty;
-        return _x >= 0 && _x <= this.extX && _y >= 0 && _y < this.extY;
-    },
+    checkHitToBounds: CDLbl.prototype.checkHitToBounds,
 
     checkDocContent: function()
     {
@@ -12550,11 +12893,18 @@ CTitle.prototype =
             }
             this.tx.setRich(this.txBody.createDuplicate2());
             this.tx.rich.setParent(this);
-            if(this.txPr && this.txPr.content && this.txPr.content.Content[0] && this.txPr.content.Content[0].Pr.DefaultRunPr)
+            if(this.txPr)
             {
-                for(var i = 0; i < this.tx.rich.content.Content.length; ++i)
+                if(this.txPr.content && this.txPr.content.Content[0] && this.txPr.content.Content[0].Pr.DefaultRunPr)
                 {
-                    AscFormat.CheckParagraphTextPr(this.tx.rich.content.Content[i], this.txPr.content.Content[0].Pr.DefaultRunPr);
+                    for(var i = 0; i < this.tx.rich.content.Content.length; ++i)
+                    {
+                        AscFormat.CheckParagraphTextPr(this.tx.rich.content.Content[i], this.txPr.content.Content[0].Pr.DefaultRunPr);
+                    }
+                }
+                if(this.txPr.bodyPr)
+                {
+                    this.tx.rich.setBodyPr(this.txPr.bodyPr.createDuplicate());
                 }
             }
             var selection_state = this.txBody.content.GetSelectionState();
@@ -12650,14 +13000,8 @@ CTitle.prototype =
     check_bounds: CShape.prototype.check_bounds,
     selectionCheck: CShape.prototype.selectionCheck,
     getInvertTransform: CShape.prototype.getInvertTransform,
-    getCanvasContext: function()
-    {
-        return this.chart && this.chart.getCanvasContext();
-    },
-    convertPixToMM: function(pix)
-    {
-        return this.chart && this.chart.convertPixToMM(pix);
-    },
+    getCanvasContext: CDLbl.prototype.getCanvasContext,
+    convertPixToMM: CDLbl.prototype.convertPixToMM,
     getDrawingDocument: function()
     {
         if(this.chart && this.chart.getDrawingDocument)
@@ -12823,6 +13167,10 @@ CTitle.prototype =
     {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_Title_SetLayout, this.layout, pr));
         this.layout = pr;
+        if(this.layout)
+        {
+            this.layout.setParent(this);
+        }
     },
 
     setOverlay: function(pr)

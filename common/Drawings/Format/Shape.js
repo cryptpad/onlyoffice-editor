@@ -6163,5 +6163,6 @@ function SaveRunsFormatting(aSourceContent, aCopyContent, oTheme, oColorMap, oPr
     window['AscFormat'].CSignatureLine = CSignatureLine;
     window['AscFormat'].checkDrawingsTransformBeforePaste = checkDrawingsTransformBeforePaste;
     window['AscFormat'].SaveContentSourceFormatting = SaveContentSourceFormatting;
+    window['AscFormat'].hitToHandles = hitToHandles;
 
 })(window);

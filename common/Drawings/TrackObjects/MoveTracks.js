@@ -571,9 +571,94 @@ function MoveComment(comment)
     };
 }
 
+function MoveChartObjectTrack(oObject, oChartSpace)
+{
+    this.bIsTracked = false;
+    this.originalObject = oObject;
+    this.x = oObject.x;
+    this.y = oObject.y;
+    this.chartSpace = oChartSpace;
+
+
+
+    this.transform = oObject.transform.CreateDublicate();
+
+    this.overlayObject = new AscFormat.OverlayObject(oObject.calcGeometry ? oObject.calcGeometry : AscFormat.ExecuteNoHistory(function () {
+            var geom = AscFormat.CreateGeometry("rect");
+            geom.Recalculate(oObject.extX, oObject.extY);
+            return geom;
+        }, this, []
+    ), oObject.extX, oObject.extY, oObject.brush, oObject.pen, this.transform);
+
+    this.track = function(dx, dy)
+    {
+        this.bIsTracked = true;
+        var original = this.originalObject;
+        this.x = original.x + dx;
+        this.y = original.y + dy;
+        this.transform.Reset();
+        this.transform.Translate(this.x, this.y, true);
+        this.transform.Multiply(this.chartSpace.transform);
+
+    };
+
+    this.draw = function(overlay)
+    {
+        if(AscFormat.isRealNumber(this.chartSpace.selectStartPage) && overlay.SetCurrentPage)
+        {
+            overlay.SetCurrentPage(this.chartSpace.selectStartPage);
+        }
+        this.overlayObject.draw(overlay);
+    };
+
+    this.trackEnd = function()
+    {
+        if(!this.bIsTracked)
+        {
+            return;
+        }
+
+        History.Create_NewPoint(1);
+        var oObjectToSet = null;
+        if(this.originalObject instanceof AscFormat.CDLbl)
+        {
+            oObjectToSet = this.originalObject.checkDlbl();
+        }
+        else
+        {
+            oObjectToSet = this.originalObject;
+        }
+        if(!oObjectToSet)
+        {
+            return;
+        }
+        if(!oObjectToSet.layout)
+        {
+            oObjectToSet.setLayout(new AscFormat.CLayout());
+        }
+        if(oObjectToSet.getObjectType() === AscDFH.historyitem_type_PlotArea)
+        {
+            oObjectToSet.layout.setLayoutTarget(AscFormat.LAYOUT_TARGET_INNER);
+            oObjectToSet.layout.setXMode(AscFormat.LAYOUT_MODE_EDGE);
+            oObjectToSet.layout.setYMode(AscFormat.LAYOUT_MODE_EDGE);
+            var fLayoutW = this.chartSpace.calculateLayoutBySize(this.resizedPosX, oObjectToSet.layout.wMode, this.chartSpace.extX, oObjectToSet.extX);
+            var fLayoutH = this.chartSpace.calculateLayoutBySize(this.resizedPosY, oObjectToSet.layout.hMode, this.chartSpace.extY, oObjectToSet.extY);
+            oObjectToSet.layout.setW(fLayoutW);
+            oObjectToSet.layout.setH(fLayoutH);
+        }
+        var pos = this.chartSpace.chartObj.recalculatePositionText(this.originalObject);
+        var fLayoutX = this.chartSpace.calculateLayoutByPos(pos.x, oObjectToSet.layout.xMode, this.x, this.chartSpace.extX);
+        var fLayoutY = this.chartSpace.calculateLayoutByPos(pos.y, oObjectToSet.layout.yMode, this.y, this.chartSpace.extY);
+
+        oObjectToSet.layout.setX(fLayoutX);
+        oObjectToSet.layout.setY(fLayoutY);
+    };
+}
+
     //--------------------------------------------------------export----------------------------------------------------
     window['AscFormat'] = window['AscFormat'] || {};
     window['AscFormat'].MoveShapeImageTrack = MoveShapeImageTrack;
     window['AscFormat'].MoveGroupTrack = MoveGroupTrack;
     window['AscFormat'].MoveComment = MoveComment;
+    window['AscFormat'].MoveChartObjectTrack = MoveChartObjectTrack;
 })(window);
