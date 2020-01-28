@@ -1213,7 +1213,7 @@ var editor;
 
         if (t.wb) {
           // Шлем update для toolbar-а, т.к. когда select в lock ячейке нужно заблокировать toolbar
-          t.wb._onWSSelectionChanged();
+          t.wb._onWSSelectionChanged(true);
 
           // Шлем update для листов
           t._onUpdateSheetsLock(lockElem);
@@ -1326,7 +1326,7 @@ var editor;
 
       if (t.wb) {
         // Шлем update для toolbar-а, т.к. когда select в lock ячейке нужно сбросить блокировку toolbar
-        t.wb._onWSSelectionChanged();
+        t.wb._onWSSelectionChanged(true);
 
         var worksheet = t.wb.getWorksheet();
         worksheet.cleanSelection();
