@@ -1196,6 +1196,7 @@ CDLbl.prototype =
     recalculateBrush: CShape.prototype.recalculateBrush,
     recalculatePen: CShape.prototype.recalculatePen,
     check_bounds: CShape.prototype.check_bounds,
+    selectionCheck: CShape.prototype.selectionCheck,
     getInvertTransform: CShape.prototype.getInvertTransform,
     getDocContent: CShape.prototype.getDocContent,
     updateSelectionState: function(){

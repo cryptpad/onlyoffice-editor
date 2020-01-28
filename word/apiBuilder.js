@@ -1648,7 +1648,7 @@
 			this.Document.RemoveSelection(true);
 		}
 
-		var oParagraph = this.Document.GetCurrentParagraph();
+		var oParagraph = this.Document.GetCurrentParagraph(undefined, undefined, {CheckDocContent: true});
 		if (!oParagraph)
 			return;
 

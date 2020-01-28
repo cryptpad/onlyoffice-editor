@@ -791,6 +791,23 @@ CSelectedContent.prototype.ConvertToText = function()
 };
 
 
+CSelectedContent.prototype.ConvertToPresentation = function(Parent)
+{
+    var Elements = this.Elements.slice(0);
+    this.Elements.length = 0;
+
+    for (var nIndex = 0, nCount = Elements.length; nIndex < nCount; ++nIndex)
+    {
+        var oElement = Elements[nIndex].Element;
+        if (oElement.IsParagraph())
+        {
+            this.Elements.push(new CSelectedElement(AscFormat.ConvertParagraphToPPTX(oElement, Parent.DrawingDocument, Parent, true, false), false))
+        }
+    }
+};
+
+
+
 function CDocumentRecalculateState()
 {
     this.Id           = null;

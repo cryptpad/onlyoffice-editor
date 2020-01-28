@@ -1890,4 +1890,8 @@ CDocumentContentBase.prototype.private_CheckSelectedContentBeforePaste = functio
 			break;
 		}
 	}
+	if(this.bPresentation)
+	{
+		oSelectedContent.ConvertToPresentation(this);
+	}
 };
