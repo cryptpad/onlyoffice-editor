@@ -2042,6 +2042,7 @@
 	cINT.prototype.name = 'INT';
 	cINT.prototype.argumentsMin = 1;
 	cINT.prototype.argumentsMax = 1;
+	cINT.prototype.inheritFormat = true;
 	cINT.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
@@ -3523,6 +3524,7 @@
 	cROUND.prototype.name = 'ROUND';
 	cROUND.prototype.argumentsMin = 2;
 	cROUND.prototype.argumentsMax = 2;
+	cROUND.prototype.inheritFormat = true;
 	cROUND.prototype.Calculate = function (arg) {
 
 		function SignZeroPositive(number) {
@@ -3668,6 +3670,7 @@
 	cROUNDDOWN.prototype.name = 'ROUNDDOWN';
 	cROUNDDOWN.prototype.argumentsMin = 2;
 	cROUNDDOWN.prototype.argumentsMax = 2;
+	cROUNDDOWN.prototype.inheritFormat = true;
 	cROUNDDOWN.prototype.Calculate = function (arg) {
 		function rounddownHelper(number, num_digits) {
 			if (num_digits > AscCommonExcel.cExcelMaxExponent) {
@@ -3789,6 +3792,7 @@
 	cROUNDUP.prototype.name = 'ROUNDUP';
 	cROUNDUP.prototype.argumentsMin = 2;
 	cROUNDUP.prototype.argumentsMax = 2;
+	cROUNDUP.prototype.inheritFormat = true;
 	cROUNDUP.prototype.Calculate = function (arg) {
 		function roundupHelper(number, num_digits) {
 			if (num_digits > AscCommonExcel.cExcelMaxExponent) {
@@ -4377,6 +4381,7 @@
 	cSUM.prototype.name = 'SUM';
 	cSUM.prototype.argumentsMin = 1;
 	cSUM.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
+	cSUM.prototype.inheritFormat = true;
 	cSUM.prototype.Calculate = function (arg) {
 		var element, _arg, arg0 = new cNumber(0);
 		for (var i = 0; i < arg.length; i++) {
@@ -5181,6 +5186,7 @@
 	cTRUNC.prototype.name = 'TRUNC';
 	cTRUNC.prototype.argumentsMin = 1;
 	cTRUNC.prototype.argumentsMax = 2;
+	cTRUNC.prototype.inheritFormat = true;
 	cTRUNC.prototype.Calculate = function (arg) {
 
 		function truncHelper(a, b) {

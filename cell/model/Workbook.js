@@ -8438,24 +8438,27 @@
 		this.processFormula(function(parsed) {
 			var valueCalc = parsed.value;
 			if (valueCalc) {
-			if (0 <= valueCalc.numFormat) {
+				if (0 <= valueCalc.numFormat) {
 					if (aStandartNumFormatsId[t.getNumFormatStr()] == 0) {
 						t.setNum(new AscCommonExcel.Num({id: valueCalc.numFormat}));
-				}
-			} else if (AscCommonExcel.cNumFormatFirstCell === valueCalc.numFormat) {
-				// ищет в формуле первый рэндж и устанавливает формат ячейки как формат первой ячейки в рэндже
+					}
+				} else if (AscCommonExcel.cNumFormatFirstCell === valueCalc.numFormat) {
+					//ищет в формуле первый рэндж и устанавливает формат ячейки как формат первой ячейки в рэндже
+					//принимают формат первой ячейки в рейндже только функции с inheritFormat = true
+					//причём это не касается внутренних функий в формуле. если одна из внешних функций принимает формат, тогда выставляем формат у ячейки
+
 					var r = parsed.getFirstRange();
-						if (r && r.getNumFormatStr) {
+					if (r && r.getNumFormatStr) {
 						var sCurFormat = t.getNumFormatStr();
-							if (g_oDefaultFormat.Num.getFormat() == sCurFormat) {
-								var sNewFormat = r.getNumFormatStr();
-								if (sCurFormat != sNewFormat) {
+						if (g_oDefaultFormat.Num.getFormat() == sCurFormat) {
+							var sNewFormat = r.getNumFormatStr();
+							if (sCurFormat != sNewFormat) {
 								t.setNumFormat(sNewFormat);
-								}
 							}
 						}
 					}
 				}
+			}
 		});
 	};
 	Cell.prototype._updateCellValue = function() {
