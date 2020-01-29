@@ -11027,6 +11027,89 @@ CTable.prototype.DrawTableCells = function(X1, Y1, X2, Y2, CurPageStart, CurPage
 			this.private_RecalculateGrid();
 			this.Internal_Recalculate_1();
 		}
+		else 
+		{
+			if (Y1 > Y2) 
+            {
+                var cache;
+                cache = Y2;
+                Y2 	  = Y1;
+                Y1 	  = cache;
+            }
+            if (X1 > X2)
+            {
+                var cache; 
+                cache = X2;
+                X2 	  = X1;
+                X1 	  = cache;
+            }
+
+            var Cell_pos = this.Internal_GetCellByXY(X1 + this.Pages[curColumn].X, Y1, curColumn);
+            
+            var Row              = this.GetRow(Cell_pos.Row);
+			var Cell         	 = Row.Get_Cell(Cell_pos.Cell);  //текущая ячейка
+			
+			this.Set_CurCell(Cell);
+
+			// Устанавливаем курсор в ту ячейку, в которой рисуем 
+            for (var Index = 0; Index < this.CurCell.Content.Content.length; Index++)
+            {
+                if (this.CurCell.Content.Content[Index] instanceof Paragraph)
+                {
+					var Para 	  = this.CurCell.Content.Content[Index]; 
+					var CursorPos = Para.GetStartPosition();
+					this.LogicDocument.RemoveSelection();
+					CursorPos[0].Class.SetSelectionByContentPositions(CursorPos, CursorPos);
+					this.LogicDocument.UpdateSelection();
+					break;
+                }    
+            }
+
+            var X_start      = Row.CellsInfo[Cell_pos.Cell].X_cell_start;
+            var X_end        = Row.CellsInfo[Cell_pos.Cell].X_cell_end;
+			var Cell_width   = X_end - X_start;
+			
+			if (X2 > X_end)
+				return;
+
+            var Grid_start   = Row.Get_CellInfo(Cell_pos.Cell).StartGridCol;
+            var Grid_span    = Cell.Get_GridSpan();
+            var VMerge_count = this.Internal_GetVertMergeCount(Cell_pos.Row, Grid_start, Grid_span);
+            var rowHSum      = 0;
+
+            var CellSpacing  = Row.Get_CellSpacing();
+            
+            var CellMar = Cell.GetMargins();
+            var MinW 	= CellSpacing + CellMar.Right.W + CellMar.Left.W;
+
+            if (VMerge_count >= 1)
+            {
+                for (Index = Cell_pos.Row; Index < Cell_pos.Row + VMerge_count; Index++)
+                {
+                    rowHSum += this.RowsInfo[Index].H[curColumn]
+                }
+            }
+
+            if (Cell_width >= MinW * 1.5 && X2 - X1 > MinW * 1.5 && rowHSum >= 4.63864881727431 * 1.5 && Y2 - Y1 >= 4.63864881727431 * 1.5)
+            {
+                var oTable = Cell.GetContent().AddInlineTable(1,1);
+
+				if (oTable && oTable.GetRowsCount() > 0)
+                {
+                    oTable.Set_Inline(false);
+                    
+                    oTable.Set_PositionH(c_oAscHAnchor.Page, false, X1 - this.CurCell.Metrics.X_cell_start);
+					oTable.Set_PositionV(c_oAscVAnchor.Page, false, Y1 - this.RowsInfo[Cell_pos.Row].Y[curColumn]);
+
+					oTable.GetRow(0).SetHeight(Math.abs(this.LogicDocument.DrawTableMode.EndY - this.LogicDocument.DrawTableMode.StartY), Asc.linerule_AtLeast);
+					oTable.Set_TableW(tblwidth_Mm, Math.abs(this.LogicDocument.DrawTableMode.EndX - this.LogicDocument.DrawTableMode.StartX - new CDocumentBorder().Size * 2));
+					
+					oTable.Set_Distance(3.2, undefined, 3.2, undefined);
+
+                    oTable.GetRow(0).Get_Cell(0).Content_MoveCursorToStartPos();
+                }
+            }
+		}
 	}
 	// Если стираем (ctrl + F2)
 	else if (drawMode === false)
@@ -13231,6 +13314,7 @@ CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPageStart, CurPageEnd
 	X1 					= X1 - this.Pages[curColumn].X; 
 	X2 					= X2 - this.Pages[curColumn].X;
 
+
 	var Y_Under = false;
 	var Y_Over 	= false;
 	
@@ -13253,6 +13337,8 @@ CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPageStart, CurPageEnd
 		if (Y2 < 0)
 			Y2 = 0;
 			
+		var borders = [];
+
 		if (Y1 > this.Pages[curColumn].Bounds.Bottom || Y1 < this.Pages[curColumn].Bounds.Top)
 		{
 			var Line = 
@@ -13265,7 +13351,9 @@ CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPageStart, CurPageEnd
 				Bold  : false
 			};
 
-			return Line;
+			borders.push(Line);
+
+			return borders;
 		}
 		// Рисуем вертикальную линию
 		if (Math.abs(Y2 - Y1) > 2 && Math.abs(X2 - X1) < 3)
@@ -13279,11 +13367,11 @@ CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPageStart, CurPageEnd
 			{
 				var cache;
 				cache = Y2;
-				Y2 = Y1;
-				Y1 = cache;
+				Y2 	  = Y1;
+				Y1 	  = cache;
 			}
 
-			var Rows = [];        // массив номеров строк подлежащих делению (которые мы режем)
+			var Rows 	  = [];        // массив номеров строк подлежащих делению (которые мы режем)
 			var CellsNumb = [];
 
 			for (var curRow = this.Pages[curColumn].FirstRow; curRow <= this.Pages[curColumn].LastRow; curRow++) 
@@ -13310,6 +13398,7 @@ CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPageStart, CurPageEnd
 						CellsNumb[Rows[Index]] = curCell;
 				}
 			}
+
 			if (CellsNumb.length === 0)
 			{
 				var Line = 
@@ -13321,7 +13410,10 @@ CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPageStart, CurPageEnd
 					Color : "Red",
 					Bold  : false
 				};
-				return Line;
+
+				borders.push(Line);
+
+				return borders;
 			} 
 			
 			var firstRowHeight = 0;
@@ -13418,6 +13510,8 @@ CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPageStart, CurPageEnd
 						Color : "Grey",
 						Bold  : true
 					};
+
+					borders.push(Vline);
 				}
 				else if (Math.abs(Cell.Metrics.X_cell_end - X1) <= 1.5)
 				{
@@ -13430,6 +13524,8 @@ CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPageStart, CurPageEnd
 						Color : "Grey",
 						Bold  : true
 					};
+
+					borders.push(Vline);
 				}
 				else 
 				{
@@ -13442,6 +13538,8 @@ CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPageStart, CurPageEnd
 						Color : "Grey",
 						Bold  : false
 					};
+
+					borders.push(Vline);
 				}
 				
 			}
@@ -13456,14 +13554,17 @@ CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPageStart, CurPageEnd
 					Color : "Red",
 					Bold  : false
 				};
+
+				borders.push(Vline);
 			}
 			
-			return Vline;
+			return borders;
 		}	
 		// Рисуем горизонтальную линию 
 		else if (Math.abs(X2 - X1) > 2 && Math.abs(Y2 - Y1) < 3)
 		{
 			if (X1 === X2)
+			
 				return;
 			if (X1 > X2)
 			{
@@ -13498,7 +13599,10 @@ CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPageStart, CurPageEnd
 					Color : "Red",
 					Bold  : false
 				};
-				return Line;
+
+				borders.push(Line);
+
+				return borders;
 			}
 				
 			for (var curCell = 0; curCell < this.GetRow(RowNumb[0]).Get_CellsCount(); curCell++)
@@ -13522,7 +13626,10 @@ CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPageStart, CurPageEnd
 					Color : "Red",
 					Bold  : false
 				};
-				return Line;
+
+				borders.push(Line);
+
+				return borders;
 			} 
 			
 			if (Math.abs(X2_origin - X1_origin) >= (this.GetRow(RowNumb[0]).Get_Cell(CellsNumb[0]).Metrics.X_cell_end - this.GetRow(RowNumb[0]).Get_Cell(CellsNumb[0]).Metrics.X_cell_start)/2)
@@ -13544,6 +13651,8 @@ CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPageStart, CurPageEnd
 							Color : "Grey",
 							Bold  : false
 						};
+
+						borders.push(Hline);
 					}
 					else 
 					{
@@ -13556,6 +13665,8 @@ CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPageStart, CurPageEnd
 							Color : "Grey",
 							Bold  : true
 						};
+
+						borders.push(Hline);
 					}
 					
 				}
@@ -13580,6 +13691,8 @@ CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPageStart, CurPageEnd
 							Color : "Grey",
 							Bold  : false
 						};
+
+						borders.push(Hline);
 					}
 					else 
 					{
@@ -13592,6 +13705,8 @@ CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPageStart, CurPageEnd
 							Color : "Grey",
 							Bold  : true
 						};
+
+						borders.push(Hline);
 					}
 					
 				}
@@ -13606,6 +13721,8 @@ CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPageStart, CurPageEnd
 						Color : "Grey",
 						Bold  : false
 					};
+
+					borders.push(Hline);
 				}
 				
 			}
@@ -13628,6 +13745,8 @@ CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPageStart, CurPageEnd
 							Color : "Grey",
 							Bold  : false
 						};
+
+						borders.push(Hline);
 					}
 					else 
 					{
@@ -13640,6 +13759,8 @@ CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPageStart, CurPageEnd
 							Color : "Grey",
 							Bold  : true
 						};
+
+						borders.push(Hline);
 					}
 					
 				}
@@ -13665,6 +13786,8 @@ CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPageStart, CurPageEnd
 							Color : "Grey",
 							Bold  : false
 						};
+
+						borders.push(Hline);
 					}
 					else 
 					{
@@ -13677,6 +13800,8 @@ CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPageStart, CurPageEnd
 							Color : "Grey",
 							Bold  : true
 						};
+
+						borders.push(Hline);
 					}
 				}
 				else 
@@ -13690,24 +13815,103 @@ CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPageStart, CurPageEnd
 						Color : "Grey",
 						Bold  : false
 					};
+
+					borders.push(Hline);
 				}
 			}
 			
-			return Hline;
+			return borders;
 		}
 		else 
 		{
-			var Line = 
-			{
-				X1 : X1_origin,
-				X2 : X2_origin,
-				Y1 : Y1,
-				Y2 : Y2,
-				Color : "Red", 
-				Bold  : false
-			};
+			var Cell_pos = this.Internal_GetCellByXY(X1 + this.Pages[curColumn].X, Y1, curColumn);
 
-			return Line;
+			var Row              = this.GetRow(Cell_pos.Row);
+			var Cell         	 = Row.Get_Cell(Cell_pos.Cell);  //текущая ячейка
+			
+			var X_start      = Row.CellsInfo[Cell_pos.Cell].X_cell_start;
+            var X_end        = Row.CellsInfo[Cell_pos.Cell].X_cell_end;
+			var Cell_width   = X_end - X_start;
+
+			var Grid_start   = Row.Get_CellInfo(Cell_pos.Cell).StartGridCol;
+            var Grid_span    = Cell.Get_GridSpan();
+            var VMerge_count = this.Internal_GetVertMergeCount(Cell_pos.Row, Grid_start, Grid_span);
+            var rowHSum      = 0;
+
+            var CellSpacing  = Row.Get_CellSpacing();
+            
+            var CellMar = Cell.GetMargins();
+            var MinW 	= CellSpacing + CellMar.Right.W + CellMar.Left.W;
+
+            if (VMerge_count >= 1)
+            {
+                for (Index = Cell_pos.Row; Index < Cell_pos.Row + VMerge_count; Index++)
+                {
+                    rowHSum += this.RowsInfo[Index].H[curColumn]
+                }
+			}
+			
+			// Если рисуемая ячейка соответствует минимальным размерам и не выходит за границы ячейки, в котором рисуем, тогда отрисовываем контуры новой ячейки
+			if (Cell_width >= MinW * 1.5 && X2 - X1 > MinW * 1.5 && rowHSum >= 4.63864881727431 * 1.5 && Y2 - Y1 >= 4.63864881727431 * 1.5 && !(X2 > X_end && Y2 < this.RowsInfo[Cell_pos.Row].Y[curColumn] && Y2 > this.RowsInfo[Cell_pos.Row].Y[curColumn] + rowHSum))
+			{
+				var tLine = 
+				{
+					X1 : X1_origin, 
+					X2 : X2_origin,
+					Y1 : Y1,
+					Y2 : Y1,
+					Color : "Grey",
+					Bold : false
+				};
+
+				var lLine = 
+				{
+					X1 : X1_origin, 
+					X2 : X1_origin,
+					Y1 : Y1,
+					Y2 : Y2,
+					Color : "Grey",
+					Bold : false
+				};
+				
+				var rLine = 
+				{
+					X1 : X2_origin, 
+					X2 : X2_origin,
+					Y1 : Y1,
+					Y2 : Y2,
+					Color : "Grey",
+					Bold : false
+				};
+
+				var bLine = 
+				{
+					X1 : X1_origin, 
+					X2 : X2_origin,
+					Y1 : Y2,
+					Y2 : Y2,
+					Color : "Grey",
+					Bold : false
+				};
+
+				borders.push(tLine, lLine, rLine, bLine);
+			}
+			else 
+			{
+				var Line = 
+				{
+					X1 : X1_origin,
+					X2 : X2_origin,
+					Y1 : Y1,
+					Y2 : Y2,
+					Color : "Red", 
+					Bold  : false
+				};
+
+				borders.push(Line);
+			}
+
+			return borders;
 		}
 	}
 	else if (drawMode === false)
@@ -13727,6 +13931,7 @@ CTable.prototype.GetDrawLine = function(X1, Y1, X2, Y2, CurPageStart, CurPageEnd
 			Y2 = Y1;
 			Y1 = cache;
 		}
+
 		var Rows 	  	    = []; // Строки попавшие под линию удаления(объединения)
 		var Borders	 	    = [];
 		this.Selection.Data = [];
