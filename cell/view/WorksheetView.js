@@ -6121,6 +6121,8 @@
                     }
                 }
             }
+            textBound.height += 3 * this.getZoom();
+            textBound.dy -= 1.5 * this.getZoom();
         }
 
         var cache = this._fetchCellCache(col, row);
@@ -6142,7 +6144,9 @@
         if (!angle && (cto.leftSide !== 0 || cto.rightSide !== 0)) {
             this._addErasedBordersToCache(col - cto.leftSide, col + cto.rightSide, row);
         }
+        if (!this.isZooming) {
             this._updateRowHeight(cache, row, maxW, colWidth);
+        }
 
         return mc ? mc.c2 : col;
     };
@@ -6219,20 +6223,17 @@
                 newHeight = Math.max(oldHeight, textBound.height / this.getZoom());
 			}
 			newHeight = Math.min(this.maxRowHeightPx, Math.max(oldHeight, newHeight));
-			if (newHeight !== oldHeight || this.isZooming) {
-                var indent = 2;
-             if(cache.flags && cache.flags.wrapText) {
-                    indent = 0;
-                }
-                newHeight += indent;
+			if (newHeight !== oldHeight) {
 				if (this.updateRowHeightValuePx) {
                     this.updateRowHeightValuePx = newHeight;
 				}
 				rowInfo.height = Asc.round(newHeight * this.getZoom());
 				History.TurnOff();
-				res = newHeight * this.getZoom();
+				res = newHeight;
 				var oldExcludeCollapsed = this.model.bExcludeCollapsed;
 				this.model.bExcludeCollapsed = true;
+                // ToDo delete setRowHeight here
+				this.model.setRowHeight(AscCommonExcel.convertPxToPt(newHeight), row, row, false);
 				this.model.bExcludeCollapsed = oldExcludeCollapsed;
 				History.TurnOn();
 

@@ -243,7 +243,6 @@
          */
         StringRender.prototype.getTransformBound = function(angle, w, h, textW, alignHorizontal, alignVertical, maxWidth) {
 			var ctx = this.drawingCtx;
-			var indent = 1.5 * ctx.getZoom();
 			
             // TODO: добавить padding по сторонам
 
@@ -285,7 +284,6 @@
                         dx = w - posv + 2;
                         offsetX = - (w - posv) - angleSin * tm.height - 2;
 					}
-					dy -= indent;
                 } else {
                     if (isHorzLeft) {
 
@@ -298,22 +296,19 @@
                         dx = w  - posv + 1 + 1 - tm.height * angleSin;
                         offsetX = - w  - posv + 1 + 1 - tm.height * angleSin;
 					}
-					dy -= indent;
                 }
 
                 if (posh < h) {
                     if (angle < 0) {
-                        dy = (h - (posh + angleCos * tm.height) - indent);
+                        dy = h - (posh + angleCos * tm.height);
                     }
                     else {
-                        dy = (h - angleCos * tm.height - indent);
+                        dy = h - angleCos * tm.height;
                     }
                 } else {
                     if (angle > 0) {
-                        dy = (h - angleCos * tm.height - indent);
-                    } else {
-						dy += indent;
-					}
+                        dy = h - angleCos * tm.height;
+                    } 
                 }
             }
             else if (isVertCenter) {
@@ -387,7 +382,6 @@
 
                     dy = Math.min(h + tm.height * angleCos, posh);
 				}
-				dy += indent;
             }
 
             var bound = { dx: dx, dy: dy, height: 0, width: 0, offsetX: offsetX};
