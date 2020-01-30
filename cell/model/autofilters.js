@@ -4967,66 +4967,56 @@
 				
 				return {isEmptyCell: isEmptyCell, isEnd: isEnd, cloneActiveRange: cloneActiveRange};
 			},
-			
-			_isEmptyCellsUnderRange: function(range, exception, checkFilter)
-			{
+
+			_isEmptyCellsUnderRange: function (range, exception, checkFilter) {
 				//если есть ячейки с непустыми значениями под активной областью, то возвращаем false
 				var cell, isEmptyCell, result = true;
 				var worksheet = this.worksheet;
-				
-				for(var i = range.c1; i <= range.c2; i++)
-				{
-					if(exception && exception.c1 === i && exception.r1 === range.r2 + 1)
-					{
+
+				for (var i = range.c1; i <= range.c2; i++) {
+					if (exception && exception.c1 === i && exception.r1 === range.r2 + 1) {
 						continue;
 					}
 
 					cell = worksheet.getRange3(range.r2 + 1, i, range.r2 + 1, i);
 					isEmptyCell = cell.isNullText();
-					if(!isEmptyCell)
-					{
+					if (!isEmptyCell) {
 						result = false;
 						break;
 					}
-					if(checkFilter)
-					{
+					if (checkFilter) {
 						var autoFilter = worksheet.AutoFilter;
-						if((autoFilter && autoFilter.Ref.containsRange(cell.bbox)) || this._isTablePartsContainsRange(cell.bbox))
-						{
+						if ((autoFilter && autoFilter.Ref.containsRange(cell.bbox)) ||
+							this._isTablePartsContainsRange(cell.bbox)) {
 							result = false;
 							break;
 						}
 					}
 				}
-				
+
 				return result;
 			},
 
-			_isEmptyCellsRightRange: function(range, exception, checkFilter)
-			{
+			_isEmptyCellsRightRange: function (range, exception, checkFilter) {
 				//если есть ячейки с непустыми значениями под активной областью, то возвращаем false
 				var cell, isEmptyCell, result = true;
 				var worksheet = this.worksheet;
 
-				for(var i = range.r1; i <= range.r2; i++)
-				{
-					if(exception && exception.r1 === i && exception.c1 === range.c2 + 1)
-					{
+				for (var i = range.r1; i <= range.r2; i++) {
+					if (exception && exception.r1 === i && exception.c1 === range.c2 + 1) {
 						continue;
 					}
 
 					cell = worksheet.getRange3(i, range.c2 + 1, i, range.c2 + 1);
 					isEmptyCell = cell.isNullText();
-					if(!isEmptyCell)
-					{
+					if (!isEmptyCell) {
 						result = false;
 						break;
 					}
-					if(checkFilter)
-					{
+					if (checkFilter) {
 						var autoFilter = worksheet.AutoFilter;
-						if((autoFilter && autoFilter.Ref.containsRange(cell.bbox)) || this._isTablePartsContainsRange(cell.bbox))
-						{
+						if ((autoFilter && autoFilter.Ref.containsRange(cell.bbox)) ||
+							this._isTablePartsContainsRange(cell.bbox)) {
 							result = false;
 							break;
 						}
@@ -5035,73 +5025,74 @@
 
 				return result;
 			},
-			
-			_isPartTablePartsUnderRange: function(range)
-			{
+
+			_isPartTablePartsUnderRange: function (range) {
 				var worksheet = this.worksheet;
 				var result = false;
-				
-				if(worksheet.TableParts && worksheet.TableParts.length)
-				{
-					for(var i = 0; i < worksheet.TableParts.length; i++)
-					{
+
+				if (worksheet.TableParts && worksheet.TableParts.length) {
+					for (var i = 0; i < worksheet.TableParts.length; i++) {
 						var tableRef = worksheet.TableParts[i].Ref;
-						if(tableRef.r1 >= range.r2)
-						{
-							if(tableRef.c1 < range.c1 && tableRef.c2 >= range.c1 && tableRef.c2 <= range.c2)
-							{
+						if (tableRef.r1 >= range.r2) {
+							if (tableRef.c1 < range.c1 && tableRef.c2 >= range.c1 && tableRef.c2 <= range.c2) {
 								result = true;
 								break;
-							}
-							else if(tableRef.c1 >= range.c1 && tableRef.c1 <= range.c2 && tableRef.c2 > range.c2)
-							{
+							} else if (tableRef.c1 >= range.c1 && tableRef.c1 <= range.c2 && tableRef.c2 > range.c2) {
 								result = true;
 								break;
-							}
-							else if((tableRef.c1 <= range.c1 && tableRef.c2 > range.c2) || (tableRef.c1 < range.c1 && tableRef.c2 >= range.c2))
-							{
+							} else if ((tableRef.c1 <= range.c1 && tableRef.c2 > range.c2) ||
+								(tableRef.c1 < range.c1 && tableRef.c2 >= range.c2)) {
 								result = true;
 								break;
 							}
 						}
 					}
 				}
-				
+
 				return result;
 			},
-			
-			isPartTablePartsRightRange: function(range)
-			{
+
+			isPartTablePartsRightRange: function (range) {
 				var worksheet = this.worksheet;
 				var result = false;
-				
-				if(worksheet.TableParts && worksheet.TableParts.length)
-				{
-					for(var i = 0; i < worksheet.TableParts.length; i++)
-					{
+
+				if (worksheet.TableParts && worksheet.TableParts.length) {
+					for (var i = 0; i < worksheet.TableParts.length; i++) {
 						var tableRef = worksheet.TableParts[i].Ref;
-						
-						if(tableRef.c1 >= range.c2)
-						{
-							if(tableRef.r1 < range.r1 && tableRef.r2 > range.r1 && tableRef.r2 <= range.r2)
-							{
+
+						if (tableRef.c1 >= range.c2) {
+							if (tableRef.r1 < range.r1 && tableRef.r2 > range.r1 && tableRef.r2 <= range.r2) {
 								result = true;
 								break;
-							}
-							else if(tableRef.r1 >= range.r1 && tableRef.r1 < range.r2 && tableRef.r2 > range.r2)
-							{
+							} else if (tableRef.r1 >= range.r1 && tableRef.r1 < range.r2 && tableRef.r2 > range.r2) {
 								result = true;
 								break;
-							}
-							else if((tableRef.r1 <= range.r1 && tableRef.r2 > range.r2) || (tableRef.r1 < range.r1 && tableRef.r2 >= range.r2))
-							{
+							} else if ((tableRef.r1 <= range.r1 && tableRef.r2 > range.r2) ||
+								(tableRef.r1 < range.r1 && tableRef.r2 >= range.r2)) {
 								result = true;
 								break;
 							}
 						}
 					}
 				}
-				
+
+				return result;
+			},
+
+			isPartFilterUnderRange: function (range) {
+				var worksheet = this.worksheet;
+				var result = false;
+
+				if (worksheet.AutoFilter) {
+					var ref = worksheet.AutoFilter.Ref;
+					var allColRef = new Asc.Range(range.c1, range.r1, range.c2, AscCommon.gc_nMaxRow0);
+
+					if (allColRef.intersection(ref) && !allColRef.containsRange(ref)) {
+						result = true;
+					}
+
+				}
+
 				return result;
 			},
 

@@ -15932,7 +15932,7 @@
 		var checkShift = function(range) {
 			var result = false;
 
-			if(!t.model.autoFilters._isPartTablePartsUnderRange(range)) {
+			if(!t.model.autoFilters._isPartTablePartsUnderRange(range) && !t.model.autoFilters.isPartFilterUnderRange(range)) {
 				result = true;
 
 				//проверяем ещё на наличие части объединенной ячейки
