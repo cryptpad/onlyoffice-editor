@@ -16580,7 +16580,7 @@
         var intersectionTables = this.model.autoFilters.getTableIntersectionRange(range);
         if (0 < intersectionTables.length) {
             var tablePart = intersectionTables[0];
-            if (range.isOneCell()) {
+            if (range.r1 === range.r2) {
                 res = c_oAscError.ID.FTChangeTableRangeError
             } else if (range.r1 !== tablePart.Ref.r1)//первая строка таблицы не равна первой строке выделенного диапазона
             {
