@@ -405,6 +405,7 @@
 		this.dragAndDropRange = null;
         // Range fillHandle
         this.activeFillHandle = null;
+        this.resizeTableIndex = null;
         // Горизонтальное (0) или вертикальное (1) направление автозаполнения
         this.fillHandleDirection = -1;
         // Зона автозаполнения
@@ -7605,6 +7606,45 @@
         } : null;
     };
 
+	WorksheetView.prototype._hitCursorTableRightCorner = function (vr, x, y, offsetX, offsetY) {
+		var i, l, res, range;
+		var tables = this.model.TableParts;
+
+		var row, col, baseLw, lnW, baseLnSize, lnSize, kF, x1, x2, y1, y2, rangeIn;
+		var zoom = this.getZoom();
+		for (i = 0, l = tables.length; i < l; ++i) {
+			range = new Asc.Range(tables[i].Ref.c2, tables[i].Ref.r2, tables[i].Ref.c2, tables[i].Ref.r2);
+			rangeIn = range.intersectionSimple(vr);
+			if(rangeIn) {
+				baseLw = 2;
+				lnW = Math.round(baseLw * zoom);
+				kF = lnW / baseLw;
+				baseLnSize = 4;
+				lnSize = kF * baseLnSize;
+
+				row = range.r1;
+				col = range.c1;
+				x2 = this._getColLeft(col + 1) - offsetX;
+				y2 = this._getRowTop(row + 1) - offsetY;
+				x1 = x2 - lnSize;
+				y1 = y2 - lnSize;
+
+				if(x >= x1 && x <= x2 && y >= y1 && y <= y2) {
+					res = true;
+					break;
+				}
+			}
+		}
+
+		return res ? {
+				cursor: kCurSEResize,
+				target: c_oTargetType.FillHandle,
+				col: col,
+				row: row,
+				tableIndex: i
+			} : null;
+	};
+
 	WorksheetView.prototype.getCursorTypeFromXY = function (x, y) {
 	    var canEdit = this.handlers.trigger('canEdit');
 		var viewMode = this.handlers.trigger('getViewMode');
@@ -7815,6 +7855,15 @@
 				return res;
 			}
 		}
+
+
+		this._drawElements(function (_vr, _offsetX, _offsetY) {
+			return (null === (res = this._hitCursorTableRightCorner(_vr, x, y, _offsetX, _offsetY)));
+		});
+		if (res) {
+			return res;
+		}
+
 
 		isSelGraphicObject = this.objectRender.selectedGraphicObjectsExists();
 		if (canEdit && !isSelGraphicObject && this.model.selectionRange.isSingleRange() &&
@@ -9267,21 +9316,51 @@
     };
 
     /* Функция для работы автозаполнения (selection). (x, y) - координаты точки мыши на области */
-    WorksheetView.prototype.changeSelectionFillHandle = function (x, y) {
+    WorksheetView.prototype.changeSelectionFillHandle = function (x, y, tableIndex) {
         // Возвращаемый результат
         var ret = null;
-        // Если мы только первый раз попали сюда, то копируем выделенную область
-        if (null === this.activeFillHandle) {
-            this.activeFillHandle = this.model.selectionRange.getLast().clone();
-            // Для первого раза нормализуем (т.е. первая точка - это левый верхний угол)
-            this.activeFillHandle.normalize();
-            return ret;
-        }
+
+		var t = this, table;
+		var _checkTableRange = function () {
+			var _range = t.activeFillHandle;
+			if (table) {
+				var _tableRange = table.Ref;
+				if (_range.c2 < _tableRange.c1) {
+					_range.c2 = _tableRange.c1;
+					_range.c1 = _tableRange.c1;
+				}
+				var _r2 = table.isHeaderRow() ? _tableRange.r1 + 1 : _tableRange.r1;
+				if (_range.r2 < _r2) {
+					_range.r2 = _r2;
+					_range.r1 = _tableRange.r1;
+				}
+			}
+		};
+		var _getTableByIndex = function (index) {
+			return t.model.TableParts && t.model.TableParts[index] ? t.model.TableParts[index] : null;
+		};
+
+		// Если мы только первый раз попали сюда, то копируем выделенную область
+		if (null === this.activeFillHandle) {
+			if (undefined !== tableIndex) {
+				table = _getTableByIndex(tableIndex);
+				this.activeFillHandle = table ? table.Ref.clone() : null;
+				this.resizeTableIndex = tableIndex;
+			} else {
+				this.activeFillHandle = this.model.selectionRange.getLast().clone();
+			}
+			// Для первого раза нормализуем (т.е. первая точка - это левый верхний угол)
+			this.activeFillHandle.normalize();
+			return ret;
+		}
 
         // Очищаем выделение, будем рисовать заново
         this.cleanSelection();
+
         // Копируем выделенную область
-        var ar = this.model.selectionRange.getLast().clone(true);
+		table = undefined !== this.resizeTableIndex ? _getTableByIndex(this.resizeTableIndex) : null;
+        var ar = table ? table.Ref.clone() : this.model.selectionRange.getLast().clone(true);
+
         // Получаем координаты левого верхнего угла выделения
         var xL = this._getColLeft(ar.c1);
         var yL = this._getRowTop(ar.r1);
@@ -9465,7 +9544,9 @@
              |						|
              |						|
              */
-            if (dXR <= 0) {
+			if (table) {
+				this.fillHandleArea = 3;
+			} else if (dXR <= 0) {
                 // Область (1) или (2)
                 if (dXL <= 0) {
                     // Область (1)
@@ -9520,6 +9601,10 @@
                     break;
             }
 
+            if (table) {
+				_checkTableRange();
+			}
+
             // Копируем в range для пересчета видимой области
             activeFillHandleCopy = this.activeFillHandle.clone();
             activeFillHandleCopy.c2 = colByXNoDX;
@@ -9536,7 +9621,9 @@
 
              (3)
              */
-            if (dYR <= 0) {
+			if (table) {
+				this.fillHandleArea = 3;
+			} else if (dYR <= 0) {
                 // Область (1) или (2)
                 if (dYL <= 0) {
                     // Область (1)
@@ -9591,6 +9678,10 @@
                     break;
             }
 
+			if (table) {
+				_checkTableRange();
+			}
+
             // Копируем в range для пересчета видимой области
             activeFillHandleCopy = this.activeFillHandle.clone();
             activeFillHandleCopy.r2 = rowByYNoDY;
@@ -9610,6 +9701,24 @@
     /* Функция для применения автозаполнения */
     WorksheetView.prototype.applyFillHandle = function (x, y, ctrlPress) {
         var t = this;
+
+        if (null !== this.resizeTableIndex) {
+			var table = t.model.TableParts && t.model.TableParts[t.resizeTableIndex] ? t.model.TableParts[t.resizeTableIndex] : null;
+			if (table && t.activeFillHandle) {
+				var isError = this.af_checkChangeRange(t.activeFillHandle);
+		 		if (isError !== null) {
+					this.model.workbook.handlers.trigger("asc_onError", isError, c_oAscError.Level.NoCritical);
+				} else {
+					t.af_changeTableRange(table.DisplayName, t.activeFillHandle.clone());
+				}
+			}
+        	this.cleanSelection();
+        	t.activeFillHandle = null;
+			t.resizeTableIndex = null;
+			t.fillHandleDirection = -1;
+			t._drawSelection();
+        	return;
+		}
 
         // Текущее выделение (к нему применится автозаполнение)
         var arn = t.model.selectionRange.getLast();
@@ -15080,100 +15189,100 @@
 	WorksheetView.prototype.getFilterButtonSize = function () {
 	    return AscBrowser.isRetina ? AscCommon.AscBrowser.convertToRetinaValue(filterSizeButton, true) : filterSizeButton;
 	};
-    WorksheetView.prototype.af_drawButtons = function (updatedRange, offsetX, offsetY) {
-        var i, aWs = this.model;
-        var t = this;
+	WorksheetView.prototype.af_drawButtons = function (updatedRange, offsetX, offsetY) {
+		var i, ws = this.model;
+		var t = this;
 
-        if (aWs.workbook.bUndoChanges || aWs.workbook.bRedoChanges) {
-            return false;
-        }
+		if (ws.workbook.bUndoChanges || ws.workbook.bRedoChanges) {
+			return false;
+		}
 
-        var drawCurrentFilterButtons = function (filter) {
+		var drawCurrentFilterButtons = function (filter) {
 			var autoFilter = filter.isAutoFilter() ? filter : filter.AutoFilter;
 
-			if(!filter.Ref) {
+			if (!filter.Ref) {
 				return;
 			}
 
-            var range = new Asc.Range(filter.Ref.c1, filter.Ref.r1, filter.Ref.c2, filter.Ref.r1);
+			var range = new Asc.Range(filter.Ref.c1, filter.Ref.r1, filter.Ref.c2, filter.Ref.r1);
 
-            if (range.isIntersect(updatedRange)) {
-                var row = range.r1;
+			if (range.isIntersect(updatedRange)) {
+				var row = range.r1;
 
 				var sortConditions = filter.isApplySortConditions() ? filter.SortState.SortConditions : null;
-                for (var col = range.c1; col <= range.c2; col++) {
-                    if (col >= updatedRange.c1 && col <= updatedRange.c2) {
-                        var isSetFilter = false;
-                        var isShowButton = true;
+				for (var col = range.c1; col <= range.c2; col++) {
+					if (col >= updatedRange.c1 && col <= updatedRange.c2) {
+						var isSetFilter = false;
+						var isShowButton = true;
 						var isSortState = null;//true - ascending, false - descending
 
+						var i;
 						var colId = filter.isAutoFilter() ? t.model.autoFilters._getTrueColId(autoFilter, col - range.c1, true) : col - range.c1;
-                        if (autoFilter.FilterColumns && autoFilter.FilterColumns.length) {
-                            var filterColumn = null, filterColumnWithMerge = null;
+						if (autoFilter.FilterColumns && autoFilter.FilterColumns.length) {
+							var filterColumn = null, filterColumnWithMerge = null;
 
-                            for (var i = 0; i < autoFilter.FilterColumns.length; i++) {
-                                if (autoFilter.FilterColumns[i].ColId === col - range.c1) {
-                                    filterColumn = autoFilter.FilterColumns[i];
-                                }
+							for (i = 0; i < autoFilter.FilterColumns.length; i++) {
+								if (autoFilter.FilterColumns[i].ColId === col - range.c1) {
+									filterColumn = autoFilter.FilterColumns[i];
+								}
 
-                                if (colId === col - range.c1 && filterColumn !== null) {
-                                    filterColumnWithMerge = filterColumn;
-                                    break;
-                                } else if (autoFilter.FilterColumns[i].ColId === colId) {
-                                    filterColumnWithMerge = autoFilter.FilterColumns[i];
-                                }
-                            }
+								if (colId === col - range.c1 && filterColumn !== null) {
+									filterColumnWithMerge = filterColumn;
+									break;
+								} else if (autoFilter.FilterColumns[i].ColId === colId) {
+									filterColumnWithMerge = autoFilter.FilterColumns[i];
+								}
+							}
 
-                            if (filterColumnWithMerge && filterColumnWithMerge.isApplyAutoFilter()) {
-                                isSetFilter = true;
-                            }
+							if (filterColumnWithMerge && filterColumnWithMerge.isApplyAutoFilter()) {
+								isSetFilter = true;
+							}
 
-                            if (filterColumn && filterColumn.ShowButton === false) {
-                                isShowButton = false;
-                            }
+							if (filterColumn && filterColumn.ShowButton === false) {
+								isShowButton = false;
+							}
 
-                        }
+						}
 
-						if(sortConditions && sortConditions.length)
-						{
-							for(var i = 0; i < sortConditions.length; i++) {
+						if (sortConditions && sortConditions.length) {
+							for (i = 0; i < sortConditions.length; i++) {
 								var sortCondition = sortConditions[i];
-								if(colId === sortCondition.Ref.c1 - range.c1)
-								{
+								if (colId === sortCondition.Ref.c1 - range.c1) {
 									isSortState = !!(sortCondition.ConditionDescending);
 								}
 							}
 						}
 
-                        if (isShowButton === false) {
-                            continue;
-                        }
+						if (isShowButton === false) {
+							continue;
+						}
 
-                        t.af_drawCurrentButton(offsetX, offsetY, {isSortState: isSortState, isSetFilter: isSetFilter, row: row, col: col});
-                    }
-                }
-            }
-        };
+						t.af_drawCurrentButton(offsetX, offsetY, {isSortState: isSortState, isSetFilter: isSetFilter, row: row, col: col});
+					}
+				}
+			}
+		};
 
-        if (aWs.AutoFilter) {
-            drawCurrentFilterButtons(aWs.AutoFilter);
-        }
-        if (aWs.TableParts && aWs.TableParts.length) {
-            for (i = 0; i < aWs.TableParts.length; i++) {
-                if (aWs.TableParts[i].AutoFilter && aWs.TableParts[i].HeaderRowCount !== 0) {
-                    drawCurrentFilterButtons(aWs.TableParts[i], true);
-                }
-            }
-        }
+		if (ws.AutoFilter) {
+			drawCurrentFilterButtons(ws.AutoFilter);
+		}
+		if (ws.TableParts && ws.TableParts.length) {
+			for (i = 0; i < ws.TableParts.length; i++) {
+				if (ws.TableParts[i].AutoFilter && ws.TableParts[i].HeaderRowCount !== 0) {
+					drawCurrentFilterButtons(ws.TableParts[i], true);
+				}
+				this._drawRightDownTableCorner(ws.TableParts[i], updatedRange, offsetX, offsetY);
+			}
+		}
 
-        var pivotButtons = this.model.getPivotTableButtons(updatedRange);
-        for (i = 0; i < pivotButtons.length; ++i) {
+		var pivotButtons = this.model.getPivotTableButtons(updatedRange);
+		for (i = 0; i < pivotButtons.length; ++i) {
 			this.af_drawCurrentButton(offsetX, offsetY,
 				{isSortState: null, isSetFilter: false, row: pivotButtons[i].row, col: pivotButtons[i].col});
-        }
+		}
 
-        return true;
-    };
+		return true;
+	};
 
 	WorksheetView.prototype.af_drawCurrentButton = function (offsetX, offsetY, props) {
 		var t = this;
@@ -15408,6 +15517,45 @@
 		}
 
 		_drawButton(x1 + diffX, y1 + diffY);
+	};
+
+	WorksheetView.prototype._drawRightDownTableCorner = function (table, updatedRange, offsetX, offsetY) {
+		var t = this;
+		var ctx = t.drawingCtx;
+		var isMobileRetina = window['IS_NATIVE_EDITOR'];
+		var retinaKoef = isMobileRetina || AscBrowser.isRetina ? 2 : 1;
+
+		var row = table.Ref.r2;
+		var col = table.Ref.c2;
+
+		if (!updatedRange.contains(col, row)) {
+			return;
+		}
+
+		var m_oColor = new CColor(72, 93, 177);
+		var zoom = t.getZoom();
+		var baseLw = 2;
+		var baseLnSize = 4;
+
+		var lnW = Math.round(baseLw * zoom);
+		//смотрим насколько изменилась толщина линиии  - настолько и изменился масштаб
+		var kF = lnW / baseLw;
+		var lnSize = baseLnSize * kF;
+		lnW = lnW * retinaKoef;
+
+		var x1 = t._getColLeft(col) + t._getColumnWidth(col) - offsetX - 2;
+		var y1 = t._getRowTop(row) + t._getRowHeight(row) - offsetY - 2;
+
+		ctx.setLineWidth(AscBrowser.retinaPixelRatio * lnW);
+
+		var diff = Math.floor((lnW - 1) / (2 / retinaKoef));
+		ctx.beginPath();
+		ctx.lineVer(x1 - diff, y1 + 1, y1 - lnSize + 1);
+		ctx.lineHor(x1 + 1, y1 - diff, x1 - lnSize + 1);
+
+
+		ctx.setStrokeStyle(m_oColor);
+		ctx.stroke();
 	};
 
 	WorksheetView.prototype.af_checkCursor = function (x, y, _vr, offsetX, offsetY, r, c) {
@@ -16581,7 +16729,7 @@
         if (0 < intersectionTables.length) {
             var tablePart = intersectionTables[0];
             if (range.r1 === range.r2) {
-                res = c_oAscError.ID.FTChangeTableRangeError
+                res = c_oAscError.ID.FTChangeTableRangeError;
             } else if (range.r1 !== tablePart.Ref.r1)//первая строка таблицы не равна первой строке выделенного диапазона
             {
                 res = c_oAscError.ID.FTChangeTableRangeError;

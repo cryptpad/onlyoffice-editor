@@ -553,7 +553,7 @@
 		 * @param event {MouseEvent}
 		 * @param callback {Function}
 		 */
-		asc_CEventsController.prototype._changeFillHandle = function (event, callback) {
+		asc_CEventsController.prototype._changeFillHandle = function (event, callback, tableIndex) {
 			var t = this;
 			// Обновляемся в режиме автозаполнения
 			var coord = this._getCoordinates(event);
@@ -562,7 +562,7 @@
 					if (!d) return;
 					t.scroll(d);
 					asc_applyFunction(callback);
-				});
+				}, tableIndex);
 		};
 
 		/** @param event {MouseEvent} */
@@ -1417,7 +1417,7 @@
 					} else if (t.targetInfo.target === c_oTargetType.FillHandle && this.canEdit()) {
 						// В режиме автозаполнения
 						this.isFillHandleMode = true;
-						t._changeFillHandle(event);
+						t._changeFillHandle(event, null, t.targetInfo.tableIndex);
 						return;
 					} else if (t.targetInfo.target === c_oTargetType.MoveRange && this.canEdit()) {
 						// В режиме перемещения диапазона
@@ -1508,7 +1508,7 @@
 				if (this.targetInfo && this.targetInfo.target === c_oTargetType.FillHandle && this.canEdit()) {
 					// В режиме автозаполнения
 					this.isFillHandleMode = true;
-					this._changeFillHandle(event);
+					this._changeFillHandle(event, null, t.targetInfo.tableIndex);
 				} else {
 					this.isSelectMode = true;
 					this.handlers.trigger("changeSelection", /*isStartPoint*/true, coord.x, coord.y, /*isCoord*/true,
