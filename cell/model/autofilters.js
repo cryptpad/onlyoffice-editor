@@ -5294,6 +5294,20 @@
 			{
 				var tempRange =  new Asc.Range(ar.c1, ar.r1, ar.c2, ar.r2);
 				var addNameColumn, filterRange, bIsManualOptions = false;
+				var ws = this.worksheet;
+
+				var _isOneCell = function(_range) {
+					var res = null;
+					if (_range.isOneCell()) {
+						res = true;
+					} else if(!bTable) {
+						var merged = ws.getMergedByCell(_range.r1, _range.c1);
+						if(merged && merged.isEqual(_range)) {
+							res = true;
+						}
+					}
+					return res;
+				};
 
 				if(addFormatTableOptionsObj === false)
 				{
@@ -5322,7 +5336,7 @@
 				{
 					filterRange = tablePartsContainsRange.Ref.clone();
 				}
-				else if(tempRange.isOneCell() && !bIsManualOptions)
+				else if(_isOneCell(tempRange) && !bIsManualOptions)
 				{
 					//filterRange = this._getAdjacentCellsAF(tempRange, this.worksheet);
 					filterRange = this.expandRange(tempRange);

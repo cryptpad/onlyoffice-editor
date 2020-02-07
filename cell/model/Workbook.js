@@ -7199,6 +7199,7 @@
 			}
 		};
 
+		//TODO automaticRange ?
 		var tempText = 0, tempDigit = 0;
 		var r1 = byRow ? columnRange.r1 : columnRange.r1;
 		var r2 = byRow ? columnRange.r1 : columnRange.r2;
