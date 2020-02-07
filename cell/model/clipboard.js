@@ -4049,163 +4049,42 @@
 				}
 			},
 
+			_getNumberingText: function (nLvl, NumInfo, NumTextPr, Theme, LvlPr) {
+				//part of from Num.js (draw function)
+				var arrText = LvlPr.LvlText;
 
-			_getNumberingText: function (Lvl, NumInfo, NumTextPr, Theme, LvlPr) {
-				var Text = LvlPr.LvlText;
-
-				var Char = "", T, Num, Index2;
-				//Context.SetTextPr( NumTextPr, Theme );
-				//Context.SetFontSlot( fontslot_ASCII );
-				//g_oTextMeasurer.SetTextPr( NumTextPr, Theme );
-				//g_oTextMeasurer.SetFontSlot( fontslot_ASCII );
-
-				for (var Index = 0; Index < Text.length; Index++) {
-					switch (Text[Index].Type) {
+				var str = "";
+				for (var nTextIndex = 0, nTextLen = arrText.length; nTextIndex < nTextLen; ++nTextIndex) {
+					switch (arrText[nTextIndex].Type) {
 						case numbering_lvltext_Text: {
-							var Hint = NumTextPr.RFonts.Hint;
-							var bCS = NumTextPr.CS;
-							var bRTL = NumTextPr.RTL;
-							var lcid = NumTextPr.Lang.EastAsia;
-
-							var FontSlot = g_font_detector.Get_FontClass(Text[Index].Value.charCodeAt(0), Hint, lcid,
-								bCS, bRTL);
-
-							Char += Text[Index].Value;
-							//Context.SetFontSlot( FontSlot );
-							//g_oTextMeasurer.SetFontSlot( FontSlot );
-
-							//Context.FillText( X, Y, Text[Index].Value );
-							//X += g_oTextMeasurer.Measure( Text[Index].Value ).Width;
-
+							str += arrText[nTextIndex].Value;
 							break;
 						}
 						case numbering_lvltext_Num: {
-							//Context.SetFontSlot( fontslot_ASCII );
-							//g_oTextMeasurer.SetFontSlot( fontslot_ASCII );
+							var nCurLvl = arrText[nTextIndex].Value;
+							var T = "";
 
-							var CurLvl = Text[Index].Value;
-							switch (LvlPr.Format) {
-								case Asc.c_oAscNumberingFormat.Bullet: {
-									break;
+							if (nCurLvl < NumInfo.length) {
+								var nFormat = LvlPr.GetFormat();
+								var isForceArabic = LvlPr.IsLegalStyle() && nCurLvl < nLvl;
+								if (true === isForceArabic && nFormat !== Asc.c_oAscNumberingFormat.Decimal &&
+									nFormat !== Asc.c_oAscNumberingFormat.DecimalZero) {
+									nFormat = Asc.c_oAscNumberingFormat.Decimal;
 								}
 
-								case Asc.c_oAscNumberingFormat.Decimal: {
-									if (CurLvl < NumInfo.length) {
-										T = "" + NumInfo[CurLvl];
-										for (Index2 = 0; Index2 < T.length; Index2++) {
-											Char += T.charAt(Index2);
-											//Context.FillText( X, Y, Char );
-											//X += g_oTextMeasurer.Measure( Char ).Width;
-										}
-									}
-									break;
-								}
+								T =  AscCommon.IntToNumberFormat(NumInfo[nCurLvl], nFormat);
+							}
 
-								case Asc.c_oAscNumberingFormat.DecimalZero: {
-									if (CurLvl < NumInfo.length) {
-										T = "" + NumInfo[CurLvl];
-
-										if (1 === T.length) {
-											//Context.FillText( X, Y, '0' );
-											//X += g_oTextMeasurer.Measure( '0' ).Width;
-
-											Char = T.charAt(0);
-											//Context.FillText( X, Y, Char );
-											//X += g_oTextMeasurer.Measure( Char ).Width;
-										} else {
-											for (Index2 = 0; Index2 < T.length; Index2++) {
-												Char += T.charAt(Index2);
-												//Context.FillText( X, Y, Char );
-												//X += g_oTextMeasurer.Measure( Char ).Width;
-											}
-										}
-									}
-									break;
-								}
-
-								case Asc.c_oAscNumberingFormat.LowerLetter:
-								case Asc.c_oAscNumberingFormat.UpperLetter: {
-									if (CurLvl < NumInfo.length) {
-										// Формат: a,..,z,aa,..,zz,aaa,...,zzz,...
-										Num = NumInfo[CurLvl];
-
-										var Count = (Num - Num % 26) / 26;
-										var Ost = Num % 26;
-
-										T = "";
-
-										var Letter;
-										if (Asc.c_oAscNumberingFormat.LowerLetter === LvlPr.Format) {
-											Letter = AscCommon.encodeSurrogateChar(Ost + 97);
-										} else {
-											Letter = AscCommon.encodeSurrogateChar(Ost + 65);
-										}
-
-										for (Index2 = 0; Index2 < Count + 1; Index2++) {
-											T += Letter;
-										}
-
-										for (Index2 = 0; Index2 < T.length; Index2++) {
-											Char += T.charAt(Index2);
-											//Context.FillText( X, Y, Char );
-											//X += g_oTextMeasurer.Measure( Char ).Width;
-										}
-									}
-									break;
-								}
-
-								case Asc.c_oAscNumberingFormat.LowerRoman:
-								case Asc.c_oAscNumberingFormat.UpperRoman: {
-									if (CurLvl < NumInfo.length) {
-										Num = NumInfo[CurLvl];
-
-										// Переводим число Num в римскую систему исчисления
-										var Rims;
-
-										if (Asc.c_oAscNumberingFormat.LowerRoman === LvlPr.Format) {
-											Rims =
-												['m', 'cm', 'd', 'cd', 'c', 'xc', 'l', 'xl', 'x', 'ix', 'v', 'iv', 'i',
-													' '];
-										} else {
-											Rims =
-												['M', 'CM', 'D', 'CD', 'C', 'XC', 'L', 'XL', 'X', 'IX', 'V', 'IV', 'I',
-													' '];
-										}
-
-										var Vals = [1000, 900, 500, 400, 100, 90, 50, 40, 10, 9, 5, 4, 1, 0];
-
-										T = "";
-										Index2 = 0;
-										while (Num > 0) {
-											while (Vals[Index2] <= Num) {
-												T += Rims[Index2];
-												Num -= Vals[Index2];
-											}
-
-											Index2++;
-
-											if (Index2 >= Rims.length) {
-												break;
-											}
-										}
-
-										for (Index2 = 0; Index2 < T.length; Index2++) {
-											Char += T.charAt(Index2);
-											//Context.FillText( X, Y, Char );
-											//X += g_oTextMeasurer.Measure( T.charAt(Index2) ).Width;
-										}
-									}
-									break;
-								}
+							for (var Index2 = 0; Index2 < T.length; Index2++) {
+								str += T.charAt(Index2);
 							}
 
 							break;
 						}
 					}
 				}
-				return Char;
+				return str;
 			},
-
 
 			_getPrParaRun: function (paraPr, cTextPr) {
 				var formatText, fontFamily, colorText;
