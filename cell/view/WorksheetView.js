@@ -12305,6 +12305,8 @@
 			range.setFont(font);
 		}
 
+		var propPaste = specialPasteProps.property;
+		var pasteOnlyText = propPaste === Asc.c_oSpecialPasteProps.valueNumberFormat || propPaste === Asc.c_oSpecialPasteProps.pasteOnlyValues;
 
 		//***value***
 		//если формула - добавляем в массив и обрабатываем уже в _pasteData
@@ -12337,11 +12339,9 @@
 						type: CellValueType.String
 					})));
 			} else {
-				range.setValue(rangeStyle.val);
+				range.setValue(rangeStyle.val, null, null, null, pasteOnlyText);
 			}
-		} /*else if (rangeStyle.value2 && specialPasteProps.val) {
-			range.setValue(value2ToValue(rangeStyle.value2));
-		}*/
+		}
 
 		//alignVertical
 		if (undefined !== rangeStyle.alignVertical && specialPasteProps.alignVertical) {

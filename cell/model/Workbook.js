@@ -7642,7 +7642,7 @@
 		this.textIndex = null;
 		this._hasChanged = true;
 	};
-	Cell.prototype.setValue=function(val,callback, isCopyPaste, byRef) {
+	Cell.prototype.setValue=function(val,callback, isCopyPaste, byRef, ignoreHyperlink) {
 		var ws = this.ws;
 		var wb = ws.workbook;
 		var DataOld = null;
@@ -7668,7 +7668,7 @@
 				wb.dependencyFormulas.addToBuildDependencyCell(this);
 			}
 		} else if (val) {
-			this._setValue(val);
+			this._setValue(val, ignoreHyperlink);
 			wb.dependencyFormulas.addToChangedCell(this);
 		} else {
 			wb.dependencyFormulas.addToChangedCell(this);
@@ -8665,7 +8665,7 @@
 		}
 		return aRes;
 	};
-	Cell.prototype._setValue = function(val)
+	Cell.prototype._setValue = function(val, ignoreHyperlink)
 	{
 		this.cleanText();
 
@@ -8767,7 +8767,7 @@
 				}
 			}
 		}
-		if (/(^(((http|https|ftp):\/\/)|(mailto:)|(www.)))|@/i.test(val)) {
+		if (/(^(((http|https|ftp):\/\/)|(mailto:)|(www.)))|@/i.test(val) && !ignoreHyperlink) {
 			// Удаляем концевые пробелы и переводы строки перед проверкой гиперссылок
 			val = val.replace(/\s+$/, '');
 			var typeHyp = AscCommon.getUrlType(val);
@@ -9939,11 +9939,11 @@
 	Range.prototype.getName=function(){
 		return this.bbox.getName();
 	};
-	Range.prototype.setValue=function(val,callback, isCopyPaste, byRef){
+	Range.prototype.setValue=function(val,callback, isCopyPaste, byRef, ignoreHyperlink){
 		History.Create_NewPoint();
 		History.StartTransaction();
 		this._foreach(function(cell){
-			cell.setValue(val,callback, isCopyPaste, byRef);
+			cell.setValue(val,callback, isCopyPaste, byRef, ignoreHyperlink);
 			// if(cell.isEmpty())
 			// cell.Remove();
 		});
