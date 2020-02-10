@@ -12646,7 +12646,6 @@ function CTitle()
         recalculateBrush: true,
         recalculatePen: true,
         recalcStyle: true,
-        recalculateContent: true,
         recalculateGeometry: true
     };
 
