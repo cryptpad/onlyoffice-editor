@@ -58,6 +58,7 @@ var MOVE_DELTA = AscFormat.MOVE_DELTA;
 
 var c_oAscFill = Asc.c_oAscFill;
 
+    var dTextFitDelta = 3;// mm
 
 function CheckObjectLine(obj)
 {
@@ -947,6 +948,10 @@ function CShape()
     this.txWarpStructNoTransform = null;
     this.txWarpStructParamarksNoTransform = null;
 
+    this.tmpFontScale = undefined;
+    this.tmpLnSpcReduction = undefined;
+
+
     this.Id = AscCommon.g_oIdCounter.Get_NewId();
     AscCommon.g_oTableId.Add( this, this.Id );
 }
@@ -1109,8 +1114,8 @@ CShape.prototype.setTextBoxContent = function (textBoxContent) {
 CShape.prototype.setBodyPr = function (pr) {
     History.Add(new AscDFH.CChangesDrawingsObjectNoId(this, AscDFH.historyitem_ShapeSetBodyPr, this.bodyPr, pr));
     this.bodyPr = pr;
-    this.recalcInfo.recalcContent = true;
-    this.recalcInfo.recalcTransformText = true;
+    this.recalcInfo.recalculateContent = true;
+    this.recalcInfo.recalculateTransformText = true;
     this.addToRecalculate();
 };
 
@@ -1683,6 +1688,33 @@ CShape.prototype.setVert = function (vert) {
     }
     this.checkExtentsByDocContent && this.checkExtentsByDocContent();
 };
+
+
+CShape.prototype.setTextFitType = function(type)
+{
+    if(AscFormat.isRealNumber(type))
+    {
+        var new_body_pr = this.getBodyPr();
+        if (new_body_pr) {
+            new_body_pr = new_body_pr.createDuplicate();
+            if (!AscCommon.isRealObject(new_body_pr.textFit)) {
+                new_body_pr.textFit = new AscFormat.CTextFit();
+            }
+            new_body_pr.textFit.type = type;
+
+            if (this.bWordShape) {
+                this.setBodyPr(new_body_pr);
+            }
+            else {
+                if (this.txBody) {
+                    this.txBody.setBodyPr(new_body_pr);
+                }
+            }
+        }
+        this.checkExtentsByDocContent(true, true);
+    }
+};
+
 
 CShape.prototype.setPaddings = function (paddings) {
     if (paddings) {
@@ -2661,6 +2693,20 @@ CShape.prototype.recalculateTextStyles = function (level) {
             default_style.TextPr.RFonts.EastAsia = {Name: "+mn-ea", Index: -1};
             default_style.TextPr.RFonts.CS = {Name: "+mn-cs", Index: -1};
             default_style.TextPr.RFonts.HAnsi = {Name: "+mn-lt", Index: -1};
+        }
+        if(!this.bCheckAutoFitFlag)
+        {
+            var oBodyPr = this.getBodyPr && this.getBodyPr();
+            if(oBodyPr)
+            {
+                default_style.ParaPr.LnSpcReduction = oBodyPr.getLnSpcReduction();
+                default_style.TextPr.FontScale = oBodyPr.getFontScale();
+            }
+        }
+        else
+        {
+            default_style.ParaPr.LnSpcReduction = this.tmpLnSpcReduction;
+            default_style.TextPr.FontScale = this.tmpFontScale;
         }
         if(this.getObjectType && this.getObjectType() === AscDFH.historyitem_type_GraphicFrame){
             default_style.TextPr.FontSize = 18;
@@ -4004,6 +4050,115 @@ CShape.prototype.checkExtentsByDocContent = function(bForce, bNeedRecalc)
             }
         }
         return true;
+    }
+    else
+    {
+        if(true)
+        {
+            var oBodyPr = this.getBodyPr && this.getBodyPr();
+            var oContent = this.getDocContent && this.getDocContent();
+            if(oBodyPr && oContent)
+            {
+                var oTextFit = oBodyPr.textFit;
+                if(oTextFit && oTextFit.type === AscFormat.text_fit_NormAuto)
+                {
+                    var bCheckAutoFit = false;
+                    if(this.contentHeight - this.clipRect.h > 0)
+                    {
+                        if(this.contentHeight - this.clipRect.h > 0)
+                        {
+                            bCheckAutoFit = true;
+                        }
+                    }
+                    else
+                    {
+                        if((oTextFit.fontScale !== null && oTextFit.fontScale !== 100000) ||
+                            (oTextFit.lnSpcReduction !== null && oTextFit.lnSpcReduction !== 0))
+                        {
+                                this.bCheckAutoFitFlag = true;
+
+                                this.tmpFontScale = null;
+                                this.tmpLnSpcReduction = null;
+
+                                oContent.Recalc_AllParagraphs_CompiledPr();
+                                this.recalcInfo.recalculateContent = true;
+                                this.recalcInfo.recalculateContent2 = true;
+                                this.recalcInfo.recalculateTransformText = true;
+                                this.recalculate();
+
+                                if(this.contentHeight - this.clipRect.h <= 0)
+                                {
+                                    oBodyPr = oBodyPr.createDuplicate();
+                                    oBodyPr.textFit.lnSpcReduction = null;
+                                    oBodyPr.textFit.fontScale = null;
+                                    if (this.bWordShape) {
+                                        this.setBodyPr(oBodyPr);
+                                    }
+                                    else {
+                                        if (this.txBody) {
+                                            this.txBody.setBodyPr(oBodyPr);
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    bCheckAutoFit = true;
+                                }
+
+                                this.bCheckAutoFitFlag = false;
+                        }
+                    }
+
+                    if(bCheckAutoFit)
+                    {
+                        this.bCheckAutoFitFlag = true;
+                        var dSpcKoeff = 0.2;
+                        this.tmpFontScale =  0.5;
+                        this.tmpLnSpcReduction = dSpcKoeff * this.tmpFontScale;
+                        var dDelta = 0.25;
+                        var nMinDelta = dDelta/6;
+                        while(dDelta > nMinDelta && this.tmpFontScale > 0.2)
+                        {
+                            oContent.Recalc_AllParagraphs_CompiledPr();
+                            this.recalcInfo.recalculateContent = true;
+                            this.recalcInfo.recalculateContent2 = true;
+                            this.recalcInfo.recalculateTransformText = true;
+                            this.recalculate();
+                            if(this.contentHeight <= this.clipRect.h &&  Math.abs(this.contentHeight - this.clipRect.h) <= dTextFitDelta)
+                            {
+                                break;
+                            }
+                            if(this.contentHeight - this.clipRect.h > 0)
+                            {
+                                this.tmpFontScale -= dDelta;
+                            }
+                            else
+                            {
+                                this.tmpFontScale += dDelta;
+                            }
+                            dDelta /= 2;
+                        }
+                        oBodyPr = oBodyPr.createDuplicate();
+                        oBodyPr.textFit.lnSpcReduction = 100000*this.tmpLnSpcReduction >> 0;
+                        oBodyPr.textFit.fontScale = 100000*this.tmpFontScale >> 0;
+                        if (this.bWordShape) {
+                            this.setBodyPr(oBodyPr);
+                        }
+                        else {
+                            if (this.txBody) {
+                                this.txBody.setBodyPr(oBodyPr);
+                            }
+                        }
+                        this.bCheckAutoFitFlag = false;
+                        oContent.Recalc_AllParagraphs_CompiledPr();
+                        this.recalcInfo.recalculateContent = true;
+                        this.recalcInfo.recalculateContent2 = true;
+                        this.recalcInfo.recalculateTransformText = true;
+                        this.recalculate();
+                    }
+                }
+            }
+        }
     }
     return false;
 };
@@ -5817,6 +5972,19 @@ CShape.prototype.getColumnNumber = function(){
             return oBodyPr.spcCol;
         }
         return 0;
+    };
+
+
+    CShape.prototype.getTextFitType = function(){
+        if(this.bWordShape){
+            return 0;
+        }
+        var oBodyPr = this.getBodyPr();
+        if(AscCommon.isRealObject(oBodyPr.textFit) && AscFormat.isRealNumber(oBodyPr.textFit.type))
+        {
+            return oBodyPr.textFit.type;
+        }
+        return AscFormat.text_fit_No;
     };
 
 
