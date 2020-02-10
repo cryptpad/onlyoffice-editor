@@ -2365,7 +2365,7 @@
 		ws = this.getWorksheet();
     	var ac = ws.model.selectionRange.activeCell;
     	var dc = result.col - ac.col, dr = result.row - ac.row;
-    	return options.findInSelection ? ws.changeSelectionActivePoint(dc, dr) : ws.changeSelectionStartPoint(dc, dr);
+    	return options.findInSelection ? ws.changeSelectionActivePoint(dc, dr, options) : ws.changeSelectionStartPoint(dc, dr, undefined, undefined, options);
     }
     return null;
   };

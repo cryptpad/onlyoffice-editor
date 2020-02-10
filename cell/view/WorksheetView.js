@@ -8193,10 +8193,16 @@
 		this._fixSelectionOfMergedCells(ar, force);
 	};
 
-    WorksheetView.prototype._moveActiveCellToOffset = function (activeCell, dc, dr) {
+    WorksheetView.prototype._moveActiveCellToOffset = function (activeCell, dc, dr, options) {
         var ar = this._getSelection().getLast();
-        var c =  activeCell.col;
-        var r =  activeCell.row;
+        // Если поиск, ищем с текущей ячейки не обращая внимание на смерженность 
+        if (!options) {
+            var mc = this.model.getMergedByCell(activeCell.row, activeCell.col);
+        }
+        var c = mc ? (dc < 0 ? mc.c1 : dc > 0 ? Math.min(mc.c2, this.nColsCount - 1 - dc) : activeCell.col) :
+          activeCell.col;	
+        var r = mc ? (dr < 0 ? mc.r1 : dr > 0 ? Math.min(mc.r2, this.nRowsCount - 1 - dr) : activeCell.row) :	
+          activeCell.row;
         var p = this._calcCellPosition(c, r, dc, dr);
         ar.assign(p.col, p.row, p.col, p.row);
         this.model.selectionRange.setCell(p.row, p.col);
@@ -8205,7 +8211,7 @@
     };
 
     // Движение активной ячейки в выделенной области
-    WorksheetView.prototype._moveActivePointInSelection = function (dc, dr) {
+    WorksheetView.prototype._moveActivePointInSelection = function (dc, dr, options) {
         var t = this, cell = this.model.selectionRange.activeCell;
 
         // Если мы на скрытой строке или ячейке, то двигаться в выделении нельзя (так делает и Excel)
@@ -8214,7 +8220,7 @@
         }
         return this.model.selectionRange.offsetCell(dr, dc, true, function (row, col) {
             return (0 === ((0 <= row) ? t._getRowHeight(row) : t._getColumnWidth(col)));
-        });
+        }, options);
     };
 
 	WorksheetView.prototype._calcSelectionEndPointByXY = function (x, y, keepType) {
@@ -9057,7 +9063,7 @@
 		this._scrollToRange();
     };
 
-	WorksheetView.prototype.changeSelectionStartPoint = function (x, y, isCoord, isCtrl) {
+	WorksheetView.prototype.changeSelectionStartPoint = function (x, y, isCoord, isCtrl, options) {
 		this.cleanSelection();
 
 		var activeCell = this._getSelection().activeCell.clone();
@@ -9083,7 +9089,7 @@
 		} else {
 			comment = this.cellCommentator.getComment(x, y, true);
 			// move active range to offset x,y
-			this._moveActiveCellToOffset(activeCell, x, y);
+			this._moveActiveCellToOffset(activeCell, x, y, options);
 			ret = this._calcRangeOffset();
 		}
 
@@ -9214,12 +9220,12 @@
     };
 
     // Обработка движения в выделенной области
-    WorksheetView.prototype.changeSelectionActivePoint = function (dc, dr) {
+    WorksheetView.prototype.changeSelectionActivePoint = function (dc, dr, options) {
         var ret, res;
         if (0 === dc && 0 === dr) {
             return this._calcActiveCellOffset();
         }
-		res = this._moveActivePointInSelection(dc, dr);
+		res = this._moveActivePointInSelection(dc, dr, options);
         if (0 === res) {
             return this.changeSelectionStartPoint(dc, dr, /*isCoord*/false, false);
         } else if (-1 === res) {
