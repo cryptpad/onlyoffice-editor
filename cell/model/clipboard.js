@@ -4030,60 +4030,21 @@
 							NumTextPr.Merge(TextPr_temp);
 							NumTextPr.Merge(NumLvl.GetTextPr());
 
+							var text = null;
 							var oNumPr = paragraph.GetNumPr();
-							var LvlPr, Lvl;
+							var Lvl;
 							if (oNumPr != null) {
 								var oNum = paragraph.Parent.GetNumbering().GetNum(oNumPr.NumId);
 								if (null != oNum) {
-									LvlPr = oNum.GetLvl(oNumPr.Lvl);
 									Lvl = oNumPr.Lvl;
+									text = oNum.GetText(Lvl, paragraph.Parent.CalculateNumberingValues(paragraph, NumPr));
 								}
 							}
 
-
-							var NumInfo = paragraph.Parent.CalculateNumberingValues(paragraph, NumPr);
-
-							return this._getNumberingText(NumPr.Lvl, NumInfo, NumTextPr, null, LvlPr);
+							return text;
 						}
 					}
 				}
-			},
-
-			_getNumberingText: function (nLvl, NumInfo, NumTextPr, Theme, LvlPr) {
-				//part of from Num.js (draw function)
-				var arrText = LvlPr.LvlText;
-
-				var str = "";
-				for (var nTextIndex = 0, nTextLen = arrText.length; nTextIndex < nTextLen; ++nTextIndex) {
-					switch (arrText[nTextIndex].Type) {
-						case numbering_lvltext_Text: {
-							str += arrText[nTextIndex].Value;
-							break;
-						}
-						case numbering_lvltext_Num: {
-							var nCurLvl = arrText[nTextIndex].Value;
-							var T = "";
-
-							if (nCurLvl < NumInfo.length) {
-								var nFormat = LvlPr.GetFormat();
-								var isForceArabic = LvlPr.IsLegalStyle() && nCurLvl < nLvl;
-								if (true === isForceArabic && nFormat !== Asc.c_oAscNumberingFormat.Decimal &&
-									nFormat !== Asc.c_oAscNumberingFormat.DecimalZero) {
-									nFormat = Asc.c_oAscNumberingFormat.Decimal;
-								}
-
-								T =  AscCommon.IntToNumberFormat(NumInfo[nCurLvl], nFormat);
-							}
-
-							for (var Index2 = 0; Index2 < T.length; Index2++) {
-								str += T.charAt(Index2);
-							}
-
-							break;
-						}
-					}
-				}
-				return str;
 			},
 
 			_getPrParaRun: function (paraPr, cTextPr) {
