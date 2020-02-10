@@ -2281,7 +2281,7 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             var _stream = global_memory_stream_menu;
             _stream["ClearNoAttack"]();
             _stream["WriteStringA"](JSON.stringify(new Asc.asc_CChartBinary(chart)));
-            _return = _stream;           
+            _return = _stream;
             break;
         }
         
@@ -6037,7 +6037,9 @@ function NativeOpenFile3(_params, documentInfo)
         var permissions = window.documentInfo["permissions"];
         if (undefined != permissions && null != permissions && permissions.length > 0) {
             docInfo.put_Permissions(JSON.parse(permissions));
-        }   
+        }
+
+        // Settings
 
         _api.asc_setDocInfo(docInfo);
 
@@ -6058,6 +6060,22 @@ function NativeOpenFile3(_params, documentInfo)
                                   asc_WriteColorSchemes(schemes, stream);
                                   window["native"]["OnCallMenuEvent"](2404, stream); // ASC_SPREADSHEETS_EVENT_TYPE_COLOR_SCHEMES
                                   });
+
+        // Comments
+
+        _api.asc_registerCallback("asc_onAddComment", function (id, comment) {
+            var stream = global_memory_stream_menu;
+            stream["ClearNoAttack"]();
+            if (comment === undefined) {
+                comment = {};
+            }
+            comment["id"] = id;
+            stream["ClearNoAttack"]();
+            stream["WriteString2"](JSON.stringify(comment));
+            window["native"]["OnCallMenuEvent"](23001, stream); // ASC_MENU_EVENT_TYPE_ADD_COMMENT
+        })
+
+        // Co-authoring
 
         if (window.documentInfo["iscoauthoring"]) {
 
