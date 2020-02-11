@@ -4016,7 +4016,6 @@ var aScales = [25000, 30000, 35000, 40000, 45000, 50000, 55000, 60000, 65000, 70
         {
             oContent.Recalc_AllParagraphs_CompiledPr();
             this.recalcInfo.recalculateContent = true;
-            this.recalcInfo.recalculateContent2 = true;
             this.recalcInfo.recalculateTransformText = true;
             this.recalculate();
         }
@@ -4085,8 +4084,16 @@ CShape.prototype.checkExtentsByDocContent = function(bForce, bNeedRecalc)
                 var oTextFit = oBodyPr.textFit;
                 if(oTextFit && oTextFit.type === AscFormat.text_fit_NormAuto)
                 {
+                    if(!AscFormat.isRealNumber(oTextFit.fontScale) && !AscFormat.isRealNumber(oTextFit.lnSpcReduction)
+                    && this.contentHeight <= this.clipRect.h)
+                    {
+                        return;
+                    }
+                    // if(History.Is_SimpleChanges())
+                    // {
+                    //     return
+                    // }
                     var bCheckAutoFit = true;
-
                     if(bCheckAutoFit)
                     {
                         this.bCheckAutoFitFlag = true;
@@ -4096,6 +4103,17 @@ CShape.prototype.checkExtentsByDocContent = function(bForce, bNeedRecalc)
                         this.recalculateContentWitCompiledPr();
                         if(this.contentHeight <= this.clipRect.h)
                         {
+                            oBodyPr = oBodyPr.createDuplicate();
+                            oBodyPr.textFit.lnSpcReduction = this.tmpLnSpcReduction;
+                            oBodyPr.textFit.fontScale = this.tmpFontScale;
+                            if (this.bWordShape) {
+                                this.setBodyPr(oBodyPr);
+                            }
+                            else {
+                                if (this.txBody) {
+                                    this.txBody.setBodyPr(oBodyPr);
+                                }
+                            }
                             this.bCheckAutoFitFlag = false;
                             return;
                         }
@@ -4148,17 +4166,22 @@ CShape.prototype.checkExtentsByDocContent = function(bForce, bNeedRecalc)
                             }
                         }
 
-                        oBodyPr = oBodyPr.createDuplicate();
-                        oBodyPr.textFit.lnSpcReduction = this.tmpLnSpcReduction;
-                        oBodyPr.textFit.fontScale = this.tmpFontScale;
-                        if (this.bWordShape) {
-                            this.setBodyPr(oBodyPr);
-                        }
-                        else {
-                            if (this.txBody) {
-                                this.txBody.setBodyPr(oBodyPr);
+                        if(oBodyPr.textFit.lnSpcReduction !== this.tmpLnSpcReduction
+                        || oBodyPr.textFit.fontScale !== this.tmpFontScale)
+                        {
+                            oBodyPr = oBodyPr.createDuplicate();
+                            oBodyPr.textFit.lnSpcReduction = this.tmpLnSpcReduction;
+                            oBodyPr.textFit.fontScale = this.tmpFontScale;
+                            if (this.bWordShape) {
+                                this.setBodyPr(oBodyPr);
+                            }
+                            else {
+                                if (this.txBody) {
+                                    this.txBody.setBodyPr(oBodyPr);
+                                }
                             }
                         }
+
                         this.bCheckAutoFitFlag = false;
                         this.recalculateContentWitCompiledPr();
                     }
