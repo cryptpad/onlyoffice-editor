@@ -2705,8 +2705,15 @@ CShape.prototype.recalculateTextStyles = function (level) {
         }
         else
         {
-            default_style.ParaPr.LnSpcReduction = this.tmpLnSpcReduction;
-            default_style.TextPr.FontScale = this.tmpFontScale;
+            if(this.tmpLnSpcReduction !== null && this.tmpLnSpcReduction !== undefined)
+            {
+                default_style.ParaPr.LnSpcReduction = this.tmpLnSpcReduction / 100000.0;
+            }
+            if(this.tmpFontScale !== null && this.tmpFontScale !== undefined)
+            {
+                default_style.TextPr.FontScale = this.tmpFontScale / 100000.0;
+            }
+
         }
         if(this.getObjectType && this.getObjectType() === AscDFH.historyitem_type_GraphicFrame){
             default_style.TextPr.FontSize = 18;
@@ -3999,6 +4006,22 @@ CShape.prototype.recalculateDocContent = function(oDocContent, oBodyPr)
     return oRet;
 };
 
+var aScales = [25000, 30000, 35000, 40000, 45000, 50000, 55000, 60000, 65000, 70000, 75000, 80000, 85000, 90000, 95000, 10000];
+
+
+    CShape.prototype.recalculateContentWitCompiledPr = function()
+    {
+        var oContent = this.getDocContent && this.getDocContent();
+        if(oContent)
+        {
+            oContent.Recalc_AllParagraphs_CompiledPr();
+            this.recalcInfo.recalculateContent = true;
+            this.recalcInfo.recalculateContent2 = true;
+            this.recalcInfo.recalculateTransformText = true;
+            this.recalculate();
+        }
+    };
+
 CShape.prototype.checkExtentsByDocContent = function(bForce, bNeedRecalc)
 {
     if((!this.bWordShape || this.group || bForce) && this.checkAutofit(true))
@@ -4062,85 +4085,72 @@ CShape.prototype.checkExtentsByDocContent = function(bForce, bNeedRecalc)
                 var oTextFit = oBodyPr.textFit;
                 if(oTextFit && oTextFit.type === AscFormat.text_fit_NormAuto)
                 {
-                    var bCheckAutoFit = false;
-                    if(this.contentHeight - this.clipRect.h > 0)
-                    {
-                        if(this.contentHeight - this.clipRect.h > 0)
-                        {
-                            bCheckAutoFit = true;
-                        }
-                    }
-                    else
-                    {
-                        if((oTextFit.fontScale !== null && oTextFit.fontScale !== 100000) ||
-                            (oTextFit.lnSpcReduction !== null && oTextFit.lnSpcReduction !== 0))
-                        {
-                                this.bCheckAutoFitFlag = true;
-
-                                this.tmpFontScale = null;
-                                this.tmpLnSpcReduction = null;
-
-                                oContent.Recalc_AllParagraphs_CompiledPr();
-                                this.recalcInfo.recalculateContent = true;
-                                this.recalcInfo.recalculateContent2 = true;
-                                this.recalcInfo.recalculateTransformText = true;
-                                this.recalculate();
-
-                                if(this.contentHeight - this.clipRect.h <= 0)
-                                {
-                                    oBodyPr = oBodyPr.createDuplicate();
-                                    oBodyPr.textFit.lnSpcReduction = null;
-                                    oBodyPr.textFit.fontScale = null;
-                                    if (this.bWordShape) {
-                                        this.setBodyPr(oBodyPr);
-                                    }
-                                    else {
-                                        if (this.txBody) {
-                                            this.txBody.setBodyPr(oBodyPr);
-                                        }
-                                    }
-                                }
-                                else
-                                {
-                                    bCheckAutoFit = true;
-                                }
-
-                                this.bCheckAutoFitFlag = false;
-                        }
-                    }
+                    var bCheckAutoFit = true;
 
                     if(bCheckAutoFit)
                     {
                         this.bCheckAutoFitFlag = true;
-                        var dSpcKoeff = 0.2;
-                        this.tmpFontScale =  0.5;
-                        this.tmpLnSpcReduction = dSpcKoeff * this.tmpFontScale;
-                        var dDelta = 0.25;
-                        var nMinDelta = dDelta/6;
-                        while(dDelta > nMinDelta && this.tmpFontScale > 0.2)
+
+                        this.tmpFontScale = undefined;
+                        this.tmpLnSpcReduction = undefined;
+                        this.recalculateContentWitCompiledPr();
+                        if(this.contentHeight <= this.clipRect.h)
                         {
-                            oContent.Recalc_AllParagraphs_CompiledPr();
-                            this.recalcInfo.recalculateContent = true;
-                            this.recalcInfo.recalculateContent2 = true;
-                            this.recalcInfo.recalculateTransformText = true;
-                            this.recalculate();
-                            if(this.contentHeight <= this.clipRect.h &&  Math.abs(this.contentHeight - this.clipRect.h) <= dTextFitDelta)
+                            this.bCheckAutoFitFlag = false;
+                            return;
+                        }
+
+
+                        var dReductionScale = 0.2;
+
+                        var nCurIndex = aScales.length - 1;
+                        var nCurShift = -((aScales.length) / 2);
+                        while (true)
+                        {
+                            nCurIndex += nCurShift;
+                            if(nCurIndex - 1 >= 0)
                             {
-                                break;
-                            }
-                            if(this.contentHeight - this.clipRect.h > 0)
-                            {
-                                this.tmpFontScale -= dDelta;
+                                this.tmpFontScale = aScales[nCurIndex - 1];
+                                this.tmpLnSpcReduction = dReductionScale*(100000 - this.tmpFontScale) >> 0;
+                                this.recalculateContentWitCompiledPr();
+
+
+                                if(this.contentHeight <= this.clipRect.h)
+                                {
+                                    this.tmpFontScale = aScales[nCurIndex];
+                                    this.tmpLnSpcReduction = dReductionScale*(100000 - this.tmpFontScale) >> 0;
+                                    this.recalculateContentWitCompiledPr();
+                                    if(this.contentHeight >= this.clipRect.h)
+                                    {
+                                        this.tmpFontScale = aScales[nCurIndex - 1];
+                                        this.tmpLnSpcReduction = dReductionScale*(100000 - this.tmpFontScale) >> 0;
+                                        break;
+                                    }
+                                    else
+                                    {
+                                        nCurShift = Math.abs(nCurShift) / 2;
+                                    }
+                                }
+                                else
+                                {
+                                    nCurShift = -Math.abs(nCurShift) / 2;
+                                }
+                                if(Math.abs(nCurShift) < 1)
+                                {
+                                    break;
+                                }
                             }
                             else
                             {
-                                this.tmpFontScale += dDelta;
+                                this.tmpFontScale = aScales[0];
+                                this.tmpLnSpcReduction = dReductionScale*(100000 - this.tmpFontScale) >> 0;
+                                break;
                             }
-                            dDelta /= 2;
                         }
+
                         oBodyPr = oBodyPr.createDuplicate();
-                        oBodyPr.textFit.lnSpcReduction = 100000*this.tmpLnSpcReduction >> 0;
-                        oBodyPr.textFit.fontScale = 100000*this.tmpFontScale >> 0;
+                        oBodyPr.textFit.lnSpcReduction = this.tmpLnSpcReduction;
+                        oBodyPr.textFit.fontScale = this.tmpFontScale;
                         if (this.bWordShape) {
                             this.setBodyPr(oBodyPr);
                         }
@@ -4150,11 +4160,7 @@ CShape.prototype.checkExtentsByDocContent = function(bForce, bNeedRecalc)
                             }
                         }
                         this.bCheckAutoFitFlag = false;
-                        oContent.Recalc_AllParagraphs_CompiledPr();
-                        this.recalcInfo.recalculateContent = true;
-                        this.recalcInfo.recalculateContent2 = true;
-                        this.recalcInfo.recalculateTransformText = true;
-                        this.recalculate();
+                        this.recalculateContentWitCompiledPr();
                     }
                 }
             }
