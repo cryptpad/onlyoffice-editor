@@ -4084,6 +4084,7 @@ CShape.prototype.checkExtentsByDocContent = function(bForce, bNeedRecalc)
                 var oTextFit = oBodyPr.textFit;
                 if(oTextFit && oTextFit.type === AscFormat.text_fit_NormAuto)
                 {
+                    this.recalculate();
                     if(!AscFormat.isRealNumber(oTextFit.fontScale) && !AscFormat.isRealNumber(oTextFit.lnSpcReduction)
                     && this.contentHeight <= this.clipRect.h)
                     {

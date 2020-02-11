@@ -300,6 +300,10 @@ function CheckShapeBodyAutoFitReset(oShape, bNoResetRelSize)
         else
         {
             oShape.txBody.setBodyPr(oPropsToSet);
+            if(oShape.checkExtentsByDocContent)
+            {
+                oShape.checkExtentsByDocContent(true, true);
+            }
         }
     }
 }
