@@ -1116,8 +1116,12 @@
 								t.handlers.trigger("stopCellEditing");
 							}
 
+							var wb = window["Asc"]["editor"].wb;
+							if (t.targetInfo) {
+								wb._onUpdateWorksheet(t.targetInfo.mouseX, t.targetInfo.mouseY, false);
+							}
 							t.scroll(d);
-						}, t.mouseX, t.mouseY);
+						});
 				}
 			}
 
