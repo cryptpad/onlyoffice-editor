@@ -2409,6 +2409,7 @@
 				ws.replaceCellText(options, true, this.fReplaceCallback);
 				return;
 			}
+      options.sheetIndex = -1;
 		}
 
 		this.handlers.trigger("asc_onRenameCellTextEnd", options.countFindAll, options.countReplaceAll);
