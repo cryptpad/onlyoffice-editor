@@ -874,7 +874,7 @@
 					maxRow = maxRowCol.row;
 					maxCol = maxRowCol.col;
 				}
-				console.time("start");
+
 				for (row = bbox.r1; row <= maxRow; ++row) {
 					if (worksheet.model.bExcludeHiddenRows && worksheet.model.getRowHidden(row)) {
 						continue;
@@ -982,7 +982,7 @@
 					}
 					table.appendChild(tr);
 				}
-				console.timeEnd("start");
+
 				return table;
 			},
 
@@ -1050,7 +1050,6 @@
 					str += ' class=' + '"' + sBase64 + '"';
 				}
 				str += ' style="border-collapse: collapse;font-family:' + fn + ';font-size:' + fs + 'pt' + ';color:#000;background-color:transparent;' + '">';
-				console.time("test");
 
 				var maxRow = bbox.r2;
 				var maxCol = bbox.c2;
@@ -1091,7 +1090,7 @@
 							style += "width:" + worksheet.getColumnWidth(col, 1/*pt*/) + "pt" + ";";
 						}
 
-						if(cell.getType() !== null) {
+						if (cell.getType() !== null) {
 							var align = cell.getAlign();
 							if (!align.getWrap()) {
 								style += "white-space:" + "nowrap" + ";";
@@ -1161,7 +1160,6 @@
 					str += "</tr>";
 				}
 				str += "</table>";
-				console.timeEnd("test");
 
 				return str;
 			},
