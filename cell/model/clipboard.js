@@ -1003,37 +1003,37 @@
 						return "";
 					}
 
-					var style = "";
+					var _style = "";
 					switch (border.s) {
 						case c_oAscBorderStyles.Thin:
-							style = "solid";
+							_style = "solid";
 							break;
 						case c_oAscBorderStyles.Medium:
-							style = "solid";
+							_style = "solid";
 							break;
 						case c_oAscBorderStyles.Thick:
-							style = "solid";
+							_style = "solid";
 							break;
 						case c_oAscBorderStyles.DashDot:
 						case c_oAscBorderStyles.DashDotDot:
 						case c_oAscBorderStyles.Dashed:
-							style = "dashed";
+							_style = "dashed";
 							break;
 						case c_oAscBorderStyles.Double:
-							style = "double";
+							_style = "double";
 							break;
 						case c_oAscBorderStyles.Hair:
 						case c_oAscBorderStyles.Dotted:
-							style = "dotted";
+							_style = "dotted";
 							break;
 						case c_oAscBorderStyles.MediumDashDot:
 						case c_oAscBorderStyles.MediumDashDotDot:
 						case c_oAscBorderStyles.MediumDashed:
 						case c_oAscBorderStyles.SlantDashDot:
-							style = "dashed";
+							_style = "dashed";
 							break;
 					}
-					return border.w + "px " + style + " " + number2color(border.getRgbOrNull());
+					return border.w + "px " + _style + " " + number2color(border.getRgbOrNull());
 				}
 
 				var fn = worksheet.model.workbook.getDefaultFont();
@@ -1155,7 +1155,10 @@
 
 							str += ' style=' + '"' +  style + '">';
 							str += this._makeNodesFromCellValueStr(cell.getValue2(), fn, fs, cell);
+						} else {
+							str += '>';
 						}
+						str += '</td>';
 					}
 					str += "</tr>";
 				}
