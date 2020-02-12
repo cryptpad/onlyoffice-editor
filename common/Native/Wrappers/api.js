@@ -2403,7 +2403,39 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             var status = parseInt(_params[0]);
             if (status !== undefined) {
                 this.asc_setSpellCheck(status == 0 ? false : true);
-            } 
+            }
+            break;
+        }
+
+        case 23101: // ASC_MENU_EVENT_TYPE_DO_SELECT_COMMENT
+        {
+            var json = JSON.parse(_params[0]);
+            if (json && json["id"]) {
+                var id = parseInt(json["id"]);
+                if (_api.asc_selectComment && id) {
+                    _api.asc_selectComment(id);
+                }
+            }
+            break;
+        }
+
+        case 23103: // ASC_MENU_EVENT_TYPE_DO_SELECT_COMMENTS
+        {
+            var json = JSON.parse(_params[0]);
+            if (json && json["resolved"]) {
+                if (_api.asc_showComments) {
+                    _api.asc_showComments(json["resolved"] === "true");
+                }
+            }
+            break;
+        }
+
+        case 23104: // ASC_MENU_EVENT_TYPE_DO_DESELECT_COMMENTS
+        {
+            if (_api.asc_hideComments) {
+                _api.asc_hideComments();
+            }
+            break;
         }
 
         default:
@@ -6063,17 +6095,18 @@ function NativeOpenFile3(_params, documentInfo)
 
         // Comments
 
-        _api.asc_registerCallback("asc_onAddComment", function (id, comment) {
-            var stream = global_memory_stream_menu;
-            stream["ClearNoAttack"]();
-            if (comment === undefined) {
-                comment = {};
-            }
-            comment["id"] = id;
-            stream["ClearNoAttack"]();
-            stream["WriteString2"](JSON.stringify(comment));
-            window["native"]["OnCallMenuEvent"](23001, stream); // ASC_MENU_EVENT_TYPE_ADD_COMMENT
-        })
+        _api.asc_registerCallback("asc_onAddComment", onApiAddComment);
+        _api.asc_registerCallback('asc_onAddComments', onApiAddComments);
+        _api.asc_registerCallback('asc_onRemoveComment', onApiRemoveComment);
+        _api.asc_registerCallback('asc_onChangeComments', onChangeComments);
+        _api.asc_registerCallback('asc_onRemoveComments', onApiRemoveComments);
+        _api.asc_registerCallback('asc_onChangeCommentData', onApiChangeCommentData);
+        _api.asc_registerCallback('asc_onLockComment', onApiLockComment);
+        _api.asc_registerCallback('asc_onUnLockComment', onApiUnLockComment);
+        _api.asc_registerCallback('asc_onShowComment', onApiShowComment);
+        _api.asc_registerCallback('asc_onHideComment', onApiHideComment);
+        _api.asc_registerCallback('asc_onUpdateCommentPosition', onApiUpdateCommentPosition);
+        _api.asc_registerCallback('asc_onDocumentPlaceChanged', onDocumentPlaceChanged);
 
         // Co-authoring
 
@@ -6146,6 +6179,102 @@ function NativeOpenFile3(_params, documentInfo)
             initSpellCheckApi();
         }
     }
+}
+
+// Comments
+
+function postDataAsJSONString(data, eventId) {
+    var stream = global_memory_stream_menu;
+    stream["ClearNoAttack"]();
+    if (data !== undefined && data !== null) {
+        stream["WriteString2"](JSON.stringify(data));
+    }
+    window["native"]["OnCallMenuEvent"](eventId, stream);
+}
+
+function onApiAddComment(id, comment) {
+    if (comment === undefined) {
+        comment = {};
+    }
+    comment["id"] = id;
+    postDataAsJSONString(comment, 23001); // ASC_MENU_EVENT_TYPE_ADD_COMMENT
+}
+
+function onApiAddComments(data) {
+    postDataAsJSONString(data, 23002); // ASC_MENU_EVENT_TYPE_ADD_COMMENTS
+}
+
+function onApiRemoveComment(id, silentUpdate) {
+    var data = {
+        "id": id,
+        "silentUpdate": silentUpdate
+    };
+    postDataAsJSONString(data, 23003); // ASC_MENU_EVENT_TYPE_REMOVE_COMMENT
+}
+
+function onChangeComments(data) {
+    postDataAsJSONString(data, 23004); // ASC_MENU_EVENT_TYPE_CHANGE_COMMENTS
+}
+
+function onApiRemoveComments(data) {
+    postDataAsJSONString(data, 23005); // ASC_MENU_EVENT_TYPE_REMOVE_COMMENTS
+}
+
+function onApiChangeCommentData(id, comment, silentUpdate) {
+    var data = {
+        "id": id,
+        "comment": comment,
+        "silentUpdate": silentUpdate
+    };
+    postDataAsJSONString(data, 23006); // ASC_MENU_EVENT_TYPE_CHANGE_COMMENTDATA
+}
+
+function onApiLockComment(id, userId) {
+    var data = {
+        "id": id,
+        "userId": userId
+    };
+    postDataAsJSONString(data, 23007); // ASC_MENU_EVENT_TYPE_LOCK_COMMENT
+}
+
+function onApiUnLockComment(id) {
+    var data = {
+        "id": id
+    };
+    postDataAsJSONString(data, 23008); // ASC_MENU_EVENT_TYPE_UNLOCK_COMMENT
+}
+
+function onApiShowComment(uids, posX, posY, leftX, opts, hint) {
+    var data = {
+        "uids": uids,
+        "posX": posX,
+        "posY": posY,
+        "leftX": leftX,
+        "opts": opts,
+        "hint": hint
+    };
+    postDataAsJSONString(data, 23009); // ASC_MENU_EVENT_TYPE_SHOW_COMMENT
+}
+
+function onApiHideComment(hint) {
+    var data = {
+        "hint": hint
+    };
+    postDataAsJSONString(data, 23010); // ASC_MENU_EVENT_TYPE_HIDE_COMMENT
+}
+
+function onApiUpdateCommentPosition(uids, posX, posY, leftX) {
+    var data = {
+        "uids": uids,
+        "posX": posX,
+        "posY": posY,
+        "leftX": leftX
+    };
+    postDataAsJSONString(data, 23011); // ASC_MENU_EVENT_TYPE_UPDATE_COMMENT_POSITION
+}
+
+function onDocumentPlaceChanged() {
+    postDataAsJSONString(null, 23012); // ASC_MENU_EVENT_TYPE_DOCUMENT_PLACE_CHANGED
 }
 
 var DocumentPageSize = new function()
