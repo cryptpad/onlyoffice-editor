@@ -226,154 +226,170 @@ CTable.prototype.private_RecalculateCheckPageColumnBreak = function(CurPage)
 };
 CTable.prototype.private_RecalculateGrid = function()
 {
-    //if ( true != this.RecalcInfo.TableGrid )
-    //    return;
+	if (this.GetRowsCount() <= 0)
+		return;
 
-    if ( this.Content.length <= 0 )
-        return;
+	//---------------------------------------------------------------------------
+	// 1 часть пересчета ширины таблицы : Рассчитываем фиксированную ширину
+	//---------------------------------------------------------------------------
+	var TablePr = this.Get_CompiledPr(false).TablePr;
 
-    //---------------------------------------------------------------------------
-    // 1 часть пересчета ширины таблицы : Рассчитываем фиксированную ширину
-    //---------------------------------------------------------------------------
-    var TablePr = this.Get_CompiledPr(false).TablePr;
+	var PctWidth = this.CalculatedPctWidth;
+	var MinWidth = this.CalculatedMinWidth;
+	var TableW   = this.CalculatedTableW;
 
-    var Grid    = this.TableGrid;
-    var SumGrid = [];
-
-    var TempSum = 0;
-    SumGrid[-1] = 0;
-    for ( var Index = 0; Index < Grid.length; Index++ )
-    {
-        TempSum += Grid[Index];
-        SumGrid[Index] = TempSum;
-    }
-
-    var PctWidth = this.private_RecalculatePercentWidth();
-    var MinWidth = this.Internal_Get_TableMinWidth();
-
-    var TableW = 0;
-    if (tblwidth_Auto === TablePr.TableW.Type)
-    {
-        TableW = 0;
-    }
-    else if (tblwidth_Nil === TablePr.TableW.Type)
-    {
-        TableW = MinWidth;
-    }
-    else
-    {
-        if (tblwidth_Pct === TablePr.TableW.Type)
-        {
-            TableW = PctWidth * TablePr.TableW.W / 100;
-        }
-        else
-        {
-            TableW = TablePr.TableW.W;
-        }
-
-        if (0.001 > TableW)
-        	TableW = 0;
-        else if (TableW < MinWidth)
-            TableW = MinWidth;
-    }
-
-	var CurGridCol = 0;
-	for (var Index = 0; Index < this.Content.length; Index++)
+	if (this.RecalcInfo.TableGrid)
 	{
-		var Row = this.Content[Index];
-		Row.Set_Index(Index);
-
-		// Смотрим на ширину пропущенных колонок сетки в начале строки
-		var BeforeInfo = Row.Get_Before();
-		CurGridCol     = BeforeInfo.GridBefore;
-		if (CurGridCol > 0 && SumGrid[CurGridCol - 1] < BeforeInfo.WBefore.W)
+		var arrSumGrid = [];
+		var nTempSum   = 0;
+		arrSumGrid[-1] = 0;
+		for (var nIndex = 0, nCount = this.TableGrid.length; nIndex < nCount; ++nIndex)
 		{
-			var nTempDiff = BeforeInfo.WBefore.W - SumGrid[CurGridCol - 1];
-			for (var nTempIndex = CurGridCol - 1; nTempIndex < SumGrid.length; ++nTempIndex)
-				SumGrid[nTempIndex] += nTempDiff;
+			nTempSum += this.TableGrid[nIndex];
+			arrSumGrid[nIndex] = nTempSum;
 		}
 
-		var nCellSpacing = Row.GetCellSpacing();
+		PctWidth = this.private_RecalculatePercentWidth();
+		MinWidth = this.private_GetTableMinWidth();
 
-		var CellsCount = Row.Get_CellsCount();
-		for (var CellIndex = 0; CellIndex < CellsCount; CellIndex++)
+		TableW = 0;
+		if (tblwidth_Auto === TablePr.TableW.Type)
 		{
-			var Cell = Row.Get_Cell(CellIndex);
-			Cell.Set_Index(CellIndex);
-			var CellW    = Cell.Get_W();
-			var GridSpan = Cell.Get_GridSpan();
+			TableW = 0;
+		}
+		else if (tblwidth_Nil === TablePr.TableW.Type)
+		{
+			TableW = MinWidth;
+		}
+		else
+		{
+			if (tblwidth_Pct === TablePr.TableW.Type)
+				TableW = PctWidth * TablePr.TableW.W / 100;
+			else
+				TableW = TablePr.TableW.W;
 
-			if (CurGridCol + GridSpan - 1 > SumGrid.length)
+			if (0.001 > TableW)
+				TableW = 0;
+			else if (TableW < MinWidth)
+				TableW = MinWidth;
+		}
+
+		var nCurGridCol = 0;
+		for (var nCurRow = 0, nRowsCount = this.GetRowsCount(); nCurRow < nRowsCount; ++nCurRow)
+		{
+			var oRow = this.GetRow(nCurRow);
+			oRow.SetIndex(nCurRow);
+
+			// Смотрим на ширину пропущенных колонок сетки в начале строки
+			var oBeforeInfo = oRow.GetBefore();
+			nCurGridCol     = oBeforeInfo.Grid;
+
+			if (nCurGridCol > 0 && arrSumGrid[nCurGridCol - 1] < oBeforeInfo.W)
 			{
-				for (var AddIndex = SumGrid.length; AddIndex <= CurGridCol + GridSpan - 1; AddIndex++)
-					SumGrid[AddIndex] = SumGrid[AddIndex - 1] + 20; // Добавляем столбик шириной в 2 см
-			}
-
-			if (tblwidth_Auto !== CellW.Type && tblwidth_Nil !== CellW.Type)
-			{
-				var CellWidth = 0;
-				if (tblwidth_Pct === CellW.Type)
-					CellWidth = PctWidth * CellW.W / 100;
-				else
-					CellWidth = CellW.W;
-
-				if (null !== nCellSpacing)
+				var nTempDiff = oBeforeInfo.W - arrSumGrid[nCurGridCol - 1];
+				for (var nTempIndex = nCurGridCol - 1; nTempIndex < arrSumGrid.length; ++nTempIndex)
 				{
-					if (0 === CellIndex)
-						CellWidth += nCellSpacing / 2;
-
-					CellWidth += nCellSpacing;
-
-					if (CellsCount - 1 === CellIndex)
-						CellWidth += nCellSpacing / 2;
-				}
-
-				if (CellWidth + SumGrid[CurGridCol - 1] > SumGrid[CurGridCol + GridSpan - 1])
-				{
-					var nTempDiff = CellWidth + SumGrid[CurGridCol - 1] - SumGrid[CurGridCol + GridSpan - 1];
-					for (var nTempIndex = CurGridCol + GridSpan - 1; nTempIndex < SumGrid.length; ++nTempIndex)
-						SumGrid[nTempIndex] += nTempDiff;
+					arrSumGrid[nTempIndex] += nTempDiff;
 				}
 			}
 
-			CurGridCol += GridSpan;
+			var nCellSpacing = oRow.GetCellSpacing();
+			for (var nCurCell = 0, nCellsCount = oRow.GetCellsCount(); nCurCell < nCellsCount; ++nCurCell)
+			{
+				var oCell = oRow.GetCell(nCurCell);
+				oCell.SetIndex(nCurCell);
+
+				var oCellW    = oCell.GetW();
+				var nGridSpan = oCell.GetGridSpan();
+
+				if (nCurGridCol + nGridSpan - 1 > arrSumGrid.length)
+				{
+					for (var nAddIndex = arrSumGrid.length; nAddIndex <= nCurGridCol + nGridSpan - 1; ++nAddIndex)
+					{
+						// Добавляем столбик шириной в 2 см
+						arrSumGrid[nAddIndex] = arrSumGrid[nAddIndex - 1] + 20;
+					}
+				}
+
+				if (tblwidth_Auto !== oCellW.Type && tblwidth_Nil !== oCellW.Type)
+				{
+					var nCellWidth = 0;
+					if (tblwidth_Pct === oCellW.Type)
+						nCellWidth = PctWidth * oCellW.W / 100;
+					else
+						nCellWidth = oCellW.W;
+
+					if (null !== nCellSpacing)
+					{
+						if (0 === nCurCell)
+							nCellWidth += nCellSpacing / 2;
+
+						nCellWidth += nCellSpacing;
+
+						if (nCellsCount - 1 === nCurCell)
+							nCellWidth += nCellSpacing / 2;
+					}
+
+					if (nCellWidth + arrSumGrid[nCurGridCol - 1] > arrSumGrid[nCurGridCol + nGridSpan - 1])
+					{
+						var nTempDiff = nCellWidth + arrSumGrid[nCurGridCol - 1] - arrSumGrid[nCurGridCol + nGridSpan - 1];
+						for (var nTempIndex = nCurGridCol + nGridSpan - 1; nTempIndex < arrSumGrid.length; ++nTempIndex)
+						{
+							arrSumGrid[nTempIndex] += nTempDiff;
+						}
+					}
+				}
+
+				nCurGridCol += nGridSpan;
+			}
+
+			// Смотрим на ширину пропущенных колонок сетки в конце строки
+			var oAfterInfo = oRow.GetAfter();
+			if (nCurGridCol + oAfterInfo.Grid - 1 > arrSumGrid.length)
+			{
+				for (var nAddIndex = arrSumGrid.length; nAddIndex <= nCurGridCol + oAfterInfo.Grid - 1; ++nAddIndex)
+				{
+					// Добавляем столбик шириной в 2 см
+					arrSumGrid[nAddIndex] = arrSumGrid[nAddIndex - 1] + 20;
+				}
+			}
+
+			if (arrSumGrid[nCurGridCol + oAfterInfo.Grid - 1] < oAfterInfo.W + arrSumGrid[nCurGridCol - 1])
+			{
+				var nTempDiff = oAfterInfo.W + arrSumGrid[nCurGridCol - 1] - arrSumGrid[nCurGridCol + oAfterInfo.Grid - 1];
+				for (var nTempIndex = nCurGridCol + oAfterInfo.Grid - 1; nTempIndex < arrSumGrid.length; ++nTempIndex)
+				{
+					arrSumGrid[nTempIndex] += nTempDiff;
+				}
+			}
 		}
 
-		// Смотрим на ширину пропущенных колонок сетки в конце строки
-		var AfterInfo = Row.Get_After();
-		if (CurGridCol + AfterInfo.GridAfter - 1 > SumGrid.length)
+		// TODO: разобраться с минимальной шириной таблицы и ячеек
+
+		// Задана общая ширина таблицы и последняя ячейка вышла за пределы
+		// данной ширины. Уменьшаем все столбцы сетки пропорционально, чтобы
+		// суммарная ширина стала равной заданной ширине таблицы.
+		if (TableW > 0 && Math.abs(arrSumGrid[arrSumGrid.length - 1] - TableW) > 0.01)
+			arrSumGrid = this.Internal_ScaleTableWidth(arrSumGrid, TableW);
+		else if (MinWidth > arrSumGrid[arrSumGrid.length - 1])
+			arrSumGrid = this.Internal_ScaleTableWidth(arrSumGrid, arrSumGrid[arrSumGrid.length - 1]);
+
+		// По массиву SumGrid восстанавливаем ширины самих колонок
+		this.TableGridCalc    = [];
+		this.TableGridCalc[0] = arrSumGrid[0];
+		for (var nIndex = 1, nCount = arrSumGrid.length; nIndex < nCount; ++nIndex)
 		{
-			for (var AddIndex = SumGrid.length; AddIndex <= CurGridCol + AfterInfo.GridAfter - 1; AddIndex++)
-				SumGrid[AddIndex] = SumGrid[AddIndex - 1] + 20; // Добавляем столбик шириной в 2 см
+			this.TableGridCalc[nIndex] = arrSumGrid[nIndex] - arrSumGrid[nIndex - 1];
 		}
 
-		if (SumGrid[CurGridCol + AfterInfo.GridAfter - 1] < AfterInfo.WAfter + SumGrid[CurGridCol - 1])
-		{
-			var nTempDiff = AfterInfo.WAfter + SumGrid[CurGridCol - 1] - SumGrid[CurGridCol + AfterInfo.GridAfter - 1];
-			for (var nTempIndex = CurGridCol + AfterInfo.GridAfter - 1; nTempIndex < SumGrid.length; ++nTempIndex)
-				SumGrid[nTempIndex] += nTempDiff;
-		}
+		this.TableSumGrid = arrSumGrid;
+
+		this.CalculatedPctWidth = PctWidth;
+		this.CalculatedMinWidth = MinWidth;
+		this.CalculatedTableW   = TableW;
+
+		this.RecalcInfo.TableGrid = false;
 	}
-
-    // TODO: разобраться с минимальной шириной таблицы и ячеек
-
-    // Задана общая ширина таблицы и последняя ячейка вышла за пределы
-    // данной ширины. Уменьшаем все столбцы сетки пропорционально, чтобы
-    // суммарная ширина стала равной заданной ширине таблицы.
-    if ( TableW > 0 && Math.abs( SumGrid[SumGrid.length - 1] - TableW ) > 0.01 )
-    {
-        SumGrid = this.Internal_ScaleTableWidth( SumGrid, TableW );
-    }
-    else if ( MinWidth > SumGrid[SumGrid.length - 1] )
-        SumGrid = this.Internal_ScaleTableWidth( SumGrid, SumGrid[SumGrid.length - 1] );
-
-    // По массиву SumGrid восстанавливаем ширины самих колонок
-    this.TableGridCalc = [];
-	this.TableGridCalc[0] = SumGrid[0];
-    for ( var Index = 1; Index < SumGrid.length; Index++ )
-		this.TableGridCalc[Index] = SumGrid[Index] - SumGrid[Index - 1];
-
-    this.TableSumGrid = SumGrid;
 
     var TopTable = this.Parent.Is_InTable(true);
     if ( ( null === TopTable && tbllayout_AutoFit === TablePr.TableLayout) || ( null != TopTable && tbllayout_AutoFit === TopTable.Get_CompiledPr(false).TablePr.TableLayout ) )
@@ -887,8 +903,6 @@ CTable.prototype.private_RecalculateGrid = function()
         for ( var CurCol = 0; CurCol < GridCount; CurCol++ )
             this.TableSumGrid[CurCol] = this.TableSumGrid[CurCol - 1] + this.TableGridCalc[CurCol];
     }
-
-    this.RecalcInfo.TableGrid = false;
 };
 CTable.prototype.private_RecalculateGridMinMargins = function(arrMinMargins)
 {
@@ -3233,11 +3247,11 @@ CTableRecalcInfo.prototype.Recalc_AllCells = function()
 {
     this.CellsAll = true;
 };
-CTableRecalcInfo.prototype.Reset = function(bCellsAll)
+CTableRecalcInfo.prototype.Reset = function(isNeedRecalculate)
 {
-    this.TableGrid     = true;
-    this.TableBorders  = true;
-    this.CellsAll      = bCellsAll;
+    this.TableGrid     = isNeedRecalculate;
+    this.TableBorders  = isNeedRecalculate;
+    this.CellsAll      = isNeedRecalculate;
     this.CellsToRecalc = {};
 };
 //----------------------------------------------------------------------------------------------------------------------

@@ -739,6 +739,7 @@ function ConvertTableToGraphicFrame(oTable, oPresentation){
         var nIndex = oTable2.Content.length;
         oTable2.Content[nIndex] = oNewRow;
         History.Add(new CChangesTableAddRow(oTable2, nIndex, [oNewRow]));
+        oTable2.private_UpdateTableGrid();
     }
 
     if(!oGraphicFrame.spPr){
