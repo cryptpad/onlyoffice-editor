@@ -2422,9 +2422,9 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
         case 23103: // ASC_MENU_EVENT_TYPE_DO_SELECT_COMMENTS
         {
             var json = JSON.parse(_params[0]);
-            if (json && json["resolved"]) {
+            if (json) {
                 if (_api.asc_showComments) {
-                    _api.asc_showComments(json["resolved"] === "true");
+                    _api.asc_showComments(json["resolved"] === true);
                 }
             }
             break;
@@ -2435,6 +2435,68 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             if (_api.asc_hideComments) {
                 _api.asc_hideComments();
             }
+            break;
+        }
+
+        case 24101: // ASC_MENU_EVENT_TYPE_DO_SET_TRACK_REVISIONS
+        {
+            var json = JSON.parse(_params[0]);
+            if (json) {
+                if (_api.asc_SetTrackRevisions) {
+                    _api.asc_SetTrackRevisions(json["state"] === true);
+                }
+            }
+            break;
+        }
+        case 24102: // ASC_MENU_EVENT_TYPE_DO_BEGIN_VIEWMODE_IN_REVIEW
+        {
+            var json = JSON.parse(_params[0]);
+            if (json) {
+                if (_api.asc_BeginViewModeInReview) {
+                    _api.asc_BeginViewModeInReview(json["review"] === true);
+                }
+            }
+            break;
+        }
+        case 24103: // ASC_MENU_EVENT_TYPE_DO_END_VIEWMODE_IN_REVIEW
+        {
+            if (_api.asc_EndViewModeInReview) {
+                _api.asc_EndViewModeInReview();
+            }
+            break;
+        }
+        case 24104: // ASC_MENU_EVENT_TYPE_DO_ACCEPT_ALL_CHANGES
+        {
+            if (_api.asc_AcceptAllChanges) {
+                _api.asc_AcceptAllChanges();
+            }
+            break;
+        }
+        case 24105: // ASC_MENU_EVENT_TYPE_DO_REJECT_ALL_CHANGES
+        {
+            if (_api.asc_RejectAllChanges) {
+                _api.asc_RejectAllChanges();
+            }
+            break;
+        }
+        case 24106: // ASC_MENU_EVENT_TYPE_DO_GET_PREV_REVISIONS_CHANGE
+        {
+            break;
+        }
+        case 24107: // ASC_MENU_EVENT_TYPE_DO_GET_NEXT_REVISIONSCHANGE
+        {
+            break;
+        }
+        case 24108: // ASC_MENU_EVENT_TYPE_DO_ACCEPT_CHANGES
+        {
+            break;
+        }
+        case 24109: // ASC_MENU_EVENT_TYPE_DO_REJECT_CHANGES
+        {
+            break;
+        }
+        case 24110: // ASC_MENU_EVENT_TYPE_DO_FOLLOW_REVISION_MOVE
+        {
             break;
         }
 
