@@ -300,6 +300,10 @@ function CheckShapeBodyAutoFitReset(oShape, bNoResetRelSize)
         else
         {
             oShape.txBody.setBodyPr(oPropsToSet);
+            if(oShape.checkExtentsByDocContent)
+            {
+                oShape.checkExtentsByDocContent(true, true);
+            }
         }
     }
 }
@@ -3561,6 +3565,17 @@ DrawingObjectsController.prototype =
             for(i = 0; i < objects_by_type.groups.length; ++i)
             {
                 objects_by_type.groups[i].setPaddings(props.paddings);
+            }
+        }
+        if(AscFormat.isRealNumber(props.textFitType))
+        {
+            for(i = 0; i < objects_by_type.shapes.length; ++i)
+            {
+                objects_by_type.shapes[i].setTextFitType(props.textFitType);
+            }
+            for(i = 0; i < objects_by_type.groups.length; ++i)
+            {
+                objects_by_type.groups[i].setTextFitType(props.textFitType);
             }
         }
         if(typeof(props.type) === "string")
@@ -8423,6 +8438,7 @@ DrawingObjectsController.prototype =
                         description: drawing.getDescription(),
                         columnNumber: drawing.getColumnNumber(),
                         columnSpace: drawing.getColumnSpace(),
+                        textFitType: drawing.getTextFitType(),
                         signatureId: drawing.getSignatureLineGuid(),
                         shadow: drawing.getOuterShdw(),
                         anchor: drawing.getDrawingBaseType()
@@ -8512,6 +8528,7 @@ DrawingObjectsController.prototype =
                         description: drawing.getDescription(),
                         columnNumber: null,
                         columnSpace: null,
+                        textFitType: null,
                         signatureId: null,
                         shadow: drawing.getOuterShdw(),
                         anchor: drawing.getDrawingBaseType()
@@ -9013,6 +9030,7 @@ DrawingObjectsController.prototype =
 
             shape_props.ShapeProperties.columnNumber = props.shapeProps.columnNumber;
             shape_props.ShapeProperties.columnSpace = props.shapeProps.columnSpace;
+            shape_props.ShapeProperties.textFitType = props.shapeProps.textFitType;
             shape_props.ShapeProperties.shadow = props.shapeProps.shadow;
             if(props.shapeProps.textArtProperties && oDrawingDocument)
             {

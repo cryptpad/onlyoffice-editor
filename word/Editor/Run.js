@@ -7455,7 +7455,7 @@ ParaRun.prototype.Internal_Compile_Pr = function ()
 	// Для совместимости со старыми версиями запишем FontFamily
 	TextPr.FontFamily.Name  = TextPr.RFonts.Ascii.Name;
 	TextPr.FontFamily.Index = TextPr.RFonts.Ascii.Index;
-
+	TextPr.CheckFontScale();
 	return TextPr;
 };
 

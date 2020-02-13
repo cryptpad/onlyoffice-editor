@@ -5387,6 +5387,9 @@ function CompareShapeProperties(shapeProp1, shapeProp2)
     if(shapeProp1.columnSpace === shapeProp2.columnSpace){
         _result_shape_prop.columnSpace = shapeProp1.columnSpace;
     }
+    if(shapeProp1.textFitType === shapeProp2.textFitType){
+        _result_shape_prop.textFitType = shapeProp1.textFitType;
+    }
 
     if(!shapeProp1.shadow && !shapeProp2.shadow){
         _result_shape_prop.shadow = null;
@@ -9208,15 +9211,15 @@ CTextFit.prototype =
     Write_ToBinary: function(w)
     {
         writeLong(w, this.type);
-        writeDouble(w, this.fontScale);
-        writeDouble(w, this.lnSpcReduction);
+        writeLong(w, this.fontScale);
+        writeLong(w, this.lnSpcReduction);
     },
 
     Read_FromBinary: function(r)
     {
         this.type = readLong(r);
-        this.fontScale = readDouble(r);
-        this.lnSpcReduction = readDouble(r);
+        this.fontScale = readLong(r);
+        this.lnSpcReduction = readLong(r);
     },
 
     Get_Id: function()
@@ -9281,6 +9284,26 @@ CBodyPr.prototype =
     Refresh_RecalcData: function()
     {},
 
+    getLnSpcReduction: function()
+    {
+        if(this.textFit
+            && this.textFit.type === AscFormat.text_fit_NormAuto
+            && AscFormat.isRealNumber(this.textFit.lnSpcReduction))
+        {
+            return this.textFit.lnSpcReduction / 100000.0;
+        }
+        return undefined;
+    },
+    getFontScale: function()
+    {
+        if(this.textFit
+            && this.textFit.type === AscFormat.text_fit_NormAuto
+            && AscFormat.isRealNumber(this.textFit.fontScale))
+        {
+            return this.textFit.fontScale / 100000.0;
+        }
+        return undefined;
+    },
     isNotNull: function()
     {
         return this.flatTx          !== null ||
@@ -9389,6 +9412,8 @@ CBodyPr.prototype =
             }
         }, this, []);
     },
+
+
 
     Write_ToBinary2: function(w)
     {
@@ -11642,6 +11667,7 @@ function CreateAscShapePropFromProp(shapeProp)
     obj.description = shapeProp.description;
     obj.columnNumber = shapeProp.columnNumber;
     obj.columnSpace = shapeProp.columnSpace;
+    obj.textFitType = shapeProp.textFitType;
     obj.shadow = shapeProp.shadow;
     if(shapeProp.signatureId)
     {
@@ -12750,9 +12776,9 @@ function CorrectUniColor(asc_color, unicolor, flag)
     window['AscFormat'].nTWTNone   = 0;
     window['AscFormat'].nTWTSquare = 1;
 
-    window['AscFormat'].text_fit_No         = 0;
-    window['AscFormat'].text_fit_Auto       = 1;
-    window['AscFormat'].text_fit_NormAuto   = 2;
+    window['AscFormat']["text_fit_No"]         = window['AscFormat'].text_fit_No         = 0;
+    window['AscFormat']["text_fit_Auto"]       = window['AscFormat'].text_fit_Auto       = 1;
+    window['AscFormat']["text_fit_NormAuto"]   = window['AscFormat'].text_fit_NormAuto   = 2;
 
     window['AscFormat'].BULLET_TYPE_COLOR_NONE	= 0;
     window['AscFormat'].BULLET_TYPE_COLOR_CLRTX	= 1;

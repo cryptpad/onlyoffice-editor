@@ -1041,7 +1041,7 @@
     }
   };
 
-  WorkbookView.prototype._onChangeSelection = function (isStartPoint, dc, dr, isCoord, isCtrl, callback, x, y) {
+  WorkbookView.prototype._onChangeSelection = function (isStartPoint, dc, dr, isCoord, isCtrl, callback) {
     var ws = this.getWorksheet();
     var t = this;
     var d = isStartPoint ? ws.changeSelectionStartPoint(dc, dr, isCoord, isCtrl) :
@@ -1061,7 +1061,6 @@
     		t.timerEnd = true;
     		},1000);
     }
-    t._onUpdateWorksheet(x, y, isCtrl);
     asc_applyFunction(callback, d);
   };
 
@@ -1155,10 +1154,8 @@
 		}
     } else {
       ct = ws.getCursorTypeFromXY(x, y);
-      if (t.controller) {
-        t.controller.mouseX = x;
-        t.controller.mouseY = y;
-      }
+      ct.mouseX = x;
+      ct.mouseY = y;
       if (this.timerId !== null) {
       	clearTimeout(this.timerId);
       	this.timerId = null;
@@ -2365,7 +2362,7 @@
 		ws = this.getWorksheet();
     	var ac = ws.model.selectionRange.activeCell;
     	var dc = result.col - ac.col, dr = result.row - ac.row;
-    	return options.findInSelection ? ws.changeSelectionActivePoint(dc, dr) : ws.changeSelectionStartPoint(dc, dr);
+    	return options.findInSelection ? ws.changeSelectionActivePoint(dc, dr, options) : ws.changeSelectionStartPoint(dc, dr, undefined, undefined, options);
     }
     return null;
   };
@@ -2409,6 +2406,7 @@
 				ws.replaceCellText(options, true, this.fReplaceCallback);
 				return;
 			}
+      options.sheetIndex = -1;
 		}
 
 		this.handlers.trigger("asc_onRenameCellTextEnd", options.countFindAll, options.countReplaceAll);
