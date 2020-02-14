@@ -9126,7 +9126,28 @@ background-repeat: no-repeat;\
 		}
 		else if (oTOC instanceof AscCommonWord.CComplexField)
 		{
-			this.asc_RemoveComplexField(oTOC);
+			var oCF = oTOC;
+
+			oTOC = null;
+
+			var oBeginChar = oCF.GetBeginChar();
+			if (oBeginChar && oBeginChar.GetRun())
+			{
+				var oParentCCs = oBeginChar.GetRun().GetParentContentControls();
+				for (var nIndex = 0, nCount = oParentCCs.length; nIndex < nCount; ++nIndex)
+				{
+					if (oParentCCs[nIndex].IsBlockLevel() && oParentCCs[nIndex].IsBuiltInTableOfContents())
+					{
+						oTOC = oParentCCs[nIndex];
+						break;
+					}
+				}
+			}
+
+			if (oTOC)
+				this.asc_RemoveContentControl(oTOC.GetId());
+			else
+				this.asc_RemoveComplexField(oCF);
 		}
 	};
 	asc_docs_api.prototype.asc_GetTableOfContentsPr = function(isCurrent)
