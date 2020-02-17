@@ -5413,13 +5413,17 @@ CMathContent.prototype.private_IsMenuPropsForContent = function(Action)
 };
 CMathContent.prototype.Process_AutoCorrect = function(ActionElement) {
     var bNeedAutoCorrect = this.private_NeedAutoCorrect(ActionElement);
+    if (!bNeedAutoCorrect) {
+        return false;
+    }
     var AutoCorrectEngine = new CMathAutoCorrectEngine(ActionElement, this.CurPos, this.GetParagraph());
+    AutoCorrectEngine.private_Check_IsFull();
     //добавить все элементы
     AutoCorrectEngine.private_Add_Element(this.Content);
-    if (null == AutoCorrectEngine.TextPr) {
+    if (AutoCorrectEngine.TextPr == null) {
         AutoCorrectEngine.TextPr = (this.Content[0] && this.Content[0].CompiledPr) ? this.Content[0].CompiledPr : new CTextPr();
     }
-    if (null == AutoCorrectEngine.MathPr) {
+    if (AutoCorrectEngine.MathPr == null) {
         AutoCorrectEngine.MathPr = new CMPrp();
     }
     var oParagraph = this.GetParagraph();
@@ -5427,24 +5431,51 @@ CMathContent.prototype.Process_AutoCorrect = function(ActionElement) {
     var CanMakeAutoCorrectEquation = false;
     var CanMakeAutoCorrectFunc     = false;
     var CanMakeAutoCorrect         = false;
-    if (false === bNeedAutoCorrect && ActionElement.Type === para_Math_Text) {
-        return false;
-    } else {
+    // if (false === bNeedAutoCorrect && ActionElement.Type === para_Math_Text) {
+    //     return false;
+    // } else {
         // Смотрим возможно ли выполнить автозамену, если нет, тогда пробуем произвести автозамену пропуская последний символ
-        if (g_aMathAutoCorrectTriggerCharCodes[ActionElement.value]) {
-            CanMakeAutoCorrect = this.private_CanAutoCorrectText(AutoCorrectEngine, true);
-        } else {
-            CanMakeAutoCorrect = this.private_CanAutoCorrectText(AutoCorrectEngine, false);
+        CanMakeAutoCorrect = this.private_CanAutoCorrectText(AutoCorrectEngine);
+        if (CanMakeAutoCorrect && AutoCorrectEngine.IsFull) {
+            //изменить контент
+            //либо надо оставить ActionElement, либо пометить где-то, что он уже удалён
+            this.private_ReplaceAutoCorrect(AutoCorrectEngine);
+            //закончить действие в истории
+            if (AutoCorrectEngine.StartHystory) {
+                if(oLogicDocument) {
+                    oLogicDocument.FinalizeAction();
+                } else {
+                    History.Remove_LastPoint();
+                }
+                AutoCorrectEngine.StartHystory = false;
+            }
+            //или вообще создать заного класс AutoCorrectEngine
+            //обновить элементы в AutoCorrectEngine
+            AutoCorrectEngine.CurElement = this.CurPos;
+            AutoCorrectEngine.private_Add_Element(this.Content);
+
+            //обновить CurPos
+            //очистить Remove and Replace
+            AutoCorrectEngine.Remove = [];
+            AutoCorrectEngine.Remove['total']  = 0;
+            AutoCorrectEngine.ReplaceContent = [];
+            CanMakeAutoCorrect = false;
         }
+
+
         if (!CanMakeAutoCorrect && g_aMathAutoCorrectTextFunc[ActionElement.value]) { 
             CanMakeAutoCorrectFunc = this.private_CanAutoCorrectTextFunc(AutoCorrectEngine);
         }
+        
         AutoCorrectEngine.CurPos = AutoCorrectEngine.Elements.length - AutoCorrectEngine.Remove.total - 1;
         // Пробуем сделать формульную автозамену
         if (!CanMakeAutoCorrectFunc && !CanMakeAutoCorrect) {
             CanMakeAutoCorrectEquation = AutoCorrectEngine.private_CanAutoCorrectEquation(CanMakeAutoCorrect);
         }
-    }
+    // }
+
+
+
     if (CanMakeAutoCorrect || CanMakeAutoCorrectEquation || CanMakeAutoCorrectFunc) {
       this.private_ReplaceAutoCorrect(AutoCorrectEngine);
         if(oLogicDocument) {
@@ -5456,21 +5487,20 @@ CMathContent.prototype.Process_AutoCorrect = function(ActionElement) {
     }
 };
 CMathContent.prototype.private_NeedAutoCorrect = function(ActionElement) {
-    var CharCode;
-    if (para_Math_Ampersand == ActionElement.Type) {
-        CharCode = 0x26;
-    } else {
-        CharCode = ActionElement.value;
-    }
-    if (1 === g_aMathAutoCorrectTriggerCharCodes[CharCode]) {
+    var CharCode = ActionElement.value;
+    // if (para_Math_Ampersand == ActionElement.Type) {
+    //     CharCode = 0x26;
+    // } else {
+    //     CharCode = ActionElement.value;
+    // }
+    if (g_aMathAutoCorrectTriggerCharCodes[CharCode]) {
         return true;
     }
     return false;
 };
-CMathContent.prototype.private_CanAutoCorrectText = function(AutoCorrectEngine, bSkipLast) {
-    var IndexAdd = (true === bSkipLast ? 1 : 0);
-    var skip = (g_aMathAutoCorrectTriggerCharCodes[AutoCorrectEngine.ActionElement.value]) ? 1 : 0;
-    skip -= (AutoCorrectEngine.ActionElement.value == 0x20) ? 1 : 0;
+CMathContent.prototype.private_CanAutoCorrectText = function(AutoCorrectEngine) {
+    var IndexAdd = (g_aMathAutoCorrectTriggerCharCodes[AutoCorrectEngine.ActionElement.value]) ? 1 : 0;
+    var skip = IndexAdd - (AutoCorrectEngine.ActionElement.value == 0x20) ? 1 : 0;
     var ElCount = AutoCorrectEngine.Elements.length;
     if (ElCount < 2 + IndexAdd) {
         return false;
@@ -7757,6 +7787,7 @@ CMathAutoCorrectEngine.prototype.private_CanAutoCorrectEquation = function(CanMa
             continue;
         } else if (Elem.value === 0x005F) { // _
             if ((this.Type == MATH_DEGREE && (buffer[CurLvBuf-1] && buffer[CurLvBuf-1].Type == DEGREE_SUBSCRIPT))) {
+                break;
                 //remove this if you need work with ___...
             }
             if (Elem === this.ActionElement) {
@@ -8222,7 +8253,7 @@ CMathContent.prototype.private_ReplaceAutoCorrect = function(AutoCorrectEngine) 
                     var oContentElem = this.Content[FirstEl.ElPos + 1];
                     this.Correct_Content(true);
                     for (var k = this.Content.length - 1; k >= 0 ; k--) {
-                        if (AutoCorrectEngine.ReplaceContent[i] === this.Content[k]) {
+                        if (AutoCorrectEngine.ReplaceContent[i] === this.Content[k] && AutoCorrectEngine.ActionElement.value == 0x20) {
                             this.CurPos = k;
                             break;
                         }
@@ -8556,10 +8587,12 @@ function CMathAutoCorrectEngine(Elem, CurPos, Paragraph) {
     this.ReplaceContent   = [];                 // элементы для вставки в основной контент после автозамены
     this.Shift 			  = 0;                  // отступ
     this.StartHystory     = false;              // флаг, обозначающий была ли уже создана точка в истории автозаменой
+    this.IsFull           = false;              // флаг обозначения полной автозамены
     this.TextPr           = null;
     this.MathPr           = null;
 };
 CMathAutoCorrectEngine.prototype.private_Add_Element = function(Content) {
+    this.Elements = [];
     var nCount = this.CurElement;
     for (var i = nCount; i >= 0; i--) {
         if (Content[i].Type === 49) {
@@ -8570,6 +8603,17 @@ CMathAutoCorrectEngine.prototype.private_Add_Element = function(Content) {
         } else {
             this.Elements.unshift({Element: Content[i], ElPos: i});
         }
+    }
+};
+
+CMathAutoCorrectEngine.prototype.private_Check_IsFull = function() {
+    var ArrFullAutocorrect = {
+        0x21 : 1, 0x23 : 1, 0x25 : 1, 0x26 : 1, 0x2A : 1, 0x2B : 1,
+        0x2C : 1, 0x2D : 1, 0x2F : 1, 0x3A : 1, 0x3B : 1, 0x3C : 1,
+        0x3D : 1, 0x3E : 1, 0x3F : 1, 0x40 : 1, 0x60 : 1, 0x7E : 1
+    };
+    if (ArrFullAutocorrect[this.ActionElement.value]) {
+        this.IsFull = true;
     }
 };
 
