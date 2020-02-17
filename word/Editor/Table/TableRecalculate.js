@@ -1372,7 +1372,7 @@ CTable.prototype.private_RecalculateBorders = function()
                 {
                     // Линии правой и левой границы рисуются ровно по сетке
                     // (середина линии(всмысле толщины линии) совпадает с линией сетки).
-                    // Мы должны найти максимальную толщину линии, учавствущую в правой/левой
+                    // Мы должны найти максимальную толщину линии, участвущую в правой/левой
                     // границах. Если данная толщина меньше соответствующего отступа, тогда
                     // она не влияет на расположение содержимого ячейки, в противном случае,
                     // максимальная толщина линии и задает отступ для содержимого.
@@ -1381,84 +1381,62 @@ CTable.prototype.private_RecalculateBorders = function()
 
                     var Max_r_w = 0;
                     var Max_l_w = 0;
-                    var Borders_Info =
-                        {
-                            Right     : [],
-                            Left      : [],
 
-                            Right_Max : 0,
-                            Left_Max  : 0
-                        };
+					var Borders_Info = {
+						Right : [],
+						Left  : [],
 
-                    for ( var Temp_CurRow = 0; Temp_CurRow < VMergeCount; Temp_CurRow++ )
-                    {
-                        var Temp_Row = this.Content[CurRow + Temp_CurRow];
-                        var Temp_CellsCount = Temp_Row.Get_CellsCount();
+						Right_Max : 0,
+						Left_Max  : 0
+					};
 
-                        // ищем ячейку текущего объединения
-                        var Temp_CurCell = this.private_GetCellIndexByStartGridCol( CurRow + Temp_CurRow, CurGridCol );
-                        if ( Temp_CurCell < 0 )
-                            continue;
+					for (var nTempCurRow = 0; nTempCurRow < VMergeCount; ++nTempCurRow)
+					{
+						var oTempRow = this.GetRow(CurRow + nTempCurRow);
 
-                        // левая граница
-                        if ( 0 === Temp_CurCell )
-                        {
-                            var LeftBorder = this.Internal_CompareBorders( TableBorders.Left, CellBorders.Left, true, false );
-                            if ( border_Single === LeftBorder.Value && LeftBorder.Size > Max_l_w )
-                                Max_l_w = LeftBorder.Size;
+						var nTempCurCell = this.private_GetCellIndexByStartGridCol(CurRow + nTempCurRow, CurGridCol);
+						if (nTempCurCell < 0)
+							continue;
 
-                            Borders_Info.Left.push( LeftBorder );
-                        }
-                        else
-                        {
-                            var Temp_Prev_Cell = Temp_Row.Get_Cell( Temp_CurCell - 1 );
-                            var Temp_Prev_VMerge = Temp_Prev_Cell.GetVMerge();
-                            if ( 0 != Temp_CurRow && vmerge_Continue === Temp_Prev_VMerge )
-                            {
-                                Borders_Info.Left.push( Borders_Info.Left[Borders_Info.Left.length - 1] );
-                            }
-                            else
-                            {
-                                var Temp_Prev_Main_Cell = this.Internal_Get_StartMergedCell( CurRow + Temp_CurRow, CurGridCol - Temp_Prev_Cell.Get_GridSpan(), Temp_Prev_Cell.Get_GridSpan() );
-                                var Temp_Prev_Main_Cell_Borders = Temp_Prev_Main_Cell.Get_Borders();
+						var oTempCell        = oTempRow.GetCell(nTempCurCell);
+						var oTempCellBorders = oTempCell.GetBorders();
 
-                                var LeftBorder = this.Internal_CompareBorders( Temp_Prev_Main_Cell_Borders.Right, CellBorders.Left, false, false );
-                                if ( border_Single === LeftBorder.Value && LeftBorder.Size > Max_l_w )
-                                    Max_l_w = LeftBorder.Size;
+						// Обработка левой границы
+						if (0 === nTempCurCell)
+						{
+							var oLeftBorder = this.Internal_CompareBorders(TableBorders.Left, oTempCellBorders.Left, true, false);
+							if (border_Single === oLeftBorder.Value && oLeftBorder.Size > Max_l_w)
+								Max_l_w = oLeftBorder.Size;
 
-                                Borders_Info.Left.push( LeftBorder );
-                            }
-                        }
+							Borders_Info.Left.push(oLeftBorder);
+						}
+						else
+						{
+							var oLeftBorder = this.Internal_CompareBorders(oTempRow.GetCell(nTempCurCell - 1).GetBorders().Right, oTempCellBorders.Left, false, false);
+							if (border_Single === oLeftBorder.Value && oLeftBorder.Size > Max_l_w)
+								Max_l_w = oLeftBorder.Size;
 
-                        if ( Temp_CellsCount - 1 === Temp_CurCell )
-                        {
-                            var RightBorder = this.Internal_CompareBorders( TableBorders.Right, CellBorders.Right, true, false );
-                            if ( border_Single === RightBorder.Value && RightBorder.Size > Max_r_w )
-                                Max_r_w = RightBorder.Size;
+							Borders_Info.Left.push(oLeftBorder);
+						}
 
-                            Borders_Info.Right.push( RightBorder );
-                        }
-                        else
-                        {
-                            var Temp_Next_Cell = Temp_Row.Get_Cell( Temp_CurCell + 1 );
-                            var Temp_Next_VMerge = Temp_Next_Cell.GetVMerge();
-                            if ( 0 != Temp_CurRow && vmerge_Continue === Temp_Next_VMerge )
-                            {
-                                Borders_Info.Right.push( Borders_Info.Right[Borders_Info.Right.length - 1] );
-                            }
-                            else
-                            {
-                                var Temp_Next_Main_Cell = this.Internal_Get_StartMergedCell( CurRow + Temp_CurRow, CurGridCol + GridSpan, Temp_Next_Cell.Get_GridSpan() );
-                                var Temp_Next_Main_Cell_Borders = Temp_Next_Main_Cell.Get_Borders();
+						// Обработка правой границы
+						if (oTempRow.GetCellsCount() - 1 === nTempCurCell)
+						{
+							var oRightBorder = this.Internal_CompareBorders(TableBorders.Right, oTempCellBorders.Right, true, false);
+							if (border_Single === oRightBorder.Value && oRightBorder.Size > Max_r_w)
+								Max_r_w = oRightBorder.Size;
 
-                                var RightBorder = this.Internal_CompareBorders( Temp_Next_Main_Cell_Borders.Left, CellBorders.Right, false, false );
-                                if ( border_Single === RightBorder.Value && RightBorder.Size > Max_r_w )
-                                    Max_r_w = RightBorder.Size;
+							Borders_Info.Right.push(oRightBorder);
+						}
+						else
+						{
+							var oRightBorder = this.Internal_CompareBorders(oTempRow.GetCell(nTempCurCell + 1).GetBorders().Left, oTempCellBorders.Right, false, false);
+							if (border_Single === oRightBorder.Value && oRightBorder.Size > Max_r_w)
+								Max_r_w = oRightBorder.Size;
 
-                                Borders_Info.Right.push( RightBorder );
-                            }
-                        }
-                    }
+							Borders_Info.Right.push(oRightBorder);
+						}
+					}
 
                     Borders_Info.Right_Max = Max_r_w;
                     Borders_Info.Left_Max  = Max_l_w;
