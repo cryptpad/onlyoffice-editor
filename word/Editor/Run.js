@@ -4700,6 +4700,17 @@ ParaRun.prototype.Recalculate_PageEndInfo = function(PRSI, _CurLine, _CurRange)
 		}
 	}
 };
+ParaRun.prototype.RecalculateEndInfo = function(oPRSI)
+{
+	for (var nCurPos = 0, nCount = this.Content.length; nCurPos < nCount; ++nCurPos)
+	{
+		var oItem = this.Content[nCurPos];
+		if (para_FieldChar === oItem.Type)
+		{
+			oPRSI.ProcessFieldChar(oItem);
+		}
+	}
+};
 
 ParaRun.prototype.private_RecalculateNumbering = function(PRS, Item, ParaPr, _X)
 {

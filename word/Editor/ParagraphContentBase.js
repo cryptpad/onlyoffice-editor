@@ -294,6 +294,10 @@ CParagraphContentBase.prototype.Recalculate_Range_Spaces = function(PRSA, CurLin
 CParagraphContentBase.prototype.Recalculate_PageEndInfo = function(PRSI, _CurLine, _CurRange)
 {
 };
+CParagraphContentBase.prototype.RecalculateEndInfo = function(oPRSI)
+{
+
+};
 CParagraphContentBase.prototype.SaveRecalculateObject = function(Copy)
 {
 	var RecalcObj = new CRunRecalculateObject(this.StartLine, this.StartRange);
@@ -2267,6 +2271,13 @@ CParagraphContentWithParagraphLikeContent.prototype.Recalculate_PageEndInfo = fu
     {
         this.Content[CurPos].Recalculate_PageEndInfo( PRSI, _CurLine, _CurRange );
     }
+};
+CParagraphContentWithParagraphLikeContent.prototype.RecalculateEndInfo = function(oPRSI)
+{
+	for (var nCurPos = 0, nCount = this.Content.length; nCurPos < nCount; ++nCurPos)
+	{
+		this.Content[nCurPos].RecalculateEndInfo(oPRSI);
+	}
 };
 CParagraphContentWithParagraphLikeContent.prototype.SaveRecalculateObject = function(Copy)
 {

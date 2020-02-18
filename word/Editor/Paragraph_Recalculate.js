@@ -3568,8 +3568,16 @@ CParagraphRecalculateStateInfo.prototype.Reset = function(PrevInfo)
 {
 	if (null !== PrevInfo && undefined !== PrevInfo)
 	{
-		this.Comments      = PrevInfo.Comments;
+		this.Comments      = [];
 		this.ComplexFields = [];
+
+		if (PrevInfo.Comments)
+		{
+			for (var nIndex = 0, nCount = PrevInfo.Comments.length; nIndex < nCount; ++nIndex)
+			{
+				this.Comments[nIndex] = PrevInfo.Comments[nIndex];
+			}
+		}
 
 		if (PrevInfo.ComplexFields)
 		{

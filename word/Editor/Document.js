@@ -4719,6 +4719,14 @@ CDocument.prototype.Reset_RecalculateCache                   = function()
     this.Footnotes.ResetRecalculateCache();
 };
 /**
+ * Получаем идентификатор текущего пересчета
+ * @returns {number}
+ */
+CDocument.prototype.GetRecalcId = function()
+{
+	return this.RecalcId;
+};
+/**
  * Останавливаем процесс пересчета (если пересчет был запущен и он долгий)
  * @constructor
  */

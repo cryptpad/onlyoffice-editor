@@ -101,6 +101,9 @@ function Paragraph(DrawingDocument, Parent, bFromPresentation)
     this.Pages = []; // Массив страниц (CParaPage)
     this.Lines = []; // Массив строк (CParaLine)
 
+	this.EndInfo         = new CParagraphPageEndInfo();
+	this.EndInfoRecalcId = -1;
+
     if(!(bFromPresentation === true))
     {
         this.Numbering = new ParaNumbering();
@@ -1274,12 +1277,25 @@ Paragraph.prototype.Check_MathPara = function(MathPos)
 };
 Paragraph.prototype.GetEndInfo = function()
 {
-	var PagesCount = this.Pages.length;
+	var oLogicDocument = this.GetLogicDocument();
+	if (oLogicDocument && this.EndInfoRecalcId === oLogicDocument.GetRecalcId())
+		return this.EndInfo;
 
-	if (PagesCount > 0)
-		return this.Pages[PagesCount - 1].EndInfo.Copy();
-	else
-		return null;
+	var oPRSI     = this.m_oPRSI;
+	var oPrevInfo = this.Parent.GetPrevElementEndInfo(this);
+	oPRSI.Reset(oPrevInfo);
+
+	for (var nCurPos = 0, nCount = this.Content.length; nCurPos < nCount; ++nCurPos)
+	{
+		this.Content[nCurPos].RecalculateEndInfo(oPRSI);
+	}
+
+	this.EndInfo.SetFromPRSI(oPRSI);
+
+	if (oLogicDocument)
+		this.EndInfoRecalcId = oLogicDocument.GetRecalcId();
+
+	return this.EndInfo;
 };
 Paragraph.prototype.GetEndInfoByPage = function(CurPage)
 {

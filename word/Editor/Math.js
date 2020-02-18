@@ -2388,6 +2388,9 @@ ParaMath.prototype.Recalculate_PageEndInfo = function(PRSI, _CurLine, _CurRange)
 {
 
 };
+ParaMath.prototype.RecalculateEndInfo = function(oPRSI)
+{
+};
 ParaMath.prototype.SaveRecalculateObject = function(Copy)
 {
 	var RecalcObj = this.Root.SaveRecalculateObject(Copy);
