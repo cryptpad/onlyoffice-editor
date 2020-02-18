@@ -1232,11 +1232,11 @@ CTableCell.prototype =
 			return;
 		}
 
-		var Margins_new = this.Pr.TableCellMar;
+		var Margins_new;
 
 		var bNeedChange  = false;
 		var TableMargins = this.Row.Table.Get_TableCellMar();
-		if (null === Margins_new || undefined === Margins_new)
+		if (!this.Pr.TableCellMar)
 		{
 			Margins_new = {
 				Left   : TableMargins.Left.Copy(),
@@ -1246,6 +1246,15 @@ CTableCell.prototype =
 			};
 
 			bNeedChange = true;
+		}
+		else
+		{
+			Margins_new = {
+				Left   : this.Pr.TableCellMar.Left ? this.Pr.TableCellMar.Left.Copy() : TableMargins.Left.Copy(),
+				Right  : this.Pr.TableCellMar.Right ? this.Pr.TableCellMar.Right.Copy() : TableMargins.Right.Copy(),
+				Bottom : this.Pr.TableCellMar.Bottom ? this.Pr.TableCellMar.Bottom.Copy() : TableMargins.Bottom.Copy(),
+				Top    : this.Pr.TableCellMar.Top ? this.Pr.TableCellMar.Top.Copy() : TableMargins.Top.Copy()
+			};
 		}
 
 		switch (Type)
