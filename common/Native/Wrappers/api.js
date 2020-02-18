@@ -6165,6 +6165,9 @@ function NativeOpenFile3(_params, documentInfo)
         docInfo.put_UserInfo(userInfo);
         docInfo.put_Token(window.documentInfo["token"]);
 
+        _internalStorage.externalUserInfo = userInfo;
+        _internalStorage.externalDocInfo = docInfo;
+
         var permissions = window.documentInfo["permissions"];
         if (undefined != permissions && null != permissions && permissions.length > 0) {
             docInfo.put_Permissions(JSON.parse(permissions));
@@ -6562,8 +6565,18 @@ function onApiShowRevisionsChange(data) {
                     break;
             }
 
+            var userName = '';
+
+            if (item.get_UserName() != '') {
+                userName = item.get_UserName()
+            } else {
+                if (_internalStorage.externalUserInfo && _internalStorage.externalUserInfo.asc_getFullName) {
+                    userName = _internalStorage.externalUserInfo.asc_getFullName()
+                }
+            }
+
             var revisionChange = {
-                userName: item.get_UserName(),
+                userName: userName,
                 date: (item.get_DateTime() == '' ? new Date().getMilliseconds() : item.get_DateTime()),
                 goto: (item.get_MoveType() == Asc.c_oAscRevisionsMove.MoveTo || item.get_MoveType() == Asc.c_oAscRevisionsMove.MoveFrom),
                 commonChanges: commonChanges,
