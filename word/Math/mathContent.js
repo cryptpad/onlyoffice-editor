@@ -5431,48 +5431,66 @@ CMathContent.prototype.Process_AutoCorrect = function(ActionElement) {
     var CanMakeAutoCorrectEquation = false;
     var CanMakeAutoCorrectFunc     = false;
     var CanMakeAutoCorrect         = false;
-    // if (false === bNeedAutoCorrect && ActionElement.Type === para_Math_Text) {
-    //     return false;
-    // } else {
-        // Смотрим возможно ли выполнить автозамену, если нет, тогда пробуем произвести автозамену пропуская последний символ
-        CanMakeAutoCorrect = this.private_CanAutoCorrectText(AutoCorrectEngine);
-        if (CanMakeAutoCorrect && AutoCorrectEngine.IsFull) {
-            //изменить контент
-            //либо надо оставить ActionElement, либо пометить где-то, что он уже удалён
-            this.private_ReplaceAutoCorrect(AutoCorrectEngine);
-            //закончить действие в истории
-            if (AutoCorrectEngine.StartHystory) {
-                if(oLogicDocument) {
-                    oLogicDocument.FinalizeAction();
-                } else {
-                    History.Remove_LastPoint();
-                }
-                AutoCorrectEngine.StartHystory = false;
+    // Смотрим возможно ли выполнить автозамену, если нет, тогда пробуем произвести автозамену пропуская последний символ
+    CanMakeAutoCorrect = this.private_CanAutoCorrectText(AutoCorrectEngine);
+    if (CanMakeAutoCorrect && AutoCorrectEngine.IsFull) {
+        this.private_ReplaceAutoCorrect(AutoCorrectEngine);
+        if (AutoCorrectEngine.StartHystory) {
+            if(oLogicDocument) {
+                oLogicDocument.FinalizeAction();
+            } else {
+                History.Remove_LastPoint();
             }
-            //или вообще создать заного класс AutoCorrectEngine
-            //обновить элементы в AutoCorrectEngine
-            AutoCorrectEngine.CurElement = this.CurPos;
-            AutoCorrectEngine.private_Add_Element(this.Content);
-
-            //обновить CurPos
-            //очистить Remove and Replace
-            AutoCorrectEngine.Remove = [];
-            AutoCorrectEngine.Remove['total']  = 0;
-            AutoCorrectEngine.ReplaceContent = [];
-            CanMakeAutoCorrect = false;
+            AutoCorrectEngine.StartHystory = false;
         }
+        AutoCorrectEngine.CurElement = this.CurPos;
+        AutoCorrectEngine.private_Add_Element(this.Content);
+        AutoCorrectEngine.Remove = [];
+        AutoCorrectEngine.Remove['total']  = 0;
+        AutoCorrectEngine.ReplaceContent = [];
+        CanMakeAutoCorrect = false;
+    }
 
 
-        if (!CanMakeAutoCorrect && g_aMathAutoCorrectTextFunc[ActionElement.value]) { 
-            CanMakeAutoCorrectFunc = this.private_CanAutoCorrectTextFunc(AutoCorrectEngine);
+    if (!CanMakeAutoCorrect && g_aMathAutoCorrectTextFunc[ActionElement.value]) { 
+        CanMakeAutoCorrectFunc = this.private_CanAutoCorrectTextFunc(AutoCorrectEngine);
+    }
+    
+    AutoCorrectEngine.CurPos = AutoCorrectEngine.Elements.length - AutoCorrectEngine.Remove.total - 1;
+    // Пробуем сделать формульную автозамену
+    if (!CanMakeAutoCorrectFunc && !CanMakeAutoCorrect) {
+        CanMakeAutoCorrectEquation = AutoCorrectEngine.private_CanAutoCorrectEquation(CanMakeAutoCorrect);
+    }
+
+    while (AutoCorrectEngine.CurPos >= 0 && AutoCorrectEngine.IsFull && CanMakeAutoCorrectEquation) {
+        this.private_ReplaceAutoCorrect(AutoCorrectEngine);
+        //возможно здесь не надо делать остановку истории, т.к. ворд не делает
+        if (AutoCorrectEngine.StartHystory) {
+            if(oLogicDocument) {
+                oLogicDocument.FinalizeAction();
+            } else {
+                History.Remove_LastPoint();
+            }
+            AutoCorrectEngine.StartHystory = false;
         }
-        
-        AutoCorrectEngine.CurPos = AutoCorrectEngine.Elements.length - AutoCorrectEngine.Remove.total - 1;
-        // Пробуем сделать формульную автозамену
-        if (!CanMakeAutoCorrectFunc && !CanMakeAutoCorrect) {
-            CanMakeAutoCorrectEquation = AutoCorrectEngine.private_CanAutoCorrectEquation(CanMakeAutoCorrect);
-        }
-    // }
+        AutoCorrectEngine.CurElement = this.CurPos;
+        AutoCorrectEngine.private_Add_Element(this.Content);
+        AutoCorrectEngine.Remove = [];
+        AutoCorrectEngine.Remove['total']  = 0;
+        AutoCorrectEngine.ReplaceContent = [];
+
+        AutoCorrectEngine.Brackets = [];
+        AutoCorrectEngine.Type = null;
+        AutoCorrectEngine.Kind = null;
+        AutoCorrectEngine.props = {};
+        AutoCorrectEngine.Shift = 0;
+        AutoCorrectEngine.CurPos = AutoCorrectEngine.Elements.length - 1;
+
+        CanMakeAutoCorrectEquation = false;
+
+
+        CanMakeAutoCorrectEquation = AutoCorrectEngine.private_CanAutoCorrectEquation(CanMakeAutoCorrect);
+    }
 
 
 
