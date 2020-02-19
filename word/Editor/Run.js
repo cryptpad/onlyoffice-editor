@@ -7365,6 +7365,10 @@ ParaRun.prototype.Get_TextPr = function()
 {
     return this.Pr.Copy();
 };
+ParaRun.prototype.GetTextPr = function()
+{
+	return this.Pr.Copy();
+};
 
 ParaRun.prototype.Get_FirstTextPr = function()
 {
@@ -10556,7 +10560,7 @@ ParaRun.prototype.RejectRevisionChanges = function(nType, bAll)
 		}
 	}
 };
-ParaRun.prototype.Is_InHyperlink = function()
+ParaRun.prototype.IsInHyperlink = function()
 {
     if (!this.Paragraph)
         return false;

@@ -6078,7 +6078,7 @@ Paragraph.prototype.MoveCursorDownToFirstRow = function(X, Y, AddToSelect)
 		}
 	}
 };
-Paragraph.prototype.Cursor_MoveTo_Drawing = function(Id, bBefore)
+Paragraph.prototype.MoveCursorToDrawing = function(Id, bBefore)
 {
 	if (undefined === bBefore)
 		bBefore = true;

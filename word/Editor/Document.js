@@ -430,7 +430,7 @@ CSelectedContent.prototype =
         this.Elements.push( Element );
     },
 
-    Set_MoveDrawing : function(Value)
+    SetMoveDrawing : function(Value)
     {
         this.MoveDrawing = Value;
     },
