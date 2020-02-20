@@ -14164,10 +14164,10 @@ CDocument.prototype.Set_ColumnsProps = function(ColumnsProps)
 
 		var oStartSectPr = this.SectionsInfo.Get_SectPr(nStartPos).SectPr;
 		var oEndSectPr   = this.SectionsInfo.Get_SectPr(nEndPos).SectPr;
-		if (!oStartSectPr || !oEndSectPr)
+		if (!oStartSectPr || !oEndSectPr || (oStartSectPr === oEndSectPr && oStartSectPr.IsEqualColumnProps(ColumnsProps)))
 			return;
 
-		if (this.Document_Is_SelectionLocked(AscCommon.changestype_Document_SectPr))
+		if (this.IsSelectionLocked(AscCommon.changestype_Document_SectPr))
 			return;
 
 		this.StartAction(AscDFH.historydescription_Document_SetColumnsProps);
@@ -14198,12 +14198,19 @@ CDocument.prototype.Set_ColumnsProps = function(ColumnsProps)
 			nEndPos++;
 		}
 
-		oEndSectPr.Set_Type(c_oAscSectionBreakType.Continuous);
-		var oSectPr = new CSectionPr(this);
-		oSectPr.Copy(oEndSectPr, false);
-		oEndParagraph.Set_SectionPr(oSectPr, true);
-
-		oSectPr.SetColumnProps(ColumnsProps);
+		if (nEndPos !== this.Content.length - 1)
+		{
+			oEndSectPr.Set_Type(c_oAscSectionBreakType.Continuous);
+			var oSectPr = new CSectionPr(this);
+			oSectPr.Copy(oEndSectPr, false);
+			oEndParagraph.Set_SectionPr(oSectPr, true);
+			oSectPr.SetColumnProps(ColumnsProps);
+		}
+		else
+		{
+			oEndSectPr.Set_Type(c_oAscSectionBreakType.Continuous);
+			oEndSectPr.SetColumnProps(ColumnsProps);
+		}
 
 		for (var nIndex = nStartPos; nIndex < nEndPos; ++nIndex)
 		{
