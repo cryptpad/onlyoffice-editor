@@ -3309,7 +3309,7 @@ var editor;
         continue;
       }
       ws.model.getRange3(currentCell.row, currentCell.col, currentCell.row, maxC)._foreachNoEmpty(function (cell, r, c) {
-        if (cell.text !== null) {
+        if (cell.text !== null && !cell.isFormula()) {
           var cellInfo = new AscCommon.CellBase(r, c);
           var wordsObject = AscCommonExcel.WordSplitting(cell.text);
           var words = wordsObject.wordsArray;
