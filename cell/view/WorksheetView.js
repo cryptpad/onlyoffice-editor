@@ -14810,6 +14810,7 @@
 
 		//нельзя применять если столбец, где находится активная ячейка, не определен
 		if(!this.model.getColDataNoEmpty(activeCell.col)) {
+			t.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.AutoFilterDataRangeError, c_oAscError.Level.NoCritical);
 			return;
 		}
 
