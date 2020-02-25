@@ -1672,8 +1672,11 @@ Paragraph.prototype.RecalculateMinMaxContentWidth = function(isRotated)
 	var ParaPr = this.Get_CompiledPr2(false).ParaPr;
 	var MinInd = ParaPr.Ind.Left + ParaPr.Ind.Right + ParaPr.Ind.FirstLine;
 
-	MinMax.nMinWidth += MinInd;
-	MinMax.nMaxWidth += MinInd;
+	if (MinMax.nMinWidth > 0.001 || MinMax.nMaxWidth > 0.001)
+	{
+		MinMax.nMinWidth += MinInd;
+		MinMax.nMaxWidth += MinInd;
+	}
 
 	if (true === isRotated)
 	{
