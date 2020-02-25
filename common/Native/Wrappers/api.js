@@ -2441,6 +2441,132 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             break;
         }
 
+        case 23105: // ASC_MENU_EVENT_TYPE_DO_ADD_COMMENT
+        {
+            var json = JSON.parse(_params[0]);
+            if (json) {
+                var buildCommentData = function () {
+                    if (typeof Asc.asc_CCommentDataWord !== 'undefined') {
+                        return new Asc.asc_CCommentDataWord(null);
+                    }
+                    return new Asc.asc_CCommentData(null);
+                };
+
+                var comment = buildCommentData();
+                var now = new Date();
+                var timeZoneOffsetInMs = (new Date()).getTimezoneOffset() * 60000;
+                var currentUserId = _internalStorage.externalUserInfo.asc_getId();
+                var currentUserName = _internalStorage.externalUserInfo.asc_getFullName();
+
+                if (comment) {
+                    comment.asc_putText(json["m_sText"]);
+                    comment.asc_putTime((now.getTime() - timeZoneOffsetInMs).toString());
+                    comment.asc_putOnlyOfficeTime(now.getTime().toString());
+                    comment.asc_putUserId(currentUserId);
+                    comment.asc_putUserName(currentUserName);
+                    comment.asc_putSolved(false);
+
+                    if (comment.asc_putDocumentFlag) {
+                        comment.asc_putDocumentFlag(json["unattached"]);
+                    }
+
+                    _api.asc_addComment(comment);
+                }
+            }
+            break;
+        }
+
+        case 23106: // ASC_MENU_EVENT_TYPE_DO_REMOVE_COMMENT
+        {
+            var json = JSON.parse(_params[0]);
+            if (json && json["id"]) { // id - String
+                if (_api.asc_removeComment) {
+                    _api.asc_removeComment(json["id"]);
+                }
+            }
+            break;
+        }
+
+        case 23107: // ASC_MENU_EVENT_TYPE_DO_REMOVE_ALL_COMMENTS
+        {
+            var json = JSON.parse(_params[0]),
+                type = json["type"],
+                canEditComments = json["canEditComments"];
+            if (json && type) {
+                if (_api.asc_RemoveAllComments) {
+                    _api.asc_RemoveAllComments(type=='my' || !(canEditComments === true), type=='current'); // 1 param = true if remove only my comments, 2 param - remove current comments
+                }
+            }
+            break;
+        }
+
+        case 23108: // ASC_MENU_EVENT_TYPE_DO_CHANGE_COMMENT
+        {
+            var json = JSON.parse(_params[0]),
+                commentId = json["id"],
+                comment = json["comment"];
+
+            if (json && commentId) {
+                var timeZoneOffsetInMs = (new Date()).getTimezoneOffset() * 60000;
+                var currentUserId = _internalStorage.externalUserInfo.asc_getId();
+                var currentUserName = _internalStorage.externalUserInfo.asc_getFullName();
+                var buildCommentData = function () {
+                    if (typeof Asc.asc_CCommentDataWord !== 'undefined') {
+                        return new Asc.asc_CCommentDataWord(null);
+                    }
+                    return new Asc.asc_CCommentData(null);
+                };
+                var ooDateToString = function (date) {
+                    if (Object.prototype.toString.call(date) === '[object Date]')
+                        return (date.getTime()).toString();
+                    return "";
+                };
+                var utcDateToString = function (date) {
+                    if (Object.prototype.toString.call(date) === '[object Date]')
+                        return (date.getTime() - timeZoneOffsetInMs).toString();
+                    return "";
+                };
+                var ascComment = buildCommentData();
+
+                if (ascComment && comment && _api.asc_changeComment) {
+                    var sTime = new Date(parseInt(comment["m_sTime"]));
+                    ascComment.asc_putText(comment["m_sText"]);
+                    ascComment.asc_putQuoteText(comment["m_sQuoteText"]);
+                    ascComment.asc_putTime(utcDateToString(sTime));
+                    ascComment.asc_putOnlyOfficeTime(ooDateToString(sTime));
+                    ascComment.asc_putUserId(comment["m_sUserId"]);
+                    ascComment.asc_putUserName(comment["m_sUserName"]);
+                    ascComment.asc_putSolved(comment["m_bSolved"]);
+                    ascComment.asc_putGuid(comment["id"]);
+
+                    if (comment.asc_putDocumentFlag) {
+                        ascComment.asc_putDocumentFlag(comment["unattached"]);
+                    }
+
+                    var replies = comment["m_aReplies"];
+
+                    if (replies && replies.length) {
+                        replies.forEach(function (reply) {
+                            var addReply = buildCommentData();   //  new asc_CCommentData(null);
+                            if (addReply) {
+                                var sTime = new Date(parseInt(reply["m_sTime"]));
+                                addReply.asc_putText(reply["m_sText"]);
+                                addReply.asc_putTime(utcDateToString(sTime));
+                                addReply.asc_putOnlyOfficeTime(ooDateToString(sTime));
+                                addReply.asc_putUserId(reply["m_sUserId"]);
+                                addReply.asc_putUserName(reply["m_sUserName"]);
+
+                                ascComment.asc_addReply(addReply);
+                            }
+                        });
+                    }
+
+                    _api.asc_changeComment(commentId, ascComment);
+                }
+            }
+            break;
+        }
+
         case 24101: // ASC_MENU_EVENT_TYPE_DO_SET_TRACK_REVISIONS
         {
             var json = JSON.parse(_params[0]);
@@ -6301,6 +6427,7 @@ function onApiAddComment(id, comment) {
         comment = {};
     }
     comment["id"] = id;
+    comment["unattached"] = (comment.asc_getDocumentFlag === undefined) ? false : comment.asc_getDocumentFlag();
     postDataAsJSONString(comment, 23001); // ASC_MENU_EVENT_TYPE_ADD_COMMENT
 }
 
@@ -6308,10 +6435,9 @@ function onApiAddComments(data) {
     postDataAsJSONString(data, 23002); // ASC_MENU_EVENT_TYPE_ADD_COMMENTS
 }
 
-function onApiRemoveComment(id, silentUpdate) {
+function onApiRemoveComment(id) {
     var data = {
-        "id": id,
-        "silentUpdate": silentUpdate
+        "id": id
     };
     postDataAsJSONString(data, 23003); // ASC_MENU_EVENT_TYPE_REMOVE_COMMENT
 }
@@ -6324,11 +6450,10 @@ function onApiRemoveComments(data) {
     postDataAsJSONString(data, 23005); // ASC_MENU_EVENT_TYPE_REMOVE_COMMENTS
 }
 
-function onApiChangeCommentData(id, comment, silentUpdate) {
+function onApiChangeCommentData(id, comment) {
     var data = {
         "id": id,
-        "comment": comment,
-        "silentUpdate": silentUpdate
+        "comment": comment
     };
     postDataAsJSONString(data, 23006); // ASC_MENU_EVENT_TYPE_CHANGE_COMMENTDATA
 }
