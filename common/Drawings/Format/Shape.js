@@ -6006,9 +6006,6 @@ CShape.prototype.getColumnNumber = function(){
 
 
     CShape.prototype.getTextFitType = function(){
-        if(this.bWordShape){
-            return 0;
-        }
         var oBodyPr = this.getBodyPr();
         if(AscCommon.isRealObject(oBodyPr.textFit) && AscFormat.isRealNumber(oBodyPr.textFit.type))
         {
