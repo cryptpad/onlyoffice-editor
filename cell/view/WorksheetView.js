@@ -3841,7 +3841,23 @@
 					}
 				}
 
+				//если ранее выставлена матрица трансформации, например, в случае когда задан масштаб печати
+				//необходимо перемножить на новую матрицу, а в конце вернуть начальную
+				var _printScale = this.getPrintScale();
+				var transformMatrix;
+				if(_printScale !== 1 && drawingCtx) {
+					transformMatrix = drawingCtx.Transform.CreateDublicate();
+				}
+
 				this.stringRender.rotateAtPoint(drawingCtx, ct.angle, xb1, yb1, ct.textBound.dx, ct.textBound.dy);
+
+				if(transformMatrix) {
+					var tempMatrix = drawingCtx.Transform.CreateDublicate();
+					var resMatrix = tempMatrix.Multiply(transformMatrix);
+					drawingCtx.setTransform(resMatrix.sx, resMatrix.shy, resMatrix.shx, resMatrix.sy, resMatrix.tx, resMatrix.ty);
+				}
+
+
 				this.stringRender.restoreInternalState(ct.state);
 
 				if (isWrapped) {
@@ -3866,6 +3882,11 @@
 
 				this.stringRender.render(drawingCtx, 0, 0, textW, color);
 				this.stringRender.resetTransform(drawingCtx);
+
+				if(transformMatrix) {
+					drawingCtx.setTransform(transformMatrix.sx, transformMatrix.shy, transformMatrix.shx,
+						transformMatrix.sy, transformMatrix.tx, transformMatrix.ty);
+				}
 
 				if (clipUse) {
 					ctx.RemoveClipRect();
