@@ -2576,6 +2576,9 @@ CTable.prototype.GetEndInfo = function()
 };
 CTable.prototype.GetPrevElementEndInfo = function(RowIndex)
 {
+	if (-1 === RowIndex || !this.Parent)
+		return null;
+
 	if (0 === RowIndex)
 		return this.Parent.GetPrevElementEndInfo(this);
 	else
