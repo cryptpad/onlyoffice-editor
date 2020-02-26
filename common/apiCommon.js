@@ -2278,6 +2278,7 @@
         this.columnNumber = null;
         this.columnSpace = null;
         this.textFitType = null;
+		this.vertOverflowType = null;
         this.signatureId = null;
 
 		this.rot = null;
@@ -2375,12 +2376,19 @@
 			return this.textFitType;
 		},
 
+		asc_getVertOverflowType: function(){
+			return this.vertOverflowType;
+		},
+
 		asc_putColumnSpace: function(v){
 			this.columnSpace = v;
 		},
 
 		asc_putTextFitType: function(v){
 			this.textFitType = v;
+		},
+		asc_putVertOverflowType: function(v){
+			this.vertOverflowType = v;
 		},
 
 		asc_getSignatureId: function(){
@@ -2668,6 +2676,7 @@
             this.columnNumber =  obj.columnNumber != undefined ? obj.columnNumber : undefined;
             this.columnSpace =  obj.columnSpace != undefined ? obj.columnSpace : undefined;
             this.textFitType =  obj.textFitType != undefined ? obj.textFitType : undefined;
+            this.vertOverflowType =  obj.vertOverflowType != undefined ? obj.vertOverflowType : undefined;
             this.shadow =  obj.shadow != undefined ? obj.shadow : undefined;
 
 			this.rot = obj.rot != undefined ? obj.rot : undefined;
@@ -2717,6 +2726,7 @@
             this.columnNumber = undefined;
             this.columnSpace =  undefined;
             this.textFitType =  undefined;
+            this.vertOverflowType =  undefined;
 
 
 			this.rot = undefined;
@@ -2955,12 +2965,18 @@
 		asc_getTextFitType: function(){
 			return this.textFitType;
 		},
+		asc_getVertOverflowType: function(){
+			return this.vertOverflowType;
+		},
 
 		asc_putColumnSpace: function(v){
 			this.columnSpace = v;
 		},
 		asc_putTextFitType: function(v){
 			this.textFitType = v;
+		},
+		asc_putVertOverflowType: function(v){
+			this.vertOverflowType = v;
 		},
 
 		asc_getSignatureId : function() {
@@ -5038,8 +5054,10 @@
 	prot["put_ColumnNumber"] = prot["asc_putColumnNumber"] = prot.asc_putColumnNumber;
 	prot["get_ColumnSpace"] = prot["asc_getColumnSpace"] = prot.asc_getColumnSpace;
 	prot["get_TextFitType"] = prot["asc_getTextFitType"] = prot.asc_getTextFitType;
+	prot["get_VertOverflowType"] = prot["asc_getVertOverflowType"] = prot.asc_getVertOverflowType;
 	prot["put_ColumnSpace"] = prot["asc_putColumnSpace"] = prot.asc_putColumnSpace;
 	prot["put_TextFitType"] = prot["asc_putTextFitType"] = prot.asc_putTextFitType;
+	prot["put_VertOverflowType"] = prot["asc_putVertOverflowType"] = prot.asc_putVertOverflowType;
 	prot["get_SignatureId"] = prot["asc_getSignatureId"] = prot.asc_getSignatureId;
 	prot["put_SignatureId"] = prot["asc_putSignatureId"] = prot.asc_putSignatureId;
 	prot["get_FromImage"] = prot["asc_getFromImage"] = prot.asc_getFromImage;
@@ -5184,8 +5202,10 @@
 	prot["put_ColumnNumber"] = prot["asc_putColumnNumber"] = prot.asc_putColumnNumber;
 	prot["get_ColumnSpace"] = prot["asc_getColumnSpace"] = prot.asc_getColumnSpace;
 	prot["get_TextFitType"] = prot["asc_getTextFitType"] = prot.asc_getTextFitType;
+	prot["get_VertOverflowType"] = prot["asc_getVertOverflowType"] = prot.asc_getVertOverflowType;
 	prot["put_ColumnSpace"] = prot["asc_putColumnSpace"] = prot.asc_putColumnSpace;
 	prot["put_TextFitType"] = prot["asc_putTextFitType"] = prot.asc_putTextFitType;
+	prot["put_VertOverflowType"] = prot["asc_putVertOverflowType"] = prot.asc_putVertOverflowType;
 	prot["asc_getSignatureId"] = prot["asc_getSignatureId"] = prot.asc_getSignatureId;
 
 	prot["put_Shadow"] = prot.put_Shadow = prot["put_shadow"] = prot.put_shadow = prot["asc_putShadow"] = prot.asc_putShadow;

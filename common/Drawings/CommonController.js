@@ -3578,6 +3578,17 @@ DrawingObjectsController.prototype =
                 objects_by_type.groups[i].setTextFitType(props.textFitType);
             }
         }
+        if(AscFormat.isRealNumber(props.vertOverflowType))
+        {
+            for(i = 0; i < objects_by_type.shapes.length; ++i)
+            {
+                objects_by_type.shapes[i].setVertOverflowType(props.vertOverflowType);
+            }
+            for(i = 0; i < objects_by_type.groups.length; ++i)
+            {
+                objects_by_type.groups[i].setVertOverflowType(props.vertOverflowType);
+            }
+        }
         if(typeof(props.type) === "string")
         {
             var aShapes = [];
@@ -8439,6 +8450,7 @@ DrawingObjectsController.prototype =
                         columnNumber: drawing.getColumnNumber(),
                         columnSpace: drawing.getColumnSpace(),
                         textFitType: drawing.getTextFitType(),
+                        vertOverflowType: drawing.getVertOverflowType(),
                         signatureId: drawing.getSignatureLineGuid(),
                         shadow: drawing.getOuterShdw(),
                         anchor: drawing.getDrawingBaseType()
@@ -8529,6 +8541,7 @@ DrawingObjectsController.prototype =
                         columnNumber: null,
                         columnSpace: null,
                         textFitType: null,
+                        vertOverflowType: null,
                         signatureId: null,
                         shadow: drawing.getOuterShdw(),
                         anchor: drawing.getDrawingBaseType()
@@ -9031,6 +9044,7 @@ DrawingObjectsController.prototype =
             shape_props.ShapeProperties.columnNumber = props.shapeProps.columnNumber;
             shape_props.ShapeProperties.columnSpace = props.shapeProps.columnSpace;
             shape_props.ShapeProperties.textFitType = props.shapeProps.textFitType;
+            shape_props.ShapeProperties.vertOverflowType = props.shapeProps.vertOverflowType;
             shape_props.ShapeProperties.shadow = props.shapeProps.shadow;
             if(props.shapeProps.textArtProperties && oDrawingDocument)
             {

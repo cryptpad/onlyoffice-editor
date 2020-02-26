@@ -1716,6 +1716,30 @@ CShape.prototype.setTextFitType = function(type)
 };
 
 
+
+CShape.prototype.setVertOverflowType = function(type)
+{
+    if(AscFormat.isRealNumber(type))
+    {
+        var new_body_pr = this.getBodyPr();
+        if (new_body_pr) {
+            new_body_pr = new_body_pr.createDuplicate();
+            new_body_pr.vertOverflow = type;
+
+            if (this.bWordShape) {
+                this.setBodyPr(new_body_pr);
+            }
+            else {
+                if (this.txBody) {
+                    this.txBody.setBodyPr(new_body_pr);
+                }
+            }
+        }
+        this.checkExtentsByDocContent(true, true);
+    }
+};
+
+
 CShape.prototype.setPaddings = function (paddings) {
     if (paddings) {
 
@@ -6012,6 +6036,15 @@ CShape.prototype.getColumnNumber = function(){
             return oBodyPr.textFit.type;
         }
         return AscFormat.text_fit_No;
+    };
+
+    CShape.prototype.getVertOverflowType = function(){
+        var oBodyPr = this.getBodyPr();
+        if(AscFormat.isRealNumber(oBodyPr.vertOverflow))
+        {
+            return oBodyPr.vertOverflow;
+        }
+        return AscFormat.nOTOwerflow;
     };
 
 

@@ -5391,6 +5391,10 @@ function CompareShapeProperties(shapeProp1, shapeProp2)
         _result_shape_prop.textFitType = shapeProp1.textFitType;
     }
 
+    if(shapeProp1.vertOverflowType === shapeProp2.vertOverflowType){
+        _result_shape_prop.vertOverflowType = shapeProp1.vertOverflowType;
+    }
+
     if(!shapeProp1.shadow && !shapeProp2.shadow){
         _result_shape_prop.shadow = null;
     }
@@ -11668,6 +11672,7 @@ function CreateAscShapePropFromProp(shapeProp)
     obj.columnNumber = shapeProp.columnNumber;
     obj.columnSpace = shapeProp.columnSpace;
     obj.textFitType = shapeProp.textFitType;
+    obj.vertOverflowType = shapeProp.vertOverflowType;
     obj.shadow = shapeProp.shadow;
     if(shapeProp.signatureId)
     {
@@ -12821,9 +12826,9 @@ function CorrectUniColor(asc_color, unicolor, flag)
     window['AscFormat']._arr_lt_types_weight = _arr_lt_types_weight;
     window['AscFormat']._global_layout_summs_array = _global_layout_summs_array;
 
-    window['AscFormat'].nOTOwerflow = nOTOwerflow;
-    window['AscFormat'].nOTClip = nOTClip;
-    window['AscFormat'].nOTEllipsis = nOTEllipsis;
+    window['AscFormat'].nOTOwerflow = window['AscFormat']['nOTOwerflow'] = nOTOwerflow;
+    window['AscFormat'].nOTClip = window['AscFormat']['nOTClip'] = nOTClip;
+    window['AscFormat'].nOTEllipsis = window['AscFormat']['nOTEllipsis'] = nOTEllipsis;
 
     window['AscFormat'].BULLET_TYPE_BULLET_NONE = BULLET_TYPE_BULLET_NONE;
     window['AscFormat'].BULLET_TYPE_BULLET_CHAR = BULLET_TYPE_BULLET_CHAR;
