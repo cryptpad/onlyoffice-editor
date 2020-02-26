@@ -1154,8 +1154,8 @@
 		}
     } else {
       ct = ws.getCursorTypeFromXY(x, y);
-      ct.mouseX = x;
-      ct.mouseY = y;
+      ct.coordX = x;
+      ct.coordY = y;
       if (this.timerId !== null) {
       	clearTimeout(this.timerId);
       	this.timerId = null;

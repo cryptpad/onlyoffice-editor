@@ -1118,7 +1118,7 @@
 
 							var wb = window["Asc"]["editor"].wb;
 							if (t.targetInfo) {
-								wb._onUpdateWorksheet(t.targetInfo.mouseX, t.targetInfo.mouseY, false);
+								wb._onUpdateWorksheet(t.targetInfo.coordX, t.targetInfo.coordY, false);
 							}
 							t.scroll(d);
 						});
