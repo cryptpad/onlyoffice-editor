@@ -8068,7 +8068,7 @@
     WorksheetView.prototype._fixSelectionOfMergedCells = function (fixedRange, force) {
         var selection;
         var ar = fixedRange ? fixedRange : ((selection = this._getSelection()) ? selection.getLast() : null);
-        if (!ar || (!force && c_oAscSelectionType.RangeCells !== ar.getType())) {
+        if (!ar || (force && c_oAscSelectionType.RangeCells !== ar.getType())) {
             return;
         }
 
@@ -8211,7 +8211,7 @@
 		if (c_oAscSelectionType.RangeCells !== ar.getType()) {
 			this._fixSelectionOfHiddenCells();
 		}
-		this._fixSelectionOfMergedCells(ar, force);
+		this._fixSelectionOfMergedCells(ar, !force);
 	};
 
     WorksheetView.prototype._moveActiveCellToOffset = function (activeCell, dc, dr) {
@@ -8257,7 +8257,7 @@
 			res.assign(activeCell.col, activeCell.row, range.c1, range.r1, true);
 		}
 
-		this._fixSelectionOfMergedCells(res);
+		this._fixSelectionOfMergedCells(res, true);
 		return res;
 	};
 
@@ -8276,18 +8276,18 @@
         var res = new asc_Range(c1, r1, c2 = p1.col, r2 = p1.row, true);
         dc = Math.sign(dc);
         dr = Math.sign(dr);
-        if (c_oAscSelectionType.RangeCells === ar.getType()) {
-            this._fixSelectionOfMergedCells(res);
-            while (ar.isEqual(res)) {
-                p2 = this._calcCellPosition(c2, r2, dc, dr);
-                res.assign(c1, r1, c2 = p2.col, r2 = p2.row, true);
-                this._fixSelectionOfMergedCells(res);
-                if (p1.c2 === p2.c2 && p1.r2 === p2.r2) {
-                    break;
-                }
-                p1 = p2;
-            }
-        }
+
+		this._fixSelectionOfMergedCells(res);
+		while (ar.isEqual(res)) {
+			p2 = this._calcCellPosition(c2, r2, dc, dr);
+			res.assign(c1, r1, c2 = p2.col, r2 = p2.row, true);
+			this._fixSelectionOfMergedCells(res);
+			if (p1.c2 === p2.c2 && p1.r2 === p2.r2) {
+				break;
+			}
+			p1 = p2;
+		}
+
         var bIsHidden = false;
         if (0 !== dc && 0 === this._getColumnWidth(c2)) {
             c2 = this._findVisibleCol(c2, dc);
