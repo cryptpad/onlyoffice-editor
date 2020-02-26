@@ -2246,7 +2246,7 @@ CChartsDrawer.prototype =
         return {w: w , h: h , startX: this.calcProp.chartGutter._left / this.calcProp.pxToMM, startY: this.calcProp.chartGutter._top / this.calcProp.pxToMM};
 	},
 
-	drawPaths: function (paths, series, useNextPoint, bIsYVal) {
+	drawPaths: function (paths, series, useNextPoint, bIsYVal, byIdx) {
 
 		var seria, brush, pen, numCache, point;
 		var seriesPaths = paths.series;
@@ -2275,7 +2275,12 @@ CChartsDrawer.prototype =
 				}
 
 				if(numCache){
-					point = numCache.pts[j + pointDiff];
+					if(byIdx) {
+						point = numCache.getPtByIndex(j + pointDiff);
+					} else {
+						point = numCache.pts[j + pointDiff];
+					}
+
 					if (point && point.pen) {
 						pen = point.pen;
 					}
@@ -4381,7 +4386,7 @@ drawBarChart.prototype = {
 		var bottom = this.chartProp.trueHeight / this.chartProp.pxToMM;
 		this.cChartDrawer.cShapeDrawer.Graphics.AddClipRect(left, top, right, bottom);
 
-		this.cChartDrawer.drawPaths(this.paths, this.chart.series);
+		this.cChartDrawer.drawPaths(this.paths, this.chart.series, null, null, true);
 		this.cChartDrawer.cShapeDrawer.Graphics.RestoreGrState();
 	},
 
