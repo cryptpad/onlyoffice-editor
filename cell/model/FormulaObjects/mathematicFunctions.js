@@ -4936,7 +4936,7 @@
 	cSUMX2MY2.prototype.Calculate = function (arg) {
 		var func = function(a, b) {
 			return a * a - b * b;
-		}
+		};
 
 		return sumxCalc(arg, func);
 	};
