@@ -1425,20 +1425,21 @@
     var ct = ws.getCursorTypeFromXY(x, y);
 
     if (ct.target === c_oTargetType.ColumnResize || ct.target === c_oTargetType.RowResize) {
-      ct.target === c_oTargetType.ColumnResize ? ws.autoFitColumnsWidth(ct.col) : ws.autoFitRowHeight(ct.row, ct.row);
+      if (ct.target === c_oTargetType.ColumnResize) {
+      	ws.autoFitColumnsWidth(ct.col);
+      } else {
+      	ws.autoFitRowHeight(ct.row, ct.row);
+      }
       asc_applyFunction(callback);
     } else {
       if (ct.col >= 0 && ct.row >= 0) {
         this.controller.setStrictClose(!ws._isCellNullText(ct.col, ct.row));
       }
 
-      // Для нажатия на колонку/строку/all/frozenMove обрабатывать dblClick не нужно
-      if (c_oTargetType.ColumnHeader === ct.target || c_oTargetType.RowHeader === ct.target || c_oTargetType.Corner === ct.target || c_oTargetType.FrozenAnchorH === ct.target || c_oTargetType.FrozenAnchorV === ct.target) {
-        asc_applyFunction(callback);
-        return;
-      }
-
-      if (ws.objectRender.checkCursorDrawingObject(x, y)) {
+      // In view mode or click on column | row | all | frozenMove | drawing object do not process
+      if (!this.Api.canEdit() || c_oTargetType.ColumnHeader === ct.target || c_oTargetType.RowHeader === ct.target ||
+		  c_oTargetType.Corner === ct.target || c_oTargetType.FrozenAnchorH === ct.target ||
+		  c_oTargetType.FrozenAnchorV === ct.target || ws.objectRender.checkCursorDrawingObject(x, y)) {
         asc_applyFunction(callback);
         return;
       }

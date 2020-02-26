@@ -307,7 +307,7 @@
 			var ctrlKey = !AscCommon.getAltGr(event) && (event.metaKey || event.ctrlKey);
 
 			// Для формулы не нужно выходить из редактирования ячейки
-			if (!this.canEdit() || t.isFormulaEditMode || t.isSelectionDialogMode) {return true;}
+			if (t.isFormulaEditMode || t.isSelectionDialogMode) {return true;}
 
 			if (this.targetInfo && (this.targetInfo.target === AscCommonExcel.c_oTargetType.GroupRow ||
 				this.targetInfo.target === AscCommonExcel.c_oTargetType.GroupCol)) {
@@ -323,7 +323,7 @@
 
 			var coord = t._getCoordinates(event);
 			var graphicsInfo = t.handlers.trigger("getGraphicsInfo", coord.x, coord.y);
-			if (graphicsInfo )
+			if (graphicsInfo)
 				return;
 
 			setTimeout(function () {

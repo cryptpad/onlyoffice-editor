@@ -13392,16 +13392,20 @@
 		return res;
 	};
     WorksheetView.prototype.autoFitColumnsWidth = function (col) {
+		var viewMode = this.handlers.trigger('getViewMode');
         var t = this;
         var max = this.model.getColsCount();
 		var selectionRanges = t.model.selectionRange.clone().ranges;
 
-        return this._isLockedAll(function (isSuccess) {
-            if (false === isSuccess) {
-                return;
-            }
+		var onChangeCallback = function (isSuccess) {
+			if (false === isSuccess) {
+				return;
+			}
 
-            var c1, c2, bUpdate = false;
+			if (viewMode) {
+				History.TurnOff();
+			}
+			var c1, c2, bUpdate = false;
 
 			History.Create_NewPoint();
 			History.StartTransaction();
@@ -13431,12 +13435,27 @@
 				t.changeWorksheet("update");
 			}
 			History.EndTransaction();
-        });
+			if (viewMode) {
+				History.TurnOn();
+			}
+		};
+		if (viewMode) {
+			onChangeCallback(true);
+		} else {
+			this._isLockedAll(onChangeCallback);
+		}
     };
 
     WorksheetView.prototype.autoFitRowHeight = function (r1, r2) {
+		var viewMode = this.handlers.trigger('getViewMode');
         var t = this;
-        var onChangeHeightCallback = function (isSuccess) {
+		if (null === r1) {
+			var lastSelection = this.model.selectionRange.getLast();
+			r1 = lastSelection.r1;
+			r2 = lastSelection.r2;
+		}
+
+        var onChangeCallback = function (isSuccess) {
             if (false === isSuccess) {
                 return;
             }
@@ -13451,6 +13470,9 @@
             	return;
 			}
 
+			if (viewMode) {
+				History.TurnOff();
+			}
             History.Create_NewPoint();
             var oSelection = History.GetSelection();
             if (null != oSelection) {
@@ -13465,13 +13487,15 @@
 			t._updateRange(new Asc.Range(0, r1, gc_nMaxCol0, r2));
 			t.draw();
             History.EndTransaction();
+			if (viewMode) {
+				History.TurnOn();
+			}
         };
-		if (null === r1) {
-			var lastSelection = this.model.selectionRange.getLast();
-			r1 = lastSelection.r1;
-			r2 = lastSelection.r2;
+		if (viewMode) {
+			onChangeCallback(true);
+		} else {
+			this._isLockedAll(onChangeCallback);
 		}
-        return this._isLockedAll(onChangeHeightCallback);
     };
 
 
