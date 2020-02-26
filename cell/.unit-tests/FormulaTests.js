@@ -5249,7 +5249,7 @@ $( function () {
 
         oParser = new parserFormula( "SUMXMY2(7,5)", "A1", ws );
         ok( oParser.parse() );
-        strictEqual( oParser.calculate().getValue(), "#VALUE!" );
+        strictEqual( oParser.calculate().getValue(), 4 );
 
 		testArrayFormula2("SUMXMY2", 2, 2, null, true)
     } );
@@ -5315,7 +5315,7 @@ $( function () {
 
         oParser = new parserFormula( "SUMX2PY2(7,5)", "A1", ws );
         ok( oParser.parse() );
-        strictEqual( oParser.calculate().getValue(), "#VALUE!" );
+        strictEqual( oParser.calculate().getValue(), 74 );
 
 		testArrayFormula2("SUMX2PY2", 2, 2, null, true);
     } );
