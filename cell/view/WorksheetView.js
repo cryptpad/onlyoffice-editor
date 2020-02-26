@@ -18509,9 +18509,9 @@
 			asc_applyFunction(callback);
 
 			if(bCol) {
-				t._updateAfterChangeGroup(undefined, null);
+				t._updateAfterChangeGroup(undefined, null, true);
 			} else {
-				t._updateAfterChangeGroup(null);
+				t._updateAfterChangeGroup(null, undefined, true);
 			}
 			//тут требуется обновить только rowLevelMap
 			//t._updateGroups(bCol, undefined, undefined, true);
