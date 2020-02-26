@@ -8207,7 +8207,7 @@
 				c = this.visibleRange.c1;
 			    break;
 		}
-		var force = selection.setCell(r, c);
+		var force = selection.setActiveCell(r, c);
 		if (c_oAscSelectionType.RangeCells !== ar.getType()) {
 			this._fixSelectionOfHiddenCells();
 		}
@@ -8216,7 +8216,6 @@
 
     WorksheetView.prototype._moveActiveCellToOffset = function (activeCell, dc, dr) {
         var ar = this._getSelection().getLast();
-        // Если поиск, ищем с текущей ячейки не обращая внимание на смерженность 
         var mc = this.model.getMergedByCell(activeCell.row, activeCell.col);
         var c = mc ? (dc < 0 ? mc.c1 : dc > 0 ? Math.min(mc.c2, this.nColsCount - 1 - dc) : activeCell.col) :
           activeCell.col;	
@@ -8224,7 +8223,7 @@
           activeCell.row;
         var p = this._calcCellPosition(c, r, dc, dr);
         ar.assign(p.col, p.row, p.col, p.row);
-        this.model.selectionRange.setCell(p.row, p.col);
+        this.model.selectionRange.setActiveCell(p.row, p.col);
         this._fixSelectionOfHiddenCells(dc >= 0 ? +1 : -1, dr >= 0 ? +1 : -1);
         this._fixSelectionOfMergedCells();
     };
@@ -9084,7 +9083,7 @@
     WorksheetView.prototype.setActiveCell = function (cell) {
 		this.cleanSelection();
 
-		this.model.selectionRange.setCell(cell.row, cell.col);
+		this.model.selectionRange.setActiveCell(cell.row, cell.col);
 
 		this._fixSelectionOfMergedCells();
 		this.updateSelectionWithSparklines();

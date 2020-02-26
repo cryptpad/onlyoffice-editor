@@ -1217,19 +1217,22 @@
 			}
 			return (lastRow !== this.activeCell.row || lastCol !== this.activeCell.col) ? 1 : -1;
 		};
-		SelectionRange.prototype.setCell = function (r, c) {
+		SelectionRange.prototype.setActiveCell = function (r, c) {
 			var res = false;
 			this.activeCell.row = r;
 			this.activeCell.col = c;
 			this.update();
 
-			// Check active cell in merge cell (bug 36708)
+			// Check active cell in merge cell for selection row or column (bug 36708)
 			var mc = this.worksheet.getMergedByCell(this.activeCell.row, this.activeCell.col);
 			if (mc) {
-				res = -1 === this.offsetCell(1, 0, false, function () {return false;});
-				if (res) {
-					this.activeCell.row = mc.r1;
-					this.activeCell.col = mc.c1;
+				var curRange = this.ranges[this.activeCellId];
+				if (!curRange.containsRange(mc)) {
+					res = -1 === this.offsetCell(1, 0, false, function () {return false;});
+					if (res) {
+						this.activeCell.row = mc.r1;
+						this.activeCell.col = mc.c1;
+					}
 				}
 			}
 			return res;
