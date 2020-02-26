@@ -18139,8 +18139,10 @@ CDocument.prototype.controller_DrawSelectionOnPage = function(PageAbs)
 		var PageSection = Page.Sections[SectionIndex];
 		for (var ColumnIndex = 0, ColumnsCount = PageSection.Columns.length; ColumnIndex < ColumnsCount; ++ColumnIndex)
 		{
-			var Pos_start = this.Pages[PageAbs].Pos;
-			var Pos_end   = this.Pages[PageAbs].EndPos;
+			this.DrawingDocument.UpdateTargetTransform(null);
+
+			var Pos_start = PageSection.Pos;
+			var Pos_end   = PageSection.EndPos;
 
 			switch (this.Selection.Flag)
 			{
