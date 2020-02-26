@@ -15678,6 +15678,21 @@
 			var worksheet = this.model;
 			var filter = worksheet.AutoFilter;
 
+			var _isOneCell = function(_range) {
+				var res = null;
+
+				if (_range.isOneCell()) {
+					res = true;
+				} else {
+					var merged = worksheet.getMergedByCell(_range.r1, _range.c1);
+					if(merged && merged.isEqual(_range)) {
+						res = true;
+					}
+				}
+
+				return res;
+			};
+
 			if (filter && styleName && filter.Ref.isIntersect(activeRange) && !(filter.Ref.containsRange(activeRange) &&
 					(activeRange.isOneCell() || (filter.Ref.isEqual(activeRange))) ||
 					(filter.Ref.r1 === activeRange.r1 && activeRange.containsRange(filter.Ref)))) {
@@ -15692,7 +15707,7 @@
 				worksheet.workbook.handlers.trigger("asc_onError", c_oAscError.ID.AutoFilterDataRangeError,
 					c_oAscError.Level.NoCritical);
 				result = false;
-			} else if (!styleName && !activeRange.isOneCell() && worksheet.autoFilters._isEmptyRange(activeRange, 0)) {
+			} else if (!styleName && !_isOneCell(activeRange) && worksheet.autoFilters._isEmptyRange(activeRange, 0)) {
 				//add filter to empty range
 				worksheet.workbook.handlers.trigger("asc_onError", c_oAscError.ID.AutoFilterDataRangeError,
 					c_oAscError.Level.NoCritical);
