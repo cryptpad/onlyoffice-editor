@@ -2359,10 +2359,9 @@
 
     var result = this.model.findCellText(options);
     if (result) {
-		ws = this.getWorksheet();
-    	var ac = ws.model.selectionRange.activeCell;
-    	var dc = result.col - ac.col, dr = result.row - ac.row;
-    	return options.findInSelection ? ws.changeSelectionActivePoint(dc, dr, options) : ws.changeSelectionStartPoint(dc, dr, undefined, undefined, options);
+      var range = ws.model.getRange3(result.row, result.col, result.row, result.col);
+      options.findInSelection ? ws.setActiveCell(result) : ws.setSelection(range.getBBox0());
+      return true;
     }
     return null;
   };

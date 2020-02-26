@@ -1103,7 +1103,7 @@
 			}
 			return result;
 		};
-		SelectionRange.prototype.offsetCell = function (dr, dc, changeRange, fCheckSize, options) {
+		SelectionRange.prototype.offsetCell = function (dr, dc, changeRange, fCheckSize) {
 			var done, curRange, mc, incompleate;
 			// Check one cell
 			if (1 === this.ranges.length) {
@@ -1171,8 +1171,7 @@
 				}
 
 				mc = this.worksheet.getMergedByCell(this.activeCell.row, this.activeCell.col);
-               // Если поиск, то ищем с текущей ячейки
-				if (mc && !options) {
+				if (mc) {
 					incompleate = !curRange.containsRange(mc);
 					if (dc > 0 && (incompleate || this.activeCell.col > mc.c1 || this.activeCell.row !== mc.r1)) {
 						// Движение слева направо
