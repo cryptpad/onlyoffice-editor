@@ -9083,6 +9083,16 @@
 		this._updateSelectionNameAndInfo();
 		this._scrollToRange();
     };
+    WorksheetView.prototype.setActiveCell = function (cell) {
+		this.cleanSelection();
+
+		this.model.selectionRange.setCell(cell.row, cell.col);
+
+		this._fixSelectionOfMergedCells();
+		this.updateSelectionWithSparklines();
+		this._updateSelectionNameAndInfo();
+		this._scrollToRange();
+	};
 
 	WorksheetView.prototype.changeSelectionStartPoint = function (x, y, isCoord, isCtrl, options) {
 		this.cleanSelection();
