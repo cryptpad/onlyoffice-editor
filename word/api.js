@@ -7408,7 +7408,7 @@ background-repeat: no-repeat;\
 
 		if (this.isMarkerFormat)
 		{
-			this.WordControl.m_oLogicDocument.Paragraph_SetHighlight(is_flag, r, g, b);
+			this.WordControl.m_oLogicDocument.SetParagraphHighlight(is_flag, r, g, b);
 			this.WordControl.m_oLogicDocument.Document_Format_Copy();
 		}
 	};

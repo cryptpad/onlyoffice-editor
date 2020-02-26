@@ -6684,7 +6684,7 @@ CDocument.prototype.IncreaseDecreaseIndent = function(bIncrease)
 {
 	this.Controller.IncreaseDecreaseIndent(bIncrease);
 };
-CDocument.prototype.Paragraph_SetHighlight = function(IsColor, r, g, b)
+CDocument.prototype.SetParagraphHighlight = function(IsColor, r, g, b)
 {
 	if (true === this.IsTextSelectionUse())
 	{
@@ -6697,6 +6697,7 @@ CDocument.prototype.Paragraph_SetHighlight = function(IsColor, r, g, b)
 			else
 				this.AddToParagraph(new ParaTextPr({HighLight : new CDocumentColor(r, g, b)}));
 
+			this.Redraw();
 			this.UpdateInterface();
 			this.FinalizeAction();
 		}
