@@ -9090,6 +9090,7 @@
 		this.cleanSelection();
 
 		this.model.selectionRange.setActiveCell(cell.row, cell.col);
+        var selection = this._getSelection().clone();
 		var valid = !this.isFormulaEditMode && selection.validActiveCell();
 
 		this._fixSelectionOfMergedCells(null, valid);
