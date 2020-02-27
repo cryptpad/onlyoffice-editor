@@ -8070,12 +8070,12 @@
 		return oResDefault;
 	};
 
-    WorksheetView.prototype._fixSelectionOfMergedCells = function (fixedRange, force) {
+    WorksheetView.prototype._fixSelectionOfMergedCells = function (fixedRange, onlyCells) {
         var selection;
         var ar = fixedRange ? fixedRange : ((selection = this._getSelection()) ? selection.getLast() : null);
-        if (!ar || (force && c_oAscSelectionType.RangeCells !== ar.getType())) {
-            return;
-        }
+        if (!ar || (onlyCells && c_oAscSelectionType.RangeCells !== ar.getType() && !this.isFormulaEditMode)) {
+        	return;
+		}
 
         // ToDo - переделать этот момент!!!!
         var res = this.model.expandRangeByMerged(ar.clone(true));
@@ -8212,11 +8212,9 @@
 				c = this.visibleRange.c1;
 			    break;
 		}
-		var force = selection.setActiveCell(r, c);
-		if (c_oAscSelectionType.RangeCells !== ar.getType()) {
-			this._fixSelectionOfHiddenCells();
-		}
-		this._fixSelectionOfMergedCells(ar, !force);
+		selection.setActiveCell(r, c);
+		var valid = !this.isFormulaEditMode && selection.validActiveCell();
+		this._fixSelectionOfMergedCells(null, valid);
 	};
 
     WorksheetView.prototype._moveActiveCellToOffset = function (activeCell, dc, dr) {
@@ -8249,7 +8247,8 @@
 	WorksheetView.prototype._calcSelectionEndPointByXY = function (x, y, keepType) {
 		var activeCell = this._getSelection().activeCell;
 		var range = this._getRangeByXY(x, y);
-		var res = (keepType ? this._getSelection().getLast() : range).clone();
+		var selection = this._getSelection().clone();
+		var res = keepType ? selection.getLast() : range.clone();
 		var type = res.getType();
 
 		if (c_oAscSelectionType.RangeRow === type) {
@@ -8262,7 +8261,8 @@
 			res.assign(activeCell.col, activeCell.row, range.c1, range.r1, true);
 		}
 
-		this._fixSelectionOfMergedCells(res, true);
+		selection.getLast().assign2(res);
+		this._fixSelectionOfMergedCells(res, selection.validActiveCell());
 		return res;
 	};
 
@@ -9090,8 +9090,9 @@
 		this.cleanSelection();
 
 		this.model.selectionRange.setActiveCell(cell.row, cell.col);
+		var valid = !this.isFormulaEditMode && selection.validActiveCell();
 
-		this._fixSelectionOfMergedCells();
+		this._fixSelectionOfMergedCells(null, valid);
 		this.updateSelectionWithSparklines();
 		this._updateSelectionNameAndInfo();
 		this._scrollToRange();

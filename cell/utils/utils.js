@@ -1218,18 +1218,19 @@
 			return (lastRow !== this.activeCell.row || lastCol !== this.activeCell.col) ? 1 : -1;
 		};
 		SelectionRange.prototype.setActiveCell = function (r, c) {
-			var res = false;
 			this.activeCell.row = r;
 			this.activeCell.col = c;
 			this.update();
-
+		};
+		SelectionRange.prototype.validActiveCell = function () {
+			var res = true;
 			// Check active cell in merge cell for selection row or column (bug 36708)
 			var mc = this.worksheet.getMergedByCell(this.activeCell.row, this.activeCell.col);
 			if (mc) {
 				var curRange = this.ranges[this.activeCellId];
 				if (!curRange.containsRange(mc)) {
-					res = -1 === this.offsetCell(1, 0, false, function () {return false;});
-					if (res) {
+					if (-1 === this.offsetCell(1, 0, false, function () {return false;})) {
+						res = false;
 						this.activeCell.row = mc.r1;
 						this.activeCell.col = mc.c1;
 					}
