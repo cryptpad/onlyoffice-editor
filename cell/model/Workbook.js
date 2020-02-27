@@ -2421,7 +2421,7 @@
 			ws.reassignImageUrls(oImages);
 		});
 	};
-	Workbook.prototype.calculate = function (type) {
+	Workbook.prototype.calculate = function (type, sheetId) {
 		var formulas;
 		if (type === Asc.c_oAscCalculateType.All) {
 			formulas = this.getAllFormulas();
@@ -2434,13 +2434,19 @@
 			}
 		} else if (type === Asc.c_oAscCalculateType.ActiveSheet) {
 			formulas = [];
-			var ws = this.getActiveWs();
+			var ws = sheetId !== undefined ? this.getWorksheetById(sheetId) : this.getActiveWs();
 			ws.getAllFormulas(formulas);
+			sheetId = ws.getId();
 		} else {
 			formulas = this.getAllFormulas();
 		}
 		this.dependencyFormulas.notifyChanged(formulas);
 		this.dependencyFormulas.calcTree();
+		History.Create_NewPoint();
+		History.StartTransaction();
+		History.Add(AscCommonExcel.g_oUndoRedoWorkbook, AscCH.historyitem_Workbook_Calculate, sheetId,
+			null, new AscCommonExcel.UndoRedoData_SingleProperty(type));
+		History.EndTransaction();
 	};
 	Workbook.prototype.checkDefName = function (checkName, scope) {
 		return this.dependencyFormulas.checkDefName(checkName, scope);
@@ -3505,7 +3511,7 @@
 		}
 		if(null != wsFrom.aComments) {
 			for (i = 0; i < wsFrom.aComments.length; i++) {
-				var comment = wsFrom.aComments[i].clone()
+				var comment = wsFrom.aComments[i].clone(true);
 				comment.wsId = this.getId();
 				comment.nId = "sheet" + comment.wsId + "_" + (i + 1);
 				this.aComments.push(comment);
@@ -4294,8 +4300,10 @@
 		var renameRes = this.renameDependencyNodes(offset, oActualRange);
 		var redrawTablesArr = this.autoFilters.insertRows("delCell", oActualRange, c_oAscDeleteOptions.DeleteRows);
 		this.updatePivotOffset(oActualRange, offset);
-		if (false == this.workbook.bUndoChanges && false == this.workbook.bRedoChanges) {
+		if (false == this.workbook.bUndoChanges && (false == this.workbook.bRedoChanges || this.workbook.bCollaborativeChanges)) {
+			History.LocalChange = true;
 			this.updateSortStateOffset(oActualRange, offset);
+			History.LocalChange = false;
 		}
 
 		var collapsedInfo = null, lastRowIndex;
@@ -4383,8 +4391,10 @@
 		var renameRes = this.renameDependencyNodes(offset, oActualRange);
 		var redrawTablesArr = this.autoFilters.insertRows("insCell", oActualRange, c_oAscInsertOptions.InsertColumns);
 		this.updatePivotOffset(oActualRange, offset);
-		if (false == this.workbook.bUndoChanges && false == this.workbook.bRedoChanges) {
+		if (false == this.workbook.bUndoChanges && (false == this.workbook.bRedoChanges || this.workbook.bCollaborativeChanges)) {
+			History.LocalChange = true;
 			this.updateSortStateOffset(oActualRange, offset);
+			History.LocalChange = false;
 		}
 
 		this._updateFormulasParents(index, 0, gc_nMaxRow0, gc_nMaxCol0, oActualRange, offset, renameRes.shiftedShared);
@@ -4453,8 +4463,10 @@
 		var renameRes = this.renameDependencyNodes(offset, oActualRange);
 		var redrawTablesArr = this.autoFilters.insertColumn(oActualRange, nDif);
 		this.updatePivotOffset(oActualRange, offset);
-		if (false == this.workbook.bUndoChanges && false == this.workbook.bRedoChanges) {
+		if (false == this.workbook.bUndoChanges && (false == this.workbook.bRedoChanges || this.workbook.bCollaborativeChanges)) {
+			History.LocalChange = true;
 			this.updateSortStateOffset(oActualRange, offset);
+			History.LocalChange = false;
 		}
 
 		var collapsedInfo = null, lastRowIndex;
@@ -4520,8 +4532,10 @@
 		var renameRes = this.renameDependencyNodes(offset, oActualRange);
 		var redrawTablesArr = this.autoFilters.insertColumn(oActualRange, count);
 		this.updatePivotOffset(oActualRange, offset);
-		if (false == this.workbook.bUndoChanges && false == this.workbook.bRedoChanges) {
+		if (false == this.workbook.bUndoChanges && (false == this.workbook.bRedoChanges || this.workbook.bCollaborativeChanges)) {
+			History.LocalChange = true;
 			this.updateSortStateOffset(oActualRange, offset);
+			History.LocalChange = false;
 		}
 
 		this._updateFormulasParents(0, index, gc_nMaxRow0, gc_nMaxCol0, oActualRange, offset, renameRes.shiftedShared);
@@ -5609,7 +5623,9 @@
 			this.getId(), new Asc.Range(0, 0, gc_nMaxCol0, gc_nMaxRow0),
 			new UndoRedoData_FromTo(new UndoRedoData_BBox(oBBoxFrom), new UndoRedoData_BBox(oBBoxTo), copyRange, wsTo.getId()));
 		if(moveToOtherSheet) {
-			History.AddToUpdatesRegions(oBBoxTo, wsTo.getId());
+			//сделано для того, чтобы происходил пересчет/обновление данных на другом листе
+			//таким образом заносим диапазон обновления в UpdateRigions
+			History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_Null, wsTo.getId(), oBBoxTo, new UndoRedoData_FromTo(null, null));
 		}
 
 		var shiftedArrayFormula = {};
@@ -5745,8 +5761,10 @@
 		//renameDependencyNodes before move cells to store current location in history
 		var renameRes = this.renameDependencyNodes(offset, oBBox);
 		var redrawTablesArr = this.autoFilters.insertColumn( oBBox, dif );
-		if (false == this.workbook.bUndoChanges && false == this.workbook.bRedoChanges) {
+		if (false == this.workbook.bUndoChanges && (false == this.workbook.bRedoChanges || this.workbook.bCollaborativeChanges)) {
+			History.LocalChange = true;
 			this.updateSortStateOffset(oBBox, offset);
+			History.LocalChange = false;
 		}
 
 		this.getRange3(oBBox.r1, oBBox.c1, oBBox.r2, oBBox.c2)._foreachNoEmpty(function(cell){
@@ -5779,8 +5797,10 @@
 		//renameDependencyNodes before move cells to store current location in history
 		var renameRes = this.renameDependencyNodes(offset, oBBox);
 		var redrawTablesArr = this.autoFilters.insertRows("delCell", oBBox, c_oAscDeleteOptions.DeleteCellsAndShiftTop);
-		if (false == this.workbook.bUndoChanges && false == this.workbook.bRedoChanges) {
+		if (false == this.workbook.bUndoChanges && (false == this.workbook.bRedoChanges || this.workbook.bCollaborativeChanges)) {
+			History.LocalChange = true;
 			this.updateSortStateOffset(oBBox, offset);
+			History.LocalChange = false;
 		}
 
 		this.getRange3(oBBox.r1, oBBox.c1, oBBox.r2, oBBox.c2)._foreachNoEmpty(function(cell){
@@ -5809,8 +5829,10 @@
 		//renameDependencyNodes before move cells to store current location in history
 		var renameRes = this.renameDependencyNodes(offset, oBBox);
 		var redrawTablesArr = this.autoFilters.insertColumn( oBBox, dif, displayNameFormatTable );
-		if (false == this.workbook.bUndoChanges && false == this.workbook.bRedoChanges) {
+		if (false == this.workbook.bUndoChanges && (false == this.workbook.bRedoChanges || this.workbook.bCollaborativeChanges)) {
+			History.LocalChange = true;
 			this.updateSortStateOffset(oBBox, offset);
+			History.LocalChange = false;
 		}
 
 		this._updateFormulasParents(oActualRange.r1, oActualRange.c1, oActualRange.r2, oActualRange.c2, oBBox, offset, renameRes.shiftedShared);
@@ -5867,8 +5889,10 @@
 				displayNameFormatTable);
 		}
 		this._updateFormulasParents(oActualRange.r1, oActualRange.c1, oActualRange.r2, oActualRange.c2, oBBox, offset, renameRes.shiftedShared);
-		if (false == this.workbook.bUndoChanges && false == this.workbook.bRedoChanges) {
+		if (false == this.workbook.bUndoChanges && (false == this.workbook.bRedoChanges || this.workbook.bCollaborativeChanges)) {
+			History.LocalChange = true;
 			this.updateSortStateOffset(oBBox, offset);
+			History.LocalChange = false;
 		}
 
 		var borders;
@@ -7140,7 +7164,7 @@
 		var tablePart;
 		for (var i = 0; i < tableParts.length; i++) {
 			tablePart = tableParts[i];
-			if (tablePart && tablePart.isApplyAutoFilter() && start >= tablePart.Ref.r1 && stop <= tablePart.Ref.r2) {
+			if (tablePart && tablePart.Ref && start >= tablePart.Ref.r1 && stop <= tablePart.Ref.r2) {
 				res = true;
 				break;
 			}
@@ -7272,11 +7296,8 @@
 		}
 		if(!bAlreadyDel) {
 			var bboxShift = AscCommonExcel.shiftGetBBox(range, 0 !== offset.col);
-			//проверяем, не сдвинулся ли целиком
-			if(!this.moveSortState(bboxShift, offset)) {
-				//осталось проверить на изменение диапазона
-				this.sortState.shift(range, offset, this, true);
-			}
+			this.sortState.shift(range, offset, this, true);
+			this.moveSortState(bboxShift, offset);
 		}
 	};
 
@@ -11765,7 +11786,7 @@
 
 		//todo горизонтальная сортировка
 		var aMerged = this.worksheet.mergeManager.get(bbox);
-		if (aMerged.outer.length > 0 || (aMerged.inner.length > 0 && null == _isSameSizeMerged(bbox, aMerged.inner))) {
+		if (aMerged.outer.length > 0 || (aMerged.inner.length > 0 && null == _isSameSizeMerged(bbox, aMerged.inner, true))) {
 			return null;
 		}
 
@@ -11968,6 +11989,25 @@
 			}
 		}
 
+		var aMerged = this.worksheet.mergeManager.get(this.bbox);
+		var checkMerged = function(_cell) {
+			var res = null;
+
+			if(aMerged && aMerged.inner && aMerged.inner.length > 0) {
+				for(var i = 0; i < aMerged.inner.length; i++) {
+					if(aMerged.inner[i].bbox.contains(_cell.nCol, _cell.nRow)) {
+						if(aMerged.inner[i].bbox.r1 === _cell.nRow && aMerged.inner[i].bbox.c1 === _cell.nCol) {
+							return true;
+						} else {
+							return false;
+						}
+					}
+				}
+			}
+
+			return res;
+		};
+
 		//собираем массив обьектов для сортировки
 		var aSortElems = [];
 		var putElem = false;
@@ -11981,6 +12021,10 @@
 					nLastCol0 = nCol0;
 				}
 				var val = oCell.getValueWithoutFormat();
+
+				if(opt_custom_sort && false === checkMerged(oCell)) {
+					return;
+				}
 
 				//for sort color
 				var colorFillCell, colorsTextCell = null;
@@ -12128,6 +12172,9 @@
 					//в данном случае идём по отдельной ветке и по-другому обрабатываем сортировку по цвету
 					//TODO стоит рассмотреть вариант одной обработки для разных вариантов сортировки
 					if(_sortCondition && (_sortCondition.ConditionSortBy === Asc.ESortBy.sortbyCellColor || _sortCondition.ConditionSortBy === Asc.ESortBy.sortbyFontColor)) {
+						if(!_a || !_b) {
+							return res;
+						}
 						var _isCellColor = _sortCondition.ConditionSortBy === Asc.ESortBy.sortbyCellColor;
 						var _color1 = _isCellColor ? _a.colorFill : _a.colorsText;
 						var _color2 = _isCellColor ? _b.colorFill : _b.colorsText;
@@ -12236,7 +12283,11 @@
 						// и их надо передвинуть)
 						this.worksheet.hyperlinkManager.removeElement(elem);
 						var oNewHyp = hyp.clone();
-						oNewHyp.Ref.setOffset(new AscCommon.CellBase(nTo - nFrom, 0));
+						if(opt_by_row) {
+							oNewHyp.Ref.setOffset(new AscCommon.CellBase(0, nTo - nFrom));
+						} else {
+							oNewHyp.Ref.setOffset(new AscCommon.CellBase(nTo - nFrom, 0));
+						}
 						aSortedHyperlinks.push(oNewHyp);
 					}
 				}
@@ -12322,74 +12373,87 @@
 		}
 	};
 
-	function _isSameSizeMerged(bbox, aMerged) {
+	function _isSameSizeMerged(bbox, aMerged, checkProportion) {
 		var oRes = null;
 		var nWidth = null;
 		var nHeight = null;
-		for(var i = 0, length = aMerged.length; i < length; i++)
-		{
+		for (var i = 0, length = aMerged.length; i < length; i++) {
 			var mergedBBox = aMerged[i].bbox;
 			var nCurWidth = mergedBBox.c2 - mergedBBox.c1 + 1;
 			var nCurHeight = mergedBBox.r2 - mergedBBox.r1 + 1;
-			if(null == nWidth || null == nHeight)
-			{
+			if (null == nWidth || null == nHeight) {
 				nWidth = nCurWidth;
 				nHeight = nCurHeight;
-			}
-			else if(nCurWidth != nWidth || nCurHeight != nHeight)
-			{
+			} else if (nCurWidth != nWidth || nCurHeight != nHeight) {
 				nWidth = null;
 				nHeight = null;
 				break;
 			}
 		}
-		if(null != nWidth && null != nHeight)
-		{
+		if (null != nWidth && null != nHeight) {
+			var getRowColArr = function (byCol) {
+				var _aRowColTest = byCol ? new Array(nBBoxWidth) : new Array(nBBoxHeight);
+				for (var i = 0, length = aMerged.length; i < length; i++) {
+					var merged = aMerged[i];
+					var j;
+					if (byCol) {
+						for (j = merged.bbox.c1; j <= merged.bbox.c2; j++) {
+							_aRowColTest[j - bbox.c1] = 1;
+						}
+					} else {
+						for (j = merged.bbox.r1; j <= merged.bbox.r2; j++) {
+							_aRowColTest[j - bbox.r1] = 1;
+						}
+					}
+
+				}
+				return _aRowColTest;
+			};
+			var checkArr = function (_aRowColTest) {
+				var _res = null;
+				var bExistNull = false;
+				for (var i = 0, length = _aRowColTest.length; i < length; i++) {
+					if (null == _aRowColTest[i]) {
+						bExistNull = true;
+						break;
+					}
+				}
+				if (!bExistNull) {
+					_res = true;
+				}
+
+				return _res;
+			};
+
 			//проверяем что merge ячеки полностью заполняют область
 			var nBBoxWidth = bbox.c2 - bbox.c1 + 1;
 			var nBBoxHeight = bbox.r2 - bbox.r1 + 1;
-			if(nBBoxWidth == nWidth || nBBoxHeight == nHeight)
-			{
+			if (checkProportion && nBBoxWidth % nWidth === 0 && nBBoxHeight % nHeight === 0) {
+				aRowColTest = getRowColArr();
+				bRes = checkArr(aRowColTest);
+				if (bRes) {
+					aRowColTest = getRowColArr(true);
+					bRes = checkArr(aRowColTest);
+				}
+				if (bRes) {
+					oRes = {width: nWidth, height: nHeight};
+				}
+			} else if (nBBoxWidth == nWidth || nBBoxHeight == nHeight) {
 				var bRes = false;
 				var aRowColTest = null;
-				if(nBBoxWidth == nWidth && nBBoxHeight == nHeight)
+				if (nBBoxWidth == nWidth && nBBoxHeight == nHeight) {
 					bRes = true;
-				else if(nBBoxWidth == nWidth)
-				{
-					aRowColTest = new Array(nBBoxHeight);
-					for(var i = 0, length = aMerged.length; i < length; i++)
-					{
-						var merged = aMerged[i];
-						for(var j = merged.bbox.r1; j <= merged.bbox.r2; j++)
-							aRowColTest[j - bbox.r1] = 1;
-					}
+				} else if (nBBoxWidth == nWidth) {
+					aRowColTest = getRowColArr();
+				} else if (nBBoxHeight == nHeight) {
+					aRowColTest = getRowColArr(true);
 				}
-				else if(nBBoxHeight == nHeight)
-				{
-					aRowColTest = new Array(nBBoxWidth);
-					for(var i = 0, length = aMerged.length; i < length; i++)
-					{
-						var merged = aMerged[i];
-						for(var j = merged.bbox.c1; j <= merged.bbox.c2; j++)
-							aRowColTest[j - bbox.c1] = 1;
-					}
+				if (null != aRowColTest) {
+					bRes = checkArr(aRowColTest);
 				}
-				if(null != aRowColTest)
-				{
-					var bExistNull = false;
-					for(var i = 0, length = aRowColTest.length; i < length; i++)
-					{
-						if(null == aRowColTest[i])
-						{
-							bExistNull = true;
-							break;
-						}
-					}
-					if(!bExistNull)
-						bRes = true;
-				}
-				if(bRes)
+				if (bRes) {
 					oRes = {width: nWidth, height: nHeight};
+				}
 			}
 		}
 		return oRes;
@@ -13634,4 +13698,6 @@
 	window['AscCommonExcel'].getCompiledStyleFromArray = getCompiledStyleFromArray;
 	window['AscCommonExcel'].ignoreFirstRowSort = ignoreFirstRowSort;
 	window['AscCommonExcel'].tryTranslateToPrintArea = tryTranslateToPrintArea;
+	window['AscCommonExcel']._isSameSizeMerged = _isSameSizeMerged;
+
 })(window);

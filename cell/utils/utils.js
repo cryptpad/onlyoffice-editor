@@ -176,16 +176,16 @@
 
 		function convertPtToPx(value) {
 			value = value / sizePxinPt;
-			value = value | value;
 			if (AscBrowser.isRetina) {
-				value = AscBrowser.convertToRetinaValue(value, true);
+				value = value * AscBrowser.retinaPixelRatio;
 			}
+			value = value | value;
 			return value;
 		}
 		function convertPxToPt(value) {
 			value = value * sizePxinPt;
 			if (AscBrowser.isRetina) {
-				value = AscBrowser.convertToRetinaValue(value);
+				value = Asc.ceil(value / AscBrowser.retinaPixelRatio * 10) / 10;
 			}
 			return value;
 		}
@@ -2224,6 +2224,7 @@
 			this.oOnUpdateTabColor = {};
 			this.oOnUpdateSheetViewSettings = {};
 			this.bAddRemoveRowCol = false;
+			this.bChangeColorScheme = false;
 			this.bChangeActive = false;
 			this.activeSheet = null;
 		}

@@ -906,11 +906,12 @@ Paragraph.prototype.private_RecalculatePageBreak       = function(CurLine, CurPa
 			while (PrevElement && (PrevElement instanceof CBlockLevelSdt))
 				PrevElement = PrevElement.GetLastElement();
 
-            if (null !== PrevElement && type_Paragraph === PrevElement.Get_Type() && true === PrevElement.Is_Empty() && undefined !== PrevElement.Get_SectionPr())
+			var oFootnotes = this.LogicDocument ? this.LogicDocument.Footnotes : null;
+			if (null !== PrevElement && type_Paragraph === PrevElement.Get_Type() && true === PrevElement.Is_Empty() && undefined !== PrevElement.Get_SectionPr())
 			{
 				var PrevSectPr = PrevElement.Get_SectionPr();
 				var CurSectPr  = this.LogicDocument.SectionsInfo.Get_SectPr(this.Index).SectPr;
-				if (c_oAscSectionBreakType.Continuous === CurSectPr.Get_Type() && true === CurSectPr.Compare_PageSize(PrevSectPr))
+				if (c_oAscSectionBreakType.Continuous === CurSectPr.Get_Type() && true === CurSectPr.Compare_PageSize(PrevSectPr) && oFootnotes && oFootnotes.IsEmptyPage(PrevElement.GetAbsolutePage(PrevElement.GetPagesCount() - 1)))
 					PrevElement = PrevElement.Get_DocumentPrev();
 			}
 
@@ -927,7 +928,7 @@ Paragraph.prototype.private_RecalculatePageBreak       = function(CurLine, CurPa
 				{
 					var PrevSectPr = PrevElement.Get_SectionPr();
 					var CurSectPr  = this.LogicDocument.SectionsInfo.Get_SectPr(this.Index).SectPr;
-					if (c_oAscSectionBreakType.Continuous !== CurSectPr.Get_Type() || true !== CurSectPr.Compare_PageSize(PrevSectPr))
+					if (c_oAscSectionBreakType.Continuous !== CurSectPr.Get_Type() || true !== CurSectPr.Compare_PageSize(PrevSectPr) || (oFootnotes && !oFootnotes.IsEmptyPage(PrevElement.GetAbsolutePage(PrevElement.GetPagesCount() - 1))))
 						bNeedPageBreak = false;
 				}
 
@@ -3325,16 +3326,16 @@ CParagraphRecalculateStateWrap.prototype =
             var FirstTextPr = Para.Get_FirstTextPr2();
 
 
-            if(BulletNum > 32767)
-            {
-                BulletNum = (BulletNum % 32767);
-            }
             if (Bullet.Get_Type() >= numbering_presentationnumfrmt_AlphaLcParenR)
             {
                 if(BulletNum > 780)
                 {
                     BulletNum = (BulletNum % 780);
                 }
+            }
+            if(BulletNum > 32767)
+            {
+                BulletNum = (BulletNum % 32767);
             }
 
 

@@ -7401,6 +7401,66 @@ DrawingObjectsController.prototype =
         this.changeCurrentState(new AscFormat.NullState(this, this.drawingObjects));
     },
 
+    addTextWithPr: function(sText, oTextPr, isMoveCursorOutside)
+    {
+
+        this.checkSelectedObjectsAndCallback(function(){
+            var oTargetDocContent = this.getTargetDocContent(true, false);
+            if(oTargetDocContent) {
+                oTargetDocContent.Remove(-1, true, true, true, undefined);
+                var oCurrentTextPr = oTargetDocContent.GetDirectTextPr();
+                var oParagraph = oTargetDocContent.GetCurrentParagraph();
+                if (oParagraph && oParagraph.GetParent())
+                {
+                    var oTempPara = new Paragraph(this.drawingObjects.getDrawingDocument(), oParagraph.GetParent());
+                    var oRun      = new ParaRun(oTempPara, false);
+                    oRun.AddText(sText);
+                    oTempPara.AddToContent(0, oRun);
+
+                    oRun.SetPr(oCurrentTextPr.Copy());
+                    if (oTextPr)
+                        oRun.ApplyPr(oTextPr);
+
+                    var oAnchorPos = oParagraph.GetCurrentAnchorPosition();
+
+                    var oSelectedContent = new CSelectedContent();
+                    var oSelectedElement = new CSelectedElement();
+
+                    oSelectedElement.Element     = oTempPara;
+                    oSelectedElement.SelectedAll = false;
+                    oSelectedContent.Add(oSelectedElement);
+
+                    oSelectedContent.On_EndCollectElements(oTargetDocContent, false);
+
+                    oParagraph.GetParent().InsertContent(oSelectedContent, oAnchorPos);
+
+                    if (oTargetDocContent.IsSelectionUse())
+                    {
+                        if (isMoveCursorOutside)
+                        {
+                            oTargetDocContent.RemoveSelection();
+                            oRun.MoveCursorOutsideElement(false);
+                        }
+                        else
+                        {
+                            oTargetDocContent.MoveCursorRight(false, false, true);
+                        }
+                    }
+                    else if (isMoveCursorOutside)
+                    {
+                        oRun.MoveCursorOutsideElement(false);
+                    }
+                    var oTargetTextObject = getTargetTextObject(this);
+                    if(oTargetTextObject && oTargetTextObject.checkExtentsByDocContent)
+                    {
+                        oTargetTextObject.checkExtentsByDocContent();
+                    }
+                }
+
+            }
+        }, [], false, AscDFH.historydescription_Document_AddTextWithProperties);
+    },
+
     getColorMapOverride: function()
     {
         return null;
@@ -7839,7 +7899,7 @@ DrawingObjectsController.prototype =
 
     unGroup: function()
     {
-        this.checkSelectedObjectsAndCallback(this.unGroupCallback, null, false, AscDFH.historydescription_CommonControllerUnGroup)
+        this.checkSelectedObjectsAndCallback(this.unGroupCallback, null, false, AscDFH.historydescription_CommonControllerUnGroup);
     },
 
     getSelectedObjectsBounds: function(isTextSelectionUse)
@@ -9592,6 +9652,8 @@ DrawingObjectsController.prototype =
             this.checkSelectedObjectsAndCallback(this.paraApplyCallback, [props], false, AscDFH.historydescription_Spreadsheet_ParaApply);
         }
     },
+
+
 
     checkSelectedObjectsAndCallback: function(callback, args, bNoSendProps, nHistoryPointType, aAdditionalObjects, bNoCheckLock)
     {

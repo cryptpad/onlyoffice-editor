@@ -2873,11 +2873,8 @@ var oGeneralEditFormatCache = new GeneralEditFormatCache();
 
 function FormatParser()
 {
-    this.aCurrencyRegexp = {};
-    this.aThouthandRegexp = {};
 	this.days = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 	this.daysLeap = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-	this.bFormatMonthFirst = true;
 }
 FormatParser.prototype =
 {
@@ -2911,11 +2908,7 @@ FormatParser.prototype =
         //replace Non-breaking space(0xA0) with White-space(0x20)
         if (" " == cultureInfo.NumberGroupSeparator)
             value = value.replace(new RegExp(String.fromCharCode(0xA0), "g"));
-        var rx_thouthand = this.aThouthandRegexp[cultureInfo.LCID];
-        if (null == rx_thouthand) {
-            rx_thouthand = new RegExp("^(([ \\+\\-%\\$€£¥\\(]|" + escapeRegExp(cultureInfo.CurrencySymbol) + ")*)((\\d+" + escapeRegExp(cultureInfo.NumberGroupSeparator) + "\\d+)*\\d*" + escapeRegExp(cultureInfo.NumberDecimalSeparator) + "?\\d*)(([ %\\)]|р.|" + escapeRegExp(cultureInfo.CurrencySymbol) + ")*)$");
-            this.aThouthandRegexp[cultureInfo.LCID] = rx_thouthand;
-        }
+        var rx_thouthand = new RegExp("^(([ \\+\\-%\\$€£¥\\(]|" + escapeRegExp(cultureInfo.CurrencySymbol) + ")*)((\\d+" + escapeRegExp(cultureInfo.NumberGroupSeparator) + "\\d+)*\\d*" + escapeRegExp(cultureInfo.NumberDecimalSeparator) + "?\\d*)(([ %\\)]|р.|" + escapeRegExp(cultureInfo.CurrencySymbol) + ")*)$");
         var match = value.match(rx_thouthand);
         if (null != match) {
             var sBefore = match[1];

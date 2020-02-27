@@ -529,10 +529,10 @@ CBlockLevelSdt.prototype.AddTextArt = function(nStyle)
 	this.private_ReplacePlaceHolderWithContent();
 	this.Content.AddTextArt(nStyle);
 };
-CBlockLevelSdt.prototype.AddInlineTable = function(nCols, nRows)
+CBlockLevelSdt.prototype.AddInlineTable = function(nCols, nRows, nMode)
 {
 	this.private_ReplacePlaceHolderWithContent();
-	this.Content.AddInlineTable(nCols, nRows);
+	return this.Content.AddInlineTable(nCols, nRows, nMode);
 };
 CBlockLevelSdt.prototype.Remove = function(nCount, isRemoveWholeElement, bRemoveOnlySelection, bOnAddText, isWord)
 {
@@ -864,14 +864,20 @@ CBlockLevelSdt.prototype.DrawContentControlsTrack = function(isHover, X, Y, nCur
 		return;
 	}
 
+	var oHdrFtr     = this.IsHdrFtr(true);
+	var nHdrFtrPage = oHdrFtr ? oHdrFtr.GetContent().GetAbsolutePage(0) : null;
+
 	for (var nPageIndex = 0, nPagesCount = this.GetPagesCount(); nPageIndex < nPagesCount; ++nPageIndex)
 	{
 		if (this.IsEmptyPage(nPageIndex))
 			continue;
 
 		var nPageAbs = this.GetAbsolutePage(nPageIndex);
-		var oBounds = this.Content.GetContentBounds(nPageIndex);
-		arrRects.push({X : oBounds.Left, Y : oBounds.Top, R : oBounds.Right, B : oBounds.Bottom, Page : nPageAbs});
+		if (null === nHdrFtrPage || nHdrFtrPage === nPageAbs)
+		{
+			var oBounds = this.Content.GetContentBounds(nPageIndex);
+			arrRects.push({X : oBounds.Left, Y : oBounds.Top, R : oBounds.Right, B : oBounds.Bottom, Page : nPageAbs});
+		}
 	}
 
 	if (undefined !== X && undefined !== Y && undefined !== nCurPage)
@@ -897,6 +903,7 @@ CBlockLevelSdt.prototype.DrawContentControlsTrack = function(isHover, X, Y, nCur
 };
 CBlockLevelSdt.prototype.AddContentControl = function(nContentControlType)
 {
+	this.private_ReplacePlaceHolderWithContent();
 	return this.Content.AddContentControl(nContentControlType);
 };
 CBlockLevelSdt.prototype.RecalculateMinMaxContentWidth = function(isRotated)
@@ -1606,6 +1613,13 @@ CBlockLevelSdt.prototype.SkipSpecialContentControlLock = function(isSkip)
 	this.SkipSpecialLock = isSkip;
 };
 /**
+ * @retuns {boolean}
+ */
+CBlockLevelSdt.prototype.IsSkipSpecialContentControlLock = function()
+{
+	return this.SkipSpecialLock;
+};
+/**
  * Применяем заданные настройки для чекобокса
  * @param {CSdtCheckBoxPr} oCheckBoxPr
  * @param {CTextPr} oTextPr
@@ -2152,13 +2166,14 @@ CBlockLevelSdt.prototype.Document_Is_SelectionLocked = function(CheckType, bChec
 
 	var isCheckContentControlLock = this.LogicDocument ? this.LogicDocument.IsCheckContentControlsLock() : true;
 
-	if (CheckType === AscCommon.changestype_Paragraph_TextProperties)
+	if (AscCommon.changestype_Paragraph_TextProperties === CheckType
+		|| ((AscCommon.changestype_Drawing_Props === CheckType || AscCommon.changestype_Image_Properties === CheckType)
+		&& this.IsPicture()))
 	{
 		this.SkipSpecialContentControlLock(true);
 		if (!this.CanBeEdited())
-			this.Lock.Check(this.GetId());
+			AscCommon.CollaborativeEditing.Add_CheckLock(true);
 		this.SkipSpecialContentControlLock(false);
-
 
 		isCheckContentControlLock = false;
 	}
@@ -2257,6 +2272,10 @@ CBlockLevelSdt.prototype.GetSpecificType = function()
 		return Asc.c_oAscContentControlSpecificType.DateTime;
 
 	return Asc.c_oAscContentControlSpecificType.None;
+};
+CBlockLevelSdt.prototype.GetAllTablesOnPage = function(nPageAbs, arrTables)
+{
+	return this.Content.GetAllTablesOnPage(nPageAbs, arrTables);
 };
 //--------------------------------------------------------export--------------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};

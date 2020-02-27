@@ -826,7 +826,7 @@
     CGraphicObjectBase.prototype.checkTypeCorrect = function(){
         return true;
     };
-    CGraphicObjectBase.prototype.handleUpdateExtents = function(){
+    CGraphicObjectBase.prototype.handleUpdateExtents = function(bExtX){
     };
     CGraphicObjectBase.prototype.handleUpdatePosition = function(){
     };

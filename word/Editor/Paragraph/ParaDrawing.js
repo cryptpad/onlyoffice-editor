@@ -473,6 +473,10 @@ ParaDrawing.prototype.Is_UseInDocument = function()
 	}
 	return false;
 };
+ParaDrawing.prototype.IsUseInDocument = function()
+{
+	return this.Is_UseInDocument();
+};
 ParaDrawing.prototype.CheckGroupSizes = function()
 {
 	if (this.GraphicObj && this.GraphicObj.CheckGroupSizes)
@@ -845,7 +849,24 @@ ParaDrawing.prototype.Search = function(Str, Props, SearchEngine, Type)
 ParaDrawing.prototype.Set_Props = function(Props)
 {
 	var bCheckWrapPolygon = false;
-	if (undefined != Props.WrappingStyle)
+
+	var isPictureCC = false;
+
+	var oRun = this.GetRun();
+	if (oRun)
+	{
+		var arrContentControls = oRun.GetParentContentControls();
+		for (var nIndex = 0, nCount = arrContentControls.length; nIndex < nCount; ++nIndex)
+		{
+			if (arrContentControls[nIndex].IsPicture())
+			{
+				isPictureCC = true;
+				break;
+			}
+		}
+	}
+
+	if (undefined != Props.WrappingStyle && !isPictureCC)
 	{
 		if (drawing_Inline === this.DrawingType && c_oAscWrapStyle2.Inline != Props.WrappingStyle && undefined === Props.Paddings)
 		{
@@ -1585,6 +1606,10 @@ ParaDrawing.prototype.Is_Inline = function()
 		return true;
 
 	return ( drawing_Inline === this.DrawingType ? true : false );
+};
+ParaDrawing.prototype.IsInline = function()
+{
+	return this.Is_Inline();
 };
 ParaDrawing.prototype.Use_TextWrap = function()
 {
@@ -2332,7 +2357,7 @@ ParaDrawing.prototype.getArrayWrapIntervals = function(x0, y0, x1, y1, Y0Sp, Y1S
 };
 ParaDrawing.prototype.setAllParagraphNumbering = function(numInfo)
 {
-	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.addInlineTable === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.setAllParagraphNumbering === "function")
 		this.GraphicObj.setAllParagraphNumbering(numInfo);
 };
 ParaDrawing.prototype.addNewParagraph = function(bRecalculate)
@@ -2340,10 +2365,12 @@ ParaDrawing.prototype.addNewParagraph = function(bRecalculate)
 	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.addNewParagraph === "function")
 		this.GraphicObj.addNewParagraph(bRecalculate);
 };
-ParaDrawing.prototype.addInlineTable = function(cols, rows)
+ParaDrawing.prototype.addInlineTable = function(nCols, nRows, nMode)
 {
 	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.addInlineTable === "function")
-		this.GraphicObj.addInlineTable(cols, rows);
+		return this.GraphicObj.addInlineTable(nCols, nRows, nMode);
+
+	return null;
 };
 ParaDrawing.prototype.applyTextPr = function(paraItem, bRecalculate)
 {

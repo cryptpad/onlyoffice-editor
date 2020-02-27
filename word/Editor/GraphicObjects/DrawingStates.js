@@ -541,9 +541,15 @@ MoveInlineObject.prototype =
 				this.drawingObjects.document.StartAction(AscDFH.historydescription_Document_CopyAndMoveInlineObject);
                 var new_para_drawing = new ParaDrawing(this.majorObject.parent.Extent.W, this.majorObject.parent.Extent.H, null, this.drawingObjects.drawingDocument, null, null);
                 var drawing = this.majorObject.copy(undefined);
+
+                var oRunPr = this.majorObject.parent && this.majorObject.parent.GetRun() ? this.majorObject.parent.GetRun().GetDirectTextPr() : null;
+                if(drawing.copyComments)
+                {
+                    drawing.copyComments(this.drawingObjects.document);
+                }
                 drawing.setParent(new_para_drawing);
                 new_para_drawing.Set_GraphicObject(drawing);
-                new_para_drawing.Add_ToDocument(this.InlinePos, false);
+                new_para_drawing.Add_ToDocument(this.InlinePos, false, oRunPr);
                 this.drawingObjects.resetSelection();
                 this.drawingObjects.selectObject(drawing, pageIndex);
                 this.drawingObjects.document.Recalculate();
@@ -676,6 +682,13 @@ RotateState.prototype =
                     {
                         for(i = 0; i < aNearestPos.length; ++i)
                         {
+                            bounds = aBounds[i];
+                            para_drawing = aDrawings[i].Copy();
+                            if(para_drawing.GraphicObj)
+                            {
+                                para_drawing.GraphicObj.copyComments(this.drawingObjects.document);
+                            }
+                            para_drawing.Set_RelativeHeight(this.drawingObjects.getZIndex());
                             if(aDrawings[i].Locked !== true)
                                 AscFormat.checkObjectInArray(aCheckParagraphs, aNearestPos[i].Paragraph);
                             else
@@ -1302,6 +1315,10 @@ MoveInGroupState.prototype =
                 for(i = 0; i < tracks.length; ++i)
                 {
                     var copy = tracks[i].originalObject.copy(undefined);
+                    if(copy.copyComments)
+                    {
+                        copy.copyComments(this.drawingObjects.document);
+                    }
                     copy.setGroup(tracks[i].originalObject.group);
                     copy.group.addToSpTree(copy.group.length, copy);
                     tracks[i].originalObject = copy;

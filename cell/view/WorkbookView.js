@@ -520,8 +520,8 @@
       };
       this.Api.Begin_CompositeInput = function () {
         var oWSView = self.getWorksheet();
-        if(oWSView && oWSView.isSelectOnShape){
-          if(oWSView.objectRender){
+        if (oWSView && oWSView.isSelectOnShape) {
+          if (oWSView.objectRender) {
             oWSView.objectRender.Begin_CompositeInput();
           }
           return;
@@ -596,6 +596,26 @@
         }
         return res;
       };
+      this.Api.AddTextWithPr = function (familyName, arrCharCodes) {
+      	var ws = self.getWorksheet();
+      	if (ws && ws.isSelectOnShape) {
+      		var textPr = new CTextPr();
+			textPr.RFonts = new CRFonts();
+			textPr.RFonts.Set_All(familyName, -1);
+      		ws.objectRender.controller.addTextWithPr(new AscCommon.CUnicodeStringEmulator(arrCharCodes), textPr, true);
+      		return;
+      	}
+
+      	if (!self.isCellEditMode) {
+      		self._onEditCell(undefined, undefined, undefined, false, function () {
+				self.cellEditor.setTextStyle('fn', familyName);
+				self.cellEditor._addCharCodes(arrCharCodes);
+			});
+		} else {
+			self.cellEditor.setTextStyle('fn', familyName);
+			self.cellEditor._addCharCodes(arrCharCodes);
+		}
+	  };
       this.Api.beginInlineDropTarget = function (event) {
       	if (!self.controller.isMoveRangeMode) {
       		self.controller.isMoveRangeMode = true;
@@ -1549,9 +1569,9 @@
     }
 
     // Обновляем состояние Undo/Redo
-	  if(!(this.cellEditor.options && this.cellEditor.options.menuEditor)) {
-		  History._sendCanUndoRedo();
-	  }
+    if (!this.cellEditor.getMenuEditorMode()) {
+    	History._sendCanUndoRedo();
+    }
 
     // Обновляем состояние информации
     this._onWSSelectionChanged();
@@ -1756,7 +1776,7 @@
     if (ws.updateResize && ws.updateZoom) {
       ws.changeZoomResize();
     } else if (ws.updateResize) {
-      ws.resize(true);
+      ws.resize(true, this.cellEditor);
     } else if (ws.updateZoom) {
       ws.changeZoom(true);
     }
@@ -1900,7 +1920,7 @@
       for (var i in this.wsViews) {
         item = this.wsViews[i];
         // Делаем resize (для не активных сменим как только сделаем его активным)
-        item.resize(/*isDraw*/i == activeIndex);
+        item.resize(/*isDraw*/i == activeIndex, this.cellEditor);
       }
       this.drawWorksheet();
     } else {

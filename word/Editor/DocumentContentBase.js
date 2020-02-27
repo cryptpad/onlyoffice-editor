@@ -1624,6 +1624,7 @@ CDocumentContentBase.prototype.ConcatParagraphs = function(nPosition, isUseConca
 	{
 		this.Content[nPosition].Concat(this.Content[nPosition + 1], isUseConcatedStyle);
 		this.RemoveFromContent(nPosition + 1, 1);
+		this.Content[nPosition].CorrectContent();
 		return true;
 	}
 
@@ -1894,4 +1895,17 @@ CDocumentContentBase.prototype.private_CheckSelectedContentBeforePaste = functio
 	{
 		oSelectedContent.ConvertToPresentation(this);
 	}
+};
+/**
+ * Проверяем, начинается ли заданная страница с заданного элемента
+ * @param nCurPage
+ * @param nElementIndex
+ * @returns {boolean}
+ */
+CDocumentContentBase.prototype.IsFirstElementOnPage = function(nCurPage, nElementIndex)
+{
+	if (!this.Pages[nCurPage])
+		return false;
+
+	return (this.Pages[nCurPage].Pos === nElementIndex);
 };

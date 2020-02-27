@@ -3335,7 +3335,7 @@
 					return false;
 				}
 			}
-			return true;
+			return this.name === oColorScheme.name;
 		}
 		return false;
 	};
@@ -3987,7 +3987,7 @@
                 if(oApi.WordControl && !oApi.WordControl.m_oLogicDocument)
 				{
 					bRemoveDocument = true;
-					oApi.WordControl.m_oLogicDocument = new CDocument();
+					oApi.WordControl.m_oLogicDocument = new AscCommonWord.CDocument();
 					oApi.WordControl.m_oDrawingDocument.m_oLogicDocument = oApi.WordControl.m_oLogicDocument;
 				}
                 oShape.setBDeleted(false);
@@ -4041,7 +4041,7 @@
 						oNewParagraph.Set_Align(oCurParS['align'])
 					}
 					if(Array.isArray(oCurParS['fill']) && oCurParS['fill'].length === 3){
-						var oShd = new CDocumentShd();
+						var oShd = new AscCommonWord.CDocumentShd();
 						oShd.Value = Asc.c_oAscShdClear;
 						oShd.Color.r = oCurParS['fill'][0];
 						oShd.Color.g = oCurParS['fill'][1];
@@ -4223,14 +4223,15 @@
                 var runs = pars[i]['runs'];
                 for (j = 0; j < runs.length; j++)
                 {
-                    if (undefined !== runs[j]["font-family"])
-                        fonts.push(runs[j]["font-family"]);
+                	if (undefined === runs[j]["font-family"])
+                        runs[j]["font-family"] = "Arial";
+                	fonts.push(runs[j]["font-family"]);
                 }
             }
 
             for (i = 0; i < fonts.length; i++)
             {
-                fonts[i] = new AscFonts.CFont(g_fontApplication.GetFontInfoName(fonts[i]), 0, "", 0, null);
+                fonts[i] = new AscFonts.CFont(AscFonts.g_fontApplication.GetFontInfoName(fonts[i]), 0, "", 0, null);
             }
 
 			if (false === AscCommon.g_font_loader.CheckFontsNeedLoading(fonts))
