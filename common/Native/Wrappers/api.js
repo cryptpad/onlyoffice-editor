@@ -2459,7 +2459,7 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
                 var currentUserName = _internalStorage.externalUserInfo.asc_getFullName();
 
                 if (comment) {
-                    comment.asc_putText(json["m_sText"]);
+                    comment.asc_putText(json["text"]);
                     comment.asc_putTime((now.getTime() - timeZoneOffsetInMs).toString());
                     comment.asc_putOnlyOfficeTime(now.getTime().toString());
                     comment.asc_putUserId(currentUserId);
@@ -2529,32 +2529,32 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
                 var ascComment = buildCommentData();
 
                 if (ascComment && comment && _api.asc_changeComment) {
-                    var sTime = new Date(parseInt(comment["m_sTime"]));
-                    ascComment.asc_putText(comment["m_sText"]);
-                    ascComment.asc_putQuoteText(comment["m_sQuoteText"]);
+                    var sTime = new Date(parseInt(comment["date"]));
+                    ascComment.asc_putText(comment["text"]);
+                    ascComment.asc_putQuoteText(comment["quoteText"]);
                     ascComment.asc_putTime(utcDateToString(sTime));
                     ascComment.asc_putOnlyOfficeTime(ooDateToString(sTime));
-                    ascComment.asc_putUserId(comment["m_sUserId"]);
-                    ascComment.asc_putUserName(comment["m_sUserName"]);
-                    ascComment.asc_putSolved(comment["m_bSolved"]);
+                    ascComment.asc_putUserId(comment["userId"]);
+                    ascComment.asc_putUserName(comment["userName"]);
+                    ascComment.asc_putSolved(comment["solved"]);
                     ascComment.asc_putGuid(comment["id"]);
 
                     if (comment.asc_putDocumentFlag) {
                         ascComment.asc_putDocumentFlag(comment["unattached"]);
                     }
 
-                    var replies = comment["m_aReplies"];
+                    var replies = comment["replies"];
 
                     if (replies && replies.length) {
                         replies.forEach(function (reply) {
                             var addReply = buildCommentData();   //  new asc_CCommentData(null);
                             if (addReply) {
-                                var sTime = new Date(parseInt(reply["m_sTime"]));
-                                addReply.asc_putText(reply["m_sText"]);
+                                var sTime = new Date(parseInt(reply["date"]));
+                                addReply.asc_putText(reply["text"]);
                                 addReply.asc_putTime(utcDateToString(sTime));
                                 addReply.asc_putOnlyOfficeTime(ooDateToString(sTime));
-                                addReply.asc_putUserId(reply["m_sUserId"]);
-                                addReply.asc_putUserName(reply["m_sUserName"]);
+                                addReply.asc_putUserId(reply["userId"]);
+                                addReply.asc_putUserName(reply["userName"]);
 
                                 ascComment.asc_addReply(addReply);
                             }
@@ -6334,6 +6334,9 @@ function NativeOpenFile3(_params, documentInfo)
         _api.asc_registerCallback("asc_onShowComment", onApiShowComment);
         _api.asc_registerCallback("asc_onHideComment", onApiHideComment);
         _api.asc_registerCallback("asc_onUpdateCommentPosition", onApiUpdateCommentPosition);
+
+        // Revisions Change
+
         _api.asc_registerCallback("asc_onDocumentPlaceChanged", onDocumentPlaceChanged);
         _api.asc_registerCallback("asc_onShowRevisionsChange", onApiShowRevisionsChange);
 
@@ -6422,17 +6425,72 @@ function postDataAsJSONString(data, eventId) {
     window["native"]["OnCallMenuEvent"](eventId, stream);
 }
 
-function onApiAddComment(id, comment) {
-    if (comment === undefined) {
-        comment = {};
+function stringOOToLocalDate (date) {
+    if (typeof date === 'string')
+        return parseInt(date);
+    return 0;
+}
+
+function stringUtcToLocalDate(date) {
+    if (typeof date === 'string')
+        return parseInt(date) + (new Date()).getTimezoneOffset() * 60000;
+    return 0;
+}
+
+function readSDKComment(id, data) {
+    var date = data.asc_getOnlyOfficeTime()
+            ? new Date(stringOOToLocalDate(data.asc_getOnlyOfficeTime()))
+            : (data.asc_getTime() == '') ? new Date() : new Date(stringUtcToLocalDate(data.asc_getTime())),
+        groupname = id.substr(0, id.lastIndexOf('_') + 1).match(/^(doc|sheet[0-9_]+)_/);
+
+    return {
+        id          : id,
+        guid        : data.asc_getGuid(),
+        userId      : data.asc_getUserId(),
+        userName    : data.asc_getUserName(),
+        date        : date.getTime().toString(),
+        quoteText   : data.asc_getQuoteText(),
+        text        : data.asc_getText(),
+        solved      : data.asc_getSolved(),
+        unattached  : (data.asc_getDocumentFlag === undefined) ? false : data.asc_getDocumentFlag(),
+        groupName   : (groupname && groupname.length>1) ? groupname[1] : null,
+        replies     : readSDKReplies(data)
+    };
+}
+
+function readSDKReplies (data) {
+    var i = 0,
+        replies = [],
+        date = null;
+    var repliesCount = data.asc_getRepliesCount();
+    if (repliesCount) {
+        for (i = 0; i < repliesCount; ++i) {
+            var reply = data.asc_getReply(i);
+            date = (reply.asc_getOnlyOfficeTime()) 
+                ? new Date(stringOOToLocalDate(reply.asc_getOnlyOfficeTime()))
+                : ((reply.asc_getTime() == '') ? new Date() : new Date(stringUtcToLocalDate(reply.asc_getTime())));
+            replies.push({
+                userId      : reply.asc_getUserId(),
+                userName    : reply.asc_getUserName(),
+                text        : reply.asc_getText(),
+                date        : date.getTime().toString()
+            });
+        }
     }
-    comment["id"] = id;
-    comment["unattached"] = (comment.asc_getDocumentFlag === undefined) ? false : comment.asc_getDocumentFlag();
+    return replies;
+}
+
+function onApiAddComment(id, data) {
+    var comment = readSDKComment(id, data) || {};
     postDataAsJSONString(comment, 23001); // ASC_MENU_EVENT_TYPE_ADD_COMMENT
 }
 
 function onApiAddComments(data) {
-    postDataAsJSONString(data, 23002); // ASC_MENU_EVENT_TYPE_ADD_COMMENTS
+    var comments = [];
+    for (var i = 0; i < data.length; ++i) {
+        comments.push(readSDKComment(data[i].asc_getId(), data[i]));
+    }
+    postDataAsJSONString(comments, 23002); // ASC_MENU_EVENT_TYPE_ADD_COMMENTS
 }
 
 function onApiRemoveComment(id) {
@@ -6443,18 +6501,30 @@ function onApiRemoveComment(id) {
 }
 
 function onChangeComments(data) {
-    postDataAsJSONString(data, 23004); // ASC_MENU_EVENT_TYPE_CHANGE_COMMENTS
+    var comments = [];
+    for (var i = 0; i < data.length; ++i) {
+        comments.push(readSDKComment(data[i].asc_getId(), data[i]));
+    }
+    postDataAsJSONString(comments, 23004); // ASC_MENU_EVENT_TYPE_CHANGE_COMMENTS
 }
 
 function onApiRemoveComments(data) {
-    postDataAsJSONString(data, 23005); // ASC_MENU_EVENT_TYPE_REMOVE_COMMENTS
+    var ids = [];
+    for (var i = 0; i < data.length; ++i) {
+        ids.push({
+            "id": data[i]
+        });
+    }
+    postDataAsJSONString(ids, 23005); // ASC_MENU_EVENT_TYPE_REMOVE_COMMENTS
 }
 
-function onApiChangeCommentData(id, comment) {
-    var data = {
-        "id": id,
-        "comment": comment
-    };
+function onApiChangeCommentData(id, data) {
+    var comment = readSDKComment(id, data) || {},
+        data = {
+            "id": id,
+            "comment": comment
+        };
+
     postDataAsJSONString(data, 23006); // ASC_MENU_EVENT_TYPE_CHANGE_COMMENTDATA
 }
 
@@ -6505,6 +6575,8 @@ function onApiUpdateCommentPosition(uids, posX, posY, leftX) {
 function onDocumentPlaceChanged() {
     postDataAsJSONString(null, 23012); // ASC_MENU_EVENT_TYPE_DOCUMENT_PLACE_CHANGED
 }
+
+// Revisions Change
 
 function onApiShowRevisionsChange(data) {
     _internalStorage.changesReview = data
