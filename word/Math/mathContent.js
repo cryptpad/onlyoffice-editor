@@ -5522,7 +5522,7 @@ CMathContent.prototype.private_CanAutoCorrectText = function(AutoCorrectEngine) 
     var IndexAdd = (g_aMathAutoCorrectTriggerCharCodes[AutoCorrectEngine.ActionElement.value]) ? 1 : 0;
     var skip = IndexAdd - (AutoCorrectEngine.ActionElement.value == 0x20) ? 1 : 0;
     var ElCount = AutoCorrectEngine.Elements.length;
-    if (ElCount < 2 + IndexAdd) {
+    if (ElCount < 1 + IndexAdd) {
         return false;
     }
     var Result = false;
@@ -5533,15 +5533,16 @@ CMathContent.prototype.private_CanAutoCorrectText = function(AutoCorrectEngine) 
     var AutoCorrectCount = g_aAutoCorrectMathSymbols.length;
     for (var nIndex = 0; nIndex < AutoCorrectCount; nIndex++) {
         var AutoCorrectElement = g_aAutoCorrectMathSymbols[nIndex];
+        var tmp = AutoCorrectElement[0].length == 2 ? 1 : 0;
         var CheckString = AutoCorrectElement[0];
         var CheckStringLen = CheckString.length;
 
-        if (ElCount < CheckStringLen + IndexAdd) {
+        if (ElCount < CheckStringLen + IndexAdd - tmp) {
             continue;
         }
         var Found = true;
         for (var nStringPos = 0; nStringPos < CheckStringLen; nStringPos++) {
-            var LastEl = AutoCorrectEngine.Elements[ElCount - nStringPos - 1 - IndexAdd];
+            var LastEl = AutoCorrectEngine.Elements[ElCount - nStringPos - 1 - IndexAdd + tmp];
             if (!LastEl.Element.IsText()) {
                 FlagEnd = true;
                 Found = false;
@@ -5554,7 +5555,7 @@ CMathContent.prototype.private_CanAutoCorrectText = function(AutoCorrectEngine) 
         }
         if (true === Found) {
             RemoveCount = CheckStringLen + IndexAdd - skip;
-            Start = ElCount - RemoveCount - skip;
+            Start = ElCount - RemoveCount - skip + tmp;
 
             if (undefined === AutoCorrectElement[1].length) {
                 ReplaceChars[0] = AutoCorrectElement[1];
@@ -5804,7 +5805,7 @@ CMathAutoCorrectEngine.prototype.private_AutoCorrectEquation = function(Elements
                 if (Elements[CurPos+1] && (Elements[CurPos+1].value != 0x005E && Elements[CurPos+1].value != 0x005F)) {
                     var tmp = null;
                     if (Param.Type == MATH_DEGREE) {
-                        tmp =  [Elements.splice(ElPos[0]+1,(End-ElPos[0])),Elements.splice(CurPos+1,ElPos[0]-CurPos+1)];
+                        tmp = [Elements.splice(ElPos[0]+1,(End-ElPos[0])),Elements.splice(CurPos+1,ElPos[0]-CurPos+1)];
                     } else {
                         tmp = [Elements.splice(ElPos[1]+1,End-ElPos[1]),Elements.splice(ElPos[0]+1,ElPos[1]-ElPos[0]),Elements.splice(CurPos+1,ElPos[0]-CurPos+1)];
                     }
@@ -5851,10 +5852,10 @@ CMathAutoCorrectEngine.prototype.private_AutoCorrectEquation = function(Elements
                     tmp = [Elements.splice(ElPos[1]+1,End-ElPos[1]),Elements.splice(ElPos[0]+1,ElPos[1]-ElPos[0]),Elements.splice(CurPos,Brackets[0]-CurPos+2)];
                     fSkip = true;
                 } else if (Param.Type === MATH_DEGREE) {
-                    tmp =  [Elements.splice(ElPos[0]+1,(End-ElPos[0])),Elements.splice(CurPos,Brackets[0]-CurPos+2)];
+                    tmp = [Elements.splice(ElPos[0]+1,(End-ElPos[0])),Elements.splice(CurPos,Brackets[0]-CurPos+2)];
                     fSkip = true;
                 } else {
-                    tmp =  [Elements.splice(ElPos[0]+1,(End-ElPos[0])),Elements.splice(Brackets[0]+1,ElPos[0]-Brackets[0])];
+                    tmp = [Elements.splice(ElPos[0]+1,(End-ElPos[0])),Elements.splice(Brackets[0]+1,ElPos[0]-Brackets[0])];
                 }
                 this.private_CorrectEquation(Param,tmp);
                 Param.Type = null;
@@ -5994,7 +5995,7 @@ CMathAutoCorrectEngine.prototype.private_AutoCorrectEquation = function(Elements
                 } else if (Param.Type == MATH_DEGREESubSup) {
                     tmp = [Elements.splice(ElPos[1],End-ElPos[1]+1),Elements.splice(ElPos[0],ElPos[1]-ElPos[0]),Elements.splice(CurPos,ElPos[0]-CurPos)];
                 } else {
-                    tmp = [Elements.splice(CurPos+1,(End-CurPos)),Elements.splice(CurPos,ElPos[0]-CurPos)];
+                    tmp = [Elements.splice(CurPos+1,(End-CurPos)),Elements.splice(CurPos,1)];
                 }
                 Param.Type = MATH_NARY;
                 this.private_CorrectEquation(Param,tmp);
@@ -8138,6 +8139,14 @@ CMathAutoCorrectEngine.prototype.private_CanAutoCorrectEquation = function() {
                 this.CurPos--;
                 continue;
             }
+            if (this.CurPos - 1 > 0) {
+                var tmp = this.Elements[this.CurPos-1].Element;
+                if (tmp.value == 0x2F || tmp.value == 0x5E || tmp.value == 0x5F) {
+                    buffer[CurLvBuf].splice(0, 0, Elem);
+                    this.CurPos--;
+                    continue;
+                }
+            }
             if (bBrackOpen || (!bSecSpace && this.Type == null) || (this.IsFull && this.Type == null)) {
                 buffer[CurLvBuf].splice(0, 0, Elem);
                 this.CurPos--;
@@ -8685,6 +8694,14 @@ var g_aAutoCorrectMathSymbols =
     ['/<', 0x226E],
     ['/>', 0x226F],
     ['/=', 0x2260],
+    ['~=', 0x2245],
+    ['-+', 0x2213],
+    ['+-', 0x00B1],
+    ['<<', 0x226A],
+    ['<=', 0x2264],
+    ['->', 0x2192],
+    ['>=', 0x2265],
+    ['>>', 0x226B],
     ['\\above', 0x2534],
     ['\\acute', 0x0301],
     ['\\aleph', 0x2135],
@@ -8693,9 +8710,11 @@ var g_aAutoCorrectMathSymbols =
     ['\\amalg', 0x2210],
     ['\\angle', 0x2220],
     ['\\aoint', 0x222E],
+    ['/\\approx', 0x2249],
     ['\\approx', 0x2248],
     ['\\asmash', 0x2B06],
     ['\\ast', 0x2217],
+    ['/\\asymp', 0x226D],
     ['\\asymp', 0x224D],
     ['\\atop', 0x00A6],
     ['\\bar', 0x0305],
@@ -8739,6 +8758,7 @@ var g_aAutoCorrectMathSymbols =
     ['\\close', 0x2524],
     ['\\clubsuit', 0x2663],
     ['\\coint', 0x2232],
+    ['/\\cong', 0x2247],
     ['\\cong', 0x2245],
     ['\\coprod', 0x2210],
     ['\\cup', 0x222A],
@@ -8828,9 +8848,11 @@ var g_aAutoCorrectMathSymbols =
     ['\\epsilon', 0x03F5],
     ['\\Epsilon', 0x0395],
     ['\\eqarray', 0x2588],
+    ['/\\equiv', 0x2262],
     ['\\equiv', 0x2261],
     ['\\eta', 0x03B7],
     ['\\Eta', 0x0397],
+    ['/\\exists', 0x2204],
     ['\\exists', 0x2203],
     ['\\forall', 0x2200],
     ['\\fraktura', 0x1D51E],
@@ -8890,9 +8912,12 @@ var g_aAutoCorrectMathSymbols =
     ['\\G', 0x0393],
     ['\\gamma', 0x03B3],
     ['\\Gamma', 0x0393],
+    ['/\\ge', 0x2271],
     ['\\ge', 0x2265],
     ['\\geq', 0x2265],
     ['\\gets', 0x2190],
+    ['/\\gtrless', 0x2279],
+    ['\\gtrless', 0x2277],
     ['\\gg', 0x226B],
     ['\\gimel', 0x2137],
     ['\\grave', 0x0300],
@@ -8912,7 +8937,7 @@ var g_aAutoCorrectMathSymbols =
     ['\\iiiint', 0x2A0C],
     ['\\Im', 0x2111],
     ['\\imath', 0x0131],
-    // ['/\\in', 0x2209],
+    ['/\\in', 0x2209],
     ['\\in', 0x2208],
     ['\\inc', 0x2206],
     ['\\infty', 0x221E],
@@ -8937,6 +8962,7 @@ var g_aAutoCorrectMathSymbols =
     ['\\ldiv', 0x2215],
     ['\\ldivide', 0x2215],
     ['\\ldots', 0x2026],
+    ['/\\le', 0x2270],
     ['\\le', 0x2264],
     ['\\left', 0x251C],
     ['\\leftarrow', 0x2190],
@@ -8946,6 +8972,8 @@ var g_aAutoCorrectMathSymbols =
     ['\\leftrightarrow', 0x2194],
     ['\\Leftrightarrow', 0x21D4],
     ['\\leq', 0x2264],
+    ['/\\lessgtr', 0x2278],
+    ['\\lessgtr', 0x2276],
     ['\\lfloor', 0x230A],
     ['\\lhvec', 0x20D0],
     ['\\limit', [0x006C, 0x0069, 0x006D, 0x005F, 0x0028, 0x006E, 0x2192, 0x221E, 0x0029, 0x2061, 0x3016, 0x0028, 0x0031, 0x002B, 0x0031, 0x002F, 0x006E, 0x0029, 0x005E, 0x006E, 0x3017, 0x003D, 0x0065]],
@@ -8971,6 +8999,7 @@ var g_aAutoCorrectMathSymbols =
     ['\\ne', 0x2260],
     ['\\nearrow', 0x2197],
     ['\\neq', 0x2260],
+    ['/\\ni', 0x220C],
     ['\\ni', 0x220B],
     ['\\norm', 0x2016],
     ['\\notcontain', 0x220C],
@@ -9012,7 +9041,9 @@ var g_aAutoCorrectMathSymbols =
     ['\\pppprime', 0x2057],
     ['\\ppprime', 0x2034],
     ['\\pprime', 0x2033],
+    ['/\\prec', 0x2280],
     ['\\prec', 0x227A],
+    ['/\\preceq', 0x22E0],
     ['\\preceq', 0x227C],
     ['\\prime', 0x2032],
     ['\\prod', 0x220F],
@@ -9100,7 +9131,9 @@ var g_aAutoCorrectMathSymbols =
     ['\\setminus', 0x2216],
     ['\\sigma', 0x03C3],
     ['\\Sigma', 0x03A3],
+    ['/\\sim', 0x2241],
     ['\\sim', 0x223C],
+    ['/\\simeq', 0x2244],
     ['\\simeq', 0x2243],
     ['\\smash', 0x2B0D],
     ['\\smile', 0x2323],
@@ -9108,17 +9141,30 @@ var g_aAutoCorrectMathSymbols =
     ['\\sqcap', 0x2293],
     ['\\sqcup', 0x2294],
     ['\\sqrt', 0x221A],
+    ['/\\sqsubseteq', 0x22E2],
     ['\\sqsubseteq', 0x2291],
+    ['/\\sqsuperseteq', 0x22E3],
     ['\\sqsuperseteq', 0x2292],
+    ['/\\sqsupseteq', 0x22E3],
+    ['\\sqsupseteq', 0x2292],
     ['\\star', 0x22C6],
+    ['/\\subset', 0x2284],
     ['\\subset', 0x2282],
-    // ['/\\subseteq', 0x2288],
+    ['/\\subseteq', 0x2288],
     ['\\subseteq', 0x2286],
+    ['/\\succ', 0x2281],
     ['\\succ', 0x227B],
+    ['/\\succeq', 0x22E1],
     ['\\succeq', 0x227D],
     ['\\sum', 0x2211],
+    ['/\\supset', 0x2285],
+    ['\\supset', 0x2283],
+    ['/\\superset', 0x2285],
     ['\\superset', 0x2283],
+    ['/\\superseteq', 0x2289],
     ['\\superseteq', 0x2287],
+    ['/\\supseteq', 0x2289],
+    ['\\supseteq', 0x2287],
     ['\\swarrow', 0x2199],
     ['\\tau', 0x03C4],
     ['\\Tau', 0x03A4],
@@ -9170,15 +9216,7 @@ var g_aAutoCorrectMathSymbols =
     ['\\zeta', 0x03B6],
     ['\\Zeta', 0x0396],
     ['\\zwnj', 0x200C],
-    ['\\zwsp', 0x200B],
-    ['~=', 0x2245],
-    ['-+', 0x2213],
-    ['+-', 0x00B1],
-    ['<<', 0x226A],
-    ['<=', 0x2264],
-    ['->', 0x2192],
-    ['>=', 0x2265],
-    ['>>', 0x226B]
+    ['\\zwsp', 0x200B]
 ];
 //символы для mathfunc (интеграл, сумма...)
 var q_aMathAutoCorrectControlAggregationCodes =
