@@ -2380,8 +2380,7 @@
 
     var result = this.model.findCellText(options);
     if (result) {
-      var range = ws.model.getRange3(result.row, result.col, result.row, result.col);
-      options.findInSelection ? ws.setActiveCell(result) : ws.setSelection(range.getBBox0());
+      options.findInSelection ? ws.setActiveCell(result) : new Asc.Range(result.col, result.row, result.col, result.row);
       return true;
     }
     return null;
