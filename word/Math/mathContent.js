@@ -8066,6 +8066,7 @@ CMathAutoCorrectEngine.prototype.private_CanAutoCorrectEquation = function() {
             } else {
                 if (this.Type == MATH_DELIMITER) {
                     this.Type = null;
+                    buffer[CurLvBuf].Type = 0;
                 }
                 if (this.Type !== null || bOff) {
                     break;
