@@ -8166,7 +8166,7 @@
           r2 !== undefined ? r2 : ar.r2);
     };
 
-    WorksheetView.prototype._getCellByXY = function (x, y) {
+    WorksheetView.prototype._getRangeByXY = function (x, y) {
 		var c1, r1, c2, r2;
 
 		if (x < this.cellsLeft && y < this.cellsTop) {
@@ -8192,7 +8192,7 @@
 	WorksheetView.prototype._moveActiveCellToXY = function (x, y) {
 		var selection = this._getSelection();
 		var ar = selection.getLast();
-		var range = this._getCellByXY(x, y);
+		var range = this._getRangeByXY(x, y);
 		ar.assign(range.c1, range.r1, range.c2, range.r2);
 		var r = range.r1, c = range.c1;
 		switch (ar.getType()) {
@@ -8243,7 +8243,7 @@
 
 	WorksheetView.prototype._calcSelectionEndPointByXY = function (x, y, keepType) {
 		var activeCell = this._getSelection().activeCell;
-		var range = this._getCellByXY(x, y);
+		var range = this._getRangeByXY(x, y);
 		var res = (keepType ? this._getSelection().getLast() : range).clone();
 		var type = res.getType();
 
