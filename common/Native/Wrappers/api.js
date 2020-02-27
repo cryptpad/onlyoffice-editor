@@ -35,7 +35,7 @@ var spellCheck = true;
 var _api = null;
 var _internalStorage = {
     changesReview : []
-}
+};
 
 window['SockJS'] = createSockJS();
 
@@ -2539,7 +2539,7 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
                     ascComment.asc_putSolved(comment["solved"]);
                     ascComment.asc_putGuid(comment["id"]);
 
-                    if (comment.asc_putDocumentFlag) {
+                    if (ascComment.asc_putDocumentFlag !== undefined) {
                         ascComment.asc_putDocumentFlag(comment["unattached"]);
                     }
 

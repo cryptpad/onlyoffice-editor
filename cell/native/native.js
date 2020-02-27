@@ -30,6 +30,8 @@
  *
  */
 
+var _internalStorage = {};
+
 function asc_menu_ReadColor(_params, _cursor) {
     var _color = new Asc.asc_CColor();
     var _continue = true;
@@ -3911,6 +3913,9 @@ function OfflineEditor () {
         docInfo.put_Format("xlsx");
         docInfo.put_UserInfo(userInfo);
         docInfo.put_Token(this.initSettings["token"]);
+
+        _internalStorage.externalUserInfo = userInfo;
+        _internalStorage.externalDocInfo = docInfo;
         
         var permissions = this.initSettings["permissions"];
         if (undefined != permissions && null != permissions && permissions.length > 0) {
@@ -4167,7 +4172,7 @@ function OfflineEditor () {
         _api.asc_registerCallback("asc_onAddComment", onApiAddComment);
         _api.asc_registerCallback("asc_onAddComments", onApiAddComments);
         _api.asc_registerCallback("asc_onRemoveComment", onApiRemoveComment);
-        _api.asc_registerCallback("asc_onChangeComments", onChangeComments);
+        _api.asc_registerCallback("asc_onChangeComments", onApiChangeComments);
         _api.asc_registerCallback("asc_onRemoveComments", onApiRemoveComments);
         _api.asc_registerCallback("asc_onChangeCommentData", onApiChangeCommentData);
         _api.asc_registerCallback("asc_onLockComment", onApiLockComment);
@@ -4294,7 +4299,6 @@ function OfflineEditor () {
         
         _stream["WriteByte"](0);
         _stream["WriteString2"](_api.asc_getActiveWorksheetId(i));
-        console.log("_api.asc_getActiveWorksheetId(i) - " + _api.asc_getActiveWorksheetId(i));
         
         for (var i = 0; i < _api.asc_getWorksheetsCount(); ++i) {
             
@@ -7025,7 +7029,7 @@ window["native"]["offline_apply_event"] = function(type,params) {
                         ascComment.asc_putSolved(comment["solved"]);
                         ascComment.asc_putGuid(comment["id"]);
 
-                        if (comment.asc_putDocumentFlag) {
+                        if (ascComment.asc_putDocumentFlag !== undefined) {
                             ascComment.asc_putDocumentFlag(comment["unattached"]);
                         }
 
@@ -7046,7 +7050,6 @@ window["native"]["offline_apply_event"] = function(type,params) {
                                 }
                             });
                         }
-
                         _api.asc_changeComment(commentId, ascComment);
                     }
                 }
@@ -7127,27 +7130,20 @@ function readSDKReplies (data) {
 }
 
 function onApiAddComment(id, data) {
-    var comment = readSDKComment(id, data) || {};
-    postDataAsJSONString(comment, 23001); // ASC_MENU_EVENT_TYPE_ADD_COMMENT
+    setTimeout(function () {
+        var comment = readSDKComment(id, data) || {};
+        postDataAsJSONString(comment, 23001); // ASC_MENU_EVENT_TYPE_ADD_COMMENT
+    }, 5);
 }
 
 function onApiAddComments(data) {
-    // var comments = [];
-    // for (var i = 0; i < data.length; ++i) {
-    //     comments.push(readSDKComment(data[i].asc_getId(), data[i]));
-    // }
-    // console.log("JSON.stringify(comments) - " + JSON.stringify(comments));
-    // postDataAsJSONString(comments, 23002); // ASC_MENU_EVENT_TYPE_ADD_COMMENTS
-
-    // /// DEBUG BEGIN
-    // var stream = global_memory_stream_menu;
-    // stream["ClearNoAttack"]();
-    // if (data !== undefined && data !== null) {
-    //     stream["WriteString2"]("ssdfsdfsdfsdf");
-    // }
-    // window["native"]["OnCallMenuEvent"](23002, stream);
-    // window["native"]["OnCallMenuEvent"](23002, stream);
-    // /// DEBUG END
+    setTimeout(function() {
+        var comments = [];
+        for (var i = 0; i < data.length; ++i) {
+            comments.push(readSDKComment(data[i].asc_getId(), data[i]));
+        }
+        postDataAsJSONString(comments, 23002); // ASC_MENU_EVENT_TYPE_ADD_COMMENTS
+    }, 5);
 }
 
 function onApiRemoveComment(id) {
@@ -7157,7 +7153,7 @@ function onApiRemoveComment(id) {
     postDataAsJSONString(data, 23003); // ASC_MENU_EVENT_TYPE_REMOVE_COMMENT
 }
 
-function onChangeComments(data) {
+function onApiChangeComments(data) {
     var comments = [];
     for (var i = 0; i < data.length; ++i) {
         comments.push(readSDKComment(data[i].asc_getId(), data[i]));
@@ -7177,12 +7173,12 @@ function onApiRemoveComments(data) {
 
 function onApiChangeCommentData(id, data) {
     var comment = readSDKComment(id, data) || {},
-        data = {
+        change = {
             "id": id,
             "comment": comment
         };
 
-    postDataAsJSONString(data, 23006); // ASC_MENU_EVENT_TYPE_CHANGE_COMMENTDATA
+    postDataAsJSONString(change, 23006); // ASC_MENU_EVENT_TYPE_CHANGE_COMMENTDATA
 }
 
 function onApiLockComment(id, userId) {
