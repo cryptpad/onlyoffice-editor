@@ -4270,6 +4270,15 @@ CPresentation.prototype.GenerateThumbnails = function (_drawerThemes, _drawerLay
     }
 };
 
+
+/**
+ * Получаем идентификатор текущего пересчета
+ * @returns {number}
+ */
+CPresentation.prototype.GetRecalcId = function()
+{
+    return this.RecalcId;
+};
 CPresentation.prototype.StopRecalculate = function () {
     this.clearThemeTimeouts();
 //        this.DrawingDocument.OnStartRecalculate( 0 );

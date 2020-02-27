@@ -1169,6 +1169,9 @@ CGraphicFrame.prototype.Is_ThisElementCurrent = function()
            this.graphicObject.GetAllContentControls(arrContentControls);
        }
     };
+    CGraphicFrame.prototype.IsElementStartOnNewPage = function(){
+      return true;
+    };
 
     CGraphicFrame.prototype.getCopyWithSourceFormatting = function(){
         var ret = this.copy(undefined);
