@@ -9090,8 +9090,7 @@
 		this.cleanSelection();
 
 		this.model.selectionRange.setActiveCell(cell.row, cell.col);
-        var selection = this._getSelection().clone();
-		var valid = !this.isFormulaEditMode && selection.validActiveCell();
+		var valid = !this.isFormulaEditMode && this._getSelection().validActiveCell();
 
 		this._fixSelectionOfMergedCells(null, valid);
 		this.updateSelectionWithSparklines();
