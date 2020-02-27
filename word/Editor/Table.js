@@ -18317,7 +18317,7 @@ CTable.prototype.IsTableFirstRowOnNewPage = function(CurRow)
         if (CurRow === this.Pages[CurPage].FirstRow && CurRow <= this.Pages[CurPage].LastRow)
         {
             if (0 === CurPage
-				&& (null != this.Get_DocumentPrev()
+				&& ((null != this.Get_DocumentPrev() && !this.Parent.IsElementStartOnNewPage(this.GetIndex()))
 				|| (true === this.Parent.IsTableCellContent() && true !== this.Parent.IsTableFirstRowOnNewPage())
 				|| (true === this.Parent.IsBlockLevelSdtContent() && true !== this.Parent.IsBlockLevelSdtFirstOnNewPage())))
                 return false;

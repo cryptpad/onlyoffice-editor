@@ -1909,3 +1909,22 @@ CDocumentContentBase.prototype.IsFirstElementOnPage = function(nCurPage, nElemen
 
 	return (this.Pages[nCurPage].Pos === nElementIndex);
 };
+/**
+ * Является ли данный элемент первым на странице, с которой начинается
+ * @param {number} nElementPos
+ * @returns {boolean}
+ */
+CDocumentContentBase.prototype.IsElementStartOnNewPage = function(nElementPos)
+{
+	for (var nCurPage = 0, nPagesCount = this.Pages.length; nCurPage < nPagesCount; ++nCurPage)
+	{
+		var oPage = this.Pages[nCurPage];
+		if (oPage.Pos === nElementPos)
+			return true;
+
+		if (oPage.Pos < nElementPos && nElementPos <= oPage.EndPos)
+			return false;
+	}
+
+	return false;
+};

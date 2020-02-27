@@ -1532,7 +1532,7 @@ Paragraph.prototype.private_RecalculateLineBottomBound = function(CurLine, CurPa
 		&& (Top > YLimit || Bottom2 > YLimit)
 		&& (CurLine != this.Pages[CurPage].FirstLine
 		|| false === bNoFootnotes
-		|| (0 === RealCurPage && (null != this.Get_DocumentPrev()
+		|| (0 === RealCurPage && ((null != this.Get_DocumentPrev() && !this.Parent.IsElementStartOnNewPage(this.GetIndex()))
 		|| (true === this.Parent.IsTableCellContent() && true !== this.Parent.IsTableFirstRowOnNewPage())
 		|| (true === this.Parent.IsBlockLevelSdtContent() && true !== this.Parent.IsBlockLevelSdtFirstOnNewPage()))))
 		&& false === BreakPageLineEmpty)

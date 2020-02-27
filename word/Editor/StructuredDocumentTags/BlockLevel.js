@@ -1296,7 +1296,7 @@ CBlockLevelSdt.prototype.GetInnerTableOfContents = function()
 };
 CBlockLevelSdt.prototype.IsBlockLevelSdtFirstOnNewPage = function()
 {
-	if (null !== this.Get_DocumentPrev()
+	if ((null != this.Get_DocumentPrev() && !this.Parent.IsElementStartOnNewPage(this.GetIndex()))
 		|| (true === this.Parent.IsTableCellContent() && true !== this.Parent.IsTableFirstRowOnNewPage())
 		|| (true === this.Parent.IsBlockLevelSdtContent() && true !== this.Parent.IsBlockLevelSdtFirstOnNewPage()))
 		return false;
