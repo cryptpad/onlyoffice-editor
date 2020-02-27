@@ -331,7 +331,9 @@ CInlineLevelSdt.prototype.Remove = function(nDirection, bOnAddText)
 {
 	if (this.IsPlaceHolder())
 	{
-		this.private_ReplacePlaceHolderWithContent();
+		if (bOnAddText || !this.Paragraph.LogicDocument.IsFillingFormMode())
+			this.private_ReplacePlaceHolderWithContent();
+
 		return;
 	}
 

@@ -252,6 +252,11 @@ ParaComment.prototype =
     {
     },
 
+	RecalculateEndInfo : function(PRSI)
+	{
+
+	},
+
     SaveRecalculateObject : function(Copy)
     {
     },

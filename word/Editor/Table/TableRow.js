@@ -131,6 +131,7 @@ CTableRow.prototype =
 		}
 
 		Row.Internal_ReIndexing();
+		Row.private_UpdateTableGrid();
         if(oPr && oPr.Comparison)
         {
             oPr.Comparison.updateReviewInfo(Row, reviewtype_Add, true);
@@ -162,15 +163,6 @@ CTableRow.prototype =
         return false;
     },
 
-    Set_Index : function(Index)
-    {
-        if ( Index != this.Index )
-        {
-            this.Index = Index;
-            this.Recalc_CompiledPr();
-        }
-    },
-
     Set_Metrics_X : function(x_min, x_max)
     {
         this.Metrics.X_min = x_min;
@@ -188,6 +180,9 @@ CTableRow.prototype =
 
 	GetPrevElementEndInfo : function(CellIndex)
 	{
+		if (-1 === CellIndex || !this.Table)
+			return null;
+
 		if (0 === CellIndex)
 			return this.Table.GetPrevElementEndInfo(this.Index);
 		else
@@ -333,6 +328,7 @@ CTableRow.prototype =
 		History.Add(new CChangesTableRowPr(this, this.Pr, RowPr));
 		this.Pr = RowPr;
 		this.Recalc_CompiledPr();
+		this.private_UpdateTableGrid();
 	},
 
     Get_Before : function()
@@ -378,6 +374,7 @@ CTableRow.prototype =
 			this.Pr.GridBefore = GridBefore;
 			this.Pr.WBefore    = NewBefore.WBefore;
 			this.Recalc_CompiledPr();
+			this.private_UpdateTableGrid();
 		}
 	},
 
@@ -424,6 +421,7 @@ CTableRow.prototype =
 			this.Pr.GridAfter = GridAfter;
 			this.Pr.WAfter    = NewAfter.WAfter;
 			this.Recalc_CompiledPr();
+			this.private_UpdateTableGrid();
 		}
 	},
 
@@ -442,6 +440,7 @@ CTableRow.prototype =
 		this.Pr.TableCellSpacing = Value;
 
 		this.Recalc_CompiledPr();
+		this.private_UpdateTableGrid();
 	},
 
     Get_Height : function()
@@ -589,6 +588,7 @@ CTableRow.prototype =
 		this.Internal_ReIndexing(Index);
 
 		this.private_CheckCurCell();
+		this.private_UpdateTableGrid();
 	},
 
 	Add_Cell : function(Index, Row, Cell, bReIndexing)
@@ -625,6 +625,7 @@ CTableRow.prototype =
 		}
 
 		this.private_CheckCurCell();
+		this.private_UpdateTableGrid();
 
 		return Cell;
 	},
@@ -653,7 +654,7 @@ CTableRow.prototype =
 
         for ( var Ind = StartIndex; Ind < this.Content.length; Ind++ )
         {
-            this.Content[Ind].Set_Index( Ind );
+            this.Content[Ind].SetIndex( Ind );
             this.Content[Ind].Prev = ( Ind > 0 ? this.Content[Ind - 1] : null );
             this.Content[Ind].Next = ( Ind < this.Content.length - 1 ? this.Content[Ind + 1] : null );
             this.Content[Ind].Row  = this;
@@ -786,6 +787,18 @@ CTableRow.prototype.GetTable = function()
 CTableRow.prototype.GetIndex = function()
 {
 	return this.Index;
+};
+/**
+ * Выставляем номер данной строки в родительской таблице
+ * @param {number} nIndex
+ */
+CTableRow.prototype.SetIndex = function(nIndex)
+{
+	if (nIndex != this.Index)
+	{
+		this.Index = nIndex;
+		this.Recalc_CompiledPr();
+	}
 };
 CTableRow.prototype.GetDocumentPositionFromObject = function(arrPos)
 {
@@ -1122,6 +1135,16 @@ CTableRow.prototype.private_CheckCurCell = function()
 	if (this.GetTable())
 		this.GetTable().private_CheckCurCell();
 };
+/**
+ * Запрашиваем пересчет сетки таблицы
+ */
+CTableRow.prototype.private_UpdateTableGrid = function()
+{
+	var oTable = this.GetTable();
+	if (oTable)
+		oTable.private_UpdateTableGrid();
+};
+
 
 function CTableRowRecalculateObject()
 {

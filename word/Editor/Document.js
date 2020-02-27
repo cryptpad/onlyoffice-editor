@@ -430,7 +430,7 @@ CSelectedContent.prototype =
         this.Elements.push( Element );
     },
 
-    Set_MoveDrawing : function(Value)
+    SetMoveDrawing : function(Value)
     {
         this.MoveDrawing = Value;
     },
@@ -4796,6 +4796,14 @@ CDocument.prototype.Reset_RecalculateCache                   = function()
     this.Footnotes.ResetRecalculateCache();
 };
 /**
+ * Получаем идентификатор текущего пересчета
+ * @returns {number}
+ */
+CDocument.prototype.GetRecalcId = function()
+{
+	return this.RecalcId;
+};
+/**
  * Останавливаем процесс пересчета (если пересчет был запущен и он долгий)
  * @constructor
  */
@@ -6753,7 +6761,7 @@ CDocument.prototype.IncreaseDecreaseIndent = function(bIncrease)
 {
 	this.Controller.IncreaseDecreaseIndent(bIncrease);
 };
-CDocument.prototype.Paragraph_SetHighlight = function(IsColor, r, g, b)
+CDocument.prototype.SetParagraphHighlight = function(IsColor, r, g, b)
 {
 	if (true === this.IsTextSelectionUse())
 	{
@@ -6766,6 +6774,7 @@ CDocument.prototype.Paragraph_SetHighlight = function(IsColor, r, g, b)
 			else
 				this.AddToParagraph(new ParaTextPr({HighLight : new CDocumentColor(r, g, b)}));
 
+			this.Redraw();
 			this.UpdateInterface();
 			this.FinalizeAction();
 		}
@@ -14233,10 +14242,10 @@ CDocument.prototype.Set_ColumnsProps = function(ColumnsProps)
 
 		var oStartSectPr = this.SectionsInfo.Get_SectPr(nStartPos).SectPr;
 		var oEndSectPr   = this.SectionsInfo.Get_SectPr(nEndPos).SectPr;
-		if (!oStartSectPr || !oEndSectPr)
+		if (!oStartSectPr || !oEndSectPr || (oStartSectPr === oEndSectPr && oStartSectPr.IsEqualColumnProps(ColumnsProps)))
 			return;
 
-		if (this.Document_Is_SelectionLocked(AscCommon.changestype_Document_SectPr))
+		if (this.IsSelectionLocked(AscCommon.changestype_Document_SectPr))
 			return;
 
 		this.StartAction(AscDFH.historydescription_Document_SetColumnsProps);
@@ -14267,12 +14276,19 @@ CDocument.prototype.Set_ColumnsProps = function(ColumnsProps)
 			nEndPos++;
 		}
 
-		oEndSectPr.Set_Type(c_oAscSectionBreakType.Continuous);
-		var oSectPr = new CSectionPr(this);
-		oSectPr.Copy(oEndSectPr, false);
-		oEndParagraph.Set_SectionPr(oSectPr, true);
-
-		oSectPr.SetColumnProps(ColumnsProps);
+		if (nEndPos !== this.Content.length - 1)
+		{
+			oEndSectPr.Set_Type(c_oAscSectionBreakType.Continuous);
+			var oSectPr = new CSectionPr(this);
+			oSectPr.Copy(oEndSectPr, false);
+			oEndParagraph.Set_SectionPr(oSectPr, true);
+			oSectPr.SetColumnProps(ColumnsProps);
+		}
+		else
+		{
+			oEndSectPr.Set_Type(c_oAscSectionBreakType.Continuous);
+			oEndSectPr.SetColumnProps(ColumnsProps);
+		}
 
 		for (var nIndex = nStartPos; nIndex < nEndPos; ++nIndex)
 		{
@@ -18198,8 +18214,10 @@ CDocument.prototype.controller_DrawSelectionOnPage = function(PageAbs)
 		var PageSection = Page.Sections[SectionIndex];
 		for (var ColumnIndex = 0, ColumnsCount = PageSection.Columns.length; ColumnIndex < ColumnsCount; ++ColumnIndex)
 		{
-			var Pos_start = this.Pages[PageAbs].Pos;
-			var Pos_end   = this.Pages[PageAbs].EndPos;
+			this.DrawingDocument.UpdateTargetTransform(null);
+
+			var Pos_start = PageSection.Pos;
+			var Pos_end   = PageSection.EndPos;
 
 			switch (this.Selection.Flag)
 			{

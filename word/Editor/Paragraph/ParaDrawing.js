@@ -1651,13 +1651,27 @@ ParaDrawing.prototype.OnEnd_MoveInline = function(NearPos)
 {
 	NearPos.Paragraph.Check_NearestPos(NearPos);
 
+	var oRun        = this.Parent.Get_DrawingObjectRun(this.Id);
+	var isPictureCC = false;
+	if (oRun)
+	{
+		var arrContentControls = oRun.GetParentContentControls();
+		for (var nIndex = arrContentControls.length - 1; nIndex >= 0; --nIndex)
+		{
+			if (arrContentControls[nIndex].IsPicture())
+			{
+				isPictureCC = true;
+				break;
+			}
+		}
+	}
+
 	var RunPr = this.Remove_FromDocument(false);
 
 	// При переносе всегда создаем копию, чтобы в совместном редактировании не было проблем
 	var NewParaDrawing = this.Copy();
-    this.DocumentContent.Select_DrawingObject(NewParaDrawing.Get_Id());
-	NewParaDrawing.Add_ToDocument(NearPos, true, RunPr);
-
+	this.DocumentContent.Select_DrawingObject(NewParaDrawing.Get_Id());
+	NewParaDrawing.Add_ToDocument(NearPos, true, RunPr, undefined, isPictureCC);
 };
 ParaDrawing.prototype.Get_ParentTextTransform = function()
 {
@@ -1672,29 +1686,42 @@ ParaDrawing.prototype.GoTo_Text = function(bBefore, bUpdateStates)
 	var Paragraph = this.Get_ParentParagraph();
 	if (Paragraph)
 	{
-		Paragraph.Cursor_MoveTo_Drawing(this.Id, bBefore);
+		Paragraph.MoveCursorToDrawing(this.Id, bBefore);
 		Paragraph.Document_SetThisElementCurrent(undefined === bUpdateStates ? true : bUpdateStates);
 	}
 };
 ParaDrawing.prototype.Remove_FromDocument = function(bRecalculate)
 {
-	var Result = null;
-	var Run    = this.Parent.Get_DrawingObjectRun(this.Id);
+	var oResult = null;
 
-	if (null !== Run)
+	var oRun = this.Parent.Get_DrawingObjectRun(this.Id);
+	if (oRun)
 	{
-		Run.Remove_DrawingObject(this.Id);
+		var oPictureCC         = null;
+		var arrContentControls = oRun.GetParentContentControls();
+		for (var nIndex = arrContentControls.length - 1; nIndex >= 0; --nIndex)
+		{
+			if (arrContentControls[nIndex].IsPicture())
+			{
+				oPictureCC = arrContentControls[nIndex];
+				break;
+			}
+		}
 
-		if (true === Run.Is_InHyperlink())
-			Result = new CTextPr();
+		if (oPictureCC)
+			oPictureCC.RemoveContentControlWrapper();
+
+		oRun.Remove_DrawingObject(this.Id);
+		if (oRun.IsInHyperlink())
+			oResult = new CTextPr();
 		else
-			Result = Run.Get_TextPr();
+			oResult = oRun.GetTextPr();
 	}
 
 	if (false != bRecalculate)
 		editor.WordControl.m_oLogicDocument.Recalculate();
 
-	return Result;
+	return oResult;
 };
 ParaDrawing.prototype.Get_ParentParagraph = function()
 {
@@ -1727,7 +1754,7 @@ ParaDrawing.prototype.SelectAsText = function()
 	oDocument.RemoveSelection();
 	oDocument.SetSelectionByContentPositions(oStartPos, oEndPos);
 };
-ParaDrawing.prototype.Add_ToDocument = function(NearPos, bRecalculate, RunPr, Run)
+ParaDrawing.prototype.Add_ToDocument = function(NearPos, bRecalculate, RunPr, Run, isPictureCC)
 {
 	NearPos.Paragraph.Check_NearestPos(NearPos);
 
@@ -1743,12 +1770,23 @@ ParaDrawing.prototype.Add_ToDocument = function(NearPos, bRecalculate, RunPr, Ru
 	if (Run)
 		DrawingRun.SetReviewTypeWithInfo(Run.GetReviewType(), Run.GetReviewInfo());
 
-	Para.Add_ToContent(0, DrawingRun);
+	if (isPictureCC)
+	{
+		var oSdt = new CInlineLevelSdt();
+		oSdt.SetPicturePr(true);
+		oSdt.ReplacePlaceHolderWithContent();
+		oSdt.AddToContent(0, DrawingRun);
+		Para.Add_ToContent(0, oSdt);
+	}
+	else
+	{
+		Para.Add_ToContent(0, DrawingRun);
+	}
 
 	var SelectedElement = new CSelectedElement(Para, false);
 	var SelectedContent = new CSelectedContent();
 	SelectedContent.Add(SelectedElement);
-	SelectedContent.Set_MoveDrawing(true);
+	SelectedContent.SetMoveDrawing(true);
 
 	NearPos.Paragraph.Parent.InsertContent(SelectedContent, NearPos);
 	NearPos.Paragraph.Clear_NearestPosArray();

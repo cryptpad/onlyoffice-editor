@@ -116,7 +116,6 @@ function CTable(DrawingDocument, Parent, Inline, Rows, Cols, TableGrid, bPresent
     this.Pr = new CTablePr();
     this.Pr.TableW = new CTableMeasurement(tblwidth_Auto, 0);
 
-    this.TableGridNeedRecalc = true;
     this.bPresentation = bPresentation === true;
 
     // TODO: TableLook и TableStyle нужно перемесить в TablePr
@@ -126,6 +125,10 @@ function CTable(DrawingDocument, Parent, Inline, Rows, Cols, TableGrid, bPresent
     this.TableSumGrid  = []; // данный массив будет заполнен после private_RecalculateGrid
     this.TableGrid     = TableGrid ? TableGrid : [];
     this.TableGridCalc = this.private_CopyTableGrid();
+
+    this.CalculatedMinWidth = -1;
+    this.CalculatedPctWidth = -1;
+    this.CalculatedTableW   = -1;
 
     this.RecalcInfo = new CTableRecalcInfo();
 
@@ -2573,6 +2576,9 @@ CTable.prototype.GetEndInfo = function()
 };
 CTable.prototype.GetPrevElementEndInfo = function(RowIndex)
 {
+	if (-1 === RowIndex || !this.Parent)
+		return null;
+
 	if (0 === RowIndex)
 		return this.Parent.GetPrevElementEndInfo(this);
 	else
@@ -2612,6 +2618,7 @@ CTable.prototype.Copy = function(Parent, DrawingDocument, oPr)
 		History.Add(new CChangesTableAddRow(Table, Index, [Table.Content[Index]]));
 	}
 	Table.Internal_ReIndexing(0);
+	Table.private_UpdateTableGrid();
 
 	if (Table.Content.length > 0 && Table.Content[0].Get_CellsCount() > 0)
 		Table.CurCell = Table.Content[0].Get_Cell(0);
@@ -7377,6 +7384,7 @@ CTable.prototype.GetSelectedContent = function(SelectedContent)
 					// Добавляем ячейку
 					Row.Content[CurCell] = CellInfo.Cell.Copy(Row);
 					History.Add(new CChangesTableRowAddCell(Row, CurCell, [Row.Content[CurCell]]));
+					Row.private_UpdateTableGrid();
 					CurCell++;
 
 					var VMerge = CellInfo.Cell.GetVMerge();
@@ -7409,6 +7417,7 @@ CTable.prototype.GetSelectedContent = function(SelectedContent)
 		}
 
 		Table.Internal_ReIndexing(0);
+		Table.private_UpdateTableGrid();
 
 		if (Table.Content.length > 0 && Table.Content[0].Get_CellsCount() > 0)
 			Table.CurCell = Table.Content[0].Get_Cell(0);
@@ -8318,6 +8327,7 @@ CTable.prototype.Set_Pr = function(TablePr)
 	History.Add(new CChangesTablePr(this, this.Pr, TablePr));
 	this.Pr = TablePr;
 	this.Recalc_CompiledPr2();
+	this.private_UpdateTableGrid();
 };
 CTable.prototype.SetPr = function(oTablePr)
 {
@@ -8480,6 +8490,7 @@ CTable.prototype.Set_TableW = function(Type, W)
 		History.Add(new CChangesTableTableW(this, this.Pr.TableW, undefined));
 		this.Pr.TableW = undefined;
 		this.Recalc_CompiledPr();
+		this.private_UpdateTableGrid();
 	}
 	else if (undefined === this.Pr.TableW)
 	{
@@ -8488,6 +8499,7 @@ CTable.prototype.Set_TableW = function(Type, W)
 		History.Add(new CChangesTableTableW(this, undefined, TableW));
 		this.Pr.TableW = TableW;
 		this.Recalc_CompiledPr();
+		this.private_UpdateTableGrid();
 	}
 	else if (Type != this.Pr.TableW.Type || Math.abs(this.Pr.TableW.W - W) > 0.001)
 	{
@@ -8496,6 +8508,7 @@ CTable.prototype.Set_TableW = function(Type, W)
 		History.Add(new CChangesTableTableW(this, this.Pr.TableW, TableW));
 		this.Pr.TableW = TableW;
 		this.Recalc_CompiledPr();
+		this.private_UpdateTableGrid();
 	}
 };
 CTable.prototype.Get_TableW = function()
@@ -8567,6 +8580,7 @@ CTable.prototype.Set_TableCellMar = function(Left, Top, Right, Bottom)
 	this.Pr.TableCellMar.Bottom = new_Bottom;
 
 	this.Recalc_CompiledPr();
+	this.private_UpdateTableGrid();
 };
 CTable.prototype.Get_TableCellMar = function()
 {
@@ -15213,7 +15227,7 @@ CTable.prototype.Update_TableMarkupFromRuler = function(NewMarkup, bCol, Index)
 		if (0 != Index && TablePr.TableW.Type != tblwidth_Auto)
 		{
 			var TableW   = TablePr.TableW.W;
-			var MinWidth = this.Internal_Get_TableMinWidth();
+			var MinWidth = this.private_GetTableMinWidth();
 
 			if (TableW < MinWidth)
 				TableW = MinWidth;
@@ -15947,6 +15961,7 @@ CTable.prototype.private_RemoveRow = function(nIndex)
 	this.Internal_ReIndexing(nIndex);
 
 	this.private_CheckCurCell();
+	this.private_UpdateTableGrid();
 };
 CTable.prototype.private_AddRow = function(Index, CellsCount, bReIndexing, _NewRow)
 {
@@ -15992,6 +16007,7 @@ CTable.prototype.private_AddRow = function(Index, CellsCount, bReIndexing, _NewR
 	NewRow.Table = this;
 
 	this.private_CheckCurCell();
+	this.private_UpdateTableGrid();
 
 	return NewRow;
 };
@@ -16014,7 +16030,7 @@ CTable.prototype.Internal_ReIndexing = function(StartIndex)
 
 	for (var Ind = StartIndex; Ind < this.Content.length; Ind++)
 	{
-		this.Content[Ind].Set_Index(Ind);
+		this.Content[Ind].SetIndex(Ind);
 		this.Content[Ind].Prev  = ( Ind > 0 ? this.Content[Ind - 1] : null );
 		this.Content[Ind].Next  = ( Ind < this.Content.length - 1 ? this.Content[Ind + 1] : null );
 		this.Content[Ind].Table = this;
@@ -16602,6 +16618,13 @@ CTable.prototype.private_GetCellIndexByStartGridCol = function(nCurRow, nStartGr
 
 	return -1;
 };
+/**
+ * Запрашиваем пересчет сетки таблицы
+ */
+CTable.prototype.private_UpdateTableGrid = function()
+{
+	this.RecalcInfo.TableGrid = true;
+};
 CTable.prototype.private_UpdateTableMarkup = function(nRowIndex, nCellIndex, nCurPage)
 {
 	this.Markup.Internal = {
@@ -17019,34 +17042,36 @@ CTable.prototype.Internal_CheckNullBorder = function(Border)
 
 	return true;
 };
-CTable.prototype.Internal_Get_TableMinWidth = function()
+/**
+ * Получаем минимальную ширину таблицы
+ * @returns {number}
+ */
+CTable.prototype.private_GetTableMinWidth = function()
 {
-	var MinWidth = 0;
-	// Оценим минимально возможную ширину
-	for (var CurRow = 0; CurRow < this.Content.length; CurRow++)
+	var nMinWidth = 0;
+	for (var nCurRow = 0, nRowsCount = this.GetRowsCount(); nCurRow < nRowsCount; ++nCurRow)
 	{
-		var Row         = this.Content[CurRow];
-		var Cells_Count = Row.Get_CellsCount();
+		var oRow         = this.GetRow(nCurRow);
+		var nCellsCount  = oRow.GetCellsCount();
+		var nCellSpacing = oRow.GetCellSpacing();
 
-		var CellSpacing = Row.Get_CellSpacing();
-		if (null === CellSpacing)
-			CellSpacing = 0;
+		if (null === nCellSpacing)
+			nCellSpacing = 0;
 
-		var RowWidth = CellSpacing * ( Cells_Count + 1 );
-
-		for (var CurCell = 0; CurCell < Cells_Count; CurCell++)
+		var nRowWidth = nCellSpacing * (nCellsCount + 1);
+		for (var nCurCell = 0; nCurCell < nCellsCount; ++nCurCell)
 		{
-			var Cell         = Row.Get_Cell(CurCell);
-			var Cell_Margins = Cell.GetMargins();
+			var oCell        = oRow.GetCell(nCurCell);
+			var oCellMargins = oCell.GetMargins();
 
-			RowWidth += Cell_Margins.Left.W + Cell_Margins.Right.W;
+			nRowWidth += oCellMargins.Left.W + oCellMargins.Right.W;
 		}
 
-		if (MinWidth < RowWidth)
-			MinWidth = RowWidth;
+		if (nMinWidth < nRowWidth)
+			nMinWidth = nRowWidth;
 	}
 
-	return MinWidth;
+	return nMinWidth;
 };
 /**
  * Рассчитываем минимальные знаяения для сетки таблицы
@@ -18352,6 +18377,8 @@ CTable.prototype.SetTableGrid = function(arrGrid)
 
 	History.Add(new CChangesTableTableGrid(this, this.TableGrid, arrGrid));
 	this.TableGrid = arrGrid;
+
+	this.private_UpdateTableGrid();
 };
 /**
  * Выставляем поле для рецензирования, запоминающее исходное состояние сетки таблицы
@@ -18426,7 +18453,7 @@ CTable.prototype.CorrectBadGrid = function()
 	for (var Index = 0; Index < this.Content.length; Index++)
 	{
 		var Row = this.Content[Index];
-		Row.Set_Index(Index);
+		Row.SetIndex(Index);
 
 		// Смотрим на ширину пропущенных колонок сетки в начале строки
 		var BeforeInfo = Row.Get_Before();

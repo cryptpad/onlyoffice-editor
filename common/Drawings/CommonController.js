@@ -3376,7 +3376,7 @@ DrawingObjectsController.prototype =
 			{
 				var oParaDrawing = this.selectedObjects[0].parent;
 				var oParagraph   = oParaDrawing.Parent;
-				oParagraph.Cursor_MoveTo_Drawing(oParaDrawing.Get_Id(), true);
+				oParagraph.MoveCursorToDrawing(oParaDrawing.Get_Id(), true);
 				result = oParagraph.GetCalculatedTextPr();
 			}
             else
