@@ -9209,9 +9209,6 @@
 		var newRange = isCoord ? this._calcSelectionEndPointByXY(x, y, keepType) :
 			this._calcSelectionEndPointByOffset(x, y);
         var isEqual = newRange.isEqual(ar);
-        if (isEqual && !isCoord) {
-            // При движении стрелками можем попасть на замерженную ячейку
-        }
         if (!isEqual || isChangeSelectionShape) {
             this.cleanSelection();
             ar.assign2(newRange);
