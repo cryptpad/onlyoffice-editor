@@ -19149,6 +19149,7 @@
 		//bExpand - ответ от этой функции, который протаскивается через интерфейс
 		//если мультиселект - дизейбл кнопки sort
 		var selection = t.model.selectionRange.getLast();
+		var activeCell = t.model.selectionRange.activeCell.clone();
 		var oldSelection = selection.clone();
 
 		var autoFilter = t.model.AutoFilter;
@@ -19220,7 +19221,14 @@
 			}
 		}
 
-		this.setSelection(selection);
+		//change selection
+		t.cleanSelection();
+		t.model.selectionRange.getLast().assign2(selection);
+		if(!selection.contains(activeCell.col, activeCell.row)) {
+			t.model.selectionRange.activeCell = new AscCommon.CellBase(selection.r1, selection.c1);
+		}
+		t._drawSelection();
+
 		sortSettings = new Asc.CSortProperties(this);
 		//необходимо ещё сохранять значение старого селекта, чтобы при нажатии пользователя на отмену - откатить
 		sortSettings.selection = oldSelection;
@@ -19316,17 +19324,28 @@
 	};
 
 	WorksheetView.prototype.setSortProps = function(props, doNotSortRange, bCancel) {
+		var t = this;
+		var selection = t.model.selectionRange.getLast();
+		var activeCell = t.model.selectionRange.activeCell.clone();
+
+		var revertSelection = function() {
+			t.cleanSelection();
+			t.model.selectionRange.getLast().assign2(props.selection.clone());
+			if(!selection.contains(activeCell.col, activeCell.row)) {
+				t.model.selectionRange.activeCell = new AscCommon.CellBase(selection.r1, selection.c1);
+			}
+			t._drawSelection();
+		};
+
+		//TODO selection не сохраняется при применении сортировки, поскольку создаётся новый CSortProperties в интерфейсе
 		if(bCancel && props && props.selection) {
-			this.setSelection(props.selection.clone());
+			revertSelection();
 			return;
 		}
 
 		if(!props || !props.levels || !props.levels.length) {
 			return false;
 		}
-
-		var t = this;
-		var selection = t.model.selectionRange.getLast();
 
 		var aMerged = this.model.mergeManager.get(selection);
 		if (aMerged.outer.length > 0 || (aMerged.inner.length > 0 && null == window['AscCommonExcel']._isSameSizeMerged(selection, aMerged.inner, true))) {
@@ -19430,7 +19449,7 @@
 				t.cellCommentator.sortComments(t._doSort(range, null, null, null, null, !columnSort, sortState));
 			}
 			if(props && props.selection) {
-				t.setSelection(props.selection.clone());
+				revertSelection();
 			}
 
 			History.EndTransaction();
