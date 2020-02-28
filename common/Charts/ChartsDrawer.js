@@ -7488,16 +7488,16 @@ drawHBarChart.prototype = {
 					paths = this._calculateRect(newStartX, newStartY / this.chartProp.pxToMM, width, individualBarHeight / this.chartProp.pxToMM);
 				}
 
-
+				var serIdx = this.chart.series[i].idx;
 				if (!this.paths.series) {
 					this.paths.series = [];
 				}
-				if (!this.paths.series[i]) {
-					this.paths.series[i] = [];
+				if (!this.paths.series[serIdx]) {
+					this.paths.series[serIdx] = [];
 				}
 
 				if (height !== 0) {
-					this.paths.series[i][idx] = paths;
+					this.paths.series[serIdx][idx] = paths;
 				}
 			}
 
@@ -7672,7 +7672,7 @@ drawHBarChart.prototype = {
 	_drawBars: function () {
 		this.cChartDrawer.cShapeDrawer.Graphics.SaveGrState();
 		this.cChartDrawer.cShapeDrawer.Graphics.AddClipRect((this.chartProp.chartGutter._left - 1) / this.chartProp.pxToMM, (this.chartProp.chartGutter._top - 1) / this.chartProp.pxToMM, this.chartProp.trueWidth / this.chartProp.pxToMM, this.chartProp.trueHeight / this.chartProp.pxToMM);
-		this.cChartDrawer.drawPaths(this.paths, this.chart.series);
+		this.cChartDrawer.drawPaths(this.paths, this.chart.series, null, null, true);
 		this.cChartDrawer.cShapeDrawer.Graphics.RestoreGrState();
 	},
 
