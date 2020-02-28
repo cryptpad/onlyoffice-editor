@@ -16460,8 +16460,10 @@ CDocument.prototype.controller_AddInlineTable = function(nCols, nRows, nMode)
 
 		var PageFields = this.Get_PageFields(this.CurPage);
 
+		var nAdd = this.GetCompatibilityMode() <= AscCommon.document_compatibility_mode_Word14 ?  2 * 1.9 : 0;
+
 		// Создаем новую таблицу
-		var W    = (PageFields.XLimit - PageFields.X + 2 * 1.9);
+		var W    = (PageFields.XLimit - PageFields.X + nAdd);
 		var Grid = [];
 
 		if (SectPr.Get_ColumnsCount() > 1)
@@ -16473,7 +16475,7 @@ CDocument.prototype.controller_AddInlineTable = function(nCols, nRows, nMode)
 					W = ColumnWidth;
 			}
 
-			W += 2 * 1.9;
+			W += nAdd;
 		}
 
 		W = Math.max(W, nCols * 2 * 1.9);
