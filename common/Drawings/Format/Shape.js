@@ -4147,16 +4147,22 @@ CShape.prototype.checkExtentsByDocContent = function(bForce, bNeedRecalc)
                 var oTextFit = oBodyPr.textFit;
                 if(oTextFit && oTextFit.type === AscFormat.text_fit_NormAuto)
                 {
+                    var fOldContentHeight = this.contentHeight;
+                    this.recalcInfo.recalculateContent = true;
                     this.recalculate();
                     if(!AscFormat.isRealNumber(oTextFit.fontScale) && !AscFormat.isRealNumber(oTextFit.lnSpcReduction)
                     && this.contentHeight <= this.clipRect.h)
                     {
                         return;
                     }
-                    // if(History.Is_SimpleChanges())
-                    // {
-                    //     return
-                    // }
+                    if(AscFormat.isRealNumber(fOldContentHeight) && AscFormat.fApproxEqual(fOldContentHeight, this.contentHeight))
+                    {
+                        return
+                    }
+                    if(fOldContentHeight < this.contentHeight && oTextFit.fontScale === aScales[0])
+                    {
+                        return;
+                    }
                     var bCheckAutoFit = true;
                     if(bCheckAutoFit)
                     {
