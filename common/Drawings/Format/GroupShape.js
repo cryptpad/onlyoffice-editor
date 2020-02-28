@@ -1363,6 +1363,17 @@ function CGroupShape()
         }
     };
 
+    CGroupShape.prototype.setVertOverflowType = function(type)
+    {
+        for(var i = 0; i < this.spTree.length; ++i)
+        {
+            if(this.spTree[i].setVertOverflowType)
+            {
+                this.spTree[i].setVertOverflowType(type);
+            }
+        }
+    };
+
     CGroupShape.prototype.setColumnNumber = function(num){
         for(var i = 0; i < this.spTree.length; ++i)
         {

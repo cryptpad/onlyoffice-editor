@@ -123,6 +123,7 @@
 			UplImageFileCount    : -11,
 			NoSupportClipdoard   : -12,
 			UplImageUrl          : -13,
+			DirectUrl            : -14,
 
 
 			MaxDataPointsError    : -16,
@@ -546,9 +547,7 @@
 	var c_oAscHAnchor = {
 		Margin : 0x00,
 		Page   : 0x01,
-		Text   : 0x02,
-
-		PageInternal : 0xFF // только для внутреннего использования
+		Text   : 0x02
 	};
 
 	var c_oAscXAlign = {
@@ -2069,6 +2068,7 @@
 	prot['UplImageFileCount']                = prot.UplImageFileCount;
 	prot['NoSupportClipdoard']               = prot.NoSupportClipdoard;
 	prot['UplImageUrl']                      = prot.UplImageUrl;
+	prot['DirectUrl']                        = prot.DirectUrl;
 	prot['MaxDataPointsError']               = prot.MaxDataPointsError;
 	prot['StockChartError']                  = prot.StockChartError;
 	prot['CoAuthoringDisconnect']            = prot.CoAuthoringDisconnect;
@@ -2106,6 +2106,7 @@
 	prot['ConvertationOpenLimitError']       = prot.ConvertationOpenLimitError;
 	prot['UserDrop']                         = prot.UserDrop;
 	prot['Warning']                          = prot.Warning;
+	prot['UpdateVersion']                    = prot.UpdateVersion;
 	prot['PrintMaxPagesCount']               = prot.PrintMaxPagesCount;
 	prot['SessionAbsolute']                  = prot.SessionAbsolute;
 	prot['SessionIdle']                      = prot.SessionIdle;
@@ -2349,7 +2350,6 @@
 	prot['Margin']                = prot.Margin;
 	prot['Page']                  = prot.Page;
 	prot['Text']                  = prot.Text;
-	prot['PageInternal']          = prot.PageInternal;
 	window['Asc']['c_oAscXAlign'] = window['Asc'].c_oAscXAlign = c_oAscXAlign;
 	prot                          = c_oAscXAlign;
 	prot['Center']                = prot.Center;

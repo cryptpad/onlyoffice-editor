@@ -383,7 +383,7 @@
 								//из-за этого enableKeyEvents остаётся выставленным в false
 								//поэтому приходится вызывать здесь, после того, как пройдет загрузка шрифтов
 
-								if(cellEditor.options && cellEditor.options.menuEditor) {
+								if (cellEditor.getMenuEditorMode()) {
 									window["Asc"]["editor"].asc_enableKeyEvents(true);
 								}
 							});
@@ -446,7 +446,7 @@
 				AscCommon.g_specialPasteHelper.Paste_Process_End();
 				editor.wb.skipHelpSelector = false;
 
-				if(editor.wb.cellEditor.options && editor.wb.cellEditor.options.menuEditor) {
+				if (editor.wb.cellEditor.getMenuEditorMode()) {
 					editor.asc_enableKeyEvents(true);
 				}
 			});
@@ -3145,8 +3145,11 @@
 							var allowedSpecialPasteProps = [sProps.sourceformatting, sProps.destinationFormatting];
 						}
 					};
-					
-					worksheet.objectRender.controller.checkSelectedObjectsAndCallback2(callback);
+					//check text
+					AscFonts.FontPickerByCharacter.getFontsByString(text);
+					worksheet._loadFonts([], function () {
+						worksheet.objectRender.controller.checkSelectedObjectsAndCallback2(callback);
+					});
 					return;
 				}
 
@@ -3277,6 +3280,9 @@
 
 				var addTextIntoCell = function (row, col, sText) {
 					var cell = aResult.getCell(rowCounter, colCounter);
+
+					//check text
+					AscFonts.FontPickerByCharacter.getFontsByString(sText);
 					cell.content[0] = {text: sText, format: new AscCommonExcel.Font()};
 
 					return cell;

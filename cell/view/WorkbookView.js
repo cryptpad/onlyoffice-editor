@@ -520,8 +520,8 @@
       };
       this.Api.Begin_CompositeInput = function () {
         var oWSView = self.getWorksheet();
-        if(oWSView && oWSView.isSelectOnShape){
-          if(oWSView.objectRender){
+        if (oWSView && oWSView.isSelectOnShape) {
+          if (oWSView.objectRender) {
             oWSView.objectRender.Begin_CompositeInput();
           }
           return;
@@ -596,6 +596,26 @@
         }
         return res;
       };
+      this.Api.AddTextWithPr = function (familyName, arrCharCodes) {
+      	var ws = self.getWorksheet();
+      	if (ws && ws.isSelectOnShape) {
+      		var textPr = new CTextPr();
+			textPr.RFonts = new CRFonts();
+			textPr.RFonts.Set_All(familyName, -1);
+      		ws.objectRender.controller.addTextWithPr(new AscCommon.CUnicodeStringEmulator(arrCharCodes), textPr, true);
+      		return;
+      	}
+
+      	if (!self.isCellEditMode) {
+      		self._onEditCell(undefined, undefined, undefined, false, function () {
+				self.cellEditor.setTextStyle('fn', familyName);
+				self.cellEditor._addCharCodes(arrCharCodes);
+			});
+		} else {
+			self.cellEditor.setTextStyle('fn', familyName);
+			self.cellEditor._addCharCodes(arrCharCodes);
+		}
+	  };
       this.Api.beginInlineDropTarget = function (event) {
       	if (!self.controller.isMoveRangeMode) {
       		self.controller.isMoveRangeMode = true;
@@ -1154,8 +1174,8 @@
 		}
     } else {
       ct = ws.getCursorTypeFromXY(x, y);
-      ct.mouseX = x;
-      ct.mouseY = y;
+      ct.coordX = x;
+      ct.coordY = y;
       if (this.timerId !== null) {
       	clearTimeout(this.timerId);
       	this.timerId = null;
@@ -1425,20 +1445,21 @@
     var ct = ws.getCursorTypeFromXY(x, y);
 
     if (ct.target === c_oTargetType.ColumnResize || ct.target === c_oTargetType.RowResize) {
-      ct.target === c_oTargetType.ColumnResize ? ws.autoFitColumnsWidth(ct.col) : ws.autoFitRowHeight(ct.row, ct.row);
+      if (ct.target === c_oTargetType.ColumnResize) {
+      	ws.autoFitColumnsWidth(ct.col);
+      } else {
+      	ws.autoFitRowHeight(ct.row, ct.row);
+      }
       asc_applyFunction(callback);
     } else {
       if (ct.col >= 0 && ct.row >= 0) {
         this.controller.setStrictClose(!ws._isCellNullText(ct.col, ct.row));
       }
 
-      // Для нажатия на колонку/строку/all/frozenMove обрабатывать dblClick не нужно
-      if (c_oTargetType.ColumnHeader === ct.target || c_oTargetType.RowHeader === ct.target || c_oTargetType.Corner === ct.target || c_oTargetType.FrozenAnchorH === ct.target || c_oTargetType.FrozenAnchorV === ct.target) {
-        asc_applyFunction(callback);
-        return;
-      }
-
-      if (ws.objectRender.checkCursorDrawingObject(x, y)) {
+      // In view mode or click on column | row | all | frozenMove | drawing object do not process
+      if (!this.Api.canEdit() || c_oTargetType.ColumnHeader === ct.target || c_oTargetType.RowHeader === ct.target ||
+		  c_oTargetType.Corner === ct.target || c_oTargetType.FrozenAnchorH === ct.target ||
+		  c_oTargetType.FrozenAnchorV === ct.target || ws.objectRender.checkCursorDrawingObject(x, y)) {
         asc_applyFunction(callback);
         return;
       }
@@ -1548,9 +1569,9 @@
     }
 
     // Обновляем состояние Undo/Redo
-	  if(!(this.cellEditor.options && this.cellEditor.options.menuEditor)) {
-		  History._sendCanUndoRedo();
-	  }
+    if (!this.cellEditor.getMenuEditorMode()) {
+    	History._sendCanUndoRedo();
+    }
 
     // Обновляем состояние информации
     this._onWSSelectionChanged();
@@ -1755,7 +1776,7 @@
     if (ws.updateResize && ws.updateZoom) {
       ws.changeZoomResize();
     } else if (ws.updateResize) {
-      ws.resize(true);
+      ws.resize(true, this.cellEditor);
     } else if (ws.updateZoom) {
       ws.changeZoom(true);
     }
@@ -1899,7 +1920,7 @@
       for (var i in this.wsViews) {
         item = this.wsViews[i];
         // Делаем resize (для не активных сменим как только сделаем его активным)
-        item.resize(/*isDraw*/i == activeIndex);
+        item.resize(/*isDraw*/i == activeIndex, this.cellEditor);
       }
       this.drawWorksheet();
     } else {
@@ -2359,10 +2380,9 @@
 
     var result = this.model.findCellText(options);
     if (result) {
-		ws = this.getWorksheet();
-    	var ac = ws.model.selectionRange.activeCell;
-    	var dc = result.col - ac.col, dr = result.row - ac.row;
-    	return options.findInSelection ? ws.changeSelectionActivePoint(dc, dr, options) : ws.changeSelectionStartPoint(dc, dr, undefined, undefined, options);
+      var range = new Asc.Range(result.col, result.row, result.col, result.row);
+      options.findInSelection ? ws.setActiveCell(result) : ws.setSelection(range);
+      return true;
     }
     return null;
   };

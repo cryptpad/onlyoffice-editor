@@ -194,10 +194,14 @@ ParaRun.prototype.Copy = function(Selected, oPr)
 
     var NewRun = new ParaRun(this.Paragraph, bMath);
 
-    NewRun.Set_Pr( this.Pr.Copy() );
+	NewRun.Set_Pr(this.Pr.Copy(undefined, oPr));
 
     var oLogicDocument = this.GetLogicDocument();
-    if (true === isCopyReviewPr || (oLogicDocument && (oLogicDocument.RecalcTableHeader || oLogicDocument.MoveDrawing)))
+	if(oPr && oPr.Comparison)
+	{
+		oPr.Comparison.updateReviewInfo(NewRun, reviewtype_Add);
+	}
+    else if (true === isCopyReviewPr || (oLogicDocument && (oLogicDocument.RecalcTableHeader || oLogicDocument.MoveDrawing)))
 	{
 		var nReviewType = this.GetReviewType();
 		var oReviewInfo = this.GetReviewInfo().Copy();
@@ -213,6 +217,10 @@ ParaRun.prototype.Copy = function(Selected, oPr)
 
     if(true === bMath)
         NewRun.Set_MathPr(this.MathPrp.Copy());
+
+
+
+
 
     var StartPos = 0;
     var EndPos   = this.Content.length;
@@ -233,33 +241,71 @@ ParaRun.prototype.Copy = function(Selected, oPr)
 		EndPos = -1;
 	}
 
-	for (var CurPos = StartPos, AddedPos = 0; CurPos < EndPos; CurPos++)
-	{
-		var Item = this.Content[CurPos];
+	var CurPos, AddedPos, Item;
 
-		if (para_NewLine === Item.Type
-			&& oPr
-			&& ((oPr.SkipLineBreak && Item.IsLineBreak())
-			|| (oPr.SkipPageBreak && Item.IsPageBreak())
-			|| (oPr.SkipColumnBreak && Item.IsColumnBreak())))
+	if(oPr && oPr.Comparison)
+	{
+		var aCopyContent = [];
+		for (CurPos = StartPos; CurPos < EndPos; CurPos++)
 		{
-			if (oPr.Paragraph && true !== oPr.Paragraph.IsEmpty())
+			Item = this.Content[CurPos];
+
+			if (para_NewLine === Item.Type
+				&& oPr
+				&& ((oPr.SkipLineBreak && Item.IsLineBreak())
+				|| (oPr.SkipPageBreak && Item.IsPageBreak())
+				|| (oPr.SkipColumnBreak && Item.IsColumnBreak())))
 			{
-				NewRun.Add_ToContent(AddedPos, new ParaSpace(), false);
-				AddedPos++;
+				if (oPr.Paragraph && true !== oPr.Paragraph.IsEmpty())
+				{
+					aCopyContent.push( new ParaSpace());
+				}
+			}
+			else
+			{
+				// TODO: Как только перенесем para_End в сам параграф (как и нумерацию) убрать здесь
+				if (para_End !== Item.Type
+					&& para_RevisionMove !== Item.Type
+					&& (para_Drawing !== Item.Type || Item.Is_Inline() || true !== oPr.SkipAnchors)
+					&& (para_FootnoteReference !== Item.Type || true !== oPr.SkipFootnoteReference)
+					&& ((para_FieldChar !== Item.Type && para_InstrText !== Item.Type) || true !== oPr.SkipComplexFields))
+				{
+					aCopyContent.push(Item.Copy(oPr));
+				}
 			}
 		}
-		else
+		NewRun.ConcatToContent(aCopyContent);
+	}
+	else
+	{
+		for (CurPos = StartPos, AddedPos = 0; CurPos < EndPos; CurPos++)
 		{
-			// TODO: Как только перенесем para_End в сам параграф (как и нумерацию) убрать здесь
-			if (para_End !== Item.Type
-				&& para_RevisionMove !== Item.Type
-				&& (para_Drawing !== Item.Type || Item.Is_Inline() || true !== oPr.SkipAnchors)
-				&& (para_FootnoteReference !== Item.Type || true !== oPr.SkipFootnoteReference)
-				&& ((para_FieldChar !== Item.Type && para_InstrText !== Item.Type) || true !== oPr.SkipComplexFields))
+			Item = this.Content[CurPos];
+
+			if (para_NewLine === Item.Type
+				&& oPr
+				&& ((oPr.SkipLineBreak && Item.IsLineBreak())
+				|| (oPr.SkipPageBreak && Item.IsPageBreak())
+				|| (oPr.SkipColumnBreak && Item.IsColumnBreak())))
 			{
-				NewRun.Add_ToContent(AddedPos, Item.Copy(oPr), false);
-				AddedPos++;
+				if (oPr.Paragraph && true !== oPr.Paragraph.IsEmpty())
+				{
+					NewRun.Add_ToContent(AddedPos, new ParaSpace(), false);
+					AddedPos++;
+				}
+			}
+			else
+			{
+				// TODO: Как только перенесем para_End в сам параграф (как и нумерацию) убрать здесь
+				if (para_End !== Item.Type
+					&& para_RevisionMove !== Item.Type
+					&& (para_Drawing !== Item.Type || Item.Is_Inline() || true !== oPr.SkipAnchors)
+					&& (para_FootnoteReference !== Item.Type || true !== oPr.SkipFootnoteReference)
+					&& ((para_FieldChar !== Item.Type && para_InstrText !== Item.Type) || true !== oPr.SkipComplexFields))
+				{
+					NewRun.Add_ToContent(AddedPos, Item.Copy(oPr), false);
+					AddedPos++;
+				}
 			}
 		}
 	}
@@ -271,16 +317,31 @@ ParaRun.prototype.Copy2 = function(oPr)
 {
     var NewRun = new ParaRun(this.Paragraph);
 
-    NewRun.Set_Pr( this.Pr.Copy() );
-
+    NewRun.Set_Pr( this.Pr.Copy(undefined, oPr) );
+	if(oPr && oPr.Comparison)
+	{
+		oPr.Comparison.updateReviewInfo(NewRun, reviewtype_Add);
+	}
     var StartPos = 0;
     var EndPos   = this.Content.length;
-
-    for ( var CurPos = StartPos; CurPos < EndPos; CurPos++ )
-    {
-        var Item = this.Content[CurPos];
-        NewRun.Add_ToContent( CurPos - StartPos, Item.Copy(oPr), false );
-    }
+	var CurPos;
+	if(oPr && oPr.Comparison)
+	{
+		var aContentToInsert = [];
+		for (CurPos = StartPos; CurPos < EndPos; CurPos++ )
+		{
+			aContentToInsert.push(this.Content[CurPos].Copy(oPr));
+		}
+		NewRun.ConcatToContent(aContentToInsert);
+	}
+	else
+	{
+		for (CurPos = StartPos; CurPos < EndPos; CurPos++ )
+		{
+			var Item = this.Content[CurPos];
+			NewRun.Add_ToContent( CurPos - StartPos, Item.Copy(oPr), false );
+		}
+	}
     return NewRun;
 };
 
@@ -1321,8 +1382,20 @@ ParaRun.prototype.Add_ToContent = function(Pos, Item, UpdatePosition)
 	if (Item.SetParent)
 		Item.SetParent(this);
 
-	History.Add(new CChangesRunAddItem(this, Pos, [Item], true));
-    this.Content.splice( Pos, 0, Item );
+	// Здесь проверка на возвожность добавления в историю стоит заранее для ускорения открытия файлов, чтобы
+	// не создавалось лишних классов
+	if (History.CanAddChanges())
+		History.Add(new CChangesRunAddItem(this, Pos, [Item], true));
+
+	if (Pos >= this.Content.length)
+	{
+		Pos = this.Content.length;
+		this.Content.push(Item);
+	}
+	else
+	{
+		this.Content.splice(Pos, 0, Item);
+	}
 
     if (true === UpdatePosition)
         this.private_UpdatePositionsOnAdd(Pos);
@@ -1375,17 +1448,19 @@ ParaRun.prototype.Add_ToContent = function(Pos, Item, UpdatePosition)
 
 ParaRun.prototype.Remove_FromContent = function(Pos, Count, UpdatePosition)
 {
-    // Получим массив удаляемых элементов
-    var DeletedItems = this.Content.slice( Pos, Pos + Count );
-	History.Add(new CChangesRunRemoveItem(this, Pos, DeletedItems));
-
-	for (var nIndex = 0, nCount = DeletedItems.length; nIndex < nCount; ++nIndex)
+	for (var nIndex = Pos, nCount = Math.min(Pos + Count, this.Content.length); nIndex < nCount; ++nIndex)
 	{
-		if (DeletedItems[nIndex].PreDelete)
-			DeletedItems[nIndex].PreDelete();
+		if (this.Content[nIndex].PreDelete)
+			this.Content[nIndex].PreDelete();
 	}
 
-    this.Content.splice( Pos, Count );
+	if (History.CanAddChanges())
+	{
+		var DeletedItems = this.Content.slice(Pos, Pos + Count);
+		History.Add(new CChangesRunRemoveItem(this, Pos, DeletedItems));
+	}
+
+	this.Content.splice(Pos, Count);
 
     if (true === UpdatePosition)
         this.private_UpdatePositionsOnRemove(Pos, Count);
@@ -4625,6 +4700,17 @@ ParaRun.prototype.Recalculate_PageEndInfo = function(PRSI, _CurLine, _CurRange)
 		}
 	}
 };
+ParaRun.prototype.RecalculateEndInfo = function(oPRSI)
+{
+	for (var nCurPos = 0, nCount = this.Content.length; nCurPos < nCount; ++nCurPos)
+	{
+		var oItem = this.Content[nCurPos];
+		if (para_FieldChar === oItem.Type)
+		{
+			oPRSI.ProcessFieldChar(oItem);
+		}
+	}
+};
 
 ParaRun.prototype.private_RecalculateNumbering = function(PRS, Item, ParaPr, _X)
 {
@@ -7279,6 +7365,10 @@ ParaRun.prototype.Get_TextPr = function()
 {
     return this.Pr.Copy();
 };
+ParaRun.prototype.GetTextPr = function()
+{
+	return this.Pr.Copy();
+};
 
 ParaRun.prototype.Get_FirstTextPr = function()
 {
@@ -8073,7 +8163,7 @@ ParaRun.prototype.Apply_Pr = function(TextPr)
 		this.Set_Lang2(TextPr.Lang);
 
 	if (undefined !== TextPr.Shd)
-		this.Set_Shd(TextPr.Shd);
+		this.Set_Shd(null === TextPr.Shd ? undefined : TextPr.Shd);
 
 	for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
 	{
@@ -8944,6 +9034,9 @@ CParaRunRecalcInfo.prototype.IsMeasureNeed = function()
  */
 CParaRunRecalcInfo.prototype.OnAdd = function(nPos)
 {
+	if (this.Measure)
+		return;
+
 	for (var nIndex = 0, nCount = this.MeasurePositions.length; nIndex < nCount; ++nIndex)
 	{
 		if (this.MeasurePositions[nIndex] >= nPos)
@@ -8959,6 +9052,9 @@ CParaRunRecalcInfo.prototype.OnAdd = function(nPos)
  */
 CParaRunRecalcInfo.prototype.OnRemove = function(nPos, nCount)
 {
+	if (this.Measure)
+		return;
+
 	for (var nIndex = 0, nLen = this.MeasurePositions.length; nIndex < nLen; ++nIndex)
 	{
 		if (nPos <= this.MeasurePositions[nIndex] && this.MeasurePositions[nIndex] <= nPos + nCount - 1)
@@ -10435,7 +10531,7 @@ ParaRun.prototype.RejectRevisionChanges = function(nType, bAll)
 		}
 	}
 };
-ParaRun.prototype.Is_InHyperlink = function()
+ParaRun.prototype.IsInHyperlink = function()
 {
     if (!this.Paragraph)
         return false;
@@ -10996,6 +11092,9 @@ ParaRun.prototype.ProcessAutoCorrect = function(nPos)
 
 	var oParagraph = this.GetParagraph();
 	if (!oParagraph)
+		return false;
+
+	if(false === oParagraph.bFromDocument)
 		return false;
 
 	var oDocument = oParagraph.LogicDocument;

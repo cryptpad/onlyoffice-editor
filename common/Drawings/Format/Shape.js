@@ -361,14 +361,55 @@ function CopyRunToPPTX(Run, Paragraph, bHyper)
     for ( var CurPos = 0; CurPos < Run.Content.length; CurPos++ )
     {
         var Item = Run.Content[CurPos];
-        if ( para_End !== Item.Type && Item.Type !== para_Drawing && Item.Type !== para_Comment &&
-            Item.Type !== para_PageCount && Item.Type !== para_FootnoteRef && Item.Type !== para_FootnoteReference && Item.Type !== para_PageNum)
+        if (   Item.Type !== para_End       && Item.Type !== para_Drawing     && Item.Type !== para_Comment
+            && Item.Type !== para_PageCount && Item.Type !== para_FootnoteRef && Item.Type !== para_FootnoteReference
+            && Item.Type !== para_PageNum   && Item.Type !== para_FieldChar   && Item.Type !== para_Bookmark && Item.Type !== para_RevisionMove)
         {
             NewRun.Add_ToContent( PosToAdd, Item.Copy(), false );
             ++PosToAdd;
         }
     }
     return NewRun;
+}
+
+
+function ConvertParagraphContentToPPTX(aOrigContent, oNewParagraph, bIsAddMath, bRemoveHyperlink )
+{
+    var Count = aOrigContent.length;
+    for ( var Index = 0; Index < Count; Index++ )
+    {
+        var Item = aOrigContent[Index];
+        if(Item.Type === para_Run)
+        {
+            oNewParagraph.Internal_Content_Add(oNewParagraph.Content.length, CopyRunToPPTX(Item, oNewParagraph), false);
+        }
+        else if(Item.Type === para_Hyperlink)
+        {
+            if(bRemoveHyperlink === true)
+            {
+                for(var j = 0; j < Item.Content.length; ++j)
+                {
+                    if(Item.Content[j].Type === para_Run)
+                    {
+                        oNewParagraph.Internal_Content_Add(oNewParagraph.Content.length, CopyRunToPPTX(Item.Content[j], oNewParagraph), false);
+                    }
+                }
+            }
+            else
+            {
+                oNewParagraph.Internal_Content_Add(oNewParagraph.Content.length, ConvertHyperlinkToPPTX(Item, oNewParagraph), false);
+            }
+
+        }
+        else if(Item.Type === para_InlineLevelSdt)
+        {
+            ConvertParagraphContentToPPTX(Item.Content, oNewParagraph, bIsAddMath, bRemoveHyperlink )
+        }
+        else if(true === bIsAddMath && Item.Type === para_Math)
+        {
+            oNewParagraph.Internal_Content_Add(oNewParagraph.Content.length, Item.Copy(), false);
+        }
+    }
 }
 
 function ConvertParagraphToPPTX(paragraph, drawingDocument, newParent, bIsAddMath, bRemoveHyperlink)
@@ -409,41 +450,38 @@ function ConvertParagraphToPPTX(paragraph, drawingDocument, newParent, bIsAddMat
     }
     new_paragraph.TextPr.Set_Value( oNewEndPr );
     new_paragraph.Internal_Content_Remove2(0, new_paragraph.Content.length);
-    var Count = paragraph.Content.length;
-    for ( var Index = 0; Index < Count; Index++ )
-    {
-        var Item = paragraph.Content[Index];
-        if(Item.Type === para_Run)
-        {
-            new_paragraph.Internal_Content_Add(new_paragraph.Content.length, CopyRunToPPTX(Item, new_paragraph), false);
-        }
-        else if(Item.Type === para_Hyperlink)
-        {
-            if(bRemoveHyperlink === true)
-            {
-                for(var j = 0; j < Item.Content.length; ++j)
-                {
-                    if(Item.Content[j].Type === para_Run)
-                    {
-                        new_paragraph.Internal_Content_Add(new_paragraph.Content.length, CopyRunToPPTX(Item.Content[j], new_paragraph), false);
-                    }
-                }
-            }
-            else
-            {
-                new_paragraph.Internal_Content_Add(new_paragraph.Content.length, ConvertHyperlinkToPPTX(Item, new_paragraph), false);
-            }
-
-        }
-        else if(true === bIsAddMath && Item.Type === para_Math)
-        {
-            new_paragraph.Internal_Content_Add(new_paragraph.Content.length, Item.Copy(), false);
-        }
-    }
+    ConvertParagraphContentToPPTX(paragraph.Content, new_paragraph, bIsAddMath, bRemoveHyperlink);
     var EndRun = new ParaRun(new_paragraph);
     EndRun.Add_ToContent( 0, new ParaEnd() );
     new_paragraph.Internal_Content_Add( new_paragraph.Content.length, EndRun, false );
     return new_paragraph;
+}
+
+
+function ConvertElementsToPPTX(aResult, aElements, drawingDocument, newParent, bIsAddMath, bRemoveHyperlink)
+{
+    var i, j, oElement;
+    for(i = 0; i < aElements.length; ++i)
+    {
+        oElement = aElements[i];
+        if(oElement instanceof AscCommonWord.Paragraph)
+        {
+            aResult.push(ConvertParagraphToPPTX(oElement));
+        }
+        else if(oElement instanceof AscCommonWord.CTable)
+        {
+            var paragraphs = [];
+            oElement.GetAllParagraphs({All: true}, paragraphs);
+            for (j = 0; j < paragraphs.length; j++) {
+                aResult.push(AscFormat.ConvertParagraphToPPTX(paragraphs[j], drawingDocument,
+                    newParent, bIsAddMath, bRemoveHyperlink));
+            }
+        }
+        else if(oElement instanceof AscCommonWord.CBlockLevelSdt)
+        {
+            ConvertElementsToPPTX(aResult, oElement.Content.Content, drawingDocument, newParent, bIsAddMath, bRemoveHyperlink)
+        }
+    }
 }
 
 function ConvertHyperlinkToPPTX(hyperlink, paragraph)
@@ -702,6 +740,7 @@ function ConvertTableToGraphicFrame(oTable, oPresentation){
         var nIndex = oTable2.Content.length;
         oTable2.Content[nIndex] = oNewRow;
         History.Add(new CChangesTableAddRow(oTable2, nIndex, [oNewRow]));
+        oTable2.private_UpdateTableGrid();
     }
 
     if(!oGraphicFrame.spPr){
@@ -1701,6 +1740,30 @@ CShape.prototype.setTextFitType = function(type)
                 new_body_pr.textFit = new AscFormat.CTextFit();
             }
             new_body_pr.textFit.type = type;
+
+            if (this.bWordShape) {
+                this.setBodyPr(new_body_pr);
+            }
+            else {
+                if (this.txBody) {
+                    this.txBody.setBodyPr(new_body_pr);
+                }
+            }
+        }
+        this.checkExtentsByDocContent(true, true);
+    }
+};
+
+
+
+CShape.prototype.setVertOverflowType = function(type)
+{
+    if(AscFormat.isRealNumber(type))
+    {
+        var new_body_pr = this.getBodyPr();
+        if (new_body_pr) {
+            new_body_pr = new_body_pr.createDuplicate();
+            new_body_pr.vertOverflow = type;
 
             if (this.bWordShape) {
                 this.setBodyPr(new_body_pr);
@@ -5183,14 +5246,15 @@ CShape.prototype.getAllRasterImages = function(images)
                 drawings[i].GraphicObj && drawings[i].GraphicObj.getAllRasterImages && drawings[i].GraphicObj.getAllRasterImages(images);
             }
         }
-        var fCallback = function(oTextPr)
-        {
-            if( (oTextPr.Unifill && oTextPr.Unifill.fill && oTextPr.Unifill.fill.type == c_oAscFill.FILL_TYPE_BLIP))
-            {
-                images.push(oTextPr.Unifill.fill.RasterImageId);
-            }
-            return false;
-        }
+        var fCallback = function(oRun)
+		{
+			var oTextPr = oRun && oRun.Pr;
+			if (oTextPr && oTextPr.Unifill && oTextPr.Unifill.fill && oTextPr.Unifill.fill.type == c_oAscFill.FILL_TYPE_BLIP)
+			{
+				images.push(oTextPr.Unifill.fill.RasterImageId);
+			}
+			return false;
+		};
 
         oContent.CheckRunContent(fCallback);
     }
@@ -6006,15 +6070,21 @@ CShape.prototype.getColumnNumber = function(){
 
 
     CShape.prototype.getTextFitType = function(){
-        if(this.bWordShape){
-            return 0;
-        }
         var oBodyPr = this.getBodyPr();
         if(AscCommon.isRealObject(oBodyPr.textFit) && AscFormat.isRealNumber(oBodyPr.textFit.type))
         {
             return oBodyPr.textFit.type;
         }
         return AscFormat.text_fit_No;
+    };
+
+    CShape.prototype.getVertOverflowType = function(){
+        var oBodyPr = this.getBodyPr();
+        if(AscFormat.isRealNumber(oBodyPr.vertOverflow))
+        {
+            return oBodyPr.vertOverflow;
+        }
+        return AscFormat.nOTOwerflow;
     };
 
 
@@ -6351,6 +6421,7 @@ function SaveRunsFormatting(aSourceContent, aCopyContent, oTheme, oColorMap, oPr
     window['AscFormat'].CreateUniFillByUniColorCopy = CreateUniFillByUniColorCopy;
     window['AscFormat'].CreateUniFillByUniColor = CreateUniFillByUniColor;
     window['AscFormat'].ConvertParagraphToPPTX = ConvertParagraphToPPTX;
+    window['AscFormat'].ConvertElementsToPPTX = ConvertElementsToPPTX;
     window['AscFormat'].ConvertParagraphToWord = ConvertParagraphToWord;
     window['AscFormat'].SetXfrmFromMetrics = SetXfrmFromMetrics;
     window['AscFormat'].CShape = CShape;
