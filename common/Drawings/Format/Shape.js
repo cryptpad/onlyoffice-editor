@@ -4147,7 +4147,9 @@ CShape.prototype.checkExtentsByDocContent = function(bForce, bNeedRecalc)
                 var oTextFit = oBodyPr.textFit;
                 if(oTextFit && oTextFit.type === AscFormat.text_fit_NormAuto)
                 {
-                    var fOldContentHeight = this.contentHeight;
+                    var dOldContentHeight = this.contentHeight;
+                    var dOldClipW = this.clipRect.w;
+                    var dOldClipH = this.clipRect.h;
                     this.recalcInfo.recalculateContent = true;
                     this.recalculate();
                     if(!AscFormat.isRealNumber(oTextFit.fontScale) && !AscFormat.isRealNumber(oTextFit.lnSpcReduction)
@@ -4155,106 +4157,107 @@ CShape.prototype.checkExtentsByDocContent = function(bForce, bNeedRecalc)
                     {
                         return;
                     }
-                    if(AscFormat.isRealNumber(fOldContentHeight) && AscFormat.fApproxEqual(fOldContentHeight, this.contentHeight))
+                    if(AscFormat.isRealNumber(dOldClipW) && AscFormat.isRealNumber(dOldClipH)
+                        && AscFormat.fApproxEqual(dOldClipW, this.clipRect.w) && AscFormat.fApproxEqual(dOldClipH, this.clipRect.h))
                     {
-                        return
-                    }
-                    if(fOldContentHeight < this.contentHeight && oTextFit.fontScale === aScales[0])
-                    {
-                        return;
-                    }
-                    var bCheckAutoFit = true;
-                    if(bCheckAutoFit)
-                    {
-                        this.bCheckAutoFitFlag = true;
-
-                        this.tmpFontScale = undefined;
-                        this.tmpLnSpcReduction = undefined;
-                        this.recalculateContentWitCompiledPr();
-                        if(this.contentHeight <= this.clipRect.h)
+                        if(AscFormat.isRealNumber(dOldContentHeight) && AscFormat.fApproxEqual(dOldContentHeight, this.contentHeight))
                         {
-                            oBodyPr = oBodyPr.createDuplicate();
-                            oBodyPr.textFit.lnSpcReduction = this.tmpLnSpcReduction;
-                            oBodyPr.textFit.fontScale = this.tmpFontScale;
-                            if (this.bWordShape) {
-                                this.setBodyPr(oBodyPr);
-                            }
-                            else {
-                                if (this.txBody) {
-                                    this.txBody.setBodyPr(oBodyPr);
-                                }
-                            }
-                            this.bCheckAutoFitFlag = false;
+                            return
+                        }
+                        if(dOldContentHeight < this.contentHeight && oTextFit.fontScale === aScales[0])
+                        {
                             return;
                         }
+                    }
+                
+                    this.bCheckAutoFitFlag = true;
+
+                    this.tmpFontScale = undefined;
+                    this.tmpLnSpcReduction = undefined;
+                    this.recalculateContentWitCompiledPr();
+                    if(this.contentHeight <= this.clipRect.h)
+                    {
+                        oBodyPr = oBodyPr.createDuplicate();
+                        oBodyPr.textFit.lnSpcReduction = this.tmpLnSpcReduction;
+                        oBodyPr.textFit.fontScale = this.tmpFontScale;
+                        if (this.bWordShape) {
+                            this.setBodyPr(oBodyPr);
+                        }
+                        else {
+                            if (this.txBody) {
+                                this.txBody.setBodyPr(oBodyPr);
+                            }
+                        }
+                        this.bCheckAutoFitFlag = false;
+                        return;
+                    }
 
 
-                        var dReductionScale = 0.2;
+                    var dReductionScale = 0.2;
 
-                        var nCurIndex = aScales.length - 1;
-                        var nCurShift = -((aScales.length) / 2);
-                        while (true)
+                    var nCurIndex = aScales.length - 1;
+                    var nCurShift = -((aScales.length) / 2);
+                    while (true)
+                    {
+                        nCurIndex += nCurShift;
+                        if(nCurIndex - 1 >= 0)
                         {
-                            nCurIndex += nCurShift;
-                            if(nCurIndex - 1 >= 0)
+                            this.tmpFontScale = aScales[nCurIndex - 1];
+                            this.tmpLnSpcReduction = dReductionScale*(100000 - this.tmpFontScale) >> 0;
+                            this.recalculateContentWitCompiledPr();
+
+
+                            if(this.contentHeight <= this.clipRect.h)
                             {
-                                this.tmpFontScale = aScales[nCurIndex - 1];
+                                this.tmpFontScale = aScales[nCurIndex];
                                 this.tmpLnSpcReduction = dReductionScale*(100000 - this.tmpFontScale) >> 0;
                                 this.recalculateContentWitCompiledPr();
-
-
-                                if(this.contentHeight <= this.clipRect.h)
+                                if(this.contentHeight >= this.clipRect.h)
                                 {
-                                    this.tmpFontScale = aScales[nCurIndex];
+                                    this.tmpFontScale = aScales[nCurIndex - 1];
                                     this.tmpLnSpcReduction = dReductionScale*(100000 - this.tmpFontScale) >> 0;
-                                    this.recalculateContentWitCompiledPr();
-                                    if(this.contentHeight >= this.clipRect.h)
-                                    {
-                                        this.tmpFontScale = aScales[nCurIndex - 1];
-                                        this.tmpLnSpcReduction = dReductionScale*(100000 - this.tmpFontScale) >> 0;
-                                        break;
-                                    }
-                                    else
-                                    {
-                                        nCurShift = Math.abs(nCurShift) / 2;
-                                    }
+                                    break;
                                 }
                                 else
                                 {
-                                    nCurShift = -Math.abs(nCurShift) / 2;
-                                }
-                                if(Math.abs(nCurShift) < 1)
-                                {
-                                    break;
+                                    nCurShift = Math.abs(nCurShift) / 2;
                                 }
                             }
                             else
                             {
-                                this.tmpFontScale = aScales[0];
-                                this.tmpLnSpcReduction = dReductionScale*(100000 - this.tmpFontScale) >> 0;
+                                nCurShift = -Math.abs(nCurShift) / 2;
+                            }
+                            if(Math.abs(nCurShift) < 1)
+                            {
                                 break;
                             }
                         }
-
-                        if(oBodyPr.textFit.lnSpcReduction !== this.tmpLnSpcReduction
-                        || oBodyPr.textFit.fontScale !== this.tmpFontScale)
+                        else
                         {
-                            oBodyPr = oBodyPr.createDuplicate();
-                            oBodyPr.textFit.lnSpcReduction = this.tmpLnSpcReduction;
-                            oBodyPr.textFit.fontScale = this.tmpFontScale;
-                            if (this.bWordShape) {
-                                this.setBodyPr(oBodyPr);
-                            }
-                            else {
-                                if (this.txBody) {
-                                    this.txBody.setBodyPr(oBodyPr);
-                                }
+                            this.tmpFontScale = aScales[0];
+                            this.tmpLnSpcReduction = dReductionScale*(100000 - this.tmpFontScale) >> 0;
+                            break;
+                        }
+                    }
+
+                    if(oBodyPr.textFit.lnSpcReduction !== this.tmpLnSpcReduction
+                    || oBodyPr.textFit.fontScale !== this.tmpFontScale)
+                    {
+                        oBodyPr = oBodyPr.createDuplicate();
+                        oBodyPr.textFit.lnSpcReduction = this.tmpLnSpcReduction;
+                        oBodyPr.textFit.fontScale = this.tmpFontScale;
+                        if (this.bWordShape) {
+                            this.setBodyPr(oBodyPr);
+                        }
+                        else {
+                            if (this.txBody) {
+                                this.txBody.setBodyPr(oBodyPr);
                             }
                         }
-
-                        this.bCheckAutoFitFlag = false;
-                        this.recalculateContentWitCompiledPr();
                     }
+
+                    this.bCheckAutoFitFlag = false;
+                    this.recalculateContentWitCompiledPr();
                 }
             }
         }
