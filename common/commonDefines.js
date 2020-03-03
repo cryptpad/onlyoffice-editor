@@ -1435,6 +1435,9 @@
 		DecimalZero           : 0x2007,
 		DecimalEnclosedCircle : 0x2008,
 
+		ChineseCounting         : 0x2101,
+		ChineseCountingThousand : 0x2102,
+		ChineseLegalSimplified  : 0x2103,
 
 		BulletFlag   : 0x1000,
 		NumberedFlag : 0x2000
@@ -2800,6 +2803,9 @@
 	prot['UpperLetter'] = c_oAscNumberingFormat.UpperLetter;
 	prot['DecimalZero'] = c_oAscNumberingFormat.DecimalZero;
 	prot['DecimalEnclosedCircle'] = c_oAscNumberingFormat.DecimalEnclosedCircle;
+	prot['ChineseCounting'] = c_oAscNumberingFormat.ChineseCounting;
+	prot['ChineseCountingThousand'] = c_oAscNumberingFormat.ChineseCountingThousand;
+	prot['ChineseLegalSimplified'] = c_oAscNumberingFormat.ChineseLegalSimplified;
 
 	window['Asc']['c_oAscNumberingSuff'] = window['Asc'].c_oAscNumberingSuff = c_oAscNumberingSuff;
 	prot = c_oAscNumberingSuff;
