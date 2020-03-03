@@ -7535,7 +7535,7 @@ drawHBarChart.prototype = {
 		var path = this.cChartSpace.GetPath(pathId);
 
 		var pathH = this.chartProp.pathH;
-		var pathW = this.chartProp.pathW;
+		var pathW = this.chartProp.pathW;showSpecialPasteOptions
 
 		path.moveTo(x / pxToMm * pathW, y / pxToMm * pathH);
 		path.lnTo(x1 / pxToMm * pathW, y1 / pxToMm * pathH);
