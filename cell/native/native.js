@@ -6512,7 +6512,7 @@ window["native"]["offline_apply_event"] = function(type,params) {
         }
         case 2160: // ASC_SPREADSHEETS_EVENT_TYPE_DELETE_WORKSHEET
         {
-            _api.asc_deleteWorksheet(params);
+            _api.asc_deleteWorksheet([params]);
             _s.asc_WriteAllWorksheets(true);
             break;
         }
