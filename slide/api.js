@@ -4920,6 +4920,7 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype.sync_AddComment = function(Id, CommentData)
 	{
+		// if (this.bNoSendComments === false || window["NATIVE_EDITOR_ENJINE"]) // TODO: WORKAROUND FOR NATIVE EDITOR
 		if (this.bNoSendComments === false)
 		{
 			var AscCommentData = new asc_CCommentData(CommentData);
