@@ -12441,9 +12441,10 @@
 					sFormula = sFormula.substr(1);
 					var offset = new AscCommon.CellBase(0, 0);
 					var assemb, _p_ = new AscCommonExcel.parserFormula(sFormula, null, t.model);
-					assemb = _p_.changeOffset(offset, null, true).assemble(true);
-					rangeStyle.formula = {range: range, val: "=" + assemb};
-
+					if (_p_.parse()) {
+						assemb = _p_.changeOffset(offset, null, true).assemble(true);
+						rangeStyle.formula = {range: range, val: "=" + assemb};
+					}
 				}
 			}
 		};
@@ -13946,7 +13947,7 @@
 		if(!ranges || 0 === ranges.length) {
 			ranges = AscCommonExcel.getRangeByRef(reference, this.model, true, true);
 		}
-		var oldR1C1mode = AscCommonExcel.g_R1C1Mode, t = this;
+		var t = this;
 
 		if (0 === ranges.length && this.handlers.trigger('canEdit')) {
 
@@ -13969,10 +13970,12 @@
 				// ToDo multiselect defined names
 				var selectionLast = this.model.selectionRange.getLast();
 				mc = selectionLast.isOneCell() ? this.model.getMergedByCell(selectionLast.r1, selectionLast.c1) : null;
-				AscCommonExcel.g_R1C1Mode = false;
-				var defName = this.model.workbook.editDefinesNames(null, new Asc.asc_CDefName(reference,
-					parserHelp.get3DRef(this.model.getName(), (mc || selectionLast).getAbsName())));
-				AscCommonExcel.g_R1C1Mode = oldR1C1mode;
+
+				var defName;
+				AscCommonExcel.executeInR1C1Mode(false, function () {
+					defName = t.model.workbook.editDefinesNames(null, new Asc.asc_CDefName(reference,
+						parserHelp.get3DRef(t.model.getName(), (mc || selectionLast).getAbsName())));
+				});
 
 				if (defName) {
 					this._isLockedDefNames(null, defName.getNodeId());
