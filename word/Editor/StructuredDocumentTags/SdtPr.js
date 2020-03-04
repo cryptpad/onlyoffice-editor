@@ -838,7 +838,7 @@ CSdtDatePickerPr.prototype.ToString = function(sFormat, sFullDate, nLangId)
 	if (undefined === nLangId)
 		nLangId = this.LangId;
 
-	var oFormat = AscCommon.oNumFormatCache.get(sFormat);
+	var oFormat = AscCommon.oNumFormatCache.get(sFormat, AscCommon.NumFormatType.WordFieldDate);
 	if (oFormat)
 	{
 		var oCultureInfo = AscCommon.g_aCultureInfos[nLangId];

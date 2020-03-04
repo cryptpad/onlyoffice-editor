@@ -1353,7 +1353,7 @@ CFieldInstructionParser.prototype.private_ReadFORMULA = function()
 	var oFormat;
 	if(null !== sFormat)
 	{
-        oFormat = AscCommon.oNumFormatCache.get(sFormat, true);
+        oFormat = AscCommon.oNumFormatCache.get(sFormat, AscCommon.NumFormatType.WordFieldNumeric);
         this.Result.SetFormat(oFormat);
 	}
 	this.Result.SetFormula(sFormula);
