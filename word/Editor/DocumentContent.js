@@ -8699,6 +8699,13 @@ CDocumentContent.prototype.GetAllTablesOnPage = function(nPageAbs, arrTables)
 
 	return arrTables;
 };
+CDocumentContent.prototype.ProcessComplexFields = function()
+{
+	for (var nIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex)
+	{
+		this.Content[nIndex].ProcessComplexFields();
+	}
+};
 
 
 function CDocumentContentStartState(DocContent)

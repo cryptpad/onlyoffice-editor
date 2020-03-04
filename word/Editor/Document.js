@@ -2389,7 +2389,11 @@ CDocument.prototype.On_EndLoad                     = function()
     // а обратной ссылки в нумерации на стиль - нет.
     this.Styles.Check_StyleNumberingOnLoad(this.Numbering);
 
+	// ВАЖНО: Вызываем данную функцию после обновления секций
+	this.private_UpdateFieldsOnEndLoad();
+
     // Перемещаем курсор в начало документа
+	this.SetDocPosType(docpostype_Content);
     this.MoveCursorToStartPos(false);
 
     if (editor.DocInfo)
@@ -2404,6 +2408,25 @@ CDocument.prototype.On_EndLoad                     = function()
     {
         this.Set_FastCollaborativeEditing(true);
     }
+};
+CDocument.prototype.private_UpdateFieldsOnEndLoad = function()
+{
+	var arrHdrFtrs = this.SectionsInfo.GetAllHdrFtrs();
+	for (var nIndex = 0, nCount = arrHdrFtrs.length; nIndex < nCount; ++nIndex)
+	{
+		var oContent = arrHdrFtrs[nIndex].GetContent();
+		oContent.ProcessComplexFields();
+		var arrFields = oContent.GetAllFields(false);
+		for (var nFieldIndex = 0, nFieldsCount = arrFields.length; nFieldIndex < nFieldsCount; ++nFieldIndex)
+		{
+			var oField = arrFields[nFieldIndex];
+			if (oField instanceof CComplexField)
+			{
+				if (oField.GetInstruction() && fieldtype_TIME === oField.GetInstruction().Type)
+					oField.Update(false, false);
+			}
+		}
+	}
 };
 CDocument.prototype.Add_TestDocument               = function()
 {
@@ -21917,7 +21940,7 @@ CDocumentSectionsInfo.prototype =
     }
 };
 /**
- * Получаем массив всех колонтитулов, используемых в данно документе
+ * Получаем массив всех колонтитулов, используемых в данном документе
  * @returns {Array.CHeaderFooter}
  */
 CDocumentSectionsInfo.prototype.GetAllHdrFtrs = function()

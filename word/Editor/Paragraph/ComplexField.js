@@ -469,7 +469,9 @@ CComplexField.prototype.CalculateValue = function()
 		case fieldtype_STYLEREF:
 			sResult = this.private_CalculateSTYLEREF();
 			break;
-
+		case fieldtype_TIME:
+			sResult = this.private_CalculateTIME();
+			break;
 	}
 
 	return sResult;
@@ -846,11 +848,17 @@ CComplexField.prototype.private_CalculateNUMPAGES = function()
 };
 CComplexField.prototype.private_UpdateTIME = function()
 {
+	var sDate = this.private_CalculateTIME();
+
+	if (sDate)
+		this.LogicDocument.AddText(sDate);
+};
+CComplexField.prototype.private_CalculateTIME = function()
+{
 	var nLangId = 1033;
 	var oSepChar = this.GetSeparateChar();
 	if (oSepChar && oSepChar.GetRun())
 	{
-		var oRun = oSepChar.GetRun();
 		var oCompiledTextPr = oSepChar.GetRun().Get_CompiledPr(false);
 		nLangId = oCompiledTextPr.Lang.Val;
 	}
@@ -863,11 +871,10 @@ CComplexField.prototype.private_UpdateTIME = function()
 		var oCultureInfo = AscCommon.g_aCultureInfos[nLangId];
 
 		var oDateTime = new Asc.cDate();
-		sDate = oFormat.formatToChart(oDateTime.getExcelDate() + (oDateTime.getHours() * 60 * 60 + oDateTime.getMinutes() * 60 + oDateTime.getSeconds()) / AscCommonExcel.c_sPerDay, 15, oCultureInfo);
+		sDate = oFormat.formatToWord(oDateTime.getExcelDate() + (oDateTime.getHours() * 60 * 60 + oDateTime.getMinutes() * 60 + oDateTime.getSeconds()) / AscCommonExcel.c_sPerDay, 15, oCultureInfo);
 	}
 
-	if (sDate)
-		this.LogicDocument.AddText(sDate);
+	return sDate;
 };
 CComplexField.prototype.SelectFieldValue = function()
 {

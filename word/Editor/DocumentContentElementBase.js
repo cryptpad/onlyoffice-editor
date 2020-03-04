@@ -1151,6 +1151,10 @@ CDocumentContentElementBase.prototype.GetPresentationField = function()
  * @returns {Array}
  */
 CDocumentContentElementBase.prototype.GetAllTablesOnPage = function(nPageAbs, arrTables){return arrTables ? arrTables : [];};
+/**
+ * Обрабатываем сложные поля
+ */
+CDocumentContentElementBase.prototype.ProcessComplexFields = function() {};
 
 //--------------------------------------------------------export--------------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};

@@ -503,31 +503,29 @@ ParaField.prototype.FindNextFillingForm = function(isNext, isCurrent, isStart)
 };
 ParaField.prototype.Update = function(isCreateHistoryPoint, isRecalculate)
 {
+	if (!this.Paragraph && !this.Paragraph.Parent)
+		return;
+
 	var sReplaceString = null;
-	if(this.FieldType === fieldtype_SEQ)
+	if (this.FieldType === fieldtype_SEQ)
 	{
-		if(this.Paragraph && this.Paragraph.Parent)
-		{
-			var oInstruction = new CFieldInstructionSEQ();
-			oInstruction.ComplexField = this;
-			oInstruction.ParentContent = this.Paragraph.Parent;
-			oInstruction.Id = this.Arguments[0];
-			sReplaceString = oInstruction.GetText();
-		}
+		var oInstruction           = new CFieldInstructionSEQ();
+		oInstruction.ComplexField  = this;
+		oInstruction.ParentContent = this.Paragraph.Parent;
+		oInstruction.Id            = this.Arguments[0];
+		sReplaceString             = oInstruction.GetText();
 	}
-	else if(this.FieldType === fieldtype_STYLEREF)
+	else if (this.FieldType === fieldtype_STYLEREF)
 	{
-		if(this.Paragraph && this.Paragraph.Parent)
-		{
-			var oInstruction = new CFieldInstructionSTYLEREF();
-			oInstruction.ComplexField = this;
-			oInstruction.ParentContent = this.Paragraph.Parent;
-			oInstruction.ParentParagraph = this.Paragraph;
-			oInstruction.StyleName = this.Arguments[0];
-			sReplaceString = oInstruction.GetText();
-		}
+		var oInstruction             = new CFieldInstructionSTYLEREF();
+		oInstruction.ComplexField    = this;
+		oInstruction.ParentContent   = this.Paragraph.Parent;
+		oInstruction.ParentParagraph = this.Paragraph;
+		oInstruction.StyleName       = this.Arguments[0];
+		sReplaceString               = oInstruction.GetText();
 	}
-	if(sReplaceString)
+
+	if (sReplaceString)
 	{
 		var oRun = this.private_GetMappedRun(sReplaceString);
 		this.Remove_FromContent(0, this.Content.length);

@@ -2277,6 +2277,10 @@ CBlockLevelSdt.prototype.GetAllTablesOnPage = function(nPageAbs, arrTables)
 {
 	return this.Content.GetAllTablesOnPage(nPageAbs, arrTables);
 };
+CBlockLevelSdt.prototype.ProcessComplexFields = function()
+{
+	return this.Content.ProcessComplexFields();
+};
 //--------------------------------------------------------export--------------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};
 window['AscCommonWord'].CBlockLevelSdt = CBlockLevelSdt;
