@@ -2887,11 +2887,6 @@ function asc_WriteFormatTableInfo(i, c, s) {
 function asc_WriteCCellInfo(c, s) {
     if (!c) return;
     
-    if (null != c.asc_getFormula()) {
-        s['WriteByte'](1);
-        s['WriteString2'](c.asc_getFormula());
-    }
-    
     if (null !== c.asc_getText()) {
         s['WriteByte'](2);
         s['WriteString2'](c.asc_getText());
