@@ -1767,7 +1767,7 @@
     {
         var phType = this.getPhType();
         var aButtons = [];
-        var isLocalDesktop = window["AscDesktopEditor"] && window["AscDesktopEditor"]["IsLocalFile"] && window["AscDesktopEditor"]["IsLocalFile"]();
+        var isLocalDesktop = window["AscDesktopEditor"] && window["AscDesktopEditor"]["IsSupportMedia"] && window["AscDesktopEditor"]["IsSupportMedia"]();
         switch (phType)
         {
             case null:

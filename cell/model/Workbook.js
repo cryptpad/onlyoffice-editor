@@ -257,14 +257,14 @@
 			//all ref should be 3d, so worksheet can be anyone
 			this.parsedRef = new parserFormula(ref, this, AscCommonExcel.g_DefNameWorksheet);
 			this.parsedRef.setIsTable(this.isTable);
+			var t = this;
 			if (opt_forceBuild) {
-				var oldR1C1mode = AscCommonExcel.g_R1C1Mode;
 				if(opt_open) {
-					AscCommonExcel.g_R1C1Mode = false;
-				}
-				this.parsedRef.parse();
-				if(opt_open) {
-					AscCommonExcel.g_R1C1Mode = oldR1C1mode;
+					AscCommonExcel.executeInR1C1Mode(false, function () {
+						t.parsedRef.parse();
+					});
+				} else {
+					this.parsedRef.parse();
 				}
 				this.parsedRef.buildDependencies();
 			} else {
@@ -277,12 +277,11 @@
 		},
 		getRef: function(bLocale) {
 			//R1C1 - отдаём в зависимости от флага bLocale(для меню в виде R1C1)
-			var res;
+			var res, t = this;
 			if(!this.parsedRef.isParsed) {
-				var oldR1C1mode = AscCommonExcel.g_R1C1Mode;
-				AscCommonExcel.g_R1C1Mode = false;
-				this.parsedRef.parse();
-				AscCommonExcel.g_R1C1Mode = oldR1C1mode;
+				AscCommonExcel.executeInR1C1Mode(false, function () {
+					t.parsedRef.parse();
+				});
 			}
 			if(bLocale) {
 				res = this.parsedRef.assembleLocale(AscCommonExcel.cFormulaFunctionToLocale, true);

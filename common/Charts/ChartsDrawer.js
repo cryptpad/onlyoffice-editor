@@ -2264,13 +2264,31 @@ CChartsDrawer.prototype =
 			return;
 		}
 
+		var getSerByIdx = function(_idx) {
+			for(var k = 0; k < series.length; k++) {
+				if(series[k] && series[k].idx === _idx) {
+					return series[k];
+				}
+			}
+			return null;
+		};
+
 		for (var i = 0; i < seriesPaths.length; i++) {
 
 			if (!seriesPaths[i]) {
 				continue;
 			}
 
-			seria = series[i];
+			if(byIdx) {
+				seria = getSerByIdx(i);
+			} else {
+				seria = series[i];
+			}
+
+			if(!seria) {
+				continue;
+			}
+
 			brush = seria.brush;
 			pen = seria.pen;
 
@@ -4432,7 +4450,7 @@ drawBarChart.prototype = {
 		var nullPositionOX = this.catAx.posY * this.chartProp.pxToMM;
 
 		var height, startX, startY, val, paths, seriesHeight = [], tempValues = [], seria, startYColumnPosition, startXPosition, prevVal, idx, seriesCounter = 0;
-		var cubeCount = 0;
+		var cubeCount = 0, k;
 		for (var i = 0; i < this.chart.series.length; i++) {
 			numCache = this.cChartDrawer.getNumCache(this.chart.series[i].val);
 			seria = numCache ? numCache.pts : [];
@@ -4461,7 +4479,7 @@ drawBarChart.prototype = {
 
 				prevVal = 0;
 				if (this.subType === "stacked" || this.subType === "stackedPer") {
-					for (var k = 0; k < tempValues.length; k++) {
+					for (k = 0; k < tempValues.length; k++) {
 						if (tempValues[k][idx] && tempValues[k][idx] > 0) {
 							prevVal += tempValues[k][idx];
 						}
@@ -4532,7 +4550,7 @@ drawBarChart.prototype = {
 					//расскомментируем, чтобы включить старую схему отрисовки(+ переименовать функции _DrawBars3D -> _DrawBars3D2)
 					//this.sortZIndexPaths.push({seria: i, point: idx, paths: paths.paths, x: paths.x, y: paths.y, zIndex: paths.zIndex});
 
-					for (var k = 0; k < paths.paths.length; k++) {
+					for (k = 0; k < paths.paths.length; k++) {
 						this.sortZIndexPaths.push({
 							seria: i,
 							point: idx,
@@ -4571,19 +4589,20 @@ drawBarChart.prototype = {
 					paths = this._calculateRect(startX, startY, individualBarWidth, height);
 				}
 
+				var serIdx = this.chart.series[i].idx;
 				if (!this.paths.series) {
 					this.paths.series = [];
 				}
-				if (!this.paths.series[i]) {
-					this.paths.series[i] = [];
+				if (!this.paths.series[serIdx]) {
+					this.paths.series[serIdx] = [];
 				}
-				this.paths.series[i][idx] = paths;
+				this.paths.series[serIdx][idx] = paths;
 
 			}
 
-			if (seria.length) {
+			//if (seria.length) {
 				seriesCounter++;
-			}
+			//}
 		}
 
 		var cSortFaces;
@@ -7469,22 +7488,22 @@ drawHBarChart.prototype = {
 					paths = this._calculateRect(newStartX, newStartY / this.chartProp.pxToMM, width, individualBarHeight / this.chartProp.pxToMM);
 				}
 
-
+				var serIdx = this.chart.series[i].idx;
 				if (!this.paths.series) {
 					this.paths.series = [];
 				}
-				if (!this.paths.series[i]) {
-					this.paths.series[i] = [];
+				if (!this.paths.series[serIdx]) {
+					this.paths.series[serIdx] = [];
 				}
 
 				if (height !== 0) {
-					this.paths.series[i][idx] = paths;
+					this.paths.series[serIdx][idx] = paths;
 				}
 			}
 
-			if (seria.length) {
+			//if (seria.length) {
 				seriesCounter++;
-			}
+			//}
 		}
 
 		if (this.cChartDrawer.nDimensionCount === 3) {
@@ -7516,7 +7535,7 @@ drawHBarChart.prototype = {
 		var path = this.cChartSpace.GetPath(pathId);
 
 		var pathH = this.chartProp.pathH;
-		var pathW = this.chartProp.pathW;
+		var pathW = this.chartProp.pathW;showSpecialPasteOptions
 
 		path.moveTo(x / pxToMm * pathW, y / pxToMm * pathH);
 		path.lnTo(x1 / pxToMm * pathW, y1 / pxToMm * pathH);
@@ -7653,7 +7672,7 @@ drawHBarChart.prototype = {
 	_drawBars: function () {
 		this.cChartDrawer.cShapeDrawer.Graphics.SaveGrState();
 		this.cChartDrawer.cShapeDrawer.Graphics.AddClipRect((this.chartProp.chartGutter._left - 1) / this.chartProp.pxToMM, (this.chartProp.chartGutter._top - 1) / this.chartProp.pxToMM, this.chartProp.trueWidth / this.chartProp.pxToMM, this.chartProp.trueHeight / this.chartProp.pxToMM);
-		this.cChartDrawer.drawPaths(this.paths, this.chart.series);
+		this.cChartDrawer.drawPaths(this.paths, this.chart.series, null, null, true);
 		this.cChartDrawer.cShapeDrawer.Graphics.RestoreGrState();
 	},
 

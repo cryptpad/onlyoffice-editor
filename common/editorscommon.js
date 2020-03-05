@@ -3656,6 +3656,295 @@
 				}
 				break;
 			}
+
+			case Asc.c_oAscNumberingFormat.ChineseCounting:
+			{
+				var arrChinese = [
+					String.fromCharCode(0x25CB),
+					String.fromCharCode(0x4E00),
+					String.fromCharCode(0x4E8C),
+					String.fromCharCode(0x4E09),
+					String.fromCharCode(0x56DB),
+					String.fromCharCode(0x4E94),
+					String.fromCharCode(0x516D),
+					String.fromCharCode(0x4E03),
+					String.fromCharCode(0x516B),
+					String.fromCharCode(0x4E5D),
+					String.fromCharCode(0x5341)
+				];
+
+				var nQuotient  = (nValue / 10) | 0;
+				var nRemainder = nValue - nQuotient * 10;
+
+				if (nQuotient < 10 && nQuotient > 0)
+				{
+					if (0 !== nRemainder)
+						sResult = arrChinese[nRemainder] + sResult;
+
+					sResult = arrChinese[10] + sResult;
+
+					if (1 === nQuotient)
+						nQuotient = 0;
+				}
+				else
+				{
+					sResult = arrChinese[nRemainder] + sResult;
+				}
+
+
+				var nRemValue = nQuotient;
+				while (nQuotient > 0)
+				{
+					nQuotient  = (nRemValue / 10) | 0;
+					nRemainder = nRemValue - nQuotient * 10;
+
+					sResult = arrChinese[nRemainder] + sResult;
+
+					nRemValue = nQuotient;
+				}
+
+				break;
+			}
+			case Asc.c_oAscNumberingFormat.ChineseCountingThousand:
+			{
+				var arrChinese = {
+					0     : String.fromCharCode(0x25CB),
+					1     : String.fromCharCode(0x4E00),
+					2     : String.fromCharCode(0x4E8C),
+					3     : String.fromCharCode(0x4E09),
+					4     : String.fromCharCode(0x56DB),
+					5     : String.fromCharCode(0x4E94),
+					6     : String.fromCharCode(0x516D),
+					7     : String.fromCharCode(0x4E03),
+					8     : String.fromCharCode(0x516B),
+					9     : String.fromCharCode(0x4E5D),
+					10    : String.fromCharCode(0x5341),
+					100   : String.fromCharCode(0x767E),
+					1000  : String.fromCharCode(0x5343),
+					10000 : String.fromCharCode(0x4E07)
+				};
+
+				var nRemValue = nValue;
+
+				while (true)
+				{
+					var nTTQuotient  = (nRemValue / 10000) | 0;
+					var nTTRemainder = nRemValue - nTTQuotient * 10000;
+
+					nRemValue = nTTQuotient;
+
+					var sGroup = "", isPrevZero = false;
+
+					if (nTTQuotient > 0)
+						sGroup += arrChinese[10000];
+					else
+						isPrevZero = true;
+
+					if (nTTRemainder <= 0)
+					{
+						sResult = sGroup + sResult;
+
+						if (nRemValue <= 0)
+							break;
+
+						continue;
+					}
+
+					var nQuotient  = (nTTRemainder / 1000) | 0;
+					var nRemainder = nTTRemainder - nQuotient * 1000;
+
+					if (0 !== nQuotient)
+					{
+						sGroup += arrChinese[nQuotient] + arrChinese[1000];
+						isPrevZero = false;
+					}
+					else if (nTTQuotient > 0)
+					{
+						sGroup += arrChinese[0];
+						isPrevZero = true;
+					}
+
+					if (nRemainder <= 0)
+					{
+						sResult = sGroup + sResult;
+
+						if (nRemValue <= 0)
+							break;
+
+						continue;
+					}
+
+					nQuotient  = (nRemainder / 100) | 0;
+					nRemainder = nRemainder - nQuotient * 100;
+
+					if (0 !== nQuotient)
+					{
+						sGroup += arrChinese[nQuotient] + arrChinese[100];
+						isPrevZero = false;
+					}
+					else if (!isPrevZero)
+					{
+						sGroup += arrChinese[0];
+						isPrevZero = true;
+					}
+
+					if (nRemainder <= 0)
+					{
+						sResult = sGroup + sResult;
+
+						if (nRemValue <= 0)
+							break;
+
+						continue;
+					}
+
+					nQuotient  = (nRemainder / 10) | 0;
+					nRemainder = nRemainder - nQuotient * 10;
+
+					if (0 !== nQuotient)
+					{
+						if (nValue < 20)
+							sGroup += arrChinese[10];
+						else
+							sGroup += arrChinese[nQuotient] + arrChinese[10];
+
+						isPrevZero = false;
+					}
+					else if (!isPrevZero)
+					{
+						sGroup += arrChinese[0];
+						isPrevZero = true;
+					}
+
+					if (0 !== nRemainder)
+						sGroup += arrChinese[nRemainder];
+
+					sResult = sGroup + sResult;
+
+					if (nRemValue <= 0)
+						break;
+				}
+
+				break;
+			}
+			case Asc.c_oAscNumberingFormat.ChineseLegalSimplified:
+			{
+				var arrChinese = {
+					0     : String.fromCharCode(0x96F6),
+					1     : String.fromCharCode(0x58F9),
+					2     : String.fromCharCode(0x8D30),
+					3     : String.fromCharCode(0x53C1),
+					4     : String.fromCharCode(0x8086),
+					5     : String.fromCharCode(0x4F0D),
+					6     : String.fromCharCode(0x9646),
+					7     : String.fromCharCode(0x67D2),
+					8     : String.fromCharCode(0x634C),
+					9     : String.fromCharCode(0x7396),
+					10    : String.fromCharCode(0x62FE),
+					100   : String.fromCharCode(0x4F70),
+					1000  : String.fromCharCode(0x4EDF),
+					10000 : String.fromCharCode(0x842C)
+				};
+
+				var nRemValue = nValue;
+
+				while (true)
+				{
+					var nTTQuotient  = (nRemValue / 10000) | 0;
+					var nTTRemainder = nRemValue - nTTQuotient * 10000;
+
+					nRemValue = nTTQuotient;
+
+					var sGroup = "", isPrevZero = false;
+
+					if (nTTQuotient > 0)
+						sGroup += arrChinese[10000];
+					else
+						isPrevZero = true;
+
+					if (nTTRemainder <= 0)
+					{
+						sResult = sGroup + sResult;
+
+						if (nRemValue <= 0)
+							break;
+
+						continue;
+					}
+
+					var nQuotient  = (nTTRemainder / 1000) | 0;
+					var nRemainder = nTTRemainder - nQuotient * 1000;
+
+					if (0 !== nQuotient)
+					{
+						sGroup += arrChinese[nQuotient] + arrChinese[1000];
+						isPrevZero = false;
+					}
+					else if (nTTQuotient > 0)
+					{
+						sGroup += arrChinese[0];
+						isPrevZero = true;
+					}
+
+					if (nRemainder <= 0)
+					{
+						sResult = sGroup + sResult;
+
+						if (nRemValue <= 0)
+							break;
+
+						continue;
+					}
+
+					nQuotient  = (nRemainder / 100) | 0;
+					nRemainder = nRemainder - nQuotient * 100;
+
+					if (0 !== nQuotient)
+					{
+						sGroup += arrChinese[nQuotient] + arrChinese[100];
+						isPrevZero = false;
+					}
+					else if (!isPrevZero)
+					{
+						sGroup += arrChinese[0];
+						isPrevZero = true;
+					}
+
+					if (nRemainder <= 0)
+					{
+						sResult = sGroup + sResult;
+
+						if (nRemValue <= 0)
+							break;
+
+						continue;
+					}
+
+					nQuotient  = (nRemainder / 10) | 0;
+					nRemainder = nRemainder - nQuotient * 10;
+
+					if (0 !== nQuotient)
+					{
+						sGroup += arrChinese[nQuotient] + arrChinese[10];
+						isPrevZero = false;
+					}
+					else if (!isPrevZero)
+					{
+						sGroup += arrChinese[0];
+						isPrevZero = true;
+					}
+
+					if (0 !== nRemainder)
+						sGroup += arrChinese[nRemainder];
+
+					sResult = sGroup + sResult;
+
+					if (nRemValue <= 0)
+						break;
+				}
+
+				break;
+			}
 		}
 
 		return sResult;

@@ -2389,7 +2389,11 @@ CDocument.prototype.On_EndLoad                     = function()
     // а обратной ссылки в нумерации на стиль - нет.
     this.Styles.Check_StyleNumberingOnLoad(this.Numbering);
 
+	// ВАЖНО: Вызываем данную функцию после обновления секций
+	this.private_UpdateFieldsOnEndLoad();
+
     // Перемещаем курсор в начало документа
+	this.SetDocPosType(docpostype_Content);
     this.MoveCursorToStartPos(false);
 
     if (editor.DocInfo)
@@ -2404,6 +2408,25 @@ CDocument.prototype.On_EndLoad                     = function()
     {
         this.Set_FastCollaborativeEditing(true);
     }
+};
+CDocument.prototype.private_UpdateFieldsOnEndLoad = function()
+{
+	var arrHdrFtrs = this.SectionsInfo.GetAllHdrFtrs();
+	for (var nIndex = 0, nCount = arrHdrFtrs.length; nIndex < nCount; ++nIndex)
+	{
+		var oContent = arrHdrFtrs[nIndex].GetContent();
+		oContent.ProcessComplexFields();
+		var arrFields = oContent.GetAllFields(false);
+		for (var nFieldIndex = 0, nFieldsCount = arrFields.length; nFieldIndex < nFieldsCount; ++nFieldIndex)
+		{
+			var oField = arrFields[nFieldIndex];
+			if (oField instanceof CComplexField)
+			{
+				if (oField.GetInstruction() && fieldtype_TIME === oField.GetInstruction().Type)
+					oField.Update(false, false);
+			}
+		}
+	}
 };
 CDocument.prototype.Add_TestDocument               = function()
 {
@@ -16467,8 +16490,10 @@ CDocument.prototype.controller_AddInlineTable = function(nCols, nRows, nMode)
 
 		var PageFields = this.Get_PageFields(this.CurPage);
 
+		var nAdd = this.GetCompatibilityMode() <= AscCommon.document_compatibility_mode_Word14 ?  2 * 1.9 : 0;
+
 		// Создаем новую таблицу
-		var W    = (PageFields.XLimit - PageFields.X + 2 * 1.9);
+		var W    = (PageFields.XLimit - PageFields.X + nAdd);
 		var Grid = [];
 
 		if (SectPr.Get_ColumnsCount() > 1)
@@ -16480,7 +16505,7 @@ CDocument.prototype.controller_AddInlineTable = function(nCols, nRows, nMode)
 					W = ColumnWidth;
 			}
 
-			W += 2 * 1.9;
+			W += nAdd;
 		}
 
 		W = Math.max(W, nCols * 2 * 1.9);
@@ -21922,7 +21947,7 @@ CDocumentSectionsInfo.prototype =
     }
 };
 /**
- * Получаем массив всех колонтитулов, используемых в данно документе
+ * Получаем массив всех колонтитулов, используемых в данном документе
  * @returns {Array.CHeaderFooter}
  */
 CDocumentSectionsInfo.prototype.GetAllHdrFtrs = function()

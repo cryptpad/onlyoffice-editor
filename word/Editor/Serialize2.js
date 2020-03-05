@@ -2482,6 +2482,9 @@ function Binary_pPrWriter(memory, oNumIdMap, oBinaryHeaderFooterTableWriter, sav
 			case Asc.c_oAscNumberingFormat.UpperLetter: val = 60; break;
 			case Asc.c_oAscNumberingFormat.DecimalZero: val = 21; break;
 			case Asc.c_oAscNumberingFormat.DecimalEnclosedCircle: val = 14; break;
+			case Asc.c_oAscNumberingFormat.ChineseCounting: val = 8; break;
+			case Asc.c_oAscNumberingFormat.ChineseCountingThousand: val = 9; break;
+			case Asc.c_oAscNumberingFormat.ChineseLegalSimplified: val = 10; break;
 
 			default: val = 13; break;
 		}
@@ -8740,6 +8743,9 @@ function Binary_pPrReader(doc, oReadResult, stream)
 				case 21: props.Format = Asc.c_oAscNumberingFormat.DecimalZero; break;
 				case 14: props.Format = Asc.c_oAscNumberingFormat.DecimalEnclosedCircle; break;
 				case 15: props.Format = Asc.c_oAscNumberingFormat.DecimalEnclosedCircle; break;
+				case 8: props.Format = Asc.c_oAscNumberingFormat.ChineseCounting; break;
+				case 9: props.Format = Asc.c_oAscNumberingFormat.ChineseCountingThousand; break;
+				case 10: props.Format = Asc.c_oAscNumberingFormat.ChineseLegalSimplified; break;
 				default: props.Format = Asc.c_oAscNumberingFormat.Decimal; break;
 			}
 		} else {

@@ -20277,7 +20277,17 @@ CTable.prototype.GetAllTablesOnPage = function(nPageAbs, arrTables)
 
 	return arrTables;
 };
-
+CTable.prototype.ProcessComplexFields = function()
+{
+	for (var nCurRow = 0, nRowsCount = this.GetRowsCount(); nCurRow < nRowsCount; ++nCurRow)
+	{
+		var oRow = this.GetRow(nCurRow);
+		for (var nCurCell = 0, nCellsCount = oRow.GetCellsCount(); nCurCell < nCellsCount; ++nCurCell)
+		{
+			oRow.GetCell(nCurCell).GetContent().ProcessComplexFields();
+		}
+	}
+};
 //----------------------------------------------------------------------------------------------------------------------
 // Класс  CTableLook
 //----------------------------------------------------------------------------------------------------------------------

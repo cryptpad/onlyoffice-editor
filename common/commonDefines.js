@@ -1420,8 +1420,20 @@
 		keepTextOnly: 23,
 		overwriteCells : 24,
 
-		useTextImport: 25
+		useTextImport: 25,
+
+		comments: 26,
+		columnWidth: 27
 	};
+
+	var c_oSpecialPasteOperation = {
+		none: 0,
+		add: 1,
+		subtract: 2,
+		multiply: 3,
+		divide: 4
+	};
+
 
 	/** @enum {number} */
 	var c_oAscNumberingFormat = {
@@ -1435,6 +1447,9 @@
 		DecimalZero           : 0x2007,
 		DecimalEnclosedCircle : 0x2008,
 
+		ChineseCounting         : 0x2101,
+		ChineseCountingThousand : 0x2102,
+		ChineseLegalSimplified  : 0x2103,
 
 		BulletFlag   : 0x1000,
 		NumberedFlag : 0x2000
@@ -2788,6 +2803,16 @@
 	prot['insertAsNestedTable'] = prot.insertAsNestedTable;
 	prot['overwriteCells'] = prot.overwriteCells;
 	prot['useTextImport'] = prot.useTextImport;
+	prot['comments'] = prot.comments;
+	prot['columnWidth'] = prot.columnWidth;
+
+	window['Asc']['c_oSpecialPasteOperation'] = window['Asc'].c_oSpecialPasteOperation = c_oSpecialPasteOperation;
+	prot = c_oSpecialPasteOperation;
+	prot['none'] = prot.none;
+	prot['add'] = prot.add;
+	prot['subtract'] = prot.subtract;
+	prot['multiply'] = prot.multiply;
+	prot['divide'] = prot.divide;
 
 	window['Asc']['c_oAscNumberingFormat'] = window['Asc'].c_oAscNumberingFormat = c_oAscNumberingFormat;
 	prot = c_oAscNumberingFormat;
@@ -2800,6 +2825,9 @@
 	prot['UpperLetter'] = c_oAscNumberingFormat.UpperLetter;
 	prot['DecimalZero'] = c_oAscNumberingFormat.DecimalZero;
 	prot['DecimalEnclosedCircle'] = c_oAscNumberingFormat.DecimalEnclosedCircle;
+	prot['ChineseCounting'] = c_oAscNumberingFormat.ChineseCounting;
+	prot['ChineseCountingThousand'] = c_oAscNumberingFormat.ChineseCountingThousand;
+	prot['ChineseLegalSimplified'] = c_oAscNumberingFormat.ChineseLegalSimplified;
 
 	window['Asc']['c_oAscNumberingSuff'] = window['Asc'].c_oAscNumberingSuff = c_oAscNumberingSuff;
 	prot = c_oAscNumberingSuff;

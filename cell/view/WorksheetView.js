@@ -5990,7 +5990,7 @@
         var angle = align.getAngle();
         var va = align.getAlignVertical();
         if (c.isEmptyTextString()) {
-            if (!angle && c.isNotDefaultFont()) {
+            if (!angle && c.isNotDefaultFont() && !(mergeType & c_oAscMergeType.rows)) {
                 // Пустая ячейка с измененной гарнитурой или размером, учитвается в высоте
                 str = c.getValue2();
                 if (0 < str.length) {
@@ -11061,6 +11061,7 @@
 			window['AscCommon'].g_specialPasteHelper.Paste_Process_Start();
 			window['AscCommon'].g_specialPasteHelper.Special_Paste_Start();
 
+
 			api.asc_Undo();
 
 			//транзакция закроется в end_paste
@@ -11071,7 +11072,7 @@
 			specialPasteHelper.specialPasteProps = props;
 			//TODO пока для закрытия транзации выставляю флаг. пересмотреть!
 			window['AscCommon'].g_specialPasteHelper.bIsEndTransaction = true;
-			AscCommonExcel.g_clipboardExcel.pasteData(t, specialPasteData._format, specialPasteData.data1, specialPasteData.data2, specialPasteData.text_data, true);
+			AscCommonExcel.g_clipboardExcel.pasteData(t, specialPasteData._format, specialPasteData.data1, specialPasteData.data2, specialPasteData.text_data);
 		};
 
 		if(specialPasteData.activeRange && !isIntoShape)
@@ -11084,70 +11085,80 @@
 		}
 	};
 
-    WorksheetView.prototype._pasteData = function (isLargeRange, fromBinary, val, bIsUpdate, pasteToRange, bText) {
-        var t = this;
+	WorksheetView.prototype._pasteData = function (isLargeRange, fromBinary, val, bIsUpdate, pasteToRange, bText) {
+		var t = this;
 		var specialPasteHelper = window['AscCommon'].g_specialPasteHelper;
 		var specialPasteProps = specialPasteHelper.specialPasteProps;
 
-		if ( val.props && val.props.onlyImages === true ) {
-			if(!specialPasteHelper.specialPasteStart)
-			{
+		if (val.props && val.props.onlyImages === true) {
+			if (!specialPasteHelper.specialPasteStart) {
 				this.handlers.trigger("showSpecialPasteOptions", [Asc.c_oSpecialPasteProps.picture]);
 			}
 			return;
 		}
 
-        var callTrigger = false;
-        if (isLargeRange) {
-            callTrigger = true;
-            t.handlers.trigger("slowOperation", true);
-        }
+		var callTrigger = false;
+		if (isLargeRange) {
+			callTrigger = true;
+			t.handlers.trigger("slowOperation", true);
+		}
 
 		//если вставка производится внутрь ф/т, расширяем её вниз
 		var activeTable = t.model.autoFilters.getTableContainActiveCell(t.model.selectionRange.activeCell);
 		var newRange;
 		if (pasteToRange && activeTable && specialPasteProps.formatTable) {
 			var delta = pasteToRange.r2 - activeTable.Ref.r2;
-			if(delta > 0) {
+			if (delta > 0) {
 				//TODO пересмотреть!
 				//пока сделал при вставке в ф/т расширяем только в случае, если внизу есть пустые строки, сдвиг не делаем
 				//потому что в случае совместного редактирования необходимо лочить весь лист(из-за сдвига)
 				//и так же необходимо заранее расширить область обновления, чтобы данные внизу ф/т перерисовались
 				//и ещё excel ругается, когда область вставки затрагивает несколько таблиц - причём не во всех случаях - просмотреть!
 				//так же рассмотреть ситуацию, когда вставляется ниже последней строки ф/т заполненные текстом даные(если хоть 1 ячека содержит текст) - баг 26402
-				if(false && !t.model.autoFilters._isPartTablePartsUnderRange(activeTable.Ref)) {
+				if (false && !t.model.autoFilters._isPartTablePartsUnderRange(activeTable.Ref)) {
 					//сдвигаем и расширяем
-					t.model.getRange3(activeTable.Ref.r2 + 1, activeTable.Ref.c1, activeTable.Ref.r2 + delta, activeTable.Ref.c2).addCellsShiftBottom();
-					newRange = new Asc.Range(activeTable.Ref.c1, activeTable.Ref.r1, activeTable.Ref.c2, activeTable.Ref.r2 + delta);
+					t.model.getRange3(activeTable.Ref.r2 + 1, activeTable.Ref.c1, activeTable.Ref.r2 + delta,
+						activeTable.Ref.c2).addCellsShiftBottom();
+					newRange =
+						new Asc.Range(activeTable.Ref.c1, activeTable.Ref.r1, activeTable.Ref.c2, activeTable.Ref.r2 +
+							delta);
 				} else {
 					//в противном случае используем ячейки внизу таблицы без сдвига, перед этим проверяем на предмет наличия пустых строк под таблицей
-					var tempRange = new Asc.Range(activeTable.Ref.c1, activeTable.Ref.r2 + 1, activeTable.Ref.c2, activeTable.Ref.r2 + delta);
-					if(t.model.autoFilters._isEmptyRange(tempRange, 0)) {
+					var tempRange = new Asc.Range(activeTable.Ref.c1, activeTable.Ref.r2 +
+						1, activeTable.Ref.c2, activeTable.Ref.r2 + delta);
+					if (t.model.autoFilters._isEmptyRange(tempRange, 0)) {
 						//расширяем таблицу вниз
-						newRange = new Asc.Range(activeTable.Ref.c1, activeTable.Ref.r1, activeTable.Ref.c2, activeTable.Ref.r2 + delta);
+						newRange =
+							new Asc.Range(activeTable.Ref.c1, activeTable.Ref.r1, activeTable.Ref.c2, activeTable.Ref.r2 +
+								delta);
 					}
 				}
-				if(newRange) {
+				if (newRange) {
 					t.model.autoFilters.changeTableRange(activeTable.DisplayName, newRange);
 				}
 			}
 		}
 
 		var pasteRange = AscCommonExcel.g_clipboardExcel.pasteProcessor.activeRange;
-		var activeCellsPasteFragment = typeof pasteRange === "string" ? AscCommonExcel.g_oRangeCache.getAscRange(pasteRange) : pasteRange;
+		var activeCellsPasteFragment = typeof pasteRange === "string" ?
+			AscCommonExcel.g_oRangeCache.getAscRange(pasteRange) : pasteRange;
 
 		//для бага 26402 - добавляю возможность продолжения ф/т если вставляем фрагмент по ширине такой же как и ф/т
 		//и имеет хоть одну ячейку с данными
-		if(specialPasteProps.formatTable) {
-			var tableIndexAboveRange = t.model.autoFilters.searchRangeInTableParts(new Asc.Range(pasteToRange.c1, pasteToRange.r1 - 1, pasteToRange.c1, pasteToRange.r1 - 1));
+		if (specialPasteProps.formatTable) {
+			var tableIndexAboveRange = t.model.autoFilters.searchRangeInTableParts(
+				new Asc.Range(pasteToRange.c1, pasteToRange.r1 - 1, pasteToRange.c1, pasteToRange.r1 - 1));
 			var tableAboveRange = t.model.TableParts[tableIndexAboveRange];
 
-			if(tableAboveRange && tableAboveRange.Ref && !tableAboveRange.isTotalsRow() && tableAboveRange.Ref.c1 === pasteToRange.c1 && tableAboveRange.Ref.c2 === pasteToRange.c2) {
+			if (tableAboveRange && tableAboveRange.Ref && !tableAboveRange.isTotalsRow() &&
+				tableAboveRange.Ref.c1 === pasteToRange.c1 && tableAboveRange.Ref.c2 === pasteToRange.c2) {
 				//далее проверяем наличие ф/т в области вставки
-				if(-1 === t.model.autoFilters.searchRangeInTableParts(pasteToRange)) {
+				if (-1 === t.model.autoFilters.searchRangeInTableParts(pasteToRange)) {
 					//проверям на наличие хотя бы одной значимой ячейки в диапазоне, который вставляем
-					if(activeCellsPasteFragment && fromBinary && !val.autoFilters._isEmptyRange(activeCellsPasteFragment, 0)) {
-						newRange = new Asc.Range(tableAboveRange.Ref.c1, tableAboveRange.Ref.r1, pasteToRange.c2, pasteToRange.r2);
+					if (activeCellsPasteFragment && fromBinary &&
+						!val.autoFilters._isEmptyRange(activeCellsPasteFragment, 0)) {
+						newRange =
+							new Asc.Range(tableAboveRange.Ref.c1, tableAboveRange.Ref.r1, pasteToRange.c2, pasteToRange.r2);
 						//продлеваем ф/т
 						t.model.autoFilters.changeTableRange(tableAboveRange.DisplayName, newRange);
 					}
@@ -11156,144 +11167,140 @@
 		}
 
 
-
 		//добавляем форматированные таблицы
+		var i;
 		var arnToRange = t.model.selectionRange.getLast();
-        var tablesMap = null, intersectionRangeWithTableParts;
-        if (fromBinary && val.TableParts && val.TableParts.length && specialPasteProps.formatTable) {
-            var range, tablePartRange, tables = val.TableParts, diffRow, diffCol, curTable, bIsAddTable;
-            var activeRange = AscCommonExcel.g_clipboardExcel.pasteProcessor.activeRange;
-            var refInsertBinary = AscCommonExcel.g_oRangeCache.getAscRange(activeRange);
-            for (var i = 0; i < tables.length; i++) {
-                curTable = tables[i];
-                tablePartRange = curTable.Ref;
-                diffRow = tablePartRange.r1 - refInsertBinary.r1 + arnToRange.r1;
-                diffCol = tablePartRange.c1 - refInsertBinary.c1 + arnToRange.c1;
-                range = t.model.getRange3(diffRow, diffCol, diffRow + (tablePartRange.r2 - tablePartRange.r1),
-                    diffCol + (tablePartRange.c2 - tablePartRange.c1));
+		var tablesMap = null, intersectionRangeWithTableParts;
+		if (fromBinary && val.TableParts && val.TableParts.length && specialPasteProps.formatTable) {
+			var range, tablePartRange, tables = val.TableParts, diffRow, diffCol, curTable, bIsAddTable;
+			var activeRange = AscCommonExcel.g_clipboardExcel.pasteProcessor.activeRange;
+			var refInsertBinary = AscCommonExcel.g_oRangeCache.getAscRange(activeRange);
+			for (i = 0; i < tables.length; i++) {
+				curTable = tables[i];
+				tablePartRange = curTable.Ref;
+				diffRow = tablePartRange.r1 - refInsertBinary.r1 + arnToRange.r1;
+				diffCol = tablePartRange.c1 - refInsertBinary.c1 + arnToRange.c1;
+				range = t.model.getRange3(diffRow, diffCol, diffRow + (tablePartRange.r2 - tablePartRange.r1),
+					diffCol + (tablePartRange.c2 - tablePartRange.c1));
 
-                //если в активную область при записи попала лишь часть таблицы
-                if(activeCellsPasteFragment && !activeCellsPasteFragment.containsRange(tablePartRange)){
+				//если в активную область при записи попала лишь часть таблицы
+				if (activeCellsPasteFragment && !activeCellsPasteFragment.containsRange(tablePartRange)) {
 					continue;
 				}
 
-                //если область вставки содержит форматированную таблицу, которая пересекается с вставляемой форматированной таблицей
-                intersectionRangeWithTableParts = t.model.autoFilters._intersectionRangeWithTableParts(range.bbox);
-                if (intersectionRangeWithTableParts) {
-                    continue;
-                }
+				//если область вставки содержит форматированную таблицу, которая пересекается с вставляемой форматированной таблицей
+				intersectionRangeWithTableParts = t.model.autoFilters._intersectionRangeWithTableParts(range.bbox);
+				if (intersectionRangeWithTableParts) {
+					continue;
+				}
 
-                if (curTable.style) {
-                    range.cleanFormat();
-                }
+				if (curTable.style) {
+					range.cleanFormat();
+				}
 
-                //TODO использовать bWithoutFilter из tablePart
-                var bWithoutFilter = false;
-                if (!curTable.AutoFilter) {
-                    bWithoutFilter = true;
-                }
+				//TODO использовать bWithoutFilter из tablePart
+				var bWithoutFilter = false;
+				if (!curTable.AutoFilter) {
+					bWithoutFilter = true;
+				}
 
 				var offset = new AscCommon.CellBase(range.bbox.r1 - tablePartRange.r1, range.bbox.c1 -
 					tablePartRange.c1);
-                var newDisplayName = this.model.workbook.dependencyFormulas.getNextTableName();
-                var props = {
-                    bWithoutFilter: bWithoutFilter,
-                    tablePart: curTable,
-                    offset: offset,
-                    displayName: newDisplayName
-                };
-                t.model.autoFilters.addAutoFilter(curTable.TableStyleInfo.Name, range.bbox, true, true, props);
+				var newDisplayName = this.model.workbook.dependencyFormulas.getNextTableName();
+				var props = {
+					bWithoutFilter: bWithoutFilter, tablePart: curTable, offset: offset, displayName: newDisplayName
+				};
+				t.model.autoFilters.addAutoFilter(curTable.TableStyleInfo.Name, range.bbox, true, true, props);
 				bIsAddTable = true;
-                if (null === tablesMap) {
-                    tablesMap = {};
-                }
+				if (null === tablesMap) {
+					tablesMap = {};
+				}
 
-                tablesMap[curTable.DisplayName] = newDisplayName;
-            }
+				tablesMap[curTable.DisplayName] = newDisplayName;
+			}
 
-			if(bIsAddTable)
-			{
-				t._isLockedAll(function() {
+			if (bIsAddTable) {
+				t._isLockedAll(function () {
 					t._isLockedDefNames(null, null)
 				});
 			}
-        }
+		}
 
 
-        //делаем unmerge ф/т
-        intersectionRangeWithTableParts = t.model.autoFilters._intersectionRangeWithTableParts(arnToRange);
-        if (intersectionRangeWithTableParts && intersectionRangeWithTableParts.length) {
-            var tablePart;
-            for (var i = 0; i < intersectionRangeWithTableParts.length; i++) {
-                tablePart = intersectionRangeWithTableParts[i];
-                this.model.getRange3(tablePart.Ref.r1, tablePart.Ref.c1, tablePart.Ref.r2, tablePart.Ref.c2).unmerge();
-            }
-        }
+		//делаем unmerge ф/т
+		intersectionRangeWithTableParts = t.model.autoFilters._intersectionRangeWithTableParts(arnToRange);
+		if (intersectionRangeWithTableParts && intersectionRangeWithTableParts.length) {
+			var tablePart;
+			for (i = 0; i < intersectionRangeWithTableParts.length; i++) {
+				tablePart = intersectionRangeWithTableParts[i];
+				this.model.getRange3(tablePart.Ref.r1, tablePart.Ref.c1, tablePart.Ref.r2, tablePart.Ref.c2).unmerge();
+			}
+		}
 
-        t.model.workbook.dependencyFormulas.lockRecal();
-        var selectData;
-        if (fromBinary) {
-            selectData = t._pasteFromBinary(val, null, tablesMap);
-        } else {
-			if(bText) {
+		t.model.workbook.dependencyFormulas.lockRecal();
+		var selectData;
+		if (fromBinary) {
+			selectData = t._pasteFromBinary(val, null, tablesMap);
+		} else {
+			if (bText) {
 				specialPasteProps.font = false;
 			}
-            selectData = t._pasteFromHTML(val, null, specialPasteProps);
-        }
+			selectData = t._pasteFromHTML(val, null, specialPasteProps);
+		}
 
-        t.model.autoFilters.renameTableColumn(t.model.selectionRange.getLast());
+		t.model.autoFilters.renameTableColumn(t.model.selectionRange.getLast());
 
-        if (!selectData) {
-            bIsUpdate = false;
-            t.model.workbook.dependencyFormulas.unlockRecal();
-            if (callTrigger) {
-                t.handlers.trigger("slowOperation", false);
-            }
-            return;
-        }
+		if (!selectData) {
+			bIsUpdate = false;
+			t.model.workbook.dependencyFormulas.unlockRecal();
+			if (callTrigger) {
+				t.handlers.trigger("slowOperation", false);
+			}
+			return;
+		}
 
-        var arrFormula = selectData[1];
+		var arrFormula = selectData[1];
 		var adjustFormatArr = [];
-        for (var i = 0; i < arrFormula.length; ++i) {
-            var rangeF = arrFormula[i].range;
-            var valF = arrFormula[i].val;
+		for (i = 0; i < arrFormula.length; ++i) {
+			var rangeF = arrFormula[i].range;
+			var valF = arrFormula[i].val;
 			var arrayRef = arrFormula[i].arrayRef;
 
 			//***array-formula***
-			if(arrayRef && window['AscCommonExcel'].bIsSupportArrayFormula) {
+			if (arrayRef && window['AscCommonExcel'].bIsSupportArrayFormula) {
 				var rangeFormulaArray = this.model.getRange3(arrayRef.r1, arrayRef.c1, arrayRef.r2, arrayRef.c2);
 				rangeFormulaArray.setValue(valF, function (r) {
 					//ret = r;
 				}, true, arrayRef);
-				History.Add(AscCommonExcel.g_oUndoRedoArrayFormula, AscCH.historyitem_ArrayFromula_AddFormula, this.model.getId(),
-					new Asc.Range(arrayRef.c1, arrayRef.r1, arrayRef.c2, arrayRef.r2), new AscCommonExcel.UndoRedoData_ArrayFormula(arrayRef, valF));
+				History.Add(AscCommonExcel.g_oUndoRedoArrayFormula, AscCH.historyitem_ArrayFromula_AddFormula,
+					this.model.getId(), new Asc.Range(arrayRef.c1, arrayRef.r1, arrayRef.c2, arrayRef.r2),
+					new AscCommonExcel.UndoRedoData_ArrayFormula(arrayRef, valF));
 			} else if (rangeF.isOneCell()) {
-                rangeF.setValue(valF, null, true);
-				if(!fromBinary) {
+				rangeF.setValue(valF, null, true);
+				if (!fromBinary) {
 					adjustFormatArr.push(rangeF);
 				}
-            } else {
-                var oBBox = rangeF.getBBox0();
-                t.model._getCell(oBBox.r1, oBBox.c1, function(cell) {
-                    cell.setValue(valF, null, true);
-                });
-            }
-        }
+			} else {
+				var oBBox = rangeF.getBBox0();
+				t.model._getCell(oBBox.r1, oBBox.c1, function (cell) {
+					cell.setValue(valF, null, true);
+				});
+			}
+		}
 
-        t.model.workbook.dependencyFormulas.unlockRecal();
+		t.model.workbook.dependencyFormulas.unlockRecal();
 		//добавил для случая, когда вставка формулы проиходит в заголовок таблицы
-		if(arrFormula && arrFormula.length) {
+		if (arrFormula && arrFormula.length) {
 			t.model.autoFilters.renameTableColumn(t.model.selectionRange.getLast());
 		}
 
 		//for special paste
-		if(!window['AscCommon'].g_specialPasteHelper.specialPasteStart)
-		{
-			var checkTablesPaste = function() {
+		if (!window['AscCommon'].g_specialPasteHelper.specialPasteStart) {
+			var checkTablesPaste = function () {
 				var _res = false;
-				if(val.TableParts && val.TableParts.length && activeCellsPasteFragment) {
-					for(var i = 0; i < val.TableParts.length; i++) {
-						if(activeCellsPasteFragment.containsRange(val.TableParts[i].Ref)) {
+				if (val.TableParts && val.TableParts.length && activeCellsPasteFragment) {
+					for (var i = 0; i < val.TableParts.length; i++) {
+						if (activeCellsPasteFragment.containsRange(val.TableParts[i].Ref)) {
 							_res = true;
 							break;
 						}
@@ -11303,21 +11310,22 @@
 			};
 
 			//var specialPasteShowOptions = new Asc.SpecialPasteShowOptions();
+			var isTablePasted = checkTablesPaste();
 			var allowedSpecialPasteProps;
 			var sProps = Asc.c_oSpecialPasteProps;
-			if(fromBinary)
-			{
-				allowedSpecialPasteProps = [sProps.paste, sProps.pasteOnlyFormula, sProps.formulaNumberFormat, sProps.formulaAllFormatting, sProps.formulaWithoutBorders, sProps.formulaColumnWidth,  sProps.pasteOnlyValues, sProps.valueNumberFormat, sProps.valueAllFormating, sProps.pasteOnlyFormating/*, sProps.link*/];
-				if(!checkTablesPaste())
-				{
+			if (fromBinary) {
+				allowedSpecialPasteProps =
+					[sProps.paste, sProps.pasteOnlyFormula, sProps.formulaNumberFormat, sProps.formulaAllFormatting,
+						sProps.formulaWithoutBorders, sProps.formulaColumnWidth, sProps.pasteOnlyValues,
+						sProps.valueNumberFormat, sProps.valueAllFormating, sProps.pasteOnlyFormating, sProps.comments,
+						sProps.columnWidth/*, sProps.link*/];
+				if (!isTablePasted) {
 					//add transpose property
 					allowedSpecialPasteProps.push(sProps.transpose);
 				}
-			}
-			else
-			{
+			} else {
 				//matchDestinationFormatting - пока не добавляю, так как работает как и values
-				if(bText) {
+				if (bText) {
 					allowedSpecialPasteProps = [sProps.keepTextOnly, sProps.useTextImport];
 				} else {
 					allowedSpecialPasteProps = [sProps.sourceformatting, sProps.destinationFormatting];
@@ -11325,16 +11333,20 @@
 			}
 			window['AscCommon'].g_specialPasteHelper.CleanButtonInfo();
 			window['AscCommon'].g_specialPasteHelper.buttonInfo.asc_setOptions(allowedSpecialPasteProps);
+			if (fromBinary) {
+				window['AscCommon'].g_specialPasteHelper.buttonInfo.asc_setShowPasteSpecial(true);
+			}
+			if (isTablePasted) {
+				window['AscCommon'].g_specialPasteHelper.buttonInfo.asc_setContainTables(true);
+			}
 			window['AscCommon'].g_specialPasteHelper.buttonInfo.setRange(selectData[0]);
-		}
-		else
-		{
+		} else {
 			window['AscCommon'].g_specialPasteHelper.buttonInfo.setRange(selectData[0]);
 			window['AscCommon'].g_specialPasteHelper.SpecialPasteButton_Update_Position();
 		}
 
 		return {selectData: selectData, adjustFormatArr: adjustFormatArr};
-    };
+	};
 
     WorksheetView.prototype._loadDataBeforePaste = function ( isLargeRange, val, pasteContent, bIsUpdate, canChangeColWidth, pasteToRange ) {
         var t = this;
@@ -11386,16 +11398,13 @@
 
 			var fromBinaryExcel = val.fromBinary;
 			//paste from excel binary
-			if(fromBinaryExcel)
-			{
+			if(fromBinaryExcel) {
 				AscCommonExcel.executeInR1C1Mode(false, function () {
 					selectData = t._pasteData(isLargeRange, fromBinaryExcel, pasteContent, bIsUpdate, pasteToRange);
 				});
 
 				History.EndTransaction();
-			}
-			else
-			{
+			} else {
 				var imagesFromWord = pasteContent.props.addImagesFromWord;
 				if (imagesFromWord && imagesFromWord.length != 0 && !(window["Asc"]["editor"] && window["Asc"]["editor"].isChartEditor) && specialPasteProps.images) {
 					var oObjectsForDownload = AscCommon.GetObjectsForImageDownload(pasteContent.props._aPastedImages);
@@ -11425,30 +11434,23 @@
 							}
 						}
 
-						AscCommonExcel.executeInR1C1Mode(false, function () {
-							selectData = t._pasteData(isLargeRange, fromBinaryExcel, pasteContent, bIsUpdate, pasteToRange);
-						});
+						selectData = t._pasteData(isLargeRange, fromBinaryExcel, pasteContent, bIsUpdate, pasteToRange);
+
 						AscCommonExcel.g_clipboardExcel.pasteProcessor._insertImagesFromBinaryWord(t, pasteContent, oImageMap);
 					} else {
 						oImageMap = pasteContent.props.oImageMap;
 						if (window["NATIVE_EDITOR_ENJINE"]) {
 							//TODO для мобильных приложений  - не рабочий код!
 							AscCommon.ResetNewUrls(pasteContent.props.data, oObjectsForDownload.aUrls, oObjectsForDownload.aBuilderImagesByUrl, oImageMap);
-							AscCommonExcel.executeInR1C1Mode(false, function () {
-								selectData = t._pasteData(isLargeRange, fromBinaryExcel, pasteContent, bIsUpdate, pasteToRange);
-							});
+							selectData = t._pasteData(isLargeRange, fromBinaryExcel, pasteContent, bIsUpdate, pasteToRange);
 							AscCommonExcel.g_clipboardExcel.pasteProcessor._insertImagesFromBinaryWord(t, pasteContent, oImageMap);
 						} else {
-							AscCommonExcel.executeInR1C1Mode(false, function () {
-								selectData = t._pasteData(isLargeRange, fromBinaryExcel, pasteContent, bIsUpdate, pasteToRange);
-							});
+							selectData = t._pasteData(isLargeRange, fromBinaryExcel, pasteContent, bIsUpdate, pasteToRange);
 							AscCommonExcel.g_clipboardExcel.pasteProcessor._insertImagesFromBinaryWord(t, pasteContent, oImageMap);
 						}
 					}
 				} else {
-					AscCommonExcel.executeInR1C1Mode(false, function () {
-						selectData = t._pasteData(isLargeRange, fromBinaryExcel, pasteContent, bIsUpdate, pasteToRange, val.bText);
-					});
+					selectData = t._pasteData(isLargeRange, fromBinaryExcel, pasteContent, bIsUpdate, pasteToRange, val.bText);
 				}
 
 				if(selectData && selectData.adjustFormatArr && selectData.adjustFormatArr.length) {
@@ -11934,7 +11936,23 @@
 			return {dxf: dxf, blocalArea: blocalArea};
 		};
 
+		var findFormulaArrayFirstCell = function(_arr, _cell) {
+			var res = null;
+
+			if (_arr && _cell) {
+				for(var n = 0; n < _arr.length; n++) {
+					if(_arr[n].ref && _arr[n].ref.contains(_cell.nCol, _cell.nRow)) {
+						res = _arr[n].newVal;
+						break;
+					}
+				}
+			}
+
+			return res;
+		};
+
 		var colsWidth = {};
+		var pastedFormulaArray = [];
 		var putInsertedCellIntoRange = function (nRow, nCol, pasteRow, pasteCol, rowDiff, colDiff, range, newVal, curMerge, transposeRange) {
 			var pastedRangeProps = {};
 			//range может далее изменится в связи с наличием мерженных ячеек, firstRange - не меняется(ему делаем setValue, как первой ячейке в диапазоне мерженных)
@@ -12021,7 +12039,16 @@
 			var fromCell;
 			val._getCell(pasteRow, pasteCol, function (cell) {
 				fromCell = cell;
+				var _formulaArrayRef = cell.formulaParsed && cell.formulaParsed.getArrayFormulaRef();
+				if(_formulaArrayRef) {
+					//для ситуаций, когда нужно при вставке преобразовать формулу массива в набор формул
+					//это случается, когда при специальной вставке выбираешь арифметическую операцию, а во
+					//фрагменте вставке находится формула массива
+					pastedFormulaArray.push({ref: _formulaArrayRef, newVal: newVal});
+				}
 			});
+
+
 
 			//apply props by cell
 			var formulaProps = {
@@ -12035,7 +12062,8 @@
 				transposeRange: transposeRange,
 				cell: fromCell,
 				fromRange: activeCellsPasteFragment,
-				fromBinary: true
+				fromBinary: true,
+				formulaArrayFirstCell: findFormulaArrayFirstCell(pastedFormulaArray, fromCell)
 			};
 			t._setPastedDataByCurrentRange(range, pastedRangeProps, formulaProps, specialPasteProps);
 		};
@@ -12051,16 +12079,6 @@
 			maxARow = 1;
 			maxACol = 1;
 		}
-
-		/*var cells;
-		 if(Asc.c_oAscSelectionType.RangeMax === fromSelectionRangeType) {
-		 cells = this.model.getRange3(0, 0, gc_nMaxRow0, gc_nMaxCol0);
-		 cells.cleanAll();
-		 } else if(Asc.c_oAscSelectionType.RangeRow === fromSelectionRangeType) {
-
-		 } else if(Asc.c_oAscSelectionType.RangeCol === fromSelectionRangeType) {
-
-		 }*/
 
 		var getNextNoHiddenRow = function(index) {
 			var startIndex = index;
@@ -12163,21 +12181,138 @@
 			transposeRange = formulaProps.transposeRange;
 		}
 
-		/*var value2ToValue = function (value2) {
-			var res = "";
+		if(specialPasteProps && specialPasteProps.skipBlanks && newVal && newVal.isNullText()) {
+			return;
+		}
 
-			if (value2 && value2.length) {
-				for (var i = 0; i < value2.length; i++) {
-					res += value2[i].text;
+		var _calculateSpecialOperation = function(part1, part2, _operation, _isFormula) {
+			if (part1 !== null && part2 !== null) {
+				var _res = null;
+				switch (_operation) {
+					case window['Asc'].c_oSpecialPasteOperation.add: {
+						if (_isFormula) {
+							_res = part1 + "+" + part2;
+						} else {
+							_res = part1 + part2;
+						}
+						break;
+					}
+					case window['Asc'].c_oSpecialPasteOperation.subtract: {
+						if (_isFormula) {
+							_res = part1 + "-" + part2;
+						} else {
+							_res = part1 - part2;
+						}
+						break;
+					}
+					case window['Asc'].c_oSpecialPasteOperation.multiply: {
+						if (_isFormula) {
+							_res = part1 + "*" + part2;
+						} else {
+							_res = part1 * part2;
+						}
+						break;
+					}
+					case window['Asc'].c_oSpecialPasteOperation.divide: {
+						if (_isFormula) {
+							_res = part1 + "/" + part2;
+						} else {
+							_res = part1 / part2;
+						}
+						break;
+					}
 				}
+			}
+			return _res;
+		};
+
+		var applySpecialOperation = function(_pastedVal, _modelVal, _operation, isEmptyPasted, isEmptyModel) {
+			if (_operation === null) {
+				return _pastedVal;
+			}
+
+			var _typePasted = _pastedVal && _pastedVal.value && !isEmptyPasted ? _pastedVal.value.type : null;
+			var _typeModel = _modelVal && _modelVal.value && !isEmptyModel ? _modelVal.value.type : null;
+
+			var res = null;
+			if (_typePasted === CellValueType.Number && _typeModel === CellValueType.Number) {
+				_pastedVal.value.number = _calculateSpecialOperation(_modelVal.value.number, _pastedVal.value.number, _operation);
+				res = _pastedVal;
+			} else if (_typePasted === CellValueType.Number && isEmptyModel) {
+				_pastedVal.value.number = _calculateSpecialOperation(0, _pastedVal.value.number, _operation);
+				res = _pastedVal;
+			} else {
+				res = _modelVal;
 			}
 
 			return res;
-		};*/
+		};
+
+		var applySpecialOperationFormula = function(_pastedVal, _modelVal, _pastedFormula, _modelFormula, _operation, isEmptyPasted, isEmptyModel) {
+			var res, part1, part2;
+			var _typePasted = _pastedVal && _pastedVal.value && !isEmptyPasted ? _pastedVal.value.type : null;
+			var _typeModel = _modelVal && _modelVal.value && !isEmptyModel ? _modelVal.value.type : null;
+			if (_pastedFormula && _modelFormula) {
+				part2 = "(" + _pastedFormula + ")";
+				part1 = "(" + _modelFormula + ")";
+				res = _calculateSpecialOperation(part1, part2, _operation, true);
+			} else if (_pastedFormula && _typeModel === CellValueType.Number) {
+				part2 = "(" + _pastedFormula + ")";
+				part1 = _modelVal.value.number;
+				res = _calculateSpecialOperation(part1, part2, _operation, true);
+			} else if (_modelFormula && _typePasted === CellValueType.Number) {
+				part2 = _pastedVal.value.number;
+				part1 = "(" + _modelFormula + ")";
+				res = _calculateSpecialOperation(part1, part2, _operation, true);
+			} else if (_pastedFormula && isEmptyModel) {
+				part2 = "(" + _pastedFormula + ")";
+				part1 = 0;
+				res = _calculateSpecialOperation(part1, part2, _operation, true);
+			} else if (_modelFormula && isEmptyPasted) {
+				part2 = 0;
+				part1 = "(" + _modelFormula + ")";
+				res = _calculateSpecialOperation(part1, part2, _operation, true);
+			} else if (_pastedFormula) {
+				res = null;
+			} else {
+				res = _modelFormula;
+			}
+
+			return res;
+		};
+
+		var getModelData = function() {
+			var val = firstRange ? firstRange.getValueData() : range.getValueData();
+			var formula = firstRange ? firstRange.getFormula() : range.getFormula();
+			return {val: val, formula: formula};
+		};
 
 		//set formula - for paste from binary
 		var calculateValueAndBinaryFormula = function (newVal, firstRange, range) {
+
+			//operation special paste
+			var needOperation = specialPasteProps && specialPasteProps.operation;
+			if (needOperation === window['Asc'].c_oSpecialPasteOperation.none) {
+				needOperation = null;
+			}
+			var modelVal, modelFormula;
+			if (null !== needOperation) {
+				var _modelData = getModelData();
+				modelVal = _modelData.val;
+				modelFormula = _modelData.formula;
+			}
+
+			var isEmptyModel = firstRange ? firstRange.isNullText() : range.isNullText();
+			var isEmptyPasted = newVal.isNullText();
 			var cellValueData = specialPasteProps.cellStyle ? newVal.getValueData() : null;
+			if (cellValueData) {
+				var _setOperationVal = applySpecialOperation(cellValueData, modelVal, needOperation, isEmptyPasted, isEmptyModel);
+				if(null !== _setOperationVal) {
+					cellValueData = _setOperationVal;
+				}
+			}
+			var cellValueDataDup = newVal.getValueData();
+
 			if (cellValueData && cellValueData.value) {
 				if (!specialPasteProps.formula) {
 					cellValueData.formula = null;
@@ -12187,18 +12322,37 @@
 				cellValueData.formula = null;
 				rangeStyle.cellValueData = cellValueData;
 			} else {
-				rangeStyle.val = newVal.getValue();
+				if (needOperation !== null) {
+					var _tempValRes = applySpecialOperation(cellValueDataDup, modelVal, needOperation, isEmptyPasted, isEmptyModel);
+
+					if (null === _tempValRes) {
+						rangeStyle.val = "";
+					} else if (null !== _tempValRes.value.number) {
+						rangeStyle.val = _tempValRes.value.number.toString();
+					} else if(null !== _tempValRes.value.multiText) {
+						rangeStyle.val = _tempValRes.value.multiText;
+					} else if (_tempValRes.value.text) {
+						rangeStyle.val = _tempValRes.value.text;
+					}
+
+				} else {
+					rangeStyle.val = newVal.getValue();
+				}
 			}
 
-			var sFormula = newVal.getFormula();
-			var sId = newVal.getName();
+			var _newVal = newVal;
+			if (null !== needOperation && formulaProps.formulaArrayFirstCell) {
+				_newVal = formulaProps.formulaArrayFirstCell;
+			}
+			var pastedFormula = _newVal.getFormula();
+			var sId = _newVal.getName();
 
-			if (sFormula) {
+			if (pastedFormula || modelFormula) {
 				//formula
-				if (sFormula && !isOneMerge) {
+				if (pastedFormula && !isOneMerge) {
 
 					var offset, arrayOffset;
-					var arrayFormulaRef = formulaProps.cell && formulaProps.cell.formulaParsed ? formulaProps.cell.formulaParsed.getArrayFormulaRef() : null;
+					var arrayFormulaRef = needOperation === null && formulaProps.cell && formulaProps.cell.formulaParsed ? formulaProps.cell.formulaParsed.getArrayFormulaRef() : null;
 					var cellAddress = new AscCommon.CellAddress(sId);
 					if (specialPasteProps.transpose && transposeRange) {
 						//для transpose необходимо брать offset перевернутого range
@@ -12216,7 +12370,7 @@
 							offset = new AscCommon.CellBase(range.bbox.r1 - cellAddress.row + 1, range.bbox.c1 - cellAddress.col + 1);
 						}
 					}
-					var assemb, _p_ = new AscCommonExcel.parserFormula(sFormula, null, t.model);
+					var assemb, _p_ = new AscCommonExcel.parserFormula(pastedFormula, null, t.model);
 					if (_p_.parse()) {
 
 						//array-formula
@@ -12258,6 +12412,16 @@
 							assemb = _p_.changeOffset(offset, null, true).assemble(true);
 						}
 
+						if(needOperation !== null) {
+							assemb = applySpecialOperationFormula(cellValueDataDup, modelVal, assemb, modelFormula, needOperation, isEmptyPasted, isEmptyModel);
+						}
+						if(assemb !== null) {
+							rangeStyle.formula = {range: range, val: "=" + assemb, arrayRef: arrayFormulaRef};
+						}
+					}
+				} else if(modelFormula && needOperation !== null) {
+					assemb = applySpecialOperationFormula(cellValueDataDup, modelVal, null, modelFormula, needOperation, isEmptyPasted, isEmptyModel);
+					if(assemb !== null) {
 						rangeStyle.formula = {range: range, val: "=" + assemb, arrayRef: arrayFormulaRef};
 					}
 				}
@@ -12271,9 +12435,10 @@
 					sFormula = sFormula.substr(1);
 					var offset = new AscCommon.CellBase(0, 0);
 					var assemb, _p_ = new AscCommonExcel.parserFormula(sFormula, null, t.model);
-					assemb = _p_.changeOffset(offset, null, true).assemble(true);
-					rangeStyle.formula = {range: range, val: "=" + assemb};
-
+					if (_p_.parse()) {
+						assemb = _p_.changeOffset(offset, null, true).assemble(true);
+						rangeStyle.formula = {range: range, val: "=" + assemb};
+					}
 				}
 			}
 		};
@@ -12472,6 +12637,8 @@
 		var positionShapeContent = options.position;
 		var range = options.range;
 		var props = options.options;
+		var showPasteSpecial = options.showPasteSpecial;
+		var containTables = options.containTables;
 		var cellCoord;
 		if(!positionShapeContent)
 		{
@@ -12490,6 +12657,8 @@
 
 		specialPasteShowOptions.asc_setOptions(props);
 		specialPasteShowOptions.asc_setCellCoord(cellCoord);
+		specialPasteShowOptions.asc_setShowPasteSpecial(showPasteSpecial);
+		specialPasteShowOptions.asc_setContainTables(containTables);
 		this.handlers.trigger("showSpecialPasteOptions", specialPasteShowOptions);
 	};
 
@@ -13772,7 +13941,7 @@
 		if(!ranges || 0 === ranges.length) {
 			ranges = AscCommonExcel.getRangeByRef(reference, this.model, true, true);
 		}
-		var oldR1C1mode = AscCommonExcel.g_R1C1Mode, t = this;
+		var t = this;
 
 		if (0 === ranges.length && this.handlers.trigger('canEdit')) {
 
@@ -13795,10 +13964,12 @@
 				// ToDo multiselect defined names
 				var selectionLast = this.model.selectionRange.getLast();
 				mc = selectionLast.isOneCell() ? this.model.getMergedByCell(selectionLast.r1, selectionLast.c1) : null;
-				AscCommonExcel.g_R1C1Mode = false;
-				var defName = this.model.workbook.editDefinesNames(null, new Asc.asc_CDefName(reference,
-					parserHelp.get3DRef(this.model.getName(), (mc || selectionLast).getAbsName())));
-				AscCommonExcel.g_R1C1Mode = oldR1C1mode;
+
+				var defName;
+				AscCommonExcel.executeInR1C1Mode(false, function () {
+					defName = t.model.workbook.editDefinesNames(null, new Asc.asc_CDefName(reference,
+						parserHelp.get3DRef(t.model.getName(), (mc || selectionLast).getAbsName())));
+				});
 
 				if (defName) {
 					this._isLockedDefNames(null, defName.getNodeId());

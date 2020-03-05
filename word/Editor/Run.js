@@ -11250,35 +11250,88 @@ ParaRun.prototype.ProcessAutoCorrect = function(nPos)
 		{
 			var arrResult = this.private_GetSuitableNumberedLvlForAutoCorrect(sText);
 
-			if (arrResult)
+			if (arrResult && arrResult.length > 0 && arrResult.length <= 9)
 			{
-				for (var nIndex = 0, nCount = arrResult.length; nIndex < nCount; ++nIndex)
+				if (oPrevNumPr)
 				{
-					var oResult = arrResult[nIndex];
+					var isAdd      = false;
+					var nResultLvL = oPrevNumPr.Lvl;
+
+					var oResult = arrResult[arrResult.length - 1];
 					if (oResult && -1 !== oResult.Value && oResult.Lvl)
 					{
-						if (1 === oResult.Value)
+						var oNumInfo = oPrevParagraph.Parent.CalculateNumberingValues(oPrevParagraph, oPrevNumPr);
+						var oPrevNum = oDocument.GetNumbering().GetNum(oPrevNumPr.NumId);
+						var nPrevLvl = oPrevNumPr.Lvl;
+
+						for (var nLvl = nPrevLvl; nLvl >= 0; --nLvl)
 						{
-							var oNum = oDocument.GetNumbering().CreateNum();
-							oNum.CreateDefault(c_oAscMultiLevelNumbering.Numbered);
-							oNum.SetLvl(oResult.Lvl, 0);
-							oNumPr = new CNumPr(oNum.GetId(), 0);
-							break;
+							var oPrevNumLvl = oPrevNum.GetLvl(nLvl);
+							if (oPrevNumLvl.IsSimilar(oResult.Lvl))
+							{
+								if (oResult.Value > oNumInfo[nLvl] && oResult.Value <= oNumInfo[nLvl] + 2 && arrResult.length - 1 >= nLvl)
+								{
+									var isCheckPrevLvls = true;
+									for (var nLvl2 = 0; nLvl2 < nLvl; ++nLvl2)
+									{
+										if (arrResult[nLvl2].Value !== oNumInfo[nLvl2])
+										{
+											isCheckPrevLvls = false;
+											break;
+										}
+									}
+
+									if (isCheckPrevLvls)
+									{
+										isAdd      = true;
+										nResultLvL = nLvl;
+										break;
+									}
+								}
+							}
 						}
-						else if (oPrevNumPr)
+
+						if (!isAdd)
 						{
 							oResult.Lvl.ResetNumberedText(oPrevNumPr.Lvl);
+
 							var oPrevNumLvl = oDocument.GetNumbering().GetNum(oPrevNumPr.NumId).GetLvl(oPrevNumPr.Lvl);
 							if (oPrevNumLvl.IsSimilar(oResult.Lvl))
 							{
 								var oNumInfo = oPrevParagraph.Parent.CalculateNumberingValues(oPrevParagraph, oPrevNumPr);
 								if (oResult.Value > oNumInfo[oPrevNumPr.Lvl] && oResult.Value <= oNumInfo[oPrevNumPr.Lvl] + 2)
-								{
-									oNumPr = new CNumPr(oPrevNumPr.NumId, oPrevNumPr.Lvl);
-									break;
-								}
+									isAdd = true;
 							}
 						}
+
+					}
+
+					if (isAdd)
+						oNumPr = new CNumPr(oPrevNumPr.NumId, nResultLvL);
+				}
+				else
+				{
+					var isCreateNew = true;
+					for (var nIndex = 0, nCount = arrResult.length; nIndex < nCount; ++nIndex)
+					{
+						var oResult = arrResult[nIndex];
+						if (!oResult || 1 !== oResult.Value || !oResult.Lvl)
+						{
+							isCreateNew = false;
+							break;
+						}
+					}
+
+					if (isCreateNew)
+					{
+						var oNum = oDocument.GetNumbering().CreateNum();
+						oNum.CreateDefault(c_oAscMultiLevelNumbering.Numbered);
+						for (var nIndex = 0, nCount = arrResult.length; nIndex < nCount; ++nIndex)
+						{
+							oNum.SetLvl(arrResult[nIndex].Lvl, nIndex);
+						}
+
+						oNumPr = new CNumPr(oNum.GetId(), arrResult.length - 1);
 					}
 				}
 			}
@@ -11359,34 +11412,76 @@ ParaRun.prototype.private_GetSuitableNumberedLvlForAutoCorrect = function(sText)
 
 	var nFirstCharCode = sText.charCodeAt(0);
 
-	var nValue = -1;
-
 	var sValue = sText.slice(0, sText.length - 1);
+
+	function private_ParseNextInt(sText, nPos)
+	{
+		if (nPos >= sText.length)
+			return null;
+
+		var nNextParaPos = sText.indexOf(")", nPos);
+		var nNextDotPos  = sText.indexOf(".", nPos);
+
+		var nEndPos;
+		if (-1 === nNextDotPos && -1 === nNextParaPos)
+			return null;
+		else if (-1 === nNextDotPos)
+			nEndPos = nNextParaPos;
+		else if (-1 === nNextParaPos)
+			nEndPos = nNextDotPos;
+		else
+			nEndPos = Math.min(nNextDotPos, nNextParaPos);
+
+		var sValue = sText.slice(nPos, nEndPos);
+		var nValue = parseInt(sValue);
+
+		if (isNaN(nValue))
+			return null;
+
+		return {Value : nValue, Char : sText.charAt(nEndPos), Pos : nEndPos + 1};
+	}
 
 	// Проверяем, либо у нас все числовое, либо у нас все буквенное (все заглавные, либо все не заглавные)
 	if (48 <= nFirstCharCode && nFirstCharCode <= 57)
 	{
-		var oNumberingLvl = new CNumberingLvl();
-		oNumberingLvl.InitDefault(0, c_oAscMultiLevelNumbering.Numbered);
 
-		for (var nIndex = 0, nCount = sValue.length; nIndex < nCount; ++nIndex)
+		var arrResult = [], nPos = 0;
+
+		var oNum = private_ParseNextInt(sText, nPos);
+		var oPrevLvl = null;
+		var nCurLvl  = 0;
+		while (oNum)
 		{
-			var nCurCharCode = sValue.charCodeAt(nIndex);
-			if (48 > nCurCharCode || nCurCharCode > 57)
-				return null;
+			nPos = oNum.Pos;
+
+			var oNumberingLvl = new CNumberingLvl();
+			if ('.' === oNum.Char)
+				oNumberingLvl.SetByType(c_oAscNumberingLevel.DecimalDot_Left, nCurLvl);
+			else if (')' === oNum.Char)
+				oNumberingLvl.SetByType(c_oAscNumberingLevel.DecimalBracket_Left, nCurLvl);
+
+			if (oPrevLvl)
+			{
+				var arrPrevLvlText = oPrevLvl.GetLvlText();
+				var arrLvlText     = [];
+				for (var nIndex = 0, nCount = arrPrevLvlText.length; nIndex < nCount; ++nIndex)
+				{
+					arrLvlText.push(arrPrevLvlText[nIndex].Copy());
+				}
+				oNumberingLvl.SetLvlText(arrLvlText.concat(oNumberingLvl.GetLvlText()));
+			}
+
+			arrResult.push({Lvl : oNumberingLvl, Value : oNum.Value});
+
+			oNum = private_ParseNextInt(sText, nPos);
+			oPrevLvl = oNumberingLvl;
+			nCurLvl++;
 		}
 
-		if ('.' === sLastChar)
-			oNumberingLvl.SetByType(c_oAscNumberingLevel.DecimalDot_Left, 0);
-		else if (')' === sLastChar)
-			oNumberingLvl.SetByType(c_oAscNumberingLevel.DecimalBracket_Left, 0);
+		if (arrResult.length > 9)
+			return null;
 
-		nValue = parseInt(sValue);
-
-		if (isNaN(nValue))
-			nValue = -1;
-
-		return [{Lvl : oNumberingLvl, Value : nValue}];
+		return arrResult;
 	}
 	else if (65 <= nFirstCharCode && nFirstCharCode <= 90)
 	{

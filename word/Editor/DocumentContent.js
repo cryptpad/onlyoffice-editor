@@ -2778,14 +2778,11 @@ CDocumentContent.prototype.AddInlineTable = function(nCols, nRows, nMode)
 		{
 			var oPage = this.Pages[this.CurPage];
 
-			// Создаем новую таблицу
-			var W = 0;
-			if (true === this.IsTableCellContent())
-				W = this.XLimit - this.X;
-			else
-				W = ( this.XLimit - this.X + 2 * 1.9 );
+			var nAdd = 0;
+			if (this.LogicDocument)
+				nAdd = this.LogicDocument.GetCompatibilityMode() <= AscCommon.document_compatibility_mode_Word14 && this.IsTableCellContent() ?  2 * 1.9 : 0;
 
-			W = Math.max(W, nCols * 2 * 1.9);
+			var W = Math.max(this.XLimit - this.X + nAdd, nCols * 2 * 1.9);
 
 			var Grid = [];
 
@@ -8701,6 +8698,13 @@ CDocumentContent.prototype.GetAllTablesOnPage = function(nPageAbs, arrTables)
 	}
 
 	return arrTables;
+};
+CDocumentContent.prototype.ProcessComplexFields = function()
+{
+	for (var nIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex)
+	{
+		this.Content[nIndex].ProcessComplexFields();
+	}
 };
 
 
