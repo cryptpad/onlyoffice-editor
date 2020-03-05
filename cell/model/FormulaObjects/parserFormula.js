@@ -6392,11 +6392,14 @@ parserFormula.prototype.clone = function(formula, parent, ws) {
 	/* Для обратной сборки функции иногда необходимо поменять ссылки на ячейки */
 	parserFormula.prototype.changeOffset = function (offset, canResize, nChangeTable) {//offset = AscCommon.CellBase
 		var t = this;
-		AscCommonExcel.executeInR1C1Mode(false, function () {
+		//временно комментирую из-за проблемы: при сборке формулы после обработки данной функцией в режиме R1c1
+		///мы получаем вид A1. необходимо пересмотреть все функции toString/toLocaleString где возвращается value
+		//+ парсинг на endTransaction запускается в режиме r1c1
+		//AscCommonExcel.executeInR1C1Mode(false, function () {
 			for (var i = 0; i < t.outStack.length; i++) {
 				t._changeOffsetElem(t.outStack[i], t.outStack, i, offset, canResize, nChangeTable);
 			}
-		});
+		//});
 		return this;
 	};
 	parserFormula.prototype._changeOffsetElem = function(elem, container, index, offset, canResize, nChangeTable) {//offset =
