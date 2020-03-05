@@ -6067,7 +6067,7 @@ parserFormula.prototype.clone = function(formula, parent, ws) {
 				}
 			}
 
-			/* Referens to DefinedNames */ else if (parserHelp.isName.call(ph, t.Formula, ph.pCurrPos, t.wb, t.ws)[0]) {
+			/* Referens to DefinedNames */ else if (parserHelp.isName.call(ph, t.Formula, ph.pCurrPos)[0]) {
 
 				if (ph.operand_str.length > g_nFormulaStringMaxLength && !ignoreErrors) {
 					//TODO стоит добавить новую ошибку

@@ -3656,10 +3656,10 @@ Hyperlink.prototype = {
 	},
 	getProperty : function (nType) {
 		switch (nType) {
-			case this.Properties.Ref: return parserHelp.get3DRef(this.Ref.worksheet.getName(), this.Ref.getName()); break;
-			case this.Properties.Location: return this.getLocation();break;
-			case this.Properties.Hyperlink: return this.Hyperlink;break;
-			case this.Properties.Tooltip: return this.Tooltip;break;
+			case this.Properties.Ref: return parserHelp.get3DRef(this.Ref.worksheet.getName(), this.Ref.getName());
+			case this.Properties.Location: return this.getLocation();
+			case this.Properties.Hyperlink: return this.Hyperlink;
+			case this.Properties.Tooltip: return this.Tooltip;
 		}
 	},
 	setProperty : function (nType, value) {
