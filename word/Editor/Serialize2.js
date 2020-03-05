@@ -6354,7 +6354,7 @@ function BinaryCommentsTableWriter(memory, doc, oMapCommentId, commentUniqueGuid
 		if(null != comment.m_nDurableId)
 		{
 			while (this.commentUniqueGuids[comment.m_nDurableId]) {
-				comment.m_nDurableId = AscCommon.CreateUInt32();
+				comment.m_nDurableId = AscCommon.CreateDurableId();
 			}
 			this.commentUniqueGuids[comment.m_nDurableId] = 1;
 			this.bs.WriteItem(c_oSer_CommentsType.DurableId, function(){oThis.memory.WriteULong(comment.m_nDurableId);});
@@ -15234,7 +15234,7 @@ function Binary_CommentsTableReader(doc, oReadResult, stream, oComments)
 		}
 		else if ( c_oSer_CommentsType.DurableId === type )
 		{
-			oNewImage.DurableId = AscFonts.FT_Common.IntToUInt(this.stream.GetULong());
+			oNewImage.DurableId = AscCommon.FixDurableId(this.stream.GetULong());
 		}
         else
             res = c_oSerConstants.ReadUnknown;
