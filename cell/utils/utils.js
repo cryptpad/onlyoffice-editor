@@ -2011,10 +2011,6 @@
 		// Гиперссылка
 		/** @constructor */
 		function asc_CHyperlink (obj) {
-			if (!(this instanceof asc_CHyperlink)) {
-				return new asc_CHyperlink(obj);
-			}
-
 			// Класс Hyperlink из модели
 			this.hyperlinkModel = null != obj ? obj : new AscCommonExcel.Hyperlink();
 			// Используется только для выдачи наружу и выставлении обратно
@@ -2022,33 +2018,57 @@
 
 			return this;
 		}
-		asc_CHyperlink.prototype = {
-			constructor: asc_CHyperlink,
-			asc_getType: function () { return this.hyperlinkModel.getHyperlinkType(); },
-			asc_getHyperlinkUrl: function () { return this.hyperlinkModel.Hyperlink; },
-			asc_getTooltip: function () { return this.hyperlinkModel.Tooltip; },
-			asc_getLocation: function () { return this.hyperlinkModel.getLocation(); },
-			asc_getSheet: function () { return this.hyperlinkModel.LocationSheet; },
-			asc_getRange: function () {return this.hyperlinkModel.getLocationRange();},
-			asc_getText: function () { return this.text; },
 
-			asc_setType: function (val) {
-				// В принципе эта функция избыточна
-				switch (val) {
-					case Asc.c_oAscHyperlinkType.WebLink:
-						this.hyperlinkModel.setLocation(null);
-						break;
-					case Asc.c_oAscHyperlinkType.RangeLink:
-						this.hyperlinkModel.Hyperlink = null;
-						break;
-				}
-			},
-			asc_setHyperlinkUrl: function (val) { this.hyperlinkModel.Hyperlink = val; },
-			asc_setTooltip: function (val) { this.hyperlinkModel.Tooltip = val ? val.slice(0, Asc.c_oAscMaxTooltipLength) : val; },
-			asc_setLocation: function (val) { this.hyperlinkModel.setLocation(val); },
-			asc_setSheet: function (val) { this.hyperlinkModel.setLocationSheet(val); },
-			asc_setRange: function (val) { this.hyperlinkModel.setLocationRange(val); },
-			asc_setText: function (val) { this.text = val; }
+		asc_CHyperlink.prototype.asc_getType = function () {
+			return this.hyperlinkModel.getHyperlinkType();
+		};
+		asc_CHyperlink.prototype.asc_getHyperlinkUrl = function () {
+			return this.hyperlinkModel.Hyperlink;
+		};
+		asc_CHyperlink.prototype.asc_getTooltip = function () {
+			return this.hyperlinkModel.Tooltip;
+		};
+		asc_CHyperlink.prototype.asc_getLocation = function () {
+			return this.hyperlinkModel.getLocation();
+		};
+		asc_CHyperlink.prototype.asc_getSheet = function () {
+			return this.hyperlinkModel.LocationSheet;
+		};
+		asc_CHyperlink.prototype.asc_getRange = function () {
+			return this.hyperlinkModel.getLocationRange();
+		};
+		asc_CHyperlink.prototype.asc_getText = function () {
+			return this.text;
+		};
+
+		asc_CHyperlink.prototype.asc_setType = function (val) {
+			// В принципе эта функция избыточна
+			switch (val) {
+				case Asc.c_oAscHyperlinkType.WebLink:
+					this.hyperlinkModel.setLocation(null);
+					break;
+				case Asc.c_oAscHyperlinkType.RangeLink:
+					this.hyperlinkModel.Hyperlink = null;
+					break;
+			}
+		};
+		asc_CHyperlink.prototype.asc_setHyperlinkUrl = function (val) {
+			this.hyperlinkModel.Hyperlink = val;
+		};
+		asc_CHyperlink.prototype.asc_setTooltip = function (val) {
+			this.hyperlinkModel.Tooltip = val ? val.slice(0, Asc.c_oAscMaxTooltipLength) : val;
+		};
+		asc_CHyperlink.prototype.asc_setLocation = function (val) {
+			this.hyperlinkModel.setLocation(val);
+		};
+		asc_CHyperlink.prototype.asc_setSheet = function (val) {
+			this.hyperlinkModel.setLocationSheet(val);
+		};
+		asc_CHyperlink.prototype.asc_setRange = function (val) {
+			this.hyperlinkModel.setLocationRange(val);
+		};
+		asc_CHyperlink.prototype.asc_setText = function (val) {
+			this.text = val;
 		};
 
 		function CPagePrint() {
