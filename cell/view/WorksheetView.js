@@ -8476,7 +8476,6 @@
         var isNumberFormat = (!cellType || CellValueType.Number === cellType);
 
         var cell_info = new asc_CCellInfo();
-        cell_info.formula = c.getFormula();
 
 		AscCommonExcel.g_ActiveCell = new Asc.Range(c1, r1, c1, r1);
         cell_info.text = c.getValueForEdit(true);
