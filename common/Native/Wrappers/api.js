@@ -2196,65 +2196,84 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
         }
         case 71: // ASC_MENU_EVENT_TYPE_TABLE_INSERTDELETE_ROWCOLUMN
         {
-            var _type = 0;
-            var _is_add = true;
-            var _is_above = true;
-            while (_continue)
-            {
-                var _attr = _params[_current.pos++];
-                switch (_attr)
-                {
-                    case 0:
-                    {
-                        _type = _params[_current.pos++];
-                        break;
-                    }
-                    case 1:
-                    {
-                        _is_add = _params[_current.pos++];
-                        break;
-                    }
-                    case 2:
-                    {
-                        _is_above = _params[_current.pos++];
-                        break;
-                    }
-                    case 255:
-                    default:
-                    {
-                        _continue = false;
-                        break;
+            if (typeof _params[0] === 'string') {
+                var json = JSON.parse(_params[0]);
+                if (json) {
+                    var isInsert = json["insert"] || false;
+                    var isDelete = json["delete"] || false;
+                    var type = json["type"] || "table";
+
+                    if (isInsert) {
+                        if (type === "row") {
+                            json["above"] ? _api.addRowAbove() : _api.addRowBelow();
+                        } else if (type == "column") {
+                            json["left"] ? _api.addColumnLeft() : _api.addColumnRight();
+                        }
+                    } else if (isDelete) {
+                        if (type === "row") {
+                            _api.remRow();
+                        } else if (type === "column") {
+                            _api.remColumn();
+                        } else {
+                            _api.remTable();
+                        }
                     }
                 }
-            }
-
-            if (1 == _type)
-            {
-                if ( false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Table_Properties) )
-                {
-                    this.WordControl.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_TableAddColumnLeft);
-                    if (_is_add)
-                        this.WordControl.m_oLogicDocument.AddTableColumn(!_is_above);
-                    else
-                        this.WordControl.m_oLogicDocument.RemoveTableColumn();
-
-					this.WordControl.m_oLogicDocument.FinalizeAction();
+            } else {
+                var _type = 0;
+                var _is_add = true;
+                var _is_above = true;
+                while (_continue) {
+                    var _attr = _params[_current.pos++];
+                    switch (_attr) {
+                        case 0:
+                            {
+                                _type = _params[_current.pos++];
+                                break;
+                            }
+                        case 1:
+                            {
+                                _is_add = _params[_current.pos++];
+                                break;
+                            }
+                        case 2:
+                            {
+                                _is_above = _params[_current.pos++];
+                                break;
+                            }
+                        case 255:
+                        default:
+                            {
+                                _continue = false;
+                                break;
+                            }
+                    }
                 }
-            }
-            else if (2 == _type)
-            {
-                if ( false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Table_Properties) )
-                {
-                    this.WordControl.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_TableAddColumnLeft);
-                    if (_is_add)
-                        this.WordControl.m_oLogicDocument.AddTableRow(!_is_above);
-                    else
-                        this.WordControl.m_oLogicDocument.RemoveTableRow();
 
-					this.WordControl.m_oLogicDocument.FinalizeAction();
+                if (1 == _type) {
+                    if (false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Table_Properties)) {
+                        this.WordControl.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_TableAddColumnLeft);
+                        if (_is_add)
+                            this.WordControl.m_oLogicDocument.AddTableColumn(!_is_above);
+                        else
+                            this.WordControl.m_oLogicDocument.RemoveTableColumn();
+
+                        this.WordControl.m_oLogicDocument.FinalizeAction();
+                    }
                 }
-            }
+                else if (2 == _type) {
+                    if (false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Table_Properties)) {
+                        this.WordControl.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_TableAddColumnLeft);
+                        if (_is_add)
+                            this.WordControl.m_oLogicDocument.AddTableRow(!_is_above);
+                        else
+                            this.WordControl.m_oLogicDocument.RemoveTableRow();
 
+                        this.WordControl.m_oLogicDocument.FinalizeAction();
+                    }
+                }
+
+            }
             break;
         }
 
