@@ -2772,6 +2772,11 @@
         }
         return false;
 	};
+	// ---------------------------------------------------- interface events ---------------------------------------------
+	baseEditorsApi.prototype["asc_onShowPopupWindow"] = function()
+	{
+		this.hideVideoControl();
+	};
 
 	//----------------------------------------------------------export----------------------------------------------------
 	window['AscCommon']                = window['AscCommon'] || {};
