@@ -374,7 +374,7 @@
 						if (_data && _data.base64) {
 							_data = _data.base64;
 						} else {
-							_data = this.copyProcessor.getBinaryForCopy(ws);
+							_data = this.copyProcessor.getBinaryForCopy(ws.model, ws.objectRender);
 						}
 					}
 
@@ -388,7 +388,7 @@
 			}
 		};
 
-		Clipboard.prototype.pasteData = function(ws, _format, data1, data2, text_data, bIsSpecialPaste, doNotShowButton)
+		Clipboard.prototype.pasteData = function(ws, _format, data1, data2, text_data, bIsSpecialPaste, doNotShowButton, isPasteAll)
 		{
 			var t = this;
 			t.pasteProcessor.clean();
@@ -406,7 +406,6 @@
 			}
 
 			var cellEditor = window["Asc"]["editor"].wb.cellEditor;
-			var text;
 			switch (_format)
 			{
 				case AscCommon.c_oAscClipboardDataFormat.HtmlElement:
@@ -457,7 +456,7 @@
 					}
 					else
 					{
-						t.pasteProcessor.pasteFromBinary(ws, data1);
+						t.pasteProcessor.pasteFromBinary(ws, data1, null, isPasteAll);
 					}
 
 					break;
@@ -520,7 +519,7 @@
 				History.TurnOff();
 				//use binary strings
 				if (copyPasteUseBinary) {
-					sBase64 = this.getBinaryForCopy(worksheet);
+					sBase64 = this.getBinaryForCopy(worksheet.model, worksheet.objectRender);
 				}
 				History.TurnOn();
 
@@ -532,22 +531,32 @@
 				return {base64: sBase64, html: innerHtml};
 			},
 
-			getBinaryForCopy: function (worksheet, activeRange) {
-				var objectRender = worksheet.objectRender;
-				var isIntoShape = objectRender.controller.getTargetDocContent();
+			getBinaryForCopy: function (wsModel, objectRender, activeRange, selectAll) {
+				var isIntoShape = objectRender && objectRender.controller ? objectRender.controller.getTargetDocContent() : null;
 
 				var sBase64 = null;
 				if (isIntoShape) {
 					//в данному случае пишем бинарник с меткой pptData - с префиксом xlsData отдельно параграфы записать не получится
-					sBase64 = this._getBinaryShapeContent(worksheet, isIntoShape);
+					sBase64 = this._getBinaryShapeContent(isIntoShape);
 				} else {
 					pptx_content_writer.Start_UseFullUrl();
-
 					pptx_content_writer.BinaryFileWriter.ClearIdMap();
 
+					var unselectedIndexes = [];
+					if(selectAll) {
+						activeRange = new Asc.Range(0, 0, AscCommon.gc_nMaxCol - 1, AscCommon.gc_nMaxRow - 1);
+
+						for(var i = 0; i < wsModel.Drawings.length; i++) {
+							if(!wsModel.Drawings[i].graphicObject.selected) {
+								unselectedIndexes[i] = true;
+								wsModel.Drawings[i].graphicObject.selected = true;
+							}
+						}
+					}
+
 					// ToDo multiselect ?
-					var selectionRange = activeRange ? activeRange : worksheet.model.selectionRange.getLast();
-					var maxRowCol = this._getRangeMaxRowCol(worksheet, selectionRange);
+					var selectionRange = activeRange ? activeRange : wsModel.selectionRange.getLast();
+					var maxRowCol = this._getRangeMaxRowCol(wsModel, selectionRange);
 					if (null !== maxRowCol) {
 						if (maxRowCol.col < selectionRange.c1) {
 							maxRowCol.col = selectionRange.c1;
@@ -555,11 +564,10 @@
 						if (maxRowCol.row < selectionRange.r1) {
 							maxRowCol.row = selectionRange.r1;
 						}
-						selectionRange =
-							new Asc.Range(selectionRange.c1, selectionRange.r1, maxRowCol.col, maxRowCol.row);
+						selectionRange = new Asc.Range(selectionRange.c1, selectionRange.r1, maxRowCol.col, maxRowCol.row);
 					}
 
-					var wb = worksheet.model.workbook;
+					var wb = wsModel.workbook;
 					var isNullCore = false;
 					if(!wb.Core) {
 						isNullCore = true;
@@ -575,7 +583,7 @@
 					//так же необходимо протащить локаль, для этого использую поля language
 					//и записываю туда номер локали, предварительно конвертируя его в строку
 					//пока буду использовать его только при вставке в документы, а в документах устанавливать -> AscCommon.setCurrentCultureInfo(val)
-					var locale = wb.oApi.asc_getLocale();
+					var locale = wb.oApi ? wb.oApi.asc_getLocale() : null;
 					wb.Core.language = undefined != locale ? locale.toString() : null;
 
 
@@ -584,6 +592,12 @@
 					sBase64 = "xslData;" + oBinaryFileWriter.Write();
 					pptx_content_writer.BinaryFileWriter.ClearIdMap();
 					pptx_content_writer.End_UseFullUrl();
+
+					if(selectAll) {
+						for(i in unselectedIndexes) {
+							wsModel.Drawings[i].graphicObject.selected = false;
+						}
+					}
 
 					if(isNullCore) {
 						wb.Core = null;
@@ -606,7 +620,7 @@
 				var oType = Asc.c_oAscSelectionType;
 				if (type === oType.RangeCol || type === oType.RangeRow || type === oType.RangeMax) {
 					if (!range3) {
-						range3 = worksheet.model.getRange3(selectionRange.r1, selectionRange.c1, selectionRange.r2, selectionRange.c2);
+						range3 = worksheet.getRange3(selectionRange.r1, selectionRange.c1, selectionRange.r2, selectionRange.c2);
 					}
 
 					//нужно вычислить последнюю ячейку в столбце, где есть данные
@@ -627,7 +641,7 @@
 				return res;
 			},
 
-			_getBinaryShapeContent: function (worksheet, isIntoShape) {
+			_getBinaryShapeContent: function (isIntoShape) {
 				var sBase64;
 
 				var selectedContent = new CSelectedContent();
@@ -723,7 +737,7 @@
 				History.TurnOff();
 				var sBase64 = null;
 				if (!isIntoShape) {
-					sBase64 = this.getBinaryForCopy(worksheetView);
+					sBase64 = this.getBinaryForCopy(worksheetView.model, worksheetView.objectRender);
 				}
 				History.TurnOn();
 
@@ -1424,7 +1438,7 @@
 
 					var maxRow = bbox.r2;
 					var maxCol = bbox.c2;
-					var maxRowCol = this._getRangeMaxRowCol(worksheet, bbox, range);
+					var maxRowCol = this._getRangeMaxRowCol(worksheet.model, bbox, range);
 					if (null !== maxRowCol) {
 						maxRow = maxRowCol.row;
 						maxCol = maxRowCol.col;
@@ -1480,7 +1494,7 @@
 				this.oImages = {};
 			},
 
-			pasteFromBinary: function (worksheet, binary, isCellEditMode) {
+			pasteFromBinary: function (worksheet, binary, isCellEditMode, isPasteAll) {
 				var base64 = null, base64FromWord = null, base64FromPresentation = null, t = this;
 
 				if (binary.indexOf("xslData;") > -1) {
@@ -1495,7 +1509,7 @@
 				var isIntoShape = worksheet.objectRender.controller.getTargetDocContent();
 				if (base64 != null)//from excel
 				{
-					result = this._pasteFromBinaryExcel(worksheet, base64, isIntoShape, isCellEditMode);
+					result = this._pasteFromBinaryExcel(worksheet, base64, isIntoShape, isCellEditMode, isPasteAll);
 				} else if (base64FromWord)//from word
 				{
 					this.activeRange = worksheet.model.selectionRange.getLast().clone(true);
@@ -1508,7 +1522,7 @@
 				return result;
 			},
 
-			_pasteFromBinaryExcel: function (worksheet, base64, isIntoShape, isCellEditMode) {
+			_pasteFromBinaryExcel: function (worksheet, base64, isIntoShape, isCellEditMode, isPasteAll) {
 				var t = this;
 				var newFonts;
 				var tempWorkbook = new AscCommonExcel.Workbook();
@@ -1523,13 +1537,50 @@
 					pasteData = tempWorkbook.aWorksheets[0];
 				}
 
+				if(isPasteAll) {
+					History.Create_NewPoint();
+					History.StartTransaction();
+				}
+
+				var doPasteData = function() {
+					newFonts = {};
+					newFonts = tempWorkbook.generateFontMap2();
+					newFonts = t._convertFonts(newFonts);
+
+					if(isPasteAll) {
+						window['AscCommon'].g_specialPasteHelper.Special_Paste_Hide_Button();
+					}
+
+					//закрываем общую транзакцию _loadDataBeforePaste после загрузки шрифтов
+					worksheet.setSelectionInfo('paste', {data: pasteData, fromBinary: true, fontsNew: newFonts, pasteAllSheet: isPasteAll});
+				};
+
+				var doPasteIntoShape = function() {
+					History.TurnOff();
+					var docContent = this._convertTableFromExcelToDocument(worksheet, pasteData, isIntoShape);
+					History.TurnOn();
+
+					var callback = function (isSuccess) {
+						if (isSuccess) {
+							t._insertBinaryIntoShapeContent(worksheet, [docContent]);
+						}
+						window['AscCommon'].g_specialPasteHelper.Paste_Process_End();
+					};
+
+					worksheet.objectRender.controller.checkSelectedObjectsAndCallback2(callback);
+				};
+
 				var res = false;
 				if (isCellEditMode) {
 					res = this._getTextFromWorksheet(pasteData);
 				} else if (pasteData) {
 					if (pasteData.Drawings && pasteData.Drawings.length) {
+
 						if (window["IS_NATIVE_EDITOR"]) {
-							t._insertImagesFromBinary(worksheet, pasteData, isIntoShape);
+							t._insertImagesFromBinary(worksheet, pasteData, isIntoShape, null, isPasteAll);
+							if(isPasteAll) {
+								doPasteData();
+							}
 						} else if (window["NativeCorrectImageUrlOnPaste"]) {
 							var url;
 							for (var i = 0, length = aPastedImages.length; i < length; ++i) {
@@ -1542,7 +1593,10 @@
 								}
 							}
 
-							t._insertImagesFromBinary(worksheet, pasteData, isIntoShape);
+							t._insertImagesFromBinary(worksheet, pasteData, isIntoShape, null, isPasteAll);
+							if(isPasteAll) {
+								doPasteData();
+							}
 						} else if (!(window["Asc"]["editor"] && window["Asc"]["editor"].isChartEditor)) {
 
 							newFonts = {};
@@ -1553,33 +1607,24 @@
 							worksheet._loadFonts(newFonts, function () {
 								if (aPastedImages && aPastedImages.length) {
 									t._loadImagesOnServer(aPastedImages, function () {
-										t._insertImagesFromBinary(worksheet, pasteData, isIntoShape);
+										t._insertImagesFromBinary(worksheet, pasteData, isIntoShape, null, isPasteAll);
+										if(isPasteAll) {
+											doPasteData();
+										}
 									});
 								} else {
-									t._insertImagesFromBinary(worksheet, pasteData, isIntoShape);
+									t._insertImagesFromBinary(worksheet, pasteData, isIntoShape, null, isPasteAll);
+									if(isPasteAll) {
+										doPasteData();
+									}
 								}
 							});
 						}
 					} else {
 						if (isIntoShape) {
-							History.TurnOff();
-							var docContent = this._convertTableFromExcelToDocument(worksheet, pasteData, isIntoShape);
-							History.TurnOn();
-
-							var callback = function (isSuccess) {
-								if (isSuccess) {
-									t._insertBinaryIntoShapeContent(worksheet, [docContent]);
-								}
-								window['AscCommon'].g_specialPasteHelper.Paste_Process_End();
-							};
-
-							worksheet.objectRender.controller.checkSelectedObjectsAndCallback2(callback);
-
+							doPasteIntoShape();
 						} else if (this._checkPasteFromBinaryExcel(worksheet, true, pasteData)) {
-							newFonts = {};
-							newFonts = tempWorkbook.generateFontMap2();
-							newFonts = t._convertFonts(newFonts);
-							worksheet.setSelectionInfo('paste', {data: pasteData, fromBinary: true, fontsNew: newFonts});
+							doPasteData();
 						}
 					}
 
@@ -1589,8 +1634,9 @@
 				return res;
 			},
 
-			_readExcelBinary: function(base64, tempWorkbook) {
+			_readExcelBinary: function(base64, tempWorkbook, selectAllSheet) {
 				var oBinaryFileReader = new AscCommonExcel.BinaryFileReader(true);
+				oBinaryFileReader.copyPasteObj.selectAllSheet = selectAllSheet;
 				var t = this;
 				var aPastedImages;
 
@@ -2124,7 +2170,7 @@
 				}
 			},
 
-			_insertImagesFromBinary: function (ws, data, isIntoShape, needShowSpecialProps) {
+			_insertImagesFromBinary: function (ws, data, isIntoShape, needShowSpecialProps, savePosition) {
 				var activeCell = ws.model.selectionRange.activeCell;
 				var curCol, drawingObject, curRow, startCol, startRow, xfrm, aImagesSync = [], activeRow, activeCol, tempArr, offX, offY, rot;
 
@@ -2214,8 +2260,14 @@
 						activeCol = isIntoShape.Parent.parent.drawingBase.from.col;
 					}
 
-					curCol = xfrm.offX - startCol + ws.objectRender.convertMetric(ws._getColLeft(activeCol) - ws._getColLeft(0), 0, 3);
-					curRow = xfrm.offY - startRow + ws.objectRender.convertMetric(ws._getRowTop(activeRow) - ws._getRowTop(0), 0, 3);
+					if(savePosition) {
+						curCol = xfrm.offX;
+						curRow = xfrm.offY;
+					} else {
+						curCol = xfrm.offX - startCol + ws.objectRender.convertMetric(ws._getColLeft(activeCol) - ws._getColLeft(0), 0, 3);
+						curRow = xfrm.offY - startRow + ws.objectRender.convertMetric(ws._getRowTop(activeRow) - ws._getRowTop(0), 0, 3);
+					}
+
 
 					drawingObject = ws.objectRender.cloneDrawingObject(drawingObject);
 					drawingObject.graphicObject.setDrawingBase(drawingObject);

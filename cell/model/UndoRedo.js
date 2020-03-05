@@ -1273,11 +1273,13 @@ function (window, undefined) {
 		}
 	};
 
-	function UndoRedoData_SheetAdd(insertBefore, name, sheetidfrom, sheetid, tableNames) {
+	function UndoRedoData_SheetAdd(insertBefore, name, sheetidfrom, sheetid, tableNames, opt_sheet) {
 		this.insertBefore = insertBefore;
 		this.name = name;
 		this.sheetidfrom = sheetidfrom;
 		this.sheetid = sheetid;
+		this.opt_sheet = opt_sheet;
+
 		//Эти поля заполняются после Undo/Redo
 		this.sheet = null;
 
@@ -1285,7 +1287,7 @@ function (window, undefined) {
 	}
 
 	UndoRedoData_SheetAdd.prototype.Properties = {
-		name: 0, sheetidfrom: 1, sheetid: 2, tableNames: 3, insertBefore: 4
+		name: 0, sheetidfrom: 1, sheetid: 2, tableNames: 3, insertBefore: 4, opt_sheet: 5
 	};
 	UndoRedoData_SheetAdd.prototype.getType = function () {
 		return UndoRedoDataTypes.SheetAdd;
@@ -1310,6 +1312,9 @@ function (window, undefined) {
 			case this.Properties.insertBefore:
 				return this.insertBefore;
 				break;
+			case this.Properties.opt_sheet:
+				return this.opt_sheet;
+				break;
 		}
 		return null;
 	};
@@ -1329,6 +1334,9 @@ function (window, undefined) {
 				break;
 			case this.Properties.insertBefore:
 				this.insertBefore = value;
+				break;
+			case this.Properties.opt_sheet:
+				this.opt_sheet = value;
 				break;
 		}
 	};
@@ -1864,7 +1872,18 @@ function (window, undefined) {
 				//Добавляем лист  -> Добавляем ссылку -> undo -> undo -> redo -> redo
 				Data.sheet = outputParams.sheet;
 			} else {
-				if (null != Data.sheet) {
+				if(Data.opt_sheet) {
+
+					/*var api = window["Asc"]["editor"];
+					api.wb.pasteSheet(Data.opt_sheet, 0, Data.name);
+					api.asc_EndMoveSheet2(Data.opt_sheet, 0, Data.name);*/
+
+					var tempWorkbook = new AscCommonExcel.Workbook();
+					tempWorkbook.setCommonIndexObjectsFrom(wb);
+					AscCommonExcel.g_clipboardExcel.pasteProcessor._readExcelBinary(Data.opt_sheet.split('xslData;')[1], tempWorkbook);
+
+					wb.copyWorksheet(0, Data.insertBefore, Data.name, Data.sheetid, true, Data.tableNames, tempWorkbook.aWorksheets[0]);
+				} else if (null != Data.sheet) {
 					//сюда заходим только если до этого было сделано Undo
 					wb.insertWorksheet(Data.insertBefore, Data.sheet);
 				} else {

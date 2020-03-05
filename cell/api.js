@@ -487,6 +487,7 @@ var editor;
   spreadsheet_api.prototype.asc_PasteData = function (_format, data1, data2, text_data) {
     if (this.canEdit()) {
       this.wb.pasteData(_format, data1, data2, text_data, arguments[5]);
+      //this.asc_EndMoveSheet2(data1, 1, "test2");
     }
   };
 
@@ -2288,6 +2289,93 @@ var editor;
     };
 
     this.collaborativeEditing.lock(arrLocks, copyWorksheet);
+  };
+
+  spreadsheet_api.prototype.asc_StartMoveSheet = function (arrSheets) {
+	  // Проверка глобального лока
+	  // Лок каждого листа необходимо проверять в интерфейсе. если что-то залочено - не переносим
+      if (this.collaborativeEditing.getGlobalLock()) {
+		  return false;
+	  }
+
+	  //если выделены все - берём последний активный, если всего один - не переносим
+	  if(this.wbModel.aWorksheets.length === 1) {
+		  return null;
+	  } else if (!arrSheets || (this.wbModel.aWorksheets && this.wbModel.aWorksheets.length === arrSheets.length)) {
+		  arrSheets = [arrSheets[arrSheets.length - 1]];
+	  }
+
+	  var sheet, sBinarySheet, res = [];
+      var activeIndex = this.wbModel.nActive;
+	  for (var i = 0; i < arrSheets.length; ++i) {
+		  sheet = this.wbModel.getWorksheet(arrSheets[i]);
+		  this.wbModel.nActive = sheet.getIndex();
+		  sBinarySheet = AscCommonExcel.g_clipboardExcel.copyProcessor.getBinaryForCopy(sheet, null, null, true);
+          res.push(sBinarySheet);
+	  }
+	  this.wbModel.nActive = activeIndex;
+
+      return res;
+  };
+
+  spreadsheet_api.prototype.asc_EndMoveSheet = function(where, arrNames, arrSheets) {
+	  // Проверка глобального лока
+	  if (this.collaborativeEditing.getGlobalLock()) {
+		  return false;
+	  }
+
+	  // Support old versions
+	  if (!Array.isArray(arrNames)) {
+		  arrNames = [arrNames];
+	  }
+	  if (0 === arrNames.length) {
+		  return false;
+	  }
+	  if (!arrSheets) {
+		  return false;
+	  }
+
+	  var scale = this.asc_getZoom();
+	  var t = this;
+	  var addWorksheet = function(res) {
+		  if (res) {
+			  // ToDo перейти от wsViews на wsViewsId
+			  History.Create_NewPoint();
+			  History.StartTransaction();
+
+			  var renameParamsArr = [], renameSheetMap = {};
+			  for (var i = arrSheets.length - 1; i >= 0; --i) {
+				  t.wb.pasteSheet(arrSheets[i], where, arrNames[i], function(renameParams) {
+					  // Делаем активным скопированный
+					  renameParamsArr.push(renameParams);
+					  renameSheetMap[renameParams.lastName] =  renameParams.newName;
+					  t.asc_showWorksheet(where);
+					  t.asc_setZoom(scale);
+					  // Посылаем callback об изменении списка листов
+					  t.sheetsChanged();
+				  });
+
+			  }
+			  //парсинг формул после вставки всех листов, поскольку внутри одного листа может быть ссылка в формуле на другой лист который ещё не вставился
+			  //поэтому дожидаемся вставку всех листов
+			  for(var j = 0; j < renameParamsArr.length; j++) {
+				var newSheet = t.wb.model.getWorksheetByName(renameParamsArr[j].newName);
+			    newSheet.copyFromFormulas(renameParamsArr[j], renameSheetMap);
+			  }
+
+			  // Делаем активным скопированный
+			  t.wbModel.setActive(where);
+			  t.wb.updateWorksheetByModel();
+			  t.wb.showWorksheet();
+			  History.EndTransaction();
+			  // Посылаем callback об изменении списка листов
+			  t.sheetsChanged();
+		  }
+	  };
+
+	  //TODO нужно лочить все листы
+	  addWorksheet(true);
+	  //this.collaborativeEditing.lock([], addWorksheet);
   };
 
   spreadsheet_api.prototype.asc_cleanSelection = function() {
@@ -4524,6 +4612,8 @@ var editor;
   prot["asc_endFindText"] = prot.asc_endFindText;
   prot["asc_findCell"] = prot.asc_findCell;
   prot["asc_closeCellEditor"] = prot.asc_closeCellEditor;
+  prot["asc_StartMoveSheet"] = prot.asc_StartMoveSheet;
+  prot["asc_EndMoveSheet"] = prot.asc_EndMoveSheet;
 
   prot["asc_setR1C1Mode"] = prot.asc_setR1C1Mode;
 

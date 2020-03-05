@@ -5256,31 +5256,36 @@ function parserFormula( formula, parent, _ws ) {
 			}
 		return needAssemble;
 	};
-parserFormula.prototype.clone = function(formula, parent, ws) {
-    if (null == formula) {
-    formula = this.Formula;
-    }
-    if (null == parent) {
-		parent = this.parent;
-    }
-    if (null == ws) {
-    ws = this.ws;
-    }
-  var oRes = new parserFormula(formula, parent, ws);
-  oRes.is3D = this.is3D;
-  oRes.value = this.value;
-  for (var i = 0, length = this.outStack.length; i < length; i++) {
-    var oCurElem = this.outStack[i];
-      if (oCurElem.clone) {
-      oRes.outStack.push(oCurElem.clone());
-      } else {
-      oRes.outStack.push(oCurElem);
-    }
-    }
-  oRes.isParsed = this.isParsed;
-  oRes.ref = this.ref;
-  return oRes;
-};
+	parserFormula.prototype.clone = function (formula, parent, ws) {
+		var opt_ws = null;
+		if (Asc["editor"] && Asc["editor"].wb && Asc["editor"].wb.model && Asc["editor"].wb.model.addingWorksheet) {
+			opt_ws = Asc["editor"].wb.model.addingWorksheet;
+			ws = opt_ws;
+		}
+		if (null == formula) {
+			formula = this.Formula;
+		}
+		if (null == parent) {
+			parent = this.parent;
+		}
+		if (null == ws) {
+			ws = this.ws;
+		}
+		var oRes = new parserFormula(formula, parent, ws);
+		oRes.is3D = this.is3D;
+		oRes.value = this.value;
+		for (var i = 0, length = this.outStack.length; i < length; i++) {
+			var oCurElem = this.outStack[i];
+			if (oCurElem.clone) {
+				oRes.outStack.push(oCurElem.clone(opt_ws));
+			} else {
+				oRes.outStack.push(oCurElem);
+			}
+		}
+		oRes.isParsed = this.isParsed;
+		oRes.ref = this.ref;
+		return oRes;
+	};
 	parserFormula.prototype.getParent = function() {
 		return this.parent;
 	};
@@ -5308,7 +5313,7 @@ parserFormula.prototype.clone = function(formula, parent, ws) {
 		this.isInDependencies = false;
 	};
 
-	parserFormula.prototype.parse = function (local, digitDelim, parseResult, ignoreErrors) {
+	parserFormula.prototype.parse = function (local, digitDelim, parseResult, ignoreErrors, renameSheetMap) {
 		var elemArr = [];
 		var ph = {operand_str: null, pCurrPos: 0};
 		var needAssemble = false;
@@ -6007,6 +6012,19 @@ parserFormula.prototype.clone = function(formula, parent, ws) {
 					parserHelp.is3DRef.call(ph, t.Formula, ph.pCurrPos))[0]) {
 
 				t.is3D = true;
+
+				//renameSheetMap
+				if (renameSheetMap) {
+					if (renameSheetMap[_3DRefTmp[1]]) {
+						_3DRefTmp[1] = renameSheetMap[_3DRefTmp[1]];
+						needAssemble = true;
+					}
+					if (_3DRefTmp[2] && renameSheetMap[_3DRefTmp[2]]) {
+						_3DRefTmp[2] = renameSheetMap[_3DRefTmp[2]];
+						needAssemble = true;
+					}
+				}
+
 				var wsF = t.wb.getWorksheetByName(_3DRefTmp[1]);
 				var wsT = (null !== _3DRefTmp[2]) ? t.wb.getWorksheetByName(_3DRefTmp[2]) : wsF;
 

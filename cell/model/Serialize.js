@@ -9067,7 +9067,8 @@
         this.copyPasteObj =
         {
             isCopyPaste: isCopyPaste,
-            activeRange: null
+            activeRange: null,
+            selectAllSheet: null
         };
         this.oReadResult = {
             tableCustomFunc: [],
@@ -9412,7 +9413,7 @@
             }
             //todo инициализация формул из-за именованных диапазонов перенесена в wb.init ее надо вызывать в любом случае(Rev: 61959)
             //надо вернуть чтение Binary_WorkbookTableReader, когда будем реализовывать копирования именованных диапазонов
-            if(!this.copyPasteObj.isCopyPaste)
+            if(!this.copyPasteObj.isCopyPaste || this.copyPasteObj.selectAllSheet)
             {
                 if(null != nWorkbookTableOffset)
                 {
