@@ -3480,7 +3480,7 @@
 
         var graphics = ctx && ctx.DocumentRenderer ? ctx.DocumentRenderer : this.handlers.trigger('getMainGraphics');
 
-		var fontSize = c.getFont().fs;
+		var fontSize = c.getFont().getSize();
 		var cellValue = c.getNumberValue();
 		width -= 2; // indent
 
