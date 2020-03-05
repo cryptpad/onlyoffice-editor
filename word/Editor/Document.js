@@ -19675,6 +19675,38 @@ CDocument.prototype.AddFieldWithInstruction = function(sInstruction)
     oComplexField.Update(false);
     return oComplexField;
 };
+CDocument.prototype.AddDateTime = function(oPr)
+{
+	if (!oPr)
+		return;
+
+	var nLang = oPr.get_Lang();
+	if (!AscFormat.isRealNumber(nLang))
+		nLang = 1033;
+
+	if (oPr.get_Update())
+	{
+		if (!this.Document_Is_SelectionLocked(AscCommon.changestype_Paragraph_Content))
+		{
+			this.StartAction(AscDFH.historydescription_Document_AddDateTimeField);
+
+			var oComplexField = this.AddFieldWithInstruction("TIME \\@ \"" + oPr.get_Format() + "\"");
+
+			var oBeginChar = oComplexField.GetBeginChar();
+			var oRun       = oBeginChar.GetRun();
+			oRun.Set_Lang_Val(nLang);
+
+			this.Recalculate();
+			this.UpdateInterface();
+			this.UpdateSelection();
+			this.FinalizeAction();
+		}
+	}
+	else
+	{
+		this.AddTextWithPr(oPr.get_String(), {Lang : {Val : nLang}}, true);
+	}
+};
 
 CDocument.prototype.private_CreateComplexFieldRun = function(sInstruction, oParagraph)
 {
