@@ -51,6 +51,7 @@ var fieldtype_ASK        = 0x0007;
 var fieldtype_REF        = 0x0008;
 var fieldtype_HYPERLINK  = 0x0009;
 var fieldtype_TIME       = 0x000A;
+var fieldtype_DATE       = 0x000B;
 var fieldtype_FORMULA    = 0x0010;
 var fieldtype_SEQ        = 0x0011;
 var fieldtype_STYLEREF   = 0x0012;
@@ -72,6 +73,7 @@ window['AscCommonWord'].fieldtype_ASK        = fieldtype_ASK;
 window['AscCommonWord'].fieldtype_REF        = fieldtype_REF;
 window['AscCommonWord'].fieldtype_HYPERLINK  = fieldtype_HYPERLINK;
 window['AscCommonWord'].fieldtype_TIME       = fieldtype_TIME;
+window['AscCommonWord'].fieldtype_DATE       = fieldtype_DATE;
 window['AscCommonWord'].fieldtype_FORMULA    = fieldtype_FORMULA;
 window['AscCommonWord'].fieldtype_SEQ        = fieldtype_SEQ;
 window['AscCommonWord'].fieldtype_STYLEREF   = fieldtype_STYLEREF;
@@ -686,6 +688,32 @@ CFieldInstructionTIME.prototype.GetFormat = function()
 {
 	return this.Format;
 };
+
+/**
+ * TIME field
+ * @constructor
+ */
+function CFieldInstructionDATE()
+{
+	CFieldInstructionBase.call(this);
+
+	this.Format = "";
+}
+CFieldInstructionDATE.prototype = Object.create(CFieldInstructionBase.prototype);
+CFieldInstructionDATE.prototype.constructor = CFieldInstructionDATE;
+CFieldInstructionDATE.prototype.Type = fieldtype_DATE;
+CFieldInstructionDATE.prototype.ToString = function()
+{
+	return ("TIME \\@ \"" + this.sFormat + "\"");
+};
+CFieldInstructionDATE.prototype.SetFormat = function(sFormat)
+{
+	this.Format = sFormat;
+};
+CFieldInstructionDATE.prototype.GetFormat = function()
+{
+	return this.Format;
+};
 /**
  * SEQ field
  * @constructor
@@ -1175,6 +1203,10 @@ CFieldInstructionParser.prototype.private_Parse = function()
 	{
 		this.private_ReadTIME();
 	}
+	else if ("DATE" === sBuffer)
+	{
+		this.private_ReadDATE();
+	}
 	else if(sBuffer.indexOf("=") === 0)
 	{
 		this.private_ReadFORMULA();
@@ -1643,11 +1675,29 @@ CFieldInstructionParser.prototype.private_ReadTIME = function()
 	{
 		if (this.private_IsSwitch())
 		{
-			// TODO: Switches
+			if ('@' === this.Buffer.charAt(1))
+			{
+				var arrArguments = this.private_ReadArguments();
+				if (arrArguments.length > 0)
+					this.Result.SetFormat(arrArguments[0]);
+			}
 		}
-		else
+	}
+};
+CFieldInstructionParser.prototype.private_ReadDATE = function()
+{
+	this.Result = new CFieldInstructionDATE();
+
+	while (this.private_ReadNext())
+	{
+		if (this.private_IsSwitch())
 		{
-			this.Result.SetFormat(this.Buffer);
+			if ('@' === this.Buffer.charAt(1))
+			{
+				var arrArguments = this.private_ReadArguments();
+				if (arrArguments.length > 0)
+					this.Result.SetFormat(arrArguments[0]);
+			}
 		}
 	}
 };
