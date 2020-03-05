@@ -3596,16 +3596,21 @@ Hyperlink.prototype = {
 		this.LocationSheet = this.LocationRange = this.LocationRangeBbox = null;
 
 		if (null !== Location) {
-			var result = parserHelp.parse3DRef(Location);
-			if (!result) {
-				// Can be in all mods. Excel bug...
-				AscCommonExcel.executeInR1C1Mode(!AscCommonExcel.g_R1C1Mode, function () {
-					result = parserHelp.parse3DRef(Location);
-				});
-			}
-			if (null !== result) {
-				this.LocationSheet = result.sheet;
-				this.LocationRange = result.range;
+			var result = parserHelp.isName(Location, 0);
+			if (result[0]) {
+				this.LocationRange = result[1];
+			} else {
+				result = parserHelp.parse3DRef(Location);
+				if (!result) {
+					// Can be in all mods. Excel bug...
+					AscCommonExcel.executeInR1C1Mode(!AscCommonExcel.g_R1C1Mode, function () {
+						result = parserHelp.parse3DRef(Location);
+					});
+				}
+				if (null !== result) {
+					this.LocationSheet = result.sheet;
+					this.LocationRange = result.range;
+				}
 			}
 		}
 		this._updateLocation();
@@ -3637,6 +3642,8 @@ Hyperlink.prototype = {
 				});
 				this.Location = parserHelp.get3DRef(this.LocationSheet, this.LocationRange);
 			}
+		} else if (null !== this.LocationRange) {
+			this.Location = this.LocationRange;
 		}
 	},
 	setVisited : function (bVisited) {
