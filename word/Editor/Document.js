@@ -2411,6 +2411,11 @@ CDocument.prototype.On_EndLoad                     = function()
 };
 CDocument.prototype.private_UpdateFieldsOnEndLoad = function()
 {
+	return;
+
+	// TODO: Из-за совместки мы не можем обновлять текущую дату таким образом при открытии, нам нужно, чтобы
+	//       дату для обновления присылал сервер
+
 	var arrHdrFtrs = this.SectionsInfo.GetAllHdrFtrs();
 	for (var nIndex = 0, nCount = arrHdrFtrs.length; nIndex < nCount; ++nIndex)
 	{
