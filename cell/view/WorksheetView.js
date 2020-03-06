@@ -10622,7 +10622,7 @@
                         if (val && val.hyperlinkModel) {
                             if (Asc.c_oAscHyperlinkType.RangeLink === val.asc_getType()) {
 								val.hyperlinkModel._updateLocation();
-                                if (null === val.hyperlinkModel.LocationRangeBbox) {
+                                if (null === val.hyperlinkModel.LocationRangeBbox && null !== val.hyperlinkModel.LocationSheet) {
                                     bIsUpdate = false;
                                     break;
                                 }
