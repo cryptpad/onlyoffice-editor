@@ -998,7 +998,8 @@
 			if (!extendSession) {
 				if (t.asc_Save(false, true)) {
 					//enter view mode because save async
-					t.setViewModeDisconnect();
+					var error = AscCommon.getDisconnectErrorCode(t.isDocumentLoadComplete, code);
+					t.setViewModeDisconnect(AscCommon.getEnableDownloadByErrorCode(error));
 					t.disconnectOnSave = {code: code, reason: reason};
 				} else {
 					t.CoAuthoringApi.disconnect(code, reason);
@@ -1105,7 +1106,7 @@
 			if (null != opt_closeCode) {
 				var error = AscCommon.getDisconnectErrorCode(t.isDocumentLoadComplete, opt_closeCode);
 				var level = t.isDocumentLoadComplete ? Asc.c_oAscError.Level.NoCritical : Asc.c_oAscError.Level.Critical;
-				t.setViewModeDisconnect();
+				t.setViewModeDisconnect(AscCommon.getEnableDownloadByErrorCode(error));
 				t.sendEvent('asc_onError', error, level);
 			}
 		};
@@ -2640,10 +2641,10 @@
 		this.lastWorkTime = new Date().getTime();
 	};
 
-	baseEditorsApi.prototype.setViewModeDisconnect = function()
+	baseEditorsApi.prototype.setViewModeDisconnect = function(enableDownload)
 	{
 		// Посылаем наверх эвент об отключении от сервера
-		this.sendEvent('asc_onCoAuthoringDisconnect');
+		this.sendEvent('asc_onCoAuthoringDisconnect', enableDownload);
 		// И переходим в режим просмотра т.к. мы не можем сохранить файл
 		this.asc_setViewMode(true);
 	};
