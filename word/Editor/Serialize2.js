@@ -4199,6 +4199,7 @@ Binary_tblPrWriter.prototype =
     Write_tblpPr2: function(table)
     {
         var oThis = this;
+		var twips;
         if(null != table.PositionH)
         {
 			var PositionH = table.PositionH;
@@ -4216,9 +4217,14 @@ Binary_tblPrWriter.prototype =
 			}
 			else
 			{
+				twips = this.bs.mmToTwips(PositionH.Value);
+				//0 is a special value(left align)
+				if (0 === twips) {
+					twips = 1;
+				}
 				this.memory.WriteByte(c_oSer_tblpPrType2.TblpXTwips);
 				this.memory.WriteByte(c_oSerPropLenType.Long);
-				this.bs.writeMmToTwips(PositionH.Value);
+				this.memory.WriteLong(twips);
 			}
         }
 		if(null != table.PositionV)
@@ -4238,9 +4244,14 @@ Binary_tblPrWriter.prototype =
 			}
 			else
 			{
+				twips = this.bs.mmToTwips(PositionV.Value);
+				//0 is a special value(c_oAscVAnchor.Text)
+				if (0 === twips && Asc.c_oAscVAnchor.Text !== PositionV.RelativeFrom) {
+					twips = 1;
+				}
 				this.memory.WriteByte(c_oSer_tblpPrType2.TblpYTwips);
 				this.memory.WriteByte(c_oSerPropLenType.Long);
-				this.bs.writeMmToTwips(PositionV.Value);
+				this.memory.WriteLong(twips);
 			}
         }
 		if(null != table.Distance)
