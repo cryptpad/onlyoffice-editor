@@ -3429,22 +3429,16 @@ var editor;
   };
 
     spreadsheet_api.prototype.asc_ignoreNumbers = function (isIgnore) {
-      this.spellcheckState.isIgnoreNumbers = true;
-      if (!isIgnore) {
-        this.spellcheckState.isIgnoreNumbers = false;
-      }
+      this.spellcheckState.isIgnoreNumbers = isIgnore;
     };
 
     spreadsheet_api.prototype.asc_ignoreUppercase = function (isIgnore) {
-      this.spellcheckState.isIgnoreUppercase = true;
-      if (!isIgnore) {
-        this.spellcheckState.isIgnoreUppercase = false;
-      }
+      this.spellcheckState.isIgnoreUppercase = isIgnore;
     };
 
   spreadsheet_api.prototype.asc_cancelSpellCheck = function() {
     this.cleanSpelling();
-  }
+  };
   
   // Frozen pane
   spreadsheet_api.prototype.asc_freezePane = function () {
