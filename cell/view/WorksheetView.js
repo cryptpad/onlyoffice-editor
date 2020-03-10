@@ -6147,8 +6147,6 @@
                     }
                 }
             }
-            textBound.height += 3 * this.getZoom();
-            textBound.dy -= 1.5 * this.getZoom();
         }
 
         var cache = this._fetchCellCache(col, row);
@@ -6170,9 +6168,7 @@
         if (!angle && (cto.leftSide !== 0 || cto.rightSide !== 0)) {
             this._addErasedBordersToCache(col - cto.leftSide, col + cto.rightSide, row);
         }
-        if (!this.isZooming) {
             this._updateRowHeight(cache, row, maxW, colWidth);
-        }
 
         return mc ? mc.c2 : col;
     };
