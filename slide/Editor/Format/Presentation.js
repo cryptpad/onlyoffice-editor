@@ -4763,41 +4763,43 @@ CPresentation.prototype.addImages = function (aImages, placeholder) {
         if (placeholder && undefined !== placeholder.id && aImages.length === 1 && aImages[0].Image) {
             var oPh = AscCommon.g_oTableId.Get_ById(placeholder.id);
             if (oPh) {
-                var oPh = AscCommon.g_oTableId.Get_ById(placeholder.id);
-                if (oPh) {
-
-                    History.Create_NewPoint(AscDFH.historydescription_Presentation_AddFlowImage);
-                    oController.resetSelection();
-                    var _w, _h;
-                    var _image = aImages[0];
-                    _w = oPh.extX;
-                    _h = oPh.extY;
-                    var __w = Math.max((_image.Image.width * AscCommon.g_dKoef_pix_to_mm), 1);
-                    var __h = Math.max((_image.Image.height * AscCommon.g_dKoef_pix_to_mm), 1);
+                History.Create_NewPoint(AscDFH.historydescription_Presentation_AddFlowImage);
+                oController.resetSelection();
+                var _w, _h;
+                var _image = aImages[0];
+                _w = oPh.extX;
+                _h = oPh.extY;
+                var __w = Math.max((_image.Image.width * AscCommon.g_dKoef_pix_to_mm), 1);
+                var __h = Math.max((_image.Image.height * AscCommon.g_dKoef_pix_to_mm), 1);
+                if(__w < _w && __h < _h) {
+                    _w = __w;
+                    _h = __h;
+                }
+                else {
                     var fKoeff = Math.min(_w / __w, _h / __h);
                     _w = Math.max(5, __w * fKoeff);
                     _h = Math.max(5, __h * fKoeff);
-                    var Image = oController.createImage(_image.src, oPh.x + oPh.extX / 2.0 - _w / 2.0, oPh.y + oPh.extY / 2.0 - _h / 2.0, _w, _h, _image.videoUrl, _image.audioUrl);
-                    if(AscFormat.isRealNumber(oPh.rot)) {
-                        if(Image.spPr && Image.spPr.xfrm) {
-                            Image.spPr.xfrm.setRot(oPh.rot);
-                        }
-                    }
-                    Image.setParent(this.Slides[this.CurPage]);
-                    if (this.Document_Is_SelectionLocked(AscCommon.changestype_Drawing_Props, undefined, undefined, [oPh])) {
-                        Image.addToDrawingObjects();
-                    }
-                    else {
-                        this.Slides[this.CurPage].replaceSp(oPh, Image);
-                    }
-                    oController.selectObject(Image, 0);
-                    this.Recalculate();
-                    this.Document_UpdateInterfaceState();
-                    this.CheckEmptyPlaceholderNotes();
-                    return;
-                } else {
-                    return;
                 }
+                var Image = oController.createImage(_image.src, oPh.x + oPh.extX / 2.0 - _w / 2.0, oPh.y + oPh.extY / 2.0 - _h / 2.0, _w, _h, _image.videoUrl, _image.audioUrl);
+                if(AscFormat.isRealNumber(oPh.rot)) {
+                    if(Image.spPr && Image.spPr.xfrm) {
+                        Image.spPr.xfrm.setRot(oPh.rot);
+                    }
+                }
+                Image.setParent(this.Slides[this.CurPage]);
+                if (this.Document_Is_SelectionLocked(AscCommon.changestype_Drawing_Props, undefined, undefined, [oPh])) {
+                    Image.addToDrawingObjects();
+                }
+                else {
+                    this.Slides[this.CurPage].replaceSp(oPh, Image);
+                }
+                oController.selectObject(Image, 0);
+                this.Recalculate();
+                this.Document_UpdateInterfaceState();
+                this.CheckEmptyPlaceholderNotes();
+                return;
+            } else {
+                return;
             }
         }
         History.Create_NewPoint(AscDFH.historydescription_Presentation_AddFlowImage);
