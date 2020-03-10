@@ -1492,7 +1492,6 @@ Paragraph.prototype.private_RecalculateLinePosition    = function(CurLine, CurPa
 
     this.Pages[CurPage].Bounds.Bottom = Bottom;
 
-
     PRS.LineTop        = AscCommon.CorrectMMToTwips(Top);
     PRS.LineBottom     = AscCommon.CorrectMMToTwips(Bottom);
     PRS.LineTop2       = AscCommon.CorrectMMToTwips(Top2);
