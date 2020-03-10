@@ -8713,6 +8713,7 @@ CDocument.prototype.OnKeyDown = function(e)
         {
             editor.sync_StartAddShapeCallback(false);
             editor.sync_EndAddShape();
+            this.DrawingObjects.endTrackNewShape();
             this.UpdateCursorType(this.CurPos.RealX, this.CurPos.RealY, this.CurPage, new AscCommon.CMouseEventHandler());
         }
         else if (docpostype_DrawingObjects === this.CurPos.Type || (docpostype_HdrFtr === this.CurPos.Type && null != this.HdrFtr.CurHdrFtr && docpostype_DrawingObjects === this.HdrFtr.CurHdrFtr.Content.CurPos.Type ))

@@ -1565,7 +1565,7 @@
 
 		AscCommon.sendImgUrls(oThis, [sImageUrl], function(data)
 		{
-			if (data[0] && data[0].path != null)
+			if (data[0] && data[0].path != null && data[0].url !== "error")
 			{
 				oThis.asc_loadLocalImageAndAction(AscCommon.g_oDocumentUrls.imagePath2Local(data[0].path), fCallback2);
 			}

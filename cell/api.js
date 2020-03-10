@@ -2572,7 +2572,7 @@ var editor;
     var t = this;
     AscCommon.sendImgUrls(this, [imageUrl], function(data) {
 
-      if (data && data[0])
+      if (data && data[0] && data[0].url !== "error")
       {
         var ws = t.wb.getWorksheet();
         ws.objectRender.addImageDrawingObject([data[0].url], null);
@@ -2935,7 +2935,7 @@ var editor;
 
       AscCommon.sendImgUrls(this, [sImageUrl], function (data) {
 
-        if (data && data[0]) {
+        if (data && data[0] && data[0].url !== "error") {
           fReplaceCallback(data[0].url);
           ws.objectRender.setGraphicObjectProps(props);
         }

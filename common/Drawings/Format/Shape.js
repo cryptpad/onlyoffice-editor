@@ -4125,7 +4125,6 @@ CShape.prototype.select = function (drawingObjectsController, pageIndex)
 
 CShape.prototype.deselect = function (drawingObjectsController) {
     this.selected = false;
-    this.addTextFlag = false;
     var selected_objects;
     if (!isRealObject(this.group))
         selected_objects = drawingObjectsController.selectedObjects;

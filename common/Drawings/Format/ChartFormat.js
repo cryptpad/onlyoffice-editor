@@ -12403,6 +12403,20 @@ CTitle.prototype =
         }
     },
 
+    handleUpdateFill: function()
+    {
+
+        this.recalcInfo.recalculateBrush = true;
+        this.Refresh_RecalcData();
+    },
+
+    handleUpdateLn: function()
+    {
+        this.recalcInfo.recalculatePen = true;
+        this.Refresh_RecalcData();
+    },
+
+
     Search : function(Str, Props, SearchEngine, Type)
     {
         var content = this.getDocContent();

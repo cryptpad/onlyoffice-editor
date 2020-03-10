@@ -5932,17 +5932,9 @@ CPresentation.prototype.OnKeyDown = function (e) {
     {
         if (oController && !this.FocusOnNotes) {
             var oDrawingObjects = oController;
-            if (oDrawingObjects.curState instanceof AscFormat.StartAddNewShape
-                || oDrawingObjects.curState instanceof AscFormat.SplineBezierState
-                || oDrawingObjects.curState instanceof AscFormat.PolyLineAddState
-                || oDrawingObjects.curState instanceof AscFormat.AddPolyLine2State
-                || oDrawingObjects.arrTrackObjects.length > 0) {
+            if (oDrawingObjects.checkTrackDrawings()) {
                 editor.sync_EndAddShape();
-                oDrawingObjects.changeCurrentState(new AscFormat.NullState(oDrawingObjects));
-                if (oDrawingObjects.arrTrackObjects.length > 0) {
-                    oDrawingObjects.clearTrackObjects();
-                    oDrawingObjects.updateOverlay();
-                }
+                oDrawingObjects.endTrackNewShape();
                 this.UpdateCursorType(0, 0, new AscCommon.CMouseEventHandler());
                 return;
             }
@@ -6764,17 +6756,9 @@ CPresentation.prototype.Notes_OnMouseDown = function (e, X, Y) {
     this.FocusOnNotes = true;
     var oCurSlide = this.Slides[this.CurPage];
     var oDrawingObjects = oCurSlide.graphicObjects;
-    if (oDrawingObjects.curState instanceof AscFormat.StartAddNewShape
-        || oDrawingObjects.curState instanceof AscFormat.SplineBezierState
-        || oDrawingObjects.curState instanceof AscFormat.PolyLineAddState
-        || oDrawingObjects.curState instanceof AscFormat.AddPolyLine2State
-        || oDrawingObjects.arrTrackObjects.length > 0) {
-        oDrawingObjects.changeCurrentState(new AscFormat.NullState(oDrawingObjects));
-        if (oDrawingObjects.arrTrackObjects.length > 0) {
-            oDrawingObjects.clearTrackObjects();
-            oDrawingObjects.updateOverlay();
-        }
+    if (oDrawingObjects.checkTrackDrawings()) {
         this.Api.sync_EndAddShape();
+        oDrawingObjects.endTrackNewShape();
         this.UpdateCursorType(0, 0, new AscCommon.CMouseEventHandler());
     }
     if (oCurSlide) {
@@ -8576,6 +8560,7 @@ CPresentation.prototype.InsertContent = function (Content) {
                                             }
                                         }
                                         oLstStyles.merge(oSp.txBody.lstStyle);
+                                        oBodyPr.merge(oSp.txBody.bodyPr);
                                         oSp.txBody.setLstStyle(oLstStyles);
                                         oSp.txBody.setBodyPr(oBodyPr);
                                     }
@@ -10211,16 +10196,8 @@ CPresentation.prototype.AddTextWithPr = function(sText, oTextPr, isMoveCursorOut
 CPresentation.prototype.AddTextArt = function (nStyle) {
     if (this.Slides[this.CurPage]) {
         var oDrawingObjects = this.Slides[this.CurPage].graphicObjects;
-        if (oDrawingObjects.curState instanceof AscFormat.StartAddNewShape
-            || oDrawingObjects.curState instanceof AscFormat.SplineBezierState
-            || oDrawingObjects.curState instanceof AscFormat.PolyLineAddState
-            || oDrawingObjects.curState instanceof AscFormat.AddPolyLine2State
-            || oDrawingObjects.arrTrackObjects.length > 0) {
-            oDrawingObjects.changeCurrentState(new AscFormat.NullState(oDrawingObjects));
-            if (oDrawingObjects.arrTrackObjects.length > 0) {
-                oDrawingObjects.clearTrackObjects();
-                oDrawingObjects.updateOverlay();
-            }
+        if (oDrawingObjects.checkTrackDrawings()) {
+            oDrawingObjects.endTrackNewShape();
             editor.sync_EndAddShape();
         }
 
