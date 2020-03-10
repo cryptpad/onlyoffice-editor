@@ -13452,7 +13452,7 @@ Paragraph.prototype.IsEmptyPage = function(CurPage, bSkipEmptyLinesWithBreak)
 		&& this.Pages[CurPage].EndLine === this.Pages[CurPage].StartLine
 		&& this.Lines[this.Pages[CurPage].EndLine]
 		&& this.Lines[this.Pages[CurPage].EndLine].Info & paralineinfo_Empty
-		&& this.Lines[this.Pages[CurPage].EndLine].Info & paralineinfo_BreakRealPage)
+		&& this.Lines[this.Pages[CurPage].EndLine].Info & paralineinfo_BreakPage)
     	return true;
 
     return false;
