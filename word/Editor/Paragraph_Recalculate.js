@@ -1469,7 +1469,20 @@ Paragraph.prototype.private_RecalculateLinePosition    = function(CurLine, CurPa
 			Bottom = this.YLimit;
 	}
 
-    // Верхнюю границу мы сохраняем только для первой строки данной страницы
+	// В MSWord версиях 14 и ниже пустая строка с переносом колонки не имеет высоты
+	if (this.LogicDocument
+		&& this.LogicDocument.GetCompatibilityMode
+		&& this.LogicDocument.GetCompatibilityMode() <= document_compatibility_mode_Word14
+		&& this.Lines[CurLine].Info & paralineinfo_BreakPage
+		&& this.Lines[CurLine].Info & paralineinfo_Empty
+		&& !(this.Lines[CurLine].Info & paralineinfo_BreakRealPage))
+	{
+		Bottom  = Top;
+		Top2    = Top;
+		Bottom2 = Top;
+	}
+
+	// Верхнюю границу мы сохраняем только для первой строки данной страницы
     if (CurLine === this.Pages[CurPage].FirstLine && !(this.Lines[CurLine].Info & paralineinfo_RangeY))
         this.Pages[CurPage].Bounds.Top = Top;
 
