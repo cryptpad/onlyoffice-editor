@@ -3174,6 +3174,21 @@ function NativeOpenFileP(_params, documentInfo){
 
         initSpellCheckApi();
 
+        if (!_api.bNoSendComments) {
+            var _slides = _presentation.Slides;
+            var _slidesCount = _slides.length;
+            for (var i = 0; i < _slidesCount; i++) {
+                var slideComments = _slides[i].slideComments;
+                if (slideComments) {
+                    var _comments = slideComments.comments;
+                    var _commentsCount = _comments.length;
+                    for (var j = 0; j < _commentsCount; j++) {
+                        _api.sync_AddComment(_comments[j].Get_Id(), _comments[j].Data);
+                    }
+                }
+            }
+        }
+
         return [nSlidesCount, dPresentationWidth, dPresentationHeight, aTimings];
     }
 }
