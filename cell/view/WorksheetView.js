@@ -6147,6 +6147,8 @@
                     }
                 }
             }
+            textBound.height += 3;
+            textBound.dy -= 1.5;
         }
 
         var cache = this._fetchCellCache(col, row);
