@@ -3394,6 +3394,9 @@ var editor;
       options.replaceWith = newCellText;
       options.replaceWords = replaceWords;
 
+      History.Create_NewPoint();
+      History.StartTransaction();
+
       ws._replaceCellsText(cellsChange, options, false, function () {
         t.spellcheckState.cellsChange = [];
         options.indexInArray = 0;
@@ -3414,9 +3417,11 @@ var editor;
           t.spellcheckState.lastIndex = 0;
           t.spellcheckState.cellText = t.asc_getCellInfo().text;
           t.asc_nextWord();
+          History.EndTransaction();
           return;
         }
         t.spellcheckState.lockSpell = false;
+        History.EndTransaction();
       });
     };
 
