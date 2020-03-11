@@ -2429,6 +2429,23 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             break;
         }
 
+        case 22006: // ASC_EVENT_TYPE_DO_NONPRINTING_DISPLAY
+        {
+            var json = JSON.parse(_params[0]);
+            if (json) {
+                var display = json["display"] || false;
+                if (_api.put_ShowParaMarks) {
+                    _api.put_ShowParaMarks(display);
+                }
+                if (_api.put_ShowTableEmptyLine) {
+                    _api.put_ShowTableEmptyLine(display);
+                }
+                _api.WordControl.m_oDrawingDocument.ClearCachePages();
+                _api.WordControl.m_oDrawingDocument.FirePaint();
+            }
+            break;
+        }
+
         case 23101: // ASC_MENU_EVENT_TYPE_DO_SELECT_COMMENT
         {
             var json = JSON.parse(_params[0]);
