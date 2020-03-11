@@ -1161,7 +1161,10 @@ CSparklineView.prototype.setMinMaxValAx = function(minVal, maxVal, oSparklineGro
             {
                 oValAx.setScaling(new AscFormat.CScaling());
             }
-            oValAx.scaling.setMin(minVal);
+            if(oValAx.scaling.min === null || !AscFormat.fApproxEqual(oValAx.scaling.min, minVal))
+            {
+                oValAx.scaling.setMin(minVal);
+            }
         }
         if(maxVal !== null)
         {
@@ -1169,7 +1172,10 @@ CSparklineView.prototype.setMinMaxValAx = function(minVal, maxVal, oSparklineGro
             {
                 oValAx.setScaling(new AscFormat.CScaling());
             }
-            oValAx.scaling.setMax(maxVal);
+            if(oValAx.scaling.max === null || !AscFormat.fApproxEqual(oValAx.scaling.max, maxVal))
+            {
+                oValAx.scaling.setMax(maxVal);
+            }
         }
 
 
@@ -1214,9 +1220,6 @@ CSparklineView.prototype.setMinMaxValAx = function(minVal, maxVal, oSparklineGro
                 }
             }
         }
-
-
-        this.chartSpace.recalcInfo.recalculateAxisVal = true;
         this.chartSpace.recalculate();
     }
 };
@@ -2952,7 +2955,7 @@ function DrawingObjects() {
             if((maxVal !== null || minVal !== null) )
             {
                 if(maxVal !== null && minVal !== null && AscFormat.fApproxEqual(minVal, maxVal))
-                    {
+                {
                     if(nPtCount > 1)
                     {
                         minVal -= 0.1;
@@ -2969,6 +2972,14 @@ function DrawingObjects() {
                             maxVal = null;
                         }
                     }
+                }
+                if(maxVal !== null)
+                {
+                    maxVal -= 0.01;
+                }
+                if(minVal !== null)
+                {
+                    minVal += 0.01;
                 }
                 for(i = 0; i < oSparklineGroup.arrSparklines.length; ++i)
                 {
