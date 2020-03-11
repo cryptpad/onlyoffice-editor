@@ -279,8 +279,10 @@ function (window, undefined) {
 			argI = arg[i];
 			if (argI instanceof cArea || argI instanceof cArea3D) {
 				argI = argI.cross(arguments[1]);
+			} else if (argI instanceof cRef || argI instanceof cRef3D) {
+				argI = argI.getValue();
 			}
-			argI = argI.tocString();
+
 			if (argI instanceof cError) {
 				return argI;
 			} else if (argI instanceof cArray) {
@@ -290,14 +292,14 @@ function (window, undefined) {
 						return true;
 					}
 
-					arg0 = new cString(arg0.toString().concat(elem.toString()));
+					arg0 = new cString(arg0.toString().concat(elem.toLocaleString()));
 
 				});
 				if (arg0 instanceof cError) {
 					return arg0;
 				}
 			} else {
-				arg0 = new cString(arg0.toString().concat(argI.toString()));
+				arg0 = new cString(arg0.toString().concat(argI.toLocaleString()));
 			}
 		}
 		return arg0;
@@ -326,15 +328,20 @@ function (window, undefined) {
 			if (cElementType.cellsRange === argI.type || cElementType.cellsRange3D === argI.type) {
 				var _arrVal = argI.getValue(this.checkExclude, this.excludeHiddenRows);
 				for (var j = 0; j < _arrVal.length; j++) {
-					var _arrElem = _arrVal[j].tocString();
+					var _arrElem = _arrVal[j].toLocaleString();
 					if (cElementType.error === _arrElem.type) {
 						return _arrVal[j];
 					} else {
 						arg0 = new cString(arg0.toString().concat(_arrElem));
 					}
 				}
+			} else if (cElementType.cell === argI.type || cElementType.cell3D === argI.type) {
+				argI = argI.getValue();
+				if (cElementType.error === argI.type) {
+					return argI;
+				}
+				arg0 = new cString(arg0.toString().concat(argI.toLocaleString()));
 			} else {
-				argI = argI.tocString();
 				if (cElementType.error === argI.type) {
 					return argI;
 				} else if (cElementType.array === argI.type) {
@@ -344,14 +351,14 @@ function (window, undefined) {
 							return true;
 						}
 
-						arg0 = new cString(arg0.toString().concat(elem.toString()));
+						arg0 = new cString(arg0.toString().concat(elem.toLocaleString()));
 
 					});
 					if (cElementType.error === arg0.type) {
 						return arg0;
 					}
 				} else {
-					arg0 = new cString(arg0.toString().concat(argI.toString()));
+					arg0 = new cString(arg0.toString().concat(argI.toLocaleString()));
 				}
 			}
 		}
@@ -1114,6 +1121,8 @@ function (window, undefined) {
 		var arg0 = arg[0], arg1 = arg[1], arg2 = arg[2];
 		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
 			arg0 = arg0.cross(arguments[1]);
+		} else if(arg0 instanceof cRef || arg0 instanceof cRef3D) {
+			arg0 = arg0.getValue();
 		}
 		if (arg1 instanceof cArea || arg1 instanceof cArea3D) {
 			arg1 = arg1.cross(arguments[1]);
@@ -1122,7 +1131,7 @@ function (window, undefined) {
 			arg2 = arg2.cross(arguments[1]);
 		}
 
-		arg0 = arg0.tocString();
+		arg0 = arg0.toLocaleString();
 		arg1 = arg1.tocNumber();
 		arg2 = arg2.tocNumber();
 
@@ -1152,17 +1161,13 @@ function (window, undefined) {
 			return new cError(cErrorType.wrong_value_type);
 		}
 
-		var l = arg0.getValue().length;
+		var l = arg0.length;
 
 		if (arg1.getValue() > l) {
 			return new cString("");
 		}
 
-		/* if( arg1.getValue() < l )
-		 return arg0; */
-
-		return new cString(arg0.getValue().substr(arg1.getValue() == 0 ? 0 : arg1.getValue() - 1, arg2.getValue()));
-
+		return new cString(arg0.substr(arg1.getValue() == 0 ? 0 : arg1.getValue() - 1, arg2.getValue()));
 	};
 
 	/**
