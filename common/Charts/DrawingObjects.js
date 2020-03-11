@@ -4487,6 +4487,7 @@ function DrawingObjects() {
 
         History.Create_NewPoint(AscDFH.historydescription_Document_CompositeInput);
         _this.beginCompositeInput();
+        _this.controller.recalculateCurPos(true, true);
     };
 
 
@@ -4517,15 +4518,13 @@ function DrawingObjects() {
     };
     _this.Add_CompositeText = function(nCharCode)
     {
-
         if (null === _this.CompositeInput)
             return;
         History.Create_NewPoint(AscDFH.historydescription_Document_CompositeInputReplace);
         _this.addCompositeText(nCharCode);
-
         _this.checkCurrentTextObjectExtends();
         _this.controller.recalculate();
-        _this.controller.recalculateCurPos();
+        _this.controller.recalculateCurPos(true, true);
         _this.controller.updateSelectionState();
     };
 
@@ -4545,6 +4544,7 @@ function DrawingObjects() {
         _this.removeCompositeText(nCount);
         _this.checkCurrentTextObjectExtends();
         _this.controller.recalculate();
+        _this.controller.recalculateCurPos(true, true);
         _this.controller.updateSelectionState();
     };
     _this.Replace_CompositeText = function(arrCharCodes)
@@ -4559,6 +4559,7 @@ function DrawingObjects() {
         }
         _this.checkCurrentTextObjectExtends();
 		_this.controller.startRecalculate();
+        _this.controller.recalculateCurPos(true, true);
         _this.controller.updateSelectionState();
     };
     _this.Set_CursorPosInCompositeText = function(nPos)
@@ -4569,6 +4570,7 @@ function DrawingObjects() {
 
         var nInRunPos = Math.max(Math.min(_this.CompositeInput.Pos + nPos, _this.CompositeInput.Pos + _this.CompositeInput.Length, oRun.Content.length), _this.CompositeInput.Pos);
         oRun.State.ContentPos = nInRunPos;
+        _this.controller.recalculateCurPos(true, true);
         _this.controller.updateSelectionState();
     };
     _this.Get_CursorPosInCompositeText = function()
@@ -4598,6 +4600,8 @@ function DrawingObjects() {
                 oTargetTextObject.recalculateContent();
             }
         }
+        
+        _this.controller.recalculateCurPos(true, true);
         _this.sendGraphicObjectProps();
         _this.showDrawingObjects(true);
     };

@@ -1595,6 +1595,7 @@ DrawingObjectsController.prototype =
                 this.recalculate();
                 var oContent = oShape.getDocContent();
                 oContent.Set_CurrentElement(0, true);
+                oContent.MoveCursorToStartPos(false);
                 this.updateSelectionState();
             }
         },[], false);

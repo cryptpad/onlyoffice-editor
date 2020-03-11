@@ -638,6 +638,7 @@ DrawingObjectsController.prototype.onKeyPress = function(e)
         var fCallback = function(){
             this.paragraphAdd( new ParaText(Code), false );
             this.checkMobileCursorPosition();
+            this.recalculateCurPos(true, true);
         };
         this.checkSelectedObjectsAndCallback(fCallback, [], false, AscDFH.historydescription_Spreadsheet_ParagraphAdd, undefined, window["Asc"]["editor"].collaborativeEditing.getFast());
 
@@ -649,6 +650,7 @@ DrawingObjectsController.prototype.onKeyPress = function(e)
         var fCallback = function(){
             this.paragraphAdd(new ParaSpace(1));
             this.checkMobileCursorPosition();
+            this.recalculateCurPos(true, true);
         };
         this.checkSelectedObjectsAndCallback(fCallback, [], false, AscDFH.historydescription_Spreadsheet_AddSpace, undefined, window["Asc"]["editor"].collaborativeEditing.getFast());
 
