@@ -1827,7 +1827,7 @@ CChartsDrawer.prototype =
 		}
 
 		//проверка на переход в другой диапазон из-за ограничения по высоте
-		if (!bIsManualStep) {
+		if (!bIsManualStep && !chartSpace.isSparkline) {
 			var props = {
 				arrayValues: arrayValues,
 				step: step,

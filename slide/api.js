@@ -5760,7 +5760,7 @@ background-repeat: no-repeat;\
 		//if ( true === CollaborativeEditing.Get_GlobalLock() )
 		//    return false;
 
-		var bCanAdd = this.WordControl.m_oLogicDocument.CanAddHyperlink();
+		var bCanAdd = this.WordControl.m_oLogicDocument.CanAddHyperlink(true);
 		if (true === bCanAdd)
 			return this.WordControl.m_oLogicDocument.GetSelectedText(true);
 

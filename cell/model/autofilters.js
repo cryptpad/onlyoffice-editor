@@ -886,7 +886,7 @@
 				return result;
 			},
 
-			getAddFormatTableOptions: function (activeCells, userRange) {
+			getAddFormatTableOptions: function (activeCells, userRange, isPivot) {
 				var res;
 
 				if (userRange) {
@@ -904,28 +904,45 @@
 					bIsInFilter = null;
 				}
 
-				if (null === bIsInFilter) {
-					if (activeCells.r1 == activeCells.r2 && activeCells.c1 == activeCells.c2 && !userRange)//если ячейка выделенная одна
-					{
-						addRange = this.expandRange(activeCells);
-					} else {
-						addRange = activeCells;
-					}
-				} else//range внутри а/ф или ф/т
-				{
-					if (bIsInFilter.isAutoFilter()) {
-						addRange = bIsInFilter.Ref;
-					} else {
-						res = false;
-					}
-				}
-
-				if (false !== res) {
+				if (isPivot) {
 					res = new AddFormatTableOptions();
+					res.asc_setIsTitle(false);
+					if (bIsInFilter && !bIsInFilter.isAutoFilter() && bIsInFilter.Ref.containsRange(activeCells)) {
+						res.asc_setRange(bIsInFilter.DisplayName);
+					} else {
+						if (activeCells.r1 == activeCells.r2 && activeCells.c1 == activeCells.c2 && !userRange)//если ячейка выделенная одна
+						{
+							addRange = this.expandRange(activeCells);
+						} else {
+							addRange = activeCells;
+						}
+						CT_pivotTableDefinition.prototype.prepareDataRange(this.worksheet, addRange);
+						res.asc_setRange(AscCommon.parserHelp.get3DRef(this.worksheet.getName(), addRange.getAbsName()));
+					}
+				} else {
+					if (null === bIsInFilter || isPivot) {
+						if (activeCells.r1 == activeCells.r2 && activeCells.c1 == activeCells.c2 && !userRange)//если ячейка выделенная одна
+						{
+							addRange = this.expandRange(activeCells);
+						} else {
+							addRange = activeCells;
+						}
+					} else//range внутри а/ф или ф/т
+					{
+						if (bIsInFilter.isAutoFilter()) {
+							addRange = bIsInFilter.Ref;
+						} else {
+							res = false;
+						}
+					}
 
-					var bIsTitle = this._isAddNameColumn(addRange);
-					res.asc_setIsTitle(bIsTitle);
-					res.asc_setRange(addRange.getAbsName());
+					if (false !== res) {
+						res = new AddFormatTableOptions();
+
+						var bIsTitle = this._isAddNameColumn(addRange);
+						res.asc_setIsTitle(bIsTitle);
+						res.asc_setRange(addRange.getAbsName());
+					}
 				}
 
 				return res;
@@ -2840,15 +2857,20 @@
 								cell = worksheet.getCell3(ref.r1, j);
 								val = props ? props.val : cell.getValueWithFormat();
 
-								//проверка на повторение уже существующих заголовков
-								if (checkRepeateColumnName(val, filter.TableColumns, j - tableRange.c1)) {
-									val = "";
-								}
-
 								//если не пустая изменяем TableColumns
 								var oldVal = filter.TableColumns[j - tableRange.c1].Name;
 								var newVal = null;
-								if (val != "" && intersection.c1 <= j && intersection.c2 >= j) {
+								//проверка на повторение уже существующих заголовков
+								if (val !== "" && checkRepeateColumnName(val, filter.TableColumns, j - tableRange.c1)) {
+									filter.TableColumns[j - tableRange.c1].Name = "";
+									generateName = this._generateNextColumnName(filter.TableColumns, val);
+									if (!bUndo) {
+										cell.setValue(generateName);
+										cell.setType(CellValueType.String);
+									}
+									filter.TableColumns[j - tableRange.c1].Name = generateName;
+									newVal = generateName;
+								} else if (val != "" && intersection.c1 <= j && intersection.c2 >= j) {
 									filter.TableColumns[j - tableRange.c1].Name = val;
 									if (!bUndo) {
 										//если пытаемся вбить формулу в заголовок - оставляем только результат
@@ -4455,10 +4477,10 @@
 						isSequence = true;
 				}
 
-				var name;
+				var name, i;
 				if(indexInsertColumn == undefined || !isSequence)
 				{
-					for(var i = 0; i < tableColumns.length; i++)
+					for(i = 0; i < tableColumns.length; i++)
 					{
 						if(tableColumns[i].Name)
 							name = tableColumns[i].Name.split("Column");
@@ -4477,18 +4499,37 @@
 					if(name && name[1] && !isNaN(parseFloat(name[1])))
 						index = parseFloat(name[1]) + 1;
 					
-					for(var i = 0; i < tableColumns.length; i++)
+					for(i = 0; i < tableColumns.length; i++)
 					{
 						if(tableColumns[i].Name)
 							name = tableColumns[i].Name.split("Column");
 						if(name && name[1] && !isNaN(parseFloat(name[1])) && index == parseFloat(name[1]))
 						{
-							index = parseInt((index - 1) + "2"); 
+							index = parseInt((index - 1) + "2");
 							i = -1;
 						}
 					}
 					return "Column" + index;
 				}
+			},
+
+			_generateNextColumnName: function(tableColumns, val)
+			{
+				var tableColumnMap = [];
+				for(var i = 0 ; i < tableColumns.length; i++) {
+					tableColumnMap[tableColumns[i].Name] = 1;
+				}
+				var res = val;
+				var index = 2;
+				while(true) {
+					if(tableColumnMap[res]) {
+						res = val + index;
+					} else {
+						break;
+					}
+					index++;
+				}
+				return res;
 			},
 			
 			//TODO убрать начеркивание

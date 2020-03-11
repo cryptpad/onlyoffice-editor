@@ -4458,8 +4458,22 @@ ParaRun.prototype.Recalculate_Range_Spaces = function(PRSA, _CurLine, _CurRange,
 				if (0 !== PageAbs && CurPage > ColumnAbs)
 					_CurPage = CurPage - ColumnAbs;
 
-				var ColumnStartX = (0 === CurPage ? Para.X_ColumnStart : Para.Pages[_CurPage].X     );
-				var ColumnEndX   = (0 === CurPage ? Para.X_ColumnEnd   : Para.Pages[_CurPage].XLimit);
+				var ColumnStartX, ColumnEndX;
+				if (0 === CurPage)
+				{
+					// Нужно обновлять, т.к. картинка могла быть внутри данного параграфа и она могла изменить
+					// позицию привязки, а при этом в функцию Para.Reset мы не зашли (баг #44739)
+					if (Para.Parent.RecalcInfo.Can_RecalcObject() && 0 === CurLine)
+						Para.private_RecalculateColumnLimits();
+
+					ColumnStartX = Para.X_ColumnStart;
+					ColumnEndX   = Para.X_ColumnEnd;
+				}
+				else
+				{
+					ColumnStartX = Para.Pages[_CurPage].X;
+					ColumnEndX   = Para.Pages[_CurPage].XLimit;
+				}
 
                 var Top_Margin    = Y_Top_Margin;
                 var Bottom_Margin = Y_Bottom_Margin;

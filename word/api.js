@@ -9558,6 +9558,26 @@ background-repeat: no-repeat;\
 		return sRet;
 	};
 
+	asc_docs_api.prototype.asc_addDateTime = function(oPr)
+	{
+		var sTextForCheck = null;
+		if (!oPr.get_Update())
+			sTextForCheck = oPr.get_String();
+
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (sTextForCheck)
+		{
+			AscFonts.FontPickerByCharacter.checkText(sTextForCheck, this, function()
+			{
+				oLogicDocument.AddDateTime(oPr);
+			});
+		}
+		else
+		{
+			oLogicDocument.AddDateTime(oPr);
+		}
+	};
+
 	asc_docs_api.prototype.asc_AddObjectCaption = function(oPr)
 	{
 		var oLogicDocument = this.private_GetLogicDocument();
@@ -10787,6 +10807,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_ParseTableFormulaInstrLine']            = asc_docs_api.prototype.asc_ParseTableFormulaInstrLine;
 	asc_docs_api.prototype['asc_CreateInstructionLine']                 = asc_docs_api.prototype.asc_CreateInstructionLine;
 
+	asc_docs_api.prototype["asc_addDateTime"]                           = asc_docs_api.prototype.asc_addDateTime;
 
 	asc_docs_api.prototype['asc_AddObjectCaption']                      = asc_docs_api.prototype.asc_AddObjectCaption;
 

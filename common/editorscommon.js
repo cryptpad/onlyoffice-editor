@@ -2867,6 +2867,24 @@
 				}
 			}
 		}
+		else if(Asc.c_oAscSelectionDialogType.PivotTableData === dialogType || Asc.c_oAscSelectionDialogType.PivotTableReport === dialogType)
+		{
+			result = parserHelp.parse3DRef(dataRange);
+			if (result)
+			{
+				sheetModel = model.getWorksheetByName(result.sheet);
+				if (sheetModel)
+				{
+					range = AscCommonExcel.g_oRangeCache.getAscRange(result.range);
+				}
+			}
+			if (!range) {
+				range = AscCommon.rx_defName.test(dataRange);
+			}
+			if (!range) {
+				range = parserHelp.isTable(dataRange, 0, true);
+			}
+		}
 		else
 			range = AscCommonExcel.g_oRangeCache.getAscRange(dataRange);
 
@@ -2932,6 +2950,22 @@
 				checkChangeRange = wb.getWorksheet().checkCustomSortRange(range, isRows);
 				if (null !== checkChangeRange)
 					return checkChangeRange;
+			}
+			else if (Asc.c_oAscSelectionDialogType.PivotTableData === dialogType)
+			{
+				if (!Asc.CT_pivotTableDefinition.prototype.isValidDataRef(dataRange)) {
+					return c_oAscError.ID.PivotLabledColumns;
+				}
+			}
+			else if (Asc.c_oAscSelectionDialogType.PivotTableReport === dialogType)
+			{
+				var location = Asc.CT_pivotTableDefinition.prototype.parseDataRef(dataRange);
+				if (location) {
+					var newRange = new Asc.Range(location.bbox.c1, location.bbox.r1, location.bbox.c1 + AscCommonExcel.NEW_PIVOT_LAST_COL_OFFSET, location.bbox.r1 + AscCommonExcel.NEW_PIVOT_LAST_ROW_OFFSET);
+					return location.ws.checkPivotReportLocationForError([newRange]);
+				} else {
+					return Asc.c_oAscError.ID.DataRangeError
+				}
 			}
 		}
 		return Asc.c_oAscError.ID.No;
@@ -5104,6 +5138,28 @@
 		return this.mapTranslate.hasOwnProperty(key) ? this.mapTranslate[key] : key;
 	};
 	//------------------------------------------------------------fill polyfill--------------------------------------------
+	if (!Array.prototype.findIndex) {
+		Array.prototype.findIndex = function(predicate) {
+			if (this == null) {
+				throw new TypeError('Array.prototype.findIndex called on null or undefined');
+			}
+			if (typeof predicate !== 'function') {
+				throw new TypeError('predicate must be a function');
+			}
+			var list = Object(this);
+			var length = list.length >>> 0;
+			var thisArg = arguments[1];
+			var value;
+
+			for (var i = 0; i < length; i++) {
+				value = list[i];
+				if (predicate.call(thisArg, value, i, list)) {
+					return i;
+				}
+			}
+			return -1;
+		};
+	}
 	if (!Array.prototype.fill) {
 		Object.defineProperty(Array.prototype, 'fill', {
 			value: function(value) {

@@ -2023,6 +2023,82 @@
 		this.Document = null;
 	}
 
+	function CAscDateTime()
+	{
+		this.Format = null;
+		this.Update = true;
+		this.Lang   = null;
+	}
+	window['Asc']['CAscDateTime'] = window['Asc'].CAscDateTime = CAscDateTime;
+	CAscDateTime.prototype['get_Format'] = CAscDateTime.prototype.get_Format = function()
+	{
+		return this.Format;
+	};
+	CAscDateTime.prototype['put_Format'] = CAscDateTime.prototype.put_Format = function(v)
+	{
+		this.Format = v;
+	};
+	CAscDateTime.prototype['get_Update']  = CAscDateTime.prototype.get_Update = function()
+	{
+		return this.Update;
+	};
+	CAscDateTime.prototype['put_Update']  = CAscDateTime.prototype.put_Update = function(v)
+	{
+		this.Update = v;
+	};
+	CAscDateTime.prototype['get_Lang'] = CAscDateTime.prototype.get_Lang = function()
+	{
+		return this.Lang;
+	};
+	CAscDateTime.prototype['put_Lang'] = CAscDateTime.prototype.put_Lang = function(v)
+	{
+		this.Lang = v;
+	};
+	CAscDateTime.prototype['get_FormatsExamples'] = CAscDateTime.prototype.get_FormatsExamples = function()
+	{
+		// TODO: Сдесь форматы для английского языка, надо добавить остальные
+		return [
+			"M/d/yyyy",
+			"dddd, MMMM d, yyyy",
+			"MMMM d, yyyy",
+			"M/d/yy",
+			"yyyy-MM-dd",
+			"d-MMM-yy",
+			"M.d.yyyy",
+			"MMM. d, yy",
+			"d MMMM yyyy",
+			"MMMM yy",
+			"MMM-yy",
+			"M/d/yyyy h:mm am/pm",
+			"M/d/yyyy h:mm:ss am/pm",
+			"h:mm am/pm",
+			"h:mm:ss am/pm",
+			"HH:mm",
+			"HH:mm:ss"
+		];
+	};
+	CAscDateTime.prototype["get_String"] = CAscDateTime.prototype.get_String = function(sFormat, sDate, nLangId)
+	{
+		if (undefined === sFormat)
+			sFormat = this.Format;
+
+		if (undefined === nLangId)
+			nLangId = this.Lang;
+
+		var oFormat = AscCommon.oNumFormatCache.get(sFormat, AscCommon.NumFormatType.WordFieldDate);
+		if (oFormat)
+		{
+			var oCultureInfo = AscCommon.g_aCultureInfos[nLangId];
+			if (!oCultureInfo)
+				oCultureInfo = AscCommon.g_aCultureInfos[1033];
+
+			var oDateTime = sDate ? new Asc.cDate(sDate) : new Asc.cDate();
+			return oFormat.formatToWord(oDateTime.getExcelDate() + (oDateTime.getHours() * 60 * 60 + oDateTime.getMinutes() * 60 + oDateTime.getSeconds()) / AscCommonExcel.c_sPerDay, 15, oCultureInfo);
+		}
+
+		return sDate;
+	};
+
 	window['Asc']['CAscCaptionProperties'] = window['Asc'].CAscCaptionProperties = CAscCaptionProperties;
 	var prot = CAscCaptionProperties.prototype;
 	prot.get_Name = prot["get_Name"] = function(){return this.Name;};

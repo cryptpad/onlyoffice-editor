@@ -3262,6 +3262,38 @@
 		this.getWorksheet()._updateGroups(true);
 		this.getWorksheet()._updateGroups(null);
 	};
+	WorkbookView.prototype.pasteSheet = function (base64, insertBefore, name, callback) {
+
+		var t = this;
+		var tempWorkbook = new AscCommonExcel.Workbook();
+		tempWorkbook.setCommonIndexObjectsFrom(this.model);
+		var pasteProcessor = AscCommonExcel.g_clipboardExcel.pasteProcessor;
+		var aPastedImages = pasteProcessor._readExcelBinary(base64.split('xslData;')[1], tempWorkbook, true);
+		var pastedWs = tempWorkbook.aWorksheets[0];
+		var newFonts = {};
+		newFonts = tempWorkbook.generateFontMap2();
+		newFonts = pasteProcessor._convertFonts(newFonts);
+		for (var i = 0; i < pastedWs.Drawings.length; i++) {
+			pastedWs.Drawings[i].graphicObject.getAllFonts(newFonts);
+		}
+
+		var doCopy = function() {
+			History.Create_NewPoint();
+			var renameParams = t.model.copyWorksheet(0, insertBefore, name, undefined, undefined, undefined, pastedWs);
+			callback(renameParams);
+		};
+
+		var api = window["Asc"]["editor"];
+		api._loadFonts(newFonts, function () {
+			if (aPastedImages && aPastedImages.length) {
+				pasteProcessor._loadImagesOnServer(aPastedImages, function () {
+					doCopy();
+				});
+			} else {
+				doCopy();
+			}
+		});
+	};
 
   //------------------------------------------------------------export---------------------------------------------------
   window['AscCommonExcel'] = window['AscCommonExcel'] || {};

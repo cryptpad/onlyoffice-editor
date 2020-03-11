@@ -422,6 +422,7 @@ CComplexField.prototype.Update = function(isCreateHistoryPoint, isNeedRecalculat
 			this.private_UpdateSTYLEREF();
 			break;
 		case fieldtype_TIME:
+		case fieldtype_DATE:
 			this.private_UpdateTIME();
 			break;
 
@@ -470,6 +471,7 @@ CComplexField.prototype.CalculateValue = function()
 			sResult = this.private_CalculateSTYLEREF();
 			break;
 		case fieldtype_TIME:
+		case fieldtype_DATE:
 			sResult = this.private_CalculateTIME();
 			break;
 	}
@@ -864,7 +866,7 @@ CComplexField.prototype.private_CalculateTIME = function()
 	}
 
 	var sFormat = this.Instruction.GetFormat();
-	var oFormat = AscCommon.oNumFormatCache.get(sFormat);
+	var oFormat = AscCommon.oNumFormatCache.get(sFormat, AscCommon.NumFormatType.WordFieldDate);
 	var sDate   = "";
 	if (oFormat)
 	{

@@ -399,6 +399,7 @@ Paragraph.prototype.Recalculate_Page = function(CurPage)
     this.FontMap.NeedRecalc = true;
 
     this.Internal_CheckSpelling();
+    this.RecalculateEndInfo();
 
     var RecalcResult = this.private_RecalculatePage( CurPage );
 
@@ -1469,14 +1470,28 @@ Paragraph.prototype.private_RecalculateLinePosition    = function(CurLine, CurPa
 			Bottom = this.YLimit;
 	}
 
-    // Верхнюю границу мы сохраняем только для первой строки данной страницы
+	this.Lines[CurLine].Top    = Top    - this.Pages[CurPage].Y;
+	this.Lines[CurLine].Bottom = Bottom - this.Pages[CurPage].Y;
+
+	// В MSWord версиях 14 и ниже пустая строка с переносом колонки не имеет высоты
+	// Заметим, что границы строки мы оставляем корректными
+	if (this.LogicDocument
+		&& this.LogicDocument.GetCompatibilityMode
+		&& this.LogicDocument.GetCompatibilityMode() <= document_compatibility_mode_Word14
+		&& this.Lines[CurLine].Info & paralineinfo_BreakPage
+		&& this.Lines[CurLine].Info & paralineinfo_Empty
+		&& !(this.Lines[CurLine].Info & paralineinfo_BreakRealPage))
+	{
+		Bottom  = Top;
+		Top2    = Top;
+		Bottom2 = Top;
+	}
+
+	// Верхнюю границу мы сохраняем только для первой строки данной страницы
     if (CurLine === this.Pages[CurPage].FirstLine && !(this.Lines[CurLine].Info & paralineinfo_RangeY))
         this.Pages[CurPage].Bounds.Top = Top;
 
     this.Pages[CurPage].Bounds.Bottom = Bottom;
-
-    this.Lines[CurLine].Top    = Top    - this.Pages[CurPage].Y;
-    this.Lines[CurLine].Bottom = Bottom - this.Pages[CurPage].Y;
 
     PRS.LineTop        = AscCommon.CorrectMMToTwips(Top);
     PRS.LineBottom     = AscCommon.CorrectMMToTwips(Bottom);

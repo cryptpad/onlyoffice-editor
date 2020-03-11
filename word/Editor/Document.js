@@ -2411,6 +2411,11 @@ CDocument.prototype.On_EndLoad                     = function()
 };
 CDocument.prototype.private_UpdateFieldsOnEndLoad = function()
 {
+	return;
+
+	// TODO: Из-за совместки мы не можем обновлять текущую дату таким образом при открытии, нам нужно, чтобы
+	//       дату для обновления присылал сервер
+
 	var arrHdrFtrs = this.SectionsInfo.GetAllHdrFtrs();
 	for (var nIndex = 0, nCount = arrHdrFtrs.length; nIndex < nCount; ++nIndex)
 	{
@@ -19681,6 +19686,38 @@ CDocument.prototype.AddFieldWithInstruction = function(sInstruction)
     oComplexField.SetEndChar(oEndChar);
     oComplexField.Update(false);
     return oComplexField;
+};
+CDocument.prototype.AddDateTime = function(oPr)
+{
+	if (!oPr)
+		return;
+
+	var nLang = oPr.get_Lang();
+	if (!AscFormat.isRealNumber(nLang))
+		nLang = 1033;
+
+	if (oPr.get_Update())
+	{
+		if (!this.Document_Is_SelectionLocked(AscCommon.changestype_Paragraph_Content))
+		{
+			this.StartAction(AscDFH.historydescription_Document_AddDateTimeField);
+
+			var oComplexField = this.AddFieldWithInstruction("TIME \\@ \"" + oPr.get_Format() + "\"");
+
+			var oBeginChar = oComplexField.GetBeginChar();
+			var oRun       = oBeginChar.GetRun();
+			oRun.Set_Lang_Val(nLang);
+
+			this.Recalculate();
+			this.UpdateInterface();
+			this.UpdateSelection();
+			this.FinalizeAction();
+		}
+	}
+	else
+	{
+		this.AddTextWithPr(oPr.get_String(), {Lang : {Val : nLang}}, true);
+	}
 };
 
 CDocument.prototype.private_CreateComplexFieldRun = function(sInstruction, oParagraph)
