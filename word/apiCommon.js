@@ -2044,7 +2044,7 @@
 	};
 	CAscDateTime.prototype['put_Update']  = CAscDateTime.prototype.put_Update = function(v)
 	{
-		this.put_Update = v;
+		this.Update = v;
 	};
 	CAscDateTime.prototype['get_Lang'] = CAscDateTime.prototype.get_Lang = function()
 	{
@@ -2092,7 +2092,7 @@
 			if (!oCultureInfo)
 				oCultureInfo = AscCommon.g_aCultureInfos[1033];
 
-			var oDateTime = new Asc.cDate(sDate);
+			var oDateTime = sDate ? new Asc.cDate(sDate) : new Asc.cDate();
 			return oFormat.formatToWord(oDateTime.getExcelDate() + (oDateTime.getHours() * 60 * 60 + oDateTime.getMinutes() * 60 + oDateTime.getSeconds()) / AscCommonExcel.c_sPerDay, 15, oCultureInfo);
 		}
 
