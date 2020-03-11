@@ -1138,7 +1138,7 @@
 					}
 				}
 			}
-			for (var index in this.buildArrayFormula) {
+			for (var index = 0; index < this.buildArrayFormula.length; ++index) {
 				var parsed = this.buildArrayFormula[index];
 				if (parsed) {
 					parsed.parse();
