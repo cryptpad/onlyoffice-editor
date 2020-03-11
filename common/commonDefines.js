@@ -201,6 +201,8 @@
 			LockCreateDefName      : -311,
 
 			LockedCellPivot				: -312,
+			PivotLabledColumns			: -313,
+			PivotOverlap				: -314,
 
 			ForceSaveButton: -331,
 			ForceSaveTimeout: -332,
