@@ -4138,7 +4138,14 @@ function DrawingObjects() {
             var drawingObject = aObjects[i];
 
             if ( drawingObject.isChart() ) {
-                return new asc_CChartBinary(drawingObject.graphicObject);
+                var oChartSpace = drawingObject.graphicObject;
+                if(!oChartSpace.recalcInfo.recalculateTransform) {
+                    if(oChartSpace.spPr && oChartSpace.spPr.xfrm) {
+                        oChartSpace.spPr.xfrm.extX = oChartSpace.extX;
+                        oChartSpace.spPr.xfrm.extY = oChartSpace.extY;
+                    }
+                }
+                return new asc_CChartBinary(oChartSpace);
             }
         }
         return null;
