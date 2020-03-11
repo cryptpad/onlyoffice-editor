@@ -3144,6 +3144,10 @@ var editor;
           var d = ws.changeSelectionStartPoint(dc, dr);
           this.controller.scroll(d);
           this.spellcheckState.lockSpell = false;
+          if(this.spellcheckState.afterReplace) {
+            History.EndTransaction();
+            this.spellcheckState.afterReplace = false;
+          }
         }
         this.spellcheckState.isStart = true;
         this.spellcheckState.wordsIndex = e["wordsIndex"];
@@ -3257,7 +3261,6 @@ var editor;
           break;
         }
       }
-      this.spellcheckState.afterReplace = afterReplace;
       this.spellcheckState.lastIndex = lastIndex;
       this.SpellCheck_CallBack(this.spellcheckState.lastSpellInfo);
       return;
@@ -3417,7 +3420,6 @@ var editor;
           t.spellcheckState.lastIndex = 0;
           t.spellcheckState.cellText = t.asc_getCellInfo().text;
           t.asc_nextWord();
-          History.EndTransaction();
           return;
         }
         t.spellcheckState.lockSpell = false;
