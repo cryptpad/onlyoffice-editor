@@ -2666,7 +2666,7 @@
 		}
 		return false;
 	};
-	parserHelper.prototype.isName = function (formula, start_pos, wb, ws)
+	parserHelper.prototype.isName = function (formula, start_pos)
 	{
 		if (this instanceof parserHelper)
 		{
@@ -2679,7 +2679,7 @@
 		if (match != null)
 		{
 			var name = match["name"];
-			if (name && 0 !== name.length && name.toUpperCase() !== cBoolLocal.t && name.toUpperCase() !== cBoolLocal.f/*&& wb.DefinedNames && wb.isDefinedNamesExists( name, ws ? ws.getId() : null )*/)
+			if (name && 0 !== name.length && name.toUpperCase() !== cBoolLocal.t && name.toUpperCase() !== cBoolLocal.f)
 			{
 				this.pCurrPos += name.length;
 				this.operand_str = name;

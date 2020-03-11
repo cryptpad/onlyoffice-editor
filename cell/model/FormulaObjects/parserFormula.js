@@ -6111,7 +6111,7 @@ function parserFormula( formula, parent, _ws ) {
 				}
 			}
 
-			/* Referens to DefinedNames */ else if (parserHelp.isName.call(ph, t.Formula, ph.pCurrPos, t.wb, t.ws)[0]) {
+			/* Referens to DefinedNames */ else if (parserHelp.isName.call(ph, t.Formula, ph.pCurrPos)[0]) {
 
 				if (ph.operand_str.length > g_nFormulaStringMaxLength && !ignoreErrors) {
 					//TODO стоит добавить новую ошибку
@@ -6435,9 +6435,15 @@ function parserFormula( formula, parent, _ws ) {
 
 	/* Для обратной сборки функции иногда необходимо поменять ссылки на ячейки */
 	parserFormula.prototype.changeOffset = function (offset, canResize, nChangeTable) {//offset = AscCommon.CellBase
-		for (var i = 0; i < this.outStack.length; i++) {
-			this._changeOffsetElem(this.outStack[i], this.outStack, i, offset, canResize, nChangeTable);
-		}
+		var t = this;
+		//временно комментирую из-за проблемы: при сборке формулы после обработки данной функцией в режиме R1c1
+		///мы получаем вид A1. необходимо пересмотреть все функции toString/toLocaleString где возвращается value
+		//+ парсинг на endTransaction запускается в режиме r1c1
+		//AscCommonExcel.executeInR1C1Mode(false, function () {
+			for (var i = 0; i < t.outStack.length; i++) {
+				t._changeOffsetElem(t.outStack[i], t.outStack, i, offset, canResize, nChangeTable);
+			}
+		//});
 		return this;
 	};
 	parserFormula.prototype._changeOffsetElem = function(elem, container, index, offset, canResize, nChangeTable) {//offset =

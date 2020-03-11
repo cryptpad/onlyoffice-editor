@@ -8980,14 +8980,6 @@
             var oRes = this.bcr.ReadTable(function(t, l){
                 return oThis.ReadOtherContent(t,l);
             });
-            if(!this.copyPasteObj || !this.copyPasteObj.isCopyPaste) {
-                this.wb.clrSchemeMap = AscFormat.GenerateDefaultColorMap();
-                if(null == this.wb.theme)
-                    this.wb.theme = AscFormat.GenerateDefaultTheme(this.wb, 'Calibri');
-
-                Asc.getBinaryOtherTableGVar(this.wb);
-            }
-
             return oRes;
         };
         this.ReadOtherContent = function(type, length)
@@ -9412,6 +9404,13 @@
                 res = this.stream.Seek(nOtherTableOffset);
                 if(c_oSerConstants.ReadOk == res)
                     res = (new Binary_OtherTableReader(this.stream, oMediaArray, wb)).Read();
+            }
+            if(!this.copyPasteObj || !this.copyPasteObj.isCopyPaste) {
+                wb.clrSchemeMap = AscFormat.GenerateDefaultColorMap();
+                if(null == wb.theme)
+                    wb.theme = AscFormat.GenerateDefaultTheme(wb, 'Calibri');
+
+                Asc.getBinaryOtherTableGVar(wb);
             }
             if(null != nSharedStringTableOffset)
             {

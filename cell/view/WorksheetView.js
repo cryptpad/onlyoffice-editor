@@ -3627,7 +3627,7 @@
 
         var graphics = ctx && ctx.DocumentRenderer ? ctx.DocumentRenderer : this.handlers.trigger('getMainGraphics');
 
-		var fontSize = c.getFont().fs;
+		var fontSize = c.getFont().getSize();
 		var cellValue = c.getNumberValue();
 		width -= 2; // indent
 
@@ -8709,7 +8709,6 @@
         var isNumberFormat = (!cellType || CellValueType.Number === cellType);
 
         var cell_info = new asc_CCellInfo();
-        cell_info.formula = c.getFormula();
 
 		AscCommonExcel.g_ActiveCell = new Asc.Range(c1, r1, c1, r1);
         cell_info.text = c.getValueForEdit(true);
@@ -10928,7 +10927,7 @@
                         if (val && val.hyperlinkModel) {
                             if (Asc.c_oAscHyperlinkType.RangeLink === val.asc_getType()) {
 								val.hyperlinkModel._updateLocation();
-                                if (null === val.hyperlinkModel.LocationRangeBbox) {
+                                if (null === val.hyperlinkModel.LocationRangeBbox && null !== val.hyperlinkModel.LocationSheet) {
                                     bIsUpdate = false;
                                     break;
                                 }
@@ -18653,6 +18652,8 @@
 			return;
 		}
 
+		var viewMode = this.handlers.trigger('getViewMode');
+
 		//при закрытии группы всем внутренним строкам проставляется hidden
 		//при открытии группы проходимся по всем строкам и открываем только те, которые не закрыты внутренними группами
 		//а для тех что закрыты внутренними группами - ещё раз скрыаем их
@@ -18671,7 +18672,13 @@
 				return;
 			}
 
+			if (viewMode) {
+				History.TurnOff();
+			}
 			asc_applyFunction(functionModelAction);
+			if (viewMode) {
+				History.TurnOn();
+			}
 
 			if(bCol) {
 				t._updateAfterChangeGroup(undefined, null, true);
@@ -18755,11 +18762,17 @@
 				t.model.workbook.dependencyFormulas.unlockRecal();
 			}
 		};
-		this._isLockedAll(onChangeWorksheetCallback);
+		if(viewMode) {
+			onChangeWorksheetCallback();
+		} else {
+			this._isLockedAll(onChangeWorksheetCallback);
+		}
+
 	};
 
 	WorksheetView.prototype.hideGroupLevel = function (level, bCol) {
 
+		var viewMode = this.handlers.trigger('getViewMode');
 		var t = this, groupArr;
 		if(bCol) {
 			groupArr = this.arrColGroups ? this.arrColGroups.groupArr : null;
@@ -18782,7 +18795,13 @@
 				return;
 			}
 
+			if (viewMode) {
+				History.TurnOff();
+			}
 			asc_applyFunction(callback);
+			if (viewMode) {
+				History.TurnOn();
+			}
 
 			if(bCol) {
 				t._updateAfterChangeGroup(undefined, null, true);
@@ -18853,7 +18872,11 @@
 			}
 		};
 
-		this._isLockedAll(onChangeWorksheetCallback);
+		if(viewMode) {
+			onChangeWorksheetCallback();
+		} else {
+			this._isLockedAll(onChangeWorksheetCallback);
+		}
 	};
 
 	WorksheetView.prototype.changeGroupDetails = function (bExpand) {
