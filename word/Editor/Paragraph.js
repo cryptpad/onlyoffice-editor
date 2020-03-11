@@ -1297,11 +1297,11 @@ Paragraph.prototype.Check_MathPara = function(MathPos)
 
 	return true;
 };
-Paragraph.prototype.GetEndInfo = function()
+Paragraph.prototype.RecalculateEndInfo = function()
 {
 	var oLogicDocument = this.GetLogicDocument();
 	if (oLogicDocument && this.EndInfoRecalcId === oLogicDocument.GetRecalcId())
-		return this.EndInfo;
+		return;
 
 	var oPRSI     = this.m_oPRSI;
 	var oPrevInfo = this.Parent.GetPrevElementEndInfo(this);
@@ -1316,7 +1316,9 @@ Paragraph.prototype.GetEndInfo = function()
 
 	if (oLogicDocument)
 		this.EndInfoRecalcId = oLogicDocument.GetRecalcId();
-
+};
+Paragraph.prototype.GetEndInfo = function()
+{
 	return this.EndInfo;
 };
 Paragraph.prototype.GetEndInfoByPage = function(CurPage)

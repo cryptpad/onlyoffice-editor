@@ -399,6 +399,7 @@ Paragraph.prototype.Recalculate_Page = function(CurPage)
     this.FontMap.NeedRecalc = true;
 
     this.Internal_CheckSpelling();
+    this.RecalculateEndInfo();
 
     var RecalcResult = this.private_RecalculatePage( CurPage );
 
