@@ -354,17 +354,19 @@
 
 		for(var i = 0; i < winElems.length; i++){
 			for(var j in winElems[i]){
-				if(true === usuallyAddElems[j] || cElementType.empty === needDataColumn[j].type){
-					continue;
-				}
+				if (winElems[i].hasOwnProperty(j)) {
+					if(true === usuallyAddElems[j] || cElementType.empty === needDataColumn[j].type){
+						continue;
+					}
 
-				if(bIsGetObjArray){
-					resArr.push(needDataColumn[j]);
-				}else{
-					resArr.push(needDataColumn[j].getValue());
-				}
+					if(bIsGetObjArray){
+						resArr.push(needDataColumn[j]);
+					}else{
+						resArr.push(needDataColumn[j].getValue());
+					}
 
-				usuallyAddElems[j] = true;
+					usuallyAddElems[j] = true;
+				}
 			}
 		}
 

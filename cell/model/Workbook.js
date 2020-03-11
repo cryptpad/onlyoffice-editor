@@ -4199,9 +4199,11 @@
 
 				for (var key in this.workbook.aWorksheets)
 				{
-					var wsModel = this.workbook.aWorksheets[key];
-					if ( wsModel )
-						wsModel.oDrawingOjectsManager.updateChartReferencesWidthHistory(_lastName, _newName, true);
+					if (this.workbook.aWorksheets.hasOwnProperty(key)) {
+						var wsModel = this.workbook.aWorksheets[key];
+						if ( wsModel )
+							wsModel.oDrawingOjectsManager.updateChartReferencesWidthHistory(_lastName, _newName, true);
+					}
 				}
 			}
 			this.workbook.dependencyFormulas.calcTree();
