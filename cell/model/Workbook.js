@@ -6509,7 +6509,7 @@
 				var cells = this.getRange4(pos.row, pos.col);
 				this._updatePivotTableSetCellValue(cells, pivotTable.getPageFieldName(i));
 				cells = this.getRange4(pos.row, pos.col + 1);
-				this._updatePivotTableSetCellValue(cells, '(All)');
+				this._updatePivotTableSetCellValue(cells, AscCommon.translateManager.getValue(AscCommonExcel.PAGE_ALL_CAPTION));
 			}
 		}
 	};
@@ -6538,7 +6538,7 @@
 		if (pivotTable.showHeaders && colFields) {
 			cells = this.getRange4(pivotRange.r1, pivotRange.c1 + location.firstDataCol);
 			if (pivotTable.compact) {
-				this._updatePivotTableSetCellValue(cells, pivotTable.colHeaderCaption || AscCommonExcel.COL_HEADER_CAPTION);
+				this._updatePivotTableSetCellValue(cells, pivotTable.colHeaderCaption || AscCommon.translateManager.getValue(AscCommonExcel.COL_HEADER_CAPTION));
 			} else {
 				var offset = new AscCommon.CellBase(0, 1);
 				for (var i = 0; i < colFields.length; ++i) {
@@ -6546,7 +6546,7 @@
 					if (AscCommonExcel.st_VALUES !== index) {
 						this._updatePivotTableSetCellValue(cells, pivotFields[index].asc_getName() || cacheFields[index].asc_getName());
 					} else {
-						this._updatePivotTableSetCellValue(cells, pivotTable.dataCaption || AscCommonExcel.DATA_CAPTION);
+						this._updatePivotTableSetCellValue(cells, pivotTable.dataCaption || AscCommon.translateManager.getValue(AscCommonExcel.DATA_CAPTION));
 					}
 					cells.setOffset(offset);
 				}
@@ -6604,7 +6604,7 @@
 					oCellValue = new AscCommonExcel.CCellValue();
 					oCellValue.type = AscCommon.CellValueType.String;
 					if (-1 === valuesIndex) {
-						oCellValue.text = pivotTable.grandTotalCaption || AscCommonExcel.GRAND_TOTAL_CAPTION;
+						oCellValue.text = pivotTable.grandTotalCaption || AscCommon.translateManager.getValue(AscCommonExcel.GRAND_TOTAL_CAPTION);
 					} else {
 						oCellValue.text = AscCommonExcel.ToName_ST_ItemType(item.t);
 						oCellValue.text += ' ' + pivotTable.getDataFieldName(item.i);
@@ -6652,9 +6652,9 @@
 		if (pivotTable.showHeaders) {
 			if (pivotTable.compact || location.firstDataCol !== rowFields.length) {
 				if(1 === rowFields.length && AscCommonExcel.st_VALUES === rowFields[0].asc_getIndex()){
-					this._updatePivotTableSetCellValue(this.getRange4(r1, c1), pivotTable.dataCaption || AscCommonExcel.DATA_CAPTION);
+					this._updatePivotTableSetCellValue(this.getRange4(r1, c1), pivotTable.dataCaption || AscCommon.translateManager.getValue(AscCommonExcel.DATA_CAPTION));
 				} else {
-					this._updatePivotTableSetCellValue(this.getRange4(r1, c1), pivotTable.rowHeaderCaption || AscCommonExcel.ROW_HEADER_CAPTION);
+					this._updatePivotTableSetCellValue(this.getRange4(r1, c1), pivotTable.rowHeaderCaption || AscCommon.translateManager.getValue(AscCommonExcel.ROW_HEADER_CAPTION));
 				}
 			} else {
 				cells = this.getRange4(r1, c1);
@@ -6662,7 +6662,7 @@
 				if (AscCommonExcel.st_VALUES !== index) {
 					this._updatePivotTableSetCellValue(cells, pivotTable.getPivotFieldName(index));
 				} else {
-					this._updatePivotTableSetCellValue(cells, pivotTable.dataCaption || AscCommonExcel.DATA_CAPTION);
+					this._updatePivotTableSetCellValue(cells, pivotTable.dataCaption || AscCommon.translateManager.getValue(AscCommonExcel.DATA_CAPTION));
 				}
 			}
 		}
@@ -6683,7 +6683,7 @@
 					if (AscCommonExcel.st_VALUES !== index) {
 						this._updatePivotTableSetCellValue(cells, pivotTable.getPivotFieldName(index));
 					} else {
-						this._updatePivotTableSetCellValue(cells, pivotTable.dataCaption || AscCommonExcel.DATA_CAPTION);
+						this._updatePivotTableSetCellValue(cells, pivotTable.dataCaption || AscCommon.translateManager.getValue(AscCommonExcel.DATA_CAPTION));
 					}
 				}
 			}

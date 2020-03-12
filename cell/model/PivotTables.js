@@ -298,6 +298,8 @@ var DATA_CAPTION = 'Values';
 var GRAND_TOTAL_CAPTION = 'Grand Total';
 var ROW_HEADER_CAPTION = 'Row Labels';
 var COL_HEADER_CAPTION = 'Column Labels';
+var PAGE_ALL_CAPTION = '(All)';
+var FIELD_CAPTION = '%1 of %2';
 var NEW_PIVOT_LAST_COL_OFFSET = 2;
 var NEW_PIVOT_LAST_ROW_OFFSET = 17;
 var NEW_PIVOT_ROW = 2;
@@ -3616,8 +3618,9 @@ CT_pivotTableDefinition.prototype.addDataField = function(pivotIndex, insertInde
 	if (!this.dataFields) {
 		this.dataFields = new CT_DataFields();
 	}
-
-	var newName = ToName_ST_DataConsolidateFunction(newField.subtotal) + " of " + this.getPivotFieldName(pivotIndex);
+	//todo translation
+	var newName = AscCommon.translateManager.getValue(FIELD_CAPTION);
+	newName = newName.replace("%1", ToName_ST_DataConsolidateFunction(newField.subtotal)).replace("%2", this.getPivotFieldName(pivotIndex));
 	if (this.dataFields.checkDuplicateName(newName)) {
 		var lastChar = newName.slice(-1);
 		var delimiter = "";
@@ -4034,7 +4037,7 @@ CT_pivotTableDefinition.prototype.asc_create = function(ws, name, cacheDefinitio
 	this.applyPatternFormats = false;
 	this.applyAlignmentFormats = false;
 	this.applyWidthHeightFormats = true;
-	this.dataCaption = DATA_CAPTION;
+	this.dataCaption = AscCommon.translateManager.getValue(DATA_CAPTION);
 	this.useAutoFormatting = true;
 	this.itemPrintTitles = true;
 	this.indent = 0;
@@ -12716,6 +12719,7 @@ window['AscCommonExcel'].DATA_CAPTION = DATA_CAPTION;
 window['AscCommonExcel'].GRAND_TOTAL_CAPTION = GRAND_TOTAL_CAPTION;
 window['AscCommonExcel'].ROW_HEADER_CAPTION = ROW_HEADER_CAPTION;
 window['AscCommonExcel'].COL_HEADER_CAPTION = COL_HEADER_CAPTION;
+window['AscCommonExcel'].PAGE_ALL_CAPTION = PAGE_ALL_CAPTION;
 window['AscCommonExcel'].NEW_PIVOT_LAST_COL_OFFSET = NEW_PIVOT_LAST_COL_OFFSET;
 window['AscCommonExcel'].NEW_PIVOT_LAST_ROW_OFFSET = NEW_PIVOT_LAST_ROW_OFFSET;
 window['AscCommonExcel'].NEW_PIVOT_ROW = NEW_PIVOT_ROW;
