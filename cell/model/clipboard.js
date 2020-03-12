@@ -2038,8 +2038,12 @@
 					drawingObject.graphicObject.setWorksheet(ws.model);
 
 					drawingObject.graphicObject.checkRemoveCache && drawingObject.graphicObject.checkRemoveCache();
-					drawingObject.graphicObject.checkExtentsByDocContent &&
-					drawingObject.graphicObject.checkExtentsByDocContent();
+					if(drawingObject.graphicObject.checkExtentsByDocContent) {
+						if (drawingObject.graphicObject.checkDrawingBaseCoords) {
+							drawingObject.graphicObject.checkDrawingBaseCoords();
+						}
+						drawingObject.graphicObject.checkExtentsByDocContent();
+					}
 					//drawingObject.graphicObject.setDrawingDocument(ws.objectRender.drawingDocument);
 					drawingObject.graphicObject.addToDrawingObjects();
 
