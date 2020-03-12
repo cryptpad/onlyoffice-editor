@@ -802,6 +802,9 @@ RotateState.prototype =
                             for(i = 0; i < tracks.length; ++i){
                                 tracks[i].trackEnd(false, bFlag);
                             }
+                            if(tracks.length === 1 && tracks[0].chartSpace){
+                                return;
+                            }
                             var oGroupMaps = {};
                             for(i = 0; i < aConnectors.length; ++i){
                                 aConnectors[i].calculateTransform(bFlag);
