@@ -2902,10 +2902,12 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 		var res = [];
 
 		var getValue = function(curArg){
-			if(undefined === type || cElementType.string === type){
+			if (undefined === type || cElementType.string === type){
 				return curArg.tocString().getValue();
-			}else if( cElementType.number === type){
+			} else if( cElementType.number === type){
 				return curArg.tocNumber().getValue();
+			} else if( cElementType.bool === type){
+				return curArg.toLocaleString();
 			}
 		};
 
@@ -2921,15 +2923,15 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 				for (var j = 0; j < arg[i].length; j++) {
 					if(cElementType.error === arg[i][j].type){
 						return arg[i][j];
-					}else{
+					} else{
 						res.push(getValue(arg[i][j]));
 					}
 				}
 			}
 		}else{
-			if(cElementType.error === arg.type){
+			if (cElementType.error === arg.type){
 				return arg;
-			}else{
+			} else{
 				res.push(getValue(arg));
 			}
 		}

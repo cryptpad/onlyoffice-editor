@@ -936,31 +936,30 @@ function (window, undefined) {
 		};
 
 		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
-			arg0 = arg0.cross(arguments[1]).tocString();
+			arg0 = arg0.cross(arguments[1]);
+		} else if (arg0 instanceof cRef || arg0 instanceof cRef3D) {
+			arg0 = arg0.getValue();
 		} else if (arg0 instanceof cArray) {
 			var ret = new cArray();
 			arg0.foreach(function (elem, r, c) {
-				var _elem = elem.tocString();
 				if (!ret.array[r]) {
 					ret.addRow();
 				}
 
-				if (_elem instanceof cError) {
-					ret.addElement(_elem.toString());
+				if (elem instanceof cError) {
+					ret.addElement(elem.toLocaleString());
 				} else {
-					ret.addElement(calc(_elem));
+					ret.addElement(calc(elem));
 				}
 			});
 			return ret;
 		}
 
-		arg0 = arg0.tocString();
-
 		if (arg0 instanceof cError) {
 			return arg0;
 		}
 
-		return calc(arg0.toString());
+		return calc(arg0.toLocaleString());
 	};
 
 	/**
@@ -1954,16 +1953,24 @@ function (window, undefined) {
 				}
 
 				for (var n = 0; n < argI.length; n++) {
-					arg0 = new cString(concatString(arg0.toString(), argI[n].toString()));
+					arg0 = new cString(concatString(arg0.toString(), argI[n].toLocaleString()));
 				}
 
-			} else {
-				argI = argI.tocString();
+			} else if (cElementType.cell === type || cElementType.cell3D === type) {
+				argI = argI.getValue();
+
 				if (argI instanceof cError) {
 					return argI;
 				}
 
-				arg0 = new cString(concatString(arg0.toString(), argI.toString()));
+				arg0 = new cString(concatString(arg0.toString(), argI.toLocaleString()));
+			} else {
+
+				if (argI instanceof cError) {
+					return argI;
+				}
+
+				arg0 = new cString(concatString(arg0.toString(), argI.toLocaleString()));
 			}
 		}
 
@@ -2073,7 +2080,7 @@ function (window, undefined) {
 		}
 
 		function _func(argArray) {
-			var str = argArray[0].toString();
+			var str = argArray[0].toLocaleString();
 			var res = str.charCodeAt(0);
 			return new cNumber(res);
 		}
