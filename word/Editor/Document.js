@@ -12188,8 +12188,15 @@ CDocument.prototype.SelectComment = function(Id, ScrollToComment)
 		var Comment_Y       = Comment.m_oStartInfo.Y;
 		var Comment_X       = Comment.m_oStartInfo.X;
 
-		if (true === ScrollToComment)
-			this.DrawingDocument.m_oWordControl.ScrollToPosition(Comment_X, Comment_Y, Comment_PageNum);
+		if (true === ScrollToComment) {
+			if (!window["NATIVE_EDITOR_ENJINE"]) {
+				this.DrawingDocument.m_oWordControl.ScrollToPosition(Comment_X, Comment_Y, Comment_PageNum);
+			} else {
+				if (window["native"]["DD_WC_ScrollToPosition"] !== undefined) {
+					window["native"]["DD_WC_ScrollToPosition"](Comment_X, Comment_Y, Comment_PageNum);
+				}
+			}
+		}
 	}
 
 	if (OldId != Id)
