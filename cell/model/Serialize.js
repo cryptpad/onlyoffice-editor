@@ -9492,7 +9492,9 @@
             if(!this.copyPasteObj.isCopyPaste || this.copyPasteObj.selectAllSheet)
             {
 				bwtr.ReadSheetDataExternal(false);
-				this.PostLoadPrepare(wb);
+				if (!this.copyPasteObj.isCopyPaste) {
+					this.PostLoadPrepare(wb);
+				}
                 wb.init(this.oReadResult.tableCustomFunc, false, true);
             } else {
 				bwtr.ReadSheetDataExternal(true);
