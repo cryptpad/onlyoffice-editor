@@ -3094,9 +3094,12 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
                             }
                             else
                             {
-                                // Слово не убирается в отрезке. Переносим слово в следующий отрезок
-                                MoveToLBP = true;
-                                NewRange = true;
+								if (!PRS.TryCondenseSpaces(SpaceLen + WordLen + LetterLen, WordLen + LetterLen, X, XEnd))
+								{
+									// Слово не убирается в отрезке. Переносим слово в следующий отрезок
+									MoveToLBP = true;
+									NewRange  = true;
+								}
                             }
                         }
 
@@ -3192,7 +3195,10 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
                 }
                 case para_Space:
                 {
-					Item.CheckCondensedWidth(PRS.IsCondensedSpaces());
+					if (PRS.IsCondensedSpaces())
+						PRS.AddCondensedSpaceToRange(Item);
+					else
+						Item.ResetCondensedWidth();
 
 					if (Word && PRS.LastItem && para_Text === PRS.LastItem.Type && !PRS.LastItem.CanBeAtEndOfLine())
 					{

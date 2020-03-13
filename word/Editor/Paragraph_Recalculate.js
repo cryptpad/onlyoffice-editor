@@ -2832,6 +2832,7 @@ function CParagraphRecalculateStateWrap(Para)
     this.Word            = false;
     this.AddNumbering    = true;
     this.TextOnLine      = false;
+    this.RangeSpaces     = [];
 
     this.BreakPageLine      = false; // Разрыв страницы (параграфа) в данной строке
     this.UseFirstLine       = false;
@@ -3015,6 +3016,7 @@ CParagraphRecalculateStateWrap.prototype =
         this.X               = X;
         this.XEnd            = XEnd;
         this.XRange          = X;
+		this.RangeSpaces     = [];
 
 		this.MoveToLBP      = false;
 		this.LineBreakPos   = new CParagraphContentPos();
@@ -3505,6 +3507,52 @@ CParagraphRecalculateStateWrap.prototype.SetMathRecalcInfoLine = function(nLine)
 CParagraphRecalculateStateWrap.prototype.IsCondensedSpaces = function()
 {
 	return this.CondensedSpaces;
+};
+CParagraphRecalculateStateWrap.prototype.AddCondensedSpaceToRange = function(oSpace)
+{
+	this.RangeSpaces.push(oSpace);
+	oSpace.ResetCondensedWidth();
+};
+/**
+ * Пытаемся ужать пробелы по
+ * @param nWidth1
+ * @param nWidth2
+ * @param nX
+ * @param nXLimit
+ * @returns {boolean}
+ */
+CParagraphRecalculateStateWrap.prototype.TryCondenseSpaces = function(nWidth1, nWidth2, nX, nXLimit)
+{
+	if (!this.CondensedSpaces)
+		return false;
+
+	var nKoef = 1 - 0.25 * (Math.min(12.5, nWidth1) / 12.5);
+
+	var nSumSpaces = 0;
+	for (var nIndex = 0, nCount = this.RangeSpaces.length; nIndex < nCount; ++nIndex)
+	{
+		nSumSpaces += this.RangeSpaces[nIndex].WidthOrigin / TEXTWIDTH_DIVIDER;
+	}
+
+	var nSpace = nSumSpaces * (1 - nKoef);
+	if (nX - nSpace + nWidth1 < nXLimit)
+	{
+		for (var nIndex = 0, nCount = this.RangeSpaces.length; nIndex < nCount; ++nIndex)
+		{
+			this.RangeSpaces[nIndex].SetCondensedWidth(nKoef);
+		}
+
+		return true;
+	}
+	else
+	{
+		for (var nIndex = 0, nCount = this.RangeSpaces.length; nIndex < nCount; ++nIndex)
+		{
+			this.RangeSpaces[nIndex].ResetCondensedWidth();
+		}
+	}
+
+	return false;
 };
 CParagraphRecalculateStateWrap.prototype.CheckUpdateLBP = function(nInRunPos)
 {
