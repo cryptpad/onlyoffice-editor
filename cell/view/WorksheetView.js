@@ -5218,6 +5218,8 @@
                     this._drawElements(this._drawSelectionElement, this.activeMoveRange,
                       AscCommonExcel.selectionLineType.None, new CColor(0, 0, 0));
                 }
+
+                this.drawOverlayButtons();
             }
         }
 
@@ -15016,10 +15018,23 @@
 
         return true;
     };
+    WorksheetView.prototype.drawOverlayButtons = function () {
+    	var offsetX = this._getColLeft(this.visibleRange.c1) - this.cellsLeft;
+    	var offsetY = this._getRowTop(this.visibleRange.r1) - this.cellsTop;
+		var activeCell = this.model.selectionRange.activeCell;
+		var dataValidation = this.model.getDataValidation(activeCell.col, activeCell.row);
+		if (dataValidation) {
+			var values = dataValidation.getListValues(this.model);
+			if (values) {
+				this.af_drawCurrentButton(offsetX, offsetY,
+					{isOverlay: true, isSortState: null, isSetFilter: false, row: activeCell.row, col: activeCell.col});
+			}
+		}
+	};
 
 	WorksheetView.prototype.af_drawCurrentButton = function (offsetX, offsetY, props) {
 		var t = this;
-		var ctx = t.drawingCtx;
+		var ctx = props.isOverlay ? this.overlayCtx : this.drawingCtx;
 
 		var isMobileRetina = false;
 

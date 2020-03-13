@@ -129,7 +129,7 @@
 		this.ranges = null;
 
 		this.allowBlank = false;
-		this.showDropDown = false;
+		this.showDropDown = false; // Excel considers this field to be a refusal to display
 		this.showErrorMessage = false;
 		this.showInputMessage = false;
 		this.type = EDataValidationType.None;
@@ -250,7 +250,7 @@
 		return res;
 	};
 	CDataValidation.prototype.getListValues = function (ws) {
-		return (this.type === EDataValidationType.List && this.showDropDown) ?  this._getListValues(ws) : null;
+		return (this.type === EDataValidationType.List && !this.showDropDown) ?  this._getListValues(ws) : null;
 	};
 
 	CDataValidation.prototype.getError = function () {
