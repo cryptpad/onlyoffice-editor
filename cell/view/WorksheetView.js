@@ -7752,13 +7752,18 @@
 					var activeCell = this.model.selectionRange.activeCell;
 					var dataValidation = this.model.getDataValidation(activeCell.col, activeCell.row);
 					isDataValidation = isPivot = dataValidation && dataValidation.getListValues(this.model);
+					col = activeCell.col;
+					row = activeCell.row;
+				} else {
+					col = c.col;
+					row = r.row;
 				}
 				this._drawElements(function (_vr, _offsetX, _offsetY) {
 					if (isPivot) {
 						if (_vr.contains(c.col, r.row) &&
-							this._hitCursorFilterButton(x + _offsetX, y + _offsetY,
-								isDataValidation ? activeCell.col : c.col, isDataValidation ? activeCell.row : r.row)) {
-							res = {cursor: kCurAutoFilter, target: c_oTargetType.FilterObject, col: -1, row: -1};
+							this._hitCursorFilterButton(x + _offsetX, y + _offsetY, col, row)) {
+							res = {cursor: kCurAutoFilter, target: c_oTargetType.FilterObject, col: col, row: row,
+								isPivot: isPivot, isDataValidation: isDataValidation};
 						}
 					} else {
 						res = this.af_checkCursor(x, y, _vr, _offsetX, _offsetY, r, c);

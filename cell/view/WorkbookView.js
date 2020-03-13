@@ -455,6 +455,11 @@
 				  self.handlers.trigger("asc_onContextMenu", event);
 			  },
 
+			  // DataValidation
+			  "onDataValidation": function () {
+				  self.handlers.trigger("asc_onValidationListMenu");
+			  },
+
 			  // FormatPainter
 			  'isFormatPainter': function () {
 				  return self.stateFormatPainter;

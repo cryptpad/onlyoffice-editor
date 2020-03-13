@@ -1431,7 +1431,13 @@
 						return;
 					} else if (t.targetInfo.target === c_oTargetType.FilterObject) {
 						if (0 === button) {
-							t._autoFiltersClick(t.targetInfo.idFilter);
+							if (t.targetInfo.isDataValidation) {
+								this.handlers.trigger('onDataValidation');
+							} else if (t.targetInfo.isPivot) {
+								// ToDo pivot
+							} else {
+								t._autoFiltersClick(t.targetInfo.idFilter);
+							}
 						}
 						return;
 					} else if (t.targetInfo.commentIndexes) {
