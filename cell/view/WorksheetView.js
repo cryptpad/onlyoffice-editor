@@ -8552,7 +8552,7 @@
         cell_info.flags.selectionType = selectionRange.getLast().getType();
         cell_info.flags.multiselect = !selectionRange.isSingleRange();
 
-        cell_info.flags.lockText = ("" !== cell_info.text && (isNumberFormat || "" !== cell_info.formula));
+        cell_info.flags.lockText = ("" !== cell_info.text && (isNumberFormat || c.isFormula()));
 
         cell_info.font = new asc_CFont();
 		cell_info.font.name = font.getName();
