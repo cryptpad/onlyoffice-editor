@@ -5400,7 +5400,7 @@
 
         this._activateOverlayCtx();
         var t = this;
-        this.model.selectionRange.ranges.forEach(function (item) {
+        this.model.selectionRange.ranges.forEach(function (item, index) {
             var arnIntersection = item.intersectionSimple(range);
             if (arnIntersection) {
                 _x1 = t._getColLeft(arnIntersection.c1) - offsetX - 2;
@@ -5414,6 +5414,11 @@
                 x2 = Math.max(x2, _x2);
                 y1 = Math.min(y1, _y1);
                 y2 = Math.max(y2, _y2);
+
+                if (index === t.model.selectionRange.activeCellId) {
+					x2 += 20; //ToDo fix to width button
+					y2 += 20; //ToDo fix to width button
+				}
             }
 
             if (!isFrozen) {
