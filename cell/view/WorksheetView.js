@@ -7743,8 +7743,8 @@
 					return element.row === r.row && element.col === c.col;
 				});
 				if (!isPivot) {
-					var dataValidation = this.model.getDataValidation(c.col, c.row);
-					isPivot = dataValidation && dataValidation.getListValues(ws);
+					var dataValidation = this.model.getDataValidation(c.col, r.row);
+					isPivot = dataValidation && dataValidation.getListValues(this.model);
 				}
 				this._drawElements(function (_vr, _offsetX, _offsetY) {
 					if (isPivot) {
