@@ -314,9 +314,10 @@
 				return false;
 			}
 
-			if(this.targetInfo && (this.targetInfo.target == c_oTargetType.MoveResizeRange ||
-				this.targetInfo.target == c_oTargetType.MoveRange ||
-				this.targetInfo.target == c_oTargetType.FillHandle || this.targetInfo.target == c_oTargetType.FilterObject))
+			if(this.targetInfo && (this.targetInfo.target === c_oTargetType.MoveResizeRange ||
+				this.targetInfo.target === c_oTargetType.MoveRange ||
+				this.targetInfo.target === c_oTargetType.FillHandle ||
+				this.targetInfo.target === c_oTargetType.FilterObject))
 				return true;
 
 			if (t.getCellEditMode()) {if (!t.handlers.trigger("stopCellEditing")) {return true;}}
