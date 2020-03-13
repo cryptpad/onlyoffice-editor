@@ -189,25 +189,8 @@
 		if (this.showErrorMessage) {
 			val = (this.type === EDataValidationType.TextLength) ? AscCommonExcel.getFragmentsLength(val) : AscCommonExcel.getFragmentsText(val);
 			if (EDataValidationType.List === this.type) {
-				var list = this.formula1 && this.formula1.getValue(this.type, ws, false);
-				if (list && AscCommonExcel.cElementType.error !== list.type) {
-					if (AscCommonExcel.cElementType.string === list.type) {
-						list = list.getValue().split(AscCommon.FormulaSeparators.functionArgumentSeparatorDef);
-						res = -1 !== list.indexOf(val);
-					} else {
-						list = list.getRange();
-						if (list) {
-							res = false;
-							list._foreachNoEmpty(function (cell) {
-								// ToDo check cells type
-								if (!cell.isEmptyTextString() && cell.getValue() === val) {
-									res = true;
-									return null;
-								}
-							});
-						}
-					}
-				}
+				var list = this._getListValues(ws);
+				res = (list && -1 !== list.indexOf(val));
 			} else if (EDataValidationType.Custom === this.type) {
 			} else {
 				val = Number(val);
@@ -244,6 +227,30 @@
 			}
 		}
 		return res;
+	};
+	CDataValidation.prototype._getListValues = function (ws) {
+		var res = null;
+		var list = this.formula1 && this.formula1.getValue(this.type, ws, false);
+		if (list && AscCommonExcel.cElementType.error !== list.type) {
+			if (AscCommonExcel.cElementType.string === list.type) {
+				res = list.getValue().split(AscCommon.FormulaSeparators.functionArgumentSeparatorDef);
+			} else {
+				list = list.getRange();
+				if (list) {
+					res = [];
+					list._foreachNoEmpty(function (cell) {
+						// ToDo check cells type
+						if (!cell.isEmptyTextString()) {
+							res.push(cell.getValue());
+						}
+					});
+				}
+			}
+		}
+		return res;
+	};
+	CDataValidation.prototype.getListValues = function (ws) {
+		return (this.type === EDataValidationType.List && this.showDropDown) ?  this._getListValues(ws) : null;
 	};
 
 	CDataValidation.prototype.getError = function () {
