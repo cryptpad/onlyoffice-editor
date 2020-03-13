@@ -7742,14 +7742,17 @@
 				var isPivot = pivotButtons.some(function (element) {
 					return element.row === r.row && element.col === c.col;
 				});
+				var isDataValidation = false;
 				if (!isPivot) {
-					var dataValidation = this.model.getDataValidation(c.col, r.row);
-					isPivot = dataValidation && dataValidation.getListValues(this.model);
+					var activeCell = this.model.selectionRange.activeCell;
+					var dataValidation = this.model.getDataValidation(activeCell.col, activeCell.row);
+					isDataValidation = isPivot = dataValidation && dataValidation.getListValues(this.model);
 				}
 				this._drawElements(function (_vr, _offsetX, _offsetY) {
 					if (isPivot) {
 						if (_vr.contains(c.col, r.row) &&
-							this._hitCursorFilterButton(x + _offsetX, y + _offsetY, c.col, r.row)) {
+							this._hitCursorFilterButton(x + _offsetX, y + _offsetY,
+								isDataValidation ? activeCell.col : c.col, isDataValidation ? activeCell.row : r.row)) {
 							res = {cursor: kCurAutoFilter, target: c_oTargetType.FilterObject, col: -1, row: -1};
 						}
 					} else {
