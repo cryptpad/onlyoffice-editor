@@ -4722,12 +4722,19 @@ ParaRun.prototype.Recalculate_PageEndInfo = function(PRSI, _CurLine, _CurRange)
 };
 ParaRun.prototype.RecalculateEndInfo = function(oPRSI)
 {
+	if (this.Paragraph && this.Paragraph.m_oPRSW.IsFastRecalculate())
+		return;
+
 	for (var nCurPos = 0, nCount = this.Content.length; nCurPos < nCount; ++nCurPos)
 	{
 		var oItem = this.Content[nCurPos];
 		if (para_FieldChar === oItem.Type)
 		{
-			oPRSI.ProcessFieldChar(oItem);
+			oPRSI.ProcessFieldCharAndCollectComplexField(oItem);
+		}
+		else if (para_InstrText === oItem.Type)
+		{
+			oPRSI.ProcessInstruction(oItem);
 		}
 	}
 };

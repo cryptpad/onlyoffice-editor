@@ -3724,6 +3724,63 @@ CParagraphRecalculateStateInfo.prototype.IsComplexFieldCode = function()
 
 	return false;
 };
+CParagraphRecalculateStateInfo.prototype.ProcessFieldCharAndCollectComplexField = function(oChar)
+{
+	if (oChar.IsBegin())
+	{
+		var oComplexField = oChar.GetComplexField();
+		if (!oComplexField)
+		{
+			oChar.SetUse(false);
+		}
+		else
+		{
+			oChar.SetUse(true);
+			oComplexField.SetBeginChar(oChar);
+			this.ComplexFields.push(new CComplexFieldStatePos(oComplexField, true));
+		}
+	}
+	else if (oChar.IsEnd())
+	{
+		if (this.ComplexFields.length > 0)
+		{
+			oChar.SetUse(true);
+			var oComplexField = this.ComplexFields[this.ComplexFields.length - 1].ComplexField;
+			oComplexField.SetEndChar(oChar);
+			this.ComplexFields.splice(this.ComplexFields.length - 1, 1);
+
+			if (this.ComplexFields.length > 0 && this.ComplexFields[this.ComplexFields.length - 1].IsFieldCode())
+				this.ComplexFields[this.ComplexFields.length - 1].ComplexField.SetInstructionCF(oComplexField);
+		}
+		else
+		{
+			oChar.SetUse(false);
+		}
+	}
+	else if (oChar.IsSeparate())
+	{
+		if (this.ComplexFields.length > 0)
+		{
+			oChar.SetUse(true);
+			var oComplexField = this.ComplexFields[this.ComplexFields.length - 1].ComplexField;
+			oComplexField.SetSeparateChar(oChar);
+			this.ComplexFields[this.ComplexFields.length - 1].SetFieldCode(false);
+		}
+		else
+		{
+			oChar.SetUse(false);
+		}
+	}
+};
+CParagraphRecalculateStateInfo.prototype.ProcessInstruction = function(oInstruction)
+{
+	if (this.ComplexFields.length <= 0)
+		return;
+
+	var oComplexField = this.ComplexFields[this.ComplexFields.length - 1].ComplexField;
+	if (oComplexField && null === oComplexField.GetSeparateChar())
+		oComplexField.SetInstruction(oInstruction);
+};
 
 
 function CParagraphRecalculateObject()

@@ -1299,6 +1299,9 @@ Paragraph.prototype.Check_MathPara = function(MathPos)
 };
 Paragraph.prototype.RecalculateEndInfo = function()
 {
+	if (this.m_oPRSW.IsFastRecalculate())
+		return;
+
 	var oLogicDocument = this.GetLogicDocument();
 	if (oLogicDocument && this.EndInfoRecalcId === oLogicDocument.GetRecalcId())
 		return;
