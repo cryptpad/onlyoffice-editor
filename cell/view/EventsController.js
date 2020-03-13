@@ -1429,11 +1429,10 @@
 						this.isMoveRangeMode = true;
 						t._moveRangeHandle(event);
 						return;
-					} else if (t.targetInfo.target === c_oTargetType.FilterObject && 0 === button) {
-						t._autoFiltersClick(t.targetInfo.idFilter);
-						return;
-					} else if (t.targetInfo.target === c_oTargetType.FilterObject && 2 === button) {
-						this.handlers.trigger('onContextMenu', null);
+					} else if (t.targetInfo.target === c_oTargetType.FilterObject) {
+						if (0 === button) {
+							t._autoFiltersClick(t.targetInfo.idFilter);
+						}
 						return;
 					} else if (t.targetInfo.commentIndexes) {
 						t._commentCellClick(event);
