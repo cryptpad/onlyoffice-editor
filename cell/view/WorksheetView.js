@@ -15035,16 +15035,17 @@
 	WorksheetView.prototype.af_drawCurrentButton = function (offsetX, offsetY, props) {
 		var t = this;
 		var ctx = props.isOverlay ? this.overlayCtx : this.drawingCtx;
+		var isDataValidation = props.isOverlay;
 
 		var isMobileRetina = false;
 
-	    //TODO пересмотреть масштабирование!!!
+		//TODO пересмотреть масштабирование!!!
 		var isApplyAutoFilter = props.isSetFilter;
 		var isApplySortState = props.isSortState;
 		var row = props.row;
-        var col = props.col;
+		var col = props.col;
 
-        var widthButtonPx, heightButtonPx;
+		var widthButtonPx, heightButtonPx;
 		widthButtonPx = heightButtonPx = this.getFilterButtonSize();
 
 		var widthBorder = 1;
@@ -15058,19 +15059,24 @@
 		var height = heightButtonPx - widthBorder * 2;
 		var colWidth = t._getColumnWidth(col);
 		var rowHeight = t._getRowHeight(row);
-		if (rowHeight < heightWithBorders)
-		{
+		if (rowHeight < heightWithBorders) {
 			widthWithBorders = widthWithBorders * (rowHeight / heightWithBorders);
 			heightWithBorders = rowHeight;
 		}
 
 		//стартовая позиция кнопки
-		var x1 = t._getColLeft(col + 1) - widthWithBorders - 0.5 - offsetX;
+		var x1;
+		if (isDataValidation) {
+			var _maxColDiff = col === AscCommon.gc_nMaxCol0 ? widthWithBorders - widthBorder : 0;
+			x1 = t._getColLeft(col + 1) - _maxColDiff - 0.5 - offsetX;
+		} else {
+			x1 = t._getColLeft(col + 1) - widthWithBorders - 0.5 - offsetX;
+		}
+
 		//-1 смещение относительно нижней границы ячейки на 1px
 		var y1 = t._getRowTop(row + 1) - heightWithBorders - 0.5 - offsetY - 1;
 
-		var _drawButtonFrame = function(startX, startY, width, height)
-		{
+		var _drawButtonFrame = function (startX, startY, width, height) {
 			ctx.setFillStyle(t.settings.cells.defaultState.background);
 			ctx.setLineWidth(1);
 			ctx.setStrokeStyle(t.settings.cells.defaultState.border);
@@ -15078,8 +15084,7 @@
 			ctx.strokeRect(startX, startY, width, height);
 		};
 
-		var _drawSortArrow = function(startX, startY, isDescending, heightArrow)
-		{
+		var _drawSortArrow = function (startX, startY, isDescending, heightArrow) {
 			//isDescending = true - стрелочка смотрит вниз
 			//рисуем сверху вниз
 			ctx.beginPath();
@@ -15091,11 +15096,9 @@
 
 			var heightArrow1 = heightArrow * scaleIndex;
 			var height = 3 * scaleIndex;
-			var x1, x2, y1;
-			if(isDescending)
-			{
-				for(var i = 0; i < height; i++)
-				{
+			var x1, x2, y1, i;
+			if (isDescending) {
+				for (i = 0; i < height; i++) {
 					tmp = i;
 					x1 = x - tmp;
 					x2 = x - tmp + 1;
@@ -15106,12 +15109,9 @@
 					y1 = y - tmp + heightArrow1 - 1;
 					ctx.lineHor(x1, y1, x2);
 				}
-			}
-			else
-			{
-				for(var i = 0; i < height; i++)
-				{
-				    tmp = i;
+			} else {
+				for (i = 0; i < height; i++) {
+					tmp = i;
 					x1 = x - tmp;
 					x2 = x - tmp + 1;
 					y1 = y + tmp;
@@ -15123,12 +15123,9 @@
 				}
 			}
 
-			if(isMobileRetina)
-			{
+			if (isMobileRetina) {
 				ctx.setLineWidth(AscBrowser.retinaPixelRatio * 2);
-			}
-			else
-			{
+			} else {
 				ctx.setLineWidth(AscBrowser.retinaPixelRatio);
 			}
 
@@ -15136,9 +15133,8 @@
 			ctx.stroke();
 		};
 
-        var _drawFilterMark = function (x, y, height)
-		{
-            var heightLine = Math.round(height);
+		var _drawFilterMark = function (x, y, height) {
+			var heightLine = Math.round(height);
 			var heightCleanLine = heightLine - 2;
 
 			ctx.beginPath();
@@ -15152,27 +15148,22 @@
 			var heightTriangle = 4;
 			y = y - heightLine + 1;
 			_drawFilterDreieck(x, y, heightTriangle, 2);
-        };
+		};
 
-		var _drawFilterDreieck = function (x, y, height, base)
-		{
+		var _drawFilterDreieck = function (x, y, height, base) {
 			ctx.beginPath();
 
-			if(isMobileRetina)
-			{
+			if (isMobileRetina) {
 				ctx.setLineWidth(AscBrowser.retinaPixelRatio * 2);
-			}
-			else
-			{
+			} else {
 				ctx.setLineWidth(AscBrowser.retinaPixelRatio);
 			}
 
 			x = x + 1;
 			var diffY = (height / 2);
 			height = height * scaleIndex;
-			for(var i = 0; i < height; i++)
-			{
-				ctx.lineHor(x - (i + base) , y + (height - i) - diffY, x + i)
+			for (var i = 0; i < height; i++) {
+				ctx.lineHor(x - (i + base), y + (height - i) - diffY, x + i)
 			}
 
 			ctx.setStrokeStyle(m_oColor);
@@ -15180,8 +15171,7 @@
 		};
 
 		//TODO пересмотреть отрисовку кнопок + отрисовку при масштабировании
-		var _drawButton = function(upLeftXButton, upLeftYButton)
-		{
+		var _drawButton = function (upLeftXButton, upLeftYButton) {
 			//квадрат кнопки рисуем
 			_drawButtonFrame(upLeftXButton, upLeftYButton, width, height);
 
@@ -15189,78 +15179,64 @@
 			var centerX = upLeftXButton + (width / 2);
 			var centerY = upLeftYButton + (height / 2);
 
-			if(null !== isApplySortState && isApplyAutoFilter)
-			{
-				var heigthObj = Math.ceil(height / 2) + 2;
-				var marginTop = Math.floor((height - heigthObj) / 2);
+			var heigthObj, marginTop;
+			if (null !== isApplySortState && isApplyAutoFilter) {
+				heigthObj = Math.ceil(height / 2) + 2;
+				marginTop = Math.floor((height - heigthObj) / 2);
 				centerY = upLeftYButton + heigthObj + marginTop;
 
 				_drawSortArrow(upLeftXButton + 4 * scaleIndex, upLeftYButton + 5 * scaleIndex, isApplySortState, 8);
 				_drawFilterMark(centerX + 3, centerY, heigthObj);
-			}
-			else if(null !== isApplySortState)
-			{
-				_drawSortArrow(upLeftXButton + width - 5 * scaleIndex, upLeftYButton + 3 * scaleIndex, isApplySortState, 10);
+			} else if (null !== isApplySortState) {
+				_drawSortArrow(upLeftXButton + width - 5 * scaleIndex, upLeftYButton + 3 * scaleIndex, isApplySortState,
+					10);
 				_drawFilterDreieck(centerX - 3, centerY + 1, 3, 1);
-			}
-			else if (isApplyAutoFilter)
-			{
-				var heigthObj = Math.ceil(height / 2) + 2;
-				var marginTop = Math.floor((height - heigthObj) / 2);
+			} else if (isApplyAutoFilter) {
+				heigthObj = Math.ceil(height / 2) + 2;
+				marginTop = Math.floor((height - heigthObj) / 2);
 
 				centerY = upLeftYButton + heigthObj + marginTop;
 				_drawFilterMark(centerX + 1, centerY, heigthObj);
-			}
-			else
-			{
+			} else {
 				_drawFilterDreieck(centerX, centerY, 4, 1);
 			}
 		};
 
 		//TODO!!! некорректно рисуется кнопка при уменьшении масштаба и уменьшении размера строки
+		var _notChangeScaleWidth = isDataValidation && col !== AscCommon.gc_nMaxCol0;
 		var diffX = 0;
 		var diffY = 0;
-		if ((colWidth - 2) < width && rowHeight < (height + 2))
-		{
-			if (rowHeight < colWidth)
-			{
+		if ((colWidth - 2) < width && rowHeight < (height + 2) && !_notChangeScaleWidth) {
+			if (rowHeight < colWidth) {
 				scaleIndex = rowHeight / height;
 				width = width * scaleIndex;
 				height = rowHeight;
-			}
-			else
-			{
+			} else {
 				scaleIndex = colWidth / width;
 				diffY = width - colWidth;
 				diffX = width - colWidth;
 				width = colWidth;
 				height = height * scaleIndex;
 			}
-		}
-		else if ((colWidth - 2) < width)
-		{
+		} else if ((colWidth - 2) < width && !_notChangeScaleWidth) {
 			scaleIndex = colWidth / width;
 			//смещения по x и y
 			diffY = width - colWidth;
 			diffX = width - colWidth + 2;
 			width = colWidth;
 			height = height * scaleIndex;
-		}
-		else if ((rowHeight - widthBorder * 2) < height)
-		{
+		} else if ((rowHeight - widthBorder * 2) < height) {
 			scaleIndex = rowHeight / (height + widthBorder * 2);
 			width = width * scaleIndex;
-			height = rowHeight -  widthBorder * 2;
+			height = rowHeight - widthBorder * 2;
 		}
 
 
-		if(window['IS_NATIVE_EDITOR'])
-		{
+		if (window['IS_NATIVE_EDITOR']) {
 			isMobileRetina = true;
 		}
 
-		if(AscBrowser.isRetina)
-		{
+		if (AscBrowser.isRetina) {
 			scaleIndex *= 2;
 		}
 
