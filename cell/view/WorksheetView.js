@@ -7742,6 +7742,10 @@
 				var isPivot = pivotButtons.some(function (element) {
 					return element.row === r.row && element.col === c.col;
 				});
+				if (!isPivot) {
+					var dataValidation = this.model.getDataValidation(c.col, c.row);
+					isPivot = dataValidation && dataValidation.getListValues(ws);
+				}
 				this._drawElements(function (_vr, _offsetX, _offsetY) {
 					if (isPivot) {
 						if (_vr.contains(c.col, r.row) &&
