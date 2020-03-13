@@ -19481,6 +19481,10 @@ CTable.prototype.GetTableOfContents = function(isUnique, isCheckFields)
  */
 CTable.prototype.DistributeColumns = function()
 {
+	if ((true != this.Selection.Use || (true === this.Selection.Use && table_Selection_Text === this.Selection.Type))
+		&& this.CurCell.Content.DistributeTableCells(true))
+		return true;
+
 	var isApplyToAll = this.ApplyToAll;
 	if (!this.Selection.Use || table_Selection_Text === this.Selection.Type)
 		this.ApplyToAll = true;
@@ -19653,6 +19657,10 @@ CTable.prototype.DistributeColumns = function()
  */
 CTable.prototype.DistributeRows = function()
 {
+	if ((true != this.Selection.Use || (true === this.Selection.Use && table_Selection_Text === this.Selection.Type))
+		&& this.CurCell.Content.DistributeTableCells(false))
+		return true;
+
 	var isApplyToAll = this.ApplyToAll;
 	if (!this.Selection.Use || table_Selection_Text === this.Selection.Type)
 		this.ApplyToAll = true;
