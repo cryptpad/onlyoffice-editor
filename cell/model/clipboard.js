@@ -2917,9 +2917,10 @@
 							res += '\r\n';
 						}
 						curRow = cell.nRow;
+					} else {
+						res += " ";
 					}
 					res += cell.getValue();
-					res += " ";
 				});
 				return res;
 			},
