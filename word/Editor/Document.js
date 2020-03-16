@@ -16801,9 +16801,39 @@ CDocument.prototype.controller_AddToParagraph = function(ParaItem, bRecalculate)
 		{
 			Item.AddToParagraph(ParaItem);
 		}
-		else
+		else if (Item.IsTable())
 		{
-			// TODO: PageBreak в таблице не ставим
+			if (!ParaItem.IsPageBreak() && Item.IsInnerTable())
+			{
+				Item.AddToParagraph(ParaItem);
+			}
+			else
+			{
+				var oNewTable = Item.Split();
+				var oNewPara  = new Paragraph(this.DrawingDocument, this);
+
+				if (ParaItem.IsPageBreak())
+					oNewPara.AddToParagraph(new ParaNewLine(break_Page));
+
+				var nCurPos = this.CurPos.ContentPos;
+				if (oNewTable)
+				{
+					this.AddToContent(nCurPos + 1, oNewTable);
+					this.AddToContent(nCurPos + 1, oNewPara);
+					this.CurPos.ContentPos = nCurPos + 1;
+				}
+				else
+				{
+					this.AddToContent(nCurPos, oNewPara);
+					this.CurPos.ContentPos = nCurPos;
+				}
+
+				this.Content[this.CurPos.ContentPos].MoveCursorToStartPos(false);
+			}
+
+			this.Recalculate();
+			this.UpdateInterface();
+			this.UpdateSelection();
 			return;
 		}
 	}
