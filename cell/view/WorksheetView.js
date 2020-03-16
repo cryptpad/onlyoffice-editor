@@ -15435,8 +15435,7 @@
 		};
 
     WorksheetView.prototype.af_getSizeButton = function (c, r) {
-        var t = this;
-        var wsModel = ws.model;
+        var wsModel = this.model;
         var result = null;
 
         var isCellContainsAutoFilterButton = function (col, row) {
