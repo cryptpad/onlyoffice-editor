@@ -1320,8 +1320,6 @@
 
 		/** @param event {MouseEvent} */
 		asc_CEventsController.prototype._onMouseDown = function (event) {
-
-
 			var t = this;
 			var ctrlKey = !AscCommon.getAltGr(event) && (event.metaKey || event.ctrlKey);
 			var coord = t._getCoordinates(event);
