@@ -7759,14 +7759,16 @@
 					row = r.row;
 				}
 				this._drawElements(function (_vr, _offsetX, _offsetY) {
-					if (isPivot) {
-						if (_vr.contains(c.col, r.row) &&
-							this._hitCursorFilterButton(x + _offsetX, y + _offsetY, col, row)) {
-							res = {cursor: kCurAutoFilter, target: c_oTargetType.FilterObject, col: col, row: row,
-								isPivot: isPivot, isDataValidation: isDataValidation};
+					res = null;
+					if (_vr.contains(c.col, r.row)) {
+						if (isPivot) {
+							if (this._hitCursorFilterButton(x + _offsetX, y + _offsetY, col, row)) {
+								res = {cursor: kCurAutoFilter, target: c_oTargetType.FilterObject, col: col, row: row,
+									isPivot: isPivot, isDataValidation: isDataValidation};
+							}
+						} else {
+							res = this.af_checkCursor(x, y, _offsetX, _offsetY, r, c);
 						}
-					} else {
-						res = this.af_checkCursor(x, y, _vr, _offsetX, _offsetY, r, c);
 					}
 					return (null === res);
 				});
@@ -15291,7 +15293,7 @@
 		_drawButton(x1 + diffX, y1 + diffY);
 	};
 
-	WorksheetView.prototype.af_checkCursor = function (x, y, _vr, offsetX, offsetY, r, c) {
+	WorksheetView.prototype.af_checkCursor = function (x, y, offsetX, offsetY, r, c) {
 		var aWs = this.model;
 		var t = this;
 		var result = null;
@@ -15338,20 +15340,17 @@
 			}
 		};
 
-		if(_vr.contains(c.col, r.row))
-		{
-			x = x + offsetX;
-			y = y + offsetY;
+		x = x + offsetX;
+		y = y + offsetY;
 
-			if (aWs.AutoFilter && aWs.AutoFilter.Ref) {
-				checkCurrentFilter(aWs.AutoFilter, null);
-			}
+		if (aWs.AutoFilter && aWs.AutoFilter.Ref) {
+			checkCurrentFilter(aWs.AutoFilter, null);
+		}
 
-			if (aWs.TableParts && aWs.TableParts.length && !result) {
-				for (var i = 0; i < aWs.TableParts.length; i++) {
-					if (aWs.TableParts[i].AutoFilter) {
-						checkCurrentFilter(aWs.TableParts[i], i);
-					}
+		if (aWs.TableParts && aWs.TableParts.length && !result) {
+			for (var i = 0; i < aWs.TableParts.length; i++) {
+				if (aWs.TableParts[i].AutoFilter) {
+					checkCurrentFilter(aWs.TableParts[i], i);
 				}
 			}
 		}
@@ -15359,8 +15358,7 @@
 		return result;
 	};
 
-	WorksheetView.prototype._hitCursorFilterButton = function(x, y, col, row, isDataValidation)
-	{
+	WorksheetView.prototype._hitCursorFilterButton = function (x, y, col, row, isDataValidation) {
 		var width, height;
 		width = height = this._getFilterButtonSize();
 		var rowHeight = this._getRowHeight(row);
