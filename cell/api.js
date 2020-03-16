@@ -3255,7 +3255,7 @@ var editor;
           }
          
           if (ignoreWords[usrWords[i]] || changeWords[usrWords[i]] || usrWords[i].length === 1 
-            || (isIgnoreUppercase && usrWords[i].toUpperCase() === usrWords[i])) {
+            || (isIgnoreUppercase && usrWords[i].toUpperCase() === usrWords[i] && AscCommon.private_IsAbbreviation(usrWords[i]))) {
             usrCorrect[i] = true;
           }
         }

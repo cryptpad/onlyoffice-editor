@@ -361,7 +361,7 @@ CParaSpellChecker.prototype =
             var Element = this.Elements[Index];
             Element.CurPos = false;
 
-            if (1 >= Element.Word.length || this.private_IsAbbreviation(Element.Word))
+            if (1 >= Element.Word.length || AscCommon.private_IsAbbreviation(Element.Word))
 			{
 				Element.Checked = true;
 			}
