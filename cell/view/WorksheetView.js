@@ -14938,9 +14938,40 @@
         return arrResult;
     };
 
-	WorksheetView.prototype.getFilterButtonSize = function () {
+	WorksheetView.prototype._getFilterButtonSize = function () {
 	    return AscBrowser.isRetina ? AscCommon.AscBrowser.convertToRetinaValue(filterSizeButton, true) : filterSizeButton;
 	};
+
+	WorksheetView.prototype.getButtonSize = function (row, col, isDataValidation) {
+		var colWidth = t._getColumnWidth(col);
+		var rowHeight = t._getRowHeight(row);
+		var _notChangeScaleWidth = isDataValidation && col !== AscCommon.gc_nMaxCol0;
+		var width, height, index;
+		width = height = this._getFilterButtonSize();
+
+		if (colWidth < width && rowHeight < height && !_notChangeScaleWidth) {
+			if (rowHeight < colWidth) {
+				index = rowHeight / height;
+				width = width * index;
+				height = rowHeight;
+			} else {
+				index = colWidth / width;
+				width = colWidth;
+				height = height * index;
+			}
+		} else if (colWidth < width && !_notChangeScaleWidth) {
+			index = colWidth / width;
+			width = colWidth;
+			height = height * index;
+		} else if (rowHeight < height) {
+			index = rowHeight / height;
+			width = width * index;
+			height = rowHeight;
+		}
+
+		return {w: width, h: height};
+	};
+
     WorksheetView.prototype.af_drawButtons = function (updatedRange, offsetX, offsetY) {
         var i, aWs = this.model;
         var t = this;
@@ -15063,7 +15094,7 @@
 		var col = props.col;
 
 		var widthButtonPx, heightButtonPx;
-		widthButtonPx = heightButtonPx = this.getFilterButtonSize();
+		widthButtonPx = heightButtonPx = this._getFilterButtonSize();
 
 		var widthBorder = 1;
 		var scaleIndex = 1;
@@ -15331,7 +15362,7 @@
 	WorksheetView.prototype._hitCursorFilterButton = function(x, y, col, row, isDataValidation)
 	{
 		var width, height;
-		width = height = this.getFilterButtonSize();
+		width = height = this._getFilterButtonSize();
 		var rowHeight = this._getRowHeight(row);
 		if (rowHeight < height) {
 			width = width * (rowHeight / height);
@@ -15404,15 +15435,15 @@
 		};
 
     WorksheetView.prototype.af_getSizeButton = function (c, r) {
-        var ws = this;
+        var t = this;
+        var wsModel = ws.model;
         var result = null;
 
         var isCellContainsAutoFilterButton = function (col, row) {
-            var aWs = ws.model;
-            if (aWs.TableParts) {
+            if (wsModel.TableParts) {
                 var tablePart;
-                for (var i = 0; i < aWs.TableParts.length; i++) {
-                    tablePart = aWs.TableParts[i];
+                for (var i = 0; i < wsModel.TableParts.length; i++) {
+                    tablePart = wsModel.TableParts[i];
                     //TODO добавить проверку на isHidden у кнопки
                     if (tablePart.Ref.contains(col, row) && tablePart.Ref.r1 === row) {
                         return true;
@@ -15421,16 +15452,12 @@
             }
 
             //TODO добавить проверку на isHidden у кнопки
-            if (aWs.AutoFilter && aWs.AutoFilter.Ref.contains(col, row) && aWs.AutoFilter.Ref.r1 === row) {
-                return true;
-            }
-
-            return false;
+			return wsModel.AutoFilter && wsModel.AutoFilter.Ref.contains(col, row) && wsModel.AutoFilter.Ref.r1 === row;
         };
 
         if (isCellContainsAutoFilterButton(c, r)) {
 			var width, height;
-			width = height = this.getFilterButtonSize();
+			width = height = this._getFilterButtonSize();
             var rowHeight = this._getRowHeight(r);
             var index = 1;
             if (rowHeight < height) {
