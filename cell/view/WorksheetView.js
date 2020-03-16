@@ -15328,7 +15328,7 @@
 		return result;
 	};
 
-	WorksheetView.prototype._hitCursorFilterButton = function(x, y, col, row)
+	WorksheetView.prototype._hitCursorFilterButton = function(x, y, col, row, isDataValidation)
 	{
 		var width, height;
 		width = height = this.getFilterButtonSize();
@@ -15338,12 +15338,20 @@
 			height = rowHeight;
 		}
 
-		var top = this._getRowTop(row + 1);
-		var left = this._getColLeft(col + 1);
-		var x1 = left - width - 0.5;
-		var y1 = top - height - 0.5;
-		var x2 = left - 0.5;
-		var y2 = top - 0.5;
+		var top, left, x1, y1, x2, y2;
+
+		top = this._getRowTop(row + 1);
+		left = this._getColLeft(col + 1);
+		y1 = top - height - 0.5;
+		y2 = top - 0.5;
+		if (isDataValidation && !col === AscCommon.gc_nMaxCol0) {
+			x1 = left + 0.5;
+			x2 = left + width + 0.5;
+		} else {
+			x1 = left - width - 0.5;
+			x2 = left - 0.5;
+
+		}
 
 		return (x >= x1 && x <= x2 && y >= y1 && y <= y2);
 	};
