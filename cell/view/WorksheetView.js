@@ -5415,9 +5415,11 @@
                 y1 = Math.min(y1, _y1);
                 y2 = Math.max(y2, _y2);
 
-                if (index === t.model.selectionRange.activeCellId) {
-					x2 += 20; //ToDo fix to width button
-					y2 += 20; //ToDo fix to width button
+                var selectionRange = t.model.selectionRange;
+                if (index === selectionRange.activeCellId) {
+                	var size = t.getButtonSize(selectionRange.activeCell.row, selectionRange.activeCell.col, true);
+					x2 += size.w;
+					y2 += size.h;
 				}
             }
 
