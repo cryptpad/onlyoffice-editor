@@ -457,7 +457,9 @@
 
 			  // DataValidation
 			  "onDataValidation": function () {
-				  self.handlers.trigger("asc_onValidationListMenu");
+				  if (self.oSelectionInfo && self.oSelectionInfo.dataValidation) {
+					  self.handlers.trigger("asc_onValidationListMenu", self.oSelectionInfo.dataValidation.getListValues(self.model.getActiveWs()));
+				  }
 			  },
 
 			  // FormatPainter
