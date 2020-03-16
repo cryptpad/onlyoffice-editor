@@ -7749,27 +7749,30 @@
 				var isPivot = pivotButtons.some(function (element) {
 					return element.row === r.row && element.col === c.col;
 				});
-				var isDataValidation = false;
-				if (!isPivot) {
-					var activeCell = this.model.selectionRange.activeCell;
-					var dataValidation = this.model.getDataValidation(activeCell.col, activeCell.row);
-					isDataValidation = isPivot = dataValidation && dataValidation.getListValues(this.model);
-					col = activeCell.col;
-					row = activeCell.row;
-				} else {
-					col = c.col;
-					row = r.row;
-				}
+				var activeCell = this.model.selectionRange.activeCell;
+				var dataValidation = this.model.getDataValidation(activeCell.col, activeCell.row);
+				var isDataValidation = dataValidation && dataValidation.getListValues(this.model);
+				col = activeCell.col;
+				row = activeCell.row;
 				this._drawElements(function (_vr, _offsetX, _offsetY) {
 					res = null;
+					var _isDataValidation = false;
+					var _isPivot = false;
 					if (_vr.contains(c.col, r.row)) {
-						if (isPivot) {
-							if (this._hitCursorFilterButton(x + _offsetX, y + _offsetY, col, row)) {
-								res = {cursor: kCurAutoFilter, target: c_oTargetType.FilterObject, col: col, row: row,
-									isPivot: isPivot, isDataValidation: isDataValidation};
-							}
-						} else {
-							res = this.af_checkCursor(x, y, _offsetX, _offsetY, r, c);
+						_offsetX += x;
+						_offsetY += y;
+						if (isDataValidation) {
+							_isDataValidation = this._hitCursorFilterButton(_offsetX, _offsetY, col, row, true);
+						}
+						if (!_isDataValidation && isPivot) {
+							_isPivot = this._hitCursorFilterButton(_offsetX, _offsetY, c.col, r.row);
+						}
+
+						if (_isDataValidation || _isPivot) {
+							res = {cursor: kCurAutoFilter, target: c_oTargetType.FilterObject, col: c.col, row: r.row,
+								isPivot: _isPivot, isDataValidation: _isDataValidation};
+						} else if (!isPivot) {
+							res = this.af_checkCursor(_offsetX, _offsetY, r.row, c.col);
 						}
 					}
 					return (null === res);
@@ -15295,7 +15298,7 @@
 		_drawButton(x1 + diffX, y1 + diffY);
 	};
 
-	WorksheetView.prototype.af_checkCursor = function (x, y, offsetX, offsetY, r, c) {
+	WorksheetView.prototype.af_checkCursor = function (x, y, r, c) {
 		var aWs = this.model;
 		var t = this;
 		var result = null;
@@ -15328,12 +15331,12 @@
 
 		var checkCurrentFilter = function (filter, num) {
 			var range = new Asc.Range(filter.Ref.c1, filter.Ref.r1, filter.Ref.c2, filter.Ref.r1);
-			if (range.contains(c.col, r.row) && _isShowButtonInFilter(c.col, filter)) {
+			if (range.contains(c, r) && _isShowButtonInFilter(c, filter)) {
 				var row = range.r1;
 				for (var col = range.c1; col <= range.c2; col++) {
-					if (col === c.col) {
+					if (col === c) {
 
-						if(t._hitCursorFilterButton(x, y, col, row)){
+						if (t._hitCursorFilterButton(x, y, col, row)) {
 							result = {cursor: kCurAutoFilter, target: c_oTargetType.FilterObject, col: -1, row: -1, idFilter: {id: num, colId: col - range.c1}};
 							break;
 						}
@@ -15341,9 +15344,6 @@
 				}
 			}
 		};
-
-		x = x + offsetX;
-		y = y + offsetY;
 
 		if (aWs.AutoFilter && aWs.AutoFilter.Ref) {
 			checkCurrentFilter(aWs.AutoFilter, null);
