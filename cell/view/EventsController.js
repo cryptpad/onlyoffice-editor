@@ -1437,6 +1437,8 @@
 								t._autoFiltersClick(t.targetInfo.idFilter);
 							}
 						}
+						event.preventDefault && event.preventDefault();
+						event.stopPropagation && event.stopPropagation();
 						return;
 					} else if (t.targetInfo.commentIndexes) {
 						t._commentCellClick(event);
