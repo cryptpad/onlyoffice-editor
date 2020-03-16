@@ -15361,16 +15361,10 @@
 	};
 
 	WorksheetView.prototype._hitCursorFilterButton = function (x, y, col, row, isDataValidation) {
-		var width, height;
-		width = height = this._getFilterButtonSize();
-		var rowHeight = this._getRowHeight(row);
-		if (rowHeight < height) {
-			width = width * (rowHeight / height);
-			height = rowHeight;
-		}
+		var buttonSize = this.getButtonSize(row, col, isDataValidation);
+		var width = buttonSize.w, height = buttonSize.h;
 
 		var top, left, x1, y1, x2, y2;
-
 		top = this._getRowTop(row + 1);
 		left = this._getColLeft(col + 1);
 		y1 = top - height - 0.5;
@@ -15381,7 +15375,6 @@
 		} else {
 			x1 = left - width - 0.5;
 			x2 = left - 0.5;
-
 		}
 
 		return (x >= x1 && x <= x2 && y >= y1 && y <= y2);
