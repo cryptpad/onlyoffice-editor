@@ -14945,8 +14945,8 @@
 	};
 
 	WorksheetView.prototype.getButtonSize = function (row, col, isDataValidation) {
-		var colWidth = t._getColumnWidth(col);
-		var rowHeight = t._getRowHeight(row);
+		var colWidth = this._getColumnWidth(col);
+		var rowHeight = this._getRowHeight(row);
 		var _notChangeScaleWidth = isDataValidation && col !== AscCommon.gc_nMaxCol0;
 		var width, height, index;
 		width = height = this._getFilterButtonSize();
