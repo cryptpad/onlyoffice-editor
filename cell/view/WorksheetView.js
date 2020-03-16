@@ -15375,7 +15375,7 @@
 		left = this._getColLeft(col + 1);
 		y1 = top - height - 0.5;
 		y2 = top - 0.5;
-		if (isDataValidation && !col === AscCommon.gc_nMaxCol0) {
+		if (isDataValidation && col !== AscCommon.gc_nMaxCol0) {
 			x1 = left + 0.5;
 			x2 = left + width + 0.5;
 		} else {
