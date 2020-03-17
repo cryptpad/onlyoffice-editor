@@ -13653,7 +13653,7 @@
 			return printAreaStr;
 		}
 		return null;
-	};
+	}
 
 	window['AscCommonExcel'] = window['AscCommonExcel'] || {};
 	window['AscCommonExcel'].g_nVerticalTextAngle = g_nVerticalTextAngle;
