@@ -3598,6 +3598,10 @@ StyleManager.prototype =
 
 		if (null !== Location) {
 			var result = parserHelp.isName3D(Location, 0);
+			if (!result[0]) {
+				result = parserHelp.isName(Location, 0);
+			}
+
 			if (result[0]) {
 				this.LocationRange = Location;
 			} else {
