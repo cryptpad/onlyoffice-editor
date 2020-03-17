@@ -3528,13 +3528,13 @@ StyleManager.prototype =
 		}
 		return borderIndex;
 	};
+
 	var g_oHyperlinkProperties = {
 		Ref: 0,
 		Location: 1,
 		Hyperlink: 2,
 		Tooltip: 3
 	};
-
 	/** @constructor */
 	function Hyperlink() {
 		this.Properties = g_oHyperlinkProperties;
