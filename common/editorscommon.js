@@ -2683,11 +2683,11 @@
 			{
 				this.pCurrPos += name.length;
 				this.operand_str = name;
-				return [true, name];
+				return true;
 			}
 			this.operand_str = name;
 		}
-		return [false];
+		return false;
 	};
 	parserHelper.prototype.isName3D = function (formula, start_pos)
 	{
@@ -2701,7 +2701,7 @@
 			return this.isName(formula, this.pCurrPos);
 		}
 
-		return [false];
+		return false;
 	};
 	parserHelper.prototype.isLeftBrace = function (formula, start_pos)
 	{

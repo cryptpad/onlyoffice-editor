@@ -6035,7 +6035,9 @@ parserFormula.prototype.clone = function(formula, parent, ws) {
 						found_operand = new cRef3D(ph.real_str ? ph.real_str.toUpperCase() : ph.operand_str.toUpperCase(), wsF);
 					}
 					parseResult.addRefPos(prevCurrPos, ph.pCurrPos, t.outStack.length, found_operand);
-				} else if (parserHelp.isName.call(ph, t.Formula, ph.pCurrPos)) {
+				} else if (true) {
+					// ToDo check this. Always true condition
+					parserHelp.isName.call(ph, t.Formula, ph.pCurrPos);
 					found_operand = new cName3D(ph.operand_str, wsF);
 					parseResult.addRefPos(prevCurrPos, ph.pCurrPos, t.outStack.length, found_operand);
 				}
@@ -6067,7 +6069,7 @@ parserFormula.prototype.clone = function(formula, parent, ws) {
 				}
 			}
 
-			/* Referens to DefinedNames */ else if (parserHelp.isName.call(ph, t.Formula, ph.pCurrPos)[0]) {
+			/* Referens to DefinedNames */ else if (parserHelp.isName.call(ph, t.Formula, ph.pCurrPos)) {
 
 				if (ph.operand_str.length > g_nFormulaStringMaxLength && !ignoreErrors) {
 					//TODO стоит добавить новую ошибку

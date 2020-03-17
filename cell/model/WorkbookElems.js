@@ -3597,15 +3597,10 @@ StyleManager.prototype =
 		this.LocationSheet = this.LocationRange = this.LocationRangeBbox = null;
 
 		if (null !== Location) {
-			var result = parserHelp.isName3D(Location, 0);
-			if (!result[0]) {
-				result = parserHelp.isName(Location, 0);
-			}
-
-			if (result[0]) {
+			if (parserHelp.isName3D(Location, 0) || parserHelp.isName(Location, 0)) {
 				this.LocationRange = Location;
 			} else {
-				result = parserHelp.parse3DRef(Location);
+				var result = parserHelp.parse3DRef(Location);
 				if (!result) {
 					// Can be in all mods. Excel bug...
 					AscCommonExcel.executeInR1C1Mode(!AscCommonExcel.g_R1C1Mode, function () {
