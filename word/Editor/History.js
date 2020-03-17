@@ -695,6 +695,10 @@ CHistory.prototype =
         if (true !== this.Document.Is_OnRecalculate())
             return false;
 
+        // Не объединяем точки во время Undo/Redo
+        if (this.Index < this.Points.length - 1)
+        	return false;
+
         // Не объединяем точки истории, если на предыдущей точке произошло сохранение
         if (this.Points.length < 2
             || (true !== this.Is_UserSaveMode() && null !== this.SavedIndex && this.SavedIndex >= this.Points.length - 2)
