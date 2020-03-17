@@ -3597,9 +3597,9 @@ StyleManager.prototype =
 		this.LocationSheet = this.LocationRange = this.LocationRangeBbox = null;
 
 		if (null !== Location) {
-			var result = parserHelp.isName(Location, 0);
+			var result = parserHelp.isName3D(Location, 0);
 			if (result[0]) {
-				this.LocationRange = result[1];
+				this.LocationRange = Location;
 			} else {
 				result = parserHelp.parse3DRef(Location);
 				if (!result) {
