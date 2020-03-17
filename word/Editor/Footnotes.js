@@ -3336,6 +3336,27 @@ CFootnotesController.prototype.IsSelectionLocked = function(CheckType)
 		oFootnote.Document_Is_SelectionLocked(CheckType);
 	}
 };
+CFootnotesController.prototype.GetAllTablesOnPage = function(nPageAbs, arrTables)
+{
+	var oPage = this.Pages[nPageAbs];
+	if (!oPage)
+		return arrTables;
+
+	var nColumnsCount = oPage.Columns.length;
+	for (var nColumnIndex = 0; nColumnIndex < nColumnsCount; ++nColumnIndex)
+	{
+		var oColumn = oPage.Columns[nColumnIndex];
+		if (!oColumn || oColumn.Elements.length <= 0)
+			continue;
+
+		for (var nIndex = 0, nCount = oColumn.Elements.length; nIndex < nCount; ++nIndex)
+		{
+			oColumn.Elements[nIndex].GetAllTablesOnPage(nPageAbs, arrTables);
+		}
+	}
+
+	return arrTables;
+};
 
 
 function CFootEndnotePageColumn()

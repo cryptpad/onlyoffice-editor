@@ -21681,6 +21681,8 @@ CDocument.prototype.GetAllTablesOnPage = function(nPageAbs)
 		{
 			this.Content[nPos].GetAllTablesOnPage(nPageAbs, arrTables);
 		}
+
+		this.Footnotes.GetAllTablesOnPage(nPageAbs, arrTables);
 	}
 
 	return arrTables;
