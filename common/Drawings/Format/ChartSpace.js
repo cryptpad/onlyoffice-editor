@@ -122,6 +122,8 @@ var SKIP_LBL_LIMIT = 100;
         for(var i = 0; i < aObjects.length; ++i)
         {
             var oContent = aObjects[i];
+            if(!oContent)
+                continue;
             oContent = bLbl ? oContent.compiledDlb && oContent.compiledDlb.txBody && oContent.compiledDlb.txBody.content : oContent.txBody && oContent.txBody.content;
             if(!oContent)
                 continue;
