@@ -6905,7 +6905,19 @@ DrawingObjectsController.prototype =
                     }
                     else
                     {
-                        this.checkSelectedObjectsAndCallback(this.addNewParagraph, [], false, AscDFH.historydescription_Spreadsheet_AddNewParagraph, undefined, window["Asc"]["editor"].collaborativeEditing.getFast());
+                        if(e.shiftKey)
+                        {
+                            var oThis = this;
+                            var callBack = function()
+                            {
+                                oThis.paragraphAdd(new ParaNewLine(AscCommonWord.break_Line));
+                            };
+                            this.checkSelectedObjectsAndCallback(callBack, [], false, AscDFH.historydescription_Spreadsheet_AddItem, undefined, window["Asc"]["editor"].collaborativeEditing.getFast())
+                        }
+                        else
+                        {
+                            this.checkSelectedObjectsAndCallback(this.addNewParagraph, [], false, AscDFH.historydescription_Spreadsheet_AddNewParagraph, undefined, window["Asc"]["editor"].collaborativeEditing.getFast());
+                        }
                         this.recalculate();
                     }
 
