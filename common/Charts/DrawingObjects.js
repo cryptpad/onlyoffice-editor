@@ -1264,6 +1264,8 @@ function DrawingObjects() {
     _this.lastY = 0;
 
     _this.nCurPointItemsLength = -1;
+
+    _this.bUpdateMetrics = true;
     // Task timer
     var aDrawTasks = [];
 
@@ -1620,6 +1622,42 @@ function DrawingObjects() {
 
     DrawingBase.prototype.getDrawingObjects = function() {
         return _this;
+    };
+
+
+    DrawingBase.prototype.checkTarget = function(target, bEdit) {
+        if(!this.graphicObject) {
+            return false;
+        }
+        var bUpdateExtents = false;
+        var nType = bEdit ? this.graphicObject.getDrawingBaseType() : this.Type;
+        if(target.target === AscCommonExcel.c_oTargetType.RowResize) {
+            if(this.from.row >= target.row) {
+                if(nType === AscCommon.c_oAscCellAnchorType.cellanchorTwoCell ||
+                    nType === AscCommon.c_oAscCellAnchorType.cellanchorOneCell) {
+                    bUpdateExtents = true;
+                }
+            }
+            else if(this.to.row >= target.row) {
+                if(nType === AscCommon.c_oAscCellAnchorType.cellanchorTwoCell) {
+                    bUpdateExtents = true;
+                }
+            }
+        }
+        else {
+            if(this.from.col >= target.col) {
+                if(nType === AscCommon.c_oAscCellAnchorType.cellanchorTwoCell ||
+                    nType === AscCommon.c_oAscCellAnchorType.cellanchorOneCell) {
+                    bUpdateExtents = true;
+                }
+            }
+            else if(this.to.col >= target.col) {
+                if(nType === AscCommon.c_oAscCellAnchorType.cellanchorTwoCell) {
+                    bUpdateExtents = true;
+                }
+            }
+        }
+       return bUpdateExtents;
     };
 
     //}
@@ -3051,7 +3089,7 @@ function DrawingObjects() {
 
     _this.updateDrawingObject = function(bInsert, operType, updateRange) {
 
-        if(!History.Is_On())
+        if(!History.CanAddChanges() || History.CanNotAddChanges)
             return;
 
         var metrics = null;
@@ -3384,144 +3422,108 @@ function DrawingObjects() {
         bNeedRedraw && _this.showDrawingObjects(true);
     };
 
+    _this.updateDrawingsTransform = function(target) {
+        if(false === _this.bUpdateMetrics) {
+            return;
+        }
+        if(!AscCommon.isRealObject(target)) {
+            return;
+        }
+        if (target.target === AscCommonExcel.c_oTargetType.RowResize || 
+            target.target === AscCommonExcel.c_oTargetType.ColumnResize) {
+            for(var i = 0; i < aObjects.length; ++i) {
+                var oDrawingBase = aObjects[i];
+                var oGraphicObject = oDrawingBase.graphicObject;
+                if(oDrawingBase.checkTarget(target, false)) {
+                    oGraphicObject.handleUpdateExtents();
+                    oGraphicObject.recalculate();
+                }
+            }
+        }
+    };
 
-    _this.updateSizeDrawingObjects = function(target, bNoChangeCoords) {
-
+    _this.updateSizeDrawingObjects = function(target) {
         var oGraphicObject;
         var bCheck, bRecalculate;
-        var bHistoryIsOn = History.Is_On();
-        var aObjectsForCheck = [];
-        if(!bHistoryIsOn || true === bNoChangeCoords){
-            if (target.target === AscCommonExcel.c_oTargetType.RowResize || target.target === AscCommonExcel.c_oTargetType.ColumnResize) {
-                for (i = 0; i < aObjects.length; i++) {
-                    drawingObject = aObjects[i];
-                    bCheck = false;
-                    if(target.target === AscCommonExcel.c_oTargetType.RowResize){
-                        if(drawingObject.from.row >= target.row){
-                            bCheck = true;
-                        }
-                    }
-                    else{
-                        if(drawingObject.from.col >= target.col){
-                            bCheck = true;
-                        }
-                    }
-
-                    if (bCheck) {
-                        oGraphicObject = drawingObject.graphicObject;
-                        bRecalculate = true;
-                        if(oGraphicObject){
-                            if(bHistoryIsOn && drawingObject.Type === AscCommon.c_oAscCellAnchorType.cellanchorTwoCell
-                            && drawingObject.editAs !== AscCommon.c_oAscCellAnchorType.cellanchorTwoCell) {
-                                if(drawingObject.editAs === AscCommon.c_oAscCellAnchorType.cellanchorAbsolute) {
-                                    aObjectsForCheck.push({object: drawingObject, coords:  drawingObject._getGraphicObjectCoords()});
-                                }
-                                else {
-                                        var oldExtX = oGraphicObject.extX;
-                                        var oldExtY = oGraphicObject.extY;
-                                        oGraphicObject.recalculateTransform();
-                                        oGraphicObject.extX = oldExtX;
-                                        oGraphicObject.extY = oldExtY;
-                                        aObjectsForCheck.push({object: drawingObject, coords:  drawingObject._getGraphicObjectCoords()});
-                                }
+        if(!History.CanAddChanges() || History.CanNotAddChanges) {
+            _this.updateDrawingsTransform(target);
+            return;
+        }
+        var aObjectsForCheck = [], i, drawingObject, bDraw = false;
+        if (target.target === AscCommonExcel.c_oTargetType.RowResize ||
+            target.target === AscCommonExcel.c_oTargetType.ColumnResize) {
+            for (i = 0; i < aObjects.length; i++) {
+                drawingObject = aObjects[i];
+                bCheck = drawingObject.checkTarget(target, false);
+                if (bCheck) {
+                    oGraphicObject = drawingObject.graphicObject;
+                    bRecalculate = true;
+                    if(oGraphicObject){
+                        if(drawingObject.Type === AscCommon.c_oAscCellAnchorType.cellanchorTwoCell
+                        && drawingObject.editAs !== AscCommon.c_oAscCellAnchorType.cellanchorTwoCell) {
+                            if(drawingObject.editAs === AscCommon.c_oAscCellAnchorType.cellanchorAbsolute) {
+                                aObjectsForCheck.push({object: drawingObject, coords:  drawingObject._getGraphicObjectCoords()});
                             }
                             else {
-                                if(oGraphicObject.recalculateTransform) {
-                                    var oldX = oGraphicObject.x;
-                                    var oldY = oGraphicObject.y;
                                     var oldExtX = oGraphicObject.extX;
                                     var oldExtY = oGraphicObject.extY;
                                     oGraphicObject.recalculateTransform();
-                                    var fDelta = 0.01;
-                                    bRecalculate = false;
-                                    if(!AscFormat.fApproxEqual(oldX, oGraphicObject.x, fDelta) || !AscFormat.fApproxEqual(oldY, oGraphicObject.y, fDelta)
-                                        || !AscFormat.fApproxEqual(oldExtX, oGraphicObject.extX, fDelta) || !AscFormat.fApproxEqual(oldExtY, oGraphicObject.extY, fDelta)){
-                                        bRecalculate = true;
-                                    }
+                                    oGraphicObject.extX = oldExtX;
+                                    oGraphicObject.extY = oldExtY;
+                                    aObjectsForCheck.push({object: drawingObject, coords:  drawingObject._getGraphicObjectCoords()});
+                            }
+                        }
+                        else {
+                            if(oGraphicObject.recalculateTransform) {
+                                var oldX = oGraphicObject.x;
+                                var oldY = oGraphicObject.y;
+                                var oldExtX = oGraphicObject.extX;
+                                var oldExtY = oGraphicObject.extY;
+                                oGraphicObject.recalculateTransform();
+                                var fDelta = 0.01;
+                                bRecalculate = false;
+                                if(!AscFormat.fApproxEqual(oldX, oGraphicObject.x, fDelta) || !AscFormat.fApproxEqual(oldY, oGraphicObject.y, fDelta)
+                                    || !AscFormat.fApproxEqual(oldExtX, oGraphicObject.extX, fDelta) || !AscFormat.fApproxEqual(oldExtY, oGraphicObject.extY, fDelta)){
+                                    bRecalculate = true;
                                 }
-                                if(bRecalculate){
-                                    oGraphicObject.handleUpdateExtents();
-                                    oGraphicObject.recalculate();
-                                }
+                            }
+                            if(bRecalculate){
+                                oGraphicObject.handleUpdateExtents();
+                                oGraphicObject.recalculate();
+                                bDraw = true;
                             }
                         }
                     }
                 }
             }
-            if(aObjectsForCheck.length > 0) {
-                _this.objectLocker.reset();
+        }
+        if(aObjectsForCheck.length > 0) {
+            _this.objectLocker.reset();
+            for(i = 0; i < aObjectsForCheck.length; ++i) {
+                _this.objectLocker.addObjectId(aObjectsForCheck[i].object.graphicObject.Get_Id());
+            }
+            _this.objectLocker.checkObjects(function (bLock) {
+                var i, oObjectToCheck, oGraphicObject;
+                var bUpdateDrawingBaseCoords = (bLock === true) && History.CanAddChanges() && !History.CanNotAddChanges;
                 for(i = 0; i < aObjectsForCheck.length; ++i) {
-                    _this.objectLocker.addObjectId(aObjectsForCheck[i].object.graphicObject.Get_Id());
+                    oObjectToCheck = aObjectsForCheck[i];
+                    oGraphicObject = oObjectToCheck.object.graphicObject;
+                    if(bUpdateDrawingBaseCoords) {
+                        var oC = oObjectToCheck.coords;
+                        oGraphicObject.setDrawingBaseCoords(oC.from.col, oC.from.colOff, oC.from.row, oC.from.rowOff,
+                            oC.to.col, oC.to.colOff, oC.to.row, oC.to.rowOff,
+                            oC.Pos.X, oC.Pos.Y, oC.ext.cx, oC.ext.cy);
+                    }
+                    oGraphicObject.handleUpdateExtents();
+                    oGraphicObject.recalculate();
                 }
-                _this.objectLocker.checkObjects(function (bLock) {
-                    var i;
-                    if (bLock !== true) {
-                        for(i = 0; i < aObjectsForCheck.length; ++i) {
-                            aObjectsForCheck[i].object.handleUpdateExtents();
-                        }
-                    }
-                    else {
-                        for(i = 0; i < aObjectsForCheck.length; ++i) {
-                            var oC = aObjectsForCheck[i].coords;
-                            aObjectsForCheck[i].object.graphicObject.setDrawingBaseCoords(oC.from.col, oC.from.colOff, oC.from.row, oC.from.rowOff,
-                                oC.to.col, oC.to.colOff, oC.to.row, oC.to.rowOff,
-                                oC.Pos.X, oC.Pos.Y, oC.ext.cx, oC.ext.cy);
-                        }
-                    }
-                    _this.controller.startRecalculate();
-                });
-            }
-            return;
+                _this.showDrawingObjects(true);
+            });
         }
-
-        var i, bNeedRecalc = false, drawingObject, coords;
-        if (target.target === AscCommonExcel.c_oTargetType.RowResize) {
-            for (i = 0; i < aObjects.length; i++) {
-                drawingObject = aObjects[i];
-
-                if (drawingObject.from.row >= target.row) {
-                    coords = _this.calculateCoords(drawingObject.from);
-                    AscFormat.CheckSpPrXfrm(drawingObject.graphicObject);
-
-                    var rot = AscFormat.isRealNumber(drawingObject.graphicObject.spPr.xfrm.rot) ? drawingObject.graphicObject.spPr.xfrm.rot : 0;
-                    rot = AscFormat.normalizeRotate(rot);
-                    if (AscFormat.checkNormalRotate(rot)) {
-                        drawingObject.graphicObject.spPr.xfrm.setOffX(pxToMm(coords.x));
-                        drawingObject.graphicObject.spPr.xfrm.setOffY(pxToMm(coords.y));
-                    } else {
-                        drawingObject.graphicObject.spPr.xfrm.setOffX(pxToMm(coords.x) - drawingObject.graphicObject.spPr.xfrm.extX / 2 + drawingObject.graphicObject.spPr.xfrm.extY / 2);
-                        drawingObject.graphicObject.spPr.xfrm.setOffY(pxToMm(coords.y) - drawingObject.graphicObject.spPr.xfrm.extY / 2 + drawingObject.graphicObject.spPr.xfrm.extX / 2);
-                    }
-                    drawingObject.graphicObject.checkDrawingBaseCoords();
-                    bNeedRecalc = true;
-                }
+        else {
+            if(bDraw) {
+                _this.showDrawingObjects(true);
             }
-        } else {
-            for (i = 0; i < aObjects.length; i++) {
-                drawingObject = aObjects[i];
-
-                if (drawingObject.from.col >= target.col) {
-                    coords = _this.calculateCoords(drawingObject.from);
-                    AscFormat.CheckSpPrXfrm(drawingObject.graphicObject);
-
-                    var rot = AscFormat.isRealNumber(drawingObject.graphicObject.spPr.xfrm.rot) ? drawingObject.graphicObject.spPr.xfrm.rot : 0;
-                    rot = AscFormat.normalizeRotate(rot);
-                    if (AscFormat.checkNormalRotate(rot)) {
-                        drawingObject.graphicObject.spPr.xfrm.setOffX(pxToMm(coords.x));
-                        drawingObject.graphicObject.spPr.xfrm.setOffY(pxToMm(coords.y));
-                    } else {
-                        drawingObject.graphicObject.spPr.xfrm.setOffX(pxToMm(coords.x) - drawingObject.graphicObject.spPr.xfrm.extX / 2 + drawingObject.graphicObject.spPr.xfrm.extY / 2);
-                        drawingObject.graphicObject.spPr.xfrm.setOffY(pxToMm(coords.y) - drawingObject.graphicObject.spPr.xfrm.extY / 2 + drawingObject.graphicObject.spPr.xfrm.extX / 2);
-                    }
-
-                    drawingObject.graphicObject.checkDrawingBaseCoords();
-                    bNeedRecalc = true;
-                }
-            }
-        }
-        if (bNeedRecalc) {
-            _this.controller.recalculate2();
-            _this.showDrawingObjects(true);
         }
     };
 

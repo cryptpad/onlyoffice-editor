@@ -941,7 +941,7 @@
                 if(bIsHidden !==  t.model.getColHidden(col)) {
                     t.objectRender.rebuildChartGraphicObjects([new asc_Range(col, 0, col, gc_nMaxRow0)]);
                 }
-
+                t.objectRender.updateSizeDrawingObjects({target: AscCommonExcel.c_oTargetType.ColumnResize, col: col});
             }
 			if (viewMode) {
 				History.TurnOn();
@@ -1001,6 +1001,7 @@
 			t.cellCommentator.updateAreaComments();
             if (t.objectRender) {
 				t.objectRender.rebuildChartGraphicObjects([new asc_Range(0, row, gc_nMaxCol0, row)]);
+                t.objectRender.updateSizeDrawingObjects({target: AscCommonExcel.c_oTargetType.RowResize, row: row});
             }
 			if (viewMode) {
 				History.TurnOn();
@@ -5707,8 +5708,7 @@
             this._calcVisibleRows();
 
             if (this.objectRender) {
-                this.objectRender.updateSizeDrawingObjects({target: c_oTargetType.RowResize, row: firstUpdateRow},
-                  true);
+                this.objectRender.updateDrawingsTransform({target: c_oTargetType.RowResize, row: firstUpdateRow});
             }
         }
     };
@@ -12480,7 +12480,9 @@
 				t.cache.reset();
 			}
 			t._cleanCellsTextMetricsCache();
+			t.objectRender.bUpdateMetrics = false;
 			t._prepareCellTextMetricsCache();
+            t.objectRender.bUpdateMetrics = true;
 
 			arrChangedRanges = arrChangedRanges.concat(t.model.hiddenManager.getRecalcHidden());
 
@@ -14083,7 +14085,7 @@
 
 			if (null !== minRow) {
 				if (this.objectRender) {
-					this.objectRender.updateSizeDrawingObjects({target: c_oTargetType.RowResize, row: minRow}, true);
+					this.objectRender.updateDrawingsTransform({target: c_oTargetType.RowResize, row: minRow});
 				}
 			}
 
@@ -14466,14 +14468,16 @@
             var rangeOldFilter = applyFilterProps.rangeOldFilter;
 
             if (null !== rangeOldFilter && !t.model.workbook.bUndoChanges && !t.model.workbook.bRedoChanges) {
+                t.objectRender.bUpdateMetrics = false;
                 t._onUpdateFormatTable(rangeOldFilter, false, true);
+                t.objectRender.bUpdateMetrics = true;
 				if (applyFilterProps.nOpenRowsCount !== applyFilterProps.nAllRowsCount) {
 					t.handlers.trigger('onFilterInfo', applyFilterProps.nOpenRowsCount, applyFilterProps.nAllRowsCount);
 				}
             }
 
             if (null !== minChangeRow) {
-                t.objectRender.updateSizeDrawingObjects({target: c_oTargetType.RowResize, row: minChangeRow}, true);
+                t.objectRender.updateSizeDrawingObjects({target: c_oTargetType.RowResize, row: minChangeRow});
             }
         };
 		if (!window['AscCommonExcel'].filteringMode) {
@@ -14540,11 +14544,13 @@
             var updateRange = applyFilterProps.updateRange;
 
             if (updateRange && !t.model.workbook.bUndoChanges && !t.model.workbook.bRedoChanges) {
+                t.objectRender.bUpdateMetrics = false;
                 t._onUpdateFormatTable(updateRange, false, true);
+                t.objectRender.bUpdateMetrics = true;
             }
 
             if (null !== minChangeRow) {
-                t.objectRender.updateSizeDrawingObjects({target: c_oTargetType.RowResize, row: minChangeRow}, true);
+                t.objectRender.updateSizeDrawingObjects({target: c_oTargetType.RowResize, row: minChangeRow});
             }
         };
 		if (!window['AscCommonExcel'].filteringMode) {
@@ -14648,10 +14654,12 @@
 				History.EndTransaction();
 
                 if (null !== rangeOldFilter && !t.model.workbook.bUndoChanges && !t.model.workbook.bRedoChanges) {
+                    t.objectRender.bUpdateMetrics = false;
                     t._onUpdateFormatTable(rangeOldFilter, false, true);
+                    t.objectRender.bUpdateMetrics = true;
                 }
                 if (null !== minChangeRow) {
-                    t.objectRender.updateSizeDrawingObjects({target: c_oTargetType.RowResize, row: minChangeRow}, true);
+                    t.objectRender.updateSizeDrawingObjects({target: c_oTargetType.RowResize, row: minChangeRow});
                 }
             } else {
 				History.EndTransaction();
