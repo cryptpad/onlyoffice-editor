@@ -11754,6 +11754,53 @@ Paragraph.prototype.Concat = function(Para, isUseConcatedStyle)
 		Para.CopyPr(this);
 };
 /**
+ * Присоединяем содержимое параграфа oPara до содержимого текущего параграфа
+ * @param oPara {Paragraph}
+ */
+Paragraph.prototype.ConcatBefore = function(oPara)
+{
+	this.DeleteCommentOnRemove = false;
+	oPara.DeleteCommentOnRemove = false;
+
+	// Убираем метку конца параграфа у добавляемого параграфа
+	oPara.Remove_ParaEnd();
+
+	// Подправим позиции для NearPos в текущем параграфе
+	for (var nPos = 0, nCount = this.NearPosArray.length; nPos < nCount; ++nPos)
+	{
+		var oParaNearPos = this.NearPosArray[nPos];
+
+		oParaNearPos.NearPos.ContentPos.Data[0] += oPara.Content.length;
+	}
+
+	// Если в параграфе oPara были точки NearPos, за которыми нужно следить перенесем их в этот параграф
+	for (var nPos = 0, nCount = oPara.NearPosArray.length; nPos < nCount; ++nPos)
+	{
+		var oParaNearPos = oPara.NearPosArray[nPos];
+
+		oParaNearPos.Classes[0]        = this;
+		oParaNearPos.NearPos.Paragraph = this;
+		this.NearPosArray.push(oParaNearPos);
+	}
+
+	// Добавляем содержимое второго параграфа к первому
+	for (var nPos = 0, nCount = oPara.Content.length; nPos < nCount; ++nPos)
+	{
+		this.AddToContent(nPos, oPara.Content[nPos]);
+	}
+
+	// Очистим содержимое параграфа (это нужно, чтобы не лежали ссылки на одинаковые объекты в разных параграфах)
+	oPara.ClearContent();
+
+	// Если на данном параграфе оканчивалась секция, тогда удаляем эту секцию
+	oPara.Set_SectionPr(undefined);
+
+	this.DeleteCommentOnRemove = true;
+	oPara.DeleteCommentOnRemove = true;
+
+	oPara.CopyPr(this);
+};
+/**
  * Копируем настройки параграфа и последние текстовые настройки в новый параграф
  */
 Paragraph.prototype.Continue = function(NewParagraph)

@@ -697,6 +697,19 @@ CDocumentContentBase.prototype.private_Remove = function(Count, isRemoveWholeEle
 							this.Content[StartPos].Concat(this.Content[StartPos + 1]);
 							this.Internal_Content_Remove(StartPos + 1, 1);
 						}
+						else if (StartPos < this.Content.length - 1 && this.Content[StartPos].IsParagraph() && this.Content[StartPos + 1].IsTable())
+						{
+							var oCurPara        = this.Content[StartPos];
+							var oFirstParagraph = this.Content[StartPos + 1].GetFirstParagraph();
+
+							oFirstParagraph.MoveCursorToStartPos();
+							oFirstParagraph.ConcatBefore(oCurPara);
+							this.RemoveFromContent(StartPos, 1);
+							var oState = oFirstParagraph.SaveSelectionState();
+							this.Content[StartPos].MoveCursorToStartPos(false);
+							oFirstParagraph.LoadSelectionState(oState);
+							this.CurPos.ContentPos = StartPos;
+						}
 						else if (this.Content.length === 1 && true === this.Content[0].IsEmpty())
 						{
 							if (Count > 0)
@@ -854,6 +867,27 @@ CDocumentContentBase.prototype.private_Remove = function(Count, isRemoveWholeEle
 									this.Internal_Content_Remove(nCurContentPos + 1, 1);
 								}
 							}
+						}
+					}
+					else if (nCurContentPos < this.Content.length - 1 && this.Content[nCurContentPos + 1].IsTable())
+					{
+						if (this.Content[nCurContentPos].IsEmpty())
+						{
+							this.RemoveFromContent(nCurContentPos, 1);
+							this.CurPos.ContentPos = nCurContentPos;
+							this.Content[nCurContentPos].MoveCursorToStartPos(false);
+						}
+						else
+						{
+							var oCurPara        = this.Content[nCurContentPos];
+							var oFirstParagraph = this.Content[nCurContentPos + 1].GetFirstParagraph();
+
+							oFirstParagraph.MoveCursorToStartPos();
+							oFirstParagraph.ConcatBefore(oCurPara);
+							this.RemoveFromContent(nCurContentPos, 1);
+							var oState = oFirstParagraph.SaveSelectionState();
+							this.Content[nCurContentPos].MoveCursorToStartPos(false);
+							oFirstParagraph.LoadSelectionState(oState);
 						}
 					}
 					else if (nCurContentPos < this.Content.length - 1 && type_BlockLevelSdt === this.Content[nCurContentPos + 1].GetType())
