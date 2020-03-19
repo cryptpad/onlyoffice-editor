@@ -8748,6 +8748,10 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		this.headings = null;
 		this.ws = ws;
 
+		//только для передачи из интефейса
+		this.printTitlesWidth = null;
+		this.printTitlesHeight = null;
+
 		return this;
 	}
 	asc_CPageOptions.prototype.init = function () {
@@ -8757,6 +8761,42 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 			this.gridLines = c_oAscPrintDefaultSettings.PageGridLines;
 		if (null == this.headings)
 			this.headings = c_oAscPrintDefaultSettings.PageHeadings;
+	};
+	asc_CPageOptions.prototype.initPrintTitles = function () {
+		//функция добавлена только для того, чтобы в интерфейс передать текущие заголовки печати, которые хранятся как именованный диапазон
+
+		this.printTitlesWidth = null;
+		this.printTitlesHeight = null;
+
+		var printTitles = this.ws.workbook.getDefinesNames("Print_Titles", this.ws.getId());
+		var c1, c2, r1, r2;
+		var t = this;
+		if (printTitles) {
+			var printTitleRefs;
+			AscCommonExcel.executeInR1C1Mode(false, function () {
+				printTitleRefs = AscCommonExcel.getRangeByRef(printTitles.ref, t.ws, true, true)
+			});
+			if (printTitleRefs && printTitleRefs.length) {
+				for (var i = 0; i < printTitleRefs.length; i++) {
+					var bbox = printTitleRefs[i].bbox;
+					if (bbox) {
+						if (Asc.c_oAscSelectionType.RangeCol === bbox.getType()) {
+							c1 = bbox.c1;
+							c2 = bbox.c2;
+						} else if(Asc.c_oAscSelectionType.RangeRow === bbox.getType()) {
+							r1 = bbox.r1;
+							r2 = bbox.r2;
+						}
+					}
+				}
+			}
+		}
+		if (c1 !== undefined) {
+			this.printTitlesWidth = new Asc.Range(c1, 0, c2, gc_nMaxRow0).getAbsName();
+		}
+		if(r1 !== undefined) {
+			this.printTitlesHeight = new Asc.Range(0, r1, gc_nMaxCol0, r2).getAbsName()
+		}
 	};
 	asc_CPageOptions.prototype.clone = function (ws) {
 		var res = new asc_CPageOptions(ws);
@@ -8804,6 +8844,18 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 
 		this.asc_getPageMargins().asc_setOptions(obj.asc_getPageMargins());
 		this.asc_getPageSetup().asc_setOptions(obj.asc_getPageSetup());
+	};
+	asc_CPageOptions.prototype.asc_setPrintTitlesWidth = function (newVal) {
+		this.printTitlesWidth = newVal;
+	};
+	asc_CPageOptions.prototype.asc_setPrintTitlesHeight = function (newVal) {
+		this.printTitlesHeight = newVal;
+	};
+	asc_CPageOptions.prototype.asc_getPrintTitlesWidth = function () {
+		return this.printTitlesWidth;
+	};
+	asc_CPageOptions.prototype.asc_getPrintTitlesHeight = function () {
+		return this.printTitlesHeight;
 	};
 
 
@@ -9604,6 +9656,10 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	prot["asc_setPageSetup"] = prot.asc_setPageSetup;
 	prot["asc_setGridLines"] = prot.asc_setGridLines;
 	prot["asc_setHeadings"] = prot.asc_setHeadings;
+	prot["asc_setPrintTitlesWidth"] = prot.asc_setPrintTitlesWidth;
+	prot["asc_setPrintTitlesHeight"] = prot.asc_setPrintTitlesHeight;
+	prot["asc_getPrintTitlesWidth"] = prot.asc_getPrintTitlesWidth;
+	prot["asc_getPrintTitlesHeight"] = prot.asc_getPrintTitlesHeight;
 
 	window["Asc"]["CHeaderFooter"] = window["Asc"].CHeaderFooter = CHeaderFooter;
 	window["Asc"]["CHeaderFooterData"] = window["Asc"].CHeaderFooterData = CHeaderFooterData;

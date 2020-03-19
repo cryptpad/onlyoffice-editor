@@ -8679,7 +8679,8 @@
         // ToDo проблема с выбором целого столбца/строки
         var sAbsName = ar.getAbsName();
 		var sName = (c_oAscSelectionDialogType.FormatTable === this.selectionDialogType ||
-		c_oAscSelectionDialogType.CustomSort === this.selectionDialogType) ? sAbsName :
+		c_oAscSelectionDialogType.CustomSort === this.selectionDialogType ||
+		c_oAscSelectionDialogType.PrintTitles === this.selectionDialogType) ? sAbsName :
 			parserHelp.get3DRef(this.model.getName(), sAbsName);
         var type = ar.type;
         var selectionRangeValueObj = new AscCommonExcel.asc_CSelectionRangeValue();
@@ -17309,6 +17310,7 @@
 			}
 
 			pageOptions.asc_setOptions(obj);
+			t._changePrintTitles(obj.printTitlesWidth, obj.printTitlesHeight);
 
 			t.recalcPrintScale();
 			t.changeViewPrintLines(true);
@@ -17435,6 +17437,149 @@
         }
 
 		return res;
+	};
+
+	WorksheetView.prototype.changePrintTitles = function (cols, rows) {
+		var t = this;
+
+		var onChangePrintTitles = function (isSuccess) {
+			if (false === isSuccess) {
+				return;
+			}
+
+			History.Create_NewPoint();
+			History.StartTransaction();
+
+			t._changePrintTitles(cols, rows);
+			t.changeViewPrintLines(true);
+
+			if(t.viewPrintLines) {
+				t.updateSelection();
+			}
+			window["Asc"]["editor"]._onUpdateLayoutMenu(t.model.Id);
+
+			History.EndTransaction();
+		};
+
+		//лочу по аналогии со всеми опциями из print settings
+		this._isLockedLayoutOptions(onChangePrintTitles);
+	};
+
+	WorksheetView.prototype.getPrintTitlesRange = function (prop, byCol) {
+		var res = null;
+		var t = this;
+		switch (prop) {
+			case Asc.c_oAscPrintTitlesRangeType.first: {
+				if(byCol) {
+					res = new Asc.Range(0, 0, 0, gc_nMaxRow0);
+				} else {
+					res = new Asc.Range(0, 0, gc_nMaxCol0, 0);
+				}
+				break;
+			}
+			case Asc.c_oAscPrintTitlesRangeType.frozen: {
+				if(this.topLeftFrozenCell) {
+					if(byCol) {
+						var cFrozen = this.topLeftFrozenCell.getCol0();
+						res = new Asc.Range(0, 0, cFrozen, gc_nMaxRow0);
+					} else {
+						var rFrozen = this.topLeftFrozenCell.getRow0();
+						res = new Asc.Range(0, 0, gc_nMaxCol0, rFrozen);
+					}
+				}
+				break;
+			}
+			case Asc.c_oAscPrintTitlesRangeType.current: {
+				var printTitles = this.model.workbook.getDefinesNames("Print_Titles", this.model.getId());
+				var c1, c2, r1, r2;
+				if (printTitles) {
+					var printTitleRefs;
+					AscCommonExcel.executeInR1C1Mode(false, function () {
+						printTitleRefs = AscCommonExcel.getRangeByRef(printTitles.ref, t.model, true, true)
+					});
+					if (printTitleRefs && printTitleRefs.length) {
+						for (var i = 0; i < printTitleRefs.length; i++) {
+							var bbox = printTitleRefs[i].bbox;
+							if (bbox) {
+								if (c_oAscSelectionType.RangeCol === bbox.getType()) {
+									c1 = bbox.c1;
+									c2 = bbox.c2;
+								} else if(c_oAscSelectionType.RangeRow === bbox.getType()) {
+									r1 = bbox.r1;
+									r2 = bbox.r2;
+								}
+							}
+						}
+					}
+				}
+				if (byCol && c1 !== undefined) {
+					res = new Asc.Range(c1, 0, c2, gc_nMaxRow0);
+				} else if(r1 !== undefined && !byCol) {
+					res = new Asc.Range(0, r1, gc_nMaxCol0, r2);
+				}
+				break;
+			}
+		}
+		return res ? res.getAbsName() : null;
+	};
+
+	WorksheetView.prototype._changePrintTitles = function (cols, rows) {
+		var wb = window["Asc"]["editor"].wb;
+		var t = this;
+
+		var _convertRangeStr = function(_val, _byCols) {
+			var _res;
+
+			//из интерфейса приходит в виду g_R1C1Mode
+			AscCommonExcel.executeInR1C1Mode(AscCommonExcel.g_R1C1Mode, function () {
+				_res = AscCommonExcel.g_oRangeCache.getAscRange(_val);
+			});
+
+			var c1 = _byCols ? _res.c1 : 0;
+			var r1 = _byCols ? 0 : _res.r1;
+			var c2 = _byCols ? _res.c2 : gc_nMaxCol0;
+			var r2 = _byCols ? gc_nMaxRow0 : _res.r2;
+			_res = Asc.Range(c1, r1, c2, r2);
+
+			//в модель ->в виде A1B1
+			AscCommonExcel.executeInR1C1Mode(false, function () {
+				_res = parserHelp.get3DRef(t.model.getName(), _res.getAbsName());
+			});
+
+			return _res;
+		};
+
+		History.Create_NewPoint();
+		History.StartTransaction();
+
+		var printTitles = this.model.workbook.getDefinesNames("Print_Titles", this.model.getId());
+
+		var oldDefName = printTitles ? printTitles.getAscCDefName() : null;
+		var oldScope = oldDefName ? oldDefName.asc_getScope() : t.model.index;
+
+		var newRef;
+		if(cols) {
+			newRef = _convertRangeStr(cols, true);
+		}
+		if(rows) {
+			if(newRef) {
+				newRef = newRef + ",";
+			} else {
+				newRef = "";
+			}
+			newRef += _convertRangeStr(rows);
+		}
+
+		if(!newRef) {
+			if(printTitles) {
+				wb.delDefinedNames(printTitles.getAscCDefName());
+			}
+		} else {
+			var newDefName = new Asc.asc_CDefName("Print_Titles", newRef, oldScope, false, null, null, true);
+			wb.editDefinedNames(oldDefName, newDefName);
+		}
+
+		History.EndTransaction();
 	};
 
 	WorksheetView.prototype.changeViewPrintLines = function (val) {

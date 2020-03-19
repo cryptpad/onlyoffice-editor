@@ -109,7 +109,8 @@ var c_oAscSelectionDialogType = {
   FormatTableChangeRange: 4,
   CustomSort: 5,
   PivotTableData: 6,
-  PivotTableReport: 7
+  PivotTableReport: 7,
+  PrintTitles: 8
 };
 
 var c_oAscScrollType = {
@@ -449,6 +450,11 @@ var c_oAscPopUpSelectorType = {
       custom: 14
   };
 
+  var c_oAscPrintTitlesRangeType = {
+      first: 0,
+      frozen: 1,
+      current: 2
+  };
 
   var c_kMaxPrintPages = 1500;
 
@@ -540,6 +546,7 @@ var c_oAscPopUpSelectorType = {
   prot['Chart'] = prot.Chart;
   prot['FormatTableChangeRange'] = prot.FormatTableChangeRange;
   prot['CustomSort'] = prot.CustomSort;
+  prot['PrintTitles'] = prot.PrintTitles;
   window['Asc']['c_oAscHyperlinkType'] = window['Asc'].c_oAscHyperlinkType = c_oAscHyperlinkType;
   prot = c_oAscHyperlinkType;
   prot['WebLink'] = prot.WebLink;
@@ -708,5 +715,11 @@ var c_oAscPopUpSelectorType = {
   prot['userPageDate'] = prot.userPageDate;
   prot['preparedUserDatePage'] = prot.preparedUserDatePage;
   prot['custom'] = prot.custom;
+
+  window['Asc']['c_oAscPrintTitlesRangeType'] = window['Asc'].c_oAscPrintTitlesRangeType = c_oAscPrintTitlesRangeType;
+  prot = c_oAscPrintTitlesRangeType;
+  prot['first'] = prot.first;
+  prot['frozen'] = prot.frozen;
+  prot['current'] = prot.current;
 
 })(window);

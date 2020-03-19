@@ -693,9 +693,13 @@ var editor;
       this.wb.savePagePrintOptions(arrPagesPrint);
   };
 
-  spreadsheet_api.prototype.asc_getPageOptions = function(index) {
+  spreadsheet_api.prototype.asc_getPageOptions = function(index, initPrintTitles) {
     var sheetIndex = (undefined !== index && null !== index) ? index : this.wbModel.getActive();
-    return this.wbModel.getWorksheet(sheetIndex).PagePrintOptions;
+    var ws = this.wbModel.getWorksheet(sheetIndex);
+    if(initPrintTitles && ws.PagePrintOptions) {
+		ws.PagePrintOptions.initPrintTitles();
+    }
+    return ws.PagePrintOptions;
   };
 
   spreadsheet_api.prototype.asc_setPageOption = function (func, val, index) {
@@ -724,6 +728,18 @@ var editor;
       } else {
           ws.changePageOrient(Asc.c_oAscPageOrientation.PageLandscape);
       }
+  };
+
+  spreadsheet_api.prototype.asc_changePrintTitles = function (cols, rows, index) {
+	  var sheetIndex = (undefined !== index && null !== index) ? index : this.wbModel.getActive();
+	  var ws = this.wb.getWorksheet(sheetIndex);
+	  ws.changePrintTitles(cols, rows);
+  };
+
+  spreadsheet_api.prototype.asc_getPrintTitlesRange = function (prop, byHeight, index) {
+      var sheetIndex = (undefined !== index && null !== index) ? index : this.wbModel.getActive();
+      var ws = this.wb.getWorksheet(sheetIndex);
+      return ws.getPrintTitlesRange(prop, byHeight);
   };
 
   spreadsheet_api.prototype._onNeedParams = function(data, opt_isPassword) {
@@ -4738,6 +4754,7 @@ var editor;
   prot["asc_changePageMargins"] = prot.asc_changePageMargins;
   prot["asc_setPageOption"] = prot.asc_setPageOption;
   prot["asc_changePageOrient"] = prot.asc_changePageOrient;
+  prot["asc_changePrintTitles"] = prot.asc_changePrintTitles;
 
   prot["asc_ChangePrintArea"] = prot.asc_ChangePrintArea;
   prot["asc_CanAddPrintArea"] = prot.asc_CanAddPrintArea;

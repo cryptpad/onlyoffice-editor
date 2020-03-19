@@ -2885,8 +2885,21 @@
 				range = parserHelp.isTable(dataRange, 0, true);
 			}
 		}
+		else if(Asc.c_oAscSelectionDialogType.PrintTitles === dialogType)
+		{
+			if(dataRange === "")
+			{
+				return Asc.c_oAscError.ID.No;
+			}
+			else
+			{
+				range = AscCommonExcel.g_oRangeCache.getAscRange(dataRange);
+			}
+		}
 		else
+		{
 			range = AscCommonExcel.g_oRangeCache.getAscRange(dataRange);
+		}
 
 		if (!range)
 			return Asc.c_oAscError.ID.DataRangeError;
