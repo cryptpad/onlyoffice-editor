@@ -1060,10 +1060,17 @@
 			this.regExp_namedSheetsRange.lastIndex = 0;
 			this.regExp_strOperator.lastIndex = 0;
 
-			if (this.regExp_strExcludeCharts.test(str))
+			for (var i = 0; i < str.length; i++) {
+				if(str[i] === "\'" && (i === 0 || i === str.length - 1)) {
+					return undefined;
+				} else if(str[i] === "]" || str[i] === "[" || str[i] === ":" || str[i] === "?" || str[i] === "*" || str[i] === "\\" || str[i] === "/") {
+					return undefined;
+				}
+			}
+			/*if (this.regExp_strExcludeCharts.test(str))
 			{//если содержутся недопустимые символы.
 				return undefined;
-			}
+			}*/
 
 			if (!this.regExp_namedRanges.test(ch1))
 			{//если первый символ находится не в str_namedRanges, то однозначно надо экранировать
@@ -5542,6 +5549,8 @@
 	window["AscCommon"].CUnicodeStringEmulator = CUnicodeStringEmulator;
 
 	window["AscCommon"].private_IsAbbreviation = private_IsAbbreviation;
+
+	window["AscCommon"].rx_test_ws_name = rx_test_ws_name;
 })(window);
 
 window["asc_initAdvancedOptions"] = function(_code, _file_hash, _docInfo)

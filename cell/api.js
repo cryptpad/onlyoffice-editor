@@ -4694,6 +4694,9 @@ var editor;
           }
 		}
 	};
+	spreadsheet_api.prototype.asc_validSheetName = function (val) {
+		return window["AscCommon"].rx_test_ws_name.test(val);
+	};
 
 
   /*
@@ -5098,5 +5101,7 @@ var editor;
 
   prot["asc_getSortProps"] = prot.asc_getSortProps;
   prot["asc_setSortProps"] = prot.asc_setSortProps;
+
+  prot["asc_validSheetName"] = prot.asc_validSheetName;
 
 })(window);
