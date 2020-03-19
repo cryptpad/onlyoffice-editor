@@ -1242,16 +1242,16 @@
 	 * @typeofeditors ["CDE"]
 	 * @param {string} sFontFamily - The font family or families used for the current text Range.
 	 */
-	ApiRange.prototype.SetFontFamily = function(FontFamily)
+	ApiRange.prototype.SetFontFamily = function(sFontFamily)
 	{
 		if (this.isEmpty || this.isEmpty === undefined)
 			return false;
 
-		if (typeof FontFamily !== "string")
+		if (typeof sFontFamily !== "string")
 			return false;
 
 		var loader   = AscCommon.g_font_loader;
-		var fontinfo = g_fontApplication.GetFontInfo(name);
+		var fontinfo = g_fontApplication.GetFontInfo(sFontFamily);
 		var isasync  = loader.LoadFont(fontinfo);
 
 		var Api = editor;
@@ -1261,7 +1261,7 @@
 		if (isasync === false)
 		{
 			var FontFamily = {
-				Name : FontFamily,
+				Name : sFontFamily,
 				Index : -1
 			};
 
@@ -4069,13 +4069,9 @@
 		}
 		else if (typeof oElement === "string")
 		{
-			this.Document.StartAction();
-
 			var oParagraph = editor.CreateParagraph();
 			oParagraph.AddText(oElement);
 			this.Document.Internal_Content_Add(this.Document.Content.length, oParagraph.private_GetImpl());
-
-			this.Document.FinalizeAction();
 		}
 		else 
 			return false;
@@ -4457,12 +4453,12 @@
 
 		var EndParaPos = {
 			Class : this.Paragraph,
-			Position : this.GetElementsCount() - 1
+			Position : this.GetElementsCount()
 		};
 	
 		var EndRunPos = {
 			Class : this.Paragraph.Content[0],
-			Position : this.Paragraph.Content[this.GetElementsCount() - 1].Content.length
+			Position : 1
 		};
 		
 		EndPos.push(EndParaPos, EndRunPos);
@@ -4498,12 +4494,21 @@
 		}
 		else if (typeof oElement === "string")
 		{
-			var LastTextPrInParagraph = this.GetLastRunWithText().GetTextPr();
+			var LastTextPrInParagraph = undefined;
 
+			if (this.GetLastRunWithText() !== null)
+			{
+				LastTextPrInParagraph = this.GetLastRunWithText().GetTextPr().TextPr;
+			}
+			else 
+			{
+				LastTextPrInParagraph = this.Paragraph.TextPr.Value;
+			}
+			
 			var oRun = editor.CreateRun();
 			oRun.AddText(oElement);
-			oRun.Run.Apply_TextPr(LastTextPrInParagraph.TextPr, undefined, true);
-
+			oRun.Run.Apply_TextPr(LastTextPrInParagraph, undefined, true);
+			
 			this.AddElement(oRun);
 		}
 		else 
@@ -4532,7 +4537,7 @@
 			}
 		}
 
-		return false;
+		return this.GetElement(this.GetElementsCount() - 1);
 	};
 	/**
 	 * Set the bold property to the text character.
@@ -4553,8 +4558,10 @@
 		if (Document.IsSelectionUse())
 			oldSelectionInfo = ApiDocument.SaveSelectionInfo();
 		
-		Document.SetSelectionByContentPositions(StartPos, EndPos);
-		Document.AddToParagraph(new AscCommonWord.ParaTextPr({Bold : isBold}));
+		var Depth = this.GetDepth(StartPos);
+		
+		this.Paragraph.SetContentSelection(StartPos, EndPos, Depth, 0, 0);
+		this.Paragraph.Add(new AscCommonWord.ParaTextPr({Bold : isBold}));
 		Document.RemoveSelection();
 
 		if (oldSelectionInfo.length !== 0)
@@ -4563,6 +4570,22 @@
 		}
 		
 		return this;
+	};
+	ApiParagraph.prototype.GetDepth = function(oHierarchy)
+	{
+		var ParaId = this.Paragraph.Id;
+		var Depth  = 0;	
+
+		for (var Index = 0; Index < oHierarchy.length; Index++)
+		{
+			if (oHierarchy[Index].Class.Id === ParaId)
+			{
+				Depth = Index;
+				break;
+			}
+		}
+		
+		return Depth;
 	};
 	/**
 	 * Specify that any lowercase characters in this paragraph are formatted for display only as their capital letter character equivalents.
@@ -4582,9 +4605,11 @@
 
 		if (Document.IsSelectionUse())
 			oldSelectionInfo = ApiDocument.SaveSelectionInfo();
-		
-		Document.SetSelectionByContentPositions(StartPos, EndPos);
-		Document.AddToParagraph(new AscCommonWord.ParaTextPr({Caps : isCaps}));
+
+		var Depth = this.GetDepth(StartPos);
+		this.Paragraph.SetContentSelection(StartPos, EndPos, Depth, 0, 0);
+		this.Paragraph.Add(new AscCommonWord.ParaTextPr({Caps : isCaps}));
+
 		Document.RemoveSelection();
 
 		if (oldSelectionInfo.length !== 0)
@@ -4621,12 +4646,13 @@
 
 		if (Document.IsSelectionUse())
 			oldSelectionInfo = ApiDocument.SaveSelectionInfo();
-		
-		Document.SetSelectionByContentPositions(StartPos, EndPos);
+
+		var Depth = this.GetDepth(StartPos);
+		this.Paragraph.SetContentSelection(StartPos, EndPos, Depth, 0, 0);
 
 		if (true === color.Auto)
 		{
-			Document.AddToParagraph(new AscCommonWord.ParaTextPr({
+			this.Paragraph.Add(new AscCommonWord.ParaTextPr({
 				Color      : {
 					Auto : true,
 					r    : 0,
@@ -4640,7 +4666,7 @@
 			var Unifill        = new AscFormat.CUniFill();
 			Unifill.fill       = new AscFormat.CSolidFill();
 			Unifill.fill.color = AscFormat.CorrectUniColor(color, Unifill.fill.color, 1);
-			Document.AddToParagraph(new AscCommonWord.ParaTextPr({Unifill : Unifill}));
+			this.Paragraph.Add(new AscCommonWord.ParaTextPr({Unifill : Unifill}));
 		}
 
 		Document.RemoveSelection();
@@ -4671,8 +4697,9 @@
 		if (Document.IsSelectionUse())
 			oldSelectionInfo = ApiDocument.SaveSelectionInfo();
 		
-		Document.SetSelectionByContentPositions(StartPos, EndPos);
-		Document.AddToParagraph(new AscCommonWord.ParaTextPr({DStrikeout : isDoubleStrikeout}));
+		var Depth = this.GetDepth(StartPos);
+		this.Paragraph.SetContentSelection(StartPos, EndPos, Depth, 0, 0);
+		this.Paragraph.Add(new AscCommonWord.ParaTextPr({DStrikeout : isDoubleStrikeout}));
 		Document.RemoveSelection();
 
 		if (oldSelectionInfo.length !== 0)
@@ -4689,11 +4716,11 @@
 	 */
 	ApiParagraph.prototype.SetFontFamily = function(sFontFamily)
 	{
-		if (typeof FontFamily !== "string")
+		if (typeof sFontFamily !== "string")
 			return false;
 
 		var loader   = AscCommon.g_font_loader;
-		var fontinfo = g_fontApplication.GetFontInfo(name);
+		var fontinfo = g_fontApplication.GetFontInfo(sFontFamily);
 		var isasync  = loader.LoadFont(fontinfo);
 
 		var Api = editor; 
@@ -4702,6 +4729,11 @@
 		
 		if (isasync === false)
 		{
+			var FontFamily = {
+				Name : sFontFamily,
+				Index : -1
+			};
+
 			var StartPos = this.GetStartPosition();
 			var EndPos   = this.GetEndPosition();
 
@@ -4710,8 +4742,10 @@
 			if (Document.IsSelectionUse())
 				oldSelectionInfo = ApiDocument.SaveSelectionInfo();
 			
-			Document.SetSelectionByContentPositions(StartPos, EndPos);
-			Document.AddToParagraph(new AscCommonWord.ParaTextPr({FontFamily : FontFamily}));
+			var Depth = this.GetDepth(StartPos);
+			this.Paragraph.SetContentSelection(StartPos, EndPos, Depth, 0, 0);
+			
+			this.Paragraph.Add(new AscCommonWord.ParaTextPr({FontFamily : FontFamily}));
 			Document.RemoveSelection();
 
 			if (oldSelectionInfo.length !== 0)
@@ -4743,8 +4777,9 @@
 		if (Document.IsSelectionUse())
 			oldSelectionInfo = ApiDocument.SaveSelectionInfo();
 		
-		Document.SetSelectionByContentPositions(StartPos, EndPos);
-		Document.AddToParagraph(new AscCommonWord.ParaTextPr({FontSize : nSize}));
+		var Depth = this.GetDepth(StartPos);
+		this.Paragraph.SetContentSelection(StartPos, EndPos, Depth, 0, 0);
+		this.Paragraph.Add(new AscCommonWord.ParaTextPr({FontSize : nSize}));
 		Document.RemoveSelection();
 
 		if (oldSelectionInfo.length !== 0)
@@ -4776,18 +4811,17 @@
 		if (Document.IsSelectionUse())
 			oldSelectionInfo = ApiDocument.SaveSelectionInfo();
 		
-		Document.SetSelectionByContentPositions(StartPos, EndPos);
+		var Depth = this.GetDepth(StartPos);
+		this.Paragraph.SetContentSelection(StartPos, EndPos, Depth, 0, 0);
 
 		if (true === isNone)
 		{
-			Document.AddToParagraph(new ParaTextPr({HighLight : highlight_None}));
-			this.RangeTextPr.HighlightColor = highlight_None;
+			this.Paragraph.Add(new ParaTextPr({HighLight : highlight_None}));
 		}
 		else
 		{
 			var color = new CDocumentColor(r, g, b);
-			Document.AddToParagraph(new ParaTextPr({HighLight : color}));
-			this.RangeTextPr.HighlightColor = color;
+			this.Paragraph.Add(new ParaTextPr({HighLight : color}));
 		}
 
 		Document.RemoveSelection();
@@ -4818,8 +4852,9 @@
 		if (Document.IsSelectionUse())
 			oldSelectionInfo = ApiDocument.SaveSelectionInfo();
 		
-		Document.SetSelectionByContentPositions(StartPos, EndPos);
-		Document.AddToParagraph(new AscCommonWord.ParaTextPr({Italic : isItalic}));
+		var Depth = this.GetDepth(StartPos);
+		this.Paragraph.SetContentSelection(StartPos, EndPos, Depth, 0, 0);
+		this.Paragraph.Add(new AscCommonWord.ParaTextPr({Italic : isItalic}));
 		Document.RemoveSelection();
 
 		if (oldSelectionInfo.length !== 0)
@@ -4850,8 +4885,9 @@
 		if (Document.IsSelectionUse())
 			oldSelectionInfo = ApiDocument.SaveSelectionInfo();
 		
-		Document.SetSelectionByContentPositions(StartPos, EndPos);
-		Document.AddToParagraph(new AscCommonWord.ParaTextPr({Position : nPosition}));
+		var Depth = this.GetDepth(StartPos);
+		this.Paragraph.SetContentSelection(StartPos, EndPos, Depth, 0, 0);
+		this.Paragraph.Add(new AscCommonWord.ParaTextPr({Position : nPosition}));
 		Document.RemoveSelection();
 
 		if (oldSelectionInfo.length !== 0)
@@ -4889,7 +4925,8 @@
 		if (Document.IsSelectionUse())
 			oldSelectionInfo = ApiDocument.SaveSelectionInfo();
 		
-		Document.SetSelectionByContentPositions(StartPos, EndPos);
+		var Depth = this.GetDepth(StartPos);
+		this.Paragraph.SetContentSelection(StartPos, EndPos, Depth, 0, 0);
 
 		var Shd = new CDocumentShd();
 
@@ -4897,7 +4934,7 @@
 		{
 			var _Shd = {Value : Asc.c_oAscShdNil};
 			Shd.Set_FromObject(_Shd);
-			Document.SetParagraphShd(_Shd);
+			this.Paragraph.SetParagraphShd(_Shd);
 		}
 		else if (sType === "clear")
 		{
@@ -4915,7 +4952,7 @@
 			};
 			
 			Shd.Set_FromObject(_Shd);
-			Document.SetParagraphShd(_Shd);
+			this.Paragraph.SetParagraphShd(_Shd);
 		}
 
 		Document.RemoveSelection();
@@ -4947,9 +4984,10 @@
 		if (Document.IsSelectionUse())
 			oldSelectionInfo = ApiDocument.SaveSelectionInfo();
 		
-		Document.SetSelectionByContentPositions(StartPos, EndPos);
+		var Depth = this.GetDepth(StartPos);
+		this.Paragraph.SetContentSelection(StartPos, EndPos, Depth, 0, 0);
 
-		Document.AddToParagraph(new AscCommonWord.ParaTextPr({
+		this.Paragraph.Add(new AscCommonWord.ParaTextPr({
 			SmallCaps : isSmallCaps,
 			Caps      : false
 		}));
@@ -4982,8 +5020,9 @@
 		if (Document.IsSelectionUse())
 			oldSelectionInfo = ApiDocument.SaveSelectionInfo();
 		
-		Document.SetSelectionByContentPositions(StartPos, EndPos);
-		Document.AddToParagraph(new AscCommonWord.ParaTextPr({Spacing : nSpacing}));
+		var Depth = this.GetDepth(StartPos);
+		this.Paragraph.SetContentSelection(StartPos, EndPos, Depth, 0, 0);
+		this.Paragraph.Add(new AscCommonWord.ParaTextPr({Spacing : nSpacing}));
 		Document.RemoveSelection();
 
 		if (oldSelectionInfo.length !== 0)
@@ -5012,9 +5051,10 @@
 		if (Document.IsSelectionUse())
 			oldSelectionInfo = ApiDocument.SaveSelectionInfo();
 		
-		Document.SetSelectionByContentPositions(StartPos, EndPos);
+		var Depth = this.GetDepth(StartPos);
+		this.Paragraph.SetContentSelection(StartPos, EndPos, Depth, 0, 0);
 
-		Document.AddToParagraph(new AscCommonWord.ParaTextPr({
+		this.Paragraph.Add(new AscCommonWord.ParaTextPr({
 			Strikeout  : isStrikeout,
 			DStrikeout : false
 			}));
@@ -5052,8 +5092,9 @@
 		if (Document.IsSelectionUse())
 			oldSelectionInfo = ApiDocument.SaveSelectionInfo();
 
-		Document.SetSelectionByContentPositions(StartPos, EndPos);
-		Document.SetParagraphStyle(styleName, true);
+		var Depth = this.GetDepth(StartPos);
+		this.Paragraph.SetContentSelection(StartPos, EndPos, Depth, 0, 0);
+		this.Paragraph.SetParagraphStyle(styleName);
 		Document.RemoveSelection();
 
 		if (oldSelectionInfo.length !== 0)
@@ -5083,8 +5124,9 @@
 		if (Document.IsSelectionUse())
 			oldSelectionInfo = ApiDocument.SaveSelectionInfo();
 		
-		Document.SetSelectionByContentPositions(StartPos, EndPos);
-		Document.AddToParagraph(new AscCommonWord.ParaTextPr({Underline : isUnderline}));
+		var Depth = this.GetDepth(StartPos);
+		this.Paragraph.SetContentSelection(StartPos, EndPos, Depth, 0, 0);
+		this.Paragraph.Add(new AscCommonWord.ParaTextPr({Underline : isUnderline}));
 		Document.RemoveSelection();
 
 		if (oldSelectionInfo.length !== 0)
@@ -5127,8 +5169,9 @@
 		if (Document.IsSelectionUse())
 			oldSelectionInfo = ApiDocument.SaveSelectionInfo();
 		
-		Document.SetSelectionByContentPositions(StartPos, EndPos);
-		Document.AddToParagraph(new AscCommonWord.ParaTextPr({VertAlign : value}));
+		var Depth = this.GetDepth(StartPos);
+		this.Paragraph.SetContentSelection(StartPos, EndPos, Depth, 0, 0);
+		this.Paragraph.Add(new AscCommonWord.ParaTextPr({VertAlign : value}));
 		Document.RemoveSelection();
 
 		if (oldSelectionInfo.length !== 0)
@@ -5410,10 +5453,10 @@
 	 * @typeofeditors ["CDE", "CSE", "CPE"]
 	 * @param {string} sFontFamily - The font family or families used for the current text run.
 	 */
-	ApiRun.prototype.SetFontFamily = function(SetFontFamily)
+	ApiRun.prototype.SetFontFamily = function(sFontFamily)
 	{
 		var oTextPr = this.GetTextPr();
-		oTextPr.SetFontFamily(SetFontFamily);
+		oTextPr.SetFontFamily(sFontFamily);
 		
 		return oTextPr;
 	};
