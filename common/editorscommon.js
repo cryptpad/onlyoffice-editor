@@ -1060,17 +1060,11 @@
 			this.regExp_namedSheetsRange.lastIndex = 0;
 			this.regExp_strOperator.lastIndex = 0;
 
-			for (var i = 0; i < str.length; i++) {
-				if(str[i] === "\'" && (i === 0 || i === str.length - 1)) {
-					return undefined;
-				} else if(str[i] === "]" || str[i] === "[" || str[i] === ":" || str[i] === "?" || str[i] === "*" || str[i] === "\\" || str[i] === "/") {
-					return undefined;
-				}
+			var validName = this.isValidName(str);
+			if (!validName)
+			{
+				return validName;
 			}
-			/*if (this.regExp_strExcludeCharts.test(str))
-			{//если содержутся недопустимые символы.
-				return undefined;
-			}*/
 
 			if (!this.regExp_namedRanges.test(ch1))
 			{//если первый символ находится не в str_namedRanges, то однозначно надо экранировать
@@ -1094,6 +1088,18 @@
 				}
 				return true;
 			}
+		};
+
+		this.isValidName = function (str)
+		{
+			for (var i = 0; i < str.length; i++) {
+				if(str[i] === "\'" && (i === 0 || i === str.length - 1)) {
+					return undefined;
+				} else if(str[i] === "]" || str[i] === "[" || str[i] === ":" || str[i] === "?" || str[i] === "*" || str[i] === "\\" || str[i] === "/") {
+					return undefined;
+				}
+			}
+			return true;
 		};
 
 		return this;

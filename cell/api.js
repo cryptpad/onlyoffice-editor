@@ -4695,7 +4695,7 @@ var editor;
 		}
 	};
 	spreadsheet_api.prototype.asc_validSheetName = function (val) {
-		return window["AscCommon"].rx_test_ws_name.test(val);
+		return window["AscCommon"].rx_test_ws_name.isValidName(val);
 	};
 
 
