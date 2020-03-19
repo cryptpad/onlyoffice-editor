@@ -9146,6 +9146,7 @@ CTable.prototype.MergeTableCells = function(isClearMerge)
 };
 /**
  * Разделяем текущую ячейку
+ * @returns {boolean}
  */
 CTable.prototype.SplitTableCells = function(Cols, Rows)
 {
@@ -9327,6 +9328,7 @@ CTable.prototype.SplitTableCells = function(Cols, Rows)
 					var Old_Cell = Row.Get_Cell(CurCell);
 
 					New_Cell.Copy_Pr(Old_Cell.Pr);
+					New_Cell.CopyParaPrAndTextPr(Old_Cell);
 
 					if (CurCell === Cell_pos.Cell)
 					{
@@ -9390,7 +9392,7 @@ CTable.prototype.SplitTableCells = function(Cols, Rows)
 					Grid_Info_start[Grid_index] = CurWidth - this.TableSumGrid[Grid_index - 1];
 				Grid_Info[Grid_index] += 1;
 
-				NewCol_Index++
+				NewCol_Index++;
 				CurWidth += Grid_width;
 
 				// Если мы попали в уже имеющуюся границу не добавляем новую точку
@@ -9427,6 +9429,7 @@ CTable.prototype.SplitTableCells = function(Cols, Rows)
 					NewCell.Copy_Pr(TempCell.Pr);
 					NewCell.Set_GridSpan(Grid_Info_new[Index]);
 					NewCell.Set_W(new CTableMeasurement(tblwidth_Mm, Grid_width));
+					NewCell.CopyParaPrAndTextPr(TempCell);
 				}
 			}
 		}
@@ -9613,21 +9616,7 @@ CTable.prototype.AddTableRow = function(bBefore, isCheckInnerTable)
 			var Old_Cell = Row.Get_Cell(CurCell);
 
 			New_Cell.Copy_Pr(Old_Cell.Pr);
-
-			// Копируем также текстовые настройки и настройки параграфа
-			var oFirstPara = Old_Cell.GetContent().GetFirstParagraph();
-			if (oFirstPara)
-			{
-				var oNewCellContent = New_Cell.GetContent();
-
-				var arrAllParagraphs = oNewCellContent.GetAllParagraphs({All : true});
-				for (var nParaIndex = 0, nParasCount = arrAllParagraphs.length; nParaIndex < nParasCount; ++nParaIndex)
-				{
-					var oTempPara = arrAllParagraphs[nParaIndex];
-					oTempPara.SetDirectParaPr(oFirstPara.GetDirectParaPr(true));
-					oTempPara.SetDirectTextPr(oFirstPara.GetFirstRunPr(), false);
-				}
-			}
+			New_Cell.CopyParaPrAndTextPr(Old_Cell);
 
 			if (true === bBefore)
 			{

@@ -2380,6 +2380,27 @@ CTableCell.prototype.private_UpdateTableGrid = function()
 	if (oTable)
 		oTable.private_UpdateTableGrid();
 };
+/**
+ * Копируем настройки текста и параграфа из заданной ячейки
+ * @param {CTableCell} oCell
+ */
+CTableCell.prototype.CopyParaPrAndTextPr = function(oCell)
+{
+	// Копируем также текстовые настройки и настройки параграфа
+	var oFirstPara = oCell.GetContent().GetFirstParagraph();
+	if (oFirstPara)
+	{
+		var oCellContent = this.GetContent();
+
+		var arrAllParagraphs = oCellContent.GetAllParagraphs({All : true});
+		for (var nParaIndex = 0, nParasCount = arrAllParagraphs.length; nParaIndex < nParasCount; ++nParaIndex)
+		{
+			var oTempPara = arrAllParagraphs[nParaIndex];
+			oTempPara.SetDirectParaPr(oFirstPara.GetDirectParaPr(true));
+			oTempPara.SetDirectTextPr(oFirstPara.GetFirstRunPr(), false);
+		}
+	}
+};
 
 function CTableCellRecalculateObject()
 {
