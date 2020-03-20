@@ -14700,6 +14700,10 @@ CChartSpace.prototype.updateLinks = function()
         var dHeight = this.extY + 2*dBorderW;
         var nWidth = (graphics.m_oCoordTransform.sx * dWidth + 0.5) >> 0;
         var nHeight = (graphics.m_oCoordTransform.sy * dHeight + 0.5) >> 0;
+        if(nWidth === 0 || nHeight === 0)
+        {
+            return false;
+        }
         if(this.cachedCanvas)
         {
             if(this.cachedCanvas.width !== nWidth || this.cachedCanvas.height !== nHeight)
