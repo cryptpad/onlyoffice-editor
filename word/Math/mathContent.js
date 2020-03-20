@@ -6879,7 +6879,7 @@ CMathContent.prototype.Refresh_ContentChanges = function()
 {
 	this.m_oContentChanges.Refresh();
 };
-CMathAutoCorrectEngine.prototype.private_PackTextToContent = function(Element, TempElements, bReplaceBrackets) {
+CMathAutoCorrectEngine.prototype.private_PackTextToContent = function(Element, TempElements, bReplaceBrackets, bskipCoreect = false) {
     if (TempElements.length === undefined) {
         Element.Internal_Content_Add(0, TempElements);        
     } else {
@@ -6890,7 +6890,8 @@ CMathAutoCorrectEngine.prototype.private_PackTextToContent = function(Element, T
                 TempElements.length--;
             }
         }
-        this.private_AutoCorrectEquation(TempElements);
+        if (!bskipCoreect)
+            this.private_AutoCorrectEquation(TempElements);
         var bNewRun = true;
         var MathRun = null;
         var PosElemnt = 0;
@@ -7074,7 +7075,8 @@ CMathAutoCorrectEngine.prototype.private_AutoCorrectDegree = function(buff) {
         this.private_CorrectBuffForDegree(buff[i]);
         RemoveCount += buff[i].length + 1;
         //разделить контент если нет скокобок и сохранить оставшуюся часть
-        this.private_PackTextToContent(BaseContent, buff[i], false);
+        var bskipCoreect = this.private_ChekSkipForDegreeAbove(buff[i]);
+        this.private_PackTextToContent(BaseContent, buff[i], false, bskipCoreect);
         this.private_PackTextToContent(IterContent, oDegree, true);
         oDegree = tmp;
     }
@@ -7087,7 +7089,7 @@ CMathAutoCorrectEngine.prototype.private_AutoCorrectDegree = function(buff) {
 };
 CMathAutoCorrectEngine.prototype.private_CorrectBuffForDegree = function(buff) {
     var retVal;
-    if (g_MathRightBracketAutoCorrectCharCodes[buff[buff.length-1].value]) {
+    if (buff[buff.length-1] && g_MathRightBracketAutoCorrectCharCodes[buff[buff.length-1].value]) {
         for (var i = buff.length - 2; i >= 0; i--) {
             if (g_MathLeftBracketAutoCorrectCharCodes[buff[i].value]) {
                 retVal = buff.splice(0,i);
@@ -7103,6 +7105,13 @@ CMathAutoCorrectEngine.prototype.private_CorrectBuffForDegree = function(buff) {
         }
     }
     return retVal || [];
+};
+CMathAutoCorrectEngine.prototype.private_ChekSkipForDegreeAbove = function(buff) {
+    var res = false;
+    if ( (buff.length === 1) && (g_aMathAutoCorrectRadicalCharCode[buff[0].value] || buff[0].value == 0x25A1 || buff[0].value == 0x25AD) ) {
+        res = true;
+    }
+    return res;
 };
 CMathAutoCorrectEngine.prototype.private_AutoCorrectDegreeSubSup = function(buff) {
     var props = new CMathDegreePr();
@@ -7124,7 +7133,8 @@ CMathAutoCorrectEngine.prototype.private_AutoCorrectDegreeSubSup = function(buff
         this.private_PackTextToContent(IterDnContent, buff[1], true);
     }
     var BaseElems = buff[2];
-    this.private_PackTextToContent(BaseContent, BaseElems, false);
+    var bskipCoreect = this.private_ChekSkipForDegreeAbove(buff[2]);
+    this.private_PackTextToContent(BaseContent, BaseElems, false, bskipCoreect);
 
     if (this.ActionElement.value == 0x20) {
         RemoveCount++;
@@ -7562,7 +7572,8 @@ CMathAutoCorrectEngine.prototype.private_AutoCorrectAboveBelow = function(buff) 
     };
     var Limit = new CLimit(props);
     var MathContent = Limit.getFName();
-    this.private_PackTextToContent(MathContent, buff[1], true);
+    var bskipCoreect = this.private_ChekSkipForDegreeAbove(buff[1]);
+    this.private_PackTextToContent(MathContent, buff[1], true, bskipCoreect);
     MathContent = Limit.getIterator();
     this.private_PackTextToContent(MathContent, buff[0], true);
     var Start = this.Elements.length - RemoveCount - this.Shift;
@@ -7900,6 +7911,9 @@ CMathAutoCorrectEngine.prototype.private_CanAutoCorrectEquation = function() {
         } else if (g_aMathAutoCorrectRadicalCharCode[Elem.value]) { // sqrt
             // если на 1 уровне больше одной пары скобок, то делать скобки, а не корень
             if (((this.Type == MATH_DEGREE || this.Type == MATH_DEGREESubSup || this.Type == MATH_LIMIT) && !bBrackOpen) || bOff) {
+                if (this.Type == MATH_DEGREE || this.Type == MATH_DEGREESubSup || this.Type == MATH_LIMIT) {
+                    buffer[CurLvBuf].splice(0, 0, Elem);
+                }
                 break;
             }
             buffer[CurLvBuf].splice(0, 0, Elem);
@@ -7915,6 +7929,9 @@ CMathAutoCorrectEngine.prototype.private_CanAutoCorrectEquation = function() {
             continue;
         } else if (Elem.value == 0x25A1 || Elem.value == 0x25AD) { // box OR border box
             if (((this.Type == MATH_DEGREE || this.Type == MATH_DEGREESubSup || this.Type == MATH_LIMIT) && !bBrackOpen) || bOff) {
+                if (this.Type == MATH_DEGREE || this.Type == MATH_DEGREESubSup || this.Type == MATH_LIMIT) {
+                    buffer[CurLvBuf].splice(0, 0, Elem);
+                }
                 break;
             }
             buffer[CurLvBuf].splice(0, 0, Elem);
@@ -7998,6 +8015,9 @@ CMathAutoCorrectEngine.prototype.private_CanAutoCorrectEquation = function() {
             continue;
         } else if (q_aMathAutoCorrectAccentCharCodes[Elem.value]) { // accent
             if (((this.Type == MATH_DEGREE || this.Type == MATH_DEGREESubSup) && !bBrackOpen) || bOff) {
+                if (this.Type == MATH_DEGREE || this.Type == MATH_DEGREESubSup || this.Type == MATH_LIMIT) {
+                    buffer[CurLvBuf].splice(0, 0, Elem);
+                }
                 break;
             }
             buffer[CurLvBuf].splice(0, 0, Elem);
@@ -9253,8 +9273,8 @@ var g_MathRightBracketAutoCorrectCharCodes =
 //знаки (минус, сумма...)
 var g_aMathAutoCorrectFracCharCodes =
 {
-    0x20 : 1, 0x21 : 1, 0x22 : 1, 0x23 : 1,	0x24 : 1, 0x25 : 1, 0x26 : 1,
-    0x27 : 1, 0x28 : 1, 0x29 : 1, 0x2A : 1, 0x2B : 1, 0x2C : 1, 0x2D : 1,
+    0x20 : 1, 0x21 : 1, /*0x22 : 1,*/ 0x23 : 1,	0x24 : 1, 0x25 : 1, 0x26 : 1,
+    /*0x27 : 1,*/ 0x28 : 1, 0x29 : 1, 0x2A : 1, 0x2B : 1, 0x2C : 1, 0x2D : 1,
     0x2E : 1, 0x2F : 1, 0x3A : 1, 0x3B : 1, 0x3C : 1, 0x3D : 1, 0x3E : 1,
     0x3F : 1, 0x40 : 1, 0x5B : 1, /*0x5C : 1,*/ 0x5D : 1, 0x5E : 1, 0x5F : 1,
     0x60 : 1, 0x7B : 1, 0x7C : 1, 0x7D : 1, 0x7E : 1, /*0x2592 : 1,*/ 0xD7 : 1
