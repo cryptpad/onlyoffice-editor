@@ -1095,14 +1095,15 @@ NumFormat.prototype =
             min = {val: 0, coeff: 60}, s = {val: 0, coeff: 60}, ms = {val: 0, coeff: 1000};
         //number is negative in case of bDate1904
         var numberAbs = Math.abs(number);
+        var tmp = numberAbs;
         var ttimes = [d, h, min, s, ms];
         for(var i = 0; i < 4; i++)
         {
-            var v = numberAbs*ttimes[i].coeff;
+            var v = tmp*ttimes[i].coeff;
             ttimes[i].val = Math.floor(v);
-            numberAbs = v - ttimes[i].val;
+            tmp = v - ttimes[i].val;
         }
-        ms.val = Math.round(numberAbs*1000);
+        ms.val = Math.round(tmp*1000);
         for(i = 4; i > 0 && (ttimes[i].val === ttimes[i].coeff); i--)
         {
             ttimes[i].val = 0;
