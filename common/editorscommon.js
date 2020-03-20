@@ -4022,7 +4022,15 @@
 					|| (0x1100 <= nCharCode && nCharCode <= 0x11FF)
 					|| (0x3130 <= nCharCode && nCharCode <= 0x318F)
 					|| (0xA960 <= nCharCode && nCharCode <= 0xA97F)
-					|| (0xD7B0 <= nCharCode && nCharCode <= 0xD7FF))
+					|| (0xD7B0 <= nCharCode && nCharCode <= 0xD7FF)
+					|| (0x4E00 <= nCharCode && nCharCode <= 0x9FFF)
+					|| (0x3400 <= nCharCode && nCharCode <= 0x4DBF)
+					|| (0x20000 <= nCharCode && nCharCode <= 0x2A6DF)
+			        || (0x2A700 <= nCharCode && nCharCode <= 0x2B73F)
+			        || (0x2B740 <= nCharCode && nCharCode <= 0x2B81F)
+			        || (0x2B820 <= nCharCode && nCharCode <= 0x2CEAF)
+					|| (0xF900 <= nCharCode && nCharCode <= 0xFAFF)
+			        || (0x2F800 <= nCharCode && nCharCode <= 0x2FA1F))
 					return false;
 			}
 			return true;
