@@ -1092,6 +1092,9 @@
 
 		this.isValidName = function (str)
 		{
+			if (str.length >= 32 || str.length === 0) {
+				return undefined;
+			}
 			for (var i = 0; i < str.length; i++) {
 				if(str[i] === "\'" && (i === 0 || i === str.length - 1)) {
 					return undefined;
