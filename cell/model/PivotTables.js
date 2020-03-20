@@ -1662,7 +1662,7 @@ CT_PivotCacheDefinition.prototype.Write_ToBinary2 = function(w) {
 };
 CT_PivotCacheDefinition.prototype.Read_FromBinary2 = function(r) {
 	var len = r.GetLong();
-	new openXml.SaxParserBase().parse(AscCommon.GetStringUtf8(r, len), this);
+	new AscCommon.openXml.SaxParserBase().parse(AscCommon.GetStringUtf8(r, len), this);
 	if (r.GetBool()) {
 		this.cacheRecords = new CT_PivotCacheRecords();
 		this.cacheRecords.Read_FromBinary2(r);
@@ -2278,7 +2278,7 @@ CT_PivotCacheRecords.prototype.Write_ToBinary2 = function(w) {
 };
 CT_PivotCacheRecords.prototype.Read_FromBinary2 = function(r) {
 	var len = r.GetLong();
-	new openXml.SaxParserBase().parse(AscCommon.GetStringUtf8(r, len), this);
+	new AscCommon.openXml.SaxParserBase().parse(AscCommon.GetStringUtf8(r, len), this);
 };
 
 function PivotTableChanged() {
@@ -2515,7 +2515,7 @@ CT_pivotTableDefinition.prototype.Read_FromBinary2 = function (r) {
 	var api_sheet = Asc['editor'];
 	this.worksheet = api_sheet.wbModel.getWorksheetById(r.GetString2());
 	var len = r.GetLong();
-	new openXml.SaxParserBase().parse(AscCommon.GetStringUtf8(r, len), this);
+	new AscCommon.openXml.SaxParserBase().parse(AscCommon.GetStringUtf8(r, len), this);
 	if (r.GetBool()) {
 		this.cacheDefinition = new CT_PivotCacheDefinition();
 		this.cacheDefinition.Read_FromBinary2(r);
