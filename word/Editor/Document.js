@@ -21687,6 +21687,87 @@ CDocument.prototype.GetAllTablesOnPage = function(nPageAbs)
 
 	return arrTables;
 };
+/**
+ * Конвертируем формулу из старого формата в новый
+ * @param {ParaDrawing} oEquation
+ * @param {boolean} isAll
+ */
+CDocument.prototype.ConvertEquationToMath = function(oEquation, isAll)
+{
+	if (isAll)
+	{
+		var arrParagraphs = [];
+		var arrDrawings = this.GetAllDrawingObjects();
+
+		for (var nIndex = 0, nCount = arrDrawings.length; nIndex < nCount; ++nIndex)
+		{
+			if (arrDrawings[nIndex].IsMathEquation())
+			{
+				var oParagraph = arrDrawings[nIndex].GetParagraph();
+				var isAdd = true;
+				for (var nParaIndex = 0, nParasCount = arrParagraphs.length; nParaIndex < nParasCount; ++nParaIndex)
+				{
+					if (arrParagraphs[nParaIndex] === oParagraph)
+					{
+						isAdd = false;
+						break;
+					}
+				}
+
+				if (isAdd)
+					arrParagraphs.push(oParagraph);
+			}
+		}
+
+		if (arrParagraphs.length < 0)
+			return;
+
+		if (!this.IsSelectionLocked(AscCommon.changestype_None, {
+				Type      : AscCommon.changestype_2_ElementsArray_and_Type,
+				Elements  : arrParagraphs,
+				CheckType : AscCommon.changestype_Paragraph_Content
+			}))
+		{
+			this.StartAction(AscDFH.historydescription_Document_ConvertOldEquation);
+			this.RemoveSelection();
+
+			for (var nIndex = 0, nCount = arrDrawings.length; nIndex < nCount; ++nIndex)
+			{
+				if (arrDrawings[nIndex].IsMathEquation())
+					arrDrawings[nIndex].ConvertToMath(arrDrawings[nIndex] === oEquation);
+			}
+
+			this.Recalculate();
+			this.UpdateSelection();
+			this.UpdateInterface();
+			this.FinalizeAction();
+		}
+	}
+	else if (oEquation)
+	{
+		if (!oEquation.IsMathEquation())
+			return;
+
+		var oParagraph = oEquation.GetParagraph();
+
+		if (!this.IsSelectionLocked(AscCommon.changestype_None, {
+				Type      : AscCommon.changestype_2_Element_and_Type,
+				Element   : oParagraph,
+				CheckType : AscCommon.changestype_Paragraph_Content
+			}))
+		{
+			this.StartAction(AscDFH.historydescription_Document_ConvertOldEquation);
+			this.RemoveSelection();
+
+			oEquation.ConvertToMath(true);
+
+			this.Recalculate();
+			this.UpdateSelection();
+			this.UpdateInterface();
+			this.FinalizeAction();
+		}
+	}
+};
 
 function CDocumentSelectionState()
 {

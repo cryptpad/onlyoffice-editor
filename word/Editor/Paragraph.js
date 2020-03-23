@@ -15688,6 +15688,14 @@ CParagraphContentPos.prototype.SetDepth = function(nDepth)
 {
 	this.Depth = Math.max(0, Math.min(nDepth + 1, this.Data.length - 1));
 };
+/**
+ * Уменьшаем глубину на заданное значение
+ * @param {number} nCount
+ */
+CParagraphContentPos.prototype.DecreaseDepth = function(nCount)
+{
+	this.Depth = Math.max(0, this.Depth - nCount);
+};
 
 function CComplexFieldStatePos(oComplexField, isFieldCode)
 {

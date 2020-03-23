@@ -1687,7 +1687,7 @@ DrawingObjectsController.prototype =
                     if (object.getObjectType() === AscDFH.historyitem_type_OleObject && this.handleOleObjectDoubleClick){
                         this.handleOleObjectDoubleClick(drawing, object, e, x, y, pageIndex);
                     }
-                    else if (2 == e.ClickCount && drawing instanceof ParaDrawing && drawing.Is_MathEquation())
+                    else if (2 == e.ClickCount && drawing instanceof ParaDrawing && drawing.IsMathEquation())
                     {
                         this.handleMathDrawingDoubleClick(drawing, e, x, y, pageIndex);
                     }

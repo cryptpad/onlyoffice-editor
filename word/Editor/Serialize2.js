@@ -7540,7 +7540,7 @@ function BinaryFileReader(doc, openParams)
 			this.Document.DrawingDocument.m_oWordControl.m_oApi.asc_SetTrackRevisions(this.oReadResult.trackRevisions);
 		}
 		for (var i = 0; i < this.oReadResult.drawingToMath.length; ++i) {
-			this.oReadResult.drawingToMath[i].Convert_ToMathObject(true);
+			this.oReadResult.drawingToMath[i].ConvertToMath();
 		}
 		for (var i = 0, length = this.oReadResult.aTableCorrect.length; i < length; ++i) {
 			var table = this.oReadResult.aTableCorrect[i];

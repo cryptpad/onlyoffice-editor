@@ -9746,6 +9746,29 @@ background-repeat: no-repeat;\
 		return oLogicDocument.GetAddedTextOnKeyDown(e);
 	};
 
+	asc_docs_api.prototype.sync_OnConvertEquationToMath = function(oEquation)
+	{
+		this.sendEvent("asc_onConvertEquationToMath", oEquation);
+	};
+	asc_docs_api.prototype.asc_ConvertEquationToMath = function(oEquation, isAll)
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+
+		// TODO: Вообще здесь нужно запрашивать шрифты, которые использовались в старой формуле,
+		//      но пока это только 1 шрифт "Cambria Math".
+		var loader   = AscCommon.g_font_loader;
+		var fontinfo = g_fontApplication.GetFontInfo("Arial Unicode MS");
+		var isasync  = loader.LoadFont(fontinfo, function()
+		{
+			oLogicDocument.ConvertEquationToMath(oEquation, isAll);
+		}, this);
+
+		if (false === isasync)
+		{
+			oLogicDocument.ConvertEquationToMath(oEquation, isAll);
+		}
+	};
+
 	window["asc_docs_api"]                                      = asc_docs_api;
 	window["asc_docs_api"].prototype["asc_nativeOpenFile"]      = function(base64File, version)
 	{
@@ -10825,6 +10848,8 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_GetSelectedText']                       = asc_docs_api.prototype.asc_GetSelectedText;
 	asc_docs_api.prototype['asc_AddBlankPage']                          = asc_docs_api.prototype.asc_AddBlankPage;
     asc_docs_api.prototype['sendEvent']         						= asc_docs_api.prototype.sendEvent;
+
+	asc_docs_api.prototype['asc_ConvertEquationToMath']                 = asc_docs_api.prototype.asc_ConvertEquationToMath;
 
     asc_docs_api.prototype['SetTableDrawMode']         					= asc_docs_api.prototype.SetTableDrawMode;
     asc_docs_api.prototype['SetTableEraseMode']         				= asc_docs_api.prototype.SetTableEraseMode;
