@@ -9242,6 +9242,8 @@ Paragraph.prototype.Internal_CompileParaPr2 = function()
 			if (undefined != this.Pr.NumPr.NumId && 0 != this.Pr.NumPr.NumId)
 			{
 				Lvl = this.Pr.NumPr.Lvl;
+				if (undefined === Lvl)
+					Lvl = 0;
 
 				if (Lvl >= 0 && Lvl <= 8)
 				{
