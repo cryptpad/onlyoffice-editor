@@ -2290,16 +2290,11 @@ CHeaderFooterController.prototype =
                 HdrFtr = this.Pages[PageIndex].Footer;
         }
 
-        if ( null === HdrFtr )
+        if (!HdrFtr)
         {
             // Ничего не делаем и отключаем дальнейшую обработку MouseUp и MouseMove
             this.WaitMouseDown = true;
-
             return true;
-        }
-        else
-        {
-            this.WaitMouseDown = false;
         }
 
         // В зависимости от страницы и позиции на странице мы активируем(делаем текущим)
@@ -2313,7 +2308,6 @@ CHeaderFooterController.prototype =
 		}
 
 		this.CurHdrFtr = HdrFtr;
-
 		if ( null != this.CurHdrFtr )
         {
             this.CurHdrFtr.Selection_SetStart( X, Y, PageIndex, MouseEvent );
@@ -2327,6 +2321,7 @@ CHeaderFooterController.prototype =
             }
         }
 
+		this.WaitMouseDown = false;
         return true;
     },
 

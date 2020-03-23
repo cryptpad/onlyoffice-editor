@@ -1608,7 +1608,7 @@ CTable.prototype.private_RecalculatePositionX = function(CurPage)
                 var TableWidth = this.TableSumGrid[this.TableSumGrid.length - 1];
 
                 if (false === this.Parent.IsTableCellContent())
-                    Page.X = Page.XLimit - TableWidth + 1.9; // 1.9мм всегда добавляется справа от таблицы
+                    Page.X = Page.XLimit - TableWidth + this.GetTableOffsetCorrection();
                 else
                     Page.X = Page.XLimit - TableWidth;
                 break;
