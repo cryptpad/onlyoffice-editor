@@ -9757,7 +9757,7 @@ background-repeat: no-repeat;\
 		// TODO: Вообще здесь нужно запрашивать шрифты, которые использовались в старой формуле,
 		//      но пока это только 1 шрифт "Cambria Math".
 		var loader   = AscCommon.g_font_loader;
-		var fontinfo = g_fontApplication.GetFontInfo("Arial Unicode MS");
+		var fontinfo = g_fontApplication.GetFontInfo("Cambria Math");
 		var isasync  = loader.LoadFont(fontinfo, function()
 		{
 			oLogicDocument.ConvertEquationToMath(oEquation, isAll);
