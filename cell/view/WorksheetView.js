@@ -7977,7 +7977,7 @@
 					if (isPivot) {
 						if (_vr.contains(c.col, r.row) &&
 							this._hitCursorFilterButton(x + _offsetX, y + _offsetY, c.col, r.row)) {
-							res = {cursor: kCurAutoFilter, target: c_oTargetType.FilterObject, col: -1, row: -1};
+							res = {cursor: kCurAutoFilter, target: c_oTargetType.FilterObject, col: -1, row: -1, bPivot: true};
 						}
 					} else {
 						res = this.af_checkCursor(x, y, _vr, _offsetX, _offsetY, r, c);

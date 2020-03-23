@@ -1249,14 +1249,18 @@
 
 		// проверяем фильтр
 		if (ct.target === c_oTargetType.FilterObject) {
-			var filterObj = ws.af_setDialogProp(ct.idFilter, true);
-			if(filterObj) {
-				arrMouseMoveObjects.push(new asc_CMM({
-					type: c_oAscMouseMoveType.Filter,
-					x: AscCommon.AscBrowser.convertToRetinaValue(x),
-					y: AscCommon.AscBrowser.convertToRetinaValue(y),
-					filter: filterObj
-				}));
+			if (ct.bPivot) {
+				//необходимо сгенерировать объект AutoFiltersOptions
+			} else {
+				var filterObj = ws.af_setDialogProp(ct.idFilter, true);
+				if(filterObj) {
+					arrMouseMoveObjects.push(new asc_CMM({
+						type: c_oAscMouseMoveType.Filter,
+						x: AscCommon.AscBrowser.convertToRetinaValue(x),
+						y: AscCommon.AscBrowser.convertToRetinaValue(y),
+						filter: filterObj
+					}));
+				}
 			}
 		}
 
