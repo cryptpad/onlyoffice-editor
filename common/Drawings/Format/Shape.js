@@ -5314,6 +5314,10 @@ CShape.prototype.hitToAdjustment = function (x, y) {
     if (_calcGeoem)
     {
         invert_transform = this.getInvertTransform();
+        if(!invert_transform)
+        {
+            return { hit: false, adjPolarFlag: null, adjNum: null, warp: false };
+        }
         t_x = invert_transform.TransformPointX(x, y);
         t_y = invert_transform.TransformPointY(x, y);
         ret = _calcGeoem.hitToAdj(t_x, t_y, _dist);
