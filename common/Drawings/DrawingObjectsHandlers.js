@@ -347,9 +347,9 @@ function handleFloatObjects(drawingObjectsController, drawingArr, e, x, y, group
 
 function handleShapeImage(drawing, drawingObjectsController, e, x, y, group, pageIndex, bWord)
 {
-    var hit_in_inner_area = drawing.hitInInnerArea(x, y);
-    var hit_in_path = drawing.hitInPath(x, y);
-    var hit_in_text_rect = drawing.hitInTextRect(x, y);
+    var hit_in_inner_area = drawing.hitInInnerArea && drawing.hitInInnerArea(x, y);
+    var hit_in_path = drawing.hitInPath && drawing.hitInPath(x, y);
+    var hit_in_text_rect = drawing.hitInTextRect && drawing.hitInTextRect(x, y);
     if(hit_in_inner_area || hit_in_path)
     {
         if(drawingObjectsController.checkDrawingHyperlink){
