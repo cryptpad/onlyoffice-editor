@@ -836,7 +836,24 @@
                     "docinfo" : this.api.currentDocumentInfo
                 });
             }
-        }
+        },
+
+		checkOrigin : function(guid, event)
+		{
+			if (event.origin === window.origin)
+				return true;
+
+			// allow chrome extensions
+			if (0 === event.origin.indexOf("chrome-extension://"))
+				return true;
+
+			// external plugins
+			var plugin = this.getPluginByGuid(guid);
+			if (plugin && 0 === plugin.baseUrl.indexOf(event.origin))
+				return true;
+
+			return false;
+		}
         /* -------------------------------- */
 	};
 
@@ -858,6 +875,10 @@
 		var runObject = window.g_asc_plugins.runnedPluginsMap[guid];
 
 		if (!runObject)
+			return;
+
+		// check origin
+		if (!window.g_asc_plugins.checkOrigin(guid, event))
 			return;
 
 		var name  = pluginData.getAttribute("type");
