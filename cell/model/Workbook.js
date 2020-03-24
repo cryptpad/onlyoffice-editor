@@ -8776,7 +8776,7 @@
 						}
 					} else {
 						parsed.calculateCycleError();
-		}
+					}
 				});
 
 				g_cCalcRecursion.decLevel();

@@ -137,8 +137,12 @@
 
 			var cell, bbox;
 			if(arg1) {
-				if (cElementType.cell === arg1.type || cElementType.cell3D === arg1.type ||
-					cElementType.cellsRange === arg1.type || cElementType.cellsRange3D === arg1.type) {
+				var isRangeArg1 = cElementType.cellsRange === arg1.type || cElementType.cellsRange3D === arg1.type;
+				if (isRangeArg1 || cElementType.cell === arg1.type || cElementType.cell3D === arg1.type) {
+					var _tempValue = isRangeArg1 ? arg1.getValueByRowCol(0,0) : arg1.getValue();
+					if (_tempValue instanceof cError) {
+						return _tempValue;
+					}
 					bbox = arg1.getRange();
 					bbox = bbox && bbox.bbox;
 				} else {
