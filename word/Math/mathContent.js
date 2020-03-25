@@ -6458,8 +6458,10 @@ CMathAutoCorrectEngine.prototype.private_CorrectEquation = function(Param, Eleme
         case MATH_DELIMITER:
             var props = new CMathDelimiterPr();
             props.column = 1;
-            props.begChr = Elements.splice(0,1)[0].value;
-            props.endChr = Elements.splice(Elements.length-1,1)[0].value;
+            var brchar = Elements.splice(0,1)[0].value;
+            props.begChr = (brchar === 0x251C) ? -1 : brchar;
+            brchar = Elements.splice(Elements.length-1,1)[0].value;
+            props.endChr = (brchar === 0x2524) ? -1 : brchar;
             var oDelimiter = new CDelimiter(props);
             var oBase = oDelimiter.getBase();
             this.private_PackTextToContent(oBase, Elements, false);
@@ -6926,11 +6928,11 @@ CMathAutoCorrectEngine.prototype.private_AutoCorrectDelimiter = function() {
         this.private_AutoCorrectPackDelimiter(this.Brackets[lv], Elements);
         this.Brackets.splice(lv,1);
     }
-    for(var j = 0; j < this.Brackets[1]['left'].length; j++) {
+    for (var j = 0; j < this.Brackets[1]['left'].length; j++) {
         var props = new CMathDelimiterPr();
         props.column = 1;
-        props.begChr = this.Brackets[1]['left'][j].bracket.value;
-        props.endChr = this.Brackets[1]['right'][j].bracket.value;
+        props.begChr = (this.Brackets[1]['left'][j].bracket.value === 0x251C) ? -1 : this.Brackets[1]['left'][j].bracket.value;
+        props.endChr = (this.Brackets[1]['right'][j].bracket.value === 0x2524) ? -1 : this.Brackets[1]['right'][j].bracket.value;
         var oDelimiter = new CDelimiter(props);
 
         var oBase = oDelimiter.getBase();
@@ -6989,8 +6991,8 @@ CMathAutoCorrectEngine.prototype.private_AutoCorrectPackDelimiter = function(dat
         }
         var props = new CMathDelimiterPr();
         props.column = 1;
-        props.begChr = data['left'][j].bracket.value;
-        props.endChr = data['right'][j].bracket.value;
+        props.begChr = (data['left'][j].bracket.value === 0x251C) ? -1 : data['left'][j].bracket.value;
+        props.endChr = (data['right'][j].bracket.value === 0x2524) ? -1 : data['right'][j].bracket.value;
         var oDelimiter = new CDelimiter(props);
 
         var oBase = oDelimiter.getBase();
@@ -8383,7 +8385,7 @@ CMathContent.prototype.GetTextContent = function(bSelectedText) {
         var MathLeftRighBracketsCharCodes = 
         [
             0x28, 0x29, 0x5B, 0x5D, 0x7B, 0x7D, 0x27E8, 0x27E9, 0x2329, 0x232A, 0x27E6, 0x27E7,
-            0x27EA, 0x27EB, 0x2308, 0x2309, 0x230A, 0x230B, 0x3016, 0x3017, 0x2524, 0x251C
+            0x27EA, 0x27EB, 0x2308, 0x2309, 0x230A, 0x230B, 0x3016, 0x3017, 0x2524
         ];
 		for (var i = 0 ; i < MathLeftRighBracketsCharCodes.length; i++) {
             var templ = String.fromCharCode(MathLeftRighBracketsCharCodes[i]);
