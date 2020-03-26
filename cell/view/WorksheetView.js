@@ -15084,16 +15084,21 @@
     WorksheetView.prototype.drawOverlayButtons = function (visibleRange, offsetX, offsetY) {
 		var activeCell = this.model.selectionRange.activeCell;
 		if (visibleRange.contains2(activeCell)) {
-            var dataValidation = this.model.getDataValidation(activeCell.col, activeCell.row);
-            if (dataValidation) {
-                var values = dataValidation.getListValues(this.model);
-                if (values) {
-                    this.af_drawCurrentButton(offsetX, offsetY,
-                        {isOverlay: true, isSortState: null, isSetFilter: false, row: activeCell.row, col: activeCell.col});
-                }
-            }
-            return false;
-        }
+			var dataValidation = this.model.getDataValidation(activeCell.col, activeCell.row);
+			if (dataValidation) {
+				var values = dataValidation.getListValues(this.model);
+				if (values) {
+					this.af_drawCurrentButton(offsetX, offsetY, {
+						isOverlay: true,
+						isSortState: null,
+						isSetFilter: false,
+						row: activeCell.row,
+						col: activeCell.col
+					});
+				}
+			}
+			return false;
+		}
 		return true;
 	};
 
