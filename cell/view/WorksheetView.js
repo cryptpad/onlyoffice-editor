@@ -7752,7 +7752,7 @@
 				});
 				var activeCell = this.model.selectionRange.activeCell;
 				var dataValidation = this.model.getDataValidation(activeCell.col, activeCell.row);
-				var isDataValidation = dataValidation && dataValidation.getListValues(this.model);
+				var isDataValidation = dataValidation && dataValidation.isListValues();
 				col = activeCell.col;
 				row = activeCell.row;
 				this._drawElements(function (_vr, _offsetX, _offsetY) {
@@ -15090,17 +15090,14 @@
 		var activeCell = this.model.selectionRange.activeCell;
 		if (visibleRange.contains2(activeCell)) {
 			var dataValidation = this.model.getDataValidation(activeCell.col, activeCell.row);
-			if (dataValidation) {
-				var values = dataValidation.getListValues(this.model);
-				if (values) {
-					this.af_drawCurrentButton(offsetX, offsetY, {
-						isOverlay: true,
-						isSortState: null,
-						isSetFilter: false,
-						row: activeCell.row,
-						col: activeCell.col
-					});
-				}
+			if (dataValidation && dataValidation.isListValues()) {
+				this.af_drawCurrentButton(offsetX, offsetY, {
+					isOverlay: true,
+					isSortState: null,
+					isSetFilter: false,
+					row: activeCell.row,
+					col: activeCell.col
+				});
 			}
 			return false;
 		}

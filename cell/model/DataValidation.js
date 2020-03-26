@@ -249,8 +249,11 @@
 		}
 		return res;
 	};
+	CDataValidation.prototype.isListValues = function () {
+		return (this.type === EDataValidationType.List && !this.showDropDown);
+	};
 	CDataValidation.prototype.getListValues = function (ws) {
-		return (this.type === EDataValidationType.List && !this.showDropDown) ?  this._getListValues(ws) : null;
+		return this.isListValues() ?  this._getListValues(ws) : null;
 	};
 
 	CDataValidation.prototype.getError = function () {
