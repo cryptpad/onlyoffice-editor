@@ -13690,10 +13690,6 @@
 		var oAutoExpansionTable;
 		var isFormula = this._isFormula(val);
 		if (isFormula) {
-			var ftext = val.reduce(function (pv, cv) {
-				return pv + cv.text;
-			}, "");
-
 			// ToDo - при вводе формулы в заголовок автофильтра надо писать "0"
 			//***array-formula***
 			var ret = true;
@@ -13702,7 +13698,7 @@
 				this.model.workbook.dependencyFormulas.lockRecal();
 			}
 
-			c.setValue(ftext, function (r) {
+			c.setValue(AscCommonExcel.getFragmentsText(val), function (r) {
 				ret = r;
 			}, null, applyByArray ? bbox : null);
 
@@ -13743,11 +13739,8 @@
 		}
 
 		if (!isFormula) {
-			for (var i = 0; i < val.length; ++i) {
-				if (-1 !== val[i].text.indexOf(kNewLine)) {
-					c.setWrap(true);
-					break;
-				}
+			if (-1 !== AscCommonExcel.getFragmentsText(val).indexOf(kNewLine)) {
+				c.setWrap(true);
 			}
 		}
 
@@ -13897,9 +13890,18 @@
 					};
 
 					var dataValidation = t.model.getDataValidation(col, row);
-					if (dataValidation && !dataValidation.checkValue(val, t.model)) {
-						t.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.DataValidate, c_oAscError.Level.NoCritical, dataValidation);
-						return false;
+					if (dataValidation) {
+						var checkValue = AscCommonExcel.getFragmentsText(val);
+						if (t._isFormula(val)) {
+							var f = new AscCommonExcel.parserFormula(checkValue.substring(1), null, t.model);
+							f.parse();
+							checkValue = f.calculate(null, null, null);
+							checkValue = f.simplifyRefType(checkValue).getValue();
+						}
+						if (!dataValidation.checkValue(checkValue, t.model)) {
+							t.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.DataValidate, c_oAscError.Level.NoCritical, dataValidation);
+							return false;
+						}
 					}
 
 					//***array-formula***

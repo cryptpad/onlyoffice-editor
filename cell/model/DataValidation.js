@@ -187,7 +187,7 @@
 	CDataValidation.prototype.checkValue = function (val, ws) {
 		var res = true;
 		if (this.showErrorMessage) {
-			val = (this.type === EDataValidationType.TextLength) ? AscCommonExcel.getFragmentsLength(val) : AscCommonExcel.getFragmentsText(val);
+			val = (this.type === EDataValidationType.TextLength) ? val.length : val;
 			if (EDataValidationType.List === this.type) {
 				var list = this._getListValues(ws);
 				res = (list && -1 !== list.indexOf(val));
