@@ -254,7 +254,8 @@
         this.merged = null;
         this.textAlign = null;
 
-        this.bApplyByArray = null;
+        this.ctrlKey = null;
+        this.shiftKey = null;
     }
 
     CellFlags.prototype.clone = function () {
@@ -13662,7 +13663,9 @@
 		var oldMode = this.isFormulaEditMode;
 		this.isFormulaEditMode = false;
 
-		var applyByArray = flags && flags.bApplyByArray;
+		var ctrlKey = flags.ctrlKey;
+		var shiftKey = flags.shiftKey;
+		var applyByArray = ctrlKey && shiftKey;
 		//t.model.workbook.dependencyFormulas.lockRecal();
 
 		if (!isNotHistory) {
@@ -13672,7 +13675,7 @@
 
 		//***array-formula***
 		var changeRangesIfArrayFormula = function() {
-			if(applyByArray) {
+			if(ctrlKey) {
 				c = t.getSelectedRange();
 				if(c.bbox.isOneCell()) {
 					//проверяем, есть ли формула массива в этой ячейке
@@ -13694,7 +13697,7 @@
 			//***array-formula***
 			var ret = true;
 			changeRangesIfArrayFormula();
-			if(applyByArray) {
+			if(ctrlKey) {
 				this.model.workbook.dependencyFormulas.lockRecal();
 			}
 
@@ -13703,7 +13706,7 @@
 			}, null, applyByArray ? bbox : null);
 
 			//***array-formula***
-			if(applyByArray) {
+			if(ctrlKey) {
 				this.model.workbook.dependencyFormulas.unlockRecal();
 			}
 

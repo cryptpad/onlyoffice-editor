@@ -318,12 +318,11 @@
 		this._updateUndoRedoChanged();
 	};
 
-	CellEditor.prototype.close = function (saveValue, bApplyByArray, callback) {
+	CellEditor.prototype.close = function (saveValue, callback) {
 		var opt = this.options;
 		var t = this;
 
 		var localSaveValueCallback = function(isSuccess) {
-			t.textFlags.bApplyByArray = null;
 			if(!isSuccess) {
 				t.handlers.trigger('setStrictClose', true);
 				if(callback) {
@@ -377,7 +376,6 @@
 					this.noUpdateMode = false;
 				}
 
-				this.textFlags.bApplyByArray = bApplyByArray;
 				return opt.saveValueCallback(opt.fragments, this.textFlags, localSaveValueCallback);
 			}
 		}
@@ -2169,18 +2167,16 @@
 		t.undoMode = false;
 	};
 
-	CellEditor.prototype._tryCloseEditor = function (event, bApplyByArray) {
+	CellEditor.prototype._tryCloseEditor = function (event) {
 		var t = this;
 		var callback = function(success) {
-			//для случая, когда пользователь нажимает ctrl+shift+enter переход на новую строку не осуществляется
-			if(!bApplyByArray && success) {
+			//для случая, когда пользователь нажимает ctrl+shift+enter/crtl+enter переход на новую строку не осуществляется
+			var applyByArray = t.textFlags.ctrlKey;
+			if(!applyByArray && success) {
 				t.handlers.trigger("applyCloseEvent", event);
 			}
 		};
-		if(!window['AscCommonExcel'].bIsSupportArrayFormula) {
-			bApplyByArray = false;
-		}
-		this.close(true, bApplyByArray, callback);
+		this.close(true, callback);
 	};
 
 	CellEditor.prototype._getAutoComplete = function (str) {
@@ -2297,7 +2293,9 @@
 							t._addNewLine();
 						} else {
 							if (false === t.handlers.trigger("isGlobalLockEditCell")) {
-								t._tryCloseEditor(event, event.shiftKey&&event.ctrlKey);
+								t.textFlags.ctrlKey = event.ctrlKey;
+								t.textFlags.shiftKey = event.shiftKey;
+								t._tryCloseEditor(event);
 							}
 						}
 					}
