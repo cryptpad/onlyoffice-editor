@@ -5220,7 +5220,7 @@
                       AscCommonExcel.selectionLineType.None, new CColor(0, 0, 0));
                 }
 
-                this.drawOverlayButtons();
+                this._drawElements(this.drawOverlayButtons);
             }
         }
 
@@ -15081,18 +15081,20 @@
 
         return true;
     };
-    WorksheetView.prototype.drawOverlayButtons = function () {
-    	var offsetX = this._getColLeft(this.visibleRange.c1) - this.cellsLeft;
-    	var offsetY = this._getRowTop(this.visibleRange.r1) - this.cellsTop;
+    WorksheetView.prototype.drawOverlayButtons = function (visibleRange, offsetX, offsetY) {
 		var activeCell = this.model.selectionRange.activeCell;
-		var dataValidation = this.model.getDataValidation(activeCell.col, activeCell.row);
-		if (dataValidation) {
-			var values = dataValidation.getListValues(this.model);
-			if (values) {
-				this.af_drawCurrentButton(offsetX, offsetY,
-					{isOverlay: true, isSortState: null, isSetFilter: false, row: activeCell.row, col: activeCell.col});
-			}
-		}
+		if (visibleRange.contains2(activeCell)) {
+            var dataValidation = this.model.getDataValidation(activeCell.col, activeCell.row);
+            if (dataValidation) {
+                var values = dataValidation.getListValues(this.model);
+                if (values) {
+                    this.af_drawCurrentButton(offsetX, offsetY,
+                        {isOverlay: true, isSortState: null, isSetFilter: false, row: activeCell.row, col: activeCell.col});
+                }
+            }
+            return false;
+        }
+		return true;
 	};
 
 	WorksheetView.prototype.af_drawCurrentButton = function (offsetX, offsetY, props) {
