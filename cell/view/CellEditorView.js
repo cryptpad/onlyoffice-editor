@@ -2171,7 +2171,7 @@
 		var t = this;
 		var callback = function(success) {
 			//для случая, когда пользователь нажимает ctrl+shift+enter/crtl+enter переход на новую строку не осуществляется
-			var applyByArray = t.textFlags.ctrlKey;
+			var applyByArray = t.textFlags && t.textFlags.ctrlKey;
 			if(!applyByArray && success) {
 				t.handlers.trigger("applyCloseEvent", event);
 			}
@@ -2293,8 +2293,10 @@
 							t._addNewLine();
 						} else {
 							if (false === t.handlers.trigger("isGlobalLockEditCell")) {
-								t.textFlags.ctrlKey = event.ctrlKey;
-								t.textFlags.shiftKey = event.shiftKey;
+								if (t.textFlags) {
+									t.textFlags.ctrlKey = event.ctrlKey;
+									t.textFlags.shiftKey = event.shiftKey;
+								}
 								t._tryCloseEditor(event);
 							}
 						}

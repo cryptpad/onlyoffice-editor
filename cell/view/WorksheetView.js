@@ -13663,8 +13663,8 @@
 		var oldMode = this.isFormulaEditMode;
 		this.isFormulaEditMode = false;
 
-		var ctrlKey = flags.ctrlKey;
-		var shiftKey = flags.shiftKey;
+		var ctrlKey = flags && flags.ctrlKey;
+		var shiftKey = flags && flags.shiftKey;
 		var applyByArray = ctrlKey && shiftKey;
 		//t.model.workbook.dependencyFormulas.lockRecal();
 
