@@ -1254,6 +1254,8 @@
 	window['AscDFH'].historyitem_type_PresentationField  = 64 << 16;
 	window['AscDFH'].historyitem_type_ParaRevisionMove   = 65 << 16;
 	window['AscDFH'].historyitem_type_RunRevisionMove    = 66 << 16;
+	window['AscDFH'].historyitem_type_GlossaryDocument   = 67 << 16;
+	window['AscDFH'].historyitem_type_DocPart            = 68 << 16;
 
 	window['AscDFH'].historyitem_type_CommonShape            = 1000 << 16; // Этот класс добавлен для элементов, у которых нет конкретного класса
 
@@ -1845,6 +1847,20 @@
 	window['AscDFH'].historyitem_Footnotes_SetFootnotePrNumStart    = window['AscDFH'].historyitem_type_Footnotes | 6;
 	window['AscDFH'].historyitem_Footnotes_SetFootnotePrNumRestart  = window['AscDFH'].historyitem_type_Footnotes | 7;
 	window['AscDFH'].historyitem_Footnotes_SetFootnotePrNumFormat   = window['AscDFH'].historyitem_type_Footnotes | 8;
+	//------------------------------------------------------------------------------------------------------------------
+	// Типы изменений в классе CGlossaryDocument
+	//------------------------------------------------------------------------------------------------------------------
+	window['AscDFH'].historyitem_GlossaryDocument_AddDocPart = window['AscDFH'].historyitem_type_GlossaryDocument | 1;
+	//------------------------------------------------------------------------------------------------------------------
+	// Типы изменений в классе CDocPart
+	//------------------------------------------------------------------------------------------------------------------
+	window["AscDFH"].historyitem_DocPart_Name        = window["AscDFH"].historyitem_type_DocPart | 1;
+	window["AscDFH"].historyitem_DocPart_Style       = window["AscDFH"].historyitem_type_DocPart | 2;
+	window["AscDFH"].historyitem_DocPart_Types       = window["AscDFH"].historyitem_type_DocPart | 3;
+	window["AscDFH"].historyitem_DocPart_Description = window["AscDFH"].historyitem_type_DocPart | 4;
+	window["AscDFH"].historyitem_DocPart_GUID        = window["AscDFH"].historyitem_type_DocPart | 5;
+	window["AscDFH"].historyitem_DocPart_Category    = window["AscDFH"].historyitem_type_DocPart | 6;
+	window["AscDFH"].historyitem_DocPart_Behavior    = window["AscDFH"].historyitem_type_DocPart | 7;
 	//------------------------------------------------------------------------------------------------------------------
 	// Типы изменений в классе CSdtPr
 	//------------------------------------------------------------------------------------------------------------------

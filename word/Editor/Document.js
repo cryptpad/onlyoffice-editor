@@ -2319,6 +2319,8 @@ function CDocument(DrawingDocument, isMainLogicDocument)
 
     this.DocumentOutline = new CDocumentOutline(this);
 
+    this.GlossaryDocument = new CGlossaryDocument(this);
+
     this.AutoCorrectSettings = {
     	SmartQuotes            : true,
 		HyphensWithDash        : true,
@@ -13978,6 +13980,10 @@ CDocument.prototype.Get_IdCounter = function()
 {
 	return this.IdCounter;
 };
+CDocument.prototype.GetIdCounter = function()
+{
+	return this.IdCounter;
+};
 CDocument.prototype.Get_TableId = function()
 {
 	return this.TableId;
@@ -21767,6 +21773,13 @@ CDocument.prototype.ConvertEquationToMath = function(oEquation, isAll)
 			this.FinalizeAction();
 		}
 	}
+};
+/**
+ * @returns {CGlossaryDocument}
+ */
+CDocument.prototype.GetGlossaryDocument = function()
+{
+	return this.GlossaryDocument;
 };
 
 function CDocumentSelectionState()
