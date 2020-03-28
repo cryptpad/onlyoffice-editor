@@ -73,6 +73,9 @@ function CSdtPr()
 	this.Date     = undefined;
 
 	this.TextPr = new CTextPr();
+
+	this.Placeholder   = undefined;
+	this.ShowingPlcHdr = false;
 }
 
 CSdtPr.prototype.Copy = function()
@@ -102,6 +105,9 @@ CSdtPr.prototype.Copy = function()
 		oPr.Date = this.Date.Copy();
 
 	oPr.TextPr = this.TextPr.Copy();
+
+	oPr.Placeholder   = this.Placeholder;
+	oPr.ShowingPlcHdr = this.ShowingPlcHdr;
 
 	return oPr;
 };
@@ -203,6 +209,17 @@ CSdtPr.prototype.Write_ToBinary = function(Writer)
 		Flags |= 16384;
 	}
 
+	if (undefined !== this.Placeholder)
+	{
+		Writer.WriteString2(this.Placeholder);
+		Flags |= 32768;
+	}
+
+	if (undefined !== this.ShowingPlcHdr)
+	{
+		Writer.WriteBool(this.ShowingPlcHdr);
+		Flags |= 65536;
+	}
 
 	var EndPos = Writer.GetCurPosition();
 	Writer.Seek(StartPos);
@@ -275,6 +292,12 @@ CSdtPr.prototype.Read_FromBinary = function(Reader)
 		this.Date = new CSdtDatePickerPr();
 		this.Date.ReadToBinary(Reader);
 	}
+
+	if (Flags & 32768)
+		this.Placeholder = Reader.GetString2();
+
+	if (Flags & 65536)
+		this.ShowingPlcHdr = Reader.GetBool();
 };
 CSdtPr.prototype.IsBuiltInDocPart = function()
 {

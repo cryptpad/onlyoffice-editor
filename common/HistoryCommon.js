@@ -1879,6 +1879,8 @@
 	window['AscDFH'].historyitem_SdtPr_DropDownList     = window['AscDFH'].historyitem_type_SdtPr | 13;
 	window['AscDFH'].historyitem_SdtPr_DatePicker       = window['AscDFH'].historyitem_type_SdtPr | 14;
 	window['AscDFH'].historyitem_SdtPr_TextPr           = window['AscDFH'].historyitem_type_SdtPr | 15;
+	window['AscDFH'].historyitem_SdtPr_Placeholder      = window['AscDFH'].historyitem_type_SdtPr | 16;
+	window['AscDFH'].historyitem_SdtPr_ShowingPlcHdr    = window['AscDFH'].historyitem_type_SdtPr | 17;
 	//------------------------------------------------------------------------------------------------------------------
 	// Графические классы общего назначение (без привязки к конкретному классу)
 	//------------------------------------------------------------------------------------------------------------------

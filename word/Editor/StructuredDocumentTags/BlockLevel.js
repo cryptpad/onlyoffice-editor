@@ -2285,6 +2285,30 @@ CBlockLevelSdt.prototype.RecalculateEndInfo = function()
 {
 	this.Content.RecalculateEndInfo();
 };
+CBlockLevelSdt.prototype.SetPlaceholder = function(sDocPartName)
+{
+	if (this.Pr.Placeholder !== sDocPartName)
+	{
+		History.Add(new CChangesSdtPrPlaceholder(this, this.Pr.Placeholder, sDocPartName));
+		this.Pr.Placeholder = sDocPartName;
+	}
+};
+CBlockLevelSdt.prototype.GetPlaceholder = function()
+{
+	return this.Pr.Placeholder;
+};
+CBlockLevelSdt.prototype.SetShowingPlcHdr = function(isShow)
+{
+	if (this.Pr.ShowingPlcHdr !== isShow)
+	{
+		History.Add(new CChangesSdtPrShowingPlcHdr(this, this.Pr.ShowingPlcHdr, isShow));
+		this.Pr.ShowingPlcHdr = isShow;
+	}
+};
+CBlockLevelSdt.prototype.IsShowingPlcHdr = function()
+{
+	return this.Pr.ShowingPlcHdr;
+};
 //--------------------------------------------------------export--------------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};
 window['AscCommonWord'].CBlockLevelSdt = CBlockLevelSdt;

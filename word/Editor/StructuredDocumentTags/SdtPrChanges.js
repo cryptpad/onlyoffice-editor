@@ -52,6 +52,8 @@ AscDFH.changesFactory[AscDFH.historyitem_SdtPr_ComboBox]         = CChangesSdtPr
 AscDFH.changesFactory[AscDFH.historyitem_SdtPr_DropDownList]     = CChangesSdtPrDropDownList;
 AscDFH.changesFactory[AscDFH.historyitem_SdtPr_DatePicker]       = CChangesSdtPrDatePicker;
 AscDFH.changesFactory[AscDFH.historyitem_SdtPr_TextPr]           = CChangesSdtPrTextPr;
+AscDFH.changesFactory[AscDFH.historyitem_SdtPr_Placeholder]      = CChangesSdtPrPlaceholder;
+AscDFH.changesFactory[AscDFH.historyitem_SdtPr_ShowingPlcHdr]    = CChangesSdtPrShowingPlcHdr;
 
 //----------------------------------------------------------------------------------------------------------------------
 // Карта зависимости изменений
@@ -102,6 +104,12 @@ AscDFH.changesRelationMap[AscDFH.historyitem_SdtPr_DatePicker] = [
 ];
 AscDFH.changesRelationMap[AscDFH.historyitem_SdtPr_TextPr] = [
 	AscDFH.historyitem_SdtPr_TextPr
+];
+AscDFH.changesRelationMap[AscDFH.historyitem_SdtPr_Placeholder] = [
+	AscDFH.historyitem_SdtPr_Placeholder
+];
+AscDFH.changesRelationMap[AscDFH.historyitem_SdtPr_ShowingPlcHdr] = [
+	AscDFH.historyitem_SdtPr_ShowingPlcHdr
 ];
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -525,4 +533,35 @@ CChangesSdtPrTextPr.prototype.private_SetValue = function(Value)
 CChangesSdtPrTextPr.prototype.private_CreateObject = function()
 {
 	return new CTextPr();
+};
+/**
+ * @constructor
+ * @extends {AscDFH.CChangesBaseStringProperty}
+ */
+function CChangesSdtPrPlaceholder(Class, Old, New)
+{
+	AscDFH.CChangesBaseStringProperty.call(this, Class, Old, New);
+}
+CChangesSdtPrPlaceholder.prototype = Object.create(AscDFH.CChangesBaseStringProperty.prototype);
+CChangesSdtPrPlaceholder.prototype.constructor = CChangesSdtPrPlaceholder;
+CChangesSdtPrPlaceholder.prototype.Type = AscDFH.historyitem_SdtPr_Placeholder;
+CChangesSdtPrPlaceholder.prototype.private_SetValue = function(Value)
+{
+	this.Class.Pr.Placeholder = Value;
+};
+
+/**
+ * @constructor
+ * @extends {AscDFH.CChangesBaseBoolProperty}
+ */
+function CChangesSdtPrShowingPlcHdr(Class, Old, New)
+{
+	AscDFH.CChangesBaseBoolProperty.call(this, Class, Old, New);
+}
+CChangesSdtPrShowingPlcHdr.prototype = Object.create(AscDFH.CChangesBaseBoolProperty.prototype);
+CChangesSdtPrShowingPlcHdr.prototype.constructor = CChangesSdtPrShowingPlcHdr;
+CChangesSdtPrShowingPlcHdr.prototype.Type = AscDFH.historyitem_SdtPr_ShowingPlcHdr;
+CChangesSdtPrShowingPlcHdr.prototype.private_SetValue = function(Value)
+{
+	this.Class.Pr.ShowingPlcHdr = Value;
 };
