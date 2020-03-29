@@ -37,6 +37,12 @@
  * Time: 16:06
  */
 
+var c_oAscDefaultPlaceholderName = {
+	Text     : "DefaultPlaceholder_TEXT",
+	List     : "DefaultPlaceholder_LIST",
+	DateTime : "DefaultPlaceholder_DATE"
+};
+
 /**
  * Класс для хранения и работы с дополнительными DocContents
  * @param {CDocument} oLogicDocument
@@ -51,6 +57,15 @@ function CGlossaryDocument(oLogicDocument)
 	this.LogicDocument = oLogicDocument;
 
 	this.DocParts = {};
+
+	// TODO: Инициализировать нужно сразу, чтобы не было проблем с совместным редактированием
+	this.DefaultPlaceholder = {
+		Text     : null,
+		List     : null,
+		DateTime : null
+	};
+
+	this.GetDefaultPlaceholderText();
 
 	oLogicDocument.GetTableId().Add(this, this.Id);
 }
@@ -74,7 +89,50 @@ CGlossaryDocument.prototype.CreateDocPart = function()
 
 	return oDocPart;
 };
+/**
+ * Ищем контент по имени
+ * @param {string} sName
+ * @returns {?CDocPart}
+ */
+CGlossaryDocument.prototype.GetDocPartByName = function(sName)
+{
+	for (var sId in this.DocParts)
+	{
+		var oDocPart = this.DocParts[sId];
+		if (sName === oDocPart.GetDocPartName())
+			return oDocPart;
+	}
 
+	return null;
+};
+/**
+ * Получаем дефолтовый контент для плейсхолдера для обычного текста
+ * @returns {CDocPart}
+ */
+CGlossaryDocument.prototype.GetDefaultPlaceholderText = function()
+{
+	if (!this.DefaultPlaceholder.Text)
+	{
+		var oDocPart = this.GetDocPartByName(c_oAscDefaultPlaceholderName.Text);
+		if (!oDocPart)
+		{
+			oDocPart = this.CreateDocPart(c_oAscDefaultPlaceholderName.Text);
+
+			var oParagraph = oDocPart.GetFirstParagraph();
+			var oRun       = new ParaRun();
+			oParagraph.AddToContent(0, oRun);
+			oRun.AddText(AscCommon.translateManager.getValue('Your text here'));
+
+			oDocPart.SetDocPartBehavior(c_oAscDocPartBehavior.Content);
+			oDocPart.SetDocPartCategory("Common", c_oAscDocPartGallery.Placeholder);
+			oDocPart.AddDocPartType(c_oAscDocPartType.BBPlcHolder);
+		}
+
+		this.DefaultPlaceholder.Text = oDocPart;
+	}
+
+	return this.DefaultPlaceholder.Text;
+};
 /**
  * Класс, представляющий дополнительное содержимое документа (например, для плейсхолдеров документа)
  * @param {CGlossaryDocument} oGlossary
@@ -138,7 +196,7 @@ CDocPart.prototype.GetDocPartStyle = function()
 };
 CDocPart.prototype.SetDocPartTypes = function(nTypes)
 {
-	if (this.Pr.Types !== nType)
+	if (this.Pr.Types !== nTypes)
 	{
 		History.Add(new CChangesDocPartTypes(this, this.Pr.Types, nTypes));
 		this.Pr.Types = nTypes;

@@ -55,6 +55,9 @@ function CInlineLevelSdt()
 	this.BoundsPaths          = null;
 	this.BoundsPathsStartPage = -1;
 
+	this.Pr.Placeholder   = c_oAscDefaultPlaceholderName.Text;
+	this.Pr.ShowingPlcHdr = true;
+
 	this.PlaceHolder = new ParaRun();
 	this.PlaceHolder.AddText(AscCommon.translateManager.getValue('Your text here'));
 	this.PlaceHolder.PlaceHolder = true;
