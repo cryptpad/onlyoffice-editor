@@ -7094,6 +7094,9 @@ CMathAutoCorrectEngine.prototype.private_CorrectBuffForDegree = function(buff) {
     if (buff[buff.length-1] && g_MathRightBracketAutoCorrectCharCodes[buff[buff.length-1].value]) {
         for (var i = buff.length - 2; i >= 0; i--) {
             if (g_MathLeftBracketAutoCorrectCharCodes[buff[i].value]) {
+                if ( (i > 0) && (g_aMathAutoCorrectEqArrayMatrix[buff[i-1].value]) ) {
+                    continue;
+                }
                 retVal = buff.splice(0,i);
                 break;
             }
@@ -7110,7 +7113,8 @@ CMathAutoCorrectEngine.prototype.private_CorrectBuffForDegree = function(buff) {
 };
 CMathAutoCorrectEngine.prototype.private_ChekSkipForDegreeAbove = function(buff) {
     var res = false;
-    if ( (buff.length === 1) && (g_aMathAutoCorrectRadicalCharCode[buff[0].value] || buff[0].value == 0x25A1 || buff[0].value == 0x25AD) ) {
+    var val = (buff[0]) ? buff[0].value : null;
+    if ( (buff.length === 1) && (g_aMathAutoCorrectRadicalCharCode[val] || g_aMathAutoCorrectEqArrayMatrix[val] || val == 0x25A1 || val == 0x25AD) ) {
         res = true;
     }
     return res;
@@ -8027,7 +8031,12 @@ CMathAutoCorrectEngine.prototype.private_CanAutoCorrectEquation = function() {
                 this.CurPos--;
                 continue;
             }
-            if (g_aMathAutoCorrectDoNotAccentNotClose[this.ActionElement.value]) {
+            if (this.Elements[this.CurPos+1].Element === this.ActionElement) {
+                if (g_aMathAutoCorrectDoNotAccentClose[this.ActionElement.value]) {
+                    this.CurPos--;
+                    continue;
+                }
+            } else if (g_aMathAutoCorrectDoNotAccentNotClose[this.ActionElement.value]) {
                 this.CurPos--;
                 continue;
             }
