@@ -113,9 +113,15 @@
 		}
 
 		this.type = EFormulaType.Formula;
-		this._formula = new AscCommonExcel.parserFormula(this.text, null, ws);
+		this._formula = new AscCommonExcel.parserFormula(this.text, this, ws);
 		this._formula.parse();
+        this._formula.buildDependencies();
 	};
+    CDataFormula.prototype.onFormulaEvent = function (type, eventData) {
+        if (AscCommon.c_oNotifyParentType.ChangeFormula === type) {
+            this.text = eventData.assemble;
+        }
+    };
 	CDataFormula.prototype.getValue = function(vt, ws, returnRaw) {
 		this._init(vt, ws);
 		if (EFormulaType.Formula === this.type) {
@@ -147,6 +153,14 @@
 		return this;
 	}
 
+	CDataValidation.prototype._init = function (ws) {
+		if (this.formula1) {
+			this.formula1._init(this.type, ws);
+		}
+		if (this.formula2) {
+			this.formula2._init(this.type, ws);
+		}
+	};
 	CDataValidation.prototype.clone = function() {
 		var res = new CDataValidation();
 		if (this.ranges) {
@@ -276,13 +290,19 @@
 		return this;
 	}
 
+	CDataValidations.prototype.init = function (ws) {
+		for (var i = 0; i < this.elems.length; ++i) {
+			this.elems[i]._init(ws);
+		}
+	};
 	CDataValidations.prototype.clone = function() {
 		var i, res = new CDataValidations();
 		res.disablePrompts = this.disablePrompts;
 		res.xWindow = this.xWindow;
 		res.yWindow = this.yWindow;
-		for (i = 0; i < this.elems.length; ++i)
+		for (i = 0; i < this.elems.length; ++i) {
 			res.elems.push(this.elems[i].clone());
+		}
 		return res;
 	};
 
