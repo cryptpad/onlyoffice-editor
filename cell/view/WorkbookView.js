@@ -2127,7 +2127,7 @@
 		isNotFunction = c_oAscPopUpSelectorType.Func !== type;
 
 		// Проверяем, открыт ли редактор
-		if (ws.getCellEditMode()) {
+		if (this.getCellEditMode()) {
 			if (isNotFunction) {
 				this.skipHelpSelector = true;
 			}
