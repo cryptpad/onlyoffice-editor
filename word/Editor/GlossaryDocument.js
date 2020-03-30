@@ -60,12 +60,10 @@ function CGlossaryDocument(oLogicDocument)
 
 	// TODO: Инициализировать нужно сразу, чтобы не было проблем с совместным редактированием
 	this.DefaultPlaceholder = {
-		Text     : null,
-		List     : null,
-		DateTime : null
+		Text     : this.private_CreateDefaultPlaceholder(c_oAscDefaultPlaceholderName.Text, AscCommon.translateManager.getValue("Your text here")),
+		List     : this.private_CreateDefaultPlaceholder(c_oAscDefaultPlaceholderName.List, AscCommon.translateManager.getValue("Choose an item.")),
+		DateTime : this.private_CreateDefaultPlaceholder(c_oAscDefaultPlaceholderName.DateTime, AscCommon.translateManager.getValue("Enter a date."))
 	};
-
-	this.GetDefaultPlaceholderText();
 
 	oLogicDocument.GetTableId().Add(this, this.Id);
 }
@@ -111,27 +109,43 @@ CGlossaryDocument.prototype.GetDocPartByName = function(sName)
  */
 CGlossaryDocument.prototype.GetDefaultPlaceholderText = function()
 {
-	if (!this.DefaultPlaceholder.Text)
-	{
-		var oDocPart = this.GetDocPartByName(c_oAscDefaultPlaceholderName.Text);
-		if (!oDocPart)
-		{
-			oDocPart = this.CreateDocPart(c_oAscDefaultPlaceholderName.Text);
-
-			var oParagraph = oDocPart.GetFirstParagraph();
-			var oRun       = new ParaRun();
-			oParagraph.AddToContent(0, oRun);
-			oRun.AddText(AscCommon.translateManager.getValue('Your text here'));
-
-			oDocPart.SetDocPartBehavior(c_oAscDocPartBehavior.Content);
-			oDocPart.SetDocPartCategory("Common", c_oAscDocPartGallery.Placeholder);
-			oDocPart.AddDocPartType(c_oAscDocPartType.BBPlcHolder);
-		}
-
-		this.DefaultPlaceholder.Text = oDocPart;
-	}
-
 	return this.DefaultPlaceholder.Text;
+};
+/**
+ * Получаем дефолтовый контент для плейсхолдера для списка
+ * @returns {CDocPart}
+ */
+CGlossaryDocument.prototype.GetDefaultPlaceholderList = function()
+{
+	return this.DefaultPlaceholder.List;
+};
+/**
+ * Получаем дефолтовый контент для плейсхолдера для поля даты-время
+ * @returns {CDocPart}
+ */
+CGlossaryDocument.prototype.GetDefaultPlaceholderDateTime = function()
+{
+	return this.DefaultPlaceholder.DateTime;
+};
+/**
+ * @param sName
+ * @param sText
+ * @returns {CDocPart}
+ */
+CGlossaryDocument.prototype.private_CreateDefaultPlaceholder = function(sName, sText)
+{
+	var oDocPart = this.CreateDocPart(sName);
+
+	var oParagraph = oDocPart.GetFirstParagraph();
+	var oRun       = new ParaRun();
+	oParagraph.AddToContent(0, oRun);
+	oRun.AddText(sText);
+
+	oDocPart.SetDocPartBehavior(c_oAscDocPartBehavior.Content);
+	oDocPart.SetDocPartCategory("Common", c_oAscDocPartGallery.Placeholder);
+	oDocPart.AddDocPartType(c_oAscDocPartType.BBPlcHolder);
+
+	return oDocPart;
 };
 /**
  * Класс, представляющий дополнительное содержимое документа (например, для плейсхолдеров документа)
