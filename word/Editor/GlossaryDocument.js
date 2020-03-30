@@ -52,13 +52,11 @@ function CGlossaryDocument(oLogicDocument)
 {
 	this.Id = oLogicDocument.GetIdCounter().Get_NewId();
 
-	// Добавляем данный класс в таблицу Id (обязател
-
 	this.LogicDocument = oLogicDocument;
 
 	this.DocParts = {};
 
-	// TODO: Инициализировать нужно сразу, чтобы не было проблем с совместным редактированием
+	// Инициализировать нужно сразу, чтобы не было проблем с совместным редактированием
 	this.DefaultPlaceholder = {
 		Text     : this.private_CreateDefaultPlaceholder(c_oAscDefaultPlaceholderName.Text, AscCommon.translateManager.getValue("Your text here")),
 		List     : this.private_CreateDefaultPlaceholder(c_oAscDefaultPlaceholderName.List, AscCommon.translateManager.getValue("Choose an item.")),
@@ -76,11 +74,12 @@ CGlossaryDocument.prototype.GetLogicDocument = function()
 };
 /**
  * Создаем новый контент
+ * @param {string} sName
  * @returns {CDocPart}
  */
-CGlossaryDocument.prototype.CreateDocPart = function()
+CGlossaryDocument.prototype.CreateDocPart = function(sName)
 {
-	var oDocPart = new CDocPart(this);
+	var oDocPart = new CDocPart(this, sName);
 
 	this.DocParts[oDocPart.GetId()] = oDocPart;
 	this.LogicDocument.GetHistory().Add(new CChangesGlossaryAddDocPart(this, oDocPart.GetId()));

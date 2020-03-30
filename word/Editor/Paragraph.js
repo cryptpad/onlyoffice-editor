@@ -126,11 +126,11 @@ function Paragraph(DrawingDocument, Parent, bFromPresentation)
     this.bFromDocument   = true;
     
     if ( undefined !== DrawingDocument && null !== DrawingDocument )
-    {
-        this.DrawingDocument = DrawingDocument;
-        this.LogicDocument   = this.DrawingDocument.m_oLogicDocument;
-        this.bFromDocument   = bFromPresentation === true ? false : !!this.LogicDocument;
-    }   
+	{
+		this.DrawingDocument = DrawingDocument;
+		this.LogicDocument   = this.DrawingDocument.m_oLogicDocument;
+		this.bFromDocument   = bFromPresentation === true ? false : !!this.LogicDocument;
+	}
     else
     {
         this.bFromDocument = !(true === bFromPresentation);
@@ -201,14 +201,6 @@ Paragraph.prototype.constructor = Paragraph;
 Paragraph.prototype.GetType = function()
 {
 	return type_Paragraph;
-};
-/**
- * Получаем ссылку на глобальный класс документа
- * @returns {CDocument}
- */
-Paragraph.prototype.GetLogicDocument = function()
-{
-	return this.LogicDocument;
 };
 Paragraph.prototype.Save_StartState = function()
 {
@@ -13144,7 +13136,7 @@ Paragraph.prototype.UpdateDocumentOutline = function()
 	if (isCheck)
 	{
 		var oDocumentOutline = this.LogicDocument.GetDocumentOutline();
-		if (oDocumentOutline.IsUse())
+		if (oDocumentOutline && oDocumentOutline.IsUse())
 			oDocumentOutline.CheckParagraph(this);
 	}
 };

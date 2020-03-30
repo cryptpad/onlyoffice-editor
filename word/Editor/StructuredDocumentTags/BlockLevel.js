@@ -56,13 +56,9 @@ function CBlockLevelSdt(oLogicDocument, oParent)
 	this.Pr            = new CSdtPr();
 	this.Lock          = new AscCommon.CLock();
 
-	this.PlaceHolder = new Paragraph(oLogicDocument ? oLogicDocument.Get_DrawingDocument() : null, this.Content, false);
-	var oRun = new ParaRun();
-	this.PlaceHolder.AddToContent(0, oRun);
-	oRun.AddText(AscCommon.translateManager.getValue('Your text here'));
-
-	this.Content.RemoveFromContent(0, this.Content.GetElementsCount(), false);
-	this.Content.AddToContent(0, this.PlaceHolder);
+	this.Pr.Placeholder   = c_oAscDefaultPlaceholderName.Text;
+	this.Pr.ShowingPlcHdr = true;
+	this.private_FillPlaceholderContent();
 
 	// Добавляем данный класс в таблицу Id (обязательно в конце конструктора)
 	g_oTableId.Add(this, this.Id);
@@ -85,12 +81,7 @@ CBlockLevelSdt.prototype.Copy = function(Parent, DrawingDocument, oPr)
 {
 	var oNew = new CBlockLevelSdt(this.LogicDocument, Parent ? Parent : this.Parent);
 
-	if (!this.IsPlaceHolder())
-	{
-		oNew.private_ReplacePlaceHolderWithContent();
-		oNew.Content.Copy2(this.Content, oPr);
-	}
-
+	oNew.Content.Copy2(this.Content, oPr);
 	oNew.SetPr(this.Pr);
 
 	if (undefined !== this.Pr.CheckBox)
@@ -100,22 +91,19 @@ CBlockLevelSdt.prototype.Copy = function(Parent, DrawingDocument, oPr)
 		oNew.SetPicturePr(this.Pr.Picture);
 
 	if (undefined !== this.Pr.ComboBox)
-	{
 		oNew.SetComboBoxPr(this.Pr.ComboBox);
-		oNew.private_UpdatePlaceHolderListContent();
-	}
 
 	if (undefined !== this.Pr.DropDown)
-	{
 		oNew.SetDropDownListPr(this.Pr.DropDown);
-		oNew.private_UpdatePlaceHolderListContent();
-	}
 
 	if (undefined !== this.Pr.Date)
 		oNew.SetDatePickerPr(this.Pr.Date);
 
 	if (oNew.IsEmpty())
 		oNew.private_ReplaceContentWithPlaceHolder();
+
+	oNew.SetShowingPlcHdr(this.Pr.ShowingPlcHdr);
+	oNew.SetPlaceholder(this.Pr.Placeholder);
 
 	return oNew;
 };
@@ -191,10 +179,8 @@ CBlockLevelSdt.prototype.Write_ToBinary2 = function(Writer)
 	Writer.WriteLong(AscDFH.historyitem_type_BlockLevelSdt);
 	// String : Id
 	// String : Content id
-	// String : PlaceHolder Id
 	Writer.WriteString2(this.GetId());
 	Writer.WriteString2(this.Content.GetId());
-	Writer.WriteString2(this.PlaceHolder.GetId());
 };
 CBlockLevelSdt.prototype.Read_FromBinary2 = function(Reader)
 {
@@ -202,10 +188,8 @@ CBlockLevelSdt.prototype.Read_FromBinary2 = function(Reader)
 
 	// String : Id
 	// String : Content id
-	// String : PlaceHolder Id
 	this.Id          = Reader.GetString2();
 	this.Content     = this.LogicDocument.Get_TableId().Get_ById(Reader.GetString2());
-	this.PlaceHolder = this.LogicDocument.Get_TableId().Get_ById(Reader.GetString2());
 };
 CBlockLevelSdt.prototype.Draw = function(CurPage, oGraphics)
 {
@@ -1541,12 +1525,14 @@ CBlockLevelSdt.prototype.CanBeEdited = function()
  */
 CBlockLevelSdt.prototype.IsPlaceHolder = function()
 {
-	return (1 === this.Content.GetElementsCount() && this.PlaceHolder === this.Content.GetElement(0));
+	return this.Pr.ShowingPlcHdr;
 };
 CBlockLevelSdt.prototype.private_ReplacePlaceHolderWithContent = function()
 {
 	if (!this.IsPlaceHolder())
 		return;
+
+	this.SetShowingPlcHdr(false);
 
 	this.Content.RemoveFromContent(0, this.Content.GetElementsCount(), false);
 
@@ -1566,9 +1552,38 @@ CBlockLevelSdt.prototype.private_ReplaceContentWithPlaceHolder = function()
 	if (this.IsPlaceHolder())
 		return;
 
-	this.Content.RemoveFromContent(0, this.Content.GetElementsCount(), false);
-	this.Content.AddToContent(0, this.PlaceHolder);
+	this.SetShowingPlcHdr(true);
+	this.private_FillPlaceholderContent();
 	this.SelectContentControl();
+};
+CBlockLevelSdt.prototype.private_FillPlaceholderContent = function()
+{
+	this.Content.RemoveFromContent(0, this.Content.GetElementsCount(), false);
+
+	var oLogicDocument = this.GetLogicDocument() ? this.GetLogicDocument() : editor.WordControl.m_oLogicDocument;
+	var oDocPart       = oLogicDocument.GetGlossaryDocument().GetDocPartByName(this.GetPlaceholder());
+	if (oDocPart)
+	{
+		for (var nIndex = 0, nCount = oDocPart.GetElementsCount(); nIndex < nCount; ++nIndex)
+		{
+			this.Content.AddToContent(0, oDocPart.GetElement(nIndex).Copy());
+		}
+	}
+	else
+	{
+		var oParagraph = new Paragraph(this.LogicDocument ? this.LogicDocument.GetDrawingDocument() : null, this.Content, false);
+		oParagraph.Correct_Content();
+
+		oParagraph.SelectAll();
+		oParagraph.ApplyTextPr(this.Pr.TextPr);
+		oParagraph.RemoveSelection();
+
+		this.Content.AddToContent(0, oParagraph);
+
+		var oRun = new ParaRun(oParagraph, false);
+		oRun.AddText(String.fromCharCode(nbsp_charcode, nbsp_charcode, nbsp_charcode, nbsp_charcode));
+		oParagraph.AddToContent(0, oRun);
+	}
 };
 CBlockLevelSdt.prototype.GetPlaceHolderObject = function()
 {
@@ -1648,6 +1663,8 @@ CBlockLevelSdt.prototype.ApplyCheckBoxPr = function(oCheckBoxPr, oTextPr)
 		}
 
 		this.private_UpdateCheckBoxContent();
+		this.SetShowingPlcHdr(false);
+		this.SetPlaceholder(undefined);
 	}
 };
 /**
@@ -1824,6 +1841,7 @@ CBlockLevelSdt.prototype.private_UpdatePictureContent = function()
 CBlockLevelSdt.prototype.ApplyPicturePr = function(isPicture)
 {
 	this.SetPicturePr(isPicture);
+	this.SetPlaceholder(undefined);
 	this.private_UpdatePictureContent();
 };
 /**
@@ -1900,6 +1918,10 @@ CBlockLevelSdt.prototype.GetDropDownListPr = function()
  */
 CBlockLevelSdt.prototype.ApplyComboBoxPr = function(oPr)
 {
+	this.SetPlaceholder(c_oAscDefaultPlaceholderName.List);
+	if (this.IsPlaceHolder())
+		this.private_FillPlaceholderContent();
+
 	this.SetComboBoxPr(oPr);
 	this.SelectListItem();
 };
@@ -1909,6 +1931,10 @@ CBlockLevelSdt.prototype.ApplyComboBoxPr = function(oPr)
  */
 CBlockLevelSdt.prototype.ApplyDropDownListPr = function(oPr)
 {
+	this.SetPlaceholder(c_oAscDefaultPlaceholderName.List);
+	if (this.IsPlaceHolder())
+		this.private_FillPlaceholderContent();
+
 	this.SetDropDownListPr(oPr);
 	this.SelectListItem();
 };
@@ -1933,7 +1959,7 @@ CBlockLevelSdt.prototype.SelectListItem = function(sValue)
 	{
 		if (!sText && this.IsPlaceHolder())
 		{
-			this.private_UpdatePlaceHolderListContent();
+			this.private_FillPlaceholderContent();
 			return;
 		}
 
@@ -1955,7 +1981,6 @@ CBlockLevelSdt.prototype.SelectListItem = function(sValue)
 		if (!sText && this.IsEmpty())
 		{
 			this.ReplaceContentWithPlaceHolder();
-			this.private_UpdatePlaceHolderListContent();
 		}
 
 		if (sText)
@@ -1999,7 +2024,6 @@ CBlockLevelSdt.prototype.SelectListItem = function(sValue)
 		if (null === sText)
 		{
 			this.private_ReplaceContentWithPlaceHolder();
-			this.private_UpdatePlaceHolderListContent();
 		}
 		else
 		{
@@ -2024,14 +2048,6 @@ CBlockLevelSdt.prototype.private_UpdateListContent = function()
 		return null;
 
 	return oRun;
-};
-CBlockLevelSdt.prototype.private_UpdatePlaceHolderListContent = function()
-{
-	var oRun = this.PlaceHolder.MakeSingleRunParagraph();
-	if (!oRun)
-		return;
-
-	oRun.AddText(AscCommon.translateManager.getValue("Choose an item."));
 };
 /**
  * Проверяем является ли данный контейнер специальным для даты
@@ -2071,6 +2087,11 @@ CBlockLevelSdt.prototype.ApplyDatePickerPr = function(oPr)
 	if (!this.IsDatePicker())
 		return;
 
+	this.SetPlaceholder(c_oAscDefaultPlaceholderName.DateTime);
+	if (this.IsPlaceHolder())
+		this.private_FillPlaceholderContent();
+
+
 	this.private_UpdateDatePickerContent();
 };
 CBlockLevelSdt.prototype.private_UpdateDatePickerContent = function()
@@ -2107,7 +2128,6 @@ CBlockLevelSdt.prototype.private_UpdateDatePickerContent = function()
 		if (!sText && this.IsEmpty())
 		{
 			this.ReplaceContentWithPlaceHolder();
-			this.private_UpdatePlaceHolderListContent();
 		}
 
 		if (sText)

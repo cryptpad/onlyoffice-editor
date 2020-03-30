@@ -1159,6 +1159,14 @@ CDocumentContentElementBase.prototype.ProcessComplexFields = function() {};
  * Вычисляем EndInfo для всех параграфаов
  */
 CDocumentContentElementBase.prototype.RecalculateEndInfo = function() {};
+/**
+ * Получаем ссылку на глобальный класс документа
+ * @returns {CDocument}
+ */
+CDocumentContentElementBase.prototype.GetLogicDocument = function()
+{
+	return this.LogicDocument;
+};
 
 //--------------------------------------------------------export--------------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};

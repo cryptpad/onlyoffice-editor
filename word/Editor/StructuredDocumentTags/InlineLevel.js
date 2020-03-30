@@ -57,11 +57,7 @@ function CInlineLevelSdt()
 
 	this.Pr.Placeholder   = c_oAscDefaultPlaceholderName.Text;
 	this.Pr.ShowingPlcHdr = true;
-
-	this.PlaceHolder = new ParaRun();
-	this.PlaceHolder.AddText(AscCommon.translateManager.getValue('Your text here'));
-	this.PlaceHolder.PlaceHolder = true;
-	this.AddToContent(0, this.PlaceHolder);
+	this.private_FillPlaceholderContent();
 
 	// Добавляем данный класс в таблицу Id (обязательно в конце конструктора)
 	g_oTableId.Add(this, this.Id);
@@ -105,8 +101,6 @@ CInlineLevelSdt.prototype.Copy = function(isUseSelection, oPr)
 {
 	var oContentControl = new CInlineLevelSdt();
 
-	oContentControl.ReplacePlaceHolderWithContent();
-
 	var nStartPos = 0;
 	var nEndPos   = this.Content.length - 1;
 
@@ -122,20 +116,17 @@ CInlineLevelSdt.prototype.Copy = function(isUseSelection, oPr)
 		}
 	}
 
-	if (!this.IsPlaceHolder())
+	if (nStartPos <= nEndPos)
+		oContentControl.ClearContent();
+
+	for (var nCurPos = nStartPos; nCurPos <= nEndPos; ++nCurPos)
 	{
-		if (nStartPos <= nEndPos)
-			oContentControl.ClearContent();
+		var oItem = this.Content[nCurPos];
 
-		for (var nCurPos = nStartPos; nCurPos <= nEndPos; ++nCurPos)
-		{
-			var oItem = this.Content[nCurPos];
-
-			if (nStartPos === nEndPos || nEndPos === nCurPos)
-				oContentControl.AddToContent(nCurPos - nStartPos, oItem.Copy(isUseSelection, oPr));
-			else
-				oContentControl.AddToContent(nCurPos - nStartPos, oItem.Copy(false, oPr));
-		}
+		if (nStartPos === nEndPos || nEndPos === nCurPos)
+			oContentControl.AddToContent(nCurPos - nStartPos, oItem.Copy(isUseSelection, oPr));
+		else
+			oContentControl.AddToContent(nCurPos - nStartPos, oItem.Copy(false, oPr));
 	}
 
 	this.private_CopyPrTo(oContentControl);
@@ -165,19 +156,16 @@ CInlineLevelSdt.prototype.private_CopyPrTo = function(oContentControl)
 		oContentControl.SetPicturePr(this.Pr.Picture);
 
 	if (undefined !== this.Pr.ComboBox)
-	{
 		oContentControl.SetComboBoxPr(this.Pr.ComboBox);
-		oContentControl.private_UpdatePlaceHolderListContent();
-	}
 
 	if (undefined !== this.Pr.DropDown)
-	{
 		oContentControl.SetDropDownListPr(this.Pr.DropDown);
-		oContentControl.private_UpdatePlaceHolderListContent();
-	}
 
 	if (undefined !== this.Pr.Date)
 		oContentControl.SetDatePickerPr(this.Pr.Date);
+
+	oContentControl.SetShowingPlcHdr(this.Pr.ShowingPlcHdr);
+	oContentControl.SetPlaceholder(this.Pr.Placeholder);
 };
 CInlineLevelSdt.prototype.GetSelectedContent = function(oSelectedContent)
 {
@@ -560,7 +548,6 @@ CInlineLevelSdt.prototype.Document_UpdateInterfaceState = function()
 };
 CInlineLevelSdt.prototype.SetParagraph = function(oParagraph)
 {
-	this.PlaceHolder.SetParagraph(oParagraph);
 	CParagraphContentWithParagraphLikeContent.prototype.SetParagraph.apply(this, arguments);
 };
 CInlineLevelSdt.prototype.Apply_TextPr = function(TextPr, IncFontSize, ApplyToAll)
@@ -611,12 +598,14 @@ CInlineLevelSdt.prototype.CheckSelectionForDropCap = function(isUsePos, oEndPos,
  */
 CInlineLevelSdt.prototype.IsPlaceHolder = function()
 {
-	return (this.Content.length === 1 && this.Content[0] === this.PlaceHolder);
+	return this.Pr.ShowingPlcHdr;
 };
 CInlineLevelSdt.prototype.private_ReplacePlaceHolderWithContent = function(bMathRun)
 {
 	if (!this.IsPlaceHolder())
 		return;
+
+	this.SetShowingPlcHdr(false);
 
 	var isUseSelection = this.IsSelectionUse();
 
@@ -640,14 +629,39 @@ CInlineLevelSdt.prototype.private_ReplaceContentWithPlaceHolder = function()
 	if (this.IsPlaceHolder())
 		return;
 
+	this.SetShowingPlcHdr(true);
+
 	var isUseSelection = this.IsSelectionUse();
 
-	this.RemoveFromContent(0, this.GetElementsCount());
-	this.AddToContent(0, this.PlaceHolder);
+	this.private_FillPlaceholderContent();
 	this.SelectContentControl();
 
 	if (isUseSelection)
 		this.SelectAll();
+};
+CInlineLevelSdt.prototype.private_FillPlaceholderContent = function()
+{
+	this.RemoveFromContent(0, this.GetElementsCount());
+
+	var oParagraph     = this.GetParagraph();
+	var oLogicDocument = oParagraph ? oParagraph.GetLogicDocument() : editor.WordControl.m_oLogicDocument;
+	var oDocPart       = oLogicDocument.GetGlossaryDocument().GetDocPartByName(this.GetPlaceholder());
+	if (oDocPart)
+	{
+		var oFirstParagraph = oDocPart.GetFirstParagraph();
+
+		// TODO: Последний Run с ParaEnd не добавляем
+		for (var nPos = 0, nCount = oFirstParagraph.Content.length; nPos < nCount - 1; ++nPos)
+		{
+			this.AddToContent(0, oFirstParagraph.Content[nPos].Copy());
+		}
+	}
+	else
+	{
+		var oRun = new ParaRun(oParagraph, false);
+		oRun.AddText(String.fromCharCode(nbsp_charcode, nbsp_charcode, nbsp_charcode, nbsp_charcode));
+		this.AddToContent(0, oRun);
+	}
 };
 CInlineLevelSdt.prototype.Set_SelectionContentPos = function(StartContentPos, EndContentPos, Depth, StartFlag, EndFlag)
 {
@@ -863,7 +877,6 @@ CInlineLevelSdt.prototype.Write_ToBinary2 = function(Writer)
 	// String : Id
 	// Long   : Количество элементов
 	// Array of Strings : массив с Id элементов
-	// String : PlaceHolder Id
 
 	Writer.WriteString2(this.Id);
 
@@ -871,15 +884,12 @@ CInlineLevelSdt.prototype.Write_ToBinary2 = function(Writer)
 	Writer.WriteLong(Count);
 	for (var Index = 0; Index < Count; Index++)
 		Writer.WriteString2(this.Content[Index].Get_Id());
-
-	Writer.WriteString2(this.PlaceHolder.GetId());
 };
 CInlineLevelSdt.prototype.Read_FromBinary2 = function(Reader)
 {
 	// String : Id
 	// Long   : Количество элементов
 	// Array of Strings : массив с Id элементов
-	// String : PlaceHolder Id
 
 	this.Id = Reader.GetString2();
 
@@ -891,8 +901,6 @@ CInlineLevelSdt.prototype.Read_FromBinary2 = function(Reader)
 		if (null !== Element)
 			this.Content.push(Element);
 	}
-
-	this.PlaceHolder = AscCommon.g_oTableId.Get_ById(Reader.GetString2());
 };
 CInlineLevelSdt.prototype.Write_ToBinary = function(Writer)
 {
@@ -969,6 +977,8 @@ CInlineLevelSdt.prototype.ApplyCheckBoxPr = function(oCheckBoxPr, oTextPr)
 				this.Content[0].SetPr(oTextPr);
 		}
 
+		this.SetPlaceholder(undefined);
+		this.SetShowingPlcHdr(false);
 		this.private_UpdateCheckBoxContent();
 	}
 };
@@ -1148,6 +1158,7 @@ CInlineLevelSdt.prototype.private_UpdatePictureContent = function()
 CInlineLevelSdt.prototype.ApplyPicturePr = function(isPicture)
 {
 	this.SetPicturePr(isPicture);
+	this.SetPlaceholder(undefined);
 	this.private_UpdatePictureContent();
 };
 /**
@@ -1226,6 +1237,10 @@ CInlineLevelSdt.prototype.GetDropDownListPr = function()
  */
 CInlineLevelSdt.prototype.ApplyComboBoxPr = function(oPr)
 {
+	this.SetPlaceholder(c_oAscDefaultPlaceholderName.List);
+	if (this.IsPlaceHolder())
+		this.private_FillPlaceholderContent();
+
 	this.SetComboBoxPr(oPr);
 	this.SelectListItem();
 };
@@ -1235,6 +1250,10 @@ CInlineLevelSdt.prototype.ApplyComboBoxPr = function(oPr)
  */
 CInlineLevelSdt.prototype.ApplyDropDownListPr = function(oPr)
 {
+	this.SetPlaceholder(c_oAscDefaultPlaceholderName.List);
+	if (this.IsPlaceHolder())
+		this.private_FillPlaceholderContent();
+
 	this.SetDropDownListPr(oPr);
 	this.SelectListItem();
 };
@@ -1259,7 +1278,7 @@ CInlineLevelSdt.prototype.SelectListItem = function(sValue)
 	{
 		if (!sText && this.IsPlaceHolder())
 		{
-			this.private_UpdatePlaceHolderListContent();
+			this.private_FillPlaceholderContent();
 			return;
 		}
 
@@ -1280,7 +1299,6 @@ CInlineLevelSdt.prototype.SelectListItem = function(sValue)
 		if (!sText && this.IsEmpty())
 		{
 			this.ReplaceContentWithPlaceHolder();
-			this.private_UpdatePlaceHolderListContent();
 		}
 
 		if (sText)
@@ -1309,7 +1327,6 @@ CInlineLevelSdt.prototype.SelectListItem = function(sValue)
 		if (null === sText)
 		{
 			this.ReplaceContentWithPlaceHolder();
-			this.private_UpdatePlaceHolderListContent();
 		}
 		else
 		{
@@ -1326,11 +1343,6 @@ CInlineLevelSdt.prototype.private_UpdateListContent = function()
 		return null;
 
 	return this.MakeSingleRunElement();
-};
-CInlineLevelSdt.prototype.private_UpdatePlaceHolderListContent = function()
-{
-	this.PlaceHolder.ClearContent();
-	this.PlaceHolder.AddText(AscCommon.translateManager.getValue("Choose an item."));
 };
 /**
  * Проверяем является ли данный контейнер специальным для даты
@@ -1370,6 +1382,10 @@ CInlineLevelSdt.prototype.ApplyDatePickerPr = function(oPr)
 	if (!this.IsDatePicker())
 		return;
 
+	this.SetPlaceholder(c_oAscDefaultPlaceholderName.DateTime);
+	if (this.IsPlaceHolder())
+		this.private_FillPlaceholderContent();
+
 	this.private_UpdateDatePickerContent();
 };
 CInlineLevelSdt.prototype.private_UpdateDatePickerContent = function()
@@ -1404,7 +1420,6 @@ CInlineLevelSdt.prototype.private_UpdateDatePickerContent = function()
 		if (!sText && this.IsEmpty())
 		{
 			this.ReplaceContentWithPlaceHolder();
-			this.private_UpdatePlaceHolderListContent();
 		}
 
 		if (sText)

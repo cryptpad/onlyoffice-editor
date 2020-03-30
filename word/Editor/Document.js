@@ -2048,6 +2048,9 @@ function CDocument(DrawingDocument, isMainLogicDocument)
 
         if (this.CollaborativeEditing)
             this.CollaborativeEditing.m_oLogicDocument = this;
+
+        if (DrawingDocument)
+        	DrawingDocument.m_oLogicDocument = this;
     }
     //__________________________________________________________________________________________________________________
 
