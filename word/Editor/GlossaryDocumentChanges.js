@@ -198,7 +198,7 @@ CChangesDocPartCategory.prototype.private_CreateObject = function()
 };
 CChangesDocPartCategory.prototype.private_SetValue = function(Value)
 {
-	this.Pr.Category = Value;
+	this.Class.Pr.Category = Value;
 };
 /**
  * @constructor

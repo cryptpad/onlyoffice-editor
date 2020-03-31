@@ -9090,6 +9090,18 @@ background-repeat: no-repeat;\
 
 		this.asc_SetContentControlDatePickerPr(oPr, sId);
 	};
+	asc_docs_api.prototype.asc_SetContentControlTextPlaceholder = function(sText, sId)
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return;
+
+		var oContentControl = oLogicDocument.GetContentControl(sId);
+		if (!oContentControl)
+			return;
+
+		oLogicDocument.SetContentControlTextPlaceholder(sText, oContentControl);
+	};
 
 	asc_docs_api.prototype.asc_UncheckContentControlButtons = function()
 	{
@@ -10805,6 +10817,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_SelectContentControlListItem']          = asc_docs_api.prototype.asc_SelectContentControlListItem;
 	asc_docs_api.prototype['asc_SetContentControlDatePickerPr']         = asc_docs_api.prototype.asc_SetContentControlDatePickerPr;
 	asc_docs_api.prototype['asc_SetContentControlDatePickerDate']       = asc_docs_api.prototype.asc_SetContentControlDatePickerDate;
+	asc_docs_api.prototype['asc_SetContentControlTextPlaceholder']      = asc_docs_api.prototype.asc_SetContentControlTextPlaceholder;
 
 	asc_docs_api.prototype['asc_BeginViewModeInReview']                 = asc_docs_api.prototype.asc_BeginViewModeInReview;
 	asc_docs_api.prototype['asc_EndViewModeInReview']                   = asc_docs_api.prototype.asc_EndViewModeInReview;

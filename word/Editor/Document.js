@@ -14725,6 +14725,70 @@ CDocument.prototype.AddContentControlDatePicker = function(oPr)
 	return oCC;
 };
 /**
+ * Выставляем плейсхолдер для заданного контент контрола
+ * @param {string} sText
+ * @param {CBlockLevelSdt | CInlineLevelSdt} oCC
+ */
+CDocument.prototype.SetContentControlTextPlaceholder = function(sText, oCC)
+{
+	if (!oCC)
+		return;
+
+	if (!sText)
+		sText = String.fromCharCode(nbsp_charcode, nbsp_charcode, nbsp_charcode, nbsp_charcode);
+
+	var oGlossary = this.GetGlossaryDocument();
+
+	if (!this.IsSelectionLocked(AscCommon.changestype_None, {
+		Type      : AscCommon.changestype_2_Element_and_Type,
+		Element   : oGlossary,
+		CheckType : AscCommon.changestype_Document_Content
+	}))
+	{
+		this.StartAction(AscDFH.historydescription_Document_SetContentControlTextPlaceholder);
+
+		var oDocPart = oGlossary.GetDocPartByName(oCC.GetPlaceholder());
+		if (!oDocPart || oGlossary.IsDefaultDocPart(oDocPart))
+		{
+			var oNewDocPart;
+			if (!oDocPart)
+				oNewDocPart = oGlossary.CreateDocPart(oGlossary.GetNewName());
+			else
+				oNewDocPart = oDocPart.Copy(oGlossary.GetNewName());
+
+			oCC.SetPlaceholder(oNewDocPart.GetDocPartName());
+			oDocPart = oNewDocPart;
+		}
+
+		oDocPart.RemoveSelection();
+		oDocPart.MoveCursorToStartPos();
+
+		var oTextPr = oDocPart.GetDirectTextPr();
+		var oParaPr = oDocPart.GetDirectParaPr();
+
+		oDocPart.ClearContent(true);
+		oDocPart.SelectAll();
+
+		var oParagraph = oDocPart.GetFirstParagraph();
+		oParagraph.CorrectContent();
+		oParagraph.SetDirectParaPr(oParaPr);
+		oParagraph.SetDirectTextPr(oTextPr);
+
+		oDocPart.AddText(sText);
+		oDocPart.RemoveSelection();
+
+		if (oCC.IsPlaceHolder())
+		{
+			oCC.private_FillPlaceholderContent();
+			this.Recalculate();
+			this.UpdateInterface();
+			this.UpdateSelection();
+		}
+
+		this.FinalizeAction();
+	}
+};
+/**
  * Выставляем глобальный параметр, находится ли переплет наверху документа
  * @param {boolean} isGutterAtTop
  */

@@ -52,6 +52,8 @@ function CGlossaryDocument(oLogicDocument)
 {
 	this.Id = oLogicDocument.GetIdCounter().Get_NewId();
 
+	this.Lock = new AscCommon.CLock();
+
 	this.LogicDocument = oLogicDocument;
 
 	this.DocParts = {};
@@ -73,6 +75,18 @@ CGlossaryDocument.prototype.GetLogicDocument = function()
 	return this.LogicDocument;
 };
 /**
+ * Получаем идентификатор данного класса
+ * @returns {string}
+ */
+CGlossaryDocument.prototype.GetId = function()
+{
+	return this.Id;
+};
+CGlossaryDocument.prototype.Get_Id = function()
+{
+	return this.Id;
+};
+/**
  * Создаем новый контент
  * @param {string} sName
  * @returns {CDocPart}
@@ -85,6 +99,15 @@ CGlossaryDocument.prototype.CreateDocPart = function(sName)
 	this.LogicDocument.GetHistory().Add(new CChangesGlossaryAddDocPart(this, oDocPart.GetId()));
 
 	return oDocPart;
+};
+/**
+ * Добавляем новый контент
+ * @param {CDocPart} oDocPart
+ */
+CGlossaryDocument.prototype.AddDocPart = function(oDocPart)
+{
+	this.DocParts[oDocPart.GetId()] = oDocPart;
+	this.LogicDocument.GetHistory().Add(new CChangesGlossaryAddDocPart(this, oDocPart.GetId()));
 };
 /**
  * Ищем контент по имени
@@ -147,6 +170,38 @@ CGlossaryDocument.prototype.private_CreateDefaultPlaceholder = function(sName, s
 	return oDocPart;
 };
 /**
+ * Проверяем залоченность данного класса для совсместного редактирования
+ * @param {number} nCheckType
+ */
+CGlossaryDocument.prototype.Document_Is_SelectionLocked = function(nCheckType)
+{
+	// GlossaryDocument пока даем редактировать только одному пользователю за раз
+	return this.Lock.Check(this.GetId());
+};
+/**
+ * Получем новое уникальное имя
+ * @returns {string}
+ */
+CGlossaryDocument.prototype.GetNewName = function()
+{
+	return ([1e7] + 1e3 + 4e3 + 8e3 + 1e11).replace(/[018]/g, c => (c ^ crypto.getRandomValues(new Uint8Array(1))[0] & 15 >> c / 4).toString(16));
+};
+/**
+ * Проверяем, является ли заданный контент контентом по умолчанию
+ * @param {CDocPart} oDocPart
+ * @returns {boolean}
+ */
+CGlossaryDocument.prototype.IsDefaultDocPart = function(oDocPart)
+{
+	return (oDocPart === this.DefaultPlaceholder.Text || oDocPart === this.DefaultPlaceholder.DateTime || oDocPart === this.DefaultPlaceholder.List);
+};
+CGlossaryDocument.prototype.Refresh_RecalcData = function(Data)
+{
+
+};
+
+
+/**
  * Класс, представляющий дополнительное содержимое документа (например, для плейсхолдеров документа)
  * @param {CGlossaryDocument} oGlossary
  * @param {string} sName
@@ -157,15 +212,54 @@ function CDocPart(oGlossary, sName)
 {
 	var oLogicDocument = oGlossary ? oGlossary.GetLogicDocument() : null;
 
-	CDocumentContent.call(this, oLogicDocument, oLogicDocument ? oLogicDocument.GetDrawingDocument() : undefined, 0, 0, 0, 0, true, false, false);
-
 	this.Glossary = oGlossary;
 	this.Pr       = new CDocPartPr(sName);
+
+	// Конструктор базового класса должен быть в конце, т.к. там идет добавление класса по Id
+	CDocumentContent.call(this, oLogicDocument, oLogicDocument ? oLogicDocument.GetDrawingDocument() : undefined, 0, 0, 0, 0, true, false, false);
 }
 
 CDocPart.prototype = Object.create(CDocumentContent.prototype);
 CDocPart.prototype.constructor = CDocPart;
 
+/**
+ * Делаем копию данного контента
+ * @param {string} [sNewName=""] Опционально можно задать новое имя
+ * @returns {CDocPart}
+ */
+CDocPart.prototype.Copy = function(sNewName)
+{
+	var oDocPart = new CDocPart(this.Glossary);
+	oDocPart.Copy2(this);
+
+	if (sNewName)
+		oDocPart.SetDocPartName(sNewName);
+	else
+		oDocPart.SetDocPartName(this.GetDocPartName());
+
+	if (this.Pr.Category)
+		oDocPart.SetDocPartCategory(this.Pr.Category.Name, this.Pr.Category.Gallery);
+
+	if (this.Pr.Behavior)
+		oDocPart.SetDocPartBehavior(this.Pr.Behavior);
+
+	// TODO: GUID наверное надо новый генерить
+	// if (this.Pr.GUID)
+	// 	oDocPart.SetDocPartGUID(this.Pr.GUID);
+
+	if (this.Pr.Description)
+		oDocPart.SetDocPartDescription(this.Pr.Description);
+
+	if (this.Pr.Types)
+		oDocPart.SetDocPartTypes(this.Pr.Types);
+
+	if (this.Pr.Style)
+		oDocPart.SetDocPartStyle(this.Pr.Style);
+
+	this.Glossary.AddDocPart(oDocPart);
+
+	return oDocPart;
+};
 CDocPart.prototype.Refresh_RecalcData2 = function(nIndex, nCurPage)
 {
 };

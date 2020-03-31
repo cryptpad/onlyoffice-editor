@@ -1157,6 +1157,9 @@
 			case AscDFH.historydescription_Document_AddDateTimeField:
 				sString = "Document_AddDateTimeField";
 				break;
+			case AscDFH.historydescription_Document_SetContentControlTextPlaceholder:
+				sString = "Document_SetContentControlTextPlaceholder";
+				break;
 		}
 		return sString;
 	}
@@ -3229,6 +3232,7 @@
 	window['AscDFH'].historydescription_Document_DrawNewTable                       = 0x0174;
 	window['AscDFH'].historydescription_Document_DrawTable                          = 0x0175;
 	window['AscDFH'].historydescription_Document_AddDateTimeField                   = 0x0176;
+	window['AscDFH'].historydescription_Document_SetContentControlTextPlaceholder   = 0x0177;
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

@@ -85,6 +85,10 @@
 	{
 		this.m_bTurnOff = false;
 	};
+	CTableId.prototype.IsOn = function()
+	{
+		return (!this.m_bTurnOff);
+	};
 	/**
 	 * Получаем указатель на класс по Id
 	 * @param Id
