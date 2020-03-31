@@ -7083,7 +7083,7 @@ CMathAutoCorrectEngine.prototype.private_AutoCorrectDegree = function(buff) {
         oDegree = tmp;
     }
     if (this.props.isQuote) {
-        var Start = this.Elements.length - RemoveCount - buff[0].length - this.Shift - 1;
+        var Start = this.Elements.length - RemoveCount - buff[0].length - 1;
         this.Remove.push({Count:RemoveCount, Start:Start});
         this.ReplaceContent.unshift(oDegree);
         if (this.ActionElement.value == 0x20) {
@@ -7364,6 +7364,11 @@ CMathAutoCorrectEngine.prototype.private_AutoCorrectGroupCharacter = function(bu
                 return;
             }
         }
+    }
+    if (degree.Type && !degree.length) {
+        var tmpText = new CMathText(false);
+        tmpText.add(0x25A1);
+        degree.push(tmpText);
     }
     var RemoveCount = base.length + degree.length;
     var symbol = base.splice(0,1)[0].value;
@@ -7703,8 +7708,13 @@ CMathAutoCorrectEngine.prototype.private_CanAutoCorrectEquation = function() {
                 buffer[CurLvBuf].splice(0, 0, Elem);
                 continue;
             }
-            if ((this.Type == MATH_DEGREE || this.Type == MATH_DEGREESubSup) && !bBrackOpen) {
+            if (((this.Type == MATH_DEGREE && !this.props.isQuote) || this.Type == MATH_DEGREESubSup) && !bBrackOpen) {
                 break;
+            }
+            if (this.Type == MATH_DEGREE && this.props.isQuote) {
+                buffer[0].unshift(...buffer[CurLvBuf]);
+                buffer.pop();
+                CurLvBuf--;
             }
             if (this.CurPos - 1 > 0) {
                 var tmp = this.Elements[this.CurPos-1].Element;
@@ -7745,6 +7755,14 @@ CMathAutoCorrectEngine.prototype.private_CanAutoCorrectEquation = function() {
                 buffer[CurLvBuf].splice(0, 0, Elem);
                 continue;
             }
+            if (((this.Type == MATH_DEGREE && !this.props.isQuote) || this.Type == MATH_DEGREESubSup) && !bBrackOpen) {
+                break;
+            }
+            if (this.Type == MATH_DEGREE && this.props.isQuote) {
+                buffer[0].unshift(...buffer[CurLvBuf]);
+                buffer.pop();
+                CurLvBuf--;
+            }
             if (!bBrackOpen) {
                 this.Type = MATH_FRACTION;
                 this.props = {type: SKEWED_FRACTION};
@@ -7763,6 +7781,14 @@ CMathAutoCorrectEngine.prototype.private_CanAutoCorrectEquation = function() {
                 this.CurPos--;
                 buffer[CurLvBuf].splice(0, 0, Elem);
                 continue;
+            }
+            if (((this.Type == MATH_DEGREE && !this.props.isQuote) || this.Type == MATH_DEGREESubSup) && !bBrackOpen) {
+                break;
+            }
+            if (this.Type == MATH_DEGREE && this.props.isQuote) {
+                buffer[0].unshift(...buffer[CurLvBuf]);
+                buffer.pop();
+                CurLvBuf--;
             }
             if (!bBrackOpen) {
                 this.Type = MATH_FRACTION;
@@ -7837,7 +7863,7 @@ CMathAutoCorrectEngine.prototype.private_CanAutoCorrectEquation = function() {
                     this.Type = null;
                 buffer[CurLvBuf].Type = DEGREE_SUPERSCRIPT;
             }
-            if (this.Type == MATH_FRACTION || g_aMathAutoCorrectDoNotDegree[this.ActionElement.value] || bSkip) {
+            if (this.Type == MATH_FRACTION || this.Type == MATH_LIMIT || g_aMathAutoCorrectDoNotDegree[this.ActionElement.value] || bSkip) {
                 if (!bSkip || this.props.isQuote)
                     buffer[CurLvBuf].splice(0,0,Elem);
                 this.CurPos--;
@@ -7983,7 +8009,7 @@ CMathAutoCorrectEngine.prototype.private_CanAutoCorrectEquation = function() {
                 break;
             }
             if ((this.Type == MATH_DEGREE || this.Type == MATH_DEGREESubSup) && !bBrackOpen) {
-                if (this.Type == MATH_DEGREE) {
+                if (this.Type == MATH_DEGREE && !this.props.isQuote) {
                     this.Type = MATH_GROUP_CHARACTER;
                 }
                 break;
@@ -8099,6 +8125,8 @@ CMathAutoCorrectEngine.prototype.private_CanAutoCorrectEquation = function() {
                 continue;
             }
             if((this.Type !== null && !bBrackOpen) || bOff) {
+                if(this.Type == MATH_DEGREE && this.props.isQuote)
+                    buffer[CurLvBuf].splice(0, 0, Elem);
                 break;
             }
             if (!bBrackOpen){
