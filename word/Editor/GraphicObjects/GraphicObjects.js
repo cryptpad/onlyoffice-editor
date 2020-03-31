@@ -1440,7 +1440,7 @@ CGraphicObjects.prototype =
     handleOleObjectDoubleClick: function(drawing, oleObject, e, x, y, pageIndex)
     {
 		if(drawing && drawing.ParaMath){
-			editor.sync_OnConvertEquationToMath(this);
+			editor.sync_OnConvertEquationToMath(drawing);
 		}
         else if(false === this.document.Document_Is_SelectionLocked(changestype_Drawing_Props) || !this.document.CanEdit())
         {
@@ -1481,7 +1481,7 @@ CGraphicObjects.prototype =
 
     handleMathDrawingDoubleClick : function(drawing, e, x, y, pageIndex)
     {
-		editor.sync_OnConvertEquationToMath(this);
+		editor.sync_OnConvertEquationToMath(drawing);
         this.changeCurrentState(new AscFormat.NullState(this));
         this.document.OnMouseUp(e, x, y, pageIndex);
     },
