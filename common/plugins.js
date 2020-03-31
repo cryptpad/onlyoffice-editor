@@ -268,6 +268,31 @@
 		{
 			return (undefined !== this.runnedPluginsMap[guid]);
 		},
+		checkEditorSupport : function(plugin, variation)
+		{
+			var typeEditor = this.api.getEditorId();
+			var typeEditorString = "";
+			switch (typeEditor)
+			{
+				case AscCommon.c_oEditorId.Word:
+					typeEditorString = "word";
+					break;
+				case AscCommon.c_oEditorId.Presentation:
+					typeEditorString = "slide";
+					break;
+				case AscCommon.c_oEditorId.Spreadsheet:
+					typeEditorString = "cell";
+					break;
+				default:
+					break;
+			}
+			var runnedVariation = variation ? variation : 0;
+			if (!plugin.variations[runnedVariation] ||
+				!plugin.variations[runnedVariation].EditorsSupport ||
+				!plugin.variations[runnedVariation].EditorsSupport.includes(typeEditorString))
+				return false;
+			return true;
+		},
 		run : function(guid, variation, data, isNoUse_isNoSystemPluginsOnlyOne)
 		{
 			if (this.runAndCloseData) // run only on close!!!
@@ -278,6 +303,9 @@
 
 			var plugin = this.getPluginByGuid(guid);
 			if (!plugin)
+				return;
+
+			if (!this.checkEditorSupport(plugin, variation))
 				return;
 
 			var isSystem = this.pluginsMap[guid].isSystem;
