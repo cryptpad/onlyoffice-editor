@@ -925,6 +925,79 @@
 		return ret;
 	};
 
+	CellEditor.prototype._parseFormulaRangesRefactoring = function () {
+		var s = AscCommonExcel.getFragmentsText(this.options.fragments), t = this, ret = false,
+			wsOPEN = this.handlers.trigger("getCellFormulaEnterWSOpen"),
+			ws = wsOPEN ? wsOPEN.model : this.handlers.trigger("getActiveWS");
+		var activeWsModel = this.handlers.trigger("getActiveWS");
+		if (s.length < 1 || s.charAt(0) !== "=") {
+			return ret;
+		}
+
+		/*function cb(ref){
+		 for(var id in ref){
+		 console.log(ref[id])
+		 if(!ref[id].isRef) continue;
+
+		 range = t._parseRangeStr(ref[id].ref)
+		 if(range){
+		 ret = true;
+		 range.cursorePos = ref[id].offset;
+		 range.formulaRangeLength = ref[id].length;
+		 t.handlers.trigger("newRange", range);
+		 }
+		 }
+		 }*/
+
+		var bbox = this.options.bbox;
+		this._parseResult = new AscCommonExcel.ParseResult([], []);
+		var cellWithFormula = new window['AscCommonExcel'].CCellWithFormula(ws, bbox.r1, bbox.c1);
+		this._formula = new AscCommonExcel.parserFormula(s.substr(1), cellWithFormula, ws);
+		this._formula.parse(true, true, this._parseResult, true);
+
+		var r, oper, wsName = null, bboxOper, isName = false;
+
+		if (this._parseResult.refPos && this._parseResult.refPos.length > 0) {
+			for (var index = 0; index < this._parseResult.refPos.length; index++) {
+				wsName = null;
+				isName = false;
+				bboxOper = null;
+				r = this._parseResult.refPos[index];
+				oper = r.oper;
+				if (cElementType.table === oper.type || cElementType.name === oper.type || cElementType.name3D === oper.type) {
+					oper = r.oper.toRef(bbox);
+					if (oper instanceof AscCommonExcel.cError) {
+						continue;
+					}
+					isName = true;
+				}
+				if (cElementType.cell === oper.type || cElementType.cellsRange === oper.type) {
+					bboxOper = oper.getBBox0();
+				}
+				if (cElementType.cell3D === oper.type) {
+					wsName = oper.getWS().getName();
+					bboxOper = oper.getBBox0();
+				}
+				if (cElementType.cellsRange3D === oper.type) {
+					if (oper.isBetweenSheet(activeWsModel)) {
+						bboxOper = oper.getBBox0NoCheck();
+					} else {
+						continue;
+					}
+				}
+				if (bboxOper) {
+					ret = true;
+					bboxOper = bboxOper.clone();
+					bboxOper.cursorePos = bboxOper.colorRangePos = r.start + 1;
+					bboxOper.formulaRangeLength = bboxOper.colorRangeLength = r.end - r.start;
+					bboxOper.isName = isName;
+					t.handlers.trigger("newRange", bboxOper, wsName);
+				}
+			}
+		}
+		return ret;
+	};
+
 	CellEditor.prototype._findRangeUnderCursor = function () {
 		var ranges, t = this, s = t.textRender.getChars(0, t.textRender.getCharsCount()), range, arrFR = this.handlers.trigger(
 			"getFormulaRanges"), a;

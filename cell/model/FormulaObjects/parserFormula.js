@@ -1573,6 +1573,9 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 	cArea3D.prototype.isSingleSheet = function () {
 		return this.wsFrom === this.wsTo;
 	};
+	cArea3D.prototype.isBetweenSheet = function (ws) {
+		return ws && this.wsFrom.getIndex() <= ws.getIndex() && ws.getIndex() <= this.wsTo.getIndex();
+	};
 
 	/**
 	 * @constructor
