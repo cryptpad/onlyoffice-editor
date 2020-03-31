@@ -864,9 +864,19 @@
 								refStr = localStrObj[1];
 								wsName = nameRef.getWS().getName();
 
-								localStrObj = r.oper.toLocaleStringObj();
+								//использую фрагмент без преобразования
+								//закомментированный код снизу неверно обрабатывает такие именованный диапазоны как
+								//table1[@] - в данном случае функция toLocaleStringObj возвращает table1[#This Row]
+								//в связи с этим реальная длина получается другая; table[]
+								var _f = s.substr(1);
+								var simpleStr = _f.substring(r.start, r.end);
+								_s = _e - simpleStr.length;
+								_sColorPos = _e - simpleStr.length;
+
+								/*localStrObj = r.oper.toLocaleStringObj();
 								_s = _e - localStrObj[1].length;
-								_sColorPos = _e - localStrObj[0].length;
+								_sColorPos = _e - localStrObj[0].length;*/
+
 								break;
 							}
 							case cElementType.cellsRange          :{
