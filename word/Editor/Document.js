@@ -7693,21 +7693,21 @@ CDocument.prototype.Selection_SetEnd = function(X, Y, MouseEvent)
 					{
 						this.MoveCursorToStartOfDocument();
 					}
-					else if (sBookmarkName)
-					{
-						var oBookmark = this.BookmarksManager.GetBookmarkByName(sBookmarkName);
-						if (oBookmark)
-							oBookmark[0].GoToBookmark();
-					}
 					else if (sValue)
 					{
-						editor.sync_HyperlinkClickCallback(sValue);
+						this.Api.sync_HyperlinkClickCallback(sBookmarkName ? sValue + "#" + sBookmarkName : sValue);
 
 						oHyperlink.SetVisited(true);
 						for (var PageIdx = Item.Get_AbsolutePage(0); PageIdx < Item.Get_AbsolutePage(0) + Item.Get_PagesCount(); PageIdx++)
 							this.DrawingDocument.OnRecalculatePage(PageIdx, this.Pages[PageIdx]);
 
 						this.DrawingDocument.OnEndRecalculate(false, true);
+					}
+					else if (sBookmarkName)
+					{
+						var oBookmark = this.BookmarksManager.GetBookmarkByName(sBookmarkName);
+						if (oBookmark)
+							oBookmark[0].GoToBookmark();
 					}
 				}
 				else if (null !== this.Selection.Data && this.Selection.Data.PageRef)
@@ -8712,20 +8712,20 @@ CDocument.prototype.OnKeyDown = function(e)
 			{
 				this.MoveCursorToStartOfDocument();
 			}
-			else if (sBookmarkName)
-			{
-				var oBookmark = this.BookmarksManager.GetBookmarkByName(sBookmarkName);
-				if (oBookmark)
-					oBookmark[0].GoToBookmark();
-			}
 			else if (sValue)
 			{
-				editor.sync_HyperlinkClickCallback(sValue);
+				this.Api.sync_HyperlinkClickCallback(sBookmarkName ? sValue + "#" + sBookmarkName : sValue);
 				Hyperlink.SetVisited(true);
 
 				// TODO: Пока сделаем так, потом надо будет переделать
 				this.DrawingDocument.ClearCachePages();
 				this.DrawingDocument.FirePaint();
+			}
+			else if (sBookmarkName)
+			{
+				var oBookmark = this.BookmarksManager.GetBookmarkByName(sBookmarkName);
+				if (oBookmark)
+					oBookmark[0].GoToBookmark();
 			}
         }
         else

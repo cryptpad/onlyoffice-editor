@@ -6433,16 +6433,9 @@ CDocumentContent.prototype.Selection_SetEnd = function(X, Y, CurPage, MouseEvent
 						if (this.LogicDocument && this.LogicDocument.MoveCursorToStartOfDocument)
 							this.LogicDocument.MoveCursorToStartOfDocument();
 					}
-					else if (sBookmarkName)
-					{
-						var oBookmarksManagers = this.LogicDocument && this.LogicDocument.GetBookmarksManager ? this.LogicDocument.GetBookmarksManager() : null;
-						var oBookmark          = oBookmarksManagers ? oBookmarksManagers.GetBookmarkByName(sBookmarkName) : null;
-						if (oBookmark)
-							oBookmark[0].GoToBookmark();
-					}
 					else if (sValue)
 					{
-						editor && editor.sync_HyperlinkClickCallback(sValue);
+						editor && editor.sync_HyperlinkClickCallback(sBookmarkName ? sValue + "#" + sBookmarkName : sValue);
 						this.Selection.Data.Hyperlink.SetVisited(true);
 						if (this.DrawingDocument.m_oLogicDocument)
 						{
@@ -6457,6 +6450,13 @@ CDocumentContent.prototype.Selection_SetEnd = function(X, Y, CurPage, MouseEvent
 							}
 							this.DrawingDocument.OnEndRecalculate(false, true);
 						}
+					}
+					else if (sBookmarkName)
+					{
+						var oBookmarksManagers = this.LogicDocument && this.LogicDocument.GetBookmarksManager ? this.LogicDocument.GetBookmarksManager() : null;
+						var oBookmark          = oBookmarksManagers ? oBookmarksManagers.GetBookmarkByName(sBookmarkName) : null;
+						if (oBookmark)
+							oBookmark[0].GoToBookmark();
 					}
 				}
 				else if (null !== this.Selection.Data && this.Selection.Data.PageRef)
