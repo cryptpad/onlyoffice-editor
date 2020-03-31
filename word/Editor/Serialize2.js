@@ -5153,15 +5153,18 @@ function BinaryDocumentTableWriter(memory, doc, oMapCommentId, oNumIdMap, copyPa
     };
     this.WriteHyperlink = function (oHyperlink, bUseSelection) {
         var oThis = this;
-        var sTooltip = oHyperlink.GetToolTip();
-		if (oHyperlink.IsAnchor()) {
+		var sAnchor = oHyperlink.GetAnchor();
+		if (null != sAnchor && "" != sAnchor) {
 			this.memory.WriteByte(c_oSer_HyperlinkType.Anchor);
-			this.memory.WriteString2(oHyperlink.GetAnchor());
-		} else {
+			this.memory.WriteString2(sAnchor);
+		}
+		var sValue = oHyperlink.GetValue() || "";
+		if ("" != sValue || "" === sAnchor) {
 			this.memory.WriteByte(c_oSer_HyperlinkType.Link);
-			this.memory.WriteString2(oHyperlink.GetValue());
+			this.memory.WriteString2(sValue);
 		}
         //Tooltip
+		var sTooltip = oHyperlink.GetToolTip();
         if (null != sTooltip && "" != sTooltip)
         {
             this.memory.WriteByte(c_oSer_HyperlinkType.Tooltip);
