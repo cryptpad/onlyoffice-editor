@@ -5719,7 +5719,7 @@ CMathAutoCorrectEngine.prototype.private_AutoCorrectEquation = function(Elements
     var Param = {
         Type : null,
         Kind : null,
-        Props : null,
+        Props : {},
         Bracket : this.private_FindBracketsSkip(Elements),
         bOff : false
     };
@@ -5883,8 +5883,10 @@ CMathAutoCorrectEngine.prototype.private_AutoCorrectEquation = function(Elements
             }
             CurPos--;
             continue;
-        } else if  (Elem.value === 0x005E) { // ^
+        } else if  (Elem.value === 0x005E || Elem.value === 0x27) { // ^ || '
             var bSkip = false;
+            if (Elem.value == 0x27)
+                Param.Props.isQuote = true;
             if (CurPos - 1 >= 0 && Param.Type != MATH_DEGREESubSup) {
                 var tmp = Elements[CurPos-1];
                 if (tmp.value === 0x2061) {
@@ -6419,7 +6421,13 @@ CMathAutoCorrectEngine.prototype.private_CorrectEquation = function(Param, Eleme
             Elements.splice(0,Elements.length, Fraction);
             break;
         case MATH_DEGREE:
-            Elements[1].splice(Elements[1].length-1,1);
+            var saveEl = [];
+            if (Param.Props.isQuote) {
+                saveEl = Elements.splice(0, 1)[0];
+                Elements.unshift(Elements[0].splice(Elements[0].length-1,1));
+            } else {
+                Elements[1].splice(Elements[1].length-1,1);
+            }
             var props = new CMathDegreePr();
             props.ctrPrp = this.TextPr.Copy();
             props.type = Param.Kind;
@@ -6428,27 +6436,49 @@ CMathAutoCorrectEngine.prototype.private_CorrectEquation = function(Param, Eleme
             var IterContent = oDegree.Content[1];
             var tmp = this.private_CorrectBuffForDegree(Elements[1]);
             this.private_PackTextToContent(BaseContent, Elements[1], false);
-            this.private_PackTextToContent(IterContent, Elements[0], true);
-            tmp.push(oDegree);
+            this.private_PackTextToContent(IterContent, Elements[0], true, Param.Props.isQuote);
+            tmp.push(oDegree, ...saveEl);
             Elements.splice(0,Elements.length, ...tmp);
             break;
         case MATH_DEGREESubSup:
-            var flag = (Elements[1][Elements[1].length-1].value == 0x005E) ? true : false;
-            Elements[1].splice(Elements[1].length-1,1);
-            Elements[2].splice(Elements[2].length-1,1);
+            var flag = (Elements[1][Elements[1].length-1].value == ((Param.Props.isQuote) ? 0x27 : 0x005E)) ? true : false;
+            if (Param.Props.isQuote) {
+                if (flag) {
+                    Elements[0].unshift(Elements[1].splice(Elements[1].length-1,1)[0]);
+                    Elements[2].splice(Elements[2].length-1,1);
+                } else {
+                    Elements[1].unshift(Elements[2].splice(Elements[2].length-1,1)[0]);
+                    Elements[1].splice(Elements[1].length-1,1);
+                }
+            } else {
+                Elements[1].splice(Elements[1].length-1,1);
+                Elements[2].splice(Elements[2].length-1,1);
+            }
             var props = new CMathDegreePr();
             props.ctrPrp = this.TextPr.Copy();
             props.type = Param.Kind;
             var oDegree = new CDegreeSubSup(props);
-            var BaseContent = oDegree.Content[0];
-            var IterDnContent = oDegree.Content[1];
-            var IterUpContent = oDegree.Content[2];
+            var BaseContent = oDegree.getBase();
+            var IterDnContent = oDegree.getLowerIterator();
+            var IterUpContent = oDegree.getUpperIterator();
             if (flag) {
-                this.private_PackTextToContent(IterUpContent, Elements[1], true);
-                this.private_PackTextToContent(IterDnContent, Elements[0], true);
-            } else {
-                this.private_PackTextToContent(IterUpContent, Elements[0], true);
+                if (Param.Props.isQuote) {
+                    var symbol = Elements[0].splice(0,1);
+                    this.private_PackTextToContent(IterUpContent, Elements[0], true);
+                    this.private_PackTextToContent(IterUpContent, symbol, true, true);
+                } else {
+                    this.private_PackTextToContent(IterUpContent, Elements[0], true);
+                }
                 this.private_PackTextToContent(IterDnContent, Elements[1], true);
+            } else {
+                if (Param.Props.isQuote) {
+                    var symbol = Elements[1].splice(0,1);
+                    this.private_PackTextToContent(IterUpContent, Elements[1], true);
+                    this.private_PackTextToContent(IterUpContent, symbol, true, true);
+                } else {
+                    this.private_PackTextToContent(IterUpContent, Elements[1], true);
+                }
+                this.private_PackTextToContent(IterDnContent, Elements[0], true);
             }
             var tmp = this.private_CorrectBuffForDegree(Elements[2]);
             this.private_PackTextToContent(BaseContent, Elements[2], false);
