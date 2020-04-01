@@ -202,6 +202,8 @@
 			"word/Editor/StructuredDocumentTags/SdtPr.js",
 			"word/Editor/StructuredDocumentTags/SdtPrChanges.js",
 			"word/Editor/Search.js",
+			"word/Editor/GlossaryDocument.js",
+			"word/Editor/GlossaryDocumentChanges.js",
 
 			"slide/Editor/Format/ImagePrototype.js",
 			"slide/Editor/Format/GroupPrototype.js",

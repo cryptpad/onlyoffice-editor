@@ -213,6 +213,8 @@
 			"word/Editor/Footnotes.js",
 			"word/Editor/FootnotesChanges.js",
 			"word/Editor/FootEndNote.js",
+			"word/Editor/GlossaryDocument.js",
+			"word/Editor/GlossaryDocumentChanges.js",
 			"word/Editor/GraphicObjects/WrapManager.js",
 			"word/Editor/Common.js",
 			"word/Math/mathTypes.js",
