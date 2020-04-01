@@ -606,7 +606,14 @@ CFieldInstructionHYPERLINK.prototype.SetToolTip = function(sToolTip)
 CFieldInstructionHYPERLINK.prototype.GetToolTip = function()
 {
 	if ("" === this.ToolTip)
-		return this.Link;
+	{
+		if (this.Link)
+			return (this.BookmarkName ? this.Link + "#" + this.BookmarkName : this.Link)
+		else if (this.BookmarkName)
+			return AscCommon.translateManager.getValue("Current Document");
+
+		return "";
+	}
 
 	return this.ToolTip;
 };

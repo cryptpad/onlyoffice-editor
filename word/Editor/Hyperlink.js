@@ -248,10 +248,10 @@ ParaHyperlink.prototype.GetToolTip = function()
 {
 	if (!this.ToolTip)
 	{
-		if (this.Anchor)
+		if ("string" === typeof(this.Value))
+			return (this.Anchor ? this.Value + "#" + this.Anchor : this.Value);
+		else if (this.Anchor)
 			return AscCommon.translateManager.getValue("Current Document");
-		else if ("string" === typeof(this.Value))
-			return this.Value;
 		else
 			return "";
 	}
