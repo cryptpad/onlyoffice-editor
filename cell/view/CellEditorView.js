@@ -763,7 +763,6 @@
 		var s = AscCommonExcel.getFragmentsText(this.options.fragments), t = this, ret = false,
 			wsOPEN = this.handlers.trigger("getCellFormulaEnterWSOpen"),
 			ws = wsOPEN ? wsOPEN.model : this.handlers.trigger("getActiveWS");
-		var activeWsModel = this.handlers.trigger("getActiveWS");
 		if (s.length < 1 || s.charAt(0) !== "=") {
 			return ret;
 		}
@@ -805,18 +804,13 @@
 					}
 					isName = true;
 				}
-				if (cElementType.cell === oper.type || cElementType.cellsRange === oper.type) {
-					if (wsOPEN) {
-						wsName = wsOPEN.model.getName();
-					}
-					bboxOper = oper.getBBox0();
-				}
-				if (cElementType.cell3D === oper.type) {
+				if (cElementType.cell === oper.type || cElementType.cellsRange === oper.type || cElementType.cell3D === oper.type) {
 					wsName = oper.getWS().getName();
 					bboxOper = oper.getBBox0();
 				}
 				if (cElementType.cellsRange3D === oper.type) {
-					if (oper.isBetweenSheet(activeWsModel)) {
+					if (oper.isBetweenSheet(ws)) {
+						wsName = ws.getName();
 						bboxOper = oper.getBBox0NoCheck();
 					} else {
 						continue;
