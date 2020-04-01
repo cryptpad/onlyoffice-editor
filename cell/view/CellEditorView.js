@@ -760,176 +760,9 @@
 	};
 
 	CellEditor.prototype._parseFormulaRanges = function () {
-		var s = AscCommonExcel.getFragmentsText(
-			this.options.fragments), t = this, ret = false, range, wsOPEN = this.handlers.trigger(
-			"getCellFormulaEnterWSOpen"), ws = wsOPEN ? wsOPEN.model : this.handlers.trigger("getActiveWS");
-
-		if (s.length < 1 || s.charAt(0) !== "=") {
-			return ret;
-		}
-
-		/*function cb(ref){
-		 for(var id in ref){
-		 console.log(ref[id])
-		 if(!ref[id].isRef) continue;
-
-		 range = t._parseRangeStr(ref[id].ref)
-		 if(range){
-		 ret = true;
-		 range.cursorePos = ref[id].offset;
-		 range.formulaRangeLength = ref[id].length;
-		 t.handlers.trigger("newRange", range);
-		 }
-		 }
-		 }*/
-
-//             var __s__ = new Date().getTime();
-//             var parres = parserTest.parse(s,cb);
-//             var __e__ = new Date().getTime();
-//             console.log("e-s "+ (__e__ - __s__));
-
-		var bbox = this.options.bbox;
-		this._parseResult = new AscCommonExcel.ParseResult([], []);
-		var cellWithFormula = new window['AscCommonExcel'].CCellWithFormula(ws, bbox.r1, bbox.c1);
-		this._formula = new AscCommonExcel.parserFormula(s.substr(1), cellWithFormula, ws);
-		this._formula.parse(true, true, this._parseResult, true);
-
-		var r, offset, _e, _s, wsName = null, refStr, isName = false, _sColorPos, localStrObj;
-
-		if (this._parseResult.refPos && this._parseResult.refPos.length > 0) {
-			for (var index = 0; index < this._parseResult.refPos.length; index++) {
-				wsName = null;
-				isName = false;
-				r = this._parseResult.refPos[index];
-
-				offset = r.end;
-				_e = r.end;
-				_sColorPos = _s = r.start;
-
-
-				switch (r.oper.type) {
-					case cElementType.cell          : {
-						if (wsOPEN) {
-							wsName = wsOPEN.model.getName();
-						}
-						ret = true;
-						refStr = r.oper.toLocaleString();
-						break;
-					}
-					case cElementType.cell3D        : {
-						localStrObj = r.oper.toLocaleStringObj();
-						refStr = localStrObj[1];
-						ret = true;
-						wsName = r.oper.getWS().getName();
-						_s = _e - localStrObj[1].length;
-						_sColorPos = _e - localStrObj[0].length;
-						break;
-					}
-					case cElementType.cellsRange    : {
-						if (wsOPEN) {
-							wsName = wsOPEN.model.getName();
-						}
-						ret = true;
-						refStr = r.oper.toLocaleString();
-						break;
-					}
-					case cElementType.cellsRange3D  : {
-						if (!r.oper.isSingleSheet()) {
-							continue;
-						}
-						ret = true;
-						localStrObj = r.oper.toLocaleStringObj();
-						refStr = localStrObj[1];
-						wsName = r.oper.getWS().getName();
-						_s = _e - localStrObj[1].length;
-						_sColorPos = _e - localStrObj[0].length;
-						break;
-					}
-					case cElementType.table          :
-					case cElementType.name          :
-					case cElementType.name3D : {
-						var nameRef = r.oper.toRef(bbox);
-						if (nameRef instanceof AscCommonExcel.cError) {
-							continue;
-						}
-						switch (nameRef.type) {
-
-							case cElementType.cellsRange3D          : {
-								if (!nameRef.isSingleSheet()) {
-									continue;
-								}
-								
-								ret = true;
-								localStrObj = nameRef.toLocaleStringObj();
-								refStr = localStrObj[1];
-								wsName = nameRef.getWS().getName();
-
-								//использую фрагмент без преобразования
-								//закомментированный код снизу неверно обрабатывает такие именованный диапазоны как
-								//table1[@] - в данном случае функция toLocaleStringObj возвращает table1[#This Row]
-								//в связи с этим реальная длина получается другая; table[]
-								var _f = s.substr(1);
-								var simpleStr = _f.substring(r.start, r.end);
-								_s = _e - simpleStr.length;
-								_sColorPos = _e - simpleStr.length;
-
-								/*localStrObj = r.oper.toLocaleStringObj();
-								_s = _e - localStrObj[1].length;
-								_sColorPos = _e - localStrObj[0].length;*/
-
-								break;
-							}
-							case cElementType.cellsRange          :{
-								ret = true;
-								localStrObj = r.oper.toLocaleStringObj();
-								refStr = localStrObj[1];
-								wsName = nameRef.getWS().getName();
-								_s = _e - localStrObj[1].length;
-								break;
-							}
-							case cElementType.cell3D        : {
-								ret = true;
-								localStrObj = nameRef.toLocaleStringObj();
-								refStr = localStrObj[1];
-								wsName = nameRef.getWS().getName();
-
-								localStrObj = r.oper.toLocaleStringObj();
-								_s = _e - localStrObj[1].length;
-								_sColorPos = _e - localStrObj[0].length;
-								break;
-							}
-						}
-						isName = true;
-						break;
-					}
-					default                         :
-						continue;
-				}
-
-				if (ret) {
-					range = t._parseRangeStr(refStr);
-					if (!range) {
-						return false;
-					}
-					range.cursorePos = offset - (_e - _s) + 1;
-					range.formulaRangeLength = _e - _s;
-					range.colorRangePos = offset - (_e - _sColorPos) + 1;
-					range.colorRangeLength = _e - _sColorPos;
-					if (isName) {
-						range.isName = isName;
-					}
-					t.handlers.trigger("newRange", range, wsName);
-				}
-			}
-		}
-		return ret;
-	};
-
-	CellEditor.prototype._parseFormulaRangesRefactoring = function () {
 		var s = AscCommonExcel.getFragmentsText(this.options.fragments), t = this, ret = false,
 			wsOPEN = this.handlers.trigger("getCellFormulaEnterWSOpen"),
 			ws = wsOPEN ? wsOPEN.model : this.handlers.trigger("getActiveWS");
-		var activeWsModel = this.handlers.trigger("getActiveWS");
 		if (s.length < 1 || s.charAt(0) !== "=") {
 			return ret;
 		}
@@ -971,15 +804,13 @@
 					}
 					isName = true;
 				}
-				if (cElementType.cell === oper.type || cElementType.cellsRange === oper.type) {
-					bboxOper = oper.getBBox0();
-				}
-				if (cElementType.cell3D === oper.type) {
+				if (cElementType.cell === oper.type || cElementType.cellsRange === oper.type || cElementType.cell3D === oper.type) {
 					wsName = oper.getWS().getName();
 					bboxOper = oper.getBBox0();
 				}
 				if (cElementType.cellsRange3D === oper.type) {
-					if (oper.isBetweenSheet(activeWsModel)) {
+					if (oper.isBetweenSheet(ws)) {
+						wsName = ws.getName();
 						bboxOper = oper.getBBox0NoCheck();
 					} else {
 						continue;
