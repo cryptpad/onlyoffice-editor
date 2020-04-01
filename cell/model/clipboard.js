@@ -451,8 +451,11 @@
 				{
 					if(ws.getCellEditMode())
 					{
-						this._pasteTextInCellEditor(this.pasteProcessor.pasteFromBinary(ws, data1, true));
-
+						if (null !== text_data && undefined !== text_data) {
+							this._pasteTextInCellEditor(text_data);
+						} else {
+							this._pasteTextInCellEditor(this.pasteProcessor.pasteFromBinary(ws, data1, true));
+						}
 					}
 					else
 					{
