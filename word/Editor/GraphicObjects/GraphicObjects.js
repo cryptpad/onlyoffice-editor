@@ -162,7 +162,7 @@ CGraphicObjects.prototype =
         }
         return _arrFields;
     },
-    
+
     TurnOffCheckChartSelection: function()
     {
         this.bNoCheckChartTextSelection = true;
@@ -469,7 +469,7 @@ CGraphicObjects.prototype =
         }, this, []);
 
     },
-	
+
     recalculate_: function(data)
     {
         if(data.All)
@@ -1146,10 +1146,13 @@ CGraphicObjects.prototype =
                 if(arrObjects[i].IsParagraph())
                 {
                     var calc_frame = arrObjects[i].CalculatedFrame;
-                    var FramePr = arrObjects[i].Get_FramePr();
-                    var FrameDx = ( undefined === FramePr.HSpace ? 0 : FramePr.HSpace );
-                    var FrameDy = ( undefined === FramePr.VSpace ? 0 : FramePr.VSpace );
-                    ret.push(new CFlowParagraph(arrObjects[i], calc_frame.L2, calc_frame.T2, calc_frame.W2, calc_frame.H2, FrameDx, FrameDy, arrObjects[i].GetIndex(), 1, FramePr.Wrap));
+                    if(calc_frame.StartIndex === arrObjects[i].Index)
+                    {
+                        var FramePr = arrObjects[i].Get_FramePr();
+                        var FrameDx = ( undefined === FramePr.HSpace ? 0 : FramePr.HSpace );
+                        var FrameDy = ( undefined === FramePr.VSpace ? 0 : FramePr.VSpace );
+                        ret.push(new CFlowParagraph(arrObjects[i], calc_frame.L2, calc_frame.T2, calc_frame.W2, calc_frame.H2, FrameDx, FrameDy, arrObjects[i].GetIndex(), 1, FramePr.Wrap));
+                    }
                 }
                 else if(arrObjects[i].IsTable())
                 {
@@ -2924,7 +2927,7 @@ CGraphicObjects.prototype =
             return oTargetDocContent.RecalculateCurPos(bUpdateX, bUpdateY);
 
         if (!window["NATIVE_EDITOR_ENJINE"]) {
-            
+
             var oParaDrawing = this.getMajorParaDrawing();
             if (oParaDrawing)
             {

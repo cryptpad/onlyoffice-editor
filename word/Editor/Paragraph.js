@@ -84,7 +84,9 @@ function Paragraph(DrawingDocument, Parent, bFromPresentation)
         T2 : 0,
         W2 : 0,
         H2 : 0,
-        PageIndex : 0
+        PageIndex : 0,
+		StartIndex: 0,
+		FlowCount: 0
     };
 
     // Данный TextPr будет относится только к символу конца параграфа
@@ -117,14 +119,14 @@ function Paragraph(DrawingDocument, Parent, bFromPresentation)
         Line  : 0,
         Range : 0
     }; //new ParaEnd();
-    
+
     this.CurPos    = new CParagraphCurPos();
     this.Selection = new CParagraphSelection();
-    
+
     this.DrawingDocument = null;
     this.LogicDocument   = null;
     this.bFromDocument   = true;
-    
+
     if ( undefined !== DrawingDocument && null !== DrawingDocument )
 	{
 		this.DrawingDocument = DrawingDocument;
@@ -181,7 +183,7 @@ function Paragraph(DrawingDocument, Parent, bFromPresentation)
     this.m_oPRSC = new CParagraphRecalculateStateCounter();
     this.m_oPRSA = new CParagraphRecalculateStateAlign();
     this.m_oPRSI = new CParagraphRecalculateStateInfo();
-    
+
     this.m_oPDSE = new CParagraphDrawStateElements();
     this.StartState = null;
 
@@ -11139,7 +11141,7 @@ Paragraph.prototype.Get_FrameBounds = function(FrameX, FrameY, FrameW, FrameH)
 
 	return {X : X0, Y : Y0, W : X1 - X0, H : Y1 - Y0};
 };
-Paragraph.prototype.Set_CalculatedFrame = function(L, T, W, H, L2, T2, W2, H2, PageIndex)
+Paragraph.prototype.Set_CalculatedFrame = function(L, T, W, H, L2, T2, W2, H2, PageIndex, StartIndex, FlowCount)
 {
 	this.CalculatedFrame.T         = T;
 	this.CalculatedFrame.L         = L;
@@ -11150,6 +11152,8 @@ Paragraph.prototype.Set_CalculatedFrame = function(L, T, W, H, L2, T2, W2, H2, P
 	this.CalculatedFrame.W2        = W2;
 	this.CalculatedFrame.H2        = H2;
 	this.CalculatedFrame.PageIndex = PageIndex;
+	this.CalculatedFrame.StartIndex = StartIndex;
+	this.CalculatedFrame.FlowCount = FlowCount;
 };
 Paragraph.prototype.Get_CalculatedFrame = function()
 {
@@ -11694,7 +11698,7 @@ Paragraph.prototype.Split = function(NewParagraph)
 
 	NewParagraph.DeleteCommentOnRemove = true;
 	this.DeleteCommentOnRemove         = true;
-	
+
 	return NewParagraph;
 };
 /**
@@ -15514,9 +15518,9 @@ function CParagraphSelection()
     this.StartPos  = 0;
     this.EndPos    = 0;
     this.Flag      = selectionflag_Common;
-    
+
     this.StartManually = true; // true - через Selection_SetStart, false - через Selection_SetBegEnd
-    this.EndManually   = true; // true - через Selection_SetEnd, афдыу - через Selection_SetBegEnd  
+    this.EndManually   = true; // true - через Selection_SetEnd, афдыу - через Selection_SetBegEnd
 }
 
 CParagraphSelection.prototype =
@@ -16253,7 +16257,7 @@ function CParagraphSearchPos()
     this.Punctuation = false;
     this.First       = true;
     this.UpdatePos   = false;
-    
+
     this.ForSelection = false;
 
     this.CheckAnchors = false;
@@ -16655,14 +16659,14 @@ CRunRecalculateObject.prototype =
 
         return true;
     },
-    
+
     private_Get_RangeOffset : function(LineIndex, RangeIndex)
     {
         return (1 + this.Lines[0] + this.Lines[1 + LineIndex] + RangeIndex * 2);
     },
-    
+
     private_Get_RangeStartPos : function(LineIndex, RangeIndex)
-    { 
+    {
         return this.Lines[this.private_Get_RangeOffset(LineIndex, RangeIndex)];
     },
 
@@ -16670,19 +16674,19 @@ CRunRecalculateObject.prototype =
     {
         return this.Lines[this.private_Get_RangeOffset(LineIndex, RangeIndex) + 1];
     },
-    
+
     private_Get_LinesCount : function()
     {
         return this.Lines[0];
     },
-    
+
     private_Get_RangesCount : function(LineIndex)
     {
         if (LineIndex === this.Lines[0] - 1)
             return (this.Lines.length - this.Lines[1 + LineIndex]) / 2;
         else
             return (this.Lines[1 + LineIndex + 1] - this.Lines[1 + LineIndex]) / 2;
-    }    
+    }
 };
 
 function CParagraphRunElements(ContentPos, Count, arrTypes, isReverse)
@@ -16844,7 +16848,7 @@ function CParagraphRangeVisibleWidth()
 function CParagraphMathRangeChecker()
 {
     this.Math   = null; // Искомый элемент
-    this.Result = true; // Если есть отличные от Math элементы, тогда false, если нет, тогда true 
+    this.Result = true; // Если есть отличные от Math элементы, тогда false, если нет, тогда true
 }
 
 function CParagraphMathParaChecker()
