@@ -273,8 +273,9 @@ CDocPart.prototype.Read_FromBinary2 = function(oReader)
 {
 	// historyitem_type_DocPart
 	// CDocPartPr
-	oReader.GetLong();
 	this.Pr.ReadFromBinary(oReader);
+
+	oReader.GetLong(); // Должен вернуть historyitem_type_DocumentContent
 	CDocumentContent.prototype.Read_FromBinary2.call(this, oReader);
 };
 CDocPart.prototype.SetDocPartName = function(sName)
@@ -598,9 +599,12 @@ CDocPartCategory.prototype.IsEqual = function(oCategory)
 };
 
 //------------------------------------------------------------export---------------------------------------------------
-var prot;
+window['AscCommon'] = window['AscCommon'] || {};
+window['AscCommon'].CDocPart = CDocPart;
+
 window["Asc"] = window["Asc"] || {};
 
+var prot;
 prot = window["Asc"]["c_oAscDocPartType"] = c_oAscDocPartType;
 
 prot["Undefined"]   = c_oAscDocPartType.Undefined;
