@@ -388,40 +388,34 @@
 			}
 		};
 
-		Clipboard.prototype.pasteData = function(ws, _format, data1, data2, text_data, bIsSpecialPaste, doNotShowButton, isPasteAll)
-		{
+		Clipboard.prototype.pasteData = function (ws, _format, data1, data2, text_data, bIsSpecialPaste, doNotShowButton, isPasteAll) {
 			var t = this;
 			t.pasteProcessor.clean();
 
-			if(!window['AscCommon'].g_specialPasteHelper.specialPasteStart)
-			{
+			if (!window['AscCommon'].g_specialPasteHelper.specialPasteStart) {
 				window['AscCommon'].g_specialPasteHelper.SpecialPasteButton_Hide();
 			}
 			window['AscCommon'].g_specialPasteHelper.Paste_Process_Start(doNotShowButton);
 
-			if(!bIsSpecialPaste)
-			{
+			if (!bIsSpecialPaste) {
 				window['AscCommon'].g_specialPasteHelper.specialPasteData.activeRange = ws.model.selectionRange.clone(ws.model);
 				window['AscCommon'].g_specialPasteHelper.specialPasteData.pasteFromWord = false;
 			}
 
 			var cellEditor = window["Asc"]["editor"].wb.cellEditor;
-			switch (_format)
-			{
-				case AscCommon.c_oAscClipboardDataFormat.HtmlElement:
-				{
-					if(ws.getCellEditMode())
-					{
+			switch (_format) {
+				case AscCommon.c_oAscClipboardDataFormat.HtmlElement: {
+					if (ws.getCellEditMode()) {
 						//fragments = пока только для плагина вставка символов
 						var fragments;
-						if(window['AscCommon'].g_clipboardBase.bSaveFormat){
+						if (window['AscCommon'].g_clipboardBase.bSaveFormat) {
 							//проверяем иероглифы внутри
 							fragments = this.pasteProcessor._getFragmentsFromHtml(data1);
 						}
 						if (fragments) {
 							var pasteFragments = fragments.fragments;
 							var newFonts = fragments.fonts;
-							ws._loadFonts(newFonts, function() {
+							ws._loadFonts(newFonts, function () {
 								cellEditor.paste(pasteFragments);
 								window['AscCommon'].g_specialPasteHelper.Paste_Process_End();
 
@@ -439,26 +433,20 @@
 						} else {
 							this._pasteTextInCellEditor(text_data || data1.innerText);
 						}
-					}
-					else
-					{
+					} else {
 						t.pasteProcessor.editorPasteExec(ws, data1);
 					}
 
 					break;
 				}
-				case AscCommon.c_oAscClipboardDataFormat.Internal:
-				{
-					if(ws.getCellEditMode())
-					{
+				case AscCommon.c_oAscClipboardDataFormat.Internal: {
+					if (ws.getCellEditMode()) {
 						if (null !== text_data && undefined !== text_data) {
 							this._pasteTextInCellEditor(text_data);
 						} else {
 							this._pasteTextInCellEditor(this.pasteProcessor.pasteFromBinary(ws, data1, true));
 						}
-					}
-					else
-					{
+					} else {
 						t.pasteProcessor.pasteFromBinary(ws, data1, null, isPasteAll);
 					}
 
@@ -485,6 +473,7 @@
 				window['AscCommon'].g_specialPasteHelper.specialPasteData.text_data = text_data;
 			}
 		};
+
 		Clipboard.prototype._pasteTextInCellEditor = function (text) {
 			if (!text) {
 				return;
