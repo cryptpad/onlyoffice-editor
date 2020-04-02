@@ -148,6 +148,13 @@
 	{
 		return FixDurableId(CreateUInt32());
 	}
+	function ExtendPrototype(dst, src)
+	{
+		for (var k in src.prototype)
+		{
+			dst.prototype[k] = src.prototype[k];
+		}
+	}
 
 	var c_oLicenseResult = {
 		Error         : 1,
@@ -4604,6 +4611,7 @@
 	window["AscCommon"].CreateUInt32 = CreateUInt32;
 	window["AscCommon"].CreateDurableId = CreateDurableId;
 	window["AscCommon"].FixDurableId = FixDurableId;
+	window["AscCommon"].ExtendPrototype = ExtendPrototype;
 
 	window['Asc']['c_oLicenseResult'] = window['Asc'].c_oLicenseResult = c_oLicenseResult;
 	prot = c_oLicenseResult;

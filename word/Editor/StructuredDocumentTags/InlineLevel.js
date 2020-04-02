@@ -67,6 +67,7 @@ function CInlineLevelSdt()
 
 CInlineLevelSdt.prototype = Object.create(CParagraphContentWithParagraphLikeContent.prototype);
 CInlineLevelSdt.prototype.constructor = CInlineLevelSdt;
+AscCommon.ExtendPrototype(CInlineLevelSdt, CSdtBase);
 
 CInlineLevelSdt.prototype.IsInlineLevel = function()
 {
@@ -1582,6 +1583,12 @@ CInlineLevelSdt.prototype.IsShowingPlcHdr = function()
 {
 	return this.Pr.ShowingPlcHdr;
 };
+CInlineLevelSdt.prototype.GetLogicDocument = function()
+{
+	var oParagraph = this.GetParagraph();
+	return oParagraph ? oParagraph.GetLogicDocument() : editor.WordControl.m_oLogicDocument;
+};
+
 //--------------------------------------------------------export--------------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};
 window['AscCommonWord'].CInlineLevelSdt = CInlineLevelSdt;

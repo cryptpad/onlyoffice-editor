@@ -337,6 +337,8 @@ function CContentControlPr(nType)
 	this.ComboBoxPr = undefined;
 	this.DropDownPr = undefined;
 	this.DateTimePr = undefined;
+
+	this.PlaceholderText = undefined;
 }
 CContentControlPr.prototype.FillFromObject = function(oPr)
 {
@@ -360,6 +362,9 @@ CContentControlPr.prototype.FillFromObject = function(oPr)
 
 	if (undefined !== oPr.Color)
 		this.Color = oPr.Color;
+
+	if (undefined !== oPr.PlaceholderText)
+		this.PlaceholderText = oPr.PlaceholderText;
 };
 CContentControlPr.prototype.FillFromContentControl = function(oContentControl)
 {
@@ -384,6 +389,8 @@ CContentControlPr.prototype.FillFromContentControl = function(oContentControl)
 		this.DropDownPr = oContentControl.GetDropDownListPr().Copy();
 	else if (oContentControl.IsDatePicker())
 		this.DateTimePr = oContentControl.GetDatePickerPr().Copy();
+
+	this.PlaceholderText = oContentControl.GetPlaceholderText();
 };
 CContentControlPr.prototype.SetToContentControl = function(oContentControl)
 {
@@ -422,6 +429,9 @@ CContentControlPr.prototype.SetToContentControl = function(oContentControl)
 
 	if (undefined !== this.DateTimePr)
 		oContentControl.ApplyDatePickerPr(this.DateTimePr);
+
+	if (undefined !== this.PlaceholderText)
+		oContentControl.SetPlaceholderText(this.PlaceholderText);
 };
 CContentControlPr.prototype.GetId = function()
 {
@@ -537,6 +547,14 @@ CContentControlPr.prototype.GetDateTimePr = function()
 CContentControlPr.prototype.SetDateTimePr = function(oPr)
 {
 	this.DateTimePr = oPr;
+};
+CContentControlPr.prototype.GetPlaceholderText = function()
+{
+	return this.PlaceholderText;
+};
+CContentControlPr.prototype.SetPlaceholderText = function(sText)
+{
+	this.PlaceholderText = sText;
 };
 
 /**
@@ -980,6 +998,8 @@ CContentControlPr.prototype['get_DropDownListPr']     = CContentControlPr.protot
 CContentControlPr.prototype['put_DropDownListPr']     = CContentControlPr.prototype.SetDropDownListPr;
 CContentControlPr.prototype['get_DateTimePr']         = CContentControlPr.prototype.GetDateTimePr;
 CContentControlPr.prototype['put_DateTimePr']         = CContentControlPr.prototype.SetDateTimePr;
+CContentControlPr.prototype['get_PlaceholderText']    = CContentControlPr.prototype.GetPlaceholderText;
+CContentControlPr.prototype['put_PlaceholderText']    = CContentControlPr.prototype.SetPlaceholderText;
 
 window['AscCommon'].CSdtCheckBoxPr    = CSdtCheckBoxPr;
 window['AscCommon']['CSdtCheckBoxPr'] = CSdtCheckBoxPr;

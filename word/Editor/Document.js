@@ -14747,39 +14747,9 @@ CDocument.prototype.SetContentControlTextPlaceholder = function(sText, oCC)
 	{
 		this.StartAction(AscDFH.historydescription_Document_SetContentControlTextPlaceholder);
 
-		var oDocPart = oGlossary.GetDocPartByName(oCC.GetPlaceholder());
-		if (!oDocPart || oGlossary.IsDefaultDocPart(oDocPart))
-		{
-			var oNewDocPart;
-			if (!oDocPart)
-				oNewDocPart = oGlossary.CreateDocPart(oGlossary.GetNewName());
-			else
-				oNewDocPart = oDocPart.Copy(oGlossary.GetNewName());
-
-			oCC.SetPlaceholder(oNewDocPart.GetDocPartName());
-			oDocPart = oNewDocPart;
-		}
-
-		oDocPart.RemoveSelection();
-		oDocPart.MoveCursorToStartPos();
-
-		var oTextPr = oDocPart.GetDirectTextPr();
-		var oParaPr = oDocPart.GetDirectParaPr();
-
-		oDocPart.ClearContent(true);
-		oDocPart.SelectAll();
-
-		var oParagraph = oDocPart.GetFirstParagraph();
-		oParagraph.CorrectContent();
-		oParagraph.SetDirectParaPr(oParaPr);
-		oParagraph.SetDirectTextPr(oTextPr);
-
-		oDocPart.AddText(sText);
-		oDocPart.RemoveSelection();
-
+		oCC.SetPlaceholderText(sText);
 		if (oCC.IsPlaceHolder())
 		{
-			oCC.private_FillPlaceholderContent();
 			this.Recalculate();
 			this.UpdateInterface();
 			this.UpdateSelection();

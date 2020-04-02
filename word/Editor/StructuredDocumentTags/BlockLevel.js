@@ -68,6 +68,7 @@ function CBlockLevelSdt(oLogicDocument, oParent)
 
 CBlockLevelSdt.prototype = Object.create(CDocumentContentElementBase.prototype);
 CBlockLevelSdt.prototype.constructor = CBlockLevelSdt;
+AscCommon.ExtendPrototype(CBlockLevelSdt, CSdtBase);
 
 CBlockLevelSdt.prototype.IsInlineLevel = function()
 {
