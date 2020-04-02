@@ -5802,7 +5802,7 @@ CMathAutoCorrectEngine.prototype.private_AutoCorrectEquation = function(Elements
         } else if (g_MathRightBracketAutoCorrectCharCodes[Elem.value]) { // right bracket
             //если справа от скобки не "^","_" и тип степень, то сделать автозамену степени до этой скобки
             if (Param.Type == MATH_DEGREE || Param.Type == MATH_DEGREESubSup) {
-                if (Elements[CurPos+1] && (Elements[CurPos+1].value != 0x005E && Elements[CurPos+1].value != 0x005F)) {
+                if (Elements[CurPos+1] && (Elements[CurPos+1].value != 0x5E && Elements[CurPos+1].value != 0x5F) && (Elements[CurPos+1].value != 0x27 && Param.Props.isQuote)) {
                     var tmp = null;
                     if (Param.Type == MATH_DEGREE) {
                         tmp = [Elements.splice(ElPos[0]+1,(End-ElPos[0])),Elements.splice(CurPos+1,ElPos[0]-CurPos+1)];
@@ -6015,8 +6015,24 @@ CMathAutoCorrectEngine.prototype.private_AutoCorrectEquation = function(Elements
                 CurPos--;
                 continue;
             }
-            if (Param.Type !== null && Param.Type !== MATH_DEGREE && Param.Type !== MATH_DEGREESubSup) {
-                var tmp = [Elements.splice(ElPos[0]+1,(End-ElPos[0])),Elements.splice(CurPos+1,ElPos[0]-CurPos)];
+            if (Param.Type !== null) { // && Param.Type !== MATH_DEGREE && Param.Type !== MATH_DEGREESubSup) {
+                var tmp;
+                if (Param.Type == MATH_DEGREE || Param.Type == MATH_DEGREESubSup) {
+                    if (Param.Type == MATH_DEGREE) {
+                        tmp = [Elements.splice(ElPos[0]+1,End-ElPos[0]),Elements.splice(CurPos,ElPos[0]-CurPos+1)];
+                    } else {
+                        tmp = [Elements.splice(ElPos[1]+1,End-ElPos[1]),Elements.splice(ElPos[0]+1,ElPos[1]-ElPos[0]),Elements.splice(CurPos,ElPos[0]-CurPos+1)];
+                    }
+                    this.private_CorrectEquation(Param,tmp);
+                    End = CurPos + tmp.length;
+                    Elements.splice(CurPos, 0, ...tmp);
+                    Param.Type = null;
+                    Param.Props = {};
+                    Param.Kind = null;
+                    CurPos--;
+                    continue;
+                }
+                tmp = [Elements.splice(ElPos[0]+1,(End-ElPos[0])),Elements.splice(CurPos+1,ElPos[0]-CurPos)];
                 this.private_CorrectEquation(Param,tmp);
                 End = CurPos + tmp.length;
                 Elements.splice(End, 0, ...tmp);
@@ -6040,8 +6056,24 @@ CMathAutoCorrectEngine.prototype.private_AutoCorrectEquation = function(Elements
                 CurPos--;
                 continue;
             }
-            if (Param.Type !== null && Param.Type !== MATH_DEGREE && Param.Type !== MATH_DEGREESubSup) {
-                var tmp = [Elements.splice(ElPos[0]+1,(End-ElPos[0])),Elements.splice(CurPos+1,ElPos[0]-CurPos)];
+            if (Param.Type !== null) {
+                var tmp;
+                if (Param.Type == MATH_DEGREE || Param.Type == MATH_DEGREESubSup) {
+                    if (Param.Type == MATH_DEGREE) {
+                        tmp = [Elements.splice(ElPos[0]+1,End-ElPos[0]),Elements.splice(CurPos,ElPos[0]-CurPos+1)];
+                    } else {
+                        tmp = [Elements.splice(ElPos[1]+1,End-ElPos[1]),Elements.splice(ElPos[0]+1,ElPos[1]-ElPos[0]),Elements.splice(CurPos,ElPos[0]-CurPos+1)];
+                    }
+                    this.private_CorrectEquation(Param,tmp);
+                    End = CurPos + tmp.length;
+                    Elements.splice(CurPos, 0, ...tmp);
+                    Param.Type = null;
+                    Param.Props = {};
+                    Param.Kind = null;
+                    CurPos--;
+                    continue;
+                }
+                tmp = [Elements.splice(ElPos[0]+1,(End-ElPos[0])),Elements.splice(CurPos+1,ElPos[0]-CurPos)];
                 this.private_CorrectEquation(Param,tmp);
                 End = CurPos + 1;
                 Elements.splice(End, 0, ...tmp);
@@ -6065,21 +6097,16 @@ CMathAutoCorrectEngine.prototype.private_AutoCorrectEquation = function(Elements
                 CurPos--;
                 continue;
             }
-            if (Param.Type !== null /*&& Param.Type !== MATH_DEGREE && Param.Type !== MATH_DEGREESubSup*/) {
+            if (Param.Type !== null) {
                 var fSkip = false;
                 var tmp = null;
                 if (Param.Type === MATH_DEGREESubSup) {
                     tmp = [Elements.splice(ElPos[1]+1,End-ElPos[1]),Elements.splice(ElPos[0]+1,ElPos[1]-ElPos[0]),Elements.splice(CurPos,ElPos[0]-CurPos+1)];
                     fSkip = true;
-                } 
-                else if (Param.Type === MATH_DEGREE) {
-                    tmp = [Elements.splice(ElPos[0],(End-ElPos[0]+1)),Elements.splice(CurPos+1,ElPos[0]-CurPos-1),Elements.splice(CurPos,1)];
-                    Param.Type = MATH_GROUP_CHARACTER;
-                    Param.Bracket[0][0] -= (CurPos + 1);
-                    Param.Bracket[1][0] -= (CurPos + 1);
+                } else if (Param.Type === MATH_DEGREE) {
+                    tmp = [Elements.splice(ElPos[0]+1,(End-ElPos[0])),Elements.splice(CurPos,ElPos[0]-CurPos+1)];
                     fSkip = true;
-                }
-                else {
+                } else {
                     tmp = [Elements.splice(ElPos[0]+1,(End-ElPos[0])),Elements.splice(CurPos+1,ElPos[0]-CurPos)];
                 }
                 this.private_CorrectEquation(Param,tmp);
@@ -6114,14 +6141,14 @@ CMathAutoCorrectEngine.prototype.private_AutoCorrectEquation = function(Elements
                 CurPos--;
                 continue;
             }
-            if (Param.Type !== null /*&& Param.Type !== MATH_DEGREE && Param.Type !== MATH_DEGREESubSup*/) {
+            if (Param.Type !== null) {
                 var fSkip = false;
                 var tmp = null;
                 if (Param.Type === MATH_DEGREESubSup) {
                     tmp = [Elements.splice(ElPos[1]+1,End-ElPos[1]),Elements.splice(ElPos[0]+1,ElPos[1]-ElPos[0]),Elements.splice(CurPos,ElPos[0]-CurPos+1)];
                     fSkip = true;
                 } else if (Param.Type === MATH_DEGREE) {
-                    tmp =  [Elements.splice(ElPos[0]+1,(End-ElPos[0])),Elements.splice(CurPos,ElPos[0]-CurPos+1)];
+                    tmp = [Elements.splice(ElPos[0]+1,(End-ElPos[0])),Elements.splice(CurPos,ElPos[0]-CurPos+1)];
                     fSkip = true;
                 } else {
                     tmp = [Elements.splice(ElPos[0]+1,(End-ElPos[0])),Elements.splice(CurPos+1,ElPos[0]-CurPos)];
@@ -6205,8 +6232,24 @@ CMathAutoCorrectEngine.prototype.private_AutoCorrectEquation = function(Elements
                 CurPos--;
                 continue;
             }
-            if (Param.Type !== null && Param.Type !== MATH_DEGREE && Param.Type !== MATH_DEGREESubSup) {
-                var tmp = [Elements.splice(ElPos[0]+1,(End-ElPos[0])),Elements.splice(CurPos+1,ElPos[0]-CurPos)];
+            if (Param.Type !== null) {
+                var tmp;
+                if (Param.Type == MATH_DEGREE || Param.Type == MATH_DEGREESubSup) {
+                    if (Param.Type == MATH_DEGREE) {
+                        tmp = [Elements.splice(ElPos[0]+1,End-ElPos[0]),Elements.splice(CurPos,ElPos[0]-CurPos+1)];
+                    } else {
+                        tmp = [Elements.splice(ElPos[1]+1,End-ElPos[1]),Elements.splice(ElPos[0]+1,ElPos[1]-ElPos[0]),Elements.splice(CurPos,ElPos[0]-CurPos+1)];
+                    }
+                    this.private_CorrectEquation(Param,tmp);
+                    End = CurPos + tmp.length;
+                    Elements.splice(CurPos, 0, ...tmp);
+                    Param.Type = null;
+                    Param.Props = {};
+                    Param.Kind = null;
+                    CurPos--;
+                    continue;
+                }
+                tmp = [Elements.splice(ElPos[0]+1,(End-ElPos[0])),Elements.splice(CurPos+1,ElPos[0]-CurPos)];
                 this.private_CorrectEquation(Param,tmp);
                 End = CurPos + 1;
                 Elements.splice(End, 0, ...tmp);
@@ -6435,7 +6478,8 @@ CMathAutoCorrectEngine.prototype.private_CorrectEquation = function(Param, Eleme
             var BaseContent = oDegree.Content[0];
             var IterContent = oDegree.Content[1];
             var tmp = this.private_CorrectBuffForDegree(Elements[1]);
-            this.private_PackTextToContent(BaseContent, Elements[1], false);
+            var bskipCoreect = this.private_ChekSkipForDegreeAbove(Elements[1]);
+            this.private_PackTextToContent(BaseContent, Elements[1], false, bskipCoreect);
             this.private_PackTextToContent(IterContent, Elements[0], true, Param.Props.isQuote);
             tmp.push(oDegree, ...saveEl);
             Elements.splice(0,Elements.length, ...tmp);
@@ -6481,7 +6525,8 @@ CMathAutoCorrectEngine.prototype.private_CorrectEquation = function(Param, Eleme
                 this.private_PackTextToContent(IterDnContent, Elements[0], true);
             }
             var tmp = this.private_CorrectBuffForDegree(Elements[2]);
-            this.private_PackTextToContent(BaseContent, Elements[2], false);
+            var bskipCoreect = this.private_ChekSkipForDegreeAbove(Elements[2]);
+            this.private_PackTextToContent(BaseContent, Elements[2], false, bskipCoreect);
             tmp.push(oDegree);
             Elements.splice(0,Elements.length, ...tmp);
             break;
@@ -6502,7 +6547,7 @@ CMathAutoCorrectEngine.prototype.private_CorrectEquation = function(Param, Eleme
             props.supHide = true;
             props.subHide = true;
             props.chr = (Elements.length == 1) ? Elements[0][0].value : Elements[Elements.length-1][0].value;
-            this.private_CorrectBuffForNary(Elements);
+            this.private_CorrectBuffForNary(Elements, Param.Props.isQuote);
 
             var arrBase = [];
             if (Param.bOff) {
@@ -6537,9 +6582,21 @@ CMathAutoCorrectEngine.prototype.private_CorrectEquation = function(Param, Eleme
             var oBase = oNary.getBase();
             if (!props.supHide) {
                 if (Elements[0].Type == DEGREE_SUPERSCRIPT) {
-                    this.private_PackTextToContent(oSup, Elements[0], true);
+                    if (Param.Props.isQuote) {
+                        var symbol = Elements[0].splice(0,1);
+                        this.private_PackTextToContent(oSup, Elements[0], true);
+                        this.private_PackTextToContent(oSup, symbol, true, true);
+                    } else {
+                        this.private_PackTextToContent(oSup, Elements[0], true);
+                    }
                 } else if (Elements[1].Type && Elements[1].Type == DEGREE_SUPERSCRIPT) {
-                    this.private_PackTextToContent(oSup, Elements[1], true);
+                    if (Param.Props.isQuote) {
+                        var symbol = Elements[1].splice(0,1);
+                        this.private_PackTextToContent(oSup, Elements[1], true);
+                        this.private_PackTextToContent(oSup, symbol, true, true);
+                    } else {
+                        this.private_PackTextToContent(oSup, Elements[1], true);
+                    }
                 }
             }
             if (!props.subHide) {
@@ -7080,14 +7137,16 @@ CMathAutoCorrectEngine.prototype.private_CorrectBuffForFrac = function(buff, Pro
         }
     }
 };
-CMathAutoCorrectEngine.prototype.private_CorrectBuffForNary = function(buff) {
+CMathAutoCorrectEngine.prototype.private_CorrectBuffForNary = function(buff, isQuote) {
+    var symSup = (isQuote) ? 0x27 : 0x005E;
     for (var i = 0; i < buff.length; i++) {
         if (!buff[i][0]) {
             continue;
         }
-        if (buff[i][0].value == 0x005E) {
+        if (buff[i][0].value == symSup) {
             buff[i].Type = DEGREE_SUPERSCRIPT;
-            buff[i].splice(0,1);
+            if (!isQuote)
+                buff[i].splice(0,1);
         } else if (buff[i][0].value == 0x005F) {
             buff[i].Type = DEGREE_SUBSCRIPT;
             buff[i].splice(0,1);
@@ -7109,7 +7168,8 @@ CMathAutoCorrectEngine.prototype.private_AutoCorrectDegree = function(buff) {
         //разделить контент если нет скокобок и сохранить оставшуюся часть
         var bskipCoreect = this.private_ChekSkipForDegreeAbove(buff[i]);
         this.private_PackTextToContent(BaseContent, buff[i], false, bskipCoreect);
-        this.private_PackTextToContent(IterContent, oDegree, true);
+        bskipCoreect = this.private_ChekSkipForDegreeAbove(oDegree);
+        this.private_PackTextToContent(IterContent, oDegree, true, bskipCoreect);
         oDegree = tmp;
     }
     if (this.props.isQuote) {
@@ -7154,7 +7214,7 @@ CMathAutoCorrectEngine.prototype.private_CorrectBuffForDegree = function(buff) {
 CMathAutoCorrectEngine.prototype.private_ChekSkipForDegreeAbove = function(buff) {
     var res = false;
     var val = (buff[0]) ? buff[0].value : null;
-    if ( (buff.length === 1) && (g_aMathAutoCorrectRadicalCharCode[val] || g_aMathAutoCorrectEqArrayMatrix[val] || val == 0x25A1 || val == 0x25AD) ) {
+    if ((buff.length === 1) && (g_aMathAutoCorrectRadicalCharCode[val] || g_aMathAutoCorrectEqArrayMatrix[val] || val == 0x25A1 || val == 0x25AD || val == 0x27)) {
         res = true;
     }
     return res;
@@ -7165,18 +7225,30 @@ CMathAutoCorrectEngine.prototype.private_AutoCorrectDegreeSubSup = function(buff
     props.type = this.Kind;
     var oDegree = new CDegreeSubSup(props)
 
-    var BaseContent = oDegree.Content[0];
-    var IterDnContent = oDegree.Content[1];
-    var IterUpContent = oDegree.Content[2];
+    var BaseContent = oDegree.getBase();
+    var IterDnContent = oDegree.getLowerIterator();
+    var IterUpContent = oDegree.getUpperIterator();
     this.private_CorrectBuffForDegree(buff[2]);
     var RemoveCount = buff[0].length + buff[1].length + buff[2].length + ((this.props.isQuote) ? 1 : 2);
 
     if (buff[0].Type == DEGREE_SUPERSCRIPT) {
-        this.private_PackTextToContent(IterUpContent, buff[1], true);
-        this.private_PackTextToContent(IterDnContent, buff[0], true);
-    } else if (buff[0].Type == DEGREE_SUBSCRIPT) {
-        this.private_PackTextToContent(IterUpContent, buff[0], true);
+        if (this.props.isQuote) {
+            var symbol = buff[0].splice(0,1);
+            this.private_PackTextToContent(IterUpContent, buff[0], true);
+            this.private_PackTextToContent(IterUpContent, symbol, true, true);
+        } else {
+            this.private_PackTextToContent(IterUpContent, buff[0], true);
+        }
         this.private_PackTextToContent(IterDnContent, buff[1], true);
+    } else if (buff[0].Type == DEGREE_SUBSCRIPT) {
+        if (this.props.isQuote) {
+            var symbol = buff[1].splice(0,1);
+            this.private_PackTextToContent(IterUpContent, buff[1], true);
+            this.private_PackTextToContent(IterUpContent, symbol, true, true);
+        } else {
+            this.private_PackTextToContent(IterUpContent, buff[1], true);
+        }
+        this.private_PackTextToContent(IterDnContent, buff[0], true);
     }
     var BaseElems = buff[2];
     var bskipCoreect = this.private_ChekSkipForDegreeAbove(buff[2]);
@@ -7236,9 +7308,21 @@ CMathAutoCorrectEngine.prototype.private_AutoCorrectCNary = function(buff, bOff)
 
     if (!props.supHide) {
         if (buff[0].Type == DEGREE_SUPERSCRIPT) {
-            this.private_PackTextToContent(oSup, buff[0], true);
+            if (this.props.isQuote) {
+                var symbol = buff[0].splice(0,1);
+                this.private_PackTextToContent(oSup, buff[0], true);
+                this.private_PackTextToContent(oSup, symbol, true, true);
+            } else {
+                this.private_PackTextToContent(oSup, buff[0], true);
+            }
         } else if (buff[1].Type && buff[1].Type == DEGREE_SUPERSCRIPT) {
-            this.private_PackTextToContent(oSup, buff[1], true);
+            if (this.props.isQuote) {
+                var symbol = buff[1].splice(0,1);
+                this.private_PackTextToContent(oSup, buff[1], true);
+                this.private_PackTextToContent(oSup, symbol, true, true);
+            } else {
+                this.private_PackTextToContent(oSup, buff[1], true);
+            }
         }
     }
     if (!props.subHide) {
@@ -7882,12 +7966,12 @@ CMathAutoCorrectEngine.prototype.private_CanAutoCorrectEquation = function() {
                 continue;
             }
             var bSkip = false;
+            if (Elem.value == 0x27)
+                this.props.isQuote = true;
             if (this.CurPos - 1 >= 0 && this.Type != MATH_DEGREESubSup) {
                 var tmp = this.Elements[this.CurPos-1].Element;
                 if (tmp.value === 0x2061) {
                     bSkip = true;
-                    if (Elem.value == 0x27)
-                        this.props.isQuote = true;
                 }
                 if (this.Type == MATH_DEGREE) 
                     this.Type = null;
@@ -8044,12 +8128,11 @@ CMathAutoCorrectEngine.prototype.private_CanAutoCorrectEquation = function() {
                 }
                 break;
             }
-            if (g_aMathAutoCorrectDoNotGroupChar[this.ActionElement.value]) {
+            if (g_aMathAutoCorrectDoNotGroupChar[this.ActionElement.value] || (this.props.isQuote && this.ActionElement.value == 0x5F)) {
                 this.CurPos--;
                 continue;
             }
             if (!bBrackOpen && this.Type !== MATH_FRACTION) {
-
                 this.Type = MATH_GROUP_CHARACTER;
                 break;
             }
