@@ -6143,17 +6143,18 @@ function BinaryDocumentTableWriter(memory, doc, oMapCommentId, oNumIdMap, copyPa
 		if (null != val.Lock) {
 			oThis.bs.WriteItem(c_oSerSdt.Lock, function (){oThis.memory.WriteByte(val.Lock);});
 		}
-		// if (null != val.PlaceHolder) {
-		// 	this.memory.WriteByte(c_oSerSdt.PlaceHolder);
-		// 	this.memory.WriteString2(val.PlaceHolder);
-		// }
+		var placeholder = oSdt.GetPlaceholder();
+		if (null != placeholder) {
+			this.memory.WriteByte(c_oSerSdt.PlaceHolder);
+			this.memory.WriteString2(placeholder);
+		}
 		var rPr = oSdt.GetDefaultTextPr();
 		if (rPr) {
 			this.bs.WriteItem(c_oSerSdt.RPr, function(){oThis.brPrs.Write_rPr(rPr, null, null);});
 		}
-		// if (null != val.ShowingPlcHdr) {
-		// 	oThis.bs.WriteItem(c_oSerSdt.ShowingPlcHdr, function (){oThis.memory.WriteBool(val.ShowingPlcHdr);});
-		// }
+		if (oSdt.IsShowingPlcHdr()) {
+			oThis.bs.WriteItem(c_oSerSdt.ShowingPlcHdr, function (){oThis.memory.WriteBool(true);});
+		}
 		// if (null != val.TabIndex) {
 		// 	oThis.bs.WriteItem(c_oSerSdt.TabIndex, function (){oThis.memory.WriteLong(val.TabIndex);});
 		// }
@@ -6161,9 +6162,9 @@ function BinaryDocumentTableWriter(memory, doc, oMapCommentId, oNumIdMap, copyPa
 			this.memory.WriteByte(c_oSerSdt.Tag);
 			this.memory.WriteString2(val.Tag);
 		}
-		// if (null != val.Temporary) {
-		// 	oThis.bs.WriteItem(c_oSerSdt.Temporary, function (){oThis.memory.WriteBool(val.Temporary);});
-		// }
+		if (oSdt.IsContentControlTemporary()) {
+			oThis.bs.WriteItem(c_oSerSdt.Temporary, function (){oThis.memory.WriteBool(true);});
+		}
 		// if (null != val.MultiLine) {
 		// 	oThis.bs.WriteItem(c_oSerSdt.MultiLine, function (){oThis.memory.WriteBool(val.MultiLine);});
 		// }
@@ -6172,6 +6173,10 @@ function BinaryDocumentTableWriter(memory, doc, oMapCommentId, oNumIdMap, copyPa
 			oThis.bs.WriteItem(c_oSerSdt.ComboBox, function (){oThis.WriteSdtComboBox(oSdt.GetComboBoxPr());});
 		} else if (oSdt.IsPicture()) {
 			type = ESdtType.sdttypePicture;
+		} else if (oSdt.IsContentControlText()) {
+			type = ESdtType.sdttypeText;
+		} else if (oSdt.IsContentControlEquation()) {
+			type = ESdtType.sdttypeEquation;
 		} else if (val.IsBuiltInDocPart()) {
 			type = ESdtType.sdttypeDocPartObj;
 			oThis.bs.WriteItem(c_oSerSdt.DocPartObj, function (){oThis.WriteDocPartList(val.DocPartObj);});
@@ -12195,6 +12200,10 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
 			var type = this.stream.GetByte();
 			if (ESdtType.sdttypePicture === type) {
 				oSdt.SetPicturePr(true);
+			} else if (ESdtType.sdttypeText === type) {
+				oSdt.SetContentControlText(true);
+			} else if (ESdtType.sdttypeEquation === type) {
+				oSdt.SetContentControlEquation(true);
 			}
 		} else if (c_oSerSdt.Alias === type) {
 			oSdtPr.Alias = this.stream.GetString2LE(length);
@@ -12247,20 +12256,20 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
 			oSdtPr.Label = this.stream.GetLongLE();
 		} else if (c_oSerSdt.Lock === type) {
 			oSdtPr.Lock = this.stream.GetByte();
-		// } else if (c_oSerSdt.PlaceHolder === type) {
-		// 	oSdtPr.PlaceHolder = this.stream.GetString2LE(length);
+		} else if (c_oSerSdt.PlaceHolder === type) {
+			oSdt.SetPlaceholder(this.stream.GetString2LE(length));
 		} else if (c_oSerSdt.RPr === type) {
 			var rPr = new CTextPr();
 			res = this.brPrr.Read(length, rPr, null);
 			oSdt.SetDefaultTextPr(rPr);
-		// } else if (c_oSerSdt.ShowingPlcHdr === type) {
-		// 	oSdtPr.ShowingPlcHdr = (this.stream.GetUChar() != 0);
+		} else if (c_oSerSdt.ShowingPlcHdr === type) {
+			oSdt.SetShowingPlcHdr(this.stream.GetBool());
 		// } else if (c_oSerSdt.TabIndex === type) {
 		// 	oSdtPr.TabIndex = this.stream.GetLongLE();
 		} else if (c_oSerSdt.Tag === type) {
 			oSdtPr.Tag = this.stream.GetString2LE(length);
-		// } else if (c_oSerSdt.Temporary === type) {
-		// 	oSdtPr.Temporary = (this.stream.GetUChar() != 0);
+		} else if (c_oSerSdt.Temporary === type) {
+			oSdt.SetContentControlTemporary(this.stream.GetBool());
 		// } else if (c_oSerSdt.MultiLine === type) {
 		// 	oSdtPr.MultiLine = (this.stream.GetUChar() != 0);
 		} else if (c_oSerSdt.Checkbox === type && oSdt.SetCheckBoxPr) {
