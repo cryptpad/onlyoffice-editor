@@ -2283,13 +2283,16 @@ CTable.prototype.private_RecalculatePage = function(CurPage)
 		}
 
 		var RowH = Row.Get_Height();
-		var RowHValue = RowH.Value;
 		// В данном значении не учитываются маргины
-		RowHValue = RowH.Value + this.MaxBotMargin[CurRow] + MaxTopMargin;
+		var RowHValue = RowH.Value + this.MaxBotMargin[CurRow] + MaxTopMargin;
 
 		// В таблице с отступами размер отступа входит в значение высоты строки
 		if (null !== CellSpacing)
 			RowHValue -= CellSpacing;
+
+		// Для строк с точной высотой строк значение высоты считается вместе с шириной верхней границы
+		if (Asc.linerule_Exact === RowH.HRule)
+			RowHValue -= MaxTopBorder[CurRow];
 
 		if (oFootnotes && (Asc.linerule_AtLeast === RowH.HRule || Asc.linerule_Exact == RowH.HRule))
 		{
