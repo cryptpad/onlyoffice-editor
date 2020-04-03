@@ -172,7 +172,16 @@
 					break;
 				}
 				case "FILENAME": {
-					res = new cEmpty();
+					//TODO без пути
+					var docInfo = window["Asc"]["editor"].DocInfo;
+					var fileName = docInfo ? docInfo.get_Title() : "";
+					var _ws = arg1.getWS();
+					var sheetName = _ws ? _ws.getName() : null;
+					if (sheetName) {
+						res = new cString("[" + fileName + "]" + sheetName);
+					} else {
+						res = new cEmpty();
+					}
 					break;
 				}
 				case "COORD": {
