@@ -4052,7 +4052,7 @@
 	 */
 	ApiDocument.prototype.Last = function()
 	{
-		return this.GetElement(Ithis.GetElementsCount() - 1);
+		return this.GetElement(this.GetElementsCount() - 1);
 	};
 	/**
 	 * Push a paragraph or a table  or a text to actually add it to the document.
