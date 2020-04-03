@@ -758,11 +758,11 @@
 	};
 
 	CellEditor.prototype._parseFormulaRanges = function () {
-		var s = AscCommonExcel.getFragmentsText(this.options.fragments), t = this, ret = false,
+		var s = AscCommonExcel.getFragmentsText(this.options.fragments), t = this,
 			wsOPEN = this.handlers.trigger("getCellFormulaEnterWSOpen"),
 			ws = wsOPEN ? wsOPEN.model : this.handlers.trigger("getActiveWS");
 		if (s.length < 1 || s.charAt(0) !== "=") {
-			return ret;
+			return;
 		}
 
 		/*function cb(ref){
@@ -805,17 +805,16 @@
 				if (cElementType.cell === oper.type || cElementType.cellsRange === oper.type || cElementType.cell3D === oper.type) {
 					wsName = oper.getWS().getName();
 					bboxOper = oper.getBBox0();
-				}
-				if (cElementType.cellsRange3D === oper.type) {
-					if (oper.isBetweenSheet(ws)) {
+				} else if (cElementType.cellsRange3D === oper.type) {
+					if (oper.isSingleSheet()) {
+						wsName = oper.getWS().getName();
+						bboxOper = oper.getBBox0NoCheck();
+					} else if (oper.isBetweenSheet(ws)) {
 						wsName = ws.getName();
 						bboxOper = oper.getBBox0NoCheck();
-					} else {
-						continue;
 					}
 				}
 				if (bboxOper) {
-					ret = true;
 					bboxOper = bboxOper.clone();
 					bboxOper.cursorePos = bboxOper.colorRangePos = r.start + 1;
 					bboxOper.formulaRangeLength = bboxOper.colorRangeLength = r.end - r.start;
@@ -824,7 +823,6 @@
 				}
 			}
 		}
-		return ret;
 	};
 
 	CellEditor.prototype._findRangeUnderCursor = function () {
