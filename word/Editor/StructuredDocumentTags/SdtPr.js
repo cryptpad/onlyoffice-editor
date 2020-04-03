@@ -71,11 +71,15 @@ function CSdtPr()
 	this.ComboBox = undefined;
 	this.DropDown = undefined;
 	this.Date     = undefined;
+	this.Equation = false;
 
 	this.TextPr = new CTextPr();
 
 	this.Placeholder   = undefined;
 	this.ShowingPlcHdr = false;
+
+	this.Text      = false;
+	this.Temporary = false;
 }
 
 CSdtPr.prototype.Copy = function()
@@ -104,10 +108,15 @@ CSdtPr.prototype.Copy = function()
 	if (this.Date)
 		oPr.Date = this.Date.Copy();
 
+
 	oPr.TextPr = this.TextPr.Copy();
 
 	oPr.Placeholder   = this.Placeholder;
 	oPr.ShowingPlcHdr = this.ShowingPlcHdr;
+
+	oPr.Equation  = this.Equation;
+	oPr.Text      = this.Text;
+	oPr.Temporary = this.Temporary;
 
 	return oPr;
 };
@@ -221,6 +230,24 @@ CSdtPr.prototype.Write_ToBinary = function(Writer)
 		Flags |= 65536;
 	}
 
+	if (undefined !== this.Equation)
+	{
+		Writer.WriteBool(this.Equation);
+		Flags |= 131072;
+	}
+
+	if (undefined !== this.Text)
+	{
+		Writer.WriteBool(this.Text);
+		Flags |= 262144;
+	}
+
+	if (undefined !== this.Temporary)
+	{
+		Writer.WriteBool(this.Temporary);
+		Flags |= 524288;
+	}
+
 	var EndPos = Writer.GetCurPosition();
 	Writer.Seek(StartPos);
 	Writer.WriteLong(Flags);
@@ -298,6 +325,15 @@ CSdtPr.prototype.Read_FromBinary = function(Reader)
 
 	if (Flags & 65536)
 		this.ShowingPlcHdr = Reader.GetBool();
+
+	if (Flags & 131072)
+		this.Equation = Reader.GetBool();
+
+	if (Flags & 262144)
+		this.Text = Reader.GetBool();
+
+	if (Flags & 524288)
+		this.Temporary = Reader.GetBool();
 };
 CSdtPr.prototype.IsBuiltInDocPart = function()
 {

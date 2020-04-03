@@ -101,3 +101,60 @@ CSdtBase.prototype.SetPlaceholderText = function(sText)
 	if (this.IsPlaceHolder())
 		this.private_FillPlaceholderContent();
 };
+/**
+ * Выставляем параметр, что данный контрол должен быть простым текстовым
+ * @param {boolean} isText
+ */
+CSdtBase.prototype.SetContentControlText = function(isText)
+{
+	if (this.Pr.Text !== isText)
+	{
+		History.Add(new CChangesSdtPrText(this, this.Pr.Text, isText));
+		this.Pr.Text = isText;
+	}
+};
+/**
+ * @returns {boolean}
+ */
+CSdtBase.prototype.IsContentControlText = function()
+{
+	return this.Pr.Text;
+};
+/**
+ * Выставляем параметр, что данный контрол специальный для вставки формул
+ * @param {boolean} isEquation
+ */
+CSdtBase.prototype.SetContentControlEquation = function(isEquation)
+{
+	if (this.Pr.Equation !== isEquation)
+	{
+		History.Add(new CChangesSdtPrEquation(this, this.Pr.Equation, isEquation));
+		this.Pr.Equation = isEquation;
+	}
+};
+/**
+ * @returns {boolean}
+ */
+CSdtBase.prototype.IsContentControlEquation = function()
+{
+	return this.Pr.Equation;
+};
+/**
+ * Выставляем параметр, что данный контрол при редактировании должен быть удален
+ * @param {boolean} isTemporary
+ */
+CSdtBase.prototype.SetContentControlTemporary = function(isTemporary)
+{
+	if (this.Pr.Temporary !== isTemporary)
+	{
+		History.Add(new CChangesSdtPrTemporary(this, this.Pr.Temporary, isTemporary));
+		this.Pr.Temporary = isTemporary;
+	}
+};
+/**
+ * @returns {boolean}
+ */
+CSdtBase.prototype.IsContentControlTemporary = function()
+{
+	return this.Pr.Temporary;
+};
