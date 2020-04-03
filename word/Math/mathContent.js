@@ -6232,24 +6232,8 @@ CMathAutoCorrectEngine.prototype.private_AutoCorrectEquation = function(Elements
                 CurPos--;
                 continue;
             }
-            if (Param.Type !== null) {
-                var tmp;
-                if (Param.Type == MATH_DEGREE || Param.Type == MATH_DEGREESubSup) {
-                    if (Param.Type == MATH_DEGREE) {
-                        tmp = [Elements.splice(ElPos[0]+1,End-ElPos[0]),Elements.splice(CurPos,ElPos[0]-CurPos+1)];
-                    } else {
-                        tmp = [Elements.splice(ElPos[1]+1,End-ElPos[1]),Elements.splice(ElPos[0]+1,ElPos[1]-ElPos[0]),Elements.splice(CurPos,ElPos[0]-CurPos+1)];
-                    }
-                    this.private_CorrectEquation(Param,tmp);
-                    End = CurPos + tmp.length;
-                    Elements.splice(CurPos, 0, ...tmp);
-                    Param.Type = null;
-                    Param.Props = {};
-                    Param.Kind = null;
-                    CurPos--;
-                    continue;
-                }
-                tmp = [Elements.splice(ElPos[0]+1,(End-ElPos[0])),Elements.splice(CurPos+1,ElPos[0]-CurPos)];
+            if (Param.Type !== null && Param.Type !== MATH_DEGREE && Param.Type !== MATH_DEGREESubSup) {
+                var tmp = [Elements.splice(ElPos[0]+1,(End-ElPos[0])),Elements.splice(CurPos+1,ElPos[0]-CurPos)];
                 this.private_CorrectEquation(Param,tmp);
                 End = CurPos + 1;
                 Elements.splice(End, 0, ...tmp);
@@ -6294,6 +6278,7 @@ CMathAutoCorrectEngine.prototype.private_AutoCorrectEquation = function(Elements
                     tmp = [Elements.splice(CurPos,1),Elements.splice(tmpPos,CurPos-tmpPos)];
                 }
                 if (fSkip) {
+                    Param.Props.isAccent = true;
                     this.private_CorrectEquation(Param,tmp);
                     CurPos = End = tmpPos;
                     Elements.splice(End, 0, ...tmp);
@@ -6477,7 +6462,7 @@ CMathAutoCorrectEngine.prototype.private_CorrectEquation = function(Param, Eleme
             var oDegree = new CDegree(props)
             var BaseContent = oDegree.Content[0];
             var IterContent = oDegree.Content[1];
-            var tmp = this.private_CorrectBuffForDegree(Elements[1]);
+            var tmp = (!Param.Props.isAccent) ? this.private_CorrectBuffForDegree(Elements[1]) : [];
             var bskipCoreect = this.private_ChekSkipForDegreeAbove(Elements[1]);
             this.private_PackTextToContent(BaseContent, Elements[1], false, bskipCoreect);
             this.private_PackTextToContent(IterContent, Elements[0], true, Param.Props.isQuote);
@@ -6524,7 +6509,7 @@ CMathAutoCorrectEngine.prototype.private_CorrectEquation = function(Param, Eleme
                 }
                 this.private_PackTextToContent(IterDnContent, Elements[0], true);
             }
-            var tmp = this.private_CorrectBuffForDegree(Elements[2]);
+            var tmp = (!Param.Props.isAccent) ? this.private_CorrectBuffForDegree(Elements[2]) : [];
             var bskipCoreect = this.private_ChekSkipForDegreeAbove(Elements[2]);
             this.private_PackTextToContent(BaseContent, Elements[2], false, bskipCoreect);
             tmp.push(oDegree);
@@ -6847,11 +6832,16 @@ CMathAutoCorrectEngine.prototype.private_CorrectEquation = function(Param, Eleme
                 var type = (Elements.arrSup) ? 1 : 0;
                 var Limit = MathContent.Add_Limit({ctrPrp : Pr.ctrPrp, type : type}, funcName, null);
                 MathContent = Limit.getIterator();
-                if (type)
-                Elements.arrSup.shift();
-                else
-                Elements.arrSub.shift();
+                var symbol;
+                if (type) {
+                    symbol = Elements.arrSup.splice(0,1);
+                } else {
+                    Elements.arrSub.shift();
+                }
                 this.private_PackTextToContent(MathContent, (Elements.arrSup || Elements.arrSub), true);
+                if (Param.Props.isQuote) {
+                    this.private_PackTextToContent(MathContent, symbol, true, true);
+                }
             } else {
                 this.private_PackTextToContent(MathContent, Elements.arrName, true);
             }
@@ -7163,7 +7153,8 @@ CMathAutoCorrectEngine.prototype.private_AutoCorrectDegree = function(buff) {
         var tmp = new CDegree(props)
         var BaseContent = tmp.Content[0];
         var IterContent = tmp.Content[1];
-        this.private_CorrectBuffForDegree(buff[i]);
+        if (!this.props.isAccent)
+            this.private_CorrectBuffForDegree(buff[i]);
         RemoveCount += buff[i].length + ((this.props.isQuote) ? 0 : 1);
         //разделить контент если нет скокобок и сохранить оставшуюся часть
         var bskipCoreect = this.private_ChekSkipForDegreeAbove(buff[i]);
@@ -7228,7 +7219,8 @@ CMathAutoCorrectEngine.prototype.private_AutoCorrectDegreeSubSup = function(buff
     var BaseContent = oDegree.getBase();
     var IterDnContent = oDegree.getLowerIterator();
     var IterUpContent = oDegree.getUpperIterator();
-    this.private_CorrectBuffForDegree(buff[2]);
+    if (!this.props.isAccent)
+        this.private_CorrectBuffForDegree(buff[2]);
     var RemoveCount = buff[0].length + buff[1].length + buff[2].length + ((this.props.isQuote) ? 1 : 2);
 
     if (buff[0].Type == DEGREE_SUPERSCRIPT) {
@@ -8128,7 +8120,7 @@ CMathAutoCorrectEngine.prototype.private_CanAutoCorrectEquation = function() {
                 }
                 break;
             }
-            if (g_aMathAutoCorrectDoNotGroupChar[this.ActionElement.value] || (this.props.isQuote && this.ActionElement.value == 0x5F)) {
+            if (g_aMathAutoCorrectDoNotGroupChar[this.ActionElement.value] || (buffer[CurLvBuf].Type && (this.ActionElement.value == 0x5F || this.ActionElement.value == 0x5E))) {
                 this.CurPos--;
                 continue;
             }
@@ -8179,10 +8171,8 @@ CMathAutoCorrectEngine.prototype.private_CanAutoCorrectEquation = function() {
             this.CurPos--;
             continue;
         } else if (q_aMathAutoCorrectAccentCharCodes[Elem.value]) { // accent
-            if (((this.Type == MATH_DEGREE || this.Type == MATH_DEGREESubSup) && !bBrackOpen) || bOff) {
-                if (this.Type == MATH_DEGREE || this.Type == MATH_DEGREESubSup || this.Type == MATH_LIMIT) {
-                    buffer[CurLvBuf].splice(0, 0, Elem);
-                }
+            if ((this.Type == MATH_LIMIT && !bBrackOpen) || bOff) {
+                buffer[CurLvBuf].splice(0, 0, Elem);
                 break;
             }
             buffer[CurLvBuf].splice(0, 0, Elem);
@@ -8190,15 +8180,18 @@ CMathAutoCorrectEngine.prototype.private_CanAutoCorrectEquation = function() {
                 this.CurPos--;
                 continue;
             }
-            if (this.Elements[this.CurPos+1].Element === this.ActionElement) {
-                if (g_aMathAutoCorrectDoNotAccentClose[this.ActionElement.value]) {
+            if (this.Type !== MATH_DEGREE && this.Type !== MATH_DEGREESubSup) {
+                if (this.Elements[this.CurPos+1].Element === this.ActionElement) {
+                    if (g_aMathAutoCorrectDoNotAccentClose[this.ActionElement.value]) {
+                        this.CurPos--;
+                        continue;
+                    }
+                } else if (g_aMathAutoCorrectDoNotAccentNotClose[this.ActionElement.value]) {
                     this.CurPos--;
                     continue;
                 }
-            } else if (g_aMathAutoCorrectDoNotAccentNotClose[this.ActionElement.value]) {
-                this.CurPos--;
-                continue;
             }
+            
             if (!bBrackOpen && this.Type !== MATH_FRACTION) {
                 if (this.CurPos >= 1) {
                     var tmp = this.Elements[this.CurPos-1].Element;
@@ -8224,9 +8217,12 @@ CMathAutoCorrectEngine.prototype.private_CanAutoCorrectEquation = function() {
                         break;
                     }
                 }
-                
-                this.props = {skip:this.Elements.length - this.CurPos};
-                this.Type = MATH_ACCENT;
+                if (this.Type !== MATH_DEGREE && this.Type !== MATH_DEGREESubSup) {
+                    this.props = {skip:this.Elements.length - this.CurPos};
+                    this.Type = MATH_ACCENT;
+                } else {
+                    this.props.isAccent = true;
+                }
                 break;
             }
             this.CurPos--;
