@@ -2492,6 +2492,7 @@ CGraphicObjects.prototype =
                 this.document.Recalculate();
                 var oContent = oShape.getDocContent();
                 oContent.Set_CurrentElement(0, true);
+                oContent.MoveCursorToStartPos(false);
                 this.updateSelectionState();
                 this.document.FinalizeAction();
             }

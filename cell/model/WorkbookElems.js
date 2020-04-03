@@ -3528,29 +3528,30 @@ StyleManager.prototype =
 		}
 		return borderIndex;
 	};
-var g_oHyperlinkProperties = {
+
+	var g_oHyperlinkProperties = {
 		Ref: 0,
 		Location: 1,
 		Hyperlink: 2,
 		Tooltip: 3
 	};
-/** @constructor */
-function Hyperlink () {
-	this.Properties = g_oHyperlinkProperties;
-    this.Ref = null;
-    this.Hyperlink = null;
-    this.Tooltip = null;
-	// Составные части Location
-	this.Location = null;
-	this.LocationSheet = null;
-	this.LocationRange = null;
-	this.LocationRangeBbox = null;
-	this.bUpdateLocation = false;
-	
-	this.bVisited = false;
-}
-Hyperlink.prototype = {
-	clone : function (oNewWs) {
+	/** @constructor */
+	function Hyperlink() {
+		this.Properties = g_oHyperlinkProperties;
+		this.Ref = null;
+		this.Hyperlink = null;
+		this.Tooltip = null;
+		// Составные части Location
+		this.Location = null;
+		this.LocationSheet = null;
+		this.LocationRange = null;
+		this.LocationRangeBbox = null;
+		this.bUpdateLocation = false;
+
+		this.bVisited = false;
+	}
+
+	Hyperlink.prototype.clone = function (oNewWs) {
 		var oNewHyp = new Hyperlink();
 		if (null !== this.Ref)
 			oNewHyp.Ref = this.Ref.clone(oNewWs);
@@ -3569,8 +3570,8 @@ Hyperlink.prototype = {
 		if (null !== this.bVisited)
 			oNewHyp.bVisited = this.bVisited;
 		return oNewHyp;
-	},
-	isEqual : function (obj) {
+	};
+	Hyperlink.prototype.isEqual = function (obj) {
 		var bRes = (this.getLocation() == obj.getLocation() && this.Hyperlink == obj.Hyperlink && this.Tooltip == obj.Tooltip);
 		if (bRes) {
 			var oBBoxRef = this.Ref.getBBox0();
@@ -3578,29 +3579,28 @@ Hyperlink.prototype = {
 			bRes = (oBBoxRef.r1 == oBBoxObj.r1 && oBBoxRef.c1 == oBBoxObj.c1 && oBBoxRef.r2 == oBBoxObj.r2 && oBBoxRef.c2 == oBBoxObj.c2);
 		}
 		return bRes;
-	},
-	isValid : function () {
+	};
+	Hyperlink.prototype.isValid = function () {
 		return null != this.Ref && (null != this.getLocation() || null != this.Hyperlink);
-	},
-	setLocationSheet : function (LocationSheet) {
+	};
+	Hyperlink.prototype.setLocationSheet = function (LocationSheet) {
 		this.LocationSheet = LocationSheet;
 		this.bUpdateLocation = true;
-	},
-	setLocationRange : function (LocationRange) {
+	};
+	Hyperlink.prototype.setLocationRange = function (LocationRange) {
 		this.LocationRange = LocationRange;
 		this.LocationRangeBbox = null;
 		this.bUpdateLocation = true;
-	},
-	setLocation : function (Location) {
+	};
+	Hyperlink.prototype.setLocation = function (Location) {
 		this.bUpdateLocation = true;
 		this.LocationSheet = this.LocationRange = this.LocationRangeBbox = null;
 
 		if (null !== Location) {
-			var result = parserHelp.isName(Location, 0);
-			if (result[0]) {
-				this.LocationRange = result[1];
+			if (parserHelp.isName3D(Location, 0) || parserHelp.isName(Location, 0)) {
+				this.LocationRange = Location;
 			} else {
-				result = parserHelp.parse3DRef(Location);
+				var result = parserHelp.parse3DRef(Location);
 				if (!result) {
 					// Can be in all mods. Excel bug...
 					AscCommonExcel.executeInR1C1Mode(!AscCommonExcel.g_R1C1Mode, function () {
@@ -3614,17 +3614,17 @@ Hyperlink.prototype = {
 			}
 		}
 		this._updateLocation();
-	},
-	getLocation : function () {
+	};
+	Hyperlink.prototype.getLocation = function () {
 		if (this.bUpdateLocation)
 			this._updateLocation();
 		return this.Location;
-	},
-	getLocationRange : function () {
+	};
+	Hyperlink.prototype.getLocationRange = function () {
 		return this.LocationRangeBbox && this.LocationRangeBbox.getName(AscCommonExcel.g_R1C1Mode ?
 			AscCommonExcel.referenceType.A : AscCommonExcel.referenceType.R);
-	},
-	_updateLocation : function () {
+	};
+	Hyperlink.prototype._updateLocation = function () {
 		var t = this;
 		this.Location = null;
 		this.bUpdateLocation = false;
@@ -3645,31 +3645,31 @@ Hyperlink.prototype = {
 		} else if (null !== this.LocationRange) {
 			this.Location = this.LocationRange;
 		}
-	},
-	setVisited : function (bVisited) {
+	};
+	Hyperlink.prototype.setVisited = function (bVisited) {
 		this.bVisited = bVisited;
-	},
-	getVisited : function () {
+	};
+	Hyperlink.prototype.getVisited = function () {
 		return this.bVisited;
-	},
-	getHyperlinkType : function () {
+	};
+	Hyperlink.prototype.getHyperlinkType = function () {
 		return null !== this.Hyperlink ? Asc.c_oAscHyperlinkType.WebLink : Asc.c_oAscHyperlinkType.RangeLink;
-	},
-	getType : function () {
+	};
+	Hyperlink.prototype.getType = function () {
 		return UndoRedoDataTypes.Hyperlink;
-	},
-	getProperties : function () {
+	};
+	Hyperlink.prototype.getProperties = function () {
 		return this.Properties;
-	},
-	getProperty : function (nType) {
+	};
+	Hyperlink.prototype.getProperty = function (nType) {
 		switch (nType) {
 			case this.Properties.Ref: return parserHelp.get3DRef(this.Ref.worksheet.getName(), this.Ref.getName());
 			case this.Properties.Location: return this.getLocation();
 			case this.Properties.Hyperlink: return this.Hyperlink;
 			case this.Properties.Tooltip: return this.Tooltip;
 		}
-	},
-	setProperty : function (nType, value) {
+	};
+	Hyperlink.prototype.setProperty = function (nType, value) {
 		switch (nType) {
 			case this.Properties.Ref:
 				//todo обработать нули
@@ -3680,13 +3680,13 @@ Hyperlink.prototype = {
 					if (ws)
 						this.Ref = ws.getRange2(oRefParsed.range);
 				}
-			break;
+				break;
 			case this.Properties.Location: this.setLocation(value);break;
 			case this.Properties.Hyperlink: this.Hyperlink = value;break;
 			case this.Properties.Tooltip: this.Tooltip = value;break;
 		}
-	},
-	applyCollaborative : function (nSheetId, collaborativeEditing) {
+	};
+	Hyperlink.prototype.applyCollaborative = function (nSheetId, collaborativeEditing) {
 		var bbox = this.Ref.getBBox0();
 		var OffsetFirst = new AscCommon.CellBase(0, 0);
 		var OffsetLast = new AscCommon.CellBase(0, 0);
@@ -3696,8 +3696,8 @@ Hyperlink.prototype = {
 		OffsetLast.col = collaborativeEditing.getLockMeColumn2(nSheetId, bbox.c2) - bbox.c2;
 		this.Ref.setOffsetFirst(OffsetFirst);
 		this.Ref.setOffsetLast(OffsetLast);
-	}
-};
+	};
+
 	/** @constructor */
 	function SheetFormatPr() {
 		this.nBaseColWidth = null;

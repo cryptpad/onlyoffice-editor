@@ -455,6 +455,13 @@
 				  self.handlers.trigger("asc_onContextMenu", event);
 			  },
 
+			  // DataValidation
+			  "onDataValidation": function () {
+				  if (self.oSelectionInfo && self.oSelectionInfo.dataValidation) {
+					  self.handlers.trigger("asc_onValidationListMenu", self.oSelectionInfo.dataValidation.getListValues(self.model.getActiveWs()));
+				  }
+			  },
+
 			  // FormatPainter
 			  'isFormatPainter': function () {
 				  return self.stateFormatPainter;
@@ -1249,7 +1256,7 @@
 
 		// проверяем фильтр
 		if (ct.target === c_oTargetType.FilterObject) {
-			if (ct.bPivot) {
+			if (ct.isPivot) {
 				//необходимо сгенерировать объект AutoFiltersOptions
 			} else {
 				var filterObj = ws.af_setDialogProp(ct.idFilter, true);

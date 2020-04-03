@@ -3769,6 +3769,7 @@ CPresentation.prototype.Add_CompositeText = function (nCharCode) {
     this.addCompositeText(nCharCode);
     this.checkCurrentTextObjectExtends();
     this.Recalculate();
+    this.RecalculateCurPos(true, true);
     this.Document_UpdateSelectionState();
 };
 
@@ -3788,6 +3789,7 @@ CPresentation.prototype.Remove_CompositeText = function (nCount) {
     this.removeCompositeText(nCount);
     this.checkCurrentTextObjectExtends();
     this.Recalculate();
+    this.RecalculateCurPos(true, true);
     this.Document_UpdateSelectionState();
 };
 CPresentation.prototype.Replace_CompositeText = function (arrCharCodes) {
@@ -3800,6 +3802,7 @@ CPresentation.prototype.Replace_CompositeText = function (arrCharCodes) {
     }
     this.checkCurrentTextObjectExtends();
     this.Recalculate();
+    this.RecalculateCurPos(true, true);
     this.Document_UpdateSelectionState();
 };
 CPresentation.prototype.Set_CursorPosInCompositeText = function (nPos) {
@@ -3810,6 +3813,7 @@ CPresentation.prototype.Set_CursorPosInCompositeText = function (nPos) {
 
     var nInRunPos = Math.max(Math.min(this.CompositeInput.Pos + nPos, this.CompositeInput.Pos + this.CompositeInput.Length, oRun.Content.length), this.CompositeInput.Pos);
     oRun.State.ContentPos = nInRunPos;
+    this.RecalculateCurPos(true, true);
     this.Document_UpdateSelectionState();
 };
 CPresentation.prototype.Get_CursorPosInCompositeText = function () {
@@ -4301,10 +4305,10 @@ CPresentation.prototype.CheckTargetUpdate = function () {
     }
 };
 
-CPresentation.prototype.RecalculateCurPos = function () {
+CPresentation.prototype.RecalculateCurPos = function (bUpdateX, bUpdateY) {
     var oController = this.GetCurrentController();
     if (oController) {
-        oController.recalculateCurPos();
+        oController.recalculateCurPos(bUpdateX, bUpdateY);
     }
 };
 

@@ -1170,6 +1170,7 @@ CShape.prototype.createTextBody = function () {
     }
     tx_body.setBodyPr(oBodyPr);
     tx_body.content.Content[0].Set_DocumentIndex(0);
+    tx_body.content.MoveCursorToStartPos(false);
     this.setTxBody(tx_body);
 };
 
@@ -1179,6 +1180,7 @@ CShape.prototype.createTextBoxContent = function () {
     this.setBodyPr(body_pr);
     this.setTextBoxContent(new CDocumentContent(this, this.getDrawingDocument(), 0, 0, 0, 20000, false, false));
     this.textBoxContent.SetParagraphAlign(AscCommon.align_Center);
+    this.textBoxContent.MoveCursorToStartPos(false);
     this.textBoxContent.Content[0].Set_DocumentIndex(0);
 };
 
@@ -5531,6 +5533,10 @@ CShape.prototype.hitToAdjustment = function (x, y) {
     if (_calcGeoem)
     {
         invert_transform = this.getInvertTransform();
+        if(!invert_transform)
+        {
+            return { hit: false, adjPolarFlag: null, adjNum: null, warp: false };
+        }
         t_x = invert_transform.TransformPointX(x, y);
         t_y = invert_transform.TransformPointY(x, y);
         ret = _calcGeoem.hitToAdj(t_x, t_y, _dist);

@@ -175,6 +175,10 @@ CDocumentContent.prototype.Copy = function(Parent, DrawingDocument, oPr)
 };
 CDocumentContent.prototype.Copy2 = function(OtherDC, oPr)
 {
+	if(this === OtherDC)
+	{
+		return;
+	}
 	// Копируем содержимое
 	this.Internal_Content_RemoveAll();
 

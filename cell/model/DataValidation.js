@@ -113,9 +113,15 @@
 		}
 
 		this.type = EFormulaType.Formula;
-		this._formula = new AscCommonExcel.parserFormula(this.text, null, ws);
+		this._formula = new AscCommonExcel.parserFormula(this.text, this, ws);
 		this._formula.parse();
+        this._formula.buildDependencies();
 	};
+    CDataFormula.prototype.onFormulaEvent = function (type, eventData) {
+        if (AscCommon.c_oNotifyParentType.ChangeFormula === type) {
+            this.text = eventData.assemble;
+        }
+    };
 	CDataFormula.prototype.getValue = function(vt, ws, returnRaw) {
 		this._init(vt, ws);
 		if (EFormulaType.Formula === this.type) {
@@ -129,7 +135,7 @@
 		this.ranges = null;
 
 		this.allowBlank = false;
-		this.showDropDown = false;
+		this.showDropDown = false; // Excel considers this field to be a refusal to display
 		this.showErrorMessage = false;
 		this.showInputMessage = false;
 		this.type = EDataValidationType.None;
@@ -147,6 +153,14 @@
 		return this;
 	}
 
+	CDataValidation.prototype._init = function (ws) {
+		if (this.formula1) {
+			this.formula1._init(this.type, ws);
+		}
+		if (this.formula2) {
+			this.formula2._init(this.type, ws);
+		}
+	};
 	CDataValidation.prototype.clone = function() {
 		var res = new CDataValidation();
 		if (this.ranges) {
@@ -187,63 +201,76 @@
 	CDataValidation.prototype.checkValue = function (val, ws) {
 		var res = true;
 		if (this.showErrorMessage) {
-			val = (this.type === EDataValidationType.TextLength) ? AscCommonExcel.getFragmentsLength(val) : AscCommonExcel.getFragmentsText(val);
+			val = (this.type === EDataValidationType.TextLength) ? val.length : val;
 			if (EDataValidationType.List === this.type) {
-				var list = this.formula1 && this.formula1.getValue(this.type, ws, false);
-				if (list && AscCommonExcel.cElementType.error !== list.type) {
-					if (AscCommonExcel.cElementType.string === list.type) {
-						list = list.getValue().split(AscCommon.FormulaSeparators.functionArgumentSeparatorDef);
-						res = -1 !== list.indexOf(val);
-					} else {
-						list = list.getRange();
-						if (list) {
-							res = false;
-							list._foreachNoEmpty(function (cell) {
-								// ToDo check cells type
-								if (!cell.isEmptyTextString() && cell.getValue() === val) {
-									res = true;
-									return null;
-								}
-							});
-						}
-					}
-				}
+				var list = this._getListValues(ws, true);
+				res = (list && -1 !== list.indexOf(val));
 			} else if (EDataValidationType.Custom === this.type) {
 			} else {
+				res = false;
 				val = Number(val);
-				if (!isNaN(val)) {
-					var v1 = this.formula1 && this.formula1.getValue(this.type, ws, true);
-					var v2 = this.formula2 && this.formula2.getValue(this.type, ws, true);
-					switch (this.operator) {
-						case EDataValidationOperator.Between:
-							res = v1 <= val && val <= v2;
-							break;
-						case EDataValidationOperator.NotBetween:
-							res = !(v1 <= val && val <= v2);
-							break;
-						case EDataValidationOperator.Equal:
-							res = v1 === val;
-							break;
-						case EDataValidationOperator.NotEqual:
-							res = v1 !== val;
-							break;
-						case EDataValidationOperator.LessThan:
-							res = v1 > val;
-							break;
-						case EDataValidationOperator.LessThanOrEqual:
-							res = v1 >= val;
-							break;
-						case EDataValidationOperator.GreaterThan:
-							res = v1 < val;
-							break;
-						case EDataValidationOperator.GreaterThanOrEqual:
-							res = v1 <= val;
-							break;
+				if (!isNaN(val) ) {
+					if (EDataValidationType.Whole !== this.type || ((val >> 0) === val)) {
+						var v1 = this.formula1 && this.formula1.getValue(this.type, ws, true);
+						var v2 = this.formula2 && this.formula2.getValue(this.type, ws, true);
+						switch (this.operator) {
+							case EDataValidationOperator.Between:
+								res = v1 <= val && val <= v2;
+								break;
+							case EDataValidationOperator.NotBetween:
+								res = !(v1 <= val && val <= v2);
+								break;
+							case EDataValidationOperator.Equal:
+								res = v1 === val;
+								break;
+							case EDataValidationOperator.NotEqual:
+								res = v1 !== val;
+								break;
+							case EDataValidationOperator.LessThan:
+								res = v1 > val;
+								break;
+							case EDataValidationOperator.LessThanOrEqual:
+								res = v1 >= val;
+								break;
+							case EDataValidationOperator.GreaterThan:
+								res = v1 < val;
+								break;
+							case EDataValidationOperator.GreaterThanOrEqual:
+								res = v1 <= val;
+								break;
+						}
 					}
 				}
 			}
 		}
 		return res;
+	};
+	CDataValidation.prototype._getListValues = function (ws, withoutFormat) {
+		var res = null;
+		var list = this.formula1 && this.formula1.getValue(this.type, ws, false);
+		if (list && AscCommonExcel.cElementType.error !== list.type) {
+			if (AscCommonExcel.cElementType.string === list.type) {
+				res = list.getValue().split(AscCommon.FormulaSeparators.functionArgumentSeparatorDef);
+			} else {
+				list = list.getRange();
+				if (list) {
+					res = [];
+					list._foreachNoEmpty(function (cell) {
+						// ToDo check cells type
+						if (!cell.isNullTextString()) {
+							res.push(withoutFormat ? cell.getValueWithoutFormat() : cell.getValue());
+						}
+					});
+				}
+			}
+		}
+		return res;
+	};
+	CDataValidation.prototype.isListValues = function () {
+		return (this.type === EDataValidationType.List && !this.showDropDown);
+	};
+	CDataValidation.prototype.getListValues = function (ws) {
+		return this.isListValues() ?  this._getListValues(ws, false) : null;
 	};
 
 	CDataValidation.prototype.getError = function () {
@@ -266,13 +293,19 @@
 		return this;
 	}
 
+	CDataValidations.prototype.init = function (ws) {
+		for (var i = 0; i < this.elems.length; ++i) {
+			this.elems[i]._init(ws);
+		}
+	};
 	CDataValidations.prototype.clone = function() {
 		var i, res = new CDataValidations();
 		res.disablePrompts = this.disablePrompts;
 		res.xWindow = this.xWindow;
 		res.yWindow = this.yWindow;
-		for (i = 0; i < this.elems.length; ++i)
+		for (i = 0; i < this.elems.length; ++i) {
 			res.elems.push(this.elems[i].clone());
+		}
 		return res;
 	};
 
