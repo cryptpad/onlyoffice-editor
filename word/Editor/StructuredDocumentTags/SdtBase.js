@@ -133,6 +133,22 @@ CSdtBase.prototype.SetContentControlEquation = function(isEquation)
 	}
 };
 /**
+ * Применяем настройку, что данный контрол будет специальным для формул
+ * @constructor
+ */
+CSdtBase.prototype.ApplyContentControlEquationPr = function()
+{
+	this.SetContentControlEquation(true);
+	this.SetContentControlTemporary(true);
+
+	if (!this.IsContentControlEquation())
+		return;
+
+	this.SetPlaceholder(c_oAscDefaultPlaceholderName.Equation);
+	if (this.IsPlaceHolder())
+		this.private_FillPlaceholderContent();
+};
+/**
  * @returns {boolean}
  */
 CSdtBase.prototype.IsContentControlEquation = function()

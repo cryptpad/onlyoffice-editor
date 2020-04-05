@@ -16677,7 +16677,7 @@ CDocument.prototype.controller_AddToParagraph = function(ParaItem, bRecalculate)
 					}
 					else if (!oInfo.Is_MixedSelection())
 					{
-						ParaItem.SetText(this.GetSelectedText());
+						ParaItem.SetText(this.GetSelectedText({MathAdd : true}));
 					}
 				}
 
@@ -21817,6 +21817,25 @@ CDocument.prototype.ConvertEquationToMath = function(oEquation, isAll)
 CDocument.prototype.GetGlossaryDocument = function()
 {
 	return this.GlossaryDocument;
+};
+/**
+ * Добавляем формулу
+ */
+CDocument.prototype.AddParaMath = function(nType)
+{
+	if ((undefined === nType || c_oAscMathType.Default_Text === nType) && (!this.IsSelectionUse() || !this.IsTextSelectionUse()))
+	{
+		this.Remove();
+		var oCC = this.AddContentControl(c_oAscSdtLevelType.Inline);
+		if (!oCC)
+			return;
+
+		oCC.ApplyContentControlEquationPr();
+	}
+	else
+	{
+		this.AddToParagraph(new AscCommonWord.MathMenu(nType));
+	}
 };
 
 function CDocumentSelectionState()

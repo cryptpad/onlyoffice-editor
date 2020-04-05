@@ -40,7 +40,8 @@
 var c_oAscDefaultPlaceholderName = {
 	Text     : "DefaultPlaceholder_TEXT",
 	List     : "DefaultPlaceholder_LIST",
-	DateTime : "DefaultPlaceholder_DATE"
+	DateTime : "DefaultPlaceholder_DATE",
+	Equation : "DefaultPlaceholder_EQUATION"
 };
 
 /**
@@ -62,7 +63,8 @@ function CGlossaryDocument(oLogicDocument)
 	this.DefaultPlaceholder = {
 		Text     : this.private_CreateDefaultPlaceholder(c_oAscDefaultPlaceholderName.Text, AscCommon.translateManager.getValue("Your text here")),
 		List     : this.private_CreateDefaultPlaceholder(c_oAscDefaultPlaceholderName.List, AscCommon.translateManager.getValue("Choose an item.")),
-		DateTime : this.private_CreateDefaultPlaceholder(c_oAscDefaultPlaceholderName.DateTime, AscCommon.translateManager.getValue("Enter a date."))
+		DateTime : this.private_CreateDefaultPlaceholder(c_oAscDefaultPlaceholderName.DateTime, AscCommon.translateManager.getValue("Enter a date.")),
+		Equation : this.private_CreateDefaultPlaceholder(c_oAscDefaultPlaceholderName.Equation, AscCommon.translateManager.getValue("Type equation here."))
 	};
 
 	oLogicDocument.GetTableId().Add(this, this.Id);
@@ -148,6 +150,14 @@ CGlossaryDocument.prototype.GetDefaultPlaceholderList = function()
 CGlossaryDocument.prototype.GetDefaultPlaceholderDateTime = function()
 {
 	return this.DefaultPlaceholder.DateTime;
+};
+/**
+ * Получаем дефолтовый контент для плейсхолдера для формулы
+ * @returns {CDocPart}
+ */
+CGlossaryDocument.prototype.GetDefaultPlaceholderEquation = function()
+{
+	return this.DefaultPlaceholder.Equation;
 };
 /**
  * @param sName

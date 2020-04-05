@@ -819,7 +819,21 @@ CParagraphContentBase.prototype.GetFirstRunElementPos = function(nType, oStartPo
 {
 	return false;
 };
+/**
+ * Устанавливаем текущие позиции на текущий элемент
+ */
+CParagraphContentBase.prototype.SetThisElementCurrentInParagraph = function()
+{
+	var oParagraph = this.GetParagraph();
+	if (!this.IsCursorPlaceable() || !oParagraph)
+		return;
 
+	var oContentPos = this.Paragraph.Get_PosByElement(this);
+	if (!oContentPos)
+		return;
+
+	this.Paragraph.Set_ParaContentPos(oContentPos, true, -1, -1, false);
+};
 
 /**
  * Это базовый класс для элементов содержимого(контент) параграфа, у которых есть свое содержимое.

@@ -207,6 +207,13 @@ CInlineLevelSdt.prototype.GetSelectedContent = function(oSelectedContent)
 		return oNewElement;
 	}
 };
+CInlineLevelSdt.prototype.GetSelectedText = function(bAll, bClearText, oPr)
+{
+	if (oPr && oPr.MathAdd && this.IsContentControlEquation() && this.IsPlaceHolder())
+		return "";
+
+	return CParagraphContentWithParagraphLikeContent.prototype.GetSelectedElementsInfo.apply(this, arguments);
+};
 CInlineLevelSdt.prototype.GetSelectedElementsInfo = function(Info)
 {
 	Info.SetInlineLevelSdt(this);
@@ -615,15 +622,28 @@ CInlineLevelSdt.prototype.private_ReplacePlaceHolderWithContent = function(bMath
 
 	this.RemoveFromContent(0, this.GetElementsCount());
 
-	var oRun = new ParaRun(undefined, bMathRun);
-	oRun.SetPr(this.Pr.TextPr.Copy());
+	if (this.IsContentControlEquation())
+	{
+		var oParaMath = new ParaMath();
+		oParaMath.Root.Load_FromMenu(c_oAscMathType.Default_Text, this.GetParagraph());
+		oParaMath.Root.Correct_Content(true);
+		this.AddToContent(0, oParaMath);
+	}
+	else
+	{
+		var oRun = new ParaRun(undefined, bMathRun);
+		oRun.SetPr(this.Pr.TextPr.Copy());
+		this.AddToContent(0, oRun);
+	}
 
-	this.AddToContent(0, oRun);
 	this.RemoveSelection();
 	this.MoveCursorToStartPos();
 
 	if (isUseSelection)
 		this.SelectAll();
+
+	if (this.IsContentControlTemporary())
+		this.RemoveContentControlWrapper();
 };
 CInlineLevelSdt.prototype.private_ReplaceContentWithPlaceHolder = function()
 {
@@ -651,17 +671,37 @@ CInlineLevelSdt.prototype.private_FillPlaceholderContent = function()
 	{
 		var oFirstParagraph = oDocPart.GetFirstParagraph();
 
-		// TODO: Последний Run с ParaEnd не добавляем
-		for (var nPos = 0, nCount = oFirstParagraph.Content.length; nPos < nCount - 1; ++nPos)
+		if (this.IsContentControlEquation())
 		{
-			this.AddToContent(0, oFirstParagraph.Content[nPos].Copy());
+			var oParaMath = new ParaMath();
+			oParaMath.Root.Load_FromMenu(c_oAscMathType.Default_Text, this.GetParagraph(), null, oFirstParagraph.GetText());
+			oParaMath.Root.Correct_Content(true);
+			this.AddToContent(0, oParaMath);
+		}
+		else
+		{
+			// TODO: Последний Run с ParaEnd не добавляем
+			for (var nPos = 0, nCount = oFirstParagraph.Content.length; nPos < nCount - 1; ++nPos)
+			{
+				this.AddToContent(0, oFirstParagraph.Content[nPos].Copy());
+			}
 		}
 	}
 	else
 	{
-		var oRun = new ParaRun(oParagraph, false);
-		oRun.AddText(String.fromCharCode(nbsp_charcode, nbsp_charcode, nbsp_charcode, nbsp_charcode));
-		this.AddToContent(0, oRun);
+		if (this.IsContentControlEquation())
+		{
+			var oParaMath = new ParaMath();
+			oParaMath.Root.Load_FromMenu(c_oAscMathType.Default_Text, this.GetParagraph(), null, String.fromCharCode(nbsp_charcode, nbsp_charcode, nbsp_charcode, nbsp_charcode));
+			oParaMath.Root.Correct_Content(true);
+			this.AddToContent(0, oParaMath);
+		}
+		else
+		{
+			var oRun = new ParaRun(oParagraph, false);
+			oRun.AddText(String.fromCharCode(nbsp_charcode, nbsp_charcode, nbsp_charcode, nbsp_charcode));
+			this.AddToContent(0, oRun);
+		}
 	}
 };
 CInlineLevelSdt.prototype.Set_SelectionContentPos = function(StartContentPos, EndContentPos, Depth, StartFlag, EndFlag)

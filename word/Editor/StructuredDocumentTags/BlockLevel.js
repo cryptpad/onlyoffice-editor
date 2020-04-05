@@ -686,6 +686,9 @@ CBlockLevelSdt.prototype.GetCurPosXY = function()
 };
 CBlockLevelSdt.prototype.GetSelectedText = function(bClearText, oPr)
 {
+	if (oPr && oPr.MathAdd && this.IsContentControlEquation() && this.IsPlaceHolder())
+		return "";
+
 	return this.Content.GetSelectedText(bClearText, oPr);
 };
 CBlockLevelSdt.prototype.GetCurrentParagraph = function(bIgnoreSelection, arrSelectedParagraphs, oPr)
@@ -1547,6 +1550,19 @@ CBlockLevelSdt.prototype.private_ReplacePlaceHolderWithContent = function()
 	this.Content.AddToContent(0, oParagraph);
 	this.Content.RemoveSelection();
 	this.Content.MoveCursorToStartPos();
+
+	if (this.IsContentControlEquation())
+	{
+		var oParaMath = new ParaMath();
+		oParaMath.Root.Load_FromMenu(c_oAscMathType.Default_Text, oParagraph, null);
+		oParaMath.Root.Correct_Content(true);
+		oParagraph.AddToContent(0, oParaMath);
+		oParaMath.SetThisElementCurrentInParagraph();
+		oParaMath.MoveCursorToStartPos();
+	}
+
+	if (this.IsContentControlTemporary())
+		this.RemoveContentControlWrapper();
 };
 CBlockLevelSdt.prototype.private_ReplaceContentWithPlaceHolder = function()
 {
@@ -1565,9 +1581,27 @@ CBlockLevelSdt.prototype.private_FillPlaceholderContent = function()
 	var oDocPart       = oLogicDocument.GetGlossaryDocument().GetDocPartByName(this.GetPlaceholder());
 	if (oDocPart)
 	{
-		for (var nIndex = 0, nCount = oDocPart.GetElementsCount(); nIndex < nCount; ++nIndex)
+		if (this.IsContentControlEquation())
 		{
-			this.Content.AddToContent(0, oDocPart.GetElement(nIndex).Copy());
+			var oFirstParagraph = oDocPart.GetFirstParagraph();
+
+			var oNewParagraph = oFirstParagraph.Copy();
+			oNewParagraph.RemoveFromContent(0, oNewParagraph.GetElementsCount());
+
+			var oParaMath = new ParaMath();
+			oParaMath.Root.Load_FromMenu(c_oAscMathType.Default_Text, oNewParagraph, null, oFirstParagraph.GetText());
+			oParaMath.Root.Correct_Content(true);
+			oNewParagraph.AddToContent(0, oParaMath);
+			oNewParagraph.CorrectContent();
+
+			this.Content.AddToContent(0, oNewParagraph);
+		}
+		else
+		{
+			for (var nIndex = 0, nCount = oDocPart.GetElementsCount(); nIndex < nCount; ++nIndex)
+			{
+				this.Content.AddToContent(0, oDocPart.GetElement(nIndex).Copy());
+			}
 		}
 	}
 	else
@@ -1580,10 +1614,20 @@ CBlockLevelSdt.prototype.private_FillPlaceholderContent = function()
 		oParagraph.RemoveSelection();
 
 		this.Content.AddToContent(0, oParagraph);
-
-		var oRun = new ParaRun(oParagraph, false);
-		oRun.AddText(String.fromCharCode(nbsp_charcode, nbsp_charcode, nbsp_charcode, nbsp_charcode));
-		oParagraph.AddToContent(0, oRun);
+		if (this.IsContentControlEquation())
+		{
+			var oParaMath = new ParaMath();
+			oParaMath.Root.Load_FromMenu(c_oAscMathType.Default_Text, oParagraph, null, String.fromCharCode(nbsp_charcode, nbsp_charcode, nbsp_charcode, nbsp_charcode));
+			oParaMath.Root.Correct_Content(true);
+			oParagraph.AddToContent(0, oParaMath);
+			oParagraph.CorrectContent();
+		}
+		else
+		{
+			var oRun = new ParaRun(oParagraph, false);
+			oRun.AddText(String.fromCharCode(nbsp_charcode, nbsp_charcode, nbsp_charcode, nbsp_charcode));
+			oParagraph.AddToContent(0, oRun);
+		}
 	}
 };
 CBlockLevelSdt.prototype.GetPlaceHolderObject = function()
