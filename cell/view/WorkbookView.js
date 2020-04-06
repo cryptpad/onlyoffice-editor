@@ -1556,16 +1556,16 @@
   };
 
   WorkbookView.prototype._onCloseCellEditor = function() {
+    var isCellEditMode = this.getCellEditMode();
+    this.setCellEditMode(false);
     this.controller.setStrictClose(false);
     this.controller.setFormulaEditMode(false);
-      var ws = this.getWorksheet(), isCellEditMode, index;
-	  isCellEditMode = this.getCellEditMode();
-      this.setCellEditMode(false);
+      var ws = this.getWorksheet(), index;
 
       if( this.cellFormulaEnterWSOpen ){
 		  index = this.cellFormulaEnterWSOpen.model.getIndex();
 		  this.cellFormulaEnterWSOpen = null;
-		  if( index != ws.model.getIndex() ){
+		  if( index !== ws.model.getIndex() ){
 			  this.showWorksheet(index);
 		  }
 		  ws = this.getWorksheet(index);
