@@ -2375,18 +2375,14 @@
   };
 
   // Поиск текста в листе
-  WorkbookView.prototype.findCellText = function(options) {
+  WorkbookView.prototype.findCellText = function (options) {
+    this.closeCellEditor();
     // Для поиска эта переменная не нужна (но она может остаться от replace)
     options.selectionRange = null;
 
-    var ws = this.getWorksheet();
-    // Останавливаем ввод данных в редакторе ввода
-    if (this.getCellEditMode()) {
-      this._onStopCellEditing();
-    }
-
     var result = this.model.findCellText(options);
     if (result) {
+      var ws = this.getWorksheet();
       var range = new Asc.Range(result.col, result.row, result.col, result.row);
       options.findInSelection ? ws.setActiveCell(result) : ws.setSelection(range);
       return true;
