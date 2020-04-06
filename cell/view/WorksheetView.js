@@ -11537,7 +11537,6 @@
 
     WorksheetView.prototype._pasteFromHTML = function (pasteContent, isCheckSelection, specialPasteProps) {
         var t = this;
-        var wb = window["Asc"]["editor"].wb;
         var lastSelection = this.model.selectionRange.getLast();
         var arn = AscCommonExcel.g_clipboardExcel.pasteProcessor && AscCommonExcel.g_clipboardExcel.pasteProcessor.activeRange ?
          AscCommonExcel.g_clipboardExcel.pasteProcessor.activeRange : lastSelection;
