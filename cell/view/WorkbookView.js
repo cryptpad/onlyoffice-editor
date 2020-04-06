@@ -2046,13 +2046,7 @@
 
 	// Останавливаем ввод данных в редакторе ввода
 	WorkbookView.prototype.closeCellEditor = function (cancel) {
-		var result = true;
-		var ws = this.getWorksheet();
-		// Останавливаем ввод данных в редакторе ввода
-		if (this.getCellEditMode()) {
-			result = this._onStopCellEditing(cancel);
-		}
-		return result;
+		return this.getCellEditMode() ? this._onStopCellEditing(cancel) : true;
 	};
 
   WorkbookView.prototype.restoreFocus = function() {
