@@ -7683,7 +7683,6 @@
 
 	WorksheetView.prototype.getCursorTypeFromXY = function (x, y) {
 	    var canEdit = this.handlers.trigger('canEdit');
-        var wb = window["Asc"]["editor"].wb;
 		var viewMode = this.handlers.trigger('getViewMode');
 		this.handlers.trigger("checkLastWork");
 		var res, c, r, f, offsetX, offsetY, cellCursor;
@@ -7821,7 +7820,7 @@
 				col = c.col + (isNotFirst && f && x < c.left + 3 ? -1 : 0);
 			}
 			/*isNotFirst = c.col !== (-1 !== cFrozen ? 0 : this.visibleRange.c1);
-			f = (canEdit || viewMode) && (isNotFirst && x < c.left + epsChangeSize || x >= c.right - epsChangeSize) && !wb.isCellEditMode;*/
+			f = (canEdit || viewMode) && (isNotFirst && x < c.left + epsChangeSize || x >= c.right - epsChangeSize) && !this.handlers.trigger('getCellEditMode');*/
 			// ToDo В Excel зависимость epsilon от размера ячейки (у нас фиксированный 3)
 			return {
 				cursor: kCurDefault,
@@ -7838,7 +7837,7 @@
 				return oResDefault;
 			}
 			isNotFirst = (r.row !== (-1 !== rFrozen ? 0 : this.visibleRange.r1));
-			f = (canEdit || viewMode) && (isNotFirst && y < r.top + epsChangeSize || y >= r.bottom - epsChangeSize) && !wb.isCellEditMode;
+			f = (canEdit || viewMode) && (isNotFirst && y < r.top + epsChangeSize || y >= r.bottom - epsChangeSize) && !this.handlers.trigger('getCellEditMode');
 			// ToDo В Excel зависимость epsilon от размера ячейки (у нас фиксированный 3)
 			return {
 				cursor: f ? kCurRowResize : kCurRowSelect,
@@ -7855,7 +7854,7 @@
 				return oResDefault;
 			}
 			isNotFirst = c.col !== (-1 !== cFrozen ? 0 : this.visibleRange.c1);
-			f = (canEdit || viewMode) && (isNotFirst && x < c.left + epsChangeSize || x >= c.right - epsChangeSize) && !wb.isCellEditMode;
+			f = (canEdit || viewMode) && (isNotFirst && x < c.left + epsChangeSize || x >= c.right - epsChangeSize) && !this.handlers.trigger('getCellEditMode');
 			// ToDo В Excel зависимость epsilon от размера ячейки (у нас фиксированный 3)
 			return {
 				cursor: f ? kCurColResize : kCurColSelect,
@@ -9142,7 +9141,6 @@
 		var ar = this._getSelection().getLast().clone();
 		var ret = {};
 		var isChangeSelectionShape = false;
-        var wb = window["Asc"]["editor"].wb;
 
 		var comment;
 		if (isCoord) {
@@ -9166,7 +9164,7 @@
 				// Смена диапазона
 				this.handlers.trigger("selectionRangeChanged", this.getSelectionRangeValue());
 			}
-		} else if (!wb.isCellEditMode) {
+		} else if (!this.handlers.trigger('getCellEditMode')) {
 			if (isChangeSelectionShape || !this.model.selectionRange.isEqual(ar)) {
 				this.handlers.trigger("selectionNameChanged", this.getSelectionName(/*bRangeText*/false));
 				if (!isCoord) {
@@ -9241,7 +9239,6 @@
     WorksheetView.prototype.changeSelectionEndPoint = function (x, y, isCoord, keepType) {
         var isChangeSelectionShape = isCoord ? this._endSelectionShape() : false;
         var ar = this._getSelection().getLast();
-        var wb = window["Asc"]["editor"].wb;
 
 		var newRange = isCoord ? this._calcSelectionEndPointByXY(x, y, keepType) :
 			this._calcSelectionEndPointByOffset(x, y);
@@ -9253,7 +9250,7 @@
 
             //ToDo this.drawDepCells();
 
-            if (!wb.isCellEditMode) {
+            if (!this.handlers.trigger('getCellEditMode')) {
                 if (!this.isSelectionDialogMode) {
                     this.handlers.trigger("selectionNameChanged", this.getSelectionName(/*bRangeText*/true));
                     if (!isCoord) {
@@ -9310,8 +9307,7 @@
     };
 
 	WorksheetView.prototype.checkSelectionSparkline = function () {
-        var wb = window["Asc"]["editor"].wb;
-		if (!this.getSelectionShape() && !this.isFormulaEditMode && !wb.isCellEditMode) {
+		if (!this.getSelectionShape() && !this.isFormulaEditMode && !this.handlers.trigger('getCellEditMode')) {
 			var cell = this.model.selectionRange.activeCell;
 			var mc = this.model.getMergedByCell(cell.row, cell.col);
 			var c1 = mc ? mc.c1 : cell.col;
