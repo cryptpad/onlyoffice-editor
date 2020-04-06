@@ -536,6 +536,9 @@
 	};
 
 	CellEditor.prototype.move = function () {
+		if (!this.isOpened) {
+			return;
+		}
 		if (this.options.checkVisible()) {
 			this.textFlags.wrapOnlyCE = false;
 			this.sides = this.options.getSides();

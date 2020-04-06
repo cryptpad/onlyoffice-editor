@@ -6978,7 +6978,6 @@
 
     WorksheetView.prototype.scrollVertical = function (delta, editor, initRowsCount) {
         var vr = this.visibleRange;
-        var wb = window["Asc"]["editor"].wb;
         var fixStartRow = new asc_Range(vr.c1, vr.r1, vr.c2, vr.r1);
         this._fixSelectionOfHiddenCells(0, delta >= 0 ? +1 : -1, fixStartRow);
         var start = this._calcCellPosition(vr.c1, fixStartRow.r1, 0, delta).row;
@@ -7176,7 +7175,7 @@
 		this._reinitializeScroll();
         this.handlers.trigger("onDocumentPlaceChanged");
 
-		if (wb.isCellEditMode && editor && this.model.selectionRange.activeCell.row >= rFrozen) {
+		if (editor && this.model.selectionRange.activeCell.row >= rFrozen) {
 			editor.move();
 		}
 
@@ -7190,7 +7189,6 @@
 
     WorksheetView.prototype.scrollHorizontal = function (delta, editor, initColsCount) {
         var vr = this.visibleRange;
-        var wb = window["Asc"]["editor"].wb;
         var fixStartCol = new asc_Range(vr.c1, vr.r1, vr.c1, vr.r2);
         this._fixSelectionOfHiddenCells(delta >= 0 ? +1 : -1, 0, fixStartCol);
         var start = this._calcCellPosition(fixStartCol.c1, vr.r1, delta, 0).col;
@@ -7341,7 +7339,7 @@
 		this._reinitializeScroll();
         this.handlers.trigger("onDocumentPlaceChanged");
 
-		if (wb.isCellEditMode && editor && this.model.selectionRange.activeCell.col >= cFrozen) {
+		if (editor && this.model.selectionRange.activeCell.col >= cFrozen) {
 			editor.move();
 		}
 
@@ -14319,7 +14317,6 @@
 	WorksheetView.prototype.openCellEditor =
 		function (editor, cursorPos, isFocus, isClearCell, isHideCursor, isQuickInput, selectionRange) {
 			var t = this, col, row, c, fl, mc, bg, isMerged;
-            var wb = window["Asc"]["editor"].wb;
 
 			if (selectionRange) {
 				this.model.selectionRange = selectionRange;
@@ -14370,10 +14367,7 @@
 				fl = this._getCellFlags(c);
 			}
 
-			// Выставляем режим 'не редактируем' (иначе мы попытаемся переместить редактор, который еще не открыт)
-			wb.isCellEditMode = false;
 			this.handlers.trigger("onScroll", this._calcActiveCellOffset());
-			wb.isCellEditMode = true;
 
 			bg = c.getFillColor();
 			this.isFormulaEditMode = false;
