@@ -105,6 +105,8 @@ CBlockLevelSdt.prototype.Copy = function(Parent, DrawingDocument, oPr)
 
 	oNew.SetShowingPlcHdr(this.Pr.ShowingPlcHdr);
 	oNew.SetPlaceholder(this.Pr.Placeholder);
+	oNew.SetContentControlEquation(this.Pr.Equation);
+	oNew.SetContentControlTemporary(this.Pr.Temporary);
 
 	return oNew;
 };
@@ -845,6 +847,14 @@ CBlockLevelSdt.prototype.DrawContentControlsTrack = function(isHover, X, Y, nCur
 
 	var oDrawingDocument = this.LogicDocument.Get_DrawingDocument();
 	var arrRects = [];
+
+	// TODO: Нужно отрисовать рамку формулы, но для этого нужно чтобы селект плейсхолдера был не целиком на параграф,
+	//       а только на формулу
+	if (this.IsContentControlEquation() && !this.IsPlaceHolder())
+	{
+		oDrawingDocument.OnDrawContentControl(null, isHover ? AscCommon.ContentControlTrack.Hover : AscCommon.ContentControlTrack.In);
+		return;
+	}
 
 	if (Asc.c_oAscSdtAppearance.Hidden === this.GetAppearance() || (this.LogicDocument && this.LogicDocument.IsForceHideContentControlTrack()))
 	{

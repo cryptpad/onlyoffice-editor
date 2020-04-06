@@ -2898,7 +2898,8 @@ CDocumentContent.prototype.AddToParagraph = function(ParaItem, bRecalculate)
 						if (oInfo.Get_Math())
 						{
 							var oMath = oInfo.Get_Math();
-							ParaItem.SetText(oMath.Copy(true));
+							if (!oMath.IsParentEquationPlaceholder())
+								ParaItem.SetText(oMath.Copy(true));
 						}
 						else if (!oInfo.Is_MixedSelection())
 						{

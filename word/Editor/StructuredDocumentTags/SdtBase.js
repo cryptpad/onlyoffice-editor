@@ -138,6 +138,11 @@ CSdtBase.prototype.SetContentControlEquation = function(isEquation)
  */
 CSdtBase.prototype.ApplyContentControlEquationPr = function()
 {
+	var oTextPr = new CTextPr();
+	oTextPr.SetItalic(true);
+	oTextPr.SetFontFamily("Cambria Math");
+
+	this.SetDefaultTextPr(oTextPr);
 	this.SetContentControlEquation(true);
 	this.SetContentControlTemporary(true);
 

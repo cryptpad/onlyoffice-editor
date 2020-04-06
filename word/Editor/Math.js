@@ -3418,6 +3418,21 @@ ParaMath.prototype.RemoveTabsForTOC = function(isTab)
 {
 	return isTab;
 };
+/**
+ * Проверяем, что данный класс лежит в плейсхолдере специального контейнера для формул
+ * @return {boolean}
+ */
+ParaMath.prototype.IsParentEquationPlaceholder = function()
+{
+	var arrContentControl = this.GetParentContentControls();
+	for (var nIndex = 0, nCount = arrContentControl.length; nIndex < nCount; ++nIndex)
+	{
+		if (arrContentControl[nIndex].IsContentControlEquation() && arrContentControl[nIndex].IsPlaceHolder())
+			return true;
+	}
+
+	return false;
+};
 
 function MatGetKoeffArgSize(FontSize, ArgSize)
 {

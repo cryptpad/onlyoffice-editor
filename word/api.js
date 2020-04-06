@@ -8703,7 +8703,8 @@ background-repeat: no-repeat;\
 		if (!oLogicDocument)
 			return false;
 
-		return (!!oLogicDocument.GetContentControl());
+		var oCC = oLogicDocument.GetContentControl();
+		return (oCC && !oCC.IsContentControlEquation());
 	};
 	asc_docs_api.prototype.asc_GetContentControlProperties = function()
 	{
@@ -8713,7 +8714,7 @@ background-repeat: no-repeat;\
 
 		var oContentControl = oLogicDocument.GetContentControl();
 
-		return oContentControl ? oContentControl.GetContentControlPr() : null;
+		return oContentControl && !oContentControl.IsContentControlEquation() ? oContentControl.GetContentControlPr() : null;
 	};
 	asc_docs_api.prototype.asc_GetCurrentContentControl = function()
 	{
@@ -8722,7 +8723,7 @@ background-repeat: no-repeat;\
 			return null;
 
 		var oContentControl = oLogicDocument.GetContentControl();
-		return oContentControl ? oContentControl.GetId() : null;
+		return oContentControl && !oContentControl.IsContentControlEquation() ? oContentControl.GetId() : null;
 	};
 	asc_docs_api.prototype.sync_ContentControlCallback = function(oContentControlPr)
 	{

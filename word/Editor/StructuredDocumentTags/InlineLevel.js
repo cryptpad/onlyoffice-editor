@@ -167,6 +167,8 @@ CInlineLevelSdt.prototype.private_CopyPrTo = function(oContentControl)
 
 	oContentControl.SetShowingPlcHdr(this.Pr.ShowingPlcHdr);
 	oContentControl.SetPlaceholder(this.Pr.Placeholder);
+	oContentControl.SetContentControlEquation(this.Pr.Equation);
+	oContentControl.SetContentControlTemporary(this.Pr.Temporary);
 };
 CInlineLevelSdt.prototype.GetSelectedContent = function(oSelectedContent)
 {
@@ -430,6 +432,9 @@ CInlineLevelSdt.prototype.GetBoundingPolygon = function()
 CInlineLevelSdt.prototype.DrawContentControlsTrack = function(isHover, X, Y, nCurPage)
 {
 	if (!this.Paragraph && this.Paragraph.LogicDocument)
+		return;
+
+	if (this.IsContentControlEquation())
 		return;
 
 	var oDrawingDocument = this.Paragraph.LogicDocument.GetDrawingDocument();
