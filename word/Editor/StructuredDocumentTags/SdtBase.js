@@ -54,7 +54,7 @@ CSdtBase.prototype.GetPlaceholderText = function()
 	if (oDocPart)
 	{
 		var oFirstParagraph = oDocPart.GetFirstParagraph();
-		return oFirstParagraph.GetText();
+		return oFirstParagraph.GetText({ParaEndToSpace : false});
 	}
 
 	return String.fromCharCode(nbsp_charcode, nbsp_charcode, nbsp_charcode, nbsp_charcode);

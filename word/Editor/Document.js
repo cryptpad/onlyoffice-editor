@@ -21832,11 +21832,15 @@ CDocument.prototype.AddParaMath = function(nType)
 			return;
 
 		oCC.ApplyContentControlEquationPr();
+		oCC.SelectContentControl();
 	}
 	else
 	{
 		this.AddToParagraph(new AscCommonWord.MathMenu(nType));
 	}
+
+	this.UpdateSelection();
+	this.UpdateInterface();
 };
 
 function CDocumentSelectionState()
