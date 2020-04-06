@@ -3510,7 +3510,6 @@ function OfflineEditor () {
         };
         
         AscCommonExcel.WorksheetView.prototype.__changeSelectionPoint = function (x, y, isCoord, isSelectMode, isReverse) {
-            var wb = window["Asc"]["editor"].wb;
             var isChangeSelectionShape = false;
             if (isCoord) {
                 isChangeSelectionShape = this._endSelectionShape();
@@ -3559,7 +3558,7 @@ function OfflineEditor () {
                     selection.activeCell.row = newRange.r1;
                 }
                 
-                if (!wb.isCellEditMode) {
+                if (!this.handlers.trigger('getCellEditMode')) {
                     if (!this.isSelectionDialogMode) {
                         this.handlers.trigger("selectionNameChanged", this.getSelectionName(/*bRangeText*/true));
                         if (!isSelectMode) {
