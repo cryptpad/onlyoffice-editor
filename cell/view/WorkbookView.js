@@ -1667,7 +1667,6 @@
   };
 
   WorkbookView.prototype._onShowCellEditorCursor = function() {
-    var ws = this.getWorksheet();
     // Показываем курсор
     if (this.getCellEditMode()) {
       this.cellEditor.showCursor();
