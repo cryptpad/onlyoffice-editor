@@ -539,7 +539,7 @@
 		if (!this.isOpened) {
 			return;
 		}
-		if (this.options.checkVisible()) {
+		if (this.handlers.trigger('isActive') && this.options.checkVisible()) {
 			this.textFlags.wrapOnlyCE = false;
 			this.sides = this.options.getSides();
 			this.left = this.sides.cellX;
