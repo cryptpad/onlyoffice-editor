@@ -221,6 +221,7 @@
 
     this.selectionDialogType = c_oAscSelectionDialogType.None;
     this.copyActiveSheet = -1;
+    this.lastActiveSheet = -1;
 
     // Комментарии для всего документа
     this.cellCommentator = null;
@@ -684,7 +685,7 @@
 					  self.getWorksheet(self.model.getWorksheetIndexByName(ws)).addFormulaRange(range);
 				  }
 			  }, "existedRange": function (range, ws) {
-				  var editRangeSheet = ws ? self.model.getWorksheetIndexByName(ws) : self.copyActiveSheet;
+				  var editRangeSheet = ws ? self.model.getWorksheetIndexByName(ws) : self.lastActiveSheet;
 				  if (-1 === editRangeSheet || editRangeSheet === self.wsActive) {
 					  self.getWorksheet().activeFormulaRange(range);
 				  } else {
@@ -700,6 +701,8 @@
 				  return self.Api.canEdit();
 			  }, "getFormulaRanges": function () {
 				  return (self.cellFormulaEnterWSOpen || self.getWorksheet()).getFormulaRanges();
+			  }, "isActive": function () {
+				  return self.isActive();
 			  }, "getCellFormulaEnterWSOpen": function () {
 				  return self.cellFormulaEnterWSOpen;
 			  }, "getActiveWS": function () {
@@ -756,7 +759,7 @@
 		  }, "getLockDefNameManagerStatus": function () {
 			  return self.defNameAllowCreate;
 		  }, 'isActive': function () {
-			  return (-1 === self.copyActiveSheet || self.wsActive === self.copyActiveSheet);
+			  return self.isActive();
 		  }, "getCellEditMode": function () {
 			  return self.isCellEditMode;
 		  }, "drawMobileSelection": function (color) {
@@ -1560,17 +1563,17 @@
     this.setCellEditMode(false);
     this.controller.setStrictClose(false);
     this.controller.setFormulaEditMode(false);
-      var ws = this.getWorksheet(), index;
 
-      if( this.cellFormulaEnterWSOpen ){
-		  index = this.cellFormulaEnterWSOpen.model.getIndex();
-		  this.cellFormulaEnterWSOpen = null;
-		  if( index !== ws.model.getIndex() ){
-			  this.showWorksheet(index);
-		  }
-		  ws = this.getWorksheet(index);
+    if (-1 !== this.copyActiveSheet) {
+    	var index = this.copyActiveSheet;
+    	this.cellFormulaEnterWSOpen = null;
+    	this.copyActiveSheet = -1;
+    	if (index !== this.wsActive) {
+    		this.showWorksheet(index);
+    	}
      }
 
+	  var ws = this.getWorksheet();
 	  ws.cleanSelection();
 
 	  for (var i in this.wsViews) {
@@ -1750,8 +1753,9 @@
       if (this.getCellEditMode()) {
         if (this.cellEditor && this.cellEditor.formulaIsOperator()) {
 
-          this.copyActiveSheet = this.wsActive;
+          this.lastActiveSheet = this.wsActive;
           if (!this.cellFormulaEnterWSOpen) {
+          	this.copyActiveSheet = this.wsActive;
             this.cellFormulaEnterWSOpen = ws;
           } else {
             ws.setFormulaEditMode(false);
@@ -1961,6 +1965,10 @@
 
 	WorkbookView.prototype.setCellEditMode = function(flag) {
 		this.isCellEditMode = !!flag;
+	};
+
+	WorkbookView.prototype.isActive = function () {
+		return (-1 === this.copyActiveSheet || this.wsActive === this.copyActiveSheet);
 	};
 
   WorkbookView.prototype.getIsTrackShape = function() {
