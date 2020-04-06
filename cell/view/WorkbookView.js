@@ -2391,17 +2391,12 @@
   };
 
   // Замена текста в листе
-  WorkbookView.prototype.replaceCellText = function(options) {
+  WorkbookView.prototype.replaceCellText = function (options) {
+  	this.closeCellEditor();
   	if (!options.isMatchCase) {
   		options.findWhat = options.findWhat.toLowerCase();
   	}
   	options.findRegExp = AscCommonExcel.getFindRegExp(options.findWhat, options);
-
-    var ws = this.getWorksheet();
-    // Останавливаем ввод данных в редакторе ввода
-    if (this.getCellEditMode()) {
-      this._onStopCellEditing();
-    }
 
     History.Create_NewPoint();
     History.StartTransaction();
@@ -2412,6 +2407,7 @@
       this.Api.sync_StartAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.SlowOperation);
     }
 
+    var ws = this.getWorksheet();
     ws.replaceCellText(options, false, this.fReplaceCallback);
   };
   WorkbookView.prototype._replaceCellTextCallback = function(options) {
