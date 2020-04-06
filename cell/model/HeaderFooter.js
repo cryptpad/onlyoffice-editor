@@ -1036,7 +1036,6 @@
 		}
 
 		wb.setCellEditMode(true);
-		ws.setCellEditMode(true);
 		options.cursorPos = cursorPos;
 		editor.open(options);
 		wb.input.disabled = false;

@@ -1517,7 +1517,6 @@
 
     var editFunction = function() {
       t.setCellEditMode(true);
-      ws.setCellEditMode(true);
       t.hideSpecialPasteButton();
       ws.openCellEditor(t.cellEditor, /*cursorPos*/undefined, isFocus, isClearCell,
         /*isHideCursor*/isHideCursor, /*isQuickInput*/isQuickInput, selectionRange);
@@ -1535,7 +1534,6 @@
         t.setCellEditMode(false);
         t.controller.setStrictClose(false);
         t.controller.setFormulaEditMode(false);
-        ws.setCellEditMode(false);
         ws.setFormulaEditMode(false);
         t.input.disabled = true;
 
@@ -1558,17 +1556,14 @@
   };
 
   WorkbookView.prototype._onCloseCellEditor = function() {
-    this.setCellEditMode(false);
     this.controller.setStrictClose(false);
     this.controller.setFormulaEditMode(false);
       var ws = this.getWorksheet(), isCellEditMode, index;
-	  isCellEditMode = ws.getCellEditMode();
-      ws.setCellEditMode(false);
+	  isCellEditMode = this.getCellEditMode();
+      this.setCellEditMode(false);
 
       if( this.cellFormulaEnterWSOpen ){
 		  index = this.cellFormulaEnterWSOpen.model.getIndex();
-		  isCellEditMode = isCellEditMode ? isCellEditMode : this.cellFormulaEnterWSOpen.getCellEditMode();
-		  this.cellFormulaEnterWSOpen.setCellEditMode(false);
 		  this.cellFormulaEnterWSOpen = null;
 		  if( index != ws.model.getIndex() ){
 			  this.showWorksheet(index);
@@ -1674,7 +1669,7 @@
   WorkbookView.prototype._onShowCellEditorCursor = function() {
     var ws = this.getWorksheet();
     // Показываем курсор
-    if (ws.getCellEditMode()) {
+    if (this.getCellEditMode()) {
       this.cellEditor.showCursor();
     }
   };
@@ -1753,7 +1748,7 @@
       ws = this.getWorksheet();
       // Останавливаем ввод данных в редакторе ввода. Если в режиме ввода формул, то продолжаем работать с cellEditor'ом, чтобы можно было
       // выбирать ячейки для формулы
-      if (ws.getCellEditMode()) {
+      if (this.getCellEditMode()) {
         if (this.cellEditor && this.cellEditor.formulaIsOperator()) {
 
           this.copyActiveSheet = this.wsActive;
@@ -1808,7 +1803,7 @@
       if (ws === this.cellFormulaEnterWSOpen) {
         this.cellFormulaEnterWSOpen.setFormulaEditMode(true);
         this.cellEditor._showCanvas();
-      } else if (this.cellFormulaEnterWSOpen.getCellEditMode() && this.cellEditor.isFormula()) {
+      } else if (this.getCellEditMode() && this.cellEditor.isFormula()) {
         this.cellFormulaEnterWSOpen.setFormulaEditMode(false);
         /*скрываем cellEditor, в редактор добавляем %selected sheet name%+"!" */
         this.cellEditor._hideCanvas();
@@ -2055,7 +2050,7 @@
 		var result = true;
 		var ws = this.getWorksheet();
 		// Останавливаем ввод данных в редакторе ввода
-		if (ws.getCellEditMode()) {
+		if (this.getCellEditMode()) {
 			result = this._onStopCellEditing(cancel);
 		}
 		return result;
@@ -2192,7 +2187,6 @@
 				if (res) {
 					// Выставляем переменные, что мы редактируем
 					t.setCellEditMode(true);
-					ws.setCellEditMode(true);
 
 					if (isNotFunction) {
 						t.skipHelpSelector = true;
@@ -2207,7 +2201,6 @@
 					t.setCellEditMode(false);
 					t.controller.setStrictClose(false);
 					t.controller.setFormulaEditMode(false);
-					ws.setCellEditMode(false);
 					ws.setFormulaEditMode(false);
 				}
 			};
@@ -2395,7 +2388,7 @@
 
     var ws = this.getWorksheet();
     // Останавливаем ввод данных в редакторе ввода
-    if (ws.getCellEditMode()) {
+    if (this.getCellEditMode()) {
       this._onStopCellEditing();
     }
 
@@ -2417,7 +2410,7 @@
 
     var ws = this.getWorksheet();
     // Останавливаем ввод данных в редакторе ввода
-    if (ws.getCellEditMode()) {
+    if (this.getCellEditMode()) {
       this._onStopCellEditing();
     }
 
