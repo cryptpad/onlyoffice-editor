@@ -565,7 +565,7 @@ Paragraph.prototype.private_RecalculateFastRange       = function(CurRange, CurL
         if ( para_Math === Item.Type )
         {
             // TODO: Надо бы перенести эту проверку на изменение контента параграфа
-            Item.Set_Inline(true === this.Check_MathPara(Pos)? false : true);
+            Item.Set_Inline(true !== this.CheckMathPara(Pos));
             PRS.bFastRecalculate = true; // чтобы не обновить случайно StartLine (Recalculate_Reset)
         }
 
@@ -1104,7 +1104,7 @@ Paragraph.prototype.private_RecalculateLineFillRanges  = function(CurLine, CurPa
         var Count = this.Content.length;
         while (CurPos < Count)
         {
-            if (true === this.Check_MathPara(CurPos))
+            if (true === this.CheckMathPara(CurPos))
             {
                 UseFirstLine = false;
                 break;
@@ -2080,7 +2080,7 @@ Paragraph.prototype.private_RecalculateRange           = function(CurRange, CurL
 
         if ( para_Math === Item.Type )
         {
-            var NotInlineMath = this.Check_MathPara(Pos);
+            var NotInlineMath = this.CheckMathPara(Pos);
             if (true === NotInlineMath && true !== PRS.EmptyLine)
             {
                 PRS.ForceNewLine = true;
@@ -2089,7 +2089,7 @@ Paragraph.prototype.private_RecalculateRange           = function(CurRange, CurL
                 break;
             }
             // TODO: Надо бы перенести эту проверку на изменение контента параграфа
-            Item.Set_Inline(true === this.Check_MathPara(Pos)? false : true);
+            Item.Set_Inline(true !== NotInlineMath);
         }
 
         if ( ( 0 === Pos && 0 === CurLine && 0 === CurRange ) || Pos !== StartPos )

@@ -5118,7 +5118,7 @@ function BinaryDocumentTableWriter(memory, doc, oMapCommentId, oNumIdMap, copyPa
 								}
 							}
 							else {
-								if (type_Paragraph === par.GetType() && true === par.Check_MathPara(i)) {
+								if (type_Paragraph === par.GetType() && true === par.CheckMathPara(i)) {
 									this.bs.WriteItem(c_oSerParType.OMathPara, function() {oThis.boMaths.WriteOMathPara(item);});
 								} else {
 									this.bs.WriteItem(c_oSerParType.OMath, function(){oThis.boMaths.WriteArgNodes(item.Root);});

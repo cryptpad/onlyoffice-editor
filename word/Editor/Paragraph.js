@@ -1229,65 +1229,61 @@ Paragraph.prototype.Check_Range_OnlyMath = function(CurRange, CurLine)
 
 	return Checker.Math;
 };
-Paragraph.prototype.Check_MathPara = function(MathPos)
+/**
+ * Проверяем является ли формула в заданной позиции не инлайновой
+ * @param {number} nMathPos
+ * @param {number | undefined} nDirection направление в котором нужно проверить, если не задано, то проверяем в обоих
+ * @return {boolean}
+ */
+Paragraph.prototype.CheckMathPara = function(nMathPos, nDirection)
 {
-	if (undefined === this.Content[MathPos] || para_Math !== this.Content[MathPos].Type)
-		return false;
-
-	var MathParaChecker = new CParagraphMathParaChecker();
-
-	// Нам надо пробежаться впереди назад и найти ближайшие элементы.
-	MathParaChecker.Direction = -1;
-	for (var CurPos = MathPos - 1; CurPos >= 0; CurPos--)
+	var oChecker = new CParagraphMathParaChecker();
+	if (undefined === nDirection || -1 === nDirection)
 	{
-		if (this.Content[CurPos].Check_MathPara)
+		oChecker.SetDirection(-1);
+		for (var nCurPos = nMathPos - 1; nCurPos >= 0; --nCurPos)
 		{
-			this.Content[CurPos].Check_MathPara(MathParaChecker);
-
-			if (false !== MathParaChecker.Found)
+			this.Content[nCurPos].ProcessMathParaChecker(oChecker);
+			if (oChecker.IsStop())
 				break;
 		}
-	}
 
-	// Нумерация привязанная к формуле делает ее inline.
-	if (true !== MathParaChecker.Found)
-	{
-		if(this.bFromDocument)
+		// Нумерация привязанная к формуле делает ее inline.
+		if (!oChecker.IsStop())
 		{
-            if(undefined !== this.GetNumPr())
+			if (this.bFromDocument)
 			{
-				return false;
+				if (undefined !== this.GetNumPr())
+				{
+					return false;
+				}
+			}
+			else
+			{
+				if (undefined !== this.Get_CompiledPr2(false).ParaPr.Bullet)
+				{
+					return false;
+				}
 			}
 		}
-		else
-		{
-			if(undefined !== this.Get_CompiledPr2(false).ParaPr.Bullet)
-			{
-				return false;
-			}
-		}
+
+		if (!oChecker.GetResult())
+			return false;
 	}
 
-	if (true !== MathParaChecker.Result)
-		return false;
-
-	MathParaChecker.Direction = 1;
-	MathParaChecker.Found     = false;
-
-	var Count = this.Content.length;
-	for (var CurPos = MathPos + 1; CurPos < Count; CurPos++)
+	if (undefined === nDirection || 1 === nDirection)
 	{
-		if (this.Content[CurPos].Check_MathPara)
+		oChecker.SetDirection(1);
+		for (var nCurPos = nMathPos + 1, nCount = this.Content.length; nCurPos < nCount; ++nCurPos)
 		{
-			this.Content[CurPos].Check_MathPara(MathParaChecker);
-
-			if (false !== MathParaChecker.Found)
+			this.Content[nCurPos].ProcessMathParaChecker(oChecker);
+			if (oChecker.IsStop())
 				break;
 		}
-	}
 
-	if (true !== MathParaChecker.Result)
-		return false;
+		if (!oChecker.GetResult())
+			return false;
+	}
 
 	return true;
 };
@@ -16857,6 +16853,20 @@ function CParagraphMathParaChecker()
     this.Result    = true;
     this.Direction = 0;
 }
+CParagraphMathParaChecker.prototype.SetDirection = function(nDirection)
+{
+	this.Direction = nDirection;
+	this.Found     = false;
+	this.Result    = true;
+};
+CParagraphMathParaChecker.prototype.IsStop = function()
+{
+	return this.Found;
+};
+CParagraphMathParaChecker.prototype.GetResult = function()
+{
+	return this.Result;
+};
 
 
 function CParagraphStartState(Paragraph)

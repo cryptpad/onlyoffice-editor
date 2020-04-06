@@ -324,8 +324,12 @@ CParagraphContentBase.prototype.IsEmptyRange = function(nCurLine, nCurRange)
 CParagraphContentBase.prototype.Check_Range_OnlyMath = function(Checker, CurRange, CurLine)
 {
 };
-CParagraphContentBase.prototype.Check_MathPara = function(Checker)
+CParagraphContentBase.prototype.ProcessMathParaChecker = function(oChecker)
 {
+};
+CParagraphContentBase.prototype.CheckMathPara = function(nMathPos, nDirection)
+{
+	return false;
 };
 CParagraphContentBase.prototype.Check_PageBreak = function()
 {
@@ -2199,8 +2203,10 @@ CParagraphContentWithParagraphLikeContent.prototype.Recalculate_Range = function
     {
         var Item = this.Content[Pos];
 
-        if (para_Math === Item.Type)
-            Item.Set_Inline(true);
+		if (para_Math === Item.Type)
+		{
+			Item.Set_Inline(!this.CheckMathPara(Pos));
+		}
 
         if ( ( 0 === Pos && 0 === CurLine && 0 === CurRange ) || Pos !== RangeStartPos )
         {
@@ -2347,10 +2353,52 @@ CParagraphContentWithParagraphLikeContent.prototype.Check_Range_OnlyMath = funct
             break;
     }
 };
-CParagraphContentWithParagraphLikeContent.prototype.Check_MathPara = function(Checker)
+CParagraphContentWithParagraphLikeContent.prototype.ProcessMathParaChecker = function(oChecker)
 {
-    Checker.Result = false;
-    Checker.Found  = true;
+	oChecker.Result = false;
+	oChecker.Found  = true;
+};
+CParagraphContentWithParagraphLikeContent.prototype.CheckMathPara = function(nMathPos, nDirection)
+{
+	var oParent = this.GetParent();
+
+	var oChecker = new CParagraphMathParaChecker();
+	if (undefined === nDirection || -1 === nDirection)
+	{
+		oChecker.SetDirection(-1);
+		for (var nCurPos = nMathPos - 1; nCurPos >= 0; --nCurPos)
+		{
+			this.Content[nCurPos].ProcessMathParaChecker(oChecker);
+			if (oChecker.IsStop())
+				break;
+		}
+
+		if (!oChecker.GetResult())
+			return false;
+
+
+		if (!oChecker.IsStop() && oParent && !oParent.CheckMathPara(this.GetPosInParent(oParent), -1))
+			return false
+	}
+
+	if (undefined === nDirection || 1 === nDirection)
+	{
+		oChecker.SetDirection(1);
+		for (var nCurPos = nMathPos + 1, nCount = this.Content.length; nCurPos < nCount; ++nCurPos)
+		{
+			this.Content[nCurPos].ProcessMathParaChecker(oChecker);
+			if (oChecker.IsStop())
+				break;
+		}
+
+		if (!oChecker.GetResult())
+			return false;
+
+		if (!oChecker.IsStop() && oParent && !oParent.CheckMathPara(this.GetPosInParent(oParent), 1))
+			return false;
+	}
+
+	return true;
 };
 CParagraphContentWithParagraphLikeContent.prototype.Check_PageBreak = function()
 {

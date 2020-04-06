@@ -4948,25 +4948,25 @@ ParaRun.prototype.Check_Range_OnlyMath = function(Checker, _CurRange, _CurLine)
     }
 };
 
-ParaRun.prototype.Check_MathPara = function(Checker)
+ParaRun.prototype.ProcessMathParaChecker = function(oChecker)
 {
-    var Count = this.Content.length;
-    if ( Count <= 0 )
-        return;
+	var Count = this.Content.length;
+	if (Count <= 0)
+		return;
 
-    var Item = ( Checker.Direction > 0 ? this.Content[0] : this.Content[Count - 1] );
-    var ItemType = Item.Type;
+	var Item     = oChecker.Direction > 0 ? this.Content[0] : this.Content[Count - 1];
+	var ItemType = Item.Type;
 
-    if ( para_End === ItemType || para_NewLine === ItemType )
-    {
-        Checker.Result = true;
-        Checker.Found  = true;
-    }
-    else
-    {
-        Checker.Result = false;
-        Checker.Found  = true;
-    }
+	if (para_End === ItemType || para_NewLine === ItemType)
+	{
+		oChecker.Result = true;
+		oChecker.Found  = true;
+	}
+	else
+	{
+		oChecker.Result = false;
+		oChecker.Found  = true;
+	}
 };
 
 ParaRun.prototype.Check_PageBreak = function()
