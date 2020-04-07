@@ -214,7 +214,7 @@ CInlineLevelSdt.prototype.GetSelectedText = function(bAll, bClearText, oPr)
 	if (oPr && oPr.MathAdd && this.IsContentControlEquation() && this.IsPlaceHolder())
 		return "";
 
-	return CParagraphContentWithParagraphLikeContent.prototype.GetSelectedElementsInfo.apply(this, arguments);
+	return CParagraphContentWithParagraphLikeContent.prototype.GetSelectedText.apply(this, arguments);
 };
 CInlineLevelSdt.prototype.GetSelectedElementsInfo = function(Info)
 {
