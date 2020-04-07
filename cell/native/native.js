@@ -3510,7 +3510,6 @@ function OfflineEditor () {
         };
         
         AscCommonExcel.WorksheetView.prototype.__changeSelectionPoint = function (x, y, isCoord, isSelectMode, isReverse) {
-            
             var isChangeSelectionShape = false;
             if (isCoord) {
                 isChangeSelectionShape = this._endSelectionShape();
@@ -3559,7 +3558,7 @@ function OfflineEditor () {
                     selection.activeCell.row = newRange.r1;
                 }
                 
-                if (!this.isCellEditMode) {
+                if (!this.handlers.trigger('getCellEditMode')) {
                     if (!this.isSelectionDialogMode) {
                         this.handlers.trigger("selectionNameChanged", this.getSelectionName(/*bRangeText*/true));
                         if (!isSelectMode) {
@@ -5276,7 +5275,6 @@ window["native"]["offline_cell_editor_open"] = function(x, y, width, height, rat
         var selectionRange = ws.model.selectionRange.clone();
         
         t.setCellEditMode(true);
-        ws.setCellEditMode(true);
         ws.openCellEditor(t.cellEditor, /*cursorPos*/undefined, isFocus, isClearCell,
                           /*isHideCursor*/isHideCursor, /*isQuickInput*/isQuickInput, selectionRange);
         //t.input.disabled = false;

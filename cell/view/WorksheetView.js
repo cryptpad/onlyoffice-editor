@@ -382,7 +382,6 @@
         this.topLeftFrozenCell = null;	// Верхняя ячейка для закрепления диапазона
         this.visibleRange = new asc_Range(0, 0, 0, 0);
         this.isChanged = false;
-        this.isCellEditMode = false;
         this.isFormulaEditMode = false;
         this.isChartAreaEditMode = false;
         this.lockDraw = false;
@@ -807,7 +806,7 @@
             this.updateResize = false;
 
             this.objectRender.resizeCanvas();
-			if (this.isCellEditMode && editor) {
+			if (editor) {
 				editor.move();
 			}
         } else {
@@ -7175,7 +7174,7 @@
 		this._reinitializeScroll();
         this.handlers.trigger("onDocumentPlaceChanged");
 
-		if (this.isCellEditMode && editor && this.model.selectionRange.activeCell.row >= rFrozen) {
+		if (editor && this.model.selectionRange.activeCell.row >= rFrozen) {
 			editor.move();
 		}
 
@@ -7339,7 +7338,7 @@
 		this._reinitializeScroll();
         this.handlers.trigger("onDocumentPlaceChanged");
 
-		if (this.isCellEditMode && editor && this.model.selectionRange.activeCell.col >= cFrozen) {
+		if (editor && this.model.selectionRange.activeCell.col >= cFrozen) {
 			editor.move();
 		}
 
@@ -7818,7 +7817,7 @@
 				col = c.col + (isNotFirst && f && x < c.left + 3 ? -1 : 0);
 			}
 			/*isNotFirst = c.col !== (-1 !== cFrozen ? 0 : this.visibleRange.c1);
-			f = (canEdit || viewMode) && (isNotFirst && x < c.left + epsChangeSize || x >= c.right - epsChangeSize) && !this.isCellEditMode;*/
+			f = (canEdit || viewMode) && (isNotFirst && x < c.left + epsChangeSize || x >= c.right - epsChangeSize) && !this.handlers.trigger('getCellEditMode');*/
 			// ToDo В Excel зависимость epsilon от размера ячейки (у нас фиксированный 3)
 			return {
 				cursor: kCurDefault,
@@ -7835,7 +7834,7 @@
 				return oResDefault;
 			}
 			isNotFirst = (r.row !== (-1 !== rFrozen ? 0 : this.visibleRange.r1));
-			f = (canEdit || viewMode) && (isNotFirst && y < r.top + epsChangeSize || y >= r.bottom - epsChangeSize) && !this.isCellEditMode;
+			f = (canEdit || viewMode) && (isNotFirst && y < r.top + epsChangeSize || y >= r.bottom - epsChangeSize) && !this.handlers.trigger('getCellEditMode');
 			// ToDo В Excel зависимость epsilon от размера ячейки (у нас фиксированный 3)
 			return {
 				cursor: f ? kCurRowResize : kCurRowSelect,
@@ -7852,7 +7851,7 @@
 				return oResDefault;
 			}
 			isNotFirst = c.col !== (-1 !== cFrozen ? 0 : this.visibleRange.c1);
-			f = (canEdit || viewMode) && (isNotFirst && x < c.left + epsChangeSize || x >= c.right - epsChangeSize) && !this.isCellEditMode;
+			f = (canEdit || viewMode) && (isNotFirst && x < c.left + epsChangeSize || x >= c.right - epsChangeSize) && !this.handlers.trigger('getCellEditMode');
 			// ToDo В Excel зависимость epsilon от размера ячейки (у нас фиксированный 3)
 			return {
 				cursor: f ? kCurColResize : kCurColSelect,
@@ -9162,7 +9161,7 @@
 				// Смена диапазона
 				this.handlers.trigger("selectionRangeChanged", this.getSelectionRangeValue());
 			}
-		} else if (!this.isCellEditMode) {
+		} else if (!this.handlers.trigger('getCellEditMode')) {
 			if (isChangeSelectionShape || !this.model.selectionRange.isEqual(ar)) {
 				this.handlers.trigger("selectionNameChanged", this.getSelectionName(/*bRangeText*/false));
 				if (!isCoord) {
@@ -9248,7 +9247,7 @@
 
             //ToDo this.drawDepCells();
 
-            if (!this.isCellEditMode) {
+            if (!this.handlers.trigger('getCellEditMode')) {
                 if (!this.isSelectionDialogMode) {
                     this.handlers.trigger("selectionNameChanged", this.getSelectionName(/*bRangeText*/true));
                     if (!isCoord) {
@@ -9305,7 +9304,7 @@
     };
 
 	WorksheetView.prototype.checkSelectionSparkline = function () {
-		if (!this.getSelectionShape() && !this.isFormulaEditMode && !this.isCellEditMode) {
+		if (!this.getSelectionShape() && !this.isFormulaEditMode && !this.handlers.trigger('getCellEditMode')) {
 			var cell = this.model.selectionRange.activeCell;
 			var mc = this.model.getMergedByCell(cell.row, cell.col);
 			var c1 = mc ? mc.c1 : cell.col;
@@ -11535,7 +11534,6 @@
 
     WorksheetView.prototype._pasteFromHTML = function (pasteContent, isCheckSelection, specialPasteProps) {
         var t = this;
-        var wb = window["Asc"]["editor"].wb;
         var lastSelection = this.model.selectionRange.getLast();
         var arn = AscCommonExcel.g_clipboardExcel.pasteProcessor && AscCommonExcel.g_clipboardExcel.pasteProcessor.activeRange ?
          AscCommonExcel.g_clipboardExcel.pasteProcessor.activeRange : lastSelection;
@@ -14143,10 +14141,6 @@
 
     // ----- Cell Editor -----
 
-    WorksheetView.prototype.setCellEditMode = function ( isCellEditMode ) {
-        this.isCellEditMode = isCellEditMode;
-    };
-
     WorksheetView.prototype.setFormulaEditMode = function ( isFormulaEditMode ) {
         this.isFormulaEditMode = isFormulaEditMode;
     };
@@ -14187,11 +14181,6 @@
             }
         }
         this._drawSelection();
-    };
-
-    // Получаем свойство: редактируем мы сейчас или нет
-    WorksheetView.prototype.getCellEditMode = function () {
-        return this.isCellEditMode;
     };
 
     WorksheetView.prototype._isFormula = function ( val ) {
@@ -14377,10 +14366,7 @@
 				fl = this._getCellFlags(c);
 			}
 
-			// Выставляем режим 'не редактируем' (иначе мы попытаемся переместить редактор, который еще не открыт)
-			this.isCellEditMode = false;
 			this.handlers.trigger("onScroll", this._calcActiveCellOffset());
-			this.isCellEditMode = true;
 
 			bg = c.getFillColor();
 			this.isFormulaEditMode = false;

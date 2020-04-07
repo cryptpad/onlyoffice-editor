@@ -317,7 +317,7 @@
 			window['AscCommon'].g_specialPasteHelper.SpecialPasteButton_Hide();
 			ws.handlers.trigger("cleanCutData", true);
 
-			if (ws.getCellEditMode() === true)//text in cell
+			if (wb.getCellEditMode() === true)//text in cell
 			{
 				//only TEXT
 				var fragments = wb.cellEditor.copySelection();
@@ -401,11 +401,11 @@
 				window['AscCommon'].g_specialPasteHelper.specialPasteData.activeRange = ws.model.selectionRange.clone(ws.model);
 				window['AscCommon'].g_specialPasteHelper.specialPasteData.pasteFromWord = false;
 			}
-
-			var cellEditor = window["Asc"]["editor"].wb.cellEditor;
+			var wb = window["Asc"]["editor"].wb;
+			var cellEditor = wb.cellEditor;
 			switch (_format) {
 				case AscCommon.c_oAscClipboardDataFormat.HtmlElement: {
-					if (ws.getCellEditMode()) {
+					if (wb.getCellEditMode()) {
 						//fragments = пока только для плагина вставка символов
 						var fragments;
 						if (window['AscCommon'].g_clipboardBase.bSaveFormat) {
@@ -440,7 +440,7 @@
 					break;
 				}
 				case AscCommon.c_oAscClipboardDataFormat.Internal: {
-					if (ws.getCellEditMode()) {
+					if (wb.getCellEditMode()) {
 						if (null !== text_data && undefined !== text_data) {
 							this._pasteTextInCellEditor(text_data);
 						} else {
@@ -453,7 +453,7 @@
 					break;
 				}
 				case AscCommon.c_oAscClipboardDataFormat.Text: {
-					if (ws.getCellEditMode()) {
+					if (wb.getCellEditMode()) {
 						this._pasteTextInCellEditor(data1);
 					} else {
 						//не показываем иконку с/в если вставляется только текст
