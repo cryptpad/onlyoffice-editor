@@ -9409,6 +9409,97 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		return this.isText;
 	};
 
+	function CRemoveDuplicatesProps(ws) {
+		this.selection = null;
+		this._newSelection = null;
+		this.hasHeaders = null;
+
+		this.columnList = null;
+
+		this._ws = ws;
+
+		this.duplicateValues = null;
+		this.uniqueValues = null;
+
+		return this;
+	}
+	CRemoveDuplicatesProps.prototype.asc_getHasHeaders = function () {
+		return this.hasHeaders;
+	};
+	CRemoveDuplicatesProps.prototype.asc_getColumnList = function () {
+		return this.columnList;
+	};
+	CRemoveDuplicatesProps.prototype.asc_setHasHeaders = function (val) {
+		var oldVal = !!this.hasHeaders;
+		if (this._newSelection && oldVal !== val) {
+			if(val) {
+				this._newSelection.r1++;
+			} else {
+				this._newSelection.r1--;
+			}
+			this._ws.setSelection(this._newSelection);
+		}
+		this.hasHeaders = val;
+	};
+	CRemoveDuplicatesProps.prototype.asc_updateColumnList = function () {
+		//TODO change selection
+		this.generateColumnList();
+	};
+	CRemoveDuplicatesProps.prototype.generateColumnList = function () {
+		var maxCount = 500;
+		var selection = this._newSelection;
+		var j, elem;
+
+		if(this.columnList && this.columnList.length) {
+			for(j in this.columnList) {
+				this.columnList[j].asc_setVal(this.getNameColumnByIndex(parseInt(j)));
+			}
+		} else {
+			this.columnList = [];
+			for(j = selection.c1; j <= selection.c2; j++) {
+				if(j - selection.c1 >= maxCount) {
+					break;
+				}
+				elem = new window["AscCommonExcel"].AutoFiltersOptionsElements();
+				elem.asc_setVisible(true);
+				elem.asc_setVal(this.getNameColumnByIndex(j - selection.c1));
+				this.columnList.push(elem);
+			}
+		}
+	};
+	CRemoveDuplicatesProps.prototype.getNameColumnByIndex = function (index) {
+		var t = this;
+		var _generateName = function(index) {
+			var base = AscCommon.translateManager.getValue("Column");
+			var text = t._ws._getColumnTitle(index);
+			text = base + " " + text;
+			return text;
+		};
+
+		var row = this._newSelection.r1;
+		var col = index + this._newSelection.c1;
+
+		if(!this.hasHeaders) {
+			return _generateName(col);
+		} else {
+			var cell = t._ws.model.getCell3(row - 1, col);
+			var value = cell.getValueWithFormat();
+			return value !== "" ? value : _generateName(col);
+		}
+	};
+	CRemoveDuplicatesProps.prototype.setDuplicateValues = function (val) {
+		this.duplicateValues = val;
+	};
+	CRemoveDuplicatesProps.prototype.setUniqueValues = function (val) {
+		this.uniqueValues = val;
+	};
+	CRemoveDuplicatesProps.prototype.asc_getDuplicateValues = function (val) {
+		return this.duplicateValues;
+	};
+	CRemoveDuplicatesProps.prototype.asc_getUniqueValues = function (val) {
+		return this.uniqueValues;
+	};
+
 
 	//----------------------------------------------------------export----------------------------------------------------
 	var prot;
@@ -9702,5 +9793,14 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	prot["asc_getColorsFill"] = prot.asc_getColorsFill;
 	prot["asc_getColorsFont"] = prot.asc_getColorsFont;
 	prot["asc_getIsTextData"] = prot.asc_getIsTextData;
+
+	window["Asc"]["CRemoveDuplicatesProps"] = window["Asc"].CRemoveDuplicatesProps = CRemoveDuplicatesProps;
+	prot = CRemoveDuplicatesProps.prototype;
+	prot["asc_getHasHeaders"] = prot.asc_getHasHeaders;
+	prot["asc_getColumnList"] = prot.asc_getColumnList;
+	prot["asc_updateColumnList"] = prot.asc_updateColumnList;
+	prot["asc_setHasHeaders"] = prot.asc_setHasHeaders;
+	prot["asc_getDuplicateValues"] = prot.asc_getDuplicateValues;
+	prot["asc_getUniqueValues"] = prot.asc_getUniqueValues;
 
 })(window);

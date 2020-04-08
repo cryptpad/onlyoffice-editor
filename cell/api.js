@@ -4532,6 +4532,18 @@ var editor;
 	spreadsheet_api.prototype.asc_validSheetName = function (val) {
 		return window["AscCommon"].rx_test_ws_name.isValidName(val);
 	};
+    spreadsheet_api.prototype.asc_getRemoveDuplicates = function (bExpand) {
+      var ws = this.wb && this.wb.getWorksheet();
+      if(ws) {
+        return ws.getRemoveDuplicates(bExpand);
+      }
+    };
+    spreadsheet_api.prototype.asc_setRemoveDuplicates = function (props, bCancel) {
+      var ws = this.wb && this.wb.getWorksheet();
+      if(ws) {
+        return ws.setRemoveDuplicates(props, bCancel);
+      }
+    };
 
 
   /*
@@ -4936,5 +4948,8 @@ var editor;
   prot["asc_setSortProps"] = prot.asc_setSortProps;
 
   prot["asc_validSheetName"] = prot.asc_validSheetName;
+
+  prot["asc_getRemoveDuplicates"] = prot.asc_getRemoveDuplicates;
+  prot["asc_setRemoveDuplicates"] = prot.asc_setRemoveDuplicates;
 
 })(window);

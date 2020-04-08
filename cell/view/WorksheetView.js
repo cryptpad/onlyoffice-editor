@@ -16996,7 +16996,8 @@
 
         var callback = function (isSuccess) {
             if (false === isSuccess) {
-                return;
+            	callbackAfterChange(isSuccess);
+            	return;
             }
 
             History.Create_NewPoint();
@@ -17008,7 +17009,7 @@
             t._onUpdateFormatTable(range, false, true);
             //TODO добавить перерисовку таблицы и перерисовку шаблонов
 			if(callbackAfterChange){
-				callbackAfterChange();
+				callbackAfterChange(true);
             }
         };
 
@@ -17028,11 +17029,13 @@
 
         var callBackLockedDefNames = function (isSuccess) {
             if (false === isSuccess) {
-                return;
+				callbackAfterChange(isSuccess);
+            	return;
             }
 
 			var callbackLockAll = function(_success) {
 				if (false === _success) {
+					callbackAfterChange(_success);
 					return;
 				}
 
@@ -19942,7 +19945,10 @@
 		}
 
 		if (oAutoExpansionTable && !applyByArray) {
-			var callback = function () {
+			var callback = function (success) {
+				if (!success) {
+					return;
+				}
 				var options = {
 					props: [Asc.c_oAscAutoCorrectOptions.UndoTableAutoExpansion],
 					cell: bbox,
@@ -19953,6 +19959,261 @@
 			t.af_changeTableRange(oAutoExpansionTable.name, oAutoExpansionTable.range, callback);
 		} else {
 			t.handlers.trigger("toggleAutoCorrectOptions");
+		}
+	};
+
+	WorksheetView.prototype.getRemoveDuplicates = function(bExpand) {
+		var settings = null;
+		var t = this;
+
+		//bExpand - ответ от этой функции, который протаскивается через интерфейс
+		//если мультиселект - дизейбл кнопки
+		var selection = t.model.selectionRange.getLast();
+		var activeCell = t.model.selectionRange.activeCell.clone();
+		var oldSelection = selection.clone();
+
+		var autoFilter = t.model.AutoFilter;
+		var dataHasHeaders;
+		var tables = t.model.autoFilters.getTableIntersectionRange(selection);
+		var lockChangeHeaders, lockChangeOrientation, caseSensitive;
+		//проверяем, возможно находится рядом а/ф
+		var tryExpandRange = t.model.autoFilters.expandRange(selection, true);
+		if(tables && tables.length) {
+			if(tables && tables && tables.length === 1 && tables[0].Ref.containsRange(selection)) {
+				selection = tables[0].getRangeWithoutHeaderFooter();
+				dataHasHeaders = true;
+			} else {
+				t.workbook.handlers.trigger("asc_onError", c_oAscError.ID.AutoFilterDataRangeError, c_oAscError.Level.NoCritical);
+				return false;
+			}
+		} else if(autoFilter && autoFilter.Ref && (autoFilter.Ref.isEqual(selection) || (selection.isOneCell() && (autoFilter.Ref.containsRange(selection) || autoFilter.Ref.containsRange(tryExpandRange))))) {
+			selection = autoFilter.getRangeWithoutHeaderFooter();
+			dataHasHeaders = true;
+		} else {
+			if(bExpand) {
+				selection = tryExpandRange ? tryExpandRange : t.model.autoFilters.expandRange(selection, true);
+			}
+			selection =  t.model.autoFilters.cutRangeByDefinedCells(selection);
+			if(bExpand) {
+				selection = t.model.autoFilters.checkExpandRangeForSort(selection);
+			}
+
+			dataHasHeaders = window['AscCommonExcel'].ignoreFirstRowSort(t.model, selection);
+
+			//для columnSort - добавлять с1++
+			if (dataHasHeaders) {
+				selection.r1++;
+			}
+
+			//если пустой дипазон, выдаём ошибку
+			if(t.model.autoFilters._isEmptyRange(selection, 0)) {
+				t.workbook.handlers.trigger("asc_onError", c_oAscError.ID.AutoFilterDataRangeError, c_oAscError.Level.NoCritical);
+				return false;
+			}
+		}
+
+		//change selection
+		t.cleanSelection();
+		t.model.selectionRange.getLast().assign2(selection);
+		if(!selection.contains(activeCell.col, activeCell.row)) {
+			t.model.selectionRange.activeCell = new AscCommon.CellBase(selection.r1, selection.c1);
+		}
+		t._drawSelection();
+
+		//в плане взаимодействия с интерефесом очень много общего с кастомной сортировкой
+		//из-за того, что из сортировки здесь требуется несколько полей + чтобы не было путанницы
+		// передаваемый объект создаю другой
+		settings = new Asc.CRemoveDuplicatesProps(this);
+		//необходимо ещё сохранять значение старого селекта, чтобы при нажатии пользователя на отмену - откатить
+		settings.selection = oldSelection;
+		//заголовки
+		settings.hasHeaders = dataHasHeaders;
+		settings._newSelection = selection;
+		settings.generateColumnList();
+
+		return settings;
+	};
+
+	WorksheetView.prototype.setRemoveDuplicates = function(props, bCancel) {
+		var t = this;
+		var selection = t.model.selectionRange.getLast();
+		var activeCell = t.model.selectionRange.activeCell.clone();
+
+		var revertSelection = function() {
+			t.cleanSelection();
+			t.model.selectionRange.getLast().assign2(props.selection.clone());
+			if(!selection.contains(activeCell.col, activeCell.row)) {
+				t.model.selectionRange.activeCell = new AscCommon.CellBase(selection.r1, selection.c1);
+			}
+			t._drawSelection();
+		};
+
+		if (bCancel || !props || !props.columnList) {
+			revertSelection();
+			return;
+		}
+
+		var aMerged = this.model.mergeManager.get(selection);
+		if (aMerged.outer.length > 0 || (aMerged.inner.length > 0 && null == window['AscCommonExcel']._isSameSizeMerged(selection, aMerged.inner, true))) {
+			revertSelection();
+			t.handlers.trigger("onErrorEvent", c_oAscError.ID.CannotFillRange, c_oAscError.Level.NoCritical);
+			return;
+		}
+
+		var i, startSortCol, colMap = [];
+		for (i = 0; i < props.columnList.length; i++) {
+			if (props.columnList[i].asc_getVisible()) {
+				var _colIndex = i + selection.c1;
+				colMap[_colIndex] = 1;
+				if(undefined === startSortCol) {
+					startSortCol = _colIndex;
+				}
+			}
+		}
+
+		if (undefined === startSortCol) {
+			revertSelection();
+			return;
+		}
+
+		var  firstLockRow;
+		var deleteIndexes = [];
+		var deleteIndexesMap = [];
+		var repeatArr = [];
+		var aSortElems = [];
+		for (i = selection.r1; i <= selection.r2; i++) {
+			var cell = t.model.getCell3(i, startSortCol);
+			var value = cell.getValueWithFormat();
+			aSortElems.push({index: i});
+			if (repeatArr.hasOwnProperty(value)) {
+				for (var n = 0; n < repeatArr[value].length; n++) {
+					var _notEqual = false;
+					for (var j = startSortCol + 1; j <= selection.c2; j++) {
+						if (!colMap[j]) {
+							continue;
+						}
+						var cell1 = t.model.getCell3(i, j);
+						var cell2 = t.model.getCell3(repeatArr[value][n], j);
+						var val1 = cell1.getValueWithFormat();
+						var val2 = cell2.getValueWithFormat();
+						if (val1 !== val2) {
+							_notEqual = true;
+							break;
+						}
+					}
+
+					if (!_notEqual) {
+						deleteIndexes.push(i);
+						deleteIndexesMap[i] = 1;
+						if (undefined === firstLockRow) {
+							firstLockRow = i;
+						}
+						break;
+					}
+				}
+				if (_notEqual) {
+					repeatArr[value].push(i);
+				}
+
+			} else {
+				if(!repeatArr[value]) {
+					repeatArr[value] = [];
+				}
+				repeatArr[value].push(i);
+			}
+		}
+
+		var _removeDuplicates = function(success) {
+			if (!success) {
+				if (isStartTransaction) {
+					History.EndTransaction();
+				}
+				return;
+			}
+			if(!isStartTransaction) {
+				History.Create_NewPoint();
+				History.StartTransaction();
+			}
+
+			aSortElems.sort(function(a, b) {
+				if ((deleteIndexesMap[a.index] && deleteIndexesMap[b.index]) || (!deleteIndexesMap[a.index] && !deleteIndexesMap[b.index])) {
+					return 0;
+				} else if (!deleteIndexesMap[a.index] && deleteIndexesMap[b.index]) {
+					return -1;
+				} else {
+					return 1;
+				}
+			});
+
+			var aSortData = [];
+			for (var i = 0; i < aSortElems.length; i++) {
+				var oldIndex = aSortElems[i].index;
+				var newIndex = i + selection.r1;
+				if (oldIndex !== newIndex) {
+					aSortData.push(new AscCommonExcel.UndoRedoData_FromToRowCol(true, oldIndex, newIndex));
+				}
+			}
+
+			if (deleteIndexes.length) {
+				//удаляем
+				for (var j = 0; j < deleteIndexes.length; j++) {
+					var deleteRange = t.model.getRange3(deleteIndexes[j], selection.c1, deleteIndexes[j], selection.c2);
+					deleteRange.cleanAll();
+					t.model.deletePivotTables(deleteRange.bbox);
+					t.model.removeSparklines(deleteRange.bbox);
+					t.cellCommentator.deleteCommentsRange(deleteRange.bbox);
+				}
+
+				//сортируем
+				if (aSortData.length) {
+					var sortRange = t.model.getRange3(selection.r1, selection.c1, selection.r2, selection.c2);
+					var oUndoRedoBBox = new AscCommonExcel.UndoRedoData_BBox({r1: selection.r1, c1: selection.c1, r2: selection.r2, c2: selection.c2});
+					var _historyElem = new AscCommonExcel.UndoRedoData_SortData(oUndoRedoBBox, aSortData);
+					sortRange._sortByArray(oUndoRedoBBox, aSortData);
+
+					var range = new Asc.Range(selection.r1, selection.c1, selection.r2, selection.c2);
+					History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_Sort, t.model.getId(), range, _historyElem);
+				}
+			}
+			
+			History.EndTransaction();
+
+			t._updateRange(selection);
+			t.draw();
+
+			if (deleteIndexes.length) {
+				props.setDuplicateValues(deleteIndexes.length);
+				props.setUniqueValues(selection.r2 - selection.r1 - deleteIndexes.length + 1);
+			}
+
+			t.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.RemoveDuplicates, c_oAscError.Level.NoCritical, props);
+		};
+
+		if (undefined !== firstLockRow) {
+			var lockRange = new Asc.Range(selection.c1, firstLockRow, selection.c2, selection.r2);
+			if (this.intersectionFormulaArray(lockRange)) {
+				this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.CannotChangeFormulaArray,
+					c_oAscError.Level.NoCritical);
+				return;
+			}
+			var tableContains = this.model.autoFilters.getTableIntersectionRange(selection);
+			var isStartTransaction = false;
+			if (tableContains && tableContains.length) {
+				if (tableContains.length === 1) {
+					var name = tableContains[0].DisplayName;
+					var ref = tableContains[0].Ref;
+					var newRef = new Asc.Range(ref.c1, ref.r1, ref.c2, ref.r2 - deleteIndexes.length);
+
+					History.Create_NewPoint();
+					History.StartTransaction();
+					isStartTransaction = true;
+					this.af_changeTableRange(name, newRef, _removeDuplicates);
+				}
+			} else {
+				this._isLockedCells(lockRange, /*subType*/null, _removeDuplicates);
+			}
+		} else {
+			t.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.RemoveDuplicates, c_oAscError.Level.NoCritical, props);
 		}
 	};
 
