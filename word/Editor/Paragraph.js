@@ -1230,12 +1230,24 @@ Paragraph.prototype.Check_Range_OnlyMath = function(CurRange, CurLine)
 	return Checker.Math;
 };
 /**
- * Проверяем является ли формула в заданной позиции не инлайновой
+ * Проверяем является ли элемент в заданной позиции неинлайновой формулой
+ * @param {number} nMathPos
+ * @return {boolean}
+ */
+Paragraph.prototype.CheckMathPara = function(nMathPos)
+{
+	if (!this.Content[nMathPos] || para_Math !== this.Content[nMathPos].Type)
+		return false;
+
+	return this.CheckNotInlineObject(nMathPos);
+};
+/**
+ * Проверяем является ли объект в заданной позиции не инлайновой
  * @param {number} nMathPos
  * @param {number | undefined} nDirection направление в котором нужно проверить, если не задано, то проверяем в обоих
  * @return {boolean}
  */
-Paragraph.prototype.CheckMathPara = function(nMathPos, nDirection)
+Paragraph.prototype.CheckNotInlineObject = function(nMathPos, nDirection)
 {
 	var oChecker = new CParagraphMathParaChecker();
 	if (undefined === nDirection || -1 === nDirection)
@@ -1243,7 +1255,7 @@ Paragraph.prototype.CheckMathPara = function(nMathPos, nDirection)
 		oChecker.SetDirection(-1);
 		for (var nCurPos = nMathPos - 1; nCurPos >= 0; --nCurPos)
 		{
-			this.Content[nCurPos].ProcessMathParaChecker(oChecker);
+			this.Content[nCurPos].ProcessNotInlineObjectCheck(oChecker);
 			if (oChecker.IsStop())
 				break;
 		}
@@ -1276,7 +1288,7 @@ Paragraph.prototype.CheckMathPara = function(nMathPos, nDirection)
 		oChecker.SetDirection(1);
 		for (var nCurPos = nMathPos + 1, nCount = this.Content.length; nCurPos < nCount; ++nCurPos)
 		{
-			this.Content[nCurPos].ProcessMathParaChecker(oChecker);
+			this.Content[nCurPos].ProcessNotInlineObjectCheck(oChecker);
 			if (oChecker.IsStop())
 				break;
 		}

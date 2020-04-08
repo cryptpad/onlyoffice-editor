@@ -324,10 +324,19 @@ CParagraphContentBase.prototype.IsEmptyRange = function(nCurLine, nCurRange)
 CParagraphContentBase.prototype.Check_Range_OnlyMath = function(Checker, CurRange, CurLine)
 {
 };
-CParagraphContentBase.prototype.ProcessMathParaChecker = function(oChecker)
+/**
+ * Проверяем является ли элемент в заданной позиции неинлайновой формулой
+ * @param {number} nMathPos
+ * @return {boolean}
+ */
+CParagraphContentBase.prototype.CheckMathPara = function(nMathPos)
+{
+	return false;
+};
+CParagraphContentBase.prototype.ProcessNotInlineObjectCheck = function(oChecker)
 {
 };
-CParagraphContentBase.prototype.CheckMathPara = function(nMathPos, nDirection)
+CParagraphContentBase.prototype.CheckNotInlineObject = function(nMathPos, nDirection)
 {
 	return false;
 };
@@ -2353,12 +2362,24 @@ CParagraphContentWithParagraphLikeContent.prototype.Check_Range_OnlyMath = funct
             break;
     }
 };
-CParagraphContentWithParagraphLikeContent.prototype.ProcessMathParaChecker = function(oChecker)
+/**
+ * Проверяем является ли элемент в заданной позиции неинлайновой формулой
+ * @param {number} nMathPos
+ * @return {boolean}
+ */
+CParagraphContentWithParagraphLikeContent.prototype.CheckMathPara = function(nMathPos)
+{
+	if (!this.Content[nMathPos] || para_Math !== this.Content[nMathPos].Type)
+		return false;
+
+	return this.CheckNotInlineObject(nMathPos);
+};
+CParagraphContentWithParagraphLikeContent.prototype.ProcessNotInlineObjectCheck = function(oChecker)
 {
 	oChecker.Result = false;
 	oChecker.Found  = true;
 };
-CParagraphContentWithParagraphLikeContent.prototype.CheckMathPara = function(nMathPos, nDirection)
+CParagraphContentWithParagraphLikeContent.prototype.CheckNotInlineObject = function(nMathPos, nDirection)
 {
 	var oParent = this.GetParent();
 
@@ -2368,7 +2389,7 @@ CParagraphContentWithParagraphLikeContent.prototype.CheckMathPara = function(nMa
 		oChecker.SetDirection(-1);
 		for (var nCurPos = nMathPos - 1; nCurPos >= 0; --nCurPos)
 		{
-			this.Content[nCurPos].ProcessMathParaChecker(oChecker);
+			this.Content[nCurPos].ProcessNotInlineObjectCheck(oChecker);
 			if (oChecker.IsStop())
 				break;
 		}
@@ -2377,7 +2398,7 @@ CParagraphContentWithParagraphLikeContent.prototype.CheckMathPara = function(nMa
 			return false;
 
 
-		if (!oChecker.IsStop() && oParent && !oParent.CheckMathPara(this.GetPosInParent(oParent), -1))
+		if (!oChecker.IsStop() && oParent && !oParent.CheckNotInlineObject(this.GetPosInParent(oParent), -1))
 			return false
 	}
 
@@ -2386,7 +2407,7 @@ CParagraphContentWithParagraphLikeContent.prototype.CheckMathPara = function(nMa
 		oChecker.SetDirection(1);
 		for (var nCurPos = nMathPos + 1, nCount = this.Content.length; nCurPos < nCount; ++nCurPos)
 		{
-			this.Content[nCurPos].ProcessMathParaChecker(oChecker);
+			this.Content[nCurPos].ProcessNotInlineObjectCheck(oChecker);
 			if (oChecker.IsStop())
 				break;
 		}
@@ -2394,7 +2415,7 @@ CParagraphContentWithParagraphLikeContent.prototype.CheckMathPara = function(nMa
 		if (!oChecker.GetResult())
 			return false;
 
-		if (!oChecker.IsStop() && oParent && !oParent.CheckMathPara(this.GetPosInParent(oParent), 1))
+		if (!oChecker.IsStop() && oParent && !oParent.CheckNotInlineObject(this.GetPosInParent(oParent), 1))
 			return false;
 	}
 

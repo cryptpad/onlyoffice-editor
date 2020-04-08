@@ -4948,7 +4948,7 @@ ParaRun.prototype.Check_Range_OnlyMath = function(Checker, _CurRange, _CurLine)
     }
 };
 
-ParaRun.prototype.ProcessMathParaChecker = function(oChecker)
+ParaRun.prototype.ProcessNotInlineObjectCheck = function(oChecker)
 {
 	var Count = this.Content.length;
 	if (Count <= 0)
