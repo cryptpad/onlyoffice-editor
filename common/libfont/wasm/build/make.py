@@ -129,7 +129,7 @@ windows_bat.append("call emcc " + arguments)
 base.run_as_bat(windows_bat)
 
 # finalize
-base.replaceInFile("./fonts.js", "__ATPOSTRUN__=[];", "'__ATPOSTRUN__=[function(){window[\"AscFonts\"].onLoadModule();}];")
+base.replaceInFile("./fonts.js", "__ATPOSTRUN__=[];", "__ATPOSTRUN__=[function(){window[\"AscFonts\"].onLoadModule();}];")
 base.replaceInFile("./fonts.js", "function getBinaryPromise(){", "function getBinaryPromise2(){")
 
 fonts_js_content = base.readFile("fonts.js")
