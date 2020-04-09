@@ -20008,7 +20008,7 @@
 			}
 
 			//если пустой дипазон, выдаём ошибку
-			if(t.model.autoFilters._isEmptyRange(selection, 0)) {
+			if(t.model.autoFilters._isEmptyRange(selection, 0) || selection.r1 === selection.r2) {
 				t.workbook.handlers.trigger("asc_onError", c_oAscError.ID.AutoFilterDataRangeError, c_oAscError.Level.NoCritical);
 				return false;
 			}
@@ -20032,7 +20032,7 @@
 		settings.hasHeaders = dataHasHeaders;
 		settings._newSelection = selection;
 		settings.generateColumnList();
-
+		
 		return settings;
 	};
 
