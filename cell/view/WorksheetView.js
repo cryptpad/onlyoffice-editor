@@ -16984,7 +16984,7 @@
         t._isLockedDefNames(callBackLockedDefNames, defNameId);
     };
 
-    WorksheetView.prototype.af_changeTableRange = function (tableName, range, callbackAfterChange) {
+    WorksheetView.prototype.af_changeTableRange = function (tableName, range, callbackAfterChange, doNotUpdate) {
         var t = this;
         if(typeof range === "string"){
 			range = AscCommonExcel.g_oRangeCache.getAscRange(range);
@@ -17006,7 +17006,9 @@
             t.model.autoFilters.changeTableRange(tableName, range);
 
 			History.EndTransaction();
-            t._onUpdateFormatTable(range, false, true);
+			if (!doNotUpdate) {
+				t._onUpdateFormatTable(range, false, true);
+			}
             //TODO добавить перерисовку таблицы и перерисовку шаблонов
 			if(callbackAfterChange){
 				callbackAfterChange(true);
@@ -20207,7 +20209,7 @@
 					History.Create_NewPoint();
 					History.StartTransaction();
 					isStartTransaction = true;
-					this.af_changeTableRange(name, newRef, _removeDuplicates);
+					this.af_changeTableRange(name, newRef, _removeDuplicates, true);
 				}
 			} else {
 				this._isLockedCells(lockRange, /*subType*/null, _removeDuplicates);
