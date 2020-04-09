@@ -4076,7 +4076,145 @@
 		else 
 			return false;
 	};
+	/**
+	 * Removes a bookmark from the document, if one exists.
+	 * @typeofeditors ["CDE"]
+	 * @param {string} sName - bookmark name
+	 */
+	ApiDocument.prototype.DeleteBookmark = function(sName)
+	{
+		if (sName === undefined)
+			return false;
 
+		this.Document.RemoveBookmark(sName);
+	};
+	/**
+	 * Gets a bookmark's range.
+	 * @typeofeditors ["CDE"]
+	 * @param {string} sName - bookmark name
+	 * @return {ApiRange} 
+	 */
+	ApiDocument.prototype.GetBookmarkRange = function(sName)
+	{
+		if (sName === undefined)
+			return false;
+
+		this.Document.GoToBookmark(sName, true);
+
+		var oRange = this.GetRangeBySelect();
+
+		return oRange;
+	};
+	/**
+	 * Gets the collection of content control objects in the document.
+	 * @typeofeditors ["CDE"]
+	 * @return {Array}  
+	 */
+	ApiDocument.prototype.GetContentControls = function()
+	{
+		var arrApiContentControls = [];
+
+		var ContentControls = this.Document.GetAllContentControls();
+
+		for (var Index = 0; Index < ContentControls.length; Index++)
+		{
+			if (ContentControls[Index] instanceof CBlockLevelSdt)
+				arrApiContentControls.push(new ApiBlockLvlSdt(ContentControls[Index]));
+			else if (ContentControls[Index] instanceof CInlineLevelSdt)
+				arrApiContentControls.push(new ApiInlineLvlSdt(ContentControls[Index]));
+		} 
+
+		return arrApiContentControls;
+	};
+	/**
+	 * Gets the collection of section objects in the document.
+	 * @typeofeditors ["CDE"]
+	 * @return {Array}  
+	 */
+	ApiDocument.prototype.GetSections = function()
+	{
+		var arrApiSections = [];
+
+		for (var Index = 0; Index < this.Document.SectionsInfo.Elements.length; Index++)
+			arrApiSections.push(new ApiSection(this.Document.SectionsInfo.Elements[Index]))
+
+		return arrApiSections;
+	};
+	/**
+	 * Get the collection of tables on a given absolute page
+	 * @param nPage - page number
+	 * @typeofeditors ["CDE"]
+	 * @return {Array}  
+	 */
+	ApiDocument.prototype.GetAllTablesOnPage = function(nPage)
+	{
+		var arrApiAllTables = [];
+
+		var arrAllTables = this.Document.GetAllTablesOnPage(nPage);
+
+		for (var Index = 0; Index < arrAllTables.length; Index++)
+		{
+			arrApiAllTables.push(new ApiTable(arrAllTables[Index].Table));
+		};
+
+		return arrApiAllTables;
+	};
+	/**
+	 * Remove current selection
+	 * @typeofeditors ["CDE"]
+	 */
+	ApiDocument.prototype.RemoveSelection = function()
+	{
+		this.Document.RemoveSelection();
+	};
+	/**
+	 * Gets the collection of shapes objects in the document.
+	 * @typeofeditors ["CDE"]
+	 * @return {Array}  
+	 */
+	ApiDocument.prototype.GetAllShapes = function()
+	{
+		var arrAllDrawing = this.Document.GetAllDrawingObjects();
+		var arrApiShapes  = [];
+
+		for (var Index = 0; Index < arrAllDrawing.length; Index++)
+			if (arrAllDrawing[Index].GraphicObj instanceof CShape)
+				arrApiShapes.push(new ApiShape(arrAllDrawing[Index]));
+		
+		return arrApiShapes;
+	};
+	/**
+	 * Gets the collection of image objects in the document.
+	 * @typeofeditors ["CDE"]
+	 * @return {Array}  
+	 */
+	ApiDocument.prototype.GetAllImages = function()
+	{
+		var arrAllDrawing = this.Document.GetAllDrawingObjects();
+		var arrApiImages  = [];
+
+		for (var Index = 0; Index < arrAllDrawing.length; Index++)
+			if (arrAllDrawing[Index].GraphicObj instanceof CImageShape)
+				arrApiImages.push(new ApiImage(arrAllDrawing[Index]));
+		
+		return arrApiImages;
+	};
+	/**
+	 * Gets the collection of chart objects in the document.
+	 * @typeofeditors ["CDE"]
+	 * @return {Array}  
+	 */
+	ApiDocument.prototype.GetAllCharts = function()
+	{
+		var arrAllDrawing = this.Document.GetAllDrawingObjects();
+		var arrApiCharts  = [];
+
+		for (var Index = 0; Index < arrAllDrawing.length; Index++)
+			if (arrAllDrawing[Index].GraphicObj instanceof CChartSpace)
+				arrApiCharts.push(new ApiChart(arrAllDrawing[Index]));
+		
+		return arrApiCharts;
+	};
 	//------------------------------------------------------------------------------------------------------------------
 	//
 	// ApiParagraph
@@ -9530,4 +9668,5 @@
 		return new ApiDocumentContent(oDocContent);
 	};
 }(window, null));
+
 
