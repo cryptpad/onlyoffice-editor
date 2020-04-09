@@ -2572,7 +2572,7 @@ var editor;
     var t = this;
     AscCommon.sendImgUrls(this, [imageUrl], function(data) {
 
-      if (data && data[0])
+      if (data && data[0] && data[0].url !== "error")
       {
         var ws = t.wb.getWorksheet();
         ws.objectRender.addImageDrawingObject([data[0].url], null);
@@ -2935,7 +2935,7 @@ var editor;
 
       AscCommon.sendImgUrls(this, [sImageUrl], function (data) {
 
-        if (data && data[0]) {
+        if (data && data[0] && data[0].url !== "error") {
           fReplaceCallback(data[0].url);
           ws.objectRender.setGraphicObjectProps(props);
         }
@@ -3144,6 +3144,10 @@ var editor;
           var d = ws.changeSelectionStartPoint(dc, dr);
           this.controller.scroll(d);
           this.spellcheckState.lockSpell = false;
+          if(this.spellcheckState.afterReplace) {
+            History.EndTransaction();
+            this.spellcheckState.afterReplace = false;
+          }
         }
         this.spellcheckState.isStart = true;
         this.spellcheckState.wordsIndex = e["wordsIndex"];
@@ -3257,7 +3261,6 @@ var editor;
           break;
         }
       }
-      this.spellcheckState.afterReplace = afterReplace;
       this.spellcheckState.lastIndex = lastIndex;
       this.SpellCheck_CallBack(this.spellcheckState.lastSpellInfo);
       return;
@@ -3394,6 +3397,9 @@ var editor;
       options.replaceWith = newCellText;
       options.replaceWords = replaceWords;
 
+      History.Create_NewPoint();
+      History.StartTransaction();
+
       ws._replaceCellsText(cellsChange, options, false, function () {
         t.spellcheckState.cellsChange = [];
         options.indexInArray = 0;
@@ -3417,6 +3423,7 @@ var editor;
           return;
         }
         t.spellcheckState.lockSpell = false;
+        History.EndTransaction();
       });
     };
 
@@ -3429,22 +3436,16 @@ var editor;
   };
 
     spreadsheet_api.prototype.asc_ignoreNumbers = function (isIgnore) {
-      this.spellcheckState.isIgnoreNumbers = true;
-      if (!isIgnore) {
-        this.spellcheckState.isIgnoreNumbers = false;
-      }
+      this.spellcheckState.isIgnoreNumbers = isIgnore;
     };
 
     spreadsheet_api.prototype.asc_ignoreUppercase = function (isIgnore) {
-      this.spellcheckState.isIgnoreUppercase = true;
-      if (!isIgnore) {
-        this.spellcheckState.isIgnoreUppercase = false;
-      }
+      this.spellcheckState.isIgnoreUppercase = isIgnore;
     };
 
   spreadsheet_api.prototype.asc_cancelSpellCheck = function() {
     this.cleanSpelling();
-  }
+  };
   
   // Frozen pane
   spreadsheet_api.prototype.asc_freezePane = function () {

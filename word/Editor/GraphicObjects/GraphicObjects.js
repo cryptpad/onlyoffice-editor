@@ -1714,7 +1714,7 @@ CGraphicObjects.prototype =
                         drawing.setExtent(selectedObjects[i].parent.Extent.W, selectedObjects[i].parent.Extent.H)
                     }
                     drawing.GraphicObj.setParent(drawing);
-                    drawing.CheckWH();
+                    //drawing.CheckWH();
 					drawing.Set_ParaMath(selectedObjects[i].parent.ParaMath);
                     drawing.docPr.setFromOther(selectedObjects[i].parent.docPr);
                     if(selectedObjects[i].parent.DrawingType === drawing_Anchor)
@@ -2489,6 +2489,7 @@ CGraphicObjects.prototype =
                 this.document.Recalculate();
                 var oContent = oShape.getDocContent();
                 oContent.Set_CurrentElement(0, true);
+                oContent.MoveCursorToStartPos(false);
                 this.updateSelectionState();
                 this.document.FinalizeAction();
             }
@@ -4182,7 +4183,8 @@ CGraphicObjects.prototype =
                 break;
             }
         }
-    }
+    },
+    endTrackNewShape: DrawingObjectsController.prototype.endTrackNewShape
 };
 CGraphicObjects.prototype.Document_Is_SelectionLocked = function(CheckType)
 {

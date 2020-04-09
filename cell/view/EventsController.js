@@ -314,9 +314,10 @@
 				return false;
 			}
 
-			if(this.targetInfo && (this.targetInfo.target == c_oTargetType.MoveResizeRange ||
-				this.targetInfo.target == c_oTargetType.MoveRange ||
-				this.targetInfo.target == c_oTargetType.FillHandle || this.targetInfo.target == c_oTargetType.FilterObject))
+			if(this.targetInfo && (this.targetInfo.target === c_oTargetType.MoveResizeRange ||
+				this.targetInfo.target === c_oTargetType.MoveRange ||
+				this.targetInfo.target === c_oTargetType.FillHandle ||
+				this.targetInfo.target === c_oTargetType.FilterObject))
 				return true;
 
 			if (t.getCellEditMode()) {if (!t.handlers.trigger("stopCellEditing")) {return true;}}
@@ -533,7 +534,7 @@
 				coord.x = -1;
 				coord.y = -1;
 			}
-			this.handlers.trigger("changeSelectionDone", coord.x, coord.y);
+			this.handlers.trigger("changeSelectionDone", coord.x, coord.y, event);
 		};
 
 		/** @param event {MouseEvent} */
@@ -1319,8 +1320,6 @@
 
 		/** @param event {MouseEvent} */
 		asc_CEventsController.prototype._onMouseDown = function (event) {
-
-
 			var t = this;
 			var ctrlKey = !AscCommon.getAltGr(event) && (event.metaKey || event.ctrlKey);
 			var coord = t._getCoordinates(event);
@@ -1428,11 +1427,18 @@
 						this.isMoveRangeMode = true;
 						t._moveRangeHandle(event);
 						return;
-					} else if (t.targetInfo.target === c_oTargetType.FilterObject && 0 === button) {
-						t._autoFiltersClick(t.targetInfo.idFilter);
-						return;
-					} else if (t.targetInfo.target === c_oTargetType.FilterObject && 2 === button) {
-						this.handlers.trigger('onContextMenu', null);
+					} else if (t.targetInfo.target === c_oTargetType.FilterObject) {
+						if (0 === button) {
+							if (t.targetInfo.isDataValidation) {
+								this.handlers.trigger('onDataValidation');
+							} else if (t.targetInfo.isPivot) {
+								// ToDo pivot
+							} else {
+								t._autoFiltersClick(t.targetInfo.idFilter);
+							}
+						}
+						event.preventDefault && event.preventDefault();
+						event.stopPropagation && event.stopPropagation();
 						return;
 					} else if (t.targetInfo.commentIndexes) {
 						t._commentCellClick(event);

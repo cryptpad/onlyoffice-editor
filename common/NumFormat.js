@@ -1078,7 +1078,7 @@ NumFormat.prototype =
 						}
 					}
 				}
-				if(0 == res.frac && 0 == res.dec)
+				if(0 == res.frac && 0 == res.dec && false === this.bDateTime)
 					res.sign = SignType.Null;
 			}
             //После округления может получиться ноль,
@@ -1093,7 +1093,9 @@ NumFormat.prototype =
 	{
         var d = {val: 0, coeff: 1}, h = {val: 0, coeff: 24},
             min = {val: 0, coeff: 60}, s = {val: 0, coeff: 60}, ms = {val: 0, coeff: 1000};
-        var tmp = +number;// '+' на всякий случай, если придет отриц число
+        //number is negative in case of bDate1904
+        var numberAbs = Math.abs(number);
+        var tmp = numberAbs;
         var ttimes = [d, h, min, s, ms];
         for(var i = 0; i < 4; i++)
         {
@@ -1120,14 +1122,14 @@ NumFormat.prototype =
 		}
 		else
 		{
-			if(number === 60)
+			if(numberAbs === 60)
 			{
 				day = 29;
 				month = 1;
 				year = 1900;
 				dayWeek = 3;
 			}
-			else if(number === 0)
+			else if(numberAbs === 0)
 			{
 				//TODO необходимо использовать cDate везде
 				stDate = new Asc.cDate(Date.UTC(1899,11,31,0,0,0));
@@ -1136,7 +1138,7 @@ NumFormat.prototype =
 				month = stDate.getUTCMonth();
 				year = stDate.getUTCFullYear();
 			}
-			else if(number < 60)
+			else if(numberAbs < 60)
 			{
 				stDate = new Date(Date.UTC(1899,11,31,0,0,0));
 				if(d.val)
@@ -2231,6 +2233,7 @@ function CellFormat(format, isWord)
 			if (this.oNegativeFormat.bTextFormat) {
 			    this.oTextFormat = this.oNegativeFormat;
 			    this.oNegativeFormat = this.oPositiveFormat;
+				this.oPositiveFormat.bAddMinusIfNes = true;
 			}
 		}
 		else

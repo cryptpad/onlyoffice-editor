@@ -6035,7 +6035,8 @@ parserFormula.prototype.clone = function(formula, parent, ws) {
 						found_operand = new cRef3D(ph.real_str ? ph.real_str.toUpperCase() : ph.operand_str.toUpperCase(), wsF);
 					}
 					parseResult.addRefPos(prevCurrPos, ph.pCurrPos, t.outStack.length, found_operand);
-				} else if (parserHelp.isName.call(ph, t.Formula, ph.pCurrPos)) {
+				} else {
+					parserHelp.isName.call(ph, t.Formula, ph.pCurrPos);
 					found_operand = new cName3D(ph.operand_str, wsF);
 					parseResult.addRefPos(prevCurrPos, ph.pCurrPos, t.outStack.length, found_operand);
 				}
@@ -6067,7 +6068,7 @@ parserFormula.prototype.clone = function(formula, parent, ws) {
 				}
 			}
 
-			/* Referens to DefinedNames */ else if (parserHelp.isName.call(ph, t.Formula, ph.pCurrPos, t.wb, t.ws)[0]) {
+			/* Referens to DefinedNames */ else if (parserHelp.isName.call(ph, t.Formula, ph.pCurrPos)) {
 
 				if (ph.operand_str.length > g_nFormulaStringMaxLength && !ignoreErrors) {
 					//TODO стоит добавить новую ошибку
@@ -6391,9 +6392,15 @@ parserFormula.prototype.clone = function(formula, parent, ws) {
 
 	/* Для обратной сборки функции иногда необходимо поменять ссылки на ячейки */
 	parserFormula.prototype.changeOffset = function (offset, canResize, nChangeTable) {//offset = AscCommon.CellBase
-		for (var i = 0; i < this.outStack.length; i++) {
-			this._changeOffsetElem(this.outStack[i], this.outStack, i, offset, canResize, nChangeTable);
-		}
+		var t = this;
+		//временно комментирую из-за проблемы: при сборке формулы после обработки данной функцией в режиме R1c1
+		///мы получаем вид A1. необходимо пересмотреть все функции toString/toLocaleString где возвращается value
+		//+ парсинг на endTransaction запускается в режиме r1c1
+		//AscCommonExcel.executeInR1C1Mode(false, function () {
+			for (var i = 0; i < t.outStack.length; i++) {
+				t._changeOffsetElem(t.outStack[i], t.outStack, i, offset, canResize, nChangeTable);
+			}
+		//});
 		return this;
 	};
 	parserFormula.prototype._changeOffsetElem = function(elem, container, index, offset, canResize, nChangeTable) {//offset =
@@ -7180,19 +7187,19 @@ parserFormula.prototype.clone = function(formula, parent, ws) {
 		}
 		return false;
 	};
-	parserFormula.prototype.simplifyRefType = function(val, opt_cell) {
+	parserFormula.prototype.simplifyRefType = function(val, opt_ws, opt_row, opt_col) {
 		var ref = this.getArrayFormulaRef(), row, col;
 
 		if (cElementType.cell === val.type || cElementType.cell3D === val.type) {
 			val = val.getValue();
-			if (cElementType.empty === val.type && opt_cell) {
+			if (cElementType.empty === val.type && opt_ws) {
 				// Bug http://bugzilla.onlyoffice.com/show_bug.cgi?id=33941
 				val = new cNumber(0);
 			}
 		} else if (cElementType.array === val.type) {
-			if(ref && opt_cell) {
-				row = 1 === val.array.length ? 0 : opt_cell.nRow - ref.r1;
-				col = 1 === val.array[0].length ? 0 : opt_cell.nCol - ref.c1;
+			if(ref && opt_ws) {
+				row = 1 === val.array.length ? 0 : opt_row - ref.r1;
+				col = 1 === val.array[0].length ? 0 : opt_col - ref.c1;
 				if(val.array[row] && val.array[row][col]) {
 					val = val.getElementRowCol(row, col);
 				} else {
@@ -7205,10 +7212,10 @@ parserFormula.prototype.clone = function(formula, parent, ws) {
 			//сделано для формул массива
 			//внутри массива может лежать ссылка на диапазон(например, функция index возвращает area/ref)
 			if(cElementType.cellsRange === val.type || cElementType.cellsRange3D === val.type || cElementType.array === val.type || cElementType.cell === val.type || cElementType.cell3D === val.type) {
-				val = this.simplifyRefType(val, opt_cell);
+				val = this.simplifyRefType(val, opt_ws, opt_row, opt_col);
 			}
 		} else if (cElementType.cellsRange === val.type || cElementType.cellsRange3D === val.type) {
-			if (opt_cell) {
+			if (opt_ws) {
 				var range;
 				if(ref) {
 					range = val.getRange();
@@ -7216,8 +7223,8 @@ parserFormula.prototype.clone = function(formula, parent, ws) {
 						var bbox = range.bbox;
 						var rowCount = bbox.r2 - bbox.r1 + 1;
 						var colCount = bbox.c2 - bbox.c1 + 1;
-						row = 1 === rowCount ? 0 : opt_cell.nRow - ref.r1;
-						col = 1 === colCount ? 0 : opt_cell.nCol - ref.c1;
+						row = 1 === rowCount ? 0 : opt_row - ref.r1;
+						col = 1 === colCount ? 0 : opt_col - ref.c1;
 						val = val.getValueByRowCol(row, col);
 						if(!val) {
 							val = new window['AscCommonExcel'].cError(window['AscCommonExcel'].cErrorType.not_available);
@@ -7226,8 +7233,8 @@ parserFormula.prototype.clone = function(formula, parent, ws) {
 						val = new window['AscCommonExcel'].cError(window['AscCommonExcel'].cErrorType.not_available);
 					}
 				} else {
-					range = new Asc.Range(opt_cell.nCol, opt_cell.nRow, opt_cell.nCol, opt_cell.nRow);
-					val = val.cross(range, opt_cell.ws.getId());
+					range = new Asc.Range(opt_col, opt_row, opt_col, opt_row);
+					val = val.cross(range, opt_ws.getId());
 				}
 			} else if (cElementType.cellsRange === val.type) {
 				val = val.getValue2(0, 0);

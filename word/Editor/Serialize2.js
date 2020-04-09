@@ -4199,6 +4199,7 @@ Binary_tblPrWriter.prototype =
     Write_tblpPr2: function(table)
     {
         var oThis = this;
+		var twips;
         if(null != table.PositionH)
         {
 			var PositionH = table.PositionH;
@@ -4216,9 +4217,14 @@ Binary_tblPrWriter.prototype =
 			}
 			else
 			{
+				twips = this.bs.mmToTwips(PositionH.Value);
+				//0 is a special value(left align)
+				if (0 === twips) {
+					twips = 1;
+				}
 				this.memory.WriteByte(c_oSer_tblpPrType2.TblpXTwips);
 				this.memory.WriteByte(c_oSerPropLenType.Long);
-				this.bs.writeMmToTwips(PositionH.Value);
+				this.memory.WriteLong(twips);
 			}
         }
 		if(null != table.PositionV)
@@ -4238,9 +4244,14 @@ Binary_tblPrWriter.prototype =
 			}
 			else
 			{
+				twips = this.bs.mmToTwips(PositionV.Value);
+				//0 is a special value(c_oAscVAnchor.Text)
+				if (0 === twips && Asc.c_oAscVAnchor.Text !== PositionV.RelativeFrom) {
+					twips = 1;
+				}
 				this.memory.WriteByte(c_oSer_tblpPrType2.TblpYTwips);
 				this.memory.WriteByte(c_oSerPropLenType.Long);
-				this.bs.writeMmToTwips(PositionV.Value);
+				this.memory.WriteLong(twips);
 			}
         }
 		if(null != table.Distance)
@@ -6354,7 +6365,7 @@ function BinaryCommentsTableWriter(memory, doc, oMapCommentId, commentUniqueGuid
 		if(null != comment.m_nDurableId)
 		{
 			while (this.commentUniqueGuids[comment.m_nDurableId]) {
-				comment.m_nDurableId = AscCommon.CreateUInt32();
+				comment.m_nDurableId = AscCommon.CreateDurableId();
 			}
 			this.commentUniqueGuids[comment.m_nDurableId] = 1;
 			this.bs.WriteItem(c_oSer_CommentsType.DurableId, function(){oThis.memory.WriteULong(comment.m_nDurableId);});
@@ -7397,12 +7408,14 @@ function BinaryFileReader(doc, openParams)
 			this.oReadResult.logicDocument.Footnotes.ResetSpecialFootnotes();
 			for (var i = 0; i < this.oReadResult.footnoteRefs.length; ++i) {
 				var footnote = this.oReadResult.footnotes[this.oReadResult.footnoteRefs[i]];
-				if (0 == footnote.type) {
-					this.oReadResult.logicDocument.Footnotes.SetContinuationNotice(footnote.content);
-				} else if (1 == footnote.type) {
-					this.oReadResult.logicDocument.Footnotes.SetContinuationSeparator(footnote.content);
-				} else if (3 == footnote.type) {
-					this.oReadResult.logicDocument.Footnotes.SetSeparator(footnote.content);
+				if (footnote) {
+					if (0 == footnote.type) {
+						this.oReadResult.logicDocument.Footnotes.SetContinuationNotice(footnote.content);
+					} else if (1 == footnote.type) {
+						this.oReadResult.logicDocument.Footnotes.SetContinuationSeparator(footnote.content);
+					} else if (3 == footnote.type) {
+						this.oReadResult.logicDocument.Footnotes.SetSeparator(footnote.content);
+					}
 				}
 			}
 		}
@@ -15234,7 +15247,7 @@ function Binary_CommentsTableReader(doc, oReadResult, stream, oComments)
 		}
 		else if ( c_oSer_CommentsType.DurableId === type )
 		{
-			oNewImage.DurableId = AscFonts.FT_Common.IntToUInt(this.stream.GetULong());
+			oNewImage.DurableId = AscCommon.FixDurableId(this.stream.GetULong());
 		}
         else
             res = c_oSerConstants.ReadUnknown;

@@ -2233,20 +2233,18 @@ PasteProcessor.prototype =
             }
         }
 
-        if(false === this.bNested && nInsertLength > 0)
+        var bNeedRecalculate = (false === this.bNested && nInsertLength > 0);
+        var bNeedMoveCursor = false;
+        if(bNeedRecalculate)
         {
-            var bNeedMoveCursor = History.Is_LastPointNeedRecalc();
-            this.oRecalcDocument.Recalculate();
-            
-            if ((oDocument.GetDocPosType() !== docpostype_DrawingObjects || true === this.oLogicDocument.DrawingObjects.isSelectedText()) && true === bNeedMoveCursor)
+             if (History.Is_LastPointNeedRecalc() &&
+                (this.oLogicDocument.DrawingObjects.selectedObjects.length === 0 ||
+                true === this.oLogicDocument.DrawingObjects.isSelectedText()))
             {
-                this.oLogicDocument.MoveCursorRight(false, false, true);
+                bNeedMoveCursor = true;
             }
-            
-            this.oLogicDocument.Document_UpdateInterfaceState();
-            this.oLogicDocument.Document_UpdateSelectionState();
         }
-		
+
 		//for special paste
 		if(dNotShowOptions && !window['AscCommon'].g_specialPasteHelper.specialPasteStart) {
 			window['AscCommon'].g_specialPasteHelper.CleanButtonInfo();
@@ -2255,6 +2253,16 @@ PasteProcessor.prototype =
 		}
 		
 		window['AscCommon'].g_specialPasteHelper.Paste_Process_End(true);
+        if(bNeedRecalculate)
+        {
+            this.oRecalcDocument.Recalculate();
+            if (bNeedMoveCursor)
+            {
+                this.oLogicDocument.MoveCursorRight(false, false, true);
+            }
+            this.oLogicDocument.Document_UpdateInterfaceState();
+            this.oLogicDocument.Document_UpdateSelectionState();
+        }
     },
     InsertInPlace : function(oDoc, aNewContent)
     {
@@ -4099,7 +4107,7 @@ PasteProcessor.prototype =
 		var oSelectedContent2 = this._readPresentationSelectedContent2(base64);
 		var selectedContent2 = oSelectedContent2.content;
 		var defaultSelectedContent = selectedContent2[1] ? selectedContent2[1] : selectedContent2[0];
-		var bSlideObjects = defaultSelectedContent && defaultSelectedContent.content.SlideObjects && defaultSelectedContent.content.SlideObjects.length > 0;
+		var bSlideObjects = defaultSelectedContent && defaultSelectedContent.content && defaultSelectedContent.content.SlideObjects && defaultSelectedContent.content.SlideObjects.length > 0;
 		var pasteObj = bSlideObjects && PasteElementsId.g_bIsDocumentCopyPaste ? selectedContent2[2] : defaultSelectedContent;
 
 		var arr_Images, fonts, content = null, font_map = {};
@@ -9547,7 +9555,7 @@ PasteProcessor.prototype =
 		};
 		var fInitCommentData = function (comment) {
 			var oCommentObj = new AscCommon.CCommentData();
-			oCommentObj.m_nDurableId = AscCommon.CreateUInt32();
+			oCommentObj.m_nDurableId = AscCommon.CreateDurableId();
 			if (null != comment.UserName) {
 				oCommentObj.m_sUserName = comment.UserName;
 			}

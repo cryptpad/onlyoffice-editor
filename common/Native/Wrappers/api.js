@@ -2303,7 +2303,7 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
         {
             if (undefined !== _params) {
                 var indexScheme = parseInt(_params);
-                this.ChangeColorScheme(indexScheme);
+                _api.asc_ChangeColorSchemeByIdx(indexScheme);
             }
             break;
         }
@@ -4959,17 +4959,8 @@ Asc['asc_docs_api'].prototype.AddImageUrlNative = function(url, _w, _h, _pageNum
     }
 
     this.WordControl.m_oLogicDocument.StartAction();
-
-    if (undefined === _pageNum)
-    {
-        this.WordControl.m_oLogicDocument.AddInlineImage(wI, hI, url);
-    }
-    else
-    {
-        var _sectionPr = this.WordControl.m_oLogicDocument.Get_PageLimits(_pageNum);
-        this.AddImageToPage(url, _pageNum, (_sectionPr.XLimit - wI) / 2, (_sectionPr.YLimit - hI) / 2, wI, hI);
-    }
-
+    this.WordControl.m_oLogicDocument.AddInlineImage(wI, hI, url);
+	this.WordControl.m_oLogicDocument.Recalculate();
 	this.WordControl.m_oLogicDocument.FinalizeAction();
 };
 Asc['asc_docs_api'].prototype.AddImageUrlActionNative = function(src, _w, _h, _pageNum)
@@ -5852,11 +5843,6 @@ Asc['asc_docs_api'].prototype.Call_Menu_Context_Select = function()
 Asc['asc_docs_api'].prototype.Call_Menu_Context_SelectAll = function()
 {
     this.WordControl.m_oLogicDocument.SelectAll();
-};
-Asc['asc_docs_api'].prototype.pre_Paste = function(_fonts, _images, callback)
-{
-    AscCommon.History.Create_NewPoint(AscDFH.historydescription_PasteNative);
-    callback();
 };
 /************************************************************************/
 
