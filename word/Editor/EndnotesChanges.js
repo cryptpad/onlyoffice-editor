@@ -37,7 +37,7 @@
  * Time: 14:19
  */
 
-AscDFH.changesFactory[AscDFH.historyitem_Endnotes_AddEndnote] = CChangesEndnotesAddFootnote;
+AscDFH.changesFactory[AscDFH.historyitem_Endnotes_AddEndnote] = CChangesEndnotesAddEndnote;
 
 //----------------------------------------------------------------------------------------------------------------------
 // Карта зависимости изменений
