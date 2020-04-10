@@ -2357,6 +2357,7 @@ function CDocument(DrawingDocument, isMainLogicDocument)
 	this.LogicDocumentController = new CLogicDocumentController(this);
 	this.DrawingsController      = new CDrawingsController(this, this.DrawingObjects);
 	this.HeaderFooterController  = new CHdrFtrController(this, this.HdrFtr);
+	this.Endnotes                = new CEndnotesController(this);
 
 	this.Controller = this.LogicDocumentController;
 

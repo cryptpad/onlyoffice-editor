@@ -1259,6 +1259,7 @@
 	window['AscDFH'].historyitem_type_RunRevisionMove    = 66 << 16;
 	window['AscDFH'].historyitem_type_GlossaryDocument   = 67 << 16;
 	window['AscDFH'].historyitem_type_DocPart            = 68 << 16;
+	window['AscDFH'].historyitem_type_Endnotes           = 69 << 16;
 
 	window['AscDFH'].historyitem_type_CommonShape            = 1000 << 16; // Этот класс добавлен для элементов, у которых нет конкретного класса
 
@@ -1828,6 +1829,10 @@
 	window['AscDFH'].historyitem_Section_Footnote_NumFormat  = window['AscDFH'].historyitem_type_Section | 31;
 	window['AscDFH'].historyitem_Section_PageMargins_Gutter  = window['AscDFH'].historyitem_type_Section | 32;
 	window['AscDFH'].historyitem_Section_Gutter_RTL          = window['AscDFH'].historyitem_type_Section | 33;
+	window['AscDFH'].historyitem_Section_Endnote_Pos         = window['AscDFH'].historyitem_type_Section | 34;
+	window['AscDFH'].historyitem_Section_Endnote_NumStart    = window['AscDFH'].historyitem_type_Section | 35;
+	window['AscDFH'].historyitem_Section_Endnote_NumRestart  = window['AscDFH'].historyitem_type_Section | 36;
+	window['AscDFH'].historyitem_Section_Endnote_NumFormat   = window['AscDFH'].historyitem_type_Section | 37;
 	//------------------------------------------------------------------------------------------------------------------
 	// Типы изменений в классе AscCommon.ParaComment
 	//------------------------------------------------------------------------------------------------------------------
@@ -1887,6 +1892,10 @@
 	window['AscDFH'].historyitem_SdtPr_Equation         = window['AscDFH'].historyitem_type_SdtPr | 18;
 	window['AscDFH'].historyitem_SdtPr_Text             = window['AscDFH'].historyitem_type_SdtPr | 19;
 	window['AscDFH'].historyitem_SdtPr_Temporary        = window['AscDFH'].historyitem_type_SdtPr | 20;
+	//------------------------------------------------------------------------------------------------------------------
+	// Типы изменений в классе CSdtPr
+	//------------------------------------------------------------------------------------------------------------------
+	window['AscDFH'].historyitem_Endnotes_AddEndnote = window['AscDFH'].historyitem_type_Endnotes | 1;
 	//------------------------------------------------------------------------------------------------------------------
 	// Графические классы общего назначение (без привязки к конкретному классу)
 	//------------------------------------------------------------------------------------------------------------------

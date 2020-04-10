@@ -211,6 +211,8 @@
 			"word/Editor/StructuredDocumentTags/SdtPrChanges.js",
 			"word/Editor/Serialize2.js",
 			"word/Editor/Spelling.js",
+			"word/Editor/Endnotes.js",
+			"word/Editor/EndnotesChanges.js",
 			"word/Editor/Footnotes.js",
 			"word/Editor/FootnotesChanges.js",
 			"word/Editor/FootEndNote.js",

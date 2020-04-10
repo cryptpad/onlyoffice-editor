@@ -71,6 +71,10 @@ AscDFH.changesFactory[AscDFH.historyitem_Section_Footnote_NumRestart] = CChanges
 AscDFH.changesFactory[AscDFH.historyitem_Section_Footnote_NumFormat]  = CChangesSectionFootnoteNumFormat;
 AscDFH.changesFactory[AscDFH.historyitem_Section_PageMargins_Gutter]  = CChangesSectionPageMarginsGutter;
 AscDFH.changesFactory[AscDFH.historyitem_Section_Gutter_RTL]          = CChangesSectionGutterRTL;
+AscDFH.changesFactory[AscDFH.historyitem_Section_Endnote_Pos]         = CChangesSectionEndnotePos;
+AscDFH.changesFactory[AscDFH.historyitem_Section_Endnote_NumStart]    = CChangesSectionEndnoteNumStart;
+AscDFH.changesFactory[AscDFH.historyitem_Section_Endnote_NumRestart]  = CChangesSectionEndnoteNumRestart;
+AscDFH.changesFactory[AscDFH.historyitem_Section_Endnote_NumFormat]   = CChangesSectionEndnoteNumFormat;
 
 //----------------------------------------------------------------------------------------------------------------------
 // Карта зависимости изменений
@@ -108,6 +112,10 @@ AscDFH.changesRelationMap[AscDFH.historyitem_Section_Footnote_NumRestart] = [Asc
 AscDFH.changesRelationMap[AscDFH.historyitem_Section_Footnote_NumFormat]  = [AscDFH.historyitem_Section_Footnote_NumFormat];
 AscDFH.changesRelationMap[AscDFH.historyitem_Section_PageMargins_Gutter]  = [AscDFH.historyitem_Section_PageMargins_Gutter];
 AscDFH.changesRelationMap[AscDFH.historyitem_Section_Gutter_RTL]          = [AscDFH.historyitem_Section_Gutter_RTL];
+AscDFH.changesRelationMap[AscDFH.historyitem_Section_Endnote_Pos]         = [AscDFH.historyitem_Section_Endnote_Pos];
+AscDFH.changesRelationMap[AscDFH.historyitem_Section_Endnote_NumStart]    = [AscDFH.historyitem_Section_Endnote_NumStart];
+AscDFH.changesRelationMap[AscDFH.historyitem_Section_Endnote_NumRestart]  = [AscDFH.historyitem_Section_Endnote_NumRestart];
+AscDFH.changesRelationMap[AscDFH.historyitem_Section_Endnote_NumFormat]   = [AscDFH.historyitem_Section_Endnote_NumFormat];
 
 //----------------------------------------------------------------------------------------------------------------------
 
@@ -901,4 +909,64 @@ CChangesSectionGutterRTL.prototype.Type = AscDFH.historyitem_Section_Gutter_RTL;
 CChangesSectionGutterRTL.prototype.private_SetValue = function(Value)
 {
 	this.Class.GutterRTL = Value;
+};
+/**
+ * @constructor
+ * @extends {AscDFH.CChangesBaseLongProperty}
+ */
+function CChangesSectionEndnotePos(Class, Old, New)
+{
+	AscDFH.CChangesBaseLongProperty.call(this, Class, Old, New);
+}
+CChangesSectionEndnotePos.prototype = Object.create(AscDFH.CChangesBaseLongProperty.prototype);
+CChangesSectionEndnotePos.prototype.constructor = CChangesSectionEndnotePos;
+CChangesSectionEndnotePos.prototype.Type = AscDFH.historyitem_Section_Endnote_Pos;
+CChangesSectionEndnotePos.prototype.private_SetValue = function(Value)
+{
+	this.Class.EndnotePr.Pos = Value;
+};
+/**
+ * @constructor
+ * @extends {AscDFH.CChangesBaseLongProperty}
+ */
+function CChangesSectionEndnoteNumStart(Class, Old, New)
+{
+	AscDFH.CChangesBaseLongProperty.call(this, Class, Old, New);
+}
+CChangesSectionEndnoteNumStart.prototype = Object.create(AscDFH.CChangesBaseLongProperty.prototype);
+CChangesSectionEndnoteNumStart.prototype.constructor = CChangesSectionEndnoteNumStart;
+CChangesSectionEndnoteNumStart.prototype.Type = AscDFH.historyitem_Section_Endnote_NumStart;
+CChangesSectionEndnoteNumStart.prototype.private_SetValue = function(Value)
+{
+	this.Class.EndnotePr.NumStart = Value;
+};
+/**
+ * @constructor
+ * @extends {AscDFH.CChangesBaseLongProperty}
+ */
+function CChangesSectionEndnoteNumRestart(Class, Old, New)
+{
+	AscDFH.CChangesBaseLongProperty.call(this, Class, Old, New);
+}
+CChangesSectionEndnoteNumRestart.prototype = Object.create(AscDFH.CChangesBaseLongProperty.prototype);
+CChangesSectionEndnoteNumRestart.prototype.constructor = CChangesSectionEndnoteNumRestart;
+CChangesSectionEndnoteNumRestart.prototype.Type = AscDFH.historyitem_Section_Endnote_NumRestart;
+CChangesSectionEndnoteNumRestart.prototype.private_SetValue = function(Value)
+{
+	this.Class.EndnotePr.NumRestart = Value;
+};
+/**
+ * @constructor
+ * @extends {AscDFH.CChangesBaseLongProperty}
+ */
+function CChangesSectionEndnoteNumFormat(Class, Old, New)
+{
+	AscDFH.CChangesBaseLongProperty.call(this, Class, Old, New);
+}
+CChangesSectionEndnoteNumFormat.prototype = Object.create(AscDFH.CChangesBaseLongProperty.prototype);
+CChangesSectionEndnoteNumFormat.prototype.constructor = CChangesSectionEndnoteNumFormat;
+CChangesSectionEndnoteNumFormat.prototype.Type = AscDFH.historyitem_Section_Endnote_NumFormat;
+CChangesSectionEndnoteNumFormat.prototype.private_SetValue = function(Value)
+{
+	this.Class.EndnotePr.NumFormat = Value;
 };
