@@ -779,6 +779,17 @@
 						/*isQuickInput*/false);
 					return result;
 
+				case 186: // add current date or time Ctrl + (Shift) + ;
+					if (!canEdit || t.getCellEditMode() || t.isSelectionDialogMode) {
+						return true;
+					}
+
+					// При нажатии символа, фокус не ставим. Очищаем содержимое ячейки
+					this.handlers.trigger("editCell", /*isFocus*/false, /*isClearCell*/true, /*isHideCursor*/undefined,
+						/*isQuickInput*/true, /*callback*/undefined);
+					return result;
+
+
 				case 8: // backspace
 					if (!canEdit || t.getCellEditMode() || t.isSelectionDialogMode) {
 						return true;
