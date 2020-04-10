@@ -41,10 +41,6 @@ AscDFH.changesFactory[AscDFH.historyitem_Footnotes_AddFootnote]              = C
 AscDFH.changesFactory[AscDFH.historyitem_Footnotes_SetSeparator]             = CChangesFootnotesSetSeparator;
 AscDFH.changesFactory[AscDFH.historyitem_Footnotes_SetContinuationSeparator] = CChangesFootnotesSetContinuationSeparator;
 AscDFH.changesFactory[AscDFH.historyitem_Footnotes_SetContinuationNotice]    = CChangesFootnotesSetContinuationNotice;
-AscDFH.changesFactory[AscDFH.historyitem_Footnotes_SetFootnotePrPos]         = CChangesFootnotesSetFootnotePrPos;
-AscDFH.changesFactory[AscDFH.historyitem_Footnotes_SetFootnotePrNumStart]    = CChangesFootnotesSetFootnotePrNumStart;
-AscDFH.changesFactory[AscDFH.historyitem_Footnotes_SetFootnotePrNumRestart]  = CChangesFootnotesSetFootnotePrNumRestart;
-AscDFH.changesFactory[AscDFH.historyitem_Footnotes_SetFootnotePrNumFormat]   = CChangesFootnotesSetFootnotePrNumFormat;
 
 //----------------------------------------------------------------------------------------------------------------------
 // Карта зависимости изменений
@@ -53,10 +49,6 @@ AscDFH.changesRelationMap[AscDFH.historyitem_Footnotes_AddFootnote]             
 AscDFH.changesRelationMap[AscDFH.historyitem_Footnotes_SetSeparator]             = [AscDFH.historyitem_Footnotes_SetSeparator];
 AscDFH.changesRelationMap[AscDFH.historyitem_Footnotes_SetContinuationSeparator] = [AscDFH.historyitem_Footnotes_SetContinuationSeparator];
 AscDFH.changesRelationMap[AscDFH.historyitem_Footnotes_SetContinuationNotice]    = [AscDFH.historyitem_Footnotes_SetContinuationNotice];
-AscDFH.changesRelationMap[AscDFH.historyitem_Footnotes_SetFootnotePrPos]         = [AscDFH.historyitem_Footnotes_SetFootnotePrPos];
-AscDFH.changesRelationMap[AscDFH.historyitem_Footnotes_SetFootnotePrNumStart]    = [AscDFH.historyitem_Footnotes_SetFootnotePrNumStart];
-AscDFH.changesRelationMap[AscDFH.historyitem_Footnotes_SetFootnotePrNumRestart]  = [AscDFH.historyitem_Footnotes_SetFootnotePrNumRestart];
-AscDFH.changesRelationMap[AscDFH.historyitem_Footnotes_SetFootnotePrNumFormat]   = [AscDFH.historyitem_Footnotes_SetFootnotePrNumFormat];
 //----------------------------------------------------------------------------------------------------------------------
 
 /**
@@ -117,7 +109,7 @@ CChangesFootnotesSetSeparator.prototype.constructor = CChangesFootnotesSetSepara
 CChangesFootnotesSetSeparator.prototype.Type = AscDFH.historyitem_Footnotes_SetSeparator;
 CChangesFootnotesSetSeparator.prototype.private_SetValue = function(Value)
 {
-	this.Class.SeparatorFootnote = Value;
+	this.Class.Separator = Value;
 };
 CChangesFootnotesSetSeparator.prototype.WriteToBinary = function(Writer)
 {
@@ -174,7 +166,7 @@ CChangesFootnotesSetContinuationSeparator.prototype.constructor = CChangesFootno
 CChangesFootnotesSetContinuationSeparator.prototype.Type = AscDFH.historyitem_Footnotes_SetContinuationSeparator;
 CChangesFootnotesSetContinuationSeparator.prototype.private_SetValue = function(Value)
 {
-	this.Class.ContinuationSeparatorFootnote = Value;
+	this.Class.ContinuationSeparator = Value;
 };
 CChangesFootnotesSetContinuationSeparator.prototype.WriteToBinary = CChangesFootnotesSetSeparator.prototype.WriteToBinary;
 CChangesFootnotesSetContinuationSeparator.prototype.ReadFromBinary = CChangesFootnotesSetSeparator.prototype.ReadFromBinary;
@@ -191,67 +183,7 @@ CChangesFootnotesSetContinuationNotice.prototype.constructor = CChangesFootnotes
 CChangesFootnotesSetContinuationNotice.prototype.Type = AscDFH.historyitem_Footnotes_SetContinuationNotice;
 CChangesFootnotesSetContinuationNotice.prototype.private_SetValue = function(Value)
 {
-	this.Class.ContinuationNoticeFootnote = Value;
+	this.Class.ContinuationNotice = Value;
 };
 CChangesFootnotesSetContinuationNotice.prototype.WriteToBinary = CChangesFootnotesSetSeparator.prototype.WriteToBinary;
 CChangesFootnotesSetContinuationNotice.prototype.ReadFromBinary = CChangesFootnotesSetSeparator.prototype.ReadFromBinary;
-/**
- * @constructor
- * @extends {AscDFH.CChangesBaseLongProperty}
- */
-function CChangesFootnotesSetFootnotePrPos(Class, Old, New, Color)
-{
-	AscDFH.CChangesBaseLongProperty.call(this, Class, Old, New, Color);
-}
-CChangesFootnotesSetFootnotePrPos.prototype = Object.create(AscDFH.CChangesBaseLongProperty.prototype);
-CChangesFootnotesSetFootnotePrPos.prototype.constructor = CChangesFootnotesSetFootnotePrPos;
-CChangesFootnotesSetFootnotePrPos.prototype.Type = AscDFH.historyitem_Footnotes_SetFootnotePrPos;
-CChangesFootnotesSetFootnotePrPos.prototype.private_SetValue = function(Value)
-{
-	this.Class.FootnotePr.Pos = Value;
-};
-/**
- * @constructor
- * @extends {AscDFH.CChangesBaseLongProperty}
- */
-function CChangesFootnotesSetFootnotePrNumStart(Class, Old, New, Color)
-{
-	AscDFH.CChangesBaseLongProperty.call(this, Class, Old, New, Color);
-}
-CChangesFootnotesSetFootnotePrNumStart.prototype = Object.create(AscDFH.CChangesBaseLongProperty.prototype);
-CChangesFootnotesSetFootnotePrNumStart.prototype.constructor = CChangesFootnotesSetFootnotePrNumStart;
-CChangesFootnotesSetFootnotePrNumStart.prototype.Type = AscDFH.historyitem_Footnotes_SetFootnotePrNumStart;
-CChangesFootnotesSetFootnotePrNumStart.prototype.private_SetValue = function(Value)
-{
-	this.Class.FootnotePr.NumStart = Value;
-};
-/**
- * @constructor
- * @extends {AscDFH.CChangesBaseLongProperty}
- */
-function CChangesFootnotesSetFootnotePrNumRestart(Class, Old, New, Color)
-{
-	AscDFH.CChangesBaseLongProperty.call(this, Class, Old, New, Color);
-}
-CChangesFootnotesSetFootnotePrNumRestart.prototype = Object.create(AscDFH.CChangesBaseLongProperty.prototype);
-CChangesFootnotesSetFootnotePrNumRestart.prototype.constructor = CChangesFootnotesSetFootnotePrNumRestart;
-CChangesFootnotesSetFootnotePrNumRestart.prototype.Type = AscDFH.historyitem_Footnotes_SetFootnotePrNumRestart;
-CChangesFootnotesSetFootnotePrNumRestart.prototype.private_SetValue = function(Value)
-{
-	this.Class.FootnotePr.NumRestart = Value;
-};
-/**
- * @constructor
- * @extends {AscDFH.CChangesBaseLongProperty}
- */
-function CChangesFootnotesSetFootnotePrNumFormat(Class, Old, New, Color)
-{
-	AscDFH.CChangesBaseLongProperty.call(this, Class, Old, New, Color);
-}
-CChangesFootnotesSetFootnotePrNumFormat.prototype = Object.create(AscDFH.CChangesBaseLongProperty.prototype);
-CChangesFootnotesSetFootnotePrNumFormat.prototype.constructor = CChangesFootnotesSetFootnotePrNumFormat;
-CChangesFootnotesSetFootnotePrNumFormat.prototype.Type = AscDFH.historyitem_Footnotes_SetFootnotePrNumFormat;
-CChangesFootnotesSetFootnotePrNumFormat.prototype.private_SetValue = function(Value)
-{
-	this.Class.FootnotePr.NumFormat = Value;
-};

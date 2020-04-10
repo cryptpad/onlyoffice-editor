@@ -1851,10 +1851,6 @@
 	window['AscDFH'].historyitem_Footnotes_SetSeparator             = window['AscDFH'].historyitem_type_Footnotes | 2;
 	window['AscDFH'].historyitem_Footnotes_SetContinuationSeparator = window['AscDFH'].historyitem_type_Footnotes | 3;
 	window['AscDFH'].historyitem_Footnotes_SetContinuationNotice    = window['AscDFH'].historyitem_type_Footnotes | 4;
-	window['AscDFH'].historyitem_Footnotes_SetFootnotePrPos         = window['AscDFH'].historyitem_type_Footnotes | 5;
-	window['AscDFH'].historyitem_Footnotes_SetFootnotePrNumStart    = window['AscDFH'].historyitem_type_Footnotes | 6;
-	window['AscDFH'].historyitem_Footnotes_SetFootnotePrNumRestart  = window['AscDFH'].historyitem_type_Footnotes | 7;
-	window['AscDFH'].historyitem_Footnotes_SetFootnotePrNumFormat   = window['AscDFH'].historyitem_type_Footnotes | 8;
 	//------------------------------------------------------------------------------------------------------------------
 	// Типы изменений в классе CGlossaryDocument
 	//------------------------------------------------------------------------------------------------------------------
@@ -1895,7 +1891,7 @@
 	//------------------------------------------------------------------------------------------------------------------
 	// Типы изменений в классе CSdtPr
 	//------------------------------------------------------------------------------------------------------------------
-	window['AscDFH'].historyitem_Endnotes_AddEndnote = window['AscDFH'].historyitem_type_Endnotes | 1;
+	window["AscDFH"].historyitem_Endnotes_AddEndnote = window["AscDFH"].historyitem_type_Endnotes | 1;
 	//------------------------------------------------------------------------------------------------------------------
 	// Графические классы общего назначение (без привязки к конкретному классу)
 	//------------------------------------------------------------------------------------------------------------------

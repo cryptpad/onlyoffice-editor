@@ -865,12 +865,17 @@ CSectionPr.prototype.private_GetDocumentWideFootnotePr = function()
 {
 	return this.LogicDocument.Footnotes.FootnotePr;
 };
+/**
+ * Возвращаем настройки концевых сносок
+ * @return {CFootnotePr}
+ */
 CSectionPr.prototype.GetEndnotePr = function()
 {
 	return this.EndnotePr;
 };
 CSectionPr.prototype.SetEndnotePos = function(nPos)
 {
+	// Pos, заданная в секции не должна использоваться
 	if (nPos !== this.EndnotePr.Pos)
 	{
 		History.Add(new CChangesSectionEndnotePos(this, this.EndnotePr.Pos, nPos));
@@ -879,9 +884,7 @@ CSectionPr.prototype.SetEndnotePos = function(nPos)
 };
 CSectionPr.prototype.GetEndnotePos = function()
 {
-	if (undefined === this.EndnotePr.Pos)
-		return this.private_GetDocumentWideEndnotePr().Pos;
-
+	// Pos, заданная в секции не должна использоваться
 	return this.EndnotePr.Pos;
 };
 CSectionPr.prototype.SetEndnoteNumStart = function(nStart)
@@ -895,7 +898,7 @@ CSectionPr.prototype.SetEndnoteNumStart = function(nStart)
 CSectionPr.prototype.GetEndnoteNumStart = function()
 {
 	if (undefined === this.EndnotePr.NumStart)
-		return this.private_GetDocumentWideEndnotePr().NumStart;
+		return 1;
 
 	return this.EndnotePr.NumStart;
 };
@@ -910,7 +913,7 @@ CSectionPr.prototype.SetEndnoteNumRestart = function(nRestartType)
 CSectionPr.prototype.GetEndnoteNumRestart = function()
 {
 	if (undefined === this.EndnotePr.NumRestart)
-		return this.private_GetDocumentWideEndnotePr().NumRestart;
+		return section_footnote_RestartContinuous;
 
 	return this.EndnotePr.NumRestart;
 };
@@ -925,7 +928,7 @@ CSectionPr.prototype.SetEndnoteNumFormat = function(nFormatType)
 CSectionPr.prototype.GetEndnoteNumFormat = function()
 {
 	if (undefined === this.EndnotePr.NumFormat)
-		return this.private_GetDocumentWideEndnotePr().NumFormat;
+		return Asc.c_oAscNumberingFormat.LowerRoman;
 
 	return this.EndnotePr.NumFormat;
 };

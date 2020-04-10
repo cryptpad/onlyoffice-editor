@@ -54,6 +54,11 @@ function CEndnotesController(oLogicDocument)
 
 	this.Endnote = {};
 
+	// Специальные сноски
+	this.ContinuationNotice    = null;
+	this.ContinuationSeparator = null;
+	this.Separator             = null;
+
 	// Добавляем данный класс в таблицу Id (обязательно в конце конструктора)
 	oLogicDocument.GetTableId().Add(this, this.Id);
 }
@@ -86,7 +91,7 @@ CEndnotesController.prototype.Refresh_RecalcData2 = function(nRelPageIndex)
  * Создаем новую сноску
  * @returns {CFootEndnote}
  */
-CEndnotesController.prototype.CreateFootnote = function()
+CEndnotesController.prototype.CreateEndnote = function()
 {
 	var oEndnote = new CFootEndnote(this);
 
@@ -99,8 +104,43 @@ CEndnotesController.prototype.CreateFootnote = function()
  * Добавляем сноску (функция для открытия файла)
  * @param {CFootEndnote} oEndnote
  */
-CEndnotesController.prototype.AddFootnote = function(oEndnote)
+CEndnotesController.prototype.AddEndnote = function(oEndnote)
 {
-	this.Footnote[oEndnote.GetId()] = oEndnote;
+	this.Endnote[oEndnote.GetId()] = oEndnote;
 	this.LogicDocument.GetHistory().Add(new CChangesEndnotesAddEndnote(this, oEndnote.GetId()));
+};
+CEndnotesController.prototype.SetSeparator = CFootnotesController.prototype.SetSeparator;
+CEndnotesController.prototype.SetContinuationSeparator = CFootnotesController.prototype.SetContinuationSeparator;
+CEndnotesController.prototype.SetContinuationNotice = CFootnotesController.prototype.SetContinuationNotice;
+CEndnotesController.prototype.SetEndnotePrNumFormat = function(nFormatType)
+{
+	if (undefined !== nFormatType && this.EndnotePr.NumFormat !== nFormatType)
+	{
+		this.LogicDocument.GetHistory().Add(new CChangesSectionEndnoteNumFormat(this, this.EndnotePr.NumFormat, nFormatType));
+		this.EndnotePr.NumFormat = nFormatType;
+	}
+};
+CEndnotesController.prototype.SetEndnotePrPos = function(nPos)
+{
+	if (undefined !== nPos && this.EndnotePr.Pos !== nPos)
+	{
+		this.LogicDocument.GetHistory().Add(new CChangesSectionEndnotePos(this, this.EndnotePr.Pos, nPos));
+		this.EndnotePr.Pos = nPos;
+	}
+};
+CEndnotesController.prototype.SetEndnotePrNumStart = function(nStart)
+{
+	if (undefined !== nStart && this.EndnotePr.NumStart !== nStart)
+	{
+		this.LogicDocument.GetHistory().Add(new CChangesSectionEndnoteNumStart(this, this.EndnotePr.NumStart, nStart));
+		this.EndnotePr.NumStart = nStart;
+	}
+};
+CEndnotesController.prototype.SetEndnotePrNumRestart = function(nRestartType)
+{
+	if (undefined !== nRestartType && this.EndnotePr.NumRestart !== nRestartType)
+	{
+		this.LogicDocument.GetHistory().Add(new CChangesSectionEndnoteNumRestart(this, this.EndnotePr.NumRestart, nRestartType));
+		this.EndnotePr.NumRestart = nRestartType;
+	}
 };

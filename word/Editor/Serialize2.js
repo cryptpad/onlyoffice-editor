@@ -6489,18 +6489,18 @@ function BinarySettingsTableWriter(memory, doc, saveParams)
 		var oThis = this;
 		this.bpPrs.WriteFootnotePr(this.Document.Footnotes.FootnotePr);
 		var index = -1;
-		if (this.Document.Footnotes.SeparatorFootnote) {
-			this.saveParams.footnotes[index] = {type: 3, content: this.Document.Footnotes.SeparatorFootnote};
+		if (this.Document.Footnotes.Separator) {
+			this.saveParams.footnotes[index] = {type: 3, content: this.Document.Footnotes.Separator};
 			this.bs.WriteItem(c_oSerNotes.PrRef, function() {oThis.memory.WriteLong(index);});
 			index++
 		}
-		if (this.Document.Footnotes.ContinuationSeparatorFootnote) {
-			this.saveParams.footnotes[index] = {type: 1, content: this.Document.Footnotes.ContinuationSeparatorFootnote};
+		if (this.Document.Footnotes.ContinuationSeparator) {
+			this.saveParams.footnotes[index] = {type: 1, content: this.Document.Footnotes.ContinuationSeparator};
 			this.bs.WriteItem(c_oSerNotes.PrRef, function() {oThis.memory.WriteLong(index);});
 			index++
 		}
-		if (this.Document.Footnotes.ContinuationNoticeFootnote) {
-			this.saveParams.footnotes[index] = {type: 0, content: this.Document.Footnotes.ContinuationNoticeFootnote};
+		if (this.Document.Footnotes.ContinuationNotice) {
+			this.saveParams.footnotes[index] = {type: 0, content: this.Document.Footnotes.ContinuationNotice};
 			this.bs.WriteItem(c_oSerNotes.PrRef, function() {oThis.memory.WriteLong(index);});
 			index++
 		}
