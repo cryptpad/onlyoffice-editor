@@ -111,6 +111,9 @@ var para_FieldChar                 = 0x0045;
 var para_InstrText                 = 0x0046;
 var para_Bookmark                  = 0x0047;
 var para_RevisionMove              = 0x0048;
+var para_EndnoteReference          = 0x0049; // Ссылка на сноску
+var para_EndnoteRef                = 0x004a; // Номер сноски (должен быть только внутри сноски)
+
 
 var break_Line   = 0x01;
 var break_Page   = 0x02;
@@ -2238,6 +2241,130 @@ ParaPageCount.prototype.SetParent = function(oParent)
 ParaPageCount.prototype.GetParent = function()
 {
 	return this.Parent;
+};
+/**
+ * Класс представляющий ссылку на сноску
+ * @param {CFootEndnote} oEndnote - Ссылка на сноску
+ * @param {string} sCustomMark
+ * @constructor
+ * @extends {ParaFootnoteReference}
+ */
+function ParaEndnoteReference(oEndnote, sCustomMark)
+{
+	ParaFootnoteReference.call(this, oEndnote, sCustomMark);
+}
+ParaEndnoteReference.prototype = Object.create(ParaFootnoteReference.prototype);
+ParaEndnoteReference.prototype.constructor = ParaEndnoteReference;
+
+ParaEndnoteReference.prototype.Type = para_EndnoteReference;
+ParaEndnoteReference.prototype.Get_Type = function()
+{
+	return para_EndnoteReference;
+};
+ParaEndnoteReference.prototype.Copy = function(oPr)
+{
+	var oEndnote;
+	if (oPr && oPr.Comparison)
+	{
+		// TODO:
+		//oEndnote = oPr.Comparison.createFootNote();
+	}
+	else
+	{
+		oEndnote = this.Footnote.Parent.CreateEndnote();
+	}
+	oEndnote.Copy2(this.Footnote, oPr);
+
+	var oRef = new ParaEndnoteReference(oEndnote);
+
+	oRef.Number    = this.Number;
+	oRef.NumFormat = this.NumFormat;
+
+	return oRef;
+};
+ParaEndnoteReference.prototype.UpdateNumber = function(PRS, isKeepNumber)
+{
+	// TODO: Переделать
+	this.Number    = 1;
+	this.NumFormat = Asc.c_oAscNumberingFormat.Decimal;
+	this.private_Measure();
+	return;
+
+	if (this.Footnote && true !== PRS.IsFastRecalculate() && PRS.TopDocument instanceof CDocument)
+	{
+		var nPageAbs    = PRS.GetPageAbs();
+		var nColumnAbs  = PRS.GetColumnAbs();
+		var nAdditional = PRS.GetFootnoteReferencesCount(this);
+		var oSectPr     = PRS.GetSectPr();
+		var nNumFormat  = oSectPr.GetFootnoteNumFormat();
+
+		var oLogicDocument       = this.Footnote.Get_LogicDocument();
+		var oFootnotesController = oLogicDocument.GetFootnotesController();
+
+		if (!isKeepNumber)
+		{
+			this.NumFormat = nNumFormat;
+			this.Number    = oFootnotesController.GetFootnoteNumberOnPage(nPageAbs, nColumnAbs, oSectPr) + nAdditional;
+
+			// Если данная сноска не участвует в нумерации, просто уменьшаем ей номер на 1, для упрощения работы
+			if (this.IsCustomMarkFollows())
+				this.Number--;
+		}
+
+		this.private_Measure();
+		this.Footnote.SetNumber(this.Number, oSectPr, this.IsCustomMarkFollows());
+	}
+	else
+	{
+		this.Number    = 1;
+		this.NumFormat = Asc.c_oAscNumberingFormat.Decimal;
+		this.private_Measure();
+	}
+};
+
+/**
+ * Класс представляющий номер сноски внутри сноски.
+ * @param {CFootEndnote} oEndnote - Ссылка на сноску.
+ * @constructor
+ * @extends {ParaEndnoteReference}
+ */
+function ParaEndnoteRef(oEndnote)
+{
+	ParaEndnoteReference.call(this, oEndnote);
+}
+ParaEndnoteRef.prototype = Object.create(ParaEndnoteReference.prototype);
+ParaEndnoteRef.prototype.constructor = ParaEndnoteRef;
+
+ParaEndnoteRef.prototype.Type = para_EndnoteRef;
+ParaEndnoteRef.prototype.Get_Type = function()
+{
+	return para_EndnoteRef;
+};
+ParaEndnoteRef.prototype.Copy = function()
+{
+	return new ParaEndnoteRef(this.GetFootnote());
+};
+ParaEndnoteRef.prototype.UpdateNumber = function(oEndnote)
+{
+	// TODO: Реализовать
+	this.Number    = 1;
+	this.NumFormat = Asc.c_oAscNumberingFormat.Decimal;
+	this.private_Measure();
+	return;
+
+	this.Footnote = oEndnote;
+	if (this.Footnote && this.Footnote instanceof CFootEndnote)
+	{
+		this.Number    = this.Footnote.GetNumber();
+		this.NumFormat = this.Footnote.GetReferenceSectPr().GetFootnoteNumFormat();
+		this.private_Measure();
+	}
+	else
+	{
+		this.Number    = 1;
+		this.NumFormat = Asc.c_oAscNumberingFormat.Decimal;
+		this.private_Measure();
+	}
 };
 
 function ParagraphContent_Read_FromBinary(Reader)
