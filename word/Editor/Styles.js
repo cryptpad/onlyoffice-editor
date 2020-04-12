@@ -6360,6 +6360,40 @@ CStyle.prototype.CreateFootnoteReference = function()
 		VertAlign : AscCommon.vertalign_SuperScript
 	});
 };
+/**
+ * Стиль по умолчнию для текста концевой сноски
+ */
+CStyle.prototype.CreateEndnoteText = function()
+{
+	this.SetUiPriority(99);
+	this.SetSemiHidden(true);
+	this.SetUnhideWhenUsed(true);
+
+	this.SetParaPr({
+		Spacing : {
+			After    : 0,
+			Line     : 1,
+			LineRule : linerule_Auto
+		}
+	});
+
+	this.SetTextPr({
+		FontSize : 10
+	});
+};
+/**
+ * Стиль по умолчанию для номера сноски
+ */
+CStyle.prototype.CreateEndnoteReference = function()
+{
+	this.SetUiPriority(99);
+	this.SetSemiHidden(true);
+	this.SetUnhideWhenUsed(true);
+
+	this.SetTextPr({
+		VertAlign : AscCommon.vertalign_SuperScript
+	});
+};
 CStyle.prototype.CreateTOC = function(nLvl, nType)
 {
 	var ParaPr = {},
@@ -7191,7 +7225,8 @@ CStyle.prototype.IsExpressStyle = function(oStyles)
 		&& oStyles.Default
 		&& (oStyles.Default.Header === this.Id
 		|| oStyles.Default.Footer === this.Id
-		|| oStyles.Default.FootnoteText === this.Id))
+		|| oStyles.Default.FootnoteText === this.Id
+		|| oStyles.Default.EndnoteText === this.Id))
 		return true;
 
 	return false;
@@ -7280,7 +7315,10 @@ function CStyles(bCreateDefault)
 			IntenseQuote      : null,
 			TOC               : [],
 			TOCHeading        : null,
-			Caption           : null
+			Caption           : null,
+			EndnoteText       : null,
+			EndnoteTextChar   : null,
+			EndnoteReference  : null
 		};
 
         // Заполняем значения по умолчанию
@@ -7911,6 +7949,16 @@ function CStyles(bCreateDefault)
 		oFootnoteReference.CreateFootnoteReference();
 		this.Default.FootnoteReference = this.Add(oFootnoteReference);
 
+		// Создаем стили для концевых сносок
+		var oEndnoteText = new CStyle("endnote text", this.Default.Paragraph, null, styletype_Paragraph);
+		oEndnoteText.CreateEndnoteText();
+		this.Default.EndnoteText = this.Add(oEndnoteText);
+		this.Default.EndnoteTextChar = this.Add(oEndnoteText.CreateLinkedCharacterStyle("Endnote Text Char"), this.Default.Character);
+
+		var oEndnoteReference = new CStyle("endnote reference", this.Default.Character, null, styletype_Character);
+		oEndnoteReference.CreateEndnoteReference();
+		this.Default.EndnoteReference = this.Add(oEndnoteReference);
+
 		for (var nLvl = 0; nLvl <= 8; ++nLvl)
 		{
 			var oStyleTOC = new CStyle("toc " + (nLvl + 1), this.Default.Paragraph, this.Default.Paragraph, styletype_Paragraph);
@@ -7950,7 +7998,10 @@ function CStyles(bCreateDefault)
 
 			TOC               : [],
 			TOCHeading        : null,
-			Caption           : null
+			Caption           : null,
+			EndnoteText       : null,
+			EndnoteTextChar   : null,
+			EndnoteReference  : null
 		};
 
 		// Заполняем значения по умолчанию
@@ -8170,6 +8221,33 @@ CStyles.prototype =
 		}
 	},
 
+	SetDefaultEndnoteText : function(Id)
+	{
+		if (Id !== this.Default.EndnoteText)
+		{
+			History.Add(new CChangesStylesChangeDefaultEndnoteTextId(this, this.Default.EndnoteText, Id));
+			this.Default.EndnoteText = Id;
+		}
+	},
+
+	SetDefaultEndnoteTextChar : function(Id)
+	{
+		if (Id !== this.Default.EndnoteTextChar)
+		{
+			History.Add(new CChangesStylesChangeDefaultEndnoteTextCharId(this, this.Default.EndnoteTextChar, Id));
+			this.Default.EndnoteTextChar = Id;
+		}
+	},
+
+	SetDefaultEndnoteReference : function(Id)
+	{
+		if (Id !== this.Default.EndnoteReference)
+		{
+			History.Add(new CChangesStylesChangeDefaultEndnoteReferenceId(this, this.Default.EndnoteReference, Id));
+			this.Default.EndnoteReference = Id;
+		}
+	},
+
 	RemapIdReferences : function(OldId, NewId)
 	{
 		if (OldId === this.Default.Paragraph)
@@ -8207,6 +8285,15 @@ CStyles.prototype =
 
 		if (OldId === this.Default.FootnoteReference)
 			this.SetDefaultFootnoteReference(NewId);
+
+		if (OldId === this.Default.EndnoteText)
+			this.SetDefaultEndnoteText(NewId);
+
+		if (OldId === this.Default.EndnoteTextChar)
+			this.SetDefaultEndnoteTextChar(NewId);
+
+		if (OldId === this.Default.EndnoteReference)
+			this.SetDefaultEndnoteReference(NewId);
 
 		for (var nIndex = 0, nCount = this.Default.Headings.length; nIndex < nCount; ++nIndex)
 		{
@@ -9224,7 +9311,10 @@ CStyles.prototype.Is_StyleDefault = function(sStyleName)
 		|| StyleId == this.Default.Subtitle
 		|| StyleId == this.Default.Quote
 		|| StyleId == this.Default.IntenseQuote
-		|| StyleId == this.Default.Caption)
+		|| StyleId == this.Default.Caption
+		|| StyleId == this.Default.EndnoteText
+		|| StyleId == this.Default.EndnoteTextChar
+		|| StyleId == this.Default.EndnoteReference)
 	{
 		return true;
 	}
@@ -9383,6 +9473,18 @@ CStyles.prototype.GetDefaultFootnoteTextChar = function()
 CStyles.prototype.GetDefaultFootnoteReference = function()
 {
 	return this.Default.FootnoteReference;
+};
+CStyles.prototype.GetDefaultEndnoteText = function()
+{
+	return this.Default.EndnoteText;
+};
+CStyles.prototype.GetDefaultEndnoteTextChar = function()
+{
+	return this.Default.EndnoteTextChar;
+};
+CStyles.prototype.GetDefaultEndnoteReference = function()
+{
+	return this.Default.EndnoteReference;
 };
 CStyles.prototype.GetDefaultTOC = function(nLvl)
 {

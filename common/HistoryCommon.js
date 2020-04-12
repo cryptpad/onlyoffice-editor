@@ -1688,6 +1688,9 @@
 	window['AscDFH'].historyitem_Styles_ChangeDefaultQuoteId             = window['AscDFH'].historyitem_type_Styles | 21;
 	window['AscDFH'].historyitem_Styles_ChangeDefaultIntenseQuoteId      = window['AscDFH'].historyitem_type_Styles | 22;
 	window['AscDFH'].historyitem_Styles_ChangeDefaultCaption             = window['AscDFH'].historyitem_type_Styles | 23;
+	window['AscDFH'].historyitem_Styles_ChangeDefaultEndnoteTextId       = window['AscDFH'].historyitem_type_Styles | 24;
+	window['AscDFH'].historyitem_Styles_ChangeDefaultEndnoteTextCharId   = window['AscDFH'].historyitem_type_Styles | 25;
+	window['AscDFH'].historyitem_Styles_ChangeDefaultEndnoteReferenceId  = window['AscDFH'].historyitem_type_Styles | 26;
 	//------------------------------------------------------------------------------------------------------------------
 	// Типы изменений в классе ParaMath
 	//------------------------------------------------------------------------------------------------------------------
@@ -3241,6 +3244,7 @@
 	window['AscDFH'].historydescription_Document_DrawTable                          = 0x0175;
 	window['AscDFH'].historydescription_Document_AddDateTimeField                   = 0x0176;
 	window['AscDFH'].historydescription_Document_SetContentControlTextPlaceholder   = 0x0177;
+	window['AscDFH'].historydescription_Document_AddEndnote                         = 0x0178;
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
