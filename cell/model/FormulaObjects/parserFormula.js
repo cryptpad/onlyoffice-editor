@@ -2728,6 +2728,7 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 	cBaseFunction.prototype.returnValueType = null;
 	cBaseFunction.prototype.inheritFormat = null;
 	cBaseFunction.prototype.name = null;
+	cBaseFunction.prototype.argumentsType = null;
 	cBaseFunction.prototype.Calculate = function () {
 		return new cError(cErrorType.wrong_name);
 	};

@@ -456,6 +456,13 @@ var c_oAscPopUpSelectorType = {
       current: 2
   };
 
+  var c_oAscFormulaArgumentType = {
+    number: 0,
+    text: 1,
+    reference: 2,
+    any: 3
+  };
+
   var c_kMaxPrintPages = 1500;
 
   //----------------------------------------------------------export----------------------------------------------------
@@ -721,5 +728,12 @@ var c_oAscPopUpSelectorType = {
   prot['first'] = prot.first;
   prot['frozen'] = prot.frozen;
   prot['current'] = prot.current;
+
+  window['Asc']['c_oAscFormulaArgumentType'] = window['Asc'].c_oAscFormulaArgumentType = c_oAscFormulaArgumentType;
+  prot = c_oAscPrintTitlesRangeType;
+  prot['number'] = prot.number;
+  prot['text'] = prot.text;
+  prot['reference'] = prot.reference;
+  prot['any'] = prot.any;
 
 })(window);

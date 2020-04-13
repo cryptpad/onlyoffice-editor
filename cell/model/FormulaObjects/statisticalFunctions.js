@@ -55,6 +55,7 @@ function (window, undefined) {
 	var cBaseFunction = AscCommonExcel.cBaseFunction;
 	var checkTypeCell = AscCommonExcel.checkTypeCell;
 	var cFormulaFunctionGroup = AscCommonExcel.cFormulaFunctionGroup;
+	var argType = Asc.c_oAscFormulaArgumentType;
 
 	var _func = AscCommonExcel._func;
 	var matching = AscCommonExcel.matching;
@@ -3905,6 +3906,7 @@ function (window, undefined) {
 	cAVERAGEIF.prototype.argumentsMin = 2;
 	cAVERAGEIF.prototype.argumentsMax = 3;
 	cAVERAGEIF.prototype.arrayIndexes = {0: 1, 2: 1};
+	cAVERAGEIF.prototype.argumentsType = [argType.reference, argType.any, argType.reference];
 	cAVERAGEIF.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1], arg2 = arg[2] ? arg[2] : arg[0], _sum = 0, _count = 0, matchingInfo, ws;
 		if ((cElementType.cell !== arg0.type && cElementType.cell3D !== arg0.type && cElementType.cellsRange !==

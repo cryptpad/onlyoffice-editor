@@ -52,6 +52,7 @@
 	var cArray = AscCommonExcel.cArray;
 	var cBaseFunction = AscCommonExcel.cBaseFunction;
 	var cFormulaFunctionGroup = AscCommonExcel.cFormulaFunctionGroup;
+	var argType = Asc.c_oAscFormulaArgumentType;
 
 	var _func = AscCommonExcel._func;
 
@@ -193,6 +194,7 @@
 	cABS.prototype.name = 'ABS';
 	cABS.prototype.argumentsMin = 1;
 	cABS.prototype.argumentsMax = 1;
+	cABS.prototype.argumentsType = [argType.number];
 	cABS.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
@@ -228,6 +230,7 @@
 	cACOS.prototype.name = 'ACOS';
 	cACOS.prototype.argumentsMin = 1;
 	cACOS.prototype.argumentsMax = 1;
+	cACOS.prototype.argumentsType = [argType.number];
 	cACOS.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
