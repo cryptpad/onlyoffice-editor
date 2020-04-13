@@ -144,3 +144,14 @@ CEndnotesController.prototype.SetEndnotePrNumRestart = function(nRestartType)
 		this.EndnotePr.NumRestart = nRestartType;
 	}
 };
+/**
+ * Проверяем, используется заданная сноска в документе.
+ * @param {string} sFootnoteId
+ * @param {CFootEndnote.array} arrEndnotesList
+ * @returns {boolean}
+ */
+CEndnotesController.prototype.Is_UseInDocument = function(sFootnoteId, arrEndnotesList)
+{
+	// TODO: Реализовать
+	return true;
+};

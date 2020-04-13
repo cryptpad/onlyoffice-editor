@@ -2405,6 +2405,8 @@ function ParagraphContent_Read_FromBinary(Reader)
 		case para_FieldChar             : Element = new ParaFieldChar(); break;
 		case para_InstrText             : Element = new ParaInstrText(); break;
 		case para_RevisionMove          : Element = new CRunRevisionMove(); break;
+		case para_EndnoteReference      : Element = new ParaEndnoteReference(); break;
+		case para_EndnoteRef            : Element = new ParaEndnoteRef(); break;
 	}
 
 	if (null != Element)

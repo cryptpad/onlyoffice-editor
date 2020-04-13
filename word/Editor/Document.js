@@ -70,6 +70,7 @@ var docpostype_Content        = 0x00;
 var docpostype_HdrFtr         = 0x02;
 var docpostype_DrawingObjects = 0x03;
 var docpostype_Footnotes      = 0x04;
+var docpostype_Endnotes       = 0x05;
 
 var selectionflag_Common        = 0x000;
 var selectionflag_Numbering     = 0x001; // Выделена нумерация
@@ -16164,6 +16165,47 @@ CDocument.prototype.GetFootnotesList = function(oFirstFootnote, oLastFootnote)
 
 	return arrFootnotes;
 };
+CDocument.prototype.AddEndnote = function(sText)
+{
+	var nDocPosType = this.GetDocPosType();
+	if (docpostype_Content !== nDocPosType && docpostype_Endnotes !== nDocPosType)
+		return;
+
+	if (false === this.Document_Is_SelectionLocked(changestype_Paragraph_Content))
+	{
+		this.StartAction(AscDFH.historydescription_Document_AddEndnote);
+
+		var nDocPosType = this.GetDocPosType();
+		if (docpostype_Content === nDocPosType)
+		{
+			var oEndnote = this.Endnotes.CreateEndnote();
+			oEndnote.AddDefaultEndnoteContent(sText);
+
+			if (true === this.IsSelectionUse())
+			{
+				this.MoveCursorRight(false, false, false);
+				this.RemoveSelection();
+			}
+
+			if (sText)
+				this.AddToParagraph(new ParaEndnoteReference(oEndnote, sText));
+			else
+				this.AddToParagraph(new ParaEndnoteReference(oEndnote));
+
+			// TODO: Реализовать
+			//this.SetDocPosType(docpostype_Footnotes);
+			//this.Footnotes.Set_CurrentElement(true, 0, oFootnote);
+		}
+		else if (docpostype_Endnotes === nDocPosType)
+		{
+			// TODO: Реализовать
+			//this.Footnotes.AddFootnoteRef();
+		}
+
+		this.Recalculate();
+		this.FinalizeAction();
+	}
+};
 CDocument.prototype.TurnOffCheckChartSelection = function()
 {
 	if (this.DrawingObjects)
@@ -16667,6 +16709,8 @@ CDocument.prototype.controller_AddToParagraph = function(ParaItem, bRecalculate)
 			case para_Separator:
 			case para_ContinuationSeparator:
 			case para_InstrText:
+			case para_EndnoteReference:
+			case para_EndnoteRef:
 			{
 				if (ParaItem instanceof AscCommonWord.MathMenu)
 				{
