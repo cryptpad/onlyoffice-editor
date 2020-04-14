@@ -7487,7 +7487,7 @@ function BinaryFileReader(doc, openParams)
 					}
 				}
 			}
-			//this.oReadResult.logicDocument.Endnotes.ResetSpecialEndnotes();
+			this.oReadResult.logicDocument.Endnotes.ResetSpecialEndnotes();
 			for (var i = 0; i < this.oReadResult.endnoteRefs.length; ++i) {
 				var endnote = this.oReadResult.endnotes[this.oReadResult.endnoteRefs[i]];
 				if (endnote) {
