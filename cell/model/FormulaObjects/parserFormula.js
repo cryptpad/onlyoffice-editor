@@ -5106,6 +5106,10 @@ _func[cElementType.cell3D] = _func[cElementType.cell];
 		this.error = undefined;
 		this.operand_expected = undefined;
 		this.argPos = undefined;
+
+		//for formula wizard
+		this.lastInsertedFormulaPos = undefined;
+		this.argPosArr = [];
 	}
 
 	ParseResult.prototype.addRefPos = function(start, end, index, oper, isName) {
@@ -5699,10 +5703,8 @@ function parserFormula( formula, parent, _ws ) {
 		cFormulaList = (local && AscCommonExcel.cFormulaFunctionLocalized) ? AscCommonExcel.cFormulaFunctionLocalized : cFormulaFunction;
 		var leftParentArgumentsCurrentArr = [];
 
-		var temp = [];
 		var needFuncLevel = 0;
-		var needFuncStartPos = 19;
-		var argPosArr = [];
+		var needFuncStartPos = parseResult.lastInsertedFormulaPos;
 
 		var t = this;
 		var parseOperators = function(){
@@ -5876,7 +5878,7 @@ function parserFormula( formula, parent, _ws ) {
 				}
 			}
 			if (needFuncLevel === 1) {
-				argPosArr.push(ph.pCurrPos);
+				parseResult.argPosArr.push(ph.pCurrPos);
 			}
 			if(needFuncLevel > 0) {
 				needFuncLevel--;
@@ -5931,7 +5933,7 @@ function parserFormula( formula, parent, _ws ) {
 			parseResult.argPos = leftParentArgumentsCurrentArr[top_elem_arg_pos];
 			parseResult.operand_expected = true;
 			if (needFuncLevel === 1) {
-				argPosArr.push(ph.pCurrPos);
+				parseResult.argPosArr.push(ph.pCurrPos);
 			}
 			return true;
 		};

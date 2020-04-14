@@ -787,9 +787,11 @@
 
 		var bbox = this.options.bbox;
 		this._parseResult = new AscCommonExcel.ParseResult([], []);
+		this._parseResult.lastInsertedFormulaPos = this.lastInsertedFormulaPos;
 		var cellWithFormula = new window['AscCommonExcel'].CCellWithFormula(ws, bbox.r1, bbox.c1);
 		this._formula = new AscCommonExcel.parserFormula(s.substr(1), cellWithFormula, ws);
 		this._formula.parse(true, true, this._parseResult, true);
+		this.argPosArr = this._parseResult.argPosArr;
 
 		var r, oper, wsName = null, bboxOper, isName = false;
 

@@ -2211,16 +2211,32 @@
 		}
 	};
 
-	WorkbookView.prototype.insertArgumentInFormula = function(val, argNum) {
+	WorkbookView.prototype.insertArgumentInFormula = function(val, argNum, type) {
 		if (!this.getCellEditMode()) {
 			return;
 		}
 
+		//argPosArr
+		if (!this.argPosArr || !this.argPosArr[argNum]) {
+			return;
+		}
+
 		//полностью заменяем аргумент - для этого чистим предыдущую запись
-		/*this.cellEditor.selectionBegin;
-		this.cellEditor.selectionEnd;
-		this.cellEditor.empty();*/
+		this.cellEditor.selectionBegin = this.argPosArr[argNum - 1] + 1;
+		this.cellEditor.selectionEnd = this.argPosArr[argNum] - 1;
+		this.cellEditor.empty();
 		this.cellEditor.paste(val, this.lastFPos);
+
+		//далее необходимо проверить этот аргумент на принадлежность тому или иному типу
+		//и вернуть ответ, который должен быть записан справа от аргумента
+		//те необходимо создать формулу из одного аргумента и выполнить расчет
+		var ws = this.model.getActiveWs();
+		var cellWithFormula = this.cellEditor._formula.parent;
+		var parser = new parserFormula(val, cellWithFormula, ws);
+		parser.parse();
+
+
+		return null;
 	};
 
   WorkbookView.prototype.bIsEmptyClipboard = function() {
