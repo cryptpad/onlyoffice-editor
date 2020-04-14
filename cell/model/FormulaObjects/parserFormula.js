@@ -5699,6 +5699,11 @@ function parserFormula( formula, parent, _ws ) {
 		cFormulaList = (local && AscCommonExcel.cFormulaFunctionLocalized) ? AscCommonExcel.cFormulaFunctionLocalized : cFormulaFunction;
 		var leftParentArgumentsCurrentArr = [];
 
+		var temp = [];
+		var needFuncLevel = 0;
+		var needFuncStartPos = 19;
+		var argPosArr = [];
+
 		var t = this;
 		var parseOperators = function(){
 			wasLeftParentheses = false;
@@ -5870,6 +5875,12 @@ function parserFormula( formula, parent, _ws ) {
 					t.outStack.push(cSpecialOperandEnd.prototype);
 				}
 			}
+			if (needFuncLevel === 1) {
+				argPosArr.push(ph.pCurrPos);
+			}
+			if(needFuncLevel > 0) {
+				needFuncLevel--;
+			}
 
 			return true;
 		};
@@ -5919,6 +5930,9 @@ function parserFormula( formula, parent, _ws ) {
 			leftParentArgumentsCurrentArr[top_elem_arg_pos]++;
 			parseResult.argPos = leftParentArgumentsCurrentArr[top_elem_arg_pos];
 			parseResult.operand_expected = true;
+			if (needFuncLevel === 1) {
+				argPosArr.push(ph.pCurrPos);
+			}
 			return true;
 		};
 
@@ -6183,6 +6197,11 @@ function parserFormula( formula, parent, _ws ) {
 					parseResult.addElem(found_operator);
 					if("SUMPRODUCT" === found_operator.name){
 						startSumproduct = true;
+					}
+					if (needFuncStartPos === ph.pCurrPos - ph.operand_str.length) {
+						needFuncLevel++;
+					} else if (needFuncLevel > 0) {
+						needFuncLevel++;
 					}
 				} else if(!ignoreErrors) {
 					parseResult.setError(c_oAscError.ID.FrmlWrongFunctionName);

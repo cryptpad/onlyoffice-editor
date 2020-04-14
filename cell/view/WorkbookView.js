@@ -2183,6 +2183,7 @@
 				// Вычисляем позицию курсора (он должен быть в функции)
 				cursorPos = name.length - 1;
 			}
+			this.cellEditor.lastInsertedFormulaPos = cursorPos;
 
 			var openEditor = function (res) {
 				if (res) {
@@ -2208,6 +2209,18 @@
 
 			ws._isLockedCells(activeCellRange, /*subType*/null, openEditor);
 		}
+	};
+
+	WorkbookView.prototype.insertArgumentInFormula = function(val, argNum) {
+		if (!this.getCellEditMode()) {
+			return;
+		}
+
+		//полностью заменяем аргумент - для этого чистим предыдущую запись
+		/*this.cellEditor.selectionBegin;
+		this.cellEditor.selectionEnd;
+		this.cellEditor.empty();*/
+		this.cellEditor.paste(val, this.lastFPos);
 	};
 
   WorkbookView.prototype.bIsEmptyClipboard = function() {

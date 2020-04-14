@@ -173,6 +173,7 @@
 
 		this._formula = null;
 		this._parseResult = null;
+		this.lastInsertedFormulaPos = null;
 
 		// Обработчик кликов
 		this.clickCounter = new AscFormat.ClickCounter();
@@ -694,6 +695,7 @@
 		// Меняем позицию курсора внутрь скобок
 		if ( !isDefName ) {
 			this._moveCursor( kPosition, this.cursorPos - 1 );
+			this.lastInsertedFormulaPos = this.cursorPos - 1;
 		}
 		this.skipTLUpdate = tmp;
 	};
