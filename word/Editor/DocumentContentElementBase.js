@@ -248,13 +248,13 @@ CDocumentContentElementBase.prototype.SelectAll = function(nDirection)
 CDocumentContentElementBase.prototype.GetCalculatedTextPr = function()
 {
 	var oTextPr = new CTextPr();
-	oTextPr.Init_Default();
+	oTextPr.InitDefault();
 	return oTextPr;
 };
 CDocumentContentElementBase.prototype.GetCalculatedParaPr = function()
 {
 	var oParaPr = new CParaPr();
-	oParaPr.Init_Default();
+	oParaPr.InitDefault();
 	return oParaPr;
 };
 CDocumentContentElementBase.prototype.GetDirectParaPr = function()

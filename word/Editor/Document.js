@@ -1997,17 +1997,10 @@ CSelectedElementsInfo.prototype.GetTrackMoveMarks = function()
 	return this.m_arrMoveMarks;
 };
 
-var document_compatibility_mode_Word11  = 11;
-var document_compatibility_mode_Word12  = 12;
-var document_compatibility_mode_Word14  = 14;
-var document_compatibility_mode_Word15  = 15;
-
-var document_compatibility_mode_Current = document_compatibility_mode_Word12;
-
 function CDocumentSettings()
 {
     this.MathSettings      = undefined !== CMathSettings ? new CMathSettings() : {};
-    this.CompatibilityMode = document_compatibility_mode_Current;
+    this.CompatibilityMode = AscCommon.document_compatibility_mode_Current;
     this.SdtSettings       = new CSdtGlobalSettings();
 
     this.ListSeparator = undefined;
@@ -2386,6 +2379,8 @@ CDocument.prototype.Init                           = function()
 };
 CDocument.prototype.On_EndLoad                     = function()
 {
+	this.UpdateDefaultsDependingOnCompatibility();
+
     // Обновляем информацию о секциях
     this.UpdateAllSectionsInfo();
 
@@ -2415,6 +2410,10 @@ CDocument.prototype.On_EndLoad                     = function()
     {
         this.Set_FastCollaborativeEditing(true);
     }
+};
+CDocument.prototype.UpdateDefaultsDependingOnCompatibility = function()
+{
+	this.Styles.UpdateDefaultsDependingOnCompatibility(this.GetCompatibilityMode());
 };
 CDocument.prototype.private_UpdateFieldsOnEndLoad = function()
 {
@@ -24140,7 +24139,6 @@ window['AscCommon'].X_Right_Margin = X_Right_Margin;
 window['AscCommon'].Y_Bottom_Margin = Y_Bottom_Margin;
 window['AscCommon'].Y_Top_Margin = Y_Top_Margin;
 window['AscCommon'].selectionflag_Common = selectionflag_Common;
-window['AscCommon'].document_compatibility_mode_Word15 = document_compatibility_mode_Word15;
 
 CDocumentColumnProps.prototype['put_W']     = CDocumentColumnProps.prototype.put_W;
 CDocumentColumnProps.prototype['get_W']     = CDocumentColumnProps.prototype.get_W;

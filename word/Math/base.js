@@ -768,7 +768,7 @@ CMathBase.prototype.Set_CompiledCtrPrp = function(Parent, ParaMath, RPI)
         if (undefined === ParaMath || null === ParaMath)
         {
             this.CompiledCtrPrp = new CTextPr();
-            this.CompiledCtrPrp.Init_Default();
+            this.CompiledCtrPrp.InitDefault();
             return;
         }
 

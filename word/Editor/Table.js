@@ -2464,7 +2464,7 @@ CTable.prototype.GetTableOffsetCorrection = function()
 	if (true === this.Parent.IsTableCellContent()
 		|| this.bPresentation
 		|| !this.LogicDocument
-		|| this.LogicDocument.GetCompatibilityMode() >= document_compatibility_mode_Word15)
+		|| this.LogicDocument.GetCompatibilityMode() >= AscCommon.document_compatibility_mode_Word15)
 		return 0;
 
 	var Row     = this.Content[0];
@@ -2507,7 +2507,7 @@ CTable.prototype.GetRightTableOffsetCorrection = function()
 	if (true === this.Parent.IsTableCellContent()
 		|| this.bPresentation
 		|| !this.LogicDocument
-		|| this.LogicDocument.GetCompatibilityMode() >= document_compatibility_mode_Word15)
+		|| this.LogicDocument.GetCompatibilityMode() >= AscCommon.document_compatibility_mode_Word15)
 		return 0;
 
 	var Row         = this.Content[0];

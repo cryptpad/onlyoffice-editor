@@ -2011,6 +2011,13 @@
 		g_oLcidIdToNameMap[id] = name;
 	}
 
+	var document_compatibility_mode_Word11 = 11;
+	var document_compatibility_mode_Word12 = 12;
+	var document_compatibility_mode_Word14 = 14;
+	var document_compatibility_mode_Word15 = 15;
+
+	var document_compatibility_mode_Current = document_compatibility_mode_Word12;
+
 	//------------------------------------------------------------export--------------------------------------------------
 	var prot;
 	window['Asc']                          = window['Asc'] || {};
@@ -2955,5 +2962,11 @@
 	prot['DropDownList'] = c_oAscContentControlSpecificType.DropDownList;
 	prot['DateTime']     = c_oAscContentControlSpecificType.DateTime;
 	prot['TOC']          = c_oAscContentControlSpecificType.TOC;
+
+	window["AscCommon"].document_compatibility_mode_Word11  = document_compatibility_mode_Word11;
+	window["AscCommon"].document_compatibility_mode_Word12  = document_compatibility_mode_Word12;
+	window["AscCommon"].document_compatibility_mode_Word14  = document_compatibility_mode_Word14;
+	window["AscCommon"].document_compatibility_mode_Word15  = document_compatibility_mode_Word15;
+	window["AscCommon"].document_compatibility_mode_Current = document_compatibility_mode_Current;
 
 })(window);

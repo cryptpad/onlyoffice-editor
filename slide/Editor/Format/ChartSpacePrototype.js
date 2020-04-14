@@ -710,7 +710,7 @@ CStyle.prototype.Create_NormalTable = function()
     this.Set_TablePr( TablePr );
 };
 
-CTablePr.prototype.Init_Default = function()
+CTablePr.prototype.InitDefault = function()
 {
     this.TableStyleColBandSize = 1;
     this.TableStyleRowBandSize = 1;

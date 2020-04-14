@@ -6496,7 +6496,7 @@ function BinarySettingsTableWriter(memory, doc, saveParams)
 	this.WriteCompat = function()
 	{
 		var oThis = this;
-		var compatibilityMode =  false === this.saveParams.isCompatible ? document_compatibility_mode_Word15 : oThis.Document.GetCompatibilityMode();
+		var compatibilityMode =  false === this.saveParams.isCompatible ? AscCommon.document_compatibility_mode_Word15 : oThis.Document.GetCompatibilityMode();
 		this.bs.WriteItem(c_oSerCompat.CompatSetting, function() {oThis.WriteCompatSetting("compatibilityMode", "http://schemas.microsoft.com/office/word", compatibilityMode.toString());});
 		this.bs.WriteItem(c_oSerCompat.CompatSetting, function() {oThis.WriteCompatSetting("overrideTableStyleFontSizeAndJustification", "http://schemas.microsoft.com/office/word", "1");});
 		this.bs.WriteItem(c_oSerCompat.CompatSetting, function() {oThis.WriteCompatSetting("enableOpenTypeFeatures", "http://schemas.microsoft.com/office/word", "1");});

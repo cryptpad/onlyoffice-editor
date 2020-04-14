@@ -3662,7 +3662,7 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
 					PRS.LastTab.TabRightEdge = TabPos.TabRightEdge;
 
 					var oLogicDocument     = PRS.Paragraph.LogicDocument;
-					var nCompatibilityMode = oLogicDocument && oLogicDocument.GetCompatibilityMode ? oLogicDocument.GetCompatibilityMode() : document_compatibility_mode_Current;
+					var nCompatibilityMode = oLogicDocument && oLogicDocument.GetCompatibilityMode ? oLogicDocument.GetCompatibilityMode() : AscCommon.document_compatibility_mode_Current;
 
 					// Если таб не левый, значит он не может быть сразу рассчитан, а если левый, тогда
                     // рассчитываем его сразу здесь
@@ -3673,7 +3673,7 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
 
 						// В Word2013 и раньше, если не левый таб заканчивается правее правой границы, тогда у параграфа
 						// правая граница имеет максимально возможное значение (55см)
-						if (AscCommon.MMToTwips(TabPos.NewX) > AscCommon.MMToTwips(XEnd) && nCompatibilityMode <= document_compatibility_mode_Word14)
+						if (AscCommon.MMToTwips(TabPos.NewX) > AscCommon.MMToTwips(XEnd) && nCompatibilityMode <= AscCommon.document_compatibility_mode_Word14)
 						{
 							Para.Lines[PRS.Line].Ranges[PRS.Range].XEnd = 558.7;
 							XEnd                                        = 558.7;
@@ -3683,14 +3683,14 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
                     else
 					{
 						// TODO: Если таб расположен между правым полем страницы и правым отступом параграфа (отступ
-						// должен быть положительным), то начиная с версии document_compatibility_mode_Word15
+						// должен быть положительным), то начиная с версии AscCommon.document_compatibility_mode_Word15
 						// табы немного неправильно рассчитываются. Смотри файл "Табы. Рассчет табов рядом с правым краем(2016).docx"
 
 						var twX    = AscCommon.MMToTwips(X);
 						var twXEnd = AscCommon.MMToTwips(XEnd);
 						var twNewX = AscCommon.MMToTwips(NewX);
 
-						if (nCompatibilityMode <= document_compatibility_mode_Word14
+						if (nCompatibilityMode <= AscCommon.document_compatibility_mode_Word14
 							&& !isLastTabToRightEdge
 							&& true !== TabPos.DefaultTab
 							&& (twNewX >= twXEnd && XEnd < 558.7 && PRS.Range >= PRS.RangesCount - 1))
@@ -4818,9 +4818,9 @@ ParaRun.prototype.private_RecalculateLastTab = function(LastTab, X, XEnd, Word, 
         var TabPos    = LastTab.TabPos;
 
 		var oLogicDocument     = this.Paragraph ? this.Paragraph.LogicDocument : null;
-		var nCompatibilityMode = oLogicDocument && oLogicDocument.GetCompatibilityMode ? oLogicDocument.GetCompatibilityMode() : document_compatibility_mode_Current;
+		var nCompatibilityMode = oLogicDocument && oLogicDocument.GetCompatibilityMode ? oLogicDocument.GetCompatibilityMode() : AscCommon.document_compatibility_mode_Current;
 
-		if (AscCommon.MMToTwips(TabPos) > AscCommon.MMToTwips(XEnd) && nCompatibilityMode >= document_compatibility_mode_Word15)
+		if (AscCommon.MMToTwips(TabPos) > AscCommon.MMToTwips(XEnd) && nCompatibilityMode >= AscCommon.document_compatibility_mode_Word15)
 		{
 			TabValue = tab_Right;
 			TabPos   = XEnd;
@@ -7546,7 +7546,7 @@ ParaRun.prototype.Internal_Compile_Pr = function ()
 		// Сюда мы никогда не должны попадать, но на всякий случай,
 		// чтобы не выпадало ошибок сгенерим дефолтовые настройки
 		var TextPr = new CTextPr();
-		TextPr.Init_Default();
+		TextPr.InitDefault();
 		this.RecalcInfo.TextPr = true;
 		return TextPr;
 	}
@@ -7574,7 +7574,7 @@ ParaRun.prototype.Internal_Compile_Pr = function ()
 			// Сюда мы никогда не должны попадать, но на всякий случай,
 			// чтобы не выпадало ошибок сгенерим дефолтовые настройки
 			var TextPr = new CTextPr();
-			TextPr.Init_Default();
+			TextPr.InitDefault();
 			this.RecalcInfo.TextPr = true;
 			return TextPr;
 		}
