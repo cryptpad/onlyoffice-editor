@@ -464,6 +464,13 @@ var c_oAscPopUpSelectorType = {
     logical: 4
   };
 
+  var c_oAscCFType = {
+    selection: 1,
+    worksheet: 2,
+    table: 3,
+    pivot: 4
+  };
+
   var c_kMaxPrintPages = 1500;
 
   //----------------------------------------------------------export----------------------------------------------------
@@ -737,5 +744,12 @@ var c_oAscPopUpSelectorType = {
   prot['reference'] = prot.reference;
   prot['any'] = prot.any;
   prot['logical'] = prot.logical;
+
+  window['Asc']['c_oAscCFType'] = window['Asc'].c_oAscCFType = c_oAscCFType;
+  prot = c_oAscCFType;
+  prot['selection'] = prot.selection;
+  prot['worksheet'] = prot.worksheet;
+  prot['table'] = prot.table;
+  prot['pivot'] = prot.pivot;
 
 })(window);

@@ -4545,6 +4545,47 @@ var editor;
       }
     };
 
+    spreadsheet_api.prototype.asc_getCF = function (type, id) {
+      var rules = null;
+      var range, sheet;
+      switch (type) {
+        case Asc.c_oAscCFType.selection:
+          sheet = this.wbModel.getActiveWs();
+          // ToDo multiselect
+          range = sheet.selectionRange.getLast();
+          break;
+        case Asc.c_oAscCFType.worksheet:
+          sheet = this.wbModel.getWorksheet(id);
+          break;
+        case Asc.c_oAscCFType.table:
+          // ToDo
+          break;
+        case Asc.c_oAscCFType.pivot:
+          // ToDo
+          break;
+      }
+      if (sheet) {
+        var aRules = sheet.aConditionalFormattingRules.sort(function(v1, v2) {
+          return v2.priority - v1.priority;
+        });
+        if (range) {
+          rules = [];
+          var oRule, ranges, multiplyRange;
+          for (var i = 0; i < aRules.length; ++i) {
+            oRule = aRules[i];
+            ranges = oRule.ranges;
+            multiplyRange = new AscCommonExcel.MultiplyRange(ranges);
+            if (multiplyRange.isIntersect(range)) {
+              rules.push(oRule);
+            }
+          }
+        } else {
+          rules = aRules;
+        }
+      }
+      return rules;
+    };
+
 
   /*
    * Export
@@ -4951,5 +4992,7 @@ var editor;
 
   prot["asc_getRemoveDuplicates"] = prot.asc_getRemoveDuplicates;
   prot["asc_setRemoveDuplicates"] = prot.asc_setRemoveDuplicates;
+
+  prot["asc_getCF"] = prot.asc_getCF;
 
 })(window);
