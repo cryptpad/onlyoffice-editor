@@ -5202,8 +5202,7 @@ function RangeDataManagerElem(bbox, data)
 				--i;
 			}
 		}
-		var bRemove = (0 === this.arrSparklines.length);
-		return bRemove;
+		return (0 === this.arrSparklines.length);
 	};
 	sparklineGroup.prototype.getLocationRanges = function (onlySingle) {
 		var result = new AscCommonExcel.SelectionRange();
