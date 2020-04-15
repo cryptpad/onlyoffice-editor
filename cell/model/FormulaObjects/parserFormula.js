@@ -5704,8 +5704,14 @@ function parserFormula( formula, parent, _ws ) {
 		cFormulaList = (local && AscCommonExcel.cFormulaFunctionLocalized) ? AscCommonExcel.cFormulaFunctionLocalized : cFormulaFunction;
 		var leftParentArgumentsCurrentArr = [];
 
+		//позиция курсора при открытой ячейке на редактирование
+		var activePos = parseResult.cursorPos;
 		var needFuncLevel = 0;
 		var needFuncStartPos = parseResult.lastInsertedFormulaPos;
+		var currenFuncLevel = -1;
+		var levelFuncMap = [];
+		var argFuncMap = [];
+
 
 		var t = this;
 		var parseOperators = function(){
@@ -5790,6 +5796,7 @@ function parserFormula( formula, parent, _ws ) {
 					t.outStack.push(cSpecialOperandStart.prototype);
 				}
 			}
+			argFuncMap[currenFuncLevel] = {count: 0, startPos: ph.pCurrPos + 1};
 		};
 
 		var parseRightParentheses = function(){
@@ -5884,6 +5891,10 @@ function parserFormula( formula, parent, _ws ) {
 			if(needFuncLevel > 0) {
 				needFuncLevel--;
 			}
+			if (levelFuncMap[currenFuncLevel] && levelFuncMap[currenFuncLevel].startPos <= activePos && activePos <= ph.pCurrPos) {
+				parseResult.activeFunction = levelFuncMap[currenFuncLevel].func;
+			}
+			currenFuncLevel--;
 
 			return true;
 		};
@@ -5936,6 +5947,13 @@ function parserFormula( formula, parent, _ws ) {
 			if (needFuncLevel === 1) {
 				parseResult.argPosArr.push(ph.pCurrPos);
 			}
+
+			if (argFuncMap[currenFuncLevel] && argFuncMap[currenFuncLevel].startPos <= activePos && activePos <= ph.pCurrPos) {
+				parseResult.activeArgumentPos = argFuncMap[currenFuncLevel].count;
+			}
+			argFuncMap[currenFuncLevel].count++;
+			argFuncMap[currenFuncLevel].startPos = ph.pCurrPos + 1;
+
 			return true;
 		};
 
@@ -6211,6 +6229,8 @@ function parserFormula( formula, parent, _ws ) {
 					} else if (needFuncLevel > 0) {
 						needFuncLevel++;
 					}
+					currenFuncLevel++;
+					levelFuncMap[currenFuncLevel] = {func: found_operator, startPos: ph.pCurrPos - ph.operand_str.length};
 				} else if(!ignoreErrors) {
 					parseResult.setError(c_oAscError.ID.FrmlWrongFunctionName);
 					t.outStack = [];
@@ -6283,6 +6303,12 @@ function parserFormula( formula, parent, _ws ) {
 				}
 			}
 		}
+
+		if (ignoreErrors && !parseResult.activeFunction && levelFuncMap[currenFuncLevel] && levelFuncMap[currenFuncLevel].startPos <= activePos && activePos <= ph.pCurrPos + 1) {
+			parseResult.activeFunction = levelFuncMap[currenFuncLevel].func;
+		}
+		console.log("function: " + (parseResult.activeFunction ? parseResult.activeFunction.name : null) + " ARG: " + parseResult.activeArgumentPos);
+
 
 		if (parseResult.operand_expected) {
 			this.outStack = [];

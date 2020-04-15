@@ -2249,6 +2249,25 @@
 		return res;
 	};
 
+	WorkbookView.prototype.getActiveFunctionInfo = function (needRecalc) {
+		if (!this.getCellEditMode()) {
+			return;
+		}
+
+		var _parseResult = this.cellEditor._parseResult;
+		var _res;
+		var f = AscCommonExcel.cFormulaFunctionLocalized && AscCommonExcel.cFormulaFunctionLocalized[_parseResult.activeFunction];
+		if (f) {
+			_res = new Asc.CFunctionInfo(_parseResult.activeFunction);
+			_res.argumentMin = f.argumentMin;
+			_res.argumentMax = f.argumentMax;
+			_res.argumentsType = f.argumentsType;
+			_res.activeArgument = _parseResult.activeArgument;
+		}
+
+		return _res;
+	};
+
   WorkbookView.prototype.bIsEmptyClipboard = function() {
     return g_clipboardExcel.bIsEmptyClipboard(this.getCellEditMode());
   };
