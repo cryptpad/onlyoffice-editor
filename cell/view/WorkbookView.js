@@ -2239,6 +2239,16 @@
 		return null;
 	};
 
+	WorkbookView.prototype.getFunctionInfo = function (name, isStartCellEdit) {
+		var res = null;
+		var ws = this.model.getActiveWs();
+		var functionInfo = ws.getFunctionInfo(name, isStartCellEdit);
+
+
+
+		return res;
+	};
+
   WorkbookView.prototype.bIsEmptyClipboard = function() {
     return g_clipboardExcel.bIsEmptyClipboard(this.getCellEditMode());
   };

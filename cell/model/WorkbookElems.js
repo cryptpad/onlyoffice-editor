@@ -9500,6 +9500,28 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		return this.uniqueValues;
 	};
 
+	function CFunctionInfo(name) {
+		this.name = name;
+		this.argumentMin = null;
+		this.argumentMax = null;
+
+		this.argumentsInfo = null;
+		this.argumentsType = null;
+
+		return this;
+	}
+	CFunctionInfo.prototype.asc_getArgumentMin = function () {
+		return this.argumentMin;
+	};
+	CFunctionInfo.prototype.asc_getArgumentMax = function () {
+		return this.argumentMax;
+	};
+	CFunctionInfo.prototype.asc_getArgumentsInfo = function () {
+		return this.argumentsInfo;
+	};
+	CFunctionInfo.prototype.asc_getArgumentsType = function () {
+		return this.argumentsType;
+	};
 
 	//----------------------------------------------------------export----------------------------------------------------
 	var prot;
@@ -9802,5 +9824,12 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	prot["asc_setHasHeaders"] = prot.asc_setHasHeaders;
 	prot["asc_getDuplicateValues"] = prot.asc_getDuplicateValues;
 	prot["asc_getUniqueValues"] = prot.asc_getUniqueValues;
+
+	window["Asc"]["CFunctionInfo"] = window["Asc"].CFunctionInfo = CFunctionInfo;
+	prot = CFunctionInfo.prototype;
+	prot["asc_getArgumentMin"] = prot.asc_getArgumentMin;
+	prot["asc_getArgumentMax"] = prot.asc_getArgumentMax;
+	prot["asc_getArgumentsInfo"] = prot.asc_getArgumentsInfo;
+	prot["asc_getArgumentsType"] = prot.asc_getArgumentsType;
 
 })(window);

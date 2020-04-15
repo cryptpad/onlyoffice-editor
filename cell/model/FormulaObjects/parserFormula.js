@@ -5110,6 +5110,7 @@ _func[cElementType.cell3D] = _func[cElementType.cell];
 		//for formula wizard
 		this.lastInsertedFormulaPos = undefined;
 		this.argPosArr = [];
+		this.activeFunctionName = null
 	}
 
 	ParseResult.prototype.addRefPos = function(start, end, index, oper, isName) {
@@ -6200,8 +6201,13 @@ function parserFormula( formula, parent, _ws ) {
 					if("SUMPRODUCT" === found_operator.name){
 						startSumproduct = true;
 					}
-					if (needFuncStartPos === ph.pCurrPos - ph.operand_str.length) {
+					if (needFuncStartPos !== undefined && needFuncStartPos === ph.pCurrPos - ph.operand_str.length) {
 						needFuncLevel++;
+						parseResult.activeFunctionName = found_operator.name;
+					} else if (needFuncStartPos === undefined) {
+						needFuncStartPos = ph.pCurrPos - ph.operand_str.length;
+						needFuncLevel++;
+						parseResult.activeFunctionName = found_operator.name;
 					} else if (needFuncLevel > 0) {
 						needFuncLevel++;
 					}
