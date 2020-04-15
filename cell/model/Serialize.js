@@ -10105,6 +10105,7 @@
 		return newContext;
 	};
 
+    var prot;
     window['Asc'] = window['Asc'] || {};
     window['AscCommonExcel'] = window['AscCommonExcel'] || {};
     window["Asc"].EBorderStyle = EBorderStyle;
@@ -10125,7 +10126,27 @@
     window["Asc"].c_oSer_DrawingType = c_oSer_DrawingType;
     window["Asc"].c_oSer_DrawingPosType = c_oSer_DrawingPosType;
     window["AscCommonExcel"].ECfOperator = ECfOperator;
-	window["AscCommonExcel"].ECfType = ECfType;
+
+    window['Asc']['c_oAscCFType'] = window["Asc"].ECfType  = ECfType;
+    prot = ECfType;
+    prot['aboveAverage'] = prot.aboveAverage;
+    prot['beginsWith'] = prot.beginsWith;
+    prot['cellIs'] = prot.cellIs;
+    prot['colorScale'] = prot.colorScale;
+    prot['containsBlanks'] = prot.containsBlanks;
+    prot['containsErrors'] = prot.containsErrors;
+    prot['containsText'] = prot.containsText;
+    prot['dataBar'] = prot.dataBar;
+    prot['duplicateValues'] = prot.duplicateValues;
+    prot['expression'] = prot.expression;
+    prot['notContainsBlanks'] = prot.notContainsBlanks;
+    prot['notContainsErrors'] = prot.notContainsErrors;
+    prot['notContainsText'] = prot.notContainsText;
+    prot['timePeriod'] = prot.timePeriod;
+    prot['top10'] = prot.top10;
+    prot['uniqueValues'] = prot.uniqueValues;
+    prot['endsWith'] = prot.endsWith;
+
     window["AscCommonExcel"].ECfvoType = ECfvoType;
     window["AscCommonExcel"].ST_TimePeriod = ST_TimePeriod;
 	window["AscCommonExcel"].EDataBarAxisPosition = EDataBarAxisPosition;

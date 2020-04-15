@@ -3638,7 +3638,7 @@
 			ranges = oRule.ranges;
 			multiplyRange = new AscCommonExcel.MultiplyRange(ranges);
 			if (multiplyRange.contains(col, row)) {
-				if (AscCommonExcel.ECfType.dataBar === oRule.type || AscCommonExcel.ECfType.iconSet === oRule.type) {
+				if (Asc.ECfType.dataBar === oRule.type || Asc.ECfType.iconSet === oRule.type) {
 					if (1 !== oRule.aRuleElements.length) {
 						continue;
 					}
@@ -3651,7 +3651,7 @@
 
 					var x = this._getColLeft(col);
 
-					if (AscCommonExcel.ECfType.dataBar === oRule.type) {
+					if (Asc.ECfType.dataBar === oRule.type) {
 						min = oRule.getMin(values, this.model);
 						max = oRule.getMax(values, this.model);
 						if (cellValue < min) {
@@ -3667,7 +3667,7 @@
 						if (oRuleElement.Color) {
 							ctx.setFillStyle(oRuleElement.Color).fillRect(x + 1 - offsetX, top + 1 - offsetY, dataBarLength, height - 3);
 						}
-					} else if (AscCommonExcel.ECfType.iconSet === oRule.type) {
+					} else if (Asc.ECfType.iconSet === oRule.type) {
 						var img = AscCommonExcel.getCFIcon(oRuleElement, oRule.getIndexRule(values, this.model, cellValue));
 						if (!img) {
 							continue;

@@ -3828,7 +3828,7 @@
 			if (this._isConditionalFormattingIntersect(range, ranges)) {
 				multiplyRange = new AscCommonExcel.MultiplyRange(ranges);
 					// ToDo expression, iconSet (page 2679)
-					if (AscCommonExcel.ECfType.colorScale === oRule.type) {
+					if (Asc.ECfType.colorScale === oRule.type) {
 						if (1 !== oRule.aRuleElements.length) {
 							continue;
 						}
@@ -3883,9 +3883,9 @@
 								};
 							})(oGradient1, oGradient2);
 						}
-					} else if (AscCommonExcel.ECfType.dataBar === oRule.type) {
+					} else if (Asc.ECfType.dataBar === oRule.type) {
 						continue;
-					} else if (AscCommonExcel.ECfType.top10 === oRule.type) {
+					} else if (Asc.ECfType.top10 === oRule.type) {
 						if (oRule.rank > 0 && oRule.dxf) {
 							nc = 0;
 							values = this._getValuesForConditionalFormatting(ranges, false);
@@ -3917,7 +3917,7 @@
 								};
 							})(oRule, threshold);
 						}
-					} else if (AscCommonExcel.ECfType.aboveAverage === oRule.type) {
+					} else if (Asc.ECfType.aboveAverage === oRule.type) {
 						if (!oRule.dxf) {
 							continue;
 						}
@@ -3960,8 +3960,8 @@
 							continue;
 						}
 						switch (oRule.type) {
-							case AscCommonExcel.ECfType.duplicateValues:
-							case AscCommonExcel.ECfType.uniqueValues:
+							case Asc.ECfType.duplicateValues:
+							case Asc.ECfType.uniqueValues:
 								o = getUniqueKeys(this._getValuesForConditionalFormatting(ranges, false));
 								compareFunction = (function(rule, obj, condition) {
 									return function(row, col) {
@@ -3971,24 +3971,24 @@
 										});
 										return (val.length > 0 ? condition === obj[val] : false) ? rule.dxf : null;
 									};
-								})(oRule, o, oRule.type === AscCommonExcel.ECfType.duplicateValues);
+								})(oRule, o, oRule.type === Asc.ECfType.duplicateValues);
 								break;
-							case AscCommonExcel.ECfType.containsText:
-							case AscCommonExcel.ECfType.notContainsText:
-							case AscCommonExcel.ECfType.beginsWith:
-							case AscCommonExcel.ECfType.endsWith:
+							case Asc.ECfType.containsText:
+							case Asc.ECfType.notContainsText:
+							case Asc.ECfType.beginsWith:
+							case Asc.ECfType.endsWith:
 								var operator;
 								switch (oRule.type) {
-									case AscCommonExcel.ECfType.containsText:
+									case Asc.ECfType.containsText:
 										operator = AscCommonExcel.ECfOperator.Operator_containsText;
 										break;
-									case AscCommonExcel.ECfType.notContainsText:
+									case Asc.ECfType.notContainsText:
 										operator = AscCommonExcel.ECfOperator.Operator_notContains;
 										break;
-									case AscCommonExcel.ECfType.beginsWith:
+									case Asc.ECfType.beginsWith:
 										operator = AscCommonExcel.ECfOperator.Operator_beginsWith;
 										break;
-									case AscCommonExcel.ECfType.endsWith:
+									case Asc.ECfType.endsWith:
 										operator = AscCommonExcel.ECfOperator.Operator_endsWith;
 										break;
 								}
@@ -4023,7 +4023,7 @@
 									})(oRule, operator, oRule.getValueCellIs(this));
 								}
 								break;
-							case AscCommonExcel.ECfType.containsErrors:
+							case Asc.ECfType.containsErrors:
 								compareFunction = (function(rule) {
 									return function(row, col) {
 										var val;
@@ -4034,7 +4034,7 @@
 									};
 								})(oRule);
 								break;
-							case AscCommonExcel.ECfType.notContainsErrors:
+							case Asc.ECfType.notContainsErrors:
 								compareFunction = (function(rule) {
 									return function(row, col) {
 										var val;
@@ -4045,7 +4045,7 @@
 									};
 								})(oRule);
 								break;
-							case AscCommonExcel.ECfType.containsBlanks:
+							case Asc.ECfType.containsBlanks:
 								compareFunction = (function(rule) {
 									return function(row, col) {
 										var val;
@@ -4061,7 +4061,7 @@
 									};
 								})(oRule);
 								break;
-							case AscCommonExcel.ECfType.notContainsBlanks:
+							case Asc.ECfType.notContainsBlanks:
 								compareFunction = (function(rule) {
 									return function(row, col) {
 										var val;
@@ -4077,7 +4077,7 @@
 									};
 								})(oRule);
 								break;
-							case AscCommonExcel.ECfType.timePeriod:
+							case Asc.ECfType.timePeriod:
 								if (oRule.timePeriod) {
 									compareFunction = (function(rule, period) {
 										return function(row, col) {
@@ -4093,7 +4093,7 @@
 									continue;
 								}
 								break;
-							case AscCommonExcel.ECfType.cellIs:
+							case Asc.ECfType.cellIs:
 								formulaParent = new AscCommonExcel.CConditionalFormattingFormulaParent(this, oRule, true);
 								oRuleElement = oRule.aRuleElements[0];
 								parsed1 = oRuleElement && oRuleElement.getFormula && oRuleElement.getFormula(this, formulaParent);
@@ -4129,7 +4129,7 @@
 										oRule.aRuleElements[1] && oRule.aRuleElements[1].getValue(this));
 								}
 								break;
-							case AscCommonExcel.ECfType.expression:
+							case Asc.ECfType.expression:
 								bboxCf = oRule.getBBox();
 								compareFunction = getCacheFunction(oRule, (function(rule, formulaCF, formulaParent, rowLT, colLT) {
 									return function(row, col) {

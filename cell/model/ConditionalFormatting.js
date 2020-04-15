@@ -469,13 +469,17 @@
 		return res;
 	};
 
+	CConditionalFormattingRule.prototype.asc_getType = function () {
+		return this.type;
+	};
+
 	function CColorScale () {
 		this.aCFVOs = [];
 		this.aColors = [];
 
 		return this;
 	}
-	CColorScale.prototype.type = AscCommonExcel.ECfType.colorScale;
+	CColorScale.prototype.type = Asc.ECfType.colorScale;
 	CColorScale.prototype.clone = function() {
 		var i, res = new CColorScale();
 		for (i = 0; i < this.aCFVOs.length; ++i)
@@ -503,7 +507,7 @@
 		this.AxisColor = null;
 		return this;
 	}
-	CDataBar.prototype.type = AscCommonExcel.ECfType.dataBar;
+	CDataBar.prototype.type = Asc.ECfType.dataBar;
 	CDataBar.prototype.clone = function() {
 		var i, res = new CDataBar();
 		res.MaxLength = this.MaxLength;
@@ -574,7 +578,7 @@
 
 		return this;
 	}
-	CIconSet.prototype.type = AscCommonExcel.ECfType.iconSet;
+	CIconSet.prototype.type = Asc.ECfType.iconSet;
 	CIconSet.prototype.clone = function() {
 		var i, res = new CIconSet();
 		res.IconSet = this.IconSet;
@@ -766,6 +770,7 @@
 	 * Export
 	 * -----------------------------------------------------------------------------
 	 */
+	var prot;
 	window['AscCommonExcel'] = window['AscCommonExcel'] || {};
 	window['AscCommonExcel'].CConditionalFormatting = CConditionalFormatting;
 	window['AscCommonExcel'].CConditionalFormattingFormulaParent = CConditionalFormattingFormulaParent;
@@ -782,4 +787,7 @@
 	window['AscCommonExcel'].cDefIconFont = cDefIconFont;
 	window['AscCommonExcel'].getIconsForLoad = getIconsForLoad;
 	window['AscCommonExcel'].getCFIcon = getCFIcon;
+
+	prot = CConditionalFormattingRule;
+	prot['asc_getType'] = prot.asc_getType;
 })(window);

@@ -464,7 +464,7 @@ var c_oAscPopUpSelectorType = {
     logical: 4
   };
 
-  var c_oAscCFType = {
+  var c_oAscSelectionForCFType = {
     selection: 1,
     worksheet: 2,
     table: 3,
@@ -745,8 +745,8 @@ var c_oAscPopUpSelectorType = {
   prot['any'] = prot.any;
   prot['logical'] = prot.logical;
 
-  window['Asc']['c_oAscCFType'] = window['Asc'].c_oAscCFType = c_oAscCFType;
-  prot = c_oAscCFType;
+  window['Asc']['c_oAscSelectionForCFType'] = window['Asc'].c_oAscSelectionForCFType = c_oAscSelectionForCFType;
+  prot = c_oAscSelectionForCFType;
   prot['selection'] = prot.selection;
   prot['worksheet'] = prot.worksheet;
   prot['table'] = prot.table;

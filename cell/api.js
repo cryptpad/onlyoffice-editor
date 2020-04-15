@@ -4549,18 +4549,18 @@ var editor;
       var rules = null;
       var range, sheet;
       switch (type) {
-        case Asc.c_oAscCFType.selection:
+        case Asc.c_oAscSelectionForCFType.selection:
           sheet = this.wbModel.getActiveWs();
           // ToDo multiselect
           range = sheet.selectionRange.getLast();
           break;
-        case Asc.c_oAscCFType.worksheet:
+        case Asc.c_oAscSelectionForCFType.worksheet:
           sheet = this.wbModel.getWorksheet(id);
           break;
-        case Asc.c_oAscCFType.table:
+        case Asc.c_oAscSelectionForCFType.table:
           // ToDo
           break;
-        case Asc.c_oAscCFType.pivot:
+        case Asc.c_oAscSelectionForCFType.pivot:
           // ToDo
           break;
       }
