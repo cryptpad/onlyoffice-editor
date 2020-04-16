@@ -115,8 +115,9 @@
 		var i, res = new CConditionalFormattingRule();
 		res.aboveAverage = this.aboveAverage;
 		res.bottom = this.bottom;
-		if (this.dxf)
+		if (this.dxf) {
 			res.dxf = this.dxf.clone();
+		}
 		res.equalAverage = this.equalAverage;
 		res.operator = this.operator;
 		res.percent = this.percent;
