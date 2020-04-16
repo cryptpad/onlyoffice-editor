@@ -20267,7 +20267,7 @@
 		return res;
 	};
 
-	WorksheetView.prototype.getActiveFunctionInfo = function () {
+	WorksheetView.prototype.getActiveFunctionInfo = function (parser, parserResult) {
 
 		var createFunctionInfoByName = function (_name) {
 			var _res;
@@ -20285,28 +20285,39 @@
 			}
 			return _res;
 		};
-		
-		var activeCell = this.model.selectionRange.activeCell;
-		var formulaParsed, valueForEdit;
-		this.model.getCell3(activeCell.row, activeCell.col)._foreachNoEmpty(function (cell) {
-			if (cell.isFormula()) {
-				formulaParsed = cell.getFormulaParsed();
-				if (formulaParsed) {
-					valueForEdit = cell.getValueForEdit();
+
+		var _formulaParsed, _parseResult, valueForEdit;
+		if (!parser) {
+			var activeCell = this.model.selectionRange.activeCell;
+			var formulaParsed;
+			this.model.getCell3(activeCell.row, activeCell.col)._foreachNoEmpty(function (cell) {
+				if (cell.isFormula()) {
+					formulaParsed = cell.getFormulaParsed();
+					if (formulaParsed) {
+						valueForEdit = cell.getValueForEdit();
+					}
 				}
-			}
-		});
+			});
+			_formulaParsed = new AscCommonExcel.parserFormula(valueForEdit.substr(1), /*formulaParsed.parent*/null, this.model);
+			_parseResult = new AscCommonExcel.ParseResult([], []);
+			_formulaParsed.parse(true, true, _parseResult, true);
+		} else {
+			_formulaParsed = parser;
+			_parseResult = parserResult;
+			valueForEdit = "=" + parser.Formula;
+		}
 
 		var res;
-		if (formulaParsed) {
-			//чтобы не портить formulaParsed в моделе, клонирую
-			//var _formulaParsed = formulaParsed.clone();
-			//_formulaParsed.isParsed = false;
-			var _formulaParsed = new AscCommonExcel.parserFormula(valueForEdit.substr(1), /*formulaParsed.parent*/null, this.model);
-			var _parseResult = new AscCommonExcel.ParseResult([], []);
-			_formulaParsed.parse(true, true, _parseResult, true);
-			res = createFunctionInfoByName(_parseResult.activeFunctionName);
-			res.formulaResult = _formulaParsed.calculate().toString();
+		if (_formulaParsed) {
+			res = createFunctionInfoByName(_parseResult.activeFunction.name);
+			if (!_parseResult.error) {
+				var _parent = _formulaParsed.parent;
+				_formulaParsed.parent = null;
+				res.formulaResult = _formulaParsed.calculate().toLocaleString();
+				_formulaParsed.parent = _parent;
+			}
+
+			res._cursorPos = _parseResult.cursorPos + 1;
 			var argPosArr = _parseResult.argPosArr;
 			if (argPosArr && argPosArr.length) {
 				for (var i = 0; i < argPosArr.length; i++) {
@@ -20322,14 +20333,26 @@
 						var _formulaParsedArg = new AscCommonExcel.parserFormula(str, /*formulaParsed.parent*/null, this.model);
 						var _parseResultArg = new AscCommonExcel.ParseResult([], []);
 						_formulaParsedArg.parse(true, true, _parseResultArg, true);
-						var calcRes = _formulaParsedArg.calculate();
-
-						res.argumentsResult[i] = calcRes.toString();
+						if (!_parseResultArg.error) {
+							var calcRes = _formulaParsedArg.calculate();
+							res.argumentsResult[i] = calcRes.toLocaleString();
+						}
 					}
 				}
 			}
 		}
 
+		return res;
+	};
+
+	WorksheetView.prototype.isActiveCellFormula = function () {
+		var activeCell = this.model.selectionRange.activeCell;
+		var res;
+		this.model.getCell3(activeCell.row, activeCell.col)._foreachNoEmpty(function (cell) {
+			if (cell.isFormula()) {
+				res = true;
+			}
+		});
 		return res;
 	};
 

@@ -173,7 +173,7 @@
 
 		this._formula = null;
 		this._parseResult = null;
-		this.lastInsertedFormulaPos = null;
+		this.needFindFirstFunction = null;
 
 		// Обработчик кликов
 		this.clickCounter = new AscFormat.ClickCounter();
@@ -695,7 +695,6 @@
 		// Меняем позицию курсора внутрь скобок
 		if ( !isDefName ) {
 			this._moveCursor( kPosition, this.cursorPos - 1 );
-			this.lastInsertedFormulaPos = this.cursorPos - 1;
 		}
 		this.skipTLUpdate = tmp;
 	};
@@ -787,8 +786,7 @@
 
 		var bbox = this.options.bbox;
 		this._parseResult = new AscCommonExcel.ParseResult([], []);
-		this._parseResult.lastInsertedFormulaPos = this.lastInsertedFormulaPos;
-		this._parseResult.cursorPos = this.cursorPos;
+		this._parseResult.cursorPos = this.needFindFirstFunction ? undefined : this.cursorPos - 1;
 		var cellWithFormula = new window['AscCommonExcel'].CCellWithFormula(ws, bbox.r1, bbox.c1);
 		this._formula = new AscCommonExcel.parserFormula(s.substr(1), cellWithFormula, ws);
 		this._formula.parse(true, true, this._parseResult, true);

@@ -2161,10 +2161,8 @@
 			var selectionRange = ws.model.selectionRange.clone();
 
 			//если в ячейке уже есть формула
-			var activeFormulaInfo = this.getActiveFunctionInfo();
-			if (activeFormulaInfo) {
-
-			} else {
+			var isFormulaContains = ws.isActiveCellFormula();
+			if (!isFormulaContains) {
 				// Редактор закрыт
 				var cellRange = {};
 				// Если нужно сделать автозаполнение формулы, то ищем ячейки)
@@ -2190,7 +2188,7 @@
 				}
 			}
 
-			this.cellEditor.lastInsertedFormulaPos = cursorPos;
+			//this.cellEditor.lastInsertedFormulaPos = cursorPos;
 
 			var openEditor = function (res) {
 				if (res) {
@@ -2201,8 +2199,23 @@
 						t.skipHelpSelector = true;
 					}
 					t.hideSpecialPasteButton();
-					// Открываем, с выставлением позиции курсора
-					ws.openCellEditorWithText(t.cellEditor, name, cursorPos, /*isFocus*/false, selectionRange);
+
+					if (isFormulaContains) {
+						t.cellEditor.needFindFirstFunction = true;
+						ws.openCellEditor(t.cellEditor, t.cellEditor.cursorPos, false, true, false, false, selectionRange);
+						//TODO вызываю отсюда служебную функцию, пересмотреть!
+						t.cellEditor._moveCursor(-11, t.cellEditor._parseResult.cursorPos + 1);
+
+						t.cellEditor.needFindFirstFunction = null;
+					} else {
+						// Открываем, с выставлением позиции курсора
+						ws.openCellEditorWithText(t.cellEditor, name, cursorPos, /*isFocus*/false, selectionRange);
+					}
+
+					var funcInfo = ws.getActiveFunctionInfo(t.cellEditor._formula, t.cellEditor._parseResult);
+					//send event
+					t.handlers.trigger("asc_onSendFunctionWizardInfo", funcInfo);
+
 					if (isNotFunction) {
 						t.skipHelpSelector = false;
 					}
