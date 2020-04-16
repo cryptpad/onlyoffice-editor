@@ -4566,7 +4566,7 @@ var editor;
       }
       if (sheet) {
         var aRules = sheet.aConditionalFormattingRules.sort(function(v1, v2) {
-          return v2.priority - v1.priority;
+          return v1.priority - v2.priority;
         });
         if (range) {
           rules = [];
