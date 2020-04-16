@@ -131,8 +131,9 @@
 
 		res.updateConditionalFormatting(this);
 
-		for (i = 0; i < this.aRuleElements.length; ++i)
+		for (i = 0; i < this.aRuleElements.length; ++i) {
 			res.aRuleElements.push(this.aRuleElements[i].clone());
+		}
 		return res;
 	};
 	CConditionalFormattingRule.prototype.getTimePeriod = function() {
