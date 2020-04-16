@@ -20267,6 +20267,72 @@
 		return res;
 	};
 
+	WorksheetView.prototype.getActiveFunctionInfo = function () {
+
+		var createFunctionInfoByName = function (_name) {
+			var _res;
+			var f = AscCommonExcel.cFormulaFunction[_name];
+			/*if (AscCommonExcel.cFormulaFunctionLocalized) {
+				f = AscCommonExcel.cFormulaFunctionLocalized[_name];
+			} else {
+				f = AscCommonExcel.cFormulaFunction[_name];
+			}*/
+			if (f) {
+				_res = new Asc.CFunctionInfo(_name);
+				_res.argumentMin = f.prototype.argumentsMin;
+				_res.argumentMax = f.prototype.argumentsMax;
+				_res.argumentsType = f.prototype.argumentsType;
+			}
+			return _res;
+		};
+		
+		var activeCell = this.model.selectionRange.activeCell;
+		var formulaParsed, valueForEdit;
+		this.model.getCell3(activeCell.row, activeCell.col)._foreachNoEmpty(function (cell) {
+			if (cell.isFormula()) {
+				formulaParsed = cell.getFormulaParsed();
+				if (formulaParsed) {
+					valueForEdit = cell.getValueForEdit();
+				}
+			}
+		});
+
+		var res;
+		if (formulaParsed) {
+			//чтобы не портить formulaParsed в моделе, клонирую
+			//var _formulaParsed = formulaParsed.clone();
+			//_formulaParsed.isParsed = false;
+			var _formulaParsed = new AscCommonExcel.parserFormula(valueForEdit.substr(1), /*formulaParsed.parent*/null, this.model);
+			var _parseResult = new AscCommonExcel.ParseResult([], []);
+			_formulaParsed.parse(true, true, _parseResult, true);
+			res = createFunctionInfoByName(_parseResult.activeFunctionName);
+			res.formulaResult = _formulaParsed.calculate().toString();
+			var argPosArr = _parseResult.argPosArr;
+			if (argPosArr && argPosArr.length) {
+				for (var i = 0; i < argPosArr.length; i++) {
+					if (!res.argumentsInfo) {
+						res.argumentsInfo = [];
+					}
+					var str = valueForEdit.substring(argPosArr[i].start, argPosArr[i].end);
+					res.argumentsInfo.push(str);
+					if (str !== "") {
+						if (!res.argumentsResult) {
+							res.argumentsResult = [];
+						}
+						var _formulaParsedArg = new AscCommonExcel.parserFormula(str, /*formulaParsed.parent*/null, this.model);
+						var _parseResultArg = new AscCommonExcel.ParseResult([], []);
+						_formulaParsedArg.parse(true, true, _parseResultArg, true);
+						var calcRes = _formulaParsedArg.calculate();
+
+						res.argumentsResult[i] = calcRes.toString();
+					}
+				}
+			}
+		}
+
+		return res;
+	};
+
 	//------------------------------------------------------------export---------------------------------------------------
     window['AscCommonExcel'] = window['AscCommonExcel'] || {};
 	window["AscCommonExcel"].CellFlags = CellFlags;

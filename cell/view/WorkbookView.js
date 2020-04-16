@@ -2160,29 +2160,36 @@
 
 			var selectionRange = ws.model.selectionRange.clone();
 
-			// Редактор закрыт
-			var cellRange = {};
-			// Если нужно сделать автозаполнение формулы, то ищем ячейки)
-			if (autoComplete) {
-				cellRange = ws.autoCompleteFormula(name);
-			}
-			if (isNotFunction) {
-				name = "=" + name;
+			//если в ячейке уже есть формула
+			var activeFormulaInfo = this.getActiveFunctionInfo();
+			if (activeFormulaInfo) {
+
 			} else {
-				if (cellRange.notEditCell) {
-					// Мы уже ввели все что нужно, редактор открывать не нужно
-					return;
+				// Редактор закрыт
+				var cellRange = {};
+				// Если нужно сделать автозаполнение формулы, то ищем ячейки)
+				if (autoComplete) {
+					cellRange = ws.autoCompleteFormula(name);
 				}
-				if (cellRange.text) {
-					// Меняем значение ячейки
-					name = "=" + name + "(" + cellRange.text + ")";
+				if (isNotFunction) {
+					name = "=" + name;
 				} else {
-					// Меняем значение ячейки
-					name = "=" + name + "()";
+					if (cellRange.notEditCell) {
+						// Мы уже ввели все что нужно, редактор открывать не нужно
+						return;
+					}
+					if (cellRange.text) {
+						// Меняем значение ячейки
+						name = "=" + name + "(" + cellRange.text + ")";
+					} else {
+						// Меняем значение ячейки
+						name = "=" + name + "()";
+					}
+					// Вычисляем позицию курсора (он должен быть в функции)
+					cursorPos = name.length - 1;
 				}
-				// Вычисляем позицию курсора (он должен быть в функции)
-				cursorPos = name.length - 1;
 			}
+
 			this.cellEditor.lastInsertedFormulaPos = cursorPos;
 
 			var openEditor = function (res) {
@@ -2249,20 +2256,21 @@
 		return res;
 	};
 
-	WorkbookView.prototype.getActiveFunctionInfo = function (needRecalc) {
-		if (!this.getCellEditMode()) {
-			return;
-		}
-
-		var _parseResult = this.cellEditor._parseResult;
-		var _res;
-		var f = AscCommonExcel.cFormulaFunctionLocalized && AscCommonExcel.cFormulaFunctionLocalized[_parseResult.activeFunction];
-		if (f) {
-			_res = new Asc.CFunctionInfo(_parseResult.activeFunction);
-			_res.argumentMin = f.argumentMin;
-			_res.argumentMax = f.argumentMax;
-			_res.argumentsType = f.argumentsType;
-			_res.activeArgument = _parseResult.activeArgument;
+	WorkbookView.prototype.getActiveFunctionInfo = function () {
+		var ws = this.getWorksheet();
+		if (this.getCellEditMode()) {
+			var _parseResult = this.cellEditor._parseResult;
+			var _res;
+			var f = AscCommonExcel.cFormulaFunctionLocalized && AscCommonExcel.cFormulaFunctionLocalized[_parseResult.activeFunction];
+			if (f) {
+				_res = new Asc.CFunctionInfo(_parseResult.activeFunction);
+				_res.argumentMin = f.argumentMin;
+				_res.argumentMax = f.argumentMax;
+				_res.argumentsType = f.argumentsType;
+				_res.activeArgument = _parseResult.activeArgument;
+			}
+		} else {
+			_res = ws.getActiveFunctionInfo();
 		}
 
 		return _res;

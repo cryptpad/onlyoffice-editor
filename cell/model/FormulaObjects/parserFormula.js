@@ -5110,7 +5110,8 @@ _func[cElementType.cell3D] = _func[cElementType.cell];
 		//for formula wizard
 		this.lastInsertedFormulaPos = undefined;
 		this.argPosArr = [];
-		this.activeFunctionName = null
+		this.activeFunctionName = null;
+		this.cursorPos = undefined;
 	}
 
 	ParseResult.prototype.addRefPos = function(start, end, index, oper, isName) {
@@ -5705,12 +5706,14 @@ function parserFormula( formula, parent, _ws ) {
 		var leftParentArgumentsCurrentArr = [];
 
 		//позиция курсора при открытой ячейке на редактирование
+		//если activePos - undefined - ищем первую функцию
 		var activePos = parseResult.cursorPos;
+		var needAddCursorPos = activePos === undefined;
 		var needFuncLevel = 0;
-		var needFuncStartPos = parseResult.lastInsertedFormulaPos;
 		var currenFuncLevel = -1;
 		var levelFuncMap = [];
 		var argFuncMap = [];
+		var argPosArrMap = [];
 
 
 		var t = this;
@@ -5797,6 +5800,7 @@ function parserFormula( formula, parent, _ws ) {
 				}
 			}
 			argFuncMap[currenFuncLevel] = {count: 0, startPos: ph.pCurrPos + 1};
+			argPosArrMap[currenFuncLevel] = [{start: ph.pCurrPos + 1}];
 		};
 
 		var parseRightParentheses = function(){
@@ -5886,13 +5890,17 @@ function parserFormula( formula, parent, _ws ) {
 				}
 			}
 			if (needFuncLevel === 1) {
-				parseResult.argPosArr.push(ph.pCurrPos);
+				//parseResult.argPosArr.push(ph.pCurrPos);
 			}
 			if(needFuncLevel > 0) {
 				needFuncLevel--;
 			}
 			if (levelFuncMap[currenFuncLevel] && levelFuncMap[currenFuncLevel].startPos <= activePos && activePos <= ph.pCurrPos) {
 				parseResult.activeFunction = levelFuncMap[currenFuncLevel].func;
+				parseResult.argPosArr = argPosArrMap[currenFuncLevel];
+			}
+			if (argPosArrMap[currenFuncLevel][argPosArrMap[currenFuncLevel].length - 1] && undefined === argPosArrMap[currenFuncLevel][argPosArrMap[currenFuncLevel].length - 1].end) {
+				argPosArrMap[currenFuncLevel][argPosArrMap[currenFuncLevel].length - 1].end = ph.pCurrPos;
 			}
 			currenFuncLevel--;
 
@@ -5945,12 +5953,15 @@ function parserFormula( formula, parent, _ws ) {
 			parseResult.argPos = leftParentArgumentsCurrentArr[top_elem_arg_pos];
 			parseResult.operand_expected = true;
 			if (needFuncLevel === 1) {
-				parseResult.argPosArr.push(ph.pCurrPos);
+				//parseResult.argPosArr.push(ph.pCurrPos);
 			}
 
 			if (argFuncMap[currenFuncLevel] && argFuncMap[currenFuncLevel].startPos <= activePos && activePos <= ph.pCurrPos) {
 				parseResult.activeArgumentPos = argFuncMap[currenFuncLevel].count;
 			}
+			argPosArrMap[currenFuncLevel][argPosArrMap[currenFuncLevel].length - 1].end = ph.pCurrPos;
+			argPosArrMap[currenFuncLevel][argPosArrMap[currenFuncLevel].length] = {start: ph.pCurrPos + 1};
+
 			argFuncMap[currenFuncLevel].count++;
 			argFuncMap[currenFuncLevel].startPos = ph.pCurrPos + 1;
 
@@ -6219,13 +6230,11 @@ function parserFormula( formula, parent, _ws ) {
 					if("SUMPRODUCT" === found_operator.name){
 						startSumproduct = true;
 					}
-					if (needFuncStartPos !== undefined && needFuncStartPos === ph.pCurrPos - ph.operand_str.length) {
+
+					if (activePos === undefined) {
 						needFuncLevel++;
 						parseResult.activeFunctionName = found_operator.name;
-					} else if (needFuncStartPos === undefined) {
-						needFuncStartPos = ph.pCurrPos - ph.operand_str.length;
-						needFuncLevel++;
-						parseResult.activeFunctionName = found_operator.name;
+						activePos = ph.pCurrPos + 1;
 					} else if (needFuncLevel > 0) {
 						needFuncLevel++;
 					}
@@ -6304,9 +6313,21 @@ function parserFormula( formula, parent, _ws ) {
 			}
 		}
 
+		if (needAddCursorPos) {
+			parseResult.cursorPos = activePos;
+		}
+
 		if (ignoreErrors && !parseResult.activeFunction && levelFuncMap[currenFuncLevel] && levelFuncMap[currenFuncLevel].startPos <= activePos && activePos <= ph.pCurrPos + 1) {
 			parseResult.activeFunction = levelFuncMap[currenFuncLevel].func;
+			parseResult.argPosArr = argPosArrMap[currenFuncLevel];
 		}
+		if (ignoreErrors && undefined === parseResult.activeArgumentPos && argFuncMap[currenFuncLevel] && argFuncMap[currenFuncLevel].startPos <= activePos && activePos <= ph.pCurrPos + 1) {
+			parseResult.activeArgumentPos = argFuncMap[currenFuncLevel].count;
+		}
+		if (argPosArrMap[currenFuncLevel] && argPosArrMap[currenFuncLevel][argPosArrMap[currenFuncLevel].length - 1] && undefined === argPosArrMap[currenFuncLevel][argPosArrMap[currenFuncLevel].length - 1].end) {
+			argPosArrMap[currenFuncLevel][argPosArrMap[currenFuncLevel].length - 1].end = ph.pCurrPos;
+		}
+
 		console.log("function: " + (parseResult.activeFunction ? parseResult.activeFunction.name : null) + " ARG: " + parseResult.activeArgumentPos);
 
 
