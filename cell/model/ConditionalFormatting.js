@@ -472,6 +472,15 @@
 	CConditionalFormattingRule.prototype.asc_getType = function () {
 		return this.type;
 	};
+	CConditionalFormattingRule.prototype.asc_getLocation = function () {
+		var arrResult = [];
+		if (this.ranges) {
+			this.ranges.forEach(function (item) {
+				arrResult.push(item.getAbsName());
+			});
+		}
+		return arrResult.join(AscCommon.FormulaSeparators.functionArgumentSeparator);
+	};
 
 	function CColorScale () {
 		this.aCFVOs = [];
@@ -790,4 +799,5 @@
 
 	prot = CConditionalFormattingRule;
 	prot['asc_getType'] = prot.asc_getType;
+	prot['asc_getLocation'] = prot.asc_getLocation;
 })(window);
