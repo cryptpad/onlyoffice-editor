@@ -2139,11 +2139,11 @@
 			}
 
 			isFormulaContains = this.cellEditor.isFormula() && doOpenWizardDialog;
-			if (isFormulaContains && this.cellEditor._parseResult && this.cellEditor._parseResult.activeFunction) {
+			/*if (isFormulaContains && this.cellEditor._parseResult && this.cellEditor._parseResult.activeFunction) {
 				funcInfo = ws.getActiveFunctionInfo(this.cellEditor._formula, this.cellEditor._parseResult);
 				t.handlers.trigger("asc_onSendFunctionWizardInfo", funcInfo);
 				return;
-			}
+			}*/
 
 			if (-1 !== this.lastFPos) {
 				if (-1 === this.arrExcludeFormulas.indexOf(name) && !isNotFunction) {
