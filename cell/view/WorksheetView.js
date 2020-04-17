@@ -20219,54 +20219,6 @@
 		}
 	};
 
-	WorksheetView.prototype.getFunctionInfo = function(name, isStartCellEdit) {
-		var res = null;
-
-		var createFunctionInfoByName = function (_name) {
-			var _res;
-			var f = AscCommonExcel.cFormulaFunctionLocalized && AscCommonExcel.cFormulaFunctionLocalized[_name];
-			if (f) {
-				_res = new Asc.CFunctionInfo(_name);
-				_res.argumentMin = f.argumentMin;
-				_res.argumentMax = f.argumentMax;
-				_res.argumentsType = f.argumentsType;
-			}
-			return _res;
-		};
-
-		if (isStartCellEdit) {
-			//получаем информацию об активной ячейке
-			//получаем имя функции
-			var activeCell = this.model.selectionRange.activeCell;
-			var formulaParsed;
-			this.model.getCell3(activeCell.row, activeCell.col)._foreachNoEmpty(function (cell) {
-				if (cell.isFormula()) {
-					formulaParsed = cell.getFormulaParsed();
-				}
-			});
-			if (formulaParsed) {
-				//чтобы не портить formulaParsed в моделе, клонирую
-				var _formulaParsed = formulaParsed.clone();
-				var _parseResult = new AscCommonExcel.ParseResult([], []);
-				_formulaParsed.parse(true, true, this._parseResult, true);
-				res = createFunctionInfoByName(_parseResult.activeFunctionName);
-				var argPosArr = _parseResult.argPosArr;
-				if (argPosArr && argPosArr.length) {
-					for (var i = 0; i < argPosArr.length; i++) {
-						if (!res.argumentsInfo) {
-							res.argumentsInfo = [];
-						}
-						res.argumentsInfo.push();
-					}
-				}
-			}
-		} else {
-			res = createFunctionInfoByName(name);
-		}
-
-		return res;
-	};
-
 	WorksheetView.prototype.getActiveFunctionInfo = function (parser, parserResult) {
 
 		var createFunctionInfoByName = function (_name) {

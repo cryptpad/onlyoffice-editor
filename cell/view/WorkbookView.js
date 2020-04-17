@@ -2258,10 +2258,7 @@
 		//таким образом получаю парсинг формулы с учётом текущей позиции
 		//TODO возможно стоит сделать отдельный метод для нового парсинга формулы в celleditor
 		this.cellEditor._updateFormulaEditMod();
-		if (this.cellEditor._parseResult && this.cellEditor._parseResult.activeFunction) {
-			return true;
-		}
-		return false;
+		return this.cellEditor._parseResult && this.cellEditor._parseResult.activeFunction;
 	};
 
 	WorkbookView.prototype.insertArgumentInFormula = function(val, argNum, type) {
@@ -2269,37 +2266,21 @@
 			return;
 		}
 
+		var ws = this.getWorksheet();
 		//argPosArr
-		if (!this.argPosArr || !this.argPosArr[argNum]) {
+		var parseResult = this.cellEditor._parseResult;
+		if (!parseResult && !parseResult.argPosArr || !parseResult.argPosArr[argNum]) {
 			return;
 		}
 
 		//полностью заменяем аргумент - для этого чистим предыдущую запись
-		this.cellEditor.selectionBegin = this.argPosArr[argNum - 1] + 1;
-		this.cellEditor.selectionEnd = this.argPosArr[argNum] - 1;
+		this.cellEditor.selectionBegin = parseResult.argPosArr[argNum].start;
+		this.cellEditor.selectionEnd = parseResult.argPosArr[argNum].end;
 		this.cellEditor.empty();
 		this.cellEditor.paste(val, this.lastFPos);
 
-		//далее необходимо проверить этот аргумент на принадлежность тому или иному типу
-		//и вернуть ответ, который должен быть записан справа от аргумента
-		//те необходимо создать формулу из одного аргумента и выполнить расчет
-		var ws = this.model.getActiveWs();
-		var cellWithFormula = this.cellEditor._formula.parent;
-		var parser = new parserFormula(val, cellWithFormula, ws);
-		parser.parse();
-
-
-		return null;
-	};
-
-	WorkbookView.prototype.getFunctionInfo = function (name, isStartCellEdit) {
-		var res = null;
-		var ws = this.model.getActiveWs();
-		var functionInfo = ws.getFunctionInfo(name, isStartCellEdit);
-
-
-
-		return res;
+		var funcInfo = ws.getActiveFunctionInfo(this.cellEditor._formula, this.cellEditor._parseResult);
+		this.handlers.trigger("asc_onSendFunctionWizardInfo", funcInfo);
 	};
 
 	WorkbookView.prototype.getActiveFunctionInfo = function () {

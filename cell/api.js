@@ -3923,10 +3923,6 @@ var editor;
     var f = AscCommonExcel.cFormulaFunctionLocalized && AscCommonExcel.cFormulaFunctionLocalized[name];
     return f ? f.prototype.name : name;
   };
-  spreadsheet_api.prototype.asc_getFunctionInfo = function (name, isStartCellEdit) {
-    return this.wb.getFunctionInfo(name, isStartCellEdit);
-  };
-
   spreadsheet_api.prototype.asc_calculate = function(type) {
     this.wb.calculate(type);
   };
