@@ -3907,6 +3907,11 @@ var editor;
     return this.wb.isEditingFunction();
   };
 
+  spreadsheet_api.prototype.asc_preInsertFormula = function() {
+    this.wb.preInsertFormula();
+    this.wb.restoreFocus();
+  };
+
   spreadsheet_api.prototype.asc_insertFormulaArgument = function(val, argNum, type) {
     var res = this.wb.insertArgumentInFormula(val, argNum, type);
     this.wb.restoreFocus();
@@ -4862,6 +4867,7 @@ var editor;
   prot["asc_insertHyperlink"] = prot.asc_insertHyperlink;
   prot["asc_removeHyperlink"] = prot.asc_removeHyperlink;
   prot["asc_insertFormula"] = prot.asc_insertFormula;
+  prot["asc_preInsertFormula"] = prot.asc_preInsertFormula;
   prot["asc_getFormulasInfo"] = prot.asc_getFormulasInfo;
   prot["asc_getFormulaLocaleName"] = prot.asc_getFormulaLocaleName;
   prot["asc_getFormulaNameByLocale"] = prot.asc_getFormulaNameByLocale;

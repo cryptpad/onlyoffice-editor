@@ -2261,6 +2261,59 @@
 		return this.cellEditor._parseResult && this.cellEditor._parseResult.activeFunction;
 	};
 
+	WorkbookView.prototype.preInsertFormula = function() {
+		var t = this, ws = this.getWorksheet();
+		var activeCellRange = ws.getActiveCell(0, 0, false);
+		var selectionRange = ws.model.selectionRange.clone();
+		var functionInfo = null;
+
+		if (this.getCellEditMode()) {
+			this.cellEditor._updateFormulaEditMod();
+			var parseResult = t.cellEditor._parseResult;
+			if (parseResult && parseResult.activeFunction) {
+				functionInfo = ws.getActiveFunctionInfo(t.cellEditor._formula, t.cellEditor._parseResult);
+			}
+			t.handlers.trigger("asc_onSendFunctionWizardInfo", functionInfo);
+		} else {
+			if (this.collaborativeEditing.getGlobalLock()) {
+				return;
+			}
+
+			var openEditor = function (res) {
+				functionInfo = null;
+				if (res) {
+					if (ws.isActiveCellFormula()) {
+						//если ячейка с формулой, то либо перемещаемся к первой функции и отркываем диалог wizard
+						//если функции нет, то перемещаемся в конец формулы и открываем окно выбора функции
+
+						// Выставляем переменные, что мы редактируем
+						t.setCellEditMode(true);
+						t.hideSpecialPasteButton();
+
+						t.cellEditor.needFindFirstFunction = true;
+						ws.openCellEditor(t.cellEditor, t.cellEditor.cursorPos, false, true, false, false, selectionRange);
+						t.cellEditor.needFindFirstFunction = null;
+						var parseResult = t.cellEditor._parseResult;
+						if (parseResult && parseResult.activeFunction) {
+							//TODO вызываю отсюда служебную функцию, пересмотреть!
+							t.cellEditor._moveCursor(-11, t.cellEditor._parseResult.cursorPos + 1);
+							functionInfo = ws.getActiveFunctionInfo(t.cellEditor._formula, t.cellEditor._parseResult);
+						} else {
+							//t.cellEditor._moveCursor(-11, t.cellEditor._parseResult.cursorPos + 1);
+						}
+					} else {
+						ws.openCellEditorWithText(t.cellEditor, "=", 1, /*isFocus*/false, selectionRange);
+					}
+
+				}
+
+				t.handlers.trigger("asc_onSendFunctionWizardInfo", functionInfo);
+			};
+
+			ws._isLockedCells(activeCellRange, /*subType*/null, openEditor);
+		}
+	};
+
 	WorkbookView.prototype.insertArgumentInFormula = function(val, argNum, type) {
 		if (!this.getCellEditMode()) {
 			return;
