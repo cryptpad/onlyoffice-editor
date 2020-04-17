@@ -790,7 +790,10 @@
 		var cellWithFormula = new window['AscCommonExcel'].CCellWithFormula(ws, bbox.r1, bbox.c1);
 		this._formula = new AscCommonExcel.parserFormula(s.substr(1), cellWithFormula, ws);
 		this._formula.parse(true, true, this._parseResult, true);
-		this.argPosArr = this._parseResult.argPosArr;
+		if(this.needFindFirstFunction) {
+			this.argPosArr = this._parseResult.argPosArr;
+			this.needFindFirstFunction = null;
+		}
 
 		var r, oper, wsName = null, bboxOper, isName = false;
 

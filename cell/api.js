@@ -3898,9 +3898,13 @@ var editor;
     this.wb.removeHyperlink();
   };
 
-  spreadsheet_api.prototype.asc_insertFormula = function(functionName, type, autoComplete) {
-    this.wb.insertFormulaInEditor(functionName, type, autoComplete);
+  spreadsheet_api.prototype.asc_insertFormula = function(functionName, type, autoComplete, doOpenWizardDialog) {
+    this.wb.insertFormulaInEditor(functionName, type, autoComplete, doOpenWizardDialog);
     this.wb.restoreFocus();
+  };
+
+  spreadsheet_api.prototype.asc_isEditingFunction = function() {
+    return this.wb.isEditingFunction();
   };
 
   spreadsheet_api.prototype.asc_insertFormulaArgument = function(val, argNum, type) {

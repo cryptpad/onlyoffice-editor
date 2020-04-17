@@ -2113,9 +2113,11 @@
   };
 
 	// Вставка формулы в редактор
-	WorkbookView.prototype.insertFormulaInEditor = function (name, type, autoComplete) {
+	WorkbookView.prototype.insertFormulaInEditor = function (name, type, autoComplete, doOpenWizardDialog) {
 		var t = this, ws = this.getWorksheet(), cursorPos, isNotFunction, tmp;
 		var activeCellRange = ws.getActiveCell(0, 0, false);
+
+		doOpenWizardDialog = true;
 
 		if (ws.model.inPivotTable(activeCellRange)) {
 			this.handlers.trigger("asc_onError", c_oAscError.ID.LockedCellPivot, c_oAscError.Level.NoCritical);
@@ -2130,10 +2132,19 @@
 		isNotFunction = c_oAscPopUpSelectorType.Func !== type;
 
 		// Проверяем, открыт ли редактор
+		var isFormulaContains, funcInfo;
 		if (this.getCellEditMode()) {
 			if (isNotFunction) {
 				this.skipHelpSelector = true;
 			}
+
+			isFormulaContains = this.cellEditor.isFormula() && doOpenWizardDialog;
+			if (isFormulaContains && this.cellEditor._parseResult && this.cellEditor._parseResult.activeFunction) {
+				funcInfo = ws.getActiveFunctionInfo(this.cellEditor._formula, this.cellEditor._parseResult);
+				t.handlers.trigger("asc_onSendFunctionWizardInfo", funcInfo);
+				return;
+			}
+
 			if (-1 !== this.lastFPos) {
 				if (-1 === this.arrExcludeFormulas.indexOf(name) && !isNotFunction) {
 					//если следующий символ скобка - не добавляем ещё одну
@@ -2150,8 +2161,15 @@
 			} else if (false === this.cellEditor.insertFormula(name, isNotFunction)) {
 				// Не смогли вставить формулу, закроем редактор, с сохранением текста
 				this.cellEditor.close(true);
+				isFormulaContains = false;
 			}
+
 			this.skipHelpSelector = false;
+			
+			if (isFormulaContains) {
+				funcInfo = ws.getActiveFunctionInfo(this.cellEditor._formula, this.cellEditor._parseResult);
+				t.handlers.trigger("asc_onSendFunctionWizardInfo", funcInfo);
+			}
 		} else {
 			// Проверка глобального лока
 			if (this.collaborativeEditing.getGlobalLock()) {
@@ -2161,7 +2179,7 @@
 			var selectionRange = ws.model.selectionRange.clone();
 
 			//если в ячейке уже есть формула
-			var isFormulaContains = ws.isActiveCellFormula();
+			isFormulaContains = doOpenWizardDialog ? ws.isActiveCellFormula() : null;
 			if (!isFormulaContains) {
 				// Редактор закрыт
 				var cellRange = {};
@@ -2212,9 +2230,10 @@
 						ws.openCellEditorWithText(t.cellEditor, name, cursorPos, /*isFocus*/false, selectionRange);
 					}
 
-					var funcInfo = ws.getActiveFunctionInfo(t.cellEditor._formula, t.cellEditor._parseResult);
-					//send event
-					t.handlers.trigger("asc_onSendFunctionWizardInfo", funcInfo);
+					if (doOpenWizardDialog) {
+						var funcInfo = ws.getActiveFunctionInfo(t.cellEditor._formula, t.cellEditor._parseResult);
+						t.handlers.trigger("asc_onSendFunctionWizardInfo", funcInfo);
+					}
 
 					if (isNotFunction) {
 						t.skipHelpSelector = false;
@@ -2229,6 +2248,20 @@
 
 			ws._isLockedCells(activeCellRange, /*subType*/null, openEditor);
 		}
+	};
+
+	WorkbookView.prototype.isEditingFunction = function() {
+		if (!this.getCellEditMode()) {
+			return;
+		}
+
+		//таким образом получаю парсинг формулы с учётом текущей позиции
+		//TODO возможно стоит сделать отдельный метод для нового парсинга формулы в celleditor
+		this.cellEditor._updateFormulaEditMod();
+		if (this.cellEditor._parseResult && this.cellEditor._parseResult.activeFunction) {
+			return true;
+		}
+		return false;
 	};
 
 	WorkbookView.prototype.insertArgumentInFormula = function(val, argNum, type) {
