@@ -1477,7 +1477,7 @@ Paragraph.prototype.private_RecalculateLinePosition    = function(CurLine, CurPa
 	// Заметим, что границы строки мы оставляем корректными
 	if (this.LogicDocument
 		&& this.LogicDocument.GetCompatibilityMode
-		&& this.LogicDocument.GetCompatibilityMode() <= document_compatibility_mode_Word14
+		&& this.LogicDocument.GetCompatibilityMode() <= AscCommon.document_compatibility_mode_Word14
 		&& this.Lines[CurLine].Info & paralineinfo_BreakPage
 		&& this.Lines[CurLine].Info & paralineinfo_Empty
 		&& !(this.Lines[CurLine].Info & paralineinfo_BreakRealPage))
@@ -1593,7 +1593,7 @@ Paragraph.prototype.private_RecalculateLineCheckRanges = function(CurLine, CurPa
 		Ranges[nIndex].Y1 = AscCommon.CorrectMMToTwips(Ranges[nIndex].Y1);
 	}
 
-	if (this.LogicDocument && this.LogicDocument.GetCompatibilityMode && this.LogicDocument.GetCompatibilityMode() >= document_compatibility_mode_Word15)
+	if (this.LogicDocument && this.LogicDocument.GetCompatibilityMode && this.LogicDocument.GetCompatibilityMode() >= AscCommon.document_compatibility_mode_Word15)
 	{
 		Bottom = Bottom2;
 		Top2   = Top;
@@ -2321,7 +2321,7 @@ Paragraph.prototype.private_RecalculateMoveLineToNextPage = function(CurLine, Cu
 		if (true === ParaPr.KeepLines && this.LogicDocument && this.LogicDocument.GetCompatibilityMode && false === bSkipWidowAndKeepLines)
 		{
 			var CompatibilityMode = this.LogicDocument.GetCompatibilityMode();
-			if (CompatibilityMode <= document_compatibility_mode_Word14)
+			if (CompatibilityMode <= AscCommon.document_compatibility_mode_Word14)
 			{
 				if (null != this.Get_DocumentPrev() && true != this.Parent.IsTableCellContent() && 0 === CurPage)
 				{
@@ -2329,7 +2329,7 @@ Paragraph.prototype.private_RecalculateMoveLineToNextPage = function(CurLine, Cu
 					PRS.RunRecalcInfoBreak = null;
 				}
 			}
-			else if (CompatibilityMode >= document_compatibility_mode_Word15)
+			else if (CompatibilityMode >= AscCommon.document_compatibility_mode_Word15)
 			{
 				// TODO: Разобраться с 2016 вордом
 				if (null != this.Get_DocumentPrev() && 0 === CurPage)
@@ -2369,7 +2369,7 @@ Paragraph.prototype.private_CheckNeedBeforeSpacing = function(CurPage, Parent, P
 
 	if (this.LogicDocument
 		&& this.LogicDocument.GetCompatibilityMode
-		&& this.LogicDocument.GetCompatibilityMode() <= document_compatibility_mode_Word14
+		&& this.LogicDocument.GetCompatibilityMode() <= AscCommon.document_compatibility_mode_Word14
 		&& true === ParaPr.PageBreakBefore)
 		return true;
 

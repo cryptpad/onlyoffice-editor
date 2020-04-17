@@ -3862,7 +3862,7 @@ CGraphicObjects.prototype =
     {
         if(this.canChangeWrapPolygon())
         {
-            var bNeedBehindDoc = this.getCompatibilityMode() < document_compatibility_mode_Word15;
+            var bNeedBehindDoc = this.getCompatibilityMode() < AscCommon.document_compatibility_mode_Word15;
             if(this.selectedObjects[0].parent.wrappingType !== WRAPPING_TYPE_THROUGH
                 || this.selectedObjects[0].parent.wrappingType !== WRAPPING_TYPE_TIGHT
             || this.selectedObjects[0].parent.behindDoc !== bNeedBehindDoc)

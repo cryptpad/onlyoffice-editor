@@ -4499,7 +4499,7 @@
 				for (var i = 0, length = elem.Content.length; i < length; i++) {
 					if (elem.Content[i] && elem.Content[i].Content) {
 						for (var j = 0; j < elem.Content[i].Content.length; j++) {
-							if (elem.Content[i].Content[j] && para_NewLine === elem.Content[i].Content[j].GetType()) {
+							if (elem.Content[i].Content[j] && para_NewLine === elem.Content[i].Content[j].GetType()  && AscCommon.g_clipboardBase.pastedFrom !== AscCommon.c_oClipboardPastedFrom.Excel) {
 								oNewElem.height++;
 							}
 						}

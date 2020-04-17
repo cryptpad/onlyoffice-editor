@@ -1472,7 +1472,7 @@ ParaDrawing.prototype.Shift = function(Dx, Dy)
 ParaDrawing.prototype.IsLayoutInCell = function()
 {
 	// Начиная с 15-ой версии Word не дает менять этот параметр и всегда считает его true
-	if (this.LogicDocument && this.LogicDocument.GetCompatibilityMode() >= document_compatibility_mode_Word15)
+	if (this.LogicDocument && this.LogicDocument.GetCompatibilityMode() >= AscCommon.document_compatibility_mode_Word15)
 		return true;
 
 	return this.LayoutInCell;
@@ -2653,7 +2653,7 @@ ParaDrawing.prototype.getDrawingArrayType = function()
 	if (this.Is_Inline())
 		return DRAWING_ARRAY_TYPE_INLINE;
 	if (this.behindDoc === true){
-		if(this.wrappingType === WRAPPING_TYPE_NONE || (this.document && this.document.GetCompatibilityMode && this.document.GetCompatibilityMode() < document_compatibility_mode_Word15)){
+		if(this.wrappingType === WRAPPING_TYPE_NONE || (this.document && this.document.GetCompatibilityMode && this.document.GetCompatibilityMode() < AscCommon.document_compatibility_mode_Word15)){
 			return DRAWING_ARRAY_TYPE_BEHIND;
 		}
 	}

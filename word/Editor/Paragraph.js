@@ -668,7 +668,7 @@ Paragraph.prototype.private_RecalculateColumnLimits = function()
 	this.X_ColumnStart = X;
 	this.X_ColumnEnd   = XLimit;
 
-	if (this.bFromDocument && this.LogicDocument && this.LogicDocument.GetCompatibilityMode() <= document_compatibility_mode_Word14)
+	if (this.bFromDocument && this.LogicDocument && this.LogicDocument.GetCompatibilityMode() <= AscCommon.document_compatibility_mode_Word14)
 	{
 		// Тут работает не совсем так как в MSWord версии 14 и раньше. Мы берем первые текстовые настройки и по ним
 		// оцениваем высоту первой строки. В MSWord идет расчет первой строки и берутся ее точные параметры.
@@ -3229,7 +3229,7 @@ Paragraph.prototype.Remove = function(nCount, isRemoveWholeElement, bRemoveOnlyS
 				this.RemoveFromContent(StartPos + 1, EndPos - StartPos - 1);
 			}
 
-			var isFootnoteRefRun = (para_Run === this.Content[StartPos].Type && this.Content[StartPos].IsFootnoteReferenceRun());
+			var isFootEndnoteRefRun = (para_Run === this.Content[StartPos].Type && this.Content[StartPos].IsFootEndnoteReferenceRun());
 
 
 			if (this.Content[StartPos].IsSolid())
@@ -3253,9 +3253,9 @@ Paragraph.prototype.Remove = function(nCount, isRemoveWholeElement, bRemoveOnlyS
 					this.RemoveFromContent(StartPos, 1);
 					isStartDeleted = true;
 				}
-				else if (isFootnoteRefRun)
+				else if (isFootEndnoteRefRun)
 				{
-					this.Content[StartPos].Set_RStyle(undefined);
+					this.Content[StartPos].SetRStyle(undefined);
 				}
 			}
 
@@ -3702,6 +3702,8 @@ Paragraph.prototype.Add = function(Item)
 		case para_NewLine:
 		case para_FootnoteReference:
 		case para_FootnoteRef:
+		case para_EndnoteReference:
+		case para_EndnoteRef:
 		case para_Separator:
 		case para_ContinuationSeparator:
 		default:
@@ -8108,7 +8110,7 @@ Paragraph.prototype.GetCalculatedTextPr = function()
 			TextPr = this.Content[this.CurPos.ContentPos].Get_CompiledTextPr(true);
 
 			var oRun = this.Get_ElementByPos(this.Get_ParaContentPos(false, false, false));
-			if (para_Run === oRun.Type && oRun.private_IsCurPosNearFootnoteReference())
+			if (para_Run === oRun.Type && oRun.IsCurPosNearFootEndnoteReference())
 				TextPr.VertAlign = AscCommon.vertalign_Baseline;
 		}
 	}
@@ -14570,7 +14572,7 @@ Paragraph.prototype.GetAllFields = function(isUseSelection, arrFields)
  */
 Paragraph.prototype.IsCondensedSpaces = function()
 {
-	if (this.bFromDocument && this.LogicDocument && this.LogicDocument.GetCompatibilityMode() >= document_compatibility_mode_Word15 && this.Get_CompiledPr2(false).ParaPr.Jc === align_Justify)
+	if (this.bFromDocument && this.LogicDocument && this.LogicDocument.GetCompatibilityMode() >= AscCommon.document_compatibility_mode_Word15 && this.Get_CompiledPr2(false).ParaPr.Jc === align_Justify)
 		return true;
 
 	return false;

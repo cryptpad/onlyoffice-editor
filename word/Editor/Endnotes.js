@@ -88,6 +88,25 @@ CEndnotesController.prototype.Refresh_RecalcData2 = function(nRelPageIndex)
 	var nAbsPageIndex = nRelPageIndex;
 };
 /**
+ * Начальная инициализация после загрузки
+ */
+CEndnotesController.prototype.ResetSpecialEndnotes = function()
+{
+	var oSeparator = new CFootEndnote(this);
+	oSeparator.AddToParagraph(new ParaSeparator(), false);
+	var oParagraph = oSeparator.GetElement(0);
+	oParagraph.Set_Spacing({After : 0, Line : 1, LineRule : Asc.linerule_Auto}, false);
+	this.SetSeparator(oSeparator);
+
+	var oContinuationSeparator = new CFootEndnote(this);
+	oContinuationSeparator.AddToParagraph(new ParaContinuationSeparator(), false);
+	oParagraph = oContinuationSeparator.GetElement(0);
+	oParagraph.Set_Spacing({After : 0, Line : 1, LineRule : Asc.linerule_Auto}, false);
+	this.SetContinuationSeparator(oContinuationSeparator);
+
+	this.SetContinuationNotice(null);
+};
+/**
  * Создаем новую сноску
  * @returns {CFootEndnote}
  */
@@ -143,4 +162,15 @@ CEndnotesController.prototype.SetEndnotePrNumRestart = function(nRestartType)
 		this.LogicDocument.GetHistory().Add(new CChangesSectionEndnoteNumRestart(this, this.EndnotePr.NumRestart, nRestartType));
 		this.EndnotePr.NumRestart = nRestartType;
 	}
+};
+/**
+ * Проверяем, используется заданная сноска в документе.
+ * @param {string} sFootnoteId
+ * @param {CFootEndnote.array} arrEndnotesList
+ * @returns {boolean}
+ */
+CEndnotesController.prototype.Is_UseInDocument = function(sFootnoteId, arrEndnotesList)
+{
+	// TODO: Реализовать
+	return true;
 };

@@ -2964,7 +2964,7 @@
 		}
 		oSelectedContent.On_EndCollectElements(this.Document, true);
 
-		if (this.Document.IsSelectionUse()())
+		if (this.Document.IsSelectionUse())
 		{
 			this.Document.Start_SilentMode();
 			this.Document.Remove(1, false, false, false);

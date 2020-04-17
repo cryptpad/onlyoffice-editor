@@ -2891,6 +2891,8 @@ CDocumentContent.prototype.AddToParagraph = function(ParaItem, bRecalculate)
 				case para_Separator:
 				case para_ContinuationSeparator:
 				case para_InstrText:
+				case para_EndnoteReference:
+				case para_EndnoteRef:
 				{
 					if (ParaItem instanceof AscCommonWord.MathMenu)
 					{

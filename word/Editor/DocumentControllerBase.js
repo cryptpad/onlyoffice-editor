@@ -523,22 +523,22 @@ CDocumentControllerBase.prototype.SetTableProps = function(Props){};
  * Получаем текущие настройки параграфа.
  * @returns {CParaPr}
  */
-CDocumentControllerBase.prototype.GetCalculatedParaPr = function(){var oParaPr = new CParaPr(); oParaPr.Init_Default(); return oParaPr};
+CDocumentControllerBase.prototype.GetCalculatedParaPr = function(){var oParaPr = new CParaPr(); oParaPr.InitDefault(); return oParaPr};
 /**
  * Получаем текущие настройки текста.
  * @returns {CTextPr}
  */
-CDocumentControllerBase.prototype.GetCalculatedTextPr = function(){var oTextPr = new CTextPr(); oTextPr.Init_Default(); return oTextPr};
+CDocumentControllerBase.prototype.GetCalculatedTextPr = function(){var oTextPr = new CTextPr(); oTextPr.InitDefault(); return oTextPr};
 /**
  * Получаем прямые настройки параграфа.
  * @returns {CParaPr}
  */
-CDocumentControllerBase.prototype.GetDirectParaPr = function(){var oParaPr = new CParaPr(); oParaPr.Init_Default(); return oParaPr};
+CDocumentControllerBase.prototype.GetDirectParaPr = function(){var oParaPr = new CParaPr(); oParaPr.InitDefault(); return oParaPr};
 /**
  * Получаем прямые настройки текста.
  * @returns {CTextPr}
  */
-CDocumentControllerBase.prototype.GetDirectTextPr = function(){var oTextPr = new CTextPr(); oTextPr.Init_Default(); return oTextPr};
+CDocumentControllerBase.prototype.GetDirectTextPr = function(){var oTextPr = new CTextPr(); oTextPr.InitDefault(); return oTextPr};
 /**
  * Убираем селект.
  * @param bNoCheckDrawing

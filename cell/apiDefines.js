@@ -460,7 +460,8 @@ var c_oAscPopUpSelectorType = {
     number: 0,
     text: 1,
     reference: 2,
-    any: 3
+    any: 3,
+    logical: 4
   };
 
   var c_kMaxPrintPages = 1500;
@@ -735,5 +736,6 @@ var c_oAscPopUpSelectorType = {
   prot['text'] = prot.text;
   prot['reference'] = prot.reference;
   prot['any'] = prot.any;
+  prot['logical'] = prot.logical;
 
 })(window);

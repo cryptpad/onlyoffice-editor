@@ -116,21 +116,41 @@ CFootEndnote.prototype.IsCustomMarkFollows = function()
 };
 CFootEndnote.prototype.AddDefaultFootnoteContent = function(sText)
 {
-	var oStyles    = this.LogicDocument.Get_Styles();
-	var oParagraph = this.GetElement(0);
+	var oStyles    = this.LogicDocument.GetStyles();
+	var oParagraph = this.GetFirstParagraph();
 
 	oParagraph.Style_Add(oStyles.GetDefaultFootnoteText());
 	var oRun = new ParaRun(oParagraph, false);
-	oRun.Set_RStyle(oStyles.GetDefaultFootnoteReference());
+	oRun.SetRStyle(oStyles.GetDefaultFootnoteReference());
 	if (sText)
 		oRun.AddText(sText);
 	else
-		oRun.Add_ToContent(0, new ParaFootnoteRef(this));
+		oRun.AddToContent(0, new ParaFootnoteRef(this));
 
-	oParagraph.Add_ToContent(0, oRun);
+	oParagraph.AddToContent(0, oRun);
 	oRun = new ParaRun(oParagraph, false);
-	oRun.Add_ToContent(0, new ParaSpace());
-	oParagraph.Add_ToContent(1, oRun);
+	oRun.AddToContent(0, new ParaSpace());
+	oParagraph.AddToContent(1, oRun);
+
+	this.MoveCursorToEndPos(false);
+};
+CFootEndnote.prototype.AddDefaultEndnoteContent = function(sText)
+{
+	var oStyles    = this.LogicDocument.GetStyles();
+	var oParagraph = this.GetFirstParagraph();
+
+	oParagraph.Style_Add(oStyles.GetDefaultEndnoteText());
+	var oRun = new ParaRun(oParagraph, false);
+	oRun.SetRStyle(oStyles.GetDefaultEndnoteReference());
+	if (sText)
+		oRun.AddText(sText);
+	else
+		oRun.AddToContent(0, new ParaEndnoteRef(this));
+
+	oParagraph.AddToContent(0, oRun);
+	oRun = new ParaRun(oParagraph, false);
+	oRun.AddToContent(0, new ParaSpace());
+	oParagraph.AddToContent(1, oRun);
 
 	this.MoveCursorToEndPos(false);
 };

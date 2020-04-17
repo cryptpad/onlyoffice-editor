@@ -70,6 +70,7 @@ var docpostype_Content        = 0x00;
 var docpostype_HdrFtr         = 0x02;
 var docpostype_DrawingObjects = 0x03;
 var docpostype_Footnotes      = 0x04;
+var docpostype_Endnotes       = 0x05;
 
 var selectionflag_Common        = 0x000;
 var selectionflag_Numbering     = 0x001; // Выделена нумерация
@@ -1996,17 +1997,10 @@ CSelectedElementsInfo.prototype.GetTrackMoveMarks = function()
 	return this.m_arrMoveMarks;
 };
 
-var document_compatibility_mode_Word11  = 11;
-var document_compatibility_mode_Word12  = 12;
-var document_compatibility_mode_Word14  = 14;
-var document_compatibility_mode_Word15  = 15;
-
-var document_compatibility_mode_Current = document_compatibility_mode_Word12;
-
 function CDocumentSettings()
 {
     this.MathSettings      = undefined !== CMathSettings ? new CMathSettings() : {};
-    this.CompatibilityMode = document_compatibility_mode_Current;
+    this.CompatibilityMode = AscCommon.document_compatibility_mode_Current;
     this.SdtSettings       = new CSdtGlobalSettings();
 
     this.ListSeparator = undefined;
@@ -2385,6 +2379,8 @@ CDocument.prototype.Init                           = function()
 };
 CDocument.prototype.On_EndLoad                     = function()
 {
+	this.UpdateDefaultsDependingOnCompatibility();
+
     // Обновляем информацию о секциях
     this.UpdateAllSectionsInfo();
 
@@ -2414,6 +2410,10 @@ CDocument.prototype.On_EndLoad                     = function()
     {
         this.Set_FastCollaborativeEditing(true);
     }
+};
+CDocument.prototype.UpdateDefaultsDependingOnCompatibility = function()
+{
+	this.Styles.UpdateDefaultsDependingOnCompatibility(this.GetCompatibilityMode());
 };
 CDocument.prototype.private_UpdateFieldsOnEndLoad = function()
 {
@@ -16164,6 +16164,47 @@ CDocument.prototype.GetFootnotesList = function(oFirstFootnote, oLastFootnote)
 
 	return arrFootnotes;
 };
+CDocument.prototype.AddEndnote = function(sText)
+{
+	var nDocPosType = this.GetDocPosType();
+	if (docpostype_Content !== nDocPosType && docpostype_Endnotes !== nDocPosType)
+		return;
+
+	if (false === this.Document_Is_SelectionLocked(changestype_Paragraph_Content))
+	{
+		this.StartAction(AscDFH.historydescription_Document_AddEndnote);
+
+		var nDocPosType = this.GetDocPosType();
+		if (docpostype_Content === nDocPosType)
+		{
+			var oEndnote = this.Endnotes.CreateEndnote();
+			oEndnote.AddDefaultEndnoteContent(sText);
+
+			if (true === this.IsSelectionUse())
+			{
+				this.MoveCursorRight(false, false, false);
+				this.RemoveSelection();
+			}
+
+			if (sText)
+				this.AddToParagraph(new ParaEndnoteReference(oEndnote, sText));
+			else
+				this.AddToParagraph(new ParaEndnoteReference(oEndnote));
+
+			// TODO: Реализовать
+			//this.SetDocPosType(docpostype_Footnotes);
+			//this.Footnotes.Set_CurrentElement(true, 0, oFootnote);
+		}
+		else if (docpostype_Endnotes === nDocPosType)
+		{
+			// TODO: Реализовать
+			//this.Footnotes.AddFootnoteRef();
+		}
+
+		this.Recalculate();
+		this.FinalizeAction();
+	}
+};
 CDocument.prototype.TurnOffCheckChartSelection = function()
 {
 	if (this.DrawingObjects)
@@ -16667,6 +16708,8 @@ CDocument.prototype.controller_AddToParagraph = function(ParaItem, bRecalculate)
 			case para_Separator:
 			case para_ContinuationSeparator:
 			case para_InstrText:
+			case para_EndnoteReference:
+			case para_EndnoteRef:
 			{
 				if (ParaItem instanceof AscCommonWord.MathMenu)
 				{
@@ -24096,7 +24139,6 @@ window['AscCommon'].X_Right_Margin = X_Right_Margin;
 window['AscCommon'].Y_Bottom_Margin = Y_Bottom_Margin;
 window['AscCommon'].Y_Top_Margin = Y_Top_Margin;
 window['AscCommon'].selectionflag_Common = selectionflag_Common;
-window['AscCommon'].document_compatibility_mode_Word15 = document_compatibility_mode_Word15;
 
 CDocumentColumnProps.prototype['put_W']     = CDocumentColumnProps.prototype.put_W;
 CDocumentColumnProps.prototype['get_W']     = CDocumentColumnProps.prototype.get_W;

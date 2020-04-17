@@ -311,7 +311,7 @@ CAscDateTime.prototype['get_DateTimeExamples'] = CAscDateTime.prototype.get_Date
         var oParaField = new AscCommonWord.CPresentationField();
         oParaField.RecalcInfo.TextPr = false;
         oParaField.CompiledPr = new CTextPr();
-        oParaField.CompiledPr.Init_Default();
+        oParaField.CompiledPr.InitDefault();
         oParaField.CompiledPr.Lang.Val = this.Lang;
         for(var key in oMap) {
             if(oMap.hasOwnProperty(key)) {

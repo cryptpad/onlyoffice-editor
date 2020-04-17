@@ -267,7 +267,7 @@ ParaRun.prototype.Copy = function(Selected, oPr)
 				if (para_End !== Item.Type
 					&& para_RevisionMove !== Item.Type
 					&& (para_Drawing !== Item.Type || Item.Is_Inline() || true !== oPr.SkipAnchors)
-					&& (para_FootnoteReference !== Item.Type || true !== oPr.SkipFootnoteReference)
+					&& ((para_FootnoteReference !== Item.Type && para_EndnoteReference !== Item.Type) || true !== oPr.SkipFootnoteReference)
 					&& ((para_FieldChar !== Item.Type && para_InstrText !== Item.Type) || true !== oPr.SkipComplexFields))
 				{
 					aCopyContent.push(Item.Copy(oPr));
@@ -300,7 +300,7 @@ ParaRun.prototype.Copy = function(Selected, oPr)
 				if (para_End !== Item.Type
 					&& para_RevisionMove !== Item.Type
 					&& (para_Drawing !== Item.Type || Item.Is_Inline() || true !== oPr.SkipAnchors)
-					&& (para_FootnoteReference !== Item.Type || true !== oPr.SkipFootnoteReference)
+					&& ((para_FootnoteReference !== Item.Type && para_EndnoteReference !== Item.Type) || true !== oPr.SkipFootnoteReference)
 					&& ((para_FieldChar !== Item.Type && para_InstrText !== Item.Type) || true !== oPr.SkipComplexFields))
 				{
 					NewRun.Add_ToContent(AddedPos, Item.Copy(oPr), false);
@@ -616,20 +616,21 @@ ParaRun.prototype.Add = function(Item, bMath)
             // 2. Если мы находимся в ране со специальным стилем сносок и следующий или предыдущий элемент и есть сноска, тогда
             //    мы добавляем элемент (если это не ссылка на сноску) в новый ран без стиля для сносок.
             var oStyles = this.Paragraph.LogicDocument.Get_Styles();
-            if (para_FootnoteRef === Item.Type || para_FootnoteReference === Item.Type)
+            if (para_FootnoteRef === Item.Type || para_FootnoteReference === Item.Type || para_EndnoteRef === Item.Type || para_EndnoteReference === Item.Type)
             {
-                if (this.Is_Empty())
+            	var isFootnote = (para_FootnoteRef === Item.Type || para_FootnoteReference === Item.Type);
+                if (this.IsEmpty())
                 {
-                	this.Set_VertAlign(undefined);
-                    this.Set_RStyle(oStyles.GetDefaultFootnoteReference());
+                	this.SetVertAlign(undefined);
+                    this.SetRStyle(isFootnote ? oStyles.GetDefaultFootnoteReference() : oStyles.GetDefaultEndnoteReference());
                 }
                 else
                 {
                     var NewRun = this.private_SplitRunInCurPos();
                     if (NewRun)
                     {
-                        NewRun.Set_VertAlign(undefined);
-                        NewRun.Set_RStyle(oStyles.GetDefaultFootnoteReference());
+                        NewRun.SetVertAlign(undefined);
+                        NewRun.SetRStyle(isFootnote ? oStyles.GetDefaultFootnoteReference() : oStyles.GetDefaultEndnoteReference());
                         NewRun.MoveCursorToStartPos();
                         NewRun.Add(Item, bMath);
                         NewRun.Make_ThisElementCurrent();
@@ -637,12 +638,12 @@ ParaRun.prototype.Add = function(Item, bMath)
                     }
                 }
             }
-            else if (true === this.private_IsCurPosNearFootnoteReference())
+            else if (true === this.IsCurPosNearFootEndnoteReference())
             {
                 var NewRun = this.private_SplitRunInCurPos();
                 if (NewRun)
                 {
-                    NewRun.Set_VertAlign(AscCommon.vertalign_Baseline);
+                    NewRun.SetVertAlign(AscCommon.vertalign_Baseline);
                     NewRun.MoveCursorToStartPos();
                     NewRun.Add(Item, bMath);
                     NewRun.Make_ThisElementCurrent();
@@ -833,16 +834,19 @@ ParaRun.prototype.private_SplitRunInCurPos = function()
 
 	return NewRun;
 };
-ParaRun.prototype.private_IsCurPosNearFootnoteReference = function()
+ParaRun.prototype.IsCurPosNearFootEndnoteReference = function()
 {
 	if (this.Paragraph && this.Paragraph.LogicDocument && this.Paragraph.bFromDocument)
 	{
 		var oStyles = this.Paragraph.LogicDocument.Get_Styles();
 		var nCurPos = this.State.ContentPos;
 
-		if (this.Get_RStyle() === oStyles.GetDefaultFootnoteReference()
+		if ((this.GetRStyle() === oStyles.GetDefaultFootnoteReference()
 			&& ((nCurPos > 0 && this.Content[nCurPos - 1] && (para_FootnoteRef === this.Content[nCurPos - 1].Type || para_FootnoteReference === this.Content[nCurPos - 1].Type))
-			|| (nCurPos < this.Content.length && this.Content[nCurPos] && (para_FootnoteRef === this.Content[nCurPos].Type || para_FootnoteReference === this.Content[nCurPos].Type))))
+				|| (nCurPos < this.Content.length && this.Content[nCurPos] && (para_FootnoteRef === this.Content[nCurPos].Type || para_FootnoteReference === this.Content[nCurPos].Type))))
+			|| (this.GetRStyle() === oStyles.GetDefaultEndnoteReference()
+				&& ((nCurPos > 0 && this.Content[nCurPos - 1] && (para_EndnoteRef === this.Content[nCurPos - 1].Type || para_EndnoteReference === this.Content[nCurPos - 1].Type))
+					|| (nCurPos < this.Content.length && this.Content[nCurPos] && (para_EndnoteRef === this.Content[nCurPos].Type || para_EndnoteReference === this.Content[nCurPos].Type)))))
 			return true;
 	}
 
@@ -850,7 +854,7 @@ ParaRun.prototype.private_IsCurPosNearFootnoteReference = function()
 };
 ParaRun.prototype.private_AddItemToRun = function(nPos, Item)
 {
-	if (para_FootnoteReference === Item.Type && true === Item.IsCustomMarkFollows() && undefined !== Item.GetCustomText())
+	if ((para_FootnoteReference === Item.Type || para_EndnoteReference === Item.Type) && true === Item.IsCustomMarkFollows() && undefined !== Item.GetCustomText())
 	{
 		this.AddToContent(nPos, Item, true);
 		this.AddText(Item.GetCustomText(), nPos + 1);
@@ -1142,8 +1146,8 @@ ParaRun.prototype.Remove = function(Direction, bOnAddText)
 				}
 
 				var oStyles = (this.Paragraph && this.Paragraph.bFromDocument) ? this.Paragraph.LogicDocument.GetStyles() : null;
-				if (oStyles && 1 === this.Content.length && para_FootnoteReference === this.Content[0].Type && this.Get_RStyle() === oStyles.GetDefaultFootnoteReference())
-					this.Set_RStyle(undefined);
+				if (oStyles && 1 === this.Content.length && ((para_FootnoteReference === this.Content[0].Type && this.GetRStyle() === oStyles.GetDefaultFootnoteReference()) || (para_EndnoteReference === this.Content[0].Type && this.GetRStyle() === oStyles.GetDefaultEndnoteReference())))
+					this.SetRStyle(undefined);
 
                 this.RemoveFromContent(CurPos - 1, 1, true);
                 this.State.ContentPos = CurPos - 1;
@@ -1178,8 +1182,8 @@ ParaRun.prototype.Remove = function(Direction, bOnAddText)
 				}
 
 				var oStyles = (this.Paragraph && this.Paragraph.bFromDocument) ? this.Paragraph.LogicDocument.GetStyles() : null;
-				if (oStyles && 1 === this.Content.length && para_FootnoteReference === this.Content[0].Type && this.Get_RStyle() === oStyles.GetDefaultFootnoteReference())
-					this.Set_RStyle(undefined);
+				if (oStyles && 1 === this.Content.length && ((para_FootnoteReference === this.Content[0].Type && this.GetRStyle() === oStyles.GetDefaultFootnoteReference()) || (para_EndnoteReference === this.Content[0].Type && this.GetRStyle() === oStyles.GetDefaultEndnoteReference())))
+					this.SetRStyle(undefined);
 
 				this.RemoveFromContent(CurPos, 1, true);
                 this.State.ContentPos = CurPos;
@@ -1732,7 +1736,7 @@ ParaRun.prototype.Recalculate_CurPos = function(X, Y, CurrentRun, _CurRange, _Cu
         }
     }
 
-	var bNearFootnoteReference = this.private_IsCurPosNearFootnoteReference();
+	var bNearFootnoteReference = this.IsCurPosNearFootEndnoteReference();
     if ( true === CurrentRun && Pos === this.State.ContentPos )
     {
         if ( true === UpdateCurPos )
@@ -1943,8 +1947,15 @@ ParaRun.prototype.Is_SimpleChanges = function(Changes)
         // нельзя обсчитывать функцией Recalculate_Fast. Добавление и удаление разметок сложных полей тоже нельзя
 		// обсчитывать в быстром пересчете.
         // TODO: Но на самом деле стоило бы сделать нормальную проверку на высоту строки в функции Recalculate_Fast
-        var ItemType = Item.Type;
-        if (para_Drawing === ItemType || para_NewLine === ItemType || para_FootnoteRef === ItemType || para_FootnoteReference === ItemType || para_FieldChar === ItemType || para_InstrText === ItemType)
+		var ItemType = Item.Type;
+		if (para_Drawing === ItemType
+			|| para_NewLine === ItemType
+			|| para_FootnoteRef === ItemType
+			|| para_FootnoteReference === ItemType
+			|| para_FieldChar === ItemType
+			|| para_InstrText === ItemType
+			|| para_EndnoteRef === ItemType
+			|| para_EndnoteReference === ItemType)
             return false;
 
         // Проверяем, что все изменения произошли в одном и том же отрезке
@@ -1983,11 +1994,15 @@ ParaRun.prototype.IsParagraphSimpleChanges = function(_Changes)
         if (AscDFH.historyitem_ParaRun_AddItem === ChangeType || AscDFH.historyitem_ParaRun_RemoveItem === ChangeType)
         {
             for (var ItemIndex = 0, ItemsCount = Data.Items.length; ItemIndex < ItemsCount; ItemIndex++)
-            {
-                var Item = Data.Items[ItemIndex];
-                if (para_Drawing === Item.Type || para_FootnoteReference === Item.Type || para_FieldChar === Item.Type || para_InstrText === Item.Type)
-                    return false;
-            }
+			{
+				var Item = Data.Items[ItemIndex];
+				if (para_Drawing === Item.Type
+					|| para_FootnoteReference === Item.Type
+					|| para_FieldChar === Item.Type
+					|| para_InstrText === Item.Type
+					|| para_EndnoteReference === Item.Type)
+					return false;
+			}
         }
         else if (AscDFH.historyitem_ParaRun_ReviewType === ChangeType && this.GetParaEnd())
 		{
@@ -2493,7 +2508,7 @@ ParaRun.prototype.Create_FontMap = function(Map)
 
 			if (para_Drawing === Item.Type)
 				Item.documentCreateFontMap(Map);
-			else if (para_FootnoteReference === Item.Type)
+			else if (para_FootnoteReference === Item.Type || para_EndnoteReference === Item.Type)
 				Item.CreateDocumentFontMap(Map);
         }
 
@@ -2516,7 +2531,7 @@ ParaRun.prototype.Get_AllFontNames = function(AllFonts)
 
 		if (para_Drawing === Item.Type)
 			Item.documentGetAllFontNames(AllFonts);
-		else if (para_FootnoteReference === Item.Type)
+		else if (para_FootnoteReference === Item.Type || para_EndnoteReference === Item.Type)
 			Item.GetAllFontNames(AllFonts);
 	}
 };
@@ -2960,6 +2975,8 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
                 case para_FootnoteRef:
                 case para_Separator:
                 case para_ContinuationSeparator:
+				case para_EndnoteReference:
+				case para_EndnoteRef:
                 {
                     // Отмечаем, что началось слово
                     StartWord = true;
@@ -2981,7 +2998,20 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
 								Item.private_Measure();
 							}
 						}
-						else if (para_FootnoteRef === ItemType)
+						else if (para_EndnoteReference === ItemType)
+						{
+							if (this.GetLogicDocument() && !this.GetLogicDocument().RecalcTableHeader)
+							{
+								Item.UpdateNumber(PRS, this.GetLogicDocument().PrintSelection);
+								// TODO: Реализовать обработку сносок
+								//PRS.AddFootnoteReference(Item, PRS.GetCurrentContentPos(Pos));
+							}
+							else
+							{
+								Item.private_Measure();
+							}
+						}
+						else if (para_FootnoteRef === ItemType || para_EndnoteRef === ItemType)
 						{
 							Item.UpdateNumber(PRS.TopDocument);
 						}
@@ -3632,7 +3662,7 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
 					PRS.LastTab.TabRightEdge = TabPos.TabRightEdge;
 
 					var oLogicDocument     = PRS.Paragraph.LogicDocument;
-					var nCompatibilityMode = oLogicDocument && oLogicDocument.GetCompatibilityMode ? oLogicDocument.GetCompatibilityMode() : document_compatibility_mode_Current;
+					var nCompatibilityMode = oLogicDocument && oLogicDocument.GetCompatibilityMode ? oLogicDocument.GetCompatibilityMode() : AscCommon.document_compatibility_mode_Current;
 
 					// Если таб не левый, значит он не может быть сразу рассчитан, а если левый, тогда
                     // рассчитываем его сразу здесь
@@ -3643,7 +3673,7 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
 
 						// В Word2013 и раньше, если не левый таб заканчивается правее правой границы, тогда у параграфа
 						// правая граница имеет максимально возможное значение (55см)
-						if (AscCommon.MMToTwips(TabPos.NewX) > AscCommon.MMToTwips(XEnd) && nCompatibilityMode <= document_compatibility_mode_Word14)
+						if (AscCommon.MMToTwips(TabPos.NewX) > AscCommon.MMToTwips(XEnd) && nCompatibilityMode <= AscCommon.document_compatibility_mode_Word14)
 						{
 							Para.Lines[PRS.Line].Ranges[PRS.Range].XEnd = 558.7;
 							XEnd                                        = 558.7;
@@ -3653,14 +3683,14 @@ ParaRun.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
                     else
 					{
 						// TODO: Если таб расположен между правым полем страницы и правым отступом параграфа (отступ
-						// должен быть положительным), то начиная с версии document_compatibility_mode_Word15
+						// должен быть положительным), то начиная с версии AscCommon.document_compatibility_mode_Word15
 						// табы немного неправильно рассчитываются. Смотри файл "Табы. Рассчет табов рядом с правым краем(2016).docx"
 
 						var twX    = AscCommon.MMToTwips(X);
 						var twXEnd = AscCommon.MMToTwips(XEnd);
 						var twNewX = AscCommon.MMToTwips(NewX);
 
-						if (nCompatibilityMode <= document_compatibility_mode_Word14
+						if (nCompatibilityMode <= AscCommon.document_compatibility_mode_Word14
 							&& !isLastTabToRightEdge
 							&& true !== TabPos.DefaultTab
 							&& (twNewX >= twXEnd && XEnd < 558.7 && PRS.Range >= PRS.RangesCount - 1))
@@ -4038,6 +4068,8 @@ ParaRun.prototype.Recalculate_LineMetrics = function(PRS, ParaPr, _CurLine, _Cur
 			case para_PageCount:
 			case para_FootnoteReference:
 			case para_FootnoteRef:
+			case para_EndnoteReference:
+			case para_EndnoteRef:
 			case para_Separator:
 			case para_ContinuationSeparator:
 			{
@@ -4153,6 +4185,8 @@ ParaRun.prototype.Recalculate_Range_Width = function(PRSC, _CurLine, _CurRange)
             case para_Text:
             case para_FootnoteReference:
             case para_FootnoteRef:
+			case para_EndnoteReference:
+			case para_EndnoteRef:
             case para_Separator:
             case para_ContinuationSeparator:
             {
@@ -4364,6 +4398,8 @@ ParaRun.prototype.Recalculate_Range_Spaces = function(PRSA, _CurLine, _CurRange,
             case para_Text:
             case para_FootnoteReference:
             case para_FootnoteRef:
+			case para_EndnoteReference:
+			case para_EndnoteRef:
             case para_Separator:
             case para_ContinuationSeparator:
             {
@@ -4379,7 +4415,7 @@ ParaRun.prototype.Recalculate_Range_Spaces = function(PRSA, _CurLine, _CurRange,
 
                 Item.WidthVisible = (WidthVisible * TEXTWIDTH_DIVIDER) | 0;//Item.Set_WidthVisible(WidthVisible);
 
-				if (para_FootnoteReference === ItemType)
+				if (para_FootnoteReference === ItemType || para_EndnoteReference === ItemType)
 				{
 					var oFootnote = Item.GetFootnote();
 					oFootnote.UpdatePositionInfo(this.Paragraph, this, _CurLine, _CurRange, PRSA.X, WidthVisible);
@@ -4782,9 +4818,9 @@ ParaRun.prototype.private_RecalculateLastTab = function(LastTab, X, XEnd, Word, 
         var TabPos    = LastTab.TabPos;
 
 		var oLogicDocument     = this.Paragraph ? this.Paragraph.LogicDocument : null;
-		var nCompatibilityMode = oLogicDocument && oLogicDocument.GetCompatibilityMode ? oLogicDocument.GetCompatibilityMode() : document_compatibility_mode_Current;
+		var nCompatibilityMode = oLogicDocument && oLogicDocument.GetCompatibilityMode ? oLogicDocument.GetCompatibilityMode() : AscCommon.document_compatibility_mode_Current;
 
-		if (AscCommon.MMToTwips(TabPos) > AscCommon.MMToTwips(XEnd) && nCompatibilityMode >= document_compatibility_mode_Word15)
+		if (AscCommon.MMToTwips(TabPos) > AscCommon.MMToTwips(XEnd) && nCompatibilityMode >= AscCommon.document_compatibility_mode_Word15)
 		{
 			TabValue = tab_Right;
 			TabPos   = XEnd;
@@ -5440,6 +5476,8 @@ ParaRun.prototype.Draw_HighLights = function(PDSH)
             case para_FootnoteRef:
             case para_Separator:
             case para_ContinuationSeparator:
+			case para_EndnoteReference:
+			case para_EndnoteRef:
             {
                 if ( para_Drawing === ItemType && !Item.Is_Inline() )
                     break;
@@ -5670,8 +5708,12 @@ ParaRun.prototype.Draw_Elements = function(PDSE)
             case para_Sym:
             case para_FootnoteReference:
             case para_FootnoteRef:
+			case para_EndnoteReference:
+			case para_EndnoteRef:
             case para_Separator:
             case para_ContinuationSeparator:
+			case para_EndnoteReference:
+			case para_EndnoteRef:
             {
                 if (para_Drawing != ItemType || Item.Is_Inline())
                 {
@@ -6035,8 +6077,12 @@ ParaRun.prototype.Draw_Lines = function(PDSL)
 			case para_Sym:
 			case para_FootnoteReference:
 			case para_FootnoteRef:
+			case para_EndnoteReference:
+			case para_EndnoteRef:
 			case para_Separator:
 			case para_ContinuationSeparator:
+			case para_EndnoteReference:
+			case para_EndnoteRef:
 			{
 				if (para_Text === ItemType && null !== this.CompositeInput && Pos >= this.CompositeInput.Pos && Pos < this.CompositeInput.Pos + this.CompositeInput.Length)
 				{
@@ -6619,7 +6665,7 @@ ParaRun.prototype.Get_LeftPos = function(SearchPos, ContentPos, Depth, UseConten
 		if (CurPos >= 0 && (isFieldCode || isHiddenCF || (Item.IsDiacriticalSymbol && Item.IsDiacriticalSymbol())))
 			continue;
 
-		if (CurPos < 0 || (!(para_Drawing === Item.Type && false === Item.Is_Inline() && false === SearchPos.IsCheckAnchors()) && !(para_FootnoteReference === Item.Type && true === Item.IsCustomMarkFollows())))
+		if (CurPos < 0 || (!(para_Drawing === Item.Type && false === Item.Is_Inline() && false === SearchPos.IsCheckAnchors()) && !((para_FootnoteReference === Item.Type || para_EndnoteReference === Item.Type) && true === Item.IsCustomMarkFollows())))
 			break;
 	}
 
@@ -6665,7 +6711,7 @@ ParaRun.prototype.Get_RightPos = function(SearchPos, ContentPos, Depth, UseConte
 			if (isFieldCode || isHiddenCF)
 				return;
 
-			if ((true !== StepEnd && para_End === PrevItemType) || (para_Drawing === PrevItemType && false === PrevItem.Is_Inline() && false === SearchPos.IsCheckAnchors()) || (para_FootnoteReference === PrevItemType && true === PrevItem.IsCustomMarkFollows()))
+			if ((true !== StepEnd && para_End === PrevItemType) || (para_Drawing === PrevItemType && false === PrevItem.Is_Inline() && false === SearchPos.IsCheckAnchors()) || ((para_FootnoteReference === PrevItemType || para_EndnoteReference === PrevItemType) && true === PrevItem.IsCustomMarkFollows()))
 				return;
 
 			break;
@@ -6694,7 +6740,7 @@ ParaRun.prototype.Get_RightPos = function(SearchPos, ContentPos, Depth, UseConte
 
 		if (!(true !== StepEnd && para_End === ItemType)
 			&& !(para_Drawing === Item.Type && false === Item.Is_Inline())
-			&& !(para_FootnoteReference === Item.Type && true === Item.IsCustomMarkFollows()))
+			&& !((para_FootnoteReference === Item.Type || para_EndnoteReference === Item.Type) && true === Item.IsCustomMarkFollows()))
 			break;
 	}
 
@@ -7500,7 +7546,7 @@ ParaRun.prototype.Internal_Compile_Pr = function ()
 		// Сюда мы никогда не должны попадать, но на всякий случай,
 		// чтобы не выпадало ошибок сгенерим дефолтовые настройки
 		var TextPr = new CTextPr();
-		TextPr.Init_Default();
+		TextPr.InitDefault();
 		this.RecalcInfo.TextPr = true;
 		return TextPr;
 	}
@@ -7528,7 +7574,7 @@ ParaRun.prototype.Internal_Compile_Pr = function ()
 			// Сюда мы никогда не должны попадать, но на всякий случай,
 			// чтобы не выпадало ошибок сгенерим дефолтовые настройки
 			var TextPr = new CTextPr();
-			TextPr.Init_Default();
+			TextPr.InitDefault();
 			this.RecalcInfo.TextPr = true;
 			return TextPr;
 		}
@@ -8502,6 +8548,14 @@ ParaRun.prototype.Set_VertAlign = function(Value)
 ParaRun.prototype.Get_VertAlign = function()
 {
     return this.Get_CompiledPr(false).VertAlign;
+};
+ParaRun.prototype.SetVertAlign = function(nAlign)
+{
+	this.Set_VertAlign(nAlign);
+};
+ParaRun.prototype.GetVertAlign = function()
+{
+	return this.Get_VertAlign();
 };
 
 ParaRun.prototype.Set_HighLight = function(Value)
@@ -10841,7 +10895,7 @@ ParaRun.prototype.GetAllContentControls = function(arrContentControls)
 	for (var nIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex)
 	{
 		var oItem = this.Content[nIndex];
-		if (para_Drawing === oItem.Type || para_FootnoteReference === oItem.Type)
+		if (para_Drawing === oItem.Type || para_FootnoteReference === oItem.Type || para_EndnoteReference === oItem.Type)
 		{
 			oItem.GetAllContentControls(arrContentControls);
 		}
@@ -11005,7 +11059,7 @@ ParaRun.prototype.GetAllFields = function(isUseSelection, arrFields)
 		{
 			oItem.GetAllFields(false, arrFields);
 		}
-		else if (para_FootnoteReference === oItem.Type)
+		else if (para_FootnoteReference === oItem.Type || para_EndnoteReference === oItem.Type)
 		{
 			oItem.GetFootnote().GetAllFields(false, arrFields);
 		}
@@ -11138,9 +11192,9 @@ ParaRun.prototype.GetElement = function(nPos)
  * Проверяем является ли данный ран специальным, содержащим ссылку на сноску
  * @returns {boolean}
  */
-ParaRun.prototype.IsFootnoteReferenceRun = function()
+ParaRun.prototype.IsFootEndnoteReferenceRun = function()
 {
-	return (1 === this.Content.length && para_FootnoteReference === this.Content[0].Type);
+	return (1 === this.Content.length && (para_FootnoteReference === this.Content[0].Type || para_EndnoteReference == this.Content[0].Type));
 };
 /**
  * Производим автозамену
