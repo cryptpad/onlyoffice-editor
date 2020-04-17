@@ -268,6 +268,7 @@
 	cACOSH.prototype.name = 'ACOSH';
 	cACOSH.prototype.argumentsMin = 1;
 	cACOSH.prototype.argumentsMax = 1;
+	cACOSH.prototype.argumentsType = [argType.number];
 	cACOSH.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
@@ -307,6 +308,7 @@
 	cACOT.prototype.argumentsMax = 1;
 	cACOT.prototype.isXLFN = true;
 	cACOT.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cACOT.prototype.argumentsType = [argType.number];
 	cACOT.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		if (cElementType.cellsRange === arg0.type || cElementType.cellsRange3D === arg0.type) {
@@ -346,6 +348,7 @@
 	cACOTH.prototype.argumentsMax = 1;
 	cACOTH.prototype.isXLFN = true;
 	cACOTH.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cACOTH.prototype.argumentsType = [argType.number];
 	cACOTH.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		if (cElementType.cellsRange === arg0.type || cElementType.cellsRange3D === arg0.type) {
@@ -384,6 +387,7 @@
 	cAGGREGATE.prototype.argumentsMin = 3;
 	cAGGREGATE.prototype.argumentsMax = 253;
 	cAGGREGATE.prototype.isXLFN = true;
+	cAGGREGATE.prototype.argumentsType = [argType.number, argType.number, [argType.reference]];
 	//TODO начиная со 3 аргумента все оставшиеся - массивы
 	cAGGREGATE.prototype.arrayIndexes = {2: 1, 3: 1, 4: 1, 5: 1, 6: 1};
 	cAGGREGATE.prototype.Calculate = function (arg) {
@@ -567,6 +571,7 @@
 	cARABIC.prototype.argumentsMin = 1;
 	cARABIC.prototype.argumentsMax = 1;
 	cARABIC.prototype.isXLFN = true;
+	cARABIC.prototype.argumentsType = [argType.text];
 	cARABIC.prototype.Calculate = function (arg) {
 		var to_arabic = function (roman) {
 			roman = roman.toUpperCase();
@@ -640,6 +645,7 @@
 	cASIN.prototype.name = 'ASIN';
 	cASIN.prototype.argumentsMin = 1;
 	cASIN.prototype.argumentsMax = 1;
+	cASIN.prototype.argumentsType = [argType.number];
 	cASIN.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
@@ -677,6 +683,7 @@
 	cASINH.prototype.name = 'ASINH';
 	cASINH.prototype.argumentsMin = 1;
 	cASINH.prototype.argumentsMax = 1;
+	cASINH.prototype.argumentsType = [argType.number];
 	cASINH.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
@@ -714,6 +721,7 @@
 	cATAN.prototype.name = 'ATAN';
 	cATAN.prototype.argumentsMin = 1;
 	cATAN.prototype.argumentsMax = 1;
+	cATAN.prototype.argumentsType = [argType.number];
 	cATAN.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
@@ -750,6 +758,7 @@
 	cATAN2.prototype.name = 'ATAN2';
 	cATAN2.prototype.argumentsMin = 2;
 	cATAN2.prototype.argumentsMax = 2;
+	cATAN2.prototype.argumentsType = [argType.number, argType.number];
 	cATAN2.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1];
 		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
@@ -821,6 +830,7 @@
 	cATANH.prototype.name = 'ATANH';
 	cATANH.prototype.argumentsMin = 1;
 	cATANH.prototype.argumentsMax = 1;
+	cATANH.prototype.argumentsType = [argType.number];
 	cATANH.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
@@ -859,6 +869,7 @@
 	cBASE.prototype.argumentsMin = 2;
 	cBASE.prototype.argumentsMax = 3;
 	cBASE.prototype.isXLFN = true;
+	cBASE.prototype.argumentsType = [argType.number, argType.number, argType.number];
 	cBASE.prototype.Calculate = function (arg) {
 		var oArguments = this._prepareArguments(arg, arguments[1]);
 		var argClone = oArguments.args;
@@ -910,6 +921,7 @@
 	cCEILING.prototype.name = 'CEILING';
 	cCEILING.prototype.argumentsMin = 2;
 	cCEILING.prototype.argumentsMax = 2;
+	cCEILING.prototype.argumentsType = [argType.number, argType.number];
 	cCEILING.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1];
 		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
@@ -1006,6 +1018,7 @@
 	cCEILING_MATH.prototype.argumentsMin = 1;
 	cCEILING_MATH.prototype.argumentsMax = 3;
 	cCEILING_MATH.prototype.isXLFN = true;
+	cCEILING_MATH.prototype.argumentsType = [argType.number, argType.number, argType.number];
 	cCEILING_MATH.prototype.Calculate = function (arg) {
 		var oArguments = this._prepareArguments(arg, arguments[1]);
 		var argClone = oArguments.args;
@@ -1097,6 +1110,7 @@
 	cCOMBIN.prototype.name = 'COMBIN';
 	cCOMBIN.prototype.argumentsMin = 2;
 	cCOMBIN.prototype.argumentsMax = 2;
+	cCOMBIN.prototype.argumentsType = [argType.number, argType.number];
 	cCOMBIN.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1];
 		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
@@ -1183,6 +1197,7 @@
 	cCOMBINA.prototype.argumentsMin = 2;
 	cCOMBINA.prototype.argumentsMax = 2;
 	cCOMBINA.prototype.isXLFN = true;
+	cCOMBINA.prototype.argumentsType = [argType.number, argType.number];
 	cCOMBINA.prototype.Calculate = function (arg) {
 		var oArguments = this._prepareArguments(arg, arguments[1]);
 		var argClone = oArguments.args;
@@ -1224,6 +1239,7 @@
 	cCOS.prototype.name = 'COS';
 	cCOS.prototype.argumentsMin = 1;
 	cCOS.prototype.argumentsMax = 1;
+	cCOS.prototype.argumentsType = [argType.number];
 	cCOS.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
@@ -1261,6 +1277,7 @@
 	cCOSH.prototype.name = 'COSH';
 	cCOSH.prototype.argumentsMin = 1;
 	cCOSH.prototype.argumentsMax = 1;
+	cCOSH.prototype.argumentsType = [argType.number];
 	cCOSH.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
@@ -1300,6 +1317,7 @@
 	cCOT.prototype.argumentsMax = 1;
 	cCOT.prototype.isXLFN = true;
 	cCOT.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cCOT.prototype.argumentsType = [argType.number];
 	cCOT.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		var maxVal = Math.pow(2, 27);
@@ -1402,6 +1420,7 @@
 	cCSC.prototype.argumentsMax = 1;
 	cCSC.prototype.isXLFN = true;
 	cCSC.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cCSC.prototype.argumentsType = [argType.number];
 	cCSC.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		var maxVal = Math.pow(2, 27);
@@ -1454,6 +1473,7 @@
 	cCSCH.prototype.argumentsMax = 1;
 	cCSCH.prototype.isXLFN = true;
 	cCSCH.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cCSCH.prototype.argumentsType = [argType.number];
 	cCSCH.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 
@@ -1503,6 +1523,7 @@
 	cDECIMAL.prototype.argumentsMin = 2;
 	cDECIMAL.prototype.argumentsMax = 2;
 	cDECIMAL.prototype.isXLFN = true;
+	cDECIMAL.prototype.argumentsType = [argType.text, argType.number];
 	cDECIMAL.prototype.Calculate = function (arg) {
 		var oArguments = this._prepareArguments(arg, arguments[1]);
 		var argClone = oArguments.args;
@@ -1581,6 +1602,7 @@
 	cDEGREES.prototype.name = 'DEGREES';
 	cDEGREES.prototype.argumentsMin = 1;
 	cDEGREES.prototype.argumentsMax = 1;
+	cDEGREES.prototype.argumentsType = [argType.number];
 	cDEGREES.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
@@ -1632,6 +1654,7 @@
 	cEVEN.prototype.name = 'EVEN';
 	cEVEN.prototype.argumentsMin = 1;
 	cEVEN.prototype.argumentsMax = 1;
+	cEVEN.prototype.argumentsType = [argType.number];
 	cEVEN.prototype.Calculate = function (arg) {
 
 		function evenHelper(arg) {
@@ -1692,6 +1715,7 @@
 	cEXP.prototype.name = 'EXP';
 	cEXP.prototype.argumentsMin = 1;
 	cEXP.prototype.argumentsMax = 1;
+	cEXP.prototype.argumentsType = [argType.number];
 	cEXP.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
@@ -1731,6 +1755,7 @@
 	cFACT.prototype.name = 'FACT';
 	cFACT.prototype.argumentsMin = 1;
 	cFACT.prototype.argumentsMax = 1;
+	cFACT.prototype.argumentsType = [argType.number];
 	cFACT.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
@@ -1776,6 +1801,7 @@
 	cFACTDOUBLE.prototype.argumentsMin = 1;
 	cFACTDOUBLE.prototype.argumentsMax = 1;
 	cFACTDOUBLE.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
+	cFACTDOUBLE.prototype.argumentsType = [argType.any];
 	cFACTDOUBLE.prototype.Calculate = function (arg) {
 		function factDouble(n) {
 			if (n == 0) {
@@ -1838,6 +1864,7 @@
 	cFLOOR.prototype.name = 'FLOOR';
 	cFLOOR.prototype.argumentsMin = 2;
 	cFLOOR.prototype.argumentsMax = 2;
+	cFLOOR.prototype.argumentsType = [argType.number, argType.number, argType.number];
 	cFLOOR.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1];
 		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
@@ -1978,6 +2005,7 @@
 	cFLOOR_MATH.prototype.argumentsMin = 1;
 	cFLOOR_MATH.prototype.argumentsMax = 3;
 	cFLOOR_MATH.prototype.isXLFN = true;
+	cFLOOR_MATH.prototype.argumentsType = [argType.number, argType.number, argType.number];
 	cFLOOR_MATH.prototype.Calculate = function (arg) {
 		var oArguments = this._prepareArguments(arg, arguments[1]);
 		var argClone = oArguments.args;
@@ -2028,6 +2056,7 @@
 	cGCD.prototype.name = 'GCD';
 	cGCD.prototype.argumentsMin = 1;
 	cGCD.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
+	cGCD.prototype.argumentsType = [[argType.any]];
 	cGCD.prototype.Calculate = function (arg) {
 
 		var _gcd = 0, argArr;
@@ -2124,6 +2153,7 @@
 	cINT.prototype.argumentsMin = 1;
 	cINT.prototype.argumentsMax = 1;
 	cINT.prototype.inheritFormat = true;
+	cINT.prototype.argumentsType = [argType.number];
 	cINT.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
@@ -2206,6 +2236,7 @@
 	cLCM.prototype.name = 'LCM';
 	cLCM.prototype.argumentsMin = 1;
 	cLCM.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
+	cLCM.prototype.argumentsType = [[argType.any]];
 	cLCM.prototype.Calculate = function (arg) {
 
 		var _lcm = 1, argArr;
@@ -2305,6 +2336,7 @@
 	cLN.prototype.name = 'LN';
 	cLN.prototype.argumentsMin = 1;
 	cLN.prototype.argumentsMax = 1;
+	cLN.prototype.argumentsType = [argType.number];
 	cLN.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
@@ -2349,6 +2381,7 @@
 	cLOG.prototype.name = 'LOG';
 	cLOG.prototype.argumentsMin = 1;
 	cLOG.prototype.argumentsMax = 2;
+	cLOG.prototype.argumentsType = [argType.number, argType.number];
 	cLOG.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1] ? arg[1] : new cNumber(10);
 		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
@@ -2455,6 +2488,7 @@
 	cLOG10.prototype.name = 'LOG10';
 	cLOG10.prototype.argumentsMin = 1;
 	cLOG10.prototype.argumentsMax = 1;
+	cLOG10.prototype.argumentsType = [argType.number];
 	cLOG10.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
@@ -2502,6 +2536,7 @@
 	cMDETERM.prototype.argumentsMax = 1;
 	cMDETERM.prototype.numFormat = AscCommonExcel.cNumFormatNone;
 	cMDETERM.prototype.arrayIndexes = {0: 1};
+	cMDETERM.prototype.argumentsType = [argType.array];
 	cMDETERM.prototype.Calculate = function (arg) {
 
 		function determ(A) {
@@ -2587,6 +2622,7 @@
 	cMINVERSE.prototype.argumentsMax = 1;
 	cMINVERSE.prototype.numFormat = AscCommonExcel.cNumFormatNone;
 	cMINVERSE.prototype.arrayIndexes = {0: 1};
+	cMINVERSE.prototype.argumentsType = [argType.array];
 	cMINVERSE.prototype.Calculate = function (arg) {
 
 		function Determinant(A) {
@@ -2730,6 +2766,7 @@
 	cMMULT.prototype.argumentsMax = 2;
 	cMMULT.prototype.numFormat = AscCommonExcel.cNumFormatNone;
 	cMMULT.prototype.arrayIndexes = {0: 1, 1: 1};
+	cMMULT.prototype.argumentsType = [argType.array, argType.array];
 	cMMULT.prototype.Calculate = function (arg) {
 
 		function mult(A, B) {
@@ -2800,6 +2837,7 @@
 	cMOD.prototype.name = 'MOD';
 	cMOD.prototype.argumentsMin = 2;
 	cMOD.prototype.argumentsMax = 2;
+	cMOD.prototype.argumentsType = [argType.number, argType.number];
 	cMOD.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1];
 		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
@@ -2887,6 +2925,7 @@
 	cMROUND.prototype.name = 'MROUND';
 	cMROUND.prototype.argumentsMin = 2;
 	cMROUND.prototype.argumentsMax = 2;
+	cMROUND.prototype.argumentsType = [argType.any, argType.any];
 	cMROUND.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cMROUND.prototype.Calculate = function (arg) {
 
@@ -2990,6 +3029,7 @@
 	cMULTINOMIAL.prototype.name = 'MULTINOMIAL';
 	cMULTINOMIAL.prototype.argumentsMin = 1;
 	cMULTINOMIAL.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
+	cMULTINOMIAL.prototype.argumentsType = [[argType.any]];
 	cMULTINOMIAL.prototype.Calculate = function (arg) {
 		var arg0 = new cNumber(0), fact = 1;
 
@@ -3081,6 +3121,7 @@
 	cODD.prototype.name = 'ODD';
 	cODD.prototype.argumentsMin = 1;
 	cODD.prototype.argumentsMax = 1;
+	cODD.prototype.argumentsType = [argType.number];
 	cODD.prototype.Calculate = function (arg) {
 
 		function oddHelper(arg) {
@@ -3140,6 +3181,7 @@
 	cPI.prototype.constructor = cPI;
 	cPI.prototype.name = 'PI';
 	cPI.prototype.argumentsMax = 0;
+	cPI.prototype.argumentsType = null;
 	cPI.prototype.Calculate = function () {
 		return new cNumber(Math.PI);
 	};
@@ -3156,6 +3198,7 @@
 	cPOWER.prototype.name = 'POWER';
 	cPOWER.prototype.argumentsMin = 2;
 	cPOWER.prototype.argumentsMax = 2;
+	cPOWER.prototype.argumentsType = [argType.number, argType.number];
 	cPOWER.prototype.Calculate = function (arg) {
 
 		function powerHelper(a, b) {
@@ -3236,6 +3279,7 @@
 	cPRODUCT.prototype.name = 'PRODUCT';
 	cPRODUCT.prototype.argumentsMin = 1;
 	cPRODUCT.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
+	cPRODUCT.prototype.argumentsType = [[argType.number]];
 	cPRODUCT.prototype.Calculate = function (arg) {
 		var element, arg0 = new cNumber(1);
 		for (var i = 0; i < arg.length; i++) {
@@ -3288,6 +3332,7 @@
 	cQUOTIENT.prototype.argumentsMin = 2;
 	cQUOTIENT.prototype.argumentsMax = 2;
 	cQUOTIENT.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
+	cQUOTIENT.prototype.argumentsType = [argType.any, argType.any];
 	cQUOTIENT.prototype.Calculate = function (arg) {
 
 		function quotient(a, b) {
@@ -3365,6 +3410,7 @@
 	cRADIANS.prototype.name = 'RADIANS';
 	cRADIANS.prototype.argumentsMin = 1;
 	cRADIANS.prototype.argumentsMax = 1;
+	cRADIANS.prototype.argumentsType = [argType.number];
 	cRADIANS.prototype.Calculate = function (arg) {
 
 		function radiansHelper(ang) {
@@ -3407,6 +3453,7 @@
 	cRAND.prototype.argumentsMax = 0;
 	cRAND.prototype.ca = true;
 	cRAND.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.area_to_ref;
+	cRAND.prototype.argumentsType = null;
 	cRAND.prototype.Calculate = function () {
 		return new cNumber(Math.random());
 	};
@@ -3426,6 +3473,7 @@
 	cRANDBETWEEN.prototype.argumentsMax = 2;
 	cRANDBETWEEN.prototype.ca = true;
 	cRANDBETWEEN.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
+	cRANDBETWEEN.prototype.argumentsType = [argType.any, argType.any];
 	cRANDBETWEEN.prototype.Calculate = function (arg) {
 
 		function randBetween(a, b) {
@@ -3498,6 +3546,7 @@
 	cROMAN.prototype.name = 'ROMAN';
 	cROMAN.prototype.argumentsMin = 1;
 	cROMAN.prototype.argumentsMax = 2;
+	cROMAN.prototype.argumentsType = [argType.number, argType.number];
 	cROMAN.prototype.Calculate = function (arg) {
 		function roman(num, mode) {
 			if ((mode >= 0) && (mode < 5) && (num >= 0) && (num < 4000)) {
@@ -3606,6 +3655,7 @@
 	cROUND.prototype.argumentsMin = 2;
 	cROUND.prototype.argumentsMax = 2;
 	cROUND.prototype.inheritFormat = true;
+	cROUND.prototype.argumentsType = [argType.number, argType.number];
 	cROUND.prototype.Calculate = function (arg) {
 
 		function SignZeroPositive(number) {
@@ -3752,6 +3802,7 @@
 	cROUNDDOWN.prototype.argumentsMin = 2;
 	cROUNDDOWN.prototype.argumentsMax = 2;
 	cROUNDDOWN.prototype.inheritFormat = true;
+	cROUNDDOWN.prototype.argumentsType = [argType.number, argType.number];
 	cROUNDDOWN.prototype.Calculate = function (arg) {
 		function rounddownHelper(number, num_digits) {
 			if (num_digits > AscCommonExcel.cExcelMaxExponent) {
@@ -3874,6 +3925,7 @@
 	cROUNDUP.prototype.argumentsMin = 2;
 	cROUNDUP.prototype.argumentsMax = 2;
 	cROUNDUP.prototype.inheritFormat = true;
+	cROUNDUP.prototype.argumentsType = [argType.number, argType.number];
 	cROUNDUP.prototype.Calculate = function (arg) {
 		function roundupHelper(number, num_digits) {
 			if (num_digits > AscCommonExcel.cExcelMaxExponent) {
@@ -3998,6 +4050,7 @@
 	cSEC.prototype.argumentsMax = 1;
 	cSEC.prototype.isXLFN = true;
 	cSEC.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cSEC.prototype.argumentsType = [argType.number];
 	cSEC.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		var maxVal = Math.pow(2, 27);
@@ -4046,6 +4099,7 @@
 	cSECH.prototype.argumentsMax = 1;
 	cSECH.prototype.isXLFN = true;
 	cSECH.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cSECH.prototype.argumentsType = [argType.number];
 	cSECH.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 
@@ -4088,6 +4142,7 @@
 	cSERIESSUM.prototype.argumentsMax = 4;
 	cSERIESSUM.prototype.arrayIndexes = {3: 1};
 	cSERIESSUM.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
+	cSERIESSUM.prototype.argumentsType = [argType.any, argType.any, argType.any, argType.any];
 	cSERIESSUM.prototype.Calculate = function (arg) {
 
 		function SERIESSUM(x, n, m, a) {
@@ -4158,6 +4213,7 @@
 	cSIGN.prototype.name = 'SIGN';
 	cSIGN.prototype.argumentsMin = 1;
 	cSIGN.prototype.argumentsMax = 1;
+	cSIGN.prototype.argumentsType = [argType.number];
 	cSIGN.prototype.Calculate = function (arg) {
 
 		function signHelper(arg) {
@@ -4208,6 +4264,7 @@
 	cSIN.prototype.name = 'SIN';
 	cSIN.prototype.argumentsMin = 1;
 	cSIN.prototype.argumentsMax = 1;
+	cSIN.prototype.argumentsType = [argType.number];
 	cSIN.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
@@ -4245,6 +4302,7 @@
 	cSINH.prototype.name = 'SINH';
 	cSINH.prototype.argumentsMin = 1;
 	cSINH.prototype.argumentsMax = 1;
+	cSINH.prototype.argumentsType = [argType.number];
 	cSINH.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
@@ -4282,6 +4340,7 @@
 	cSQRT.prototype.name = 'SQRT';
 	cSQRT.prototype.argumentsMin = 1;
 	cSQRT.prototype.argumentsMax = 1;
+	cSQRT.prototype.argumentsType = [argType.number];
 	cSQRT.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
@@ -4320,6 +4379,7 @@
 	cSQRTPI.prototype.argumentsMin = 1;
 	cSQRTPI.prototype.argumentsMax = 1;
 	cSQRTPI.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
+	cSQRTPI.prototype.argumentsType = [argType.any];
 	cSQRTPI.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
@@ -4356,6 +4416,7 @@
 	cSUBTOTAL.prototype.constructor = cSUBTOTAL;
 	cSUBTOTAL.prototype.name = 'SUBTOTAL';
 	cSUBTOTAL.prototype.argumentsMin = 1;
+	cSUBTOTAL.prototype.argumentsType = [argType.number, [argType.reference]];
 	//TODO все оставшиеся аргументы приходят на вход функции как массивы
 	cSUBTOTAL.prototype.arrayIndexes = {1: 1, 2: 1, 3: 1, 4: 1, 5: 1, 6: 1, 7: 1};
 	cSUBTOTAL.prototype.Calculate = function (arg) {
@@ -4463,6 +4524,7 @@
 	cSUM.prototype.argumentsMin = 1;
 	cSUM.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
 	cSUM.prototype.inheritFormat = true;
+	cSUM.prototype.argumentsType = [argType.number];
 	cSUM.prototype.Calculate = function (arg) {
 		var element, _arg, arg0 = new cNumber(0);
 		for (var i = 0; i < arg.length; i++) {
@@ -4519,6 +4581,7 @@
 	cSUMIF.prototype.argumentsMin = 2;
 	cSUMIF.prototype.argumentsMax = 3;
 	cSUMIF.prototype.arrayIndexes = {0: 1, 2: 1};
+	cSUMIF.prototype.argumentsType = [argType.reference, argType.any, argType.reference];
 	cSUMIF.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1], arg2 = arg[2] ? arg[2] : arg[0], _sum = 0, matchingInfo;
 		if (cElementType.cell !== arg0.type && cElementType.cell3D !== arg0.type &&
@@ -4649,6 +4712,7 @@
 	cSUMIFS.prototype.name = 'SUMIFS';
 	cSUMIFS.prototype.argumentsMin = 3;
 	cSUMIFS.prototype.arrayIndexes = {0: 1, 1: 1, 3: 1, 5: 1, 7: 1};
+	cSUMIFS.prototype.argumentsType = [argType.reference, [argType.reference, argType.any]];
 	cSUMIFS.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		if (cElementType.cell !== arg0.type && cElementType.cell3D !== arg0.type && cElementType.cellsRange !== arg0.type) {
@@ -4802,6 +4866,7 @@
 	cSUMPRODUCT.prototype.name = 'SUMPRODUCT';
 	cSUMPRODUCT.prototype.argumentsMin = 1;
 	cSUMPRODUCT.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
+	cSUMPRODUCT.prototype.argumentsType = [[argType.array]];
 	cSUMPRODUCT.prototype.Calculate = function (arg) {
 		var arg0 = new cNumber(0), resArr = [], col = 0, row = 0, res = 1, _res = [], i;
 
@@ -4881,6 +4946,7 @@
 	cSUMSQ.prototype.name = 'SUMSQ';
 	cSUMSQ.prototype.argumentsMin = 1;
 	cSUMSQ.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
+	cSUMSQ.prototype.argumentsType = [[argType.number]];
 	cSUMSQ.prototype.Calculate = function (arg) {
 		var arg0 = new cNumber(0), _arg;
 
@@ -4936,6 +5002,7 @@
 	cSUMX2MY2.prototype.argumentsMin = 2;
 	cSUMX2MY2.prototype.argumentsMax = 2;
 	cSUMX2MY2.prototype.arrayIndexes = {0: 1, 1: 1};
+	cSUMX2MY2.prototype.argumentsType = [argType.array, argType.array];
 	cSUMX2MY2.prototype.Calculate = function (arg) {
 		var func = function(a, b) {
 			return a * a - b * b;
@@ -4957,6 +5024,7 @@
 	cSUMX2PY2.prototype.argumentsMin = 2;
 	cSUMX2PY2.prototype.argumentsMax = 2;
 	cSUMX2PY2.prototype.arrayIndexes = {0: 1, 1: 1};
+	cSUMX2MY2.prototype.argumentsType = [argType.array, argType.array];
 	cSUMX2PY2.prototype.Calculate = function (arg) {
 
 		var func = function(a, b) {
@@ -4979,6 +5047,7 @@
 	cSUMXMY2.prototype.argumentsMin = 2;
 	cSUMXMY2.prototype.argumentsMax = 2;
 	cSUMXMY2.prototype.arrayIndexes = {0: 1, 1: 1};
+	cSUMXMY2.prototype.argumentsType = [argType.array, argType.array];
 	cSUMXMY2.prototype.Calculate = function (arg) {
 
 		var func = function(a, b) {
@@ -5001,6 +5070,7 @@
 	cTAN.prototype.name = 'TAN';
 	cTAN.prototype.argumentsMin = 1;
 	cTAN.prototype.argumentsMax = 1;
+	cTAN.prototype.argumentsType = [argType.number];
 	cTAN.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
@@ -5038,6 +5108,7 @@
 	cTANH.prototype.name = 'TANH';
 	cTANH.prototype.argumentsMin = 1;
 	cTANH.prototype.argumentsMax = 1;
+	cTANH.prototype.argumentsType = [argType.number];
 	cTANH.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
@@ -5075,6 +5146,7 @@
 	cTRUNC.prototype.argumentsMin = 1;
 	cTRUNC.prototype.argumentsMax = 2;
 	cTRUNC.prototype.inheritFormat = true;
+	cTRUNC.prototype.argumentsType = [argType.number, argType.number];
 	cTRUNC.prototype.Calculate = function (arg) {
 
 		function truncHelper(a, b) {

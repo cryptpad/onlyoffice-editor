@@ -55,6 +55,7 @@
 	var cBaseFunction = AscCommonExcel.cBaseFunction;
 	var cFormulaFunctionGroup = AscCommonExcel.cFormulaFunctionGroup;
 	var cElementType = AscCommonExcel.cElementType;
+	var argType = Asc.c_oAscFormulaArgumentType;
 
 	var GetDiffDate360 = AscCommonExcel.GetDiffDate360;
 
@@ -525,6 +526,7 @@
 	cDATE.prototype.name = 'DATE';
 	cDATE.prototype.argumentsMin = 3;
 	cDATE.prototype.argumentsMax = 3;
+	cDATE.prototype.argumentsType = [argType.number, argType.number, argType.number];
 	cDATE.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1], arg2 = arg[2], year, month, day;
 
@@ -706,6 +708,7 @@
 	cDATEVALUE.prototype.argumentsMin = 1;
 	cDATEVALUE.prototype.argumentsMax = 1;
 	cDATEVALUE.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cDATEVALUE.prototype.argumentsType = [argType.number];
 	cDATEVALUE.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 
@@ -743,6 +746,7 @@
 	cDAY.prototype.argumentsMin = 1;
 	cDAY.prototype.argumentsMax = 1;
 	cDAY.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cDAY.prototype.argumentsType = [argType.number];
 	cDAY.prototype.Calculate = function (arg) {
 		var t = this;
 		var bIsSpecialFunction = arguments[4];
@@ -831,6 +835,7 @@
 	cDAYS.prototype.argumentsMax = 2;
 	cDAYS.prototype.numFormat = AscCommonExcel.cNumFormatNone;
 	cDAYS.prototype.isXLFN = true;
+	cDAYS.prototype.argumentsType = [argType.number, argType.number];
 	cDAYS.prototype.Calculate = function (arg) {
 		var oArguments = this._prepareArguments(arg, arguments[1], true);
 		var argClone = oArguments.args;
@@ -904,6 +909,7 @@
 	cDAYS360.prototype.argumentsMin = 2;
 	cDAYS360.prototype.argumentsMax = 3;
 	cDAYS360.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cDAYS360.prototype.argumentsType = [argType.number, argType.number, argType.logical];
 	cDAYS360.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1], arg2 = arg[2] ? arg[2] : new cBool(false);
 
@@ -968,6 +974,7 @@
 	cEDATE.prototype.argumentsMax = 2;
 	cEDATE.prototype.numFormat = AscCommonExcel.cNumFormatNone;
 	cEDATE.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
+	cEDATE.prototype.argumentsType = [argType.any, argType.any];
 	cEDATE.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1];
 
@@ -1041,6 +1048,7 @@
 	cEOMONTH.prototype.argumentsMax = 2;
 	cEOMONTH.prototype.numFormat = AscCommonExcel.cNumFormatNone;
 	cEOMONTH.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
+	cEOMONTH.prototype.argumentsType = [argType.any, argType.any];
 	cEOMONTH.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1];
 
@@ -1104,6 +1112,7 @@
 	cHOUR.prototype.argumentsMin = 1;
 	cHOUR.prototype.argumentsMax = 1;
 	cHOUR.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cHOUR.prototype.argumentsType = [argType.number];
 	cHOUR.prototype.Calculate = function (arg) {
 		var t = this;
 		var bIsSpecialFunction = arguments[4];
@@ -1185,6 +1194,7 @@
 	cISOWEEKNUM.prototype.argumentsMax = 1;
 	cISOWEEKNUM.prototype.numFormat = AscCommonExcel.cNumFormatNone;
 	cISOWEEKNUM.prototype.isXLFN = true;
+	cISOWEEKNUM.prototype.argumentsType = [argType.number];
 	cISOWEEKNUM.prototype.Calculate = function (arg) {
 		//TODO есть различия в результатах с формулой ISOWEEKNUM(1)
 		var oArguments = this._prepareArguments(arg, arguments[1], true);
@@ -1219,6 +1229,7 @@
 	cMINUTE.prototype.argumentsMin = 1;
 	cMINUTE.prototype.argumentsMax = 1;
 	cMINUTE.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cMINUTE.prototype.argumentsType = [argType.number];
 	cMINUTE.prototype.Calculate = function (arg) {
 		var t = this;
 		var bIsSpecialFunction = arguments[4];
@@ -1299,6 +1310,7 @@
 	cMONTH.prototype.argumentsMin = 1;
 	cMONTH.prototype.argumentsMax = 1;
 	cMONTH.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cMONTH.prototype.argumentsType = [argType.number];
 	cMONTH.prototype.Calculate = function (arg) {
 		var t = this;
 		var bIsSpecialFunction = arguments[4];
@@ -1378,6 +1390,7 @@
 	cNETWORKDAYS.prototype.numFormat = AscCommonExcel.cNumFormatNone;
 	cNETWORKDAYS.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cNETWORKDAYS.prototype.arrayIndexes = {2: 1};
+	cNETWORKDAYS.prototype.argumentsType = [argType.any, argType.any, argType.any];
 	cNETWORKDAYS.prototype.Calculate = function (arg) {
 		var oArguments = this._prepareArguments([arg[0], arg[1]], arguments[1]);
 		var argClone = oArguments.args;
@@ -1451,6 +1464,7 @@
 	cNETWORKDAYS_INTL.prototype.argumentsMax = 4;
 	cNETWORKDAYS_INTL.prototype.numFormat = AscCommonExcel.cNumFormatNone;
 	cNETWORKDAYS_INTL.prototype.arrayIndexes = {2: 1, 3: 1};
+	cNETWORKDAYS_INTL.prototype.argumentsType = [argType.any, argType.any, argType.number, argType.any];
 	//TODO в данном случае есть различия с ms. при 3 и 4 аргументах - замена результата на ошибку не происходит.
 	cNETWORKDAYS_INTL.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cNETWORKDAYS_INTL.prototype.Calculate = function (arg) {
@@ -1531,6 +1545,7 @@
 	cNOW.prototype.name = 'NOW';
 	cNOW.prototype.argumentsMax = 0;
 	cNOW.prototype.ca = true;
+	cNOW.prototype.argumentsType = null;
 	cNOW.prototype.Calculate = function () {
 		var d = new cDate();
 		var res =
@@ -1553,6 +1568,7 @@
 	cSECOND.prototype.argumentsMin = 1;
 	cSECOND.prototype.argumentsMax = 1;
 	cSECOND.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cSECOND.prototype.argumentsType = [argType.number];
 	cSECOND.prototype.Calculate = function (arg) {
 		var t = this;
 		var bIsSpecialFunction = arguments[4];
@@ -1634,6 +1650,7 @@
 	cTIME.prototype.name = 'TIME';
 	cTIME.prototype.argumentsMin = 3;
 	cTIME.prototype.argumentsMax = 3;
+	cTIME.prototype.argumentsType = [argType.number, argType.number, argType.number];
 	cTIME.prototype.Calculate = function (arg) {
 		var hour = arg[0], minute = arg[1], second = arg[2];
 
@@ -1696,6 +1713,7 @@
 	cTIMEVALUE.prototype.argumentsMin = 1;
 	cTIMEVALUE.prototype.argumentsMax = 1;
 	cTIMEVALUE.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cTIMEVALUE.prototype.argumentsType = [argType.number];
 	cTIMEVALUE.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 
@@ -1733,6 +1751,7 @@
 	cTODAY.prototype.name = 'TODAY';
 	cTODAY.prototype.argumentsMax = 0;
 	cTODAY.prototype.ca = true;
+	cTODAY.prototype.argumentsType = null;
 	cTODAY.prototype.Calculate = function () {
 		var res = new cNumber(new cDate().getExcelDate());
 		res.numFormat = 14;
@@ -1753,6 +1772,7 @@
 	cWEEKDAY.prototype.argumentsMin = 1;
 	cWEEKDAY.prototype.argumentsMax = 2;
 	cWEEKDAY.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cWEEKDAY.prototype.argumentsType = [argType.number, argType.number];
 	cWEEKDAY.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1] ? arg[1] : new cNumber(1);
 
@@ -1834,6 +1854,7 @@
 	cWEEKNUM.prototype.argumentsMax = 2;
 	cWEEKNUM.prototype.numFormat = AscCommonExcel.cNumFormatNone;
 	cWEEKNUM.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
+	cWEEKNUM.prototype.argumentsType = [argType.any, argType.any];
 	cWEEKNUM.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1] ? arg[1] : new cNumber(1), type = 0;
 
@@ -1919,6 +1940,7 @@
 	cWORKDAY.prototype.numFormat = AscCommonExcel.cNumFormatNone;
 	cWORKDAY.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cWORKDAY.prototype.arrayIndexes = {2: 1};
+	cWORKDAY.prototype.argumentsType = [argType.any, argType.any, argType.any];
 	cWORKDAY.prototype.Calculate = function (arg) {
 		var t = this;
 		var oArguments = this._prepareArguments([arg[0], arg[1]], arguments[1], true);
@@ -2001,6 +2023,7 @@
 	cWORKDAY_INTL.prototype.argumentsMax = 4;
 	cWORKDAY_INTL.prototype.numFormat = AscCommonExcel.cNumFormatNone;
 	cWORKDAY_INTL.prototype.arrayIndexes = {2: 1, 3: 1};
+	cWORKDAY_INTL.prototype.argumentsType = [argType.any, argType.any, argType.number, argType.any];
 	//TODO в данном случае есть различия с ms. при 3 и 4 аргументах - замена результата на ошибку не происходит.
 	cWORKDAY_INTL.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cWORKDAY_INTL.prototype.Calculate = function (arg) {
@@ -2091,6 +2114,7 @@
 	cYEAR.prototype.argumentsMin = 1;
 	cYEAR.prototype.argumentsMax = 1;
 	cYEAR.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cYEAR.prototype.argumentsType = [argType.number];
 	cYEAR.prototype.Calculate = function (arg) {
 		var t = this;
 		var bIsSpecialFunction = arguments[4];
@@ -2164,6 +2188,7 @@
 	cYEARFRAC.prototype.argumentsMax = 3;
 	cYEARFRAC.prototype.numFormat = AscCommonExcel.cNumFormatNone;
 	cYEARFRAC.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
+	cYEARFRAC.prototype.argumentsType = [argType.any, argType.any, argType.any];
 	cYEARFRAC.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1], arg2 = arg[2] ? arg[2] : new cNumber(0);
 		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {

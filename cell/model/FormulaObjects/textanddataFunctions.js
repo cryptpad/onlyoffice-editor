@@ -55,6 +55,7 @@ function (window, undefined) {
 	var cArray = AscCommonExcel.cArray;
 	var cBaseFunction = AscCommonExcel.cBaseFunction;
 	var cFormulaFunctionGroup = AscCommonExcel.cFormulaFunctionGroup;
+	var argType = Asc.c_oAscFormulaArgumentType;
 
 	cFormulaFunctionGroup['TextAndData'] = cFormulaFunctionGroup['TextAndData'] || [];
 	cFormulaFunctionGroup['TextAndData'].push(cASC, cBAHTTEXT, cCHAR, cCLEAN, cCODE, cCONCATENATE, cCONCAT, cDOLLAR,
@@ -133,6 +134,7 @@ function (window, undefined) {
 	cBAHTTEXT.prototype = Object.create(cBaseFunction.prototype);
 	cBAHTTEXT.prototype.constructor = cBAHTTEXT;
 	cBAHTTEXT.prototype.name = 'BAHTTEXT';
+	cBAHTTEXT.prototype.argumentsType = [argType.number];
 
 	/**
 	 * @constructor
@@ -147,6 +149,7 @@ function (window, undefined) {
 	cCHAR.prototype.name = 'CHAR';
 	cCHAR.prototype.argumentsMin = 1;
 	cCHAR.prototype.argumentsMax = 1;
+	cCHAR.prototype.argumentsType = [argType.number];
 	cCHAR.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 
@@ -191,6 +194,7 @@ function (window, undefined) {
 	cCLEAN.prototype.name = 'CLEAN';
 	cCLEAN.prototype.argumentsMin = 1;
 	cCLEAN.prototype.argumentsMax = 1;
+	cCLEAN.prototype.argumentsType = [argType.text];
 	cCLEAN.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 
@@ -231,6 +235,7 @@ function (window, undefined) {
 	cCODE.prototype.name = 'CODE';
 	cCODE.prototype.argumentsMin = 1;
 	cCODE.prototype.argumentsMax = 1;
+	cCODE.prototype.argumentsType = [argType.text];
 	cCODE.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 
@@ -275,6 +280,7 @@ function (window, undefined) {
 	cCONCATENATE.prototype.name = 'CONCATENATE';
 	cCONCATENATE.prototype.argumentsMin = 1;
 	cCONCATENATE.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cCONCATENATE.prototype.argumentsType = [[argType.text]];
 	cCONCATENATE.prototype.Calculate = function (arg) {
 		var arg0 = new cString(""), argI;
 		for (var i = 0; i < arg.length; i++) {
@@ -321,6 +327,7 @@ function (window, undefined) {
 	cCONCAT.prototype.argumentsMin = 1;
 	cCONCAT.prototype.numFormat = AscCommonExcel.cNumFormatNone;
 	cCONCAT.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
+	cCONCAT.prototype.argumentsType = [[argType.text]];
 	cCONCAT.prototype.Calculate = function (arg) {
 		var arg0 = new cString(""), argI;
 
@@ -380,6 +387,7 @@ function (window, undefined) {
 	cDOLLAR.prototype.argumentsMin = 1;
 	cDOLLAR.prototype.argumentsMax = 2;
 	cDOLLAR.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cDOLLAR.prototype.argumentsType = [argType.number, argType.number];
 	cDOLLAR.prototype.Calculate = function (arg) {
 
 		function SignZeroPositive(number) {
@@ -576,6 +584,7 @@ function (window, undefined) {
 	cEXACT.prototype.name = 'EXACT';
 	cEXACT.prototype.argumentsMin = 2;
 	cEXACT.prototype.argumentsMax = 2;
+	cEXACT.prototype.argumentsType = [argType.text, argType.text];
 	cEXACT.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1];
 		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
@@ -622,6 +631,7 @@ function (window, undefined) {
 	cFIND.prototype.name = 'FIND';
 	cFIND.prototype.argumentsMin = 2;
 	cFIND.prototype.argumentsMax = 3;
+	cFIND.prototype.argumentsType = [argType.text, argType.text, argType.number];
 	cFIND.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1], arg2 = arg.length == 3 ? arg[2] : null, res, str, searchStr,
 			pos = -1;
@@ -706,6 +716,7 @@ function (window, undefined) {
 	cFINDB.prototype = Object.create(cFIND.prototype);
 	cFINDB.prototype.constructor = cFINDB;
 	cFINDB.prototype.name = 'FINDB';
+	cFINDB.prototype.argumentsType = [argType.text, argType.text, argType.number];
 
 	/**
 	 * @constructor
@@ -719,6 +730,7 @@ function (window, undefined) {
 	cFIXED.prototype.name = 'FIXED';
 	cFIXED.prototype.argumentsMin = 1;
 	cFIXED.prototype.argumentsMax = 3;
+	cFIXED.prototype.argumentsType = [argType.number, argType.number, argType.logical];
 	cFIXED.prototype.Calculate = function (arg) {
 
 		function SignZeroPositive(number) {
@@ -974,6 +986,7 @@ function (window, undefined) {
 	cLEFT.prototype.name = 'LEFT';
 	cLEFT.prototype.argumentsMin = 1;
 	cLEFT.prototype.argumentsMax = 2;
+	cLEFT.prototype.argumentsType = [argType.text, argType.number];
 	cLEFT.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg.length == 1 ? new cNumber(1) : arg[1];
 		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
@@ -1020,6 +1033,7 @@ function (window, undefined) {
 	cLEFTB.prototype = Object.create(cLEFT.prototype);
 	cLEFTB.prototype.constructor = cLEFTB;
 	cLEFTB.prototype.name = 'LEFTB';
+	cLEFTB.prototype.argumentsType = [argType.text, argType.number];
 
 	/**
 	 * @constructor
@@ -1034,6 +1048,7 @@ function (window, undefined) {
 	cLEN.prototype.name = 'LEN';
 	cLEN.prototype.argumentsMin = 1;
 	cLEN.prototype.argumentsMax = 1;
+	cLEN.prototype.argumentsType = [argType.text];
 	cLEN.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
@@ -1062,6 +1077,7 @@ function (window, undefined) {
 	cLENB.prototype = Object.create(cLEN.prototype);
 	cLENB.prototype.constructor = cLENB;
 	cLENB.prototype.name = 'LENB';
+	cLENB.prototype.argumentsType = [argType.text];
 
 	/**
 	 * @constructor
@@ -1076,6 +1092,7 @@ function (window, undefined) {
 	cLOWER.prototype.name = 'LOWER';
 	cLOWER.prototype.argumentsMin = 1;
 	cLOWER.prototype.argumentsMax = 1;
+	cLOWER.prototype.argumentsType = [argType.text];
 	cLOWER.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
@@ -1117,6 +1134,7 @@ function (window, undefined) {
 	cMID.prototype.name = 'MID';
 	cMID.prototype.argumentsMin = 3;
 	cMID.prototype.argumentsMax = 3;
+	cMID.prototype.argumentsType = [argType.text, argType.number, argType.number];
 	cMID.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1], arg2 = arg[2];
 		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
@@ -1196,6 +1214,7 @@ function (window, undefined) {
 	cNUMBERVALUE.prototype.argumentsMin = 1;
 	cNUMBERVALUE.prototype.argumentsMax = 3;
 	cNUMBERVALUE.prototype.isXLFN = true;
+	cNUMBERVALUE.prototype.argumentsType = [argType.text, argType.text, argType.text];
 	cNUMBERVALUE.prototype.Calculate = function (arg) {
 
 		var oArguments = this._prepareArguments(arg, arguments[1], true);
@@ -1318,6 +1337,7 @@ function (window, undefined) {
 	cPHONETIC.prototype = Object.create(cBaseFunction.prototype);
 	cPHONETIC.prototype.constructor = cPHONETIC;
 	cPHONETIC.prototype.name = 'PHONETIC';
+	//
 
 	/**
 	 * @constructor
@@ -1332,6 +1352,7 @@ function (window, undefined) {
 	cPROPER.prototype.name = 'PROPER';
 	cPROPER.prototype.argumentsMin = 1;
 	cPROPER.prototype.argumentsMax = 1;
+	cPROPER.prototype.argumentsType = [argType.text];
 	cPROPER.prototype.Calculate = function (arg) {
 		var reg_PROPER = new RegExp("[-#$+*/^&%<\\[\\]='?_\\@!~`\">: ;.\\)\\(,]|\\d|\\s"), arg0 = arg[0];
 
@@ -1396,6 +1417,7 @@ function (window, undefined) {
 	cREPLACE.prototype.name = 'REPLACE';
 	cREPLACE.prototype.argumentsMin = 4;
 	cREPLACE.prototype.argumentsMax = 4;
+	cREPLACE.prototype.argumentsType = [argType.text, argType.number, argType.number, argType.text];
 	cREPLACE.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1], arg2 = arg[2], arg3 = arg[3];
 
@@ -1471,6 +1493,7 @@ function (window, undefined) {
 	cREPLACEB.prototype = Object.create(cREPLACE.prototype);
 	cREPLACEB.prototype.constructor = cREPLACEB;
 	cREPLACEB.prototype.name = 'REPLACEB';
+	cREPLACEB.prototype.argumentsType = [argType.text, argType.number, argType.number, argType.text];
 
 	/**
 	 * @constructor
@@ -1484,6 +1507,7 @@ function (window, undefined) {
 	cREPT.prototype.name = 'REPT';
 	cREPT.prototype.argumentsMin = 2;
 	cREPT.prototype.argumentsMax = 2;
+	cREPT.prototype.argumentsType = [argType.text, argType.number];
 	cREPT.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1], res = "";
 		if (arg0 instanceof cError) {
@@ -1545,6 +1569,7 @@ function (window, undefined) {
 	cRIGHT.prototype.name = 'RIGHT';
 	cRIGHT.prototype.argumentsMin = 1;
 	cRIGHT.prototype.argumentsMax = 2;
+	cRIGHT.prototype.argumentsType = [argType.text, argType.number];
 	cRIGHT.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg.length === 1 ? new cNumber(1) : arg[1];
 		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
@@ -1592,6 +1617,7 @@ function (window, undefined) {
 	cRIGHTB.prototype = Object.create(cRIGHT.prototype);
 	cRIGHTB.prototype.constructor = cRIGHTB;
 	cRIGHTB.prototype.name = 'RIGHTB';
+	cRIGHTB.prototype.argumentsType = [argType.text, argType.number];
 
 	/**
 	 * @constructor
@@ -1606,6 +1632,7 @@ function (window, undefined) {
 	cSEARCH.prototype.name = 'SEARCH';
 	cSEARCH.prototype.argumentsMin = 2;
 	cSEARCH.prototype.argumentsMax = 3;
+	cSEARCH.prototype.argumentsType = [argType.text, argType.text, argType.number];
 	cSEARCH.prototype.Calculate = function (arg) {
 
 		var arg0 = arg[0], arg1 = arg[1], arg2 = arg[2] ? arg[2] : new cNumber(1);
@@ -1694,6 +1721,7 @@ function (window, undefined) {
 	cSEARCHB.prototype = Object.create(cSEARCH.prototype);
 	cSEARCHB.prototype.constructor = cSEARCHB;
 	cSEARCHB.prototype.name = 'SEARCHB';
+	cSEARCHB.prototype.argumentsType = [argType.text, argType.text, argType.number];
 
 	/**
 	 * @constructor
@@ -1708,6 +1736,7 @@ function (window, undefined) {
 	cSUBSTITUTE.prototype.name = 'SUBSTITUTE';
 	cSUBSTITUTE.prototype.argumentsMin = 3;
 	cSUBSTITUTE.prototype.argumentsMax = 4;
+	cSUBSTITUTE.prototype.argumentsType = [argType.text, argType.text, argType.text, argType.text];
 	cSUBSTITUTE.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1], arg2 = arg[2], arg3 = arg[3] ? arg[3] : new cNumber(0);
 
@@ -1790,6 +1819,7 @@ function (window, undefined) {
 	cT.prototype.argumentsMin = 1;
 	cT.prototype.argumentsMax = 1;
 	cT.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.replace_only_array;
+	cT.prototype.argumentsType = [argType.any];
 	cT.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		if (arg0 instanceof cRef || arg0 instanceof cRef3D) {
@@ -1822,6 +1852,7 @@ function (window, undefined) {
 	cTEXT.prototype.name = 'TEXT';
 	cTEXT.prototype.argumentsMin = 2;
 	cTEXT.prototype.argumentsMax = 2;
+	cTEXT.prototype.argumentsType = [argType.any, argType.text];
 	cTEXT.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1];
 		if (arg0 instanceof cRef || arg0 instanceof cRef3D) {
@@ -1990,6 +2021,7 @@ function (window, undefined) {
 	cTRIM.prototype.name = 'TRIM';
 	cTRIM.prototype.argumentsMin = 1;
 	cTRIM.prototype.argumentsMax = 1;
+	cTRIM.prototype.argumentsType = [argType.text];
 	cTRIM.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 
@@ -2025,6 +2057,7 @@ function (window, undefined) {
 	cUNICHAR.prototype.argumentsMin = 1;
 	cUNICHAR.prototype.argumentsMax = 1;
 	cUNICHAR.prototype.isXLFN = true;
+	cUNICHAR.prototype.argumentsType = [argType.number];
 	cUNICHAR.prototype.Calculate = function (arg) {
 		var oArguments = this._prepareArguments(arg, arguments[1]);
 		var argClone = oArguments.args;
@@ -2068,6 +2101,7 @@ function (window, undefined) {
 	cUNICODE.prototype.argumentsMin = 1;
 	cUNICODE.prototype.argumentsMax = 1;
 	cUNICODE.prototype.isXLFN = true;
+	cUNICODE.prototype.argumentsType = [argType.text];
 	cUNICODE.prototype.Calculate = function (arg) {
 		var oArguments = this._prepareArguments(arg, arguments[1]);
 		var argClone = oArguments.args;
@@ -2101,6 +2135,7 @@ function (window, undefined) {
 	cUPPER.prototype.name = 'UPPER';
 	cUPPER.prototype.argumentsMin = 1;
 	cUPPER.prototype.argumentsMax = 1;
+	cUPPER.prototype.argumentsType = [argType.text];
 	cUPPER.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
@@ -2142,6 +2177,7 @@ function (window, undefined) {
 	cVALUE.prototype.argumentsMin = 1;
 	cVALUE.prototype.argumentsMax = 1;
 	cVALUE.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cVALUE.prototype.argumentsType = [argType.any];
 	cVALUE.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 

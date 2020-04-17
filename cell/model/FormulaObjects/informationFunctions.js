@@ -51,6 +51,7 @@
 	var cBaseFunction = AscCommonExcel.cBaseFunction;
 	var cFormulaFunctionGroup = AscCommonExcel.cFormulaFunctionGroup;
 	var cElementType = AscCommonExcel.cElementType;
+	var argType = Asc.c_oAscFormulaArgumentType;
 
 	function getCellFormat(ws, row, col) {
 		var res = new cString("G");
@@ -307,6 +308,7 @@
 	cERROR_TYPE.prototype.name = 'ERROR.TYPE';
 	cERROR_TYPE.prototype.argumentsMin = 1;
 	cERROR_TYPE.prototype.argumentsMax = 1;
+	cERROR_TYPE.prototype.argumentsType = [argType.any];
 	cERROR_TYPE.prototype.Calculate = function (arg) {
 		function typeError(elem) {
 			if (elem instanceof cError) {
@@ -366,6 +368,7 @@
 	cISBLANK.prototype.name = 'ISBLANK';
 	cISBLANK.prototype.argumentsMin = 1;
 	cISBLANK.prototype.argumentsMax = 1;
+	cISBLANK.prototype.argumentsType = [argType.any];
 	cISBLANK.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
@@ -393,6 +396,7 @@
 	cISERR.prototype.name = 'ISERR';
 	cISERR.prototype.argumentsMin = 1;
 	cISERR.prototype.argumentsMax = 1;
+	cISERR.prototype.argumentsType = [argType.any];
 	cISERR.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		if (arg0 instanceof cArray) {
@@ -424,6 +428,7 @@
 	cISERROR.prototype.name = 'ISERROR';
 	cISERROR.prototype.argumentsMin = 1;
 	cISERROR.prototype.argumentsMax = 1;
+	cISERROR.prototype.argumentsType = [argType.any];
 	cISERROR.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		if (arg0 instanceof cArray) {
@@ -455,6 +460,7 @@
 	cISEVEN.prototype.argumentsMin = 1;
 	cISEVEN.prototype.argumentsMax = 1;
 	cISEVEN.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
+	cISEVEN.prototype.argumentsType = [argType.any];
 	cISEVEN.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		if (arg0 instanceof cArray) {
@@ -492,6 +498,7 @@
 	cISFORMULA.prototype.argumentsMax = 1;
 	cISFORMULA.prototype.isXLFN = true;
 	cISFORMULA.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.area_to_ref;
+	cISFORMULA.prototype.argumentsType = [argType.reference];
 	cISFORMULA.prototype.Calculate = function (arg) {
 		//есть различия в поведении этой формулы для ms и lo(для нескольких ячеек с данными)
 		var arg0 = arg[0];
@@ -522,6 +529,7 @@
 	cISLOGICAL.prototype.name = 'ISLOGICAL';
 	cISLOGICAL.prototype.argumentsMin = 1;
 	cISLOGICAL.prototype.argumentsMax = 1;
+	cISLOGICAL.prototype.argumentsType = [argType.any];
 	cISLOGICAL.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		if (arg0 instanceof cArray) {
@@ -552,6 +560,7 @@
 	cISNA.prototype.name = 'ISNA';
 	cISNA.prototype.argumentsMin = 1;
 	cISNA.prototype.argumentsMax = 1;
+	cISNA.prototype.argumentsType = [argType.any];
 	cISNA.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		if (arg0 instanceof cArray) {
@@ -582,6 +591,7 @@
 	cISNONTEXT.prototype.name = 'ISNONTEXT';
 	cISNONTEXT.prototype.argumentsMin = 1;
 	cISNONTEXT.prototype.argumentsMax = 1;
+	cISNONTEXT.prototype.argumentsType = [argType.any];
 	cISNONTEXT.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		if (arg0 instanceof cArray) {
@@ -611,6 +621,7 @@
 	cISNUMBER.prototype.name = 'ISNUMBER';
 	cISNUMBER.prototype.argumentsMin = 1;
 	cISNUMBER.prototype.argumentsMax = 1;
+	cISNUMBER.prototype.argumentsType = [argType.any];
 	cISNUMBER.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		if (arg0 instanceof cArray) {
@@ -642,6 +653,7 @@
 	cISODD.prototype.argumentsMin = 1;
 	cISODD.prototype.argumentsMax = 1;
 	cISODD.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
+	cISODD.prototype.argumentsType = [argType.any];
 	cISODD.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		if (arg0 instanceof cArray) {
@@ -678,6 +690,7 @@
 	cISREF.prototype.argumentsMin = 1;
 	cISREF.prototype.argumentsMax = 1;
 	cISREF.prototype.arrayIndexes = {0:1};
+	cISREF.prototype.argumentsType = [argType.any];
 	cISREF.prototype.Calculate = function (arg) {
 		if ((arg[0] instanceof cRef || arg[0] instanceof cArea || arg[0] instanceof cArea3D ||
 			arg[0] instanceof cRef3D) && arg[0].isValid && arg[0].isValid()) {
@@ -700,6 +713,7 @@
 	cISTEXT.prototype.name = 'ISTEXT';
 	cISTEXT.prototype.argumentsMin = 1;
 	cISTEXT.prototype.argumentsMax = 1;
+	cISTEXT.prototype.argumentsType = [argType.any];
 	cISTEXT.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		if (arg0 instanceof cArray) {
@@ -732,6 +746,7 @@
 	cN.prototype.argumentsMax = 1;
 	cN.prototype.numFormat = AscCommonExcel.cNumFormatNone;
 	cN.prototype.arrayIndexes = {0: 1};
+	cN.prototype.argumentsType = [argType.any];
 	cN.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		if (arg0 instanceof cArray) {
@@ -773,6 +788,7 @@
 	cNA.prototype.constructor = cNA;
 	cNA.prototype.name = 'NA';
 	cNA.prototype.argumentsMax = 0;
+	cNA.prototype.argumentsType = null;
 	cNA.prototype.Calculate = function () {
 		return new cError(cErrorType.not_available);
 	};
@@ -792,6 +808,7 @@
 	cSHEET.prototype.argumentsMax = 1;
 	cSHEET.prototype.isXLFN = true;
 	cSHEET.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
+	cSHEET.prototype.argumentsType = [argType.text];
 	cSHEET.prototype.Calculate = function (arg, opt_bbox, opt_defName, ws) {
 
 		var res = null;
@@ -840,6 +857,7 @@
 	cSHEETS.prototype.argumentsMax = 1;
 	cSHEETS.prototype.isXLFN = true;
 	cSHEETS.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
+	cSHEETS.prototype.argumentsType = [argType.reference];
 	cSHEETS.prototype.Calculate = function (arg, opt_bbox, opt_defName, ws) {
 
 		var res;
@@ -884,6 +902,7 @@
 	cTYPE.prototype.argumentsMax = 1;
 	cTYPE.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.value_replace_area;
 	cTYPE.prototype.arrayIndexes = {0: 1};
+	cTYPE.prototype.argumentsType = [argType.any];
 	cTYPE.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
