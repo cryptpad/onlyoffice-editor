@@ -9530,6 +9530,9 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	CFunctionInfo.prototype.asc_getFormulaResult = function () {
 		return this.formulaResult;
 	};
+	CFunctionInfo.prototype.asc_getName = function () {
+		return this.name;
+	};
 
 	//----------------------------------------------------------export----------------------------------------------------
 	var prot;
@@ -9841,5 +9844,6 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	prot["asc_getArgumentsType"] = prot.asc_getArgumentsType;
 	prot["asc_getArgumentsResult"] = prot.asc_getArgumentsResult;
 	prot["asc_getFormulaResult"] = prot.asc_getFormulaResult;
+	prot["asc_getName"] = prot.asc_getName;
 
 })(window);
