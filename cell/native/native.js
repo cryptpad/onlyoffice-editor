@@ -6984,7 +6984,8 @@ window["native"]["offline_apply_event"] = function(type,params) {
             {
                 var json = JSON.parse(params[0]),
                     commentId = json["id"],
-                    comment = json["comment"];
+                    comment = json["comment"],
+                    updateAuthor = json["updateAuthor"] || false;
 
                 if (json && commentId) {
                     var timeZoneOffsetInMs = (new Date()).getTimezoneOffset() * 60000;
@@ -7014,8 +7015,8 @@ window["native"]["offline_apply_event"] = function(type,params) {
                         ascComment.asc_putQuoteText(comment["quoteText"]);
                         ascComment.asc_putTime(utcDateToString(sTime));
                         ascComment.asc_putOnlyOfficeTime(ooDateToString(sTime));
-                        ascComment.asc_putUserId(comment["userId"]);
-                        ascComment.asc_putUserName(comment["userName"]);
+                        ascComment.asc_putUserId(updateAuthor ? currentUserId : comment["userId"]);
+                        ascComment.asc_putUserName(updateAuthor ? currentUserName : comment["userName"]);
                         ascComment.asc_putSolved(comment["solved"]);
                         ascComment.asc_putGuid(comment["id"]);
 

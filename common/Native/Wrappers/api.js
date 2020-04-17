@@ -2540,7 +2540,8 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
         {
             var json = JSON.parse(_params[0]),
                 commentId = json["id"],
-                comment = json["comment"];
+                comment = json["comment"],
+                updateAuthor = json["updateAuthor"] || false;
 
             if (json && commentId) {
                 var timeZoneOffsetInMs = (new Date()).getTimezoneOffset() * 60000;
@@ -2570,8 +2571,8 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
                     ascComment.asc_putQuoteText(comment["quoteText"]);
                     ascComment.asc_putTime(utcDateToString(sTime));
                     ascComment.asc_putOnlyOfficeTime(ooDateToString(sTime));
-                    ascComment.asc_putUserId(comment["userId"]);
-                    ascComment.asc_putUserName(comment["userName"]);
+                    ascComment.asc_putUserId(updateAuthor ? currentUserId : comment["userId"]);
+                    ascComment.asc_putUserName(updateAuthor ? currentUserName : comment["userName"]);
                     ascComment.asc_putSolved(comment["solved"]);
                     ascComment.asc_putGuid(comment["id"]);
 
