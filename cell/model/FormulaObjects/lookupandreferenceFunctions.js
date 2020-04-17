@@ -60,6 +60,7 @@ function (window, undefined) {
 
 	var checkTypeCell = AscCommonExcel.checkTypeCell;
 	var cFormulaFunctionGroup = AscCommonExcel.cFormulaFunctionGroup;
+	var argType = Asc.c_oAscFormulaArgumentType;
 
 	var _func = AscCommonExcel._func;
 
@@ -107,6 +108,7 @@ function (window, undefined) {
 	cADDRESS.prototype.name = 'ADDRESS';
 	cADDRESS.prototype.argumentsMin = 2;
 	cADDRESS.prototype.argumentsMax = 5;
+	cADDRESS.prototype.argumentsType = [argType.number, argType.number, argType.number, argType.logical, argType.text];
 	cADDRESS.prototype.Calculate = function (arg) {
 		var rowNumber = arg[0], colNumber = arg[1], refType = arg[2] ? arg[2] : new cNumber(1),
 			A1RefType = arg[3] ? arg[3] : new cBool(true), sheetName = arg[4] ? arg[4] : null;
@@ -238,6 +240,7 @@ function (window, undefined) {
 	cAREAS.prototype = Object.create(cBaseFunction.prototype);
 	cAREAS.prototype.constructor = cAREAS;
 	cAREAS.prototype.name = 'AREAS';
+	cAREAS.prototype.argumentsType = [argType.reference];
 
 	/**
 	 * @constructor
@@ -252,6 +255,7 @@ function (window, undefined) {
 	cCHOOSE.prototype.name = 'CHOOSE';
 	cCHOOSE.prototype.argumentsMin = 2;
 	cCHOOSE.prototype.argumentsMax = 30;
+	cCHOOSE.prototype.argumentsType = [argType.number, [argType.any]];
 	cCHOOSE.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 
@@ -288,6 +292,7 @@ function (window, undefined) {
 	cCOLUMN.prototype.name = 'COLUMN';
 	cCOLUMN.prototype.argumentsMax = 1;
 	cCOLUMN.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.area_to_ref;
+	cCOLUMN.prototype.argumentsType = [argType.reference];
 	cCOLUMN.prototype.Calculate = function (arg) {
 		var bbox;
 		if (0 === arg.length) {
@@ -317,6 +322,7 @@ function (window, undefined) {
 	cCOLUMNS.prototype.argumentsMin = 1;
 	cCOLUMNS.prototype.argumentsMax = 1;
 	cCOLUMNS.prototype.arrayIndexes = {0: 1};
+	cCOLUMNS.prototype.argumentsType = [argType.reference];
 	cCOLUMNS.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		var range;
@@ -345,6 +351,7 @@ function (window, undefined) {
 	cFORMULATEXT.prototype.argumentsMax = 1;
 	cFORMULATEXT.prototype.isXLFN = true;
 	cFORMULATEXT.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.area_to_ref;
+	cFORMULATEXT.prototype.argumentsType = [argType.reference];
 	cFORMULATEXT.prototype.Calculate = function (arg) {
 
 		var arg0 = arg[0];
@@ -377,6 +384,7 @@ function (window, undefined) {
 	cGETPIVOTDATA.prototype = Object.create(cBaseFunction.prototype);
 	cGETPIVOTDATA.prototype.constructor = cGETPIVOTDATA;
 	cGETPIVOTDATA.prototype.name = 'GETPIVOTDATA';
+	cGETPIVOTDATA.prototype.argumentsType = [argType.text, argType.text, [argType.text, argType.any]];
 
 	/**
 	 * @constructor
@@ -392,6 +400,7 @@ function (window, undefined) {
 	cHLOOKUP.prototype.argumentsMin = 3;
 	cHLOOKUP.prototype.argumentsMax = 4;
 	cHLOOKUP.prototype.arrayIndexes = {1: 1, 2: 1};
+	cHLOOKUP.prototype.argumentsType = [argType.any, argType.number, argType.number, argType.logical];
 	cHLOOKUP.prototype.Calculate = function (arg) {
 		//TODO  с excel есть несоостветствие - в тестовом файле - E11:H13
 		if(this.bArrayFormula) {
@@ -417,6 +426,7 @@ function (window, undefined) {
 	cHYPERLINK.prototype.name = 'HYPERLINK';
 	cHYPERLINK.prototype.argumentsMin = 1;
 	cHYPERLINK.prototype.argumentsMax = 2;
+	cHYPERLINK.prototype.argumentsType = [argType.text, argType.any];
 	cHYPERLINK.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg.length === 1 ? null : arg[1];
 
@@ -476,6 +486,7 @@ function (window, undefined) {
 	cINDEX.prototype.argumentsMax = 4;
 	cINDEX.prototype.numFormat = AscCommonExcel.cNumFormatNone;
 	cINDEX.prototype.arrayIndexes = {0: 1};
+	cINDEX.prototype.argumentsType = [argType.reference, argType.number, argType.number];
 	cINDEX.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1] && (cElementType.empty !== arg[1].type) ? arg[1] : new cNumber(1),
 			arg2 = arg[2] && (cElementType.empty !== arg[2].type) ? arg[2] : new cNumber(1),
@@ -591,6 +602,7 @@ function (window, undefined) {
 	cINDIRECT.prototype.argumentsMin = 1;
 	cINDIRECT.prototype.argumentsMax = 2;
 	cINDIRECT.prototype.ca = true;
+	cINDIRECT.prototype.argumentsType = [argType.text, argType.logical];
 	cINDIRECT.prototype.Calculate = function (arg) {
 		var t = this, arg0 = arg[0].tocString(), arg1 = arg[1] ? arg[1] : new cBool(true), ws = arguments[3],
 			wb = ws.workbook, o = {
@@ -676,6 +688,7 @@ function (window, undefined) {
 	cLOOKUP.prototype.argumentsMin = 2;
 	cLOOKUP.prototype.argumentsMax = 3;
 	cLOOKUP.prototype.arrayIndexes = {1: 1, 2: 1};
+	cLOOKUP.prototype.argumentsType = [argType.any, argType.reference, argType.reference];
 	cLOOKUP.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1], arg2 = 2 === arg.length ? arg1 : arg[2], resC = -1, resR = -1,
 			t = this, res;
@@ -938,6 +951,7 @@ function (window, undefined) {
 	cMATCH.prototype.argumentsMin = 2;
 	cMATCH.prototype.argumentsMax = 3;
 	cMATCH.prototype.arrayIndexes = {1: 1};
+	cMATCH.prototype.argumentsType = [argType.any, argType.number, argType.number];
 	cMATCH.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1], arg2 = arg[2] ? arg[2] : new cNumber(1);
 
@@ -1426,6 +1440,7 @@ function (window, undefined) {
 	cOFFSET.prototype.argumentsMin = 3;
 	cOFFSET.prototype.argumentsMax = 5;
 	cOFFSET.prototype.ca = true;
+	cOFFSET.prototype.argumentsType = [argType.reference, argType.number, argType.number, argType.number, argType.number];
 	cOFFSET.prototype.Calculate = function (arg) {
 
 		function validBBOX(bbox) {
@@ -1537,6 +1552,7 @@ function (window, undefined) {
 	cROW.prototype.name = 'ROW';
 	cROW.prototype.argumentsMax = 1;
 	cROW.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.area_to_ref;
+	cROW.prototype.argumentsType = [argType.reference];
 	cROW.prototype.Calculate = function (arg) {
 		var bbox;
 		if (0 === arg.length) {
@@ -1566,6 +1582,7 @@ function (window, undefined) {
 	cROWS.prototype.argumentsMin = 1;
 	cROWS.prototype.argumentsMax = 1;
 	cROWS.prototype.arrayIndexes = {0: 1};
+	cROWS.prototype.argumentsType = [argType.reference];
 	cROWS.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		var range;
@@ -1589,6 +1606,7 @@ function (window, undefined) {
 	cRTD.prototype = Object.create(cBaseFunction.prototype);
 	cRTD.prototype.constructor = cRTD;
 	cRTD.prototype.name = 'RTD';
+	cRTD.prototype.argumentsType = [argType.text, argType.text, [argType.text]];
 
 	/**
 	 * @constructor
@@ -1605,6 +1623,7 @@ function (window, undefined) {
 	cTRANSPOSE.prototype.argumentsMax = 1;
 	cTRANSPOSE.prototype.numFormat = AscCommonExcel.cNumFormatNone;
 	cTRANSPOSE.prototype.arrayIndexes = {0: 1};
+	cTRANSPOSE.prototype.argumentsType = [argType.any];
 	cTRANSPOSE.prototype.Calculate = function (arg) {
 
 		function TransposeMatrix(A) {
@@ -2169,6 +2188,7 @@ function (window, undefined) {
 	cVLOOKUP.prototype.argumentsMax = 4;
 	cVLOOKUP.prototype.arrayIndexes = {1: 1, 2: {0: 0}};
 	cVLOOKUP.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cVLOOKUP.prototype.argumentsType = [argType.any, argType.number, argType.number, argType.logical];
 	cVLOOKUP.prototype.Calculate = function (arg) {
 
 		if(this.bArrayFormula) {
