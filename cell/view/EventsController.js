@@ -783,12 +783,14 @@
 					if (!canEdit || t.getCellEditMode() || t.isSelectionDialogMode) {
 						return true;
 					}
-
-					// При нажатии символа, фокус не ставим. Очищаем содержимое ячейки
-					this.handlers.trigger("editCell", /*isFocus*/false, /*isClearCell*/true, /*isHideCursor*/undefined,
-						/*isQuickInput*/true, /*callback*/undefined);
-					return result;
-
+					if (ctrlKey) {
+						// При нажатии символа, фокус не ставим. Очищаем содержимое ячейки
+						this.handlers.trigger("editCell", /*isFocus*/false, /*isClearCell*/true, /*isHideCursor*/undefined,
+							/*isQuickInput*/true, /*callback*/undefined);
+						return result;
+					}
+					t.skipKeyPress = false;
+					return true;
 
 				case 8: // backspace
 					if (!canEdit || t.getCellEditMode() || t.isSelectionDialogMode) {
