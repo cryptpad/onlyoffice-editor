@@ -1052,6 +1052,11 @@ Paragraph.prototype.private_RecalculateLine            = function(CurLine, CurPa
     //-------------------------------------------------------------------------------------------------------------
     if (false === this.private_RecalculateLineCheckFootnotes(CurLine, CurPage, PRS, ParaPr))
         return;
+
+    //-------------------------------------------------------------------------------------------------------------
+    // 15. Регистрируем концевые сноски на странице
+    //-------------------------------------------------------------------------------------------------------------
+    this.private_RecalculateLineCheckEndnotes(CurLine, CurPage, PRS, ParaPr);
 };
 
 Paragraph.prototype.private_RecalculateLineWidow       = function(CurLine, CurPage, PRS, ParaPr)
@@ -1184,7 +1189,7 @@ Paragraph.prototype.private_RecalculateLineInfo        = function(CurLine, CurPa
     if (true === PRS.BadLeftTab)
         this.Lines[CurLine].Info |= paralineinfo_BadLeftTab;
 
-    if (PRS.GetFootnoteReferencesCount(null, true) > 0)
+    if (PRS.GetFootnoteReferencesCount(null, true) > 0 || PRS.GetEndnoteReferenceCount(null, true) > 0)
     	this.Lines[CurLine].Info |= paralineinfo_Notes;
 
     if (true === PRS.TextOnLine)
@@ -2035,6 +2040,30 @@ Paragraph.prototype.private_RecalculateLineCheckFootnotes = function(CurLine, Cu
 	}
 
 	return true;
+};
+
+Paragraph.prototype.private_RecalculateLineCheckEndnotes = function(CurLine, CurPage, PRS, ParaPr)
+{
+    if (!((PRS.RecalcResult & recalcresult_NextElement) || (PRS.RecalcResult & recalcresult_NextLine)) || PRS.Fast)
+        return;
+
+    var oTopDocument  = PRS.TopDocument;
+    var arrEndnotes   = [];
+    var oLineBreakPos = this.GetLineEndPos(CurLine);
+    for (var nIndex = 0, nCount = PRS.Endnotes.length; nIndex < nCount; ++nIndex)
+    {
+        var oEndnote = PRS.Endnotes[nIndex].EndnoteReference.GetFootnote();
+        var oPos     = PRS.Endnotes[nIndex].Pos;
+
+        // Проверим позицию
+        if (oLineBreakPos.Compare(oPos) <= 0)
+            continue;
+
+        arrEndnotes.push(oEndnote);
+    }
+
+    if (oTopDocument instanceof CDocument)
+        oTopDocument.GetEndnotesController().RegisterEndnotes(PRS.PageAbs, arrEndnotes);
 };
 
 Paragraph.prototype.private_RecalculateRange           = function(CurRange, CurLine, CurPage, RangesCount, PRS, ParaPr)
@@ -2905,6 +2934,8 @@ function CParagraphRecalculateStateWrap(Para)
     this.Footnotes                  = [];
 	this.FootnotesRecalculateObject = null;
 
+	this.Endnotes = [];
+
     // for ParaMath
     this.bMath_OneLine       = false;
     this.bMathWordLarge      = false;
@@ -2983,6 +3014,7 @@ CParagraphRecalculateStateWrap.prototype =
         this.bEndRunToContent    = false;
         this.PosEndRun           = new CParagraphContentPos();
         this.Footnotes           = [];
+        this.Endnotes            = [];
 
         this.OperGapRight        = 0;
         this.OperGapLeft         = 0;
@@ -3412,6 +3444,35 @@ CParagraphRecalculateStateWrap.prototype.GetFootnoteReferencesCount = function(o
 			return nRefsCount;
 
 		if (true === _isAllowCustom || true !== this.Footnotes[nIndex].FootnoteReference.IsCustomMarkFollows())
+			nRefsCount++;
+	}
+
+	return nRefsCount;
+};
+CParagraphRecalculateStateWrap.prototype.AddEndnoteReference = function(oEndnoteReference, oPos)
+{
+	for (var nIndex = 0, nCount = this.Endnotes.length; nIndex < nCount; ++nIndex)
+	{
+		if (this.Endnotes[nIndex].EndnoteReference === oEndnoteReference)
+			return;
+	}
+
+	this.Endnotes.push({EndnoteReference : oEndnoteReference, Pos : oPos});
+};
+CParagraphRecalculateStateWrap.prototype.GetEndnoteReferenceCount = function(oEndnoteReference, isAllowCustom)
+{
+	var _isAllowCustom = (true === isAllowCustom ? true : false);
+
+	// Если данную ссылку мы добавляли уже в строке, тогда ищем сколько было элементов до нее, если не добавляли,
+	// тогда возвращаем просто количество ссылок. Ссылки с флагом CustomMarkFollows не учитываются
+
+	var nRefsCount = 0;
+	for (var nIndex = 0, nCount = this.Endnotes.length; nIndex < nCount; ++nIndex)
+	{
+		if (this.Endnotes[nIndex].EndnoteReference === oEndnoteReference)
+			return nRefsCount;
+
+		if (true === _isAllowCustom || true !== this.Endnotes[nIndex].EndnoteReference.IsCustomMarkFollows())
 			nRefsCount++;
 	}
 

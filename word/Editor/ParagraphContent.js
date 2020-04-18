@@ -2284,27 +2284,21 @@ ParaEndnoteReference.prototype.Copy = function(oPr)
 };
 ParaEndnoteReference.prototype.UpdateNumber = function(PRS, isKeepNumber)
 {
-	// TODO: Переделать
-	this.Number    = 1;
-	this.NumFormat = Asc.c_oAscNumberingFormat.Decimal;
-	this.private_Measure();
-	return;
-
 	if (this.Footnote && true !== PRS.IsFastRecalculate() && PRS.TopDocument instanceof CDocument)
 	{
 		var nPageAbs    = PRS.GetPageAbs();
 		var nColumnAbs  = PRS.GetColumnAbs();
-		var nAdditional = PRS.GetFootnoteReferencesCount(this);
+		var nAdditional = PRS.GetEndnoteReferenceCount(this);
 		var oSectPr     = PRS.GetSectPr();
-		var nNumFormat  = oSectPr.GetFootnoteNumFormat();
+		var nNumFormat  = oSectPr.GetEndnoteNumFormat();
 
-		var oLogicDocument       = this.Footnote.Get_LogicDocument();
-		var oFootnotesController = oLogicDocument.GetFootnotesController();
+		var oLogicDocument      = this.Footnote.GetLogicDocument();
+		var oEndnotesController = oLogicDocument.GetEndnotesController();
 
 		if (!isKeepNumber)
 		{
 			this.NumFormat = nNumFormat;
-			this.Number    = oFootnotesController.GetFootnoteNumberOnPage(nPageAbs, nColumnAbs, oSectPr) + nAdditional;
+			this.Number    = oEndnotesController.GetEndnoteNumberOnPage(nPageAbs, nColumnAbs, oSectPr) + nAdditional;
 
 			// Если данная сноска не участвует в нумерации, просто уменьшаем ей номер на 1, для упрощения работы
 			if (this.IsCustomMarkFollows())
@@ -2317,7 +2311,7 @@ ParaEndnoteReference.prototype.UpdateNumber = function(PRS, isKeepNumber)
 	else
 	{
 		this.Number    = 1;
-		this.NumFormat = Asc.c_oAscNumberingFormat.Decimal;
+		this.NumFormat = Asc.c_oAscNumberingFormat.LowerRoman;
 		this.private_Measure();
 	}
 };
@@ -2346,23 +2340,17 @@ ParaEndnoteRef.prototype.Copy = function()
 };
 ParaEndnoteRef.prototype.UpdateNumber = function(oEndnote)
 {
-	// TODO: Реализовать
-	this.Number    = 1;
-	this.NumFormat = Asc.c_oAscNumberingFormat.Decimal;
-	this.private_Measure();
-	return;
-
 	this.Footnote = oEndnote;
 	if (this.Footnote && this.Footnote instanceof CFootEndnote)
 	{
 		this.Number    = this.Footnote.GetNumber();
-		this.NumFormat = this.Footnote.GetReferenceSectPr().GetFootnoteNumFormat();
+		this.NumFormat = this.Footnote.GetReferenceSectPr().GetEndnoteNumFormat();
 		this.private_Measure();
 	}
 	else
 	{
 		this.Number    = 1;
-		this.NumFormat = Asc.c_oAscNumberingFormat.Decimal;
+		this.NumFormat = Asc.c_oAscNumberingFormat.LowerRoman;
 		this.private_Measure();
 	}
 };

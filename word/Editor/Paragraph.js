@@ -13738,6 +13738,8 @@ Paragraph.prototype.CheckFootnote = function(X, Y, CurPage)
 	}
 	else if (this.Lines[CurLine].Info & paralineinfo_Notes)
 	{
+		// TODO Endnotes: добавить обработку концевых сносок
+
 		var arrFootnoteRefs = this.private_GetFootnoteRefsInLine(CurLine);
 		var nMinDiff = 1000000000;
 		var oNote = null;

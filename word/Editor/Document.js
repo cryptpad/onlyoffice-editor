@@ -3587,6 +3587,7 @@ CDocument.prototype.Recalculate_Page = function()
         var StartPos = this.Get_PageContentStartPos(PageIndex, StartIndex);
 
 		this.Footnotes.Reset(PageIndex, this.SectionsInfo.Get_SectPr(StartIndex).SectPr);
+		this.Endnotes.Reset(PageIndex, this.SectionsInfo.Get_SectPr(StartIndex).SectPr);
 
         this.Pages[PageIndex].ResetStartElement = this.FullRecalc.ResetStartElement;
         this.Pages[PageIndex].X                 = StartPos.X;
@@ -16086,9 +16087,19 @@ CDocument.prototype.GotoFootnote = function(isNext)
 
 	return this.GotoFootnoteRef(isNext, true);
 };
+/**
+ * @return {CFootnotesController}
+ */
 CDocument.prototype.GetFootnotesController = function()
 {
 	return this.Footnotes;
+};
+/**
+ * @return {CEndnotesController}
+ */
+CDocument.prototype.GetEndnotesController = function()
+{
+	return this.Endnotes;
 };
 CDocument.prototype.SetFootnotePr = function(oFootnotePr, bApplyToAll)
 {

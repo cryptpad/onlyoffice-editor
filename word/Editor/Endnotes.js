@@ -53,6 +53,7 @@ function CEndnotesController(oLogicDocument)
 	this.EndnotePr.InitDefaultEndnotePr();
 
 	this.Endnote = {};
+	this.Pages   = [];
 
 	// Специальные сноски
 	this.ContinuationNotice    = null;
@@ -173,4 +174,132 @@ CEndnotesController.prototype.Is_UseInDocument = function(sFootnoteId, arrEndnot
 {
 	// TODO: Реализовать
 	return true;
+};
+CEndnotesController.prototype.GetEndnoteNumberOnPage = function(nPageAbs, nColumnAbs, oSectPr)
+{
+	var nNumRestart = section_footnote_RestartContinuous;
+	var nNumStart   = 1;
+	if (oSectPr)
+	{
+		nNumRestart = oSectPr.GetEndnoteNumRestart();
+		nNumStart   = oSectPr.GetEndnoteNumStart();
+	}
+
+	// NumStart никак не влияет в случае RestartEachSect. Влияет только на случай RestartContinuous:
+	// к общему количеству сносок добавляется данное значение, взятое для текущей секции, этоже значение из предыдущих
+	// секций не учитывается.
+
+	if (section_footnote_RestartEachSect === nNumRestart)
+	{
+		for (var nPageIndex = nPageAbs; nPageIndex >= 0; --nPageIndex)
+		{
+			var oPage = this.Pages[nPageIndex];
+			if (oPage && oPage.Endnotes.length > 0)
+			{
+				var oEndnote = oPage.Endnotes[oPage.Endnotes.length - 1];
+				if (oEndnote.GetReferenceSectPr() !== oSectPr)
+					return 1;
+
+				return oPage.Endnotes[oPage.Endnotes.length - 1].GetNumber() + 1;
+			}
+		}
+	}
+	else// if (section_footnote_RestartContinuous === nNumRestart)
+	{
+		// Здесь нам надо считать, сколько сносок всего в документе до данного момента, отталкиваться от предыдущей мы
+		// не можем, потому что Word считает общее количество сносок, а не продолжает нумерацию с предыдущей секции,
+		// т.е. после последнего номера 4 в старой секции, в новой секции может идти уже, например, 9.
+		var nEndnotesCount = 0;
+		for (var nPageIndex = nPageAbs; nPageIndex >= 0; --nPageIndex)
+		{
+			var oPage = this.Pages[nPageIndex];
+			if (oPage && oPage.Endnotes.length > 0)
+			{
+				for (var nEndnoteIndex = 0, nTempCount = oPage.Endnotes.length; nEndnoteIndex < nTempCount; ++nEndnoteIndex)
+				{
+					var oEndnote = oPage.Endnotes[nEndnoteIndex];
+					if (oEndnote && true !== oEndnote.IsCustomMarkFollows())
+						nEndnotesCount++;
+				}
+			}
+		}
+
+		return nEndnotesCount + nNumStart;
+	}
+
+	return 1;
+};
+/**
+ * Сбрасываем рассчетные данный для заданной страницы.
+ * @param {number} nPageIndex
+ * @param {CSectionPr} oSectPr
+ */
+CEndnotesController.prototype.Reset = function(nPageIndex, oSectPr)
+{
+	if (!this.Pages[nPageIndex])
+		this.Pages[nPageIndex] = new CEndnotePage();
+
+	var oPage = this.Pages[nPageIndex];
+	oPage.Reset();
+
+	var oFrame = oSectPr.GetContentFrame(nPageIndex);
+
+	var X      = oFrame.Left;
+	var XLimit = oFrame.Right;
+
+	var nColumnsCount = oSectPr.GetColumnsCount();
+	for (var nColumnIndex = 0; nColumnIndex < nColumnsCount; ++nColumnIndex)
+	{
+		var _X = X;
+		for (var nTempColumnIndex = 0; nTempColumnIndex < nColumnIndex; ++nTempColumnIndex)
+		{
+			_X += oSectPr.GetColumnWidth(nTempColumnIndex);
+			_X += oSectPr.GetColumnSpace(nTempColumnIndex);
+		}
+
+		var _XLimit = (nColumnsCount - 1 !== nColumnIndex ? _X + oSectPr.GetColumnWidth(nColumnIndex) : XLimit);
+
+		var oColumn    = new CFootEndnotePageColumn();
+		oColumn.X      = _X;
+		oColumn.XLimit = _XLimit;
+		oPage.AddColumn(oColumn);
+	}
+
+	oPage.X      = X;
+	oPage.XLimit = XLimit;
+};
+/**
+ * Регистрируем сноски на заданной странице
+ * @param nPageAbs
+ * @param arrEndnotes
+ */
+CEndnotesController.prototype.RegisterEndnotes = function(nPageAbs, arrEndnotes)
+{
+	if (!this.Pages[nPageAbs])
+		return;
+
+	this.Pages[nPageAbs].AddEndnotes(arrEndnotes);
+};
+
+/**
+ * Класс регистрирующий концевые сноски на странице
+ * @constructor
+ */
+function CEndnotePage()
+{
+	this.Endnotes = [];
+	this.Columns  = [];
+}
+CEndnotePage.prototype.Reset = function()
+{
+	this.Endnotes = [];
+	this.Columns  = [];
+};
+CEndnotePage.prototype.AddColumn = function(oColumn)
+{
+	this.Columns.push(oColumn);
+}
+CEndnotePage.prototype.AddEndnotes = function(arrEndnotes)
+{
+	this.Endnotes = this.Endnotes.concat(arrEndnotes)
 };
