@@ -610,6 +610,9 @@
 	CDataBar.prototype.asc_getNegativeBarBorderColorSameAsPositive = function () {
 		return this.NegativeBarBorderColorSameAsPositive;
 	};
+	CDataBar.prototype.asc_getCFVOs = function () {
+		return this.aCFVOs;
+	};
 	CDataBar.prototype.asc_getColor = function () {
 		return this.Color;
 	};
@@ -907,6 +910,7 @@
 	prot['asc_getDirection'] = prot.asc_getDirection;
 	prot['asc_getNegativeBarColorSameAsPositive'] = prot.asc_getNegativeBarColorSameAsPositive;
 	prot['asc_getNegativeBarBorderColorSameAsPositive'] = prot.asc_getNegativeBarBorderColorSameAsPositive;
+	prot['asc_getCFVOs'] = prot.asc_getCFVOs;
 	prot['asc_getColor'] = prot.asc_getColor;
 	prot['asc_getNegativeColor'] = prot.asc_getNegativeColor;
 	prot['asc_getBorderColor'] = prot.asc_getBorderColor;
