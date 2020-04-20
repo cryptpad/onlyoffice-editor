@@ -721,6 +721,9 @@
 		res.formula = this.formula ? this.formula.clone() : null;
 		return res;
 	};
+	CConditionalFormatValueObject.prototype.asc_getGte = function () {
+		return this.Gte;
+	};
 	CConditionalFormatValueObject.prototype.asc_getType = function () {
 		return this.Type;
 	};
@@ -945,6 +948,7 @@
 	prot['asc_getCFVOs'] = prot.asc_getCFVOs;
 
 	prot = CConditionalFormatValueObject;
+	prot['asc_getGte'] = prot.asc_getGte;
 	prot['asc_getType'] = prot.asc_getType;
 	prot['asc_getVal'] = prot.asc_getVal;
 })(window);
