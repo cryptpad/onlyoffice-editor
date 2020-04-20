@@ -496,6 +496,9 @@
 	CConditionalFormattingRule.prototype.asc_getOperator = function () {
 		return this.operator;
 	};
+	CConditionalFormattingRule.prototype.asc_getRank = function () {
+		return this.rank;
+	};
 	CConditionalFormattingRule.prototype.asc_getValue1 = function () {
 		var ruleElement = this.aRuleElements[0];
 		return ruleElement && ruleElement.getFormula ? ruleElement.Text : null;
@@ -826,6 +829,7 @@
 	prot['asc_getContainsText'] = prot.asc_getContainsText;
 	prot['asc_getTimePeriod'] = prot.asc_getTimePeriod;
 	prot['asc_getOperator'] = prot.asc_getOperator;
+	prot['asc_getRank'] = prot.asc_getRank;
 	prot['asc_getValue1'] = prot.asc_getValue1;
 	prot['asc_getValue2'] = prot.asc_getValue2;
 })(window);
