@@ -693,6 +693,9 @@
 			res.aIconSets.push(this.aIconSets[i].clone());
 		return res;
 	};
+	CIconSet.prototype.asc_getReverse = function () {
+		return this.Reverse;
+	};
 	CIconSet.prototype.asc_getShowValue = function () {
 		return this.ShowValue;
 	};
@@ -934,6 +937,7 @@
 	prot['asc_getAxisColor'] = prot.asc_getAxisColor;
 
 	prot = CIconSet;
+	prot['asc_getReverse'] = prot.asc_getReverse;
 	prot['asc_getShowValue'] = prot.asc_getShowValue;
 
 	prot = CConditionalFormatValueObject;
