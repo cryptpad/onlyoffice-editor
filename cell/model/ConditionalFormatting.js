@@ -598,6 +598,9 @@
 	CDataBar.prototype.asc_getGradient = function () {
 		return this.Gradient;
 	};
+	CDataBar.prototype.asc_getColor = function () {
+		return this.Color;
+	};
 
 	function CFormulaCF () {
 		this.Text = null;
@@ -876,6 +879,7 @@
 	prot = CDataBar;
 	prot['asc_getShowValue'] = prot.asc_getShowValue;
 	prot['asc_getGradient'] = prot.asc_getGradient;
+	prot['asc_getColor'] = prot.asc_getColor;
 
 	prot = CIconSet;
 	prot['asc_getShowValue'] = prot.asc_getShowValue;
