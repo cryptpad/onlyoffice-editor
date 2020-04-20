@@ -483,6 +483,13 @@
 		}
 		return arrResult.join(AscCommon.FormulaSeparators.functionArgumentSeparator);
 	};
+	CConditionalFormattingRule.prototype.asc_getContainsText = function () {
+		if (null !== this.text) {
+			return this.text;
+		}
+		var ruleElement = this.aRuleElements[1];
+		return ruleElement && ruleElement.getFormula ? ruleElement._f : null;
+	};
 
 	function CColorScale () {
 		this.aCFVOs = [];
@@ -802,4 +809,5 @@
 	prot = CConditionalFormattingRule;
 	prot['asc_getType'] = prot.asc_getType;
 	prot['asc_getLocation'] = prot.asc_getLocation;
+	prot['asc_getContainsText'] = prot.asc_getContainsText;
 })(window);

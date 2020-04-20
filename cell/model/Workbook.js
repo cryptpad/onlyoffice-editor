@@ -4149,7 +4149,6 @@
 									bboxCf ? bboxCf.r1 : 0, bboxCf ? bboxCf.c1 : 0));
 								break;
 							default:
-								continue;
 								break;
 						}
 					}
