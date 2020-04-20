@@ -10182,7 +10182,12 @@
     prot['middle'] = prot.middle;
     prot['none'] = prot.none;
 
-	window["AscCommonExcel"].EDataBarDirection = EDataBarDirection;
+    window['Asc']['c_oAscDataBarDirection'] = window["AscCommonExcel"].EDataBarDirection = EDataBarDirection;
+    prot = EDataBarDirection;
+    prot['context'] = prot.context;
+    prot['leftToRight'] = prot.leftToRight;
+    prot['rightToLeft'] = prot.rightToLeft;
+
 	window["AscCommonExcel"].XLSB = XLSB;
 
     window["Asc"].CTableStyles = CTableStyles;
