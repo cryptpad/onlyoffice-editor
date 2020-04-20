@@ -2317,13 +2317,26 @@
 		var ws = this.getWorksheet();
 		//argPosArr
 		var parseResult = this.cellEditor._parseResult;
-		if (!parseResult && !parseResult.argPosArr || !parseResult.argPosArr[argNum]) {
+		if (!parseResult || !parseResult.argPosArr || !parseResult.activeFunction || argNum > parseResult.activeFunction.argumentsMax) {
 			return;
 		}
+		if (!parseResult.argPosArr[argNum]) {
+			//меняем строку и добавляем разделителей
+			var _pos = parseResult.argPosArr.length - 1;
+			for (var i = parseResult.argPosArr.length - 1; i <= argNum; i++) {
+				val += AscCommon.FormulaSeparators.functionArgumentSeparator;
+				_pos++;
+			}
+			this.cellEditor.selectionBegin = _pos;
+			this.cellEditor.selectionEnd = _pos;
 
-		//полностью заменяем аргумент - для этого чистим предыдущую запись
-		this.cellEditor.selectionBegin = parseResult.argPosArr[argNum].start;
-		this.cellEditor.selectionEnd = parseResult.argPosArr[argNum].end;
+			//TODO продумать прпобразование аргументов(допустим строковые значения)
+		} else {
+			//полностью заменяем аргумент - для этого чистим предыдущую запись
+			this.cellEditor.selectionBegin = parseResult.argPosArr[argNum].start;
+			this.cellEditor.selectionEnd = parseResult.argPosArr[argNum].end;
+		}
+
 		this.cellEditor.empty();
 		this.cellEditor.paste(val, this.lastFPos);
 
@@ -2339,8 +2352,8 @@
 			var f = AscCommonExcel.cFormulaFunctionLocalized && AscCommonExcel.cFormulaFunctionLocalized[_parseResult.activeFunction];
 			if (f) {
 				_res = new Asc.CFunctionInfo(_parseResult.activeFunction);
-				_res.argumentMin = f.argumentMin;
-				_res.argumentMax = f.argumentMax;
+				_res.argumentMin = f.argumentsMin;
+				_res.argumentMax = f.argumentsMax;
 				_res.argumentsType = f.argumentsType;
 				_res.activeArgument = _parseResult.activeArgument;
 			}

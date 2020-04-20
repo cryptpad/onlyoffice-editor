@@ -9502,8 +9502,8 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 
 	function CFunctionInfo(name) {
 		this.name = name;
-		this.argumentMin = null;
-		this.argumentMax = null;
+		this.argumentsMin = null;
+		this.argumentsMax = null;
 
 		this.argumentsInfo = null;
 		this.argumentsType = null;
@@ -9513,10 +9513,10 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		return this;
 	}
 	CFunctionInfo.prototype.asc_getArgumentMin = function () {
-		return this.argumentMin;
+		return this.argumentsMin;
 	};
 	CFunctionInfo.prototype.asc_getArgumentMax = function () {
-		return this.argumentMax;
+		return this.argumentsMax;
 	};
 	CFunctionInfo.prototype.asc_getArgumentsInfo = function () {
 		return this.argumentsInfo;

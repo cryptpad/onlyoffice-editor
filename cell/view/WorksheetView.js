@@ -20231,8 +20231,8 @@
 			}*/
 			if (f) {
 				_res = new Asc.CFunctionInfo(_name);
-				_res.argumentMin = f.prototype.argumentsMin;
-				_res.argumentMax = f.prototype.argumentsMax;
+				_res.argumentsMin = f.prototype.argumentsMin;
+				_res.argumentsMax = f.prototype.argumentsMax;
 				_res.argumentsType = f.prototype.argumentsType;
 			}
 			return _res;
