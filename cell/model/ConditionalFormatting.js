@@ -548,6 +548,12 @@
 			res.aColors.push(this.aColors[i].clone());
 		return res;
 	};
+	CColorScale.prototype.asc_getCFVOs = function () {
+		return this.aCFVOs;
+	};
+	CColorScale.prototype.asc_getColors = function () {
+		return this.aColors;
+	};
 
 	function CDataBar () {
 		this.MaxLength = 90;
@@ -908,6 +914,10 @@
 	prot['asc_getValue1'] = prot.asc_getValue1;
 	prot['asc_getValue2'] = prot.asc_getValue2;
 	prot['asc_getColorScaleorDataBarorIconSetRule'] = prot.asc_getColorScaleorDataBarorIconSetRule;
+
+	prot = CColorScale;
+	prot['asc_getCFVOs'] = prot.asc_getCFVOs;
+	prot['asc_getColors'] = prot.asc_getColors;
 
 	prot = CDataBar;
 	prot['asc_getShowValue'] = prot.asc_getShowValue;
