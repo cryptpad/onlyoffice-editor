@@ -699,6 +699,9 @@
 	CIconSet.prototype.asc_getShowValue = function () {
 		return this.ShowValue;
 	};
+	CIconSet.prototype.asc_getCFVOs = function () {
+		return this.aCFVOs;
+	};
 
 	function CConditionalFormatValueObject () {
 		this.Gte = true;
@@ -939,6 +942,7 @@
 	prot = CIconSet;
 	prot['asc_getReverse'] = prot.asc_getReverse;
 	prot['asc_getShowValue'] = prot.asc_getShowValue;
+	prot['asc_getCFVOs'] = prot.asc_getCFVOs;
 
 	prot = CConditionalFormatValueObject;
 	prot['asc_getType'] = prot.asc_getType;
