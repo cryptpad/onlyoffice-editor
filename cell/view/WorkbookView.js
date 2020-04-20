@@ -2277,13 +2277,14 @@
 			var openEditor = function (res) {
 				functionInfo = null;
 				if (res) {
+
+					// Выставляем переменные, что мы редактируем
+					t.setCellEditMode(true);
+					t.hideSpecialPasteButton();
+
 					if (ws.isActiveCellFormula()) {
 						//если ячейка с формулой, то либо перемещаемся к первой функции и отркываем диалог wizard
 						//если функции нет, то перемещаемся в конец формулы и открываем окно выбора функции
-
-						// Выставляем переменные, что мы редактируем
-						t.setCellEditMode(true);
-						t.hideSpecialPasteButton();
 
 						t.cellEditor.needFindFirstFunction = true;
 						ws.openCellEditor(t.cellEditor, t.cellEditor.cursorPos, false, true, false, false, selectionRange);
