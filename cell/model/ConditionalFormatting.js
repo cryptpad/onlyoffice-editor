@@ -493,6 +493,9 @@
 	CConditionalFormattingRule.prototype.asc_getTimePeriod = function () {
 		return this.timePeriod;
 	};
+	CConditionalFormattingRule.prototype.asc_getOperator = function () {
+		return this.operator;
+	};
 
 	function CColorScale () {
 		this.aCFVOs = [];
@@ -814,4 +817,5 @@
 	prot['asc_getLocation'] = prot.asc_getLocation;
 	prot['asc_getContainsText'] = prot.asc_getContainsText;
 	prot['asc_getTimePeriod'] = prot.asc_getTimePeriod;
+	prot['asc_getOperator'] = prot.asc_getOperator;
 })(window);
