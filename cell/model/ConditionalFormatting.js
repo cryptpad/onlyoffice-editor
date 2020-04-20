@@ -496,6 +496,14 @@
 	CConditionalFormattingRule.prototype.asc_getOperator = function () {
 		return this.operator;
 	};
+	CConditionalFormattingRule.prototype.asc_getValue1 = function () {
+		var ruleElement = this.aRuleElements[0];
+		return ruleElement && ruleElement.getFormula ? ruleElement.Text;
+	};
+	CConditionalFormattingRule.prototype.asc_getValue2 = function () {
+		var ruleElement = this.aRuleElements[1];
+		return ruleElement && ruleElement.getFormula ? ruleElement.Text;
+	};
 
 	function CColorScale () {
 		this.aCFVOs = [];
@@ -818,4 +826,6 @@
 	prot['asc_getContainsText'] = prot.asc_getContainsText;
 	prot['asc_getTimePeriod'] = prot.asc_getTimePeriod;
 	prot['asc_getOperator'] = prot.asc_getOperator;
+	prot['asc_getValue1'] = prot.asc_getValue1;
+	prot['asc_getValue2'] = prot.asc_getValue2;
 })(window);
