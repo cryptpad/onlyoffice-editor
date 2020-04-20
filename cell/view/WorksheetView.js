@@ -3638,8 +3638,8 @@
 			ranges = oRule.ranges;
 			multiplyRange = new AscCommonExcel.MultiplyRange(ranges);
 			if (multiplyRange.contains(col, row)) {
-				oRuleElement = oRule.asc_getIconSetOrDataBarRule();
-				if (!oRuleElement) {
+				oRuleElement = oRule.asc_getColorScaleorDataBarorIconSetRule();
+				if (!oRuleElement || Asc.ECfType.colorScale === oRuleElement.type) {
 					continue;
 				}
 				showValue = oRuleElement.ShowValue;

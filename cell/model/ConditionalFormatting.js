@@ -522,8 +522,9 @@
 		var ruleElement = this.aRuleElements[1];
 		return ruleElement && ruleElement.getFormula ? ruleElement.Text : null;
 	};
-	CConditionalFormattingRule.prototype.asc_getIconSetOrDataBarRule = function () {
-		if ((Asc.ECfType.dataBar === this.type || Asc.ECfType.iconSet === this.type) && 1 === this.aRuleElements.length) {
+	CConditionalFormattingRule.prototype.asc_getColorScaleorDataBarorIconSetRule = function () {
+		if ((Asc.ECfType.dataBar === this.type || Asc.ECfType.iconSet === this.type ||
+			Asc.ECfType.colorScale === this.type) && 1 === this.aRuleElements.length) {
 			var res = this.aRuleElements[0];
 			if (res && this.type === res.type) {
 				return res;
@@ -867,7 +868,7 @@
 	prot['asc_getStdDev'] = prot.asc_getStdDev;
 	prot['asc_getValue1'] = prot.asc_getValue1;
 	prot['asc_getValue2'] = prot.asc_getValue2;
-	prot['asc_getIconSetOrDataBarRule'] = prot.asc_getIconSetOrDataBarRule;
+	prot['asc_getColorScaleorDataBarorIconSetRule'] = prot.asc_getColorScaleorDataBarorIconSetRule;
 
 	prot = CDataBar;
 	prot['asc_getShowValue'] = prot.asc_getShowValue;
