@@ -591,6 +591,9 @@
 			res.AxisColor = this.AxisColor.clone();
 		return res;
 	};
+	CDataBar.prototype.asc_getShowValue = function () {
+		return this.ShowValue;
+	};
 
 	function CFormulaCF () {
 		this.Text = null;
@@ -865,6 +868,9 @@
 	prot['asc_getValue1'] = prot.asc_getValue1;
 	prot['asc_getValue2'] = prot.asc_getValue2;
 	prot['asc_getIconSetOrDataBarRule'] = prot.asc_getIconSetOrDataBarRule;
+
+	prot = CDataBar;
+	prot['asc_getShowValue'] = prot.asc_getShowValue;
 
 	prot = CIconSet;
 	prot['asc_getShowValue'] = prot.asc_getShowValue;
