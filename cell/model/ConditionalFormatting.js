@@ -595,6 +595,9 @@
 	CDataBar.prototype.asc_getShowValue = function () {
 		return this.ShowValue;
 	};
+	CDataBar.prototype.asc_getAxisPosition = function () {
+		return this.AxisPosition;
+	};
 	CDataBar.prototype.asc_getGradient = function () {
 		return this.Gradient;
 	};
@@ -603,6 +606,9 @@
 	};
 	CDataBar.prototype.asc_getColor = function () {
 		return this.Color;
+	};
+	CDataBar.prototype.asc_getAxisColor = function () {
+		return this.AxisColor;
 	};
 
 	function CFormulaCF () {
@@ -881,9 +887,11 @@
 
 	prot = CDataBar;
 	prot['asc_getShowValue'] = prot.asc_getShowValue;
+	prot['asc_getAxisPosition'] = prot.asc_getAxisPosition;
 	prot['asc_getGradient'] = prot.asc_getGradient;
 	prot['asc_getDirection'] = prot.asc_getDirection;
 	prot['asc_getColor'] = prot.asc_getColor;
+	prot['asc_getAxisColor'] = prot.asc_getAxisColor;
 
 	prot = CIconSet;
 	prot['asc_getShowValue'] = prot.asc_getShowValue;
