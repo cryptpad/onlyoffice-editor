@@ -3638,92 +3638,87 @@
 			ranges = oRule.ranges;
 			multiplyRange = new AscCommonExcel.MultiplyRange(ranges);
 			if (multiplyRange.contains(col, row)) {
-				if (Asc.ECfType.dataBar === oRule.type || Asc.ECfType.iconSet === oRule.type) {
-					if (1 !== oRule.aRuleElements.length) {
+				oRuleElement = oRule.asc_getIconSetOrDataBarRule();
+				if (!oRuleElement) {
+					continue;
+				}
+				showValue = oRuleElement.ShowValue;
+				values = this.model._getValuesForConditionalFormatting(ranges, true);
+
+				var x = this._getColLeft(col);
+
+				if (Asc.ECfType.dataBar === oRule.type) {
+					min = oRule.getMin(values, this.model);
+					max = oRule.getMax(values, this.model);
+					if (cellValue < min) {
+						cellValue = min;
+					} else if (cellValue > max) {
+						cellValue = max;
+					}
+
+					var minLength = Math.floor(width * oRuleElement.MinLength / 100);
+					var maxLength = Math.floor(width * oRuleElement.MaxLength / 100);
+					var dataBarLength = minLength + (cellValue - min) / (max - min) * (maxLength - minLength);
+
+					if (oRuleElement.Color) {
+						ctx.setFillStyle(oRuleElement.Color).fillRect(x + 1 - offsetX, top + 1 - offsetY, dataBarLength, height - 3);
+					}
+				} else if (Asc.ECfType.iconSet === oRule.type) {
+					var img = AscCommonExcel.getCFIcon(oRuleElement, oRule.getIndexRule(values, this.model, cellValue));
+					if (!img) {
 						continue;
 					}
-					oRuleElement = oRule.aRuleElements[0];
-					if (!oRuleElement || oRule.type !== oRuleElement.type) {
-						continue;
-					}
-					showValue = oRuleElement.ShowValue;
-					values = this.model._getValuesForConditionalFormatting(ranges, true);
+					var iconSize = AscCommon.AscBrowser.convertToRetinaValue(AscCommonExcel.cDefIconSize * fontSize / AscCommonExcel.cDefIconFont, true);
+					var rect = new AscCommon.asc_CRect(x - offsetX, top + 1 - offsetY, width, height);
+					var bl = rect._y + rect._height - gridlineSize - Asc.round(this._getRowDescender(row) * this.getZoom());
+					rect._y = this._calcTextVertPos(rect._y, rect._height, bl, new Asc.TextMetrics(iconSize, iconSize, 0, iconSize - 2 * fontSize / AscCommonExcel.cDefIconFont, 0, 0, 0), ct.cellVA);
+					var dScale = asc_getcvt(0, 3, this._getPPIX());
+					rect._x *= dScale;
+					rect._y *= dScale;
+					rect._width *= dScale;
+					rect._height *= dScale;
+					AscFormat.ExecuteNoHistory(
+						function (img, rect, imgSize) {
+							var geometry = new AscFormat.CreateGeometry("rect");
+							geometry.Recalculate(imgSize, imgSize, true);
 
-					var x = this._getColLeft(col);
+							var oUniFill = new AscFormat.builder_CreateBlipFill(img, "stretch");
 
-					if (Asc.ECfType.dataBar === oRule.type) {
-						min = oRule.getMin(values, this.model);
-						max = oRule.getMax(values, this.model);
-						if (cellValue < min) {
-							cellValue = min;
-						} else if (cellValue > max) {
-							cellValue = max;
-						}
+							if(ctx instanceof AscCommonExcel.CPdfPrinter)
+							{
+								graphics.SaveGrState();
+								var _baseTransform;
+								if(!ctx.Transform)
+								{
+									_baseTransform = new AscCommon.CMatrix();
+								}
+								else
+								{
+									_baseTransform = ctx.Transform;
+								}
+								graphics.SetBaseTransform(_baseTransform);
+							}
 
-						var minLength = Math.floor(width * oRuleElement.MinLength / 100);
-						var maxLength = Math.floor(width * oRuleElement.MaxLength / 100);
-						var dataBarLength = minLength + (cellValue - min) / (max - min) * (maxLength - minLength);
 
-						if (oRuleElement.Color) {
-							ctx.setFillStyle(oRuleElement.Color).fillRect(x + 1 - offsetX, top + 1 - offsetY, dataBarLength, height - 3);
-						}
-					} else if (Asc.ECfType.iconSet === oRule.type) {
-						var img = AscCommonExcel.getCFIcon(oRuleElement, oRule.getIndexRule(values, this.model, cellValue));
-						if (!img) {
-							continue;
-						}
-						var iconSize = AscCommon.AscBrowser.convertToRetinaValue(AscCommonExcel.cDefIconSize * fontSize / AscCommonExcel.cDefIconFont, true);
-						var rect = new AscCommon.asc_CRect(x - offsetX, top + 1 - offsetY, width, height);
-						var bl = rect._y + rect._height - gridlineSize - Asc.round(this._getRowDescender(row) * this.getZoom());
-						rect._y = this._calcTextVertPos(rect._y, rect._height, bl, new Asc.TextMetrics(iconSize, iconSize, 0, iconSize - 2 * fontSize / AscCommonExcel.cDefIconFont, 0, 0, 0), ct.cellVA);
-						var dScale = asc_getcvt(0, 3, this._getPPIX());
-						rect._x *= dScale;
-						rect._y *= dScale;
-						rect._width *= dScale;
-						rect._height *= dScale;
-                        AscFormat.ExecuteNoHistory(
-                            function (img, rect, imgSize) {
-                                var geometry = new AscFormat.CreateGeometry("rect");
-                                geometry.Recalculate(imgSize, imgSize, true);
+							graphics.save();
+							var oMatrix = new AscCommon.CMatrix();
+							oMatrix.tx = rect._x;
+							oMatrix.ty = rect._y;
+							graphics.transform3(oMatrix);
+							var shapeDrawer = new AscCommon.CShapeDrawer();
+							shapeDrawer.Graphics = graphics;
 
-                                var oUniFill = new AscFormat.builder_CreateBlipFill(img, "stretch");
+							shapeDrawer.fromShape2(new AscFormat.CColorObj(null, oUniFill, geometry), graphics, geometry);
+							shapeDrawer.draw(geometry);
+							graphics.restore();
 
-                                if(ctx instanceof AscCommonExcel.CPdfPrinter)
-                                {
-                                    graphics.SaveGrState();
-                                    var _baseTransform;
-                                    if(!ctx.Transform)
-                                    {
-                                        _baseTransform = new AscCommon.CMatrix();
-                                    }
-                                    else
-                                    {
-                                        _baseTransform = ctx.Transform;
-                                    }
-                                    graphics.SetBaseTransform(_baseTransform);
-                                }
-    
-
-                                graphics.save();
-                                var oMatrix = new AscCommon.CMatrix();
-                                oMatrix.tx = rect._x;
-                                oMatrix.ty = rect._y;
-                                graphics.transform3(oMatrix);
-                                var shapeDrawer = new AscCommon.CShapeDrawer();
-                                shapeDrawer.Graphics = graphics;
-
-                                shapeDrawer.fromShape2(new AscFormat.CColorObj(null, oUniFill, geometry), graphics, geometry);
-                                shapeDrawer.draw(geometry);
-                                graphics.restore();
-
-                                if(ctx instanceof AscCommonExcel.CPdfPrinter)
-                                {
-                                    graphics.SetBaseTransform(null);
-                                    graphics.RestoreGrState();
-                                }
-                            }, this, [img, rect, iconSize * dScale * this.getZoom()]
-                        );
-					}
+							if(ctx instanceof AscCommonExcel.CPdfPrinter)
+							{
+								graphics.SetBaseTransform(null);
+								graphics.RestoreGrState();
+							}
+						}, this, [img, rect, iconSize * dScale * this.getZoom()]
+					);
 				}
 			}
 		}
