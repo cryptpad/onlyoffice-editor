@@ -3827,7 +3827,7 @@
 			ranges = oRule.ranges;
 			if (this._isConditionalFormattingIntersect(range, ranges)) {
 				multiplyRange = new AscCommonExcel.MultiplyRange(ranges);
-				oRuleElement = oRule.asc_getColorScaleorDataBarorIconSetRule();
+				oRuleElement = oRule.asc_getColorScaleOrDataBarOrIconSetRule();
 					if (oRuleElement) {
 						if (Asc.ECfType.colorScale !== oRuleElement.type) {
 							continue;
