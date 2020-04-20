@@ -488,7 +488,7 @@
 			return this.text;
 		}
 		var ruleElement = this.aRuleElements[1];
-		return ruleElement && ruleElement.getFormula ? ruleElement._f : null;
+		return ruleElement && ruleElement.getFormula ? ruleElement.Text : null;
 	};
 	CConditionalFormattingRule.prototype.asc_getTimePeriod = function () {
 		return this.timePeriod;
