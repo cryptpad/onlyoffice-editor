@@ -712,6 +712,9 @@
 	CConditionalFormatValueObject.prototype.asc_getType = function () {
 		return this.Type;
 	};
+	CConditionalFormatValueObject.prototype.asc_getVal = function () {
+		return this.Val;
+	};
 
 	function CConditionalFormatIconSet () {
 		this.IconSet = null;
@@ -925,4 +928,5 @@
 
 	prot = CConditionalFormatValueObject;
 	prot['asc_getType'] = prot.asc_getType;
+	prot['asc_getVal'] = prot.asc_getVal;
 })(window);
