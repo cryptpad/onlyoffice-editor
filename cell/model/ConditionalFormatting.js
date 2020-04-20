@@ -511,6 +511,9 @@
 	CConditionalFormattingRule.prototype.asc_getEqualAverage = function () {
 		return this.equalAverage;
 	};
+	CConditionalFormattingRule.prototype.asc_getStdDev = function () {
+		return this.stdDev;
+	};
 	CConditionalFormattingRule.prototype.asc_getValue1 = function () {
 		var ruleElement = this.aRuleElements[0];
 		return ruleElement && ruleElement.getFormula ? ruleElement.Text : null;
@@ -846,6 +849,7 @@
 	prot['asc_getPercent'] = prot.asc_getPercent;
 	prot['asc_getAboveAverage'] = prot.asc_getAboveAverage;
 	prot['asc_getEqualAverage'] = prot.asc_getEqualAverage;
+	prot['asc_getStdDev'] = prot.asc_getStdDev;
 	prot['asc_getValue1'] = prot.asc_getValue1;
 	prot['asc_getValue2'] = prot.asc_getValue2;
 })(window);
