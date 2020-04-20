@@ -498,11 +498,11 @@
 	};
 	CConditionalFormattingRule.prototype.asc_getValue1 = function () {
 		var ruleElement = this.aRuleElements[0];
-		return ruleElement && ruleElement.getFormula ? ruleElement.Text;
+		return ruleElement && ruleElement.getFormula ? ruleElement.Text : null;
 	};
 	CConditionalFormattingRule.prototype.asc_getValue2 = function () {
 		var ruleElement = this.aRuleElements[1];
-		return ruleElement && ruleElement.getFormula ? ruleElement.Text;
+		return ruleElement && ruleElement.getFormula ? ruleElement.Text : null;
 	};
 
 	function CColorScale () {
