@@ -505,6 +505,12 @@
 	CConditionalFormattingRule.prototype.asc_getPercent = function () {
 		return this.percent;
 	};
+	CConditionalFormattingRule.prototype.asc_getAboveAverage = function () {
+		return this.aboveAverage;
+	};
+	CConditionalFormattingRule.prototype.asc_getEqualAverage = function () {
+		return this.equalAverage;
+	};
 	CConditionalFormattingRule.prototype.asc_getValue1 = function () {
 		var ruleElement = this.aRuleElements[0];
 		return ruleElement && ruleElement.getFormula ? ruleElement.Text : null;
@@ -838,6 +844,8 @@
 	prot['asc_getRank'] = prot.asc_getRank;
 	prot['asc_getBottom'] = prot.asc_getBottom;
 	prot['asc_getPercent'] = prot.asc_getPercent;
+	prot['asc_getAboveAverage'] = prot.asc_getAboveAverage;
+	prot['asc_getEqualAverage'] = prot.asc_getEqualAverage;
 	prot['asc_getValue1'] = prot.asc_getValue1;
 	prot['asc_getValue2'] = prot.asc_getValue2;
 })(window);
