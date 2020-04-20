@@ -490,6 +490,9 @@
 		var ruleElement = this.aRuleElements[1];
 		return ruleElement && ruleElement.getFormula ? ruleElement._f : null;
 	};
+	CConditionalFormattingRule.prototype.asc_getTimePeriod = function () {
+		return this.timePeriod;
+	};
 
 	function CColorScale () {
 		this.aCFVOs = [];
@@ -810,4 +813,5 @@
 	prot['asc_getType'] = prot.asc_getType;
 	prot['asc_getLocation'] = prot.asc_getLocation;
 	prot['asc_getContainsText'] = prot.asc_getContainsText;
+	prot['asc_getTimePeriod'] = prot.asc_getTimePeriod;
 })(window);
