@@ -10176,7 +10176,12 @@
     prot['tomorrow'] = prot.tomorrow;
     prot['yesterday'] = prot.yesterday;
 
-	window["AscCommonExcel"].EDataBarAxisPosition = EDataBarAxisPosition;
+    window['Asc']['c_oAscDataBarAxisPosition'] = window['AscCommonExcel'].EDataBarAxisPosition = EDataBarAxisPosition;
+    prot = EDataBarAxisPosition;
+    prot['automatic'] = prot.automatic;
+    prot['middle'] = prot.middle;
+    prot['none'] = prot.none;
+
 	window["AscCommonExcel"].EDataBarDirection = EDataBarDirection;
 	window["AscCommonExcel"].XLSB = XLSB;
 
