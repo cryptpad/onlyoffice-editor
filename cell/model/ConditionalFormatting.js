@@ -604,8 +604,23 @@
 	CDataBar.prototype.asc_getDirection = function () {
 		return this.Direction;
 	};
+	CDataBar.prototype.asc_getNegativeBarColorSameAsPositive = function () {
+		return this.NegativeBarColorSameAsPositive;
+	};
+	CDataBar.prototype.asc_getNegativeBarBorderColorSameAsPositive = function () {
+		return this.NegativeBarBorderColorSameAsPositive;
+	};
 	CDataBar.prototype.asc_getColor = function () {
 		return this.Color;
+	};
+	CDataBar.prototype.asc_getNegativeColor = function () {
+		return this.NegativeColor;
+	};
+	CDataBar.prototype.asc_getBorderColor = function () {
+		return this.BorderColor;
+	};
+	CDataBar.prototype.asc_getNegativeBorderColor = function () {
+		return this.NegativeBorderColor;
 	};
 	CDataBar.prototype.asc_getAxisColor = function () {
 		return this.AxisColor;
@@ -890,7 +905,12 @@
 	prot['asc_getAxisPosition'] = prot.asc_getAxisPosition;
 	prot['asc_getGradient'] = prot.asc_getGradient;
 	prot['asc_getDirection'] = prot.asc_getDirection;
+	prot['asc_getNegativeBarColorSameAsPositive'] = prot.asc_getNegativeBarColorSameAsPositive;
+	prot['asc_getNegativeBarBorderColorSameAsPositive'] = prot.asc_getNegativeBarBorderColorSameAsPositive;
 	prot['asc_getColor'] = prot.asc_getColor;
+	prot['asc_getNegativeColor'] = prot.asc_getNegativeColor;
+	prot['asc_getBorderColor'] = prot.asc_getBorderColor;
+	prot['asc_getNegativeBorderColor'] = prot.asc_getNegativeBorderColor;
 	prot['asc_getAxisColor'] = prot.asc_getAxisColor;
 
 	prot = CIconSet;
