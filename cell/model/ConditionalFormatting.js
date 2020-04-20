@@ -709,6 +709,9 @@
 		res.formula = this.formula ? this.formula.clone() : null;
 		return res;
 	};
+	CConditionalFormatValueObject.prototype.asc_getType = function () {
+		return this.Type;
+	};
 
 	function CConditionalFormatIconSet () {
 		this.IconSet = null;
@@ -919,4 +922,7 @@
 
 	prot = CIconSet;
 	prot['asc_getShowValue'] = prot.asc_getShowValue;
+
+	prot = CConditionalFormatValueObject;
+	prot['asc_getType'] = prot.asc_getType;
 })(window);
