@@ -10148,7 +10148,20 @@
     prot['endsWith'] = prot.endsWith;
 
     window["AscCommonExcel"].ECfvoType = ECfvoType;
-    window["AscCommonExcel"].ST_TimePeriod = ST_TimePeriod;
+
+    window['Asc']['c_oAscTimePeriod'] = window["AscCommonExcel"].ST_TimePeriod = ST_TimePeriod;
+    prot = ST_TimePeriod;
+    prot['last7Days'] = prot.last7Days;
+    prot['lastMonth'] = prot.lastMonth;
+    prot['lastWeek'] = prot.lastWeek;
+    prot['nextMonth'] = prot.nextMonth;
+    prot['nextWeek'] = prot.nextWeek;
+    prot['thisMonth'] = prot.thisMonth;
+    prot['thisWeek'] = prot.thisWeek;
+    prot['today'] = prot.today;
+    prot['tomorrow'] = prot.tomorrow;
+    prot['yesterday'] = prot.yesterday;
+
 	window["AscCommonExcel"].EDataBarAxisPosition = EDataBarAxisPosition;
 	window["AscCommonExcel"].EDataBarDirection = EDataBarDirection;
 	window["AscCommonExcel"].XLSB = XLSB;
