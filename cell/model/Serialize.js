@@ -10161,7 +10161,16 @@
     prot['uniqueValues'] = prot.uniqueValues;
     prot['endsWith'] = prot.endsWith;
 
-    window["AscCommonExcel"].ECfvoType = ECfvoType;
+    window['Asc']['c_oAscCfvoType'] = window["AscCommonExcel"].ECfvoType = ECfvoType;
+    prot = ECfvoType;
+    prot['Formula'] = prot.Formula;
+    prot['Maximum'] = prot.Maximum;
+    prot['Minimum'] = prot.Minimum;
+    prot['Number'] = prot.Number;
+    prot['Percent'] = prot.Percent;
+    prot['Percentile'] = prot.Percentile;
+    prot['AutoMin'] = prot.AutoMin;
+    prot['AutoMax'] = prot.AutoMax;
 
     window['Asc']['c_oAscTimePeriod'] = window["AscCommonExcel"].ST_TimePeriod = ST_TimePeriod;
     prot = ST_TimePeriod;
