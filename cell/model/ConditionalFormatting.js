@@ -595,6 +595,9 @@
 	CDataBar.prototype.asc_getShowValue = function () {
 		return this.ShowValue;
 	};
+	CDataBar.prototype.asc_getGradient = function () {
+		return this.Gradient;
+	};
 
 	function CFormulaCF () {
 		this.Text = null;
@@ -872,6 +875,7 @@
 
 	prot = CDataBar;
 	prot['asc_getShowValue'] = prot.asc_getShowValue;
+	prot['asc_getGradient'] = prot.asc_getGradient;
 
 	prot = CIconSet;
 	prot['asc_getShowValue'] = prot.asc_getShowValue;
