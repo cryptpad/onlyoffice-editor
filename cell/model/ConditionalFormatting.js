@@ -650,6 +650,9 @@
 			res.aIconSets.push(this.aIconSets[i].clone());
 		return res;
 	};
+	CIconSet.prototype.asc_getShowValue = function () {
+		return this.ShowValue;
+	};
 
 	function CConditionalFormatValueObject () {
 		this.Gte = true;
@@ -862,4 +865,7 @@
 	prot['asc_getValue1'] = prot.asc_getValue1;
 	prot['asc_getValue2'] = prot.asc_getValue2;
 	prot['asc_getIconSetOrDataBarRule'] = prot.asc_getIconSetOrDataBarRule;
+
+	prot = CIconSet;
+	prot['asc_getShowValue'] = prot.asc_getShowValue;
 })(window);
