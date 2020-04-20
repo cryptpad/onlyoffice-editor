@@ -10125,7 +10125,21 @@
     window["Asc"].EIconSetType = EIconSetType;
     window["Asc"].c_oSer_DrawingType = c_oSer_DrawingType;
     window["Asc"].c_oSer_DrawingPosType = c_oSer_DrawingPosType;
-    window["AscCommonExcel"].ECfOperator = ECfOperator;
+
+    window['Asc']['c_oAscCFOperator'] = window["AscCommonExcel"].ECfOperator = ECfOperator;
+    prot = ECfOperator;
+    prot['beginsWith'] = prot.Operator_beginsWith;
+    prot['between'] = prot.Operator_between;
+    prot['containsText'] = prot.Operator_containsText;
+    prot['endsWith'] = prot.Operator_endsWith;
+    prot['equal'] = prot.Operator_equal;
+    prot['greaterThan'] = prot.Operator_greaterThan;
+    prot['greaterThanOrEqual'] = prot.Operator_greaterThanOrEqual;
+    prot['lessThan'] = prot.Operator_lessThan;
+    prot['lessThanOrEqual'] = prot.Operator_lessThanOrEqual;
+    prot['notBetween'] = prot.Operator_notBetween;
+    prot['notContains'] = prot.Operator_notContains;
+    prot['notEqual'] = prot.Operator_notEqual;
 
     window['Asc']['c_oAscCFType'] = window["Asc"].ECfType  = ECfType;
     prot = ECfType;
