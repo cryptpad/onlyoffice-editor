@@ -3827,7 +3827,6 @@
 			ranges = oRule.ranges;
 			if (this._isConditionalFormattingIntersect(range, ranges)) {
 				multiplyRange = new AscCommonExcel.MultiplyRange(ranges);
-					// ToDo expression, iconSet (page 2679)
 					if (Asc.ECfType.colorScale === oRule.type) {
 						if (1 !== oRule.aRuleElements.length) {
 							continue;
