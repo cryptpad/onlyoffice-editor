@@ -5906,7 +5906,7 @@ function parserFormula( formula, parent, _ws ) {
 				if(needFuncLevel > 0) {
 					needFuncLevel--;
 				}
-				if (levelFuncMap[currentFuncLevel] && levelFuncMap[currentFuncLevel].startPos <= activePos && activePos <= ph.pCurrPos) {
+				if (!parseResult.activeFunction && levelFuncMap[currentFuncLevel] && levelFuncMap[currentFuncLevel].startPos <= activePos && activePos <= ph.pCurrPos) {
 					parseResult.activeFunction = levelFuncMap[currentFuncLevel].func;
 					parseResult.argPosArr = argPosArrMap[currentFuncLevel];
 				}
