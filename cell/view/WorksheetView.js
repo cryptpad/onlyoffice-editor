@@ -3636,7 +3636,7 @@
 		width -= 3; // indent
 		top += 1 - offsetY;
 
-    	var oRule, oRuleElement, ranges, multiplyRange, values, min, max;
+    	var oRule, oRuleElement, ranges, multiplyRange, values, min, max, color;
 		for (var i = 0; i < aRules.length; ++i) {
 			oRule = aRules[i];
 			ranges = oRule.ranges;
@@ -3664,14 +3664,17 @@
 					var maxLength = Math.floor(width * oRuleElement.MaxLength / 100);
 					var dataBarLength = minLength + (cellValue - min) / (max - min) * (maxLength - minLength);
 
-					if (0 !== dataBarLength && oRuleElement.Color) {
+					color = (oRuleElement.NegativeBarColorSameAsPositive || 0 <= cellValue) ? oRuleElement.Color : oRuleElement.NegativeColor;
+					if (0 !== dataBarLength && color) {
 						_x = x;
 						if (AscCommonExcel.EDataBarDirection.rightToLeft === oRuleElement.Direction) {
 							_x += width - dataBarLength;
 						}
-						ctx.setFillStyle(oRuleElement.Color).fillRect(_x, top, dataBarLength, height - 3);
-						if (oRuleElement.BorderColor) {
-							ctx.setStrokeStyle(oRuleElement.BorderColor).strokeRect(_x, top, dataBarLength - 1, height - 4);
+						ctx.setFillStyle(color).fillRect(_x, top, dataBarLength, height - 3);
+
+						color = (oRuleElement.NegativeBarBorderColorSameAsPositive || 0 <= cellValue) ? oRuleElement.BorderColor : oRuleElement.NegativeBorderColor;
+						if (color) {
+							ctx.setStrokeStyle(color).strokeRect(_x, top, dataBarLength - 1, height - 4);
 						}
 					}
 				} else if (Asc.ECfType.iconSet === oRule.type) {
