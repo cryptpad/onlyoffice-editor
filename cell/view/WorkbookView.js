@@ -2342,7 +2342,7 @@
 		this.cellEditor.paste(val, this.lastFPos);
 
 		var funcInfo = ws.getActiveFunctionInfo(this.cellEditor._formula, this.cellEditor._parseResult);
-		this.handlers.trigger("asc_onSendFunctionWizardInfo", funcInfo);
+		return funcInfo;
 	};
 
 	WorkbookView.prototype.getActiveFunctionInfo = function () {
