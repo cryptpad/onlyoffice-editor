@@ -3689,6 +3689,11 @@
 					color = (isPositive || oRuleElement.NegativeBarColorSameAsPositive) ? oRuleElement.Color : oRuleElement.NegativeColor;
 					if (0 !== dataBarLength && color) {
 						if (isMiddle) {
+							if (oRuleElement.AxisColor) {
+								ctx.setLineWidth(1).setLineDash([3, 1]).setStrokeStyle(oRuleElement.AxisColor);
+								ctx.beginPath().lineVer(x - 1 + Asc.floor(width / 2), top - 1, top - 1 + height - 1).stroke();
+							}
+
 							dataBarLength = Asc.floor(dataBarLength / 2);
 							x += Asc.floor(width / 2) * (isReverse ? -1 : 1);
 						}
@@ -3697,11 +3702,11 @@
 							x += width - dataBarLength;
 						}
 
-						ctx.setFillStyle(color).fillRect(x, top, dataBarLength, height - 3);
+						ctx.setLineWidth(1).setLineDash([]).setFillStyle(color).fillRect(x, top, dataBarLength, height - 3);
 
 						color = (isPositive || oRuleElement.NegativeBarBorderColorSameAsPositive) ? oRuleElement.BorderColor : oRuleElement.NegativeBorderColor;
 						if (color) {
-							ctx.setStrokeStyle(color).strokeRect(x, top, dataBarLength - 1, height - 4);
+							ctx.setLineWidth(1).setLineDash([]).setStrokeStyle(color).strokeRect(x, top, dataBarLength - 1, height - 4);
 						}
 					}
 				} else if (Asc.ECfType.iconSet === oRule.type) {
