@@ -6308,6 +6308,26 @@ function parserFormula( formula, parent, _ws ) {
 			return true;
 		};
 
+		var setArgInfo = function () {
+			if (needCalcArgPos) {
+				if (needAddCursorPos) {
+					parseResult.cursorPos = activePos;
+				}
+
+				if (!parseResult.activeFunction && levelFuncMap[currentFuncLevel] && levelFuncMap[currentFuncLevel].startPos <= activePos && activePos <= ph.pCurrPos + 1) {
+					parseResult.activeFunction = levelFuncMap[currentFuncLevel].func;
+					parseResult.argPosArr = argPosArrMap[currentFuncLevel];
+				}
+				if (undefined === parseResult.activeArgumentPos && argFuncMap[currentFuncLevel] && argFuncMap[currentFuncLevel].startPos <= activePos && activePos <= ph.pCurrPos + 1) {
+					parseResult.activeArgumentPos = argFuncMap[currentFuncLevel].count;
+				}
+				var _argPos = argPosArrMap[currentFuncLevel];
+				if (_argPos && _argPos[_argPos.length - 1] && undefined === _argPos[_argPos.length - 1].end) {
+					_argPos[_argPos.length - 1].end = ph.pCurrPos;
+				}
+			}
+		};
+
 		while (ph.pCurrPos < this.Formula.length) {
 			ph.operand_str = this.Formula[ph.pCurrPos];
 
@@ -6320,6 +6340,9 @@ function parserFormula( formula, parent, _ws ) {
 			/* Operators*/
 			if (parserHelp.isOperator.call(ph, this.Formula, ph.pCurrPos) || parserHelp.isNextPtg.call(ph, this.Formula, ph.pCurrPos)) {
 				if(!parseOperators()){
+					if (ignoreErrors) {
+						setArgInfo();
+					}
 					return false;
 				}
 			} /* Left Parentheses*/ else if (parserHelp.isLeftParentheses.call(ph, this.Formula, ph.pCurrPos)) {
@@ -6335,40 +6358,36 @@ function parserFormula( formula, parent, _ws ) {
 
 			}/* Right Parentheses */ else if (parserHelp.isRightParentheses.call(ph, this.Formula, ph.pCurrPos)) {
 				if(!parseRightParentheses()){
+					if (ignoreErrors) {
+						setArgInfo();
+					}
 					return false;
 				}
 			}/*Comma & arguments union*/ else if (parserHelp.isComma.call(ph, this.Formula, ph.pCurrPos)) {
 				if(!parseCommaAndArgumentsUnion()){
+					if (ignoreErrors) {
+						setArgInfo();
+					}
 					return false;
 				}
 			}/* Array */ else if (parserHelp.isLeftBrace.call(ph, this.Formula, ph.pCurrPos)) {
 				if(!parseArray()){
+					if (ignoreErrors) {
+						setArgInfo();
+					}
 					return false;
 				}
 			}/* Operands*/ else {
 				if(!parseOperands()){
+					if (ignoreErrors) {
+						setArgInfo();
+					}
 					return false;
 				}
 			}
 		}
 
-		if (needCalcArgPos) {
-			if (needAddCursorPos) {
-				parseResult.cursorPos = activePos;
-			}
-
-			if (!parseResult.activeFunction && levelFuncMap[currentFuncLevel] && levelFuncMap[currentFuncLevel].startPos <= activePos && activePos <= ph.pCurrPos + 1) {
-				parseResult.activeFunction = levelFuncMap[currentFuncLevel].func;
-				parseResult.argPosArr = argPosArrMap[currentFuncLevel];
-			}
-			if (undefined === parseResult.activeArgumentPos && argFuncMap[currentFuncLevel] && argFuncMap[currentFuncLevel].startPos <= activePos && activePos <= ph.pCurrPos + 1) {
-				parseResult.activeArgumentPos = argFuncMap[currentFuncLevel].count;
-			}
-			var _argPos = argPosArrMap[currentFuncLevel];
-			if (_argPos && _argPos[_argPos.length - 1] && undefined === _argPos[_argPos.length - 1].end) {
-				_argPos[_argPos.length - 1].end = ph.pCurrPos;
-			}
-		}
+		setArgInfo();
 
 		if (parseResult.operand_expected) {
 			this.outStack = [];

@@ -20260,7 +20260,7 @@
 		}
 
 		var res;
-		if (_formulaParsed) {
+		if (_formulaParsed && _parseResult.activeFunction) {
 			res = createFunctionInfoByName(_parseResult.activeFunction.name);
 			if (!_parseResult.error) {
 				var _parent = _formulaParsed.parent;
