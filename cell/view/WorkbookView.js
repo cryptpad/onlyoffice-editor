@@ -2117,8 +2117,6 @@
 		var t = this, ws = this.getWorksheet(), cursorPos, isNotFunction, tmp;
 		var activeCellRange = ws.getActiveCell(0, 0, false);
 
-		doOpenWizardDialog = true;
-
 		if (ws.model.inPivotTable(activeCellRange)) {
 			this.handlers.trigger("asc_onError", c_oAscError.ID.LockedCellPivot, c_oAscError.Level.NoCritical);
 			return;
@@ -2339,7 +2337,7 @@
 		}
 
 		this.cellEditor.empty();
-		this.cellEditor.paste(val, this.lastFPos);
+		this.cellEditor.pasteText(val, this.lastFPos);
 
 		var funcInfo = ws.getActiveFunctionInfo(this.cellEditor._formula, this.cellEditor._parseResult);
 		return funcInfo;
