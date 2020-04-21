@@ -3664,7 +3664,7 @@
 					var maxLength = Math.floor(width * oRuleElement.MaxLength / 100);
 					var dataBarLength = minLength + (cellValue - min) / (max - min) * (maxLength - minLength);
 
-					if (oRuleElement.Color) {
+					if (0 !== dataBarLength && oRuleElement.Color) {
 						_x = x;
 						if (AscCommonExcel.EDataBarDirection.rightToLeft === oRuleElement.Direction) {
 							_x += width - dataBarLength;
