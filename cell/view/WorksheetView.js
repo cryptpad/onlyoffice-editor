@@ -3625,11 +3625,14 @@
 		if (!ct || !ct.flags.isNumberFormat || 0 === aRules.length) {
 			return showValue;
 		}
+		var cellValue = c.getNumberValue();
+		if (null === cellValue) {
+			return showValue;
+		}
 
         var graphics = ctx && ctx.DocumentRenderer ? ctx.DocumentRenderer : this.handlers.trigger('getMainGraphics');
 
 		var fontSize = c.getFont().getSize();
-		var cellValue = c.getNumberValue();
 		width -= 2; // indent
 
     	var oRule, oRuleElement, ranges, multiplyRange, values, min, max;
