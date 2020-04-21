@@ -3633,7 +3633,7 @@
         var graphics = ctx && ctx.DocumentRenderer ? ctx.DocumentRenderer : this.handlers.trigger('getMainGraphics');
 
 		var fontSize = c.getFont().getSize();
-		width -= 2; // indent
+		width -= 3; // indent
 
     	var oRule, oRuleElement, ranges, multiplyRange, values, min, max;
 		for (var i = 0; i < aRules.length; ++i) {
@@ -3665,6 +3665,9 @@
 
 					if (oRuleElement.Color) {
 						ctx.setFillStyle(oRuleElement.Color).fillRect(x + 1 - offsetX, top + 1 - offsetY, dataBarLength, height - 3);
+						if (oRuleElement.BorderColor) {
+							ctx.setStrokeStyle(oRuleElement.BorderColor).strokeRect(x + 1 - offsetX, top + 1 - offsetY, dataBarLength - 1, height - 4);
+						}
 					}
 				} else if (Asc.ECfType.iconSet === oRule.type) {
 					var img = AscCommonExcel.getCFIcon(oRuleElement, oRule.getIndexRule(values, this.model, cellValue));
