@@ -2321,26 +2321,25 @@
 		}
 		if (!parseResult.argPosArr[argNum]) {
 			//меняем строку и добавляем разделителей
-			var _pos = parseResult.argPosArr.length - 1;
-			for (var i = parseResult.argPosArr.length - 1; i <= argNum; i++) {
-				val += AscCommon.FormulaSeparators.functionArgumentSeparator;
-				_pos++;
+			for (var i = parseResult.argPosArr.length; i <= argNum; i++) {
+				val = AscCommon.FormulaSeparators.functionArgumentSeparator + val;
 			}
-			this.cellEditor.selectionBegin = _pos;
-			this.cellEditor.selectionEnd = _pos;
 
 			//TODO продумать прпобразование аргументов(допустим строковые значения)
 		} else {
 			//полностью заменяем аргумент - для этого чистим предыдущую запись
 			this.cellEditor.selectionBegin = parseResult.argPosArr[argNum].start;
 			this.cellEditor.selectionEnd = parseResult.argPosArr[argNum].end;
+			this.cellEditor.empty(Asc.c_oAscCleanOptions.All);
+			if (parseResult.argPosArr[argNum].start === parseResult.argPosArr[argNum].end) {
+				//TODO вызываю отсюда служебную функцию, пересмотреть!
+				this.cellEditor._moveCursor(-11, parseResult.argPosArr[argNum].start);
+			}
 		}
 
-		this.cellEditor.empty(Asc.c_oAscCleanOptions.All);
 		this.cellEditor.pasteText(val, this.lastFPos);
 
-		var funcInfo = ws.getActiveFunctionInfo(this.cellEditor._formula, this.cellEditor._parseResult);
-		return funcInfo;
+		return ws.getActiveFunctionInfo(this.cellEditor._formula, this.cellEditor._parseResult);
 	};
 
 	WorkbookView.prototype.getActiveFunctionInfo = function () {
