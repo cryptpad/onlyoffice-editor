@@ -2336,7 +2336,7 @@
 			this.cellEditor.selectionEnd = parseResult.argPosArr[argNum].end;
 		}
 
-		this.cellEditor.empty();
+		this.cellEditor.empty(Asc.c_oAscCleanOptions.All);
 		this.cellEditor.pasteText(val, this.lastFPos);
 
 		var funcInfo = ws.getActiveFunctionInfo(this.cellEditor._formula, this.cellEditor._parseResult);
