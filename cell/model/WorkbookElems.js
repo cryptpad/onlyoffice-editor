@@ -9505,7 +9505,7 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		this.argumentsMin = null;
 		this.argumentsMax = null;
 
-		this.argumentsInfo = null;
+		this.argumentsValue = null;
 		this.argumentsType = null;
 		this.argumentsResult = null;
 		this.formulaResult = null;
@@ -9518,8 +9518,8 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	CFunctionInfo.prototype.asc_getArgumentMax = function () {
 		return this.argumentsMax;
 	};
-	CFunctionInfo.prototype.asc_getArgumentsInfo = function () {
-		return this.argumentsInfo;
+	CFunctionInfo.prototype.asc_getArgumentsValue = function () {
+		return this.argumentsValue;
 	};
 	CFunctionInfo.prototype.asc_getArgumentsType = function () {
 		return this.argumentsType;
@@ -9840,7 +9840,7 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	prot = CFunctionInfo.prototype;
 	prot["asc_getArgumentMin"] = prot.asc_getArgumentMin;
 	prot["asc_getArgumentMax"] = prot.asc_getArgumentMax;
-	prot["asc_getArgumentsInfo"] = prot.asc_getArgumentsInfo;
+	prot["asc_getArgumentsValue"] = prot.asc_getArgumentsValue;
 	prot["asc_getArgumentsType"] = prot.asc_getArgumentsType;
 	prot["asc_getArgumentsResult"] = prot.asc_getArgumentsResult;
 	prot["asc_getFormulaResult"] = prot.asc_getFormulaResult;

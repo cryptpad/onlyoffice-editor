@@ -20273,11 +20273,11 @@
 			var argPosArr = _parseResult.argPosArr;
 			if (argPosArr && argPosArr.length) {
 				for (var i = 0; i < argPosArr.length; i++) {
-					if (!res.argumentsInfo) {
-						res.argumentsInfo = [];
+					if (!res.argumentsValue) {
+						res.argumentsValue = [];
 					}
 					var str = valueForEdit.substring(argPosArr[i].start, argPosArr[i].end);
-					res.argumentsInfo.push(str);
+					res.argumentsValue.push(str);
 					if (str !== "") {
 						if (!res.argumentsResult) {
 							res.argumentsResult = [];
