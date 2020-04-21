@@ -290,7 +290,10 @@ function (window, undefined) {
 	cCOLUMN.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.area_to_ref;
 	cCOLUMN.prototype.Calculate = function (arg) {
 		var bbox;
-		if (0 === arg.length) {
+		var opt_col = arguments[6];
+		if (opt_col !== undefined) {
+			return new cNumber(opt_col + 1);
+		} else if (0 === arg.length) {
 			bbox = arguments[1];
 		} else {
 			var arg0 = arg[0];
@@ -1539,7 +1542,10 @@ function (window, undefined) {
 	cROW.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.area_to_ref;
 	cROW.prototype.Calculate = function (arg) {
 		var bbox;
-		if (0 === arg.length) {
+		var opt_row = arguments[5];
+		if (opt_row !== undefined) {
+			return new cNumber(opt_row + 1);
+		} else if (0 === arg.length) {
 			bbox = arguments[1];
 		} else {
 			var arg0 = arg[0];

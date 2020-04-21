@@ -3180,10 +3180,12 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 
 		if((true === this.bArrayFormula || bIsSpecialFunction) && (!returnFormulaType || replaceAreaByValue || replaceAreaByRefs || arrayIndexes || replaceOnlyArray)) {
 			//вначале перебираем все аргументы и преобразовываем из cellsRange в массив или значение в зависимости от того, как должна работать функция
-			var tempArgs = [], tempArg, firstArray;
+			var tempArgs = [], tempArg, firstArray, _checkArrayIndex;
 			for (var j = 0; j < argumentsCount; j++) {
 				tempArg = arg[j];
-				if (!checkArrayIndex(j)) {
+
+				_checkArrayIndex = checkArrayIndex(j);
+				if (!_checkArrayIndex) {
 					if (cElementType.cellsRange === tempArg.type || cElementType.cellsRange3D === tempArg.type) {
 						if (replaceAreaByValue) {
 							tempArg = tempArg.cross(opt_bbox);
@@ -3194,14 +3196,21 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 							//к примеру, area A1:B2 разбиваем на [a1,a1;a2,a2] вместо нормального [a1,b1;a2,b2]
 							var useOnlyFirstRow = "column" === this.name.toLowerCase() ? parserFormula.ref : null;
 							var useOnlyFirstColumn = "row" === this.name.toLowerCase() ? parserFormula.ref : null;
-							tempArg = window['AscCommonExcel'].convertAreaToArrayRefs(tempArg, useOnlyFirstRow, useOnlyFirstColumn);
+							var _bbox = tempArg.range.bbox;
+							if (useOnlyFirstRow) {
+								firstArray = new Asc.Range(_bbox.c1, _bbox.r1, _bbox.c2, _bbox.r1);
+							} else if (useOnlyFirstColumn) {
+								firstArray = new Asc.Range(_bbox.c1, _bbox.r1, _bbox.c1, _bbox.r2);
+							} else {
+								tempArg = window['AscCommonExcel'].convertAreaToArrayRefs(tempArg, useOnlyFirstRow, useOnlyFirstColumn);
+							}
 						} else if(!replaceOnlyArray){
 							tempArg = window['AscCommonExcel'].convertAreaToArray(tempArg);
 						}
 					}
 				}
 
-				if (cElementType.array === tempArg.type && !checkArrayIndex(j)) {
+				if (cElementType.array === tempArg.type && !_checkArrayIndex) {
 					//пытаемся найти массив, которые имеет более 1 столбца и более 1 строки
 					if (!firstArray) {
 						firstArray = tempArg;
@@ -3258,7 +3267,8 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 
 			if (firstArray) {
 				var array = new cArray();
-				firstArray.foreach(function (elem, r, c) {
+				//bbox_elem -
+				var doCalc = function (elem, r, c, _row, _col) {
 					if (!array.array[r]) {
 						array.addRow();
 					}
@@ -3301,8 +3311,23 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 					if (0 === argumentsCount && parserFormula.ref) {
 						temp_opt_bbox = new Asc.Range(c + parserFormula.ref.c1, r + parserFormula.ref.r1, c + parserFormula.ref.c1, r + parserFormula.ref.r1);
 					}
-					array.addElement(t.Calculate(newArgs, temp_opt_bbox, opt_defName, parserFormula.ws/*, bIsSpecialFunction*/));
-				});
+					array.addElement(t.Calculate(newArgs, temp_opt_bbox, opt_defName, parserFormula.ws, null, _row, _col));
+				};
+
+				if (firstArray.foreach) {
+					firstArray.foreach(doCalc);
+				} else {
+					//сделал заглушку для рассчета row()/col() функций. если по общей схему данные функции на вход
+					//принимают только ref. перед тем как рассчитать формулу массива необходимо было сформировать
+					//набор этих ref. поскольку этим функциям необходимы только номер строки/столбца -
+					//передаём в функцию дополнительные параметры с этими данными
+					for (var i = firstArray.r1; i <= firstArray.r2; i++) {
+						for (var n = firstArray.c1; n <= firstArray.c2; n++) {
+							doCalc(null, i - firstArray.r1, n - firstArray.c1, i, n);
+						}
+					}
+				}
+
 
 				res = array;
 
@@ -7845,7 +7870,6 @@ function parserFormula( formula, parent, _ws ) {
 
 		if(range) {
 			var bbox = range.bbox;
-
 
 			var countRow = useOnlyFirstRow ? 0 : bbox.r2 - bbox.r1;
 			var countCol = useOnlyFirstColumn ? 0 : bbox.c2 - bbox.c1;
