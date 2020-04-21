@@ -782,6 +782,13 @@ CSectionPr.prototype =
     }
 };
 /**
+ * @returns {string}
+ */
+CSectionPr.prototype.GetId = function()
+{
+	return this.Id;
+};
+/**
  * Проверяем, есть ли хоть один колонтитул в данной секции
  * @returns {boolean}
  */
