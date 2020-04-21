@@ -3634,6 +3634,7 @@
 
 		var fontSize = c.getFont().getSize();
 		width -= 3; // indent
+		top += 1 - offsetY;
 
     	var oRule, oRuleElement, ranges, multiplyRange, values, min, max;
 		for (var i = 0; i < aRules.length; ++i) {
@@ -3648,7 +3649,7 @@
 				showValue = oRuleElement.ShowValue;
 				values = this.model._getValuesForConditionalFormatting(ranges, true);
 
-				var x = this._getColLeft(col);
+				var _x, x = this._getColLeft(col) - offsetX + 1;
 
 				if (Asc.ECfType.dataBar === oRule.type) {
 					min = oRule.getMin(values, this.model);
@@ -3664,9 +3665,13 @@
 					var dataBarLength = minLength + (cellValue - min) / (max - min) * (maxLength - minLength);
 
 					if (oRuleElement.Color) {
-						ctx.setFillStyle(oRuleElement.Color).fillRect(x + 1 - offsetX, top + 1 - offsetY, dataBarLength, height - 3);
+						_x = x;
+						if (AscCommonExcel.EDataBarDirection.rightToLeft === oRuleElement.Direction) {
+							_x += width - dataBarLength;
+						}
+						ctx.setFillStyle(oRuleElement.Color).fillRect(_x, top, dataBarLength, height - 3);
 						if (oRuleElement.BorderColor) {
-							ctx.setStrokeStyle(oRuleElement.BorderColor).strokeRect(x + 1 - offsetX, top + 1 - offsetY, dataBarLength - 1, height - 4);
+							ctx.setStrokeStyle(oRuleElement.BorderColor).strokeRect(_x, top, dataBarLength - 1, height - 4);
 						}
 					}
 				} else if (Asc.ECfType.iconSet === oRule.type) {
@@ -3675,7 +3680,7 @@
 						continue;
 					}
 					var iconSize = AscCommon.AscBrowser.convertToRetinaValue(AscCommonExcel.cDefIconSize * fontSize / AscCommonExcel.cDefIconFont, true);
-					var rect = new AscCommon.asc_CRect(x - offsetX, top + 1 - offsetY, width, height);
+					var rect = new AscCommon.asc_CRect(x, top, width, height);
 					var bl = rect._y + rect._height - gridlineSize - Asc.round(this._getRowDescender(row) * this.getZoom());
 					rect._y = this._calcTextVertPos(rect._y, rect._height, bl, new Asc.TextMetrics(iconSize, iconSize, 0, iconSize - 2 * fontSize / AscCommonExcel.cDefIconFont, 0, 0, 0), ct.cellVA);
 					var dScale = asc_getcvt(0, 3, this._getPPIX());
