@@ -3636,7 +3636,7 @@
 		width -= 3; // indent
 		top += 1 - offsetY;
 
-    	var oRule, oRuleElement, ranges, multiplyRange, values, min, max, color;
+    	var oRule, oRuleElement, ranges, multiplyRange, values, min, max, color, isMiddle, isReverse, isPositive, tmp;
 		for (var i = 0; i < aRules.length; ++i) {
 			oRule = aRules[i];
 			ranges = oRule.ranges;
@@ -3649,11 +3649,31 @@
 				showValue = oRuleElement.ShowValue;
 				values = this.model._getValuesForConditionalFormatting(ranges, true);
 
-				var _x, x = this._getColLeft(col) - offsetX + 1;
+				var x = this._getColLeft(col) - offsetX + 1;
 
 				if (Asc.ECfType.dataBar === oRule.type) {
 					min = oRule.getMin(values, this.model);
 					max = oRule.getMax(values, this.model);
+
+					isPositive = 0 <= cellValue;
+					isReverse = AscCommonExcel.EDataBarDirection.rightToLeft === oRuleElement.Direction;
+					isMiddle = (AscCommonExcel.EDataBarAxisPosition.middle === oRuleElement.AxisPosition) ||
+						(AscCommonExcel.EDataBarAxisPosition.automatic === oRuleElement.AxisPosition && 0 > min && 0 < max);
+					if (isMiddle) {
+						if (isPositive) {
+							min = Math.max(0, min);
+						} else {
+							max = Math.min(0, max);
+						}
+					}
+					if (0 >= max) {
+						tmp = -max;
+						max = -min;
+						min = tmp;
+						cellValue = -cellValue;
+						isReverse = !isReverse;
+					}
+
 					if (cellValue < min) {
 						cellValue = min;
 					} else if (cellValue > max) {
@@ -3662,19 +3682,26 @@
 
 					var minLength = Math.floor(width * oRuleElement.MinLength / 100);
 					var maxLength = Math.floor(width * oRuleElement.MaxLength / 100);
-					var dataBarLength = minLength + (cellValue - min) / (max - min) * (maxLength - minLength);
+					var k = max - min;
+					k = k ? ((maxLength - minLength) / k) : 0;
+					var dataBarLength = minLength + (cellValue - min) * k;
 
-					color = (oRuleElement.NegativeBarColorSameAsPositive || 0 <= cellValue) ? oRuleElement.Color : oRuleElement.NegativeColor;
+					color = (isPositive || oRuleElement.NegativeBarColorSameAsPositive) ? oRuleElement.Color : oRuleElement.NegativeColor;
 					if (0 !== dataBarLength && color) {
-						_x = x;
-						if (AscCommonExcel.EDataBarDirection.rightToLeft === oRuleElement.Direction) {
-							_x += width - dataBarLength;
+						if (isMiddle) {
+							dataBarLength = Asc.floor(dataBarLength / 2);
+							x += Asc.floor(width / 2) * (isReverse ? -1 : 1);
 						}
-						ctx.setFillStyle(color).fillRect(_x, top, dataBarLength, height - 3);
 
-						color = (oRuleElement.NegativeBarBorderColorSameAsPositive || 0 <= cellValue) ? oRuleElement.BorderColor : oRuleElement.NegativeBorderColor;
+						if (isReverse) {
+							x += width - dataBarLength;
+						}
+
+						ctx.setFillStyle(color).fillRect(x, top, dataBarLength, height - 3);
+
+						color = (isPositive || oRuleElement.NegativeBarBorderColorSameAsPositive) ? oRuleElement.BorderColor : oRuleElement.NegativeBorderColor;
 						if (color) {
-							ctx.setStrokeStyle(color).strokeRect(_x, top, dataBarLength - 1, height - 4);
+							ctx.setStrokeStyle(color).strokeRect(x, top, dataBarLength - 1, height - 4);
 						}
 					}
 				} else if (Asc.ECfType.iconSet === oRule.type) {
