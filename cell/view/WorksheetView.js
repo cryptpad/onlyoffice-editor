@@ -3702,7 +3702,7 @@
 							x += width - dataBarLength;
 						}
 
-						ctx.setLineWidth(1).setLineDash([]).setFillStyle(color).fillRect(x, top, dataBarLength, height - 3);
+						ctx.setFillStyle(color).fillRect(x, top, dataBarLength, height - 3);
 
 						color = (isPositive || oRuleElement.NegativeBarBorderColorSameAsPositive) ? oRuleElement.BorderColor : oRuleElement.NegativeBorderColor;
 						if (color) {
