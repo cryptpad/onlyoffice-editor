@@ -270,11 +270,11 @@
 	};
 
 	var c_oAscRestrictionType = {
-		None           : 0,
-		OnlyForms      : 1,
-		OnlyComments   : 2,
-		OnlySignatures : 3,
-		View           : 0xFF // Отличие данного ограничения от обычного ViewMode в том, что редактор открывается
+		None           : 0x00,
+		OnlyForms      : 0x01,
+		OnlyComments   : 0x02,
+		OnlySignatures : 0x04,
+		View           : 0x80 // Отличие данного ограничения от обычного ViewMode в том, что редактор открывается
 		                      // как полноценный редактор, просто мы запрещаем ЛЮБОЕ редактирование. А во ViewMode
 		                      // открывается именно просмотрщик.
 	};
