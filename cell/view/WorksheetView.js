@@ -172,6 +172,71 @@
 		return res;
 	}
 
+	function drawFillCell(ctx, graphics, fill, rect) {
+		var dScale = asc_getcvt(0, 3, ctx.getPPIX());
+		rect._x *= dScale;
+		rect._y *= dScale;
+		rect._width *= dScale;
+		rect._height *= dScale;
+		AscFormat.ExecuteNoHistory(
+			function () {
+				var geometry = new AscFormat.CreateGeometry("rect");
+				geometry.Recalculate(rect._width, rect._height, true);
+
+				var oUniFill = new AscFormat.CUniFill();
+				if (fill.patternFill) {
+					oUniFill.fill = new AscFormat.CPattFill();
+					oUniFill.fill.ftype = fill.patternFill.getHatchOffset();
+					oUniFill.fill.fgClr = AscFormat.CreateUniColorRGB2(fill.patternFill.fgColor || AscCommonExcel.createRgbColor(0, 0, 0));
+					oUniFill.fill.bgClr = AscFormat.CreateUniColorRGB2(fill.patternFill.bgColor || AscCommonExcel.createRgbColor(255, 255, 255));
+				} else if (fill.gradientFill) {
+					oUniFill.fill = new AscFormat.CGradFill();
+					if (fill.gradientFill.type === Asc.c_oAscFillGradType.GRAD_LINEAR) {
+						oUniFill.fill.lin = new AscFormat.GradLin();
+						oUniFill.fill.lin.angle = fill.gradientFill.degree * 60000;
+					} else {
+						oUniFill.fill.path = new AscFormat.GradPath();
+					}
+					for (var i = 0; i < fill.gradientFill.stop.length; ++i) {
+						var oGradStop = new AscFormat.CGs();
+						oGradStop.pos = fill.gradientFill.stop[i].position * 100000;
+						oGradStop.color = AscFormat.CreateUniColorRGB2(fill.gradientFill.stop[i].color || AscCommonExcel.createRgbColor(255, 255, 255));
+						oUniFill.fill.addColor(oGradStop);
+					}
+				} else {
+					return;
+				}
+				if (ctx instanceof AscCommonExcel.CPdfPrinter) {
+					graphics.SaveGrState();
+					var _baseTransform;
+					if (!ctx.Transform) {
+						_baseTransform = new AscCommon.CMatrix();
+					} else {
+						_baseTransform = ctx.Transform;
+					}
+					graphics.SetBaseTransform(_baseTransform);
+				}
+
+				graphics.save();
+				var oMatrix = new AscCommon.CMatrix();
+				oMatrix.tx = rect._x;
+				oMatrix.ty = rect._y;
+				graphics.transform3(oMatrix);
+				var shapeDrawer = new AscCommon.CShapeDrawer();
+				shapeDrawer.Graphics = graphics;
+
+				shapeDrawer.fromShape2(new AscFormat.CColorObj(null, oUniFill, geometry), graphics, geometry);
+				shapeDrawer.draw(geometry);
+				graphics.restore();
+
+				if (ctx instanceof AscCommonExcel.CPdfPrinter) {
+					graphics.SetBaseTransform(null);
+					graphics.RestoreGrState();
+				}
+			}, this, []
+		);
+	}
+
 	function CacheColumn() {
 	    this.left = 0;
 		this.width = 0;
@@ -3524,75 +3589,7 @@
 				if (findFillColor) {
 					ctx.setFillStyle(findFillColor).fillRect(x - offsetX, y - offsetY, w, h);
 				} else {
-					var rect = new AscCommon.asc_CRect(x - offsetX, y - offsetY, w, h);
-					var dScale = asc_getcvt(0, 3, this._getPPIX());
-					rect._x *= dScale;
-					rect._y *= dScale;
-					rect._width *= dScale;
-					rect._height *= dScale;
-					AscFormat.ExecuteNoHistory(
-						function (fill, rect) {
-							var geometry = new AscFormat.CreateGeometry("rect");
-                            geometry.Recalculate(rect._width, rect._height, true);
-
-							var oUniFill = new AscFormat.CUniFill();
-							if (fill.patternFill) {
-								oUniFill.fill = new AscFormat.CPattFill();
-								oUniFill.fill.ftype = fill.patternFill.getHatchOffset();
-								oUniFill.fill.fgClr = AscFormat.CreateUniColorRGB2(fill.patternFill.fgColor || AscCommonExcel.createRgbColor(0, 0, 0));
-								oUniFill.fill.bgClr = AscFormat.CreateUniColorRGB2(fill.patternFill.bgColor || AscCommonExcel.createRgbColor(255, 255, 255));
-							} else if (fill.gradientFill) {
-                                oUniFill.fill = new AscFormat.CGradFill();
-                                if(fill.gradientFill.type === Asc.c_oAscFillGradType.GRAD_LINEAR) {
-                                    oUniFill.fill.lin = new AscFormat.GradLin();
-                                    oUniFill.fill.lin.angle = fill.gradientFill.degree*60000;
-                                }
-                                else {
-                                    oUniFill.fill.path = new AscFormat.GradPath();
-                                }
-								for(var i = 0; i < fill.gradientFill.stop.length; ++i) {
-                                    var oGradStop = new AscFormat.CGs();
-                                    oGradStop.pos = fill.gradientFill.stop[i].position*100000;
-                                    oGradStop.color = AscFormat.CreateUniColorRGB2(fill.gradientFill.stop[i].color || AscCommonExcel.createRgbColor(255, 255, 255));
-                                    oUniFill.fill.addColor(oGradStop);
-                                }
-							} else {
-								return;
-							}
-                            if(ctx instanceof AscCommonExcel.CPdfPrinter)
-                            {
-                                graphics.SaveGrState();
-                                var _baseTransform;
-                                if(!ctx.Transform)
-                                {
-                                    _baseTransform = new AscCommon.CMatrix();
-                                }
-                                else
-                                {
-                                    _baseTransform = ctx.Transform;
-                                }
-                                graphics.SetBaseTransform(_baseTransform);
-                            }
-
-							graphics.save();
-                            var oMatrix = new AscCommon.CMatrix();
-                            oMatrix.tx = rect._x;
-                            oMatrix.ty = rect._y;
-							graphics.transform3(oMatrix);
-							var shapeDrawer = new AscCommon.CShapeDrawer();
-							shapeDrawer.Graphics = graphics;
-
-							shapeDrawer.fromShape2(new AscFormat.CColorObj(null, oUniFill, geometry), graphics, geometry);
-							shapeDrawer.draw(geometry);
-							graphics.restore();
-
-                            if(ctx instanceof AscCommonExcel.CPdfPrinter)
-                            {
-                                graphics.SetBaseTransform(null);
-                                graphics.RestoreGrState();
-                            }
-						}, this, [fill, rect]
-					);
+					drawFillCell(ctx, graphics, fill, new AscCommon.asc_CRect(x - offsetX, y - offsetY, w, h));
 				}
 			}
 
