@@ -869,6 +869,8 @@ function CDocumentPageSection()
 
     this.YLimit2 = 0;
 
+    this.Index   = -1;
+
     this.Columns = [];
     this.ColumnsSep = false;
 
@@ -884,8 +886,9 @@ function CDocumentPageSection()
  * Инициализируем параметры данной секции
  * @param {number} nPageAbs
  * @param {CSectionPr} oSectPr
+ * @param {Number} nSectionIndex
  */
-CDocumentPageSection.prototype.Init = function(nPageAbs, oSectPr)
+CDocumentPageSection.prototype.Init = function(nPageAbs, oSectPr, nSectionIndex)
 {
 	var oFrame  = oSectPr.GetContentFrame(nPageAbs);
 	var nX      = oFrame.Left;
@@ -905,6 +908,7 @@ CDocumentPageSection.prototype.Init = function(nPageAbs, oSectPr)
 	this.Y       = oFrame.Top;
 	this.YLimit  = oFrame.Bottom;
 	this.YLimit2 = oFrame.Bottom;
+	this.Index   = nSectionIndex;
 };
 CDocumentPageSection.prototype.Copy = function()
 {
@@ -3484,7 +3488,7 @@ CDocument.prototype.Recalculate_Page = function()
             Page.Margins.Bottom = oFrame.Bottom;
 
             Page.Sections[0] = new CDocumentPageSection();
-            Page.Sections[0].Init(PageIndex, SectPr);
+            Page.Sections[0].Init(PageIndex, SectPr, this.SectionsInfo.Find(SectPr));
         }
 
         var Count = this.Content.length;
@@ -3851,7 +3855,7 @@ CDocument.prototype.Recalculate_PageColumn                   = function()
 							_bResetStartElement = true;
 
 							var NewPageSection = new CDocumentPageSection();
-							NewPageSection.Init(PageIndex, NextSectInfo.SectPr);
+							NewPageSection.Init(PageIndex, NextSectInfo.SectPr, this.SectionsInfo.Find(NextSectInfo.SectPr));
 							NewPageSection.Pos = Index;
 							NewPageSection.EndPos = Index;
 							NewPageSection.Y = SectionY + 0.001;
@@ -3874,7 +3878,9 @@ CDocument.prototype.Recalculate_PageColumn                   = function()
 			}
 			else if (this.Endnotes.HaveEndnotes(CurSectInfo.SectPr, Index >= Count - 1, true))
 			{
-
+				var nSectionIndexAbs = this.SectionsInfo.Find(CurSectInfo.SectPr);
+				this.Endnotes.Reset2(PageIndex, ColumnIndex, CurSectInfo.SectPr, nSectionIndexAbs, true);
+				this.Endnotes.Recalculate(X, Y, XLimit, YLimit, PageIndex, ColumnIndex, ColumnsCount, CurSectInfo.SectPr, nSectionIndexAbs, true);
 			}
 		}
         else if (RecalcResult & recalcresult_NextPage)
@@ -5003,6 +5009,9 @@ CDocument.prototype.Draw                                     = function(nPageInd
     for (var SectionIndex = 0, SectionsCount = Page.Sections.length; SectionIndex < SectionsCount; ++SectionIndex)
     {
         var PageSection = Page.Sections[SectionIndex];
+
+        this.Endnotes.Draw(nPageIndex, PageSection.Index, pGraphics);
+
         for (var ColumnIndex = 0, ColumnsCount = PageSection.Columns.length; ColumnIndex < ColumnsCount; ++ColumnIndex)
         {
             var Column         = PageSection.Columns[ColumnIndex];

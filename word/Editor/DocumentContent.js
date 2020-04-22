@@ -1493,6 +1493,10 @@ CDocumentContent.prototype.Get_PageBounds = function(CurPage, Height, bForceChec
 
 	return Bounds;
 };
+CDocumentContent.prototype.GetPageBounds = function(nCurPage, nHeight, isForceCheckDrawings)
+{
+	return this.Get_PageBounds(nCurPage, nHeight, isForceCheckDrawings);
+};
 CDocumentContent.prototype.GetContentBounds = function(CurPage)
 {
 	var oPage = this.Pages[CurPage];

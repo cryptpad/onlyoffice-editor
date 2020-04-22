@@ -61,6 +61,8 @@ function CEndnotesController(oLogicDocument)
 	this.ContinuationSeparator = null;
 	this.Separator             = null;
 
+	this.CurEndnote = null;
+
 	// Добавляем данный класс в таблицу Id (обязательно в конце конструктора)
 	oLogicDocument.GetTableId().Add(this, this.Id);
 }
@@ -179,6 +181,22 @@ CEndnotesController.prototype.Is_UseInDocument = function(sFootnoteId, arrEndnot
 {
 	// TODO: Реализовать
 	return true;
+};
+/**
+ * Проверяем является ли данная сноска текущей.
+ * @param oEndnote
+ * return {boolean}
+ */
+CEndnotesController.prototype.Is_ThisElementCurrent = function(oEndnote)
+{
+	if (oEndnote === this.CurEndnote && docpostype_Endnotes === this.LogicDocument.GetDocPosType())
+		return true;
+
+	return false;
+};
+CEndnotesController.prototype.OnContentReDraw = function(StartPageAbs, EndPageAbs)
+{
+	this.LogicDocument.OnContentReDraw(StartPageAbs, EndPageAbs);
 };
 CEndnotesController.prototype.GetEndnoteNumberOnPage = function(nPageAbs, nColumnAbs, oSectPr)
 {
@@ -320,18 +338,16 @@ CEndnotesController.prototype.HaveEndnotes = function(oSectPr, isFinal, nPageAbs
 
 	return false;
 };
-CEndnotesController.prototype.Recalculate = function(X, Y, XLimit, YLimit, nPageAbs, nColumnAbs, nColumnsCount, oSectPr, nSectionIndex, isFinal)
+CEndnotesController.prototype.Reset2 = function(nPageAbs, nColumnAbs, oSectPr, nSectionIndex, isFinal)
 {
-	var oSection = this.private_UpdateSection(oSectPr, nSectionIndex, isFinal);
+	var oSection = this.private_UpdateSection(oSectPr, nSectionIndex, isFinal, nPageAbs);
 	if (oSection.Endnotes.length <= 0)
 		return recalcresult2_End;
 
 	oSection.StartPage   = nPageAbs;
 	oSection.StartColumn = nColumnAbs;
-
-	return this.RecalculateEndnotes(X, Y, XLimit, YLimit, nPageAbs, nColumnAbs, nColumnsCount, oSectPr, nSectionIndex, isFinal);
 };
-CEndnotesController.prototype.RecalculateEndnotes = function(X, Y, XLimit, YLimit, nPageAbs, nColumnAbs, nColumnsCount, oSectPr, nSectionIndex, isFinal)
+CEndnotesController.prototype.Recalculate = function(X, Y, XLimit, YLimit, nPageAbs, nColumnAbs, nColumnsCount, oSectPr, nSectionIndex, isFinal)
 {
 	var oSection = this.Sections[nSectionIndex];
 	if (!oSection)
@@ -404,7 +420,7 @@ CEndnotesController.prototype.RecalculateEndnotes = function(X, Y, XLimit, YLimi
 		var oEndnote = oSection.Endnotes[nPos];
 
 		if (isStart || nPos !== nStartPos)
-			oFootnote.Reset(X, _Y, XLimit, YLimit);
+			oEndnote.Reset(X, _Y, XLimit, YLimit);
 
 		oEndnote.Set_StartPage(nPageAbs, nColumnAbs, nColumnsCount);
 
@@ -444,8 +460,10 @@ CEndnotesController.prototype.RecalculateEndnotes = function(X, Y, XLimit, YLimi
 
 	return recalcresult2_End;
 };
-CEndnotesController.prototype.private_UpdateSection = function(oSectPr, nSectionIndex, nPageAbs)
+CEndnotesController.prototype.private_UpdateSection = function(oSectPr, nSectionIndex, isFinal, nPageAbs)
 {
+	var oPos = this.GetEndnotePrPos();
+
 	this.Sections.length = nSectionIndex;
 	this.Sections[nSectionIndex] = new CEndnoteSection();
 
@@ -454,9 +472,9 @@ CEndnotesController.prototype.private_UpdateSection = function(oSectPr, nSection
 		var oPage = this.Pages[nCurPage];
 		if (oPage)
 		{
-			for (var nEndnoteIndex = 0, nEndnotesCount = oPage.Endnotes.length; nEndnotesIndex < nEndnotesCount; ++nEndnoteIndex)
+			for (var nEndnoteIndex = 0, nEndnotesCount = oPage.Endnotes.length; nEndnoteIndex < nEndnotesCount; ++nEndnoteIndex)
 			{
-				if (oPage.Endnotes[nEndnoteIndex].GetReferenceSectPr() === oSectPr)
+				if ((oPos === section_endnote_PosDocEnd && isFinal) || (oPos === section_endnote_PosSectEnd && oPage.Endnotes[nEndnoteIndex].GetReferenceSectPr() === oSectPr))
 					this.Sections[nSectionIndex].Endnotes.push(oPage.Endnotes[nEndnoteIndex]);
 			}
 		}
@@ -464,17 +482,53 @@ CEndnotesController.prototype.private_UpdateSection = function(oSectPr, nSection
 
 	return this.Sections[nSectionIndex];
 };
-CEndnotesController.prototype.private_GetNextEndnote = function(oEndnote, oSectPr, isFinal)
+/**
+ * Отрисовываем сноски на заданной странице.
+ * @param {number} nPageAbs
+ * @param {number} nSectionIndex
+ * @param {CGraphics} oGraphics
+ */
+CEndnotesController.prototype.Draw = function(nPageAbs, nSectionIndex, oGraphics)
 {
-	var nPos = this.GetEndnotePrPos();
-	if (isFinal && section_endnote_PosDocEnd === nPos)
-	{
+	var oSection = this.Sections[nSectionIndex];
+	if (!oSection)
+		return;
 
-	}
-	else
-	{
+	var oPage = oSection.Pages[nPageAbs];
+	if (!oPage)
+		return;
 
+	for (var nColumnIndex = 0, nColumnsCount = oPage.Columns.length; nColumnIndex < nColumnsCount; ++nColumnIndex)
+	{
+		var oColumn = oPage.Columns[nColumnIndex];
+		if (!oColumn || oColumn.Elements.length <= 0)
+			continue;
+
+		if (oColumn.Separator && this.Separator && oColumn.SeparatorRecalculateObject)
+		{
+			this.Separator.LoadRecalculateObject(oColumn.SeparatorRecalculateObject);
+			this.Separator.Draw(nPageAbs, oGraphics);
+		} else if (!oColumn.Separator && this.ContinuationSeparator && oColumn.SeparatorRecalculateObject)
+		{
+			this.ContinuationSeparator.LoadRecalculateObject(oColumn.SeparatorRecalculateObject);
+			this.ContinuationSeparator.Draw(nPageAbs, oGraphics);
+		}
+
+		for (var nEndnoteIndex = 0, nEndnotesCount = oColumn.Elements.length; nEndnoteIndex < nEndnotesCount; ++nEndnoteIndex)
+		{
+			var oEndnote = oColumn.Elements[nEndnoteIndex];
+			var nEndnotePageIndex = oEndnote.GetElementPageIndex(nPageAbs, nColumnIndex);
+			oEndnote.Draw(nEndnotePageIndex + oEndnote.StartPage, oGraphics);
+		}
 	}
+};
+CEndnotesController.prototype.GetColumnFields = function(nPageAbs, nColumnAbs)
+{
+	var oColumn = this.private_GetPageColumn(nPageAbs, nColumnAbs);
+	if (!oColumn)
+		return {X : 0, XLimit : 297};
+
+	return {X : oColumn.X, XLimit : oColumn.XLimit};
 };
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Private area
@@ -533,6 +587,7 @@ function CEndnoteSectionPage()
 
 function CEndnoteSectionPageColumn()
 {
+	this.Elements = [];
 	this.StartPos = 0;
 	this.EndPos   = -1;
 
