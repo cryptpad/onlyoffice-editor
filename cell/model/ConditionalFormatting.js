@@ -892,6 +892,21 @@
 		return icons[(oIconSet && null !== oIconSet.IconId) ? oIconSet.IconId : index] || icons[icons.length - 1];
 	}
 
+	function getDataBarGradientColor(color) {
+		if (!color) {
+			return null;
+		}
+		var mod = new AscFormat.CColorMod();
+		mod.setName('lumMod');
+		mod.setVal(161500);
+		var oCColorModifiers = new AscFormat.CColorModifiers();
+		oCColorModifiers.addMod(mod);
+
+		var RGB = {R: color.getR(), G: color.getB(), B: color.getB()};
+		oCColorModifiers.Apply(RGB);
+		return AscCommonExcel.createRgbColor(RGB.R, RGB.G, RGB.B);
+	}
+
 	/*
 	 * Export
 	 * -----------------------------------------------------------------------------
@@ -913,6 +928,7 @@
 	window['AscCommonExcel'].cDefIconFont = cDefIconFont;
 	window['AscCommonExcel'].getIconsForLoad = getIconsForLoad;
 	window['AscCommonExcel'].getCFIcon = getCFIcon;
+	window['AscCommonExcel'].getDataBarGradientColor = getDataBarGradientColor;
 
 	prot = CConditionalFormattingRule;
 	prot['asc_getType'] = prot.asc_getType;
