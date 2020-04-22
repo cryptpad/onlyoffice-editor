@@ -2243,17 +2243,6 @@
 		}
 	};
 
-	WorkbookView.prototype.isEditingFunction = function() {
-		if (!this.getCellEditMode()) {
-			return;
-		}
-
-		//таким образом получаю парсинг формулы с учётом текущей позиции
-		//TODO возможно стоит сделать отдельный метод для нового парсинга формулы в celleditor
-		this.cellEditor._updateFormulaEditMod();
-		return this.cellEditor._parseResult && this.cellEditor._parseResult.activeFunction;
-	};
-
 	WorkbookView.prototype.preInsertFormula = function() {
 		var t = this, ws = this.getWorksheet();
 		var activeCellRange = ws.getActiveCell(0, 0, false);
@@ -2262,7 +2251,7 @@
 
 		if (this.getCellEditMode()) {
 			this.cellEditor._updateFormulaEditMod();
-			var parseResult = t.cellEditor._parseResult;
+			var parseResult = t.cellEditor ? t.cellEditor._parseResult : null;
 			if (parseResult && parseResult.activeFunction) {
 				functionInfo = ws.getActiveFunctionInfo(t.cellEditor._formula, t.cellEditor._parseResult);
 			}
@@ -2293,12 +2282,11 @@
 							t.cellEditor._moveCursor(-11, t.cellEditor._parseResult.cursorPos + 1);
 							functionInfo = ws.getActiveFunctionInfo(t.cellEditor._formula, t.cellEditor._parseResult);
 						} else {
-							//t.cellEditor._moveCursor(-11, t.cellEditor._parseResult.cursorPos + 1);
+							t.cellEditor._moveCursor(-11, t.cellEditor._parseResult.cursorPos + 1);
 						}
 					} else {
 						ws.openCellEditorWithText(t.cellEditor, "=", 1, /*isFocus*/false, selectionRange);
 					}
-
 				}
 
 				t.handlers.trigger("asc_onSendFunctionWizardInfo", functionInfo);
@@ -2315,7 +2303,7 @@
 
 		var ws = this.getWorksheet();
 		//argPosArr
-		var parseResult = this.cellEditor._parseResult;
+		var parseResult = this.cellEditor ? this.cellEditor._parseResult : null;
 		if (!parseResult || !parseResult.argPosArr || !parseResult.activeFunction || argNum > parseResult.activeFunction.argumentsMax) {
 			return;
 		}
@@ -2330,36 +2318,16 @@
 			//полностью заменяем аргумент - для этого чистим предыдущую запись
 			this.cellEditor.selectionBegin = parseResult.argPosArr[argNum].start;
 			this.cellEditor.selectionEnd = parseResult.argPosArr[argNum].end;
+			//TODO нужно ли чистить? при вставке текста должны произойти замена.
 			this.cellEditor.empty(Asc.c_oAscCleanOptions.All);
 			if (parseResult.argPosArr[argNum].start === parseResult.argPosArr[argNum].end) {
 				//TODO вызываю отсюда служебную функцию, пересмотреть!
 				this.cellEditor._moveCursor(-11, parseResult.argPosArr[argNum].start);
 			}
 		}
-
 		this.cellEditor.pasteText(val, this.lastFPos);
 
 		return ws.getActiveFunctionInfo(this.cellEditor._formula, this.cellEditor._parseResult);
-	};
-
-	WorkbookView.prototype.getActiveFunctionInfo = function () {
-		var ws = this.getWorksheet();
-		if (this.getCellEditMode()) {
-			var _parseResult = this.cellEditor._parseResult;
-			var _res;
-			var f = AscCommonExcel.cFormulaFunctionLocalized && AscCommonExcel.cFormulaFunctionLocalized[_parseResult.activeFunction];
-			if (f) {
-				_res = new Asc.CFunctionInfo(_parseResult.activeFunction);
-				_res.argumentMin = f.argumentsMin;
-				_res.argumentMax = f.argumentsMax;
-				_res.argumentsType = f.argumentsType;
-				_res.activeArgument = _parseResult.activeArgument;
-			}
-		} else {
-			_res = ws.getActiveFunctionInfo();
-		}
-
-		return _res;
 	};
 
   WorkbookView.prototype.bIsEmptyClipboard = function() {

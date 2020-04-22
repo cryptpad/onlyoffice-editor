@@ -3903,10 +3903,6 @@ var editor;
     this.wb.restoreFocus();
   };
 
-  spreadsheet_api.prototype.asc_isEditingFunction = function() {
-    return this.wb.isEditingFunction();
-  };
-
   spreadsheet_api.prototype.asc_preInsertFormula = function() {
     this.wb.preInsertFormula();
     this.wb.restoreFocus();
