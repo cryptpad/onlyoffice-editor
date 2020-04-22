@@ -896,14 +896,11 @@
 		if (!color) {
 			return null;
 		}
-		var mod = new AscFormat.CColorMod();
-		mod.setName('lumMod');
-		mod.setVal(161500);
-		var oCColorModifiers = new AscFormat.CColorModifiers();
-		oCColorModifiers.addMod(mod);
-
-		var RGB = {R: color.getR(), G: color.getB(), B: color.getB()};
-		oCColorModifiers.Apply(RGB);
+		var RGB = {R: 0xFF, G: 0xFF, B: 0xFF};
+		var bCoeff = 0.828;
+		RGB.R = Math.min(255,(color.getR() + bCoeff*(0xFF - color.getR()) + 0.5) >> 0)
+		RGB.G = Math.min(255,(color.getG() + bCoeff*(0xFF - color.getG()) + 0.5) >> 0)
+		RGB.B = Math.min(255,(color.getB() + bCoeff*(0xFF - color.getB()) + 0.5) >> 0)
 		return AscCommonExcel.createRgbColor(RGB.R, RGB.G, RGB.B);
 	}
 
