@@ -3699,7 +3699,27 @@
 							x += width - dataBarLength;
 						}
 
-						ctx.setFillStyle(color).fillRect(x, top, dataBarLength, height - 3);
+						if (oRuleElement.Gradient) {
+							var endColor = AscCommonExcel.getDataBarGradientColor(color);
+							if (isReverse) {
+								tmp = color;
+								color = endColor;
+								endColor = tmp;
+							}
+
+							var fill = new AscCommonExcel.Fill();
+							fill.gradientFill = new AscCommonExcel.GradientFill();
+							var stop0 = new AscCommonExcel.GradientStop();
+							stop0.position = 0;
+							stop0.color = color;
+							var stop1 = new AscCommonExcel.GradientStop();
+							stop1.position = 1;
+							stop1.color = endColor;
+							fill.gradientFill.asc_putGradientStops([stop0, stop1]);
+							drawFillCell(ctx, graphics, fill, new AscCommon.asc_CRect(x, top, dataBarLength, height - 3));
+						} else {
+							ctx.setFillStyle(color).fillRect(x, top, dataBarLength, height - 3);
+						}
 
 						color = (isPositive || oRuleElement.NegativeBarBorderColorSameAsPositive) ? oRuleElement.BorderColor : oRuleElement.NegativeBorderColor;
 						if (color) {
