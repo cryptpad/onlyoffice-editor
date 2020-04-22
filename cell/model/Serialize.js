@@ -9432,13 +9432,13 @@
                 if(c_oSerConstants.ReadOk == res)
                     res = new BinaryPersonReader(this.stream, personList).Read();
             }
+			var bwtr = new Binary_WorksheetTableReader(this.stream, this.oReadResult, wb, aSharedStrings, aCellXfs, aDxfs, oMediaArray, personList, this.copyPasteObj);
 			if(null != nWorkbookTableOffset)
 			{
 				res = this.stream.Seek(nWorkbookTableOffset);
 				if(c_oSerConstants.ReadOk == res)
 					res = (new Binary_WorkbookTableReader(this.stream, this.oReadResult, wb, bwtr)).Read();
 			}
-			var bwtr = new Binary_WorksheetTableReader(this.stream, this.oReadResult, wb, aSharedStrings, aCellXfs, aDxfs, oMediaArray, personList, this.copyPasteObj);
             if(c_oSerConstants.ReadOk == res)
             {
                 for(var i = 0; i < aSeekTable.length; ++i)
