@@ -5050,13 +5050,13 @@ CUniFill.prototype =
         {
             return false;
         }
-		
+
 		if(isRealNumber(this.transparent) !== isRealNumber(unifill.transparent)
 		|| isRealNumber(this.transparent) && this.transparent !== unifill.transparent)
 		{
 			return false;
 		}
-		
+
         if(this.fill == null && unifill.fill == null)
         {
             return true;
@@ -11412,23 +11412,23 @@ function CorrectUniFill(asc_fill, unifill, editorId)
     if (null != _alpha)
 	{
 		ret.transparent = _alpha;
-		
-		
+
+
 	}
-	
+
 	if(ret.transparent != null)
 	{
-		
+
 		if(ret.fill && ret.fill.type === c_oAscFill.FILL_TYPE_BLIP)
 		{
-			
+
 			for(var i = 0; i < ret.fill.Effects.length; ++i)
 			{
-				if(ret.fill.Effects[i].Type = EFFECT_TYPE_ALPHAMODFIX)
+				if(ret.fill.Effects[i].Type === EFFECT_TYPE_ALPHAMODFIX)
 				{
 					ret.fill.Effects[i].amt = ((ret.transparent * 100000 / 255) >> 0);
 					break;
-				}  
+				}
 			}
 			if(i === ret.fill.Effects.length)
 			{
@@ -11438,7 +11438,7 @@ function CorrectUniFill(asc_fill, unifill, editorId)
 			}
 		}
 	}
-        
+
 
     return ret;
 }
