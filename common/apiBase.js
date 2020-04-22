@@ -469,6 +469,14 @@
 	{
 		return this.isViewMode;
 	};
+	baseEditorsApi.prototype.asc_addRestriction              = function(val)
+	{
+		this.restrictions |= val;
+	};
+	baseEditorsApi.prototype.asc_removeRestriction           = function(val)
+	{
+		this.restrictions &= ~val;
+	};
 	baseEditorsApi.prototype.canEdit                         = function()
 	{
 		return !this.isViewMode && this.restrictions === Asc.c_oAscRestrictionType.None;
