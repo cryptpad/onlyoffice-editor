@@ -2113,7 +2113,7 @@
   };
 
 	// Вставка формулы в редактор
-	WorkbookView.prototype.insertFormulaInEditor = function (name, type, autoComplete, doOpenWizardDialog) {
+	WorkbookView.prototype.insertFormulaInEditor = function (name, type, autoComplete) {
 		var t = this, ws = this.getWorksheet(), cursorPos, isNotFunction, tmp;
 		var activeCellRange = ws.getActiveCell(0, 0, false);
 
@@ -2127,7 +2127,7 @@
 			return;
 		}
 
-		isNotFunction = c_oAscPopUpSelectorType.Func !== type;
+		isNotFunction = c_oAscPopUpSelectorType.Func !== type && c_oAscPopUpSelectorType.FuncWizard !== type;
 
 		// Проверяем, открыт ли редактор
 		var isFormulaContains, funcInfo;
@@ -2136,7 +2136,7 @@
 				this.skipHelpSelector = true;
 			}
 
-			isFormulaContains = this.cellEditor.isFormula() && doOpenWizardDialog;
+			isFormulaContains = this.cellEditor.isFormula() && c_oAscPopUpSelectorType.FuncWizard === type;
 
 			if (-1 !== this.lastFPos) {
 				if (-1 === this.arrExcludeFormulas.indexOf(name) && !isNotFunction) {
@@ -2172,7 +2172,7 @@
 			var selectionRange = ws.model.selectionRange.clone();
 
 			//если в ячейке уже есть формула
-			isFormulaContains = doOpenWizardDialog ? ws.model.isActiveCellFormula() : null;
+			isFormulaContains = c_oAscPopUpSelectorType.FuncWizard === type ? ws.model.isActiveCellFormula() : null;
 			if (!isFormulaContains) {
 				// Редактор закрыт
 				var cellRange = {};
@@ -2223,7 +2223,7 @@
 						ws.openCellEditorWithText(t.cellEditor, name, cursorPos, /*isFocus*/false, selectionRange);
 					}
 
-					if (doOpenWizardDialog) {
+					if (c_oAscPopUpSelectorType.FuncWizard === type) {
 						var funcInfo = ws.model.getActiveFunctionInfo(t.cellEditor._formula, t.cellEditor._parseResult);
 						t.handlers.trigger("asc_onSendFunctionWizardInfo", funcInfo);
 					}

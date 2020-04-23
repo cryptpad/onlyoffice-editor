@@ -6643,7 +6643,7 @@ window["native"]["offline_apply_event"] = function(type,params) {
         case 4010: // ASC_SPREADSHEETS_EVENT_TYPE_INSERT_FORMULA
         {
             if (params && params.length && params[0]) {
-                _api.asc_insertFormula(params[0], Asc.c_oAscPopUpSelectorType.Func, params[1]);
+                _api.asc_insertInCell(params[0], Asc.c_oAscPopUpSelectorType.Func, params[1]);
             }
             break;
         }

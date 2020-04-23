@@ -3898,8 +3898,8 @@ var editor;
     this.wb.removeHyperlink();
   };
 
-  spreadsheet_api.prototype.asc_insertFormula = function(functionName, type, autoComplete, doOpenWizardDialog) {
-    this.wb.insertFormulaInEditor(functionName, type, autoComplete, doOpenWizardDialog);
+  spreadsheet_api.prototype.asc_insertInCell = function(functionName, type, autoComplete) {
+    this.wb.insertFormulaInEditor(functionName, type, autoComplete);
     this.wb.restoreFocus();
   };
 
@@ -4862,7 +4862,7 @@ var editor;
   prot["asc_selectFunction"] = prot.asc_selectFunction;
   prot["asc_insertHyperlink"] = prot.asc_insertHyperlink;
   prot["asc_removeHyperlink"] = prot.asc_removeHyperlink;
-  prot["asc_insertFormula"] = prot.asc_insertFormula;
+  prot["asc_insertInCell"] = prot.asc_insertInCell;
   prot["asc_preInsertFormula"] = prot.asc_preInsertFormula;
   prot["asc_getFormulasInfo"] = prot.asc_getFormulasInfo;
   prot["asc_getFormulaLocaleName"] = prot.asc_getFormulaLocaleName;

@@ -367,7 +367,8 @@ var c_oAscPopUpSelectorType = {
   None: 0,
   Func: 1,
   Range: 2,
-  Table: 3
+  Table: 3,
+  FuncWizard: 4
 };
   /** @enum */
   var c_oSerFormat = {
@@ -657,6 +658,7 @@ var c_oAscPopUpSelectorType = {
   prot['Func'] = prot.Func;
   prot['Range'] = prot.Range;
   prot['Table'] = prot.Table;
+  prot['FuncWizard'] = prot.FuncWizard;
   window['Asc']['c_oAscSparklineType'] = window['Asc'].c_oAscSparklineType = c_oAscSparklineType;
   prot = c_oAscSparklineType;
   prot['Line'] = prot.Line;
