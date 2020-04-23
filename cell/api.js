@@ -3899,7 +3899,7 @@ var editor;
   };
 
   spreadsheet_api.prototype.asc_insertInCell = function(functionName, type, autoComplete) {
-    this.wb.insertFormulaInEditor(functionName, type, autoComplete);
+    this.wb.insertInCellEditor(functionName, type, autoComplete);
     this.wb.restoreFocus();
   };
 

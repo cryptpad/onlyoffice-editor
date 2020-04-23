@@ -402,7 +402,7 @@
 			  }, "print": function () {
 				  self.Api.onPrint();
 			  }, "addFunction": function () {
-				  self.insertFormulaInEditor.apply(self, arguments);
+				  self.insertInCellEditor.apply(self, arguments);
 			  }, "canvasClick": function () {
 				  self.enableKeyEventsHandler(true);
 			  }, "autoFiltersClick": function () {
@@ -2113,7 +2113,7 @@
   };
 
 	// Вставка формулы в редактор
-	WorkbookView.prototype.insertFormulaInEditor = function (name, type, autoComplete) {
+	WorkbookView.prototype.insertInCellEditor = function (name, type, autoComplete) {
 		var t = this, ws = this.getWorksheet(), cursorPos, isNotFunction, tmp;
 		var activeCellRange = ws.getActiveCell(0, 0, false);
 
