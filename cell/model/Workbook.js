@@ -7788,7 +7788,7 @@
 		return res;
 	};
 
-	WorksheetView.prototype.isActiveCellFormula = function () {
+	Worksheet.prototype.isActiveCellFormula = function () {
 		var activeCell = this.selectionRange.activeCell;
 		var res;
 		this.getCell3(activeCell.row, activeCell.col)._foreachNoEmpty(function (cell) {
