@@ -2160,7 +2160,7 @@
 			this.skipHelpSelector = false;
 			
 			if (isFormulaContains) {
-				funcInfo = ws.getActiveFunctionInfo(this.cellEditor._formula, this.cellEditor._parseResult);
+				funcInfo = ws.model.getActiveFunctionInfo(this.cellEditor._formula, this.cellEditor._parseResult);
 				t.handlers.trigger("asc_onSendFunctionWizardInfo", funcInfo);
 			}
 		} else {
@@ -2172,7 +2172,7 @@
 			var selectionRange = ws.model.selectionRange.clone();
 
 			//если в ячейке уже есть формула
-			isFormulaContains = doOpenWizardDialog ? ws.isActiveCellFormula() : null;
+			isFormulaContains = doOpenWizardDialog ? ws.model.isActiveCellFormula() : null;
 			if (!isFormulaContains) {
 				// Редактор закрыт
 				var cellRange = {};
@@ -2224,7 +2224,7 @@
 					}
 
 					if (doOpenWizardDialog) {
-						var funcInfo = ws.getActiveFunctionInfo(t.cellEditor._formula, t.cellEditor._parseResult);
+						var funcInfo = ws.model.getActiveFunctionInfo(t.cellEditor._formula, t.cellEditor._parseResult);
 						t.handlers.trigger("asc_onSendFunctionWizardInfo", funcInfo);
 					}
 
@@ -2253,7 +2253,7 @@
 			this.cellEditor._updateFormulaEditMod();
 			var parseResult = t.cellEditor ? t.cellEditor._parseResult : null;
 			if (parseResult && parseResult.activeFunction) {
-				functionInfo = ws.getActiveFunctionInfo(t.cellEditor._formula, t.cellEditor._parseResult);
+				functionInfo = ws.model.getActiveFunctionInfo(t.cellEditor._formula, t.cellEditor._parseResult);
 			}
 			t.handlers.trigger("asc_onSendFunctionWizardInfo", functionInfo);
 		} else {
@@ -2269,7 +2269,7 @@
 					t.setCellEditMode(true);
 					t.hideSpecialPasteButton();
 
-					if (ws.isActiveCellFormula()) {
+					if (ws.model.isActiveCellFormula()) {
 						//если ячейка с формулой, то либо перемещаемся к первой функции и отркываем диалог wizard
 						//если функции нет, то перемещаемся в конец формулы и открываем окно выбора функции
 
@@ -2280,7 +2280,7 @@
 						if (parseResult && parseResult.activeFunction) {
 							//TODO вызываю отсюда служебную функцию, пересмотреть!
 							t.cellEditor._moveCursor(-11, t.cellEditor._parseResult.cursorPos + 1);
-							functionInfo = ws.getActiveFunctionInfo(t.cellEditor._formula, t.cellEditor._parseResult);
+							functionInfo = ws.model.getActiveFunctionInfo(t.cellEditor._formula, t.cellEditor._parseResult);
 						} else {
 							t.cellEditor._moveCursor(-11, t.cellEditor._parseResult.cursorPos + 1);
 						}
@@ -2327,7 +2327,7 @@
 		}
 		this.cellEditor.pasteText(val, this.lastFPos);
 
-		return ws.getActiveFunctionInfo(this.cellEditor._formula, this.cellEditor._parseResult);
+		return ws.model.getActiveFunctionInfo(this.cellEditor._formula, this.cellEditor._parseResult);
 	};
 
   WorkbookView.prototype.bIsEmptyClipboard = function() {

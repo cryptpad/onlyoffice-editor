@@ -7710,6 +7710,95 @@
 		return false;
 	};
 
+	Worksheet.prototype.getActiveFunctionInfo = function (parser, parserResult) {
+
+		var createFunctionInfoByName = function (_name) {
+			var _res;
+			var f = AscCommonExcel.cFormulaFunction[_name];
+			/*if (AscCommonExcel.cFormulaFunctionLocalized) {
+				f = AscCommonExcel.cFormulaFunctionLocalized[_name];
+			} else {
+				f = AscCommonExcel.cFormulaFunction[_name];
+			}*/
+			if (f) {
+				_res = new Asc.CFunctionInfo(_name);
+				_res.argumentsMin = f.prototype.argumentsMin;
+				_res.argumentsMax = f.prototype.argumentsMax;
+				_res.argumentsType = f.prototype.argumentsType;
+			}
+			return _res;
+		};
+
+		var _formulaParsed, _parseResult, valueForEdit;
+		if (!parser) {
+			var activeCell = this.selectionRange.activeCell;
+			var formulaParsed;
+			this.getCell3(activeCell.row, activeCell.col)._foreachNoEmpty(function (cell) {
+				if (cell.isFormula()) {
+					formulaParsed = cell.getFormulaParsed();
+					if (formulaParsed) {
+						valueForEdit = cell.getValueForEdit();
+					}
+				}
+			});
+			_formulaParsed = new AscCommonExcel.parserFormula(valueForEdit.substr(1), /*formulaParsed.parent*/null, this);
+			_parseResult = new AscCommonExcel.ParseResult([], []);
+			_formulaParsed.parse(true, true, _parseResult, true);
+		} else {
+			_formulaParsed = parser;
+			_parseResult = parserResult;
+			valueForEdit = "=" + parser.Formula;
+		}
+
+		var res;
+		if (_formulaParsed && _parseResult.activeFunction) {
+			res = createFunctionInfoByName(_parseResult.activeFunction.name);
+			if (!_parseResult.error) {
+				var _parent = _formulaParsed.parent;
+				_formulaParsed.parent = null;
+				res.formulaResult = _formulaParsed.calculate().toLocaleString();
+				_formulaParsed.parent = _parent;
+			}
+
+			res._cursorPos = _parseResult.cursorPos + 1;
+			var argPosArr = _parseResult.argPosArr;
+			if (argPosArr && argPosArr.length) {
+				for (var i = 0; i < argPosArr.length; i++) {
+					if (!res.argumentsValue) {
+						res.argumentsValue = [];
+					}
+					var str = valueForEdit.substring(argPosArr[i].start, argPosArr[i].end);
+					res.argumentsValue.push(str);
+					if (str !== "") {
+						if (!res.argumentsResult) {
+							res.argumentsResult = [];
+						}
+						var _formulaParsedArg = new AscCommonExcel.parserFormula(str, /*formulaParsed.parent*/null, this.model);
+						var _parseResultArg = new AscCommonExcel.ParseResult([], []);
+						_formulaParsedArg.parse(true, true, _parseResultArg, true);
+						if (!_parseResultArg.error) {
+							var calcRes = _formulaParsedArg.calculate();
+							res.argumentsResult[i] = calcRes.toLocaleString();
+						}
+					}
+				}
+			}
+		}
+
+		return res;
+	};
+
+	WorksheetView.prototype.isActiveCellFormula = function () {
+		var activeCell = this.selectionRange.activeCell;
+		var res;
+		this.getCell3(activeCell.row, activeCell.col)._foreachNoEmpty(function (cell) {
+			if (cell.isFormula()) {
+				res = true;
+			}
+		});
+		return res;
+	};
+
 
 //-------------------------------------------------------------------------------------------------
 	var g_nCellOffsetFlag = 0;
