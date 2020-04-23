@@ -4168,17 +4168,23 @@ CDocument.prototype.Recalculate_PageColumn                   = function()
 
         if (this.FullRecalc.UseRecursion)
 		{
-			if (_PageIndex > this.FullRecalc.StartPage + 2)
-			{
-				if (window["native"] && window["native"]["WC_CheckSuspendRecalculate"] !== undefined)
-				{
-					this.FullRecalc.Id = setTimeout(Document_Recalculate_Page, 10);
-					return;
-				}
+            if (window["NATIVE_EDITOR_ENJINE_SYNC_RECALC"] === true)
+            {
+                if (PageIndex > this.FullRecalc.StartPage + 2)
+                {
+                    if (window["native"]["WC_CheckSuspendRecalculate"] !== undefined)
+                    {
+                        //if (window["native"]["WC_CheckSuspendRecalculate"]())
+                        //    return;
 
-				this.Recalculate_Page();
-				return;
-			}
+                        this.FullRecalc.Id = setTimeout(Document_Recalculate_Page, 10);
+                        return;
+                    }
+                }
+
+                this.Recalculate_Page();
+                return;
+            }
 
 			if (_PageIndex > this.FullRecalc.StartPage + 2)
 			{
