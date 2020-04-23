@@ -7750,14 +7750,26 @@
 			valueForEdit = "=" + parser.Formula;
 		}
 
-		var res;
-		if (_formulaParsed && _parseResult.activeFunction) {
-			res = createFunctionInfoByName(_parseResult.activeFunction.name);
+		var res, str;
+		if (_formulaParsed && _parseResult.activeFunction && _parseResult.activeFunction.func) {
+			res = createFunctionInfoByName(_parseResult.activeFunction.func.name);
 			if (!_parseResult.error) {
 				var _parent = _formulaParsed.parent;
 				_formulaParsed.parent = null;
 				res.formulaResult = _formulaParsed.calculate().toLocaleString();
 				_formulaParsed.parent = _parent;
+			}
+
+			//asc_getFunctionResult
+			str = valueForEdit.substring(_parseResult.activeFunction.start + 1, _parseResult.activeFunction.end + 1);
+			if (str !== "") {
+				var _formulaParsedArg = new AscCommonExcel.parserFormula(str, /*formulaParsed.parent*/null, this);
+				var _parseResultArg = new AscCommonExcel.ParseResult([], []);
+				_formulaParsedArg.parse(true, true, _parseResultArg, true);
+				if (!_parseResultArg.error) {
+					var calcRes = _formulaParsedArg.calculate();
+					res.functionResult = calcRes.toLocaleString();
+				}
 			}
 
 			res._cursorPos = _parseResult.cursorPos + 1;
@@ -7767,7 +7779,7 @@
 					if (!res.argumentsValue) {
 						res.argumentsValue = [];
 					}
-					var str = valueForEdit.substring(argPosArr[i].start, argPosArr[i].end);
+					str = valueForEdit.substring(argPosArr[i].start, argPosArr[i].end);
 					res.argumentsValue.push(str);
 					if (str !== "") {
 						if (!res.argumentsResult) {

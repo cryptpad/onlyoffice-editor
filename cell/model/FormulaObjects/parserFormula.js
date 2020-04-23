@@ -5109,7 +5109,7 @@ _func[cElementType.cell3D] = _func[cElementType.cell];
 
 		//for formula wizard
 		this.argPosArr = [];
-		this.activeFunctionName = null;
+		this.activeFunction = null;
 		this.cursorPos = undefined;
 	}
 
@@ -5907,7 +5907,7 @@ function parserFormula( formula, parent, _ws ) {
 					needFuncLevel--;
 				}
 				if (!parseResult.activeFunction && levelFuncMap[currentFuncLevel] && levelFuncMap[currentFuncLevel].startPos <= activePos && activePos <= ph.pCurrPos) {
-					parseResult.activeFunction = levelFuncMap[currentFuncLevel].func;
+					parseResult.activeFunction = parseResult.activeFunction = {func: levelFuncMap[currentFuncLevel].func, start: levelFuncMap[currentFuncLevel].startPos, end: ph.pCurrPos};
 					parseResult.argPosArr = argPosArrMap[currentFuncLevel];
 				}
 				var _argPos = argPosArrMap[currentFuncLevel];
@@ -6269,7 +6269,6 @@ function parserFormula( formula, parent, _ws ) {
 					if (needCalcArgPos) {
 						if (activePos === undefined) {
 							needFuncLevel++;
-							parseResult.activeFunctionName = found_operator.name;
 							activePos = ph.pCurrPos + 1;
 						} else if (needFuncLevel > 0) {
 							needFuncLevel++;
@@ -6315,7 +6314,7 @@ function parserFormula( formula, parent, _ws ) {
 				}
 
 				if (!parseResult.activeFunction && levelFuncMap[currentFuncLevel] && levelFuncMap[currentFuncLevel].startPos <= activePos && activePos <= ph.pCurrPos + 1) {
-					parseResult.activeFunction = levelFuncMap[currentFuncLevel].func;
+					parseResult.activeFunction = {func: levelFuncMap[currentFuncLevel].func, start: levelFuncMap[currentFuncLevel].startPos, end: ph.pCurrPos + 1};
 					parseResult.argPosArr = argPosArrMap[currentFuncLevel];
 				}
 				if (undefined === parseResult.activeArgumentPos && argFuncMap[currentFuncLevel] && argFuncMap[currentFuncLevel].startPos <= activePos && activePos <= ph.pCurrPos + 1) {
