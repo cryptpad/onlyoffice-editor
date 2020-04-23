@@ -7773,7 +7773,7 @@
 						if (!res.argumentsResult) {
 							res.argumentsResult = [];
 						}
-						var _formulaParsedArg = new AscCommonExcel.parserFormula(str, /*formulaParsed.parent*/null, this.model);
+						var _formulaParsedArg = new AscCommonExcel.parserFormula(str, /*formulaParsed.parent*/null, this);
 						var _parseResultArg = new AscCommonExcel.ParseResult([], []);
 						_formulaParsedArg.parse(true, true, _parseResultArg, true);
 						if (!_parseResultArg.error) {
