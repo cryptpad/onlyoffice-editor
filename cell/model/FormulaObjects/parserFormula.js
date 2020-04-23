@@ -5907,7 +5907,7 @@ function parserFormula( formula, parent, _ws ) {
 					needFuncLevel--;
 				}
 				if (!parseResult.activeFunction && levelFuncMap[currentFuncLevel] && levelFuncMap[currentFuncLevel].startPos <= activePos && activePos <= ph.pCurrPos) {
-					parseResult.activeFunction = parseResult.activeFunction = {func: levelFuncMap[currentFuncLevel].func, start: levelFuncMap[currentFuncLevel].startPos, end: ph.pCurrPos};
+					parseResult.activeFunction = {func: levelFuncMap[currentFuncLevel].func, start: levelFuncMap[currentFuncLevel].startPos, end: ph.pCurrPos};
 					parseResult.argPosArr = argPosArrMap[currentFuncLevel];
 				}
 				var _argPos = argPosArrMap[currentFuncLevel];
@@ -5979,11 +5979,13 @@ function parserFormula( formula, parent, _ws ) {
 				if (argFuncMap[currentFuncLevel] && argFuncMap[currentFuncLevel].startPos <= activePos && activePos <= ph.pCurrPos) {
 					parseResult.activeArgumentPos = argFuncMap[currentFuncLevel].count;
 				}
-				argPosArrMap[currentFuncLevel][argPosArrMap[currentFuncLevel].length - 1].end = ph.pCurrPos;
-				argPosArrMap[currentFuncLevel][argPosArrMap[currentFuncLevel].length] = {start: ph.pCurrPos + 1};
+				if (argPosArrMap[currentFuncLevel]) {
+					argPosArrMap[currentFuncLevel][argPosArrMap[currentFuncLevel].length - 1].end = ph.pCurrPos;
+					argPosArrMap[currentFuncLevel][argPosArrMap[currentFuncLevel].length] = {start: ph.pCurrPos + 1};
 
-				argFuncMap[currentFuncLevel].count++;
-				argFuncMap[currentFuncLevel].startPos = ph.pCurrPos + 1;
+					argFuncMap[currentFuncLevel].count++;
+					argFuncMap[currentFuncLevel].startPos = ph.pCurrPos + 1;
+				}
 			}
 
 			return true;
