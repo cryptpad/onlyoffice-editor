@@ -194,6 +194,24 @@ CEndnotesController.prototype.Is_ThisElementCurrent = function(oEndnote)
 
 	return false;
 };
+CEndnotesController.prototype.GetPageBounds = function(nSectionIndex, nPageAbs, nColumnAbs)
+{
+	var oColumn = this.private_GetPageColumn2(nSectionIndex, nPageAbs, nColumnAbs);
+	if (!oColumn)
+		return new CDocumentBounds(0, 0, 0, 0);
+
+	return new CDocumentBounds(oColumn.X, oColumn.Y, oColumn.XLimit, oColumn.Y + oColumn.Height);
+};
+CEndnotesController.prototype.Get_PageContentStartPos = function(nPageAbs, nColumnAbs)
+{
+	//return this.LogicDocument.Get_PageContentStartPos(nPageAbs);
+
+	var oColumn = this.private_GetPageColumn2(this.Sections.length, nPageAbs, nColumnAbs);
+	if (!oColumn)
+		return {X : 0, Y : 0, XLimit : 0, YLimit : 0};
+
+	return {X : oColumn.X, Y : oColumn.Y + oColumn.Height, XLimit : oColumn.XLimit, YLimit : oColumn.YLimit - oColumn.Y};
+};
 CEndnotesController.prototype.OnContentReDraw = function(StartPageAbs, EndPageAbs)
 {
 	this.LogicDocument.OnContentReDraw(StartPageAbs, EndPageAbs);
@@ -307,10 +325,9 @@ CEndnotesController.prototype.RegisterEndnotes = function(nPageAbs, arrEndnotes)
  * Проверяем, есть ли сноски, которые нужно пересчитать в конце заданной секции
  * @param oSectPr {CSectionPr} секция, в конце которой мы расчитываем сноски
  * @param isFinal {boolean} последняя ли это секция документа
- * @param nPageAbs {number} номер страницы, на которой закончилась секкция
  * @returns {boolean}
  */
-CEndnotesController.prototype.HaveEndnotes = function(oSectPr, isFinal, nPageAbs, nSectionIndex)
+CEndnotesController.prototype.HaveEndnotes = function(oSectPr, isFinal)
 {
 	var nEndnotesPos = this.GetEndnotePrPos();
 
@@ -386,6 +403,11 @@ CEndnotesController.prototype.Recalculate = function(X, Y, XLimit, YLimit, nPage
 	var oColumn = new CEndnoteSectionPageColumn();
 	oSection.Pages[nPageAbs].Columns[nColumnAbs] = oColumn;
 
+	oColumn.X      = X;
+	oColumn.Y      = Y;
+	oColumn.XLimit = XLimit;
+	oColumn.YLimit = YLimit;
+
 	oColumn.StartPos = nStartPos;
 
 	var _Y = Y;
@@ -400,19 +422,20 @@ CEndnotesController.prototype.Recalculate = function(X, Y, XLimit, YLimit, nPage
 
 		var oBounds = this.Separator.GetPageBounds(0);
 		_Y += oBounds.Bottom - oBounds.Top;
-		oColumn.Height = _Y;
+		oColumn.Height = _Y - Y;
 	}
 	else if (!isStart && this.ContinuationSeparator)
 	{
 		this.ContinuationSeparator.PrepareRecalculateObject();
 		this.ContinuationSeparator.Reset(X, _Y, XLimit, YLimit);
 		this.ContinuationSeparator.Set_StartPage(nPageAbs, nColumnAbs, nColumnsCount);
+		this.ContinuationSeparator.Recalculate_Page(0, true);
 		oColumn.SeparatorRecalculateObject = this.ContinuationSeparator.SaveRecalculateObject();
 		oColumn.Separator = false;
 
 		var oBounds = this.Separator.GetPageBounds(0);
 		_Y += oBounds.Bottom - oBounds.Top;
-		oColumn.Height = _Y;
+		oColumn.Height = _Y - Y;
 	}
 
 	for (var nPos = nStartPos, nCount = oSection.Endnotes.length; nPos < nCount; ++nPos)
@@ -420,9 +443,10 @@ CEndnotesController.prototype.Recalculate = function(X, Y, XLimit, YLimit, nPage
 		var oEndnote = oSection.Endnotes[nPos];
 
 		if (isStart || nPos !== nStartPos)
+		{
 			oEndnote.Reset(X, _Y, XLimit, YLimit);
-
-		oEndnote.Set_StartPage(nPageAbs, nColumnAbs, nColumnsCount);
+			oEndnote.Set_StartPage(nPageAbs, nColumnAbs, nColumnsCount);
+		}
 
 		var nRelativePage = oEndnote.GetElementPageIndex(nPageAbs, nColumnAbs);
 		var nRecalcResult = oEndnote.Recalculate_Page(nRelativePage, true);
@@ -437,6 +461,7 @@ CEndnotesController.prototype.Recalculate = function(X, Y, XLimit, YLimit, nPage
 			else
 			{
 				oColumn.EndPos = nPos;
+				oColumn.Elements.push(oEndnote);
 				return recalcresult2_NextPage;
 			}
 		}
@@ -450,7 +475,7 @@ CEndnotesController.prototype.Recalculate = function(X, Y, XLimit, YLimit, nPage
 
 		var oBounds = oEndnote.GetPageBounds(nRelativePage);
 		_Y += oBounds.Bottom - oBounds.Top;
-		oColumn.Height = _Y;
+		oColumn.Height = _Y - Y;
 
 		if (recalcresult2_NextPage === nRecalcResult)
 		{
@@ -545,6 +570,22 @@ CEndnotesController.prototype.private_GetPageColumn = function(nPageAbs, nColumn
 
 	return oColumn;
 };
+CEndnotesController.prototype.private_GetPageColumn2 = function(nSectionAbs, nPageAbs, nColumnAbs)
+{
+	var oSection = this.Sections[nSectionAbs];
+	if (!oSection)
+		return null;
+
+	var oPage = oSection.Pages[nPageAbs];
+	if (!oPage)
+		return null;
+
+	var oColumn = oPage.Columns[nColumnAbs];
+	if (!oColumn)
+		return null;
+
+	return oColumn;
+};
 /**
  * Класс регистрирующий концевые сноски на странице
  * @constructor
@@ -590,6 +631,12 @@ function CEndnoteSectionPageColumn()
 	this.Elements = [];
 	this.StartPos = 0;
 	this.EndPos   = -1;
+
+	this.X      = 0;
+	this.XLimit = 0;
+	this.Y      = 0;
+	this.YLimit = 0;
+	this.Height = 0;
 
 	this.ContinuationSeparatorRecalculateObject = null;
 }
