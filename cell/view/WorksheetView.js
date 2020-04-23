@@ -14680,9 +14680,6 @@
             sheetName = parserHelp.getEscapeSheetName(this.model.getName()) + "!";
         }
         editor.enterCellRange(/*defName || */sheetName + currentRange.getName());
-        if (this.selectionDialogType === c_oAscSelectionDialogType.FunctionWizard) {
-			this.handlers.trigger("selectionRangeChanged", this._getRangeValue(currentRange.clone(true)));
-		}
 
         for (var tmpRange, i = 0; i < this.arrActiveFormulaRanges.length; ++i) {
             tmpRange = this.arrActiveFormulaRanges[i];
