@@ -7728,6 +7728,19 @@
 			}
 			return _res;
 		};
+		var t = this;
+		var calculateFormula = function (str) {
+			var _res = null;
+			if (str !== "") {
+				var _formulaParsedArg = new AscCommonExcel.parserFormula(str, /*formulaParsed.parent*/null, t);
+				var _parseResultArg = new AscCommonExcel.ParseResult([], []);
+				_formulaParsedArg.parse(true, true, _parseResultArg, true);
+				if (!_parseResultArg.error) {
+					_res = _formulaParsedArg.calculate();
+				}
+			}
+			return _res;
+		};
 
 		var _formulaParsed, _parseResult, valueForEdit;
 		if (!parser) {
@@ -7750,7 +7763,7 @@
 			valueForEdit = "=" + parser.Formula;
 		}
 
-		var res, str;
+		var res, str, calcRes;
 		if (_formulaParsed && _parseResult.activeFunction && _parseResult.activeFunction.func) {
 			res = createFunctionInfoByName(_parseResult.activeFunction.func.name);
 			if (!_parseResult.error) {
@@ -7762,14 +7775,9 @@
 
 			//asc_getFunctionResult
 			str = valueForEdit.substring(_parseResult.activeFunction.start + 1, _parseResult.activeFunction.end + 1);
-			if (str !== "") {
-				var _formulaParsedArg = new AscCommonExcel.parserFormula(str, /*formulaParsed.parent*/null, this);
-				var _parseResultArg = new AscCommonExcel.ParseResult([], []);
-				_formulaParsedArg.parse(true, true, _parseResultArg, true);
-				if (!_parseResultArg.error) {
-					var calcRes = _formulaParsedArg.calculate();
-					res.functionResult = calcRes.toLocaleString();
-				}
+			calcRes = calculateFormula(str);
+			if (calcRes) {
+				res.functionResult = calcRes.toLocaleString();
 			}
 
 			res._cursorPos = _parseResult.cursorPos + 1;
@@ -7785,11 +7793,8 @@
 						if (!res.argumentsResult) {
 							res.argumentsResult = [];
 						}
-						var _formulaParsedArg = new AscCommonExcel.parserFormula(str, /*formulaParsed.parent*/null, this);
-						var _parseResultArg = new AscCommonExcel.ParseResult([], []);
-						_formulaParsedArg.parse(true, true, _parseResultArg, true);
-						if (!_parseResultArg.error) {
-							var calcRes = _formulaParsedArg.calculate();
+						calcRes = calculateFormula(str);
+						if (calcRes) {
 							res.argumentsResult[i] = calcRes.toLocaleString();
 						}
 					}
