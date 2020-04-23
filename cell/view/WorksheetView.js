@@ -7691,7 +7691,7 @@
 		var widthDiff = 0, heightDiff = 0, isLocked = false, target = c_oTargetType.Cells, row = -1, col = -1,
 			isSelGraphicObject, isNotFirst;
 
-		if (c_oAscSelectionDialogType.None === this.selectionDialogType) {
+		if (!this.isSelectionDialogMode) {
 			var frozenCursor = this._isFrozenAnchor(x, y);
 			if (canEdit && frozenCursor.result) {
 				lockInfo = this.collaborativeEditing.getLockInfo(c_oAscLockTypeElem.Object, null, sheetId,
@@ -7894,8 +7894,7 @@
 		}
 
 		isSelGraphicObject = this.objectRender.selectedGraphicObjectsExists();
-		if (canEdit && !isSelGraphicObject && this.model.selectionRange.isSingleRange() &&
-			c_oAscSelectionDialogType.None === this.selectionDialogType) {
+		if (canEdit && !isSelGraphicObject && this.model.selectionRange.isSingleRange() && !this.isSelectionDialogMode) {
 			this._drawElements(function (_vr, _offsetX, _offsetY) {
 				return (null === (res = this._hitCursorSelectionRange(_vr, x, y, _offsetX, _offsetY)));
 			});
