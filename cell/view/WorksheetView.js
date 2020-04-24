@@ -1403,8 +1403,8 @@
     };
 
     WorksheetView.prototype._getSelection = function () {
-        return (this.isFormulaEditMode) ? this.arrActiveFormulaRanges[this.arrActiveFormulaRangesPosition] :
-          this.model.selectionRange;
+        return (this.isFormulaEditMode && !this.getSelectionDialogMode()) ?
+            this.arrActiveFormulaRanges[this.arrActiveFormulaRangesPosition] : this.model.selectionRange;
     };
 
     WorksheetView.prototype._fixVisibleRange = function ( range ) {
