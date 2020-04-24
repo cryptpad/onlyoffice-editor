@@ -2252,9 +2252,28 @@
 		var functionInfo = null;
 
 		if (this.getCellEditMode()) {
-			this.cellEditor._updateFormulaEditMod();
+
+			//при парсинге формулы она может быть изменена, например может быть добавлена последняя незакрытая скобка
 			var parseResult = t.cellEditor ? t.cellEditor._parseResult : null;
 			if (parseResult && parseResult.activeFunction) {
+				var _f = t.cellEditor._formula.Formula;
+				if (_f[_f.length - 1] === "(") {
+					_f += ")";
+					t.cellEditor._formula.Formula = _f;
+				}
+
+				if (t.cellEditor.textRender.chars !== "=" + _f) {
+					this.cellEditor.selectionBegin = 1;
+					this.cellEditor.selectionEnd = t.cellEditor.textRender.getCharsCount();
+
+					//TODO  проверить нужно ли перемещать курсор?
+					//var _cursorPos = this.cellEditor.cursorPos;
+					this.cellEditor.pasteText(_f);
+					//this.cellEditor._moveCursor(-11, _cursorPos);
+				} else {
+					this.cellEditor._updateFormulaEditMod();
+				}
+
 				functionInfo = ws.model.getActiveFunctionInfo(t.cellEditor._formula, t.cellEditor._parseResult);
 			}
 			t.handlers.trigger("asc_onSendFunctionWizardInfo", functionInfo);

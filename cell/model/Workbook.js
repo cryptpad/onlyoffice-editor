@@ -7715,11 +7715,6 @@
 		var createFunctionInfoByName = function (_name) {
 			var _res;
 			var f = AscCommonExcel.cFormulaFunction[_name];
-			/*if (AscCommonExcel.cFormulaFunctionLocalized) {
-				f = AscCommonExcel.cFormulaFunctionLocalized[_name];
-			} else {
-				f = AscCommonExcel.cFormulaFunction[_name];
-			}*/
 			if (f) {
 				_res = new Asc.CFunctionInfo(_name);
 				_res.argumentsMin = f.prototype.argumentsMin;
