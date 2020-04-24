@@ -1896,7 +1896,7 @@ function DrawingObjects() {
         _this.controller = new AscFormat.DrawingObjectsController(_this);
         _this.lasteForzenPlaseNum = 0;
 
-        _this.canEdit = function() { return worksheet.handlers.trigger('canEdit'); };
+        _this.canEdit = function() { return api.canEdit(); };
 
         aImagesSync = [];
 

@@ -7683,7 +7683,7 @@
 	};
 
 	WorksheetView.prototype.getCursorTypeFromXY = function (x, y) {
-	    var canEdit = this.handlers.trigger('canEdit');
+	    var canEdit = this.workbook.canEdit();
 		var viewMode = this.handlers.trigger('getViewMode');
 		this.handlers.trigger("checkLastWork");
 		var res, c, r, f, offsetX, offsetY, cellCursor;
@@ -14008,7 +14008,7 @@
 		}
 		var t = this;
 
-		if (0 === ranges.length && this.handlers.trigger('canEdit')) {
+		if (0 === ranges.length && this.workbook.canEdit()) {
 
 			//проверяем на совпадение с именем диапазона в другом формате
 			var changeModeRanges;
@@ -17294,7 +17294,7 @@
 
 	WorksheetView.prototype.setPageOptions = function (obj) {
 		var t = this;
-		var viewMode = !window["Asc"]["editor"].canEdit();
+		var viewMode = !this.workbook.canEdit();
 
 		if(!obj) {
 			return;

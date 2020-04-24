@@ -483,7 +483,7 @@
       if (this.input && this.input.addEventListener) {
         this.input.addEventListener("focus", function () {
           self.input.isFocused = true;
-          if (!self.Api.canEdit()) {
+          if (!self.canEdit()) {
             return;
           }
           self._onStopFormatPainter();
@@ -694,7 +694,7 @@
 			  }, "applyCloseEvent": function () {
 				  self.controller._onWindowKeyDown.apply(self.controller, arguments);
 			  }, "canEdit": function () {
-				  return self.Api.canEdit();
+				  return self.canEdit();
 			  }, "getFormulaRanges": function () {
 				  return (self.cellFormulaEnterWSOpen || self.getWorksheet()).getFormulaRanges();
 			  }, "isActive": function () {
@@ -715,9 +715,7 @@
 		  }, this.defaults.worksheetView.cells.padding);
 
 	  this.wsViewHandlers = new AscCommonExcel.asc_CHandlersList(/*handlers*/{
-		  "canEdit": function () {
-			  return self.Api.canEdit();
-		  }, "getViewMode": function () {
+		  "getViewMode": function () {
 			  return self.Api.getViewMode();
 		  }, "isRestrictionComments": function () {
 			  return self.Api.isRestrictionComments();
@@ -1475,7 +1473,7 @@
       }
 
       // In view mode or click on column | row | all | frozenMove | drawing object do not process
-      if (!this.Api.canEdit() || c_oTargetType.ColumnHeader === ct.target || c_oTargetType.RowHeader === ct.target ||
+      if (!this.canEdit() || c_oTargetType.ColumnHeader === ct.target || c_oTargetType.RowHeader === ct.target ||
 		  c_oTargetType.Corner === ct.target || c_oTargetType.FrozenAnchorH === ct.target ||
 		  c_oTargetType.FrozenAnchorV === ct.target || ws.objectRender.checkCursorDrawingObject(x, y)) {
         asc_applyFunction(callback);
@@ -1956,6 +1954,9 @@
   WorkbookView.prototype.getCellEditMode = function() {
 	  return this.isCellEditMode;
   };
+	WorkbookView.prototype.canEdit = function() {
+		return this.Api.canEdit();
+	};
 
 	WorkbookView.prototype.setCellEditMode = function(flag) {
 		this.isCellEditMode = !!flag;
@@ -3322,7 +3323,7 @@
 
 	WorkbookView.prototype.savePagePrintOptions = function (arrPagesPrint) {
 		var t = this;
-		var viewMode = !this.Api.canEdit();
+		var viewMode = !this.canEdit();
 
 		if(!arrPagesPrint) {
 			return;
