@@ -3943,7 +3943,6 @@ var editor;
    * @param selectRange
    */
   spreadsheet_api.prototype.asc_setSelectionDialogMode = function(selectionDialogType, selectRange) {
-    this.controller.setSelectionDialogMode(Asc.c_oAscSelectionDialogType.None !== selectionDialogType);
     if (this.wb) {
       this.wb._onStopFormatPainter();
       this.wb.setSelectionDialogMode(selectionDialogType, selectRange);

@@ -92,7 +92,6 @@
     var c_oAscBorderOptions = asc.c_oAscBorderOptions;
     var c_oAscCleanOptions = asc.c_oAscCleanOptions;
     var c_oAscSelectionType = asc.c_oAscSelectionType;
-    var c_oAscSelectionDialogType = asc.c_oAscSelectionDialogType;
     var c_oAscAutoFilterTypes = asc.c_oAscAutoFilterTypes;
     var c_oAscChangeTableStyleInfo = asc.c_oAscChangeTableStyleInfo;
     var c_oAscChangeSelectionFormatTable = asc.c_oAscChangeSelectionFormatTable;
@@ -389,8 +388,6 @@
 
         this.stateFormatPainter = c_oAscFormatPainterState.kOff;
 
-        this.selectionDialogType = c_oAscSelectionDialogType.None;
-        this.isSelectionDialogMode = false;
         this.copyActiveRange = null;
 
         this.startCellMoveResizeRange = null;
@@ -514,6 +511,10 @@
 	WorksheetView.prototype.getCellEditMode = function () {
 		return this.workbook.isCellEditMode;
 	};
+
+	WorksheetView.prototype.getSelectionDialogMode = function () {
+	    return this.workbook.selectionDialogMode;
+    };
 
     WorksheetView.prototype.getCellVisibleRange = function (col, row) {
         var vr, offsetX = 0, offsetY = 0, cFrozen, rFrozen;
@@ -5213,7 +5214,7 @@
 		// draw active cell in selection
 		var isActive = AscCommonExcel.selectionLineType.ActiveCell & selectionLineType;
 		if (isActive) {
-			var cell = (this.isSelectionDialogMode ? this.copyActiveRange : this.model.selectionRange).activeCell;
+			var cell = (this.getSelectionDialogMode() ? this.copyActiveRange : this.model.selectionRange).activeCell;
 			var fs = this.model.getMergedByCell(cell.row, cell.col);
 			fs = oIntersection.intersectionSimple(fs || new asc_Range(cell.col, cell.row, cell.col, cell.row));
 			if (fs) {
@@ -5336,6 +5337,8 @@
             return;
         }
 
+        var selectionDialogMode = this.getSelectionDialogMode();
+
 		this.handlers.trigger("checkLastWork");
 
         // set clipping rect to cells area
@@ -5350,16 +5353,16 @@
 
 		this._drawCutRange();
 
-		if(pageBreakPreviewModeOverlay) {
+		if (pageBreakPreviewModeOverlay) {
 			this._drawPageBreakPreviewLinesOverlay();
 		}
 
-        if (!this.isSelectionDialogMode) {
+        if (!selectionDialogMode) {
             this._drawCollaborativeElements();
         }
-        var isOtherSelectionMode = this.isSelectionDialogMode || this.isFormulaEditMode;
+        var isOtherSelectionMode = this.selectionDialogMode || this.isFormulaEditMode;
         if (isOtherSelectionMode && !this.handlers.trigger('isActive')) {
-            if (this.isSelectionDialogMode) {
+            if (selectionDialogMode) {
                 this._drawSelectRange();
             } else if (this.isFormulaEditMode) {
                 this._drawFormulaRanges(this.arrActiveFormulaRanges);
@@ -5381,7 +5384,7 @@
                     this._drawElements(this._drawSelectionElement, this.activeFillHandle.clone(true),
                       AscCommonExcel.selectionLineType.None, this.settings.activeCellBorderColor);
                 }
-                if (this.isSelectionDialogMode) {
+                if (selectionDialogMode) {
                     this._drawSelectRange();
                 }
                 if (this.stateFormatPainter && this.handlers.trigger('isActive')) {
@@ -5405,7 +5408,7 @@
     };
 
     WorksheetView.prototype._drawSelectionRange = function () {
-        var type, ranges = (this.isSelectionDialogMode ? this.copyActiveRange : this.model.selectionRange).ranges;
+        var type, ranges = (this.getSelectionDialogMode() ? this.copyActiveRange : this.model.selectionRange).ranges;
         var range, selectionLineType;
         for (var i = 0, l = ranges.length; i < l; ++i) {
             range = ranges[i].clone();
@@ -7690,8 +7693,9 @@
 		var sheetId = this.model.getId(), userId, lockRangePosLeft, lockRangePosTop, lockInfo, oHyperlink;
 		var widthDiff = 0, heightDiff = 0, isLocked = false, target = c_oTargetType.Cells, row = -1, col = -1,
 			isSelGraphicObject, isNotFirst;
+		var selectionDialogMode = this.getSelectionDialogMode();
 
-		if (!this.isSelectionDialogMode) {
+		if (!selectionDialogMode) {
 			var frozenCursor = this._isFrozenAnchor(x, y);
 			if (canEdit && frozenCursor.result) {
 				lockInfo = this.collaborativeEditing.getLockInfo(c_oAscLockTypeElem.Object, null, sheetId,
@@ -7894,7 +7898,7 @@
 		}
 
 		isSelGraphicObject = this.objectRender.selectedGraphicObjectsExists();
-		if (canEdit && !isSelGraphicObject && this.model.selectionRange.isSingleRange() && !this.isSelectionDialogMode) {
+		if (canEdit && !isSelGraphicObject && this.model.selectionRange.isSingleRange() && !selectionDialogMode) {
 			this._drawElements(function (_vr, _offsetX, _offsetY) {
 				return (null === (res = this._hitCursorSelectionRange(_vr, x, y, _offsetX, _offsetY)));
 			});
@@ -8706,11 +8710,10 @@
 
     WorksheetView.prototype._getRangeValue = function (ar) {
         // ToDo проблема с выбором целого столбца/строки
-        var sAbsName = ar.getAbsName();
-		var sName = (c_oAscSelectionDialogType.FormatTable === this.selectionDialogType ||
-		c_oAscSelectionDialogType.CustomSort === this.selectionDialogType ||
-		c_oAscSelectionDialogType.PrintTitles === this.selectionDialogType) ? sAbsName :
-			parserHelp.get3DRef(this.model.getName(), sAbsName);
+        var sName = ar.getName(this.workbook.dialogAbsName ? AscCommonExcel.referenceType.A : AscCommonExcel.referenceType.R);
+        if (this.workbook.getDialogSheetName()) {
+            sName = parserHelp.get3DRef(this.model.getName(), sName);
+        }
         var type = ar.type;
         var selectionRangeValueObj = new AscCommonExcel.asc_CSelectionRangeValue();
         selectionRangeValueObj.asc_setName(sName);
@@ -9159,7 +9162,7 @@
 			this.cellCommentator.resetLastSelectedId();
 		}
 
-		if (this.isSelectionDialogMode) {
+		if (this.getSelectionDialogMode()) {
 			if (!this.model.selectionRange.isEqual(ar)) {
 				// Смена диапазона
 				this.handlers.trigger("selectionRangeChanged", this.getSelectionRangeValue());
@@ -9251,7 +9254,7 @@
             //ToDo this.drawDepCells();
 
             if (!this.getCellEditMode()) {
-                if (!this.isSelectionDialogMode) {
+                if (!this.getSelectionDialogMode()) {
                     this.handlers.trigger("selectionNameChanged", this.getSelectionName(/*bRangeText*/true));
                     if (!isCoord) {
                         this.handlers.trigger("selectionChanged");
@@ -14148,42 +14151,26 @@
         this.isFormulaEditMode = isFormulaEditMode;
     };
 
-    WorksheetView.prototype.setSelectionDialogMode = function (selectionDialogType, selectRange) {
-        if (selectionDialogType === this.selectionDialogType) {
-            return;
-        }
-        var oldSelectionDialogType = this.selectionDialogType;
-        this.selectionDialogType = selectionDialogType;
-        this.isSelectionDialogMode = c_oAscSelectionDialogType.None !== this.selectionDialogType;
+    WorksheetView.prototype.copySelection = function (start, selectRange) {
         this.cleanSelection();
 
-        if (false === this.isSelectionDialogMode) {
-            if (null !== this.copyActiveRange) {
-                this.model.selectionRange = this.copyActiveRange.clone();
-            }
-            this.copyActiveRange = null;
-            if (oldSelectionDialogType === c_oAscSelectionDialogType.Chart) {
-                this.objectRender.controller.checkChartForProps(false);
-            }
-        } else {
+        if (start) {
             this.copyActiveRange = this.model.selectionRange.clone();
-            if (selectRange) {
-                if (typeof selectRange === 'string') {
-                    selectRange = this.model.getRange2(selectRange);
-                    if (selectRange) {
-                        selectRange = selectRange.getBBox0();
-                    }
-                }
-
-                if (null != selectRange) {
-                    this.model.selectionRange.assign2(selectRange);
-                }
+            if (null !== selectRange) {
+                this.model.selectionRange.assign2(selectRange);
             }
-            if (selectionDialogType === c_oAscSelectionDialogType.Chart) {
+
+            if (this.isSelectOnShape) {
                 this.objectRender.controller.checkChartForProps(true);
             }
+        } else {
+            if (null !== this.copyActiveRange) {
+                this.model.selectionRange = this.copyActiveRange;
+            }
+            this.copyActiveRange = null;
+
+            this.objectRender.controller.checkChartForProps(false);
         }
-        this._drawSelection();
     };
 
     WorksheetView.prototype._isFormula = function ( val ) {

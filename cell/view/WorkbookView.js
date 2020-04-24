@@ -219,7 +219,9 @@
     this.stateFormatPainter = c_oAscFormatPainterState.kOff;
     this.rangeFormatPainter = null;
 
-    this.selectionDialogType = c_oAscSelectionDialogType.None;
+    this.selectionDialogMode = false;
+    this.dialogAbsName = false;
+    this.dialogSheetName = false;
     this.copyActiveSheet = -1;
     this.lastActiveSheet = -1;
 
@@ -957,7 +959,7 @@
     this._updateSelectionInfo();
 
     // При редактировании ячейки не нужно пересылать изменения
-    if (this.input && false === this.getCellEditMode() && c_oAscSelectionDialogType.None === this.selectionDialogType) {
+    if (this.input && !this.getCellEditMode() && !this.selectionDialogMode) {
       // Сами запретим заходить в строку формул, когда выделен shape
       if (this.lastSendInfoRangeIsSelectOnShape) {
         this.input.disabled = true;
@@ -1093,7 +1095,7 @@
 		this.timerId = null;
 	}
   	this.keepType = false;
-    if (c_oAscSelectionDialogType.None !== this.selectionDialogType) {
+    if (this.selectionDialogMode) {
       return;
     }
     var ws = this.getWorksheet();
@@ -1761,11 +1763,11 @@
       this.stopTarget(ws);
     }
 
-    if (c_oAscSelectionDialogType.Chart === this.selectionDialogType) {
+    if (this.selectionDialogMode) {
       // Когда идет выбор диапазона, то должны на закрываемом листе отменить выбор диапазона
       tmpWorksheet = this.getWorksheet();
       selectionRange = tmpWorksheet.model.selectionRange.getLast().clone(true);
-      tmpWorksheet.setSelectionDialogMode(c_oAscSelectionDialogType.None);
+      tmpWorksheet.copySelection(false);
     }
     if (this.stateFormatPainter) {
       // Должны отменить выбор на закрываемом листе
@@ -1783,6 +1785,12 @@
     this.handlers.trigger("asc_onHideComment");
 
     ws = this.getWorksheet(index);
+    if (this.selectionDialogMode) {
+      // Когда идет выбор диапазона, то на показываемом листе должны выставить нужный режим
+      ws.copySelection(true, selectionRange);
+      this.handlers.trigger("asc_onSelectionRangeChanged", ws.getSelectionRangeValue());
+    }
+
     // Мы делали resize или меняли zoom, но не перерисовывали данный лист (он был не активный)
     if (ws.updateResize && ws.updateZoom) {
       ws.changeZoomResize();
@@ -1811,11 +1819,6 @@
       ws.draw();
     }
 
-    if (c_oAscSelectionDialogType.Chart === this.selectionDialogType) {
-      // Когда идет выбор диапазона, то на показываемом листе должны выставить нужный режим
-      ws.setSelectionDialogMode(this.selectionDialogType, selectionRange);
-      this.handlers.trigger("asc_onSelectionRangeChanged", ws.getSelectionRangeValue());
-    }
     if (this.stateFormatPainter) {
       // Должны отменить выбор на закрываемом листе
       this.getWorksheet().formatPainter(this.stateFormatPainter);
@@ -1957,6 +1960,10 @@
 	WorkbookView.prototype.canEdit = function() {
 		return this.Api.canEdit();
 	};
+
+    WorkbookView.prototype.getDialogSheetName = function () {
+        return this.dialogSheetName || !this.isActive();
+    };
 
 	WorkbookView.prototype.setCellEditMode = function(flag) {
 		this.isCellEditMode = !!flag;
@@ -2440,48 +2447,60 @@
 		}
 	};
 
+  WorkbookView.prototype._setSelectionDialogType = function (selectionDialogType) {
+      this.dialogSheetName = (c_oAscSelectionDialogType.Chart === selectionDialogType ||
+          c_oAscSelectionDialogType.PivotTableData === selectionDialogType ||
+          c_oAscSelectionDialogType.PivotTableReport === selectionDialogType);
+      this.dialogAbsName = (c_oAscSelectionDialogType.None !== selectionDialogType);
+  };
   WorkbookView.prototype.setSelectionDialogMode = function (selectionDialogType, selectRange) {
-    if (selectionDialogType === this.selectionDialogType) {
-      return;
-    }
+      var newSelectionDialogMode = c_oAscSelectionDialogType.None !== selectionDialogType;
 
-    if (c_oAscSelectionDialogType.None === selectionDialogType) {
-      this.selectionDialogType = selectionDialogType;
-      this.getWorksheet().setSelectionDialogMode(selectionDialogType, selectRange);
-      if (this.copyActiveSheet !== this.wsActive) {
-        this.showWorksheet(this.copyActiveSheet);
+      if (newSelectionDialogMode === this.selectionDialogMode) {
+          return;
       }
-      this.copyActiveSheet = -1;
-      this.input.disabled = false;
-    } else {
-      this.copyActiveSheet = this.wsActive;
 
-      var index, tmpSelectRange = AscCommon.parserHelp.parse3DRef(selectRange);
-      if (tmpSelectRange) {
-        if (c_oAscSelectionDialogType.Chart === selectionDialogType) {
-          // Получаем sheet по имени
-          var ws = this.model.getWorksheetByName(tmpSelectRange.sheet);
-          if (!ws || ws.getHidden()) {
-            tmpSelectRange = null;
+      this._setSelectionDialogType(selectionDialogType);
+      var drawSelection = false;
+
+      if (newSelectionDialogMode) {
+          this.copyActiveSheet = this.wsActive;
+
+          var tmpSelectRange = AscCommon.parserHelp.parse3DRef(selectRange);
+          if (tmpSelectRange) {
+              var ws = this.model.getWorksheetByName(tmpSelectRange.sheet);
+              if (!ws || ws.getHidden()) {
+                  tmpSelectRange = null;
+              } else {
+                  var index = ws.getIndex();
+                  this.showWorksheet(index);
+
+                  tmpSelectRange = tmpSelectRange.range;
+              }
           } else {
-            index = ws.getIndex();
-            this.showWorksheet(index);
-
-            tmpSelectRange = tmpSelectRange.range;
+              tmpSelectRange = selectRange;
           }
-        } else {
-          tmpSelectRange = tmpSelectRange.range;
-        }
+
+          this.getWorksheet().copySelection(true, tmpSelectRange && AscCommonExcel.g_oRangeCache.getAscRange(tmpSelectRange));
+          this.selectionDialogMode = newSelectionDialogMode;
+          this.input.disabled = true;
+          drawSelection = true;
       } else {
-        // Это не 3D ссылка
-        tmpSelectRange = selectRange;
+          this.selectionDialogMode = newSelectionDialogMode;
+          this.getWorksheet().copySelection(false);
+          if (this.copyActiveSheet !== this.wsActive) {
+              this.showWorksheet(this.copyActiveSheet);
+          } else {
+              drawSelection = true;
+          }
+
+          this.copyActiveSheet = -1;
+          this.input.disabled = false;
       }
 
-      this.getWorksheet().setSelectionDialogMode(selectionDialogType, tmpSelectRange);
-      // Нужно выставить после, т.к. при смене листа не должны проставлять режим
-      this.selectionDialogType = selectionDialogType;
-      this.input.disabled = true;
-    }
+      if (drawSelection) {
+          this.getWorksheet()._drawSelection();
+      }
   };
 
   WorkbookView.prototype.formatPainter = function(stateFormatPainter) {

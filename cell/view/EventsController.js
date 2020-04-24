@@ -93,8 +93,6 @@
 			this.isFillHandleMode = false;
 			this.isMoveRangeMode = false;
 			this.isMoveResizeRange = false;
-			// Режим select-а для диалогов
-			this.isSelectionDialogMode = false;
 			// Режим формулы
 			this.isFormulaEditMode = false;
 			// Режим установки закреплённых областей
@@ -243,9 +241,8 @@
 			this.isFormulaEditMode = !!isFormulaEditMode;
 		};
 
-		/** @param {Boolean} isSelectionDialogMode */
-		asc_CEventsController.prototype.setSelectionDialogMode = function (isSelectionDialogMode) {
-			this.isSelectionDialogMode = isSelectionDialogMode;
+		asc_CEventsController.prototype.getSelectionDialogMode = function () {
+			return this.view.selectionDialogMode;
 		};
 
 		asc_CEventsController.prototype.reinitScrollX = function (pos, max, max2) {
@@ -307,7 +304,7 @@
 			var ctrlKey = !AscCommon.getAltGr(event) && (event.metaKey || event.ctrlKey);
 
 			// Для формулы не нужно выходить из редактирования ячейки
-			if (t.isFormulaEditMode || t.isSelectionDialogMode) {return true;}
+			if (this.isFormulaEditMode || this.getSelectionDialogMode()) {return true;}
 
 			if (this.targetInfo && (this.targetInfo.target === AscCommonExcel.c_oTargetType.GroupRow ||
 				this.targetInfo.target === AscCommonExcel.c_oTargetType.GroupCol)) {
@@ -690,6 +687,7 @@
 			var t = this, dc = 0, dr = 0, canEdit = this.canEdit(), action = false;
 			var ctrlKey = !AscCommon.getAltGr(event) && (event.metaKey || event.ctrlKey);
 			var shiftKey = event.shiftKey;
+			var selectionDialogMode = this.getSelectionDialogMode();
 
 			var result = true;
 
@@ -741,7 +739,7 @@
 				case 82:
 					if (ctrlKey && shiftKey) {
 						stop();
-						if (canEdit && !t.getCellEditMode() && !t.isSelectionDialogMode) {
+						if (canEdit && !t.getCellEditMode() && !selectionDialogMode) {
 							t.handlers.trigger("changeFormatTableInfo");
 						}
 						return result;
@@ -764,7 +762,7 @@
 					return result;
 
 				case 113: // F2
-					if (!canEdit || t.getCellEditMode() || t.isSelectionDialogMode) {
+					if (!canEdit || t.getCellEditMode() || selectionDialogMode) {
 						return true;
 					}
 					if (AscBrowser.isOpera) {
@@ -778,7 +776,7 @@
 					return result;
 
 				case 186: // add current date or time Ctrl + (Shift) + ;
-					if (!canEdit || t.getCellEditMode() || t.isSelectionDialogMode) {
+					if (!canEdit || t.getCellEditMode() || selectionDialogMode) {
 						return true;
 					}
 
@@ -789,7 +787,7 @@
 
 
 				case 8: // backspace
-					if (!canEdit || t.getCellEditMode() || t.isSelectionDialogMode) {
+					if (!canEdit || t.getCellEditMode() || selectionDialogMode) {
 						return true;
 					}
 					stop();
@@ -800,7 +798,7 @@
 					return true;
 
 				case 46: // Del
-					if (!canEdit || this.getCellEditMode() || this.isSelectionDialogMode || shiftKey) {
+					if (!canEdit || this.getCellEditMode() || selectionDialogMode || shiftKey) {
 						return true;
 					}
 					// Удаляем содержимое
@@ -808,7 +806,7 @@
 					return result;
 
 				case 9: // tab
-					if (t.getCellEditMode() || t.isSelectionDialogMode) {
+					if (t.getCellEditMode() || selectionDialogMode) {
 						return true;
 					}
 					// Отключим стандартную обработку браузера нажатия tab
@@ -825,7 +823,7 @@
 					break;
 
 				case 13:  // "enter"
-					if (t.getCellEditMode() || t.isSelectionDialogMode) {
+					if (t.getCellEditMode() || selectionDialogMode) {
 						return true;
 					}
 					// Особый случай (возможно движение в выделенной области)
@@ -920,7 +918,7 @@
 				case 40: // down
 					stop();                          // Отключим стандартную обработку браузера нажатия down
 					// Обработка Alt + down
-					if (canEdit && !t.getCellEditMode() && !t.isSelectionDialogMode && event.altKey) {
+					if (canEdit && !t.getCellEditMode() && !selectionDialogMode && event.altKey) {
 						t.handlers.trigger("showAutoComplete");
 						return result;
 					}
@@ -960,13 +958,13 @@
 				//case 83: // save					Ctrl + s
 				case 85:  // make underline			Ctrl + u
 				case 192: // set general format 	Ctrl + Shift + ~
-					if (!canEdit || t.isSelectionDialogMode) {
+					if (!canEdit || selectionDialogMode) {
 						return true;
 					}
 
 				case 89:  // redo					Ctrl + y
 				case 90:  // undo					Ctrl + z
-					if (!(canEdit || t.handlers.trigger('isRestrictionComments'))|| t.isSelectionDialogMode) {
+					if (!(canEdit || t.handlers.trigger('isRestrictionComments'))|| selectionDialogMode) {
 						return true;
 					}
 
@@ -1070,7 +1068,7 @@
 
 				case 61:  // Firefox, Opera (+/=)
 				case 187: // +/=
-					if (!canEdit || t.getCellEditMode() || t.isSelectionDialogMode) {
+					if (!canEdit || t.getCellEditMode() || selectionDialogMode) {
 						return true;
 					}
 
@@ -1148,7 +1146,7 @@
 			// не вводим текст в режиме просмотра
 			// если в FF возвращать false, то отменяется дальнейшая обработка серии keydown -> keypress -> keyup
 			// и тогда у нас не будут обрабатываться ctrl+c и т.п. события
-			if (!this.canEdit() || this.isSelectionDialogMode) {
+			if (!this.canEdit() || this.getSelectionDialogMode()) {
 				return true;
 			}
 
@@ -1363,7 +1361,7 @@
 
 			if (asc["editor"].isStartAddShape || graphicsInfo) {
 				// При выборе диапазона не нужно выделять автофигуру
-				if (t.isSelectionDialogMode) {
+				if (this.getSelectionDialogMode()) {
 					return;
 				}
 
