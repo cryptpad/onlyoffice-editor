@@ -2451,7 +2451,8 @@
       this.dialogSheetName = (c_oAscSelectionDialogType.Chart === selectionDialogType ||
           c_oAscSelectionDialogType.PivotTableData === selectionDialogType ||
           c_oAscSelectionDialogType.PivotTableReport === selectionDialogType);
-      this.dialogAbsName = (c_oAscSelectionDialogType.None !== selectionDialogType);
+      this.dialogAbsName = (c_oAscSelectionDialogType.None !== selectionDialogType &&
+          c_oAscSelectionDialogType.FunctionWizard !== selectionDialogType);
   };
   WorkbookView.prototype.setSelectionDialogMode = function (selectionDialogType, selectRange) {
       var newSelectionDialogMode = c_oAscSelectionDialogType.None !== selectionDialogType;
