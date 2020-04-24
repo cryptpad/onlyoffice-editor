@@ -8695,7 +8695,7 @@
         var ret = [];
         var aRanges = this.model.selectionRange.ranges;
         for(var  i = 0; i < aRanges.length; ++i) {
-            ret.push(this._getRangeValue(aRanges[i].clone(true)), true, true);
+            ret.push(this._getRangeValue(aRanges[i].clone(true), true, true));
         }
         return ret;
     };
