@@ -5360,7 +5360,7 @@
         if (!selectionDialogMode) {
             this._drawCollaborativeElements();
         }
-        var isOtherSelectionMode = this.selectionDialogMode || this.isFormulaEditMode;
+        var isOtherSelectionMode = selectionDialogMode || this.isFormulaEditMode;
         if (isOtherSelectionMode && !this.handlers.trigger('isActive')) {
             if (selectionDialogMode) {
                 this._drawSelectRange();
