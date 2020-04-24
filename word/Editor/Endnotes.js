@@ -403,6 +403,13 @@ CEndnotesController.prototype.Recalculate = function(X, Y, XLimit, YLimit, nPage
 		isStart   = false;
 	}
 
+	// Случай, когда на предыдущей странице не убралось ни одной сноски и мы перенеслись сразу на следующую
+	if (-1 === nStartPos)
+	{
+		nStartPos = 0;
+		isStart   = true;
+	}
+
 	if (!oSection.Pages[nPageAbs])
 		oSection.Pages[nPageAbs] = new CEndnoteSectionPage();
 
