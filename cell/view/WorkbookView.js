@@ -2348,7 +2348,7 @@
 				this.cellEditor._moveCursor(-11, parseResult.argPosArr[argNum].start);
 			}
 		}
-		this.cellEditor.pasteText(val, this.lastFPos);
+		this.cellEditor.pasteText(val);
 
 		return ws.model.getActiveFunctionInfo(this.cellEditor._formula, this.cellEditor._parseResult);
 	};
