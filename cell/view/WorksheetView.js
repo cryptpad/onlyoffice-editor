@@ -9252,17 +9252,15 @@
             this._drawSelection();
 
             //ToDo this.drawDepCells();
-
-            if (!this.getCellEditMode()) {
-                if (!this.getSelectionDialogMode()) {
+            if (this.getSelectionDialogMode()) {
+                this.handlers.trigger("selectionRangeChanged", this.getSelectionRangeValue());
+            } else {
+                if (!this.getCellEditMode()) {
                     this.handlers.trigger("selectionNameChanged", this.getSelectionName(/*bRangeText*/true));
                     if (!isCoord) {
                         this.handlers.trigger("selectionChanged");
                         this.handlers.trigger("selectionMathInfoChanged", this.getSelectionMathInfo());
                     }
-                } else {
-                    // Смена диапазона
-                    this.handlers.trigger("selectionRangeChanged", this.getSelectionRangeValue());
                 }
             }
         }
