@@ -227,7 +227,7 @@
 
 		/** @return {Boolean} */
 		asc_CEventsController.prototype.getCellEditMode = function () {
-			return this.handlers.trigger('getCellEditMode');
+			return this.view.isCellEditMode;
 		};
 
 		asc_CEventsController.prototype.setFocus = function (hasFocus) {
@@ -655,7 +655,6 @@
 		};
 
 		asc_CEventsController.prototype._groupRowClick = function (event, target) {
-			var t = this;
 			// Обновляемся в режиме перемещения диапазона
 			var coord = this._getCoordinates(event);
 			return this.handlers.trigger("groupRowClick", coord.x, coord.y, target, event.type);
@@ -663,8 +662,7 @@
 
 		asc_CEventsController.prototype._commentCellClick = function (event) {
 			// ToDo delete this function!
-			var t = this;
-			var coord = t._getCoordinates(event);
+			var coord = this._getCoordinates(event);
 			this.handlers.trigger("commentCellClick", coord.x, coord.y);
 		};
 

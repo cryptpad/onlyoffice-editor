@@ -359,8 +359,6 @@
 				  self._onEditCell.apply(self, arguments);
 			  }, "stopCellEditing": function () {
 				  return self._onStopCellEditing.apply(self, arguments);
-			  }, "getCellEditMode": function () {
-				  return self.isCellEditMode;
 			  }, "canEdit": function () {
 				  return self.Api.canEdit();
 			  }, "isRestrictionComments": function () {
@@ -2445,7 +2443,7 @@
 		}
 	};
 
-  WorkbookView.prototype.setSelectionDialogMode = function(selectionDialogType, selectRange) {
+  WorkbookView.prototype.setSelectionDialogMode = function (selectionDialogType, selectRange) {
     if (selectionDialogType === this.selectionDialogType) {
       return;
     }
