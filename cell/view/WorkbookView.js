@@ -2474,7 +2474,9 @@
                   tmpSelectRange = null;
               } else {
                   var index = ws.getIndex();
-                  this.showWorksheet(index);
+                  if (index !== this.wsActive) {
+                      this.showWorksheet(index);
+                  }
 
                   tmpSelectRange = tmpSelectRange.range;
               }
