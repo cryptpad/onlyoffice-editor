@@ -2353,6 +2353,31 @@
 		return ws.model.getActiveFunctionInfo(this.cellEditor._formula, this.cellEditor._parseResult);
 	};
 
+	WorkbookView.prototype.moveCursorFunctionArgument = function (argNum, pos) {
+		if (!this.getCellEditMode()) {
+			return;
+		}
+
+		var ws = this.getWorksheet();
+		//argPosArr
+		var parseResult = this.cellEditor ? this.cellEditor._parseResult : null;
+		if (!parseResult || !parseResult.argPosArr || !parseResult.activeFunction || argNum > parseResult.activeFunction.argumentsMax) {
+			return;
+		}
+
+		if (!parseResult.argPosArr[argNum]) {
+			//меняем строку и добавляем разделителей
+			var val = "";
+			for (var i = parseResult.argPosArr.length; i <= argNum; i++) {
+				val = AscCommon.FormulaSeparators.functionArgumentSeparator + val;
+			}
+
+			this.cellEditor.pasteText(val);
+		}
+
+		this.cellEditor._moveCursor(-11, parseResult.argPosArr[argNum].start + pos);
+	};
+
   WorkbookView.prototype.bIsEmptyClipboard = function() {
     return g_clipboardExcel.bIsEmptyClipboard(this.getCellEditMode());
   };
