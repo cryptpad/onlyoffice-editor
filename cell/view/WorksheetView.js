@@ -14642,7 +14642,7 @@
     };
 
     WorksheetView.prototype.enterCellRange = function (editor) {
-        if (!this.isFormulaEditMode) {
+        if (!this.isFormulaEditMode || this.getSelectionDialogMode()) {
             return;
         }
 
@@ -14677,6 +14677,9 @@
     };
 
     WorksheetView.prototype.addFormulaRange = function (range) {
+        if (this.getSelectionDialogMode()) {
+            return;
+        }
         var r = this.model.selectionRange.clone();
         if (range) {
             r.assign2(range);
@@ -14693,6 +14696,9 @@
     };
 
     WorksheetView.prototype.activeFormulaRange = function (range) {
+        if (this.getSelectionDialogMode()) {
+            return;
+        }
         this.arrActiveFormulaRangesPosition = -1;
         for (var i = 0; i < this.arrActiveFormulaRanges.length; ++i) {
             if (this.arrActiveFormulaRanges[i].getLast().isEqual(range)) {
@@ -14702,6 +14708,10 @@
         }
     };
     WorksheetView.prototype.removeFormulaRange = function (range) {
+        if (this.getSelectionDialogMode()) {
+            return;
+        }
+
         this.arrActiveFormulaRangesPosition = -1;
         for (var i = 0; i < this.arrActiveFormulaRanges.length; ++i) {
             if (this.arrActiveFormulaRanges[i].getLast().isEqual(range)) {

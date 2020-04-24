@@ -701,7 +701,9 @@
 				  return (self.cellFormulaEnterWSOpen || self.getWorksheet()).getFormulaRanges();
 			  }, "isActive": function () {
 				  return self.isActive();
-			  }, "getCellFormulaEnterWSOpen": function () {
+			  }, "getSelectionDialogMode": function () {
+			      return self.selectionDialogMode;
+              }, "getCellFormulaEnterWSOpen": function () {
 				  return self.cellFormulaEnterWSOpen;
 			  }, "getActiveWS": function () {
 				  return self.getWorksheet().model;
