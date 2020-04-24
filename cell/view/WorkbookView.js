@@ -2269,9 +2269,9 @@
 					this.cellEditor.selectionEnd = t.cellEditor.textRender.getCharsCount();
 
 					//TODO  проверить нужно ли перемещать курсор?
-					//var _cursorPos = this.cellEditor.cursorPos;
+					var _cursorPos = this.cellEditor.cursorPos;
 					this.cellEditor.pasteText(_f);
-					//this.cellEditor._moveCursor(-11, _cursorPos);
+					this.cellEditor._moveCursor(-11, _cursorPos);
 				} else {
 					this.cellEditor._updateFormulaEditMod();
 				}
