@@ -194,19 +194,25 @@ CEndnotesController.prototype.Is_ThisElementCurrent = function(oEndnote)
 
 	return false;
 };
-CEndnotesController.prototype.GetPageBounds = function(nSectionIndex, nPageAbs, nColumnAbs)
+CEndnotesController.prototype.IsEmptyPageColumn = function(nPageIndex, nColumnIndex, nSectionIndex)
 {
-	var oColumn = this.private_GetPageColumn2(nSectionIndex, nPageAbs, nColumnAbs);
+	var oColumn = this.private_GetPageColumn(nPageIndex, nColumnIndex, nSectionIndex);
+	if (!oColumn || oColumn.Elements.length <= 0)
+		return true;
+
+	return false;
+};
+CEndnotesController.prototype.GetPageBounds = function(nPageAbs, nColumnAbs, nSectionAbs)
+{
+	var oColumn = this.private_GetPageColumn(nPageAbs, nColumnAbs, nSectionAbs);
 	if (!oColumn)
 		return new CDocumentBounds(0, 0, 0, 0);
 
 	return new CDocumentBounds(oColumn.X, oColumn.Y, oColumn.XLimit, oColumn.Y + oColumn.Height);
 };
-CEndnotesController.prototype.Get_PageContentStartPos = function(nPageAbs, nColumnAbs)
+CEndnotesController.prototype.Get_PageContentStartPos = function(nPageAbs, nColumnAbs, nSectionAbs)
 {
-	//return this.LogicDocument.Get_PageContentStartPos(nPageAbs);
-
-	var oColumn = this.private_GetPageColumn2(this.Sections.length, nPageAbs, nColumnAbs);
+	var oColumn = this.private_GetPageColumn(nPageAbs, nColumnAbs, nSectionAbs);
 	if (!oColumn)
 		return {X : 0, Y : 0, XLimit : 0, YLimit : 0};
 
@@ -414,6 +420,7 @@ CEndnotesController.prototype.Recalculate = function(X, Y, XLimit, YLimit, nPage
 	if (isStart && this.Separator)
 	{
 		this.Separator.PrepareRecalculateObject();
+		this.Separator.SetSectionIndex(nSectionIndex);
 		this.Separator.Reset(X, _Y, XLimit, YLimit);
 		this.Separator.Set_StartPage(nPageAbs, nColumnAbs, nColumnsCount);
 		this.Separator.Recalculate_Page(0, true);
@@ -427,6 +434,7 @@ CEndnotesController.prototype.Recalculate = function(X, Y, XLimit, YLimit, nPage
 	else if (!isStart && this.ContinuationSeparator)
 	{
 		this.ContinuationSeparator.PrepareRecalculateObject();
+		this.ContinuationSeparator.SetSectionIndex(nSectionIndex);
 		this.ContinuationSeparator.Reset(X, _Y, XLimit, YLimit);
 		this.ContinuationSeparator.Set_StartPage(nPageAbs, nColumnAbs, nColumnsCount);
 		this.ContinuationSeparator.Recalculate_Page(0, true);
@@ -442,6 +450,7 @@ CEndnotesController.prototype.Recalculate = function(X, Y, XLimit, YLimit, nPage
 	{
 		var oEndnote = oSection.Endnotes[nPos];
 
+		oEndnote.SetSectionIndex(nSectionIndex);
 		if (isStart || nPos !== nStartPos)
 		{
 			oEndnote.Reset(X, _Y, XLimit, YLimit);
@@ -547,9 +556,9 @@ CEndnotesController.prototype.Draw = function(nPageAbs, nSectionIndex, oGraphics
 		}
 	}
 };
-CEndnotesController.prototype.GetColumnFields = function(nPageAbs, nColumnAbs)
+CEndnotesController.prototype.GetColumnFields = function(nPageAbs, nColumnAbs, nSectionIndex)
 {
-	var oColumn = this.private_GetPageColumn(nPageAbs, nColumnAbs);
+	var oColumn = this.private_GetPageColumn(nPageAbs, nColumnAbs, nSectionIndex);
 	if (!oColumn)
 		return {X : 0, XLimit : 297};
 
@@ -558,19 +567,7 @@ CEndnotesController.prototype.GetColumnFields = function(nPageAbs, nColumnAbs)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Private area
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-CEndnotesController.prototype.private_GetPageColumn = function(nPageAbs, nColumnAbs)
-{
-	var oPage = this.Pages[nPageAbs];
-	if (!oPage)
-		return null;
-
-	var oColumn = oPage.Columns[nColumnAbs];
-	if (!oColumn)
-		return null;
-
-	return oColumn;
-};
-CEndnotesController.prototype.private_GetPageColumn2 = function(nSectionAbs, nPageAbs, nColumnAbs)
+CEndnotesController.prototype.private_GetPageColumn = function(nPageAbs, nColumnAbs, nSectionAbs)
 {
 	var oSection = this.Sections[nSectionAbs];
 	if (!oSection)

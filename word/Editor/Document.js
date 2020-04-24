@@ -832,6 +832,7 @@ function CDocumentRecalculateState()
     this.Start        = true;
     this.StartIndex   = 0;
     this.StartPage    = 0;
+	this.Endnotes     = false;
 
     this.ResetStartElement = false;
     this.MainStartPos      = -1;
@@ -2521,7 +2522,7 @@ CDocument.prototype.Is_ThisElementCurrent          = function()
     return true;
 };
 CDocument.prototype.Get_PageContentStartPos = function(PageIndex, ElementIndex)
-{
+ {
 	if (undefined === ElementIndex && undefined !== this.Pages[PageIndex])
 		ElementIndex = this.Pages[PageIndex].Pos;
 
@@ -3421,6 +3422,7 @@ CDocument.prototype.private_Recalculate = function(_RecalcData, isForceStrictRec
     this.FullRecalc.Start             = true;
     this.FullRecalc.StartPage         = StartPage;
     this.FullRecalc.ResetStartElement = this.private_RecalculateIsNewSection(StartPage, StartIndex);
+    this.FullRecalc.Endnotes          = false;
 
     // Если у нас произошли какие-либо изменения с основной частью документа, тогда начинаем его пересчитывать сразу,
     // а если изменения касались только секций, тогда пересчитываем основную часть документа только с того места, где
@@ -3666,7 +3668,7 @@ CDocument.prototype.Recalculate_PageColumn                   = function()
 		if (recalcresult2_End === nEndnoteRecalcResult)
 		{
 			// Сноски закончились на данной странице
-			Y = this.Endnotes.GetPageBounds(ElementPageIndex).Bottom;
+			Y = this.Endnotes.GetPageBounds(PageIndex, ColumnIndex, this.SectionsInfo.Find(SectPr)).Bottom;
 			_bEndnotesContinue = false;
 		}
 		else
@@ -3904,7 +3906,7 @@ CDocument.prototype.Recalculate_PageColumn                   = function()
 				if (recalcresult2_End === nEndnoteRecalcResult)
 				{
 					// Сноски закончились на данной странице
-					Y = this.Endnotes.GetPageBounds(ElementPageIndex).Bottom;
+					Y = this.Endnotes.GetPageBounds(PageIndex, ColumnIndex, nSectionIndexAbs).Bottom;
 				}
 				else
 				{
