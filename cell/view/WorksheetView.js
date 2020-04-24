@@ -412,7 +412,7 @@
         // Массив ячеек для текущей формулы
         this.arrActiveFormulaRanges = [];
         this.arrActiveFormulaRangesPosition = -1;
-        this.arrActiveChartRanges = [new AscCommonExcel.SelectionRange(this.model)];
+        this.arrActiveChartRanges = [];
         //------------------------
 
         this.collaborativeEditing = collaborativeEditing;
@@ -5375,9 +5375,6 @@
                 }
             } else {
 				this._drawFormulaRanges(this.arrActiveFormulaRanges);
-				if (this.isChartAreaEditMode) {
-					this._drawFormulaRanges(this.arrActiveChartRanges);
-				}
                 this._drawSelectionRange();
 
                 if (this.activeFillHandle) {
@@ -14635,14 +14632,10 @@
 		}
 	};
 
-    WorksheetView.prototype.setChartRange = function (range) {
-        this.isChartAreaEditMode = true;
-        this.arrActiveChartRanges[0].assign2(range);
-    };
     WorksheetView.prototype.endEditChart = function () {
         if (this.isChartAreaEditMode) {
             this.isChartAreaEditMode = false;
-            this.arrActiveChartRanges[0].clean();
+            this.arrActiveChartRanges = [];
         }
     };
 
