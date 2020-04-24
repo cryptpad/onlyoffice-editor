@@ -3558,7 +3558,7 @@ function OfflineEditor () {
                     selection.activeCell.row = newRange.r1;
                 }
                 
-                if (!this.handlers.trigger('getCellEditMode')) {
+                if (!this.getCellEditMode()) {
                     if (!this.isSelectionDialogMode) {
                         this.handlers.trigger("selectionNameChanged", this.getSelectionName(/*bRangeText*/true));
                         if (!isSelectMode) {

@@ -756,8 +756,6 @@
 			  return self.defNameAllowCreate;
 		  }, 'isActive': function () {
 			  return self.isActive();
-		  }, "getCellEditMode": function () {
-			  return self.isCellEditMode;
 		  }, "drawMobileSelection": function (color) {
 			  if (self.MobileTouchManager) {
 				  self.MobileTouchManager.CheckSelect(self.trackOverlay, color);

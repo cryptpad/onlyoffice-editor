@@ -512,7 +512,7 @@
 	};
 
 	WorksheetView.prototype.getCellEditMode = function () {
-		return this.handlers.trigger('getCellEditMode');
+		return this.workbook.isCellEditMode;
 	};
 
     WorksheetView.prototype.getCellVisibleRange = function (col, row) {
