@@ -14154,7 +14154,7 @@
 
         if (start) {
             this.copyActiveRange = this.model.selectionRange.clone();
-            if (null !== selectRange) {
+            if (selectRange) {
                 this.model.selectionRange.assign2(selectRange);
             }
 
