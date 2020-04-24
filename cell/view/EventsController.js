@@ -222,7 +222,7 @@
 
 		/** @return {Boolean} */
 		asc_CEventsController.prototype.canEdit = function () {
-			return this.handlers.trigger('canEdit');
+			return this.view.Api.canEdit();
 		};
 
 		/** @return {Boolean} */

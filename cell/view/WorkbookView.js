@@ -359,8 +359,6 @@
 				  self._onEditCell.apply(self, arguments);
 			  }, "stopCellEditing": function () {
 				  return self._onStopCellEditing.apply(self, arguments);
-			  }, "canEdit": function () {
-				  return self.Api.canEdit();
 			  }, "isRestrictionComments": function () {
 				  return self.Api.isRestrictionComments();
 			  }, "empty": function () {
