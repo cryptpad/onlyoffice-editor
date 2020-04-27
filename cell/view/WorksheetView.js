@@ -2281,7 +2281,7 @@
 				drawingCtx.AddClipRect(clipLeftShape, clipTopShape, clipWidthShape, clipHeightShape);
 
 				drawingCtx.DocumentRenderer.SetBaseTransform(oBaseTransform);
-				t.objectRender.showDrawingObjectsEx(false, null, drawingPrintOptions);
+				t.objectRender.print(drawingPrintOptions);
 				drawingCtx.DocumentRenderer.SetBaseTransform(oOldBaseTransform);
 				t.visibleRange = tmpVisibleRange;
 

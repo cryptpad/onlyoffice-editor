@@ -1241,7 +1241,6 @@ function GraphicOption(ws, type, range, offset) {
     this.ws = ws;
 	this.type = type;
 	this.range = range;
-
 	this.offset = offset;
 }
 
@@ -1701,6 +1700,11 @@ function DrawingObjects() {
        return bUpdateExtents;
     };
 
+    DrawingBase.prototype.draw = function (graphics) {
+        if(this.graphicObject) {
+            this.graphicObject.draw(graphics);
+        }
+    };
     //}
 
     //-----------------------------------------------------------------------------------
@@ -2106,7 +2110,7 @@ function DrawingObjects() {
         aDrawTasks.push({ time: currTime, params: { clearCanvas: clearCanvas, graphicOption: graphicOption, printOptions: printOptions} });
     };
 
-    _this.showDrawingObjectsEx = function(clearCanvas, graphicOption, printOptions) {
+    _this.showDrawingObjectsEx = function(clearCanvas, graphicOption) {
 
         /*********** Print Options ***************
          printOptions : {
@@ -2116,15 +2120,15 @@ function DrawingObjects() {
          *****************************************/
 
         // Undo/Redo
-        if ( (worksheet.model.index != api.wb.model.getActive()) && !printOptions )
+        if ( (worksheet.model.index !== api.wb.model.getActive()))
             return;
 
-        if ( drawingCtx ) {
+        if(drawingCtx) {
             if ( clearCanvas ) {
                 _this.drawingArea.clear();
             }
 
-            if ( aObjects.length || api.watermarkDraw ) {
+            if(aObjects.length > 0) {
                 var shapeCtx = api.wb.shapeCtx;
                 if (graphicOption) {
                     // Выставляем нужный диапазон для отрисовки
@@ -2151,8 +2155,10 @@ function DrawingObjects() {
                     shapeCtx.m_oContext.clip();
 
                     shapeCtx.updatedRect = updatedRect;
-                } else
+                }
+                else {
                     shapeCtx.updatedRect = null;
+                }
 
 
                 for (var i = 0; i < aObjects.length; i++) {
@@ -2160,24 +2166,10 @@ function DrawingObjects() {
 
                     // Shape render (drawForPrint)
                     if ( drawingObject.isGraphicObject() ) {
-                        if ( printOptions ) {
+                        _this.drawingArea.drawObject(drawingObject);
 
-                            var range = printOptions.printPagesData.pageRange;
-                            var printPagesData = printOptions.printPagesData;
-                            var offsetCols = printPagesData.startOffsetPx;
-
-                            var left = worksheet.getCellLeft(range.c1, 3) - worksheet.getCellLeft(0, 3) - pxToMm(printPagesData.leftFieldInPx + printOptions.titleWidth);
-                            var top = worksheet.getCellTop(range.r1, 3) - worksheet.getCellTop(0, 3) - pxToMm(printPagesData.topFieldInPx + printOptions.titleHeight);
-
-                            _this.printGraphicObject(drawingObject.graphicObject, printOptions.ctx.DocumentRenderer, top, left);
-                        }
-                        else {
-                            _this.drawingArea.drawObject(drawingObject);
-                        }
                     }
                 }
-
-
 				if (graphicOption)
                 {
                     shapeCtx.m_oContext.restore();
@@ -2185,16 +2177,19 @@ function DrawingObjects() {
             }
             worksheet.model.Drawings = aObjects;
         }
-
-        if ( !printOptions ) {
-
-            var bChangedFrozen = _this.lasteForzenPlaseNum !== _this.drawingArea.frozenPlaces.length;
-            if ( _this.controller.selectedObjects.length || _this.drawingArea.frozenPlaces.length > 1 || bChangedFrozen || window['Asc']['editor'].watermarkDraw) {
-                _this.OnUpdateOverlay();
-                _this.controller.updateSelectionState(true);
-            }
+        var bChangedFrozen = _this.lasteForzenPlaseNum !== _this.drawingArea.frozenPlaces.length;
+        if ( _this.controller.selectedObjects.length || _this.drawingArea.frozenPlaces.length > 1 || bChangedFrozen || window['Asc']['editor'].watermarkDraw) {
+            _this.OnUpdateOverlay();
+            _this.controller.updateSelectionState(true);
         }
         _this.lasteForzenPlaseNum = _this.drawingArea.frozenPlaces.length;
+    };
+
+    _this.print = function(oOptions) {
+        for(var nObject = 0; nObject < aObjects.length; ++nObject) {
+            var oDrawing = aObjects[nObject];
+            oDrawing.draw(oOptions.ctx.DocumentRenderer);
+        }
     };
 
     _this.getDrawingDocument = function()
