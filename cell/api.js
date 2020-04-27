@@ -3914,6 +3914,12 @@ var editor;
     return res;
   };
 
+  spreadsheet_api.prototype.asc_moveCursorFunctionArgument = function(argNum, pos) {
+    var res = this.wb.moveCursorFunctionArgument(argNum, pos);
+    this.wb.restoreFocus();
+    return res;
+  };
+
   spreadsheet_api.prototype.asc_getFormulasInfo = function() {
     return this.formulasList;
   };
@@ -4867,6 +4873,7 @@ var editor;
   prot["asc_getFormulaLocaleName"] = prot.asc_getFormulaLocaleName;
   prot["asc_getFormulaNameByLocale"] = prot.asc_getFormulaNameByLocale;
   prot["asc_insertFormulaArgument"] = prot.asc_insertFormulaArgument;
+  prot["asc_moveCursorFunctionArgument"] = prot.asc_moveCursorFunctionArgument;
   prot["asc_calculate"] = prot.asc_calculate;
   prot["asc_setFontRenderingMode"] = prot.asc_setFontRenderingMode;
   prot["asc_setSelectionDialogMode"] = prot.asc_setSelectionDialogMode;

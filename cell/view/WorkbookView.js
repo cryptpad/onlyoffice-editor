@@ -2356,8 +2356,6 @@
 			return;
 		}
 
-		var ws = this.getWorksheet();
-		//argPosArr
 		var parseResult = this.cellEditor ? this.cellEditor._parseResult : null;
 		if (!parseResult || !parseResult.argPosArr || !parseResult.activeFunction || argNum > parseResult.activeFunction.argumentsMax) {
 			return;
@@ -2371,9 +2369,9 @@
 			}
 
 			this.cellEditor.pasteText(val);
+		} else {
+			this.cellEditor._moveCursor(-11, parseResult.argPosArr[argNum].start + pos);
 		}
-
-		this.cellEditor._moveCursor(-11, parseResult.argPosArr[argNum].start + pos);
 	};
 
   WorkbookView.prototype.bIsEmptyClipboard = function() {
