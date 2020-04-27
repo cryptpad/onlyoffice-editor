@@ -1594,6 +1594,7 @@
     	History._sendCanUndoRedo();
     }
 
+    this.getWorksheet().updateSelectionWithSparklines();
     // Обновляем состояние информации
     this._onWSSelectionChanged();
 
