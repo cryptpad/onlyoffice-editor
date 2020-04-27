@@ -2336,6 +2336,37 @@
 		if (!parseResult || !parseResult.argPosArr || !parseResult.activeFunction || argNum > parseResult.activeFunction.argumentsMax) {
 			return;
 		}
+
+		var _formulaParsedArg, _parseResultArg;
+		var tryCalculateFormula = function (str) {
+			var _res = null;
+			_formulaParsedArg = new AscCommonExcel.parserFormula(str, /*formulaParsed.parent*/null, ws.model);
+			_parseResultArg = new AscCommonExcel.ParseResult([], []);
+			_formulaParsedArg.parse(true, true, _parseResultArg, true);
+
+			if (!_parseResultArg.error) {
+				_res = _formulaParsedArg.calculate();
+			}
+
+			return _res;
+		};
+
+		var fullRecalc = false;
+		//предварительное преобразование данного аргумента
+		if (fullRecalc && type !== undefined) {
+			var curArg = val, _calc;
+			if (type === Asc.c_oAscFormulaArgumentType.any) {
+				_calc = tryCalculateFormula(curArg);
+				if (_calc && _calc.type === AscCommonExcel.cElementType.error && _calc.type.errorType === AscCommonExcel.cErrorType.wrong_name) {
+					curArg = '"' + curArg + '"';
+					_calc = tryCalculateFormula(curArg);
+					if (_calc && _calc.type === AscCommonExcel.cElementType.error) {
+						val = curArg;
+					}
+				}
+			}
+		}
+
 		if (!parseResult.argPosArr[argNum]) {
 			//меняем строку и добавляем разделителей
 			for (var i = parseResult.argPosArr.length; i <= argNum; i++) {
@@ -2354,8 +2385,8 @@
 				this.cellEditor._moveCursor(-11, parseResult.argPosArr[argNum].start);
 			}
 		}
-		this.cellEditor.pasteText(val);
 
+		this.cellEditor.pasteText(val);
 		return ws.model.getActiveFunctionInfo(this.cellEditor._formula, this.cellEditor._parseResult);
 	};
 
