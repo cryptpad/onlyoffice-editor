@@ -93,8 +93,6 @@
 			this.isFillHandleMode = false;
 			this.isMoveRangeMode = false;
 			this.isMoveResizeRange = false;
-			// Режим формулы
-			this.isFormulaEditMode = false;
 			// Режим установки закреплённых областей
 			this.frozenAnchorMode = false;
 			
@@ -236,9 +234,9 @@
 			this.strictClose = !!enabled;
 		};
 
-		/** @param isFormulaEditMode {Boolean} */
-		asc_CEventsController.prototype.setFormulaEditMode = function (isFormulaEditMode) {
-			this.isFormulaEditMode = !!isFormulaEditMode;
+		/** @return {Boolean} */
+		asc_CEventsController.prototype.getFormulaEditMode = function () {
+			return this.view.isFormulaEditMode;
 		};
 
 		asc_CEventsController.prototype.getSelectionDialogMode = function () {
@@ -304,7 +302,7 @@
 			var ctrlKey = !AscCommon.getAltGr(event) && (event.metaKey || event.ctrlKey);
 
 			// Для формулы не нужно выходить из редактирования ячейки
-			if (this.isFormulaEditMode || this.getSelectionDialogMode()) {return true;}
+			if (this.getFormulaEditMode() || this.getSelectionDialogMode()) {return true;}
 
 			if (this.targetInfo && (this.targetInfo.target === AscCommonExcel.c_oTargetType.GroupRow ||
 				this.targetInfo.target === AscCommonExcel.c_oTargetType.GroupCol)) {
@@ -673,6 +671,7 @@
 			var ctrlKey = !AscCommon.getAltGr(event) && (event.metaKey || event.ctrlKey);
 			var shiftKey = event.shiftKey;
 			var selectionDialogMode = this.getSelectionDialogMode();
+			var isFormulaEditMode = this.getFormulaEditMode();
 
 			var result = true;
 
@@ -912,7 +911,7 @@
 
 				case 36: // home
 					stop();                          // Отключим стандартную обработку браузера нажатия home
-					if (t.isFormulaEditMode) {
+					if (isFormulaEditMode) {
 						break;
 					}
 					dc = -2.5;
@@ -923,7 +922,7 @@
 
 				case 35: // end
 					stop();                          // Отключим стандартную обработку браузера нажатия end
-					if (t.isFormulaEditMode) {
+					if (isFormulaEditMode) {
 						break;
 					}
 					dc = 2.5;
@@ -1447,7 +1446,8 @@
 			        return;
                 }
 
-				if (!t.isFormulaEditMode) {
+			    // ToDo delete
+				if (!t.getFormulaEditMode()) {
 					if (!t.handlers.trigger("stopCellEditing")) {
 						return;
 					}
@@ -1457,7 +1457,7 @@
 						t._changeSelection(event);
 						return;
 					} else {
-						if (t.isFormulaEditMode) {
+						if (t.getFormulaEditMode()) {
 							// !!! в зависимости от цели делаем разные действия - либо селектим область либо мувим существующий диапазон
 							if (t.targetInfo && t.targetInfo.target === c_oTargetType.MoveResizeRange &&
 								this.canEdit()) {

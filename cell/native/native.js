@@ -5283,7 +5283,6 @@ window["native"]["offline_cell_editor_test_cells"] = function(x, y, width, heigh
             
             //t.setCellEditMode(false);
             //t.controller.setStrictClose(false);
-            //t.controller.setFormulaEditMode(false);
             //ws.setCellEditMode(false);
             //ws.setFormulaEditMode(false);
             //t.input.disabled = true;

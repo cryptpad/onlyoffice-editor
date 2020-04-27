@@ -174,6 +174,7 @@
     this.lockDraw = false;		// Lock отрисовки на некоторое время
 
     this.isCellEditMode = false;
+    this.isFormulaEditMode = false;
 
 	  this.isShowComments = true;
 	  this.isShowSolved = true;
@@ -1086,7 +1087,7 @@
     }
 
     // ToDo
-    if (this.controller.isFormulaEditMode) {
+    if (this.isFormulaEditMode) {
         this.lockDraw = true;
         this.skipHelpSelector = true;
         this.cellEditor.setFocus(false);
@@ -1124,7 +1125,7 @@
 
     var ct = ws.getCursorTypeFromXY(x, y);
 
-    if (c_oTargetType.Hyperlink === ct.target && !this.controller.isFormulaEditMode) {
+    if (c_oTargetType.Hyperlink === ct.target && !this.isFormulaEditMode) {
       // Проверим замерженность
       var isHyperlinkClick = false;
      if(isSelectOnShape) {
@@ -1540,7 +1541,7 @@
       if (!res) {
         t.setCellEditMode(false);
         t.controller.setStrictClose(false);
-        t.controller.setFormulaEditMode(false);
+        t.isFormulaEditMode = false;
         ws.setFormulaEditMode(false);
         t.input.disabled = true;
 
@@ -1560,7 +1561,7 @@
 
   WorkbookView.prototype._onStopCellEditing2 = function() {
       if (this.isCellEditMode) {
-          if (this.controller.isFormulaEditMode) {
+          if (this.isFormulaEditMode) {
               this.cellEditor.setFocus(false);
               if (this.cellEditor.canEnterCellRange()) {
                   this.cellEditor.activateCellRange();
@@ -2264,8 +2265,8 @@
 				} else {
 					t.setCellEditMode(false);
 					t.controller.setStrictClose(false);
-					t.controller.setFormulaEditMode(false);
 					ws.setFormulaEditMode(false);
+                    t.isFormulaEditMode = false;
 				}
 			};
 
