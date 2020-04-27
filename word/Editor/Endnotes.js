@@ -216,7 +216,7 @@ CEndnotesController.prototype.Get_PageContentStartPos = function(nPageAbs, nColu
 	if (!oColumn)
 		return {X : 0, Y : 0, XLimit : 0, YLimit : 0};
 
-	return {X : oColumn.X, Y : oColumn.Y + oColumn.Height, XLimit : oColumn.XLimit, YLimit : oColumn.YLimit - oColumn.Y};
+	return {X : oColumn.X, Y : oColumn.Y + oColumn.Height, XLimit : oColumn.XLimit, YLimit : oColumn.YLimit};
 };
 CEndnotesController.prototype.OnContentReDraw = function(StartPageAbs, EndPageAbs)
 {
@@ -484,6 +484,11 @@ CEndnotesController.prototype.Recalculate = function(X, Y, XLimit, YLimit, nPage
 			{
 				oColumn.EndPos = nPos;
 				oColumn.Elements.push(oEndnote);
+
+				var oBounds = oEndnote.GetPageBounds(nRelativePage);
+				_Y += oBounds.Bottom - oBounds.Top;
+				oColumn.Height = _Y - Y;
+
 				return recalcresult2_NextPage;
 			}
 		}
