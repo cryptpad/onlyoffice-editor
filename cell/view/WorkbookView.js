@@ -363,18 +363,6 @@
 				  return self.Api.isRestrictionComments();
 			  }, "empty": function () {
 				  self._onEmpty.apply(self, arguments);
-			  }, "canEnterCellRange": function () {
-				  self.cellEditor.setFocus(false);
-				  var ret = self.cellEditor.canEnterCellRange();
-				  ret ? self.cellEditor.activateCellRange() : true;
-				  return ret;
-			  }, "enterCellRange": function () {
-				  self.lockDraw = true;
-				  self.skipHelpSelector = true;
-				  self.cellEditor.setFocus(false);
-				  self.getWorksheet().enterCellRange(self.cellEditor);
-				  self.skipHelpSelector = false;
-				  self.lockDraw = false;
 			  }, "undo": function () {
 				  self.undo.apply(self, arguments);
 			  }, "redo": function () {
@@ -1074,6 +1062,9 @@
             return;
         }
     }
+    if (!this._onStopCellEditing2()) {
+        return;
+    }
 
     var t = this;
     var d = isStartPoint ? ws.changeSelectionStartPoint(dc, dr, isCoord, isCtrl) :
@@ -1093,6 +1084,17 @@
     		t.timerEnd = true;
     		},1000);
     }
+
+    // ToDo
+    if (this.controller.isFormulaEditMode) {
+        this.lockDraw = true;
+        this.skipHelpSelector = true;
+        this.cellEditor.setFocus(false);
+        this.getWorksheet().enterCellRange(self.cellEditor);
+        this.skipHelpSelector = false;
+        this.lockDraw = false;
+    }
+
     asc_applyFunction(callback, d);
   };
 
@@ -1556,6 +1558,20 @@
     }
   };
 
+  WorkbookView.prototype._onStopCellEditing2 = function() {
+      if (this.isCellEditMode) {
+          if (this.controller.isFormulaEditMode) {
+              this.cellEditor.setFocus(false);
+              if (this.cellEditor.canEnterCellRange()) {
+                  this.cellEditor.activateCellRange();
+                  return true;
+              }
+          }
+          return this._onStopCellEditing();
+      }
+
+    return true;
+  };
   WorkbookView.prototype._onStopCellEditing = function(cancel) {
     return this.cellEditor.close(!cancel);
   };
@@ -1587,6 +1603,9 @@
 
     if (isCellEditMode) {
       this.handlers.trigger("asc_onEditCell", Asc.c_oAscCellEditorState.editEnd);
+      if (window['IS_NATIVE_EDITOR']) {
+          window["native"]["closeCellEditor"]();
+      }
     }
 
     // Обновляем состояние Undo/Redo

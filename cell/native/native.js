@@ -4941,7 +4941,6 @@ window["native"]["offline_mouse_down"] = function(x, y, pin, isViewerMode, isFor
     }
     
     _s.cellPin = pin;
-    _s.isFormulaEditMode = isFormulaEditMode;
     
     var ct = ws.getCursorTypeFromXY(x, y);
     if (ct.target && ct.target === AscCommonExcel.c_oTargetType.FilterObject) {
@@ -4981,25 +4980,7 @@ window["native"]["offline_mouse_down"] = function(x, y, pin, isViewerMode, isFor
             ws.leftTopRange = lastRange.clone();
             
         } else {
-            
-            var ret = false;
-            if (isFormulaEditMode) {
-                ret = wb.cellEditor.canEnterCellRange();
-                ret ? wb.cellEditor.activateCellRange() : true;
-            }
-            
-            if (isFormulaEditMode && !ret) {
-                _s.isFormulaEditMode = false;
-                return {'action':'closeCellEditor'};
-            }
-            
             wb._onChangeSelection(true, x, y, true);
-            
-            if (isFormulaEditMode) {
-                if (ret) {
-                    ws.enterCellRange(wb.cellEditor);
-                }
-            }
         }
     }
     
@@ -5047,20 +5028,8 @@ window["native"]["offline_mouse_move"] = function(x, y, isViewerMode, isRangeRes
                 }
             }
         } else {
-            if (_s.isFormulaEditMode) {
-                
-                var ret = false;
-                ret = wb.cellEditor.canEnterCellRange();
-                ret ? wb.cellEditor.activateCellRange() : true;
-                
-                if (!ret) {
-                    _s.isFormulaEditMode = false;
-                    ws.visibleRange = range;
-                    return {'action':'closeCellEditor'};
-                }
-                
+            if (wb.isFormulaEditMode) {
                 wb._onChangeSelection(false, x, y, true);
-                ws.enterCellRange(wb.cellEditor);
             } else {
                 if (-1 == _s.cellPin)
                     ws.__changeSelectionPoint(x, y, true, true, true);

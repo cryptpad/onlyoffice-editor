@@ -434,24 +434,9 @@
 			var t = this;
 			var coord = this._getCoordinates(event);
 
-			if (t.isFormulaEditMode) {
-				// для определения рэнджа под курсором и активизации его для WorksheetView
-				if (false === t.handlers.trigger("canEnterCellRange")) {
-					if (!t.handlers.trigger("stopCellEditing")) {return;}
-				}
-			}
-
 			this.handlers.trigger("changeSelection", /*isStartPoint*/false, coord.x, coord.y, /*isCoord*/true, false,
 				function (d) {
 					t.scroll(d);
-
-					if (t.isFormulaEditMode) {
-						t.handlers.trigger("enterCellRange");
-					} else if (t.getCellEditMode()) {
-						if (!t.handlers.trigger("stopCellEditing")) {
-							return;
-						}
-					}
 
 					asc_applyFunction(callback);
 				});
@@ -1101,29 +1086,8 @@
 						t.scroll(d);
 					});
 				} else {
-					if (this.getCellEditMode() && !this.isFormulaEditMode) {
-						if (!t.handlers.trigger("stopCellEditing")) {
-							return true;
-						}
-					}
-
-					if (t.isFormulaEditMode) {
-						// для определения рэнджа под курсором и активизации его для WorksheetView
-						if (false === t.handlers.trigger("canEnterCellRange")) {
-							if (!t.handlers.trigger("stopCellEditing")) {
-								return true;
-							}
-						}
-					}
-
 					t.handlers.trigger("changeSelection", /*isStartPoint*/!shiftKey, dc, dr, /*isCoord*/false, false,
 						function (d) {
-							if (t.isFormulaEditMode) {
-								t.handlers.trigger("enterCellRange");
-							} else if (t.getCellEditMode()) {
-								t.handlers.trigger("stopCellEditing");
-							}
-
 							var wb = window["Asc"]["editor"].wb;
 							if (t.targetInfo) {
 								wb._onUpdateWorksheet(t.targetInfo.coordX, t.targetInfo.coordY, false);
@@ -1500,25 +1464,12 @@
 								this.isMoveResizeRange = true;
 								t._moveResizeRangeHandle(event, t.targetInfo);
 								return;
-							} else if (false === t.handlers.trigger("canEnterCellRange")) {
-								// для определения рэнджа под курсором и активизации его для WorksheetView
-								if (!t.handlers.trigger("stopCellEditing")) {
-									return;
-								}
 							}
 						}
 						t.isSelectMode = true;
 						t.handlers.trigger("changeSelection", /*isStartPoint*/true, coord.x, coord.y, /*isCoord*/true,
 							ctrlKey, function (d) {
 								t.scroll(d);
-
-								if (t.isFormulaEditMode) {
-									t.handlers.trigger("enterCellRange");
-								} else if (t.getCellEditMode()) {
-									if (!t.handlers.trigger("stopCellEditing")) {
-										return;
-									}
-								}
 							});
 						return;
 					}
