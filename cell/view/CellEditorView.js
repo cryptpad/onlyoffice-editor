@@ -2172,6 +2172,10 @@
 		var t = this, kind = undefined, hieroglyph = false;
 		var ctrlKey = !AscCommon.getAltGr(event) && (event.metaKey || event.ctrlKey);
 
+		if (this.handlers.trigger("getSelectionDialogMode")) {
+			return true;
+		}
+
 		if (!t.isOpened || (!isInput && !t.enableKeyEvents)) {
 			return true;
 		}
