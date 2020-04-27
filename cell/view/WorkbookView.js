@@ -642,8 +642,9 @@
 				  self._onUpdateCellEditor.apply(self, arguments);
 			  }, "gotFocus": function (hasFocus) {
 				  self.controller.setFocus(!hasFocus);
-			  }, "updateFormulaEditMod": function (bMode) {
-				  self.setFormulaEditMode(bMode);
+			  }, "updateFormulaEditMod": function (/*bMode*/) {
+			  	  //TODO здесь до дёргался метод у контроллера. нужно ли выставлять FormulaEditMode в данном случае?
+			  	  //self.setFormulaEditMode(bMode);
 				  var ws = self.getWorksheet();
 				  if (ws) {
 					  if (!self.lockDraw) {
@@ -1091,7 +1092,7 @@
         this.lockDraw = true;
         this.skipHelpSelector = true;
         this.cellEditor.setFocus(false);
-        this.getWorksheet().enterCellRange(self.cellEditor);
+        this.getWorksheet().enterCellRange(this.cellEditor);
         this.skipHelpSelector = false;
         this.lockDraw = false;
     }
