@@ -89,8 +89,6 @@
           background: new CColor(193, 193, 193), border: new CColor(146, 146, 146), color: new CColor(54, 54, 54)
         }, { // kHeaderHighlighted
           background: new CColor(223, 223, 223), border: new CColor(175, 175, 175), color: new CColor(101, 106, 112)
-        }, { // kHeaderSelected
-          background: new CColor(170, 170, 170), border: new CColor(117, 119, 122), color: new CColor(54, 54, 54)
         }], cornerColor: new CColor(193, 193, 193)
     };
     this.cells = {
