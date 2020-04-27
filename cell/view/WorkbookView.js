@@ -1581,8 +1581,6 @@
     var isCellEditMode = this.getCellEditMode();
     this.setCellEditMode(false);
     this.controller.setStrictClose(false);
-    this.controller.setFormulaEditMode(false);
-
     if (-1 !== this.copyActiveSheet) {
     	var index = this.copyActiveSheet;
     	this.cellFormulaEnterWSOpen = null;
