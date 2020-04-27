@@ -10443,8 +10443,8 @@ CTablePr.prototype.InitDefault = function(nCompatibilityMode)
 	this.TableBorders.InsideH  = new CDocumentBorder();
 	this.TableBorders.InsideV  = new CDocumentBorder();
 	this.TableCellMar.Bottom   = new CTableMeasurement(tblwidth_Mm, 0);
-	this.TableCellMar.Left     = nCompatibilityMode <= AscCommon.document_compatibility_mode_Word11 ? new CTableMeasurement(tblwidth_Mm, 0) : new CTableMeasurement(tblwidth_Mm, 1.9/*5.4 * g_dKoef_pt_to_mm*/); // 5.4pt
-	this.TableCellMar.Right    = nCompatibilityMode <= AscCommon.document_compatibility_mode_Word11 ? new CTableMeasurement(tblwidth_Mm, 0) : new CTableMeasurement(tblwidth_Mm, 1.9/*5.4 * g_dKoef_pt_to_mm*/); // 5.4pt
+	this.TableCellMar.Left     = nCompatibilityMode <= AscCommon.document_compatibility_mode_Word12 ? new CTableMeasurement(tblwidth_Mm, 0.5 * g_dKoef_pt_to_mm) : new CTableMeasurement(tblwidth_Mm, 1.9/*5.4 * g_dKoef_pt_to_mm*/); // 5.4pt
+	this.TableCellMar.Right    = nCompatibilityMode <= AscCommon.document_compatibility_mode_Word12 ? new CTableMeasurement(tblwidth_Mm, 0.5 * g_dKoef_pt_to_mm) : new CTableMeasurement(tblwidth_Mm, 1.9/*5.4 * g_dKoef_pt_to_mm*/); // 5.4pt
 	this.TableCellMar.Top      = new CTableMeasurement(tblwidth_Mm, 0);
 	this.TableCellSpacing      = null;
 	this.TableInd              = 0;
