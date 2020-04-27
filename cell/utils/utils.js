@@ -421,6 +421,12 @@
 		Range.prototype.contains2 = function (cell) {
 			return this.contains(cell.col, cell.row);
 		};
+		Range.prototype.containsCol = function (c) {
+			return this.c1 <= c && c <= this.c2;
+		};
+		Range.prototype.containsRow = function (r) {
+			return this.r1 <= r && r <= this.r2;
+		};
 
 		Range.prototype.containsRange = function (range) {
 			return this.contains(range.c1, range.r1) && this.contains(range.c2, range.r2);
@@ -1007,6 +1013,16 @@
 		};
 		SelectionRange.prototype.contains2 = function (cell) {
 			return this.contains(cell.col, cell.row);
+		};
+		SelectionRange.prototype.containsCol = function (c) {
+			return this.ranges.some(function (item) {
+				return item.containsCol(c);
+			});
+		};
+		SelectionRange.prototype.containsRow = function (r) {
+			return this.ranges.some(function (item) {
+				return item.containsRow(r);
+			});
 		};
 		SelectionRange.prototype.inContains = function (ranges) {
 			var t = this;

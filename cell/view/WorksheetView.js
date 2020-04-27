@@ -2811,32 +2811,39 @@
     };
 
     WorksheetView.prototype._doCleanHighlightedHeaders = function () {
-        // ToDo highlighted!
-        var hlc = this.highlightedCol, hlr = this.highlightedRow, arn = this.model.selectionRange.getLast();
-        var hStyle = this.objectRender.selectedGraphicObjectsExists() ? kHeaderDefault : kHeaderActive;
+        var selectionRange = this.model.selectionRange;
+        var hlc = this.highlightedCol, hlr = this.highlightedRow;
+        var bSelectionObject = this.objectRender.selectedGraphicObjectsExists();
         if (hlc >= 0) {
-            if (hlc >= arn.c1 && hlc <= arn.c2) {
-                this._drawColumnHeaders(null, hlc, hlc, hStyle);
-            } else {
+            if (bSelectionObject || !selectionRange.containsCol(hlc)) {
                 this._cleanColumnHeaders(hlc);
-                if (hlc + 1 === arn.c1) {
-                    this._drawColumnHeaders(null, hlc + 1, hlc + 1, kHeaderActive);
-                } else if (hlc - 1 === arn.c2) {
-                    this._drawColumnHeaders(null, hlc - 1, hlc - 1, hStyle);
+                if (!bSelectionObject) {
+                    if (selectionRange.containsCol(hlc + 1)) {
+                        this._drawColumnHeaders(null, hlc + 1, hlc + 1, kHeaderActive);
+                    }
+                    if (selectionRange.containsCol(hlc - 1)) {
+                        this._drawColumnHeaders(null, hlc - 1, hlc - 1, kHeaderActive);
+                    }
                 }
+            } else {
+                this._drawColumnHeaders(null, hlc, hlc, kHeaderActive);
             }
             this.highlightedCol = -1;
         }
+
         if (hlr >= 0) {
-            if (hlr >= arn.r1 && hlr <= arn.r2) {
-                this._drawRowHeaders(null, hlr, hlr, hStyle);
-            } else {
+            if (bSelectionObject || !selectionRange.containsRow(hlr)) {
                 this._cleanRowHeaders(hlr);
-                if (hlr + 1 === arn.r1) {
-                    this._drawRowHeaders(null, hlr + 1, hlr + 1, kHeaderActive);
-                } else if (hlr - 1 === arn.r2) {
-                    this._drawRowHeaders(null, hlr - 1, hlr - 1, hStyle);
+                if (!bSelectionObject) {
+                    if (selectionRange.containsRow(hlr + 1)) {
+                        this._drawRowHeaders(null, hlr + 1, hlr + 1, kHeaderActive);
+                    }
+                    if (selectionRange.containsRow(hlr - 1)) {
+                        this._drawRowHeaders(null, hlr - 1, hlr - 1, kHeaderActive);
+                    }
                 }
+            } else {
+                this._drawRowHeaders(null, hlr, hlr, kHeaderActive);
             }
             this.highlightedRow = -1;
         }
