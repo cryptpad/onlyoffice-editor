@@ -1992,6 +1992,7 @@ function (window, undefined) {
 					api.asc_EndMoveSheet2(Data.opt_sheet, 0, Data.name);*/
 
 					var tempWorkbook = new AscCommonExcel.Workbook();
+					tempWorkbook.DrawingDocument = Asc.editor.wbModel.DrawingDocument;
 					tempWorkbook.setCommonIndexObjectsFrom(wb);
 					AscCommonExcel.g_clipboardExcel.pasteProcessor._readExcelBinary(Data.opt_sheet.split('xslData;')[1], tempWorkbook);
 

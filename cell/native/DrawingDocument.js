@@ -1533,14 +1533,13 @@ function CPage()
     }
 }
 
-function CDrawingDocument(drawingObjects)
+function CDrawingDocument()
 {
     this.Native = window["native"];
     this.Api    = window.editor;
     this.m_oApi = this.Api;
     this.CanvasHitContext = CreateHitControl();
 
-    this.drawingObjects = drawingObjects;
     this.IsLockObjectsEnable = false;
 
     this.m_oWordControl     = null;
@@ -1641,6 +1640,16 @@ function CDrawingDocument(drawingObjects)
     this._search_HdrFtr_Even         = []; // Поиск в колонтитуле, который находится только на нечетных страницах
     this._search_HdrFtr_Odd          = []; // Поиск в колонтитуле, который находится только на четных страницах, включая первую
     this._search_HdrFtr_Odd_no_First = []; // Поиск в колонтитуле, который находится только на нечетных страницах, кроме первой
+
+
+    this.getDrawingObjects = function()
+    {
+        var oWs = Asc.editor.wb.getWorksheet();
+        if(oWs) {
+            return oWs.objectRender;
+        }
+        return null;
+    };
 
     this.Start_CollaborationEditing = function()
     {
@@ -3060,7 +3069,11 @@ function CDrawingDocument(drawingObjects)
 
     this.SelectShow = function()
     {
-        this.drawingObjects.OnUpdateOverlay();
+        var drawingObjects = this.getDrawingObjects();
+        if(!drawingObjects) {
+            return;
+        }
+        drawingObjects.OnUpdateOverlay();
     }
 
     this.Set_RulerState_Table = function(markup, transform)

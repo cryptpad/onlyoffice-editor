@@ -134,7 +134,7 @@ CTextBody.prototype =
         if(this.lstStyle)
             ret.setLstStyle(this.lstStyle.createDuplicate());
         if(this.content)
-            ret.setContent(this.content.Copy(ret, AscFormat.NEW_WORKSHEET_DRAWING_DOCUMENT));
+            ret.setContent(this.content.Copy(ret));
         return ret;
     },
 

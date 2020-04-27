@@ -4236,6 +4236,7 @@ PasteProcessor.prototype =
                 }
                 loader.stream = stream;
                 loader.presentation = editor.WordControl.m_oLogicDocument;
+                loader.DrawingDocument = editor.WordControl.m_oLogicDocument.DrawingDocument;
 
                 //read slides
                 var slide_count = stream.GetULong();
@@ -4276,6 +4277,7 @@ PasteProcessor.prototype =
 				}
                 loader.stream = stream;
                 loader.presentation = editor.WordControl.m_oLogicDocument;
+                loader.DrawingDocument = editor.WordControl.m_oLogicDocument.DrawingDocument;
 
                 var selected_layouts = stream.GetULong();
 
@@ -4313,6 +4315,7 @@ PasteProcessor.prototype =
 				}
                 loader.stream = stream;
                 loader.presentation = editor.WordControl.m_oLogicDocument;
+                loader.DrawingDocument = editor.WordControl.m_oLogicDocument.DrawingDocument;
 
                 var count = stream.GetULong();
 
@@ -4334,6 +4337,7 @@ PasteProcessor.prototype =
                 var loader = new AscCommon.BinaryPPTYLoader();
                 loader.stream = stream;
                 loader.presentation = editor.WordControl.m_oLogicDocument;
+                loader.DrawingDocument = editor.WordControl.m_oLogicDocument.DrawingDocument;
 
                 var selected_notes = stream.GetULong();
 
@@ -4354,6 +4358,7 @@ PasteProcessor.prototype =
                 var loader = new AscCommon.BinaryPPTYLoader();
                 loader.stream = stream;
                 loader.presentation = editor.WordControl.m_oLogicDocument;
+                loader.DrawingDocument = editor.WordControl.m_oLogicDocument.DrawingDocument;
 
                 var count = stream.GetULong();
 
@@ -4374,6 +4379,7 @@ PasteProcessor.prototype =
                 var loader = new AscCommon.BinaryPPTYLoader();
                 loader.stream = stream;
                 loader.presentation = editor.WordControl.m_oLogicDocument;
+                loader.DrawingDocument = editor.WordControl.m_oLogicDocument.DrawingDocument;
 
                 var count = stream.GetULong();
 
@@ -4393,6 +4399,7 @@ PasteProcessor.prototype =
 				}
                 loader.stream = stream;
                 loader.presentation = editor.WordControl.m_oLogicDocument;
+                loader.DrawingDocument = editor.WordControl.m_oLogicDocument.DrawingDocument;
 
                 var count = stream.GetULong();
 
@@ -5789,6 +5796,7 @@ PasteProcessor.prototype =
 	{
 		var oBinaryFileReader = new AscCommonExcel.BinaryFileReader(true);
 		var tempWorkbook = new AscCommonExcel.Workbook();
+        tempWorkbook.DrawingDocument = editor.WordControl.m_oLogicDocument.DrawingDocument;
         tempWorkbook.theme = this.oDocument.theme ? this.oDocument.theme : this.oLogicDocument.theme;
 		if(!tempWorkbook.theme && this.oLogicDocument.Get_Theme)
 			tempWorkbook.theme = this.oLogicDocument.Get_Theme();
@@ -5813,6 +5821,7 @@ PasteProcessor.prototype =
         loader.Start_UseFullUrl();
         loader.stream = stream;
         loader.presentation = editor.WordControl.m_oLogicDocument;
+        loader.DrawingDocument = editor.WordControl.m_oLogicDocument.DrawingDocument;
         var presentation = editor.WordControl.m_oLogicDocument;
 		
 		var shape;
@@ -5852,6 +5861,7 @@ PasteProcessor.prototype =
 		
         loader.stream = stream;
         loader.presentation = editor.WordControl.m_oLogicDocument;
+        loader.DrawingDocument = editor.WordControl.m_oLogicDocument.DrawingDocument;
         var presentation = editor.WordControl.m_oLogicDocument;
         var count = stream.GetULong();
         var arr_shapes = [];
@@ -5974,6 +5984,7 @@ PasteProcessor.prototype =
         loader.Start_UseFullUrl();
         loader.stream = stream;
         loader.presentation = editor.WordControl.m_oLogicDocument;
+        loader.DrawingDocument = editor.WordControl.m_oLogicDocument.DrawingDocument;
         var presentation = editor.WordControl.m_oLogicDocument;
         var count = stream.GetULong();
         var arr_slides = [];
@@ -5995,6 +6006,7 @@ PasteProcessor.prototype =
         loader.Start_UseFullUrl();
         loader.stream = stream;
         loader.presentation = editor.WordControl.m_oLogicDocument;
+        loader.DrawingDocument = editor.WordControl.m_oLogicDocument.DrawingDocument;
         var presentation = editor.WordControl.m_oLogicDocument;
         return loader.ReadSlide(0);
     },

@@ -20258,6 +20258,12 @@
 		}
 	};
 
+    WorksheetView.prototype.getDrawingDocument = function() {
+        if(this.model) {
+            return this.model.getDrawingDocument();
+        }
+        return null;
+    };
 	//------------------------------------------------------------export---------------------------------------------------
     window['AscCommonExcel'] = window['AscCommonExcel'] || {};
 	window["AscCommonExcel"].CellFlags = CellFlags;

@@ -1516,6 +1516,7 @@
 				var t = this;
 				var newFonts;
 				var tempWorkbook = new AscCommonExcel.Workbook();
+				tempWorkbook.DrawingDocument = Asc.editor.wbModel.DrawingDocument;
 				var aPastedImages = this._readExcelBinary(base64, tempWorkbook);
 
 				if (!isIntoShape && this._checkCutBefore(worksheet, tempWorkbook)) {
@@ -1778,7 +1779,7 @@
 						History.TurnOff();
 						var oPasteFromBinaryWord = new pasteFromBinaryWord(this, worksheet, true);
 
-						var oTempDrawingDocument = worksheet.model.DrawingDocument;
+						var oTempDrawingDocument = window["Asc"]["editor"].wbModel.getDrawingDocument();
 						var newCDocument = new CDocument(oTempDrawingDocument, false);
 						newCDocument.bFromDocument = true;
 						newCDocument.theme = window["Asc"]["editor"].wbModel.theme;
@@ -1859,8 +1860,9 @@
 				var oThis = this;
 
 				var loader = new AscCommon.BinaryPPTYLoader();
-				loader.stream = stream;
 				loader.presentation = worksheet.model;
+				loader.DrawingDocument = worksheet.getDrawingDocument();
+				loader.stream = stream;
 
 				var readContent = function () {
 					var docContent = oThis.ReadPresentationText(stream, worksheet);
@@ -2052,7 +2054,7 @@
 					if (type_Paragraph === element.GetType())//paragraph
 					{
 						selectedElement.Element =
-							AscFormat.ConvertParagraphToPPTX(element, worksheet.model.DrawingDocument,
+							AscFormat.ConvertParagraphToPPTX(element, worksheet.getDrawingDocument(),
 								target_doc_content, true, bRemoveHyperlink);
 						elements.push(selectedElement);
 					} else if (type_Table === element.GetType())//table
@@ -2063,7 +2065,7 @@
 						for (var j = 0; j < paragraphs.length; j++) {
 							selectedElement = new CSelectedElement();
 							selectedElement.Element =
-								AscFormat.ConvertParagraphToPPTX(paragraphs[j], worksheet.model.DrawingDocument,
+								AscFormat.ConvertParagraphToPPTX(paragraphs[j], worksheet.getDrawingDocument(),
 									target_doc_content, true, bRemoveHyperlink);
 							elements.push(selectedElement);
 						}
@@ -2328,7 +2330,6 @@
 
 				History.Create_NewPoint();
 				History.StartTransaction();
-
 				var api = window["Asc"]["editor"];
 				var addImagesFromWord = data.props.addImagesFromWord;
 				//определяем стартовую позицию, если изображений несколько вставляется
@@ -2344,7 +2345,7 @@
 						} else {
 							graphicObject.bDeleted = true;
 						}
-						graphicObject = graphicObject.convertToPPTX(ws.model.DrawingDocument, ws.model, true);
+						graphicObject = graphicObject.convertToPPTX(ws.getDrawingDocument(), ws.model, true);
 					}
 
 
@@ -2468,7 +2469,7 @@
 
 				//вставляем табличку из презентаций
 				var oPasteFromBinaryWord = new pasteFromBinaryWord(this, ws, true);
-				var oTempDrawingDocument = ws.model.DrawingDocument;
+				var oTempDrawingDocument = ws.getDrawingDocument();
 
 				var newCDocument = new CDocument(oTempDrawingDocument, false);
 				newCDocument.bFromDocument = true;
@@ -2528,7 +2529,7 @@
 				var callBackAfterLoadImages = function () {
 					History.TurnOff();
 
-					var oTempDrawingDocument = worksheet.model.DrawingDocument;
+					var oTempDrawingDocument = worksheet.getDrawingDocument();
 					var newCDocument = new CDocument(oTempDrawingDocument, false);
 					newCDocument.bFromDocument = true;
 
@@ -2775,6 +2776,7 @@
 
 				var loader = new AscCommon.BinaryPPTYLoader();
 				loader.presentation = worksheet.model;
+				loader.DrawingDocument = worksheet.getDrawingDocument();
 				loader.Start_UseFullUrl();
 
 				loader.ClearConnectorsMaps();
@@ -2834,6 +2836,7 @@
 
 				var loader = new AscCommon.BinaryPPTYLoader();
 				loader.Start_UseFullUrl();
+				loader.DrawingDocument = worksheet.getDrawingDocument();
 				loader.stream = stream;
 				loader.presentation = worksheet.model;
 
@@ -2864,7 +2867,7 @@
 				AscCommon.g_oIdCounter.m_bRead = true;
 
 				//передавать CDrawingDocument текущего worksheet
-				var oTempDrawingDocument = worksheet.model.DrawingDocument;
+				var oTempDrawingDocument = worksheet.getDrawingDocument();
 
 				var newCDocument = new CDocument(oTempDrawingDocument, false);
 				newCDocument.bFromDocument = true;
@@ -3001,7 +3004,7 @@
 			},
 
 			_convertTableFromExcelToDocument: function (worksheet, aContentExcel, documentContent) {
-				var oCurPar = new Paragraph(worksheet.model.DrawingDocument, documentContent);
+				var oCurPar = new Paragraph(worksheet.getDrawingDocument(), documentContent);
 
 				var getElem = function (text, format, isAddSpace, isHyperLink) {
 					var result = null;

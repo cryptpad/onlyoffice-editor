@@ -3274,6 +3274,7 @@
 
 		var t = this;
 		var tempWorkbook = new AscCommonExcel.Workbook();
+        tempWorkbook.DrawingDocument = Asc.editor.wbModel.DrawingDocument;
 		tempWorkbook.setCommonIndexObjectsFrom(this.model);
 		var pasteProcessor = AscCommonExcel.g_clipboardExcel.pasteProcessor;
 		var aPastedImages = pasteProcessor._readExcelBinary(base64.split('xslData;')[1], tempWorkbook, true);

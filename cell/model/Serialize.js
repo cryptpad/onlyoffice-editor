@@ -7010,14 +7010,12 @@
                 this.aHyperlinks = [];
                 var oNewWorksheet = new AscCommonExcel.Worksheet(this.wb, wb.aWorksheets.length);
                 oNewWorksheet.aFormulaExt = [];
-				
+                var DrawingDocument = window["Asc"]["editor"].wbModel.getDrawingDocument();
 				//TODO при copy/paste в word из excel необходимо подменить DrawingDocument из word - пересмотреть правку!
-				if(typeof editor != "undefined" && editor && editor.WordControl && editor.WordControl.m_oLogicDocument && editor.WordControl.m_oLogicDocument.DrawingDocument)
-					oNewWorksheet.DrawingDocument = editor.WordControl.m_oLogicDocument.DrawingDocument;
-				else if(this.copyPasteObj && this.copyPasteObj.isCopyPaste)
-				{
-					oNewWorksheet.DrawingDocument = window["Asc"]["editor"].wbModel.getActiveWs().DrawingDocument;
-				}
+				if(typeof editor != "undefined" && editor && editor.WordControl && editor.WordControl.m_oLogicDocument && editor.WordControl.m_oLogicDocument.DrawingDocument) {
+                    window["Asc"]["editor"].wbModel.DrawingDocument = editor.WordControl.m_oLogicDocument.DrawingDocument;
+                }
+
 				
                 this.curWorksheet = oNewWorksheet;
                 res = this.bcr.Read1(length, function(t,l){
@@ -7037,6 +7035,7 @@
                 }
                 this.wb.aWorksheets.push(oNewWorksheet);
                 this.wb.aWorksheetsById[oNewWorksheet.getId()] = oNewWorksheet;
+                window["Asc"]["editor"].wbModel.DrawingDocument = DrawingDocument;
             }
             else
                 res = c_oSerConstants.ReadUnknown;
@@ -7970,7 +7969,7 @@
         };
         this.ReadPptxDrawing = function () {
             var graphicObject;
-            var oGraphicObject = pptx_content_loader.ReadGraphicObject(this.stream, this.curWorksheet);
+            var oGraphicObject = pptx_content_loader.ReadGraphicObject(this.stream, this.curWorksheet, this.curWorksheet.getDrawingDocument());
             if(null != oGraphicObject
                 && !((oGraphicObject.getObjectType() === AscDFH.historyitem_type_Shape || oGraphicObject.getObjectType() === AscDFH.historyitem_type_ImageShape) && !oGraphicObject.spPr)
                 && !AscCommon.IsHiddenObj(oGraphicObject))

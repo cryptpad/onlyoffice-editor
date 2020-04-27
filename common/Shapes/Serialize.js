@@ -39,7 +39,7 @@ var prot;
 var g_memory = AscFonts.g_memory;
 var DecodeBase64Char = AscFonts.DecodeBase64Char;
 var b64_decode = AscFonts.b64_decode;
-    
+
 var g_nodeAttributeEnd = AscCommon.g_nodeAttributeEnd;
 
 var c_oAscShdClear = Asc.c_oAscShdClear;
@@ -145,7 +145,7 @@ function BinaryPPTYLoader()
 {
     this.stream = null;
     this.presentation = null;
-
+    this.DrawingDocument = null;
     this.TempGroupObject = null;
     this.TempMainObject = null;
 
@@ -230,6 +230,15 @@ function BinaryPPTYLoader()
     this.Load = function(base64_ppty, presentation)
     {
         this.presentation = presentation;
+        this.DrawingDocument = null;
+        if(presentation)
+        {
+            this.DrawingDocument = presentation.DrawingDocument;
+        }
+        else
+        {
+            this.DrawingDocument = null;
+        }
         this.ImageMapChecker = {};
 
 		var isBase64 = typeof base64_ppty === 'string';
@@ -363,7 +372,7 @@ function BinaryPPTYLoader()
 			this.stream.EnterFrame(index);
 			this.stream.Seek2(index);
 		}
-		
+
         this.presentation.ImageMap = {};
         this.presentation.Fonts = [];
 
@@ -3098,7 +3107,7 @@ function BinaryPPTYLoader()
         return ret;
     };
 
-    
+
     this.ReadUniFill = function(oSpPr, oImageShape, oLn)
     {
         var s = this.stream;
@@ -7910,7 +7919,7 @@ function BinaryPPTYLoader()
         s.Skip2(1); // start attributes
 
 		var fMaxTopMargin = 0, fMaxBottomMargin = 0, fMaxTopBorder = 0, fMaxBottomBorder = 0;
-		
+
 		var fRowHeight = 5;
         while (true)
         {
@@ -7923,7 +7932,7 @@ function BinaryPPTYLoader()
                 case 0:
                 {
 					fRowHeight = s.GetULong() / 36000;
-                   
+
                     break;
                 }
                 default:
@@ -9636,7 +9645,7 @@ function BinaryPPTYLoader()
                 {
                     s.Skip2(4);
                     var _c = s.GetULong();
-                    txbody.setContent(new AscFormat.CDrawingDocContent(txbody, this.presentation ? this.presentation.DrawingDocument : null, 0, 0, 0, 0, 0, 0, true));
+                    txbody.setContent(new AscFormat.CDrawingDocContent(txbody, this.DrawingDocument, 0, 0, 0, 0, 0, 0, true));
                     if(_c>0)
                     {
                         txbody.content.Internal_Content_RemoveAll();
@@ -9703,7 +9712,7 @@ function BinaryPPTYLoader()
                      History.TurnOff();
                      }*/
                     if(!txbody.content)
-                        txbody.content = new AscFormat.CDrawingDocContent(shape, this.presentation ? this.presentation.DrawingDocument : null, 0, 0, 0, 0, 0, 0, true);
+                        txbody.content = new AscFormat.CDrawingDocContent(shape, this.DrawingDocument, 0, 0, 0, 0, 0, 0, true);
                     if(_c>0)
                     {
                         txbody.content.Internal_Content_RemoveAll();
@@ -10938,6 +10947,14 @@ function CPres()
 
             this.Reader.stream = this.stream;
             this.Reader.presentation = logicDocument;
+            if(logicDocument)
+            {
+                this.Reader.DrawingDocument = logicDocument.DrawingDocument;
+            }
+            else
+            {
+                this.Reader.DrawingDocument = null;
+            }
 
             var GrObject = null;
 
@@ -11003,7 +11020,7 @@ function CPres()
             return GrObject;
         }
 
-        this.ReadGraphicObject = function(stream, presentation)
+        this.ReadGraphicObject = function(stream, presentation, drawingDocument)
         {
             if (this.Reader == null)
                 this.Reader = new AscCommon.BinaryPPTYLoader();
@@ -11011,6 +11028,10 @@ function CPres()
             if(presentation)
             {
                 this.Reader.presentation = presentation;
+            }
+            if(drawingDocument)
+            {
+                this.Reader.DrawingDocument = drawingDocument;
             }
             var oLogicDocument = this.LogicDocument;
             this.LogicDocument = null;
@@ -11047,7 +11068,7 @@ function CPres()
             return GrObject;
         }
 
-        this.ReadTextBody = function(reader, stream, shape, presentation)
+        this.ReadTextBody = function(reader, stream, shape, presentation, drawingDocument)
         {
             if(reader){
                 this.BaseReader = reader;
@@ -11056,6 +11077,8 @@ function CPres()
                 this.Reader = new AscCommon.BinaryPPTYLoader();
             if(presentation)
                 this.Reader.presentation = presentation;
+            if(drawingDocument)
+                this.Reader.DrawingDocument = drawingDocument;
 
             var oLogicDocument = this.LogicDocument;
             this.LogicDocument = null;
@@ -11167,7 +11190,7 @@ function CPres()
             this.LogicDocument = oLogicDocument;
             return oNewSpPr;
         };
-		
+
 		this.ReadRunProperties = function(stream, type)
 		{
 			if (this.Reader == null)

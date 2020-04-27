@@ -398,7 +398,7 @@
         if(this.GetActiveSheet){
             var oWorksheet = this.GetActiveSheet();
             if(oWorksheet){
-                oDrawingDocument = oWorksheet.DrawingDocument;
+                oDrawingDocument = oWorksheet.getDrawingDocument();
             }
         }
         else{

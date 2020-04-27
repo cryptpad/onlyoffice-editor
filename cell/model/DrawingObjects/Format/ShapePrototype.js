@@ -557,7 +557,7 @@ CShape.prototype.recalcContent = function()
 CShape.prototype.getDrawingDocument = function()
 {
     if(this.worksheet)
-        return this.worksheet.DrawingDocument;
+        return this.worksheet.getDrawingDocument();
     var drawingObjects =  getDrawingObjects_Sp(this);
     return drawingObjects && drawingObjects.drawingDocument;
 };

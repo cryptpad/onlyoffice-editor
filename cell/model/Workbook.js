@@ -1962,7 +1962,6 @@
 		this.nActive = 0;
 		this.App = null;
 		this.Core = null;
-
 		this.theme = null;
 		this.clrSchemeMap = null;
 
@@ -1972,6 +1971,7 @@
 		this.sharedStrings = new AscCommonExcel.CSharedStrings();
 		this.workbookFormulas = new AscCommonExcel.CWorkbookFormulas();
 		this.loadCells = [];//to return one object when nested _getCell calls
+		this.DrawingDocument = new AscCommon.CDrawingDocument();
 
 		this.aComments = [];	// Комментарии к документу
 		this.aWorksheets = [];
@@ -3175,6 +3175,9 @@
 		}
 		return null;
 	};
+	Workbook.prototype.getDrawingDocument = function() {
+		return this.DrawingDocument;
+	}
 //-------------------------------------------------------------------------------------------------
 	var tempHelp = new ArrayBuffer(8);
 	var tempHelpUnit = new Uint8Array(tempHelp);
@@ -3407,7 +3410,6 @@
 			}
 		});
 		this.hyperlinkManager.setDependenceManager(this.mergeManager);
-		this.DrawingDocument = new AscCommon.CDrawingDocument();
 		this.sheetViews = [];
 		this.aConditionalFormattingRules = [];
 		this.updateConditionalFormattingRange = null;
@@ -3686,7 +3688,6 @@
 		if (null != this.Drawings && this.Drawings.length > 0) {
 			var drawingObjects = new AscFormat.DrawingObjects();
 			oNewWs.Drawings = [];
-			AscFormat.NEW_WORKSHEET_DRAWING_DOCUMENT = oNewWs.DrawingDocument;
 			for (i = 0; i < this.Drawings.length; ++i) {
 				var drawingObject = drawingObjects.cloneDrawingObject(this.Drawings[i]);
 				drawingObject.graphicObject = this.Drawings[i].graphicObject.copy(undefined);
@@ -3699,14 +3700,12 @@
 																 drawingBase.ext.cy);
 				if(drawingObject.graphicObject.setDrawingBaseType){
 					drawingObject.graphicObject.setDrawingBaseType(drawingBase.Type);
-					if(drawingBase.Type === AscCommon.c_oAscCellAnchorType.cellanchorTwoCell)
-					{
-						drawingObject.graphicObject.setDrawingBaseEditAs(AscCommon.c_oAscCellAnchorType.cellanchorTwoCell);
+					if(drawingBase.Type === AscCommon.c_oAscCellAnchorType.cellanchorTwoCell) {
+						drawingObject.graphicObject.setDrawingBaseEditAs(drawingObject.editAs);
 					}
 				}
 				oNewWs.Drawings[oNewWs.Drawings.length - 1] = drawingObject;
 			}
-			AscFormat.NEW_WORKSHEET_DRAWING_DOCUMENT = null;
 			drawingObjects.pushToAObjects(oNewWs.Drawings);
 			drawingObjects.updateChartReferences2(parserHelp.getEscapeSheetName(this.sName),
 												  parserHelp.getEscapeSheetName(oNewWs.sName));
@@ -7705,6 +7704,12 @@
 		return false;
 	};
 
+	Worksheet.prototype.getDrawingDocument = function() {
+		if(this.workbook) {
+			return this.workbook.getDrawingDocument();
+		}
+		return null;
+	};
 
 //-------------------------------------------------------------------------------------------------
 	var g_nCellOffsetFlag = 0;

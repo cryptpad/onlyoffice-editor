@@ -7674,7 +7674,7 @@ CDocumentContent.prototype.Read_FromBinary2 = function(Reader)
 				var worksheet = api.wbModel.getWorksheetById(id);
 				if (worksheet)
 				{
-					this.DrawingDocument = worksheet.DrawingDocument;
+					this.DrawingDocument = worksheet.getDrawingDocument();
 				}
 			}
 		}
