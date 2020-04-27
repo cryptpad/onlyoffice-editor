@@ -1067,6 +1067,14 @@
 
   WorkbookView.prototype._onChangeSelection = function (isStartPoint, dc, dr, isCoord, isCtrl, callback) {
     var ws = this.getWorksheet();
+    if (this.selectionDialogMode && !ws.model.selectionRange) {
+        if (isCoord) {
+            ws.model.selectionRange = new AscCommonExcel.SelectionRange(ws.model);
+        } else {
+            return;
+        }
+    }
+
     var t = this;
     var d = isStartPoint ? ws.changeSelectionStartPoint(dc, dr, isCoord, isCtrl) :
       ws.changeSelectionEndPoint(dc, dr, isCoord, isCoord && this.keepType);

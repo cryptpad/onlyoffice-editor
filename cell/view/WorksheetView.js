@@ -1402,6 +1402,9 @@
         }
     };
 
+    WorksheetView.prototype._getSelection2 = function () {
+        return this.copyActiveRange || this.model.selectionRange;
+    };
     WorksheetView.prototype._getSelection = function () {
         return (this.isFormulaEditMode && !this.getSelectionDialogMode()) ?
             this.arrActiveFormulaRanges[this.arrActiveFormulaRangesPosition] : this.model.selectionRange;
@@ -2811,7 +2814,7 @@
     };
 
     WorksheetView.prototype._doCleanHighlightedHeaders = function () {
-        var selectionRange = this.model.selectionRange;
+        var selectionRange = this._getSelection2();
         var hlc = this.highlightedCol, hlr = this.highlightedRow;
         var bSelectionObject = this.objectRender.selectedGraphicObjectsExists();
         if (hlc >= 0) {
@@ -2851,10 +2854,11 @@
 
     WorksheetView.prototype._drawActiveHeaders = function () {
         var vr = this.visibleRange;
+        var selectionRange = this._getSelection2();
         var range, c1, c2, r1, r2;
         this._activateOverlayCtx();
-        for (var i = 0; i < this.model.selectionRange.ranges.length; ++i) {
-            range = this.model.selectionRange.ranges[i];
+        for (var i = 0; i < selectionRange.ranges.length; ++i) {
+            range = selectionRange.ranges[i];
             c1 = Math.max(vr.c1, range.c1);
             c2 = Math.min(vr.c2, range.c2);
             r1 = Math.max(vr.r1, range.r1);
@@ -5221,7 +5225,7 @@
 		// draw active cell in selection
 		var isActive = AscCommonExcel.selectionLineType.ActiveCell & selectionLineType;
 		if (isActive) {
-			var cell = (this.getSelectionDialogMode() ? this.copyActiveRange : this.model.selectionRange).activeCell;
+			var cell = this._getSelection2().activeCell;
 			var fs = this.model.getMergedByCell(cell.row, cell.col);
 			fs = oIntersection.intersectionSimple(fs || new asc_Range(cell.col, cell.row, cell.col, cell.row));
 			if (fs) {
@@ -5367,8 +5371,8 @@
         if (!selectionDialogMode) {
             this._drawCollaborativeElements();
         }
-        var isOtherSelectionMode = selectionDialogMode || this.isFormulaEditMode;
-        if (isOtherSelectionMode && !this.handlers.trigger('isActive')) {
+        var isOtherSelectionMode = (selectionDialogMode || this.isFormulaEditMode) && !this.handlers.trigger('isActive');
+        if (isOtherSelectionMode) {
             if (selectionDialogMode) {
                 this._drawSelectRange();
             } else if (this.isFormulaEditMode) {
@@ -5414,7 +5418,7 @@
     };
 
     WorksheetView.prototype._drawSelectionRange = function () {
-        var type, ranges = (this.getSelectionDialogMode() ? this.copyActiveRange : this.model.selectionRange).ranges;
+        var type, ranges = this._getSelection2().ranges;
         var range, selectionLineType;
         for (var i = 0, l = ranges.length; i < l; ++i) {
             range = ranges[i].clone();
@@ -5475,6 +5479,9 @@
     };
 
     WorksheetView.prototype._drawSelectRange = function () {
+        if (!this.model.selectionRange) {
+            return;
+        }
         var ranges = this.model.selectionRange.ranges;
         for (var i = 0, l = ranges.length; i < l; ++i) {
             this._drawElements(this._drawSelectionElement, ranges[i], AscCommonExcel.selectionLineType.Dash,
@@ -5582,7 +5589,8 @@
 
         this._activateOverlayCtx();
         var t = this;
-        this.model.selectionRange.ranges.forEach(function (item, index) {
+        var selectionRange = this._getSelection2();
+        selectionRange.ranges.forEach(function (item, index) {
             var arnIntersection = item.intersectionSimple(range);
             if (arnIntersection) {
                 _x1 = t._getColLeft(arnIntersection.c1) - offsetX - 2;
@@ -5597,12 +5605,11 @@
                 y1 = Math.min(y1, _y1);
                 y2 = Math.max(y2, _y2);
 
-                var selectionRange = t.model.selectionRange;
                 if (index === selectionRange.activeCellId) {
                 	var size = t.getButtonSize(selectionRange.activeCell.row, selectionRange.activeCell.col, true);
 					x2 += size.w;
 					y2 += size.h;
-            }
+                }
             }
 
             if (!isFrozen) {
@@ -5724,8 +5731,9 @@
 			}
         }
 
-        if (null !== this.copyActiveRange) {
-            this.copyActiveRange.ranges.forEach(function (item) {
+        selectionRange = this.model.selectionRange;
+        if (null !== this.copyActiveRange && selectionRange) {
+            selectionRange.ranges.forEach(function (item) {
                 var arnIntersection = item.intersectionSimple(range);
                 if (arnIntersection) {
                     _x1 = t._getColLeft(arnIntersection.c1) - offsetX - 2;
@@ -7904,7 +7912,7 @@
 		}
 
 		isSelGraphicObject = this.objectRender.selectedGraphicObjectsExists();
-		if (canEdit && !isSelGraphicObject && this.model.selectionRange.isSingleRange() && !selectionDialogMode) {
+		if (!selectionDialogMode && canEdit && !isSelGraphicObject && this.model.selectionRange.isSingleRange()) {
 			this._drawElements(function (_vr, _offsetX, _offsetY) {
 				return (null === (res = this._hitCursorSelectionRange(_vr, x, y, _offsetX, _offsetY)));
 			});
@@ -14163,6 +14171,8 @@
             this.copyActiveRange = this.model.selectionRange.clone();
             if (selectRange) {
                 this.model.selectionRange.assign2(selectRange);
+            } else {
+                this.model.selectionRange = null;
             }
 
             if (this.isSelectOnShape) {
@@ -15620,7 +15630,7 @@
 		return true;
 	};
     WorksheetView.prototype.drawOverlayButtons = function (visibleRange, offsetX, offsetY) {
-		var activeCell = this.model.selectionRange.activeCell;
+		var activeCell = this._getSelection2().activeCell;
 		if (visibleRange.contains2(activeCell)) {
 			var dataValidation = this.model.getDataValidation(activeCell.col, activeCell.row);
 			if (dataValidation && dataValidation.isListValues()) {

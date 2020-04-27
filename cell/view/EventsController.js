@@ -1479,6 +1479,10 @@
 					}
 				}
 			} else {
+			    if (2 === button) {
+			        return;
+                }
+
 				if (!t.isFormulaEditMode) {
 					if (!t.handlers.trigger("stopCellEditing")) {
 						return;
