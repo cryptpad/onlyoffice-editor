@@ -1255,7 +1255,28 @@ GraphicOption.prototype.getOffset = function () {
 	return this.offset;
 };
 
-function DrawingObjects() {
+
+    var rAF = (function() {
+        return window.requestAnimationFrame ||
+            window.webkitRequestAnimationFrame ||
+            window.mozRequestAnimationFrame ||
+            window.oRequestAnimationFrame ||
+            window.msRequestAnimationFrame ||
+            function(callback) { return setTimeout(callback, 1000/ 60); };
+    })();
+
+    var cAF = (function () {
+        return window.cancelAnimationFrame ||
+            window.cancelRequestAnimationFrame ||
+            window.webkitCancelAnimationFrame ||
+            window.webkitCancelRequestAnimationFrame ||
+            window.mozCancelRequestAnimationFrame ||
+            window.oCancelRequestAnimationFrame ||
+            window.msCancelRequestAnimationFrame ||
+            clearTimeout;
+    })();
+
+    function DrawingObjects() {
 
     //-----------------------------------------------------------------------------------
     // Scroll offset
@@ -1306,7 +1327,9 @@ function DrawingObjects() {
     _this.nCurPointItemsLength = -1;
 
     _this.bUpdateMetrics = true;
+
     // Task timer
+    _this.animId = null;
     var aDrawTasks = [];
 
     function drawTaskFunction() {
@@ -1317,9 +1340,10 @@ function DrawingObjects() {
         var taskLen = aDrawTasks.length;
         if ( taskLen ) {
             var lastTask = aDrawTasks[taskLen - 1];
-            _this.showDrawingObjectsEx(lastTask.params.clearCanvas, lastTask.params.graphicOption, lastTask.params.printOptions);
+            _this.showDrawingObjectsEx(lastTask.clearCanvas, lastTask.graphicOption);
             aDrawTasks.splice(0, (taskLen - 1 > 0) ? taskLen - 1 : 1);
         }
+        _this.animId = null;
     }
 
     //-----------------------------------------------------------------------------------
@@ -1879,10 +1903,6 @@ function DrawingObjects() {
 
     _this.init = function(currentSheet) {
  
-        if (!window['IS_NATIVE_EDITOR']) {
-            setInterval(drawTaskFunction, 5);
-        }
-
         var api = window["Asc"]["editor"];
         worksheet = currentSheet;
 
@@ -2088,26 +2108,39 @@ function DrawingObjects() {
     // Drawing objects
     //-----------------------------------------------------------------------------------
 
-    _this.showDrawingObjects = function(clearCanvas, graphicOption, printOptions) {
+    _this.showDrawingObjects = function(clearCanvas, graphicOption) {
 
-        var currTime = getCurrentTime();
-        if ( aDrawTasks.length ) {
-
-            var lastTask = aDrawTasks[aDrawTasks.length - 1];
-
-			// ToDo не всегда грамотно так делать, т.к. в одном scroll я могу прислать 2 области (и их объединять не нужно)
-            if ( lastTask.params.graphicOption && lastTask.params.graphicOption.isScrollType() && graphicOption && (lastTask.params.graphicOption.type === graphicOption.type) ) {
-                lastTask.params.graphicOption.range.c1 = Math.min(lastTask.params.graphicOption.range.c1, graphicOption.range.c1);
-                lastTask.params.graphicOption.range.r1 = Math.min(lastTask.params.graphicOption.range.r1, graphicOption.range.r1);
-                lastTask.params.graphicOption.range.c2 = Math.max(lastTask.params.graphicOption.range.c2, graphicOption.range.c2);
-                lastTask.params.graphicOption.range.r2 = Math.max(lastTask.params.graphicOption.range.r2, graphicOption.range.r2);
-                return;
-            }
-            if ( (currTime - lastTask.time < 40) )
-                return;
+        if(clearCanvas || !graphicOption) {
+            aDrawTasks.length = 0;
+            aDrawTasks.push({ clearCanvas: true, graphicOption: graphicOption})
         }
-
-        aDrawTasks.push({ time: currTime, params: { clearCanvas: clearCanvas, graphicOption: graphicOption, printOptions: printOptions} });
+        else {
+            if(aDrawTasks.length > 0) {
+                if(!aDrawTasks[0].clearCanvas) {
+                    if(graphicOption) {
+                        for(var nTask = 0; nTask < aDrawTasks.length; ++nTask) {
+                            var oTask = aDrawTasks[nTask];
+                            var oRange1 = oTask.graphicOption.range;
+                            var oRange2 = graphicOption.range;
+                            if(!oRange1 || !oRange2) {
+                                aDrawTasks.length = 0;
+                                aDrawTasks.push({ clearCanvas: true, graphicOption: graphicOption});
+                                break;
+                            }
+                            if(oRange1.isEqual(oRange2)) {
+                                break;
+                            }
+                        }
+                        if(nTask === aDrawTasks.length) {
+                            aDrawTasks.push({ clearCanvas: false, graphicOption: graphicOption});
+                        }
+                    }
+                }
+            }
+        }
+        if(_this.animId === null) {
+            _this.animId = rAF(drawTaskFunction);
+        }
     };
 
     _this.showDrawingObjectsEx = function(clearCanvas, graphicOption) {
@@ -2909,7 +2942,7 @@ function DrawingObjects() {
                     oNewChartSpace.checkDrawingBaseCoords();
                     oNewChartSpace.recalculate();
                     worksheet._scrollToRange(_this.getSelectedDrawingsRange());
-                    _this.showDrawingObjects(false);
+                    _this.showDrawingObjects(true);
                     _this.controller.resetSelection();
                     _this.controller.selectObject(oNewChartSpace, 0);
                     _this.controller.updateSelectionState();

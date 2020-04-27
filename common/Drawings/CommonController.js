@@ -1276,7 +1276,7 @@ DrawingObjectsController.prototype =
                     this.sendCropState();
                     if(this.drawingObjects && this.drawingObjects.showDrawingObjects)
                     {
-                        this.drawingObjects.showDrawingObjects();
+                        this.drawingObjects.showDrawingObjects(true);
                     }
                     this.updateOverlay();
                 }
@@ -1332,7 +1332,7 @@ DrawingObjectsController.prototype =
                 this.sendCropState();
                 if(this.drawingObjects && this.drawingObjects.showDrawingObjects)
                 {
-                    this.drawingObjects.showDrawingObjects();
+                    this.drawingObjects.showDrawingObjects(true);
                 }
                 this.updateOverlay();
             }
@@ -1367,7 +1367,7 @@ DrawingObjectsController.prototype =
 
                 if(this.drawingObjects && this.drawingObjects.showDrawingObjects)
                 {
-                    this.drawingObjects.showDrawingObjects();
+                    this.drawingObjects.showDrawingObjects(true);
                 }
                 this.updateOverlay();
             }
