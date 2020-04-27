@@ -642,8 +642,8 @@
 				  self._onUpdateCellEditor.apply(self, arguments);
 			  }, "gotFocus": function (hasFocus) {
 				  self.controller.setFocus(!hasFocus);
-			  }, "updateFormulaEditMod": function () {
-				  self.controller.setFormulaEditMode.apply(self.controller, arguments);
+			  }, "updateFormulaEditMod": function (bMode) {
+				  self.setFormulaEditMode(bMode);
 				  var ws = self.getWorksheet();
 				  if (ws) {
 					  if (!self.lockDraw) {
@@ -652,7 +652,7 @@
 					  for (var i in self.wsViews) {
 						  self.wsViews[i].cleanFormulaRanges();
 					  }
-//            ws.cleanFormulaRanges();
+					  //ws.cleanFormulaRanges();
 					  ws.setFormulaEditMode.apply(ws, arguments);
 				  }
 			  }, "updateEditorState": function (state) {
@@ -1541,7 +1541,7 @@
       if (!res) {
         t.setCellEditMode(false);
         t.controller.setStrictClose(false);
-        t.isFormulaEditMode = false;
+        t.setFormulaEditMode(false);
         ws.setFormulaEditMode(false);
         t.input.disabled = true;
 
@@ -2264,7 +2264,7 @@
 					t.setCellEditMode(false);
 					t.controller.setStrictClose(false);
 					ws.setFormulaEditMode(false);
-                    t.isFormulaEditMode = false;
+					t.setFormulaEditMode(false);
 				}
 			};
 
@@ -3537,6 +3537,10 @@
 				doCopy();
 			}
 		});
+	};
+
+	WorkbookView.prototype.setFormulaEditMode = function ( isFormulaEditMode ) {
+		this.isFormulaEditMode = isFormulaEditMode;
 	};
 
   //------------------------------------------------------------export---------------------------------------------------
