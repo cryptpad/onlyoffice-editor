@@ -1054,6 +1054,25 @@ Paragraph.prototype.Internal_Content_Remove2 = function(Pos, Count)
 			ParaContentPos.Data[0] = Math.max(0, Pos);
 	}
 
+	// Обновляем позиции в SearchResults
+	for (var Id in this.SearchResults)
+	{
+		var ContentPos = this.SearchResults[Id].StartPos;
+
+		// TODO: Ситуации Pos + Count > ContentPos.Data[0] > Pos быть не должно
+		if (ContentPos.Data[0] > Pos + Count)
+			ContentPos.Data[0] -= Count;
+		else if (ContentPos.Data[0] > Pos)
+			ContentPos.Data[0] = Math.max(0, Pos);
+
+		ContentPos = this.SearchResults[Id].EndPos;
+
+		if (ContentPos.Data[0] > Pos + Count)
+			ContentPos.Data[0] -= Count;
+		else if (ContentPos.Data[0] > Pos)
+			ContentPos.Data[0] = Math.max(0, Pos);
+	}
+
 	this.Content.splice(Pos, Count);
 	this.private_UpdateSelectionPosOnRemove(Pos, Count);
 
@@ -11047,7 +11066,7 @@ Paragraph.prototype.Get_FrameBounds = function(FrameX, FrameY, FrameW, FrameH)
 		var ParaPr = Para.Get_CompiledPr2(false).ParaPr;
 		var Brd    = ParaPr.Brd;
 
-		var _X0 = (undefined != Brd.Left && border_None != Brd.Left.Value ? Math.min(X0, X0 + ParaPr.Ind.Left, X0 + ParaPr.Ind.Left + ParaPr.Ind.FirstLine) : X0 + ParaPr.Ind.Left + ParaPr.Ind.FirstLine);
+		var _X0 = (undefined != Brd.Left && border_None != Brd.Left.Value ? Math.min(FrameX, FrameX + ParaPr.Ind.Left, FrameX + ParaPr.Ind.Left + ParaPr.Ind.FirstLine) : FrameX + ParaPr.Ind.Left + ParaPr.Ind.FirstLine);
 
 		if (undefined != Brd.Left && border_None != Brd.Left.Value)
 			_X0 -= Brd.Left.Size + Brd.Left.Space + 1;
@@ -11055,7 +11074,7 @@ Paragraph.prototype.Get_FrameBounds = function(FrameX, FrameY, FrameW, FrameH)
 		if (_X0 < X0)
 			X0 = _X0;
 
-		var _X1 = X1 - ParaPr.Ind.Right;
+		var _X1 = FrameX + FrameW - ParaPr.Ind.Right;
 
 		if (undefined != Brd.Right && border_None != Brd.Right.Value)
 			_X1 += Brd.Right.Size + Brd.Right.Space + 1;
