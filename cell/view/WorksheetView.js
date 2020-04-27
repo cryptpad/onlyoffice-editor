@@ -5386,7 +5386,7 @@
                 }
             } else {
                 if (!selectionDialogMode) {
-                    this._drawFormulaRanges(this.arrActiveFormulaRanges);
+                    this._drawFormulaRanges(this.arrOtherRanges);
                 }
                 this._drawSelectionRange();
 
@@ -9145,11 +9145,11 @@
 
 	WorksheetView.prototype.changeSelectionStartPoint = function (x, y, isCoord, isCtrl) {
 		this.cleanSelection();
+        this.endEditChart();
 
 		var activeCell = this._getSelection().activeCell.clone();
 
 		if (!this.isFormulaEditMode) {
-			this.cleanFormulaRanges();
 			if (isCtrl) {
 				this.model.selectionRange.addRange();
 			} else {
@@ -9309,6 +9309,7 @@
 
         // Очищаем выделение
         this.cleanSelection();
+        this.endEditChart();
         // Перерисовываем
         this.updateSelectionWithSparklines();
 
@@ -9331,13 +9332,13 @@
 			var oSparklineInfo = this.model.getSparklineGroup(c1, r1);
 			if (oSparklineInfo) {
 				this.cleanSelection();
-				this.cleanFormulaRanges();
+				this.endEditChart();
 				var range = oSparklineInfo.getLocationRanges();
 				range.ranges.forEach(function (item) {
 					item.isName = true;
 					item.noColor = true;
 				});
-				this.arrActiveFormulaRanges.push(range);
+				this.arrOtherRanges.push(range);
 				this._drawSelection();
 				return true;
 			}
@@ -14325,9 +14326,9 @@
 			if (selectionRange) {
 				this.model.selectionRange = selectionRange;
 			}
-			if (0 < this.arrActiveFormulaRanges.length) {
+			if (0 < this.arrOtherRanges.length) {
 				this.cleanSelection();
-				this.cleanFormulaRanges();
+				this.endEditChart();
 				this._drawSelection();
 			}
 
@@ -14654,8 +14655,8 @@
     WorksheetView.prototype.endEditChart = function () {
         if (this.isChartAreaEditMode) {
             this.isChartAreaEditMode = false;
-            this.arrOtherRanges = [];
         }
+        this.arrOtherRanges = [];
     };
 
     WorksheetView.prototype.enterCellRange = function (editor) {
