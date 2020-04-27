@@ -2676,7 +2676,7 @@
 		var match = (formula.substring(start_pos)).match(rx_string);
 		if (match != null)
 		{
-			this.operand_str = match[1].replace("\"\"", "\"");
+			this.operand_str = match[1];
 			this.pCurrPos += match[0].length;
 			return true;
 		}
