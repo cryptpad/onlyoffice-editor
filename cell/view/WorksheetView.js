@@ -412,7 +412,7 @@
         // Массив ячеек для текущей формулы
         this.arrActiveFormulaRanges = [];
         this.arrActiveFormulaRangesPosition = -1;
-        this.arrActiveChartRanges = [];
+        this.arrOtherRanges = [];
         //------------------------
 
         this.collaborativeEditing = collaborativeEditing;
@@ -5382,7 +5382,7 @@
             isShapeSelect = (asc["editor"].isStartAddShape || this.objectRender.selectedGraphicObjectsExists());
             if (isShapeSelect) {
                 if (this.isChartAreaEditMode) {
-                    this._drawFormulaRanges(this.arrActiveChartRanges);
+                    this._drawFormulaRanges(this.arrOtherRanges);
                 }
             } else {
                 if (!selectionDialogMode) {
@@ -5697,8 +5697,8 @@
                 }
             });
         }
-        for (i = 0; i < this.arrActiveChartRanges.length; ++i) {
-            this.arrActiveChartRanges[i].ranges.forEach(function (item) {
+        for (i = 0; i < this.arrOtherRanges.length; ++i) {
+            this.arrOtherRanges[i].ranges.forEach(function (item) {
                 var arnIntersection = item.intersectionSimple(range);
                 if (arnIntersection) {
                     _x1 = t._getColLeft(arnIntersection.c1) - offsetX - 3;
@@ -7638,7 +7638,7 @@
     WorksheetView.prototype._hitCursorFormulaOrChart = function (vr, x, y, offsetX, offsetY) {
         var i, l, res;
         var oFormulaRange;
-        var arrRanges = this.isFormulaEditMode ? this.arrActiveFormulaRanges : this.arrActiveChartRanges;
+        var arrRanges = this.isFormulaEditMode ? this.arrActiveFormulaRanges : this.arrOtherRanges;
         var targetArr = this.isFormulaEditMode ? 0 : -1;
 
         for (i = 0, l = arrRanges.length; i < l; ++i) {
@@ -10098,7 +10098,7 @@
         var rowByY = this._findRowUnderCursor(y, /*canReturnNull*/false, false).row;
         var type, i;
         var indexFormulaRange = targetInfo.indexFormulaRange;
-        var oActiveRange = this.arrActiveChartRanges[indexFormulaRange], oValRange, bVert, colDelta, rowDelta;
+        var oActiveRange = this.arrOtherRanges[indexFormulaRange], oValRange, bVert, colDelta, rowDelta;
         var ar = oActiveRange.getLast().clone(), arTmp;
         var oRange;
         var oTopActiveRange = null, oLeftActiveRange = null, oValActiveRange = null;
@@ -10182,27 +10182,27 @@
             oActiveRange.getLast().assign2(arTmp);
         }
         else {
-            for(i = 0; i < this.arrActiveChartRanges.length; ++i) {
-                if(this.arrActiveChartRanges[i].chartRangeIndex === 0) {
-                    oValActiveRange = this.arrActiveChartRanges[i];
+            for(i = 0; i < this.arrOtherRanges.length; ++i) {
+                if(this.arrOtherRanges[i].chartRangeIndex === 0) {
+                    oValActiveRange = this.arrOtherRanges[i];
                 }
-                else if(this.arrActiveChartRanges[i].chartRangeIndex === 1) {
+                else if(this.arrOtherRanges[i].chartRangeIndex === 1) {
                     if(oValActiveRange) {
                         if(oValActiveRange.vert) {
-                            oLeftActiveRange = this.arrActiveChartRanges[i];
+                            oLeftActiveRange = this.arrOtherRanges[i];
                         }
                         else {
-                            oTopActiveRange = this.arrActiveChartRanges[i];
+                            oTopActiveRange = this.arrOtherRanges[i];
                         }
                     }
                 }
-                else if(this.arrActiveChartRanges[i].chartRangeIndex === 2) {
+                else if(this.arrOtherRanges[i].chartRangeIndex === 2) {
                     if(oValActiveRange) {
                         if(oValActiveRange.vert) {
-                            oTopActiveRange = this.arrActiveChartRanges[i];
+                            oTopActiveRange = this.arrOtherRanges[i];
                         }
                         else {
-                            oLeftActiveRange = this.arrActiveChartRanges[i];
+                            oLeftActiveRange = this.arrOtherRanges[i];
                         }
                     }
                 }
@@ -10346,7 +10346,7 @@
         var type;
         var indexFormulaRange = targetInfo.indexFormulaRange, d = new AscCommon.CellBase(0, 0), newFormulaRange = null;
         var ar = (0 == targetInfo.targetArr ? this.arrActiveFormulaRanges[indexFormulaRange] :
-          this.arrActiveChartRanges[indexFormulaRange]).getLast().clone();
+          this.arrOtherRanges[indexFormulaRange]).getLast().clone();
 
         // Колонка по X и строка по Y
         var colByX = this._findColUnderCursor(x, /*canReturnNull*/false, false).col;
@@ -10567,7 +10567,7 @@
 
     WorksheetView.prototype.applyMoveResizeRangeHandle = function ( target ) {
         if ( -1 == target.targetArr && !this.startCellMoveResizeRange.isEqual( this.moveRangeDrawingObjectTo ) ) {
-            this.objectRender.applyMoveResizeRange(this.arrActiveChartRanges);
+            this.objectRender.applyMoveResizeRange(this.arrOtherRanges);
             //this.objectRender.moveRangeDrawingObject( this.startCellMoveResizeRange, this.moveRangeDrawingObjectTo );
         }
 
@@ -14654,7 +14654,7 @@
     WorksheetView.prototype.endEditChart = function () {
         if (this.isChartAreaEditMode) {
             this.isChartAreaEditMode = false;
-            this.arrActiveChartRanges = [];
+            this.arrOtherRanges = [];
         }
     };
 

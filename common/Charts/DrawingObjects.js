@@ -4398,7 +4398,7 @@ function DrawingObjects() {
             aActiveRanges.push(oSelectionRange);
         }
         if(aActiveRanges.length > 0) {
-            worksheet.arrActiveChartRanges = aActiveRanges;
+            worksheet.arrOtherRanges = aActiveRanges;
             worksheet._drawSelection();
         }
     };

@@ -3588,8 +3588,8 @@ function OfflineEditor () {
             }
             
             if (window["Asc"]["editor"].isStartAddShape || this.objectRender.selectedGraphicObjectsExists()) {
-                if (this.isChartAreaEditMode && this.arrActiveChartRanges.length) {
-                    return this.__selectedCellRanges(this.arrActiveChartRanges, 0, 0, Asc.c_oAscSelectionType.RangeChart);
+                if (this.isChartAreaEditMode && this.arrOtherRanges.length) {
+                    return this.__selectedCellRanges(this.arrOtherRanges, 0, 0, Asc.c_oAscSelectionType.RangeChart);
                 }
             }
             
