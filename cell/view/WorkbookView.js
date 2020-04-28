@@ -2325,7 +2325,7 @@
 		}
 	};
 
-	WorkbookView.prototype.insertArgumentInFormula = function(val, argNum, type) {
+	WorkbookView.prototype.insertArgumentInFormula = function(val, argNum, type, fullRecalc) {
 		if (!this.getCellEditMode()) {
 			return;
 		}
@@ -2351,11 +2351,12 @@
 			return _res;
 		};
 
-		var fullRecalc = false;
+
+		//fullRecalc - когда переходим из одного аргумента в другой, либо закрываем окно
 		//предварительное преобразование данного аргумента
 		if (fullRecalc && type !== undefined) {
 			var curArg = val, _calc;
-			if (type === Asc.c_oAscFormulaArgumentType.any) {
+			if (type === Asc.c_oAscFormulaArgumentType.any || type === Asc.c_oAscFormulaArgumentType.text) {
 				_calc = tryCalculateFormula(curArg);
 				if (_calc && _calc.type === AscCommonExcel.cElementType.error && _calc.type.errorType === AscCommonExcel.cErrorType.wrong_name) {
 					curArg = '"' + curArg + '"';
@@ -2387,7 +2388,7 @@
 		}
 
 		this.cellEditor.pasteText(val);
-		return ws.model.getActiveFunctionInfo(this.cellEditor._formula, this.cellEditor._parseResult);
+		return ws.model.getActiveFunctionInfo(this.cellEditor._formula, this.cellEditor._parseResult, argNum, type);
 	};
 
 	WorkbookView.prototype.moveCursorFunctionArgument = function (argNum, pos) {

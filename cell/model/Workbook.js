@@ -7710,7 +7710,7 @@
 		return false;
 	};
 
-	Worksheet.prototype.getActiveFunctionInfo = function (parser, parserResult) {
+	Worksheet.prototype.getActiveFunctionInfo = function (parser, parserResult, argNum, type) {
 
 		var createFunctionInfoByName = function (_name) {
 			var _res;
@@ -7732,6 +7732,22 @@
 				_formulaParsedArg.parse(true, true, _parseResultArg, true);
 				if (!_parseResultArg.error) {
 					_res = _formulaParsedArg.calculate();
+				}
+			}
+			return _res;
+		};
+
+		var convertFormulaResultByType = function (_res) {
+			if (type === undefined || type === null) {
+				return _res.toLocaleString();
+			}
+
+			//TODO если полная проверка, то выводим ошибки - если нет, то вовзращаем пустую строку
+			var result = "";
+			if (type === Asc.c_oAscFormulaArgumentType.number) {
+				_res = _res.tocNumber();
+				if (_res) {
+					result = _res.toLocaleString();
 				}
 			}
 			return _res;
@@ -7790,7 +7806,7 @@
 						}
 						calcRes = calculateFormula(str);
 						if (calcRes) {
-							res.argumentsResult[i] = calcRes.toLocaleString();
+							res.argumentsResult[i] = i === argNum ? convertFormulaResultByType(calcRes) : calcRes.toLocaleString();
 						}
 					}
 				}
