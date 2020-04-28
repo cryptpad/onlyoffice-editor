@@ -3600,7 +3600,7 @@ function DrawingObjects() {
         }
     };
 
-    _this.applyMoveResizeRange = function(aActiveRanges) {
+    _this.applyMoveResizeRange = function(oRanges) {
         var oChart = null;
         var aSelectedObjects = _this.controller.selection.groupSelection ? _this.controller.selection.groupSelection.selectedObjects : _this.controller.selectedObjects;
         if(aSelectedObjects.length === 1
@@ -3612,7 +3612,7 @@ function DrawingObjects() {
         }
 
         var oValRange = null, oCatRange = null, oTxRange = null;
-        var ranges = aActiveRanges[0].ranges;
+        var ranges = oRanges.ranges;
         for(var i = 0; i < ranges.length; ++i) {
             if(ranges[i].chartRangeIndex === 0) {
                 oValRange = ranges[i].clone();
@@ -3626,7 +3626,7 @@ function DrawingObjects() {
         }
         _this.controller.checkSelectedObjectsAndCallback(function () {
             oChart.rebuildSeriesData(oValRange, oCatRange, oTxRange);
-        }, [aActiveRanges], false, AscDFH.historydescription_ChartDrawingObjects);
+        }, [], false, AscDFH.historydescription_ChartDrawingObjects);
     };
 
 
@@ -4317,7 +4317,7 @@ function DrawingObjects() {
         var BB, range;
         var oSelectedSeries = drawing.getSelectedSeries();
         var oSelectionRange;
-        var aActiveRanges = [], aCheckRanges, i, j;
+        var aCheckRanges, i, j;
 
         var oSeriesBBox = null, oTxBBox = null, oCatBBox = null;
         if(!oSelectedSeries)
@@ -4400,8 +4400,7 @@ function DrawingObjects() {
             range.chartRangeIndex = 2;
         }
         if (worksheet.isChartAreaEditMode) {
-            aActiveRanges.push(oSelectionRange);
-            worksheet.arrOtherRanges = aActiveRanges;
+            worksheet.oOtherRanges = oSelectionRange;
             worksheet._drawSelection();
         }
     };

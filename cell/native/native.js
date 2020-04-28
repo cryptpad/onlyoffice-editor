@@ -3588,8 +3588,8 @@ function OfflineEditor () {
             }
             
             if (window["Asc"]["editor"].isStartAddShape || this.objectRender.selectedGraphicObjectsExists()) {
-                if (this.isChartAreaEditMode && this.arrOtherRanges.length) {
-                    return this.__selectedCellRanges(this.arrOtherRanges, 0, 0, Asc.c_oAscSelectionType.RangeChart);
+                if (this.isChartAreaEditMode && this.oOtherRanges) {
+                    return this.__selectedCellRanges(this.oOtherRanges, 0, 0, Asc.c_oAscSelectionType.RangeChart);
                 }
             }
             
@@ -3597,132 +3597,127 @@ function OfflineEditor () {
         };
         
         AscCommonExcel.WorksheetView.prototype.__selectedCellRanges = function (inputRanges, offsetX, offsetY, rangetype) {
-            
-            var ranges = [], j = 0, i = 0, type = 0, left = 0, right = 0, top = 0, bottom = 0;
-            
-            for (j = 0; j < inputRanges.length; ++j) {
-                
-                arrRanges = inputRanges[j].ranges;
-                
-                var type = 0, left = 0, right = 0, top = 0, bottom = 0;
-                var addt, addl, addr, addb, colsCount = this.nColsCount - 1, rowsCount = this.nRowsCount - 1;
-                var defaultRowHeight = AscCommonExcel.oDefaultMetrics.RowHeight;
-                
-                for (i = 0; i < arrRanges.length; ++i) {
-                    type = (arrRanges[i].getType == undefined) ? 0 : arrRanges[i].getType();
-                    ranges.push(undefined !== rangetype ? rangetype : type);
-                    ranges.push(arrRanges[i].c1);
-                    ranges.push(arrRanges[i].c2);
-                    ranges.push(arrRanges[i].r1);
-                    ranges.push(arrRanges[i].r2);
-                    
-                    addl = Math.max(arrRanges[i].c1 - colsCount,0);
-                    addt = Math.max(arrRanges[i].r1 - rowsCount,0);
-                    addr = Math.max(arrRanges[i].c2 - colsCount,0);
-                    addb = Math.max(arrRanges[i].r2 - rowsCount,0);
-                    
-                    if (1 === type) { // cells or chart
-                        if (addl > 0)
-                            left = this._getColLeft(colsCount - 1) + this.defaultColWidthPx * addl - offsetX;
-                        else
-                            left = this._getColLeft(Math.max(0,arrRanges[i].c1,0)) - offsetX;
-                        
-                        if (addt > 0)
-                            top = this._getRowTop(rowsCount - 1) + addt * defaultRowHeight - offsetY;
-                        else
-                            top = this._getRowTop(Math.max(0,arrRanges[i].r1,0)) - offsetY;
-                        
-                        if (addr > 0)
-                            right = this._getColLeft(colsCount - 1) + this.defaultColWidthPx * addr - offsetX;
-                        else
-                            right = this._getColLeft(arrRanges[i].c2) + this._getColumnWidth(arrRanges[i].c2) - offsetX;
-                        
-                        if (addb > 0)
-                            bottom = this._getRowTop(rowsCount - 1) + addb * defaultRowHeight - offsetY;
-                        else
-                            bottom = this._getRowTop(arrRanges[i].r2) + this._getRowHeight(arrRanges[i].r2) - offsetY;
-                    }
-                    else if (2 === type) {       // column range
-                        if (addl > 0)
-                            left = this._getColLeft(colsCount - 1) + this.defaultColWidthPx * addl - offsetX;
-                        else
-                            left = this._getColLeft(Math.max(0,arrRanges[i].c1)) - offsetX;
-                        
-                        if (addt > 0)
-                            top = this._getRowTop(rowsCount - 1) + addt * defaultRowHeight - offsetY;
-                        else
-                            top = this._getRowTop(Math.max(0,arrRanges[i].r1)) - offsetY;
-                        
-                        if (addr > 0)
-                            right = this._getColLeft(colsCount - 1) + this.defaultColWidthPx * addr - offsetX;
-                        else
-                            right = this._getColLeft(arrRanges[i].c2) + this._getColumnWidth(arrRanges[i].c2) - offsetX;
-                        
-                        bottom = 0;
-                    }
-                    else if (3 === type) {       // row range
-                        if (addl > 0)
-                            left = this._getColLeft(colsCount - 1) + this.defaultColWidthPx * addl - offsetX;
-                        else
-                            left = this._getColLeft(arrRanges[i].c1) - offsetX;
-                        
-                        if (addt > 0)
-                            top = this._getRowTop(rowsCount - 1) + addt * defaultRowHeight - offsetY;
-                        else
-                            top = this._getRowTop(arrRanges[i].r1) - offsetY;
-                        
-                        right = 0;
-                        
-                        if (addb > 0)
-                            bottom = this._getRowTop(rowsCount - 1) + addb * defaultRowHeight - offsetY;
-                        else
-                            bottom  = this._getRowTop(arrRanges[i].r2) + this._getRowHeight(arrRanges[i].r2) - offsetY;
-                    }
-                    else if (4 === type) {       // max
-                        if (addl > 0)
-                            left = this._getColLeft(colsCount - 1) + this.defaultColWidthPx * addl - offsetX;
-                        else
-                            left = this._getColLeft(arrRanges[i].c1) - offsetX;
-                        
-                        if (addt > 0)
-                            top = this._getRowTop(rowsCount - 1) + addt * defaultRowHeight - offsetY;
-                        else
-                            top = this._getRowTop(arrRanges[i].r1) - offsetY;
-                        
-                        right = 0;
-                        bottom = 0;
-                    } else {
-                        if (addl > 0)
-                            left = this._getColLeft(colsCount - 1) + this.defaultColWidthPx * addl - offsetX;
-                        else
-                            left = this._getColLeft(Math.max(0,arrRanges[i].c1)) - offsetX;
-                        
-                        if (addt > 0)
-                            top = this._getRowTop(rowsCount - 1) + addt * defaultRowHeight - offsetY;
-                        else
-                            top = this._getRowTop(Math.max(0,arrRanges[i].r1)) - offsetY;
-                        
-                        if (addr > 0)
-                            right = this._getColLeft(colsCount - 1) + this.defaultColWidthPx * addr - offsetX;
-                        else
-                            right = this._getColLeft(Math.max(0,arrRanges[i].c2)) + this._getColumnWidth(Math.max(0,arrRanges[i].c2)) - offsetX;
-                        
-                        if (addb > 0)
-                            bottom = this._getRowTop(rowsCount - 1) + addb * defaultRowHeight - offsetY;
-                        else
-                            bottom = this._getRowTop(Math.max(0,arrRanges[i].r2)) + this._getRowHeight(Math.max(0,arrRanges[i].r2)) - offsetY;
-                    }
-                    
-                    // else if (5 === type) { // range image
-                    // }
-                    // else if (6 === type) { // range chart
-                    // }
-                    
-                    ranges.push(left);
-                    ranges.push(top);
-                    ranges.push(right);
-                    ranges.push(bottom);
+            var arrRanges = inputRanges.ranges;
+            var ranges = [];
+
+            var type, left, right, top, bottom;
+            var addt, addl, addr, addb, colsCount = this.nColsCount - 1, rowsCount = this.nRowsCount - 1;
+            var defaultRowHeight = AscCommonExcel.oDefaultMetrics.RowHeight;
+
+            for (var i = 0; i < arrRanges.length; ++i) {
+                type = arrRanges[i].getType();
+                ranges.push(undefined !== rangetype ? rangetype : type);
+                ranges.push(arrRanges[i].c1);
+                ranges.push(arrRanges[i].c2);
+                ranges.push(arrRanges[i].r1);
+                ranges.push(arrRanges[i].r2);
+
+                addl = Math.max(arrRanges[i].c1 - colsCount,0);
+                addt = Math.max(arrRanges[i].r1 - rowsCount,0);
+                addr = Math.max(arrRanges[i].c2 - colsCount,0);
+                addb = Math.max(arrRanges[i].r2 - rowsCount,0);
+
+                if (1 === type) { // cells or chart
+                    if (addl > 0)
+                        left = this._getColLeft(colsCount - 1) + this.defaultColWidthPx * addl - offsetX;
+                    else
+                        left = this._getColLeft(Math.max(0,arrRanges[i].c1,0)) - offsetX;
+
+                    if (addt > 0)
+                        top = this._getRowTop(rowsCount - 1) + addt * defaultRowHeight - offsetY;
+                    else
+                        top = this._getRowTop(Math.max(0,arrRanges[i].r1,0)) - offsetY;
+
+                    if (addr > 0)
+                        right = this._getColLeft(colsCount - 1) + this.defaultColWidthPx * addr - offsetX;
+                    else
+                        right = this._getColLeft(arrRanges[i].c2) + this._getColumnWidth(arrRanges[i].c2) - offsetX;
+
+                    if (addb > 0)
+                        bottom = this._getRowTop(rowsCount - 1) + addb * defaultRowHeight - offsetY;
+                    else
+                        bottom = this._getRowTop(arrRanges[i].r2) + this._getRowHeight(arrRanges[i].r2) - offsetY;
                 }
+                else if (2 === type) {       // column range
+                    if (addl > 0)
+                        left = this._getColLeft(colsCount - 1) + this.defaultColWidthPx * addl - offsetX;
+                    else
+                        left = this._getColLeft(Math.max(0,arrRanges[i].c1)) - offsetX;
+
+                    if (addt > 0)
+                        top = this._getRowTop(rowsCount - 1) + addt * defaultRowHeight - offsetY;
+                    else
+                        top = this._getRowTop(Math.max(0,arrRanges[i].r1)) - offsetY;
+
+                    if (addr > 0)
+                        right = this._getColLeft(colsCount - 1) + this.defaultColWidthPx * addr - offsetX;
+                    else
+                        right = this._getColLeft(arrRanges[i].c2) + this._getColumnWidth(arrRanges[i].c2) - offsetX;
+
+                    bottom = 0;
+                }
+                else if (3 === type) {       // row range
+                    if (addl > 0)
+                        left = this._getColLeft(colsCount - 1) + this.defaultColWidthPx * addl - offsetX;
+                    else
+                        left = this._getColLeft(arrRanges[i].c1) - offsetX;
+
+                    if (addt > 0)
+                        top = this._getRowTop(rowsCount - 1) + addt * defaultRowHeight - offsetY;
+                    else
+                        top = this._getRowTop(arrRanges[i].r1) - offsetY;
+
+                    right = 0;
+
+                    if (addb > 0)
+                        bottom = this._getRowTop(rowsCount - 1) + addb * defaultRowHeight - offsetY;
+                    else
+                        bottom  = this._getRowTop(arrRanges[i].r2) + this._getRowHeight(arrRanges[i].r2) - offsetY;
+                }
+                else if (4 === type) {       // max
+                    if (addl > 0)
+                        left = this._getColLeft(colsCount - 1) + this.defaultColWidthPx * addl - offsetX;
+                    else
+                        left = this._getColLeft(arrRanges[i].c1) - offsetX;
+
+                    if (addt > 0)
+                        top = this._getRowTop(rowsCount - 1) + addt * defaultRowHeight - offsetY;
+                    else
+                        top = this._getRowTop(arrRanges[i].r1) - offsetY;
+
+                    right = 0;
+                    bottom = 0;
+                } else {
+                    if (addl > 0)
+                        left = this._getColLeft(colsCount - 1) + this.defaultColWidthPx * addl - offsetX;
+                    else
+                        left = this._getColLeft(Math.max(0,arrRanges[i].c1)) - offsetX;
+
+                    if (addt > 0)
+                        top = this._getRowTop(rowsCount - 1) + addt * defaultRowHeight - offsetY;
+                    else
+                        top = this._getRowTop(Math.max(0,arrRanges[i].r1)) - offsetY;
+
+                    if (addr > 0)
+                        right = this._getColLeft(colsCount - 1) + this.defaultColWidthPx * addr - offsetX;
+                    else
+                        right = this._getColLeft(Math.max(0,arrRanges[i].c2)) + this._getColumnWidth(Math.max(0,arrRanges[i].c2)) - offsetX;
+
+                    if (addb > 0)
+                        bottom = this._getRowTop(rowsCount - 1) + addb * defaultRowHeight - offsetY;
+                    else
+                        bottom = this._getRowTop(Math.max(0,arrRanges[i].r2)) + this._getRowHeight(Math.max(0,arrRanges[i].r2)) - offsetY;
+                }
+
+                // else if (5 === type) { // range image
+                // }
+                // else if (6 === type) { // range chart
+                // }
+
+                ranges.push(left);
+                ranges.push(top);
+                ranges.push(right);
+                ranges.push(bottom);
             }
             
             return ranges;

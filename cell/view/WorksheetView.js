@@ -412,7 +412,7 @@
         // Массив ячеек для текущей формулы
         this.arrActiveFormulaRanges = [];
         this.arrActiveFormulaRangesPosition = -1;
-        this.arrOtherRanges = [];
+        this.oOtherRanges = null;
         //------------------------
 
         this.collaborativeEditing = collaborativeEditing;
@@ -5382,11 +5382,11 @@
             isShapeSelect = (asc["editor"].isStartAddShape || this.objectRender.selectedGraphicObjectsExists());
             if (isShapeSelect) {
                 if (this.isChartAreaEditMode) {
-                    this._drawFormulaRanges(this.arrOtherRanges);
+                    this._drawFormulaRanges(this.oOtherRanges);
                 }
             } else {
                 if (!selectionDialogMode) {
-                    this._drawFormulaRanges(this.arrOtherRanges);
+                    this._drawFormulaRanges(this.oOtherRanges);
                 }
                 this._drawSelectionRange();
 
@@ -5452,30 +5452,31 @@
         });
     };
 
-    WorksheetView.prototype._drawFormulaRanges = function (arrRanges) {
-    	var i, ranges, length = AscCommonExcel.c_oAscFormulaRangeBorderColor.length;
+    WorksheetView.prototype._drawFormulaRanges = function (ranges) {
+        if (!ranges) {
+            return;
+        }
+        ranges = ranges.ranges;
+    	var length = AscCommonExcel.c_oAscFormulaRangeBorderColor.length;
         var strokeColor, colorIndex, uniqueColorIndex = 0, tmpColors = [];
-        for (i = 0; i < arrRanges.length; ++i) {
-            ranges = arrRanges[i].ranges;
-            for (var j = 0, l = ranges.length; j < l; ++j) {
-                if (ranges[j].noColor) {
-                    colorIndex = 0;
-                } else if (ranges[j].chartRangeIndex !== undefined) {
-                    colorIndex = ranges[j].chartRangeIndex;
-                } else {
-                    colorIndex = asc.getUniqueRangeColor(ranges, j, tmpColors);
-                    if (null == colorIndex) {
-                        colorIndex = uniqueColorIndex++;
-                    }
-                    tmpColors.push(colorIndex);
+        for (var i = 0, l = ranges.length; i < l; ++i) {
+            if (ranges[i].noColor) {
+                colorIndex = 0;
+            } else if (ranges[i].chartRangeIndex !== undefined) {
+                colorIndex = ranges[i].chartRangeIndex;
+            } else {
+                colorIndex = asc.getUniqueRangeColor(ranges, i, tmpColors);
+                if (null == colorIndex) {
+                    colorIndex = uniqueColorIndex++;
                 }
-
-                strokeColor = AscCommonExcel.c_oAscFormulaRangeBorderColor[colorIndex % length];
-
-                this._drawElements(this._drawSelectionElement, ranges[j],
-                  AscCommonExcel.selectionLineType.Selection | (ranges[j].isName ? AscCommonExcel.selectionLineType.None :
-                    AscCommonExcel.selectionLineType.Resize), strokeColor);
+                tmpColors.push(colorIndex);
             }
+
+            strokeColor = AscCommonExcel.c_oAscFormulaRangeBorderColor[colorIndex % length];
+
+            this._drawElements(this._drawSelectionElement, ranges[i],
+                AscCommonExcel.selectionLineType.Selection | (ranges[i].isName ? AscCommonExcel.selectionLineType.None :
+                AscCommonExcel.selectionLineType.Resize), strokeColor);
         }
     };
 
@@ -5698,8 +5699,8 @@
                 }
             });
         }
-        for (i = 0; i < this.arrOtherRanges.length; ++i) {
-            this.arrOtherRanges[i].ranges.forEach(function (item) {
+        if (this.oOtherRanges) {
+            this.oOtherRanges.ranges.forEach(function (item) {
                 var arnIntersection = item.intersectionSimple(range);
                 if (arnIntersection) {
                     _x1 = t._getColLeft(arnIntersection.c1) - offsetX - 3;
@@ -7639,7 +7640,7 @@
     WorksheetView.prototype._hitCursorFormulaOrChart = function (vr, x, y, offsetX, offsetY) {
         var i, l, res;
         var oFormulaRange;
-        var arrRanges = (this.isFormulaEditMode ? this.arrActiveFormulaRanges : this.arrOtherRanges)[0].ranges;
+        var arrRanges = (this.isFormulaEditMode ? this.arrActiveFormulaRanges[0].ranges : this.oOtherRanges.ranges);
         var targetArr = this.isFormulaEditMode ? 0 : -1;
 
         for (i = 0, l = arrRanges.length; i < l; ++i) {
@@ -9339,7 +9340,7 @@
 					item.isName = true;
 					item.noColor = true;
 				});
-				this.arrOtherRanges.push(range);
+				this.oOtherRanges = range;
 				this._drawSelection();
 				return true;
 			}
@@ -10100,10 +10101,9 @@
         var rowByY = this._findRowUnderCursor(y, /*canReturnNull*/false, false).row;
         var i;
         var indexFormulaRange = targetInfo.indexFormulaRange;
-        var otherRanges = this.arrOtherRanges[0].ranges;
+        var otherRanges = this.oOtherRanges.ranges;
         var oActiveRange = otherRanges[indexFormulaRange], colDelta, rowDelta;
         var ar = oActiveRange.clone(), arTmp;
-        var oRange;
         var oTopActiveRange = null, oLeftActiveRange = null, oValActiveRange = null;
         var r1 = null, r2 = null, c1 = null, c2 = null, delta;
 
@@ -10323,7 +10323,7 @@
         var type;
         var indexFormulaRange = targetInfo.indexFormulaRange, d = new AscCommon.CellBase(0, 0), newFormulaRange;
         var ar = (0 == targetInfo.targetArr ? this.arrActiveFormulaRanges[0].ranges[indexFormulaRange] :
-          this.arrOtherRanges[0].ranges[indexFormulaRange]).clone();
+          this.oOtherRanges.ranges[indexFormulaRange]).clone();
 
         // Колонка по X и строка по Y
         var colByX = this._findColUnderCursor(x, /*canReturnNull*/false, false).col;
@@ -10545,7 +10545,7 @@
 
     WorksheetView.prototype.applyMoveResizeRangeHandle = function ( target ) {
         if ( -1 == target.targetArr && !this.startCellMoveResizeRange.isEqual( this.moveRangeDrawingObjectTo ) ) {
-            this.objectRender.applyMoveResizeRange(this.arrOtherRanges);
+            this.objectRender.applyMoveResizeRange(this.oOtherRanges);
             //this.objectRender.moveRangeDrawingObject( this.startCellMoveResizeRange, this.moveRangeDrawingObjectTo );
         }
 
@@ -14303,7 +14303,7 @@
 			if (selectionRange) {
 				this.model.selectionRange = selectionRange;
 			}
-			if (0 < this.arrOtherRanges.length) {
+			if (this.oOtherRanges) {
 				this.cleanSelection();
 				this.endEditChart();
 				this._drawSelection();
@@ -14633,7 +14633,7 @@
         if (this.isChartAreaEditMode) {
             this.isChartAreaEditMode = false;
         }
-        this.arrOtherRanges = [];
+        this.oOtherRanges = null;
     };
 
     WorksheetView.prototype.enterCellRange = function (editor) {
