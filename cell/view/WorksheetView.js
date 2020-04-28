@@ -14531,10 +14531,6 @@
 		editor.paste(copyValue, cursorPos);
     };
 
-    WorksheetView.prototype.getFormulaRanges = function () {
-        return this.arrActiveFormulaRanges;
-    };
-
     WorksheetView.prototype.updateRanges = function (ranges, skipHeight) {
         if (0 < ranges.length) {
 			for (var i = 0; i < ranges.length; ++i) {
