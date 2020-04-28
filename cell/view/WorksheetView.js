@@ -381,7 +381,6 @@
         this.topLeftFrozenCell = null;	// Верхняя ячейка для закрепления диапазона
         this.visibleRange = new asc_Range(0, 0, 0, 0);
         this.isChanged = false;
-        this.isFormulaEditMode = false;
         this.isChartAreaEditMode = false;
         this.lockDraw = false;
         this.isSelectOnShape = false;	// Выделен shape
@@ -507,6 +506,10 @@
 	WorksheetView.prototype.getCellEditMode = function () {
 		return this.workbook.isCellEditMode;
 	};
+
+    WorksheetView.prototype.getFormulaEditMode = function () {
+        return this.workbook.isFormulaEditMode;
+    };
 
 	WorksheetView.prototype.getSelectionDialogMode = function () {
 	    return this.workbook.selectionDialogMode;
@@ -1403,7 +1406,7 @@
     };
 
     WorksheetView.prototype._getSelection = function () {
-        return (this.isFormulaEditMode && !this.getSelectionDialogMode()) ?
+        return (this.getFormulaEditMode() && !this.getSelectionDialogMode()) ?
             this.arrActiveFormulaRanges[this.arrActiveFormulaRangesPosition] : this.model.selectionRange;
     };
 
@@ -5369,7 +5372,7 @@
         if (dialogOtherRanges) {
             this._drawCollaborativeElements();
         }
-        var isOtherSelectionMode = (selectionDialogMode || this.isFormulaEditMode) && !this.handlers.trigger('isActive');
+        var isOtherSelectionMode = selectionDialogMode && !this.handlers.trigger('isActive');
         if (isOtherSelectionMode) {
             this._drawSelectRange();
         } else {
@@ -7880,7 +7883,7 @@
 			return {cursor: kCurFormatPainterExcel, target: target, col: col, row: row};
 		}
 
-		if (dialogOtherRanges && (this.isFormulaEditMode || this.isChartAreaEditMode)) {
+		if (dialogOtherRanges && (this.getFormulaEditMode() || this.isChartAreaEditMode)) {
 			this._drawElements(function (_vr, _offsetX, _offsetY) {
 				return (null === (res = this._hitCursorFormulaOrChart(_vr, x, y, _offsetX, _offsetY)));
 			});
@@ -8098,7 +8101,7 @@
     WorksheetView.prototype._fixSelectionOfMergedCells = function (fixedRange, onlyCells) {
         var selection;
         var ar = fixedRange ? fixedRange : ((selection = this._getSelection()) ? selection.getLast() : null);
-        if (!ar || (onlyCells && c_oAscSelectionType.RangeCells !== ar.getType() && !this.isFormulaEditMode)) {
+        if (!ar || (onlyCells && c_oAscSelectionType.RangeCells !== ar.getType() && !this.getFormulaEditMode())) {
         	return;
 		}
 
@@ -8238,7 +8241,7 @@
 			    break;
 		}
 		selection.setActiveCell(r, c);
-		var valid = !this.isFormulaEditMode && selection.validActiveCell();
+		var valid = !this.getFormulaEditMode() && selection.validActiveCell();
 		this._fixSelectionOfMergedCells(null, valid);
 	};
 
@@ -8335,7 +8338,7 @@
 
     WorksheetView.prototype._calcActiveRangeOffsetIsCoord = function (x, y) {
         var ar = this._getSelection().getLast();
-        if (this.isFormulaEditMode) {
+        if (this.getFormulaEditMode()) {
             // Для формул нужно сделать ограничение по range (у нас хранится полный диапазон)
             if (ar.c2 >= this.nColsCount || ar.r2 >= this.nRowsCount) {
                 ar = ar.clone(true);
@@ -8374,7 +8377,7 @@
     WorksheetView.prototype._calcRangeOffset = function (range) {
         var vr = this.visibleRange;
         var ar = range || this._getSelection().getLast();
-        if (this.isFormulaEditMode) {
+        if (this.getFormulaEditMode()) {
             // Для формул нужно сделать ограничение по range (у нас хранится полный диапазон)
             if (ar.c2 >= this.nColsCount || ar.r2 >= this.nRowsCount) {
                 ar = ar.clone(true);
@@ -8410,7 +8413,7 @@
 		var nRowsCount = this.nRowsCount;
 		var nColsCount = this.nColsCount;
 		var ar = range || this._getSelection().getLast();
-		if (this.isFormulaEditMode) {
+		if (this.getFormulaEditMode()) {
 			// Для формул нужно сделать ограничение по range (у нас хранится полный диапазон)
 			if (ar.c2 >= this.nColsCount || ar.r2 >= this.nRowsCount) {
 				ar = ar.clone(true);
@@ -9115,7 +9118,7 @@
 		this.cleanSelection();
 
 		this.model.selectionRange.setActiveCell(cell.row, cell.col);
-		var valid = !this.isFormulaEditMode && this._getSelection().validActiveCell();
+		var valid = !this.getFormulaEditMode() && this._getSelection().validActiveCell();
 
 		this._fixSelectionOfMergedCells(null, valid);
 		this.updateSelectionWithSparklines();
@@ -9129,7 +9132,7 @@
 
 		var activeCell = this._getSelection().activeCell.clone();
 
-		if (!this.isFormulaEditMode) {
+		if (!this.getFormulaEditMode()) {
 			if (isCtrl) {
 				this.model.selectionRange.addRange();
 			} else {
@@ -9304,7 +9307,7 @@
     };
 
 	WorksheetView.prototype.checkSelectionSparkline = function () {
-		if (!this.getSelectionShape() && !this.isFormulaEditMode && !this.getCellEditMode()) {
+		if (!this.getSelectionShape() && !this.getCellEditMode()) {
 			var cell = this.model.selectionRange.activeCell;
 			var mc = this.model.getMergedByCell(cell.row, cell.col);
 			var c1 = mc ? mc.c1 : cell.col;
@@ -10334,7 +10337,7 @@
         // this.cleanSelection();
         this.overlayCtx.clear();
 
-        if (!this.isFormulaEditMode) {
+        if (!this.getFormulaEditMode()) {
             return this.changeChartSelectionMoveResizeRangeHandle(x, y, targetInfo, editor);
         }
         if (targetInfo.cursor == kCurNEResize || targetInfo.cursor == kCurSEResize) {
@@ -10519,7 +10522,7 @@
 	};
 
     WorksheetView.prototype.applyMoveResizeRangeHandle = function () {
-        if (!this.isFormulaEditMode && !this.startCellMoveResizeRange.isEqual(this.moveRangeDrawingObjectTo)) {
+        if (!this.getFormulaEditMode() && !this.startCellMoveResizeRange.isEqual(this.moveRangeDrawingObjectTo)) {
             this.objectRender.applyMoveResizeRange(this.oOtherRanges);
         }
 
@@ -14110,12 +14113,6 @@
         }
     };
 
-    // ----- Cell Editor -----
-
-    WorksheetView.prototype.setFormulaEditMode = function ( isFormulaEditMode ) {
-        this.isFormulaEditMode = isFormulaEditMode;
-    };
-
     WorksheetView.prototype.cloneSelection = function (start, selectRange) {
         this.cleanSelection();
 
@@ -14159,8 +14156,6 @@
 	WorksheetView.prototype._saveCellValueAfterEdit = function (c, val, flags, isNotHistory, lockDraw) {
 	    var bbox = c.bbox;
 		var t = this;
-		var oldMode = this.isFormulaEditMode;
-		this.isFormulaEditMode = false;
 
 		var ctrlKey = flags && flags.ctrlKey;
 		var shiftKey = flags && flags.shiftKey;
@@ -14209,7 +14204,6 @@
 			}
 
 			if (!ret) {
-				this.isFormulaEditMode = oldMode;
 				History.EndTransaction();
 				//t.model.workbook.dependencyFormulas.unlockRecal();
 				return false;
@@ -14317,7 +14311,6 @@
 			this.handlers.trigger("onScroll", this._calcActiveCellOffset());
 
 			bg = c.getFillColor();
-			this.isFormulaEditMode = false;
 
 			var font = c.getFont();
 			// Скрываем окно редактирования комментария
@@ -14596,7 +14589,7 @@
     };
 
     WorksheetView.prototype.enterCellRange = function (editor) {
-        if (!this.isFormulaEditMode || this.getSelectionDialogMode()) {
+        if (this.getSelectionDialogMode()) {
             return;
         }
 

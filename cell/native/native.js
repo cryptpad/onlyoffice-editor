@@ -3493,7 +3493,7 @@ function OfflineEditor () {
             }
             
             var formularanges = [];
-            if (!isFrozen && this.isFormulaEditMode) {
+            if (!isFrozen && this.getFormulaEditMode()) {
                 formularanges = this.__selectedCellRanges(offsetX, offsetY);
             }
             
@@ -5127,8 +5127,8 @@ window["native"]["offline_keyboard_down"] = function(inputKeys) {
     
     AscCommon.g_oTextMeasurer.Flush();
     
-    var isFormulaEditMode = ws.isFormulaEditMode;
-    ws.isFormulaEditMode = false;
+    var isFormulaEditMode = wb.isFormulaEditMode;
+    wb.isFormulaEditMode = false;
     
     for (var i = 0; i < inputKeys.length; i += 3) {
         
@@ -5184,8 +5184,8 @@ window["native"]["offline_keyboard_down"] = function(inputKeys) {
         else if (13 === codeKey)     // ENTER
             wb._onChangeSelection(true, 0, 1, false);
     }
-    
-    ws.isFormulaEditMode = isFormulaEditMode;
+
+    wb.isFormulaEditMode = isFormulaEditMode;
 }
 
 window["native"]["offline_cell_editor_draw"] = function(width, height, ratio) {
@@ -5265,8 +5265,6 @@ window["native"]["offline_cell_editor_test_cells"] = function(x, y, width, heigh
             
             //t.setCellEditMode(false);
             //t.controller.setStrictClose(false);
-            //ws.setCellEditMode(false);
-            //ws.setFormulaEditMode(false);
             //t.input.disabled = true;
             
             // Выключаем lock для редактирования ячейки

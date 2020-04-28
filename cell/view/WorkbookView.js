@@ -1532,7 +1532,6 @@
         t.setCellEditMode(false);
         t.controller.setStrictClose(false);
         t.setFormulaEditMode(false);
-        ws.setFormulaEditMode(false);
         t.input.disabled = true;
 
         // Выключаем lock для редактирования ячейки
@@ -1755,8 +1754,6 @@
           if (!this.cellFormulaEnterWSOpen) {
           	this.copyActiveSheet = this.wsActive;
             this.cellFormulaEnterWSOpen = ws;
-          } else {
-            ws.setFormulaEditMode(false);
           }
         } else {
           this._onStopCellEditing();
@@ -1808,14 +1805,11 @@
 
     if (this.cellEditor && this.cellFormulaEnterWSOpen) {
       if (ws === this.cellFormulaEnterWSOpen) {
-        this.cellFormulaEnterWSOpen.setFormulaEditMode(true);
         this.cellEditor._showCanvas();
       } else if (this.getCellEditMode() && this.cellEditor.isFormula()) {
-        this.cellFormulaEnterWSOpen.setFormulaEditMode(false);
         /*скрываем cellEditor, в редактор добавляем %selected sheet name%+"!" */
         this.cellEditor._hideCanvas();
         ws.cleanSelection();
-        ws.setFormulaEditMode(true);
       }
     }
 
@@ -2245,7 +2239,6 @@
 				} else {
 					t.setCellEditMode(false);
 					t.controller.setStrictClose(false);
-					ws.setFormulaEditMode(false);
 					t.setFormulaEditMode(false);
 				}
 			};
