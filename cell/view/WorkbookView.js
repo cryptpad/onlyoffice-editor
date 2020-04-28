@@ -935,10 +935,13 @@
     this.lastSendInfoRangeIsSelectOnShape = ws.getSelectionShape();
   };
   WorkbookView.prototype._onWSSelectionChanged = function(isSaving) {
+    if (this.selectionDialogMode) {
+        return;
+    }
     this._updateSelectionInfo();
 
     // При редактировании ячейки не нужно пересылать изменения
-    if (this.input && !this.getCellEditMode() && !this.selectionDialogMode) {
+    if (this.input && !this.getCellEditMode()) {
       // Сами запретим заходить в строку формул, когда выделен shape
       if (this.lastSendInfoRangeIsSelectOnShape) {
         this.input.disabled = true;

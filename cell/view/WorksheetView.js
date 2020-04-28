@@ -8590,7 +8590,7 @@
         var sum = 0;
         var oExistCells = {};
 
-		if (window["NATIVE_EDITOR_ENJINE"]) {
+		if (window["NATIVE_EDITOR_ENJINE"] || this.getSelectionDialogMode()) {
 		    return oSelectionMathInfo;
 		}
 
@@ -8648,8 +8648,9 @@
             return " ";
         }	// Пока отправим пустое имя(с пробелом, пустое не воспринимаем в меню..) ToDo
 
-        var ar = this.model.selectionRange.getLast();
-        var cell = this.model.selectionRange.activeCell;
+        var selection = this.model.selectionRange || this.model.copySelection;
+        var ar = selection.getLast();
+        var cell = selection.activeCell;
         var mc = this.model.getMergedByCell(cell.row, cell.col);
         var c1 = mc ? mc.c1 : cell.col, r1 = mc ? mc.r1 : cell.row, ar_norm = ar.normalize(), mc_norm = mc ?
           mc.normalize() : null, c2 = mc_norm ? mc_norm.isEqual(ar_norm) ? mc_norm.c1 : ar_norm.c2 :
