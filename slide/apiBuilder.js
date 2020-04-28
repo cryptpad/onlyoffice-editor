@@ -1645,7 +1645,7 @@
     }
 
     function private_GetDrawingDocument(){
-        if(editor.WordControl){
+        if(editor && editor.WordControl){
             return editor.WordControl.m_oDrawingDocument;
         }
         if(Asc["editor"] && Asc["editor"].wbModel) {
