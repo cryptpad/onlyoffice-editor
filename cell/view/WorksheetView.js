@@ -7983,7 +7983,7 @@
 				var isPivot = pivotButtons.some(function (element) {
 					return element.row === r.row && element.col === c.col;
 				});
-				var activeCell = this.model.selectionRange.activeCell;
+				var activeCell = this.model.getSelection().activeCell;
 				var dataValidation = this.model.getDataValidation(activeCell.col, activeCell.row);
 				var isDataValidation = dataValidation && dataValidation.isListValues();
 				col = activeCell.col;
