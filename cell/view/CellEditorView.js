@@ -2187,10 +2187,6 @@
 		var t = this, kind = undefined, hieroglyph = false;
 		var ctrlKey = !AscCommon.getAltGr(event) && (event.metaKey || event.ctrlKey);
 
-		if (this.handlers.trigger("getSelectionDialogMode")) {
-			return true;
-		}
-
 		if (!t.isOpened || (!isInput && !t.enableKeyEvents)) {
 			return true;
 		}
@@ -2567,10 +2563,6 @@
 	CellEditor.prototype._onWindowKeyPress = function (event) {
 		var t = this;
 
-		if (this.handlers.trigger("getSelectionDialogMode")) {
-			return true;
-		}
-
 		if (!window['IS_NATIVE_EDITOR']) {
 
 			if (!t.isOpened || !t.enableKeyEvents) {
@@ -2663,10 +2655,6 @@
 		if (AscCommon.g_inputContext && AscCommon.g_inputContext.externalChangeFocus())
 			return;
 
-		if (this.handlers.trigger("getSelectionDialogMode")) {
-			return true;
-		}
-
 		AscCommon.global_mouseEvent.LockMouse();
 
 		var pos;
@@ -2713,9 +2701,6 @@
 
 	/** @param event {MouseEvent} */
 	CellEditor.prototype._onMouseUp = function (event) {
-		if (this.handlers.trigger("getSelectionDialogMode")) {
-			return true;
-		}
 
 		var button = AscCommon.getMouseButton(event);
 		AscCommon.global_mouseEvent.UnLockMouse();
