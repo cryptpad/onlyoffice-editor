@@ -642,20 +642,9 @@
 				  self._onUpdateCellEditor.apply(self, arguments);
 			  }, "gotFocus": function (hasFocus) {
 				  self.controller.setFocus(!hasFocus);
-			  }, "updateFormulaEditMod": function (/*bMode*/) {
-			  	  //TODO здесь до дёргался метод у контроллера. нужно ли выставлять FormulaEditMode в данном случае?
-			  	  //self.setFormulaEditMode(bMode);
-				  var ws = self.getWorksheet();
-				  if (ws) {
-					  if (!self.lockDraw) {
-						  ws.cleanSelection();
-					  }
-					  for (var i in self.wsViews) {
-						  self.wsViews[i].cleanFormulaRanges();
-					  }
-					  //ws.cleanFormulaRanges();
-					  ws.setFormulaEditMode.apply(ws, arguments);
-				  }
+			  }, "updateFormulaEditMod": function (val) {
+			      self.setSelectionDialogMode(val ? c_oAscSelectionDialogType.FunctionWizard : c_oAscSelectionDialogType.None, '');
+                  self.setFormulaEditMode(val);
 			  }, "updateEditorState": function (state) {
 				  self.handlers.trigger("asc_onEditCell", state);
 			  }, "isGlobalLockEditCell": function () {
@@ -1582,24 +1571,7 @@
     var isCellEditMode = this.getCellEditMode();
     this.setCellEditMode(false);
     this.controller.setStrictClose(false);
-    if (-1 !== this.copyActiveSheet) {
-    	var index = this.copyActiveSheet;
-    	this.cellFormulaEnterWSOpen = null;
-    	this.copyActiveSheet = -1;
-    	if (index !== this.wsActive) {
-    		this.showWorksheet(index);
-    	}
-     }
-
-	  var ws = this.getWorksheet();
-	  ws.cleanSelection();
-
-	  for (var i in this.wsViews) {
-		  this.wsViews[i].setFormulaEditMode(false);
-		  this.wsViews[i].cleanFormulaRanges();
-	  }
-
-	  ws.updateSelectionWithSparklines();
+    this.setFormulaEditMode(false);
 
     if (isCellEditMode) {
       this.handlers.trigger("asc_onEditCell", Asc.c_oAscCellEditorState.editEnd);
@@ -1607,6 +1579,10 @@
           window["native"]["closeCellEditor"]();
       }
     }
+
+    this.setSelectionDialogMode(c_oAscSelectionDialogType.None);
+
+    this.cellFormulaEnterWSOpen = null;
 
     // Обновляем состояние Undo/Redo
     if (!this.cellEditor.getMenuEditorMode()) {
@@ -1993,9 +1969,13 @@
         return this.dialogSheetName || !this.isActive();
     };
 
-	WorkbookView.prototype.setCellEditMode = function(flag) {
-		this.isCellEditMode = !!flag;
+	WorkbookView.prototype.setCellEditMode = function(mode) {
+		this.isCellEditMode = !!mode;
 	};
+
+    WorkbookView.prototype.setFormulaEditMode = function (mode) {
+        this.isFormulaEditMode = mode;
+    };
 
 	WorkbookView.prototype.isActive = function () {
 		return (-1 === this.copyActiveSheet || this.wsActive === this.copyActiveSheet);
@@ -3538,10 +3518,6 @@
 				doCopy();
 			}
 		});
-	};
-
-	WorkbookView.prototype.setFormulaEditMode = function ( isFormulaEditMode ) {
-		this.isFormulaEditMode = isFormulaEditMode;
 	};
 
   //------------------------------------------------------------export---------------------------------------------------
