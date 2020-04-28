@@ -3424,6 +3424,8 @@
 		this.aSparklineGroups = [];
 
 		this.selectionRange = new AscCommonExcel.SelectionRange(this);
+		this.copySelection = null;
+
 		this.sheetMergedStyles = new AscCommonExcel.SheetMergedStyles();
 		this.pivotTables = [];
 		this.headerFooter = new Asc.CHeaderFooter(this);
@@ -3679,6 +3681,25 @@
 				t.workbook.dependencyFormulas.addToBuildDependencyCell(cell);
 			}
 		});
+	};
+	Worksheet.prototype.copySelection = function (start, selectRange) {
+		if (start) {
+			this.copySelection = this.selectionRange.clone();
+			if (selectRange) {
+				this.selectionRange.assign2(selectRange);
+			} else {
+				this.selectionRange = null;
+			}
+
+		} else {
+			if (this.copySelection) {
+				this.selectionRange = this.copySelection;
+			}
+			this.copySelection = null;
+		}
+	};
+	Worksheet.prototype.getSelection = function () {
+		return this.copySelection || this.selectionRange;
 	};
 
 	Worksheet.prototype.copyObjects = function (oNewWs) {

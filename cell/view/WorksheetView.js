@@ -388,8 +388,6 @@
 
         this.stateFormatPainter = c_oAscFormatPainterState.kOff;
 
-        this.copyActiveRange = null;
-
         this.startCellMoveResizeRange = null;
         this.startCellMoveResizeRange2 = null;
         this.moveRangeDrawingObjectTo = null;
@@ -1400,9 +1398,6 @@
         }
     };
 
-    WorksheetView.prototype._getSelection2 = function () {
-        return this.copyActiveRange || this.model.selectionRange;
-    };
     WorksheetView.prototype._getSelection = function () {
         return (this.isFormulaEditMode && !this.getSelectionDialogMode()) ?
             this.arrActiveFormulaRanges[this.arrActiveFormulaRangesPosition] : this.model.selectionRange;
@@ -2812,7 +2807,7 @@
     };
 
     WorksheetView.prototype._doCleanHighlightedHeaders = function () {
-        var selectionRange = this._getSelection2();
+        var selectionRange = this.model.getSelection();
         var hlc = this.highlightedCol, hlr = this.highlightedRow;
         var bSelectionObject = this.objectRender.selectedGraphicObjectsExists();
         if (hlc >= 0) {
@@ -2852,7 +2847,7 @@
 
     WorksheetView.prototype._drawActiveHeaders = function () {
         var vr = this.visibleRange;
-        var selectionRange = this._getSelection2();
+        var selectionRange = this.model.getSelection();
         var range, c1, c2, r1, r2;
         this._activateOverlayCtx();
         for (var i = 0; i < selectionRange.ranges.length; ++i) {
@@ -5223,7 +5218,7 @@
 		// draw active cell in selection
 		var isActive = AscCommonExcel.selectionLineType.ActiveCell & selectionLineType;
 		if (isActive) {
-			var cell = this._getSelection2().activeCell;
+			var cell = this.model.getSelection().activeCell;
 			var fs = this.model.getMergedByCell(cell.row, cell.col);
 			fs = oIntersection.intersectionSimple(fs || new asc_Range(cell.col, cell.row, cell.col, cell.row));
 			if (fs) {
@@ -5416,7 +5411,7 @@
     };
 
     WorksheetView.prototype._drawSelectionRange = function () {
-        var type, ranges = this._getSelection2().ranges;
+        var type, ranges = this.model.getSelection().ranges;
         var range, selectionLineType;
         for (var i = 0, l = ranges.length; i < l; ++i) {
             range = ranges[i].clone();
@@ -5445,7 +5440,7 @@
 
     WorksheetView.prototype._drawFormatPainterRange = function () {
         var t = this, color = new CColor(0, 0, 0);
-        this.copyActiveRange.ranges.forEach(function (item) {
+        this.model.copyActiveRange.ranges.forEach(function (item) {
             t._drawElements(t._drawSelectionElement, item, AscCommonExcel.selectionLineType.Dash, color);
         });
     };
@@ -5589,7 +5584,7 @@
 
         this._activateOverlayCtx();
         var t = this;
-        var selectionRange = this._getSelection2();
+        var selectionRange = this.model.getSelection();
         selectionRange.ranges.forEach(function (item, index) {
             var arnIntersection = item.intersectionSimple(range);
             if (arnIntersection) {
@@ -5716,7 +5711,7 @@
         }
 
         selectionRange = this.model.selectionRange;
-        if (null !== this.copyActiveRange && selectionRange) {
+        if (this.model.copyActiveRange && selectionRange) {
             selectionRange.ranges.forEach(function (item) {
                 var arnIntersection = item.intersectionSimple(range);
                 if (arnIntersection) {
@@ -9008,7 +9003,7 @@
 
     // Получаем координаты активной ячейки
     WorksheetView.prototype.getActiveCellCoord = function () {
-        var selection = this._getSelection2();
+        var selection = this.model.getSelection();
         return this.getCellCoord(selection.activeCell.col, selection.activeCell.row);
     };
     WorksheetView.prototype.getCellCoord = function (col, row) {
@@ -9367,6 +9362,7 @@
           ((c_oAscFormatPainterState.kOff !== this.stateFormatPainter) ? c_oAscFormatPainterState.kOff :
             c_oAscFormatPainterState.kOn);
 
+        // ToDo
         if (this.stateFormatPainter) {
             this.copyActiveRange = this.model.selectionRange.clone();
             this._drawFormatPainterRange();
@@ -14121,23 +14117,13 @@
     WorksheetView.prototype.copySelection = function (start, selectRange) {
         this.cleanSelection();
 
-        if (start) {
-            this.copyActiveRange = this.model.selectionRange.clone();
-            if (selectRange) {
-                this.model.selectionRange.assign2(selectRange);
-            } else {
-                this.model.selectionRange = null;
-            }
+        this.model.copySelection(start, selectRange);
 
+        if (start) {
             if (this.isSelectOnShape) {
                 this.objectRender.controller.checkChartForProps(true);
             }
         } else {
-            if (null !== this.copyActiveRange) {
-                this.model.selectionRange = this.copyActiveRange;
-            }
-            this.copyActiveRange = null;
-
             this.objectRender.controller.checkChartForProps(false);
         }
     };
@@ -15578,7 +15564,7 @@
 		return true;
 	};
     WorksheetView.prototype.drawOverlayButtons = function (visibleRange, offsetX, offsetY) {
-		var activeCell = this._getSelection2().activeCell;
+		var activeCell = this.model.getSelection().activeCell;
 		if (visibleRange.contains2(activeCell)) {
 			var dataValidation = this.model.getDataValidation(activeCell.col, activeCell.row);
 			if (dataValidation && dataValidation.isListValues()) {
@@ -19852,7 +19838,7 @@
 
 	WorksheetView.prototype.checkCustomSortRange = function (range, bRow) {
 		var res = null;
-		var ar = this.copyActiveRange.getLast();
+		var ar = this.model.copyActiveRange.getLast();
 
 		if((bRow && range.r1 !== range.r2) || (!bRow && range.c1 !== range.c2)) {
 			res = c_oAscError.ID.CustomSortMoreOneSelectedError;

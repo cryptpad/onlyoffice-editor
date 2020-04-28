@@ -3438,7 +3438,7 @@ function OfflineEditor () {
             selection.push(0);
             selection.push(0);
             
-            var ranges = (this.isSelectionDialogMode ? this.copyActiveRange : this.model.selectionRange).ranges;
+            var ranges = this.model.getSelection().ranges;
             var range, selectionLineType, type;
             for (var i = 0, l = ranges.length; i < l; ++i) {
                 range = ranges[i].clone();
@@ -3474,7 +3474,7 @@ function OfflineEditor () {
                 
                 var isActive = AscCommonExcel.selectionLineType.ActiveCell & selectionLineType;
                 if (isActive) {
-                    var cell = (this.isSelectionDialogMode ? this.copyActiveRange : this.model.selectionRange).activeCell;
+                    var cell = this.model.getSelection().activeCell;
                     var fs = this.model.getMergedByCell(cell.row, cell.col);
                     fs = range.intersectionSimple(fs ? fs : new asc_Range(cell.col, cell.row, cell.col, cell.row));
                     if (fs) {
