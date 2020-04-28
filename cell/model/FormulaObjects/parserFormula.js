@@ -4115,7 +4115,7 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 		return list;
 	}
 	function getRangeByRef(ref, ws, onlyRanges, checkMultiSelection, checkFormula) {
-		var activeCell = ws.selectionRange.activeCell;
+		var activeCell = ws.getSelection().activeCell;
 		var bbox = new Asc.Range(activeCell.col, activeCell.row, activeCell.col, activeCell.row);
 		// ToDo in parser formula
 		var ranges = [];
