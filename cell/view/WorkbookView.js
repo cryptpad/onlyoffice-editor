@@ -649,13 +649,12 @@
 				  self.handlers.trigger("asc_onEditCell", state);
 			  }, "isGlobalLockEditCell": function () {
 				  return self.collaborativeEditing.getGlobalLockEditCell();
-			  }, "updateFormulaEditModEnd": function () {
-				  if (!self.lockDraw) {
-					  self.getWorksheet().updateSelection();
-				  }
 			  }, "newRanges": function (ranges) {
 			      if (self.isActive()) {
-			          self.getWorksheet().oOtherRanges = ranges;
+			          var ws = self.getWorksheet();
+			          ws.cleanSelection();
+			          ws.oOtherRanges = ranges;
+			          ws._drawSelection();
 				  }
 			  }, "existedRange": function (range, ws) {
 				  var editRangeSheet = ws ? self.model.getWorksheetIndexByName(ws) : self.lastActiveSheet;

@@ -987,7 +987,6 @@
 		}
 		this.handlers.trigger("updateFormulaEditMod", isFormula);
 		this._parseFormulaRanges();
-		this.handlers.trigger("updateFormulaEditModEnd");
 	};
 
 	// Обновляем состояние Undo/Redo
