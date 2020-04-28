@@ -7572,7 +7572,8 @@ CDocument.prototype.Selection_SetStart         = function(X, Y, MouseEvent)
 	}
 
     var bCheckHdrFtr = true;
-	var bFootnotes = false;
+	var bFootnotes   = false;
+	var bEndnotes    = false;
 
 	var nDocPosType = this.GetDocPosType();
     if (docpostype_HdrFtr === nDocPosType)
@@ -7592,6 +7593,7 @@ CDocument.prototype.Selection_SetStart         = function(X, Y, MouseEvent)
 	else
 	{
 		bFootnotes = this.Footnotes.CheckHitInFootnote(X, Y, this.CurPage);
+		bEndnotes  = this.Endnotes.CheckHitInEndnote(X, Y, this.CurPage);
 	}
 
     var PageMetrics = this.Get_PageContentStartPos(this.CurPage, this.Pages[this.CurPage].Pos);
@@ -7623,6 +7625,15 @@ CDocument.prototype.Selection_SetStart         = function(X, Y, MouseEvent)
 
 		this.SetDocPosType(docpostype_Footnotes);
 		this.Footnotes.StartSelection(X, Y, this.CurPage, MouseEvent);
+	}
+	else if (true !== bFlowTable && nInDrawing < 0 && true === bEndnotes)
+	{
+		this.RemoveSelection();
+		this.Selection.Start = true;
+		this.Selection.Use   = true;
+
+		this.SetDocPosType(docpostype_Endnotes);
+		this.Endnotes.StartSelection(X, Y, this.CurPage, MouseEvent);
 	}
     else if (nInDrawing === DRAWING_ARRAY_TYPE_BEFORE || nInDrawing === DRAWING_ARRAY_TYPE_INLINE || ( false === bTableBorder && false === bInText && nInDrawing >= 0 ))
     {
@@ -7794,6 +7805,15 @@ CDocument.prototype.Selection_SetEnd = function(X, Y, MouseEvent)
 	else if (docpostype_Footnotes === this.CurPos.Type)
 	{
 		this.Footnotes.EndSelection(X, Y, this.CurPage, MouseEvent);
+
+		if (AscCommon.g_mouse_event_type_up == MouseEvent.Type)
+			this.Selection.Start = false;
+
+		return;
+	}
+	else if (docpostype_Endnotes === this.CurPos.Type)
+	{
+		this.Endnotes.EndSelection(X, Y, this.CurPage, MouseEvent);
 
 		if (AscCommon.g_mouse_event_type_up == MouseEvent.Type)
 			this.Selection.Start = false;
@@ -11836,7 +11856,7 @@ CDocument.prototype.ModifyHyperlink = function(oHyperProps)
 
 			oComplexField.SelectFieldCode();
 			var sInstruction = oInstruction.ToString();
-			for (var oIterator = sInstruction.getUnicodeIterator(); oIterator.check(); oIterator.next())
+			for (var oIterator = sInstruction.getUnicodeIterator(); oIterator.check (); oIterator.next())
 			{
 				this.AddToParagraph(new ParaInstrText(oIterator.value()));
 			}
@@ -12191,8 +12211,17 @@ CDocument.prototype.Get_SelectionState2 = function()
 	}
 	else if (docpostype_Footnotes === nDocPosType)
 	{
+		var oFootnote = this.Footnotes.GetCurFootnote();
+
 		State.Type = docpostype_Footnotes;
-		State.Id   = this.Footnotes.GetCurFootnote().Get_Id();
+		State.Id   = oFootnote ? oFootnote.GetId() : null;
+	}
+	else if (docpostype_Endnotes === nDocPosType)
+	{
+		var oEndnote = this.Footnotes.GetCurEndnote();
+
+		State.Type = docpostype_Endnotes;
+		State.Id   = oEndnote ? oEndnote.GetId() : null;
 	}
 	else // if (docpostype_Content === nDocPosType)
 	{
@@ -12235,6 +12264,11 @@ CDocument.prototype.Set_SelectionState2 = function(State)
 		{
 			this.EndFootnotesEditing();
 		}
+	}
+	else if (docpostype_Endnotes === State.Type)
+	{
+		this.SetDocPosType(docpostype_Endnotes);
+		// TODO: Реализовать
 	}
 	else // if ( docpostype_Content === State.Type )
 	{

@@ -77,7 +77,7 @@ CDocumentContentBase.prototype.GetDocPosType = function()
 };
 /**
  * Выставляем тип активной части документа.
- * @param {(docpostype_Content | docpostype_HdrFtr | docpostype_DrawingObjects | docpostype_Footnotes)} nType
+ * @param {(docpostype_Content | docpostype_HdrFtr | docpostype_DrawingObjects | docpostype_Footnotes | docpostype_Endnotes)} nType
  */
 CDocumentContentBase.prototype.SetDocPosType = function(nType)
 {
@@ -96,6 +96,10 @@ CDocumentContentBase.prototype.SetDocPosType = function(nType)
 		else if (docpostype_Footnotes === nType)
 		{
 			this.Controller = this.Footnotes;
+		}
+		else if (docpostype_Endnotes === nType)
+		{
+			this.Controller = this.Endnotes;
 		}
 		else //if (docpostype_Content === nType)
 		{

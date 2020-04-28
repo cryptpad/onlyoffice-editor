@@ -194,6 +194,36 @@ CEndnotesController.prototype.Is_ThisElementCurrent = function(oEndnote)
 
 	return false;
 };
+/**
+ * Есть ли сноски на заданной странице
+ * @param {number} nPageAbs
+ * @returns {boolean}
+ */
+CEndnotesController.prototype.IsEmptyPage = function(nPageAbs)
+{
+	var oPage = this.Pages[nPageAbs];
+	if (!oPage)
+		return false;
+
+	for (var nIndex = 0, nCount = oPage.Sections.length; nIndex < nCount; ++nIndex)
+	{
+		var oSection = this.Sections[oPage.Sections[nIndex]];
+		if (!oSection)
+			continue;
+
+		var oSectionPage = oSection.Pages[nPageAbs];
+		if (!oSectionPage)
+			continue;
+
+		for (var nColumnIndex = 0, nColumnsCount = oSectionPage.Columns.length; nColumnIndex < nColumnsCount; ++nColumnIndex)
+		{
+			if (!this.IsEmptyPageColumn(nPageAbs, nColumnIndex, oPage.Sections[nIndex]))
+				return false;
+		}
+	}
+
+	return true;
+};
 CEndnotesController.prototype.IsEmptyPageColumn = function(nPageIndex, nColumnIndex, nSectionIndex)
 {
 	var oColumn = this.private_GetPageColumn(nPageIndex, nColumnIndex, nSectionIndex);
@@ -286,35 +316,6 @@ CEndnotesController.prototype.Reset = function(nPageIndex, oSectPr)
 	this.Pages.length = nPageIndex;
 	if (!this.Pages[nPageIndex])
 		this.Pages[nPageIndex] = new CEndnotePage();
-
-	var oPage = this.Pages[nPageIndex];
-	oPage.Reset();
-
-	var oFrame = oSectPr.GetContentFrame(nPageIndex);
-
-	var X      = oFrame.Left;
-	var XLimit = oFrame.Right;
-
-	var nColumnsCount = oSectPr.GetColumnsCount();
-	for (var nColumnIndex = 0; nColumnIndex < nColumnsCount; ++nColumnIndex)
-	{
-		var _X = X;
-		for (var nTempColumnIndex = 0; nTempColumnIndex < nColumnIndex; ++nTempColumnIndex)
-		{
-			_X += oSectPr.GetColumnWidth(nTempColumnIndex);
-			_X += oSectPr.GetColumnSpace(nTempColumnIndex);
-		}
-
-		var _XLimit = (nColumnsCount - 1 !== nColumnIndex ? _X + oSectPr.GetColumnWidth(nColumnIndex) : XLimit);
-
-		var oColumn    = new CFootEndnotePageColumn();
-		oColumn.X      = _X;
-		oColumn.XLimit = _XLimit;
-		oPage.AddColumn(oColumn);
-	}
-
-	oPage.X      = X;
-	oPage.XLimit = XLimit;
 };
 /**
  * Регистрируем сноски на заданной странице
@@ -381,6 +382,9 @@ CEndnotesController.prototype.Recalculate = function(X, Y, XLimit, YLimit, nPage
 	var oSection = this.Sections[nSectionIndex];
 	if (!oSection)
 		return recalcresult2_End;
+
+	if (this.Pages[nPageAbs])
+		this.Pages[nPageAbs].AddSection(nSectionIndex);
 
 	var nStartPos = 0;
 	var isStart   = true;
@@ -582,6 +586,79 @@ CEndnotesController.prototype.GetColumnFields = function(nPageAbs, nColumnAbs, n
 
 	return {X : oColumn.X, XLimit : oColumn.XLimit};
 };
+CEndnotesController.prototype.StartSelection = function(X, Y, nPageAbs, oMouseEvent)
+{
+};
+CEndnotesController.prototype.EndSelection = function(X, Y, nPageAbs, oMouseEvent)
+{
+};
+CEndnotesController.prototype.GetCurEndnote = function()
+{
+	return this.CurEndnote;
+};
+/**
+ * Проверяем попадание в сноски на заданной странице.
+ * @param X
+ * @param Y
+ * @param nPageAbs
+ * @returns {boolean}
+ */
+CEndnotesController.prototype.CheckHitInEndnote = function(X, Y, nPageAbs)
+{
+	var isCheckBottom = this.GetEndnotePrPos() === section_endnote_PosSectEnd;
+
+	if (true === this.IsEmptyPage(nPageAbs))
+		return false;
+
+	var oPage = this.Pages[nPageAbs];
+	for (var nIndex = 0, nCount = oPage.Sections.length; nIndex < nCount; ++nIndex)
+	{
+		var oSection = this.Sections[oPage.Sections[nIndex]];
+		if (!oSection)
+			continue;
+
+		var _isCheckBottom = isCheckBottom;
+		if (!_isCheckBottom && oPage.Sections[nIndex] === this.Sections.length - 1 && nPageAbs === this.Pages.length - 1)
+			_isCheckBottom = false;
+
+		var oSectionPage = oSection.Pages[nPageAbs];
+
+		var oColumn = null;
+		var nFindedColumnIndex = 0, nColumnsCount = oSectionPage.Columns.length;
+		for (var nColumnIndex = 0; nColumnIndex < nColumnsCount; ++nColumnIndex)
+		{
+			if (nColumnIndex < nColumnsCount - 1)
+			{
+				if (X < (oSectionPage.Columns[nColumnIndex].XLimit + oSectionPage.Columns[nColumnIndex + 1].X) / 2)
+				{
+					oColumn            = oSectionPage.Columns[nColumnIndex];
+					nFindedColumnIndex = nColumnIndex;
+					break;
+				}
+			}
+			else
+			{
+				oColumn            = oSectionPage.Columns[nColumnIndex];
+				nFindedColumnIndex = nColumnIndex;
+			}
+		}
+
+		if (!oColumn || nFindedColumnIndex >= nColumnsCount)
+			return false;
+
+		for (var nElementIndex = 0, nElementsCount = oColumn.Elements.length; nElementIndex < nElementsCount; ++nElementIndex)
+		{
+			var oEndnote          = oColumn.Elements[nElementIndex];
+			var nEndnotePageIndex = oEndnote.GetElementPageIndex(nPageAbs, nFindedColumnIndex);
+			var oBounds           = oEndnote.GetPageBounds(nEndnotePageIndex);
+
+			if (oBounds.Top <= Y && (!isCheckBottom || oBounds.Bottom >= Y))
+				return true;
+		}
+	}
+
+	return false;
+};
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Private area
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -603,25 +680,26 @@ CEndnotesController.prototype.private_GetPageColumn = function(nPageAbs, nColumn
 };
 /**
  * Класс регистрирующий концевые сноски на странице
+ * и номера секций, сноски которых были пересчитаны на данной странице
  * @constructor
  */
 function CEndnotePage()
 {
 	this.Endnotes = [];
-	this.Columns  = [];
+	this.Sections = [];
 }
 CEndnotePage.prototype.Reset = function()
 {
 	this.Endnotes = [];
-	this.Columns  = [];
+	this.Sections = [];
 };
-CEndnotePage.prototype.AddColumn = function(oColumn)
-{
-	this.Columns.push(oColumn);
-}
 CEndnotePage.prototype.AddEndnotes = function(arrEndnotes)
 {
 	this.Endnotes = this.Endnotes.concat(arrEndnotes)
+};
+CEndnotePage.prototype.AddSection = function(nSectionIndex)
+{
+	this.Sections.push(nSectionIndex);
 };
 
 function CEndnoteSection()
