@@ -7010,7 +7010,7 @@
                 this.aHyperlinks = [];
                 var oNewWorksheet = new AscCommonExcel.Worksheet(this.wb, wb.aWorksheets.length);
                 oNewWorksheet.aFormulaExt = [];
-                var DrawingDocument = window["Asc"]["editor"].wbModel.getDrawingDocument();
+                var DrawingDocument = oNewWorksheet.getDrawingDocument();
 				//TODO при copy/paste в word из excel необходимо подменить DrawingDocument из word - пересмотреть правку!
 				if(typeof editor != "undefined" && editor && editor.WordControl && editor.WordControl.m_oLogicDocument && editor.WordControl.m_oLogicDocument.DrawingDocument) {
                     window["Asc"]["editor"].wbModel.DrawingDocument = editor.WordControl.m_oLogicDocument.DrawingDocument;
