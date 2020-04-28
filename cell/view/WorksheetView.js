@@ -14125,6 +14125,7 @@
                 this.objectRender.controller.checkChartForProps(true);
             }
         } else {
+            this.endEditChart();
             this.objectRender.controller.checkChartForProps(false);
         }
     };
