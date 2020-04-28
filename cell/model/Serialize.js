@@ -7013,7 +7013,7 @@
                 var DrawingDocument = oNewWorksheet.getDrawingDocument();
 				//TODO при copy/paste в word из excel необходимо подменить DrawingDocument из word - пересмотреть правку!
 				if(typeof editor != "undefined" && editor && editor.WordControl && editor.WordControl.m_oLogicDocument && editor.WordControl.m_oLogicDocument.DrawingDocument) {
-                    window["Asc"]["editor"].wbModel.DrawingDocument = editor.WordControl.m_oLogicDocument.DrawingDocument;
+                    this.wb.DrawingDocument = editor.WordControl.m_oLogicDocument.DrawingDocument;
                 }
 
 				
@@ -7035,7 +7035,7 @@
                 }
                 this.wb.aWorksheets.push(oNewWorksheet);
                 this.wb.aWorksheetsById[oNewWorksheet.getId()] = oNewWorksheet;
-                window["Asc"]["editor"].wbModel.DrawingDocument = DrawingDocument;
+                this.wb.DrawingDocument = DrawingDocument;
             }
             else
                 res = c_oSerConstants.ReadUnknown;
