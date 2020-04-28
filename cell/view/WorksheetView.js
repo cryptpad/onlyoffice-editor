@@ -14114,10 +14114,10 @@
         this.isFormulaEditMode = isFormulaEditMode;
     };
 
-    WorksheetView.prototype.copySelection = function (start, selectRange) {
+    WorksheetView.prototype.cloneSelection = function (start, selectRange) {
         this.cleanSelection();
 
-        this.model.copySelection(start, selectRange);
+        this.model.cloneSelection(start, selectRange);
 
         if (start) {
             if (this.isSelectOnShape) {

@@ -1771,7 +1771,7 @@
       // Когда идет выбор диапазона, то должны на закрываемом листе отменить выбор диапазона
       tmpWorksheet = this.getWorksheet();
       selectionRange = tmpWorksheet.model.selectionRange.getLast().clone(true);
-      tmpWorksheet.copySelection(false);
+      tmpWorksheet.cloneSelection(false);
     }
     if (this.stateFormatPainter) {
       // Должны отменить выбор на закрываемом листе
@@ -1791,7 +1791,7 @@
     ws = this.getWorksheet(index);
     if (this.selectionDialogMode) {
       // Когда идет выбор диапазона, то на показываемом листе должны выставить нужный режим
-      ws.copySelection(true, selectionRange);
+      ws.cloneSelection(true, selectionRange);
       this.handlers.trigger("asc_onSelectionRangeChanged", ws.getSelectionRangeValue());
     }
 
@@ -2573,13 +2573,13 @@
               tmpSelectRange = selectRange;
           }
 
-          this.getWorksheet().copySelection(true, tmpSelectRange && AscCommonExcel.g_oRangeCache.getAscRange(tmpSelectRange));
+          this.getWorksheet().cloneSelection(true, tmpSelectRange && AscCommonExcel.g_oRangeCache.getAscRange(tmpSelectRange));
           this.selectionDialogMode = newSelectionDialogMode;
           this.input.disabled = true;
           drawSelection = true;
       } else {
           this.selectionDialogMode = newSelectionDialogMode;
-          this.getWorksheet().copySelection(false);
+          this.getWorksheet().cloneSelection(false);
           if (this.copyActiveSheet !== this.wsActive) {
               this.showWorksheet(this.copyActiveSheet);
           } else {

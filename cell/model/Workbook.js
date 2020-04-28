@@ -3682,7 +3682,7 @@
 			}
 		});
 	};
-	Worksheet.prototype.copySelection = function (start, selectRange) {
+	Worksheet.prototype.cloneSelection = function (start, selectRange) {
 		if (start) {
 			this.copySelection = this.selectionRange.clone();
 			if (selectRange) {
