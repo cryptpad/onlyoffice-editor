@@ -1631,7 +1631,7 @@
 
   WorkbookView.prototype._onSetFontAttributes = function(prop) {
     var val;
-    var selectionInfo = this.getWorksheet().getSelectionInfo().asc_getFont();
+    var selectionInfo = this.getSelectionInfo().asc_getFont();
     switch (prop) {
       case "b":
         val = !(selectionInfo.asc_getBold());
