@@ -853,18 +853,20 @@
 		var ranges, t = this, s = t.textRender.getChars(0, t.textRender.getCharsCount()), range, arrFR = this.handlers.trigger(
 			"getFormulaRanges"), a;
 
-		for (var id = 0; id < arrFR.length; id++) {
-			/*так как у нас уже есть некий массив с рейнджами, которые в формуле, то пробегаемся по ним и смотрим,
-			 * находится ли курсор в позиции над этим диапазоном, дабы не парсить всю формулу заново
-			 * необходимо чтобы парсить случаи когда используется что-то такое sumnas2:K2 - sumnas2 невалидная ссылка.
-			 * */
-			ranges = arrFR[id].ranges;
-			for (var i = 0, l = ranges.length; i < l; ++i) {
-				a = ranges[i];
-				if (t.cursorPos >= a.cursorePos && t.cursorPos <= a.cursorePos + a.formulaRangeLength) {
-					range = a.clone(true);
-					range.isName = a.isName;
-					return {index: a.cursorePos, length: a.formulaRangeLength, range: range};
+		if (arrFR) {
+			for (var id = 0; id < arrFR.length; id++) {
+				/*так как у нас уже есть некий массив с рейнджами, которые в формуле, то пробегаемся по ним и смотрим,
+				 * находится ли курсор в позиции над этим диапазоном, дабы не парсить всю формулу заново
+				 * необходимо чтобы парсить случаи когда используется что-то такое sumnas2:K2 - sumnas2 невалидная ссылка.
+				 * */
+				ranges = arrFR[id].ranges;
+				for (var i = 0, l = ranges.length; i < l; ++i) {
+					a = ranges[i];
+					if (t.cursorPos >= a.cursorePos && t.cursorPos <= a.cursorePos + a.formulaRangeLength) {
+						range = a.clone(true);
+						range.isName = a.isName;
+						return {index: a.cursorePos, length: a.formulaRangeLength, range: range};
+					}
 				}
 			}
 		}
