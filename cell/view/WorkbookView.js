@@ -2574,10 +2574,11 @@
               tmpSelectRange = selectRange;
           }
 
-          this.getWorksheet().cloneSelection(true, tmpSelectRange && AscCommonExcel.g_oRangeCache.getAscRange(tmpSelectRange));
+          tmpSelectRange = tmpSelectRange && AscCommonExcel.g_oRangeCache.getAscRange(tmpSelectRange);
+          this.getWorksheet().cloneSelection(true, tmpSelectRange);
           this.selectionDialogMode = newSelectionDialogMode;
           this.input.disabled = true;
-          drawSelection = true;
+          drawSelection = !!tmpSelectRange;
       } else {
           this.selectionDialogMode = newSelectionDialogMode;
           this.getWorksheet().cloneSelection(false);
