@@ -653,11 +653,9 @@
 				  if (!self.lockDraw) {
 					  self.getWorksheet().updateSelection();
 				  }
-			  }, "newRange": function (range, ws) {
-				  if (!ws) {
-					  self.getWorksheet().addFormulaRange(range);
-				  } else {
-					  self.getWorksheet(self.model.getWorksheetIndexByName(ws)).addFormulaRange(range);
+			  }, "newRanges": function (ranges) {
+			      if (self.isActive()) {
+			          self.getWorksheet().oOtherRanges = ranges;
 				  }
 			  }, "existedRange": function (range, ws) {
 				  var editRangeSheet = ws ? self.model.getWorksheetIndexByName(ws) : self.lastActiveSheet;

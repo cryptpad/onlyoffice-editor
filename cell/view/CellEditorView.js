@@ -507,6 +507,7 @@
 	CellEditor.prototype.activateCellRange = function () {
 		var res = this._findRangeUnderCursor();
 
+		// ToDo ?
 		res.range ? this.handlers.trigger("existedRange", res.range, res.wsName) : this.handlers.trigger("newRange");
 	};
 
@@ -777,27 +778,13 @@
 	};
 
 	CellEditor.prototype._parseFormulaRanges = function () {
-		var s = AscCommonExcel.getFragmentsText(this.options.fragments), t = this,
-			wsOPEN = this.handlers.trigger("getCellFormulaEnterWSOpen"),
-			ws = wsOPEN ? wsOPEN.model : this.handlers.trigger("getActiveWS");
+		var s = AscCommonExcel.getFragmentsText(this.options.fragments);
 		if (s.length < 1 || s.charAt(0) !== "=") {
 			return;
 		}
 
-		/*function cb(ref){
-		 for(var id in ref){
-		 console.log(ref[id])
-		 if(!ref[id].isRef) continue;
-
-		 range = t._parseRangeStr(ref[id].ref)
-		 if(range){
-		 ret = true;
-		 range.cursorePos = ref[id].offset;
-		 range.formulaRangeLength = ref[id].length;
-		 t.handlers.trigger("newRange", range);
-		 }
-		 }
-		 }*/
+		var wsOPEN = this.handlers.trigger("getCellFormulaEnterWSOpen");
+		var ws = wsOPEN ? wsOPEN.model : this.handlers.trigger("getActiveWS");
 
 		var bbox = this.options.bbox;
 		this._parseResult = new AscCommonExcel.ParseResult([], []);
@@ -810,9 +797,13 @@
 			this.needFindFirstFunction = null;
 		}
 
-		var r, oper, wsName = null, bboxOper, isName = false;
+		var r, oper, wsName = null, bboxOper, range, isName = false;
 
 		if (this._parseResult.refPos && this._parseResult.refPos.length > 0) {
+			var oSelectionRange = new AscCommonExcel.SelectionRange(ws);
+			// ToDo change create SelectionRange
+			oSelectionRange.ranges = [];
+
 			for (var index = 0; index < this._parseResult.refPos.length; index++) {
 				wsName = null;
 				isName = false;
@@ -839,12 +830,17 @@
 					}
 				}
 				if (bboxOper) {
-					bboxOper = bboxOper.clone();
-					bboxOper.cursorePos = bboxOper.colorRangePos = r.start + 1;
-					bboxOper.formulaRangeLength = bboxOper.colorRangeLength = r.end - r.start;
-					bboxOper.isName = isName;
-					t.handlers.trigger("newRange", bboxOper, wsName);
+					oSelectionRange.addRange();
+					range = oSelectionRange.getLast();
+					range.assign2(bboxOper);
+					range.cursorePos = range.colorRangePos = r.start + 1;
+					range.formulaRangeLength = range.colorRangeLength = r.end - r.start;
+					range.isName = isName;
 				}
+			}
+
+			if (0 !== oSelectionRange.ranges.length) {
+				this.handlers.trigger("newRanges", oSelectionRange);
 			}
 		}
 	};
