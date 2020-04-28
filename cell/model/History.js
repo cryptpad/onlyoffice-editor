@@ -769,11 +769,11 @@ CHistory.prototype.Create_NewPoint = function()
 	var Time  = new Date().getTime();
 	var UndoSheetId = null, oSelectionState = this.workbook.handlers.trigger("getSelectionState");
 	var oSelectRange = null;
-	var wsActive = this.workbook.getWorksheet(this.workbook.getActive());
+	var wsActive = this.workbook.getActiveWs();
 	if (wsActive) {
 		UndoSheetId = wsActive.getId();
 		// ToDo Берем всегда, т.к. в случае с LastState мы можем не попасть на нужный лист и не заселектить нужный диапазон!
-		oSelectRange = wsActive.selectionRange.getLast(); // ToDo get only last selection range
+		oSelectRange = wsActive.getSelection().getLast(); // ToDo get only last selection range
 	}
 
     // Создаем новую точку
