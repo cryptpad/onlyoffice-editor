@@ -394,17 +394,7 @@
      */
     Api.prototype.CreateParagraph = function()
     {
-        var oDrawingDocument = null;
-        if(this.GetActiveSheet){
-            var oWorksheet = this.GetActiveSheet();
-            if(oWorksheet){
-                oDrawingDocument = oWorksheet.getDrawingDocument();
-            }
-        }
-        else{
-            oDrawingDocument = private_GetDrawingDocument();
-        }
-        return this.private_CreateApiParagraph(new Paragraph(oDrawingDocument, null, true));
+        return this.private_CreateApiParagraph(new Paragraph(private_GetDrawingDocument(), null, true));
     };
 
     /**
@@ -1657,6 +1647,9 @@
     function private_GetDrawingDocument(){
         if(editor.WordControl){
             return editor.WordControl.m_oDrawingDocument;
+        }
+        if(Asc["editor"] && Asc["editor"].wbModel) {
+            return Asc["editor"].wbModel.DrawingDocument;
         }
         return null;
     }
