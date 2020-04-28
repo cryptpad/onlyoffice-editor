@@ -5346,6 +5346,7 @@
         }
 
         var selectionDialogMode = this.getSelectionDialogMode();
+        var dialogOtherRanges = this.getDialogOtherRanges();
 
 		this.handlers.trigger("checkLastWork");
 
@@ -5365,7 +5366,7 @@
 			this._drawPageBreakPreviewLinesOverlay();
 		}
 
-        if (!selectionDialogMode) {
+        if (dialogOtherRanges) {
             this._drawCollaborativeElements();
         }
         var isOtherSelectionMode = (selectionDialogMode || this.isFormulaEditMode) && !this.handlers.trigger('isActive');
@@ -5378,7 +5379,7 @@
                     this._drawFormulaRanges(this.oOtherRanges);
                 }
             } else {
-                if (this.getDialogOtherRanges()) {
+                if (dialogOtherRanges) {
                     this._drawFormulaRanges(this.oOtherRanges);
                 }
                 this._drawSelectionRange();
@@ -7603,7 +7604,7 @@
     };
 
     WorksheetView.prototype._hitCursorSelectionRange = function (vr, x, y, offsetX, offsetY) {
-        var res = this._hitInRange(this.model.selectionRange.getLast(),
+        var res = this._hitInRange(this.model.getSelection().getLast(),
           AscCommonExcel.selectionLineType.Selection | AscCommonExcel.selectionLineType.ActiveCell |
           AscCommonExcel.selectionLineType.Promote, vr, x, y, offsetX, offsetY);
         return res ? {
