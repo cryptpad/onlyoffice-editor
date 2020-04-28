@@ -321,7 +321,7 @@
 			var oUniFill = null;
 			var oSF = fill.getSolidFill();
 			if(oSF) {
-				oUniFill = new AscFormat.CreateSolidFillRGBA(oSF.getR(), oSF.getG(), oSF.getB(), oSF.getA());
+				oUniFill = new AscFormat.CreateSolidFillRGBA(oSF.getR(), oSF.getG(), oSF.getB(), Math.min(255, 255*oSF.getA() + 0.5 >> 0));
 			} else if (fill.patternFill) {
 				oUniFill = new AscFormat.CUniFill();
 				oUniFill.fill = new AscFormat.CPattFill();
