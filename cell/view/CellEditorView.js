@@ -977,17 +977,17 @@
 			this.handlers.trigger("updateEditorState", this.isTopLineActive ? c_oAscCellEditorState.editInFormulaBar : c_oAscCellEditorState.editInCell);
 		}
 	};
-	CellEditor.prototype._updateFormulaEditMod = function ( bIsOpen ) {
-		if(this.getMenuEditorMode()) {
+	CellEditor.prototype._updateFormulaEditMod = function (bIsOpen) {
+		if (this.getMenuEditorMode()) {
 			return;
 		}
 		var isFormula = this.isFormula();
-		if ( !bIsOpen ) {
-			this._updateEditorState( isFormula );
+		if (!bIsOpen) {
+			this._updateEditorState(isFormula);
 		}
-		this.handlers.trigger( "updateFormulaEditMod", isFormula );
+		this.handlers.trigger("updateFormulaEditMod", isFormula);
 		this._parseFormulaRanges();
-		this.handlers.trigger( "updateFormulaEditModEnd" );
+		this.handlers.trigger("updateFormulaEditModEnd");
 	};
 
 	// Обновляем состояние Undo/Redo
