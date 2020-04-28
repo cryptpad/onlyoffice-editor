@@ -7684,9 +7684,9 @@
 		var sheetId = this.model.getId(), userId, lockRangePosLeft, lockRangePosTop, lockInfo, oHyperlink;
 		var widthDiff = 0, heightDiff = 0, isLocked = false, target = c_oTargetType.Cells, row = -1, col = -1,
 			isSelGraphicObject, isNotFirst;
-		var selectionDialogMode = this.getSelectionDialogMode();
+		var dialogOtherRanges = this.getDialogOtherRanges();
 
-		if (!selectionDialogMode) {
+		if (dialogOtherRanges) {
 			var frozenCursor = this._isFrozenAnchor(x, y);
 			if (canEdit && frozenCursor.result) {
 				lockInfo = this.collaborativeEditing.getLockInfo(c_oAscLockTypeElem.Object, null, sheetId,
@@ -7785,7 +7785,7 @@
 
 		//TODO проверить!
 		//group row
-		if (!selectionDialogMode && x <= this.cellsLeft && this.groupWidth && x < this.groupWidth) {
+		if (dialogOtherRanges && x <= this.cellsLeft && this.groupWidth && x < this.groupWidth) {
 			if(y > this.groupHeight + this.headersHeight) {
 				r = this._findRowUnderCursor(y, true);
 			}
@@ -7806,7 +7806,7 @@
 
 		//TODO проверить!
 		//group col
-		if (!selectionDialogMode && y <= this.cellsTop && this.groupHeight && y < this.groupHeight) {
+		if (dialogOtherRanges && y <= this.cellsTop && this.groupHeight && y < this.groupHeight) {
 			c = null;
 			if(x > this.groupWidth + this.headersWidth) {
 				c = this._findColUnderCursor(x, true);
@@ -7833,7 +7833,7 @@
 				return oResDefault;
 			}
 			isNotFirst = (r.row !== (-1 !== rFrozen ? 0 : this.visibleRange.r1));
-			f = (canEdit || viewMode) && (isNotFirst && y < r.top + epsChangeSize || y >= r.bottom - epsChangeSize) && !selectionDialogMode && !this.getCellEditMode();
+			f = (canEdit || viewMode) && (isNotFirst && y < r.top + epsChangeSize || y >= r.bottom - epsChangeSize) && !this.getCellEditMode();
 			// ToDo В Excel зависимость epsilon от размера ячейки (у нас фиксированный 3)
 			return {
 				cursor: f ? kCurRowResize : kCurRowSelect,
@@ -7850,7 +7850,7 @@
 				return oResDefault;
 			}
 			isNotFirst = c.col !== (-1 !== cFrozen ? 0 : this.visibleRange.c1);
-			f = (canEdit || viewMode) && (isNotFirst && x < c.left + epsChangeSize || x >= c.right - epsChangeSize) && !selectionDialogMode && !this.getCellEditMode();
+			f = (canEdit || viewMode) && (isNotFirst && x < c.left + epsChangeSize || x >= c.right - epsChangeSize) && !this.getCellEditMode();
 			// ToDo В Excel зависимость epsilon от размера ячейки (у нас фиксированный 3)
 			return {
 				cursor: f ? kCurColResize : kCurColSelect,
@@ -7879,7 +7879,7 @@
 			return {cursor: kCurFormatPainterExcel, target: target, col: col, row: row};
 		}
 
-		if (!selectionDialogMode && (this.isFormulaEditMode || this.isChartAreaEditMode)) {
+		if (dialogOtherRanges && (this.isFormulaEditMode || this.isChartAreaEditMode)) {
 			this._drawElements(function (_vr, _offsetX, _offsetY) {
 				return (null === (res = this._hitCursorFormulaOrChart(_vr, x, y, _offsetX, _offsetY)));
 			});
@@ -7889,7 +7889,7 @@
 		}
 
 		isSelGraphicObject = this.objectRender.selectedGraphicObjectsExists();
-		if (!selectionDialogMode && canEdit && !isSelGraphicObject && this.model.selectionRange.isSingleRange()) {
+		if (dialogOtherRanges && canEdit && !isSelGraphicObject && this.model.selectionRange.isSingleRange()) {
 			this._drawElements(function (_vr, _offsetX, _offsetY) {
 				return (null === (res = this._hitCursorSelectionRange(_vr, x, y, _offsetX, _offsetY)));
 			});
@@ -7898,7 +7898,7 @@
 			}
 		}
 
-		if (!selectionDialogMode) {
+		if (dialogOtherRanges) {
             this._drawElements(function (_vr, _offsetX, _offsetY) {
                 return (null === (res = this._hitCursorTableRightCorner(_vr, x, y, _offsetX, _offsetY)));
             });
@@ -7920,7 +7920,7 @@
 			var lockAllPosTop = undefined;
 			var userIdAllProps = undefined;
 			var userIdAllSheet = undefined;
-			if (canEdit && this.collaborativeEditing.getCollaborativeEditing() && !selectionDialogMode) {
+			if (canEdit && this.collaborativeEditing.getCollaborativeEditing() && dialogOtherRanges) {
 				var c1Recalc = null, r1Recalc = null;
 				var selectRangeRecalc = new asc_Range(c.col, r.row, c.col, r.row);
 				// Пересчет для входящих ячеек в добавленные строки/столбцы
@@ -7977,7 +7977,7 @@
 				}
 			}
 
-			if (canEdit && !selectionDialogMode) {
+			if (canEdit && dialogOtherRanges) {
 				var pivotButtons = this.model.getPivotTableButtons(new asc_Range(c.col, r.row, c.col, r.row));
 				var isPivot = pivotButtons.some(function (element) {
 					return element.row === r.row && element.col === c.col;
@@ -8016,7 +8016,7 @@
 			}
 
 			// Проверим есть ли комменты
-			var comment = !selectionDialogMode && this.cellCommentator.getComment(c.col, r.row, true);
+			var comment = dialogOtherRanges && this.cellCommentator.getComment(c.col, r.row, true);
 			var coords = null;
 			var indexes = null;
 
@@ -8026,7 +8026,7 @@
 			}
 
 			// Проверим, может мы в гиперлинке
-			oHyperlink = !selectionDialogMode && this.model.getHyperlinkByCell(r.row, c.col);
+			oHyperlink = dialogOtherRanges && this.model.getHyperlinkByCell(r.row, c.col);
 			cellCursor = {
 				cursor: AscCommonExcel.kCurCells,
 				target: c_oTargetType.Cells,
