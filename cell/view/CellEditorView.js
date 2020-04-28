@@ -1015,10 +1015,10 @@
 	};
 
 	CellEditor.prototype._getRenderFragments = function () {
-		var opt = this.options, fragments = opt.fragments, ranges, i, j, k, l, first, last, val, lengthColors, tmpColors, colorIndex, uniqueColorIndex;
+		var opt = this.options, fragments = opt.fragments, i, j, k, l, first, last, val, lengthColors, tmpColors, colorIndex, uniqueColorIndex;
 		if (this.isFormula()) {
-			var arrRanges = this.handlers.trigger("getFormulaRanges");
-			if (0 < arrRanges.length) {
+			var ranges = this.handlers.trigger("getFormulaRanges");
+			if (ranges) {
 				fragments = [];
 				for (i = 0; i < opt.fragments.length; ++i) {
 					fragments.push(opt.fragments[i].clone());
@@ -1027,23 +1027,21 @@
 				lengthColors = AscCommonExcel.c_oAscFormulaRangeBorderColor.length;
 				tmpColors = [];
 				uniqueColorIndex = 0;
-				for (i = 0; i < arrRanges.length; ++i) {
-					ranges = arrRanges[i].ranges;
-					for (j = 0, l = ranges.length; j < l; ++j) {
-						val = ranges[j];
-						colorIndex = asc.getUniqueRangeColor(ranges, j, tmpColors);
-						if (null == colorIndex) {
-							colorIndex = uniqueColorIndex++;
-						}
-						tmpColors.push(colorIndex);
+				ranges = ranges.ranges;
+				for (i = 0, l = ranges.length; i < l; ++i) {
+					val = ranges[i];
+					colorIndex = asc.getUniqueRangeColor(ranges, i, tmpColors);
+					if (null == colorIndex) {
+						colorIndex = uniqueColorIndex++;
+					}
+					tmpColors.push(colorIndex);
 
-						this._extractFragments(val.colorRangePos, val.colorRangeLength, fragments);
-						first = this._findFragment(val.cursorePos, fragments);
-						last = this._findFragment(val.cursorePos + val.formulaRangeLength - 1, fragments);
-						if (first && last) {
-							for (k = first.index; k <= last.index; ++k) {
-								fragments[k].format.setColor(AscCommonExcel.c_oAscFormulaRangeBorderColor[colorIndex % lengthColors]);
-							}
+					this._extractFragments(val.colorRangePos, val.colorRangeLength, fragments);
+					first = this._findFragment(val.cursorePos, fragments);
+					last = this._findFragment(val.cursorePos + val.formulaRangeLength - 1, fragments);
+					if (first && last) {
+						for (k = first.index; k <= last.index; ++k) {
+							fragments[k].format.setColor(AscCommonExcel.c_oAscFormulaRangeBorderColor[colorIndex % lengthColors]);
 						}
 					}
 				}
