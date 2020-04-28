@@ -136,6 +136,7 @@ window.startPluginApi = function() {
 	 * @event Plugin#button
 	 * @memberof Plugin
 	 * @alias button
+	 * The method invokes pressing of a button in a window with a plugin. The button is an index in the list (see config.json).
 	 * @param {number} buttonIndex
 	 */
 
@@ -188,7 +189,34 @@ window.startPluginApi = function() {
 	 * @alias onTranslate
 	 */
 
-	var Plugin = window["Asc"]["plugin"];
+    /**
+     * Event: onEnableMouseEvent
+     * @event Plugin#onEnableMouseEvent
+     * @memberof Plugin
+     * @alias onEnableMouseEvent
+	 * The method turns off/on mouse/touchpad events.
+	 * @param {boolean} isEnabled
+     */
+
+    /**
+     * Event: onExternalMouseUp
+     * @event Plugin#onExternalMouseUp
+     * @memberof Plugin
+     * @alias onExternalMouseUp
+	 * The method indicates that the mouse/touchpad event was completed outside the plugin while started inside the plugin.
+     */
+
+    /**
+     * Event: onExternalPluginMessage
+     * @event Plugin#onExternalPluginMessage
+     * @memberof Plugin
+     * @alias onExternalPluginMessage
+     * The method shows the editor integrator message (see externallistener plugin).
+     * @param {Object} data
+     */
+
+
+    var Plugin = window["Asc"]["plugin"];
 
 	/***********************************************************************
 	 * METHODS
@@ -198,7 +226,14 @@ window.startPluginApi = function() {
 	 * executeCommand
 	 * @memberof Plugin
 	 * @alias executeCommand
-	 * @deprecated Please use callCommand method
+	 * @deprecated Please use callCommand method.
+	 * @description THE METHOD IS OBSOLETE. Use window.Asc.plugin.callCommand which runs the code from "data" string parameter.
+     * After the code is executed, callback is called. If callback === undefined,
+	 * then window.Asc.plugin.onCommandCallback is called in case it is implemented in the plugin.
+	 * Script in the "data" variable is a builder script (see documentation LINK).
+	 * Сurrently, it is allowed to insert content created with the help of builder methods
+	 * only with InsertContent method, for the plugin not to handle images/fonts loading (as they are handled in the editor asynchronously).
+	 * In the future this restriction will be eliminated.
 	 * @param {string} type "close" or "command"
      * @param {string} data Script code
      * @param {Function} callback
@@ -226,9 +261,12 @@ window.startPluginApi = function() {
 	 * executeMethod
 	 * @memberof Plugin
 	 * @alias executeMethod
+	 * @description The function calls the editor method.
+	 * After execution of the function, callback with a parameter is called - the value returned by the method. If callback === undefined,
+	 * then window.Asc.plugin.onMethodReturn with a parameter is called - the value returned by the method in case it is implemented in the plugin.
 	 * @param {string} name Name of the method
-	 * @param {Array} params Parameters of the method
-	 * @param {Function} callback Callback function
+	 * @param {Array} params Array with calling parameters
+     * @param {Function} callback Callback function
 	 */
 	Plugin.executeMethod = function(name, params, callback)
     {
@@ -265,6 +303,8 @@ window.startPluginApi = function() {
 	 * resizeWindow (only for visual modal plugins)
 	 * @memberof Plugin
 	 * @alias resizeWindow
+	 * @description The funcion is intended for visual modal plugins -
+	 * it changes the window size updating the minimum/maximum sizes
 	 * @param {number} width New width of the window
      * @param {number} height New height of the window
      * @param {number} minW New min-width of the window
@@ -300,6 +340,19 @@ window.startPluginApi = function() {
 	 * callCommand
 	 * @memberof Plugin
 	 * @alias callCommand
+	 * @description The method performs the "func" function.
+     * After that callback is called. If callback === undefined,
+     * then window.Asc.plugin.onCommandCallback is called, in case it is executed in the plugin
+     * if isClose === true, then after the plugin is executed, it will close.
+     * if isCalc === false, then the editor will not recalculate the document (use this parameter carefully -
+     * only when you are sure that your edits will not require document recalculation)
+     * Code in the "func" function is a builder script (see documentation LINK)
+     * Currently, it is allowed to insert content created with the help of builder methods
+     * only with InsertContent method, for the plugin not to handle images/fonts loading (as they are run in the editor asynchronously)
+     * In the future this restriction will be eliminated
+     *
+     * Note: in the "func" code it is not allowed to use external plugin variables.
+     * If it is necessary, you need to export the variable in Asc.scope object, and use it the function code
 	 * @param {Function} func Function to call
 	 * @param {boolean} isClose
      * @param {boolean} isCalc
@@ -317,6 +370,9 @@ window.startPluginApi = function() {
 	 * callModule
 	 * @memberof Plugin
 	 * @alias callModule
+	 * @description The function executes a remotely located script following a link.
+	 * After the execution callback is called, if it is not undefined.
+	 * If isClose === true, then after execution the plugin will close.
 	 * @param {string} url Url to resource code
 	 * @param {Function} callback Callback function
 	 * @param {boolean} isClose
@@ -344,7 +400,9 @@ window.startPluginApi = function() {
 	 * loadModule
 	 * @memberof Plugin
 	 * @alias loadModule
-	 * @param {string} url Url to resource code
+	 * @description The function allows to load a text resource located remotely on a link.
+	 * After the execution callback is called with resource content if it is not undefined.
+     * @param {string} url Url to resource code
 	 * @param {Function} callback Callback function
 	 */
 	Plugin.loadModule = function(url, callback)
