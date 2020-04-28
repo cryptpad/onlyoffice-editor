@@ -3418,8 +3418,6 @@ function OfflineEditor () {
             
             var selection = [];
             
-            var range = undefined;
-            
             this.visibleRange = new asc_Range(c1, r1, c2, r2);
             
             isFrozen = !!isFrozen;
@@ -3427,12 +3425,8 @@ function OfflineEditor () {
                 return;
             }
             
-            var offsetX = 0, offsetY = 0;
-            
-            offsetX = this._getColLeft(this.visibleRange.c1) - this.cellsLeft;
-            offsetY = this._getRowTop(this.visibleRange.r1) - this.cellsTop;
-            
-            var activeCell = this.model.selectionRange.activeCell;
+            var offsetX = this._getColLeft(this.visibleRange.c1) - this.cellsLeft;
+            var offsetY = this._getRowTop(this.visibleRange.r1) - this.cellsTop;
             
             selection.push(0);
             selection.push(0);
