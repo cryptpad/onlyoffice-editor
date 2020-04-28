@@ -2137,6 +2137,9 @@ GraphicOption.prototype.getOffset = function () {
                     }
                 }
             }
+            else {
+                aDrawTasks.push({ clearCanvas: clearCanvas, graphicOption: graphicOption});
+            }
         }
         if(_this.animId === null) {
             _this.animId = rAF(drawTaskFunction);
