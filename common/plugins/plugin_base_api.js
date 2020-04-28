@@ -136,7 +136,7 @@ window.startPluginApi = function() {
 	 * @event Plugin#button
 	 * @memberof Plugin
 	 * @alias button
-	 * The method invokes pressing of a button in a window with a plugin. The button is an index in the list (see config.json).
+	 * @description The method invokes pressing of a button in a window with a plugin. The button is an index in the list (see config.json).
 	 * @param {number} buttonIndex
 	 */
 
@@ -194,7 +194,7 @@ window.startPluginApi = function() {
      * @event Plugin#onEnableMouseEvent
      * @memberof Plugin
      * @alias onEnableMouseEvent
-	 * The method turns off/on mouse/touchpad events.
+	 * @description The method turns off/on mouse/touchpad events.
 	 * @param {boolean} isEnabled
      */
 
@@ -203,7 +203,7 @@ window.startPluginApi = function() {
      * @event Plugin#onExternalMouseUp
      * @memberof Plugin
      * @alias onExternalMouseUp
-	 * The method indicates that the mouse/touchpad event was completed outside the plugin while started inside the plugin.
+	 * @description The method indicates that the mouse/touchpad event was completed outside the plugin while started inside the plugin.
      */
 
     /**
@@ -211,7 +211,7 @@ window.startPluginApi = function() {
      * @event Plugin#onExternalPluginMessage
      * @memberof Plugin
      * @alias onExternalPluginMessage
-     * The method shows the editor integrator message (see externallistener plugin).
+     * @description The method shows the editor integrator message (see externallistener plugin).
      * @param {Object} data
      */
 
