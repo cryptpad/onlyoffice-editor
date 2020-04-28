@@ -1368,9 +1368,9 @@
     asc_applyFunction(callback, d);
   };
 
-  WorkbookView.prototype._onMoveResizeRangeHandleDone = function(target) {
+  WorkbookView.prototype._onMoveResizeRangeHandleDone = function() {
     var ws = this.getWorksheet();
-    ws.applyMoveResizeRangeHandle(target);
+    ws.applyMoveResizeRangeHandle();
   };
 
   // Frozen anchor

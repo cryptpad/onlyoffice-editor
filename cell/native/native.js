@@ -3499,11 +3499,8 @@ function OfflineEditor () {
             }
             
             var formularanges = [];
-            
             if (!isFrozen && this.isFormulaEditMode) {
-                if (this.arrActiveFormulaRanges.length) {
-                    formularanges = this.__selectedCellRanges(this.arrActiveFormulaRanges, offsetX, offsetY);
-                }
+                formularanges = this.__selectedCellRanges(offsetX, offsetY);
             }
             
             return {'selection': selection, 'formularanges': formularanges};
@@ -3589,17 +3586,20 @@ function OfflineEditor () {
             
             if (window["Asc"]["editor"].isStartAddShape || this.objectRender.selectedGraphicObjectsExists()) {
                 if (this.isChartAreaEditMode && this.oOtherRanges) {
-                    return this.__selectedCellRanges(this.oOtherRanges, 0, 0, Asc.c_oAscSelectionType.RangeChart);
+                    return this.__selectedCellRanges(0, 0, Asc.c_oAscSelectionType.RangeChart);
                 }
             }
             
             return null;
         };
         
-        AscCommonExcel.WorksheetView.prototype.__selectedCellRanges = function (inputRanges, offsetX, offsetY, rangetype) {
-            var arrRanges = inputRanges.ranges;
+        AscCommonExcel.WorksheetView.prototype.__selectedCellRanges = function (offsetX, offsetY, rangetype) {
             var ranges = [];
+            if (!this.oOtherRanges) {
+                return ranges;
+            }
 
+            var arrRanges = this.oOtherRanges.ranges;
             var type, left, right, top, bottom;
             var addt, addl, addr, addb, colsCount = this.nColsCount - 1, rowsCount = this.nRowsCount - 1;
             var defaultRowHeight = AscCommonExcel.oDefaultMetrics.RowHeight;
@@ -5063,13 +5063,6 @@ window["native"]["offline_mouse_up"] = function(x, y, isViewerMode, isRangeResiz
         
         if (isRangeResize) {
             if (!isViewerMode) {
-                var target = {
-                target: 5,
-                targetArr: isChartRange ? -1 : 0,
-                cursor: "se-resize",
-                indexFormulaRange: indexRange
-                };
-                
                 if (ws.moveRangeDrawingObjectTo) {
                     ws.moveRangeDrawingObjectTo.c1 = Math.max(0, ws.moveRangeDrawingObjectTo.c1);
                     ws.moveRangeDrawingObjectTo.c2 = Math.max(0, ws.moveRangeDrawingObjectTo.c2);
@@ -5077,7 +5070,7 @@ window["native"]["offline_mouse_up"] = function(x, y, isViewerMode, isRangeResiz
                     ws.moveRangeDrawingObjectTo.r2 = Math.max(0, ws.moveRangeDrawingObjectTo.r2);
                 }
                 
-                ws.applyMoveResizeRangeHandle(target);
+                ws.applyMoveResizeRangeHandle();
                 
                 var controller = ws.objectRender.controller;
                 controller.updateOverlay();

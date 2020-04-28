@@ -653,9 +653,9 @@
 			this.handlers.trigger("moveRangeHandleDone", ctrlKey);
 		};
 
-		asc_CEventsController.prototype._moveResizeRangeHandleDone = function (event, target) {
+		asc_CEventsController.prototype._moveResizeRangeHandleDone = function () {
 			// Закончили перемещение диапазона, пересчитаем
-			this.handlers.trigger("moveResizeRangeHandleDone", target);
+			this.handlers.trigger("moveResizeRangeHandleDone");
 		};
 
 		/** @param event {jQuery.Event} */
@@ -1242,7 +1242,7 @@
 
 			if (this.isMoveResizeRange) {
 				this.isMoveResizeRange = false;
-				this.handlers.trigger("moveResizeRangeHandleDone", this.targetInfo);
+				this.handlers.trigger("moveResizeRangeHandleDone");
 			}
 			// Режим установки закреплённых областей
 			if (this.frozenAnchorMode) {
@@ -1549,7 +1549,7 @@
 
 			if (this.isMoveResizeRange) {
 				this.isMoveResizeRange = false;
-				this._moveResizeRangeHandleDone(event, this.targetInfo);
+				this._moveResizeRangeHandleDone();
 				return true;
 			}
 			// Режим установки закреплённых областей
