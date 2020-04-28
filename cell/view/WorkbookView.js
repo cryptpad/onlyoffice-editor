@@ -675,7 +675,7 @@
 			  }, "canEdit": function () {
 				  return self.canEdit();
 			  }, "getFormulaRanges": function () {
-			      return self.isActive() self.getWorksheet().oOtherRanges ? : null;
+			      return self.isActive() ? self.getWorksheet().oOtherRanges : null;
 			  }, "isActive": function () {
 				  return self.isActive();
 			  }, "getSelectionDialogMode": function () {
