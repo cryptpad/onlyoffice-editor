@@ -5458,17 +5458,18 @@
         for (i = 0; i < arrRanges.length; ++i) {
             ranges = arrRanges[i].ranges;
             for (var j = 0, l = ranges.length; j < l; ++j) {
-                colorIndex = asc.getUniqueRangeColor(ranges, j, tmpColors);
-                if (null == colorIndex) {
-                    colorIndex = uniqueColorIndex++;
-                }
-                tmpColors.push(colorIndex);
                 if (ranges[j].noColor) {
-					colorIndex = 0;
-				}
-                if(arrRanges[i].chartRangeIndex !== undefined) {
-                    colorIndex = arrRanges[i].chartRangeIndex;
+                    colorIndex = 0;
+                } else if (ranges[j].chartRangeIndex !== undefined) {
+                    colorIndex = ranges[j].chartRangeIndex;
+                } else {
+                    colorIndex = asc.getUniqueRangeColor(ranges, j, tmpColors);
+                    if (null == colorIndex) {
+                        colorIndex = uniqueColorIndex++;
+                    }
+                    tmpColors.push(colorIndex);
                 }
+
                 strokeColor = AscCommonExcel.c_oAscFormulaRangeBorderColor[colorIndex % length];
 
                 this._drawElements(this._drawSelectionElement, ranges[j],
@@ -7638,11 +7639,11 @@
     WorksheetView.prototype._hitCursorFormulaOrChart = function (vr, x, y, offsetX, offsetY) {
         var i, l, res;
         var oFormulaRange;
-        var arrRanges = this.isFormulaEditMode ? this.arrActiveFormulaRanges : this.arrOtherRanges;
+        var arrRanges = (this.isFormulaEditMode ? this.arrActiveFormulaRanges : this.arrOtherRanges)[0].ranges;
         var targetArr = this.isFormulaEditMode ? 0 : -1;
 
         for (i = 0, l = arrRanges.length; i < l; ++i) {
-            oFormulaRange = arrRanges[i].getLast();
+            oFormulaRange = arrRanges[i];
             res = !oFormulaRange.isName &&
               this._hitInRange(oFormulaRange, AscCommonExcel.selectionLineType.Resize, vr, x, y, offsetX, offsetY);
             if (res) {
@@ -10093,14 +10094,15 @@
     };
 
 
-    WorksheetView.prototype.changeChartSelectionMoveResizeRangeHandle = function(x, y, targetInfo, editor) {
+    WorksheetView.prototype.changeChartSelectionMoveResizeRangeHandle = function(x, y, targetInfo) {
         // Колонка по X и строка по Y
         var colByX = this._findColUnderCursor(x, /*canReturnNull*/false, false).col;
         var rowByY = this._findRowUnderCursor(y, /*canReturnNull*/false, false).row;
-        var type, i;
+        var i;
         var indexFormulaRange = targetInfo.indexFormulaRange;
-        var oActiveRange = this.arrOtherRanges[indexFormulaRange], oValRange, bVert, colDelta, rowDelta;
-        var ar = oActiveRange.getLast().clone(), arTmp;
+        var otherRanges = this.arrOtherRanges[0].ranges;
+        var oActiveRange = otherRanges[indexFormulaRange], colDelta, rowDelta;
+        var ar = oActiveRange.clone(), arTmp;
         var oRange;
         var oTopActiveRange = null, oLeftActiveRange = null, oValActiveRange = null;
         var r1 = null, r2 = null, c1 = null, c2 = null, delta;
@@ -10171,7 +10173,7 @@
                     break;
                 }
             }
-            arTmp = oActiveRange.getLast().clone();
+            arTmp = oActiveRange.clone();
             if(r1 !== null && r2 !== null) {
                 arTmp.r1 = r1;
                 arTmp.r2 = r2;
@@ -10180,30 +10182,30 @@
                 arTmp.c1 = c1;
                 arTmp.c2 = c2;
             }
-            oActiveRange.getLast().assign2(arTmp);
+            oActiveRange.assign2(arTmp);
         }
         else {
-            for(i = 0; i < this.arrOtherRanges.length; ++i) {
-                if(this.arrOtherRanges[i].chartRangeIndex === 0) {
-                    oValActiveRange = this.arrOtherRanges[i];
+            for(i = 0; i < otherRanges.length; ++i) {
+                if(otherRanges[i].chartRangeIndex === 0) {
+                    oValActiveRange = otherRanges[i];
                 }
-                else if(this.arrOtherRanges[i].chartRangeIndex === 1) {
+                else if(otherRanges[i].chartRangeIndex === 1) {
                     if(oValActiveRange) {
                         if(oValActiveRange.vert) {
-                            oLeftActiveRange = this.arrOtherRanges[i];
+                            oLeftActiveRange = otherRanges[i];
                         }
                         else {
-                            oTopActiveRange = this.arrOtherRanges[i];
+                            oTopActiveRange = otherRanges[i];
                         }
                     }
                 }
-                else if(this.arrOtherRanges[i].chartRangeIndex === 2) {
+                else if(otherRanges[i].chartRangeIndex === 2) {
                     if(oValActiveRange) {
                         if(oValActiveRange.vert) {
-                            oTopActiveRange = this.arrOtherRanges[i];
+                            oTopActiveRange = otherRanges[i];
                         }
                         else {
-                            oLeftActiveRange = this.arrOtherRanges[i];
+                            oLeftActiveRange = otherRanges[i];
                         }
                     }
                 }
@@ -10241,37 +10243,19 @@
                         }
                     }
 
-                    if(oLeftActiveRange && oLeftActiveRange !== oActiveRange) {
-                        oRange = oLeftActiveRange.getLast();
-                        if(oRange) {
-                            if(c1 <= oRange.c2) {
-                                c1 = oRange.c2 + 1;
-                            }
-                        }
+                    if(oLeftActiveRange && oLeftActiveRange !== oActiveRange && (c1 <= oLeftActiveRange.c2)) {
+                        c1 = oLeftActiveRange.c2 + 1;
                     }
-                    if(oTopActiveRange && oTopActiveRange !== oActiveRange) {
-                        oRange = oTopActiveRange.getLast();
-                        if(oRange) {
-                            if(r1 <= oRange.r2) {
-                                r1 = oRange.r2 + 1;
-                            }
-                        }
+                    if(oTopActiveRange && oTopActiveRange !== oActiveRange && (r1 <= oTopActiveRange.r2)) {
+                        r1 = oTopActiveRange.r2 + 1;
                     }
                     break;
                 }
                 case kCurMove: {
                     if(oActiveRange === oValActiveRange || oActiveRange === oTopActiveRange) {
                         colDelta = colByX - this.startCellMoveResizeRange2.c1;
-                        if(colDelta < 0) {
-                            oRange = null;
-                            if(oLeftActiveRange) {
-                                oRange = oLeftActiveRange.getLast();
-                                if(oRange) {
-                                    if(this.startCellMoveResizeRange.c1 + colDelta <= oRange.c2) {
-                                        colDelta += (oRange.c2 - (this.startCellMoveResizeRange.c1 + colDelta) + 1);
-                                    }
-                                }
-                            }
+                        if(colDelta < 0 && oLeftActiveRange && (this.startCellMoveResizeRange.c1 + colDelta <= oLeftActiveRange.c2)) {
+                            colDelta += (oLeftActiveRange.c2 - (this.startCellMoveResizeRange.c1 + colDelta) + 1);
                         }
                         c1 = this.startCellMoveResizeRange.c1 + colDelta;
                         c2 = this.startCellMoveResizeRange.c2 + colDelta;
@@ -10283,16 +10267,8 @@
                     }
                     if(oActiveRange === oValActiveRange || oActiveRange === oLeftActiveRange) {
                         rowDelta = rowByY - this.startCellMoveResizeRange2.r1;
-                        if(rowDelta < 0) {
-                            oRange = null;
-                            if(oTopActiveRange) {
-                                oRange = oTopActiveRange.getLast();
-                                if(oRange) {
-                                    if(this.startCellMoveResizeRange.r1 + rowDelta <= oRange.r2) {
-                                        rowDelta += (oRange.r2 - (this.startCellMoveResizeRange.r1 + rowDelta) + 1);
-                                    }
-                                }
-                            }
+                        if(rowDelta < 0 && oTopActiveRange && (this.startCellMoveResizeRange.r1 + rowDelta <= oTopActiveRange.r2)) {
+                            rowDelta += (oTopActiveRange.r2 - (this.startCellMoveResizeRange.r1 + rowDelta) + 1);
                         }
                         r1 = this.startCellMoveResizeRange.r1 + rowDelta;
                         r2 = this.startCellMoveResizeRange.r2 + rowDelta;
@@ -10307,7 +10283,7 @@
                 }
             }
             if(oValActiveRange) {
-                arTmp = oValActiveRange.getLast().clone();
+                arTmp = oValActiveRange.clone();
                 if(r1 !== null && r2 !== null) {
                     arTmp.r1 = r1;
                     arTmp.r2 = r2;
@@ -10316,23 +10292,23 @@
                     arTmp.c1 = c1;
                     arTmp.c2 = c2;
                 }
-                oValActiveRange.getLast().assign2(arTmp);
+                oValActiveRange.assign2(arTmp);
             }
             if(oLeftActiveRange) {
-                arTmp = oLeftActiveRange.getLast().clone();
+                arTmp = oLeftActiveRange.clone();
                 if(r1 !== null && r2 !== null) {
                     arTmp.r1 = r1;
                     arTmp.r2 = r2;
                 }
-                oLeftActiveRange.getLast().assign2(arTmp);
+                oLeftActiveRange.assign2(arTmp);
             }
             if(oTopActiveRange) {
-                arTmp = oTopActiveRange.getLast().clone();
+                arTmp = oTopActiveRange.clone();
                 if(c1 !== null && c2 !== null) {
                     arTmp.c1 = c1;
                     arTmp.c2 = c2;
                 }
-                oTopActiveRange.getLast().assign2(arTmp);
+                oTopActiveRange.assign2(arTmp);
             }
         }
         this._drawSelection();
@@ -10345,9 +10321,9 @@
         }
 
         var type;
-        var indexFormulaRange = targetInfo.indexFormulaRange, d = new AscCommon.CellBase(0, 0), newFormulaRange = null;
-        var ar = (0 == targetInfo.targetArr ? this.arrActiveFormulaRanges[indexFormulaRange] :
-          this.arrOtherRanges[indexFormulaRange]).getLast().clone();
+        var indexFormulaRange = targetInfo.indexFormulaRange, d = new AscCommon.CellBase(0, 0), newFormulaRange;
+        var ar = (0 == targetInfo.targetArr ? this.arrActiveFormulaRanges[0].ranges[indexFormulaRange] :
+          this.arrOtherRanges[0].ranges[indexFormulaRange]).clone();
 
         // Колонка по X и строка по Y
         var colByX = this._findColUnderCursor(x, /*canReturnNull*/false, false).col;
@@ -10453,6 +10429,7 @@
             d.row = 0;
         }
 
+        // ToDo
         var _p = this.arrActiveFormulaRanges[indexFormulaRange].cursorePos, _l = this.arrActiveFormulaRanges[indexFormulaRange].formulaRangeLength;
         this.arrActiveFormulaRanges[indexFormulaRange].getLast().assign2(ar.clone(true));
         this.arrActiveFormulaRanges[indexFormulaRange].cursorePos = _p;
