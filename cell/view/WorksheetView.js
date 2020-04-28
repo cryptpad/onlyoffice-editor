@@ -512,6 +512,10 @@
 	    return this.workbook.selectionDialogMode;
     };
 
+    WorksheetView.prototype.getDialogOtherRanges = function () {
+        return this.workbook.dialogOtherRanges;
+    };
+
     WorksheetView.prototype.getCellVisibleRange = function (col, row) {
         var vr, offsetX = 0, offsetY = 0, cFrozen, rFrozen;
         if (this.topLeftFrozenCell) {
@@ -5366,11 +5370,7 @@
         }
         var isOtherSelectionMode = (selectionDialogMode || this.isFormulaEditMode) && !this.handlers.trigger('isActive');
         if (isOtherSelectionMode) {
-            if (selectionDialogMode) {
-                this._drawSelectRange();
-            } else if (this.isFormulaEditMode) {
-                this._drawFormulaRanges(this.oOtherRanges);
-            }
+            this._drawSelectRange();
         } else {
             isShapeSelect = (asc["editor"].isStartAddShape || this.objectRender.selectedGraphicObjectsExists());
             if (isShapeSelect) {
@@ -5378,7 +5378,7 @@
                     this._drawFormulaRanges(this.oOtherRanges);
                 }
             } else {
-                if (!selectionDialogMode) {
+                if (this.getDialogOtherRanges()) {
                     this._drawFormulaRanges(this.oOtherRanges);
                 }
                 this._drawSelectionRange();

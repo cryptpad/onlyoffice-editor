@@ -221,6 +221,7 @@
     this.selectionDialogMode = false;
     this.dialogAbsName = false;
     this.dialogSheetName = false;
+    this.dialogOtherRanges = true;
     this.copyActiveSheet = -1;
     this.lastActiveSheet = -1;
 
@@ -643,7 +644,6 @@
 			  }, "gotFocus": function (hasFocus) {
 				  self.controller.setFocus(!hasFocus);
 			  }, "updateFormulaEditMod": function (val) {
-			      self.setSelectionDialogMode(val ? c_oAscSelectionDialogType.FunctionWizard : c_oAscSelectionDialogType.None, '');
                   self.setFormulaEditMode(val);
 			  }, "updateEditorState": function (state) {
 				  self.handlers.trigger("asc_onEditCell", state);
@@ -1975,6 +1975,7 @@
 
     WorkbookView.prototype.setFormulaEditMode = function (mode) {
         this.isFormulaEditMode = mode;
+        this.setSelectionDialogMode(mode ? c_oAscSelectionDialogType.Function : c_oAscSelectionDialogType.None, '');
     };
 
 	WorkbookView.prototype.isActive = function () {
@@ -2541,7 +2542,8 @@
           c_oAscSelectionDialogType.PivotTableData === selectionDialogType ||
           c_oAscSelectionDialogType.PivotTableReport === selectionDialogType);
       this.dialogAbsName = (c_oAscSelectionDialogType.None !== selectionDialogType &&
-          c_oAscSelectionDialogType.FunctionWizard !== selectionDialogType);
+          c_oAscSelectionDialogType.FunctionWizard !== selectionDialogType && c_oAscSelectionDialogType.Function !== selectionDialogType);
+      this.dialogOtherRanges = (c_oAscSelectionDialogType.Function === selectionDialogType)
   };
   WorkbookView.prototype.setSelectionDialogMode = function (selectionDialogType, selectRange) {
       var newSelectionDialogMode = c_oAscSelectionDialogType.None !== selectionDialogType;

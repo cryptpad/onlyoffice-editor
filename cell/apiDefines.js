@@ -111,7 +111,8 @@ var c_oAscSelectionDialogType = {
   PivotTableData: 6,
   PivotTableReport: 7,
   PrintTitles: 8,
-  FunctionWizard: 9
+  FunctionWizard: 9,
+  Function: 10
 };
 
 var c_oAscScrollType = {
