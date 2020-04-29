@@ -497,9 +497,12 @@
 	};
 
 	CellEditor.prototype.canEnterCellRange = function () {
+		if (this.lastRangePos !== null) {
+			return true;
+		}
+
 		var res = false;
 		var prevChar = this.textRender.getChars(this.cursorPos - 1, 1);
-		this.cleanLastRangeInfo();
 		if (this.rangeChars.indexOf(prevChar) >= 0 || prevChar === AscCommon.FormulaSeparators.functionArgumentSeparator) {
 			this.lastRangePos = this.cursorPos;
 			res = true;
