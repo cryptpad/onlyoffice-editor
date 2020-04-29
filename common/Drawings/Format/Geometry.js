@@ -902,13 +902,13 @@ Geometry.prototype=
 
     setParent: function(pr)
     {
-        History.Add(new AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_GeometrySetParent, this.parent, pr));
+        History.CanAddChanges() && History.Add(new AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_GeometrySetParent, this.parent, pr));
         this.parent = pr;
     },
 
     setPreset: function(preset)
     {
-        History.Add(new AscDFH.CChangesDrawingsString(this, AscDFH.historyitem_GeometrySetPreset, this.preset, preset));
+        History.CanAddChanges() && History.Add(new AscDFH.CChangesDrawingsString(this, AscDFH.historyitem_GeometrySetPreset, this.preset, preset));
         this.preset = preset;
     },
 
@@ -918,7 +918,7 @@ Geometry.prototype=
         if(this.gdLst[name] !== null && this.gdLst[name] !== undefined){
             OldValue = this.gdLst[name] + "";
         }
-        History.Add(new CChangesGeometryAddAdj(this, name, OldValue, x, this.avLst[name]));
+        History.CanAddChanges() && History.Add(new CChangesGeometryAddAdj(this, name, OldValue, x, this.avLst[name]));
         var dVal = parseInt(x);
         if(isNaN(dVal))
         {
@@ -956,7 +956,7 @@ Geometry.prototype=
 
     AddGuide: function(name, formula, x, y, z)
     {
-        History.Add(new CChangesGeometryAddGuide(this, name, formula, x, y, z));
+        History.CanAddChanges() && History.Add(new CChangesGeometryAddGuide(this, name, formula, x, y, z));
         this.gdLstInfo.push(
             {
                 name: name,
@@ -969,7 +969,7 @@ Geometry.prototype=
 
     AddCnx: function(ang, x, y)
     {
-        History.Add(new CChangesGeometryAddCnx(this, ang, x, y));
+        History.CanAddChanges() && History.Add(new CChangesGeometryAddCnx(this, ang, x, y));
         this.cnxLstInfo.push(
             {
                 ang:ang,
@@ -980,7 +980,7 @@ Geometry.prototype=
 
     AddHandleXY: function(gdRefX, minX, maxX, gdRefY, minY, maxY, posX, posY)
     {
-        History.Add(new CChangesGeometryAddHandleXY(this, gdRefX, minX, maxX, gdRefY, minY, maxY, posX, posY));
+        History.CanAddChanges() && History.Add(new CChangesGeometryAddHandleXY(this, gdRefX, minX, maxX, gdRefY, minY, maxY, posX, posY));
         this.ahXYLstInfo.push(
             {
                 gdRefX:gdRefX,
@@ -998,7 +998,7 @@ Geometry.prototype=
 
     AddHandlePolar: function(gdRefAng, minAng, maxAng, gdRefR, minR, maxR, posX, posY)
     {
-        History.Add(new CChangesGeometryAddHandlePolar(this, gdRefR, minR, maxR, gdRefAng, minAng, maxAng, posX, posY));
+        History.CanAddChanges() && History.Add(new CChangesGeometryAddHandlePolar(this, gdRefR, minR, maxR, gdRefAng, minAng, maxAng, posX, posY));
         this.ahPolarLstInfo.push(
             {
                 gdRefAng:gdRefAng,
@@ -1016,7 +1016,7 @@ Geometry.prototype=
 
     AddPath: function(pr)
     {
-        History.Add(new AscDFH.CChangesDrawingsContent(this, AscDFH.historyitem_GeometryAddPath, this.pathLst.length, [pr], true));
+        History.CanAddChanges() && History.Add(new AscDFH.CChangesDrawingsContent(this, AscDFH.historyitem_GeometryAddPath, this.pathLst.length, [pr], true));
         this.pathLst.push(pr);
     },
 
@@ -1070,7 +1070,7 @@ Geometry.prototype=
 
     AddRect: function(l, t, r, b)
     {
-        History.Add(new CChangesGeometryAddRect(this, l, t, r, b));
+        History.CanAddChanges() && History.Add(new CChangesGeometryAddRect(this, l, t, r, b));
         this.rectS = {};
         this.rectS.l = l;
         this.rectS.t = t;
@@ -1538,6 +1538,29 @@ Geometry.prototype=
             }
             while(dDelta > EPSILON_TEXT_AUTOFIT && iter_Count < MAX_ITER_COUNT);
             return {W: dWi, H: dGeometryHeight, bError: dDelta > EPSILON_TEXT_AUTOFIT};
+        }
+    },
+
+    checkBetweenPolygons: function(oBoundsController, oPolygonWrapper1, oPolygonWrapper2) {
+        var aPathLst = this.pathLst;
+        for(var i = 0; i < aPathLst.length; ++i)
+        {
+            aPathLst[i].checkBetweenPolygons(oBoundsController, oPolygonWrapper1, oPolygonWrapper2);
+        }
+    },  
+    checkByPolygon: function(oPolygon, bFlag, XLimit, ContentHeight, dKoeff, oBounds) {
+        var aPathLst = this.pathLst;
+        for(var i = 0; i < aPathLst.length; ++i)
+        {
+            aPathLst[i].checkByPolygon(oPolygon, bFlag, XLimit, ContentHeight, dKoeff, oBounds);
+        }
+    },
+    
+    transform: function (oTransform) {
+        var aPathLst = this.pathLst;
+        for(var i = 0; i < aPathLst.length; ++i)
+        {
+            aPathLst[i].transform(oTransform);
         }
     }
 };

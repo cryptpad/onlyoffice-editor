@@ -300,37 +300,37 @@ Path.prototype = {
 
     setStroke: function(pr)
     {
-        History.Add(new AscDFH.CChangesDrawingsBool(this, AscDFH.historyitem_PathSetStroke, this.stroke, pr));
+        History.CanAddChanges() && History.Add(new AscDFH.CChangesDrawingsBool(this, AscDFH.historyitem_PathSetStroke, this.stroke, pr));
         this.stroke = pr;
     },
 
     setExtrusionOk: function(pr)
     {
-        History.Add(new AscDFH.CChangesDrawingsBool(this, AscDFH.historyitem_PathSetExtrusionOk, this.extrusionOk, pr));
+        History.CanAddChanges() && History.Add(new AscDFH.CChangesDrawingsBool(this, AscDFH.historyitem_PathSetExtrusionOk, this.extrusionOk, pr));
         this.extrusionOk = pr;
     },
 
     setFill: function(pr)
     {
-        History.Add(new AscDFH.CChangesDrawingsString(this, AscDFH.historyitem_PathSetFill, this.fill, pr));
+        History.CanAddChanges() && History.Add(new AscDFH.CChangesDrawingsString(this, AscDFH.historyitem_PathSetFill, this.fill, pr));
         this.fill = pr;
     },
 
     setPathH: function(pr)
     {
-        History.Add(new AscDFH.CChangesDrawingsLong(this, AscDFH.historyitem_PathSetPathH, this.pathH, pr));
+        History.CanAddChanges() && History.Add(new AscDFH.CChangesDrawingsLong(this, AscDFH.historyitem_PathSetPathH, this.pathH, pr));
         this.pathH = pr;
     },
 
     setPathW: function(pr)
     {
-        History.Add(new AscDFH.CChangesDrawingsLong(this, AscDFH.historyitem_PathSetPathW, this.pathW, pr));
+        History.CanAddChanges() && History.Add(new AscDFH.CChangesDrawingsLong(this, AscDFH.historyitem_PathSetPathW, this.pathW, pr));
         this.pathW = pr;
     },
 
     addPathCommand: function(cmd)
     {
-        History.Add(new CChangesDrawingsAddPathCommand(this, cmd, this.ArrPathCommandInfo.length));
+        History.CanAddChanges() && History.Add(new CChangesDrawingsAddPathCommand(this, cmd, this.ArrPathCommandInfo.length));
         this.ArrPathCommandInfo.push(cmd);
     },
 
@@ -1127,11 +1127,44 @@ Path.prototype = {
 
         if (false == _old_int)
             _graphics.SetIntegerGrid(false);
+    },
+
+    isEmpty : function () {
+        return this.ArrPathCommandInfo.length > 0;
+    },
+
+    checkBetweenPolygons: function (oBoundsController, oPolygonWrapper1, oPolygonWrapper2) {
+    },
+
+    checkByPolygon: function (oPolygon, bFlag, XLimit, ContentHeight, dKoeff, oBounds) {
+    },
+
+    transform: function (oTransform) {
     }
 };
 
 
-
+    function CheckPointByPaths(dX, dY, dWidth, dHeight, dMinX, dMinY, oPolygonWrapper1, oPolygonWrapper2)
+    {
+        var cX, cY, point, topX, topY, bottomX, bottomY;
+        cX = (dX - dMinX)/dWidth;
+        cY = (dY - dMinY)/dHeight;
+        if(cX > 1)
+        {
+            cX = 1;
+        }
+        if(cX < 0)
+        {
+            cX = 0;
+        }
+        point = oPolygonWrapper1.getPointOnPolygon(cX);
+        topX = point.x;
+        topY = point.y;
+        point = oPolygonWrapper2.getPointOnPolygon(cX);
+        bottomX = point.x;
+        bottomY = point.y;
+        return {x: topX + cY*(bottomX - topX), y: topY + cY*(bottomY - topY)};
+    }
 
     function Path2(oPathMemory)
     {
@@ -1152,11 +1185,17 @@ Path.prototype = {
 
         this.lastX = null;
         this.lastY = null;
+        this.bEmpty = true;
     }
 
     Path2.prototype = {
 
+        isEmpty: function() {
+            return this.bEmpty;
+        },
+
         checkArray: function(nSize){
+            this.bEmpty = false;
             this.ArrPathCommand[this.startPos] += nSize;
             this.PathMemory.curPos = this.startPos + this.ArrPathCommand[this.startPos];
             if(this.PathMemory.curPos + 1 > this.ArrPathCommand.length){
@@ -1298,7 +1337,7 @@ Path.prototype = {
             this.ArrPathCommand[this.startPos + (this.curLen++) + 1] = bezier4;
             this.ArrPathCommand[this.startPos + (this.curLen++) + 1] = x0*10e-10;
             this.ArrPathCommand[this.startPos + (this.curLen++) + 1] = y0*10e-10;
-            this.ArrPathCommand[this.startPos + (this.curLen++) + 1] = y1*10e-10;
+            this.ArrPathCommand[this.startPos + (this.curLen++) + 1] = x1*10e-10;
             this.ArrPathCommand[this.startPos + (this.curLen++) + 1] = y1*10e-10;
             this.ArrPathCommand[this.startPos + (this.curLen++) + 1] = this.lastX;
             this.ArrPathCommand[this.startPos + (this.curLen++) + 1] = this.lastY;
@@ -1308,11 +1347,14 @@ Path.prototype = {
         close: function()
         {
             this.checkArray(1);
-            this.ArrPathCommand.push(close);
+            this.ArrPathCommand[this.startPos + (this.curLen++) + 1] = close;
         },
 
         draw: function(shape_drawer)
         {
+            if(this.isEmpty()) {
+                return;
+            }
             if (shape_drawer.bIsCheckBounds === true && this.fill == "none")
             {
                 // это для текстур
@@ -1726,8 +1768,7 @@ Path.prototype = {
             }
 
         },
-
-
+        
         isSmartLine : function()
         {
             var i = 0;
@@ -2078,6 +2119,249 @@ Path.prototype = {
 
             if (false == _old_int)
                 _graphics.SetIntegerGrid(false);
+        },
+
+        recalculate: function(gdLst, bResetPathsInfo)
+        {
+        },
+        recalculate2: function(gdLst, bResetPathsInfo)
+        {
+        },
+
+        transformPointPolygon: function(x, y, oPolygon, bFlag, XLimit, ContentHeight, dKoeff, oBounds)
+        {
+            var oRet = {x: 0, y: 0}, y0, y1, cX, oPointOnPolygon, x1t, y1t, dX, dY, x0t, y0t;
+            y0 = y;//dKoeff;
+            if(bFlag)
+            {
+                y1 = 0;
+                if(oBounds)
+                {
+                    y0 -= oBounds.min_y;
+                }
+            }
+            else
+            {
+                y1 = ContentHeight*dKoeff;
+                if(oBounds)
+                {
+                    y1 = (oBounds.max_y - oBounds.min_y);
+                    y0 -= oBounds.min_y;
+                }
+            }
+            cX = x/XLimit;
+            oPointOnPolygon = oPolygon.getPointOnPolygon(cX, true);
+            x1t = oPointOnPolygon.x;
+            y1t = oPointOnPolygon.y;
+            dX = oPointOnPolygon.oP2.x - oPointOnPolygon.oP1.x;
+            dY = oPointOnPolygon.oP2.y - oPointOnPolygon.oP1.y;
+
+            if(bFlag)
+            {
+                dX = -dX;
+                dY = -dY;
+            }
+            var dNorm = Math.sqrt(dX*dX + dY*dY);
+
+            if(bFlag)
+            {
+                x0t = x1t + (dY/dNorm)*(y0);
+                y0t = y1t - (dX/dNorm)*(y0);
+            }
+            else
+            {
+
+                x0t = x1t + (dY/dNorm)*(y1 - y0);
+                y0t = y1t - (dX/dNorm)*(y1 - y0);
+            }
+            oRet.x = x0t;
+            oRet.y = y0t;
+            return oRet;
+        },
+        
+        checkBetweenPolygons: function (oBoundsController, oPolygonWrapper1, oPolygonWrapper2) {
+
+            var path = this.ArrPathCommand;
+            var i = 0;
+            var len = this.PathMemory.ArrPathCommand[this.startPos];
+            var p;
+            var dMinX = oBoundsController.min_x, dMinY = oBoundsController.min_y, dWidth = oBoundsController.max_x - oBoundsController.min_x, dHeight = oBoundsController.max_y - oBoundsController.min_y;
+            while(i < len)
+            {
+                var cmd=path[this.startPos + i + 1];
+                switch(cmd)
+                {
+                    case moveTo:
+                    case lineTo:
+                    {
+                        p = CheckPointByPaths(path[this.startPos + i + 2], path[this.startPos + i + 3], dWidth, dHeight, dMinX, dMinY, oPolygonWrapper1, oPolygonWrapper2);
+                        path[this.startPos + i + 2] = p.x;
+                        path[this.startPos + i + 3] = p.y;
+                        i+=3;
+                        break;
+                    }
+                    case bezier3:
+                    {
+                      
+                        p = CheckPointByPaths(path[this.startPos + i + 2], path[this.startPos + i + 3], dWidth, dHeight, dMinX, dMinY, oPolygonWrapper1, oPolygonWrapper2);
+                        path[this.startPos + i + 2] = p.x;
+                        path[this.startPos + i + 3] = p.y; 
+                        p = CheckPointByPaths(path[this.startPos + i + 4], path[this.startPos + i + 5], dWidth, dHeight, dMinX, dMinY, oPolygonWrapper1, oPolygonWrapper2);
+                        path[this.startPos + i + 4] = p.x;
+                        path[this.startPos + i + 5] = p.y;
+                        i+=5;
+                        break;
+                    }
+                    case bezier4:
+                    {
+                        p = CheckPointByPaths(path[this.startPos + i + 2], path[this.startPos + i + 3], dWidth, dHeight, dMinX, dMinY, oPolygonWrapper1, oPolygonWrapper2);
+                        path[this.startPos + i + 2] = p.x;
+                        path[this.startPos + i + 3] = p.y;
+                        p = CheckPointByPaths(path[this.startPos + i + 4], path[this.startPos + i + 5], dWidth, dHeight, dMinX, dMinY, oPolygonWrapper1, oPolygonWrapper2);
+                        path[this.startPos + i + 4] = p.x;
+                        path[this.startPos + i + 5] = p.y;
+                        p = CheckPointByPaths(path[this.startPos + i + 6], path[this.startPos + i + 7], dWidth, dHeight, dMinX, dMinY, oPolygonWrapper1, oPolygonWrapper2);
+                        path[this.startPos + i + 6] = p.x;
+                        path[this.startPos + i + 7] = p.y;
+                        i+=7;
+                        break;
+                    }
+                    case arcTo:
+                    {
+                        i+=7;
+                        break;
+                    }
+                    case close:
+                    {
+                        i+=1;
+                        break;
+                    }
+                }
+            }
+        },
+
+        checkByPolygon: function (oPolygon, bFlag, XLimit, ContentHeight, dKoeff, oBounds) {
+
+            var path = this.ArrPathCommand;
+            var i = 0;
+            var len = this.PathMemory.ArrPathCommand[this.startPos];
+            var p;
+            while(i < len)
+            {
+                var cmd=path[this.startPos + i + 1];
+                switch(cmd)
+                {
+                    case moveTo:
+                    case lineTo:
+                    {
+                        p = this.transformPointPolygon(path[this.startPos + i + 2], path[this.startPos + i + 3], oPolygon, bFlag, XLimit, ContentHeight, dKoeff, oBounds);
+                        path[this.startPos + i + 2] = p.x;
+                        path[this.startPos + i + 3] = p.y;
+                        i+=3;
+                        break;
+                    }
+                    case bezier3:
+                    {
+
+                        p = this.transformPointPolygon(path[this.startPos + i + 2], path[this.startPos + i + 3], oPolygon, bFlag, XLimit, ContentHeight, dKoeff, oBounds);
+                        path[this.startPos + i + 2] = p.x;
+                        path[this.startPos + i + 3] = p.y;
+                        p = this.transformPointPolygon(path[this.startPos + i + 4], path[this.startPos + i + 5], oPolygon, bFlag, XLimit, ContentHeight, dKoeff, oBounds);
+                        path[this.startPos + i + 4] = p.x;
+                        path[this.startPos + i + 5] = p.y;
+                        i+=5;
+                        break;
+                    }
+                    case bezier4:
+                    {
+                        p = this.transformPointPolygon(path[this.startPos + i + 2], path[this.startPos + i + 3], oPolygon, bFlag, XLimit, ContentHeight, dKoeff, oBounds);
+                        path[this.startPos + i + 2] = p.x;
+                        path[this.startPos + i + 3] = p.y;
+                        p = this.transformPointPolygon(path[this.startPos + i + 4], path[this.startPos + i + 5], oPolygon, bFlag, XLimit, ContentHeight, dKoeff, oBounds);
+                        path[this.startPos + i + 4] = p.x;
+                        path[this.startPos + i + 5] = p.y;
+                        p = this.transformPointPolygon(path[this.startPos + i + 6], path[this.startPos + i + 7], oPolygon, bFlag, XLimit, ContentHeight, dKoeff, oBounds);
+                        path[this.startPos + i + 6] = p.x;
+                        path[this.startPos + i + 7] = p.y;
+                        i+=7;
+                        break;
+                    }
+                    case arcTo:
+                    {
+                        i+=7;
+                        break;
+                    }
+                    case close:
+                    {
+                        i+=1;
+                        break;
+                    }
+                }
+            }
+        },
+
+        transform: function (oTransform) {
+            var path = this.ArrPathCommand;
+            var i = 0;
+            var len = this.PathMemory.ArrPathCommand[this.startPos];
+            var p, x, y;
+            while(i < len)
+            {
+                var cmd=path[this.startPos + i + 1];
+                switch(cmd)
+                {
+                    case moveTo:
+                    case lineTo:
+                    {
+                        x = oTransform.TransformPointX(path[this.startPos + i + 2], path[this.startPos + i + 3]);
+                        y = oTransform.TransformPointY(path[this.startPos + i + 2], path[this.startPos + i + 3]);
+                        path[this.startPos + i + 2] = x;
+                        path[this.startPos + i + 3] = y;
+                        i+=3;
+                        break;
+                    }
+                    case bezier3:
+                    {
+                        x = oTransform.TransformPointX(path[this.startPos + i + 2], path[this.startPos + i + 3]);
+                        y = oTransform.TransformPointY(path[this.startPos + i + 2], path[this.startPos + i + 3]);
+                        path[this.startPos + i + 2] = x;
+                        path[this.startPos + i + 3] = y;
+                        x = oTransform.TransformPointX(path[this.startPos + i + 4], path[this.startPos + i + 5]);
+                        y = oTransform.TransformPointY(path[this.startPos + i + 4], path[this.startPos + i + 5]);
+                        path[this.startPos + i + 4] = x;
+                        path[this.startPos + i + 5] = y;
+                        i+=5;
+                        break;
+                    }
+                    case bezier4:
+                    {
+                        x = oTransform.TransformPointX(path[this.startPos + i + 2], path[this.startPos + i + 3]);
+                        y = oTransform.TransformPointY(path[this.startPos + i + 2], path[this.startPos + i + 3]);
+                        path[this.startPos + i + 2] = x;
+                        path[this.startPos + i + 3] = y;
+                        x = oTransform.TransformPointX(path[this.startPos + i + 4], path[this.startPos + i + 5]);
+                        y = oTransform.TransformPointY(path[this.startPos + i + 4], path[this.startPos + i + 5]);
+                        path[this.startPos + i + 4] = x;
+                        path[this.startPos + i + 5] = y;
+                        x = oTransform.TransformPointX(path[this.startPos + i + 6], path[this.startPos + i + 7]);
+                        y = oTransform.TransformPointY(path[this.startPos + i + 6], path[this.startPos + i + 7]);
+                        path[this.startPos + i + 6] = x;
+                        path[this.startPos + i + 7] = y;
+                        i+=7;
+                        break;
+                    }
+                    case arcTo:
+                    {
+                        i+=7;
+                        break;
+                    }
+                    case close:
+                    {
+                        i+=1;
+                        break;
+                    }
+                }
+            }
         }
     };
 

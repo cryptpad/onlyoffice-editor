@@ -639,6 +639,10 @@ var G_O_ACTIVE_COMMENT_BRUSH = AscFormat.CreateUniFillByUniColor(AscFormat.Creat
         this.ArrPathCommand[this.curPos] = 0;
         return this.path;
     };
+    CPathMemory.prototype.AllocPath2 = function(){
+        this.path = new AscFormat.Path2(this);
+        return this.AllocPath();
+    };
 
     CPathMemory.prototype.GetPath = function(index){
         this.path.startPos = index;
@@ -18768,4 +18772,5 @@ function checkBlipFillRasterImages(sp)
     window['AscFormat'].getMaxIdx = getMaxIdx;
     window['AscFormat'].CreateSurfaceChart = CreateSurfaceChart;
     window['AscFormat'].getStringPointsFromCat = getStringPointsFromCat;
+    window['AscFormat'].CPathMemory = CPathMemory;
 })(window);
