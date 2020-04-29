@@ -535,6 +535,18 @@
 		t._moveCursor(kEndOfText);
 	};
 
+	CellEditor.prototype.changeCellRange2 = function (str) {
+		this.lastRangePos = null;
+		this.lastRangeLength = null;
+		this._moveCursor(kPosition, this.lastRangePos);
+		if (this.lastRangeLength) {
+			this._selectChars(kPositionLength, this.lastRangeLength);
+		}
+		this._addChars(str, undefined, /*isRange*/true);
+		this.lastRangeLength = str.length;
+		//this._moveCursor(kEndOfText);
+	};
+
 	CellEditor.prototype.move = function () {
 		if (!this.isOpened) {
 			return;
