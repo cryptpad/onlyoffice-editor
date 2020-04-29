@@ -14601,10 +14601,8 @@
             currentRange.c2 = currentRange.c1;
         }
 
-        /*            var defName = this.model.workbook.findDefinesNames(this.model.getName()+"!"+currentRange.getAbsName(),this.model.getId());
-         console.log("defName #2 " + defName);*/
-        var sheetName = "", cFEWSO = editor.handlers.trigger("getCellFormulaEnterWSOpen");
-        if (editor.formulaIsOperator() && cFEWSO && cFEWSO.model.getId() != this.model.getId()) {
+        var sheetName = "";
+        if (editor.formulaIsOperator() && !this.handlers.trigger('isActive')) {
             sheetName = parserHelp.getEscapeSheetName(this.model.getName()) + "!";
         }
         editor.enterCellRange(/*defName || */sheetName + currentRange.getName());

@@ -677,10 +677,8 @@
 				  return self.isActive();
 			  }, "getSelectionDialogMode": function () {
 			      return self.selectionDialogMode;
-              }, "getCellFormulaEnterWSOpen": function () {
-				  return self.cellFormulaEnterWSOpen;
-			  }, "getActiveWS": function () {
-				  return self.getWorksheet().model;
+              }, "getActiveWS": function () {
+			      return self.model.getWorksheetById(-1 === self.copyActiveSheet ? self.wsActive : self.copyActiveSheet);
 			  }, "setStrictClose": function (val) {
 				  self.controller.setStrictClose(val);
 			  }, "updateEditorSelectionInfo": function (info) {
@@ -926,16 +924,19 @@
   };
 
   WorkbookView.prototype._updateSelectionInfo = function () {
-    var ws = this.cellFormulaEnterWSOpen ? this.cellFormulaEnterWSOpen : this.getWorksheet();
+    if (this.selectionDialogMode) {
+      return false;
+    }
+    var ws = this.getWorksheet();
     this.oSelectionInfo = ws.getSelectionInfo();
     this.lastSendInfoRange = ws.model.selectionRange.clone();
     this.lastSendInfoRangeIsSelectOnShape = ws.getSelectionShape();
+    return true;
   };
   WorkbookView.prototype._onWSSelectionChanged = function(isSaving) {
-    if (this.selectionDialogMode) {
-        return;
+    if (!this._updateSelectionInfo()) {
+      return;
     }
-    this._updateSelectionInfo();
 
     // При редактировании ячейки не нужно пересылать изменения
     if (this.input && !this.getCellEditMode()) {
@@ -1581,8 +1582,6 @@
 
     this.setSelectionDialogMode(c_oAscSelectionDialogType.None);
 
-    this.cellFormulaEnterWSOpen = null;
-
     // Обновляем состояние Undo/Redo
     if (!this.cellEditor.getMenuEditorMode()) {
     	History._sendCanUndoRedo();
@@ -1747,17 +1746,9 @@
       ws = this.getWorksheet();
       // Останавливаем ввод данных в редакторе ввода. Если в режиме ввода формул, то продолжаем работать с cellEditor'ом, чтобы можно было
       // выбирать ячейки для формулы
-      if (this.getCellEditMode()) {
-        if (this.cellEditor && this.cellEditor.formulaIsOperator()) {
-
-          this.lastActiveSheet = this.wsActive;
-          if (!this.cellFormulaEnterWSOpen) {
-          	this.copyActiveSheet = this.wsActive;
-            this.cellFormulaEnterWSOpen = ws;
-          }
-        } else {
-          this._onStopCellEditing();
-        }
+      if (!this._onStopCellEditing2()) {
+          // ToDo
+          debugger;
       }
       // Делаем очистку селекта
       ws.cleanSelection();
@@ -1803,10 +1794,10 @@
 
     this.updateGroupData();
 
-    if (this.cellEditor && this.cellFormulaEnterWSOpen) {
-      if (ws === this.cellFormulaEnterWSOpen) {
+    if (this.cellEditor && this.isFormulaEditMode) {
+      if (this.isActive()) {
         this.cellEditor._showCanvas();
-      } else if (this.getCellEditMode() && this.cellEditor.isFormula()) {
+      } else {
         /*скрываем cellEditor, в редактор добавляем %selected sheet name%+"!" */
         this.cellEditor._hideCanvas();
         ws.cleanSelection();

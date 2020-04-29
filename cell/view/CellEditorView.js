@@ -783,8 +783,7 @@
 			return;
 		}
 
-		var wsOPEN = this.handlers.trigger("getCellFormulaEnterWSOpen");
-		var ws = wsOPEN ? wsOPEN.model : this.handlers.trigger("getActiveWS");
+		var ws = this.handlers.trigger("getActiveWS");
 
 		var bbox = this.options.bbox;
 		this._parseResult = new AscCommonExcel.ParseResult([], []);
@@ -868,8 +867,8 @@
 		}
 
 		/*не нашли диапазонов под курсором, парсим формулу*/
-		var r, offset, _e, _s, wsName = null, ret = false, refStr, isName = false, _sColorPos, wsOPEN = this.handlers.trigger(
-			"getCellFormulaEnterWSOpen"), ws = wsOPEN ? wsOPEN.model : this.handlers.trigger("getActiveWS"), localStrObj;
+		var r, offset, _e, _s, wsName = null, ret = false, refStr, isName = false, _sColorPos, localStrObj;
+		var ws = this.handlers.trigger("getActiveWS");
 
 		var bbox = this.options.bbox;
 		this._parseResult = new AscCommonExcel.ParseResult([], []);
@@ -957,7 +956,7 @@
 				if (ret && t.cursorPos > _s && t.cursorPos <= _s + refStr.length) {
 					range = t._parseRangeStr(refStr);
 					if (range) {
-						if (this.handlers.trigger("getActiveWS") && this.handlers.trigger("getActiveWS").getName() != wsName) {
+						if (ws.getName() !== wsName) {
 							return {index: -1, length: 0, range: null};
 						}
 						range.isName = isName;
@@ -1121,8 +1120,7 @@
 			var isFormula = -1 === this.beginCompositePos && s.charAt(0) === "=";
 			if(isFormula) {
 				var pos = this.cursorPos;
-				var wsOPEN = this.handlers.trigger("getCellFormulaEnterWSOpen");
-				var ws = wsOPEN ? wsOPEN.model : this.handlers.trigger("getActiveWS");
+				var ws = this.handlers.trigger("getActiveWS");
 				var bbox = this.options.bbox;
 
 				var endPos = pos;
@@ -2520,7 +2518,7 @@
 					res.range.switchReference();
 					//_getNameRange - работает только для случая, когда ссылаемся на тот же лист, в противном функция _findRangeUnderCursor возвращает null
 					//если поменяется функция _findRangeUnderCursor для 3d ссылок, тогда необходимо это учитывать и в функции _getNameRange
-					this.enterCellRange(this._getNameRange(res.range));
+					this.enterCellRange(res.range.getName());
 				}
 
 				event.stopPropagation();
@@ -2540,18 +2538,6 @@
 		t.skipKeyPress = false;
 		t.skipTLUpdate = true;
 		return true;
-	};
-
-	CellEditor.prototype._getNameRange = function (range) {
-		//check on merge
-		var currentRange = range.clone();
-		var wsOPEN = this.handlers.trigger("getCellFormulaEnterWSOpen"), ws = wsOPEN ? wsOPEN.model : this.handlers.trigger("getActiveWS");
-		var mergedRange = ws.getMergedByCell(currentRange.r1, currentRange.c1);
-		if (mergedRange && currentRange.isEqual(mergedRange)) {
-			currentRange.r2 = currentRange.r1;
-			currentRange.c2 = currentRange.c1;
-		}
-		return currentRange.getName();
 	};
 
 	/** @param event {KeyboardEvent} */
