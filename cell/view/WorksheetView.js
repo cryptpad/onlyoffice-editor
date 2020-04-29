@@ -14663,12 +14663,6 @@
         }
     };
 
-    WorksheetView.prototype.cleanFormulaRanges = function () {
-        // Очищаем массив ячеек для текущей формулы
-        this.arrActiveFormulaRangesPosition = -1;
-        this.arrActiveFormulaRanges = [];
-    };
-
 	WorksheetView.prototype.addAutoFilter = function (styleName, addFormatTableOptionsObj) {
 		// Проверка глобального лока
 		if (this.collaborativeEditing.getGlobalLock()) {
