@@ -175,9 +175,6 @@
 		this._parseResult = null;
 		this.needFindFirstFunction = null;
 
-		this.wizardRefStart = null;
-		this.wizardRefLength = null;
-
 		// Обработчик кликов
 		this.clickCounter = new AscFormat.ClickCounter();
 
@@ -511,28 +508,16 @@
 		res.range ? this.handlers.trigger("existedRange", res.range, res.wsName) : this.handlers.trigger("newRange");
 	};
 
-	CellEditor.prototype.enterCellRange = function (rangeStr, functionWizard) {
-		var index = null, length = null;
-		if (!functionWizard) {
-			var _res = this._findRangeUnderCursor();
-			if (_res.range) {
-				index = _res.index;
-				length = _res.length;
-			}
-		} else {
-			index = this.wizardRefStart;
-			length = this.wizardRefLength;
-		}
+	CellEditor.prototype.enterCellRange = function (rangeStr) {
+		var res = this._findRangeUnderCursor();
 
-		if (index !== null) {
-			this._moveCursor(kPosition, index);
-			this._selectChars(kPosition, index + length);
-			if (functionWizard) {
-				this.wizardRefLength = rangeStr.length;
-			}
+		if (res.range) {
+			this._moveCursor(kPosition, res.index);
+			this._selectChars(kPosition, res.index + res.length);
 		}
 
 		var lastAction = this.undoList.length > 0 ? this.undoList[this.undoList.length - 1] : null;
+
 		while (lastAction && lastAction.isRange) {
 			this.undoList.pop();
 			lastAction = this.undoList.length > 0 ? this.undoList[this.undoList.length - 1] : null;

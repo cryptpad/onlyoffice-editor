@@ -2387,15 +2387,11 @@
 			}
 
 			this.cellEditor.pasteText(val);
-			this.wizardRefStart = 0;
-			this.wizardRefLength = 0;
 		} else {
 			//в этой функции необходимо запомнить позицию и длину ссылки, если она уже имеется в данном аргументе
 			//если нет, то запоминаем позицию, длина будет 0
 
 			this.cellEditor._moveCursor(-11, parseResult.argPosArr[argNum].start + pos);
-			this.wizardRefStart = parseResult.argPosArr[argNum].start + pos;
-			this.wizardRefLength = 0;
 		}
 	};
 
