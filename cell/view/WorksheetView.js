@@ -9165,7 +9165,7 @@
             // Смена диапазона
             this.handlers.trigger("selectionRangeChanged", this.getSelectionRangeValue());
 		} else if (!this.getCellEditMode()) {
-			if (isChangeSelectionShape || !this.model.selectionRange.isEqual(ar)) {
+			if (isChangeSelectionShape) {
 				this.handlers.trigger("selectionNameChanged", this.getSelectionName(/*bRangeText*/false));
 				if (!isCoord) {
 					this.handlers.trigger("selectionChanged");
