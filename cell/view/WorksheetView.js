@@ -14618,51 +14618,6 @@
         }
     };
 
-    WorksheetView.prototype.addFormulaRange = function (range) {
-        if (this.getSelectionDialogMode()) {
-            return;
-        }
-        var r = this.model.selectionRange.clone();
-        if (range) {
-            r.assign2(range);
-            var lastSelection = r.getLast();
-            lastSelection.cursorePos = range.cursorePos;
-            lastSelection.formulaRangeLength = range.formulaRangeLength;
-            lastSelection.colorRangePos = range.colorRangePos;
-            lastSelection.colorRangeLength = range.colorRangeLength;
-            lastSelection.isName = range.isName;
-        }
-        this.arrActiveFormulaRanges.push(r);
-        this.arrActiveFormulaRangesPosition = this.arrActiveFormulaRanges.length - 1;
-        this._fixSelectionOfMergedCells();
-    };
-
-    WorksheetView.prototype.activeFormulaRange = function (range) {
-        if (this.getSelectionDialogMode()) {
-            return;
-        }
-        this.arrActiveFormulaRangesPosition = -1;
-        for (var i = 0; i < this.arrActiveFormulaRanges.length; ++i) {
-            if (this.arrActiveFormulaRanges[i].getLast().isEqual(range)) {
-                this.arrActiveFormulaRangesPosition = i;
-                return;
-            }
-        }
-    };
-    WorksheetView.prototype.removeFormulaRange = function (range) {
-        if (this.getSelectionDialogMode()) {
-            return;
-        }
-
-        this.arrActiveFormulaRangesPosition = -1;
-        for (var i = 0; i < this.arrActiveFormulaRanges.length; ++i) {
-            if (this.arrActiveFormulaRanges[i].getLast().isEqual(range)) {
-                this.arrActiveFormulaRanges.splice(i, 1);
-                return;
-            }
-        }
-    };
-
 	WorksheetView.prototype.addAutoFilter = function (styleName, addFormatTableOptionsObj) {
 		// Проверка глобального лока
 		if (this.collaborativeEditing.getGlobalLock()) {

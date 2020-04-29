@@ -223,7 +223,6 @@
     this.dialogSheetName = false;
     this.dialogOtherRanges = true;
     this.copyActiveSheet = -1;
-    this.lastActiveSheet = -1;
 
     // Комментарии для всего документа
     this.cellCommentator = null;
@@ -657,13 +656,7 @@
 			          ws._drawSelection();
 				  }
 			  }, "existedRange": function (range, ws) {
-				  var editRangeSheet = ws ? self.model.getWorksheetIndexByName(ws) : self.lastActiveSheet;
-				  if (-1 === editRangeSheet || editRangeSheet === self.wsActive) {
-					  self.getWorksheet().activeFormulaRange(range);
-				  } else {
-					  self.getWorksheet(editRangeSheet).removeFormulaRange(range);
-					  self.getWorksheet().addFormulaRange(range);
-				  }
+				  // ToDo
 			  }, "updateUndoRedoChanged": function (bCanUndo, bCanRedo) {
 				  self.handlers.trigger("asc_onCanUndoChanged", bCanUndo);
 				  self.handlers.trigger("asc_onCanRedoChanged", bCanRedo);
