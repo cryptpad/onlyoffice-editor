@@ -2030,32 +2030,31 @@
 		this.Update = true;
 		this.Lang   = null;
 	}
-	window['Asc']['CAscDateTime'] = window['Asc'].CAscDateTime = CAscDateTime;
-	CAscDateTime.prototype['get_Format'] = CAscDateTime.prototype.get_Format = function()
+	CAscDateTime.prototype.get_Format = function()
 	{
 		return this.Format;
 	};
-	CAscDateTime.prototype['put_Format'] = CAscDateTime.prototype.put_Format = function(v)
+	CAscDateTime.prototype.put_Format = function(v)
 	{
 		this.Format = v;
 	};
-	CAscDateTime.prototype['get_Update']  = CAscDateTime.prototype.get_Update = function()
+	CAscDateTime.prototype.get_Update = function()
 	{
 		return this.Update;
 	};
-	CAscDateTime.prototype['put_Update']  = CAscDateTime.prototype.put_Update = function(v)
+	CAscDateTime.prototype.put_Update = function(v)
 	{
 		this.Update = v;
 	};
-	CAscDateTime.prototype['get_Lang'] = CAscDateTime.prototype.get_Lang = function()
+	CAscDateTime.prototype.get_Lang = function()
 	{
 		return this.Lang;
 	};
-	CAscDateTime.prototype['put_Lang'] = CAscDateTime.prototype.put_Lang = function(v)
+	CAscDateTime.prototype.put_Lang = function(v)
 	{
 		this.Lang = v;
 	};
-	CAscDateTime.prototype['get_FormatsExamples'] = CAscDateTime.prototype.get_FormatsExamples = function()
+	CAscDateTime.prototype.get_FormatsExamples = function()
 	{
 		// TODO: Сдесь форматы для английского языка, надо добавить остальные
 		return [
@@ -2078,7 +2077,7 @@
 			"HH:mm:ss"
 		];
 	};
-	CAscDateTime.prototype["get_String"] = CAscDateTime.prototype.get_String = function(sFormat, sDate, nLangId)
+	CAscDateTime.prototype.get_String = function(sFormat, sDate, nLangId)
 	{
 		if (undefined === sFormat)
 			sFormat = this.Format;
@@ -2099,6 +2098,18 @@
 
 		return sDate;
 	};
+
+	window['Asc']['CAscDateTime'] = window['Asc'].CAscDateTime = CAscDateTime;
+
+	CAscDateTime.prototype['get_Format']          = CAscDateTime.prototype.get_Format;
+	CAscDateTime.prototype['put_Format']          = CAscDateTime.prototype.put_Format;
+	CAscDateTime.prototype['get_Update']          = CAscDateTime.prototype.get_Update;
+	CAscDateTime.prototype['put_Update']          = CAscDateTime.prototype.put_Update;
+	CAscDateTime.prototype['get_Lang']            = CAscDateTime.prototype.get_Lang;
+	CAscDateTime.prototype['put_Lang']            = CAscDateTime.prototype.put_Lang;
+	CAscDateTime.prototype['get_FormatsExamples'] = CAscDateTime.prototype.get_FormatsExamples;
+	CAscDateTime.prototype["get_String"]          = CAscDateTime.prototype.get_String;
+
 
 	window['Asc']['CAscCaptionProperties'] = window['Asc'].CAscCaptionProperties = CAscCaptionProperties;
 	var prot = CAscCaptionProperties.prototype;
