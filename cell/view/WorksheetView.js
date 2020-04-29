@@ -9135,13 +9135,11 @@
 
 		var activeCell = this._getSelection().activeCell.clone();
 
-		if (!this.getFormulaEditMode()) {
-			if (isCtrl) {
-				this.model.selectionRange.addRange();
-			} else {
-				this.model.selectionRange.clean();
-			}
-		}
+        if (isCtrl) {
+            this.model.selectionRange.addRange();
+        } else {
+            this.model.selectionRange.clean();
+        }
 		var ar = this._getSelection().getLast().clone();
 		var ret = {};
 		var isChangeSelectionShape = false;
@@ -9164,10 +9162,8 @@
 		}
 
 		if (this.getSelectionDialogMode()) {
-			if (!this.model.selectionRange.isEqual(ar)) {
-				// Смена диапазона
-				this.handlers.trigger("selectionRangeChanged", this.getSelectionRangeValue());
-			}
+            // Смена диапазона
+            this.handlers.trigger("selectionRangeChanged", this.getSelectionRangeValue());
 		} else if (!this.getCellEditMode()) {
 			if (isChangeSelectionShape || !this.model.selectionRange.isEqual(ar)) {
 				this.handlers.trigger("selectionNameChanged", this.getSelectionName(/*bRangeText*/false));

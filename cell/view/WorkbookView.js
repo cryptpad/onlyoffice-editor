@@ -704,6 +704,12 @@
 		  }, "setAutoFiltersDialog": function (arrVal) {
 			  self.handlers.trigger("asc_onSetAFDialog", arrVal);
 		  }, "selectionRangeChanged": function (val) {
+		      if (self.isFormulaEditMode) {
+                  self.skipHelpSelector = true;
+                  self.cellEditor.setFocus(false);
+		          self.cellEditor.changeCellRange2(val);
+                  self.skipHelpSelector = false;
+              }
 			  self.handlers.trigger("asc_onSelectionRangeChanged", val);
 		  }, "onRenameCellTextEnd": function (countFind, countReplace) {
 			  self.handlers.trigger("asc_onRenameCellTextEnd", countFind, countReplace);
@@ -1067,15 +1073,6 @@
                 t.timerId = null;
                 t.timerEnd = true;
             }, 1000);
-        }
-
-        // ToDo
-        if (this.isFormulaEditMode) {
-            this.lockDraw = true;
-            this.skipHelpSelector = true;
-            this.cellEditor.setFocus(false);
-            this.skipHelpSelector = false;
-            this.lockDraw = false;
         }
 
         asc_applyFunction(callback, d);
