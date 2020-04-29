@@ -513,7 +513,7 @@
 
 	CellEditor.prototype.enterCellRange = function (rangeStr, functionWizard) {
 		var index = null, length = null;
-		if (functionWizard) {
+		if (!functionWizard) {
 			var _res = this._findRangeUnderCursor();
 			if (_res.range) {
 				index = _res.index;
