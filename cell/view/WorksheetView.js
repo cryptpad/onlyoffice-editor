@@ -7619,7 +7619,7 @@
     };
 
     WorksheetView.prototype._hitCursorFormulaOrChart = function (vr, x, y, offsetX, offsetY) {
-        if (!this.oOtherRanges || !this.oOtherRanges.ranges) {
+        if (!this.oOtherRanges) {
               return null;
         }
 
