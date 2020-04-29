@@ -1045,50 +1045,50 @@
     }
   };
 
-  WorkbookView.prototype._onChangeSelection = function (isStartPoint, dc, dr, isCoord, isCtrl, callback) {
-    var ws = this.getWorksheet();
-    if (this.selectionDialogMode && !ws.model.selectionRange) {
-        if (isCoord) {
-            ws.model.selectionRange = new AscCommonExcel.SelectionRange(ws.model);
-        } else {
+    WorkbookView.prototype._onChangeSelection = function (isStartPoint, dc, dr, isCoord, isCtrl, callback) {
+        var ws = this.getWorksheet();
+        if (this.selectionDialogMode && !ws.model.selectionRange) {
+            if (isCoord) {
+                ws.model.selectionRange = new AscCommonExcel.SelectionRange(ws.model);
+            } else {
+                return;
+            }
+        }
+        if (!this._onStopCellEditing2()) {
             return;
         }
-    }
-    if (!this._onStopCellEditing2()) {
-        return;
-    }
 
-    var t = this;
-    var d = isStartPoint ? ws.changeSelectionStartPoint(dc, dr, isCoord, isCtrl) :
-      ws.changeSelectionEndPoint(dc, dr, isCoord, isCoord && this.keepType);
-    if (!isCoord && !isStartPoint) {
-      // Выделение с зажатым shift
-      this.canUpdateAfterShiftUp = true;
-    }
-    this.keepType = isCoord;
-    if (isCoord && !this.timerEnd && this.timerId === null) {
-    	this.timerId = setTimeout(function () {
-    		var arrClose = [];
-    		arrClose.push(new asc_CMM({type: c_oAscMouseMoveType.None}));
-    		t.handlers.trigger("asc_onMouseMove", arrClose);
-    		t._onUpdateCursor(AscCommonExcel.kCurCells);
-    		t.timerId = null;
-    		t.timerEnd = true;
-    		},1000);
-    }
+        var t = this;
+        var d = isStartPoint ? ws.changeSelectionStartPoint(dc, dr, isCoord, isCtrl) :
+            ws.changeSelectionEndPoint(dc, dr, isCoord, isCoord && this.keepType);
+        if (!isCoord && !isStartPoint) {
+            // Выделение с зажатым shift
+            this.canUpdateAfterShiftUp = true;
+        }
+        this.keepType = isCoord;
+        if (isCoord && !this.timerEnd && this.timerId === null) {
+            this.timerId = setTimeout(function () {
+                var arrClose = [];
+                arrClose.push(new asc_CMM({type: c_oAscMouseMoveType.None}));
+                t.handlers.trigger("asc_onMouseMove", arrClose);
+                t._onUpdateCursor(AscCommonExcel.kCurCells);
+                t.timerId = null;
+                t.timerEnd = true;
+            }, 1000);
+        }
 
-    // ToDo
-    if (this.isFormulaEditMode) {
-        this.lockDraw = true;
-        this.skipHelpSelector = true;
-        this.cellEditor.setFocus(false);
-        this.getWorksheet().enterCellRange(this.cellEditor);
-        this.skipHelpSelector = false;
-        this.lockDraw = false;
-    }
+        // ToDo
+        if (this.isFormulaEditMode) {
+            this.lockDraw = true;
+            this.skipHelpSelector = true;
+            this.cellEditor.setFocus(false);
+            this.getWorksheet().enterCellRange(this.cellEditor);
+            this.skipHelpSelector = false;
+            this.lockDraw = false;
+        }
 
-    asc_applyFunction(callback, d);
-  };
+        asc_applyFunction(callback, d);
+    };
 
   // Окончание выделения
   WorkbookView.prototype._onChangeSelectionDone = function(x, y, event) {
