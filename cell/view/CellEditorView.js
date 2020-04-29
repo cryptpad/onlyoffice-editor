@@ -870,9 +870,7 @@
 
 				switch (r.oper.type) {
 					case cElementType.cell          : {
-						if (wsOPEN) {
-							wsName = wsOPEN.model.getName();
-						}
+						wsName = ws.getName();
 						refStr = r.oper.toLocaleString();
 						ret = true;
 						break;
@@ -887,9 +885,7 @@
 						break;
 					}
 					case cElementType.cellsRange    : {
-						if (wsOPEN) {
-							wsName = wsOPEN.model.getName();
-						}
+						wsName = ws.getName();
 						refStr = r.oper.toLocaleString();
 						ret = true;
 						break;
