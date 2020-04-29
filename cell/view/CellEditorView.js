@@ -536,8 +536,6 @@
 	};
 
 	CellEditor.prototype.changeCellText = function (str) {
-		this.lastRangePos = null;
-		this.lastRangeLength = null;
 		this._moveCursor(kPosition, this.lastRangePos);
 		if (this.lastRangeLength) {
 			this._selectChars(kPositionLength, this.lastRangeLength);
