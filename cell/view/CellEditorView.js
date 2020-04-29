@@ -174,6 +174,8 @@
 		this._formula = null;
 		this._parseResult = null;
 		this.needFindFirstFunction = null;
+		this.lastRangePos = null;
+		this.lastRangeLength = null;
 
 		// Обработчик кликов
 		this.clickCounter = new AscFormat.ClickCounter();
@@ -499,8 +501,13 @@
 		if (fR.range !== null && !fR.range.isName) {
 			return true;
 		}*/
+		var res = false;
 		var prevChar = this.textRender.getChars(this.cursorPos - 1, 1);
-		return this.rangeChars.indexOf(prevChar) >= 0 || prevChar === AscCommon.FormulaSeparators.functionArgumentSeparator;
+		if (this.rangeChars.indexOf(prevChar) >= 0 || prevChar === AscCommon.FormulaSeparators.functionArgumentSeparator) {
+			this.lastRangePos = this.cursorPos;
+			res = true;
+		}
+		return res;
 	};
 
 	CellEditor.prototype.enterCellRange = function (rangeStr) {
