@@ -61,6 +61,31 @@ function CEndnotesController(oLogicDocument)
 	this.ContinuationSeparator = null;
 	this.Separator             = null;
 
+	this.Selection = {
+		Use : false,
+
+		Start : {
+			Endnote          : null,
+			Index            : 0,
+			Section          : 0,
+			Page             : 0,
+			Column           : 0,
+			EndnotePageIndex : 0
+		},
+
+		End : {
+			Endnote          : null,
+			Index            : 0,
+			Section          : 0,
+			Page             : 0,
+			Column           : 0,
+			EndnotePageIndex : 0
+		},
+
+		Endnotes  : {},
+		Direction : 0
+	};
+
 	this.CurEndnote = null;
 
 	// Добавляем данный класс в таблицу Id (обязательно в конце конструктора)
@@ -173,11 +198,11 @@ CEndnotesController.prototype.GetEndnotePrPos = function()
 };
 /**
  * Проверяем, используется заданная сноска в документе.
- * @param {string} sFootnoteId
+ * @param {string} sEndnoteId
  * @param {CFootEndnote.array} arrEndnotesList
  * @returns {boolean}
  */
-CEndnotesController.prototype.Is_UseInDocument = function(sFootnoteId, arrEndnotesList)
+CEndnotesController.prototype.Is_UseInDocument = function(sEndnoteId, arrEndnotesList)
 {
 	// TODO: Реализовать
 	return true;
@@ -588,9 +613,99 @@ CEndnotesController.prototype.GetColumnFields = function(nPageAbs, nColumnAbs, n
 };
 CEndnotesController.prototype.StartSelection = function(X, Y, nPageAbs, oMouseEvent)
 {
+	if (true === this.Selection.Use)
+		this.RemoveSelection();
+
+	var oResult = this.private_GetEndnoteByXY(X, Y, nPageAbs);
+	if (null === oResult)
+	{
+		// BAD
+		this.Selection.Use = false;
+		return;
+	}
+
+	this.Selection.Use   = true;
+	this.Selection.Start = oResult;
+	this.Selection.End   = oResult;
+
+	this.Selection.Start.Endnote.Selection_SetStart(X, Y, this.Selection.Start.EndnotePageIndex, oMouseEvent);
+
+	this.CurEndnote = this.Selection.Start.Endnote;
+
+	this.Selection.Endnotes = {};
+	this.Selection.Endnotes[this.Selection.Start.Endnote.GetId()] = this.Selection.Start.Endnote;
+	this.Selection.Direction = 0;
 };
 CEndnotesController.prototype.EndSelection = function(X, Y, nPageAbs, oMouseEvent)
 {
+	if (true === this.IsMovingTableBorder())
+	{
+		this.CurEndnote.Selection_SetEnd(X, Y, nPageAbs, oMouseEvent);
+		return;
+	}
+
+	var oResult = this.private_GetEndnoteByXY(X, Y, nPageAbs);
+	if (null === oResult)
+	{
+		// BAD
+		this.Selection.Use = false;
+		return;
+	}
+
+	this.Selection.End = oResult;
+	this.CurEndnote    = this.Selection.End.Endnote;
+
+	var sStartId = this.Selection.Start.Endnote.GetId();
+	var sEndId   = this.Selection.End.Endnote.GetId();
+
+	// Очищаем старый селект везде кроме начальной сноски
+	for (var sEndnoteId in this.Selection.Endnotes)
+	{
+		if (sEndnoteId !== sStartId)
+			this.Selection.Endnotes[sEndnoteId].RemoveSelection();
+	}
+
+	// Новый селект
+	if (this.Selection.Start.Endnote !== this.Selection.End.Endnote)
+	{
+		if (this.Selection.Start.Page > this.Selection.End.Page
+			|| (this.Selection.Start.Page === this.Selection.End.Page
+				&& (this.Selection.Start.Section > this.Selection.End.Section
+					|| (this.Selection.Start.Section === this.Selection.End.Section
+						&& (this.Selection.Start.Column > this.Selection.End.Column
+							|| (this.Selection.Start.Column === this.Selection.End.Column
+								&& this.Selection.Start.Index > this.Selection.End.Index))))))
+		{
+			this.Selection.Start.Endnote.Selection_SetEnd(-MEASUREMENT_MAX_MM_VALUE, -MEASUREMENT_MAX_MM_VALUE, 0, oMouseEvent);
+			this.Selection.End.Endnote.Selection_SetStart(MEASUREMENT_MAX_MM_VALUE, MEASUREMENT_MAX_MM_VALUE, this.Selection.End.Endnote.Pages.length - 1, oMouseEvent);
+			this.Selection.Direction = -1;
+		}
+		else
+		{
+			this.Selection.Start.Endnote.Selection_SetEnd(MEASUREMENT_MAX_MM_VALUE, MEASUREMENT_MAX_MM_VALUE, this.Selection.Start.Endnote.Pages.length - 1, oMouseEvent);
+			this.Selection.End.Endnote.Selection_SetStart(-MEASUREMENT_MAX_MM_VALUE, -MEASUREMENT_MAX_MM_VALUE, 0, oMouseEvent);
+			this.Selection.Direction = 1;
+		}
+		this.Selection.End.Endnote.Selection_SetEnd(X, Y, this.Selection.End.EndnotePageIndex, oMouseEvent);
+
+		var oRange = this.private_GetEndnotesRange(this.Selection.Start, this.Selection.End);
+		for (var sEndnoteId in oRange)
+		{
+			if (sEndnoteId !== sStartId && sEndnoteId !== sEndId)
+			{
+				var oEndnote = oRange[sEndnoteId];
+				oEndnote.SelectAll();
+			}
+		}
+		this.Selection.Endnotes = oRange;
+	}
+	else
+	{
+		this.Selection.End.Endnote.Selection_SetEnd(X, Y, this.Selection.End.EndnotePageIndex, oMouseEvent);
+		this.Selection.Endnotes = {};
+		this.Selection.Endnotes[this.Selection.Start.Endnote.GetId()] = this.Selection.Start.Endnote;
+		this.Selection.Direction = 0;
+	}
 };
 CEndnotesController.prototype.GetCurEndnote = function()
 {
@@ -678,6 +793,312 @@ CEndnotesController.prototype.private_GetPageColumn = function(nPageAbs, nColumn
 
 	return oColumn;
 };
+CEndnotesController.prototype.private_GetEndnoteOnPageByXY = function(X, Y, nPageAbs)
+{
+	if (true === this.IsEmptyPage(nPageAbs))
+		return null;
+
+	var oPage = this.Pages[nPageAbs];
+	for (var nSectionIndex = oPage.Sections.length; nSectionIndex >= 0; --nSectionIndex)
+	{
+		var oSection = this.Sections[oPage.Sections[nSectionIndex]];
+		if (!oSection)
+			continue;
+
+		var oSectionPage = oSection.Pages[nPageAbs];
+		if (!oSectionPage)
+			continue;
+
+		var oColumn      = null;
+		var nColumnIndex = 0;
+		for (var nColumnsCount = oSectionPage.Columns.length; nColumnIndex < nColumnsCount; ++nColumnIndex)
+		{
+			if (nColumnIndex < nColumnsCount - 1)
+			{
+				if (X < (oSectionPage.Columns[nColumnIndex].XLimit + oSectionPage.Columns[nColumnIndex + 1].X) / 2)
+				{
+					oColumn = oSectionPage.Columns[nColumnIndex];
+					break;
+				}
+			}
+			else
+			{
+				oColumn = oSectionPage.Columns[nColumnIndex];
+				break;
+			}
+		}
+
+		if (!oColumn)
+			continue;
+
+		if (oColumn.Elements.length <= 0)
+		{
+			var nCurColumnIndex = nColumnIndex - 1;
+			while (nCurColumnIndex >= 0)
+			{
+				if (oSectionPage.Columns[nCurColumnIndex].Elements.length > 0)
+				{
+					oColumn      = oSectionPage.Columns[nCurColumnIndex];
+					nColumnIndex = nCurColumnIndex;
+					break;
+				}
+				nCurColumnIndex--;
+			}
+
+			if (nCurColumnIndex < 0)
+			{
+				nCurColumnIndex = nColumnIndex + 1;
+				while (nCurColumnIndex <= oSectionPage.Columns.length - 1)
+				{
+					if (oSectionPage.Columns[nCurColumnIndex].Elements.length > 0)
+					{
+						oColumn      = oSectionPage.Columns[nCurColumnIndex];
+						nColumnIndex = nCurColumnIndex;
+						break;
+					}
+					nCurColumnIndex++;
+				}
+			}
+		}
+
+		if (!oColumn)
+			continue;
+
+		for (var nIndex = oColumn.Elements.length - 1; nIndex >= 0; --nIndex)
+		{
+			var oEndnote = oColumn.Elements[nIndex];
+
+			var nElementPageIndex = oEndnote.GetElementPageIndex(nPageAbs, nColumnIndex);
+			var oBounds           = oEndnote.GetPageBounds(nElementPageIndex);
+
+			if (oBounds.Top <= Y || (0 === nIndex && 0 === nSectionIndex))
+				return {
+					Endnote          : oEndnote,
+					Index            : nIndex,
+					Section          : oPage.Sections[nSectionIndex],
+					Page             : nPageAbs,
+					Column           : nColumnIndex,
+					EndnotePageIndex : nElementPageIndex
+				};
+		}
+	}
+
+	return null;
+};
+CEndnotesController.prototype.private_GetEndnoteByXY = function(X, Y, nPageAbs)
+{
+	var oResult = this.private_GetEndnoteOnPageByXY(X, Y, nPageAbs);
+	if (null !== oResult)
+		return oResult;
+
+	var nCurPage = PageAbs - 1;
+	while (nCurPage >= 0)
+	{
+		oResult = this.private_GetEndnoteOnPageByXY(MEASUREMENT_MAX_MM_VALUE, MEASUREMENT_MAX_MM_VALUE, nCurPage);
+		if (null !== oResult)
+			return oResult;
+
+		nCurPage--;
+	}
+
+	nCurPage = PageAbs + 1;
+	while (nCurPage < this.Pages.length)
+	{
+		oResult = this.private_GetEndnoteOnPageByXY(-MEASUREMENT_MAX_MM_VALUE, -MEASUREMENT_MAX_MM_VALUE, nCurPage);
+		if (null !== oResult)
+			return oResult;
+
+		nCurPage++;
+	}
+
+	return null;
+};
+CEndnotesController.prototype.private_GetEndnotesRange = function(Start, End)
+{
+	var oResult = {};
+
+	if (Start.Page > End.Page || (Start.Page === End.Page && (Start.Section > End.Section || (Start.Section === End.Section && (Start.Column > End.Column || (Start.Column === End.Column && Start.Index > End.Index))))))
+	{
+		var Temp = Start;
+		Start    = End;
+		End      = Temp;
+	}
+
+	if (Start.Page === End.Page)
+	{
+		this.private_GetEndnotesOnPage(Start.Page, Start.Section, Start.Column, Start.Index, End.Section, End.Column, End.Index, oResult);
+	}
+	else
+	{
+		this.private_GetEndnotesOnPage(Start.Page, Start.Section, Start.Column, Start.Index, -1, -1, -1, oResult);
+
+		for (var nCurPage = Start.Page + 1; nCurPage <= End.Page - 1; ++nCurPage)
+		{
+			this.private_GetEndnotesOnPage(nCurPage, -1, -1, -1, -1, -1, -1, oResult);
+		}
+
+		this.private_GetEndnotesOnPage(End.Page, -1, -1, -1, End.Section, End.Column, End.Index, oResult);
+	}
+
+	return oResult;
+};
+CEndnotesController.prototype.private_GetEndnotesOnPage = function(nPageAbs, nSectionStart, nColumnStart, nStartIndex, nSectionEnd, nColumnEnd, nEndIndex, oEndnotes)
+{
+	var _nSectionStart = nSectionStart;
+	var _nSectionEnd   = nSectionEnd;
+
+	if (-1 === nSectionStart || -1 === nSectionEnd)
+	{
+		var oPage = this.Pages[nPageAbs];
+		if (!oPage || oPage.Sections.length <= 0)
+			return;
+
+		if (-1 === nSectionStart)
+			_nSectionStart = oPage.Sections[0];
+
+		if (-1 === nSectionEnd)
+			_nSectionEnd = oPage.Sections[oPage.Sections.length - 1];
+	}
+
+	for (var nSectionIndex = _nSectionStart; nSectionIndex <= _nSectionEnd; ++nSectionIndex)
+	{
+		var oSection = this.Sections[nSectionIndex];
+		if (!oSection)
+			return;
+
+		var oSectionPage = oSection.Pages[nPageAbs];
+		if (!oSectionPage)
+			return;
+
+		var _nColumnStart = -1 === nColumnStart ? 0 : nColumnStart;
+		var _nColumnEnd   = -1 === nColumnEnd ? oSectionPage.Columns.length - 1 : nColumnEnd;
+
+		var _nStartIndex = -1 === nColumnStart || -1 === nStartIndex ? 0 : nStartIndex;
+		var _nEndIndex   = -1 === nColumnEnd || -1 === nEndIndex ? oSectionPage.Columns[_nColumnEnd].Elements.length - 1 : nEndIndex;
+
+		for (var nColIndex = _nColumnStart; nColIndex <= _nColumnEnd; ++nColIndex)
+		{
+			var nSIndex = (nSectionIndex === _nSectionStart && nColIndex === _nColumnStart) ? _nStartIndex : 0;
+			var nEIndex = (nSectionIndex === _nSectionEnd && nColIndex === _nColumnEnd) ? _nEndIndex : oSectionPage.Columns[nColIndex].Elements.length - 1;
+
+			this.private_GetEndnotesOnPageColumn(nPageAbs, nColIndex, _nSectionStart, nSIndex, nEIndex, oEndnotes);
+		}
+	}
+};
+CEndnotesController.prototype.private_GetEndnotesOnPageColumn = function(nPageAbs, nColumnAbs, nSectionAbs, nStartIndex, nEndIndex, oEndnotes)
+{
+	var oColumn = this.private_GetPageColumn(nPageAbs, nColumnAbs, nSectionAbs);
+
+	var _StartIndex = -1 === nStartIndex ? 0 : nStartIndex;
+	var _EndIndex   = -1 === nEndIndex ? oColumn.Elements.length - 1 : nEndIndex;
+
+	for (var nIndex = _StartIndex; nIndex <= _EndIndex; ++nIndex)
+	{
+		var oEndnote = oColumn.Elements[nIndex];
+		oEndnotes[oEndnote.GetId()] = oEndnote;
+	}
+};
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Controller area
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+CEndnotesController.prototype.CanUpdateTarget = function()
+{
+	return true;
+};
+CEndnotesController.prototype.RecalculateCurPos = function(bUpdateX, bUpdateY)
+{
+	if (this.CurEndnote)
+		return this.CurEndnote.RecalculateCurPos(bUpdateX, bUpdateY);
+
+	return {X : 0, Y : 0, Height : 0, PageNum : 0, Internal : {Line : 0, Page : 0, Range : 0}, Transform : null};
+};
+CEndnotesController.prototype.GetCurPage = function()
+{
+	if (this.CurEndnote)
+		return this.CurEndnote.Get_StartPage_Absolute();
+
+	return -1;
+};
+
+
+CEndnotesController.prototype.RemoveSelection = function(bNoCheckDrawing)
+{
+	if (true === this.Selection.Use)
+	{
+		for (var sId in this.Selection.Endnotes)
+		{
+			this.Selection.Endnotes[sId].RemoveSelection(bNoCheckDrawing);
+		}
+
+		this.Selection.Use = false;
+	}
+
+	this.Selection.Endnotes = {};
+	if (this.CurEndnote)
+		this.Selection.Endnotes[this.CurEndnote.GetId()] = this.CurEndnote;
+};
+CEndnotesController.prototype.IsSelectionEmpty = function(bCheckHidden)
+{
+	if (true !== this.IsSelectionUse())
+		return true;
+
+	var oEndnote = null;
+	for (var sId in this.Selection.Endnotes)
+	{
+		if (null === oEndnote)
+			oEndnote = this.Selection.Endnotes[sId];
+		else if (oEndnote !== this.Selection.Endnotes[sId])
+			return false;
+	}
+
+	if (null === oEndnote)
+		return true;
+
+	return oEndnote.IsSelectionEmpty(bCheckHidden);
+};
+
+CEndnotesController.prototype.IsSelectionUse = function()
+{
+	return this.Selection.Use;
+};
+
+CEndnotesController.prototype.DrawSelectionOnPage = function(nPageAbs)
+{
+	if (true !== this.Selection.Use || true === this.IsEmptyPage(nPageAbs))
+		return;
+
+	var oPage = this.Pages[nPageAbs];
+	if (!oPage)
+		return;
+
+
+	for (var nSectionIndex = 0, nSectionsCount = oPage.Sections.length; nSectionIndex < nSectionsCount; ++nSectionIndex)
+	{
+		var oSection = this.Sections[oPage.Sections[nSectionIndex]];
+		if (!oSection)
+			continue;
+
+		var oSectionPage = oSection.Pages[nPageAbs];
+		if (!oSectionPage)
+			continue;
+
+		for (var nColumnIndex = 0, nColumnsCount = oSectionPage.Columns.length; nColumnIndex < nColumnsCount; ++nColumnIndex)
+		{
+			var oColumn = oSectionPage.Columns[nColumnIndex];
+			for (var nIndex = 0, nCount = oColumn.Elements.length; nIndex < nCount; ++nIndex)
+			{
+				var oEndnote = oColumn.Elements[nIndex];
+				if (oEndnote === this.Selection.Endnotes[oEndnote.GetId()])
+				{
+					var nEndnotePageIndex = oEndnote.GetElementPageIndex(nPageAbs, nColumnIndex);
+					oEndnote.DrawSelectionOnPage(nEndnotePageIndex);
+				}
+			}
+		}
+	}
+};
+CEndnotesController.prototype.UpdateSelectionState = CFootnotesController.prototype.UpdateSelectionState;
+
 /**
  * Класс регистрирующий концевые сноски на странице
  * и номера секций, сноски которых были пересчитаны на данной странице
