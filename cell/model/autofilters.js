@@ -5487,7 +5487,8 @@
 		prot["asc_getMonth"]					= prot.asc_getMonth;
 		prot["asc_getDay"]						= prot.asc_getDay;
 		prot["asc_getRepeats"]					= prot.asc_getRepeats;
-		
+		prot["asc_getVal"]						= prot.asc_getVal;
+
 		window["AscCommonExcel"].AddFormatTableOptions = AddFormatTableOptions;
 		prot									= AddFormatTableOptions.prototype;
 		prot["asc_getRange"]					= prot.asc_getRange;
