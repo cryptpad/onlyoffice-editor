@@ -503,13 +503,6 @@
 		return this.rangeChars.indexOf(prevChar) >= 0 || prevChar === AscCommon.FormulaSeparators.functionArgumentSeparator;
 	};
 
-	CellEditor.prototype.activateCellRange = function () {
-		var res = this._findRangeUnderCursor();
-
-		// ToDo ?
-		res.range ? this.handlers.trigger("existedRange", res.range, res.wsName) : this.handlers.trigger("newRange");
-	};
-
 	CellEditor.prototype.enterCellRange = function (rangeStr) {
 		var res = this._findRangeUnderCursor();
 

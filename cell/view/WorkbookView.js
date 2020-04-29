@@ -655,8 +655,6 @@
 			          ws.oOtherRanges = ranges;
 			          ws._drawSelection();
 				  }
-			  }, "existedRange": function (range, ws) {
-				  // ToDo
 			  }, "updateUndoRedoChanged": function (bCanUndo, bCanRedo) {
 				  self.handlers.trigger("asc_onCanUndoChanged", bCanUndo);
 				  self.handlers.trigger("asc_onCanRedoChanged", bCanRedo);
@@ -1039,6 +1037,10 @@
   };
 
     WorkbookView.prototype._onChangeSelection = function (isStartPoint, dc, dr, isCoord, isCtrl, callback) {
+        if (!this._onStopCellEditing2()) {
+            return;
+        }
+
         var ws = this.getWorksheet();
         if (this.selectionDialogMode && !ws.model.selectionRange) {
             if (isCoord) {
@@ -1046,9 +1048,6 @@
             } else {
                 return;
             }
-        }
-        if (!this._onStopCellEditing2()) {
-            return;
         }
 
         var t = this;
@@ -1546,7 +1545,6 @@
           if (this.isFormulaEditMode) {
               this.cellEditor.setFocus(false);
               if (this.cellEditor.canEnterCellRange()) {
-                  this.cellEditor.activateCellRange();
                   return true;
               }
           }
