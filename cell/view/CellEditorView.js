@@ -159,7 +159,7 @@
 		this.sAutoComplete = null;
 
 		/** @type RegExp */
-		this.rangeChars = ["=", "-", "+", "*", "/", "(", "{", "<", ">", "^", "!", "&", ":", " "];
+		this.rangeChars = ["=", "-", "+", "*", "/", "(", "{", "<", ">", "^", "!", "&", ":", " ", "."];
 		this.reNotFormula = new XRegExp( "[^\\p{L}\\\\_\\]\\[\\p{N}\\.]", "i" );
 		this.reFormula = new XRegExp( "^([\\p{L}\\\\_\\]\\[][\\p{L}\\\\_\\]\\[\\p{N}\\.]*)", "i" );
 
@@ -500,7 +500,7 @@
 			return true;
 		}*/
 		var prevChar = this.textRender.getChars(this.cursorPos - 1, 1);
-		return this.rangeChars.indexOf(prevChar) >= 0 || prevChar === AscCommon.FormulaSeparators.functionArgumentSeparator || prevChar === AscCommon.FormulaSeparators.digitSeparator;
+		return this.rangeChars.indexOf(prevChar) >= 0 || prevChar === AscCommon.FormulaSeparators.functionArgumentSeparator;
 	};
 
 	CellEditor.prototype.activateCellRange = function () {
