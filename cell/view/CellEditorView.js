@@ -497,10 +497,6 @@
 	};
 
 	CellEditor.prototype.canEnterCellRange = function () {
-		/*var fR = this._findRangeUnderCursor();
-		if (fR.range !== null && !fR.range.isName) {
-			return true;
-		}*/
 		var res = false;
 		var prevChar = this.textRender.getChars(this.cursorPos - 1, 1);
 		if (this.rangeChars.indexOf(prevChar) >= 0 || prevChar === AscCommon.FormulaSeparators.functionArgumentSeparator) {
@@ -660,13 +656,6 @@
 	CellEditor.prototype.isFormula = function () {
 		var fragments = this.options.fragments;
 		return fragments && fragments.length > 0 && fragments[0].text.length > 0 && fragments[0].text.charAt( 0 ) === "=";
-	};
-
-	CellEditor.prototype.formulaIsOperator = function () {
-		var elem;
-		return this.isFormula() &&
-			(null !== (elem = this._parseResult.getElementByPos(this.cursorPos - 1)) && elem.type === cElementType.operator ||
-			null === elem || this._parseResult.operand_expected);
 	};
 
 	CellEditor.prototype.insertFormula = function ( functionName, isDefName ) {
@@ -2497,8 +2486,7 @@
 				var res = this._findRangeUnderCursor();
 				if (res.range) {
 					res.range.switchReference();
-					//_getNameRange - работает только для случая, когда ссылаемся на тот же лист, в противном функция _findRangeUnderCursor возвращает null
-					//если поменяется функция _findRangeUnderCursor для 3d ссылок, тогда необходимо это учитывать и в функции _getNameRange
+					// ToDo add change ref to other sheet
 					this.enterCellRange(res.range.getName());
 				}
 
