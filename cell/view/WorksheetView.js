@@ -10080,7 +10080,6 @@
         return d;
     };
 
-
     WorksheetView.prototype.changeChartSelectionMoveResizeRangeHandle = function(x, y, targetInfo) {
         // Колонка по X и строка по Y
         var colByX = this._findColUnderCursor(x, /*canReturnNull*/false, false).col;
@@ -10414,15 +10413,9 @@
             d.row = 0;
         }
 
-        // ToDo
-        ar = ar.clone(true);
-        this.oOtherRanges.ranges[index].assign2(ar);
-
+        ar = this.oOtherRanges.ranges[index].assign2(ar.clone(true));
         this._drawSelection();
-
-        if (ar) {
-            editor.changeCellRange(ar);
-        }
+        editor.changeCellRange(ar);
 
         return d;
     };
