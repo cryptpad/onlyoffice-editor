@@ -1570,8 +1570,6 @@
       }
     }
 
-    this.setSelectionDialogMode(c_oAscSelectionDialogType.None);
-
     // Обновляем состояние Undo/Redo
     if (!this.cellEditor.getMenuEditorMode()) {
     	History._sendCanUndoRedo();
