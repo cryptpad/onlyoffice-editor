@@ -159,7 +159,7 @@
 		this.sAutoComplete = null;
 
 		/** @type RegExp */
-		this.rangeChars = ["=", "-", "+", "*", "/", "(", "{", ",", "<", ">", "^", "!", "&", ":", ";", " "];
+		this.rangeChars = ["=", "-", "+", "*", "/", "(", "{", "<", ">", "^", "!", "&", ":", " "];
 		this.reNotFormula = new XRegExp( "[^\\p{L}\\\\_\\]\\[\\p{N}\\.]", "i" );
 		this.reFormula = new XRegExp( "^([\\p{L}\\\\_\\]\\[][\\p{L}\\\\_\\]\\[\\p{N}\\.]*)", "i" );
 
@@ -495,10 +495,12 @@
 	};
 
 	CellEditor.prototype.canEnterCellRange = function () {
-		var fR = this._findRangeUnderCursor();
-		var isRange = (fR.range !== null && !fR.range.isName);
+		/*var fR = this._findRangeUnderCursor();
+		if (fR.range !== null && !fR.range.isName) {
+			return true;
+		}*/
 		var prevChar = this.textRender.getChars(this.cursorPos - 1, 1);
-		return isRange || this.rangeChars.indexOf(prevChar) >= 0;
+		return this.rangeChars.indexOf(prevChar) >= 0 || prevChar === AscCommon.FormulaSeparators.functionArgumentSeparator || prevChar === AscCommon.FormulaSeparators.digitSeparator;
 	};
 
 	CellEditor.prototype.activateCellRange = function () {
