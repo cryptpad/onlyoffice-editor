@@ -535,7 +535,7 @@
 		t._moveCursor(kEndOfText);
 	};
 
-	CellEditor.prototype.changeCellRange2 = function (str) {
+	CellEditor.prototype.changeCellText = function (str) {
 		this.lastRangePos = null;
 		this.lastRangeLength = null;
 		this._moveCursor(kPosition, this.lastRangePos);

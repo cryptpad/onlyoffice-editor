@@ -707,7 +707,7 @@
 		      if (self.isFormulaEditMode) {
                   self.skipHelpSelector = true;
                   self.cellEditor.setFocus(false);
-		          self.cellEditor.changeCellRange2(val);
+		          self.cellEditor.changeCellText(val);
                   self.skipHelpSelector = false;
               }
 			  self.handlers.trigger("asc_onSelectionRangeChanged", val);
