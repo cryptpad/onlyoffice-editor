@@ -10416,7 +10416,7 @@
 
         // ToDo
         ar = ar.clone(true);
-        this.arrActiveFormulaRanges.ranges[index].assign2(ar);
+        this.oOtherRanges.ranges[index].assign2(ar);
 
         this._drawSelection();
 
