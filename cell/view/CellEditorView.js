@@ -499,6 +499,7 @@
 	CellEditor.prototype.canEnterCellRange = function () {
 		var res = false;
 		var prevChar = this.textRender.getChars(this.cursorPos - 1, 1);
+		this.cleanLastRangeInfo();
 		if (this.rangeChars.indexOf(prevChar) >= 0 || prevChar === AscCommon.FormulaSeparators.functionArgumentSeparator) {
 			this.lastRangePos = this.cursorPos;
 			res = true;
@@ -2797,6 +2798,10 @@
 	};
 	CellEditor.prototype.getMenuEditorMode = function () {
 		return this.menuEditor;
+	};
+	CellEditor.prototype.cleanLastRangeInfo = function () {
+		this.lastRangeLength = null;
+		this.lastRangePos = null;
 	};
 
 
