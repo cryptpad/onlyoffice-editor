@@ -512,9 +512,44 @@ function (window, undefined) {
 			return new cError(cErrorType.wrong_value_type);
 		}
 
+		var generateArray = function (_from, row, col) {
+			var ret = null;
+			var _colCount = _from.getCountElementInRow();
+			var _rowCount = _from.rowCount;
+			var i;
+			if (undefined !== row) {
+				if (_rowCount < row) {
+					return null;
+				}
+				ret = new cArray();
+				for (var i = 0; i < _colCount; i++) {
+					ret.addElement(_from.array[row][i])
+				}
+			} else if (undefined !== col) {
+				if (_colCount < col) {
+					return null;
+				}
+
+				ret = new cArray();
+				for (var i = 0; i < _rowCount; i++) {
+					ret.addElement(_from.array[i][col])
+				}
+			}
+			return ret;
+		};
+
 		AscCommonExcel.executeInR1C1Mode(false, function () {
 			if (cElementType.array === arg0.type) {
-				if(undefined === arg[2] && 1 === arg0.rowCount) {//если последний аргумент опущен, и выделенa 1 строка
+				if ((!arg[1] || arg1 === 0) && (!arg[2] || arg2 === 0)) {
+					//возвращаем массив
+					res = arg0;
+				} else if (!arg[2] || arg2 === 0) {
+					//возращаем массив из arg1 строки
+					res = generateArray(arg0, arg1);
+				} else if (!arg[1] || arg1 === 0) {
+					//возращаем массив из arg2 столбца
+					res = generateArray(arg0, null, arg2);
+				} else if(undefined === arg[2] && 1 === arg0.rowCount) {//если последний аргумент опущен, и выделенa 1 строка
 					res = arg0.getValue2(0, (0 === arg1) ? 0 : arg1 - 1);
 				} else if(undefined === arg[2] && 1 === arg0.getCountElementInRow()) {//если последний аргумент опущен, и выделен 1 столбец
 					res = arg0.getValue2((0 === arg1) ? 0 : arg1 - 1, 0);
