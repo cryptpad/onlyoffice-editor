@@ -1406,8 +1406,7 @@
     };
 
     WorksheetView.prototype._getSelection = function () {
-        return (this.getFormulaEditMode() && !this.getSelectionDialogMode()) ?
-            this.arrActiveFormulaRanges[this.arrActiveFormulaRangesPosition] : this.model.selectionRange;
+        return this.model.selectionRange;
     };
 
     WorksheetView.prototype._fixVisibleRange = function ( range ) {
@@ -14583,39 +14582,6 @@
             this.isChartAreaEditMode = false;
         }
         this.oOtherRanges = null;
-    };
-
-    WorksheetView.prototype.enterCellRange = function (editor) {
-        if (this.getSelectionDialogMode()) {
-            return;
-        }
-
-        var currentFormula = this.arrActiveFormulaRanges.ranges[this.arrActiveFormulaRangesPosition];
-        var currentRange = currentFormula.getLast().clone();
-        var activeCellId = currentFormula.activeCellId;
-        var activeCell = currentFormula.activeCell.clone();
-        // Замерженную ячейку должны отдать только левую верхнюю.
-        var mergedRange = this.model.getMergedByCell(currentRange.r1, currentRange.c1);
-        if (mergedRange && currentRange.isEqual(mergedRange)) {
-            currentRange.r2 = currentRange.r1;
-            currentRange.c2 = currentRange.c1;
-        }
-
-        var sheetName = "";
-        if (editor.formulaIsOperator() && !this.handlers.trigger('isActive')) {
-            sheetName = parserHelp.getEscapeSheetName(this.model.getName()) + "!";
-        }
-        editor.enterCellRange(/*defName || */sheetName + currentRange.getName());
-
-        for (var tmpRange, i = 0; i < this.arrActiveFormulaRanges.length; ++i) {
-            tmpRange = this.arrActiveFormulaRanges[i];
-            if (tmpRange.getLast().isEqual(currentRange)) {
-                tmpRange.activeCellId = activeCellId;
-                tmpRange.activeCell.col = activeCell.col;
-                tmpRange.activeCell.row = activeCell.row;
-                break;
-            }
-        }
     };
 
 	WorksheetView.prototype.addAutoFilter = function (styleName, addFormatTableOptionsObj) {

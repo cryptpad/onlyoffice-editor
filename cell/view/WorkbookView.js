@@ -1075,7 +1075,6 @@
             this.lockDraw = true;
             this.skipHelpSelector = true;
             this.cellEditor.setFocus(false);
-            this.getWorksheet().enterCellRange(this.cellEditor);
             this.skipHelpSelector = false;
             this.lockDraw = false;
         }

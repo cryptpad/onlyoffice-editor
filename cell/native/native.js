@@ -3509,7 +3509,6 @@ function OfflineEditor () {
             var isMoveActiveCellToLeftTop = false;
             
             var selection = this._getSelection();
-            var lastRange = selection.getLast();
             
             var col = selection.activeCell.col;
             var row = selection.activeCell.row;
