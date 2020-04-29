@@ -5375,6 +5375,7 @@ BinaryChartWriter.prototype.WriteAlternateContentFallback = function (oVal) {
 function BinaryChartReader(stream) {
     this.stream = stream;
     this.bcr = new AscCommon.Binary_CommonReader(this.stream);
+    this.drawingDocument = null;
 }
 BinaryChartReader.prototype.ReadCT_extLst = function (type, length, val) {
     var res = c_oSerConstants.ReadOk;
@@ -5396,6 +5397,17 @@ BinaryChartReader.prototype.ReadCT_extLst = function (type, length, val) {
 BinaryChartReader.prototype.ExternalReadCT_ChartSpace = function (length, val, curWorksheet) {
     var res = c_oSerConstants.ReadOk;
     this.curWorksheet = curWorksheet;
+    this.drawingDocument = null;
+    if(this.curWorksheet) {
+        if(this.curWorksheet.getDrawingDocument) {
+            this.drawingDocument = this.curWorksheet.getDrawingDocument();
+        }
+        else {
+            if(this.curWorksheet.DrawingDocument) {
+                this.drawingDocument = this.curWorksheet.DrawingDocument;
+            }
+        }
+    }
     var oThis = this;
     this.curChart = val;
     res = this.bcr.Read1(length, function (t, l) {
@@ -5569,7 +5581,7 @@ BinaryChartReader.prototype.ReadClrOverride = function(lenght)
 
 BinaryChartReader.prototype.ReadTxPr = function (length) {
     var cur = this.stream.cur;
-    var ret = AscCommon.pptx_content_loader.ReadTextBody(null, this.stream, null, this.curWorksheet, this.curWorksheet.getDrawingDocument());
+    var ret = AscCommon.pptx_content_loader.ReadTextBody(null, this.stream, null, this.curWorksheet, this.drawingDocument);
     this.stream.cur = cur + length;
     return ret;
 }
@@ -5855,7 +5867,7 @@ BinaryChartReader.prototype.ReadCT_userShape = function(type, length, poResult)
     }
     else if(Asc.c_oSer_DrawingType.pptxDrawing == type)
     {
-        var oGraphicObject = AscCommon.pptx_content_loader.ReadGraphicObject(this.stream, this.curWorksheet, this.curWorksheet.getDrawingDocument());
+        var oGraphicObject = AscCommon.pptx_content_loader.ReadGraphicObject(this.stream, this.curWorksheet, this.drawingDocument);
         poResult.setObject(oGraphicObject);
         // oGraphicObject.createTextBody();
         // oGraphicObject.txBody.content.AddText("Test user Shapes");
