@@ -678,7 +678,7 @@
 			  }, "getSelectionDialogMode": function () {
 			      return self.selectionDialogMode;
               }, "getActiveWS": function () {
-			      return self.model.getWorksheetById(-1 === self.copyActiveSheet ? self.wsActive : self.copyActiveSheet);
+			      return self.model.getWorksheet(-1 === self.copyActiveSheet ? self.wsActive : self.copyActiveSheet);
 			  }, "setStrictClose": function (val) {
 				  self.controller.setStrictClose(val);
 			  }, "updateEditorSelectionInfo": function (info) {
