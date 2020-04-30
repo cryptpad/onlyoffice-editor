@@ -3696,9 +3696,7 @@ CDocument.prototype.Recalculate_PageColumn                   = function()
 		var nEndnoteRecalcResult = this.Endnotes.Recalculate(X, Y, XLimit, YLimit, PageIndex, ColumnIndex, ColumnsCount, SectPr, this.SectionsInfo.Find(SectPr), StartIndex >= Count);
 		if (recalcresult2_End === nEndnoteRecalcResult)
 		{
-			PageColumn.EndPos  = -1;
-			PageSection.EndPos = -1;
-			Page.EndPos        = -1;
+			PageColumn.EndPos = -1;
 
 			// Сноски закончились на данной странице
 			Y = this.Endnotes.GetPageBounds(PageIndex, ColumnIndex, this.SectionsInfo.Find(SectPr)).Bottom;
@@ -3712,9 +3710,7 @@ CDocument.prototype.Recalculate_PageColumn                   = function()
 		}
 		else
 		{
-			PageColumn.EndPos  = StartIndex - 1;
-			PageSection.EndPos = StartIndex - 1;
-			Page.EndPos        = StartIndex - 1;
+			PageColumn.EndPos = StartIndex - 1;
 
 			if (true === PageSection.IsCalculatingSectionBottomLine() && ColumnIndex >= ColumnsCount - 1)
 			{
@@ -7468,7 +7464,7 @@ CDocument.prototype.Internal_GetContentPosByXY = function(X, Y, nCurPage, Column
     }
 
     // TODO: Разобраться с ситуацией, когда пустые колонки стоят не только в конце
-    while (ColumnIndex > 0 && true === PageSection.Columns[ColumnIndex].Empty)
+    while (ColumnIndex > 0 && (true === PageSection.Columns[ColumnIndex].Empty || PageSection.Columns[ColumnIndex].EndPos < PageSection.Columns[ColumnIndex].Pos))
         ColumnIndex--;
 
     ColumnsInfo.Column       = ColumnIndex;
