@@ -501,6 +501,20 @@ function (window, undefined) {
 			return new cError(cErrorType.wrong_value_type);
 		}
 
+		//TODO в дальнейшем необходимо продумать преобразования аргументов на основе argumentsType!!!
+		if (cElementType.array === arg1.type) {
+			arg1 = arg1.getElementRowCol(0,0);
+			if (cElementType.error === arg1.type) {
+				return new cError(cErrorType.wrong_value_type);
+			}
+		}
+		if (cElementType.array === arg2.type) {
+			arg2 = arg1.getElementRowCol(0,0);
+			if (cElementType.error === arg2.type) {
+				return new cError(cErrorType.wrong_value_type);
+			}
+		}
+
 		if(arg[3] && cElementType.empty !== arg[3].type && arg3 > 1) {
 			return new cError(cErrorType.bad_reference);
 		}
@@ -522,8 +536,8 @@ function (window, undefined) {
 					return null;
 				}
 				ret = new cArray();
-				for (var i = 0; i < _colCount; i++) {
-					ret.addElement(_from.array[row][i])
+				for (i = 0; i < _colCount; i++) {
+					ret.addElement(_from.array[row - 1][i])
 				}
 			} else if (undefined !== col) {
 				if (_colCount < col) {
@@ -531,8 +545,9 @@ function (window, undefined) {
 				}
 
 				ret = new cArray();
-				for (var i = 0; i < _rowCount; i++) {
-					ret.addElement(_from.array[i][col])
+				for (i = 0; i < _rowCount; i++) {
+					ret.addRow();
+					ret.addElement(_from.array[i][col - 1])
 				}
 			}
 			return ret;
@@ -548,7 +563,7 @@ function (window, undefined) {
 					res = generateArray(arg0, arg1);
 				} else if (!arg[1] || arg1 === 0) {
 					//возращаем массив из arg2 столбца
-					res = generateArray(arg0, null, arg2);
+					res = generateArray(arg0, undefined, arg2);
 				} else if(undefined === arg[2] && 1 === arg0.rowCount) {//если последний аргумент опущен, и выделенa 1 строка
 					res = arg0.getValue2(0, (0 === arg1) ? 0 : arg1 - 1);
 				} else if(undefined === arg[2] && 1 === arg0.getCountElementInRow()) {//если последний аргумент опущен, и выделен 1 столбец
