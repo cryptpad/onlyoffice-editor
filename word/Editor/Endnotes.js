@@ -2992,19 +2992,30 @@ CEndnotesController.prototype.IsSelectionLocked = function(CheckType)
 CEndnotesController.prototype.GetAllTablesOnPage = function(nPageAbs, arrTables)
 {
 	var oPage = this.Pages[nPageAbs];
-	if (!oPage)
+	if (!oPage || oPage.Sections.length <= 0)
 		return arrTables;
 
-	var nColumnsCount = oPage.Columns.length;
-	for (var nColumnIndex = 0; nColumnIndex < nColumnsCount; ++nColumnIndex)
+	for (var nSectionIndex = 0, nSectionsCount = oPage.Sections.length; nSectionIndex < nSectionsCount; ++nSectionIndex)
 	{
-		var oColumn = oPage.Columns[nColumnIndex];
-		if (!oColumn || oColumn.Elements.length <= 0)
+		var oSection = this.Sections[oPage.Sections[nSectionIndex]];
+		if (!oSection)
 			continue;
 
-		for (var nIndex = 0, nCount = oColumn.Elements.length; nIndex < nCount; ++nIndex)
+		var oSectionPage = oSection.Pages[nPageAbs];
+		if (!oSectionPage)
+			continue;
+
+		var nColumnsCount = oSectionPage.Columns.length;
+		for (var nColumnIndex = 0; nColumnIndex < nColumnsCount; ++nColumnIndex)
 		{
-			oColumn.Elements[nIndex].GetAllTablesOnPage(nPageAbs, arrTables);
+			var oColumn = oSectionPage.Columns[nColumnIndex];
+			if (!oColumn || oColumn.Elements.length <= 0)
+				continue;
+
+			for (var nIndex = 0, nCount = oColumn.Elements.length; nIndex < nCount; ++nIndex)
+			{
+				oColumn.Elements[nIndex].GetAllTablesOnPage(nPageAbs, arrTables);
+			}
 		}
 	}
 
