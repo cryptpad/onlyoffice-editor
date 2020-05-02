@@ -10800,7 +10800,7 @@ ParaRun.prototype.GetFootnotesList = function(oEngine)
 	for (var nIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex)
 	{
 		var oItem = this.Content[nIndex];
-		if (para_FootnoteReference === oItem.Type)
+		if ((oEngine.IsCheckFootnotes() && para_FootnoteReference === oItem.Type) || (!oEngine.IsCheckFootnotes() && para_EndnoteReference === oItem.Type))
 		{
 			oEngine.Add(oItem.GetFootnote(), oItem, this);
 		}

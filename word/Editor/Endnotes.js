@@ -265,6 +265,29 @@ CEndnotesController.prototype.GetPageBounds = function(nPageAbs, nColumnAbs, nSe
 
 	return new CDocumentBounds(oColumn.X, oColumn.Y, oColumn.XLimit, oColumn.Y + oColumn.Height);
 };
+CEndnotesController.prototype.Refresh_RecalcData = function(Data)
+{
+};
+CEndnotesController.prototype.Refresh_RecalcData2 = function(nRelPageIndex)
+{
+	var nAbsPageIndex = nRelPageIndex;
+	if (this.LogicDocument.Pages[nAbsPageIndex])
+	{
+		var nIndex = this.LogicDocument.Pages[nAbsPageIndex].Pos;
+
+		if (nIndex >= this.LogicDocument.Content.length)
+		{
+			History.RecalcData_Add({
+				Type    : AscDFH.historyitem_recalctype_NotesEnd,
+				PageNum : nAbsPageIndex
+			});
+		}
+		else
+		{
+			this.LogicDocument.Refresh_RecalcData2(nIndex, nAbsPageIndex);
+		}
+	}
+};
 CEndnotesController.prototype.Get_PageContentStartPos = function(nPageAbs, nColumnAbs, nSectionAbs)
 {
 	var oColumn = this.private_GetPageColumn(nPageAbs, nColumnAbs, nSectionAbs);
@@ -602,14 +625,6 @@ CEndnotesController.prototype.Draw = function(nPageAbs, nSectionIndex, oGraphics
 			oEndnote.Draw(nEndnotePageIndex + oEndnote.StartPage, oGraphics);
 		}
 	}
-};
-CEndnotesController.prototype.GetColumnFields = function(nPageAbs, nColumnAbs, nSectionIndex)
-{
-	var oColumn = this.private_GetPageColumn(nPageAbs, nColumnAbs, nSectionIndex);
-	if (!oColumn)
-		return {X : 0, XLimit : 297};
-
-	return {X : oColumn.X, XLimit : oColumn.XLimit};
 };
 CEndnotesController.prototype.StartSelection = function(X, Y, nPageAbs, oMouseEvent)
 {
@@ -970,8 +985,8 @@ CEndnotesController.prototype.private_GetEndnotesOnPage = function(nPageAbs, nSe
 		if (!oSectionPage)
 			return;
 
-		var _nColumnStart = -1 === nColumnStart ? 0 : nColumnStart;
-		var _nColumnEnd   = -1 === nColumnEnd ? oSectionPage.Columns.length - 1 : nColumnEnd;
+		var _nColumnStart = -1 === nColumnStart || nSectionIndex !== _nSectionStart ? 0 : nColumnStart;
+		var _nColumnEnd   = -1 === nColumnEnd || nSectionIndex !== _nSectionEnd ? oSectionPage.Columns.length - 1 : nColumnEnd;
 
 		var _nStartIndex = -1 === nColumnStart || -1 === nStartIndex ? 0 : nStartIndex;
 		var _nEndIndex   = -1 === nColumnEnd || -1 === nEndIndex ? oSectionPage.Columns[_nColumnEnd].Elements.length - 1 : nEndIndex;
@@ -981,7 +996,7 @@ CEndnotesController.prototype.private_GetEndnotesOnPage = function(nPageAbs, nSe
 			var nSIndex = (nSectionIndex === _nSectionStart && nColIndex === _nColumnStart) ? _nStartIndex : 0;
 			var nEIndex = (nSectionIndex === _nSectionEnd && nColIndex === _nColumnEnd) ? _nEndIndex : oSectionPage.Columns[nColIndex].Elements.length - 1;
 
-			this.private_GetEndnotesOnPageColumn(nPageAbs, nColIndex, _nSectionStart, nSIndex, nEIndex, oEndnotes);
+			this.private_GetEndnotesOnPageColumn(nPageAbs, nColIndex, nSectionIndex, nSIndex, nEIndex, oEndnotes);
 		}
 	}
 };
@@ -997,6 +1012,89 @@ CEndnotesController.prototype.private_GetEndnotesOnPageColumn = function(nPageAb
 		var oEndnote = oColumn.Elements[nIndex];
 		oEndnotes[oEndnote.GetId()] = oEndnote;
 	}
+};
+CEndnotesController.prototype.private_OnNotValidActionForEndnotes = function()
+{
+	// Пока ничего не делаем, если надо будет выдавать сообщение, то обработать нужно будет здесь
+};
+CEndnotesController.prototype.private_IsOneEndnoteSelected = function()
+{
+	return (0 === this.Selection.Direction);
+};
+CEndnotesController.prototype.private_CheckEndnotesSelectionBeforeAction = function()
+{
+	if (true !== this.private_IsOneEndnoteSelected() || null === this.CurEndnote)
+	{
+		this.private_OnNotValidActionForEndnotes();
+		return false;
+	}
+
+	return true;
+};
+CEndnotesController.prototype.private_SetCurrentEndnoteNoSelection = function(oEndnote)
+{
+	this.Selection.Use           = false;
+	this.CurEndnote              = oEndnote;
+	this.Selection.Start.Endnote = oEndnote;
+	this.Selection.End.Endnote   = oEndnote;
+	this.Selection.Direction     = 0;
+
+	this.Selection.Endnotes                   = {};
+	this.Selection.Endnotes[oEndnote.GetId()] = oEndnote;
+};
+CEndnotesController.prototype.private_GetPrevEndnote = function(oEndnote)
+{
+	if (!oEndnote)
+		return null;
+
+	var arrList = this.LogicDocument.GetEndnotesList(null, oEndnote);
+	if (!arrList || arrList.length <= 1 || arrList[arrList.length - 1] !== oEndnote)
+		return null;
+
+	return arrList[arrList.length - 2];
+};
+CEndnotesController.prototype.private_GetNextEndnote = function(oEndnote)
+{
+	if (!oEndnote)
+		return null;
+
+	var arrList = this.LogicDocument.GetEndnotesList(oEndnote, null);
+	if (!arrList || arrList.length <= 1 || arrList[0] !== oEndnote)
+		return null;
+
+	return arrList[1];
+};
+CEndnotesController.prototype.private_GetDirection = function(oEndote1, oEndnote2)
+{
+	// Предполагается, что эти сноски обязательно есть в документе
+	if (oEndote1 == oEndnote2)
+		return 0;
+
+	var arrList = this.LogicDocument.GetEndnotesList(null, null);
+
+	for (var nPos = 0, nCount = arrList.length; nPos < nCount; ++nPos)
+	{
+		if (oEndote1 === arrList[nPos])
+			return 1;
+		else if (oEndnote2 === arrList[nPos])
+			return -1;
+	}
+
+	return 0;
+};
+CEndnotesController.prototype.private_GetEndnotesLogicRange = function(oEndote1, oEndnote2)
+{
+	return this.LogicDocument.GetFootnotesList(oEndote1, oEndnote2);
+};
+CEndnotesController.prototype.private_GetSelectionArray = function()
+{
+	if (true !== this.Selection.Use || 0 === this.Selection.Direction)
+		return [this.CurEndnote];
+
+	if (1 === this.Selection.Direction)
+		return this.private_GetEndnotesLogicRange(this.Selection.Start.Endnote, this.Selection.End.Endnote);
+	else
+		return this.private_GetEndnotesLogicRange(this.Selection.End.Endnote, this.Selection.Start.Endnote);
 };
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Controller area
@@ -1019,8 +1117,1071 @@ CEndnotesController.prototype.GetCurPage = function()
 
 	return -1;
 };
+CEndnotesController.prototype.AddNewParagraph = function(bRecalculate, bForceAdd)
+{
+	if (false === this.private_CheckEndnotesSelectionBeforeAction())
+		return false;
 
+	return this.CurEndnote.AddNewParagraph(bRecalculate, bForceAdd);
+};
+CEndnotesController.prototype.AddInlineImage = function(nW, nH, oImage, oChart, bFlow)
+{
+	if (false === this.private_CheckEndnotesSelectionBeforeAction())
+		return false;
 
+	return this.CurEndnote.AddInlineImage(nW, nH, oImage, oChart, bFlow);
+};
+CEndnotesController.prototype.AddImages = function(aImages)
+{
+	if (false === this.private_CheckEndnotesSelectionBeforeAction())
+		return false;
+
+	return this.CurEndnote.AddImages(aImages);
+};
+CEndnotesController.prototype.AddOleObject = function(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId)
+{
+	if (false === this.private_CheckEndnotesSelectionBeforeAction())
+		return false;
+
+	return this.CurEndnote.AddOleObject(W, H, nWidthPix, nHeightPix, Img, Data, sApplicationId);
+};
+CEndnotesController.prototype.AddTextArt = function(nStyle)
+{
+	if (false === this.private_CheckEndnotesSelectionBeforeAction())
+		return false;
+
+	return this.CurEndnote.AddTextArt(nStyle);
+};
+CEndnotesController.prototype.AddSignatureLine = function(oSignatureDrawing)
+{
+	if (false === this.private_CheckEndnotesSelectionBeforeAction())
+		return false;
+
+	return this.CurEndnote.AddSignatureLine(oSignatureDrawing);
+};
+CEndnotesController.prototype.EditChart = function(oChartPr)
+{
+	if (false === this.private_CheckEndnotesSelectionBeforeAction())
+		return;
+
+	this.CurEndnote.EditChart(oChartPr);
+};
+CEndnotesController.prototype.AddInlineTable = function(nCols, nRows, nMode)
+{
+	if (false === this.private_CheckEndnotesSelectionBeforeAction())
+		return null;
+
+	if (this.CurEndnote)
+		return this.CurEndnote.AddInlineTable(nCols, nRows, nMode);
+
+	return null;
+};
+CEndnotesController.prototype.ClearParagraphFormatting = function(isClearParaPr, isClearTextPr)
+{
+	for (var sId in this.Selection.Endnotes)
+	{
+		var oEndnote = this.Selection.Endnotes[sId];
+		oEndnote.ClearParagraphFormatting(isClearParaPr, isClearTextPr);
+	}
+};
+CEndnotesController.prototype.AddToParagraph = function(oItem, bRecalculate)
+{
+	if (para_NewLine === oItem.Type && true === oItem.IsPageBreak())
+		return;
+
+	if (oItem instanceof ParaTextPr)
+	{
+		for (var sId in this.Selection.Endnotes)
+		{
+			var oEndnote = this.Selection.Endnotes[sId];
+			oEndnote.AddToParagraph(oItem, false);
+		}
+
+		if (false !== bRecalculate)
+		{
+			this.LogicDocument.Recalculate();
+		}
+	}
+	else
+	{
+		if (false === this.private_CheckEndnotesSelectionBeforeAction())
+			return;
+
+		if (null !== this.CurEndnote)
+			this.CurEndnote.AddToParagraph(oItem, bRecalculate);
+	}
+};
+CEndnotesController.prototype.Remove = function(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord)
+{
+	if (false === this.private_CheckEndnotesSelectionBeforeAction())
+		return;
+
+	this.CurEndnote.Remove(Count, bOnlyText, bRemoveOnlySelection, bOnTextAdd, isWord);
+};
+CEndnotesController.prototype.GetCursorPosXY = function()
+{
+	// Если есть селект, тогда конец селекта совпадает с CurEndnote
+	if (null !== this.CurEndnote)
+		return this.CurEndnote.GetCursorPosXY();
+
+	return {X : 0, Y : 0}
+};
+CEndnotesController.prototype.MoveCursorToStartPos = function(AddToSelect)
+{
+	if (true !== AddToSelect)
+	{
+		this.LogicDocument.controller_MoveCursorToStartPos(false);
+	}
+	else
+	{
+		var oEndnote = this.CurEndnote;
+		if (true === this.Selection.Use)
+			oEndnote = this.Selection.Start.Endnote;
+
+		var arrRange = this.LogicDocument.GetEndnotesList(null, oEndnote);
+		if (arrRange.length <= 0)
+			return;
+
+		if (true !== this.Selection.Use)
+			this.LogicDocument.StartSelectionFromCurPos();
+
+		this.Selection.End.Endnote   = arrRange[0];
+		this.Selection.Start.Endnote = oEndnote;
+		this.Selection.Endnotes      = {};
+
+		oEndnote.MoveCursorToStartPos(true);
+		this.Selection.Endnotes = {};
+		this.Selection.Endnotes[oEndnote.GetId()]  = oEndnote;
+		for (var nIndex = 0, nCount = arrRange.length; nIndex < nCount; ++nIndex)
+		{
+			var oTempEndnote = arrRange[nIndex];
+			if (oTempEndnote !== oEndnote)
+			{
+				oTempEndnote.SelectAll(-1);
+				this.Selection.Endnotes[oTempEndnote.GetId()] = oTempEndnote;
+			}
+		}
+
+		if (this.Selection.Start.Endnote !== this.Selection.End.Endnote)
+			this.Selection.Direction = -1;
+		else
+			this.Selection.Direction = 0;
+	}
+};
+CEndnotesController.prototype.MoveCursorToEndPos = function(AddToSelect)
+{
+	if (true !== AddToSelect)
+	{
+		this.LogicDocument.controller_MoveCursorToEndPos(false);
+	}
+	else
+	{
+		var oEndnote = this.CurEndnote;
+		if (true === this.Selection.Use)
+			oEndnote = this.Selection.Start.Endnote;
+
+		var arrRange = this.LogicDocument.GetEndnotesList(oEndnote, null);
+		if (arrRange.length <= 0)
+			return;
+
+		if (true !== this.Selection.Use)
+			this.LogicDocument.StartSelectionFromCurPos();
+
+		this.Selection.End.Endnote   = arrRange[arrRange.length - 1];
+		this.Selection.Start.Endnote = oEndnote;
+		this.Selection.Endnotes      = {};
+
+		oEndnote.MoveCursorToEndPos(true);
+		this.Selection.Endnotes = {};
+		this.Selection.Endnotes[oEndnote.GetId()]  = oEndnote;
+		for (var nIndex = 0, nCount = arrRange.length; nIndex < nCount; ++nIndex)
+		{
+			var oTempEndnote = arrRange[nIndex];
+			if (oTempEndnote !== oEndnote)
+			{
+				oTempEndnote.SelectAll(1);
+				this.Selection.Endnotes[oTempEndnote.Get_Id()] = oTempEndnote;
+			}
+		}
+
+		if (this.Selection.Start.Endnote !== this.Selection.End.Endnote)
+			this.Selection.Direction = 1;
+		else
+			this.Selection.Direction = 0;
+	}
+};
+CEndnotesController.prototype.MoveCursorLeft = function(AddToSelect, Word)
+{
+	if (true === this.Selection.Use)
+	{
+		if (true !== AddToSelect)
+		{
+			var oEndnote = this.CurEndnote;
+			if (0 === this.Selection.Direction)
+				oEndnote = this.CurEndnote;
+			else if (1 === this.Selection.Direction)
+				oEndnote = this.Selection.Start.Endnote;
+			else
+				oEndnote = this.Selection.End.Endnote;
+
+			for (var sId in this.Selection.Endnotes)
+			{
+				if (oEndnote !== this.Selection.Endnotes[sId])
+					this.Selection.Endnotes[sId].RemoveSelection();
+			}
+
+			oEndnote.MoveCursorLeft(false, Word);
+			oEndnote.RemoveSelection();
+			this.private_SetCurrentEndnoteNoSelection(oEndnote);
+		}
+		else
+		{
+			var oEndnote = this.Selection.End.Endnote;
+			if (false === oEndnote.MoveCursorLeft(true, Word))
+			{
+				var oPrevEndnote = this.private_GetPrevEndnote(oEndnote);
+				if (null === oPrevEndnote)
+					return false;
+
+				if (1 !== this.Selection.Direction)
+				{
+					this.Selection.End.Endnote = oPrevEndnote;
+					this.Selection.Direction   = -1;
+					this.CurEndnote            = oPrevEndnote;
+
+					this.Selection.Endnotes[oPrevEndnote.GetId()] = oPrevEndnote;
+
+					oPrevEndnote.MoveCursorToEndPos(false, true);
+					oPrevEndnote.MoveCursorLeft(true, Word);
+				}
+				else
+				{
+					this.Selection.End.Endnote = oPrevEndnote;
+					this.CurEndnote            = oPrevEndnote;
+
+					if (oPrevEndnote === this.Selection.Start.Endnote)
+						this.Selection.Direction = 0;
+
+					oEndnote.RemoveSelection();
+					delete this.Selection.Endnotes[oEndnote.GetId()];
+
+					oPrevEndnote.MoveCursorLeft(true, Word);
+				}
+			}
+		}
+	}
+	else
+	{
+		if (true === AddToSelect)
+		{
+			var oEndnote = this.CurEndnote;
+
+			this.Selection.Use            = true;
+			this.Selection.Start.Endnote  = oEndnote;
+			this.Selection.End.Endnote    = oEndnote;
+			this.Selection.Endnotes       = {};
+			this.Selection.Direction      = 0;
+
+			this.Selection.Endnotes[oEndnote.GetId()] = oEndnote;
+			if (false === oEndnote.MoveCursorLeft(true, Word))
+			{
+				var oPrevEndnote = this.private_GetPrevEndnote(oEndnote);
+				if (null === oPrevEndnote)
+					return false;
+
+				this.Selection.End.Endnote = oPrevEndnote;
+				this.Selection.Direction   = -1;
+				this.CurEndnote            = oPrevEndnote;
+
+				this.Selection.Endnotes[oPrevEndnote.GetId()] = oPrevEndnote;
+
+				oPrevEndnote.MoveCursorToEndPos(false, true);
+				oPrevEndnote.MoveCursorLeft(true, Word);
+			}
+		}
+		else
+		{
+			var oEndnote = this.CurEndnote;
+			if (false === oEndnote.MoveCursorLeft(false, Word))
+			{
+				var oPrevEndnote = this.private_GetPrevEndnote(oEndnote);
+				if (null === oPrevEndnote)
+					return false;
+
+				this.Selection.Start.Endnote = oPrevEndnote;
+				this.Selection.End.Endnote   = oPrevEndnote;
+				this.Selection.Direction     = 0;
+				this.CurEndnote              = oPrevEndnote;
+				this.Selection.Endnotes      = {};
+
+				this.Selection.Endnotes[oPrevEndnote.GetId()] = oPrevEndnote;
+
+				oPrevEndnote.MoveCursorToEndPos(false);
+			}
+		}
+	}
+
+	return true;
+};
+CEndnotesController.prototype.MoveCursorRight = function(AddToSelect, Word, FromPaste)
+{
+	if (true === this.Selection.Use)
+	{
+		if (true !== AddToSelect)
+		{
+			var oEndnote = this.CurEndnote;
+			if (0 === this.Selection.Direction)
+				oEndnote = this.CurEndnote;
+			else if (1 === this.Selection.Direction)
+				oEndnote = this.Selection.End.Endnote;
+			else
+				oEndnote = this.Selection.Start.Endnote;
+
+			for (var sId in this.Selection.Endnotes)
+			{
+				if (oEndnote !== this.Selection.Endnotes[sId])
+					this.Selection.Endnotes[sId].RemoveSelection();
+			}
+
+			oEndnote.MoveCursorRight(false, Word, FromPaste);
+			oEndnote.RemoveSelection();
+			this.private_SetCurrentEndnoteNoSelection(oEndnote);
+		}
+		else
+		{
+			var oEndnote = this.Selection.End.Endnote;
+			if (false === oEndnote.MoveCursorRight(true, Word, FromPaste))
+			{
+				var oNextEndnote = this.private_GetNextEndnote(oEndnote);
+				if (null === oNextEndnote)
+					return false;
+
+				if (-1 !== this.Selection.Direction)
+				{
+					this.Selection.End.Endnote = oNextEndnote;
+					this.Selection.Direction   = 1;
+					this.CurEndnote            = oNextEndnote;
+
+					this.Selection.Endnotes[oNextEndnote.GetId()] = oNextEndnote;
+
+					oNextEndnote.MoveCursorToStartPos(false);
+					oNextEndnote.MoveCursorRight(true, Word, FromPaste);
+				}
+				else
+				{
+					this.Selection.End.Endnote = oNextEndnote;
+					this.CurEndnote            = oNextEndnote;
+
+					if (oNextEndnote === this.Selection.Start.Endnote)
+						this.Selection.Direction = 0;
+
+					oEndnote.RemoveSelection();
+					delete this.Selection.Endnotes[oEndnote.GetId()];
+
+					oNextEndnote.MoveCursorRight(true, Word, FromPaste);
+				}
+			}
+		}
+	}
+	else
+	{
+		if (true === AddToSelect)
+		{
+			var oEndnote = this.CurEndnote;
+
+			this.Selection.Use           = true;
+			this.Selection.Start.Endnote = oEndnote;
+			this.Selection.End.Endnote   = oEndnote;
+			this.Selection.Endnotes      = {};
+			this.Selection.Direction     = 0;
+
+			this.Selection.Endnotes[oEndnote.GetId()] = oEndnote;
+			if (false === oEndnote.MoveCursorRight(true, Word, FromPaste))
+			{
+				var oNextEndnote = this.private_GetNextEndnote(oEndnote);
+				if (null === oNextEndnote)
+					return false;
+
+				this.Selection.End.Endnote = oNextEndnote;
+				this.Selection.Direction   = 1;
+				this.CurEndnote            = oNextEndnote;
+
+				this.Selection.Endnotes[oNextEndnote.GetId()] = oNextEndnote;
+
+				oNextEndnote.MoveCursorToStartPos(false);
+				oNextEndnote.MoveCursorRight(true, Word, FromPaste);
+			}
+		}
+		else
+		{
+			var oEndnote = this.CurEndnote;
+			if (false === oEndnote.MoveCursorRight(false, Word, FromPaste))
+			{
+				var oNextEndnote = this.private_GetNextEndnote(oEndnote);
+				if (null === oNextEndnote)
+					return false;
+
+				this.Selection.Start.Endnote = oNextEndnote;
+				this.Selection.End.Endnote   = oNextEndnote;
+				this.Selection.Direction     = 0;
+				this.CurEndnote              = oNextEndnote;
+				this.Selection.Endnotes      = {};
+
+				this.Selection.Endnotes[oNextEndnote.GetId()] = oNextEndnote;
+
+				oNextEndnote.MoveCursorToStartPos(false);
+			}
+		}
+	}
+
+	return true;
+};
+CEndnotesController.prototype.MoveCursorUp = function(AddToSelect)
+{
+	if (true === this.Selection.Use)
+	{
+		if (true === AddToSelect)
+		{
+			var oEndnote = this.Selection.End.Endnote;
+			var oPos     = oEndnote.GetCursorPosXY();
+
+			if (false === oEndnote.MoveCursorUp(true))
+			{
+				var oPrevEndnote = this.private_GetPrevEndnote(oEndnote);
+				if (null === oPrevEndnote)
+					return false;
+
+				oEndnote.MoveCursorToStartPos(true);
+
+				if (1 !== this.Selection.Direction)
+				{
+					this.Selection.End.Endnote = oPrevEndnote;
+					this.Selection.Direction   = -1;
+					this.CurEndnote            = oPrevEndnote;
+
+					this.Selection.Endnotes[oPrevEndnote.GetId()] = oPrevEndnote;
+
+					oPrevEndnote.MoveCursorUpToLastRow(oPos.X, oPos.Y, true);
+				}
+				else
+				{
+					this.Selection.End.Endnote = oPrevEndnote;
+					this.CurEndnote            = oPrevEndnote;
+
+					if (oPrevEndnote === this.Selection.Start.Endnote)
+						this.Selection.Direction = 0;
+
+					oEndnote.RemoveSelection();
+					delete this.Selection.Endnotes[oEndnote.GetId()];
+
+					oPrevEndnote.MoveCursorUpToLastRow(oPos.X, oPos.Y, true);
+				}
+
+			}
+		}
+		else
+		{
+			var oEndnote = this.CurEndnote;
+			if (0 === this.Selection.Direction)
+				oEndnote = this.CurEndnote;
+			else if (1 === this.Selection.Direction)
+				oEndnote = this.Selection.Start.Endnote;
+			else
+				oEndnote = this.Selection.End.Endnote;
+
+			for (var sId in this.Selection.Endnotes)
+			{
+				if (oEndnote !== this.Selection.Endnotes[sId])
+					this.Selection.Endnotes[sId].RemoveSelection();
+			}
+
+			oEndnote.MoveCursorLeft(false, false);
+			oEndnote.RemoveSelection();
+			this.private_SetCurrentEndnoteNoSelection(oEndnote);
+		}
+	}
+	else
+	{
+		if (true === AddToSelect)
+		{
+			var oEndnote = this.CurEndnote;
+			var oPos     = oEndnote.GetCursorPosXY();
+
+			this.Selection.Use           = true;
+			this.Selection.Start.Endnote = oEndnote;
+			this.Selection.End.Endnote   = oEndnote;
+			this.Selection.Endnotes      = {};
+			this.Selection.Direction     = 0;
+
+			this.Selection.Endnotes[oEndnote.GetId()] = oEndnote;
+			if (false === oEndnote.MoveCursorUp(true))
+			{
+				var oPrevEndnote = this.private_GetPrevEndnote(oEndnote);
+				if (null === oPrevEndnote)
+					return false;
+
+				oEndnote.MoveCursorToStartPos(true);
+
+				this.Selection.End.Endnote = oPrevEndnote;
+				this.Selection.Direction   = -1;
+				this.CurEndnote            = oPrevEndnote;
+
+				this.Selection.Endnotes[oPrevEndnote.GetId()] = oPrevEndnote;
+
+				oPrevEndnote.MoveCursorUpToLastRow(oPos.X, oPos.Y, true);
+			}
+		}
+		else
+		{
+			var oEndnote = this.CurEndnote;
+			var oPos     = oEndnote.GetCursorPosXY();
+			if (false === oEndnote.MoveCursorUp(false))
+			{
+				var oPrevEndnote = this.private_GetPrevEndnote(oEndnote);
+				if (null === oPrevEndnote)
+					return false;
+
+				this.Selection.Start.Endnote = oPrevEndnote;
+				this.Selection.End.Endnote   = oPrevEndnote;
+				this.Selection.Direction     = 0;
+				this.CurEndnote              = oPrevEndnote;
+				this.Selection.Endnotes      = {};
+
+				this.Selection.Endnotes[oPrevEndnote.GetId()] = oPrevEndnote;
+
+				oPrevEndnote.MoveCursorUpToLastRow(oPos.X, oPos.Y, false);
+			}
+		}
+	}
+
+	return true;
+};
+CEndnotesController.prototype.MoveCursorDown = function(AddToSelect)
+{
+	if (true === this.Selection.Use)
+	{
+		if (true === AddToSelect)
+		{
+			var oEndnote = this.Selection.End.Endnote;
+			var oPos     = oEndnote.GetCursorPosXY();
+
+			if (false === oEndnote.MoveCursorDown(true))
+			{
+				var oNextEndnote = this.private_GetNextEndnote(oEndnote);
+				if (null === oNextEndnote)
+					return false;
+
+				oEndnote.MoveCursorToEndPos(true);
+
+				if (-1 !== this.Selection.Direction)
+				{
+					this.Selection.End.Endnote = oNextEndnote;
+					this.Selection.Direction   = 1;
+					this.CurEndnote            = oNextEndnote;
+
+					this.Selection.Endnotes[oNextEndnote.GetId()] = oNextEndnote;
+
+					oNextEndnote.MoveCursorDownToFirstRow(oPos.X, oPos.Y, true);
+				}
+				else
+				{
+					this.Selection.End.Endnote = oNextEndnote;
+					this.CurEndnote            = oNextEndnote;
+
+					if (oNextEndnote === this.Selection.Start.Endnote)
+						this.Selection.Direction = 0;
+
+					oEndnote.RemoveSelection();
+					delete this.Selection.Endnotes[oEndnote.GetId()];
+
+					oNextEndnote.MoveCursorDownToFirstRow(oPos.X, oPos.Y, true);
+				}
+
+			}
+		}
+		else
+		{
+			var oEndnote = this.CurEndnote;
+			if (0 === this.Selection.Direction)
+				oEndnote = this.CurEndnote;
+			else if (1 === this.Selection.Direction)
+				oEndnote = this.Selection.End.Endnote;
+			else
+				oEndnote = this.Selection.Start.Endnote;
+
+			for (var sId in this.Selection.Endnotes)
+			{
+				if (oEndnote !== this.Selection.Endnotes[sId])
+					this.Selection.Endnotes[sId].RemoveSelection();
+			}
+
+			oEndnote.MoveCursorRight(false, false);
+			oEndnote.RemoveSelection();
+			this.private_SetCurrentEndnoteNoSelection(oEndnote);
+		}
+	}
+	else
+	{
+		if (true === AddToSelect)
+		{
+			var oEndnote = this.CurEndnote;
+			var oPos     = oEndnote.GetCursorPosXY();
+
+			this.Selection.Use           = true;
+			this.Selection.Start.Endnote = oEndnote;
+			this.Selection.End.Endnote   = oEndnote;
+			this.Selection.Endnotes      = {};
+			this.Selection.Direction     = 0;
+
+			this.Selection.Endnotes[oEndnote.Get_Id()] = oEndnote;
+			if (false === oEndnote.MoveCursorDown(true))
+			{
+				var oNextEndnote = this.private_GetNextEndnote(oEndnote);
+				if (null === oNextEndnote)
+					return false;
+
+				oEndnote.MoveCursorToEndPos(true, false);
+
+				this.Selection.End.Endnote = oNextEndnote;
+				this.Selection.Direction   = 1;
+				this.CurEndnote            = oNextEndnote;
+
+				this.Selection.Endnotes[oNextEndnote.Get_Id()] = oNextEndnote;
+
+				oNextEndnote.MoveCursorDownToFirstRow(oPos.X, oPos.Y, true);
+			}
+		}
+		else
+		{
+			var oEndnote = this.CurEndnote;
+			var oPos     = oEndnote.GetCursorPosXY();
+			if (false === oEndnote.MoveCursorDown(false))
+			{
+				var oNextEndnote = this.private_GetNextEndnote(oEndnote);
+				if (null === oNextEndnote)
+					return false;
+
+				this.Selection.Start.Endnote = oNextEndnote;
+				this.Selection.End.Endnote   = oNextEndnote;
+				this.Selection.Direction     = 0;
+				this.CurEndnote              = oNextEndnote;
+				this.Selection.Endnotes      = {};
+
+				this.Selection.Endnotes[oNextEndnote.GetId()] = oNextEndnote;
+
+				oNextEndnote.MoveCursorDownToFirstRow(oPos.X, oPos.Y, false);
+			}
+		}
+	}
+
+	return true;
+};
+CEndnotesController.prototype.MoveCursorToEndOfLine = function(AddToSelect)
+{
+	if (true === this.Selection.Use)
+	{
+		if (true === AddToSelect)
+		{
+			var oEndnote = this.Selection.End.Endnote;
+			oEndnote.MoveCursorToEndOfLine(true);
+		}
+		else
+		{
+			var oEndnote = null;
+			if (0 === this.Selection.Direction)
+				oEndnote = this.CurEndnote;
+			else if (1 === this.Selection.Direction)
+				oEndnote = this.Selection.End.Endnote;
+			else
+				oEndnote = this.Selection.Start.Endnote;
+
+			for (var sId in this.Selection.Endnotes)
+			{
+				if (oEndnote !== this.Selection.Endnotes[sId])
+					this.Selection.Endnotes[sId].RemoveSelection();
+			}
+
+			oEndnote.MoveCursorToEndOfLine(false);
+			oEndnote.RemoveSelection();
+			this.private_SetCurrentEndnoteNoSelection(oEndnote);
+		}
+	}
+	else
+	{
+		if (true === AddToSelect)
+		{
+			var oEndnote = this.CurEndnote;
+
+			this.Selection.Use           = true;
+			this.Selection.Start.Endnote = oEndnote;
+			this.Selection.End.Endnote   = oEndnote;
+			this.Selection.Endnotes      = {};
+			this.Selection.Direction     = 0;
+
+			this.Selection.Endnotes[oEndnote.GetId()] = oEndnote;
+			oEndnote.MoveCursorToEndOfLine(true);
+		}
+		else
+		{
+			this.CurEndnote.MoveCursorToEndOfLine(false);
+		}
+	}
+
+	return true;
+};
+CEndnotesController.prototype.MoveCursorToStartOfLine = function(AddToSelect)
+{
+	if (true === this.Selection.Use)
+	{
+		if (true === AddToSelect)
+		{
+			var oEndnote = this.Selection.End.Endnote;
+			oEndnote.MoveCursorToStartOfLine(true);
+		}
+		else
+		{
+			var oEndnote = null;
+			if (0 === this.Selection.Direction)
+				oEndnote = this.CurEndnote;
+			else if (1 === this.Selection.Direction)
+				oEndnote = this.Selection.Start.Endnote;
+			else
+				oEndnote = this.Selection.End.Endnote;
+
+			for (var sId in this.Selection.Endnotes)
+			{
+				if (oEndnote !== this.Selection.Endnotes[sId])
+					this.Selection.Endnotes[sId].RemoveSelection();
+			}
+
+			oEndnote.MoveCursorToStartOfLine(false);
+			oEndnote.RemoveSelection();
+			this.private_SetCurrentEndnoteNoSelection(oEndnote);
+		}
+	}
+	else
+	{
+		if (true === AddToSelect)
+		{
+			var oEndnote = this.CurEndnote;
+
+			this.Selection.Use            = true;
+			this.Selection.Start.Endnote = oEndnote;
+			this.Selection.End.Endnote   = oEndnote;
+			this.Selection.Endnotes      = {};
+			this.Selection.Direction      = 0;
+
+			this.Selection.Endnotes[oEndnote.GetId()] = oEndnote;
+			oEndnote.MoveCursorToStartOfLine(true);
+		}
+		else
+		{
+			this.CurEndnote.MoveCursorToStartOfLine(false);
+		}
+	}
+
+	return true;
+};
+CEndnotesController.prototype.MoveCursorToXY = function(X, Y, PageAbs, AddToSelect)
+{
+	var oResult = this.private_GetEndnoteByXY(X, Y, PageAbs);
+	if (!oResult || !oResult.Endnote)
+		return;
+
+	var oEndnote = oResult.Endnote;
+	var PageRel   = oResult.EndnotePageIndex;
+	if (true === AddToSelect)
+	{
+		var StartEndnote = null;
+		if (true === this.Selection.Use)
+		{
+			StartEndnote = this.Selection.Start.Endnote;
+			for (var sId in this.Selection.Endnotes)
+			{
+				if (this.Selection.Endnotes[sId] !== StartEndnote)
+				{
+					this.Selection.Endnotes[sId].RemoveSelection();
+				}
+			}
+		}
+		else
+		{
+			StartEndnote = this.CurEndnote;
+		}
+
+		var nDirection = this.private_GetDirection(StartEndnote, oEndnote);
+		if (0 === nDirection)
+		{
+			this.Selection.Use            = true;
+			this.Selection.Start.Endnote = oEndnote;
+			this.Selection.End.Endnote   = oEndnote;
+			this.Selection.Endnotes      = {};
+			this.Selection.Direction      = 0;
+
+			this.Selection.Endnotes[oEndnote.GetId()] = oEndnote;
+			oEndnote.MoveCursorToXY(X, Y, true, true, PageRel);
+		}
+		else if (nDirection > 0)
+		{
+			var arrEndnotes = this.private_GetEndnotesLogicRange(StartEndnote, oEndnote);
+			if (arrEndnotes.length <= 1)
+				return;
+
+			var oStartEndnote = arrEndnotes[0]; // StartEndnote
+			var oEndEndnote   = arrEndnotes[arrEndnotes.length - 1]; // oEndnote
+
+			this.Selection.Use            = true;
+			this.Selection.Start.Endnote = oStartEndnote;
+			this.Selection.End.Endnote   = oEndEndnote;
+			this.CurEndnote              = oEndEndnote;
+			this.Selection.Endnotes      = {};
+			this.Selection.Direction      = 1;
+
+			oStartEndnote.MoveCursorToEndPos(true, false);
+
+			for (var nPos = 0, nCount = arrEndnotes.length; nPos < nCount; ++nPos)
+			{
+				this.Selection.Endnotes[arrEndnotes[nPos].GetId()] = arrEndnotes[nPos];
+
+				if (0 !== nPos && nPos !== nCount - 1)
+					arrEndnotes[nPos].SelectAll(1);
+			}
+
+			oEndEndnote.MoveCursorToStartPos(false);
+			oEndEndnote.MoveCursorToXY(X, Y, true, true, PageRel);
+		}
+		else if (nDirection < 0)
+		{
+			var arrEndnotes = this.private_GetEndnotesLogicRange(oEndnote, StartEndnote);
+			if (arrEndnotes.length <= 1)
+				return;
+
+			var oEndEndnote   = arrEndnotes[0]; // oEndnote
+			var oStartEndnote = arrEndnotes[arrEndnotes.length - 1]; // StartEndnote
+
+			this.Selection.Use            = true;
+			this.Selection.Start.Endnote = oStartEndnote;
+			this.Selection.End.Endnote   = oEndEndnote;
+			this.CurEndnote              = oEndEndnote;
+			this.Selection.Endnotes      = {};
+			this.Selection.Direction      = -1;
+
+			oStartEndnote.MoveCursorToStartPos(true);
+
+			for (var nPos = 0, nCount = arrEndnotes.length; nPos < nCount; ++nPos)
+			{
+				this.Selection.Endnotes[arrEndnotes[nPos].GetId()] = arrEndnotes[nPos];
+
+				if (0 !== nPos && nPos !== nCount - 1)
+					arrEndnotes[nPos].SelectAll(-1);
+			}
+
+			oEndEndnote.MoveCursorToEndPos(false, true);
+			oEndEndnote.MoveCursorToXY(X, Y, true, true, PageRel);
+		}
+	}
+	else
+	{
+		if (true === this.Selection.Use)
+		{
+			this.RemoveSelection();
+		}
+
+		this.private_SetCurrentEndnoteNoSelection(oEndnote);
+		oEndnote.MoveCursorToXY(X, Y, false, true, PageRel);
+	}
+};
+CEndnotesController.prototype.MoveCursorToCell = function(bNext)
+{
+	if (true !== this.private_IsOneEndnoteSelected() || null === this.CurEndnote)
+		return false;
+
+	return this.CurEndnote.MoveCursorToCell(bNext);
+};
+CEndnotesController.prototype.SetParagraphAlign = function(Align)
+{
+	for (var sId in this.Selection.Endnotes)
+	{
+		var oEndnote = this.Selection.Endnotes[sId];
+		oEndnote.SetParagraphAlign(Align);
+	}
+};
+CEndnotesController.prototype.SetParagraphSpacing = function(Spacing)
+{
+	for (var sId in this.Selection.Endnotes)
+	{
+		var oEndnote = this.Selection.Endnotes[sId];
+		oEndnote.SetParagraphSpacing(Spacing);
+	}
+};
+CEndnotesController.prototype.SetParagraphTabs = function(Tabs)
+{
+	for (var sId in this.Selection.Endnotes)
+	{
+		var oEndnote = this.Selection.Endnotes[sId];
+		oEndnote.SetParagraphTabs(Tabs);
+	}
+};
+CEndnotesController.prototype.SetParagraphIndent = function(Ind)
+{
+	for (var sId in this.Selection.Endnotes)
+	{
+		var oEndnote = this.Selection.Endnotes[sId];
+		oEndnote.SetParagraphIndent(Ind);
+	}
+};
+CEndnotesController.prototype.SetParagraphShd = function(Shd)
+{
+	for (var sId in this.Selection.Endnotes)
+	{
+		var oEndnote = this.Selection.Endnotes[sId];
+		oEndnote.SetParagraphShd(Shd);
+	}
+};
+CEndnotesController.prototype.SetParagraphStyle = function(Name)
+{
+	for (var sId in this.Selection.Endnotes)
+	{
+		var oEndnote = this.Selection.Endnotes[sId];
+		oEndnote.SetParagraphStyle(Name);
+	}
+};
+CEndnotesController.prototype.SetParagraphContextualSpacing = function(Value)
+{
+	for (var sId in this.Selection.Endnotes)
+	{
+		var oEndnote = this.Selection.Endnotes[sId];
+		oEndnote.SetParagraphContextualSpacing(Value);
+	}
+};
+CEndnotesController.prototype.SetParagraphPageBreakBefore = function(Value)
+{
+	for (var sId in this.Selection.Endnotes)
+	{
+		var oEndnote = this.Selection.Endnotes[sId];
+		oEndnote.SetParagraphPageBreakBefore(Value);
+	}
+};
+CEndnotesController.prototype.SetParagraphKeepLines = function(Value)
+{
+	for (var sId in this.Selection.Endnotes)
+	{
+		var oEndnote = this.Selection.Endnotes[sId];
+		oEndnote.SetParagraphKeepLines(Value);
+	}
+};
+CEndnotesController.prototype.SetParagraphKeepNext = function(Value)
+{
+	for (var sId in this.Selection.Endnotes)
+	{
+		var oEndnote = this.Selection.Endnotes[sId];
+		oEndnote.SetParagraphKeepNext(Value);
+	}
+};
+CEndnotesController.prototype.SetParagraphWidowControl = function(Value)
+{
+	for (var sId in this.Selection.Endnotes)
+	{
+		var oEndnote = this.Selection.Endnotes[sId];
+		oEndnote.SetParagraphWidowControl(Value);
+	}
+};
+CEndnotesController.prototype.SetParagraphBorders = function(Borders)
+{
+	for (var sId in this.Selection.Endnotes)
+	{
+		var oEndnote = this.Selection.Endnotes[sId];
+		oEndnote.SetParagraphBorders(Borders);
+	}
+};
+CEndnotesController.prototype.SetParagraphFramePr = function(FramePr, bDelete)
+{
+	// Не позволяем делать рамки внутри сносок
+};
+CEndnotesController.prototype.IncreaseDecreaseFontSize = function(bIncrease)
+{
+	for (var sId in this.Selection.Endnotes)
+	{
+		var oEndnote = this.Selection.Endnotes[sId];
+		oEndnote.IncreaseDecreaseFontSize(bIncrease);
+	}
+};
+CEndnotesController.prototype.IncreaseDecreaseIndent = function(bIncrease)
+{
+	for (var sId in this.Selection.Endnotes)
+	{
+		var oEndnote = this.Selection.Endnotes[sId];
+		oEndnote.IncreaseDecreaseIndent(bIncrease);
+	}
+};
+CEndnotesController.prototype.SetImageProps = function(Props)
+{
+	if (false === this.private_CheckEndnotesSelectionBeforeAction())
+		return;
+
+	return this.CurEndnote.SetImageProps(Props);
+};
+CEndnotesController.prototype.SetTableProps = function(Props)
+{
+	if (false === this.private_CheckEndnotesSelectionBeforeAction())
+		return;
+
+	return this.CurEndnote.SetTableProps(Props);
+};
+CEndnotesController.prototype.GetCalculatedParaPr = function()
+{
+	var oStartPr = this.CurEndnote.GetCalculatedParaPr();
+	var oPr      = oStartPr.Copy();
+
+	for (var sId in this.Selection.Endnotes)
+	{
+		var oEndnote = this.Selection.Endnotes[sId];
+		var oTempPr  = oEndnote.GetCalculatedParaPr();
+		oPr          = oPr.Compare(oTempPr);
+	}
+
+	if (undefined === oPr.Ind.Left)
+		oPr.Ind.Left = oStartPr.Ind.Left;
+
+	if (undefined === oPr.Ind.Right)
+		oPr.Ind.Right = oStartPr.Ind.Right;
+
+	if (undefined === oPr.Ind.FirstLine)
+		oPr.Ind.FirstLine = oStartPr.Ind.FirstLine;
+
+	if (true !== this.private_IsOneEndnoteSelected())
+		oPr.CanAddTable = false;
+
+	return oPr;
+};
+CEndnotesController.prototype.GetCalculatedTextPr = function()
+{
+	var oStartPr = this.CurEndnote.GetCalculatedTextPr();
+	var oPr      = oStartPr.Copy();
+
+	for (var sId in this.Selection.Endnotes)
+	{
+		var oEndnote = this.Selection.Endnotes[sId];
+		var oTempPr  = oEndnote.GetCalculatedTextPr();
+		oPr          = oPr.Compare(oTempPr);
+	}
+
+	return oPr;
+};
+CEndnotesController.prototype.GetDirectParaPr = function()
+{
+	if (this.CurEndnote)
+		return this.CurEndnote.GetDirectParaPr();
+
+	return new CParaPr();
+};
+CEndnotesController.prototype.GetDirectTextPr = function()
+{
+	if (this.CurEndnote)
+		return this.CurEndnote.GetDirectTextPr();
+
+	return new CTextPr();
+};
 CEndnotesController.prototype.RemoveSelection = function(bNoCheckDrawing)
 {
 	if (true === this.Selection.Use)
@@ -1056,12 +2217,6 @@ CEndnotesController.prototype.IsSelectionEmpty = function(bCheckHidden)
 
 	return oEndnote.IsSelectionEmpty(bCheckHidden);
 };
-
-CEndnotesController.prototype.IsSelectionUse = function()
-{
-	return this.Selection.Use;
-};
-
 CEndnotesController.prototype.DrawSelectionOnPage = function(nPageAbs)
 {
 	if (true !== this.Selection.Use || true === this.IsEmptyPage(nPageAbs))
@@ -1097,7 +2252,764 @@ CEndnotesController.prototype.DrawSelectionOnPage = function(nPageAbs)
 		}
 	}
 };
+CEndnotesController.prototype.GetSelectionBounds = function()
+{
+	if (true === this.Selection.Use)
+	{
+		if (0 === this.Selection.Direction)
+		{
+			return this.CurEndnote.GetSelectionBounds();
+		}
+		else if (1 === this.Selection.Direction)
+		{
+			var StartBounds = this.Selection.Start.Endnote.GetSelectionBounds();
+			var EndBounds   = this.Selection.End.Endnote.GetSelectionBounds();
+
+			if (!StartBounds && !EndBounds)
+				return null;
+
+			var Result       = {};
+			Result.Start     = StartBounds ? StartBounds.Start : EndBounds.Start;
+			Result.End       = EndBounds ? EndBounds.End : StartBounds.End;
+			Result.Direction = 1;
+			return Result;
+		}
+		else
+		{
+			var StartBounds = this.Selection.End.Endnote.GetSelectionBounds();
+			var EndBounds   = this.Selection.Start.Endnote.GetSelectionBounds();
+
+			if (!StartBounds && !EndBounds)
+				return null;
+
+			var Result       = {};
+			Result.Start     = StartBounds ? StartBounds.Start : EndBounds.Start;
+			Result.End       = EndBounds ? EndBounds.End : StartBounds.End;
+			Result.Direction = -1;
+			return Result;
+		}
+	}
+
+	return null;
+};
+CEndnotesController.prototype.IsMovingTableBorder = function()
+{
+	if (true !== this.private_IsOneEndnoteSelected())
+		return false;
+
+	return this.CurEndnote.IsMovingTableBorder();
+};
+CEndnotesController.prototype.CheckPosInSelection = function(X, Y, PageAbs, NearPos)
+{
+	var oResult = this.private_GetEndnoteByXY(X, Y, PageAbs);
+	if (oResult)
+	{
+		var oEndnote = oResult.Endnote;
+		return oEndnote.CheckPosInSelection(X, Y, oResult.EndnotePageIndex, NearPos);
+	}
+
+	return false;
+};
+CEndnotesController.prototype.GetSelectedContent = function(SelectedContent)
+{
+	if (true !== this.Selection.Use)
+		return;
+
+	if (0 === this.Selection.Direction)
+	{
+		this.CurEndnote.GetSelectedContent(SelectedContent);
+	}
+	else
+	{
+		var arrEndnotes = this.private_GetSelectionArray();
+		for (var nPos = 0, nCount = arrEndnotes.length; nPos < nCount; ++nPos)
+		{
+			arrEndnotes[nPos].GetSelectedContent(SelectedContent);
+		}
+	}
+};
+CEndnotesController.prototype.UpdateCursorType = function(X, Y, PageAbs, MouseEvent)
+{
+	var oResult = this.private_GetEndnoteByXY(X, Y, PageAbs);
+	if (oResult)
+	{
+		var oEndnote = oResult.Endnote;
+		oEndnote.UpdateCursorType(X, Y, oResult.EndnotePageIndex, MouseEvent);
+	}
+};
+CEndnotesController.prototype.PasteFormatting = function(TextPr, ParaPr)
+{
+	for (var sId in this.Selection.Endnotes)
+	{
+		this.Selection.Endnotes[sId].PasteFormatting(TextPr, ParaPr, true);
+	}
+};
+CEndnotesController.prototype.IsSelectionUse = function()
+{
+	return this.Selection.Use;
+};
+CEndnotesController.prototype.IsNumberingSelection = function()
+{
+	if (this.CurEndnote)
+		return this.CurEndnote.IsNumberingSelection();
+
+	return false;
+};
+CEndnotesController.prototype.IsTextSelectionUse = function()
+{
+	if (true !== this.Selection.Use)
+		return false;
+
+	if (0 === this.Selection.Direction)
+		return this.CurEndnote.IsTextSelectionUse();
+
+	return true;
+};
+CEndnotesController.prototype.GetCurPosXY = function()
+{
+	if (this.CurEndnote)
+		return this.CurEndnote.GetCurPosXY();
+
+	return {X : 0, Y : 0};
+};
+CEndnotesController.prototype.GetSelectedText = function(bClearText, oPr)
+{
+	if (true === bClearText)
+	{
+		if (true !== this.Selection.Use || 0 !== this.Selection.Direction)
+			return "";
+
+		return this.CurEndnote.GetSelectedText(true, oPr);
+	}
+	else
+	{
+		var sResult = "";
+		var arrEndnotes = this.private_GetSelectionArray();
+		for (var nPos = 0, nCount = arrEndnotes.length; nPos < nCount; ++nPos)
+		{
+			var sTempResult = arrEndnotes[nPos].GetSelectedText(false, oPr);
+			if (null == sTempResult)
+				return null;
+
+			sResult += sTempResult;
+		}
+
+		return sResult;
+	}
+};
+CEndnotesController.prototype.GetCurrentParagraph = function(bIgnoreSelection, arrSelectedParagraphs, oPr)
+{
+	return this.CurEndnote.GetCurrentParagraph(bIgnoreSelection, arrSelectedParagraphs, oPr);
+};
+CEndnotesController.prototype.GetSelectedElementsInfo = function(oInfo)
+{
+	if (true !== this.private_IsOneEndnoteSelected() || null === this.CurEndnote)
+		oInfo.Set_MixedSelection();
+	else
+		this.CurEndnote.GetSelectedElementsInfo(oInfo);
+};
+CEndnotesController.prototype.AddTableRow = function(bBefore)
+{
+	if (false === this.private_CheckEndnotesSelectionBeforeAction())
+		return;
+
+	this.CurEndnote.AddTableRow(bBefore);
+};
+CEndnotesController.prototype.AddTableColumn = function(bBefore)
+{
+	if (false === this.private_CheckEndnotesSelectionBeforeAction())
+		return;
+
+	this.CurEndnote.AddTableColumn(bBefore);
+};
+CEndnotesController.prototype.RemoveTableRow = function()
+{
+	if (false === this.private_CheckEndnotesSelectionBeforeAction())
+		return;
+
+	this.CurEndnote.RemoveTableRow();
+};
+CEndnotesController.prototype.RemoveTableColumn = function()
+{
+	if (false === this.private_CheckEndnotesSelectionBeforeAction())
+		return;
+
+	this.CurEndnote.RemoveTableColumn();
+};
+CEndnotesController.prototype.MergeTableCells = function()
+{
+	if (false === this.private_CheckEndnotesSelectionBeforeAction())
+		return;
+
+	this.CurEndnote.MergeTableCells();
+};
+CEndnotesController.prototype.SplitTableCells = function(Cols, Rows)
+{
+	if (false === this.private_CheckEndnotesSelectionBeforeAction())
+		return;
+
+	this.CurEndnote.SplitTableCells(Cols, Rows);
+};
+CEndnotesController.prototype.RemoveTableCells = function()
+{
+	if (false === this.private_CheckEndnotesSelectionBeforeAction())
+		return;
+
+	this.CurEndnote.RemoveTableCells();
+};
+CEndnotesController.prototype.RemoveTable = function()
+{
+	if (false === this.private_CheckEndnotesSelectionBeforeAction())
+		return;
+
+	this.CurEndnote.RemoveTable();
+};
+CEndnotesController.prototype.SelectTable = function(Type)
+{
+	if (false === this.private_CheckEndnotesSelectionBeforeAction())
+		return;
+
+	this.RemoveSelection();
+
+	this.CurEndnote.SelectTable(Type);
+	if (true === this.CurEndnote.IsSelectionUse())
+	{
+		this.Selection.Use           = true;
+		this.Selection.Start.Endnote = this.CurEndnote;
+		this.Selection.End.Endnote   = this.CurEndnote;
+		this.Selection.Endnotes      = {};
+		this.Selection.Direction     = 0;
+
+		this.Selection.Endnotes[this.CurEndnote.GetId()] = this.CurEndnote;
+	}
+};
+CEndnotesController.prototype.CanMergeTableCells = function()
+{
+	if (false === this.private_CheckEndnotesSelectionBeforeAction())
+		return false;
+
+	return this.CurEndnote.CanMergeTableCells();
+};
+CEndnotesController.prototype.CanSplitTableCells = function()
+{
+	if (false === this.private_CheckEndnotesSelectionBeforeAction())
+		return false;
+
+	return this.CurEndnote.CanSplitTableCells();
+};
+CEndnotesController.prototype.DistributeTableCells = function(isHorizontally)
+{
+	if (false === this.private_CheckEndnotesSelectionBeforeAction())
+		return false;
+
+	return this.CurEndnote.DistributeTableCells(isHorizontally);
+};
+CEndnotesController.prototype.UpdateInterfaceState = function()
+{
+	if (this.private_IsOneEndnoteSelected())
+	{
+		this.CurEndnote.Document_UpdateInterfaceState();
+	}
+	else
+	{
+		var oApi = this.LogicDocument.GetApi();
+		if (!oApi)
+			return;
+
+		var oParaPr = this.GetCalculatedParaPr();
+
+		if (oParaPr.Tabs)
+			oApi.Update_ParaTab(AscCommonWord.Default_Tab_Stop, oParaPr.Tabs);
+
+		oApi.UpdateParagraphProp(oParaPr);
+		oApi.UpdateTextPr(this.GetCalculatedTextPr());
+	}
+};
+CEndnotesController.prototype.UpdateRulersState = function()
+{
+	var nPageAbs = this.CurEndnote.Get_StartPage_Absolute();
+	if (this.LogicDocument.Pages[nPageAbs])
+	{
+		var nPos    = this.LogicDocument.Pages[nPageAbs].Pos;
+		var oSectPr = this.LogicDocument.SectionsInfo.Get_SectPr(nPos).SectPr;
+		var oFrame  = oSectPr.GetContentFrame(nPageAbs);
+
+		this.DrawingDocument.Set_RulerState_Paragraph({L : oFrame.Left, T : oFrame.Top, R : oFrame.Right, B : oFrame.Bottom}, true);
+	}
+
+	if (true === this.private_IsOneEndnoteSelected())
+		this.CurEndnote.Document_UpdateRulersState();
+};
 CEndnotesController.prototype.UpdateSelectionState = CFootnotesController.prototype.UpdateSelectionState;
+CEndnotesController.prototype.GetSelectionState = function()
+{
+	var arrResult = [];
+
+	var oState = {
+		Endnotes   : {},
+		Use        : this.Selection.Use,
+		Start      : this.Selection.Start.Endnote,
+		End        : this.Selection.End.Endnote,
+		Direction  : this.Selection.Direction,
+		CurEndnote : this.CurEndnote
+	};
+
+	for (var sId in this.Selection.Endnotes)
+	{
+		var oEndnote = this.Selection.Endnotes[sId];
+
+		oState.Endnotes[sId] = {
+			Endnote : oEndnote,
+			State   : oEndnote.GetSelectionState()
+		};
+	}
+
+	arrResult.push(oState);
+	return arrResult;
+};
+CEndnotesController.prototype.SetSelectionState = function(State, StateIndex)
+{
+	var oState = State[StateIndex];
+
+	this.Selection.Use           = oState.Use;
+	this.Selection.Start.Endnote = oState.Start;
+	this.Selection.End.Endnote   = oState.End;
+	this.Selection.Direction     = oState.Direction;
+	this.CurEndnote              = oState.CurEndnote;
+	this.Selection.Endnotes      = {};
+
+	for (var sId in oState.Endnotes)
+	{
+		this.Selection.Endnotes[sId] = oState.Endnotes[sId].Endnote;
+		this.Selection.Endnotes[sId].SetSelectionState(oState.Endnotes[sId].State, oState.Endnotes[sId].State.length - 1);
+	}
+};
+CEndnotesController.prototype.AddHyperlink = function(oProps)
+{
+	if (true !== this.IsSelectionUse() || true === this.private_IsOneEndnoteSelected())
+		this.CurEndnote.AddHyperlink(oProps);
+};
+CEndnotesController.prototype.ModifyHyperlink = function(oProps)
+{
+	if (true !== this.IsSelectionUse() || true === this.private_IsOneEndnoteSelected())
+		this.CurEndnote.ModifyHyperlink(oProps);
+};
+CEndnotesController.prototype.RemoveHyperlink = function()
+{
+	if (true !== this.IsSelectionUse() || true === this.private_IsOneEndnoteSelected())
+		this.CurEndnote.RemoveHyperlink();
+};
+CEndnotesController.prototype.CanAddHyperlink = function(bCheckInHyperlink)
+{
+	if (true !== this.IsSelectionUse() || true === this.private_IsOneEndnoteSelected())
+		return this.CurEndnote.CanAddHyperlink(bCheckInHyperlink);
+
+	return false;
+};
+CEndnotesController.prototype.IsCursorInHyperlink = function(bCheckEnd)
+{
+	if (true !== this.IsSelectionUse() || true === this.private_IsOneEndnoteSelected())
+		return this.CurEndnote.IsCursorInHyperlink(bCheckEnd);
+
+	return null;
+};
+CEndnotesController.prototype.AddComment = function(Comment)
+{
+	if (true !== this.IsSelectionUse() || true === this.private_IsOneEndnoteSelected())
+	{
+		this.CurEndnote.AddComment(Comment, true, true);
+	}
+};
+CEndnotesController.prototype.CanAddComment = function()
+{
+	if (true !== this.IsSelectionUse() || true === this.private_IsOneEndnoteSelected())
+		return this.CurEndnote.CanAddComment();
+
+	return false;
+};
+CEndnotesController.prototype.GetSelectionAnchorPos = function()
+{
+	if (true !== this.Selection.Use || 0 === this.Selection.Direction)
+		return this.CurEndnote.GetSelectionAnchorPos();
+	else if (1 === this.Selection.Direction)
+		return this.Selection.Start.Endnote.GetSelectionAnchorPos();
+	else
+		return this.Selection.End.Endnote.GetSelectionAnchorPos();
+};
+CEndnotesController.prototype.StartSelectionFromCurPos = function()
+{
+	if (true === this.Selection.Use)
+		return;
+
+	this.Selection.Use = true;
+	this.Selection.Start.Endnote = this.CurEndnote;
+	this.Selection.End.Endnote   = this.CurEndnote;
+	this.Selection.Endnotes = {};
+	this.Selection.Endnotes[this.CurEndnote.GetId()] = this.CurEndnote;
+	this.CurEndnote.StartSelectionFromCurPos();
+};
+CEndnotesController.prototype.SaveDocumentStateBeforeLoadChanges   = function(State)
+{
+	State.EndnotesSelectDirection = this.Selection.Direction;
+	State.EndnotesSelectionUse    = this.Selection.Use;
+
+	if (0 === this.Selection.Direction || false === this.Selection.Use)
+	{
+		var oEndnote               = this.CurEndnote;
+		State.CurEndnote           = oEndnote;
+		State.CurEndnoteSelection  = oEndnote.Selection.Use;
+		State.CurEndnoteDocPosType = oEndnote.GetDocPosType();
+
+		if (docpostype_Content === oEndnote.GetDocPosType())
+		{
+			State.Pos      = oEndnote.GetContentPosition(false, false, undefined);
+			State.StartPos = oEndnote.GetContentPosition(true, true, undefined);
+			State.EndPos   = oEndnote.GetContentPosition(true, false, undefined);
+		}
+		else if (docpostype_DrawingObjects === oEndnote.GetDocPosType())
+		{
+			this.LogicDocument.DrawingObjects.Save_DocumentStateBeforeLoadChanges(State);
+		}
+	}
+	else
+	{
+		State.EndnotesList  = this.private_GetSelectionArray();
+		var oEndnote        = State.EndnotesList[0];
+		State.EndnotesStart = {
+			Pos      : oEndnote.GetContentPosition(false, false, undefined),
+			StartPos : oEndnote.GetContentPosition(true, true, undefined),
+			EndPos   : oEndnote.GetContentPosition(true, false, undefined)
+		};
+
+		oEndnote          = State.EndnotesList[State.EndnotesList.length - 1];
+		State.EndnotesEnd = {
+			Pos      : oEndnote.GetContentPosition(false, false, undefined),
+			StartPos : oEndnote.GetContentPosition(true, true, undefined),
+			EndPos   : oEndnote.GetContentPosition(true, false, undefined)
+		};
+	}
+};
+CEndnotesController.prototype.RestoreDocumentStateAfterLoadChanges = function(State)
+{
+	this.RemoveSelection();
+	if (0 === State.EndnotesSelectDirection)
+	{
+		var oEndnote = State.CurEndnote;
+		if (oEndnote && true === this.Is_UseInDocument(oEndnote.GetId()))
+		{
+			this.Selection.Start.Endnote = oEndnote;
+			this.Selection.End.Endnote   = oEndnote;
+			this.Selection.Direction     = 0;
+			this.CurEndnote              = oEndnote;
+			this.Selection.Endnotes      = {};
+			this.Selection.Use           = State.EndnotesSelectionUse;
+
+			this.Selection.Endnotes[oEndnote.GetId()] = oEndnote;
+
+			if (docpostype_Content === State.CurEndnoteDocPosType)
+			{
+				oEndnote.SetDocPosType(docpostype_Content);
+				oEndnote.Selection.Use = State.CurEndnoteSelection;
+				if (true === oEndnote.Selection.Use)
+				{
+					oEndnote.SetContentPosition(State.StartPos, 0, 0);
+					oEndnote.SetContentSelection(State.StartPos, State.EndPos, 0, 0, 0);
+				}
+				else
+				{
+					oEndnote.SetContentPosition(State.Pos, 0, 0);
+					this.LogicDocument.NeedUpdateTarget = true;
+				}
+			}
+			else if (docpostype_DrawingObjects === State.CurEndnoteDocPosType)
+			{
+				oEndnote.SetDocPosType(docpostype_DrawingObjects);
+				if (true !== this.LogicDocument.DrawingObjects.Load_DocumentStateAfterLoadChanges(State))
+				{
+					oEndnote.SetDocPosType(docpostype_Content);
+					this.LogicDocument.MoveCursorToXY(State.X ? State.X : 0, State.Y ? State.Y : 0, false);
+				}
+			}
+		}
+		else
+		{
+			this.LogicDocument.EndEndnotesEditing();
+		}
+	}
+	else
+	{
+		var arrEndnotesList = State.EndnotesList;
+
+		var StartEndnote = null;
+		var EndEndnote   = null;
+
+		var arrAllEndnotes = this.private_GetEndnotesLogicRange(null, null);
+
+		for (var nIndex = 0, nCount = arrEndnotesList.length; nIndex < nCount; ++nIndex)
+		{
+			var oEndnote = arrEndnotesList[nIndex];
+			if (true === this.Is_UseInDocument(oEndnote.GetId(), arrAllEndnotes))
+			{
+				if (null === StartEndnote)
+					StartEndnote = oEndnote;
+
+				EndEndnote = oEndnote;
+			}
+		}
+
+		if (null === StartEndnote || null === EndEndnote)
+		{
+			this.LogicDocument.EndEndnotesEditing();
+			return;
+		}
+
+		var arrNewEndnotesList = this.private_GetEndnotesLogicRange(StartEndnote, EndEndnote);
+		if (arrNewEndnotesList.length < 1)
+		{
+			if (null !== EndEndnote)
+			{
+				EndEndnote.RemoveSelection();
+				this.private_SetCurrentEndnoteNoSelection(EndEndnote);
+			}
+			else if (null !== StartEndnote)
+			{
+				StartEndnote.RemoveSelection();
+				this.private_SetCurrentEndnoteNoSelection(StartEndnote);
+			}
+			else
+			{
+				this.LogicDocument.EndEndnotesEditing();
+			}
+		}
+		else if (arrNewEndnotesList.length === 1)
+		{
+			this.Selection.Use           = true;
+			this.Selection.Direction     = 0;
+			this.Selection.Endnotes      = {};
+			this.Selection.Start.Endnote = StartEndnote;
+			this.Selection.End.Endnote   = StartEndnote;
+			this.CurEndnote              = StartEndnote;
+
+			this.Selection.Endnotes[StartEndnote.GetId()] = StartEndnote;
+
+			if (arrEndnotesList[0] === StartEndnote)
+			{
+				StartEndnote.SetDocPosType(docpostype_Content);
+				StartEndnote.Selection.Use = true;
+				StartEndnote.SetContentPosition(State.EndnotesStart.Pos, 0, 0);
+				StartEndnote.SetContentSelection(State.EndnotesStart.StartPos, State.EndnotesStart.EndPos, 0, 0, 0);
+			}
+			else if (arrEndnotesList[arrAllEndnotes.length - 1] === StartEndnote)
+			{
+				StartEndnote.SetDocPosType(docpostype_Content);
+				StartEndnote.Selection.Use = true;
+				StartEndnote.SetContentPosition(State.EndnotesEnd.Pos, 0, 0);
+				StartEndnote.SetContentSelection(State.EndnotesEnd.StartPos, State.EndnotesEnd.EndPos, 0, 0, 0);
+			}
+			else
+			{
+				StartEndnote.SetDocPosType(docpostype_Content);
+				StartEndnote.SelectAll(1);
+			}
+		}
+		else
+		{
+			this.Selection.Use       = true;
+			this.Selection.Direction = State.EndnotesSelectDirection;
+			this.Selection.Endnotes  = {};
+
+			for (var nIndex = 1, nCount = arrNewEndnotesList.length; nIndex < nCount - 1; ++nIndex)
+			{
+				var oEndnote = arrNewEndnotesList[nIndex];
+				oEndnote.SelectAll(this.Selection.Direction);
+				this.Selection.Endnotes[oEndnote.GetId()] = oEndnote;
+			}
+
+			this.Selection.Endnotes[StartEndnote.GetId()] = StartEndnote;
+			this.Selection.Endnotes[EndEndnote.GetId()]   = EndEndnote;
+
+
+			if (arrEndnotesList[0] === StartEndnote)
+			{
+				StartEndnote.SetDocPosType(docpostype_Content);
+				StartEndnote.Selection.Use = true;
+				StartEndnote.SetContentPosition(State.EndnotesStart.Pos, 0, 0);
+				StartEndnote.SetContentSelection(State.EndnotesStart.StartPos, State.EndnotesStart.EndPos, 0, 0, 0);
+			}
+			else
+			{
+				StartEndnote.SetDocPosType(docpostype_Content);
+				StartEndnote.SelectAll(1);
+			}
+
+			if (arrEndnotesList[arrEndnotesList.length - 1] === EndEndnote)
+			{
+				EndEndnote.SetDocPosType(docpostype_Content);
+				EndEndnote.Selection.Use = true;
+				EndEndnote.SetContentPosition(State.EndnotesEnd.Pos, 0, 0);
+				EndEndnote.SetContentSelection(State.EndnotesEnd.StartPos, State.EndnotesEnd.EndPos, 0, 0, 0);
+			}
+			else
+			{
+				EndEndnote.SetDocPosType(docpostype_Content);
+				EndEndnote.SelectAll(1);
+			}
+
+			if (1 !== this.Selection.Direction)
+			{
+				var Temp     = StartEndnote;
+				StartEndnote = EndEndnote;
+				EndEndnote   = Temp;
+			}
+
+			this.Selection.Start.Endnote = StartEndnote;
+			this.Selection.End.Endnote   = EndEndnote;
+		}
+	}
+};
+CEndnotesController.prototype.GetColumnSize = function()
+{
+	// TODO: Переделать
+	var _w = Math.max(1, AscCommon.Page_Width - (AscCommon.X_Left_Margin + AscCommon.X_Right_Margin));
+	var _h = Math.max(1, AscCommon.Page_Height - (AscCommon.Y_Top_Margin + AscCommon.Y_Bottom_Margin));
+
+	return {
+		W : AscCommon.Page_Width - (AscCommon.X_Left_Margin + AscCommon.X_Right_Margin),
+		H : AscCommon.Page_Height - (AscCommon.Y_Top_Margin + AscCommon.Y_Bottom_Margin)
+	};
+};
+CEndnotesController.prototype.GetCurrentSectionPr = function()
+{
+	return null;
+};
+CEndnotesController.prototype.GetColumnFields = function(nPageAbs, nColumnAbs, nSectionIndex)
+{
+	var oColumn = this.private_GetPageColumn(nPageAbs, nColumnAbs, nSectionIndex);
+	if (!oColumn)
+		return {X : 0, XLimit : 297};
+
+	return {X : oColumn.X, XLimit : oColumn.XLimit};
+};
+CEndnotesController.prototype.RemoveTextSelection = function()
+{
+	if (true === this.Selection.Use)
+	{
+		for (var sId in this.Selection.Endnotes)
+		{
+			if (this.Selection.Endnotes[sId] !== this.CurEndnote)
+				this.Selection.Endnotes[sId].RemoveSelection();
+		}
+
+		this.Selection.Use = false;
+	}
+
+	this.Selection.Endnotes = {};
+	if (this.CurEndnote)
+	{
+		this.Selection.Endnotes[this.CurEndnote.GetId()] = this.CurEndnote;
+		this.CurEndnote.RemoveTextSelection();
+	}
+};
+CEndnotesController.prototype.ResetRecalculateCache = function()
+{
+	for (var Id in this.Endnote)
+	{
+		this.Endnote[Id].Reset_RecalculateCache();
+	}
+};
+CEndnotesController.prototype.AddContentControl = function(nContentControlType)
+{
+	if (this.CurEndnote)
+		return this.CurEndnote.AddContentControl(nContentControlType);
+
+	return null;
+};
+CEndnotesController.prototype.GetStyleFromFormatting = function()
+{
+	if (this.CurEndnote)
+		return this.CurEndnote.GetStyleFromFormatting();
+
+	return null;
+};
+CEndnotesController.prototype.GetSimilarNumbering = function(oEngine)
+{
+	if (this.CurEndnote)
+		this.CurEndnote.GetSimilarNumbering(oEngine);
+};
+CEndnotesController.prototype.GetPlaceHolderObject = function()
+{
+	if (this.CurEndnote)
+		return this.CurEndnote.GetPlaceHolderObject();
+
+	return null;
+};
+CEndnotesController.prototype.GetAllFields = function(isUseSelection, arrFields)
+{
+	// Поиск по всем сноскам должен происходить не здесь
+	if (!isUseSelection || !this.CurEndnote)
+		return arrFields ? arrFields : [];
+
+	return this.CurEndnote.GetAllFields(isUseSelection, arrFields);
+};
+CEndnotesController.prototype.GetAllDrawingObjects = function(arrDrawings)
+{
+	if (undefined === arrDrawings || null === arrDrawings)
+		arrDrawings = [];
+
+	for (var sId in  this.Endnote)
+	{
+		var oEndnote = this.Endnote[sId];
+		oEndnote.GetAllDrawingObjects(arrDrawings);
+	}
+
+	return arrDrawings;
+};
+CEndnotesController.prototype.IsTableCellSelection = function()
+{
+	if (this.CurEndnote)
+		return this.CurEndnote.IsTableCellSelection();
+
+	return false;
+};
+CEndnotesController.prototype.AcceptRevisionChanges = function(Type, bAll)
+{
+	if (null !== this.CurEndnote)
+		this.CurEndnote.AcceptRevisionChanges(Type, bAll);
+};
+CEndnotesController.prototype.RejectRevisionChanges = function(Type, bAll)
+{
+	if (null !== this.CurEndnote)
+		this.CurEndnote.RejectRevisionChanges(Type, bAll);
+};
+CEndnotesController.prototype.IsSelectionLocked = function(CheckType)
+{
+	for (var sId in this.Selection.Endnotes)
+	{
+		var oEndnote = this.Selection.Endnotes[sId];
+		oEndnote.Document_Is_SelectionLocked(CheckType);
+	}
+};
+CEndnotesController.prototype.GetAllTablesOnPage = function(nPageAbs, arrTables)
+{
+	var oPage = this.Pages[nPageAbs];
+	if (!oPage)
+		return arrTables;
+
+	var nColumnsCount = oPage.Columns.length;
+	for (var nColumnIndex = 0; nColumnIndex < nColumnsCount; ++nColumnIndex)
+	{
+		var oColumn = oPage.Columns[nColumnIndex];
+		if (!oColumn || oColumn.Elements.length <= 0)
+			continue;
+
+		for (var nIndex = 0, nCount = oColumn.Elements.length; nIndex < nCount; ++nIndex)
+		{
+			oColumn.Elements[nIndex].GetAllTablesOnPage(nPageAbs, arrTables);
+		}
+	}
+
+	return arrTables;
+};
 
 /**
  * Класс регистрирующий концевые сноски на странице

@@ -2037,7 +2037,7 @@ CFootnotesController.prototype.MoveCursorToEndOfLine = function(AddToSelect)
 		}
 		else
 		{
-			var oFootonote = null;
+			var oFootnote = null;
 			if (0 === this.Selection.Direction)
 				oFootnote = this.CurFootnote;
 			else if (1 === this.Selection.Direction)
@@ -2090,7 +2090,7 @@ CFootnotesController.prototype.MoveCursorToStartOfLine = function(AddToSelect)
 		}
 		else
 		{
-			var oFootonote = null;
+			var oFootnote = null;
 			if (0 === this.Selection.Direction)
 				oFootnote = this.CurFootnote;
 			else if (1 === this.Selection.Direction)

@@ -199,11 +199,12 @@ CDocumentContentBase.prototype.GetAllSeqFieldsByType = function(sType, aFields)
  * Находим отрезок сносок, заданный между сносками.
  * @param {?CFootEndnote} oFirstFootnote - если null, то иещм с начала документа
  * @param {?CFootEndnote} oLastFootnote - если null, то ищем до конца документа
+ * @param {boolean} [isEndnotes=false] - собираем концевые сноски или нет
  */
-CDocumentContentBase.prototype.GetFootnotesList = function(oFirstFootnote, oLastFootnote)
+CDocumentContentBase.prototype.GetFootnotesList = function(oFirstFootnote, oLastFootnote, isEndnotes)
 {
 	var oEngine = new CDocumentFootnotesRangeEngine();
-	oEngine.Init(oFirstFootnote, oLastFootnote);
+	oEngine.Init(oFirstFootnote, oLastFootnote, isEndnotes);
 
 	var arrFootnotes = [];
 

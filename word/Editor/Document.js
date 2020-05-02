@@ -2364,7 +2364,8 @@ function CDocument(DrawingDocument, isMainLogicDocument)
 
     // Кэш для некоторых запросов, которые могут за раз делаться несколько раз
     this.AllParagraphsList = null;
-    this.AllFootnotesList  = null;
+    this.AllFootnotesList  = null; // TODO: Переделать
+    this.AllEndnotesList   = null;
 
 	//------------------------------------------------------------------------------------------------------------------
 	//  Check StartCollaborationEditing
@@ -3734,7 +3735,7 @@ CDocument.prototype.Recalculate_PageColumn                   = function()
 				bContinue           = true;
 				_PageIndex          = ColumnIndex >= ColumnsCount - 1 ? PageIndex + 1 : PageIndex;
 				_ColumnIndex        = ColumnIndex >= ColumnsCount - 1 ? 0 : ColumnIndex + 1;
-				_SectionIndex       = SectionIndex;
+				_SectionIndex       = ColumnIndex >= ColumnsCount - 1 ? 0 : SectionIndex;
 				_bEndnotesContinue  = true;
 				_bStart             = true;
 				_bResetStartElement = true;
@@ -3936,7 +3937,7 @@ CDocument.prototype.Recalculate_PageColumn                   = function()
 									_StartIndex         = Index;
 									_PageIndex          = ColumnIndex >= ColumnsCount - 1 ? PageIndex + 1 : PageIndex;
 									_ColumnIndex        = ColumnIndex >= ColumnsCount - 1 ? 0 : ColumnIndex + 1;
-									_SectionIndex       = SectionIndex;
+									_SectionIndex       = ColumnIndex >= ColumnsCount - 1 ? 0 : SectionIndex;
 									_bEndnotesContinue  = true;
 									_bStart             = true;
 									_bResetStartElement = true;
@@ -10814,6 +10815,26 @@ CDocument.prototype.EndFootnotesEditing = function()
 		this.Document_UpdateSelectionState();
 	}
 };
+CDocument.prototype.EndEndnotesEditing = function()
+{
+	if (docpostype_Endnotes === this.GetDocPosType())
+	{
+		this.SetDocPosType(docpostype_Content);
+
+		this.MoveCursorToStartPos(false);
+
+		// TODO: Не всегда можно в данной функции использовать MoveCursorToXY, потому что
+		//       данная страница еще может быть не рассчитана.
+		//this.MoveCursorToXY(0, 0, false);
+
+		this.DrawingDocument.ClearCachePages();
+		this.DrawingDocument.FirePaint();
+
+		this.Document_UpdateRulersState();
+		this.Document_UpdateInterfaceState();
+		this.Document_UpdateSelectionState();
+	}
+};
 CDocument.prototype.EndDrawingEditing = function()
 {
 	if (docpostype_DrawingObjects === this.GetDocPosType() || (docpostype_HdrFtr === this.GetDocPosType() && null != this.HdrFtr.CurHdrFtr && docpostype_DrawingObjects === this.HdrFtr.CurHdrFtr.Content.CurPos.Type ))
@@ -16380,15 +16401,33 @@ CDocument.prototype.IsCursorInFootnote = function()
 };
 CDocument.prototype.GetFootnotesList = function(oFirstFootnote, oLastFootnote)
 {
+	// TODO: Возможно стоит пересмотреть схему составления списка на следующую
+	//       У сносок добавить Prev/Next и обновлять при добавлении/удалении сносок
+
 	if (null === oFirstFootnote && null === oLastFootnote && null !== this.AllFootnotesList)
 		return this.AllFootnotesList;
 
-	var arrFootnotes = CDocumentContentBase.prototype.GetFootnotesList.apply(this, arguments);
+	var arrFootnotes = CDocumentContentBase.prototype.GetFootnotesList.call(this, oFirstFootnote, oLastFootnote, false);
 
 	if (null === oFirstFootnote && null === oLastFootnote)
 		this.AllFootnotesList = arrFootnotes;
 
 	return arrFootnotes;
+};
+CDocument.prototype.GetEndnotesList = function(oFirstEndnote, oLastEndnote)
+{
+	// TODO: Возможно стоит пересмотреть схему составления списка на следующую
+	//       У сносок добавить Prev/Next и обновлять при добавлении/удалении сносок
+
+	if (null === oFirstEndnote && null === oLastEndnote && null !== this.AllEndnotesList)
+		return this.AllEndnotesList;
+
+	var arrEndnotes = CDocumentContentBase.prototype.GetFootnotesList.call(this, oFirstEndnote, oLastEndnote, true);
+
+	if (null === oFirstEndnote && null === oLastEndnote)
+		this.AllEndnotesList = arrEndnotes;
+
+	return arrEndnotes;
 };
 CDocument.prototype.AddEndnote = function(sText)
 {
@@ -24197,6 +24236,7 @@ function CDocumentFootnotesRangeEngine(bExtendedInfo)
 {
 	this.m_oFirstFootnote = null; // Если не задана ищем с начала
 	this.m_oLastFootnote  = null; // Если не задана ищем до конца
+	this.m_bFootnotes     = true;
 
 	this.m_arrFootnotes  = [];
 	this.m_bForceStop    = false;
@@ -24207,10 +24247,11 @@ function CDocumentFootnotesRangeEngine(bExtendedInfo)
 	this.m_arrRuns       = [];
 	this.m_arrRefs       = [];
 }
-CDocumentFootnotesRangeEngine.prototype.Init = function(oFirstFootnote, oLastFootnote)
+CDocumentFootnotesRangeEngine.prototype.Init = function(oFirstFootnote, oLastFootnote, isEndnotes)
 {
 	this.m_oFirstFootnote = oFirstFootnote ? oFirstFootnote : null;
 	this.m_oLastFootnote  = oLastFootnote ? oLastFootnote : null;
+	this.m_bFootnotes     = !isEndnotes;
 };
 CDocumentFootnotesRangeEngine.prototype.Add = function(oFootnote, oFootnoteRef, oRun)
 {
@@ -24278,6 +24319,10 @@ CDocumentFootnotesRangeEngine.prototype.GetRuns = function()
 CDocumentFootnotesRangeEngine.prototype.GetRefs = function()
 {
 	return this.m_arrRefs;
+};
+CDocumentFootnotesRangeEngine.prototype.IsCheckFootnotes = function()
+{
+	return this.m_bFootnotes;
 };
 
 /**

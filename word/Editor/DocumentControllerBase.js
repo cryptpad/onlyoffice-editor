@@ -305,7 +305,6 @@ CDocumentControllerBase.prototype.AddNewParagraph = function(bRecalculate, bForc
  * @param {boolean} bFlow - инлайн объект или "плавающий"
  */
 CDocumentControllerBase.prototype.AddInlineImage = function(nW, nH, oImage, oChart, bFlow){};
-
 /**
  * Добавляем несколько изображений
  * @param {Array} aImages - массив объектов типа CImage
@@ -731,7 +730,7 @@ CDocumentControllerBase.prototype.CanAddHyperlink = function(bCheckInHyperlink){
  * Проверяем находится ли курсор сейчас в гиперссылке.
  * @returns {?ParaHyperlink}
  */
-CDocumentControllerBase.prototype.IsCursorInHyperlink = function(bCheckEnd){return false;};
+CDocumentControllerBase.prototype.IsCursorInHyperlink = function(bCheckEnd){return null;};
 /**
  * Добавляем комментарий.
  * @param Comment
