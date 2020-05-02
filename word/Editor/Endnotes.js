@@ -109,13 +109,6 @@ CEndnotesController.prototype.GetId = function()
 {
 	return this.Id;
 };
-CEndnotesController.prototype.Refresh_RecalcData = function(Data)
-{
-};
-CEndnotesController.prototype.Refresh_RecalcData2 = function(nRelPageIndex)
-{
-	var nAbsPageIndex = nRelPageIndex;
-};
 /**
  * Начальная инициализация после загрузки
  */
@@ -204,8 +197,24 @@ CEndnotesController.prototype.GetEndnotePrPos = function()
  */
 CEndnotesController.prototype.Is_UseInDocument = function(sEndnoteId, arrEndnotesList)
 {
-	// TODO: Реализовать
-	return true;
+	if (!arrEndnotesList)
+		arrEndnotesList = this.private_GetEndnotesLogicRange(null, null);
+
+	var oEndnote = null;
+	for (var nIndex = 0, nCount = arrEndnotesList.length; nIndex < nCount; ++nIndex)
+	{
+		var oTempEndnote = arrEndnotesList[nIndex];
+		if (oTempEndnote.GetId() === sEndnoteId)
+		{
+			oEndnote = oTempEndnote;
+			break;
+		}
+	}
+
+	if (this.Endnote[sEndnoteId] === oEndnote)
+		return true;
+
+	return false;
 };
 /**
  * Проверяем является ли данная сноска текущей.
@@ -527,6 +536,9 @@ CEndnotesController.prototype.Recalculate = function(X, Y, XLimit, YLimit, nPage
 
 		if (recalcresult2_NextPage === nRecalcResult)
 		{
+			if (nColumnAbs >= nColumnsCount - 1)
+				this.Pages[nPageAbs].SetContinue(true);
+
 			if (0 === nPos && !oEndnote.IsContentOnFirstPage())
 			{
 				oColumn.EndPos = -1;
@@ -788,6 +800,18 @@ CEndnotesController.prototype.CheckHitInEndnote = function(X, Y, nPageAbs)
 	}
 
 	return false;
+};
+/**
+ * Перенеслись ли сноски с предыдущей страницы, на новую
+ * @param nPageAbs
+ * @returns {boolean}
+ */
+CEndnotesController.prototype.IsContinueRecalculateFromPrevPage = function(nPageAbs)
+{
+	if (nPageAbs <= 0 || !this.Pages[nPageAbs - 1])
+		return false;
+
+	return (this.Pages[nPageAbs - 1].Sections.length > 0 && true === this.Pages[nPageAbs - 1].Continue);
 };
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Private area
@@ -3031,6 +3055,7 @@ function CEndnotePage()
 {
 	this.Endnotes = [];
 	this.Sections = [];
+	this.Continue = false; // Сноски на данной странице не закончились и переносятся на следующую
 }
 CEndnotePage.prototype.Reset = function()
 {
@@ -3044,6 +3069,10 @@ CEndnotePage.prototype.AddEndnotes = function(arrEndnotes)
 CEndnotePage.prototype.AddSection = function(nSectionIndex)
 {
 	this.Sections.push(nSectionIndex);
+};
+CEndnotePage.prototype.SetContinue = function(isContinue)
+{
+	this.Continue = isContinue;
 };
 
 function CEndnoteSection()
