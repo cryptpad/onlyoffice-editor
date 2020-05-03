@@ -319,6 +319,9 @@
 
 		function convertFillToUnifill(fill) {
 			var oUniFill = null;
+			if(!fill) {
+				return AscFormat.CreateNoFillUniFill();
+			}
 			var oSF = fill.getSolidFill();
 			if(oSF) {
 				oUniFill = new AscFormat.CreateSolidFillRGBA(oSF.getR(), oSF.getG(), oSF.getB(), Math.min(255, 255*oSF.getA() + 0.5 >> 0));
