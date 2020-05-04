@@ -1726,7 +1726,7 @@ CopyProcessor.prototype =
         }
         var old_style_index = graphic_frame.graphicObject.styleIndex;
         graphic_frame.graphicObject.styleIndex = -1;
-        this.oPresentationWriter.WriteTable(graphic_frame);
+        this.oPresentationWriter.WriteGrFrame(graphic_frame);
         graphic_frame.graphicObject.styleIndex = old_style_index;
 
 		History.TurnOn();
@@ -1767,13 +1767,13 @@ CopyProcessor.prototype =
         }
 		
 		History.TurnOff();
-        this.oPresentationWriter.WriteTable(graphicFrame);
+        this.oPresentationWriter.WriteGrFrame(graphicFrame);
 		
 		//для случая, когда копируем 1 таблицу из презентаций, в бинарник заносим ещё одну такую же табличку, но со скомпиоированными стилями(для вставки в word / excel)
 		if(isOnlyTable)
 		{
 			this.convertToCompileStylesTable(Item);
-			this.oPresentationWriter.WriteTable(graphicFrame);
+			this.oPresentationWriter.WriteGrFrame(graphicFrame);
 		}
 		History.TurnOn();
 
@@ -1855,28 +1855,7 @@ CopyProcessor.prototype =
                 oImg.oAttributes["style"] = "max-width:100%;";
             oDomTarget.addChild(oImg);
         }
-
-
-        if(oGraphicObj instanceof CShape)
-        {
-            this.oPresentationWriter.WriteShape(oGraphicObj);
-        }
-        else if(oGraphicObj instanceof AscFormat.CImageShape)
-        {
-            this.oPresentationWriter.WriteImage(oGraphicObj);
-        }
-        else if(oGraphicObj instanceof AscFormat.CGroupShape)
-        {
-            this.oPresentationWriter.WriteGroupShape(oGraphicObj);
-        }
-        else if(oGraphicObj instanceof AscFormat.CChartSpace)
-        {
-            this.oPresentationWriter.WriteChart(oGraphicObj);
-        }
-        else if(oGraphicObj instanceof CGraphicFrame)
-        {
-            this.oPresentationWriter.WriteTable(oGraphicObj);
-        }
+        this.oPresentationWriter.WriteSpTreeElem(oGraphicObj);
     }
 };
 
