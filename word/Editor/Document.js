@@ -5928,6 +5928,8 @@ CDocument.prototype.MoveCursorToStartOfDocument = function()
 		this.EndDrawingEditing();
 	else if (nDocPosType === docpostype_Footnotes)
 		this.EndFootnotesEditing();
+	else if (nDocPosType === docpostype_Endnotes)
+		this.EndEndnotesEditing();
 	else if (nDocPosType === docpostype_HdrFtr)
 		this.EndHdrFtrEditing();
 
@@ -8676,6 +8678,8 @@ CDocument.prototype.UpdateCursorType = function(X, Y, PageAbs, MouseEvent)
 	{
 		if (true === this.Footnotes.CheckHitInFootnote(X, Y, PageAbs))
 			this.Footnotes.UpdateCursorType(X, Y, PageAbs, MouseEvent);
+		else if (this.Endnotes.CheckHitInEndnote(X, Y, PageAbs))
+			this.Endnotes.UpdateCursorType(X, Y, PageAbs, MouseEvent);
 		else
 			this.LogicDocumentController.UpdateCursorType(X, Y, PageAbs, MouseEvent);
 	}
@@ -8707,6 +8711,10 @@ CDocument.prototype.IsTableBorder = function(X, Y, PageIndex)
 		else if (true === this.Footnotes.CheckHitInFootnote(X, Y, PageIndex))
 		{
 			return this.Footnotes.IsTableBorder(X, Y, PageIndex);
+		}
+		else if (this.Endnotes.CheckHitInEndnote(X, Y, PageIndex))
+		{
+			return this.Endnotes.IsTableBorder(X, Y, PageIndex);
 		}
 		else
 		{
@@ -8748,6 +8756,10 @@ CDocument.prototype.IsInText = function(X, Y, PageIndex)
 		{
 			return this.Footnotes.IsInText(X, Y, PageIndex);
 		}
+		else if (this.Endnotes.CheckHitInEndnote(X, Y, PageIndex))
+		{
+			return this.Endnotes.IsInText(X, Y, PageIndex);
+		}
 		else
 		{
 			var ContentPos       = this.Internal_GetContentPosByXY(X, Y, PageIndex);
@@ -8783,6 +8795,10 @@ CDocument.prototype.IsInDrawing = function(X, Y, PageIndex)
 		else if (true === this.Footnotes.CheckHitInFootnote(X, Y, PageIndex))
 		{
 			return this.Footnotes.IsInDrawing(X, Y, PageIndex);
+		}
+		else if (this.Endnotes.CheckHitInEndnote(X, Y, PageIndex))
+		{
+			return this.Endnotes.IsInDrawing(X, Y, PageIndex);
 		}
 		else
 		{
@@ -9396,6 +9412,14 @@ CDocument.prototype.OnKeyDown = function(e)
             bRetValue = keydownresult_PreventAll;
         }
     }
+    else if (e.KeyCode == 68 && true === e.CtrlKey) // Ctrl + D + ...
+	{
+		if (true === e.AltKey) // Ctrl + Alt + D - вставка концевой сноски
+		{
+			this.AddEndnote();
+			bRetValue = keydownresult_PreventAll;
+		}
+	}
     else if (e.KeyCode == 69 && true === e.CtrlKey) // Ctrl + E + ...
     {
         if (true !== e.AltKey) // Ctrl + E - переключение прилегания параграфа между center и left
@@ -10360,11 +10384,15 @@ CDocument.prototype.Get_NearestPos = function(PageNum, X, Y, bAnchor, Drawing)
 	{
 		// Проверяем попадание в графические объекты
 		var NearestPos = this.DrawingObjects.getNearestPos(X, Y, PageNum, Drawing);
-		if (( nInDrawing === DRAWING_ARRAY_TYPE_BEFORE || nInDrawing === DRAWING_ARRAY_TYPE_INLINE || ( false === bInText && nInDrawing >= 0 ) ) && null != NearestPos)
+		if ((nInDrawing === DRAWING_ARRAY_TYPE_BEFORE || nInDrawing === DRAWING_ARRAY_TYPE_INLINE || (false === bInText && nInDrawing >= 0)) && null != NearestPos)
 			return NearestPos;
 
 		NearestPos = true === this.Footnotes.CheckHitInFootnote(X, Y, PageNum) ? this.Footnotes.GetNearestPos(X, Y, PageNum, false, Drawing) : null;
 		if (null !== NearestPos)
+			return NearestPos;
+
+		NearestPos = this.Endnotes.CheckHitInEndnote(X, Y, PageNum) ? this.Endnotes.GetNearestPos(X, Y, PageNum, false, Drawing) : null;
+		if (NearestPos)
 			return NearestPos;
 	}
 
@@ -11528,6 +11556,28 @@ CDocument.prototype.Can_CopyCut = function()
 			return true;
 		}
 	}
+	else if (docpostype_Endnotes === nDocPosType)
+	{
+		if (0 === this.Endnotes.Selection.Direction)
+		{
+			var oEndnote = this.Endnotes.GetCurEndnote();
+			if (oEndnote)
+			{
+				if (docpostype_DrawingObjects === oEndnote.GetDocPosType())
+				{
+					DrawingObjects = this.DrawingObjects;
+				}
+				else
+				{
+					LogicDocument = oEndnote;
+				}
+			}
+		}
+		else
+		{
+			return true;
+		}
+	}
 	else //if (docpostype_Content === nDocPosType)
 	{
 		LogicDocument = this;
@@ -12285,7 +12335,16 @@ CDocument.prototype.Set_SelectionState2 = function(State)
 	else if (docpostype_Endnotes === State.Type)
 	{
 		this.SetDocPosType(docpostype_Endnotes);
-		// TODO: Реализовать
+		var oEndnote = g_oTableId.Get_ById(State.Id);
+		if (oEndnote && true === this.Endnotes.Is_UseInDocument(State.Id))
+		{
+			this.Endnotes.private_SetCurrentEndnoteNoSelection(oEndnote);
+			oEndnote.MoveCursorToStartPos(false);
+		}
+		else
+		{
+			this.EndEndnotesEditing();
+		}
 	}
 	else // if ( docpostype_Content === State.Type )
 	{
@@ -13740,6 +13799,7 @@ CDocument.prototype.GetAllParagraphs = function(Props, ParaArray)
 		}
 
 		this.Footnotes.GetAllParagraphs(Props, ParaArray);
+		this.Endnotes.GetAllParagraphs(Props, ParaArray);
 	}
 
 	if (Props && true === Props.OnlyMainDocument && true === Props.All)
@@ -14098,6 +14158,12 @@ CDocument.prototype.Get_CursorLogicPosition = function()
 		var oFootnote = this.Footnotes.GetCurFootnote();
 		if (oFootnote)
 			return this.private_GetLogicDocumentPosition(oFootnote);
+	}
+	else if (docpostype_Endnotes === nDocPosType)
+	{
+		var oEndnote = this.Endnotes.GetCurEndnote();
+		if (oEndnote)
+			return this.private_GetLogicDocumentPosition(oEndnote);
 	}
 	else
 	{

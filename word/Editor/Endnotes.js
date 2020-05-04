@@ -738,6 +738,50 @@ CEndnotesController.prototype.GetCurEndnote = function()
 {
 	return this.CurEndnote;
 };
+CEndnotesController.prototype.IsInDrawing = function(X, Y, nPageAbs)
+{
+	var oResult = this.private_GetEndnoteByXY(X, Y, nPageAbs);
+	if (oResult)
+	{
+		var oEndnote = oResult.Endnote;
+		return oEndnote.IsInDrawing(X, Y, oResult.EndnotePageIndex);
+	}
+
+	return false;
+};
+CEndnotesController.prototype.IsTableBorder = function(X, Y, nPageAbs)
+{
+	var oResult = this.private_GetEndnoteByXY(X, Y, nPageAbs);
+	if (oResult)
+	{
+		var oEndnote = oResult.Endnote;
+		return oFootnote.IsTableBorder(X, Y, oResult.EndnotePageIndex);
+	}
+
+	return null;
+};
+CEndnotesController.prototype.IsInText = function(X, Y, PageAbs)
+{
+	var oResult = this.private_GetEndnoteByXY(X, Y, nPageAbs);
+	if (oResult)
+	{
+		var oEndnote = oResult.Endnote;
+		return oFootnote.IsInText(X, Y, oResult.EndnotePageIndex);
+	}
+
+	return null;
+};
+CEndnotesController.prototype.GetNearestPos = function(X, Y, nPageAbs, bAnchor, oDrawing)
+{
+	var oResult = this.private_GetEndnoteByXY(X, Y, nPageAbs);
+	if (oResult)
+	{
+		var oEndnote = oResult.Endnote;
+		return oEndnote.Get_NearestPos(oResult.EndnotePageIndex, X, Y, bAnchor, oDrawing);
+	}
+
+	return null;
+};
 /**
  * Проверяем попадание в сноски на заданной странице.
  * @param X
@@ -800,6 +844,14 @@ CEndnotesController.prototype.CheckHitInEndnote = function(X, Y, nPageAbs)
 	}
 
 	return false;
+};
+CEndnotesController.prototype.GetAllParagraphs = function(Props, ParaArray)
+{
+	for (var sId in this.Endnote)
+	{
+		var oEndnote = this.Endnote[sId];
+		oEndnote.GetAllParagraphs(Props, ParaArray);
+	}
 };
 /**
  * Перенеслись ли сноски с предыдущей страницы, на новую
