@@ -15586,9 +15586,8 @@ CDocument.prototype.private_GetRevisionsChangeElementInHdrFtr = function(SearchE
 		AllHdrFtrs[Pos].GetRevisionsChangeElement(SearchEngine);
 	}
 };
-CDocument.prototype.private_GetRevisionsChangeElementInFooters = function(SearchEngine, oFootnote)
+CDocument.prototype.private_GetRevisionsChangeElementInFotnotesList = function(SearchEngine, oFootnote, arrFootnotes)
 {
-	var arrFootnotes = this.GetFootnotesList(null, null);
 	var nCount = arrFootnotes.length;
 	if (nCount <= 0)
 		return;
@@ -15623,6 +15622,25 @@ CDocument.prototype.private_GetRevisionsChangeElementInFooters = function(Search
 			break;
 
 		arrFootnotes[nPos].GetRevisionsChangeElement(SearchEngine);
+	}
+};
+CDocument.prototype.private_GetRevisionsChangeElementInFooters = function(oSearchEngine, oFootnote)
+{
+	if (oSearchEngine.GetDirection() > 0)
+	{
+		if (true !== oSearchEngine.IsFound())
+			this.private_GetRevisionsChangeElementInFotnotesList(oSearchEngine, oFootnote, this.GetFootnotesList(null, null));
+
+		if (true !== oSearchEngine.IsFound())
+			this.private_GetRevisionsChangeElementInFotnotesList(oSearchEngine, oFootnote, this.GetEndnotesList(null, null));
+	}
+	else
+	{
+		if (true !== oSearchEngine.IsFound())
+			this.private_GetRevisionsChangeElementInFotnotesList(oSearchEngine, oFootnote, this.GetEndnotesList(null, null));
+
+		if (true !== oSearchEngine.IsFound())
+			this.private_GetRevisionsChangeElementInFotnotesList(oSearchEngine, oFootnote, this.GetFootnotesList(null, null));
 	}
 };
 CDocument.prototype.private_SelectRevisionChange = function(oChange, isSkipCompleteCheck)

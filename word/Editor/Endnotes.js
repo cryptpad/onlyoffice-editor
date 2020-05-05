@@ -734,6 +734,47 @@ CEndnotesController.prototype.EndSelection = function(X, Y, nPageAbs, oMouseEven
 		this.Selection.Direction = 0;
 	}
 };
+CEndnotesController.prototype.Set_CurrentElement = function(bUpdateStates, PageAbs, oEndnote)
+{
+	if (oEndnote instanceof CFootEndnote)
+	{
+		if (oEndnote.IsSelectionUse())
+		{
+			this.CurEndnote              = oEndnote;
+			this.Selection.Use           = true;
+			this.Selection.Direction     = 0;
+			this.Selection.Start.Endnote = oEndnote;
+			this.Selection.End.Endnote   = oEndnote;
+			this.Selection.Endnotes      = {};
+
+			this.Selection.Endnotes[oEndnote.GetId()] = oEndnote;
+			this.LogicDocument.Selection.Use   = true;
+			this.LogicDocument.Selection.Start = false;
+		}
+		else
+		{
+			this.private_SetCurrentEndnoteNoSelection(oEndnote);
+			this.LogicDocument.Selection.Use   = false;
+			this.LogicDocument.Selection.Start = false;
+		}
+
+		var bNeedRedraw = this.LogicDocument.GetDocPosType() === docpostype_HdrFtr;
+		this.LogicDocument.SetDocPosType(docpostype_Endnotes);
+
+		if (false !== bUpdateStates)
+		{
+			this.LogicDocument.UpdateInterface();
+			this.LogicDocument.UpdateRulers();
+			this.LogicDocument.UpdateSelection();
+		}
+
+		if (bNeedRedraw)
+		{
+			this.LogicDocument.DrawingDocument.ClearCachePages();
+			this.LogicDocument.DrawingDocument.FirePaint();
+		}
+	}
+};
 CEndnotesController.prototype.GetCurEndnote = function()
 {
 	return this.CurEndnote;
