@@ -755,18 +755,18 @@ CEndnotesController.prototype.IsTableBorder = function(X, Y, nPageAbs)
 	if (oResult)
 	{
 		var oEndnote = oResult.Endnote;
-		return oFootnote.IsTableBorder(X, Y, oResult.EndnotePageIndex);
+		return oEndnote.IsTableBorder(X, Y, oResult.EndnotePageIndex);
 	}
 
 	return null;
 };
-CEndnotesController.prototype.IsInText = function(X, Y, PageAbs)
+CEndnotesController.prototype.IsInText = function(X, Y, nPageAbs)
 {
 	var oResult = this.private_GetEndnoteByXY(X, Y, nPageAbs);
 	if (oResult)
 	{
 		var oEndnote = oResult.Endnote;
-		return oFootnote.IsInText(X, Y, oResult.EndnotePageIndex);
+		return oEndnote.IsInText(X, Y, oResult.EndnotePageIndex);
 	}
 
 	return null;
@@ -1160,7 +1160,7 @@ CEndnotesController.prototype.private_GetDirection = function(oEndote1, oEndnote
 };
 CEndnotesController.prototype.private_GetEndnotesLogicRange = function(oEndote1, oEndnote2)
 {
-	return this.LogicDocument.GetFootnotesList(oEndote1, oEndnote2);
+	return this.LogicDocument.GetEndnotesList(oEndote1, oEndnote2);
 };
 CEndnotesController.prototype.private_GetSelectionArray = function()
 {
