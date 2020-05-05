@@ -15466,12 +15466,12 @@ CDocument.prototype.private_GetRevisionsChangeElement = function(nDirection, oCu
 				this.private_GetRevisionsChangeElementInDocument(oSearchEngine, 0);
 
 			if (true !== oSearchEngine.IsFound())
-				this.private_GetRevisionsChangeElementInFooters(oSearchEngine, null);
+				this.private_GetRevisionsChangeElementInFootnotes(oSearchEngine, null);
 		}
 		else
 		{
 			if (true !== oSearchEngine.IsFound())
-				this.private_GetRevisionsChangeElementInFooters(oSearchEngine, null);
+				this.private_GetRevisionsChangeElementInFootnotes(oSearchEngine, null);
 
 			if (true !== oSearchEngine.IsFound())
 				this.private_GetRevisionsChangeElementInDocument(oSearchEngine, this.Content.length - 1);
@@ -15483,7 +15483,7 @@ CDocument.prototype.private_GetRevisionsChangeElement = function(nDirection, oCu
 	}
 	else if (oFootnote)
 	{
-		this.private_GetRevisionsChangeElementInFooters(oSearchEngine, oFootnote);
+		this.private_GetRevisionsChangeElementInFootnotes(oSearchEngine, oFootnote);
 
 		if (nDirection > 0)
 		{
@@ -15503,7 +15503,7 @@ CDocument.prototype.private_GetRevisionsChangeElement = function(nDirection, oCu
 		}
 
 		if (true !== oSearchEngine.IsFound())
-			this.private_GetRevisionsChangeElementInFooters(oSearchEngine, null);
+			this.private_GetRevisionsChangeElementInFootnotes(oSearchEngine, null);
 	}
 	else
 	{
@@ -15513,7 +15513,7 @@ CDocument.prototype.private_GetRevisionsChangeElement = function(nDirection, oCu
 		if (nDirection > 0)
 		{
 			if (true !== oSearchEngine.IsFound())
-				this.private_GetRevisionsChangeElementInFooters(oSearchEngine, null);
+				this.private_GetRevisionsChangeElementInFootnotes(oSearchEngine, null);
 
 			if (true !== oSearchEngine.IsFound())
 				this.private_GetRevisionsChangeElementInHdrFtr(oSearchEngine, null);
@@ -15524,7 +15524,7 @@ CDocument.prototype.private_GetRevisionsChangeElement = function(nDirection, oCu
 				this.private_GetRevisionsChangeElementInHdrFtr(oSearchEngine, null);
 
 			if (true !== oSearchEngine.IsFound())
-				this.private_GetRevisionsChangeElementInFooters(oSearchEngine, null);
+				this.private_GetRevisionsChangeElementInFootnotes(oSearchEngine, null);
 		}
 
 		if (true !== oSearchEngine.IsFound())
@@ -15586,7 +15586,7 @@ CDocument.prototype.private_GetRevisionsChangeElementInHdrFtr = function(SearchE
 		AllHdrFtrs[Pos].GetRevisionsChangeElement(SearchEngine);
 	}
 };
-CDocument.prototype.private_GetRevisionsChangeElementInFotnotesList = function(SearchEngine, oFootnote, arrFootnotes)
+CDocument.prototype.private_GetRevisionsChangeElementInFootnotesList = function(SearchEngine, oFootnote, arrFootnotes)
 {
 	var nCount = arrFootnotes.length;
 	if (nCount <= 0)
@@ -15624,23 +15624,23 @@ CDocument.prototype.private_GetRevisionsChangeElementInFotnotesList = function(S
 		arrFootnotes[nPos].GetRevisionsChangeElement(SearchEngine);
 	}
 };
-CDocument.prototype.private_GetRevisionsChangeElementInFooters = function(oSearchEngine, oFootnote)
+CDocument.prototype.private_GetRevisionsChangeElementInFootnotes = function(oSearchEngine, oFootnote)
 {
 	if (oSearchEngine.GetDirection() > 0)
 	{
 		if (true !== oSearchEngine.IsFound())
-			this.private_GetRevisionsChangeElementInFotnotesList(oSearchEngine, oFootnote, this.GetFootnotesList(null, null));
+			this.private_GetRevisionsChangeElementInFootnotesList(oSearchEngine, oFootnote, this.GetFootnotesList(null, null));
 
 		if (true !== oSearchEngine.IsFound())
-			this.private_GetRevisionsChangeElementInFotnotesList(oSearchEngine, oFootnote, this.GetEndnotesList(null, null));
+			this.private_GetRevisionsChangeElementInFootnotesList(oSearchEngine, oFootnote, this.GetEndnotesList(null, null));
 	}
 	else
 	{
 		if (true !== oSearchEngine.IsFound())
-			this.private_GetRevisionsChangeElementInFotnotesList(oSearchEngine, oFootnote, this.GetEndnotesList(null, null));
+			this.private_GetRevisionsChangeElementInFootnotesList(oSearchEngine, oFootnote, this.GetEndnotesList(null, null));
 
 		if (true !== oSearchEngine.IsFound())
-			this.private_GetRevisionsChangeElementInFotnotesList(oSearchEngine, oFootnote, this.GetFootnotesList(null, null));
+			this.private_GetRevisionsChangeElementInFootnotesList(oSearchEngine, oFootnote, this.GetFootnotesList(null, null));
 	}
 };
 CDocument.prototype.private_SelectRevisionChange = function(oChange, isSkipCompleteCheck)
@@ -16007,6 +16007,11 @@ CDocument.prototype.AcceptRevisionChanges = function(nType, bAll)
 	{
 		this.Footnotes.AcceptRevisionChanges(nType, bAll);
 	}
+	else if (docpostype_Endnotes === this.CurPos.Type)
+	{
+		this.Endnotes.AcceptRevisionChanges(nType, bAll);
+	}
+
 
 	if (true !== bAll)
 	{
@@ -16039,6 +16044,10 @@ CDocument.prototype.RejectRevisionChanges = function(nType, bAll)
 	else if (docpostype_Footnotes === this.CurPos.Type)
 	{
 		this.Footnotes.RejectRevisionChanges(nType, bAll);
+	}
+	else if (docpostype_Endnotes === this.CurPos.Type)
+	{
+		this.Endnotes.RejectRevisionChanges(nType, bAll);
 	}
 
 	if (true !== bAll)
