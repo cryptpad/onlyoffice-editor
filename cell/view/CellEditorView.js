@@ -511,27 +511,6 @@
 		return res;
 	};
 
-	CellEditor.prototype.enterCellRange = function (rangeStr) {
-		var res = this._findRangeUnderCursor();
-
-		if (res.range) {
-			this._moveCursor(kPosition, res.index);
-			this._selectChars(kPosition, res.index + res.length);
-		}
-
-		var lastAction = this.undoList.length > 0 ? this.undoList[this.undoList.length - 1] : null;
-
-		while (lastAction && lastAction.isRange) {
-			this.undoList.pop();
-			lastAction = this.undoList.length > 0 ? this.undoList[this.undoList.length - 1] : null;
-		}
-
-		var tmp = this.skipTLUpdate;
-		this.skipTLUpdate = false;
-		this._addChars(rangeStr, undefined, /*isRange*/true);
-		this.skipTLUpdate = tmp;
-	};
-
 	CellEditor.prototype.changeCellRange = function (range) {
 		var t = this;
 		t._moveCursor(kPosition, range.cursorePos);
@@ -2516,8 +2495,11 @@
 				var res = this._findRangeUnderCursor();
 				if (res.range) {
 					res.range.switchReference();
+					var _range = res.range.clone();
+					_range.cursorePos = res.index;
+					_range.formulaRangeLength = res.length;
 					// ToDo add change ref to other sheet
-					this.enterCellRange(res.range.getName());
+					this.changeCellRange(_range);
 				}
 
 				event.stopPropagation();
