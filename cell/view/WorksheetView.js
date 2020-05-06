@@ -9139,7 +9139,6 @@
         } else {
             this.model.selectionRange.clean();
         }
-		var ar = this._getSelection().getLast().clone();
 		var ret = {};
 		var isChangeSelectionShape = false;
 
