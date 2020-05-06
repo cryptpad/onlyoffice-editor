@@ -534,7 +534,7 @@
 
 	CellEditor.prototype.changeCellRange = function (range) {
 		var t = this;
-		t._moveCursor(kPosition, range.cursorePos/* -length */);
+		t._moveCursor(kPosition, range.cursorePos);
 		t._selectChars(kPositionLength, range.formulaRangeLength);
 		t._addChars(range.getName(), undefined, /*isRange*/true);
 		t._moveCursor(kEndOfText);
@@ -1662,6 +1662,9 @@
 		return this._addChars(this.getTextFromCharCodes(arrCharCodes));
 	};
 	CellEditor.prototype._addChars = function (str, pos, isRange) {
+		if (!isRange) {
+			this.cleanSelectRange();
+		}
 		var length = str.length;
 		if (!this._checkMaxCellLength(length)) {
 			return false;
@@ -1726,6 +1729,10 @@
 
 	CellEditor.prototype._removeChars = function (pos, length, isRange) {
 		var t = this, opt = t.options, b, e, l, first, last;
+
+		if (!isRange) {
+			this.cleanSelectRange();
+		}
 
 		this.sAutoComplete = null;
 

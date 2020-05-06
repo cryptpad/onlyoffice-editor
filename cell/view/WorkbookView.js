@@ -656,11 +656,13 @@
 			          ws._drawSelection();
 				  }
 			  }, "cleanSelectRange": function () {
-                  if (self.isActive()) {
+                  if (self.isActive() && self.selectionDialogMode) {
                       var ws = self.getWorksheet();
-                      ws.cleanSelection();
-                      ws.model.selectionRange = null;
-                      ws._drawSelection();
+                      if (ws.model.selectionRange) {
+                          ws.cleanSelection();
+                          ws.model.selectionRange = null;
+                          ws._drawSelection();
+                      }
                   }
               }, "updateUndoRedoChanged": function (bCanUndo, bCanRedo) {
 				  self.handlers.trigger("asc_onCanUndoChanged", bCanUndo);
@@ -1058,8 +1060,9 @@
         if (this.selectionDialogMode && !ws.model.selectionRange) {
             if (isCoord) {
                 ws.model.selectionRange = new AscCommonExcel.SelectionRange(ws.model);
+                isStartPoint = true;
             } else {
-                return;
+                ws.model.selectionRange = ws.model.copySelection.clone();
             }
         }
 
