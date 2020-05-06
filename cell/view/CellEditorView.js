@@ -718,6 +718,11 @@
 		}
 	};
 
+	CellEditor.prototype.cleanSelectRange = function () {
+		this._cleanLastRangeInfo();
+		this.handlers.trigger("cleanSelectRange");
+	};
+
 	// Private
 
 	CellEditor.prototype._setOptions = function ( options ) {
@@ -971,6 +976,10 @@
 		}
 		this.handlers.trigger("updateFormulaEditMod", isFormula);
 		this._parseFormulaRanges();
+	};
+	CellEditor.prototype._cleanLastRangeInfo = function () {
+		this.lastRangeLength = null;
+		this.lastRangePos = null;
 	};
 
 	// Обновляем состояние Undo/Redo
@@ -2151,11 +2160,6 @@
 			}
 		}
 		return true;
-	};
-
-	CellEditor.prototype._cleanLastRangeInfo = function () {
-		this.lastRangeLength = null;
-		this.lastRangePos = null;
 	};
 
 	// Event handlers

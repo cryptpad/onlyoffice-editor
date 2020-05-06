@@ -655,7 +655,14 @@
 			          ws.oOtherRanges = ranges;
 			          ws._drawSelection();
 				  }
-			  }, "updateUndoRedoChanged": function (bCanUndo, bCanRedo) {
+			  }, "cleanSelectRange": function () {
+                  if (self.isActive()) {
+                      var ws = self.getWorksheet();
+                      ws.cleanSelection();
+                      ws.model.selectionRange = null;
+                      ws._drawSelection();
+                  }
+              }, "updateUndoRedoChanged": function (bCanUndo, bCanRedo) {
 				  self.handlers.trigger("asc_onCanUndoChanged", bCanUndo);
 				  self.handlers.trigger("asc_onCanRedoChanged", bCanRedo);
 			  }, "applyCloseEvent": function () {

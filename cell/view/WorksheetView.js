@@ -10299,6 +10299,10 @@
             return null;
         }
 
+        if (this.getFormulaEditMode()) {
+            editor.cleanSelectRange();
+        }
+
         var type;
         var index = targetInfo.indexFormulaRange, d = new AscCommon.CellBase(0, 0);
         var ar = this.oOtherRanges.ranges[index].clone();
