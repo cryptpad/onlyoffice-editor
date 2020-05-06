@@ -1040,7 +1040,7 @@ CEndnotesController.prototype.private_GetEndnoteByXY = function(X, Y, nPageAbs)
 	if (null !== oResult)
 		return oResult;
 
-	var nCurPage = PageAbs - 1;
+	var nCurPage = nPageAbs - 1;
 	while (nCurPage >= 0)
 	{
 		oResult = this.private_GetEndnoteOnPageByXY(MEASUREMENT_MAX_MM_VALUE, MEASUREMENT_MAX_MM_VALUE, nCurPage);
@@ -1050,7 +1050,7 @@ CEndnotesController.prototype.private_GetEndnoteByXY = function(X, Y, nPageAbs)
 		nCurPage--;
 	}
 
-	nCurPage = PageAbs + 1;
+	nCurPage = nPageAbs + 1;
 	while (nCurPage < this.Pages.length)
 	{
 		oResult = this.private_GetEndnoteOnPageByXY(-MEASUREMENT_MAX_MM_VALUE, -MEASUREMENT_MAX_MM_VALUE, nCurPage);
