@@ -10336,7 +10336,7 @@
         this.overlayCtx.clear();
 
         if (!this.getFormulaEditMode()) {
-            return this.changeChartSelectionMoveResizeRangeHandle(x, y, targetInfo, editor);
+            return this.changeChartSelectionMoveResizeRangeHandle(x, y, targetInfo);
         }
         if (targetInfo.cursor == kCurNEResize || targetInfo.cursor == kCurSEResize) {
 
