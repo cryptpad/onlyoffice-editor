@@ -291,6 +291,7 @@
 			window.addEventListener("mousemove", this.fKeyMouseMove, false);
 		}
 		this._setOptions(options);
+		this._cleanLastRangeInfo();
 		this._updateTopLineActive(true === this.input.isFocused);
 
 		this._updateFormulaEditMod( /*bIsOpen*/true);
@@ -2152,6 +2153,11 @@
 		return true;
 	};
 
+	CellEditor.prototype._cleanLastRangeInfo = function () {
+		this.lastRangeLength = null;
+		this.lastRangePos = null;
+	};
+
 	// Event handlers
 
 	/**
@@ -2801,10 +2807,6 @@
 	};
 	CellEditor.prototype.getMenuEditorMode = function () {
 		return this.menuEditor;
-	};
-	CellEditor.prototype.cleanLastRangeInfo = function () {
-		this.lastRangeLength = null;
-		this.lastRangePos = null;
 	};
 
 
