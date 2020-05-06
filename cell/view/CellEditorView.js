@@ -2607,10 +2607,13 @@
 	};
 
 	/** @param event {MouseEvent} */
-	CellEditor.prototype._onWindowMouseUp = function ( event ) {
+	CellEditor.prototype._onWindowMouseUp = function (event) {
 		AscCommon.global_mouseEvent.UnLockMouse();
+		if (c_oAscCellEditorSelectState.no !== this.isSelectMode) {
+			this.cleanSelectRange();
+		}
 		this.isSelectMode = c_oAscCellEditorSelectState.no;
-		if ( this.callTopLineMouseup ) {
+		if (this.callTopLineMouseup) {
 			this._topLineMouseUp();
 		}
 		return true;
@@ -2675,11 +2678,13 @@
 
 	/** @param event {MouseEvent} */
 	CellEditor.prototype._onMouseUp = function (event) {
-
 		var button = AscCommon.getMouseButton(event);
 		AscCommon.global_mouseEvent.UnLockMouse();
 		if (2 === button) {
 			return true;
+		}
+		if (c_oAscCellEditorSelectState.no !== this.isSelectMode) {
+			this.cleanSelectRange();
 		}
 		this.isSelectMode = c_oAscCellEditorSelectState.no;
 		return true;
