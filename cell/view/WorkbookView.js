@@ -1064,7 +1064,7 @@
         ws.objectRender.controller.setSelectionState(state);
         ws.setSelectionShape(true);
         ws._scrollToRange(ws.objectRender.getSelectedDrawingsRange());
-        ws.objectRender.showDrawingObjectsEx(true);
+        ws.objectRender.showDrawingObjectsEx();
         ws.objectRender.controller.updateOverlay();
         ws.objectRender.controller.updateSelectionState();
       }
@@ -2673,9 +2673,9 @@
   WorkbookView.prototype.drawWS = function() {
     this.getWorksheet().draw();
   };
-  WorkbookView.prototype.onShowDrawingObjects = function(clearCanvas) {
+  WorkbookView.prototype.onShowDrawingObjects = function() {
     var ws = this.getWorksheet();
-    ws.objectRender.showDrawingObjects(clearCanvas);
+    ws.objectRender.showDrawingObjects();
   };
 
   WorkbookView.prototype.insertHyperlink = function(options) {

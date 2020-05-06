@@ -2804,7 +2804,7 @@
         this._fixSelectionOfMergedCells();
         this._drawElements(this.af_drawButtons);
         this.cellCommentator.drawCommentCells();
-        this.objectRender.showDrawingObjectsEx(true);
+        this.objectRender.showDrawingObjectsEx();
         if (this.overlayCtx) {
             this._drawSelection();
         }
@@ -7184,8 +7184,7 @@
 
             this._drawCellsAndBorders(null, range);
             this.af_drawButtons(range, offsetX, offsetY);
-            this.objectRender.showDrawingObjectsEx(false,
-              new AscFormat.GraphicOption(this, AscCommonExcel.c_oAscScrollType.ScrollVertical, range, {
+            this.objectRender.showDrawingObjectsEx(new AscFormat.GraphicOption(false, range, {
                   offsetX: offsetX, offsetY: offsetY
               }));
             if (0 < cFrozen) {
@@ -7196,8 +7195,7 @@
 				this._drawGroupData(null, range, offsetX);
                 this._drawCellsAndBorders(null, range, offsetX);
                 this.af_drawButtons(range, offsetX, offsetY);
-                this.objectRender.showDrawingObjectsEx(false,
-                  new AscFormat.GraphicOption(this, AscCommonExcel.c_oAscScrollType.ScrollVertical, range, {
+                this.objectRender.showDrawingObjectsEx(new AscFormat.GraphicOption(false, range, {
                       offsetX: offsetX, offsetY: offsetY
                   }));
             }
@@ -7346,8 +7344,7 @@
 			this._drawGroupData(null, range, undefined, undefined, true);
             this._drawCellsAndBorders(null, range);
             this.af_drawButtons(range, offsetX, offsetY);
-            this.objectRender.showDrawingObjectsEx(false,
-              new AscFormat.GraphicOption(this, AscCommonExcel.c_oAscScrollType.ScrollHorizontal, range, {
+            this.objectRender.showDrawingObjectsEx(new AscFormat.GraphicOption(false, range, {
                   offsetX: offsetX, offsetY: offsetY
               }));
             if (rFrozen) {
@@ -7358,8 +7355,7 @@
 				this._drawGroupData(null, range, undefined, offsetY, true);
                 this._drawCellsAndBorders(null, range, undefined, offsetY);
                 this.af_drawButtons(range, offsetX, offsetY);
-                this.objectRender.showDrawingObjectsEx(false,
-                  new AscFormat.GraphicOption(this, AscCommonExcel.c_oAscScrollType.ScrollHorizontal, range, {
+                this.objectRender.showDrawingObjectsEx(new AscFormat.GraphicOption(false, range, {
                       offsetX: offsetX, offsetY: offsetY
                   }));
             }
