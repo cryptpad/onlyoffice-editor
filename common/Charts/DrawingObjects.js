@@ -1339,7 +1339,7 @@ GraphicOption.prototype.getOffset = function () {
         var taskLen = aDrawTasks.length;
         if ( taskLen ) {
             var lastTask = aDrawTasks[taskLen - 1];
-            _this.showDrawingObjectsEx(lastTask.graphicOption);
+            _this.showDrawingObjectsEx(lastTask);
             aDrawTasks.splice(0, (taskLen - 1 > 0) ? taskLen - 1 : 1);
         }
         _this.animId = null;
