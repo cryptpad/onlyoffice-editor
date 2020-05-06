@@ -2208,10 +2208,8 @@ GraphicOption.prototype.getOffset = function () {
             worksheet.model.Drawings = aObjects;
         }
         var bChangedFrozen = _this.lastForzenPlaceNum !== _this.drawingArea.frozenPlaces.length;
-        if ( _this.controller.selectedObjects.length || _this.drawingArea.frozenPlaces.length > 1 || bChangedFrozen || window['Asc']['editor'].watermarkDraw) {
-            _this.OnUpdateOverlay();
-            _this.controller.updateSelectionState(true);
-        }
+        _this.OnUpdateOverlay();
+        _this.controller.updateSelectionState(true);
         _this.lastForzenPlaceNum = _this.drawingArea.frozenPlaces.length;
     };
 
