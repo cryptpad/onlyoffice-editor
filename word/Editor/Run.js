@@ -10900,7 +10900,7 @@ ParaRun.prototype.GetFootnoteRefsInRange = function(arrFootnotes, _CurLine, _Cur
 
 	for (var CurPos = StartPos; CurPos < EndPos; CurPos++)
 	{
-		if (para_FootnoteReference === this.Content[CurPos].Type)
+		if (para_FootnoteReference === this.Content[CurPos].Type || para_EndnoteReference === this.Content[CurPos].Type)
 			arrFootnotes.push(this.Content[CurPos]);
 	}
 };

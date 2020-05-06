@@ -16306,7 +16306,6 @@ CDocument.prototype.AddFootnote = function(sText)
 	{
 		this.StartAction(AscDFH.historydescription_Document_AddFootnote);
 
-		var nDocPosType = this.GetDocPosType();
 		if (docpostype_Content === nDocPosType)
 		{
 			var oFootnote = this.Footnotes.CreateFootnote();
@@ -16399,9 +16398,13 @@ CDocument.prototype.GotoFootnote = function(isNext)
 		return;
 	}
 
-	if (docpostype_HdrFtr == this.CurPos.Type)
+	if (docpostype_HdrFtr === nDocPosType)
 	{
 		this.EndHdrFtrEditing(true);
+	}
+	else if (docpostype_Endnotes === nDocPosType)
+	{
+		this.EndEndnotesEditing();
 	}
 	else if (docpostype_DrawingObjects === nDocPosType)
 	{
@@ -16528,11 +16531,10 @@ CDocument.prototype.AddEndnote = function(sText)
 	if (docpostype_Content !== nDocPosType && docpostype_Endnotes !== nDocPosType)
 		return;
 
-	if (false === this.Document_Is_SelectionLocked(changestype_Paragraph_Content))
+	if (!this.IsSelectionLocked(changestype_Paragraph_Content))
 	{
 		this.StartAction(AscDFH.historydescription_Document_AddEndnote);
 
-		var nDocPosType = this.GetDocPosType();
 		if (docpostype_Content === nDocPosType)
 		{
 			var oEndnote = this.Endnotes.CreateEndnote();
@@ -16549,14 +16551,12 @@ CDocument.prototype.AddEndnote = function(sText)
 			else
 				this.AddToParagraph(new ParaEndnoteReference(oEndnote));
 
-			// TODO: Реализовать
-			//this.SetDocPosType(docpostype_Footnotes);
-			//this.Footnotes.Set_CurrentElement(true, 0, oFootnote);
+			this.SetDocPosType(docpostype_Endnotes);
+			this.Endnotes.Set_CurrentElement(true, 0, oEndnote);
 		}
 		else if (docpostype_Endnotes === nDocPosType)
 		{
-			// TODO: Реализовать
-			//this.Footnotes.AddFootnoteRef();
+			this.Endnotes.AddEndnoteRef();
 		}
 
 		this.Recalculate();
@@ -18827,7 +18827,7 @@ CDocument.prototype.controller_IsMovingTableBorder = function()
 };
 CDocument.prototype.controller_CheckPosInSelection = function(X, Y, PageAbs, NearPos)
 {
-	if (true === this.Footnotes.CheckHitInFootnote(X, Y, PageAbs))
+	if (this.Footnotes.CheckHitInFootnote(X, Y, PageAbs) || this.Endnotes.CheckHitInEndnote(X, Y, PageAbs))
 		return false;
 
 	if (true === this.Selection.Use)
@@ -20759,6 +20759,7 @@ CDocument.prototype.OnCreateNewHistoryPoint = function()
 {
 	this.AllParagraphsList = null;
 	this.AllFootnotesList  = null;
+	this.AllEndnotesList   = null;
 };
 /**
  * Получаем массив положений, к которым можно привязать гиперссылку
@@ -24496,6 +24497,7 @@ window['AscCommonWord'].docpostype_Content        = docpostype_Content;
 window['AscCommonWord'].docpostype_HdrFtr         = docpostype_HdrFtr;
 window['AscCommonWord'].docpostype_DrawingObjects = docpostype_DrawingObjects;
 window['AscCommonWord'].docpostype_Footnotes      = docpostype_Footnotes;
+window['AscCommonWord'].docpostype_Endnotes       = docpostype_Endnotes;
 
 window['AscCommon'].Page_Width = Page_Width;
 window['AscCommon'].Page_Height = Page_Height;

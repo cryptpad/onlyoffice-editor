@@ -2058,6 +2058,20 @@ ParaSeparator.prototype.UpdateWidth = function(PRS)
 	this.Width        = nWidth;
 	this.WidthVisible = nWidth;
 };
+ParaSeparator.prototype.SaveRecalculateObject = function(isCopy)
+{
+	return {
+		Width : this.Width
+	};
+};
+ParaSeparator.prototype.LoadRecalculateObject = function(oRecalcObj)
+{
+	this.Width        = oRecalcObj.Width;
+	this.WidthVisible = oRecalcObj.Width;
+};
+ParaSeparator.PrepareRecalculateObject = function()
+{
+};
 
 /**
  * Класс представляющий собой длинный разделитель (который в основном используется для сносок).
@@ -2112,6 +2126,20 @@ ParaContinuationSeparator.prototype.UpdateWidth = function(PRS)
 
 	this.Width        = nWidth;
 	this.WidthVisible = nWidth;
+};
+ParaContinuationSeparator.prototype.SaveRecalculateObject = function(isCopy)
+{
+	return {
+		Width : this.Width
+	};
+};
+ParaContinuationSeparator.prototype.LoadRecalculateObject = function(oRecalcObj)
+{
+	this.Width        = oRecalcObj.Width;
+	this.WidthVisible = oRecalcObj.Width;
+};
+ParaContinuationSeparator.PrepareRecalculateObject = function()
+{
 };
 
 

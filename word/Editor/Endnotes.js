@@ -775,6 +775,23 @@ CEndnotesController.prototype.Set_CurrentElement = function(bUpdateStates, PageA
 		}
 	}
 };
+CEndnotesController.prototype.AddEndnoteRef = function()
+{
+	if (true !== this.private_IsOneEndnoteSelected() || null === this.CurEndnote)
+		return;
+
+	var oEndnote   = this.CurEndnote;
+	var oParagraph = oEndnote.GetFirstParagraph();
+	if (!oParagraph)
+		return;
+
+	var oStyles = this.LogicDocument.GetStyles();
+
+	var oRun = new ParaRun(oParagraph, false);
+	oRun.AddToContent(0, new ParaEndnoteRef(oEndnote), false);
+	oRun.SetRStyle(oStyles.GetDefaultEndnoteReference());
+	oParagraph.Add_ToContent(0, oRun);
+};
 CEndnotesController.prototype.GetCurEndnote = function()
 {
 	return this.CurEndnote;

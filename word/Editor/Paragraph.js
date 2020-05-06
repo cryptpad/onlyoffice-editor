@@ -16634,7 +16634,7 @@ CRunRecalculateObject.prototype =
         {
             var Item = Run.Content[Index];
 
-			if (para_PageNum === Item.Type || para_Drawing === Item.Type || para_FieldChar === Item.Type)
+			if (para_PageNum === Item.Type || para_Drawing === Item.Type || para_FieldChar === Item.Type || para_Separator === Item.Type || para_ContinuationSeparator === Item.Type)
 				this.Content[Index2++] = Item.SaveRecalculateObject(Copy);
         }
     },
@@ -16646,7 +16646,7 @@ CRunRecalculateObject.prototype =
         {
             var Item = Run.Content[Index];
 
-			if (para_PageNum === Item.Type || para_Drawing === Item.Type || para_FieldChar === Item.Type)
+			if (para_PageNum === Item.Type || para_Drawing === Item.Type || para_FieldChar === Item.Type || para_Separator === Item.Type || para_ContinuationSeparator === Item.Type)
 				Item.LoadRecalculateObject(this.Content[Index2++]);
         }
     },
