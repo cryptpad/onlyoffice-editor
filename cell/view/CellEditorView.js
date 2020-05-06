@@ -547,7 +547,6 @@
 		}
 		this._addChars(str, undefined, /*isRange*/true);
 		this.lastRangeLength = str.length;
-		//this._moveCursor(kEndOfText);
 	};
 
 	CellEditor.prototype.move = function () {
