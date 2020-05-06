@@ -9160,24 +9160,24 @@
 			this.cellCommentator.resetLastSelectedId();
 		}
 
+        if (!isChangeSelectionShape) {
+            if (isCoord) {
+                this._drawSelection();
+            } else {
+                this.updateSelectionWithSparklines();
+            }
+        }
+
 		if (this.getSelectionDialogMode()) {
             // Смена диапазона
             this.handlers.trigger("selectionRangeChanged", this.getSelectionRangeValue());
-		} else if (!this.getCellEditMode()) {
+		} else {
 			if (isChangeSelectionShape) {
 				this.handlers.trigger("selectionNameChanged", this.getSelectionName(/*bRangeText*/false));
 				if (!isCoord) {
 					this.handlers.trigger("selectionChanged");
 					this.handlers.trigger("selectionMathInfoChanged", this.getSelectionMathInfo());
 				}
-			}
-		}
-
-		if (!isChangeSelectionShape) {
-			if (!isCoord) {
-				this.updateSelectionWithSparklines();
-			} else {
-				this._drawSelection();
 			}
 		}
 
@@ -9251,12 +9251,10 @@
             if (this.getSelectionDialogMode()) {
                 this.handlers.trigger("selectionRangeChanged", this.getSelectionRangeValue());
             } else {
-                if (!this.getCellEditMode()) {
-                    this.handlers.trigger("selectionNameChanged", this.getSelectionName(/*bRangeText*/true));
-                    if (!isCoord) {
-                        this.handlers.trigger("selectionChanged");
-                        this.handlers.trigger("selectionMathInfoChanged", this.getSelectionMathInfo());
-                    }
+                this.handlers.trigger("selectionNameChanged", this.getSelectionName(/*bRangeText*/true));
+                if (!isCoord) {
+                    this.handlers.trigger("selectionChanged");
+                    this.handlers.trigger("selectionMathInfoChanged", this.getSelectionMathInfo());
                 }
             }
         }

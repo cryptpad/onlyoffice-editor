@@ -3547,17 +3547,14 @@ function OfflineEditor () {
                     selection.activeCell.col = newRange.c1;
                     selection.activeCell.row = newRange.r1;
                 }
-                
-                if (!this.getCellEditMode()) {
-                    if (!this.isSelectionDialogMode) {
-                        this.handlers.trigger("selectionNameChanged", this.getSelectionName(/*bRangeText*/true));
-                        if (!isSelectMode) {
-                            this.handlers.trigger("selectionChanged");
-                            this.handlers.trigger("selectionMathInfoChanged", this.getSelectionMathInfo());
-                        }
-                    } else {
-                        // Смена диапазона
-                        this.handlers.trigger("selectionRangeChanged", this.getSelectionRangeValue());
+
+                if (this.getSelectionDialogMode()) {
+                    this.handlers.trigger("selectionRangeChanged", this.getSelectionRangeValue());
+                } else {
+                    this.handlers.trigger("selectionNameChanged", this.getSelectionName(/*bRangeText*/true));
+                    if (!isSelectMode) {
+                        this.handlers.trigger("selectionChanged");
+                        this.handlers.trigger("selectionMathInfoChanged", this.getSelectionMathInfo());
                     }
                 }
             } else {
