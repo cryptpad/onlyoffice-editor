@@ -7639,7 +7639,6 @@
             target: c_oTargetType.MoveResizeRange,
             col: res.col,
             row: res.row,
-            formulaRange: oFormulaRange,
             indexFormulaRange: i
         } : null;
     };

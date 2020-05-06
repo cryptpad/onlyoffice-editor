@@ -4944,14 +4944,11 @@ window["native"]["offline_mouse_down"] = function(x, y, pin, isViewerMode, isFor
             var ct = ws.getCursorTypeFromXY(x, y);
             
             ws.startCellMoveResizeRange = null;
-            
-            var rangeChange = new window["Asc"].Range(c1, r1, c2, r2);
+
             var target = {
-            formulaRange: rangeChange,
             row: ct.row,
             col: ct.col,
             target: ct.target,
-            targetArr: isChartRange ? -1 : 0,
             cursor: "se-resize",
             indexFormulaRange: indexRange
             };
@@ -4988,14 +4985,11 @@ window["native"]["offline_mouse_move"] = function(x, y, isViewerMode, isRangeRes
     if (isRangeResize) {
         if (!isViewerMode) {
             var ct = ws.getCursorTypeFromXY(x, y);
-            
-            var rangeChange = new window["Asc"].Range(c1, r1, c2, r2);
+
             var target = {
-                //formulaRange: rangeChange,
             row: isChartRange ? ct.row : targetRow,
             col: isChartRange ? ct.col : targetCol,
             target: ct.target,
-            targetArr: isChartRange ? -1 : 0,
             cursor: "se-resize",
             indexFormulaRange: indexRange
             };
