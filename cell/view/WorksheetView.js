@@ -9305,8 +9305,10 @@
     WorksheetView.prototype.changeSelectionDone = function () {
         if (this.stateFormatPainter) {
             this.applyFormatPainter();
+            return true;
 		} else {
 			this.checkSelectionSparkline();
+			return false;
         }
     };
 

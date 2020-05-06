@@ -1106,7 +1106,7 @@
       return;
     }
     var ws = this.getWorksheet();
-    ws.changeSelectionDone();
+   var isStateFormatPainter = ws.changeSelectionDone();
     this._onSelectionNameChanged(ws.getSelectionName(/*bRangeText*/false));
     // Проверим, нужно ли отсылать информацию о ячейке
     var ar = ws.model.selectionRange.getLast();
@@ -1121,7 +1121,7 @@
 
     var ct = ws.getCursorTypeFromXY(x, y);
 
-    if (c_oTargetType.Hyperlink === ct.target && !this.controller.isFormulaEditMode) {
+    if (c_oTargetType.Hyperlink === ct.target && !this.controller.isFormulaEditMode && !isStateFormatPainter) {
       // Проверим замерженность
       var isHyperlinkClick = false;
      if(isSelectOnShape) {
