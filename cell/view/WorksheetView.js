@@ -1297,7 +1297,9 @@
                 // Нашли не пустую ячейку, проверим формат
                 cellType = cell.cellType;
                 isNumberFormat = (null === cellType || CellValueType.Number === cellType);
-                if (isNumberFormat) {
+                var cellRange = this.model.getCell3(r, activeCell.col);
+                var isDateFormat = cellRange.getNumFormat().isDateTimeFormat();
+                if (isNumberFormat && !isDateFormat) {
                     // Это число, мы нашли то, что искали
                     topCell = {
                         c: activeCell.col, r: r, isFormula: cell.isFormula
@@ -1321,7 +1323,9 @@
                     // Нашли не пустую ячейку, проверим формат
                     cellType = cell.cellType;
                     isNumberFormat = (null === cellType || CellValueType.Number === cellType);
-                    if (isNumberFormat) {
+                    var cellRange = this.model.getCell3(activeCell.row, c);
+                    var isDateFormat = cellRange.getNumFormat().isDateTimeFormat();
+                    if (isNumberFormat && !isDateFormat) {
                         // Это число, мы нашли то, что искали
                         leftCell = {
                             r: activeCell.row, c: c
