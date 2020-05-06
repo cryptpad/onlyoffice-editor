@@ -2156,10 +2156,15 @@ GraphicOption.prototype.getOffset = function () {
 
             if(aObjects.length > 0) {
                 var shapeCtx = api.wb.shapeCtx;
-                if (graphicOption) {
+                var updatedRange = null;
+                var offsetScroll = null;
+                if(graphicOption) {
+                    updatedRange = graphicOption.getUpdatedRange();
+                    offsetScroll = graphicOption.getOffset();
+                }
+                if (updatedRange && offsetScroll) {
                     // Выставляем нужный диапазон для отрисовки
                     var updatedRect = { x: 0, y: 0, w: 0, h: 0 };
-                    var updatedRange = graphicOption.getUpdatedRange();
 
 					var x1 = worksheet._getColLeft(updatedRange.c1);
                     var y1 = worksheet._getRowTop(updatedRange.r1);
@@ -2174,7 +2179,6 @@ GraphicOption.prototype.getOffset = function () {
                     updatedRect.w = pxToMm(w);
                     updatedRect.h = pxToMm(h);
 
-					var offsetScroll = graphicOption.getOffset();
                     shapeCtx.m_oContext.save();
                     shapeCtx.m_oContext.beginPath();
                     shapeCtx.m_oContext.rect(x1 - offsetScroll.offsetX, y1 - offsetScroll.offsetY, w, h);
