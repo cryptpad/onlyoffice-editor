@@ -2248,8 +2248,6 @@
 
 	WorkbookView.prototype.preInsertFormula = function() {
 		var t = this, ws = this.getWorksheet();
-		var activeCellRange = ws.getActiveCell(0, 0, false);
-		var selectionRange = ws.model.selectionRange.clone();
 		var functionInfo = null;
 
 		if (this.getCellEditMode()) {
@@ -2282,6 +2280,9 @@
 			if (this.collaborativeEditing.getGlobalLock()) {
 				return;
 			}
+
+			var activeCellRange = ws.getActiveCell(0, 0, false);
+			var selectionRange = ws.model.selectionRange.clone();
 
 			var openEditor = function (res) {
 				functionInfo = null;
