@@ -1396,7 +1396,7 @@ var g_oFontProperties = {
 		this.position = value;
 	};
 	GradientStop.prototype.asc_getColor = function () {
-		return this.color ? Asc.colorObjToAscColor(this.color) : this.color;
+		return Asc.colorObjToAscColor(this.color);
 	};
 	GradientStop.prototype.asc_setColor = function (value) {
 		this.color = CorrectAscColor(value);
@@ -1583,13 +1583,13 @@ var g_oFontProperties = {
 		}
 	};
 	PatternFill.prototype.asc_getFgColor = function () {
-		return this.fgColor ? Asc.colorObjToAscColor(this.fgColor) : this.fgColor;
+		return Asc.colorObjToAscColor(this.fgColor);
 	};
 	PatternFill.prototype.asc_setFgColor = function (value) {
 		this.fgColor = CorrectAscColor(value);
 	};
 	PatternFill.prototype.asc_getBgColor = function () {
-		return this.bgColor ? Asc.colorObjToAscColor(this.bgColor) : this.bgColor;
+		return Asc.colorObjToAscColor(this.bgColor);
 	};
 	PatternFill.prototype.asc_setBgColor = function (value) {
 		this.bgColor = CorrectAscColor(value);
@@ -5289,28 +5289,28 @@ function RangeDataManagerElem(bbox, data)
 		return this.manualMin;
 	};
 	sparklineGroup.prototype.asc_getColorSeries = function () {
-		return this.colorSeries ? Asc.colorObjToAscColor(this.colorSeries) : this.colorSeries;
+		return Asc.colorObjToAscColor(this.colorSeries);
 	};
 	sparklineGroup.prototype.asc_getColorNegative = function () {
-		return this.colorNegative ? Asc.colorObjToAscColor(this.colorNegative) : this.colorNegative;
+		return Asc.colorObjToAscColor(this.colorNegative);
 	};
 	sparklineGroup.prototype.asc_getColorAxis = function () {
-		return this.colorAxis ? Asc.colorObjToAscColor(this.colorAxis) : this.colorAxis;
+		return Asc.colorObjToAscColor(this.colorAxis);
 	};
 	sparklineGroup.prototype.asc_getColorMarkers = function () {
-		return this.colorMarkers ? Asc.colorObjToAscColor(this.colorMarkers) : this.colorMarkers;
+		return Asc.colorObjToAscColor(this.colorMarkers);
 	};
 	sparklineGroup.prototype.asc_getColorFirst = function () {
-		return this.colorFirst ? Asc.colorObjToAscColor(this.colorFirst) : this.colorFirst;
+		return Asc.colorObjToAscColor(this.colorFirst);
 	};
 	sparklineGroup.prototype.asc_getColorLast = function () {
-		return this.colorLast ? Asc.colorObjToAscColor(this.colorLast) : this.colorLast;
+		return Asc.colorObjToAscColor(this.colorLast);
 	};
 	sparklineGroup.prototype.asc_getColorHigh = function () {
-		return this.colorHigh ? Asc.colorObjToAscColor(this.colorHigh) : this.colorHigh;
+		return Asc.colorObjToAscColor(this.colorHigh);
 	};
 	sparklineGroup.prototype.asc_getColorLow = function () {
-		return this.colorLow ? Asc.colorObjToAscColor(this.colorLow) : this.colorLow;
+		return Asc.colorObjToAscColor(this.colorLow);
 	};
 	sparklineGroup.prototype.asc_getDataRanges = function () {
 		var arrResultData = [];

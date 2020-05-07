@@ -45,6 +45,10 @@
 	var asc_floor = asc.floor;
 
 	function colorObjToAscColor(color) {
+		if (!color) {
+			return color;
+		}
+
 		var oRes = null;
 		var r = color.getR();
 		var g = color.getG();
