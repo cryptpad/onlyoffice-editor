@@ -8764,7 +8764,6 @@
         var r1 = mc ? mc.r1 : cell.row;
         var c = this._getVisibleCell(c1, r1);
 		var font = c.getFont(true);
-		var fa = font.getVerticalAlign();
         var bg = c.getFillColor();
         var align = c.getAlign();
         var cellType = c.getType();
@@ -8831,16 +8830,7 @@
         cell_info.flags.lockText = ("" !== cell_info.text && (isNumberFormat || c.isFormula()));
 
         cell_info.font = new asc_CFont();
-		cell_info.font.name = font.getName();
-		cell_info.font.size = font.getSize();
-		cell_info.font.bold = font.getBold();
-		cell_info.font.italic = font.getItalic();
-		// ToDo убрать, когда будет реализовано двойное подчеркивание
-		cell_info.font.underline = (Asc.EUnderline.underlineNone !== font.getUnderline());
-		cell_info.font.strikeout = font.getStrikeout();
-		cell_info.font.subscript = fa === AscCommon.vertalign_SubScript;
-		cell_info.font.superscript = fa === AscCommon.vertalign_SuperScript;
-        cell_info.font.color = asc_obj2Color(font.getColor());
+        cell_info.font._init(font);
 
         cell_info.fill = new asc_CFill(asc_obj2Color(bg));
 		cell_info.fill2 = c.getFill().clone();

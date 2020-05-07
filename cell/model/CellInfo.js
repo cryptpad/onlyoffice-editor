@@ -82,6 +82,20 @@
 		this.superscript = !!sup;
 	}
 
+	asc_CFont.prototype._init = function (font) {
+		var va = font.getVerticalAlign();
+
+		this.name = font.getName();
+		this.size = font.getSize();
+		this.color = Asc.colorObjToAscColor(font.getColor());
+		this.bold = font.getBold();
+		this.italic = font.getItalic();
+		// ToDo убрать, когда будет реализовано двойное подчеркивание
+		this.underline = (Asc.EUnderline.underlineNone !== font.getUnderline());
+		this.strikeout = font.getStrikeout();
+		this.subscript = va === AscCommon.vertalign_SubScript;
+		this.superscript = va === AscCommon.vertalign_SuperScript;
+	};
 	asc_CFont.prototype.asc_getName = function () {
 		return this.name;
 	};
