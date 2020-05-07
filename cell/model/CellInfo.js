@@ -70,16 +70,16 @@
 	};
 
 	/** @constructor */
-	function asc_CFont(name, size, color, b, i, u, s, sub, sup) {
-		this.name = name !== undefined ? name : "Arial";
-		this.size = size !== undefined ? size : 10;
-		this.color = color !== undefined ? color : null;
-		this.bold = !!b;
-		this.italic = !!i;
-		this.underline = !!u;
-		this.strikeout = !!s;
-		this.subscript = !!sub;
-		this.superscript = !!sup;
+	function asc_CFont() {
+		this.name = null;
+		this.size = null;
+		this.color = null;
+		this.bold = false;
+		this.italic = false;
+		this.underline = false;
+		this.strikeout = false;
+		this.subscript = false;
+		this.superscript = false;
 	}
 
 	asc_CFont.prototype._init = function (font) {

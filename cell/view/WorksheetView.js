@@ -8937,6 +8937,7 @@
         if (!paraPr && textPr) {
             paraPr = new CParaPr();
         }
+        objectInfo.font = new asc_CFont();
         if (textPr && paraPr) {
             objectInfo.text = this.objectRender.controller.GetSelectedText(true);
 
@@ -8977,7 +8978,6 @@
             objectInfo.valign = vertAlign;
             objectInfo.angle = angle;
 
-            objectInfo.font = new asc_CFont();
             objectInfo.font.name = textPr.FontFamily ? textPr.FontFamily.Name : null;
             objectInfo.font.size = textPr.FontSize;
             objectInfo.font.bold = textPr.Bold;
@@ -9013,11 +9013,6 @@
                 objectInfo.hyperlink = new asc_CHyperlink(hyperlink);
                 objectInfo.hyperlink.asc_setText(shapeHyperlink.GetSelectedText(true, true));
             }
-        } else {
-            // Может быть не задано текста, поэтому выставим по умолчанию
-            objectInfo.font = new asc_CFont();
-            objectInfo.font.name = null;
-            objectInfo.font.size = null;
         }
 
         // Заливка не нужна как таковая
