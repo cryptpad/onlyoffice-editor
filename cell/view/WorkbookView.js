@@ -2112,17 +2112,6 @@
 	// Вставка формулы в редактор
 	WorkbookView.prototype.insertInCellEditor = function (name, type, autoComplete) {
 		var t = this, ws = this.getWorksheet(), cursorPos, isNotFunction, tmp;
-		var activeCellRange = ws.getActiveCell(0, 0, false);
-
-		if (ws.model.inPivotTable(activeCellRange)) {
-			this.handlers.trigger("asc_onError", c_oAscError.ID.LockedCellPivot, c_oAscError.Level.NoCritical);
-			return;
-		}
-
-		if (c_oAscPopUpSelectorType.None === type) {
-			ws.setSelectionInfo("value", name, /*onlyActive*/true);
-			return;
-		}
 
 		isNotFunction = c_oAscPopUpSelectorType.Func !== type && c_oAscPopUpSelectorType.FuncWizard !== type;
 
@@ -2161,6 +2150,18 @@
 				t.handlers.trigger("asc_onSendFunctionWizardInfo", funcInfo);
 			}
 		} else {
+		    // ToDo move this in next if
+            var activeCellRange = ws.getActiveCell(0, 0, false);
+            if (ws.model.inPivotTable(activeCellRange)) {
+                this.handlers.trigger("asc_onError", c_oAscError.ID.LockedCellPivot, c_oAscError.Level.NoCritical);
+                return;
+            }
+
+            if (c_oAscPopUpSelectorType.None === type) {
+                ws.setSelectionInfo("value", name, /*onlyActive*/true);
+                return;
+            }
+
 			// Проверка глобального лока
 			if (this.collaborativeEditing.getGlobalLock()) {
 				return;
