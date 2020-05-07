@@ -808,7 +808,7 @@
 					range = oSelectionRange.getLast();
 					range.assign2(bboxOper);
 					range.cursorePos = range.colorRangePos = r.start + 1;
-					range.formulaRangeLength = range.colorRangeLength = r.end - r.start;
+					range.formulaRangeLength = r.end - r.start;
 					range.isName = isName;
 				}
 			}
@@ -834,7 +834,9 @@
 				if (t.cursorPos >= a.cursorePos && t.cursorPos <= a.cursorePos + a.formulaRangeLength) {
 					range = a.clone(true);
 					range.isName = a.isName;
-					return {index: a.cursorePos, length: a.formulaRangeLength, range: range};
+					range.formulaRangeLength = a.formulaRangeLength;
+					range.cursorePos = a.cursorePos;
+					return {range: range};
 				}
 			}
 		}
@@ -926,17 +928,20 @@
 					range = t._parseRangeStr(refStr);
 					if (range) {
 						if (ws.getName() !== wsName) {
-							return {index: -1, length: 0, range: null};
+							return {range: null};
 						}
 						range.isName = isName;
-						return {index: _s, length: refStr.length, range: range, wsName: wsName};
+						range.formulaRangeLength = refStr.length;
+						range.cursorePos = _s;
+						return {range: range, wsName: wsName};
 					}
 				}
 			}
 		}
 		range ? range.isName = isName : null;
-		return !range ? {index: -1, length: 0, range: null} :
-		{index: _s, length: r.oper.value.length, range: range, wsName: wsName};
+		range ? range.formulaRangeLength = r.oper.value.length : null;
+		range ? range.cursorePos = _s : null;
+		return !range ? {range: null} : {range: range, wsName: wsName};
 	};
 
 	CellEditor.prototype._updateTopLineActive = function (state) {
@@ -1005,7 +1010,7 @@
 					}
 					tmpColors.push(colorIndex);
 
-					this._extractFragments(val.colorRangePos, val.colorRangeLength, fragments);
+					this._extractFragments(val.cursorePos, val.formulaRangeLength, fragments);
 					first = this._findFragment(val.cursorePos, fragments);
 					last = this._findFragment(val.cursorePos + val.formulaRangeLength - 1, fragments);
 					if (first && last) {
@@ -2493,11 +2498,8 @@
 				var res = this._findRangeUnderCursor();
 				if (res.range) {
 					res.range.switchReference();
-					var _range = res.range.clone();
-					_range.cursorePos = res.index;
-					_range.formulaRangeLength = res.length;
 					// ToDo add change ref to other sheet
-					this.changeCellRange(_range);
+					this.changeCellRange(res.range);
 				}
 
 				event.stopPropagation();
