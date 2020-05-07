@@ -3646,8 +3646,8 @@ CDocument.prototype.Recalculate_PageColumn                   = function()
     var StartIndex         = this.FullRecalc.StartIndex;
     var bResetStartElement = this.FullRecalc.ResetStartElement;
 
-     // console.log("Page " + PageIndex + " Section " + SectionIndex + " Column " + ColumnIndex + " Element " + StartIndex);
-     // console.log(this.RecalcInfo);
+	// console.log("Page " + PageIndex + " Section " + SectionIndex + " Column " + ColumnIndex + " Element " + StartIndex);
+	// console.log(this.RecalcInfo);
 
     var StartPos = this.Get_PageContentStartPos2(PageIndex, ColumnIndex, 0, StartIndex);
 
@@ -4250,21 +4250,16 @@ CDocument.prototype.Recalculate_PageColumn                   = function()
 
     if (Index >= Count)
     {
-		// Пересчет основной части документа законечен. Возможна ситуация, при которой последние сноски с данной
+		// Пересчет основной части документа закончен. Возможна ситуация, при которой последние сноски с данной
 		// страницы переносятся на следующую (т.е. остались непересчитанные сноски). Эти сноски нужно пересчитать
 		if (_bEndnotesContinue || this.Footnotes.HaveContinuesFootnotes(PageIndex, ColumnIndex))
 		{
-			bContinue    = true;
-			_PageIndex   = PageIndex;
-			_ColumnIndex = ColumnIndex + 1;
-			if (_ColumnIndex >= ColumnsCount)
-			{
-				_ColumnIndex = 0;
-				_PageIndex   = PageIndex + 1;
-			}
-
-			_bStart     = true;
-			_StartIndex = Count;
+			bContinue     = true;
+			_PageIndex    = ColumnIndex >= ColumnsCount - 1 ? PageIndex + 1 : PageIndex;
+			_ColumnIndex  = ColumnIndex >= ColumnsCount - 1 ? 0 : ColumnIndex + 1;
+			_SectionIndex = ColumnIndex >= ColumnsCount - 1 ? 0 : SectionIndex;
+			_bStart       = true;
+			_StartIndex   = Count;
 		}
 		else
 		{
