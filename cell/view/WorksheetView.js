@@ -14247,8 +14247,7 @@
 		return true;
 	};
 
-	WorksheetView.prototype.openCellEditor =
-		function (editor, cursorPos, isFocus, isClearCell, isHideCursor, isQuickInput, selectionRange) {
+	WorksheetView.prototype.openCellEditor = function (editor, enterOptions, selectionRange) {
 			var t = this, col, row, c, fl, mc, bg, isMerged;
 
 			if (selectionRange) {
@@ -14320,17 +14319,13 @@
 			this.model.workbook.handlers.trigger("cleanCutData", true, true);
 
 			editor.open({
+                enterOptions: enterOptions,
 				fragments: fragments,
 				flags: fl,
 				font: font,
 				background: bg || this.settings.cells.defaultState.background,
-				cursorPos: cursorPos,
 				zoom: this.getZoom(),
-				focus: isFocus,
-				isClearCell: isClearCell,
-				isHideCursor: isHideCursor,
-				isQuickInput: isQuickInput,
-				isAddPersentFormat: isQuickInput && Asc.c_oAscNumFormatType.Percent === c.getNumFormatType(),
+				isAddPersentFormat: enterOptions.quickInput && Asc.c_oAscNumFormatType.Percent === c.getNumFormatType(),
 				autoComplete: arrAutoComplete,
 				autoCompleteLC: arrAutoCompleteLC,
 				bbox: c.bbox,
@@ -14487,22 +14482,6 @@
 			});
 			this.model.workbook.handlers.trigger("asc_onEditCell", Asc.c_oAscCellEditorState.editStart);
 		};
-
-    WorksheetView.prototype.openCellEditorWithText = function (editor, text, cursorPos, isFocus, selectionRange) {
-        selectionRange = (selectionRange) ? selectionRange : this.model.selectionRange;
-        var activeCell = selectionRange.activeCell;
-        var c = this._getVisibleCell(activeCell.col, activeCell.row);
-        var v, copyValue;
-        // get first fragment and change its text
-        v = c.getValueForEdit2().slice(0, 1);
-        // Создаем новый массив, т.к. getValueForEdit2 возвращает ссылку
-        copyValue = [];
-        copyValue[0] = new AscCommonExcel.Fragment({text: text, format: v[0].format.clone()});
-
-        this.openCellEditor(editor, /*cursorPos*/undefined, isFocus, /*isClearCell*/true,
-			/*isHideCursor*/false, /*isQuickInput*/false, selectionRange);
-		editor.paste(copyValue, cursorPos);
-    };
 
     WorksheetView.prototype.updateRanges = function (ranges, skipHeight) {
         if (0 < ranges.length) {

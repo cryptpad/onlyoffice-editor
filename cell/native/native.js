@@ -5195,7 +5195,6 @@ window["native"]["offline_cell_editor_open"] = function(x, y, width, height, rat
     _null_object.height = height * ratio;
     
     var wb = _api.wb;
-    var ws = _api.wb.getWorksheet();
     
     var range =  ws.visibleRange.clone();
     ws.visibleRange.c1 = c1;
@@ -5206,18 +5205,15 @@ window["native"]["offline_cell_editor_open"] = function(x, y, width, height, rat
     wb.cellEditor.isSelectAll = isSelectAll;
     
     if (!isFormulaInsertMode) {
-        
-        var isFocus = undefined, isClearCell = undefined, isHideCursor = true, isQuickInput = false;
-        
         var t = wb;
         
         var ws = t.getWorksheet();
-        var activeCellRange = ws.getActiveCell(0, 0, false);
         var selectionRange = ws.model.selectionRange.clone();
         
         t.setCellEditMode(true);
-        ws.openCellEditor(t.cellEditor, /*cursorPos*/undefined, isFocus, isClearCell,
-                          /*isHideCursor*/isHideCursor, /*isQuickInput*/isQuickInput, selectionRange);
+        var enterOptions = new AscCommonExcel.CEditorEnterOptions();
+        enterOptions.hideCursor = true;
+        ws.openCellEditor(t.cellEditor, enterOptions, selectionRange);
         //t.input.disabled = false;
 
         t.Api.cleanSpelling();
@@ -5227,7 +5223,7 @@ window["native"]["offline_cell_editor_open"] = function(x, y, width, height, rat
     }
     
     ws.visibleRange = range;
-}
+};
 window["native"]["offline_cell_editor_test_cells"] = function(x, y, width, height, ratio, isSelectAll, isFormulaInsertMode, c1, r1, c2, r2)  {
     _null_object.width = width * ratio;
     _null_object.height = height * ratio;

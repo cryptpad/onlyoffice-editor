@@ -2638,6 +2638,14 @@
 		asc_CAutoCorrectOptions.prototype.asc_getOptions = function () {return this.options;};
 		asc_CAutoCorrectOptions.prototype.asc_getCellCoord = function () {return this.cellCoord;};
 
+		function CEditorEnterOptions() {
+			this.cursorPos = null;
+			this.focus = false;
+			this.newText = null;
+			this.hideCursor = false;
+			this.quickInput = false;
+		}
+
 		/** @constructor */
 		function cDate() {
 			var bind = Function.bind;
@@ -2797,10 +2805,10 @@
 		window['AscCommonExcel'].c_sPerDay = c_sPerDay;
 		window['AscCommonExcel'].c_msPerDay = c_msPerDay;
 		window["AscCommonExcel"].applyFunction = applyFunction;
-		window['AscCommonExcel'].cDate = cDate;
-		window["Asc"]["cDate"] = window["Asc"].cDate = cDate;
-		prot									     = cDate.prototype;
-		prot["getExcelDateWithTime"]	             = prot.getExcelDateWithTime;
+
+		window["Asc"]["cDate"] = window["Asc"].cDate = window['AscCommonExcel'].cDate = cDate;
+		prot = cDate.prototype;
+		prot["getExcelDateWithTime"] = prot.getExcelDateWithTime;
 
 		window["Asc"].typeOf = typeOf;
 		window["Asc"].lastIndexOf = lastIndexOf;
@@ -2959,5 +2967,7 @@
 		prot["asc_getType"] = prot.asc_getType;
 		prot["asc_getOptions"] = prot.asc_getOptions;
 		prot["asc_getCellCoord"] = prot.asc_getCellCoord;
+
+		window['AscCommonExcel'].CEditorEnterOptions = CEditorEnterOptions;
 
 })(window);

@@ -479,7 +479,9 @@
           self.controller.setStrictClose(true);
           self.cellEditor.callTopLineMouseup = true;
           if (!self.getCellEditMode() && !self.controller.isFillHandleMode) {
-            self._onEditCell(/*isFocus*/true);
+            var enterOptions = new AscCommonExcel.CEditorEnterOptions();
+            enterOptions.focus = true;
+            self._onEditCell(enterOptions);
           }
         }, false);
 
@@ -521,7 +523,10 @@
         }
 
         if (!self.isCellEditMode) {
-          self._onEditCell(false, true, undefined, true, function () {
+          var enterOptions = new AscCommonExcel.CEditorEnterOptions();
+          enterOptions.newText = '';
+          enterOptions.quickInput = true;
+          self._onEditCell(enterOptions, function () {
             self.cellEditor.Begin_CompositeInput();
           });
         } else {
@@ -600,7 +605,7 @@
       	}
 
       	if (!self.isCellEditMode) {
-      		self._onEditCell(undefined, undefined, undefined, false, function () {
+      		self._onEditCell(new AscCommonExcel.CEditorEnterOptions(), function () {
 				self.cellEditor.setTextStyle('fn', familyName);
 				self.cellEditor._addCharCodes(arrCharCodes);
 			});
@@ -1458,7 +1463,7 @@
   };
 
   // Double click
-  WorkbookView.prototype._onMouseDblClick = function(x, y, isHideCursor, callback) {
+  WorkbookView.prototype._onMouseDblClick = function(x, y, callback) {
     var ws = this.getWorksheet();
     var ct = ws.getCursorTypeFromXY(x, y);
 
@@ -1483,7 +1488,9 @@
       }
 
       // При dbl клике фокус выставляем в зависимости от наличия текста в ячейке
-      this._onEditCell(/*isFocus*/undefined, /*isClearCell*/undefined, /*isHideCursor*/isHideCursor, /*isQuickInput*/false);
+      var enterOptions = new AscCommonExcel.CEditorEnterOptions();
+      enterOptions.focus = null;
+      this._onEditCell(enterOptions);
     }
   };
 
@@ -1494,7 +1501,7 @@
 		}
 	};
 
-  WorkbookView.prototype._onEditCell = function(isFocus, isClearCell, isHideCursor, isQuickInput, callback) {
+  WorkbookView.prototype._onEditCell = function (enterOptions, callback) {
     var t = this;
 
     // Проверка глобального лока
@@ -1515,8 +1522,7 @@
     var editFunction = function() {
       t.setCellEditMode(true);
       t.hideSpecialPasteButton();
-      ws.openCellEditor(t.cellEditor, /*cursorPos*/undefined, isFocus, isClearCell,
-        /*isHideCursor*/isHideCursor, /*isQuickInput*/isQuickInput, selectionRange);
+      ws.openCellEditor(t.cellEditor, enterOptions, selectionRange);
       t.input.disabled = false;
 
       t.Api.cleanSpelling(true);
@@ -2202,16 +2208,22 @@
 					}
 					t.hideSpecialPasteButton();
 
+                    var enterOptions = new AscCommonExcel.CEditorEnterOptions();
 					if (isFormulaContains) {
 						t.cellEditor.needFindFirstFunction = true;
-						ws.openCellEditor(t.cellEditor, t.cellEditor.cursorPos, false, true, false, false, selectionRange);
+
+						enterOptions.newText = '';
+                        enterOptions.cursorPos = t.cellEditor.cursorPos;
+						ws.openCellEditor(t.cellEditor, enterOptions, selectionRange);
+
 						//TODO вызываю отсюда служебную функцию, пересмотреть!
 						t.cellEditor._moveCursor(-11, t.cellEditor._parseResult.cursorPos + 1);
 
 						t.cellEditor.needFindFirstFunction = null;
 					} else {
 						// Открываем, с выставлением позиции курсора
-						ws.openCellEditorWithText(t.cellEditor, name, cursorPos, /*isFocus*/false, selectionRange);
+                        enterOptions.newText = name;
+                        ws.openCellEditor(t.cellEditor, enterOptions, selectionRange);
 					}
 
 					if (c_oAscPopUpSelectorType.FuncWizard === type) {
@@ -2278,12 +2290,15 @@
 					t.setCellEditMode(true);
 					t.hideSpecialPasteButton();
 
+                    var enterOptions = new AscCommonExcel.CEditorEnterOptions();
 					if (ws.model.isActiveCellFormula()) {
 						//если ячейка с формулой, то либо перемещаемся к первой функции и отркываем диалог wizard
 						//если функции нет, то перемещаемся в конец формулы и открываем окно выбора функции
 
 						t.cellEditor.needFindFirstFunction = true;
-						ws.openCellEditor(t.cellEditor, t.cellEditor.cursorPos, false, true, false, false, selectionRange);
+                        enterOptions.newText = '';
+                        enterOptions.cursorPos = t.cellEditor.cursorPos;
+						ws.openCellEditor(t.cellEditor, enterOptions, selectionRange);
 						t.cellEditor.needFindFirstFunction = null;
 						var parseResult = t.cellEditor._parseResult;
 						if (parseResult && parseResult.activeFunction) {
@@ -2294,7 +2309,8 @@
 							t.cellEditor._moveCursor(-11, t.cellEditor._parseResult.cursorPos + 1);
 						}
 					} else {
-						ws.openCellEditorWithText(t.cellEditor, "=", 1, /*isFocus*/false, selectionRange);
+                        enterOptions.newText = '=';
+                        ws.openCellEditor(t.cellEditor, enterOptions, selectionRange);
 					}
 				}
 

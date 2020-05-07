@@ -947,12 +947,9 @@
 					cSection.appendEditor(t.editorElemId);
 				}
 
-				t._openCellEditor(t.cellEditor, fragments, /*cursorPos*/undefined, false, false, /*isHideCursor*/false, /*isQuickInput*/false, x, y, sectionElem);
+				t._openCellEditor(t.cellEditor, fragments, x, y);
 				t.cellEditor.canvasOuter.style.zIndex = "";
 				cSection.canvasObj.canvas.style.display = "none";
-
-
-				wb.setCellEditMode(true);
 
 				api.asc_enableKeyEvents(true);
 			}
@@ -961,7 +958,7 @@
 		editLockCallback();
 	};
 
-	CHeaderFooterEditor.prototype._openCellEditor = function (editor, fragments, cursorPos, isFocus, isClearCell, isHideCursor, isQuickInput, x, y, sectionElem) {
+	CHeaderFooterEditor.prototype._openCellEditor = function (editor, fragments, x, y) {
 		var t = this;
 
 		var wb = this.wb;
@@ -981,19 +978,17 @@
 		flags.wrapText = true;
 		flags.textAlign = curSection.getAlign();
 
+		var enterOptions = new AscCommonExcel.CEditorEnterOptions();
+		enterOptions.focus = true;
 
 		var options = {
+			enterOptions: new AscCommonExcel.CEditorEnterOptions(),
 			fragments: fragments,
 			flags: flags,
 			font: window['AscCommonExcel'].g_oDefaultFormat.Font,
 			background: ws.settings.cells.defaultState.background,
 			textColor: new window['AscCommonExcel'].RgbColor(0),
-			cursorPos: cursorPos,
 			//zoom: this.getZoom(),
-			focus: true,
-			isClearCell: isClearCell,
-			isHideCursor: isHideCursor,
-			isQuickInput: isQuickInput,
 			autoComplete: [],
 			autoCompleteLC: [],
 			saveValueCallback: function (val, flags) {
@@ -1019,6 +1014,7 @@
 
 		//при клике на одну из секций определяем стартовую позицию
 		//если позиция undefined, ищем конец текста в данном фрагменте
+		var cursorPos;
 		if(undefined === x || undefined === y) {
 			cursorPos = 0;
 			if(editor.options && editor.options.fragments) {
@@ -1031,7 +1027,7 @@
 		}
 
 		wb.setCellEditMode(true);
-		options.cursorPos = cursorPos;
+		options.enterOptions.cursorPos = cursorPos;
 		editor.open(options);
 		wb.input.disabled = false;
 		wb.handlers.trigger("asc_onEditCell", window['Asc'].c_oAscCellEditorState.editStart);

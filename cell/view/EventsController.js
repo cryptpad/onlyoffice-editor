@@ -297,7 +297,7 @@
 		};
 
 		// Будем делать dblClick как в Excel
-		asc_CEventsController.prototype.doMouseDblClick = function (event, isHideCursor) {
+		asc_CEventsController.prototype.doMouseDblClick = function (event) {
 			var t = this;
 			var ctrlKey = !AscCommon.getAltGr(event) && (event.metaKey || event.ctrlKey);
 
@@ -324,7 +324,7 @@
 
 			setTimeout(function () {
 				var coord = t._getCoordinates(event);
-				t.handlers.trigger("mouseDblClick", coord.x, coord.y, isHideCursor, function () {
+				t.handlers.trigger("mouseDblClick", coord.x, coord.y, function () {
 					// Мы изменяли размеры колонки/строки, не редактируем ячейку. Обновим состояние курсора
 					t.handlers.trigger("updateWorksheet", coord.x, coord.y, ctrlKey,
 						function (info) {t.targetInfo = info;});
@@ -667,7 +667,7 @@
 
 		/** @param event {KeyboardEvent} */
 		asc_CEventsController.prototype._onWindowKeyDown = function (event) {
-			var t = this, dc = 0, dr = 0, canEdit = this.canEdit(), action = false;
+			var t = this, dc = 0, dr = 0, canEdit = this.canEdit(), action = false, enterOptions;
 			var ctrlKey = !AscCommon.getAltGr(event) && (event.metaKey || event.ctrlKey);
 			var shiftKey = event.shiftKey;
 			var selectionDialogMode = this.getSelectionDialogMode();
@@ -755,8 +755,9 @@
 					// Выставляем блокировку на выход из редактора по клавишам-стрелкам
 					t.strictClose = true;
 					// При F2 выставляем фокус в редакторе
-					t.handlers.trigger("editCell", /*isFocus*/true, /*isClearCell*/false, /*isHideCursor*/undefined,
-						/*isQuickInput*/false);
+					enterOptions = new AscCommonExcel.CEditorEnterOptions();
+					enterOptions.focus = true;
+					t.handlers.trigger("editCell", enterOptions);
 					return result;
 
 				case 186: // add current date or time Ctrl + (Shift) + ;
@@ -765,8 +766,10 @@
 					}
 
 					// При нажатии символа, фокус не ставим. Очищаем содержимое ячейки
-					this.handlers.trigger("editCell", /*isFocus*/false, /*isClearCell*/true, /*isHideCursor*/undefined,
-						/*isQuickInput*/true, /*callback*/undefined);
+					enterOptions = new AscCommonExcel.CEditorEnterOptions();
+					enterOptions.newText = '';
+					enterOptions.quickInput = true;
+					this.handlers.trigger("editCell", enterOptions);
 					return result;
 
 
@@ -777,8 +780,9 @@
 					stop();
 
 					// При backspace фокус не в редакторе (стираем содержимое)
-					t.handlers.trigger("editCell", /*isFocus*/false, /*isClearCell*/true, /*isHideCursor*/undefined,
-						/*isQuickInput*/false, /*callback*/undefined);
+					enterOptions = new AscCommonExcel.CEditorEnterOptions();
+					enterOptions.newText = '';
+					t.handlers.trigger("editCell", enterOptions);
 					return true;
 
 				case 46: // Del
@@ -1128,15 +1132,16 @@
 				return true;
 			}
 
-			if (!this.getCellEditMode() && this.handlers.trigger("graphicObjectWindowKeyPress", event)) {
-				return true;
-			}
-
 			if (!this.getCellEditMode()) {
-				// При нажатии символа, фокус не ставим
-				// Очищаем содержимое ячейки
-				this.handlers.trigger("editCell", /*isFocus*/false, /*isClearCell*/true, /*isHideCursor*/undefined,
-					/*isQuickInput*/true, /*callback*/undefined);
+				if (this.handlers.trigger("graphicObjectWindowKeyPress", event)) {
+					return true;
+				}
+
+				// При нажатии символа, фокус не ставим и очищаем содержимое ячейки
+				var enterOptions = new AscCommonExcel.CEditorEnterOptions();
+				enterOptions.newText = '';
+				enterOptions.quickInput = true;
+				this.handlers.trigger("editCell", enterOptions);
 			}
 			return true;
 		};
@@ -1360,7 +1365,7 @@
 					this.isDblClickInMouseDown = true;
 					// Нам нужно обработать эвент браузера о dblClick (если мы редактируем ячейку, то покажем курсор, если нет - то просто ничего не произойдет)
 					this.isDoBrowserDblClick = true;
-					this.doMouseDblClick(event, /*isHideCursor*/false);
+					this.doMouseDblClick(event);
 					// Обнуляем координаты
 					this.mouseDownLastCord = null;
 					return;
@@ -1733,7 +1738,7 @@
 
 			// Браузер не поддерживает свойство detail (будем делать по координатам)
 			if (false === this.isDblClickInMouseDown) {
-				return this.doMouseDblClick(event, /*isHideCursor*/false);
+				return this.doMouseDblClick(event);
 			}
 
 			this.isDblClickInMouseDown = false;

@@ -297,7 +297,7 @@
 		this._updateFormulaEditMod( /*bIsOpen*/true);
 		this._draw();
 
-		if (!(options.cursorPos >= 0)) {
+		if (null === options.enterOptions.cursorPos) {
 			if (this.isTopLineActive) {
 				if (typeof b !== "undefined") {
 					if (this.cursorPos !== b) {
@@ -306,8 +306,9 @@
 				} else {
 					this._moveCursor(kEndOfText);
 				}
-			} else if (options.isClearCell) {
+			} else if (null !== options.enterOptions.newText) {
 				this._selectChars(kEndOfText);
+				this._addChars(options.enterOptions.newText);
 			} else {
 				this._moveCursor(kEndOfText);
 			}
@@ -318,7 +319,7 @@
 		 * При F2 выставляем фокус в редакторе
 		 * При dbl клике фокус выставляем в зависимости от наличия текста в ячейке
 		 */
-		this.setFocus(this.isTopLineActive ? true : (undefined !== options.focus) ? options.focus : this._haveTextInEdit());
+		this.setFocus(this.isTopLineActive ? true : (null === options.enterOptions.focus) ? this._haveTextInEdit() : options.enterOptions.focus);
 		this._updateUndoRedoChanged();
 	};
 
@@ -733,7 +734,7 @@
 		this.right = this.sides.r[this.sides.ri];
 		this.bottom = this.sides.b[this.sides.bi];
 
-		this.cursorPos = opt.cursorPos !== undefined ? opt.cursorPos : 0;
+		this.cursorPos = opt.enterOptions.cursorPos !== null ? opt.cursorPos : 0;
 		this.topLineIndex = 0;
 		this.selectionBegin = -1;
 		this.selectionEnd = -1;
@@ -1358,10 +1359,7 @@
 			return;
 		}
 
-		if ( !this.options ) {
-			this.options = {};
-		}
-		this.options.isHideCursor = false;
+		this.options.enterOptions.hideCursor = false;
 		this._showCursor();
 	};
 
@@ -1371,7 +1369,7 @@
 		}
 
 		var t = this;
-		if ( true === t.options.isHideCursor || t.isTopLineActive === true ) {
+		if ( true === t.options.enterOptions.hideCursor || t.isTopLineActive === true ) {
 			return;
 		}
 		window.clearInterval( t.cursorTID );
