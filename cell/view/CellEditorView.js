@@ -2120,7 +2120,7 @@
 		}
 		tmp = this.newTextFormat || this.options.fragments[tmp.index].format;
 
-		var result = new AscCommonExcel.asc_CFont();
+		var result = new AscCommonExcel.CFont();
 		result._init(tmp);
 		this.handlers.trigger("updateEditorSelectionInfo", result);
 	};

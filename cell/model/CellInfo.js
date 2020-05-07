@@ -70,7 +70,7 @@
 	};
 
 	/** @constructor */
-	function asc_CFont() {
+	function CFont() {
 		this.name = null;
 		this.size = null;
 		this.color = null;
@@ -82,7 +82,7 @@
 		this.superscript = false;
 	}
 
-	asc_CFont.prototype._init = function (font) {
+	CFont.prototype._init = function (font) {
 		var va = font.getVerticalAlign();
 
 		this.name = font.getName();
@@ -96,31 +96,31 @@
 		this.subscript = va === AscCommon.vertalign_SubScript;
 		this.superscript = va === AscCommon.vertalign_SuperScript;
 	};
-	asc_CFont.prototype.asc_getName = function () {
+	CFont.prototype.asc_getName = function () {
 		return this.name;
 	};
-	asc_CFont.prototype.asc_getSize = function () {
+	CFont.prototype.asc_getSize = function () {
 		return this.size;
 	};
-	asc_CFont.prototype.asc_getBold = function () {
+	CFont.prototype.asc_getBold = function () {
 		return this.bold;
 	};
-	asc_CFont.prototype.asc_getItalic = function () {
+	CFont.prototype.asc_getItalic = function () {
 		return this.italic;
 	};
-	asc_CFont.prototype.asc_getUnderline = function () {
+	CFont.prototype.asc_getUnderline = function () {
 		return this.underline;
 	};
-	asc_CFont.prototype.asc_getStrikeout = function () {
+	CFont.prototype.asc_getStrikeout = function () {
 		return this.strikeout;
 	};
-	asc_CFont.prototype.asc_getSubscript = function () {
+	CFont.prototype.asc_getSubscript = function () {
 		return this.subscript;
 	};
-	asc_CFont.prototype.asc_getSuperscript = function () {
+	CFont.prototype.asc_getSuperscript = function () {
 		return this.superscript;
 	};
-	asc_CFont.prototype.asc_getColor = function () {
+	CFont.prototype.asc_getColor = function () {
 		return this.color;
 	};
 
@@ -279,7 +279,7 @@
 		this.halign = "left";
 		this.valign = "top";
 		this.flags = null;
-		this.font = new asc_CFont();
+		this.font = new CFont();
 		this.fill = null;
 		this.fill2 = null;
 		this.border = null;
@@ -450,8 +450,8 @@
 	prot["asc_getMultiselect"] = prot.asc_getMultiselect;
 	prot["asc_getLockText"] = prot.asc_getLockText;
 
-	window["AscCommonExcel"].asc_CFont = asc_CFont;
-	prot = asc_CFont.prototype;
+	window["AscCommonExcel"].CFont = CFont;
+	prot = CFont.prototype;
 	prot["asc_getName"] = prot.asc_getName;
 	prot["asc_getSize"] = prot.asc_getSize;
 	prot["asc_getBold"] = prot.asc_getBold;
