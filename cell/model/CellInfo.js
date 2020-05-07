@@ -82,26 +82,32 @@
 		this.superscript = !!sup;
 	}
 
-	asc_CFont.prototype = {
-		asc_getName: function () {
-			return this.name;
-		}, asc_getSize: function () {
-			return this.size;
-		}, asc_getBold: function () {
-			return this.bold;
-		}, asc_getItalic: function () {
-			return this.italic;
-		}, asc_getUnderline: function () {
-			return this.underline;
-		}, asc_getStrikeout: function () {
-			return this.strikeout;
-		}, asc_getSubscript: function () {
-			return this.subscript;
-		}, asc_getSuperscript: function () {
-			return this.superscript;
-		}, asc_getColor: function () {
-			return this.color;
-		}
+	asc_CFont.prototype.asc_getName = function () {
+		return this.name;
+	};
+	asc_CFont.prototype.asc_getSize = function () {
+		return this.size;
+	};
+	asc_CFont.prototype.asc_getBold = function () {
+		return this.bold;
+	};
+	asc_CFont.prototype.asc_getItalic = function () {
+		return this.italic;
+	};
+	asc_CFont.prototype.asc_getUnderline = function () {
+		return this.underline;
+	};
+	asc_CFont.prototype.asc_getStrikeout = function () {
+		return this.strikeout;
+	};
+	asc_CFont.prototype.asc_getSubscript = function () {
+		return this.subscript;
+	};
+	asc_CFont.prototype.asc_getSuperscript = function () {
+		return this.superscript;
+	};
+	asc_CFont.prototype.asc_getColor = function () {
+		return this.color;
 	};
 
 	/** @constructor */
