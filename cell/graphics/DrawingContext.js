@@ -86,7 +86,7 @@
 				oRes.value = themePresentation;
 			}
 		}
-		if (false == bTheme) {
+		if (!bTheme) {
 			oRes = AscCommon.CreateAscColorCustom(r, g, b);
 		}
 		return oRes;

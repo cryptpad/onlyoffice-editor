@@ -8975,24 +8975,10 @@
             objectInfo.valign = vertAlign;
             objectInfo.angle = angle;
 
-            objectInfo.font.name = textPr.FontFamily ? textPr.FontFamily.Name : null;
-            objectInfo.font.size = textPr.FontSize;
-            objectInfo.font.bold = textPr.Bold;
-            objectInfo.font.italic = textPr.Italic;
-            objectInfo.font.underline = textPr.Underline;
-            objectInfo.font.strikeout = textPr.Strikeout;
-            objectInfo.font.subscript = textPr.VertAlign == AscCommon.vertalign_SubScript;
-            objectInfo.font.superscript = textPr.VertAlign == AscCommon.vertalign_SuperScript;
-            if(textPr.Unifill){
-                if(theme){
-                    textPr.Unifill.check(theme, this.objectRender.controller.getColorMap());
-                }
-                var oColor = textPr.Unifill.getRGBAColor();
-                objectInfo.font.color = AscCommon.CreateAscColorCustom(oColor.R, oColor.G, oColor.B);
+            if (textPr.Unifill && theme) {
+                textPr.Unifill.check(theme, this.objectRender.controller.getColorMap());
             }
-            else if (textPr.Color) {
-                objectInfo.font.color = AscCommon.CreateAscColorCustom(textPr.Color.r, textPr.Color.g, textPr.Color.b);
-            }
+            objectInfo.font._initFromTextPr(textPr);
 
             var shapeHyperlink = this.objectRender.controller.getHyperlinkInfo();
             if (shapeHyperlink && (shapeHyperlink instanceof ParaHyperlink)) {

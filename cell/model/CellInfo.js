@@ -96,6 +96,22 @@
 		this.subscript = va === AscCommon.vertalign_SubScript;
 		this.superscript = va === AscCommon.vertalign_SuperScript;
 	};
+	CFont.prototype._initFromTextPr = function (textPr) {
+		this.name = textPr.FontFamily ? textPr.FontFamily.Name : null;
+		this.size = textPr.FontSize;
+		this.bold = textPr.Bold;
+		this.italic = textPr.Italic;
+		this.underline = textPr.Underline;
+		this.strikeout = textPr.Strikeout;
+		this.subscript = textPr.VertAlign === AscCommon.vertalign_SubScript;
+		this.superscript = textPr.VertAlign === AscCommon.vertalign_SuperScript;
+		if (textPr.Unifill) {
+			var oColor = textPr.Unifill.getRGBAColor();
+			this.color = AscCommon.CreateAscColorCustom(oColor.R, oColor.G, oColor.B);
+		} else if (textPr.Color) {
+			this.color = AscCommon.CreateAscColorCustom(textPr.Color.r, textPr.Color.g, textPr.Color.b);
+		}
+	};
 	CFont.prototype.asc_getName = function () {
 		return this.name;
 	};
