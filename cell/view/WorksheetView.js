@@ -72,7 +72,6 @@
     var asc_CMM = AscCommonExcel.asc_CMouseMoveData;
     var asc_VR = AscCommonExcel.VisibleRange;
 
-    var asc_CFont = AscCommonExcel.asc_CFont;
     var asc_CFill = AscCommonExcel.asc_CFill;
     var asc_CCellInfo = AscCommonExcel.asc_CCellInfo;
     var asc_CHyperlink = asc.asc_CHyperlink;
@@ -8829,7 +8828,6 @@
 
         cell_info.flags.lockText = ("" !== cell_info.text && (isNumberFormat || c.isFormula()));
 
-        cell_info.font = new asc_CFont();
         cell_info.font._init(font);
 
         cell_info.fill = new asc_CFill(asc_obj2Color(bg));
@@ -8937,7 +8935,6 @@
         if (!paraPr && textPr) {
             paraPr = new CParaPr();
         }
-        objectInfo.font = new asc_CFont();
         if (textPr && paraPr) {
             objectInfo.text = this.objectRender.controller.GetSelectedText(true);
 

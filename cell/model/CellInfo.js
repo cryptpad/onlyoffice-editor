@@ -279,7 +279,7 @@
 		this.halign = "left";
 		this.valign = "top";
 		this.flags = null;
-		this.font = null;
+		this.font = new asc_CFont();
 		this.fill = null;
 		this.fill2 = null;
 		this.border = null;
