@@ -10410,7 +10410,7 @@
 
         ar = this.oOtherRanges.ranges[index].assign2(ar.clone(true));
         this._drawSelection();
-        editor.changeCellRange(ar);
+        editor.changeCellRange(ar, true);
 
         return d;
     };

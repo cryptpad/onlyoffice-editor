@@ -512,12 +512,14 @@
 		return res;
 	};
 
-	CellEditor.prototype.changeCellRange = function (range) {
+	CellEditor.prototype.changeCellRange = function (range, moveEndOfText) {
 		var t = this;
 		t._moveCursor(kPosition, range.cursorePos);
 		t._selectChars(kPositionLength, range.formulaRangeLength);
 		t._addChars(range.getName(), undefined, /*isRange*/true);
-		t._moveCursor(kEndOfText);
+		if (moveEndOfText) {
+			t._moveCursor(kEndOfText);
+		}
 	};
 
 	CellEditor.prototype.changeCellText = function (str) {
