@@ -8827,7 +8827,7 @@
 
         cell_info.font._init(font);
 
-		cell_info.fill2 = c.getFill().clone();
+		cell_info.fill = c.getFill().clone();
 
 		cell_info.numFormat = c.getNumFormatStr();
         cell_info.numFormatInfo = c.getNumFormatTypeInfo();

@@ -285,7 +285,7 @@
 		this.valign = "top";
 		this.flags = null;
 		this.font = new CFont();
-		this.fill2 = null;
+		this.fill = null;
 		this.border = null;
 		this.innertext = null;
 		this.numFormat = null;
@@ -323,10 +323,10 @@
 		return this.font;
 	};
 	asc_CCellInfo.prototype.asc_getFillColor = function () {
-		return this.fill2 && Asc.colorObjToAscColor(this.fill2.bg());
+		return this.fill && Asc.colorObjToAscColor(this.fill.bg());
 	};
-	asc_CCellInfo.prototype.asc_getFill2 = function () {
-		return this.fill2;
+	asc_CCellInfo.prototype.asc_getFill = function () {
+		return this.fill;
 	};
 	asc_CCellInfo.prototype.asc_getBorders = function () {
 		return this.border;
@@ -518,7 +518,7 @@
 	prot["asc_getFlags"] = prot.asc_getFlags;
 	prot["asc_getFont"] = prot.asc_getFont;
 	prot["asc_getFillColor"] = prot.asc_getFillColor;
-	prot["asc_getFill2"] = prot.asc_getFill2;
+	prot["asc_getFill"] = prot.asc_getFill;
 	prot["asc_getBorders"] = prot.asc_getBorders;
 	prot["asc_getInnerText"] = prot.asc_getInnerText;
 	prot["asc_getNumFormat"] = prot.asc_getNumFormat;
