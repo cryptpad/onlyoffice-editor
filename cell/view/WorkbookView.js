@@ -2150,24 +2150,28 @@
 				t.handlers.trigger("asc_onSendFunctionWizardInfo", funcInfo);
 			}
 		} else {
-		    // ToDo move this in next if
-            var activeCellRange = ws.getActiveCell(0, 0, false);
-            if (ws.model.inPivotTable(activeCellRange)) {
-                this.handlers.trigger("asc_onError", c_oAscError.ID.LockedCellPivot, c_oAscError.Level.NoCritical);
-                return;
-            }
 
-            if (c_oAscPopUpSelectorType.None === type) {
-                ws.setSelectionInfo("value", name, /*onlyActive*/true);
-                return;
-            }
-
-			// Проверка глобального лока
-			if (this.collaborativeEditing.getGlobalLock()) {
+			if (c_oAscPopUpSelectorType.None === type) {
+				ws.setSelectionInfo("value", name, /*onlyActive*/true);
 				return;
 			}
 
-			var selectionRange = ws.model.selectionRange.clone();
+			var callback = function (success) {
+				if (success) {
+					if (isFormulaContains) {
+						//TODO вызываю отсюда служебную функцию, пересмотреть!
+						t.cellEditor._moveCursor(-11, t.cellEditor._parseResult.cursorPos + 1);
+						t.cellEditor.needFindFirstFunction = null;
+					}
+					if (c_oAscPopUpSelectorType.FuncWizard === type) {
+						var funcInfo = ws.model.getActiveFunctionInfo(t.cellEditor._formula, t.cellEditor._parseResult);
+						t.handlers.trigger("asc_onSendFunctionWizardInfo", funcInfo);
+					}
+				}
+				if (isNotFunction) {
+					t.skipHelpSelector = false;
+				}
+			};
 
 			//если в ячейке уже есть формула
 			isFormulaContains = c_oAscPopUpSelectorType.FuncWizard === type ? ws.model.isActiveCellFormula() : null;
@@ -2196,53 +2200,24 @@
 					cursorPos = name.length - 1;
 				}
 			}
-
 			//this.cellEditor.lastInsertedFormulaPos = cursorPos;
 
-			var openEditor = function (res) {
-				if (res) {
-					// Выставляем переменные, что мы редактируем
-					t.setCellEditMode(true);
+			if (isNotFunction) {
+				t.skipHelpSelector = true;
+			}
 
-					if (isNotFunction) {
-						t.skipHelpSelector = true;
-					}
-					t.hideSpecialPasteButton();
+			var enterOptions = new AscCommonExcel.CEditorEnterOptions();
+			if (isFormulaContains) {
+				t.cellEditor.needFindFirstFunction = true;
 
-                    var enterOptions = new AscCommonExcel.CEditorEnterOptions();
-					if (isFormulaContains) {
-						t.cellEditor.needFindFirstFunction = true;
+				enterOptions.newText = '';
+				enterOptions.cursorPos = t.cellEditor.cursorPos;
+			} else {
+				// Открываем, с выставлением позиции курсора
+				enterOptions.newText = name;
+			}
 
-						enterOptions.newText = '';
-                        enterOptions.cursorPos = t.cellEditor.cursorPos;
-						ws.openCellEditor(t.cellEditor, enterOptions, selectionRange);
-
-						//TODO вызываю отсюда служебную функцию, пересмотреть!
-						t.cellEditor._moveCursor(-11, t.cellEditor._parseResult.cursorPos + 1);
-
-						t.cellEditor.needFindFirstFunction = null;
-					} else {
-						// Открываем, с выставлением позиции курсора
-                        enterOptions.newText = name;
-                        ws.openCellEditor(t.cellEditor, enterOptions, selectionRange);
-					}
-
-					if (c_oAscPopUpSelectorType.FuncWizard === type) {
-						var funcInfo = ws.model.getActiveFunctionInfo(t.cellEditor._formula, t.cellEditor._parseResult);
-						t.handlers.trigger("asc_onSendFunctionWizardInfo", funcInfo);
-					}
-
-					if (isNotFunction) {
-						t.skipHelpSelector = false;
-					}
-				} else {
-					t.setCellEditMode(false);
-					t.controller.setStrictClose(false);
-					t.setFormulaEditMode(false);
-				}
-			};
-
-			ws._isLockedCells(activeCellRange, /*subType*/null, openEditor);
+			this._onEditCell(enterOptions, callback);
 		}
 	};
 
@@ -2282,26 +2257,11 @@
 				return;
 			}
 
-			var activeCellRange = ws.getActiveCell(0, 0, false);
-			var selectionRange = ws.model.selectionRange.clone();
-
-			var openEditor = function (res) {
+			var isActiveCellFormula = ws.model.isActiveCellFormula();
+			var callback = function (res) {
 				functionInfo = null;
 				if (res) {
-
-					// Выставляем переменные, что мы редактируем
-					t.setCellEditMode(true);
-					t.hideSpecialPasteButton();
-
-                    var enterOptions = new AscCommonExcel.CEditorEnterOptions();
-					if (ws.model.isActiveCellFormula()) {
-						//если ячейка с формулой, то либо перемещаемся к первой функции и отркываем диалог wizard
-						//если функции нет, то перемещаемся в конец формулы и открываем окно выбора функции
-
-						t.cellEditor.needFindFirstFunction = true;
-                        enterOptions.newText = '';
-                        enterOptions.cursorPos = t.cellEditor.cursorPos;
-						ws.openCellEditor(t.cellEditor, enterOptions, selectionRange);
+					if (isActiveCellFormula) {
 						t.cellEditor.needFindFirstFunction = null;
 						var parseResult = t.cellEditor._parseResult;
 						if (parseResult && parseResult.activeFunction) {
@@ -2311,16 +2271,24 @@
 						} else {
 							t.cellEditor._moveCursor(-11, t.cellEditor._parseResult.cursorPos + 1);
 						}
-					} else {
-                        enterOptions.newText = '=';
-                        ws.openCellEditor(t.cellEditor, enterOptions, selectionRange);
 					}
 				}
 
 				t.handlers.trigger("asc_onSendFunctionWizardInfo", functionInfo);
 			};
 
-			ws._isLockedCells(activeCellRange, /*subType*/null, openEditor);
+			var enterOptions = new AscCommonExcel.CEditorEnterOptions();
+			if (isActiveCellFormula) {
+				//если ячейка с формулой, то либо перемещаемся к первой функции и отркываем диалог wizard
+				//если функции нет, то перемещаемся в конец формулы и открываем окно выбора функции
+				t.cellEditor.needFindFirstFunction = true;
+				enterOptions.newText = '';
+				enterOptions.cursorPos = t.cellEditor.cursorPos;
+			} else {
+				enterOptions.newText = '=';
+			}
+
+			this._onEditCell(enterOptions, callback);
 		}
 	};
 
