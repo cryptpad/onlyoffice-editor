@@ -977,7 +977,10 @@
 		var flags = new window["AscCommonExcel"].CellFlags();
 		flags.wrapText = true;
 		flags.textAlign = curSection.getAlign();
-		
+
+		var enterOptions = new AscCommonExcel.CEditorEnterOptions();
+		enterOptions.focus = true;
+
 		var options = {
 			enterOptions: enterOptions,
 			fragments: fragments,
