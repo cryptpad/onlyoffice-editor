@@ -14480,7 +14480,6 @@
 					return null !== t.getCellVisibleRange(c.bbox.c1, c.bbox.r1);
 				}
 			});
-			this.model.workbook.handlers.trigger("asc_onEditCell", Asc.c_oAscCellEditorState.editStart);
 		};
 
     WorksheetView.prototype.updateRanges = function (ranges, skipHeight) {

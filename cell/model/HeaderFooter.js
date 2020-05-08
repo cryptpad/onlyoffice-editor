@@ -1030,7 +1030,6 @@
 		options.enterOptions.cursorPos = cursorPos;
 		editor.open(options);
 		wb.input.disabled = false;
-		wb.handlers.trigger("asc_onEditCell", window['Asc'].c_oAscCellEditorState.editStart);
 
 		return true;
 	};

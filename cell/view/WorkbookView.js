@@ -1577,7 +1577,6 @@
     this.setFormulaEditMode(false);
 
     if (isCellEditMode) {
-      this.handlers.trigger("asc_onEditCell", Asc.c_oAscCellEditorState.editEnd);
       if (window['IS_NATIVE_EDITOR']) {
           window["native"]["closeCellEditor"]();
       }

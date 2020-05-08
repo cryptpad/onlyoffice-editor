@@ -283,6 +283,8 @@
 	 *   saveValueCallback
 	 */
 	CellEditor.prototype.open = function (options) {
+		this._setEditorState(c_oAscCellEditorState.editStart);
+
 		var b = this.input.selectionStart;
 
 		this.isOpened = true;
@@ -294,7 +296,7 @@
 		this._cleanLastRangeInfo();
 		this._updateTopLineActive(true === this.input.isFocused);
 
-		this._updateFormulaEditMod( /*bIsOpen*/true);
+		this._updateFormulaEditMod();
 		this._draw();
 
 		if (null === options.enterOptions.cursorPos) {
@@ -358,7 +360,7 @@
 			t.objAutoComplete = {};
 
 			// Сброс состояния редактора
-			t.m_nEditorState = c_oAscCellEditorState.editEnd;
+			t._setEditorState(c_oAscCellEditorState.editEnd);
 			t.handlers.trigger("closed");
 
 			if(callback) {
@@ -407,7 +409,7 @@
 		this.objAutoComplete = {};
 
 		// Сброс состояния редактора
-		this.m_nEditorState = c_oAscCellEditorState.editEnd;
+		this._setEditorState(c_oAscCellEditorState.editEnd);
 		this.handlers.trigger("closed");
 		if(callback) {
 			callback(true);
@@ -952,14 +954,12 @@
 			this.handlers.trigger("updateEditorState", this.isTopLineActive ? c_oAscCellEditorState.editInFormulaBar : c_oAscCellEditorState.editInCell);
 		}
 	};
-	CellEditor.prototype._updateFormulaEditMod = function (bIsOpen) {
+	CellEditor.prototype._updateFormulaEditMod = function () {
 		if (this.getMenuEditorMode()) {
 			return;
 		}
 		var isFormula = this.isFormula();
-		if (!bIsOpen) {
-			this._updateEditorState(isFormula);
-		}
+		this._updateEditorState(isFormula);
 		this.handlers.trigger("updateFormulaEditMod", isFormula);
 		this._parseFormulaRanges();
 	};
@@ -978,16 +978,18 @@
 		return fragments.length > 0 && fragments[0].text.length > 0;
 	};
 
-	CellEditor.prototype._updateEditorState = function ( isFormula ) {
-		if ( undefined === isFormula ) {
+	CellEditor.prototype._setEditorState = function (editorState) {
+		if (this.m_nEditorState !== editorState) {
+			this.m_nEditorState = editorState;
+			this.handlers.trigger("updateEditorState", this.m_nEditorState);
+		}
+	};
+	CellEditor.prototype._updateEditorState = function (isFormula) {
+		if (undefined === isFormula) {
 			isFormula = this.isFormula();
 		}
-		var editorState = isFormula ? c_oAscCellEditorState.editFormula : "" === AscCommonExcel.getFragmentsText( this.options.fragments ) ? c_oAscCellEditorState.editEmptyCell : c_oAscCellEditorState.editText;
-
-		if ( this.m_nEditorState !== editorState ) {
-			this.m_nEditorState = editorState;
-			this.handlers.trigger( "updateEditorState", this.m_nEditorState );
-		}
+		var editorState = isFormula ? c_oAscCellEditorState.editFormula : "" === AscCommonExcel.getFragmentsText(this.options.fragments) ? c_oAscCellEditorState.editEmptyCell : c_oAscCellEditorState.editText;
+		this._setEditorState(editorState);
 	};
 
 	CellEditor.prototype._getRenderFragments = function () {
@@ -1044,7 +1046,7 @@
 	};
 
 	CellEditor.prototype._update = function () {
-		this._updateFormulaEditMod(/*bIsOpen*/false);
+		this._updateFormulaEditMod();
 
 		if (this._expand()) {
 			this._adjustCanvas();
