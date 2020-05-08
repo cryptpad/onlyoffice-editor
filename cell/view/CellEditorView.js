@@ -776,11 +776,11 @@
 
 		var r, oper, wsName = null, bboxOper, range, isName = false;
 
-		if (this._parseResult.refPos && this._parseResult.refPos.length > 0) {
-			var oSelectionRange = new AscCommonExcel.SelectionRange(ws);
-			// ToDo change create SelectionRange
-			oSelectionRange.ranges = [];
+		var oSelectionRange = new AscCommonExcel.SelectionRange(ws);
+		// ToDo change create SelectionRange
+		oSelectionRange.ranges = [];
 
+		if (this._parseResult.refPos && this._parseResult.refPos.length > 0) {
 			for (var index = 0; index < this._parseResult.refPos.length; index++) {
 				wsName = null;
 				isName = false;
@@ -815,11 +815,9 @@
 					range.isName = isName;
 				}
 			}
-
-			if (0 !== oSelectionRange.ranges.length) {
-				this.handlers.trigger("newRanges", oSelectionRange);
-			}
 		}
+
+		this.handlers.trigger("newRanges", 0 !== oSelectionRange.ranges.length ? oSelectionRange : null);
 	};
 
 	CellEditor.prototype._findRangeUnderCursor = function () {
