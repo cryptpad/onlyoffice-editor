@@ -2270,6 +2270,7 @@
 					this.cellEditor.pasteText(_f);
 					this.cellEditor._moveCursor(-11, _cursorPos);
 				} else {
+				    // ToDo check after refactoring
 					this.cellEditor._updateFormulaEditMod();
 				}
 
