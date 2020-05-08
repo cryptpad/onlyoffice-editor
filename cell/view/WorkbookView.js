@@ -1530,8 +1530,6 @@
 
       t.Api.cleanSpelling(true);
 
-      // Эвент на обновление состояния редактора
-      t.cellEditor._updateEditorState();
       asc_applyFunction(callback, true);
     };
 

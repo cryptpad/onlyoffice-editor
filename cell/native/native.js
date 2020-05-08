@@ -5217,9 +5217,6 @@ window["native"]["offline_cell_editor_open"] = function(x, y, width, height, rat
         //t.input.disabled = false;
 
         t.Api.cleanSpelling();
-        
-        // Эвент на обновление состояния редактора
-        t.cellEditor._updateEditorState();
     }
     
     ws.visibleRange = range;
