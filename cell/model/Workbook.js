@@ -11160,6 +11160,16 @@
 		});
 		return res;
 	};
+	Range.prototype.getXfs = function () {
+		var t = this;
+		var nRow = this.bbox.r1;
+		var nCol = this.bbox.c1;
+		var xfs;
+		this.worksheet._getCellNoEmpty(nRow, nCol, function (cell) {
+			xfs = cell ? cell.getCompiledStyle() : t.worksheet.getCompiledStyle(nRow, nCol);
+		});
+		return xfs || g_oDefaultFormat.xfs;
+	};
 	Range.prototype.getXfId = function () {
 		var t = this;
 		var nRow = this.bbox.r1;
