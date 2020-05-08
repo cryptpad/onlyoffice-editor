@@ -951,7 +951,7 @@
 	CellEditor.prototype._updateTopLineActive = function (state) {
 		if (state !== this.isTopLineActive) {
 			this.isTopLineActive = state;
-			this.handlers.trigger("updateEditorState", this.isTopLineActive ? c_oAscCellEditorState.editInFormulaBar : c_oAscCellEditorState.editInCell);
+			this._setEditorState(this.isTopLineActive ? c_oAscCellEditorState.editInFormulaBar : c_oAscCellEditorState.editInCell);
 		}
 	};
 	CellEditor.prototype._updateFormulaEditMod = function () {
