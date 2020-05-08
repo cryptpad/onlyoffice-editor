@@ -2611,7 +2611,7 @@ CellXfs.prototype =
 	},
 	getOperationCache: function(operation, val) {
 		var res = undefined;
-		var operation = this.operationCache[operation];
+		operation = this.operationCache[operation];
 		if (operation) {
 			res = operation[val];
 		}
