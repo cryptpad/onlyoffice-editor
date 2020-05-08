@@ -3081,7 +3081,7 @@ function StyleManager(){
 }
 StyleManager.prototype =
 {
-	init: function(wb, firstXf, firstFont, firstFill, secondFill, firstBorder, normalXf) {
+	init: function(firstXf, firstFont, firstFill, secondFill, firstBorder, normalXf) {
 		g_StyleCache.firstXf = firstXf;
 		g_StyleCache.firstFont = firstFont;
 		g_StyleCache.firstFill = firstFill;
