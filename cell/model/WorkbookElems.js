@@ -1620,8 +1620,6 @@ var g_oFontProperties = {
 		var res = null;
 		if (this.patternFill && c_oAscPatternType.None !== this.patternFill.patternType) {
 			res = this.patternFill.fgColor || AscCommonExcel.g_oColorManager.getThemeColor(g_nColorTextDefault, 0);
-		} else if (this.gradientFill) {
-			res = this.gradientFill.stop.length > 0 ? this.gradientFill.stop[0].color : AscCommonExcel.g_oColorManager.getThemeColor(g_nColorTextDefault, 0)
 		}
 		return res;
 	};

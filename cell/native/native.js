@@ -2914,7 +2914,7 @@ function asc_WriteCCellInfo(c, s) {
     }
     
     asc_WriteCFont(6, c.asc_getFont(), s);
-    asc_menu_WriteColor(8, c.asc_getFill().asc_getColor(), s);
+    asc_menu_WriteColor(8, c.asc_getFillColor(), s);
     asc_WriteCBorders(9, c.asc_getBorders(), s);
     
     if (null !== c.asc_getInnerText()) {

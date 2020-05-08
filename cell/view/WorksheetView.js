@@ -64,7 +64,6 @@
     var asc_getcvt = asc.getCvtRatio;
     var asc_floor = asc.floor;
     var asc_ceil = asc.ceil;
-    var asc_obj2Color = asc.colorObjToAscColor;
     var asc_typeof = asc.typeOf;
     var asc_incDecFonSize = asc.incDecFonSize;
     var asc_debug = asc.outputDebugStr;
@@ -72,7 +71,6 @@
     var asc_CMM = AscCommonExcel.asc_CMouseMoveData;
     var asc_VR = AscCommonExcel.VisibleRange;
 
-    var asc_CFill = AscCommonExcel.asc_CFill;
     var asc_CCellInfo = AscCommonExcel.asc_CCellInfo;
     var asc_CHyperlink = asc.asc_CHyperlink;
     var asc_CPageSetup = asc.asc_CPageSetup;
@@ -8763,7 +8761,6 @@
         var r1 = mc ? mc.r1 : cell.row;
         var c = this._getVisibleCell(c1, r1);
 		var font = c.getFont(true);
-        var bg = c.getFillColor();
         var align = c.getAlign();
         var cellType = c.getType();
         var isNumberFormat = (!cellType || CellValueType.Number === cellType);
@@ -8830,7 +8827,6 @@
 
         cell_info.font._init(font);
 
-        cell_info.fill = new asc_CFill(asc_obj2Color(bg));
 		cell_info.fill2 = c.getFill().clone();
 
 		cell_info.numFormat = c.getNumFormatStr();
@@ -8998,8 +8994,7 @@
             }
         }
 
-        // Заливка не нужна как таковая
-        objectInfo.fill = new asc_CFill(null);
+        // ToDo Нужно выставить правильный Fill
 
         // ToDo locks
 
