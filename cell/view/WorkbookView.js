@@ -651,7 +651,10 @@
                   self.setFormulaEditMode(val);
 			  }, "updateEditorState": function (state) {
 				  self.handlers.trigger("asc_onEditCell", state);
-			  }, "isGlobalLockEditCell": function () {
+			  }, "updateTopLine": function (state) {
+                  // Implemented through asc_onEditCell
+                  self.handlers.trigger("asc_onEditCell", state);
+              }, "isGlobalLockEditCell": function () {
 				  return self.collaborativeEditing.getGlobalLockEditCell();
 			  }, "newRanges": function (ranges) {
 			      if (self.isActive()) {
