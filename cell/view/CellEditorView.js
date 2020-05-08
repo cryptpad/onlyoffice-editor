@@ -296,7 +296,7 @@
 		this._cleanLastRangeInfo();
 		this._updateTopLineActive(true === this.input.isFocused);
 
-		this._updateFormulaEditMod();
+		this._updateEditorState();
 		this._draw();
 
 		if (null === options.enterOptions.cursorPos) {
@@ -651,9 +651,12 @@
 		}
 	};
 
-	CellEditor.prototype.isFormula = function () {
+	CellEditor.prototype._isFormula = function () {
 		var fragments = this.options.fragments;
 		return fragments && fragments.length > 0 && fragments[0].text.length > 0 && fragments[0].text.charAt(0) === "=";
+	};
+	CellEditor.prototype.isFormula = function () {
+		return c_oAscCellEditorState.editFormula === this.m_nEditorState;
 	};
 
 	CellEditor.prototype.insertFormula = function ( functionName, isDefName ) {
@@ -758,10 +761,6 @@
 
 	CellEditor.prototype._parseFormulaRanges = function () {
 		var s = AscCommonExcel.getFragmentsText(this.options.fragments);
-		if (s.length < 1 || s.charAt(0) !== "=") {
-			return;
-		}
-
 		var ws = this.handlers.trigger("getActiveWS");
 
 		var bbox = this.options.bbox;
@@ -954,14 +953,19 @@
 			this.handlers.trigger("updateTopLine", this.isTopLineActive ? c_oAscCellEditorState.editInFormulaBar : c_oAscCellEditorState.editInCell);
 		}
 	};
-	CellEditor.prototype._updateFormulaEditMod = function () {
+	CellEditor.prototype._updateEditorState = function () {
 		if (this.getMenuEditorMode()) {
 			return;
 		}
-		var isFormula = this.isFormula();
-		this._updateEditorState(isFormula);
+		var isFormula = this._isFormula();
+
+		var editorState = isFormula ? c_oAscCellEditorState.editFormula : "" === AscCommonExcel.getFragmentsText(this.options.fragments) ? c_oAscCellEditorState.editEmptyCell : c_oAscCellEditorState.editText;
+		this._setEditorState(editorState);
+
 		this.handlers.trigger("updateFormulaEditMod", isFormula);
-		this._parseFormulaRanges();
+		if (isFormula) {
+			this._parseFormulaRanges();
+		}
 	};
 	CellEditor.prototype._cleanLastRangeInfo = function () {
 		this.lastRangeLength = null;
@@ -984,16 +988,9 @@
 			this.handlers.trigger("updateEditorState", this.m_nEditorState);
 		}
 	};
-	CellEditor.prototype._updateEditorState = function (isFormula) {
-		if (undefined === isFormula) {
-			isFormula = this.isFormula();
-		}
-		var editorState = isFormula ? c_oAscCellEditorState.editFormula : "" === AscCommonExcel.getFragmentsText(this.options.fragments) ? c_oAscCellEditorState.editEmptyCell : c_oAscCellEditorState.editText;
-		this._setEditorState(editorState);
-	};
 
 	CellEditor.prototype._getRenderFragments = function () {
-		var opt = this.options, fragments = opt.fragments, i, j, k, l, first, last, val, lengthColors, tmpColors, colorIndex, uniqueColorIndex;
+		var opt = this.options, fragments = opt.fragments, i, k, l, first, last, val, lengthColors, tmpColors, colorIndex, uniqueColorIndex;
 		if (this.isFormula()) {
 			var ranges = this.handlers.trigger("getFormulaRanges");
 			if (ranges) {
@@ -1046,7 +1043,7 @@
 	};
 
 	CellEditor.prototype._update = function () {
-		this._updateFormulaEditMod();
+		this._updateEditorState();
 
 		if (this._expand()) {
 			this._adjustCanvas();

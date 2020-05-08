@@ -2271,7 +2271,7 @@
 					this.cellEditor._moveCursor(-11, _cursorPos);
 				} else {
 				    // ToDo check after refactoring
-					this.cellEditor._updateFormulaEditMod();
+					this.cellEditor._updateEditorState();
 				}
 
 				functionInfo = ws.model.getActiveFunctionInfo(t.cellEditor._formula, t.cellEditor._parseResult);
