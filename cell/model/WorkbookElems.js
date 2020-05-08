@@ -463,7 +463,9 @@ g_oColorManager = new ColorManager();
 		NumAbs: null,
 		BorderAbs: null,
 		AlignAbs: null,
-		ColorAuto: new RgbColor(0)
+		ColorAuto: new RgbColor(0),
+
+		xfs: new CellXfs()
 	};
 
 	/** @constructor */
@@ -3089,15 +3091,15 @@ StyleManager.prototype =
 		g_StyleCache.firstBorder = firstBorder;
 		g_StyleCache.normalXf = normalXf;
 		if(null != firstXf.font)
-			g_oDefaultFormat.Font = firstXf.font;
+			g_oDefaultFormat.xfs.font = g_oDefaultFormat.Font = firstXf.font;
 		if(null != firstXf.fill)
-			g_oDefaultFormat.Fill = firstXf.fill.clone();
+			g_oDefaultFormat.xfs.fill = g_oDefaultFormat.Fill = firstXf.fill.clone();
 		if(null != firstXf.border)
-			g_oDefaultFormat.Border = firstXf.border.clone();
+			g_oDefaultFormat.xfs.border = g_oDefaultFormat.Border = firstXf.border.clone();
 		if(null != firstXf.num)
-			g_oDefaultFormat.Num = firstXf.num.clone();
+			g_oDefaultFormat.xfs.num = g_oDefaultFormat.Num = firstXf.num.clone();
 		if(null != firstXf.align)
-			g_oDefaultFormat.Align = firstXf.align.clone();
+			g_oDefaultFormat.xfs.align = g_oDefaultFormat.Align = firstXf.align.clone();
 		if (null !== firstXf.XfId) {
 			g_oDefaultFormat.XfId = firstXf.XfId;
 		}
