@@ -563,6 +563,7 @@ function FrozenPlace(ws, type) {
 		_this.clip(canvas.shapeCtx, oClipRange);
 		canvas.shapeCtx.updatedRect = _this.rangeToRectAbs(oClipRange, 3);
 		object.draw(canvas.shapeCtx);
+		canvas.shapeCtx.updatedRect = null;
 		
 		// Lock
 		if ( (object.graphicObject.lockType !== undefined) && (object.graphicObject.lockType !== AscCommon.c_oAscLockTypes.kLockTypeNone) ) {
