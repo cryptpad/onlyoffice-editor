@@ -358,6 +358,10 @@
        return true;
     };
 
+    CGraphicBounds.prototype.isIntersectOther = function(o){
+        return this.isIntersect(o.l, o.t, o.r, o.b)
+    };
+
 
     function CCopyObjectProperties()
     {

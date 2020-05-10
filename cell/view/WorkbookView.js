@@ -1064,7 +1064,7 @@
         ws.objectRender.controller.setSelectionState(state);
         ws.setSelectionShape(true);
         ws._scrollToRange(ws.objectRender.getSelectedDrawingsRange());
-        ws.objectRender.showDrawingObjectsEx(new AscFormat.GraphicOption(null));
+        ws.objectRender.showDrawingObjectsEx();
         ws.objectRender.controller.updateOverlay();
         ws.objectRender.controller.updateSelectionState();
       }

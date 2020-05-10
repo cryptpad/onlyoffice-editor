@@ -643,15 +643,11 @@ CImageShape.prototype.draw = function(graphics, transform)
     if(this.checkNeedRecalculate && this.checkNeedRecalculate()){
         return;
     }
-    if(graphics.updatedRect)
-    {
-        var rect = graphics.updatedRect;
-        var bounds = this.bounds;
-        if(bounds.x > rect.x + rect.w
-            || bounds.y > rect.y + rect.h
-            || bounds.x + bounds.w < rect.x
-            || bounds.y + bounds.h < rect.y)
+    var oUR = graphics.updatedRect;
+    if(oUR && this.bounds) {
+        if(!oUR.isIntersectOther(this.bounds)) {
             return;
+        }
     }
 
 

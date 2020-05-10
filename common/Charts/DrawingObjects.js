@@ -1328,7 +1328,7 @@ GraphicOption.prototype.union = function(oGraphicOption) {
     function drawTaskFunction() {
         _this.drawingDocument.CheckTargetShow();
         if(_this.drawTask) {
-            _this.showDrawingObjectsEx(_this.drawTask);
+            _this.showDrawingObjectsEx(_this.drawTask.getRange());
             _this.drawTask = null;
         }
         _this.animId = null;
@@ -2116,14 +2116,13 @@ GraphicOption.prototype.union = function(oGraphicOption) {
         }
     };
 
-    _this.showDrawingObjectsEx = function(graphicOption) {
+    _this.showDrawingObjectsEx = function(oRange) {
         if(!drawingCtx) {
             return;
         }
         if (worksheet.model.index !== api.wb.model.getActive()) {
             return;
         }
-        var oRange = graphicOption.getRange();
         if (!oRange) {
             if(!window['IS_NATIVE_EDITOR']) {
                 _this.drawingArea.clear();

@@ -15650,17 +15650,14 @@ CChartSpace.prototype.draw = function(graphics)
         graphics._e();
         return;
     }
-    if(graphics.updatedRect)
+    var oUR = graphics.updatedRect;
+    if(oUR && this.bounds)
     {
-        var rect = graphics.updatedRect;
-        var bounds = this.bounds;
-        if(bounds.x > rect.x + rect.w
-            || bounds.y > rect.y + rect.h
-            || bounds.x + bounds.w < rect.x
-            || bounds.y + bounds.h < rect.y)
+        if(!oUR.isIntersectOther(this.bounds))
+        {
             return;
+        }
     }
-
     var oldShowParaMarks;
     if(editor)
     {

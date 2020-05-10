@@ -3407,7 +3407,7 @@ function OfflineEditor () {
             
             AscCommon.g_oTextMeasurer.Flush();
             
-            this.objectRender.showDrawingObjectsEx(new AscFormat.GraphicOption(null));
+            this.objectRender.showDrawingObjectsEx();
             
             this.cellsLeft = cellsLeft_Local;
             this.cellsTop = cellsTop_Local;
