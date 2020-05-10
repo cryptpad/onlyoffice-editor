@@ -2801,7 +2801,7 @@
         this._fixSelectionOfMergedCells();
         this._drawElements(this.af_drawButtons);
         this.cellCommentator.drawCommentCells();
-        this.objectRender.showDrawingObjectsEx();
+        this.objectRender.showDrawingObjectsEx(new AscFormat.GraphicOption(null));
         if (this.overlayCtx) {
             this._drawSelection();
         }
@@ -7181,9 +7181,7 @@
 
             this._drawCellsAndBorders(null, range);
             this.af_drawButtons(range, offsetX, offsetY);
-            this.objectRender.showDrawingObjectsEx(new AscFormat.GraphicOption(false, range, {
-                  offsetX: offsetX, offsetY: offsetY
-              }));
+            this.objectRender.showDrawingObjectsEx(new AscFormat.GraphicOption(range));
             if (0 < cFrozen) {
                 range.c1 = 0;
                 range.c2 = cFrozen - 1;
@@ -7192,9 +7190,7 @@
 				this._drawGroupData(null, range, offsetX);
                 this._drawCellsAndBorders(null, range, offsetX);
                 this.af_drawButtons(range, offsetX, offsetY);
-                this.objectRender.showDrawingObjectsEx(new AscFormat.GraphicOption(false, range, {
-                      offsetX: offsetX, offsetY: offsetY
-                  }));
+                this.objectRender.showDrawingObjectsEx(new AscFormat.GraphicOption(range));
             }
         }
         // Отрисовывать нужно всегда, вдруг бордеры
@@ -7341,9 +7337,7 @@
 			this._drawGroupData(null, range, undefined, undefined, true);
             this._drawCellsAndBorders(null, range);
             this.af_drawButtons(range, offsetX, offsetY);
-            this.objectRender.showDrawingObjectsEx(new AscFormat.GraphicOption(false, range, {
-                  offsetX: offsetX, offsetY: offsetY
-              }));
+            this.objectRender.showDrawingObjectsEx(new AscFormat.GraphicOption(range));
             if (rFrozen) {
                 range.r1 = 0;
                 range.r2 = rFrozen - 1;
@@ -7352,9 +7346,7 @@
 				this._drawGroupData(null, range, undefined, offsetY, true);
                 this._drawCellsAndBorders(null, range, undefined, offsetY);
                 this.af_drawButtons(range, offsetX, offsetY);
-                this.objectRender.showDrawingObjectsEx(new AscFormat.GraphicOption(false, range, {
-                      offsetX: offsetX, offsetY: offsetY
-                  }));
+                this.objectRender.showDrawingObjectsEx(new AscFormat.GraphicOption(range));
             }
         }
 
