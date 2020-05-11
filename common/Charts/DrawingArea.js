@@ -347,10 +347,12 @@ function FrozenPlace(ws, type) {
     
 	_this.rangeToRectAbs = function(oRange, units) {
 		var oWS = _this.worksheet;
-		var l = oWS.getCellLeft(oRange.c1, units);
-		var t = oWS.getCellTop(oRange.r1, units);
-		var r = oWS.getCellLeft(oRange.c2, units) + oWS.getColumnWidth(oRange.c2, units);
-		var b = oWS.getCellTop(oRange.r2, units) + oWS.getRowHeight(oRange.r2, units);
+		var left = oWS.getCellLeft(0, units);
+		var top = oWS.getCellTop(0, units);
+		var l = oWS.getCellLeft(oRange.c1, units) - left;
+		var t = oWS.getCellTop(oRange.r1, units) - top;
+		var r = oWS.getCellLeft(oRange.c2, units) + oWS.getColumnWidth(oRange.c2, units) - left;
+		var b = oWS.getCellTop(oRange.r2, units) + oWS.getRowHeight(oRange.r2, units) - top;
 		return new AscFormat.CGraphicBounds(l, t, r, b);
 	};
     
@@ -561,7 +563,13 @@ function FrozenPlace(ws, type) {
 		var canvas = _this.worksheet.objectRender.getDrawingCanvas();
 		_this.setTransform(canvas.shapeCtx, canvas.shapeOverlayCtx, canvas.autoShapeTrack);
 		_this.clip(canvas.shapeCtx, oClipRange);
-		canvas.shapeCtx.updatedRect = _this.rangeToRectAbs(oClipRange, 3);
+		var oRect = _this.rangeToRectAbs(oClipRange, 3);
+		canvas.shapeCtx.updatedRect = oRect;
+		//For debug
+		// canvas.shapeCtx.p_color(0, 0, 0, 255);
+		// canvas.shapeCtx.p_width(5);
+		// canvas.shapeCtx.rect(oRect.x, oRect.y, oRect.w, oRect.h);
+		// canvas.shapeCtx.ds();
 		object.draw(canvas.shapeCtx);
 		canvas.shapeCtx.updatedRect = null;
 		
