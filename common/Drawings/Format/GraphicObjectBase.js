@@ -362,6 +362,18 @@
         return this.isIntersect(o.l, o.t, o.r, o.b)
     };
 
+    CGraphicBounds.prototype.intersection = function(o){
+        var oRes = null
+        var l = Math.max(this.l, o.l);
+        var t = Math.max(this.t, o.t);
+        var r = Math.min(this.r, o.r);
+        var b = Math.min(this.b, o.b);
+        if(l <= r && t <= b) {
+            return new CGraphicBounds(l, t, r, b);
+        }
+        return oRes;
+    };
+
 
     function CCopyObjectProperties()
     {

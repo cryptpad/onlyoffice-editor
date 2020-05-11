@@ -1227,23 +1227,23 @@ CSparklineView.prototype.setMinMaxValAx = function(minVal, maxVal, oSparklineGro
 // Manager
 //-----------------------------------------------------------------------------------
     
-function GraphicOption(range) {
-	this.range = range;
+function GraphicOption(rect) {
+	this.rect = rect;
 }
 
 
-GraphicOption.prototype.getRange = function() {
-	return this.range;
+GraphicOption.prototype.getRect = function() {
+	return this.rect;
 };
 
 GraphicOption.prototype.union = function(oGraphicOption) {
-	if(!this.range) {
+	if(!this.rect) {
 	    return this;
     }
-	if(!oGraphicOption.range) {
+	if(!oGraphicOption.rect) {
 	    return oGraphicOption;
     }
-	this.range.union2(oGraphicOption.range);
+	this.rect.checkByOther(oGraphicOption.rect);
 	return this;
 };
 
@@ -1328,7 +1328,7 @@ GraphicOption.prototype.union = function(oGraphicOption) {
     function drawTaskFunction() {
         _this.drawingDocument.CheckTargetShow();
         if(_this.drawTask) {
-            _this.showDrawingObjectsEx(_this.drawTask.getRange());
+            _this.showDrawingObjectsEx(_this.drawTask.getRect());
             _this.drawTask = null;
         }
         _this.animId = null;
@@ -2116,20 +2116,34 @@ GraphicOption.prototype.union = function(oGraphicOption) {
         }
     };
 
-    _this.showDrawingObjectsEx = function(oRange) {
+    _this.showDrawingObjectsEx = function(oUpdateRect) {
         if(!drawingCtx) {
             return;
         }
         if (worksheet.model.index !== api.wb.model.getActive()) {
             return;
         }
-        if (!oRange) {
+        if (!oUpdateRect) {
             if(!window['IS_NATIVE_EDITOR']) {
                 _this.drawingArea.clear();
             }
         }
         for (var nDrawing = 0; nDrawing < aObjects.length; nDrawing++) {
-            _this.drawingArea.drawObject(aObjects[nDrawing], oRange);
+            _this.drawingArea.drawObject(aObjects[nDrawing], oUpdateRect);
+        }
+        _this.OnUpdateOverlay();
+        _this.controller.updateSelectionState(true);
+    };
+
+    _this.updateRange = function(oRange) {
+        if(!drawingCtx) {
+            return;
+        }
+        if (worksheet.model.index !== api.wb.model.getActive()) {
+            return;
+        }
+        for (var nDrawing = 0; nDrawing < aObjects.length; nDrawing++) {
+            _this.drawingArea.updateRange(aObjects[nDrawing], oRange);
         }
         _this.OnUpdateOverlay();
         _this.controller.updateSelectionState(true);
@@ -2838,7 +2852,7 @@ GraphicOption.prototype.union = function(oGraphicOption) {
 
     _this.checkSparklineGroupMinMaxVal = function(oSparklineGroup)
     {
-        var maxVal = null, minVal = null, i, j, sparkline, nPtCount = 0;;
+        var maxVal = null, minVal = null, i, j, sparkline, nPtCount = 0;
         if(oSparklineGroup.type !== Asc.c_oAscSparklineType.Stacked &&
             (Asc.c_oAscSparklineAxisMinMax.Group === oSparklineGroup.minAxisType || Asc.c_oAscSparklineAxisMinMax.Group === oSparklineGroup.maxAxisType))
         {

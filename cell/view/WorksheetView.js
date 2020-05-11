@@ -7181,7 +7181,7 @@
 
             this._drawCellsAndBorders(null, range);
             this.af_drawButtons(range, offsetX, offsetY);
-            this.objectRender.showDrawingObjectsEx(range);
+            this.objectRender.updateRange(range);
             if (0 < cFrozen) {
                 range.c1 = 0;
                 range.c2 = cFrozen - 1;
@@ -7190,7 +7190,7 @@
 				this._drawGroupData(null, range, offsetX);
                 this._drawCellsAndBorders(null, range, offsetX);
                 this.af_drawButtons(range, offsetX, offsetY);
-                this.objectRender.showDrawingObjectsEx(range);
+                this.objectRender.updateRange(range);
             }
         }
         // Отрисовывать нужно всегда, вдруг бордеры
@@ -7337,7 +7337,7 @@
 			this._drawGroupData(null, range, undefined, undefined, true);
             this._drawCellsAndBorders(null, range);
             this.af_drawButtons(range, offsetX, offsetY);
-            this.objectRender.showDrawingObjectsEx(range);
+            this.objectRender.updateRange(range);
             if (rFrozen) {
                 range.r1 = 0;
                 range.r2 = rFrozen - 1;
@@ -7346,7 +7346,7 @@
 				this._drawGroupData(null, range, undefined, offsetY, true);
                 this._drawCellsAndBorders(null, range, undefined, offsetY);
                 this.af_drawButtons(range, offsetX, offsetY);
-                this.objectRender.showDrawingObjectsEx(range);
+                this.objectRender.updateRange(range);
             }
         }
 
@@ -20218,6 +20218,24 @@
             return this.model.getDrawingDocument();
         }
         return null;
+    };
+    
+    WorksheetView.prototype.rangeToRectAbs = function(oRange, units) {
+        var left = this.getCellLeft(0, units);
+        var top = this.getCellTop(0, units);
+        var l = this.getCellLeft(oRange.c1, units) - left;
+        var t = this.getCellTop(oRange.r1, units) - top;
+        var r = this.getCellLeft(oRange.c2, units) + this.getColumnWidth(oRange.c2, units) - left;
+        var b = this.getCellTop(oRange.r2, units) + this.getRowHeight(oRange.r2, units) - top;
+        return new AscFormat.CGraphicBounds(l, t, r, b);
+    };
+    
+    WorksheetView.prototype.rangeToRectRel = function(oRange, units) {
+        var l = this.getCellLeftRelative(oRange.c1, units);
+        var t = this.getCellTopRelative(oRange.r1, units);
+        var r = this.getCellLeftRelative(oRange.c2, units) + this.getColumnWidth(oRange.c2, units);
+        var b = this.getCellTopRelative(oRange.r2, units) + this.getRowHeight(oRange.r2, units);
+        return new AscFormat.CGraphicBounds(l, t, r, b);
     };
 	//------------------------------------------------------------export---------------------------------------------------
     window['AscCommonExcel'] = window['AscCommonExcel'] || {};

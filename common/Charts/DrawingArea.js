@@ -219,7 +219,7 @@ function FrozenPlace(ws, type) {
 	};
 	
 	_this.getRect = function(bEvent) {
-		var rect = _this.rangeToRectRel(_this.range, 0);
+		var rect = _this.worksheet.rangeToRectRel(_this.range, 0);
         switch (_this.type) {
 
             case FrozenAreaType.Top:
@@ -333,27 +333,6 @@ function FrozenPlace(ws, type) {
         }
 
 		return rect;
-	};
-	
-	
-	_this.rangeToRectRel = function(oRange, units) {
-		var oWS = _this.worksheet;
-		var l = oWS.getCellLeftRelative(oRange.c1, units);
-		var t = oWS.getCellTopRelative(oRange.r1, units);
-		var r = oWS.getCellLeftRelative(oRange.c2, units) + oWS.getColumnWidth(oRange.c2, units);
-		var b = oWS.getCellTopRelative(oRange.r2, units) + oWS.getRowHeight(oRange.r2, units);
-		return new AscFormat.CGraphicBounds(l, t, r, b);
-	};
-    
-	_this.rangeToRectAbs = function(oRange, units) {
-		var oWS = _this.worksheet;
-		var left = oWS.getCellLeft(0, units);
-		var top = oWS.getCellTop(0, units);
-		var l = oWS.getCellLeft(oRange.c1, units) - left;
-		var t = oWS.getCellTop(oRange.r1, units) - top;
-		var r = oWS.getCellLeft(oRange.c2, units) + oWS.getColumnWidth(oRange.c2, units) - left;
-		var b = oWS.getCellTop(oRange.r2, units) + oWS.getRowHeight(oRange.r2, units) - top;
-		return new AscFormat.CGraphicBounds(l, t, r, b);
 	};
     
 	_this.getFirstVisible = function() {
@@ -536,7 +515,7 @@ function FrozenPlace(ws, type) {
 	};
 	
 	_this.clip = function(canvas, oRange) {
-		var rect = _this.rangeToRectRel(oRange, 0);
+		var rect = _this.worksheet.rangeToRectRel(oRange, 0);
 		canvas.m_oContext.save();
 		canvas.m_oContext.beginPath();
 		canvas.m_oContext.rect(rect.x, rect.y, rect.w, rect.h);
@@ -551,20 +530,49 @@ function FrozenPlace(ws, type) {
         canvas.m_oContext.restore();
 	};
 	
-	_this.drawObject = function(object, oRange) {
+	_this.drawObject = function(object, oRect) {
 	
-		var oClipRange = _this.range;
-		if(oRange) {
-			oClipRange = _this.range.intersectionSimple(oRange)
-			if(!oClipRange) {
+		var oClipRect = _this.worksheet.rangeToRectAbs(_this.range, 3);
+		if(oRect) {
+			oClipRect = oClipRect.intersection(oRect);
+			if(!oClipRect) {
 				return;
 			}
 		}
 		var canvas = _this.worksheet.objectRender.getDrawingCanvas();
 		_this.setTransform(canvas.shapeCtx, canvas.shapeOverlayCtx, canvas.autoShapeTrack);
+		canvas.shapeCtx.SaveGrState();
+		canvas.shapeCtx.AddClipRect(oClipRect.x, oClipRect.y, oClipRect.w, oClipRect.h);
+		canvas.shapeCtx.SaveGrState();
+		canvas.shapeCtx.updatedRect = oClipRect;
+		object.draw(canvas.shapeCtx);
+		canvas.shapeCtx.updatedRect = null;
+		// Lock
+		if ( (object.graphicObject.lockType !== undefined) && (object.graphicObject.lockType !== AscCommon.c_oAscLockTypes.kLockTypeNone) ) {
+			var oApi = Asc['editor'];
+			if(oApi){
+				if (!oApi.collaborativeEditing.getFast() || object.graphicObject.lockType !== AscCommon.c_oAscLockTypes.kLockTypeMine){
+					canvas.shapeCtx.SetIntegerGrid(false);
+					canvas.shapeCtx.transform3(object.graphicObject.transform, false);
+					canvas.shapeCtx.DrawLockObjectRect(object.graphicObject.lockType, 0, 0, object.graphicObject.extX, object.graphicObject.extY );
+					canvas.shapeCtx.reset();
+					canvas.shapeCtx.SetIntegerGrid(true);
+				}
+			}
+		}	
+		canvas.shapeCtx.RestoreGrState();
+		canvas.shapeCtx.RestoreGrState();
+	};
+	
+	_this.updateRange = function(object, oRange) {
+		var oClipRange = _this.range.intersectionSimple(oRange)
+		if(!oClipRange) {
+			return;
+		}
+		var canvas = _this.worksheet.objectRender.getDrawingCanvas();
+		_this.setTransform(canvas.shapeCtx, canvas.shapeOverlayCtx, canvas.autoShapeTrack);
 		_this.clip(canvas.shapeCtx, oClipRange);
-		var oRect = _this.rangeToRectAbs(oClipRange, 3);
-		canvas.shapeCtx.updatedRect = oRect;
+		canvas.shapeCtx.updatedRect = _this.worksheet.rangeToRectAbs(oClipRange, 3);
 		//For debug
 		// canvas.shapeCtx.p_color(0, 0, 0, 255);
 		// canvas.shapeCtx.p_width(5);
@@ -588,6 +596,8 @@ function FrozenPlace(ws, type) {
 		}
 		_this.restore(canvas.shapeCtx);
 	};
+	
+	
 	
 	_this.drawSelection = function(drawingDocument, shapeCtx, shapeOverlayCtx, autoShapeTrack, trackOverlay) {
 
@@ -745,6 +755,13 @@ DrawingArea.prototype.drawObject = function(object, oRange) {
     for ( var i = 0; i < this.frozenPlaces.length; i++ ) {
         if ( this.frozenPlaces[i].isObjectInside(object) ) {
             this.frozenPlaces[i].drawObject(object, oRange);
+        }
+    }
+};
+DrawingArea.prototype.updateRange = function(object, oRange) {
+    for ( var i = 0; i < this.frozenPlaces.length; i++ ) {
+        if ( this.frozenPlaces[i].isObjectInside(object) ) {
+            this.frozenPlaces[i].updateRange(object, oRange);
         }
     }
 };
