@@ -1472,7 +1472,7 @@
   };
 
   // Double click
-  WorkbookView.prototype._onMouseDblClick = function(x, y, callback) {
+  WorkbookView.prototype._onMouseDblClick = function(x, y, event, callback) {
     var ws = this.getWorksheet();
     var ct = ws.getCursorTypeFromXY(x, y);
 
@@ -1499,6 +1499,7 @@
       // При dbl клике фокус выставляем в зависимости от наличия текста в ячейке
       var enterOptions = new AscCommonExcel.CEditorEnterOptions();
       enterOptions.focus = null;
+      enterOptions.eventPos = event;
       this._onEditCell(enterOptions);
     }
   };

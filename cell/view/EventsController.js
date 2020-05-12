@@ -324,7 +324,7 @@
 
 			setTimeout(function () {
 				var coord = t._getCoordinates(event);
-				t.handlers.trigger("mouseDblClick", coord.x, coord.y, function () {
+				t.handlers.trigger("mouseDblClick", coord.x, coord.y, event, function () {
 					// Мы изменяли размеры колонки/строки, не редактируем ячейку. Обновим состояние курсора
 					t.handlers.trigger("updateWorksheet", coord.x, coord.y, ctrlKey,
 						function (info) {t.targetInfo = info;});
