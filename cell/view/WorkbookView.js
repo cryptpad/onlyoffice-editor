@@ -664,11 +664,13 @@
 			          ws._drawSelection();
 				  }
 			  }, "cleanSelectRange": function () {
-                  if (self.isActive() && self.selectionDialogMode) {
+			      if (self.selectionDialogMode) {
                       var ws = self.getWorksheet();
                       if (ws.model.selectionRange) {
                           ws.cleanSelection();
                           ws.model.selectionRange = null;
+                      }
+                      if (self.isActive()) {
                           ws._drawSelection();
                       }
                   }
@@ -1785,9 +1787,7 @@
     if (this.selectionDialogMode) {
       // Когда идет выбор диапазона, то на показываемом листе должны выставить нужный режим
       ws.cloneSelection(true, selectionRange);
-      if (selectionRange) {
-          this._onSelectionRangeChanged(ws.getSelectionRangeValue());
-      }
+      this._onSelectionRangeChanged(ws.getSelectionRangeValue());
     }
 
     // Мы делали resize или меняли zoom, но не перерисовывали данный лист (он был не активный)

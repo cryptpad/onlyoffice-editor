@@ -8703,17 +8703,23 @@
 
     WorksheetView.prototype.getSelectionRangeValue = function () {
 		// ToDo проблема с выбором целого столбца/строки
-		return this._getRangeValue(this.model.selectionRange.getLast().clone(true), this.workbook.dialogAbsName, this.workbook.getDialogSheetName());
+		return this._getRangeValue(this.model.selectionRange ? this.model.selectionRange.getLast().clone(true) : null,
+            this.workbook.dialogAbsName, this.workbook.getDialogSheetName());
 	};
 
 
     WorksheetView.prototype._getRangeValue = function (range, absName, addSheet) {
         // ToDo проблема с выбором целого столбца/строки
-        var sName = range.getName(absName ? AscCommonExcel.referenceType.A : AscCommonExcel.referenceType.R);
-        if (addSheet) {
-            sName = parserHelp.get3DRef(this.model.getName(), sName);
+        var sName, type;
+        if (range) {
+            sName = range.getName(absName ? AscCommonExcel.referenceType.A : AscCommonExcel.referenceType.R);
+            if (addSheet) {
+                sName = parserHelp.get3DRef(this.model.getName(), sName);
+            }
+            type = range.type;
+        } else {
+            sName = '';
         }
-        var type = range.type;
         var selectionRangeValueObj = new AscCommonExcel.asc_CSelectionRangeValue();
         selectionRangeValueObj.asc_setName(sName);
         selectionRangeValueObj.asc_setType(type);
