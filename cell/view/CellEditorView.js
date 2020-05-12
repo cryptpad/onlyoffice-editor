@@ -807,6 +807,9 @@
 					}
 				}
 				if (bboxOper) {
+					if (wsName && ws && ws.getName() !== wsName) {
+						continue;
+					}
 					oSelectionRange.addRange();
 					range = oSelectionRange.getLast();
 					range.assign2(bboxOper);
