@@ -7177,7 +7177,7 @@
 		this._reinitializeScroll();
         this.handlers.trigger("onDocumentPlaceChanged");
 
-		if (editor && this.model.selectionRange.activeCell.row >= rFrozen) {
+		if (editor && this.model.getSelection().activeCell.row >= rFrozen) {
 			editor.move();
 		}
 
@@ -7341,7 +7341,7 @@
 		this._reinitializeScroll();
         this.handlers.trigger("onDocumentPlaceChanged");
 
-		if (editor && this.model.selectionRange.activeCell.col >= cFrozen) {
+		if (editor && this.model.getSelection().activeCell.col >= cFrozen) {
 			editor.move();
 		}
 
