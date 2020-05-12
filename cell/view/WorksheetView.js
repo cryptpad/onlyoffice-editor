@@ -5714,7 +5714,7 @@
         }
 
         selectionRange = this.model.selectionRange;
-        if (this.model.copyActiveRange && selectionRange) {
+        if (this.model.copySelection && selectionRange) {
             selectionRange.ranges.forEach(function (item) {
                 var arnIntersection = item.intersectionSimple(range);
                 if (arnIntersection) {
@@ -19718,7 +19718,7 @@
 
 	WorksheetView.prototype.checkCustomSortRange = function (range, bRow) {
 		var res = null;
-		var ar = this.model.copyActiveRange.getLast();
+		var ar = this.model.copySelection.getLast();
 
 		if((bRow && range.r1 !== range.r2) || (!bRow && range.c1 !== range.c2)) {
 			res = c_oAscError.ID.CustomSortMoreOneSelectedError;
