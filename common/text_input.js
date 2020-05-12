@@ -1277,6 +1277,8 @@
             this.KeyDownFlag = false;
             this.KeyPressFlag = false;
 			AscCommon.global_keyboardEvent.Up();
+
+            this.Api.onKeyUp(e);
 		},
 
 		getAreaPos : function()
