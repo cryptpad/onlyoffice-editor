@@ -2218,6 +2218,7 @@
 			} else {
 				// Открываем, с выставлением позиции курсора
 				enterOptions.newText = name;
+                enterOptions.cursorPos = cursorPos;
 			}
 
 			this._onEditCell(enterOptions, callback);

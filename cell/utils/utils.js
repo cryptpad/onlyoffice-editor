@@ -2640,6 +2640,7 @@
 
 		function CEditorEnterOptions() {
 			this.cursorPos = null;
+			this.eventPos = null;
 			this.focus = false;
 			this.newText = null;
 			this.hideCursor = false;

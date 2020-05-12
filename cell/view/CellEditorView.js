@@ -299,22 +299,24 @@
 		this._updateEditorState();
 		this._draw();
 
-		if (null === options.enterOptions.cursorPos) {
-			if (this.isTopLineActive) {
-				if (typeof b !== "undefined") {
-					if (this.cursorPos !== b) {
-						this._moveCursor(kPosition, b);
-					}
-				} else {
-					this._moveCursor(kEndOfText);
-				}
-			} else if (null !== options.enterOptions.newText) {
-				this._selectChars(kEndOfText);
-				this._addChars(options.enterOptions.newText);
-			} else {
-				this._moveCursor(kEndOfText);
-			}
+		if (null !== options.enterOptions.newText) {
+			this._selectChars(kEndOfText);
+			this._addChars(options.enterOptions.newText);
 		}
+
+		if (this.isTopLineActive && typeof b !== "undefined") {
+			if (this.cursorPos !== b) {
+				this._moveCursor(kPosition, b);
+			}
+		} else if (options.enterOptions.cursorPos){
+			this._moveCursor(kPosition, options.enterOptions.cursorPos);
+		} else if (options.enterOptions.eventPos) {
+			this._onMouseDown(options.enterOptions.eventPos);
+			this._onMouseUp(options.enterOptions.eventPos);
+		} else {
+			this._moveCursor(kEndOfText);
+		}
+
 		/*
 		 * Выставляем фокус при открытии
 		 * При нажатии символа, фокус не ставим
@@ -744,7 +746,7 @@
 		this.right = this.sides.r[this.sides.ri];
 		this.bottom = this.sides.b[this.sides.bi];
 
-		this.cursorPos = opt.enterOptions.cursorPos !== null ? opt.cursorPos : 0;
+		this.cursorPos = 0;
 		this.topLineIndex = 0;
 		this.selectionBegin = -1;
 		this.selectionEnd = -1;

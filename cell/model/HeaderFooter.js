@@ -979,6 +979,9 @@
 
 		var enterOptions = new AscCommonExcel.CEditorEnterOptions();
 		enterOptions.focus = true;
+		if(undefined !== x && undefined !== y) {
+			enterOptions.eventPos = {pageX: x, pageY: y};
+		}
 
 		var options = {
 			enterOptions: enterOptions,
@@ -1006,27 +1009,7 @@
 			menuEditor: true
 		};
 
-		//TODO для определение позиции первого клика прадварительно выставляю опции и измеряю. Рассмотреть, если ли другой вариант?
-		editor._setOptions(options);
-		editor.textRender.measureString(fragments, flags, editor._getContentWidth());
-		editor._renderText();
-
-		//при клике на одну из секций определяем стартовую позицию
-		//если позиция undefined, ищем конец текста в данном фрагменте
-		var cursorPos;
-		if(undefined === x || undefined === y) {
-			cursorPos = 0;
-			if(editor.options && editor.options.fragments) {
-				for(var i = 0; i < editor.options.fragments.length; i++) {
-					cursorPos += editor.options.fragments[i].text.length;
-				}
-			}
-		} else {
-			cursorPos = editor._findCursorPosition({x: x, y: y});
-		}
-
 		wb.setCellEditMode(true);
-		options.enterOptions.cursorPos = cursorPos;
 		editor.open(options);
 		wb.input.disabled = false;
 
