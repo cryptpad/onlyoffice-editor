@@ -8701,10 +8701,10 @@
     };
 
 
-    WorksheetView.prototype.getSelectionRangeValue = function () {
+    WorksheetView.prototype.getSelectionRangeValue = function (absName, addSheet) {
 		// ToDo проблема с выбором целого столбца/строки
 		return this._getRangeValue(this.model.selectionRange ? this.model.selectionRange.getLast().clone(true) : null,
-            this.workbook.dialogAbsName, this.workbook.getDialogSheetName());
+            absName || this.workbook.dialogAbsName, addSheet || this.workbook.getDialogSheetName());
 	};
 
 

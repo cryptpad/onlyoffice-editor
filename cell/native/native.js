@@ -4738,7 +4738,7 @@ function OfflineEditor () {
             settings.putInColumns(!(box.r2 - box.r1 < box.c2 - box.c1));
         }
         
-        var oRangeValue = ws.getSelectionRangeValue();
+        var oRangeValue = ws.getSelectionRangeValue(true, true);
         if (oRangeValue) {
             settings.putRange(oRangeValue.asc_getName());
         }

@@ -2745,7 +2745,7 @@
     //ToDo проверка defName.ref на знак "=" в начале ссылки. знака нет тогда это либо число либо строка, так делает Excel.
 
     var ws = this.getWorksheet();
-    var oRangeValue = ws.getSelectionRangeValue();
+    var oRangeValue = ws.getSelectionRangeValue(true, true);
     return new Asc.asc_CDefName("", oRangeValue.asc_getName(), null);
 
   };
