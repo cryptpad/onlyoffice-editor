@@ -2544,7 +2544,7 @@
 
           this.getWorksheet().cloneSelection(true, tmpSelectRange && AscCommonExcel.g_oRangeCache.getAscRange(tmpSelectRange));
           this.selectionDialogMode = newSelectionDialogMode;
-          this.input.disabled = true;
+          this.input.disabled = !this.isFormulaEditMode;
           drawSelection = true;
       } else {
           this.selectionDialogMode = newSelectionDialogMode;
