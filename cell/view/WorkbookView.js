@@ -1754,8 +1754,7 @@
       // Останавливаем ввод данных в редакторе ввода. Если в режиме ввода формул, то продолжаем работать с cellEditor'ом, чтобы можно было
       // выбирать ячейки для формулы
       if (!this._onStopCellEditing2()) {
-          // ToDo
-          debugger;
+          index = this.copyActiveSheet;
       }
       // Делаем очистку селекта
       ws.cleanSelection();
