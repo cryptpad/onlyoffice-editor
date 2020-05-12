@@ -721,13 +721,7 @@
 		  }, "setAutoFiltersDialog": function (arrVal) {
 			  self.handlers.trigger("asc_onSetAFDialog", arrVal);
 		  }, "selectionRangeChanged": function (val) {
-		      if (self.isFormulaEditMode) {
-                  self.skipHelpSelector = true;
-                  self.cellEditor.setFocus(false);
-		          self.cellEditor.changeCellText(val.asc_getName());
-                  self.skipHelpSelector = false;
-              }
-			  self.handlers.trigger("asc_onSelectionRangeChanged", val);
+		      self._onSelectionRangeChanged(val);
 		  }, "onRenameCellTextEnd": function (countFind, countReplace) {
 			  self.handlers.trigger("asc_onRenameCellTextEnd", countFind, countReplace);
 		  }, 'onStopFormatPainter': function () {
@@ -920,12 +914,22 @@
     return new AscCommonExcel.WorksheetView(this, wsModel, this.wsViewHandlers, this.buffers, this.stringRender, this.maxDigitWidth, this.collaborativeEditing, this.defaults.worksheetView);
   };
 
-  WorkbookView.prototype._onSelectionNameChanged = function(name) {
+  WorkbookView.prototype._onSelectionNameChanged = function (name) {
     this.handlers.trigger("asc_onSelectionNameChanged", name);
   };
 
-  WorkbookView.prototype._onSelectionMathInfoChanged = function(info) {
+  WorkbookView.prototype._onSelectionMathInfoChanged = function (info) {
     this.handlers.trigger("asc_onSelectionMathChanged", info);
+  };
+
+  WorkbookView.prototype._onSelectionRangeChanged = function (val) {
+      if (this.isFormulaEditMode) {
+          this.skipHelpSelector = true;
+          this.cellEditor.setFocus(false);
+          this.cellEditor.changeCellText(val.asc_getName());
+          this.skipHelpSelector = false;
+      }
+      this.handlers.trigger("asc_onSelectionRangeChanged", val);
   };
 
   // Проверяет, сменили ли мы диапазон (для того, чтобы не отправлять одинаковую информацию о диапазоне)
@@ -1741,7 +1745,7 @@
       return this;
     }
 
-    var tmpWorksheet, selectionRange = null;
+    var selectionRange = null;
     // Только если есть активный
     if (-1 !== this.wsActive) {
       ws = this.getWorksheet();
@@ -1754,17 +1758,17 @@
       // Делаем очистку селекта
       ws.cleanSelection();
       this.stopTarget(ws);
-    }
 
-    if (this.selectionDialogMode) {
-      // Когда идет выбор диапазона, то должны на закрываемом листе отменить выбор диапазона
-      tmpWorksheet = this.getWorksheet();
-      selectionRange = tmpWorksheet.model.selectionRange.getLast().clone(true);
-      tmpWorksheet.cloneSelection(false);
-    }
-    if (this.stateFormatPainter) {
-      // Должны отменить выбор на закрываемом листе
-      this.getWorksheet().formatPainter(c_oAscFormatPainterState.kOff);
+      if (this.selectionDialogMode) {
+          // Когда идет выбор диапазона, то должны на закрываемом листе отменить выбор диапазона
+          if (ws.model.selectionRange) {
+              selectionRange = ws.model.selectionRange.getLast().clone(true);
+          }
+          ws.cloneSelection(false);
+      } else if (this.stateFormatPainter) {
+          // Должны отменить выбор на закрываемом листе
+          ws.formatPainter(c_oAscFormatPainterState.kOff);
+      }
     }
 
     if (index !== wb.getActive()) {
@@ -1781,7 +1785,9 @@
     if (this.selectionDialogMode) {
       // Когда идет выбор диапазона, то на показываемом листе должны выставить нужный режим
       ws.cloneSelection(true, selectionRange);
-      this.handlers.trigger("asc_onSelectionRangeChanged", ws.getSelectionRangeValue());
+      if (selectionRange) {
+          this._onSelectionRangeChanged(ws.getSelectionRangeValue());
+      }
     }
 
     // Мы делали resize или меняли zoom, но не перерисовывали данный лист (он был не активный)
