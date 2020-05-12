@@ -2258,10 +2258,6 @@
 			}
 			t.handlers.trigger("asc_onSendFunctionWizardInfo", functionInfo);
 		} else {
-			if (this.collaborativeEditing.getGlobalLock()) {
-				return;
-			}
-
 			var isActiveCellFormula = ws.model.isActiveCellFormula();
 			var callback = function (res) {
 				functionInfo = null;
