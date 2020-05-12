@@ -879,7 +879,6 @@
 	CHeaderFooterEditor.prototype.click = function (id, x, y) {
 		var api = this.api;
 		var wb = this.wb;
-		var ws = wb.getWorksheet();
 		var t = this;
 
 		var editLockCallback = function() {
