@@ -517,22 +517,25 @@
 	};
 
 	CellEditor.prototype.changeCellRange = function (range, moveEndOfText) {
-		var t = this;
-		t._moveCursor(kPosition, range.cursorePos);
-		t._selectChars(kPositionLength, range.formulaRangeLength);
-		t._addChars(range.getName(), undefined, /*isRange*/true);
+		this.skipTLUpdate = false;
+		this._moveCursor(kPosition, range.cursorePos);
+		this._selectChars(kPositionLength, range.formulaRangeLength);
+		this._addChars(range.getName(), undefined, /*isRange*/true);
 		if (moveEndOfText) {
-			t._moveCursor(kEndOfText);
+			this._moveCursor(kEndOfText);
 		}
+		this.skipTLUpdate = true;
 	};
 
 	CellEditor.prototype.changeCellText = function (str) {
+		this.skipTLUpdate = false;
 		this._moveCursor(kPosition, this.lastRangePos);
 		if (this.lastRangeLength) {
 			this._selectChars(kPositionLength, this.lastRangeLength);
 		}
 		this._addChars(str, undefined, /*isRange*/true);
 		this.lastRangeLength = str.length;
+		this.skipTLUpdate = true;
 	};
 
 	CellEditor.prototype.move = function () {
@@ -688,7 +691,6 @@
 			}
 		}
 
-		var tmp = this.skipTLUpdate;
 		this.skipTLUpdate = false;
 		// Вставим форумулу в текущую позицию
 		this._addChars( functionName );
@@ -696,7 +698,7 @@
 		if ( !isDefName ) {
 			this._moveCursor( kPosition, this.cursorPos - 1 );
 		}
-		this.skipTLUpdate = tmp;
+		this.skipTLUpdate = true;
 	};
 
 	CellEditor.prototype.replaceText = function (pos, len, newText) {
