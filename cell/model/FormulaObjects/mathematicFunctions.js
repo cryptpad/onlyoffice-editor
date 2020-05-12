@@ -4691,7 +4691,7 @@
 				}
 
 				cacheElem.elems = getElems(arg1, arg2, parent ? parent.elems : null, k + 1 === arg.length - 1);
-			} else if (false && k + 1 === arg.length - 1 && cacheElem.elems) {
+			} else if (k + 1 === arg.length - 1 && cacheElem.elems) {
 				for (var i = 0; i < cacheElem.elems.length; i++) {
 					if (cacheElem.elems[i]) {
 						for (var j = 0; j < cacheElem.elems[i].length; j++) {
