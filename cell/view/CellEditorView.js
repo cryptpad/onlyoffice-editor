@@ -659,6 +659,11 @@
 		return c_oAscCellEditorState.editFormula === this.m_nEditorState;
 	};
 
+	CellEditor.prototype._updateTextAlign = function () {
+		this.textFlags.textAlign = (this.options.flags.textAlign === AscCommon.align_Justify || this.isFormula()) ?
+			AscCommon.align_Left : this.options.flags.textAlign;
+	};
+
 	CellEditor.prototype.insertFormula = function ( functionName, isDefName ) {
 		// Проверим форула ли это
 		if ( false === this.isFormula() ) {
@@ -717,9 +722,7 @@
 		var u = ctx.getUnits();
 
 		this.textFlags = opt.flags.clone();
-		if ( this.textFlags.textAlign === AscCommon.align_Justify || this.isFormula() ) {
-			this.textFlags.textAlign = AscCommon.align_Left;
-		}
+		this._updateTextAlign();
 		this.textFlags.shrinkToFit = false;
 
 		this._cleanFragments( opt.fragments );
@@ -1160,6 +1163,7 @@
 			bottom = this.bottom;
 			this.bottom = this.sides.b[this.sides.bi];
 
+			this._updateTextAlign();
 			tm = this.textRender.measureString(fragments, this.textFlags, this._getContentWidth());
 
 			if (!this.textFlags.wrapText && !this.textFlags.wrapOnlyCE) {
