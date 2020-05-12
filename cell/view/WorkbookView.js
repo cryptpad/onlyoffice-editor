@@ -175,6 +175,7 @@
 
     this.isCellEditMode = false;
     this.isFormulaEditMode = false;
+    this.isWizard = false;
 
 	  this.isShowComments = true;
 	  this.isShowSolved = true;
@@ -221,7 +222,6 @@
     this.selectionDialogMode = false;
     this.dialogAbsName = false;
     this.dialogSheetName = false;
-    this.dialogOtherRanges = true;
     this.copyActiveSheet = -1;
 
     // Комментарии для всего документа
@@ -685,8 +685,8 @@
 			      return self.isActive() ? self.getWorksheet().oOtherRanges : null;
 			  }, "isActive": function () {
 				  return self.isActive();
-			  }, "getSelectionDialogMode": function () {
-			      return self.selectionDialogMode;
+			  }, "getWizard": function () {
+			      return self.isWizard;
               }, "getActiveWS": function () {
 			      return self.model.getWorksheet(-1 === self.copyActiveSheet ? self.wsActive : self.copyActiveSheet);
 			  }, "setStrictClose": function (val) {
@@ -1543,8 +1543,6 @@
     var editLockCallback = function(res) {
       if (!res) {
         t.setCellEditMode(false);
-        t.controller.setStrictClose(false);
-        t.setFormulaEditMode(false);
         t.input.disabled = true;
 
         // Выключаем lock для редактирования ячейки
@@ -1581,8 +1579,6 @@
   WorkbookView.prototype._onCloseCellEditor = function() {
     var isCellEditMode = this.getCellEditMode();
     this.setCellEditMode(false);
-    this.controller.setStrictClose(false);
-    this.setFormulaEditMode(false);
 
     if (isCellEditMode) {
       if (window['IS_NATIVE_EDITOR']) {
@@ -1961,6 +1957,11 @@
 
 	WorkbookView.prototype.setCellEditMode = function(mode) {
 		this.isCellEditMode = !!mode;
+		if (!this.isCellEditMode) {
+		    this.isWizard = false;
+            this.controller.setStrictClose(false);
+            this.setFormulaEditMode(false);
+        }
 	};
 
     WorkbookView.prototype.setFormulaEditMode = function (mode) {
@@ -2283,12 +2284,11 @@
 				//если ячейка с формулой, то либо перемещаемся к первой функции и отркываем диалог wizard
 				//если функции нет, то перемещаемся в конец формулы и открываем окно выбора функции
 				t.cellEditor.needFindFirstFunction = true;
-				enterOptions.newText = '';
-				enterOptions.cursorPos = t.cellEditor.cursorPos;
 			} else {
 				enterOptions.newText = '=';
 			}
 
+			this.isWizard = true;
 			this._onEditCell(enterOptions, callback);
 		}
 	};
@@ -2505,8 +2505,7 @@
           c_oAscSelectionDialogType.PivotTableData === selectionDialogType ||
           c_oAscSelectionDialogType.PivotTableReport === selectionDialogType);
       this.dialogAbsName = (c_oAscSelectionDialogType.None !== selectionDialogType &&
-          c_oAscSelectionDialogType.FunctionWizard !== selectionDialogType && c_oAscSelectionDialogType.Function !== selectionDialogType);
-      this.dialogOtherRanges = (c_oAscSelectionDialogType.FunctionWizard !== selectionDialogType)
+          c_oAscSelectionDialogType.Function !== selectionDialogType);
   };
   WorkbookView.prototype.setSelectionDialogMode = function (selectionDialogType, selectRange) {
       var newSelectionDialogMode = c_oAscSelectionDialogType.None !== selectionDialogType;

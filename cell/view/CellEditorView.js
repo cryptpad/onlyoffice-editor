@@ -1382,7 +1382,7 @@
 		}
 
 		var t = this;
-		if ( true === t.options.enterOptions.hideCursor || t.isTopLineActive === true ) {
+		if (t.options.enterOptions.hideCursor || t.isTopLineActive || this.handlers.trigger('getWizard')) {
 			return;
 		}
 		window.clearInterval( t.cursorTID );
@@ -2170,7 +2170,7 @@
 		var t = this, kind = undefined, hieroglyph = false;
 		var ctrlKey = !AscCommon.getAltGr(event) && (event.metaKey || event.ctrlKey);
 
-		if (!t.isOpened || (!isInput && !t.enableKeyEvents)) {
+		if (this.handlers.trigger('getWizard') || !t.isOpened || (!isInput && !t.enableKeyEvents)) {
 			return true;
 		}
 
@@ -2535,7 +2535,7 @@
 
 		if (!window['IS_NATIVE_EDITOR']) {
 
-			if (!t.isOpened || !t.enableKeyEvents) {
+			if (!t.isOpened || !t.enableKeyEvents || this.handlers.trigger('getWizard')) {
 				return true;
 			}
 
