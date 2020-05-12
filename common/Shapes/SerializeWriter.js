@@ -120,7 +120,7 @@ function CBinaryFileWriter()
     this.pos = 0;
     this.Init();
 
-    this.UseContinueWriter = false;
+    this.UseContinueWriter = 0;
 
     this.IsUseFullUrl = false;
     this.PresentationThemesOrigin = "";
@@ -3297,7 +3297,7 @@ function CBinaryFileWriter()
                                     _memory.data = oThis.data;
                                     _memory.len = oThis.len;
                                     _memory.pos = oThis.pos;
-                                    oThis.UseContinueWriter = true;
+                                    oThis.UseContinueWriter++;
 
                                     if (!oThis.DocSaveParams) {
                                         oThis.DocSaveParams = new AscCommonWord.DocSaveParams(false, false);
@@ -3309,7 +3309,7 @@ function CBinaryFileWriter()
                                     oThis.data = _memory.data;
                                     oThis.len = _memory.len;
                                     oThis.pos = _memory.pos;
-                                    oThis.UseContinueWriter = false;
+                                    oThis.UseContinueWriter--;
 
                                     _memory.ImData = null;
                                     _memory.data = null;
@@ -3337,7 +3337,7 @@ function CBinaryFileWriter()
 						_memory.data = oThis.data;
 						_memory.len = oThis.len;
 						_memory.pos = oThis.pos;
-						oThis.UseContinueWriter = true;
+						oThis.UseContinueWriter++;
 
 						if (!oThis.DocSaveParams) {
 							oThis.DocSaveParams = new AscCommonWord.DocSaveParams(false, false);
@@ -3349,7 +3349,7 @@ function CBinaryFileWriter()
 						oThis.data = _memory.data;
 						oThis.len = _memory.len;
 						oThis.pos = _memory.pos;
-						oThis.UseContinueWriter = false;
+						oThis.UseContinueWriter--;
 
 						_memory.ImData = null;
 						_memory.data = null;
@@ -3687,7 +3687,7 @@ function CBinaryFileWriter()
         _memory.len = oThis.len;
         _memory.pos = oThis.pos;
 
-        oThis.UseContinueWriter = true;
+        oThis.UseContinueWriter++;
 
         var oBinaryChartWriter = new AscCommon.BinaryChartWriter(_memory);
         oBinaryChartWriter.WriteCT_ChartSpace(grObj);
@@ -3697,7 +3697,7 @@ function CBinaryFileWriter()
         oThis.len = _memory.len;
         oThis.pos = _memory.pos;
 
-        oThis.UseContinueWriter = false;
+        oThis.UseContinueWriter--;
 
         _memory.ImData = null;
         _memory.data = null;
@@ -5273,7 +5273,7 @@ function CBinaryFileWriter()
         };
         this.WriteTextBody = function(memory, textBody)
         {
-            if (this.BinaryFileWriter.UseContinueWriter)
+            if (this.BinaryFileWriter.UseContinueWriter > 0)
             {
                 this.BinaryFileWriter.ImData = memory.ImData;
                 this.BinaryFileWriter.data = memory.data;
@@ -5291,7 +5291,7 @@ function CBinaryFileWriter()
             _writer.WriteTxBody(textBody);
             _writer.EndRecord();
 
-            if (this.BinaryFileWriter.UseContinueWriter)
+            if (this.BinaryFileWriter.UseContinueWriter > 0)
             {
                 memory.ImData = this.BinaryFileWriter.ImData;
                 memory.data = this.BinaryFileWriter.data;
@@ -5311,7 +5311,7 @@ function CBinaryFileWriter()
         };
         this.WriteClrMapOverride = function(memory, clrMapOverride)
         {
-            if (this.BinaryFileWriter.UseContinueWriter)
+            if (this.BinaryFileWriter.UseContinueWriter > 0)
             {
                 this.BinaryFileWriter.ImData = memory.ImData;
                 this.BinaryFileWriter.data = memory.data;
@@ -5331,7 +5331,7 @@ function CBinaryFileWriter()
             _writer.EndRecord();
             _writer.EndRecord();
 
-            if (this.BinaryFileWriter.UseContinueWriter)
+            if (this.BinaryFileWriter.UseContinueWriter > 0)
             {
                 memory.ImData = this.BinaryFileWriter.ImData;
                 memory.data = this.BinaryFileWriter.data;
@@ -5351,7 +5351,7 @@ function CBinaryFileWriter()
         };
         this.WriteSpPr = function(memory, spPr, type)
         {
-            if (this.BinaryFileWriter.UseContinueWriter)
+            if (this.BinaryFileWriter.UseContinueWriter > 0)
             {
                 this.BinaryFileWriter.ImData = memory.ImData;
                 this.BinaryFileWriter.data = memory.data;
@@ -5374,7 +5374,7 @@ function CBinaryFileWriter()
                 _writer.WriteSpPr(spPr);
             _writer.EndRecord();
 
-            if (this.BinaryFileWriter.UseContinueWriter)
+            if (this.BinaryFileWriter.UseContinueWriter > 0)
             {
                 memory.ImData = this.BinaryFileWriter.ImData;
                 memory.data = this.BinaryFileWriter.data;
@@ -5394,7 +5394,7 @@ function CBinaryFileWriter()
         };
 		this.WriteRunProperties = function(memory, rPr)
 		{
-			if (this.BinaryFileWriter.UseContinueWriter)
+			if (this.BinaryFileWriter.UseContinueWriter > 0)
 			{
 				this.BinaryFileWriter.ImData = memory.ImData;
 				this.BinaryFileWriter.data = memory.data;
@@ -5412,7 +5412,7 @@ function CBinaryFileWriter()
 			_writer.WriteRunProperties(rPr);
 			_writer.EndRecord();
 
-			if (this.BinaryFileWriter.UseContinueWriter)
+			if (this.BinaryFileWriter.UseContinueWriter > 0)
 			{
 				memory.ImData = this.BinaryFileWriter.ImData;
 				memory.data = this.BinaryFileWriter.data;
@@ -5432,7 +5432,7 @@ function CBinaryFileWriter()
 		};
         this.WriteDrawing = function(memory, grObject, Document, oMapCommentId, oNumIdMap, copyParams, saveParams)
         {
-            if (this.BinaryFileWriter.UseContinueWriter)
+            if (this.BinaryFileWriter.UseContinueWriter > 0)
             {
                 this.BinaryFileWriter.ImData = memory.ImData;
                 this.BinaryFileWriter.data = memory.data;
@@ -5451,7 +5451,7 @@ function CBinaryFileWriter()
             this.BinaryFileWriter.EndRecord();
             this.BinaryFileWriter.EndRecord();
 
-            if (this.BinaryFileWriter.UseContinueWriter)
+            if (this.BinaryFileWriter.UseContinueWriter > 0)
             {
                 memory.ImData = this.BinaryFileWriter.ImData;
                 memory.data = this.BinaryFileWriter.data;
@@ -5711,7 +5711,7 @@ function CBinaryFileWriter()
         };
         this.WriteTheme = function(memory, theme)
         {
-			if (this.BinaryFileWriter.UseContinueWriter)
+			if (this.BinaryFileWriter.UseContinueWriter > 0)
 			{
 				this.BinaryFileWriter.ImData = memory.ImData;
 				this.BinaryFileWriter.data = memory.data;
@@ -5726,7 +5726,7 @@ function CBinaryFileWriter()
 
             this.BinaryFileWriter.WriteTheme(theme);
 
-			if (this.BinaryFileWriter.UseContinueWriter)
+			if (this.BinaryFileWriter.UseContinueWriter > 0)
 			{
 				memory.ImData = this.BinaryFileWriter.ImData;
 				memory.data = this.BinaryFileWriter.data;
