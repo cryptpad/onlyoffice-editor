@@ -1805,9 +1805,7 @@
       if (this.isActive()) {
         this.cellEditor._showCanvas();
       } else {
-        /*скрываем cellEditor, в редактор добавляем %selected sheet name%+"!" */
         this.cellEditor._hideCanvas();
-        ws.cleanSelection();
       }
     }
 
