@@ -8759,11 +8759,10 @@
 
         var cell_info = new asc_CCellInfo();
 
+        cell_info.xfs = c.getXfs();
+
 		AscCommonExcel.g_ActiveCell = new Asc.Range(c1, r1, c1, r1);
         cell_info.text = c.getValueForEdit(true);
-
-		cell_info.halign = align.getAlignHorizontal();
-		cell_info.valign = align.getAlignVertical();
 
         var tablePartsOptions = selectionRange.isSingleRange() ?
           this.model.autoFilters.searchRangeInTableParts(selectionRange.getLast()) : -2;
@@ -8805,7 +8804,6 @@
         }
 
         cell_info.styleName = c.getStyleName();
-        cell_info.angle = align.getAngle();
 
         cell_info.flags = new AscCommonExcel.asc_CCellFlag();
         cell_info.flags.shrinkToFit = align.getShrinkToFit();
@@ -8906,6 +8904,7 @@
 
     WorksheetView.prototype._getSelectionInfoObject = function () {
         var objectInfo = new asc_CCellInfo();
+        var xfs = new AscCommonExcel.CellXfs();
 
         objectInfo.flags = new AscCommonExcel.asc_CCellFlag();
         var graphicObjects = this.objectRender.getSelectedGraphicObjects();
@@ -8925,6 +8924,7 @@
         }
         if (textPr && paraPr) {
             objectInfo.text = this.objectRender.controller.GetSelectedText(true);
+
 
             var horAlign = paraPr.Jc;
             var vertAlign = Asc.c_oAscVAlign.Center;
@@ -8959,9 +8959,11 @@
 
             }
 
-            objectInfo.halign = horAlign;
-            objectInfo.valign = vertAlign;
-            objectInfo.angle = angle;
+            var align = new AscCommonExcel.Align();
+            align.setAlignHorizontal(horAlign);
+            align.setAlignVertical(vertAlign);
+            align.angle = angle;
+            xfs.setAlign(align);
 
             if (textPr.Unifill && theme) {
                 textPr.Unifill.check(theme, this.objectRender.controller.getColorMap());
@@ -8985,6 +8987,8 @@
                 objectInfo.hyperlink.asc_setText(shapeHyperlink.GetSelectedText(true, true));
             }
         }
+
+        objectInfo.xfs = xfs;
 
         // ToDo Нужно выставить правильный Fill
 

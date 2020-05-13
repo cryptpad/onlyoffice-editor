@@ -280,9 +280,9 @@
 
 	/** @constructor */
 	function asc_CCellInfo() {
+		this.xfs = null;
+
 		this.text = "";
-		this.halign = "left";
-		this.valign = "top";
 		this.flags = null;
 		this.font = new CFont();
 		this.fill = null;
@@ -297,7 +297,6 @@
 		this.isLockedPivotTable = false;
 		this.styleName = null;
 		this.numFormatInfo = null;
-		this.angle = null;
 		this.autoFilterInfo = null;
 		this.formatTableInfo = null;
 		this.sparklineInfo = null;
@@ -311,11 +310,14 @@
 		return this.text;
 	};
 	asc_CCellInfo.prototype.asc_getHorAlign = function () {
-		return this.halign;
+		return this.xfs.getAlign().getAlignHorizontal();
 	};
 	asc_CCellInfo.prototype.asc_getVertAlign = function () {
-		return this.valign;
+		return this.xfs.getAlign().getAlignVertical();
 	};
+    asc_CCellInfo.prototype.asc_getAngle = function () {
+        return this.xfs.getAlign().getAngle();
+    };
 	asc_CCellInfo.prototype.asc_getFlags = function () {
 		return this.flags;
 	};
@@ -360,9 +362,6 @@
 	};
 	asc_CCellInfo.prototype.asc_getNumFormatInfo = function () {
 		return this.numFormatInfo;
-	};
-	asc_CCellInfo.prototype.asc_getAngle = function () {
-		return this.angle;
 	};
 	asc_CCellInfo.prototype.asc_getAutoFilterInfo = function () {
 		return this.autoFilterInfo;
