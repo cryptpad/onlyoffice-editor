@@ -258,11 +258,7 @@
         this.t = t;
         this.r = r;
         this.b = b;
-
-        this.x = l;
-        this.y = t;
-        this.w = r - l;
-        this.h = b - t;
+        this.checkWH();
     }
 
     CGraphicBounds.prototype.fromOther = function(oBounds){
@@ -270,11 +266,7 @@
         this.t = oBounds.t;
         this.r = oBounds.r;
         this.b = oBounds.b;
-
-        this.x = oBounds.x;
-        this.y = oBounds.y;
-        this.w = oBounds.w;
-        this.h = oBounds.h;
+        this.checkWH();
     };
     CGraphicBounds.prototype.copy = function(){
         return new CGraphicBounds(this.l, this.t, this.r, this.b);
@@ -298,10 +290,7 @@
         this.r = Math.max(xlb, xlt, xrb, xrt);
         this.b = Math.max(ylb, ylt, yrb, yrt);
 
-        this.x = this.l;
-        this.y = this.t;
-        this.w = this.r - this.l;
-        this.h = this.b - this.t;
+        this.checkWH();
     };
 
     CGraphicBounds.prototype.checkByOther = function(oBounds){
@@ -318,6 +307,7 @@
             if(oBounds.b > this.b){
                 this.b = oBounds.b;
             }
+            this.checkWH();
         }
     };
     CGraphicBounds.prototype.checkWH = function(){
@@ -333,11 +323,7 @@
         this.t = t;
         this.r = r;
         this.b = b;
-
-        this.x = l;
-        this.y = t;
-        this.w = r - l;
-        this.h = b - t;
+        this.checkWH();
     };
 
 

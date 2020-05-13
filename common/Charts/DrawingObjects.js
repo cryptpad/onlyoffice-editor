@@ -1228,7 +1228,10 @@ CSparklineView.prototype.setMinMaxValAx = function(minVal, maxVal, oSparklineGro
 //-----------------------------------------------------------------------------------
     
 function GraphicOption(rect) {
-	this.rect = rect;
+    this.rect = null;
+    if(rect) {
+        this.rect = rect.copy();
+    }
 }
 
 

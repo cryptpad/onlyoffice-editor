@@ -514,8 +514,7 @@ function FrozenPlace(ws, type) {
 		return scroll;
 	};
 	
-	_this.clip = function(canvas, oRange) {
-		var rect = _this.worksheet.rangeToRectRel(oRange, 0);
+	_this.clip = function(canvas, rect) {
 		canvas.m_oContext.save();
 		canvas.m_oContext.beginPath();
 		canvas.m_oContext.rect(rect.x, rect.y, rect.w, rect.h);
@@ -532,19 +531,31 @@ function FrozenPlace(ws, type) {
 	
 	_this.drawObject = function(object, oRect) {
 	
-		var oClipRect = _this.worksheet.rangeToRectAbs(_this.range, 3);
+		var oUpdateRect = _this.worksheet.rangeToRectAbs(_this.range, 3);
 		if(oRect) {
-			oClipRect = oClipRect.intersection(oRect);
-			if(!oClipRect) {
+			oUpdateRect = oUpdateRect.intersection(oRect);
+			if(!oUpdateRect) {
 				return;
 			}
 		}
 		var canvas = _this.worksheet.objectRender.getDrawingCanvas();
 		_this.setTransform(canvas.shapeCtx, canvas.shapeOverlayCtx, canvas.autoShapeTrack);
-		canvas.shapeCtx.SaveGrState();
-		canvas.shapeCtx.AddClipRect(oClipRect.x, oClipRect.y, oClipRect.w, oClipRect.h);
-		canvas.shapeCtx.SaveGrState();
-		canvas.shapeCtx.updatedRect = oClipRect;
+
+		var oClipRect;
+		if(!oRect) {
+			oClipRect = _this.worksheet.rangeToRectRel(_this.range, 0);
+		}
+		else {
+			var oT = canvas.shapeCtx.m_oCoordTransform;
+			var l = (oT.TransformPointX(oUpdateRect.l, oUpdateRect.t) >> 0) - 1;
+			var t = (oT.TransformPointY(oUpdateRect.l, oUpdateRect.t) >> 0) - 1;
+			var r = (oT.TransformPointX(oUpdateRect.r, oUpdateRect.b) >> 0) + 1;
+			var b = (oT.TransformPointY(oUpdateRect.r, oUpdateRect.b) >> 0) + 1;
+			oClipRect = new AscFormat.CGraphicBounds(l, t, r, b);
+		}
+
+		_this.clip(canvas.shapeCtx, oClipRect);
+		canvas.shapeCtx.updatedRect = oUpdateRect;
 		object.draw(canvas.shapeCtx);
 		canvas.shapeCtx.updatedRect = null;
 		// Lock
@@ -559,9 +570,8 @@ function FrozenPlace(ws, type) {
 					canvas.shapeCtx.SetIntegerGrid(true);
 				}
 			}
-		}	
-		canvas.shapeCtx.RestoreGrState();
-		canvas.shapeCtx.RestoreGrState();
+		}
+		_this.restore(canvas.shapeCtx);
 	};
 	
 	_this.updateRange = function(object, oRange) {
@@ -571,7 +581,7 @@ function FrozenPlace(ws, type) {
 		}
 		var canvas = _this.worksheet.objectRender.getDrawingCanvas();
 		_this.setTransform(canvas.shapeCtx, canvas.shapeOverlayCtx, canvas.autoShapeTrack);
-		_this.clip(canvas.shapeCtx, oClipRange);
+		_this.clip(canvas.shapeCtx, _this.worksheet.rangeToRectRel(oClipRange, 0));
 		canvas.shapeCtx.updatedRect = _this.worksheet.rangeToRectAbs(oClipRange, 3);
 		//For debug
 		// canvas.shapeCtx.p_color(0, 0, 0, 255);
@@ -604,7 +614,7 @@ function FrozenPlace(ws, type) {
 		var ctx = trackOverlay.m_oContext;
 		_this.setTransform(shapeCtx, shapeOverlayCtx, autoShapeTrack, trackOverlay);
 		// Clip
-		_this.clip(shapeOverlayCtx, _this.range);
+		_this.clip(shapeOverlayCtx, _this.worksheet.rangeToRectRel(_this.range, 0));
 		if (drawingDocument.m_bIsSelection) {
 			if (!window["IS_NATIVE_EDITOR"]) {
 				drawingDocument.SelectionMatrix = null;
@@ -751,10 +761,10 @@ DrawingArea.prototype.clear = function() {
     this.worksheet.drawingGraphicCtx.clear();
 };
 
-DrawingArea.prototype.drawObject = function(object, oRange) {
+DrawingArea.prototype.drawObject = function(object, oRect) {
     for ( var i = 0; i < this.frozenPlaces.length; i++ ) {
         if ( this.frozenPlaces[i].isObjectInside(object) ) {
-            this.frozenPlaces[i].drawObject(object, oRange);
+            this.frozenPlaces[i].drawObject(object, oRect);
         }
     }
 };
