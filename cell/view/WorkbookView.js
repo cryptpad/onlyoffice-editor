@@ -2344,8 +2344,13 @@
 
 			//TODO продумать прпобразование аргументов(допустим строковые значения)
 		} else {
+			var removeDiff = 0;
+			if (val === "" && argNum === parseResult.argPosArr.length - 1 && parseResult.argPosArr.length > 1) {
+				removeDiff = 1;
+			}
+
 			//полностью заменяем аргумент - для этого чистим предыдущую запись
-			this.cellEditor.selectionBegin = parseResult.argPosArr[argNum].start;
+			this.cellEditor.selectionBegin = parseResult.argPosArr[argNum].start - removeDiff;
 			this.cellEditor.selectionEnd = parseResult.argPosArr[argNum].end;
 			//TODO нужно ли чистить? при вставке текста должны произойти замена.
 			this.cellEditor.empty(Asc.c_oAscCleanOptions.All);
