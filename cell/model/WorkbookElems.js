@@ -2609,6 +2609,10 @@ Num.prototype =
     CellXfs.prototype.getAlign = function () {
         return this.align;
     };
+    CellXfs.prototype.getAlign2 = function () {
+        // ToDo check this! Rename to getAlign
+        return this.align || g_oDefaultFormat.Align;
+    };
     CellXfs.prototype.setAlign = function (val) {
         this.align = val;
     };

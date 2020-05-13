@@ -310,13 +310,13 @@
 		return this.text;
 	};
 	asc_CCellInfo.prototype.asc_getHorAlign = function () {
-		return this.xfs.getAlign().getAlignHorizontal();
+		return this.xfs.getAlign2().getAlignHorizontal();
 	};
 	asc_CCellInfo.prototype.asc_getVertAlign = function () {
-		return this.xfs.getAlign().getAlignVertical();
+		return this.xfs.getAlign2().getAlignVertical();
 	};
     asc_CCellInfo.prototype.asc_getAngle = function () {
-        return this.xfs.getAlign().getAngle();
+        return this.xfs.getAlign2().getAngle();
     };
 	asc_CCellInfo.prototype.asc_getFlags = function () {
 		return this.flags;
