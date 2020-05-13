@@ -508,12 +508,17 @@
 		}
 
 		var res = false;
-		var curPos = this.selectionBegin !== this.selectionEnd ? this.selectionBegin : this.cursorPos;
+		var isSelection = this.selectionBegin !== this.selectionEnd;
+		var curPos = isSelection ? (this.selectionBegin < this.selectionEnd ? this.selectionBegin : this.selectionEnd) : this.cursorPos;
 		var prevChar = this.textRender.getChars(curPos - 1, 1);
 		if (this.rangeChars.indexOf(prevChar) >= 0 || prevChar === AscCommon.FormulaSeparators.functionArgumentSeparator) {
 			this.lastRangePos = curPos;
+			if (isSelection) {
+				this.lastRangeLength = Math.abs(this.selectionEnd - this.selectionBegin);
+			}
 			res = true;
 		}
+		
 		return res;
 	};
 
