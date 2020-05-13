@@ -508,9 +508,10 @@
 		}
 
 		var res = false;
-		var prevChar = this.textRender.getChars(this.cursorPos - 1, 1);
+		var curPos = this.selectionBegin !== this.selectionEnd ? this.selectionBegin : this.cursorPos;
+		var prevChar = this.textRender.getChars(curPos - 1, 1);
 		if (this.rangeChars.indexOf(prevChar) >= 0 || prevChar === AscCommon.FormulaSeparators.functionArgumentSeparator) {
-			this.lastRangePos = this.cursorPos;
+			this.lastRangePos = curPos;
 			res = true;
 		}
 		return res;
