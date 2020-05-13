@@ -2397,235 +2397,255 @@ Num.prototype =
 		}
 	}
 };
-var g_oCellXfsProperties = {
-		border: 0,
-		fill: 1,
-		font: 2,
-		num: 3,
-		align: 4,
-		QuotePrefix: 5,
-		XfId: 6,
-		PivotButton: 7
-	};
-/** @constructor */
-function CellXfs() {
-    this.border = null;
-    this.fill = null;
-    this.font = null;
-    this.num = null;
-    this.align = null;
-	this.QuotePrefix = null;
-	this.PivotButton = null;
-	this.XfId = null;
 
-	//inner
-	this._hash;
-	this._index;
-	this.operationCache = {};
-}
-CellXfs.prototype =
-{
-	Properties: g_oCellXfsProperties,
-	getHash: function() {
-		if (!this._hash) {
-			this._hash = (this.border ? this.border.getIndexNumber() : '') + '|';
-			this._hash += (this.fill ? this.fill.getIndexNumber() : '') + '|';
-			this._hash += (this.font ? this.font.getIndexNumber() : '') + '|';
-			this._hash += (this.num ? this.num.getIndexNumber() : '') + '|';
-			this._hash += (this.align ? this.align.getIndexNumber() : '') + '|';
-			this._hash += this.QuotePrefix + '|';
-			this._hash += this.PivotButton + '|';
-			this._hash += this.XfId + '|';
-		}
-		return this._hash;
-	},
-	getIndexNumber: function() {
-		return this._index;
-	},
-	setIndexNumber: function(val) {
-		this._index = val;
-	},
-	_mergeProperty : function(addFunc, first, second, isTable, isTableColor)
-	{
-		var res = null;
-		if(null != first || null != second)
-		{
-			if(null == first)
-				res = second;
-			else if(null == second)
-				res = first;
-			else
-			{
-				if (null != first.merge) {
-					res = addFunc.call(g_StyleCache, first.merge(second, isTable, isTableColor));
-				} else {
-					res = first;
-				}
-			}
-		}
-		return res;
-	},
-	merge : function(xfs, isTable)
-	{
-		var xfIndexNumber = xfs.getIndexNumber();
-		if (undefined === xfIndexNumber) {
-			xfs = g_StyleCache.addXf(xfs);
-			xfIndexNumber = xfs.getIndexNumber();
-		}
-		var cache = this.getOperationCache("merge", xfIndexNumber);
-		if (!cache) {
-			cache = new CellXfs();
-			cache.border = this._mergeProperty(g_StyleCache.addBorder, xfs.border, this.border, isTable);
-			if (isTable && (g_StyleCache.firstXf === xfs || g_StyleCache.normalXf.fill === xfs.fill)) {
-				if (g_StyleCache.normalXf.fill === xfs.fill) {
-					cache.fill = this._mergeProperty(g_StyleCache.addFill, this.fill, g_oDefaultFormat.Fill);
-				} else {
-					cache.fill = this._mergeProperty(g_StyleCache.addFill, this.fill, xfs.fill);
-				}
-			} else {
-				cache.fill = this._mergeProperty(g_StyleCache.addFill, xfs.fill, this.fill);
-			}
-			var isTableColor = true;
-			if (isTable && (g_StyleCache.firstXf === xfs || g_StyleCache.normalXf.font === xfs.font)) {
-				if (g_StyleCache.normalXf.font === xfs.font) {
-					cache.font = this._mergeProperty(g_StyleCache.addFont, g_oDefaultFormat.Font, this.font, isTable, isTableColor);
-				} else {
-					cache.font = this._mergeProperty(g_StyleCache.addFont, xfs.font, this.font, isTable, isTableColor);
-				}
-			} else {
-				isTableColor = isTable && xfs.font && xfs.font.c && xfs.font.c.isEqual(g_StyleCache.normalXf.font.c);
-				cache.font = this._mergeProperty(g_StyleCache.addFont, xfs.font, this.font, isTable, isTableColor);
-			}
-			cache.num = this._mergeProperty(g_StyleCache.addNum, xfs.num, this.num);
-			cache.align = this._mergeProperty(g_StyleCache.addAlign, xfs.align, this.align);
-			cache.QuotePrefix = this._mergeProperty(null, xfs.QuotePrefix, this.QuotePrefix);
-			cache.PivotButton = this._mergeProperty(null, xfs.PivotButton, this.PivotButton);
-			cache.XfId = this._mergeProperty(null, xfs.XfId, this.XfId);
-			cache = g_StyleCache.addXf(cache);
-			this.setOperationCache("merge", xfIndexNumber, cache);
-		}
-		return cache;
-	},
-    clone : function()
-    {
-        var res = new CellXfs();
-		res.border = this.border;
-		res.fill = this.fill;
-		res.font = this.font;
-		res.num = this.num;
-		res.align = this.align;
-		res.QuotePrefix = this.QuotePrefix;
-		res.PivotButton = this.PivotButton;
-		res.XfId = this.XfId;
+    var g_oCellXfsProperties = {
+        border: 0,
+        fill: 1,
+        font: 2,
+        num: 3,
+        align: 4,
+        QuotePrefix: 5,
+        XfId: 6,
+        PivotButton: 7
+    };
+
+    /** @constructor */
+    function CellXfs() {
+        this.border = null;
+        this.fill = null;
+        this.font = null;
+        this.num = null;
+        this.align = null;
+        this.QuotePrefix = null;
+        this.PivotButton = null;
+        this.XfId = null;
+
+        //inner
+        this._hash;
+        this._index;
+        this.operationCache = {};
+    }
+
+    CellXfs.prototype.Properties = g_oCellXfsProperties;
+    CellXfs.prototype.getHash = function () {
+        if (!this._hash) {
+            this._hash = (this.border ? this.border.getIndexNumber() : '') + '|';
+            this._hash += (this.fill ? this.fill.getIndexNumber() : '') + '|';
+            this._hash += (this.font ? this.font.getIndexNumber() : '') + '|';
+            this._hash += (this.num ? this.num.getIndexNumber() : '') + '|';
+            this._hash += (this.align ? this.align.getIndexNumber() : '') + '|';
+            this._hash += this.QuotePrefix + '|';
+            this._hash += this.PivotButton + '|';
+            this._hash += this.XfId + '|';
+        }
+        return this._hash;
+    };
+    CellXfs.prototype.getIndexNumber = function () {
+        return this._index;
+    };
+    CellXfs.prototype.setIndexNumber = function (val) {
+        this._index = val;
+    };
+    CellXfs.prototype._mergeProperty = function (addFunc, first, second, isTable, isTableColor) {
+        var res = null;
+        if (null != first || null != second) {
+            if (null == first)
+                res = second;
+            else if (null == second)
+                res = first;
+            else {
+                if (null != first.merge) {
+                    res = addFunc.call(g_StyleCache, first.merge(second, isTable, isTableColor));
+                } else {
+                    res = first;
+                }
+            }
+        }
         return res;
-    },
-	isEqual : function(xfs)
-	{
-		return this.font === xfs.font && this.fill === xfs.fill && this.border === xfs.border && this.num === xfs.num &&
-			this.align === xfs.align && this.QuotePrefix === xfs.QuotePrefix && this.PivotButton === xfs.PivotButton &&
-			this.XfId === xfs.XfId;
-	},
-	getType : function()
-	{
-		return UndoRedoDataTypes.StyleXfs;
-	},
-	getProperties : function()
-	{
-		return this.Properties;
-	},
-	getProperty : function(nType)
-	{
-		switch(nType)
-		{
-			case this.Properties.border: return this.border;break;
-			case this.Properties.fill: return this.fill;break;
-			case this.Properties.font: return this.font;break;
-			case this.Properties.num: return this.num;break;
-			case this.Properties.align: return this.align;break;
-			case this.Properties.QuotePrefix: return this.QuotePrefix;break;
-			case this.Properties.PivotButton: return this.PivotButton;break;
-			case this.Properties.XfId: return this.XfId; break;
-		}
-	},
-	setProperty : function(nType, value)
-	{
-		switch(nType)
-		{
-			case this.Properties.border: this.border = value;break;
-			case this.Properties.fill: this.fill = value;break;
-			case this.Properties.font: this.font = value;break;
-			case this.Properties.num: this.num = value;break;
-			case this.Properties.align: this.align = value;break;
-			case this.Properties.QuotePrefix: this.QuotePrefix = value;break;
-			case this.Properties.PivotButton: this.PivotButton = value;break;
-			case this.Properties.XfId: this.XfId = value; break;
-		}
-	},
-	getBorder: function() {
-		return this.border;
-	},
-	setBorder: function(val) {
-		this.border = val;
-	},
-	getFill: function() {
-		return this.fill;
-	},
-	setFill: function(val) {
-		this.fill = val;
-	},
-	getFont: function() {
-		return this.font;
-	},
-	setFont: function(val) {
-		this.font = val;
-	},
-	getNum: function() {
-		return this.num;
-	},
-	setNum: function(val) {
-		this.num = val;
-	},
-	getAlign: function() {
-		return this.align;
-	},
-	setAlign: function(val) {
-		this.align = val;
-	},
-	getQuotePrefix: function() {
-		return this.QuotePrefix;
-	},
-	setQuotePrefix: function(val) {
-		this.QuotePrefix = val;
-	},
-	getPivotButton: function() {
-		return this.PivotButton;
-	},
-	setPivotButton: function(val) {
-		this.PivotButton = val;
-	},
-	getXfId: function() {
-		return this.XfId;
-	},
-	setXfId: function(val) {
-		this.XfId = val;
-	},
-	getOperationCache: function(operation, val) {
-		var res = undefined;
-		operation = this.operationCache[operation];
-		if (operation) {
-			res = operation[val];
-		}
-		return res;
-	},
-	setOperationCache: function(operation, val, xfs) {
-		var valCache = this.operationCache[operation];
-		if (!valCache) {
-			valCache = {};
-			this.operationCache[operation] = valCache;
-		}
-		valCache[val] = xfs;
-	}
-};
+    };
+    CellXfs.prototype.merge = function (xfs, isTable) {
+        var xfIndexNumber = xfs.getIndexNumber();
+        if (undefined === xfIndexNumber) {
+            xfs = g_StyleCache.addXf(xfs);
+            xfIndexNumber = xfs.getIndexNumber();
+        }
+        var cache = this.getOperationCache("merge", xfIndexNumber);
+        if (!cache) {
+            cache = new CellXfs();
+            cache.border = this._mergeProperty(g_StyleCache.addBorder, xfs.border, this.border, isTable);
+            if (isTable && (g_StyleCache.firstXf === xfs || g_StyleCache.normalXf.fill === xfs.fill)) {
+                if (g_StyleCache.normalXf.fill === xfs.fill) {
+                    cache.fill = this._mergeProperty(g_StyleCache.addFill, this.fill, g_oDefaultFormat.Fill);
+                } else {
+                    cache.fill = this._mergeProperty(g_StyleCache.addFill, this.fill, xfs.fill);
+                }
+            } else {
+                cache.fill = this._mergeProperty(g_StyleCache.addFill, xfs.fill, this.fill);
+            }
+            var isTableColor = true;
+            if (isTable && (g_StyleCache.firstXf === xfs || g_StyleCache.normalXf.font === xfs.font)) {
+                if (g_StyleCache.normalXf.font === xfs.font) {
+                    cache.font = this._mergeProperty(g_StyleCache.addFont, g_oDefaultFormat.Font, this.font, isTable, isTableColor);
+                } else {
+                    cache.font = this._mergeProperty(g_StyleCache.addFont, xfs.font, this.font, isTable, isTableColor);
+                }
+            } else {
+                isTableColor = isTable && xfs.font && xfs.font.c && xfs.font.c.isEqual(g_StyleCache.normalXf.font.c);
+                cache.font = this._mergeProperty(g_StyleCache.addFont, xfs.font, this.font, isTable, isTableColor);
+            }
+            cache.num = this._mergeProperty(g_StyleCache.addNum, xfs.num, this.num);
+            cache.align = this._mergeProperty(g_StyleCache.addAlign, xfs.align, this.align);
+            cache.QuotePrefix = this._mergeProperty(null, xfs.QuotePrefix, this.QuotePrefix);
+            cache.PivotButton = this._mergeProperty(null, xfs.PivotButton, this.PivotButton);
+            cache.XfId = this._mergeProperty(null, xfs.XfId, this.XfId);
+            cache = g_StyleCache.addXf(cache);
+            this.setOperationCache("merge", xfIndexNumber, cache);
+        }
+        return cache;
+    };
+    CellXfs.prototype.clone = function () {
+        var res = new CellXfs();
+        res.border = this.border;
+        res.fill = this.fill;
+        res.font = this.font;
+        res.num = this.num;
+        res.align = this.align;
+        res.QuotePrefix = this.QuotePrefix;
+        res.PivotButton = this.PivotButton;
+        res.XfId = this.XfId;
+        return res;
+    };
+    CellXfs.prototype.isEqual = function (xfs) {
+        return this.font === xfs.font && this.fill === xfs.fill && this.border === xfs.border && this.num === xfs.num &&
+            this.align === xfs.align && this.QuotePrefix === xfs.QuotePrefix && this.PivotButton === xfs.PivotButton &&
+            this.XfId === xfs.XfId;
+    };
+    CellXfs.prototype.getType = function () {
+        return UndoRedoDataTypes.StyleXfs;
+    };
+    CellXfs.prototype.getProperties = function () {
+        return this.Properties;
+    };
+    CellXfs.prototype.getProperty = function (nType) {
+        switch (nType) {
+            case this.Properties.border:
+                return this.border;
+                break;
+            case this.Properties.fill:
+                return this.fill;
+                break;
+            case this.Properties.font:
+                return this.font;
+                break;
+            case this.Properties.num:
+                return this.num;
+                break;
+            case this.Properties.align:
+                return this.align;
+                break;
+            case this.Properties.QuotePrefix:
+                return this.QuotePrefix;
+                break;
+            case this.Properties.PivotButton:
+                return this.PivotButton;
+                break;
+            case this.Properties.XfId:
+                return this.XfId;
+                break;
+        }
+    };
+    CellXfs.prototype.setProperty = function (nType, value) {
+        switch (nType) {
+            case this.Properties.border:
+                this.border = value;
+                break;
+            case this.Properties.fill:
+                this.fill = value;
+                break;
+            case this.Properties.font:
+                this.font = value;
+                break;
+            case this.Properties.num:
+                this.num = value;
+                break;
+            case this.Properties.align:
+                this.align = value;
+                break;
+            case this.Properties.QuotePrefix:
+                this.QuotePrefix = value;
+                break;
+            case this.Properties.PivotButton:
+                this.PivotButton = value;
+                break;
+            case this.Properties.XfId:
+                this.XfId = value;
+                break;
+        }
+    };
+    CellXfs.prototype.getBorder = function () {
+        return this.border;
+    };
+    CellXfs.prototype.setBorder = function (val) {
+        this.border = val;
+    };
+    CellXfs.prototype.getFill = function () {
+        return this.fill;
+    };
+    CellXfs.prototype.setFill = function (val) {
+        this.fill = val;
+    };
+    CellXfs.prototype.getFont = function () {
+        return this.font;
+    };
+    CellXfs.prototype.setFont = function (val) {
+        this.font = val;
+    };
+    CellXfs.prototype.getNum = function () {
+        return this.num;
+    };
+    CellXfs.prototype.setNum = function (val) {
+        this.num = val;
+    };
+    CellXfs.prototype.getAlign = function () {
+        return this.align;
+    };
+    CellXfs.prototype.setAlign = function (val) {
+        this.align = val;
+    };
+    CellXfs.prototype.getQuotePrefix = function () {
+        return this.QuotePrefix;
+    };
+    CellXfs.prototype.setQuotePrefix = function (val) {
+        this.QuotePrefix = val;
+    };
+    CellXfs.prototype.getPivotButton = function () {
+        return this.PivotButton;
+    };
+    CellXfs.prototype.setPivotButton = function (val) {
+        this.PivotButton = val;
+    };
+    CellXfs.prototype.getXfId = function () {
+        return this.XfId;
+    };
+    CellXfs.prototype.setXfId = function (val) {
+        this.XfId = val;
+    };
+    CellXfs.prototype.getOperationCache = function (operation, val) {
+        var res = undefined;
+        operation = this.operationCache[operation];
+        if (operation) {
+            res = operation[val];
+        }
+        return res;
+    };
+    CellXfs.prototype.setOperationCache = function (operation, val, xfs) {
+        var valCache = this.operationCache[operation];
+        if (!valCache) {
+            valCache = {};
+            this.operationCache[operation] = valCache;
+        }
+        valCache[val] = xfs;
+    };
 
 	function FromXml_ST_HorizontalAlignment(val) {
 		var res = -1;
