@@ -6513,7 +6513,8 @@
 				var cells = this.getRange4(pos.row, pos.col);
 				this._updatePivotTableSetCellValue(cells, pivotTable.getPageFieldName(i));
 				cells = this.getRange4(pos.row, pos.col + 1);
-				this._updatePivotTableSetCellValue(cells, AscCommon.translateManager.getValue(AscCommonExcel.PAGE_ALL_CAPTION));
+				//todo right align
+				cells.setValueData(new AscCommonExcel.UndoRedoData_CellValueData(null, pivotTable.getPageFieldCellValue(i)));
 			}
 		}
 	};
@@ -6594,10 +6595,7 @@
 				if (Asc.c_oAscItemType.Data === item.t) {
 					fieldIndex = fields[r + j].asc_getIndex();
 					if (AscCommonExcel.st_VALUES !== fieldIndex) {
-						field = pivotFields[fieldIndex];
-						fieldItem = field.getItem(item.x[j].getV());
-						sharedItem = cacheFields[fieldIndex].getSharedItem(fieldItem.x);
-						oCellValue = sharedItem.getCellValue();
+						oCellValue = pivotTable.getPivotFieldCellValue(fieldIndex, item.x[j].getV());
 					} else {
 						oCellValue = new AscCommonExcel.CCellValue();
 						oCellValue.type = AscCommon.CellValueType.String;

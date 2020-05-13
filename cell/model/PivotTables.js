@@ -295,10 +295,12 @@ var c_oAscAllocationMethod = {
 
 var st_VALUES = -2;
 var DATA_CAPTION = 'Values';
+var BLANK_CAPTION = '(blank)';
 var GRAND_TOTAL_CAPTION = 'Grand Total';
 var ROW_HEADER_CAPTION = 'Row Labels';
 var COL_HEADER_CAPTION = 'Column Labels';
 var PAGE_ALL_CAPTION = '(All)';
+var PAGE_MULTIPLE_CAPTION = '(Multiple Items)';
 var FIELD_CAPTION = '%1 of %2';
 var NEW_PIVOT_LAST_COL_OFFSET = 2;
 var NEW_PIVOT_LAST_ROW_OFFSET = 17;
@@ -3295,6 +3297,47 @@ CT_pivotTableDefinition.prototype.getColumnFieldsCount = function (withoutValues
 	}
 	return res;
 };
+CT_pivotTableDefinition.prototype.getPivotFieldButtonType = function (index) {
+	var pivotField = this.asc_getPivotFields()[index];
+	var sortVal;
+	if (c_oAscFieldSortType.Ascending === pivotField.sortType) {
+		sortVal = Asc.c_oAscSortOptions.Ascending;
+	} else if (c_oAscFieldSortType.Descending === pivotField.sortType) {
+		sortVal = Asc.c_oAscSortOptions.Descending;
+	}
+	var filter = this.getPivotFilter(index);
+	if (filter) {
+
+	} else {
+
+	}
+
+	var autoFilterObject = new Asc.AutoFiltersOptions();
+	autoFilterObject.asc_setSortState(sortVal);
+
+};
+CT_pivotTableDefinition.prototype.getPivotButtons = function () {
+	var pivotRange = this.getRange();
+	var location = this.location;
+	var colFields = this.asc_getColumnFields();
+	var res = [];
+	var r1 = pivotRange.r1;
+	var c1 = pivotRange.c1 + location.firstDataCol;
+	if (this.showHeaders && colFields) {
+		if (this.compact) {
+			res.push(r1, c1);
+		} else {
+			for (var i = 0; i < colFields.length; ++i) {
+				var index = colFields[i].asc_getIndex();
+				if (AscCommonExcel.st_VALUES !== index) {
+					res.push(r1, c1);
+				}
+				c1++;
+			}
+		}
+	}
+	return res;
+};
 CT_pivotTableDefinition.prototype.getColumnFieldsValuesIndex = function () {
 	var colFields = this.asc_getColumnFields();
 	if (colFields) {
@@ -3413,6 +3456,9 @@ CT_pivotTableDefinition.prototype.asc_getRowFields = function () {
 };
 CT_pivotTableDefinition.prototype.asc_getDataFields = function () {
 	return this.dataFields && this.dataFields.dataField.length > 0 && this.dataFields.dataField;
+};
+CT_pivotTableDefinition.prototype.getPivotFilter = function (index) {
+	return this.filters && this.filters.getFilterByFieldIndex(index);
 };
 CT_pivotTableDefinition.prototype.asc_select = function (api) {
 	this.getAllRange(api.wbModel.getActiveWs()).Select();
@@ -3551,7 +3597,43 @@ CT_pivotTableDefinition.prototype.getDataFieldName = function(index) {
 };
 CT_pivotTableDefinition.prototype.getPageFieldName = function(index) {
 	var pageField = this.asc_getPageFields()[index];
-	return pageField.name || this.getPivotFieldName(pageField.asc_getIndex());
+	return this.getPivotFieldName(pageField.asc_getIndex());
+};
+CT_pivotTableDefinition.prototype.getPivotFieldCellValue = function(fieldIndex, valueIndex) {
+	var pivotFields = this.asc_getPivotFields();
+	var cacheFields = this.asc_getCacheFields();
+	var pivotField = pivotFields[fieldIndex];
+	var pivotFieldItem = pivotField.getItem(valueIndex);
+	var sharedItem = cacheFields[fieldIndex].getSharedItem(pivotFieldItem.x);
+	return sharedItem.getCellValue();
+};
+CT_pivotTableDefinition.prototype.getPageFieldCellValue = function(index) {
+	var pageField = this.asc_getPageFields()[index];
+	if (AscCommonExcel.st_VALUES === pageField.fld) {
+		return;
+	}
+	var oCellValue;
+	if (null !== pageField.item) {
+		oCellValue = this.getPivotFieldCellValue(pageField.fld, pageField.item);
+	} else {
+		var pivotField = this.asc_getPivotFields()[pageField.fld];
+		oCellValue = new AscCommonExcel.CCellValue();
+		oCellValue.type = AscCommon.CellValueType.String;
+		if (pivotField.multipleItemSelectionAllowed) {
+			var visibleIndexes = pivotField.getVisibleIndexes();
+			if (1 === visibleIndexes.length) {
+				oCellValue = this.getPivotFieldCellValue(pageField.fld, visibleIndexes[0]);
+			} else if (2 === visibleIndexes.length) {
+				//todo
+				oCellValue.text = AscCommon.translateManager.getValue(AscCommonExcel.PAGE_ALL_CAPTION);
+			} else {
+				oCellValue.text = AscCommon.translateManager.getValue(AscCommonExcel.PAGE_MULTIPLE_CAPTION);
+			}
+		} else {
+			oCellValue.text = AscCommon.translateManager.getValue(AscCommonExcel.PAGE_ALL_CAPTION);
+		}
+	}
+	return oCellValue;
 };
 CT_pivotTableDefinition.prototype.updateRowColItems = function () {
 	var dataRow, pivotFields, rowFields, colFields, dataFields, cacheRecords, indexValues;
@@ -5962,6 +6044,15 @@ CT_PivotFilters.prototype.toXml = function(writer, name) {
 	}
 	writer.WriteXmlNodeEnd(name);
 };
+CT_PivotFilters.prototype.getFilterByFieldIndex = function(index) {
+	var res;
+	for (var i = 0; i < this.filter.length; ++i) {
+		if (index === this.filter[i].fld) {
+			res = this.filter[i];
+		}
+	}
+	return res;
+};
 function CT_RowHierarchiesUsage() {
 //Attributes
 //	this.count = null;
@@ -7771,11 +7862,14 @@ CT_PivotField.prototype.asc_getSubtotals = function(withDefault) {
 		if (this.varPSubtotal) {
 			res.push(Asc.c_oAscItemType.VarP);
 		}
-		if (withDefault && 0 == res.length) {
+		if (withDefault && 0 === res.length) {
 			res.push(Asc.c_oAscItemType.Default);
 		}
 	}
 	return res;
+};
+CT_PivotField.prototype.getItems = function () {
+	return this.items && this.items.item;
 };
 CT_PivotField.prototype.getItem = function (index) {
 	return this.items && this.items.item[index];
@@ -7805,6 +7899,16 @@ CT_PivotField.prototype.checkSubtotalTop = function() {
 CT_PivotField.prototype.getSubtotalType = function() {
 	var subtotals = this.asc_getSubtotals(true);
 	return 1 === subtotals.length ? subtotals[0] : Asc.c_oAscItemType.Default;
+};
+CT_PivotField.prototype.getVisibleIndexes = function() {
+	var res = [];
+	var items = this.getItems();
+	for (var i = 0; i < items.length; ++i) {
+		if (Asc.c_oAscItemType.Data === items[i].t || Asc.c_oAscItemType.Blank === items[i].t) {
+			res.push(i);
+		}
+	}
+	return res;
 };
 
 
@@ -11102,11 +11206,18 @@ PivotRecordValue.prototype.getCellValue = function() {
 			res.type = AscCommon.CellValueType.String;
 			res.text = this.val;
 			break;
+		case c_oAscPivotRecType.Missing:
+			res.type = AscCommon.CellValueType.String;
+			res.text = AscCommon.translateManager.getValue(AscCommonExcel.BLANK_CAPTION);
+			break;
 		default:
 			var i = 0;
 			break;
 	}
 	return res;
+};
+PivotRecordValue.prototype.isBlank = function() {
+	return c_oAscPivotRecType.Missing === this.type;
 };
 PivotRecordValue.prototype.shallowEqual = function(elem) {
 	return this.type === elem.type && this.val === elem.val;
@@ -11794,10 +11905,12 @@ prot['Second'] = prot.Second;
 
 window['Asc']['st_VALUES'] = window['AscCommonExcel'].st_VALUES = st_VALUES;
 window['AscCommonExcel'].DATA_CAPTION = DATA_CAPTION;
+window['AscCommonExcel'].BLANK_CAPTION = BLANK_CAPTION;
 window['AscCommonExcel'].GRAND_TOTAL_CAPTION = GRAND_TOTAL_CAPTION;
 window['AscCommonExcel'].ROW_HEADER_CAPTION = ROW_HEADER_CAPTION;
 window['AscCommonExcel'].COL_HEADER_CAPTION = COL_HEADER_CAPTION;
 window['AscCommonExcel'].PAGE_ALL_CAPTION = PAGE_ALL_CAPTION;
+window['AscCommonExcel'].PAGE_MULTIPLE_CAPTION = PAGE_MULTIPLE_CAPTION;
 window['AscCommonExcel'].FIELD_CAPTION = FIELD_CAPTION;
 window['AscCommonExcel'].NEW_PIVOT_LAST_COL_OFFSET = NEW_PIVOT_LAST_COL_OFFSET;
 window['AscCommonExcel'].NEW_PIVOT_LAST_ROW_OFFSET = NEW_PIVOT_LAST_ROW_OFFSET;
