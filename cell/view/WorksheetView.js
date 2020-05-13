@@ -8925,7 +8925,6 @@
         if (textPr && paraPr) {
             objectInfo.text = this.objectRender.controller.GetSelectedText(true);
 
-
             var horAlign = paraPr.Jc;
             var vertAlign = Asc.c_oAscVAlign.Center;
             var shape_props = this.objectRender.controller.getDrawingProps().shapeProps;
@@ -8950,19 +8949,18 @@
                         angle = 90;
                         break;
                     case AscFormat.nVertTTvert270:
-                        angle = 270;
+                        angle = -90;
                         break;
                     default:
                         angle = 0;
                         break;
                 }
-
             }
 
             var align = new AscCommonExcel.Align();
             align.setAlignHorizontal(horAlign);
             align.setAlignVertical(vertAlign);
-            align.angle = angle;
+            align.setAngle(angle);
             xfs.setAlign(align);
 
             if (textPr.Unifill && theme) {
