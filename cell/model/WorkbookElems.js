@@ -2813,7 +2813,7 @@ Align.prototype =
 		return nRes;
 	},
 	setAngle: function(val) {
-		this.angle = AscCommonExcel.angleInterfaceToFormat(val);;
+		this.angle = AscCommonExcel.angleInterfaceToFormat(val);
 	},
 	getWrap: function() {
 		// Для justify wrap всегда true
