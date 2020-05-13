@@ -8946,10 +8946,10 @@
                 }
                 switch (shape_props.vert) {
                     case AscFormat.nVertTTvert:
-                        angle = 90;
+                        angle = -90;
                         break;
                     case AscFormat.nVertTTvert270:
-                        angle = -90;
+                        angle = 90;
                         break;
                     default:
                         angle = 0;
