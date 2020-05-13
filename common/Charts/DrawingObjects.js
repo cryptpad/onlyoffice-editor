@@ -4096,6 +4096,9 @@ GraphicOption.prototype.union = function(oGraphicOption) {
     _this.graphicObjectKeyDown = function(e) {
         return _this.controller.onKeyDown( e );
     };
+    _this.graphicObjectKeyUp = function(e) {
+        return _this.controller.onKeyUp( e );
+    };
 
     _this.graphicObjectKeyPress = function(e) {
 

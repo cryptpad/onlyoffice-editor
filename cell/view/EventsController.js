@@ -1196,7 +1196,8 @@
 			if (16 === event.which) {
 				this.handlers.trigger("updateSelectionName");
 			}
-
+			this.handlers.trigger("graphicObjectWindowKeyUp", event)
+			
 			return true;
 		};
 

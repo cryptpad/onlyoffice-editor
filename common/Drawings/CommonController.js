@@ -6910,6 +6910,11 @@ DrawingObjectsController.prototype =
         return _ret;
     },
 
+    onKeyUp: function(e)
+    {
+        
+    },
+    
     onKeyDown: function(e)
     {
         var ctrlKey = e.metaKey || e.ctrlKey;

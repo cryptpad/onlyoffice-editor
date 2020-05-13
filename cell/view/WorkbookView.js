@@ -430,6 +430,8 @@
 				  self._onGraphicObjectMouseUpEx.apply(self, arguments);
 			  }, "graphicObjectWindowKeyDown": function () {
 				  return self._onGraphicObjectWindowKeyDown.apply(self, arguments);
+			  }, "graphicObjectWindowKeyUp": function () {
+				  return self._onGraphicObjectWindowKeyUp.apply(self, arguments);
 			  }, "graphicObjectWindowKeyPress": function () {
 				  return self._onGraphicObjectWindowKeyPress.apply(self, arguments);
 			  }, "getGraphicsInfo": function () {
@@ -1448,6 +1450,17 @@
   WorkbookView.prototype._onGraphicObjectWindowKeyDown = function(e) {
     var objectRender = this.getWorksheet().objectRender;
     return (0 < objectRender.getSelectedGraphicObjects().length) ? objectRender.graphicObjectKeyDown(e) : false;
+  };
+  WorkbookView.prototype._onGraphicObjectWindowKeyUp = function(e) {
+      var oWS = this.getWorksheet();
+      if(!oWS) {
+          return false;
+      }
+      var objectRender = oWS.objectRender;
+      if(!objectRender) {
+          return false;
+      }
+    return objectRender.graphicObjectKeyUp(e);
   };
 
   WorkbookView.prototype._onGraphicObjectWindowKeyPress = function(e) {
