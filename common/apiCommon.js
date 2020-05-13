@@ -3094,12 +3094,11 @@
 		this.Value = (undefined != val) ? val : null;
 	}
 
-	asc_CSelectedObject.prototype = {
-		asc_getObjectType: function () {
-			return this.Type;
-		}, asc_getObjectValue: function () {
-			return this.Value;
-		}
+	asc_CSelectedObject.prototype.asc_getObjectType = function () {
+		return this.Type;
+	};
+	asc_CSelectedObject.prototype.asc_getObjectValue = function () {
+		return this.Value;
 	};
 
 	/** @constructor */
