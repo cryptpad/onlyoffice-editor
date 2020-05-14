@@ -2371,7 +2371,7 @@
 		return ws.model.getActiveFunctionInfo(this.cellEditor._formula, this.cellEditor._parseResult, argNum, type);
 	};
 
-	WorkbookView.prototype.insertArgumentsInFormula = function(args) {
+	WorkbookView.prototype.insertArgumentsInFormula = function(args, argNum, argType) {
 		if (!this.getCellEditMode()) {
 			return;
 		}
@@ -2404,7 +2404,18 @@
 		}*/
 
 		this.cellEditor.pasteText(val);
+		//TODO возможно wizardArgsLength/wizardArgsStart не нужны, поскольку в getActiveFunctionInfo использую activeFunction
 		this.cellEditor.wizardArgsLength = val.length;
+
+		if (argNum) {
+			var activeFuncInfo = ws.model.getActiveFunctionInfo(this.cellEditor._formula, this.cellEditor._parseResult);
+			if (activeFuncInfo) {
+				activeFuncInfo.argumentsResult[argNum] = this.calculateWizardArg(args[argNum], argType);
+				return activeFuncInfo;
+			}
+		}
+
+		return null;
 	};
 
 	WorkbookView.prototype.calculateWizardArg = function (str, type) {

@@ -7814,7 +7814,7 @@
 
 			res._cursorPos = _parseResult.cursorPos + 1;
 			var argPosArr = _parseResult.argPosArr;
-			if (argPosArr && argPosArr.length) {
+			if (argPosArr && argPosArr.length && undefined !== argNum){
 				for (var i = 0; i < argPosArr.length; i++) {
 					if (!res.argumentsValue) {
 						res.argumentsValue = [];
