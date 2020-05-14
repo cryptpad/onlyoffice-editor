@@ -3914,9 +3914,10 @@ var editor;
     return res;
   };
 
-  spreadsheet_api.prototype.asc_insertArgumentsInFormula = function(val) {
-    this.wb.insertArgumentsInFormula(val);
+  spreadsheet_api.prototype.asc_insertArgumentsInFormula = function(val, argNum, argType) {
+    var res = this.wb.insertArgumentsInFormula(val, argNum, argType);
     this.wb.restoreFocus();
+    return res;
   };
 
   spreadsheet_api.prototype.asc_canEnterWizardRange = function(char) {
