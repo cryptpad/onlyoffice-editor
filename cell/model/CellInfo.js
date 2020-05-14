@@ -328,7 +328,7 @@
 		return this.xfs.getNum2().getFormat();
 	};
 	asc_CCellInfo.prototype.asc_getNumFormatInfo = function () {
-		return this.xfs.getNum2().getFormatTypeInfo();
+		return this.xfs.getNum2().getNumFormat().getTypeInfo();
 	};
 	asc_CCellInfo.prototype.asc_getHyperlink = function () {
 		return this.hyperlink;

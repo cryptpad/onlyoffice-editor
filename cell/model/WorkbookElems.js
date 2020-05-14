@@ -2324,7 +2324,7 @@ var g_oBorderProperties = {
 	Num.prototype.getFormat = function () {
 		return (null != this.id) ? (AscCommon.getFormatByStandardId(this.id) || this.f) : this.f;
 	};
-	Num.prototype.getFormatTypeInfo = function () {
+	Num.prototype.getNumFormat = function () {
 		return AscCommon.oNumFormatCache.get(this.getFormat());
 	};
 	Num.prototype._mergeProperty = function (first, second, def) {
