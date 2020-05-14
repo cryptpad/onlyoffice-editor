@@ -2698,7 +2698,7 @@ var g_oBorderProperties = {
 		return res;
 	}
 
-var g_oAlignProperties = {
+	var g_oAlignProperties = {
 		hor: 0,
 		indent: 1,
 		RelativeIndent: 2,
@@ -2707,47 +2707,44 @@ var g_oAlignProperties = {
 		ver: 5,
 		wrap: 6
 	};
-/** @constructor */
-function Align(val)
-{
-	if(null == val)
-		val = g_oDefaultFormat.AlignAbs;
-	this.hor = val.hor;
-	this.indent = val.indent;
-	this.RelativeIndent = val.RelativeIndent;
-	this.shrink = val.shrink;
-	this.angle = val.angle;
-	this.ver = val.ver;
-	this.wrap = val.wrap;
 
-	this._hash;
-	this._index;
-}
-Align.prototype =
-{
-	Properties: g_oAlignProperties,
-	getHash: function() {
+	/** @constructor */
+	function Align(val) {
+		if (null == val)
+			val = g_oDefaultFormat.AlignAbs;
+		this.hor = val.hor;
+		this.indent = val.indent;
+		this.RelativeIndent = val.RelativeIndent;
+		this.shrink = val.shrink;
+		this.angle = val.angle;
+		this.ver = val.ver;
+		this.wrap = val.wrap;
+
+		this._hash;
+		this._index;
+	}
+
+	Align.prototype.Properties = g_oAlignProperties;
+	Align.prototype.getHash = function () {
 		if (!this._hash) {
 			this._hash = this.hor + '|' + this.indent + '|' + this.RelativeIndent + '|' + this.shrink + '|' +
 				this.angle + '|' + this.ver + '|' + this.wrap;
 		}
 		return this._hash;
-	},
-	getIndexNumber: function() {
+	};
+	Align.prototype.getIndexNumber = function () {
 		return this._index;
-	},
-	setIndexNumber: function(val) {
+	};
+	Align.prototype.setIndexNumber = function (val) {
 		this._index = val;
-	},
-	_mergeProperty : function(first, second, def)
-	{
+	};
+	Align.prototype._mergeProperty = function (first, second, def) {
 		if (def != first)
 			return first;
 		else
 			return second;
-	},
-	merge : function(align)
-	{
+	};
+	Align.prototype.merge = function (align) {
 		var defaultAlign = g_oDefaultFormat.Align;
 		var oRes = new Align();
 		oRes.hor = this._mergeProperty(this.hor, align.hor, defaultAlign.hor);
@@ -2758,162 +2755,181 @@ Align.prototype =
 		oRes.ver = this._mergeProperty(this.ver, align.ver, defaultAlign.ver);
 		oRes.wrap = this._mergeProperty(this.wrap, align.wrap, defaultAlign.wrap);
 		return oRes;
-	},
-	getDif : function(val)
-	{
+	};
+	Align.prototype.getDif = function (val) {
 		var oRes = new Align(this);
 		var bEmpty = true;
-		if(this.hor == val.hor)
-			oRes.hor =  null;
+		if (this.hor == val.hor)
+			oRes.hor = null;
 		else
 			bEmpty = false;
-		if(this.indent == val.indent)
-			oRes.indent =  null;
+		if (this.indent == val.indent)
+			oRes.indent = null;
 		else
 			bEmpty = false;
-		if(this.RelativeIndent == val.RelativeIndent)
-			oRes.RelativeIndent =  null;
+		if (this.RelativeIndent == val.RelativeIndent)
+			oRes.RelativeIndent = null;
 		else
 			bEmpty = false;
-		if(this.shrink == val.shrink)
-			oRes.shrink =  null;
+		if (this.shrink == val.shrink)
+			oRes.shrink = null;
 		else
 			bEmpty = false;
-		if(this.angle == val.angle)
-			oRes.angle =  null;
+		if (this.angle == val.angle)
+			oRes.angle = null;
 		else
 			bEmpty = false;
-		if(this.ver == val.ver)
-			oRes.ver =  null;
+		if (this.ver == val.ver)
+			oRes.ver = null;
 		else
 			bEmpty = false;
-		if(this.wrap == val.wrap)
-			oRes.wrap =  null;
+		if (this.wrap == val.wrap)
+			oRes.wrap = null;
 		else
 			bEmpty = false;
-		if(bEmpty)
+		if (bEmpty)
 			oRes = null;
 		return oRes;
-	},
-	isEqual : function(val)
-	{
+	};
+	Align.prototype.isEqual = function (val) {
 		return this.hor == val.hor && this.indent == val.indent && this.RelativeIndent == val.RelativeIndent && this.shrink == val.shrink &&
-				this.angle == val.angle && this.ver == val.ver && this.wrap == val.wrap;
-	},
-    clone : function()
-    {
-        return new Align(this);
-    },
-	getType : function()
-	{
+			this.angle == val.angle && this.ver == val.ver && this.wrap == val.wrap;
+	};
+	Align.prototype.clone = function () {
+		return new Align(this);
+	};
+	Align.prototype.getType = function () {
 		return UndoRedoDataTypes.StyleAlign;
-	},
-	getProperties : function()
-	{
+	};
+	Align.prototype.getProperties = function () {
 		return this.Properties;
-	},
-	getProperty : function(nType)
-	{
-		switch(nType)
-		{
-			case this.Properties.hor: return this.hor;break;
-			case this.Properties.indent: return this.indent;break;
-			case this.Properties.RelativeIndent: return this.RelativeIndent;break;
-			case this.Properties.shrink: return this.shrink;break;
-			case this.Properties.angle: return this.angle;break;
-			case this.Properties.ver: return this.ver;break;
-			case this.Properties.wrap: return this.wrap;break;
+	};
+	Align.prototype.getProperty = function (nType) {
+		switch (nType) {
+			case this.Properties.hor:
+				return this.hor;
+				break;
+			case this.Properties.indent:
+				return this.indent;
+				break;
+			case this.Properties.RelativeIndent:
+				return this.RelativeIndent;
+				break;
+			case this.Properties.shrink:
+				return this.shrink;
+				break;
+			case this.Properties.angle:
+				return this.angle;
+				break;
+			case this.Properties.ver:
+				return this.ver;
+				break;
+			case this.Properties.wrap:
+				return this.wrap;
+				break;
 		}
-	},
-	setProperty : function(nType, value)
-	{
-		switch(nType)
-		{
-			case this.Properties.hor: this.hor = value;break;
-			case this.Properties.indent: this.indent = value;break;
-			case this.Properties.RelativeIndent: this.RelativeIndent = value;break;
-			case this.Properties.shrink: this.shrink = value;break;
-			case this.Properties.angle: this.angle = value;break;
-			case this.Properties.ver: this.ver = value;break;
-			case this.Properties.wrap: this.wrap = value;break;
+	};
+	Align.prototype.setProperty = function (nType, value) {
+		switch (nType) {
+			case this.Properties.hor:
+				this.hor = value;
+				break;
+			case this.Properties.indent:
+				this.indent = value;
+				break;
+			case this.Properties.RelativeIndent:
+				this.RelativeIndent = value;
+				break;
+			case this.Properties.shrink:
+				this.shrink = value;
+				break;
+			case this.Properties.angle:
+				this.angle = value;
+				break;
+			case this.Properties.ver:
+				this.ver = value;
+				break;
+			case this.Properties.wrap:
+				this.wrap = value;
+				break;
 		}
-	},
-	getAngle: function() {
+	};
+	Align.prototype.getAngle = function () {
 		var nRes = 0;
 		if (0 <= this.angle && this.angle <= 180) {
 			nRes = this.angle <= 90 ? this.angle : 90 - this.angle;
 		}
 		return nRes;
-	},
-	setAngle: function(val) {
+	};
+	Align.prototype.setAngle = function (val) {
 		this.angle = null !== val ? AscCommonExcel.angleInterfaceToFormat(val) : val;
-	},
-	getWrap: function() {
+	};
+	Align.prototype.getWrap = function () {
 		// Для justify wrap всегда true
 		return (AscCommon.align_Justify === this.hor || Asc.c_oAscVAlign.Just === this.ver || Asc.c_oAscVAlign.Dist === this.ver) ? true : this.wrap;
-	},
-	setWrap: function(val) {
+	};
+	Align.prototype.setWrap = function (val) {
 		this.wrap = val;
-	},
-	getShrinkToFit: function() {
+	};
+	Align.prototype.getShrinkToFit = function () {
 		return this.shrink;
-	},
-	setShrinkToFit: function(val) {
+	};
+	Align.prototype.setShrinkToFit = function (val) {
 		this.shrink = val;
-	},
-	getAlignHorizontal: function() {
+	};
+	Align.prototype.getAlignHorizontal = function () {
 		return this.hor;
-	},
-	setAlignHorizontal: function(val) {
+	};
+	Align.prototype.setAlignHorizontal = function (val) {
 		this.hor = val;
-	},
-	getAlignVertical: function() {
+	};
+	Align.prototype.getAlignVertical = function () {
 		return this.ver;
-	},
-	setAlignVertical: function(val) {
+	};
+	Align.prototype.setAlignVertical = function (val) {
 		this.ver = val;
-	},
-	readAttributes : function(attr, uq) {
-	if(attr()){
-		var vals = attr();
-		var val;
-		val = vals["horizontal"];
-		if(undefined !== val){
-			val = FromXml_ST_HorizontalAlignment(val);
-			if(-1 !== val){
-				this.hor = val;
+	};
+	Align.prototype.readAttributes = function (attr, uq) {
+		if (attr()) {
+			var vals = attr();
+			var val;
+			val = vals["horizontal"];
+			if (undefined !== val) {
+				val = FromXml_ST_HorizontalAlignment(val);
+				if (-1 !== val) {
+					this.hor = val;
+				}
+			}
+			val = vals["vertical"];
+			if (undefined !== val) {
+				val = FromXml_ST_VerticalAlignment(val);
+				if (-1 !== val) {
+					this.ver = val;
+				}
+			}
+			val = vals["textRotation"];
+			if (undefined !== val) {
+				this.angle = val - 0;
+			}
+			val = vals["wrapText"];
+			if (undefined !== val) {
+				this.wrap = AscCommon.getBoolFromXml(val);
+			}
+			val = vals["indent"];
+			if (undefined !== val) {
+				this.indent = val - 0;
+			}
+			val = vals["relativeIndent"];
+			if (undefined !== val) {
+				this.RelativeIndent = val - 0;
+			}
+			val = vals["shrinkToFit"];
+			if (undefined !== val) {
+				this.shrink = AscCommon.getBoolFromXml(val);
 			}
 		}
-		val = vals["vertical"];
-		if(undefined !== val){
-			val = FromXml_ST_VerticalAlignment(val);
-			if(-1 !== val){
-				this.ver = val;
-			}
-		}
-		val = vals["textRotation"];
-		if(undefined !== val){
-			this.angle = val - 0;
-		}
-		val = vals["wrapText"];
-		if(undefined !== val){
-			this.wrap = AscCommon.getBoolFromXml(val);
-		}
-		val = vals["indent"];
-		if(undefined !== val){
-			this.indent = val - 0;
-		}
-		val = vals["relativeIndent"];
-		if(undefined !== val){
-			this.RelativeIndent = val - 0;
-		}
-		val = vals["shrinkToFit"];
-		if(undefined !== val){
-			this.shrink = AscCommon.getBoolFromXml(val);
-		}
-	}
-}
-};
+	};
+
 /** @constructor */
 function CCellStyles() {
 	this.CustomStyles = [];
