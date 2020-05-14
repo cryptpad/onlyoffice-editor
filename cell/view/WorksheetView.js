@@ -8803,8 +8803,6 @@
 
         cell_info.styleName = c.getStyleName();
 
-        cell_info.flags = new AscCommonExcel.asc_CCellFlag();
-
         // ToDo activeRange type
         cell_info.selectionType = selectionRange.getLast().getType();
         cell_info.multiselect = !selectionRange.isSingleRange();
