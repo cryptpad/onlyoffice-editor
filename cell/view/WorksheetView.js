@@ -8812,7 +8812,7 @@
         cell_info.selectionType = selectionRange.getLast().getType();
         cell_info.multiselect = !selectionRange.isSingleRange();
 
-        cell_info.flags.lockText = ("" !== cell_info.text && (isNumberFormat || c.isFormula()));
+        cell_info.lockText = ("" !== cell_info.text && (isNumberFormat || c.isFormula()));
 
         cell_info.font._init(font);
 
