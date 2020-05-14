@@ -8905,6 +8905,7 @@
     WorksheetView.prototype._getSelectionInfoObject = function () {
         var objectInfo = new asc_CCellInfo();
         var xfs = new AscCommonExcel.CellXfs();
+        var horAlign = null, vertAlign = null, angle = null;
 
         objectInfo.flags = new AscCommonExcel.asc_CCellFlag();
         var graphicObjects = this.objectRender.getSelectedGraphicObjects();
@@ -8925,10 +8926,9 @@
         if (textPr && paraPr) {
             objectInfo.text = this.objectRender.controller.GetSelectedText(true);
 
-            var horAlign = paraPr.Jc;
-            var vertAlign = Asc.c_oAscVAlign.Center;
+            horAlign = paraPr.Jc;
+            vertAlign = Asc.c_oAscVAlign.Center;
             var shape_props = this.objectRender.controller.getDrawingProps().shapeProps;
-            var angle = null;
             if (shape_props) {
                 switch (shape_props.verticalTextAlign) {
                     case AscFormat.VERTICAL_ANCHOR_TYPE_BOTTOM:
@@ -8957,12 +8957,6 @@
                 }
             }
 
-            var align = new AscCommonExcel.Align();
-            align.setAlignHorizontal(horAlign);
-            align.setAlignVertical(vertAlign);
-            align.setAngle(angle);
-            xfs.setAlign(align);
-
             if (textPr.Unifill && theme) {
                 textPr.Unifill.check(theme, this.objectRender.controller.getColorMap());
             }
@@ -8985,6 +8979,12 @@
                 objectInfo.hyperlink.asc_setText(shapeHyperlink.GetSelectedText(true, true));
             }
         }
+
+        var align = new AscCommonExcel.Align();
+        align.setAlignHorizontal(horAlign);
+        align.setAlignVertical(vertAlign);
+        align.setAngle(angle);
+        xfs.setAlign(align);
 
         objectInfo.xfs = xfs;
 

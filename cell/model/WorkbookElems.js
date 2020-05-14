@@ -2837,7 +2837,7 @@ Align.prototype =
 		return nRes;
 	},
 	setAngle: function(val) {
-		this.angle = AscCommonExcel.angleInterfaceToFormat(val);
+		this.angle = null !== val ? AscCommonExcel.angleInterfaceToFormat(val) : val;
 	},
 	getWrap: function() {
 		// Для justify wrap всегда true
