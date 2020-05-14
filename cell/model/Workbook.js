@@ -11207,7 +11207,7 @@
 		var nRow = this.bbox.r1;
 		var nCol = this.bbox.c1;
 		var numFormatStr = g_oDefaultFormat.Num.getFormat();
-		;this.worksheet._getCellNoEmpty(nRow, nCol, function (cell) {
+		this.worksheet._getCellNoEmpty(nRow, nCol, function (cell) {
 			var xfs = cell ? cell.getCompiledStyle() : t.worksheet.getCompiledStyle(nRow, nCol);
 			if (xfs && xfs.num) {
 				numFormatStr = xfs.num.getFormat();
