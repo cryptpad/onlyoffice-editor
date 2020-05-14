@@ -3914,6 +3914,15 @@ var editor;
     return res;
   };
 
+  spreadsheet_api.prototype.asc_insertArgumentsInFormula = function(val) {
+    this.wb.insertArgumentsInFormula(val);
+    this.wb.restoreFocus();
+  };
+
+  spreadsheet_api.prototype.asc_canEnterWizardRange = function(char) {
+    return this.wb.canEnterWizardRange(char);
+  };
+
   spreadsheet_api.prototype.asc_moveCursorFunctionArgument = function(argNum, pos) {
     var res = this.wb.moveCursorFunctionArgument(argNum, pos);
     this.wb.restoreFocus();
@@ -4874,6 +4883,8 @@ var editor;
   prot["asc_getFormulaNameByLocale"] = prot.asc_getFormulaNameByLocale;
   prot["asc_insertFormulaArgument"] = prot.asc_insertFormulaArgument;
   prot["asc_moveCursorFunctionArgument"] = prot.asc_moveCursorFunctionArgument;
+  prot["asc_insertArgumentsInFormula"] = prot.asc_insertArgumentsInFormula;
+  prot["asc_canEnterWizardRange"] = prot.asc_canEnterWizardRange;
   prot["asc_calculate"] = prot.asc_calculate;
   prot["asc_setFontRenderingMode"] = prot.asc_setFontRenderingMode;
   prot["asc_setSelectionDialogMode"] = prot.asc_setSelectionDialogMode;

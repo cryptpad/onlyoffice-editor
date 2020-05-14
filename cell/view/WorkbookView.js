@@ -2474,6 +2474,13 @@
 		return res;
 	};
 
+	WorkbookView.prototype.canEnterWizardRange = function (char) {
+		if (!this.getCellEditMode()) {
+			return;
+		}
+		return this.cellEditor.checkSymbolBeforeRange(char);
+	};
+
 	WorkbookView.prototype._calculateWizardFormula = function (_str) {
 		var _res = null;
 		if (_str !== "") {

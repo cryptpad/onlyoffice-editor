@@ -514,7 +514,7 @@
 		var isSelection = this.selectionBegin !== this.selectionEnd;
 		var curPos = isSelection ? (this.selectionBegin < this.selectionEnd ? this.selectionBegin : this.selectionEnd) : this.cursorPos;
 		var prevChar = this.textRender.getChars(curPos - 1, 1);
-		if (this.rangeChars.indexOf(prevChar) >= 0 || prevChar === AscCommon.FormulaSeparators.functionArgumentSeparator) {
+		if (this.checkSymbolBeforeRange(prevChar)) {
 			this.lastRangePos = curPos;
 			if (isSelection) {
 				this.lastRangeLength = Math.abs(this.selectionEnd - this.selectionBegin);
@@ -523,6 +523,10 @@
 		}
 		
 		return res;
+	};
+
+	CellEditor.prototype.checkSymbolBeforeRange = function (char) {
+		return this.rangeChars.indexOf(char) >= 0 || char === AscCommon.FormulaSeparators.functionArgumentSeparator;
 	};
 
 	CellEditor.prototype.changeCellRange = function (range, moveEndOfText) {
