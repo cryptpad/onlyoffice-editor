@@ -2324,6 +2324,9 @@ Num.prototype =
   getFormat: function() {
     return (null != this.id) ? (AscCommon.getFormatByStandardId(this.id) || this.f) : this.f;
   },
+	getFormatTypeInfo: function () {
+		return AscCommon.oNumFormatCache.get(this.getFormat());
+	},
   _mergeProperty : function(first, second, def)
   {
     if(def != first)

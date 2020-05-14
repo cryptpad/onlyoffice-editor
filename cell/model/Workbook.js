@@ -8704,9 +8704,6 @@
 	Cell.prototype.getNumFormatType=function(){
 		return this.getNumFormat().getType();
 	};
-	Cell.prototype.getNumFormatTypeInfo=function(){
-		return this.getNumFormat().getTypeInfo();
-	};
 	Cell.prototype.getOffset=function(cell){
 		return this.getOffset3(cell.nCol + 1, cell.nRow + 1);
 	};
@@ -11217,9 +11214,6 @@
 	};
 	Range.prototype.getNumFormatType=function(){
 		return this.getNumFormat().getType();
-	};
-	Range.prototype.getNumFormatTypeInfo=function(){
-		return this.getNumFormat().getTypeInfo();
 	};
 // Узнаем отличается ли шрифт (размер и гарнитура) в ячейке от шрифта в строке
 	Range.prototype.isNotDefaultFont = function () {

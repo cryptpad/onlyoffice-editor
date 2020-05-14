@@ -8813,8 +8813,6 @@
 
         cell_info.font._init(font);
 
-        cell_info.numFormatInfo = c.getNumFormatTypeInfo();
-
         // Получаем гиперссылку (//ToDo)
         var ar = selectionRange.getLast().clone();
         var range = this.model.getRange3(ar.r1, ar.c1, ar.r2, ar.c2);

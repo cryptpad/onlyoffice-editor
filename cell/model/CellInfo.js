@@ -270,7 +270,6 @@
 		this.isLockedSparkline = false;
 		this.isLockedPivotTable = false;
 		this.styleName = null;
-		this.numFormatInfo = null;
 		this.autoFilterInfo = null;
 		this.formatTableInfo = null;
 		this.sparklineInfo = null;
@@ -326,10 +325,10 @@
 		return this.innertext;
 	};
 	asc_CCellInfo.prototype.asc_getNumFormat = function () {
-		return this.xfs.getNum2().getNumFormatStr();
+		return this.xfs.getNum2().getFormat();
 	};
 	asc_CCellInfo.prototype.asc_getNumFormatInfo = function () {
-		return this.numFormatInfo;
+		return this.xfs.getNum2().getFormatTypeInfo();
 	};
 	asc_CCellInfo.prototype.asc_getHyperlink = function () {
 		return this.hyperlink;
