@@ -510,7 +510,6 @@
 
 	window["AscCommonExcel"].asc_CCellInfo = asc_CCellInfo;
 	prot = asc_CCellInfo.prototype;
-	prot["asc_getName"] = prot.asc_getName;
 	prot["asc_getText"] = prot.asc_getText;
 	prot["asc_getHorAlign"] = prot.asc_getHorAlign;
 	prot["asc_getVertAlign"] = prot.asc_getVertAlign;
