@@ -3192,7 +3192,7 @@ function OfflineEditor () {
                 this.frozenPlaces[i].setTransform(shapeCtx, shapeOverlayCtx, autoShapeTrack);
                 
                 // Clip
-                this.frozenPlaces[i].clip(shapeOverlayCtx);
+                this.frozenPlaces[i].clip(shapeOverlayCtx, this.worksheet.rangeToRectRel(this.frozenPlaces[i].range, 0));
                 
                 if (null == drawingDocument.m_oDocumentRenderer) {
                     if (drawingDocument.m_bIsSelection) {
