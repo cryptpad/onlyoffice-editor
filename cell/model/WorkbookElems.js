@@ -2607,6 +2607,10 @@ Num.prototype =
     CellXfs.prototype.getNum = function () {
         return this.num;
     };
+	CellXfs.prototype.getNum2 = function () {
+		// ToDo check this! Rename to getNum
+		return this.num || g_oDefaultFormat.Num;
+	};
     CellXfs.prototype.setNum = function (val) {
         this.num = val;
     };

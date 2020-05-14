@@ -263,7 +263,6 @@
 		this.font = new CFont();
 		this.border = null;
 		this.innertext = null;
-		this.numFormat = null;
 		this.hyperlink = null;
 		this.comment = null;
 		this.isLocked = false;
@@ -327,7 +326,10 @@
 		return this.innertext;
 	};
 	asc_CCellInfo.prototype.asc_getNumFormat = function () {
-		return this.numFormat;
+		return this.xfs.getNum2().getNumFormatStr();
+	};
+	asc_CCellInfo.prototype.asc_getNumFormatInfo = function () {
+		return this.numFormatInfo;
 	};
 	asc_CCellInfo.prototype.asc_getHyperlink = function () {
 		return this.hyperlink;
@@ -349,9 +351,6 @@
 	};
 	asc_CCellInfo.prototype.asc_getStyleName = function () {
 		return this.styleName;
-	};
-	asc_CCellInfo.prototype.asc_getNumFormatInfo = function () {
-		return this.numFormatInfo;
 	};
 	asc_CCellInfo.prototype.asc_getAutoFilterInfo = function () {
 		return this.autoFilterInfo;
@@ -506,6 +505,7 @@
 	prot["asc_getBorders"] = prot.asc_getBorders;
 	prot["asc_getInnerText"] = prot.asc_getInnerText;
 	prot["asc_getNumFormat"] = prot.asc_getNumFormat;
+	prot["asc_getNumFormatInfo"] = prot.asc_getNumFormatInfo;
 	prot["asc_getHyperlink"] = prot.asc_getHyperlink;
 	prot["asc_getComments"] = prot.asc_getComments;
 	prot["asc_getLocked"] = prot.asc_getLocked;
@@ -513,7 +513,6 @@
 	prot["asc_getLockedSparkline"] = prot.asc_getLockedSparkline;
 	prot["asc_getLockedPivotTable"] = prot.asc_getLockedPivotTable;
 	prot["asc_getStyleName"] = prot.asc_getStyleName;
-	prot["asc_getNumFormatInfo"] = prot.asc_getNumFormatInfo;
 	prot["asc_getAngle"] = prot.asc_getAngle;
 	prot["asc_getAutoFilterInfo"] = prot.asc_getAutoFilterInfo;
 	prot["asc_getFormatTableInfo"] = prot.asc_getFormatTableInfo;

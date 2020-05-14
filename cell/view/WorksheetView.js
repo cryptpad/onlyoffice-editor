@@ -8813,7 +8813,6 @@
 
         cell_info.font._init(font);
 
-		cell_info.numFormat = c.getNumFormatStr();
         cell_info.numFormatInfo = c.getNumFormatTypeInfo();
 
         // Получаем гиперссылку (//ToDo)
