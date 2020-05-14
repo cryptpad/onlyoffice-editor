@@ -8810,7 +8810,7 @@
 
         // ToDo activeRange type
         cell_info.selectionType = selectionRange.getLast().getType();
-        cell_info.flags.multiselect = !selectionRange.isSingleRange();
+        cell_info.multiselect = !selectionRange.isSingleRange();
 
         cell_info.flags.lockText = ("" !== cell_info.text && (isNumberFormat || c.isFormula()));
 
