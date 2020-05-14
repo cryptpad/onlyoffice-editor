@@ -44,7 +44,6 @@
 	function asc_CCellFlag() {
 		this.merge = Asc.c_oAscMergeOptions.None;
 		this.shrinkToFit = false;
-		this.wrapText = false;
 	}
 
 	asc_CCellFlag.prototype.asc_getMerge = function () {
@@ -52,9 +51,6 @@
 	};
 	asc_CCellFlag.prototype.asc_getShrinkToFit = function () {
 		return this.shrinkToFit;
-	};
-	asc_CCellFlag.prototype.asc_getWrapText = function () {
-		return this.wrapText;
 	};
 
 	/** @constructor */
@@ -319,6 +315,9 @@
     asc_CCellInfo.prototype.asc_getAngle = function () {
         return this.xfs.getAlign2().getAngle();
     };
+	asc_CCellInfo.prototype.asc_getWrapText = function () {
+		return this.xfs.getAlign2().getWrap();
+	};
 	asc_CCellInfo.prototype.asc_getFlags = function () {
 		return this.flags;
 	};
@@ -449,7 +448,6 @@
 	prot = asc_CCellFlag.prototype;
 	prot["asc_getMerge"] = prot.asc_getMerge;
 	prot["asc_getShrinkToFit"] = prot.asc_getShrinkToFit;
-	prot["asc_getWrapText"] = prot.asc_getWrapText;
 
 	window["AscCommonExcel"].CFont = CFont;
 	prot = CFont.prototype;
@@ -514,6 +512,7 @@
 	prot["asc_getLockText"] = prot.asc_getLockText;
 	prot["asc_getHorAlign"] = prot.asc_getHorAlign;
 	prot["asc_getVertAlign"] = prot.asc_getVertAlign;
+	prot["asc_getWrapText"] = prot.asc_getWrapText;
 	prot["asc_getFlags"] = prot.asc_getFlags;
 	prot["asc_getFont"] = prot.asc_getFont;
 	prot["asc_getFillColor"] = prot.asc_getFillColor;
