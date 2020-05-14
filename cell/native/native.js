@@ -2906,7 +2906,7 @@ function asc_WriteCCellInfo(c, s) {
     
     if (null !== c.asc_getFlags()) {
         s['WriteByte'](5);
-        s['WriteBool'](c.asc_getFlags().asc_getMerge());
+        s['WriteBool'](c.asc_getMerge());
         s['WriteBool'](c.asc_getShrinkToFit());
         s['WriteBool'](c.asc_getWrapText());
         s['WriteLong'](c.asc_getSelectionType());
@@ -6382,7 +6382,7 @@ window["native"]["offline_apply_event"] = function(type,params) {
             _stream = global_memory_stream_menu;
             _stream["ClearNoAttack"]();
             
-            var merged = _api.asc_getCellInfo().asc_getFlags().asc_getMerge();
+            var merged = _api.asc_getCellInfo().asc_getMerge();
             
             if (!merged && _api.asc_mergeCellsDataLost(params)) {
                 _stream["WriteBool"](true);
