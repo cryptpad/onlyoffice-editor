@@ -2287,98 +2287,97 @@ var g_oBorderProperties = {
 		}
 		return newContext;
 	};
-var g_oNumProperties = {
+
+	var g_oNumProperties = {
 		f: 0,
 		id: 1
 	};
-/** @constructor */
-function Num(val)
-{
-	if(null == val)
-		val = g_oDefaultFormat.NumAbs;
-	this.f = val.f;
-  this.id = val.id;
 
-	this._hash;
-	this._index;
-}
-Num.prototype =
-{
-	Properties: g_oNumProperties,
-	getHash: function() {
+	/** @constructor */
+	function Num(val) {
+		if (null == val)
+			val = g_oDefaultFormat.NumAbs;
+		this.f = val.f;
+		this.id = val.id;
+
+		this._hash;
+		this._index;
+	}
+
+	Num.prototype.Properties = g_oNumProperties;
+	Num.prototype.getHash = function () {
 		if (!this._hash) {
 			this._hash = this.f + '|' + this.id;
 		}
 		return this._hash;
-	},
-	getIndexNumber: function() {
+	};
+	Num.prototype.getIndexNumber = function () {
 		return this._index;
-	},
-	setIndexNumber: function(val) {
+	};
+	Num.prototype.setIndexNumber = function (val) {
 		this._index = val;
-	},
-  setFormat: function(f, opt_id) {
-    this.f = f;
-    this.id = opt_id;
-  },
-  getFormat: function() {
-    return (null != this.id) ? (AscCommon.getFormatByStandardId(this.id) || this.f) : this.f;
-  },
-	getFormatTypeInfo: function () {
+	};
+	Num.prototype.setFormat = function (f, opt_id) {
+		this.f = f;
+		this.id = opt_id;
+	};
+	Num.prototype.getFormat = function () {
+		return (null != this.id) ? (AscCommon.getFormatByStandardId(this.id) || this.f) : this.f;
+	};
+	Num.prototype.getFormatTypeInfo = function () {
 		return AscCommon.oNumFormatCache.get(this.getFormat());
-	},
-  _mergeProperty : function(first, second, def)
-  {
-    if(def != first)
-      return first;
-    else
-      return second;
-  },
-	merge : function(num)
-	{
+	};
+	Num.prototype._mergeProperty = function (first, second, def) {
+		if (def != first)
+			return first;
+		else
+			return second;
+	};
+	Num.prototype.merge = function (num) {
 		var oRes = new Num();
-    oRes.f = this._mergeProperty(this.f, num.f, g_oDefaultFormat.Num.f);
-    oRes.id = this._mergeProperty(this.id, num.id, g_oDefaultFormat.Num.id);
+		oRes.f = this._mergeProperty(this.f, num.f, g_oDefaultFormat.Num.f);
+		oRes.id = this._mergeProperty(this.id, num.id, g_oDefaultFormat.Num.id);
 		return oRes;
-	},
-  isEqual: function(val) {
-    if (null != this.id && null != val.id) {
-      return this.id == val.id;
-    } else if (null != this.id || null != val.id) {
-      return false;
-    } else {
-      return this.f == val.f;
-    }
-  },
-    clone : function()
-    {
-        return new Num(this);
-    },
-	getType : function()
-	{
+	};
+	Num.prototype.isEqual = function (val) {
+		if (null != this.id && null != val.id) {
+			return this.id == val.id;
+		} else if (null != this.id || null != val.id) {
+			return false;
+		} else {
+			return this.f == val.f;
+		}
+	};
+	Num.prototype.clone = function () {
+		return new Num(this);
+	};
+	Num.prototype.getType = function () {
 		return UndoRedoDataTypes.StyleNum;
-	},
-	getProperties : function()
-	{
+	};
+	Num.prototype.getProperties = function () {
 		return this.Properties;
-	},
-	getProperty : function(nType)
-	{
-		switch(nType)
-		{
-			case this.Properties.f: return this.f;break;
-			case this.Properties.id: return this.id;break;
+	};
+	Num.prototype.getProperty = function (nType) {
+		switch (nType) {
+			case this.Properties.f:
+				return this.f;
+				break;
+			case this.Properties.id:
+				return this.id;
+				break;
 		}
-	},
-	setProperty : function(nType, value)
-	{
-		switch(nType)
-		{
-			case this.Properties.f: this.f = value;break;
-			case this.Properties.id: this.id = value;break;
+	};
+	Num.prototype.setProperty = function (nType, value) {
+		switch (nType) {
+			case this.Properties.f:
+				this.f = value;
+				break;
+			case this.Properties.id:
+				this.id = value;
+				break;
 		}
-	},
-	readAttributes : function(attr, uq) {
+	};
+	Num.prototype.readAttributes = function (attr, uq) {
 		if (attr()) {
 			var vals = attr();
 			var val;
@@ -2398,8 +2397,7 @@ Num.prototype =
 				this.id = id;
 			}
 		}
-	}
-};
+	};
 
     var g_oCellXfsProperties = {
         border: 0,
