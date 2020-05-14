@@ -45,7 +45,6 @@
 		this.merge = Asc.c_oAscMergeOptions.None;
 		this.shrinkToFit = false;
 		this.wrapText = false;
-		this.selectionType = null;
 		this.lockText = false;
 		this.multiselect = false;
 	}
@@ -58,9 +57,6 @@
 	};
 	asc_CCellFlag.prototype.asc_getWrapText = function () {
 		return this.wrapText;
-	};
-	asc_CCellFlag.prototype.asc_getSelectionType = function () {
-		return this.selectionType;
 	};
 	asc_CCellFlag.prototype.asc_getMultiselect = function () {
 		return this.multiselect;
@@ -283,6 +279,8 @@
 		this.xfs = null;
 
 		this.text = "";
+		this.selectionType = null;
+
 		this.flags = null;
 		this.font = new CFont();
 		this.fill = null;
@@ -308,6 +306,9 @@
 
 	asc_CCellInfo.prototype.asc_getText = function () {
 		return this.text;
+	};
+	asc_CCellInfo.prototype.asc_getSelectionType = function () {
+		return this.selectionType;
 	};
 	asc_CCellInfo.prototype.asc_getHorAlign = function () {
 		return this.xfs.getAlign2().getAlignHorizontal();
@@ -449,7 +450,6 @@
 	prot["asc_getMerge"] = prot.asc_getMerge;
 	prot["asc_getShrinkToFit"] = prot.asc_getShrinkToFit;
 	prot["asc_getWrapText"] = prot.asc_getWrapText;
-	prot["asc_getSelectionType"] = prot.asc_getSelectionType;
 	prot["asc_getMultiselect"] = prot.asc_getMultiselect;
 	prot["asc_getLockText"] = prot.asc_getLockText;
 
@@ -511,6 +511,7 @@
 	window["AscCommonExcel"].asc_CCellInfo = asc_CCellInfo;
 	prot = asc_CCellInfo.prototype;
 	prot["asc_getText"] = prot.asc_getText;
+	prot["asc_getSelectionType"] = prot.asc_getSelectionType;
 	prot["asc_getHorAlign"] = prot.asc_getHorAlign;
 	prot["asc_getVertAlign"] = prot.asc_getVertAlign;
 	prot["asc_getFlags"] = prot.asc_getFlags;

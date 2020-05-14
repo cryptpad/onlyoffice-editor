@@ -2909,7 +2909,7 @@ function asc_WriteCCellInfo(c, s) {
         s['WriteBool'](c.asc_getFlags().asc_getMerge());
         s['WriteBool'](c.asc_getFlags().asc_getShrinkToFit());
         s['WriteBool'](c.asc_getFlags().asc_getWrapText());
-        s['WriteLong'](c.asc_getFlags().asc_getSelectionType());
+        s['WriteLong'](c.asc_getSelectionType());
         s['WriteBool'](c.asc_getFlags().asc_getLockText());
     }
     
@@ -4560,7 +4560,7 @@ function OfflineEditor () {
         var stream = global_memory_stream_menu;
         stream["ClearNoAttack"]();
         
-        var SelectedObjects = [], selectType = info.asc_getFlags().asc_getSelectionType();
+        var SelectedObjects = [], selectType = info.asc_getSelectionType();
         if (selectType == Asc.c_oAscSelectionType.RangeImage || selectType == Asc.c_oAscSelectionType.RangeShape ||
             selectType == Asc.c_oAscSelectionType.RangeChart || selectType == Asc.c_oAscSelectionType.RangeChartText ||
             selectType == Asc.c_oAscSelectionType.RangeShapeText)
@@ -4568,9 +4568,7 @@ function OfflineEditor () {
             SelectedObjects = _api.asc_getGraphicObjectProps();
             
             var count = SelectedObjects.length;
-            var naturalCount = count;
-            
-            stream["WriteLong"](naturalCount);
+            stream["WriteLong"](count);
             
             for (var i = 0; i < count; i++)
             {

@@ -2548,7 +2548,7 @@
             }
             case c_oEditorId.Spreadsheet:
             {
-                var off, selectionType = this.asc_getCellInfo().asc_getFlags().asc_getSelectionType();
+                var off, selectionType = this.asc_getCellInfo().asc_getSelectionType();
                 if (this.asc_getCellEditMode())
                 {
                     // cell edit

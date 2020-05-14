@@ -8758,7 +8758,6 @@
         var isNumberFormat = (!cellType || CellValueType.Number === cellType);
 
         var cell_info = new asc_CCellInfo();
-
         cell_info.xfs = c.getXfs();
 
 		AscCommonExcel.g_ActiveCell = new Asc.Range(c1, r1, c1, r1);
@@ -8810,7 +8809,7 @@
         cell_info.flags.wrapText = align.getWrap();
 
         // ToDo activeRange type
-        cell_info.flags.selectionType = selectionRange.getLast().getType();
+        cell_info.selectionType = selectionRange.getLast().getType();
         cell_info.flags.multiselect = !selectionRange.isSingleRange();
 
         cell_info.flags.lockText = ("" !== cell_info.text && (isNumberFormat || c.isFormula()));
@@ -8907,10 +8906,9 @@
         var xfs = new AscCommonExcel.CellXfs();
         var horAlign = null, vertAlign = null, angle = null;
 
-        objectInfo.flags = new AscCommonExcel.asc_CCellFlag();
         var graphicObjects = this.objectRender.getSelectedGraphicObjects();
         if (graphicObjects.length) {
-            objectInfo.flags.selectionType = this.objectRender.getGraphicSelectionType(graphicObjects[0].Id);
+            objectInfo.selectionType = this.objectRender.getGraphicSelectionType(graphicObjects[0].Id);
         }
 
         var textPr = this.objectRender.controller.getParagraphTextPr();
