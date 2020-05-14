@@ -2591,6 +2591,10 @@ Num.prototype =
     CellXfs.prototype.getFill = function () {
         return this.fill;
     };
+	CellXfs.prototype.getFill2 = function () {
+		// ToDo check this! Rename to getFill
+		return this.fill || g_oDefaultFormat.Fill;
+	};
     CellXfs.prototype.setFill = function (val) {
         this.fill = val;
     };

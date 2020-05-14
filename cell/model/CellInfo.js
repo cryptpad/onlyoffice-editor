@@ -261,7 +261,6 @@
 		this.lockText = false;
 
 		this.font = new CFont();
-		this.fill = null;
 		this.border = null;
 		this.innertext = null;
 		this.numFormat = null;
@@ -316,10 +315,10 @@
 		return this.font;
 	};
 	asc_CCellInfo.prototype.asc_getFillColor = function () {
-		return this.fill && Asc.colorObjToAscColor(this.fill.bg());
+		return Asc.colorObjToAscColor(this.asc_getFill().bg());
 	};
 	asc_CCellInfo.prototype.asc_getFill = function () {
-		return this.fill;
+		return this.xfs.getFill2().clone();
 	};
 	asc_CCellInfo.prototype.asc_getBorders = function () {
 		return this.border;
