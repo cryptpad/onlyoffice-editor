@@ -2907,7 +2907,7 @@ function asc_WriteCCellInfo(c, s) {
     if (null !== c.asc_getFlags()) {
         s['WriteByte'](5);
         s['WriteBool'](c.asc_getFlags().asc_getMerge());
-        s['WriteBool'](c.asc_getFlags().asc_getShrinkToFit());
+        s['WriteBool'](c.asc_getShrinkToFit());
         s['WriteBool'](c.asc_getWrapText());
         s['WriteLong'](c.asc_getSelectionType());
         s['WriteBool'](c.asc_getLockText());

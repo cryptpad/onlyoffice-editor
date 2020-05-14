@@ -8805,7 +8805,6 @@
         cell_info.styleName = c.getStyleName();
 
         cell_info.flags = new AscCommonExcel.asc_CCellFlag();
-        cell_info.flags.shrinkToFit = align.getShrinkToFit();
 
         // ToDo activeRange type
         cell_info.selectionType = selectionRange.getLast().getType();
