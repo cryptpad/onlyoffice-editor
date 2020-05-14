@@ -261,7 +261,6 @@
 		this.lockText = false;
 
 		this.font = new CFont();
-		this.border = null;
 		this.innertext = null;
 		this.hyperlink = null;
 		this.comment = null;
@@ -277,8 +276,14 @@
 		this.dataValidation = null;
 		this.selectedColsCount = null;
 		this.isLockedHeaderFooter = false;
+
+		// ToDo not used
+		this.border = null;
 	}
 
+	asc_CCellInfo.prototype.asc_getXfs = function () {
+		return this.xfs;
+	};
 	asc_CCellInfo.prototype.asc_getText = function () {
 		return this.text;
 	};
@@ -489,6 +494,7 @@
 
 	window["AscCommonExcel"].asc_CCellInfo = asc_CCellInfo;
 	prot = asc_CCellInfo.prototype;
+	prot["asc_getXfs"] = prot.asc_getXfs;
 	prot["asc_getText"] = prot.asc_getText;
 	prot["asc_getMerge"] = prot.asc_getMerge;
 	prot["asc_getSelectionType"] = prot.asc_getSelectionType;
