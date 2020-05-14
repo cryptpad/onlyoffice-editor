@@ -260,7 +260,6 @@
 		this.multiselect = false;
 		this.lockText = false;
 
-		this.flags = null;
 		this.font = new CFont();
 		this.fill = null;
 		this.border = null;
@@ -312,9 +311,6 @@
 	};
 	asc_CCellInfo.prototype.asc_getShrinkToFit = function () {
 		return this.xfs.getAlign2().getShrinkToFit();
-	};
-	asc_CCellInfo.prototype.asc_getFlags = function () {
-		return this.flags;
 	};
 	asc_CCellInfo.prototype.asc_getFont = function () {
 		return this.font;
@@ -505,7 +501,6 @@
 	prot["asc_getVertAlign"] = prot.asc_getVertAlign;
 	prot["asc_getWrapText"] = prot.asc_getWrapText;
 	prot["asc_getShrinkToFit"] = prot.asc_getShrinkToFit;
-	prot["asc_getFlags"] = prot.asc_getFlags;
 	prot["asc_getFont"] = prot.asc_getFont;
 	prot["asc_getFillColor"] = prot.asc_getFillColor;
 	prot["asc_getFill"] = prot.asc_getFill;

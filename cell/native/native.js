@@ -2904,7 +2904,7 @@ function asc_WriteCCellInfo(c, s) {
         s['WriteLong'](c.asc_getVertAlign());
     }
     
-    if (null !== c.asc_getFlags()) {
+    if (true) {
         s['WriteByte'](5);
         s['WriteBool'](c.asc_getMerge());
         s['WriteBool'](c.asc_getShrinkToFit());
