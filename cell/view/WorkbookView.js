@@ -712,8 +712,8 @@
 				  return self.getWorksheet().model;
 			  }, "setStrictClose": function (val) {
 				  self.controller.setStrictClose(val);
-			  }, "updateEditorSelectionInfo": function (info) {
-				  self.handlers.trigger("asc_onEditorSelectionChanged", info);
+			  }, "updateEditorSelectionInfo": function (xfs) {
+				  self.handlers.trigger("asc_onEditorSelectionChanged", xfs);
 			  }, "onContextMenu": function (event) {
 				  self.handlers.trigger("asc_onContextMenu", event);
 			  }, "updatedEditableFunction": function (fName) {
@@ -1648,21 +1648,21 @@
 
   WorkbookView.prototype._onSetFontAttributes = function(prop) {
     var val;
-    var selectionInfo = this.getWorksheet().getSelectionInfo().asc_getFont();
+    var xfs = this.getWorksheet().getSelectionInfo().asc_getXfs();
     switch (prop) {
       case "b":
-        val = !(selectionInfo.asc_getBold());
+        val = !(xfs.asc_getFontBold());
         break;
       case "i":
-        val = !(selectionInfo.asc_getItalic());
+        val = !(xfs.asc_getFontItalic());
         break;
       case "u":
         // ToDo для двойного подчеркивания нужно будет немного переделать схему
-        val = !(selectionInfo.asc_getUnderline());
+        val = !(xfs.asc_getFontUnderline());
         val = val ? Asc.EUnderline.underlineSingle : Asc.EUnderline.underlineNone;
         break;
       case "s":
-        val = !(selectionInfo.asc_getStrikeout());
+        val = !(xfs.asc_getFontStrikeout());
         break;
     }
     return this.setFontAttributes(prop, val);

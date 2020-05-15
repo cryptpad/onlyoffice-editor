@@ -922,8 +922,8 @@
 							 self.controller.setFocus(!hasFocus);
 							 },*/ "updateEditorState": function (state) {
 								self.handlers.trigger("asc_onEditCell", state);
-							}, "updateEditorSelectionInfo": function (info) {
-								self.handlers.trigger("asc_onEditorSelectionChanged", info);
+							}, "updateEditorSelectionInfo": function (xfs) {
+								self.handlers.trigger("asc_onEditorSelectionChanged", xfs);
 							}, "onContextMenu": function (event) {
 								self.handlers.trigger("asc_onContextMenu", event);
 							}, "updateMenuEditorCursorPosition": function (pos, height) {

@@ -298,9 +298,6 @@
 	asc_CCellInfo.prototype.asc_getShrinkToFit = function () {
 		return this.xfs.getAlign2().getShrinkToFit();
 	};
-	asc_CCellInfo.prototype.asc_getFont = function () {
-		return this.font;
-	};
 	asc_CCellInfo.prototype.asc_getFillColor = function () {
 		return Asc.colorObjToAscColor(this.asc_getFill().bg());
 	};
@@ -488,7 +485,6 @@
 	prot["asc_getVertAlign"] = prot.asc_getVertAlign;
 	prot["asc_getWrapText"] = prot.asc_getWrapText;
 	prot["asc_getShrinkToFit"] = prot.asc_getShrinkToFit;
-	prot["asc_getFont"] = prot.asc_getFont;
 	prot["asc_getFillColor"] = prot.asc_getFillColor;
 	prot["asc_getFill"] = prot.asc_getFill;
 	prot["asc_getBorders"] = prot.asc_getBorders;

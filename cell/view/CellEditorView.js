@@ -2113,16 +2113,14 @@
 	};
 
 	CellEditor.prototype._updateSelectionInfo = function () {
-		var tmp = this.cursorPos;
-		tmp = this._findFragmentToInsertInto(tmp);
-		if (!tmp) {
+		var f = this._findFragmentToInsertInto(this.cursorPos);
+		if (!f) {
 			return;
 		}
-		tmp = this.newTextFormat || this.options.fragments[tmp.index].format;
 
-		var result = new AscCommonExcel.CFont();
-		result._init(tmp);
-		this.handlers.trigger("updateEditorSelectionInfo", result);
+		var xfs = new AscCommonExcel.CellXfs();
+		xfs.setFont(this.newTextFormat || this.options.fragments[f.index].format);
+		this.handlers.trigger("updateEditorSelectionInfo", xfs);
 	};
 
 	CellEditor.prototype._checkMaxCellLength = function ( length ) {

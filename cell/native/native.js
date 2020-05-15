@@ -2740,17 +2740,18 @@ function asc_WriteCFont(i, c, s) {
     if (i !== -1) s['WriteByte'](i);
     
     s['WriteByte'](0);
-    s['WriteString2'](c.asc_getName());
-    s['WriteDouble2'](c.asc_getSize());
-    s['WriteBool'](c.asc_getBold());
-    s['WriteBool'](c.asc_getItalic());
-    s['WriteBool'](c.asc_getUnderline());
-    s['WriteBool'](c.asc_getStrikeout());
-    s['WriteBool'](c.asc_getSubscript());
-    s['WriteBool'](c.asc_getSuperscript());
-    
-    if (c.asc_getColor()) {
-        asc_menu_WriteColor(1, c.asc_getColor(), s);
+    s['WriteString2'](c.asc_getFontName());
+    s['WriteDouble2'](c.asc_getFontSize());
+    s['WriteBool'](c.asc_getFontBold());
+    s['WriteBool'](c.asc_getFontItalic());
+    s['WriteBool'](c.asc_getFontUnderline());
+    s['WriteBool'](c.asc_getFontStrikeout());
+    s['WriteBool'](c.asc_getFontSubscript());
+    s['WriteBool'](c.asc_getFontSuperscript());
+
+    var color = c.asc_getFontColor();
+    if (color) {
+        asc_menu_WriteColor(1, color, s);
     }
     
     s['WriteByte'](255);
@@ -2911,7 +2912,7 @@ function asc_WriteCCellInfo(c, s) {
     s['WriteLong'](c.asc_getSelectionType());
     s['WriteBool'](c.asc_getLockText());
     
-    asc_WriteCFont(6, c.asc_getFont(), s);
+    asc_WriteCFont(6, c.asc_getXfs(), s);
     asc_menu_WriteColor(8, c.asc_getFillColor(), s);
     asc_WriteCBorders(9, c.asc_getBorders(), s);
     
@@ -4046,10 +4047,10 @@ function OfflineEditor () {
                                   window["native"]["OnCallMenuEvent"](2310, stream); // ASC_SPREADSHEETS_EVENT_TYPE_EDITOR_SELECTION_NAME_CHANGED
                                   });
         
-        _api.asc_registerCallback("asc_onEditorSelectionChanged", function(font) {
+        _api.asc_registerCallback("asc_onEditorSelectionChanged", function(xfs) {
                                   var stream = global_memory_stream_menu;
                                   stream["ClearNoAttack"]();
-                                  asc_WriteCFont(-1, font, stream);
+                                  asc_WriteCFont(-1, xfs, stream);
                                   window["native"]["OnCallMenuEvent"](2403, stream); // ASC_SPREADSHEETS_EVENT_TYPE_EDITOR_SELECTION_CHANGED
                                   });
         
