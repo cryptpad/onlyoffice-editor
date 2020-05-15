@@ -928,7 +928,7 @@
       if (this.isFormulaEditMode) {
           this.skipHelpSelector = true;
           this.cellEditor.setFocus(false);
-          this.cellEditor.changeCellText(val.asc_getName());
+          this.cellEditor.changeCellText(val);
           this.skipHelpSelector = false;
       }
       this.handlers.trigger("asc_onSelectionRangeChanged", val);
@@ -2889,10 +2889,7 @@
 
   WorkbookView.prototype.getDefaultDefinedName = function() {
     //ToDo проверка defName.ref на знак "=" в начале ссылки. знака нет тогда это либо число либо строка, так делает Excel.
-
-    var ws = this.getWorksheet();
-    var oRangeValue = ws.getSelectionRangeValue(true, true);
-    return new Asc.asc_CDefName("", oRangeValue.asc_getName(), null);
+    return new Asc.asc_CDefName("", this.getWorksheet().getSelectionRangeValue(true, true), null);
 
   };
   WorkbookView.prototype.getDefaultTableStyle = function() {

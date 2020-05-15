@@ -4257,10 +4257,7 @@ function DrawingObjects() {
                 }
                 settings.putInColumns(nRows > nCols);
             }
-            var aRangeValues = worksheet.getSelectionRangeValues();
-            if(aRangeValues){
-                settings.putRanges2(aRangeValues);
-            }
+            settings.putRanges(worksheet.getSelectionRangeValues(true, true));
 
             settings.putStyle(2);
             settings.putType(Asc.c_oAscChartTypeSettings.lineNormal);

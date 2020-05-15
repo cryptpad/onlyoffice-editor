@@ -4737,11 +4737,8 @@ function OfflineEditor () {
             var box = selectedRange.getBBox0();
             settings.putInColumns(!(box.r2 - box.r1 < box.c2 - box.c1));
         }
-        
-        var oRangeValue = ws.getSelectionRangeValue(true, true);
-        if (oRangeValue) {
-            settings.putRange(oRangeValue.asc_getName());
-        }
+
+        settings.putRanges(ws.getSelectionRangeValues(true, true));
         
         settings.putStyle(2);
         settings.putTitle(Asc.c_oAscChartTitleShowSettings.noOverlay);
