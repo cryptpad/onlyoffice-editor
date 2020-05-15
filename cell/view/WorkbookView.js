@@ -2414,7 +2414,7 @@
 				if (!activeFuncInfo.argumentsResult) {
 					activeFuncInfo.argumentsResult = [];
 				}
-				activeFuncInfo.argumentsResult[argNum] = this.calculateWizardArg(args[argNum], argType);
+				activeFuncInfo.argumentsResult[argNum] = this.calculateWizardArg(undefined === args[argNum] ? "" : args[argNum], argType);
 				return activeFuncInfo;
 			}
 		}
