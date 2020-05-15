@@ -2376,6 +2376,7 @@
 			return;
 		}
 
+		var ws = this.getWorksheet();
 		var parseResult = this.cellEditor ? this.cellEditor._parseResult : null;
 		if (!parseResult || !parseResult.argPosArr) {
 			return;
@@ -2410,6 +2411,9 @@
 		if (argNum) {
 			var activeFuncInfo = ws.model.getActiveFunctionInfo(this.cellEditor._formula, this.cellEditor._parseResult);
 			if (activeFuncInfo) {
+				if (!activeFuncInfo.argumentsResult) {
+					activeFuncInfo.argumentsResult = [];
+				}
 				activeFuncInfo.argumentsResult[argNum] = this.calculateWizardArg(args[argNum], argType);
 				return activeFuncInfo;
 			}
@@ -2494,10 +2498,11 @@
 
 	WorkbookView.prototype._calculateWizardFormula = function (_str) {
 		var _res = null;
+		var ws = this.getWorksheet();
 		if (_str !== "") {
-			var _formula = new AscCommonExcel.parserFormula(_str, /*formulaParsed.parent*/null, t);
+			var _formula = new AscCommonExcel.parserFormula(_str, /*formulaParsed.parent*/null, ws.model);
 			var _parseResultArg = new AscCommonExcel.ParseResult([], []);
-			_formulaParsedArg.parse(true, true, _parseResultArg, true);
+			_formula.parse(true, true, _parseResultArg, true);
 			if (!_parseResultArg.error) {
 				_res = _formula.calculate();
 			}
