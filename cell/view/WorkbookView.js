@@ -1452,15 +1452,14 @@
     return (0 < objectRender.getSelectedGraphicObjects().length) ? objectRender.graphicObjectKeyDown(e) : false;
   };
   WorkbookView.prototype._onGraphicObjectWindowKeyUp = function(e) {
-      var oWS = this.getWorksheet();
-      if(!oWS) {
-          return false;
+    var oWS, bRet = false;
+    for(var i in this.wsViews) {
+      oWS = this.wsViews[i];
+      if(oWS && oWS.objectRender) {
+          bRet |= oWS.objectRender.graphicObjectKeyUp(e);
       }
-      var objectRender = oWS.objectRender;
-      if(!objectRender) {
-          return false;
-      }
-    return objectRender.graphicObjectKeyUp(e);
+    }
+    return bRet;
   };
 
   WorkbookView.prototype._onGraphicObjectWindowKeyPress = function(e) {
