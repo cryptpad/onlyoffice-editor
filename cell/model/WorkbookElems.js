@@ -2531,28 +2531,20 @@ var g_oBorderProperties = {
         switch (nType) {
             case this.Properties.border:
                 return this.border;
-                break;
             case this.Properties.fill:
                 return this.fill;
-                break;
             case this.Properties.font:
                 return this.font;
-                break;
             case this.Properties.num:
                 return this.num;
-                break;
             case this.Properties.align:
                 return this.align;
-                break;
             case this.Properties.QuotePrefix:
                 return this.QuotePrefix;
-                break;
             case this.Properties.PivotButton:
                 return this.PivotButton;
-                break;
             case this.Properties.XfId:
                 return this.XfId;
-                break;
         }
     };
     CellXfs.prototype.setProperty = function (nType, value) {
@@ -2602,6 +2594,10 @@ var g_oBorderProperties = {
     CellXfs.prototype.getFont = function () {
         return this.font;
     };
+	CellXfs.prototype.getFont2 = function () {
+		// ToDo check this! Rename to getFont
+		return this.font || g_oDefaultFormat.Font;
+	};
     CellXfs.prototype.setFont = function (val) {
         this.font = val;
     };
@@ -2658,6 +2654,35 @@ var g_oBorderProperties = {
             this.operationCache[operation] = valCache;
         }
         valCache[val] = xfs;
+    };
+
+    CellXfs.prototype.asc_getFontName = function () {
+		return this.getFont2().getName();
+	};
+    CellXfs.prototype.asc_getFontSize = function () {
+        return this.getFont2().getSize();
+    };
+    CellXfs.prototype.asc_getFontColor = function () {
+        return Asc.colorObjToAscColor(this.getFont2().getColor());
+    };
+    CellXfs.prototype.asc_getFontBold = function () {
+        return this.getFont2().getBold();
+    };
+    CellXfs.prototype.asc_getFontItalic = function () {
+        return this.getFont2().getItalic();
+    };
+    CellXfs.prototype.asc_getFontUnderline = function () {
+        // ToDo убрать, когда будет реализовано двойное подчеркивание
+        return (Asc.EUnderline.underlineNone !== this.getFont2().getUnderline());
+    };
+    CellXfs.prototype.asc_getFontStrikeout = function () {
+        return this.getFont2().getStrikeout();
+    };
+    CellXfs.prototype.asc_getFontSubscript = function () {
+        return (AscCommon.vertalign_SubScript === this.getFont2().getVerticalAlign());
+    };
+    CellXfs.prototype.asc_getFontSuperscript = function () {
+        return (AscCommon.vertalign_SuperScript === this.getFont2().getVerticalAlign());
     };
 
 	function FromXml_ST_HorizontalAlignment(val) {
@@ -9636,6 +9661,16 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	window['AscCommonExcel'].Border = Border;
 	window['AscCommonExcel'].Num = Num;
 	window['AscCommonExcel'].CellXfs = CellXfs;
+	prot = CellXfs.prototype;
+	prot["asc_getFontName"] = prot.asc_getFontName;
+    prot["asc_getFontSize"] = prot.asc_getFontSize;
+    prot["asc_getFontColor"] = prot.asc_getFontColor;
+    prot["asc_getFontBold"] = prot.asc_getFontBold;
+    prot["asc_getFontItalic"] = prot.asc_getFontItalic;
+    prot["asc_getFontUnderline"] = prot.asc_getFontUnderline;
+    prot["asc_getFontStrikeout"] = prot.asc_getFontStrikeout;
+    prot["asc_getFontSubscript"] = prot.asc_getFontSubscript;
+    prot["asc_getFontSuperscript"] = prot.asc_getFontSuperscript;
 	window['AscCommonExcel'].Align = Align;
 	window['AscCommonExcel'].CCellStyles = CCellStyles;
 	window['AscCommonExcel'].CCellStyle = CCellStyle;
