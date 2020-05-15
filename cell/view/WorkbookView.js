@@ -2409,7 +2409,7 @@
 		this.cellEditor.wizardArgsLength = val.length;
 
 		if (argNum !== undefined) {
-			var activeFuncInfo = ws.model.getActiveFunctionInfo(this.cellEditor._formula, this.cellEditor._parseResult);
+			var activeFuncInfo = ws.model.getActiveFunctionInfo(this.cellEditor._formula, this.cellEditor._parseResult, null, null, true);
 			if (activeFuncInfo) {
 				if (!activeFuncInfo.argumentsResult) {
 					activeFuncInfo.argumentsResult = [];

@@ -7731,7 +7731,7 @@
 		return false;
 	};
 
-	Worksheet.prototype.getActiveFunctionInfo = function (parser, parserResult, argNum, type) {
+	Worksheet.prototype.getActiveFunctionInfo = function (parser, parserResult, argNum, type, doNotCalcArgs) {
 
 		var createFunctionInfoByName = function (_name) {
 			var _res;
@@ -7814,7 +7814,7 @@
 
 			res._cursorPos = _parseResult.cursorPos + 1;
 			var argPosArr = _parseResult.argPosArr;
-			if (argPosArr && argPosArr.length && undefined !== argNum){
+			if (argPosArr && argPosArr.length && true !== doNotCalcArgs){
 				for (var i = 0; i < argPosArr.length; i++) {
 					if (!res.argumentsValue) {
 						res.argumentsValue = [];
