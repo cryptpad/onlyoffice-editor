@@ -610,6 +610,23 @@ var g_oFontProperties = {
 			this.setRepeat(font.repeat);
 		}
 	};
+    Font.prototype.assignFromTextPr = function (textPr) {
+        if (textPr.FontFamily) {
+            this.setName(textPr.FontFamily.Name);
+        }
+        this.setSize(textPr.FontSize);
+        this.setBold(textPr.Bold);
+        this.setItalic(textPr.Italic);
+        this.setUnderline(textPr.Underline);
+        this.setStrikeout(textPr.Strikeout);
+        this.setVerticalAlign(textPr.VertAlign);
+        if (textPr.Unifill) {
+            var color = textPr.Unifill.getRGBAColor();
+            this.setColor(createRgbColor(color.R, color.G, color.B));
+        } else if (textPr.Color) {
+            this.setColor(createRgbColor(textPr.Color.r, textPr.Color.g, textPr.Color.b));
+        }
+    };
 	Font.prototype.merge = function (font, isTable, isTableColor) {
 		var oRes = new Font();
 		oRes.fn = this.fn || font.fn;

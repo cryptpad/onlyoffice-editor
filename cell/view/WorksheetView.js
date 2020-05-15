@@ -8948,7 +8948,9 @@
             if (textPr.Unifill && theme) {
                 textPr.Unifill.check(theme, this.objectRender.controller.getColorMap());
             }
-            objectInfo.font._initFromTextPr(textPr);
+            var font = new AscCommonExcel.Font();
+            font.assignFromTextPr(textPr);
+            xfs.setFont(font);
 
             var shapeHyperlink = this.objectRender.controller.getHyperlinkInfo();
             if (shapeHyperlink && (shapeHyperlink instanceof ParaHyperlink)) {
