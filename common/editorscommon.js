@@ -2979,6 +2979,8 @@
 					return Asc.c_oAscError.ID.AutoFilterDataRangeError;
 				} else if (wb.getWorksheet().intersectionFormulaArray(range, true, true)) {
 					return Asc.c_oAscError.ID.MultiCellsInTablesFormulaArray;
+				} else if (range && Asc.c_oAscSelectionType.RangeCells !== range.getType()) {
+					return Asc.c_oAscError.ID.LargeRangeWarning;
 				}
 			}
 			else if (Asc.c_oAscSelectionDialogType.FormatTableChangeRange === dialogType)
