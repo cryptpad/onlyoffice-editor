@@ -227,38 +227,11 @@
 	asc_CCellInfo.prototype.asc_getLockText = function () {
 		return this.lockText;
 	};
-	asc_CCellInfo.prototype.asc_getHorAlign = function () {
-		return this.xfs.getAlign2().getAlignHorizontal();
-	};
-	asc_CCellInfo.prototype.asc_getVertAlign = function () {
-		return this.xfs.getAlign2().getAlignVertical();
-	};
-    asc_CCellInfo.prototype.asc_getAngle = function () {
-        return this.xfs.getAlign2().getAngle();
-    };
-	asc_CCellInfo.prototype.asc_getWrapText = function () {
-		return this.xfs.getAlign2().getWrap();
-	};
-	asc_CCellInfo.prototype.asc_getShrinkToFit = function () {
-		return this.xfs.getAlign2().getShrinkToFit();
-	};
-	asc_CCellInfo.prototype.asc_getFillColor = function () {
-		return Asc.colorObjToAscColor(this.asc_getFill().bg());
-	};
-	asc_CCellInfo.prototype.asc_getFill = function () {
-		return this.xfs.getFill2().clone();
-	};
 	asc_CCellInfo.prototype.asc_getBorders = function () {
 		return this.border;
 	};
 	asc_CCellInfo.prototype.asc_getInnerText = function () {
 		return this.innertext;
-	};
-	asc_CCellInfo.prototype.asc_getNumFormat = function () {
-		return this.xfs.getNum2().getFormat();
-	};
-	asc_CCellInfo.prototype.asc_getNumFormatInfo = function () {
-		return this.xfs.getNum2().getNumFormat().getTypeInfo();
 	};
 	asc_CCellInfo.prototype.asc_getHyperlink = function () {
 		return this.hyperlink;
@@ -413,16 +386,8 @@
 	prot["asc_getSelectionType"] = prot.asc_getSelectionType;
 	prot["asc_getMultiselect"] = prot.asc_getMultiselect;
 	prot["asc_getLockText"] = prot.asc_getLockText;
-	prot["asc_getHorAlign"] = prot.asc_getHorAlign;
-	prot["asc_getVertAlign"] = prot.asc_getVertAlign;
-	prot["asc_getWrapText"] = prot.asc_getWrapText;
-	prot["asc_getShrinkToFit"] = prot.asc_getShrinkToFit;
-	prot["asc_getFillColor"] = prot.asc_getFillColor;
-	prot["asc_getFill"] = prot.asc_getFill;
 	prot["asc_getBorders"] = prot.asc_getBorders;
 	prot["asc_getInnerText"] = prot.asc_getInnerText;
-	prot["asc_getNumFormat"] = prot.asc_getNumFormat;
-	prot["asc_getNumFormatInfo"] = prot.asc_getNumFormatInfo;
 	prot["asc_getHyperlink"] = prot.asc_getHyperlink;
 	prot["asc_getComments"] = prot.asc_getComments;
 	prot["asc_getLocked"] = prot.asc_getLocked;
@@ -430,7 +395,6 @@
 	prot["asc_getLockedSparkline"] = prot.asc_getLockedSparkline;
 	prot["asc_getLockedPivotTable"] = prot.asc_getLockedPivotTable;
 	prot["asc_getStyleName"] = prot.asc_getStyleName;
-	prot["asc_getAngle"] = prot.asc_getAngle;
 	prot["asc_getAutoFilterInfo"] = prot.asc_getAutoFilterInfo;
 	prot["asc_getFormatTableInfo"] = prot.asc_getFormatTableInfo;
 	prot["asc_getSparklineInfo"] = prot.asc_getSparklineInfo;
