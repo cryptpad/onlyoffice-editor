@@ -2749,10 +2749,7 @@ function asc_WriteCFont(i, c, s) {
     s['WriteBool'](c.asc_getFontSubscript());
     s['WriteBool'](c.asc_getFontSuperscript());
 
-    var color = c.asc_getFontColor();
-    if (color) {
-        asc_menu_WriteColor(1, color, s);
-    }
+    asc_menu_WriteColor(1, c.asc_getFontColor(), s);
     
     s['WriteByte'](255);
 }
@@ -2889,65 +2886,80 @@ function asc_WriteFormatTableInfo(i, c, s) {
 
 function asc_WriteCCellInfo(c, s) {
     if (!c) return;
-    
-    if (null !== c.asc_getText()) {
+    var xfs = c.asc_getXfs();
+
+    var v = c.asc_getText();
+    if (null !== v) {
         s['WriteByte'](2);
-        s['WriteString2'](c.asc_getText());
+        s['WriteString2'](v);
     }
-    
-    if (null !== c.asc_getHorAlign()) {
+
+    v = xfs.asc_getHorAlign();
+    if (null !== v) {
         s['WriteByte'](3);
-        s['WriteLong'](c.asc_getHorAlign());
+        s['WriteLong'](v);
     }
-    
-    if (null !== c.asc_getVertAlign()) {
+
+    v = xfs.asc_getVertAlign();
+    if (null !== v) {
         s['WriteByte'](4);
-        s['WriteLong'](c.asc_getVertAlign());
+        s['WriteLong'](v);
     }
     
     s['WriteByte'](5);
     s['WriteBool'](c.asc_getMerge());
-    s['WriteBool'](c.asc_getShrinkToFit());
-    s['WriteBool'](c.asc_getWrapText());
+    s['WriteBool'](xfs.asc_getShrinkToFit());
+    s['WriteBool'](xfs.asc_getWrapText());
     s['WriteLong'](c.asc_getSelectionType());
     s['WriteBool'](c.asc_getLockText());
     
-    asc_WriteCFont(6, c.asc_getXfs(), s);
-    asc_menu_WriteColor(8, c.asc_getFillColor(), s);
+    asc_WriteCFont(6, xfs, s);
+    asc_menu_WriteColor(8, xfs.asc_getFillColor(), s);
     asc_WriteCBorders(9, c.asc_getBorders(), s);
-    
-    if (null !== c.asc_getInnerText()) {
+
+    v = c.asc_getInnerText();
+    if (null !== v) {
         s['WriteByte'](15);
-        s['WriteString2'](c.asc_getInnerText());
+        s['WriteString2'](v);
     }
-    
-    if (null !== c.asc_getNumFormat()) {
+
+    v = xfs.asc_getNumFormat();
+    if (null !== v) {
         s['WriteByte'](16);
-        s['WriteString2'](c.asc_getNumFormat());
+        s['WriteString2'](v);
     }
     
     asc_WriteCHyperLink(17, c.asc_getHyperlink(), s);
     
     s['WriteByte'](18);
     s['WriteBool'](c.asc_getLocked());
-    
-    if (null != c.asc_getStyleName()) {
+
+    v = c.asc_getStyleName();
+    if (null != v) {
         s['WriteByte'](21);
-        s['WriteString2'](c.asc_getStyleName());
+        s['WriteString2'](v);
     }
-    
-    if (null != c.asc_getNumFormatInfo()) {
+
+    v = xfs.asc_getNumFormatInfo();
+    if (null != v) {
         s['WriteByte'](22);
-        s['WriteLong'](c.asc_getNumFormatInfo().asc_getType());
+        s['WriteLong'](v.asc_getType());
     }
-    
-    if (null != c.asc_getAngle()) {
+
+    v = xfs.asc_getAngle();
+    if (null != v) {
         s['WriteByte'](23);
-        s['WriteDouble2'](c.asc_getAngle());
+        s['WriteDouble2'](v);
     }
-    
-    if (c.asc_getAutoFilterInfo()) { asc_WriteAutoFilterInfo(30, c.asc_getAutoFilterInfo(), s); }
-    if (c.asc_getFormatTableInfo()) { asc_WriteFormatTableInfo(31, c.asc_getFormatTableInfo(), s); }
+
+    v = c.asc_getAutoFilterInfo();
+    if (v) {
+        asc_WriteAutoFilterInfo(30, v, s);
+    }
+    v = c.asc_getFormatTableInfo();
+    if (v) {
+        asc_WriteFormatTableInfo(31, v, s);
+    }
     
     s['WriteByte'](255);
 }
@@ -3053,7 +3065,7 @@ function asc_WriteAutoFiltersOptions(c, s) {
     }
     
     if (c.asc_getValues() && c.asc_getValues().length > 0) {
-        var count = c.asc_getValues().length
+        var count = c.asc_getValues().length;
         
         s['WriteByte'](5);
         s['WriteLong'](count);

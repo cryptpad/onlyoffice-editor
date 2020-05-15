@@ -2673,6 +2673,13 @@ var g_oBorderProperties = {
         valCache[val] = xfs;
     };
 
+	CellXfs.prototype.asc_getFillColor = function () {
+		return Asc.colorObjToAscColor(this.getFill2().bg());
+	};
+	CellXfs.prototype.asc_getFill = function () {
+		return this.getFill2().clone();
+	};
+
     CellXfs.prototype.asc_getFontName = function () {
 		return this.getFont2().getName();
 	};
@@ -2701,6 +2708,29 @@ var g_oBorderProperties = {
     CellXfs.prototype.asc_getFontSuperscript = function () {
         return (AscCommon.vertalign_SuperScript === this.getFont2().getVerticalAlign());
     };
+
+	CellXfs.prototype.asc_getNumFormat = function () {
+		return this.getNum2().getFormat();
+	};
+	CellXfs.prototype.asc_getNumFormatInfo = function () {
+		return this.getNum2().getNumFormat().getTypeInfo();
+	};
+
+	CellXfs.prototype.asc_getHorAlign = function () {
+		return this.getAlign2().getAlignHorizontal();
+	};
+	CellXfs.prototype.asc_getVertAlign = function () {
+		return this.getAlign2().getAlignVertical();
+	};
+	CellXfs.prototype.asc_getAngle = function () {
+		return this.getAlign2().getAngle();
+	};
+	CellXfs.prototype.asc_getWrapText = function () {
+		return this.getAlign2().getWrap();
+	};
+	CellXfs.prototype.asc_getShrinkToFit = function () {
+		return this.getAlign2().getShrinkToFit();
+	};
 
 	function FromXml_ST_HorizontalAlignment(val) {
 		var res = -1;
@@ -9679,6 +9709,8 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	window['AscCommonExcel'].Num = Num;
 	window['AscCommonExcel'].CellXfs = CellXfs;
 	prot = CellXfs.prototype;
+	prot["asc_getFillColor"] = prot.asc_getFillColor;
+	prot["asc_getFill"] = prot.asc_getFill;
 	prot["asc_getFontName"] = prot.asc_getFontName;
     prot["asc_getFontSize"] = prot.asc_getFontSize;
     prot["asc_getFontColor"] = prot.asc_getFontColor;
@@ -9688,6 +9720,13 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
     prot["asc_getFontStrikeout"] = prot.asc_getFontStrikeout;
     prot["asc_getFontSubscript"] = prot.asc_getFontSubscript;
     prot["asc_getFontSuperscript"] = prot.asc_getFontSuperscript;
+	prot["asc_getNumFormat"] = prot.asc_getNumFormat;
+	prot["asc_getNumFormatInfo"] = prot.asc_getNumFormatInfo;
+	prot["asc_getHorAlign"] = prot.asc_getHorAlign;
+	prot["asc_getVertAlign"] = prot.asc_getVertAlign;
+	prot["asc_getAngle"] = prot.asc_getAngle;
+	prot["asc_getWrapText"] = prot.asc_getWrapText;
+	prot["asc_getShrinkToFit"] = prot.asc_getShrinkToFit;
 	window['AscCommonExcel'].Align = Align;
 	window['AscCommonExcel'].CCellStyles = CCellStyles;
 	window['AscCommonExcel'].CCellStyle = CCellStyle;
