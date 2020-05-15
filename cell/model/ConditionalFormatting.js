@@ -552,7 +552,11 @@
 		return this.aCFVOs;
 	};
 	CColorScale.prototype.asc_getColors = function () {
-		return this.aColors;
+		var res = [];
+		for (var i = 0; i < this.aColors.length; ++i) {
+			res.push(Asc.colorObjToAscColor(this.aColors[i]));
+		}
+		return res;
 	};
 
 	function CDataBar () {
