@@ -474,6 +474,9 @@
 	CConditionalFormattingRule.prototype.asc_getType = function () {
 		return this.type;
 	};
+	CConditionalFormattingRule.prototype.asc_getDxf = function () {
+		return this.dxf;
+	};
 	CConditionalFormattingRule.prototype.asc_getLocation = function () {
 		var arrResult = [];
 		if (this.ranges) {
@@ -932,6 +935,7 @@
 	window['AscCommonExcel'].getDataBarGradientColor = getDataBarGradientColor;
 
 	prot = CConditionalFormattingRule;
+	prot['asc_getDxf'] = prot.asc_getDxf;
 	prot['asc_getType'] = prot.asc_getType;
 	prot['asc_getLocation'] = prot.asc_getLocation;
 	prot['asc_getContainsText'] = prot.asc_getContainsText;
