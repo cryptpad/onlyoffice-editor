@@ -2437,7 +2437,7 @@
 					result = _res.toLocaleString();
 				}
 			}
-			return _res;
+			return result;
 		};
 
 		var calcRes = this._calculateWizardFormula(str);

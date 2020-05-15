@@ -7771,7 +7771,7 @@
 					result = _res.toLocaleString();
 				}
 			}
-			return _res;
+			return result;
 		};
 
 		var _formulaParsed, _parseResult, valueForEdit;
