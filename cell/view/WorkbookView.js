@@ -2408,7 +2408,7 @@
 		//TODO возможно wizardArgsLength/wizardArgsStart не нужны, поскольку в getActiveFunctionInfo использую activeFunction
 		this.cellEditor.wizardArgsLength = val.length;
 
-		if (argNum) {
+		if (argNum !== undefined) {
 			var activeFuncInfo = ws.model.getActiveFunctionInfo(this.cellEditor._formula, this.cellEditor._parseResult);
 			if (activeFuncInfo) {
 				if (!activeFuncInfo.argumentsResult) {
