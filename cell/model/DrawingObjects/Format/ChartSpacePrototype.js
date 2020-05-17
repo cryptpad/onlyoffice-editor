@@ -62,7 +62,6 @@ CChartSpace.prototype.recalcText = function()
 
 CChartSpace.prototype.recalculateBounds = CShape.prototype.recalculateBounds;
 CChartSpace.prototype.deselect = CShape.prototype.deselect;
-CChartSpace.prototype.hitToHandles = CShape.prototype.hitToHandles;
 CChartSpace.prototype.hitInBoundingRect = CShape.prototype.hitInBoundingRect;
 CChartSpace.prototype.getRotateAngle = CShape.prototype.getRotateAngle;
 CChartSpace.prototype.getInvertTransform = CShape.prototype.getInvertTransform;

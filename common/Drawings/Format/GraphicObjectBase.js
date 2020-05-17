@@ -461,16 +461,6 @@
         this.Id = oReader.GetString2();
     };
 
-
-    /**
-     * Get object Id
-     * @memberof CGraphicObjectBase
-     * @returns {string}
-     */
-    CGraphicObjectBase.prototype.Get_Id = function () {
-        return this.Id;
-    };
-
     /**
      * Get object bounds for defining group size
      * @memberof CGraphicObjectBase
@@ -967,57 +957,57 @@
 };
 
     CGraphicObjectBase.prototype.setDrawingBaseCoords = function(fromCol, fromColOff, fromRow, fromRowOff, toCol, toColOff, toRow, toRowOff, posX, posY, extX, extY)
-{
-    if(this.drawingBase)
     {
-        History.Add(new AscDFH.CChangesDrawingsObjectNoId(this, AscDFH.historyitem_AutoShapes_SetDrawingBaseCoors, new CDrawingBasePosWritable({
-                fromCol   : this.drawingBase.from.col,
-                fromColOff: this.drawingBase.from.colOff,
-                fromRow   : this.drawingBase.from.row,
-                fromRowOff: this.drawingBase.from.rowOff,
-                toCol     : this.drawingBase.to.col,
-                toColOff  : this.drawingBase.to.colOff,
-                toRow     : this.drawingBase.to.row,
-                toRowOff  : this.drawingBase.to.rowOff,
-                posX      : this.drawingBase.Pos.X,
-                posY      : this.drawingBase.Pos.Y,
-                cx        : this.drawingBase.ext.cx,
-                cy        : this.drawingBase.ext.cy
-            }),
-            new CDrawingBasePosWritable({
-                fromCol:    fromCol,
-                fromColOff: fromColOff,
-                fromRow   : fromRow,
-                fromRowOff: fromRowOff,
-                toCol:    toCol,
-                toColOff: toColOff,
-                toRow   : toRow,
-                toRowOff: toRowOff,
-                posX    : posX,
-                posY    : posY,
-                cx      : extX,
-                cy      : extY
-            })));
-
-
-            this.drawingBase.from.col    = fromCol;
-            this.drawingBase.from.colOff = fromColOff;
-            this.drawingBase.from.row    = fromRow;
-            this.drawingBase.from.rowOff = fromRowOff;
-
-            this.drawingBase.to.col    = toCol;
-            this.drawingBase.to.colOff = toColOff;
-            this.drawingBase.to.row    = toRow;
-            this.drawingBase.to.rowOff = toRowOff;
-
-            this.drawingBase.Pos.X  = posX;
-            this.drawingBase.Pos.Y  = posY;
-            this.drawingBase.ext.cx = extX;
-            this.drawingBase.ext.cy = extY;
-
-        this.handleUpdateExtents();
-}
-};
+        if(this.drawingBase)
+        {
+            History.Add(new AscDFH.CChangesDrawingsObjectNoId(this, AscDFH.historyitem_AutoShapes_SetDrawingBaseCoors, new CDrawingBasePosWritable({
+                    fromCol   : this.drawingBase.from.col,
+                    fromColOff: this.drawingBase.from.colOff,
+                    fromRow   : this.drawingBase.from.row,
+                    fromRowOff: this.drawingBase.from.rowOff,
+                    toCol     : this.drawingBase.to.col,
+                    toColOff  : this.drawingBase.to.colOff,
+                    toRow     : this.drawingBase.to.row,
+                    toRowOff  : this.drawingBase.to.rowOff,
+                    posX      : this.drawingBase.Pos.X,
+                    posY      : this.drawingBase.Pos.Y,
+                    cx        : this.drawingBase.ext.cx,
+                    cy        : this.drawingBase.ext.cy
+                }),
+                new CDrawingBasePosWritable({
+                    fromCol:    fromCol,
+                    fromColOff: fromColOff,
+                    fromRow   : fromRow,
+                    fromRowOff: fromRowOff,
+                    toCol:    toCol,
+                    toColOff: toColOff,
+                    toRow   : toRow,
+                    toRowOff: toRowOff,
+                    posX    : posX,
+                    posY    : posY,
+                    cx      : extX,
+                    cy      : extY
+                })));
+    
+    
+                this.drawingBase.from.col    = fromCol;
+                this.drawingBase.from.colOff = fromColOff;
+                this.drawingBase.from.row    = fromRow;
+                this.drawingBase.from.rowOff = fromRowOff;
+    
+                this.drawingBase.to.col    = toCol;
+                this.drawingBase.to.colOff = toColOff;
+                this.drawingBase.to.row    = toRow;
+                this.drawingBase.to.rowOff = toRowOff;
+    
+                this.drawingBase.Pos.X  = posX;
+                this.drawingBase.Pos.Y  = posY;
+                this.drawingBase.ext.cx = extX;
+                this.drawingBase.ext.cy = extY;
+    
+            this.handleUpdateExtents();
+    }
+    };
 
 
     CGraphicObjectBase.prototype.setWorksheet = function(worksheet)
@@ -1407,7 +1397,19 @@
             this.parent.CheckContentControlEditingLock();
         }
     };
-
+    CGraphicObjectBase.prototype.hit = function(x, y) {
+        return false;
+    };
+    CGraphicObjectBase.prototype.hitToAdjustment = function()
+    {
+        return {hit: false};
+    };
+    CGraphicObjectBase.prototype.hitToHandles = function (x, y) {
+        if(this.parent && this.parent.kind === AscFormat.TYPE_KIND.NOTES){
+            return -1;
+        }
+        return AscFormat.hitToHandles(x, y, this);
+    };
     CGraphicObjectBase.prototype.drawLocks = function(transform, graphics){
         var bNotes = !!(this.parent && this.parent.kind === AscFormat.TYPE_KIND.NOTES);
         if(!this.group && !bNotes)

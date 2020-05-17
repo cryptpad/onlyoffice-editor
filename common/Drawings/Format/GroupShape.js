@@ -426,6 +426,18 @@ function CGroupShape()
         }
     };
 
+    CGroupShape.prototype.hit = function(x, y)
+    {
+        for(var i = this.spTree.length - 1; i > -1; --i)
+        {
+            if(this.spTree[i].hit(x, y))
+            {
+                return true;
+            }
+        }
+        return false;
+    };
+    
     CGroupShape.prototype.draw = function(graphics)
     {
         if(this.checkNeedRecalculate && this.checkNeedRecalculate()){
@@ -766,11 +778,6 @@ function CGroupShape()
 
     CGroupShape.prototype.drawAdjustments = function()
     {};
-
-    CGroupShape.prototype.hitToAdjustment = function()
-    {
-        return {hit: false};
-    };
 
     CGroupShape.prototype.recalculateBrush = function()
     {};

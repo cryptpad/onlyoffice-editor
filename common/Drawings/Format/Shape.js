@@ -5562,14 +5562,6 @@ CShape.prototype.hitToAdjustment = function (x, y) {
     return { hit: false, adjPolarFlag: null, adjNum: null, warp: false };
 };
 
-CShape.prototype.hitToHandles = function (x, y) {
-    if(this.parent && this.parent.kind === AscFormat.TYPE_KIND.NOTES){
-        return -1;
-    }
-    return hitToHandles(x, y, this);
-
-};
-
 CShape.prototype.hit = function (x, y) {
     return this.hitInInnerArea(x, y) || this.hitInPath(x, y) || this.hitInTextRect(x, y);
 };

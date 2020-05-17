@@ -185,7 +185,6 @@ CGroupShape.prototype.recalculateBounds = function()
 };
 
 CGroupShape.prototype.deselect = CShape.prototype.deselect;
-CGroupShape.prototype.hitToHandles = CShape.prototype.hitToHandles;
 CGroupShape.prototype.hitInBoundingRect = CShape.prototype.hitInBoundingRect;
 CGroupShape.prototype.getRotateAngle = CShape.prototype.getRotateAngle;
 CGroupShape.prototype.handleUpdatePosition = function()

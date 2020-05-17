@@ -1122,12 +1122,6 @@ CGraphicFrame.prototype.Get_PageContentStartPos2 = function()
         return this.Get_PageContentStartPos();
 };
 
-CGraphicFrame.prototype.hitToHandles = CShape.prototype.hitToHandles;
-CGraphicFrame.prototype.hitToAdjustment = function()
-    {
-        return {hit:false};
-};
-
 CGraphicFrame.prototype.Refresh_RecalcData = function()
     {
         this.Refresh_RecalcData2();
