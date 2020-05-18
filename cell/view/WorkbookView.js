@@ -2399,16 +2399,10 @@
 			this.cellEditor.wizardArgsLength = parseResult.argPosArr[parseResult.argPosArr.length - 1].end - parseResult.argPosArr[0].start;
 		}
 
-		//полностью заменяем аргумент - для этого чистим предыдущую запись
 		this.cellEditor.selectionBegin = this.cellEditor.wizardArgsStart;
 		this.cellEditor.selectionEnd = this.cellEditor.wizardArgsLength + this.cellEditor.wizardArgsStart;
-		//TODO нужно ли чистить? при вставке текста должны произойти замена.
-		this.cellEditor.empty(Asc.c_oAscCleanOptions.All);
-		/*if (parseResult.argPosArr[argNum].start === parseResult.argPosArr[argNum].end) {
-			this.cellEditor._moveCursor(-11, parseResult.argPosArr[argNum].start);
-		}*/
+		this.cellEditor._addChars(val, undefined, true);
 
-		this.cellEditor.pasteText(val);
 		//TODO возможно wizardArgsLength/wizardArgsStart не нужны, поскольку в getActiveFunctionInfo использую activeFunction
 		this.cellEditor.wizardArgsLength = val.length;
 
