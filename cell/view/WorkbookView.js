@@ -2162,6 +2162,9 @@
 			if (isFormulaContains) {
 				funcInfo = ws.model.getActiveFunctionInfo(this.cellEditor._formula, this.cellEditor._parseResult);
 				t.handlers.trigger("asc_onSendFunctionWizardInfo", funcInfo);
+				if (funcInfo) {
+					t.isWizard = true;
+				}
 			}
 		} else {
 
@@ -2180,6 +2183,9 @@
 					if (c_oAscPopUpSelectorType.FuncWizard === type) {
 						var funcInfo = ws.model.getActiveFunctionInfo(t.cellEditor._formula, t.cellEditor._parseResult);
 						t.handlers.trigger("asc_onSendFunctionWizardInfo", funcInfo);
+						if (funcInfo) {
+							t.isWizard = true;
+						}
 					}
 				}
 				if (isNotFunction) {
@@ -2269,6 +2275,9 @@
 				functionInfo = ws.model.getActiveFunctionInfo(t.cellEditor._formula, t.cellEditor._parseResult);
 			}
 			t.handlers.trigger("asc_onSendFunctionWizardInfo", functionInfo);
+			if (functionInfo) {
+				t.isWizard = true;
+			}
 		} else {
 			var isActiveCellFormula = ws.model.isActiveCellFormula();
 			var callback = function (res) {
@@ -2286,8 +2295,10 @@
 						}
 					}
 				}
-
 				t.handlers.trigger("asc_onSendFunctionWizardInfo", functionInfo);
+				if (functionInfo) {
+					t.isWizard = true;
+				}
 			};
 
 			var enterOptions = new AscCommonExcel.CEditorEnterOptions();
@@ -2299,7 +2310,6 @@
 				enterOptions.newText = '=';
 			}
 
-			this.isWizard = true;
 			this._onEditCell(enterOptions, callback);
 		}
 	};
