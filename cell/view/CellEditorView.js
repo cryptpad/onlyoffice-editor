@@ -506,7 +506,7 @@
 	};
 
 	CellEditor.prototype.canEnterCellRange = function () {
-		if (this.lastRangePos !== null) {
+		if (this.lastRangePos !== null || this.handlers.trigger('getWizard')) {
 			return true;
 		}
 
