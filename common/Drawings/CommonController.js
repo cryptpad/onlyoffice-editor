@@ -794,7 +794,8 @@ function DrawingObjectsController(drawingObjects)
 function CanStartEditText(oController)
 {
     var oSelector = oController.selection.groupSelection ? oController.selection.groupSelection : oController;
-    if(oSelector.selectedObjects.length === 1 && oSelector.selectedObjects[0].getObjectType() === AscDFH.historyitem_type_Shape)
+    if(oSelector.selectedObjects.length === 1 && oSelector.selectedObjects[0].getObjectType() === AscDFH.historyitem_type_Shape
+     && !AscFormat.CheckLinePresetForParagraphAdd(oSelector.selectedObjects[0].getPresetGeom()))
     {
         return true;
     }
@@ -2117,17 +2118,19 @@ DrawingObjectsController.prototype =
         if(oController.selectedObjects.length === 1 ){
             if(oController.selectedObjects[0].getObjectType() === AscDFH.historyitem_type_Shape){
                 var oShape = oController.selectedObjects[0];
-                if(oShape.bWordShape){
-                    if(!oShape.textBoxContent){
-                        oShape.createTextBoxContent();
+                if(!AscFormat.CheckLinePresetForParagraphAdd(oShape.getPresetGeom())){
+                    if(oShape.bWordShape){
+                        if(!oShape.textBoxContent){
+                            oShape.createTextBoxContent();
+                        }
                     }
-                }
-                else{
-                    if(!oShape.txBody){
-                        oShape.createTextBody();
+                    else{
+                        if(!oShape.txBody){
+                            oShape.createTextBody();
+                        }
                     }
+                    oController.selection.textSelection = oShape;
                 }
-                oController.selection.textSelection = oShape;
             }
             else{
                 if(oController.selection.chartSelection && oController.selection.chartSelection.selection.title){
@@ -2498,21 +2501,24 @@ DrawingObjectsController.prototype =
                     {
                         if(arr[i].getObjectType() === AscDFH.historyitem_type_Shape)
                         {
-                            if(arr[i].bWordShape)
+                            if(!AscFormat.CheckLinePresetForParagraphAdd(arr[i].getPresetGeom()))
                             {
-                                arr[i].createTextBoxContent();
-                            }
-                            else
-                            {
-                                arr[i].createTextBody();
-                            }
-                            content = arr[i].getDocContent();
-                            if(content)
-                            {
-                                content.Set_ApplyToAll(true);
-                                f.apply(content, args);
-                                content.Set_ApplyToAll(false);
-                                ret = true;
+                                if(arr[i].bWordShape)
+                                {
+                                    arr[i].createTextBoxContent();
+                                }
+                                else
+                                {
+                                    arr[i].createTextBody();
+                                }
+                                content = arr[i].getDocContent();
+                                if(content)
+                                {
+                                    content.Set_ApplyToAll(true);
+                                    f.apply(content, args);
+                                    content.Set_ApplyToAll(false);
+                                    ret = true;
+                                }
                             }
                         }
                     }
@@ -3086,24 +3092,14 @@ DrawingObjectsController.prototype =
 
 
     setCellAngle: function (angle) {
-
-        switch (angle)
-        {
-            case 0 :
-            {
-                this.checkSelectedObjectsAndCallback(this.applyDrawingProps, [{vert: null}], false, AscDFH.historydescription_Spreadsheet_SetCellVertAlign);
-                break;
-            }
-            case 90 :
-            {
-                this.checkSelectedObjectsAndCallback(this.applyDrawingProps, [{vert: AscFormat.nVertTTvert}], false, AscDFH.historydescription_Spreadsheet_SetCellVertAlign);
-                break;
-            }
-            case 270:
-            {
-                this.checkSelectedObjectsAndCallback(this.applyDrawingProps, [{vert: AscFormat.nVertTTvert270}], false, AscDFH.historydescription_Spreadsheet_SetCellVertAlign);
-                break;
-            }
+        if(angle === 0) {
+            this.checkSelectedObjectsAndCallback(this.applyDrawingProps, [{vert: null}], false, AscDFH.historydescription_Spreadsheet_SetCellVertAlign);
+        }
+        else if(angle === -90) {
+            this.checkSelectedObjectsAndCallback(this.applyDrawingProps, [{vert: AscFormat.nVertTTvert}], false, AscDFH.historydescription_Spreadsheet_SetCellVertAlign);
+        }
+        else if(angle === 90) {
+            this.checkSelectedObjectsAndCallback(this.applyDrawingProps, [{vert: AscFormat.nVertTTvert270}], false, AscDFH.historydescription_Spreadsheet_SetCellVertAlign);
         }
     },
 
@@ -3496,7 +3492,7 @@ DrawingObjectsController.prototype =
             {
                 objects_by_type.groups[i].setVerticalAlign(props.verticalTextAlign);
             }
-            if(objects_by_type.tables.length == 1)
+            if(objects_by_type.tables.length === 1)
             {
                 var props2 = new Asc.CTableProp();
                 if(props.verticalTextAlign === AscFormat.VERTICAL_ANCHOR_TYPE_BOTTOM)

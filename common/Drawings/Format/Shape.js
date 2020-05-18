@@ -1188,13 +1188,15 @@ CShape.prototype.createTextBoxContent = function () {
 CShape.prototype.paragraphAdd = function (paraItem, bRecalculate) {
     var content_to_add = this.getDocContent();
     if (!content_to_add) {
-        if (this.bWordShape) {
-            this.createTextBoxContent();
+        if(!AscFormat.CheckLinePresetForParagraphAdd(this.getPresetGeom())) {
+            if (this.bWordShape) {
+                this.createTextBoxContent();
+            }
+            else {
+                this.createTextBody();
+            }
+            content_to_add = this.getDocContent();
         }
-        else {
-            this.createTextBody();
-        }
-        content_to_add = this.getDocContent();
     }
     if (content_to_add) {
         content_to_add.AddToParagraph(paraItem, bRecalculate);
@@ -1206,16 +1208,19 @@ CShape.prototype.applyTextFunction = function (docContentFunction, tableFunction
     var content_to_add = this.getDocContent();
     if (!content_to_add)
     {
-        if (this.bWordShape)
-        {
-            this.createTextBoxContent();
+        if(!AscFormat.CheckLinePresetForParagraphAdd(this.getPresetGeom())) {
+
+            if (this.bWordShape)
+            {
+                this.createTextBoxContent();
+            }
+            else
+            {
+                this.createTextBody();
+            }
+            content_to_add = this.getDocContent();
+            content_to_add.MoveCursorToStartPos();
         }
-        else
-        {
-            this.createTextBody();
-        }
-        content_to_add = this.getDocContent();
-        content_to_add.MoveCursorToStartPos();
     }
     if (content_to_add)
     {
@@ -1701,6 +1706,17 @@ CShape.prototype.getPhIndex = function () {
 };
 
 CShape.prototype.setVerticalAlign = function (align) {
+    var content_to_add = this.getDocContent();
+    if (!content_to_add) {
+        if(!AscFormat.CheckLinePresetForParagraphAdd(this.getPresetGeom())) {
+            if (this.bWordShape) {
+                this.createTextBoxContent();
+            }
+            else {
+                this.createTextBody();
+            }
+        }
+    }
     var new_body_pr = this.getBodyPr();
     if (new_body_pr) {
         new_body_pr = new_body_pr.createDuplicate();
@@ -1716,6 +1732,17 @@ CShape.prototype.setVerticalAlign = function (align) {
     }
 };
 CShape.prototype.setVert = function (vert) {
+    var content_to_add = this.getDocContent();
+    if (!content_to_add) {
+        if(!AscFormat.CheckLinePresetForParagraphAdd(this.getPresetGeom())) {
+            if (this.bWordShape) {
+                this.createTextBoxContent();
+            }
+            else {
+                this.createTextBody();
+            }
+        }
+    }
     var new_body_pr = this.getBodyPr();
     if (new_body_pr) {
         new_body_pr = new_body_pr.createDuplicate();
