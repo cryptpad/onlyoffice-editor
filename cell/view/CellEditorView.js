@@ -701,6 +701,13 @@
 			// Это уже форула, добавляем без '='
 			{
 				functionName = functionName + "()";
+
+				var isSelection = this.selectionBegin !== this.selectionEnd;
+				var curPos = isSelection ? (this.selectionBegin < this.selectionEnd ? this.selectionBegin : this.selectionEnd) : this.cursorPos;
+				var prevChar = this.textRender.getChars(curPos - 1, 1);
+				if (!this.checkSymbolBeforeRange(prevChar)){
+					functionName = "+" + functionName;
+				}
 			}
 		}
 
