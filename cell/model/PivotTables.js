@@ -11841,7 +11841,7 @@ prot["asc_getShowColStripes"] = prot.asc_getShowColStripes;
 prot = CT_CacheField.prototype;
 prot["asc_getName"] = prot.asc_getName;
 
-window["Asc"]["CT_PivotField"] = CT_PivotField;
+window["Asc"]["CT_PivotField"] = window['Asc'].CT_PivotField = CT_PivotField;
 prot = CT_PivotField.prototype;
 prot["asc_getName"] = prot.asc_getName;
 prot["asc_getOutline"] = prot.asc_getOutline;
@@ -11860,7 +11860,7 @@ prot = CT_PageField.prototype;
 prot["asc_getName"] = prot.asc_getName;
 prot["asc_getIndex"] = prot.asc_getIndex;
 
-window["Asc"]["CT_DataField"] = CT_DataField;
+window["Asc"]["CT_DataField"] = window['Asc'].CT_DataField = CT_DataField;
 prot = CT_DataField.prototype;
 prot["asc_getName"] = prot.asc_getName;
 prot["asc_getIndex"] = prot.asc_getIndex;
