@@ -916,7 +916,7 @@
   };
 
   WorkbookView.prototype._onSelectionRangeChanged = function (val) {
-      if (this.isFormulaEditMode) {
+      if (this.isFormulaEditMode && !this.isWizard) {
           this.skipHelpSelector = true;
           this.cellEditor.setFocus(false);
           this.cellEditor.changeCellText(val);
