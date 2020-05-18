@@ -5388,12 +5388,13 @@ background-repeat: no-repeat;\
 				ImagePr.ImageUrl = "";
 
 
-			var sImageUrl = null, fReplaceCallback = null, bImageUrl = false, sImageToDownLoad = "";
+			var sImageUrl = null, fReplaceCallback = null, bImageUrl = false, sImageToDownLoad = "", sToken = undefined;
 			if (!AscCommon.isNullOrEmptyString(ImagePr.ImageUrl))
 			{
 				if (!g_oDocumentUrls.getImageLocal(ImagePr.ImageUrl))
 				{
 					sImageUrl        = ImagePr.ImageUrl;
+					sToken           = ImagePr.Token;
 					fReplaceCallback = function(sUrl)
 					{
 						ImagePr.ImageUrl = sUrl;
@@ -5408,6 +5409,7 @@ background-repeat: no-repeat;\
 				if (!g_oDocumentUrls.getImageLocal(ImagePr.ShapeProperties.fill.fill.url))
 				{
 					sImageUrl        = ImagePr.ShapeProperties.fill.fill.url;
+					sToken           = ImagePr.ShapeProperties.fill.fill.token;
 					fReplaceCallback = function(sUrl)
 					{
 						ImagePr.ShapeProperties.fill.fill.url = sUrl;
@@ -5466,7 +5468,7 @@ background-repeat: no-repeat;\
                             fApplyCallback();
                         }
 
-                    }, false);
+                    }, false, undefined, sToken);
 				}
 				else
 				{

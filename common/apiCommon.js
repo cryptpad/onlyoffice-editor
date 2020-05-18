@@ -2687,6 +2687,7 @@
 			this.Internal_Position = (undefined != obj.Internal_Position) ? obj.Internal_Position : null;
 
 			this.ImageUrl = (undefined != obj.ImageUrl) ? obj.ImageUrl : null;
+			this.Token = obj.Token;
 			this.Locked = (undefined != obj.Locked) ? obj.Locked : false;
 			this.lockAspect = (undefined != obj.lockAspect) ? obj.lockAspect : false;
 
@@ -2740,6 +2741,7 @@
 
 			this.Internal_Position = null;
 			this.ImageUrl = null;
+			this.Token = undefined;
 			this.Locked = false;
 
 			this.ChartProperties = null;
@@ -2858,8 +2860,9 @@
 
 		asc_getImageUrl: function () {
 			return this.ImageUrl;
-		}, asc_putImageUrl: function (v) {
+		}, asc_putImageUrl: function (v, sToken) {
 			this.ImageUrl = v;
+			this.Token = sToken;
 		}, asc_getGroup: function () {
 			return this.Group;
 		}, asc_putGroup: function (v) {
@@ -3136,6 +3139,7 @@
 	function asc_CFillBlip() {
 		this.type = c_oAscFillBlipType.STRETCH;
 		this.url = "";
+		this.token = undefined;
 		this.texture_id = null;
 	}
 
@@ -3146,8 +3150,9 @@
 			this.type = v;
 		}, asc_getUrl: function () {
 			return this.url;
-		}, asc_putUrl: function (v) {
+		}, asc_putUrl: function (v, sToken) {
 			this.url = v;
+			this.token = sToken;
 		}, asc_getTextureId: function () {
 			return this.texture_id;
 		}, asc_putTextureId: function (v) {

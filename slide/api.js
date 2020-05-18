@@ -2815,6 +2815,7 @@ background-repeat: no-repeat;\
 	{
 		// нужно определить, картинка это или нет
 		var image_url = "";
+		var sToken = undefined;
 		prop.Width    = prop.w;
 		prop.Height   = prop.h;
 
@@ -2824,7 +2825,7 @@ background-repeat: no-repeat;\
 			if (prop.fill.fill != null && prop.fill.type == c_oAscFill.FILL_TYPE_BLIP)
 			{
 				image_url = prop.fill.fill.asc_getUrl();
-
+				sToken = prop.fill.fill.token;
 				var _tx_id = prop.fill.fill.asc_getTextureId();
 				if (null != _tx_id && 0 <= _tx_id && _tx_id < AscCommon.g_oUserTexturePresets.length)
 				{
@@ -2839,7 +2840,7 @@ background-repeat: no-repeat;\
 			if (oFill && oFill.fill != null && oFill.type == c_oAscFill.FILL_TYPE_BLIP)
 			{
 				image_url = oFill.fill.asc_getUrl();
-
+				sToken = oFill.fill.token;
 				var _tx_id = oFill.fill.asc_getTextureId();
 				if (null != _tx_id && 0 <= _tx_id && _tx_id < AscCommon.g_oUserTexturePresets.length)
 				{
@@ -2911,7 +2912,6 @@ background-repeat: no-repeat;\
 					fApplyCallback();
 					return;
 				}
-
                 AscCommon.sendImgUrls(this, [sImageUrl], function(data) {
 
                     if (data && data[0] && data[0].url !== "error")
@@ -2920,7 +2920,7 @@ background-repeat: no-repeat;\
                         fApplyCallback();
                     }
 
-                }, false);
+                }, false, undefined, sToken);
 			}
 		}
 		else
@@ -3033,10 +3033,11 @@ background-repeat: no-repeat;\
 			var bg        = new AscFormat.CBg();
 			bg.bgPr       = new AscFormat.CBgPr();
 			bg.bgPr.Fill  = AscFormat.CorrectUniFill(_back_fill, _old_fill, 0);
-			var image_url = "";
+			var image_url = "", sToken = undefined;
 			if (_back_fill.asc_getType() == c_oAscFill.FILL_TYPE_BLIP && _back_fill.fill && typeof _back_fill.fill.url === "string" && _back_fill.fill.url.length > 0)
 			{
 				image_url = _back_fill.fill.url;
+				sToken = _back_fill.fill.token;
 			}
 			if (image_url != "")
 			{
@@ -3098,7 +3099,6 @@ background-repeat: no-repeat;\
                         fApplyCallback();
                         return;
                     }
-
                     AscCommon.sendImgUrls(this, [sImageUrl], function(data) {
 
                         if (data && data[0] && data[0].url !== "error")
@@ -3107,7 +3107,7 @@ background-repeat: no-repeat;\
                             fApplyCallback();
                         }
 
-                    }, false);
+                    }, false, undefined, sToken);
                 }
 			}
 			else
@@ -4312,10 +4312,11 @@ background-repeat: no-repeat;\
 		}
 		if (!AscCommon.isNullOrEmptyString(ImagePr.ImageUrl))
 		{
-			var sImageUrl = null;
+			var sImageUrl = null, sToken = undefined;
 			if (!g_oDocumentUrls.getImageLocal(ImagePr.ImageUrl))
 			{
 				sImageUrl = ImagePr.ImageUrl;
+				sToken = ImagePr.Token;
 			}
 
 			var oApi           = this;
@@ -4365,7 +4366,7 @@ background-repeat: no-repeat;\
                         fApplyCallback();
                     }
 
-                }, false);
+                }, false, undefined, sToken);
 			}
 		}
 		else
