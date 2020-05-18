@@ -664,16 +664,7 @@
 			          ws._drawSelection();
 				  }
 			  }, "cleanSelectRange": function () {
-			      if (self.selectionDialogMode) {
-                      var ws = self.getWorksheet();
-                      if (ws.model.selectionRange) {
-                          ws.cleanSelection();
-                          ws.model.selectionRange = null;
-                      }
-                      if (self.isActive()) {
-                          ws._drawSelection();
-                      }
-                  }
+			      self._onCleanSelectRange();
               }, "updateUndoRedoChanged": function (bCanUndo, bCanRedo) {
 				  self.handlers.trigger("asc_onCanUndoChanged", bCanUndo);
 				  self.handlers.trigger("asc_onCanRedoChanged", bCanRedo);
@@ -932,6 +923,19 @@
           this.skipHelpSelector = false;
       }
       this.handlers.trigger("asc_onSelectionRangeChanged", val);
+  };
+
+  WorkbookView.prototype._onCleanSelectRange = function () {
+      if (this.selectionDialogMode) {
+          var ws = this.getWorksheet();
+          if (ws.model.selectionRange) {
+              ws.cleanSelection();
+              ws.model.selectionRange = null;
+          }
+          if (this.isActive()) {
+              ws._drawSelection();
+          }
+      }
   };
 
   // Проверяет, сменили ли мы диапазон (для того, чтобы не отправлять одинаковую информацию о диапазоне)
