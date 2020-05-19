@@ -2144,8 +2144,8 @@
 				funcInfo = ws.model.getActiveFunctionInfo(t.cellEditor._formula, t.cellEditor._parseResult);
 				t.handlers.trigger("asc_onSendFunctionWizardInfo", funcInfo);
 			} else {
-				if (!cellEditor.isFormula()) {
-					this.cellEditor.pasteText("=");
+				if (!t.cellEditor.isFormula()) {
+					t.cellEditor.pasteText("=");
 				} else {
 					var parseResult = t.cellEditor ? t.cellEditor._parseResult : null;
 					if (parseResult && parseResult.activeFunction) {
@@ -2160,7 +2160,7 @@
 							t.cellEditor.selectionEnd = t.cellEditor.textRender.getCharsCount();
 
 							//TODO  проверить нужно ли перемещать курсор?
-							var _cursorPos = this.cellEditor.cursorPos;
+							var _cursorPos = t.cellEditor.cursorPos;
 							t.cellEditor.pasteText(_f);
 							t.cellEditor._moveCursor(-11, _cursorPos);
 						} else {
@@ -2177,7 +2177,7 @@
 
         if (!this.getCellEditMode()) {
 			if (!name) {
-				t.cellEditor.needFindFirstFunction = true;
+				this.cellEditor.needFindFirstFunction = true;
 			}
             this._onEditCell(new AscCommonExcel.CEditorEnterOptions(), callback);
             return;
