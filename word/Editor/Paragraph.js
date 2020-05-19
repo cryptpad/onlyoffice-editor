@@ -9353,19 +9353,6 @@ Paragraph.prototype.Internal_CompileParaPr2 = function()
 			Pr.ParaPr.FramePr = undefined;
 		else
 			Pr.ParaPr.FramePr = this.Pr.FramePr.Copy();
-
-		if(Pr.ParaPr.LnSpcReduction !== undefined && Pr.ParaPr.LnSpcReduction !== null)
-		{
-			var Spacing = Pr.ParaPr.Spacing;
-			if(Spacing.LineRule === Asc.linerule_Auto)
-			{
-				Spacing.Line = Spacing.Line - Pr.ParaPr.LnSpcReduction;
-			}
-			else
-			{
-				Spacing.Line = Spacing.Line*Pr.ParaPr.LnSpcReduction;
-			}
-		}
 		return Pr;
 	}
 	else
@@ -9407,10 +9394,6 @@ Paragraph.prototype.Internal_CompiledParaPrPresentation = function(Lvl, bNoMerge
 		if(Spacing.LineRule === Asc.linerule_Auto)
 		{
 			Spacing.Line = Spacing.Line - Pr.ParaPr.LnSpcReduction;
-		}
-		else
-		{
-			Spacing.Line = Spacing.Line*Pr.ParaPr.LnSpcReduction;
 		}
 	}
 
