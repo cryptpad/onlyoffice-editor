@@ -15998,6 +15998,17 @@ CExternalData.prototype =
     Refresh_RecalcData: function()
     {},
 
+    Write_ToBinary2: function (w)
+    {
+        w.WriteLong(this.getObjectType());
+        w.WriteString2(this.Id);
+    },
+
+    Read_FromBinary2: function (r)
+    {
+        this.Id = r.GetString2();
+    },
+    
     getObjectType: function()
     {
         return AscDFH.historyitem_type_ExternalData;
