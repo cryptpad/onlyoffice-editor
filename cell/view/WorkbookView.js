@@ -2145,6 +2145,9 @@
 				t.handlers.trigger("asc_onSendFunctionWizardInfo", funcInfo);
 			} else {
 				if (!t.cellEditor.isFormula()) {
+					t.cellEditor.selectionBegin = 0;
+					t.cellEditor.selectionEnd = t.cellEditor.textRender.getCharsCount();
+
 					t.cellEditor.pasteText("=");
 				} else {
 					var parseResult = t.cellEditor ? t.cellEditor._parseResult : null;
