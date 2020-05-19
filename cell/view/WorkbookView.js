@@ -2131,11 +2131,6 @@
 				this.skipHelpSelector = true;
 			}
 
-			if (c_oAscPopUpSelectorType.FuncWizard === type) {
-				this.cellEditor.wizardArgsStart = null;
-				this.cellEditor.wizardArgsLength = null;
-			}
-
 			isFormulaContains = this.cellEditor.isFormula() && c_oAscPopUpSelectorType.FuncWizard === type;
 
 			if (-1 !== this.lastFPos) {
@@ -2247,9 +2242,6 @@
 		var functionInfo = null;
 
 		if (this.getCellEditMode()) {
-			this.cellEditor.wizardArgsStart = null;
-			this.cellEditor.wizardArgsLength = null;
-
 			//при парсинге формулы она может быть изменена, например может быть добавлена последняя незакрытая скобка
 			var parseResult = t.cellEditor ? t.cellEditor._parseResult : null;
 			if (parseResult && parseResult.activeFunction) {
@@ -2313,78 +2305,7 @@
 			this._onEditCell(enterOptions, callback);
 		}
 	};
-
-	WorkbookView.prototype.insertArgumentInFormula = function(val, argNum, type, fullRecalc) {
-		if (!this.getCellEditMode()) {
-			return;
-		}
-
-		var ws = this.getWorksheet();
-		//argPosArr
-		var parseResult = this.cellEditor ? this.cellEditor._parseResult : null;
-		if (!parseResult || !parseResult.argPosArr || !parseResult.activeFunction || argNum > parseResult.activeFunction.argumentsMax) {
-			return;
-		}
-
-		var _formulaParsedArg, _parseResultArg;
-		var tryCalculateFormula = function (str) {
-			var _res = null;
-			_formulaParsedArg = new AscCommonExcel.parserFormula(str, /*formulaParsed.parent*/null, ws.model);
-			_parseResultArg = new AscCommonExcel.ParseResult([], []);
-			_formulaParsedArg.parse(true, true, _parseResultArg, true);
-
-			if (!_parseResultArg.error) {
-				_res = _formulaParsedArg.calculate();
-			}
-
-			return _res;
-		};
-
-
-		//fullRecalc - когда переходим из одного аргумента в другой, либо закрываем окно
-		//предварительное преобразование данного аргумента
-		if (fullRecalc && type !== undefined) {
-			var curArg = val, _calc;
-			if (type === Asc.c_oAscFormulaArgumentType.any || type === Asc.c_oAscFormulaArgumentType.text) {
-				_calc = tryCalculateFormula(curArg);
-				if (_calc && _calc.type === AscCommonExcel.cElementType.error && _calc.type.errorType === AscCommonExcel.cErrorType.wrong_name) {
-					curArg = '"' + curArg + '"';
-					_calc = tryCalculateFormula(curArg);
-					if (_calc && _calc.type === AscCommonExcel.cElementType.error) {
-						val = curArg;
-					}
-				}
-			}
-		}
-
-		if (!parseResult.argPosArr[argNum]) {
-			//меняем строку и добавляем разделителей
-			for (var i = parseResult.argPosArr.length; i <= argNum; i++) {
-				val = AscCommon.FormulaSeparators.functionArgumentSeparator + val;
-			}
-
-			//TODO продумать прпобразование аргументов(допустим строковые значения)
-		} else {
-			var removeDiff = 0;
-			if (val === "" && argNum === parseResult.argPosArr.length - 1 && parseResult.argPosArr.length > 1) {
-				removeDiff = 1;
-			}
-
-			//полностью заменяем аргумент - для этого чистим предыдущую запись
-			this.cellEditor.selectionBegin = parseResult.argPosArr[argNum].start - removeDiff;
-			this.cellEditor.selectionEnd = parseResult.argPosArr[argNum].end;
-			//TODO нужно ли чистить? при вставке текста должны произойти замена.
-			this.cellEditor.empty(Asc.c_oAscCleanOptions.All);
-			if (parseResult.argPosArr[argNum].start === parseResult.argPosArr[argNum].end) {
-				//TODO вызываю отсюда служебную функцию, пересмотреть!
-				this.cellEditor._moveCursor(-11, parseResult.argPosArr[argNum].start);
-			}
-		}
-
-		this.cellEditor.pasteText(val);
-		return ws.model.getActiveFunctionInfo(this.cellEditor._formula, this.cellEditor._parseResult, argNum, type);
-	};
-
+	
 	WorkbookView.prototype.insertArgumentsInFormula = function(args, argNum, argType) {
 		if (!this.getCellEditMode()) {
 			return;
@@ -2410,7 +2331,7 @@
 			this.cellEditor.lastRangeLength = parseResult.argPosArr[parseResult.argPosArr.length - 1].end - parseResult.argPosArr[0].start;
 		}
 		this.cellEditor.changeCellText(val);
-		
+
 
 		if (argNum !== undefined) {
 			var activeFuncInfo = ws.model.getActiveFunctionInfo(this.cellEditor._formula, this.cellEditor._parseResult, null, null, true);
@@ -2448,49 +2369,6 @@
 		if (calcRes) {
 			return convertFormulaResultByType(calcRes);
 		}
-	};
-
-	WorkbookView.prototype.getWizardFunctionResult = function () {
-		if (!this.getCellEditMode()) {
-			return;
-		}
-
-		var parseResult = this.cellEditor ? this.cellEditor._parseResult : null;
-		if (!parseResult || !parseResult.argPosArr) {
-			return;
-		}
-
-		if (null === this.cellEditor.wizardArgsStart) {
-			this.cellEditor.wizardArgsStart = parseResult.argPosArr[0].start;
-			this.cellEditor.wizardArgsLength = parseResult.argPosArr[parseResult.argPosArr.length - 1].end - parseResult.argPosArr[0].start;
-		}
-
-		var valueForEdit = "=" + this.cellEditor._formula.Formula;
-		//TODO activeFunction ?
-		var str = valueForEdit.substr(_parseResult.activeFunction.start + 1, this.cellEditor.wizardArgsLength + 1);
-		var calcRes = this._calculateWizardFormula(str);
-		return calcRes ? calcRes.toLocaleString() : null;
-	};
-
-	WorkbookView.prototype.getWizardFormulaResult = function () {
-		if (!this.getCellEditMode()) {
-			return;
-		}
-
-		var _parseResult = this.cellEditor ? this.cellEditor._parseResult : null;
-		if (!parseResult || !parseResult.argPosArr) {
-			return;
-		}
-
-		var res = null;
-		var _formula = this.cellEditor._formula;
-		if (!_parseResult.error) {
-			var _parent = _formula.parent;
-			_formula.parent = null;
-			res = _formulaParsed.calculate().toLocaleString();
-			_formula.parent = _parent;
-		}
-		return res;
 	};
 
 	WorkbookView.prototype.canEnterWizardRange = function (char) {

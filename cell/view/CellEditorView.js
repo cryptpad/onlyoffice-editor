@@ -177,7 +177,6 @@
 		this.lastRangePos = null;
 		this.lastRangeLength = null;
 
-		this.wizardArgsStart = null;
 		this.wizardArgsLength = null;
 
 		// Обработчик кликов
