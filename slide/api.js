@@ -1434,7 +1434,6 @@ background-repeat: no-repeat;\
 
 		this.LoadedObject = 1;
 		g_oIdCounter.Set_Load(false);
-		_loader.Check_TextFit();
 		AscFonts.IsCheckSymbols = false;
 
 		this.WordControl.m_oDrawingDocument.CheckFontNeeds();
@@ -7299,7 +7298,6 @@ background-repeat: no-repeat;\
 		_loader.Api = this;
 
 		_loader.Load(base64File, this.WordControl.m_oLogicDocument);
-		_loader.Check_TextFit();
 
 		this.LoadedObject = 1;
 		g_oIdCounter.Set_Load(false);

@@ -218,15 +218,6 @@ function BinaryPPTYLoader()
         return _result;
     };
 
-    this.Check_TextFit = function()
-    {
-        for(var i = 0; i < this.textBodyTextFit.length; ++i)
-        {
-            this.textBodyTextFit[i].checkTextFit();
-        }
-        this.textBodyTextFit.length = 0;
-    };
-
     this.Load = function(base64_ppty, presentation)
     {
         this.presentation = presentation;

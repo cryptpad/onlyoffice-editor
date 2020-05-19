@@ -3558,7 +3558,6 @@ window["asc_docs_api"].prototype["asc_nativeOpenFile2"] = function(base64File, v
     _loader.Api = this;
 
     _loader.Load(base64File, this.WordControl.m_oLogicDocument);
-    _loader.Check_TextFit();
     this.LoadedObject = 1;
     AscCommon.g_oIdCounter.Set_Load(false);
 };
