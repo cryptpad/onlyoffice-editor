@@ -1589,8 +1589,8 @@ DrawingObjectsController.prototype =
 
 
     handleDblClickEmptyShape: function(oShape){
-        this.checkSelectedObjectsAndCallback(function () {
-            if(!oShape.getDocContent() && !CheckLinePresetForParagraphAdd(oShape.getPresetGeom())){
+        if(!oShape.getDocContent() && !CheckLinePresetForParagraphAdd(oShape.getPresetGeom())){
+            this.checkSelectedObjectsAndCallback(function () {
                 if(!oShape.bWordShape){
                     oShape.createTextBody();
                 }
@@ -1602,8 +1602,8 @@ DrawingObjectsController.prototype =
                 oContent.Set_CurrentElement(0, true);
                 oContent.MoveCursorToStartPos(false);
                 this.updateSelectionState();
-            }
-        },[], false);
+            }, [], false);
+        }
     },
 
     handleMoveHit: function(object, e, x, y, group, bInSelect, pageIndex, bWord)

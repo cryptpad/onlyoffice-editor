@@ -1816,9 +1816,13 @@ function handleInlineHitNoText(drawing, drawingObjects, e, x, y, pageIndex, bInS
                 else if (drawing.signatureLine && drawingObjects.handleSignatureDblClick){
                     drawingObjects.handleSignatureDblClick(drawing.signatureLine.id, drawing.extX, drawing.extY);
                 }
-                else if (2 == e.ClickCount && drawing.parent instanceof ParaDrawing && drawing.parent.IsMathEquation())
+                else if (2 === e.ClickCount && drawing.parent instanceof ParaDrawing && drawing.parent.IsMathEquation())
                 {
                     drawingObjects.handleMathDrawingDoubleClick(drawing.parent, e, x, y, pageIndex);
+                }
+                else if(drawing.getObjectType() === AscDFH.historyitem_type_Shape)
+                {
+                    drawingObjects.handleDblClickEmptyShape(drawing);
                 }
             }
             drawingObjects.updateOverlay();
