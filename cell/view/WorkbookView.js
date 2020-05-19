@@ -2139,10 +2139,10 @@
 					// Не смогли вставить формулу, закроем редактор, с сохранением текста
 					t.cellEditor.close(true);
 					t.isWizard = false;
+				} else {
+					funcInfo = ws.model.getActiveFunctionInfo(t.cellEditor._formula, t.cellEditor._parseResult);
+					t.handlers.trigger("asc_onSendFunctionWizardInfo", funcInfo);
 				}
-
-				funcInfo = ws.model.getActiveFunctionInfo(t.cellEditor._formula, t.cellEditor._parseResult);
-				t.handlers.trigger("asc_onSendFunctionWizardInfo", funcInfo);
 			} else {
 				if (!t.cellEditor.isFormula()) {
 					t.cellEditor.selectionBegin = 0;
