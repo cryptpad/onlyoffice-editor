@@ -913,7 +913,7 @@
 					t.cellEditor =
 						new AscCommonExcel.CellEditor(sectionElem, wb.input, wb.fmgrGraphics, wb.m_oFont, /*handlers*/{
 							"closed": function () {
-								self._onCloseCellEditor.apply(self, arguments);
+								self.setCellEditMode(false);
 							}, "updated": function () {
 								self.Api.checkLastWork();
 								self._onUpdateCellEditor.apply(self, arguments);

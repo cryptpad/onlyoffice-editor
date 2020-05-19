@@ -1591,9 +1591,7 @@
     }
 
     // Обновляем состояние Undo/Redo
-    if (!this.cellEditor.getMenuEditorMode()) {
-    	History._sendCanUndoRedo();
-    }
+    History._sendCanUndoRedo();
 
     var ws = this.getWorksheet();
     ws.cleanSelection();
