@@ -2131,8 +2131,8 @@
             // ToDo add function
         };
 
-        if (!this.getCellEditMode(new AscCommonExcel.CEditorEnterOptions())) {
-            this._onEditCell(enterOptions, callback);
+        if (!this.getCellEditMode()) {
+            this._onEditCell(new AscCommonExcel.CEditorEnterOptions(), callback);
             return;
         }
 
