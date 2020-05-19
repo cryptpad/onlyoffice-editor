@@ -2118,6 +2118,27 @@
     }
   };
 
+    WorkbookView.prototype.startWizard = function (name) {
+        var t = this;
+        var callback = function (success) {
+            if (success) {
+                t.isWizard = true;
+                addFunction(name);
+            }
+        };
+
+        var addFunction = function (name) {
+            // ToDo add function
+        };
+
+        if (!this.getCellEditMode(new AscCommonExcel.CEditorEnterOptions())) {
+            this._onEditCell(enterOptions, callback);
+            return;
+        }
+
+        addFunction(name);
+    };
+
 	// Вставка формулы в редактор
 	WorkbookView.prototype.insertInCellEditor = function (name, type, autoComplete) {
 		var t = this, ws = this.getWorksheet(), cursorPos, isNotFunction, tmp;
