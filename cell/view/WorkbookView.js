@@ -2404,17 +2404,13 @@
 			}
 		}
 
-		if (null === this.cellEditor.wizardArgsStart) {
-			this.cellEditor.wizardArgsStart = parseResult.argPosArr[0].start;
-			this.cellEditor.wizardArgsLength = parseResult.argPosArr[parseResult.argPosArr.length - 1].end - parseResult.argPosArr[0].start;
+		//TODO проверить - lastRangePos может быть при старте не null
+		if (null === this.cellEditor.lastRangePos) {
+			this.cellEditor.lastRangePos = parseResult.argPosArr[0].start;
+			this.cellEditor.lastRangeLength = parseResult.argPosArr[parseResult.argPosArr.length - 1].end - parseResult.argPosArr[0].start;
 		}
-
-		this.cellEditor.selectionBegin = this.cellEditor.wizardArgsStart;
-		this.cellEditor.selectionEnd = this.cellEditor.wizardArgsLength + this.cellEditor.wizardArgsStart;
-		this.cellEditor._addChars(val, undefined, true);
-
-		//TODO возможно wizardArgsLength/wizardArgsStart не нужны, поскольку в getActiveFunctionInfo использую activeFunction
-		this.cellEditor.wizardArgsLength = val.length;
+		this.cellEditor.changeCellText(val);
+		
 
 		if (argNum !== undefined) {
 			var activeFuncInfo = ws.model.getActiveFunctionInfo(this.cellEditor._formula, this.cellEditor._parseResult, null, null, true);
