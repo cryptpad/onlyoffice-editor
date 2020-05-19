@@ -778,6 +778,8 @@
 		this.redoList = [];
 		this.undoMode = false;
 		this.skipKeyPress = false;
+
+        this._updateCursorStyle(this.defaults.cursorShape);
 	};
 
 	CellEditor.prototype._parseRangeStr = function (s) {
@@ -991,6 +993,9 @@
 
 		this.handlers.trigger("updateFormulaEditMod", isFormula);
 		if (isFormula) {
+		    if (this.handlers.trigger('getWizard')) {
+                this._updateCursorStyle(AscCommonExcel.kCurCells);
+            }
 			this._parseFormulaRanges();
 		}
 	};
@@ -1387,6 +1392,13 @@
 	};
 
 	// Cursor
+
+    CellEditor.prototype._updateCursorStyle = function (cursor) {
+        var newHtmlCursor = AscCommon.g_oHtmlCursor.value(cursor);
+        if (this.canvasOverlay.style.cursor !== newHtmlCursor) {
+            this.canvasOverlay.style.cursor = newHtmlCursor;
+        }
+    };
 
 	CellEditor.prototype.showCursor = function () {
 		if ( window['IS_NATIVE_EDITOR'] ) {
