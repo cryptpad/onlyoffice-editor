@@ -161,7 +161,6 @@ function BinaryPPTYLoader()
 	this.insertDocumentUrlsData = null;
     this.RebuildImages = [];
 
-    this.textBodyTextFit = [];
     this.aSlideLayouts = [];
     this.aThemes = [];
 
@@ -9621,10 +9620,6 @@ function BinaryPPTYLoader()
                 case 0:
                 {
                     txbody.setBodyPr(this.ReadBodyPr());
-                    if(txbody.bodyPr && txbody.bodyPr.textFit)
-                    {
-                        this.textBodyTextFit.push(txbody);
-                    }
                     break;
                 }
                 case 1:
