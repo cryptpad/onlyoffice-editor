@@ -378,7 +378,7 @@ function BinaryPPTYLoader()
                 {
                     AscFonts.FontPickerByCharacter.getFontsByString(sValue);
                 }
-            } 
+            }
         }
         this.fields.length = 0;
         AscFormat.checkPlaceholdersText();
