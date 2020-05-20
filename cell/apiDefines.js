@@ -561,6 +561,8 @@ var c_oAscPopUpSelectorType = {
   prot['Chart'] = prot.Chart;
   prot['FormatTableChangeRange'] = prot.FormatTableChangeRange;
   prot['CustomSort'] = prot.CustomSort;
+  prot['PivotTableData'] = prot.PivotTableData;
+  prot['PivotTableReport'] = prot.PivotTableReport;
   prot['PrintTitles'] = prot.PrintTitles;
   window['Asc']['c_oAscHyperlinkType'] = window['Asc'].c_oAscHyperlinkType = c_oAscHyperlinkType;
   prot = c_oAscHyperlinkType;
