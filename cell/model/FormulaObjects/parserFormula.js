@@ -5154,6 +5154,43 @@ _func[cElementType.cell3D] = _func[cElementType.cell];
 		}
 		return null;
 	};
+	ParseResult.prototype.getElementByPos2 = function(pos, start, end) {
+		var curPos = 1;
+		var curFunc = [], level = -1;
+		for (var i = 0; i < this.elems.length; ++i) {
+			var curElem = this.elems[i];
+			var curElemStr = this.elems[i].toLocaleString();
+			var curElemLength = curElemStr.length;
+			var isFunc = curElem.type === cElementType.func;
+			var nextElem = this.elems[i + 1];
+			var needAddSeparator = true;
+
+			if (isFunc && nextElem && nextElem.name === "(") {
+				level++
+				curFunc[level] = {func: this.elems[i], start: curPos};
+				curElemLength++;
+				needAddSeparator = false;
+				i++;
+			}
+
+			if (pos !== undefined && pos >= curPos && pos <= curPos + curElemLength) {
+				return curFunc[level] ? curFunc[level].func : null;
+			} else if (start !== undefined && curFunc[level] && start >= curFunc[level].start && end <= curPos + curElemLength) {
+				return curFunc[level].func;
+			}
+
+			if (curElem.name === ")") {
+				level--;
+			}
+			curPos += curElemLength;
+			/*if (needAddSeparator && cElementType.operator !== curElem.type) {
+				curPos++;
+			}*/
+		}
+		return null;
+	};
+
+
 	var g_defParseResult = new ParseResult(undefined, undefined);
 
 	var lastListenerId = 0;
