@@ -679,42 +679,38 @@
 			AscCommon.align_Left : this.options.flags.textAlign;
 	};
 
-    CellEditor.prototype.insertFormula = function (functionName, isDefName) {
-        // Проверим форула ли это
-        if (false === this.isFormula()) {
-            // Может это просто текста нет
-            var fragments = this.options.fragments;
-            if (1 === fragments.length && 0 === fragments[0].text.length) {
-                // Это просто нет текста, добавим форумулу
-                functionName = "=" + functionName + "()";
-            } else {
-                // Не смогли добавить...
-                return false;
-            }
-        } else {
-            if (!isDefName)
-            // Это уже форула, добавляем без '='
-            {
-                functionName = functionName + "()";
+	CellEditor.prototype.insertFormula = function (functionName, isDefName) {
+		this.skipTLUpdate = false;
 
-                var isSelection = this.selectionBegin !== this.selectionEnd;
-                var curPos = isSelection ? (this.selectionBegin < this.selectionEnd ? this.selectionBegin : this.selectionEnd) : this.cursorPos;
-                var prevChar = this.textRender.getChars(curPos - 1, 1);
-                if (!this.checkSymbolBeforeRange(prevChar)) {
-                    functionName = "+" + functionName;
-                }
-            }
-        }
+		// ToDo check selection formula in wizard for delete
+		if (this.selectionBegin !== this.selectionEnd) {
+			this._removeChars(undefined, undefined, true);
+		}
 
-        this.skipTLUpdate = false;
-        // Вставим форумулу в текущую позицию
-        this._addChars(functionName);
-        // Меняем позицию курсора внутрь скобок
-        if (!isDefName) {
-            this._moveCursor(kPosition, this.cursorPos - 1);
-        }
-        this.skipTLUpdate = true;
-    };
+		var addText = '';
+		var text = AscCommonExcel.getFragmentsText(this.options.fragments);
+		if (!this.isFormula() && 0 === this.cursorPos) {
+			addText = '=';
+		} else if (functionName && !this.checkSymbolBeforeRange(text[this.cursorPos - 1])) {
+			addText = '+'
+		}
+
+		if (functionName) {
+			addText += functionName;
+			if (!isDefName) {
+				addText += '()';
+			}
+		}
+
+		if (addText) {
+			this._addChars(addText, undefined, true);
+			if (!isDefName) {
+				this._moveCursor(kPosition, this.cursorPos - 1);
+			}
+		}
+
+		this.skipTLUpdate = true;
+	};
 
 	CellEditor.prototype.replaceText = function (pos, len, newText) {
 		this._moveCursor(kPosition, pos);
