@@ -368,14 +368,17 @@ function BinaryPPTYLoader()
         this.fields.length = 0;
 
         this.LoadDocument();
-        for(var nField = 0; nField < this.fields.length; ++nField)
+        if(AscFonts.IsCheckSymbols)
         {
-            var oField = this.fields[nField];
-            var sValue = oField.private_GetString();
-            if(typeof sValue === "string" && sValue.length > 0)
+            for(var nField = 0; nField < this.fields.length; ++nField)
             {
-                AscFonts.FontPickerByCharacter.getFontsByString(sValue);
-            }
+                var oField = this.fields[nField];
+                var sValue = oField.private_GetString();
+                if(typeof sValue === "string" && sValue.length > 0)
+                {
+                    AscFonts.FontPickerByCharacter.getFontsByString(sValue);
+                }
+            } 
         }
         this.fields.length = 0;
         AscFormat.checkPlaceholdersText();
