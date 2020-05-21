@@ -516,7 +516,7 @@
     };
 
     WorksheetView.prototype.getDialogOtherRanges = function () {
-        return !this.workbook.isWizard;
+        return !this.workbook.isWizardMode;
     };
 
     WorksheetView.prototype.getCellVisibleRange = function (col, row) {
