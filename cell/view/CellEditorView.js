@@ -705,7 +705,8 @@
 		if (addText) {
 			this._addChars(addText, undefined, true);
 			if (functionName && !isDefName) {
-				this._moveCursor(kPosition, this.cursorPos - 1);
+				this._moveCursor(kPosition, this.lastRangePos = this.cursorPos - 1);
+				this.lastRangeLength = 0;
 			}
 		}
 
