@@ -2129,7 +2129,6 @@
 
     WorkbookView.prototype.startWizard = function (name) {
         var t = this;
-		var ws = this.getWorksheet();
         var callback = function (success) {
             if (success) {
                 addFunction(name);
@@ -2149,54 +2148,6 @@
 				res.argumentsType = f.prototype.argumentsType;
 			}
 			t.handlers.trigger("asc_onSendFunctionWizardInfo", res);
-
-			/*if (!name) {
-				t.cellEditor.needFindFirstFunction = null;
-			}
-
-			var funcInfo;
-			if (name) {
-				if (false === t.cellEditor.insertFormula(name)) {
-					// Не смогли вставить формулу, закроем редактор, с сохранением текста
-					t.cellEditor.close(true);
-					t.isWizard = false;
-				} else {
-					funcInfo = ws.model.getActiveFunctionInfo(t.cellEditor._formula, t.cellEditor._parseResult);
-					t.handlers.trigger("asc_onSendFunctionWizardInfo", funcInfo);
-				}
-			} else {
-				if (!t.cellEditor.isFormula()) {
-					t.cellEditor.selectionBegin = 0;
-					t.cellEditor.selectionEnd = t.cellEditor.textRender.getCharsCount();
-
-					t.cellEditor.pasteText("=");
-				} else {
-					var parseResult = t.cellEditor ? t.cellEditor._parseResult : null;
-					if (parseResult && parseResult.activeFunction) {
-						var _f = t.cellEditor._formula.Formula;
-						if (_f[_f.length - 1] === "(") {
-							_f += ")";
-							t.cellEditor._formula.Formula = _f;
-						}
-
-						if (t.cellEditor.textRender.chars !== "=" + _f) {
-							t.cellEditor.selectionBegin = 1;
-							t.cellEditor.selectionEnd = t.cellEditor.textRender.getCharsCount();
-
-							//TODO  проверить нужно ли перемещать курсор?
-							var _cursorPos = t.cellEditor.cursorPos;
-							t.cellEditor.pasteText(_f);
-							t.cellEditor._moveCursor(-11, _cursorPos);
-						} else {
-							// ToDo check after refactoring
-							t.cellEditor._updateEditorState();
-						}
-
-						funcInfo = ws.model.getActiveFunctionInfo(t.cellEditor._formula, t.cellEditor._parseResult);
-					}
-				}
-				t.handlers.trigger("asc_onSendFunctionWizardInfo", funcInfo);
-			}*/
         };
 
         if (!this.getCellEditMode()) {
@@ -2212,18 +2163,15 @@
 
 	// Вставка формулы в редактор
 	WorkbookView.prototype.insertInCellEditor = function (name, type, autoComplete) {
-		var t = this, ws = this.getWorksheet(), cursorPos, isNotFunction, tmp;
+		var t = this, ws = this.getWorksheet(), cursorPos, tmp;
 
-		isNotFunction = c_oAscPopUpSelectorType.Func !== type && c_oAscPopUpSelectorType.FuncWizard !== type;
+		var isNotFunction = c_oAscPopUpSelectorType.Func !== type;
 
 		// Проверяем, открыт ли редактор
-		var isFormulaContains, funcInfo;
 		if (this.getCellEditMode()) {
 			if (isNotFunction) {
 				this.skipHelpSelector = true;
 			}
-
-			isFormulaContains = this.cellEditor.isFormula() && c_oAscPopUpSelectorType.FuncWizard === type;
 
 			if (-1 !== this.lastFPos) {
 				if (-1 === this.arrExcludeFormulas.indexOf(name) && !isNotFunction) {
@@ -2241,89 +2189,54 @@
 			} else if (false === this.cellEditor.insertFormula(name, isNotFunction)) {
 				// Не смогли вставить формулу, закроем редактор, с сохранением текста
 				this.cellEditor.close(true);
-				isFormulaContains = false;
 			}
 
 			this.skipHelpSelector = false;
-			
-			if (isFormulaContains) {
-				funcInfo = ws.model.getActiveFunctionInfo(this.cellEditor._formula, this.cellEditor._parseResult);
-				t.handlers.trigger("asc_onSendFunctionWizardInfo", funcInfo);
-				if (funcInfo) {
-					t.isWizard = true;
-				}
-			}
 		} else {
-
 			if (c_oAscPopUpSelectorType.None === type) {
 				ws.setSelectionInfo("value", name, /*onlyActive*/true);
 				return;
 			}
 
 			var callback = function (success) {
-				if (success) {
-					if (isFormulaContains) {
-						//TODO вызываю отсюда служебную функцию, пересмотреть!
-						t.cellEditor._moveCursor(-11, t.cellEditor._parseResult.cursorPos + 1);
-						t.cellEditor.needFindFirstFunction = null;
-					}
-					if (c_oAscPopUpSelectorType.FuncWizard === type) {
-						var funcInfo = ws.model.getActiveFunctionInfo(t.cellEditor._formula, t.cellEditor._parseResult);
-						t.handlers.trigger("asc_onSendFunctionWizardInfo", funcInfo);
-						if (funcInfo) {
-							t.isWizard = true;
-						}
-					}
-				}
+				// ToDo ?
 				if (isNotFunction) {
 					t.skipHelpSelector = false;
 				}
 			};
 
-			//если в ячейке уже есть формула
-			isFormulaContains = c_oAscPopUpSelectorType.FuncWizard === type ? ws.model.isActiveCellFormula() : null;
-			if (!isFormulaContains) {
-				// Редактор закрыт
-				var cellRange = {};
-				// Если нужно сделать автозаполнение формулы, то ищем ячейки)
-				if (autoComplete) {
-					cellRange = ws.autoCompleteFormula(name);
-				}
-				if (isNotFunction) {
-					name = "=" + name;
-				} else {
-					if (cellRange.notEditCell) {
-						// Мы уже ввели все что нужно, редактор открывать не нужно
-						return;
-					}
-					if (cellRange.text) {
-						// Меняем значение ячейки
-						name = "=" + name + "(" + cellRange.text + ")";
-					} else {
-						// Меняем значение ячейки
-						name = "=" + name + "()";
-					}
-					// Вычисляем позицию курсора (он должен быть в функции)
-					cursorPos = name.length - 1;
-				}
+			// Редактор закрыт
+			var cellRange = {};
+			// Если нужно сделать автозаполнение формулы, то ищем ячейки)
+			if (autoComplete) {
+				cellRange = ws.autoCompleteFormula(name);
 			}
-			//this.cellEditor.lastInsertedFormulaPos = cursorPos;
+			if (isNotFunction) {
+				name = "=" + name;
+			} else {
+				if (cellRange.notEditCell) {
+					// Мы уже ввели все что нужно, редактор открывать не нужно
+					return;
+				}
+				if (cellRange.text) {
+					// Меняем значение ячейки
+					name = "=" + name + "(" + cellRange.text + ")";
+				} else {
+					// Меняем значение ячейки
+					name = "=" + name + "()";
+				}
+				// Вычисляем позицию курсора (он должен быть в функции)
+				cursorPos = name.length - 1;
+			}
 
 			if (isNotFunction) {
 				t.skipHelpSelector = true;
 			}
 
 			var enterOptions = new AscCommonExcel.CEditorEnterOptions();
-			if (isFormulaContains) {
-				t.cellEditor.needFindFirstFunction = true;
-
-				enterOptions.newText = '';
-				enterOptions.cursorPos = t.cellEditor.cursorPos;
-			} else {
-				// Открываем, с выставлением позиции курсора
-				enterOptions.newText = name;
-                enterOptions.cursorPos = cursorPos;
-			}
+			// Открываем, с выставлением позиции курсора
+			enterOptions.newText = name;
+			enterOptions.cursorPos = cursorPos;
 
 			this._onEditCell(enterOptions, callback);
 		}
