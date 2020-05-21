@@ -2655,8 +2655,12 @@
 
 	/** @param event {MouseEvent} */
 	CellEditor.prototype._onMouseDown = function (event) {
-		if (AscCommon.g_inputContext && AscCommon.g_inputContext.externalChangeFocus())
+		if (AscCommon.g_inputContext && AscCommon.g_inputContext.externalChangeFocus()) {
 			return;
+		}
+		if (this.handlers.trigger('getWizard')) {
+			return this.handlers.trigger('onMouseDown', event);
+		}
 
 		AscCommon.global_mouseEvent.LockMouse();
 

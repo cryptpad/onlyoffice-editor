@@ -656,6 +656,8 @@
                   self.handlers.trigger("asc_onEditCell", state);
               }, "isGlobalLockEditCell": function () {
 				  return self.collaborativeEditing.getGlobalLockEditCell();
+			  }, "onMouseDown": function (event) {
+			  	return self.controller._onMouseDown(event);
 			  }, "newRanges": function (ranges) {
 			      if (self.isActive()) {
 			          var ws = self.getWorksheet();
