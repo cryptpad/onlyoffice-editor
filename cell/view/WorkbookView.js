@@ -1980,6 +1980,7 @@
 				this.cellEditor.updateWizardMode(this.isWizardMode);
 				this._onCleanSelectRange();
 			}
+			this.input.disabled = this.isWizardMode;
 		}
 	};
 
@@ -2509,7 +2510,7 @@
 
           this.getWorksheet().cloneSelection(true, tmpSelectRange && AscCommonExcel.g_oRangeCache.getAscRange(tmpSelectRange));
           this.selectionDialogMode = newSelectionDialogMode;
-          this.input.disabled = !this.isFormulaEditMode;
+          this.input.disabled = !this.isFormulaEditMode || this.isWizardMode;
           drawSelection = true;
       } else {
           this.selectionDialogMode = newSelectionDialogMode;
