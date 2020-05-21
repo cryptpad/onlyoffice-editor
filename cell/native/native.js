@@ -6911,9 +6911,11 @@ window["native"]["offline_apply_event"] = function(type,params) {
             {
                 var json = JSON.parse(params[0]);
                 if (json && json["id"]) {
-                    var id = parseInt(json["id"]);
-                    if (_api.asc_selectComment && id) {
-                        _api.asc_selectComment(id);
+                    if (_api.asc_selectComment) {
+                        _api.asc_selectComment(json["id"]);
+                    }
+                    if (_api.asc_showComment) {
+                        _api.asc_showComment(json["id"], false);
                     }
                 }
                 break;
