@@ -2131,7 +2131,15 @@
         var addFunction = function (name) {
 			t.cellEditor.insertFormula(name);
 			// ToDo send info from selection
-			t.handlers.trigger("asc_onSendFunctionWizardInfo", funcInfo);
+			var res;
+			var f = AscCommonExcel.cFormulaFunction[name];
+			if (f) {
+				res = new Asc.CFunctionInfo(name);
+				res.argumentsMin = f.prototype.argumentsMin;
+				res.argumentsMax = f.prototype.argumentsMax;
+				res.argumentsType = f.prototype.argumentsType;
+			}
+			t.handlers.trigger("asc_onSendFunctionWizardInfo", res);
 
 			/*if (!name) {
 				t.cellEditor.needFindFirstFunction = null;
