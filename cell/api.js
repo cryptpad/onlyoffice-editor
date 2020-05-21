@@ -3918,6 +3918,10 @@ var editor;
     return res;
   };
 
+  spreadsheet_api.prototype.asc_startWizard = function (name) {
+    this.wb.startWizard(name);
+    this.wb.restoreFocus();
+  };
   spreadsheet_api.prototype.asc_canEnterWizardRange = function(char) {
     return this.wb.canEnterWizardRange(char);
   };
@@ -4885,6 +4889,7 @@ var editor;
   prot["asc_insertFormulaArgument"] = prot.asc_insertFormulaArgument;
   prot["asc_moveCursorFunctionArgument"] = prot.asc_moveCursorFunctionArgument;
   prot["asc_insertArgumentsInFormula"] = prot.asc_insertArgumentsInFormula;
+  prot["asc_startWizard"] = prot.asc_startWizard;
   prot["asc_canEnterWizardRange"] = prot.asc_canEnterWizardRange;
   prot["asc_calculate"] = prot.asc_calculate;
   prot["asc_setFontRenderingMode"] = prot.asc_setFontRenderingMode;
