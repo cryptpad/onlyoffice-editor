@@ -704,7 +704,7 @@
 
 		if (addText) {
 			this._addChars(addText, undefined, true);
-			if (!isDefName) {
+			if (functionName && !isDefName) {
 				this._moveCursor(kPosition, this.cursorPos - 1);
 			}
 		}
