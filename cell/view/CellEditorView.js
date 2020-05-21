@@ -585,6 +585,10 @@
 		this.skipTLUpdate = true;
 	};
 
+	CellEditor.prototype.updateWizardMode = function (mode) {
+		this._updateCursorStyle(mode ? AscCommonExcel.kCurCells : this.defaults.cursorShape);
+	};
+
 	CellEditor.prototype.move = function () {
 		if (!this.isOpened) {
 			return;
@@ -775,7 +779,7 @@
 		this.undoMode = false;
 		this.skipKeyPress = false;
 
-        this._updateCursorStyle(this.defaults.cursorShape);
+		this.updateWizardMode(false);
 	};
 
 	CellEditor.prototype._parseRangeStr = function (s) {
@@ -989,9 +993,6 @@
 
 		this.handlers.trigger("updateFormulaEditMod", isFormula);
 		if (isFormula) {
-		    if (this.handlers.trigger('getWizard')) {
-                this._updateCursorStyle(AscCommonExcel.kCurCells);
-            }
 			this._parseFormulaRanges();
 		}
 	};

@@ -1975,8 +1975,9 @@
 
 	WorkbookView.prototype.setWizardMode = function (mode) {
 		if (mode !== this.isWizardMode) {
-			this.isWizard = mode;
-			if (this.isWizard) {
+			this.isWizardMode = mode;
+			if (this.isWizardMode) {
+				this.cellEditor.updateWizardMode(this.isWizardMode);
 				this._onCleanSelectRange();
 			}
 		}
