@@ -931,9 +931,9 @@
           if (ws.model.selectionRange) {
               ws.cleanSelection();
               ws.model.selectionRange = null;
-          }
-          if (this.isActive()) {
-              ws._drawSelection();
+			  if (this.isActive()) {
+				  ws._drawSelection();
+			  }
           }
       }
   };
