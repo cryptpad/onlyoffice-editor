@@ -548,6 +548,43 @@
 		this.skipTLUpdate = true;
 	};
 
+	CellEditor.prototype.insertFormula = function (functionName, isDefName) {
+		this.skipTLUpdate = false;
+
+		// ToDo check selection formula in wizard for delete
+		if (this.selectionBegin !== this.selectionEnd) {
+			this._removeChars(undefined, undefined, true);
+		}
+
+		var addText = '';
+		var text = AscCommonExcel.getFragmentsText(this.options.fragments);
+		if (!this.isFormula() && 0 === this.cursorPos) {
+			addText = '=';
+		} else if (functionName && !this.checkSymbolBeforeRange(text[this.cursorPos - 1])) {
+			addText = '+';
+		}
+
+		if (functionName) {
+			addText += functionName;
+			if (!isDefName) {
+				addText += '()';
+			}
+		}
+
+		if (addText) {
+			this._addChars(addText);
+			if (functionName && !isDefName) {
+				this._moveCursor(kPosition, this.cursorPos - 1);
+
+				// ToDo move this code to moveCursor
+				this.lastRangePos = this.cursorPos;
+				this.lastRangeLength = 0;
+			}
+		}
+
+		this.skipTLUpdate = true;
+	};
+
 	CellEditor.prototype.move = function () {
 		if (!this.isOpened) {
 			return;
@@ -677,40 +714,6 @@
 	CellEditor.prototype._updateTextAlign = function () {
 		this.textFlags.textAlign = (this.options.flags.textAlign === AscCommon.align_Justify || this.isFormula()) ?
 			AscCommon.align_Left : this.options.flags.textAlign;
-	};
-
-	CellEditor.prototype.insertFormula = function (functionName, isDefName) {
-		this.skipTLUpdate = false;
-
-		// ToDo check selection formula in wizard for delete
-		if (this.selectionBegin !== this.selectionEnd) {
-			this._removeChars(undefined, undefined, true);
-		}
-
-		var addText = '';
-		var text = AscCommonExcel.getFragmentsText(this.options.fragments);
-		if (!this.isFormula() && 0 === this.cursorPos) {
-			addText = '=';
-		} else if (functionName && !this.checkSymbolBeforeRange(text[this.cursorPos - 1])) {
-			addText = '+';
-		}
-
-		if (functionName) {
-			addText += functionName;
-			if (!isDefName) {
-				addText += '()';
-			}
-		}
-
-		if (addText) {
-			this._addChars(addText, undefined, true);
-			if (functionName && !isDefName) {
-				this._moveCursor(kPosition, this.lastRangePos = this.cursorPos - 1);
-				this.lastRangeLength = 0;
-			}
-		}
-
-		this.skipTLUpdate = true;
 	};
 
 	CellEditor.prototype.replaceText = function (pos, len, newText) {

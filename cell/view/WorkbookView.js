@@ -175,7 +175,7 @@
 
     this.isCellEditMode = false;
     this.isFormulaEditMode = false;
-    this.isWizard = false;
+    this.isWizardMode = false;
 
 	  this.isShowComments = true;
 	  this.isShowSolved = true;
@@ -677,7 +677,7 @@
 			  }, "isActive": function () {
 				  return self.isActive();
 			  }, "getWizard": function () {
-			      return self.isWizard;
+			      return self.isWizardMode;
               }, "getActiveWS": function () {
 			      return self.model.getWorksheet(-1 === self.copyActiveSheet ? self.wsActive : self.copyActiveSheet);
 			  }, "setStrictClose": function (val) {
@@ -916,7 +916,7 @@
   };
 
   WorkbookView.prototype._onSelectionRangeChanged = function (val) {
-      if (this.isFormulaEditMode && !this.isWizard) {
+      if (this.isFormulaEditMode && !this.isWizardMode) {
           this.skipHelpSelector = true;
           this.cellEditor.setFocus(false);
           this.cellEditor.changeCellText(val);
@@ -1962,7 +1962,7 @@
 	WorkbookView.prototype.setCellEditMode = function(mode) {
 		this.isCellEditMode = !!mode;
 		if (!this.isCellEditMode) {
-		    this.isWizard = false;
+			this.setWizardMode(false);
             this.controller.setStrictClose(false);
             this.setFormulaEditMode(false);
         }
@@ -1972,6 +1972,15 @@
         this.isFormulaEditMode = mode;
         this.setSelectionDialogMode(mode ? c_oAscSelectionDialogType.Function : c_oAscSelectionDialogType.None, '');
     };
+
+	WorkbookView.prototype.setWizardMode = function (mode) {
+		if (mode !== this.isWizardMode) {
+			this.isWizard = mode;
+			if (this.isWizard) {
+				this._onCleanSelectRange();
+			}
+		}
+	};
 
 	WorkbookView.prototype.isActive = function () {
 		return (-1 === this.copyActiveSheet || this.wsActive === this.copyActiveSheet);
@@ -2128,7 +2137,7 @@
         };
 
         var addFunction = function (name) {
-			t.isWizard = true;
+        	t.setWizardMode(true);
 			t.cellEditor.insertFormula(name);
 			// ToDo send info from selection
 			var res;
