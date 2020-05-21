@@ -692,7 +692,7 @@
 		if (!this.isFormula() && 0 === this.cursorPos) {
 			addText = '=';
 		} else if (functionName && !this.checkSymbolBeforeRange(text[this.cursorPos - 1])) {
-			addText = '+'
+			addText = '+';
 		}
 
 		if (functionName) {
