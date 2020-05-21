@@ -2154,6 +2154,8 @@
 	prot['InvalidReferenceOrName']           = prot.InvalidReferenceOrName;
 	prot['LockCreateDefName']                = prot.LockCreateDefName;
 	prot['LockedCellPivot']                  = prot.LockedCellPivot;
+	prot['PivotLabledColumns']               = prot.PivotLabledColumns;
+	prot['PivotOverlap']                     = prot.PivotOverlap;
 	prot['ForceSaveButton']                  = prot.ForceSaveButton;
 	prot['ForceSaveTimeout']                 = prot.ForceSaveTimeout;
 	prot['CannotChangeFormulaArray']         = prot.CannotChangeFormulaArray;
