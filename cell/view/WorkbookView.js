@@ -2129,7 +2129,11 @@
         };
 
         var addFunction = function (name) {
-			if (!name) {
+			t.cellEditor.insertFormula(name);
+			// ToDo send info from selection
+			t.handlers.trigger("asc_onSendFunctionWizardInfo", funcInfo);
+
+			/*if (!name) {
 				t.cellEditor.needFindFirstFunction = null;
 			}
 
@@ -2175,7 +2179,7 @@
 					}
 				}
 				t.handlers.trigger("asc_onSendFunctionWizardInfo", funcInfo);
-			}
+			}*/
         };
 
         if (!this.getCellEditMode()) {
