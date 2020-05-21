@@ -2123,12 +2123,12 @@
 		var ws = this.getWorksheet();
         var callback = function (success) {
             if (success) {
-                t.isWizard = true;
                 addFunction(name);
             }
         };
 
         var addFunction = function (name) {
+			t.isWizard = true;
 			t.cellEditor.insertFormula(name);
 			// ToDo send info from selection
 			var res;
