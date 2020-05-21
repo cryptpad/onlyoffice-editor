@@ -3907,11 +3907,6 @@ var editor;
     this.wb.restoreFocus();
   };
 
-  spreadsheet_api.prototype.asc_preInsertFormula = function() {
-    this.wb.preInsertFormula();
-    this.wb.restoreFocus();
-  };
-
   spreadsheet_api.prototype.asc_insertArgumentsInFormula = function(val, argNum, argType) {
     var res = this.wb.insertArgumentsInFormula(val, argNum, argType);
     this.wb.restoreFocus();
@@ -4882,7 +4877,6 @@ var editor;
 
   prot["asc_cleanSelectRange"] = prot.asc_cleanSelectRange;
   prot["asc_insertInCell"] = prot.asc_insertInCell;
-  prot["asc_preInsertFormula"] = prot.asc_preInsertFormula;
   prot["asc_getFormulasInfo"] = prot.asc_getFormulasInfo;
   prot["asc_getFormulaLocaleName"] = prot.asc_getFormulaLocaleName;
   prot["asc_getFormulaNameByLocale"] = prot.asc_getFormulaNameByLocale;
