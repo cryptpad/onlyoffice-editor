@@ -717,7 +717,8 @@
 		if (this.DocInfo)
 			this["pluginMethod_SetProperties"](this.DocInfo.asc_getOptions());
 
-		this.macros && !this.disableAutostartMacros && this.macros.runAuto();
+		if (this.macros && !this.disableAutostartMacros && this.macros.isExistAuto())
+			this.sendEvent("asc_onRunAutostartMacroses");
 
 		if (window["AscDesktopEditor"] && window["AscDesktopEditor"]["onDocumentContentReady"])
             window["AscDesktopEditor"]["onDocumentContentReady"]();
@@ -2716,6 +2717,11 @@
 		return this.macros.GetData();
 	};
 
+    baseEditorsApi.prototype.asc_runAutostartMacroses = function()
+    {
+        this.macros && !this.disableAutostartMacros && this.macros.runAuto();
+    };
+
 	baseEditorsApi.prototype.asc_getSelectedDrawingObjectsCount = function()
 	{
 		return 0;
@@ -2808,5 +2814,6 @@
 	prot['asc_Print'] = prot.asc_Print;
 	prot['asc_GetCurrentColorSchemeName'] = prot.asc_GetCurrentColorSchemeName;
 	prot['asc_GetCurrentColorSchemeIndex'] = prot.asc_GetCurrentColorSchemeIndex;
+	prot['asc_runAutostartMacroses'] = prot.asc_runAutostartMacroses;
 
 })(window);

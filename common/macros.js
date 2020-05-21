@@ -109,6 +109,24 @@ function (window, undefined)
 		{
 		}
 	};
+    CDocumentMacros.prototype.isExistAuto = function()
+    {
+        try
+        {
+            var obj = JSON.parse(this.Data);
+            if (!obj["macrosArray"])
+                return;
+            for (var i = 0; i < obj["macrosArray"].length; i++)
+            {
+                if (true === obj["macrosArray"][i]["autostart"])
+                    return true;
+            }
+        }
+        catch (err)
+        {
+        }
+        return false;
+    };
 
 	AscDFH.changesFactory[AscDFH.historyitem_DocumentMacros_Data]     = CChangesDocumentMacrosData;
 	AscDFH.changesRelationMap[AscDFH.historyitem_DocumentMacros_Data] = [AscDFH.historyitem_DocumentMacros_Data];

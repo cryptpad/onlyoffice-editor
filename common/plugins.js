@@ -295,6 +295,10 @@
 		},
 		run : function(guid, variation, data, isNoUse_isNoSystemPluginsOnlyOne)
 		{
+            var isEnabled = this.api.DocInfo ? this.api.DocInfo.get_IsEnabledPlugins() : true;
+			if (false === isEnabled)
+				return;
+
 			if (this.runAndCloseData) // run only on close!!!
 				return;
 

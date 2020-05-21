@@ -3615,6 +3615,8 @@
 		this.OfflineApp = false;
 		this.Encrypted;
 		this.EncryptedInfo;
+		this.IsEnabledPlugins = true;
+        this.IsEnabledMacroses = true;
 	}
 
 	prot = asc_CDocInfo.prototype;
@@ -3726,6 +3728,18 @@
 	prot.put_EncryptedInfo = prot.asc_putEncryptedInfo = function (v) {
 		this.EncryptedInfo = v;
 	};
+    prot.get_IsEnabledPlugins = prot.asc_getIsEnabledPlugins = function () {
+        return this.IsEnabledPlugins;
+    };
+    prot.put_IsEnabledPlugins = prot.asc_putIsEnabledPlugins = function (v) {
+        this.IsEnabledPlugins = v;
+    };
+    prot.get_IsEnabledMacroses = prot.asc_getIsEnabledMacroses = function () {
+        return this.IsEnabledMacroses;
+    };
+    prot.put_IsEnabledMacroses = prot.asc_putIsEnabledMacroses = function (v) {
+        this.IsEnabledMacroses = v;
+    };
 
 	function COpenProgress() {
 		this.Type = Asc.c_oAscAsyncAction.Open;
@@ -5412,6 +5426,10 @@
 	prot["put_Encrypted"] = prot["asc_putEncrypted"] = prot.asc_putEncrypted;
 	prot["get_EncryptedInfo"] = prot["asc_getEncryptedInfo"] = prot.asc_getEncryptedInfo;
 	prot["put_EncryptedInfo"] = prot["asc_putEncryptedInfo"] = prot.asc_putEncryptedInfo;
+	prot["get_IsEnabledPlugins"] = prot["asc_getIsEnabledPlugins"] = prot.asc_getIsEnabledPlugins;
+    prot["put_IsEnabledPlugins"] = prot["asc_putIsEnabledPlugins"] = prot.asc_putIsEnabledPlugins;
+    prot["get_IsEnabledMacroses"] = prot["asc_getIsEnabledMacroses"] = prot.asc_getIsEnabledMacroses;
+    prot["put_IsEnabledMacroses"] = prot["asc_putIsEnabledMacroses"] = prot.asc_putIsEnabledMacroses;
 
 	window["AscCommon"].COpenProgress = COpenProgress;
 	prot = COpenProgress.prototype;
