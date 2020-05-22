@@ -1038,15 +1038,15 @@ CHeaderFooter.prototype =
 //-----------------------------------------------------------------------------------
 // Функции для работы с таблицами
 //-----------------------------------------------------------------------------------
-	AddTableRow : function(bBefore)
+	AddTableRow : function(bBefore, nCount)
 	{
-		this.Content.AddTableRow(bBefore);
+		this.Content.AddTableRow(bBefore, nCount);
 	},
 
-	AddTableColumn : function(bBefore)
-    {
-        this.Content.AddTableColumn( bBefore );
-    },
+	AddTableColumn : function(bBefore, nCount)
+	{
+		this.Content.AddTableColumn(bBefore, nCount);
+	},
 
 	RemoveTableRow : function()
 	{
@@ -2441,16 +2441,16 @@ CHeaderFooterController.prototype =
 //-----------------------------------------------------------------------------------
 // Функции для работы с таблицами
 //-----------------------------------------------------------------------------------
-	AddTableRow : function(bBefore)
+	AddTableRow : function(bBefore, nCount)
 	{
 		if (null != this.CurHdrFtr)
-			this.CurHdrFtr.AddTableRow(bBefore);
+			this.CurHdrFtr.AddTableRow(bBefore, nCount);
 	},
 
-	AddTableColumn : function(bBefore)
+	AddTableColumn : function(bBefore, nCount)
 	{
 		if (null != this.CurHdrFtr)
-			this.CurHdrFtr.AddTableColumn(bBefore);
+			this.CurHdrFtr.AddTableColumn(bBefore, nCount);
 	},
 
 	RemoveTableRow : function()
@@ -2668,7 +2668,7 @@ CHeaderFooterController.prototype.RecalculatePageCountUpdate = function(nPageAbs
 		bNeedRecalc = true;
 	}
 
-	if (false === bNeedRecalc && oFooter && oFooter.Have_PageCountElement())
+	if (oFooter && oFooter.Have_PageCountElement())
 	{
 		oFooter.Update_PageCountElements(nPageCount);
 		bNeedRecalc = true;
@@ -2678,6 +2678,22 @@ CHeaderFooterController.prototype.RecalculatePageCountUpdate = function(nPageAbs
 		return this.Recalculate(nPageAbs);
 
 	return null;
+};
+CHeaderFooterController.prototype.UpdatePagesCount = function(nPageAbs, nPageCount)
+{
+    var oPage = this.Pages[nPageAbs];
+    if (!oPage)
+        return false;
+
+    var oHeader = oPage.Header;
+    var oFooter = oPage.Footer;
+
+    if (oHeader && oHeader.Have_PageCountElement())
+        oHeader.Update_PageCountElements(nPageCount);
+
+    if (oFooter && oFooter.Have_PageCountElement())
+        oFooter.Update_PageCountElements(nPageCount);
+
 };
 CHeaderFooterController.prototype.HavePageCountElement = function()
 {

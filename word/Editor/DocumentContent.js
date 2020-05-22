@@ -1072,7 +1072,7 @@ CDocumentContent.prototype.Recalculate_Page               = function(PageIndex, 
                 var FrameBounds = this.Content[Index].Get_FrameBounds(FrameX, FrameY, FrameW, FrameH);
                 var FrameX2     = FrameBounds.X, FrameY2 = FrameBounds.Y, FrameW2 = FrameBounds.W, FrameH2 = FrameBounds.H;
 
-                if ((FrameY2 + FrameH2 > Page_Field_B || Y > Page_Field_B - 0.001 ) && Index != StartIndex)
+                if ((FrameY2 + FrameH2 > Page_H || Y > Page_H - 0.001 ) && Index != StartIndex)
                 {
                     this.RecalcInfo.Set_FrameRecalc(true);
                     this.Content[Index].StartFromNewPage();
@@ -6699,11 +6699,11 @@ CDocumentContent.prototype.Select_DrawingObject      = function(Id)
 //-----------------------------------------------------------------------------------
 // Функции для работы с таблицами
 //-----------------------------------------------------------------------------------
-CDocumentContent.prototype.AddTableRow = function(bBefore)
+CDocumentContent.prototype.AddTableRow = function(bBefore, nCount)
 {
 	if (docpostype_DrawingObjects == this.CurPos.Type)
 	{
-		return this.LogicDocument.DrawingObjects.tableAddRow(bBefore);
+		return this.LogicDocument.DrawingObjects.tableAddRow(bBefore, nCount);
 	}
 	else if (docpostype_Content == this.CurPos.Type && ( ( true === this.Selection.Use && this.Selection.StartPos == this.Selection.EndPos && type_Paragraph !== this.Content[this.Selection.StartPos].GetType() ) || ( false == this.Selection.Use && type_Paragraph !== this.Content[this.CurPos.ContentPos].GetType() ) ))
 	{
@@ -6713,7 +6713,7 @@ CDocumentContent.prototype.AddTableRow = function(bBefore)
 		else
 			Pos = this.CurPos.ContentPos;
 
-		this.Content[Pos].AddTableRow(bBefore);
+		this.Content[Pos].AddTableRow(bBefore, nCount);
 		if (false === this.Selection.Use && true === this.Content[Pos].IsSelectionUse())
 		{
 			this.Selection.Use      = true;
@@ -6726,11 +6726,11 @@ CDocumentContent.prototype.AddTableRow = function(bBefore)
 
 	return false;
 };
-CDocumentContent.prototype.AddTableColumn = function(bBefore)
+CDocumentContent.prototype.AddTableColumn = function(bBefore, nCount)
 {
 	if (docpostype_DrawingObjects == this.CurPos.Type)
 	{
-		return this.LogicDocument.DrawingObjects.tableAddCol(bBefore);
+		return this.LogicDocument.DrawingObjects.tableAddCol(bBefore, nCount);
 	}
 	else if (docpostype_Content == this.CurPos.Type && ( ( true === this.Selection.Use && this.Selection.StartPos == this.Selection.EndPos && type_Paragraph !== this.Content[this.Selection.StartPos].GetType() ) || ( false == this.Selection.Use && type_Paragraph !== this.Content[this.CurPos.ContentPos].GetType() ) ))
 	{
@@ -6740,7 +6740,7 @@ CDocumentContent.prototype.AddTableColumn = function(bBefore)
 		else
 			Pos = this.CurPos.ContentPos;
 
-		this.Content[Pos].AddTableColumn(bBefore);
+		this.Content[Pos].AddTableColumn(bBefore, nCount);
 		if (false === this.Selection.Use && true === this.Content[Pos].IsSelectionUse())
 		{
 			this.Selection.Use      = true;
@@ -6979,10 +6979,27 @@ CDocumentContent.prototype.Internal_GetContentPosByXY = function(X, Y, PageNum)
 
     PageNum = Math.max(0, Math.min(PageNum, this.Pages.length - 1));
 
-    // Сначала проверим Flow-таблицы
-    var FlowTable = this.LogicDocument && this.LogicDocument.DrawingObjects.getTableByXY(X, Y, PageNum + this.Get_StartPage_Absolute(), this);
-    if (null != FlowTable)
-        return FlowTable.Table.Index;
+    var oFlowTable = this.LogicDocument && this.LogicDocument.DrawingObjects.getTableByXY(X, Y, PageNum + this.Get_StartPage_Absolute(), this);
+    if (oFlowTable)
+	{
+		if (flowobject_Table === oFlowTable.Get_Type())
+		{
+			return oFlowTable.Table.Index;
+		}
+		else
+		{
+			var nStartPos  = oFlowTable.StartIndex;
+			var nFlowCount = oFlowTable.FlowCount;
+			for (var nPos = nStartPos; nPos < nStartPos + nFlowCount; ++nPos)
+			{
+				var oBounds = this.Content[nPos].GetPageBounds(0);
+				if (Y < oBounds.Bottom)
+					return nPos;
+			}
+
+			return nStartPos + nFlowCount - 1;
+		}
+	}
 
     // Теперь проверим пустые параграфы с окончанием секций (в нашем случае это пустой параграф послей таблицы внутри таблицы)
     var SectCount = this.Pages[PageNum].EndSectionParas.length;

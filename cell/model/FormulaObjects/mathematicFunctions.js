@@ -4627,16 +4627,20 @@
 						}
 						res[i][j] = arg1Matrix[i][j];
 						if(calcSum) {
-							var arg0Val = arg0.getValueByRowCol(i, j);
-							if (arg0Val && cElementType.number === arg0Val.type) {
-								_sum += arg0Val.getValue();
-							}
+							_calcSum(i, j);
 						}
 					}
 				}
 			}
 
 			return res;
+		};
+
+		var _calcSum = function (i, j) {
+			var arg0Val = arg0.getValueByRowCol(i, j);
+			if (arg0Val && cElementType.number === arg0Val.type) {
+				_sum += arg0Val.getValue();
+			}
 		};
 
 		var _sum = 0;
@@ -4687,6 +4691,16 @@
 				}
 
 				cacheElem.elems = getElems(arg1, arg2, parent ? parent.elems : null, k + 1 === arg.length - 1);
+			} else if (k + 1 === arg.length - 1 && cacheElem.elems) {
+				for (var i = 0; i < cacheElem.elems.length; i++) {
+					if (cacheElem.elems[i]) {
+						for (var j = 0; j < cacheElem.elems[i].length; j++) {
+							if (cacheElem.elems[i][j]) {
+								_calcSum(i, j);
+							}
+						}
+					}
+				}
 			}
 
 			if(undefined === cacheElem.elems) {
