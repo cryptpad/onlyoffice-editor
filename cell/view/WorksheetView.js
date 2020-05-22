@@ -9163,12 +9163,10 @@
             // Смена диапазона
             this.handlers.trigger("selectionRangeChanged", this.getSelectionRangeValue());
 		} else {
-			if (isChangeSelectionShape) {
-				this.handlers.trigger("selectionNameChanged", this.getSelectionName(/*bRangeText*/false));
-				if (!isCoord) {
-					this.handlers.trigger("selectionChanged");
-					this.handlers.trigger("selectionMathInfoChanged", this.getSelectionMathInfo());
-				}
+			this.handlers.trigger("selectionNameChanged", this.getSelectionName(/*bRangeText*/false));
+			if (!isCoord) {
+				this.handlers.trigger("selectionChanged");
+				this.handlers.trigger("selectionMathInfoChanged", this.getSelectionMathInfo());
 			}
 		}
 
