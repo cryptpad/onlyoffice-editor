@@ -2281,8 +2281,8 @@
 
 	WorkbookView.prototype._calculateWizardFormula = function (_str) {
 		var _res = null;
-		var ws = this.getWorksheet();
 		if (_str !== "") {
+			var ws = this.getWorksheet();
 			var _formula = new AscCommonExcel.parserFormula(_str, /*formulaParsed.parent*/null, ws.model);
 			var _parseResultArg = new AscCommonExcel.ParseResult([], []);
 			_formula.parse(true, true, _parseResultArg, true);
