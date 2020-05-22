@@ -2502,6 +2502,7 @@ var editor;
 	spreadsheet_api.prototype.asc_closeCellEditor = function (cancel) {
 		var result = true;
 		if (this.wb) {
+			this.wb.setWizardMode(false);
 			result = this.wb.closeCellEditor(cancel);
 		}
 		return result;
