@@ -1383,8 +1383,8 @@
 			// Запоминаем координаты нажатия
 			this.mouseDownLastCord = coord;
 
-			t.hasFocus = true;
 			if (!t.getCellEditMode()) {
+				this.hasFocus = true;
 				if (event.shiftKey) {
 					t.isSelectMode = true;
 					t._changeSelection(event);
@@ -1464,6 +1464,8 @@
 						return;
 					}
 				}
+
+				this.hasFocus = true;
 
 				if (event.shiftKey) {
 					this.isSelectMode = true;
