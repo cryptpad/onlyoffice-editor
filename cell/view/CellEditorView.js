@@ -354,7 +354,7 @@
 				t.input.blur();
 				t._updateTopLineActive(false);
 				t.input.isFocused = false;
-				t._hideCursor();
+				t._updateCursor();
 				// hide
 				t._hideCanvas();
 			}
@@ -403,7 +403,7 @@
 			this.input.blur();
 			this._updateTopLineActive(false);
 			this.input.isFocused = false;
-			this._hideCursor();
+			this._updateCursor();
 			// hide
 			this._hideCanvas();
 		}
@@ -608,7 +608,7 @@
 			this._renderText();
 			this.topLineIndex = 0;
 			this._updateCursorPosition();
-			this._showCursor();
+			this._updateCursor();
 			this._drawSelection();
 		} else {
 			// hide
@@ -700,11 +700,11 @@
 	};
 
 	/** @param flag {Boolean} */
-	CellEditor.prototype.enableKeyEventsHandler = function ( flag ) {
+	CellEditor.prototype.enableKeyEventsHandler = function (flag) {
 		var oldValue = this.enableKeyEvents;
 		this.enableKeyEvents = !!flag;
-		if ( this.isOpened && oldValue !== this.enableKeyEvents ) {
-			this.enableKeyEvents ? this.showCursor() : this._hideCursor();
+		if (this.isOpened && oldValue !== this.enableKeyEvents) {
+			this._updateCursor();
 		}
 	};
 
@@ -1065,11 +1065,11 @@
 		this._adjustCanvas();
 		this._showCanvas();
 		this._renderText();
-		if(!this.getMenuEditorMode()) {
+		if (!this.getMenuEditorMode()) {
 			this.input.value = AscCommonExcel.getFragmentsText((this.options.fragments));
 		}
 		this._updateCursorPosition();
-		this._showCursor();
+		this._updateCursor();
 	};
 
 	CellEditor.prototype._update = function () {
@@ -1085,7 +1085,7 @@
 			this._fireUpdated();
 		}
 		this._updateCursorPosition(true);
-		this._showCursor();
+		this._updateCursor();
 
 		this._updateUndoRedoChanged();
 
@@ -1398,36 +1398,34 @@
         }
     };
 
-	CellEditor.prototype.showCursor = function () {
-		if ( window['IS_NATIVE_EDITOR'] ) {
-			return;
-		}
-
-		this.options.enterOptions.hideCursor = false;
-		this._showCursor();
-	};
-
-	CellEditor.prototype._showCursor = function () {
-		if ( window['IS_NATIVE_EDITOR'] ) {
-			return;
-		}
-
-		var t = this;
-		if (t.options.enterOptions.hideCursor || t.isTopLineActive || this.handlers.trigger('getWizard')) {
-			return;
-		}
-		window.clearInterval( t.cursorTID );
-		t.cursorStyle.display = "block";
-		t.cursorTID = window.setInterval( function () {
-			t.cursorStyle.display = ("none" === t.cursorStyle.display) ? "block" : "none";
-		}, t.defaults.blinkInterval );
-	};
-
-	CellEditor.prototype._hideCursor = function () {
+    CellEditor.prototype._updateCursor = function () {
 		if (window['IS_NATIVE_EDITOR']) {
 			return;
 		}
 
+		if (!this.isOpened || this.options.enterOptions.hideCursor || this.isTopLineActive
+			|| !this.enableKeyEvents || this.handlers.trigger('getWizard')) {
+			this._hideCursor();
+		} else {
+			this._showCursor();
+		}
+	};
+
+	CellEditor.prototype.showCursor = function () {
+		this.options.enterOptions.hideCursor = false;
+		this._updateCursor();
+	};
+
+	CellEditor.prototype._showCursor = function () {
+		var t = this;
+		window.clearInterval(t.cursorTID);
+		t.cursorStyle.display = "block";
+		t.cursorTID = window.setInterval(function () {
+			t.cursorStyle.display = ("none" === t.cursorStyle.display) ? "block" : "none";
+		}, t.defaults.blinkInterval);
+	};
+
+	CellEditor.prototype._hideCursor = function () {
 		window.clearInterval(this.cursorTID);
 		this.cursorStyle.display = "none";
 	};
@@ -1557,7 +1555,7 @@
 			t._cleanSelection();
 		}
 		t._updateCursorPosition();
-		t._showCursor();
+		t._updateCursor();
 	};
 
 	CellEditor.prototype._findCursorPosition = function ( coord ) {
@@ -1598,7 +1596,7 @@
 		this._updateTopLineActive(true);
 		this.input.isFocused = true;
 		this.setFocus(true);
-		this._hideCursor();
+		this._updateCursor();
 		this._updateTopLineCurPos();
 		this._cleanSelection();
 	};
@@ -2646,7 +2644,7 @@
 			if (1 === this.clickCounter.getClickCount() % 2) {
 				this.isSelectMode = c_oAscCellEditorSelectState.char;
 				if (!event.shiftKey) {
-					this._showCursor();
+					this._updateCursor();
 					pos = this._findCursorPosition(coord);
 					if (pos !== undefined) {
 						pos >= 0 ? this._moveCursor(kPosition, pos) : this._moveCursor(pos);
