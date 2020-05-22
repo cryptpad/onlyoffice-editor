@@ -8020,10 +8020,9 @@
 						_offsetY += y;
 						if (isDataValidation) {
 							_isDataValidation = this._hitCursorFilterButton(_offsetX, _offsetY, col, row, true);
-						}
-						if (!_isDataValidation && isPivot) {
+						} else if (isPivot) {
 							_isPivot = this._hitCursorFilterButton(_offsetX, _offsetY, c.col, r.row);
-					}
+						}
 
 						if (_isDataValidation || _isPivot) {
 							res = {cursor: kCurAutoFilter, target: c_oTargetType.FilterObject, col: c.col, row: r.row,
@@ -15595,8 +15594,7 @@
 
 		var pivotButtons = this.model.getPivotTableButtons(updatedRange);
 		for (i = 0; i < pivotButtons.length; ++i) {
-			this.af_drawCurrentButton(offsetX, offsetY,
-				{isSortState: null, isSetFilter: false, row: pivotButtons[i].row, col: pivotButtons[i].col});
+			this.af_drawCurrentButton(offsetX, offsetY, pivotButtons[i]);
 		}
 
 		return true;

@@ -7252,48 +7252,7 @@
 		var res = [];
 		var pivotTable, pivotRange, j, pos, countC, countCWValues, countR, cell;
 		for (var i = 0; i < this.pivotTables.length; ++i) {
-			pivotTable = this.pivotTables[i];
-			if (!pivotTable.intersection(range)) {
-				continue;
-			}
-
-			if (pivotTable.pageFieldsPositions) {
-				for (j = 0; j < pivotTable.pageFieldsPositions.length; ++j) {
-					pos = pivotTable.pageFieldsPositions[j];
-					cell = new AscCommon.CellBase(pos.row, pos.col + 1);
-					if (range.contains2(cell)) {
-						res.push(cell);
-					}
-				}
-			}
-
-			if (false !== pivotTable.showHeaders) {
-				countC = pivotTable.getColumnFieldsCount();
-				countCWValues = pivotTable.getColumnFieldsCount(true);
-				countR = pivotTable.getRowFieldsCount(true);
-				pivotRange = pivotTable.getRange();
-
-				if (countR) {
-					countR = pivotTable.hasCompact() ? 1 : countR;
-					pos = pivotRange.r1 + pivotTable.getFirstHeaderRow0();
-					for (j = 0; j < countR; ++j) {
-						cell = new AscCommon.CellBase(pos, pivotRange.c1 + j);
-						if (range.contains2(cell)) {
-							res.push(cell);
-						}
-					}
-				}
-				if (countCWValues) {
-					countC = pivotTable.hasCompact() ? 1 : countC;
-					pos = pivotRange.c1 + pivotTable.getFirstDataCol();
-					for (j = 0; j < countC; ++j) {
-						cell = new AscCommon.CellBase(pivotRange.r1, pos + j);
-						if (range.contains2(cell)) {
-							res.push(cell);
-						}
-					}
-				}
-			}
+			this.pivotTables[i].getPivotTableButtons(range, res);
 		}
 		return res;
 	};

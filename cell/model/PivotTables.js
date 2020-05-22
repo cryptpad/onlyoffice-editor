@@ -2122,8 +2122,8 @@ CT_PivotCacheRecords.prototype.getDataMap = function(cacheFields, filterMaps, ro
 		isInFilter = true;
 		for (i = 0; i < filterMaps.length; ++i) {
 			filter = filterMaps[i];
-			val = this._cols[filter.index[i]].get(row);
-			if (!filter.field.has(val.val)) {
+			val = this._cols[filter.index].get(row);
+			if (c_oAscPivotRecType.Index === val.type && !filter.map.has(val.val)) {
 				isInFilter = false;
 				break;
 			}
@@ -3191,9 +3191,9 @@ CT_pivotTableDefinition.prototype.toXml = function(writer) {
 CT_pivotTableDefinition.prototype.init = function () {
 	this.isInit = true;
 	this.pageFieldsPositions = [];
-	var pageField = this.asc_getPageFields();
+	var pageFields = this.asc_getPageFields();
 	var rowPageCount = 0, colPageCount = 0, r, c;
-	if (pageField) {
+	if (pageFields) {
 		var pageFieldSize = this.getPageFieldSize();
 		rowPageCount = pageFieldSize.row;
 		colPageCount = pageFieldSize.col;
@@ -3201,7 +3201,7 @@ CT_pivotTableDefinition.prototype.init = function () {
 		var baseCol = range.c1;
 		var baseRow = range.r1 - pageFieldSize.row - 1;
 		var pageWrap = this.pageWrap || Number.MAX_VALUE;
-		for (var i = 0; i < pageField.length; ++i) {
+		for (var i = 0; i < pageFields.length; ++i) {
 			if (this.pageOverThenDown) {
 				r = Math.floor(i / pageWrap);
 				c = 3 * (i % pageWrap);
@@ -3209,7 +3209,7 @@ CT_pivotTableDefinition.prototype.init = function () {
 				r = (i % pageWrap);
 				c = 3 * Math.floor(i / pageWrap);
 			}
-			this.pageFieldsPositions.push(new AscCommon.CellBase(Math.max(0, baseRow + r), Math.max(0, baseCol + c)));
+			this.pageFieldsPositions.push({row: Math.max(0, baseRow + r), col: Math.max(0, baseCol + c), pageField: pageFields[i]});
 		}
 	}
 
@@ -3299,12 +3299,15 @@ CT_pivotTableDefinition.prototype.getColumnFieldsCount = function (withoutValues
 };
 CT_pivotTableDefinition.prototype.getPivotFieldButtonType = function (index) {
 	var pivotField = this.asc_getPivotFields()[index];
-	var sortVal;
+	//todo autoSortScope
+	var sortVal = null;
 	if (c_oAscFieldSortType.Ascending === pivotField.sortType) {
 		sortVal = Asc.c_oAscSortOptions.Ascending;
 	} else if (c_oAscFieldSortType.Descending === pivotField.sortType) {
 		sortVal = Asc.c_oAscSortOptions.Descending;
 	}
+
+	var values = pivotField.getFilterObject();
 	var filter = this.getPivotFilter(index);
 	if (filter) {
 
@@ -3314,30 +3317,84 @@ CT_pivotTableDefinition.prototype.getPivotFieldButtonType = function (index) {
 
 	var autoFilterObject = new Asc.AutoFiltersOptions();
 	autoFilterObject.asc_setSortState(sortVal);
-
+	autoFilterObject.asc_setValues(values);
+	return autoFilterObject;
 };
-CT_pivotTableDefinition.prototype.getPivotButtons = function () {
+CT_pivotTableDefinition.prototype.getPivotTableButtons = function (range, buttons) {
+	if (!this.intersection(range)) {
+		return;
+	}
+	var i, index, pivotField, autoFilterObject;
 	var pivotRange = this.getRange();
 	var location = this.location;
+	var pivotFields = this.asc_getPivotFields();
+	var rowFields = this.asc_getRowFields();
 	var colFields = this.asc_getColumnFields();
-	var res = [];
-	var r1 = pivotRange.r1;
-	var c1 = pivotRange.c1 + location.firstDataCol;
-	if (this.showHeaders && colFields) {
-		if (this.compact) {
-			res.push(r1, c1);
-		} else {
-			for (var i = 0; i < colFields.length; ++i) {
-				var index = colFields[i].asc_getIndex();
-				if (AscCommonExcel.st_VALUES !== index) {
-					res.push(r1, c1);
-				}
-				c1++;
+	if (this.pageFieldsPositions) {
+		for (i = 0; i < this.pageFieldsPositions.length; ++i) {
+			var pos = this.pageFieldsPositions[i];
+			if (range.contains(pos.col + 1, pos.row)) {
+				pivotField = pivotFields[pos.pageField.fld];
+				var isSetFilter = null != pos.pageField.item || !pivotField.isAllVisible();
+				buttons.push({isSortState: null, isSetFilter: isSetFilter, row: pos.row, col: pos.col + 1});
 			}
 		}
 	}
-	return res;
+	if (this.showHeaders) {
+		if (colFields) {
+			var baseCol = pivotRange.c1 + location.firstDataCol;
+			if (this.compact) {
+				//todo 0
+				autoFilterObject = this.getPivotFieldButtonType(0);
+				buttons.push({isSortState: autoFilterObject.sortVal, isSetFilter: false, row: pivotRange.r1, col: baseCol});
+			} else {
+				for (i = 0; i < colFields.length; ++i) {
+					index = colFields[i].asc_getIndex();
+					if (AscCommonExcel.st_VALUES !== index) {
+						autoFilterObject = this.getPivotFieldButtonType(index);
+						buttons.push({isSortState: autoFilterObject.sortVal, isSetFilter: false, row: pivotRange.r1, col: baseCol + i});
+					}
+				}
+			}
+		}
+		if (rowFields) {
+			var baseRow = pivotRange.r1 + location.firstDataRow - 1;
+			if (this.compact || location.firstDataCol !== rowFields.length) {
+				if (!(1 === rowFields.length && AscCommonExcel.st_VALUES === rowFields[0].asc_getIndex())) {
+					//todo 0
+					autoFilterObject = this.getPivotFieldButtonType(0);
+					buttons.push({isSortState: autoFilterObject.sortVal, isSetFilter: false, row: baseRow, col: pivotRange.c1});
+				}
+			} else {
+				index = rowFields[0].asc_getIndex();
+				if (AscCommonExcel.st_VALUES !== index) {
+					autoFilterObject = this.getPivotFieldButtonType(index);
+					buttons.push({isSortState: autoFilterObject.sortVal, isSetFilter: false, row: baseRow, col: pivotRange.c1});
+				}
+				var c1 = pivotRange.c1;
+				for (i = 1; i < rowFields.length; ++i) {
+					index = rowFields[i - 1].asc_getIndex();
+					var isTabular;
+					if (AscCommonExcel.st_VALUES !== index) {
+						pivotField = pivotFields[index];
+						isTabular = pivotField && !(pivotField.compact && pivotField.outline);
+					} else {
+						isTabular = !(this.compact && this.outline);
+					}
+					if (isTabular) {
+						index = rowFields[i].asc_getIndex();
+						++c1;
+						if (AscCommonExcel.st_VALUES !== index) {
+							autoFilterObject = this.getPivotFieldButtonType(index);
+							buttons.push({isSortState: autoFilterObject.sortVal, isSetFilter: false, row: baseRow, col: c1});
+						}
+					}
+				}
+			}
+		}
+	}
 };
+
 CT_pivotTableDefinition.prototype.getColumnFieldsValuesIndex = function () {
 	var colFields = this.asc_getColumnFields();
 	if (colFields) {
@@ -3501,7 +3558,7 @@ CT_pivotTableDefinition.prototype.checkPivotFieldItem = function(index, pivotFie
 					for (j = 0; j < cacheField.getSharedSize(); ++j) {
 						if (oldSharedItem.shallowEqual(cacheField.getSharedItem(j))) {
 							//create new to lose other flags
-							newItem = new CT_Item();
+							newItem = item.clone();
 							newItem.x = j;
 							newItems.item.push(newItem);
 							equalMap[newItem.x] = 1;
@@ -3527,34 +3584,32 @@ CT_pivotTableDefinition.prototype.checkPivotFieldItem = function(index, pivotFie
 };
 CT_pivotTableDefinition.prototype.getFilterMaps = function() {
 	var filterFields = [];
-	var i, j, map, hasHidden, pageField, pivotField, item;
-	if (this.pageFields) {
-		for (i = 0; i < this.pageFields.length; ++i) {
-			pageField = this.pageFields[i];
-			if (null !== pageField.fld) {
-				this.checkPivotFieldItems(pageField.fld);
-				if (null !== pageField.item) {
-					map = new Map();
-					map.set(pageField.item, 1);
-					filterFields.push(pageField.fld, map);
-				} else {
-					pivotField = this.asc_getPivotFields()[pageField.fld];
-					if (pivotField && pivotField.multipleItemSelectionAllowed && pivotField.items) {
-						map = new Map();
-						hasHidden = false;
-						for (j = 0; j < pivotField.items.item.length; ++j) {
-							item = pivotField.items.item[j];
-							if (true === item.h) {
-								hasHidden = true;
-							} else {
-								map.set(pageField.item, 1);
-							}
-						}
-						if (hasHidden) {
-							filterFields.push(pageField.fld, map);
-						}
+	var i, j, map, pageField, pivotField, item;
+	var pageFields = this.asc_getPageFields();
+	if(!pageFields){
+		return filterFields;
+	}
+	for (i = 0; i < pageFields.length; ++i) {
+		pageField = pageFields[i];
+		if (AscCommonExcel.st_VALUES === pageField.fld || null === pageField.fld) {
+			continue;
+		}
+		this.checkPivotFieldItems(pageField.fld);
+		if (null !== pageField.item) {
+			map = new Map();
+			map.set(pageField.item, 1);
+			filterFields.push({index: pageField.fld, map: map});
+		} else {
+			pivotField = this.asc_getPivotFields()[pageField.fld];
+			if (pivotField && pivotField.multipleItemSelectionAllowed && !pivotField.isAllVisible()) {
+				map = new Map();
+				for (j = 0; j < pivotField.items.item.length; ++j) {
+					item = pivotField.items.item[j];
+					if (false === item.h) {
+						map.set(item.x, 1);
 					}
 				}
+				filterFields.push({index: pageField.fld, map: map});
 			}
 		}
 	}
@@ -3623,8 +3678,7 @@ CT_pivotTableDefinition.prototype.getPageFieldCellValue = function(index) {
 			var visibleIndexes = pivotField.getVisibleIndexes();
 			if (1 === visibleIndexes.length) {
 				oCellValue = this.getPivotFieldCellValue(pageField.fld, visibleIndexes[0]);
-			} else if (2 === visibleIndexes.length) {
-				//todo
+			} else if (pivotField.isAllVisible()) {
 				oCellValue.text = AscCommon.translateManager.getValue(AscCommonExcel.PAGE_ALL_CAPTION);
 			} else {
 				oCellValue.text = AscCommon.translateManager.getValue(AscCommonExcel.PAGE_MULTIPLE_CAPTION);
@@ -7904,11 +7958,38 @@ CT_PivotField.prototype.getVisibleIndexes = function() {
 	var res = [];
 	var items = this.getItems();
 	for (var i = 0; i < items.length; ++i) {
-		if (Asc.c_oAscItemType.Data === items[i].t || Asc.c_oAscItemType.Blank === items[i].t) {
+		var item = items[i];
+		if ((Asc.c_oAscItemType.Data === item.t || Asc.c_oAscItemType.Blank === item.t) && false === item.h) {
 			res.push(i);
 		}
 	}
 	return res;
+};
+CT_PivotField.prototype.isAllVisible = function() {
+	var items = this.getItems();
+	for (var i = 0; i < items.length; ++i) {
+		var item = items[i];
+		if ((Asc.c_oAscItemType.Data === item.t || Asc.c_oAscItemType.Blank === item.t) && true === item.h) {
+			return false;
+		}
+	}
+	return true;
+};
+CT_PivotField.prototype.getFilterObject = function() {
+	var values = [];
+	var items = this.getItems();
+	for (var i = 0; i < items.length; ++i) {
+		var item = items[i];
+		if (Asc.c_oAscItemType.Data === item.t || Asc.c_oAscItemType.Blank === item.t) {
+			var elem = AscCommonExcel.AutoFiltersOptionsElements();
+			elem.val = 0;
+			elem.text = 0;
+			elem.visible = !item.h;
+			elem.isDateFormat = false;
+			//todo isDateFormat
+		}
+	}
+	return values;
 };
 
 
@@ -9954,6 +10035,21 @@ function CT_Item() {
 	this.d = false;
 	this.e = true;
 }
+CT_Item.prototype.clone = function() {
+	var res = new CT_Item();
+	res.n = this.n;
+	res.t = this.t;
+	res.h = this.h;
+	res.s = this.s;
+	res.sd = this.sd;
+	res.f = this.f;
+	res.m = this.m;
+	res.c = this.c;
+	res.x = this.x;
+	res.d = this.d;
+	res.e = this.e;
+	return res;
+};
 CT_Item.prototype.readAttributes = function(attr, uq) {
 	if (attr()) {
 		var vals = attr();
