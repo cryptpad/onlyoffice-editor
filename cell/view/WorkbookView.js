@@ -2273,10 +2273,7 @@
 	};
 
 	WorkbookView.prototype.canEnterWizardRange = function (char) {
-		if (!this.getCellEditMode()) {
-			return;
-		}
-		return this.cellEditor.checkSymbolBeforeRange(char);
+		return this.getCellEditMode() && this.cellEditor.checkSymbolBeforeRange(char);
 	};
 
 	WorkbookView.prototype._calculateWizardFormula = function (_str) {
