@@ -2232,21 +2232,14 @@
 	};
 	
 	WorkbookView.prototype.insertArgumentsInFormula = function(args, argNum, argType) {
-		if (!this.getCellEditMode()) {
-			return;
-		}
+		if (this.getCellEditMode()) {
+			this.cellEditor.changeCellText(args.join(AscCommon.FormulaSeparators.functionArgumentSeparator));
 
-		this.cellEditor.changeCellText(args.join(AscCommon.FormulaSeparators.functionArgumentSeparator));
-
-		if (argNum !== undefined) {
-			var ws = this.getWorksheet();
-			var activeFuncInfo = ws.model.getActiveFunctionInfo(this.cellEditor._formula, this.cellEditor._parseResult, null, null, true);
-			if (activeFuncInfo) {
-				if (!activeFuncInfo.argumentsResult) {
-					activeFuncInfo.argumentsResult = [];
-				}
-				activeFuncInfo.argumentsResult[argNum] = this.calculateWizardArg(undefined === args[argNum] ? "" : args[argNum], argType);
-				return activeFuncInfo;
+			if (argNum !== undefined) {
+				var res = new Asc.CFunctionInfo(null);
+				res.argumentsResult = [];
+				res.argumentsResult[argNum] = this.calculateWizardArg(args[argNum], argType);
+				return res;
 			}
 		}
 
@@ -2254,6 +2247,10 @@
 	};
 
 	WorkbookView.prototype.calculateWizardArg = function (str, type) {
+		if (!str) {
+			str = '';
+		}
+
 		var calcRes = this._calculateWizardFormula(str);
 		if (calcRes) {
 			if (type === undefined || type === null) {
