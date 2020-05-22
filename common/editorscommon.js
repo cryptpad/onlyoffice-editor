@@ -1744,10 +1744,6 @@
 		if (files.length > 0)
 		{
 			var url = sUploadServiceLocalUrl + '/' + documentId + '/' + documentUserId + '/' + g_oDocumentUrls.getMaxIndex();
-			if (jwt)
-			{
-				url += '?token=' + encodeURIComponent(jwt);
-			}
 
 			var aFiles = [];
 			for(var i = files.length - 1;  i > - 1; --i){
@@ -1777,25 +1773,26 @@
                             var xhr = new XMLHttpRequest();
 
                             url = sUploadServiceLocalUrl + '/' + documentId + '/' + documentUserId + '/' + g_oDocumentUrls.getMaxIndex();
-                            if (jwt)
-                            {
-                                url += '?token=' + encodeURIComponent(jwt);
-                            }
 
                             xhr.open('POST', url, true);
                             xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
+                            xhr.setRequestHeader('Authorization', 'Bearer ' + jwt);
                             xhr.onreadystatechange = fOnReadyChnageState;
                             xhr.send(file);
                         }
                     }
-                    else
-                        callback(Asc.c_oAscError.ID.UplImageFileCount);
+                    else if(this.status === 403){
+						callback(Asc.c_oAscError.ID.VKeyEncrypt);
+					} else {
+						callback(Asc.c_oAscError.ID.UplImageUrl);
+					}
                 }
             };
 
 			var xhr = new XMLHttpRequest();
 			xhr.open('POST', url, true);
 			xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
+			xhr.setRequestHeader('Authorization', 'Bearer ' + jwt);
 			xhr.onreadystatechange = fOnReadyChnageState;
 			xhr.send(file);
 		}
@@ -1810,10 +1807,6 @@
         if (files.length > 0)
         {
             var url = sUploadServiceLocalUrl + '/' + documentId + '/' + documentUserId + '/' + g_oDocumentUrls.getMaxIndex();
-            if (jwt)
-            {
-                url += '?token=' + encodeURIComponent(jwt);
-            }
 
             var aFiles = [];
             for(var i = files.length - 1;  i > - 1; --i){
@@ -1848,13 +1841,10 @@
                             var xhr = new XMLHttpRequest();
 
                             url = sUploadServiceLocalUrl + '/' + documentId + '/' + documentUserId + '/' + g_oDocumentUrls.getMaxIndex();
-                            if (jwt)
-                            {
-                                url += '?token=' + encodeURIComponent(jwt);
-                            }
 
                             xhr.open('POST', url, true);
                             xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
+							xhr.setRequestHeader('Authorization', 'Bearer ' + jwt);
                             xhr.onreadystatechange = fOnReadyChnageState;
                             xhr.send(file);
                         }
@@ -1867,6 +1857,7 @@
             var xhr = new XMLHttpRequest();
             xhr.open('POST', url, true);
             xhr.setRequestHeader('Content-Type', file.type || 'application/octet-stream');
+			xhr.setRequestHeader('Authorization', 'Bearer ' + jwt);
             xhr.onreadystatechange = fOnReadyChnageState;
             xhr.send(file);
         }
