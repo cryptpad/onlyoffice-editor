@@ -334,6 +334,7 @@
 		var localSaveValueCallback = function(isSuccess) {
 			if(!isSuccess) {
 				t.handlers.trigger('setStrictClose', true);
+				t.cleanSelectRange();
 				if(callback) {
 					callback(false);
 				}
