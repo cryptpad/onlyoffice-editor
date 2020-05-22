@@ -1447,37 +1447,28 @@
 					}
 				}
 			} else {
-			    if (2 === button) {
-			        return;
-                }
+				if (this.getFormulaEditMode()) {
+					if (this.targetInfo && this.targetInfo.target === c_oTargetType.MoveResizeRange) {
+						this.isMoveResizeRange = true;
+						t._moveResizeRangeHandle(event, t.targetInfo);
+						return;
+					} else if (this.targetInfo && this.targetInfo.target === c_oTargetType.FillHandle) {
+						return;
+					}
 
-			    // ToDo delete
-				if (!t.getFormulaEditMode()) {
-					if (!t.handlers.trigger("stopCellEditing")) {
+					if (2 === button) {
 						return;
 					}
 				} else {
-					if (event.shiftKey) {
-						t.isSelectMode = true;
-						t._changeSelection(event);
-						return;
-					} else {
-						if (t.getFormulaEditMode()) {
-							// !!! в зависимости от цели делаем разные действия - либо селектим область либо мувим существующий диапазон
-							if (t.targetInfo && t.targetInfo.target === c_oTargetType.MoveResizeRange &&
-								this.canEdit()) {
-								this.isMoveResizeRange = true;
-								t._moveResizeRangeHandle(event, t.targetInfo);
-								return;
-							}
-						}
-						t.isSelectMode = true;
-						t.handlers.trigger("changeSelection", /*isStartPoint*/true, coord.x, coord.y, /*isCoord*/true,
-							ctrlKey, function (d) {
-								t.scroll(d);
-							});
+					if (!this.handlers.trigger("stopCellEditing")) {
 						return;
 					}
+				}
+
+				if (event.shiftKey) {
+					t.isSelectMode = true;
+					t._changeSelection(event);
+					return;
 				}
 			}
 
