@@ -1450,7 +1450,7 @@
 				if (this.getFormulaEditMode()) {
 					if (this.targetInfo && this.targetInfo.target === c_oTargetType.MoveResizeRange) {
 						this.isMoveResizeRange = true;
-						t._moveResizeRangeHandle(event, t.targetInfo);
+						this._moveResizeRangeHandle(event, this.targetInfo);
 						return;
 					} else if (this.targetInfo && this.targetInfo.target === c_oTargetType.FillHandle) {
 						return;
@@ -1466,8 +1466,8 @@
 				}
 
 				if (event.shiftKey) {
-					t.isSelectMode = true;
-					t._changeSelection(event);
+					this.isSelectMode = true;
+					this._changeSelection(event);
 					return;
 				}
 			}
