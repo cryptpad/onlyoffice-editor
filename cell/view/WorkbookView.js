@@ -322,6 +322,10 @@
 		  this.controller.init(this, this.element, /*this.canvasOverlay*/ this.canvasGraphicOverlay, /*handlers*/{
 			  "resize": function () {
 				  self.resize.apply(self, arguments);
+			  }, "gotFocus": function (hasFocus) {
+				  if (self.isCellEditMode) {
+					  self.cellEditor.setFocus(!hasFocus);
+				  }
 			  }, "initRowsCount": function () {
 				  self._onInitRowsCount.apply(self, arguments);
 			  }, "initColsCount": function () {
@@ -920,7 +924,6 @@
   WorkbookView.prototype._onSelectionRangeChanged = function (val) {
       if (this.isFormulaEditMode && !this.isWizardMode) {
           this.skipHelpSelector = true;
-          this.cellEditor.setFocus(false);
           this.cellEditor.changeCellText(val);
           this.skipHelpSelector = false;
       }
@@ -1567,6 +1570,7 @@
 
   WorkbookView.prototype._checkStopCellEditorInFormulas = function() {
 	  if (this.isCellEditMode && this.isFormulaEditMode && this.cellEditor.canEnterCellRange()) {
+		  this.cellEditor.setFocus(false);
 		  return true;
 	  }
       return this.closeCellEditor();

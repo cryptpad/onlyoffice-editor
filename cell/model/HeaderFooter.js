@@ -917,9 +917,7 @@
 							}, "updated": function () {
 								self.Api.checkLastWork();
 								self._onUpdateCellEditor.apply(self, arguments);
-							}, /*"gotFocus": function (hasFocus) {
-							 self.controller.setFocus(!hasFocus);
-							 },*/ "updateEditorState": function (state) {
+							}, "updateEditorState": function (state) {
 								self.handlers.trigger("asc_onEditCell", state);
 							}, "updateEditorSelectionInfo": function (info) {
 								self.handlers.trigger("asc_onEditorSelectionChanged", info);

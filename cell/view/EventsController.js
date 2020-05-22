@@ -230,6 +230,11 @@
 			this.hasFocus = !!hasFocus;
 		};
 
+		asc_CEventsController.prototype.gotFocus = function (hasFocus) {
+			this.setFocus(hasFocus);
+			this.handlers.trigger('gotFocus', this.hasFocus);
+		};
+
 		asc_CEventsController.prototype.setStrictClose = function (enabled) {
 			this.strictClose = !!enabled;
 		};
@@ -1384,7 +1389,7 @@
 			this.mouseDownLastCord = coord;
 
 			if (!t.getCellEditMode()) {
-				this.hasFocus = true;
+				this.gotFocus(true);
 				if (event.shiftKey) {
 					t.isSelectMode = true;
 					t._changeSelection(event);
@@ -1465,7 +1470,7 @@
 					}
 				}
 
-				this.hasFocus = true;
+				this.gotFocus(true);
 
 				if (event.shiftKey) {
 					this.isSelectMode = true;
