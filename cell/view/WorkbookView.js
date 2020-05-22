@@ -2236,29 +2236,10 @@
 			return;
 		}
 
-		var ws = this.getWorksheet();
-		var parseResult = this.cellEditor ? this.cellEditor._parseResult : null;
-		if (!parseResult || !parseResult.argPosArr) {
-			return;
-		}
-
-		var val = "";
-		for (var i = 0; i < args.length; i++) {
-			val += args[i];
-			if (i !== args.length - 1) {
-				val += AscCommon.FormulaSeparators.functionArgumentSeparator;
-			}
-		}
-
-		//TODO проверить - lastRangePos может быть при старте не null
-		if (null === this.cellEditor.lastRangePos) {
-			this.cellEditor.lastRangePos = parseResult.argPosArr[0].start;
-			this.cellEditor.lastRangeLength = parseResult.argPosArr[parseResult.argPosArr.length - 1].end - parseResult.argPosArr[0].start;
-		}
-		this.cellEditor.changeCellText(val);
-
+		this.cellEditor.changeCellText(args.join(AscCommon.FormulaSeparators.functionArgumentSeparator));
 
 		if (argNum !== undefined) {
+			var ws = this.getWorksheet();
 			var activeFuncInfo = ws.model.getActiveFunctionInfo(this.cellEditor._formula, this.cellEditor._parseResult, null, null, true);
 			if (activeFuncInfo) {
 				if (!activeFuncInfo.argumentsResult) {
@@ -2273,8 +2254,8 @@
 	};
 
 	WorkbookView.prototype.calculateWizardArg = function (str, type) {
-		var t = this;
-		var convertFormulaResultByType = function (_res) {
+		var calcRes = this._calculateWizardFormula(str);
+		if (calcRes) {
 			if (type === undefined || type === null) {
 				return _res.toLocaleString();
 			}
@@ -2282,17 +2263,12 @@
 			//TODO если полная проверка, то выводим ошибки - если нет, то вовзращаем пустую строку
 			var result = "";
 			if (type === Asc.c_oAscFormulaArgumentType.number) {
-				_res = _res.tocNumber();
-				if (_res) {
-					result = _res.toLocaleString();
+				calcRes = calcRes.tocNumber();
+				if (calcRes) {
+					result = calcRes.toLocaleString();
 				}
 			}
 			return result;
-		};
-
-		var calcRes = this._calculateWizardFormula(str);
-		if (calcRes) {
-			return convertFormulaResultByType(calcRes);
 		}
 	};
 
