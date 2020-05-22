@@ -334,7 +334,6 @@
 		var localSaveValueCallback = function(isSuccess) {
 			if(!isSuccess) {
 				t.setFocus(true);
-				t.handlers.trigger('setStrictClose', true);
 				t.cleanSelectRange();
 				if(callback) {
 					callback(false);
@@ -353,7 +352,7 @@
 					window.removeEventListener("mousemove", t.fKeyMouseMove, false);
 				}
 				t.input.blur();
-				t.isTopLineActive = false;
+				t._updateTopLineActive(false);
 				t.input.isFocused = false;
 				t._hideCursor();
 				// hide
@@ -2234,9 +2233,6 @@
 				if (window['IS_NATIVE_EDITOR']) {
 					t._addNewLine();
 				} else {
-					if (!t.hasFocus) {
-						t.setFocus(true);
-					}
 					if (!(event.altKey && event.shiftKey)) {
 						if (event.altKey) {
 							t._addNewLine();
@@ -2258,9 +2254,6 @@
 				return false;
 
 			case 9: // tab
-				if (!t.hasFocus) {
-					t.setFocus(true);
-				}
 				if (hieroglyph) {
 					t._syncEditors();
 				}
@@ -2291,9 +2284,6 @@
 					break;
 				}
 
-				if (!t.hasFocus) {
-					t.setFocus(true);
-				}
 				if (hieroglyph) {
 					t._syncEditors();
 				}
@@ -2410,9 +2400,6 @@
 
 			case 53: // 5
 				if (ctrlKey) {
-					if (!t.hasFocus) {
-						t.setFocus(true);
-					}
 					// Отключим стандартную обработку браузера нажатия ctrl + 5
 					event.stopPropagation();
 					event.preventDefault();
@@ -2442,9 +2429,6 @@
 
 			case 66: // B
 				if (ctrlKey) {
-					if (!t.hasFocus) {
-						t.setFocus(true);
-					}
 					// Отключим стандартную обработку браузера нажатия ctrl + b
 					event.stopPropagation();
 					event.preventDefault();
@@ -2458,9 +2442,6 @@
 
 			case 73: // I
 				if (ctrlKey) {
-					if (!t.hasFocus) {
-						t.setFocus(true);
-					}
 					// Отключим стандартную обработку браузера нажатия ctrl + i
 					event.stopPropagation();
 					event.preventDefault();
@@ -2474,7 +2455,6 @@
 
 			/*case 83: // S
 			 if (ctrlKey) {
-			 if (!t.hasFocus) {t.setFocus(true);}
 			 if (hieroglyph) {t._syncEditors();}
 
 			 if (false === t.handlers.trigger("isGlobalLockEditCell"))
@@ -2485,9 +2465,6 @@
 
 			case 85: // U
 				if (ctrlKey) {
-					if (!t.hasFocus) {
-						t.setFocus(true);
-					}
 					// Отключим стандартную обработку браузера нажатия ctrl + u
 					event.stopPropagation();
 					event.preventDefault();
@@ -2519,9 +2496,6 @@
 				if (ctrlKey) {
 					event.stopPropagation();
 					event.preventDefault();
-					if (!t.hasFocus) {
-						t.setFocus(true);
-					}
 					event.which === 90 ? t.undo() : t.redo();
 					return false;
 				}
@@ -2576,20 +2550,10 @@
 				return true;
 			}
 
-			// Проверим, есть ли глобальный lock
-			//if (t.handlers.trigger("isGlobalLockEditCell"))
-			//	return true;
-
-			if (!t.hasFocus) {
-				t.setFocus(true);
-			}
-
 			// определение ввода иероглифов
 			if (t.isTopLineActive && AscCommonExcel.getFragmentsLength(t.options.fragments) !== t.input.value.length) {
 				t._syncEditors();
 			}
-
-			//t.setFocus(true);
 		}
 
 		var tmpCursorPos;
@@ -2674,7 +2638,6 @@
 		}
 
 		this.setFocus(true);
-		this.handlers.trigger('setStrictClose', true);
 
 		this._updateTopLineActive(false);
 		this.input.isFocused = false;

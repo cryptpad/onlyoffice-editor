@@ -83,7 +83,6 @@
 			this.hasCursor = false;
 			this.hasFocus = false;
 			this.skipKeyPress = undefined;
-			this.strictClose = false;
 			this.lastKeyCode = undefined;
 			this.targetInfo = undefined;
 			this.isResizeMode = false;
@@ -233,10 +232,6 @@
 		asc_CEventsController.prototype.gotFocus = function (hasFocus) {
 			this.setFocus(hasFocus);
 			this.handlers.trigger('gotFocus', this.hasFocus);
-		};
-
-		asc_CEventsController.prototype.setStrictClose = function (enabled) {
-			this.strictClose = !!enabled;
 		};
 
 		/** @return {Boolean} */
@@ -706,13 +701,6 @@
 
 			while (t.getCellEditMode() && !t.hasFocus || !t.enableKeyEvents || t.isSelectMode ||
 			t.isFillHandleMode || t.isMoveRangeMode || t.isMoveResizeRange) {
-
-				if (t.getCellEditMode() && !t.strictClose && t.enableKeyEvents && event.which >= 37 &&
-					event.which <= 40) {
-					// обрабатываем нажатие клавиш со стрелками, если редактор открыт не по F2 и включены эвенты
-					break;
-				}
-
 				// Почему-то очень хочется обрабатывать лишние условия в нашем коде, вместо обработки наверху...
 				if (!t.enableKeyEvents && ctrlKey && (80 === event.which/* || 83 === event.which*/)) {
 					// Только если отключены эвенты и нажаты Ctrl+S или Ctrl+P мы их обработаем
@@ -757,8 +745,6 @@
 					if (AscBrowser.isOpera) {
 						stop();
 					}
-					// Выставляем блокировку на выход из редактора по клавишам-стрелкам
-					t.strictClose = true;
 					// При F2 выставляем фокус в редакторе
 					enterOptions = new AscCommonExcel.CEditorEnterOptions();
 					enterOptions.focus = true;

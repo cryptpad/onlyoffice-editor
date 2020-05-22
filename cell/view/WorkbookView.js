@@ -480,7 +480,6 @@
             return;
           }
           self._onStopFormatPainter();
-          self.controller.setStrictClose(true);
           self.cellEditor.callTopLineMouseup = true;
           if (!self.getCellEditMode() && !self.controller.isFillHandleMode) {
             var enterOptions = new AscCommonExcel.CEditorEnterOptions();
@@ -686,8 +685,6 @@
 			      return self.isWizardMode;
               }, "getActiveWS": function () {
 			      return self.model.getWorksheet(-1 === self.copyActiveSheet ? self.wsActive : self.copyActiveSheet);
-			  }, "setStrictClose": function (val) {
-				  self.controller.setStrictClose(val);
 			  }, "updateEditorSelectionInfo": function (info) {
 				  self.handlers.trigger("asc_onEditorSelectionChanged", info);
 			  }, "onContextMenu": function (event) {
@@ -1493,10 +1490,6 @@
       }
       asc_applyFunction(callback);
     } else {
-      if (ct.col >= 0 && ct.row >= 0) {
-        this.controller.setStrictClose(!ws._isCellNullText(ct.col, ct.row));
-      }
-
       // In view mode or click on column | row | all | frozenMove | drawing object do not process
       if (!this.canEdit() || c_oTargetType.ColumnHeader === ct.target || c_oTargetType.RowHeader === ct.target ||
 		  c_oTargetType.Corner === ct.target || c_oTargetType.FrozenAnchorH === ct.target ||
@@ -1570,7 +1563,6 @@
 
   WorkbookView.prototype._checkStopCellEditorInFormulas = function() {
 	  if (this.isCellEditMode && this.isFormulaEditMode && this.cellEditor.canEnterCellRange()) {
-		  this.cellEditor.setFocus(false);
 		  return true;
 	  }
       return this.closeCellEditor();
@@ -1959,7 +1951,6 @@
 		this.isCellEditMode = !!mode;
 		if (!this.isCellEditMode) {
 			this.setWizardMode(false);
-            this.controller.setStrictClose(false);
             this.setFormulaEditMode(false);
         }
 	};

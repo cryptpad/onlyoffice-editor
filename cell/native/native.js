@@ -5244,7 +5244,6 @@ window["native"]["offline_cell_editor_test_cells"] = function(x, y, width, heigh
             window["native"]["closeCellEditor"]();
             
             //t.setCellEditMode(false);
-            //t.controller.setStrictClose(false);
             //t.input.disabled = true;
             
             // Выключаем lock для редактирования ячейки
