@@ -333,6 +333,7 @@
 
 		var localSaveValueCallback = function(isSuccess) {
 			if(!isSuccess) {
+				t.setFocus(true);
 				t.handlers.trigger('setStrictClose', true);
 				t.cleanSelectRange();
 				if(callback) {
