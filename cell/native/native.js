@@ -3429,8 +3429,6 @@ function OfflineEditor () {
             
             var selection = [];
             
-            var range = undefined;
-            
             this.visibleRange = new asc_Range(c1, r1, c2, r2);
             
             isFrozen = !!isFrozen;
@@ -3438,12 +3436,8 @@ function OfflineEditor () {
                 return;
             }
             
-            var offsetX = 0, offsetY = 0;
-            
-            offsetX = this._getColLeft(this.visibleRange.c1) - this.cellsLeft;
-            offsetY = this._getRowTop(this.visibleRange.r1) - this.cellsTop;
-            
-            var activeCell = this.model.selectionRange.activeCell;
+            var offsetX = this._getColLeft(this.visibleRange.c1) - this.cellsLeft;
+            var offsetY = this._getRowTop(this.visibleRange.r1) - this.cellsTop;
             
             selection.push(0);
             selection.push(0);
@@ -3455,7 +3449,7 @@ function OfflineEditor () {
             selection.push(0);
             selection.push(0);
             
-            var ranges = (this.isSelectionDialogMode ? this.copyActiveRange : this.model.selectionRange).ranges;
+            var ranges = this.model.getSelection().ranges;
             var range, selectionLineType, type;
             for (var i = 0, l = ranges.length; i < l; ++i) {
                 range = ranges[i].clone();
@@ -3491,7 +3485,7 @@ function OfflineEditor () {
                 
                 var isActive = AscCommonExcel.selectionLineType.ActiveCell & selectionLineType;
                 if (isActive) {
-                    var cell = (this.isSelectionDialogMode ? this.copyActiveRange : this.model.selectionRange).activeCell;
+                    var cell = this.model.getSelection().activeCell;
                     var fs = this.model.getMergedByCell(cell.row, cell.col);
                     fs = range.intersectionSimple(fs ? fs : new asc_Range(cell.col, cell.row, cell.col, cell.row));
                     if (fs) {
@@ -3510,11 +3504,8 @@ function OfflineEditor () {
             }
             
             var formularanges = [];
-            
-            if (!isFrozen && this.isFormulaEditMode) {
-                if (this.arrActiveFormulaRanges.length) {
-                    formularanges = this.__selectedCellRanges(this.arrActiveFormulaRanges, offsetX, offsetY);
-                }
+            if (!isFrozen && this.getFormulaEditMode()) {
+                formularanges = this.__selectedCellRanges(offsetX, offsetY);
             }
             
             return {'selection': selection, 'formularanges': formularanges};
@@ -3529,7 +3520,6 @@ function OfflineEditor () {
             var isMoveActiveCellToLeftTop = false;
             
             var selection = this._getSelection();
-            var lastRange = selection.getLast();
             
             var col = selection.activeCell.col;
             var row = selection.activeCell.row;
@@ -3568,17 +3558,14 @@ function OfflineEditor () {
                     selection.activeCell.col = newRange.c1;
                     selection.activeCell.row = newRange.r1;
                 }
-                
-                if (!this.handlers.trigger('getCellEditMode')) {
-                    if (!this.isSelectionDialogMode) {
-                        this.handlers.trigger("selectionNameChanged", this.getSelectionName(/*bRangeText*/true));
-                        if (!isSelectMode) {
-                            this.handlers.trigger("selectionChanged");
-                            this.handlers.trigger("selectionMathInfoChanged", this.getSelectionMathInfo());
-                        }
-                    } else {
-                        // Смена диапазона
-                        this.handlers.trigger("selectionRangeChanged", this.getSelectionRangeValue());
+
+                if (this.getSelectionDialogMode()) {
+                    this.handlers.trigger("selectionRangeChanged", this.getSelectionRangeValue());
+                } else {
+                    this.handlers.trigger("selectionNameChanged", this.getSelectionName(/*bRangeText*/true));
+                    if (!isSelectMode) {
+                        this.handlers.trigger("selectionChanged");
+                        this.handlers.trigger("selectionMathInfoChanged", this.getSelectionMathInfo());
                     }
                 }
             } else {
@@ -3599,147 +3586,142 @@ function OfflineEditor () {
             }
             
             if (window["Asc"]["editor"].isStartAddShape || this.objectRender.selectedGraphicObjectsExists()) {
-                if (this.isChartAreaEditMode && this.arrActiveChartRanges.length) {
-                    return this.__selectedCellRanges(this.arrActiveChartRanges, 0, 0, Asc.c_oAscSelectionType.RangeChart);
+                if (this.isChartAreaEditMode && this.oOtherRanges) {
+                    return this.__selectedCellRanges(0, 0, Asc.c_oAscSelectionType.RangeChart);
                 }
             }
             
             return null;
         };
         
-        AscCommonExcel.WorksheetView.prototype.__selectedCellRanges = function (inputRanges, offsetX, offsetY, rangetype) {
-            
-            var ranges = [], j = 0, i = 0, type = 0, left = 0, right = 0, top = 0, bottom = 0;
-            
-            for (j = 0; j < inputRanges.length; ++j) {
-                
-                arrRanges = inputRanges[j].ranges;
-                
-                var type = 0, left = 0, right = 0, top = 0, bottom = 0;
-                var addt, addl, addr, addb, colsCount = this.nColsCount - 1, rowsCount = this.nRowsCount - 1;
-                var defaultRowHeight = AscCommonExcel.oDefaultMetrics.RowHeight;
-
-                if (colsCount < 1 || rowsCount < 1) {
-                    return [];
-                }
-                
-                for (i = 0; i < arrRanges.length; ++i) {
-                    type = (arrRanges[i].getType == undefined) ? 0 : arrRanges[i].getType();
-                    ranges.push(undefined !== rangetype ? rangetype : type);
-                    ranges.push(arrRanges[i].c1);
-                    ranges.push(arrRanges[i].c2);
-                    ranges.push(arrRanges[i].r1);
-                    ranges.push(arrRanges[i].r2);
-                    
-                    addl = Math.max(arrRanges[i].c1 - colsCount,0);
-                    addt = Math.max(arrRanges[i].r1 - rowsCount,0);
-                    addr = Math.max(arrRanges[i].c2 - colsCount,0);
-                    addb = Math.max(arrRanges[i].r2 - rowsCount,0);
-                    
-                    if (1 === type) { // cells or chart
-                        if (addl > 0)
-                            left = this._getColLeft(colsCount - 1) + this.defaultColWidthPx * addl - offsetX;
-                        else
-                            left = this._getColLeft(Math.max(0,arrRanges[i].c1)) - offsetX;
-                        
-                        if (addt > 0)
-                            top = this._getRowTop(rowsCount - 1) + addt * defaultRowHeight - offsetY;
-                        else
-                            top = this._getRowTop(Math.max(0,arrRanges[i].r1)) - offsetY;
-                        
-                        if (addr > 0)
-                            right = this._getColLeft(colsCount - 1) + this.defaultColWidthPx * addr - offsetX;
-                        else
-                            right = this._getColLeft(arrRanges[i].c2) + this._getColumnWidth(arrRanges[i].c2) - offsetX;
-                        
-                        if (addb > 0)
-                            bottom = this._getRowTop(rowsCount - 1) + addb * defaultRowHeight - offsetY;
-                        else
-                            bottom = this._getRowTop(arrRanges[i].r2) + this._getRowHeight(arrRanges[i].r2) - offsetY;
-                    }
-                    else if (2 === type) {       // column range
-                        if (addl > 0)
-                            left = this._getColLeft(colsCount - 1) + this.defaultColWidthPx * addl - offsetX;
-                        else
-                            left = this._getColLeft(Math.max(0,arrRanges[i].c1)) - offsetX;
-                        
-                        if (addt > 0)
-                            top = this._getRowTop(rowsCount - 1) + addt * defaultRowHeight - offsetY;
-                        else
-                            top = this._getRowTop(Math.max(0,arrRanges[i].r1)) - offsetY;
-                        
-                        if (addr > 0)
-                            right = this._getColLeft(colsCount - 1) + this.defaultColWidthPx * addr - offsetX;
-                        else
-                            right = this._getColLeft(arrRanges[i].c2) + this._getColumnWidth(arrRanges[i].c2) - offsetX;
-                        
-                        bottom = 0;
-                    }
-                    else if (3 === type) {       // row range
-                        if (addl > 0)
-                            left = this._getColLeft(colsCount - 1) + this.defaultColWidthPx * addl - offsetX;
-                        else
-                            left = this._getColLeft(arrRanges[i].c1) - offsetX;
-                        
-                        if (addt > 0)
-                            top = this._getRowTop(rowsCount - 1) + addt * defaultRowHeight - offsetY;
-                        else
-                            top = this._getRowTop(arrRanges[i].r1) - offsetY;
-                        
-                        right = 0;
-                        
-                        if (addb > 0)
-                            bottom = this._getRowTop(rowsCount - 1) + addb * defaultRowHeight - offsetY;
-                        else
-                            bottom  = this._getRowTop(arrRanges[i].r2) + this._getRowHeight(arrRanges[i].r2) - offsetY;
-                    }
-                    else if (4 === type) {       // max
-                        if (addl > 0)
-                            left = this._getColLeft(colsCount - 1) + this.defaultColWidthPx * addl - offsetX;
-                        else
-                            left = this._getColLeft(arrRanges[i].c1) - offsetX;
-                        
-                        if (addt > 0)
-                            top = this._getRowTop(rowsCount - 1) + addt * defaultRowHeight - offsetY;
-                        else
-                            top = this._getRowTop(arrRanges[i].r1) - offsetY;
-                        
-                        right = 0;
-                        bottom = 0;
-                    } else {
-                        if (addl > 0)
-                            left = this._getColLeft(colsCount - 1) + this.defaultColWidthPx * addl - offsetX;
-                        else
-                            left = this._getColLeft(Math.max(0,arrRanges[i].c1)) - offsetX;
-                        
-                        if (addt > 0)
-                            top = this._getRowTop(rowsCount - 1) + addt * defaultRowHeight - offsetY;
-                        else
-                            top = this._getRowTop(Math.max(0,arrRanges[i].r1)) - offsetY;
-                        
-                        if (addr > 0)
-                            right = this._getColLeft(colsCount - 1) + this.defaultColWidthPx * addr - offsetX;
-                        else
-                            right = this._getColLeft(Math.max(0,arrRanges[i].c2)) + this._getColumnWidth(Math.max(0,arrRanges[i].c2)) - offsetX;
-                        
-                        if (addb > 0)
-                            bottom = this._getRowTop(rowsCount - 1) + addb * defaultRowHeight - offsetY;
-                        else
-                            bottom = this._getRowTop(Math.max(0,arrRanges[i].r2)) + this._getRowHeight(Math.max(0,arrRanges[i].r2)) - offsetY;
-                    }
-                    
-                    // else if (5 === type) { // range image
-                    // }
-                    // else if (6 === type) { // range chart
-                    // }
-                    
-                    ranges.push(left);
-                    ranges.push(top);
-                    ranges.push(right);
-                    ranges.push(bottom);
-                }
+        AscCommonExcel.WorksheetView.prototype.__selectedCellRanges = function (offsetX, offsetY, rangetype) {
+            var ranges = [];
+            if (!this.oOtherRanges) {
+                return ranges;
             }
-            
+        
+            var arrRanges = this.oOtherRanges.ranges;
+            var type, left, right, top, bottom;
+            var addt, addl, addr, addb, colsCount = this.nColsCount - 1, rowsCount = this.nRowsCount - 1;
+            var defaultRowHeight = AscCommonExcel.oDefaultMetrics.RowHeight;
+        
+            if (colsCount < 1 || rowsCount < 1) {
+                return [];
+            }
+        
+            for (var i = 0; i < arrRanges.length; ++i) {
+                type = arrRanges[i].getType();
+                ranges.push(undefined !== rangetype ? rangetype : type);
+                ranges.push(arrRanges[i].c1);
+                ranges.push(arrRanges[i].c2);
+                ranges.push(arrRanges[i].r1);
+                ranges.push(arrRanges[i].r2);
+        
+                addl = Math.max(arrRanges[i].c1 - colsCount, 0);
+                addt = Math.max(arrRanges[i].r1 - rowsCount, 0);
+                addr = Math.max(arrRanges[i].c2 - colsCount, 0);
+                addb = Math.max(arrRanges[i].r2 - rowsCount, 0);
+        
+                if (1 === type) { // cells or chart
+                    if (addl > 0)
+                        left = this._getColLeft(colsCount - 1) + this.defaultColWidthPx * addl - offsetX;
+                    else
+                        left = this._getColLeft(Math.max(0, arrRanges[i].c1)) - offsetX;
+        
+                    if (addt > 0)
+                        top = this._getRowTop(rowsCount - 1) + addt * defaultRowHeight - offsetY;
+                    else
+                        top = this._getRowTop(Math.max(0, arrRanges[i].r1)) - offsetY;
+        
+                    if (addr > 0)
+                        right = this._getColLeft(colsCount - 1) + this.defaultColWidthPx * addr - offsetX;
+                    else
+                        right = this._getColLeft(arrRanges[i].c2) + this._getColumnWidth(arrRanges[i].c2) - offsetX;
+        
+                    if (addb > 0)
+                        bottom = this._getRowTop(rowsCount - 1) + addb * defaultRowHeight - offsetY;
+                    else
+                        bottom = this._getRowTop(arrRanges[i].r2) + this._getRowHeight(arrRanges[i].r2) - offsetY;
+                } else if (2 === type) {       // column range
+                    if (addl > 0)
+                        left = this._getColLeft(colsCount - 1) + this.defaultColWidthPx * addl - offsetX;
+                    else
+                        left = this._getColLeft(Math.max(0, arrRanges[i].c1)) - offsetX;
+        
+                    if (addt > 0)
+                        top = this._getRowTop(rowsCount - 1) + addt * defaultRowHeight - offsetY;
+                    else
+                        top = this._getRowTop(Math.max(0, arrRanges[i].r1)) - offsetY;
+        
+                    if (addr > 0)
+                        right = this._getColLeft(colsCount - 1) + this.defaultColWidthPx * addr - offsetX;
+                    else
+                        right = this._getColLeft(arrRanges[i].c2) + this._getColumnWidth(arrRanges[i].c2) - offsetX;
+        
+                    bottom = 0;
+                } else if (3 === type) {       // row range
+                    if (addl > 0)
+                        left = this._getColLeft(colsCount - 1) + this.defaultColWidthPx * addl - offsetX;
+                    else
+                        left = this._getColLeft(arrRanges[i].c1) - offsetX;
+        
+                    if (addt > 0)
+                        top = this._getRowTop(rowsCount - 1) + addt * defaultRowHeight - offsetY;
+                    else
+                        top = this._getRowTop(arrRanges[i].r1) - offsetY;
+        
+                    right = 0;
+        
+                    if (addb > 0)
+                        bottom = this._getRowTop(rowsCount - 1) + addb * defaultRowHeight - offsetY;
+                    else
+                        bottom = this._getRowTop(arrRanges[i].r2) + this._getRowHeight(arrRanges[i].r2) - offsetY;
+                } else if (4 === type) {       // max
+                    if (addl > 0)
+                        left = this._getColLeft(colsCount - 1) + this.defaultColWidthPx * addl - offsetX;
+                    else
+                        left = this._getColLeft(arrRanges[i].c1) - offsetX;
+        
+                    if (addt > 0)
+                        top = this._getRowTop(rowsCount - 1) + addt * defaultRowHeight - offsetY;
+                    else
+                        top = this._getRowTop(arrRanges[i].r1) - offsetY;
+        
+                    right = 0;
+                    bottom = 0;
+                } else {
+                    if (addl > 0)
+                        left = this._getColLeft(colsCount - 1) + this.defaultColWidthPx * addl - offsetX;
+                    else
+                        left = this._getColLeft(Math.max(0, arrRanges[i].c1)) - offsetX;
+        
+                    if (addt > 0)
+                        top = this._getRowTop(rowsCount - 1) + addt * defaultRowHeight - offsetY;
+                    else
+                        top = this._getRowTop(Math.max(0, arrRanges[i].r1)) - offsetY;
+        
+                    if (addr > 0)
+                        right = this._getColLeft(colsCount - 1) + this.defaultColWidthPx * addr - offsetX;
+                    else
+                        right = this._getColLeft(Math.max(0, arrRanges[i].c2)) + this._getColumnWidth(Math.max(0, arrRanges[i].c2)) - offsetX;
+        
+                    if (addb > 0)
+                        bottom = this._getRowTop(rowsCount - 1) + addb * defaultRowHeight - offsetY;
+                    else
+                        bottom = this._getRowTop(Math.max(0, arrRanges[i].r2)) + this._getRowHeight(Math.max(0, arrRanges[i].r2)) - offsetY;
+                }
+        
+                // else if (5 === type) { // range image
+                // }
+                // else if (6 === type) { // range chart
+                // }
+        
+                ranges.push(left);
+                ranges.push(top);
+                ranges.push(right);
+                ranges.push(bottom);
+            }
+        
             return ranges;
         };
         
@@ -4769,11 +4751,8 @@ function OfflineEditor () {
             var box = selectedRange.getBBox0();
             settings.putInColumns(!(box.r2 - box.r1 < box.c2 - box.c1));
         }
-        
-        var oRangeValue = ws.getSelectionRangeValue();
-        if (oRangeValue) {
-            settings.putRange(oRangeValue.asc_getName());
-        }
+
+        settings.putRanges(ws.getSelectionRangeValues(true, true));
         
         settings.putStyle(2);
         settings.putTitle(Asc.c_oAscChartTitleShowSettings.noOverlay);
@@ -4958,7 +4937,6 @@ window["native"]["offline_mouse_down"] = function(x, y, pin, isViewerMode, isFor
     }
     
     _s.cellPin = pin;
-    _s.isFormulaEditMode = isFormulaEditMode;
     
     var ct = ws.getCursorTypeFromXY(x, y);
     if (ct.target && ct.target === AscCommonExcel.c_oTargetType.FilterObject) {
@@ -4974,14 +4952,11 @@ window["native"]["offline_mouse_down"] = function(x, y, pin, isViewerMode, isFor
             var ct = ws.getCursorTypeFromXY(x, y);
             
             ws.startCellMoveResizeRange = null;
-            
-            var rangeChange = new window["Asc"].Range(c1, r1, c2, r2);
+
             var target = {
-            formulaRange: rangeChange,
             row: ct.row,
             col: ct.col,
             target: ct.target,
-            targetArr: isChartRange ? -1 : 0,
             cursor: "se-resize",
             indexFormulaRange: indexRange
             };
@@ -4998,25 +4973,7 @@ window["native"]["offline_mouse_down"] = function(x, y, pin, isViewerMode, isFor
             ws.leftTopRange = lastRange.clone();
             
         } else {
-            
-            var ret = false;
-            if (isFormulaEditMode) {
-                ret = wb.cellEditor.canEnterCellRange();
-                ret ? wb.cellEditor.activateCellRange() : true;
-            }
-            
-            if (isFormulaEditMode && !ret) {
-                _s.isFormulaEditMode = false;
-                return {'action':'closeCellEditor'};
-            }
-            
             wb._onChangeSelection(true, x, y, true);
-            
-            if (isFormulaEditMode) {
-                if (ret) {
-                    ws.enterCellRange(wb.cellEditor);
-                }
-            }
         }
     }
     
@@ -5036,14 +4993,11 @@ window["native"]["offline_mouse_move"] = function(x, y, isViewerMode, isRangeRes
     if (isRangeResize) {
         if (!isViewerMode) {
             var ct = ws.getCursorTypeFromXY(x, y);
-            
-            var rangeChange = new window["Asc"].Range(c1, r1, c2, r2);
+
             var target = {
-                //formulaRange: rangeChange,
             row: isChartRange ? ct.row : targetRow,
             col: isChartRange ? ct.col : targetCol,
             target: ct.target,
-            targetArr: isChartRange ? -1 : 0,
             cursor: "se-resize",
             indexFormulaRange: indexRange
             };
@@ -5064,20 +5018,8 @@ window["native"]["offline_mouse_move"] = function(x, y, isViewerMode, isRangeRes
                 }
             }
         } else {
-            if (_s.isFormulaEditMode) {
-                
-                var ret = false;
-                ret = wb.cellEditor.canEnterCellRange();
-                ret ? wb.cellEditor.activateCellRange() : true;
-                
-                if (!ret) {
-                    _s.isFormulaEditMode = false;
-                    ws.visibleRange = range;
-                    return {'action':'closeCellEditor'};
-                }
-                
+            if (wb.isFormulaEditMode) {
                 wb._onChangeSelection(false, x, y, true);
-                ws.enterCellRange(wb.cellEditor);
             } else {
                 if (-1 == _s.cellPin)
                     ws.__changeSelectionPoint(x, y, true, true, true);
@@ -5116,13 +5058,6 @@ window["native"]["offline_mouse_up"] = function(x, y, isViewerMode, isRangeResiz
         
         if (isRangeResize) {
             if (!isViewerMode) {
-                var target = {
-                target: 5,
-                targetArr: isChartRange ? -1 : 0,
-                cursor: "se-resize",
-                indexFormulaRange: indexRange
-                };
-                
                 if (ws.moveRangeDrawingObjectTo) {
                     ws.moveRangeDrawingObjectTo.c1 = Math.max(0, ws.moveRangeDrawingObjectTo.c1);
                     ws.moveRangeDrawingObjectTo.c2 = Math.max(0, ws.moveRangeDrawingObjectTo.c2);
@@ -5130,7 +5065,7 @@ window["native"]["offline_mouse_up"] = function(x, y, isViewerMode, isRangeResiz
                     ws.moveRangeDrawingObjectTo.r2 = Math.max(0, ws.moveRangeDrawingObjectTo.r2);
                 }
                 
-                ws.applyMoveResizeRangeHandle(target);
+                ws.applyMoveResizeRangeHandle();
                 
                 var controller = ws.objectRender.controller;
                 controller.updateOverlay();
@@ -5193,8 +5128,8 @@ window["native"]["offline_keyboard_down"] = function(inputKeys) {
     
     AscCommon.g_oTextMeasurer.Flush();
     
-    var isFormulaEditMode = ws.isFormulaEditMode;
-    ws.isFormulaEditMode = false;
+    var isFormulaEditMode = wb.isFormulaEditMode;
+    wb.isFormulaEditMode = false;
     
     for (var i = 0; i < inputKeys.length; i += 3) {
         
@@ -5250,8 +5185,8 @@ window["native"]["offline_keyboard_down"] = function(inputKeys) {
         else if (13 === codeKey)     // ENTER
             wb._onChangeSelection(true, 0, 1, false);
     }
-    
-    ws.isFormulaEditMode = isFormulaEditMode;
+
+    wb.isFormulaEditMode = isFormulaEditMode;
 }
 
 window["native"]["offline_cell_editor_draw"] = function(width, height, ratio) {
@@ -5271,7 +5206,6 @@ window["native"]["offline_cell_editor_open"] = function(x, y, width, height, rat
     _null_object.height = height * ratio;
     
     var wb = _api.wb;
-    var ws = _api.wb.getWorksheet();
     
     var range =  ws.visibleRange.clone();
     ws.visibleRange.c1 = c1;
@@ -5282,28 +5216,22 @@ window["native"]["offline_cell_editor_open"] = function(x, y, width, height, rat
     wb.cellEditor.isSelectAll = isSelectAll;
     
     if (!isFormulaInsertMode) {
-        
-        var isFocus = undefined, isClearCell = undefined, isHideCursor = true, isQuickInput = false;
-        
         var t = wb;
         
         var ws = t.getWorksheet();
-        var activeCellRange = ws.getActiveCell(0, 0, false);
         var selectionRange = ws.model.selectionRange.clone();
         
         t.setCellEditMode(true);
-        ws.openCellEditor(t.cellEditor, /*cursorPos*/undefined, isFocus, isClearCell,
-                          /*isHideCursor*/isHideCursor, /*isQuickInput*/isQuickInput, selectionRange);
+        var enterOptions = new AscCommonExcel.CEditorEnterOptions();
+        enterOptions.hideCursor = true;
+        ws.openCellEditor(t.cellEditor, enterOptions, selectionRange);
         //t.input.disabled = false;
 
         t.Api.cleanSpelling();
-        
-        // Эвент на обновление состояния редактора
-        t.cellEditor._updateEditorState();
     }
     
     ws.visibleRange = range;
-}
+};
 window["native"]["offline_cell_editor_test_cells"] = function(x, y, width, height, ratio, isSelectAll, isFormulaInsertMode, c1, r1, c2, r2)  {
     _null_object.width = width * ratio;
     _null_object.height = height * ratio;
@@ -5330,10 +5258,6 @@ window["native"]["offline_cell_editor_test_cells"] = function(x, y, width, heigh
             window["native"]["closeCellEditor"]();
             
             //t.setCellEditMode(false);
-            //t.controller.setStrictClose(false);
-            //t.controller.setFormulaEditMode(false);
-            //ws.setCellEditMode(false);
-            //ws.setFormulaEditMode(false);
             //t.input.disabled = true;
             
             // Выключаем lock для редактирования ячейки
@@ -6660,7 +6584,7 @@ window["native"]["offline_apply_event"] = function(type,params) {
         case 4010: // ASC_SPREADSHEETS_EVENT_TYPE_INSERT_FORMULA
         {
             if (params && params.length && params[0]) {
-                _api.asc_insertFormula(params[0], Asc.c_oAscPopUpSelectorType.Func, params[1]);
+                _api.asc_insertInCell(params[0], Asc.c_oAscPopUpSelectorType.Func, params[1]);
             }
             break;
         }

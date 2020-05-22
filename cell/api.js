@@ -2502,6 +2502,7 @@ var editor;
 	spreadsheet_api.prototype.asc_closeCellEditor = function (cancel) {
 		var result = true;
 		if (this.wb) {
+			this.wb.setWizardMode(false);
 			result = this.wb.closeCellEditor(cancel);
 		}
 		return result;
@@ -3900,9 +3901,33 @@ var editor;
     this.wb.removeHyperlink();
   };
 
-  spreadsheet_api.prototype.asc_insertFormula = function(functionName, type, autoComplete) {
-    this.wb.insertFormulaInEditor(functionName, type, autoComplete);
+    spreadsheet_api.prototype.asc_cleanSelectRange = function () {
+        this.wb._onCleanSelectRange();
+    };
+
+  spreadsheet_api.prototype.asc_insertInCell = function(functionName, type, autoComplete) {
+    this.wb.insertInCellEditor(functionName, type, autoComplete);
     this.wb.restoreFocus();
+  };
+
+  spreadsheet_api.prototype.asc_insertArgumentsInFormula = function(val, argNum, argType) {
+    var res = this.wb.insertArgumentsInFormula(val, argNum, argType);
+    this.wb.restoreFocus();
+    return res;
+  };
+
+  spreadsheet_api.prototype.asc_startWizard = function (name) {
+    this.wb.startWizard(name);
+    this.wb.restoreFocus();
+  };
+  spreadsheet_api.prototype.asc_canEnterWizardRange = function(char) {
+    return this.wb.canEnterWizardRange(char);
+  };
+
+  spreadsheet_api.prototype.asc_moveCursorFunctionArgument = function(argNum, pos) {
+    var res = this.wb.moveCursorFunctionArgument(argNum, pos);
+    this.wb.restoreFocus();
+    return res;
   };
 
   spreadsheet_api.prototype.asc_getFormulasInfo = function() {
@@ -3915,7 +3940,6 @@ var editor;
     var f = AscCommonExcel.cFormulaFunctionLocalized && AscCommonExcel.cFormulaFunctionLocalized[name];
     return f ? f.prototype.name : name;
   };
-
   spreadsheet_api.prototype.asc_calculate = function(type) {
     this.wb.calculate(type);
   };
@@ -3935,7 +3959,6 @@ var editor;
    * @param selectRange
    */
   spreadsheet_api.prototype.asc_setSelectionDialogMode = function(selectionDialogType, selectRange) {
-    this.controller.setSelectionDialogMode(Asc.c_oAscSelectionDialogType.None !== selectionDialogType);
     if (this.wb) {
       this.wb._onStopFormatPainter();
       this.wb.setSelectionDialogMode(selectionDialogType, selectRange);
@@ -4896,10 +4919,17 @@ var editor;
   prot["asc_selectFunction"] = prot.asc_selectFunction;
   prot["asc_insertHyperlink"] = prot.asc_insertHyperlink;
   prot["asc_removeHyperlink"] = prot.asc_removeHyperlink;
-  prot["asc_insertFormula"] = prot.asc_insertFormula;
+
+  prot["asc_cleanSelectRange"] = prot.asc_cleanSelectRange;
+  prot["asc_insertInCell"] = prot.asc_insertInCell;
   prot["asc_getFormulasInfo"] = prot.asc_getFormulasInfo;
   prot["asc_getFormulaLocaleName"] = prot.asc_getFormulaLocaleName;
   prot["asc_getFormulaNameByLocale"] = prot.asc_getFormulaNameByLocale;
+  prot["asc_insertFormulaArgument"] = prot.asc_insertFormulaArgument;
+  prot["asc_moveCursorFunctionArgument"] = prot.asc_moveCursorFunctionArgument;
+  prot["asc_insertArgumentsInFormula"] = prot.asc_insertArgumentsInFormula;
+  prot["asc_startWizard"] = prot.asc_startWizard;
+  prot["asc_canEnterWizardRange"] = prot.asc_canEnterWizardRange;
   prot["asc_calculate"] = prot.asc_calculate;
   prot["asc_setFontRenderingMode"] = prot.asc_setFontRenderingMode;
   prot["asc_setSelectionDialogMode"] = prot.asc_setSelectionDialogMode;

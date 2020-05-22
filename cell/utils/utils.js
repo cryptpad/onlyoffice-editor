@@ -453,6 +453,12 @@
 		Range.prototype.contains2 = function (cell) {
 			return this.contains(cell.col, cell.row);
 		};
+		Range.prototype.containsCol = function (c) {
+			return this.c1 <= c && c <= this.c2;
+		};
+		Range.prototype.containsRow = function (r) {
+			return this.r1 <= r && r <= this.r2;
+		};
 
 		Range.prototype.containsRange = function (range) {
 			return this.contains(range.c1, range.r1) && this.contains(range.c2, range.r2);
@@ -1039,6 +1045,16 @@
 		};
 		SelectionRange.prototype.contains2 = function (cell) {
 			return this.contains(cell.col, cell.row);
+		};
+		SelectionRange.prototype.containsCol = function (c) {
+			return this.ranges.some(function (item) {
+				return item.containsCol(c);
+			});
+		};
+		SelectionRange.prototype.containsRow = function (r) {
+			return this.ranges.some(function (item) {
+				return item.containsRow(r);
+			});
 		};
 		SelectionRange.prototype.inContains = function (ranges) {
 			var t = this;
@@ -2628,16 +2644,6 @@
 		asc_CFormatCellsInfo.prototype.asc_getSeparator = function () {return this.separator;};
 		asc_CFormatCellsInfo.prototype.asc_getSymbol = function () {return this.symbol;};
 
-		/** @constructor */
-		function asc_CSelectionRangeValue(){
-			this.name =  null;
-			this.type = null;
-		}
-		asc_CSelectionRangeValue.prototype.asc_setType = function (val) {this.type = val;};
-		asc_CSelectionRangeValue.prototype.asc_setName = function (val) {this.name = val;};
-		asc_CSelectionRangeValue.prototype.asc_getType = function () {return this.type;};
-		asc_CSelectionRangeValue.prototype.asc_getName = function () {return this.name;};
-
 		/**
 		 * передаём в меню для того, чтобы показать иконку опций авторавертывания таблиц
 		 * @constructor
@@ -2653,6 +2659,15 @@
 		asc_CAutoCorrectOptions.prototype.asc_getType = function () {return this.type;};
 		asc_CAutoCorrectOptions.prototype.asc_getOptions = function () {return this.options;};
 		asc_CAutoCorrectOptions.prototype.asc_getCellCoord = function () {return this.cellCoord;};
+
+		function CEditorEnterOptions() {
+			this.cursorPos = null;
+			this.eventPos = null;
+			this.focus = false;
+			this.newText = null;
+			this.hideCursor = false;
+			this.quickInput = false;
+		}
 
 		/** @constructor */
 		function cDate() {
@@ -2813,10 +2828,10 @@
 		window['AscCommonExcel'].c_sPerDay = c_sPerDay;
 		window['AscCommonExcel'].c_msPerDay = c_msPerDay;
 		window["AscCommonExcel"].applyFunction = applyFunction;
-		window['AscCommonExcel'].cDate = cDate;
-		window["Asc"]["cDate"] = window["Asc"].cDate = cDate;
-		prot									     = cDate.prototype;
-		prot["getExcelDateWithTime"]	             = prot.getExcelDateWithTime;
+
+		window["Asc"]["cDate"] = window["Asc"].cDate = window['AscCommonExcel'].cDate = cDate;
+		prot = cDate.prototype;
+		prot["getExcelDateWithTime"] = prot.getExcelDateWithTime;
 
 		window["Asc"].typeOf = typeOf;
 		window["Asc"].lastIndexOf = lastIndexOf;
@@ -2966,15 +2981,12 @@
 		prot["asc_getSeparator"] = prot.asc_getSeparator;
 		prot["asc_getSymbol"] = prot.asc_getSymbol;
 
-		window["AscCommonExcel"]["asc_CSelectionRangeValue"] = window["AscCommonExcel"].asc_CSelectionRangeValue = asc_CSelectionRangeValue;
-		prot = asc_CSelectionRangeValue.prototype;
-		prot["asc_getType"] = prot.asc_getType;
-		prot["asc_getName"] = prot.asc_getName;
-
 		window["Asc"]["asc_CAutoCorrectOptions"] = window["Asc"].asc_CAutoCorrectOptions = asc_CAutoCorrectOptions;
 		prot = asc_CAutoCorrectOptions.prototype;
 		prot["asc_getType"] = prot.asc_getType;
 		prot["asc_getOptions"] = prot.asc_getOptions;
 		prot["asc_getCellCoord"] = prot.asc_getCellCoord;
+
+		window['AscCommonExcel'].CEditorEnterOptions = CEditorEnterOptions;
 
 })(window);

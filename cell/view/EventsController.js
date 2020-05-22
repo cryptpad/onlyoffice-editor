@@ -83,7 +83,6 @@
 			this.hasCursor = false;
 			this.hasFocus = false;
 			this.skipKeyPress = undefined;
-			this.strictClose = false;
 			this.lastKeyCode = undefined;
 			this.targetInfo = undefined;
 			this.isResizeMode = false;
@@ -93,10 +92,6 @@
 			this.isFillHandleMode = false;
 			this.isMoveRangeMode = false;
 			this.isMoveResizeRange = false;
-			// Режим select-а для диалогов
-			this.isSelectionDialogMode = false;
-			// Режим формулы
-			this.isFormulaEditMode = false;
 			// Режим установки закреплённых областей
 			this.frozenAnchorMode = false;
 			
@@ -222,30 +217,30 @@
 
 		/** @return {Boolean} */
 		asc_CEventsController.prototype.canEdit = function () {
-			return this.handlers.trigger('canEdit');
+			return this.view.canEdit();
 		};
 
 		/** @return {Boolean} */
 		asc_CEventsController.prototype.getCellEditMode = function () {
-			return this.handlers.trigger('getCellEditMode');
+			return this.view.isCellEditMode;
 		};
 
 		asc_CEventsController.prototype.setFocus = function (hasFocus) {
 			this.hasFocus = !!hasFocus;
 		};
 
-		asc_CEventsController.prototype.setStrictClose = function (enabled) {
-			this.strictClose = !!enabled;
+		asc_CEventsController.prototype.gotFocus = function (hasFocus) {
+			this.setFocus(hasFocus);
+			this.handlers.trigger('gotFocus', this.hasFocus);
 		};
 
-		/** @param isFormulaEditMode {Boolean} */
-		asc_CEventsController.prototype.setFormulaEditMode = function (isFormulaEditMode) {
-			this.isFormulaEditMode = !!isFormulaEditMode;
+		/** @return {Boolean} */
+		asc_CEventsController.prototype.getFormulaEditMode = function () {
+			return this.view.isFormulaEditMode;
 		};
 
-		/** @param {Boolean} isSelectionDialogMode */
-		asc_CEventsController.prototype.setSelectionDialogMode = function (isSelectionDialogMode) {
-			this.isSelectionDialogMode = isSelectionDialogMode;
+		asc_CEventsController.prototype.getSelectionDialogMode = function () {
+			return this.view.selectionDialogMode;
 		};
 
 		asc_CEventsController.prototype.reinitScrollX = function (pos, max, max2) {
@@ -302,12 +297,12 @@
 		};
 
 		// Будем делать dblClick как в Excel
-		asc_CEventsController.prototype.doMouseDblClick = function (event, isHideCursor) {
+		asc_CEventsController.prototype.doMouseDblClick = function (event) {
 			var t = this;
 			var ctrlKey = !AscCommon.getAltGr(event) && (event.metaKey || event.ctrlKey);
 
 			// Для формулы не нужно выходить из редактирования ячейки
-			if (t.isFormulaEditMode || t.isSelectionDialogMode) {return true;}
+			if (this.getFormulaEditMode() || this.getSelectionDialogMode()) {return true;}
 
 			if (this.targetInfo && (this.targetInfo.target === AscCommonExcel.c_oTargetType.GroupRow ||
 				this.targetInfo.target === AscCommonExcel.c_oTargetType.GroupCol)) {
@@ -329,7 +324,7 @@
 
 			setTimeout(function () {
 				var coord = t._getCoordinates(event);
-				t.handlers.trigger("mouseDblClick", coord.x, coord.y, isHideCursor, function () {
+				t.handlers.trigger("mouseDblClick", coord.x, coord.y, event, function () {
 					// Мы изменяли размеры колонки/строки, не редактируем ячейку. Обновим состояние курсора
 					t.handlers.trigger("updateWorksheet", coord.x, coord.y, ctrlKey,
 						function (info) {t.targetInfo = info;});
@@ -437,24 +432,9 @@
 			var t = this;
 			var coord = this._getCoordinates(event);
 
-			if (t.isFormulaEditMode) {
-				// для определения рэнджа под курсором и активизации его для WorksheetView
-				if (false === t.handlers.trigger("canEnterCellRange")) {
-					if (!t.handlers.trigger("stopCellEditing")) {return;}
-				}
-			}
-
 			this.handlers.trigger("changeSelection", /*isStartPoint*/false, coord.x, coord.y, /*isCoord*/true, false,
 				function (d) {
 					t.scroll(d);
-
-					if (t.isFormulaEditMode) {
-						t.handlers.trigger("enterCellRange");
-					} else if (t.getCellEditMode()) {
-						if (!t.handlers.trigger("stopCellEditing")) {
-							return;
-						}
-					}
 
 					asc_applyFunction(callback);
 				});
@@ -655,7 +635,6 @@
 		};
 
 		asc_CEventsController.prototype._groupRowClick = function (event, target) {
-			var t = this;
 			// Обновляемся в режиме перемещения диапазона
 			var coord = this._getCoordinates(event);
 			return this.handlers.trigger("groupRowClick", coord.x, coord.y, target, event.type);
@@ -663,8 +642,7 @@
 
 		asc_CEventsController.prototype._commentCellClick = function (event) {
 			// ToDo delete this function!
-			var t = this;
-			var coord = t._getCoordinates(event);
+			var coord = this._getCoordinates(event);
 			this.handlers.trigger("commentCellClick", coord.x, coord.y);
 		};
 
@@ -675,9 +653,9 @@
 			this.handlers.trigger("moveRangeHandleDone", ctrlKey);
 		};
 
-		asc_CEventsController.prototype._moveResizeRangeHandleDone = function (event, target) {
+		asc_CEventsController.prototype._moveResizeRangeHandleDone = function () {
 			// Закончили перемещение диапазона, пересчитаем
-			this.handlers.trigger("moveResizeRangeHandleDone", target);
+			this.handlers.trigger("moveResizeRangeHandleDone");
 		};
 
 		/** @param event {jQuery.Event} */
@@ -689,9 +667,11 @@
 
 		/** @param event {KeyboardEvent} */
 		asc_CEventsController.prototype._onWindowKeyDown = function (event) {
-			var t = this, dc = 0, dr = 0, canEdit = this.canEdit(), action = false;
+			var t = this, dc = 0, dr = 0, canEdit = this.canEdit(), action = false, enterOptions;
 			var ctrlKey = !AscCommon.getAltGr(event) && (event.metaKey || event.ctrlKey);
 			var shiftKey = event.shiftKey;
+			var selectionDialogMode = this.getSelectionDialogMode();
+			var isFormulaEditMode = this.getFormulaEditMode();
 
 			var result = true;
 
@@ -721,13 +701,6 @@
 
 			while (t.getCellEditMode() && !t.hasFocus || !t.enableKeyEvents || t.isSelectMode ||
 			t.isFillHandleMode || t.isMoveRangeMode || t.isMoveResizeRange) {
-
-				if (t.getCellEditMode() && !t.strictClose && t.enableKeyEvents && event.which >= 37 &&
-					event.which <= 40) {
-					// обрабатываем нажатие клавиш со стрелками, если редактор открыт не по F2 и включены эвенты
-					break;
-				}
-
 				// Почему-то очень хочется обрабатывать лишние условия в нашем коде, вместо обработки наверху...
 				if (!t.enableKeyEvents && ctrlKey && (80 === event.which/* || 83 === event.which*/)) {
 					// Только если отключены эвенты и нажаты Ctrl+S или Ctrl+P мы их обработаем
@@ -743,7 +716,7 @@
 				case 82:
 					if (ctrlKey && shiftKey) {
 						stop();
-						if (canEdit && !t.getCellEditMode() && !t.isSelectionDialogMode) {
+						if (canEdit && !t.getCellEditMode() && !selectionDialogMode) {
 							t.handlers.trigger("changeFormatTableInfo");
 						}
 						return result;
@@ -766,45 +739,48 @@
 					return result;
 
 				case 113: // F2
-					if (!canEdit || t.getCellEditMode() || t.isSelectionDialogMode) {
+					if (!canEdit || t.getCellEditMode() || selectionDialogMode) {
 						return true;
 					}
 					if (AscBrowser.isOpera) {
 						stop();
 					}
-					// Выставляем блокировку на выход из редактора по клавишам-стрелкам
-					t.strictClose = true;
 					// При F2 выставляем фокус в редакторе
-					t.handlers.trigger("editCell", /*isFocus*/true, /*isClearCell*/false, /*isHideCursor*/undefined,
-						/*isQuickInput*/false);
+					enterOptions = new AscCommonExcel.CEditorEnterOptions();
+					enterOptions.focus = true;
+					t.handlers.trigger("editCell", enterOptions);
 					return result;
 
 				case 186: // add current date or time Ctrl + (Shift) + ;
-					if (!canEdit || t.getCellEditMode() || t.isSelectionDialogMode) {
+					if (!canEdit || t.getCellEditMode() || selectionDialogMode) {
 						return true;
 					}
 					if (ctrlKey) {
 						// При нажатии символа, фокус не ставим. Очищаем содержимое ячейки
-						this.handlers.trigger("editCell", /*isFocus*/false, /*isClearCell*/true, /*isHideCursor*/undefined,
-							/*isQuickInput*/true, /*callback*/undefined);
+						enterOptions = new AscCommonExcel.CEditorEnterOptions();
+						enterOptions.newText = '';
+						enterOptions.quickInput = true;
+						this.handlers.trigger("editCell", enterOptions);
 						return result;
 					}
 					t.skipKeyPress = false;
 					return true;
 
+
 				case 8: // backspace
-					if (!canEdit || t.getCellEditMode() || t.isSelectionDialogMode) {
+					if (!canEdit || t.getCellEditMode() || selectionDialogMode) {
 						return true;
 					}
 					stop();
 
 					// При backspace фокус не в редакторе (стираем содержимое)
-					t.handlers.trigger("editCell", /*isFocus*/false, /*isClearCell*/true, /*isHideCursor*/undefined,
-						/*isQuickInput*/false, /*callback*/undefined);
+					enterOptions = new AscCommonExcel.CEditorEnterOptions();
+					enterOptions.newText = '';
+					t.handlers.trigger("editCell", enterOptions);
 					return true;
 
 				case 46: // Del
-					if (!canEdit || this.getCellEditMode() || this.isSelectionDialogMode || shiftKey) {
+					if (!canEdit || this.getCellEditMode() || selectionDialogMode || shiftKey) {
 						return true;
 					}
 					// Удаляем содержимое
@@ -812,7 +788,7 @@
 					return result;
 
 				case 9: // tab
-					if (t.getCellEditMode() || t.isSelectionDialogMode) {
+					if (t.getCellEditMode() || selectionDialogMode) {
 						return true;
 					}
 					// Отключим стандартную обработку браузера нажатия tab
@@ -829,7 +805,7 @@
 					break;
 
 				case 13:  // "enter"
-					if (t.getCellEditMode() || t.isSelectionDialogMode) {
+					if (t.getCellEditMode() || selectionDialogMode) {
 						return true;
 					}
 					// Особый случай (возможно движение в выделенной области)
@@ -924,7 +900,7 @@
 				case 40: // down
 					stop();                          // Отключим стандартную обработку браузера нажатия down
 					// Обработка Alt + down
-					if (canEdit && !t.getCellEditMode() && !t.isSelectionDialogMode && event.altKey) {
+					if (canEdit && !t.getCellEditMode() && !selectionDialogMode && event.altKey) {
 						t.handlers.trigger("showAutoComplete");
 						return result;
 					}
@@ -933,7 +909,7 @@
 
 				case 36: // home
 					stop();                          // Отключим стандартную обработку браузера нажатия home
-					if (t.isFormulaEditMode) {
+					if (isFormulaEditMode) {
 						break;
 					}
 					dc = -2.5;
@@ -944,7 +920,7 @@
 
 				case 35: // end
 					stop();                          // Отключим стандартную обработку браузера нажатия end
-					if (t.isFormulaEditMode) {
+					if (isFormulaEditMode) {
 						break;
 					}
 					dc = 2.5;
@@ -964,13 +940,13 @@
 				//case 83: // save					Ctrl + s
 				case 85:  // make underline			Ctrl + u
 				case 192: // set general format 	Ctrl + Shift + ~
-					if (!canEdit || t.isSelectionDialogMode) {
+					if (!canEdit || selectionDialogMode) {
 						return true;
 					}
 
 				case 89:  // redo					Ctrl + y
 				case 90:  // undo					Ctrl + z
-					if (!(canEdit || t.handlers.trigger('isRestrictionComments'))|| t.isSelectionDialogMode) {
+					if (!(canEdit || t.handlers.trigger('isRestrictionComments'))|| selectionDialogMode) {
 						return true;
 					}
 
@@ -1074,7 +1050,7 @@
 
 				case 61:  // Firefox, Opera (+/=)
 				case 187: // +/=
-					if (!canEdit || t.getCellEditMode() || t.isSelectionDialogMode) {
+					if (!canEdit || t.getCellEditMode() || selectionDialogMode) {
 						return true;
 					}
 
@@ -1107,29 +1083,8 @@
 						t.scroll(d);
 					});
 				} else {
-					if (this.getCellEditMode() && !this.isFormulaEditMode) {
-						if (!t.handlers.trigger("stopCellEditing")) {
-							return true;
-						}
-					}
-
-					if (t.isFormulaEditMode) {
-						// для определения рэнджа под курсором и активизации его для WorksheetView
-						if (false === t.handlers.trigger("canEnterCellRange")) {
-							if (!t.handlers.trigger("stopCellEditing")) {
-								return true;
-							}
-						}
-					}
-
 					t.handlers.trigger("changeSelection", /*isStartPoint*/!shiftKey, dc, dr, /*isCoord*/false, false,
 						function (d) {
-							if (t.isFormulaEditMode) {
-								t.handlers.trigger("enterCellRange");
-							} else if (t.getCellEditMode()) {
-								t.handlers.trigger("stopCellEditing");
-							}
-
 							var wb = window["Asc"]["editor"].wb;
 							if (t.targetInfo) {
 								wb._onUpdateWorksheet(t.targetInfo.coordX, t.targetInfo.coordY, false);
@@ -1152,7 +1107,7 @@
 			// не вводим текст в режиме просмотра
 			// если в FF возвращать false, то отменяется дальнейшая обработка серии keydown -> keypress -> keyup
 			// и тогда у нас не будут обрабатываться ctrl+c и т.п. события
-			if (!this.canEdit() || this.isSelectionDialogMode) {
+			if (!this.canEdit() || this.getSelectionDialogMode()) {
 				return true;
 			}
 
@@ -1171,15 +1126,16 @@
 				return true;
 			}
 
-			if (!this.getCellEditMode() && this.handlers.trigger("graphicObjectWindowKeyPress", event)) {
-				return true;
-			}
-
 			if (!this.getCellEditMode()) {
-				// При нажатии символа, фокус не ставим
-				// Очищаем содержимое ячейки
-				this.handlers.trigger("editCell", /*isFocus*/false, /*isClearCell*/true, /*isHideCursor*/undefined,
-					/*isQuickInput*/true, /*callback*/undefined);
+				if (this.handlers.trigger("graphicObjectWindowKeyPress", event)) {
+					return true;
+				}
+
+				// При нажатии символа, фокус не ставим и очищаем содержимое ячейки
+				var enterOptions = new AscCommonExcel.CEditorEnterOptions();
+				enterOptions.newText = '';
+				enterOptions.quickInput = true;
+				this.handlers.trigger("editCell", enterOptions);
 			}
 			return true;
 		};
@@ -1286,7 +1242,7 @@
 
 			if (this.isMoveResizeRange) {
 				this.isMoveResizeRange = false;
-				this.handlers.trigger("moveResizeRangeHandleDone", this.targetInfo);
+				this.handlers.trigger("moveResizeRangeHandleDone");
 			}
 			// Режим установки закреплённых областей
 			if (this.frozenAnchorMode) {
@@ -1368,7 +1324,7 @@
 
 			if (asc["editor"].isStartAddShape || graphicsInfo) {
 				// При выборе диапазона не нужно выделять автофигуру
-				if (t.isSelectionDialogMode) {
+				if (this.getSelectionDialogMode()) {
 					return;
 				}
 
@@ -1404,7 +1360,7 @@
 					this.isDblClickInMouseDown = true;
 					// Нам нужно обработать эвент браузера о dblClick (если мы редактируем ячейку, то покажем курсор, если нет - то просто ничего не произойдет)
 					this.isDoBrowserDblClick = true;
-					this.doMouseDblClick(event, /*isHideCursor*/false);
+					this.doMouseDblClick(event);
 					// Обнуляем координаты
 					this.mouseDownLastCord = null;
 					return;
@@ -1422,8 +1378,8 @@
 			// Запоминаем координаты нажатия
 			this.mouseDownLastCord = coord;
 
-			t.hasFocus = true;
 			if (!t.getCellEditMode()) {
+				this.gotFocus(true);
 				if (event.shiftKey) {
 					t.isSelectMode = true;
 					t._changeSelection(event);
@@ -1486,45 +1442,30 @@
 					}
 				}
 			} else {
-				if (!t.isFormulaEditMode) {
-					if (!t.handlers.trigger("stopCellEditing")) {
+				if (this.getFormulaEditMode()) {
+					if (this.targetInfo && this.targetInfo.target === c_oTargetType.MoveResizeRange) {
+						this.isMoveResizeRange = true;
+						this._moveResizeRangeHandle(event, this.targetInfo);
+						return;
+					} else if (this.targetInfo && this.targetInfo.target === c_oTargetType.FillHandle) {
+						return;
+					}
+
+					if (2 === button) {
 						return;
 					}
 				} else {
-					if (event.shiftKey) {
-						t.isSelectMode = true;
-						t._changeSelection(event);
-						return;
-					} else {
-						if (t.isFormulaEditMode) {
-							// !!! в зависимости от цели делаем разные действия - либо селектим область либо мувим существующий диапазон
-							if (t.targetInfo && t.targetInfo.target === c_oTargetType.MoveResizeRange &&
-								this.canEdit()) {
-								this.isMoveResizeRange = true;
-								t._moveResizeRangeHandle(event, t.targetInfo);
-								return;
-							} else if (false === t.handlers.trigger("canEnterCellRange")) {
-								// для определения рэнджа под курсором и активизации его для WorksheetView
-								if (!t.handlers.trigger("stopCellEditing")) {
-									return;
-								}
-							}
-						}
-						t.isSelectMode = true;
-						t.handlers.trigger("changeSelection", /*isStartPoint*/true, coord.x, coord.y, /*isCoord*/true,
-							ctrlKey, function (d) {
-								t.scroll(d);
-
-								if (t.isFormulaEditMode) {
-									t.handlers.trigger("enterCellRange");
-								} else if (t.getCellEditMode()) {
-									if (!t.handlers.trigger("stopCellEditing")) {
-										return;
-									}
-								}
-							});
+					if (!this.handlers.trigger("stopCellEditing")) {
 						return;
 					}
+				}
+
+				this.gotFocus(true);
+
+				if (event.shiftKey) {
+					this.isSelectMode = true;
+					this._changeSelection(event);
+					return;
 				}
 			}
 
@@ -1601,7 +1542,7 @@
 
 			if (this.isMoveResizeRange) {
 				this.isMoveResizeRange = false;
-				this._moveResizeRangeHandleDone(event, this.targetInfo);
+				this._moveResizeRangeHandleDone();
 				return true;
 			}
 			// Режим установки закреплённых областей
@@ -1785,7 +1726,7 @@
 
 			// Браузер не поддерживает свойство detail (будем делать по координатам)
 			if (false === this.isDblClickInMouseDown) {
-				return this.doMouseDblClick(event, /*isHideCursor*/false);
+				return this.doMouseDblClick(event);
 			}
 
 			this.isDblClickInMouseDown = false;

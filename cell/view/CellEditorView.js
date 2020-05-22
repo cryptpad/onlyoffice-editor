@@ -159,7 +159,7 @@
 		this.sAutoComplete = null;
 
 		/** @type RegExp */
-		this.rangeChars = ["=", "-", "+", "*", "/", "(", "{", ",", "<", ">", "^", "!", "&", ":", ";", " "];
+		this.rangeChars = ["=", "-", "+", "*", "/", "(", "{", "<", ">", "^", "!", "&", ":", " ", "."];
 		this.reNotFormula = new XRegExp( "[^\\p{L}\\\\_\\]\\[\\p{N}\\.]", "i" );
 		this.reFormula = new XRegExp( "^([\\p{L}\\\\_\\]\\[][\\p{L}\\\\_\\]\\[\\p{N}\\.]*)", "i" );
 
@@ -173,6 +173,9 @@
 
 		this._formula = null;
 		this._parseResult = null;
+		this.needFindFirstFunction = null;
+		this.lastRangePos = null;
+		this.lastRangeLength = null;
 
 		// Обработчик кликов
 		this.clickCounter = new AscFormat.ClickCounter();
@@ -280,6 +283,8 @@
 	 *   saveValueCallback
 	 */
 	CellEditor.prototype.open = function (options) {
+		this._setEditorState(c_oAscCellEditorState.editStart);
+
 		var b = this.input.selectionStart;
 
 		this.isOpened = true;
@@ -288,33 +293,37 @@
 			window.addEventListener("mousemove", this.fKeyMouseMove, false);
 		}
 		this._setOptions(options);
+		this._cleanLastRangeInfo();
 		this._updateTopLineActive(true === this.input.isFocused);
 
-		this._updateFormulaEditMod( /*bIsOpen*/true);
+		this._updateEditorState();
 		this._draw();
 
-		if (!(options.cursorPos >= 0)) {
-			if (this.isTopLineActive) {
-				if (typeof b !== "undefined") {
-					if (this.cursorPos !== b) {
-						this._moveCursor(kPosition, b);
-					}
-				} else {
-					this._moveCursor(kEndOfText);
-				}
-			} else if (options.isClearCell) {
-				this._selectChars(kEndOfText);
-			} else {
-				this._moveCursor(kEndOfText);
-			}
+		if (null !== options.enterOptions.newText) {
+			this._selectChars(kEndOfText);
+			this._addChars(options.enterOptions.newText);
 		}
+
+		if (this.isTopLineActive && typeof b !== "undefined") {
+			if (this.cursorPos !== b) {
+				this._moveCursor(kPosition, b);
+			}
+		} else if (options.enterOptions.cursorPos){
+			this._moveCursor(kPosition, options.enterOptions.cursorPos);
+		} else if (options.enterOptions.eventPos) {
+			this._onMouseDown(options.enterOptions.eventPos);
+			this._onMouseUp(options.enterOptions.eventPos);
+		} else {
+			this._moveCursor(kEndOfText);
+		}
+
 		/*
 		 * Выставляем фокус при открытии
 		 * При нажатии символа, фокус не ставим
 		 * При F2 выставляем фокус в редакторе
 		 * При dbl клике фокус выставляем в зависимости от наличия текста в ячейке
 		 */
-		this.setFocus(this.isTopLineActive ? true : (undefined !== options.focus) ? options.focus : this._haveTextInEdit());
+		this.setFocus(this.isTopLineActive ? true : (null === options.enterOptions.focus) ? this._haveTextInEdit() : options.enterOptions.focus);
 		this._updateUndoRedoChanged();
 	};
 
@@ -324,7 +333,8 @@
 
 		var localSaveValueCallback = function(isSuccess) {
 			if(!isSuccess) {
-				t.handlers.trigger('setStrictClose', true);
+				t.setFocus(true);
+				t.cleanSelectRange();
 				if(callback) {
 					callback(false);
 				}
@@ -342,9 +352,9 @@
 					window.removeEventListener("mousemove", t.fKeyMouseMove, false);
 				}
 				t.input.blur();
-				t.isTopLineActive = false;
+				t._updateTopLineActive(false);
 				t.input.isFocused = false;
-				t._hideCursor();
+				t._updateCursor();
 				// hide
 				t._hideCanvas();
 			}
@@ -353,7 +363,7 @@
 			t.objAutoComplete = {};
 
 			// Сброс состояния редактора
-			t.m_nEditorState = c_oAscCellEditorState.editEnd;
+			t._setEditorState(c_oAscCellEditorState.editEnd);
 			t.handlers.trigger("closed");
 
 			if(callback) {
@@ -393,7 +403,7 @@
 			this.input.blur();
 			this._updateTopLineActive(false);
 			this.input.isFocused = false;
-			this._hideCursor();
+			this._updateCursor();
 			// hide
 			this._hideCanvas();
 		}
@@ -402,7 +412,7 @@
 		this.objAutoComplete = {};
 
 		// Сброс состояния редактора
-		this.m_nEditorState = c_oAscCellEditorState.editEnd;
+		this._setEditorState(c_oAscCellEditorState.editEnd);
 		this.handlers.trigger("closed");
 		if(callback) {
 			callback(true);
@@ -494,45 +504,90 @@
 	};
 
 	CellEditor.prototype.canEnterCellRange = function () {
-		var fR = this._findRangeUnderCursor();
-		var isRange = (fR.range !== null && !fR.range.isName);
-		var prevChar = this.textRender.getChars(this.cursorPos - 1, 1);
-		return isRange || this.rangeChars.indexOf(prevChar) >= 0;
-	};
-
-	CellEditor.prototype.activateCellRange = function () {
-		var res = this._findRangeUnderCursor();
-
-		res.range ? this.handlers.trigger("existedRange", res.range, res.wsName) : this.handlers.trigger("newRange");
-	};
-
-	CellEditor.prototype.enterCellRange = function (rangeStr) {
-		var res = this._findRangeUnderCursor();
-
-		if (res.range) {
-			this._moveCursor(kPosition, res.index);
-			this._selectChars(kPosition, res.index + res.length);
+		if (this.lastRangePos !== null || this.handlers.trigger('getWizard')) {
+			return true;
 		}
 
-		var lastAction = this.undoList.length > 0 ? this.undoList[this.undoList.length - 1] : null;
-
-		while (lastAction && lastAction.isRange) {
-			this.undoList.pop();
-			lastAction = this.undoList.length > 0 ? this.undoList[this.undoList.length - 1] : null;
+		var res = false;
+		var isSelection = this.selectionBegin !== this.selectionEnd;
+		var curPos = isSelection ? (this.selectionBegin < this.selectionEnd ? this.selectionBegin : this.selectionEnd) : this.cursorPos;
+		var prevChar = this.textRender.getChars(curPos - 1, 1);
+		if (this.checkSymbolBeforeRange(prevChar)) {
+			this.lastRangePos = curPos;
+			if (isSelection) {
+				this.lastRangeLength = Math.abs(this.selectionEnd - this.selectionBegin);
+			}
+			res = true;
 		}
+		
+		return res;
+	};
 
-		var tmp = this.skipTLUpdate;
+	CellEditor.prototype.checkSymbolBeforeRange = function (char) {
+		return this.rangeChars.indexOf(char) >= 0 || char === AscCommon.FormulaSeparators.functionArgumentSeparator;
+	};
+
+	CellEditor.prototype.changeCellRange = function (range, moveEndOfText) {
 		this.skipTLUpdate = false;
-		this._addChars(rangeStr, undefined, /*isRange*/true);
-		this.skipTLUpdate = tmp;
+		this._moveCursor(kPosition, range.cursorePos);
+		this._selectChars(kPositionLength, range.formulaRangeLength);
+		this._addChars(range.getName(), undefined, /*isRange*/true);
+		if (moveEndOfText) {
+			this._moveCursor(kEndOfText);
+		}
+		this.skipTLUpdate = true;
 	};
 
-	CellEditor.prototype.changeCellRange = function (range) {
-		var t = this;
-		t._moveCursor(kPosition, range.cursorePos/* -length */);
-		t._selectChars(kPositionLength, range.formulaRangeLength);
-		t._addChars(range.getName(), undefined, /*isRange*/true);
-		t._moveCursor(kEndOfText);
+	CellEditor.prototype.changeCellText = function (str) {
+		this.skipTLUpdate = false;
+		this._moveCursor(kPosition, this.lastRangePos);
+		if (this.lastRangeLength) {
+			this._selectChars(kPositionLength, this.lastRangeLength);
+		}
+		this._addChars(str, undefined, /*isRange*/true);
+		this.lastRangeLength = str.length;
+		this.skipTLUpdate = true;
+	};
+
+	CellEditor.prototype.insertFormula = function (functionName, isDefName) {
+		this.skipTLUpdate = false;
+
+		// ToDo check selection formula in wizard for delete
+		if (this.selectionBegin !== this.selectionEnd) {
+			this._removeChars(undefined, undefined, true);
+		}
+
+		var addText = '';
+		var text = AscCommonExcel.getFragmentsText(this.options.fragments);
+		if (!this.isFormula() && 0 === this.cursorPos) {
+			addText = '=';
+		} else if (functionName && !this.checkSymbolBeforeRange(text[this.cursorPos - 1])) {
+			addText = '+';
+		}
+
+		if (functionName) {
+			addText += functionName;
+			if (!isDefName) {
+				addText += '()';
+			}
+		}
+
+		if (addText) {
+			this._addChars(addText);
+			if (functionName && !isDefName) {
+				this._moveCursor(kPosition, this.cursorPos - 1);
+
+				// ToDo move this code to moveCursor
+				this.lastRangePos = this.cursorPos;
+				this.lastRangeLength = 0;
+			}
+		}
+
+		this.skipTLUpdate = true;
+	};
+
+	CellEditor.prototype.updateWizardMode = function (mode) {
+		this._updateCursorStyle(mode ? AscCommonExcel.kCurCells : this.defaults.cursorShape);
 	};
 
 	CellEditor.prototype.move = function () {
@@ -553,7 +608,7 @@
 			this._renderText();
 			this.topLineIndex = 0;
 			this._updateCursorPosition();
-			this._showCursor();
+			this._updateCursor();
 			this._drawSelection();
 		} else {
 			// hide
@@ -645,57 +700,25 @@
 	};
 
 	/** @param flag {Boolean} */
-	CellEditor.prototype.enableKeyEventsHandler = function ( flag ) {
+	CellEditor.prototype.enableKeyEventsHandler = function (flag) {
 		var oldValue = this.enableKeyEvents;
 		this.enableKeyEvents = !!flag;
-		if ( this.isOpened && oldValue !== this.enableKeyEvents ) {
-			this.enableKeyEvents ? this.showCursor() : this._hideCursor();
+		if (this.isOpened && oldValue !== this.enableKeyEvents) {
+			this._updateCursor();
 		}
 	};
 
-	CellEditor.prototype.isFormula = function () {
+	CellEditor.prototype._isFormula = function () {
 		var fragments = this.options.fragments;
-		return fragments && fragments.length > 0 && fragments[0].text.length > 0 && fragments[0].text.charAt( 0 ) === "=";
+		return fragments && fragments.length > 0 && fragments[0].text.length > 0 && fragments[0].text.charAt(0) === "=";
+	};
+	CellEditor.prototype.isFormula = function () {
+		return c_oAscCellEditorState.editFormula === this.m_nEditorState;
 	};
 
-	CellEditor.prototype.formulaIsOperator = function () {
-		var elem;
-		return this.isFormula() &&
-			(null !== (elem = this._parseResult.getElementByPos(this.cursorPos - 1)) && elem.type === cElementType.operator ||
-			null === elem || this._parseResult.operand_expected);
-	};
-
-	CellEditor.prototype.insertFormula = function ( functionName, isDefName ) {
-		// Проверим форула ли это
-		if ( false === this.isFormula() ) {
-			// Может это просто текста нет
-			var fragments = this.options.fragments;
-			if ( 1 === fragments.length && 0 === fragments[0].text.length ) {
-				// Это просто нет текста, добавим форумулу
-				functionName = "=" + functionName + "()";
-			}
-			else {
-				// Не смогли добавить...
-				return false;
-			}
-		}
-		else {
-			if ( !isDefName )
-			// Это уже форула, добавляем без '='
-			{
-				functionName = functionName + "()";
-			}
-		}
-
-		var tmp = this.skipTLUpdate;
-		this.skipTLUpdate = false;
-		// Вставим форумулу в текущую позицию
-		this._addChars( functionName );
-		// Меняем позицию курсора внутрь скобок
-		if ( !isDefName ) {
-			this._moveCursor( kPosition, this.cursorPos - 1 );
-		}
-		this.skipTLUpdate = tmp;
+	CellEditor.prototype._updateTextAlign = function () {
+		this.textFlags.textAlign = (this.options.flags.textAlign === AscCommon.align_Justify || this.isFormula()) ?
+			AscCommon.align_Left : this.options.flags.textAlign;
 	};
 
 	CellEditor.prototype.replaceText = function (pos, len, newText) {
@@ -710,6 +733,11 @@
 		}
 	};
 
+	CellEditor.prototype.cleanSelectRange = function () {
+		this._cleanLastRangeInfo();
+		this.handlers.trigger("cleanSelectRange");
+	};
+
 	// Private
 
 	CellEditor.prototype._setOptions = function ( options ) {
@@ -718,9 +746,7 @@
 		var u = ctx.getUnits();
 
 		this.textFlags = opt.flags.clone();
-		if ( this.textFlags.textAlign === AscCommon.align_Justify || this.isFormula() ) {
-			this.textFlags.textAlign = AscCommon.align_Left;
-		}
+		this._updateTextAlign();
 		this.textFlags.shrinkToFit = false;
 
 		this._cleanFragments( opt.fragments );
@@ -742,7 +768,7 @@
 		this.right = this.sides.r[this.sides.ri];
 		this.bottom = this.sides.b[this.sides.bi];
 
-		this.cursorPos = opt.cursorPos !== undefined ? opt.cursorPos : 0;
+		this.cursorPos = 0;
 		this.topLineIndex = 0;
 		this.selectionBegin = -1;
 		this.selectionEnd = -1;
@@ -753,6 +779,8 @@
 		this.redoList = [];
 		this.undoMode = false;
 		this.skipKeyPress = false;
+
+		this.updateWizardMode(false);
 	};
 
 	CellEditor.prototype._parseRangeStr = function (s) {
@@ -761,35 +789,25 @@
 	};
 
 	CellEditor.prototype._parseFormulaRanges = function () {
-		var s = AscCommonExcel.getFragmentsText(this.options.fragments), t = this,
-			wsOPEN = this.handlers.trigger("getCellFormulaEnterWSOpen"),
-			ws = wsOPEN ? wsOPEN.model : this.handlers.trigger("getActiveWS");
-		if (s.length < 1 || s.charAt(0) !== "=") {
-			return;
-		}
-
-		/*function cb(ref){
-		 for(var id in ref){
-		 console.log(ref[id])
-		 if(!ref[id].isRef) continue;
-
-		 range = t._parseRangeStr(ref[id].ref)
-		 if(range){
-		 ret = true;
-		 range.cursorePos = ref[id].offset;
-		 range.formulaRangeLength = ref[id].length;
-		 t.handlers.trigger("newRange", range);
-		 }
-		 }
-		 }*/
+		var s = AscCommonExcel.getFragmentsText(this.options.fragments);
+		var ws = this.handlers.trigger("getActiveWS");
 
 		var bbox = this.options.bbox;
 		this._parseResult = new AscCommonExcel.ParseResult([], []);
+		this._parseResult.cursorPos = this.needFindFirstFunction ? undefined : this.cursorPos - 1;
 		var cellWithFormula = new window['AscCommonExcel'].CCellWithFormula(ws, bbox.r1, bbox.c1);
 		this._formula = new AscCommonExcel.parserFormula(s.substr(1), cellWithFormula, ws);
 		this._formula.parse(true, true, this._parseResult, true);
+		if(this.needFindFirstFunction) {
+			this.argPosArr = this._parseResult.argPosArr;
+			this.needFindFirstFunction = null;
+		}
 
-		var r, oper, wsName = null, bboxOper, isName = false;
+		var r, oper, wsName = null, bboxOper, range, isName = false;
+
+		var oSelectionRange = new AscCommonExcel.SelectionRange(ws);
+		// ToDo change create SelectionRange
+		oSelectionRange.ranges = [];
 
 		if (this._parseResult.refPos && this._parseResult.refPos.length > 0) {
 			for (var index = 0; index < this._parseResult.refPos.length; index++) {
@@ -818,39 +836,47 @@
 					}
 				}
 				if (bboxOper) {
-					bboxOper = bboxOper.clone();
-					bboxOper.cursorePos = bboxOper.colorRangePos = r.start + 1;
-					bboxOper.formulaRangeLength = bboxOper.colorRangeLength = r.end - r.start;
-					bboxOper.isName = isName;
-					t.handlers.trigger("newRange", bboxOper, wsName);
+					if (wsName && ws && ws.getName() !== wsName) {
+						continue;
+					}
+					oSelectionRange.addRange();
+					range = oSelectionRange.getLast();
+					range.assign2(bboxOper);
+					range.cursorePos = range.colorRangePos = r.start + 1;
+					range.formulaRangeLength = r.end - r.start;
+					range.isName = isName;
 				}
 			}
 		}
+
+		this.handlers.trigger("newRanges", 0 !== oSelectionRange.ranges.length ? oSelectionRange : null);
 	};
 
 	CellEditor.prototype._findRangeUnderCursor = function () {
-		var ranges, t = this, s = t.textRender.getChars(0, t.textRender.getCharsCount()), range, arrFR = this.handlers.trigger(
-			"getFormulaRanges"), a;
+		var ranges, t = this, s = t.textRender.getChars(0, t.textRender.getCharsCount()), range, a;
+		var arrFR = this.handlers.trigger("getFormulaRanges");
 
-		for (var id = 0; id < arrFR.length; id++) {
+		if (arrFR) {
+			ranges = arrFR.ranges;
 			/*так как у нас уже есть некий массив с рейнджами, которые в формуле, то пробегаемся по ним и смотрим,
-			 * находится ли курсор в позиции над этим диапазоном, дабы не парсить всю формулу заново
-			 * необходимо чтобы парсить случаи когда используется что-то такое sumnas2:K2 - sumnas2 невалидная ссылка.
-			 * */
-			ranges = arrFR[id].ranges;
+			* находится ли курсор в позиции над этим диапазоном, дабы не парсить всю формулу заново
+			* необходимо чтобы парсить случаи когда используется что-то такое sumnas2:K2 - sumnas2 невалидная ссылка.
+			* */
 			for (var i = 0, l = ranges.length; i < l; ++i) {
 				a = ranges[i];
 				if (t.cursorPos >= a.cursorePos && t.cursorPos <= a.cursorePos + a.formulaRangeLength) {
 					range = a.clone(true);
 					range.isName = a.isName;
-					return {index: a.cursorePos, length: a.formulaRangeLength, range: range};
+					range.formulaRangeLength = a.formulaRangeLength;
+					range.cursorePos = a.cursorePos;
+					return {range: range};
 				}
 			}
 		}
 
 		/*не нашли диапазонов под курсором, парсим формулу*/
-		var r, offset, _e, _s, wsName = null, ret = false, refStr, isName = false, _sColorPos, wsOPEN = this.handlers.trigger(
-			"getCellFormulaEnterWSOpen"), ws = wsOPEN ? wsOPEN.model : this.handlers.trigger("getActiveWS"), localStrObj;
+		var r, offset, _e, _s, wsName = null, ret = false, refStr, isName = false, _sColorPos, localStrObj;
+		var ws = this.handlers.trigger("getActiveWS");
 
 		var bbox = this.options.bbox;
 		this._parseResult = new AscCommonExcel.ParseResult([], []);
@@ -869,9 +895,7 @@
 
 				switch (r.oper.type) {
 					case cElementType.cell          : {
-						if (wsOPEN) {
-							wsName = wsOPEN.model.getName();
-						}
+						wsName = ws.getName();
 						refStr = r.oper.toLocaleString();
 						ret = true;
 						break;
@@ -886,9 +910,7 @@
 						break;
 					}
 					case cElementType.cellsRange    : {
-						if (wsOPEN) {
-							wsName = wsOPEN.model.getName();
-						}
+						wsName = ws.getName();
 						refStr = r.oper.toLocaleString();
 						ret = true;
 						break;
@@ -938,37 +960,46 @@
 				if (ret && t.cursorPos > _s && t.cursorPos <= _s + refStr.length) {
 					range = t._parseRangeStr(refStr);
 					if (range) {
-						if (this.handlers.trigger("getActiveWS") && this.handlers.trigger("getActiveWS").getName() != wsName) {
-							return {index: -1, length: 0, range: null};
+						if (ws.getName() !== wsName) {
+							return {range: null};
 						}
 						range.isName = isName;
-						return {index: _s, length: refStr.length, range: range, wsName: wsName};
+						range.formulaRangeLength = refStr.length;
+						range.cursorePos = _s;
+						return {range: range, wsName: wsName};
 					}
 				}
 			}
 		}
 		range ? range.isName = isName : null;
-		return !range ? {index: -1, length: 0, range: null} :
-		{index: _s, length: r.oper.value.length, range: range, wsName: wsName};
+		range ? range.formulaRangeLength = r.oper.value.length : null;
+		range ? range.cursorePos = _s : null;
+		return !range ? {range: null} : {range: range, wsName: wsName};
 	};
 
 	CellEditor.prototype._updateTopLineActive = function (state) {
 		if (state !== this.isTopLineActive) {
 			this.isTopLineActive = state;
-			this.handlers.trigger("updateEditorState", this.isTopLineActive ? c_oAscCellEditorState.editInFormulaBar : c_oAscCellEditorState.editInCell);
+			this.handlers.trigger("updateTopLine", this.isTopLineActive ? c_oAscCellEditorState.editInFormulaBar : c_oAscCellEditorState.editInCell);
 		}
 	};
-	CellEditor.prototype._updateFormulaEditMod = function ( bIsOpen ) {
-		if(this.getMenuEditorMode()) {
+	CellEditor.prototype._updateEditorState = function () {
+		if (this.getMenuEditorMode()) {
 			return;
 		}
-		var isFormula = this.isFormula();
-		if ( !bIsOpen ) {
-			this._updateEditorState( isFormula );
+		var isFormula = this._isFormula();
+
+		var editorState = isFormula ? c_oAscCellEditorState.editFormula : "" === AscCommonExcel.getFragmentsText(this.options.fragments) ? c_oAscCellEditorState.editEmptyCell : c_oAscCellEditorState.editText;
+		this._setEditorState(editorState);
+
+		this.handlers.trigger("updateFormulaEditMod", isFormula);
+		if (isFormula) {
+			this._parseFormulaRanges();
 		}
-		this.handlers.trigger( "updateFormulaEditMod", isFormula );
-		this._parseFormulaRanges();
-		this.handlers.trigger( "updateFormulaEditModEnd" );
+	};
+	CellEditor.prototype._cleanLastRangeInfo = function () {
+		this.lastRangeLength = null;
+		this.lastRangePos = null;
 	};
 
 	// Обновляем состояние Undo/Redo
@@ -981,23 +1012,18 @@
 		return fragments.length > 0 && fragments[0].text.length > 0;
 	};
 
-	CellEditor.prototype._updateEditorState = function ( isFormula ) {
-		if ( undefined === isFormula ) {
-			isFormula = this.isFormula();
-		}
-		var editorState = isFormula ? c_oAscCellEditorState.editFormula : "" === AscCommonExcel.getFragmentsText( this.options.fragments ) ? c_oAscCellEditorState.editEmptyCell : c_oAscCellEditorState.editText;
-
-		if ( this.m_nEditorState !== editorState ) {
+	CellEditor.prototype._setEditorState = function (editorState) {
+		if (this.m_nEditorState !== editorState) {
 			this.m_nEditorState = editorState;
-			this.handlers.trigger( "updateEditorState", this.m_nEditorState );
+			this.handlers.trigger("updateEditorState", this.m_nEditorState);
 		}
 	};
 
 	CellEditor.prototype._getRenderFragments = function () {
-		var opt = this.options, fragments = opt.fragments, ranges, i, j, k, l, first, last, val, lengthColors, tmpColors, colorIndex, uniqueColorIndex;
+		var opt = this.options, fragments = opt.fragments, i, k, l, first, last, val, lengthColors, tmpColors, colorIndex, uniqueColorIndex;
 		if (this.isFormula()) {
-			var arrRanges = this.handlers.trigger("getFormulaRanges");
-			if (0 < arrRanges.length) {
+			var ranges = this.handlers.trigger("getFormulaRanges");
+			if (ranges) {
 				fragments = [];
 				for (i = 0; i < opt.fragments.length; ++i) {
 					fragments.push(opt.fragments[i].clone());
@@ -1006,23 +1032,21 @@
 				lengthColors = AscCommonExcel.c_oAscFormulaRangeBorderColor.length;
 				tmpColors = [];
 				uniqueColorIndex = 0;
-				for (i = 0; i < arrRanges.length; ++i) {
-					ranges = arrRanges[i].ranges;
-					for (j = 0, l = ranges.length; j < l; ++j) {
-						val = ranges[j];
-						colorIndex = asc.getUniqueRangeColor(ranges, j, tmpColors);
-						if (null == colorIndex) {
-							colorIndex = uniqueColorIndex++;
-						}
-						tmpColors.push(colorIndex);
+				ranges = ranges.ranges;
+				for (i = 0, l = ranges.length; i < l; ++i) {
+					val = ranges[i];
+					colorIndex = asc.getUniqueRangeColor(ranges, i, tmpColors);
+					if (null == colorIndex) {
+						colorIndex = uniqueColorIndex++;
+					}
+					tmpColors.push(colorIndex);
 
-						this._extractFragments(val.colorRangePos, val.colorRangeLength, fragments);
-						first = this._findFragment(val.cursorePos, fragments);
-						last = this._findFragment(val.cursorePos + val.formulaRangeLength - 1, fragments);
-						if (first && last) {
-							for (k = first.index; k <= last.index; ++k) {
-								fragments[k].format.setColor(AscCommonExcel.c_oAscFormulaRangeBorderColor[colorIndex % lengthColors]);
-							}
+					this._extractFragments(val.cursorePos, val.formulaRangeLength, fragments);
+					first = this._findFragment(val.cursorePos, fragments);
+					last = this._findFragment(val.cursorePos + val.formulaRangeLength - 1, fragments);
+					if (first && last) {
+						for (k = first.index; k <= last.index; ++k) {
+							fragments[k].format.setColor(AscCommonExcel.c_oAscFormulaRangeBorderColor[colorIndex % lengthColors]);
 						}
 					}
 				}
@@ -1041,15 +1065,15 @@
 		this._adjustCanvas();
 		this._showCanvas();
 		this._renderText();
-		if(!this.getMenuEditorMode()) {
+		if (!this.getMenuEditorMode()) {
 			this.input.value = AscCommonExcel.getFragmentsText((this.options.fragments));
 		}
 		this._updateCursorPosition();
-		this._showCursor();
+		this._updateCursor();
 	};
 
 	CellEditor.prototype._update = function () {
-		this._updateFormulaEditMod(/*bIsOpen*/false);
+		this._updateEditorState();
 
 		if (this._expand()) {
 			this._adjustCanvas();
@@ -1061,7 +1085,7 @@
 			this._fireUpdated();
 		}
 		this._updateCursorPosition(true);
-		this._showCursor();
+		this._updateCursor();
 
 		this._updateUndoRedoChanged();
 
@@ -1105,8 +1129,7 @@
 			var isFormula = -1 === this.beginCompositePos && s.charAt(0) === "=";
 			if(isFormula) {
 				var pos = this.cursorPos;
-				var wsOPEN = this.handlers.trigger("getCellFormulaEnterWSOpen");
-				var ws = wsOPEN ? wsOPEN.model : this.handlers.trigger("getActiveWS");
+				var ws = this.handlers.trigger("getActiveWS");
 				var bbox = this.options.bbox;
 
 				var endPos = pos;
@@ -1166,6 +1189,7 @@
 			bottom = this.bottom;
 			this.bottom = this.sides.b[this.sides.bi];
 
+			this._updateTextAlign();
 			tm = this.textRender.measureString(fragments, this.textFlags, this._getContentWidth());
 
 			if (!this.textFlags.wrapText && !this.textFlags.wrapOnlyCE) {
@@ -1367,39 +1391,41 @@
 
 	// Cursor
 
-	CellEditor.prototype.showCursor = function () {
-		if ( window['IS_NATIVE_EDITOR'] ) {
-			return;
-		}
+    CellEditor.prototype._updateCursorStyle = function (cursor) {
+        var newHtmlCursor = AscCommon.g_oHtmlCursor.value(cursor);
+        if (this.canvasOverlay.style.cursor !== newHtmlCursor) {
+            this.canvasOverlay.style.cursor = newHtmlCursor;
+        }
+    };
 
-		if ( !this.options ) {
-			this.options = {};
-		}
-		this.options.isHideCursor = false;
-		this._showCursor();
-	};
-
-	CellEditor.prototype._showCursor = function () {
-		if ( window['IS_NATIVE_EDITOR'] ) {
-			return;
-		}
-
-		var t = this;
-		if ( true === t.options.isHideCursor || t.isTopLineActive === true ) {
-			return;
-		}
-		window.clearInterval( t.cursorTID );
-		t.cursorStyle.display = "block";
-		t.cursorTID = window.setInterval( function () {
-			t.cursorStyle.display = ("none" === t.cursorStyle.display) ? "block" : "none";
-		}, t.defaults.blinkInterval );
-	};
-
-	CellEditor.prototype._hideCursor = function () {
+    CellEditor.prototype._updateCursor = function () {
 		if (window['IS_NATIVE_EDITOR']) {
 			return;
 		}
 
+		if (!this.isOpened || this.options.enterOptions.hideCursor || this.isTopLineActive
+			|| !this.enableKeyEvents || this.handlers.trigger('getWizard')) {
+			this._hideCursor();
+		} else {
+			this._showCursor();
+		}
+	};
+
+	CellEditor.prototype.showCursor = function () {
+		this.options.enterOptions.hideCursor = false;
+		this._updateCursor();
+	};
+
+	CellEditor.prototype._showCursor = function () {
+		var t = this;
+		window.clearInterval(t.cursorTID);
+		t.cursorStyle.display = "block";
+		t.cursorTID = window.setInterval(function () {
+			t.cursorStyle.display = ("none" === t.cursorStyle.display) ? "block" : "none";
+		}, t.defaults.blinkInterval);
+	};
+
+	CellEditor.prototype._hideCursor = function () {
 		window.clearInterval(this.cursorTID);
 		this.cursorStyle.display = "none";
 	};
@@ -1529,7 +1555,7 @@
 			t._cleanSelection();
 		}
 		t._updateCursorPosition();
-		t._showCursor();
+		t._updateCursor();
 	};
 
 	CellEditor.prototype._findCursorPosition = function ( coord ) {
@@ -1570,7 +1596,7 @@
 		this._updateTopLineActive(true);
 		this.input.isFocused = true;
 		this.setFocus(true);
-		this._hideCursor();
+		this._updateCursor();
 		this._updateTopLineCurPos();
 		this._cleanSelection();
 	};
@@ -1655,6 +1681,9 @@
 		return this._addChars(this.getTextFromCharCodes(arrCharCodes));
 	};
 	CellEditor.prototype._addChars = function (str, pos, isRange) {
+		if (!isRange) {
+			this.cleanSelectRange();
+		}
 		var length = str.length;
 		if (!this._checkMaxCellLength(length)) {
 			return false;
@@ -1719,6 +1748,10 @@
 
 	CellEditor.prototype._removeChars = function (pos, length, isRange) {
 		var t = this, opt = t.options, b, e, l, first, last;
+
+		if (!isRange) {
+			this.cleanSelectRange();
+		}
 
 		this.sAutoComplete = null;
 
@@ -2153,7 +2186,7 @@
 		var t = this, kind = undefined, hieroglyph = false;
 		var ctrlKey = !AscCommon.getAltGr(event) && (event.metaKey || event.ctrlKey);
 
-		if (!t.isOpened || (!isInput && !t.enableKeyEvents)) {
+		if (this.handlers.trigger('getWizard') || !t.isOpened || (!isInput && !t.enableKeyEvents)) {
 			return true;
 		}
 
@@ -2185,9 +2218,6 @@
 				if (window['IS_NATIVE_EDITOR']) {
 					t._addNewLine();
 				} else {
-					if (!t.hasFocus) {
-						t.setFocus(true);
-					}
 					if (!(event.altKey && event.shiftKey)) {
 						if (event.altKey) {
 							t._addNewLine();
@@ -2209,9 +2239,6 @@
 				return false;
 
 			case 9: // tab
-				if (!t.hasFocus) {
-					t.setFocus(true);
-				}
 				if (hieroglyph) {
 					t._syncEditors();
 				}
@@ -2242,9 +2269,6 @@
 					break;
 				}
 
-				if (!t.hasFocus) {
-					t.setFocus(true);
-				}
 				if (hieroglyph) {
 					t._syncEditors();
 				}
@@ -2361,9 +2385,6 @@
 
 			case 53: // 5
 				if (ctrlKey) {
-					if (!t.hasFocus) {
-						t.setFocus(true);
-					}
 					// Отключим стандартную обработку браузера нажатия ctrl + 5
 					event.stopPropagation();
 					event.preventDefault();
@@ -2393,9 +2414,6 @@
 
 			case 66: // B
 				if (ctrlKey) {
-					if (!t.hasFocus) {
-						t.setFocus(true);
-					}
 					// Отключим стандартную обработку браузера нажатия ctrl + b
 					event.stopPropagation();
 					event.preventDefault();
@@ -2409,9 +2427,6 @@
 
 			case 73: // I
 				if (ctrlKey) {
-					if (!t.hasFocus) {
-						t.setFocus(true);
-					}
 					// Отключим стандартную обработку браузера нажатия ctrl + i
 					event.stopPropagation();
 					event.preventDefault();
@@ -2425,7 +2440,6 @@
 
 			/*case 83: // S
 			 if (ctrlKey) {
-			 if (!t.hasFocus) {t.setFocus(true);}
 			 if (hieroglyph) {t._syncEditors();}
 
 			 if (false === t.handlers.trigger("isGlobalLockEditCell"))
@@ -2436,9 +2450,6 @@
 
 			case 85: // U
 				if (ctrlKey) {
-					if (!t.hasFocus) {
-						t.setFocus(true);
-					}
 					// Отключим стандартную обработку браузера нажатия ctrl + u
 					event.stopPropagation();
 					event.preventDefault();
@@ -2470,9 +2481,6 @@
 				if (ctrlKey) {
 					event.stopPropagation();
 					event.preventDefault();
-					if (!t.hasFocus) {
-						t.setFocus(true);
-					}
 					event.which === 90 ? t.undo() : t.redo();
 					return false;
 				}
@@ -2489,9 +2497,8 @@
 				var res = this._findRangeUnderCursor();
 				if (res.range) {
 					res.range.switchReference();
-					//_getNameRange - работает только для случая, когда ссылаемся на тот же лист, в противном функция _findRangeUnderCursor возвращает null
-					//если поменяется функция _findRangeUnderCursor для 3d ссылок, тогда необходимо это учитывать и в функции _getNameRange
-					this.enterCellRange(this._getNameRange(res.range));
+					// ToDo add change ref to other sheet
+					this.changeCellRange(res.range);
 				}
 
 				event.stopPropagation();
@@ -2515,25 +2522,13 @@
 		return true;
 	};
 
-	CellEditor.prototype._getNameRange = function (range) {
-		//check on merge
-		var currentRange = range.clone();
-		var wsOPEN = this.handlers.trigger("getCellFormulaEnterWSOpen"), ws = wsOPEN ? wsOPEN.model : this.handlers.trigger("getActiveWS");
-		var mergedRange = ws.getMergedByCell(currentRange.r1, currentRange.c1);
-		if (mergedRange && currentRange.isEqual(mergedRange)) {
-			currentRange.r2 = currentRange.r1;
-			currentRange.c2 = currentRange.c1;
-		}
-		return currentRange.getName();
-	};
-
 	/** @param event {KeyboardEvent} */
 	CellEditor.prototype._onWindowKeyPress = function (event) {
 		var t = this;
 
 		if (!window['IS_NATIVE_EDITOR']) {
 
-			if (!t.isOpened || !t.enableKeyEvents) {
+			if (!t.isOpened || !t.enableKeyEvents || this.handlers.trigger('getWizard')) {
 				return true;
 			}
 
@@ -2542,20 +2537,10 @@
 				return true;
 			}
 
-			// Проверим, есть ли глобальный lock
-			//if (t.handlers.trigger("isGlobalLockEditCell"))
-			//	return true;
-
-			if (!t.hasFocus) {
-				t.setFocus(true);
-			}
-
 			// определение ввода иероглифов
 			if (t.isTopLineActive && AscCommonExcel.getFragmentsLength(t.options.fragments) !== t.input.value.length) {
 				t._syncEditors();
 			}
-
-			//t.setFocus(true);
 		}
 
 		var tmpCursorPos;
@@ -2601,10 +2586,13 @@
 	};
 
 	/** @param event {MouseEvent} */
-	CellEditor.prototype._onWindowMouseUp = function ( event ) {
+	CellEditor.prototype._onWindowMouseUp = function (event) {
 		AscCommon.global_mouseEvent.UnLockMouse();
+		if (c_oAscCellEditorSelectState.no !== this.isSelectMode) {
+			this.cleanSelectRange();
+		}
 		this.isSelectMode = c_oAscCellEditorSelectState.no;
-		if ( this.callTopLineMouseup ) {
+		if (this.callTopLineMouseup) {
 			this._topLineMouseUp();
 		}
 		return true;
@@ -2620,8 +2608,12 @@
 
 	/** @param event {MouseEvent} */
 	CellEditor.prototype._onMouseDown = function (event) {
-		if (AscCommon.g_inputContext && AscCommon.g_inputContext.externalChangeFocus())
+		if (AscCommon.g_inputContext && AscCommon.g_inputContext.externalChangeFocus()) {
 			return;
+		}
+		if (this.handlers.trigger('getWizard')) {
+			return this.handlers.trigger('onMouseDown', event);
+		}
 
 		AscCommon.global_mouseEvent.LockMouse();
 
@@ -2633,7 +2625,6 @@
 		}
 
 		this.setFocus(true);
-		this.handlers.trigger('setStrictClose', true);
 
 		this._updateTopLineActive(false);
 		this.input.isFocused = false;
@@ -2642,7 +2633,7 @@
 			if (1 === this.clickCounter.getClickCount() % 2) {
 				this.isSelectMode = c_oAscCellEditorSelectState.char;
 				if (!event.shiftKey) {
-					this._showCursor();
+					this._updateCursor();
 					pos = this._findCursorPosition(coord);
 					if (pos !== undefined) {
 						pos >= 0 ? this._moveCursor(kPosition, pos) : this._moveCursor(pos);
@@ -2673,6 +2664,9 @@
 		AscCommon.global_mouseEvent.UnLockMouse();
 		if (2 === button) {
 			return true;
+		}
+		if (c_oAscCellEditorSelectState.no !== this.isSelectMode) {
+			this.cleanSelectRange();
 		}
 		this.isSelectMode = c_oAscCellEditorSelectState.no;
 		return true;

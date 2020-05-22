@@ -9624,6 +9624,43 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		return this.uniqueValues;
 	};
 
+	function CFunctionInfo(name) {
+		this.name = name;
+		this.argumentsMin = null;
+		this.argumentsMax = null;
+
+		this.argumentsValue = null;
+		this.argumentsType = null;
+		this.argumentsResult = null;
+		this.formulaResult = null;
+		this.functionResult = null;
+
+		return this;
+	}
+	CFunctionInfo.prototype.asc_getArgumentMin = function () {
+		return this.argumentsMin;
+	};
+	CFunctionInfo.prototype.asc_getArgumentMax = function () {
+		return this.argumentsMax;
+	};
+	CFunctionInfo.prototype.asc_getArgumentsValue = function () {
+		return this.argumentsValue;
+	};
+	CFunctionInfo.prototype.asc_getArgumentsType = function () {
+		return this.argumentsType;
+	};
+	CFunctionInfo.prototype.asc_getArgumentsResult = function () {
+		return this.argumentsResult;
+	};
+	CFunctionInfo.prototype.asc_getFormulaResult = function () {
+		return this.formulaResult;
+	};
+	CFunctionInfo.prototype.asc_getFunctionResult = function () {
+		return this.functionResult;
+	};
+	CFunctionInfo.prototype.asc_getName = function () {
+		return this.name;
+	};
 
 	//----------------------------------------------------------export----------------------------------------------------
 	var prot;
@@ -9945,5 +9982,16 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	prot["asc_setHasHeaders"] = prot.asc_setHasHeaders;
 	prot["asc_getDuplicateValues"] = prot.asc_getDuplicateValues;
 	prot["asc_getUniqueValues"] = prot.asc_getUniqueValues;
+
+	window["Asc"]["CFunctionInfo"] = window["Asc"].CFunctionInfo = CFunctionInfo;
+	prot = CFunctionInfo.prototype;
+	prot["asc_getArgumentMin"] = prot.asc_getArgumentMin;
+	prot["asc_getArgumentMax"] = prot.asc_getArgumentMax;
+	prot["asc_getArgumentsValue"] = prot.asc_getArgumentsValue;
+	prot["asc_getArgumentsType"] = prot.asc_getArgumentsType;
+	prot["asc_getArgumentsResult"] = prot.asc_getArgumentsResult;
+	prot["asc_getFormulaResult"] = prot.asc_getFormulaResult;
+	prot["asc_getFunctionResult"] = prot.asc_getFunctionResult;
+	prot["asc_getName"] = prot.asc_getName;
 
 })(window);

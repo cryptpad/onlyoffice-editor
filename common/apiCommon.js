@@ -844,15 +844,6 @@
 				this.aRanges.length = 0;
 			}
 		},
-		putRanges2: function(aRanges) {
-			this.aRanges.length = 0;
-
-			if(Array.isArray(aRanges)) {
-				for(var i = 0; i < aRanges.length; ++i) {
-					this.aRanges.push(aRanges[i].asc_getName());
-				}
-			}
-		},
 
 		getRanges: function() {
 			return this.aRanges;

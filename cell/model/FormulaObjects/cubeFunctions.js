@@ -39,6 +39,7 @@
 	function (window, undefined) {
 	var cBaseFunction = AscCommonExcel.cBaseFunction;
 	var cFormulaFunctionGroup = AscCommonExcel.cFormulaFunctionGroup;
+	var argType = Asc.c_oAscFormulaArgumentType;
 
 	cFormulaFunctionGroup['Cube'] = cFormulaFunctionGroup['Cube'] || [];
 	cFormulaFunctionGroup['Cube'].push(cCUBEKPIMEMBER, cCUBEMEMBER, cCUBEMEMBERPROPERTY, cCUBERANKEDMEMBER, cCUBESET,
@@ -58,6 +59,7 @@
 	cCUBEKPIMEMBER.prototype = Object.create(cBaseFunction.prototype);
 	cCUBEKPIMEMBER.prototype.constructor = cCUBEKPIMEMBER;
 	cCUBEKPIMEMBER.prototype.name = 'CUBEKPIMEMBER';
+	cCUBEKPIMEMBER.prototype.argumentsType = [argType.text, argType.text, argType.number, argType.text];
 
 	/**
 	 * @constructor
@@ -69,6 +71,7 @@
 	cCUBEMEMBER.prototype = Object.create(cBaseFunction.prototype);
 	cCUBEMEMBER.prototype.constructor = cCUBEMEMBER;
 	cCUBEMEMBER.prototype.name = 'CUBEMEMBER';
+	cCUBEMEMBER.prototype.argumentsType = [argType.text, argType.text, argType.text];
 
 	/**
 	 * @constructor
@@ -80,6 +83,7 @@
 	cCUBEMEMBERPROPERTY.prototype = Object.create(cBaseFunction.prototype);
 	cCUBEMEMBERPROPERTY.prototype.constructor = cCUBEMEMBERPROPERTY;
 	cCUBEMEMBERPROPERTY.prototype.name = 'CUBEMEMBERPROPERTY';
+	cCUBEMEMBERPROPERTY.prototype.argumentsType = [argType.text, argType.text, argType.text];
 
 	/**
 	 * @constructor
@@ -91,6 +95,7 @@
 	cCUBERANKEDMEMBER.prototype = Object.create(cBaseFunction.prototype);
 	cCUBERANKEDMEMBER.prototype.constructor = cCUBERANKEDMEMBER;
 	cCUBERANKEDMEMBER.prototype.name = 'CUBERANKEDMEMBER';
+	cCUBERANKEDMEMBER.prototype.argumentsType = [argType.text, argType.text, argType.number, argType.text];
 
 	/**
 	 * @constructor
@@ -102,6 +107,7 @@
 	cCUBESET.prototype = Object.create(cBaseFunction.prototype);
 	cCUBESET.prototype.constructor = cCUBESET;
 	cCUBESET.prototype.name = 'CUBESET';
+	cCUBESET.prototype.argumentsType = [argType.text, argType.text, argType.text, argType.number, argType.text];
 
 	/**
 	 * @constructor
@@ -113,6 +119,7 @@
 	cCUBESETCOUNT.prototype = Object.create(cBaseFunction.prototype);
 	cCUBESETCOUNT.prototype.constructor = cCUBESETCOUNT;
 	cCUBESETCOUNT.prototype.name = 'CUBESETCOUNT';
+	cCUBESETCOUNT.prototype.argumentsType = [argType.text];
 
 	/**
 	 * @constructor
@@ -124,4 +131,5 @@
 	cCUBEVALUE.prototype = Object.create(cBaseFunction.prototype);
 	cCUBEVALUE.prototype.constructor = cCUBEVALUE;
 	cCUBEVALUE.prototype.name = 'CUBEVALUE';
+	cCUBEVALUE.prototype.argumentsType = [argType.text, [argType.text]];
 })(window);

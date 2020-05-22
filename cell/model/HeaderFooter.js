@@ -879,7 +879,6 @@
 	CHeaderFooterEditor.prototype.click = function (id, x, y) {
 		var api = this.api;
 		var wb = this.wb;
-		var ws = wb.getWorksheet();
 		var t = this;
 
 		var editLockCallback = function() {
@@ -914,13 +913,11 @@
 					t.cellEditor =
 						new AscCommonExcel.CellEditor(sectionElem, wb.input, wb.fmgrGraphics, wb.m_oFont, /*handlers*/{
 							"closed": function () {
-								self._onCloseCellEditor.apply(self, arguments);
+								self.setCellEditMode(false);
 							}, "updated": function () {
 								self.Api.checkLastWork();
 								self._onUpdateCellEditor.apply(self, arguments);
-							}, /*"gotFocus": function (hasFocus) {
-							 self.controller.setFocus(!hasFocus);
-							 },*/ "updateEditorState": function (state) {
+							}, "updateEditorState": function (state) {
 								self.handlers.trigger("asc_onEditCell", state);
 							}, "updateEditorSelectionInfo": function (xfs) {
 								self.handlers.trigger("asc_onEditorSelectionChanged", xfs);
@@ -947,12 +944,9 @@
 					cSection.appendEditor(t.editorElemId);
 				}
 
-				t._openCellEditor(t.cellEditor, fragments, /*cursorPos*/undefined, false, false, /*isHideCursor*/false, /*isQuickInput*/false, x, y, sectionElem);
+				t._openCellEditor(t.cellEditor, fragments, x, y);
 				t.cellEditor.canvasOuter.style.zIndex = "";
 				cSection.canvasObj.canvas.style.display = "none";
-
-
-				wb.setCellEditMode(true);
 
 				api.asc_enableKeyEvents(true);
 			}
@@ -961,7 +955,7 @@
 		editLockCallback();
 	};
 
-	CHeaderFooterEditor.prototype._openCellEditor = function (editor, fragments, cursorPos, isFocus, isClearCell, isHideCursor, isQuickInput, x, y, sectionElem) {
+	CHeaderFooterEditor.prototype._openCellEditor = function (editor, fragments, x, y) {
 		var t = this;
 
 		var wb = this.wb;
@@ -981,19 +975,20 @@
 		flags.wrapText = true;
 		flags.textAlign = curSection.getAlign();
 
+		var enterOptions = new AscCommonExcel.CEditorEnterOptions();
+		enterOptions.focus = true;
+		if(undefined !== x && undefined !== y) {
+			enterOptions.eventPos = {pageX: x, pageY: y};
+		}
 
 		var options = {
+			enterOptions: enterOptions,
 			fragments: fragments,
 			flags: flags,
 			font: window['AscCommonExcel'].g_oDefaultFormat.Font,
 			background: ws.settings.cells.defaultState.background,
 			textColor: new window['AscCommonExcel'].RgbColor(0),
-			cursorPos: cursorPos,
 			//zoom: this.getZoom(),
-			focus: true,
-			isClearCell: isClearCell,
-			isHideCursor: isHideCursor,
-			isQuickInput: isQuickInput,
 			autoComplete: [],
 			autoCompleteLC: [],
 			saveValueCallback: function (val, flags) {
@@ -1012,29 +1007,9 @@
 			menuEditor: true
 		};
 
-		//TODO для определение позиции первого клика прадварительно выставляю опции и измеряю. Рассмотреть, если ли другой вариант?
-		editor._setOptions(options);
-		editor.textRender.measureString(fragments, flags, editor._getContentWidth());
-		editor._renderText();
-
-		//при клике на одну из секций определяем стартовую позицию
-		//если позиция undefined, ищем конец текста в данном фрагменте
-		if(undefined === x || undefined === y) {
-			cursorPos = 0;
-			if(editor.options && editor.options.fragments) {
-				for(var i = 0; i < editor.options.fragments.length; i++) {
-					cursorPos += editor.options.fragments[i].text.length;
-				}
-			}
-		} else {
-			cursorPos = editor._findCursorPosition({x: x, y: y});
-		}
-
 		wb.setCellEditMode(true);
-		options.cursorPos = cursorPos;
 		editor.open(options);
 		wb.input.disabled = false;
-		wb.handlers.trigger("asc_onEditCell", window['Asc'].c_oAscCellEditorState.editStart);
 
 		return true;
 	};

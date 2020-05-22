@@ -3426,6 +3426,8 @@
 		this.aSparklineGroups = [];
 
 		this.selectionRange = new AscCommonExcel.SelectionRange(this);
+		this.copySelection = null;
+
 		this.sheetMergedStyles = new AscCommonExcel.SheetMergedStyles();
 		this.pivotTables = [];
 		this.headerFooter = new Asc.CHeaderFooter(this);
@@ -3681,6 +3683,25 @@
 				t.workbook.dependencyFormulas.addToBuildDependencyCell(cell);
 			}
 		});
+	};
+	Worksheet.prototype.cloneSelection = function (start, selectRange) {
+		if (start) {
+			this.copySelection = this.selectionRange.clone();
+			if (selectRange) {
+				this.selectionRange.assign2(selectRange);
+			} else {
+				this.selectionRange = null;
+			}
+
+		} else {
+			if (this.copySelection) {
+				this.selectionRange = this.copySelection;
+			}
+			this.copySelection = null;
+		}
+	};
+	Worksheet.prototype.getSelection = function () {
+		return this.copySelection || this.selectionRange;
 	};
 
 	Worksheet.prototype.copyObjects = function (oNewWs) {
@@ -7710,6 +7731,123 @@
 		}
 		return null;
 	};
+	Worksheet.prototype.getActiveFunctionInfo = function (parser, parserResult, argNum, type, doNotCalcArgs) {
+
+		var createFunctionInfoByName = function (_name) {
+			var _res;
+			var f = AscCommonExcel.cFormulaFunction[_name];
+			if (f) {
+				_res = new Asc.CFunctionInfo(_name);
+				_res.argumentsMin = f.prototype.argumentsMin;
+				_res.argumentsMax = f.prototype.argumentsMax;
+				_res.argumentsType = f.prototype.argumentsType;
+			}
+			return _res;
+		};
+		var t = this;
+		var calculateFormula = function (str) {
+			var _res = null;
+			if (str !== "") {
+				var _formulaParsedArg = new AscCommonExcel.parserFormula(str, /*formulaParsed.parent*/null, t);
+				var _parseResultArg = new AscCommonExcel.ParseResult([], []);
+				_formulaParsedArg.parse(true, true, _parseResultArg, true);
+				if (!_parseResultArg.error) {
+					_res = _formulaParsedArg.calculate();
+				}
+			}
+			return _res;
+		};
+
+		var convertFormulaResultByType = function (_res) {
+			if (type === undefined || type === null) {
+				return _res.toLocaleString();
+			}
+
+			//TODO если полная проверка, то выводим ошибки - если нет, то вовзращаем пустую строку
+			var result = "";
+			if (type === Asc.c_oAscFormulaArgumentType.number) {
+				_res = _res.tocNumber();
+				if (_res) {
+					result = _res.toLocaleString();
+				}
+			}
+			return result;
+		};
+
+		var _formulaParsed, _parseResult, valueForEdit;
+		if (!parser) {
+			var activeCell = this.selectionRange.activeCell;
+			var formulaParsed;
+			this.getCell3(activeCell.row, activeCell.col)._foreachNoEmpty(function (cell) {
+				if (cell.isFormula()) {
+					formulaParsed = cell.getFormulaParsed();
+					if (formulaParsed) {
+						valueForEdit = cell.getValueForEdit();
+					}
+				}
+			});
+			_formulaParsed = new AscCommonExcel.parserFormula(valueForEdit.substr(1), /*formulaParsed.parent*/null, this);
+			_parseResult = new AscCommonExcel.ParseResult([], []);
+			_formulaParsed.parse(true, true, _parseResult, true);
+		} else {
+			_formulaParsed = parser;
+			_parseResult = parserResult;
+			valueForEdit = "=" + parser.Formula;
+		}
+
+		var res, str, calcRes;
+		if (_formulaParsed && _parseResult.activeFunction && _parseResult.activeFunction.func) {
+			res = createFunctionInfoByName(_parseResult.activeFunction.func.name);
+			if (!_parseResult.error) {
+				var _parent = _formulaParsed.parent;
+				_formulaParsed.parent = null;
+				res.formulaResult = _formulaParsed.calculate().toLocaleString();
+				_formulaParsed.parent = _parent;
+			}
+
+			//asc_getFunctionResult
+			str = valueForEdit.substring(_parseResult.activeFunction.start + 1, _parseResult.activeFunction.end + 1);
+			calcRes = calculateFormula(str);
+			if (calcRes) {
+				res.functionResult = calcRes.toLocaleString();
+			}
+
+			res._cursorPos = _parseResult.cursorPos + 1;
+			var argPosArr = _parseResult.argPosArr;
+			if (argPosArr && argPosArr.length && true !== doNotCalcArgs){
+				for (var i = 0; i < argPosArr.length; i++) {
+					if (!res.argumentsValue) {
+						res.argumentsValue = [];
+					}
+					str = valueForEdit.substring(argPosArr[i].start, argPosArr[i].end);
+					res.argumentsValue.push(str);
+					if (str !== "") {
+						if (!res.argumentsResult) {
+							res.argumentsResult = [];
+						}
+						calcRes = calculateFormula(str);
+						if (calcRes) {
+							res.argumentsResult[i] = i === argNum ? convertFormulaResultByType(calcRes) : calcRes.toLocaleString();
+						}
+					}
+				}
+			}
+		}
+
+		return res;
+	};
+
+	Worksheet.prototype.isActiveCellFormula = function () {
+		var activeCell = this.selectionRange.activeCell;
+		var res;
+		this.getCell3(activeCell.row, activeCell.col)._foreachNoEmpty(function (cell) {
+			if (cell.isFormula()) {
+				res = true;
+			}
+		});
+		return res;
+	};
+
 
 //-------------------------------------------------------------------------------------------------
 	var g_nCellOffsetFlag = 0;
