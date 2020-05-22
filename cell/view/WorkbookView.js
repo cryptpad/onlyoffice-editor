@@ -359,7 +359,7 @@
 			  }, "editCell": function () {
 				  self._onEditCell.apply(self, arguments);
 			  }, "stopCellEditing": function () {
-				  return self._onStopCellEditing.apply(self, arguments);
+				  return self.closeCellEditor.apply(self, arguments);
 			  }, "isRestrictionComments": function () {
 				  return self.Api.isRestrictionComments();
 			  }, "empty": function () {
@@ -1072,7 +1072,7 @@
   };
 
     WorkbookView.prototype._onChangeSelection = function (isStartPoint, dc, dr, isCoord, isCtrl, callback) {
-        if (!this._onStopCellEditing2()) {
+        if (!this._checkStopCellEditorInFormulas()) {
             return;
         }
 
@@ -1565,21 +1565,11 @@
     }
   };
 
-  WorkbookView.prototype._onStopCellEditing2 = function() {
-      if (this.isCellEditMode) {
-          if (this.isFormulaEditMode) {
-              this.cellEditor.setFocus(false);
-              if (this.cellEditor.canEnterCellRange()) {
-                  return true;
-              }
-          }
-          return this._onStopCellEditing();
-      }
-
-    return true;
-  };
-  WorkbookView.prototype._onStopCellEditing = function(cancel) {
-    return this.cellEditor.close(!cancel);
+  WorkbookView.prototype._checkStopCellEditorInFormulas = function() {
+	  if (this.isCellEditMode && this.isFormulaEditMode && this.cellEditor.canEnterCellRange()) {
+		  return true;
+	  }
+      return this.closeCellEditor();
   };
 
   WorkbookView.prototype._onCloseCellEditor = function() {
@@ -1756,7 +1746,7 @@
       ws = this.getWorksheet();
       // Останавливаем ввод данных в редакторе ввода. Если в режиме ввода формул, то продолжаем работать с cellEditor'ом, чтобы можно было
       // выбирать ячейки для формулы
-      if (!this._onStopCellEditing2()) {
+      if (!this._checkStopCellEditorInFormulas()) {
           index = this.copyActiveSheet;
       }
       // Делаем очистку селекта
@@ -2073,7 +2063,7 @@
 
 	// Останавливаем ввод данных в редакторе ввода
 	WorkbookView.prototype.closeCellEditor = function (cancel) {
-		return this.getCellEditMode() ? this._onStopCellEditing(cancel) : true;
+		return this.getCellEditMode() ? this.cellEditor.close(!cancel) : true;
 	};
 
   WorkbookView.prototype.restoreFocus = function() {
