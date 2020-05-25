@@ -2130,6 +2130,87 @@
     }
   };
 
+    // Вставка формулы в редактор
+    WorkbookView.prototype.insertInCellEditor = function (name, type, autoComplete) {
+        var t = this, ws = this.getWorksheet(), cursorPos, tmp;
+
+        var isNotFunction = c_oAscPopUpSelectorType.Func !== type;
+
+        // Проверяем, открыт ли редактор
+        if (this.getCellEditMode()) {
+            if (isNotFunction) {
+                this.skipHelpSelector = true;
+            }
+
+            if (-1 !== this.lastFPos) {
+                if (-1 === this.arrExcludeFormulas.indexOf(name) && !isNotFunction) {
+                    //если следующий символ скобка - не добавляем ещё одну
+                    if('(' !== this.cellEditor.textRender.getChars(this.cellEditor.cursorPos, 1)) {
+                        name += '('; // ToDo сделать проверки при добавлении, чтобы не вызывать постоянно окно
+                    }
+                } else {
+                    this.skipHelpSelector = true;
+                }
+                tmp = this.cellEditor.skipTLUpdate;
+                this.cellEditor.skipTLUpdate = false;
+                this.cellEditor.replaceText(this.lastFPos, this.lastFNameLength, name);
+                this.cellEditor.skipTLUpdate = tmp;
+            } else if (false === this.cellEditor.insertFormula(name, isNotFunction)) {
+                // Не смогли вставить формулу, закроем редактор, с сохранением текста
+                this.cellEditor.close(true);
+            }
+
+            this.skipHelpSelector = false;
+        } else {
+            if (c_oAscPopUpSelectorType.None === type) {
+                ws.setSelectionInfo("value", name, /*onlyActive*/true);
+                return;
+            }
+
+            var callback = function (success) {
+                // ToDo ?
+                if (isNotFunction) {
+                    t.skipHelpSelector = false;
+                }
+            };
+
+            // Редактор закрыт
+            var cellRange = {};
+            // Если нужно сделать автозаполнение формулы, то ищем ячейки)
+            if (autoComplete) {
+                cellRange = ws.autoCompleteFormula(name);
+            }
+            if (isNotFunction) {
+                name = "=" + name;
+            } else {
+                if (cellRange.notEditCell) {
+                    // Мы уже ввели все что нужно, редактор открывать не нужно
+                    return;
+                }
+                if (cellRange.text) {
+                    // Меняем значение ячейки
+                    name = "=" + name + "(" + cellRange.text + ")";
+                } else {
+                    // Меняем значение ячейки
+                    name = "=" + name + "()";
+                }
+                // Вычисляем позицию курсора (он должен быть в функции)
+                cursorPos = name.length - 1;
+            }
+
+            if (isNotFunction) {
+                t.skipHelpSelector = true;
+            }
+
+            var enterOptions = new AscCommonExcel.CEditorEnterOptions();
+            // Открываем, с выставлением позиции курсора
+            enterOptions.newText = name;
+            enterOptions.cursorPos = cursorPos;
+
+            this._onEditCell(enterOptions, callback);
+        }
+    };
+
     WorkbookView.prototype.startWizard = function (name) {
         var t = this;
         var callback = function (success) {
@@ -2164,86 +2245,9 @@
         addFunction(name);
     };
 
-	// Вставка формулы в редактор
-	WorkbookView.prototype.insertInCellEditor = function (name, type, autoComplete) {
-		var t = this, ws = this.getWorksheet(), cursorPos, tmp;
-
-		var isNotFunction = c_oAscPopUpSelectorType.Func !== type;
-
-		// Проверяем, открыт ли редактор
-		if (this.getCellEditMode()) {
-			if (isNotFunction) {
-				this.skipHelpSelector = true;
-			}
-
-			if (-1 !== this.lastFPos) {
-				if (-1 === this.arrExcludeFormulas.indexOf(name) && !isNotFunction) {
-					//если следующий символ скобка - не добавляем ещё одну
-					if('(' !== this.cellEditor.textRender.getChars(this.cellEditor.cursorPos, 1)) {
-						name += '('; // ToDo сделать проверки при добавлении, чтобы не вызывать постоянно окно
-					}
-				} else {
-					this.skipHelpSelector = true;
-				}
-				tmp = this.cellEditor.skipTLUpdate;
-				this.cellEditor.skipTLUpdate = false;
-				this.cellEditor.replaceText(this.lastFPos, this.lastFNameLength, name);
-				this.cellEditor.skipTLUpdate = tmp;
-			} else if (false === this.cellEditor.insertFormula(name, isNotFunction)) {
-				// Не смогли вставить формулу, закроем редактор, с сохранением текста
-				this.cellEditor.close(true);
-			}
-
-			this.skipHelpSelector = false;
-		} else {
-			if (c_oAscPopUpSelectorType.None === type) {
-				ws.setSelectionInfo("value", name, /*onlyActive*/true);
-				return;
-			}
-
-			var callback = function (success) {
-				// ToDo ?
-				if (isNotFunction) {
-					t.skipHelpSelector = false;
-				}
-			};
-
-			// Редактор закрыт
-			var cellRange = {};
-			// Если нужно сделать автозаполнение формулы, то ищем ячейки)
-			if (autoComplete) {
-				cellRange = ws.autoCompleteFormula(name);
-			}
-			if (isNotFunction) {
-				name = "=" + name;
-			} else {
-				if (cellRange.notEditCell) {
-					// Мы уже ввели все что нужно, редактор открывать не нужно
-					return;
-				}
-				if (cellRange.text) {
-					// Меняем значение ячейки
-					name = "=" + name + "(" + cellRange.text + ")";
-				} else {
-					// Меняем значение ячейки
-					name = "=" + name + "()";
-				}
-				// Вычисляем позицию курсора (он должен быть в функции)
-				cursorPos = name.length - 1;
-			}
-
-			if (isNotFunction) {
-				t.skipHelpSelector = true;
-			}
-
-			var enterOptions = new AscCommonExcel.CEditorEnterOptions();
-			// Открываем, с выставлением позиции курсора
-			enterOptions.newText = name;
-			enterOptions.cursorPos = cursorPos;
-
-			this._onEditCell(enterOptions, callback);
-		}
-	};
+    WorkbookView.prototype.canEnterWizardRange = function (char) {
+        return this.getCellEditMode() && this.cellEditor.checkSymbolBeforeRange(char);
+    };
 	
 	WorkbookView.prototype.insertArgumentsInFormula = function(args, argNum, argType) {
 		if (this.getCellEditMode()) {
@@ -2291,10 +2295,6 @@
 			}
 			return result;
 		}
-	};
-
-	WorkbookView.prototype.canEnterWizardRange = function (char) {
-		return this.getCellEditMode() && this.cellEditor.checkSymbolBeforeRange(char);
 	};
 
 	WorkbookView.prototype._calculateWizardFormula = function (_str) {
