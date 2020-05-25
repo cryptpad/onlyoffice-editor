@@ -2271,28 +2271,78 @@
 
 		var calcRes = this._calculateWizardFormula(str);
 		if (calcRes) {
-			if (type === undefined || type === null) {
-				return _res.toLocaleString();
+			if (type === undefined || type === null || calcRes.type === AscCommonExcel.cElementType.error) {
+				return calcRes.toLocaleString();
 			}
 
 			//TODO если полная проверка, то выводим ошибки - если нет, то вовзращаем пустую строку
 			var result = "";
 			if (type === Asc.c_oAscFormulaArgumentType.number) {
-				calcRes = calcRes.tocNumber();
-				if (calcRes) {
+				if (calcRes.type === AscCommonExcel.cElementType.array) {
+					calcRes = calcRes.getElementRowCol(0, 0);
+					calcRes = calcRes.tocNumber();
+					if (calcRes) {
+						result = '"' + calcRes.toLocaleString() + '"';
+					}
+				} else if (calcRes.type === AscCommonExcel.cElementType.cellsRange) {
 					result = calcRes.toLocaleString();
+				} else if (calcRes.type === AscCommonExcel.cElementType.cell || calcRes.type === AscCommonExcel.cElementType.cell3D) {
+					calcRes = calcRes.getValue();
+					calcRes = calcRes.tocNumber()
+					result = calcRes.toLocaleString();
+				} else {
+					calcRes = calcRes.tocNumber();
+					if (calcRes) {
+						result = calcRes.toLocaleString();
+					}
 				}
 			} else if (type === Asc.c_oAscFormulaArgumentType.text) {
-				calcRes = calcRes.tocString();
-				if (calcRes) {
-					result = '"' + calcRes.toLocaleString() + '"';
+				if (calcRes.type === AscCommonExcel.cElementType.array) {
+					calcRes = calcRes.getElementRowCol(0, 0);
+					calcRes = calcRes.tocString();
+					if (calcRes) {
+						result = '"' + calcRes.toLocaleString() + '"';
+					}
+				} else if (calcRes.type === AscCommonExcel.cElementType.cellsRange) {
+					result = calcRes.toLocaleString();
+				} else if (calcRes.type === AscCommonExcel.cElementType.cell || calcRes.type === AscCommonExcel.cElementType.cell3D) {
+					calcRes = calcRes.getValue();
+					calcRes = calcRes.tocString();
+					if (calcRes) {
+						result = '"' + calcRes.toLocaleString() + '"';
+					}
+				} else {
+					calcRes = calcRes.tocString();
+					if (calcRes) {
+						result = '"' + calcRes.toLocaleString() + '"';
+					}
 				}
 			} else if (type === Asc.c_oAscFormulaArgumentType.logical) {
 				calcRes = calcRes.tocBool();
 				if (calcRes) {
 					result = calcRes.toLocaleString();
 				}
-			}
+			} else if (type === Asc.c_oAscFormulaArgumentType.any) {
+				if (calcRes.type === AscCommonExcel.cElementType.array) {
+					calcRes = calcRes.getElementRowCol(0, 0);
+					result = calcRes.tocString();
+				} else if (calcRes.type === AscCommonExcel.cElementType.cellsRange) {
+					result = calcRes.toLocaleString();
+				} else if (calcRes.type === AscCommonExcel.cElementType.cell || calcRes.type === AscCommonExcel.cElementType.cell3D) {
+					calcRes = calcRes.getValue();
+					calcRes = calcRes.tocString();
+					if (calcRes) {
+						result = '"' + calcRes.toLocaleString() + '"';
+					}
+				} else {
+					calcRes = calcRes.tocString();
+					if (calcRes) {
+						result = '"' + calcRes.toLocaleString() + '"';
+					}
+				}
+			} /*else if (type === Asc.c_oAscFormulaArgumentType.reference) {
+				result = calcRes.toLocaleString();
+			}*/
 			return result;
 		}
 	};
