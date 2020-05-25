@@ -40,15 +40,26 @@
 		{
 			return this._openEmptyDocument();
 		}
+	};
+	AscCommon.baseEditorsApi.prototype.onEndLoadFile2 = AscCommon.baseEditorsApi.prototype.onEndLoadFile;
+	AscCommon.baseEditorsApi.prototype.onEndLoadFile = function(result)
+	{
+		if (this.isChartEditor)
+		{
+			return this.onEndLoadFile2(result);
+		}
 
-		this.asc_registerCallback('asc_onDocumentContentReady', function(){
-			DesktopOfflineUpdateLocalName(Asc.editor || editor);
+		if (this.isLoadFullApi && this.DocInfo && this.isLoadFonts)
+		{
+			this.asc_registerCallback('asc_onDocumentContentReady', function(){
+				DesktopOfflineUpdateLocalName(Asc.editor || editor);
 
-			setTimeout(function(){window["UpdateInstallPlugins"]();}, 10);
-		});
+				setTimeout(function(){window["UpdateInstallPlugins"]();}, 10);
+			});
 
-		AscCommon.History.UserSaveMode = true;
-		window["AscDesktopEditor"]["LocalStartOpen"]();
+			AscCommon.History.UserSaveMode = true;
+			window["AscDesktopEditor"]["LocalStartOpen"]();
+		}
 	};
 })(window);
 
@@ -126,7 +137,7 @@ window["DesktopOfflineAppDocumentEndLoad"] = function(_url, _data, _len)
 	AscCommon.g_oIdCounter.m_sUserId = window["AscDesktopEditor"]["CheckUserId"]();
 	if (_data == "")
 	{
-		this.sendEvent("asc_onError", c_oAscError.ID.ConvertationOpenError, c_oAscError.Level.Critical);
+        editor.sendEvent("asc_onError", c_oAscError.ID.ConvertationOpenError, c_oAscError.Level.Critical);
 		return;
 	}
 
