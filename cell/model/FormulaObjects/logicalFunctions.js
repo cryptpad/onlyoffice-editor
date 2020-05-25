@@ -67,6 +67,7 @@
 	cAND.prototype.name = 'AND';
 	cAND.prototype.argumentsMin = 1;
 	cAND.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
+	cAND.prototype.argumentsType = [[argType.logical]];
 	cAND.prototype.Calculate = function (arg) {
 		var argResult = null;
 		for (var i = 0; i < arg.length; i++) {
