@@ -2278,6 +2278,16 @@
 				if (calcRes) {
 					result = calcRes.toLocaleString();
 				}
+			} else if (type === Asc.c_oAscFormulaArgumentType.text) {
+				calcRes = calcRes.tocString();
+				if (calcRes) {
+					result = '"' + calcRes.toLocaleString() + '"';
+				}
+			} else if (type === Asc.c_oAscFormulaArgumentType.logical) {
+				calcRes = calcRes.tocBool();
+				if (calcRes) {
+					result = calcRes.toLocaleString();
+				}
 			}
 			return result;
 		}
