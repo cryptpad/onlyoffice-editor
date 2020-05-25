@@ -757,6 +757,18 @@ CShape.prototype.Refresh_RecalcData = function(data)
     this.recalcTxBoxContent();
     this.recalcTransformText();
     this.Refresh_RecalcData2();
+    if(data && data.Type === AscDFH.historyitem_ShapeSetStyle)
+    {
+        var oContent = this.getDocContent && this.getDocContent();
+        if(oContent)
+        {
+            oContent.Recalc_AllParagraphs_CompiledPr();
+        }
+        if(this.recalcInfo)
+        {
+            this.recalcInfo.recalculateShapeStyleForParagraph = true;
+        }
+    }
 };
 
 CShape.prototype.Refresh_RecalcData2 = function()
@@ -1049,7 +1061,17 @@ CShape.prototype.OnContentReDraw = function()
 
 CShape.prototype.Get_TextBackGroundColor = function()
 {
-    return undefined;
+    if(!this.brush)
+    {
+        return undefined;
+    }
+    var oTheme = this.Get_Theme && this.Get_Theme();
+    var oColorMap = this.Get_ColorMap && this.Get_ColorMap();
+    if(oTheme && oColorMap)
+    {
+        this.brush.check(oTheme, oColorMap);
+    }
+    return this.brush.Get_TextBackGroundColor();
 };
 CShape.prototype.documentStatistics = function(stats)
 {
