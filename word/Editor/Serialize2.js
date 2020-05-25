@@ -7512,7 +7512,6 @@ function BinaryFileReader(doc, openParams)
 		for(var i in oCommentsNewId)
 		{
 			var oNewComment = oCommentsNewId[i];
-			oNewComment.CreateNewCommentsGuid();
 			this.Document.DrawingDocument.m_oWordControl.m_oApi.sync_AddComment( oNewComment.Id, oNewComment.Data );
 		}
 		//remove bookmarks without end
