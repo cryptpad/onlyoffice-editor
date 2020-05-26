@@ -2356,32 +2356,6 @@
 		}
 	};
 
-	WorkbookView.prototype.moveCursorFunctionArgument = function (argNum, pos) {
-		if (!this.getCellEditMode()) {
-			return;
-		}
-
-		var parseResult = this.cellEditor ? this.cellEditor._parseResult : null;
-		if (!parseResult || !parseResult.argPosArr || !parseResult.activeFunction || argNum > parseResult.activeFunction.argumentsMax) {
-			return;
-		}
-
-		if (!parseResult.argPosArr[argNum]) {
-			//меняем строку и добавляем разделителей
-			var val = "";
-			for (var i = parseResult.argPosArr.length; i <= argNum; i++) {
-				val = AscCommon.FormulaSeparators.functionArgumentSeparator + val;
-			}
-
-			this.cellEditor.pasteText(val);
-		} else {
-			//в этой функции необходимо запомнить позицию и длину ссылки, если она уже имеется в данном аргументе
-			//если нет, то запоминаем позицию, длина будет 0
-
-			this.cellEditor._moveCursor(-11, parseResult.argPosArr[argNum].start + pos);
-		}
-	};
-
   WorkbookView.prototype.bIsEmptyClipboard = function() {
     return g_clipboardExcel.bIsEmptyClipboard(this.getCellEditMode());
   };
