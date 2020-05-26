@@ -930,10 +930,10 @@
       this.handlers.trigger("asc_onSelectionRangeChanged", val);
   };
 
-  WorkbookView.prototype._onCleanSelectRange = function () {
+  WorkbookView.prototype._onCleanSelectRange = function (force) {
       if (this.selectionDialogMode) {
           var ws = this.getWorksheet();
-          if (ws.model.selectionRange) {
+          if (ws.model.selectionRange || force) {
               ws.cleanSelection();
               ws.model.selectionRange = null;
 			  if (this.isActive()) {
@@ -1979,7 +1979,7 @@
 			this.isWizardMode = mode;
 			if (this.isWizardMode) {
 				this.cellEditor.updateWizardMode(this.isWizardMode);
-				this._onCleanSelectRange();
+				this._onCleanSelectRange(true);
 			}
 			this.input.disabled = this.isWizardMode;
 		}
