@@ -7732,18 +7732,6 @@
 		return null;
 	};
 	Worksheet.prototype.getActiveFunctionInfo = function (parser, parserResult, argNum, type, doNotCalcArgs) {
-
-		var createFunctionInfoByName = function (_name) {
-			var _res;
-			var f = AscCommonExcel.cFormulaFunction[_name];
-			if (f) {
-				_res = new AscCommonExcel.CFunctionInfo(_name);
-				_res.argumentsMin = f.prototype.argumentsMin;
-				_res.argumentsMax = f.prototype.argumentsMax;
-				_res.argumentsType = f.prototype.argumentsType;
-			}
-			return _res;
-		};
 		var t = this;
 		var calculateFormula = function (str) {
 			var _res = null;
@@ -7797,7 +7785,7 @@
 
 		var res, str, calcRes;
 		if (_formulaParsed && _parseResult.activeFunction && _parseResult.activeFunction.func) {
-			res = createFunctionInfoByName(_parseResult.activeFunction.func.name);
+			res = new AscCommonExcel.CFunctionInfo(_parseResult.activeFunction.func.name);
 			if (!_parseResult.error) {
 				var _parent = _formulaParsed.parent;
 				_formulaParsed.parent = null;

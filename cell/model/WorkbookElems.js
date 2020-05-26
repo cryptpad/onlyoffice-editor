@@ -9625,7 +9625,7 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	};
 
 	function CFunctionInfo(name) {
-		this.name = name;
+		this.name = null;
 		this.argumentsMin = null;
 		this.argumentsMax = null;
 
@@ -9635,8 +9635,21 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		this.formulaResult = null;
 		this.functionResult = null;
 
+		this._init(name);
+
 		return this;
 	}
+
+	CFunctionInfo.prototype._init = function (name) {
+		var f = AscCommonExcel.cFormulaFunctionLocalized ?
+			AscCommonExcel.cFormulaFunctionLocalized[name] : AscCommonExcel.cFormulaFunction[name];
+		if (f) {
+			this.name = name;
+			this.argumentsMin = f.prototype.argumentsMin;
+			this.argumentsMax = f.prototype.argumentsMax;
+			this.argumentsType = f.prototype.argumentsType;
+		}
+	};
 	CFunctionInfo.prototype.asc_getArgumentMin = function () {
 		return this.argumentsMin;
 	};

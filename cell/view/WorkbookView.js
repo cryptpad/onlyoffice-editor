@@ -2223,14 +2223,7 @@
         	t.setWizardMode(true);
 			t.cellEditor.insertFormula(name);
 			// ToDo send info from selection
-			var res;
-			var f = AscCommonExcel.cFormulaFunction[name];
-			if (f) {
-				res = new AscCommonExcel.CFunctionInfo(name);
-				res.argumentsMin = f.prototype.argumentsMin;
-				res.argumentsMax = f.prototype.argumentsMax;
-				res.argumentsType = f.prototype.argumentsType;
-			}
+			var res = new AscCommonExcel.CFunctionInfo(name);
 			t.handlers.trigger("asc_onSendFunctionWizardInfo", res);
         };
 
