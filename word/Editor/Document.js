@@ -3021,7 +3021,8 @@ CDocument.prototype.private_FinalizeFormChange = function()
 
 	for (var sKey in this.Action.Additional.FormChange)
 	{
-		var oForm = this.Action.Additional.FormChange[sKey];
+		var oForm = this.Action.Additional.FormChange[sKey].Form;
+		var oPr   = this.Action.Additional.FormChange[sKey].Pr;
 
 		if (oForm.IsCheckBox())
 		{
@@ -3051,6 +3052,24 @@ CDocument.prototype.private_FinalizeFormChange = function()
 				}
 			}
 		}
+		else if (oForm.IsPicture())
+		{
+			for (var sId in this.SpecialForms)
+			{
+				var oTempForm = this.SpecialForms[sId];
+
+				if (oTempForm !== oForm && sKey === oTempForm.GetFormKey() && oTempForm.IsPicture())
+				{
+					var arrDrawings = oTempForm.GetAllDrawingObjects();
+					if (arrDrawings.length > 0)
+					{
+						var oPicture = arrDrawings[0].GetPicture();
+						if (oPicture)
+							oPicture.setBlipFill(AscFormat.CreateBlipFillRasterImageId(oPr));
+					}
+				}
+			}
+		}
 		else
 		{
 			var isPlaceHolder = oForm.IsPlaceHolder();
@@ -3060,6 +3079,10 @@ CDocument.prototype.private_FinalizeFormChange = function()
 			for (var sId in this.SpecialForms)
 			{
 				var oTempForm = this.SpecialForms[sId];
+
+				if (oTempForm.IsPicture() || oTempForm.IsCheckBox())
+					continue;
+
 				if (oTempForm !== oForm && sKey === oTempForm.GetFormKey())
 				{
 					if (isPlaceHolder)
@@ -22366,8 +22389,9 @@ CDocument.prototype.RegisterForm = function(oForm)
  * Сохраняем информацию о том, что форма с заданным ключом была изменена
  * @param {string} sKey
  * @param {CInlineLevelSdt | CBlockLevelSdt} oForm
+ * @param oPr
  */
-CDocument.prototype.OnChangeForm = function(sKey, oForm)
+CDocument.prototype.OnChangeForm = function(sKey, oForm, oPr)
 {
 	if (!this.Action.Start || (this.Action.Additional && true === this.Action.Additional.FormChangeStart))
 		return;
@@ -22379,7 +22403,7 @@ CDocument.prototype.OnChangeForm = function(sKey, oForm)
 	if (this.Action.Additional.FormChange[sKey])
 		return;
 
-	this.Action.Additional.FormChange[sKey] = oForm;
+	this.Action.Additional.FormChange[sKey] = {Form : oForm, Pr : oPr};
 };
 
 function CDocumentSelectionState()
