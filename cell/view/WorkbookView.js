@@ -2256,104 +2256,17 @@
 
 				var res = new AscCommonExcel.CFunctionInfo(name);
 				res.argumentsResult = [];
-				res.argumentsResult[argNum] = this.calculateWizardArg(args[argNum], argType);
+				res.argumentsResult[argNum] = ws.calculateWizardFormula(args[argNum], argType);
 
-				var calcRes = ws.calculateWizardFormula(name + '(' + sArguments + ')');
-				if (calcRes) {
-                    res.functionResult = calcRes.toLocaleString();
-                }
-
+                res.functionResult = ws.calculateWizardFormula(name + '(' + sArguments + ')');
 				// ToDo can calculate if previous error
-                calcRes = ws.calculateWizardFormula(this.cellEditor.getText().substring(1));
-                if (calcRes) {
-                    res.formulaResult = calcRes.toLocaleString();
-                }
+                res.formulaResult = ws.calculateWizardFormula(this.cellEditor.getText().substring(1));
 
 				return res;
 			}
 		}
 
 		return null;
-	};
-
-	WorkbookView.prototype.calculateWizardArg = function (str, type) {
-        var ws = this.getActiveWS();
-		var calcRes = ws.calculateWizardFormula(str);
-		if (calcRes) {
-			if (type === undefined || type === null || calcRes.type === AscCommonExcel.cElementType.error) {
-				return calcRes.toLocaleString();
-			}
-
-			//TODO если полная проверка, то выводим ошибки - если нет, то вовзращаем пустую строку
-			var result = "";
-			if (type === Asc.c_oAscFormulaArgumentType.number) {
-				if (calcRes.type === AscCommonExcel.cElementType.array) {
-					calcRes = calcRes.getElementRowCol(0, 0);
-					calcRes = calcRes.tocNumber();
-					if (calcRes) {
-						result = '"' + calcRes.toLocaleString() + '"';
-					}
-				} else if (calcRes.type === AscCommonExcel.cElementType.cellsRange) {
-					result = calcRes.toLocaleString();
-				} else if (calcRes.type === AscCommonExcel.cElementType.cell || calcRes.type === AscCommonExcel.cElementType.cell3D) {
-					calcRes = calcRes.getValue();
-					calcRes = calcRes.tocNumber();
-					result = calcRes.toLocaleString();
-				} else {
-					calcRes = calcRes.tocNumber();
-					if (calcRes) {
-						result = calcRes.toLocaleString();
-					}
-				}
-			} else if (type === Asc.c_oAscFormulaArgumentType.text) {
-				if (calcRes.type === AscCommonExcel.cElementType.array) {
-					calcRes = calcRes.getElementRowCol(0, 0);
-					calcRes = calcRes.tocString();
-					if (calcRes) {
-						result = '"' + calcRes.toLocaleString() + '"';
-					}
-				} else if (calcRes.type === AscCommonExcel.cElementType.cellsRange) {
-					result = calcRes.toLocaleString();
-				} else if (calcRes.type === AscCommonExcel.cElementType.cell || calcRes.type === AscCommonExcel.cElementType.cell3D) {
-					calcRes = calcRes.getValue();
-					calcRes = calcRes.tocString();
-					if (calcRes) {
-						result = '"' + calcRes.toLocaleString() + '"';
-					}
-				} else {
-					calcRes = calcRes.tocString();
-					if (calcRes) {
-						result = '"' + calcRes.toLocaleString() + '"';
-					}
-				}
-			} else if (type === Asc.c_oAscFormulaArgumentType.logical) {
-				calcRes = calcRes.tocBool();
-				if (calcRes) {
-					result = calcRes.toLocaleString();
-				}
-			} else if (type === Asc.c_oAscFormulaArgumentType.any) {
-				if (calcRes.type === AscCommonExcel.cElementType.array) {
-					calcRes = calcRes.getElementRowCol(0, 0);
-					result = calcRes.tocString();
-				} else if (calcRes.type === AscCommonExcel.cElementType.cellsRange) {
-					result = calcRes.toLocaleString();
-				} else if (calcRes.type === AscCommonExcel.cElementType.cell || calcRes.type === AscCommonExcel.cElementType.cell3D) {
-					calcRes = calcRes.getValue();
-					calcRes = calcRes.tocString();
-					if (calcRes) {
-						result = '"' + calcRes.toLocaleString() + '"';
-					}
-				} else {
-					calcRes = calcRes.tocString();
-					if (calcRes) {
-						result = '"' + calcRes.toLocaleString() + '"';
-					}
-				}
-			} /*else if (type === Asc.c_oAscFormulaArgumentType.reference) {
-				result = calcRes.toLocaleString();
-			}*/
-			return result;
-		}
 	};
 
   WorkbookView.prototype.bIsEmptyClipboard = function() {
