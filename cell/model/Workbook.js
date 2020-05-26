@@ -7737,7 +7737,7 @@
 			var _res;
 			var f = AscCommonExcel.cFormulaFunction[_name];
 			if (f) {
-				_res = new Asc.CFunctionInfo(_name);
+				_res = new AscCommonExcel.CFunctionInfo(_name);
 				_res.argumentsMin = f.prototype.argumentsMin;
 				_res.argumentsMax = f.prototype.argumentsMax;
 				_res.argumentsType = f.prototype.argumentsType;

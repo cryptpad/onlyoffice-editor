@@ -9983,7 +9983,7 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	prot["asc_getDuplicateValues"] = prot.asc_getDuplicateValues;
 	prot["asc_getUniqueValues"] = prot.asc_getUniqueValues;
 
-	window["Asc"]["CFunctionInfo"] = window["Asc"].CFunctionInfo = CFunctionInfo;
+	window["AscCommonExcel"].CFunctionInfo = CFunctionInfo;
 	prot = CFunctionInfo.prototype;
 	prot["asc_getArgumentMin"] = prot.asc_getArgumentMin;
 	prot["asc_getArgumentMax"] = prot.asc_getArgumentMax;

@@ -2226,7 +2226,7 @@
 			var res;
 			var f = AscCommonExcel.cFormulaFunction[name];
 			if (f) {
-				res = new Asc.CFunctionInfo(name);
+				res = new AscCommonExcel.CFunctionInfo(name);
 				res.argumentsMin = f.prototype.argumentsMin;
 				res.argumentsMax = f.prototype.argumentsMax;
 				res.argumentsType = f.prototype.argumentsType;
@@ -2254,7 +2254,7 @@
 			this.cellEditor.changeCellText(args.join(AscCommon.FormulaSeparators.functionArgumentSeparator));
 
 			if (argNum !== undefined) {
-				var res = new Asc.CFunctionInfo(null);
+				var res = new AscCommonExcel.CFunctionInfo(null);
 				res.argumentsResult = [];
 				res.argumentsResult[argNum] = this.calculateWizardArg(args[argNum], argType);
 				return res;
