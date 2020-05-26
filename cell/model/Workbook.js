@@ -7836,6 +7836,19 @@
 		return res;
 	};
 
+	Worksheet.prototype.calculateWizardFormula = function (formula) {
+		var res = null;
+		if (formula) {
+			var parser = new AscCommonExcel.parserFormula(formula, /*formulaParsed.parent*/null, this);
+			var parseResultArg = new AscCommonExcel.ParseResult([], []);
+			parser.parse(true, true, parseResultArg, true);
+			if (!parseResultArg.error) {
+				res = parser.calculate();
+			}
+		}
+		return res;
+	};
+
 
 //-------------------------------------------------------------------------------------------------
 	var g_nCellOffsetFlag = 0;
