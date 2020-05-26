@@ -5139,19 +5139,7 @@
             var oThis = this;
             if ( c_oSer_AutoFilter.Ref == type )
 			{
-				var sRef = this.stream.GetString2LE(length);
-
-				//TODO пересмотреть проверку
-				//возможно здесь 3d ref - проверяем
-				if(-1 !== sRef.indexOf("!"))
-				{
-					var is3DRef = AscCommon.parserHelp.parse3DRef(sRef);
-					if(is3DRef){
-						sRef = is3DRef.range;
-					}
-				}
-
-				oAutoFilter.Ref = AscCommonExcel.g_oRangeCache.getAscRange(sRef);
+				oAutoFilter.setStringRef(this.stream.GetString2LE(length));
 			}
             else if ( c_oSer_AutoFilter.FilterColumns == type )
             {
@@ -5199,15 +5187,7 @@
                 res = this.bcr.Read1(length, function(t,l){
                     return oThis.ReadFilters(t,l, oFilterColumn.Filters);
                 });
-
-				//sort dates
-				if(oFilterColumn.Filters && oFilterColumn.Filters.Dates && oFilterColumn.Filters.Dates.length)
-				{
-					oFilterColumn.Filters.Dates.sort (function sortArr(a, b)
-					{
-						return a.start - b.start;
-					})
-				}
+				oFilterColumn.Filters.sortDate();
             }
             else if ( c_oSer_FilterColumn.CustomFilters == type )
             {
