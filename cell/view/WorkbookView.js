@@ -687,7 +687,7 @@
 			  }, "getWizard": function () {
 			      return self.isWizardMode;
               }, "getActiveWS": function () {
-			      return self.model.getWorksheet(-1 === self.copyActiveSheet ? self.wsActive : self.copyActiveSheet);
+			      return self.getActiveWS();
 			  }, "updateEditorSelectionInfo": function (xfs) {
 				  self.handlers.trigger("asc_onEditorSelectionChanged", xfs);
 			  }, "onContextMenu": function (event) {
@@ -1700,6 +1700,10 @@
     return null;
   };
 
+  WorkbookView.prototype.getActiveWS = function () {
+      return this.model.getWorksheet(-1 === this.copyActiveSheet ? this.wsActive : this.copyActiveSheet)
+  };
+
   /**
    * @param {Number} [index]
    * @param {Boolean} [onlyExist]
@@ -2248,17 +2252,19 @@
 			this.cellEditor.changeCellText(sArguments);
 
 			if (name) {
+			    var ws = this.getActiveWS();
+
 				var res = new AscCommonExcel.CFunctionInfo(name);
 				res.argumentsResult = [];
 				res.argumentsResult[argNum] = this.calculateWizardArg(args[argNum], argType);
 
-				var calcRes = this._calculateWizardFormula(name + '(' + sArguments + ')');
+				var calcRes = ws.calculateWizardFormula(name + '(' + sArguments + ')');
 				if (calcRes) {
                     res.functionResult = calcRes.toLocaleString();
                 }
 
 				// ToDo can calculate if previous error
-                calcRes = this._calculateWizardFormula(this.cellEditor.getText().substring(1));
+                calcRes = ws.calculateWizardFormula(this.cellEditor.getText().substring(1));
                 if (calcRes) {
                     res.formulaResult = calcRes.toLocaleString();
                 }
@@ -2271,7 +2277,8 @@
 	};
 
 	WorkbookView.prototype.calculateWizardArg = function (str, type) {
-		var calcRes = this._calculateWizardFormula(str);
+        var ws = this.getActiveWS();
+		var calcRes = ws.calculateWizardFormula(str);
 		if (calcRes) {
 			if (type === undefined || type === null || calcRes.type === AscCommonExcel.cElementType.error) {
 				return calcRes.toLocaleString();
@@ -2347,20 +2354,6 @@
 			}*/
 			return result;
 		}
-	};
-
-	WorkbookView.prototype._calculateWizardFormula = function (_str) {
-		var _res = null;
-		if (_str) {
-			var ws = this.getWorksheet();
-			var _formula = new AscCommonExcel.parserFormula(_str, /*formulaParsed.parent*/null, ws.model);
-			var _parseResultArg = new AscCommonExcel.ParseResult([], []);
-			_formula.parse(true, true, _parseResultArg, true);
-			if (!_parseResultArg.error) {
-				_res = _formula.calculate();
-			}
-		}
-		return _res;
 	};
 
 	WorkbookView.prototype.moveCursorFunctionArgument = function (argNum, pos) {
