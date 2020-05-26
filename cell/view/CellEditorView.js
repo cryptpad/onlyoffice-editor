@@ -1650,6 +1650,10 @@
 
 	// Content
 
+	CellEditor.prototype.getText = function () {
+		return AscCommonExcel.getFragmentsText(this.options.fragments);
+	};
+
 	CellEditor.prototype._getContentLeft = function () {
 		return this.defaults.padding;
 	};

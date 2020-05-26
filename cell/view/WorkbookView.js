@@ -2257,6 +2257,12 @@
                     res.functionResult = calcRes.toLocaleString();
                 }
 
+				// ToDo can calculate if previous error
+                calcRes = this._calculateWizardFormula(this.cellEditor.getText().substring(1));
+                if (calcRes) {
+                    res.formulaResult = calcRes.toLocaleString();
+                }
+
 				return res;
 			}
 		}
