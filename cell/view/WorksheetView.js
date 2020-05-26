@@ -168,48 +168,6 @@
 		return res;
 	}
 
-	function drawFillCell(ctx, graphics, fill, rect) {
-		var dScale = asc_getcvt(0, 3, ctx.getPPIX());
-		rect._x *= dScale;
-		rect._y *= dScale;
-		rect._width *= dScale;
-		rect._height *= dScale;
-		AscFormat.ExecuteNoHistory(
-			function () {
-				var geometry = new AscFormat.CreateGeometry("rect");
-				geometry.Recalculate(rect._width, rect._height, true);
-				var oUniFill = AscCommonExcel.convertFillToUnifill(fill);
-				if (ctx instanceof AscCommonExcel.CPdfPrinter) {
-					graphics.SaveGrState();
-					var _baseTransform;
-					if (!ctx.Transform) {
-						_baseTransform = new AscCommon.CMatrix();
-					} else {
-						_baseTransform = ctx.Transform;
-					}
-					graphics.SetBaseTransform(_baseTransform);
-				}
-
-				graphics.save();
-				var oMatrix = new AscCommon.CMatrix();
-				oMatrix.tx = rect._x;
-				oMatrix.ty = rect._y;
-				graphics.transform3(oMatrix);
-				var shapeDrawer = new AscCommon.CShapeDrawer();
-				shapeDrawer.Graphics = graphics;
-
-				shapeDrawer.fromShape2(new AscFormat.CColorObj(null, oUniFill, geometry), graphics, geometry);
-				shapeDrawer.draw(geometry);
-				graphics.restore();
-
-				if (ctx instanceof AscCommonExcel.CPdfPrinter) {
-					graphics.SetBaseTransform(null);
-					graphics.RestoreGrState();
-				}
-			}, this, []
-		);
-	}
-
 	function CacheColumn() {
 	    this.left = 0;
 		this.width = 0;
@@ -3582,7 +3540,7 @@
 				if (findFillColor) {
 					ctx.setFillStyle(findFillColor).fillRect(x - offsetX, y - offsetY, w, h);
 				} else {
-					drawFillCell(ctx, graphics, fill, new AscCommon.asc_CRect(x - offsetX, y - offsetY, w, h));
+					AscCommonExcel.drawFillCell(ctx, graphics, fill, new AscCommon.asc_CRect(x - offsetX, y - offsetY, w, h));
 				}
 			}
 
@@ -3709,7 +3667,7 @@
 							stop1.position = 1;
 							stop1.color = endColor;
 							fill.gradientFill.asc_putGradientStops([stop0, stop1]);
-							drawFillCell(ctx, graphics, fill, new AscCommon.asc_CRect(x, top, dataBarLength, height - 3));
+                            AscCommonExcel.drawFillCell(ctx, graphics, fill, new AscCommon.asc_CRect(x, top, dataBarLength, height - 3));
 						} else {
 							ctx.setFillStyle(color).fillRect(x, top, dataBarLength, height - 3);
 						}

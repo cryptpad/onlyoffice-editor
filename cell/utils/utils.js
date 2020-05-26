@@ -2036,7 +2036,48 @@
 			ctx.setFillStyle(oStyle.getFontColor() || new AscCommon.CColor(0, 0, 0));
 			ctx.fillText(sStyleName, width_padding, textY + tm.baseline);
 		}
+		
+		function drawFillCell(ctx, graphics, fill, rect) {
+			var dScale = Asc.getCvtRatio(0, 3, ctx.getPPIX());
+			rect._x *= dScale;
+			rect._y *= dScale;
+			rect._width *= dScale;
+			rect._height *= dScale;
+			AscFormat.ExecuteNoHistory(
+				function () {
+					var geometry = new AscFormat.CreateGeometry("rect");
+					geometry.Recalculate(rect._width, rect._height, true);
+					var oUniFill = AscCommonExcel.convertFillToUnifill(fill);
+					if (ctx instanceof AscCommonExcel.CPdfPrinter) {
+						graphics.SaveGrState();
+						var _baseTransform;
+						if (!ctx.Transform) {
+							_baseTransform = new AscCommon.CMatrix();
+						} else {
+							_baseTransform = ctx.Transform;
+						}
+						graphics.SetBaseTransform(_baseTransform);
+					}
 
+					graphics.save();
+					var oMatrix = new AscCommon.CMatrix();
+					oMatrix.tx = rect._x;
+					oMatrix.ty = rect._y;
+					graphics.transform3(oMatrix);
+					var shapeDrawer = new AscCommon.CShapeDrawer();
+					shapeDrawer.Graphics = graphics;
+
+					shapeDrawer.fromShape2(new AscFormat.CColorObj(null, oUniFill, geometry), graphics, geometry);
+					shapeDrawer.draw(geometry);
+					graphics.restore();
+
+					if (ctx instanceof AscCommonExcel.CPdfPrinter) {
+						graphics.SetBaseTransform(null);
+						graphics.RestoreGrState();
+					}
+				}, this, []
+			);
+		}
 		//-----------------------------------------------------------------
 		// События движения мыши
 		//-----------------------------------------------------------------
@@ -2988,5 +3029,6 @@
 		prot["asc_getCellCoord"] = prot.asc_getCellCoord;
 
 		window['AscCommonExcel'].CEditorEnterOptions = CEditorEnterOptions;
+		window['AscCommonExcel'].drawFillCell = drawFillCell;
 
 })(window);
