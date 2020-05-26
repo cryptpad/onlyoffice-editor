@@ -375,13 +375,19 @@ CAscHFProps.prototype['updateView'] = CAscHFProps.prototype.updateView = functio
             break;
         }
     }
-    var nWidth = oDiv.clientWidth;
-    var nHeight = oDiv.clientHeight;
     if(null === oCanvas){
         oCanvas = document.createElement('canvas');
-        oCanvas.width = parseInt(nWidth);
-        oCanvas.height = parseInt(nHeight);
+        oCanvas.style.width = "100%";
+        oCanvas.style.height = "100%";
         oDiv.appendChild(oCanvas);
+        var nCanvasW = oCanvas.clientWidth;
+        var nCanvasH = oCanvas.clientHeight;
+        if (AscCommon.AscBrowser.isRetina) {
+            nCanvasW = AscCommon.AscBrowser.convertToRetinaValue(nCanvasW, true);
+            nCanvasH = AscCommon.AscBrowser.convertToRetinaValue(nCanvasH, true);
+        }
+        oCanvas.width = nCanvasW;
+        oCanvas.height = nCanvasH;
     }
     var oContext = oCanvas.getContext('2d');
     oContext.clearRect(0, 0, oCanvas.width, oCanvas.height);
