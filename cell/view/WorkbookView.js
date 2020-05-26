@@ -2223,7 +2223,7 @@
         	t.setWizardMode(true);
 			t.cellEditor.insertFormula(name);
 			// ToDo send info from selection
-			var res = new AscCommonExcel.CFunctionInfo(name);
+			var res = name ? new AscCommonExcel.CFunctionInfo(name) : null;
 			t.handlers.trigger("asc_onSendFunctionWizardInfo", res);
         };
 
@@ -2242,14 +2242,21 @@
         return this.getCellEditMode() && this.cellEditor.checkSymbolBeforeRange(char);
     };
 	
-	WorkbookView.prototype.insertArgumentsInFormula = function(args, argNum, argType) {
+	WorkbookView.prototype.insertArgumentsInFormula = function (args, argNum, argType, name) {
 		if (this.getCellEditMode()) {
-			this.cellEditor.changeCellText(args.join(AscCommon.FormulaSeparators.functionArgumentSeparator));
+		    var sArguments = args.join(AscCommon.FormulaSeparators.functionArgumentSeparator);
+			this.cellEditor.changeCellText(sArguments);
 
-			if (argNum !== undefined) {
-				var res = new AscCommonExcel.CFunctionInfo(null);
+			if (name) {
+				var res = new AscCommonExcel.CFunctionInfo(name);
 				res.argumentsResult = [];
 				res.argumentsResult[argNum] = this.calculateWizardArg(args[argNum], argType);
+
+				var calcRes = this._calculateWizardFormula(name + '(' + sArguments + ')');
+				if (calcRes) {
+                    res.functionResult = calcRes.toLocaleString();
+                }
+
 				return res;
 			}
 		}
@@ -2258,10 +2265,6 @@
 	};
 
 	WorkbookView.prototype.calculateWizardArg = function (str, type) {
-		if (!str) {
-			str = '';
-		}
-
 		var calcRes = this._calculateWizardFormula(str);
 		if (calcRes) {
 			if (type === undefined || type === null || calcRes.type === AscCommonExcel.cElementType.error) {
@@ -2281,7 +2284,7 @@
 					result = calcRes.toLocaleString();
 				} else if (calcRes.type === AscCommonExcel.cElementType.cell || calcRes.type === AscCommonExcel.cElementType.cell3D) {
 					calcRes = calcRes.getValue();
-					calcRes = calcRes.tocNumber()
+					calcRes = calcRes.tocNumber();
 					result = calcRes.toLocaleString();
 				} else {
 					calcRes = calcRes.tocNumber();
@@ -2342,7 +2345,7 @@
 
 	WorkbookView.prototype._calculateWizardFormula = function (_str) {
 		var _res = null;
-		if (_str !== "") {
+		if (_str) {
 			var ws = this.getWorksheet();
 			var _formula = new AscCommonExcel.parserFormula(_str, /*formulaParsed.parent*/null, ws.model);
 			var _parseResultArg = new AscCommonExcel.ParseResult([], []);
