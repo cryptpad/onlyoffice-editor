@@ -12224,8 +12224,19 @@ CDocument.prototype.CheckSelectionLockedByFormKey = function(nCheckType, sKey, o
 		var oForm = this.SpecialForms[sId];
 		if (oForm && oForm.IsUseInDocument() && oForm.GetParagraph() && oForm.GetParagraph() !== oSkipParagraph && oForm.GetFormKey() === sKey)
 		{
-			var oFormParagraph = oForm.GetParagraph();
-			oFormParagraph.Lock.Check(oFormParagraph.GetId());
+			if (oForm.IsPicture())
+			{
+				var arrDrawings = oForm.GetAllDrawingObjects();
+				for (var nIndex = 0, nCount = arrDrawings.length; nIndex < nCount; ++nIndex)
+				{
+					arrDrawings[nIndex].Lock.Check(arrDrawings[nIndex].GetId());
+				}
+			}
+			else
+			{
+				var oFormParagraph = oForm.GetParagraph();
+				oFormParagraph.Lock.Check(oFormParagraph.GetId());
+			}
 		}
 	}
 };
