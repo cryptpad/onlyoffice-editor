@@ -867,7 +867,8 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 		return this;
 	};
 	cError.prototype.toLocaleString = function () {
-		switch (this.value) {
+		var val = this.value ? this.value.toUpperCase() : this.value;
+		switch (val) {
 			case cErrorOrigin["value"]:
 			case cErrorType.wrong_value_type: {
 				return cErrorLocal["value"];
