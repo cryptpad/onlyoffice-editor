@@ -7856,7 +7856,7 @@
 
 				//TODO если полная проверка, то выводим ошибки - если нет, то вовзращаем пустую строку
 				if (type === undefined || type === null || res.type === AscCommonExcel.cElementType.error) {
-					return res.toLocaleString();
+					return {str: res.toLocaleString(), obj: res};
 				}
 
 				if (type === Asc.c_oAscFormulaArgumentType.number) {
@@ -7929,7 +7929,7 @@
 				}
 			}
 		}
-		return resultStr;
+		return {str: resultStr, obj: res};
 	};
 
 

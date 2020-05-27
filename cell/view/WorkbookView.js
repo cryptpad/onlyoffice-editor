@@ -2248,19 +2248,23 @@
 	
 	WorkbookView.prototype.insertArgumentsInFormula = function (args, argNum, argType, name) {
 		if (this.getCellEditMode()) {
-		    var sArguments = args.join(AscCommon.FormulaSeparators.functionArgumentSeparator);
+			var sArguments = args.join(AscCommon.FormulaSeparators.functionArgumentSeparator);
 			this.cellEditor.changeCellText(sArguments);
 
 			if (name) {
-			    var ws = this.getActiveWS();
+				var ws = this.getActiveWS();
 
 				var res = new AscCommonExcel.CFunctionInfo(name);
 				res.argumentsResult = [];
-				res.argumentsResult[argNum] = ws.calculateWizardFormula(args[argNum], argType);
-
-                res.functionResult = ws.calculateWizardFormula(name + '(' + sArguments + ')');
-				// ToDo can calculate if previous error
-                res.formulaResult = ws.calculateWizardFormula(this.cellEditor.getText().substring(1));
+				var argCalc = ws.calculateWizardFormula(args[argNum], argType);
+				res.argumentsResult[argNum] = argCalc.str;
+				if (argCalc.obj && argCalc.obj.type !== AscCommonExcel.cElementType.error) {
+					var funcCalc = ws.calculateWizardFormula(name + '(' + sArguments + ')');
+					res.functionResult = funcCalc.str;
+					if (funcCalc.obj && funcCalc.obj.type !== AscCommonExcel.cElementType.error) {
+						res.formulaResult = ws.calculateWizardFormula(this.cellEditor.getText().substring(1)).str;
+					}
+				}
 
 				return res;
 			}
