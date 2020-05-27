@@ -7837,7 +7837,7 @@
 	};
 
 	Worksheet.prototype.calculateWizardFormula = function (formula, type) {
-		var res = null;
+		var res = null, resultStr = "";
 		if (formula) {
 			var parser = new AscCommonExcel.parserFormula(formula, /*formulaParsed.parent*/null, this);
 			var parseResultArg = new AscCommonExcel.ParseResult([], []);
@@ -7847,26 +7847,31 @@
 			}
 
 			if (res) {
+				//TODO рассчеты аргументов зависят от конкретных функций
+				//допустим, sum и acos - типа аргумента number, но результат для cellsRange3D разный
+
+				if (res.type === AscCommonExcel.cElementType.cell || res.type === AscCommonExcel.cElementType.cell3D) {
+					res = res.getValue();
+				}
+
 				//TODO если полная проверка, то выводим ошибки - если нет, то вовзращаем пустую строку
 				if (type === undefined || type === null || res.type === AscCommonExcel.cElementType.error) {
-					res = res.toLocaleString();
-				} else if (type === Asc.c_oAscFormulaArgumentType.number) {
+					return res.toLocaleString();
+				}
+
+				if (type === Asc.c_oAscFormulaArgumentType.number) {
 					if (res.type === AscCommonExcel.cElementType.array) {
 						res = res.getElementRowCol(0, 0);
 						res = res.tocNumber();
 						if (res) {
-							res = '"' + res.toLocaleString() + '"';
+							resultStr = '"' + res.toLocaleString() + '"';
 						}
 					} else if (res.type === AscCommonExcel.cElementType.cellsRange) {
-						res = res.toLocaleString();
-					} else if (res.type === AscCommonExcel.cElementType.cell || res.type === AscCommonExcel.cElementType.cell3D) {
-						res = res.getValue();
-						res = res.tocNumber();
-						res = res.toLocaleString();
-					} else {
+						resultStr = res.toLocaleString();
+					} else if (res.type !== AscCommonExcel.cElementType.cellsRange3D) {
 						res = res.tocNumber();
 						if (res) {
-							res = res.toLocaleString();
+							resultStr = res.toLocaleString();
 						}
 					}
 				} else if (type === Asc.c_oAscFormulaArgumentType.text) {
@@ -7874,51 +7879,57 @@
 						res = res.getElementRowCol(0, 0);
 						res = res.tocString();
 						if (res) {
-							res = '"' + res.toLocaleString() + '"';
+							resultStr = '"' + res.toLocaleString() + '"';
 						}
 					} else if (res.type === AscCommonExcel.cElementType.cellsRange) {
-						res = res.toLocaleString();
-					} else if (res.type === AscCommonExcel.cElementType.cell || res.type === AscCommonExcel.cElementType.cell3D) {
-						res = res.getValue();
+						resultStr = res.toLocaleString();
+					} else if (res.type !== AscCommonExcel.cElementType.cellsRange3D) {
 						res = res.tocString();
 						if (res) {
-							res = '"' + res.toLocaleString() + '"';
-						}
-					} else {
-						res = res.tocString();
-						if (res) {
-							res = '"' + res.toLocaleString() + '"';
+							resultStr = '"' + res.toLocaleString() + '"';
 						}
 					}
 				} else if (type === Asc.c_oAscFormulaArgumentType.logical) {
-					res = res.tocBool();
+					if (res.type === AscCommonExcel.cElementType.cellsRange || res.type === AscCommonExcel.cElementType.cellsRange3D) {
+						res = res.getFullArray(new AscCommonExcel.cNumber(0));
+					} else if (res.type !== AscCommonExcel.cElementType.array) {
+						res = res.tocBool();
+					}
 					if (res) {
-						res = res.toLocaleString();
+						resultStr = res.toLocaleString();
 					}
 				} else if (type === Asc.c_oAscFormulaArgumentType.any) {
 					if (res.type === AscCommonExcel.cElementType.array) {
 						res = res.getElementRowCol(0, 0);
 						res = res.tocString();
-					} else if (res.type === AscCommonExcel.cElementType.cellsRange) {
-						res = res.toLocaleString();
-					} else if (res.type === AscCommonExcel.cElementType.cell || res.type === AscCommonExcel.cElementType.cell3D) {
-						res = res.getValue();
-						res = res.tocString();
 						if (res) {
-							res = '"' + res.toLocaleString() + '"';
+							resultStr = res.toLocaleString();
 						}
+					} else if (res.type === AscCommonExcel.cElementType.cellsRange) {
+						resultStr = res.toLocaleString();
+					} else if (res.type === AscCommonExcel.cElementType.cellsRange3D) {
+						resultStr = res.toLocaleString();
 					} else {
 						res = res.tocString();
 						if (res) {
-							res = '"' + res.toLocaleString() + '"';
+							resultStr = '"' + res.toLocaleString() + '"';
 						}
 					}
-				} /*else if (type === Asc.c_oAscFormulaArgumentType.reference) {
-					res = res.toLocaleString();
-				}*/
+				} else if (type === Asc.c_oAscFormulaArgumentType.reference) {
+					if (res.type === AscCommonExcel.cElementType.array) {
+						resultStr = res.toLocaleString();
+					} else if (res.type === AscCommonExcel.cElementType.cellsRange || res.type === AscCommonExcel.cElementType.cellsRange3D) {
+						res = res.getFullArray(new AscCommonExcel.cNumber(0));
+						if (res) {
+							resultStr = res.toLocaleString();
+						}
+					} else {
+						resultStr = res.toLocaleString();
+					}
+				}
 			}
 		}
-		return res;
+		return resultStr;
 	};
 
 
