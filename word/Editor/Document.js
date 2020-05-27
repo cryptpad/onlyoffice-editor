@@ -12217,6 +12217,18 @@ CDocument.prototype.IsSelectionLocked = function(nCheckType, oAdditionalData, is
 {
 	return this.Document_Is_SelectionLocked(nCheckType, oAdditionalData, isDontLockInFastMode, isIgnoreCanEditFlag);
 };
+CDocument.prototype.CheckSelectionLockedByFormKey = function(nCheckType, sKey, oSkipParagraph)
+{
+	for (var sId in this.SpecialForms)
+	{
+		var oForm = this.SpecialForms[sId];
+		if (oForm && oForm.IsUseInDocument() && oForm.GetParagraph() && oForm.GetParagraph() !== oSkipParagraph && oForm.GetFormKey() === sKey)
+		{
+			var oFormParagraph = oForm.GetParagraph();
+			oFormParagraph.Lock.Check(oFormParagraph.GetId());
+		}
+	}
+};
 /**
  * Начинаем составную проверку на залоченность объектов
  * @param [isIgnoreCanEditFlag=false] игнорируем ли запрет на редактирование

@@ -187,7 +187,7 @@ CSdtBase.prototype.IsContentControlTemporary = function()
  */
 CSdtBase.prototype.SetFormPr = function(oFormPr)
 {
-	if ((!this.Pr.FormPr && oFormPr) || this.Pr.FormPr.Is)
+	if ((!this.Pr.FormPr && oFormPr) || this.Pr.FormPr.IsEqual(oFormPr))
 	{
 		History.Add(new CChangesSdtPrFormPr(this, this.Pr.FormPr, oFormPr));
 		this.Pr.FormPr = oFormPr;
