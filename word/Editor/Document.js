@@ -3024,6 +3024,9 @@ CDocument.prototype.private_FinalizeFormChange = function()
 		var oForm = this.Action.Additional.FormChange[sKey].Form;
 		var oPr   = this.Action.Additional.FormChange[sKey].Pr;
 
+		if (!oForm.IsUseInDocument())
+			continue;
+
 		if (oForm.IsCheckBox())
 		{
 			var isChecked = oForm.GetCheckBoxPr().Checked;
@@ -3032,6 +3035,9 @@ CDocument.prototype.private_FinalizeFormChange = function()
 				for (var sId in this.SpecialForms)
 				{
 					var oTempForm = this.SpecialForms[sId];
+					if (!oTempForm.IsUseInDocument())
+						continue;
+
 					if (oTempForm !== oForm && oTempForm.IsRadioButton() && sKey === oTempForm.GetCheckBoxPr().GroupKey)
 					{
 						if (oTempForm.GetCheckBoxPr().Checked)
@@ -3044,6 +3050,9 @@ CDocument.prototype.private_FinalizeFormChange = function()
 				for (var sId in this.SpecialForms)
 				{
 					var oTempForm = this.SpecialForms[sId];
+					if (!oTempForm.IsUseInDocument())
+						continue;
+
 					if (oTempForm !== oForm && oTempForm.IsCheckBox() && (!oTempForm.IsRadioButton()) && sKey === oTempForm.GetFormKey())
 					{
 						if (isChecked !== oTempForm.GetCheckBoxPr().Checked)
@@ -3057,6 +3066,8 @@ CDocument.prototype.private_FinalizeFormChange = function()
 			for (var sId in this.SpecialForms)
 			{
 				var oTempForm = this.SpecialForms[sId];
+				if (!oTempForm.IsUseInDocument())
+					continue;
 
 				if (oTempForm !== oForm && sKey === oTempForm.GetFormKey() && oTempForm.IsPicture())
 				{
@@ -3080,7 +3091,7 @@ CDocument.prototype.private_FinalizeFormChange = function()
 			{
 				var oTempForm = this.SpecialForms[sId];
 
-				if (oTempForm.IsPicture() || oTempForm.IsCheckBox())
+				if (!oTempForm.IsUseInDocument() || oTempForm.IsPicture() || oTempForm.IsCheckBox())
 					continue;
 
 				if (oTempForm !== oForm && sKey === oTempForm.GetFormKey())
@@ -15125,7 +15136,15 @@ CDocument.prototype.AddContentControlTextForm = function(oPr)
 
 	if (oPr.Comb)
 	{
-		var oDocPart = oCC.SetPlaceholderText(String.fromCharCode(oPr.CombPlaceholderSymbol));
+		if (!oPr.MaxCharacters || !oPr.MaxCharacters <= 0)
+			oPr.MaxCharacters = 12;
+
+		var oDocPart
+		if (oPr.CombPlaceholderSymbol)
+			oCC.SetPlaceholderText(String.fromCharCode(oPr.CombPlaceholderSymbol));
+		else
+			oCC.SetPlaceholder(c_oAscDefaultPlaceholderName.TextForm);
+
 		if (oDocPart && oPr.CombPlaceholderFont)
 		{
 			oDocPart.SelectAll();
