@@ -907,7 +907,26 @@
 		}
 	};
 	// GoTo
-	baseEditorsApi.prototype.goTo                                = function(action)
+	baseEditorsApi.prototype.goTo                                = function(options)
+	{
+		options = options || (this.DocInfo && this.DocInfo.asc_getOptions());
+		options = options && options['action'];
+		if (!options) {
+			return;
+		}
+		switch (options['type']) {
+			case 'bookmark':
+				this._goToBookmark(options['data']);
+				break;
+			case 'comment':
+				this._goToComment(options['data']);
+				break;
+		}
+	};
+	baseEditorsApi.prototype._goToComment                        = function(data)
+	{
+	};
+	baseEditorsApi.prototype._goToBookmark                       = function(data)
 	{
 	};
 	// CoAuthoring

@@ -4968,27 +4968,14 @@ background-repeat: no-repeat;\
 	};
 
 
-	asc_docs_api.prototype.goTo = function(action)
+	asc_docs_api.prototype._goToComment = function(data)
 	{
-		if (this.WordControl && this.WordControl.m_oLogicDocument && action)
+		if (this.WordControl && this.WordControl.m_oLogicDocument && data)
 		{
-			switch (action["type"])
-			{
-				case "bookmark":
-				{
-					break;
-				}
-				case "comment":
-				{
-					var commentId = this.WordControl.m_oLogicDocument.GetCommentIdByGuid(action["data"]);
-					if (commentId) {
-						this.asc_selectComment(commentId);
-						this.asc_showComment(commentId);
-					}
-					break;
-				}
-				default:
-					break;
+			var commentId = this.WordControl.m_oLogicDocument.GetCommentIdByGuid(data);
+			if (commentId) {
+				this.asc_selectComment(commentId);
+				this.asc_showComment(commentId);
 			}
 		}
 	};
@@ -5278,8 +5265,7 @@ background-repeat: no-repeat;\
 
 		// Меняем тип состояния (на никакое)
 		this.advancedOptionsAction = AscCommon.c_oAscAdvancedOptionsAction.None;
-		var options = this.DocInfo && this.DocInfo.asc_getOptions();
-		this.goTo(options && options["action"]);
+		this.goTo();
 	};
 
 

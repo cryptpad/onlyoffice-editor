@@ -3938,8 +3938,7 @@ function OfflineEditor () {
             _api.asc_ApplyColorScheme(false);
             _api._applyFirstLoadChanges();
             // Go to if sent options
-            var options = _api.DocInfo && _api.DocInfo.asc_getOptions();
-            _api.goTo(options && options["action"]);
+            _api.goTo();
             
             var ws = _api.wb.getWorksheet();
             
@@ -7374,8 +7373,7 @@ window["Asc"]["spreadsheet_api"].prototype.openDocument = function(file) {
                // Применяем пришедшие при открытии изменения
                t._applyFirstLoadChanges();
                // Go to if sent options
-               var options = t.DocInfo && t.DocInfo.asc_getOptions();
-               t.goTo(options && options["action"]);
+               t.goTo();
 
                t.isDocumentLoadComplete = true;
                

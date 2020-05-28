@@ -1414,29 +1414,22 @@ background-repeat: no-repeat;\
 	// -------
 
 	// GoTo
-	asc_docs_api.prototype.goTo = function(action)
+	asc_docs_api.prototype._goToComment = function(data)
 	{
-		if (this.WordControl && this.WordControl.m_oLogicDocument && action)
+		if (this.WordControl && this.WordControl.m_oLogicDocument && data)
 		{
-			switch (action["type"])
-			{
-				case "bookmark":
-				{
-					this.WordControl.m_oLogicDocument.GoToBookmark(action["data"], true);
-					break;
-				}
-				case "comment":
-				{
-					var commentId = this.WordControl.m_oLogicDocument.Comments.GetCommentIdByGuid(action["data"]);
-					if (commentId) {
-						this.asc_selectComment(commentId);
-						this.asc_showComment(commentId);
-					}
-					break;
-				}
-				default:
-					break;
+			var commentId = this.WordControl.m_oLogicDocument.Comments.GetCommentIdByGuid(data);
+			if (commentId) {
+				this.asc_selectComment(commentId);
+				this.asc_showComment(commentId);
 			}
+		}
+	};
+	asc_docs_api.prototype._goToBookmark = function(data)
+	{
+		if (this.WordControl && this.WordControl.m_oLogicDocument && data)
+		{
+			this.WordControl.m_oLogicDocument.GoToBookmark(data, true);
 		}
 	};
 
