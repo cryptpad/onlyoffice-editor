@@ -3448,8 +3448,9 @@ function OfflineEditor () {
             selection.push(0);
             selection.push(0);
             selection.push(0);
-            
-            var ranges = this.model.getSelection().ranges;
+
+            var oSelection = this.model.getSelection();
+            var ranges = oSelection.ranges;
             var range, selectionLineType, type;
             for (var i = 0, l = ranges.length; i < l; ++i) {
                 range = ranges[i].clone();
@@ -3479,7 +3480,7 @@ function OfflineEditor () {
                 if (1 === l) {
                     selectionLineType |=
                     AscCommonExcel.selectionLineType.ActiveCell | AscCommonExcel.selectionLineType.Promote;
-                } else if (i === this.model.selectionRange.activeCellId) {
+                } else if (i === oSelection.activeCellId) {
                     selectionLineType |= AscCommonExcel.selectionLineType.ActiveCell;
                 }
                 
@@ -4208,7 +4209,7 @@ function OfflineEditor () {
         var region = null;
         //var range = ws.activeRange.intersection(worksheet.visibleRange);
         
-        var ranges = ws.model.selectionRange.ranges;
+        var ranges = ws.model.getSelection().ranges;
         var range = ws.visibleRange;
         for (var i = 0, l = ranges.length; i < l; ++i) {
             range = range.intersection(ranges[i]);
@@ -4623,7 +4624,7 @@ function OfflineEditor () {
         if (imageUrl && objectRender.canEdit()) {
             
             var _image = new Image();
-            _image.src = imageUrl
+            _image.src = imageUrl;
             
             var isOption = true;//options && options.cell;
             
