@@ -916,6 +916,7 @@
 		}
 		switch (options['type']) {
 			case 'bookmark':
+			case 'internallink':
 				this._goToBookmark(options['data']);
 				break;
 			case 'comment':
