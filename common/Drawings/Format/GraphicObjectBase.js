@@ -638,6 +638,24 @@
     CGraphicObjectBase.prototype.setNoChangeAspect = function(bValue){
         return this.setLockValue(LOCKS_MASKS.noChangeAspect, bValue);
     };
+    CGraphicObjectBase.prototype.canRotate = function() {
+        return this.getNoRot() === false;    
+    };
+    CGraphicObjectBase.prototype.canResize = function() {
+        return this.getNoResize() === false;    
+    };
+    CGraphicObjectBase.prototype.canMove = function() {
+        return this.getNoMove() === false;    
+    };
+    CGraphicObjectBase.prototype.canGroup = function() {
+        return this.getNoGrp() === false;    
+    };
+    CGraphicObjectBase.prototype.canUnGroup = function() {
+        return this.getNoUngrp() === false;
+    };
+    CGraphicObjectBase.prototype.canChangeAdjustments = function () {
+        return this.getNoAdjustHandles() === false;
+    };
     CGraphicObjectBase.prototype.Reassign_ImageUrls = function(mapUrl){
         var blip_fill;
         if(this.blipFill){

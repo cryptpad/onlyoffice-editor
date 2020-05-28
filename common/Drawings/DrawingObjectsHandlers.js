@@ -165,11 +165,15 @@ function handleSelectedObjects(drawingObjectsController, e, x, y, group, pageInd
                 tx = x;
                 ty = y;
             }
-            var hit_to_adj = selected_objects[0].hitToAdjustment(tx, ty);
-            if(hit_to_adj.hit)
+            
+            if(selected_objects[0].canChangeAdjustments())
             {
-                ret = drawingObjectsController.handleAdjustmentHit(hit_to_adj, selected_objects[0], group, pageIndex);
-                drawing = selected_objects[0];
+                var hit_to_adj = selected_objects[0].hitToAdjustment(tx, ty);
+                if(hit_to_adj.hit)
+                {
+                    ret = drawingObjectsController.handleAdjustmentHit(hit_to_adj, selected_objects[0], group, pageIndex);
+                    drawing = selected_objects[0];
+                }
             }
         }
     }

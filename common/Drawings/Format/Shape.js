@@ -5653,29 +5653,22 @@ CShape.prototype.hitInBoundingRect = function (x, y) {
 };
 
 CShape.prototype.canRotate = function () {
-    if(this.cropObject){
+    if(this.cropObject) {
         return false;
     }
-    return true;
+    return AscFormat.CGraphicObjectBase.prototype.canRotate.call(this);
 };
 
-CShape.prototype.canResize = function () {
-    return true;
-};
-
-CShape.prototype.canMove = function () {
-    return true; //TODO
-};
 
 CShape.prototype.canGroup = function () {
-    return !this.isPlaceholder(); //TODO
+    if(this.isPlaceholder()) {
+        return false;
+    }
+    return AscFormat.CGraphicObjectBase.prototype.canGroup.call(this);
 };
 
 
 
-CShape.prototype.canChangeAdjustments = function () {
-    return true; //TODO
-};
 
 CShape.prototype.createRotateTrack = function () {
     return new AscFormat.RotateTrackShapeImage(this);

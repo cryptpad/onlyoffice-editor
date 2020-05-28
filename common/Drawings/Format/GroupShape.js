@@ -739,41 +739,22 @@ function CGroupShape()
 
     CGroupShape.prototype.canRotate = function()
     {
-        //TODO: сделать еще проверку SpLock
         for(var i = 0; i < this.spTree.length; ++i)
         {
-            if(!this.spTree[i].canRotate || !this.spTree[i].canRotate())
+            if(!this.spTree[i].canRotate())
                 return false;
         }
-        return true;
+        return AscFormat.CGraphicObjectBase.prototype.canRotate.call(this);
     };
 
     CGroupShape.prototype.canResize = function()
     {
-        //TODO: сделать еще проверку SpLock
         for(var i = 0; i < this.spTree.length; ++i)
         {
-            if(!this.spTree[i].canResize || !this.spTree[i].canResize())
+            if(!this.spTree[i].canResize())
                 return false
         }
-        return true;
-    };
-
-    CGroupShape.prototype.canMove = function()
-    {
-        //TODO: сделать еще проверку SpLock
-        return true;//TODO
-    };
-
-    CGroupShape.prototype.canGroup = function()
-    {
-        //TODO: сделать еще проверку SpLock
-        return true;//TODO
-    };
-
-    CGroupShape.prototype.canChangeAdjustments = function()
-    {
-        return false;
+        return AscFormat.CGraphicObjectBase.prototype.canResize.call(this);
     };
 
     CGroupShape.prototype.drawAdjustments = function()
@@ -1445,10 +1426,7 @@ function CGroupShape()
         }
     };
 
-    CGroupShape.prototype.canUnGroup = function()
-    {
-        return true;
-    };
+    
 
     CGroupShape.prototype.normalize = function()
     {

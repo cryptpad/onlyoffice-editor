@@ -570,15 +570,6 @@ CGraphicFrame.prototype.canRotate = function()
         return false;
 };
 
-CGraphicFrame.prototype.canResize = function()
-    {
-        return true;
-};
-
-CGraphicFrame.prototype.canMove = function()
-    {
-        return true;
-};
 
 CGraphicFrame.prototype.canGroup = function()
     {
