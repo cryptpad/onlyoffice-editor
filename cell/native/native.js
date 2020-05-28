@@ -4874,10 +4874,12 @@ window["native"]["offline_mouse_down"] = function(x, y, pin, isViewerMode, isFor
     
     _s._resizeWorkRegion(ws, x, y, true);
     
-    var range = ws.visibleRange.clone();
+    var range = wb.getWorksheet().getVisibleRange().clone();
+    
     range.c1 = _s.col0;
     range.r1 = _s.row0;
-    ws.visibleRange = range;
+    
+    wb.getWorksheet().visibleRange = range;
 
     ws._updateDrawingArea();
     var graphicsInfo = wb._onGetGraphicsInfo(x, y);
@@ -4977,7 +4979,7 @@ window["native"]["offline_mouse_down"] = function(x, y, pin, isViewerMode, isFor
         }
     }
     
-    ws.visibleRange = range;
+    wb.getWorksheet().visibleRange = range;
     
     return null;
 }
@@ -4985,10 +4987,12 @@ window["native"]["offline_mouse_move"] = function(x, y, isViewerMode, isRangeRes
     var ws = _api.wb.getWorksheet();
     var wb = _api.wb;
     
-    var range =  ws.visibleRange.clone();
+    var range = wb.getWorksheet().getVisibleRange().clone();
+   
     range.c1 = _s.col0;
     range.r1 = _s.row0;
-    ws.visibleRange = range;
+
+    wb.getWorksheet().visibleRange = range;
     
     if (isRangeResize) {
         if (!isViewerMode) {
@@ -5032,7 +5036,7 @@ window["native"]["offline_mouse_move"] = function(x, y, isViewerMode, isRangeRes
         }
     }
     
-    ws.visibleRange = range;
+    wb.getWorksheet().visibleRange = range;
     
     return null;
 }
@@ -5041,10 +5045,12 @@ window["native"]["offline_mouse_up"] = function(x, y, isViewerMode, isRangeResiz
     var ws = _api.wb.getWorksheet();
     var wb = _api.wb;
     
-    var range =  ws.visibleRange.clone();
+    var range = wb.getWorksheet().getVisibleRange().clone();
+   
     range.c1 = _s.col0;
     range.r1 = _s.row0;
-    ws.visibleRange = range;
+    
+    wb.getWorksheet().visibleRange = range;
     
     if (_s.isShapeAction) {
         var e = {isLocked: true, Button: 0, ClickCount: 1, shiftKey: false, metaKey: false, ctrlKey: false};
@@ -5078,7 +5084,7 @@ window["native"]["offline_mouse_up"] = function(x, y, isViewerMode, isRangeResiz
         }
     }
     
-    ws.visibleRange = range;
+    wb.getWorksheet().visibleRange = range;
     
     return ret;
 }
@@ -5207,11 +5213,12 @@ window["native"]["offline_cell_editor_open"] = function(x, y, width, height, rat
     
     var wb = _api.wb;
     
-    var range =  ws.visibleRange.clone();
-    ws.visibleRange.c1 = c1;
-    ws.visibleRange.r1 = r1;
-    ws.visibleRange.c2 = c2;
-    ws.visibleRange.r2 = r2;
+    var range = wb.getWorksheet().getVisibleRange().clone();
+   
+    wb.getWorksheet().visibleRange.c1 = c1;
+    wb.getWorksheet().visibleRange.r1 = r1;
+    wb.getWorksheet().visibleRange.c2 = c2;
+    wb.getWorksheet().visibleRange.r2 = r2;
     
     wb.cellEditor.isSelectAll = isSelectAll;
     
@@ -5230,7 +5237,7 @@ window["native"]["offline_cell_editor_open"] = function(x, y, width, height, rat
         t.Api.cleanSpelling();
     }
     
-    ws.visibleRange = range;
+    wb.getWorksheet().visibleRange = range;
 };
 window["native"]["offline_cell_editor_test_cells"] = function(x, y, width, height, ratio, isSelectAll, isFormulaInsertMode, c1, r1, c2, r2)  {
     _null_object.width = width * ratio;
@@ -5239,11 +5246,12 @@ window["native"]["offline_cell_editor_test_cells"] = function(x, y, width, heigh
     var wb = _api.wb;
     var ws = _api.wb.getWorksheet();
     
-    var range = ws.visibleRange.clone();
-    ws.visibleRange.c1 = c1;
-    ws.visibleRange.r1 = r1;
-    ws.visibleRange.c2 = c2;
-    ws.visibleRange.r2 = r2;
+    var range = wb.getWorksheet().getVisibleRange().clone();
+   
+    wb.getWorksheet().getVisibleRange().c1 = c1;
+    wb.getWorksheet().getVisibleRange().r1 = r1;
+    wb.getWorksheet().getVisibleRange().c2 = c2;
+    wb.getWorksheet().getVisibleRange().r2 = r2;
     
     wb.cellEditor.isSelectAll = isSelectAll;
     
@@ -5273,7 +5281,7 @@ window["native"]["offline_cell_editor_test_cells"] = function(x, y, width, heigh
         editFunction();
     }
     
-    wb.visibleRange = range;
+    wb.getWorksheet().visibleRange = range;
 }
 
 window["native"]["offline_cell_editor_process_input_commands"] = function(sendArguments) {
