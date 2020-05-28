@@ -1124,6 +1124,13 @@ var editor;
       this.asc_showComment(comment.nId);
     }
   };
+  spreadsheet_api.prototype._goToBookmark = function(data) {
+    // Disable edit because if there is no name, we will try to create it
+    var tmp = this.restrictions;
+    this.restrictions = Asc.c_oAscRestrictionType.None;
+    this.asc_findCell(data);
+    this.restrictions = tmp;
+  };
 
   /////////////////////////////////////////////////////////////////////////
   ///////////////////CoAuthoring and Chat api//////////////////////////////
