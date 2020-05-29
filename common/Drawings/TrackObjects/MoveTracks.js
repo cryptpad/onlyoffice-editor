@@ -549,15 +549,20 @@ function MoveComment(comment)
         this.y = original.y + dy;
     };
 
-    this.draw = function(overlay)
+    this.getFlags = function()
     {
-
         var Flags = 0;
         Flags |= 1;
         if(this.comment.Data.m_aReplies.length > 0)
         {
             Flags |= 2;
         }
+        return Flags;
+    };
+    
+    this.draw = function(overlay)
+    {
+        var Flags = this.getFlags();
         var dd = editor.WordControl.m_oDrawingDocument;
         overlay.DrawPresentationComment(Flags, this.x, this.y, dd.GetCommentWidth(Flags), dd.GetCommentHeight(Flags))
     };
@@ -568,6 +573,24 @@ function MoveComment(comment)
             return;
         }
         this.comment.setPosition(this.x, this.y);
+    };
+    
+    this.getBounds = function()
+    {
+        var dd = editor.WordControl.m_oDrawingDocument;
+        var Flags = this.getFlags();
+        var W = dd.GetCommentWidth(Flags);
+        var H = dd.GetCommentHeight(Flags);
+        var boundsChecker = new  AscFormat.CSlideBoundsChecker();
+        boundsChecker.Bounds.min_x = this.x;
+        boundsChecker.Bounds.max_x = this.x + W;
+        boundsChecker.Bounds.min_y = this.y;
+        boundsChecker.Bounds.max_y = this.y + H;
+        boundsChecker.Bounds.posX = this.x;
+        boundsChecker.Bounds.posY = this.y;
+        boundsChecker.Bounds.extX = W;
+        boundsChecker.Bounds.extY = H;
+        return boundsChecker.Bounds;
     };
 }
 
@@ -652,6 +675,20 @@ function MoveChartObjectTrack(oObject, oChartSpace)
 
         oObjectToSet.layout.setX(fLayoutX);
         oObjectToSet.layout.setY(fLayoutY);
+    };
+    
+    this.getBounds = function ()
+    {
+        var boundsChecker = new  AscFormat.CSlideBoundsChecker();
+        boundsChecker.Bounds.min_x = this.x;
+        boundsChecker.Bounds.max_x = this.x + oObject.extX;
+        boundsChecker.Bounds.min_y = this.y;
+        boundsChecker.Bounds.max_y = this.y + oObject.extY;
+        boundsChecker.Bounds.posX = this.x;
+        boundsChecker.Bounds.posY = this.y;
+        boundsChecker.Bounds.extX = oObject.extX;
+        boundsChecker.Bounds.extY = oObject.extY;
+        return boundsChecker.Bounds;
     };
 }
 
