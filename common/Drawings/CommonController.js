@@ -1629,23 +1629,23 @@ DrawingObjectsController.prototype =
         {
             var selector = group ? group : this;
             this.checkChartTextSelection();
+            this.arrPreTrackObjects.length = 0;
+            var is_selected =  object.selected;
+            var b_check_internal = checkInternalSelection(selector.selection);
+            if(!(e.CtrlKey || e.ShiftKey) && !is_selected || b_is_inline || b_is_selected_inline)
+            {
+                if(!object.isCrop && !object.cropObject)
+                {
+                    selector.resetSelection();
+                }
+            }
+            if(!e.CtrlKey || !object.selected){
+                selector.selectObject(object, pageIndex);
+            }
+            if(!is_selected || b_check_internal)
+                this.updateOverlay();
             if(object.canMove())
             {
-                this.arrPreTrackObjects.length = 0;
-                var is_selected =  object.selected;
-                var b_check_internal = checkInternalSelection(selector.selection);
-                if(!(e.CtrlKey || e.ShiftKey) && !is_selected || b_is_inline || b_is_selected_inline)
-                {
-                    if(!object.isCrop && !object.cropObject)
-                    {
-                        selector.resetSelection();
-                    }
-                }
-                if(!e.CtrlKey || !object.selected){
-                    selector.selectObject(object, pageIndex);
-                }
-                if(!is_selected || b_check_internal)
-                    this.updateOverlay();
                 this.checkSelectedObjectsForMove(group, pageIndex);
                 if(!isRealObject(group))
                 {
