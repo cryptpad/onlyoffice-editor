@@ -1700,8 +1700,7 @@ var editor;
 		// Применяем пришедшие при открытии изменения
 		this._applyFirstLoadChanges();
 		// Go to if sent options
-		var options = this.DocInfo && this.DocInfo.asc_getOptions();
-		this.goTo(options && options["action"]);
+		this.goTo();
 
 		// Меняем тип состояния (на никакое)
 		this.advancedOptionsAction = c_oAscAdvancedOptionsAction.None;
