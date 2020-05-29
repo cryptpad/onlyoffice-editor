@@ -3885,13 +3885,19 @@ DrawingObjectsController.prototype =
         if(isRealObject(props.Position) && AscFormat.isRealNumber(props.Position.X) && AscFormat.isRealNumber(props.Position.Y)
         || AscFormat.isRealBool(props.flipH) || AscFormat.isRealBool(props.flipV) || AscFormat.isRealBool(props.flipHInvert) || AscFormat.isRealBool(props.flipVInvert) || AscFormat.isRealNumber(props.rotAdd) || AscFormat.isRealNumber(props.rot) || AscFormat.isRealNumber(props.anchor))
         {
-            var bPosition = isRealObject(props.Position) && AscFormat.isRealNumber(props.Position.X) && AscFormat.isRealNumber(props.Position.Y);
+            var bPosition = isRealObject(props.Position) && (AscFormat.isRealNumber(props.Position.X) || AscFormat.isRealNumber(props.Position.Y));
             for(i = 0; i < objects_by_type.shapes.length; ++i)
             {
                 CheckSpPrXfrm(objects_by_type.shapes[i]);
                 if(bPosition){
-                    objects_by_type.shapes[i].spPr.xfrm.setOffX(props.Position.X);
-                    objects_by_type.shapes[i].spPr.xfrm.setOffY(props.Position.Y);
+                    if(AscFormat.isRealNumber(props.Position.X))
+                    {
+                        objects_by_type.shapes[i].spPr.xfrm.setOffX(props.Position.X);
+                    }
+                    if(AscFormat.isRealNumber(props.Position.Y))
+                    {
+                        objects_by_type.shapes[i].spPr.xfrm.setOffY(props.Position.Y);
+                    }
                 }
                 if(AscFormat.isRealBool(props.flipH)){
                     objects_by_type.shapes[i].spPr.xfrm.setFlipH(props.flipH);
@@ -3921,8 +3927,14 @@ DrawingObjectsController.prototype =
             {
                 CheckSpPrXfrm(objects_by_type.images[i]);
                 if(bPosition){
-                    objects_by_type.images[i].spPr.xfrm.setOffX(props.Position.X);
-                    objects_by_type.images[i].spPr.xfrm.setOffY(props.Position.Y);
+                    if(AscFormat.isRealNumber(props.Position.X))
+                    {
+                        objects_by_type.images[i].spPr.xfrm.setOffX(props.Position.X);
+                    }
+                    if(AscFormat.isRealNumber(props.Position.Y))
+                    {
+                        objects_by_type.images[i].spPr.xfrm.setOffY(props.Position.Y);
+                    }
                 }
                 if(AscFormat.isRealBool(props.flipH)){
                     objects_by_type.images[i].spPr.xfrm.setFlipH(props.flipH);
@@ -3952,8 +3964,15 @@ DrawingObjectsController.prototype =
                 for(i = 0; i < objects_by_type.charts.length; ++i)
                 {
                     CheckSpPrXfrm(objects_by_type.charts[i]);
-                    objects_by_type.charts[i].spPr.xfrm.setOffX(props.Position.X);
-                    objects_by_type.charts[i].spPr.xfrm.setOffY(props.Position.Y);
+                    if(AscFormat.isRealNumber(props.Position.X))
+                    {
+                        objects_by_type.charts[i].spPr.xfrm.setOffX(props.Position.X);
+                    }
+                    if(AscFormat.isRealNumber(props.Position.Y))
+                    {
+                        objects_by_type.charts[i].spPr.xfrm.setOffY(props.Position.Y);
+                    }
+                    
                     if(objects_by_type.charts[i].group)
                     {
                         checkObjectInArray(aGroups, objects_by_type.charts[i].group.getMainGroup());
