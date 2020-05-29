@@ -474,6 +474,7 @@
                         AscCommon.EncryptionWorker.decryptImage(_src, this, _crypto_data);
                         return;
                     }
+					this.crossOrigin = "";
                     this.src = _src;
                     oThis.Api.sync_EndAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.UploadImage);
                 };
