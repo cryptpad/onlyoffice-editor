@@ -407,6 +407,8 @@
 				  self.enableKeyEventsHandler(true);
 			  }, "autoFiltersClick": function () {
 				  self._onAutoFiltersClick.apply(self, arguments);
+			  }, "pivotFiltersClick": function () {
+				  self._onPivotFiltersClick.apply(self, arguments);
 			  }, "commentCellClick": function () {
 				  self._onCommentCellClick.apply(self, arguments);
 			  }, "isGlobalLockEditCell": function () {
@@ -1263,18 +1265,19 @@
 
 		// проверяем фильтр
 		if (ct.target === c_oTargetType.FilterObject) {
-			if (ct.isPivot) {
-				//необходимо сгенерировать объект AutoFiltersOptions
+			var filterObj;
+			if (ct.idPivot) {
+				filterObj = ws.pivot_setDialogProp(ct.idPivot);
 			} else {
-				var filterObj = ws.af_setDialogProp(ct.idFilter, true);
-				if(filterObj) {
-					arrMouseMoveObjects.push(new asc_CMM({
-						type: c_oAscMouseMoveType.Filter,
-						x: AscCommon.AscBrowser.convertToRetinaValue(x),
-						y: AscCommon.AscBrowser.convertToRetinaValue(y),
-						filter: filterObj
-					}));
-				}
+				filterObj = ws.af_setDialogProp(ct.idFilter, true);
+			}
+			if(filterObj) {
+				arrMouseMoveObjects.push(new asc_CMM({
+					type: c_oAscMouseMoveType.Filter,
+					x: AscCommon.AscBrowser.convertToRetinaValue(x),
+					y: AscCommon.AscBrowser.convertToRetinaValue(y),
+					filter: filterObj
+				}));
 			}
 		}
 
@@ -1402,6 +1405,13 @@
 
   WorkbookView.prototype._onAutoFiltersClick = function(idFilter) {
     this.getWorksheet().af_setDialogProp(idFilter);
+  };
+
+  WorkbookView.prototype._onPivotFiltersClick = function(idPivot) {
+    var filterObj = this.getWorksheet().pivot_setDialogProp(idPivot);
+    if (filterObj) {
+      this.handlers.trigger("asc_onSetAFDialog", filterObj);
+    }
   };
 
   WorkbookView.prototype._onGroupRowClick = function(x, y, target, type) {

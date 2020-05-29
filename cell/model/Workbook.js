@@ -7115,7 +7115,7 @@
 		}
 	};
 	Worksheet.prototype.inPivotTable = function (range, exceptPivot) {
-		return this.pivotTables.some(function (element) {
+		return this.pivotTables.find(function (element) {
 			return exceptPivot !== element && element.intersection(range);
 		});
 	};

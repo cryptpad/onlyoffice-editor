@@ -1449,8 +1449,8 @@
 						if (0 === button) {
 							if (t.targetInfo.isDataValidation) {
 								this.handlers.trigger('onDataValidation');
-							} else if (t.targetInfo.isPivot) {
-								// ToDo pivot
+							} else if (t.targetInfo.idPivot) {
+								this.handlers.trigger("pivotFiltersClick", t.targetInfo.idPivot);
 							} else {
 								t._autoFiltersClick(t.targetInfo.idFilter);
 							}

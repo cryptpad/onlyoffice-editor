@@ -5071,6 +5071,10 @@ CCellValue.prototype =
 			case this.Properties.number: this.number = value;break;
 			case this.Properties.type: this.type = value;break;
 		}
+	},
+	toString : function()
+	{
+		return this.text || this.number.toString();
 	}
 };
 
