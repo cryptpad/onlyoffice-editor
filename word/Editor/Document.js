@@ -3262,51 +3262,69 @@ CDocument.prototype.private_Recalculate = function(_RecalcData, isForceStrictRec
 
         // TODO: Тут надо вставить заглушку, что если у нас в долгом пересчете находится страница <= PageIndex + 1,
         //       по отношению к данной, тогда не надо делать быстрый пересчет.
-        var SimplePara = History.IsParagraphSimpleChanges();
-        if (null !== SimplePara)
-        {
-            var FastPages      = SimplePara.Recalculate_FastWholeParagraph();
-            var FastPagesCount = FastPages.length;
-
-            var bCanRecalc = true;
-            for (var Index = 0; Index < FastPagesCount; Index++)
+        var arrSimpleParas = History.IsParagraphSimpleChanges();
+		if (arrSimpleParas && arrSimpleParas.length > 0)
+		{
+			var oFastPages     = {};
+			var bCanFastRecalc = true;
+			for (var nSimpleIndex = 0, nSimplesCount = arrSimpleParas.length; nSimpleIndex < nSimplesCount; ++nSimpleIndex)
 			{
-				if (!this.Pages[FastPages[Index]])
+				var oSimplePara  = arrSimpleParas[nSimpleIndex];
+				var arrFastPages = oSimplePara.Recalculate_FastWholeParagraph();
+				if (!arrFastPages || arrFastPages.length <= 0)
 				{
-					bCanRecalc = false;
+					bCanFastRecalc = false;
 					break;
 				}
+
+				for (var nFastPageIndex = 0, nFastPagesCount = arrFastPages.length; nFastPageIndex < nFastPagesCount; ++nFastPageIndex)
+				{
+					oFastPages[arrFastPages[nFastPageIndex]] = 1;
+
+					if (!this.Pages[arrFastPages[nFastPageIndex]])
+					{
+						bCanFastRecalc = false;
+						break;
+					}
+				}
+
+				if (!bCanFastRecalc)
+					break;
+
+				// Если изменения произошли на последней странице параграфа, и за данным параграфом следовал
+				// пустой параграф с новой секцией, тогда его тоже надо пересчитать.
+				var oNextElement  = oSimplePara.Get_DocumentNext();
+				var nLastFastPage = arrFastPages[arrFastPages.length - 1];
+				if (null !== oNextElement && true === this.Pages[nLastFastPage].Check_EndSectionPara(oNextElement))
+					this.private_RecalculateEmptySectionParagraph(oNextElement, oSimplePara, nLastFastPage, oSimplePara.GetAbsoluteColumn(oSimplePara.GetPagesCount() - 1), oSimplePara.GetColumnsCount());
 			}
 
-            if (FastPagesCount > 0 && true === bCanRecalc)
-            {
-                // Если изменения произошли на последней странице параграфа, и за данным параграфом следовал
-                // пустой параграф с новой секцией, тогда его тоже надо пересчитать.
-                var NextElement  = SimplePara.Get_DocumentNext();
-                var LastFastPage = FastPages[FastPagesCount - 1];
-                if (null !== NextElement && true === this.Pages[LastFastPage].Check_EndSectionPara(NextElement))
-                    this.private_RecalculateEmptySectionParagraph(NextElement, SimplePara, LastFastPage, SimplePara.Get_AbsoluteColumn(SimplePara.Get_PagesCount() - 1), SimplePara.Get_ColumnsCount());
 
-                for (var Index = 0; Index < FastPagesCount; Index++)
-                {
-                    var PageIndex = FastPages[Index];
-                    this.DrawingDocument.OnRecalculatePage(PageIndex, this.Pages[PageIndex]);
-                }
-
-                this.DrawingDocument.OnEndRecalculate(false, true);
-                History.Reset_RecalcIndex();
-                this.private_UpdateCursorXY(true, true);
-
-                if (SimplePara.Parent && SimplePara.Parent.GetTopDocumentContent)
+			if (bCanFastRecalc)
+			{
+				for (var nPageIndex in oFastPages)
 				{
-					var oTopDocument = SimplePara.Parent.GetTopDocumentContent();
-					if (oTopDocument instanceof CFootEndnote)
-						oTopDocument.OnFastRecalculate();
+					this.DrawingDocument.OnRecalculatePage(nPageIndex, this.Pages[nPageIndex]);
+				}
+
+				this.DrawingDocument.OnEndRecalculate(false, true);
+				this.History.Reset_RecalcIndex();
+				this.private_UpdateCursorXY(true, true);
+
+				for (var nSimpleIndex = 0, nSimplesCount = arrSimpleParas.length; nSimpleIndex < nSimplesCount; ++nSimpleIndex)
+				{
+					var oSimplePara = arrSimpleParas[nSimpleIndex];
+					if (oSimplePara.Parent && oSimplePara.Parent.GetTopDocumentContent)
+					{
+						var oTopDocument = oSimplePara.Parent.GetTopDocumentContent();
+						if (oTopDocument instanceof CFootEndnote)
+							oTopDocument.OnFastRecalculate();
+					}
 				}
 
 				return;
-            }
-        }
+			}
+		}
     }
 
     //console.log( "Long Recalc " );

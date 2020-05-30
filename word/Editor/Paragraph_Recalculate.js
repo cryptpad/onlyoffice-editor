@@ -45,7 +45,7 @@ var c_oAscSectionBreakType    = Asc.c_oAscSectionBreakType;
  */
 Paragraph.prototype.Recalculate_FastWholeParagraph = function()
 {
-    if (this.Pages.length <= 0)
+    if (this.Pages.length <= 0 || undefined === this.Parent)
         return [];
 
     if (true === this.Parent.IsHdrFtr(false))
@@ -60,8 +60,12 @@ Paragraph.prototype.Recalculate_FastWholeParagraph = function()
 
     // TODO: Отключаем это ускорение в таблицах, т.к. в таблицах и так есть свое ускорение. Но можно и это ускорение
     // подключить, для этого надо проверять изменились ли MinMax ширины и набираем ли мы в строке заголовков.
-    if (undefined === this.Parent || true === this.Parent.IsTableCellContent())
-        return [];
+	var oCell = this.Parent.IsTableCellContent(true);
+    if (oCell && oCell.GetTable())
+	{
+		if (tbllayout_AutoFit === oCell.GetTable().Get_CompiledPr(false).TablePr.TableLayout || oCell.IsInHeader(true))
+			return [];
+	}
 
     // Если изменения происходят в специальном пустом параграфе-конце секции, тогда запускаем обычный пересчет
     if (this.bFromDocument && this.LogicDocument && (!this.LogicDocument.Pages[this.Get_StartPage_Absolute()] || true === this.LogicDocument.Pages[this.Get_StartPage_Absolute()].Check_EndSectionPara(this)))

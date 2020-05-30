@@ -779,6 +779,10 @@ CDocumentContentElementBase.prototype.Get_ColumnsCount = function()
 {
 	return this.ColumnsCount;
 };
+CDocumentContentElementBase.prototype.GetColumnsCount = function()
+{
+	return this.ColumnsCount;
+};
 CDocumentContentElementBase.prototype.private_GetRelativePageIndex = function(CurPage)
 {
 	if (!this.ColumnsCount || 0 === this.ColumnsCount)

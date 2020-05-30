@@ -1759,7 +1759,6 @@ Paragraph.prototype.RecalculateMinMaxContentWidth = function(isRotated)
 		if (null === this.Get_DocumentNext() && true === this.Is_Empty())
 			return {Min : 0, Max : 0};
 
-
 		var Min = MinMax.nMaxHeight + ParaPr.Spacing.Before + ParaPr.Spacing.After;
 		return {Min : Min, Max : Min};
 	}
