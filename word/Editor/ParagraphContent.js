@@ -1807,9 +1807,9 @@ ParaPresentationNumbering.prototype = Object.create(CRunElementBase.prototype);
 ParaPresentationNumbering.prototype.constructor = ParaPresentationNumbering;
 
 ParaPresentationNumbering.prototype.Type = para_PresentationNumbering;
-ParaPresentationNumbering.prototype.Draw = function(X, Y, Context, FirstTextPr, PDSE)
+ParaPresentationNumbering.prototype.Draw = function(X, Y, Context, PDSE)
 {
-	this.Bullet.Draw(X, Y, Context, FirstTextPr, PDSE);
+	this.Bullet.Draw(X, Y, Context, PDSE);
 };
 ParaPresentationNumbering.prototype.Measure = function (Context, FirstTextPr, Theme)
 {

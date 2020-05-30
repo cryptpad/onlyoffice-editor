@@ -7027,73 +7027,73 @@ CXfrm.prototype =
 
     setParent: function(pr)
     {
-        History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_Xfrm_SetParent, this.parent,  pr));
+        History.CanAddChanges() && History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_Xfrm_SetParent, this.parent,  pr));
         this.parent = pr;
     },
 
     setOffX: function(pr)
     {
-        History.Add(new CChangesDrawingsDouble(this, AscDFH.historyitem_Xfrm_SetOffX, this.offX,  pr));
+        History.CanAddChanges() && History.Add(new CChangesDrawingsDouble(this, AscDFH.historyitem_Xfrm_SetOffX, this.offX,  pr));
         this.offX = pr;
         this.handleUpdatePosition();
     },
     setOffY: function(pr)
     {
-        History.Add(new CChangesDrawingsDouble(this, AscDFH.historyitem_Xfrm_SetOffY, this.offY,  pr));
+        History.CanAddChanges() && History.Add(new CChangesDrawingsDouble(this, AscDFH.historyitem_Xfrm_SetOffY, this.offY,  pr));
         this.offY = pr;
         this.handleUpdatePosition();
     },
     setExtX: function(pr)
     {
-        History.Add(new CChangesDrawingsDouble(this, AscDFH.historyitem_Xfrm_SetExtX, this.extX,  pr));
+        History.CanAddChanges() && History.Add(new CChangesDrawingsDouble(this, AscDFH.historyitem_Xfrm_SetExtX, this.extX,  pr));
         this.extX = pr;
         this.handleUpdateExtents(true);
     },
     setExtY: function(pr)
     {
-        History.Add(new CChangesDrawingsDouble(this, AscDFH.historyitem_Xfrm_SetExtY, this.extY,  pr));
+        History.CanAddChanges() && History.Add(new CChangesDrawingsDouble(this, AscDFH.historyitem_Xfrm_SetExtY, this.extY,  pr));
         this.extY = pr;
         this.handleUpdateExtents(false);
     },
     setChOffX: function(pr)
     {
-        History.Add(new CChangesDrawingsDouble(this, AscDFH.historyitem_Xfrm_SetChOffX, this.chOffX,  pr));
+        History.CanAddChanges() && History.Add(new CChangesDrawingsDouble(this, AscDFH.historyitem_Xfrm_SetChOffX, this.chOffX,  pr));
         this.chOffX = pr;
         this.handleUpdateChildOffset();
     },
     setChOffY: function(pr)
     {
-        History.Add(new CChangesDrawingsDouble(this, AscDFH.historyitem_Xfrm_SetChOffY, this.chOffY,  pr));
+        History.CanAddChanges() && History.Add(new CChangesDrawingsDouble(this, AscDFH.historyitem_Xfrm_SetChOffY, this.chOffY,  pr));
         this.chOffY = pr;
         this.handleUpdateChildOffset();
     },
     setChExtX: function(pr)
     {
-        History.Add(new CChangesDrawingsDouble(this, AscDFH.historyitem_Xfrm_SetChExtX, this.chExtX,  pr));
+        History.CanAddChanges() && History.Add(new CChangesDrawingsDouble(this, AscDFH.historyitem_Xfrm_SetChExtX, this.chExtX,  pr));
         this.chExtX = pr;
         this.handleUpdateChildExtents();
     },
     setChExtY: function(pr)
     {
-        History.Add(new CChangesDrawingsDouble(this, AscDFH.historyitem_Xfrm_SetChExtY, this.chExtY,  pr));
+        History.CanAddChanges() && History.Add(new CChangesDrawingsDouble(this, AscDFH.historyitem_Xfrm_SetChExtY, this.chExtY,  pr));
         this.chExtY = pr;
         this.handleUpdateChildExtents();
     },
     setFlipH: function(pr)
     {
-        History.Add(new CChangesDrawingsBool(this, AscDFH.historyitem_Xfrm_SetFlipH, this.flipH,  pr));
+        History.CanAddChanges() && History.Add(new CChangesDrawingsBool(this, AscDFH.historyitem_Xfrm_SetFlipH, this.flipH,  pr));
         this.flipH = pr;
         this.handleUpdateFlip();
     },
     setFlipV: function(pr)
     {
-        History.Add(new CChangesDrawingsBool(this, AscDFH.historyitem_Xfrm_SetFlipV, this.flipV,  pr));
+        History.CanAddChanges() && History.Add(new CChangesDrawingsBool(this, AscDFH.historyitem_Xfrm_SetFlipV, this.flipV,  pr));
         this.flipV = pr;
         this.handleUpdateFlip();
     },
     setRot: function(pr)
     {
-        History.Add(new CChangesDrawingsDouble(this, AscDFH.historyitem_Xfrm_SetRot, this.rot,  pr));
+        History.CanAddChanges() && History.Add(new CChangesDrawingsDouble(this, AscDFH.historyitem_Xfrm_SetRot, this.rot,  pr));
         this.rot = pr;
         this.handleUpdateRot();
     },

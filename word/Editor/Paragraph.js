@@ -2612,9 +2612,9 @@ Paragraph.prototype.Internal_Draw_4 = function(CurPage, pGraphics, Pr, BgColor, 
 					if (true != this.IsEmpty())
 					{
 						if (Pr.ParaPr.Ind.FirstLine < 0)
-							NumberingItem.Draw(X, Y, pGraphics, this.Get_FirstTextPr2(), PDSE);
+							NumberingItem.Draw(X, Y, pGraphics, PDSE);
 						else
-							NumberingItem.Draw(this.Pages[CurPage].X  + Pr.ParaPr.Ind.Left, Y, pGraphics, this.Get_FirstTextPr2(), PDSE);
+							NumberingItem.Draw(this.Pages[CurPage].X  + Pr.ParaPr.Ind.Left, Y, pGraphics, PDSE);
 					}
 				}
 
@@ -10950,6 +10950,10 @@ Paragraph.prototype.Is_ThisElementCurrent = function()
 };
 Paragraph.prototype.Is_Inline = function()
 {
+	if(this.bFromDocument === false)
+	{
+		return true;
+	}
 	// Пустой элемент с разрывом секции мы считаем Inline параграфом.
 	var PrevElement = this.Get_DocumentPrev();
 	if (true === this.Is_Empty() && undefined !== this.Get_SectionPr() && null !== PrevElement && (type_Paragraph !== PrevElement.Get_Type() || undefined === PrevElement.Get_SectionPr()))

@@ -129,83 +129,6 @@ CPresentationBullet.prototype.Get_StartAt = function()
 };
 CPresentationBullet.prototype.Measure = function(Context, FirstTextPr, _Num, Theme, ColorMap)
 {
-	var dFontSize = FirstTextPr.FontSize;
-	if ( false === this.m_bSizeTx )
-	{
-		if ( true === this.m_bSizePct )
-			dFontSize *= this.m_dSize;
-		else
-			dFontSize = this.m_dSize;
-	}
-
-	var RFonts;
-	if(!this.m_bFontTx)
-	{
-		RFonts = {
-			Ascii: {
-				Name: this.m_sFont,
-				Index: -1
-			},
-			EastAsia: {
-				Name: this.m_sFont,
-				Index: -1
-			},
-			CS: {
-				Name: this.m_sFont,
-				Index: -1
-			},
-			HAnsi: {
-				Name: this.m_sFont,
-				Index: -1
-			}
-		};
-	}
-	else
-	{
-		RFonts = FirstTextPr.RFonts;
-	}
-
-
-	var FirstTextPr_ = FirstTextPr.Copy();
-	if(FirstTextPr_.Underline)
-	{
-		FirstTextPr_.Underline = false;
-	}
-
-	if ( true === this.m_bColorTx || !this.Unifill)
-	{
-		if(FirstTextPr.Unifill)
-		{
-			this.Unifill = FirstTextPr_.Unifill;
-		}
-		else
-		{
-			this.Unifill = AscFormat.CreteSolidFillRGB(FirstTextPr.Color.r, FirstTextPr.Color.g, FirstTextPr.Color.b);
-		}
-	}
-
-	var TextPr_ = new CTextPr();
-	TextPr_.Set_FromObject({
-		RFonts: RFonts,
-		Unifill: this.Unifill,
-		FontSize : dFontSize,
-		Bold     : ( this.m_nType >= numbering_presentationnumfrmt_ArabicPeriod ? FirstTextPr.Bold   : false ),
-		Italic   : ( this.m_nType >= numbering_presentationnumfrmt_ArabicPeriod ? FirstTextPr.Italic : false )
-	});
-	FirstTextPr_.Merge(TextPr_);
-	this.m_oTextPr = FirstTextPr_;
-
-	var Num = _Num;
-	this.m_nNum = Num;
-
-	var X = 0;
-
-
-
-
-	var OldTextPr = Context.GetTextPr();
-
-
 	var sT = "";
 
 	switch ( this.m_nType )
@@ -266,9 +189,81 @@ CPresentationBullet.prototype.Measure = function(Context, FirstTextPr, _Num, The
 			break;
 		}
 	}
-
 	this.m_sString = sT;
+	if(sT.length === 0)
+	{
+		return { Width : 0 };
+	}
+	var dFontSize = FirstTextPr.FontSize;
+	if ( false === this.m_bSizeTx )
+	{
+		if ( true === this.m_bSizePct )
+			dFontSize *= this.m_dSize;
+		else
+			dFontSize = this.m_dSize;
+	}
 
+	var RFonts;
+	if(!this.m_bFontTx)
+	{
+		RFonts = {
+			Ascii: {
+				Name: this.m_sFont,
+				Index: -1
+			},
+			EastAsia: {
+				Name: this.m_sFont,
+				Index: -1
+			},
+			CS: {
+				Name: this.m_sFont,
+				Index: -1
+			},
+			HAnsi: {
+				Name: this.m_sFont,
+				Index: -1
+			}
+		};
+	}
+	else
+	{
+		RFonts = FirstTextPr.RFonts;
+	}
+
+	var FirstTextPr_ = FirstTextPr.Copy();
+	if(FirstTextPr_.Underline)
+	{
+		FirstTextPr_.Underline = false;
+	}
+
+	if ( true === this.m_bColorTx || !this.Unifill)
+	{
+		if(FirstTextPr.Unifill)
+		{
+			this.Unifill = FirstTextPr_.Unifill;
+		}
+		else
+		{
+			this.Unifill = AscFormat.CreteSolidFillRGB(FirstTextPr.Color.r, FirstTextPr.Color.g, FirstTextPr.Color.b);
+		}
+	}
+
+	var TextPr_ = new CTextPr();
+	TextPr_.Set_FromObject({
+		RFonts: RFonts,
+		Unifill: this.Unifill,
+		FontSize : dFontSize,
+		Bold     : ( this.m_nType >= numbering_presentationnumfrmt_ArabicPeriod ? FirstTextPr.Bold   : false ),
+		Italic   : ( this.m_nType >= numbering_presentationnumfrmt_ArabicPeriod ? FirstTextPr.Italic : false )
+	});
+	FirstTextPr_.Merge(TextPr_);
+	this.m_oTextPr = FirstTextPr_;
+
+	var Num = _Num;
+	this.m_nNum = Num;
+
+	var X = 0;
+	var OldTextPr = Context.GetTextPr();
 	var Hint =  this.m_oTextPr.RFonts.Hint;
 	var bCS  =  this.m_oTextPr.CS;
 	var bRTL =  this.m_oTextPr.RTL;
@@ -311,7 +306,7 @@ CPresentationBullet.prototype.Copy = function()
 
 	return Bullet;
 };
-CPresentationBullet.prototype.Draw = function(X, Y, Context, FirstTextPr, PDSE)
+CPresentationBullet.prototype.Draw = function(X, Y, Context, PDSE)
 {
 	if ( null === this.m_oTextPr || null === this.m_nNum || null == this.m_sString || this.m_sString.length == 0)
 		return;
