@@ -2766,7 +2766,7 @@
         this._fixSelectionOfMergedCells();
         this._drawElements(this.af_drawButtons);
         this.cellCommentator.drawCommentCells();
-        this.objectRender.showDrawingObjectsEx();
+        this.objectRender.showDrawingObjects();
         if (this.overlayCtx) {
             this._drawSelection();
         }
