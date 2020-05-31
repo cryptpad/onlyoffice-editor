@@ -142,7 +142,7 @@ function ParaRun(Paragraph, bMathRun)
 
 	// Добавляем данный класс в таблицу Id (обязательно в конце конструктора)
 	g_oTableId.Add(this, this.Id);
-	if (this.Paragraph && !this.Paragraph.bFromDocument)
+	if (this.Paragraph && !this.Paragraph.bFromDocument && History.CanAddChanges())
 	{
 		this.Save_StartState();
 	}
@@ -4902,8 +4902,17 @@ ParaRun.prototype.Recalculate_PageEndInfo = function(PRSI, _CurLine, _CurRange)
 };
 ParaRun.prototype.RecalculateEndInfo = function(oPRSI)
 {
-	if (this.Paragraph && this.Paragraph.m_oPRSW.IsFastRecalculate())
-		return;
+	if (this.Paragraph)
+	{
+		if(this.Paragraph.m_oPRSW.IsFastRecalculate())
+		{
+			return;
+		}
+		if(this.Paragraph.bFromDocument === false)
+		{
+			return;
+		}
+	}
 
 	for (var nCurPos = 0, nCount = this.Content.length; nCurPos < nCount; ++nCurPos)
 	{
