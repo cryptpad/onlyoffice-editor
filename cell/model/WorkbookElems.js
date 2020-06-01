@@ -8100,7 +8100,7 @@ var g_oCustomFilter = {
 function CustomFilter(operator, val) {
 	this.Properties = g_oCustomFilter;
 	
-	this.Operator = operator != undefined ? operator : null;
+	this.Operator = operator != undefined ? operator : c_oAscCustomAutoFilter.equals;
 	this.Val = val != undefined ? val : null;
 }
 CustomFilter.prototype.getType = function() {

@@ -3078,22 +3078,46 @@ CT_pivotTableDefinition.prototype.getPivotTableButtons = function (range, button
 		}
 	}
 };
-CT_pivotTableDefinition.prototype.getPivotFieldButtonCompact = function (range, buttons, rowColFields, row, col) {
-	//todo
-	var index = rowColFields[0].asc_getIndex();
-	if (AscCommonExcel.st_VALUES === index && rowColFields.length > 1) {
-		index = rowColFields[1].asc_getIndex();
+CT_pivotTableDefinition.prototype.getPivotFieldButtonCompact = function(range, buttons, rowColFields, row, col) {
+	if (!range.contains(col, row)) {
+		return;
 	}
-	return this.getPivotFieldButton(range, buttons, index, row, col);
+	var isSortState = null;
+	var isSetFilter = false;
+	var res = null;
+	var i = 0;
+	while (i < rowColFields.length && (null === isSortState || false === isSetFilter)) {
+		var index = rowColFields[i].asc_getIndex();
+		var button = this._getPivotFieldButton(range, index, row, col);
+		if (button) {
+			res = res || button;
+			if (null === isSortState) {
+				isSortState = button.isSortState;
+			}
+			isSetFilter = isSetFilter || button.isSetFilter;
+		}
+		i++;
+	}
+	if (res) {
+		res.isSortState = isSortState;
+		res.isSetFilter = isSetFilter;
+		buttons.push(res);
+	}
 };
-CT_pivotTableDefinition.prototype.getPivotFieldButton = function (range, buttons, index, row, col) {
+CT_pivotTableDefinition.prototype._getPivotFieldButton = function (range, index, row, col) {
 	if (AscCommonExcel.st_VALUES === index || !range.contains(col, row)) {
 		return;
 	}
 	var autoFilterObject = this.getPivotFieldButtonType(index);
-	var isSortState = autoFilterObject.sortVal;
+	var isSortState = null !== autoFilterObject.sortVal ? Asc.c_oAscSortOptions.Ascending === autoFilterObject.sortVal : null;
 	var isSetFilter = autoFilterObject.filter.type !== Asc.c_oAscAutoFilterTypes.None;
-	buttons.push({isSortState: isSortState, isSetFilter: isSetFilter, row: row, col: col, idPivot: {id: this.Get_Id(), fld: index, row: row, col: col}});
+	return {isSortState: isSortState, isSetFilter: isSetFilter, row: row, col: col, idPivot: {id: this.Get_Id(), fld: index, row: row, col: col}};
+};
+CT_pivotTableDefinition.prototype.getPivotFieldButton = function(range, buttons, index, row, col) {
+	var button = this._getPivotFieldButton(range, index, row, col);
+	if (button) {
+		buttons.push(button);
+	}
 };
 CT_pivotTableDefinition.prototype.getColumnFieldsValuesIndex = function () {
 	var colFields = this.asc_getColumnFields();
@@ -11058,3 +11082,5 @@ prot["asc_getName"] = prot.asc_getName;
 prot["asc_getIndex"] = prot.asc_getIndex;
 prot["asc_getSubtotal"] = prot.asc_getSubtotal;
 prot["asc_getShowDataAs"] = prot.asc_getShowDataAs;
+
+window["Asc"]["CT_PivotFilter"] = window['Asc'].CT_PivotFilter = CT_PivotFilter;
