@@ -246,10 +246,10 @@
 
     function CellFlags() {
         this.wrapText = false;
+        this.verticalText = false;
         this.shrinkToFit = false;
         this.merged = null;
         this.textAlign = null;
-
         this.ctrlKey = null;
         this.shiftKey = null;
     }
@@ -260,6 +260,7 @@
         oRes.shrinkToFit = this.shrinkToFit;
         oRes.merged = this.merged ? this.merged.clone() : null;
         oRes.textAlign = this.textAlign;
+        oRes.verticalText = this.verticalText;
         return oRes;
     };
     CellFlags.prototype.isMerged = function () {
@@ -5993,8 +5994,8 @@
         }
 		var mergeType = fl.getMergeType();
         var align = c.getAlign();
-        var angle = align.getAngle();
         var va = align.getAlignVertical();
+        var angle = align.getAngle();
         if (c.isEmptyTextString()) {
             if (!angle && c.isNotDefaultFont() && !(mergeType & c_oAscMergeType.rows)) {
                 // Пустая ячейка с измененной гарнитурой или размером, учитвается в высоте
@@ -6017,6 +6018,7 @@
             return mc ? mc.c2 : col;
         }
 
+        var verticalText = fl.verticalText = angle === AscCommonExcel.g_nVerticalTextAngle;
         var dDigitsCount = 0;
         var colWidth = 0;
         var cellType = c.getType();
@@ -6024,7 +6026,7 @@
         var numFormatStr = c.getNumFormatStr();
         var pad = this.settings.cells.padding * 2 + 1;
         var sstr, sfl, stm;
-        var isCustomWidth = this.model.getColCustomWidth(col);
+        var isCustomWidth = this.model.getColCustomWidth(col) || verticalText;
         var angleSin = Math.sin(angle * Math.PI / 180.0);
         var angleCos = Math.cos(angle * Math.PI / 180.0);
 
@@ -6086,9 +6088,16 @@
         } else {
             str = c.getValue2();
         }
-        var ha = c.getAlignHorizontalByValue(align.getAlignHorizontal());
+        var alignH = align.getAlignHorizontal();
+        var ha = c.getAlignHorizontalByValue(alignH);
         var maxW = fl.wrapText || fl.shrinkToFit || mergeType || asc.isFixedWidthCell(str) ?
           this._calcMaxWidth(col, row, mc) : undefined;
+
+        if (verticalText) {
+            fl.textAlign = ha = alignH === null ? AscCommon.align_Center : alignH;
+            angle = 0;
+        }
+
         tm = this._roundTextMetrics(this.stringRender.measureString(str, fl, maxW));
         var cto = (mergeType || fl.wrapText || fl.shrinkToFit) ? {
             maxWidth: maxW - this._getColumnWidthInner(col) + this._getColumnWidth(col), leftSide: 0, rightSide: 0
@@ -6173,7 +6182,7 @@
 
         this._fetchCellCacheText(col, row);
 
-        if (!angle && (cto.leftSide !== 0 || cto.rightSide !== 0)) {
+        if (!angle && !verticalText && (cto.leftSide !== 0 || cto.rightSide !== 0)) {
             this._addErasedBordersToCache(col - cto.leftSide, col + cto.rightSide, row);
         }
             this._updateRowHeight(cache, row, maxW, colWidth);
