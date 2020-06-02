@@ -2433,6 +2433,21 @@
 		}
 	});
 
+	ApiName.prototype.GetRefersToRange = function () {
+		var range;
+		if (this.DefName) {
+			var ws = this.DefName.wb.getActiveWs();
+			range = AscCommonExcel.getRangeByRef(this.DefName.ref, ws, true, true)[0];
+		}
+		return new ApiRange(range);
+	};
+
+	Object.defineProperty(ApiName.prototype, "RefersToRange", {
+		get: function () {
+			return this.GetRefersToRange();
+		}
+	});
+
 	//------------------------------------------------------------------------------------------------------------------
 	//
 	// ApiComment
