@@ -2198,9 +2198,10 @@
 				var offsetX = t._getColLeft(range.c1) - printPagesData.leftFieldInPx + offsetCols - titleWidth;
 				var offsetY = t._getRowTop(range.r1) - printPagesData.topFieldInPx - titleHeight;
 
+				//TODO необходимо ли подменять visibleRange - в методе _prepareCellTextMetricsCache он может измениться
 				var tmpVisibleRange = t.visibleRange;
 				// Сменим visibleRange для прохождения проверок отрисовки
-				t.visibleRange = range;
+				t.visibleRange = range.clone();
 
 
 				// Нужно отрисовать заголовки
