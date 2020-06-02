@@ -1768,7 +1768,7 @@
       this.stopTarget(ws);
 
       if (this.selectionDialogMode) {
-          // Когда идет выбор диапазона, то должны на закрываемом листе отменить выбор диапазона
+          // Copy selection to set on new sheet
           if (ws.model.selectionRange) {
               selectionRange = ws.model.selectionRange.getLast().clone(true);
           }
