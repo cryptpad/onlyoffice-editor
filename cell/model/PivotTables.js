@@ -1716,10 +1716,8 @@ CT_PivotCacheRecords.prototype._getDataMapAddElem = function(dataMap, val, dataL
 	return elem;
 };
 CT_PivotCacheRecords.prototype._getDataMapMergeSubtotal = function(rowMap1, rowMap2) {
-	var isEnd = true;
 	for (var i in rowMap2.subtotal) {
 		if (rowMap2.subtotal.hasOwnProperty(i)) {
-			isEnd =false;
 			var sub1 = rowMap1.subtotal[i];
 			if (!sub1) {
 				sub1 = new PivotDataElem(rowMap1.total.length);
@@ -1729,37 +1727,28 @@ CT_PivotCacheRecords.prototype._getDataMapMergeSubtotal = function(rowMap1, rowM
 			this._getDataMapMergeSubtotal(sub1, sub2);
 		}
 	}
-	if(isEnd){
-		rowMap1.unionTotal(rowMap2);
-	}
+	rowMap1.unionTotal(rowMap2);
 };
-CT_PivotCacheRecords.prototype._getDataMapSubtotal = function(rowMap, rowCount) {
-	if (rowCount > 0) {
+CT_PivotCacheRecords.prototype._getDataMapSubtotal = function(rowMap, rowIndex, rowIndexes, filterMaps) {
+	if (rowIndex < rowIndexes.length) {
 		rowMap.subtotal = {};
 		for (var i in rowMap.vals) {
 			if (rowMap.vals.hasOwnProperty(i)) {
 				var sub = rowMap.vals[i];
-				this._getDataMapSubtotal(sub, rowCount - 1);
+				this._getDataMapSubtotal(sub, rowIndex + 1, rowIndexes, filterMaps);
 				this._getDataMapMergeSubtotal(rowMap, sub);
 			}
 		}
 	} else {
-		rowMap.subtotal = rowMap.vals;
+		this._getDataMapTotal(rowMap);
 	}
 };
 CT_PivotCacheRecords.prototype._getDataMapTotal = function(rowMap) {
 	var i;
-	for (i in rowMap.subtotal) {
-		if (rowMap.subtotal.hasOwnProperty(i)) {
-			this._getDataMapTotal(rowMap.subtotal[i]);
-			rowMap.unionTotal(rowMap.subtotal[i]);
-		}
-	}
-	if (rowMap.subtotal !== rowMap.vals) {
-		for (i in rowMap.vals) {
-			if (rowMap.vals.hasOwnProperty(i)) {
-				this._getDataMapTotal(rowMap.vals[i]);
-			}
+	for (i in rowMap.vals) {
+		if (rowMap.vals.hasOwnProperty(i)) {
+			this._getDataMapTotal(rowMap.vals[i]);
+			rowMap.unionTotal(rowMap.vals[i]);
 		}
 	}
 };
@@ -1784,18 +1773,9 @@ CT_PivotCacheRecords.prototype._getDataMapRowToTotal = function(cacheFields, row
 };
 CT_PivotCacheRecords.prototype.getDataMap = function(cacheFields, filterMaps, rowIndexes, colIndexes, dataIndexes) {
 	var res = new PivotDataElem(dataIndexes.length);
-	var filter, val, i, row, isInFilter, rowMapCur;
+	var row, rowMapCur;
 	for (row = 0; row < this.getRowsCount(); ++row) {
-		isInFilter = true;
-		for (i = 0; i < filterMaps.length; ++i) {
-			filter = filterMaps[i];
-			val = this._cols[filter.index].get(row);
-			if (c_oAscPivotRecType.Index === val.type && !filter.map.has(val.val)) {
-				isInFilter = false;
-				break;
-			}
-		}
-		if (!isInFilter) {
+		if (this.getDataMapLabelFilters(row, filterMaps)) {
 			continue;
 		}
 		rowMapCur = res;
@@ -1807,9 +1787,22 @@ CT_PivotCacheRecords.prototype.getDataMap = function(cacheFields, filterMaps, ro
 		}
 		this._getDataMapRowToTotal(cacheFields, row, rowMapCur, dataIndexes);
 	}
-	this._getDataMapSubtotal(res, rowIndexes.length);
-	this._getDataMapTotal(res);
+	this._getDataMapSubtotal(res, 0, rowIndexes, filterMaps);
 	return res;
+};
+CT_PivotCacheRecords.prototype.getDataMapLabelFilters = function(row, filterMaps) {
+	for (var i = 0; i < filterMaps.labelFilters.length; ++i) {
+		var filter = filterMaps.labelFilters[i];
+		var val = this._cols[filter.index].get(row);
+		if (c_oAscPivotRecType.Index === val.type && !filter.map.has(val.val)) {
+			return true;
+		}
+	}
+	return false;
+};
+CT_PivotCacheRecords.prototype.getDataMapValueFilters = function(fld, subtotal, filterMaps) {
+	var filterColumn = filterMaps.valueFilters[fld];
+	return filterColumn && filterColumn.isHideValue(0) || false;
 };
 CT_PivotCacheRecords.prototype.convertToSharedItems = function(index, si) {
 	var col = this._cols[index];
@@ -3310,7 +3303,8 @@ CT_pivotTableDefinition.prototype.checkPivotFieldItem = function(index, pivotFie
 	pivotField.checkSubtotal();
 };
 CT_pivotTableDefinition.prototype.getFilterMaps = function() {
-	var filterFields = [];
+	var labelFilters = [];
+	var valueFilters = {};
 	var i, j, map, pageField, pivotField, cacheField, pivotFilter, item;
 	var pageFields = this.asc_getPageFields();
 	var pivotFields = this.asc_getPivotFields();
@@ -3319,10 +3313,10 @@ CT_pivotTableDefinition.prototype.getFilterMaps = function() {
 	if (pageFields) {
 		for (i = 0; i < pageFields.length; ++i) {
 			pageField = pageFields[i];
-			if (AscCommonExcel.st_VALUES !== pageField.fld && null !== pageField.fld && ll !== pageField.item) {
+			if (AscCommonExcel.st_VALUES !== pageField.fld && null !== pageField.fld && null !== pageField.item) {
 				map = new Map();
 				map.set(pageField.item, 1);
-				filterFields.push({index: pageField.fld, map: map});
+				labelFilters.push({index: pageField.fld, map: map});
 			}
 		}
 	}
@@ -3338,7 +3332,7 @@ CT_pivotTableDefinition.prototype.getFilterMaps = function() {
 						map.set(item.x, 1);
 					}
 				}
-				filterFields.push({index: i, map: map});
+				labelFilters.push({index: i, map: map});
 			}
 		}
 	}
@@ -3347,16 +3341,18 @@ CT_pivotTableDefinition.prototype.getFilterMaps = function() {
 			pivotFilter = pivotFilters[i];
 			pivotField = pivotFields[pivotFilter.fld];
 			cacheField = cacheFields[pivotFilter.fld];
-			//captions filters
-			if (pivotField && c_oAscPivotFilterType.CaptionEqual <= pivotFilter.type &&
-				pivotFilter.type <= c_oAscPivotFilterType.CaptionNotBetween && pivotFilter.autoFilter &&
-				pivotFilter.autoFilter.FilterColumns && pivotFilter.autoFilter.FilterColumns.length > 0) {
+			if (pivotField && pivotFilter.autoFilter && pivotFilter.autoFilter.FilterColumns &&
+				pivotFilter.autoFilter.FilterColumns.length > 0) {
 				var filterColumn = pivotFilter.autoFilter.FilterColumns[0];
-				filterFields.push({index: pivotFilter.fld, map: pivotField.getFilterMap(cacheField, filterColumn)});
+				if (pivotFilter.isLabelFilter()) {
+					labelFilters.push({index: pivotFilter.fld, map: pivotField.getFilterMap(cacheField, filterColumn)});
+				} else {
+					valueFilters[pivotFilter.fld] = filterColumn;
+				}
 			}
 		}
 	}
-	return filterFields;
+	return {labelFilters: labelFilters, valueFilters: valueFilters};
 };
 CT_pivotTableDefinition.prototype.getRowColIndexes = function(fields, withoutValue) {
 	var indexes = [];
