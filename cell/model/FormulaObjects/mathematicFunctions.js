@@ -3288,15 +3288,19 @@
 				var _arrVal = element.getValue(this.checkExclude, this.excludeHiddenRows, this.excludeErrorsVal,
 					this.excludeNestedStAg);
 				for (var j = 0; j < _arrVal.length; j++) {
-					arg0 = _func[arg0.type][_arrVal[j].type](arg0, _arrVal[j], "*");
-					if (cElementType.error === arg0.type) {
-						return arg0;
+					if (_arrVal[j].type !== cElementType.string) {
+						arg0 = _func[arg0.type][_arrVal[j].type](arg0, _arrVal[j], "*");
+						if (cElementType.error === arg0.type) {
+							return arg0;
+						}
 					}
 				}
 			} else if (cElementType.cell === element.type || cElementType.cell3D === element.type) {
 				if (!this.checkExclude || !element.isHidden(this.excludeHiddenRows)) {
 					var _arg = element.getValue();
-					arg0 = _func[arg0.type][_arg.type](arg0, _arg, "*");
+					if (_arg.type !== cElementType.string) {
+						arg0 = _func[arg0.type][_arg.type](arg0, _arg, "*");
+					}
 				}
 			} else if (cElementType.array === element.type) {
 				element.foreach(function (elem) {
