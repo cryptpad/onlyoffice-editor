@@ -2452,8 +2452,7 @@
 	ApiName.prototype.GetRefersToRange = function () {
 		var range;
 		if (this.DefName) {
-			var ws = this.DefName.wb.getActiveWs();
-			range = AscCommonExcel.getRangeByRef(this.DefName.ref, ws, true, true)[0];
+			range = AscCommonExcel.getRangeByRef(this.DefName.ref, this.DefName.wb.getActiveWs(), true, true)[0];
 		}
 		return new ApiRange(range);
 	};
