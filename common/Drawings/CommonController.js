@@ -3092,15 +3092,17 @@ DrawingObjectsController.prototype =
 
 
     setCellAngle: function (angle) {
-        if(angle === 0) {
-            this.checkSelectedObjectsAndCallback(this.applyDrawingProps, [{vert: null}], false, AscDFH.historydescription_Spreadsheet_SetCellVertAlign);
+        if (0 === angle) {
+            angle = AscFormat.nVertTThorz;
+        } else if (-90 === angle) {
+            angle = AscFormat.nVertTTvert;
+        } else if (90 === angle) {
+            angle = AscFormat.nVertTTvert270;
+        } else {
+            return;
         }
-        else if(angle === -90) {
-            this.checkSelectedObjectsAndCallback(this.applyDrawingProps, [{vert: AscFormat.nVertTTvert}], false, AscDFH.historydescription_Spreadsheet_SetCellVertAlign);
-        }
-        else if(angle === 90) {
-            this.checkSelectedObjectsAndCallback(this.applyDrawingProps, [{vert: AscFormat.nVertTTvert270}], false, AscDFH.historydescription_Spreadsheet_SetCellVertAlign);
-        }
+
+        this.checkSelectedObjectsAndCallback(this.applyDrawingProps, [{vert: angle}], false, AscDFH.historydescription_Spreadsheet_SetCellVertAlign);
     },
 
     setCellStyle: function (name) {
