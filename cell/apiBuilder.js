@@ -2509,6 +2509,7 @@
 	Api.prototype["AddDefName"] = Api.prototype.AddDefName;
 	Api.prototype["GetDefName"] = Api.prototype.GetDefName;
 	Api.prototype["Save"] = Api.prototype.Save;
+	Api.prototype["GetRange"] = Api.prototype.GetRange;
 
 	ApiWorksheet.prototype["GetVisible"] = ApiWorksheet.prototype.GetVisible;
 	ApiWorksheet.prototype["SetVisible"] = ApiWorksheet.prototype.SetVisible;
