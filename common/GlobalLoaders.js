@@ -470,7 +470,6 @@
                 {
                     if (_crypto_data && AscCommon.EncryptionWorker && AscCommon.EncryptionWorker.isCryptoImages())
                     {
-                        // TODO: send to plugin for decryption & call this method with empty _crypto_data
                         AscCommon.EncryptionWorker.decryptImage(_src, this, _crypto_data);
                         return;
                     }
