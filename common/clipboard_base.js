@@ -1081,6 +1081,7 @@
 		this.showButtonIdParagraph = null;
 		this.endRecalcDocument = false;//для документов, закончен ли пересчет документа. нужно, чтобы грамотно рассчитать позицию иконки с/в
 		this.doNotShowButton = false;
+		this.visiblePasteButton = true;
 	}
 
 	CSpecialPasteHelper.prototype = {
@@ -1181,7 +1182,7 @@
 		
 		SpecialPasteButton_Show : function()
 		{
-			if (!this.Api || this.doNotShowButton)
+			if (!this.Api || this.doNotShowButton || !this.visiblePasteButton)
 				return;
 
 			//при быстром совместном редактировании отключаем возможность специальной вставки
@@ -1212,7 +1213,7 @@
 				return;
 			}
 
-			if(!this.Api || !this.Api.asc_specialPasteShowButton || this.doNotShowButton)
+			if(!this.Api || !this.Api.asc_specialPasteShowButton || this.doNotShowButton || !this.visiblePasteButton)
 			{
 				if(this.doNotShowButton) {
 					this.showButtonIdParagraph = null;
@@ -1291,6 +1292,14 @@
 				return this.specialPasteData.text_data;
 			}
 			return this.specialPasteData.data1;
+		},
+
+		setVisiblePasteButton: function(val)
+		{
+			this.visiblePasteButton = val;
+			if (!val) {
+				this.SpecialPasteButton_Hide();
+			}
 		}
 	};
 

@@ -2774,6 +2774,14 @@
 		reader.readAsText(new Blob([buffer]), encoding);
 	};
 
+	baseEditorsApi.prototype.asc_setVisiblePasteButton = function(val)
+	{
+		if (AscCommon.g_specialPasteHelper)
+		{
+			AscCommon.g_specialPasteHelper.setVisiblePasteButton(val);
+		}
+	};
+
 	//----------------------------------------------------------addons----------------------------------------------------
     baseEditorsApi.prototype["asc_isSupportFeature"] = function(type)
 	{
@@ -2835,5 +2843,6 @@
 	prot['asc_GetCurrentColorSchemeName'] = prot.asc_GetCurrentColorSchemeName;
 	prot['asc_GetCurrentColorSchemeIndex'] = prot.asc_GetCurrentColorSchemeIndex;
 	prot['asc_runAutostartMacroses'] = prot.asc_runAutostartMacroses;
+	prot['asc_setVisiblePasteButton'] = prot.asc_setVisiblePasteButton;
 
 })(window);
