@@ -2569,6 +2569,7 @@
 	ApiRange.prototype["SetWrapText"] = ApiRange.prototype.SetWrap;	
 	ApiRange.prototype["GetWrapText"] = ApiRange.prototype.GetWrapText;
 	ApiRange.prototype["SetFillColor"] = ApiRange.prototype.SetFillColor;
+	ApiRange.prototype["GetFillColor"] = ApiRange.prototype.GetFillColor;
 	ApiRange.prototype["SetNumberFormat"] = ApiRange.prototype.SetNumberFormat;
 	ApiRange.prototype["SetBorders"] = ApiRange.prototype.SetBorders;
 	ApiRange.prototype["Merge"] = ApiRange.prototype.Merge;
@@ -2628,6 +2629,7 @@
 	ApiName.prototype["Delete"]                  =  ApiName.prototype.Delete;
 	ApiName.prototype["GetRefersTo"]             =  ApiName.prototype.GetRefersTo;
 	ApiName.prototype["SetRefersTo"]             =  ApiName.prototype.SetRefersTo;
+	ApiName.prototype["GetRefersToRange"]        =  ApiName.prototype.GetRefersToRange;
 
 
 	ApiComment.prototype["GetText"]              =  ApiComment.prototype.GetText;
