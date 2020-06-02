@@ -378,11 +378,6 @@
 			this.DocInfo.put_OfflineApp(true);
 		}
 
-		if (undefined !== window["AscDesktopEditor"] && !(this.DocInfo && this.DocInfo.get_OfflineApp()))
-		{
-			window["AscDesktopEditor"]["SetDocumentName"](this.documentTitle);
-		}
-
 		if (this.DocInfo.get_EncryptedInfo())
 		{
 			if (undefined !== window["AscDesktopEditor"])
@@ -392,6 +387,12 @@
 				window["AscDesktopEditor"]["execCommand"]("portal:cryptoinfo", JSON.stringify(obj));
 			}
 		}
+
+		if (undefined !== window["AscDesktopEditor"] && !(this.DocInfo && this.DocInfo.get_OfflineApp()))
+		{
+			window["AscDesktopEditor"]["SetDocumentName"](this.documentTitle);
+		}
+
 		if (!this.isChartEditor && undefined !== window["AscDesktopEditor"] && undefined !== window["AscDesktopEditor"]["CryptoMode"])
 		{
 			this.DocInfo.put_Encrypted(0 < window["AscDesktopEditor"]["CryptoMode"]);
