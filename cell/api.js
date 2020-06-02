@@ -3874,9 +3874,9 @@ var editor;
   };
 
   // Формат по образцу
-  spreadsheet_api.prototype.asc_formatPainter = function(stateFormatPainter) {
+  spreadsheet_api.prototype.asc_formatPainter = function(formatPainterState) {
     if (this.wb) {
-      this.wb.formatPainter(stateFormatPainter);
+      this.wb.formatPainter(formatPainterState);
     }
   };
 

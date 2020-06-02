@@ -383,8 +383,6 @@
         this.lockDraw = false;
         this.isSelectOnShape = false;	// Выделен shape
 
-        this.stateFormatPainter = c_oAscFormatPainterState.kOff;
-
         this.startCellMoveResizeRange = null;
         this.startCellMoveResizeRange2 = null;
         this.moveRangeDrawingObjectTo = null;
@@ -5389,7 +5387,7 @@
                 if (selectionDialogMode) {
                     this._drawSelectRange();
                 }
-                if (this.stateFormatPainter && this.handlers.trigger('isActive')) {
+                if (this.workbook.isDrawFormatPainter()) {
                     this._drawFormatPainterRange();
                 }
                 if (null !== this.activeMoveRange) {
@@ -5439,7 +5437,7 @@
 
     WorksheetView.prototype._drawFormatPainterRange = function () {
         var t = this, color = new CColor(0, 0, 0);
-        this.model.copyActiveRange.ranges.forEach(function (item) {
+        this.workbook.formatPainterRange.ranges.forEach(function (item) {
             t._drawElements(t._drawSelectionElement, item, AscCommonExcel.selectionLineType.Dash, color);
         });
     };
@@ -7859,7 +7857,7 @@
 			};
 		}
 
-		if (this.stateFormatPainter) {
+		if (this.workbook.formatPainterState) {
 			if (x <= this.cellsLeft && y >= this.cellsTop) {
 				r = this._findRowUnderCursor(y, true);
 				if (r !== null) {
@@ -9202,7 +9200,7 @@
 
     // Окончание выделения
     WorksheetView.prototype.changeSelectionDone = function () {
-        if (this.stateFormatPainter) {
+        if (this.workbook.formatPainterState) {
             this.applyFormatPainter();
 		} else {
 			this.checkSelectionSparkline();
@@ -9265,21 +9263,24 @@
 
     WorksheetView.prototype.applyFormatPainter = function () {
         var t = this;
-        var from = t.handlers.trigger('getRangeFormatPainter').getLast(), to = this.model.selectionRange.getLast().clone();
+        var from = this.workbook.formatPainterRange.getLast(), to = this.model.selectionRange.getLast().clone();
         var onApplyFormatPainterCallback = function (isSuccess) {
             // Очищаем выделение
             t.cleanSelection();
 
-            if (true === isSuccess) {
-                AscCommonExcel.promoteFromTo(from, t.model, to, t.model);
+            if (isSuccess) {
+                AscCommonExcel.promoteFromTo(from, t.workbook.getFormatPainterSheet(), to, t.model);
             }
 
             // Сбрасываем параметры
-            if (c_oAscFormatPainterState.kMultiple !== t.stateFormatPainter) {
-                t.handlers.trigger('onStopFormatPainter');
+            if (c_oAscFormatPainterState.kMultiple !== t.workbook.formatPainterState) {
+                t.handlers.trigger('onStopFormatPainter', true);
             }
 
-			t._updateRange(to);
+            if (isSuccess) {
+                t._updateRange(to);
+            }
+
             // Перерисовываем
 			t.draw();
         };
@@ -9292,23 +9293,6 @@
         }
 
         this._isLockedCells(to, null, onApplyFormatPainterCallback);
-    };
-    WorksheetView.prototype.formatPainter = function (stateFormatPainter) {
-        // Если передали состояние, то выставляем его. Если нет - то меняем на противоположное.
-        this.stateFormatPainter = (null != stateFormatPainter) ? stateFormatPainter :
-          ((c_oAscFormatPainterState.kOff !== this.stateFormatPainter) ? c_oAscFormatPainterState.kOff :
-            c_oAscFormatPainterState.kOn);
-
-        // ToDo
-        if (this.stateFormatPainter) {
-            this.copyActiveRange = this.model.selectionRange.clone();
-            this._drawFormatPainterRange();
-        } else {
-            this.cleanSelection();
-            this.copyActiveRange = null;
-            this._drawSelection();
-        }
-        return this.copyActiveRange;
     };
 
     /* Функция для работы автозаполнения (selection). (x, y) - координаты точки мыши на области */
