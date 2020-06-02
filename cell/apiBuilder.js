@@ -1749,9 +1749,15 @@
 	ApiRange.prototype.SetFillColor = function (color) {
 		this.range.setFillColor(color.color);
 	};
+	ApiRange.prototype.GetFillColor = function () {
+		this.range.getFillColor();
+	};
 	Object.defineProperty(ApiRange.prototype, "FillColor", {
 		set: function (color) {
 			return this.SetFillColor(color);
+		},
+		get: function () {
+			return this.GetFillColor();
 		}
 	});
 
