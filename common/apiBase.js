@@ -1452,9 +1452,33 @@
 	baseEditorsApi.prototype._addImageUrl                        = function()
 	{
 	};
+	// CRYPTPAD
+	// This method is necessary to add the loaded images to the list of loaded images
+	// The code is in slide/api.js
+	baseEditorsApi.prototype.asc_addImageCallback                = function(res)
+        {
+        };
 	baseEditorsApi.prototype.asc_addImage                        = function()
 	{
 		var t = this;
+
+                // CryptPad: we need to take control of the upload
+		// t.sync_StartAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.UploadImage);
+		// This method calls back to the cryptpad onlyoffice inner.js to load the cryptad file dialog
+                window.parent.APP.AddImage(function(res) {
+			// This method adds the loaded image to the list of  loaded images
+                        console.log("AddImageCallback");
+			t.asc_addImageCallback(res);
+			// This method activats the image
+			t._addImageUrl([res.url]);
+			// t.sync_EndAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.UploadImage);
+		}, function() {
+			// t.sync_EndAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.UploadImage);
+			t.sendEvent("asc_onError", error, c_oAscError.Level.NoCritical);
+		});
+		return;
+		// Cryptpad end
+
 		AscCommon.ShowImageFileDialog(this.documentId, this.documentUserId, this.CoAuthoringApi.get_jwt(), function(error, files)
 		{
 			t._uploadCallback(error, files);

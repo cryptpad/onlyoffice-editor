@@ -1144,8 +1144,9 @@
       var bSendEnd = false;
       for (var block in data["locks"]) {
         if (data["locks"].hasOwnProperty(block)) {
-          var lock = data["locks"][block], blockTmp = (this._isExcel || this._isPresentation) ? lock["block"]["guid"] : lock["block"];
+          var lock = data["locks"][block];
           if (lock !== null) {
+            var blockTmp = (this._isExcel || this._isPresentation) ? lock["block"]["guid"] : lock["block"];
             this._locks[blockTmp] = {"state": 0, "user": lock["user"], "time": lock["time"], "changes": lock["changes"], "block": lock["block"]};
             if (this.onLocksReleased) {
               // true - lock with save
@@ -1631,31 +1632,85 @@
     });
   };
 
-	DocsCoApi.prototype._initSocksJs = function () {
-		var t = this;
-		var sockjs;
-		if (window['IS_NATIVE_EDITOR']) {
-			sockjs = this.sockjs = window['SockJS'];
-			sockjs.open();
-		} else {
-			//ограничиваем transports WebSocket и XHR / JSONP polling, как и engine.io https://github.com/socketio/engine.io
-			//при переборе streaming transports у клиента с wirewall происходило зацикливание(не повторялось в версии sock.js 0.3.4)
-			sockjs = this.sockjs = new (AscCommon.getSockJs())(this.sockjs_url, null,
-				{'transports': ['websocket', 'xdr-polling', 'xhr-polling', 'iframe-xhr-polling', 'jsonp-polling']});
+    DocsCoApi.prototype._initSocksJs = function () {
+        var t = this;
+        var sockjs;
+        sockjs = this.sockjs = {};
 
-			sockjs.onopen = function () {
-				t._onServerOpen();
-			};
-			sockjs.onmessage = function (e) {
-				t._onServerMessage(e.data);
-			};
-			sockjs.onclose = function (e) {
-				t._onServerClose(e);
-			};
-        }
+        var send = function (data) {
+            setTimeout(function () {
+                sockjs.onmessage({
+                    data: JSON.stringify(data)
+                });
+            });
+        };
+        var license = {
+            type: 'license',
+            license: {
+                type: 3,
+                mode: 0,
+                //light: false,
+                //trial: false,
+                rights: 1,
+                buildVersion: "5.2.6",
+                buildNumber: 2,
+                //branding: false
+            }
+        };
 
-		return sockjs;
-	};
+        var channel;
+
+        require([
+            '/common/outer/worker-channel.js',
+            '/common/common-util.js'
+        ], function (Channel, Util) {
+            var msgEv = Util.mkEvent();
+            var p = window.parent;
+            window.addEventListener('message', function (msg) {
+                if (msg.source !== p) { return; }
+                msgEv.fire(msg);
+            });
+            var postMsg = function (data) {
+                p.postMessage(data, '*');
+            };
+            Channel.create(msgEv, postMsg, function (chan) {
+                channel = chan;
+                send(license);
+
+                chan.on('CMD', function (obj) {
+                    send(obj);
+                });
+            });
+        });
+
+        sockjs.onopen = function() {
+          t._state = ConnectionState.WaitAuth;
+            t.onFirstConnect();
+        };
+        sockjs.onopen();
+
+        sockjs.close = function () {
+            console.error('Close realtime');
+        };
+
+        sockjs.send = function (data) {
+            try {
+                var obj = JSON.parse(data);
+            } catch (e) {
+                console.error(e);
+                return;
+            }
+            if (channel) {
+                channel.event('CMD', obj);
+            }
+        };
+
+        sockjs.onmessage = function (e) {
+            t._onServerMessage(e.data);
+        };
+
+        return sockjs;
+    };
 
 	DocsCoApi.prototype._onServerOpen = function () {
 		if (this.reconnectTimeout) {

@@ -835,7 +835,7 @@ CParagraphContentWithContentBase.prototype.protected_FillRangeEndPos = function(
 };
 CParagraphContentWithContentBase.prototype.private_UpdateSpellChecking = function()
 {
-	if (this.Paragraph)
+	if (this.Paragraph && this.Paragraph.SpellChecker)
 	{
 		this.Paragraph.SpellChecker.ClearPausedEngine();
 		this.Paragraph.RecalcInfo.Set_Type_0_Spell(pararecalc_0_Spell_All);

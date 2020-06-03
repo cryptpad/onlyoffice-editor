@@ -4092,6 +4092,16 @@ background-repeat: no-repeat;\
 		return this.WordControl.m_oLogicDocument.canUnGroup();
 	};
 
+        // CRYPTPAD
+        // This method is necessary to add the loaded images to the list of loaded images
+        asc_docs_api.prototype.asc_addImageCallback = function(res)
+        {
+               g_oDocumentUrls.addImageUrl(res.name, res.url)
+        }
+        asc_docs_api.prototype.asyncImageEndLoadedBackground = function(_image)
+        {
+        };
+
 	asc_docs_api.prototype._addImageUrl = function(urls)
 	{
 		if(this.isImageChangeUrl || this.isShapeImageChangeUrl || this.isSlideImageChangeUrl || this.isTextArtChangeUrl){

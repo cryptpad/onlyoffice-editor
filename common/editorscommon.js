@@ -654,7 +654,7 @@
 		if (window['IS_NATIVE_EDITOR'])
 		{
 			var stream = window["native"]["openFileCommand"](sFileUrl, changesUrl, Signature);
- 
+
             //получаем url к папке с файлом
             var url;
             var nIndex = sFileUrl.lastIndexOf("/");
@@ -666,7 +666,7 @@
             } else {
                 bError = true;
             }
- 
+
             bEndLoadFile = true;
             onEndOpen();
 		}
@@ -1650,6 +1650,10 @@
 
 	function UploadImageFiles(files, documentId, documentUserId, jwt, callback)
 	{
+           // CryptPad: we need to take control of the upload
+           window.parent.APP.UploadImageFiles(files, documentId, documentUserId, jwt, callback);
+           return;
+
 		if (files.length > 0)
 		{
 			var url = sUploadServiceLocalUrl + '/' + documentId + '/' + documentUserId + '/' + g_oDocumentUrls.getMaxIndex();

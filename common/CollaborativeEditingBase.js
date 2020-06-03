@@ -438,6 +438,11 @@ CCollaborativeEditingBase.prototype.SendImagesUrlsFromChanges = function (aImage
     if(false === oApi.isSaveFonts_Images){
         oApi.isSaveFonts_Images = true;
     }
+
+    // CryptPad - bypassing image loading which is breaking
+    AscCommon.CollaborativeEditing.SendImagesCallback(aImagesToLoad);
+
+    /*
     oApi.fCurCallback = function (oRes) {
         var aData, i, oUrls;
         if(oRes['status'] === 'ok')
@@ -453,6 +458,7 @@ CCollaborativeEditingBase.prototype.SendImagesUrlsFromChanges = function (aImage
         AscCommon.CollaborativeEditing.SendImagesCallback(aImagesToLoad);
     };
     AscCommon.sendCommand(oApi, null, rData);
+    */
 };
 
 CCollaborativeEditingBase.prototype.SendImagesCallback = function (aImages) {

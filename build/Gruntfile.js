@@ -83,7 +83,7 @@ module.exports = function(grunt) {
 
 	var path = require('path');
 	var pathConfigs = grunt.option('src') || './configs';
-	var level = grunt.option('level') || 'ADVANCED';
+	var level = grunt.option('level') || 'WHITESPACE_ONLY';
 	var formatting = grunt.option('formatting') || '';
 
 	require('google-closure-compiler').grunt(grunt, {
@@ -253,6 +253,7 @@ module.exports = function(grunt) {
 		} else {
 			splitLine = ('PRETTY_PRINT' === formatting) ? 'window["split"] = "split";' : 'window["split"]="split";';
 		}
+		splitLine = 'window["split"]="split";';
 		var splitOptions = {
 			separator: splitLine,
 			prefix: ["sdk-all-min", "sdk-all"]
@@ -377,5 +378,5 @@ module.exports = function(grunt) {
 			}
 		})
 	});
-	grunt.registerTask('default', ['build-sdk', 'concat', 'closure-compiler', 'clean', 'license', 'splitfile', 'concat', 'replace', 'clean', 'copy']);
+	grunt.registerTask('default', ['build-sdk', 'concat', 'closure-compiler', 'license', 'splitfile', 'concat', 'replace', 'clean', 'copy']);
 };

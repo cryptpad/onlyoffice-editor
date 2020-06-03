@@ -203,6 +203,8 @@ function ZBase32Encoder()
 
     this.Encode = function(sData)
     {
+        return encodeURIComponent(sData);
+
         var data = this.GetUTF8_fromUTF16(sData);
 
         var encodedResult = "";
@@ -500,9 +502,12 @@ function CFontFileLoader(id)
             var _stream = g_fonts_streams[g_fonts_streams.length - 1];
             var _data = _stream.data;
 
+            /*
+            // CRYPTPAD: deactivating decoding so that we use native ttf files
             var _count_decode = Math.min(32, _stream.size);
             for (var i = 0; i < _count_decode; ++i)
                 _data[i] ^= guidOdttf[i % 16];
+            */
         };
 
         xhr.send(null);

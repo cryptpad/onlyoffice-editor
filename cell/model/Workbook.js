@@ -2050,6 +2050,9 @@
 	};
 	Workbook.prototype.setActiveById=function(sheetId){
 		var ws = this.getWorksheetById(sheetId);
+        if(!ws && Array.isArray(this.aWorksheets)) {
+            ws = this.aWorksheets[this.aWorksheets.length - 1];
+        }
 		return this.setActive(ws.getIndex());
 	};
 	Workbook.prototype.getSheetIdByIndex = function(index) {
