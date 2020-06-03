@@ -3633,8 +3633,6 @@ function CAreaSeries()
     this.tx  = null;
     this.val = null;
 
-    this.m_oDPtContentChanges = new AscCommon.CContentChanges();
-
     this.Id = g_oIdCounter.Get_NewId();
     g_oTableId.Add(this, this.Id);
 }
@@ -3643,16 +3641,6 @@ CAreaSeries.prototype =
     Get_Id: function()
     {
         return this.Id;
-    },
-
-    getContentChangesByType: function(type){
-        switch(type){
-            case AscDFH.historyitem_AreaSeries_SetDPt:
-            case AscDFH.historyitem_CommonSeries_RemoveDPt:{
-                return this.m_oDPtContentChanges;
-            }
-        }
-        return null;
     },
 
     Refresh_RecalcData: function()
@@ -6228,9 +6216,6 @@ function CBarSeries()
 
     this.parent = null;
 
-
-    this.m_oDPtContentChanges = new AscCommon.CContentChanges();
-
     this.Id = g_oIdCounter.Get_NewId();
     g_oTableId.Add(this, this.Id);
 }
@@ -6240,16 +6225,6 @@ CBarSeries.prototype =
     Get_Id: function()
     {
         return this.Id;
-    },
-
-    getContentChangesByType: function(type){
-        switch(type){
-            case AscDFH.historyitem_BarSeries_SetDPt:
-            case AscDFH.historyitem_CommonSeries_RemoveDPt:{
-                return this.m_oDPtContentChanges;
-            }
-        }
-        return null;
     },
 
     Refresh_RecalcData: function()
@@ -8994,8 +8969,6 @@ function CLineSeries()
 
     this.parent = null;
 
-    this.m_oDPtContentChanges = new AscCommon.CContentChanges();
-
     this.Id = g_oIdCounter.Get_NewId();
     g_oTableId.Add(this, this.Id);
 }
@@ -9005,16 +8978,6 @@ CLineSeries.prototype =
     Get_Id: function()
     {
         return this.Id;
-    },
-
-    getContentChangesByType: function(type){
-        switch(type){
-            case AscDFH.historyitem_LineSeries_SetDPt:
-            case AscDFH.historyitem_CommonSeries_RemoveDPt:{
-                return this.m_oDPtContentChanges;
-            }
-        }
-        return null;
     },
 
     setParent: function(pr)
@@ -10407,9 +10370,7 @@ function CPieSeries()
 
 
     this.parent = null;
-
-
-    this.m_oDPtContentChanges = new AscCommon.CContentChanges();
+    
 
     this.Id = g_oIdCounter.Get_NewId();
     g_oTableId.Add(this, this.Id);
@@ -10420,16 +10381,6 @@ CPieSeries.prototype =
     Get_Id: function()
     {
         return this.Id;
-    },
-
-    getContentChangesByType: function(type){
-        switch(type){
-            case AscDFH.historyitem_PieSeries_SetDPt:
-            case AscDFH.historyitem_CommonSeries_RemoveDPt:{
-                return this.m_oDPtContentChanges;
-            }
-        }
-        return null;
     },
 
     getDptByIdx: function(idx){
@@ -10940,7 +10891,6 @@ function CRadarSeries()
 
     this.parent = null;
 
-    this.m_oDPtContentChanges = new AscCommon.CContentChanges();
 
     this.Id = g_oIdCounter.Get_NewId();
     g_oTableId.Add(this, this.Id);
@@ -10956,17 +10906,6 @@ CRadarSeries.prototype =
 
     Refresh_RecalcData: function()
     {},
-
-
-    getContentChangesByType: function(type){
-        switch(type){
-            case AscDFH.historyitem_RadarSeries_SetDPt:
-            case AscDFH.historyitem_CommonSeries_RemoveDPt:{
-                return this.m_oDPtContentChanges;
-            }
-        }
-        return null;
-    },
 
     removeDPt: function(idx)
     {
