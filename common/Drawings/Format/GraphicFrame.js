@@ -69,8 +69,6 @@ function CGraphicFrame()
 
     this.compiledHierarchy = [];
     this.Pages      = [];
-    this.Id = AscCommon.g_oIdCounter.Get_NewId();
-    AscCommon.g_oTableId.Add(this, this.Id);
     this.compiledStyles = [];
     this.recalcInfo =
     {

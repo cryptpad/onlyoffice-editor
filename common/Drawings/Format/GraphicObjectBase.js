@@ -368,19 +368,53 @@
         this.bSaveSourceFormatting = null;
         this.contentCopyPr = null;
     }
+    
+    function CBaseObject() {
+        this.Id = AscCommon.g_oIdCounter.Get_NewId();
+        AscCommon.g_oTableId.Add( this, this.Id );
+    }
+    CBaseObject.prototype.getObjectType = function() {
+        return AscDFH.historyitem_type_Unknown;
+    };
+    CBaseObject.prototype.Get_Id = function() {
+        return this.Id;
+    };
+    /**
+     * Write object to stream
+     * @memberof CGraphicObjectBase
+     */
+    CBaseObject.prototype.Write_ToBinary2 = function (oWriter) {
+        oWriter.WriteLong(this.getObjectType());
+        oWriter.WriteString2(this.Get_Id());
+    };
+
+    /**
+     * Read object from stream
+     * @memberof CGraphicObjectBase
+     */
+    CBaseObject.prototype.Read_FromBinary2 = function (oReader) {
+        this.Id = oReader.GetString2();
+    };
+    /**
+     * Read object from stream
+     * @memberof CGraphicObjectBase
+     */
+    CBaseObject.prototype.Refresh_RecalcData = function (oChange) {
+    };
 
     /**
      * Base class for all graphic objects
      * @constructor
      */
     function CGraphicObjectBase() {
+
+        CBaseObject.call(this);
         /*Format fields*/
         this.spPr  = null;
         this.group = null;
         this.parent = null;
         this.bDeleted = true;
         this.locks = 0;
-        this.Id = '';
 
         /*Calculated fields*/
         this.posX = null;
@@ -407,7 +441,10 @@
         this.Lock = new AscCommon.CLock();
         this.setRecalculateInfo();
     }
-
+    
+    CGraphicObjectBase.prototype = Object.create(CBaseObject.prototype);
+    CGraphicObjectBase.prototype.constructor = CGraphicObjectBase;
+    
     /**
      * Create a scheme color
      * @memberof CGraphicObjectBase
@@ -425,41 +462,7 @@
      * @memberof CGraphicObjectBase
      */
     CGraphicObjectBase.prototype.setRecalculateInfo = function(){};
-
-    /**
-     * Get object Id
-     * @memberof CGraphicObjectBase
-     * @returns {string}
-     */
-    CGraphicObjectBase.prototype.Get_Id = function () {
-        return this.Id;
-    };
-
-    /**
-     * Get type object
-     * @memberof CGraphicObjectBase
-     * @returns {number}
-     */
-    CGraphicObjectBase.prototype.getObjectType = function () {
-        return AscDFH.historyitem_type_Unknown;
-    };
-
-    /**
-     * Write object to stream
-     * @memberof CGraphicObjectBase
-     */
-    CGraphicObjectBase.prototype.Write_ToBinary2 = function (oWriter) {
-        oWriter.WriteLong(this.getObjectType());
-        oWriter.WriteString2(this.Get_Id());
-    };
-
-    /**
-     * Read object from stream
-     * @memberof CGraphicObjectBase
-     */
-    CGraphicObjectBase.prototype.Read_FromBinary2 = function (oReader) {
-        this.Id = oReader.GetString2();
-    };
+    
 
     /**
      * Get object bounds for defining group size
@@ -1932,7 +1935,8 @@
     };
 
 
-    function CRelSizeAnchor(){
+    function CRelSizeAnchor() {
+        CBaseObject.call(this);
         this.fromX = null;
         this.fromY = null;
 
@@ -1943,24 +1947,16 @@
 
         this.parent = null;
         this.drawingBase = null;
-        this.Id = AscCommon.g_oIdCounter.Get_NewId();
-        AscCommon.g_oTableId.Add(this, this.Id);
     }
+
+    CRelSizeAnchor.prototype = Object.create(CBaseObject.prototype);
+    CRelSizeAnchor.prototype.constructor = CRelSizeAnchor;
+
     CRelSizeAnchor.prototype.setDrawingBase = function(drawingBase){
         this.drawingBase = drawingBase;
     };
     CRelSizeAnchor.prototype.getObjectType = function () {
         return AscDFH.historyitem_type_RelSizeAnchor;
-    };
-    CRelSizeAnchor.prototype.Get_Id = function () {
-        return this.Id;
-    };
-    CRelSizeAnchor.prototype.Write_ToBinary2 = function (oWriter) {
-        oWriter.WriteLong(this.getObjectType());
-        oWriter.WriteString2(this.Get_Id());
-    };
-    CRelSizeAnchor.prototype.Read_FromBinary2 = function (oReader) {
-        this.Id = oReader.GetString2();
     };
 
     CRelSizeAnchor.prototype.setFromTo = function (fromX, fromY, toX, toY) {
@@ -2023,6 +2019,7 @@
 
 
     function CAbsSizeAnchor(){
+        CBaseObject.call(this);
         this.fromX = null;
         this.fromY = null;
         this.toX = null;
@@ -2031,26 +2028,17 @@
 
         this.parent = null;
         this.drawingBase = null;
-        this.Id = AscCommon.g_oIdCounter.Get_NewId();
-        AscCommon.g_oTableId.Add(this, this.Id);
     }
+
+
+    CAbsSizeAnchor.prototype = Object.create(CBaseObject.prototype);
+    CAbsSizeAnchor.prototype.constructor = CAbsSizeAnchor;
     CAbsSizeAnchor.prototype.setDrawingBase = function(drawingBase){
         this.drawingBase = drawingBase;
     };
     CAbsSizeAnchor.prototype.getObjectType = function () {
         return AscDFH.historyitem_type_AbsSizeAnchor;
     };
-    CAbsSizeAnchor.prototype.Get_Id = function () {
-        return this.Id;
-    };
-    CAbsSizeAnchor.prototype.Write_ToBinary2 = function (oWriter) {
-        oWriter.WriteLong(this.getObjectType());
-        oWriter.WriteString2(this.Get_Id());
-    };
-    CAbsSizeAnchor.prototype.Read_FromBinary2 = function (oReader) {
-        this.Id = oReader.GetString2();
-    };
-
     CAbsSizeAnchor.prototype.setFromTo = function (fromX, fromY, extX, extY) {
         History.Add(new AscDFH.CChangesDrawingsDouble(this, AscDFH.historyitem_AbsSizeAnchorFromX, this.fromX, fromX));
         History.Add(new AscDFH.CChangesDrawingsDouble(this, AscDFH.historyitem_AbsSizeAnchorFromY, this.fromY, fromY));
@@ -2137,6 +2125,7 @@
 
 
     window['AscFormat'] = window['AscFormat'] || {};
+    window['AscFormat'].CBaseObject           = CBaseObject;
     window['AscFormat'].CGraphicObjectBase    = CGraphicObjectBase;
     window['AscFormat'].CGraphicBounds        = CGraphicBounds;
     window['AscFormat'].checkNormalRotate     = checkNormalRotate;
