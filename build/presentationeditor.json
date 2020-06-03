@@ -1,7 +1,7 @@
 {
     "name": "presentationeditor",
     "version": "4.3.0",
-    "build": 780,
+    "build": 786,
     "homepage": "http://www.onlyoffice.com",
     "private": true,
     "main": {
@@ -398,10 +398,10 @@
         "copy": {
             "localization": [
                 {
-                  "expand": true,
-                  "cwd": "../apps/presentationeditor/embed/locale/",
-                  "src": "*",
-                  "dest": "../deploy/web-apps/apps/presentationeditor/embed/locale/"
+                    "expand": true,
+                    "cwd": "../apps/presentationeditor/embed/locale/",
+                    "src": "*",
+                    "dest": "../deploy/web-apps/apps/presentationeditor/embed/locale/"
                 }
             ],
             "index-page": {
