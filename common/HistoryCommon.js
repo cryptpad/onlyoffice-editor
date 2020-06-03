@@ -1923,6 +1923,10 @@
 	window['AscDFH'].historyitem_CommonSeries_RemoveDPt      = window['AscDFH'].historyitem_type_CommonShape | 302;
 	window['AscDFH'].historyitem_CommonLit_RemoveDPt         = window['AscDFH'].historyitem_type_CommonShape | 303;
 	window['AscDFH'].historyitem_CommonChartFormat_SetParent = window['AscDFH'].historyitem_type_CommonShape | 304;
+	window['AscDFH'].historyitem_CommonSeriesSetIdx          = window['AscDFH'].historyitem_type_CommonShape | 305;
+	window['AscDFH'].historyitem_CommonSeriesSetOrder        = window['AscDFH'].historyitem_type_CommonShape | 306;
+	window['AscDFH'].historyitem_CommonSeriesSetTx           = window['AscDFH'].historyitem_type_CommonShape | 307;
+	window['AscDFH'].historyitem_CommonSeriesSetSpPr         = window['AscDFH'].historyitem_type_CommonShape | 308;
 
 	window['AscDFH'].historyitem_Common_AddWatermark = window['AscDFH'].historyitem_type_CommonShape | 401;
 	//------------------------------------------------------------------------------------------------------------------
