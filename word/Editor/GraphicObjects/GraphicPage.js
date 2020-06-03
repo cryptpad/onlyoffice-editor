@@ -241,7 +241,7 @@ CGraphicPage.prototype =
             }
             for(var i = drawingArray.length-1; i >-1; --i)
             {
-                if(drawingArray[i].Table.Parent === docContent)
+                if(drawingArray[i].Table.Parent.GetDocumentContentForRecalcInfo() === docContent)
                     drawingArray.splice(i, 1);
             }
         }

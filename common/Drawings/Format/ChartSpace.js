@@ -1311,9 +1311,6 @@ var G_O_ACTIVE_COMMENT_BRUSH = AscFormat.CreateUniFillByUniColor(AscFormat.Creat
         markers: null,
         textSelection: null
     };
-
-    this.Id = g_oIdCounter.Get_NewId();
-    g_oTableId.Add(this, this.Id);
 }
 
 	CChartSpace.prototype = Object.create(AscFormat.CGraphicObjectBase.prototype);

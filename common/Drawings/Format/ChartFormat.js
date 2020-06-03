@@ -1004,6 +1004,7 @@ function getMinMaxFromArrPoints(aPoints)
 var SCALE_INSET_COEFF = 1.016;//Возможно придется уточнять
 function CDLbl()
 {
+    AscFormat.CBaseObject.call(this);
     this.bDelete = null;
     this.dLblPos = null;
     this.idx = null;
@@ -1057,36 +1058,26 @@ function CDLbl()
     this.compiledStyles = null;
 
     this.parent = null;
-
-    if(false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On())
-    {
-        this.Id = g_oIdCounter.Get_NewId();
-        g_oTableId.Add(this, this.Id);
-    }
 }
 
-CDLbl.prototype =
-{
-    Get_Id: function()
-    {
-        return this.Id;
-    },
-    Refresh_RecalcData: function()
+    CDLbl.prototype = Object.create(AscFormat.CBaseObject.prototype);
+    CDLbl.prototype.constructor = CDLbl;
+    CDLbl.prototype.Refresh_RecalcData = function()
     {
         this.Refresh_RecalcData2();
-    },
+    };
 
 
-    getObjectType: function()
+    CDLbl.prototype.getObjectType = function()
     {
         return AscDFH.historyitem_type_DLbl;
-    },
+    };
 
-    Check_AutoFit: function(){
+    CDLbl.prototype.Check_AutoFit = function(){
         return true;
-    },
+    };
 
-    createDuplicate: function()
+    CDLbl.prototype.createDuplicate = function()
     {
 
         var c = new CDLbl();
@@ -1121,10 +1112,10 @@ CDLbl.prototype =
             c.setTxPr(this.txPr.createDuplicate());
         }
         return c;
-    },
+    };
 
 
-    checkShapeChildTransform: function(transform)
+    CDLbl.prototype.checkShapeChildTransform = function(transform)
     {
         this.updatePosition(this.posX, this.posY);
         global_MatrixTransformer.MultiplyAppend(this.transform, transform);
@@ -1134,25 +1125,25 @@ CDLbl.prototype =
             this.invertTransform = global_MatrixTransformer.Invert(this.transform);
             this.invertTransformText = global_MatrixTransformer.Invert(this.transformText);
         }
-    },
+    };
 
-    getCompiledFill: function()
+    CDLbl.prototype.getCompiledFill = function()
     {
         return this.spPr && this.spPr.Fill ? this.spPr.Fill : null;
-    },
+    };
 
-    getCompiledLine: function()
+    CDLbl.prototype.getCompiledLine = function()
     {
         return this.spPr && this.spPr.ln ? this.spPr.ln : null;
-    },
+    };
 
-    getCompiledTransparent: function()
+    CDLbl.prototype.getCompiledTransparent = function()
     {
         return this.spPr && this.spPr.Fill ? this.spPr.Fill.transparent : null;
-    },
+    };
 
 
-    recalculate: function()
+    CDLbl.prototype.recalculate = function()
     {
         if(this.bDelete)
         {
@@ -1200,15 +1191,15 @@ CDLbl.prototype =
                 this.chart.addToSetPosition(this);
             }
         }, this, []);
-    },
+    };
 
-    recalculateBrush: CShape.prototype.recalculateBrush,
-    recalculatePen: CShape.prototype.recalculatePen,
-    check_bounds: CShape.prototype.check_bounds,
-    selectionCheck: CShape.prototype.selectionCheck,
-    getInvertTransform: CShape.prototype.getInvertTransform,
-    getDocContent: CShape.prototype.getDocContent,
-    updateSelectionState: function(){
+    CDLbl.prototype.recalculateBrush = CShape.prototype.recalculateBrush;
+        CDLbl.prototype.recalculatePen = CShape.prototype.recalculatePen;
+        CDLbl.prototype.check_bounds = CShape.prototype.check_bounds;
+        CDLbl.prototype.selectionCheck = CShape.prototype.selectionCheck;
+        CDLbl.prototype.getInvertTransform = CShape.prototype.getInvertTransform;
+        CDLbl.prototype.getDocContent = CShape.prototype.getDocContent;
+        CDLbl.prototype.updateSelectionState = function(){
         if(this.txBody && this.txBody.content)
         {
             if(!this.txBody.content.DrawingDocument)
@@ -1230,13 +1221,13 @@ CDLbl.prototype =
             }
         }
         CShape.prototype.updateSelectionState.call(this);
-    },
-    selectionSetStart: CShape.prototype.selectionSetStart,
-    selectionSetEnd: CShape.prototype.selectionSetEnd,
-    getDrawingDocument: function () {
+    };
+    CDLbl.prototype.selectionSetStart = CShape.prototype.selectionSetStart;
+        CDLbl.prototype.selectionSetEnd = CShape.prototype.selectionSetEnd;
+        CDLbl.prototype.getDrawingDocument = function () {
         return this.chart && this.chart.getDrawingDocument && this.chart.getDrawingDocument();
-    },
-    checkHitToBounds: function (x, y) {
+    };
+    CDLbl.prototype.checkHitToBounds = function(x, y) {
         var oInvertTransform = this.getInvertTransform();
         var _x, _y;
         if(oInvertTransform) {
@@ -1249,19 +1240,19 @@ CDLbl.prototype =
         }
 
         return _x >= 0 && _x <= this.extX && _y >= 0 && _y < this.extY;
-    },
+    };
 
-    getCanvasContext: function()
+    CDLbl.prototype.getCanvasContext = function()
     {
         return this.chart && this.chart.getCanvasContext();
-    },
+    };
 
-    convertPixToMM: function(pix)
+    CDLbl.prototype.convertPixToMM = function(pix)
     {
         return this.chart && this.chart.convertPixToMM(pix);
-    },
+    };
 
-    checkDlbl: function()
+    CDLbl.prototype.checkDlbl = function()
     {
         if(this.series && this.pt)
         {
@@ -1302,9 +1293,9 @@ CDLbl.prototype =
             }
         }
         return null;
-    },
+    };
 
-    checkDocContent: function()
+    CDLbl.prototype.checkDocContent = function()
     {
         var oDlbl = this.checkDlbl();
         if(oDlbl)
@@ -1333,9 +1324,9 @@ CDLbl.prototype =
                 }
             }
         }
-    },
+    };
 
-    applyTextFunction: function(docContentFunction, tableFunction, args)
+    CDLbl.prototype.applyTextFunction = function(docContentFunction, tableFunction, args)
     {
         var oDlbl = this.checkDlbl();
         if(!oDlbl)
@@ -1347,39 +1338,38 @@ CDLbl.prototype =
         {
             docContentFunction.apply(oDlbl.tx.rich.content, args);
         }
-    },
+    };
 
-    hit: function(x, y)
+    CDLbl.prototype.hit = function(x, y)
     {
         var tx = this.invertTransform.TransformPointX(x, y);
         var ty = this.invertTransform.TransformPointY(x, y);
         return tx>=0 && tx <= this.extX && ty >=0 && ty <=this.extY;
-    },
+    };
+    CDLbl.prototype.hitInPath = CShape.prototype.hitInPath;
 
-    hitInPath: CShape.prototype.hitInPath,
+        CDLbl.prototype.hitInInnerArea = CShape.prototype.hitInInnerArea;
 
-    hitInInnerArea: CShape.prototype.hitInInnerArea,
+        CDLbl.prototype.hitInBoundingRect = CShape.prototype.hitInBoundingRect;
 
-    hitInBoundingRect:  CShape.prototype.hitInBoundingRect,
+        CDLbl.prototype.hitInTextRect = CShape.prototype.hitInTextRect;
 
-    hitInTextRect: CShape.prototype.hitInTextRect,
-
-    getCompiledStyle: function()
+        CDLbl.prototype.getCompiledStyle = function()
     {
         return null;
-    },
+    };
 
-    getParentObjects: function()
+    CDLbl.prototype.getParentObjects = function()
     {
         return this.chart.getParentObjects();
-    },
+    };
 
-    recalculateTransform: function()
+    CDLbl.prototype.recalculateTransform = function()
     {
 
-    },
+    };
 
-    recalculateTransformText: function()
+    CDLbl.prototype.recalculateTransformText = function()
     {
         if (this.txBody === null)
             return;
@@ -1632,18 +1622,18 @@ CDLbl.prototype =
             global_MatrixTransformer.TranslateAppend(_text_transform, _transformed_text_xc - _content_width * 0.5, _transformed_text_yc - content_height2 * 0.5);
 
             this.clipRect =
-            {
-                x: -_body_pr.lIns,
-                y: -_vertical_shift - _body_pr.tIns,
-                w: this.contentWidth + (_body_pr.rIns + _body_pr.lIns),
-                h: this.contentHeight + (_body_pr.bIns + _body_pr.tIns)
-            };
+                {
+                    x: -_body_pr.lIns,
+                    y: -_vertical_shift - _body_pr.tIns,
+                    w: this.contentWidth + (_body_pr.rIns + _body_pr.lIns),
+                    h: this.contentHeight + (_body_pr.bIns + _body_pr.tIns)
+                };
         }
 
         this.transformText = this.ownTransformText.CreateDublicate();
-    },
+    };
 
-    getStyles: function()
+    CDLbl.prototype.getStyles = function()
     {
         if(this.lastStyleObject)
             return this.lastStyleObject;
@@ -1733,9 +1723,9 @@ CDLbl.prototype =
                 && this.legend)
             {
                 if(this.legend.txPr
-                && this.legend.txPr.content
-                && this.legend.txPr.content.Content[0]
-                && this.legend.txPr.content.Content[0].Pr)
+                    && this.legend.txPr.content
+                    && this.legend.txPr.content.Content[0]
+                    && this.legend.txPr.content.Content[0].Pr)
                 {
                     this.legend.txPr.content.Content[0].Set_DocumentIndex(0);
                     style.ParaPr.Merge(this.legend.txPr.content.Content[0].Pr);
@@ -1793,9 +1783,9 @@ CDLbl.prototype =
                 this.lastStyleObject = {lastId: style.Id, styles: styles, shape: this, slide: null};
             return {lastId: style.Id, styles: styles, shape: this, slide: null};
         }, this, []);
-    },
+    };
 
-    Get_Theme: function()
+    CDLbl.prototype.Get_Theme = function()
     {
         if(this.chart)
         {
@@ -1810,8 +1800,8 @@ CDLbl.prototype =
         }
         return null;
 
-    },
-    Get_ColorMap: function()
+    };
+    CDLbl.prototype.Get_ColorMap = function()
     {
         if(this.chart)
         {
@@ -1825,27 +1815,27 @@ CDLbl.prototype =
             }
         }
         return AscFormat.G_O_DEFAULT_COLOR_MAP;
-    },
+    };
 
-    Get_AbsolutePage: function()
+    CDLbl.prototype.Get_AbsolutePage = function()
     {
         if(this.chart && this.chart.Get_AbsolutePage)
         {
             return this.chart.Get_AbsolutePage();
         }
         return 0;
-    },
+    };
 
-    recalculateStyle: function()
+    CDLbl.prototype.recalculateStyle = function()
     {
         AscFormat.ExecuteNoHistory(function()
             {
                 this.compiledStyles = this.getStyles();
             },
             this, []);
-    },
+    };
 
-    Get_Styles: function(lvl)
+    CDLbl.prototype.Get_Styles = function(lvl)
     {
         if(this.recalcInfo.recalcStyle)
         {
@@ -1853,9 +1843,9 @@ CDLbl.prototype =
             this.recalcInfo.recalcStyle = false;
         }
         return this.compiledStyles;
-    },
+    };
 
-    checkNoLbl: function()
+    CDLbl.prototype.checkNoLbl = function()
     {
         if(this.tx && this.tx.rich)
             return false;
@@ -1863,18 +1853,18 @@ CDLbl.prototype =
         {
             return !(this.showSerName || this.showCatName || this.showVal || this.showPercent);
         }
-    },
+    };
 
-    getPercentageString: function()
+    CDLbl.prototype.getPercentageString = function()
     {
         if(this.series && this.pt)
         {
             return this.series.getValByIndex(this.pt.idx, true)
         }
         return "";
-    },
+    };
 
-    getValueString: function()
+    CDLbl.prototype.getValueString = function()
     {
         var sFormatCode;
         if(this.pt && this.series)
@@ -1893,9 +1883,9 @@ CDLbl.prototype =
             return num_format.formatToChart(this.series.getValByIndex(this.pt.idx))
         }
         return "";
-    },
+    };
 
-    getDefaultTextForTxBody: function()
+    CDLbl.prototype.getDefaultTextForTxBody = function()
     {
         var compiled_string = "";
         var separator;
@@ -1936,9 +1926,9 @@ CDLbl.prototype =
             compiled_string += this.getPercentageString();
         }
         return compiled_string;
-    },
+    };
 
-    getMaxWidth: function(bodyPr)
+    CDLbl.prototype.getMaxWidth = function(bodyPr)
     {
         if(!(this.parent && (this.parent.axPos === AX_POS_L || this.parent.axPos === AX_POS_R)))
         {
@@ -1964,15 +1954,15 @@ CDLbl.prototype =
         {
             return 20000;//надписи для осей значений не переносятся поэтому выставляем большую ширину.
         }
-    },
+    };
 
-    getBodyPr: function()
+    CDLbl.prototype.getBodyPr = function()
     {
         var ret = new AscFormat.CBodyPr();
         ret.setDefault();
         ret.anchor = 1;
         var oBaseBodyPr = new AscFormat.CBodyPr();
-        
+
         if(this.txPr && this.txPr.bodyPr)
         {
             oBaseBodyPr.merge(this.txPr.bodyPr);
@@ -1982,68 +1972,68 @@ CDLbl.prototype =
             oBaseBodyPr.merge(this.tx.rich.bodyPr);
         }
         if(this.parent && (this.parent.axPos === AX_POS_L || this.parent.axPos === AX_POS_R)
-        && (oBaseBodyPr.vert === null && oBaseBodyPr.rot === null) )
+            && (oBaseBodyPr.vert === null && oBaseBodyPr.rot === null) )
         {
             ret.vert = AscFormat.nVertTTvert270;
         }
         ret.merge(oBaseBodyPr);
         var nVert = ret.vert;
-         //Пока не поддерживаем bodyPr.rot. Костыль под эффект_штурмовика.docx.
-         if(AscFormat.isRealNumber(ret.rot) && 0 !== ret.rot)
-         {
-             if(Math.abs(ret.rot - 5400000) < 1000)
-             {
-                 if(ret.vert === AscFormat.nVertTTvert270)
-                 {
+        //Пока не поддерживаем bodyPr.rot. Костыль под эффект_штурмовика.docx.
+        if(AscFormat.isRealNumber(ret.rot) && 0 !== ret.rot)
+        {
+            if(Math.abs(ret.rot - 5400000) < 1000)
+            {
+                if(ret.vert === AscFormat.nVertTTvert270)
+                {
                     nVert = AscFormat.nVertTThorz;
-                 }
-                 else if(ret.vert === AscFormat.nVertTThorz)
-                 {
+                }
+                else if(ret.vert === AscFormat.nVertTThorz)
+                {
                     nVert = AscFormat.nVertTTvert;
-                 }
-             }
-             else if(Math.abs(ret.rot + 5400000) < 1000)
-             {
-                 if(ret.vert === AscFormat.nVertTTvert)
-                 {
+                }
+            }
+            else if(Math.abs(ret.rot + 5400000) < 1000)
+            {
+                if(ret.vert === AscFormat.nVertTTvert)
+                {
                     nVert = AscFormat.nVertTThorz;
-                 }
-                 else if(ret.vert === AscFormat.nVertTThorz)
-                 {
+                }
+                else if(ret.vert === AscFormat.nVertTThorz)
+                {
                     nVert = AscFormat.nVertTTvert270;
-                 }
-             }
-         }
-         //
- 
-         switch (nVert)
-         {
-             case AscFormat.nVertTTeaVert:
-             case AscFormat.nVertTTmongolianVert:
-             case AscFormat.nVertTTvert:
-             case AscFormat.nVertTTwordArtVert:
-             case AscFormat.nVertTTwordArtVertRtl:
-             case AscFormat.nVertTTvert270:
-             {
-                 ret.lIns = SCALE_INSET_COEFF;
-                 ret.rIns = SCALE_INSET_COEFF;
-                 ret.tIns = SCALE_INSET_COEFF*0.5;
-                 ret.bIns = SCALE_INSET_COEFF*0.5;
-                 break;
-             }
-             case AscFormat.nVertTThorz:
-             {
-                 ret.lIns = SCALE_INSET_COEFF;
-                 ret.rIns = SCALE_INSET_COEFF;
-                 ret.tIns = SCALE_INSET_COEFF*0.5;
-                 ret.bIns = SCALE_INSET_COEFF*0.5;
-                 break;
-             }
-        } 
-        return ret;
-    },
+                }
+            }
+        }
+        //
 
-    recalculateContent: function()
+        switch (nVert)
+        {
+            case AscFormat.nVertTTeaVert:
+            case AscFormat.nVertTTmongolianVert:
+            case AscFormat.nVertTTvert:
+            case AscFormat.nVertTTwordArtVert:
+            case AscFormat.nVertTTwordArtVertRtl:
+            case AscFormat.nVertTTvert270:
+            {
+                ret.lIns = SCALE_INSET_COEFF;
+                ret.rIns = SCALE_INSET_COEFF;
+                ret.tIns = SCALE_INSET_COEFF*0.5;
+                ret.bIns = SCALE_INSET_COEFF*0.5;
+                break;
+            }
+            case AscFormat.nVertTThorz:
+            {
+                ret.lIns = SCALE_INSET_COEFF;
+                ret.rIns = SCALE_INSET_COEFF;
+                ret.tIns = SCALE_INSET_COEFF*0.5;
+                ret.bIns = SCALE_INSET_COEFF*0.5;
+                break;
+            }
+        }
+        return ret;
+    };
+
+    CDLbl.prototype.recalculateContent = function()
     {
         if(this.txBody)
         {
@@ -2140,9 +2130,9 @@ CDLbl.prototype =
             }
 
         }
-    },
+    };
 
-    recalculateTxBody: function()
+    CDLbl.prototype.recalculateTxBody = function()
     {
         if(this.tx && this.tx.rich)
         {
@@ -2153,9 +2143,9 @@ CDLbl.prototype =
         {
             this.txBody = AscFormat.CreateTextBodyFromString(this.getDefaultTextForTxBody(), this.chart.getDrawingDocument(), this);
         }
-    },
+    };
 
-    initDefault: function(nDefaultPosition)
+    CDLbl.prototype.initDefault = function(nDefaultPosition)
     {
         this.setDelete(false);
         this.setDLblPos(AscFormat.isRealNumber(nDefaultPosition) ? nDefaultPosition : c_oAscChartDataLabelsPos.inBase);
@@ -2172,9 +2162,9 @@ CDLbl.prototype =
         this.setSpPr(null);
         this.setTx(null);
         this.setTxPr(null);
-    },
+    };
 
-    merge: function(dLbl, noCopyTxBody)
+    CDLbl.prototype.merge = function(dLbl, noCopyTxBody)
     {
         if(!dLbl)
             return;
@@ -2185,7 +2175,7 @@ CDLbl.prototype =
 
         if(dLbl.idx != null)
             this.setIdx(dLbl.idx);
-        
+
         if(dLbl.layout != null)
         {
             this.setLayout(dLbl.layout.createDuplicate());
@@ -2261,29 +2251,29 @@ CDLbl.prototype =
             }
             this.txPr.setParent(this);
         }
-    },
+    };
 
-    draw: CShape.prototype.draw,
+    CDLbl.prototype.draw = CShape.prototype.draw;
 
-    isEmptyPlaceholder: function()
+        CDLbl.prototype.isEmptyPlaceholder = function()
     {
         return false;
-    },
-    setPosition: function(x, y)
+    };
+    CDLbl.prototype.setPosition = function(x, y)
     {
         this.x = x;
         this.y = y;
 
-    
-            this.calcX = this.x;
-            this.calcY = this.y;
+
+        this.calcX = this.x;
+        this.calcY = this.y;
 
         this.localTransform.Reset();
         global_MatrixTransformer.TranslateAppend(this.localTransform, this.calcX, this.calcY);
-      //  if (isRealObject(this.chart))
-      //  {
-      //      global_MatrixTransformer.MultiplyAppend(this.localTransform, this.chart.localTransform);
-      //  }
+        //  if (isRealObject(this.chart))
+        //  {
+        //      global_MatrixTransformer.MultiplyAppend(this.localTransform, this.chart.localTransform);
+        //  }
 
         this.transform = this.localTransform.CreateDublicate();
         this.invertTransform = global_MatrixTransformer.Invert(this.transform);
@@ -2292,20 +2282,15 @@ CDLbl.prototype =
 
         this.localTransformText = this.ownTransformText.CreateDublicate();
         global_MatrixTransformer.TranslateAppend(this.localTransformText, this.calcX, this.calcY);
-      //  if (isRealObject(this.chart))
-      //  {
-      //      global_MatrixTransformer.MultiplyAppend(this.localTransformText, this.chart.localTransform);
-      //  }
+        //  if (isRealObject(this.chart))
+        //  {
+        //      global_MatrixTransformer.MultiplyAppend(this.localTransformText, this.chart.localTransform);
+        //  }
 
         this.transformText = this.localTransformText.CreateDublicate();
         this.invertTransformText = global_MatrixTransformer.Invert(this.transformText);
-    },
-
-
-
-
-
-    setPosition2: function(x, y)
+    };
+    CDLbl.prototype.setPosition2 = function(x, y)
     {
         this.x = x;
         this.y = y;
@@ -2326,9 +2311,9 @@ CDLbl.prototype =
         this.localTransformText.ty = y;
         this.transformText = this.localTransformText.CreateDublicate();
         this.invertTransformText = global_MatrixTransformer.Invert(this.transformText);
-    },
+    };
 
-    updateTransformMatrix: function()
+    CDLbl.prototype.updateTransformMatrix = function()
     {
         this.transform = this.localTransform.CreateDublicate();
         global_MatrixTransformer.TranslateAppend(this.transform, this.posX, this.posY);
@@ -2341,9 +2326,9 @@ CDLbl.prototype =
             this.invertTransformText = global_MatrixTransformer.Invert(this.transformText);
         }
 
-    },
+    };
 
-    updatePosition: function(x, y)
+    CDLbl.prototype.updatePosition = function(x, y)
     {
         this.posX = x;
         this.posY = y;
@@ -2357,44 +2342,34 @@ CDLbl.prototype =
         this.invertTransform = global_MatrixTransformer.Invert(this.transform);
         this.invertTransformText = global_MatrixTransformer.Invert(this.transformText);
 
-    },
+    };
 
-    Write_ToBinary2: function(w)
-    {
-        w.WriteLong(this.getObjectType());
-        w.WriteString2(this.Id);
-    },
 
-    Read_FromBinary2: function(r)
-    {
-        this.Id = r.GetString2();
-    },
-
-    setParent: function(pr)
+    CDLbl.prototype.setParent = function(pr)
     {
         (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_DLbl_SetParent, this.parent, pr));
         this.parent = pr;
         this.Refresh_RecalcData2();
-    },
+    };
 
 
-    setDelete: function(pr)
+    CDLbl.prototype.setDelete = function(pr)
     {
         (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsBool(this, AscDFH.historyitem_DLbl_SetDelete, this.bDelete, pr));
         this.bDelete = pr;
         this.Refresh_RecalcData2();
-    },
-    setDLblPos: function(pr)
+    };
+    CDLbl.prototype.setDLblPos = function(pr)
     {
         (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsLong(this, AscDFH.historyitem_DLbl_SetDLblPos, this.dLblPos, pr));
         this.dLblPos = pr;
-    },
-    setIdx: function(pr)
+    };
+    CDLbl.prototype.setIdx = function(pr)
     {
         (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsLong(this, AscDFH.historyitem_DLbl_SetIdx, this.idx, pr));
         this.idx = pr;
-    },
-    setLayout: function(pr)
+    };
+    CDLbl.prototype.setLayout = function(pr)
     {
         (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_DLbl_SetLayout, this.layout, pr));
         this.layout = pr;
@@ -2402,48 +2377,48 @@ CDLbl.prototype =
         {
             this.layout.setParent(this);
         }
-    },
-    setNumFmt: function(pr)
+    };
+    CDLbl.prototype.setNumFmt = function(pr)
     {
         (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_DLbl_SetNumFmt, this.numFmt, pr));
         this.numFmt = pr;
-    },
-    setSeparator: function(pr)
+    };
+    CDLbl.prototype.setSeparator = function(pr)
     {
         (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsString(this, AscDFH.historyitem_DLbl_SetSeparator, this.separator, pr));
         this.separator = pr;
-    },
-    setShowBubbleSize: function(pr)
+    };
+    CDLbl.prototype.setShowBubbleSize = function(pr)
     {
         (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsBool(this, AscDFH.historyitem_DLbl_SetShowBubbleSize, this.showBubbleSize, pr));
         this.showBubbleSize = pr;
-    },
-    setShowCatName: function(pr)
+    };
+    CDLbl.prototype.setShowCatName = function(pr)
     {
         (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsBool(this, AscDFH.historyitem_DLbl_SetShowCatName, this.showCatName, pr));
         this.showCatName = pr;
-    },
-    setShowLegendKey: function(pr)
+    };
+    CDLbl.prototype.setShowLegendKey = function(pr)
     {
         (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsBool(this, AscDFH.historyitem_DLbl_SetShowLegendKey, this.showLegendKey, pr));
         this.showLegendKey = pr;
-    },
-    setShowPercent: function(pr)
+    };
+    CDLbl.prototype.setShowPercent = function(pr)
     {
         (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsBool(this, AscDFH.historyitem_DLbl_SetShowPercent, this.showPercent, pr));
         this.showPercent = pr;
-    },
-    setShowSerName: function(pr)
+    };
+    CDLbl.prototype.setShowSerName = function(pr)
     {
         (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsBool(this, AscDFH.historyitem_DLbl_SetShowSerName, this.showSerName, pr));
         this.showSerName = pr;
-    },
-    setShowVal: function(pr)
+    };
+    CDLbl.prototype.setShowVal = function(pr)
     {
         (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsBool(this, AscDFH.historyitem_DLbl_SetShowVal, this.showVal, pr));
         this.showVal = pr;
-    },
-    setSpPr: function(pr)
+    };
+    CDLbl.prototype.setSpPr = function(pr)
     {
         (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_DLbl_SetSpPr, this.spPr, pr));
         this.spPr = pr;
@@ -2451,13 +2426,13 @@ CDLbl.prototype =
         {
             this.spPr.setParent(this);
         }
-    },
-    setTx: function(pr)
+    };
+    CDLbl.prototype.setTx = function(pr)
     {
         (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_DLbl_SetTx, this.tx, pr));
         this.tx = pr;
-    },
-    setTxPr: function(pr)
+    };
+    CDLbl.prototype.setTxPr = function(pr)
     {
         (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_DLbl_SetTxPr, this.txPr, pr));
         this.txPr = pr;
@@ -2465,18 +2440,18 @@ CDLbl.prototype =
         {
             this.txPr.setParent(this);
         }
-    },
+    };
 
-    handleUpdateFill: function()
+    CDLbl.prototype.handleUpdateFill= function()
     {
         this.Refresh_RecalcData2();
-    },
-    handleUpdateLn: function()
+    };
+    CDLbl.prototype.handleUpdateLn = function()
     {
         this.Refresh_RecalcData2();
-    },
+    };
 
-    Refresh_RecalcData2: function(pageIndex)
+    CDLbl.prototype.Refresh_RecalcData2 = function(pageIndex)
     {
         if(this.parent && this.parent.Refresh_RecalcData2)
         {
@@ -2489,8 +2464,7 @@ CDLbl.prototype =
                 this.chart.Refresh_RecalcData2(pageIndex, this);
             }
         }
-    }
-};
+    };
 
 
 function CPlotArea()

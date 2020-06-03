@@ -991,10 +991,6 @@ function CShape()
 
     this.tmpFontScale = undefined;
     this.tmpLnSpcReduction = undefined;
-
-
-    this.Id = AscCommon.g_oIdCounter.Get_NewId();
-    AscCommon.g_oTableId.Add( this, this.Id );
 }
 
 	CShape.prototype = Object.create(AscFormat.CGraphicObjectBase.prototype);

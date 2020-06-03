@@ -69,8 +69,6 @@ function CGraphicFrame()
 
     this.compiledHierarchy = [];
     this.Pages      = [];
-    this.Id = AscCommon.g_oIdCounter.Get_NewId();
-    AscCommon.g_oTableId.Add(this, this.Id);
     this.compiledStyles = [];
     this.recalcInfo =
     {
@@ -829,7 +827,7 @@ CGraphicFrame.prototype.deselect = CShape.prototype.deselect;
 CGraphicFrame.prototype.Update_ContentIndexing = function()
 {};
     
-CGraphicFrame.prototype.GetTopDocumentContent = function()
+CGraphicFrame.prototype.GetTopDocumentContent = function(isOneLevel)
 {
     return null;
 };

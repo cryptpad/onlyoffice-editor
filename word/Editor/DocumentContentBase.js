@@ -1977,3 +1977,11 @@ CDocumentContentBase.prototype.RecalculateEndInfo = function()
 		this.Content[nIndex].RecalculateEndInfo();
 	}
 };
+/**
+ * Является ли данный контент блочным контролом
+ * @returns {boolean}
+ */
+CDocumentContentBase.prototype.IsBlockLevelSdtContent = function()
+{
+	return false;
+};

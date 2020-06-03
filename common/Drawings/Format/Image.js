@@ -88,9 +88,6 @@ function CImageShape()
     this.parentCrop = null;
 
     this.shdwSp = null;
-
-    this.Id = AscCommon.g_oIdCounter.Get_NewId();
-    AscCommon.g_oTableId.Add( this, this.Id );
 }
 
 	CImageShape.prototype = Object.create(AscFormat.CGraphicObjectBase.prototype);

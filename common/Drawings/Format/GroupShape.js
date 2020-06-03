@@ -85,9 +85,6 @@ function CGroupShape()
         chartSelection: null,
         textSelection: null
     };
-
-    this.Id = AscCommon.g_oIdCounter.Get_NewId();
-    AscCommon.g_oTableId.Add(this, this.Id);
 }
 	CGroupShape.prototype = Object.create(AscFormat.CGraphicObjectBase.prototype);
 	CGroupShape.prototype.constructor = CGroupShape;
