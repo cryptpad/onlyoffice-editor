@@ -14823,7 +14823,7 @@ CDocument.prototype.Set_ColumnsProps = function(ColumnsProps)
 		}
 	}
 };
-CDocument.prototype.GetTopDocumentContent = function()
+CDocument.prototype.GetTopDocumentContent = function(isOneLevel)
 {
 	return this;
 };

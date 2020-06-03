@@ -668,11 +668,14 @@ CDocumentContent.prototype.Reset_RecalculateCache = function()
 // Пересчитываем отдельную страницу DocumentContent
 CDocumentContent.prototype.Recalculate_Page               = function(PageIndex, bStart)
 {
-    if (0 === PageIndex && true === bStart && true !== this.IsBlockLevelSdtContent())
-    {
-        this.RecalcInfo.FlowObject                = null;
-        this.RecalcInfo.FlowObjectPageBreakBefore = false;
-    }
+	var oDocContentRI = this.GetDocumentContentForRecalcInfo();
+	var oRecalcInfo   = oDocContentRI.RecalcInfo;
+
+	if (0 === PageIndex && true === bStart && oDocContentRI === this)
+	{
+		oRecalcInfo.FlowObject                = null;
+		oRecalcInfo.FlowObjectPageBreakBefore = false;
+	}
 
     var StartIndex = 0;
     if (PageIndex > 0)
@@ -683,8 +686,9 @@ CDocumentContent.prototype.Recalculate_Page               = function(PageIndex, 
         this.Pages.length         = PageIndex;
         this.Pages[PageIndex]     = new CDocumentPage();
         this.Pages[PageIndex].Pos = StartIndex;
-        if (this.LogicDocument)
-            this.LogicDocument.DrawingObjects.resetDrawingArrays(this.Get_AbsolutePage(PageIndex), this);
+
+        if (this.LogicDocument && oDocContentRI === this)
+            this.LogicDocument.DrawingObjects.resetDrawingArrays(this.Get_AbsolutePage(PageIndex), oDocContentRI);
     }
 
     var Count = this.Content.length;
@@ -724,12 +728,13 @@ CDocumentContent.prototype.Recalculate_Page               = function(PageIndex, 
         if (type_Table === Element.GetType() && true != Element.Is_Inline())
         {
             bFlow = true;
-            if (true === this.RecalcInfo.Can_RecalcObject())
+            if (true === oRecalcInfo.Can_RecalcObject())
             {
                 Element.Set_DocumentIndex(Index);
                 Element.Reset(X, Y, XLimit, YLimit, PageIndex, 0, 1);
                 var TempRecalcResult = Element.Recalculate_Page(0);
-                this.RecalcInfo.Set_FlowObject(Element, 0, TempRecalcResult, -1, {
+
+				oRecalcInfo.Set_FlowObject(Element, 0, TempRecalcResult, -1, {
                     X      : X,
                     Y      : Y,
                     XLimit : XLimit,
@@ -741,47 +746,47 @@ CDocumentContent.prototype.Recalculate_Page               = function(PageIndex, 
 
                 RecalcResult = recalcresult_CurPage;
             }
-            else if (true === this.RecalcInfo.Check_FlowObject(Element))
+            else if (true === oRecalcInfo.Check_FlowObject(Element))
             {
                 // Если у нас текущая страница совпадает с той, которая указана в таблице, тогда пересчитываем дальше
-                if (Element.PageNum > PageIndex || ( this.RecalcInfo.FlowObjectPage <= 0 && Element.PageNum < PageIndex ) || Element.PageNum === PageIndex)
+                if (Element.PageNum > PageIndex || (oRecalcInfo.FlowObjectPage <= 0 && Element.PageNum < PageIndex) || Element.PageNum === PageIndex)
                 {
-                    if (true === this.RecalcInfo.FlowObjectPageBreakBefore)
+                    if (true === oRecalcInfo.FlowObjectPageBreakBefore)
                     {
                         // Добавляем начало таблицы в конец страницы так, чтобы не убралось ничего
                         Element.Set_DocumentIndex(Index);
                         Element.Reset(X, YLimit, XLimit, YLimit, PageIndex, 0, 1);
                         Element.Recalculate_Page(0);
 
-                        this.RecalcInfo.FlowObjectPage++;
+						oRecalcInfo.FlowObjectPage++;
                         RecalcResult = recalcresult_NextPage;
                     }
                     else
                     {
-                        X      = this.RecalcInfo.AdditionalInfo.X;
-                        Y      = this.RecalcInfo.AdditionalInfo.Y;
-                        XLimit = this.RecalcInfo.AdditionalInfo.XLimit;
-                        YLimit = this.RecalcInfo.AdditionalInfo.YLimit;
+                        X      = oRecalcInfo.AdditionalInfo.X;
+                        Y      = oRecalcInfo.AdditionalInfo.Y;
+                        XLimit = oRecalcInfo.AdditionalInfo.XLimit;
+                        YLimit = oRecalcInfo.AdditionalInfo.YLimit;
 
                         // Пересчет нужнен для обновления номеров колонок и страниц
                         Element.Reset(X, Y, XLimit, YLimit, PageIndex, 0, 1);
                         RecalcResult = Element.Recalculate_Page(0);
-                        this.RecalcInfo.FlowObjectPage++;
+						oRecalcInfo.FlowObjectPage++;
 
                         if (RecalcResult & recalcresult_NextElement)
-                            this.RecalcInfo.Reset();
+							oRecalcInfo.Reset();
                     }
                 }
                 else
                 {
                     RecalcResult = Element.Recalculate_Page(PageIndex - Element.PageNum);
-                    this.RecalcInfo.FlowObjectPage++;
+					oRecalcInfo.FlowObjectPage++;
 
                     if (this.DrawingObjects)
                         this.DrawingObjects.addFloatTable(new CFlowTable(Element, PageIndex));
 
                     if (RecalcResult & recalcresult_NextElement)
-                        this.RecalcInfo.Reset();
+						oRecalcInfo.Reset();
                 }
             }
             else
@@ -796,7 +801,7 @@ CDocumentContent.prototype.Recalculate_Page               = function(PageIndex, 
 
             bFlow = true;
 
-            if (true === this.RecalcInfo.Can_RecalcObject())
+            if (true === oRecalcInfo.Can_RecalcObject())
             {
                 var FramePr = Element.Get_FramePr();
 
@@ -851,7 +856,7 @@ CDocumentContent.prototype.Recalculate_Page               = function(PageIndex, 
                     TempElement.Set_DocumentIndex(TempIndex);
 
                     var nElementPageIndex = 0;
-                    if (Index != TempIndex || ( true != this.RecalcInfo.FrameRecalc && ( ( 0 === Index && 0 === PageIndex ) || Index != StartIndex ) ))
+                    if (Index != TempIndex || ( true != oRecalcInfo.FrameRecalc && ( ( 0 === Index && 0 === PageIndex ) || Index != StartIndex ) ))
 					{
 						TempElement.Reset(0, FrameH, Frame_XLimit, Frame_YLimit, PageIndex);
 					}
@@ -1074,13 +1079,13 @@ CDocumentContent.prototype.Recalculate_Page               = function(PageIndex, 
 
                 if ((FrameY2 + FrameH2 > Page_H || Y > Page_H - 0.001 ) && Index != StartIndex)
                 {
-                    this.RecalcInfo.Set_FrameRecalc(true);
+					oRecalcInfo.Set_FrameRecalc(true);
                     this.Content[Index].StartFromNewPage();
                     RecalcResult = recalcresult_NextPage;
                 }
                 else
                 {
-                    this.RecalcInfo.Set_FrameRecalc(false);
+					oRecalcInfo.Set_FrameRecalc(false);
                     for (var TempIndex = Index; TempIndex < Index + FlowCount; TempIndex++)
                     {
                         var TempElement = this.Content[TempIndex];
@@ -1099,15 +1104,15 @@ CDocumentContent.prototype.Recalculate_Page               = function(PageIndex, 
                         RecalcResult = recalcresult_NextElement;
                     else
                     {
-                        this.RecalcInfo.Set_FlowObject(Element, FlowCount, recalcresult_NextElement, FlowCount);
+						oRecalcInfo.Set_FlowObject(Element, FlowCount, recalcresult_NextElement, FlowCount);
                         RecalcResult = recalcresult_CurPage;
                     }
                 }
             }
-            else if (true === this.RecalcInfo.Check_FlowObject(Element))
+            else if (true === oRecalcInfo.Check_FlowObject(Element))
             {
-                Index += this.RecalcInfo.FlowObjectPage - 1;
-                this.RecalcInfo.Reset();
+                Index += oRecalcInfo.FlowObjectPage - 1;
+				oRecalcInfo.Reset();
                 RecalcResult = recalcresult_NextElement;
             }
             else
@@ -1190,6 +1195,27 @@ CDocumentContent.prototype.Recalculate_Page               = function(PageIndex, 
             this.Parent.OnEndRecalculate_Page(false);
     }
     return Result;
+};
+/**
+ * Получаем верхний док контент, который используется для пересчета плавающих объектов и различных переносов.
+ * Как правило это нужно, если данный класс - это CBlockLevelSdt
+ * @returns {?CDocumentContent}
+ */
+CDocumentContent.prototype.GetDocumentContentForRecalcInfo = function()
+{
+	var oDocContent = this;
+	while (oDocContent.IsBlockLevelSdtContent())
+	{
+		if (this.Parent && this.Parent.GetTopDocumentContent)
+			oDocContent = this.Parent.GetTopDocumentContent(true);
+		else
+			break;
+
+		if (!oDocContent)
+			return this;
+	}
+
+	return oDocContent;
 };
 CDocumentContent.prototype.RecalculateContent = function(fWidth, fHeight, nStartPage)
 {
@@ -8325,10 +8351,10 @@ CDocumentContent.prototype.GetPageIndexByXYAndPageAbs = function(X, Y, nPageAbs)
 
 	 return nResultPage;
 };
-CDocumentContent.prototype.GetTopDocumentContent = function()
+CDocumentContent.prototype.GetTopDocumentContent = function(isOneLevel)
 {
     var TopDocument = null;
-    if (this.Parent && this.Parent.GetTopDocumentContent)
+    if (true !== isOneLevel && this.Parent && this.Parent.GetTopDocumentContent)
         TopDocument = this.Parent.GetTopDocumentContent();
 
     if (null !== TopDocument && undefined !== TopDocument)

@@ -829,7 +829,7 @@ CGraphicFrame.prototype.deselect = CShape.prototype.deselect;
 CGraphicFrame.prototype.Update_ContentIndexing = function()
 {};
     
-CGraphicFrame.prototype.GetTopDocumentContent = function()
+CGraphicFrame.prototype.GetTopDocumentContent = function(isOneLevel)
 {
     return null;
 };

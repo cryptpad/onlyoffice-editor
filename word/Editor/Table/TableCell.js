@@ -1980,10 +1980,10 @@ CTableCell.prototype.Get_Table = function()
 
     return Table;
 };
-CTableCell.prototype.GetTopDocumentContent = function()
+CTableCell.prototype.GetTopDocumentContent = function(isOneLevel)
 {
     if (this.Row && this.Row.Table && this.Row.Table.Parent)
-        return this.Row.Table.Parent.GetTopDocumentContent();
+        return this.Row.Table.Parent.GetTopDocumentContent(isOneLevel);
 
     return null;
 };
