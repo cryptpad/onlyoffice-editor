@@ -201,18 +201,19 @@ var c_oAscDynamicAutoFilter = {
     nextQuarter: 20,
     nextWeek: 21,
     nextYear: 22,
-    q1: 23,
-    q2: 24,
-    q3: 25,
-    q4: 26,
-    thisMonth: 27,
-    thisQuarter: 28,
-    thisWeek: 29,
-    thisYear: 30,
-    today: 31,
-    tomorrow: 32,
-    yearToDate: 33,
-    yesterday: 34
+    nullType: 23,
+    q1: 24,
+    q2: 25,
+    q3: 26,
+    q4: 27,
+    thisMonth: 28,
+    thisQuarter: 29,
+    thisWeek: 30,
+    thisYear: 31,
+    today: 32,
+    tomorrow: 33,
+    yearToDate: 34,
+    yesterday: 35
 };
 
 var c_oAscTop10AutoFilter = {

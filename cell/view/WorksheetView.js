@@ -7975,7 +7975,7 @@
 
 			if (canEdit && dialogOtherRanges) {
 				var pivotButtons = this.model.getPivotTableButtons(new asc_Range(c.col, r.row, c.col, r.row));
-				var isPivot = pivotButtons.some(function (element) {
+				var pivotButton = pivotButtons.find(function (element) {
 					return element.row === r.row && element.col === c.col;
 				});
 				var activeCell = this.model.getSelection().activeCell;
@@ -7992,15 +7992,14 @@
 						_offsetY += y;
 						if (isDataValidation) {
 							_isDataValidation = this._hitCursorFilterButton(_offsetX, _offsetY, col, row, true);
-						}
-						if (!_isDataValidation && isPivot) {
+						} else if (pivotButton) {
 							_isPivot = this._hitCursorFilterButton(_offsetX, _offsetY, c.col, r.row);
-					}
+						}
 
 						if (_isDataValidation || _isPivot) {
 							res = {cursor: kCurAutoFilter, target: c_oTargetType.FilterObject, col: c.col, row: r.row,
-								isPivot: _isPivot, isDataValidation: _isDataValidation};
-						} else if (!isPivot) {
+								idPivot: pivotButton.idPivot, isDataValidation: _isDataValidation};
+						} else if (!pivotButton) {
 							res = this.af_checkCursor(_offsetX, _offsetY, r.row, c.col);
 						}
 					}
@@ -8532,7 +8531,7 @@
 		var bResult = false;
 
 		//если внутри форматированной таблиц, никогда не выдаем сообщение
-		if(this.model.autoFilters._isTablePartsContainsRange(arn))
+		if(this.model.autoFilters._isTablePartsContainsRange(arn) || this.model.inPivotTable(arn))
 		{
 			bResult = null;
 		}
@@ -14741,6 +14740,19 @@
     WorksheetView.prototype.applyAutoFilter = function (autoFilterObject) {
         var t = this;
         var ar = this.model.selectionRange.getLast().clone();
+		//todo filteringMode
+		//pivot
+		if (CT_pivotTableDefinition.prototype.asc_filterByCell) {
+			var cellId = autoFilterObject.asc_getCellId();
+			if (cellId) {
+				var cellRange = AscCommonExcel.g_oRangeCache.getAscRange(cellId);
+				var pivotTable = this.model.inPivotTable(cellRange);
+				if (pivotTable) {
+					pivotTable.asc_filterByCell(this.model.workbook.oApi, autoFilterObject, cellRange.r1, cellRange.c1);
+					return;
+				}
+			}
+		}
         var onChangeAutoFilterCallback = function (isSuccess) {
             if (false === isSuccess) {
                 return;
@@ -14982,7 +14994,21 @@
 		if (!window['AscCommonExcel'].filteringMode) {
 			return;
 		}
-
+		//pivot
+		if (CT_pivotTableDefinition.prototype.asc_sortByCell) {
+			var activeRangeOrCellId = ar;
+			var activeCellOrCellId = this.model.selectionRange.activeCell;
+			if (cellId && typeof cellId == 'string') {
+				activeRangeOrCellId = AscCommonExcel.g_oRangeCache.getAscRange(cellId);
+				activeCellOrCellId = new AscCommon.CellBase(activeRangeOrCellId.r1, activeRangeOrCellId.c1);
+			}
+			var pivotTable = this.model.inPivotTable(activeRangeOrCellId);
+			if (pivotTable) {
+				pivotTable.asc_sortByCell(t.model.workbook.oApi, type, activeCellOrCellId.row, activeCellOrCellId.col);
+				return;
+			}
+		}
+		//autoFilters
 		var sortProps = t.model.autoFilters.getPropForSort(cellId, ar, displayName);
 		var cloneSortProps = sortProps;
 		var isFilter = sortProps && sortProps.curFilter && sortProps.curFilter.isAutoFilter();
@@ -15099,6 +15125,17 @@
 
     WorksheetView.prototype.clearFilterColumn = function (cellId, displayName) {
         var t = this;
+		//pivot
+		if (CT_pivotTableDefinition.prototype.asc_removeFilterByCell) {
+			if (cellId) {
+				var cellRange = AscCommonExcel.g_oRangeCache.getAscRange(cellId);
+				var pivotTable = this.model.inPivotTable(cellRange);
+				if (pivotTable) {
+					pivotTable.asc_removeFilterByCell(this.model.workbook.oApi, cellRange.r1, cellRange.c1);
+					return;
+				}
+			}
+		}
 
         var onChangeAutoFilterCallback = function (isSuccess) {
             if (false === isSuccess) {
@@ -15362,8 +15399,7 @@
 
 		var pivotButtons = this.model.getPivotTableButtons(updatedRange);
 		for (i = 0; i < pivotButtons.length; ++i) {
-			this.af_drawCurrentButton(offsetX, offsetY,
-				{isSortState: null, isSetFilter: false, row: pivotButtons[i].row, col: pivotButtons[i].col});
+			this.af_drawCurrentButton(offsetX, offsetY, pivotButtons[i]);
 		}
 
 		return true;
@@ -15779,6 +15815,23 @@
 
 			return result;
 		};
+	WorksheetView.prototype.pivot_setDialogProp = function (idPivot) {
+		if (!idPivot) {
+			return;
+		}
+		var pivotTable = this.model.getPivotTableById(idPivot.id);
+		if (!pivotTable) {
+			return;
+		}
+
+		//set menu object
+		var autoFilterObject = new Asc.AutoFiltersOptions();
+		autoFilterObject.asc_setCellCoord(this.getCellCoord(idPivot.row, idPivot.col));
+		autoFilterObject.asc_setCellId(new AscCommon.CellBase(idPivot.row, idPivot.col).getName());
+		pivotTable.fillAutoFiltersOptions(autoFilterObject, idPivot.fld);
+
+		return autoFilterObject;
+	};
 
     WorksheetView.prototype.af_getSizeButton = function (c, r) {
         var wsModel = this.model;
@@ -15857,23 +15910,7 @@
 
         //get filter object
         var filterObj = new Asc.AutoFilterObj();
-        if (filters && filters.ColorFilter) {
-            filterObj.type = c_oAscAutoFilterTypes.ColorFilter;
-            filterObj.filter = filters.ColorFilter.clone();
-        } else if (!ignoreCustomFilter && filters && filters.CustomFiltersObj && filters.CustomFiltersObj.CustomFilters) {
-            filterObj.type = c_oAscAutoFilterTypes.CustomFilters;
-            filterObj.filter = filters.CustomFiltersObj;
-        } else if (filters && filters.DynamicFilter) {
-            filterObj.type = c_oAscAutoFilterTypes.DynamicFilter;
-            filterObj.filter = filters.DynamicFilter.clone();
-        } else if (filters && filters.Top10) {
-            filterObj.type = c_oAscAutoFilterTypes.Top10;
-            filterObj.filter = filters.Top10.clone();
-        } else if (filters) {
-            filterObj.type = c_oAscAutoFilterTypes.Filters;
-        } else {
-            filterObj.type = c_oAscAutoFilterTypes.None;
-        }
+		filterObj.convertFromFilterColumn(filters, ignoreCustomFilter);
 
         //get sort
         var sortVal = null;

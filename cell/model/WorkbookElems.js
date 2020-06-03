@@ -125,6 +125,226 @@ function shiftSort(a, b, offset)
 function createRgbColor(r, g, b) {
 	return new RgbColor((r << 16) + (g << 8) + b);
 }
+function FromXml_ST_DynamicFilterType(val) {
+	var res = -1;
+	if ("null" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.nullType;
+	} else if ("aboveAverage" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.aboveAverage;
+	} else if ("belowAverage" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.belowAverage;
+	} else if ("tomorrow" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.tomorrow;
+	} else if ("today" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.today;
+	} else if ("yesterday" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.yesterday;
+	} else if ("nextWeek" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.nextWeek;
+	} else if ("thisWeek" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.thisWeek;
+	} else if ("lastWeek" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.lastWeek;
+	} else if ("nextMonth" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.nextMonth;
+	} else if ("thisMonth" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.thisMonth;
+	} else if ("lastMonth" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.lastMonth;
+	} else if ("nextQuarter" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.nextQuarter;
+	} else if ("thisQuarter" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.thisQuarter;
+	} else if ("lastQuarter" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.lastQuarter;
+	} else if ("nextYear" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.nextYear;
+	} else if ("thisYear" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.thisYear;
+	} else if ("lastYear" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.lastYear;
+	} else if ("yearToDate" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.yearToDate;
+	} else if ("Q1" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.q1;
+	} else if ("Q2" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.q2;
+	} else if ("Q3" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.q3;
+	} else if ("Q4" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.q4;
+	} else if ("M1" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.m1;
+	} else if ("M2" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.m2;
+	} else if ("M3" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.m3;
+	} else if ("M4" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.m4;
+	} else if ("M5" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.m5;
+	} else if ("M6" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.m6;
+	} else if ("M7" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.m7;
+	} else if ("M8" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.m8;
+	} else if ("M9" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.m9;
+	} else if ("M10" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.m10;
+	} else if ("M11" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.m11;
+	} else if ("M12" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.m12;
+	}
+	return res;
+}
+function ToXml_ST_DynamicFilterType(val) {
+	var res = "";
+	if (Asc.c_oAscDynamicAutoFilter.nullType === val){
+		res = "null";
+	} else if (Asc.c_oAscDynamicAutoFilter.aboveAverage === val) {
+		res = "aboveAverage";
+	} else if (Asc.c_oAscDynamicAutoFilter.belowAverage === val) {
+		res = "belowAverage";
+	} else if (Asc.c_oAscDynamicAutoFilter.tomorrow === val) {
+		res = "tomorrow";
+	} else if (Asc.c_oAscDynamicAutoFilter.today === val) {
+		res = "today";
+	} else if (Asc.c_oAscDynamicAutoFilter.yesterday === val) {
+		res = "yesterday";
+	} else if (Asc.c_oAscDynamicAutoFilter.nextWeek === val) {
+		res = "nextWeek";
+	} else if (Asc.c_oAscDynamicAutoFilter.thisWeek === val) {
+		res = "thisWeek";
+	} else if (Asc.c_oAscDynamicAutoFilter.lastWeek === val) {
+		res = "lastWeek";
+	} else if (Asc.c_oAscDynamicAutoFilter.nextMonth === val) {
+		res = "nextMonth";
+	} else if (Asc.c_oAscDynamicAutoFilter.thisMonth === val) {
+		res = "thisMonth";
+	} else if (Asc.c_oAscDynamicAutoFilter.lastMonth === val) {
+		res = "lastMonth";
+	} else if (Asc.c_oAscDynamicAutoFilter.nextQuarter === val) {
+		res = "nextQuarter";
+	} else if (Asc.c_oAscDynamicAutoFilter.thisQuarter === val) {
+		res = "thisQuarter";
+	} else if (Asc.c_oAscDynamicAutoFilter.lastQuarter === val) {
+		res = "lastQuarter";
+	} else if (Asc.c_oAscDynamicAutoFilter.nextYear === val) {
+		res = "nextYear";
+	} else if (Asc.c_oAscDynamicAutoFilter.thisYear === val) {
+		res = "thisYear";
+	} else if (Asc.c_oAscDynamicAutoFilter.lastYear === val) {
+		res = "lastYear";
+	} else if (Asc.c_oAscDynamicAutoFilter.yearToDate === val) {
+		res = "yearToDate";
+	} else if (Asc.c_oAscDynamicAutoFilter.q1 === val) {
+		res = "Q1";
+	} else if (Asc.c_oAscDynamicAutoFilter.q2 === val) {
+		res = "Q2";
+	} else if (Asc.c_oAscDynamicAutoFilter.q3 === val) {
+		res = "Q3";
+	} else if (Asc.c_oAscDynamicAutoFilter.q4 === val) {
+		res = "Q4";
+	} else if (Asc.c_oAscDynamicAutoFilter.m1 === val) {
+		res = "M1";
+	} else if (Asc.c_oAscDynamicAutoFilter.m2 === val) {
+		res = "M2";
+	} else if (Asc.c_oAscDynamicAutoFilter.m3 === val) {
+		res = "M3";
+	} else if (Asc.c_oAscDynamicAutoFilter.m4 === val) {
+		res = "M4";
+	} else if (Asc.c_oAscDynamicAutoFilter.m5 === val) {
+		res = "M5";
+	} else if (Asc.c_oAscDynamicAutoFilter.m6 === val) {
+		res = "M6";
+	} else if (Asc.c_oAscDynamicAutoFilter.m7 === val) {
+		res = "M7";
+	} else if (Asc.c_oAscDynamicAutoFilter.m8 === val) {
+		res = "M8";
+	} else if (Asc.c_oAscDynamicAutoFilter.m9 === val) {
+		res = "M9";
+	} else if (Asc.c_oAscDynamicAutoFilter.m10 === val) {
+		res = "M10";
+	} else if (Asc.c_oAscDynamicAutoFilter.m11 === val) {
+		res = "M11";
+	} else if (Asc.c_oAscDynamicAutoFilter.m12 === val) {
+		res = "M12";
+	}
+	return res;
+}
+function FromXml_ST_FilterOperator(val) {
+	var res = -1;
+	if ("equal" === val) {
+		res = Asc.c_oAscCustomAutoFilter.equals;
+	} else if ("lessThan" === val) {
+		res = Asc.c_oAscCustomAutoFilter.isLessThan;
+	} else if ("lessThanOrEqual" === val) {
+		res = Asc.c_oAscCustomAutoFilter.isLessThanOrEqualTo;
+	} else if ("notEqual" === val) {
+		res = Asc.c_oAscCustomAutoFilter.doesNotEqual;
+	} else if ("greaterThanOrEqual" === val) {
+		res = Asc.c_oAscCustomAutoFilter.isGreaterThanOrEqualTo;
+	} else if ("greaterThan" === val) {
+		res = Asc.c_oAscCustomAutoFilter.isGreaterThan;
+	}
+	return res;
+}
+function ToXml_ST_FilterOperator(val) {
+	var res = "";
+	if (Asc.c_oAscCustomAutoFilter.equals === val) {
+		res = "equal";
+	} else if (Asc.c_oAscCustomAutoFilter.isLessThan === val) {
+		res = "lessThan";
+	} else if (Asc.c_oAscCustomAutoFilter.isLessThanOrEqualTo === val) {
+		res = "lessThanOrEqual";
+	} else if (Asc.c_oAscCustomAutoFilter.doesNotEqual === val) {
+		res = "notEqual";
+	} else if (Asc.c_oAscCustomAutoFilter.isGreaterThanOrEqualTo === val) {
+		res = "greaterThanOrEqual";
+	} else if (Asc.c_oAscCustomAutoFilter.isGreaterThan === val) {
+		res = "greaterThan";
+	}
+	return res;
+}
+
+function FromXml_ST_DateTimeGrouping(val) {
+	var res = -1;
+	if ("year" === val) {
+		res = Asc.EDateTimeGroup.datetimegroupYear;
+	} else if ("month" === val) {
+		res = Asc.EDateTimeGroup.datetimegroupMonth;
+	} else if ("day" === val) {
+		res = Asc.EDateTimeGroup.datetimegroupDay;
+	} else if ("hour" === val) {
+		res = Asc.EDateTimeGroup.datetimegroupHour;
+	} else if ("minute" === val) {
+		res = Asc.EDateTimeGroup.datetimegroupMinute;
+	} else if ("second" === val) {
+		res = Asc.EDateTimeGroup.datetimegroupSecond;
+	}
+	return res;
+}
+function ToXml_ST_DateTimeGrouping(val) {
+	var res = "";
+	if (Asc.EDateTimeGroup.datetimegroupYear === val) {
+		res = "year";
+	} else if (Asc.EDateTimeGroup.datetimegroupMonth === val) {
+		res = "month";
+	} else if (Asc.EDateTimeGroup.datetimegroupDay === val) {
+		res = "day";
+	} else if (Asc.EDateTimeGroup.datetimegroupHour === val) {
+		res = "hour";
+	} else if (Asc.EDateTimeGroup.datetimegroupMinute === val) {
+		res = "minute";
+	} else if (Asc.EDateTimeGroup.datetimegroupSecond === val) {
+		res = "second";
+	}
+	return res;
+}
+
 var g_oRgbColorProperties = {
 		rgb : 0
 	};
@@ -4832,6 +5052,19 @@ CCellValue.prototype =
 			case this.Properties.number: this.number = value;break;
 			case this.Properties.type: this.type = value;break;
 		}
+	},
+	getTextValue : function()
+	{
+		if (null !== this.text) {
+			return this.text;
+		} else if (null !== this.number) {
+			var numFormat = AscCommon.oNumFormatCache.get("General");
+			var multiText = numFormat.format(this.number, CellValueType.Number, AscCommon.gc_nMaxDigCount, false);
+			return AscCommonExcel.getStringFromMultiText(multiText)
+		} else if(null !== this.multiText){
+			return AscCommonExcel.getStringFromMultiText(this.multiText)
+		}
+		return "";
 	}
 };
 
@@ -6270,6 +6503,18 @@ function RangeDataManagerElem(bbox, data)
 
 		return oNewElem;
 	};
+	AutoFilter.prototype.setStringRef = function (ref) {
+		//TODO пересмотреть проверку
+		//возможно здесь 3d ref - проверяем
+		if(-1 !== ref.indexOf("!"))
+		{
+			var is3DRef = AscCommon.parserHelp.parse3DRef(ref);
+			if(is3DRef){
+				ref = is3DRef.range;
+			}
+		}
+		this.Ref = AscCommonExcel.g_oRangeCache.getAscRange(ref);
+	};
 	AutoFilter.prototype.moveRef = function (col, row) {
 		var ref = this.Ref.clone();
 		ref.setOffset(new AscCommon.CellBase(row || 0, col || 0));
@@ -6568,6 +6813,49 @@ function RangeDataManagerElem(bbox, data)
 		this.SortState = new AscCommonExcel.SortState();
 		this.SortState.SortConditions = [];
 		this.SortState.SortConditions[0] = new AscCommonExcel.SortCondition();
+	};
+
+	AutoFilter.prototype.readAttributes = function(attr, uq) {
+		if (attr()) {
+			var vals = attr();
+			var val;
+			val = vals["ref"];
+			if (undefined !== val) {
+				this.setStringRef(AscCommon.unleakString(uq(val)));
+			}
+		}
+	};
+	AutoFilter.prototype.onStartNode = function(elem, attr, uq) {
+		var newContext = this;
+		if ("filterColumn" === elem) {
+			if (!this.FilterColumns) {
+				this.FilterColumns = [];
+			}
+			newContext = new FilterColumn();
+			if (newContext.readAttributes) {
+				newContext.readAttributes(attr, uq);
+			}
+			this.FilterColumns.push(newContext);
+		} else if ("sortState" === elem) {
+		//todo
+			newContext = null;
+		} else {
+			newContext = null;
+		}
+		return newContext;
+	};
+	AutoFilter.prototype.toXml = function(writer, name) {
+		writer.WriteXmlNodeStart(name);
+		if (null !== this.Ref) {
+			writer.WriteXmlAttributeStringEncode("ref", this.Ref.getName());
+		}
+		writer.WriteXmlNodeEnd(name, true);
+		for (var i = 0; i < this.FilterColumns.length; ++i) {
+			var elem = this.FilterColumns[i];
+			elem.toXml(writer, "filterColumn");
+		}
+		//todo sortState
+		writer.WriteXmlNodeEnd(name);
 	};
 
 	function FilterColumns() {
@@ -7198,6 +7486,17 @@ function RangeDataManagerElem(bbox, data)
 		}
 
 	};
+	FilterColumn.prototype.hasInitByArray = function ()
+	{
+		return null !== this.Top10;
+	};
+	FilterColumn.prototype.initByArray = function (arr) {
+
+		if (null !== this.Top10) {
+			this.Top10.initByArray(arr);
+		}
+
+	};
 
 	FilterColumn.prototype.isApplyCustomFilter = function () {
 		var res = false;
@@ -7233,7 +7532,112 @@ function RangeDataManagerElem(bbox, data)
 
 		return false;
 	};
+	FilterColumn.prototype.readAttributes = function(attr, uq) {
+		if (attr()) {
+			var vals = attr();
+			var val;
+			val = vals["colId"];
+			if (undefined !== val) {
+				this.ColId = val - 0;
+			}
+			val = vals["hiddenButton"];
+			if (undefined !== val) {
+				this.ShowButton = !AscCommon.getBoolFromXml(val);
+			}
+			val = vals["showButton"];
+			if (undefined !== val) {
+				this.ShowButton = AscCommon.getBoolFromXml(val);
+			}
+		}
+	};
+	FilterColumn.prototype.onStartNode = function(elem, attr, uq) {
+		var newContext = this;
+		if ("colorFilter" === elem) {
+			newContext = new ColorFilter();
+			if (newContext.readAttributes) {
+				newContext.readAttributes(attr, uq);
+			}
+			this.ColorFilter = newContext;
+		} else if ("customFilters" === elem) {
+			newContext = new CustomFilters();
+			if (newContext.readAttributes) {
+				newContext.readAttributes(attr, uq);
+			}
+			this.CustomFiltersObj = newContext;
+		} else if ("dynamicFilter" === elem) {
+			newContext = new DynamicFilter();
+			if (newContext.readAttributes) {
+				newContext.readAttributes(attr, uq);
+			}
+			this.DynamicFilter = newContext;
+		} else if ("filters" === elem) {
+			newContext = new Filters();
+			if (newContext.readAttributes) {
+				newContext.readAttributes(attr, uq);
+			}
+			this.Filters = newContext;
+		} else if ("iconFilter" === elem) {
+			//todo iconFilter
+			newContext = null;
+		} else if ("top10" === elem) {
+			newContext = new Top10();
+			if (newContext.readAttributes) {
+				newContext.readAttributes(attr, uq);
+			}
+			this.Top10 = newContext;
+		} else {
+			newContext = null;
+		}
+		return newContext;
+	};
+	FilterColumn.prototype.toXml = function(writer, name) {
+		writer.WriteXmlNodeStart(name);
+		if (null !== this.colId) {
+			writer.WriteXmlAttributeNumber("colId", this.ColId);
+		}
+		if (true !== this.ShowButton) {
+			writer.WriteXmlAttributeBool("showButton", this.ShowButton);
+		}
+		writer.WriteXmlNodeEnd(name, true);
+		if (null !== this.ColorFilter) {
+			this.ColorFilter.toXml(writer, "colorFilter");
+		}
+		if (null !== this.CustomFiltersObj) {
+			this.CustomFiltersObj.toXml(writer, "customFilters");
+		}
+		if (null !== this.DynamicFilter) {
+			this.DynamicFilter.toXml(writer, "dynamicFilter");
+		}
+		if (null !== this.Filters) {
+			this.Filters.toXml(writer, "filters");
+		}
+		if (null !== this.Top10) {
+			this.Top10.toXml(writer, "top10");
+		}
+		writer.WriteXmlNodeEnd(name);
+	};
 
+	function CT_Filter() {
+		//Attributes
+		this.Val = null;
+	}
+	CT_Filter.prototype.readAttributes = function(attr, uq) {
+		if (attr()) {
+			var vals = attr();
+			var val;
+			val = vals["val"];
+			if (undefined !== val) {
+				this.Val = AscCommon.unleakString(uq(val));
+			}
+		}
+	};
+	CT_Filter.prototype.toXml = function(writer, name) {
+		writer.WriteXmlNodeStart(name);
+		if (null !== this.Val) {
+			writer.WriteXmlAttributeStringEncode("val", this.Val);
+		}
+		writer.WriteXmlNodeEnd(name, true, true);
+	};
 
 	/** @constructor */
 	function Filters() {
@@ -7283,7 +7687,7 @@ function RangeDataManagerElem(bbox, data)
 				allFilterOpenElements = false;
 			}
 		}
-		this._sortDate();
+		this.sortDate();
 		this._initLowerCaseValues();
 
 		return allFilterOpenElements;
@@ -7349,7 +7753,7 @@ function RangeDataManagerElem(bbox, data)
 			}
 		}
 	};
-	Filters.prototype._sortDate = function () {
+	Filters.prototype.sortDate = function () {
 		if (this.Dates && this.Dates.length) {
 			this.Dates.sort(function sortArr(a, b) {
 				return a.start - b.start;
@@ -7361,6 +7765,58 @@ function RangeDataManagerElem(bbox, data)
 		this.Values = {};
 		this.Dates = [];
 		this.Blank = null;
+	};
+	Filters.prototype.readAttributes = function(attr, uq) {
+		if (attr()) {
+			var vals = attr();
+			var val;
+			val = vals["blank"];
+			if (undefined !== val) {
+				this.Blank = AscCommon.getBoolFromXml(val);
+			}
+			//todo calendarType
+		}
+	};
+	Filters.prototype.onStartNode = function(elem, attr, uq) {
+		var newContext = this;
+		if ("filter" === elem) {
+			newContext = new CT_Filter();
+			if (newContext.readAttributes) {
+				newContext.readAttributes(attr, uq);
+			}
+			if(null != newContext.Val)
+				this.Values[newContext.Val] = 1;
+		} else if ("dateGroupItem" === elem) {
+			newContext = new DateGroupItem();
+			if (newContext.readAttributes) {
+				newContext.readAttributes(attr, uq);
+			}
+			var autoFilterDateElem = new AscCommonExcel.AutoFilterDateElem();
+			autoFilterDateElem.convertDateGroupItemToRange(newContext);
+			this.Dates.push(autoFilterDateElem);
+		} else {
+			newContext = null;
+		}
+		return newContext;
+	};
+	Filters.prototype.toXml = function(writer, name) {
+		writer.WriteXmlNodeStart(name);
+		if (null !== this.Blank) {
+			writer.WriteXmlAttributeBool("blank", this.Blank);
+		}
+		writer.WriteXmlNodeEnd(name, true);
+		for (var val in this.Values) {
+			var filter = new CT_Filter();
+			filter.Val = val;
+			filter.toXml(writer, "filter");
+		}
+		for (var i = 0; i < this.Dates.length; ++i) {
+			var elem = this.Dates[i];
+			var dateGroupItem = new AscCommonExcel.DateGroupItem();
+			dateGroupItem.convertRangeToDateGroupItem(elem);
+			dateGroupItem.toXml(writer, "dateGroupItem");
+		}
+		writer.WriteXmlNodeEnd(name);
 	};
 	
 /** @constructor */
@@ -7448,7 +7904,68 @@ DateGroupItem.prototype.convertRangeToDateGroupItem = function(range) {
 		}
 	}
 };
-
+DateGroupItem.prototype.readAttributes = function(attr, uq) {
+	if (attr()) {
+		var vals = attr();
+		var val;
+		val = vals["year"];
+		if (undefined !== val) {
+			this.Year = val - 0;
+		}
+		val = vals["month"];
+		if (undefined !== val) {
+			this.Month = val - 0;
+		}
+		val = vals["day"];
+		if (undefined !== val) {
+			this.Day = val - 0;
+		}
+		val = vals["hour"];
+		if (undefined !== val) {
+			this.Hour = val - 0;
+		}
+		val = vals["minute"];
+		if (undefined !== val) {
+			this.Minute = val - 0;
+		}
+		val = vals["second"];
+		if (undefined !== val) {
+			this.Second = val - 0;
+		}
+		val = vals["dateTimeGrouping"];
+		if (undefined !== val) {
+			val = FromXml_ST_DateTimeGrouping(val);
+			if (-1 !== val) {
+				this.DateTimeGrouping = val;
+			}
+		}
+	}
+};
+DateGroupItem.prototype.toXml = function(writer, name) {
+	writer.WriteXmlNodeStart(name);
+	if (null !== this.Year) {
+		writer.WriteXmlAttributeNumber("year", this.Year);
+	}
+	if (null !== this.Month) {
+		writer.WriteXmlAttributeNumber("month", this.Month);
+	}
+	if (null !== this.Day) {
+		writer.WriteXmlAttributeNumber("day", this.Day);
+	}
+	if (null !== this.Hour) {
+		writer.WriteXmlAttributeNumber("hour", this.Hour);
+	}
+	if (null !== this.Minute) {
+		writer.WriteXmlAttributeNumber("minute", this.Minute);
+	}
+	if (null !== this.Second) {
+		writer.WriteXmlAttributeNumber("second", this.Second);
+	}
+	if (null !== this.DateTimeGrouping) {
+		writer.WriteXmlAttributeStringEncode("dateTimeGrouping", ToXml_ST_DateTimeGrouping(this.DateTimeGrouping));
+	}
+	writer.WriteXmlNodeEnd(name, true, true);
+};
 
 var g_oCustomFilters = {
 	And	 : 0,
@@ -7458,7 +7975,7 @@ var g_oCustomFilters = {
 function CustomFilters() {
 	this.Properties = g_oCustomFilters;
 	
-	this.And = null;
+	this.And = false;
 	this.CustomFilters = null;
 }
 CustomFilters.prototype.getType = function() {
@@ -7534,6 +8051,46 @@ CustomFilters.prototype._generateEmptyValueFilter = function() {
 	customFilter._generateEmptyValueFilter();
 	this.CustomFilters.push(customFilter);
 };
+CustomFilters.prototype.readAttributes = function(attr, uq) {
+	if (attr()) {
+		var vals = attr();
+		var val;
+		val = vals["and"];
+		if (undefined !== val) {
+			this.And = AscCommon.getBoolFromXml(val);
+		}
+	}
+};
+CustomFilters.prototype.onStartNode = function(elem, attr, uq) {
+	var newContext = this;
+	if ("customFilter" === elem) {
+		if (!this.CustomFilters) {
+			this.CustomFilters = [];
+		}
+		newContext = new CustomFilter();
+		if (newContext.readAttributes) {
+			newContext.readAttributes(attr, uq);
+		}
+		this.CustomFilters.push(newContext);
+	} else {
+		newContext = null;
+	}
+	return newContext;
+};
+CustomFilters.prototype.toXml = function(writer, name) {
+	writer.WriteXmlNodeStart(name);
+	if (false !== this.And) {
+		writer.WriteXmlAttributeBool("and", this.And);
+	}
+	writer.WriteXmlNodeEnd(name, true);
+	if (this.CustomFilters) {
+		for (var i = 0; i < this.CustomFilters.length; ++i) {
+			var elem = this.CustomFilters[i];
+			elem.toXml(writer, "customFilter");
+		}
+	}
+	writer.WriteXmlNodeEnd(name);
+};
 
 var g_oCustomFilter = {
 	Operator	 : 0,
@@ -7544,7 +8101,7 @@ var g_oCustomFilter = {
 function CustomFilter(operator, val) {
 	this.Properties = g_oCustomFilter;
 	
-	this.Operator = operator != undefined ? operator : null;
+	this.Operator = operator != undefined ? operator : c_oAscCustomAutoFilter.equals;
 	this.Val = val != undefined ? val : null;
 }
 CustomFilter.prototype.getType = function() {
@@ -7758,6 +8315,33 @@ CustomFilter.prototype._generateEmptyValueFilter = function () {
 	this.Operator = c_oAscCustomAutoFilter.doesNotEqual;
 	this.Val = " ";
 };
+CustomFilter.prototype.readAttributes = function(attr, uq) {
+	if (attr()) {
+		var vals = attr();
+		var val;
+		val = vals["operator"];
+		if (undefined !== val) {
+			val = FromXml_ST_FilterOperator(val);
+			if (-1 !== val) {
+				this.Operator = val;
+			}
+		}
+		val = vals["val"];
+		if (undefined !== val) {
+			this.Val = AscCommon.unleakString(uq(val));
+		}
+	}
+};
+CustomFilter.prototype.toXml = function(writer, name) {
+	writer.WriteXmlNodeStart(name);
+	if (null !== this.Operator) {
+		writer.WriteXmlAttributeStringEncode("operator", ToXml_ST_FilterOperator(this.Operator));
+	}
+	if (null !== this.Val) {
+		writer.WriteXmlAttributeStringEncode("val", this.Val);
+	}
+	writer.WriteXmlNodeEnd(name, true, true);
+};
 
 var g_oDynamicFilter = {
 	Type : 0,
@@ -7859,6 +8443,40 @@ DynamicFilter.prototype.asc_getMaxVal = function () { return this.MaxVal; };
 DynamicFilter.prototype.asc_setType = function (val) { this.Type = val; };
 DynamicFilter.prototype.asc_setVal = function (val) { this.Val = val; };
 DynamicFilter.prototype.asc_setMaxVal = function (val) { this.MaxVal = val; };
+DynamicFilter.prototype.readAttributes = function(attr, uq) {
+	if (attr()) {
+		var vals = attr();
+		var val;
+		val = vals["type"];
+		if (undefined !== val) {
+			val = FromXml_ST_DynamicFilterType(val);
+			if (-1 !== val) {
+				this.Type = val;
+			}
+		}
+		val = vals["val"];
+		if (undefined !== val) {
+			this.Val = val - 0;
+		}
+		val = vals["maxVal"];
+		if (undefined !== val) {
+			this.MaxVal = val - 0;
+		}
+	}
+};
+DynamicFilter.prototype.toXml = function(writer, name) {
+	writer.WriteXmlNodeStart(name);
+	if (null !== this.Type) {
+		writer.WriteXmlAttributeStringEncode("type", ToXml_ST_DynamicFilterType(this.Type));
+	}
+	if (null !== this.Val) {
+		writer.WriteXmlAttributeNumber("val", this.Val);
+	}
+	if (null !== this.MaxVal) {
+		writer.WriteXmlAttributeNumber("maxVal", this.MaxVal);
+	}
+	writer.WriteXmlNodeEnd(name, true, true);
+};
 
 var g_oColorFilter = {
 	CellColor : 0,
@@ -8018,6 +8636,32 @@ ColorFilter.prototype.asc_setCColor = function (asc_CColor)
 		this.dxf.fill.fromColor(new RgbColor((asc_CColor.asc_getR() << 16) + (asc_CColor.asc_getG() << 8) + asc_CColor.asc_getB()));
 	}
 };
+ColorFilter.prototype.readAttributes = function(attr, uq) {
+	if (attr()) {
+		var vals = attr();
+		var val;
+		//todo
+		// val = vals["dxfId"];
+		// if (undefined !== val) {
+		// 	this.dxfId = val - 0;
+		// }
+		val = vals["cellColor"];
+		if (undefined !== val) {
+			this.CellColor = AscCommon.getBoolFromXml(val);
+		}
+	}
+};
+ColorFilter.prototype.toXml = function(writer, name) {
+	writer.WriteXmlNodeStart(name);
+	//todo
+	// if (null !== this.dxfId) {
+	// 	writer.WriteXmlAttributeNumber("dxfId", this.dxfId);
+	// }
+	if (null !== this.CellColor) {
+		writer.WriteXmlAttributeBool("cellColor", this.CellColor);
+	}
+	writer.WriteXmlNodeEnd(name, true, true);
+};
 
 var g_oTop10 = {
 	FilterVal : 0,
@@ -8031,8 +8675,8 @@ function Top10() {
 	this.Properties = g_oTop10;
 	
 	this.FilterVal = null;
-	this.Percent = null;
-	this.Top = null;
+	this.Percent = false;
+	this.Top = true;
 	this.Val = null;
 }
 Top10.prototype.getType = function() {
@@ -8092,7 +8736,6 @@ Top10.prototype.isHideValue = function(val) {
 };
 
 Top10.prototype.init = function(range, reWrite){
-	var res = null;
 	var t = this;
 	
 	if(null === this.FilterVal || true === reWrite)
@@ -8112,47 +8755,49 @@ Top10.prototype.init = function(range, reWrite){
 					count++;
 				}
 			});
-			
-			if(arr.length)
-			{
-				arr.sort(function(a, b){
-					var res;
-					if(t.Top)
-					{
-						res = b - a;
-					}
-					else
-					{
-						res = a - b;
-					}
-					
-					return res; 
-				});
-				
-				if(this.Percent)
-				{
-					var num = parseInt(count * (this.Val / 100));
-					if(0 === num)
-					{
-						num = 1;
-					}
-					
-					res = arr[num - 1];
-				}
-				else
-				{
-					res = arr[this.Val - 1];
-				}
-				
-			}
+			this.initByArray(arr);
 		}
 	}
-	
+};
+Top10.prototype.initByArray = function(arr){
+	var res = null;
+	var t = this;
+	if(arr && arr.length)
+	{
+		arr.sort(function(a, b){
+			var res;
+			if(t.Top)
+			{
+				res = b - a;
+			}
+			else
+			{
+				res = a - b;
+			}
+
+			return res;
+		});
+		
+		if(this.Percent)
+		{
+			var num = parseInt(arr.length * (this.Val / 100));
+			if(0 === num)
+			{
+				num = 1;
+			}
+			
+			res = arr[num - 1];
+		}
+		else
+		{
+			res = arr[this.Val - 1];
+		}
+	}
 	if(null !== res)
 	{
 		this.FilterVal = res;
 	}
-}; 
+};
 
 Top10.prototype.asc_getFilterVal = function () { return this.FilterVal; };
 Top10.prototype.asc_getPercent = function () { return this.Percent; };
@@ -8163,6 +8808,44 @@ Top10.prototype.asc_setFilterVal = function (val) { this.FilterVal = val; };
 Top10.prototype.asc_setPercent = function (val) { this.Percent = val; };
 Top10.prototype.asc_setTop = function (val) { this.Top = val; };
 Top10.prototype.asc_setVal = function (val) { this.Val = val; };
+Top10.prototype.readAttributes = function(attr, uq) {
+	if (attr()) {
+		var vals = attr();
+		var val;
+		val = vals["top"];
+		if (undefined !== val) {
+			this.Top = AscCommon.getBoolFromXml(val);
+		}
+		val = vals["percent"];
+		if (undefined !== val) {
+			this.Percent = AscCommon.getBoolFromXml(val);
+		}
+		val = vals["val"];
+		if (undefined !== val) {
+			this.Val = val - 0;
+		}
+		val = vals["filterVal"];
+		if (undefined !== val) {
+			this.FilterVal = val - 0;
+		}
+	}
+};
+Top10.prototype.toXml = function(writer, name) {
+	writer.WriteXmlNodeStart(name);
+	if (true !== this.Top) {
+		writer.WriteXmlAttributeBool("top", this.Top);
+	}
+	if (false !== this.Percent) {
+		writer.WriteXmlAttributeBool("percent", this.Percent);
+	}
+	if (null !== this.Val) {
+		writer.WriteXmlAttributeNumber("val", this.Val);
+	}
+	if (null !== this.FilterVal) {
+		writer.WriteXmlAttributeNumber("filterVal", this.FilterVal);
+	}
+	writer.WriteXmlNodeEnd(name, true, true);
+};
 
 /** @constructor */
 function SortCondition() {

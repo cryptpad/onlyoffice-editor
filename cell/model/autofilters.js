@@ -52,6 +52,7 @@
 		var c_oAscInsertOptions = Asc.c_oAscInsertOptions;
 		var c_oAscDeleteOptions = Asc.c_oAscDeleteOptions;
 		var c_oAscChangeTableStyleInfo = Asc.c_oAscChangeTableStyleInfo;
+		var c_oAscAutoFilterTypes = Asc.c_oAscAutoFilterTypes;
 
 		var prot;
 
@@ -335,7 +336,29 @@
 			asc_setFilter : function(filter) { this.filter = filter;},
 
 			asc_getType : function() { return this.type; },
-			asc_getFilter : function() { return this.filter; }
+			asc_getFilter : function() { return this.filter; },
+
+			convertFromFilterColumn: function(filters, ignoreCustomFilter) {
+				this.type = c_oAscAutoFilterTypes.None;
+				if(!filters){
+					return;
+				}
+				if (filters.ColorFilter) {
+					this.type = c_oAscAutoFilterTypes.ColorFilter;
+					this.filter = filters.ColorFilter.clone();
+				} else if (!ignoreCustomFilter && filters.CustomFiltersObj && filters.CustomFiltersObj.CustomFilters) {
+					this.type = c_oAscAutoFilterTypes.CustomFilters;
+					this.filter = filters.CustomFiltersObj;
+				} else if (filters.DynamicFilter) {
+					this.type = c_oAscAutoFilterTypes.DynamicFilter;
+					this.filter = filters.DynamicFilter.clone();
+				} else if (filters.Top10) {
+					this.type = c_oAscAutoFilterTypes.Top10;
+					this.filter = filters.Top10.clone();
+				} else if (filters) {
+					this.type = c_oAscAutoFilterTypes.Filters;
+				}
+			}
 		};
 		
 		var g_oAddFormatTableOptionsProperties = {

@@ -33,6 +33,9 @@
 $(function() {
 	QUnit.config.autostart = false;
 
+	// Tests completed in 2279 milliseconds.
+	// 1845 assertions of 1879 passed, 34 failed.
+
 	// function getValues(ws, range) {
 	// 	var res = [];
 	// 	ws.getRange3(range.r1, range.c1, range.r2, range.c2)._foreach(function(cell, r, c, r1, c1) {
