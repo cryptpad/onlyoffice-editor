@@ -6009,26 +6009,6 @@ PasteProcessor.prototype =
 				{
 					this.oImages[image] = window["Native"]["GetImageUrl"](this.oImages[image]);
 				}
-				else if(0 === src.indexOf("file:") && window["AscDesktopEditor"] !== undefined)
-				{
-					if (window["AscDesktopEditor"]["LocalFileGetImageUrl"] !== undefined)
-					{
-						aImagesToDownload.push(src);
-					}
-					else
-					{
-						var _base64 = window["AscDesktopEditor"]["GetImageBase64"](src);
-						if (_base64 != "")
-						{
-							aImagesToDownload.push(_base64);
-							_mapLocal[_base64] = src;
-						}
-						else
-						{
-							this.oImages[image] = "local";
-						}
-					}
-				}
 				else if(!g_oDocumentUrls.getImageLocal(src)) {
 					if(oThis.rtfImages && oThis.rtfImages[src]) {
 						aImagesToDownload.push(oThis.rtfImages[src]);
@@ -9545,17 +9525,7 @@ function Check_LoadingDataBeforePrepaste(_api, _fonts, _images, _callback)
     }
     AscFonts.FontPickerByCharacter.extendFonts(aPrepeareFonts);
 
-    var isDesktopEditor = (window["AscDesktopEditor"] !== undefined) ? true : false;
-    var isDesktopEditorLocal = false;
-
-    if (isDesktopEditor)
-	{
-		if (window["AscDesktopEditor"]["IsLocalFile"] && window["AscDesktopEditor"]["IsLocalFile"]())
-			isDesktopEditorLocal = true;
-	}
-
     var aImagesToDownload = [];
-    var _mapLocal = {};
     for (var image in _images)
     {
         var src = _images[image];
@@ -9563,48 +9533,9 @@ function Check_LoadingDataBeforePrepaste(_api, _fonts, _images, _callback)
         {
             _images[image] = window["Native"]["GetImageUrl"](_images[image]);
         }
-        else if (0 == src.indexOf("file:"))
-        {
-            if (window["AscDesktopEditor"] !== undefined)
-            {
-                if (window["AscDesktopEditor"]["LocalFileGetImageUrl"] !== undefined)
-                {
-                    aImagesToDownload.push(src);
-                }
-                else
-                {
-                    var _base64 = window["AscDesktopEditor"]["GetImageBase64"](src);
-                    if (_base64 != "")
-                    {
-                        aImagesToDownload.push(_base64);
-                        _mapLocal[_base64] = src;
-                    }
-                    else
-                    {
-                        _images[image] = "local";
-                    }
-                }
-            }
-            else
-                _images[image] = "local";
-        }
-        else if (isDesktopEditorLocal)
-		{
-			if (!g_oDocumentUrls.getImageLocal(src))
-				aImagesToDownload.push(src);
-		}
         else if (!g_oDocumentUrls.getImageUrl(src) && !g_oDocumentUrls.getImageLocal(src))
         {
-            if (window["AscDesktopEditor"] && (undefined !== window["AscDesktopEditor"]["CryptoMode"]) && (window["AscDesktopEditor"]["CryptoMode"] > 0))
-            {
-                // local image (open crypto file)
-                if (0 != src.indexOf("image"))
-                    aImagesToDownload.push(src);
-            }
-            else
-            {
-                aImagesToDownload.push(src);
-            }
+			aImagesToDownload.push(src);
         }
     }
     if (aImagesToDownload.length > 0)

@@ -286,6 +286,12 @@
 
 		if (prop && prop.CC) delete prop.CC;
 
+		prop["Tag"] = prop.Tag;
+		prop["Id"] = prop.Id;
+		prop["Lock"] = prop.Lock;
+		prop["InternalId"] = prop.InternalId;
+		prop["Appearance"] = prop.Appearance;
+
 		if (contentFormat)
 		{
 			var copy_data = {

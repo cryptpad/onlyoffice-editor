@@ -1884,7 +1884,7 @@ ParaRun.prototype.Recalculate_CurPos = function(X, Y, CurrentRun, _CurRange, _Cu
                         // Определим автоцвет относительно заливки
                         var AutoColor = ( undefined != BgColor && false === BgColor.Check_BlackAutoColor() ? new CDocumentColor( 255, 255, 255, false ) : new CDocumentColor( 0, 0, 0, false ) );
                         var  RGBA, Theme = Para.Get_Theme(), ColorMap = Para.Get_ColorMap();
-                        if((BgColor == undefined || BgColor.Auto) && CurTextPr.FontRef && CurTextPr.FontRef.Color)
+                        if(CurTextPr.FontRef && CurTextPr.FontRef.Color)
                         {
                             CurTextPr.FontRef.Color.check(Theme, ColorMap);
                             RGBA = CurTextPr.FontRef.Color.RGBA;
@@ -5754,7 +5754,7 @@ ParaRun.prototype.Draw_Elements = function(PDSE)
 
     var AutoColor = ( undefined != BgColor && false === BgColor.Check_BlackAutoColor() ? new CDocumentColor( 255, 255, 255, false ) : new CDocumentColor( 0, 0, 0, false ) );
     var  RGBA, Theme = PDSE.Theme, ColorMap = PDSE.ColorMap;
-    if((BgColor == undefined || BgColor.Auto) && CurTextPr.FontRef && CurTextPr.FontRef.Color)
+    if(CurTextPr.FontRef && CurTextPr.FontRef.Color)
     {
         CurTextPr.FontRef.Color.check(Theme, ColorMap);
         RGBA = CurTextPr.FontRef.Color.RGBA;
@@ -6084,7 +6084,7 @@ ParaRun.prototype.Draw_Lines = function(PDSL)
 
     var CurColor, RGBA, Theme = this.Paragraph.Get_Theme(), ColorMap = this.Paragraph.Get_ColorMap();
     var AutoColor = ( undefined != BgColor && false === BgColor.Check_BlackAutoColor() ? new CDocumentColor( 255, 255, 255, false ) : new CDocumentColor( 0, 0, 0, false ) );
-    if((BgColor == undefined || BgColor.Auto) && CurTextPr.FontRef && CurTextPr.FontRef.Color)
+    if(CurTextPr.FontRef && CurTextPr.FontRef.Color)
     {
         CurTextPr.FontRef.Color.check(Theme, ColorMap);
         RGBA = CurTextPr.FontRef.Color.RGBA;

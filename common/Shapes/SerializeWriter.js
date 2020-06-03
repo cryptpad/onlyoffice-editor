@@ -2928,9 +2928,13 @@ function CBinaryFileWriter()
                         _src = oThis.PresentationThemesOrigin + _src;
                     }
                     else if (0 != _src.indexOf("http:") && 0 != _src.indexOf("data:") && 0 != _src.indexOf("https:") && 0 != _src.indexOf("ftp:") && 0 != _src.indexOf("file:")){
-                        var imageUrl = AscCommon.g_oDocumentUrls.getImageUrl(_src);
-						if(imageUrl){
-							_src = imageUrl;
+						if (AscCommon.EncryptionWorker && AscCommon.EncryptionWorker.isCryptoImages() &&
+							window["AscDesktopEditor"] && window["AscDesktopEditor"]["Crypto_GetLocalImageBase64"]) {
+						    _src = window["AscDesktopEditor"]["Crypto_GetLocalImageBase64"](_src);
+						} else {
+							var imageUrl = AscCommon.g_oDocumentUrls.getImageUrl(_src);
+							if (imageUrl)
+							    _src = imageUrl;
 						}
                     }
                     if(window["native"] && window["native"]["GetImageTmpPath"]){

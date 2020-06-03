@@ -470,10 +470,10 @@
                 {
                     if (_crypto_data && AscCommon.EncryptionWorker && AscCommon.EncryptionWorker.isCryptoImages())
                     {
-                        // TODO: send to plugin for decryption & call this method with empty _crypto_data
                         AscCommon.EncryptionWorker.decryptImage(_src, this, _crypto_data);
                         return;
                     }
+					this.crossOrigin = "";
                     this.src = _src;
                     oThis.Api.sync_EndAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.UploadImage);
                 };
