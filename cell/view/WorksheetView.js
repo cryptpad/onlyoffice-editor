@@ -15358,6 +15358,17 @@
 
     WorksheetView.prototype.clearFilterColumn = function (cellId, displayName) {
         var t = this;
+		//pivot
+		if (CT_pivotTableDefinition.prototype.asc_removeFilterByCell) {
+			if (cellId) {
+				var cellRange = AscCommonExcel.g_oRangeCache.getAscRange(cellId);
+				var pivotTable = this.model.inPivotTable(cellRange);
+				if (pivotTable) {
+					pivotTable.asc_removeFilterByCell(this.model.workbook.oApi, cellRange.r1, cellRange.c1);
+					return;
+				}
+			}
+		}
 
         var onChangeAutoFilterCallback = function (isSuccess) {
             if (false === isSuccess) {

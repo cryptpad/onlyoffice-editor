@@ -5072,9 +5072,18 @@ CCellValue.prototype =
 			case this.Properties.type: this.type = value;break;
 		}
 	},
-	toString : function()
+	getTextValue : function()
 	{
-		return this.text || this.number.toString();
+		if (null !== this.text) {
+			return this.text;
+		} else if (null !== this.number) {
+			var numFormat = AscCommon.oNumFormatCache.get("General");
+			var multiText = numFormat.format(this.number, CellValueType.Number, AscCommon.gc_nMaxDigCount, false);
+			return AscCommonExcel.getStringFromMultiText(multiText)
+		} else if(null !== this.multiText){
+			return AscCommonExcel.getStringFromMultiText(this.multiText)
+		}
+		return "";
 	}
 };
 
@@ -7496,6 +7505,17 @@ function RangeDataManagerElem(bbox, data)
 		}
 
 	};
+	FilterColumn.prototype.hasInitByArray = function ()
+	{
+		return null !== this.Top10;
+	};
+	FilterColumn.prototype.initByArray = function (arr) {
+
+		if (null !== this.Top10) {
+			this.Top10.initByArray(arr);
+		}
+
+	};
 
 	FilterColumn.prototype.isApplyCustomFilter = function () {
 		var res = false;
@@ -7974,7 +7994,7 @@ var g_oCustomFilters = {
 function CustomFilters() {
 	this.Properties = g_oCustomFilters;
 	
-	this.And = null;
+	this.And = false;
 	this.CustomFilters = null;
 }
 CustomFilters.prototype.getType = function() {
@@ -8078,7 +8098,7 @@ CustomFilters.prototype.onStartNode = function(elem, attr, uq) {
 };
 CustomFilters.prototype.toXml = function(writer, name) {
 	writer.WriteXmlNodeStart(name);
-	if (null !== this.And) {
+	if (false !== this.And) {
 		writer.WriteXmlAttributeBool("and", this.And);
 	}
 	writer.WriteXmlNodeEnd(name, true);
@@ -8674,8 +8694,8 @@ function Top10() {
 	this.Properties = g_oTop10;
 	
 	this.FilterVal = null;
-	this.Percent = null;
-	this.Top = null;
+	this.Percent = false;
+	this.Top = true;
 	this.Val = null;
 }
 Top10.prototype.getType = function() {
@@ -8735,7 +8755,6 @@ Top10.prototype.isHideValue = function(val) {
 };
 
 Top10.prototype.init = function(range, reWrite){
-	var res = null;
 	var t = this;
 	
 	if(null === this.FilterVal || true === reWrite)
@@ -8755,47 +8774,49 @@ Top10.prototype.init = function(range, reWrite){
 					count++;
 				}
 			});
-			
-			if(arr.length)
-			{
-				arr.sort(function(a, b){
-					var res;
-					if(t.Top)
-					{
-						res = b - a;
-					}
-					else
-					{
-						res = a - b;
-					}
-					
-					return res; 
-				});
-				
-				if(this.Percent)
-				{
-					var num = parseInt(count * (this.Val / 100));
-					if(0 === num)
-					{
-						num = 1;
-					}
-					
-					res = arr[num - 1];
-				}
-				else
-				{
-					res = arr[this.Val - 1];
-				}
-				
-			}
+			this.initByArray(arr);
 		}
 	}
-	
+};
+Top10.prototype.initByArray = function(arr){
+	var res = null;
+	var t = this;
+	if(arr && arr.length)
+	{
+		arr.sort(function(a, b){
+			var res;
+			if(t.Top)
+			{
+				res = b - a;
+			}
+			else
+			{
+				res = a - b;
+			}
+
+			return res;
+		});
+		
+		if(this.Percent)
+		{
+			var num = parseInt(arr.length * (this.Val / 100));
+			if(0 === num)
+			{
+				num = 1;
+			}
+			
+			res = arr[num - 1];
+		}
+		else
+		{
+			res = arr[this.Val - 1];
+		}
+	}
 	if(null !== res)
 	{
 		this.FilterVal = res;
 	}
-}; 
+};
 
 Top10.prototype.asc_getFilterVal = function () { return this.FilterVal; };
 Top10.prototype.asc_getPercent = function () { return this.Percent; };
@@ -8830,10 +8851,10 @@ Top10.prototype.readAttributes = function(attr, uq) {
 };
 Top10.prototype.toXml = function(writer, name) {
 	writer.WriteXmlNodeStart(name);
-	if (null !== this.Top) {
+	if (true !== this.Top) {
 		writer.WriteXmlAttributeBool("top", this.Top);
 	}
-	if (null !== this.Percent) {
+	if (false !== this.Percent) {
 		writer.WriteXmlAttributeBool("percent", this.Percent);
 	}
 	if (null !== this.Val) {
