@@ -2454,14 +2454,15 @@
   };
 
   WorkbookView.prototype.formatPainter = function(formatPainterState, bLockDraw) {
+    var ws = this.getWorksheet();
+    if (!bLockDraw) {
+        ws.cleanSelection();
+    }
+
     // Если передали состояние, то выставляем его. Если нет - то меняем на противоположное.
     this.formatPainterState = (null != formatPainterState) ? formatPainterState :
         ((c_oAscFormatPainterState.kOff !== this.formatPainterState) ? c_oAscFormatPainterState.kOff : c_oAscFormatPainterState.kOn);
 
-    var ws = this.getWorksheet();
-    if (!bLockDraw) {
-      ws.cleanSelection();
-    }
     if (this.formatPainterState) {
       this.formatPainterSheet = this.wsActive;
       this.formatPainterRange = ws.model.selectionRange.clone();

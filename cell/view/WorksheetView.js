@@ -5707,8 +5707,14 @@
 			}
         }
 
-        selectionRange = this.model.selectionRange;
-        if (this.model.copySelection && selectionRange) {
+        if (this.model.copySelection) {
+            selectionRange = this.model.selectionRange;
+        } else if (this.workbook.isDrawFormatPainter()) {
+            selectionRange = this.workbook.formatPainterRange;
+        } else {
+            selectionRange = null;
+        }
+        if (selectionRange) {
             selectionRange.ranges.forEach(function (item) {
                 var arnIntersection = item.intersectionSimple(range);
                 if (arnIntersection) {
