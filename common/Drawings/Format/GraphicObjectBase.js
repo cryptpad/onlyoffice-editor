@@ -370,8 +370,11 @@
     }
     
     function CBaseObject() {
-        this.Id = AscCommon.g_oIdCounter.Get_NewId();
-        AscCommon.g_oTableId.Add( this, this.Id );
+        this.Id = null;
+        if(AscCommon.g_oIdCounter.m_bLoad || History.CanAddChanges()) {
+            this.Id = AscCommon.g_oIdCounter.Get_NewId();
+            AscCommon.g_oTableId.Add( this, this.Id );
+        }
     }
     CBaseObject.prototype.getObjectType = function() {
         return AscDFH.historyitem_type_Unknown;
