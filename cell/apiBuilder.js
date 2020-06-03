@@ -393,7 +393,7 @@
 	Api.prototype.GetRange = function(sRange) {
 		var range = AscCommonExcel.getRangeByRef(sRange, this.wbModel.getActiveWs(),true, true)[0];
 		return new ApiRange(range);
-	}
+	};
 
 	/**
 	 * Returns Visible of sheet
