@@ -624,7 +624,7 @@ function CheckSpPrXfrm2(object)
                 else
                 {
                     object.spPr.xfrm.setOffX(AscFormat.isRealNumber(object.x) ? object.x : 0);
-                    object.spPr.xfrm.setOffY(AscFormat.isRealNumber(object.y) ? object.x : 0);
+                    object.spPr.xfrm.setOffY(AscFormat.isRealNumber(object.y) ? object.y : 0);
                 }
                 object.spPr.xfrm.setExtX(AscFormat.isRealNumber(object.extX) ? object.extX : 0);
                 object.spPr.xfrm.setExtY(AscFormat.isRealNumber(object.extY) ? object.extY : 0);
@@ -664,7 +664,7 @@ function CheckSpPrXfrm2(object)
 
 function getObjectsByTypesFromArr(arr, bGrouped)
 {
-    var ret = {shapes: [], images: [], groups: [], charts: [], tables: [], oleObjects: []};
+    var ret = {shapes: [], images: [], groups: [], charts: [], tables: [], oleObjects: [], slicers: []};
     var selected_objects = arr;
     for(var i = 0;  i < selected_objects.length; ++i)
     {
@@ -710,6 +710,11 @@ function getObjectsByTypesFromArr(arr, bGrouped)
             case AscDFH.historyitem_type_GraphicFrame:
             {
                 ret.tables.push(drawing);
+                break;
+            }
+            case AscDFH.historyitem_type_SlicerView:
+            {
+                ret.slicers.push(drawing);
                 break;
             }
         }
@@ -785,6 +790,7 @@ function DrawingObjectsController(drawingObjects)
     this.arrTrackObjects = [];
 
     this.objectsForRecalculate = {};
+    this.eventListeners = [];
 
     this.chartForProps = null;
 
@@ -1761,7 +1767,7 @@ DrawingObjectsController.prototype =
 		var oTargetDocContent = this.getTargetDocContent(undefined, true);
 		if (oTargetDocContent)
 			return oTargetDocContent.RecalculateCurPos(bUpdateX, bUpdateY);
-        
+
         return {X : 0, Y : 0, Height : 0, PageNum : 0, Internal : {Line : 0, Page : 0, Range : 0}, Transform : null};
 	},
 
@@ -1992,7 +1998,7 @@ DrawingObjectsController.prototype =
     {
         return this.getLeftTopSelectedFromArray(this.getDrawingObjects(), pageIndex);
     },
-	
+
 	createWatermarkImage: function(sImageUrl)
 	{
         return AscFormat.ExecuteNoHistory(function(){
@@ -2178,7 +2184,7 @@ DrawingObjectsController.prototype =
     {
 		if (undefined !== drawingDocument.BeginDrawTracking)
             drawingDocument.BeginDrawTracking();
-		
+
         var i;
         if(this.selection.textSelection)
         {
@@ -2316,7 +2322,7 @@ DrawingObjectsController.prototype =
         }
 
 
-      
+
 		if (undefined !== drawingDocument.EndDrawTracking)
 			drawingDocument.EndDrawTracking();
 
@@ -3458,7 +3464,7 @@ DrawingObjectsController.prototype =
         }
         return _ret;
     },
-    
+
     getConnectorsForCheck2: function(){
         var aConnectors = this.getConnectorsForCheck();
         var oGroupMaps = {};
@@ -3771,6 +3777,68 @@ DrawingObjectsController.prototype =
 
         var aGroups = [];
         var bCheckConnectors = false;
+        if(props.SlicerProperties)
+        {
+            var aSlicers = objects_by_type.slicers;
+            var oAPI = Asc.editor;
+            History.StartTransaction();
+            var aSlicerNames = [];
+            var bSize = false;
+            var oSlicer;
+            for(i = 0; i < aSlicers.length; ++i)
+            {
+                oSlicer = aSlicers[i];
+                aSlicerNames.push(oSlicer.getName());
+                bSize |= oSlicer.setButtonWidth(props.SlicerProperties.asc_getButtonWidth());
+                oSlicer.recalculate();
+                var bLocked = props.SlicerProperties.asc_getLockedPosition() === true;
+                if(bLocked)
+                {
+                    oSlicer.setLockValue(AscFormat.LOCKS_MASKS.noMove, true);
+                    oSlicer.setLockValue(AscFormat.LOCKS_MASKS.noResize, true);
+                }
+                else
+                {
+                    oSlicer.setLockValue(AscFormat.LOCKS_MASKS.noMove, undefined);
+                    oSlicer.setLockValue(AscFormat.LOCKS_MASKS.noResize, undefined);
+                }
+            }
+            if(!bSize)
+            {
+                if(AscFormat.isRealNumber(props.Width) || AscFormat.isRealNumber(props.Height))
+                {
+                    for(i = 0; i < aSlicers.length; ++i)
+                    {
+                        oSlicer = aSlicers[i];
+                        var bChanged = false;
+                        if(AscFormat.isRealNumber(props.Width))
+                        {
+                            CheckSpPrXfrm(oSlicer);
+                            oSlicer.spPr.xfrm.setExtX(props.Width);
+                            bChanged = true;
+                        }
+                        if(AscFormat.isRealNumber(props.Height))
+                        {
+                            CheckSpPrXfrm(oSlicer);
+                            oSlicer.spPr.xfrm.setExtY(props.Height);
+                            bChanged = true;
+                        }
+                        bCheckConnectors |= bChanged; 
+                        if(bChanged)
+                        {
+                            if(oSlicer.group)
+                            {
+                                checkObjectInArray(aGroups, oSlicer.group.getMainGroup());
+                            }
+                            oSlicer.checkDrawingBaseCoords();
+                        }
+                        oSlicer.recalculate();
+                    }
+                }
+            }
+            oAPI.asc_setSlicers(aSlicerNames, props.SlicerProperties);
+            History.EndTransaction();
+        }
         var oApi = editor || Asc['editor'];
         var editorId = oApi.getEditorId();
         var bMoveFlag = true;
@@ -3883,6 +3951,10 @@ DrawingObjectsController.prototype =
             {
                 objects_by_type.charts[i].setNoChangeAspect(props.lockAspect ? true : undefined);
             }
+            for(i = 0; i < objects_by_type.slicers.length; ++i)
+            {
+                objects_by_type.slicers[i].setNoChangeAspect(props.lockAspect ? true : undefined);
+            }
         }
         if(isRealObject(props.Position) && AscFormat.isRealNumber(props.Position.X) && AscFormat.isRealNumber(props.Position.Y)
         || AscFormat.isRealBool(props.flipH) || AscFormat.isRealBool(props.flipV) || AscFormat.isRealBool(props.flipHInvert) || AscFormat.isRealBool(props.flipVInvert) || AscFormat.isRealNumber(props.rotAdd) || AscFormat.isRealNumber(props.rot) || AscFormat.isRealNumber(props.anchor))
@@ -3980,6 +4052,26 @@ DrawingObjectsController.prototype =
                         checkObjectInArray(aGroups, objects_by_type.charts[i].group.getMainGroup());
                     }
                     objects_by_type.charts[i].checkDrawingBaseCoords();
+                }
+                var aSlicers = objects_by_type.slicers;
+                for(i = 0; i < aSlicers.length; ++i)
+                {
+                    var oSlicer = aSlicers[i];
+                    CheckSpPrXfrm(oSlicer);
+                    if(AscFormat.isRealNumber(props.Position.X))
+                    {
+                        oSlicer.spPr.xfrm.setOffX(props.Position.X);
+                    }
+                    if(AscFormat.isRealNumber(props.Position.Y))
+                    {
+                        oSlicer.spPr.xfrm.setOffY(props.Position.Y);
+                    }
+                    
+                    if(oSlicer.group)
+                    {
+                        checkObjectInArray(aGroups, oSlicer.group.getMainGroup());
+                    }
+                    oSlicer.checkDrawingBaseCoords();
                 }
             }
             if(editorId === AscCommon.c_oEditorId.Presentation || editorId === AscCommon.c_oEditorId.Spreadsheet){
@@ -6342,6 +6434,7 @@ DrawingObjectsController.prototype =
         }
         else if(this.selectedObjects.length > 0)
         {
+            var aSO, oSp;
             var worksheet = this.drawingObjects.getWorksheet();
             if(worksheet)
             {
@@ -6356,14 +6449,21 @@ DrawingObjectsController.prototype =
                 }
                 else
                 {
-                    this.resetConnectors(this.selection.groupSelection.selectedObjects);
+                    aSO = this.selection.groupSelection.selectedObjects;
+                    this.resetConnectors(aSO);
                     var group_map = {}, group_arr = [], i, cur_group, sp, xc, yc, hc, vc, rel_xc, rel_yc, j;
-                    for(i = 0; i < this.selection.groupSelection.selectedObjects.length; ++i)
+                    for(i = 0; i < aSO.length; ++i)
                     {
-                        this.selection.groupSelection.selectedObjects[i].group.removeFromSpTree(this.selection.groupSelection.selectedObjects[i].Get_Id());
-                        group_map[this.selection.groupSelection.selectedObjects[i].group.Get_Id()+""] = this.selection.groupSelection.selectedObjects[i].group;
-                        if(this.selection.groupSelection.selectedObjects[i].setBDeleted){
-                            this.selection.groupSelection.selectedObjects[i].setBDeleted(true);
+                        oSp = aSO[i];
+                        if(oSp.getObjectType() === AscDFH.historyitem_type_SlicerView)
+                        {
+                            oSp.deleteSlicer();
+                        }
+                        else
+                        {
+                            oSp.group.removeFromSpTree(oSp.Get_Id());
+                            group_map[oSp.group.Get_Id()] = oSp.group;
+                            oSp.setBDeleted(true);
                         }
                     }
                     group_map[this.selection.groupSelection.Get_Id()+""] = this.selection.groupSelection;
@@ -6448,19 +6548,25 @@ DrawingObjectsController.prototype =
             }
             else
             {
-                this.resetConnectors(this.selectedObjects);
-                for(var i = 0; i < this.selectedObjects.length; ++i)
+                aSO = this.selectedObjects;
+                this.resetConnectors(aSO);
+                for(var i = 0; i < aSO.length; ++i)
                 {
-                    
-                    this.selectedObjects[i].deleteDrawingBase(true);                    
-                    if(this.selectedObjects[i].signatureLine){
-                        var oApi = this.getEditorApi();
-                        if(oApi){
-                            oApi.sendEvent("asc_onRemoveSignature", this.selectedObjects[i].signatureLine.id);
-                        }
+                    oSp = aSO[i];
+                    if(oSp.getObjectType() === AscDFH.historyitem_type_SlicerView)
+                    {
+                        oSp.deleteSlicer();
                     }
-                    if(this.selectedObjects[i].setBDeleted){
-                        this.selectedObjects[i].setBDeleted(true);
+                    else
+                    {
+                        oSp.deleteDrawingBase(true);
+                        if(oSp.signatureLine){
+                            var oApi = this.getEditorApi();
+                            if(oApi){
+                                oApi.sendEvent("asc_onRemoveSignature", this.selectedObjects[i].signatureLine.id);
+                            }
+                        }
+                        oSp.setBDeleted(true);
                     }
 
                 }
@@ -6937,9 +7043,16 @@ DrawingObjectsController.prototype =
         return _ret;
     },
 
+    getEventListeners: function() {
+        return this.eventListeners;
+    },
+    
     onKeyUp: function(e)
     {
-        
+       var aListeners = this.getEventListeners();
+       for(var nObject = 0; nObject < aListeners.length; ++nObject) {
+           aListeners[nObject].onKeyUp(e);
+        }
     },
     
     onKeyDown: function(e)
@@ -7211,9 +7324,18 @@ DrawingObjectsController.prototype =
                 bRetValue = true;
             }
         }
-        else if ( e.keyCode == 67 && true === ctrlKey ) // Ctrl + C + ...
+        else if ( e.keyCode == 67) // C 
         {
-            //TODO
+            if(e.altKey)
+            {
+                var oSelector = this.selection.groupSelection || this;
+                var aSelected = oSelector.selectedObjects;
+                if(aSelected.length === 1 && aSelected[0].getObjectType() === AscDFH.historyitem_type_SlicerView)
+                {
+                    aSelected[0].handleClearButtonClick();
+                    bRetValue = true;
+                }
+            }
         }
         else if ( e.keyCode == 69 && canEdit && true === ctrlKey ) // Ctrl + E - переключение прилегания параграфа между center и left
         {
@@ -7278,9 +7400,18 @@ DrawingObjectsController.prototype =
                 bRetValue = true;
             }
         }
-        else if ( e.keyCode == 83 && canEdit && true === ctrlKey ) // Ctrl + S - save
+        else if ( e.keyCode == 83) //  S - save
         {
-            bRetValue = false;
+            if(e.altKey)
+            {
+                var oSelector = this.selection.groupSelection || this;
+                var aSelected = oSelector.selectedObjects;
+                if(aSelected.length === 1 && aSelected[0].getObjectType() === AscDFH.historyitem_type_SlicerView)
+                {
+                    aSelected[0].invertMultiSelect();
+                    bRetValue = true;
+                }
+            }
         }
         else if ( e.keyCode == 85 && canEdit && true === ctrlKey ) // Ctrl + U - делаем текст подчеркнутым
         {
@@ -7415,6 +7546,15 @@ DrawingObjectsController.prototype =
                 }
             }
             return true;
+        }
+        return false;
+    },
+
+    onMouseWheel: function (deltaX, deltaY) {
+        var aSelection = this.selection.groupSelection ? this.selection.groupSelection.selectedObjects : this.selectedObjects;
+        if(aSelection.length === 1
+            && aSelection[0].getObjectType() === AscDFH.historyitem_type_SlicerView) {
+            return aSelection[0].onWheel(deltaX, deltaY);
         }
         return false;
     },
@@ -8518,6 +8658,7 @@ DrawingObjectsController.prototype =
     {
         var image_props, shape_props, chart_props, table_props = undefined, new_image_props, new_shape_props, new_chart_props, new_table_props, shape_chart_props, locked;
         var drawing;
+        var slicer_props, new_slicer_props;
         for(var i = 0; i < drawings.length; ++i)
         {
             drawing = drawings[i];
@@ -8641,7 +8782,7 @@ DrawingObjectsController.prototype =
                             image_props.description = undefined;
                         if(image_props.anchor !== new_image_props.anchor)
                             image_props.anchor = undefined;
-                        
+
                     }
 
 
@@ -8832,6 +8973,68 @@ DrawingObjectsController.prototype =
                     else
                     {
                         shape_chart_props = AscFormat.CompareShapeProperties(shape_chart_props, new_shape_props);
+                    }
+                    break;
+                }
+                case AscDFH.historyitem_type_SlicerView:
+                {
+                    var oSlicer = drawing.getSlicer();
+                    var oSlicerCopy = (oSlicer ? oSlicer.clone() : null);
+                    if(oSlicerCopy) {
+                        oSlicerCopy.asc_setButtonWidth(drawing.getButtonWidth());
+                    }
+                    new_slicer_props =
+                        {
+                            w: drawing.extX,
+                            h: drawing.extY,
+                            x: drawing.x,
+                            y: drawing.y,
+                            locked: locked,
+                            lockAspect: lockAspect,
+                            title: drawing.getTitle(),
+                            description: drawing.getDescription(),
+                            anchor: drawing.getDrawingBaseType(),
+                            slicerProps: oSlicerCopy
+                        };
+                    if(!slicer_props)
+                    {
+                        slicer_props = new_slicer_props;
+                    }
+                    else
+                    {
+                        if(slicer_props.slicerProps != null)
+                        {   
+                            if(!new_slicer_props.slicerProps)
+                            {
+                                slicer_props.slicerProps = null;
+                            }
+                            else
+                            {
+                                slicer_props.slicerProps.merge(new_slicer_props.slicerProps);
+                            }
+                        }
+                        if(slicer_props.w != null && slicer_props.w !== new_slicer_props.w)
+                            slicer_props.w = null;
+                        if(slicer_props.h != null && slicer_props.h !== new_slicer_props.h)
+                            slicer_props.h = null;
+                        
+                        if(slicer_props.x != null && slicer_props.x !== new_slicer_props.x)
+                            slicer_props.x = null;
+                        if(slicer_props.y != null && slicer_props.y !== new_slicer_props.y)
+                            slicer_props.y = null;
+
+                        if(slicer_props.locked || new_slicer_props.locked)
+                            slicer_props.locked = true;
+                        if(!slicer_props.lockAspect || !new_slicer_props.lockAspect)
+                            slicer_props.locked = false;
+
+
+                        if(slicer_props.title !== new_slicer_props.title)
+                            slicer_props.title = undefined;
+                        if(slicer_props.description !== new_slicer_props.description)
+                            slicer_props.description = undefined;
+                        if(slicer_props.anchor !== new_slicer_props.anchor)
+                            slicer_props.anchor = undefined;
                     }
                     break;
                 }
@@ -9041,7 +9244,7 @@ DrawingObjectsController.prototype =
                 }
             }
         }
-        return {imageProps: image_props, shapeProps: shape_props, chartProps: chart_props, tableProps: table_props, shapeChartProps: shape_chart_props};
+        return {imageProps: image_props, shapeProps: shape_props, chartProps: chart_props, tableProps: table_props, shapeChartProps: shape_chart_props, slicerProps: slicer_props};
     },
 
     getDrawingProps: function()
@@ -9070,7 +9273,7 @@ DrawingObjectsController.prototype =
         var  props = this.getDrawingProps();
 
         var api = this.getEditorApi();
-        var shape_props, image_props, chart_props;
+        var shape_props, image_props, chart_props, slicer_props;
         var ascSelectedObjects = [];
 
         var ret = [], i, bParaLocked = false;
@@ -9284,6 +9487,25 @@ DrawingObjectsController.prototype =
             chart_props.description = props.chartProps.description;
             chart_props.title = props.chartProps.title;
             ret.push(chart_props);
+        }
+        if (isRealObject(props.slicerProps) && isRealObject(props.slicerProps.slicerProps))
+        {
+            slicer_props = new Asc.asc_CImgProperty();
+            slicer_props.Width = props.slicerProps.w;
+            slicer_props.Height = props.slicerProps.h;
+            slicer_props.SlicerProperties = props.slicerProps.slicerProps;
+            slicer_props.Locked = props.slicerProps.locked === true;
+            slicer_props.lockAspect = props.slicerProps.lockAspect;
+            slicer_props.anchor = props.slicerProps.anchor;
+            slicer_props.Position = new Asc.CPosition({X: props.slicerProps.x, Y: props.slicerProps.y});
+            if(!bParaLocked)
+            {
+                bParaLocked = slicer_props.Locked;
+            }
+
+            slicer_props.description = props.slicerProps.description;
+            slicer_props.title = props.slicerProps.title;
+            ret.push(slicer_props);
         }
         for (i = 0; i < ret.length; i++)
         {
@@ -9698,7 +9920,8 @@ DrawingObjectsController.prototype =
             if(AscFormat.isRealNumber(props.Width) && AscFormat.isRealNumber(props.Height)){
                 aAdditionalObjects = this.getConnectorsForCheck2();
             }
-            this.checkSelectedObjectsAndCallback(this.setGraphicObjectPropsCallBack, [props], false, AscDFH.historydescription_Spreadsheet_SetGraphicObjectsProps, aAdditionalObjects);
+            var bNoSendProperties = AscCommon.isRealObject(props.SlicerProperties);
+            this.checkSelectedObjectsAndCallback(this.setGraphicObjectPropsCallBack, [props], bNoSendProperties, AscDFH.historydescription_Spreadsheet_SetGraphicObjectsProps, aAdditionalObjects);
             var oApplyProps = null;
             if(props)
             {
@@ -10440,6 +10663,30 @@ DrawingObjectsController.prototype =
             this.selection.groupSelection.bringBackward();
         }
         this.drawingObjects.showDrawingObjects();
+    },
+    
+    addEventListener: function (drawing) {
+        if(!this.isEventListener(drawing)) {
+            this.eventListeners.push(drawing);
+        }
+    },
+    
+    removeEventListener: function (drawing) {
+        for(var i = 0; i < this.eventListeners.length; ++i) {
+            if(this.eventListeners[i] === drawing) {
+                this.eventListeners.splice(i, 1);
+                break;
+            }
+        }
+    },
+    isEventListener: function (drawing) {
+        var i;
+        for(i = 0; i < this.eventListeners.length; ++i) {
+            if(this.eventListeners[i] === drawing) {
+                break;
+            }
+        }
+        return i < this.eventListeners.length;
     }
 };
 

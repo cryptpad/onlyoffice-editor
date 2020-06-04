@@ -261,6 +261,22 @@ function CBinaryFileWriter()
     {
         this.WriteULong((val * 100000) >> 0);
     };
+    var tempHelp = new ArrayBuffer(8);
+    var tempHelpUnit = new Uint8Array(tempHelp);
+    var tempHelpFloat = new Float64Array(tempHelp);
+    this.WriteDoubleReal = function(val)
+    {
+        this.CheckSize(8);
+        tempHelpFloat[0] = val;
+        this.data[this.pos++] = tempHelpUnit[0];
+        this.data[this.pos++] = tempHelpUnit[1];
+        this.data[this.pos++] = tempHelpUnit[2];
+        this.data[this.pos++] = tempHelpUnit[3];
+        this.data[this.pos++] = tempHelpUnit[4];
+        this.data[this.pos++] = tempHelpUnit[5];
+        this.data[this.pos++] = tempHelpUnit[6];
+        this.data[this.pos++] = tempHelpUnit[7];
+    };
     this.WriteString = function(text)
     {
         var count = text.length & 0xFFFF;
@@ -377,6 +393,17 @@ function CBinaryFileWriter()
             this._WriteUChar1(type, val);
     };
 
+    this._WriteChar1 = function(type, val)
+    {
+        this.WriteUChar(type);
+        this.WriteUChar(val);
+    };
+    this._WriteChar2 = function(type, val)
+    {
+        if (val != null)
+            this._WriteChar1(type, val);
+    };
+
     this._WriteBool1 = function(type, val)
     {
         this.WriteUChar(type);
@@ -399,6 +426,17 @@ function CBinaryFileWriter()
             this._WriteInt1(type, val);
     };
 
+    this._WriteUInt1 = function(type, val)
+    {
+        this.WriteUChar(type);
+        this.WriteULong(val);
+    };
+    this._WriteUInt2 = function (type, val)
+    {
+        if (val != null)
+            this._WriteUInt1(type, val);
+    };
+
     this._WriteInt3 = function (type, val, scale)
     {
         this._WriteInt1(type, val * scale);
@@ -419,6 +457,16 @@ function CBinaryFileWriter()
     {
         if (val != null)
             this._WriteDouble1(type, val);
+    };
+    this._WriteDoubleReal1 = function(type, val)
+    {
+        this.WriteUChar(type);
+        this.WriteDoubleReal(val);
+    };
+    this._WriteDoubleReal2 = function(type, val)
+    {
+        if (val != null)
+            this._WriteDoubleReal1(type, val);
     };
 
     this._WriteLimit1 = this._WriteUChar1;
@@ -463,6 +511,15 @@ function CBinaryFileWriter()
 
         return false;
     };
+    this.WriteRecord4 = function(type, val)
+    {
+        if (null != val)
+        {
+            this.StartRecord(type);
+            val.toStream(this);
+            this.EndRecord();
+        }
+    };
 
     this.WriteRecordArray = function(type, subtype, val_array, func_element_write)
     {
@@ -473,6 +530,18 @@ function CBinaryFileWriter()
 
         for (var i = 0; i < len; i++)
             this.WriteRecord1(subtype, val_array[i], func_element_write);
+
+        this.EndRecord();
+    };
+    this.WriteRecordArray4 = function(type, subtype, val_array)
+    {
+        this.StartRecord(type);
+
+        var len = val_array.length;
+        this.WriteULong(len);
+
+        for (var i = 0; i < len; i++)
+            this.WriteRecord4(subtype, val_array[i]);
 
         this.EndRecord();
     };
@@ -1746,6 +1815,7 @@ function CBinaryFileWriter()
             }
             case AscDFH.historyitem_type_GraphicFrame:
             case AscDFH.historyitem_type_ChartSpace:
+            case AscDFH.historyitem_type_SlicerView:
             {
                 oThis.WriteGrFrame(oSp);
                 break;
@@ -3679,6 +3749,13 @@ function CBinaryFileWriter()
                 oThis.WriteRecord2(3, grObj, oThis.WriteChart2);
                 break;
             }
+            case AscDFH.historyitem_type_SlicerView:
+            {
+                oThis.WriteRecord2(6, grObj, function () {
+                    grObj.toStream(oThis)
+                });
+                break;
+            }
         }
         oThis.EndRecord();
     };
@@ -4427,6 +4504,7 @@ function CBinaryFileWriter()
                 }
                 case AscDFH.historyitem_type_GraphicFrame:
                 case AscDFH.historyitem_type_ChartSpace:
+                case AscDFH.historyitem_type_SlicerView:
                 {
                     oThis.WriteRecord1(1, nv.locks, oThis.WriteGrFrameCNvPr);
                     break;
@@ -5517,6 +5595,7 @@ function CBinaryFileWriter()
                     break;
                 }
                 case AscDFH.historyitem_type_ChartSpace:
+                case AscDFH.historyitem_type_SlicerView:
                 {
                     this.BinaryFileWriter.WriteGrFrame(grObject);
                     break;

@@ -425,6 +425,9 @@ function (window, undefined) {
 		this.SortState = 115;
 		this.SortStateData = 116;
 
+		this.Slicer = 117;
+		this.SlicerData = 118;
+
 		this.Create = function (nType) {
 			switch (nType) {
 				case this.ValueMultiTextElem:
@@ -583,10 +586,12 @@ function (window, undefined) {
 					return new UndoRedoData_ArrayFormula();
 				case this.SortState:
 					return new AscCommonExcel.SortState();
-					break;
 				case this.SortStateData:
 					return new AscCommonExcel.UndoRedoData_SortState();
-					break;
+				case this.SlicerData:
+					return new AscCommonExcel.UndoRedoData_Slicer();
+				case this.Slicer:
+					return new window['Asc'].CT_slicer();
 			}
 			return null;
 		};
@@ -1684,7 +1689,7 @@ function (window, undefined) {
 				if (tablePart) {
 					var memory = new AscCommon.CMemory();
 					var aDxfs = [];
-					var oBinaryTableWriter = new AscCommonExcel.BinaryTableWriter(memory, aDxfs);
+					var oBinaryTableWriter = new AscCommonExcel.BinaryTableWriter(memory, aDxfs, false, {});
 					oBinaryTableWriter.WriteTable(tablePart);
 					tablePart = memory.GetBase64Memory();
 				}
@@ -1935,6 +1940,49 @@ function (window, undefined) {
 				break;
 			case this.Properties.tableName:
 				this.tableName = value;
+				break;
+		}
+	};
+
+	function UndoRedoData_Slicer(name, from, to) {
+		this.name = name;
+		this.from = from;
+		this.to = to;
+	}
+
+	UndoRedoData_Slicer.prototype.Properties = {
+		name: 0, from: 1, to: 2
+	};
+	UndoRedoData_Slicer.prototype.getType = function () {
+		return UndoRedoDataTypes.SlicerData;
+	};
+	UndoRedoData_Slicer.prototype.getProperties = function () {
+		return this.Properties;
+	};
+	UndoRedoData_Slicer.prototype.getProperty = function (nType) {
+		switch (nType) {
+			case this.Properties.name:
+				return this.name;
+				break;
+			case this.Properties.from:
+				return this.from;
+				break;
+			case this.Properties.to:
+				return this.to;
+				break;
+		}
+		return null;
+	};
+	UndoRedoData_Slicer.prototype.setProperty = function (nType, value) {
+		switch (nType) {
+			case this.Properties.name:
+				this.name = value;
+				break;
+			case this.Properties.from:
+				this.from = value;
+				break;
+			case this.Properties.to:
+				this.to = value;
 				break;
 		}
 	};
@@ -2745,6 +2793,22 @@ function (window, undefined) {
 			var pivot = data.getData();
 			pivot.init();
 			ws.insertPivotTable(pivot, false, true);
+		} else if (AscCH.historyitem_Worksheet_SlicerAdd === Type) {
+			if (bUndo) {
+				ws.deleteSlicer(Data.to.name);
+			} else {
+				ws.aSlicers.push(Data.to);
+				Data.to.init(null, null, null, ws);
+				wb.onSlicerUpdate(Data.to.name);
+			}
+		} else if (AscCH.historyitem_Worksheet_SlicerDelete === Type) {
+			if (bUndo) {
+				ws.aSlicers.push(Data.from);
+				Data.from.init(null, null, null, ws);
+				wb.onSlicerUpdate(Data.from.name);
+			} else {
+				ws.deleteSlicer(Data.from.name);
+			}
 		}
 	};
 	UndoRedoWoorksheet.prototype.forwardTransformationIsAffect = function (Type) {
@@ -3160,7 +3224,7 @@ function (window, undefined) {
 				}
 				break;
 		}
-	};	//----------------------------------------------------------export----------------------------------------------------
+	};
 	function UndoRedoHeaderFooter(wb) {
 		this.wb = wb;
 		this.nType = UndoRedoClassTypes.Add(function () {
@@ -3219,6 +3283,171 @@ function (window, undefined) {
 		}
 	};
 
+	function UndoRedoSlicer(wb) {
+		this.wb = wb;
+		this.nType = UndoRedoClassTypes.Add(function () {
+			return AscCommonExcel.g_oUndoRedoSlicer;
+		});
+	}
+
+	UndoRedoSlicer.prototype.getClassType = function () {
+		return this.nType;
+	};
+	UndoRedoSlicer.prototype.Undo = function (Type, Data, nSheetId) {
+		this.UndoRedo(Type, Data, nSheetId, true);
+	};
+	UndoRedoSlicer.prototype.Redo = function (Type, Data, nSheetId) {
+		this.UndoRedo(Type, Data, nSheetId, false);
+	};
+	UndoRedoSlicer.prototype.UndoRedo = function (Type, Data, nSheetId, bUndo) {
+		var oModel = (null == nSheetId) ? this.wb : this.wb.getWorksheetById(nSheetId);
+		var api = window["Asc"]["editor"];
+		if (!api.wb || !oModel) {
+			return;
+		}
+
+		var slicer, slicerCache, updateByCacheName = null;
+		switch (Type) {
+			case AscCH.historyitem_Slicer_SetCaption: {
+				slicer = oModel.getSlicerByName(Data.name);
+				if (slicer) {
+					slicer.setCaption(bUndo ? Data.from : Data.to);
+				}
+				break;
+			}
+			case AscCH.historyitem_Slicer_SetCacheSourceName: {
+				slicer = oModel.getSlicerByName(Data.name);
+				if (slicer) {
+					slicer.setSourceName(bUndo ? Data.from : Data.to);
+				}
+				break;
+			}
+			case AscCH.historyitem_Slicer_SetTableColName: {
+				slicer = oModel.getSlicerByName(Data.name);
+				if (slicer) {
+					slicer.setTableCacheColName(bUndo ? Data.from : Data.to);
+				}
+				break;
+			}
+			case AscCH.historyitem_Slicer_SetTableName: {
+				slicer = oModel.getSlicerByName(Data.name);
+				if (slicer) {
+					slicer.setTableName(bUndo ? Data.from : Data.to);
+				}
+				break;
+			}
+			case AscCH.historyitem_Slicer_SetCacheName: {
+				slicer = oModel.getSlicerByName(Data.name);
+				if (slicer) {
+					slicer.setCacheName(bUndo ? Data.from : Data.to);
+					updateByCacheName = false;
+				}
+				break;
+			}
+			case AscCH.historyitem_Slicer_SetName: {
+				slicer = oModel.getSlicerByName(bUndo ? Data.to : Data.from);
+				if (slicer) {
+					slicer.setName(bUndo ? Data.from : Data.to);
+					this.wb.onSlicerUpdate(bUndo ? Data.from : Data.to);
+					updateByCacheName = false;
+				}
+				break;
+			}
+			case AscCH.historyitem_Slicer_SetStartItem: {
+				slicer = oModel.getSlicerByName(Data.name);
+				if (slicer) {
+					slicer.startItem = bUndo ? Data.from : Data.to;
+				}
+				break;
+			}
+			case AscCH.historyitem_Slicer_SetColumnCount: {
+				slicer = oModel.getSlicerByName(Data.name);
+				if (slicer) {
+					slicer.columnCount = bUndo ? Data.from : Data.to;
+				}
+				break;
+			}
+			case AscCH.historyitem_Slicer_SetShowCaption: {
+				slicer = oModel.getSlicerByName(Data.name);
+				if (slicer) {
+					slicer.showCaption = bUndo ? Data.from : Data.to;
+				}
+				break;
+			}
+			case AscCH.historyitem_Slicer_SetLevel: {
+				slicer = oModel.getSlicerByName(Data.name);
+				if (slicer) {
+					slicer.level = bUndo ? Data.from : Data.to;
+				}
+				break;
+			}
+			case AscCH.historyitem_Slicer_SetStyle: {
+				slicer = oModel.getSlicerByName(Data.name);
+				if (slicer) {
+					slicer.style = bUndo ? Data.from : Data.to;
+				}
+				break;
+			}
+			case AscCH.historyitem_Slicer_SetLockedPosition: {
+				slicer = oModel.getSlicerByName(Data.name);
+				if (slicer) {
+					slicer.lockedPosition = bUndo ? Data.from : Data.to;
+				}
+				break;
+			}
+			case AscCH.historyitem_Slicer_SetRowHeight: {
+				slicer = oModel.getSlicerByName(Data.name);
+				if (slicer) {
+					slicer.rowHeight = bUndo ? Data.from : Data.to;
+				}
+				break;
+			}
+			case AscCH.historyitem_Slicer_SetCacheSortOrder: {
+				slicerCache = oModel.getSlicerCacheByName(Data.name);
+				if (slicerCache) {
+					slicerCache.setSortOrder(bUndo ? Data.from : Data.to);
+					updateByCacheName = Data.name;
+				}
+				break;
+			}
+			case AscCH.historyitem_Slicer_SetCacheCustomListSort: {
+				slicerCache = oModel.getSlicerCacheByName(Data.name);
+				if (slicerCache) {
+					slicerCache.setCustomListSort(bUndo ? Data.from : Data.to);
+					updateByCacheName = Data.name;
+				}
+				break;
+			}
+			case AscCH.historyitem_Slicer_SetCacheCrossFilter: {
+				slicerCache = oModel.getSlicerCacheByName(Data.name);
+				if (slicerCache) {
+					slicerCache.setCrossFilter(bUndo ? Data.from : Data.to);
+					updateByCacheName = Data.name;
+				}
+				break;
+			}
+			case AscCH.historyitem_Slicer_SetCacheHideItemsWithNoData: {
+				slicerCache = oModel.getSlicerCacheByName(bUndo ? Data.to : Data.from);
+				if (slicerCache) {
+					slicerCache.setHideItemsWithNoData(bUndo ? Data.from : Data.to);
+					updateByCacheName = Data.name;
+				}
+				break;
+			}
+		}
+
+		if (updateByCacheName === null && slicer) {
+			this.wb.onSlicerUpdate(Data.name);
+		} else if (updateByCacheName) {
+			var slicers = oModel.getSlicersByCacheName(Data.name);
+			if (slicers) {
+				for (var i = 0; i < slicers.length; i++) {
+					this.wb.onSlicerUpdate(slicers[i].name);
+				}
+			}
+		}
+	};
+
 	//----------------------------------------------------------export----------------------------------------------------
 	window['AscCommonExcel'] = window['AscCommonExcel'] || {};
 	window['AscCommonExcel'].UndoRedoItemSerializable = UndoRedoItemSerializable;
@@ -3247,6 +3476,7 @@ function (window, undefined) {
 	window['AscCommonExcel'].UndoRedoData_SingleProperty = UndoRedoData_SingleProperty;
 	window['AscCommonExcel'].UndoRedoData_ArrayFormula = UndoRedoData_ArrayFormula;
 	window['AscCommonExcel'].UndoRedoData_SortState = UndoRedoData_SortState;
+	window['AscCommonExcel'].UndoRedoData_Slicer = UndoRedoData_Slicer;
 	window['AscCommonExcel'].UndoRedoWorkbook = UndoRedoWorkbook;
 	window['AscCommonExcel'].UndoRedoCell = UndoRedoCell;
 	window['AscCommonExcel'].UndoRedoWoorksheet = UndoRedoWoorksheet;
@@ -3260,6 +3490,7 @@ function (window, undefined) {
 	window['AscCommonExcel'].UndoRedoHeaderFooter = UndoRedoHeaderFooter;
 	window['AscCommonExcel'].UndoRedoSortState = UndoRedoSortState;
 	window['AscCommonExcel'].UndoRedoData_BinaryWrapper = UndoRedoData_BinaryWrapper;
+	window['AscCommonExcel'].UndoRedoSlicer = UndoRedoSlicer;
 
 	window['AscCommonExcel'].g_oUndoRedoWorkbook = null;
 	window['AscCommonExcel'].g_oUndoRedoCell = null;
@@ -3274,4 +3505,5 @@ function (window, undefined) {
 	window['AscCommonExcel'].g_oUndoRedoLayout = null;
 	window['AscCommonExcel'].g_UndoRedoArrayFormula = null;
 	window['AscCommonExcel'].g_oUndoRedoHeaderFooter = null;
+	window['AscCommonExcel'].g_oUndoRedoSlicer = null;
 })(window);

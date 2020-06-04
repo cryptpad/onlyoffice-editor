@@ -1699,6 +1699,11 @@
 				deltaX = this.smoothWheelCorrector.get_DeltaX(deltaX);
                 deltaY = this.smoothWheelCorrector.get_DeltaY(deltaY);
 			}
+			if(this.handlers.trigger("graphicObjectMouseWheel", deltaX, deltaY)) {
+				self._onMouseMove(event);
+				AscCommon.stopEvent(event);
+				return true;
+			}
 
 			this.handlers.trigger("updateWorksheet", /*x*/undefined, /*y*/undefined, /*ctrlKey*/undefined,
 				function () {

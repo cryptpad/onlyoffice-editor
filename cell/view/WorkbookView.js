@@ -64,7 +64,7 @@
   var c_oAscAsyncAction = asc.c_oAscAsyncAction;
   var c_oAscFontRenderingModeType = asc.c_oAscFontRenderingModeType;
   var c_oAscAsyncActionType = asc.c_oAscAsyncActionType;
-  
+
   var g_clipboardExcel = AscCommonExcel.g_clipboardExcel;
 
 
@@ -426,6 +426,8 @@
 				  return self._onGraphicObjectWindowKeyUp.apply(self, arguments);
 			  }, "graphicObjectWindowKeyPress": function () {
 				  return self._onGraphicObjectWindowKeyPress.apply(self, arguments);
+			  }, "graphicObjectMouseWheel": function () {
+				  return self._onGraphicObjecMouseWheel.apply(self, arguments);
 			  }, "getGraphicsInfo": function () {
 				  return self._onGetGraphicsInfo.apply(self, arguments);
 			  }, "updateSelectionShape": function () {
@@ -472,7 +474,7 @@
 				  var table = self.getSelectionInfo().formatTableInfo;
 				  return table && self.changeFormatTableInfo(table.tableName, Asc.c_oAscChangeTableStyleInfo.rowTotal, !table.lastRow);
 			  },
-			  
+
 			  //special paste
 			  "hideSpecialPasteOptions": function () {
 				  self.handlers.trigger("hideSpecialPasteOptions");
@@ -1294,6 +1296,18 @@
 			}
 		}
 
+		// check shape
+		if (ct.target === c_oTargetType.Shape) {
+		    if(typeof ct.tooltip === "string" && ct.tooltip.length > 0) {
+                arrMouseMoveObjects.push(new asc_CMM({
+                    type: c_oAscMouseMoveType.Tooltip,
+                    x: AscCommon.AscBrowser.convertToRetinaValue(x),
+                    y: AscCommon.AscBrowser.convertToRetinaValue(y),
+                    tooltip: ct.tooltip
+                }));
+            }
+		}
+
       /* Проверяем, может мы на никаком объекте (такая схема оказалась приемлимой
        * для отдела разработки приложений)
        */
@@ -1317,7 +1331,7 @@
     }
     asc_applyFunction(callback, ct);
   };
-  
+
   WorkbookView.prototype._onUpdateCursor = function (cursor) {
   	var newHtmlCursor = AscCommon.g_oHtmlCursor.value(cursor);
   	if (this.element.style.cursor !== newHtmlCursor) {
@@ -1488,6 +1502,13 @@
   WorkbookView.prototype._onGraphicObjectWindowKeyPress = function(e) {
     var objectRender = this.getWorksheet().objectRender;
     return (0 < objectRender.getSelectedGraphicObjects().length) ? objectRender.graphicObjectKeyPress(e) : false;
+  };
+  WorkbookView.prototype._onGraphicObjecMouseWheel = function(deltaX, deltaY) {
+    var objectRender = this.getWorksheet().objectRender;
+      if(objectRender && objectRender.controller) {
+          return objectRender.controller.onMouseWheel(deltaX, deltaY);
+      }
+    return false;
   };
 
   WorkbookView.prototype._onGetGraphicsInfo = function(x, y) {
@@ -1700,7 +1721,143 @@
   WorkbookView.prototype.getCellStyles = function(width, height) {
   	return AscCommonExcel.generateStyles(width, height, this.model.CellStyles, this);
   };
+  WorkbookView.prototype.getSlicerStyles = function() {
+      var oWorkbook = this.model;
+      var oSlicerStyles= oWorkbook.SlicerStyles;
+      var oTableStyles = oWorkbook.TableStyles;
+      var oAllSlicerStyles = oSlicerStyles.AllStyles;
+      var oAllTableStyles = oTableStyles.AllStyles;
+      var aStylesPreview = [];
+      for(var sStyleName in oAllSlicerStyles) {
+          if(oAllSlicerStyles.hasOwnProperty(sStyleName)) {
+              var oSlicerStyle = oAllSlicerStyles[sStyleName];
+              var oTableStyle = oAllTableStyles[sStyleName];
+              if(oSlicerStyle && oTableStyle) {
+                  aStylesPreview.push(this.getSlicerStylePreview(sStyleName, oSlicerStyle, oTableStyle));
+              }
+          }
+      }
+      return aStylesPreview;
+  };
+  WorkbookView.prototype.getSlicerStylePreview = function(sStyleName, oSlicerStyle, oTableStyle) {
+      var nW = 36, nH = 49;
+      var nCanvasW, nCanvasH;
+      var r = function (nPix) {
+          return AscCommon.AscBrowser.convertToRetinaValue(nPix, true);
+      }
+      nCanvasW = r(nW);
+      nCanvasH = r(nH);
+      var oCanvas = document.createElement("canvas");
+      oCanvas.width = nCanvasW;
+      oCanvas.height = nCanvasH;
+      var oDrawingContext = new Asc.DrawingContext(
+          {canvas: oCanvas, units: 0/*px*/, fmgrGraphics: Asc.editor.wb.fmgrGraphics, font: Asc.editor.wb.m_oFont});
+      
+      //white background
+      oDrawingContext.setFillStyle(new AscCommon.CColor(255, 255, 255)).fillRect(0, 0, nCanvasW, nCanvasH);
+      var oDXF;
 
+      var nIns = 2;
+      var nTIns = 3;
+      var nBH = 8;
+      var nTW = 8;
+      var nPos = 0;
+      var oFont;
+      var oColor;
+      //whole
+      oDXF = oTableStyle.wholeTable && oTableStyle.wholeTable.dxf;
+      if(oDXF) {
+          this.drawPreviewElement(oDXF, oDrawingContext, 0, 0, r(nW), r(nH));
+      }
+      //header
+      oDXF = oTableStyle.headerRow && oTableStyle.headerRow.dxf;
+      if(oDXF) {
+          this.drawPreviewElement(oDXF, oDrawingContext, 0, 0, r(nW), r(nBH));
+          oFont = oDXF.getFont();
+          if(oFont) {
+              oColor = oFont.getColor();
+          }
+          else {
+              oColor = new AscCommon.CColor(0, 0, 0)
+          }
+          oDrawingContext.setStrokeStyle(oColor);
+          oDrawingContext.setLineWidth(1);
+          oDrawingContext.beginPath();
+          oDrawingContext.lineHor(r(nTIns + nIns), r(nPos + nBH / 2.0), r(nTIns + nIns + nTW));
+          oDrawingContext.stroke();
+          nPos += (nBH + nIns)
+      }
+      var aBT = [
+          Asc.ST_slicerStyleType.selectedItemWithData,
+          Asc.ST_slicerStyleType.unselectedItemWithData,
+          Asc.ST_slicerStyleType.selectedItemWithNoData,
+          Asc.ST_slicerStyleType.unselectedItemWithNoData
+      ];
+      for(var nType = 0; nType < aBT.length; ++nType) {
+          oDXF = oSlicerStyle[aBT[nType]];
+          if(oDXF) {
+              this.drawPreviewElement(oDXF, oDrawingContext, r(nIns), r(nPos), r(nW - nIns), r(nPos + nBH));
+              oFont = oDXF.getFont();
+              if(oFont) {
+                  oColor = oFont.getColor();
+              }
+              else {
+                  oColor = new AscCommon.CColor(0, 0, 0)
+              }
+              oDrawingContext.setStrokeStyle(oColor);
+              oDrawingContext.setLineWidth(1);
+              oDrawingContext.beginPath();
+              oDrawingContext.lineHor(r(nTIns + nIns), r(nPos + nBH / 2.0), r(nTIns + nIns + nTW));
+              oDrawingContext.stroke();
+              nPos += (nIns + nBH);
+          }
+      }
+      return new AscCommon.CStyleImage(sStyleName, AscCommon.c_oAscStyleImage.Default, oCanvas.toDataURL("image/png"), undefined) ;
+  };
+  WorkbookView.prototype.drawPreviewElement = function(oDXF, oDrawingContext, x0, y0, x1, y1) {
+      var oFill = oDXF.getFill();
+      if(oFill) {
+          var findFillColor = oFill.getSolidFill();
+          if (findFillColor) {
+              oDrawingContext.setFillStyle(findFillColor).fillRect(x0, y0, x1 - x0, y1 - y0);
+          }
+          else {
+              var oGraphics = new AscCommon.CGraphics();
+              oGraphics.init(oDrawingContext.ctx, oDrawingContext.getWidth(0), oDrawingContext.getHeight(0),
+                  oDrawingContext.getWidth(3), oDrawingContext.getHeight(3));
+              oGraphics.m_oFontManager = AscCommon.g_fontManager;
+              AscCommonExcel.drawFillCell(oDrawingContext, oGraphics, oFill, new AscCommon.asc_CRect(x0, y0, x1 - x0, y1 - y0));
+          }
+      }
+      var oBorder = oDXF.getBorder();
+      if(oBorder) {
+          var oS = oBorder.l;
+          if(oS && oS.s !== AscCommon.c_oAscBorderStyles.None && oS.c) {
+              oDrawingContext.setStrokeStyle(oS.c).setLineWidth(1).setLineDash(oS.getDashSegments()).beginPath();
+              oDrawingContext.lineVer(x0, y0, y1);
+              oDrawingContext.stroke();
+          }
+          oS = oBorder.t;
+          if(oS && oS.s !== AscCommon.c_oAscBorderStyles.None && oS.c) {
+              oDrawingContext.setStrokeStyle(oS.c).setLineWidth(1).setLineDash(oS.getDashSegments()).beginPath();
+              oDrawingContext.lineHor(x0 + 1, y0, x1 - 1);
+              oDrawingContext.stroke();
+          }
+          oS = oBorder.r;
+          if(oS && oS.s !== AscCommon.c_oAscBorderStyles.None && oS.c) {
+              oDrawingContext.setStrokeStyle(oS.c).setLineWidth(1).setLineDash(oS.getDashSegments()).beginPath();
+              oDrawingContext.lineVer(x1 - 1, y0, y1);
+              oDrawingContext.stroke();
+          }
+          oS = oBorder.b;
+          if(oS && oS.s !== AscCommon.c_oAscBorderStyles.None && oS.c) {
+              oDrawingContext.setStrokeStyle(oS.c).setLineWidth(1).setLineDash(oS.getDashSegments()).beginPath();
+              oDrawingContext.lineHor(x0 + 1, y1 - 1, x1 - 1);
+              oDrawingContext.stroke();
+          }
+      }
+  };
+  
   WorkbookView.prototype.getWorksheetById = function(id, onlyExist) {
     var wsModel = this.model.getWorksheetById(id);
     if (wsModel) {
@@ -2294,7 +2451,7 @@
     ws = t.getWorksheet();
     g_clipboardExcel.pasteData(ws, _format, data1, data2, text_data, null, doNotShowButton);
   };
-  
+
   WorkbookView.prototype.specialPasteData = function(props) {
     if (!this.getCellEditMode()) {
 		this.getWorksheet().specialPaste(props);
@@ -2566,6 +2723,9 @@
         } else {
           t.model.editDefinesNames(oldName, newName);
         }
+        if (oldName && newName) {
+			ws.model.changeSlicerCacheName(oldName.asc_getName(), newName.asc_getName());
+		}
         t.handlers.trigger("asc_onEditDefName", oldName, newName);
         //условие исключает второй вызов asc_onRefreshDefNameList(первый в unlockDefName)
         if(!(t.collaborativeEditing.getCollaborativeEditing() && t.collaborativeEditing.getFast()))
@@ -2598,13 +2758,16 @@
       {
         tableRange = table.Ref;
       }
+    } else if (oldName) {
+      var slicerCache = ws.model.getSlicerCacheByCacheName(oldName.Name);
+      if (slicerCache) {
+        tableRange = slicerCache.getRange();
+      }
     }
-    if(tableRange)
-    {
+
+    if (tableRange) {
       ws._isLockedCells( tableRange, null, callback );
-    }
-    else
-    {
+    } else {
       callback();
     }
   };
@@ -2636,7 +2799,6 @@
       ws._isLockedDefNames(delDefinedNamesCallback, defNameId);
 
     }
-
   };
 
   WorkbookView.prototype.getDefaultDefinedName = function() {
@@ -2967,7 +3129,7 @@
 	WorkbookView.prototype.getTableStyles = function (props, bPivotTable) {
 		var wb = this.model;
 		var t = this;
-		
+
 		var result = [];
 		var canvas = document.createElement('canvas');
 		var tableStyleInfo;
@@ -3068,11 +3230,11 @@
 
 	var ySize = (h - 1) - 2 * startY;
 	var xSize = w - 2 * startX;
-	
+
 	var stepY = (ySize) / row;
 	var stepX = (xSize) / col;
 	var lineStepX = (xSize - 1) / 5;
-	
+
 	var whiteColor = new CColor(255, 255, 255);
 	var blackColor = new CColor(0, 0, 0);
 
@@ -3085,7 +3247,7 @@
 
 	ctx.setFillStyle(whiteColor);
 	ctx.fillRect(0, 0, xSize + 2 * startX, ySize + 2 * startY);
-	
+
 	var calculateLineVer = function(color, x, y1, y2)
 	{
 		ctx.beginPath();
@@ -3096,7 +3258,7 @@
 		ctx.stroke();
 		ctx.closePath();
 	};
-	
+
 	var calculateLineHor = function(color, x1, y, x2)
 	{
 		ctx.beginPath();
@@ -3107,7 +3269,7 @@
 		ctx.stroke();
 		ctx.closePath();
 	};
-	
+
 	var calculateRect = function(color, x1, y1, w, h)
 	{
 		ctx.beginPath();
@@ -3143,14 +3305,14 @@
 				compiledStylesArr[i] = [];
 			}
 			compiledStylesArr[i][j] = curStyle;
-			
+
 			//fill
 			color = curStyle && curStyle.fill && curStyle.fill.bg();
 			if(color)
 			{
 				calculateRect(color, j * stepX, i * stepY, stepX, stepY);
 			}
-			
+
 			//borders
 			//left
 			prevStyle = (j - 1 >= 0) ? compiledStylesArr[i][j - 1] : null;
@@ -3178,7 +3340,7 @@
 			{
 				calculateLineHor(color.c, j * stepX, (i + 1) * stepY, (j + 1) * stepX);
 			}
-			
+
 			//marks
 			color = (curStyle && curStyle.font && curStyle.font.c) || defaultColor;
 			calculateLineHor(color, j * lineStepX + 3, (i + 1) * stepY - stepY / 2, (j + 1) * lineStepX - 2);
@@ -3393,7 +3555,114 @@
 		});
 	};
 
-  //------------------------------------------------------------export---------------------------------------------------
+	WorkbookView.prototype.beforeInsertSlicer = function () {
+		return this.getWorksheet().beforeInsertSlicer();
+	};
+
+	WorkbookView.prototype.insertSlicers = function (arr) {
+		return this.getWorksheet().insertSlicers(arr);
+	};
+
+	WorkbookView.prototype.setFilterValuesFromSlicer = function (name, val) {
+		var slicer = this.model.getSlicerByName(name);
+		this.getWorksheet().setFilterValuesFromSlicer(slicer, val);
+	};
+
+	WorkbookView.prototype.deleteSlicer = function (name) {
+		for(var i in this.wsViews) {
+			this.wsViews[i].deleteSlicer(name);
+		}
+	};
+
+	WorkbookView.prototype.setSlicer = function (name, obj) {
+		for(var i in this.wsViews) {
+			var slicer = this.wsViews[i].model.getSlicerByName(name);
+			if (slicer) {
+				this.wsViews[i].setSlicer(slicer, obj);
+				break;
+			}
+		}
+	};
+
+	WorkbookView.prototype.setSlicers = function (names, obj) {
+		var slicers = [];
+		for(var j = 0; j < names.length; j++) {
+			for (var i in this.wsViews) {
+				var slicer = this.wsViews[i].model.getSlicerByName(names[j]);
+				if (slicer) {
+					slicers.push({ws: this.wsViews[i], slicer: slicer});
+					break;
+				}
+			}
+		}
+
+		var oThis = this;
+		var callback = function (success) {
+		    var oWSView = oThis.getWorksheet();
+			if (!success) {
+                oWSView.handlers.trigger("selectionChanged");
+				return;
+			}
+
+			History.StartTransaction();
+			for (var i = 0; i < slicers.length; i++) {
+				slicers[i].slicer.set(obj);
+			}
+			History.EndTransaction();
+            oWSView.handlers.trigger("selectionChanged");
+		};
+
+		if (slicers && slicers.length) {
+			this.checkLockSlicers(slicers, true, callback);
+		}
+	};
+
+	WorkbookView.prototype.checkLockSlicers = function (slicers, doLockRange, callback) {
+		var t = this;
+		var _lockMap = [];
+		var lockInfoArr = [];
+		var lockRanges = [];
+		var cache, defNameId, lockInfo, lockRange, sheetId;
+		for (var i = 0; i < slicers.length; i++) {
+			cache = slicers[i].slicer.getCacheDefinition();
+			sheetId =  slicers[i].ws.model.getId();
+			if (!_lockMap[cache.name]) {
+				_lockMap[cache.name] = 1;
+				defNameId = this.model.dependencyFormulas.getDefNameByName(cache.name, sheetId);
+				defNameId = defNameId ? defNameId.getNodeId() : null;
+				lockInfo = this.collaborativeEditing.getLockInfo(AscCommonExcel.c_oAscLockTypeElem.Object, null, -1, defNameId);
+				lockInfoArr.push(lockInfo);
+				if (doLockRange) {
+					lockRange = cache.getRange();
+					if (lockRange) {
+						lockRanges.push(this.collaborativeEditing.getLockInfo(AscCommonExcel.c_oAscLockTypeElem.Range, null, sheetId,
+							new AscCommonExcel.asc_CCollaborativeRange(lockRange.c1, lockRange.r1, lockRange.c2, lockRange.r2)));
+					}
+				}
+			}
+		}
+
+		var _callback = function (success) {
+			if (!success && callback) {
+				callback(false);
+			}
+
+			if (lockRanges && lockRanges.length) {
+				t.collaborativeEditing.lock(lockRanges, callback);
+			} else {
+				callback(true);
+			}
+		};
+
+		if (lockInfoArr && lockInfoArr.length) {
+			this.collaborativeEditing.lock(lockInfoArr, _callback);
+		} else {
+			_callback(true);
+		}
+	};
+
+
+	//------------------------------------------------------------export---------------------------------------------------
   window['AscCommonExcel'] = window['AscCommonExcel'] || {};
   window["AscCommonExcel"].WorkbookView = WorkbookView;
 })(window);

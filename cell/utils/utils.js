@@ -2103,6 +2103,9 @@
 
 				//Filter
 				this.filter = obj.filter;
+				
+				//Tooltip
+				this.tooltip = obj.tooltip;
 			}
 
 			return this;
@@ -2119,7 +2122,8 @@
 			asc_getLockedObjectType: function () { return this.lockedObjectType; },
 			asc_getSizeCCOrPt: function () { return this.sizeCCOrPt; },
 			asc_getSizePx: function () { return this.sizePx; },
-			asc_getFilter: function () { return this.filter; }
+			asc_getFilter: function () { return this.filter; },
+			asc_getTooltip: function () { return this.tooltip; }
 		};
 
 		// Гиперссылка
@@ -2854,6 +2858,11 @@
 			return api.asc_getLocaleExample(AscCommon.getShortTimeFormat(), this.getExcelDateWithTime(true) - this.getTimezoneOffset()/(60*24));
 		};
 
+		function getIconsForLoad() {
+			return AscCommonExcel.getCFIconsForLoad().concat(AscCommonExcel.getSlicerIconsForLoad());
+		}
+
+
 		/*
 		 * Export
 		 * -----------------------------------------------------------------------------
@@ -2905,6 +2914,7 @@
 		window["Asc"].getEndValueRange = getEndValueRange;
 		window["AscCommonExcel"].checkStylesNames = checkStylesNames;
 		window["AscCommonExcel"].generateStyles = generateStyles;
+		window["AscCommonExcel"].getIconsForLoad = getIconsForLoad;
 
 		window["AscCommonExcel"].referenceType = referenceType;
 		window["Asc"].Range = Range;
@@ -2933,6 +2943,7 @@
 		prot["asc_getSizeCCOrPt"] = prot.asc_getSizeCCOrPt;
 		prot["asc_getSizePx"] = prot.asc_getSizePx;
 		prot["asc_getFilter"] = prot.asc_getFilter;
+		prot["asc_getTooltip"] = prot.asc_getTooltip;
 
 		window["Asc"]["asc_CHyperlink"] = window["Asc"].asc_CHyperlink = asc_CHyperlink;
 		prot = asc_CHyperlink.prototype;

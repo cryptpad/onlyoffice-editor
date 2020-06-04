@@ -3060,6 +3060,7 @@
 			m.sy  = matrix.sy;
 			m.tx  = matrix.tx;
 			m.ty  = matrix.ty;
+			return m;
 		}
 
 		this.IsIdentity  = function(m)

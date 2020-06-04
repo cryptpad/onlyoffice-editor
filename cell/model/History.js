@@ -85,6 +85,8 @@ function (window, undefined) {
 	window['AscCH'].historyitem_Worksheet_PivotAdd = 40;
 	window['AscCH'].historyitem_Worksheet_PivotDelete = 41;
 	window['AscCH'].historyitem_Worksheet_PivotReplace = 42;
+	window['AscCH'].historyitem_Worksheet_SlicerAdd = 43;
+	window['AscCH'].historyitem_Worksheet_SlicerDelete = 44;
 
 	window['AscCH'].historyitem_RowCol_Fontname = 1;
 	window['AscCH'].historyitem_RowCol_Fontsize = 2;
@@ -229,6 +231,26 @@ function (window, undefined) {
 	window['AscCH'].historyitem_Different_Odd_Even = 10;
 
 	window['AscCH'].historyitem_SortState_Add = 1;
+
+	window['AscCH'].historyitem_Slicer_SetCaption = 1;
+	window['AscCH'].historyitem_Slicer_SetCacheSourceName = 2;
+	window['AscCH'].historyitem_Slicer_SetTableColName = 3;
+	window['AscCH'].historyitem_Slicer_SetTableName = 4;
+	window['AscCH'].historyitem_Slicer_SetCacheName = 5;
+	window['AscCH'].historyitem_Slicer_SetName = 6;
+	window['AscCH'].historyitem_Slicer_SetStartItem = 7;
+	window['AscCH'].historyitem_Slicer_SetColumnCount = 8;
+	window['AscCH'].historyitem_Slicer_SetShowCaption = 9;
+	window['AscCH'].historyitem_Slicer_SetLevel = 10;
+	window['AscCH'].historyitem_Slicer_SetStyle = 11;
+	window['AscCH'].historyitem_Slicer_SetLockedPosition = 12;
+	window['AscCH'].historyitem_Slicer_SetRowHeight = 13;
+	window['AscCH'].historyitem_Slicer_SetCacheSortOrder = 14;
+	window['AscCH'].historyitem_Slicer_SetCacheCustomListSort = 15;
+	window['AscCH'].historyitem_Slicer_SetCacheCrossFilter = 16;
+	window['AscCH'].historyitem_Slicer_SetCacheHideItemsWithNoData = 17;
+
+
 
 function CHistory()
 {
@@ -505,8 +527,10 @@ CHistory.prototype.UndoRedoEnd = function (Point, oRedoObjectParam, bUndo) {
 			this.workbook.handlers.trigger("changeWorksheetUpdate",
 				oRedoObjectParam.oChangeWorksheetUpdate[i],{lockDraw: true, reinitRanges: true});
 
-		for (i in Point.UpdateRigions)
+		for (i in Point.UpdateRigions) {
 			this.workbook.handlers.trigger("cleanCellCache", i, [Point.UpdateRigions[i]]);
+			this.workbook.getWorksheetById(i).updateSlicersByRange(Point.UpdateRigions[i]);
+		}
 
 		if (oRedoObjectParam.bOnSheetsChanged)
 			this.workbook.handlers.trigger("asc_onSheetsChanged");

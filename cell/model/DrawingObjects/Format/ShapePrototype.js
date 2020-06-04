@@ -755,7 +755,7 @@ CShape.prototype.recalculate = function ()
 
     }, this, []);
 };
-    
+
 CShape.prototype.recalculateBounds = function()
 {
     var boundsChecker = new  AscFormat.CSlideBoundsChecker();
@@ -775,7 +775,6 @@ CShape.prototype.recalculateBounds = function()
         this.drawingBase.checkBoundsFromTo();
     }
 };
-
 CShape.prototype.recalculateContent = function()
 {
     var content = this.getDocContent();

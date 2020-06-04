@@ -6308,6 +6308,22 @@ function RangeDataManagerElem(bbox, data)
 		return res;
 	};
 
+	TablePart.prototype.getTableRangeColumnByName = function (name) {
+		var res = null;
+		if (name === null || name === undefined || !this.TableColumns) {
+			return res;
+		}
+
+		for (var i = 0; i < this.TableColumns.length; i++) {
+			if (name.toLowerCase() === this.TableColumns[i].Name.toLowerCase()) {
+				res = new Asc.Range(this.Ref.c1 + i, this.Ref.r1, this.Ref.c1 + i, this.Ref.r2);
+				break;
+			}
+		}
+
+		return res;
+	};
+
 	TablePart.prototype.getTableNameColumnByIndex = function (index) {
 		var res = null;
 		if (index === null || index === undefined || !this.TableColumns) {
@@ -6458,6 +6474,14 @@ function RangeDataManagerElem(bbox, data)
 		}
 	};
 
+	TablePart.prototype.getColIdByName = function(name) {
+		for (var i = 0; i < this.TableColumns.length; i++) {
+			if (name === this.TableColumns[i].Name) {
+				return i;
+			}
+		}
+		return null;
+	};
 
 	/** @constructor */
 	function AutoFilter() {

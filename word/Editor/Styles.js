@@ -13623,6 +13623,43 @@ CTextPr.prototype.SetAscColor = function(oAscColor)
 
 	}
 };
+CTextPr.prototype.SetUnifill = function(oUnifill) {
+	this.Unifill = oUnifill;
+};
+CTextPr.prototype.FillFromExcelFont = function(oFont) {
+	if(!oFont) {
+		return;
+	}
+	var nSchemeFont = oFont.getScheme();
+	switch (nSchemeFont) {
+		case Asc.EFontScheme.fontschemeMajor: {
+			this.RFonts.Merge({
+				Ascii: {Name: "+mj-lt", Index: -1},
+				EastAsia: {Name: "+mj-ea", Index: -1},
+				CS: {Name: "+mj-cs", Index: -1}
+			});
+			break;
+		}
+		case Asc.EFontScheme.fontschemeMinor: {
+			this.RFonts.Merge({
+				Ascii: {Name: "+mn-lt", Index: -1},
+				EastAsia: {Name: "+mn-ea", Index: -1},
+				CS: {Name: "+mn-cs", Index: -1}
+			});
+			break;
+		}
+		case Asc.EFontScheme.fontschemeNone: {
+			this.RFonts.Set_All(oFont.getName(), -1);
+			break;
+		}
+	}
+	this.SetFontSize(oFont.getSize());
+	this.SetBold(oFont.getBold());
+	this.SetItalic(oFont.getItalic());
+	this.SetUnderline(oFont.getUnderline());
+	var oColor = oFont.getColor();
+	this.SetUnifill(AscFormat.CreateSolidFillRGBA(oColor.getR(), oColor.getG(), oColor.getB(), 255));
+};
 CTextPr.prototype.GetVertAlign = function()
 {
     return this.VertAlign;

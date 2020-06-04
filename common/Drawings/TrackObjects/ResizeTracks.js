@@ -313,7 +313,16 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
         this.transform = originalObject.transform.CreateDublicate();
         this.geometry = AscFormat.ExecuteNoHistory(function(){ return originalObject.getGeom().createDuplicate();}, this, []);
         this.cropObject = originalObject.cropObject;
-        if(!originalObject.isChart())
+        var nObjectType = originalObject.getObjectType && originalObject.getObjectType();
+        if(nObjectType === AscDFH.historyitem_type_Chart 
+            || nObjectType === AscDFH.historyitem_type_GraphicFrame
+            || nObjectType === AscDFH.historyitem_type_SlicerView) 
+        {
+            var pen_brush = CreatePenBrushForChartTrack();
+            this.brush = pen_brush.brush;
+            this.pen = pen_brush.pen;
+        }
+        else
         {
             if(originalObject.blipFill)
             {
@@ -326,13 +335,6 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
             }
             this.pen = originalObject.pen;
         }
-        else
-        {
-            var pen_brush = CreatePenBrushForChartTrack();
-            this.brush = pen_brush.brush;
-            this.pen = pen_brush.pen;
-        }
-
 
 
         this.isLine = originalObject.spPr && originalObject.spPr.geometry && originalObject.spPr.geometry.preset === "line";

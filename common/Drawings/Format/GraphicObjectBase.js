@@ -831,9 +831,6 @@
         return oProps;
     };
 
-
-
-
     CGraphicObjectBase.prototype.CheckCorrect = function(){
         return this.checkCorrect();
     };
@@ -878,6 +875,26 @@
             this.drawingBase.ext.cy = fExtY;
             this.handleUpdateExtents();
         }
+    };
+    CGraphicObjectBase.prototype.setTransformParams = function(x, y, extX, extY, rot, flipH, flipV)
+    {
+        if(!this.spPr)
+        {
+            this.setSpPr(new AscFormat.CSpPr());
+            this.spPr.setParent(this);
+        }
+        if(!this.spPr.xfrm)
+        {
+            this.spPr.setXfrm(new AscFormat.CXfrm());
+            this.spPr.xfrm.setParent(this.spPr);
+        }
+        this.spPr.xfrm.setOffX(x);
+        this.spPr.xfrm.setOffY(y);
+        this.spPr.xfrm.setExtX(extX);
+        this.spPr.xfrm.setExtY(extY);
+        this.spPr.xfrm.setRot(rot);
+        this.spPr.xfrm.setFlipH(flipH);
+        this.spPr.xfrm.setFlipV(flipV);
     };
 
     CGraphicObjectBase.prototype.getPlaceholderType = function()
@@ -1453,6 +1470,9 @@
         }
         return AscFormat.hitToHandles(x, y, this);
     };
+    CGraphicObjectBase.prototype.onMouseMove = function (e, x, y) {
+        return this.hit(x, y);
+    };
     CGraphicObjectBase.prototype.drawLocks = function(transform, graphics){
         var bNotes = !!(this.parent && this.parent.kind === AscFormat.TYPE_KIND.NOTES);
         if(!this.group && !bNotes)
@@ -1937,7 +1957,30 @@
         return  AscCommon.CreateDrawingPlaceholder(this.Id, aButtons, nSlideNum, { x : 0, y : 0, w : this.extX, h : this.extY }, this.transform);
     };
 
+    CGraphicObjectBase.prototype.onSlicerUpdate = function(sName){
+        return false;
+    };
 
+    CGraphicObjectBase.prototype.onSlicerLock = function(sName, bLock){
+    };
+
+    CGraphicObjectBase.prototype.onSlicerDelete = function(sName){
+        return false;
+    };
+    CGraphicObjectBase.prototype.onSlicerChangeName = function(sName, sNewName){
+        return false;
+    };
+
+    CGraphicObjectBase.prototype.onUpdate = function (oRect) {
+        if(this.drawingBase) {
+            this.drawingBase.onUpdate(oRect);
+        }
+        else {
+            if(this.group) {
+                this.group.onUpdate(oRect)
+            }
+        }
+    };
     function CRelSizeAnchor() {
         CBaseObject.call(this);
         this.fromX = null;

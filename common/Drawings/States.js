@@ -256,6 +256,7 @@ function NullState(drawingObjects)
 {
     this.drawingObjects = drawingObjects;
     this.startTargetTextObject = null;
+    this.lastMoveHandler = null;
 }
 
 NullState.prototype =
@@ -369,16 +370,67 @@ NullState.prototype =
 
             }
         }
+        else
+        {
+            if(this.lastMoveHandler)
+            {
+                var oRet = {};
+                oRet.objectId = this.lastMoveHandler.Get_Id();
+                oRet.bMarker = false;
+                oRet.cursorType = "default";
+                oRet.tooltip = null;
+                return oRet;
+            }
+        }
         return null;
     },
 
     onMouseMove: function(e, x, y, pageIndex)
-    {},
+    {
+        var aDrawings = this.drawingObjects.getDrawingArray();
+        var _x = x, _y = y, oDrawing;
+        this.lastMoveHandler = null;
+        for(var nDrawing = aDrawings.length - 1; nDrawing > -1; --nDrawing) {
+            oDrawing = aDrawings[nDrawing];
+            if(oDrawing.onMouseMove(e, _x, _y)) {
+                this.lastMoveHandler = oDrawing;
+                _x = -1000;
+            }
+        }
+    },
 
     onMouseUp: function(e, x, y, pageIndex)
     {}
 };
 
+
+
+    function SlicerState(drawingObjects, oSlicer) {
+        this.drawingObjects = drawingObjects;
+        this.slicer = oSlicer;
+    }
+    SlicerState.prototype.onMouseDown = function (e, x, y, pageIndex) {
+        if(this.drawingObjects.handleEventMode === HANDLE_EVENT_MODE_CURSOR)
+        {
+            return {cursorType: "default", objectId: this.slicer.Get_Id()};
+        }
+        return null;
+    };
+    SlicerState.prototype.onMouseMove = function (e, x, y, pageIndex) {
+        if(!e.IsLocked) {
+            return this.onMouseUp(e, x, y, pageIndex);
+        }
+        this.slicer.onMouseMove(e, x, y, pageIndex);
+    };
+    SlicerState.prototype.onMouseUp = function (e, x, y, pageIndex) {
+        if(this.drawingObjects.handleEventMode === HANDLE_EVENT_MODE_CURSOR)
+        {
+            return {cursorType: "default", objectId: this.slicer.Get_Id()};
+        }
+        var bRet = this.slicer.onMouseUp(e, x, y, pageIndex);
+        this.drawingObjects.changeCurrentState(new NullState(this.drawingObjects));
+        return bRet;
+    };
 function TrackSelectionRect(drawingObjects)
 {
     this.drawingObjects = drawingObjects;
@@ -2419,6 +2471,7 @@ function TrackTextState(drawingObjects, majorObject, x, y) {
     window['AscFormat'].SNAP_DISTANCE = SNAP_DISTANCE;
     window['AscFormat'].StartAddNewShape = StartAddNewShape;
     window['AscFormat'].NullState = NullState;
+    window['AscFormat'].SlicerState = SlicerState;
     window['AscFormat'].PreChangeAdjState = PreChangeAdjState;
     window['AscFormat'].PreRotateState = PreRotateState;
     window['AscFormat'].PreResizeState = PreResizeState;

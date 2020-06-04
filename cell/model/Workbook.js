@@ -934,11 +934,11 @@
 		delTableName: function(tableName, bConvertTableFormulaToRef) {
 			this.buildDependency();
 			var defName = this.getDefNameByName(tableName);
-			
+
 			this.addToChangedDefName(defName);
 			var notifyData = {type: c_oNotifyType.ChangeDefName, from: defName.getUndoDefName(), to: null, bConvertTableFormulaToRef: bConvertTableFormulaToRef};
 			this._broadcastDefName(tableName, notifyData);
-			
+
 			this._delDefName(tableName, null);
 			if (defName) {
 				defName.removeDependencies();
@@ -1967,6 +1967,7 @@
 
 		this.CellStyles = new AscCommonExcel.CCellStyles();
 		this.TableStyles = new Asc.CTableStyles();
+		this.SlicerStyles = new Asc.CSlicerStyles();
 		this.oStyleManager = new AscCommonExcel.StyleManager();
 		this.sharedStrings = new AscCommonExcel.CSharedStrings();
 		this.workbookFormulas = new AscCommonExcel.CWorkbookFormulas();
@@ -2004,7 +2005,7 @@
 		//временно добавляю новый вставляемый лист, чтобы не передавать параметры через большое количество функций
 		this.addingWorksheet = null;
 	}
-	Workbook.prototype.init=function(tableCustomFunc, bNoBuildDep, bSnapshot){
+	Workbook.prototype.init=function(tableCustomFunc, tableIds, bNoBuildDep, bSnapshot){
 		if(this.nActive < 0)
 			this.nActive = 0;
 		if(this.nActive >= this.aWorksheets.length)
@@ -2021,6 +2022,10 @@
 			},
 			"deleteColumnTablePart": function(tableName, deleted) {
 				self.dependencyFormulas.delColumnTable(tableName, deleted);
+				var wsActive = self.getActiveWs();
+				if (wsActive) {
+					wsActive.deleteSlicersByTableCol(tableName, deleted);
+				}
 			}, 'onFilterInfo' : function () {
 				self.handlers.trigger("asc_onFilterInfo");
 			}
@@ -2031,7 +2036,7 @@
 		}
 		//ws
 		this.forEach(function (ws) {
-			ws.initPostOpen(self.wsHandlers);
+			ws.initPostOpen(self.wsHandlers, tableIds);
 		});
 		//show active if it hidden
 		var wsActive = this.getActiveWs();
@@ -2131,7 +2136,7 @@
 		var oNewWorksheet = new Worksheet(this, this.aWorksheets.length, sId);
 		if (this.checkValidSheetName(sName))
 			oNewWorksheet.sName = sName;
-		oNewWorksheet.initPostOpen(this.wsHandlers);
+		oNewWorksheet.initPostOpen(this.wsHandlers, {});
 		if(null != indexBefore && indexBefore >= 0 && indexBefore < this.aWorksheets.length)
 			this.aWorksheets.splice(indexBefore, 0, oNewWorksheet);
 		else
@@ -2179,7 +2184,7 @@
 			if(!opt_sheet) {
 				newSheet.copyFromFormulas(renameParams);
 			}
-			newSheet.initPostOpen(this.wsHandlers);
+			newSheet.initPostOpen(this.wsHandlers, {});
 			History.TurnOn();
 
 			this.dependencyFormulas.copyDefNameByWorksheet(wsFrom, newSheet, renameParams, opt_sheet);
@@ -2585,7 +2590,7 @@
 			wb.aWorksheetsById[ws.getId()] = ws;
 		});
 		//init trigger
-		wb.init({}, true, false);
+		wb.init({}, {}, true, false);
 		return wb;
 	};
 	Workbook.prototype.getAllFormulas = function() {
@@ -3175,9 +3180,85 @@
 		}
 		return null;
 	};
+	Workbook.prototype.getSlicerCacheByName = function (name) {
+		for (var i = 0, l = this.aWorksheets.length; i < l; ++i) {
+			var cache = this.aWorksheets[i].getSlicerCacheByName(name);
+			if (cache) {
+				return cache;
+			}
+		}
+		return null;
+	};
+	Workbook.prototype.getSlicerCacheByCacheName = function (name) {
+		for (var i = 0, l = this.aWorksheets.length; i < l; ++i) {
+			var cache = this.aWorksheets[i].getSlicerCacheByCacheName(name);
+			if (cache) {
+				return cache;
+			}
+		}
+		return null;
+	};
+	Workbook.prototype.getSlicerStyle = function (name) {
+		var slicer = this.getSlicerByName(name);
+		if (slicer) {
+			return slicer.style;
+		}
+		return null;
+	};
+	Workbook.prototype.getSlicerByName = function (name) {
+		for (var i = 0, l = this.aWorksheets.length; i < l; ++i) {
+			var slicer = this.aWorksheets[i].getSlicerByName(name);
+			if (slicer) {
+				return slicer;
+			}
+		}
+		return null;
+	};
+	Workbook.prototype.getSlicersByCacheName = function (name) {
+		var res = [];
+		for (var i = 0, l = this.aWorksheets.length; i < l; ++i) {
+			var slicers = this.aWorksheets[i].getSlicersByCacheName(name);
+			if (slicers) {
+				res = res.concat(slicers);
+			}
+		}
+		return res;
+	};
 	Workbook.prototype.getDrawingDocument = function() {
 		return this.DrawingDocument;
 	};
+	Workbook.prototype.onSlicerUpdate = function(sName) {
+		var bRet = false;
+		for(var i = 0; i < this.aWorksheets.length; ++i) {
+			bRet = bRet || this.aWorksheets[i].onSlicerUpdate(sName);
+		}
+		return bRet;
+	};
+	Workbook.prototype.onSlicerDelete = function(sName) {
+		var bRet = false;
+		for(var i = 0; i < this.aWorksheets.length; ++i) {
+			bRet = bRet || this.aWorksheets[i].onSlicerDelete(sName);
+		}
+		return bRet;
+	};
+	Workbook.prototype.onSlicerLock = function(sName, bLock) {
+		for(var i = 0; i < this.aWorksheets.length; ++i) {
+			this.aWorksheets[i].onSlicerLock(sName, bLock);
+		}
+	};
+	Workbook.prototype.onSlicerChangeName = function(sName, sNewName) {
+		for(var i = 0; i < this.aWorksheets.length; ++i) {
+			this.aWorksheets[i].onSlicerChangeName(sName, sNewName);
+		}
+	};
+	Workbook.prototype.deleteSlicer = function(sName) {
+		var bRet = false;
+		for(var i = 0; i < this.aWorksheets.length; ++i) {
+			bRet = bRet || this.aWorksheets[i].deleteSlicer(sName);
+		}
+		return bRet;
+	};
+
 //-------------------------------------------------------------------------------------------------
 	var tempHelp = new ArrayBuffer(8);
 	var tempHelpUnit = new Uint8Array(tempHelp);
@@ -3452,6 +3533,8 @@
 
 		/*handlers*/
 		this.handlers = null;
+
+		this.aSlicers = [];
 	}
 
 	Worksheet.prototype.getCompiledStyle = function (row, col, opt_cell, opt_styleComponents) {
@@ -3620,7 +3703,7 @@
 			this.sheetPr = wsFrom.sheetPr.clone();
 
 		this.selectionRange = wsFrom.selectionRange.clone(this);
-		
+
 		if(wsFrom.PagePrintOptions) {
 			this.PagePrintOptions = wsFrom.PagePrintOptions.clone(this);
 		}
@@ -3753,7 +3836,7 @@
 		this.initColumn(this.oAllCol);
 		this.aCols.forEach(this.initColumn, this);
 	};
-	Worksheet.prototype.initPostOpen = function (handlers) {
+	Worksheet.prototype.initPostOpen = function (handlers, tableIds) {
 		this.PagePrintOptions.init();
 		this.headerFooter.init();
 		if (this.dataValidations) {
@@ -3771,6 +3854,9 @@
 
 		this.handlers = handlers;
 		this._setHandlersTablePart();
+		this.aSlicers.forEach(function(elem){
+			elem.initPostOpen(tableIds);
+		})
 	};
 	Worksheet.prototype._getValuesForConditionalFormatting = function(ranges, numbers) {
 		var res = [];
@@ -6200,6 +6286,21 @@
 		}
 		return res;
 	};
+	Worksheet.prototype.getTableRangeColumnByName = function(tableName, columnName){
+		var res = null;
+		if(!this.TableParts || !tableName)
+			return res;
+
+		for(var i = 0; i < this.TableParts.length; i++)
+		{
+			if(this.TableParts[i].DisplayName.toLowerCase() === tableName.toLowerCase())
+			{
+				res = this.TableParts[i].getTableRangeColumnByName(columnName);
+				break;
+			}
+		}
+		return res;
+	};
 	Worksheet.prototype.isApplyFilterBySheet = function () {
 		var res = false;
 
@@ -6426,7 +6527,7 @@
 			var tablePart = this.TableParts[index];
 			this.workbook.dependencyFormulas.delTableName(tablePart.DisplayName, bConvertTableFormulaToRef);
 			tablePart.removeDependencies();
-			
+
 			//delete table
 			this.TableParts.splice(index, 1);
 		}
@@ -6439,7 +6540,7 @@
 				tablePart.removeDependencies();
 			}
 		}
-		
+
 	};
 	Worksheet.prototype.checkPivotReportLocationForError = function(ranges, exceptPivot) {
 		for (var i = 0; i < ranges.length; ++i) {
@@ -7148,7 +7249,7 @@
 	};
 	Worksheet.prototype.checkMovePivotTable = function(arnFrom, arnTo, ctrlKey) {
 		if (this.inPivotTable(arnFrom)) {
-			var intersectionTableParts = this.autoFilters.getTableIntersectionRange(arnTo);
+			var intersectionTableParts = this.autoFilters.getTablesIntersectionRange(arnTo);
 			for (var i = 0; i < intersectionTableParts.length; i++) {
 				if(intersectionTableParts[i] && intersectionTableParts[i].Ref && !arnTo.containsRange(intersectionTableParts[i].Ref)) {
 					return c_oAscError.ID.PivotOverlap;
@@ -7890,6 +7991,318 @@
 	};
 
 
+	Worksheet.prototype.insertSlicer = function (name, obj_name, type) {
+		History.Create_NewPoint();
+		History.StartTransaction();
+
+		//TODO недостаточно ли вместо всей данной длинной структуры использовать только tableId(name) и columnName?
+		var slicer = new window['Asc'].CT_slicer(this);
+		slicer.init(name, obj_name, type);
+		this.aSlicers.push(slicer);
+		var oCache = slicer.getCacheDefinition();
+
+		History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_SlicerAdd, this.getId(), null,
+			new AscCommonExcel.UndoRedoData_FromTo(null, slicer));
+
+		if (oCache) {
+			var _name = oCache.name;
+			var newDefName = new Asc.asc_CDefName(_name, "#N/A", null, false, null, null, true);
+			this.workbook.editDefinesNames(null, newDefName);
+		}
+
+		History.EndTransaction();
+		return slicer;
+	};
+
+	Worksheet.prototype.deleteSlicer = function (name) {
+		var res = false;
+
+		History.Create_NewPoint();
+		History.StartTransaction();
+
+		var slicerObj = this.getSlicerIndexByName(name);
+		if (null !== slicerObj) {
+			this.aSlicers.splice(slicerObj.index, 1);
+			History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_SlicerDelete, this.getId(), null,
+				new AscCommonExcel.UndoRedoData_FromTo(slicerObj.obj, null));
+			this.workbook.onSlicerDelete(name);
+			res = true;
+			if (!this.workbook.bUndoChanges && !this.workbook.bRedoChanges) {
+				var cache = slicerObj.obj.getCacheDefinition();
+				if (cache && null === this.getSlicersByCacheName(cache.name)) {
+					this.workbook.dependencyFormulas.delTableName(cache.name);
+				}
+			}
+		}
+
+		History.EndTransaction();
+		return res;
+	};
+
+	Worksheet.prototype.getSlicerCachesBySourceName = function (name) {
+		var res = null
+		for (var i = 0; i < this.aSlicers.length; i++) {
+			var cache = this.aSlicers[i].getSlicerCache();
+			if (cache && name === cache.sourceName) {
+				if (!res) {
+					res = [];
+				}
+				res.push(cache);
+			}
+		}
+
+		return res;
+	};
+
+	Worksheet.prototype.getSlicersByCaption = function (name) {
+		var res = [];
+
+		for (var i = 0; i < this.aSlicers.length; i++) {
+			if (name === this.aSlicers[i].caption) {
+				res.push({obj: this.aSlicers[i], index: i});
+			}
+		}
+
+		return res.length ? res : null;
+	};
+
+	Worksheet.prototype.getSlicersByCacheName = function (name) {
+		var res = [];
+
+		for (var i = 0; i < this.aSlicers.length; i++) {
+			var cache = this.aSlicers[i].getSlicerCache();
+			if (cache && name === cache.name) {
+				res.push(this.aSlicers[i]);
+			}
+		}
+
+		return res.length ? res : null;
+	};
+
+	Worksheet.prototype.getSlicerCacheByCacheName = function (name) {
+		for (var i = 0; i < this.aSlicers.length; i++) {
+			var cache = this.aSlicers[i].getSlicerCache();
+			if (cache && name === cache.name) {
+				return cache;
+			}
+		}
+
+		return null;
+	};
+
+	Worksheet.prototype.getSlicerByName = function (name) {
+		var res = null;
+
+		for (var i = 0; i < this.aSlicers.length; i++) {
+			if (name === this.aSlicers[i].name) {
+				res = this.aSlicers[i];
+				break;
+			}
+		}
+
+		return res;
+	};
+
+	Worksheet.prototype.getSlicerIndexByName = function (name) {
+		var res = null;
+
+		for (var i = 0; i < this.aSlicers.length; i++) {
+			if (name === this.aSlicers[i].name) {
+				res = {obj: this.aSlicers[i], index: i};
+				break;
+			}
+		}
+
+		return res;
+	};
+
+	Worksheet.prototype.getSlicerCacheByName = function (name) {
+		for (var i = 0; i < this.aSlicers.length; i++) {
+			var cache = this.aSlicers[i].getSlicerCache();
+			if (cache && name === cache.name) {
+				return cache;
+			}
+		}
+
+		return null;
+	};
+
+	Worksheet.prototype.getSlicersByTableName = function (val) {
+		var res = [];
+		for (var i = 0; i < this.aSlicers.length; i++) {
+			//пока сделал только для форматированных таблиц
+			var tableSlicerCache = this.aSlicers[i].getTableSlicerCache();
+			if (tableSlicerCache && tableSlicerCache.tableId === val) {
+				res.push(this.aSlicers[i]);
+			}
+		}
+		return res.length ? res : null;
+	};
+
+	Worksheet.prototype.getSlicersByTableColName = function (tableName, colName) {
+		var res = [];
+		for (var i = 0; i < this.aSlicers.length; i++) {
+			//пока сделал только для форматированных таблиц
+			var tableSlicerCache = this.aSlicers[i].getTableSlicerCache();
+			if (tableSlicerCache && tableSlicerCache.tableId === tableName && tableSlicerCache.column === colName) {
+				res.push(this.aSlicers[i]);
+			}
+		}
+		return res.length ? res : null;
+	};
+
+	Worksheet.prototype.changeTableColName = function (tableName, oldVal, newVal) {
+		if (this.workbook.bUndoChanges || this.workbook.bRedoChanges) {
+			return;
+		}
+
+		var slicers = this.getSlicersByTableColName(tableName, oldVal);
+		if (slicers) {
+			History.Create_NewPoint();
+			History.StartTransaction();
+
+			for (var i = 0; i < slicers.length; i++) {
+				slicers[i].setTableColName(oldVal, newVal);
+			}
+
+			History.EndTransaction();
+		}
+	};
+
+	Worksheet.prototype.changeTableName = function (oldVal, newVal) {
+		if (this.workbook.bUndoChanges || this.workbook.bRedoChanges) {
+			return;
+		}
+
+		var slicers = this.getSlicersByTableName(oldVal);
+		if (slicers) {
+			History.Create_NewPoint();
+			History.StartTransaction();
+
+			for (var i = 0; i < slicers.length; i++) {
+				slicers[i].setTableName(newVal);
+			}
+
+			History.EndTransaction();
+		}
+	};
+
+	Worksheet.prototype.setSlicerTableName = function (tableName, newTableName) {
+		//TODO history
+		for (var i = 0; i < this.aSlicers.length; i++) {
+			var tableSlicerCache = this.aSlicers[i].getTableSlicerCache();
+			if (tableSlicerCache && tableSlicerCache.tableId === tableName) {
+				tableSlicerCache.setTableName(newTableName);
+			}
+		}
+	};
+	Worksheet.prototype.onSlicerUpdate = function (sName) {
+		var bRet = false;
+		for(var i = 0; i < this.Drawings.length; ++i) {
+			bRet = bRet || this.Drawings[i].onSlicerUpdate(sName);
+		}
+		return bRet;
+	};
+
+	Worksheet.prototype.onSlicerDelete = function (sName) {
+		var bRet = false;
+		for(var i = 0; i < this.Drawings.length; ++i) {
+			bRet = bRet || this.Drawings[i].onSlicerDelete(sName);
+		}
+		return bRet;
+	};
+	Worksheet.prototype.onSlicerLock = function (sName, bLock) {
+		for(var i = 0; i < this.Drawings.length; ++i) {
+			this.Drawings[i].onSlicerLock(sName, bLock);
+		}
+	};
+	Worksheet.prototype.onSlicerChangeName = function (sName, sNewName) {
+		for(var i = 0; i < this.Drawings.length; ++i) {
+			this.Drawings[i].onSlicerChangeName(sName, sNewName);
+		}
+	};
+
+	Worksheet.prototype.deleteSlicersByTable = function (tableName) {
+		History.Create_NewPoint();
+		History.StartTransaction();
+
+		var slicers = this.getSlicersByTableName(tableName);
+		if (slicers) {
+			for (var i = 0; i < slicers.length; i++) {
+				this.deleteSlicer(slicers[i].name);
+			}
+		}
+
+		History.EndTransaction();
+	};
+
+	Worksheet.prototype.deleteSlicersByTableCol = function (tableName, colMap) {
+		History.Create_NewPoint();
+		History.StartTransaction();
+
+		for (var j in colMap) {
+			var slicers = this.getSlicersByTableColName(tableName, j);
+			if (slicers) {
+				for (var i = 0; i < slicers.length; i++) {
+					this.deleteSlicer(slicers[i].name);
+				}
+			}
+		}
+
+		History.EndTransaction();
+	};
+
+	Worksheet.prototype.changeSlicerCacheName = function (oldVal, newVal) {
+		if (this.workbook.bUndoChanges || this.workbook.bRedoChanges) {
+			return;
+		}
+
+		var slicers = this.getSlicersByCacheName(oldVal);
+		if (slicers) {
+			History.Create_NewPoint();
+			History.StartTransaction();
+
+			for (var i = 0; i < slicers.length; i++) {
+				slicers[i].setCacheName(newVal);
+			}
+
+			History.EndTransaction();
+		}
+	};
+
+	Worksheet.prototype.checkChangeTablesContent = function (arn) {
+		this.autoFilters.renameTableColumn(arn);
+		var tables = this.autoFilters.getTablesIntersectionRange(arn);
+		if (tables) {
+			for (var i = 0; i < tables.length; i++) {
+				this.slicersUpdateAfterChangeTable(tables[i].DisplayName);
+			}
+		}
+	};
+
+	Worksheet.prototype.updateSlicersByRange = function (range) {
+		var tables = this.autoFilters.getTablesIntersectionRange(range);
+		if (tables) {
+			for (var i = 0; i < tables.length; i++) {
+				this.slicersUpdateAfterChangeTable(tables[i].DisplayName);
+			}
+		}
+		var pivot = false;
+		if (pivot) {
+
+		}
+	};
+
+	Worksheet.prototype.slicersUpdateAfterChangeTable = function (name) {
+		var slicers = this.getSlicersByTableName(name);
+		if (slicers) {
+			for (var j = 0; j < slicers.length; j++) {
+				this.workbook.onSlicerUpdate(slicers[j].name);
+			}
+		}
+	};
+
+
 //-------------------------------------------------------------------------------------------------
 	var g_nCellOffsetFlag = 0;
 	var g_nCellOffsetXf = g_nCellOffsetFlag + 1;
@@ -8146,7 +8559,7 @@
 		}
 		return (0 <= isWordEnter) &&
 		(true !== options.isWholeCell || options.findWhat.length === cellText.length);
-	
+
 	};
 	Cell.prototype.isNullText=function(){
 		return this.isNullTextString() && !this.formulaParsed;
@@ -10551,7 +10964,7 @@
 	Range.prototype.setValueData = function(val){
 		History.Create_NewPoint();
 		History.StartTransaction();
-		
+
 		this._foreach(function(cell){
 			cell.setValueData(val);
 		});
@@ -12695,7 +13108,7 @@
 			});
 			return oCell ? fAddSortElems(oCell, row, col) : null;
 		};
-		
+
 		putElem = false;
 		if (isSortColor) {
 			var newArrayNeedColor = [];

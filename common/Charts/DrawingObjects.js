@@ -405,7 +405,7 @@ function getCurrentTime() {
     return currDate.getTime();
 }
 
-function roundPlus(x, n) { //x - число, n - количество знаков 
+function roundPlus(x, n) { //x - число, n - количество знаков
     if ( isNaN(x) || isNaN(n) ) return false;
     var m = Math.pow(10,n);
     return Math.round(x * m) / m;
@@ -1720,6 +1720,55 @@ GraphicOption.prototype.union = function(oGraphicOption) {
             this.graphicObject.draw(graphics);
         }
     };
+    DrawingBase.prototype.getBoundsFromTo = function() {
+        return this.boundsFromTo;
+    };
+    DrawingBase.prototype.onUpdate = function (oRect) {
+        var oDO = this.getDrawingObjects();
+        if(!oDO) {
+            return;
+        }
+        var oRange, oClipRect = null;
+        if(this.isUseInDocument()) {
+            if(!oRect) {
+                var oB = this.getBoundsFromTo();
+                var c1 = oB.from.col;
+                var r1 = oB.from.row;
+                var c2 = oB.to.col;
+                var r2 = oB.to.row;
+                oRange = new Asc.Range(c1, r1, c2, r2, true);
+                oClipRect =  worksheet.rangeToRectAbs(oRange, 3);
+            }
+            else {
+                oClipRect = oRect;
+            }
+        }
+        oDO.showDrawingObjects(new AscFormat.GraphicOption(oClipRect));
+    };
+    DrawingBase.prototype.onSlicerUpdate = function (sName) {
+        if(!this.graphicObject) {
+            return false;
+        }
+        return this.graphicObject.onSlicerUpdate(sName);
+    };
+    DrawingBase.prototype.onSlicerDelete = function (sName) {
+        if(!this.graphicObject) {
+            return false;
+        }
+        return this.graphicObject.onSlicerDelete(sName);
+    };
+    DrawingBase.prototype.onSlicerLock = function (sName, bLock) {
+        if(!this.graphicObject) {
+            return;
+        }
+        this.graphicObject.onSlicerLock(sName, bLock);
+    };
+    DrawingBase.prototype.onSlicerChangeName = function (sName, sNewName) {
+        if(!this.graphicObject) {
+            return;
+        }
+        this.graphicObject.onSlicerChangeName(sName, sNewName);
+    };
     //}
 
     //-----------------------------------------------------------------------------------
@@ -1893,7 +1942,7 @@ GraphicOption.prototype.union = function(oGraphicOption) {
     //-----------------------------------------------------------------------------------
 
     _this.init = function(currentSheet) {
- 
+
         var api = window["Asc"]["editor"];
         worksheet = currentSheet;
 
@@ -2107,17 +2156,17 @@ GraphicOption.prototype.union = function(oGraphicOption) {
         }
         else {
             oNewTask = new GraphicOption(null);
-        }
+                }
         if(window["IS_NATIVE_EDITOR"]) {
             _this.showDrawingObjectsEx(oNewTask.getRect());
             return;
         }
         if(_this.drawTask === null) {
             _this.drawTask = oNewTask;
-        }
-        else {
+                }
+            else {
             _this.drawTask = _this.drawTask.union(oNewTask);
-        }
+            }
         if(_this.animId === null) {
             _this.animId = rAF(drawTaskFunction);
         }
@@ -2134,10 +2183,10 @@ GraphicOption.prototype.union = function(oGraphicOption) {
             if(!window['IS_NATIVE_EDITOR']) {
                 _this.drawingArea.clear();
             }
-        }
+                }
         for (var nDrawing = 0; nDrawing < aObjects.length; nDrawing++) {
             _this.drawingArea.drawObject(aObjects[nDrawing], oUpdateRect);
-        }
+                }
         _this.OnUpdateOverlay();
         _this.controller.updateSelectionState(true);
     };
@@ -2342,12 +2391,6 @@ GraphicOption.prototype.union = function(oGraphicOption) {
                     worksheet.setSelectionShape(true);
                 });
             }, []);
-
-
-
-
-
-
         }
     };
 
@@ -2374,6 +2417,49 @@ GraphicOption.prototype.union = function(oGraphicOption) {
 
     };
 
+    _this.addSlicers = function(aNames) {
+        if (_this.canEdit()) {
+            if(Array.isArray(aNames) && aNames.length > 0) {
+                var oVisibleRange = worksheet.getVisibleRange();
+                _this.objectLocker.reset();
+                _this.objectLocker.addObjectId(AscCommon.g_oIdCounter.Get_NewId());
+                _this.objectLocker.checkObjects(function (bLock) {
+                    if (bLock !== true) {
+                        return;
+                    }
+                    var nSlicerCount = aNames.length;
+                    var dSlicerWidth = 2 * 25.4;//
+                    var dSlicerHeight = 2.76 * 25.4;
+                    var dSlicerInset = 10;
+                    var dTotalWidth = dSlicerWidth + nSlicerCount * dSlicerInset;
+                    var dTotalHeight = dSlicerHeight + nSlicerCount * dSlicerInset;
+                    var dLeft = worksheet.getCellLeft(oVisibleRange.c1, 3);
+                    var dTop = worksheet.getCellTop(oVisibleRange.r1, 3);
+                    var dRight = worksheet.getCellLeft(oVisibleRange.c2, 3) + worksheet.getColumnWidth(oVisibleRange.c2, 3);
+                    var dBottom = worksheet.getCellTop(oVisibleRange.r2, 3) + worksheet.getRowHeight(oVisibleRange.r2, 3);
+                    _this.controller.resetSelection();
+                    var dStartPosX = Math.max(0, (dLeft + dRight) / 2.0 - dTotalWidth / 2);
+                    var dStartPosY = Math.max(0, (dTop + dBottom) / 2.0 - dTotalHeight / 2);
+                    var oSlicer, x, y;
+                    for(var nSlicerIndex = 0; nSlicerIndex < nSlicerCount; ++nSlicerIndex) {
+                        oSlicer = new AscFormat.CSlicer();
+                        oSlicer.setName(aNames[nSlicerIndex]);
+                        x = dStartPosX + dSlicerInset * nSlicerIndex;
+                        y = dStartPosY + dSlicerInset * nSlicerIndex;
+                        oSlicer.setBDeleted(false);
+                        oSlicer.setWorksheet(worksheet.model);
+                        oSlicer.setTransformParams(x, y, dSlicerWidth, dSlicerHeight, 0, false, false);
+                        oSlicer.addToDrawingObjects(undefined, AscCommon.c_oAscCellAnchorType.cellanchorAbsolute);
+                        oSlicer.checkDrawingBaseCoords();
+                    }
+                    _this.controller.startRecalculate();
+                    oSlicer.select(_this.controller, 0);
+                    worksheet.setSelectionShape(true);
+                });
+
+            }
+        }
+    };
     _this.addSignatureLine = function(sGuid, sSigner, sSigner2, sEmail, Width, Height, sImgUrl)
     {
         _this.objectLocker.reset();
@@ -2610,7 +2696,7 @@ GraphicOption.prototype.union = function(oGraphicOption) {
                     var max_r = 0, max_c = 0;
 
                     var series = oNewChartSpace.getAllSeries(), ser;
-					
+
 					function fFillCell(oCell, sNumFormat, value)
 					{
 						var oCellValue = new AscCommonExcel.CCellValue();
@@ -2627,7 +2713,7 @@ GraphicOption.prototype.union = function(oGraphicOption) {
 						oCell.setNumFormat(sNumFormat);
 						oCell.setValueData(new AscCommonExcel.UndoRedoData_CellValueData(null, oCellValue));
 					}
-					
+
                     function fillTableFromRef(ref)
                     {
                         var cache = ref.numCache ? ref.numCache : (ref.strCache ? ref.strCache : null);
@@ -2967,7 +3053,7 @@ GraphicOption.prototype.union = function(oGraphicOption) {
                     _this.checkSparklineGroupMinMaxVal(oSparklineGroup);
                 }, _this, []);
             }
-            
+
             if(oDrawingContext instanceof AscCommonExcel.CPdfPrinter)
             {
                 graphics.SaveGrState();
@@ -2998,7 +3084,7 @@ GraphicOption.prototype.union = function(oGraphicOption) {
 
 				sparkline.oCacheView.draw(graphics, offsetX, offsetY);
 
-                
+
             }
             if(oDrawingContext instanceof AscCommonExcel.CPdfPrinter)
             {
@@ -4414,6 +4500,7 @@ GraphicOption.prototype.union = function(oGraphicOption) {
                     objectInfo.id = graphicObjectInfo.objectId;
                     objectInfo.cursor = graphicObjectInfo.cursorType;
                     objectInfo.hyperlink = graphicObjectInfo.hyperlink;
+                    objectInfo.tooltip = graphicObjectInfo.tooltip;
                 }
                 else{
                     return null;

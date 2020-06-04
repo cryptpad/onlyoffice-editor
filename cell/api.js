@@ -332,6 +332,7 @@ var editor;
     AscCommonExcel.g_oUndoRedoHeaderFooter = new AscCommonExcel.UndoRedoHeaderFooter(wbModel);
     AscCommonExcel.g_oUndoRedoArrayFormula = new AscCommonExcel.UndoRedoArrayFormula(wbModel);
     AscCommonExcel.g_oUndoRedoSortState = new AscCommonExcel.UndoRedoSortState(wbModel);
+    AscCommonExcel.g_oUndoRedoSlicer = new AscCommonExcel.UndoRedoSlicer(wbModel);
     this.initGlobalObjectsPivot(wbModel);
   };
 
@@ -414,11 +415,11 @@ var editor;
     }
     return false;
   };
-  
+
   spreadsheet_api.prototype.asc_SpecialPaste = function(props) {
     return AscCommon.g_specialPasteHelper.Special_Paste(props);
   };
-  
+
   spreadsheet_api.prototype.asc_SpecialPasteData = function(props) {
 	if (this.canEdit()) {
       this.wb.specialPasteData(props);
@@ -548,12 +549,12 @@ var editor;
     var ws = this.wb.getWorksheet();
     ws.applyAutoFilter(autoFilterObject);
   };
-  
+
   spreadsheet_api.prototype.asc_applyAutoFilterByType = function(autoFilterObject) {
     var ws = this.wb.getWorksheet();
     ws.applyAutoFilterByType(autoFilterObject);
   };
-  
+
   spreadsheet_api.prototype.asc_reapplyAutoFilter = function(displayName) {
     var ws = this.wb.getWorksheet();
     ws.reapplyAutoFilter(displayName);
@@ -573,17 +574,17 @@ var editor;
     var ws = this.wb.getWorksheet();
     return ws.clearFilter();
   };
-  
+
   spreadsheet_api.prototype.asc_clearFilterColumn = function(cellId, displayName) {
     var ws = this.wb.getWorksheet();
     return ws.clearFilterColumn(cellId, displayName);
   };
-  
+
   spreadsheet_api.prototype.asc_changeSelectionFormatTable = function(tableName, optionType) {
     var ws = this.wb.getWorksheet();
     return ws.af_changeSelectionFormatTable(tableName, optionType);
   };
-  
+
   spreadsheet_api.prototype.asc_changeFormatTableInfo = function(tableName, optionType, val) {
     return this.wb.changeFormatTableInfo(tableName, optionType, val);
   };
@@ -596,17 +597,17 @@ var editor;
     var ws = this.wb.getWorksheet();
     return ws.af_insertCellsInTable(tableName, optionType);
   };
-  
+
   spreadsheet_api.prototype.asc_deleteCellsInTable = function(tableName, optionType) {
     var ws = this.wb.getWorksheet();
     return ws.af_deleteCellsInTable(tableName, optionType);
   };
-  
+
   spreadsheet_api.prototype.asc_changeDisplayNameTable = function(tableName, newName) {
     var ws = this.wb.getWorksheet();
     return ws.af_changeDisplayNameTable(tableName, newName);
   };
-  
+
   spreadsheet_api.prototype.asc_changeTableRange = function(tableName, range) {
     var ws = this.wb.getWorksheet();
     return ws.af_changeTableRange(tableName, range);
@@ -619,6 +620,9 @@ var editor;
 
 	spreadsheet_api.prototype.asc_getTablePictures = function (props, pivot) {
 		return this.wb.getTableStyles(props, pivot);
+	};
+	spreadsheet_api.prototype.asc_getSlicerPictures = function () {
+		return this.wb.getSlicerStyles();
 	};
 
   spreadsheet_api.prototype.asc_setViewMode = function (isViewMode) {
@@ -2437,11 +2441,11 @@ var editor;
 	{
 		res = false;
 	}
-    else if (this.wb) 
+    else if (this.wb)
 	{
       res = this.wb.getEnableKeyEventsHandler(bIsNaturalFocus);
     }
-	
+
     return res;
   };
 
@@ -2627,12 +2631,12 @@ var editor;
   spreadsheet_api.prototype.asc_mergeCellsDataLost = function(options) {
     return this.wb.getWorksheet().getSelectionMergeInfo(options);
   };
-  
+
   //нужно ли спрашивать пользователя о расширении диапазона
   spreadsheet_api.prototype.asc_sortCellsRangeExpand = function() {
     return this.wb.getWorksheet().getSelectionSortInfo();
   };
-  
+
   spreadsheet_api.prototype.asc_getSheetViewSettings = function() {
     return this.wb.getWorksheet().getSheetViewSettings();
   };
@@ -3196,8 +3200,8 @@ var editor;
               usrCorrect[i] = true;
             }
           }
-         
-          if (ignoreWords[usrWords[i]] || changeWords[usrWords[i]] || usrWords[i].length === 1 
+
+          if (ignoreWords[usrWords[i]] || changeWords[usrWords[i]] || usrWords[i].length === 1
             || (isIgnoreUppercase && AscCommon.private_IsAbbreviation(usrWords[i]))) {
             usrCorrect[i] = true;
           }
@@ -3478,7 +3482,7 @@ var editor;
     options.wordsIndex = this.spellcheckState.wordsIndex;
     this.spellcheckState.newWord = newWord;
     options.isMatchCase = true;
-    
+
     if (replaceAll === true) {
       if (!this.spellcheckState.isIgnoreUppercase) {
         this.spellcheckState.changeWords[variantsFound.Word] = newWord;
@@ -3486,7 +3490,7 @@ var editor;
         this.spellcheckState.changeWords[variantsFound.Word.toLowerCase()] = newWord;
       }
       options.isReplaceAll = true;
-    } 
+    }
       this.spellcheckState.lockSpell = false;
       this.spellcheckState.lastFindOptions = options;
       this.asc_nextWord();
@@ -3499,9 +3503,9 @@ var editor;
       var changeWords = this.spellcheckState.changeWords;
       var cellText = this.spellcheckState.cellText;
       var newCellText = this.spellcheckState.newCellText;
-      
-      if (!newCellText) { 
-        cellText = null; 
+
+      if (!newCellText) {
+        cellText = null;
         newCellText = null;
       }
 
@@ -3564,7 +3568,7 @@ var editor;
   spreadsheet_api.prototype.asc_cancelSpellCheck = function() {
     this.cleanSpelling();
   };
-  
+
   // Frozen pane
   spreadsheet_api.prototype.asc_freezePane = function () {
     this.wb.getWorksheet().freezePane();
@@ -4145,7 +4149,7 @@ var editor;
     asc["editor"] = this;
 
     this.SpellCheckUrl = '';
- 
+
     if (undefined == isUser) {
         this.User = new AscCommon.asc_CUser();
         this.User.setId("TM");
@@ -4167,7 +4171,7 @@ var editor;
   };
 
   spreadsheet_api.prototype.asc_nativeCalculateFile = function() {
-    window['DoctRendererMode'] = true;	
+    window['DoctRendererMode'] = true;
     this.wb._nativeCalculate();
   };
 
@@ -4610,6 +4614,23 @@ var editor;
     };
 
 
+  spreadsheet_api.prototype.asc_beforeInsertSlicer = function () {
+    //пока возвращаю только данные о ф/т
+    return this.wb.beforeInsertSlicer();
+  };
+  spreadsheet_api.prototype.asc_insertSlicer = function (arr) {
+    //пока возвращаю только данные о ф/т
+    return this.wb.insertSlicers(arr);
+  };
+
+  spreadsheet_api.prototype.asc_setSlicer = function (name, obj) {
+    return this.wb.setSlicer(name, obj);
+  };
+
+  spreadsheet_api.prototype.asc_setSlicers = function (names, obj) {
+    return this.wb.setSlicers(names, obj);
+  };
+
   /*
    * Export
    * -----------------------------------------------------------------------------
@@ -4776,6 +4797,7 @@ var editor;
   prot["asc_changeTableRange"] = prot.asc_changeTableRange;
   prot["asc_convertTableToRange"] = prot.asc_convertTableToRange;
   prot["asc_getTablePictures"] = prot.asc_getTablePictures;
+  prot["asc_getSlicerPictures"] = prot.asc_getSlicerPictures;
   prot["asc_getDefaultTableStyle"] = prot.asc_getDefaultTableStyle;
 
 
@@ -4791,7 +4813,7 @@ var editor;
   prot["asc_getGroupSummaryRight"] = prot.asc_getGroupSummaryRight;
   prot["asc_getGroupSummaryBelow"] = prot.asc_getGroupSummaryBelow;
 
-  
+
   // Drawing objects interface
 
   prot["asc_showDrawingObjects"] = prot.asc_showDrawingObjects;
@@ -4963,7 +4985,7 @@ var editor;
   prot["asc_nativePrint"] = prot.asc_nativePrint;
   prot["asc_nativePrintPagesCount"] = prot.asc_nativePrintPagesCount;
   prot["asc_nativeGetPDF"] = prot.asc_nativeGetPDF;
-  
+
   prot['asc_isOffline'] = prot.asc_isOffline;
   prot['asc_getUrlType'] = prot.asc_getUrlType;
 

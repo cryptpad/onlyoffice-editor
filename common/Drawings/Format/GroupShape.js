@@ -434,6 +434,17 @@ function CGroupShape()
         }
         return false;
     };
+
+    CGroupShape.prototype.onMouseMove = function (e, x, y) {
+        for(var i = this.spTree.length - 1; i > -1; --i)
+        {
+            if(this.spTree[i].onMouseMove(e, x, y))
+            {
+                return true;
+            }
+        }
+        return false;
+    };
     
     CGroupShape.prototype.draw = function(graphics)
     {
@@ -1852,6 +1863,39 @@ function CGroupShape()
             this.spTree[i].GetAllSeqFieldsByType(sType, aFields)
         }
     };
+    CGroupShape.prototype.onSlicerUpdate = function(sName)
+    {
+        var bRet = false;
+        for(var i = 0; i < this.spTree.length; ++i)
+        {
+            bRet = bRet || this.spTree[i].onSlicerUpdate(sName);
+        }
+        return bRet;
+    };
+    CGroupShape.prototype.onSlicerDelete = function(sName)
+    {
+        var bRet = false;
+        for(var i = 0; i < this.spTree.length; ++i)
+        {
+            bRet = bRet || this.spTree[i].onSlicerDelete(sName);
+        }
+        return bRet;
+    };
+    CGroupShape.prototype.onSlicerLock = function(sName, bLock)
+    {
+        for(var i = 0; i < this.spTree.length; ++i)
+        {
+            this.spTree[i].onSlicerLock(sName, bLock);
+        }
+    };
+    CGroupShape.prototype.onSlicerChangeName = function(sName, sNewName)
+    {
+        for(var i = 0; i < this.spTree.length; ++i)
+        {
+            this.spTree[i].onSlicerChangeName(sName, sNewName);
+        }
+    };
+
     //--------------------------------------------------------export----------------------------------------------------
     window['AscFormat'] = window['AscFormat'] || {};
     window['AscFormat'].CGroupShape = CGroupShape;

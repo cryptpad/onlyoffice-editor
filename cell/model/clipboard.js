@@ -2181,147 +2181,186 @@
 				History.Create_NewPoint();
 				History.StartTransaction();
 
-				//определяем стартовую позицию, если изображений несколько вставляется
-				for (var i = 0; i < data.Drawings.length; i++) {
-					drawingObject = data.Drawings[i];
-					xfrm = drawingObject.graphicObject.spPr.xfrm;
-					if (xfrm) {
-						offX = 0;
-						offY = 0;
-						rot = AscFormat.isRealNumber(xfrm.rot) ? xfrm.rot : 0;
-						rot = AscFormat.normalizeRotate(rot);
-						if (AscFormat.checkNormalRotate(rot)) {
-							if (AscFormat.isRealNumber(xfrm.offX) && AscFormat.isRealNumber(xfrm.offY)) {
-								offX = xfrm.offX;
-								offY = xfrm.offY;
-							}
-						} else {
-							if (AscFormat.isRealNumber(xfrm.offX) && AscFormat.isRealNumber(xfrm.offY) &&
-								AscFormat.isRealNumber(xfrm.extX) && AscFormat.isRealNumber(xfrm.extY)) {
-								offX = xfrm.offX + xfrm.extX / 2 - xfrm.extY / 2;
-								offY = xfrm.offY + xfrm.extY / 2 - xfrm.extX / 2;
-							}
-						}
-
-						if (i === 0) {
-							startCol = offX;
-							startRow = offY;
-						} else {
-							if (startCol > offX) {
-								startCol = offX;
-							}
-							if (startRow > offY) {
-								startRow = offY;
-							}
-						}
-					} else {
-						if (i === 0) {
-							startCol = drawingObject.from.col;
-							startRow = drawingObject.from.row;
-						} else {
-							if (startCol > drawingObject.from.col) {
-								startCol = drawingObject.from.col;
-							}
-							if (startRow > drawingObject.from.row) {
-								startRow = drawingObject.from.row;
-							}
-						}
-					}
-				}
-
-				var aCopies = [];
-				var oIdMap = {};
-				var oCopyPr = new AscFormat.CCopyObjectProperties();
-				oCopyPr.idMap = oIdMap;
-				ws.objectRender.controller.resetSelection();
-				for (var i = 0; i < data.Drawings.length; i++) {
-					var _copy = data.Drawings[i].graphicObject.copy(oCopyPr);
-					oIdMap[data.Drawings[i].graphicObject.Id] = _copy.Id;
-					data.Drawings[i].graphicObject = _copy;
-					aCopies.push(data.Drawings[i].graphicObject);
-
-					drawingObject = data.Drawings[i];
-					AscFormat.CheckSpPrXfrm2(drawingObject.graphicObject);
-					xfrm = drawingObject.graphicObject.spPr.xfrm;
-
-					activeRow = activeCell.row;
-					activeCol = activeCell.col;
-					if (isIntoShape && isIntoShape.Parent && isIntoShape.Parent.parent &&
-						isIntoShape.Parent.parent.drawingBase && isIntoShape.Parent.parent.drawingBase.from) {
-						activeRow = isIntoShape.Parent.parent.drawingBase.from.row;
-						activeCol = isIntoShape.Parent.parent.drawingBase.from.col;
-					}
-
-					if(savePosition) {
-						curCol = xfrm.offX;
-						curRow = xfrm.offY;
-					} else {
-						curCol = xfrm.offX - startCol + ws.objectRender.convertMetric(ws._getColLeft(activeCol) - ws._getColLeft(0), 0, 3);
-						curRow = xfrm.offY - startRow + ws.objectRender.convertMetric(ws._getRowTop(activeRow) - ws._getRowTop(0), 0, 3);
-					}
-
-
-					drawingObject = ws.objectRender.cloneDrawingObject(drawingObject);
-					drawingObject.graphicObject.setDrawingBase(drawingObject);
-
-					drawingObject.graphicObject.setDrawingObjects(ws.objectRender);
-					drawingObject.graphicObject.setWorksheet(ws.model);
-
-					xfrm.setOffX(curCol);
-					xfrm.setOffY(curRow);
-
-
-					drawingObject.graphicObject.checkRemoveCache && drawingObject.graphicObject.checkRemoveCache();
-
-					drawingObject.graphicObject.addToDrawingObjects();
-
-					if (drawingObject.graphicObject.checkDrawingBaseCoords) {
-						drawingObject.graphicObject.checkDrawingBaseCoords();
-					}
-					drawingObject.graphicObject.recalculate();
-					drawingObject.graphicObject.select(ws.objectRender.controller, 0);
-
-					tempArr = [];
-					drawingObject.graphicObject.getAllRasterImages(tempArr);
-
-					if (tempArr.length) {
-						for (var n = 0; n < tempArr.length; n++) {
-							aImagesSync.push(tempArr[n]);
-						}
-					}
-				}
-				AscFormat.fResetConnectorsIds(aCopies, oIdMap);
-				if (aImagesSync.length > 0) {
-					window["Asc"]["editor"].ImageLoader.LoadDocumentImages(aImagesSync);
-				}
-				ws.objectRender.controller.updateSelectionState();
-				ws.objectRender.showDrawingObjects();
-
-				if (needShowSpecialProps) {
-					if (!window['AscCommon'].g_specialPasteHelper.buttonInfo.options) {
+				var callback = function (success, slicersNames) {
+					if (!success) {
+						History.EndTransaction();
 						window['AscCommon'].g_specialPasteHelper.CleanButtonInfo();
-					} else {
-						var lastAddedImg = ws.model.Drawings[ws.model.Drawings.length - 1];
-						if (drawingObject && lastAddedImg) {
-							window['AscCommon'].g_specialPasteHelper.buttonInfo.setRange({
-								r1: lastAddedImg.from.row,
-								c1: lastAddedImg.from.col,
-								r2: lastAddedImg.to.row,
-								c2: lastAddedImg.to.col
-							});
+						window['AscCommon'].g_specialPasteHelper.Paste_Process_End();
+
+						return;
+					}
+
+					//определяем стартовую позицию, если изображений несколько вставляется
+					var graphicObject, i;
+					for (i = 0; i < data.Drawings.length; i++) {
+						drawingObject = data.Drawings[i];
+						graphicObject = drawingObject.graphicObject;
+
+						xfrm = graphicObject.spPr.xfrm;
+						if (xfrm) {
+							offX = 0;
+							offY = 0;
+							rot = AscFormat.isRealNumber(xfrm.rot) ? xfrm.rot : 0;
+							rot = AscFormat.normalizeRotate(rot);
+							if (AscFormat.checkNormalRotate(rot)) {
+								if (AscFormat.isRealNumber(xfrm.offX) && AscFormat.isRealNumber(xfrm.offY)) {
+									offX = xfrm.offX;
+									offY = xfrm.offY;
+								}
+							} else {
+								if (AscFormat.isRealNumber(xfrm.offX) && AscFormat.isRealNumber(xfrm.offY) &&
+									AscFormat.isRealNumber(xfrm.extX) && AscFormat.isRealNumber(xfrm.extY)) {
+									offX = xfrm.offX + xfrm.extX / 2 - xfrm.extY / 2;
+									offY = xfrm.offY + xfrm.extY / 2 - xfrm.extX / 2;
+								}
+							}
+
+							if (i === 0) {
+								startCol = offX;
+								startRow = offY;
+							} else {
+								if (startCol > offX) {
+									startCol = offX;
+								}
+								if (startRow > offY) {
+									startRow = offY;
+								}
+							}
+						} else {
+							if (i === 0) {
+								startCol = drawingObject.from.col;
+								startRow = drawingObject.from.row;
+							} else {
+								if (startCol > drawingObject.from.col) {
+									startCol = drawingObject.from.col;
+								}
+								if (startRow > drawingObject.from.row) {
+									startRow = drawingObject.from.row;
+								}
+							}
 						}
+					}
+
+					var aCopies = [];
+					var oIdMap = {};
+					var _slicerCounter = 0;
+					var oCopyPr = new AscFormat.CCopyObjectProperties();
+					oCopyPr.idMap = oIdMap;
+					ws.objectRender.controller.resetSelection();
+					for (i = 0; i < data.Drawings.length; i++) {
+
+						if (slicersNames && data.Drawings[i].graphicObject.getObjectType() === AscDFH.historyitem_type_SlicerView) {
+							if (slicersNames[_slicerCounter]) {
+								data.Drawings[i].graphicObject.setName(slicersNames[_slicerCounter]);
+							} else {
+								continue;
+							}
+							_slicerCounter++;
+						}
+
+						var _copy = data.Drawings[i].graphicObject.copy(oCopyPr);
+
+						oIdMap[data.Drawings[i].graphicObject.Id] = _copy.Id;
+						data.Drawings[i].graphicObject = _copy;
+						aCopies.push(data.Drawings[i].graphicObject);
+
+						drawingObject = data.Drawings[i];
+						AscFormat.CheckSpPrXfrm2(drawingObject.graphicObject);
+						xfrm = drawingObject.graphicObject.spPr.xfrm;
+
+						activeRow = activeCell.row;
+						activeCol = activeCell.col;
+						if (isIntoShape && isIntoShape.Parent && isIntoShape.Parent.parent &&
+							isIntoShape.Parent.parent.drawingBase && isIntoShape.Parent.parent.drawingBase.from) {
+							activeRow = isIntoShape.Parent.parent.drawingBase.from.row;
+							activeCol = isIntoShape.Parent.parent.drawingBase.from.col;
+						}
+
+						if(savePosition) {
+							curCol = xfrm.offX;
+							curRow = xfrm.offY;
+						} else {
+							curCol = xfrm.offX - startCol + ws.objectRender.convertMetric(ws._getColLeft(activeCol) - ws._getColLeft(0), 0, 3);
+							curRow = xfrm.offY - startRow + ws.objectRender.convertMetric(ws._getRowTop(activeRow) - ws._getRowTop(0), 0, 3);
+						}
+
+
+						drawingObject = ws.objectRender.cloneDrawingObject(drawingObject);
+						drawingObject.graphicObject.setDrawingBase(drawingObject);
+
+						drawingObject.graphicObject.setDrawingObjects(ws.objectRender);
+						drawingObject.graphicObject.setWorksheet(ws.model);
+
+						xfrm.setOffX(curCol);
+						xfrm.setOffY(curRow);
+
+
+						drawingObject.graphicObject.checkRemoveCache && drawingObject.graphicObject.checkRemoveCache();
+
+						drawingObject.graphicObject.addToDrawingObjects();
+
+						if (drawingObject.graphicObject.checkDrawingBaseCoords) {
+							drawingObject.graphicObject.checkDrawingBaseCoords();
+						}
+						drawingObject.graphicObject.recalculate();
+						drawingObject.graphicObject.select(ws.objectRender.controller, 0);
+
+						tempArr = [];
+						drawingObject.graphicObject.getAllRasterImages(tempArr);
+
+						if (tempArr.length) {
+							for (var n = 0; n < tempArr.length; n++) {
+								aImagesSync.push(tempArr[n]);
+							}
+						}
+					}
+					AscFormat.fResetConnectorsIds(aCopies, oIdMap);
+					if (aImagesSync.length > 0) {
+						window["Asc"]["editor"].ImageLoader.LoadDocumentImages(aImagesSync);
+					}
+					ws.objectRender.controller.updateSelectionState();
+					ws.objectRender.showDrawingObjects();
+
+					if (needShowSpecialProps) {
+						if (!window['AscCommon'].g_specialPasteHelper.buttonInfo.options) {
+							window['AscCommon'].g_specialPasteHelper.CleanButtonInfo();
+						} else {
+							var lastAddedImg = ws.model.Drawings[ws.model.Drawings.length - 1];
+							if (drawingObject && lastAddedImg) {
+								window['AscCommon'].g_specialPasteHelper.buttonInfo.setRange({
+									r1: lastAddedImg.from.row,
+									c1: lastAddedImg.from.col,
+									r2: lastAddedImg.to.row,
+									c2: lastAddedImg.to.col
+								});
+							}
+						}
+					}
+
+					ws.objectRender.controller.updateOverlay();
+					ws.setSelectionShape(true);
+					History.EndTransaction();
+
+
+					if (!needShowSpecialProps) {
+						window['AscCommon'].g_specialPasteHelper.CleanButtonInfo();
+					}
+					window['AscCommon'].g_specialPasteHelper.Paste_Process_End();
+				};
+
+				var pastedSlicers = [];
+				for (var i = 0; i < data.Drawings.length; i++) {
+					if (data.Drawings[i].graphicObject.getObjectType() === AscDFH.historyitem_type_SlicerView) {
+						var pastedSlicer = data.getSlicerByName(data.Drawings[i].graphicObject.name);
+						pastedSlicers.push(pastedSlicer);
 					}
 				}
 
-				ws.objectRender.controller.updateOverlay();
-				ws.setSelectionShape(true);
-				History.EndTransaction();
-
-
-				if (!needShowSpecialProps) {
-					window['AscCommon'].g_specialPasteHelper.CleanButtonInfo();
+				if (pastedSlicers && pastedSlicers.length) {
+					ws.tryPasteSlicers(pastedSlicers, callback);
+				} else {
+					callback(true);
 				}
-				window['AscCommon'].g_specialPasteHelper.Paste_Process_End();
 			},
 
 			_insertImagesFromBinaryWord: function (ws, data, aImagesSync) {

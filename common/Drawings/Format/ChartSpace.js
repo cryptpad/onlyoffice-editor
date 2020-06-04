@@ -1138,8 +1138,6 @@ var G_O_ACTIVE_COMMENT_BRUSH = AscFormat.CreateUniFillByUniColor(AscFormat.Creat
         this.extY = fMaxY - fMinY;
     };
 
-
-
     CLabelsBox.prototype.setPosition = function(x, y)
     {
         this.x = x;
@@ -1232,7 +1230,7 @@ var G_O_ACTIVE_COMMENT_BRUSH = AscFormat.CreateUniFillByUniColor(AscFormat.Creat
         this.aStrings = [];
     }
 
-    
+
     function CChartSelection() {
         this.reset();
     }
@@ -1259,7 +1257,7 @@ var G_O_ACTIVE_COMMENT_BRUSH = AscFormat.CreateUniFillByUniColor(AscFormat.Creat
         this.markers = null;
         this.textSelection = null;
     };
-    
+
     function CChartSpace()
 {
 	AscFormat.CGraphicObjectBase.call(this);
@@ -1366,9 +1364,9 @@ CChartSpace.prototype.checkTypeCorrect = function(){
         }
         return -1;
     };
-    
-    
-    
+
+
+
 
 
     CChartSpace.prototype._getPtArrayIdx = function(oChart, nSeriesIdx, nPtIdx) {
@@ -2194,16 +2192,16 @@ CChartSpace.prototype.drawSelect = function(drawingDocument, nPageIndex)
                                                 oPath = this.GetPath(aPointsPaths2[z].upPath);
                                                 oPath.drawTracks(drawingDocument, this.transform);
                                             }
-											
+
 											var aFrontPaths = aPointsPaths2[z].frontPath || aPointsPaths2[z].frontPaths;
                                             if(Array.isArray(aFrontPaths) && !b3dPie)
                                             {
                                                 for(var s = 0; s < aFrontPaths.length; ++s)
                                                 {
 													if(AscFormat.isRealNumber(aFrontPaths[s]))
-													{													
+													{
 														oPath = this.GetPath(aFrontPaths[s]);
-														oPath.drawTracks(drawingDocument, this.transform);	
+														oPath.drawTracks(drawingDocument, this.transform);
 													}
                                                 }
                                             }
@@ -2213,9 +2211,9 @@ CChartSpace.prototype.drawSelect = function(drawingDocument, nPageIndex)
                                                 for(var s = 0; s < aFrontPaths.length; ++s)
                                                 {
 													if(AscFormat.isRealNumber(aFrontPaths[s]))
-													{													
+													{
 														oPath = this.GetPath(aFrontPaths[s]);
-														oPath.drawTracks(drawingDocument, this.transform);	
+														oPath.drawTracks(drawingDocument, this.transform);
 													}
 												}
                                             }
@@ -3392,10 +3390,10 @@ CChartSpace.prototype.changeSize = CShape.prototype.changeSize;
         ret.calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA, this.clrMapOvr);
         return ret;
     };
-	
-	
+
+
 CChartSpace.prototype.canFill = function()
-{	
+{
 	if(this.selection.axis)
 	{
 		return false;
@@ -3413,7 +3411,7 @@ CChartSpace.prototype.canFill = function()
 		var oChart = AscCommon.g_oTableId.Get_ById(this.selection.chart);
 		if(oChart)
 		{
-			if(oChart.getObjectType() === AscDFH.historyitem_type_LineChart 
+			if(oChart.getObjectType() === AscDFH.historyitem_type_LineChart
 			|| oChart.getObjectType() === AscDFH.historyitem_type_ScatterChart)
 			{
 				return false;
@@ -3702,7 +3700,7 @@ CChartSpace.prototype.changeFill = function (unifill)
     //
     //     }
     // }
-    else 
+    else
     {
         if(this.recalcInfo.recalculatePenBrush)
         {
@@ -7937,7 +7935,7 @@ CChartSpace.prototype.getValAxisCrossType = function()
             AscCommon.global_MatrixTransformer.TranslateAppend(this.chart.plotArea.localTransform, oChartSize.startX, oChartSize.startY);
         }
     };
-    
+
 CChartSpace.prototype.recalculateAxis = function()
 {
     if(this.chart && this.chart.plotArea && this.chart.plotArea.charts[0])
@@ -10425,7 +10423,7 @@ CChartSpace.prototype.recalculateAxis = function()
                     unit_height = checkFiniteNumber(rect.h/(arr_val[arr_val.length - 1] - arr_val[0]));
                 }
 
-                
+
                 var cat_ax_ext_y = cat_ax.labels ? cat_ax.labels.extY : 0;
                 if(val_ax_orientation === AscFormat.ORIENTATION_MIN_MAX)
                 {
@@ -11346,10 +11344,10 @@ CChartSpace.prototype.recalculateAxis = function()
                     {
 						if(!bWithoutLabels){
 							point_interval = checkFiniteNumber((rect.h -  val_ax.labels.extY)/intervals_count);
-							val_ax.labels.y = rect.y + rect.h - val_ax.labels.extY;	
+							val_ax.labels.y = rect.y + rect.h - val_ax.labels.extY;
 						}
 						else{
-							val_ax.labels.y = rect.y + rect.h;	
+							val_ax.labels.y = rect.y + rect.h;
 						}
                         if(cross_between === AscFormat.CROSS_BETWEEN_MID_CAT)
                         {
@@ -11429,7 +11427,7 @@ CChartSpace.prototype.recalculateAxis = function()
 								point_interval = checkFiniteNumber((rect.h - val_ax.labels.extY)/intervals_count);
 							}
 							else{
-								val_ax.labels.y = rect.y + rect.h;								
+								val_ax.labels.y = rect.y + rect.h;
 							}
                             if(cross_between === AscFormat.CROSS_BETWEEN_MID_CAT)
                             {
@@ -11486,10 +11484,10 @@ CChartSpace.prototype.recalculateAxis = function()
                         bottom_val_ax_labels_align = false;
 						if(!bWithoutLabels){
 							point_interval = checkFiniteNumber((rect.h - val_ax.labels.extY)/intervals_count);
-							val_ax.labels.y = rect.y;	
+							val_ax.labels.y = rect.y;
 						}
 						else{
-							val_ax.labels.y = rect.y - val_ax.labels.extY;	
+							val_ax.labels.y = rect.y - val_ax.labels.extY;
 						}
                         if(cross_between === AscFormat.CROSS_BETWEEN_MID_CAT)
                         {
@@ -12066,7 +12064,7 @@ CChartSpace.prototype.checkAxisLabelsTransform = function()
                 ((oValAx.axPos === AscFormat.AX_POS_L || oValAx.axPos === AscFormat.AX_POS_R) && oValAx.yPoints))
             {
                 oAxisLabels = oCatAx.labels;
-                
+
                 if(oAxisLabels)
                 {
                     var dZPositionCatAxis = oProcessor3D.calculateZPositionCatAxis();
@@ -15163,8 +15161,8 @@ CChartSpace.prototype.recalculateMarkers = function()
                     var series = oCurChart.series;
                     var brushes = getArrayFillsFromBase(fill, getMaxIdx(aAllsSeries));
                     var pens_fills = getArrayFillsFromBase(line, getMaxIdx(aAllsSeries));
-                    
-                    
+
+
                     for(var i = 0; i < series.length; ++i)
                     {
                         var ser = series[i];
@@ -15178,7 +15176,7 @@ CChartSpace.prototype.recalculateMarkers = function()
                         {
                             symbol = ser.marker.symbol;
                         }
-                        else 
+                        else
                         {
                             symbol = GetTypeMarkerByIndex(ser.idx);
                         }
@@ -15825,7 +15823,7 @@ function getPtsFromSeries(ser)
     }
     return [];
 }
-    
+
 function getCatStringPointsFromSeries(ser)
 {
     if(!ser){
@@ -15855,7 +15853,7 @@ function getMaxIdx(arr)
         arr[i].idx > max_idx && (max_idx = arr[i].idx);
     return max_idx+1;
 }
-    
+
 function getArrayFillsFromBase(arrBaseFills, needFillsCount)
 {
     var ret = [];
@@ -15951,7 +15949,7 @@ function CreateUniFillSolidFillWidthTintOrShade(unifill, effectVal)
     }
     return ret;
 }
-    
+
 function CreateUnifillSolidFillSchemeColor(colorId, tintOrShade)
 {
     var unifill = new AscFormat.CUniFill();
@@ -16189,16 +16187,16 @@ CPrintSettings.prototype =
     createDuplicate : function()
     {
         var oPS = new CPrintSettings();
-        
+
         if ( this.headerFooter )
             oPS.setHeaderFooter(this.headerFooter.createDuplicate());
-        
+
         if ( this.pageMargins )
             oPS.setPageMargins(this.pageMargins.createDuplicate());
-        
+
         if ( this.pageSetup )
             oPS.setPageSetup(this.pageSetup.createDuplicate());
-        
+
         return oPS;
     },
 
@@ -16478,7 +16476,7 @@ CPageSetup.prototype =
     {
         return this.Id;
     },
-    
+
     createDuplicate : function()
     {
         var oPS = new CPageSetup();
@@ -16505,7 +16503,7 @@ CPageSetup.prototype =
             oPS.setUseFirstPageNumb(this.useFirstPageNumb);
         if(this.verticalDpi !== null)
             oPS.setVerticalDpi(this.verticalDpi);
-                
+
         return oPS;
     },
 
@@ -18706,7 +18704,7 @@ function checkBlipFillRasterImages(sp)
         }
     }
 }
-    
+
     function initStyleManager() {
         CHART_STYLE_MANAGER.init();
     }

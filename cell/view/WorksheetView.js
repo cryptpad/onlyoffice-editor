@@ -2326,7 +2326,7 @@
 				//pageClipRectWidth - ширина страницы без учёта измененного(*scale) хеадера - как при 100%
 				//поэтому при расчтетах из него вычетаем размер заголовка как при 100%
 				//смещение слева/сверху рассчитывается с учётом измененной ширины заголовков - поэтому домножаем её на printScale
-				
+
 				clipLeft = printPagesData.pageClipRectLeft;
 				clipTop =  printPagesData.pageClipRectTop;
 				clipWidth = printPagesData.pageClipRectWidth - changedCellLeft;
@@ -2474,7 +2474,7 @@
 		//automatic -> width/height = undefined
 		//define print scale
 		var t = this;
-		
+
 		var pageOptions = t.model.PagePrintOptions;
 		var pageSetup = pageOptions.asc_getPageSetup();
 
@@ -4303,7 +4303,7 @@
 			if(printRanges && printRanges.length) {
 				//необходимо закрасить всю визуальную область за исключением printRanges
 				//TODO долгие операции! возможно стоит изначально в данном режиме рисовать только ту часть таблицы, которая пойдёт на печать
-				
+
 				var rangesBackground;
 				for(var i = 0; i < printRanges.length; i++) {
 					if(i === 0) {
@@ -6086,7 +6086,7 @@
         }
 
         var rowHeight = this._getRowHeight(row);
-        
+
         // ToDo dDigitsCount нужно рассчитывать исходя не из дефалтового шрифта и размера, а исходя из текущего шрифта и размера ячейки
         if (angle === 0) {
             str = c.getValue2(dDigitsCount, makeFnIsGoodNumFormat(fl, colWidth));
@@ -6158,11 +6158,11 @@
                         var angleSin = Math.sin(angle * Math.PI / 180.0);
                         if (angle > 0) {
                             textBound.dx = (colWidth - tm.height) / 2;
-                        } 
+                        }
                         if (angle < 0) {
                             textBound.dx = (colWidth - tm.height * angleSin) / 2;
                             textBound.dy = (rowHeight - tm.width) / 2;
-                        } 
+                        }
                         ha = 0;
                     }
                 }
@@ -7756,6 +7756,7 @@
 
 				return {
 					cursor: drawingInfo.cursor,
+                    tooltip: drawingInfo.tooltip,
 					target: c_oTargetType.Shape,
 					drawingId: drawingInfo.id,
 					col: -1,
@@ -8246,8 +8247,8 @@
         var ar = this._getSelection().getLast();
         var mc = this.model.getMergedByCell(activeCell.row, activeCell.col);
         var c = mc ? (dc < 0 ? mc.c1 : dc > 0 ? Math.min(mc.c2, this.nColsCount - 1 - dc) : activeCell.col) :
-          activeCell.col;	
-        var r = mc ? (dr < 0 ? mc.r1 : dr > 0 ? Math.min(mc.r2, this.nRowsCount - 1 - dr) : activeCell.row) :	
+          activeCell.col;
+        var r = mc ? (dr < 0 ? mc.r1 : dr > 0 ? Math.min(mc.r2, this.nRowsCount - 1 - dr) : activeCell.row) :
           activeCell.row;
         var p = this._calcCellPosition(c, r, dc, dr);
         ar.assign(p.col, p.row, p.col, p.row);
@@ -9807,7 +9808,7 @@
 							range.promote(/*bCtrl*/ctrlPress, /*bVertical*/(1 === t.fillHandleDirection), nIndex,
 								oCanPromote);
 							// Вызываем функцию пересчета для заголовков форматированной таблицы
-							t.model.autoFilters.renameTableColumn(arn);
+							t.model.checkChangeTablesContent(arn);
 						});
 
                         // Сбрасываем параметры автозаполнения
@@ -10488,8 +10489,8 @@
                 t.objectRender.moveRangeDrawingObject(arnFrom, arnTo);
 
                 // Вызываем функцию пересчета для заголовков форматированной таблицы
-                t.model.autoFilters.renameTableColumn(arnFrom);
-                wsTo.model.autoFilters.renameTableColumn(arnTo);
+                t.model.checkChangeTablesContent(arnFrom);
+                wsTo.model.checkChangeTablesContent(arnTo);
                 t.model.autoFilters.reDrawFilter(arnFrom);
 
                 t.model.autoFilters.afterMoveAutoFilters(arnFrom, arnTo, opt_wsTo);
@@ -10808,7 +10809,7 @@
 
                         // Вызываем функцию пересчета для заголовков форматированной таблицы
                         if (val === c_oAscCleanOptions.All || val === c_oAscCleanOptions.Text) {
-                            t.model.autoFilters.renameTableColumn(range.bbox);
+                            t.model.checkChangeTablesContent(range.bbox);
                         }
 
                         /* возвращаем отрисовку. и перерисовываем ячейки с предварительным пересчетом */
@@ -10865,7 +10866,7 @@
 								r = mc ? mc.r1 : activeCell.row;
 								t.model.getRange3(r, c, r, c).setValue(val.asc_getText());
 								// Вызываем функцию пересчета для заголовков форматированной таблицы
-								t.model.autoFilters.renameTableColumn(range.bbox);
+								t.model.checkChangeTablesContent(range.bbox);
 							}
 
                             val.hyperlinkModel.Ref = range;
@@ -10931,7 +10932,7 @@
 					return false;
 				}
 				if (val.data && val.data.pivotTables && val.data.pivotTables.length > 0) {
-					var intersectionTableParts = this.model.autoFilters.getTableIntersectionRange(newRange);
+					var intersectionTableParts = this.model.autoFilters.getTablesIntersectionRange(newRange);
 					for (var i = 0; i < intersectionTableParts.length; i++) {
 						if(intersectionTableParts[i] && intersectionTableParts[i].Ref && !newRange.containsRange(intersectionTableParts[i].Ref)) {
 							t.handlers.trigger("onErrorEvent", c_oAscError.ID.PivotOverlap, c_oAscError.Level.NoCritical);
@@ -11202,7 +11203,7 @@
 			selectData = t._pasteFromHTML(val, null, specialPasteProps);
 		}
 
-		t.model.autoFilters.renameTableColumn(t.model.selectionRange.getLast());
+		t.model.checkChangeTablesContent(t.model.selectionRange.getLast());
 
 		if (!selectData) {
 			bIsUpdate = false;
@@ -11245,7 +11246,7 @@
 		t.model.workbook.dependencyFormulas.unlockRecal();
 		//добавил для случая, когда вставка формулы проиходит в заголовок таблицы
 		if (arrFormula && arrFormula.length) {
-			t.model.autoFilters.renameTableColumn(t.model.selectionRange.getLast());
+			t.model.checkChangeTablesContent(t.model.selectionRange.getLast());
 		}
 
 		//for special paste
@@ -13779,7 +13780,7 @@
 			var findResult = this.model.lastFindOptions.findResults.values;
 			for (var row in findResult) {
 				for (var col in findResult[row]) {
-                    var r = row; 
+                    var r = row;
                     var c = col;
 					if (!this.model.lastFindOptions.scanByRows) {
 						tmp = c;
@@ -13886,8 +13887,8 @@
                 };
 
             return !needLockCell ? onReplaceCallback(true) :
-                this._isLockedCells(aReplaceCells[options.indexInArray], /*subType*/null, onReplaceCallback); 
-		};   
+                this._isLockedCells(aReplaceCells[options.indexInArray], /*subType*/null, onReplaceCallback);
+		};
 
 	WorksheetView.prototype.findCell = function (reference) {
 		var mc;
@@ -14138,14 +14139,14 @@
 			}
 
 			isFormula = c.isFormula();
-			this.model.autoFilters.renameTableColumn(bbox);
+			this.model.checkChangeTablesContent(bbox);
 		} else {
 			//***array-formula***
 			changeRangesIfArrayFormula();
 			c.setValue2(val);
 
 			// Вызываем функцию пересчета для заголовков форматированной таблицы
-			this.model.autoFilters.renameTableColumn(bbox);
+			this.model.checkChangeTablesContent(bbox);
 		}
 
 		if (!isFormula) {
@@ -14761,6 +14762,7 @@
 		}
         var onChangeAutoFilterCallback = function (isSuccess) {
             if (false === isSuccess) {
+                t.model.slicersUpdateAfterChangeTable(autoFilterObject.displayName);
                 return;
             }
 
@@ -15160,7 +15162,7 @@
 
     /**
      * Обновление при изменениях форматированной таблицы
-     * @param range - обновляемый диапазон (он же диапазон для выделения)
+     * @param range - обновляемый диапазон (он же диапазон для выделения
      * @param recalc - делать ли автоподбор по названию столбца
      * @param changeRowsOrMerge - менялись ли строки (скрытие раскрытие) или был unmerge
      * @private
@@ -16543,7 +16545,7 @@
 			}
 		}
 
-        var intersectionTableParts = ws.autoFilters.getTableIntersectionRange(activeRange);
+        var intersectionTableParts = ws.autoFilters.getTablesIntersectionRange(activeRange);
         var isPartTablePartsUnderRange = ws.autoFilters._isPartTablePartsUnderRange(activeRange);
         var isPartTablePartsRightRange = ws.autoFilters.isPartTablePartsRightRange(activeRange);
         var isOneTableIntersection = intersectionTableParts && intersectionTableParts.length === 1 ? intersectionTableParts[0] : null;
@@ -16849,7 +16851,7 @@
 
     WorksheetView.prototype.af_checkChangeRange = function (range) {
         var res = null;
-        var intersectionTables = this.model.autoFilters.getTableIntersectionRange(range);
+        var intersectionTables = this.model.autoFilters.getTablesIntersectionRange(range);
 		var merged;
         if (intersectionTables.length > 0) {
             var tablePart = intersectionTables[0];
@@ -19347,7 +19349,7 @@
 
 		var autoFilter = t.model.AutoFilter;
 		var modelSort, dataHasHeaders, columnSort;
-		var tables = t.model.autoFilters.getTableIntersectionRange(selection);
+		var tables = t.model.autoFilters.getTablesIntersectionRange(selection);
 		var lockChangeHeaders, lockChangeOrientation, caseSensitive;
 		//проверяем, возможно находится рядом а/ф
 		var tryExpandRange = t.model.autoFilters.expandRange(selection, true);
@@ -19649,7 +19651,7 @@
 		};
 
 		//TODO lock
-		var tables = t.model.autoFilters.getTableIntersectionRange(selection);
+		var tables = t.model.autoFilters.getTablesIntersectionRange(selection);
 		var obj;
 		if(tables && tables.length) {
 			obj = tables[0];
@@ -19769,7 +19771,7 @@
 
 		var autoFilter = t.model.AutoFilter;
 		var dataHasHeaders;
-		var tables = t.model.autoFilters.getTableIntersectionRange(selection);
+		var tables = t.model.autoFilters.getTablesIntersectionRange(selection);
 		var lockChangeHeaders, lockChangeOrientation, caseSensitive;
 		//проверяем, возможно находится рядом а/ф
 		var tryExpandRange = t.model.autoFilters.expandRange(selection, true);
@@ -19991,7 +19993,7 @@
 					c_oAscError.Level.NoCritical);
 				return;
 			}
-			var tableContains = this.model.autoFilters.getTableIntersectionRange(selection);
+			var tableContains = this.model.autoFilters.getTablesIntersectionRange(selection);
 			var isStartTransaction = false;
 			if (tableContains && tableContains.length) {
 				if (tableContains.length === 1) {
@@ -20036,6 +20038,313 @@
         var b = this.getCellTopRelative(oRange.r2, units) + this.getRowHeight(oRange.r2, units);
         return new AscFormat.CGraphicBounds(l, t, r, b);
     };
+	//интерфейс
+	/*отдаём массив данных для интерефейса - beforeInsertSlicer
+	добавляем срезы от интерфейса - insertSlicers
+
+	//данные для отображения
+	генерируем данные для отображения в шейпа по имени - getFilterValuesBySlicerName
+
+
+	//обновление view
+	после применения автофильтра изменяем отображения на основне данных модели по имени ф/т - updateSlicerViewAfterTableChange
+
+	//обновляем модель среза
+	принимаем данные от шейпа для того чтобы изменить ф/т - setFilterValuesFromSlicer
+
+	изменяется имя колонки ф/т - changeSlicerAfterSetTableColName
+	изменяется имя ф/т - setSlicerTableName
+	удаляем срез - deleteSlicer
+	*/
+
+	WorksheetView.prototype.beforeInsertSlicer = function () {
+		//чтобы лишний раз не проверять - может быть взять информацию из cellinfo?
+		var table = this.model.autoFilters.getTableByActiveCell();
+		if (table) {
+			var res = [];
+			for (var j = 0; j < table.TableColumns.length; j++) {
+				res.push(table.TableColumns[j].Name);
+			}
+			return res;
+		}
+		var pivot;
+		if (pivot) {
+
+		}
+
+		return null;
+	};
+
+	WorksheetView.prototype.insertSlicers = function (arr) {
+		var t = this;
+		var type, name;
+
+		var callback = function (success) {
+			if (!success) {
+				return;
+			}
+
+			//добавляем в структуру
+			for (var i = 0; i < arr.length; i++) {
+				var slicer = t.model.insertSlicer(arr[i], name, type);
+				arr[i] = slicer.name;
+			}
+			t.objectRender.addSlicers(arr);
+		};
+
+		//чтобы лишний раз не проверять - может быть взять информацию из cellinfo?
+		var obj = this.model.autoFilters.getTableByActiveCell();
+		var lockRanges = [], colRange;
+		if (obj) {
+			type = window['AscCommonExcel'].insertSlicerType.table;
+			name = obj.DisplayName;
+			for (var k = 0; k < arr.length; k++) {
+				colRange = this.model.getTableRangeColumnByName(name, arr[k]);
+				if (colRange) {
+					lockRanges.push(colRange);
+				}
+			}
+		} else if (false/*obj = getPivotByactiveCell*/) {
+			type = window['AscCommonExcel'].insertSlicerType.pivotTable;
+		}
+
+		this._isLockedCells(lockRanges, null, function(success) {
+			if (success) {
+				t._isLockedDefNames(callback);
+			}
+		});
+	};
+
+	WorksheetView.prototype.deleteSlicer = function (name) {
+		var t = this;
+
+		var callback = function (success) {
+			if (!success) {
+				return;
+			}
+			t.model.deleteSlicer(name);
+		};
+
+		var slicer = this.model.getSlicerByName(name);
+		if (slicer) {
+			this.checkLockSlicers([slicer], true, callback);
+		}
+	};
+
+	WorksheetView.prototype.setSlicer = function (slicer, obj) {
+		var t = this;
+
+		var callback = function (success) {
+			if (!success) {
+				return;
+			}
+			History.Create_NewPoint();
+			History.StartTransaction();
+			slicer.set(obj);
+			History.EndTransaction();
+		};
+
+		if (slicer) {
+			this.checkLockSlicers([slicer], true, callback);
+		}
+	};
+
+	WorksheetView.prototype.setFilterValuesFromSlicer = function (slicer, val) {
+		var ws = this.model;
+		var obj;
+		if (slicer && slicer.cacheDefinition) {
+			var slicerCache = slicer.cacheDefinition;
+			obj = slicerCache.getFilterObj();
+		}
+
+		var createSimpleFilterOptions = function () {
+			//get values
+			var colId = obj.colId;
+			var table = obj.obj;
+			var displayName = table.DisplayName;
+
+			var rangeButton = new Asc.Range(table.Ref.c1 + colId, table.Ref.r1, table.Ref.c1 + colId, table.Ref.r1);
+			var cellId = ws.autoFilters._rangeToId(rangeButton);
+
+			//get filter object
+			var filterObj = new Asc.AutoFilterObj();
+			filterObj.type = c_oAscAutoFilterTypes.Filters;
+
+			//set menu object
+			var autoFilterObject = new Asc.AutoFiltersOptions();
+
+			autoFilterObject.asc_setCellId(cellId);
+			autoFilterObject.asc_setValues(val);
+			autoFilterObject.asc_setFilterObj(filterObj);
+			autoFilterObject.asc_setDiplayName(displayName);
+
+			return autoFilterObject;
+		};
+
+		if (obj) {
+			var type = slicerCache.getType();
+			switch (type) {
+				case window['AscCommonExcel'].insertSlicerType.table: {
+					//TODO сформировать объект autoFiltersObject
+					this.applyAutoFilter(createSimpleFilterOptions());
+					break;
+				}
+				case window['AscCommonExcel'].insertSlicerType.pivotTable: {
+					break;
+				}
+			}
+		}
+	};
+
+	WorksheetView.prototype.getFilterValuesBySlicerName = function (name) {
+		//получаем данные для отображения в шейпе
+		//в связанном шейпе хранится имя cSlicer
+		//чтобы получить скрытые/открытые значения используем slicerCache
+		//внутри получаем имя форматированной(сводной) таблицы и имя колонки
+		var slicerCache = this.model.getSlicerCachesBySourceName(name);
+		return slicerCache ? slicerCache.getFilterValues() : null;
+	};
+
+	WorksheetView.prototype.updateSlicerViewAfterTableChange = function (tableName) {
+		var slicers = this.model.getSlicersByTableName(tableName);
+		for (var i = 0; i < slicers.length; i++) {
+			var filterValues = this.getFilterValuesBySlicerName(slicers[i].Name);
+			//update current view
+			//updateView(slicers[i].Name, filterValues)
+		}
+	};
+
+	WorksheetView.prototype.updateSlicerAfterChangeTable = function (type, tableName, val) {
+		/*var slicers = this.model.getSlicersByTableName(tableName);
+		for (var i = 0; i < slicers.length; i++) {
+			switch (type) {
+				case window['AscCommonExcel'].insertSlicerType.table: {
+					//TODO сформировать объект autoFiltersObject
+					this.applyAutoFilter();
+					break;
+				}
+				case window['AscCommonExcel'].insertSlicerType.pivotTable: {
+					break;
+				}
+			}
+		}*/
+	};
+
+	WorksheetView.prototype.checkLockSlicers = function (slicers, doLockRange, callback) {
+		var t = this;
+		var _lockMap = [];
+		var lockInfoArr = [];
+		var lockRanges = [];
+		var cache, defNameId, lockInfo, lockRange;
+		for (var i = 0; i < slicers.length; i++) {
+			cache = slicers[i].getCacheDefinition();
+			if (!_lockMap[cache.name]) {
+				_lockMap[cache.name] = 1;
+				defNameId = this.model.workbook.dependencyFormulas.getDefNameByName(cache.name, this.model.getId());
+				defNameId = defNameId ? defNameId.getNodeId() : null;
+				lockInfo = this.collaborativeEditing.getLockInfo(c_oAscLockTypeElem.Object, null, -1, defNameId);
+				lockInfoArr.push(lockInfo);
+				if (doLockRange) {
+					lockRange = cache.getRange();
+					if (lockRange) {
+						lockRanges.push(lockRange);
+					}
+				}
+			}
+		}
+
+		var _callback = function (success) {
+			if (!success && callback) {
+				callback(false);
+			}
+
+			if (lockRanges && lockRanges.length) {
+				t._isLockedCells(lockRanges, /*subType*/null, callback);
+			} else {
+				callback(true);
+			}
+		};
+
+		if (lockInfoArr && lockInfoArr.length) {
+			this.collaborativeEditing.lock(lockInfoArr, _callback);
+		} else {
+			_callback(true);
+		}
+	};
+
+	WorksheetView.prototype.tryPasteSlicers = function (arr, callback) {
+		var t = this;
+
+		var _callback = function (success) {
+			if (!success) {
+				callback(false);
+				return;
+			}
+			var newNames = [];
+			for (var i = 0; i < arr.length; i++) {
+				var slicer = arr[i].clone(t.model);
+				slicer.name = slicer.generateName(slicer.name);
+				//клонируем, перегенерируем имя, имя кэша и проверяем sourceName у кэша
+				if (modelCaches[i]) {
+					slicer.cacheDefinition = modelCaches[i];
+				} else {
+					//тут необходимо ещё проверить, соответсвует ли внутренняя структура
+					var table = slicer.cacheDefinition.getTableSlicerCache();
+					if (!table || !t.model.workbook.getTableIndexColumnByName(table.tableId, table.column)) {
+						continue;
+					}
+					slicer.cacheDefinition.name = slicer.cacheDefinition.generateSlicerCacheName(slicer.name);
+					var newDefName = new Asc.asc_CDefName(slicer.cacheDefinition.name, "#N/A", null, false, null, null, true);
+					t.model.workbook.editDefinesNames(null, newDefName);
+				}
+				History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_SlicerAdd, t.model.getId(), null,
+					new AscCommonExcel.UndoRedoData_FromTo(null, slicer));
+
+				t.model.aSlicers.push(slicer);
+				newNames[i] = slicer.name;
+			}
+			callback(true, newNames);
+		};
+
+		var lockRanges = [], isLockDefNames, slicerPasted, cachePasted, modelCache, _range;
+		var modelCaches = [];
+		for (var i = 0; i < arr.length; i++) {
+			slicerPasted = arr[i];
+			cachePasted = slicerPasted.getCacheDefinition();
+			modelCache = this.model.workbook.getSlicerCacheByCacheName(cachePasted.name);
+			if (modelCache) {
+				var _type = modelCache.getType();
+				if (_type === window['AscCommonExcel'].insertSlicerType.table) {
+					_range = modelCache.getRange();
+					if (_range) {
+						lockRanges.push(_range);
+					}
+				} else if (_type === window['AscCommonExcel'].insertSlicerType.pivotTable) {
+
+				}
+				modelCaches[i] = modelCache;
+			} else {
+				_range = cachePasted.getRange();
+				if (_range) {
+					lockRanges.push(_range);
+				}
+				isLockDefNames = true;
+			}
+		}
+
+		this._isLockedCells(lockRanges, null, function(success) {
+			if (success) {
+				if (isLockDefNames) {
+					t._isLockedDefNames(_callback);
+				} else {
+					_callback(true);
+				}
+			} else {
+				callback(false);
+			}
+		});
+	};
+
 	//------------------------------------------------------------export---------------------------------------------------
     window['AscCommonExcel'] = window['AscCommonExcel'] || {};
 	window["AscCommonExcel"].CellFlags = CellFlags;

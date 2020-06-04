@@ -115,6 +115,7 @@ function CTextBody()
     this.content2 = null;
     this.compiledBodyPr = null;
     this.parent = null;
+    this.bFit = true;
     this.recalcInfo =
     {
         recalculateBodyPr: true,
@@ -561,6 +562,56 @@ CTextBody.prototype =
     Refresh_RecalcData2: function(pageIndex)
     {
         this.parent && this.parent.Refresh_RecalcData2 && this.parent.Refresh_RecalcData2(pageIndex, this);
+    },
+    checkContentFit: function(sText) {
+        var oContent = this.content;
+        if(!oContent.Is_Empty()) {
+            var oFirstPara = oContent.Content[0];
+            oFirstPara.Content = [oFirstPara.Content[oFirstPara.Content.length - 1]];
+        }
+        AscFormat.AddToContentFromString(oContent, sText);
+        AscFormat.CShape.prototype.recalculateContent.call(this.parent);
+        var oFirstParagraph = oContent.Content[0];
+        return oFirstParagraph.Lines.length === 1;
+    },
+    recalculateOneString: function(sText) {
+        if(this.checkContentFit(sText)) {
+
+            this.bFit = true;
+            return;
+        }
+        this.bFit = false;
+        var nLeftPos = 0, nRightPos = sText.length;
+        var nMiddlePos;
+        var sEnd = "...";
+        var sFitText = sText + sEnd;
+
+        while (nRightPos - nLeftPos > 1) {
+            nMiddlePos = (nRightPos + nLeftPos) / 2 + 0.5 >> 0;
+            sFitText = sText.slice(0, nMiddlePos - 1);
+            sFitText += sEnd;
+            if(!this.checkContentFit(sFitText)) {
+                nRightPos = nMiddlePos;
+            }
+            else {
+                nLeftPos = nMiddlePos;
+            }
+        }
+        sFitText = sText.slice(0, nLeftPos - 1);
+        sFitText += sEnd;
+        if(!this.checkContentFit(sFitText)) {
+            var bFound = false;
+            for(var i = sEnd.length - 1; i > -1; i--) {
+                sFitText = sEnd.slice(0, i);
+                if(this.checkContentFit(sFitText)) {
+                    bFound = true;
+                    break;
+                }
+            }
+            if(!bFound) {
+                this.checkContentFit("");
+            }
+        }
     },
 
     getContentOneStringSizes: function()

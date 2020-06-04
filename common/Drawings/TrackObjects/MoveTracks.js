@@ -49,7 +49,17 @@ function MoveShapeImageTrack(originalObject)
     this.lastDx = 0;
     this.lastDy = 0;
 
-    if(!originalObject.isChart())
+    var nObjectType = originalObject.getObjectType && originalObject.getObjectType();
+    if(nObjectType === AscDFH.historyitem_type_ChartSpace
+    || nObjectType === AscDFH.historyitem_type_GraphicFrame
+     || nObjectType === AscDFH.historyitem_type_SlicerView)
+    {
+
+        var pen_brush = AscFormat.CreatePenBrushForChartTrack();
+        this.brush = pen_brush.brush;
+        this.pen = pen_brush.pen;
+    }
+    else
     {
         if(originalObject.blipFill)
         {
@@ -61,12 +71,6 @@ function MoveShapeImageTrack(originalObject)
             this.brush = originalObject.brush;
         }
         this.pen = originalObject.pen;
-    }
-    else
-    {
-        var pen_brush = AscFormat.CreatePenBrushForChartTrack();
-        this.brush = pen_brush.brush;
-        this.pen = pen_brush.pen;
     }
     if(this.originalObject.cropObject && this.brush)
     {

@@ -1405,6 +1405,7 @@
 	window['AscDFH'].historyitem_type_RelSizeAnchor          = 1134 << 16;
 	window['AscDFH'].historyitem_type_AbsSizeAnchor          = 1135 << 16;
 	window['AscDFH'].historyitem_type_Core                   = 1136 << 16;
+	window['AscDFH'].historyitem_type_SlicerView             = 1137 << 16;
 
 
 	window['AscDFH'].historyitem_type_DocumentMacros         = 2000 << 16;
@@ -2868,6 +2869,11 @@
 	// Типы изменений класса CCore
 	//------------------------------------------------------------------------------------------------------------------
 	window['AscDFH'].historyitem_CoreProperties = window['AscDFH'].historyitem_type_Core | 1;
+	
+	//------------------------------------------------------------------------------------------------------------------
+	// Типы изменений класса CSlicerView
+	//------------------------------------------------------------------------------------------------------------------
+	window['AscDFH'].historyitem_SlicerViewName = window['AscDFH'].historyitem_type_SlicerView | 1;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
