@@ -478,6 +478,9 @@ Paragraph.prototype.GetAllMaths = function(List)
 };
 Paragraph.prototype.GetAllParagraphs = function(Props, ParaArray)
 {
+	if (!ParaArray)
+		ParaArray = [];
+
 	var ContentLen = this.Content.length;
 	for (var CurPos = 0; CurPos < ContentLen; CurPos++)
 	{
@@ -531,6 +534,8 @@ Paragraph.prototype.GetAllParagraphs = function(Props, ParaArray)
 		if (true === this.Selection.Use)
 			ParaArray.push(this);
 	}
+
+	return ParaArray;
 };
 
 Paragraph.prototype.GetAllSeqFieldsByType = function(sType, aFields)

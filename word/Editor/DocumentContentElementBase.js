@@ -403,6 +403,7 @@ CDocumentContentElementBase.prototype.IsStartFromNewPage = function()
 };
 CDocumentContentElementBase.prototype.GetAllParagraphs = function(Props, ParaArray)
 {
+	return [];
 };
 CDocumentContentElementBase.prototype.SetContentSelection = function(StartDocPos, EndDocPos, Depth, StartFlag, EndFlag)
 {

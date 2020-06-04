@@ -2554,6 +2554,9 @@ CTable.prototype.Get_FirstParagraph = function()
 };
 CTable.prototype.GetAllParagraphs = function(Props, ParaArray)
 {
+	if (!ParaArray)
+		ParaArray = [];
+
 	var Count = this.Content.length;
 	for (var CurRow = 0; CurRow < Count; CurRow++)
 	{
@@ -2565,6 +2568,8 @@ CTable.prototype.GetAllParagraphs = function(Props, ParaArray)
 			Cell.Content.GetAllParagraphs(Props, ParaArray);
 		}
 	}
+
+	return ParaArray;
 };
 CTable.prototype.GetEndInfo = function()
 {
