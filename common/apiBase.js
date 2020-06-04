@@ -2741,6 +2741,33 @@
 		reader.readAsText(new Blob([buffer]), encoding);
 	};
 
+	baseEditorsApi.prototype.getFileAsFromChanges = function()
+	{
+		var func_before = null;
+		var func_after = null;
+		if (this.editorId === AscCommon.c_oEditorId.Word)
+		{
+			if (this.WordControl && this.WordControl.m_oLogicDocument && this.WordControl.m_oLogicDocument.IsViewModeInReview())
+			{
+				var isFinal = (this.WordControl.m_oLogicDocument.ViewModeInReview.mode === 1) ? true : false;
+
+				func_before = function(api) {
+					api.WordControl.m_oLogicDocument.Start_SilentMode();
+					api.asc_EndViewModeInReview();
+				};
+				func_after = function(api) {
+					api.asc_BeginViewModeInReview(isFinal);
+					api.WordControl.m_oLogicDocument.End_SilentMode(false);
+				};
+			}
+		}
+
+		func_before && func_before(this);
+		var ret = this.asc_nativeGetFile3();
+		func_after && func_after(this);
+		return ret;
+	};
+
 	//----------------------------------------------------------addons----------------------------------------------------
     baseEditorsApi.prototype["asc_isSupportFeature"] = function(type)
 	{

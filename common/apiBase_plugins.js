@@ -461,28 +461,7 @@
 					return;
 				}
 
-                var func_before = null;
-                var func_after = null;
-				if (_editor.editorId == AscCommon.c_oEditorId.Word)
-				{
-					if (_editor.WordControl && _editor.WordControl.m_oLogicDocument && _editor.WordControl.m_oLogicDocument.IsViewModeInReview())
-					{
-						var isFinal = (_editor.WordControl.m_oLogicDocument.ViewModeInReview.mode === 1) ? true : false;
-
-						func_before = function() {
-							_editor.WordControl.m_oLogicDocument.Start_SilentMode();
-							_editor.asc_EndViewModeInReview();
-						};
-						func_after = function() {
-							_editor.asc_BeginViewModeInReview(isFinal);
-							_editor.WordControl.m_oLogicDocument.End_SilentMode(false);
-						};
-					}
-				}
-
-				func_before && func_before();
-                var _ret = _editor.asc_nativeGetFile3();
-				func_after && func_after();
+                var _ret = _editor.getFileAsFromChanges();
                 AscCommon.EncryptionWorker.isPasswordCryptoPresent = true;
                 _editor.currentDocumentInfoNext = obj["docinfo"];
                 window["AscDesktopEditor"]["buildCryptedStart"](_ret.data, _ret.header, obj["password"], obj["docinfo"] ? obj["docinfo"] : "");
