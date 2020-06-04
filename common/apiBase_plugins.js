@@ -454,6 +454,12 @@
                     _editor.sendEvent("asc_onError", "There is no connection with the blockchain", c_oAscError.Level.Critical);
                     return;
                 }
+                if ("no_build" === obj["error"])
+				{
+					// проблемы - но такие, при которых просто не собираем файл...
+					window["AscDesktopEditor"]["buildCryptedEnd"](true);
+					return;
+				}
 
                 var func_before = null;
                 var func_after = null;
