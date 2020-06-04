@@ -4483,11 +4483,11 @@ function OfflineEditor () {
         }
         
         return {
-        columnBeg: columnBeg,
-        columnEnd: columnEnd,
+        columnBeg: Math.max(0,columnBeg),
+        columnEnd: Math.max(0, columnEnd),
         columnOff: columnOff,
-        rowBeg: rowBeg,
-        rowEnd: rowEnd,
+        rowBeg: Math.max(0, rowBeg),
+        rowEnd: Math.max(0, rowEnd),
         rowOff: rowOff
         };
     };
