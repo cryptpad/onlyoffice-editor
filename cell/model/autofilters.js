@@ -167,6 +167,7 @@
 			this.cellCoord  = null;
 			this.values  = null;
 			this.filter  = null;
+			this.pivotObj  = null;
 			this.sortVal = null;
 			this.automaticRowCount = null;
 			this.displayName  = null;
@@ -221,6 +222,7 @@
             asc_setCellCoord : function(val) { this.cellCoord = val; },
 			asc_setValues : function(values) { this.values = values; },
 			asc_setFilterObj : function(filter) { this.filter = filter; },
+			asc_setPivotObj : function(obj) { this.pivotObj = obj; },
 			
 			asc_setSortState : function(sortVal) { this.sortVal = sortVal; },
 			asc_setAutomaticRowCount : function(val) { this.automaticRowCount = val; },
@@ -238,6 +240,7 @@
             asc_getCellCoord : function() { return this.cellCoord; },
 			asc_getValues : function() { return this.values; },
 			asc_getFilterObj : function() { return this.filter; },
+			asc_getPivotObj : function() { return this.pivotObj; },
 			
 			asc_getSortState : function() { return this.sortVal; },
 			asc_getDisplayName : function() { return this.displayName; },
@@ -360,6 +363,36 @@
 					this.type = c_oAscAutoFilterTypes.Filters;
 				}
 			}
+		};
+
+		function PivotFilterObj () {
+
+			if ( !(this instanceof PivotFilterObj) ) {return new PivotFilterObj();}
+
+			this.dataFields = null;//pivot.asc_getDataFields. for sorting and value filters
+			this.dataFieldIndex = null;//selected index in dataFields
+			this.fieldName = "";//display name for custom sort or clear filter
+			this.isPageFilter = false;
+			this.isMultipleItemSelectionAllowed = false;//page filter only
+			this.isTop10Sum = false;//top10 only
+
+			return this;
+		}
+		PivotFilterObj.prototype = {
+			constructor: PivotFilterObj,
+			asc_setDataFields : function(val) { this.dataFields = val || null;},
+			asc_setDataFieldIndex : function(val) { this.dataFieldIndex = val;},
+			asc_setFieldName : function(val) { this.fieldName = val;},
+			asc_setIsPageFilter : function(val) { this.isPageFilter = val;},
+			asc_setIsMultipleItemSelectionAllowed : function(val) { this.isMultipleItemSelectionAllowed = val;},
+			asc_setIsTop10Sum : function(val) { this.isTop10Sum = val;},
+
+			asc_getDataFields : function(val) { return this.dataFields;},
+			asc_getDataFieldIndex : function(val) { return this.dataFieldIndex;},
+			asc_getFieldName : function(val) { return this.fieldName;},
+			asc_getIsPageFilter : function(val) { return this.isPageFilter;},
+			asc_getIsMultipleItemSelectionAllowed : function(val) { return this.isMultipleItemSelectionAllowed;},
+			asc_getIsTop10Sum : function(val) { return this.isTop10Sum;}
 		};
 		
 		var g_oAddFormatTableOptionsProperties = {
@@ -5483,6 +5516,7 @@
 		prot["asc_getSortState"]				= prot.asc_getSortState;
 		prot["asc_getValues"]					= prot.asc_getValues;
 		prot["asc_getFilterObj"]				= prot.asc_getFilterObj;
+		prot["asc_getPivotObj"]					= prot.asc_getPivotObj;
 		prot["asc_getCellId"]					= prot.asc_getCellId;
         prot["asc_getCellCoord"]				= prot.asc_getCellCoord;
 		prot["asc_getDisplayName"]				= prot.asc_getDisplayName;
@@ -5492,6 +5526,7 @@
         prot["asc_getSortColor"]				= prot.asc_getSortColor;
 		prot["asc_getColumnName"]				= prot.asc_getColumnName;
 		prot["asc_setFilterObj"]				= prot.asc_setFilterObj;
+		prot["asc_setPivotObj"]					= prot.asc_setPivotObj;
 		prot["asc_getSheetColumnName"]			= prot.asc_getSheetColumnName;
 		
 		window["Asc"]["AutoFilterObj"]		    = window["Asc"].AutoFilterObj = AutoFilterObj;
@@ -5500,7 +5535,22 @@
 		prot["asc_setFilter"]					= prot.asc_setFilter;
 		prot["asc_setType"]						= prot.asc_setType;
 		prot["asc_getFilter"]					= prot.asc_getFilter;
-		
+
+		window["Asc"]["PivotFilterObj"]		    = window["Asc"].PivotFilterObj = PivotFilterObj;
+		prot									= PivotFilterObj.prototype;
+		prot["asc_setDataFields"]						= prot.asc_setDataFields;
+		prot["asc_setDataFieldIndex"]					= prot.asc_setDataFieldIndex;
+		prot["asc_setFieldName"]						= prot.asc_setFieldName;
+		prot["asc_setIsPageFilter"]						= prot.asc_setIsPageFilter;
+		prot["asc_setIsMultipleItemSelectionAllowed"]	= prot.asc_setIsMultipleItemSelectionAllowed;
+		prot["asc_setIsTop10Sum"]						= prot.asc_setIsTop10Sum;
+		prot["asc_getDataFields"]						= prot.asc_getDataFields;
+		prot["asc_getDataFieldIndex"]					= prot.asc_getDataFieldIndex;
+		prot["asc_getFieldName"]						= prot.asc_getFieldName;
+		prot["asc_getIsPageFilter"]						= prot.asc_getIsPageFilter;
+		prot["asc_getIsMultipleItemSelectionAllowed"]	= prot.asc_getIsMultipleItemSelectionAllowed;
+		prot["asc_getIsTop10Sum"]						= prot.asc_getIsTop10Sum;
+
 		window["Asc"]["AdvancedTableInfoSettings"] = window["Asc"].AdvancedTableInfoSettings = AdvancedTableInfoSettings;
 		prot									= AdvancedTableInfoSettings.prototype;
 		prot["asc_getTitle"]					= prot.asc_getTitle;

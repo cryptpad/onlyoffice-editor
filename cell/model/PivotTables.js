@@ -3008,17 +3008,25 @@ CT_pivotTableDefinition.prototype.fillAutoFiltersOptions = function (autoFilterO
 	var values = pivotField.getFilterObject(cacheField, index);
 	var filterObj = new Asc.AutoFilterObj();
 	filterObj.type = Asc.c_oAscAutoFilterTypes.None;
-	var filter = this.getPivotFilter(index);
-	if (filter) {
-		filterObj.convertFromFilterColumn(filter.autoFilter.FilterColumns[0], false);
-		autoFilterObject.asc_setIsTextFilter(filter.isLabelFilter());
+	var pivotFilter = this.getPivotFilter(index);
+	if (pivotFilter) {
+		filterObj.convertFromFilterColumn(pivotFilter.autoFilter.FilterColumns[0], false);
+		autoFilterObject.asc_setIsTextFilter(pivotFilter.isLabelFilter());
 	} else if(values.some(function(elem) {return !elem.visible;})){
 		filterObj.type = Asc.c_oAscAutoFilterTypes.Filters;
 	}
+	var pivotFilterObj = new Asc.PivotFilterObj();
+	pivotFilterObj.asc_setDataFields(this.asc_getPivotFields());
+	pivotFilterObj.asc_setDataFieldIndex(pivotFilter ? pivotFilter.iMeasureFld : null);
+	pivotFilterObj.asc_setFieldName(this.getPivotFieldName(index));
+	pivotFilterObj.asc_setIsPageFilter(pivotField.axis === c_oAscAxis.AxisPage);
+	pivotFilterObj.asc_setIsMultipleItemSelectionAllowed(pivotField.multipleItemSelectionAllowed);
+	pivotFilterObj.asc_setIsTop10Sum(pivotFilter ? pivotFilter.type === c_oAscPivotFilterType.Sum : false);
 
 	autoFilterObject.asc_setSortState(sortVal);
 	autoFilterObject.asc_setValues(values);
 	autoFilterObject.asc_setFilterObj(filterObj);
+	autoFilterObject.asc_setPivotObj(pivotFilterObj);
 	//todo remove. test only
 	if(null === autoFilterObject.asc_getIsTextFilter()){
 		var items = pivotField.getItems();
@@ -7796,6 +7804,7 @@ CT_PivotField.prototype.getFilterObject = function(cacheField) {
 				}
 				elem.visible = !item.h;
 				elem.isDateFormat = false;
+				elem.repeats = undefined;
 				//todo isDateFormat
 				values.push(elem);
 			}
