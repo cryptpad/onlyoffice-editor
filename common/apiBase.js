@@ -403,6 +403,12 @@
 			this.onEndLoadDocInfo();
 		}
 	};
+	baseEditorsApi.prototype.asc_isCrypto = function()
+	{
+		if (this.DocInfo && this.DocInfo.get_Encrypted() === true)
+			return true;
+		return false;
+	};
 	baseEditorsApi.prototype.asc_enableKeyEvents             = function(isEnabled, isFromInput)
 	{
 	};
@@ -2828,5 +2834,6 @@
 	prot['asc_Print'] = prot.asc_Print;
 	prot['asc_GetCurrentColorSchemeName'] = prot.asc_GetCurrentColorSchemeName;
 	prot['asc_GetCurrentColorSchemeIndex'] = prot.asc_GetCurrentColorSchemeIndex;
+	prot['asc_isCrypto'] = prot.asc_isCrypto;
 
 })(window);
