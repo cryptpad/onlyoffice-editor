@@ -1206,8 +1206,8 @@ CDocumentContent.prototype.GetDocumentContentForRecalcInfo = function()
 	var oDocContent = this;
 	while (oDocContent.IsBlockLevelSdtContent())
 	{
-		if (this.Parent && this.Parent.GetTopDocumentContent)
-			oDocContent = this.Parent.GetTopDocumentContent(true);
+		if (oDocContent.Parent && oDocContent.Parent.GetTopDocumentContent)
+			oDocContent = oDocContent.Parent.GetTopDocumentContent(true);
 		else
 			break;
 
