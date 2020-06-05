@@ -1244,6 +1244,12 @@ CHistory.prototype.IsParagraphSimpleChanges = function()
 			else
 				return [];
 
+			// Такое может быть, если класс еще не приписан ни к какому параграфу. Либо класс дальше небудет
+			// использован, либо его добавят в параграф и в этом изменении мы отметим параграф
+			// Поэтому мы не отказываемся от быстрого пересчета в данной ситуации
+			if (!oPara)
+				continue;
+
 			if (!oClass.IsParagraphSimpleChanges || !oClass.IsParagraphSimpleChanges(arrItems[nIndex]))
 				return [];
 
