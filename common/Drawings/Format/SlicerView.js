@@ -1317,28 +1317,6 @@
             oFill.fromColor(new AscCommonExcel.RgbColor(nColor));
         }
         return oFill;
-        if(nType === STYLE_TYPE.WHOLE || nType === STYLE_TYPE.HEADER) {
-            return null;
-        }
-        var oFill;
-        if(nType & STATE_FLAG_HOVERED) {
-            if(nType & STATE_FLAG_SELECTED) {
-                oFill = new AscCommonExcel.Fill();
-                oFill.fromColor(AscCommonExcel.createRgbColor(248, 225, 98));
-            }
-            else {
-                oFill = CreateButtonHoverGradient();
-            }
-        }
-        else {
-            if(nType & STATE_FLAG_SELECTED) {
-                oFill = CreateButtonHoverGradient();
-            }
-            else {
-                oFill = null;
-            }
-        }
-        return oFill;
     };
     CHeader.prototype.getIcon = function(nIndex, nType) {
         var sRet;

@@ -822,9 +822,10 @@
 		RangeImage     : 5,
 		RangeChart     : 6,
 		RangeShape     : 7,
-		RangeShapeText : 8,
-		RangeChartText : 9,
-		RangeFrozen    : 10
+		RangeSlicer    : 8,
+		RangeShapeText : 9,
+		RangeChartText : 10,
+		RangeFrozen    : 11
 	};
 	var c_oAscInsertOptions = {
 		InsertCellsAndShiftRight : 1,
@@ -2540,6 +2541,7 @@
 	prot['RangeImage']                   = prot.RangeImage;
 	prot['RangeChart']                   = prot.RangeChart;
 	prot['RangeShape']                   = prot.RangeShape;
+	prot['RangeSlicer']                  = prot.RangeSlicer;
 	prot['RangeShapeText']               = prot.RangeShapeText;
 	prot['RangeChartText']               = prot.RangeChartText;
 	prot['RangeFrozen']                  = prot.RangeFrozen;

@@ -4455,6 +4455,8 @@ GraphicOption.prototype.union = function(oGraphicOption) {
 
             if(selected_objects[0].getObjectType() === AscDFH.historyitem_type_ImageShape)
                 return c_oAscSelectionType.RangeImage;
+            if(selected_objects[0].getObjectType() === AscDFH.historyitem_type_SlicerView)
+                return c_oAscSelectionType.RangeSlicer;
 
             return c_oAscSelectionType.RangeShape;
 
