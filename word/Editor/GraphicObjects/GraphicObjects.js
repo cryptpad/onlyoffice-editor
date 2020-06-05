@@ -1410,7 +1410,7 @@ CGraphicObjects.prototype =
         var ret = [];
         for(var i = 0; i < tables.length; ++i)
         {
-            if(flowobject_Table === tables[i].Type && tables[i].Table.Parent === docContent)
+            if(tables[i].IsFlowTable() && tables[i].Table.Parent === docContent)
                 ret.push(tables[i]);
         }
         return ret;

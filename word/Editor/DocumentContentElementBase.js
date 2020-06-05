@@ -780,6 +780,10 @@ CDocumentContentElementBase.prototype.Get_ColumnsCount = function()
 {
 	return this.ColumnsCount;
 };
+CDocumentContentElementBase.prototype.GetStartColumn = function()
+{
+	return this.ColumnNum;
+};
 CDocumentContentElementBase.prototype.GetColumnsCount = function()
 {
 	return this.ColumnsCount;

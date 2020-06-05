@@ -184,7 +184,7 @@ CGraphicPage.prototype =
     {
         for(var index = this.flowTables.length -1; index > -1; --index)
         {
-            if(this.flowTables[index].IsPointIn(x, y) && this.flowTables[index].Table.Parent === documentContent)
+            if(this.flowTables[index].IsPointIn(x, y) && this.flowTables[index].CheckDocumentContent(documentContent))
                 return this.flowTables[index];
         }
         return null;

@@ -7503,38 +7503,16 @@ CDocument.prototype.Internal_GetContentPosByXY = function(X, Y, nCurPage, Column
     else if (nCurPage < 0)
     	nCurPage = 0;
 
-    // Сначала проверим Flow-таблицы
-    var FlowTable = this.DrawingObjects.getTableByXY(X, Y, nCurPage, this);
-    if (null != FlowTable)
-    {
-        var ElementPos;
-        if (flowobject_Table === FlowTable.Get_Type())
-        {
-            ElementPos = FlowTable.Table.Index;
-        }
-        else
-        {
-            var Frame = FlowTable;
-
-            var StartPos  = Frame.StartIndex;
-            var FlowCount = Frame.FlowCount;
-
-            for (var Pos = StartPos; Pos < StartPos + FlowCount; ++Pos)
-            {
-                var Item = this.Content[Pos];
-
-                if (Y < Item.Pages[0].Bounds.Bottom)
-                    return Pos;
-            }
-
-            ElementPos = StartPos + FlowCount - 1;
-        }
-
-        var Element              = this.Content[ElementPos];
-        ColumnsInfo.Column       = Element.Get_StartColumn();
-        ColumnsInfo.ColumnsCount = Element.Get_ColumnsCount();
-        return ElementPos;
-    }
+    // Сначала проверим попадание в плавающие объекты
+	var oFlow    = this.DrawingObjects.getTableByXY(X, Y, nCurPage, this);
+	var nFlowPos = this.private_GetContentIndexByFlowObject(oFlow, X, Y);
+	if (-1 !== nFlowPos)
+	{
+		var oElement             = this.Content[nFlowPos];
+		ColumnsInfo.Column       = oElement.GetStartColumn();
+		ColumnsInfo.ColumnsCount = oElement.GetColumnsCount();
+		return nFlowPos;
+	}
 
     // Теперь проверим пустые параграфы с окончанием секций
     var SectCount = this.Pages[nCurPage].EndSectionParas.length;

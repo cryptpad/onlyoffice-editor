@@ -1985,3 +1985,57 @@ CDocumentContentBase.prototype.IsBlockLevelSdtContent = function()
 {
 	return false;
 };
+/**
+ * По заданному объекту получаем индекс данного объекта, либо элменента, внутри которого находится данный объект
+ * @param {CFlowTable | CFlowParagraph} oFlow
+ * @param {number} X
+ * @param {number} Y
+ * @returns {number}
+ */
+CDocumentContentBase.prototype.private_GetContentIndexByFlowObject = function(oFlow, X, Y)
+{
+	if (!oFlow)
+		return -1;
+
+	var oElement = oFlow.GetElement();
+	if (oElement.GetParent() === this)
+	{
+		if (oFlow.IsFlowTable())
+		{
+			return oElement.GetIndex();
+		}
+		else
+		{
+			var nStartPos  = oFlowTable.StartIndex;
+			var nFlowCount = oFlowTable.FlowCount;
+			for (var nPos = nStartPos; nPos < nStartPos + nFlowCount; ++nPos)
+			{
+				var oBounds = this.Content[nPos].GetPageBounds(0);
+				if (Y < oBounds.Bottom)
+					return nPos;
+			}
+
+			return nStartPos + nFlowCount - 1;
+		}
+	}
+	else
+	{
+		var arrDocPos = oElement.GetDocumentPositionFromObject();
+		for (var nIndex = 0, nCount = arrDocPos.length; nIndex < nCount; ++nIndex)
+		{
+			if (arrDocPos[nIndex].Class === this)
+				return arrDocPos[nIndex].Position;
+		}
+	}
+
+	return -1;
+};
+/**
+ * Получаем верхний док контент, который используется для пересчета плавающих объектов и различных переносов.
+ * Как правило это нужно, если данный класс - это CBlockLevelSdt
+ * @returns {?CDocumentContent}
+ */
+CDocumentContentBase.prototype.GetDocumentContentForRecalcInfo = function()
+{
+	return this;
+};

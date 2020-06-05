@@ -7048,27 +7048,10 @@ CDocumentContent.prototype.Internal_GetContentPosByXY = function(X, Y, PageNum)
 
     PageNum = Math.max(0, Math.min(PageNum, this.Pages.length - 1));
 
-    var oFlowTable = this.LogicDocument && this.LogicDocument.DrawingObjects.getTableByXY(X, Y, PageNum + this.Get_StartPage_Absolute(), this);
-    if (oFlowTable)
-	{
-		if (flowobject_Table === oFlowTable.Get_Type())
-		{
-			return oFlowTable.Table.Index;
-		}
-		else
-		{
-			var nStartPos  = oFlowTable.StartIndex;
-			var nFlowCount = oFlowTable.FlowCount;
-			for (var nPos = nStartPos; nPos < nStartPos + nFlowCount; ++nPos)
-			{
-				var oBounds = this.Content[nPos].GetPageBounds(0);
-				if (Y < oBounds.Bottom)
-					return nPos;
-			}
-
-			return nStartPos + nFlowCount - 1;
-		}
-	}
+	var oFlow    = this.LogicDocument && this.LogicDocument.DrawingObjects.getTableByXY(X, Y, this.GetAbsolutePage(PageNum), this);
+	var nFlowPos = this.private_GetContentIndexByFlowObject(oFlow, X, Y);
+	if (-1 !== nFlowPos)
+		return nFlowPos;
 
     // Теперь проверим пустые параграфы с окончанием секций (в нашем случае это пустой параграф послей таблицы внутри таблицы)
     var SectCount = this.Pages[PageNum].EndSectionParas.length;
