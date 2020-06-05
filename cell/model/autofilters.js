@@ -214,7 +214,7 @@
                     case this.Properties.isTextFilter: this.isTextFilter = value;break;
                     case this.Properties.colorsFill: this.colorsFill = value;break;
                     case this.Properties.colorsFont: this.colorsFont = value;break;
-                    case this.Properties.sortColor: this.sortColor = value;break;
+                    case this.Properties.sortColor: this.sortColor = value;break;куышяу
 				}
 			},
 			
@@ -2638,6 +2638,7 @@
 
 				this._cleanStyleTable(oldFilter.Ref);
 				this._setColorStyleTable(tablePart.Ref, tablePart, null, true);
+				this.updateSlicer(tableName);
 			},
 
 			changeDisplayNameTable: function (tableName, newName) {
@@ -3379,11 +3380,11 @@
 						}
 
 						//если мерженная ячейка
-						if (!(n == ar.r1 && k == ar.c1) && isMergedCells != null && isEmptyCell) {
+						if (!(n === ar.r1 && k === ar.c1) && isMergedCells != null && isEmptyCell) {
 							valueMerg = null;
 							if (merged) {
 								valueMerg = ws.getRange3(merged.r1, merged.c1, merged.r2, merged.c2).getValue();
-								if (valueMerg != null && valueMerg != "") {
+								if (valueMerg != null && valueMerg !== "") {
 									if (merged.r1 < cloneActiveRange.r1) {
 										cloneActiveRange.r1 = merged.r1;
 										n = cloneActiveRange.r1 - 1;
@@ -3412,7 +3413,7 @@
 							}
 						}
 
-						if ((!isEmptyCell || (valueMerg != null && valueMerg != "")) && cell.getTableStyle() == null) {
+						if ((!isEmptyCell || (valueMerg != null && valueMerg !== "")) && cell.getTableStyle() == null) {
 							if (k < cloneActiveRange.c1) {
 								cloneActiveRange.c1 = k;
 								isEnd = false;
@@ -3434,55 +3435,55 @@
 				}
 
 				//проверяем есть ли пустые строчки и столбцы в диапазоне
-				var mergeCells;
-				if (ar.r1 == cloneActiveRange.r1) {
-					for (var n = cloneActiveRange.c1; n <= cloneActiveRange.c2; n++) {
+				var mergeCells, n;
+				if (ar.r1 === cloneActiveRange.r1) {
+					for (n = cloneActiveRange.c1; n <= cloneActiveRange.c2; n++) {
 						cell = ws.getRange3(cloneActiveRange.r1, n, cloneActiveRange.r1, n);
-						if (cell.getValueWithoutFormat() != '') {
+						if (cell.getValueWithoutFormat() !== '') {
 							break;
 						}
-						if (n == cloneActiveRange.c2 && cloneActiveRange.r2 >
+						if (n === cloneActiveRange.c2 && cloneActiveRange.r2 >
 							cloneActiveRange.r1/*&& cloneActiveRange.c2 > cloneActiveRange.c1*/) {
 							cloneActiveRange.r1++;
 						}
 					}
-				} else if (ar.r1 == cloneActiveRange.r2) {
-					for (var n = cloneActiveRange.c1; n <= cloneActiveRange.c2; n++) {
+				} else if (ar.r1 === cloneActiveRange.r2) {
+					for (n = cloneActiveRange.c1; n <= cloneActiveRange.c2; n++) {
 						cell = ws.getRange3(cloneActiveRange.r2, n, cloneActiveRange.r2, n);
-						if (cell.getValueWithoutFormat() != '') {
+						if (cell.getValueWithoutFormat() !== '') {
 							break;
 						}
-						if (n == cloneActiveRange.c2 &&
+						if (n === cloneActiveRange.c2 &&
 							cloneActiveRange.r2 > cloneActiveRange.r1) {
 							cloneActiveRange.r2--;
 						}
 					}
 				}
 
-				if (ar.c1 == cloneActiveRange.c1) {
-					for (var n = cloneActiveRange.r1; n <= cloneActiveRange.r2; n++) {
+				if (ar.c1 === cloneActiveRange.c1) {
+					for (n = cloneActiveRange.r1; n <= cloneActiveRange.r2; n++) {
 						cell = ws.getRange3(n, cloneActiveRange.c1, n, cloneActiveRange.c1);
-						if (cell.getValueWithoutFormat() != '') {
+						if (cell.getValueWithoutFormat() !== '') {
 							break;
 						}
-						if (n == cloneActiveRange.r2 &&
+						if (n === cloneActiveRange.r2 &&
 							cloneActiveRange.r2 > cloneActiveRange.r1) {
 							cloneActiveRange.c1++;
 						}
 					}
-				} else if (ar.c1 == cloneActiveRange.c2) {
-					for (var n = cloneActiveRange.r1; n <= cloneActiveRange.r2; n++) {
+				} else if (ar.c1 === cloneActiveRange.c2) {
+					for (n = cloneActiveRange.r1; n <= cloneActiveRange.r2; n++) {
 						cell = ws.getRange3(n, cloneActiveRange.c2, n, cloneActiveRange.c2);
-						if (cell.getValueWithoutFormat() != '') {
+						if (cell.getValueWithoutFormat() !== '') {
 							break;
 						}
-						if (n == cloneActiveRange.r2 && cloneActiveRange.c2 > cloneActiveRange.c1) {
+						if (n === cloneActiveRange.r2 && cloneActiveRange.c2 > cloneActiveRange.c1) {
 							mergeCells = ws.getRange3(n, cloneActiveRange.c2, n, cloneActiveRange.c2).hasMerged();
-							if (!mergeCells || mergeCells === null)//если не мерженная ячейка
+							if (!mergeCells)//если не мерженная ячейка
 							{
 								cloneActiveRange.c2--;
 							} else if (ws.getRange3(mergeCells.r1, mergeCells.c1,
-									mergeCells.r2, mergeCells.c2).getValue() == "")//если мерженная ячейка пустая
+									mergeCells.r2, mergeCells.c2).getValue() === "")//если мерженная ячейка пустая
 							{
 								cloneActiveRange.c2--;
 							}
@@ -3514,7 +3515,7 @@
 
 					var newRange = {};
 					for (var i = 0; i < oldFilters.length; i++) {
-						if (!oldFilters[i].Ref || oldFilters[i].Ref == "") {
+						if (!oldFilters[i].Ref || oldFilters[i].Ref === "") {
 							continue;
 						}
 
@@ -4369,23 +4370,24 @@
 				}
 			},
 
-			_getTrueColId: function(filter, colId, checkShowButton)
-			{
+			_getTrueColId: function (filter, colId, checkShowButton) {
 				//TODO - добавил условие, чтобы не было ошибки(bug 30007). возможно, второму пользователю нужно запретить все действия с измененной таблицей.
-				if(filter === null)
+				if (filter === null) {
 					return null;
-				
+				}
+
 				var res = colId;
-				if(!filter.isAutoFilter())
+				if (!filter.isAutoFilter()) {
 					return res;
-				
+				}
+
 				//если находимся в мерженной ячейке, то возвращаем сдвинутый colId
 				var worksheet = this.worksheet;
 				var ref = filter.Ref;
 
 				var cell = worksheet.getCell3(ref.r1, colId + ref.c1);
 				var hasMerged = cell.hasMerged();
-				if(checkShowButton) {
+				if (checkShowButton) {
 					var i, length;
 					/*if(filter.isHideButton(colId)) {
 						if(hasMerged) {
@@ -4396,28 +4398,28 @@
 								}
 							}
 						}
-					} else*/ if(colId > 0 && filter.isHideButton(colId - 1) && hasMerged) {
-						for(i = colId + ref.c1 - 1, length = Math.max(ref.c1, hasMerged.c1); i >= length; i--) {
-							if(!filter.isHideButton(i - ref.c1)) {
+					} else*/
+					if (colId > 0 && filter.isHideButton(colId - 1) && hasMerged) {
+						for (i = colId + ref.c1 - 1, length = Math.max(ref.c1, hasMerged.c1); i >= length; i--) {
+							if (!filter.isHideButton(i - ref.c1)) {
 								res = i + 1 - ref.c1;
 								break;
-							} else if(length === i) {
+							} else if (length === i) {
 								res = i - ref.c1;
 								break;
 							}
 						}
 					}
 				} else {
-					if(hasMerged)
-					{
-						if(hasMerged.c1 < ref.c1) {
+					if (hasMerged) {
+						if (hasMerged.c1 < ref.c1) {
 							res = 0;
 						} else {
 							res = hasMerged.c1 - ref.c1 >= 0 ? hasMerged.c1 - ref.c1 : res;
 						}
 					}
 				}
-				
+
 				return res;
 			},
 
@@ -4688,7 +4690,7 @@
 
 				if (style && worksheet.workbook.TableStyles && worksheet.workbook.TableStyles.AllStyles) {
 					//заполняем названия столбцов
-					if (true != isOpenFilter && isSetVal && !bRedoChanges) {
+					if (true !== isOpenFilter && isSetVal && !bRedoChanges) {
 						if ((headerRowCount > 0 || totalsRowCount > 0) && options.TableColumns) {
 							for (var ncol = bbox.c1; ncol <= bbox.c2; ncol++) {
 								range = worksheet.getCell3(bbox.r1, ncol);
