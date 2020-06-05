@@ -1568,7 +1568,7 @@
 					if (pasteData.Drawings && pasteData.Drawings.length) {
 
 						if (window["IS_NATIVE_EDITOR"]) {
-							t._insertImagesFromBinary(worksheet, pasteData, isIntoShape, null, isPasteAll);
+							t._insertImagesFromBinary(worksheet, pasteData, isIntoShape, null, isPasteAll, tempWorkbook);
 							if(isPasteAll) {
 								doPasteData();
 							}
@@ -1584,7 +1584,7 @@
 								}
 							}
 
-							t._insertImagesFromBinary(worksheet, pasteData, isIntoShape, null, isPasteAll);
+							t._insertImagesFromBinary(worksheet, pasteData, isIntoShape, null, isPasteAll, tempWorkbook);
 							if(isPasteAll) {
 								doPasteData();
 							}
@@ -1598,13 +1598,13 @@
 							worksheet._loadFonts(newFonts, function () {
 								if (aPastedImages && aPastedImages.length) {
 									t._loadImagesOnServer(aPastedImages, function () {
-										t._insertImagesFromBinary(worksheet, pasteData, isIntoShape, null, isPasteAll);
+										t._insertImagesFromBinary(worksheet, pasteData, isIntoShape, null, isPasteAll, tempWorkbook);
 										if(isPasteAll) {
 											doPasteData();
 										}
 									});
 								} else {
-									t._insertImagesFromBinary(worksheet, pasteData, isIntoShape, null, isPasteAll);
+									t._insertImagesFromBinary(worksheet, pasteData, isIntoShape, null, isPasteAll, tempWorkbook);
 									if(isPasteAll) {
 										doPasteData();
 									}
@@ -1648,14 +1648,10 @@
 
 				//***MOVE***
 				//проверяем, может это вырезанный фрагмент пытаемся вставить в пределах одного документа
-				var api = window["Asc"]["editor"];
-				var curDocId = api.DocInfo.Id;
-				var curUserId = api.CoAuthoringApi.getUserConnectionId();
-
 				//чтобы не передавать изменения на сервер, даже в случае одного пользователя в разных вкладках
 				//вырезать и вставить будут работать независимо, поэтому при вставке сравнивем ещё и id юзера
 
-				if(pastedWb.Core && pastedWb.Core.identifier === curDocId && pastedWb.Core.creator === curUserId && null !== window["Asc"]["editor"].wb.cutIdSheet) {
+				if(this._checkPastedInOriginalDoc(pastedWb) && null !== window["Asc"]["editor"].wb.cutIdSheet) {
 					var wsFrom = window["Asc"]["editor"].wb.getWorksheetById(window["Asc"]["editor"].wb.cutIdSheet);
 					var fromRange = wsFrom ? wsFrom.cutRange : null;
 					if(fromRange) {
@@ -1668,6 +1664,20 @@
 
 						AscCommon.g_clipboardBase.needClearBuffer = true;
 					}
+				}
+
+				return res;
+			},
+
+			_checkPastedInOriginalDoc: function(pastedWb) {
+				var res = false;
+
+				var api = window["Asc"]["editor"];
+				var curDocId = api.DocInfo.Id;
+				var curUserId = api.CoAuthoringApi.getUserConnectionId();
+
+				if(pastedWb.Core && pastedWb.Core.identifier === curDocId && pastedWb.Core.creator === curUserId) {
+					res = true;
 				}
 
 				return res;
@@ -2162,7 +2172,7 @@
 				}
 			},
 
-			_insertImagesFromBinary: function (ws, data, isIntoShape, needShowSpecialProps, savePosition) {
+			_insertImagesFromBinary: function (ws, data, isIntoShape, needShowSpecialProps, savePosition, pastedWb) {
 				var activeCell = ws.model.selectionRange.activeCell;
 				var curCol, drawingObject, curRow, startCol, startRow, xfrm, aImagesSync = [], activeRow, activeCol, tempArr, offX, offY, rot;
 
@@ -2178,17 +2188,22 @@
 					return;
 				}
 
-				History.Create_NewPoint();
-				History.StartTransaction();
+				var _abortPaste = function (_error) {
+					window['AscCommon'].g_specialPasteHelper.CleanButtonInfo();
+					window['AscCommon'].g_specialPasteHelper.Paste_Process_End();
+					if (_error) {
+						ws.handlers.trigger("onErrorEvent", Asc.c_oAscError.ID.PasteSlicerError, Asc.c_oAscError.Level.NoCritical);
+					}
+				};
 
 				var callback = function (success, slicersNames) {
 					if (!success) {
-						History.EndTransaction();
-						window['AscCommon'].g_specialPasteHelper.CleanButtonInfo();
-						window['AscCommon'].g_specialPasteHelper.Paste_Process_End();
-
+						_abortPaste();
 						return;
 					}
+
+					History.Create_NewPoint();
+					History.StartTransaction();
 
 					//определяем стартовую позицию, если изображений несколько вставляется
 					var graphicObject, i;
@@ -2348,11 +2363,30 @@
 					window['AscCommon'].g_specialPasteHelper.Paste_Process_End();
 				};
 
+				//вставляем срезы следующим образом: проверяем что вставлем в оригинальный документ
+				//далее смотрим, есть ли такой внутренний объект этого кэша - для таблиц проверяем
+				//соответствие имени таблицы и имени колонки
+				//если все объекты внутренние имеются, проверяем локи, если нет - ошибка
+ 				var pastedInOriginalDoc = this._checkPastedInOriginalDoc(pastedWb)
 				var pastedSlicers = [];
 				for (var i = 0; i < data.Drawings.length; i++) {
 					if (data.Drawings[i].graphicObject.getObjectType() === AscDFH.historyitem_type_SlicerView) {
-						var pastedSlicer = data.getSlicerByName(data.Drawings[i].graphicObject.name);
-						pastedSlicers.push(pastedSlicer);
+						if (pastedInOriginalDoc) {
+							var pastedSlicer = data.getSlicerByName(data.Drawings[i].graphicObject.name);
+							if (pastedSlicers) {
+								if (pastedSlicer.checkModelContent(ws.model)) {
+									pastedSlicers.push(pastedSlicer);
+								} else {
+									//error
+									_abortPaste(true);
+									return;
+								}
+							}
+						} else {
+							//error
+							_abortPaste(true);
+							return;
+						}
 					}
 				}
 

@@ -959,6 +959,11 @@
 		return Asc.editor.asc_getSlicerPictures();
 	};
 
+	CT_slicer.prototype.checkModelContent = function (model) {
+		return this.cacheDefinition.checkModelContent(model);
+	};
+
+
 	function CT_slicerCacheDefinition(ws) {
 		this.pivotTables = [];//SlicerCachePivotTable
 		this.data = null;//CSlicerCacheData
@@ -1358,6 +1363,27 @@
 			}
 			return true;
 		}
+	};
+
+	CT_slicerCacheDefinition.prototype.checkModelContent = function (model) {
+		var res = null;
+		var type = this.getType();
+		switch (type) {
+			case insertSlicerType.table: {
+				var tableCache = this.tableSlicerCache;
+				var table = model.workbook.getTableByName(tableCache.tableId);
+				if (table) {
+					if (null !== table.getColIdByName(tableCache.column)) {
+						res = true;
+					}
+				}
+				break;
+			}
+			case insertSlicerType.pivotTable: {
+				break;
+			}
+		}
+		return res;
 	};
 
 
