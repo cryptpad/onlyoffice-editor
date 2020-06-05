@@ -3017,7 +3017,7 @@ CT_pivotTableDefinition.prototype.fillAutoFiltersOptions = function (autoFilterO
 	}
 	var pivotFilterObj = new Asc.PivotFilterObj();
 	pivotFilterObj.asc_setDataFields(this.asc_getPivotFields());
-	pivotFilterObj.asc_setDataFieldIndex(pivotFilter ? pivotFilter.iMeasureFld : null);
+	pivotFilterObj.asc_setDataFieldIndexFilter(pivotFilter ? pivotFilter.iMeasureFld : null);
 	pivotFilterObj.asc_setFieldName(this.getPivotFieldName(index));
 	pivotFilterObj.asc_setIsPageFilter(pivotField.axis === c_oAscAxis.AxisPage);
 	pivotFilterObj.asc_setIsMultipleItemSelectionAllowed(pivotField.multipleItemSelectionAllowed);

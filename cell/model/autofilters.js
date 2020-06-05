@@ -370,7 +370,8 @@
 			if ( !(this instanceof PivotFilterObj) ) {return new PivotFilterObj();}
 
 			this.dataFields = null;//pivot.asc_getDataFields. for sorting and value filters
-			this.dataFieldIndex = null;//selected index in dataFields
+			this.dataFieldIndexSorting = null;//selected index in dataFields
+			this.dataFieldIndexFilter = null;//selected index in dataFields
 			this.fieldName = "";//display name for custom sort or clear filter
 			this.isPageFilter = false;
 			this.isMultipleItemSelectionAllowed = false;//page filter only
@@ -381,14 +382,16 @@
 		PivotFilterObj.prototype = {
 			constructor: PivotFilterObj,
 			asc_setDataFields : function(val) { this.dataFields = val || null;},
-			asc_setDataFieldIndex : function(val) { this.dataFieldIndex = val;},
+			asc_setDataFieldIndexSorting : function(val) { this.dataFieldIndexSorting = val;},
+			asc_setDataFieldIndexFilter : function(val) { this.dataFieldIndexFilter = val;},
 			asc_setFieldName : function(val) { this.fieldName = val;},
 			asc_setIsPageFilter : function(val) { this.isPageFilter = val;},
 			asc_setIsMultipleItemSelectionAllowed : function(val) { this.isMultipleItemSelectionAllowed = val;},
 			asc_setIsTop10Sum : function(val) { this.isTop10Sum = val;},
 
 			asc_getDataFields : function(val) { return this.dataFields;},
-			asc_getDataFieldIndex : function(val) { return this.dataFieldIndex;},
+			asc_getDataFieldIndexSorting : function(val) { return this.dataFieldIndexSorting;},
+			asc_getDataFieldIndexFilter : function(val) { return this.dataFieldIndexFilter;},
 			asc_getFieldName : function(val) { return this.fieldName;},
 			asc_getIsPageFilter : function(val) { return this.isPageFilter;},
 			asc_getIsMultipleItemSelectionAllowed : function(val) { return this.isMultipleItemSelectionAllowed;},
@@ -5539,13 +5542,15 @@
 		window["Asc"]["PivotFilterObj"]		    = window["Asc"].PivotFilterObj = PivotFilterObj;
 		prot									= PivotFilterObj.prototype;
 		prot["asc_setDataFields"]						= prot.asc_setDataFields;
-		prot["asc_setDataFieldIndex"]					= prot.asc_setDataFieldIndex;
+		prot["asc_setDataFieldIndexSorting"]			= prot.asc_setDataFieldIndexSorting;
+		prot["asc_setDataFieldIndexFilter"]				= prot.asc_setDataFieldIndexFilter;
 		prot["asc_setFieldName"]						= prot.asc_setFieldName;
 		prot["asc_setIsPageFilter"]						= prot.asc_setIsPageFilter;
 		prot["asc_setIsMultipleItemSelectionAllowed"]	= prot.asc_setIsMultipleItemSelectionAllowed;
 		prot["asc_setIsTop10Sum"]						= prot.asc_setIsTop10Sum;
 		prot["asc_getDataFields"]						= prot.asc_getDataFields;
-		prot["asc_getDataFieldIndex"]					= prot.asc_getDataFieldIndex;
+		prot["asc_getDataFieldIndexSorting"]			= prot.asc_getDataFieldIndexSorting;
+		prot["asc_getDataFieldIndexFilter"]				= prot.asc_getDataFieldIndexFilter;
 		prot["asc_getFieldName"]						= prot.asc_getFieldName;
 		prot["asc_getIsPageFilter"]						= prot.asc_getIsPageFilter;
 		prot["asc_getIsMultipleItemSelectionAllowed"]	= prot.asc_getIsMultipleItemSelectionAllowed;
