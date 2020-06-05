@@ -932,6 +932,9 @@
         if(!this.data.hasData()) {
             return false;
         }
+        if(e.button !== 0) {
+            return false;
+        }
         var bRet = false, bRes;
         e.IsLocked = true;
         if(this.eventListener) {
