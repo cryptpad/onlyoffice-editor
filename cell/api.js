@@ -4613,7 +4613,6 @@ var editor;
       return rules;
     };
 
-
   spreadsheet_api.prototype.asc_beforeInsertSlicer = function () {
     //пока возвращаю только данные о ф/т
     return this.wb.beforeInsertSlicer();
@@ -4621,10 +4620,6 @@ var editor;
   spreadsheet_api.prototype.asc_insertSlicer = function (arr) {
     //пока возвращаю только данные о ф/т
     return this.wb.insertSlicers(arr);
-  };
-
-  spreadsheet_api.prototype.asc_setSlicer = function (name, obj) {
-    return this.wb.setSlicer(name, obj);
   };
 
   spreadsheet_api.prototype.asc_setSlicers = function (names, obj) {
