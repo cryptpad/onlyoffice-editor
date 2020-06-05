@@ -5046,4 +5046,7 @@ var editor;
 
   prot["asc_getCF"] = prot.asc_getCF;
 
+  prot["asc_beforeInsertSlicer"] = prot.asc_beforeInsertSlicer;
+  prot["asc_insertSlicer"] = prot.asc_insertSlicer;
+
 })(window);
