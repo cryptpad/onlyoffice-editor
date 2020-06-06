@@ -405,6 +405,10 @@ CDocumentContentElementBase.prototype.GetAllParagraphs = function(Props, ParaArr
 {
 	return [];
 };
+CDocumentContentElementBase.prototype.GetAllTables = function(oProps, arrTables)
+{
+	return [];
+};
 CDocumentContentElementBase.prototype.SetContentSelection = function(StartDocPos, EndDocPos, Depth, StartFlag, EndFlag)
 {
 };

@@ -1470,6 +1470,19 @@ CDocumentContentBase.prototype.GetAllParagraphsByStyle = function(arrStylesId)
 	return this.GetAllParagraphs({Style : true, StylesId : arrStylesId});
 };
 /**
+ * Получаем массив таблиц по заданному критерию
+ * @param oProps
+ * @param [arrTables=undefined]
+ * @returns {Paragraph[]}
+ */
+CDocumentContentBase.prototype.GetAllTables = function(oProps, arrTables)
+{
+	if (!arrTables)
+		arrTables = [];
+
+	return arrTables;
+};
+/**
  * Выделяем заданную нумерацию
  * @param oNumPr {CNumPr}
  * @param oPara {Paragraph} - текущий парограф

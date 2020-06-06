@@ -935,6 +935,19 @@ CEndnotesController.prototype.GetAllParagraphs = function(Props, ParaArray)
 		oEndnote.GetAllParagraphs(Props, ParaArray);
 	}
 };
+CEndnotesController.prototype.GetAllTables = function(oProps, arrTables)
+{
+	if (!arrTables)
+		arrTables = [];
+
+	for (var sId in this.Endnote)
+	{
+		var oEndnote = this.Endnote[sId];
+		oEndnote.GetAllTables(oProps, ParaArray);
+	}
+
+	return arrTables;
+};
 /**
  * Перенеслись ли сноски с предыдущей страницы, на новую
  * @param nPageAbs

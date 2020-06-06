@@ -892,6 +892,19 @@ CFootnotesController.prototype.GetAllParagraphs = function(Props, ParaArray)
 		oFootnote.GetAllParagraphs(Props, ParaArray);
 	}
 };
+CFootnotesController.prototype.GetAllTables = function(oProps, arrTables)
+{
+	if (!arrTables)
+		arrTables = [];
+
+	for (var sId in this.Footnote)
+	{
+		var oFootnote = this.Footnote[sId];
+		oFootnote.GetAllTables(oProps, arrTables);
+	}
+
+	return arrTables;
+};
 CFootnotesController.prototype.StartSelection = function(X, Y, PageAbs, MouseEvent)
 {
 	if (true === this.Selection.Use)

@@ -10505,9 +10505,22 @@ ParaRun.prototype.GetAllParagraphs = function(Props, ParaArray)
     var ContentLen = this.Content.length;
     for (var CurPos = 0; CurPos < ContentLen; CurPos++)
     {
-        if (para_Drawing == this.Content[CurPos].Type)
+        if (para_Drawing === this.Content[CurPos].Type)
             this.Content[CurPos].GetAllParagraphs(Props, ParaArray);
     }
+};
+ParaRun.prototype.GetAllTables = function(oProps, arrTables)
+{
+	if (!arrTables)
+		arrTables = [];
+
+	for (var nCurPos = 0, nLen = this.Content.length; nCurPos < nLen; ++nCurPos)
+	{
+		if (para_Drawing === this.Content[nCurPos].Type)
+			this.Content[nCurPos].GetAllTables(oProps, arrTables);
+	}
+
+	return arrTables;
 };
 ParaRun.prototype.CheckRevisionsChanges = function(Checker, ContentPos, Depth)
 {

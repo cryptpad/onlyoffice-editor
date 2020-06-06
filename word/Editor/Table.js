@@ -2571,6 +2571,25 @@ CTable.prototype.GetAllParagraphs = function(Props, ParaArray)
 
 	return ParaArray;
 };
+CTable.prototype.GetAllTables = function(oProps, arrTables)
+{
+	if (!arrTables)
+		arrTables = [];
+
+	arrTables.push(this);
+
+	var Count = this.Content.length;
+	for (var nCurRow = 0, nRowsCount = this.GetRowsCount(); nCurRow < nRowsCount; ++nCurRow)
+	{
+		var oRow = this.GetRow(nCurRow);
+		for (var nCurCell = 0, nCellsCount = oRow.GetCellsCount(); nCurCell < nCellsCount; ++nCurCell)
+		{
+			oRow.GetCell(nCurCell).GetContent().GetAllTables(oProps, arrTables);
+		}
+	}
+
+	return arrTables;
+};
 CTable.prototype.GetEndInfo = function()
 {
 	var RowsCount = this.Content.length;

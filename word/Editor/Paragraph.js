@@ -537,6 +537,19 @@ Paragraph.prototype.GetAllParagraphs = function(Props, ParaArray)
 
 	return ParaArray;
 };
+Paragraph.prototype.GetAllTables = function(oProps, arrTables)
+{
+	if (!arrTables)
+		arrTables = [];
+
+	for (var nCurPos = 0, nLen = this.Content.length; nCurPos < nLen; ++nCurPos)
+	{
+		if (this.Content[nCurPos].GetAllTables)
+			this.Content[nCurPos].GetAllTables(oProps, arrTables);
+	}
+
+	return arrTables;
+};
 
 Paragraph.prototype.GetAllSeqFieldsByType = function(sType, aFields)
 {

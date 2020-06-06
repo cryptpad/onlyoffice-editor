@@ -935,6 +935,11 @@ CHeaderFooter.prototype =
         return this.Content.GetAllParagraphs(Props, ParaArray);
     },
 
+	GetAllTables : function(oProps, arrTables)
+	{
+		return this.Content.GetAllTables(oProps, arrTables);
+	},
+
 	GetAllDrawingObjects : function(arrDrawings)
 	{
 		return this.Content.GetAllDrawingObjects(arrDrawings);

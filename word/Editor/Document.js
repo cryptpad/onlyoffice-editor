@@ -13919,6 +13919,33 @@ CDocument.prototype.GetAllParagraphs = function(Props, ParaArray)
 
 	return ParaArray;
 };
+CDocument.prototype.GetAllTables = function(oProps, arrTables)
+{
+	if (!arrTables)
+		arrTables = [];
+
+	if (oProps && true === oProps.OnlyMainDocument)
+	{
+		for (var nIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex)
+		{
+			this.Content[nIndex].GetAllTables(oProps, arrTables);
+		}
+	}
+	else
+	{
+		this.SectionsInfo.GetAllTables(oProps, arrTables);
+
+		for (var nIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex)
+		{
+			this.Content[nIndex].GetAllTables(oProps, arrTables);
+		}
+
+		this.Footnotes.GetAllTables(oProps, arrTables);
+		this.Endnotes.GetAllTables(oProps, arrTables);
+	}
+
+	return arrTables;
+};
 CDocument.prototype.TurnOffHistory = function()
 {
 	this.History.TurnOff();
@@ -22541,6 +22568,33 @@ CDocumentSectionsInfo.prototype =
                 SectPr.FooterEven.GetAllParagraphs(Props, ParaArray);
         }
     },
+
+	GetAllTables : function(oProps, arrTables)
+	{
+		var Count = this.Elements.length;
+		for (var Index = 0; Index < Count; Index++)
+		{
+			var SectPr = this.Elements[Index].SectPr;
+
+			if (null != SectPr.HeaderFirst)
+				SectPr.HeaderFirst.GetAllTables(oProps, arrTables);
+
+			if (null != SectPr.HeaderDefault)
+				SectPr.HeaderDefault.GetAllTables(oProps, arrTables);
+
+			if (null != SectPr.HeaderEven)
+				SectPr.HeaderEven.GetAllTables(oProps, arrTables);
+
+			if (null != SectPr.FooterFirst)
+				SectPr.FooterFirst.GetAllTables(oProps, arrTables);
+
+			if (null != SectPr.FooterDefault)
+				SectPr.FooterDefault.GetAllTables(oProps, arrTables);
+
+			if (null != SectPr.FooterEven)
+				SectPr.FooterEven.GetAllTables(oProps, arrTables);
+		}
+	},
 
 	GetAllDrawingObjects : function(arrDrawings)
     {

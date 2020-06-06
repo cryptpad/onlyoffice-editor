@@ -2118,6 +2118,19 @@ CParagraphContentWithParagraphLikeContent.prototype.GetAllParagraphs = function(
             this.Content[CurPos].GetAllParagraphs(Props, ParaArray);
     }
 };
+CParagraphContentWithParagraphLikeContent.prototype.GetAllTables = function(oProps, arrTables)
+{
+	if (!arrTables)
+		arrTables = [];
+
+	for (var nCurPos = 0, nLen = this.Content.length; nCurPos < nLen; ++nCurPos)
+	{
+		if (this.Content[nCurPos].GetAllTables)
+			this.Content[nCurPos].GetAllTables(oProps, arrTables);
+	}
+
+	return arrTables;
+};
 CParagraphContentWithParagraphLikeContent.prototype.Get_ClassesByPos = function(Classes, ContentPos, Depth)
 {
     Classes.push(this);

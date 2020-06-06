@@ -1594,6 +1594,18 @@ CDocumentContent.prototype.GetAllParagraphs = function(Props, ParaArray)
 
 	return arrParagraphs;
 };
+CDocumentContent.prototype.GetAllTables = function(oProps, arrTables)
+{
+	if (!arrTables)
+		arrTables = [];
+
+	for (var nIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex)
+	{
+		this.Content[nIndex].GetAllTables(oProps, arrTables);
+	}
+
+	return arrTables;
+};
 /**
  * Специальный пресет с номером страницы для колонтитула
  * @param nAlignType
