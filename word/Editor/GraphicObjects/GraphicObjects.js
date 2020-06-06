@@ -1221,6 +1221,16 @@ CGraphicObjects.prototype =
         }
     },
 
+	updateFloatTable : function(table, pageNum)
+	{
+		var hdr_ftr = table.Parent.IsHdrFtr(true);
+
+		if (!hdr_ftr && this.graphicPages[pageNum])
+		{
+			this.graphicPages[pageNum].updateFloatTable(table);
+		}
+	},
+
     removeFloatTableById: function(pageIndex, id)
     {
         if(!this.graphicPages[pageIndex])

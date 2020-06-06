@@ -2681,6 +2681,13 @@ CTable.prototype.Shift = function(CurPage, Dx, Dy)
 		this.RowsInfo[CurRow].Y[CurPage] += Dy;
 		this.TableRowsBottom[CurRow][CurPage] += Dy;
 	}
+
+	if (!this.IsInline() && this.GetLogicDocument())
+	{
+		var oLogicDocument  = this.GetLogicDocument();
+		var oDrawingObjects = oLogicDocument.GetDrawingObjects();
+		oDrawingObjects.updateFloatTable(this, this.GetAbsolutePage(CurPage));
+	}
 };
 CTable.prototype.UpdateEndInfo = function()
 {

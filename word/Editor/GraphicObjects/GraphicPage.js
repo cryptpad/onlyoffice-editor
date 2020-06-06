@@ -83,6 +83,19 @@ CGraphicPage.prototype =
         this.flowTables.push(table);
     },
 
+	updateFloatTable: function(table)
+	{
+		for(var i = 0; i < this.flowTables.length; ++i)
+		{
+			if(this.flowTables[i].GetElement() === table)
+			{
+				this.flowTables[i].Update();
+				return;
+			}
+		}
+		this.flowTables.push(new CFlowTable(table, this.pageIndex));
+	},
+
     addObject: function(object)
     {
 
