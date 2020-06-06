@@ -87,13 +87,13 @@ CGraphicPage.prototype =
 	{
 		for(var i = 0; i < this.flowTables.length; ++i)
 		{
-			if(this.flowTables[i].GetElement() === table)
+			if(this.flowTables[i].GetElement() === table.GetElement())
 			{
-				this.flowTables[i].Update();
+				this.flowTables.splice(i, 1, table);
 				return;
 			}
 		}
-		this.flowTables.push(new CFlowTable(table, this.pageIndex));
+		this.flowTables.push(table);
 	},
 
     addObject: function(object)

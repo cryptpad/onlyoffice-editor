@@ -2686,7 +2686,7 @@ CTable.prototype.Shift = function(CurPage, Dx, Dy)
 	{
 		var oLogicDocument  = this.GetLogicDocument();
 		var oDrawingObjects = oLogicDocument.GetDrawingObjects();
-		oDrawingObjects.updateFloatTable(this, this.GetAbsolutePage(CurPage));
+		oDrawingObjects.updateFloatTable(new CFlowTable(this, this.PageNum + CurPage));
 	}
 };
 CTable.prototype.UpdateEndInfo = function()

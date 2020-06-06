@@ -763,13 +763,13 @@ CDocumentContent.prototype.Recalculate_Page               = function(PageIndex, 
                     }
                     else
                     {
-                        X      = oRecalcInfo.AdditionalInfo.X;
-                        Y      = oRecalcInfo.AdditionalInfo.Y;
-                        XLimit = oRecalcInfo.AdditionalInfo.XLimit;
-                        YLimit = oRecalcInfo.AdditionalInfo.YLimit;
+                        var _X      = oRecalcInfo.AdditionalInfo.X;
+                        var _Y      = oRecalcInfo.AdditionalInfo.Y;
+                        var _XLimit = oRecalcInfo.AdditionalInfo.XLimit;
+                        var _YLimit = oRecalcInfo.AdditionalInfo.YLimit;
 
                         // Пересчет нужнен для обновления номеров колонок и страниц
-                        Element.Reset(X, Y, XLimit, YLimit, PageIndex, 0, 1);
+                        Element.Reset(_X, _Y, _XLimit, _YLimit, PageIndex, 0, 1);
                         RecalcResult = Element.Recalculate_Page(0);
 						oRecalcInfo.FlowObjectPage++;
 

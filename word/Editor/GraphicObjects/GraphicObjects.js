@@ -1221,13 +1221,13 @@ CGraphicObjects.prototype =
         }
     },
 
-	updateFloatTable : function(table, pageNum)
+	updateFloatTable : function(table)
 	{
-		var hdr_ftr = table.Parent.IsHdrFtr(true);
+		var hdr_ftr = table.Table.Parent.IsHdrFtr(true);
 
-		if (!hdr_ftr && this.graphicPages[pageNum])
+		if (!hdr_ftr && this.graphicPages[table.PageNum + table.PageController])
 		{
-			this.graphicPages[pageNum].updateFloatTable(table);
+			this.graphicPages[table.PageNum + table.PageController].updateFloatTable(table);
 		}
 	},
 
