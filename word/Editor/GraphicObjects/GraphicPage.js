@@ -234,7 +234,7 @@ CGraphicPage.prototype =
         }
         function findTableInArrayAndRemove(drawingArray, docContent, document)
         {
-            if(!docContent === document)
+            if(docContent === document)
             {
                 drawingArray.length = 0;
                 return;
