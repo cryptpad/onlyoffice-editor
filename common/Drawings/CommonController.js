@@ -2366,6 +2366,87 @@ DrawingObjectsController.prototype =
         //this.contentChanges.Clear();
     },
 
+    getSelectionImage: function() {
+      
+        var oController2 = this.selection.groupSelection ? this.selection.groupSelection : this;
+        var oRet, oPos;
+        if (oController2.selectedObjects.length === 0) {
+            oRet = new Asc.asc_CImgProperty();
+            oRet.asc_putImageUrl("");
+            oRet.asc_putWidth(0);
+            oRet.asc_putHeight(0);
+            oPos = new Asc.CPosition();
+            oPos.put_X(0);
+            oPos.put_Y(0);
+            return null;
+        }
+        var _bounds_cheker = new AscFormat.CSlideBoundsChecker();
+
+        var dKoef = AscCommon.g_dKoef_mm_to_pix;
+        var w_mm = 210;
+        var h_mm = 297;
+        var w_px = (w_mm * dKoef + 0.5) >> 0;
+        var h_px = (h_mm * dKoef + 0.5) >> 0;
+
+        _bounds_cheker.init(w_px, h_px, w_mm, h_mm);
+        _bounds_cheker.transform(1, 0, 0, 1, 0, 0);
+
+        _bounds_cheker.AutoCheckLineWidth = true;
+        for (var i = 0; i < oController2.selectedObjects.length; ++i) {
+            oController2.selectedObjects[i].draw(_bounds_cheker);
+        }
+
+        var _need_pix_width = _bounds_cheker.Bounds.max_x - _bounds_cheker.Bounds.min_x + 1;
+        var _need_pix_height = _bounds_cheker.Bounds.max_y - _bounds_cheker.Bounds.min_y + 1;
+
+        if (_need_pix_width > 0 && _need_pix_height > 0) {
+
+            var _canvas = document.createElement('canvas');
+            _canvas.width = _need_pix_width;
+            _canvas.height = _need_pix_height;
+
+            var _ctx = _canvas.getContext('2d');
+
+
+            var sImageUrl;
+            if (!window["NATIVE_EDITOR_ENJINE"]) {
+                var g = new AscCommon.CGraphics();
+                g.init(_ctx, w_px, h_px, w_mm, h_mm);
+                g.m_oFontManager = AscCommon.g_fontManager;
+
+                g.m_oCoordTransform.tx = -_bounds_cheker.Bounds.min_x;
+                g.m_oCoordTransform.ty = -_bounds_cheker.Bounds.min_y;
+                g.transform(1, 0, 0, 1, 0, 0);
+
+
+                AscCommon.IsShapeToImageConverter = true;
+                for (i = 0; i < oController2.selectedObjects.length; ++i) {
+                    oController2.selectedObjects[i].draw(g);
+                }
+                AscCommon.IsShapeToImageConverter = false;
+
+                try {
+                    sImageUrl = _canvas.toDataURL("image/png");
+                } catch (err) {
+                    sImageUrl = "";
+                }
+            } else {
+                sImageUrl = "";
+            }
+
+            oRet = new Asc.asc_CImgProperty();
+            oPos = new Asc.CPosition();
+            oPos.put_X(_bounds_cheker.Bounds.min_x * AscCommon.g_dKoef_pix_to_mm);
+            oPos.put_Y(_bounds_cheker.Bounds.min_y * AscCommon.g_dKoef_pix_to_mm);
+            oRet.asc_putPosition(oPos);
+            oRet.asc_putImageUrl(sImageUrl);
+            oRet.asc_putWidth(_canvas.width * AscCommon.g_dKoef_pix_to_mm);
+            oRet.asc_putHeight(_canvas.height * AscCommon.g_dKoef_pix_to_mm);
+            return oRet;
+        }
+
+    },
+
     getAllFontNames: function()
     {
     },

@@ -4014,6 +4014,10 @@ GraphicOption.prototype.union = function(oGraphicOption) {
         return new AscCommon.asc_CImageSize( 50, 50, false );
     };
 
+    _this.getSelectionImg = function() {
+        return _this.controller.getSelectionImage().asc_getImageUrl();
+    };
+
     _this.sendGraphicObjectProps = function () {
         if (worksheet) {
             worksheet.handlers.trigger("selectionChanged");
