@@ -1981,6 +1981,9 @@
             }
         }
     };
+    CGraphicObjectBase.prototype.getSlicerViewByName = function (name) {
+        return null;
+    };
     function CRelSizeAnchor() {
         CBaseObject.call(this);
         this.fromX = null;

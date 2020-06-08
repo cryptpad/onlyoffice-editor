@@ -1126,6 +1126,12 @@
     CSlicer.prototype.checkTextWarp = function(oContent, oBodyPr, dWidth, dHeight, bNeedNoTransform, bNeedWarp) {
         return oDefaultWrapObject;
     };
+    CSlicer.prototype.getSlicerViewByName = function (name) {
+        if(this.name === name) {
+            return this;
+        }
+        return null;
+    };
     
     function CHeader(slicer) {
         AscFormat.CShape.call(this);

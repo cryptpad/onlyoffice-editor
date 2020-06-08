@@ -1895,6 +1895,16 @@ function CGroupShape()
             this.spTree[i].onSlicerChangeName(sName, sNewName);
         }
     };
+    CGroupShape.prototype.getSlicerViewByName = function (name) {
+        var res = null;
+        for(var i = 0; i < this.spTree.length; ++i) {
+            res = this.spTree[i].getSlicerViewByName(name);
+            if(res) {
+                return res;
+            }
+        }
+        return res;
+    };
 
     //--------------------------------------------------------export----------------------------------------------------
     window['AscFormat'] = window['AscFormat'] || {};

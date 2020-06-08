@@ -3214,6 +3214,15 @@
 		}
 		return null;
 	};
+	Workbook.prototype.getSlicerViewByName = function (name) {
+		for (var i = 0, l = this.aWorksheets.length; i < l; ++i) {
+			var slicer = this.aWorksheets[i].getSlicerViewByName(name);
+			if (slicer) {
+				return slicer;
+			}
+		}
+		return null;
+	};
 	Workbook.prototype.getSlicersByCacheName = function (name) {
 		var res = [];
 		for (var i = 0, l = this.aWorksheets.length; i < l; ++i) {
@@ -8100,6 +8109,17 @@
 			}
 		}
 
+		return res;
+	};
+
+	Worksheet.prototype.getSlicerViewByName = function (name) {
+		var res = null;
+		for (var i = 0; i < this.Drawings.length; i++) {
+			res = this.Drawings[i].getSlicerViewByName(name);
+			if(res) {
+				break;
+			}
+		}
 		return res;
 	};
 

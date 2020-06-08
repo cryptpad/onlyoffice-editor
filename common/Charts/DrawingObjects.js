@@ -1769,6 +1769,12 @@ GraphicOption.prototype.union = function(oGraphicOption) {
         }
         this.graphicObject.onSlicerChangeName(sName, sNewName);
     };
+    DrawingBase.prototype.getSlicerViewByName = function (name) {
+        if(!this.graphicObject) {
+            return;
+        }
+        return this.graphicObject.getSlicerViewByName(name);
+    };
     //}
 
     //-----------------------------------------------------------------------------------
