@@ -214,7 +214,7 @@
                     case this.Properties.isTextFilter: this.isTextFilter = value;break;
                     case this.Properties.colorsFill: this.colorsFill = value;break;
                     case this.Properties.colorsFont: this.colorsFont = value;break;
-                    case this.Properties.sortColor: this.sortColor = value;break;куышяу
+                    case this.Properties.sortColor: this.sortColor = value;break;
 				}
 			},
 			
