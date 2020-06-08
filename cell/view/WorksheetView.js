@@ -15834,7 +15834,7 @@
 
 		//set menu object
 		var autoFilterObject = new Asc.AutoFiltersOptions();
-		autoFilterObject.asc_setCellCoord(this.getCellCoord(idPivot.row, idPivot.col));
+		autoFilterObject.asc_setCellCoord(this.getCellCoord(idPivot.col, idPivot.row));
 		autoFilterObject.asc_setCellId(new AscCommon.CellBase(idPivot.row, idPivot.col).getName());
 		pivotTable.fillAutoFiltersOptions(autoFilterObject, idPivot.fld);
 
