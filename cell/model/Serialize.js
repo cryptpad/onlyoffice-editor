@@ -3324,6 +3324,13 @@
             var slicers = new Asc.CT_slicers();
             var slicerExt = new Asc.CT_slicers();
             for (var i = 0; i < ws.aSlicers.length; ++i) {
+                if (this.isCopyPaste) {
+                    /*var _graphicObject = ;
+                    if (!_graphicObject || !graphicObject.selected) {
+                        continue;
+                    }*/
+                }
+
                 if (ws.aSlicers[i].isExt()) {
                     slicerExt.slicer.push(ws.aSlicers[i]);
                 } else {

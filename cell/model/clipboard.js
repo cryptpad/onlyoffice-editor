@@ -572,11 +572,23 @@
 					var oldLanguage = wb.Core.language;
 					wb.Core.creator = wb.oApi && wb.oApi.CoAuthoringApi ? wb.oApi.CoAuthoringApi.getUserConnectionId() : null;
 					wb.Core.identifier = wb.oApi && wb.oApi.DocInfo ? wb.oApi.DocInfo.Id : null;
+
+					//записываю изображение выделенного фрагмента. пока только для изоюражений
+					//выбрал для этого поле subject
+					var oldSubject = wb.Core.subject;
+					var _imgProperty = Asc.editor.wb.getWorksheet().objectRender.controller.getSelectionImage();
+					if (_imgProperty) {
+						var _base64 = _imgProperty.asc_getImageUrl();
+						var _width = _imgProperty.Width;
+						var _height = _imgProperty.Height;
+						wb.Core.subject = _width + ";" + _height + ";" + _base64;
+					}
+
 					//так же необходимо протащить локаль, для этого использую поля language
 					//и записываю туда номер локали, предварительно конвертируя его в строку
 					//пока буду использовать его только при вставке в документы, а в документах устанавливать -> AscCommon.setCurrentCultureInfo(val)
 					var locale = wb.oApi ? wb.oApi.asc_getLocale() : null;
-					wb.Core.language = undefined != locale ? locale.toString() : null;
+					wb.Core.language = (undefined !== locale && null !== locale) ? locale.toString() : null;
 
 
 					//WRITE
@@ -597,6 +609,7 @@
 						wb.Core.creator = oldCreator;
 						wb.Core.identifier = oldIdentifier;
 						wb.Core.language = oldLanguage;
+						wb.Core.subject = oldSubject;
 					}
 				}
 

@@ -3361,8 +3361,27 @@ PasteProcessor.prototype =
 		var aContentExcel = this._readFromBinaryExcel(base64FromExcel);
 		History.TurnOn();
 
+
 		if(null === aContentExcel) {
 			return null;
+		}
+
+		//если есть срез в контенте - вставляем только картинку
+		var _sheet = aContentExcel && aContentExcel.workbook && aContentExcel.workbook.aWorksheets[0];
+		var pDrawings;
+		if (_sheet && _sheet.aSlicers && _sheet.aSlicers.length ) {
+			if (aContentExcel.workbook.Core && aContentExcel.workbook.Core.subject) {
+				var _str = aContentExcel.workbook.Core.subject;
+				var _parseStr = _str.split(";");
+				var _width = _parseStr[0];
+				var _height = _parseStr[1];
+				var _base64 = _str.substring(_width.length + _height.length + 2);
+				if (_base64 && _width && _height) {
+					var drawing = AscFormat.DrawingObjectsController.prototype.createImage(_base64, 0, 0, parseFloat(_width), parseFloat(_height));
+					aContentExcel.arrImages = [new AscCommon.CBuilderImages(new AscFormat.CBlipFill(), _base64, drawing, null, null)];
+					pDrawings = [drawing];
+				}
+			}
 		}
 
 		var oldLocale = AscCommon.g_oDefaultCultureInfo ? AscCommon.g_oDefaultCultureInfo.LCID : AscCommon.g_oDefaultCultureInfo;
@@ -3388,7 +3407,7 @@ PasteProcessor.prototype =
 			AscCommon.sendImgUrls(oThis.api, oObjectsForDownload.aUrls, function (data) {
 				var oImageMap = {};
 				ResetNewUrls(data, oObjectsForDownload.aUrls, oObjectsForDownload.aBuilderImagesByUrl, oImageMap);
-				var aContent = oThis._convertExcelBinary(aContentExcel);
+				var aContent = oThis._convertExcelBinary(aContentExcel, pDrawings);
 				revertLocale();
 
 				oThis.aContent = aContent.content;
