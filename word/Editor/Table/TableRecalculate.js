@@ -313,6 +313,12 @@ CTable.prototype.private_RecalculateGrid = function()
 				var oCellW    = oCell.GetW();
 				var nGridSpan = oCell.GetGridSpan();
 
+				if (vmerge_Restart !== oCell.GetVMerge())
+				{
+					nCurGridCol += nGridSpan;
+					continue;
+				}
+
 				if (nCurGridCol + nGridSpan - 1 > arrSumGrid.length)
 				{
 					for (var nAddIndex = arrSumGrid.length; nAddIndex <= nCurGridCol + nGridSpan - 1; ++nAddIndex)
