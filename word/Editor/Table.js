@@ -129,6 +129,8 @@ function CTable(DrawingDocument, Parent, Inline, Rows, Cols, TableGrid, bPresent
     this.CalculatedMinWidth = -1;
     this.CalculatedPctWidth = -1;
     this.CalculatedTableW   = -1;
+    this.CalculatedX        = null;
+    this.CalculatedXLimit   = null;
 
     this.RecalcInfo = new CTableRecalcInfo();
 

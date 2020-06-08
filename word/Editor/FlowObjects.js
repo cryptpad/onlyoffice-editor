@@ -187,10 +187,6 @@ CFlowBase.prototype.CheckDocumentContent = function(oDocContent)
 
 	return (oDocContent === this.Table.Parent || oDocContent.GetDocumentContentForRecalcInfo() === this.Table.Parent.GetDocumentContentForRecalcInfo());
 };
-CFlowBase.prototype.Update = function()
-{
-
-};
 
 function CFlowTable(Table, PageIndex)
 {
@@ -203,12 +199,12 @@ function CFlowTable(Table, PageIndex)
     this.Distance       = Table.Distance;
 	this.WrappingType   = WRAPPING_TYPE_SQUARE;
 
-	this.X = 0;
-	this.Y = 0;
-	this.W = 0;
-	this.H = 0;
+	var oBounds = this.Table.GetPageBounds(this.PageController);
 
-	this.Update();
+	this.X = oBounds.Left;
+	this.Y = AscCommon.CorrectMMToTwips(oBounds.Top) + AscCommon.TwipsToMM(1); // Сдвигаемся на 1 twips вниз, чтобы не было пересечения с предыдущей строкой
+	this.W = oBounds.Right - oBounds.Left;
+	this.H = AscCommon.CorrectMMToTwips(oBounds.Bottom - oBounds.Top);
 }
 
 CFlowTable.prototype = Object.create(CFlowBase.prototype);
@@ -217,15 +213,6 @@ CFlowTable.prototype.constructor = CFlowTable;
 CFlowTable.prototype.IsFlowTable = function()
 {
     return true;
-};
-CFlowTable.prototype.Update = function()
-{
-	var oBounds = this.Table.GetPageBounds(this.PageController);
-
-	this.X = oBounds.Left;
-	this.Y = AscCommon.CorrectMMToTwips(oBounds.Top) + AscCommon.TwipsToMM(1); // Сдвигаемся на 1 twips вниз, чтобы не было пересечения с предыдущей строкой
-	this.W = oBounds.Right - oBounds.Left;
-	this.H = AscCommon.CorrectMMToTwips(oBounds.Bottom - oBounds.Top);
 };
 
 function CFlowParagraph(Paragraph, X, Y, W, H, Dx, Dy, StartIndex, FlowCount, Wrap)

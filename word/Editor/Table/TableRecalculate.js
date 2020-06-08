@@ -238,6 +238,17 @@ CTable.prototype.private_RecalculateGrid = function()
 	var MinWidth = this.CalculatedMinWidth;
 	var TableW   = this.CalculatedTableW;
 
+	if (null === this.CalculatedX || null === this.CalculatedXLimit || Math.abs(this.X - this.CalculatedX) > 0.001 || Math.abs(this.XLimit - this.CalculatedXLimit))
+	{
+		this.CalculatedX      = this.X;
+		this.CalculatedXLimit = this.XLimit;
+
+		this.RecalcInfo.TableGrid    = true;
+		this.RecalcInfo.TableBorders = true;
+
+		// Запускаем пересчет границ, потому что там пересчитываются метрики ячеек, которые зависят от X, XLimit
+	}
+
 	if (this.RecalcInfo.TableGrid)
 	{
 		var arrSumGrid = [];
@@ -2402,7 +2413,7 @@ CTable.prototype.private_RecalculatePage = function(CurPage)
                     var Y_content_height_old = Cell.Content.Pages[0].Bounds.Bottom - Cell.Content.Pages[0].Bounds.Top;
 
 					// Проверим по X, Y
-                    if ( Math.abs( X_content_start - X_content_start_old ) < 0.001 && Math.abs( X_content_end_old - X_content_end ) < 0.001 && Y_content_start + Y_content_height_old < Y_content_end )
+					if (Math.abs(X_content_start - X_content_start_old) < 0.001 && Math.abs(X_content_end_old - X_content_end) < 0.001 && Y_content_start + Y_content_height_old < Y_content_end)
                     {
                         bCanShift = true;
                         ShiftDy   = -Cell.Content.Pages[0].Y + Y_content_start;
