@@ -13610,13 +13610,16 @@ CTable.prototype.Update_TableMarkupFromRuler = function(NewMarkup, bCol, Index)
 		// Пока сделаем так, в будущем надо будет менять ширину таблицы
 		if (0 != Index && TablePr.TableW.Type != tblwidth_Auto)
 		{
-			var TableW   = TablePr.TableW.W;
-			var MinWidth = this.private_GetTableMinWidth();
+			var nTableW = 0;
+			for (var nCurCol = 0, nColsCount = this.TableGrid.length; nCurCol < nColsCount; ++nCurCol)
+				nTableW += this.TableGrid[nCurCol];
 
-			if (TableW < MinWidth)
-				TableW = MinWidth;
+			var nMinWidth = this.private_GetTableMinWidth();
 
-			this.Set_TableW(tblwidth_Mm, TableW + Dx);
+			if (nTableW + Dx < nMinWidth)
+				nTableW = nMinWidth;
+
+			this.Set_TableW(tblwidth_Mm, nTableW + Dx);
 		}
 
 		if (0 === Col)
