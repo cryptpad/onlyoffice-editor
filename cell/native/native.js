@@ -4671,19 +4671,10 @@ function OfflineEditor () {
                 
                 var coordsFrom = _this.calculateCoords(drawingObject.from);
                 var coordsTo = _this.calculateCoords(drawingObject.to);
-                
-                // CImage
-                _this.objectLocker.reset();
-                _this.objectLocker.addObjectId(AscCommon.g_oIdCounter.Get_NewId());
-                _this.objectLocker.checkObjects(function (bLock) {
-                                                if (bLock !== true)
-                                                return;
-                                                _this.controller.resetSelection();
-                                                History.Create_NewPoint();
-                                                _this.controller.addImageFromParams(_image.src, pxToMm(coordsFrom.x) + MOVE_DELTA, pxToMm(coordsFrom.y) + MOVE_DELTA, pxToMm(coordsTo.x - coordsFrom.x), pxToMm(coordsTo.y - coordsFrom.y));
-                                                _this.controller.startRecalculate();
-                                                });
-                
+                _this.controller.resetSelection();
+                History.Create_NewPoint();
+                _this.controller.addImageFromParams(_image.src, pxToMm(coordsFrom.x) + MOVE_DELTA, pxToMm(coordsFrom.y) + MOVE_DELTA, pxToMm(coordsTo.x - coordsFrom.x), pxToMm(coordsTo.y - coordsFrom.y));
+                _this.controller.startRecalculate();
                 worksheet.setSelectionShape(true);
                 
                 if (_this.controller.selectedObjects.length) {

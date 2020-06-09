@@ -1784,63 +1784,45 @@ GraphicOption.prototype.union = function(oGraphicOption) {
     _this.addShapeOnSheet = function(sType){
         if(this.controller){
             if (_this.canEdit()) {
+                _this.controller.resetSelection();
+                var activeCell = worksheet.model.selectionRange.activeCell;
+                var metrics = {};
+                metrics.col = activeCell.col;
+                metrics.colOff = 0;
+                metrics.row = activeCell.row;
+                metrics.rowOff = 0;
+                var coordsFrom = _this.calculateCoords(metrics);
+                var ext_x, ext_y;
+                if(typeof AscFormat.SHAPE_EXT[sType] === "number")
+                {
+                    ext_x = AscFormat.SHAPE_EXT[sType];
+                }
+                else
+                {
+                    ext_x = 25.4;
+                }
+                if(typeof AscFormat.SHAPE_ASPECTS[sType] === "number")
+                {
+                    var _aspect = AscFormat.SHAPE_ASPECTS[sType];
+                    ext_y = ext_x/_aspect;
+                }
+                else
+                {
+                    ext_y = ext_x;
+                }
+                History.Create_NewPoint();
 
-                var oVisibleRange = worksheet.getVisibleRange();
-
-                _this.objectLocker.reset();
-                _this.objectLocker.addObjectId(AscCommon.g_oIdCounter.Get_NewId());
-                _this.objectLocker.checkObjects(function (bLock) {
-                    if (bLock !== true)
-                        return;
-                    _this.controller.resetSelection();
-
-                    var activeCell = worksheet.model.selectionRange.activeCell;
-
-
-
-                    var metrics = {};
-                    metrics.col = activeCell.col;
-                    metrics.colOff = 0;
-                    metrics.row = activeCell.row;
-                    metrics.rowOff = 0;
-
-
-                    var coordsFrom = _this.calculateCoords(metrics);
-
-
-
-                    var ext_x, ext_y;
-                    if(typeof AscFormat.SHAPE_EXT[sType] === "number")
-                    {
-                        ext_x = AscFormat.SHAPE_EXT[sType];
-                    }
-                    else
-                    {
-                        ext_x = 25.4;
-                    }
-                    if(typeof AscFormat.SHAPE_ASPECTS[sType] === "number")
-                    {
-                        var _aspect = AscFormat.SHAPE_ASPECTS[sType];
-                        ext_y = ext_x/_aspect;
-                    }
-                    else
-                    {
-                        ext_y = ext_x;
-                    }
-                    History.Create_NewPoint();
-
-                    var posX = pxToMm(coordsFrom.x) + MOVE_DELTA;
-                    var posY = pxToMm(coordsFrom.y) + MOVE_DELTA;
-                    var oTrack = new AscFormat.NewShapeTrack(sType, posX, posY, _this.controller.getTheme(), null, null, null, 0);
-                    oTrack.track({}, posX + ext_x, posY + ext_y);
-                    var oShape = oTrack.getShape(false, _this.drawingDocument, null);
-                    oShape.setWorksheet(worksheet.model);
-                    oShape.addToDrawingObjects();
-                    oShape.checkDrawingBaseCoords();
-                    oShape.select(_this.controller, 0);
-                    _this.controller.startRecalculate();
-                    worksheet.setSelectionShape(true);
-                });
+                var posX = pxToMm(coordsFrom.x) + MOVE_DELTA;
+                var posY = pxToMm(coordsFrom.y) + MOVE_DELTA;
+                var oTrack = new AscFormat.NewShapeTrack(sType, posX, posY, _this.controller.getTheme(), null, null, null, 0);
+                oTrack.track({}, posX + ext_x, posY + ext_y);
+                var oShape = oTrack.getShape(false, _this.drawingDocument, null);
+                oShape.setWorksheet(worksheet.model);
+                oShape.addToDrawingObjects();
+                oShape.checkDrawingBaseCoords();
+                oShape.select(_this.controller, 0);
+                _this.controller.startRecalculate();
+                worksheet.setSelectionShape(true);
             }
         }
     };
@@ -2376,26 +2358,20 @@ GraphicOption.prototype.union = function(oGraphicOption) {
         if (imageUrls && _this.canEdit()) {
             api.ImageLoader.LoadImagesWithCallback(imageUrls, function(){
                 // CImage
-                _this.objectLocker.reset();
-                _this.objectLocker.addObjectId(AscCommon.g_oIdCounter.Get_NewId());
-                _this.objectLocker.checkObjects(function (bLock) {
-                    if (bLock !== true)
-                        return;
-                    _this.controller.resetSelection();
-                    History.Create_NewPoint();
-                    for(var i = 0; i < imageUrls.length; ++i){
-                        var sImageUrl = imageUrls[i];
-                        var _image = api.ImageLoader.LoadImage(sImageUrl, 1);
-                        if (null != _image) {
-                            _this.addImageObjectCallback(_image, options);
-                        } else {
-                            worksheet.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.UplImageUrl, c_oAscError.Level.NoCritical);
-                            break;
-                        }
+                _this.controller.resetSelection();
+                History.Create_NewPoint();
+                for(var i = 0; i < imageUrls.length; ++i){
+                    var sImageUrl = imageUrls[i];
+                    var _image = api.ImageLoader.LoadImage(sImageUrl, 1);
+                    if (null != _image) {
+                        _this.addImageObjectCallback(_image, options);
+                    } else {
+                        worksheet.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.UplImageUrl, c_oAscError.Level.NoCritical);
+                        break;
                     }
-                    _this.controller.startRecalculate();
-                    worksheet.setSelectionShape(true);
-                });
+                }
+                _this.controller.startRecalculate();
+                worksheet.setSelectionShape(true);
             }, []);
         }
     };
@@ -2405,20 +2381,13 @@ GraphicOption.prototype.union = function(oGraphicOption) {
         if (_this.canEdit()) {
 
             var oVisibleRange = worksheet.getVisibleRange();
-
-            _this.objectLocker.reset();
-            _this.objectLocker.addObjectId(AscCommon.g_oIdCounter.Get_NewId());
-            _this.objectLocker.checkObjects(function (bLock) {
-                if (bLock !== true)
-                    return;
-                _this.controller.resetSelection();
-                var dLeft = worksheet.getCellLeft(oVisibleRange.c1, 3);
-                var dTop = worksheet.getCellTop(oVisibleRange.r1, 3);
-                var dRight = worksheet.getCellLeft(oVisibleRange.c2, 3) + worksheet.getColumnWidth(oVisibleRange.c2, 3);
-                var dBottom = worksheet.getCellTop(oVisibleRange.r2, 3) + worksheet.getRowHeight(oVisibleRange.r2, 3);
-                _this.controller.addTextArtFromParams(nStyle, dLeft, dTop, dRight - dLeft, dBottom - dTop, worksheet.model);
-                worksheet.setSelectionShape(true);
-            });
+            _this.controller.resetSelection();
+            var dLeft = worksheet.getCellLeft(oVisibleRange.c1, 3);
+            var dTop = worksheet.getCellTop(oVisibleRange.r1, 3);
+            var dRight = worksheet.getCellLeft(oVisibleRange.c2, 3) + worksheet.getColumnWidth(oVisibleRange.c2, 3);
+            var dBottom = worksheet.getCellTop(oVisibleRange.r2, 3) + worksheet.getRowHeight(oVisibleRange.r2, 3);
+            _this.controller.addTextArtFromParams(nStyle, dLeft, dTop, dRight - dLeft, dBottom - dTop, worksheet.model);
+            worksheet.setSelectionShape(true);
         }
 
     };
@@ -2427,66 +2396,53 @@ GraphicOption.prototype.union = function(oGraphicOption) {
         if (_this.canEdit()) {
             if(Array.isArray(aNames) && aNames.length > 0) {
                 var oVisibleRange = worksheet.getVisibleRange();
-                _this.objectLocker.reset();
-                _this.objectLocker.addObjectId(AscCommon.g_oIdCounter.Get_NewId());
-                _this.objectLocker.checkObjects(function (bLock) {
-                    if (bLock !== true) {
-                        return;
-                    }
-                    var nSlicerCount = aNames.length;
-                    var dSlicerWidth = 2 * 25.4;//
-                    var dSlicerHeight = 2.76 * 25.4;
-                    var dSlicerInset = 10;
-                    var dTotalWidth = dSlicerWidth + nSlicerCount * dSlicerInset;
-                    var dTotalHeight = dSlicerHeight + nSlicerCount * dSlicerInset;
-                    var dLeft = worksheet.getCellLeft(oVisibleRange.c1, 3);
-                    var dTop = worksheet.getCellTop(oVisibleRange.r1, 3);
-                    var dRight = worksheet.getCellLeft(oVisibleRange.c2, 3) + worksheet.getColumnWidth(oVisibleRange.c2, 3);
-                    var dBottom = worksheet.getCellTop(oVisibleRange.r2, 3) + worksheet.getRowHeight(oVisibleRange.r2, 3);
-                    _this.controller.resetSelection();
-                    var dStartPosX = Math.max(0, (dLeft + dRight) / 2.0 - dTotalWidth / 2);
-                    var dStartPosY = Math.max(0, (dTop + dBottom) / 2.0 - dTotalHeight / 2);
-                    var oSlicer, x, y;
-                    for(var nSlicerIndex = 0; nSlicerIndex < nSlicerCount; ++nSlicerIndex) {
-                        oSlicer = new AscFormat.CSlicer();
-                        oSlicer.setName(aNames[nSlicerIndex]);
-                        x = dStartPosX + dSlicerInset * nSlicerIndex;
-                        y = dStartPosY + dSlicerInset * nSlicerIndex;
-                        oSlicer.setBDeleted(false);
-                        oSlicer.setWorksheet(worksheet.model);
-                        oSlicer.setTransformParams(x, y, dSlicerWidth, dSlicerHeight, 0, false, false);
-                        oSlicer.addToDrawingObjects(undefined, AscCommon.c_oAscCellAnchorType.cellanchorAbsolute);
-                        oSlicer.checkDrawingBaseCoords();
-                    }
-                    _this.controller.startRecalculate();
-                    oSlicer.select(_this.controller, 0);
-                    worksheet.setSelectionShape(true);
-                });
+                var nSlicerCount = aNames.length;
+                var dSlicerWidth = 2 * 25.4;//
+                var dSlicerHeight = 2.76 * 25.4;
+                var dSlicerInset = 10;
+                var dTotalWidth = dSlicerWidth + nSlicerCount * dSlicerInset;
+                var dTotalHeight = dSlicerHeight + nSlicerCount * dSlicerInset;
+                var dLeft = worksheet.getCellLeft(oVisibleRange.c1, 3);
+                var dTop = worksheet.getCellTop(oVisibleRange.r1, 3);
+                var dRight = worksheet.getCellLeft(oVisibleRange.c2, 3) + worksheet.getColumnWidth(oVisibleRange.c2, 3);
+                var dBottom = worksheet.getCellTop(oVisibleRange.r2, 3) + worksheet.getRowHeight(oVisibleRange.r2, 3);
+                _this.controller.resetSelection();
+                var dStartPosX = Math.max(0, (dLeft + dRight) / 2.0 - dTotalWidth / 2);
+                var dStartPosY = Math.max(0, (dTop + dBottom) / 2.0 - dTotalHeight / 2);
+                var oSlicer, x, y;
+                for(var nSlicerIndex = 0; nSlicerIndex < nSlicerCount; ++nSlicerIndex) {
+                    oSlicer = new AscFormat.CSlicer();
+                    oSlicer.setName(aNames[nSlicerIndex]);
+                    x = dStartPosX + dSlicerInset * nSlicerIndex;
+                    y = dStartPosY + dSlicerInset * nSlicerIndex;
+                    oSlicer.setBDeleted(false);
+                    oSlicer.setWorksheet(worksheet.model);
+                    oSlicer.setTransformParams(x, y, dSlicerWidth, dSlicerHeight, 0, false, false);
+                    oSlicer.addToDrawingObjects(undefined, AscCommon.c_oAscCellAnchorType.cellanchorAbsolute);
+                    oSlicer.checkDrawingBaseCoords();
+                }
+                _this.controller.startRecalculate();
+                oSlicer.select(_this.controller, 0);
+                worksheet.setSelectionShape(true);
 
             }
         }
     };
     _this.addSignatureLine = function(sGuid, sSigner, sSigner2, sEmail, Width, Height, sImgUrl)
     {
-        _this.objectLocker.reset();
-        _this.objectLocker.addObjectId(AscCommon.g_oIdCounter.Get_NewId());
-        _this.objectLocker.checkObjects(function (bLock) {
-            if (bLock !== true)
-                return;
-            _this.controller.resetSelection();
-            History.Create_NewPoint();
-            var dLeft = worksheet.getCellLeft(worksheet.model.selectionRange.activeCell.col, 3);
-            var dTop = worksheet.getCellTop(worksheet.model.selectionRange.activeCell.row, 3);
-            var oSignatureLine = AscFormat.fCreateSignatureShape(sGuid, sSigner, sSigner2, sEmail, false, worksheet.model, Width, Height, sImgUrl);
-            oSignatureLine.spPr.xfrm.setOffX(dLeft);
-            oSignatureLine.spPr.xfrm.setOffY(dTop);
-            oSignatureLine.addToDrawingObjects();
-            oSignatureLine.checkDrawingBaseCoords();
-            _this.controller.selectObject(oSignatureLine, 0);
-            _this.controller.startRecalculate();
-            worksheet.setSelectionShape(true);
-            window["Asc"]["editor"].sendEvent("asc_onAddSignature", sGuid);
-        });
+        _this.controller.resetSelection();
+        History.Create_NewPoint();
+        var dLeft = worksheet.getCellLeft(worksheet.model.selectionRange.activeCell.col, 3);
+        var dTop = worksheet.getCellTop(worksheet.model.selectionRange.activeCell.row, 3);
+        var oSignatureLine = AscFormat.fCreateSignatureShape(sGuid, sSigner, sSigner2, sEmail, false, worksheet.model, Width, Height, sImgUrl);
+        oSignatureLine.spPr.xfrm.setOffX(dLeft);
+        oSignatureLine.spPr.xfrm.setOffY(dTop);
+        oSignatureLine.addToDrawingObjects();
+        oSignatureLine.checkDrawingBaseCoords();
+        _this.controller.selectObject(oSignatureLine, 0);
+        _this.controller.startRecalculate();
+        worksheet.setSelectionShape(true);
+        window["Asc"]["editor"].sendEvent("asc_onAddSignature", sGuid);
     };
 
     _this.addMath = function(Type){
@@ -2502,41 +2458,34 @@ GraphicOption.prototype.union = function(oGraphicOption) {
                 return;
             }
 
-            _this.objectLocker.reset();
-            _this.objectLocker.addObjectId(AscCommon.g_oIdCounter.Get_NewId());
-            _this.objectLocker.checkObjects(function (bLock) {
-                if (bLock !== true)
-                    return;
-                _this.controller.resetSelection();
 
-                var activeCell = worksheet.model.selectionRange.activeCell;
-                var coordsFrom = _this.calculateCoords({col: activeCell.col, row: activeCell.row, colOff: 0, rowOff: 0});
+            _this.controller.resetSelection();
 
-                History.Create_NewPoint();
-                var oTextArt = _this.controller.createTextArt(0, false, worksheet.model, "");
-                _this.controller.resetSelection();
-                oTextArt.setWorksheet(_this.controller.drawingObjects.getWorksheetModel());
-                oTextArt.setDrawingObjects(_this.controller.drawingObjects);
-                oTextArt.addToDrawingObjects();
+            var activeCell = worksheet.model.selectionRange.activeCell;
+            var coordsFrom = _this.calculateCoords({col: activeCell.col, row: activeCell.row, colOff: 0, rowOff: 0});
 
-                var oContent = oTextArt.getDocContent();
-                if(oContent){
-                    oContent.MoveCursorToStartPos(false);
-                    oContent.AddToParagraph(new AscCommonWord.MathMenu(Type), false);
-                }
-                oTextArt.checkExtentsByDocContent();
-                oTextArt.spPr.xfrm.setOffX(pxToMm(coordsFrom.x) + MOVE_DELTA);
-                oTextArt.spPr.xfrm.setOffY(pxToMm(coordsFrom.y) + MOVE_DELTA);
+            History.Create_NewPoint();
+            var oSp = _this.controller.createTextArt(0, false, worksheet.model, "");
+            _this.controller.resetSelection();
+            oSp.setWorksheet(_this.controller.drawingObjects.getWorksheetModel());
+            oSp.setDrawingObjects(_this.controller.drawingObjects);
+            oSp.addToDrawingObjects();
 
-                oTextArt.checkDrawingBaseCoords();
-                _this.controller.selectObject(oTextArt, 0);
-                var oContent = oTextArt.getDocContent();
-                _this.controller.selection.textSelection = oTextArt;
-                //oContent.SelectAll();
-                oTextArt.addToRecalculate();
-                _this.controller.startRecalculate();
-                worksheet.setSelectionShape(true);
-            });
+            var oContent = oSp.getDocContent();
+            if(oContent){
+                oContent.MoveCursorToStartPos(false);
+                oContent.AddToParagraph(new AscCommonWord.MathMenu(Type), false);
+            }
+            oSp.checkExtentsByDocContent();
+            oSp.spPr.xfrm.setOffX(pxToMm(coordsFrom.x) + MOVE_DELTA);
+            oSp.spPr.xfrm.setOffY(pxToMm(coordsFrom.y) + MOVE_DELTA);
+
+            oSp.checkDrawingBaseCoords();
+            _this.controller.selectObject(oSp, 0);
+            _this.controller.selection.textSelection = oSp;
+            oSp.addToRecalculate();
+            _this.controller.startRecalculate();
+            worksheet.setSelectionShape(true);
         }
     };
 
@@ -2637,15 +2586,7 @@ GraphicOption.prototype.union = function(oGraphicOption) {
 				_this.controller.editChartDrawingObjects(chart);
                 return;
             }
-
-            _this.objectLocker.reset();
-            _this.objectLocker.addObjectId(AscCommon.g_oIdCounter.Get_NewId());
-            _this.objectLocker.checkObjects(function(bLock){
-                if(bLock)
-                {
-                    _this.controller.addChartDrawingObject(chart);
-                }
-            });
+            _this.controller.addChartDrawingObject(chart);
         }
         else if ( isObject(chart) && chart["binary"] )
         {
@@ -3834,16 +3775,9 @@ GraphicOption.prototype.union = function(oGraphicOption) {
         _this.calculateObjectMetrics(drawingObject, nWidthPix, nHeightPix);
 
         var coordsFrom = _this.calculateCoords(drawingObject.from);
-
-        _this.objectLocker.reset();
-        _this.objectLocker.addObjectId(AscCommon.g_oIdCounter.Get_NewId());
-        _this.objectLocker.checkObjects(function (bLock) {
-            if (bLock !== true)
-                return;
-            _this.controller.resetSelection();
-            _this.controller.addOleObjectFromParams(pxToMm(coordsFrom.x), pxToMm(coordsFrom.y), fWidth, fHeight, nWidthPix, nHeightPix, sLocalUrl, sData, sApplicationId);
-            worksheet.setSelectionShape(true);
-        });
+        _this.controller.resetSelection();
+        _this.controller.addOleObjectFromParams(pxToMm(coordsFrom.x), pxToMm(coordsFrom.y), fWidth, fHeight, nWidthPix, nHeightPix, sLocalUrl, sData, sApplicationId);
+        worksheet.setSelectionShape(true);
     };
 
     _this.editOleObject = function(oOleObject, sData, sImageUrl, nPixWidth, nPixHeight, bResize){
