@@ -567,15 +567,16 @@
 		if (year >= 0 && year <= 1899) {
 			year += 1900;
 		}
-		if (month == 0) {
-			return new cError(cErrorType.not_numeric);
-		}
 
 		var res;
-		if (year == 1900 && month == 2 && day == 29) {
+		if (year === 1900 && month === 2 && day === 29) {
 			res = new cNumber(60);
 		} else {
-			res = new cNumber(Math.round(new cDate(Date.UTC(year, month - 1, day)).getExcelDate()));
+			var _num = Math.round(new cDate(Date.UTC(year, month - 1, day)).getExcelDate());
+			if (_num < 0) {
+				return new cError(cErrorType.not_numeric);
+			}
+			res = new cNumber(_num);
 		}
 		res.numFormat = 14;
 		return res;
