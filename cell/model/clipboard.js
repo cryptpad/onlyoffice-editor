@@ -311,8 +311,8 @@
 
 		Clipboard.prototype.checkCopyToClipboard = function (ws, _clipboard, _formats) {
 			var _data = null;
-			var activeRange = ws.getSelectedRange();
 			var wb = window["Asc"]["editor"].wb;
+			var activeRange = !wb.getCellEditMode() ? ws.getSelectedRange() : null;
 			
 			window['AscCommon'].g_specialPasteHelper.SpecialPasteButton_Hide();
 			ws.handlers.trigger("cleanCutData", true);
