@@ -2684,7 +2684,7 @@ CTable.prototype.Shift = function(CurPage, Dx, Dy)
 		this.TableRowsBottom[CurRow][CurPage] += Dy;
 	}
 
-	if (!this.IsInline() && this.GetLogicDocument())
+	if (!this.bPresentation && !this.IsInline() && this.GetLogicDocument())
 	{
 		var oLogicDocument  = this.GetLogicDocument();
 		var oDrawingObjects = oLogicDocument.GetDrawingObjects();
