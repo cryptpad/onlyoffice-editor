@@ -81,7 +81,7 @@ function (window, undefined) {
 		cVAR_P, cVAR_S, cVARPA, cWEIBULL, cWEIBULL_DIST, cZTEST, cZ_TEST);
 
 	cFormulaFunctionGroup['NotRealised'] = cFormulaFunctionGroup['NotRealised'] || [];
-	cFormulaFunctionGroup['NotRealised'].push(cGROWTH, cLINEST, cLOGEST, cTREND);
+	cFormulaFunctionGroup['NotRealised'].push(cGROWTH, cLOGEST, cTREND);
 
 	function integralPhi(x) { // Using gauss(x)+0.5 has severe cancellation errors for x<-4
 		return 0.5 * AscCommonExcel.rtl_math_erfc(-x * 0.7071067811865475); // * 1/sqrt(2)
