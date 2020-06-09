@@ -3326,7 +3326,7 @@
             for (var i = 0; i < ws.aSlicers.length; ++i) {
                 if (this.isCopyPaste) {
                     var _graphicObject = ws.workbook.getSlicerViewByName(ws.aSlicers[i].name);
-                    if (!_graphicObject || !graphicObject.selected) {
+                    if (!_graphicObject || !_graphicObject.selected) {
                         continue;
                     }
                 }
