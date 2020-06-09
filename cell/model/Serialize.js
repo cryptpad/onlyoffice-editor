@@ -3325,10 +3325,10 @@
             var slicerExt = new Asc.CT_slicers();
             for (var i = 0; i < ws.aSlicers.length; ++i) {
                 if (this.isCopyPaste) {
-                    /*var _graphicObject = ;
+                    var _graphicObject = ws.workbook.getSlicerViewByName(ws.aSlicers[i].name);
                     if (!_graphicObject || !graphicObject.selected) {
                         continue;
-                    }*/
+                    }
                 }
 
                 if (ws.aSlicers[i].isExt()) {
@@ -7415,7 +7415,7 @@
 					data.table.cacheDefinition = cacheDefinition;
 					oWorksheet.insertPivotTable(data.table);
 				}
-            } else if ((c_oSerWorksheetsTypes.Slicers === type || c_oSerWorksheetsTypes.SlicersExt === type) && typeof Asc.CT_slicers != "undefined") {
+            } else if (c_oSerWorksheetsTypes.Slicers === type || c_oSerWorksheetsTypes.SlicersExt === type) {
                 res = this.bcr.Read1(length, function(t, l) {
                     return oThis.ReadSlicers(t, l, oWorksheet);
                 });
@@ -7441,6 +7441,13 @@
             var res = c_oSerConstants.ReadOk;
             var oThis = this;
             if (c_oSerWorksheetsTypes.Slicer === type) {
+                if (typeof Asc.CT_slicers == "undefined") {
+                    if (this.copyPasteObj.isCopyPaste) {
+                        oWorksheet.aSlicers.push(null);
+                    }
+                    return c_oSerConstants.ReadUnknown;
+                }
+
                 var slicers = new Asc.CT_slicers();
                 slicers.slicer = oWorksheet.aSlicers;
                 var fileStream = this.stream.ToFileStream();

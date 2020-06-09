@@ -3366,24 +3366,6 @@ PasteProcessor.prototype =
 			return null;
 		}
 
-		//если есть срез в контенте - вставляем только картинку
-		var _sheet = aContentExcel && aContentExcel.workbook && aContentExcel.workbook.aWorksheets[0];
-		var pDrawings;
-		if (_sheet && _sheet.aSlicers && _sheet.aSlicers.length ) {
-			if (aContentExcel.workbook.Core && aContentExcel.workbook.Core.subject) {
-				var _str = aContentExcel.workbook.Core.subject;
-				var _parseStr = _str.split(";");
-				var _width = _parseStr[0];
-				var _height = _parseStr[1];
-				var _base64 = _str.substring(_width.length + _height.length + 2);
-				if (_base64 && _width && _height) {
-					var drawing = AscFormat.DrawingObjectsController.prototype.createImage(_base64, 0, 0, parseFloat(_width), parseFloat(_height));
-					aContentExcel.arrImages = [new AscCommon.CBuilderImages(new AscFormat.CBlipFill(), _base64, drawing, null, null)];
-					pDrawings = [drawing];
-				}
-			}
-		}
-
 		var oldLocale = AscCommon.g_oDefaultCultureInfo ? AscCommon.g_oDefaultCultureInfo.LCID : AscCommon.g_oDefaultCultureInfo;
 		AscCommon.setCurrentCultureInfo(aContentExcel.workbook.Core.language);
 		var revertLocale = function() {
@@ -3407,7 +3389,7 @@ PasteProcessor.prototype =
 			AscCommon.sendImgUrls(oThis.api, oObjectsForDownload.aUrls, function (data) {
 				var oImageMap = {};
 				ResetNewUrls(data, oObjectsForDownload.aUrls, oObjectsForDownload.aBuilderImagesByUrl, oImageMap);
-				var aContent = oThis._convertExcelBinary(aContentExcel, pDrawings);
+				var aContent = oThis._convertExcelBinary(aContentExcel, aContentExcel ? aContentExcel.pDrawings : null);
 				revertLocale();
 
 				oThis.aContent = aContent.content;
@@ -3437,7 +3419,9 @@ PasteProcessor.prototype =
 
 		//если есть шейпы, то вставляем их из excel
 		var aContent;
-		if (aContentExcel && aContentExcel.aWorksheets && aContentExcel.aWorksheets[0] && aContentExcel.aWorksheets[0].Drawings && aContentExcel.aWorksheets[0].Drawings.length) {
+		var _sheet = aContentExcel && aContentExcel.aWorksheets && aContentExcel.aWorksheets[0];
+		var drawings = excelContent.pDrawings ? excelContent.pDrawings : _sheet && _sheet.Drawings;
+		if (drawings && drawings.length) {
 			var paste_callback = function () {
 				if (false === oThis.bNested) {
 					var oIdMap = {};
@@ -3530,7 +3514,7 @@ PasteProcessor.prototype =
 			};
 
 
-			var arr_shapes = aContentExcel.aWorksheets[0].Drawings;
+			var arr_shapes = drawings;
 
 			var aImagesToDownload = [];
 			for (var i = 0; i < aPastedImages.length; i++) {
@@ -3543,7 +3527,9 @@ PasteProcessor.prototype =
 			var font_map = {};
 			for (var i = 0; i < arr_shapes.length; ++i) {
 				var shape = arr_shapes[i].graphicObject;
-				shape.getAllFonts(font_map);
+				if (shape) {
+					shape.getAllFonts(font_map);
+				}
 			}
 
 			var fonts = [];
@@ -3586,7 +3572,7 @@ PasteProcessor.prototype =
 				selectedElement = new CSelectedElement();
 				element = aContent.content[i];
 
-				if (type_Table == element.GetType())//table
+				if (type_Table === element.GetType())//table
 				{
 					//TODO переделать количество строк и ширину
 					var W = 100;
@@ -3650,7 +3636,7 @@ PasteProcessor.prototype =
 		if (aContent && aContent.content && this.oDocument.bPresentation && oThis.oDocument && oThis.oDocument.Parent &&
 			oThis.oDocument.Parent.parent && oThis.oDocument.Parent.parent.parent &&
 			oThis.oDocument.Parent.parent.parent.getObjectType &&
-			oThis.oDocument.Parent.parent.parent.getObjectType() == AscDFH.historyitem_type_Chart) {
+			oThis.oDocument.Parent.parent.parent.getObjectType() === AscDFH.historyitem_type_Chart) {
 
 			//не грузим изображения при вставке в заголовок диаграммы
 			aContent.images = [];
@@ -5546,7 +5532,7 @@ PasteProcessor.prototype =
 					oCurRun.Set_FontSize(format.getSize());
 					oCurRun.Set_Italic(format.getItalic());
 					oCurRun.Set_Strikeout(format.getStrikeout());
-					oCurRun.Set_Underline(format.getUnderline() !== 2 ? true : false);
+					oCurRun.Set_Underline(format.getUnderline() !== 2);
 
 					//text
 					var value = value2[n].text;
@@ -5810,7 +5796,33 @@ PasteProcessor.prototype =
 			return null;
 		}
 
-		return {workbook: tempWorkbook, activeRange: oBinaryFileReader.copyPasteObj.activeRange, arrImages: pptx_content_loader.End_UseFullUrl()};
+		var arrImages;
+		//если есть срез в контенте - вставляем только картинку
+		var _sheet = tempWorkbook.aWorksheets[0];
+		var pDrawings;
+		if (_sheet && _sheet.aSlicers && _sheet.aSlicers.length) {
+			if (tempWorkbook.Core && tempWorkbook.Core.subject) {
+				var _str = tempWorkbook.Core.subject;
+				var _parseStr = _str.split(";");
+				var _width = _parseStr[0];
+				var _height = _parseStr[1];
+				var _base64 = _str.substring(_width.length + _height.length + 2);
+				if (_base64 && _width && _height) {
+					//var drawing = CreateImageFromBinary(_base64, parseFloat(_width), parseFloat(_height));
+					var drawing = AscFormat.DrawingObjectsController.prototype.createImage(_base64, 0, 0, parseFloat(_width), parseFloat(_height));
+					arrImages = [new AscCommon.CBuilderImages(new AscFormat.CBlipFill(), _base64, drawing, null, null)];
+					var objectRender = new AscFormat.DrawingObjects();
+					var oFlags = {from: false, to: false, pos: false, ext: false, editAs: window["AscCommon"].c_oAscCellAnchorType.cellanchorTwoCell};
+					var oNewDrawing = objectRender.createDrawingObject();
+					oNewDrawing.graphicObject = drawing;
+					pDrawings = [oNewDrawing];
+				}
+			}
+		} else {
+			arrImages = pptx_content_loader.End_UseFullUrl();
+		}
+
+		return {workbook: tempWorkbook, activeRange: oBinaryFileReader.copyPasteObj.activeRange, arrImages: arrImages, pDrawings: pDrawings};
 	},
 	
     ReadPresentationText: function(stream)
