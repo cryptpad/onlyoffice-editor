@@ -2019,8 +2019,8 @@ CDocumentContentBase.prototype.private_GetContentIndexByFlowObject = function(oF
 		}
 		else
 		{
-			var nStartPos  = oFlowTable.StartIndex;
-			var nFlowCount = oFlowTable.FlowCount;
+			var nStartPos  = oFlow.StartIndex;
+			var nFlowCount = oFlow.FlowCount;
 			for (var nPos = nStartPos; nPos < nStartPos + nFlowCount; ++nPos)
 			{
 				var oBounds = this.Content[nPos].GetPageBounds(0);
