@@ -1932,6 +1932,10 @@
 				var type = event.dataTransfer.types[i].toLowerCase();
 				if (type == "files")
 				{
+					// Safari does not support items on dragover event
+					if (AscCommon.AscBrowser.isSafari)
+						return true;
+					
 					if (event.dataTransfer.items)
 					{
 						for (var j = 0, length2 = event.dataTransfer.items.length; j < length2; j++)
