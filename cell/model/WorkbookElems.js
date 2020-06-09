@@ -6746,7 +6746,7 @@ function RangeDataManagerElem(bbox, data)
 				var colId = filterColumns[j].ColId;
 				if (colId !== cellId) {
 					var cell = worksheet.getCell3(row, colId + col);
-					var isDateTimeFormat = cell.getNumFormat().isDateTimeFormat() && cell.getType() === window["AscCommon"].CellValueType.Number;
+					var isDateTimeFormat = cell.getType() === window["AscCommon"].CellValueType.Number && cell.getNumFormat().isDateTimeFormat();
 
 					var isNumberFilter = filterColumns[j].isApplyCustomFilter();
 					var val = (isDateTimeFormat || isNumberFilter) ? cell.getValueWithoutFormat() : cell.getValueWithFormat();
@@ -6786,7 +6786,7 @@ function RangeDataManagerElem(bbox, data)
 			} else {
 				if (!isHidden) {
 					var cell = worksheet.getCell3(i, colId + this.Ref.c1);
-					var isDateTimeFormat = cell.getNumFormat().isDateTimeFormat() && cell.getType() === window["AscCommon"].CellValueType.Number;
+					var isDateTimeFormat = cell.getType() === window["AscCommon"].CellValueType.Number && cell.getNumFormat().isDateTimeFormat();
 					var isNumberFilter = false;
 					if (newFilterColumn.CustomFiltersObj || newFilterColumn.Top10 || newFilterColumn.DynamicFilter) {
 						isNumberFilter = true;
