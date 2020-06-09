@@ -1405,7 +1405,7 @@
 						if (0 === button) {
 							if (t.targetInfo.isDataValidation) {
 								this.handlers.trigger('onDataValidation');
-							} else if (t.targetInfo.idPivot) {
+							} else if (t.targetInfo.idPivot && Asc.CT_pivotTableDefinition.prototype.asc_filterByCell) {
 								this.handlers.trigger("pivotFiltersClick", t.targetInfo.idPivot);
 							} else {
 								t._autoFiltersClick(t.targetInfo.idFilter);

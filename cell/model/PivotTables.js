@@ -2997,6 +2997,7 @@ CT_pivotTableDefinition.prototype.getColumnFieldsCount = function (withoutValues
 CT_pivotTableDefinition.prototype.fillAutoFiltersOptions = function (autoFilterObject, index) {
 	var pivotField = this.asc_getPivotFields()[index];
 	var cacheField = this.asc_getCacheFields()[index];
+	var dataFields = this.asc_getDataFields();
 	//todo autoSortScope
 	var sortVal = null;
 	if (c_oAscFieldSortType.Ascending === pivotField.sortType) {
@@ -3011,30 +3012,27 @@ CT_pivotTableDefinition.prototype.fillAutoFiltersOptions = function (autoFilterO
 	var pivotFilter = this.getPivotFilter(index);
 	if (pivotFilter) {
 		filterObj.convertFromFilterColumn(pivotFilter.autoFilter.FilterColumns[0], false);
-		autoFilterObject.asc_setIsTextFilter(pivotFilter.isLabelFilter());
 	} else if(values.some(function(elem) {return !elem.visible;})){
 		filterObj.type = Asc.c_oAscAutoFilterTypes.Filters;
 	}
+	var pivotDataFields = [this.getPivotFieldName(index)];
+	if(dataFields){
+		dataFields.forEach(function (item) {
+			pivotDataFields.push(item.asc_getName());
+		});
+	}
+	var iMeasureFld = pivotFilter && null !== pivotFilter.iMeasureFld ? (pivotFilter.iMeasureFld + 1) : 0;
 	var pivotFilterObj = new Asc.PivotFilterObj();
-	pivotFilterObj.asc_setDataFields(this.asc_getPivotFields());
-	pivotFilterObj.asc_setDataFieldIndexFilter(pivotFilter ? pivotFilter.iMeasureFld : null);
-	pivotFilterObj.asc_setFieldName(this.getPivotFieldName(index));
+	pivotFilterObj.asc_setDataFields(pivotDataFields);
+	pivotFilterObj.asc_setDataFieldIndexSorting(0);
+	pivotFilterObj.asc_setDataFieldIndexFilter(iMeasureFld);
 	pivotFilterObj.asc_setIsPageFilter(pivotField.axis === c_oAscAxis.AxisPage);
 	pivotFilterObj.asc_setIsMultipleItemSelectionAllowed(pivotField.multipleItemSelectionAllowed);
 	pivotFilterObj.asc_setIsTop10Sum(pivotFilter ? pivotFilter.type === c_oAscPivotFilterType.Sum : false);
-
 	autoFilterObject.asc_setSortState(sortVal);
 	autoFilterObject.asc_setValues(values);
 	autoFilterObject.asc_setFilterObj(filterObj);
 	autoFilterObject.asc_setPivotObj(pivotFilterObj);
-	//todo remove. test only
-	if(null === autoFilterObject.asc_getIsTextFilter()){
-		var items = pivotField.getItems();
-		if(items && items.length > 0 && Asc.c_oAscItemType.Data === items[0].t){
-			var sharedItem = cacheField.getSharedItem(items[0].x);
-			autoFilterObject.asc_setIsTextFilter(c_oAscPivotRecType.String === sharedItem.type);
-		}
-	}
 };
 CT_pivotTableDefinition.prototype.getPivotTableButtons = function (range, buttons) {
 	if (!this.intersection(range)) {

@@ -14749,7 +14749,7 @@
         var ar = this.model.selectionRange.getLast().clone();
 		//todo filteringMode
 		//pivot
-		if (CT_pivotTableDefinition.prototype.asc_filterByCell) {
+		if (Asc.CT_pivotTableDefinition.prototype.asc_filterByCell) {
 			var cellId = autoFilterObject.asc_getCellId();
 			if (cellId) {
 				var cellRange = AscCommonExcel.g_oRangeCache.getAscRange(cellId);
@@ -15003,7 +15003,7 @@
 			return;
 		}
 		//pivot
-		if (CT_pivotTableDefinition.prototype.asc_sortByCell) {
+		if (Asc.CT_pivotTableDefinition.prototype.asc_sortByCell) {
 			var activeRangeOrCellId = ar;
 			var activeCellOrCellId = this.model.selectionRange.activeCell;
 			if (cellId && typeof cellId == 'string') {
@@ -15134,7 +15134,7 @@
     WorksheetView.prototype.clearFilterColumn = function (cellId, displayName) {
         var t = this;
 		//pivot
-		if (CT_pivotTableDefinition.prototype.asc_removeFilterByCell) {
+		if (Asc.CT_pivotTableDefinition.prototype.asc_removeFilterByCell) {
 			if (cellId) {
 				var cellRange = AscCommonExcel.g_oRangeCache.getAscRange(cellId);
 				var pivotTable = this.model.inPivotTable(cellRange);
