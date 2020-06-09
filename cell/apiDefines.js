@@ -474,6 +474,11 @@ var c_oAscPopUpSelectorType = {
     pivot: 4
   };
 
+  var c_oAscDefNameType = {
+    table: 1,
+    slicer: 2
+  };
+
   var c_kMaxPrintPages = 1500;
 
   //----------------------------------------------------------export----------------------------------------------------
@@ -758,5 +763,11 @@ var c_oAscPopUpSelectorType = {
   prot['worksheet'] = prot.worksheet;
   prot['table'] = prot.table;
   prot['pivot'] = prot.pivot;
+
+  window['Asc']['c_oAscDefNameType'] = window['Asc'].c_oAscDefNameType = c_oAscDefNameType;
+  prot = c_oAscDefNameType;
+  prot['table'] = prot.table;
+  prot['slicer'] = prot.slicer;
+
 
 })(window);

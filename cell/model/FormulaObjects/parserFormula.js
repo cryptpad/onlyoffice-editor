@@ -5360,7 +5360,7 @@ function parserFormula( formula, parent, _ws ) {
 					this.removeTableName(data.from, data.bConvertTableFormulaToRef);
 				} else if (data.from.name !== data.to.name) {
 					this.changeDefName(data.from, data.to);
-				} else if (data.from.isTable) {
+				} else if (data.from.type === Asc.c_oAscDefNameType.table) {
 					needAssemble = false;
 					this.changeTableRef(data.from.name);
 				}
@@ -6310,7 +6310,7 @@ function parserFormula( formula, parent, _ws ) {
 					defName = found_operand.getDefName();
 				}
 
-				if (defName && defName.isTable && (_tableTMP = parserHelp.isTable(sDefNameOperand + "[]", 0))) {
+				if (defName && defName.type === Asc.c_oAscDefNameType.table && (_tableTMP = parserHelp.isTable(sDefNameOperand + "[]", 0))) {
 					found_operand = cStrucTable.prototype.createFromVal(_tableTMP, t.wb, t.ws);
 					//need assemble becase source formula wrong
 					needAssemble = true;

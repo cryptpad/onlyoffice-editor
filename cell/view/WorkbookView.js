@@ -2280,7 +2280,7 @@
 		}
 
         if (0 === defNameStr.toLowerCase().indexOf(fName)) {
-          arrResult.push(new AscCommonExcel.asc_CCompleteMenu(defNameStr, !defName.isTable ? c_oAscPopUpSelectorType.Range : c_oAscPopUpSelectorType.Table));
+          arrResult.push(new AscCommonExcel.asc_CCompleteMenu(defNameStr, defName.type !== Asc.c_oAscDefNameType.table ? c_oAscPopUpSelectorType.Range : c_oAscPopUpSelectorType.Table));
         }
       }
     }
@@ -2751,7 +2751,7 @@
     };
 
     var tableRange;
-    if(oldName && true === oldName.isTable)
+    if(oldName && oldName.type === Asc.c_oAscDefNameType.table)
     {
       var table = ws.model.autoFilters._getFilterByDisplayName(oldName.Name);
       if(table)

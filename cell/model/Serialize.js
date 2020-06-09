@@ -2927,7 +2927,7 @@
                 if(ws && ws.AutoFilter && ws.AutoFilter.Ref && !tempMap[ws.index]) {
                     ref = ws.AutoFilter.Ref;
 					defNameRef = AscCommon.parserHelp.get3DRef(ws.getName(), ref.getAbsName());
-					defName = new Asc.asc_CDefName(filterDefName, defNameRef, ws.index, false, true);
+					defName = new Asc.asc_CDefName(filterDefName, defNameRef, ws.index, null, true);
                     this.bs.WriteItem(c_oSerWorkbookTypes.DefinedName, function(){oThis.WriteDefinedName(defName);});
                 }
             }

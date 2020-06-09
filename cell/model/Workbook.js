@@ -220,13 +220,13 @@
 		}
 	}
 
-	function DefName(wb, name, ref, sheetId, hidden, isTable, isXLNM) {
+	function DefName(wb, name, ref, sheetId, hidden, type, isXLNM) {
 		this.wb = wb;
 		this.name = name;
 		this.ref = ref;
 		this.sheetId = sheetId;
 		this.hidden = hidden;
-		this.isTable = isTable;
+		this.type = type;
 
 		this.isXLNM = isXLNM;
 
@@ -236,7 +236,7 @@
 
 	DefName.prototype = {
 		clone: function(wb){
-			return new DefName(wb, this.name, this.ref, this.sheetId, this.hidden, this.isTable, this.isXLNM);
+			return new DefName(wb, this.name, this.ref, this.sheetId, this.hidden, this.type, this.isXLNM);
 		},
 		removeDependencies: function() {
 			if (this.parsedRef) {
@@ -256,7 +256,7 @@
 			this.ref = ref;
 			//all ref should be 3d, so worksheet can be anyone
 			this.parsedRef = new parserFormula(ref, this, AscCommonExcel.g_DefNameWorksheet);
-			this.parsedRef.setIsTable(this.isTable);
+			this.parsedRef.setIsTable(this.type);
 			var t = this;
 			if (opt_forceBuild) {
 				if(opt_open) {
@@ -299,16 +299,16 @@
 				var sheet = this.wb.getWorksheetById(this.sheetId);
 				index = sheet.getIndex();
 			}
-			return new Asc.asc_CDefName(this.name, this.getRef(bLocale), index, this.isTable, this.hidden, this.isLock, this.isXLNM);
+			return new Asc.asc_CDefName(this.name, this.getRef(bLocale), index, this.type, this.hidden, this.isLock, this.isXLNM);
 		},
 		getUndoDefName: function() {
-			return new UndoRedoData_DefinedNames(this.name, this.ref, this.sheetId, this.isTable, this.isXLNM);
+			return new UndoRedoData_DefinedNames(this.name, this.ref, this.sheetId, this.type, this.isXLNM);
 		},
 		setUndoDefName: function(newUndoName) {
 			this.name = newUndoName.name;
 			this.sheetId = newUndoName.sheetId;
 			this.hidden = false;
-			this.isTable = newUndoName.isTable;
+			this.type = newUndoName.type;
 			if (this.ref != newUndoName.ref) {
 				this.setRef(newUndoName.ref);
 			}
@@ -321,7 +321,7 @@
 				this.wb.dependencyFormulas.addToChangedDefName(this);
 			} else if (AscCommon.c_oNotifyParentType.ChangeFormula === type) {
 				var notifyType = eventData.notifyData.type;
-				if (!(this.isTable && (c_oNotifyType.Shift === notifyType || c_oNotifyType.Move === notifyType || c_oNotifyType.Delete === notifyType))) {
+				if (!(this.type === Asc.c_oAscDefNameType.table && (c_oNotifyType.Shift === notifyType || c_oNotifyType.Move === notifyType || c_oNotifyType.Delete === notifyType))) {
 					var oldUndoName = this.getUndoDefName();
 					this.parsedRef.setFormulaString(this.ref = eventData.assemble);
 					this.wb.dependencyFormulas.addToChangedDefName(this);
@@ -598,7 +598,7 @@
 			}
 			//defnames
 			this._foreachDefNameSheet(sheetId, function(defName){
-				if (!defName.isTable) {
+				if (!defName.type !== Asc.c_oAscDefNameType.table) {
 					t._removeDefName(sheetId, defName.name, AscCH.historyitem_Workbook_DefinedNamesChangeUndo);
 					}
 			});
@@ -716,7 +716,7 @@
 			this._foreachDefNameSheet(sheetId, getNames);
 			return names;
 		},
-		addDefNameOpen: function(name, ref, sheetIndex, hidden, isTable) {
+		addDefNameOpen: function(name, ref, sheetIndex, hidden, type) {
 			var sheetId = this.wb.getSheetIdByIndex(sheetIndex);
 			var isXLNM = null;
 			var XLNMName = this._checkXlnmName(name);
@@ -724,7 +724,7 @@
 				name = XLNMName;
 				isXLNM = true;
 			}
-			var defName = new DefName(this.wb, name, ref, sheetId, hidden, isTable, isXLNM);
+			var defName = new DefName(this.wb, name, ref, sheetId, hidden, type, isXLNM);
 			this._addDefName(defName);
 			return defName;
 		},
@@ -739,8 +739,8 @@
 
 			return null;
 		},
-		addDefName: function(name, ref, sheetId, hidden, isTable, isXLNM) {
-			var defName = new DefName(this.wb, name, ref, sheetId, hidden, isTable, isXLNM);
+		addDefName: function(name, ref, sheetId, hidden, type, isXLNM) {
+			var defName = new DefName(this.wb, name, ref, sheetId, hidden, type, isXLNM);
 			defName.setRef(defName.ref, true);
 			this._addDefName(defName);
 			return defName;
@@ -831,11 +831,11 @@
 			if (sheetContainerFrom) {
 				for (var name in sheetContainerFrom) {
 					var defNameOld = sheetContainerFrom[name];
-					if (!defNameOld.isTable && defNameOld.parsedRef) {
+					if (defNameOld.type !== Asc.c_oAscDefNameType.table && defNameOld.parsedRef) {
 						var parsedRefNew = defNameOld.parsedRef.clone();
 						parsedRefNew.renameSheetCopy(renameParams);
 						var refNew = parsedRefNew.assemble(true);
-						this.addDefName(defNameOld.name, refNew, wsTo.getId(), defNameOld.hidden, defNameOld.isTable);
+						this.addDefName(defNameOld.name, refNew, wsTo.getId(), defNameOld.hidden, defNameOld.type);
 					}
 				}
 			}
@@ -843,7 +843,7 @@
 		saveDefName: function() {
 			var list = [];
 			this._foreachDefName(function(defName) {
-				if (!defName.isTable && defName.ref) {
+				if (defName.type !== Asc.c_oAscDefNameType.table && defName.ref) {
 					list.push(defName.getAscCDefName());
 				}
 			});
@@ -895,9 +895,9 @@
 			var defName = this.getDefNameByName(table.DisplayName, null);
 			if (!defName) {
 				if(opt_isOpen){
-					this.addDefNameOpen(table.DisplayName, defNameRef, null, null, true);
+					this.addDefNameOpen(table.DisplayName, defNameRef, null, null, Asc.c_oAscDefNameType.table);
 				} else {
-					this.addDefName(table.DisplayName, defNameRef, null, null, true);
+					this.addDefName(table.DisplayName, defNameRef, null, null, Asc.c_oAscDefNameType.table);
 				}
 			} else {
 				defName.setRef(defNameRef);
@@ -3042,7 +3042,7 @@
 			return ascName;
 		}
 		var sheetId = this.getSheetIdByIndex(ascName.LocalSheetId);
-		return new UndoRedoData_DefinedNames(ascName.Name, ascName.Ref, sheetId, ascName.isTable, ascName.isXLNM);
+		return new UndoRedoData_DefinedNames(ascName.Name, ascName.Ref, sheetId, ascName.type, ascName.isXLNM);
 	};
 	Workbook.prototype.changeColorScheme = function (sSchemeName) {
 		var scheme = AscCommon.getColorSchemeByName(sSchemeName);
@@ -8015,7 +8015,7 @@
 
 		if (oCache) {
 			var _name = oCache.name;
-			var newDefName = new Asc.asc_CDefName(_name, "#N/A", null, false, null, null, true);
+			var newDefName = new Asc.asc_CDefName(_name, "#N/A", null, Asc.c_oAscDefNameType.slicer);
 			this.workbook.editDefinesNames(null, newDefName);
 		}
 
