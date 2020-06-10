@@ -3005,8 +3005,14 @@ CT_pivotTableDefinition.prototype.fillAutoFiltersOptions = function (autoFilterO
 	} else if (c_oAscFieldSortType.Descending === pivotField.sortType) {
 		sortVal = Asc.c_oAscSortOptions.Descending;
 	}
-
-	var values = pivotField.getFilterObject(cacheField, index);
+	var pageFieldItem = null;
+	if (c_oAscAxis.AxisPage === pivotField.axis && !pivotField.multipleItemSelectionAllowed) {
+		var pageFilter = this.getPageFieldByFieldIndex(index);
+		if (pageFilter) {
+			pageFieldItem = pageFilter.item;
+		}
+	}
+	var values = pivotField.getFilterObject(cacheField, pageFieldItem);
 	var filterObj = new Asc.AutoFilterObj();
 	filterObj.type = Asc.c_oAscAutoFilterTypes.None;
 	var pivotFilter = this.getPivotFilter(index);
@@ -3437,9 +3443,11 @@ CT_pivotTableDefinition.prototype.getPageFieldName = function(index) {
 };
 CT_pivotTableDefinition.prototype.getPageFieldByFieldIndex = function(fld) {
 	var pageFields = this.asc_getPageFields();
-	for (var i = 0; i < pageFields.length; ++i) {
-		if (fld == pageFields[i].fld) {
-			return pageFields[i]
+	if (pageFields) {
+		for (var i = 0; i < pageFields.length; ++i) {
+			if (fld === pageFields[i].fld) {
+				return pageFields[i]
+			}
 		}
 	}
 	return null;
@@ -7785,7 +7793,7 @@ CT_PivotField.prototype.isAllVisible = function() {
 	}
 	return true;
 };
-CT_PivotField.prototype.getFilterObject = function(cacheField) {
+CT_PivotField.prototype.getFilterObject = function(cacheField, pageFilterItem) {
 	var values = [];
 	var items = this.getItems();
 	if (items) {
@@ -7800,7 +7808,7 @@ CT_PivotField.prototype.getFilterObject = function(cacheField) {
 				} else {
 					elem.val = elem.text = "";
 				}
-				elem.visible = !item.h;
+				elem.visible = !item.h && (null == pageFilterItem || i === pageFilterItem);
 				elem.isDateFormat = false;
 				elem.repeats = undefined;
 				//todo isDateFormat
@@ -7837,8 +7845,10 @@ CT_PivotField.prototype.applyFilterObject = function(values) {
 };
 CT_PivotField.prototype.removeFilter = function() {
 	var items = this.getItems();
-	for (var i = 0; i < items.length; ++i) {
-		items[i].h = false;
+	if (items) {
+		for (var i = 0; i < items.length; ++i) {
+			items[i].h = false;
+		}
 	}
 };
 CT_PivotField.prototype.sortItems = function(type, sharedItems) {

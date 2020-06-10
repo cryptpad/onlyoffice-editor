@@ -8736,9 +8736,13 @@
         var tableStyleInfo = curTablePart && curTablePart.TableStyleInfo ? curTablePart.TableStyleInfo : null;
 
         cell_info.autoFilterInfo = new asc_CAutoFilterInfo();
-        if (-2 === tablePartsOptions || this.model.inPivotTable(selectionRange.getLast())) {
+        var pivotTable;
+        if (-2 === tablePartsOptions) {
             cell_info.autoFilterInfo.isAutoFilter = null;
             cell_info.autoFilterInfo.isApplyAutoFilter = false;
+		} else if ((pivotTable = this.model.inPivotTable(selectionRange.getLast())) && CT_pivotTableDefinition.prototype.isClearFilterButtonEnabled) {
+        	cell_info.autoFilterInfo.isAutoFilter = null;
+        	cell_info.autoFilterInfo.isApplyAutoFilter = pivotTable.isClearFilterButtonEnabled();
         } else {
             var checkApplyFilterOrSort = this.model.autoFilters.checkApplyFilterOrSort(tablePartsOptions);
             cell_info.autoFilterInfo.isAutoFilter = checkApplyFilterOrSort.isAutoFilter;
@@ -15115,6 +15119,14 @@
     WorksheetView.prototype.clearFilter = function () {
         var t = this;
         var ar = this.model.selectionRange.getLast().clone();
+		//pivot
+		if (Asc.CT_pivotTableDefinition.prototype.asc_removeFilters) {
+			var pivotTable = this.model.inPivotTable(ar);
+			if (pivotTable) {
+				pivotTable.asc_removeFilters(this.model.workbook.oApi);
+				return;
+			}
+		}
 
         var onChangeAutoFilterCallback = function (isSuccess) {
             if (false === isSuccess) {
