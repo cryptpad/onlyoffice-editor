@@ -2724,7 +2724,7 @@
 
     var editDefinedNamesCallback = function(res) {
       if (res) {
-        if (oldName && oldName.asc_getIsTable()) {
+        if (oldName && oldName.asc_getType() === Asc.c_oAscDefNameType.table) {
           ws.model.autoFilters.changeDisplayNameTable(oldName.asc_getName(), newName.asc_getName());
         } else {
           t.model.editDefinesNames(oldName, newName);
