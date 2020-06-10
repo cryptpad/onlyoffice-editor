@@ -2282,9 +2282,9 @@
         if (0 === defNameStr.toLowerCase().indexOf(fName)) {
           var _type = c_oAscPopUpSelectorType.Range;
           if (defName.type === Asc.c_oAscDefNameType.slicer) {
-              _type = c_oAscPopUpSelectorType.slicer;
+              _type = c_oAscPopUpSelectorType.Slicer;
           } else if (defName.type === Asc.c_oAscDefNameType.table) {
-              _type = c_oAscPopUpSelectorType.table;
+              _type = c_oAscPopUpSelectorType.Table;
           }
           arrResult.push(new AscCommonExcel.asc_CCompleteMenu(defNameStr, _type));
         }

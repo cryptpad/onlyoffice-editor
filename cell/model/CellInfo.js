@@ -300,8 +300,6 @@
 			return this.Ref;
 		}, asc_getType: function () {
 			return this.type;
-		}, asc_getIsTable: function () {
-			return this.type === Asc.c_oAscDefNameType.table;
 		}, asc_getIsHidden: function () {
 			return this.Hidden;
 		}, asc_getIsLock: function () {
