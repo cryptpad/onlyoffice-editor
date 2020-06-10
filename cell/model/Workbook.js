@@ -299,6 +299,11 @@
 				var sheet = this.wb.getWorksheetById(this.sheetId);
 				index = sheet.getIndex();
 			}
+			//тип у именованных диапазона необходим только для интерефейса
+			//поэтому на открытие его не заполняю, если необходимо - проставляю здесь
+			if (!this.type && this.wb && this.wb.getSlicerCacheByName(this.name)) {
+				this.type = Asc.c_oAscDefNameType.slicer;
+			}
 			return new Asc.asc_CDefName(this.name, this.getRef(bLocale), index, this.type, this.hidden, this.isLock, this.isXLNM);
 		},
 		getUndoDefName: function() {
@@ -724,6 +729,7 @@
 				name = XLNMName;
 				isXLNM = true;
 			}
+
 			var defName = new DefName(this.wb, name, ref, sheetId, hidden, type, isXLNM);
 			this._addDefName(defName);
 			return defName;
@@ -757,7 +763,7 @@
 			if (oldUndoName) {
 				res = this.getDefNameByName(oldUndoName.name, oldUndoName.sheetId);
 			} else {
-				res = this.addDefName(newUndoName.name, newUndoName.ref, newUndoName.sheetId, false, false, newUndoName.isXLNM);
+				res = this.addDefName(newUndoName.name, newUndoName.ref, newUndoName.sheetId, false, newUndoName.type, newUndoName.isXLNM);
 			}
 			History.Create_NewPoint();
 			if (res && oldUndoName) {
