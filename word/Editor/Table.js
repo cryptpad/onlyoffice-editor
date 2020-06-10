@@ -16751,6 +16751,9 @@ CTable.prototype.private_UpdateCellsGrid = function()
             CurGridCol += GridSpan;
         }
     }
+
+    // Мы обнулили метрики, нужно будет их заново пересчитать
+    this.RecalcInfo.Recalc_Borders();
 };
 CTable.prototype.SetTableGrid = function(arrGrid)
 {
