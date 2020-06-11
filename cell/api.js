@@ -64,7 +64,6 @@ var editor;
   /**
    *
    * @param config
-   * @param eventsHandlers
    * @constructor
    * @returns {spreadsheet_api}
    * @extends {AscCommon.baseEditorsApi}
