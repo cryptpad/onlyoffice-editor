@@ -3358,11 +3358,12 @@
         return !this.getWorksheet().getSelectionShape();
     };
 	WorkbookView.prototype.GetSelectionRectsBounds = function () {
-		if (this.getWorksheet().getSelectionShape())
-		  return null;
+	    var ws = this.getWorksheet();
+		if (ws.getSelectionShape()) {
+            return null;
+        }
 
-		var ws = this.getWorksheet();
-		var range = ws.model.selectionRange.getLast();
+		var range = ws.model.getSelection().getLast();
 		var type = range.getType();
 		var l = ws.getCellLeft(range.c1, 3);
 		var t = ws.getCellTop(range.r1, 3);
