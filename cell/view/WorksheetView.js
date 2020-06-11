@@ -8740,7 +8740,7 @@
         if (-2 === tablePartsOptions) {
             cell_info.autoFilterInfo.isAutoFilter = null;
             cell_info.autoFilterInfo.isApplyAutoFilter = false;
-		} else if ((pivotTable = this.model.inPivotTable(selectionRange.getLast())) && CT_pivotTableDefinition.prototype.isClearFilterButtonEnabled) {
+		} else if ((pivotTable = this.model.inPivotTable(selectionRange.getLast())) && Asc.CT_pivotTableDefinition.prototype.isClearFilterButtonEnabled) {
         	cell_info.autoFilterInfo.isAutoFilter = null;
         	cell_info.autoFilterInfo.isApplyAutoFilter = pivotTable.isClearFilterButtonEnabled();
         } else {
