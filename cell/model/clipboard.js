@@ -312,12 +312,11 @@
 		Clipboard.prototype.checkCopyToClipboard = function (ws, _clipboard, _formats) {
 			var _data = null;
 			var wb = window["Asc"]["editor"].wb;
-			var activeRange = !wb.getCellEditMode() ? ws.getSelectedRange() : null;
 			
 			window['AscCommon'].g_specialPasteHelper.SpecialPasteButton_Hide();
 			ws.handlers.trigger("cleanCutData", true);
 
-			if (wb.getCellEditMode() === true)//text in cell
+			if (wb.getCellEditMode())//text in cell
 			{
 				//only TEXT
 				var fragments = wb.cellEditor.copySelection();
@@ -341,7 +340,8 @@
 				}
 
 				//ignore hidden rows
-				var selectionRange = activeRange ? activeRange : ws.model.selectionRange.getLast();
+				var activeRange = ws.getSelectedRange();
+				var selectionRange = ws.model.selectionRange.getLast();
 				var activeCell = ws.model.selectionRange.activeCell.clone();
 
 				//TODO игнорировать нужно и формулы и скрытые строчки в случае, если селект их задевает + стандартные условия в bIsExcludeHiddenRows
