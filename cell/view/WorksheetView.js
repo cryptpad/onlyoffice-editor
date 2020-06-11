@@ -787,7 +787,7 @@
 
     WorksheetView.prototype.getSelectedRange = function () {
         // ToDo multiselect ?
-        var lastRange = this.model.getSeletion().getLast();
+        var lastRange = this.model.getSelection().getLast();
         return this._getRange(lastRange.c1, lastRange.r1, lastRange.c2, lastRange.r2);
     };
 
