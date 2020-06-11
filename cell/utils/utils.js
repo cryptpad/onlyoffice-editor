@@ -2614,6 +2614,7 @@
 			}
 		};
 		CSpellcheckState.prototype.clean = function () {
+			this.isStart = false;
 			this.lastSpellInfo = null;
 			this.lastIndex = 0;
 
