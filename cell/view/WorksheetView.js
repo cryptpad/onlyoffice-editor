@@ -3536,12 +3536,13 @@
 				var w = width + (fillGrid ? +1 : -1) + mwidth;
 				var h = height + (fillGrid ? +1 : -1) + mheight;
 
-				findFillColor = findFillColor || fill.getSolidFill() || (mc && this.settings.cells.defaultState.background);
-				if (findFillColor) {
-					ctx.setFillStyle(findFillColor).fillRect(x - offsetX, y - offsetY, w, h);
-				} else {
-					AscCommonExcel.drawFillCell(ctx, graphics, fill, new AscCommon.asc_CRect(x - offsetX, y - offsetY, w, h));
-				}
+                findFillColor = findFillColor || (mc && this.settings.cells.defaultState.background);
+                if (findFillColor) {
+                    fill = new AscCommonExcel.Fill();
+                    fill.patternFill = new AscCommonExcel.PatternFill();
+                    fill.patternFill.fromColor(findFillColor);
+                }
+                AscCommonExcel.drawFillCell(ctx, graphics, fill, new AscCommon.asc_CRect(x - offsetX, y - offsetY, w, h));
 			}
 
 			var showValue = this._drawCellCF(ctx, aRules, c, row, col, top, width + mwidth, height + mheight, offsetX, offsetY);
@@ -3650,6 +3651,7 @@
 							x += width - dataBarLength;
 						}
 
+                        var fill = new AscCommonExcel.Fill();
 						if (oRuleElement.Gradient) {
 							var endColor = AscCommonExcel.getDataBarGradientColor(color);
 							if (isReverse) {
@@ -3658,7 +3660,6 @@
 								endColor = tmp;
 							}
 
-							var fill = new AscCommonExcel.Fill();
 							fill.gradientFill = new AscCommonExcel.GradientFill();
 							var stop0 = new AscCommonExcel.GradientStop();
 							stop0.position = 0;
@@ -3667,10 +3668,11 @@
 							stop1.position = 1;
 							stop1.color = endColor;
 							fill.gradientFill.asc_putGradientStops([stop0, stop1]);
-                            AscCommonExcel.drawFillCell(ctx, graphics, fill, new AscCommon.asc_CRect(x, top, dataBarLength, height - 3));
 						} else {
-							ctx.setFillStyle(color).fillRect(x, top, dataBarLength, height - 3);
+                            fill.patternFill = new AscCommonExcel.PatternFill();
+                            fill.patternFill.fromColor(color);
 						}
+                        AscCommonExcel.drawFillCell(ctx, graphics, fill, new AscCommon.asc_CRect(x, top, dataBarLength, height - 3));
 
 						color = (isPositive || oRuleElement.NegativeBarBorderColorSameAsPositive) ? oRuleElement.BorderColor : oRuleElement.NegativeBorderColor;
 						if (color) {
