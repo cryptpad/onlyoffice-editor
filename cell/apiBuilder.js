@@ -1756,11 +1756,13 @@
 	 * @memberof ApiRange
 	 * @param {ApiColor} color - The color object previously created to set the color to the background in the cell/cell range.
 	 */
-	ApiRange.prototype.SetFillColor = function (color) {
-		this.range.setFillColor(color.color);
+	ApiRange.prototype.SetFillColor = function (ApiColor) {
+		var color = ApiColor === 'No Fill' ? null : ApiColor.color;
+		this.range.setFillColor(color);
 	};
 	ApiRange.prototype.GetFillColor = function () {
-		this.range.getFillColor();
+		var fillColor = this.range.getFillColor();
+		return fillColor ? fillColor : 'No Fill';
 	};
 	Object.defineProperty(ApiRange.prototype, "FillColor", {
 		set: function (color) {
