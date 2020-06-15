@@ -1719,7 +1719,7 @@
   };
 
   WorkbookView.prototype.getCellStyles = function(width, height) {
-  	return AscCommonExcel.generateStyles(width, height, this);
+  	return AscCommonExcel.generateCellStyles(width, height, this);
   };
   WorkbookView.prototype.getSlicerStyles = function() {
       return AscCommonExcel.generateSlicerStyles(36, 49, this);

@@ -1899,7 +1899,7 @@
 			}
 		}
 
-		function generateStyles(w, h, wb) {
+		function generateCellStyles(w, h, wb) {
 			var result = [];
 
 			if (AscCommon.AscBrowser.isRetina) {
@@ -3049,7 +3049,7 @@
 		window['AscCommonExcel'].checkFilteringMode = checkFilteringMode;
 		window["Asc"].getEndValueRange = getEndValueRange;
 		window["AscCommonExcel"].checkStylesNames = checkStylesNames;
-		window["AscCommonExcel"].generateStyles = generateStyles;
+		window["AscCommonExcel"].generateCellStyles = generateCellStyles;
 		window["AscCommonExcel"].generateSlicerStyles = generateSlicerStyles;
 		window["AscCommonExcel"].getIconsForLoad = getIconsForLoad;
 
