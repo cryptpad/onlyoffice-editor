@@ -2040,6 +2040,10 @@
 		}
 		
 		function drawFillCell(ctx, graphics, fill, rect) {
+			if (!fill.hasFill()) {
+				return;
+			}
+
 			var solid = fill.getSolidFill();
 			if (solid) {
 				ctx.setFillStyle(solid).fillRect(rect._x, rect._y, rect._width, rect._height);
