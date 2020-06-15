@@ -3220,6 +3220,9 @@ CPlotArea.prototype =
         this.series = [];
         this.parent = null;
         this.dLbls = null;
+        if(this.Id === null) {
+            this.Id = AscCommon.g_oIdCounter.Get_NewId();
+        }
     }
 
     CChartBase.prototype = Object.create(AscFormat.CBaseObject.prototype);
