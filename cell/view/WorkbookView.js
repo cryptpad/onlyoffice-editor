@@ -1751,7 +1751,7 @@
       oCanvas.width = nCanvasW;
       oCanvas.height = nCanvasH;
       var oDrawingContext = new Asc.DrawingContext(
-          {canvas: oCanvas, units: 0/*px*/, fmgrGraphics: Asc.editor.wb.fmgrGraphics, font: Asc.editor.wb.m_oFont});
+          {canvas: oCanvas, units: 0/*px*/, fmgrGraphics: this.fmgrGraphics, font: this.m_oFont});
       
       //white background
       oDrawingContext.setFillStyle(new AscCommon.CColor(255, 255, 255)).fillRect(0, 0, nCanvasW, nCanvasH);
