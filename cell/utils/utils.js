@@ -2091,6 +2091,8 @@
 		}
 
 		function generateSlicerStyles(w, h, wb) {
+			var result = [];
+
 			if (AscCommon.AscBrowser.isRetina) {
 				w = AscCommon.AscBrowser.convertToRetinaValue(w, true);
 				h = AscCommon.AscBrowser.convertToRetinaValue(h, true);
@@ -2106,20 +2108,24 @@
 			graphics.init(ctx.ctx, ctx.getWidth(0), ctx.getHeight(0), ctx.getWidth(3), ctx.getHeight(3));
 			graphics.m_oFontManager = AscCommon.g_fontManager;
 
-			var oAllSlicerStyles = wb.model.SlicerStyles.AllStyles;
-			var oAllTableStyles = wb.model.TableStyles.AllStyles;
-			var aStylesPreview = [];
-			for(var sStyleName in oAllSlicerStyles) {
-				if(oAllSlicerStyles.hasOwnProperty(sStyleName)) {
-					var oSlicerStyle = oAllSlicerStyles[sStyleName];
-					var oTableStyle = oAllTableStyles[sStyleName];
-					if(oSlicerStyle && oTableStyle) {
-						drawSlicerStyle(ctx, graphics, oSlicerStyle, oTableStyle, w, h);
-						aStylesPreview.push(new AscCommon.CStyleImage(sStyleName, AscCommon.c_oAscStyleImage.Default, oCanvas.toDataURL("image/png")));
+			function addStyles(styles, type) {
+				for(var sStyleName in styles) {
+					if(styles.hasOwnProperty(sStyleName)) {
+						var oSlicerStyle = styles[sStyleName];
+						var oTableStyle = oAllTableStyles[sStyleName];
+						if (oSlicerStyle && oTableStyle) {
+							drawSlicerStyle(ctx, graphics, oSlicerStyle, oTableStyle, w, h);
+							result.push(new AscCommon.CStyleImage(sStyleName, type, oCanvas.toDataURL("image/png")));
+						}
 					}
 				}
 			}
-			return aStylesPreview;
+
+			var oAllTableStyles = wb.model.TableStyles.AllStyles;
+			addStyles(wb.model.SlicerStyles.CustomStyles, AscCommon.c_oAscStyleImage.Document);
+			addStyles(wb.model.SlicerStyles.DefaultStyles, AscCommon.c_oAscStyleImage.Default);
+
+			return result;
 		}
 
 		function drawSlicerStyle(ctx, graphics, oSlicerStyle, oTableStyle, width, height) {
