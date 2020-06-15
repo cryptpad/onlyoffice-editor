@@ -1899,6 +1899,20 @@
 			}
 		}
 
+		function getContext(w, h, wb) {
+			var oCanvas = document.createElement('canvas');
+			oCanvas.width = w;
+			oCanvas.height = h;
+			return new Asc.DrawingContext(
+				{canvas: oCanvas, units: 0/*px*/, fmgrGraphics: wb.fmgrGraphics, font: wb.m_oFont});
+		}
+		function getGraphics(ctx) {
+			var graphics = new AscCommon.CGraphics();
+			graphics.init(ctx.ctx, ctx.getWidth(0), ctx.getHeight(0), ctx.getWidth(3), ctx.getHeight(3));
+			graphics.m_oFontManager = AscCommon.g_fontManager;
+
+			return graphics;
+		}
 		function generateCellStyles(w, h, wb) {
 			var result = [];
 
@@ -1907,15 +1921,9 @@
 				h = AscCommon.AscBrowser.convertToRetinaValue(h, true);
 			}
 
-			var oCanvas = document.createElement('canvas');
-			oCanvas.width = w;
-			oCanvas.height = h;
-			var ctx = new Asc.DrawingContext(
-				{canvas: oCanvas, units: 0/*px*/, fmgrGraphics: wb.fmgrGraphics, font: wb.m_oFont});
-
-			var graphics = new AscCommon.CGraphics();
-			graphics.init(ctx.ctx, ctx.getWidth(0), ctx.getHeight(0), ctx.getWidth(3), ctx.getHeight(3));
-			graphics.m_oFontManager = AscCommon.g_fontManager;
+			var ctx = getContext(w, h, wb);
+			var oCanvas = ctx.getCanvas();
+			var graphics = getGraphics(ctx);
 
 			function addStyles(styles, type) {
 				var oStyle, name, displayName;
@@ -2098,15 +2106,9 @@
 				h = AscCommon.AscBrowser.convertToRetinaValue(h, true);
 			}
 
-			var oCanvas = document.createElement('canvas');
-			oCanvas.width = w;
-			oCanvas.height = h;
-			var ctx = new Asc.DrawingContext(
-				{canvas: oCanvas, units: 0/*px*/, fmgrGraphics: wb.fmgrGraphics, font: wb.m_oFont});
-
-			var graphics = new AscCommon.CGraphics();
-			graphics.init(ctx.ctx, ctx.getWidth(0), ctx.getHeight(0), ctx.getWidth(3), ctx.getHeight(3));
-			graphics.m_oFontManager = AscCommon.g_fontManager;
+			var ctx = getContext(w, h, wb);
+			var oCanvas = ctx.getCanvas();
+			var graphics = getGraphics(ctx);
 
 			function addStyles(styles, type) {
 				for(var sStyleName in styles) {
@@ -2211,6 +2213,23 @@
 				ctx.lineHor(nTIns, y0 + (y1 - y0) / 2.0, nTIns + nTW);
 				ctx.stroke();
 			}
+		}
+
+		function generateXfsStyle(w, h, wb, xfs, text) {
+			if (AscCommon.AscBrowser.isRetina) {
+				w = AscCommon.AscBrowser.convertToRetinaValue(w, true);
+				h = AscCommon.AscBrowser.convertToRetinaValue(h, true);
+			}
+
+			var ctx = getContext(w, h, wb);
+			var oCanvas = ctx.getCanvas();
+			var graphics = getGraphics(ctx);
+
+			var style = new AscCommonExcel.CCellStyle();
+			style.xfs = xfs;
+
+			drawStyle(ctx, graphics, wb.stringRender, oStyle, text, w, h);
+			return new AscCommon.CStyleImage(text, null, oCanvas.toDataURL("image/png"));
 		}
 
 		//-----------------------------------------------------------------
@@ -3051,6 +3070,7 @@
 		window["AscCommonExcel"].checkStylesNames = checkStylesNames;
 		window["AscCommonExcel"].generateCellStyles = generateCellStyles;
 		window["AscCommonExcel"].generateSlicerStyles = generateSlicerStyles;
+		window["AscCommonExcel"].generateXfsStyle = generateXfsStyle;
 		window["AscCommonExcel"].getIconsForLoad = getIconsForLoad;
 
 		window["AscCommonExcel"].referenceType = referenceType;

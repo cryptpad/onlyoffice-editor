@@ -2947,6 +2947,10 @@ var g_oBorderProperties = {
 		return this.getAlign2().getShrinkToFit();
 	};
 
+	CellXfs.prototype.asc_getPreview = function (api, text, width, height) {
+		return AscCommonExcel.generateXfsStyle(width, height, api.wb, this, text);
+	};
+
 	function FromXml_ST_HorizontalAlignment(val) {
 		var res = -1;
 		if ("general" === val) {
@@ -10457,6 +10461,7 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	prot["asc_getAngle"] = prot.asc_getAngle;
 	prot["asc_getWrapText"] = prot.asc_getWrapText;
 	prot["asc_getShrinkToFit"] = prot.asc_getShrinkToFit;
+	prot["asc_getPreview"] = prot.asc_getPreview;
 	window['AscCommonExcel'].Align = Align;
 	window['AscCommonExcel'].CCellStyles = CCellStyles;
 	window['AscCommonExcel'].CCellStyle = CCellStyle;
