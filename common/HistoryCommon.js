@@ -1931,6 +1931,7 @@
 	window['AscDFH'].historyitem_CommonChart_AddSeries       = window['AscDFH'].historyitem_type_CommonShape | 309;
 	window['AscDFH'].historyitem_CommonChart_SetDlbls        = window['AscDFH'].historyitem_type_CommonShape | 310;
 	window['AscDFH'].historyitem_CommonChart_AddAxId         = window['AscDFH'].historyitem_type_CommonShape | 311;
+	window['AscDFH'].historyitem_CommonChart_SetVaryColors   = window['AscDFH'].historyitem_type_CommonShape | 312;
 
 	window['AscDFH'].historyitem_Common_AddWatermark = window['AscDFH'].historyitem_type_CommonShape | 401;
 	//------------------------------------------------------------------------------------------------------------------

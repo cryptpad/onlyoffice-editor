@@ -76,6 +76,7 @@ function (window, undefined) {
     drawingsChangesMap[AscDFH.historyitem_BarChart_SetOverlap]       = function(oClass, value){oClass.overlap  = value;};
     drawingsChangesMap[AscDFH.historyitem_BarChart_SetSerLines]        = function(oClass, value){oClass.serLines = value;};
     drawingsChangesMap[AscDFH.historyitem_BarChart_SetVaryColors]      = function(oClass, value){oClass.varyColors = value;};
+    drawingsChangesMap[AscDFH.historyitem_CommonChart_SetVaryColors]   = function(oClass, value){oClass.varyColors = value;};
     drawingsChangesMap[AscDFH.historyitem_AreaChart_SetDLbls]          = function(oClass, value){oClass.dLbls    = value;};
     drawingsChangesMap[AscDFH.historyitem_AreaChart_SetDropLines]      = function(oClass, value){oClass.dropLines = value;};
     drawingsChangesMap[AscDFH.historyitem_AreaChart_SetGrouping]       = function(oClass, value){oClass.grouping = value;};
@@ -459,6 +460,7 @@ function (window, undefined) {
     AscDFH.changesFactory[AscDFH.historyitem_DLbl_SetShowVal                 ] = window['AscDFH'].CChangesDrawingsBool;
     AscDFH.changesFactory[AscDFH.historyitem_BarChart_Set3D                  ] = window['AscDFH'].CChangesDrawingsBool;
     AscDFH.changesFactory[AscDFH.historyitem_BarChart_SetVaryColors          ] = window['AscDFH'].CChangesDrawingsBool;
+    AscDFH.changesFactory[AscDFH.historyitem_CommonChart_SetVaryColors       ] = window['AscDFH'].CChangesDrawingsBool;
     AscDFH.changesFactory[AscDFH.historyitem_AreaChart_SetVaryColors         ] = window['AscDFH'].CChangesDrawingsBool;
     AscDFH.changesFactory[AscDFH.historyitem_CatAxSetAuto                    ] = window['AscDFH'].CChangesDrawingsBool;
     AscDFH.changesFactory[AscDFH.historyitem_CatAxSetDelete                  ] = window['AscDFH'].CChangesDrawingsBool;
@@ -3223,6 +3225,7 @@ CPlotArea.prototype =
         this.axId = [];
         this.parent = null;
         this.dLbls = null;
+        this.varyColors = null;
         if(this.Id === null) {
             this.Id = AscCommon.g_oIdCounter.Get_NewId();
         }
@@ -3292,6 +3295,11 @@ CPlotArea.prototype =
         this.axId.push(pr);
     };
     CChartBase.prototype.getAxisByTypes = CPlotArea.prototype.getAxisByTypes;
+    CChartBase.prototype.setVaryColors = function(pr)
+    {
+        History.Add(new CChangesDrawingsBool(this, AscDFH.historyitem_CommonChart_SetVaryColors, this.varyColors, pr));
+        this.varyColors = pr;
+    };
 function CBarChart()
 {
     CChartBase.call(this);
@@ -3438,6 +3446,7 @@ function CBarChart()
                 break;
             }
             case AscDFH.historyitem_BarChart_SetVaryColors:
+            case AscDFH.historyitem_CommonChart_SetVaryColors:
             {
                 break;
             }
@@ -3511,18 +3520,12 @@ function CBarChart()
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_BarChart_SetSerLines, this.serLines, pr));
         this.serLines = pr;
     };
-    CBarChart.prototype.setVaryColors = function(pr)
-    {
-        History.Add(new CChangesDrawingsBool(this, AscDFH.historyitem_BarChart_SetVaryColors, this.varyColors, pr));
-        this.varyColors = pr;
-    };
 
 function CAreaChart()
 {
     CChartBase.call(this);
     this.dropLines    = null;
     this.grouping     = null;
-    this.varyColors   = null;
 }
 
 CAreaChart.prototype = Object.create(CChartBase.prototype);
@@ -3596,6 +3599,7 @@ CAreaChart.prototype.Refresh_RecalcData = function(data)
             break
         }
         case AscDFH.historyitem_AreaChart_SetVaryColors:
+        case AscDFH.historyitem_CommonChart_SetVaryColors:
         {
             break
         }
@@ -3655,11 +3659,6 @@ CAreaChart.prototype.setGrouping = function(pr)
     {
         this.parent.parent.parent.handleUpdateInternalChart();
     }
-};
-CAreaChart.prototype.setVaryColors = function(pr)
-{
-    History.Add(new CChangesDrawingsBool(this, AscDFH.historyitem_AreaChart_SetVaryColors, this.varyColors, pr));
-    this.varyColors = pr;
 };
 
 
@@ -6222,11 +6221,6 @@ CBubbleChart.prototype = Object.create(CChartBase.prototype);
         History.Add(new CChangesDrawingsLong(this, AscDFH.historyitem_BubbleChart_SetSizeRepresents, this.sizeRepresents, pr));
         this.sizeRepresents = pr;
     };
-    CBubbleChart.prototype.setVaryColors = function(pr)
-    {
-        History.Add(new CChangesDrawingsBool(this, AscDFH.historyitem_BubbleChart_SetVaryColors, this.varyColors, pr));
-        this.varyColors = pr;
-    };
 
 
 function CBubbleSeries()
@@ -7286,11 +7280,6 @@ CDoughnutChart.prototype.setHoleSize = function(pr) {
 };
 
 
-CDoughnutChart.prototype.setVaryColors = function(pr) {
-    History.Add(new CChangesDrawingsBool(this, AscDFH.historyitem_DoughnutChart_SetVaryColor, this.varyColors, pr));
-    this.varyColors = pr;
-};
-
 function CErrBars()
 {
     this.errBarType = null;
@@ -8029,7 +8018,6 @@ function CLineChart()
     this.marker     = null;
     this.smooth     = null;
     this.upDownBars = null;
-    this.varyColors = null;
 }
 
 CLineChart.prototype = Object.create(CChartBase.prototype);
@@ -8109,6 +8097,7 @@ CLineChart.prototype = Object.create(CChartBase.prototype);
                 break
             }
             case AscDFH.historyitem_LineChart_SetVaryColors:
+            case AscDFH.historyitem_CommonChart_SetVaryColors:
             {
                 break
             }
@@ -8256,11 +8245,6 @@ CLineChart.prototype = Object.create(CChartBase.prototype);
         {
             pr.setParent(this);
         }
-    };
-    CLineChart.prototype.setVaryColors = function(pr)
-    {
-        History.Add(new CChangesDrawingsBool(this, AscDFH.historyitem_LineChart_SetVaryColors, this.varyColors, pr));
-        this.varyColors = pr;
     };
 
 function CLineSeries()
@@ -9079,7 +9063,6 @@ function COfPieChart()
     this.serLines      = null;
     this.splitPos      = null;
     this.splitType     = null;
-    this.varyColors    = null;
 }
 COfPieChart.prototype = Object.create(CChartBase.prototype);
     COfPieChart.prototype.constructor = COfPieChart;
@@ -9181,11 +9164,6 @@ COfPieChart.prototype.setSplitType = function(pr)
 {
     History.Add(new CChangesDrawingsLong(this, AscDFH.historyitem_OfPieChart_SetSplitType, this.splitType, pr));
     this.splitType = pr;
-};
-COfPieChart.prototype.setVaryColors = function(pr)
-{
-    History.Add(new CChangesDrawingsBool(this, AscDFH.historyitem_OfPieChart_SetVaryColors, this.varyColors, pr));
-    this.varyColors = pr;
 };
 
 function CPictureOptions()
@@ -9317,6 +9295,7 @@ function CPieChart()
                 break;
             }
             case AscDFH.historyitem_PieChart_SetVaryColors:
+            case AscDFH.historyitem_CommonChart_SetVaryColors:
             {
                 break;
             }
@@ -9372,10 +9351,6 @@ function CPieChart()
     CPieChart.prototype.setFirstSliceAng = function(pr) {
         History.Add(new CChangesDrawingsLong(this, AscDFH.historyitem_PieChart_SetFirstSliceAng, this.firstSliceAng, pr));
         this.firstSliceAng = pr;
-    };
-    CPieChart.prototype.setVaryColors = function(pr) {
-        History.Add(new CChangesDrawingsBool(this, AscDFH.historyitem_PieChart_SetVaryColors, this.varyColors, pr));
-        this.varyColors = pr;
     };
 
 
@@ -9617,7 +9592,6 @@ function CRadarChart()
 {
     CChartBase.call(this);
     this.radarStyle  = null;
-    this.varyColors  = null;
 }
 
 CRadarChart.prototype = Object.create(CChartBase.prototype);
@@ -9677,6 +9651,7 @@ CRadarChart.prototype = Object.create(CChartBase.prototype);
                 break;
             }
             case AscDFH.historyitem_RadarChart_SetVaryColors:
+            case AscDFH.historyitem_CommonChart_SetVaryColors:
             {
                 break;
             }
@@ -9709,13 +9684,6 @@ CRadarChart.prototype = Object.create(CChartBase.prototype);
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_RadarChart_SetRadarStyle, this.radarStyle, pr));
         this.radarStyle = pr;
     };
-
-    CRadarChart.prototype.setVaryColors = function(pr)
-    {
-        History.Add(new CChangesDrawingsBool(this, AscDFH.historyitem_RadarChart_SetVaryColors, this.varyColors, pr));
-        this.varyColors = pr;
-    };
-
 
 
 function copyDPt(oThis, pt)
@@ -9956,7 +9924,6 @@ function CScatterChart()
 {
     CChartBase.call(this);
     this.scatterStyle  = null;
-    this.varyColors  = null;
 }
 
 CScatterChart.prototype = Object.create(CChartBase.prototype);
@@ -10014,11 +9981,6 @@ CScatterChart.prototype = Object.create(CChartBase.prototype);
         {
             this.parent.parent.parent.handleUpdateType();
         }
-    };
-    CScatterChart.prototype.setVaryColors = function(pr)
-    {
-        History.Add(new CChangesDrawingsBool(this, AscDFH.historyitem_ScatterChart_SetVaryColors, this.varyColors, pr));
-        this.varyColors = pr;
     };
 
 
