@@ -403,6 +403,8 @@
         this.clear();
         if(this.needUpdateValues(oOldCache)) {
             this.slicer.handleUpdateExtents();
+            this.slicer.handleUpdateFill();
+            this.slicer.handleUpdateLn();
             this.slicer.recalculate();
         }
         else {
@@ -598,18 +600,13 @@
         return oDXF;
     };
     CSlicer.prototype.getFont = function(nType) {
-        var oFont;
+        var oFont = null;
         var oDXF = this.getDXF(nType);
         if(oDXF) {
             oFont = oDXF.getFont();
             if(oFont) {
                 return oFont;
             }
-        }
-        oFont = new AscCommonExcel.Font();
-        oFont.setSize(11);
-        if(nType === STYLE_TYPE.HEADER) {
-            oFont.setBold(true);
         }
         return oFont;
     };
@@ -618,28 +615,25 @@
         var oDXF = this.getDXF(nType);
         if(oDXF) {
             oFill = oDXF.getFill();
-            if(oFill || nType !== STYLE_TYPE.WHOLE) {
+            if(oFill) {
                 return oFill;
             }
         }
-        var nColor = 0xFFFFFF;
-        if(nType & STATE_FLAG_HOVERED) {
-            oFill = CreateButtonHoverGradient();
+        if(nType !== STYLE_TYPE.WHOLE) {
+            return null;
         }
-        else {
-            oFill = new AscCommonExcel.Fill();
-            if(nType & STATE_FLAG_SELECTED) {
-                oFill.fromColor(new AscCommonExcel.RgbColor(0xBDD7EE));
-            }
-            else {
-                oFill.fromColor(new AscCommonExcel.RgbColor(nColor));
-            }
-        }
+        oFill = new AscCommonExcel.Fill();
+        oFill.fromColor(new AscCommonExcel.RgbColor(0xFFFFFF));
         return oFill;
     };
     CSlicer.prototype.getBorder = function(nType) {
         var oBorder;
         var oDXF = this.getDXF(nType);
+        if(oDXF) {
+            return oDXF.getBorder();
+        }
+
+        oDXF = this.getDXF(STYLE_TYPE.WHOLE);
         if(oDXF) {
             return oDXF.getBorder();
         }
@@ -760,6 +754,9 @@
     };
     CSlicer.prototype.getTxStyles = function (nType) {
         var oFont = this.getFont(nType);
+        if(!oFont) {
+            oFont = this.getFont(STYLE_TYPE.WHOLE);
+        }
         var oTextPr =  this.txStyles.Default.TextPr;
         oTextPr.InitDefault();
         oTextPr.FillFromExcelFont(oFont);
@@ -1191,6 +1188,7 @@
         this.setTransformParams(0, 0, this.slicer.extX, HEADER_BUTTON_WIDTH, 0, false, false);
         this.recalculateGeometry();
         this.recalculateTransform();
+        this.txBody.content.Recalc_AllParagraphs_CompiledPr();
         this.txBody.recalculateOneString(this.getString());
         var dHeight = this.contentHeight + HEADER_TOP_PADDING + HEADER_BOTTOM_PADDING;
         dHeight = Math.max(dHeight, HEADER_BUTTON_WIDTH + 1);

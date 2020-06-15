@@ -2209,6 +2209,7 @@
 				var oColor = oFont ? oFont.getColor() : new AscCommon.CColor(0, 0, 0);
 				ctx.setStrokeStyle(oColor);
 				ctx.setLineWidth(1);
+				ctx.setLineDash([]);
 				ctx.beginPath();
 				ctx.lineHor(nTIns, y0 + (y1 - y0) / 2.0, nTIns + nTW);
 				ctx.stroke();
