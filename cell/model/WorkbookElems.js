@@ -3390,9 +3390,6 @@ CCellStyle.prototype.getFill = function () {
 
 	return g_oDefaultFormat.Fill;
 };
-CCellStyle.prototype.getFillColor = function () {
-	return this.getFill().bg();
-};
 CCellStyle.prototype.getFontColor = function () {
 	if (null != this.xfs && null != this.xfs.font)
 		return this.xfs.font.getColor();
