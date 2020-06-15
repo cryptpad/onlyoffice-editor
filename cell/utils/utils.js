@@ -2123,39 +2123,28 @@
 		}
 
 		function drawSlicerStyle(ctx, graphics, oSlicerStyle, oTableStyle, width, height) {
-			var r = function (nPix) {
-				return AscCommon.AscBrowser.convertToRetinaValue(nPix, true);
-			};
+			ctx.clear();
 
-			//white background
-			ctx.setFillStyle(new AscCommon.CColor(255, 255, 255)).fillRect(0, 0, width, height);
-			var oDXF;
+			var dxf, dxfWhole;
 
 			var nIns = 2;
-			var nTIns = 3;
 			var nBH = 8;
-			var nTW = 8;
-			var nPos = 0;
-			var oFont;
-			var oColor;
+
+			if (AscCommon.AscBrowser.isRetina) {
+				nIns = AscCommon.AscBrowser.convertToRetinaValue(nIns, true);
+				nBH = AscCommon.AscBrowser.convertToRetinaValue(nBH, true);
+			}
+
 			//whole
-			oDXF = oTableStyle.wholeTable && oTableStyle.wholeTable.dxf;
-			if(oDXF) {
-				drawSlicerPreviewElement(oDXF, ctx, graphics, 0, 0, width, height);
-			}
+			dxfWhole = oTableStyle.wholeTable && oTableStyle.wholeTable.dxf;
+			drawSlicerPreviewElement(dxfWhole, null, ctx, graphics, 0, 0, width, height);
+			dxfWhole = dxfWhole || true;
+
 			//header
-			oDXF = oTableStyle.headerRow && oTableStyle.headerRow.dxf;
-			if(oDXF) {
-				drawSlicerPreviewElement(oDXF, ctx, graphics, 0, 0, width, r(nBH));
-				oFont = oDXF.getFont();
-				oColor = oFont ? oFont.getColor() : new AscCommon.CColor(0, 0, 0);
-				ctx.setStrokeStyle(oColor);
-				ctx.setLineWidth(1);
-				ctx.beginPath();
-				ctx.lineHor(r(nTIns + nIns), r(nPos + nBH / 2.0), r(nTIns + nIns + nTW));
-				ctx.stroke();
-				nPos += (nBH + nIns);
-			}
+			dxf = oTableStyle.headerRow && oTableStyle.headerRow.dxf;
+			drawSlicerPreviewElement(dxf, dxfWhole, ctx, graphics, 0, 0, width, nBH);
+
+			var nPos = nBH + nIns;
 			var aBT = [
 				Asc.ST_slicerStyleType.selectedItemWithData,
 				Asc.ST_slicerStyleType.unselectedItemWithData,
@@ -2163,27 +2152,18 @@
 				Asc.ST_slicerStyleType.unselectedItemWithNoData
 			];
 			for(var nType = 0; nType < aBT.length; ++nType) {
-				oDXF = oSlicerStyle[aBT[nType]];
-				if(oDXF) {
-					drawSlicerPreviewElement(oDXF, ctx, graphics, r(nIns), r(nPos), width - r(nIns), r(nPos + nBH));
-					oFont = oDXF.getFont();
-					oColor = oFont ? oFont.getColor() : new AscCommon.CColor(0, 0, 0);
-					ctx.setStrokeStyle(oColor);
-					ctx.setLineWidth(1);
-					ctx.beginPath();
-					ctx.lineHor(r(nTIns + nIns), r(nPos + nBH / 2.0), r(nTIns + nIns + nTW));
-					ctx.stroke();
-					nPos += (nIns + nBH);
-				}
+				dxf = oSlicerStyle[aBT[nType]];
+				drawSlicerPreviewElement(dxf, dxfWhole, ctx, graphics, nIns, nPos, width - nIns, nPos + nBH);
+				nPos += nBH + nIns;
 			}
 		}
-		function drawSlicerPreviewElement(oDXF, ctx, graphics, x0, y0, x1, y1) {
-			var oFill = oDXF.getFill();
+		function drawSlicerPreviewElement(dxf, dxfWhole, ctx, graphics, x0, y0, x1, y1) {
+			var oFill = dxf && dxf.getFill();
 			if(oFill) {
 				AscCommonExcel.drawFillCell(ctx, graphics, oFill, new AscCommon.asc_CRect(x0, y0, x1 - x0, y1 - y0));
 			}
-			var oBorder = oDXF.getBorder();
-			if(oBorder) {
+			var oBorder = dxf && dxf.getBorder();
+			if (oBorder) {
 				var oS = oBorder.l;
 				if(oS && oS.s !== AscCommon.c_oAscBorderStyles.None && oS.c) {
 					ctx.setStrokeStyle(oS.c).setLineWidth(1).setLineDash(oS.getDashSegments()).beginPath();
@@ -2208,6 +2188,22 @@
 					ctx.lineHor(x0 + 1, y1 - 1, x1 - 1);
 					ctx.stroke();
 				}
+			}
+			if (dxfWhole) {
+				var nTIns = 5;
+				var nTW = 8;
+				if (AscCommon.AscBrowser.isRetina) {
+					nTIns = AscCommon.AscBrowser.convertToRetinaValue(nTIns, true);
+					nTW = AscCommon.AscBrowser.convertToRetinaValue(nTW, true);
+				}
+
+				var oFont = dxf && dxf.getFont() || dxfWhole && dxfWhole.getFont && dxfWhole.getFont();
+				var oColor = oFont ? oFont.getColor() : new AscCommon.CColor(0, 0, 0);
+				ctx.setStrokeStyle(oColor);
+				ctx.setLineWidth(1);
+				ctx.beginPath();
+				ctx.lineHor(nTIns, y0 + (y1 - y0) / 2.0, nTIns + nTW);
+				ctx.stroke();
 			}
 		}
 
