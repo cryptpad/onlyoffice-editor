@@ -1899,20 +1899,18 @@
 			}
 		}
 
-		function generateStyles(width, height, cellStyles, wb) {
+		function generateStyles(w, h, wb) {
 			var result = [];
 
-			var widthWithRetina = width;
-			var heightWithRetina = height;
 			if (AscCommon.AscBrowser.isRetina) {
-				widthWithRetina = AscCommon.AscBrowser.convertToRetinaValue(widthWithRetina, true);
-				heightWithRetina = AscCommon.AscBrowser.convertToRetinaValue(heightWithRetina, true);
+				w = AscCommon.AscBrowser.convertToRetinaValue(w, true);
+				h = AscCommon.AscBrowser.convertToRetinaValue(h, true);
 			}
 
 			var oCanvas = document.createElement('canvas');
-			oCanvas.width = widthWithRetina;
-			oCanvas.height = heightWithRetina;
-			var oGraphics = new Asc.DrawingContext(
+			oCanvas.width = w;
+			oCanvas.height = h;
+			var ctx = new Asc.DrawingContext(
 				{canvas: oCanvas, units: 0/*px*/, fmgrGraphics: wb.fmgrGraphics, font: wb.m_oFont});
 
 			function addStyles(styles, type) {
@@ -1934,7 +1932,7 @@
 					if (window["IS_NATIVE_EDITOR"]) {
 						window["native"]["BeginDrawStyle"](type, name);
 					}
-					drawStyle(oGraphics, wb.stringRender, oStyle, displayName, widthWithRetina, heightWithRetina);
+					drawStyle(ctx, wb.stringRender, oStyle, displayName, w, h);
 					if (window["IS_NATIVE_EDITOR"]) {
 						window["native"]["EndDrawStyle"]();
 					} else {
@@ -1943,6 +1941,7 @@
 				}
 			}
 
+			var cellStyles = wb.model.CellStyles;
 			addStyles(cellStyles.CustomStyles, AscCommon.c_oAscStyleImage.Document);
 			addStyles(cellStyles.DefaultStyles, AscCommon.c_oAscStyleImage.Default);
 
@@ -2083,6 +2082,133 @@
 				}, this, []
 			);
 		}
+
+		function generateSlicerStyles(w, h, wb) {
+			if (AscCommon.AscBrowser.isRetina) {
+				w = AscCommon.AscBrowser.convertToRetinaValue(w, true);
+				h = AscCommon.AscBrowser.convertToRetinaValue(h, true);
+			}
+
+			var oCanvas = document.createElement('canvas');
+			oCanvas.width = w;
+			oCanvas.height = h;
+			var ctx = new Asc.DrawingContext(
+				{canvas: oCanvas, units: 0/*px*/, fmgrGraphics: wb.fmgrGraphics, font: wb.m_oFont});
+
+			var oAllSlicerStyles = wb.model.SlicerStyles.AllStyles;
+			var oAllTableStyles = wb.model.TableStyles.AllStyles;
+			var aStylesPreview = [];
+			for(var sStyleName in oAllSlicerStyles) {
+				if(oAllSlicerStyles.hasOwnProperty(sStyleName)) {
+					var oSlicerStyle = oAllSlicerStyles[sStyleName];
+					var oTableStyle = oAllTableStyles[sStyleName];
+					if(oSlicerStyle && oTableStyle) {
+						drawSlicerStyle(ctx, oSlicerStyle, oTableStyle, w, h);
+						aStylesPreview.push(new AscCommon.CStyleImage(sStyleName, AscCommon.c_oAscStyleImage.Default, oCanvas.toDataURL("image/png")));
+					}
+				}
+			}
+			return aStylesPreview;
+		}
+
+		function drawSlicerStyle(ctx, oSlicerStyle, oTableStyle, width, height) {
+			var r = function (nPix) {
+				return AscCommon.AscBrowser.convertToRetinaValue(nPix, true);
+			};
+
+			//white background
+			ctx.setFillStyle(new AscCommon.CColor(255, 255, 255)).fillRect(0, 0, width, height);
+			var oDXF;
+
+			var nIns = 2;
+			var nTIns = 3;
+			var nBH = 8;
+			var nTW = 8;
+			var nPos = 0;
+			var oFont;
+			var oColor;
+			//whole
+			oDXF = oTableStyle.wholeTable && oTableStyle.wholeTable.dxf;
+			if(oDXF) {
+				drawSlicerPreviewElement(oDXF, ctx, 0, 0, width, height);
+			}
+			//header
+			oDXF = oTableStyle.headerRow && oTableStyle.headerRow.dxf;
+			if(oDXF) {
+				drawSlicerPreviewElement(oDXF, ctx, 0, 0, width, r(nBH));
+				oFont = oDXF.getFont();
+				oColor = oFont ? oFont.getColor() : new AscCommon.CColor(0, 0, 0);
+				ctx.setStrokeStyle(oColor);
+				ctx.setLineWidth(1);
+				ctx.beginPath();
+				ctx.lineHor(r(nTIns + nIns), r(nPos + nBH / 2.0), r(nTIns + nIns + nTW));
+				ctx.stroke();
+				nPos += (nBH + nIns);
+			}
+			var aBT = [
+				Asc.ST_slicerStyleType.selectedItemWithData,
+				Asc.ST_slicerStyleType.unselectedItemWithData,
+				Asc.ST_slicerStyleType.selectedItemWithNoData,
+				Asc.ST_slicerStyleType.unselectedItemWithNoData
+			];
+			for(var nType = 0; nType < aBT.length; ++nType) {
+				oDXF = oSlicerStyle[aBT[nType]];
+				if(oDXF) {
+					drawSlicerPreviewElement(oDXF, ctx, r(nIns), r(nPos), width - r(nIns), r(nPos + nBH));
+					oFont = oDXF.getFont();
+					oColor = oFont ? oFont.getColor() : new AscCommon.CColor(0, 0, 0);
+					ctx.setStrokeStyle(oColor);
+					ctx.setLineWidth(1);
+					ctx.beginPath();
+					ctx.lineHor(r(nTIns + nIns), r(nPos + nBH / 2.0), r(nTIns + nIns + nTW));
+					ctx.stroke();
+					nPos += (nIns + nBH);
+				}
+			}
+		}
+		function drawSlicerPreviewElement(oDXF, oDrawingContext, x0, y0, x1, y1) {
+			var oFill = oDXF.getFill();
+			if(oFill) {
+				var findFillColor = oFill.getSolidFill();
+				if (findFillColor) {
+					oDrawingContext.setFillStyle(findFillColor).fillRect(x0, y0, x1 - x0, y1 - y0);
+				} else {
+					var oGraphics = new AscCommon.CGraphics();
+					oGraphics.init(oDrawingContext.ctx, oDrawingContext.getWidth(0), oDrawingContext.getHeight(0),
+						oDrawingContext.getWidth(3), oDrawingContext.getHeight(3));
+					oGraphics.m_oFontManager = AscCommon.g_fontManager;
+					AscCommonExcel.drawFillCell(oDrawingContext, oGraphics, oFill, new AscCommon.asc_CRect(x0, y0, x1 - x0, y1 - y0));
+				}
+			}
+			var oBorder = oDXF.getBorder();
+			if(oBorder) {
+				var oS = oBorder.l;
+				if(oS && oS.s !== AscCommon.c_oAscBorderStyles.None && oS.c) {
+					oDrawingContext.setStrokeStyle(oS.c).setLineWidth(1).setLineDash(oS.getDashSegments()).beginPath();
+					oDrawingContext.lineVer(x0, y0, y1);
+					oDrawingContext.stroke();
+				}
+				oS = oBorder.t;
+				if(oS && oS.s !== AscCommon.c_oAscBorderStyles.None && oS.c) {
+					oDrawingContext.setStrokeStyle(oS.c).setLineWidth(1).setLineDash(oS.getDashSegments()).beginPath();
+					oDrawingContext.lineHor(x0 + 1, y0, x1 - 1);
+					oDrawingContext.stroke();
+				}
+				oS = oBorder.r;
+				if(oS && oS.s !== AscCommon.c_oAscBorderStyles.None && oS.c) {
+					oDrawingContext.setStrokeStyle(oS.c).setLineWidth(1).setLineDash(oS.getDashSegments()).beginPath();
+					oDrawingContext.lineVer(x1 - 1, y0, y1);
+					oDrawingContext.stroke();
+				}
+				oS = oBorder.b;
+				if(oS && oS.s !== AscCommon.c_oAscBorderStyles.None && oS.c) {
+					oDrawingContext.setStrokeStyle(oS.c).setLineWidth(1).setLineDash(oS.getDashSegments()).beginPath();
+					oDrawingContext.lineHor(x0 + 1, y1 - 1, x1 - 1);
+					oDrawingContext.stroke();
+				}
+			}
+		}
+
 		//-----------------------------------------------------------------
 		// События движения мыши
 		//-----------------------------------------------------------------
@@ -2920,6 +3046,7 @@
 		window["Asc"].getEndValueRange = getEndValueRange;
 		window["AscCommonExcel"].checkStylesNames = checkStylesNames;
 		window["AscCommonExcel"].generateStyles = generateStyles;
+		window["AscCommonExcel"].generateSlicerStyles = generateSlicerStyles;
 		window["AscCommonExcel"].getIconsForLoad = getIconsForLoad;
 
 		window["AscCommonExcel"].referenceType = referenceType;
