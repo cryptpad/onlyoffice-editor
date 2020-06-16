@@ -1279,7 +1279,20 @@
             oLastDrawn = drawVerBorder(graphics, oBorder.l, oLastDrawn, 1, 0, 0, this.extY) || oLastDrawn;
             oLastDrawn = drawHorBorder(graphics, oBorder.t, oLastDrawn, 1, 0, 0, this.extX) || oLastDrawn;
             oLastDrawn = drawVerBorder(graphics, oBorder.r, oLastDrawn, 1, this.extX, 0, this.extY) || oLastDrawn;
+            var bFull = false;
             if(oLastDrawn) {
+                bFull = true;
+            }
+            else {
+                var oFill = this.slicer.getFill(STYLE_TYPE.HEADER);
+                if(oFill) {
+                    var oWholeFill = this.slicer.getFill(STYLE_TYPE.WHOLE);
+                    if(!oWholeFill || !oFill.isEqual(oWholeFill)) {
+                        bFull = true;
+                    }
+                }
+            }
+            if(bFull) {
                 oLastDrawn = drawHorBorder(graphics, oBorder.b, oLastDrawn, 1, this.extY, 0, this.extX) || oLastDrawn;
             }
             else {
