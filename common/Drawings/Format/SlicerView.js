@@ -679,7 +679,11 @@
                 return oFont;
             }
         }
-        return oFont;
+        oDXF = this.getDXF(STYLE_TYPE.WHOLE);
+        if(oDXF) {
+            return oDXF.getFont2();
+        }
+        return AscCommonExcel.g_oDefaultFormat.Font;
     };
     CSlicer.prototype.getFill = function(nType) {
         var oFill;
