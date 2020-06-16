@@ -619,6 +619,13 @@ function (window, undefined) {
 							res = new Asc.Range(bbox.c1 + arg2 - 1, bbox.r1, bbox.c1 + arg2 - 1, bbox.r2);
 							res = new cArea(res.getName(), ws);
 						}
+					} else if ((0 === arg2 || undefined === arg[2] || (cElementType.empty === arg[2].type)) && arg1 > 0) {
+						if (arg1 > Math.abs(bbox.r1 - bbox.r2) + 1) {
+							res = new cError(cErrorType.bad_reference);
+						} else {
+							res = new Asc.Range(bbox.c1 + arg2 - diffArg2, bbox.r1 + arg1 - diffArg1, bbox.c2 + arg2 - diffArg2, bbox.r1 + arg1 - diffArg1);
+							res = new cArea(res.getName(), ws);
+						}
 					} else {
 						if (arg1 > Math.abs(bbox.r1 - bbox.r2) + 1 || arg2 > Math.abs(bbox.c1 - bbox.c2) + 1) {
 							res = new cError(cErrorType.bad_reference);
