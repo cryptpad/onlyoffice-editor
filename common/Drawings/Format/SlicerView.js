@@ -64,7 +64,7 @@
     var SCROLL_TIMER_INTERVAL = 200;
 
     var LOCKED_ALPHA = 51;
-    
+
     var STYLE_TYPE = {};
     STYLE_TYPE.WHOLE = STATE_FLAG_WHOLE;
     STYLE_TYPE.HEADER = STATE_FLAG_HEADER;
@@ -76,7 +76,7 @@
     STYLE_TYPE.HOVERED_SELECTED_NO_DATA = STATE_FLAG_SELECTED | 0 | STATE_FLAG_HOVERED;
     STYLE_TYPE.HOVERED_UNSELECTED_DATA = 0 | STATE_FLAG_DATA | STATE_FLAG_HOVERED;
     STYLE_TYPE.HOVERED_UNSELECTED_NO_DATA = 0 | 0 | STATE_FLAG_HOVERED;
-    
+
     var SCROLL_COLORS = {};
     SCROLL_COLORS[STYLE_TYPE.WHOLE] = 0xF1F1F1;
     SCROLL_COLORS[STYLE_TYPE.HEADER] = 0xF1F1F1;
@@ -93,7 +93,7 @@
     var SCROLL_BUTTON_TYPE_TOP = 1;
     var SCROLL_BUTTON_TYPE_RIGHT = 2;
     var SCROLL_BUTTON_TYPE_BOTTOM = 3;
-    
+
     var SCROLL_ARROW_COLORS = {};
     SCROLL_ARROW_COLORS[STYLE_TYPE.WHOLE] = 0xF1F1F1;
     SCROLL_ARROW_COLORS[STYLE_TYPE.HEADER] = 0xF1F1F1;
@@ -105,7 +105,7 @@
     SCROLL_ARROW_COLORS[STYLE_TYPE.HOVERED_SELECTED_NO_DATA] = 0xFFFFFF;
     SCROLL_ARROW_COLORS[STYLE_TYPE.HOVERED_UNSELECTED_DATA] = 0xFFFFFF;
     SCROLL_ARROW_COLORS[STYLE_TYPE.HOVERED_UNSELECTED_NO_DATA] = 0xFFFFFF;
-    
+
     var HEADER_BUTTON_COLORS = {};
     HEADER_BUTTON_COLORS[STYLE_TYPE.WHOLE] = null;
     HEADER_BUTTON_COLORS[STYLE_TYPE.HEADER] = null;
@@ -117,19 +117,19 @@
     HEADER_BUTTON_COLORS[STYLE_TYPE.HOVERED_SELECTED_NO_DATA] = 0x7D858C;
     HEADER_BUTTON_COLORS[STYLE_TYPE.HOVERED_UNSELECTED_DATA] = 0xD8DADC;
     HEADER_BUTTON_COLORS[STYLE_TYPE.HOVERED_UNSELECTED_NO_DATA] = 0xD8DADC;
-    
+
     var ICON_MULTISELECT = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4NCjxwYXRoIGZpbGwtcnVsZT0iZXZlbm9kZCIgY2xpcC1ydWxlPSJldmVub2RkIiBkPSJNNCA1QzQgNC40NDc3MiA0LjQ0NzcyIDQgNSA0SDE1QzE1LjU1MjMgNCAxNiA0LjQ0NzcyIDE2IDVWNkMxNiA2LjU1MjI4IDE1LjU1MjMgNyAxNSA3SDVDNC40NDc3MiA3IDQgNi41NTIyOCA0IDZWNVpNMTUgMTNINUw1IDE0SDE1VjEzWk01IDEyQzQuNDQ3NzIgMTIgNCAxMi40NDc3IDQgMTNWMTRDNCAxNC41NTIzIDQuNDQ3NzIgMTUgNSAxNUgxNUMxNS41NTIzIDE1IDE2IDE0LjU1MjMgMTYgMTRWMTNDMTYgMTIuNDQ3NyAxNS41NTIzIDEyIDE1IDEySDVaTTUgOEM0LjQ0NzcyIDggNCA4LjQ0NzcyIDQgOVYxMEM0IDEwLjU1MjMgNC40NDc3MiAxMSA1IDExSDE1QzE1LjU1MjMgMTEgMTYgMTAuNTUyMyAxNiAxMFY5QzE2IDguNDQ3NzIgMTUuNTUyMyA4IDE1IDhINVoiIGZpbGw9IiM0NDQ0NDQiLz4NCjwvc3ZnPg0K";
     var ICON_MULTISELECT_INVERTED = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4NCjxwYXRoIGZpbGwtcnVsZT0iZXZlbm9kZCIgY2xpcC1ydWxlPSJldmVub2RkIiBkPSJNNCA1QzQgNC40NDc3MiA0LjQ0NzcyIDQgNSA0SDE1QzE1LjU1MjMgNCAxNiA0LjQ0NzcyIDE2IDVWNkMxNiA2LjU1MjI4IDE1LjU1MjMgNyAxNSA3SDVDNC40NDc3MiA3IDQgNi41NTIyOCA0IDZWNVpNMTUgMTNINUw1IDE0SDE1VjEzWk01IDEyQzQuNDQ3NzIgMTIgNCAxMi40NDc3IDQgMTNWMTRDNCAxNC41NTIzIDQuNDQ3NzIgMTUgNSAxNUgxNUMxNS41NTIzIDE1IDE2IDE0LjU1MjMgMTYgMTRWMTNDMTYgMTIuNDQ3NyAxNS41NTIzIDEyIDE1IDEySDVaTTUgOEM0LjQ0NzcyIDggNCA4LjQ0NzcyIDQgOVYxMEM0IDEwLjU1MjMgNC40NDc3MiAxMSA1IDExSDE1QzE1LjU1MjMgMTEgMTYgMTAuNTUyMyAxNiAxMFY5QzE2IDguNDQ3NzIgMTUuNTUyMyA4IDE1IDhINVoiIGZpbGw9IndoaXRlIi8+DQo8L3N2Zz4NCg==";
     var ICON_CLEAR_FILTER = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4NCjxwYXRoIGZpbGwtcnVsZT0iZXZlbm9kZCIgY2xpcC1ydWxlPSJldmVub2RkIiBkPSJNMTAgMTZMOCAxNFYxMEwzIDVIMTVMMTAgMTBWMTZaTTE2LjE0NjQgMTYuODUzNkwxNC41IDE1LjIwNzFMMTIuODUzNiAxNi44NTM2TDEyLjE0NjQgMTYuMTQ2NUwxMy43OTI5IDE0LjVMMTIuMTQ2NCAxMi44NTM2TDEyLjg1MzYgMTIuMTQ2NUwxNC41IDEzLjc5MjlMMTYuMTQ2NCAxMi4xNDY1TDE2Ljg1MzYgMTIuODUzNkwxNS4yMDcxIDE0LjVMMTYuODUzNiAxNi4xNDY1TDE2LjE0NjQgMTYuODUzNloiIGZpbGw9IiM0NDQ0NDQiLz4NCjwvc3ZnPg0K";
     var ICON_CLEAR_FILTER_DISABLED = "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHZpZXdCb3g9IjAgMCAyMCAyMCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4NCjxnIG9wYWNpdHk9IjAuNCI+DQo8cGF0aCBmaWxsLXJ1bGU9ImV2ZW5vZGQiIGNsaXAtcnVsZT0iZXZlbm9kZCIgZD0iTTEwIDE2TDggMTRWMTBMMyA1SDE1TDEwIDEwVjE2Wk0xNi4xNDY0IDE2Ljg1MzZMMTQuNSAxNS4yMDcxTDEyLjg1MzYgMTYuODUzNkwxMi4xNDY0IDE2LjE0NjVMMTMuNzkyOSAxNC41TDEyLjE0NjQgMTIuODUzNkwxMi44NTM2IDEyLjE0NjVMMTQuNSAxMy43OTI5TDE2LjE0NjQgMTIuMTQ2NUwxNi44NTM2IDEyLjg1MzZMMTUuMjA3MSAxNC41TDE2Ljg1MzYgMTYuMTQ2NUwxNi4xNDY0IDE2Ljg1MzZaIiBmaWxsPSIjNDQ0NDQ0Ii8+DQo8L2c+DQo8L3N2Zz4NCg==";
-    
+
     var oDefaultWrapObject = {oTxWarpStruct: null, oTxWarpStructParamarks: null, oTxWarpStructNoTransform: null, oTxWarpStructParamarksNoTransform: null};
 
 
     function getSlicerIconsForLoad() {
         return [ICON_MULTISELECT, ICON_MULTISELECT_INVERTED, ICON_CLEAR_FILTER, ICON_CLEAR_FILTER_DISABLED];
     }
-    
+
     function CreateButtonHoverGradient() {
         var oFill = new AscCommonExcel.Fill(), oGF, oGS;
         oGF = new AscCommonExcel.GradientFill();
@@ -145,7 +145,78 @@
         oFill.gradientFill = oGF;
         return oFill;
     }
-    
+
+    function getGraphicsScale(graphics) {
+        var vector_koef;
+        if(graphics.m_oCoordTransform) {
+            vector_koef = 1.0 / graphics.m_oCoordTransform.sx;
+        }
+        else {
+            var zoom = 1, ppiX = 96;
+            if (window.Asc && window.Asc.editor) {
+                zoom = window.Asc.editor.asc_getZoom();
+            }
+            vector_koef = 25.4 / (ppiX * zoom);
+            if (AscCommon.AscBrowser.isRetina) {
+                vector_koef /= AscCommon.AscBrowser.retinaPixelRatio;
+            }
+        }
+        return vector_koef;
+    }
+    function setGraphicsSettings(graphics, oBorderPr, oLastBorderPr) {
+        var oColor = oBorderPr.c || new AscCommonExcel.RgbColor(0);
+        var oLastColor = null;
+        if(oLastBorderPr) {
+            oLastColor = oLastBorderPr.c || new AscCommonExcel.RgbColor(0);
+        }
+        if(!oColor.isEqual(oLastColor)) {
+            graphics.p_color(oColor.getR(), oColor.getG(), oColor.getB(), 255);
+        }
+        var nW = oBorderPr.w, dW;
+        if(!AscFormat.isRealNumber(nW)) {
+            nW = 1;
+        }
+        var vector_koef;
+        //if(nW === 0 || nW === 1) {
+        //    dW = 0;
+        //}
+        //else {
+        //    vector_koef = getGraphicsScale(graphics);
+        //    dW = nW * vector_koef;
+        //}
+        vector_koef = getGraphicsScale(graphics);
+        dW = nW * vector_koef;
+        if(!oLastBorderPr || oBorderPr.s !== oLastBorderPr.s) {
+            var aDash = oBorderPr.getDashSegments();
+            if(!graphics.m_oCoordTransform) {
+                if(!AscFormat.isRealNumber(vector_koef)) {
+                    vector_koef = getGraphicsScale(graphics);
+                }
+                for(var nSegment = 0; nSegment < aDash.length; ++nSegment) {
+                    aDash[nSegment] *= vector_koef;
+                }
+            }
+            graphics.p_dash(aDash);
+        }
+        return dW;
+    }
+    function drawHorBorder(graphics, oBorderPr, oPrevBorderPr, align, y, x, r) {
+        var oLastBorderPr = null;
+        if(oBorderPr && oBorderPr.s !== AscCommon.c_oAscBorderStyles.None) {
+            graphics.drawHorLine(align, y, x, r, setGraphicsSettings(graphics, oBorderPr));
+            oLastBorderPr = oBorderPr;
+        }
+        return oLastBorderPr;
+    }
+    function drawVerBorder(graphics, oBorderPr, oPrevBorderPr, align, x, y, b) {
+        var oLastBorderPr = null;
+        if(oBorderPr && oBorderPr.s !== AscCommon.c_oAscBorderStyles.None) {
+            graphics.drawVerLine(align, x, y, b, setGraphicsSettings(graphics, oBorderPr));
+            oLastBorderPr = oBorderPr;
+        }
+        return oLastBorderPr;
+    }
+
     function CSlicerCache() {
         this.view = null;
         this.values = null;
@@ -264,7 +335,7 @@
         }
         return AscCommon.translateManager.getValue("(blank)");
     };
-    
+
     function CSlicerData(slicer) {
         CSlicerCache.call(this);
         this.slicer = slicer;
@@ -337,7 +408,7 @@
             if(this.getVisible(oValue) !== false) {
                 nState |=STATE_FLAG_SELECTED;
             }
-            
+
             return nState;
         }
         return STYLE_TYPE.WHOLE;
@@ -385,7 +456,7 @@
             }
             aValuesToApply.push(oApplyValue);
         }
-       
+
         if(bNeedUpdate) {
             if(this.slicer.isSubscribed()) {
                 this.values = aValuesToApply;
@@ -440,7 +511,7 @@
         }
         return false;
     };
-    
+
     function CSlicer() {
         AscFormat.CShape.call(this);
         this.name = null;
@@ -783,7 +854,6 @@
         }
         graphics.SaveGrState();
         graphics.transform3(this.transform, false);
-        graphics.AddClipRect(0, 0, this.extX, this.extY);
         if(this.header) {
             this.header.draw(graphics, transform, transformText, pageIndex);
         }
@@ -796,50 +866,15 @@
             var oTransform = transform || this.transform;
             graphics.SaveGrState();
             graphics.transform3(oTransform);
-            var oSide;
+            var oSide, oLastDrawn;
             oSide = oBorder.l;
-            if(oSide && oSide.s !== AscCommon.c_oAscBorderStyles.None) {
-                if(oSide.c) {
-                    graphics.p_color(oSide.c.getR(), oSide.c.getG(), oSide.c.getB(), 255);
-                }
-                else {
-                    graphics.p_color(0, 0, 0, 255);
-                }
-                graphics.drawVerLine(1, 0, 0, this.extY, 0);
-            }
+            oLastDrawn = drawVerBorder(graphics, oSide, oLastDrawn, 1, 0, 0, this.extY) || oLastDrawn;
             oSide = oBorder.t;
-            if(oSide && oSide.s !== AscCommon.c_oAscBorderStyles.None) {
-                if(oSide.c) {
-
-                    graphics.p_color(oSide.c.getR(), oSide.c.getG(), oSide.c.getB(), 255);
-                }
-                else {
-                    graphics.p_color(0, 0, 0, 255);
-                }
-                graphics.drawHorLine(1, 0, 0, this.extX, 0);
-            }
+            oLastDrawn = drawHorBorder(graphics, oSide, oLastDrawn, 1, 0, 0, this.extX) || oLastDrawn;
             oSide = oBorder.r;
-            if(oSide && oSide.s !== AscCommon.c_oAscBorderStyles.None) {
-                if(oSide.c) {
-
-                    graphics.p_color(oSide.c.getR(), oSide.c.getG(), oSide.c.getB(), 255);
-                }
-                else {
-                    graphics.p_color(0, 0, 0, 255);
-                }
-                graphics.drawVerLine(1, this.extX, 0, this.extY, 0);
-            }
+            oLastDrawn = drawVerBorder(graphics, oSide, oLastDrawn, 1, this.extX, 0, this.extY) || oLastDrawn;
             oSide = oBorder.b;
-            if(oSide && oSide.s !== AscCommon.c_oAscBorderStyles.None) {
-                if(oSide.c) {
-
-                    graphics.p_color(oSide.c.getR(), oSide.c.getG(), oSide.c.getB(), 255);
-                }
-                else {
-                    graphics.p_color(0, 0, 0);
-                }
-                graphics.drawHorLine(1, this.extY, 0, this.extX, 0);
-            }
+            oLastDrawn = drawHorBorder(graphics, oSide, oLastDrawn, 1, this.extY, 0, this.extX) || oLastDrawn;
             graphics.RestoreGrState();
         }
         if(!AscCommon.IsShapeToImageConverter && !graphics.RENDERER_PDF_FLAG) {
@@ -949,7 +984,7 @@
             }
         }
         return bRet;
-    };  
+    };
     CSlicer.prototype.getCursorInfo = function (e, x, y) {
         if(this.getLocked() || !this.hit(x, y) || !this.data.hasData()) {
             return null;
@@ -1001,7 +1036,7 @@
         if(this.name === sName) {
             this.onDataUpdate();
         }
-    };  
+    };
     CSlicer.prototype.onSlicerLock = function (sName, bLock) {
         if(this.name === sName) {
             this.data.setLocked(bLock);
@@ -1046,13 +1081,13 @@
         if(drawingObjects) {
             drawingObjects.addEventListener(this);
         }
-    };  
+    };
     CSlicer.prototype.unsubscribeFromEvents = function () {
         var drawingObjects = this.getDrawingObjectsController();
         if(drawingObjects) {
             drawingObjects.removeEventListener(this);
         }
-    };   
+    };
     CSlicer.prototype.isSubscribed = function () {
         var drawingObjects = this.getDrawingObjectsController();
         if(drawingObjects) {
@@ -1129,7 +1164,7 @@
         }
         return null;
     };
-    
+
     function CHeader(slicer) {
         AscFormat.CShape.call(this);
         this.slicer = slicer;
@@ -1229,118 +1264,41 @@
         if(graphics.IsSlideBoundsCheckerType) {
             return;
         }
+
+        graphics.SaveGrState();
+        graphics.transform3(this.transform);
+        graphics.SaveGrState();
+        graphics.AddClipRect(0, 0, this.extX, this.extY);
         this.buttons[0].draw(graphics);
         this.buttons[1].draw(graphics);
-
-
-
-        var oSide, bDrawn = false;
+        graphics.RestoreGrState();
+        var oLastDrawn;
         var oDXF = this.slicer.getDXF(STYLE_TYPE.HEADER);
         var oBorder = oDXF && oDXF.getBorder();
         if(oBorder) {
-            graphics.SaveGrState();
-            graphics.transform3(this.transform);
-            oSide = oBorder.l;
-            if(oSide && oSide.s !== AscCommon.c_oAscBorderStyles.None) {
-                if(oSide.c) {
-
-                    graphics.p_color(oSide.c.getR(), oSide.c.getG(), oSide.c.getB(), 255);
-                }
-                else {
-                    graphics.p_color(0, 0, 0);
-                }
-                graphics.drawVerLine(1, 0, 0, this.extY, 0);
-                bDrawn = true;
+            oLastDrawn = drawVerBorder(graphics, oBorder.l, oLastDrawn, 1, 0, 0, this.extY) || oLastDrawn;
+            oLastDrawn = drawHorBorder(graphics, oBorder.t, oLastDrawn, 1, 0, 0, this.extX) || oLastDrawn;
+            oLastDrawn = drawVerBorder(graphics, oBorder.r, oLastDrawn, 1, this.extX, 0, this.extY) || oLastDrawn;
+            if(oLastDrawn) {
+                oLastDrawn = drawHorBorder(graphics, oBorder.b, oLastDrawn, 1, this.extY, 0, this.extX) || oLastDrawn;
             }
-            oSide = oBorder.t;
-            if(oSide && oSide.s !== AscCommon.c_oAscBorderStyles.None) {
-                if(oSide.c) {
-
-                    graphics.p_color(oSide.c.getR(), oSide.c.getG(), oSide.c.getB(), 255);
-                }
-                else {
-                    graphics.p_color(0, 0, 0);
-                }
-                graphics.drawHorLine(1, 0, 0, this.extX, 0);
-                bDrawn = true;
+            else {
+                oLastDrawn = drawHorBorder(graphics, oBorder.b, oLastDrawn, 1, this.extY, LEFT_PADDING, this.slicer.extX - RIGHT_PADDING) || oLastDrawn;
             }
-            oSide = oBorder.r;
-            if(oSide && oSide.s !== AscCommon.c_oAscBorderStyles.None) {
-                if(oSide.c) {
-
-                    graphics.p_color(oSide.c.getR(), oSide.c.getG(), oSide.c.getB(), 255);
-                }
-                else {
-                      graphics.p_color(0, 0, 0, 255);
-                }
-                graphics.drawVerLine(1, this.extX, 0, this.extY, 0);
-                bDrawn = true;
-            }
-            oSide = oBorder.b;
-            if(oSide && oSide.s !== AscCommon.c_oAscBorderStyles.None) {
-                if(oSide.c) {
-                    graphics.p_color(oSide.c.getR(), oSide.c.getG(), oSide.c.getB(), 255);
-                }
-                else {
-                    graphics.p_color(0, 0, 0);
-                }
-                if(bDrawn) {
-                    graphics.drawHorLine(1, this.extY, 0, this.extX, 0);
-                }
-                else {
-                    graphics.drawHorLine(1, this.extY, LEFT_PADDING, this.slicer.extX - RIGHT_PADDING, 0);
-                }
-            }
-            graphics.RestoreGrState();
         }
         else {
             oBorder = this.slicer.getBorder(STYLE_TYPE.HEADER);
             if(oBorder) {
-                oSide = oBorder.b;
-                if(oSide && oSide.s !== AscCommon.c_oAscBorderStyles.None) {
-
-                    graphics.SaveGrState();
-                    graphics.transform3(this.transform);
-                    if(oSide.c) {
-                        graphics.p_color(oSide.c.getR(), oSide.c.getG(), oSide.c.getB(), 255);
-                    }
-                    else {
-                        graphics.p_color(0, 0, 0);
-                    }
-                    if(bDrawn) {
-                        graphics.drawHorLine(1, this.extY, 0, this.extX, 0);
-                    }
-                    else {
-                        graphics.drawHorLine(1, this.extY, LEFT_PADDING, this.slicer.extX - RIGHT_PADDING, 0);
-                    }
-                    graphics.RestoreGrState();
-                }
+                oLastDrawn = drawHorBorder(graphics, oBorder.b, oLastDrawn, 1, this.extY, LEFT_PADDING, this.slicer.extX - RIGHT_PADDING) || oLastDrawn;
             }
         }
+        graphics.RestoreGrState();
     };
     CHeader.prototype.getTxStyles = function (nType) {
         return this.slicer.getTxStyles(nType);
     };
     CHeader.prototype.getBorder = function (nType) {
-        var oBorder = null;
-        return oBorder;
-        if(nType & STATE_FLAG_SELECTED || nType & STATE_FLAG_HOVERED) {
-            var r = 204, g = 204, b = 204;
-            oBorder = new AscCommonExcel.Border(null);
-            oBorder.l = new AscCommonExcel.BorderProp();
-            oBorder.l.setStyle(AscCommon.c_oAscBorderStyles.Thin);
-            oBorder.l.c = AscCommonExcel.createRgbColor(r, g, b);
-            oBorder.t = new AscCommonExcel.BorderProp();
-            oBorder.t.setStyle(AscCommon.c_oAscBorderStyles.Thin);
-            oBorder.t.c = AscCommonExcel.createRgbColor(r, g, b);
-            oBorder.r = new AscCommonExcel.BorderProp();
-            oBorder.r.setStyle(AscCommon.c_oAscBorderStyles.Thin);
-            oBorder.r.c = AscCommonExcel.createRgbColor(r, g, b);
-            oBorder.b = new AscCommonExcel.BorderProp();
-            oBorder.b.setStyle(AscCommon.c_oAscBorderStyles.Thin);
-            oBorder.b.c = AscCommonExcel.createRgbColor(r, g, b);
-        }
-        return oBorder;
+        return null;
     };
     CHeader.prototype.getFill = function (nType) {
         var nColor = HEADER_BUTTON_COLORS[nType];
@@ -1358,7 +1316,7 @@
                 sRet = ICON_MULTISELECT_INVERTED;
             }
             else {
-                sRet = ICON_MULTISELECT; 
+                sRet = ICON_MULTISELECT;
             }
         }
         else {
@@ -1427,7 +1385,7 @@
         bRet |= this.buttons[0].onMouseDown(e, x, y);
         bRet |= this.buttons[1].onMouseDown(e, x, y);
         return bRet;
-    };  
+    };
     CHeader.prototype.getCursorInfo = function (e, x, y) {
         if(!this.hit(x, y)) {
             return null;
@@ -1543,7 +1501,7 @@
         if(!oClipBounds) {
             oClipBounds = this.bounds;
         }
-        this.slicer.onUpdate(oClipBounds);    
+        this.slicer.onUpdate(oClipBounds);
     };
     CHeader.prototype.getTooltipText = function (nIndex) {
         var sText = null;
@@ -1751,50 +1709,11 @@
         if(oBorder) {
             graphics.SaveGrState();
             graphics.transform3(this.transform);
-            var oSide;
-            oSide = oBorder.l;
-            if(oSide && oSide.s !== AscCommon.c_oAscBorderStyles.None) {
-                if(oSide.c) {
-                    graphics.p_color(oSide.c.getR(), oSide.c.getG(), oSide.c.getB(), 255);
-                }
-                else {
-                    graphics.p_color(0, 0, 0);
-                }
-                graphics.drawVerLine(0, 0, 0, this.extY, 0);
-            }
-            oSide = oBorder.t;
-            if(oSide && oSide.s !== AscCommon.c_oAscBorderStyles.None) {
-                if(oSide.c) {
-
-                    graphics.p_color(oSide.c.getR(), oSide.c.getG(), oSide.c.getB(), 255);
-                }
-                else {
-                    graphics.p_color(0, 0, 0);
-                }
-                graphics.drawHorLine(0, 0, 0, this.extX, 0);
-            }
-            oSide = oBorder.r;
-            if(oSide && oSide.s !== AscCommon.c_oAscBorderStyles.None) {
-                if(oSide.c) {
-
-                    graphics.p_color(oSide.c.getR(), oSide.c.getG(), oSide.c.getB(), 255);
-                }
-                else {
-                    graphics.p_color(0, 0, 0);
-                }
-                graphics.drawVerLine(2, this.extX, 0, this.extY, 0);
-            }
-            oSide = oBorder.b;
-            if(oSide && oSide.s !== AscCommon.c_oAscBorderStyles.None) {
-                if(oSide.c) {
-
-                    graphics.p_color(oSide.c.getR(), oSide.c.getG(), oSide.c.getB(), 255);
-                }
-                else {
-                    graphics.p_color(0, 0, 0);
-                }
-                graphics.drawHorLine(2, this.extY, 0, this.extX, 0);
-            }
+            var oLastDrawn = null;
+            oLastDrawn = drawVerBorder(graphics, oBorder.l, oLastDrawn, 0, 0, 0, this.extY) || oLastDrawn;
+            oLastDrawn = drawHorBorder(graphics, oBorder.t, oLastDrawn, 0, 0, 0, this.extX) || oLastDrawn;
+            oLastDrawn = drawVerBorder(graphics, oBorder.r, oLastDrawn, 2, this.extX, 0, this.extY) || oLastDrawn;
+            oLastDrawn = drawHorBorder(graphics, oBorder.b, oLastDrawn, 2, this.extY, 0, this.extX) || oLastDrawn;
             graphics.RestoreGrState();
         }
     };
@@ -1846,7 +1765,7 @@
             }
         }
     };
-    
+
     function CButton(parent) {
         CButtonBase.call(this, parent);
         this.textBoxes = {};
@@ -1881,7 +1800,7 @@
         var sText = this.getString();
         var oFontMap = {};
         var oFont, oFoundFont, oMapFont;
-        
+
         var oFirstButton = this.parent.buttons[0];
         var bUseFirstButton = (oFirstButton !== this);
         var nType;
@@ -1933,7 +1852,7 @@
         }
         return this.getString();
     };
-    
+
     function CInterfaceButton(parent) {
         CButtonBase.call(this, parent);
         this.setTmpState(STYLE_TYPE.UNSELECTED_DATA);
@@ -1988,7 +1907,7 @@
     CInterfaceButton.prototype.getTooltipText = function() {
         return this.parent.getTooltipText(this.parent.getButtonIndex(this));
     };
-    
+
     function CButtonsContainer(slicer) {
         this.slicer = slicer;
         this.worksheet = slicer.worksheet;
@@ -2088,7 +2007,7 @@
     };
     CButtonsContainer.prototype.getFill = function (nType) {
         return this.slicer.getFill(nType);
-    };  
+    };
     CButtonsContainer.prototype.getFont = function (nType) {
         return this.slicer.getFont(nType);
     };
@@ -2393,7 +2312,7 @@
     CButtonsContainer.prototype.getTooltipText = function (nIndex) {
         return this.getString(nIndex)
     };
-    
+
     function CScrollButton(parent, type) {
         CInterfaceButton.call(this, parent);
         this.type = type;
@@ -2429,7 +2348,7 @@
             graphics.RestoreGrState();
         }
     };
-    
+
     function CScroll(parent) {
         this.parent = parent;
         this.extX = 0;
@@ -2446,7 +2365,7 @@
         this.startScrollTop = null;
     }
     CScroll.prototype.getBounds = function() {
-        var oTransform = this.getFullTransformMatrix(); 
+        var oTransform = this.getFullTransformMatrix();
         var x = this.getPosX();
         var y = this.getPosY();
         var extX = this.getWidth();
@@ -2642,7 +2561,7 @@
         graphics.b_color1((nColor >> 16) & 0xFF, (nColor >> 8) & 0xFF, nColor & 0xFF, 0xFF);
         graphics.rect(x, y, extX, extY);
         graphics.df();
-        
+
         graphics.p_width(0);
         graphics.drawHorLine(0, y, x, x + extX, 0);
         graphics.drawHorLine(0, y + extY, x, x + extX, 0);
@@ -2860,8 +2779,8 @@
 
     window["AscFormat"] = window["AscFormat"] || {};
     window["AscFormat"].CSlicer = CSlicer;
-    
+
     window["AscCommonExcel"] = window["AscCommonExcel"] || {};
     window["AscCommonExcel"].getSlicerIconsForLoad = getSlicerIconsForLoad;
-    
+
 })();
