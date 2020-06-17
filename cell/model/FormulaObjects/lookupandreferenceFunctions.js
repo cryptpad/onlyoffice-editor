@@ -542,9 +542,17 @@ function (window, undefined) {
 			var _colCount = _from.getCountElementInRow();
 			var _rowCount = _from.rowCount;
 			var i;
+			row = Math.ceil(row);
+			col = Math.ceil(col);
 			if (undefined !== row) {
 				if (_rowCount < row) {
-					return null;
+					if (col === undefined && _rowCount === 1 && _from.array[0] && _from.array[0][row - 1]) {
+						ret = new cArray();
+						ret.addElement(_from.array[0][row - 1]);
+						return ret;
+					} else {
+						return null;
+					}
 				}
 				ret = new cArray();
 				for (i = 0; i < _colCount; i++) {
@@ -552,7 +560,13 @@ function (window, undefined) {
 				}
 			} else if (undefined !== col) {
 				if (_colCount < col) {
-					return null;
+					if (row === undefined && _colCount === 1 && _from.array[col - 1] && _from.array[col - 1][0]) {
+						ret = new cArray();
+						ret.addElement(_from.array[col - 1][0]);
+						return ret;
+					} else {
+						return null;
+					}
 				}
 
 				ret = new cArray();
@@ -1507,6 +1521,7 @@ function (window, undefined) {
 	cOFFSET.prototype.argumentsMin = 3;
 	cOFFSET.prototype.argumentsMax = 5;
 	cOFFSET.prototype.ca = true;
+	cOFFSET.prototype.arrayIndexes = {0: 1};
 	cOFFSET.prototype.argumentsType = [argType.reference, argType.number, argType.number, argType.number, argType.number];
 	cOFFSET.prototype.Calculate = function (arg) {
 

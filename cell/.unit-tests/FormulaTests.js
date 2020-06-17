@@ -6855,7 +6855,7 @@ $( function () {
 
 		oParser = new parserFormula( "FORMULATEXT(S101:S102)", "A1", ws );
 		ok( oParser.parse() );
-		strictEqual( oParser.calculate().getValue(), "=TODAY()" );
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue(), "=TODAY()" );
 
 		oParser = new parserFormula( "FORMULATEXT(S102)", "A1", ws );
 		ok( oParser.parse() );
@@ -12564,11 +12564,11 @@ $( function () {
 
 		oParser = new parserFormula( "TREND(A101:A112,B101:B112)", "A2", ws );
 		ok( oParser.parse() );
-		strictEqual( oParser.calculate().getValue().toFixed(9) - 0, 0.947729865);
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue().toFixed(9) - 0, 0.947729865);
 
 		oParser = new parserFormula( "TREND(B101:B112,A101:A112,A115:A119)", "A2", ws );
 		ok( oParser.parse() );
-		strictEqual( oParser.calculate().getValue().toFixed(4) - 0, 146171.5152);
+		strictEqual( oParser.calculate().getElementRowCol(0,0).getValue().toFixed(4) - 0, 146171.5152);
 	} );
 
 	test( "Test: \"PDURATION\"", function () {
@@ -13035,6 +13035,137 @@ $( function () {
 		strictEqual( oParser.calculate().getValue(), "C$2", "ADDRESS(2.123,3.3213,2)");
 
 		testArrayFormula2("ADDRESS", 2, 5);
+	} );
+
+	test( "Test: \"reference argument test\"", function () {
+		ws.getRange2( "A1" ).setValue( "1" );
+		ws.getRange2( "A2" ).setValue( "2" );
+		ws.getRange2( "A3" ).setValue( "3" );
+		ws.getRange2( "A4" ).setValue( "4" );
+		ws.getRange2( "A5" ).setValue( "5" );
+		ws.getRange2( "A6" ).setValue( "6" );
+
+		ws.getRange2( "B1" ).setValue( "2" );
+		ws.getRange2( "B2" ).setValue( "" );
+		ws.getRange2( "B3" ).setValue( "3" );
+		ws.getRange2( "B4" ).setValue( "4" );
+		ws.getRange2( "B5" ).setValue( "5" );
+		ws.getRange2( "B6" ).setValue( "6" );
+
+		oParser = new parserFormula( 'IRR(SIN(A1:B4))', 'A2', ws );
+		ok( oParser.parse(),'IRR(SIN(A1:B4))' );
+		strictEqual( oParser.calculate().getValue().toFixed(9) - 0, -0.123554096,'IRR(SIN(A1:B4))');
+
+		oParser = new parserFormula( 'MIRR(SIN(A2:B4),1,1)', 'A2', ws );
+		ok( oParser.parse(),'MIRR(SIN(A2:B4),1,1)' );
+		strictEqual( oParser.calculate().getValue().toFixed(9) - 0, 2.36894463,'MIRR(SIN(A2:B4),1,1)');
+
+		oParser = new parserFormula( 'COLUMN(INDEX(A1:B3,1,1))', 'A2', ws );
+		ok( oParser.parse(),'COLUMN(INDEX(A1:B3,1,1))' );
+		strictEqual( oParser.calculate().getValue(),1,'COLUMN(INDEX(A1:B3,1,1))');
+
+		oParser = new parserFormula( 'COLUMNS(SIN($A$1:$B$4))', 'A2', ws );
+		ok( oParser.parse(),'COLUMNS(SIN($A$1:$B$4))' );
+		strictEqual( oParser.calculate().getValue(),2,'COLUMNS(SIN($A$1:$B$4))');
+
+		oParser = new parserFormula( 'INDEX(SIN(A1:B3),1,1)', 'A2', ws );
+		ok( oParser.parse(),'INDEX(SIN(A1:B3),1,1)' );
+		strictEqual( oParser.calculate().getValue().toFixed(9) - 0,0.841470985,'INDEX(SIN(A1:B3),1,1)');
+
+		/*oParser = new parserFormula( 'OFFSET(INDEX(A1:B3,1,1),1,1)', 'A2', ws );
+		ok( oParser.parse(),'OFFSET(INDEX(A1:B3,1,1),1,1)' );
+		strictEqual( oParser.calculate().getValue(),0,'OFFSET(INDEX(A1:B3,1,1),1,1)');*/
+
+		oParser = new parserFormula( 'ROW(INDEX(A1:B3,1,1))', 'A2', ws );
+		ok( oParser.parse(),'ROW(INDEX(A1:B3,1,1))' );
+		strictEqual( oParser.calculate().getValue(),1,'ROW(INDEX(A1:B3,1,1))');
+
+		oParser = new parserFormula( 'ROWS(SIN(A1:B3))', 'A2', ws );
+		ok( oParser.parse(),'ROWS(SIN(A1:B3))' );
+		strictEqual( oParser.calculate().getValue(),3,'ROWS(SIN(A1:B3))');
+
+		oParser = new parserFormula( 'SUBTOTAL(1,INDEX(A1:B3,1,1))', 'A2', ws );
+		ok( oParser.parse(),'SUBTOTAL(1,INDEX(A1:B3,1,1))' );
+		strictEqual( oParser.calculate().getValue(),1,'SUBTOTAL(1,INDEX(A1:B3,1,1))');
+
+		oParser = new parserFormula( 'SUMIF(INDEX(A1:B3,1,1),1,INDEX(A1:B3,1,1))', 'A2', ws );
+		ok( oParser.parse(),'SUMIF(INDEX(A1:B3,1,1),1,INDEX(A1:B3,1,1))' );
+		strictEqual( oParser.calculate().getValue(),1,'SUMIF(INDEX(A1:B3,1,1),1,INDEX(A1:B3,1,1))');
+
+		oParser = new parserFormula( 'SUMIFS(INDEX(A1:B3,1,1),INDEX(A1:B3,1,1),INDEX(A1:B3,1,1))', 'A2', ws );
+		ok( oParser.parse(),'SUMIFS(INDEX(A1:B3,1,1),INDEX(A1:B3,1,1),INDEX(A1:B3,1,1))' );
+		strictEqual( oParser.calculate().getValue(),1,'SUMIFS(INDEX(A1:B3,1,1),INDEX(A1:B3,1,1),INDEX(A1:B3,1,1))');
+
+		oParser = new parserFormula( 'AVERAGEIF(INDEX(A1:B3,1,1),INDEX(A1:B3,1,1),INDEX(A1:B3,1,1))', 'A2', ws );
+		ok( oParser.parse(),'AVERAGEIF(INDEX(A1:B3,1,1),INDEX(A1:B3,1,1),INDEX(A1:B3,1,1))' );
+		strictEqual( oParser.calculate().getValue(),1,'AVERAGEIF(INDEX(A1:B3,1,1),INDEX(A1:B3,1,1),INDEX(A1:B3,1,1))');
+
+		oParser = new parserFormula( 'COUNTBLANK(INDEX(A1:B3,1,1))', 'A2', ws );
+		ok( oParser.parse(),'COUNTBLANK(INDEX(A1:B3,1,1))' );
+		strictEqual( oParser.calculate().getValue(),0,'COUNTBLANK(INDEX(A1:B3,1,1))');
+
+		oParser = new parserFormula( 'COUNTIF(INDEX(A1:B3,1,1),INDEX(A1:B3,1,1))', 'A2', ws );
+		ok( oParser.parse(),'COUNTIF(INDEX(A1:B3,1,1),INDEX(A1:B3,1,1))' );
+		strictEqual( oParser.calculate().getValue(),1,'COUNTIF(INDEX(A1:B3,1,1),INDEX(A1:B3,1,1))');
+
+		oParser = new parserFormula( 'COUNTIFS(INDEX(A1:B3,1,1),INDEX(A1:B3,1,1))', 'A2', ws );
+		ok( oParser.parse(),'COUNTIFS(INDEX(A1:B3,1,1),INDEX(A1:B3,1,1))' );
+		strictEqual( oParser.calculate().getValue(),1,'COUNTIFS(INDEX(A1:B3,1,1),INDEX(A1:B3,1,1))');
+
+		ws.getRange2( "A2" ).setValue( "qq" );
+		ws.getRange2( "A3" ).setValue( "ww" );
+		ws.getRange2( "A4" ).setValue( "ee" );
+		ws.getRange2( "A5" ).setValue( "qq" );
+		ws.getRange2( "A6" ).setValue( "qq" );
+		ws.getRange2( "A7" ).setValue( "ww" );
+		ws.getRange2( "A8" ).setValue( "ww" );
+		ws.getRange2( "A9" ).setValue( "ww" );
+		ws.getRange2( "A10" ).setValue( "eee" );
+
+		ws.getRange2( "B1" ).setValue( "qqqq" );
+		ws.getRange2( "B2" ).setValue( "ee" );
+
+		var _f = 'IFERROR(INDEX($A$2:$A$10,MATCH(0,INDEX(COUNTIF($B$1:B1,$A$2:$A$10)+(COUNTIF($A$2:$A$10,$A$2:$A$10)<>1),0,0),0)),"")';
+		oParser = new parserFormula( _f, 'A2', ws );
+		ok( oParser.parse(), _f );
+		strictEqual( oParser.calculate().getValue().getValue(),"ee",_f);
+
+		_f = 'IFERROR(INDEX($A$2:$A$10,MATCH(0,INDEX(COUNTIF($B$1:B2,$A$2:$A$10)+(COUNTIF($A$2:$A$10,$A$2:$A$10)<>1),0,0),0)),"")';
+		oParser = new parserFormula( _f, 'A2', ws );
+		ok( oParser.parse(), _f );
+		strictEqual( oParser.calculate().getValue().getValue(),"eee",_f);
+
+		_f = 'INDEX($A$2:$A$10,MATCH(0,INDEX(COUNTIF($B$1:B1,$A$2:$A$10)+(COUNTIF($A$2:$A$10,$A$2:$A$10)<>1),0,0),0))';
+		oParser = new parserFormula( _f, 'A2', ws );
+		ok( oParser.parse(), _f );
+		strictEqual( oParser.calculate().getValue().getValue(),"ee",_f);
+
+		_f = 'MATCH(0,INDEX({1;1;0;1;1;1;1;1;0},0,0))';
+		oParser = new parserFormula( _f, 'A2', ws );
+		ok( oParser.parse(), _f );
+		strictEqual( oParser.calculate().getValue(),"#N/A",_f);
+
+		_f = 'INDEX($A$2:$A$10,MATCH(0,INDEX({1;1;0;1;1;1;1;1;0},0,0),0))';
+		oParser = new parserFormula( _f, 'A2', ws );
+		ok( oParser.parse(), _f );
+		strictEqual( oParser.calculate().getValue().getValue(),"ee",_f);
+
+		_f = 'INDEX($A$2:$A$10,3)';
+		oParser = new parserFormula( _f, 'A2', ws );
+		ok( oParser.parse(), _f );
+		strictEqual( oParser.calculate().getValue().getValue(),"ee",_f);
+
+		_f = 'INDEX($A$2:$A$10,MATCH(0,{1;1;0;1;1;1;1;1;0},0))';
+		oParser = new parserFormula( _f, 'A2', ws );
+		ok( oParser.parse(), _f );
+		strictEqual( oParser.calculate().getValue().getValue(),"ee",_f);
+
+		_f = 'MATCH(0,INDEX(COUNTIF($B$1:B1,$A$2:$A$10)+(COUNTIF($A$2:$A$10,$A$2:$A$10)<>1),0,0),0)';
+		oParser = new parserFormula( _f, 'A2', ws );
+		ok( oParser.parse(), _f );
+		strictEqual( oParser.calculate().getValue(),3,_f);
+
+
 	} );
 
 	wb.dependencyFormulas.unlockRecal();
