@@ -1318,7 +1318,7 @@
 
 	var c_oAscDocumentUploadProp = {
 		MaxFileSize:      104857600, //100 mb
-		SupportedFormats: ["docx", "doc", "docm", "dot", "dotm", "dotx", "epub", "fodt", "odt", "ott", "rtf"]
+		SupportedFormats: ["docx", "doc", "docm", "dot", "dotm", "dotx", "epub", "fodt", "odt", "ott", "rtf", "wps"]
 	};
 
 	/**
