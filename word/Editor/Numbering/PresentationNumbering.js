@@ -127,7 +127,7 @@ CPresentationBullet.prototype.Get_StartAt = function()
 {
 	return this.m_nStartAt;
 };
-CPresentationBullet.prototype.Measure = function(Context, FirstTextPr, _Num, Theme, ColorMap)
+CPresentationBullet.prototype.Measure = function(Context, FirstTextPr, Num, Theme, ColorMap)
 {
 	var sT = "";
 
@@ -190,6 +190,7 @@ CPresentationBullet.prototype.Measure = function(Context, FirstTextPr, _Num, The
 		}
 	}
 	this.m_sString = sT;
+	this.m_nNum = Num;
 	if(sT.length === 0)
 	{
 		return { Width : 0 };
@@ -259,8 +260,6 @@ CPresentationBullet.prototype.Measure = function(Context, FirstTextPr, _Num, The
 	FirstTextPr_.Merge(TextPr_);
 	this.m_oTextPr = FirstTextPr_;
 
-	var Num = _Num;
-	this.m_nNum = Num;
 
 	var X = 0;
 	var OldTextPr = Context.GetTextPr();
