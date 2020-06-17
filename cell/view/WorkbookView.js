@@ -1724,7 +1724,7 @@
   WorkbookView.prototype.getSlicerStyles = function() {
       return AscCommonExcel.generateSlicerStyles(36, 49, this);
   };
-  
+
   WorkbookView.prototype.getWorksheetById = function(id, onlyExist) {
     var wsModel = this.model.getWorksheetById(id);
     if (wsModel) {
@@ -2281,7 +2281,7 @@
     WorkbookView.prototype.canEnterWizardRange = function (char) {
         return this.getCellEditMode() && this.cellEditor.checkSymbolBeforeRange(char);
     };
-	
+
 	WorkbookView.prototype.insertArgumentsInFormula = function (args, argNum, argType, name) {
 		if (this.getCellEditMode()) {
 			var sArguments = args.join(AscCommon.FormulaSeparators.functionArgumentSeparator);
@@ -3475,14 +3475,17 @@
 		    var oWSView = oThis.getWorksheet();
 			if (!success) {
                 oWSView.handlers.trigger("selectionChanged");
+                //Transaction was started in applyDrawingProps in order to prevent save between applyDrawingProps and asc_setSlicers
+                History.EndTransaction();
 				return;
 			}
-
-			History.StartTransaction();
+            History.StartTransaction();
 			for (var i = 0; i < slicers.length; i++) {
 				slicers[i].slicer.set(obj);
 			}
-			History.EndTransaction();
+            History.EndTransaction();
+            //Transaction was started in applyDrawingProps in order to prevent save between applyDrawingProps and asc_setSlicers
+            History.EndTransaction();
             oWSView.handlers.trigger("selectionChanged");
 		};
 

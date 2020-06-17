@@ -2367,7 +2367,7 @@ DrawingObjectsController.prototype =
     },
 
     getSelectionImage: function() {
-      
+
         var oController2 = this.selection.groupSelection ? this.selection.groupSelection : this;
         var oRet, oPos;
         if (oController2.selectedObjects.length === 0) {
@@ -3904,7 +3904,7 @@ DrawingObjectsController.prototype =
                             oSlicer.spPr.xfrm.setExtY(props.Height);
                             bChanged = true;
                         }
-                        bCheckConnectors |= bChanged; 
+                        bCheckConnectors |= bChanged;
                         if(bChanged)
                         {
                             if(oSlicer.group)
@@ -3918,7 +3918,6 @@ DrawingObjectsController.prototype =
                 }
             }
             oAPI.asc_setSlicers(aSlicerNames, props.SlicerProperties);
-            History.EndTransaction();
         }
         var oApi = editor || Asc['editor'];
         var editorId = oApi.getEditorId();
@@ -4127,7 +4126,7 @@ DrawingObjectsController.prototype =
                     {
                         objects_by_type.charts[i].spPr.xfrm.setOffY(props.Position.Y);
                     }
-                    
+
                     if(objects_by_type.charts[i].group)
                     {
                         checkObjectInArray(aGroups, objects_by_type.charts[i].group.getMainGroup());
@@ -4147,7 +4146,7 @@ DrawingObjectsController.prototype =
                     {
                         oSlicer.spPr.xfrm.setOffY(props.Position.Y);
                     }
-                    
+
                     if(oSlicer.group)
                     {
                         checkObjectInArray(aGroups, oSlicer.group.getMainGroup());
@@ -7127,7 +7126,7 @@ DrawingObjectsController.prototype =
     getEventListeners: function() {
         return this.eventListeners;
     },
-    
+
     onKeyUp: function(e)
     {
        var aListeners = this.getEventListeners();
@@ -7135,7 +7134,7 @@ DrawingObjectsController.prototype =
            aListeners[nObject].onKeyUp(e);
         }
     },
-    
+
     onKeyDown: function(e)
     {
         var ctrlKey = e.metaKey || e.ctrlKey;
@@ -7405,7 +7404,7 @@ DrawingObjectsController.prototype =
                 bRetValue = true;
             }
         }
-        else if ( e.keyCode == 67) // C 
+        else if ( e.keyCode == 67) // C
         {
             if(e.altKey)
             {
@@ -9084,7 +9083,7 @@ DrawingObjectsController.prototype =
                     else
                     {
                         if(slicer_props.slicerProps != null)
-                        {   
+                        {
                             if(!new_slicer_props.slicerProps)
                             {
                                 slicer_props.slicerProps = null;
@@ -9098,7 +9097,7 @@ DrawingObjectsController.prototype =
                             slicer_props.w = null;
                         if(slicer_props.h != null && slicer_props.h !== new_slicer_props.h)
                             slicer_props.h = null;
-                        
+
                         if(slicer_props.x != null && slicer_props.x !== new_slicer_props.x)
                             slicer_props.x = null;
                         if(slicer_props.y != null && slicer_props.y !== new_slicer_props.y)
@@ -10745,13 +10744,13 @@ DrawingObjectsController.prototype =
         }
         this.drawingObjects.showDrawingObjects();
     },
-    
+
     addEventListener: function (drawing) {
         if(!this.isEventListener(drawing)) {
             this.eventListeners.push(drawing);
         }
     },
-    
+
     removeEventListener: function (drawing) {
         for(var i = 0; i < this.eventListeners.length; ++i) {
             if(this.eventListeners[i] === drawing) {
