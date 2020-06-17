@@ -418,6 +418,38 @@
 		return this;
 	};
 	/**
+	 * Add a hyperlink to a range. 
+	 * @param {string} sLink - link to be add.
+	 * @param {string} sScreenTipText - ScreenTip text
+	 * @typeofeditors ["CDE"]
+	 * @return {bool} 
+	 */
+	ApiRange.prototype.AddHyperlink = function(sLink, sScreenTipText)
+	{
+		if (typeof(sLink) !== "string" || sLink === "")
+			return false;
+		if (typeof(sScreenTipText) !== "string")
+			sScreenTipText = "";
+
+		var Document	= editor.private_GetLogicDocument();
+		var hyperlinkPr	= new Asc.CHyperlinkProperty()
+		var urlType		= AscCommon.getUrlType(sLink);
+
+		if (!/(((^https?)|(^ftp)):\/\/)|(^mailto:)/i.test(sLink))
+			sLink = (urlType === 0) ? null :(( (urlType === 2) ? 'mailto:' : 'http://' ) + sLink);
+
+		sLink = sLink.replace(new RegExp("%20",'g')," ");
+		hyperlinkPr.put_Value(sLink);
+		hyperlinkPr.put_ToolTip(sScreenTipText);
+		hyperlinkPr.put_Bookmark(null);
+
+		this.SetSelection();
+		Document.AddHyperlink(hyperlinkPr);
+		Document.RemoveSelection();
+
+		return true;
+	};
+	/**
 	 * Get text in the specified range
 	 * @return {String}
 	 */	
@@ -3993,6 +4025,38 @@
 		}
 	};
 	/**
+	 * Add a hyperlink to a paragraph. 
+	 * @param {string} sLink - link to be add.
+	 * @param {string} sScreenTipText - ScreenTip text
+	 * @typeofeditors ["CDE"]
+	 * @return {bool} 
+	 */
+	ApiParagraph.prototype.AddHyperlink = function(sLink, sScreenTipText)
+	{
+		if (typeof(sLink) !== "string" || sLink === "")
+			return false;
+		if (typeof(sScreenTipText) !== "string")
+			sScreenTipText = "";
+
+		var Document	= editor.private_GetLogicDocument();
+		var hyperlinkPr	= new Asc.CHyperlinkProperty()
+		var urlType		= AscCommon.getUrlType(sLink);
+
+		if (!/(((^https?)|(^ftp)):\/\/)|(^mailto:)/i.test(sLink))
+			sLink = (urlType === 0) ? null :(( (urlType === 2) ? 'mailto:' : 'http://' ) + sLink);
+
+		sLink = sLink.replace(new RegExp("%20",'g')," ");
+		hyperlinkPr.put_Value(sLink);
+		hyperlinkPr.put_ToolTip(sScreenTipText);
+		hyperlinkPr.put_Bookmark(null);
+
+		this.SetSelection();
+		Document.AddHyperlink(hyperlinkPr);
+		Document.RemoveSelection();
+
+		return true;
+	};
+	/**
 	 * Returns a Range object that represents the part of the document contained in the specified paragraph.
 	 * @typeofeditors ["CDE"]
 	 * @param {Number} Start - start character in current element
@@ -4865,6 +4929,82 @@
 			return;
 
 		this.Run.Add_ToContent(this.Run.Content.length, oDrawing.Drawing);
+	};
+	/**
+	 * Select a run.
+	 * @typeofeditors ["CDE"]
+	 * @return {bool} 
+	 */
+	ApiRun.prototype.SetSelection = function()
+	{
+		var Document = private_GetLogicDocument();
+
+		var StartPos	= this.Run.GetDocumentPositionFromObject();
+		var EndPos		= this.Run.GetDocumentPositionFromObject();
+
+		StartPos.push({Class: this, Position: 0});
+		EndPos.push({Class: this, Position: this.Run.Content.length});
+
+		if (StartPos[0].Position === - 1)
+			return false;
+
+		StartPos[0].Class.SetSelectionByContentPositions(StartPos, EndPos);
+
+		var controllerType = null;
+
+		if (StartPos[0].Class.IsHdrFtr())
+		{
+			controllerType = docpostype_HdrFtr;
+		}
+		else if (StartPos[0].Class.IsFootnote())
+		{
+			controllerType = docpostype_Footnotes;
+		}
+		else if (StartPos[0].Class.Is_DrawingShape())
+		{
+			controllerType = docpostype_DrawingObjects;
+		}
+		else 
+		{
+			controllerType = docpostype_Content;
+		}
+
+		Document.SetDocPosType(controllerType);
+		Document.UpdateSelection();
+
+		return true;	
+	};
+	/**
+	 * Add a hyperlink to a run. 
+	 * @param {string} sLink - link to be add.
+	 * @param {string} sScreenTipText - ScreenTip text
+	 * @typeofeditors ["CDE"]
+	 * @return {bool} 
+	 */
+	ApiRun.prototype.AddHyperlink = function(sLink, sScreenTipText)
+	{
+		if (typeof(sLink) !== "string" || sLink === "")
+			return false;
+		if (typeof(sScreenTipText) !== "string")
+			sScreenTipText = "";
+
+		var Document	= editor.private_GetLogicDocument();
+		var hyperlinkPr	= new Asc.CHyperlinkProperty()
+		var urlType		= AscCommon.getUrlType(sLink);
+
+		if (!/(((^https?)|(^ftp)):\/\/)|(^mailto:)/i.test(sLink))
+			sLink = (urlType === 0) ? null :(( (urlType === 2) ? 'mailto:' : 'http://' ) + sLink);
+
+		sLink = sLink.replace(new RegExp("%20",'g')," ");
+		hyperlinkPr.put_Value(sLink);
+		hyperlinkPr.put_ToolTip(sScreenTipText);
+		hyperlinkPr.put_Bookmark(null);
+
+		this.SetSelection();
+		Document.AddHyperlink(hyperlinkPr);
+		Document.RemoveSelection();
+
+		return true;
 	};
 	/**
 	 * Create a copy of the run.
@@ -5759,6 +5899,28 @@
 		}
 
 		return this;
+	};
+	/**
+	 * Add a paragraph or a table or a blockLvl content control using its position in the cell.
+	 * @typeofeditors ["CDE", "CSE", "CPE"]
+	 * @param {number} nPos - The position where the current element will be added.
+	 * @param {DocumentElement} oElement - The document element which will be added at the current position.
+	 */
+	ApiTable.prototype.AddElement = function(oCell, nPos, oElement)
+	{
+		if (!(oCell instanceof ApiTableCell) || this.Table !== oCell.Cell.Row.Table)
+			return false;
+
+		var apiCellContent = oCell.GetContent();
+
+		if (oElement instanceof ApiParagraph || oElement instanceof ApiTable || oElement instanceof ApiBlockLvlSdt)
+		{
+			apiCellContent.Document.Internal_Content_Add(nPos, oElement.private_GetImpl());
+
+			return true;
+		}
+
+		return false;
 	};
 	/**
 	 * Remove the table row with a specified cell.
@@ -10139,6 +10301,44 @@
 
 		return Range;
 	};
+	/**
+	 * Searches for the scope of a content control object. The search results are a collection of ApiRange objects.
+	 * @param {string} sText 
+	 * @param {bool} isMatchCase - is case sensitive. 
+	 * @typeofeditors ["CDE"]
+	 * @return {Array}  
+	 */
+	ApiBlockLvlSdt.prototype.Search = function(sText, isMatchCase)
+	{
+		if (isMatchCase === undefined)
+			isMatchCase	= false;
+
+		var arrApiRanges	= [];
+		var allParagraphs	= [];
+		this.Sdt.GetAllParagraphs({All : true}, allParagraphs);
+
+		for (var para in allParagraphs)
+		{
+			var oParagraph			= new ApiParagraph(allParagraphs[para]);
+			var arrOfParaApiRanges	= oParagraph.Search(sText, isMatchCase);
+
+			for (var itemRange = 0; itemRange < arrOfParaApiRanges.length; itemRange++)	
+				arrApiRanges.push(arrOfParaApiRanges[itemRange]);
+		}
+
+		return arrApiRanges;
+	};
+	/**
+	 * Select a content control.
+	 * @typeofeditors ["CDE"]
+	 */
+	ApiBlockLvlSdt.prototype.SetSelection = function()
+	{
+		var Document = private_GetLogicDocument();
+
+		this.Sdt.SelectContentControl();
+		Document.UpdateSelection();
+	};
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// Export
@@ -10181,6 +10381,7 @@
 	ApiRange.prototype["GetParagraph"]               = ApiRange.prototype.GetParagraph;
 	ApiRange.prototype["AddText"]                    = ApiRange.prototype.AddText;
 	ApiRange.prototype["AddBookmark"]                = ApiRange.prototype.AddBookmark;
+	ApiRange.prototype["AddHyperlink"]               = ApiRange.prototype.AddHyperlink;
 	ApiRange.prototype["GetText"]                    = ApiRange.prototype.GetText;
 	ApiRange.prototype["GetAllParagraphs"]           = ApiRange.prototype.GetAllParagraphs;
 	ApiRange.prototype["SetSelection"]               = ApiRange.prototype.SetSelection;
@@ -10264,6 +10465,7 @@
 	ApiParagraph.prototype["AddInlineLvlSdt"]        = ApiParagraph.prototype.AddInlineLvlSdt;
 	ApiParagraph.prototype["Copy"]                   = ApiParagraph.prototype.Copy;
 	ApiParagraph.prototype["AddComment"]             = ApiParagraph.prototype.AddComment;
+	ApiParagraph.prototype["AddHyperlink"]           = ApiParagraph.prototype.AddHyperlink;
 	ApiParagraph.prototype["GetRange"]               = ApiParagraph.prototype.GetRange;
 	ApiParagraph.prototype["Push"]                   = ApiParagraph.prototype.Push;
 	ApiParagraph.prototype["GetLastRunWithText"]     = ApiParagraph.prototype.GetLastRunWithText;
@@ -10308,6 +10510,8 @@
 	ApiRun.prototype["AddColumnBreak"]               = ApiRun.prototype.AddColumnBreak;
 	ApiRun.prototype["AddTabStop"]                   = ApiRun.prototype.AddTabStop;
 	ApiRun.prototype["AddDrawing"]                   = ApiRun.prototype.AddDrawing;
+	ApiRun.prototype["SetSelection"]                 = ApiRun.prototype.SetSelection;
+	ApiRun.prototype["AddHyperlink"]                 = ApiRun.prototype.AddHyperlink;
 	ApiRun.prototype["Copy"]                         = ApiRun.prototype.Copy;
 	ApiRun.prototype["RemoveAllElements"]            = ApiRun.prototype.RemoveAllElements;
 	ApiRun.prototype["Delete"]                       = ApiRun.prototype.Delete;
@@ -10362,7 +10566,10 @@
 	ApiTable.prototype["SetStyle"]                   = ApiTable.prototype.SetStyle;
 	ApiTable.prototype["SetTableLook"]               = ApiTable.prototype.SetTableLook;
 	ApiTable.prototype["AddRow"]                     = ApiTable.prototype.AddRow;
+	ApiTable.prototype["AddRows"]                    = ApiTable.prototype.AddRows;
 	ApiTable.prototype["AddColumn"]                  = ApiTable.prototype.AddColumn;
+	ApiTable.prototype["AddColumns"]                 = ApiTable.prototype.AddColumns;
+	ApiTable.prototype["AddElement"]                 = ApiTable.prototype.AddElement;
 	ApiTable.prototype["RemoveRow"]                  = ApiTable.prototype.RemoveRow;
 	ApiTable.prototype["RemoveColumn"]               = ApiTable.prototype.RemoveColumn;
 	ApiTable.prototype["Copy"]                       = ApiTable.prototype.Copy;
@@ -10664,6 +10871,8 @@
 	ApiBlockLvlSdt.prototype["Push"]                    = ApiBlockLvlSdt.prototype.Push;
 	ApiBlockLvlSdt.prototype["AddElement"]              = ApiBlockLvlSdt.prototype.AddElement;
 	ApiBlockLvlSdt.prototype["GetRange"]                = ApiBlockLvlSdt.prototype.GetRange;
+	ApiBlockLvlSdt.prototype["Search"]                  = ApiBlockLvlSdt.prototype.Search;
+	ApiBlockLvlSdt.prototype["SetSelection"]            = ApiBlockLvlSdt.prototype.SetSelection;
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// Private area
