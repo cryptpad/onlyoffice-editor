@@ -47,7 +47,7 @@
     var BOTTOM_PADDING = LEFT_PADDING;
     var TOP_PADDING = LEFT_PADDING / 2;
     var SPACE_BETWEEN = LEFT_PADDING * 14 / 37;
-    var HEADER_BUTTON_WIDTH = RIGHT_PADDING * 175 / 73;
+    var HEADER_BUTTON_WIDTH = 20 * AscCommon.g_dKoef_pix_to_mm;
     var HEADER_TOP_PADDING = LEFT_PADDING / 4;
     var HEADER_BOTTOM_PADDING = HEADER_TOP_PADDING;
     var HEADER_LEFT_PADDING = LEFT_PADDING;
@@ -1917,6 +1917,8 @@
         if(null !== sIcon) {
             graphics.SaveGrState();
             graphics.transform3(this.transform);
+
+            graphics.SetIntegerGrid(true);
             graphics.drawImage(sIcon, 0, 0, this.extX, this.extY, 255, null, null);
             graphics.RestoreGrState();
         }
