@@ -4119,6 +4119,7 @@ CParagraphContentWithParagraphLikeContent.prototype.AddContentControl = function
 			}
 
 			var oContentControl = new CInlineLevelSdt();
+			oContentControl.SetPlaceholder(c_oAscDefaultPlaceholderName.Text);
 			oContentControl.SetDefaultTextPr(this.GetDirectTextPr());
 
 			var oNewRun = this.Content[nEndPos].Split_Run(Math.max(this.Content[nEndPos].Selection.StartPos, this.Content[nEndPos].Selection.EndPos));
@@ -4148,6 +4149,8 @@ CParagraphContentWithParagraphLikeContent.prototype.AddContentControl = function
 	{
 		var oContentControl = new CInlineLevelSdt();
 		oContentControl.SetDefaultTextPr(this.GetDirectTextPr());
+		oContentControl.SetPlaceholder(c_oAscDefaultPlaceholderName.Text);
+		oContentControl.ReplaceContentWithPlaceHolder(false);
 		this.Add(oContentControl);
 		return oContentControl;
 	}

@@ -14123,6 +14123,7 @@ Paragraph.prototype.AddContentControl = function(nContentControlType)
 			}
 
 			var oContentControl = new CInlineLevelSdt();
+			oContentControl.SetPlaceholder(c_oAscDefaultPlaceholderName.Text);
 			oContentControl.SetDefaultTextPr(this.GetDirectTextPr());
 
 			if (nEndPos < nStartPos)
@@ -14164,6 +14165,8 @@ Paragraph.prototype.AddContentControl = function(nContentControlType)
 	{
 		var oContentControl = new CInlineLevelSdt();
 		oContentControl.SetDefaultTextPr(this.GetDirectTextPr());
+		oContentControl.SetPlaceholder(c_oAscDefaultPlaceholderName.Text);
+		oContentControl.ReplaceContentWithPlaceHolder(false);
 		this.Add(oContentControl);
 
 		var oContentControlPos = this.Get_PosByElement(oContentControl);

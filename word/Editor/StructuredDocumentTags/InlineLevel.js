@@ -55,10 +55,6 @@ function CInlineLevelSdt()
 	this.BoundsPaths          = null;
 	this.BoundsPathsStartPage = -1;
 
-	this.Pr.Placeholder   = c_oAscDefaultPlaceholderName.Text;
-	this.Pr.ShowingPlcHdr = true;
-	this.private_FillPlaceholderContent();
-
 	// Добавляем данный класс в таблицу Id (обязательно в конце конструктора)
 	g_oTableId.Add(this, this.Id);
 

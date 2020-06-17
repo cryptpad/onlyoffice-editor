@@ -56,10 +56,6 @@ function CBlockLevelSdt(oLogicDocument, oParent)
 	this.Pr            = new CSdtPr();
 	this.Lock          = new AscCommon.CLock();
 
-	this.Pr.Placeholder   = c_oAscDefaultPlaceholderName.Text;
-	this.Pr.ShowingPlcHdr = true;
-	this.private_FillPlaceholderContent();
-
 	// Добавляем данный класс в таблицу Id (обязательно в конце конструктора)
 	g_oTableId.Add(this, this.Id);
 
@@ -1578,14 +1574,16 @@ CBlockLevelSdt.prototype.private_ReplacePlaceHolderWithContent = function()
 	if (this.IsContentControlTemporary())
 		this.RemoveContentControlWrapper();
 };
-CBlockLevelSdt.prototype.private_ReplaceContentWithPlaceHolder = function()
+CBlockLevelSdt.prototype.private_ReplaceContentWithPlaceHolder = function(isSelect)
 {
 	if (this.IsPlaceHolder())
 		return;
 
 	this.SetShowingPlcHdr(true);
 	this.private_FillPlaceholderContent();
-	this.SelectContentControl();
+
+	if (false !== isSelect)
+		this.SelectContentControl();
 };
 CBlockLevelSdt.prototype.private_FillPlaceholderContent = function()
 {
@@ -1661,6 +1659,10 @@ CBlockLevelSdt.prototype.GetAllFields = function(isUseSelection, arrFields)
 CBlockLevelSdt.prototype.ReplacePlaceHolderWithContent = function()
 {
 	return this.private_ReplacePlaceHolderWithContent();
+};
+CBlockLevelSdt.prototype.ReplaceContentWithPlaceHolder = function(isSelect)
+{
+	return this.private_ReplaceContentWithPlaceHolder(isSelect);
 };
 CBlockLevelSdt.prototype.CheckRunContent = function(fCheck)
 {
