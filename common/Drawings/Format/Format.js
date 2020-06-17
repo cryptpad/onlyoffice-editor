@@ -10377,25 +10377,15 @@ function CompareBullets(bullet1, bullet2)
     }
 }
 
-function CBullet()
-{
-    this.bulletColor = null;
-    this.bulletSize = null;
-    this.bulletTypeface = null;
-    this.bulletType = null;
-    this.Bullet = null;
-}
-
-CBullet.prototype =
-{
-    Get_Id: function()
+    function CBullet()
     {
-        return this.Id;
-    },
-    Refresh_RecalcData: function()
-    {},
-
-    Set_FromObject: function(obj)
+        this.bulletColor = null;
+        this.bulletSize = null;
+        this.bulletTypeface = null;
+        this.bulletType = null;
+        this.Bullet = null;
+    }
+    CBullet.prototype.Set_FromObject = function(obj)
     {
         if(obj)
         {
@@ -10423,9 +10413,8 @@ CBullet.prototype =
             else
                 this.bulletTypeface = null;
         }
-    },
-
-    createDuplicate: function()
+    };
+    CBullet.prototype.createDuplicate = function()
     {
         var duplicate = new CBullet();
         if(this.bulletColor)
@@ -10448,26 +10437,22 @@ CBullet.prototype =
 
         duplicate.Bullet = this.Bullet;
         return duplicate;
-    },
-
-    isBullet: function()
+    };
+    CBullet.prototype.isBullet = function()
     {
         return this.bulletType != null && this.bulletType.type != null;
-    },
-
-    getPresentationBullet: function(theme, color)
+    };
+    CBullet.prototype.getPresentationBullet = function(theme, color)
     {
         var para_pr = new CParaPr();
         para_pr.Bullet = this;
         return para_pr.Get_PresentationBullet(theme, color);
-    },
-
-    getBulletType: function(theme, color)
+    };
+    CBullet.prototype.getBulletType = function(theme, color)
     {
         return this.getPresentationBullet(theme, color).m_nType;
-    },
-
-    Write_ToBinary: function(w)
+    };
+    CBullet.prototype.Write_ToBinary = function(w)
     {
         w.WriteBool(isRealObject(this.bulletColor));
         if(isRealObject(this.bulletColor))
@@ -10495,9 +10480,8 @@ CBullet.prototype =
             this.bulletType.Write_ToBinary(w);
         }
 
-    },
-
-    Read_FromBinary: function(r)
+    };
+    CBullet.prototype.Read_FromBinary = function(r)
     {
         if(r.GetBool())
         {
@@ -10522,15 +10506,12 @@ CBullet.prototype =
             this.bulletType = new CBulletType();
             this.bulletType.Read_FromBinary(r);
         }
-    },
-
-    Get_AllFontNames: function(AllFonts){
+    };
+    CBullet.prototype.Get_AllFontNames = function(AllFonts){
         if(this.bulletTypeface && typeof this.bulletTypeface.typeface === "string" && this.bulletTypeface.typeface.length > 0){
             AllFonts[this.bulletTypeface.typeface] = true;
         }
-    }
-
-};
+    };
 
 function CBulletColor()
 {

@@ -1920,6 +1920,7 @@
 			this.ListType = (undefined != obj.ListType) ? obj.ListType : undefined;
 			this.OutlineLvl = (undefined != obj.OutlineLvl) ? obj.OutlineLvl : undefined;
 			this.OutlineLvlStyle = (undefined != obj.OutlineLvlStyle) ? obj.OutlineLvlStyle : false;
+			this.Bullet = obj.Bullet;
 			this.BulletSize = undefined;
 			this.BulletColor = undefined;
 			this.NumStartAt = undefined;
@@ -1961,7 +1962,7 @@
 						this.BulletColor = CreateAscColor(oBullet.bulletColor.UniColor);
 					}
 				}
-				else 
+				else
 				{
 					if(FirstTextPr && FirstTextPr.Unifill)
 					{
@@ -2063,6 +2064,7 @@
 			this.ListType = undefined;
 			this.OutlineLvl = undefined;
 			this.OutlineLvlStyle = false;
+			this.Bullet = undefined;
 			this.BulletSize = undefined;
 			this.BulletColor = undefined;
 			this.NumStartAt = undefined;
@@ -2178,6 +2180,10 @@
 			this.OutlineLvl = nLvl;
 		}, asc_getOutlineLvlStyle: function() {
 			return this.OutlineLvlStyle;
+		}, asc_putBullet: function(val) {
+			this.Bullet = val;
+		}, asc_getBullet: function() {
+			return this.Bullet;
 		}, asc_putBulletSize: function(size) {
 			this.BulletSize = size;
 		}, asc_getBulletSize: function() {
@@ -5046,6 +5052,8 @@
 	prot["get_OutlineLvl"] = prot["asc_getOutlineLvl"] = prot.asc_getOutlineLvl;
 	prot["put_OutlineLvl"] = prot["asc_putOutLineLvl"] = prot.asc_putOutLineLvl;
 	prot["get_OutlineLvlStyle"] = prot["asc_getOutlineLvlStyle"] = prot.asc_getOutlineLvlStyle;
+	prot["put_Bullet"] = prot["asc_putBullet"] = prot.asc_putBullet;
+	prot["get_Bullet"] = prot["asc_getBullet"] = prot.asc_getBullet;
 	prot["put_BulletSize"] = prot["asc_putBulletSize"] = prot.asc_putBulletSize;
 	prot["get_BulletSize"] = prot["asc_getBulletSize"] = prot.asc_getBulletSize;
 	prot["put_BulletColor"] = prot["asc_putBulletColor"] = prot.asc_putBulletColor;
