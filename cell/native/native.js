@@ -6535,6 +6535,16 @@ window["native"]["offline_apply_event"] = function(type,params) {
             }
             break;
         }
+
+        case 2416: // ASC_MENU_EVENT_TYPE_GET_COLOR_SCHEME
+        {
+            var index = _api.asc_GetCurrentColorSchemeIndex();
+            var stream = global_memory_stream_menu;
+            stream["ClearNoAttack"]();
+            stream["WriteLong"](index);
+            _return = stream;
+            break;
+        }
             
         case 3000: // ASC_SPREADSHEETS_EVENT_TYPE_FILTER_ADD_AUTO
         {

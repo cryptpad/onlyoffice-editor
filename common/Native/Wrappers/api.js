@@ -2330,6 +2330,15 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             break;
         }
 
+        case 2416: // ASC_MENU_EVENT_TYPE_GET_COLOR_SCHEME
+        {
+            var index = _api.asc_GetCurrentColorSchemeIndex();
+            var stream = global_memory_stream_menu;
+            stream["ClearNoAttack"]();
+            stream["WriteLong"](index);
+            _return = stream;
+            break;
+        }
 
         case 10000: // ASC_SOCKET_EVENT_TYPE_OPEN
         {
