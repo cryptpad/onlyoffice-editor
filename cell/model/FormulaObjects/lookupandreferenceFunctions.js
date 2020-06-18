@@ -370,7 +370,17 @@ function (window, undefined) {
 			if ("" === formula) {
 				return new cError(cErrorType.not_available);
 			} else {
-				res = new cString("=" + formula);
+				var isArray;
+				var ws = arg0.getWS();
+				if (ws && bbox.bbox) {
+					var firstRange = ws.getCell3(bbox.bbox.r1, bbox.bbox.c1);
+					firstRange._foreachNoEmpty(function (cell) {
+						if (cell && cell.formulaParsed && cell.formulaParsed.ref) {
+							isArray = true;
+						}
+					});
+				}
+				res = new cString(isArray ? "{" + "=" + formula + "}" : "=" + formula);
 			}
 		}
 
