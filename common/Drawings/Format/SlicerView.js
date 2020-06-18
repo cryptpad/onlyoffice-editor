@@ -51,7 +51,7 @@
     var HEADER_TOP_PADDING = LEFT_PADDING / 4;
     var HEADER_BOTTOM_PADDING = HEADER_TOP_PADDING;
     var HEADER_LEFT_PADDING = LEFT_PADDING;
-    var HEADER_RIGHT_PADDING = 2*RIGHT_PADDING + 2*HEADER_BUTTON_WIDTH;
+    var HEADER_RIGHT_PADDING = HEADER_TOP_PADDING + RIGHT_PADDING + 2*HEADER_BUTTON_WIDTH;
     var SCROLL_WIDTH = 15 * 25.4 / 96;
     var SCROLLER_WIDTH = 13 * 25.4 / 96;
 
@@ -130,22 +130,6 @@
         return [ICON_MULTISELECT, ICON_MULTISELECT_INVERTED, ICON_CLEAR_FILTER, ICON_CLEAR_FILTER_DISABLED];
     }
 
-    function CreateButtonHoverGradient() {
-        var oFill = new AscCommonExcel.Fill(), oGF, oGS;
-        oGF = new AscCommonExcel.GradientFill();
-        oGS = new AscCommonExcel.GradientStop();
-        oGS.position = 0;
-        oGS.color = AscCommonExcel.createRgbColor(248, 225, 98);
-        oGF.stop.push(oGS);
-        oGS = new AscCommonExcel.GradientStop();
-        oGS.color = AscCommonExcel.createRgbColor(252, 247, 224);
-        oGS.position = 1;
-        oGF.stop.push(oGS);
-        oGF.degree = 90;
-        oFill.gradientFill = oGF;
-        return oFill;
-    }
-
     function getGraphicsScale(graphics) {
         var vector_koef;
         if(graphics.m_oCoordTransform) {
@@ -177,13 +161,6 @@
             nW = 1;
         }
         var vector_koef;
-        //if(nW === 0 || nW === 1) {
-        //    dW = 0;
-        //}
-        //else {
-        //    vector_koef = getGraphicsScale(graphics);
-        //    dW = nW * vector_koef;
-        //}
         vector_koef = getGraphicsScale(graphics);
         dW = nW * vector_koef;
         if(!oLastBorderPr || oBorderPr.s !== oLastBorderPr.s) {
@@ -1253,7 +1230,7 @@
         oButton.setTransformParams(x, y, HEADER_BUTTON_WIDTH, HEADER_BUTTON_WIDTH, 0, false, false);
         oButton.recalculate();
         oButton = this.buttons[0];
-        x = this.extX - 2*RIGHT_PADDING - 2*HEADER_BUTTON_WIDTH;
+        x = this.extX - HEADER_RIGHT_PADDING;
         oButton.setTransformParams(x, y, HEADER_BUTTON_WIDTH, HEADER_BUTTON_WIDTH, 0, false, false);
         oButton.recalculate();
     };
