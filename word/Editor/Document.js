@@ -10134,6 +10134,10 @@ CDocument.prototype.OnMouseUp = function(e, X, Y, PageIndex)
 						var Comment_X       = this.Get_PageLimits(PageIndex).XLimit;
 						var Para            = this.TableId.Get_ById(Comment.StartId);
 
+                        if (window["NATIVE_EDITOR_ENJINE"]) {
+                            Comment_X       = Comment.m_oStartInfo.X;
+                        }
+
 						// Para может быть не задано, если комментарий добавлен к заголовку таблицы
 						if (Para)
 						{
