@@ -3448,6 +3448,42 @@
 		}
 	};
 
+	WorkbookView.prototype.deleteSlicers = function (names) {
+		var slicers = [];
+		for(var j = 0; j < names.length; j++) {
+			for (var i in this.wsViews) {
+				var slicer = this.wsViews[i].model.getSlicerByName(names[j]);
+				if (slicer) {
+					slicers.push({ws: this.wsViews[i], slicer: slicer});
+					break;
+				}
+			}
+		}
+
+		var oThis = this;
+		var callback = function (success) {
+			var oWSView = oThis.getWorksheet();
+			if (!success) {
+				oWSView.handlers.trigger("selectionChanged");
+				//Transaction was started in applyDrawingProps in order to prevent save between applyDrawingProps and asc_setSlicers
+				//History.EndTransaction();
+				return;
+			}
+			History.StartTransaction();
+			for (var i = 0; i < slicers.length; i++) {
+				slicers[i].ws.model.deleteSlicer(name);
+			}
+			History.EndTransaction();
+			//Transaction was started in applyDrawingProps in order to prevent save between applyDrawingProps and asc_setSlicers
+			//History.EndTransaction();
+			oWSView.handlers.trigger("selectionChanged");
+		};
+
+		if (slicers && slicers.length) {
+			this.checkLockSlicers(slicers, true, callback);
+		}
+	};
+
 	WorkbookView.prototype.setSlicer = function (name, obj) {
 		for(var i in this.wsViews) {
 			var slicer = this.wsViews[i].model.getSlicerByName(name);
