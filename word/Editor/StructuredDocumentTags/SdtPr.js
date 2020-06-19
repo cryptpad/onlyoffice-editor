@@ -1113,6 +1113,46 @@ CSdtTextFormPr.prototype.Read_FromBinary = function(oReader)
 {
 	this.ReadFromBinary(oReader);
 };
+CSdtTextFormPr.prototype.GetMaxCharacters = function()
+{
+	return this.MaxCharacters;
+};
+CSdtTextFormPr.prototype.SetMaxCharacters = function(nMax)
+{
+	this.MaxCharacters = nMax;
+};
+CSdtTextFormPr.prototype.GetComb = function()
+{
+	return this.Comb;
+};
+CSdtTextFormPr.prototype.SetComb = function(isComb)
+{
+	this.Comb = isComb;
+};
+CSdtTextFormPr.prototype.GetWidth = function()
+{
+	return this.Width;
+};
+CSdtTextFormPr.prototype.SetWidth = function(nWidth)
+{
+	this.Width = nWidth;
+};
+CSdtTextFormPr.prototype.GetPlaceHolderSymbol = function()
+{
+	return this.CombPlaceholderSymbol;
+};
+CSdtTextFormPr.prototype.SetPlaceHolderSymbol = function(nCharCode)
+{
+	this.CombPlaceholderSymbol = nCharCode;
+};
+CSdtTextFormPr.prototype.GetPlaceHolderFont = function()
+{
+	return this.CombPlaceholderFont;
+};
+CSdtTextFormPr.prototype.SetPlaceHolderFont = function(sFont)
+{
+	this.CombPlaceholderFont = sFont;
+};
 
 function CSdtFormPr(sKey, sLabel, sHelpText, isRequired)
 {
@@ -1313,3 +1353,17 @@ CSdtFormPr.prototype['get_HelpText'] = CSdtFormPr.prototype.GetHelpText;
 CSdtFormPr.prototype['put_HelpText'] = CSdtFormPr.prototype.SetHelpText;
 CSdtFormPr.prototype['get_Required'] = CSdtFormPr.prototype.GetRequired;
 CSdtFormPr.prototype['put_Required'] = CSdtFormPr.prototype.SetRequired;
+
+window['AscCommon'].CSdtTextFormPr    = CSdtTextFormPr;
+window['AscCommon']['CSdtTextFormPr'] = CSdtTextFormPr;
+
+CSdtTextFormPr.prototype['get_MaxCharacters']     = CSdtTextFormPr.prototype.GetMaxCharacters;
+CSdtTextFormPr.prototype['put_MaxCharacters']     = CSdtTextFormPr.prototype.SetMaxCharacters;
+CSdtTextFormPr.prototype['get_Comb']              = CSdtTextFormPr.prototype.GetComb;
+CSdtTextFormPr.prototype['put_Comb']              = CSdtTextFormPr.prototype.SetComb;
+CSdtTextFormPr.prototype['get_Width']             = CSdtTextFormPr.prototype.GetWidth;
+CSdtTextFormPr.prototype['put_Width']             = CSdtTextFormPr.prototype.SetWidth;
+CSdtTextFormPr.prototype['get_PlaceHolderSymbol'] = CSdtTextFormPr.prototype.GetPlaceHolderSymbol;
+CSdtTextFormPr.prototype['put_PlaceHolderSymbol'] = CSdtTextFormPr.prototype.SetPlaceHolderSymbol;
+CSdtTextFormPr.prototype['get_PlaceHolderFont']   = CSdtTextFormPr.prototype.GetPlaceHolderFont;
+CSdtTextFormPr.prototype['put_PlaceHolderFont']   = CSdtTextFormPr.prototype.SetPlaceHolderFont;
