@@ -8044,8 +8044,12 @@
 			res = true;
 			if (!this.workbook.bUndoChanges && !this.workbook.bRedoChanges) {
 				var cache = slicerObj.obj.getCacheDefinition();
+				//удаляем именованный диапазон только если на данный кэш уже никто не ссылается
 				if (cache && null === this.getSlicersByCacheName(cache.name)) {
-					this.workbook.dependencyFormulas.delTableName(cache.name);
+					var defName = this.workbook.getDefinesNames(cache.name);
+					if (defName) {
+						this.workbook.delDefinesNames(defName.getAscCDefName());
+					}
 				}
 			}
 		}
