@@ -1672,6 +1672,7 @@
 					//set style
 					if (oldFilter && bTablePart) {
 						redrawTablesArr.push({oldfilterRef: oldFilter.Ref, newFilter: filter});
+						t.updateSlicer(oldFilter.DisplayName);
 					}
 				};
 
