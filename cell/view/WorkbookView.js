@@ -3471,7 +3471,7 @@
 			}
 			History.StartTransaction();
 			for (var i = 0; i < slicers.length; i++) {
-				slicers[i].ws.model.deleteSlicer(name);
+				slicers[i].ws.model.deleteSlicer(slicers[i].slicer.name);
 			}
 			History.EndTransaction();
 			//Transaction was started in applyDrawingProps in order to prevent save between applyDrawingProps and asc_setSlicers
