@@ -3464,16 +3464,18 @@
 		var callback = function (success) {
 			var oWSView = oThis.getWorksheet();
 			if (!success) {
+                History.EndTransaction();
 				oWSView.handlers.trigger("selectionChanged");
 				return;
 			}
 			History.StartTransaction();
-			
+
 			for (var i = 0; i < slicers.length; i++) {
 				slicers[i].ws.model.deleteSlicer(slicers[i].slicer.name);
 			}
 
 			History.EndTransaction();
+            History.EndTransaction();
 			oWSView.handlers.trigger("selectionChanged");
 		};
 

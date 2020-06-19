@@ -6520,7 +6520,7 @@ DrawingObjectsController.prototype =
             {
                 worksheet.endEditChart();
             }
-            var aAllShapes = [];
+            var aSlicerNames = [];
             if(this.selection.groupSelection)
             {
                 if(this.selection.groupSelection.selection.chartSelection)
@@ -6537,7 +6537,7 @@ DrawingObjectsController.prototype =
                         oSp = aSO[i];
                         if(oSp.getObjectType() === AscDFH.historyitem_type_SlicerView)
                         {
-                            oSp.deleteSlicer();
+                            aSlicerNames.push(oSp.getName());
                         }
                         else
                         {
@@ -6635,7 +6635,7 @@ DrawingObjectsController.prototype =
                     oSp = aSO[i];
                     if(oSp.getObjectType() === AscDFH.historyitem_type_SlicerView)
                     {
-                        oSp.deleteSlicer();
+                        aSlicerNames.push(oSp.getName());
                     }
                     else
                     {
@@ -6654,6 +6654,12 @@ DrawingObjectsController.prototype =
                 this.recalculate();
             }
             this.updateOverlay();
+            var oWBView = Asc.editor && Asc.editor.wb;
+            if(aSlicerNames.length > 0 && oWBView)
+            {
+                History.StartTransaction();
+                oWBView.deleteSlicers(aSlicerNames);
+            }
         }
         else if(this.drawingObjects.slideComments)
         {
