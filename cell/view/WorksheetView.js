@@ -11585,7 +11585,6 @@
 		};
 
 		var oldDecimalSep, oldGroupSep;
-		_pasteFromHTML
 		if (specialPasteProps.advancedOptions) {
 			if (specialPasteProps.advancedOptions.NumberDecimalSeparator) {
 				oldDecimalSep = AscCommon.g_oDefaultCultureInfo.NumberDecimalSeparator;
@@ -20053,7 +20052,7 @@
         }
         return null;
     };
-    
+
     WorksheetView.prototype.rangeToRectAbs = function(oRange, units) {
         var left = this.getCellLeft(0, units);
         var top = this.getCellTop(0, units);
@@ -20063,7 +20062,7 @@
         var b = this.getCellTop(oRange.r2, units) + this.getRowHeight(oRange.r2, units) - top;
         return new AscFormat.CGraphicBounds(l, t, r, b);
     };
-    
+
     WorksheetView.prototype.rangeToRectRel = function(oRange, units) {
         var l = this.getCellLeftRelative(oRange.c1, units);
         var t = this.getCellTopRelative(oRange.r1, units);
