@@ -2601,6 +2601,8 @@
 	ApiRange.prototype["GetDefName"] = ApiRange.prototype.GetDefName;
 	ApiRange.prototype["GetComment"] = ApiRange.prototype.GetComment;
 	ApiRange.prototype["Select"] = ApiRange.prototype.Select;
+	ApiRange.prototype["SetOrientation"] = ApiRange.prototype.SetOrientation;
+	ApiRange.prototype["GetOrientation"] = ApiRange.prototype.GetOrientation;
 
 
 	ApiDrawing.prototype["GetClassType"]               =  ApiDrawing.prototype.GetClassType;
