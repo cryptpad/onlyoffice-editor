@@ -1950,6 +1950,49 @@
 		}
 	};
 
+	/**
+	 * returns getAngle
+	 * @memberof ApiRange
+	 * @return {getAngle}
+	 */
+	ApiRange.prototype.GetOrientation = function() {
+	  return this.range.getAngle();
+	};
+
+	/**
+	 * Sets the angle for the range
+	 * @memberof ApiRange
+	 * @param {angle}
+	 */
+	ApiRange.prototype.SetOrientation = function(angle) {
+        switch(angle) {
+			case 'xlDownward':
+				angle = -90;
+				break;
+			case 'xlHorizontal':
+				angle = 0;
+				break;
+			case 'xlUpward':
+				angle = 90;
+				break;
+			case 'xlVertical':
+				angle = 255;
+				break;
+		}
+		this.range.setAngle(angle);
+		var ws = this.range.worksheet.workbook.oApi.wb.getWorksheet();
+		ws._updateRange(this.range);
+		ws.draw();
+	};
+
+	Object.defineProperty(ApiRange.prototype, "Orientation", {
+		get: function () {
+			return this.GetOrientation();
+		},
+		set: function () {
+			return this.SetOrientation();
+		}
+	});
 	//------------------------------------------------------------------------------------------------------------------
 	//
 	// ApiDrawing

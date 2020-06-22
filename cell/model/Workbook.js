@@ -11879,6 +11879,18 @@
 		}
 		return align;
 	};
+
+	Range.prototype.getAngle = function () {
+		var nRow = this.bbox.r1;
+		var nCol = this.bbox.c1;
+		var angle;
+		this.worksheet._getCellNoEmpty(nRow, nCol, function (cell) {
+			var align = cell.getAlign();
+			angle = align.getAngle();
+		});
+		return angle;
+	}
+
 	Range.prototype.getFillColor = function () {
 		return this.getFill().bg();
 	};
