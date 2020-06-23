@@ -2180,6 +2180,7 @@
 				};
 
 				var aImagesToDownload = this._getImageFromHtml(node, true);
+                if (aImagesToDownload) { return; } // XXX CryptPad: Can't copy/paste images
 				var specialPasteProps = window['AscCommon'].g_specialPasteHelper.specialPasteProps;
 				if (aImagesToDownload !== null &&
 					(!specialPasteProps || (specialPasteProps && specialPasteProps.images)))//load to server

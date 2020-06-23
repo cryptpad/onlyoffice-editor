@@ -1651,7 +1651,9 @@
 	function UploadImageFiles(files, documentId, documentUserId, jwt, callback)
 	{
            // CryptPad: we need to take control of the upload
-           window.parent.APP.UploadImageFiles(files, documentId, documentUserId, jwt, callback);
+           window.parent.APP.UploadImageFiles(files, documentId, documentUserId, jwt, function (err, urls) {
+               callback(err || Asc.c_oAscError.ID.No, urls);
+            });
            return;
 
 		if (files.length > 0)
