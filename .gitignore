@@ -10,6 +10,10 @@ word/sdk-all.js
 word/sdk-all.cache
 build/node_modules
 build/$weak$.js
+build/sdk-min-tmp.js
+build/sdk-cell-tmp.js
+build/sdk-slide-tmp.js
+build/sdk-word-tmp.js
 common/libfont/wasm/build/emsdk
 common/libfont/wasm/build/freetype-2.9.1
 common/AllFonts.js
