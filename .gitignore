@@ -16,11 +16,8 @@ build/sdk-slide-tmp.js
 build/sdk-word-tmp.js
 common/libfont/wasm/build/emsdk
 common/libfont/wasm/build/freetype-2.9.1
-common/AllFonts.js
 common/libfont/js/fonts.js
 common/libfont/wasm/fonts.js
-common/Images/fonts_thumbnail.png
-common/Images/fonts_thumbnail@2x.png
 common/Images/themes_thumbnail.png
 common/Images/themes_thumbnail@2x.png
 slide/themes/theme*
