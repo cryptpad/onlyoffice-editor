@@ -10416,6 +10416,50 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		return table;
 	};
 
+	function CT_ColumnFilter() {
+		this.dxf = null;
+		this.filter = null;
+		//this.extLst
+
+		//нужно ли?
+		this.colId = null;
+		this.id = null;
+
+		return this;
+	}
+
+	CT_ColumnFilter.prototype.clone = function () {
+		var res = new CT_ColumnFilter();
+		res.dxf = this.dxf ? this.dxf.clone() : null;
+		res.filter = this.filter ? this.filter.clone() : null;
+
+		return res;
+	};
+
+
+	function CT_SortRule() {
+		this.dxf = null;
+		this.sortCondition = null;
+		this.richSortCondition = null;
+
+		//нужно ли?
+		this.colId = null;
+		this.id = null;
+
+		return this;
+	}
+
+	CT_SortRule.prototype.clone = function () {
+		var res = new CT_SortRule();
+		res.dxf = this.dxf ? this.dxf.clone() : null;
+		res.sortCondition = this.sortCondition ? this.sortCondition.clone() : null;
+		res.richSortCondition = this.richSortCondition ? this.richSortCondition.clone() : null;
+
+		return res;
+	};
+
+
+
 	//----------------------------------------------------------export----------------------------------------------------
 	var prot;
 	window['Asc'] = window['Asc'] || {};
@@ -10751,6 +10795,7 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 
 	window["AscCommonExcel"].CT_NamedSheetView = CT_NamedSheetView;
 	window["AscCommonExcel"].CT_NsvFilter = CT_NsvFilter;
+	window["AscCommonExcel"].CT_ColumnFilter = CT_ColumnFilter;
 
 
 })(window);

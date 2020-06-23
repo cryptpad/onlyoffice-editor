@@ -3551,7 +3551,10 @@
 
 		this.aSlicers = [];
 
+		//времеменный view добавляю в отдельное поле, чтобы потом не ставить заглушки на сохранение
+		this.temporarySheetView = null;
 		this.aNamedSheetViews = [];
+		this.nActiveSheetView = null;
 	}
 
 	Worksheet.prototype.getCompiledStyle = function (row, col, opt_cell, opt_styleComponents) {
@@ -8332,6 +8335,10 @@
 				this.workbook.onSlicerUpdate(slicers[j].name);
 			}
 		}
+	};
+
+	Worksheet.prototype.getActiveSheetView = function () {
+		return this.nActiveSheetView;
 	};
 
 

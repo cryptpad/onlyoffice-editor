@@ -20377,6 +20377,52 @@
 		});
 	};
 
+	WorksheetView.prototype.addSheetView = function (name, bSave) {
+		var t = this;
+
+		var _callback = function (success) {
+			if (!success) {
+				return;
+			}
+
+			var sheetView = bSave ? t.model.temporarySheetView : null;
+			if (!sheetView) {
+				sheetView = new AscCommonExcel.CT_NamedSheetView();
+				var _filter;
+				for (var i = 0; i < t.model.TableParts.length; i++) {
+					_filter = new AscCommonExcel.CT_NsvFilter();
+					_filter.ref = t.model.TableParts[i].Ref;
+					_filter.tableId = t.model.TableParts[i].DisplayName;
+					sheetView.nsvFilters.push(_filter);
+				}
+				if (t.model.AutoFilter) {
+					_filter = new AscCommonExcel.CT_NsvFilter();
+					_filter.ref = t.model.AutoFilter;
+					_filter.tableId = 0;
+					sheetView.nsvFilters.push(_filter);
+				}
+			}
+			sheetView.name = name;
+
+			if (bSave) {
+				//TODO history
+				t.model.aNamedSheetViews.push(sheetView);
+				t.model.temporarySheetView = null;
+			} else {
+				//TODO history local
+				t.model.temporarySheetView = sheetView;
+			}
+		};
+
+		if (bSave) {
+			//TODO lock
+			this.collaborativeEditing.lock(_lock, _callback);
+		} else {
+			_callback(true);
+		}
+	};
+
+
 	//------------------------------------------------------------export---------------------------------------------------
     window['AscCommonExcel'] = window['AscCommonExcel'] || {};
 	window["AscCommonExcel"].CellFlags = CellFlags;
