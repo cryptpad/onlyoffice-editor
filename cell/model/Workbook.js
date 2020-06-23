@@ -3550,6 +3550,8 @@
 		this.handlers = null;
 
 		this.aSlicers = [];
+
+		this.aNamedSheetViews = [];
 	}
 
 	Worksheet.prototype.getCompiledStyle = function (row, col, opt_cell, opt_styleComponents) {
