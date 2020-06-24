@@ -2746,8 +2746,18 @@ function CDLbl()
             }
         }
     };
+    CSeriesBase.prototype.getOrder = function() {
+        return this.order;
+    };
     CSeriesBase.prototype["asc_getIsVisible"] = CSeriesBase.prototype.isVisible;
-    CSeriesBase.prototype["asc_setIsVisible"] = CSeriesBase.prototype.setVisible;
+    CSeriesBase.prototype["asc_setIsVisible"] = function(bVal) {
+        AscFormat.ExecuteNoHistory(CSeriesBase.prototype.setVisible, this, [bVal]);
+    };
+    CSeriesBase.prototype["asc_getIsVisible"] = CSeriesBase.prototype.getVisible;
+    CSeriesBase.prototype["asc_getOrder"] = CSeriesBase.prototype.getOrder;
+    CSeriesBase.prototype["asc_setOrder"] = function (bVal) {
+        AscFormat.ExecuteNoHistory(CSeriesBase.prototype.setOrder, this, [bVal]);
+    };
 function CPlotArea()
 {
     this.charts = [];
