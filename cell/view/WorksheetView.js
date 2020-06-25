@@ -20385,7 +20385,7 @@
 				return;
 			}
 
-			var sheetView = bSave ? t.model.temporarySheetView : null;
+			var sheetView = bSave ? t.model.temporaryNamedSheetView : null;
 			if (!sheetView) {
 				sheetView = new AscCommonExcel.CT_NamedSheetView();
 				var _filter;
@@ -20407,10 +20407,10 @@
 			if (bSave) {
 				//TODO history
 				t.model.aNamedSheetViews.push(sheetView);
-				t.model.temporarySheetView = null;
+				t.model.temporaryNamedSheetView = null;
 			} else {
 				//TODO history local
-				t.model.temporarySheetView = sheetView;
+				t.model.temporaryNamedSheetView = sheetView;
 			}
 		};
 

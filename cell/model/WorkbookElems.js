@@ -6733,20 +6733,21 @@ function RangeDataManagerElem(bbox, data)
 		return this;
 	};
 
-	AutoFilter.prototype.hiddenByAnotherFilter = function (worksheet, cellId, row, col) {
+	AutoFilter.prototype.hiddenByAnotherFilter = function (worksheet, cellId, row, col, opt_columnsFilter) {
 		var result = false;
 
-		var filterColumns = this.FilterColumns;
+		var filterColumns = opt_columnsFilter ? opt_columnsFilter : this.FilterColumns;
 		if (filterColumns) {
 			for (var j = 0; j < filterColumns.length; j++) {
-				var colId = filterColumns[j].ColId;
+				var filterColumn = opt_columnsFilter ? opt_columnsFilter[j].filter : filterColumns[j];
+				var colId = filterColumn.ColId;
 				if (colId !== cellId) {
 					var cell = worksheet.getCell3(row, colId + col);
 					var isDateTimeFormat = cell.getType() === window["AscCommon"].CellValueType.Number && cell.getNumFormat().isDateTimeFormat();
 
-					var isNumberFilter = filterColumns[j].isApplyCustomFilter();
+					var isNumberFilter = filterColumn.isApplyCustomFilter();
 					var val = (isDateTimeFormat || isNumberFilter) ? cell.getValueWithoutFormat() : cell.getValueWithFormat();
-					if (filterColumns[j].isHideValue(val, isDateTimeFormat, null, cell)) {
+					if (filterColumn.isHideValue(val, isDateTimeFormat, null, cell)) {
 						result = true;
 						break;
 					}
@@ -6757,7 +6758,7 @@ function RangeDataManagerElem(bbox, data)
 		return result;
 	};
 
-	AutoFilter.prototype.setRowHidden = function(worksheet, newFilterColumn) {
+	AutoFilter.prototype.setRowHidden = function(worksheet, newFilterColumn, opt_columnsFilter) {
 		var startRow = this.Ref.r1 + 1;
 		var endRow = this.Ref.r2;
 
@@ -6768,7 +6769,7 @@ function RangeDataManagerElem(bbox, data)
 		var nRowsCount = 0;
 		for (var i = startRow; i <= endRow; i++) {
 
-			var isHidden = this.hiddenByAnotherFilter(worksheet, colId, i, this.Ref.c1);
+			var isHidden = this.hiddenByAnotherFilter(worksheet, colId, i, this.Ref.c1, opt_columnsFilter);
 			if(!newFilterColumn) {
 				if (isHidden !== worksheet.getRowHidden(i)) {
 					if (minChangeRow === null) {
@@ -10382,7 +10383,7 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	};
 
 	function CT_NsvFilter() {
-		this.columnFilter = null;
+		this.columnsFilter = [];
 		this.sortRules = null;
 		//this.extLst
 		this.filterId = null;
@@ -10414,6 +10415,14 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 			}
 		}
 		return table;
+	};
+
+	CT_NsvFilter.prototype.getColumnFilterByColId = function (id) {
+		for (var i = 0; i < this.columnsFilter.length; ++i) {
+			if (this.columnsFilter.colId === id) {
+				return this.columnsFilter[i];
+			}
+		}
 	};
 
 	function CT_ColumnFilter() {

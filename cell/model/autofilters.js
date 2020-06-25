@@ -728,14 +728,34 @@
 					autoFilter = filterObj.filter.addAutoFilter();
 				}
 
-				if (filterObj.index !== null) {
-					newFilterColumn = autoFilter.FilterColumns[filterObj.index];
-					newFilterColumn.clean();
-				} else {
-					newFilterColumn = autoFilter.addFilterColumn();
+				var activeNamedSheetView = worksheet.getActiveNamedSheetView();
+				var temporaryNamedSheetView = worksheet.temporaryNamedSheetView;
+				var nsvFilter;
+				if (activeNamedSheetView !== null || temporaryNamedSheetView) {
+					if (temporaryNamedSheetView) {
+						nsvFilter = temporaryNamedSheetView;
+					} else {
+						nsvFilter = worksheet.getNvsFilterByTableName(filterObj.filter.DisplayName);
+					}
+					if (nsvFilter) {
+						//TODO перепроверить. соответствует ли индекс?
+						newFilterColumn = nsvFilter.getColumnFilterByColId(filterObj.index);
 
-					newFilterColumn.ColId = filterObj.ColId;
+						if (!newFilterColumn) {
+							newFilterColumn = new FilterColumn();
+							newFilterColumn.ColId = filterObj.ColId;
+						}
+					}
+				} else {
+					if (filterObj.index !== null) {
+						newFilterColumn = autoFilter.FilterColumns[filterObj.index];
+						newFilterColumn.clean();
+					} else {
+						newFilterColumn = autoFilter.addFilterColumn();
+						newFilterColumn.ColId = filterObj.ColId;
+					}
 				}
+
 
 				filterRange = worksheet.getRange3(autoFilter.Ref.r1 + 1, filterObj.ColId + autoFilter.Ref.c1, autoFilter.Ref.r2, filterObj.ColId + autoFilter.Ref.c1);
 				autoFiltersObject = tryConvertFilter ? this._tryConvertCustomFilter(autoFiltersObject, filterRange) : autoFiltersObject;
@@ -759,7 +779,7 @@
 
 				//автоматическое расширение диапазона а/ф
 				if (autoFiltersObject.automaticRowCount && filterObj.filter && filterObj.filter.Ref &&
-					filterObj.filter.isAutoFilter()) {
+					filterObj.filter.isAutoFilter() && !nsvFilter) {
 					var currentDiff = filterObj.filter.Ref.r2 - filterObj.filter.Ref.r1;
 					var newDiff = autoFiltersObject.automaticRowCount - filterObj.filter.Ref.r1;
 
@@ -772,10 +792,19 @@
 				var nOpenRowsCount = null;
 				var nAllRowsCount = null;
 				if ((!bUndoChanges && !bRedoChanges) || !window['AscCommonExcel'].filteringMode) {
-					var hiddenProps = autoFilter.setRowHidden(worksheet, newFilterColumn);
+					var oldLocalChange = History.LocalChange;
+					if (nsvFilter) {
+						History.LocalChange = true;
+					}
+
+					var hiddenProps = autoFilter.setRowHidden(worksheet, newFilterColumn, nsvFilter ? nsvFilter.columnsFilter : null);
 					nOpenRowsCount = hiddenProps.nOpenRowsCount;
 					nAllRowsCount = hiddenProps.nAllRowsCount;
 					minChangeRow = hiddenProps.minChangeRow;
+
+					if (nsvFilter) {
+						History.LocalChange = oldLocalChange;
+					}
 				}
 
 				//update slicer

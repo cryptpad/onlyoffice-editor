@@ -3552,9 +3552,9 @@
 		this.aSlicers = [];
 
 		//времеменный view добавляю в отдельное поле, чтобы потом не ставить заглушки на сохранение
-		this.temporarySheetView = null;
+		this.temporaryNamedSheetView = null;
 		this.aNamedSheetViews = [];
-		this.nActiveSheetView = null;
+		this.nActiveNamedSheetView = null;
 	}
 
 	Worksheet.prototype.getCompiledStyle = function (row, col, opt_cell, opt_styleComponents) {
@@ -8337,8 +8337,27 @@
 		}
 	};
 
-	Worksheet.prototype.getActiveSheetView = function () {
-		return this.nActiveSheetView;
+	Worksheet.prototype.getActiveNamedSheetView = function () {
+		return this.nActiveNamedSheetView;
+	};
+
+	Worksheet.prototype.getNvsFilterByTableName = function (val) {
+		if (this.nActiveNamedSheetView === null) {
+			return;
+		}
+
+		if (!val) {
+			val = "0";
+		}
+
+		var sheetView = this.aNamedSheetViews[this.nActiveNamedSheetView];
+		if (sheetView && sheetView.nsvFilters) {
+			for (var i = 0; i < sheetView.nsvFilters.length; i++) {
+				if (sheetView.nsvFilters[i].tableId === val) {
+					return sheetView.nsvFilters[i];
+				}
+			}
+		}
 	};
 
 
