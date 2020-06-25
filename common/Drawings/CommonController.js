@@ -13030,12 +13030,8 @@ function ApplyPresetToChartSpace(oChartSpace, aPreset, bCreate){
         return numberingType;
     }
 
-    function fGetPresentationBulletByNumInfo(NumInfo){
-        if(!AscFormat.isRealNumber(NumInfo.Type) && !AscFormat.isRealNumber(NumInfo.SubType))
-        {
-            return null;
-        }
-        var bullet = new AscFormat.CBullet();
+
+    function fFillBullet(NumInfo, bullet) {
         if(NumInfo.SubType < 0)
         {
             bullet.bulletType = new AscFormat.CBulletType();
@@ -13134,6 +13130,14 @@ function ApplyPresetToChartSpace(oChartSpace, aPreset, bCreate){
                 }
             }
         }
+    }
+    function fGetPresentationBulletByNumInfo(NumInfo){
+        if(!AscFormat.isRealNumber(NumInfo.Type) && !AscFormat.isRealNumber(NumInfo.SubType))
+        {
+            return null;
+        }
+        var bullet = new AscFormat.CBullet();
+        fFillBullet(NumInfo, bullet);
         return bullet;
     }
 
@@ -13279,6 +13283,7 @@ function ApplyPresetToChartSpace(oChartSpace, aPreset, bCreate){
 	window['AscFormat'].CreateBlipFillUniFillFromUrl = CreateBlipFillUniFillFromUrl;
 	window['AscFormat'].fGetListTypeFromBullet = fGetListTypeFromBullet;
 	window['AscFormat'].fGetPresentationBulletByNumInfo = fGetPresentationBulletByNumInfo;
+	window['AscFormat'].fFillBullet = fFillBullet;
 	window['AscFormat'].fGetFontByNumInfo = fGetFontByNumInfo;
 	window['AscFormat'].CreateBlipFillRasterImageId = CreateBlipFillRasterImageId;
 	window['AscFormat'].fResetConnectorsIds = fResetConnectorsIds;

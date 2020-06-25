@@ -2713,66 +2713,18 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype.put_ListType = function(type, subtype)
 	{
 		var oPresentation = this.WordControl.m_oLogicDocument;
-		var sBullet = "";
-		if(type === 0)
+		var NumberInfo =
 		{
-			switch(subtype)
-			{
-				case 0:
-				case 1:
-				{
-					sBullet = "•";
-					break;
-				}
-				case 2:
-				{
-					sBullet = "o";
-					break;
-				}
-				case 3:
-				{
-					sBullet = "§";
-					break;
-				}
-				case 4:
-				{
-					sBullet = String.fromCharCode( 0x0076 );
-					break;
-				}
-				case 5:
-				{
-					sBullet = String.fromCharCode( 0x00D8 );
-					break;
-				}
-				case 6:
-				{
-					sBullet = String.fromCharCode( 0x00FC );
-					break;
-				}
-				case 7:
-				{
-
-					sBullet = String.fromCharCode(119);
-					break;
-				}
-				case 8:
-				{
-					sBullet = String.fromCharCode(0x2013);
-					break;
-				}
-			}
-		}
-
-		var fCallback = function () {
-
-			var NumberInfo =
-			{
-				Type     : type,
-				SubType  : subtype
-			};
-			oPresentation.SetParagraphNumbering(AscFormat.fGetPresentationBulletByNumInfo(NumberInfo));
+			Type     : type,
+			SubType  : subtype
 		};
-		if(sBullet.length > 0)
+		var oBullet = AscFormat.fGetPresentationBulletByNumInfo(NumberInfo);
+		var sBullet = oBullet.asc_getSymbol();
+		var fCallback = function ()
+		{
+			oPresentation.SetParagraphNumbering(oBullet);
+		};
+		if(typeof sBullet === "string" && sBullet.length > 0)
 		{
 			AscFonts.FontPickerByCharacter.checkText(sBullet, this, fCallback);
 		}

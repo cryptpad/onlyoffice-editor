@@ -10705,6 +10705,19 @@ function CompareBullets(bullet1, bullet2)
         return -1;
     };
     prot["get_AutoNumType"] = prot["asc_getAutoNumType"] = prot.asc_getAutoNumType;
+    prot.asc_putListType = function(type, subtype) {
+        var NumberInfo =
+            {
+                Type     : type,
+                SubType  : subtype
+            };
+        AscFormat.fFillBullet(NumberInfo, this);
+    };
+    prot["put_ListType"] = prot["asc_putListType"] = prot.asc_putListType;
+    prot.asc_getListType = function() {
+        return new AscCommon.asc_CListType(AscFormat.fGetListTypeFromBullet(this));
+    };
+    prot["get_ListType"] = prot["asc_getListType"] = prot.asc_getListType;
     window["Asc"]["asc_CBullet"] = window["Asc"].asc_CBullet = CBullet;
 
     function CBulletColor()
