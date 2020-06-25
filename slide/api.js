@@ -2561,77 +2561,7 @@ background-repeat: no-repeat;\
 			var sLoadFont = null, sLoadText = null;
 			var fCallback = function()
 			{
-
-				if ("undefined" != typeof(Props.Ind) && null != Props.Ind)
-					graphicObjects.setParagraphIndent(Props.Ind);
-
-				if ("undefined" != typeof(Props.Jc) && null != Props.Jc)
-					graphicObjects.setParagraphAlign(Props.Jc);
-
-
-				if ("undefined" != typeof(Props.Spacing) && null != Props.Spacing)
-					graphicObjects.setParagraphSpacing(Props.Spacing);
-
-
-				if (undefined != Props.Tabs)
-				{
-					var Tabs = new AscCommonWord.CParaTabs();
-					Tabs.Set_FromObject(Props.Tabs.Tabs);
-					graphicObjects.setParagraphTabs(Tabs);
-				}
-
-				if (undefined != Props.DefaultTab)
-				{
-					graphicObjects.setDefaultTabSize(Props.DefaultTab);
-				}
-				var TextPr = new AscCommonWord.CTextPr();
-
-				if (true === Props.Subscript)
-					TextPr.VertAlign = AscCommon.vertalign_SubScript;
-				else if (true === Props.Superscript)
-					TextPr.VertAlign = AscCommon.vertalign_SuperScript;
-				else if (false === Props.Superscript || false === Props.Subscript)
-					TextPr.VertAlign = AscCommon.vertalign_Baseline;
-
-				if (undefined != Props.Strikeout)
-				{
-					TextPr.Strikeout  = Props.Strikeout;
-					TextPr.DStrikeout = false;
-				}
-
-				if (undefined != Props.DStrikeout)
-				{
-					TextPr.DStrikeout = Props.DStrikeout;
-					if (true === TextPr.DStrikeout)
-						TextPr.Strikeout = false;
-				}
-
-				if (undefined != Props.SmallCaps)
-				{
-					TextPr.SmallCaps = Props.SmallCaps;
-					TextPr.AllCaps   = false;
-				}
-
-				if (undefined != Props.AllCaps)
-				{
-					TextPr.Caps = Props.AllCaps;
-					if (true === TextPr.AllCaps)
-						TextPr.SmallCaps = false;
-				}
-
-				if (undefined != Props.TextSpacing)
-					TextPr.Spacing = Props.TextSpacing;
-
-				if (undefined != Props.Position)
-					TextPr.Position = Props.Position;
-
-				var oBullet = Props.asc_getBullet();
-				if(oBullet)
-				{
-					graphicObjects.setParagraphNumbering(oBullet)
-				}
-				graphicObjects.paragraphAdd(new AscCommonWord.ParaTextPr(TextPr));
-				_presentation.Recalculate();
+				graphicObjects.paraApplyCallback(Props);
 				_presentation.Document_UpdateInterfaceState();
 			};
 			var oBullet = Props.asc_getBullet();

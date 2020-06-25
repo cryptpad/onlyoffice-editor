@@ -10299,6 +10299,12 @@ function CTextParagraphPr()
     this.rPr = new CTextPr();
 }
 
+function CreateNoneBullet() {
+    var ret = new CBullet();
+    ret.bulletType = new CBulletType();
+    ret.bulletType.type = BULLET_TYPE_BULLET_NONE;
+    return ret;
+}
 
 function CompareBullets(bullet1, bullet2)
 {
@@ -10306,8 +10312,7 @@ function CompareBullets(bullet1, bullet2)
     //TODO: пока будем сравнивать только bulletType, т. к. эта функция используется для мержа свойств при отдаче в интерфейс, а для интерфейса bulletTyp'a достаточно. Если понадобится нужно сделать полное сравнение.
     //
     if(bullet1.bulletType && bullet2.bulletType
-        && bullet1.bulletType.type === bullet2.bulletType.type
-        && bullet1.bulletType.type !== BULLET_TYPE_BULLET_NONE)
+        && bullet1.bulletType.type === bullet2.bulletType.type)
     {
         var ret = new CBullet();
         ret.bulletType = new CBulletType();
@@ -10717,7 +10722,10 @@ function CompareBullets(bullet1, bullet2)
     prot.asc_getListType = function() {
         return new AscCommon.asc_CListType(AscFormat.fGetListTypeFromBullet(this));
     };
-    prot["get_ListType"] = prot["asc_getListType"] = prot.asc_getListType;
+    prot.asc_getType = function() {
+        return this.bulletType && this.bulletType.type;
+    };
+    prot["get_Type"] = prot["asc_getType"] = prot.asc_getType;
     window["Asc"]["asc_CBullet"] = window["Asc"].asc_CBullet = CBullet;
 
     function CBulletColor()
@@ -13149,10 +13157,10 @@ function CorrectUniColor(asc_color, unicolor, flag)
     window['AscFormat'].nOTClip = window['AscFormat']['nOTClip'] = nOTClip;
     window['AscFormat'].nOTEllipsis = window['AscFormat']['nOTEllipsis'] = nOTEllipsis;
 
-    window['AscFormat'].BULLET_TYPE_BULLET_NONE = BULLET_TYPE_BULLET_NONE;
-    window['AscFormat'].BULLET_TYPE_BULLET_CHAR = BULLET_TYPE_BULLET_CHAR;
-    window['AscFormat'].BULLET_TYPE_BULLET_AUTONUM = BULLET_TYPE_BULLET_AUTONUM;
-    window['AscFormat'].BULLET_TYPE_BULLET_BLIP = BULLET_TYPE_BULLET_BLIP;
+    window['AscFormat'].BULLET_TYPE_BULLET_NONE = window['AscFormat']['BULLET_TYPE_BULLET_NONE'] = BULLET_TYPE_BULLET_NONE;
+    window['AscFormat'].BULLET_TYPE_BULLET_CHAR = window['AscFormat']['BULLET_TYPE_BULLET_CHAR'] = BULLET_TYPE_BULLET_CHAR;
+    window['AscFormat'].BULLET_TYPE_BULLET_AUTONUM = window['AscFormat']['BULLET_TYPE_BULLET_AUTONUM'] = BULLET_TYPE_BULLET_AUTONUM;
+    window['AscFormat'].BULLET_TYPE_BULLET_BLIP = window['AscFormat']['BULLET_TYPE_BULLET_BLIP'] = BULLET_TYPE_BULLET_BLIP;
 
     window['AscFormat'].AUDIO_CD = AUDIO_CD;
     window['AscFormat'].WAV_AUDIO_FILE = WAV_AUDIO_FILE;
@@ -13190,6 +13198,7 @@ function CorrectUniColor(asc_color, unicolor, flag)
         window['AscFormat'].CAlphaInv = CAlphaInv;
         window['AscFormat'].CAlphaMod = CAlphaMod;
         window['AscFormat'].CBlend = CBlend;
+        window['AscFormat'].CreateNoneBullet = CreateNoneBullet;
 
     window['AscFormat'].DEFAULT_COLOR_MAP = GenerateDefaultColorMap();
 })(window);

@@ -10144,111 +10144,74 @@ DrawingObjectsController.prototype =
 
     paraApplyCallback: function(Props)
     {
+        if ( "undefined" != typeof(Props.Ind) && null != Props.Ind )
+            this.setParagraphIndent( Props.Ind );
 
-            if ( "undefined" != typeof(Props.Ind) && null != Props.Ind )
-                this.setParagraphIndent( Props.Ind );
+        if ( "undefined" != typeof(Props.Jc) && null != Props.Jc )
+            this.setParagraphAlign( Props.Jc );
 
-            if ( "undefined" != typeof(Props.Jc) && null != Props.Jc )
-                this.setParagraphAlign( Props.Jc );
+        if ( "undefined" != typeof(Props.Spacing) && null != Props.Spacing )
+            this.setParagraphSpacing( Props.Spacing );
 
-            if ( "undefined" != typeof(Props.Spacing) && null != Props.Spacing )
-                this.setParagraphSpacing( Props.Spacing );
+        if ( undefined != Props.Tabs )
+        {
+            var Tabs = new CParaTabs();
+            Tabs.Set_FromObject( Props.Tabs.Tabs );
+            this.setParagraphTabs( Tabs );
+        }
 
-            if ( "undefined" != typeof(Props.Shd) && null != Props.Shd )
-                this.setParagraphShd( Props.Shd );
+        if ( undefined != Props.DefaultTab )
+        {
+            //AscCommonWord.Default_Tab_Stop = Props.DefaultTab;
+            this.setDefaultTabSize( Props.DefaultTab );
+        }
 
-            if ( "undefined" != typeof(Props.Brd) && null != Props.Brd )
-            {
-                if(Props.Brd.Left && Props.Brd.Left.Color)
-                {
-                    Props.Brd.Left.Unifill = AscFormat.CreateUnifillFromAscColor(Props.Brd.Left.Color, 1);
-                }
-                if(Props.Brd.Top && Props.Brd.Top.Color)
-                {
-                    Props.Brd.Top.Unifill = AscFormat.CreateUnifillFromAscColor(Props.Brd.Top.Color, 1);
-                }
-                if(Props.Brd.Right && Props.Brd.Right.Color)
-                {
-                    Props.Brd.Right.Unifill = AscFormat.CreateUnifillFromAscColor(Props.Brd.Right.Color, 1);
-                }
-                if(Props.Brd.Bottom && Props.Brd.Bottom.Color)
-                {
-                    Props.Brd.Bottom.Unifill = AscFormat.CreateUnifillFromAscColor(Props.Brd.Bottom.Color, 1);
-                }
-                if(Props.Brd.InsideH && Props.Brd.InsideH.Color)
-                {
-                    Props.Brd.InsideH.Unifill = AscFormat.CreateUnifillFromAscColor(Props.Brd.InsideH.Color, 1);
-                }
-                if(Props.Brd.InsideV && Props.Brd.InsideV.Color)
-                {
-                    Props.Brd.InsideV.Unifill = AscFormat.CreateUnifillFromAscColor(Props.Brd.InsideV.Color, 1);
-                }
+        if(undefined != Props.Bullet)
+        {
+          //  if()
+            this.setParagraphNumbering(Props.Bullet)
+        }
 
-                this.setParagraphBorders( Props.Brd );
-            }
+        // TODO: как только разъединят настройки параграфа и текста переделать тут
+        var TextPr = new CTextPr();
 
-            if ( undefined != Props.Tabs )
-            {
-                var Tabs = new CParaTabs();
-                Tabs.Set_FromObject( Props.Tabs.Tabs );
-                this.setParagraphTabs( Tabs );
-            }
+        if ( true === Props.Subscript )
+            TextPr.VertAlign = AscCommon.vertalign_SubScript;
+        else if ( true === Props.Superscript )
+            TextPr.VertAlign = AscCommon.vertalign_SuperScript;
+        else if ( false === Props.Superscript || false === Props.Subscript )
+            TextPr.VertAlign = AscCommon.vertalign_Baseline;
 
-            if ( undefined != Props.DefaultTab )
-            {
-                //AscCommonWord.Default_Tab_Stop = Props.DefaultTab;
-                this.setDefaultTabSize( Props.DefaultTab );
-            }
+        if ( undefined != Props.Strikeout )
+        {
+            TextPr.Strikeout  = Props.Strikeout;
+            TextPr.DStrikeout = false;
+        }
 
-            if(undefined != Props.Bullet)
-            {
-              //  if()
-                this.setParagraphNumbering(Props.Bullet)
-            }
+        if ( undefined != Props.DStrikeout )
+        {
+            TextPr.DStrikeout = Props.DStrikeout;
+            if ( true === TextPr.DStrikeout )
+                TextPr.Strikeout = false;
+        }
 
-            // TODO: как только разъединят настройки параграфа и текста переделать тут
-            var TextPr = new CTextPr();
+        if ( undefined != Props.SmallCaps )
+        {
+            TextPr.SmallCaps = Props.SmallCaps;
+            TextPr.AllCaps   = false;
+        }
 
-            if ( true === Props.Subscript )
-                TextPr.VertAlign = AscCommon.vertalign_SubScript;
-            else if ( true === Props.Superscript )
-                TextPr.VertAlign = AscCommon.vertalign_SuperScript;
-            else if ( false === Props.Superscript || false === Props.Subscript )
-                TextPr.VertAlign = AscCommon.vertalign_Baseline;
+        if ( undefined != Props.AllCaps )
+        {
+            TextPr.Caps = Props.AllCaps;
+            if ( true === TextPr.AllCaps )
+                TextPr.SmallCaps = false;
+        }
 
-            if ( undefined != Props.Strikeout )
-            {
-                TextPr.Strikeout  = Props.Strikeout;
-                TextPr.DStrikeout = false;
-            }
+        if ( undefined != Props.TextSpacing )
+            TextPr.Spacing = Props.TextSpacing;
 
-            if ( undefined != Props.DStrikeout )
-            {
-                TextPr.DStrikeout = Props.DStrikeout;
-                if ( true === TextPr.DStrikeout )
-                    TextPr.Strikeout = false;
-            }
-
-            if ( undefined != Props.SmallCaps )
-            {
-                TextPr.SmallCaps = Props.SmallCaps;
-                TextPr.AllCaps   = false;
-            }
-
-            if ( undefined != Props.AllCaps )
-            {
-                TextPr.Caps = Props.AllCaps;
-                if ( true === TextPr.AllCaps )
-                    TextPr.SmallCaps = false;
-            }
-
-            if ( undefined != Props.TextSpacing )
-                TextPr.Spacing = Props.TextSpacing;
-
-            if ( undefined != Props.Position )
-                TextPr.Position = Props.Position;
-
-            this.paragraphAdd( new ParaTextPr(TextPr) );
+        this.paragraphAdd( new ParaTextPr(TextPr) );
         this.startRecalculate();
     },
 

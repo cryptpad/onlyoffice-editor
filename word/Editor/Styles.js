@@ -829,7 +829,7 @@ CStyle.prototype =
                 }
             }
         };
-  
+
         this.Set_UiPriority(59);
         this.Set_TablePr(TablePr);
         this.Set_ParaPr(ParaPr);
@@ -1631,7 +1631,7 @@ CStyle.prototype =
         this.Set_TableBand2Horz(TableStylePrBand2);
         this.Set_TableBand2Vert(TableStylePrBand2);
 	},
-    
+
     Create_TableGrid_Light: function (oBorderUnifill) {
         var CellShd1 = new CDocumentShd();
         CellShd1.Value = c_oAscShdClear;
@@ -2204,7 +2204,7 @@ CStyle.prototype =
     },
 
     Create_Table_Plain_4: function (oBandUnifill) {
-       
+
         var CellShd1 = new CDocumentShd();
         CellShd1.Value = c_oAscShdClear;
         CellShd1.Unifill = oBandUnifill;
@@ -2563,7 +2563,7 @@ CStyle.prototype =
             Space: 0,
             Unifill: CellShd1.Unifill
         };
-        
+
         var TableBorder2 =
         {
             Color: { r: 0, g: 0, b: 0 },
@@ -2571,7 +2571,7 @@ CStyle.prototype =
             Size: 0.5 * g_dKoef_pt_to_mm,
             Space: 0,
             Unifill: CellShd2.Unifill
-        }; 
+        };
 
         var TablePr =
         {
@@ -2943,7 +2943,7 @@ CStyle.prototype =
             }
         };
 
-   
+
         var TableFirstCol =
         {
             TextPr: TextColumnPr,
@@ -3517,7 +3517,7 @@ CStyle.prototype =
         {
             TextPr: TableTextPr
         };
-        var TableWholeTable = 
+        var TableWholeTable =
         {
             TextPr: TableTextPr
         };
@@ -4358,7 +4358,7 @@ CStyle.prototype =
         };
 
         var TablePr =
-        {  
+        {
             TextPr: TableTextPr,
             TableStyleColBandSize: 1,
             TableStyleRowBandSize: 1,
@@ -4524,7 +4524,7 @@ CStyle.prototype =
             TableStyleColBandSize: 1,
             TableStyleRowBandSize: 1,
             TableInd: 0,
-           
+
             TableBorders:
             {
                 Left: TableBorder1,
@@ -4628,7 +4628,7 @@ CStyle.prototype =
                 }
             }
         };
-        var TableWholeTable = 
+        var TableWholeTable =
         {
             TextPr: TableTextPr
         };
@@ -5039,7 +5039,7 @@ CStyle.prototype =
         this.Set_TableBand1Vert(TableBand1Vert);
         this.Set_TableWholeTable(TableWholeTable);
     },
-    
+
     Create_Table_BorderedAndLined : function(oBorderFillUnifill, oHorBandUniFill, oVertBandUnifill,  oBorderUnifill)
     {
 		var CellShd1   = new CDocumentShd();
@@ -5232,7 +5232,7 @@ CStyle.prototype =
         this.Set_TableBand2Vert(TableBand2Vert);
 
 	},
-	
+
 	Create_Grid_Table_Light : function(unifill1, unifill2)
     {
 		var CellShd1   = new CDocumentShd();
@@ -5379,7 +5379,7 @@ CStyle.prototype =
             TextPr      : TableTextPr,
             TableCellPr :
             {
-                
+
             }
         };
 
@@ -5422,7 +5422,7 @@ CStyle.prototype =
         this.Set_TableBand1Horz(TableBand1Horz);
 
 	},
-	
+
 	Create_Grid_Table : function(unifill1, unifill2)
     {
 		var TextColor1 = new CDocumentColor(0xF2, 0xF2, 0xF2, false);
@@ -5619,7 +5619,7 @@ CStyle.prototype =
         this.Set_TableBand1Horz(TableBand1Horz);
 
     },
-    
+
     isEqual: function(cStyles)
     {
         var result = false;
@@ -7427,7 +7427,7 @@ function CStyles(bCreateDefault)
         var Style_Plain_Table_1 = new CStyle("Plain Table 1", this.Default.Table, null, styletype_Table);
 		Style_Plain_Table_1.Create_Table_Plain_1(fUF(EThemeColor.themecolorText1, 0x50, null), fUF(EThemeColor.themecolorText1, 0x0D, null));
         this.Add(Style_Plain_Table_1);
-      
+
         var Style_Plain_Table_2 = new CStyle("Plain Table 2", this.Default.Table, null, styletype_Table);
 		Style_Plain_Table_2.Create_Table_Plain_2( fUF(EThemeColor.themecolorText1, null, null));
         this.Add(Style_Plain_Table_2);
@@ -7439,7 +7439,7 @@ function CStyles(bCreateDefault)
         var Style_Plain_Table_4 = new CStyle("Plain Table 4", this.Default.Table, null, styletype_Table);
 		Style_Plain_Table_4.Create_Table_Plain_4( fUF(EThemeColor.themecolorText1, 0x0D, null));
         this.Add(Style_Plain_Table_4);
-        
+
         var Style_Plain_Table_5 = new CStyle("Plain Table 5", this.Default.Table, null, styletype_Table);
 		Style_Plain_Table_5.Create_Table_Plain_5(fUF(EThemeColor.themecolorNone, null, null), fUF(EThemeColor.themecolorText1, 0x0D, null));
         this.Add(Style_Plain_Table_5);
@@ -7455,7 +7455,7 @@ function CStyles(bCreateDefault)
          Style_Table.Create_Table_ColorfulListAccent6();
          this.Add( Style_Table );
          */
-        
+
 
         var Style_Table_Grid_1_Accent = new CStyle("Grid Table 1 Light", this.Default.Table, null, styletype_Table );
 		Style_Table_Grid_1_Accent.Create_Table_Grid_1(fUF(EThemeColor.themecolorText1, 0x95, null),  fUF(EThemeColor.themecolorText1, 0x67, null));
@@ -7568,7 +7568,7 @@ function CStyles(bCreateDefault)
 		var Style_Table_Grid_Accent_6 = new CStyle("Grid Table 4 - Accent 6", this.Default.Table, null, styletype_Table );
 		Style_Table_Grid_Accent_6.Create_Table_Grid_4(fUF(EThemeColor.themecolorAccent6, null, null), fUF(EThemeColor.themecolorAccent6, 0x34, null), fUF(EThemeColor.themecolorAccent6, 0x90, null));
 		this.Add( Style_Table_Grid_Accent_6 );
-        
+
 		var Style_Table_Grid_Accent = new CStyle("Grid Table 5 Dark", this.Default.Table, null, styletype_Table );
 		Style_Table_Grid_Accent.Create_Table_Grid_5(fUF(EThemeColor.themecolorText1, null, null), fUF(EThemeColor.themecolorText1, 0x40, null), fUF(EThemeColor.themecolorLight1, null, null), fUF(EThemeColor.themecolorText1, 0x75, null));
 		this.Add( Style_Table_Grid_Accent);
@@ -7905,7 +7905,7 @@ function CStyles(bCreateDefault)
         var Style_Table_BorderedLined_Accent6 = new CStyle("Bordered & Lined - Accent 6", this.Default.Table, null, styletype_Table );
         Style_Table_BorderedLined_Accent6.Create_Table_BorderedAndLined(fUF(EThemeColor.themecolorAccent6, null, null), fUF(EThemeColor.themecolorAccent6, 0x34, null), fUF(EThemeColor.themecolorAccent6, 0x34, null), fUF(EThemeColor.themecolorAccent6, null, 0x95));
 		this.Add( Style_Table_BorderedLined_Accent6 );
-		
+
 		var Style_Table_Bordered_Accent = new CStyle("Bordered", this.Default.Table, null, styletype_Table );
 		Style_Table_Bordered_Accent.Create_Grid_Table_Light(fUF(EThemeColor.themecolorText1, 0x80, null),  fUF(EThemeColor.themecolorText1, 0x26, null));
 		this.Add( Style_Table_Bordered_Accent );
@@ -8121,7 +8121,7 @@ CStyles.prototype =
 			this.Default.Footer = Id;
 		}
 	},
-	
+
 	SetDefaultHyperlink : function(Id)
 	{
 		if (Id !== this.Default.Hyperlink)
@@ -8364,7 +8364,7 @@ CStyles.prototype =
 
         return Styles;
     },
-    
+
     CopyStyle : function()
     {
         var res = [];
@@ -9753,7 +9753,7 @@ CDocumentShd.prototype =
 
         if ( undefined !== this.Color )
             Shd.Color.Set( this.Color.r, this.Color.g, this.Color.b, this.Color.Auto );
-        
+
         if( undefined !== this.Unifill )
             Shd.Unifill = this.Unifill.createDuplicate();
 
@@ -9767,7 +9767,7 @@ CDocumentShd.prototype =
     {
         if ( undefined === Shd )
             return false;
-        
+
         if ( this.Value === Shd.Value )
         {
             switch ( this.Value )
@@ -9794,7 +9794,7 @@ CDocumentShd.prototype =
 
         return true;
     },
-    
+
     Get_Color : function(Paragraph)
     {
         if ( undefined !== this.Unifill )
@@ -9847,7 +9847,7 @@ CDocumentShd.prototype =
             this.Value = c_oAscShdNil;
             return;
         }
-        
+
         this.Value = Shd.Value;
         if ( c_oAscShdNil != Shd.Value )
         {
@@ -14975,7 +14975,7 @@ function CParaPr()
 	this.FramePr           = undefined;
 	this.OutlineLvl        = undefined; // Для TableOfContents
 	this.DefaultRunPr      = undefined;
-	this.Bullet            = undefined;
+	this.Bullet      = new AscFormat.CreateNoneBullet();
 	this.Lvl               = undefined;
 	this.DefaultTab        = undefined;
 	this.LnSpcReduction    = undefined;
