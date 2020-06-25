@@ -1159,13 +1159,6 @@ CShape.prototype.Get_Styles = function()
     }
     return new CStyles(true);
 };
-CShape.prototype.Is_InTable = function(bReturnTopTable)
-{
-    if ( true === bReturnTopTable )
-        return null;
-
-    return false;
-};
 
 CShape.prototype.Get_TableStyleForPara = function()
 {

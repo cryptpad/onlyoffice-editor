@@ -10144,26 +10144,12 @@ DrawingObjectsController.prototype =
 
     paraApplyCallback: function(Props)
     {
-            if ( "undefined" != typeof(Props.ContextualSpacing) && null != Props.ContextualSpacing )
-                this.setParagraphContextualSpacing( Props.ContextualSpacing );
 
             if ( "undefined" != typeof(Props.Ind) && null != Props.Ind )
                 this.setParagraphIndent( Props.Ind );
 
             if ( "undefined" != typeof(Props.Jc) && null != Props.Jc )
                 this.setParagraphAlign( Props.Jc );
-
-            if ( "undefined" != typeof(Props.KeepLines) && null != Props.KeepLines )
-                this.setParagraphKeepLines( Props.KeepLines );
-
-            if ( undefined != Props.KeepNext && null != Props.KeepNext )
-                this.setParagraphKeepNext( Props.KeepNext );
-
-            if ( undefined != Props.WidowControl && null != Props.WidowControl )
-                this.setParagraphWidowControl( Props.WidowControl );
-
-            if ( "undefined" != typeof(Props.PageBreakBefore) && null != Props.PageBreakBefore )
-                this.setParagraphPageBreakBefore( Props.PageBreakBefore );
 
             if ( "undefined" != typeof(Props.Spacing) && null != Props.Spacing )
                 this.setParagraphSpacing( Props.Spacing );
