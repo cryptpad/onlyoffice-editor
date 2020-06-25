@@ -8409,6 +8409,10 @@
 			incY : 0, type === c_oAscSelectionType.RangeCol || type === c_oAscSelectionType.RangeCells ? incX : 0);
     };
 	WorksheetView.prototype._scrollToRange = function (range) {
+        if (window['IS_NATIVE_EDITOR']) {
+            return null;
+        }
+
 		var vr = this.visibleRange;
 		var nRowsCount = this.nRowsCount;
 		var nColsCount = this.nColsCount;
