@@ -3064,8 +3064,8 @@ var editor;
       }, true, undefined, sToken);
     }
     else{
-      var sBulletSymbol = props.asc_getBulletSymbol();
-      var sBulletFont = props.asc_getBulletFont();
+      var sBulletSymbol = props.asc_getBulletSymbol && props.asc_getBulletSymbol();
+      var sBulletFont = props.asc_getBulletFont && props.asc_getBulletFont();
       if(typeof sBulletSymbol === "string" && sBulletSymbol.length > 0
       && typeof sBulletFont === "string" && sBulletFont.length > 0) {
         var t = this;
