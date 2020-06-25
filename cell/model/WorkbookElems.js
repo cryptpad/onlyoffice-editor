@@ -10366,6 +10366,9 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		this.name = null;
 		this.id = null;
 
+		this._isActive = null;
+		this._isTemporary = null;
+
 		return this;
 	}
 
@@ -10380,6 +10383,14 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		res.id = this.id;
 
 		return res;
+	};
+
+	CT_NamedSheetView.prototype.asc_getName = function () {
+		return this.name;
+	};
+
+	CT_NamedSheetView.prototype.asc_getIsActive = function () {
+		return this._isActive;
 	};
 
 	function CT_NsvFilter() {
@@ -10829,6 +10840,9 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	prot["asc_getName"] = prot.asc_getName;
 
 	window["AscCommonExcel"].CT_NamedSheetView = CT_NamedSheetView;
+	prot = CT_NamedSheetView.prototype;
+	prot["asc_getName"] = prot.asc_getName;
+	prot["asc_getIsActive"] = prot.asc_getIsActive;
 	window["AscCommonExcel"].CT_NsvFilter = CT_NsvFilter;
 	window["AscCommonExcel"].CT_ColumnFilter = CT_ColumnFilter;
 

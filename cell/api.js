@@ -4633,6 +4633,11 @@ var editor;
     }
   };
 
+  spreadsheet_api.prototype.asc_getNamedSheetViews = function () {
+    var ws = this.wbModel.getActiveWs();
+    return ws ? ws.aNamedSheetViews : null;
+  };
+
   /*
    * Export
    * -----------------------------------------------------------------------------
@@ -5050,5 +5055,8 @@ var editor;
 
   prot["asc_beforeInsertSlicer"] = prot.asc_beforeInsertSlicer;
   prot["asc_insertSlicer"] = prot.asc_insertSlicer;
+
+  prot["asc_addNamedSheetView"] = prot.asc_addNamedSheetView;
+  prot["asc_getNamedSheetViews"] = prot.asc_getNamedSheetViews;
 
 })(window);
