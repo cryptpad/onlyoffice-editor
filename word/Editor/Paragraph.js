@@ -6549,13 +6549,16 @@ Paragraph.prototype.CheckHyperlink = function(X, Y, CurPage)
 /**
  * Добавляем гиперссылку
  * @param {CHyperlinkProperty} HyperProps
+ * @returns {?ParaHyperlink}
  */
 Paragraph.prototype.AddHyperlink = function(HyperProps)
 {
+	var Hyperlink = null;
+
 	if (true === this.Selection.Use)
 	{
 		// Создаем гиперссылку
-		var Hyperlink = new ParaHyperlink();
+		Hyperlink = new ParaHyperlink();
 
 		// Заполняем гиперссылку полями
 		if (undefined !== HyperProps.Anchor && null !== HyperProps.Anchor)
@@ -6685,7 +6688,7 @@ Paragraph.prototype.AddHyperlink = function(HyperProps)
 			TextPr = HyperProps.TextPr;
 
 		// Создаем гиперссылку
-		var Hyperlink = new ParaHyperlink();
+		Hyperlink = new ParaHyperlink();
 
 		// Заполняем гиперссылку полями
 		if (undefined !== HyperProps.Anchor && null !== HyperProps.Anchor)
@@ -6743,6 +6746,7 @@ Paragraph.prototype.AddHyperlink = function(HyperProps)
 	}
 
 	this.Correct_Content();
+	return Hyperlink;
 };
 /**
  * Изменяем гиперссылку
