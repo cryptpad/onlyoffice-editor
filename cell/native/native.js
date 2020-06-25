@@ -4959,11 +4959,12 @@ window["native"]["offline_mouse_down"] = function(x, y, pin, isViewerMode, isFor
     } else {
         
         if (0 != _s.cellPin) {
-            
+
             var selection = ws._getSelection();
-            var lastRange = selection.getLast();
-            
-            ws.leftTopRange = lastRange.clone();
+            if (selection !== null) {
+                var lastRange = selection.getLast();
+                ws.leftTopRange = lastRange.clone();
+            }
             
         } else {
             wb._onChangeSelection(true, x, y, true);
