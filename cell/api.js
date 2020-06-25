@@ -4634,8 +4634,10 @@ var editor;
   };
 
   spreadsheet_api.prototype.asc_getNamedSheetViews = function () {
-    var ws = this.wbModel.getActiveWs();
-    return ws ? ws.aNamedSheetViews : null;
+    var ws = this.wb && this.wb.getWorksheet();
+    if(ws) {
+      return ws.getNamedSheetViews();
+    }
   };
 
   /*

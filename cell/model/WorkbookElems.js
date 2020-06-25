@@ -10393,6 +10393,18 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		return this._isActive;
 	};
 
+	CT_NamedSheetView.prototype.asc_getIsTemporary = function () {
+		return this._isTemporary;
+	};
+
+	CT_NamedSheetView.prototype.getAscNamedSheetView = function () {
+		var res = new asc_CNamedSheetView();
+		res.name = this.name;
+		res.isTemporary = this.isTemporary;
+		return res;
+	};
+
+
 	function CT_NsvFilter() {
 		this.columnsFilter = [];
 		this.sortRules = null;
@@ -10502,6 +10514,25 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		res.richSortCondition = this.richSortCondition ? this.richSortCondition.clone() : null;
 
 		return res;
+	};
+
+	function asc_CNamedSheetView() {
+		this.name = null;
+
+		this.isActive = null;
+		this.isTemporary = null;
+
+		return this;
+	}
+
+	asc_CNamedSheetView.prototype.getName = function () {
+		return this.name;
+	};
+	asc_CNamedSheetView.prototype.getIsActive = function () {
+		return this.isActive;
+	};
+	asc_CNamedSheetView.prototype.getIsTemporary = function () {
+		return this.isTemporary;
 	};
 
 
@@ -10840,11 +10871,14 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	prot["asc_getName"] = prot.asc_getName;
 
 	window["AscCommonExcel"].CT_NamedSheetView = CT_NamedSheetView;
-	prot = CT_NamedSheetView.prototype;
-	prot["asc_getName"] = prot.asc_getName;
-	prot["asc_getIsActive"] = prot.asc_getIsActive;
 	window["AscCommonExcel"].CT_NsvFilter = CT_NsvFilter;
 	window["AscCommonExcel"].CT_ColumnFilter = CT_ColumnFilter;
+	window["AscCommonExcel"].asc_CNamedSheetView = asc_CNamedSheetView;
+	prot = asc_CNamedSheetView.prototype;
+	prot["asc_getName"] = prot.asc_getName;
+	prot["asc_getIsActive"] = prot.asc_getIsActive;
+	prot["asc_getIsTemporary"] = prot.asc_getIsTemporary;
+
 
 
 })(window);

@@ -20420,6 +20420,20 @@
 		}
 	};
 
+    WorksheetView.prototype.getNamedSheetViews = function () {
+        var namedSheetViews = this.model.aNamedSheetViews;
+        if (namedSheetViews) {
+            var res = [], ascSheetView;
+            for (var i = 0; i < namedSheetViews.length; i++) {
+                ascSheetView = namedSheetViews[i].getAscNamedSheetView();
+                ascSheetView.isActive = i === this.model.nActiveNamedSheetView;
+                res.push(ascSheetView);
+            }
+            return res;
+        }
+        return null;
+    };
+
 
 	//------------------------------------------------------------export---------------------------------------------------
     window['AscCommonExcel'] = window['AscCommonExcel'] || {};
