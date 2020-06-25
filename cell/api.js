@@ -4626,6 +4626,13 @@ var editor;
     return this.wb.setSlicers(names, obj);
   };
 
+  spreadsheet_api.prototype.asc_addNamedSheetView = function (name, bSave) {
+    var ws = this.wb && this.wb.getWorksheet();
+    if(ws) {
+      return ws.addNamedSheetView(name, bSave);
+    }
+  };
+
   /*
    * Export
    * -----------------------------------------------------------------------------

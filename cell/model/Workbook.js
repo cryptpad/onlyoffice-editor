@@ -3551,8 +3551,6 @@
 
 		this.aSlicers = [];
 
-		//времеменный view добавляю в отдельное поле, чтобы потом не ставить заглушки на сохранение
-		this.temporaryNamedSheetView = null;
 		this.aNamedSheetViews = [];
 		this.nActiveNamedSheetView = null;
 	}

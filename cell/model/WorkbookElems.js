@@ -10425,6 +10425,32 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		}
 	};
 
+	CT_NsvFilter.prototype.init = function (obj) {
+		if (obj) {
+			var af;
+			if (obj.isTable()) {
+				this.ref = obj.Ref;
+				this.tableId = obj.DisplayName;
+				af = obj.AutoFilter;
+			} else {
+				this.ref = obj.Ref;
+				this.tableId = "0";
+				af = obj;
+			}
+
+			if (af) {
+				for (var i = 0; i < af.FilterColumns.length; i++) {
+					var newColumnFilter = new CT_ColumnFilter();
+					newColumnFilter.colId = af.FilterColumns[i].ColId;
+					newColumnFilter.filter = af.FilterColumns[i].clone();
+					this.columnsFilter.push(newColumnFilter);
+				}
+			}
+		}
+	};
+
+
+
 	function CT_ColumnFilter() {
 		this.dxf = null;
 		this.filter = null;

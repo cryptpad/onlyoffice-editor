@@ -729,14 +729,9 @@
 				}
 
 				var activeNamedSheetView = worksheet.getActiveNamedSheetView();
-				var temporaryNamedSheetView = worksheet.temporaryNamedSheetView;
 				var nsvFilter;
-				if (activeNamedSheetView !== null || temporaryNamedSheetView) {
-					if (temporaryNamedSheetView) {
-						nsvFilter = temporaryNamedSheetView;
-					} else {
-						nsvFilter = worksheet.getNvsFilterByTableName(filterObj.filter.DisplayName);
-					}
+				if (activeNamedSheetView !== null) {
+					nsvFilter = worksheet.getNvsFilterByTableName(filterObj.filter.DisplayName);
 					if (nsvFilter) {
 						//TODO перепроверить. соответствует ли индекс?
 						newFilterColumn = nsvFilter.getColumnFilterByColId(filterObj.index);

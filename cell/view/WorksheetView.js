@@ -20377,7 +20377,7 @@
 		});
 	};
 
-	WorksheetView.prototype.addSheetView = function (name, bSave) {
+	WorksheetView.prototype.addNamedSheetView = function (name, bSave) {
 		var t = this;
 
 		var _callback = function (success) {
@@ -20385,20 +20385,18 @@
 				return;
 			}
 
-			var sheetView = bSave ? t.model.temporaryNamedSheetView : null;
+			var sheetView = bSave ? t.model.aNamedSheetViews[0] : null;
 			if (!sheetView) {
 				sheetView = new AscCommonExcel.CT_NamedSheetView();
 				var _filter;
 				for (var i = 0; i < t.model.TableParts.length; i++) {
 					_filter = new AscCommonExcel.CT_NsvFilter();
-					_filter.ref = t.model.TableParts[i].Ref;
-					_filter.tableId = t.model.TableParts[i].DisplayName;
+                    _filter.init(t.model.TableParts[i]);
 					sheetView.nsvFilters.push(_filter);
 				}
 				if (t.model.AutoFilter) {
 					_filter = new AscCommonExcel.CT_NsvFilter();
-					_filter.ref = t.model.AutoFilter;
-					_filter.tableId = 0;
+                    _filter.init(t.model.AutoFilter);
 					sheetView.nsvFilters.push(_filter);
 				}
 			}
@@ -20406,11 +20404,11 @@
 
 			if (bSave) {
 				//TODO history
+                t.model.aNamedSheetViews.splice(0, 1);
 				t.model.aNamedSheetViews.push(sheetView);
-				t.model.temporaryNamedSheetView = null;
 			} else {
 				//TODO history local
-				t.model.temporaryNamedSheetView = sheetView;
+				t.model.aNamedSheetViews.unshift(sheetView);
 			}
 		};
 
