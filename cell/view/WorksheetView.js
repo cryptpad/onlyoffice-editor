@@ -8007,7 +8007,7 @@
 
 						if (_isDataValidation || _isPivot) {
 							res = {cursor: kCurAutoFilter, target: c_oTargetType.FilterObject, col: c.col, row: r.row,
-								idPivot: pivotButton.idPivot, isDataValidation: _isDataValidation};
+								idPivot: pivotButton && pivotButton.idPivot, isDataValidation: _isDataValidation};
 						} else if (!pivotButton) {
 							res = this.af_checkCursor(_offsetX, _offsetY, r.row, c.col);
 						}
