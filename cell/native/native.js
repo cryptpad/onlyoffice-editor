@@ -6847,8 +6847,16 @@ window["native"]["offline_apply_event"] = function(type,params) {
                     if (_api.asc_selectComment) {
                         _api.asc_selectComment(json["id"]);
                     }
+                }
+                break;
+            }
+
+        case 23102: // ASC_MENU_EVENT_TYPE_DO_SHOW_COMMENT
+            {
+                var json = JSON.parse(params[0]);
+                if (json && json["id"]) {
                     if (_api.asc_showComment) {
-                        _api.asc_showComment(json["id"], false);
+                        _api.asc_showComment(json["id"], json["isNew"]);
                     }
                 }
                 break;

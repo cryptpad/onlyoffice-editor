@@ -2467,6 +2467,17 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             break;
         }
 
+        case 23102: // ASC_MENU_EVENT_TYPE_DO_SHOW_COMMENT
+            {
+                var json = JSON.parse(params[0]);
+                if (json && json["id"]) {
+                    if (_api.asc_showComment) {
+                        _api.asc_showComment(json["id"], json["isNew"]);
+                    }
+                }
+                break;
+            }
+
         case 23103: // ASC_MENU_EVENT_TYPE_DO_SELECT_COMMENTS
         {
             var json = JSON.parse(_params[0]);
