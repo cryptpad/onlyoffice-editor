@@ -7387,7 +7387,6 @@
 	};
 	Worksheet.prototype.getPivotTableButtons = function (range) {
 		var res = [];
-		var pivotTable, pivotRange, j, pos, countC, countCWValues, countR, cell;
 		for (var i = 0; i < this.pivotTables.length; ++i) {
 			this.pivotTables[i].getPivotTableButtons(range, res);
 		}
