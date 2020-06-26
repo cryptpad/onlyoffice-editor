@@ -393,6 +393,9 @@ Paragraph.prototype.Recalculate_FastRange = function(SimpleChanges)
  */
 Paragraph.prototype.Recalculate_Page = function(CurPage)
 {
+	if (0 === CurPage)
+		this.CalculatedFrame = null;
+
     this.Clear_NearestPosArray();
 
     // Во время пересчета сбрасываем привязку курсора к строке.
@@ -1552,7 +1555,7 @@ Paragraph.prototype.private_RecalculateLineBottomBound = function(CurLine, CurPa
 
     // Сначала проверяем не нужно ли сделать перенос страницы в данном месте
     // Перенос не делаем, если это первая строка на новой странице
-    if (true === this.Use_YLimit()
+    if (true === this.UseLimit()
 		&& (Top > YLimit || Bottom2 > YLimit)
 		&& (CurLine != this.Pages[CurPage].FirstLine
 		|| false === bNoFootnotes

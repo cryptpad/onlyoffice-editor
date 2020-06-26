@@ -858,7 +858,7 @@ CDocumentContent.prototype.Recalculate_Page               = function(PageIndex, 
                     var nElementPageIndex = 0;
                     if (Index != TempIndex || ( true != oRecalcInfo.FrameRecalc && ( ( 0 === Index && 0 === PageIndex ) || Index != StartIndex ) ))
 					{
-						TempElement.Reset(0, FrameH, Frame_XLimit, Frame_YLimit, PageIndex);
+						TempElement.Reset(0, FrameH, Frame_XLimit, Asc.NoYLimit, PageIndex);
 					}
 					else
 					{
@@ -870,9 +870,29 @@ CDocumentContent.prototype.Recalculate_Page               = function(PageIndex, 
                     FrameH = TempElement.Get_PageBounds(PageIndex - TempElement.Get_StartPage_Relative()).Bottom;
                 }
 
+				var oTableInfo = Element.GetMaxTableGridWidth();
+
+				var nMaxGapLeft           = oTableInfo.GapLeft;
+				var nMaxGridWidth         = oTableInfo.GridWidth;
+				var nMaxGridWidthRightGap = oTableInfo.GridWidth + oTableInfo.GapRight;
+
+				for (var nTempIndex = Index + 1; nTempIndex < Index + FlowCount; ++nTempIndex)
+				{
+					var oTempTableInfo = this.Content[nTempIndex].GetMaxTableGridWidth();
+
+					if (oTempTableInfo.GapLeft > nMaxGapLeft)
+						nMaxGapLeft = oTempTableInfo.GapLeft;
+
+					if (oTempTableInfo.GridWidth > nMaxGridWidth)
+						nMaxGridWidth = oTempTableInfo.GridWidth;
+
+					if (oTempTableInfo.GridWidth + oTempTableInfo.GapRight > nMaxGridWidthRightGap)
+						nMaxGridWidthRightGap = oTempTableInfo.GridWidth + oTempTableInfo.GapRight;
+				}
+
                 // Обработаем "авто" ширину рамки. Ширина "авто" может быть в случае, когда значение W в FramePr
                 // отсутствует, когда, у нас ровно 1 параграф, с 1 строкой.
-                if (-1 === FrameW && 1 === FlowCount && 1 === Element.Lines.length && undefined === FramePr.Get_W())
+                if (Element.IsParagraph() && -1 === FrameW && 1 === FlowCount && 1 === Element.Lines.length && undefined === FramePr.Get_W())
                 {
                     FrameW     = Element.GetAutoWidthForDropCap();
                     var ParaPr = Element.Get_CompiledPr2(false).ParaPr;
@@ -887,10 +907,22 @@ CDocumentContent.prototype.Recalculate_Page               = function(PageIndex, 
                         FrameH = TempElement.Get_PageBounds(PageIndex - TempElement.Get_StartPage_Relative()).Bottom;
                     }
                 }
-                else if (-1 === FrameW)
-                    FrameW = Frame_XLimit;
+				else if (-1 === FrameW)
+				{
+					if (Element.IsTable() && !FramePr.Get_W())
+					{
+						FrameW = nMaxGridWidth;
+					}
+					else
+					{
+						FrameW = Frame_XLimit;
+					}
+				}
 
-                switch (FrameHRule)
+				var nGapLeft  = nMaxGapLeft;
+				var nGapRight = nMaxGridWidthRightGap > FrameW ? nMaxGridWidthRightGap - FrameW : 0;
+
+				switch (FrameHRule)
                 {
                     case Asc.linerule_Auto :
                         break;
@@ -1075,7 +1107,11 @@ CDocumentContent.prototype.Recalculate_Page               = function(PageIndex, 
                     FrameY = 0;
 
                 var FrameBounds = this.Content[Index].Get_FrameBounds(FrameX, FrameY, FrameW, FrameH);
-                var FrameX2     = FrameBounds.X, FrameY2 = FrameBounds.Y, FrameW2 = FrameBounds.W, FrameH2 = FrameBounds.H;
+
+				var FrameX2 = FrameBounds.X - nGapLeft,
+					FrameY2 = FrameBounds.Y,
+					FrameW2 = FrameBounds.W + nGapLeft + nGapRight,
+					FrameH2 = FrameBounds.H;
 
                 if ((FrameY2 + FrameH2 > Page_H || Y > Page_H - 0.001 ) && Index != StartIndex)
                 {
@@ -1089,8 +1125,8 @@ CDocumentContent.prototype.Recalculate_Page               = function(PageIndex, 
                     for (var TempIndex = Index; TempIndex < Index + FlowCount; TempIndex++)
                     {
                         var TempElement = this.Content[TempIndex];
-                        TempElement.Shift(TempElement.Pages.length - 1, FrameX, FrameY);
-                        TempElement.Set_CalculatedFrame(FrameX, FrameY, FrameW, FrameH, FrameX2, FrameY2, FrameW2, FrameH2, PageIndex, Index, FlowCount);
+                        TempElement.Shift(TempElement.GetPagesCount() - 1, FrameX, FrameY);
+                        TempElement.SetCalculatedFrame(new CCalculatedFrame(FramePr, FrameX, FrameY, FrameW, FrameH, FrameX2, FrameY2, FrameW2, FrameH2, PageIndex, Index, FlowCount));
                     }
 
                     var FrameDx = ( undefined === FramePr.HSpace ? 0 : FramePr.HSpace );
@@ -1315,26 +1351,56 @@ CDocumentContent.prototype.Draw                           = function(nPageIndex,
         pGraphics.Start_Command(AscFormat.DRAW_COMMAND_CONTENT);
     }
 
-    var ClipInfo = this.ClipInfo[CurPage];
+	var nPixelError = this.DrawingDocument.GetMMPerDot(1);
+
+	var ClipInfo = this.ClipInfo[CurPage];
     if (ClipInfo)
     {
-        // TODO: При клипе, как правило, обрезается сверху и снизу по 1px, поэтому введем небольшую коррекцию
-        var Correction = 0;
-        if (null !== this.DrawingDocument)
-            Correction = this.DrawingDocument.GetMMPerDot(1);
-
         var Bounds = this.Pages[CurPage].Bounds;
         pGraphics.SaveGrState();
-        pGraphics.AddClipRect(ClipInfo.X0, Bounds.Top - Correction, Math.abs(ClipInfo.X1 - ClipInfo.X0), Bounds.Bottom - Bounds.Top + Correction);
+        pGraphics.AddClipRect(ClipInfo.X0, Bounds.Top - nPixelError, Math.abs(ClipInfo.X1 - ClipInfo.X0), Bounds.Bottom - Bounds.Top + nPixelError);
     }
 
-    var Page_StartPos = this.Pages[CurPage].Pos;
-    var Page_EndPos   = this.Pages[CurPage].EndPos;
-    for (var Index = Page_StartPos; Index <= Page_EndPos; Index++)
+    var oPage = this.Pages[CurPage];
+    for (var nIndex = oPage.Pos; nIndex <= oPage.EndPos; ++nIndex)
     {
-        var ElementPageIndex = this.private_GetElementPageIndex(Index, CurPage, 0, 1);
-        this.Content[Index].Draw(ElementPageIndex, pGraphics);
+    	var oElement = this.Content[nIndex];
+
+    	if (oPage.IsFrame(oElement) || oPage.IsFlowTable(oElement))
+    		continue;
+
+        var nElementPageIndex = this.private_GetElementPageIndex(nIndex, CurPage, 0, 1);
+		oElement.Draw(nElementPageIndex, pGraphics);
     }
+
+	for (var nFlowTableIndex = 0, nFlowTablesCount = oPage.FlowTables.length; nFlowTableIndex < nFlowTablesCount; ++nFlowTableIndex)
+	{
+		var oTable = oPage.FlowTables[nFlowTableIndex];
+
+		var nElementPageIndex = this.private_GetElementPageIndex(oTable.GetIndex(), nPageIndex, ColumnIndex, ColumnsCount);
+		oTable.Draw(nElementPageIndex, pGraphics);
+	}
+
+	for (var nFrameIndex = 0, nFramesCount = oPage.Frames.length; nFrameIndex < nFramesCount; ++nFrameIndex)
+	{
+		var oFrame = oPage.Frames[nFrameIndex];
+
+		var nL = oFrame.L2 - nPixelError;
+		var nT = oFrame.T2 - nPixelError;
+		var nH = oFrame.H2 + 2 * nPixelError;
+		var nW = oFrame.W2 + 2 * nPixelError;
+
+		pGraphics.SaveGrState();
+		pGraphics.AddClipRect(nL, nT, nW, nH);
+
+		for (var nFlowIndex = oFrame.StartIndex; nFlowIndex < oFrame.StartIndex + oFrame.FlowCount; ++nFlowIndex)
+		{
+			var nElementPageIndex = this.private_GetElementPageIndex(nFlowIndex, nPageIndex, ColumnIndex, ColumnsCount);
+			this.Content[nFlowIndex].Draw(nElementPageIndex, pGraphics);
+		}
+
+		pGraphics.RestoreGrState();
+	}
 
 
 	if (this.LogicDocument)
@@ -4749,7 +4815,7 @@ CDocumentContent.prototype.SetParagraphIndent = function(Ind)
 		}
 	}
 };
-CDocumentContent.prototype.Set_ParagraphPresentationNumbering = function(Bullet, Pr)
+CDocumentContent.prototype.Set_ParagraphPresentationNumbering = function(Bullet)
 {
 	var Index, StartPos, EndPos;
 	if (true === this.ApplyToAll)
@@ -4788,51 +4854,48 @@ CDocumentContent.prototype.Set_ParagraphPresentationNumbering = function(Bullet,
 	}
 	for (Index = StartPos; Index <= EndPos; Index++)
 	{
-		this.Content[Index].Add_PresentationNumbering(Bullet, Pr);
+		this.Content[Index].Add_PresentationNumbering(Bullet);
 	}
-	//if(AscCommon.isRealObject(Pr) && AscFormat.isRealNumber(Pr.NumStartAt))
+	if(oLastParagraph)
 	{
-		if(oLastParagraph)
+		if(oLastBullet)
 		{
-			if(oLastBullet)
-			{
-				var Level = AscFormat.isRealNumber(oLastParagraph.Pr.Lvl) ? oLastParagraph.Pr.Lvl : 0;
+			var Level = AscFormat.isRealNumber(oLastParagraph.Pr.Lvl) ? oLastParagraph.Pr.Lvl : 0;
 
-				var oLastBullet_ = oLastParagraph.Get_PresentationNumbering();
-				if (oLastBullet_.Get_Type() >= numbering_presentationnumfrmt_ArabicPeriod)
+			var oLastBullet_ = oLastParagraph.Get_PresentationNumbering();
+			if (oLastBullet_.Get_Type() >= numbering_presentationnumfrmt_ArabicPeriod)
+			{
+				var Next = oLastParagraph.Next;
+				while (null != Next && type_Paragraph === Next.GetType())
 				{
-					var Next = oLastParagraph.Next;
-					while (null != Next && type_Paragraph === Next.GetType())
+					var NextLevel = Next.PresentationPr.Level;
+					var NextBullet = Next.Get_PresentationNumbering();
+					if (Level < NextLevel)
 					{
-						var NextLevel = Next.PresentationPr.Level;
-						var NextBullet = Next.Get_PresentationNumbering();
-						if (Level < NextLevel)
+						Next = Next.Next;
+						continue;
+					}
+					else if (Level > NextLevel)
+						break;
+					else if (NextBullet.Get_Type() === oLastBullet.Get_Type() && NextBullet.Get_StartAt() === oLastBullet.Get_StartAt() )
+					{
+						var nNumStartAt = Bullet.getNumStartAt();
+						if(AscFormat.isRealNumber(nNumStartAt))
 						{
-							Next = Next.Next;
-							continue;
+							var oPrBullet = new AscFormat.CBullet();
+							oPrBullet.putNumStartAt(nNumStartAt);
+							Next.Add_PresentationNumbering(oPrBullet);
 						}
-						else if (Level > NextLevel)
-							break;
-						else if (NextBullet.Get_Type() === oLastBullet.Get_Type() && NextBullet.Get_StartAt() === oLastBullet.Get_StartAt() )
-						{
-							var oPr = null;
-							if(Pr)
-							{
-								oPr = {NumStartAt: Pr.NumStartAt};
-							}
-							Next.Add_PresentationNumbering(Bullet, oPr);
-							Next = Next.Next;
-						}
-						else
-						{
-							break;
-						}
+						Next = Next.Next;
+					}
+					else
+					{
+						break;
 					}
 				}
 			}
 		}
 	}
-
 };
 CDocumentContent.prototype.Can_IncreaseParagraphLevel         = function(bIncrease)
 {
@@ -8796,6 +8859,30 @@ CDocumentContent.prototype.ProcessComplexFields = function()
 	for (var nIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex)
 	{
 		this.Content[nIndex].ProcessComplexFields();
+	}
+};
+CDocumentContent.prototype.GetFramePr = function()
+{
+	var oFramePr = null;
+	for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
+	{
+		var oTempFramePr = this.Content[nPos].GetFramePr();
+		if (!oTempFramePr)
+			return null;
+
+		if (!oFramePr)
+			oFramePr = oTempFramePr;
+		else if (!oFramePr.IsEqual(oTempFramePr))
+			return null;
+	}
+
+	return oFramePr;
+};
+CDocumentContent.prototype.SetCalculatedFrame = function(oFrame)
+{
+	for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
+	{
+		this.Content[nPos].SetCalculatedFrame(oFrame);
 	}
 };
 

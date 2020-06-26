@@ -179,6 +179,14 @@ CTextBody.prototype =
         return true;
     },
 
+    Is_InTable: function(bReturnTopTable)
+    {
+        if ( true === bReturnTopTable )
+            return null;
+
+        return false;
+    },
+
     Get_Theme : function()
     {
         if(this.parent){

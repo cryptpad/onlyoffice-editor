@@ -1688,7 +1688,7 @@ background-repeat: no-repeat;\
 		    window["asc_desktop_copypaste"](this, "Paste");
 			return true;
 		}
-		
+
 		if (!this.WordControl.m_oLogicDocument)
 			return false;
 
@@ -2554,97 +2554,32 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype.paraApply = function(Props)
 	{
-
 		var _presentation = editor.WordControl.m_oLogicDocument;
 		var graphicObjects = _presentation.GetCurrentController();
 		if (graphicObjects)
 		{
+			var sLoadFont = null, sLoadText = null;
 			var fCallback = function()
 			{
-
-				if ("undefined" != typeof(Props.Ind) && null != Props.Ind)
-					graphicObjects.setParagraphIndent(Props.Ind);
-
-				if ("undefined" != typeof(Props.Jc) && null != Props.Jc)
-					graphicObjects.setParagraphAlign(Props.Jc);
-
-
-				if ("undefined" != typeof(Props.Spacing) && null != Props.Spacing)
-					graphicObjects.setParagraphSpacing(Props.Spacing);
-
-
-				if (undefined != Props.Tabs)
-				{
-					var Tabs = new AscCommonWord.CParaTabs();
-					Tabs.Set_FromObject(Props.Tabs.Tabs);
-					graphicObjects.setParagraphTabs(Tabs);
-				}
-
-				if (undefined != Props.DefaultTab)
-				{
-					graphicObjects.setDefaultTabSize(Props.DefaultTab);
-				}
-				var TextPr = new AscCommonWord.CTextPr();
-
-				if (true === Props.Subscript)
-					TextPr.VertAlign = AscCommon.vertalign_SubScript;
-				else if (true === Props.Superscript)
-					TextPr.VertAlign = AscCommon.vertalign_SuperScript;
-				else if (false === Props.Superscript || false === Props.Subscript)
-					TextPr.VertAlign = AscCommon.vertalign_Baseline;
-
-				if (undefined != Props.Strikeout)
-				{
-					TextPr.Strikeout  = Props.Strikeout;
-					TextPr.DStrikeout = false;
-				}
-
-				if (undefined != Props.DStrikeout)
-				{
-					TextPr.DStrikeout = Props.DStrikeout;
-					if (true === TextPr.DStrikeout)
-						TextPr.Strikeout = false;
-				}
-
-				if (undefined != Props.SmallCaps)
-				{
-					TextPr.SmallCaps = Props.SmallCaps;
-					TextPr.AllCaps   = false;
-				}
-
-				if (undefined != Props.AllCaps)
-				{
-					TextPr.Caps = Props.AllCaps;
-					if (true === TextPr.AllCaps)
-						TextPr.SmallCaps = false;
-				}
-
-				if (undefined != Props.TextSpacing)
-					TextPr.Spacing = Props.TextSpacing;
-
-				if (undefined != Props.Position)
-					TextPr.Position = Props.Position;
-
-				if(undefined != Props.BulletSize || undefined != Props.BulletColor || undefined != Props.NumStartAt ||
-					(typeof Props.BulletFont === "string" && Props.BulletFont.length > 0
-					&& typeof Props.BulletSymbol === "string" && Props.BulletSymbol.length > 0))
-				{
-					graphicObjects.setParagraphNumbering(null, Props)
-				}
-				graphicObjects.paragraphAdd(new AscCommonWord.ParaTextPr(TextPr));
-				_presentation.Recalculate();
+				graphicObjects.paraApplyCallback(Props);
 				_presentation.Document_UpdateInterfaceState();
 			};
+			var oBullet = Props.asc_getBullet();
+			if(oBullet)
+			{
+				sLoadFont = oBullet.asc_getFont();
+				sLoadText = oBullet.asc_getSymbol();
+			}
 
-			if(typeof Props.BulletFont === "string" && Props.BulletFont.length > 0
-				&& typeof Props.BulletSymbol === "string" && Props.BulletSymbol.length > 0)
+			if(typeof sLoadFont === "string" && sLoadFont.length > 0
+				&& typeof sLoadText === "string" && sLoadText.length > 0)
 			{
 				var loader   = AscCommon.g_font_loader;
-				var fontinfo = AscFonts.g_fontApplication.GetFontInfo(Props.BulletFont);
+				var fontinfo = AscFonts.g_fontApplication.GetFontInfo(sLoadFont);
 				var isasync  = loader.LoadFont(fontinfo);
 				if (false === isasync)
 				{
-					AscFonts.FontPickerByCharacter.checkText(Props.BulletSymbol, this, function () {
+					AscFonts.FontPickerByCharacter.checkText(sLoadText, this, function () {
 						graphicObjects.checkSelectedObjectsAndCallback(fCallback, [], false, AscDFH.historydescription_Presentation_ParaApply);
 					});
 				}
@@ -2652,7 +2587,7 @@ background-repeat: no-repeat;\
 				{
 					this.asyncMethodCallback = function()
 					{
-						AscFonts.FontPickerByCharacter.checkText(Props.BulletSymbol, this, function () {
+						AscFonts.FontPickerByCharacter.checkText(sLoadText, this, function () {
 							graphicObjects.checkSelectedObjectsAndCallback(fCallback, [], false, AscDFH.historydescription_Presentation_ParaApply);
 						});
 					}
@@ -2662,8 +2597,6 @@ background-repeat: no-repeat;\
 			{
 				graphicObjects.checkSelectedObjectsAndCallback(fCallback, [], false, AscDFH.historydescription_Presentation_ParaApply);
 			}
-
-
 		}
 	};
 
@@ -2710,66 +2643,18 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype.put_ListType = function(type, subtype)
 	{
 		var oPresentation = this.WordControl.m_oLogicDocument;
-		var sBullet = "";
-		if(type === 0)
+		var NumberInfo =
 		{
-			switch(subtype)
-			{
-				case 0:
-				case 1:
-				{
-					sBullet = "•";
-					break;
-				}
-				case 2:
-				{
-					sBullet = "o";
-					break;
-				}
-				case 3:
-				{
-					sBullet = "§";
-					break;
-				}
-				case 4:
-				{
-					sBullet = String.fromCharCode( 0x0076 );
-					break;
-				}
-				case 5:
-				{
-					sBullet = String.fromCharCode( 0x00D8 );
-					break;
-				}
-				case 6:
-				{
-					sBullet = String.fromCharCode( 0x00FC );
-					break;
-				}
-				case 7:
-				{
-
-					sBullet = String.fromCharCode(119);
-					break;
-				}
-				case 8:
-				{
-					sBullet = String.fromCharCode(0x2013);
-					break;
-				}
-			}
-		}
-
-		var fCallback = function () {
-
-			var NumberInfo =
-			{
-				Type     : type,
-				SubType  : subtype
-			};
-			oPresentation.SetParagraphNumbering(NumberInfo);
+			Type     : type,
+			SubType  : subtype
 		};
-		if(sBullet.length > 0)
+		var oBullet = AscFormat.fGetPresentationBulletByNumInfo(NumberInfo);
+		var sBullet = oBullet.asc_getSymbol();
+		var fCallback = function ()
+		{
+			oPresentation.SetParagraphNumbering(oBullet);
+		};
+		if(typeof sBullet === "string" && sBullet.length > 0)
 		{
 			AscFonts.FontPickerByCharacter.checkText(sBullet, this, fCallback);
 		}
@@ -3984,7 +3869,7 @@ background-repeat: no-repeat;\
 
 	asc_docs_api.prototype.asc_setHeaderFooterProperties = function(oProps, bAll)
 	{
-		
+
 		if(oProps && this.WordControl && this.WordControl.m_oLogicDocument)
 		{
 			var sTextForCheck = "";
@@ -4032,7 +3917,7 @@ background-repeat: no-repeat;\
 			}
 			else
 			{
-				
+
 				oThis.WordControl.m_oLogicDocument.setHFProperties(oProps, bAll);
 			}
 		}
@@ -4304,7 +4189,7 @@ background-repeat: no-repeat;\
 
 		ImagePr.ImageUrl = obj.ImageUrl;
 
-		if (window["NATIVE_EDITOR_ENJINE"]) 
+		if (window["NATIVE_EDITOR_ENJINE"])
 		{
 		  this.WordControl.m_oLogicDocument.SetImageProps(ImagePr);
 		  return;
@@ -5158,7 +5043,7 @@ background-repeat: no-repeat;\
                             if (!AscCommon.EncryptionWorker.isChangesHandled)
                             	return AscCommon.EncryptionWorker.handleChanges(AscCommon.CollaborativeEditing.m_aChanges, this, this._openDocumentEndCallback);
                         }
-                        
+
 						this.isApplyChangesOnOpenEnabled = false;
 						this.bNoSendComments             = true;
 						var OtherChanges                 = AscCommon.CollaborativeEditing.m_aChanges.length > 0;
@@ -5961,7 +5846,7 @@ background-repeat: no-repeat;\
 		var aSlides = [];
 		var oPresentation = this.WordControl.m_oLogicDocument, i;
 		if(this.WordControl.Thumbnails){
-			
+
 			var oTh = editor.WordControl.Thumbnails;
 			var aSelectedArray = oTh.GetSelectedArray();
 			obj.isHidden = oTh.IsSlideHidden(aSelectedArray);

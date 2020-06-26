@@ -8007,7 +8007,7 @@
 
 						if (_isDataValidation || _isPivot) {
 							res = {cursor: kCurAutoFilter, target: c_oTargetType.FilterObject, col: c.col, row: r.row,
-								idPivot: pivotButton.idPivot, isDataValidation: _isDataValidation};
+								idPivot: pivotButton && pivotButton.idPivot, isDataValidation: _isDataValidation};
 						} else if (!pivotButton) {
 							res = this.af_checkCursor(_offsetX, _offsetY, r.row, c.col);
 						}
@@ -8409,6 +8409,10 @@
 			incY : 0, type === c_oAscSelectionType.RangeCol || type === c_oAscSelectionType.RangeCells ? incX : 0);
     };
 	WorksheetView.prototype._scrollToRange = function (range) {
+        if (window['IS_NATIVE_EDITOR']) {
+            return null;
+        }
+
 		var vr = this.visibleRange;
 		var nRowsCount = this.nRowsCount;
 		var nColsCount = this.nColsCount;

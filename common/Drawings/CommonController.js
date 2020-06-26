@@ -10144,126 +10144,74 @@ DrawingObjectsController.prototype =
 
     paraApplyCallback: function(Props)
     {
-            if ( "undefined" != typeof(Props.ContextualSpacing) && null != Props.ContextualSpacing )
-                this.setParagraphContextualSpacing( Props.ContextualSpacing );
+        if ( "undefined" != typeof(Props.Ind) && null != Props.Ind )
+            this.setParagraphIndent( Props.Ind );
 
-            if ( "undefined" != typeof(Props.Ind) && null != Props.Ind )
-                this.setParagraphIndent( Props.Ind );
+        if ( "undefined" != typeof(Props.Jc) && null != Props.Jc )
+            this.setParagraphAlign( Props.Jc );
 
-            if ( "undefined" != typeof(Props.Jc) && null != Props.Jc )
-                this.setParagraphAlign( Props.Jc );
+        if ( "undefined" != typeof(Props.Spacing) && null != Props.Spacing )
+            this.setParagraphSpacing( Props.Spacing );
 
-            if ( "undefined" != typeof(Props.KeepLines) && null != Props.KeepLines )
-                this.setParagraphKeepLines( Props.KeepLines );
+        if ( undefined != Props.Tabs )
+        {
+            var Tabs = new CParaTabs();
+            Tabs.Set_FromObject( Props.Tabs.Tabs );
+            this.setParagraphTabs( Tabs );
+        }
 
-            if ( undefined != Props.KeepNext && null != Props.KeepNext )
-                this.setParagraphKeepNext( Props.KeepNext );
+        if ( undefined != Props.DefaultTab )
+        {
+            //AscCommonWord.Default_Tab_Stop = Props.DefaultTab;
+            this.setDefaultTabSize( Props.DefaultTab );
+        }
 
-            if ( undefined != Props.WidowControl && null != Props.WidowControl )
-                this.setParagraphWidowControl( Props.WidowControl );
+        if(undefined != Props.Bullet)
+        {
+          //  if()
+            this.setParagraphNumbering(Props.Bullet)
+        }
 
-            if ( "undefined" != typeof(Props.PageBreakBefore) && null != Props.PageBreakBefore )
-                this.setParagraphPageBreakBefore( Props.PageBreakBefore );
+        // TODO: как только разъединят настройки параграфа и текста переделать тут
+        var TextPr = new CTextPr();
 
-            if ( "undefined" != typeof(Props.Spacing) && null != Props.Spacing )
-                this.setParagraphSpacing( Props.Spacing );
+        if ( true === Props.Subscript )
+            TextPr.VertAlign = AscCommon.vertalign_SubScript;
+        else if ( true === Props.Superscript )
+            TextPr.VertAlign = AscCommon.vertalign_SuperScript;
+        else if ( false === Props.Superscript || false === Props.Subscript )
+            TextPr.VertAlign = AscCommon.vertalign_Baseline;
 
-            if ( "undefined" != typeof(Props.Shd) && null != Props.Shd )
-                this.setParagraphShd( Props.Shd );
+        if ( undefined != Props.Strikeout )
+        {
+            TextPr.Strikeout  = Props.Strikeout;
+            TextPr.DStrikeout = false;
+        }
 
-            if ( "undefined" != typeof(Props.Brd) && null != Props.Brd )
-            {
-                if(Props.Brd.Left && Props.Brd.Left.Color)
-                {
-                    Props.Brd.Left.Unifill = AscFormat.CreateUnifillFromAscColor(Props.Brd.Left.Color, 1);
-                }
-                if(Props.Brd.Top && Props.Brd.Top.Color)
-                {
-                    Props.Brd.Top.Unifill = AscFormat.CreateUnifillFromAscColor(Props.Brd.Top.Color, 1);
-                }
-                if(Props.Brd.Right && Props.Brd.Right.Color)
-                {
-                    Props.Brd.Right.Unifill = AscFormat.CreateUnifillFromAscColor(Props.Brd.Right.Color, 1);
-                }
-                if(Props.Brd.Bottom && Props.Brd.Bottom.Color)
-                {
-                    Props.Brd.Bottom.Unifill = AscFormat.CreateUnifillFromAscColor(Props.Brd.Bottom.Color, 1);
-                }
-                if(Props.Brd.InsideH && Props.Brd.InsideH.Color)
-                {
-                    Props.Brd.InsideH.Unifill = AscFormat.CreateUnifillFromAscColor(Props.Brd.InsideH.Color, 1);
-                }
-                if(Props.Brd.InsideV && Props.Brd.InsideV.Color)
-                {
-                    Props.Brd.InsideV.Unifill = AscFormat.CreateUnifillFromAscColor(Props.Brd.InsideV.Color, 1);
-                }
+        if ( undefined != Props.DStrikeout )
+        {
+            TextPr.DStrikeout = Props.DStrikeout;
+            if ( true === TextPr.DStrikeout )
+                TextPr.Strikeout = false;
+        }
 
-                this.setParagraphBorders( Props.Brd );
-            }
+        if ( undefined != Props.SmallCaps )
+        {
+            TextPr.SmallCaps = Props.SmallCaps;
+            TextPr.AllCaps   = false;
+        }
 
-            if ( undefined != Props.Tabs )
-            {
-                var Tabs = new CParaTabs();
-                Tabs.Set_FromObject( Props.Tabs.Tabs );
-                this.setParagraphTabs( Tabs );
-            }
+        if ( undefined != Props.AllCaps )
+        {
+            TextPr.Caps = Props.AllCaps;
+            if ( true === TextPr.AllCaps )
+                TextPr.SmallCaps = false;
+        }
 
-            if ( undefined != Props.DefaultTab )
-            {
-                //AscCommonWord.Default_Tab_Stop = Props.DefaultTab;
-                this.setDefaultTabSize( Props.DefaultTab );
-            }
+        if ( undefined != Props.TextSpacing )
+            TextPr.Spacing = Props.TextSpacing;
 
-            if(undefined != Props.BulletSize || undefined != Props.BulletColor || undefined != Props.NumStartAt
-                || undefined != Props.BulletSymbol && undefined != Props.BulletFont)
-            {
-              //  if()
-                this.setParagraphNumbering(null, Props)
-            }
-
-            // TODO: как только разъединят настройки параграфа и текста переделать тут
-            var TextPr = new CTextPr();
-
-            if ( true === Props.Subscript )
-                TextPr.VertAlign = AscCommon.vertalign_SubScript;
-            else if ( true === Props.Superscript )
-                TextPr.VertAlign = AscCommon.vertalign_SuperScript;
-            else if ( false === Props.Superscript || false === Props.Subscript )
-                TextPr.VertAlign = AscCommon.vertalign_Baseline;
-
-            if ( undefined != Props.Strikeout )
-            {
-                TextPr.Strikeout  = Props.Strikeout;
-                TextPr.DStrikeout = false;
-            }
-
-            if ( undefined != Props.DStrikeout )
-            {
-                TextPr.DStrikeout = Props.DStrikeout;
-                if ( true === TextPr.DStrikeout )
-                    TextPr.Strikeout = false;
-            }
-
-            if ( undefined != Props.SmallCaps )
-            {
-                TextPr.SmallCaps = Props.SmallCaps;
-                TextPr.AllCaps   = false;
-            }
-
-            if ( undefined != Props.AllCaps )
-            {
-                TextPr.Caps = Props.AllCaps;
-                if ( true === TextPr.AllCaps )
-                    TextPr.SmallCaps = false;
-            }
-
-            if ( undefined != Props.TextSpacing )
-                TextPr.Spacing = Props.TextSpacing;
-
-            if ( undefined != Props.Position )
-                TextPr.Position = Props.Position;
-
-            this.paragraphAdd( new ParaTextPr(TextPr) );
+        this.paragraphAdd( new ParaTextPr(TextPr) );
         this.startRecalculate();
     },
 
@@ -13001,12 +12949,52 @@ function ApplyPresetToChartSpace(oChartSpace, aPreset, bCreate){
         return null;
     }
 
-    function fGetPresentationBulletByNumInfo(NumInfo){
-        if(!AscFormat.isRealNumber(NumInfo.Type) && !AscFormat.isRealNumber(NumInfo.SubType))
+    function getNumberingType(nType) {
+        var numberingType = 12;
+        switch(nType)
         {
-            return null;
+            case 0 :
+            case 1 :
+            {
+                numberingType = 12;//numbering_numfmt_arabicPeriod;
+                break;
+            }
+            case 2:
+            {
+                numberingType = 11;//numbering_numfmt_arabicParenR;
+                break;
+            }
+            case 3 :
+            {
+                numberingType = 34;//numbering_numfmt_romanUcPeriod;
+                break;
+            }
+            case 4 :
+            {
+                numberingType = 5;//numbering_numfmt_alphaUcPeriod;
+                break;
+            }
+            case 5 :
+            {
+                numberingType = 1;
+                break;
+            }
+            case 6 :
+            {
+                numberingType = 2;
+                break;
+            }
+            case 7 :
+            {
+                numberingType = 31;//numbering_numfmt_romanLcPeriod;
+                break;
+            }
         }
-        var bullet = new AscFormat.CBullet();
+        return numberingType;
+    }
+
+
+    function fFillBullet(NumInfo, bullet) {
         if(NumInfo.SubType < 0)
         {
             bullet.bulletType = new AscFormat.CBulletType();
@@ -13094,48 +13082,9 @@ function ApplyPresetToChartSpace(oChartSpace, aPreset, bCreate){
                 }
                 case 1 : /*autonum*/
                 {
-                    switch(NumInfo.SubType)
-                    {
-                        case 0 :
-                        case 1 :
-                        {
-                            var numberingType = 12;//numbering_numfmt_arabicPeriod;
-                            break;
-                        }
-                        case 2:
-                        {
-                            numberingType = 11;//numbering_numfmt_arabicParenR;
-                            break;
-                        }
-                        case 3 :
-                        {
-                            numberingType = 34;//numbering_numfmt_romanUcPeriod;
-                            break;
-                        }
-                        case 4 :
-                        {
-                            numberingType = 5;//numbering_numfmt_alphaUcPeriod;
-                            break;
-                        }
-                        case 5 :
-                        {
-                            numberingType = 1;
-                            break;
-                        }
-                        case 6 :
-                        {
-                            numberingType = 2;
-                            break;
-                        }
-                        case 7 :
-                        {
-                            numberingType = 31;//numbering_numfmt_romanLcPeriod;
-                            break;
-                        }
-                    }
                     bullet.bulletType = new AscFormat.CBulletType();
                     bullet.bulletType.type = AscFormat.BULLET_TYPE_BULLET_AUTONUM;
-                    bullet.bulletType.AutoNumType = numberingType;
+                    bullet.bulletType.AutoNumType = getNumberingType(NumInfo.SubType);
                     break;
                 }
                 default :
@@ -13144,6 +13093,14 @@ function ApplyPresetToChartSpace(oChartSpace, aPreset, bCreate){
                 }
             }
         }
+    }
+    function fGetPresentationBulletByNumInfo(NumInfo){
+        if(!AscFormat.isRealNumber(NumInfo.Type) && !AscFormat.isRealNumber(NumInfo.SubType))
+        {
+            return null;
+        }
+        var bullet = new AscFormat.CBullet();
+        fFillBullet(NumInfo, bullet);
         return bullet;
     }
 
@@ -13289,9 +13246,11 @@ function ApplyPresetToChartSpace(oChartSpace, aPreset, bCreate){
 	window['AscFormat'].CreateBlipFillUniFillFromUrl = CreateBlipFillUniFillFromUrl;
 	window['AscFormat'].fGetListTypeFromBullet = fGetListTypeFromBullet;
 	window['AscFormat'].fGetPresentationBulletByNumInfo = fGetPresentationBulletByNumInfo;
+	window['AscFormat'].fFillBullet = fFillBullet;
 	window['AscFormat'].fGetFontByNumInfo = fGetFontByNumInfo;
 	window['AscFormat'].CreateBlipFillRasterImageId = CreateBlipFillRasterImageId;
 	window['AscFormat'].fResetConnectorsIds = fResetConnectorsIds;
 	window['AscFormat'].getAbsoluteRectBoundsArr = getAbsoluteRectBoundsArr;
 	window['AscFormat'].fCheckObjectHyperlink = fCheckObjectHyperlink;
+	window['AscFormat'].getNumberingType = getNumberingType;
 })(window);

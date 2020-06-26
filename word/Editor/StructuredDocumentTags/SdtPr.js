@@ -1103,6 +1103,10 @@ CSdtTextFormPr.prototype.Copy = function()
 
 	return oText;
 };
+CSdtTextFormPr.prototype.IsEqual = function(oOther)
+{
+	return (this.MaxCharacters === oOther.MaxCharacters && this.Comb === oOther.Comb && this.Width === oOther.Width && this.CombPlaceholderSymbol === oOther.CombPlaceholderSymbol && this.CombPlaceholderFont === oOther.CombPlaceholderFont);
+};
 CSdtTextFormPr.prototype.WriteToBinary = function(oWriter)
 {
 	oWriter.WriteLong(this.MaxCharacters);
