@@ -837,7 +837,7 @@ var g_oFontProperties = {
         this.setSize(textPr.FontSize);
         this.setBold(textPr.Bold);
         this.setItalic(textPr.Italic);
-        this.setUnderline(textPr.Underline);
+        this.setUnderline(textPr.Underline === true ? Asc.EUnderline.underlineSingle : Asc.EUnderline.underlineNone);
         this.setStrikeout(textPr.Strikeout);
         this.setVerticalAlign(textPr.VertAlign);
         if (textPr.Unifill) {
