@@ -11144,10 +11144,8 @@ Paragraph.prototype.GetCalculatedFrame = function()
 };
 Paragraph.prototype.Internal_Get_FrameParagraphs = function()
 {
-	if (!this.CalculatedFrame)
-		return [];
-
-	return this.CalculatedFrame.GetParagraphs();
+	if (this.CalculatedFrame && this.CalculatedFrame.GetParagraphs().length > 0)
+		return this.CalculatedFrame.GetParagraphs();
 
 	var FrameParas = [];
 
