@@ -4640,6 +4640,13 @@ var editor;
     }
   };
 
+  spreadsheet_api.prototype.asc_deleteNamedSheetViews = function (arr) {
+    var ws = this.wb && this.wb.getWorksheet();
+    if(ws) {
+      return ws.deleteNamedSheetViews(arr);
+    }
+  };
+
   /*
    * Export
    * -----------------------------------------------------------------------------
@@ -5060,5 +5067,6 @@ var editor;
 
   prot["asc_addNamedSheetView"] = prot.asc_addNamedSheetView;
   prot["asc_getNamedSheetViews"] = prot.asc_getNamedSheetViews;
+  prot["asc_deleteNamedSheetViews"] = prot.asc_deleteNamedSheetViews;
 
 })(window);

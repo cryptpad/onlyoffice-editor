@@ -20434,6 +20434,17 @@
         return null;
     };
 
+    WorksheetView.prototype.deleteNamedSheetViews = function (arr) {
+        var namedSheetViews = this.model.aNamedSheetViews;
+        if (namedSheetViews && arr) {
+            var diff = 0;
+            for (var i = 0; i < arr.length; i++) {
+                //todo history
+                namedSheetViews.splice(arr[i] - diff, 1);
+                diff++;
+            }
+        }
+    };
 
 	//------------------------------------------------------------export---------------------------------------------------
     window['AscCommonExcel'] = window['AscCommonExcel'] || {};
