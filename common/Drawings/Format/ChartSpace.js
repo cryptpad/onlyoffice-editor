@@ -6284,7 +6284,7 @@ CChartSpace.prototype.checkValByNumRef = function(workbook, ser, val, bVertical)
 {
     if(val && val.numRef)
     {
-        val.numRef.updateCache(bVertical, this.displayEmptyCellsAs, ser.getObjectType());
+        val.numRef.updateCache(bVertical, this.displayEmptyCellsAs, ser);
     }
 };
 
@@ -7142,12 +7142,10 @@ CChartSpace.prototype.getValAxisCrossType = function()
             if(oCrossAxis.scale.length > 1){
                 bKoeff = oCrossAxis.scale[1] - oCrossAxis.scale[0];
             }
-                fAxisPos = oCrossGrid.fStart + (fCrossValue - oCrossAxis.scale[0])*(oCrossGrid.fStride)/bKoeff;
-            // }
-            // else{
-            //     fAxisPos = oCrossGrid.fStart + (fCrossValue + 1 - oCrossAxis.scale[0])*(oCrossGrid.fStride)/(oCrossAxis.scale[1] - oCrossAxis.scale[0]);
-            // }
-
+            fAxisPos = oCrossGrid.fStart;
+            if(oCrossAxis.scale.length > 0) {
+                fAxisPos += (fCrossValue - oCrossAxis.scale[0])*(oCrossGrid.fStride)/bKoeff;
+            }
 
             var nOrientation = isRealObject(oCrossAxis.scaling) && AscFormat.isRealNumber(oCrossAxis.scaling.orientation) ? oCrossAxis.scaling.orientation : AscFormat.ORIENTATION_MIN_MAX;
             if(nOrientation === AscFormat.ORIENTATION_MAX_MIN){
@@ -12073,7 +12071,7 @@ CChartSpace.prototype.hitInTextRect = function()
                     if(!bSurfaceChart){
                         ser = series[i];
 
-                        if(ser.isHiddenForLegend)
+                        if(ser.isHidden)
                             continue;
                         entry = legend.findLegendEntryByIndex(i);
                         if(entry && entry.bDelete)
@@ -12186,7 +12184,7 @@ CChartSpace.prototype.hitInTextRect = function()
             {
                 ser = series[0];
                 i = 1;
-                while(ser && ser.isHiddenForLegend)
+                while(ser && ser.isHidden)
                 {
                     ser = series[i];
                     ++i;

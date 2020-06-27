@@ -8941,7 +8941,7 @@ CNumRef.prototype =
         this.numCache = pr;
                 },
 
-    updateCache: function(bVertical, displayEmptyCellsAs, nSeriesType) {
+    updateCache: function(bVertical, displayEmptyCellsAs, ser) {
         if(!this.numCache) {
             this.setNumCache(new CNumLit());
             this.numCache.setFormatCode("General");
@@ -8950,7 +8950,10 @@ CNumRef.prototype =
         else {
             this.numCache.removeAllPts();
         }
-        this.numCache.update(this.f, bVertical, displayEmptyCellsAs, nSeriesType);
+        if(ser) {
+            ser.isHidden = true;
+        }
+        this.numCache.update(this.f, bVertical, displayEmptyCellsAs, ser);
     }
 };
 
@@ -9192,7 +9195,7 @@ CNumLit.prototype =
         this.setPtCount(0);
     },
 
-    update: function (sFormula, bVertical, displayEmptyCellsAs, nSeriesType) {
+    update: function (sFormula, bVertical, displayEmptyCellsAs, ser) {
         this.removeAllPts();
         if(!(typeof sFormula === "string" && sFormula.length > 0)) {
             return;
@@ -9200,6 +9203,7 @@ CNumLit.prototype =
         var aParsedRef = AscFormat.fParseChartFormula(sFormula);
         var lit_format_code = typeof this.formatCode === "string" && this.formatCode.length > 0 ? this.formatCode : "General";
         var pt_index = 0, i, j, cell, pt, row_hidden, col_hidden, nPtCount = 0, t;
+
         for(i = 0; i < aParsedRef.length; ++i)
         {
             var oCurRef = aParsedRef[i];
@@ -9219,6 +9223,9 @@ CNumLit.prototype =
                     {
                         if(!row_hidden && !source_worksheet.getColHidden(j) || (this.displayHidden === true))
                         {
+                            if(ser) {
+                                ser.isHidden = false;
+                            }
                             cell = source_worksheet.getCell3(range.r1, j);
                             var value = cell.getNumberValue();
                             if(!AscFormat.isRealNumber(value) && (!AscFormat.isRealNumber(displayEmptyCellsAs) || displayEmptyCellsAs === 1)){
@@ -9284,7 +9291,7 @@ CNumLit.prototype =
                                         nSpliceIndex = this.pts.length;
                                         dLastNoEmptyVal = pt.val;
                                     }
-                                    else if(displayEmptyCellsAs === 0 && nSeriesType === AscDFH.historyitem_type_LineSeries)
+                                    else if(displayEmptyCellsAs === 0 && ser &&  ser.getObjectType() === AscDFH.historyitem_type_LineSeries)
                                     {
                                         pt = new AscFormat.CNumericPoint();
                                         pt.setIdx(nPtCount);
@@ -9313,6 +9320,9 @@ CNumLit.prototype =
                     {
                         if(!col_hidden && !source_worksheet.getRowHidden(j) || (this.displayHidden === true))
                         {
+                            if(ser) {
+                                ser.isHidden = false;
+                            }
                             cell = source_worksheet.getCell3(j, range.c1);
                             var value = cell.getNumberValue();
                             if(!AscFormat.isRealNumber(value) && !AscFormat.isRealNumber(displayEmptyCellsAs)){
@@ -9361,7 +9371,7 @@ CNumLit.prototype =
                                         nSpliceIndex = this.pts.length;
                                         dLastNoEmptyVal = pt.val;
                                     }
-                                    else if(displayEmptyCellsAs === 0 && nSeriesType === AscDFH.historyitem_type_LineSeries)
+                                    else if(displayEmptyCellsAs === 0 && ser &&  ser.getObjectType() === AscDFH.historyitem_type_LineSeries)
                                     {
                                         pt = new AscFormat.CNumericPoint();
                                         pt.setIdx(nPtCount);
