@@ -2549,7 +2549,6 @@ function CDLbl()
         }
         return AscCommon.translateManager.getValue('Series') + " " + (this.idx + 1);
     };
-
     CSeriesBase.prototype.handleUpdateFill = function() {
         if(this.parent && this.parent.parent
             && this.parent.parent.parent && this.parent.parent.parent.parent
@@ -2586,7 +2585,6 @@ function CDLbl()
             this.dPt[i].marker && checkSpPrRasterImages(this.dPt[i].marker.spPr);
         }
     };
-
     CSeriesBase.prototype.getCatName = function(idx) {
         var pts;
         var cat;
@@ -2614,7 +2612,6 @@ function CDLbl()
         }
         return (idx + 1) + "";
     };
-
     CSeriesBase.prototype.getFormatCode = function()
     {
         var pts;
@@ -2748,6 +2745,49 @@ function CDLbl()
     };
     CSeriesBase.prototype.getOrder = function() {
         return this.order;
+    };
+    CSeriesBase.prototype.parseFormula = function(sFormula) {
+        if(sFormula[0] === '(')
+            sFormula = sFormula.slice(1);
+        if(sFormula[sFormula.length-1] === ')')
+            sFormula = sFormula.slice(0, -1);
+        var f1 = sFormula;
+        var aFormulas = f1.split(",");
+        var aRet = [];
+        for(var nF = 0; nF = aFormulas.length; ++nF) {
+            var oParsedF = AscCommon.parserHelp.parse3DRef(aFormulas[0]);
+            if(!oParsedF) {
+                return [];
+            }
+            aRet.push(oParsedF);
+        }
+        return aRet;
+    };
+    CSeriesBase.prototype.setName = function(sName) {
+        if(typeof sName === "string" && sName.length > 0) {
+            var oTx = new CTx();
+            this.setTx(oTx);
+            if(sName[0] === "=") {
+                var aParsedF = this.parseFormula(sName.slice(1));
+                if(aParsedF.length === 1) {
+                    var oStrRef = new AscFormat.CStrRef();
+                    oTx.setStrRef(oStrRef);
+                    oTx.setVal(null);
+                    oStrRef.setF(sName);
+                }
+                else {
+                    oTx.setStrRef(null);
+                    oTx.setVal(sName.slice(1));
+                }
+            }
+            else {
+                oTx.setStrRef(null);
+                oTx.setVal(sName);
+            }
+        }
+        else {
+            this.setTx(null);
+        }
     };
     CSeriesBase.prototype["asc_getIsVisible"] = CSeriesBase.prototype.isVisible;
     CSeriesBase.prototype["asc_setIsVisible"] = function(bVal) {
@@ -10281,7 +10321,18 @@ CTx.prototype =
     {
         History.Add(new CChangesDrawingsString(this, AscDFH.historyitem_Tx_SetVal, this.strRef, pr));
         this.val = pr;
-            }
+            },
+
+    getText: function() {
+        var sRet = "";
+        if(typeof this.val === "string" && this.val.length > 0) {
+            sRet = this.val;
+        }
+        else if(this.strRef) {
+            sRet = this.strRef.getText();
+        }
+        return sRet;
+    }
 };
 
 
@@ -10403,6 +10454,21 @@ CStockChart.prototype.constructor = CStockChart;
     };
 
 
+    function fParseChartFormula(sFormula) {
+        var oWB = Asc.editor && Asc.editor.wbModel;
+        if(!oWB) {
+            return [];
+        }
+        var oWS = oWB.getWorksheet(0);
+        if(!oWS) {
+            return [];
+        }
+        var res;
+        AscCommonExcel.executeInR1C1Mode(false, function () {
+            res = AscCommonExcel.getRangeByRef(sFormula, oWS);
+        });
+        return res;
+    }
 
 function CStrCache()
 {
@@ -10419,7 +10485,6 @@ CStrCache.prototype =
     {
         return this.Id;
     },
-
 
     Refresh_RecalcData: function()
     {},
@@ -10493,6 +10558,105 @@ CStrCache.prototype =
     {
         (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsLong(this, AscDFH.historyitem_StrCache_SetPtCount, this.ptCount, pr));
         this.ptCount = pr;
+    },
+
+    update: function(sFormula, bVertical) {
+        if(!(typeof sFormula === "string" && sFormula.length > 0)) {
+            return;
+        }
+        var pt_index = 0, i, j, cell, pt, value_width_format, row_hidden, col_hidden, nPtCount = 0;
+        var aParsedRef = AscFormat.fParseChartFormula(sFormula);
+        var str_cache = this;
+        var fParseTableDataString = function(oRef, oCache){
+            if(Array.isArray(oRef)){
+                for(var i = 0; i < oRef.length; ++i){
+                    if(Array.isArray(oRef[i])){
+                        fParseTableDataString(oRef, oCache);
+                    }
+                    else{
+                        pt = new AscFormat.CStringPoint();
+                        pt.setIdx(pt_index);
+                        pt.setVal(oRef[i].value);
+                        str_cache.addPt(pt);
+                        ++pt_index;
+                        ++nPtCount;
+                    }
+                }
+            }
+        };
+        for(i = 0; i < aParsedRef.length; ++i)
+        {
+            var oCurRef = aParsedRef[i];
+            var source_worksheet = oCurRef.worksheet;
+            if(source_worksheet)
+            {
+                var range = oCurRef.bbox;
+                if(range.r1 === range.r2 || bVertical === true)
+                {
+                    row_hidden = source_worksheet.getRowHidden(range.r1);
+                    j = range.c1;
+                    while(i === 0 && source_worksheet.getColHidden(j) && j <= range.c2){
+                        ++j;
+                    }
+                    for(;  j <= range.c2; ++j)
+                    {
+                        if(!row_hidden && !source_worksheet.getColHidden(j))
+                        {
+                            cell = source_worksheet.getCell3(range.r1, j);
+                            value_width_format = cell.getValueWithFormat();
+                            if(typeof value_width_format === "string" && value_width_format.length > 0)
+                            {
+                                pt = new AscFormat.CStringPoint();
+                                pt.setIdx(nPtCount);
+                                pt.setVal(value_width_format);
+
+                                if(str_cache.pts.length === 0){
+                                    pt.formatCode = cell.getNumFormatStr()
+                                }
+                                str_cache.addPt(pt);
+                                //addPointToMap(oThis.pointsMap, source_worksheet, range.r1, j, pt);
+                            }
+                            ++nPtCount;
+                        }
+                        pt_index++;
+                    }
+                }
+                else
+                {
+                    col_hidden = source_worksheet.getColHidden(range.c1);
+                    j = range.r1;
+                    while(i === 0 && source_worksheet.getRowHidden(j) && j <= range.r2){
+                        ++j;
+                    }
+                    for(;  j <= range.r2; ++j)
+                    {
+                        if(!col_hidden && !source_worksheet.getRowHidden(j))
+                        {
+                            cell = source_worksheet.getCell3(j, range.c1);
+                            value_width_format = cell.getValueWithFormat();
+                            if(typeof value_width_format === "string" && value_width_format.length > 0)
+                            {
+                                pt = new AscFormat.CStringPoint();
+                                pt.setIdx(nPtCount);
+                                pt.setVal(cell.getValueWithFormat());
+
+                                if(str_cache.pts.length === 0){
+                                    pt.formatCode = cell.getNumFormatStr()
+                                }
+                                str_cache.addPt(pt);
+                                //addPointToMap(oThis.pointsMap, source_worksheet, j, range.c1,  pt);
+                            }
+                            ++nPtCount;
+                        }
+                        pt_index++;
+                    }
+                }
+            }
+            else{
+                fParseTableDataString(oCurRef);
+            }
+        }
+        this.setPtCount(nPtCount);
     }
 };
 
@@ -10680,7 +10844,20 @@ CStrRef.prototype =
     {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_StrRef_SetStrCache, this.strCache, pr));
         this.strCache = pr;
-            }
+            },
+
+    updateCache: function(bVertical) {
+        this.setStrCache(new CStrCache());
+        this.strCache.update(this.f, bVertical);
+    },
+
+    getText: function() {
+
+    },
+
+    getCache: function () {
+
+    }
 };
 
 
@@ -13032,4 +13209,5 @@ function CreateMarkerGeometryByType(type, src)
 
     window['AscFormat'].ORIENTATION_MAX_MIN = ORIENTATION_MAX_MIN;
     window['AscFormat'].ORIENTATION_MIN_MAX = ORIENTATION_MIN_MAX;
+    window['AscFormat'].fParseChartFormula = fParseChartFormula;
 })(window);
