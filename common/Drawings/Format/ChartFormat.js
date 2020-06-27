@@ -8939,7 +8939,19 @@ CNumRef.prototype =
     {
         History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_NumRef_SetNumCache, this.numCache, pr));
         this.numCache = pr;
-                }
+                },
+
+    updateCache: function(bVertical, displayEmptyCellsAs, nSeriesType) {
+        if(!this.numCache) {
+            this.setNumCache(new CNumLit());
+            this.numCache.setFormatCode("General");
+            this.numCache.setPtCount(0);
+        }
+        else {
+            this.numCache.removeAllPts();
+        }
+        this.numCache.update(this.f, bVertical, displayEmptyCellsAs, nSeriesType);
+    }
 };
 
 
@@ -9170,7 +9182,209 @@ CNumLit.prototype =
     {
         (false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On()) && History.Add(new CChangesDrawingsLong(this, AscDFH.historyitem_NumLit_SetPtCount, this.ptCount, pr));
         this.ptCount = pr;
+            },
+    removeAllPts: function() {
+        var start_idx = this.pts.length - 1;
+        for(var i = start_idx; i > -1; --i)
+        {
+            this.removeDPt(i);
+        }
+        this.setPtCount(0);
+    },
+
+    update: function (sFormula, bVertical, displayEmptyCellsAs, nSeriesType) {
+        this.removeAllPts();
+        if(!(typeof sFormula === "string" && sFormula.length > 0)) {
+            return;
+        }
+        var aParsedRef = AscFormat.fParseChartFormula(sFormula);
+        var lit_format_code = typeof this.formatCode === "string" && this.formatCode.length > 0 ? this.formatCode : "General";
+        var pt_index = 0, i, j, cell, pt, row_hidden, col_hidden, nPtCount = 0, t;
+        for(i = 0; i < aParsedRef.length; ++i)
+        {
+            var oCurRef = aParsedRef[i];
+            var source_worksheet = oCurRef.worksheet;
+            if(source_worksheet)
+            {
+                var range = oCurRef.bbox;
+                var nLastNoEmptyIndex = null, dLastNoEmptyVal = null, aSpanPoints = [], nSpliceIndex = null;
+                if(range.r1 === range.r2 || bVertical === true)
+                {
+                    row_hidden = source_worksheet.getRowHidden(range.r1);
+                    j = range.c1;
+                    while(i === 0 && source_worksheet.getColHidden(j) && (this.displayHidden !== true) && j <= range.c2){
+                        ++j;
+                    }
+                    for(;  j <= range.c2; ++j)
+                    {
+                        if(!row_hidden && !source_worksheet.getColHidden(j) || (this.displayHidden === true))
+                        {
+                            cell = source_worksheet.getCell3(range.r1, j);
+                            var value = cell.getNumberValue();
+                            if(!AscFormat.isRealNumber(value) && (!AscFormat.isRealNumber(displayEmptyCellsAs) || displayEmptyCellsAs === 1)){
+                                var sVal = cell.getValueForEdit();
+                                if((typeof sVal === "string") && sVal.length > 0){
+                                    value = 0;
+                                }
+                            }
+                            if(AscFormat.isRealNumber(value))
+                            {
+                                pt = new AscFormat.CNumericPoint();
+                                pt.setIdx(nPtCount);
+                                pt.setVal(value);
+                                var sCellFormatStr = cell.getNumFormatStr();
+                                if(sCellFormatStr !== lit_format_code)
+                                {
+                                    pt.setFormatCode(sCellFormatStr)
+                                }
+                                this.addPt(pt);
+
+                                if(aSpanPoints.length > 0 )
+                                {
+                                    if(AscFormat.isRealNumber(nLastNoEmptyIndex))
+                                    {
+                                        var oStartPoint = this.getPtByIndex(nLastNoEmptyIndex);
+                                        for(t = 0; t < aSpanPoints.length; ++t)
+                                        {
+                                            aSpanPoints[t].val = oStartPoint.val + ((pt.val - oStartPoint.val)/(aSpanPoints.length + 1))*(t+1);
+                                            this.pts.splice(nSpliceIndex + t, 0, aSpanPoints[t]);
+                                        }
+                                    }
+                                    aSpanPoints.length = 0;
+                                }
+                                nLastNoEmptyIndex = nPtCount;
+                                nSpliceIndex = this.pts.length;
+                                dLastNoEmptyVal = pt.val;
+                            }
+                            else
+                            {
+                                if(AscFormat.isRealNumber(displayEmptyCellsAs) && displayEmptyCellsAs !== 1)
+                                {
+                                    var sCellValue = cell.getValue();
+                                    if(displayEmptyCellsAs === 2 || ((typeof sCellValue === "string") && sCellValue.length > 0))
+                                    {
+                                        pt = new AscFormat.CNumericPoint();
+                                        pt.setIdx(nPtCount);
+                                        pt.setVal(0);
+                                        this.addPt(pt);
+                                        if(aSpanPoints.length > 0 )
+                                        {
+                                            if(AscFormat.isRealNumber(nLastNoEmptyIndex))
+                                            {
+                                                var oStartPoint = this.getPtByIndex(nLastNoEmptyIndex);
+                                                for(t = 0; t < aSpanPoints.length; ++t)
+                                                {
+                                                    aSpanPoints[t].val = oStartPoint.val + ((pt.val - oStartPoint.val)/(aSpanPoints.length + 1))*(t+1);
+                                                    this.pts.splice(nSpliceIndex + t, 0, aSpanPoints[t]);
+                                                }
+                                            }
+                                            aSpanPoints.length = 0;
+                                        }
+                                        nLastNoEmptyIndex = nPtCount;
+                                        nSpliceIndex = this.pts.length;
+                                        dLastNoEmptyVal = pt.val;
+                                    }
+                                    else if(displayEmptyCellsAs === 0 && nSeriesType === AscDFH.historyitem_type_LineSeries)
+                                    {
+                                        pt = new AscFormat.CNumericPoint();
+                                        pt.setIdx(nPtCount);
+                                        pt.setVal(0);
+                                        aSpanPoints.push(pt);
+                                    }
+                                }
+                            }
+                            nPtCount++;
+                        }
+                        pt_index++;
+                    }
+                }
+                else
+                {
+                    col_hidden = source_worksheet.getColHidden(range.c1);
+                    var r2 = range.r2;
+                    if(source_worksheet.isTableTotalRow(new Asc.Range(range.c1, r2, range.c1, r2))){
+                        --r2;
+                    }
+                    j = range.r1;
+                    while(i === 0 && source_worksheet.getRowHidden(j) && (this.displayHidden !== true) && j <= r2){
+                        ++j;
+                    }
+                    for(; j <= r2; ++j)
+                    {
+                        if(!col_hidden && !source_worksheet.getRowHidden(j) || (this.displayHidden === true))
+                        {
+                            cell = source_worksheet.getCell3(j, range.c1);
+                            var value = cell.getNumberValue();
+                            if(!AscFormat.isRealNumber(value) && !AscFormat.isRealNumber(displayEmptyCellsAs)){
+                                var sVal = cell.getValueForEdit();
+                                if((typeof sVal === "string") && sVal.length > 0){
+                                    value = 0;
+                                }
+                            }
+                            if(AscFormat.isRealNumber(value))
+                            {
+                                pt = new AscFormat.CNumericPoint();
+                                pt.setIdx(nPtCount);
+                                pt.setVal(value);
+                                var sCellFormatStr = cell.getNumFormatStr();
+                                if(sCellFormatStr !== lit_format_code)
+                                {
+                                    pt.setFormatCode(sCellFormatStr);
+                                }
+                                this.addPt(pt);
+                            }
+                            else
+                            {
+                                if(AscFormat.isRealNumber(displayEmptyCellsAs) && displayEmptyCellsAs !== 1)
+                                {
+                                    var sCellValue = cell.getValue();
+                                    if(displayEmptyCellsAs === 2 || ((typeof sCellValue === "string") && sCellValue.length > 0))
+                                    {
+                                        pt = new AscFormat.CNumericPoint();
+                                        pt.setIdx(nPtCount);
+                                        pt.setVal(0);
+                                        this.addPt(pt);
+                                        if(aSpanPoints.length > 0 )
+                                        {
+                                            if(AscFormat.isRealNumber(nLastNoEmptyIndex))
+                                            {
+                                                var oStartPoint = this.getPtByIndex(nLastNoEmptyIndex);
+                                                for(t = 0; t < aSpanPoints.length; ++t)
+                                                {
+                                                    aSpanPoints[t].val = oStartPoint.val + ((pt.val - oStartPoint.val)/(aSpanPoints.length + 1))*(t+1);
+                                                    this.pts.splice(nSpliceIndex + t, 0, aSpanPoints[t]);
+                                                }
+                                            }
+                                            aSpanPoints.length = 0;
+                                        }
+                                        nLastNoEmptyIndex = nPtCount;
+                                        nSpliceIndex = this.pts.length;
+                                        dLastNoEmptyVal = pt.val;
+                                    }
+                                    else if(displayEmptyCellsAs === 0 && nSeriesType === AscDFH.historyitem_type_LineSeries)
+                                    {
+                                        pt = new AscFormat.CNumericPoint();
+                                        pt.setIdx(nPtCount);
+                                        pt.setVal(0);
+                                        aSpanPoints.push(pt);
+                                    }
+                                }
+                            }
+                            nPtCount++;
+                        }
+                        pt_index++;
+                    }
+                }
+
             }
+            else{
+                pt_index = 0;
+            }
+        }
+        if(aParsedRef.length > 0){
+            this.setPtCount(nPtCount);
+        }
+    }
 };
 
 function COfPieChart()
@@ -10500,6 +10714,15 @@ CStrCache.prototype =
         }
     },
 
+    removeAllPts: function() {
+        var start_idx = this.pts.length - 1;
+        for(var i = start_idx; i > -1; --i)
+        {
+            this.removeDPt(i);
+        }
+        this.setPtCount(0);
+    },
+
     createDuplicate: function()
     {
         var c = new CStrCache();
@@ -10847,7 +11070,10 @@ CStrRef.prototype =
             },
 
     updateCache: function(bVertical) {
-        this.setStrCache(new CStrCache());
+        if(!this.strCache) {
+            this.setStrCache(new CStrCache());
+        }
+        this.strCache.removeAllPts();
         this.strCache.update(this.f, bVertical);
     },
 
