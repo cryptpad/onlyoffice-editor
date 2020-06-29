@@ -11590,13 +11590,13 @@
 
 		var oldDecimalSep, oldGroupSep;
 		if (specialPasteProps.advancedOptions) {
-			if (specialPasteProps.advancedOptions.NumberDecimalSeparator) {
+			if (specialPasteProps.advancedOptions.numberDecimalSeparator) {
 				oldDecimalSep = AscCommon.g_oDefaultCultureInfo.NumberDecimalSeparator;
-				AscCommon.g_oDefaultCultureInfo.NumberDecimalSeparator = specialPasteProps.advancedOptions.NumberDecimalSeparator;
+				AscCommon.g_oDefaultCultureInfo.NumberDecimalSeparator = specialPasteProps.advancedOptions.numberDecimalSeparator;
 			}
-			if (specialPasteProps.advancedOptions.NumberGroupSeparator) {
+			if (specialPasteProps.advancedOptions.numberGroupSeparator) {
 				oldGroupSep = AscCommon.g_oDefaultCultureInfo.NumberGroupSeparator;
-				AscCommon.g_oDefaultCultureInfo.NumberGroupSeparator = specialPasteProps.advancedOptions.NumberGroupSeparator;
+				AscCommon.g_oDefaultCultureInfo.NumberGroupSeparator = specialPasteProps.advancedOptions.numberGroupSeparator;
 			}
 		}
 
