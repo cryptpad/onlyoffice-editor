@@ -1166,6 +1166,11 @@ CDocMeta.prototype =
                         // clip
                         g.m_oContext.clip();
                     }
+                    else if (33 == _command_type)
+                    {
+                        var mode = s.GetLong();
+                        g.m_oContext.clip(0 === mode ? "nonzero" : "evenodd");
+                    }
                     break;
                 }
                 default:
