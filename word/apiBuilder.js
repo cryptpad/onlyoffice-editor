@@ -6682,7 +6682,7 @@
 		return this.Row.GetIndex();
 	};
 	/**
-	 * Get the row index.
+	 * Get parent table of the row.
 	 * @typeofeditors ["CDE"]
 	 * @returns {ApiTable | null}
 	 */
