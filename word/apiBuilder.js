@@ -6743,8 +6743,6 @@
 	/**
 	 * Merge cells in the row. 
 	 * @typeofeditors ["CDE"]
-	 * @param {Number} nCount - count of rows to be added.
-	 * @param {boolean} [isBefore=false] - Add a new rows before or after the row. 
 	 * @returns {ApiTableCell | false} - return false if can't merge.
 	 */
 	ApiTableRow.prototype.MergeCells = function()
@@ -6901,7 +6899,6 @@
 
 		return arrApiRanges;
 	};
-	
 
 	//------------------------------------------------------------------------------------------------------------------
 	//
