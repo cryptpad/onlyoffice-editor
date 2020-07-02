@@ -397,6 +397,8 @@
 				  self.enableKeyEventsHandler(true);
 			  }, "autoFiltersClick": function () {
 				  self._onAutoFiltersClick.apply(self, arguments);
+			  }, "tableTotalClick": function () {
+				  self._onTableTotalClick.apply(self, arguments);
 			  }, "pivotFiltersClick": function () {
 				  self._onPivotFiltersClick.apply(self, arguments);
 			  }, "commentCellClick": function () {
@@ -1434,6 +1436,23 @@
     this.getWorksheet().af_setDialogProp(idFilter);
   };
 
+  WorkbookView.prototype._onTableTotalClick = function(idTableTotal) {
+      var ws = this.getWorksheet();
+      if (idTableTotal) {
+          var _table = ws.model.TableParts ? ws.model.TableParts[idTableTotal.id] : null;
+          if (_table) {
+            var _tableColumn = _table.TableColumns[idTableTotal.colId];
+            if (_tableColumn) {
+                var val = _tableColumn.TotalsRowFunction;
+                if (null === val) {
+                    val = Asc.ETotalsRowFunction.totalrowfunctionNone;
+                }
+                this.handlers.trigger("asc_onTableTotalMenu", val);
+            }
+          }
+      }
+  };
+
   WorkbookView.prototype._onPivotFiltersClick = function(idPivot) {
     var filterObj = this.getWorksheet().pivot_setDialogProp(idPivot);
     if (filterObj) {
@@ -2205,6 +2224,9 @@
             if (c_oAscPopUpSelectorType.None === type) {
                 ws.setSelectionInfo("value", name, /*onlyActive*/true);
                 return;
+            } else if (c_oAscPopUpSelectorType.TotalRowFunc === type) {
+                ws.setSelectionInfo("totalRowFunc", name, /*onlyActive*/true);
+                return;
             }
 
             var callback = function (success) {
@@ -2251,7 +2273,7 @@
         }
     };
 
-    WorkbookView.prototype.startWizard = function (name) {
+    WorkbookView.prototype.startWizard = function (name, doCleanCellContent) {
         var t = this;
         var callback = function (success) {
             if (success) {
@@ -2261,6 +2283,10 @@
 
         var addFunction = function (name) {
         	t.setWizardMode(true);
+        	if (doCleanCellContent) {
+                t.cellEditor.selectionBegin = 0;
+                t.cellEditor.selectionEnd = t.cellEditor.textRender.getEndOfText();
+            }
 			t.cellEditor.insertFormula(name);
 			// ToDo send info from selection
 			var res = name ? new AscCommonExcel.CFunctionInfo(name) : null;

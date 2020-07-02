@@ -7990,12 +7990,14 @@
 				var activeCell = this.model.getSelection().activeCell;
 				var dataValidation = this.model.getDataValidation(activeCell.col, activeCell.row);
 				var isDataValidation = dataValidation && dataValidation.isListValues();
+				var isTableTotal = this.model.isTableTotal(activeCell.col, activeCell.row);
 				col = activeCell.col;
 				row = activeCell.row;
 				this._drawElements(function (_vr, _offsetX, _offsetY) {
 					res = null;
 					var _isDataValidation = false;
 					var _isPivot = false;
+					var _isTableTotal = false;
 					if (_vr.contains(c.col, r.row)) {
 						_offsetX += x;
 						_offsetY += y;
@@ -8003,11 +8005,15 @@
 							_isDataValidation = this._hitCursorFilterButton(_offsetX, _offsetY, col, row, true);
 						} else if (pivotButton) {
 							_isPivot = this._hitCursorFilterButton(_offsetX, _offsetY, c.col, r.row);
+						} else if (isTableTotal) {
+							_isTableTotal = this._hitCursorFilterButton(_offsetX, _offsetY, col, row, true);
 						}
 
 						if (_isDataValidation || _isPivot) {
 							res = {cursor: kCurAutoFilter, target: c_oTargetType.FilterObject, col: c.col, row: r.row,
 								idPivot: pivotButton && pivotButton.idPivot, isDataValidation: _isDataValidation};
+						} else if (_isTableTotal) {
+							res = {cursor: kCurAutoFilter, target: c_oTargetType.FilterObject, col: c.col, row: r.row, idTableTotal: {id: isTableTotal.index, colId: isTableTotal.colIndex}};
 						} else if (!pivotButton) {
 							res = this.af_checkCursor(_offsetX, _offsetY, r.row, c.col);
 						}
@@ -10689,6 +10695,15 @@
 							range.setValue(val);
 						}
 						expansionTableRange = range.bbox;
+                        break;
+                    case "totalRowFunc":
+                        var _table = t.model.autoFilters.getTableByActiveCell();
+                        if (_table) {
+                            var _tF = t.model.autoFilters._changeTotalsRowData(_table, range.bbox, {totalFunction: val});
+                            if (_tF) {
+                                range.setValue(_tF[0]);
+                            }
+                        }
                         break;
                     case "format":
                         range.setNumFormat(val);
@@ -15454,7 +15469,7 @@
 		var activeCell = this.model.getSelection().activeCell;
 		if (visibleRange.contains2(activeCell)) {
 			var dataValidation = this.model.getDataValidation(activeCell.col, activeCell.row);
-			if (dataValidation && dataValidation.isListValues()) {
+			if ((dataValidation && dataValidation.isListValues()) || this.model.isTableTotal(activeCell.col, activeCell.row)) {
 				this.af_drawCurrentButton(offsetX, offsetY, {
 					isOverlay: true,
 					isSortState: null,
@@ -15463,6 +15478,7 @@
 					col: activeCell.col
 				});
 			}
+
 			return false;
 		}
 		return true;
@@ -15755,27 +15771,30 @@
 				var row = range.r1;
 				for (var col = range.c1; col <= range.c2; col++) {
 					if (col === c) {
-
 						if (t._hitCursorFilterButton(x, y, col, row)) {
 							result = {cursor: kCurAutoFilter, target: c_oTargetType.FilterObject, col: -1, row: -1, idFilter: {id: num, colId: col - range.c1}};
 							break;
 						}
 					}
 				}
+			} else if (!filter.isAutoFilter() && filter.isTotalsRow() && filter.Ref.r2 === r && c >= filter.Ref.c1 + 1 && c <= filter.Ref.c2 + 1) {
+				if (t._hitCursorFilterButton(x, y, c, r, true)) {
+					result = {cursor: kCurAutoFilter, target: c_oTargetType.FilterObject, col: -1, row: -1, idFilter: {id: num, colId: col - range.c1}};
+				}
 			}
 		};
 
-			if (aWs.AutoFilter && aWs.AutoFilter.Ref) {
-				checkCurrentFilter(aWs.AutoFilter, null);
-			}
+		if (aWs.AutoFilter && aWs.AutoFilter.Ref) {
+			checkCurrentFilter(aWs.AutoFilter, null);
+		}
 
-			if (aWs.TableParts && aWs.TableParts.length && !result) {
-				for (var i = 0; i < aWs.TableParts.length; i++) {
-					if (aWs.TableParts[i].AutoFilter) {
-						checkCurrentFilter(aWs.TableParts[i], i);
-					}
+		if (aWs.TableParts && aWs.TableParts.length && !result) {
+			 for (var i = 0; i < aWs.TableParts.length; i++) {
+				if (aWs.TableParts[i].AutoFilter) {
+					checkCurrentFilter(aWs.TableParts[i], i);
 				}
 			}
+		}
 
 		return result;
 	};

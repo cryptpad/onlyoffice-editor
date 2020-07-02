@@ -630,10 +630,6 @@
 				});
 		};
 
-		asc_CEventsController.prototype._autoFiltersClick = function (idFilter) {
-			this.handlers.trigger("autoFiltersClick", idFilter);
-		};
-
 		asc_CEventsController.prototype._groupRowClick = function (event, target) {
 			// Обновляемся в режиме перемещения диапазона
 			var coord = this._getCoordinates(event);
@@ -1407,8 +1403,10 @@
 								this.handlers.trigger('onDataValidation');
 							} else if (t.targetInfo.idPivot && Asc.CT_pivotTableDefinition.prototype.asc_filterByCell) {
 								this.handlers.trigger("pivotFiltersClick", t.targetInfo.idPivot);
+							} else if (t.targetInfo.idTableTotal) {
+								this.handlers.trigger("tableTotalClick", t.targetInfo.idTableTotal);
 							} else {
-								t._autoFiltersClick(t.targetInfo.idFilter);
+								this.handlers.trigger("autoFiltersClick", t.targetInfo.idFilter);
 							}
 						}
 						event.preventDefault && event.preventDefault();

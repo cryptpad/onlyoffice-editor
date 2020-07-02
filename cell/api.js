@@ -3920,8 +3920,8 @@ var editor;
     this.wb.restoreFocus();
   };
 
-  spreadsheet_api.prototype.asc_startWizard = function (name) {
-    this.wb.startWizard(name);
+  spreadsheet_api.prototype.asc_startWizard = function (name, doCleanCellContent) {
+    this.wb.startWizard(name, doCleanCellContent);
     this.wb.restoreFocus();
   };
   spreadsheet_api.prototype.asc_canEnterWizardRange = function(char) {

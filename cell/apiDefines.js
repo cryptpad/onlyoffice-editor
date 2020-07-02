@@ -371,7 +371,8 @@ var c_oAscPopUpSelectorType = {
   Func: 1,
   Range: 2,
   Table: 3,
-  Slicer: 4
+  Slicer: 4,
+  TotalRowFunc: 5
 };
   /** @enum */
   var c_oSerFormat = {
@@ -678,6 +679,7 @@ var c_oAscPopUpSelectorType = {
   prot['Range'] = prot.Range;
   prot['Table'] = prot.Table;
   prot['Slicer'] = prot.Slicer;
+  prot['TotalRowFunc'] = prot.TotalRowFunc;
   window['Asc']['c_oAscSparklineType'] = window['Asc'].c_oAscSparklineType = c_oAscSparklineType;
   prot = c_oAscSparklineType;
   prot['Line'] = prot.Line;

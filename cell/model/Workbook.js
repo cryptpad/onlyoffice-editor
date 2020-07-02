@@ -6316,6 +6316,19 @@
 		}
 		return res;
 	};
+	Worksheet.prototype.isTableTotal = function (col, row) {
+		if (this.TableParts && this.TableParts.length > 0) {
+			for (var i = 0; i < this.TableParts.length; i++) {
+				if (this.TableParts[i].isTotalsRow()) {
+					var ref = this.TableParts[i].Ref;
+					if (ref.r2 === row && col >= ref.c1 && col <= ref.c2) {
+						return {index: i, colIndex: col - ref.c1};
+					}
+				}
+			}
+		}
+		return null;
+	};
 	Worksheet.prototype.isApplyFilterBySheet = function () {
 		var res = false;
 

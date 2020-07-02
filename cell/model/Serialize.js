@@ -10543,4 +10543,17 @@
 	window["AscCommonExcel"].BinaryStylesTableWriter = BinaryStylesTableWriter;
 	window["AscCommonExcel"].Binary_StylesTableReader = Binary_StylesTableReader;
 
+    window['Asc']['ETotalsRowFunction'] = window['AscCommonExcel'].ETotalsRowFunction = ETotalsRowFunction;
+    prot = ETotalsRowFunction;
+    prot['totalrowfunctionNone'] = prot.totalrowfunctionNone;
+    prot['totalrowfunctionAverage'] = prot.totalrowfunctionAverage;
+    prot['totalrowfunctionCount'] = prot.totalrowfunctionCount;
+    prot['totalrowfunctionCountNums'] = prot.totalrowfunctionCountNums;
+    prot['totalrowfunctionCustom'] = prot.totalrowfunctionCustom;
+    prot['totalrowfunctionMax'] = prot.totalrowfunctionMax;
+    prot['totalrowfunctionMin'] = prot.totalrowfunctionMin;
+    prot['totalrowfunctionStdDev'] = prot.totalrowfunctionStdDev;
+    prot['totalrowfunctionSum'] = prot.totalrowfunctionSum;
+    prot['totalrowfunctionVar'] = prot.totalrowfunctionVar;
+
 })(window);
