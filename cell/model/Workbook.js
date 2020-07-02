@@ -8358,6 +8358,87 @@
 		}
 	};
 
+	Worksheet.prototype.addNamedSheetView = function (name, bSave) {
+		var sheetView = bSave ? this.aNamedSheetViews[0] : null;
+		if (!sheetView) {
+			sheetView = new AscCommonExcel.CT_NamedSheetView();
+			var _filter;
+			for (var i = 0; i < this.TableParts.length; i++) {
+				_filter = new AscCommonExcel.CT_NsvFilter();
+				_filter.init(this.TableParts[i]);
+				sheetView.nsvFilters.push(_filter);
+			}
+			if (t.model.AutoFilter) {
+				_filter = new AscCommonExcel.CT_NsvFilter();
+				_filter.init(this.AutoFilter);
+				sheetView.nsvFilters.push(_filter);
+			}
+		}
+		sheetView.name = name;
+
+		if (bSave) {
+			//TODO history
+			this.aNamedSheetViews.splice(0, 1);
+			this.aNamedSheetViews.push(sheetView);
+		} else {
+			//TODO history local
+			this.aNamedSheetViews.unshift(sheetView);
+		}
+	};
+
+	Worksheet.prototype.addNamedSheetView = function (name, bSave) {
+		var sheetView = bSave ? this.aNamedSheetViews[0] : null;
+		if (!sheetView) {
+			sheetView = new AscCommonExcel.CT_NamedSheetView();
+			var _filter;
+			for (var i = 0; i < this.TableParts.length; i++) {
+				_filter = new AscCommonExcel.CT_NsvFilter();
+				_filter.init(this.TableParts[i]);
+				sheetView.nsvFilters.push(_filter);
+			}
+			if (t.model.AutoFilter) {
+				_filter = new AscCommonExcel.CT_NsvFilter();
+				_filter.init(this.AutoFilter);
+				sheetView.nsvFilters.push(_filter);
+			}
+		}
+		sheetView.name = name;
+
+		if (bSave) {
+			//TODO history
+			this.aNamedSheetViews.splice(0, 1);
+			this.aNamedSheetViews.push(sheetView);
+		} else {
+			//TODO history local
+			this.aNamedSheetViews.unshift(sheetView);
+		}
+	};
+
+	Worksheet.prototype.deleteNamedSheetViews = function (arr) {
+		var namedSheetViews = this.aNamedSheetViews;
+		if (namedSheetViews && arr) {
+			var diff = 0;
+			for (var i = 0; i < arr.length; i++) {
+				//todo history
+				namedSheetViews.splice(arr[i] - diff, 1);
+				diff++;
+			}
+		}
+	};
+
+	Worksheet.prototype.getNamedSheetViews = function () {
+		var namedSheetViews = this.aNamedSheetViews;
+		if (namedSheetViews) {
+			var res = [], ascSheetView;
+			for (var i = 0; i < namedSheetViews.length; i++) {
+				ascSheetView = namedSheetViews[i].getAscNamedSheetView();
+				ascSheetView.isActive = i === this.nActiveNamedSheetView;
+				res.push(ascSheetView);
+			}
+			return res;
+		}
+		return null;
+	};
 
 //-------------------------------------------------------------------------------------------------
 	var g_nCellOffsetFlag = 0;
