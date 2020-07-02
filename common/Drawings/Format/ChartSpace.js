@@ -15453,6 +15453,7 @@ CChartSpace.prototype.addSeries = function(sName, sValues) {
     }
     var oSeries;
     oSeries = oLastChart.series[0] ? oLastChart.series[0].createDuplicate() : oLastChart.getSeriesConstructor();
+    oSeries.setName(sName);
     oLastChart.addSer(oSeries);
     oSeries.setName(sName);
 };

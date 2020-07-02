@@ -2487,6 +2487,95 @@ function CDLbl()
         }
     };
 
+    function fParseNumArray(sVal) {
+        if(sVal[0] !== "{") {
+            return null;
+        }
+        var oToken, oParser, bResult, result = null, nIndex;
+        oParser = new AscCommonExcel.parserFormula(sVal, null, Asc.editor.wbModel.aWorksheets[0]);
+        bResult = oParser.parse(true, true);
+        if(bResult && oParser.outStack.length === 1) {
+            var oLastElem = oParser.outStack[0];
+            if(oLastElem.type === AscCommonExcel.cElementType.array &&
+                oLastElem.getRowCount() === 1) {
+                var aRow =  oLastElem.getRow(0);
+                if(aRow.length > 0) {
+                    result = [];
+                    for(nIndex = 0; nIndex < aRow.length; ++nIndex) {
+                        oToken = aRow[nIndex];
+                        if(oToken.type === AscCommonExcel.cElementType.number) {
+                            result.push(oToken.toNumber());
+                        }
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
+    function fParseNumLit(sVal) {
+        var result = null;
+        var sParsed, aNumbers, nIndex;
+        if(typeof sVal === "string" && sVal.length > 0) {
+            if(sVal[0] === "=") {
+                sParsed = sVal.slice(1);
+                aNumbers = fParseNumArray(sParsed);
+            }
+            else {
+                sParsed = sVal;
+                aNumbers = fParseNumArray(sParsed);
+                if(!Array.isArray(aNumbers)) {
+                    sParsed = "{" + sParsed + "}";
+                    aNumbers = fParseNumArray(sParsed);
+                }
+            }
+            if(Array.isArray(aNumbers) && aNumbers.length > 0) {
+                result = new CNumLit();
+                result.setFormatCode("General");
+                for(nIndex = 0; nIndex < aNumbers.length; ++nIndex) {
+                    result.addNumericPoint(nIndex, aNumbers[nIndex]);
+                }
+            }
+        }
+        return result;
+    }
+
+    function fParseNumRef(sVal) {
+        var result = null, aParsed, nIndex, oParsedRef, sRef;
+        if(typeof sVal === "string" && sVal.length > 0) {
+            if(sVal[0] === "=") {
+                aParsed = sVal.slice(1).split(",");
+            }
+            else {
+                aParsed = sVal.split(",");
+            }
+            if(Array.isArray(aParsed) && aParsed.length > 0) {
+                var sFormula;
+                if(aParsed.length > 1) {
+                    sFormula = "(";
+                }
+                else {
+                    sFormula = "";
+                }
+                for(nIndex = 0; nIndex < aParsed.length; ++nIndex) {
+                    sRef = aParsed[nIndex];
+                    oParsedRef = AscCommon.parseHelp.parse3DRef(sRef);
+                    if(!oParsedRef) {
+                        return null;
+                    }
+                    sFormula += ("," + sRef);
+                }
+                if(nIndex === aParsed.length) {
+                    if(aParsed.length > 1) {
+                        sFormula += ")";
+                    }
+                    result = new CNumRef();
+                    result.setF(sFormula);
+                }
+            }
+        }
+        return result;
+    }
     function CSeriesBase() {
         AscFormat.CBaseObject.call(this);
         this.idx = null;
@@ -2788,6 +2877,30 @@ function CDLbl()
         else {
             this.setTx(null);
         }
+    };
+    CSeriesBase.prototype.setValues = function(sValues) {
+        var bSuccess = false;
+        if(typeof sValues === "string" && sValues.length > 0) {
+            var oNumLit = fParseNumLit(sValues);
+            if(oNumLit) {
+                if(this.numCache) {
+                    this.setNumCache(null);
+                }
+                this.setNumLit(oNumLit);
+                bSuccess = true;
+            }
+            else {
+                var oNumRef = fParseNumRef(sValues);
+                if(oNumRef) {
+                    if(this.numLit) {
+                        this.setNumLit(null);
+                    }
+                    this.setNumRef(oNumRef);
+                }
+                bSuccess = true;
+            }
+        }
+        return bSuccess;
     };
     CSeriesBase.prototype["asc_getIsVisible"] = CSeriesBase.prototype.isVisible;
     CSeriesBase.prototype["asc_setIsVisible"] = function(bVal) {
@@ -8964,7 +9077,7 @@ function CNumericPoint()
     this.idx        = null;
     this.val        = null;
 
-    if(false === AscCommon.g_oIdCounter.m_bLoad && true === History.Is_On())
+    if(true === History.Is_On())
     {
         this.Id = g_oIdCounter.Get_NewId();
         g_oTableId.Add(this, this.Id);
@@ -9193,6 +9306,13 @@ CNumLit.prototype =
             this.removeDPt(i);
         }
         this.setPtCount(0);
+    },
+
+    addNumericPoint: function(idx, dNumber) {
+        var oPt = new CNumericPoint();
+        oPt.setIdx(idx);
+        oPt.setVal(dNumber);
+        this.addPt(oPt);
     },
 
     update: function (sFormula, bVertical, displayEmptyCellsAs, ser) {
