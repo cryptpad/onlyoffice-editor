@@ -7720,7 +7720,7 @@
 			return false;
 		};
 
-		var type;
+		var type, cursor;
 		for (i = 0, l = tables.length; i < l; ++i) {
 			var _ref = tables[i].Ref;
 			var onRow = null, onCol = null;
@@ -7742,20 +7742,23 @@
 			if (onCol && onRow) {
 				res = true;
 				type = c_oAscChangeSelectionFormatTable.data;
+				cursor = "pointer";
 				break;
 			} else if (onCol) {
 				res = true;
 				type = c_oAscChangeSelectionFormatTable.dataColumn;
+				cursor = "select-table-column";
 				break;
 			} else if (onRow) {
 				res = true;
 				type = c_oAscChangeSelectionFormatTable.row;
+				cursor = "select-table-row";
 				break;
 			}
 		}
 
 		return res ? {
-			cursor: "pointer",
+			cursor: cursor,
 			target: c_oTargetType.TableSelectionChange,
 			type: type,
 			row: row,
