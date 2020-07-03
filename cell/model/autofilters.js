@@ -581,7 +581,8 @@
 					t._setColorStyleTable(isTablePartsContainsRange.Ref, isTablePartsContainsRange);
 
 					//history
-					t._addHistoryObj({ref: cloneFilter.Ref, name: cloneFilter.TableStyleInfo.Name},
+					var tableStyleInfoName = cloneFilter.TableStyleInfo ? cloneFilter.TableStyleInfo.Name : null;
+					t._addHistoryObj({ref: cloneFilter.Ref, name: tableStyleInfoName},
 						AscCH.historyitem_AutoFilter_ChangeTableStyle, {activeCells: activeRange, styleName: styleName},
 						null, filterRange);
 
@@ -2102,6 +2103,7 @@
 						offset: offset,
 						displayName: newDisplayName
 					};
+					var tableStyleInfoName = fromFilter.tableStyleInfo ? fromFilter.tableStyleInfo.Name : null;
 					wsTo.autoFilters.addAutoFilter(fromFilter.TableStyleInfo.Name, range.bbox, true, true, props);
 				};
 
