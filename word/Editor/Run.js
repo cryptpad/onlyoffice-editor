@@ -31,7 +31,7 @@
  */
 
 "use strict";
-  
+
 // Import
 var g_oTableId = AscCommon.g_oTableId;
 var g_oTextMeasurer = AscCommon.g_oTextMeasurer;
@@ -2802,7 +2802,7 @@ ParaRun.prototype.Remove_StartTabs = function(TabsCounter)
 };
 //-----------------------------------------------------------------------------------
 // Функции пересчета
-//-----------------------------------------------------------------------------------   
+//-----------------------------------------------------------------------------------
 // Пересчитываем размеры всех элементов
 ParaRun.prototype.Recalculate_MeasureContent = function()
 {
@@ -5810,7 +5810,10 @@ ParaRun.prototype.Draw_Elements = function(PDSE)
         }
         else
         {
-            pGraphics.b_color1( CurTextPr.Color.r, CurTextPr.Color.g, CurTextPr.Color.b, 255);
+        	if(pGraphics.m_bIsTextDrawer === undefined)
+        	{
+				pGraphics.b_color1( CurTextPr.Color.r, CurTextPr.Color.g, CurTextPr.Color.b, 255);
+			}
         }
     }
 
@@ -6749,7 +6752,7 @@ ParaRun.prototype.ConvertParaContentPosToRangePos = function(oContentPos, nDepth
 		if (para_Text === this.Content[nPos].Type)
 			nRangePos++;
     }
-        
+
 	return nRangePos;
 };
 ParaRun.prototype.Get_PosByElement = function(Class, ContentPos, Depth, UseRange, Range, Line)
