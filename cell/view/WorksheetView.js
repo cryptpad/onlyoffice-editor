@@ -7680,89 +7680,89 @@
 			} : null;
 	};
 
-    WorksheetView.prototype._hitCursorTableSelectionChange = function (vr, x, y, row, col, offsetX, offsetY) {
-        var i, l, res, range, t = this;
-        var tables = this.model.TableParts;
+	WorksheetView.prototype._hitCursorTableSelectionChange = function (vr, x, y, row, col, offsetX, offsetY) {
+		var i, l, res, range, t = this;
+		var tables = this.model.TableParts;
 
-        var _checkPos = function (_r1, _c1, isRow, isCol) {
-            var x1 = t._getColLeft(_c1) - offsetX;
-            var y1 = t._getRowTop(_r1) - offsetY;
-            var height = t._getRowTop(_r1 + 1) - y1;
-            var width = t._getColLeft(_c1 + 1) - x1;
-            var _x2, _y2;
+		var _checkPos = function (_r1, _c1, isRow, isCol) {
+			var x1 = t._getColLeft(_c1) - offsetX;
+			var y1 = t._getRowTop(_r1) - offsetY;
+			var height = t._getRowTop(_r1 + 1) - y1;
+			var width = t._getColLeft(_c1 + 1) - x1;
+			var _x2, _y2;
 
-            //TODO коэффициэнты перепроверить
-            var maxChangeSelectionHeight = 27;
-            var maxChangeSelectionWidth = 24;
-            var percentOfWidth = 0.25;
-            var percentOfHeight = 0.3;
-            if (isRow) {
-                var tableSelectionHeight = height * percentOfHeight;
-                if (tableSelectionHeight > maxChangeSelectionHeight) {
-                    tableSelectionHeight = maxChangeSelectionHeight;
-                }
-                _y2 = y1 + tableSelectionHeight;
-                if(y >= y1 && y <= _y2) {
-                    return true;
-                }
-            }
-            if (isCol) {
-                var tableSelectionWidth = width * percentOfWidth;
-                if (tableSelectionWidth > maxChangeSelectionWidth) {
-                    tableSelectionWidth = maxChangeSelectionWidth;
-                }
-                _x2 = x1 + tableSelectionWidth;
-                if(x >= x1 && x <= _x2) {
-                    return true;
-                }
-            }
+			//TODO коэффициэнты перепроверить
+			var maxChangeSelectionHeight = 27;
+			var maxChangeSelectionWidth = 24;
+			var percentOfWidth = 0.25;
+			var percentOfHeight = 0.3;
+			if (isRow) {
+				var tableSelectionHeight = height * percentOfHeight;
+				if (tableSelectionHeight > maxChangeSelectionHeight) {
+					tableSelectionHeight = maxChangeSelectionHeight;
+				}
+				_y2 = y1 + tableSelectionHeight;
+				if (y >= y1 && y <= _y2) {
+					return true;
+				}
+			}
+			if (isCol) {
+				var tableSelectionWidth = width * percentOfWidth;
+				if (tableSelectionWidth > maxChangeSelectionWidth) {
+					tableSelectionWidth = maxChangeSelectionWidth;
+				}
+				_x2 = x1 + tableSelectionWidth;
+				if (x >= x1 && x <= _x2) {
+					return true;
+				}
+			}
 
-            return false;
-        };
+			return false;
+		};
 
-        var type;
-        for (i = 0, l = tables.length; i < l; ++i) {
-            var _ref = tables[i].Ref;
-            var onRow = null, onCol = null;
+		var type;
+		for (i = 0, l = tables.length; i < l; ++i) {
+			var _ref = tables[i].Ref;
+			var onRow = null, onCol = null;
 
-            range = new Asc.Range(_ref.c1, _ref.r1, _ref.c1, _ref.r2);
-            if (range.contains(col, row)) {
-                if (_checkPos(row, col, null, true)) {
-                    onRow = true;
-                }
-            }
+			range = new Asc.Range(_ref.c1, _ref.r1, _ref.c1, _ref.r2);
+			if (range.contains(col, row)) {
+				if (_checkPos(row, col, null, true)) {
+					onRow = true;
+				}
+			}
 
-            range = new Asc.Range(_ref.c1, _ref.r1, _ref.c2, _ref.r1);
-            if (range.contains(col, row)) {
-                if (_checkPos(row, col, true)) {
-                    onCol = true;
-                }
-            }
+			range = new Asc.Range(_ref.c1, _ref.r1, _ref.c2, _ref.r1);
+			if (range.contains(col, row)) {
+				if (_checkPos(row, col, true)) {
+					onCol = true;
+				}
+			}
 
-            if (onCol && onRow) {
-                res = true;
-                type = c_oAscChangeSelectionFormatTable.data;
-                break;
-            } else if (onCol) {
-                res = true;
-                type = c_oAscChangeSelectionFormatTable.dataColumn;
-                break;
-            } else if (onRow) {
-                res = true;
-                type = c_oAscChangeSelectionFormatTable.row;
-                break;
-            }
-        }
+			if (onCol && onRow) {
+				res = true;
+				type = c_oAscChangeSelectionFormatTable.data;
+				break;
+			} else if (onCol) {
+				res = true;
+				type = c_oAscChangeSelectionFormatTable.dataColumn;
+				break;
+			} else if (onRow) {
+				res = true;
+				type = c_oAscChangeSelectionFormatTable.row;
+				break;
+			}
+		}
 
-        return res ? {
-            cursor: "pointer",
-            target: c_oTargetType.TableSelectionChange,
-            type: type,
-            row: row,
-            col: col,
-            tableIndex: i
-        } : null;
-    };
+		return res ? {
+			cursor: "pointer",
+			target: c_oTargetType.TableSelectionChange,
+			type: type,
+			row: row,
+			col: col,
+			tableIndex: i
+		} : null;
+	};
 
 	WorksheetView.prototype.getCursorTypeFromXY = function (x, y) {
 	    var canEdit = this.workbook.canEdit();
@@ -16241,84 +16241,79 @@
         return true;
     };
 
-    WorksheetView.prototype.af_changeSelectionFormatTable = function (tableName, optionType, opt_row, opt_col) {
-        var t = this;
-        var ws = this.model;
+	WorksheetView.prototype.af_changeSelectionFormatTable = function (tableName, optionType, opt_row, opt_col) {
+		var t = this;
+		var ws = this.model;
 
-        var tablePart = ws.autoFilters._getFilterByDisplayName(tableName);
+		var tablePart = ws.autoFilters._getFilterByDisplayName(tableName);
 
-        if (!tablePart || (tablePart && !tablePart.Ref)) {
-            return false;
-        }
+		if (!tablePart || (tablePart && !tablePart.Ref)) {
+			return false;
+		}
 
-        var refTablePart = tablePart.Ref;
+		var refTablePart = tablePart.Ref;
 
-        var lastSelection = this.model.selectionRange.getLast();
-        var startCol = undefined !== opt_col ? opt_col : lastSelection.c1;
-        var endCol = undefined !== opt_col ? opt_col : lastSelection.c2;
-        var startRow = undefined !== opt_row ? opt_row : lastSelection.r1;
-        var endRow = undefined !== opt_row ? opt_row : lastSelection.r2;
-        var rangeWithoutHeaderFooter;
-        switch (optionType) {
-            case c_oAscChangeSelectionFormatTable.all:
-            {
-                startCol = refTablePart.c1;
-                endCol = refTablePart.c2;
-                startRow = refTablePart.r1;
-                endRow = refTablePart.r2;
+		var lastSelection = this.model.selectionRange.getLast();
+		var startCol = undefined !== opt_col ? opt_col : lastSelection.c1;
+		var endCol = undefined !== opt_col ? opt_col : lastSelection.c2;
+		var startRow = undefined !== opt_row ? opt_row : lastSelection.r1;
+		var endRow = undefined !== opt_row ? opt_row : lastSelection.r2;
+		var rangeWithoutHeaderFooter;
+		switch (optionType) {
+			case c_oAscChangeSelectionFormatTable.all: {
+				startCol = refTablePart.c1;
+				endCol = refTablePart.c2;
+				startRow = refTablePart.r1;
+				endRow = refTablePart.r2;
 
-                break;
-            }
-            case c_oAscChangeSelectionFormatTable.data:
-            {
+				break;
+			}
+			case c_oAscChangeSelectionFormatTable.data: {
 				rangeWithoutHeaderFooter = tablePart.getRangeWithoutHeaderFooter();
-                if (undefined === opt_row) {
-                    startCol = lastSelection.c1 < refTablePart.c1 ? refTablePart.c1 : lastSelection.c1;
-                    endCol = lastSelection.c2 > refTablePart.c2 ? refTablePart.c2 : lastSelection.c2;
-                } else {
-                    startCol = rangeWithoutHeaderFooter.c1;
-                    endCol = rangeWithoutHeaderFooter.c2;
-                }
+				if (undefined === opt_row) {
+					startCol = lastSelection.c1 < refTablePart.c1 ? refTablePart.c1 : lastSelection.c1;
+					endCol = lastSelection.c2 > refTablePart.c2 ? refTablePart.c2 : lastSelection.c2;
+				} else {
+					startCol = rangeWithoutHeaderFooter.c1;
+					endCol = rangeWithoutHeaderFooter.c2;
+				}
 
-                startRow = rangeWithoutHeaderFooter.r1;
-                endRow = rangeWithoutHeaderFooter.r2;
+				startRow = rangeWithoutHeaderFooter.r1;
+				endRow = rangeWithoutHeaderFooter.r2;
 
-                break;
-            }
-            case c_oAscChangeSelectionFormatTable.row:
-            {
-                startCol = refTablePart.c1;
-                endCol = refTablePart.c2;
-                if (undefined === opt_row) {
-                    startRow = lastSelection.r1 < refTablePart.r1 ? refTablePart.r1 : lastSelection.r1;
-                    endRow = lastSelection.r2 > refTablePart.r2 ? refTablePart.r2 : lastSelection.r2;
-                }
+				break;
+			}
+			case c_oAscChangeSelectionFormatTable.row: {
+				startCol = refTablePart.c1;
+				endCol = refTablePart.c2;
+				if (undefined === opt_row) {
+					startRow = lastSelection.r1 < refTablePart.r1 ? refTablePart.r1 : lastSelection.r1;
+					endRow = lastSelection.r2 > refTablePart.r2 ? refTablePart.r2 : lastSelection.r2;
+				}
 
-                break;
-            }
-            case c_oAscChangeSelectionFormatTable.column:
-            {
-                if (undefined === opt_col) {
-                    startCol = lastSelection.c1 < refTablePart.c1 ? refTablePart.c1 : lastSelection.c1;
-                    endCol = lastSelection.c2 > refTablePart.c2 ? refTablePart.c2 : lastSelection.c2;
-                }
-                startRow = refTablePart.r1;
-                endRow = refTablePart.r2;
+				break;
+			}
+			case c_oAscChangeSelectionFormatTable.column: {
+				if (undefined === opt_col) {
+					startCol = lastSelection.c1 < refTablePart.c1 ? refTablePart.c1 : lastSelection.c1;
+					endCol = lastSelection.c2 > refTablePart.c2 ? refTablePart.c2 : lastSelection.c2;
+				}
+				startRow = refTablePart.r1;
+				endRow = refTablePart.r2;
 
-                break;
-            }
-            case c_oAscChangeSelectionFormatTable.dataColumn:
-            {
-                rangeWithoutHeaderFooter = tablePart.getRangeWithoutHeaderFooter();
-                startRow = rangeWithoutHeaderFooter.r1;
-                endRow = rangeWithoutHeaderFooter.r2;
+				break;
+			}
+			case c_oAscChangeSelectionFormatTable.dataColumn: {
+				rangeWithoutHeaderFooter = tablePart.getRangeWithoutHeaderFooter();
+				startRow = rangeWithoutHeaderFooter.r1;
+				endRow = rangeWithoutHeaderFooter.r2;
 
-                break;
-            }
-        }
+				break;
+			}
+		}
 
-        t.setSelection(new Asc.Range(startCol, startRow, endCol, endRow));
-    };
+		t.setSelection(new Asc.Range(startCol, startRow, endCol, endRow));
+	};
 
     WorksheetView.prototype.af_changeFormatTableInfo = function (tableName, optionType, val) {
         var tablePart = this.model.autoFilters._getFilterByDisplayName(tableName);
