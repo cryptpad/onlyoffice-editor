@@ -7725,14 +7725,6 @@
             var _ref = tables[i].Ref;
             var onRow = null, onCol = null;
 
-            /*if (_ref.r1 === row && _ref.c1 === col) {
-                if (_checkPos(row, col, true, true)) {
-                    res = true;
-                    type = c_oAscChangeSelectionFormatTable.data;
-                    break;
-                }
-            }*/
-
             range = new Asc.Range(_ref.c1, _ref.r1, _ref.c1, _ref.r2);
             if (range.contains(col, row)) {
                 if (_checkPos(row, col, null, true)) {
@@ -7753,7 +7745,7 @@
                 break;
             } else if (onCol) {
                 res = true;
-                type = c_oAscChangeSelectionFormatTable.column;
+                type = c_oAscChangeSelectionFormatTable.dataColumn;
                 break;
             } else if (onRow) {
                 res = true;
@@ -16266,7 +16258,7 @@
         var endCol = undefined !== opt_col ? opt_col : lastSelection.c2;
         var startRow = undefined !== opt_row ? opt_row : lastSelection.r1;
         var endRow = undefined !== opt_row ? opt_row : lastSelection.r2;
-
+        var rangeWithoutHeaderFooter;
         switch (optionType) {
             case c_oAscChangeSelectionFormatTable.all:
             {
@@ -16279,7 +16271,7 @@
             }
             case c_oAscChangeSelectionFormatTable.data:
             {
-				var rangeWithoutHeaderFooter = tablePart.getRangeWithoutHeaderFooter();
+				rangeWithoutHeaderFooter = tablePart.getRangeWithoutHeaderFooter();
                 if (undefined === opt_row) {
                     startCol = lastSelection.c1 < refTablePart.c1 ? refTablePart.c1 : lastSelection.c1;
                     endCol = lastSelection.c2 > refTablePart.c2 ? refTablePart.c2 : lastSelection.c2;
@@ -16312,6 +16304,14 @@
                 }
                 startRow = refTablePart.r1;
                 endRow = refTablePart.r2;
+
+                break;
+            }
+            case c_oAscChangeSelectionFormatTable.dataColumn:
+            {
+                rangeWithoutHeaderFooter = tablePart.getRangeWithoutHeaderFooter();
+                startRow = rangeWithoutHeaderFooter.r1;
+                endRow = rangeWithoutHeaderFooter.r2;
 
                 break;
             }

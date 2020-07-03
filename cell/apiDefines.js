@@ -231,7 +231,8 @@ var c_oAscChangeSelectionFormatTable = {
 	all: 1,
 	data: 2,
 	row: 3,
-	column: 4
+	column: 4,
+	dataColumn: 5
 };
 
 var c_oAscChangeTableStyleInfo = {
@@ -637,6 +638,7 @@ var c_oAscPopUpSelectorType = {
   prot['data'] = prot.data;
   prot['row'] = prot.row;
   prot['column'] = prot.column;
+  prot['dataColumn'] = prot.dataColumn;
   window['Asc']['c_oAscChangeTableStyleInfo'] = window['Asc'].c_oAscChangeTableStyleInfo = c_oAscChangeTableStyleInfo;
   prot = c_oAscChangeTableStyleInfo;
   prot['columnFirst'] = prot.columnFirst;
