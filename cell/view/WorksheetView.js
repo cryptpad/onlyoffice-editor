@@ -7680,6 +7680,94 @@
 			} : null;
 	};
 
+    WorksheetView.prototype._hitCursorTableSelectionChange = function (vr, x, y, offsetX, offsetY) {
+        var i, l, res, range, t = this;
+        var tables = this.model.TableParts;
+
+        var _checkPos = function (_row, _col, _isRow, isCol) {
+            var x1 = t._getColLeft(col + 1) - offsetX;
+            var y1 = t._getRowTop(row + 1) - offsetY;
+            var x2, y2;
+
+            var onRow, onCol;
+            if (_isRow) {
+                var height = t._getRowTop(row + 1) - y1;
+                var tableSelectionHeight = height * 0.3;
+                if (tableSelectionHeight > 27) {
+                    tableSelectionHeight = 27;
+                }
+                x2 = x2 + tableSelectionHeight;
+                if(y >= y1 && y <= y2) {
+                    onCol = true;
+                }
+            }
+            if (isCol) {
+                var width = t._getColLeft(col + 1) - x1;
+                var tableSelectionWidth = width * 0.25;
+                if (tableSelectionWidth > 24) {
+                    tableSelectionWidth = 24;
+                }
+                x2 = x1 + tableSelectionWidth;
+                if(x >= x1 && x <= x2) {
+                    onCol = true;
+                }
+            }
+
+            if (_isRow && _isCol && onRow && onCol) {
+                return true;
+            } else if (_isRow && onRow) {
+                return true;
+            } else if (_isCol && onCol) {
+                return true;
+            }
+
+            return false;
+        };
+
+        var row, col, rangeIn;
+        var zoom = this.getZoom();
+        for (i = 0, l = tables.length; i < l; ++i) {
+            var _ref = tables[i].Ref;
+            if (_ref.r1 === vr.r1 && _ref.c1 === vr.c1) {
+                row = _ref.r1;
+                col = _ref.c1;
+                if (_checkPos(row, col, true, true)) {
+                    res = true;
+                    break;
+                }
+            }
+            range = new Asc.Range(_ref.c1, _ref.r1, _ref.c1, _ref.r2);
+            rangeIn = range.intersectionSimple(vr);
+            if (rangeIn) {
+                row = rangeIn.r1;
+                col = rangeIn.c1;
+                if (_checkPos(row, col, null, true)) {
+                    res = true;
+                    break;
+                }
+            }
+
+            range = new Asc.Range(_ref.c1, _ref.r1, _ref.c2, _ref.r1);
+            rangeIn = range.intersectionSimple(vr);
+            if (rangeIn) {
+                row = rangeIn.r1;
+                col = rangeIn.c1;
+                if (_checkPos(row, col, true)) {
+                    res = true;
+                    break;
+                }
+            }
+        }
+
+        return res ? {
+            cursor: kCurSEResize,
+            target: c_oTargetType.FillHandle,
+            col: col,
+            row: row,
+            tableIndex: i
+        } : null;
+    };
+
 	WorksheetView.prototype.getCursorTypeFromXY = function (x, y) {
 	    var canEdit = this.workbook.canEdit();
 		var viewMode = this.handlers.trigger('getViewMode');
