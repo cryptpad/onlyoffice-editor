@@ -411,7 +411,10 @@
 				  self._onStopFormatPainter.apply(self, arguments);
 			  }, "groupRowClick": function () {
 				  return self._onGroupRowClick.apply(self, arguments);
+			  }, "onChangeTableSelection": function () {
+				  return self._onChangeTableSelection.apply(self, arguments);
 			  },
+
 
 			  // Shapes
 			  "graphicObjectMouseDown": function () {
@@ -1462,6 +1465,16 @@
 
   WorkbookView.prototype._onGroupRowClick = function(x, y, target, type) {
   	return this.getWorksheet().groupRowClick(x, y, target, type);
+  };
+
+  WorkbookView.prototype._onChangeTableSelection = function(target) {
+      var ws = this.getWorksheet();
+      if (ws && ws.model && target) {
+          var table = ws.model.TableParts[target.tableIndex];
+          if (table) {
+              ws.af_changeSelectionFormatTable(table.DisplayName, target.type, target.row, target.col);
+          }
+      }
   };
 
   WorkbookView.prototype._onCommentCellClick = function(x, y) {

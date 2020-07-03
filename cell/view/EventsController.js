@@ -1437,6 +1437,9 @@
 					} else if ((t.targetInfo.target === c_oTargetType.GroupCol || t.targetInfo.target === c_oTargetType.GroupRow) && 2 === button) {
 						this.handlers.trigger('onContextMenu', null);
 						return;
+					} else if (t.targetInfo.target === c_oTargetType.TableSelectionChange) {
+						this.handlers.trigger('onChangeTableSelection', t.targetInfo);
+						return;
 					}
 				}
 			} else {

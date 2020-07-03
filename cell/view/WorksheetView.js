@@ -7680,90 +7680,94 @@
 			} : null;
 	};
 
-    WorksheetView.prototype._hitCursorTableSelectionChange = function (vr, x, y, offsetX, offsetY) {
+    WorksheetView.prototype._hitCursorTableSelectionChange = function (vr, x, y, row, col, offsetX, offsetY) {
         var i, l, res, range, t = this;
         var tables = this.model.TableParts;
 
-        var _checkPos = function (_row, _col, _isRow, isCol) {
-            var x1 = t._getColLeft(col + 1) - offsetX;
-            var y1 = t._getRowTop(row + 1) - offsetY;
-            var x2, y2;
+        var _checkPos = function (_r1, _c1, isRow, isCol) {
+            var x1 = t._getColLeft(_c1) - offsetX;
+            var y1 = t._getRowTop(_r1) - offsetY;
+            var height = t._getRowTop(_r1 + 1) - y1;
+            var width = t._getColLeft(_c1 + 1) - x1;
+            var _x2, _y2;
 
-            var onRow, onCol;
-            if (_isRow) {
-                var height = t._getRowTop(row + 1) - y1;
-                var tableSelectionHeight = height * 0.3;
-                if (tableSelectionHeight > 27) {
-                    tableSelectionHeight = 27;
+            //TODO коэффициэнты перепроверить
+            var maxChangeSelectionHeight = 27;
+            var maxChangeSelectionWidth = 24;
+            var percentOfWidth = 0.25;
+            var percentOfHeight = 0.3;
+            if (isRow) {
+                var tableSelectionHeight = height * percentOfHeight;
+                if (tableSelectionHeight > maxChangeSelectionHeight) {
+                    tableSelectionHeight = maxChangeSelectionHeight;
                 }
-                x2 = x2 + tableSelectionHeight;
-                if(y >= y1 && y <= y2) {
-                    onCol = true;
+                _y2 = y1 + tableSelectionHeight;
+                if(y >= y1 && y <= _y2) {
+                    return true;
                 }
             }
             if (isCol) {
-                var width = t._getColLeft(col + 1) - x1;
-                var tableSelectionWidth = width * 0.25;
-                if (tableSelectionWidth > 24) {
-                    tableSelectionWidth = 24;
+                var tableSelectionWidth = width * percentOfWidth;
+                if (tableSelectionWidth > maxChangeSelectionWidth) {
+                    tableSelectionWidth = maxChangeSelectionWidth;
                 }
-                x2 = x1 + tableSelectionWidth;
-                if(x >= x1 && x <= x2) {
-                    onCol = true;
+                _x2 = x1 + tableSelectionWidth;
+                if(x >= x1 && x <= _x2) {
+                    return true;
                 }
-            }
-
-            if (_isRow && _isCol && onRow && onCol) {
-                return true;
-            } else if (_isRow && onRow) {
-                return true;
-            } else if (_isCol && onCol) {
-                return true;
             }
 
             return false;
         };
 
-        var row, col, rangeIn;
-        var zoom = this.getZoom();
+        var type;
         for (i = 0, l = tables.length; i < l; ++i) {
             var _ref = tables[i].Ref;
-            if (_ref.r1 === vr.r1 && _ref.c1 === vr.c1) {
-                row = _ref.r1;
-                col = _ref.c1;
+            var onRow = null, onCol = null;
+
+            /*if (_ref.r1 === row && _ref.c1 === col) {
                 if (_checkPos(row, col, true, true)) {
                     res = true;
+                    type = c_oAscChangeSelectionFormatTable.data;
                     break;
                 }
-            }
+            }*/
+
             range = new Asc.Range(_ref.c1, _ref.r1, _ref.c1, _ref.r2);
-            rangeIn = range.intersectionSimple(vr);
-            if (rangeIn) {
-                row = rangeIn.r1;
-                col = rangeIn.c1;
+            if (range.contains(col, row)) {
                 if (_checkPos(row, col, null, true)) {
-                    res = true;
-                    break;
+                    onRow = true;
                 }
             }
 
             range = new Asc.Range(_ref.c1, _ref.r1, _ref.c2, _ref.r1);
-            rangeIn = range.intersectionSimple(vr);
-            if (rangeIn) {
-                row = rangeIn.r1;
-                col = rangeIn.c1;
+            if (range.contains(col, row)) {
                 if (_checkPos(row, col, true)) {
-                    res = true;
-                    break;
+                    onCol = true;
                 }
+            }
+
+            if (onCol && onRow) {
+                res = true;
+                type = c_oAscChangeSelectionFormatTable.data;
+                break;
+            } else if (onCol) {
+                res = true;
+                type = c_oAscChangeSelectionFormatTable.column;
+                break;
+            } else if (onRow) {
+                res = true;
+                type = c_oAscChangeSelectionFormatTable.row;
+                break;
             }
         }
 
         return res ? {
-            cursor: kCurSEResize,
-            target: c_oTargetType.FillHandle,
-            col: col,
+            cursor: "pointer",
+            target: c_oTargetType.TableSelectionChange,
+            type: type,
             row: row,
+            col: col,
             tableIndex: i
         } : null;
     };
@@ -7994,6 +7998,23 @@
 		if (dialogOtherRanges) {
             this._drawElements(function (_vr, _offsetX, _offsetY) {
                 return (null === (res = this._hitCursorTableRightCorner(_vr, x, y, _offsetX, _offsetY)));
+            });
+            if (res) {
+                return res;
+            }
+        }
+
+        if (dialogOtherRanges) {
+            this._drawElements(function (_vr, _offsetX, _offsetY) {
+                if (r === undefined) {
+                    r = this._findRowUnderCursor(y, true);
+                }
+                if (c === undefined) {
+                    c = this._findColUnderCursor(x, true);
+                }
+                if (r != null && c != null) {
+                    return (null === (res = this._hitCursorTableSelectionChange(_vr, x, y, r.row, c.col, _offsetX, _offsetY)));
+                }
             });
             if (res) {
                 return res;
@@ -16228,7 +16249,7 @@
         return true;
     };
 
-    WorksheetView.prototype.af_changeSelectionFormatTable = function (tableName, optionType) {
+    WorksheetView.prototype.af_changeSelectionFormatTable = function (tableName, optionType, opt_row, opt_col) {
         var t = this;
         var ws = this.model;
 
@@ -16241,10 +16262,10 @@
         var refTablePart = tablePart.Ref;
 
         var lastSelection = this.model.selectionRange.getLast();
-        var startCol = lastSelection.c1;
-        var endCol = lastSelection.c2;
-        var startRow = lastSelection.r1;
-        var endRow = lastSelection.r2;
+        var startCol = undefined !== opt_col ? opt_col : lastSelection.c1;
+        var endCol = undefined !== opt_col ? opt_col : lastSelection.c2;
+        var startRow = undefined !== opt_row ? opt_row : lastSelection.r1;
+        var endRow = undefined !== opt_row ? opt_row : lastSelection.r2;
 
         switch (optionType) {
             case c_oAscChangeSelectionFormatTable.all:
@@ -16259,8 +16280,14 @@
             case c_oAscChangeSelectionFormatTable.data:
             {
 				var rangeWithoutHeaderFooter = tablePart.getRangeWithoutHeaderFooter();
-                startCol = lastSelection.c1 < refTablePart.c1 ? refTablePart.c1 : lastSelection.c1;
-                endCol = lastSelection.c2 > refTablePart.c2 ? refTablePart.c2 : lastSelection.c2;
+                if (undefined === opt_row) {
+                    startCol = lastSelection.c1 < refTablePart.c1 ? refTablePart.c1 : lastSelection.c1;
+                    endCol = lastSelection.c2 > refTablePart.c2 ? refTablePart.c2 : lastSelection.c2;
+                } else {
+                    startCol = rangeWithoutHeaderFooter.c1;
+                    endCol = rangeWithoutHeaderFooter.c2;
+                }
+
                 startRow = rangeWithoutHeaderFooter.r1;
                 endRow = rangeWithoutHeaderFooter.r2;
 
@@ -16270,15 +16297,19 @@
             {
                 startCol = refTablePart.c1;
                 endCol = refTablePart.c2;
-                startRow = lastSelection.r1 < refTablePart.r1 ? refTablePart.r1 : lastSelection.r1;
-                endRow = lastSelection.r2 > refTablePart.r2 ? refTablePart.r2 : lastSelection.r2;
+                if (undefined === opt_row) {
+                    startRow = lastSelection.r1 < refTablePart.r1 ? refTablePart.r1 : lastSelection.r1;
+                    endRow = lastSelection.r2 > refTablePart.r2 ? refTablePart.r2 : lastSelection.r2;
+                }
 
                 break;
             }
             case c_oAscChangeSelectionFormatTable.column:
             {
-                startCol = lastSelection.c1 < refTablePart.c1 ? refTablePart.c1 : lastSelection.c1;
-                endCol = lastSelection.c2 > refTablePart.c2 ? refTablePart.c2 : lastSelection.c2;
+                if (undefined === opt_col) {
+                    startCol = lastSelection.c1 < refTablePart.c1 ? refTablePart.c1 : lastSelection.c1;
+                    endCol = lastSelection.c2 > refTablePart.c2 ? refTablePart.c2 : lastSelection.c2;
+                }
                 startRow = refTablePart.r1;
                 endRow = refTablePart.r2;
 
