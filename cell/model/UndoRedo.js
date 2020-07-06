@@ -2895,7 +2895,7 @@ function (window, undefined) {
 		function fAction(row) {
 			if (AscCH.historyitem_RowCol_SetFont == Type) {
 				row.setFont(Val);
-			} else if (AscCH.historyitem_RowCol_Fo,ntname == Type) {
+			} else if (AscCH.historyitem_RowCol_Fontname == Type) {
 				row.setFontname(Val);
 			} else if (AscCH.historyitem_RowCol_Fontsize == Type) {
 				row.setFontsize(Val);
