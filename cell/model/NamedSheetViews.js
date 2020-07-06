@@ -39,8 +39,12 @@
 		this.name = null;
 		this.id = null;
 
+		this.ws = null;
+
 		this._isActive = null;
 		this._isTemporary = null;
+
+		//this.Id = AscCommon.g_oIdCounter.Get_NewId();
 
 		return this;
 	}
@@ -54,10 +58,14 @@
 
 		res.name = this.name;
 		res.id = this.id;
+		res.ws = c
 
 		return res;
 	};
 
+	CT_NamedSheetView.prototype.setWS = function (ws) {
+		this.ws = ws;
+	};
 
 	function CT_NsvFilter() {
 		this.columnsFilter = [];

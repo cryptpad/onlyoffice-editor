@@ -249,6 +249,8 @@ function (window, undefined) {
 	window['AscCH'].historyitem_Slicer_SetCacheCustomListSort = 15;
 	window['AscCH'].historyitem_Slicer_SetCacheCrossFilter = 16;
 	window['AscCH'].historyitem_Slicer_SetCacheHideItemsWithNoData = 17;
+	
+	window['AscCH'].historyitem_NamedSheetView_SetName = 1;
 
 
 

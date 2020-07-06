@@ -10906,7 +10906,7 @@
 				History.EndTransaction();
 				if(expansionTableRange) {
 					t.applyTableAutoExpansion(expansionTableRange);
-			}
+				}
 			}
 
 			if (hasUpdates) {

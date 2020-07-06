@@ -428,6 +428,8 @@ function (window, undefined) {
 		this.Slicer = 117;
 		this.SlicerData = 118;
 
+		this.NamedSheetView = 130;
+
 		this.Create = function (nType) {
 			switch (nType) {
 				case this.ValueMultiTextElem:
@@ -592,6 +594,8 @@ function (window, undefined) {
 					return new AscCommonExcel.UndoRedoData_Slicer();
 				case this.Slicer:
 					return new window['Asc'].CT_slicer();
+				case this.NamedSheetView:
+					return new window['Asc'].UndoRedoData_NamedSheetView();
 			}
 			return null;
 		};
@@ -2891,7 +2895,7 @@ function (window, undefined) {
 		function fAction(row) {
 			if (AscCH.historyitem_RowCol_SetFont == Type) {
 				row.setFont(Val);
-			} else if (AscCH.historyitem_RowCol_Fontname == Type) {
+			} else if (AscCH.historyitem_RowCol_Fo,ntname == Type) {
 				row.setFontname(Val);
 			} else if (AscCH.historyitem_RowCol_Fontsize == Type) {
 				row.setFontsize(Val);
