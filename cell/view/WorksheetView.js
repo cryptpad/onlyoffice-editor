@@ -10936,7 +10936,7 @@
                     offset: offset,
                     displayName: newDisplayName
                 };
-                var tableStyleInfoName = curTable.tableStyleInfo ? curTable.tableStyleInfo.Name : null;
+                var tableStyleInfoName = curTable.TableStyleInfo ? curTable.TableStyleInfo.Name : null;
                 t.model.autoFilters.addAutoFilter(tableStyleInfoName, range.bbox, true, true, props);
                 if (null === tablesMap) {
                     tablesMap = {};

@@ -2103,8 +2103,8 @@
 						offset: offset,
 						displayName: newDisplayName
 					};
-					var tableStyleInfoName = fromFilter.tableStyleInfo ? fromFilter.tableStyleInfo.Name : null;
-					wsTo.autoFilters.addAutoFilter(fromFilter.TableStyleInfo.Name, range.bbox, true, true, props);
+					var tableStyleInfoName = fromFilter.TableStyleInfo ? fromFilter.TableStyleInfo.Name : null;
+					wsTo.autoFilters.addAutoFilter(tableStyleInfoName, range.bbox, true, true, props);
 				};
 
 				var addRedo = false;
