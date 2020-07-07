@@ -558,7 +558,6 @@ CShapeDrawer.prototype =
 	            this.Graphics.CorrectBounds2();
 	        }
 
-            this.NativeGraphics["PD_p_dash"]([]);
 			return;
 		}
 
