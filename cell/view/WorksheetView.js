@@ -15960,7 +15960,7 @@
 
             for(var i = 0; i < SortConditions.length; i++) {
 				var sortCondition = SortConditions[i];
-            	if (rangeButton.c1 == sortCondition.Ref.c1) {
+            	if (rangeButton.c1 === sortCondition.Ref.c1) {
 
 					var conditionSortBy = SortConditions.ConditionSortBy;
 					switch (conditionSortBy) {

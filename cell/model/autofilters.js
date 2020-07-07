@@ -706,6 +706,7 @@
 				var rangeOldFilter = oldFilter.Ref;
 				var newFilterColumn, filterRange;
 
+				//TODO activeNamedSheetView ?
 				//byCurCell - если пользователь нажимает на конкретной ячейке - скрыть данное значение - для а/ф с мерженным заголвком
 				if(byCurCell && filterObj.ColId >= 0 && filterObj.startColId >= 0 && filterObj.ColId !== filterObj.startColId) {
 
@@ -729,8 +730,9 @@
 				}
 
 				var activeNamedSheetView = worksheet.getActiveNamedSheetView();
+				var bCollaborativeChanges = this.worksheet.workbook.bCollaborativeChanges;
 				var nsvFilter;
-				if (activeNamedSheetView !== null) {
+				if (activeNamedSheetView !== null && !bCollaborativeChanges) {
 					nsvFilter = worksheet.getNvsFilterByTableName(filterObj.filter.DisplayName);
 					if (nsvFilter) {
 						//TODO перепроверить. соответствует ли индекс?
@@ -792,10 +794,13 @@
 						History.LocalChange = true;
 					}
 
-					var hiddenProps = autoFilter.setRowHidden(worksheet, newFilterColumn, nsvFilter ? nsvFilter.columnsFilter : null);
-					nOpenRowsCount = hiddenProps.nOpenRowsCount;
-					nAllRowsCount = hiddenProps.nAllRowsCount;
-					minChangeRow = hiddenProps.minChangeRow;
+					//при принятии изменений от других пользователей не скрываем строки
+					if (!(bCollaborativeChanges && activeNamedSheetView !== null)) {
+						var hiddenProps = autoFilter.setRowHidden(worksheet, newFilterColumn, nsvFilter ? nsvFilter.columnsFilter : null);
+						nOpenRowsCount = hiddenProps.nOpenRowsCount;
+						nAllRowsCount = hiddenProps.nAllRowsCount;
+						minChangeRow = hiddenProps.minChangeRow;
+					}
 
 					if (nsvFilter) {
 						History.LocalChange = oldLocalChange;
@@ -4244,10 +4249,19 @@
 				var automaticRowCount = null;
 				colId = this._getTrueColId(autoFilter, colId, true);
 
-				var currentFilterColumn = autoFilter.getFilterColumn(colId);
+				var currentFilterColumn;
+				var activeNamedSheetView = worksheet.getActiveNamedSheetView();
+				var nsvFilter;
+				if (activeNamedSheetView !== null) {
+					nsvFilter = worksheet.getNvsFilterByTableName(isTablePart ? filter.DisplayName : null);
+					currentFilterColumn = nsvFilter.getColumnFilterByColId(colId);
+				} else {
+					currentFilterColumn = autoFilter.getFilterColumn(colId);
+				}
 				if(currentFilterColumn && !currentFilterColumn.isApplyAutoFilter()) {
 					currentFilterColumn = null;
 				}
+
 				//если скрыты только пустые значение, игнорируем пользовательский фильтр при отображении в меню
 				var ignoreCustomFilter = currentFilterColumn ? currentFilterColumn.isOnlyNotEqualEmpty() : null;
 				var isCustomFilter = currentFilterColumn && !ignoreCustomFilter && currentFilterColumn.isApplyCustomFilter();
@@ -4300,13 +4314,15 @@
 						continue;
 					}
 
+
+
 					//not apply filter by current button
 					if (fullValues && null === currentFilterColumn && worksheet.getRowHidden(i) === true) {
 						if (textIndexMapHideValues.hasOwnProperty(textLowerCase)) {
 							continue;
 						}
 
-						var _hiddenByOtherFilter = autoFilter.hiddenByAnotherFilter(worksheet, colId, i, ref.c1);
+						var _hiddenByOtherFilter = autoFilter.hiddenByAnotherFilter(worksheet, colId, i, ref.c1, nsvFilter ? nsvFilter.columnsFilter : null);
 						textIndexMapHideValues[textLowerCase] =  _hideValues.length;
 						addValueToMenuObj(val, text, _hiddenByOtherFilter, _hideValues.length, _hideValues, indicateItemsWithNoData);
 						continue;
@@ -4315,7 +4331,7 @@
 					//apply filter by current button
 					var visible;
 					if (null !== currentFilterColumn) {
-						if (!autoFilter.hiddenByAnotherFilter(worksheet, colId, i, ref.c1))//filter another button
+						if (!autoFilter.hiddenByAnotherFilter(worksheet, colId, i, ref.c1, nsvFilter ? nsvFilter.columnsFilter : null))//filter another button
 						{
 							//filter current button
 							var checkValue = isDateTimeFormat ? val : text;
