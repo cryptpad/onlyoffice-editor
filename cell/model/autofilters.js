@@ -191,15 +191,15 @@
 			},
 			getProperty : function (nType) {
 				switch (nType) {
-					case this.Properties.cellId: return this.cellId; break;
-					case this.Properties.values: return this.values; break;
-					case this.Properties.filter: return this.filter; break;
-					case this.Properties.automaticRowCount: return this.automaticRowCount; break;
-					case this.Properties.displayName: return this.displayName; break;
-                    case this.Properties.isTextFilter: return this.isTextFilter; break;
-                    case this.Properties.colorsFill: return this.colorsFill; break;
-                    case this.Properties.colorsFont: return this.colorsFont; break;
-                    case this.Properties.sortColor: return this.sortColor; break;
+					case this.Properties.cellId: return this.cellId;
+					case this.Properties.values: return this.values;
+					case this.Properties.filter: return this.filter;
+					case this.Properties.automaticRowCount: return this.automaticRowCount;
+					case this.Properties.displayName: return this.displayName;
+                    case this.Properties.isTextFilter: return this.isTextFilter;
+                    case this.Properties.colorsFill: return this.colorsFill;
+                    case this.Properties.colorsFont: return this.colorsFont;
+                    case this.Properties.sortColor: return this.sortColor;
 				}
 
 				return null;
@@ -324,8 +324,8 @@
 			},
 			getProperty : function (nType) {
 				switch (nType) {
-					case this.Properties.type: return this.type; break;
-					case this.Properties.filter: return this.filter; break;
+					case this.Properties.type: return this.type;
+					case this.Properties.filter: return this.filter;
 				}
 				return null;
 			},
@@ -954,7 +954,7 @@
 						tablePart.AutoFilter.FilterColumns.length) ||
 						(tablePart && tablePart.AutoFilter && tablePart.isApplySortConditions()))) {
 						result = {isFilterColumns: true, isAutoFilter: true};
-					} else if (tablePart.Ref && tablePart.AutoFilter && tablePart.AutoFilter !== null) {
+					} else if (tablePart.Ref && tablePart.AutoFilter) {
 						result = {isFilterColumns: false, isAutoFilter: true};
 					} else {
 						result = {isFilterColumns: false, isAutoFilter: false};
@@ -4258,7 +4258,7 @@
 				} else {
 					currentFilterColumn = autoFilter.getFilterColumn(colId);
 				}
-				if(currentFilterColumn && !currentFilterColumn.isApplyAutoFilter()) {
+				if (currentFilterColumn && !currentFilterColumn.isApplyAutoFilter()) {
 					currentFilterColumn = null;
 				}
 
@@ -4308,12 +4308,11 @@
 
 					//check duplicate value
 					if (textIndexMap.hasOwnProperty(textLowerCase)) {
-						if(values[textIndexMap[textLowerCase]]) {
+						if (values[textIndexMap[textLowerCase]]) {
 							values[textIndexMap[textLowerCase]].repeats++;
 						}
 						continue;
 					}
-
 
 
 					//not apply filter by current button
@@ -4323,7 +4322,7 @@
 						}
 
 						var _hiddenByOtherFilter = autoFilter.hiddenByAnotherFilter(worksheet, colId, i, ref.c1, nsvFilter ? nsvFilter.columnsFilter : null);
-						textIndexMapHideValues[textLowerCase] =  _hideValues.length;
+						textIndexMapHideValues[textLowerCase] = _hideValues.length;
 						addValueToMenuObj(val, text, _hiddenByOtherFilter, _hideValues.length, _hideValues, indicateItemsWithNoData);
 						continue;
 					}
@@ -4361,7 +4360,7 @@
 							if (!currentFilterColumn.isHideValue(isDateTimeFormat ? val : text, isDateTimeFormat)) {
 								visible = true;
 							}
-							textIndexMapHideValues[textLowerCase] =  _hideValues.length;
+							textIndexMapHideValues[textLowerCase] = _hideValues.length;
 							addValueToMenuObj(val, text, visible, _hideValues.length, _hideValues, indicateItemsWithNoData);
 						}
 					} else {
@@ -4390,7 +4389,7 @@
 					_values = this._sortArrayMinMax(_values, isAscending);
 				} else {
 					_values = this._sortArrayMinMax(values, isAscending);
-					if(fullValues) {
+					if (fullValues) {
 						_values = _values.concat(this._sortArrayMinMax(_hideValues, isAscending));
 					}
 				}
