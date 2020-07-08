@@ -8422,6 +8422,10 @@
 				diff++;
 			}
 		}
+
+		//TODO history
+		/*History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_SheetViewDelete, this.getId(), null,
+				new AscCommonExcel.UndoRedoData_BinaryWrapper(sheetView));*/
 	};
 
 	Worksheet.prototype.getNamedSheetViews = function () {

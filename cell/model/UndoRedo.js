@@ -2813,6 +2813,11 @@ function (window, undefined) {
 			} else {
 				ws.deleteSlicer(Data.from.name);
 			}
+		} else if (AscCH.historyitem_Worksheet_SetActiveNamedSheetView === Type) {
+			if (ws.aNamedSheetViews) {
+				var namedSheetView = bUndo ? ws.aNamedSheetViews[Data.from] : ws.aNamedSheetViews[Data.to];
+				namedSheetView.asc_setIsActive();
+			}
 		}
 	};
 	UndoRedoWoorksheet.prototype.forwardTransformationIsAffect = function (Type) {
