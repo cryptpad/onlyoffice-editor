@@ -8440,6 +8440,18 @@
 		return null;
 	};
 
+	Worksheet.prototype.getNamedSheetViewByName = function (name) {
+		var namedSheetViews = this.aNamedSheetViews;
+		if (namedSheetViews) {
+			for (var i = 0; i < namedSheetViews.length; i++) {
+				if (name === namedSheetViews[i].name) {
+					return namedSheetViews[i];
+				}
+			}
+		}
+		return null;
+	};
+
 //-------------------------------------------------------------------------------------------------
 	var g_nCellOffsetFlag = 0;
 	var g_nCellOffsetXf = g_nCellOffsetFlag + 1;
