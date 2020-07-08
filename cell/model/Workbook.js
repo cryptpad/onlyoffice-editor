@@ -8386,32 +8386,30 @@
 		}
 	};
 
-	Worksheet.prototype.addNamedSheetView = function (name, bSave) {
-		var sheetView = bSave ? this.aNamedSheetViews[0] : null;
+	Worksheet.prototype.addNamedSheetView = function (sheetView) {
+
 		if (!sheetView) {
 			sheetView = new AscCommonExcel.CT_NamedSheetView();
-			var _filter;
-			for (var i = 0; i < this.TableParts.length; i++) {
-				_filter = new AscCommonExcel.CT_NsvFilter();
-				_filter.init(this.TableParts[i]);
-				sheetView.nsvFilters.push(_filter);
-			}
-			if (t.model.AutoFilter) {
-				_filter = new AscCommonExcel.CT_NsvFilter();
-				_filter.init(this.AutoFilter);
-				sheetView.nsvFilters.push(_filter);
-			}
+			sheetView.ws = this;
+			sheetView.generateName();
 		}
-		sheetView.name = name;
 
-		if (bSave) {
-			//TODO history
-			this.aNamedSheetViews.splice(0, 1);
-			this.aNamedSheetViews.push(sheetView);
-		} else {
-			//TODO history local
-			this.aNamedSheetViews.unshift(sheetView);
+		var _filter;
+		for (var i = 0; i < this.TableParts.length; i++) {
+			_filter = new AscCommonExcel.CT_NsvFilter();
+			_filter.init(this.TableParts[i]);
+			sheetView.nsvFilters.push(_filter);
 		}
+		if (t.model.AutoFilter) {
+			_filter = new AscCommonExcel.CT_NsvFilter();
+			_filter.init(this.AutoFilter);
+			sheetView.nsvFilters.push(_filter);
+		}
+
+		this.aNamedSheetViews.push(sheetView);
+		//TODO history
+		/*History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_SheetViewAdd, this.getId(), null,
+				new AscCommonExcel.UndoRedoData_BinaryWrapper(sheetView));*/
 	};
 
 	Worksheet.prototype.deleteNamedSheetViews = function (arr) {
@@ -8431,8 +8429,8 @@
 		if (namedSheetViews) {
 			var res = [], ascSheetView;
 			for (var i = 0; i < namedSheetViews.length; i++) {
-				ascSheetView = namedSheetViews[i].getAscNamedSheetView();
-				ascSheetView.isActive = i === this.nActiveNamedSheetView;
+				ascSheetView = namedSheetViews[i];
+				ascSheetView._isActive = i === this.nActiveNamedSheetView;
 				res.push(ascSheetView);
 			}
 			return res;

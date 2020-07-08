@@ -42,7 +42,6 @@
 		this.ws = null;
 
 		this._isActive = null;
-		this._isTemporary = null;
 
 		//this.Id = AscCommon.g_oIdCounter.Get_NewId();
 
