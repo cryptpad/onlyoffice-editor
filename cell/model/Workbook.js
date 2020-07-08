@@ -8358,35 +8358,7 @@
 		}
 	};
 
-	Worksheet.prototype.addNamedSheetView = function (name, bSave) {
-		var sheetView = bSave ? this.aNamedSheetViews[0] : null;
-		if (!sheetView) {
-			sheetView = new AscCommonExcel.CT_NamedSheetView();
-			var _filter;
-			for (var i = 0; i < this.TableParts.length; i++) {
-				_filter = new AscCommonExcel.CT_NsvFilter();
-				_filter.init(this.TableParts[i]);
-				sheetView.nsvFilters.push(_filter);
-			}
-			if (t.model.AutoFilter) {
-				_filter = new AscCommonExcel.CT_NsvFilter();
-				_filter.init(this.AutoFilter);
-				sheetView.nsvFilters.push(_filter);
-			}
-		}
-		sheetView.name = name;
-
-		if (bSave) {
-			//TODO history
-			this.aNamedSheetViews.splice(0, 1);
-			this.aNamedSheetViews.push(sheetView);
-		} else {
-			//TODO history local
-			this.aNamedSheetViews.unshift(sheetView);
-		}
-	};
-
-	Worksheet.prototype.addNamedSheetView = function (sheetView) {
+	Worksheet.prototype.addNamedSheetView = function (sheetView, isDuplicate) {
 
 		if (!sheetView) {
 			sheetView = new AscCommonExcel.CT_NamedSheetView();
@@ -8395,15 +8367,17 @@
 		}
 
 		var _filter;
-		for (var i = 0; i < this.TableParts.length; i++) {
-			_filter = new AscCommonExcel.CT_NsvFilter();
-			_filter.init(this.TableParts[i]);
-			sheetView.nsvFilters.push(_filter);
-		}
-		if (t.model.AutoFilter) {
-			_filter = new AscCommonExcel.CT_NsvFilter();
-			_filter.init(this.AutoFilter);
-			sheetView.nsvFilters.push(_filter);
+		if (!isDuplicate) {
+			for (var i = 0; i < this.TableParts.length; i++) {
+				_filter = new AscCommonExcel.CT_NsvFilter();
+				_filter.init(this.TableParts[i]);
+				sheetView.nsvFilters.push(_filter);
+			}
+			if (this.model.AutoFilter) {
+				_filter = new AscCommonExcel.CT_NsvFilter();
+				_filter.init(this.AutoFilter);
+				sheetView.nsvFilters.push(_filter);
+			}
 		}
 
 		this.aNamedSheetViews.push(sheetView);
