@@ -9866,7 +9866,7 @@ background-repeat: no-repeat;\
 		}
 
 		Document.MoveCursorToStartPos();
-		Document.RecalculateFromStart();
+		Document.RecalculateAllAtOnce(true);
 
 		Document.Document_UpdateInterfaceState();
 		//Document.Document_UpdateRulersState();
