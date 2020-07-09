@@ -4625,27 +4625,7 @@ var editor;
   spreadsheet_api.prototype.asc_setSlicers = function (names, obj) {
     return this.wb.setSlicers(names, obj);
   };
-
-  spreadsheet_api.prototype.asc_addNamedSheetView = function (name, bSave) {
-    var ws = this.wb && this.wb.getWorksheet();
-    if(ws) {
-      return ws.addNamedSheetView(name, bSave);
-    }
-  };
-
-  spreadsheet_api.prototype.asc_getNamedSheetViews = function () {
-    var ws = this.wb && this.wb.getWorksheet();
-    if(ws) {
-      return ws.getNamedSheetViews();
-    }
-  };
-
-  spreadsheet_api.prototype.asc_deleteNamedSheetViews = function (arr) {
-    var ws = this.wb && this.wb.getWorksheet();
-    if(ws) {
-      return ws.deleteNamedSheetViews(arr);
-    }
-  };
+  
 
   /*
    * Export
@@ -5064,9 +5044,5 @@ var editor;
 
   prot["asc_beforeInsertSlicer"] = prot.asc_beforeInsertSlicer;
   prot["asc_insertSlicer"] = prot.asc_insertSlicer;
-
-  prot["asc_addNamedSheetView"] = prot.asc_addNamedSheetView;
-  prot["asc_getNamedSheetViews"] = prot.asc_getNamedSheetViews;
-  prot["asc_deleteNamedSheetViews"] = prot.asc_deleteNamedSheetViews;
 
 })(window);
