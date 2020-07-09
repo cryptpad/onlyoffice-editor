@@ -923,7 +923,7 @@
 					if (activeNamedSheetView !== null) {
 						opt_columnsFilter = worksheet.getNvsFilterByTableName(displayName);
 					}
-					var hiddenProps = autoFilter.setRowHidden(worksheet, null, opt_columnsFilter ? opt_columnsFilter.columnsFilter ? null);
+					var hiddenProps = autoFilter.setRowHidden(worksheet, null, opt_columnsFilter ? opt_columnsFilter.columnsFilter : null);
 					minChangeRow = hiddenProps.minChangeRow;
 				}
 
