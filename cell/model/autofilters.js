@@ -878,6 +878,24 @@
 				return res;
 			},
 
+			reapplyAllFilters: function (turnOffHistory) {
+				if (turnOffHistory) {
+					History.TurnOff();
+				}
+				var worksheet = this.worksheet;
+				if (worksheet.AutoFilter) {
+					this.reapplyAutoFilter(null);
+				}
+				if (worksheet.TableParts) {
+					for (var i = 0; i < worksheet.TableParts.length; i++) {
+						this.reapplyAutoFilter(worksheet.TableParts[i].DisplayName);
+					}
+				}
+				if (turnOffHistory) {
+					History.TurnOn();
+				}
+			},
+
 			reapplyAutoFilter: function (displayName) {
 				var worksheet = this.worksheet;
 				var bUndoChanges = worksheet.workbook.bUndoChanges;
@@ -900,7 +918,12 @@
 
 				//open/close rows
 				if (!bUndoChanges && !bRedoChanges) {
-					var hiddenProps = autoFilter.setRowHidden(worksheet);
+					var activeNamedSheetView = worksheet.getActiveNamedSheetView();
+					var opt_columnsFilter;
+					if (activeNamedSheetView !== null) {
+						opt_columnsFilter = worksheet.getNvsFilterByTableName(displayName);
+					}
+					var hiddenProps = autoFilter.setRowHidden(worksheet, null, opt_columnsFilter ? opt_columnsFilter.columnsFilter ? null);
 					minChangeRow = hiddenProps.minChangeRow;
 				}
 

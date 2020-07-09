@@ -2817,6 +2817,7 @@ function (window, undefined) {
 			if (ws.aNamedSheetViews) {
 				var namedSheetView = bUndo ? ws.aNamedSheetViews[Data.from] : ws.aNamedSheetViews[Data.to];
 				namedSheetView.asc_setIsActive();
+				ws.autoFilters.reapplyAllFilters(true);
 			}
 		}
 	};
