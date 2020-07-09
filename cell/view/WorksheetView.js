@@ -11759,11 +11759,58 @@
 		return [arn, arrFormula];
 	};
 
-    WorksheetView.prototype._pasteFromBinary = function (val, isCheckSelection, tablesMap) {
+	WorksheetView.prototype.pasteFromBinary = function (val, isCheckSelection, tablesMap) {
+		var pasteRange = AscCommonExcel.g_clipboardExcel.pasteProcessor.activeRange;
+		pasteRange = typeof pasteRange === "string" ? AscCommonExcel.g_oRangeCache.getAscRange(pasteRange) : pasteRange;
+		var pastedCol = pasteRange.c2 - pasteRange.c1 + 1;
+		var pastedRow = pasteRange.r2 - pasteRange.r1 + 1;
+
+		var _checkSize = function (_range) {
+			var _col = _range.c2 - _range.c1 + 1;
+			var _row = _range.r2 - _range.r1 + 1;
+
+			if (_col % pastedCol === 0 && _row % pastedRow === 0) {
+				return true;
+			}
+			if (_col % pastedCol === 0 && pastedRow === 1) {
+				return true;
+			}
+			if (_row % pastedRow === 0 && pastedCol === 1) {
+				return true;
+			}
+			
+			return false;
+		};
+
+		var selectRanges = this.model.selectionRange.ranges;
+		var i;
+		if (selectRanges.length > 1) {
+			for (i = 0; i < selectRanges.length; i++) {
+				if (!_checkSize(selectRanges[i])) {
+					//error
+					return;
+				}
+			}
+		}
+
+		var _selectionArr = [];
+		if (selectRanges.length > 1) {
+			for (i = 0; i < selectRanges.length; i++) {
+				var _selection = this._pasteFromBinary(val, isCheckSelection, tablesMap, selectRanges[i]);
+				if (isCheckSelection) {
+					_selectionArr.push(_selection);
+				}
+			}
+		}
+		
+		return _selectionArr.length ? _selectionArr : null;
+	};
+
+    WorksheetView.prototype._pasteFromBinary = function (val, isCheckSelection, tablesMap, pasteInRange) {
         var t = this;
-		var trueActiveRange = t.model.selectionRange.getLast().clone();
-		var lastSelection = this.model.selectionRange.getLast();
-        var arn = t.model.selectionRange.getLast().clone();
+		var trueActiveRange = pasteInRange ? pasteInRange.clone() : t.model.selectionRange.getLast().clone();
+		var lastSelection = pasteInRange ? pasteInRange : this.model.selectionRange.getLast();
+        var arn = pasteInRange ? pasteInRange.clone() : t.model.selectionRange.getLast().clone();
         var arrFormula = [];
 
         var pasteRange = AscCommonExcel.g_clipboardExcel.pasteProcessor.activeRange;
@@ -11807,7 +11854,7 @@
             firstValuesRow = 0;
         }
 
-		var excludeHiddenRows = t.model.autoFilters.bIsExcludeHiddenRows(t.model.selectionRange.getLast(), t.model.selectionRange.activeCell);
+		var excludeHiddenRows = t.model.autoFilters.bIsExcludeHiddenRows(pasteInRange ? pasteInRange.clone() : t.model.selectionRange.getLast(), t.model.selectionRange.activeCell);
 		var hiddenRowsArray = {};
 		var getOpenRowsCount = function(oRange) {
 			var res = oRange.r2 - oRange.r1 + 1;
