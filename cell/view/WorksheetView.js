@@ -11053,9 +11053,13 @@
 				onSelectionCallback(true);
 				return;
             } else {
-				var newRange = val.fromBinary ? this._pasteFromBinary(val.data, true) : this._pasteFromHTML(val.data, true);
-				checkRange = [newRange];
-
+				var newRange = val.fromBinary ? this.pasteFromBinary(val.data, true) : this._pasteFromHTML(val.data, true);
+				checkRange = newRange && newRange.length ? newRange : [newRange];
+				
+				if (!newRange) {
+					return false;
+				}
+				
 				if(this.intersectionFormulaArray(newRange)) {
 					t.handlers.trigger("onErrorEvent", c_oAscError.ID.CannotChangeFormulaArray, c_oAscError.Level.NoCritical);
 					return false;
@@ -11322,19 +11326,19 @@
 		}
 
 		t.model.workbook.dependencyFormulas.lockRecal();
-		var selectData;
+		var pastedData;
 		if (fromBinary) {
-			selectData = t._pasteFromBinary(val, null, tablesMap);
+			pastedData = t.pasteFromBinary(val, null, tablesMap);
 		} else {
 			if (bText) {
 				specialPasteProps.font = false;
 			}
-			selectData = t._pasteFromHTML(val, null, specialPasteProps);
+			pastedData = t._pasteFromHTML(val, null, specialPasteProps);
 		}
 
 		t.model.checkChangeTablesContent(t.model.selectionRange.getLast());
 
-		if (!selectData) {
+		if (!pastedData) {
 			bIsUpdate = false;
 			t.model.workbook.dependencyFormulas.unlockRecal();
 			if (callTrigger) {
@@ -11343,7 +11347,7 @@
 			return;
 		}
 
-		var arrFormula = selectData[1];
+		var arrFormula = pastedData[1];
 		var adjustFormatArr = [];
 		for (i = 0; i < arrFormula.length; ++i) {
 			var rangeF = arrFormula[i].range;
@@ -11423,13 +11427,13 @@
 			if (isTablePasted) {
 				window['AscCommon'].g_specialPasteHelper.buttonInfo.asc_setContainTables(true);
 			}
-			window['AscCommon'].g_specialPasteHelper.buttonInfo.setRange(selectData[0]);
+			window['AscCommon'].g_specialPasteHelper.buttonInfo.setRange(pastedData[0]);
 		} else {
-			window['AscCommon'].g_specialPasteHelper.buttonInfo.setRange(selectData[0]);
+			window['AscCommon'].g_specialPasteHelper.buttonInfo.setRange(pastedData[0]);
 			window['AscCommon'].g_specialPasteHelper.SpecialPasteButton_Update_Position();
 		}
 
-		return {selectData: selectData, adjustFormatArr: adjustFormatArr};
+		return {selectData: pastedData, adjustFormatArr: adjustFormatArr};
 	};
 
     WorksheetView.prototype._loadDataBeforePaste = function ( isLargeRange, val, pasteContent, bIsUpdate, canChangeColWidth, pasteToRange ) {
@@ -11449,7 +11453,6 @@
 			}
 
 			var arn = selectData[0];
-			var selectionRange = arn.clone(true);
 			if (bIsUpdate) {
 				if (isLargeRange) {
 					t.handlers.trigger("slowOperation", false);
@@ -11458,7 +11461,13 @@
 				if(specialPasteChangeColWidth) {
 					t.changeWorksheet("update");
 				} else {
-					t._updateRange(arn);
+					if (arn.length) {
+						for (var i = 0; i < arn.length; i++) {
+							t._updateRange(arn[i]);
+						}
+					} else {
+						t._updateRange(arn);
+					}
 				}
 			}
 			window['AscCommon'].g_specialPasteHelper.Paste_Process_End();
@@ -11472,7 +11481,8 @@
 			var oSelection = History.GetSelection();
 			if (null != oSelection) {
 				oSelection = oSelection.clone();
-				oSelection.assign(selectionRange.c1, selectionRange.r1, selectionRange.c2, selectionRange.r2);
+				//TODO selectData!
+				oSelection.assign(arn.c1, arn.r1, arn.c2, arn.r2);
 				History.SetSelection(oSelection);
 				History.SetSelectionRedo(oSelection);
 			}
@@ -11793,17 +11803,41 @@
 			}
 		}
 
-		var _selectionArr = [];
+		var res;
 		if (selectRanges.length > 1) {
 			for (i = 0; i < selectRanges.length; i++) {
 				var _selection = this._pasteFromBinary(val, isCheckSelection, tablesMap, selectRanges[i]);
 				if (isCheckSelection) {
-					_selectionArr.push(_selection);
+					if (!res) {
+						res = [];
+					}
+					res.push(_selection);
+				} else {
+					if (!_selection) {
+						return;
+					} else {
+						if (!res) {
+							res = [];
+						}
+						if (!res[0]) {
+							res[0] = [];
+						}
+						res[0].push(_selection[0]);
+						if (res[1]) {
+							res[1].concat(_selection[1]);
+						} else {
+							res[1] = _selection[1];
+						}
+					}
+					//set selection
+
 				}
 			}
+		} else {
+			res = this._pasteFromBinary(val, isCheckSelection, tablesMap);
 		}
 		
-		return _selectionArr.length ? _selectionArr : null;
+		return res;
 	};
 
     WorksheetView.prototype._pasteFromBinary = function (val, isCheckSelection, tablesMap, pasteInRange) {
@@ -12308,14 +12342,15 @@
 		}
 
         t.isChanged = true;
-        var arnFor = [trueActiveRange, arrFormula];
 
 		//TODO переделать на setSelection. закомментировал в связи с падением, когда вставляем ниже видимой зоны таблицы
 		//this.setSelection(trueActiveRange);
-		lastSelection.c2 = trueActiveRange.c2;
-        lastSelection.r2 = trueActiveRange.r2;
+		if (!pasteInRange) {
+			lastSelection.c2 = trueActiveRange.c2;
+			lastSelection.r2 = trueActiveRange.r2;
+		}
 
-        return arnFor;
+        return [trueActiveRange, arrFormula];
     };
 
 	WorksheetView.prototype._setPastedDataByCurrentRange = function (range, rangeStyle, formulaProps, specialPasteProps) {
