@@ -8373,7 +8373,7 @@
 				_filter.init(this.TableParts[i]);
 				sheetView.nsvFilters.push(_filter);
 			}
-			if (this.model.AutoFilter) {
+			if (this.AutoFilter) {
 				_filter = new AscCommonExcel.CT_NsvFilter();
 				_filter.init(this.AutoFilter);
 				sheetView.nsvFilters.push(_filter);
