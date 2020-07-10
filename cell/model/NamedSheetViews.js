@@ -57,7 +57,7 @@
 
 		res.name = this.name;
 		res.id = this.id;
-		res.ws = c
+		res.ws = this.ws;
 
 		return res;
 	};
