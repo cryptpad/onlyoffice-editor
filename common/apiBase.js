@@ -2079,6 +2079,11 @@
 		if (null != this.pluginsManager)
 			this.pluginsManager.run(guid, variation, pluginData);
 	};
+	baseEditorsApi.prototype.asc_pluginStop        = function(guid)
+	{
+		if (null != this.pluginsManager)
+			this.pluginsManager.close(guid);
+	};
 	baseEditorsApi.prototype.asc_pluginResize      = function(pluginData)
 	{
 		if (null != this.pluginsManager)
