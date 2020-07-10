@@ -367,7 +367,7 @@
 			//чтобы в versionHistory был один documentId для auth и open
 			this.CoAuthoringApi.setDocId(this.documentId);
 
-			if (this.documentOpenOptions["watermark"])
+			if (this.documentOpenOptions && this.documentOpenOptions["watermark"])
 			{
 				this.watermarkDraw = new AscCommon.CWatermarkOnDraw(this.documentOpenOptions["watermark"], this);
 				this.watermarkDraw.CheckParams(this);
