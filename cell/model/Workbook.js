@@ -8363,7 +8363,7 @@
 		if (!sheetView) {
 			sheetView = new AscCommonExcel.CT_NamedSheetView();
 			sheetView.ws = this;
-			sheetView.generateName();
+			sheetView.name = sheetView.generateName();
 		}
 
 		var _filter;
