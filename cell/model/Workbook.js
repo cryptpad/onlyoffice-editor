@@ -8391,15 +8391,15 @@
 		if (namedSheetViews && arr) {
 			var diff = 0;
 			for (var i = 0; i < arr.length; i++) {
-				//todo history
-				namedSheetViews.splice(arr[i] - diff, 1);
+				var index = this.getIndexNamedSheetViewByName(arr[i].name);
+				namedSheetViews.splice(index - diff, 1);
 				diff++;
+
+				//TODO history
+				/*History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_SheetViewDelete, this.getId(), null,
+						new AscCommonExcel.UndoRedoData_BinaryWrapper(sheetView));*/
 			}
 		}
-
-		//TODO history
-		/*History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_SheetViewDelete, this.getId(), null,
-				new AscCommonExcel.UndoRedoData_BinaryWrapper(sheetView));*/
 	};
 
 	Worksheet.prototype.getNamedSheetViews = function () {
@@ -8422,6 +8422,18 @@
 			for (var i = 0; i < namedSheetViews.length; i++) {
 				if (name === namedSheetViews[i].name) {
 					return namedSheetViews[i];
+				}
+			}
+		}
+		return null;
+	};
+
+	Worksheet.prototype.getIndexNamedSheetViewByName = function (name) {
+		var namedSheetViews = this.aNamedSheetViews;
+		if (namedSheetViews) {
+			for (var i = 0; i < namedSheetViews.length; i++) {
+				if (name === namedSheetViews[i].name) {
+					return i;
 				}
 			}
 		}
