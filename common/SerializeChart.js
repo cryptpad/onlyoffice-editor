@@ -11280,7 +11280,9 @@ BinaryChartReader.prototype.ReadCT_Chart = function (type, length, val) {
             var oChart = oNewVal.charts[_i];
             if(oChart)
             {
-                if(oChart.getObjectType() !== AscDFH.historyitem_type_ScatterChart && oChart.getAxisByTypes)
+                if(oChart.getObjectType() !== AscDFH.historyitem_type_ScatterChart && 
+                oChart.getObjectType() !== AscDFH.historyitem_type_PieChart &&
+                oChart.getObjectType() !== AscDFH.historyitem_type_DoughnutChart)
                 {
                     var axis_by_types = oChart.getAxisByTypes();
                     if(axis_by_types.valAx.length === 0 || axis_by_types.catAx.length === 0)
@@ -11376,7 +11378,6 @@ BinaryChartReader.prototype.ReadCT_Chart = function (type, length, val) {
                     oDlbls.setShowBubbleSize(false);
                     oChart.setDLbls(oDlbls);
                 }
-                var aSeries = oChart.series;
             }
         }
 
