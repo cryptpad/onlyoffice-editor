@@ -527,9 +527,9 @@
 
 
 						//add to model
-						var newTablePart = t._addNewFilter(filterRange, styleName, bWithoutFilter, displayName,
+						var newFilter = t._addNewFilter(filterRange, styleName, bWithoutFilter, displayName,
 							tablePart, offset);
-						var newDisplayName = newTablePart && newTablePart.DisplayName ? newTablePart.DisplayName : null;
+						var newDisplayName = newFilter && newFilter.DisplayName ? newFilter.DisplayName : null;
 
 						//history
 						//FOR R1C1 - add into history only A1B1 format
@@ -552,9 +552,9 @@
 							t._setColorStyleTable(worksheet.TableParts[worksheet.TableParts.length - 1].Ref,
 								worksheet.TableParts[worksheet.TableParts.length - 1], null, true);
 						}
-
-						t.updateNamedSheetViewAfterAddFilter();
 					}
+
+					t.updateNamedSheetViewAfterAddFilter(cloneFilter ? cloneFilter : newFilter);
 
 					History.EndTransaction();
 				};
@@ -604,7 +604,7 @@
 						cloneFilter.Ref);
 
 					t._setStyleTablePartsAfterOpenRows(filterRange);
-					t.updateNamedSheetViewAfterDeleteFilter();
+					t.updateNamedSheetViewAfterDeleteFilter(cloneFilter);
 
 					History.EndTransaction();
 				};
@@ -739,11 +739,12 @@
 					nsvFilter = worksheet.getNvsFilterByTableName(filterObj.filter.DisplayName);
 					if (nsvFilter) {
 						//TODO перепроверить. соответствует ли индекс?
-						newFilterColumn = nsvFilter.getColumnFilterByColId(filterObj.index);
+						newFilterColumn = nsvFilter.getColumnFilterByColId(filterObj.ColId);
 
 						if (!newFilterColumn) {
-							newFilterColumn = new FilterColumn();
+							newFilterColumn = new window['AscCommonExcel'].FilterColumn();
 							newFilterColumn.ColId = filterObj.ColId;
+							nsvFilter.columnsFilter.push(newFilterColumn);
 						}
 					}
 				} else {
@@ -883,17 +884,23 @@
 
 			updateNamedSheetViewAfterAddFilter: function (filter) {
 				var worksheet = this.worksheet;
-				var activeNamedSheetView = worksheet.getActiveNamedSheetView();
-				if (activeNamedSheetView !== null && activeNamedSheetView.addFilter) {
-					activeNamedSheetView.addFilter(filter);
+				var activeNamedSheetViewIndex = worksheet.getActiveNamedSheetView();
+				if (activeNamedSheetViewIndex !== null) {
+					var activeNamedSheetView = worksheet.aNamedSheetViews ? worksheet.aNamedSheetViews[activeNamedSheetViewIndex] : null;
+					if (activeNamedSheetView && activeNamedSheetView.addFilter) {
+						activeNamedSheetView.addFilter(filter);
+					}
 				}
 			},
 
 			updateNamedSheetViewAfterDeleteFilter: function (filter) {
 				var worksheet = this.worksheet;
-				var activeNamedSheetView = worksheet.getActiveNamedSheetView();
-				if (activeNamedSheetView !== null && activeNamedSheetView.deleteFilter) {
-					activeNamedSheetView.deleteFilter(filter);
+				var activeNamedSheetViewIndex = worksheet.getActiveNamedSheetView();
+				if (activeNamedSheetViewIndex !== null) {
+					var activeNamedSheetView = worksheet.aNamedSheetViews ? worksheet.aNamedSheetViews[activeNamedSheetViewIndex] : null;
+					if (activeNamedSheetView && activeNamedSheetView.deleteFilter) {
+						activeNamedSheetView.deleteFilter(filter);
+					}
 				}
 			},
 
@@ -4291,12 +4298,14 @@
 				var automaticRowCount = null;
 				colId = this._getTrueColId(autoFilter, colId, true);
 
-				var currentFilterColumn;
+				var currentFilterColumn = null;
 				var activeNamedSheetView = worksheet.getActiveNamedSheetView();
 				var nsvFilter;
 				if (activeNamedSheetView !== null) {
 					nsvFilter = worksheet.getNvsFilterByTableName(isTablePart ? filter.DisplayName : null);
-					currentFilterColumn = nsvFilter.getColumnFilterByColId(colId);
+					if (nsvFilter) {
+						currentFilterColumn = nsvFilter.getColumnFilterByColId(colId);
+					}
 				} else {
 					currentFilterColumn = autoFilter.getFilterColumn(colId);
 				}

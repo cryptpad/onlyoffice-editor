@@ -103,10 +103,11 @@
 
 	CT_NsvFilter.prototype.getColumnFilterByColId = function (id) {
 		for (var i = 0; i < this.columnsFilter.length; ++i) {
-			if (this.columnsFilter.colId === id) {
+			if (this.columnsFilter[i].ColId === id) {
 				return this.columnsFilter[i];
 			}
 		}
+		return null;
 	};
 
 	CT_NsvFilter.prototype.init = function (obj) {

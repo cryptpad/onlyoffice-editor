@@ -8344,10 +8344,6 @@
 			return;
 		}
 
-		if (!val) {
-			val = "0";
-		}
-
 		var sheetView = this.aNamedSheetViews[this.nActiveNamedSheetView];
 		if (sheetView && sheetView.nsvFilters) {
 			for (var i = 0; i < sheetView.nsvFilters.length; i++) {
