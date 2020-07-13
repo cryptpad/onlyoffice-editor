@@ -122,7 +122,7 @@
 				af = obj;
 			}
 
-			if (af) {
+			if (af && af.FilterColumns) {
 				for (var i = 0; i < af.FilterColumns.length; i++) {
 					var newColumnFilter = new CT_ColumnFilter();
 					newColumnFilter.colId = af.FilterColumns[i].ColId;
