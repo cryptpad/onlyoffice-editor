@@ -48,9 +48,6 @@
 	/** @constructor */
 	function baseEditorsApi(config, editorId)
 	{
-		if (window["AscDesktopEditor"])
-			window["AscDesktopEditor"]["CreateEditorApi"]();
-
 		this.editorId      = editorId;
 		this.isLoadFullApi = false;
         this.isLoadFonts = false;
@@ -202,6 +199,9 @@
 
 	baseEditorsApi.prototype._init                           = function()
 	{
+		if (window["AscDesktopEditor"])
+			window["AscDesktopEditor"]["CreateEditorApi"](this);
+
 		var t            = this;
 		//Asc.editor = Asc['editor'] = AscCommon['editor'] = AscCommon.editor = this; // ToDo сделать это!
 		this.HtmlElement = document.getElementById(this.HtmlElementName);
