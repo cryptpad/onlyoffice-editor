@@ -109,10 +109,10 @@
 		}
 	};
 
-	CT_NsvFilter.prototype.init = function (obj) {
+	CT_NsvFilter.prototype.init = function (obj, addToHistory) {
 		if (obj) {
 			var af;
-			if (obj.isTable()) {
+			if (!obj.isAutoFilter()) {
 				this.ref = obj.Ref;
 				this.tableId = obj.DisplayName;
 				af = obj.AutoFilter;

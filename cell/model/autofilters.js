@@ -552,6 +552,8 @@
 							t._setColorStyleTable(worksheet.TableParts[worksheet.TableParts.length - 1].Ref,
 								worksheet.TableParts[worksheet.TableParts.length - 1], null, true);
 						}
+
+						t.updateNamedSheetViewAfterAddFilter();
 					}
 
 					History.EndTransaction();
@@ -602,6 +604,7 @@
 						cloneFilter.Ref);
 
 					t._setStyleTablePartsAfterOpenRows(filterRange);
+					t.updateNamedSheetViewAfterDeleteFilter();
 
 					History.EndTransaction();
 				};
@@ -876,6 +879,22 @@
 				}
 
 				return res;
+			},
+
+			updateNamedSheetViewAfterAddFilter: function (filter) {
+				var worksheet = this.worksheet;
+				var activeNamedSheetView = worksheet.getActiveNamedSheetView();
+				if (activeNamedSheetView !== null && activeNamedSheetView.addFilter) {
+					activeNamedSheetView.addFilter(filter);
+				}
+			},
+
+			updateNamedSheetViewAfterDeleteFilter: function (filter) {
+				var worksheet = this.worksheet;
+				var activeNamedSheetView = worksheet.getActiveNamedSheetView();
+				if (activeNamedSheetView !== null && activeNamedSheetView.deleteFilter) {
+					activeNamedSheetView.deleteFilter(filter);
+				}
 			},
 
 			reapplyAllFilters: function (turnOffHistory) {
