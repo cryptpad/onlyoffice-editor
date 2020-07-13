@@ -134,7 +134,7 @@
 	 *     "saddleBrown" | "salmon" | "sandyBrown" | "seaGreen" | "seaShell" | "sienna" | "silver" | "skyBlue" |
 	 *     "slateBlue" | "slateGray" | "slateGrey" | "snow" | "springGreen" | "steelBlue" | "tan" | "teal" |
 	 *     "thistle" | "tomato" | "turquoise" | "violet" | "wheat" | "white" | "whiteSmoke" | "yellow" |
-	 *     "yellowGreen")} PresetColor
+	 *     "yellowGreen" | "No Fill")} PresetColor
 	 * */
 
 	/**
@@ -1752,6 +1752,7 @@
 
 	/**
 	 * Set the background color for the current cell range with the previously created color object.
+	 * Set 'No Fill' when previously created color object is null
 	 * @typeofeditors ["CSE"]
 	 * @memberof ApiRange
 	 * @param {ApiColor} color - The color object previously created to set the color to the background in the cell/cell range.
@@ -1760,6 +1761,12 @@
 		var color = ApiColor === 'No Fill' ? null : ApiColor.color;
 		this.range.setFillColor(color);
 	};
+	/**
+	 * Get the background color for the current cell range
+	 * @typeofeditors ["CSE"]
+	 * @memberof ApiRange
+	 * return {ApiColor|'No Fill'} - return 'NoFill' when the color to the background in the cell/cell range is null
+	 */
 	ApiRange.prototype.GetFillColor = function () {
 		var fillColor = this.range.getFillColor();
 		return fillColor ? fillColor : 'No Fill';
@@ -2451,6 +2458,12 @@
 		}
 	});
 
+	/**
+	 * Returns an ApiRange object by reference
+	 * @typeofeditors ["CSE"]
+	 * @memberof ApiName
+	 * @returns {ApiRange}
+	 */
 	ApiName.prototype.GetRefersToRange = function () {
 		var range;
 		if (this.DefName) {
