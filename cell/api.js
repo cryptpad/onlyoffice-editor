@@ -1258,6 +1258,10 @@ var editor;
           t._onUpdateHeaderFooterLock(lockElem);
           //эвент о локе в меню опции scale во вкладке layout
           t._onUpdatePrintScaleLock(lockElem);
+          //эвент о локе представлений
+          if (t._onUpdateNamedSheetViewLock) {
+            t._onUpdateNamedSheetViewLock(lockElem);
+          }
 
 
 
