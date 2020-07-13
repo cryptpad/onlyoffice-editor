@@ -8344,14 +8344,20 @@
 			return;
 		}
 
-		var sheetView = this.aNamedSheetViews[this.nActiveNamedSheetView];
-		if (sheetView && sheetView.nsvFilters) {
-			for (var i = 0; i < sheetView.nsvFilters.length; i++) {
-				if (sheetView.nsvFilters[i].tableId === val) {
-					return sheetView.nsvFilters[i];
-				}
-			}
+		if (Asc.CT_NamedSheetView.prototype.getNsvFiltersByTableId) {
+			var sheetView = this.aNamedSheetViews[this.nActiveNamedSheetView];
+			return sheetView ? sheetView.getNsvFiltersByTableId(val) : null;
 		}
+
+		return null;
+	};
+
+	Worksheet.prototype.getNamedSheetViewFilterColumns = function (val) {
+		var nsvFilter = this.getNvsFilterByTableName(val);
+		if (nsvFilter && nsvFilter.columnsFilter) {
+			return nsvFilter.columnsFilter;
+		}
+		return null;
 	};
 
 	Worksheet.prototype.addNamedSheetView = function (sheetView, isDuplicate) {

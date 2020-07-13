@@ -15371,6 +15371,7 @@
 			if (range.isIntersect(updatedRange)) {
 				var row = range.r1;
 
+				//TODO sheet view
 				var sortConditions = filter.isApplySortConditions() ? filter.SortState.SortConditions : null;
 				for (var col = range.c1; col <= range.c2; col++) {
 					if (col >= updatedRange.c1 && col <= updatedRange.c2) {
@@ -15380,19 +15381,25 @@
 
 						var i;
 						var colId = filter.isAutoFilter() ? t.model.autoFilters._getTrueColId(autoFilter, col - range.c1, true) : col - range.c1;
-						if (autoFilter.FilterColumns && autoFilter.FilterColumns.length) {
+
+						var filterColumns = t.model.getNamedSheetViewFilterColumns(filter.DisplayName);
+						if (!filterColumns) {
+							filterColumns = autoFilter.FilterColumns;
+						}
+
+						if (filterColumns && filterColumns.length) {
 							var filterColumn = null, filterColumnWithMerge = null;
 
-							for (i = 0; i < autoFilter.FilterColumns.length; i++) {
-								if (autoFilter.FilterColumns[i].ColId === col - range.c1) {
-									filterColumn = autoFilter.FilterColumns[i];
+							for (i = 0; i < filterColumns.length; i++) {
+								if (filterColumns[i].ColId === col - range.c1) {
+									filterColumn = filterColumns[i];
 								}
 
 								if (colId === col - range.c1 && filterColumn !== null) {
 									filterColumnWithMerge = filterColumn;
 									break;
-								} else if (autoFilter.FilterColumns[i].ColId === colId) {
-									filterColumnWithMerge = autoFilter.FilterColumns[i];
+								} else if (filterColumns[i].ColId === colId) {
+									filterColumnWithMerge = filterColumns[i];
 								}
 							}
 
@@ -15939,7 +15946,18 @@
         var automaticRowCount = openAndClosedValues.automaticRowCount;
         //для случае когда скрыто только пустое значение не отображаем customfilter
 		var ignoreCustomFilter = openAndClosedValues.ignoreCustomFilter;
-        var filters = autoFilter.getFilterColumn(colId);
+
+		var activeNamedSheetView = ws.getActiveNamedSheetView();
+		var nsvFilter;
+		var filters;
+		if (activeNamedSheetView !== null) {
+			nsvFilter = ws.getNvsFilterByTableName(filter.DisplayName);
+			if (nsvFilter) {
+				filters = nsvFilter.getColumnFilterByColId(colId);
+			}
+		} else {
+			filters = autoFilter.getFilterColumn(colId, true);
+		}
 
         var rangeButton = new Asc.Range(autoFilter.Ref.c1 + colId, autoFilter.Ref.r1, autoFilter.Ref.c1 + colId, autoFilter.Ref.r1);
         var cellId = ws.autoFilters._rangeToId(rangeButton);
