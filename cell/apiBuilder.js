@@ -391,7 +391,10 @@
 	 * @returns {ApiRange}
 	 */
 	Api.prototype.GetRange = function(sRange) {
-		var range = AscCommonExcel.getRangeByRef(sRange, this.wbModel.getActiveWs(),true, true)[0];
+		var ws, regex = /Sheet\d+/;
+		var wsName = sRange.match(regex);
+		ws = wsName ? this.wbModel.getWorksheetByName(wsName[0]) : this.wbModel.getActiveWs();
+		var range = AscCommonExcel.getRangeByRef(sRange, ws, true, true)[0];
 		return new ApiRange(range);
 	};
 
@@ -1768,8 +1771,8 @@
 	 * return {ApiColor|'No Fill'} - return 'NoFill' when the color to the background in the cell/cell range is null
 	 */
 	ApiRange.prototype.GetFillColor = function () {
-		var fillColor = this.range.getFillColor();
-		return fillColor ? fillColor : 'No Fill';
+		var fillColor = new ApiColor(this.range.getFillColor());
+		return fillColor.color ? fillColor : 'No Fill';
 	};
 	Object.defineProperty(ApiRange.prototype, "FillColor", {
 		set: function (color) {
