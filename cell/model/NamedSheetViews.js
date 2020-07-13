@@ -109,7 +109,7 @@
 		}
 	};
 
-	CT_NsvFilter.prototype.init = function (obj, addToHistory) {
+	CT_NsvFilter.prototype.init = function (obj) {
 		if (obj) {
 			var af;
 			if (!obj.isAutoFilter()) {

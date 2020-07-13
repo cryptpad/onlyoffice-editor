@@ -8361,7 +8361,7 @@
 	Worksheet.prototype.addNamedSheetView = function (sheetView, isDuplicate) {
 
 		if (!sheetView) {
-			sheetView = new AscCommonExcel.CT_NamedSheetView();
+			sheetView = new Asc.CT_NamedSheetView();
 			sheetView.ws = this;
 			sheetView.name = sheetView.generateName();
 		}
@@ -8369,12 +8369,12 @@
 		var _filter;
 		if (!isDuplicate) {
 			for (var i = 0; i < this.TableParts.length; i++) {
-				_filter = new AscCommonExcel.CT_NsvFilter();
+				_filter = new Asc.CT_NsvFilter();
 				_filter.init(this.TableParts[i]);
 				sheetView.nsvFilters.push(_filter);
 			}
 			if (this.AutoFilter) {
-				_filter = new AscCommonExcel.CT_NsvFilter();
+				_filter = new Asc.CT_NsvFilter();
 				_filter.init(this.AutoFilter);
 				sheetView.nsvFilters.push(_filter);
 			}
