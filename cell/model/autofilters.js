@@ -744,6 +744,11 @@
 						if (!newFilterColumn) {
 							newFilterColumn = new window['AscCommonExcel'].FilterColumn();
 							newFilterColumn.ColId = filterObj.ColId;
+
+							var _columnFilter = new CT_ColumnFilter();
+							_columnFilter.colId = newFilterColumn.ColId;
+							_columnFilter.filter = newFilterColumn;
+
 							nsvFilter.columnsFilter.push(newFilterColumn);
 						}
 					}
