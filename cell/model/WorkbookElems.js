@@ -6739,7 +6739,7 @@ function RangeDataManagerElem(bbox, data)
 		var filterColumns = opt_columnsFilter ? opt_columnsFilter : this.FilterColumns;
 		if (filterColumns) {
 			for (var j = 0; j < filterColumns.length; j++) {
-				var filterColumn = filterColumns[j];
+				var filterColumn = opt_columnsFilter ? filterColumns[j].filter : filterColumns[j];
 				var colId = filterColumn.ColId;
 				if (colId !== cellId) {
 					var cell = worksheet.getCell3(row, colId + col);
