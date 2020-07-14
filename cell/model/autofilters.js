@@ -909,16 +909,22 @@
 				}
 			},
 
-			reapplyAllFilters: function (turnOffHistory) {
+			reapplyAllFilters: function (turnOffHistory, openPreviousHiddenRows) {
 				if (turnOffHistory) {
 					History.TurnOff();
 				}
 				var worksheet = this.worksheet;
 				if (worksheet.AutoFilter) {
+					if (openPreviousHiddenRows) {
+						worksheet.setRowHidden(false, worksheet.AutoFilter.Ref.r1, worksheet.AutoFilter.Ref.r2);
+					}
 					this.reapplyAutoFilter(null);
 				}
 				if (worksheet.TableParts) {
 					for (var i = 0; i < worksheet.TableParts.length; i++) {
+						if (openPreviousHiddenRows) {
+							worksheet.setRowHidden(false, worksheet.TableParts[i].Ref.r1, worksheet.TableParts[i].Ref.r2);
+						}
 						this.reapplyAutoFilter(worksheet.TableParts[i].DisplayName);
 					}
 				}
