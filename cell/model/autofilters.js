@@ -745,11 +745,11 @@
 							newFilterColumn = new window['AscCommonExcel'].FilterColumn();
 							newFilterColumn.ColId = filterObj.ColId;
 
-							var _columnFilter = new CT_ColumnFilter();
+							var _columnFilter = new window['Asc'].CT_ColumnFilter();
 							_columnFilter.colId = newFilterColumn.ColId;
 							_columnFilter.filter = newFilterColumn;
 
-							nsvFilter.columnsFilter.push(newFilterColumn);
+							nsvFilter.columnsFilter.push(_columnFilter);
 						}
 					}
 				} else {
