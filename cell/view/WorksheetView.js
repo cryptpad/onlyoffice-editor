@@ -11588,7 +11588,7 @@
 		var oldDecimalSep, oldGroupSep;
 		if (specialPasteProps.advancedOptions) {
 			if (specialPasteProps.advancedOptions.NumberDecimalSeparator) {
-				oldDecimalSep = AscCommon.g_oDefaultCultureInfo.NumberDecimalSeparator;
+				oldDecimalSep = AscCommon.g_oDefaultCultureInfoapplyAutoFilter.NumberDecimalSeparator;
 				AscCommon.g_oDefaultCultureInfo.NumberDecimalSeparator = specialPasteProps.advancedOptions.NumberDecimalSeparator;
 			}
 			if (specialPasteProps.advancedOptions.NumberGroupSeparator) {
@@ -14811,12 +14811,18 @@
                 t.objectRender.updateSizeDrawingObjects({target: c_oTargetType.RowResize, row: minChangeRow});
             }
         };
+
 		if (!window['AscCommonExcel'].filteringMode) {
 			History.LocalChange = true;
 			onChangeAutoFilterCallback();
 			History.LocalChange = false;
         } else {
-			this._isLockedAll(onChangeAutoFilterCallback);
+			//в особом режиме не лочим лист при фильтрации
+			if (null !== t.model.getActiveNamedSheetView()) {
+				onChangeAutoFilterCallback();
+			} else {
+				this._isLockedAll(onChangeAutoFilterCallback);
+			}
         }
     };
 
