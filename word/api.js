@@ -4367,7 +4367,13 @@ background-repeat: no-repeat;\
 				}
 			}
 		}
-		return this.WordControl.m_oLogicDocument.SetWatermarkProps(oProps);
+		var sText = oProps.get_Text();
+		if(!(typeof sText === "string")) {
+			sText = "";
+		}
+		AscFonts.FontPickerByCharacter.checkText(sText, this, function () {
+			return oApi.WordControl.m_oLogicDocument.SetWatermarkProps(oProps);
+		});
 	};
 	asc_docs_api.prototype.asc_WatermarkRemove = function(oProps)
 	{
