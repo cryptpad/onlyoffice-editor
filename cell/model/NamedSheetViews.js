@@ -40,7 +40,7 @@
 		this.id = null;
 
 		this.ws = null;
-		this.isLock = false;
+		this.isLock = null;
 		this._isActive = null;
 
 		//this.Id = AscCommon.g_oIdCounter.Get_NewId();
