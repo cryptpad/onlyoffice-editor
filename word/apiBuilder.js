@@ -4414,6 +4414,8 @@
 
 		oRun.Add_ToContent(0, oDrawing.Drawing);
 		private_PushElementToParagraph(this.Paragraph, oRun);
+		oDrawing.Drawing.Set_Parent(oRun);
+
 		return new ApiRun(oRun);
 	};
 
@@ -5372,6 +5374,7 @@
 			return;
 
 		this.Run.Add_ToContent(this.Run.Content.length, oDrawing.Drawing);
+		oDrawing.Drawing.Set_Parent(this.Run);
 	};
 	/**
 	 * Select a run.
