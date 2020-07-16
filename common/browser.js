@@ -43,25 +43,25 @@ var AscBrowser = {
     isMacOs : false,
     isSafariMacOs : false,
     isAppleDevices : false,
-	isAndroid : false,
+    isAndroid : false,
     isMobile : false,
     isGecko : false,
     isChrome : false,
     isOpera : false,
-	isOperaOld : false,
+    isOperaOld : false,
     isWebkit : false,
     isSafari : false,
     isArm : false,
     isMozilla : false,
-	isRetina : false,
+    isRetina : false,
     isLinuxOS : false,
-	retinaPixelRatio : 1,
-	isVivaldiLinux : false,
+    retinaPixelRatio : 1,
+    isVivaldiLinux : false,
     isSailfish : false,
     isEmulateDevicePixelRatio : false,
     isNeedEmulateUpload : false,
     chromeVersion : 70,
-	iosVersion : 13
+    iosVersion : 13
 };
 
 // user agent lower case
@@ -70,7 +70,7 @@ AscBrowser.userAgent = navigator.userAgent.toLowerCase();
 // ie detect
 AscBrowser.isIE =  (AscBrowser.userAgent.indexOf("msie") > -1 ||
                     AscBrowser.userAgent.indexOf("trident") > -1 ||
-					AscBrowser.userAgent.indexOf("edge") > -1);
+                    AscBrowser.userAgent.indexOf("edge") > -1);
 
 AscBrowser.isIeEdge = (AscBrowser.userAgent.indexOf("edge/") > -1);
 
