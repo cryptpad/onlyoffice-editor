@@ -1575,6 +1575,17 @@ CopyProcessor.prototype =
 			oDomTarget.addChild(oImg);
 		}
 
+		//TODO необходимо записать перед записью слайда ссылки стиль и сами стили
+		// - аналогично тому как это реализовано при записи таблицы
+		/*var presentation = editor.WordControl.m_oLogicDocument;
+		for(var key in presentation.TableStylesIdMap)
+		{
+			if(presentation.TableStylesIdMap.hasOwnProperty(key))
+			{
+				this.oPresentationWriter.tableStylesGuides[key] = "{" + AscCommon.GUID() + "}"
+			}
+		}*/
+
 		//записываем slide
 		this.oPresentationWriter.WriteSlide(slide);
 
