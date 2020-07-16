@@ -10976,7 +10976,7 @@
 							specialPasteHelper.specialPasteProps.asc_setProps(Asc.c_oSpecialPasteProps.formulaColumnWidth);
 						}
 
-                        t._loadDataBeforePaste(isLargeRange, val, val.data, bIsUpdate, canChangeColWidth, item);
+                        t._loadDataBeforePaste(isLargeRange, val, bIsUpdate, canChangeColWidth, item);
 						bIsUpdate = false;
                         break;
                     case "hyperlink":
@@ -11059,23 +11059,26 @@
 				if (!newRange) {
 					return false;
 				}
-				
-				if(this.intersectionFormulaArray(newRange)) {
-					t.handlers.trigger("onErrorEvent", c_oAscError.ID.CannotChangeFormulaArray, c_oAscError.Level.NoCritical);
-					return false;
-				}
-				if (val.data && val.data.pivotTables && val.data.pivotTables.length > 0) {
-					var intersectionTableParts = this.model.autoFilters.getTablesIntersectionRange(newRange);
-					for (var i = 0; i < intersectionTableParts.length; i++) {
-						if(intersectionTableParts[i] && intersectionTableParts[i].Ref && !newRange.containsRange(intersectionTableParts[i].Ref)) {
-							t.handlers.trigger("onErrorEvent", c_oAscError.ID.PivotOverlap, c_oAscError.Level.NoCritical);
-							return false;
+
+				for (var i = 0; i < checkRange.length; i++) {
+					var _checkRange = checkRange[i];
+					if(this.intersectionFormulaArray(_checkRange)) {
+						t.handlers.trigger("onErrorEvent", c_oAscError.ID.CannotChangeFormulaArray, c_oAscError.Level.NoCritical);
+						return false;
+					}
+					if (val.data && val.data.pivotTables && val.data.pivotTables.length > 0) {
+						var intersectionTableParts = this.model.autoFilters.getTablesIntersectionRange(_checkRange);
+						for (var i = 0; i < intersectionTableParts.length; i++) {
+							if(intersectionTableParts[i] && intersectionTableParts[i].Ref && !_checkRange.containsRange(intersectionTableParts[i].Ref)) {
+								t.handlers.trigger("onErrorEvent", c_oAscError.ID.PivotOverlap, c_oAscError.Level.NoCritical);
+								return false;
+							}
 						}
 					}
-				}
-				if(this.model._isPivotsIntersectRangeButNotInIt(newRange)) {
-					t.handlers.trigger("onErrorEvent", c_oAscError.ID.LockedCellPivot, c_oAscError.Level.NoCritical);
-					return false;
+					if(this.model._isPivotsIntersectRangeButNotInIt(_checkRange)) {
+						t.handlers.trigger("onErrorEvent", c_oAscError.ID.LockedCellPivot, c_oAscError.Level.NoCritical);
+						return false;
+					}
 				}
             }
         } else if (onlyActive) {
@@ -11436,12 +11439,14 @@
 		return {selectData: pastedData, adjustFormatArr: adjustFormatArr};
 	};
 
-    WorksheetView.prototype._loadDataBeforePaste = function ( isLargeRange, val, pasteContent, bIsUpdate, canChangeColWidth, pasteToRange ) {
+    WorksheetView.prototype._loadDataBeforePaste = function ( isLargeRange, val, bIsUpdate, canChangeColWidth, pasteToRange ) {
         var t = this;
 		var specialPasteHelper = window['AscCommon'].g_specialPasteHelper;
 		var specialPasteProps = specialPasteHelper.specialPasteProps;
 		var selectData;
 		var specialPasteChangeColWidth = specialPasteProps && specialPasteProps.width;
+
+		var pasteContent = val.data;
 
 		var callbackLoadFonts = function() {
 			_doPaste();
@@ -11565,7 +11570,11 @@
 
 		var fonts = pasteContent.props && pasteContent.props.fontsNew ? pasteContent.props.fontsNew : val.fontsNew;
 		//загрузка шрифтов, в случае удачи на callback вставляем текст
-		t._loadFonts(fonts, callbackLoadFonts);
+		if (!bIsUpdate && val && val.fromBinary) {
+			callbackLoadFonts();
+		} else {
+			t._loadFonts(fonts, callbackLoadFonts);
+		}
     };
 
 	WorksheetView.prototype._pasteFromHTML = function (pasteContent, isCheckSelection, specialPasteProps) {
@@ -11788,7 +11797,7 @@
 			if (_row % pastedRow === 0 && pastedCol === 1) {
 				return true;
 			}
-			
+			return true;
 			return false;
 		};
 
