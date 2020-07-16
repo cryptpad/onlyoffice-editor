@@ -43,7 +43,7 @@ var AscBrowser = {
     isMacOs : false,
     isSafariMacOs : false,
     isAppleDevices : false,
-    isAndroid : false,
+	isAndroid : false,
     isMobile : false,
     isGecko : false,
     isChrome : false,
@@ -60,7 +60,8 @@ var AscBrowser = {
     isSailfish : false,
     isEmulateDevicePixelRatio : false,
     isNeedEmulateUpload : false,
-    chromeVersion : 70
+    chromeVersion : 70,
+	iosVersion : 13
 };
 
 // user agent lower case
@@ -98,6 +99,24 @@ AscBrowser.isSafariMacOs = (AscBrowser.isSafari && AscBrowser.isMacOs);
 AscBrowser.isAppleDevices = (AscBrowser.userAgent.indexOf("ipad") > -1 ||
                              AscBrowser.userAgent.indexOf("iphone") > -1 ||
                              AscBrowser.userAgent.indexOf("ipod") > -1);
+
+if (AscBrowser.isAppleDevices)
+{
+	var iosversion = AscBrowser.iosVersion;
+	try
+	{
+		if (/iP(hone|od|ad)/.test(navigator.platform))
+		{
+			var v = (navigator.appVersion).match(/OS (\d+)_(\d+)_?(\d+)?/);
+			//[parseInt(v[1], 10), parseInt(v[2], 10), parseInt(v[3] || 0, 10)];
+			iosversion = parseInt(v[1], 10);
+		}
+	}
+	catch (err)
+	{
+	}
+	AscBrowser.iosVersion = iosversion;
+}
 
 // android devices detect
 AscBrowser.isAndroid = (AscBrowser.userAgent.indexOf("android") > -1);
