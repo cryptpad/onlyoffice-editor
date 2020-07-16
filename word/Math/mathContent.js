@@ -5508,11 +5508,6 @@ CMathContent.prototype.Process_AutoCorrect = function(ActionElement) {
 };
 CMathContent.prototype.private_NeedAutoCorrect = function(ActionElement) {
     var CharCode = ActionElement.value;
-    // if (para_Math_Ampersand == ActionElement.Type) {
-    //     CharCode = 0x26;
-    // } else {
-    //     CharCode = ActionElement.value;
-    // }
     if (g_aMathAutoCorrectTriggerCharCodes[CharCode]) {
         return true;
     }
@@ -6460,8 +6455,8 @@ CMathAutoCorrectEngine.prototype.private_CorrectEquation = function(Param, Eleme
             props.ctrPrp = this.TextPr.Copy();
             props.type = Param.Kind;
             var oDegree = new CDegree(props)
-            var BaseContent = oDegree.Content[0];
-            var IterContent = oDegree.Content[1];
+            var BaseContent = oDegree.getBase();
+            var IterContent = oDegree.getIterator();
             var tmp = (!Param.Props.isAccent) ? this.private_CorrectBuffForDegree(Elements[1]) : [];
             var bskipCoreect = this.private_ChekSkipForDegreeAbove(Elements[1]);
             this.private_PackTextToContent(BaseContent, Elements[1], false, bskipCoreect);
@@ -6964,7 +6959,8 @@ CMathAutoCorrectEngine.prototype.private_PackTextToContent = function(Element, T
     } else {
         var len = TempElements.length - 1;
         if (len >= 2 && bReplaceBrackets) {
-            if (g_MathLeftBracketAutoCorrectCharCodes[TempElements[0].value] && g_MathRightBracketAutoCorrectCharCodes[TempElements[len].value]) {
+            if (TempElements[0].value == 40 && TempElements[len].value == 41) {
+            // if (g_MathLeftBracketAutoCorrectCharCodes[TempElements[0].value] && g_MathRightBracketAutoCorrectCharCodes[TempElements[len].value]) {
                 TempElements.splice(0,1);
                 TempElements.length--;
             }
@@ -7006,20 +7002,32 @@ CMathAutoCorrectEngine.prototype.private_AutoCorrectDelimiter = function() {
         this.Brackets.splice(lv,1);
     }
     for (var j = 0; j < this.Brackets[1]['left'].length; j++) {
-        var props = new CMathDelimiterPr();
-        props.column = 1;
-        props.begChr = (this.Brackets[1]['left'][j].bracket.value === 0x251C) ? -1 : this.Brackets[1]['left'][j].bracket.value;
-        props.endChr = (this.Brackets[1]['right'][j].bracket.value === 0x2524) ? -1 : this.Brackets[1]['right'][j].bracket.value;
-        var oDelimiter = new CDelimiter(props);
-
-        var oBase = oDelimiter.getBase();
-        var TempElements = [];
+        var TempElements = [],
+            TempElements2 = [];
         for (var i = this.Brackets[1]['right'][j].pos - 1; i > this.Brackets[1]['left'][j].pos; i--) {
             if (Elements[i]) {
                 TempElements.splice(0, 0, Elements[i].Element);
             }
         }
+        var VBarArrPos = [];
+        for (var i = TempElements.length - 1; i >= 0 ; i--) {
+            if (TempElements[i].value == 0x7C) {
+                VBarArrPos.push(i);
+            }
+        }
+        var props = new CMathDelimiterPr();
+        props.column = ((VBarArrPos.length && VBarArrPos.length % 2 === 0) || !VBarArrPos.length) ? 1 : 2;
+        props.begChr = (this.Brackets[1]['left'][j].bracket.value === 0x251C) ? -1 : this.Brackets[1]['left'][j].bracket.value;
+        props.endChr = (this.Brackets[1]['right'][j].bracket.value === 0x2524) ? -1 : this.Brackets[1]['right'][j].bracket.value;
+        var oDelimiter = new CDelimiter(props);
+        if (VBarArrPos.length) {
+            TempElements2 = this.private_ParseVBarForDelimiter(TempElements, VBarArrPos, props.column);
+        }
+        var oBase = oDelimiter.getBase();
         this.private_PackTextToContent(oBase, TempElements, false);
+        if (TempElements2.length) {
+            this.private_PackTextToContent(oDelimiter.Content[1], TempElements2, false);
+        }
         this.Shift = Elements.length - 1 - this.Brackets[1]['right'][j].pos;
         if (this.ActionElement.value == 0x20) {
             this.Shift--;
@@ -7066,25 +7074,60 @@ CMathAutoCorrectEngine.prototype.private_AutoCorrectPackDelimiter = function(dat
         if (fSkip) {
             continue;
         }
-        var props = new CMathDelimiterPr();
-        props.column = 1;
-        props.begChr = (data['left'][j].bracket.value === 0x251C) ? -1 : data['left'][j].bracket.value;
-        props.endChr = (data['right'][j].bracket.value === 0x2524) ? -1 : data['right'][j].bracket.value;
-        var oDelimiter = new CDelimiter(props);
-
-        var oBase = oDelimiter.getBase();
-        var TempElements = [];
+        var TempElements = [],
+            TempElements2 = [];
         for (var i = data['right'][j].pos - 1; i > data['left'][j].pos; i--) {
             if (Elements[i]) {
                 TempElements.splice(0, 0, Elements[i].Element);
                 Elements[i] = null;
             }
         }
+        var VBarArrPos = [];
+        for (var i = TempElements.length - 1; i >= 0 ; i--) {
+            if (TempElements[i].value == 0x7C) {
+                VBarArrPos.push(i);
+            }
+        }
+        var props = new CMathDelimiterPr();
+        props.column = ((VBarArrPos.length && VBarArrPos.length % 2 === 0) || !VBarArrPos.length) ? 1 : 2;
+        props.begChr = (data['left'][j].bracket.value === 0x251C) ? -1 : data['left'][j].bracket.value;
+        props.endChr = (data['right'][j].bracket.value === 0x2524) ? -1 : data['right'][j].bracket.value;
+        var oDelimiter = new CDelimiter(props);
+        if (VBarArrPos.length) {
+            TempElements2 = this.private_ParseVBarForDelimiter(TempElements, VBarArrPos, props.column);
+        }
+        var oBase = oDelimiter.getBase();
         Elements[data['right'][j].pos] = null;
         Elements[data['left'][j].pos] = null;
         this.private_PackTextToContent(oBase, TempElements, false);
+        if (TempElements2.length) {
+            this.private_PackTextToContent(oDelimiter.Content[1], TempElements2, false);
+        }
         Elements[data['left'][j].pos] = {Element : oDelimiter};
     }
+};
+CMathAutoCorrectEngine.prototype.private_ParseVBarForDelimiter = function(Elements, arrPos, column) {
+    var tempArr = [];
+    if (column == 2) {
+        var tempPos = arrPos.shift();
+        tempArr = Elements.splice(tempPos, Elements.length - tempPos);
+        tempArr.shift();
+    }
+    for (var i = 0; i < arrPos.length; i += 2) {
+        var props = new CMathDelimiterPr();
+        props.column = 1;
+        props.begChr = props.endChr = 0x7C;
+        var oDelimiter = new CDelimiter(props);
+        var oBase = oDelimiter.getBase();
+
+        var posR = arrPos[i] + 1;
+        var posL = arrPos[i + 1]; 
+        var tempEl = Elements.splice(posL, posR - posL, oDelimiter);
+        tempEl.shift();
+        tempEl.pop();
+        this.private_PackTextToContent(oBase, tempEl, false);
+    }
+    return tempArr;
 };
 CMathAutoCorrectEngine.prototype.private_AutoCorrectFraction = function(buff) {
     this.private_CorrectBuffForFrac(buff);
@@ -7151,8 +7194,8 @@ CMathAutoCorrectEngine.prototype.private_AutoCorrectDegree = function(buff) {
         props.ctrPrp = this.TextPr.Copy();
         props.type = this.Kind;
         var tmp = new CDegree(props)
-        var BaseContent = tmp.Content[0];
-        var IterContent = tmp.Content[1];
+        var BaseContent = tmp.getBase();
+        var IterContent = tmp.getIterator();
         if (!this.props.isAccent)
             this.private_CorrectBuffForDegree(buff[i]);
         RemoveCount += buff[i].length + ((this.props.isQuote) ? 0 : 1);
@@ -7242,9 +7285,8 @@ CMathAutoCorrectEngine.prototype.private_AutoCorrectDegreeSubSup = function(buff
         }
         this.private_PackTextToContent(IterDnContent, buff[0], true);
     }
-    var BaseElems = buff[2];
     var bskipCoreect = this.private_ChekSkipForDegreeAbove(buff[2]);
-    this.private_PackTextToContent(BaseContent, BaseElems, false, bskipCoreect);
+    this.private_PackTextToContent(BaseContent, buff[2], false, bskipCoreect);
 
     if (this.ActionElement.value == 0x20) {
         RemoveCount++;
@@ -7928,7 +7970,7 @@ CMathAutoCorrectEngine.prototype.private_CanAutoCorrectEquation = function() {
                 }
                 this.Type = MATH_DELIMITER;
             }
-        }  else if (g_MathLeftBracketAutoCorrectCharCodes[Elem.value]) { // left bracket
+        } else if (g_MathLeftBracketAutoCorrectCharCodes[Elem.value]) { // left bracket
             if (lvBrackets > 1) {
                 lvBrackets--;
             }
@@ -7947,6 +7989,61 @@ CMathAutoCorrectEngine.prototype.private_CanAutoCorrectEquation = function() {
                 this.CurPos--;
             }
             continue;  
+        } else if (Elem.value == 0x7C) { // |
+            var tempBr = null;
+            for (var i = this.CurPos; i >= 0; i--) {
+                if (g_MathLeftBracketAutoCorrectCharCodes[this.Elements[i].Element.value]) {
+                    tempBr = this.Elements[i];
+                    break;
+                }
+            }
+            // we need to find count | to start from CurPos.
+            var countsymbl = 0;
+            for (var i = 0; i < this.CurPos; i++) {
+                if (this.Elements[i].Element.value == 0x7C) {
+                    countsymbl++;
+                }
+            }
+            // to understood that it's right, we need to subtract 1 bracket (to close this lv) and lvBrackets - 1 (since they start with first lv)
+            // and this number must be even, so that all future brackets ware closed
+            var tempval = countsymbl - (lvBrackets - 1) - 1;
+            var isRight = ( tempval >= 0)// && (tempval % 2) === 0 );
+            if (!this.Brackets.length || isRight && !tempBr) { // no brakets or this is righ -> work like righ bracket
+                if (this.Type == MATH_DEGREE || this.Type == MATH_DEGREESubSup) {
+                    var tmp = this.Elements[this.CurPos+1].Element;
+                    if (tmp && tmp.value != 0x005E && tmp.value != 0x005F && tmp.value != 0x27) {
+                        break;
+                    }
+                }
+                if (!this.Brackets[lvBrackets]) {
+                    this.Brackets[lvBrackets] = {};	
+                    this.Brackets[lvBrackets]['left'] = [];	
+                    this.Brackets[lvBrackets]['right'] = [];
+                }
+                this.Brackets[lvBrackets]['right'].push({bracket : Elem, pos: this.CurPos});
+                lvBrackets++;
+                bBrackOpen = true;
+                if (this.Type === null && !g_aMathAutoCorrectDoNotDelimiter[this.ActionElement.value]) {
+                    if (bOff) {
+                        break;
+                    }
+                    this.Type = MATH_DELIMITER;
+                }
+            } else if (!tempBr) { // if we have brakets and haven't left pair. if left pair was found -> just skip this elem        
+                // if pair wasn't find -> work like left
+                if (lvBrackets > 1) {
+                    lvBrackets--;
+                }
+                if (this.Brackets[lvBrackets]['left'].length < this.Brackets[lvBrackets]['right'].length) {
+                    this.Brackets[lvBrackets]['left'].push({bracket : Elem, pos: this.CurPos});
+                    if (lvBrackets == 1) {
+                        bBrackOpen = false;
+                    }
+                }
+            }
+            buffer[CurLvBuf].splice(0, 0, Elem);
+            this.CurPos--;
+            continue;
         } else if  (Elem.value === 0x005E || Elem.value === 0x27) { // ^ || '
             if ((this.Type == MATH_DEGREE && (buffer[CurLvBuf-1] && buffer[CurLvBuf-1].Type == DEGREE_SUPERSCRIPT)) ) {
                 break;
@@ -9148,7 +9245,7 @@ var g_aAutoCorrectMathSymbols =
     ['\\lambda', 0x03BB],
     ['\\Lambda', 0x039B],
     ['\\langle', 0x2329],
-    ['\\\lbbrack', 0x27E6],
+    ['\\lbbrack', 0x27E6],
     ['\\lbrace', 0x007B],
     ['\\lbrack', 0x005B],
     ['\\lceil', 0x2308],
@@ -9438,7 +9535,7 @@ var g_MathLeftBracketAutoCorrectCharCodes =
 //righ brackets
 var g_MathRightBracketAutoCorrectCharCodes =
 {
-    0x29 : 1, 0x5D : 1, 0x7D : 1,/* 0x7C : 1, 0x2016 : 1,*/ 0x27E9 : 1,
+    0x29 : 1, 0x5D : 1, 0x7D : 1, /*0x7C : 1, 0x2016 : 1,*/ 0x27E9 : 1,
     0x232A : 1, 0x27E7 : 1, 0x27EB : 1, 0x2309 : 1, 0x230B : 1,   
     0x3017 : 1, 0x2524 : 1
 };
@@ -9449,7 +9546,7 @@ var g_aMathAutoCorrectFracCharCodes =
     /*0x27 : 1,*/ 0x28 : 1, 0x29 : 1, 0x2A : 1, 0x2B : 1, 0x2C : 1, 0x2D : 1,
     0x2E : 1, 0x2F : 1, 0x3A : 1, 0x3B : 1, 0x3C : 1, 0x3D : 1, 0x3E : 1,
     0x3F : 1, 0x40 : 1, 0x5B : 1, /*0x5C : 1,*/ 0x5D : 1, 0x5E : 1, 0x5F : 1,
-    0x60 : 1, 0x7B : 1, 0x7C : 1, 0x7D : 1, 0x7E : 1, /*0x2592 : 1,*/ 0xD7 : 1
+    0x60 : 1, 0x7B : 1, /*0x7C : 1,*/ 0x7D : 1, 0x7E : 1, /*0x2592 : 1,*/ 0xD7 : 1
 };
 //символы для определения необходимости автозамены
 var g_aMathAutoCorrectTriggerCharCodes =
@@ -9481,8 +9578,8 @@ var g_aMathAutoCorrectNotDoCNary = {
 };
 //символы, при которых не производится автозамена скобок
 var g_aMathAutoCorrectDoNotDelimiter = {
-    0x22 : 1, 0x27 : 1, 0x28 : 1, 0x29 : 1, 0x2F : 1,
-    0x5B : 1, 0x5C : 1, 0x5E : 1, 0x5F : 1, 0x7B : 1
+    0x22 : 1, 0x27 : 1, 0x28 : 1, 0x29 : 1, 0x2F : 1, 0x5B : 1,
+    0x5C : 1, 0x5E : 1, 0x5F : 1, 0x5D : 1, 0x7B : 1, 0x7D : 1, 0x7C : 1
  };
 // символы, при которых не производится автозамена корня
 var g_aMathAutoCorrectDoNotRadical = {
