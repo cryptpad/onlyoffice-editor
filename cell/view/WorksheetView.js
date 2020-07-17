@@ -11060,8 +11060,8 @@
 					return false;
 				}
 
-				for (var i = 0; i < checkRange.length; i++) {
-					var _checkRange = checkRange[i];
+				for (var j = 0; j < checkRange.length; j++) {
+					var _checkRange = checkRange[j];
 					if(this.intersectionFormulaArray(_checkRange)) {
 						t.handlers.trigger("onErrorEvent", c_oAscError.ID.CannotChangeFormulaArray, c_oAscError.Level.NoCritical);
 						return false;
@@ -11117,8 +11117,12 @@
 				if (false === success) {
 					return;
 				}
-
-				t.doAsyncActionOnPaste(val, onSelectionCallback);
+				var pasteContent = val.data;
+				var fonts = pasteContent.props && pasteContent.props.fontsNew ? pasteContent.props.fontsNew : val.fontsNew;
+				//изначально планировалось заранее выполнить все асинхронные операции перед вызовом onSelectionCallback
+				//но в случае с мультиселектом вставленные ф/т(при вставке ф/т нужно лочить лист и и/д) могут пересекаться друг с другом
+				//и в этом случае предварительная проверка на предмет лока затруднена
+				t._loadFonts(fonts, onSelectionCallback);
 			});
 		} else {
 			this._isLockedCells(checkRange, /*subType*/null, onSelectionCallback);
@@ -11170,18 +11174,6 @@
 		{
 			onSelectionCallback(true);
 		}
-	};
-
-	WorksheetView.prototype.doAsyncActionOnPaste = function (val, callback) {
-		var pasteContent = val.data;
-		var fonts = pasteContent.props && pasteContent.props.fontsNew ? pasteContent.props.fontsNew : val.fontsNew;
-
-		
-		/*if (!bIsUpdate && val && val.fromBinary) {
-			callbackLoadFonts();
-		} else {
-			t._loadFonts(fonts, callbackLoadFonts);
-		}*/
 	};
 
 	WorksheetView.prototype._pasteData = function (isLargeRange, fromBinary, val, bIsUpdate, pasteToRange, bText) {
@@ -11470,7 +11462,8 @@
 
 		var pasteContent = val.data;
 
-		var callbackLoadFonts = function() {
+		var callback = function() {
+			//TODO здесь необходимо вставку в мультиселект сделать
 			_doPaste();
 
 			selectData = selectData ? selectData.selectData : null;
@@ -11590,14 +11583,7 @@
 
 		};
 
-		var fonts = pasteContent.props && pasteContent.props.fontsNew ? pasteContent.props.fontsNew : val.fontsNew;
-		//загрузка шрифтов, в случае удачи на callback вставляем текст
-		callbackLoadFonts();
-		/*if (!bIsUpdate && val && val.fromBinary) {
-			callbackLoadFonts();
-		} else {
-			t._loadFonts(fonts, callbackLoadFonts);
-		}*/
+		callback();
     };
 
 	WorksheetView.prototype._pasteFromHTML = function (pasteContent, isCheckSelection, specialPasteProps) {
