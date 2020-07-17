@@ -5878,6 +5878,108 @@ CMathAutoCorrectEngine.prototype.private_AutoCorrectEquation = function(Elements
             }
             CurPos--;
             continue;
+        } else if (Elem.value == 0x7C) { // |
+            var bHaveleftBr = false;
+            for (var i = CurPos; i >= 0; i--) {
+                if (g_MathLeftBracketAutoCorrectCharCodes[Elements[i].value]) {
+                    bHaveleftBr = true;
+                    //maybe need save bHaveleftBr = Elements[i].value
+                    break;
+                }
+            }
+            // we need to find count | to start from CurPos.
+            var countsymbl = 0;
+            for (var i = 0; i < CurPos; i++) {
+                if (Elements[i].value == 0x7C) {
+                    countsymbl++;
+                }
+            }
+            // to understood that it's right, we need to subtract 1 bracket (to close this lv) and lvBrackets - 1 (since they start with first lv)
+            // and this number must be even, so that all future brackets ware closed
+            var tempval = countsymbl - Brackets.length - 1;
+            var isRight = ( tempval >= 0)// && (tempval % 2) === 0 );
+            if (!Brackets.length || isRight && !bHaveleftBr) { // no brakets or this is righ -> work like righ bracket
+                if (Param.Type == MATH_DEGREE || Param.Type == MATH_DEGREESubSup) {
+                    if (Elements[CurPos+1] && (Elements[CurPos+1].value != 0x5E && Elements[CurPos+1].value != 0x5F) && (Elements[CurPos+1].value != 0x27 && Param.Props.isQuote)) {
+                        var tmp = null;
+                        if (Param.Type == MATH_DEGREE) {
+                            tmp = [Elements.splice(ElPos[0]+1,(End-ElPos[0])),Elements.splice(CurPos+1,ElPos[0]-CurPos+1)];
+                        } else {
+                            tmp = [Elements.splice(ElPos[1]+1,End-ElPos[1]),Elements.splice(ElPos[0]+1,ElPos[1]-ElPos[0]),Elements.splice(CurPos+1,ElPos[0]-CurPos+1)];
+                        }
+                        this.private_CorrectEquation(Param,tmp);
+                        Param.Type = null;
+                        Param.Props = {};
+                        Param.Kind = null;
+                        ElPos = [];
+                        End = CurPos + 1;
+                        Elements.splice(End, 0, ...tmp);
+                    }
+                }
+                Brackets.splice(0,0,CurPos);
+            } else if (!bHaveleftBr) { // if we have brakets and haven't left pair. if left pair was found -> just skip this elem        
+                if (!Brackets[0]){
+                    break;
+                }
+                var fSkip = false;
+                for (var i = Brackets[0] + 1; i < Elements.length;i++) {
+                    var tmpElem = Elements[i].value;
+                    if(g_MathRightBracketAutoCorrectCharCodes[tmpElem]) {
+                        continue;
+                    } else if (q_aMathAutoCorrectAccentCharCodes[tmpElem]) {
+                        fSkip = true;
+                    }
+                    break;
+                }
+                for (var i = 0; i < Param.Bracket[0].length; i++) {
+                    if (Param.Bracket[0][i] <= CurPos && CurPos <= Param.Bracket[1][i]) {
+                        fSkip = true;
+                        break;
+                    }
+                }
+                if (fSkip || Param.Type == MATH_FRACTION) {
+                    Brackets.splice(0,1);
+                    CurPos--;
+                    continue;
+                }
+                if (Param.Type !== null) {
+                    var tmp = null;
+                    if (Param.Type === MATH_DEGREESubSup) {
+                        tmp = [Elements.splice(ElPos[1]+1,End-ElPos[1]),Elements.splice(ElPos[0]+1,ElPos[1]-ElPos[0]),Elements.splice(CurPos,Brackets[0]-CurPos+2)];
+                        fSkip = true;
+                    } else if (Param.Type === MATH_DEGREE) {
+                        tmp = [Elements.splice(ElPos[0]+1,(End-ElPos[0])),Elements.splice(CurPos,Brackets[0]-CurPos+2)];
+                        fSkip = true;
+                    } else {
+                        tmp = [Elements.splice(ElPos[0]+1,(End-ElPos[0])),Elements.splice(Brackets[0]+1,ElPos[0]-Brackets[0])];
+                    }
+                    this.private_CorrectEquation(Param,tmp);
+                    Param.Type = null;
+                    Param.Props = {};
+                    Param.Kind = null;
+                    ElPos = [];
+                    if (fSkip) {
+                        End = CurPos;
+                        Elements.splice(End, 0, ...tmp);
+                        Brackets.splice(0,1);
+                        CurPos--;
+                        continue;
+                    }
+                    End = Brackets[0] + 1;
+                    Elements.splice(End, 0, ...tmp);
+                }
+                var count = Brackets[0] - CurPos + 1;
+                var tmp = Elements.splice(CurPos,count);
+                this.private_CorrectEquation({Type:MATH_DELIMITER,Props:null,Kind:null},tmp);
+                Elements.splice(CurPos, 0, ...tmp);
+                End = CurPos;
+                Brackets.splice(0,1);
+                for (var i = 0; i < Brackets.length; i++) {
+                    Brackets[i] -= count - 1;
+                }
+            }
+            CurPos--;
+            continue;
         } else if  (Elem.value === 0x005E || Elem.value === 0x27) { // ^ || '
             var bSkip = false;
             if (Elem.value == 0x27)
@@ -6511,15 +6613,28 @@ CMathAutoCorrectEngine.prototype.private_CorrectEquation = function(Param, Eleme
             Elements.splice(0,Elements.length, ...tmp);
             break;
         case MATH_DELIMITER:
+            var TempElements = [];
             var props = new CMathDelimiterPr();
-            props.column = 1;
             var brchar = Elements.splice(0,1)[0].value;
             props.begChr = (brchar === 0x251C) ? -1 : brchar;
             brchar = Elements.splice(Elements.length-1,1)[0].value;
             props.endChr = (brchar === 0x2524) ? -1 : brchar;
+            var VBarArrPos = [];
+            for (var i = Elements.length - 1; i >= 0 ; i--) {
+                if (Elements[i].value == 0x7C) {
+                    VBarArrPos.push(i);
+                }
+            }
+            props.column = ((VBarArrPos.length && VBarArrPos.length % 2 === 0) || !VBarArrPos.length) ? 1 : 2;
+            if (VBarArrPos.length) {
+                TempElements = this.private_ParseVBarForDelimiter(Elements, VBarArrPos, props.column);
+            }
             var oDelimiter = new CDelimiter(props);
             var oBase = oDelimiter.getBase();
             this.private_PackTextToContent(oBase, Elements, false);
+            if (TempElements.length) {
+                this.private_PackTextToContent(oDelimiter.Content[1], TempElements, false);
+            }
             Elements.splice(0,Elements.length, oDelimiter);
             break;
         case MATH_NARY:
@@ -7990,10 +8105,11 @@ CMathAutoCorrectEngine.prototype.private_CanAutoCorrectEquation = function() {
             }
             continue;  
         } else if (Elem.value == 0x7C) { // |
-            var tempBr = null;
+            var bHaveleftBr = false;
             for (var i = this.CurPos; i >= 0; i--) {
                 if (g_MathLeftBracketAutoCorrectCharCodes[this.Elements[i].Element.value]) {
-                    tempBr = this.Elements[i];
+                    bHaveleftBr = true;
+                    //maybe need save bHaveleftBr = Elements[i].value
                     break;
                 }
             }
@@ -8008,7 +8124,7 @@ CMathAutoCorrectEngine.prototype.private_CanAutoCorrectEquation = function() {
             // and this number must be even, so that all future brackets ware closed
             var tempval = countsymbl - (lvBrackets - 1) - 1;
             var isRight = ( tempval >= 0)// && (tempval % 2) === 0 );
-            if (!this.Brackets.length || isRight && !tempBr) { // no brakets or this is righ -> work like righ bracket
+            if (!this.Brackets.length || isRight && !bHaveleftBr) { // no brakets or this is righ -> work like righ bracket
                 if (this.Type == MATH_DEGREE || this.Type == MATH_DEGREESubSup) {
                     var tmp = this.Elements[this.CurPos+1].Element;
                     if (tmp && tmp.value != 0x005E && tmp.value != 0x005F && tmp.value != 0x27) {
@@ -8029,7 +8145,7 @@ CMathAutoCorrectEngine.prototype.private_CanAutoCorrectEquation = function() {
                     }
                     this.Type = MATH_DELIMITER;
                 }
-            } else if (!tempBr) { // if we have brakets and haven't left pair. if left pair was found -> just skip this elem        
+            } else if (!bHaveleftBr) { // if we have brakets and haven't left pair. if left pair was found -> just skip this elem        
                 // if pair wasn't find -> work like left
                 if (lvBrackets > 1) {
                     lvBrackets--;
