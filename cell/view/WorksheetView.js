@@ -10976,7 +10976,7 @@
 							specialPasteHelper.specialPasteProps.asc_setProps(Asc.c_oSpecialPasteProps.formulaColumnWidth);
 						}
 
-                        t._loadDataBeforePaste(isLargeRange, val, bIsUpdate, canChangeColWidth, item);
+                        t._loadDataBeforePaste(isLargeRange, val, bIsUpdate, canChangeColWidth, checkPasteRange);
 						bIsUpdate = false;
                         break;
                     case "hyperlink":
@@ -11048,40 +11048,42 @@
 			}
         };
 
+		var checkPasteRange;
 		if ("paste" === prop) {
-		    if (val.onlyImages) {
+			if (val.onlyImages) {
 				onSelectionCallback(true);
 				return;
-            } else {
+			} else {
 				var newRange = val.fromBinary ? this.pasteFromBinary(val.data, true) : this._pasteFromHTML(val.data, true);
-				checkRange = newRange && newRange.length ? newRange : [newRange];
-				
+				checkPasteRange = newRange && newRange.length ? newRange : [newRange];
+				checkRange = [checkPasteRange[0]];
+
 				if (!newRange) {
 					return false;
 				}
 
-				for (var j = 0; j < checkRange.length; j++) {
-					var _checkRange = checkRange[j];
-					if(this.intersectionFormulaArray(_checkRange)) {
+				for (var j = 0; j < checkPasteRange.length; j++) {
+					var _checkRange = checkPasteRange[j];
+					if (this.intersectionFormulaArray(_checkRange)) {
 						t.handlers.trigger("onErrorEvent", c_oAscError.ID.CannotChangeFormulaArray, c_oAscError.Level.NoCritical);
 						return false;
 					}
 					if (val.data && val.data.pivotTables && val.data.pivotTables.length > 0) {
 						var intersectionTableParts = this.model.autoFilters.getTablesIntersectionRange(_checkRange);
 						for (var i = 0; i < intersectionTableParts.length; i++) {
-							if(intersectionTableParts[i] && intersectionTableParts[i].Ref && !_checkRange.containsRange(intersectionTableParts[i].Ref)) {
+							if (intersectionTableParts[i] && intersectionTableParts[i].Ref && !_checkRange.containsRange(intersectionTableParts[i].Ref)) {
 								t.handlers.trigger("onErrorEvent", c_oAscError.ID.PivotOverlap, c_oAscError.Level.NoCritical);
 								return false;
 							}
 						}
 					}
-					if(this.model._isPivotsIntersectRangeButNotInIt(_checkRange)) {
+					if (this.model._isPivotsIntersectRangeButNotInIt(_checkRange)) {
 						t.handlers.trigger("onErrorEvent", c_oAscError.ID.LockedCellPivot, c_oAscError.Level.NoCritical);
 						return false;
 					}
 				}
-            }
-        } else if (onlyActive) {
+			}
+		} else if (onlyActive) {
 			checkRange.push(new asc_Range(activeCell.col, activeCell.row, activeCell.col, activeCell.row));
 		} else {
 			this.model.selectionRange.ranges.forEach(function (item) {
@@ -11096,16 +11098,16 @@
 			return;
 		}
 		if ("empty" === prop && !this.model.checkDeletePivotTables(checkRange)) {
-		    // ToDo other error
+			// ToDo other error
 			this.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.LockedCellPivot,
 				c_oAscError.Level.NoCritical);
 			return;
-        }
-		if("empty" === prop && this.intersectionFormulaArray(arn)) {
+		}
+		if ("empty" === prop && this.intersectionFormulaArray(arn)) {
 			t.handlers.trigger("onErrorEvent", c_oAscError.ID.CannotChangeFormulaArray, c_oAscError.Level.NoCritical);
 			return;
 		}
-		if("sort" === prop) {
+		if ("sort" === prop) {
 			var aMerged = this.model.mergeManager.get(checkRange);
 			if (aMerged.outer.length > 0 || (aMerged.inner.length > 0 && null == window['AscCommonExcel']._isSameSizeMerged(checkRange, aMerged.inner, true))) {
 				t.handlers.trigger("onErrorEvent", c_oAscError.ID.CannotFillRange, c_oAscError.Level.NoCritical);
@@ -11113,7 +11115,7 @@
 			}
 		}
 		if ("paste" === prop) {
-			this._isLockedCells(checkRange, /*subType*/null, function (success) {
+			this._isLockedCells(checkPasteRange, /*subType*/null, function (success) {
 				if (false === success) {
 					return;
 				}
@@ -11127,7 +11129,7 @@
 		} else {
 			this._isLockedCells(checkRange, /*subType*/null, onSelectionCallback);
 		}
-    };
+	};
 
 	WorksheetView.prototype.specialPaste = function (props) {
 		var api = window["Asc"]["editor"];
@@ -11464,7 +11466,11 @@
 
 		var callback = function() {
 			//TODO здесь необходимо вставку в мультиселект сделать
-			_doPaste();
+			for (var j = 0; j < pasteToRange.length; j++) {
+				_doPaste(pasteToRange[j]);
+			}
+
+			History.EndTransaction();
 
 			selectData = selectData ? selectData.selectData : null;
 			if(!selectData) {
@@ -11511,16 +11517,14 @@
 			}
 		};
 
-		var _doPaste = function() {
+		var _doPaste = function(_pasteToRange) {
 
 			var fromBinaryExcel = val.fromBinary;
 			//paste from excel binary
 			if(fromBinaryExcel) {
 				AscCommonExcel.executeInR1C1Mode(false, function () {
-					selectData = t._pasteData(isLargeRange, fromBinaryExcel, pasteContent, bIsUpdate, pasteToRange);
+					selectData = t._pasteData(isLargeRange, fromBinaryExcel, pasteContent, bIsUpdate, _pasteToRange);
 				});
-
-				History.EndTransaction();
 			} else {
 				var imagesFromWord = pasteContent.props.addImagesFromWord;
 				if (imagesFromWord && imagesFromWord.length != 0 && !(window["Asc"]["editor"] && window["Asc"]["editor"].isChartEditor) && specialPasteProps.images) {
@@ -11551,7 +11555,7 @@
 							}
 						}
 
-						selectData = t._pasteData(isLargeRange, fromBinaryExcel, pasteContent, bIsUpdate, pasteToRange);
+						selectData = t._pasteData(isLargeRange, fromBinaryExcel, pasteContent, bIsUpdate, _pasteToRange);
 
 						AscCommonExcel.g_clipboardExcel.pasteProcessor._insertImagesFromBinaryWord(t, pasteContent, oImageMap);
 					} else {
@@ -11559,15 +11563,15 @@
 						if (window["NATIVE_EDITOR_ENJINE"]) {
 							//TODO для мобильных приложений  - не рабочий код!
 							AscCommon.ResetNewUrls(pasteContent.props.data, oObjectsForDownload.aUrls, oObjectsForDownload.aBuilderImagesByUrl, oImageMap);
-							selectData = t._pasteData(isLargeRange, fromBinaryExcel, pasteContent, bIsUpdate, pasteToRange);
+							selectData = t._pasteData(isLargeRange, fromBinaryExcel, pasteContent, bIsUpdate, _pasteToRange);
 							AscCommonExcel.g_clipboardExcel.pasteProcessor._insertImagesFromBinaryWord(t, pasteContent, oImageMap);
 						} else {
-							selectData = t._pasteData(isLargeRange, fromBinaryExcel, pasteContent, bIsUpdate, pasteToRange);
+							selectData = t._pasteData(isLargeRange, fromBinaryExcel, pasteContent, bIsUpdate, _pasteToRange);
 							AscCommonExcel.g_clipboardExcel.pasteProcessor._insertImagesFromBinaryWord(t, pasteContent, oImageMap);
 						}
 					}
 				} else {
-					selectData = t._pasteData(isLargeRange, fromBinaryExcel, pasteContent, bIsUpdate, pasteToRange, val.bText);
+					selectData = t._pasteData(isLargeRange, fromBinaryExcel, pasteContent, bIsUpdate, _pasteToRange, val.bText);
 				}
 
 				if(selectData && selectData.adjustFormatArr && selectData.adjustFormatArr.length) {
@@ -11577,8 +11581,6 @@
 						});
 					}
 				}
-
-				History.EndTransaction();
 			}
 
 		};
