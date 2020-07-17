@@ -8382,7 +8382,8 @@ PasteProcessor.prototype =
 		} else {
 			//TEXT NODE
 			if (Node.TEXT_NODE === node.nodeType) {
-				if (false === this.bIgnoreNoBlockText || true === bInBlock) {
+				//TODO пересмотреть условия
+				if (false === this.bIgnoreNoBlockText || true === bInBlock || (node.parentElement && "a" === node.parentElement.nodeName.toLowerCase())) {
 					parseTextNode();
 				}
 				return bPresentation ? false : bAddParagraph;
