@@ -4893,10 +4893,7 @@
 			if (!LastNoEmptyElement || LastNoEmptyElement instanceof ApiUnsupported)
 				continue;
 
-			if (LastNoEmptyRun.GetElementsCount() !== 0)
-			{
-				return LastNoEmptyElement;
-			}
+			return LastNoEmptyElement;
 		}
 
 		return null;
