@@ -11112,7 +11112,17 @@
 				return;
 			}
 		}
-		this._isLockedCells(checkRange, /*subType*/null, onSelectionCallback);
+		if ("paste" === prop) {
+			this._isLockedCells(checkRange, /*subType*/null, function (success) {
+				if (false === success) {
+					return;
+				}
+
+				t.doAsyncActionOnPaste(val, onSelectionCallback);
+			});
+		} else {
+			this._isLockedCells(checkRange, /*subType*/null, onSelectionCallback);
+		}
     };
 
 	WorksheetView.prototype.specialPaste = function (props) {
@@ -11160,6 +11170,18 @@
 		{
 			onSelectionCallback(true);
 		}
+	};
+
+	WorksheetView.prototype.doAsyncActionOnPaste = function (val, callback) {
+		var pasteContent = val.data;
+		var fonts = pasteContent.props && pasteContent.props.fontsNew ? pasteContent.props.fontsNew : val.fontsNew;
+
+		
+		/*if (!bIsUpdate && val && val.fromBinary) {
+			callbackLoadFonts();
+		} else {
+			t._loadFonts(fonts, callbackLoadFonts);
+		}*/
 	};
 
 	WorksheetView.prototype._pasteData = function (isLargeRange, fromBinary, val, bIsUpdate, pasteToRange, bText) {
@@ -11246,7 +11268,7 @@
 
 		//добавляем форматированные таблицы
 		var i;
-		var arnToRange = t.model.selectionRange.getLast();
+		var arnToRange = pasteToRange ? pasteToRange : t.model.selectionRange.getLast();
 		var tablesMap = null, intersectionRangeWithTableParts;
 		var refInsertBinary;
 		if (fromBinary && val.TableParts && val.TableParts.length && specialPasteProps.formatTable) {
@@ -11308,7 +11330,7 @@
 			t.model.deletePivotTables(pasteToRange);
 		}
 		if (fromBinary && refInsertBinary && val.pivotTables && val.pivotTables.length && specialPasteProps.formatTable) {
-			for (var i = 0; i < val.pivotTables.length; i++) {
+			for (i = 0; i < val.pivotTables.length; i++) {
 				var pivot = val.pivotTables[i];
 				pivot.setWS(t.model);
 				pivot.setOffset(new AscCommon.CellBase(arnToRange.r1 - refInsertBinary.r1, arnToRange.c1 - refInsertBinary.c1));
@@ -11570,11 +11592,12 @@
 
 		var fonts = pasteContent.props && pasteContent.props.fontsNew ? pasteContent.props.fontsNew : val.fontsNew;
 		//загрузка шрифтов, в случае удачи на callback вставляем текст
-		if (!bIsUpdate && val && val.fromBinary) {
+		callbackLoadFonts();
+		/*if (!bIsUpdate && val && val.fromBinary) {
 			callbackLoadFonts();
 		} else {
 			t._loadFonts(fonts, callbackLoadFonts);
-		}
+		}*/
     };
 
 	WorksheetView.prototype._pasteFromHTML = function (pasteContent, isCheckSelection, specialPasteProps) {
