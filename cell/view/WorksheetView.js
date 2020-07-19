@@ -5410,7 +5410,7 @@
     };
 
     WorksheetView.prototype._drawSelectionRange = function () {
-        var type, ranges = this.model.getSelection().ranges;
+        var type, selection = this.model.getSelection(), ranges = selection.ranges;
         var range, selectionLineType;
         for (var i = 0, l = ranges.length; i < l; ++i) {
             range = ranges[i].clone();
@@ -5428,7 +5428,7 @@
             if (1 === l) {
                 selectionLineType |=
                   AscCommonExcel.selectionLineType.ActiveCell | AscCommonExcel.selectionLineType.Promote;
-            } else if (i === this.model.selectionRange.activeCellId) {
+            } else if (i === selection.activeCellId) {
                 selectionLineType |= AscCommonExcel.selectionLineType.ActiveCell;
             }
             this._drawElements(this._drawSelectionElement, range, selectionLineType,
