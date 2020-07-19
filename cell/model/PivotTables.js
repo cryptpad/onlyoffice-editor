@@ -11143,6 +11143,8 @@ prot["asc_getColumnFields"] = prot.asc_getColumnFields;
 prot["asc_getRowFields"] = prot.asc_getRowFields;
 prot["asc_getDataFields"] = prot.asc_getDataFields;
 prot["asc_select"] = prot.asc_select;
+prot["getCacheFieldName"] = prot.getCacheFieldName;
+prot["getPivotFieldName"] = prot.getPivotFieldName;
 
 window["Asc"]["CT_PivotTableStyle"] = window['Asc'].CT_PivotTableStyle = CT_PivotTableStyle;
 prot = CT_PivotTableStyle.prototype;
