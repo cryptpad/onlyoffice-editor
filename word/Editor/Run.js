@@ -5803,7 +5803,7 @@ ParaRun.prototype.Draw_Elements = function(PDSE)
             }
             else
             {
-                if(pGraphics.m_bIsTextDrawer === undefined)
+                if(pGraphics.m_bIsTextDrawer !== true)
                 {
                     pGraphics.b_color1( RGBA.R, RGBA.G, RGBA.B, RGBA.A);
                 }
@@ -5818,16 +5818,26 @@ ParaRun.prototype.Draw_Elements = function(PDSE)
             RGBA = AscFormat.G_O_VISITED_HLINK_COLOR.getRGBAColor();
             pGraphics.b_color1( RGBA.R, RGBA.G, RGBA.B, RGBA.A );
         }
-        else if ( true === CurTextPr.Color.Auto )
-        {
-            pGraphics.b_color1( AutoColor.r, AutoColor.g, AutoColor.b, 255);
-        }
         else
         {
-        	if(pGraphics.m_bIsTextDrawer === undefined)
-        	{
-				pGraphics.b_color1( CurTextPr.Color.r, CurTextPr.Color.g, CurTextPr.Color.b, 255);
-			}
+            if(true === pGraphics.m_bIsTextDrawer)
+            {
+                if ( true === CurTextPr.Color.Auto && !CurTextPr.TextFill)
+                {
+                    pGraphics.b_color1( AutoColor.r, AutoColor.g, AutoColor.b, 255);
+                }
+            }
+            else
+            {
+                if ( true === CurTextPr.Color.Auto )
+                {
+                    pGraphics.b_color1( AutoColor.r, AutoColor.g, AutoColor.b, 255);
+                }
+                else
+                {
+                    pGraphics.b_color1( CurTextPr.Color.r, CurTextPr.Color.g, CurTextPr.Color.b, 255);
+                }
+            }
         }
     }
 
@@ -5936,18 +5946,35 @@ ParaRun.prototype.Draw_Elements = function(PDSE)
                     }
                     else if (oEndTextPr.Unifill)
                     {
-						oEndTextPr.Unifill.check(PDSE.Theme, PDSE.ColorMap);
+                        oEndTextPr.Unifill.check(PDSE.Theme, PDSE.ColorMap);
                         var RGBAEnd = oEndTextPr.Unifill.getRGBAColor();
                         pGraphics.SetTextPr(oEndTextPr, PDSE.Theme);
-                        pGraphics.b_color1(RGBAEnd.R, RGBAEnd.G, RGBAEnd.B, 255);
+                        if(pGraphics.m_bIsTextDrawer !== true)
+                        {
+                            pGraphics.b_color1(RGBAEnd.R, RGBAEnd.G, RGBAEnd.B, 255);
+                        }
                     }
                     else
                     {
                         pGraphics.SetTextPr(oEndTextPr, PDSE.Theme);
-                        if (true === oEndTextPr.Color.Auto)
-                            pGraphics.b_color1(AutoColor.r, AutoColor.g, AutoColor.b, 255);
+                        if(pGraphics.m_bIsTextDrawer !== true)
+                        {
+                            if (true === oEndTextPr.Color.Auto)
+                            {
+                                pGraphics.b_color1(AutoColor.r, AutoColor.g, AutoColor.b, 255);
+                            }
+                            else
+                            {
+                                pGraphics.b_color1(oEndTextPr.Color.r, oEndTextPr.Color.g, oEndTextPr.Color.b, 255);
+                            }
+                        }
                         else
-                            pGraphics.b_color1(oEndTextPr.Color.r, oEndTextPr.Color.g, oEndTextPr.Color.b, 255);
+                        {
+                            if (true === oEndTextPr.Color.Auto && !oEndTextPr.TextFill)
+                            {
+                                pGraphics.b_color1(AutoColor.r, AutoColor.g, AutoColor.b, 255);
+                            }
+                        }
                     }
 
                     var bEndCell = false;
