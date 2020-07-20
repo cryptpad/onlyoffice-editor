@@ -810,6 +810,7 @@
 		if (_ascIndicateItemsWithNoData && !_ascShowItemsWithNoDataLast) {
 			return ST_slicerCacheCrossFilter.ShowItemsWithNoData;
 		}
+		return ST_slicerCacheCrossFilter.None;
 	};
 
 	CT_slicer.prototype.asc_setName = function (val) {
@@ -2222,7 +2223,7 @@
 		this.customListSort = val;
 	};
 
-	CT_slicerCacheDefinition.prototype.setCrossFilter = function (val) {
+	CT_tableSlicerCache.prototype.setCrossFilter = function (val) {
 		this.crossFilter = val;
 	};
 
