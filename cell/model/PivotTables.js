@@ -10682,7 +10682,7 @@ PivotRecords.prototype.convertToSharedItems = function(si) {
 				index = 0;
 				if (chunk.data) {
 					val = chunk.data[j];
-					if (!this._isMissingValue(chunk.type, val)) {
+					if (!this._isMissingValue(chunk.type, val) || (this.addition && this.addition[j] && this.addition[j].realNumber)) {
 						index = uniqueMap.get(val);
 						if (undefined === index) {
 							index = si.Items.getSize() + 1;//0 is missing value
@@ -10692,7 +10692,7 @@ PivotRecords.prototype.convertToSharedItems = function(si) {
 					} else {
 						if (undefined === uniqueMaps.missing) {
 							uniqueMaps.missing = si.Items.getSize() + 1;//0 is missing value
-							si.Items._add(chunk.type, val);
+							si.Items._add(c_oAscPivotRecType.Missing, val);
 						}
 						index = uniqueMaps.missing;
 					}

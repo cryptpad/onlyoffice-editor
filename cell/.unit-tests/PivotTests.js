@@ -3320,7 +3320,7 @@ $(function() {
 				props.asc_setOutline(false);
 				props.asc_setCompact(false);
 				props.asc_setShowAll(true);
-				pivotField.asc_set(api, pivot, 0, props);
+				pivotField.asc_set(api, pivot, 4, props);
 			});
 
 			ws.deletePivotTables(new AscCommonExcel.MultiplyRange(pivot.getReportRanges()).getUnionRange());
