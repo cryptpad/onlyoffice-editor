@@ -15799,7 +15799,7 @@ CDocument.prototype.Get_MailMergedDocument = function(_nStartIndex, _nEndIndex)
 
 		// Добавляем дополнительный параграф с окончанием секции
 		var SectionPara = new Paragraph(this.DrawingDocument, this);
-		var SectPr = new CSectionPr();
+		var SectPr = new CSectionPr(LogicDocument);
 		SectPr.Copy(this.SectPr, true);
 		SectPr.Set_Type(c_oAscSectionBreakType.NextPage);
 		SectionPara.Set_SectionPr(SectPr, false);
