@@ -194,10 +194,8 @@
 		this.m_oFactoryClass[AscDFH.historyitem_type_StrRef]                 = AscFormat.CStrRef;
 		this.m_oFactoryClass[AscDFH.historyitem_type_StrCache]               = AscFormat.CStrCache;
 		this.m_oFactoryClass[AscDFH.historyitem_type_StrPoint]               = AscFormat.CStringPoint;
-		this.m_oFactoryClass[AscDFH.historyitem_type_XVal]                   = AscFormat.CXVal;
 		this.m_oFactoryClass[AscDFH.historyitem_type_MultiLvlStrRef]         = AscFormat.CMultiLvlStrRef;
 		this.m_oFactoryClass[AscDFH.historyitem_type_MultiLvlStrCache]       = AscFormat.CMultiLvlStrCache;
-		this.m_oFactoryClass[AscDFH.historyitem_type_StringLiteral]          = AscFormat.CStringLiteral;
 		this.m_oFactoryClass[AscDFH.historyitem_type_YVal]                   = AscFormat.CYVal;
 		this.m_oFactoryClass[AscDFH.historyitem_type_AreaSeries]             = AscFormat.CAreaSeries;
 		this.m_oFactoryClass[AscDFH.historyitem_type_Cat]                    = AscFormat.CCat;
