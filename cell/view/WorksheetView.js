@@ -11347,7 +11347,7 @@
 		t.model.workbook.dependencyFormulas.lockRecal();
 		var pastedData;
 		if (fromBinary) {
-			pastedData = t.pasteFromBinary(val, null, tablesMap);
+			pastedData = t.pasteFromBinary(val, null, tablesMap, pasteToRange);
 		} else {
 			if (bText) {
 				specialPasteProps.font = false;
@@ -11462,12 +11462,30 @@
 		var selectData;
 		var specialPasteChangeColWidth = specialPasteProps && specialPasteProps.width;
 
-		var pasteContent = val.data;
+		var fromBinaryExcel = val.fromBinary;
 
+		var pasteContent = val.data;
+		var pastedInfo = [];
 		var callback = function() {
 			//TODO здесь необходимо вставку в мультиселект сделать
 			for (var j = 0; j < pasteToRange.length; j++) {
 				_doPaste(pasteToRange[j]);
+			}
+
+			var _selection;
+			if (fromBinaryExcel) {
+				for (var n = 0; n < pastedInfo.length; n++) {
+					if (pastedInfo) {
+						_selection = t.model.selectionRange.ranges[n];
+						_selection.c2 = pastedInfo[n].selectData[0].c2;
+						_selection.r2 = pastedInfo[n].selectData[0].r2;
+
+					}
+				}
+			} else {
+				_selection = t.model.selectionRange.getLast();
+				_selection.c2 = pastedInfo[0].selectData[0].c2;
+				_selection.r2 = pastedInfo[0].selectData[0].r2;
 			}
 
 			History.EndTransaction();
@@ -11518,8 +11536,6 @@
 		};
 
 		var _doPaste = function(_pasteToRange) {
-
-			var fromBinaryExcel = val.fromBinary;
 			//paste from excel binary
 			if(fromBinaryExcel) {
 				AscCommonExcel.executeInR1C1Mode(false, function () {
@@ -11527,7 +11543,7 @@
 				});
 			} else {
 				var imagesFromWord = pasteContent.props.addImagesFromWord;
-				if (imagesFromWord && imagesFromWord.length != 0 && !(window["Asc"]["editor"] && window["Asc"]["editor"].isChartEditor) && specialPasteProps.images) {
+				if (imagesFromWord && imagesFromWord.length !== 0 && !(window["Asc"]["editor"] && window["Asc"]["editor"].isChartEditor) && specialPasteProps.images) {
 					var oObjectsForDownload = AscCommon.GetObjectsForImageDownload(pasteContent.props._aPastedImages);
 					var oImageMap;
 
@@ -11582,6 +11598,7 @@
 					}
 				}
 			}
+			pastedInfo.push(selectData);
 
 		};
 
@@ -11783,13 +11800,10 @@
 		}
 
 		t.isChanged = true;
-		lastSelection.c2 = arn.c2;
-		lastSelection.r2 = arn.r2;
-
 		return [arn, arrFormula];
 	};
 
-	WorksheetView.prototype.pasteFromBinary = function (val, isCheckSelection, tablesMap) {
+	WorksheetView.prototype.pasteFromBinary = function (val, isCheckSelection, tablesMap, pasteToRange) {
 		var pasteRange = AscCommonExcel.g_clipboardExcel.pasteProcessor.activeRange;
 		pasteRange = typeof pasteRange === "string" ? AscCommonExcel.g_oRangeCache.getAscRange(pasteRange) : pasteRange;
 		var pastedCol = pasteRange.c2 - pasteRange.c1 + 1;
@@ -11824,37 +11838,16 @@
 		}
 
 		var res;
-		if (selectRanges.length > 1) {
+		if (isCheckSelection) {
 			for (i = 0; i < selectRanges.length; i++) {
 				var _selection = this._pasteFromBinary(val, isCheckSelection, tablesMap, selectRanges[i]);
-				if (isCheckSelection) {
-					if (!res) {
-						res = [];
-					}
-					res.push(_selection);
-				} else {
-					if (!_selection) {
-						return;
-					} else {
-						if (!res) {
-							res = [];
-						}
-						if (!res[0]) {
-							res[0] = [];
-						}
-						res[0].push(_selection[0]);
-						if (res[1]) {
-							res[1].concat(_selection[1]);
-						} else {
-							res[1] = _selection[1];
-						}
-					}
-					//set selection
-
+				if (!res) {
+					res = [];
 				}
+				res.push(_selection);
 			}
 		} else {
-			res = this._pasteFromBinary(val, isCheckSelection, tablesMap);
+			res = this._pasteFromBinary(val, isCheckSelection, tablesMap, pasteToRange);
 		}
 		
 		return res;
@@ -12362,14 +12355,6 @@
 		}
 
         t.isChanged = true;
-
-		//TODO переделать на setSelection. закомментировал в связи с падением, когда вставляем ниже видимой зоны таблицы
-		//this.setSelection(trueActiveRange);
-		if (!pasteInRange) {
-			lastSelection.c2 = trueActiveRange.c2;
-			lastSelection.r2 = trueActiveRange.r2;
-		}
-
         return [trueActiveRange, arrFormula];
     };
 
