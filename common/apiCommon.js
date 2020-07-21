@@ -4368,6 +4368,7 @@
 	{
 		this.description = "";
 		this.url         = "";
+		this.help        = "";
 		this.baseUrl     = "";
 		this.index       = 0;     // сверху не выставляем. оттуда в каком порядке пришли - в таком порядке и работают
 
@@ -4410,6 +4411,14 @@
 	CPluginVariation.prototype["set_Url"]         = function(value)
 	{
 		this.url = value;
+	};
+	CPluginVariation.prototype["get_Help"]         = function()
+	{
+		return this.help;
+	};
+	CPluginVariation.prototype["set_Help"]         = function(value)
+	{
+		this.help = value;
 	};
 
 	CPluginVariation.prototype["get_Icons"] = function()
@@ -4549,6 +4558,7 @@
 		var _object            = {};
 		_object["description"] = this.description;
 		_object["url"]         = this.url;
+		_object["help"]        = this.help;
 		_object["index"]       = this.index;
 
 		_object["icons"]          = this.icons;
@@ -4577,6 +4587,7 @@
 	{
 		this.description = (_object["description"] != null) ? _object["description"] : this.description;
 		this.url         = (_object["url"] != null) ? _object["url"] : this.url;
+		this.help        = (_object["help"] != null) ? _object["help"] : this.help;
 		this.index       = (_object["index"] != null) ? _object["index"] : this.index;
 
 		this.icons          = (_object["icons"] != null) ? _object["icons"] : this.icons;
@@ -4604,7 +4615,6 @@
 		this.name    = "";
 		this.guid    = "";
 		this.baseUrl = "";
-		this.help	 = "";
 
 		this.variations = [];
 	}
@@ -4632,14 +4642,6 @@
 	CPlugin.prototype["set_BaseUrl"] = function(value)
 	{
 		this.baseUrl = value;
-	};
-	CPlugin.prototype["get_Help"] = function()
-	{
-		return this.help;
-	};
-	CPlugin.prototype["set_Help"] = function(value)
-	{
-		this.help = value;
 	};
 
 	CPlugin.prototype["get_Variations"] = function()
