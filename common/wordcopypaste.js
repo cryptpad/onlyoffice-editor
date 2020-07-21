@@ -7584,6 +7584,16 @@ PasteProcessor.prototype =
 				}
 			}
 		}
+
+		var computedStyle = this._getComputedStyle(node);
+		var background_color = this._getStyle(node, computedStyle, "background-color");
+		var Shd;
+		if (null != background_color && (background_color = this._ParseColor(background_color))) {
+			Shd = new CDocumentShd();
+			Shd.Value = c_oAscShdClear;
+			Shd.Color = background_color;
+		}
+
 		for (var i = 0, length = node.childNodes.length; i < length; ++i) {
 			//важно чтобы этот код был после определения td, потому что вертикально замерженые ячейки отсутствуют в dom
 			fParseSpans();
@@ -7604,6 +7614,9 @@ PasteProcessor.prototype =
 					var oCurCell = row.Add_Cell(row.Get_CellsCount(), row, null, false);
 					if (nColSpan > 1)
 						oCurCell.Set_GridSpan(nColSpan);
+					if (Shd) {
+						oCurCell.Set_Shd(Shd);
+					}
 					var width = aSumGrid[nCellIndexSpan + nColSpan - 1] - aSumGrid[nCellIndexSpan - 1];
 					oCurCell.Set_W(new CTableMeasurement(tblwidth_Mm, width));
 					var nRowSpan = tc.getAttribute("rowspan");
