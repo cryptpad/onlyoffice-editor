@@ -4604,6 +4604,7 @@
 		this.name    = "";
 		this.guid    = "";
 		this.baseUrl = "";
+		this.help	 = "";
 
 		this.variations = [];
 	}
@@ -4631,6 +4632,14 @@
 	CPlugin.prototype["set_BaseUrl"] = function(value)
 	{
 		this.baseUrl = value;
+	};
+	CPlugin.prototype["get_Help"] = function()
+	{
+		return this.help;
+	};
+	CPlugin.prototype["set_Help"] = function(value)
+	{
+		this.help = value;
 	};
 
 	CPlugin.prototype["get_Variations"] = function()
