@@ -5730,7 +5730,7 @@ CDocumentContent.prototype.GetCalculatedParaPr = function()
 		{
 			Result_ParaPr.Shd.Unifill.check(this.Get_Theme(), this.Get_ColorMap());
 		}
-		if(Result_ParaPr.Bullet)
+		if(this.bPresentation && Result_ParaPr.Bullet)
 		{
 			oBullet = Result_ParaPr.Bullet;
 			if(oBullet)
@@ -5837,7 +5837,7 @@ CDocumentContent.prototype.GetCalculatedParaPr = function()
 		{
 			Result_ParaPr.Shd.Unifill.check(this.Get_Theme(), this.Get_ColorMap());
 		}
-		if(Result_ParaPr.Bullet)
+		if(this.bPresentation && Result_ParaPr.Bullet)
 		{
 			oBullet = Result_ParaPr.Bullet;
 			var oTheme = this.Get_Theme();
