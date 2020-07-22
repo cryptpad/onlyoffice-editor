@@ -7177,20 +7177,21 @@ PasteProcessor.prototype =
 		var bPresentation = !PasteElementsId.g_bIsDocumentCopyPaste;
 
 		//Ищем если есть tbody
-		for (var i = 0, length = node.childNodes.length; i < length; ++i) {
+		var i, length, j, length2;
+		for (i = 0, length = node.childNodes.length; i < length; ++i) {
 			var nodeName = node.childNodes[i].nodeName.toLowerCase();
 			if ("tbody" === nodeName) {
 				if (!newNode) {
 					newNode = node.childNodes[i];
 					if (headNode) {
-						for (var j = 0; j < headNode.childNodes.length; j++) {
+						for (j = 0; j < headNode.childNodes.length; j++) {
 							newNode.insertBefore(headNode.childNodes[0], newNode.childNodes[0]);
 						}
 						pPr.repeatHeaderRow = true;
 					}
 				} else {
 					var lengthChild = node.childNodes[i].childNodes.length;
-					for (var j = 0; j < lengthChild; j++) {
+					for (j = 0; j < lengthChild; j++) {
 						newNode.appendChild(node.childNodes[i].childNodes[0]);
 					}
 				}
@@ -7229,16 +7230,18 @@ PasteProcessor.prototype =
 				spans = oRowSpans[nCurColWidth];
 			}
 		};
-		for (var i = 0, length = node.childNodes.length; i < length; ++i) {
+
+		var tc, tcName, nCurRowSpan;
+		for (i = 0, length = node.childNodes.length; i < length; ++i) {
 			var tr = node.childNodes[i];
 			if ("tr" === tr.nodeName.toLowerCase()) {
 				nCurSum = 0;
 				nCurColWidth = 0;
 				var minRowSpanIndex = null;
 				var nMinRowSpanCount = null;//минимальный rowspan ячеек строки
-				for (var j = 0, length2 = tr.childNodes.length; j < length2; ++j) {
-					var tc = tr.childNodes[j];
-					var tcName = tc.nodeName.toLowerCase();
+				for (j = 0, length2 = tr.childNodes.length; j < length2; ++j) {
+					tc = tr.childNodes[j];
+					tcName = tc.nodeName.toLowerCase();
 					if ("td" === tcName || "th" === tcName) {
 						fParseSpans();
 
@@ -7256,7 +7259,7 @@ PasteProcessor.prototype =
 							nColSpan = nColSpan - 0;
 						else
 							nColSpan = 1;
-						var nCurRowSpan = tc.getAttribute("rowspan");
+						nCurRowSpan = tc.getAttribute("rowspan");
 						if (null != nCurRowSpan) {
 							nCurRowSpan = nCurRowSpan - 0;
 							if (null == nMinRowSpanCount) {
@@ -7287,11 +7290,11 @@ PasteProcessor.prototype =
 				fParseSpans();
 				//Удаляем лишние rowspan
 				if (nMinRowSpanCount > 1) {
-					for (var j = 0, length2 = tr.childNodes.length; j < length2; ++j) {
-						var tc = tr.childNodes[j];
-						var tcName = tc.nodeName.toLowerCase();
+					for (j = 0, length2 = tr.childNodes.length; j < length2; ++j) {
+						tc = tr.childNodes[j];
+						tcName = tc.nodeName.toLowerCase();
 						if (minRowSpanIndex !== j && ("td" === tcName || "th" === tcName)) {
-							var nCurRowSpan = tc.getAttribute("rowspan");
+							nCurRowSpan = tc.getAttribute("rowspan");
 							if (null != nCurRowSpan)
 								tc.setAttribute("rowspan", nCurRowSpan - nMinRowSpanCount);
 						}
@@ -7300,23 +7303,26 @@ PasteProcessor.prototype =
 				if (dMaxSum < nCurSum)
 					dMaxSum = nCurSum;
 				//удаляем пустые tr
-				if (0 == nCurColWidth) {
+				if (0 === nCurColWidth) {
 					node.removeChild(tr);
 					length--;
 					i--;
 				} else {
-					if (0 == nMinColCount || nMinColCount > nCurColWidth)
+					if (0 === nMinColCount || nMinColCount > nCurColWidth) {
 						nMinColCount = nCurColWidth;
-					if (nMaxColCount < nCurColWidth)
+					}
+					if (nMaxColCount < nCurColWidth) {
 						nMaxColCount = nCurColWidth;
+					}
 					nRowCount++;
 					aColsCountByRow.push(nCurColWidth);
 				}
 			}
 		}
-		if (nMaxColCount != nMinColCount) {
-			for (var i = 0, length = aColsCountByRow.length; i < length; ++i)
+		if (nMaxColCount !== nMinColCount) {
+			for (i = 0, length = aColsCountByRow.length; i < length; ++i) {
 				aColsCountByRow[i] = nMaxColCount - aColsCountByRow[i];
+			}
 		}
 		if (nRowCount > 0 && nMaxColCount > 0) {
 			var bUseScaleKoef = this.bUseScaleKoef;
@@ -7329,7 +7335,7 @@ PasteProcessor.prototype =
 			var aGrid = [];
 			var nPrevIndex = null;
 			var nPrevVal = 0;
-			for (var i in oRowSums) {
+			for (i in oRowSums) {
 				var nCurIndex = i - 0;
 				var nCurVal = oRowSums[i];
 				var nCurWidth = nCurVal - nPrevVal;
@@ -7345,7 +7351,7 @@ PasteProcessor.prototype =
 						}
 					} else {
 						var nPartVal = nCurWidth / nDif;
-						for (var i = 0; i < nDif; ++i)
+						for (j = 0; j < nDif; ++j)
 							aGrid.push(nPartVal);
 					}
 				}
@@ -7371,7 +7377,7 @@ PasteProcessor.prototype =
 			var aSumGrid = [];
 			aSumGrid[-1] = 0;
 			var nSum = 0;
-			for (var i = 0, length = aGrid.length; i < length; ++i) {
+			for (i = 0, length = aGrid.length; i < length; ++i) {
 				nSum += aGrid[i];
 				aSumGrid[i] = nSum;
 			}
