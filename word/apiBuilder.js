@@ -3535,9 +3535,10 @@
 	 * Insert an array of elements in the current position of the document.
 	 * @param {DocumentElement[]} arrContent - An array of elements to insert.
 	 * @param {boolean} [isInline=false] - Inline insert on not (works only when the length of arrContent = 1 and it's a paragraph)
+	 * @param {object} [oPr=undefined]
 	 * @returns {boolean} Success?
 	 */
-	ApiDocument.prototype.InsertContent = function(arrContent, isInline)
+	ApiDocument.prototype.InsertContent = function(arrContent, isInline, oPr)
 	{
 		var oSelectedContent = new CSelectedContent();
 		for (var nIndex = 0, nCount = arrContent.length; nIndex < nCount; ++nIndex)
@@ -3569,6 +3570,26 @@
 			Paragraph  : oParagraph,
 			ContentPos : oParagraph.Get_ParaContentPos(false, false)
 		};
+
+		if (oPr)
+		{
+			if (oPr["KeepTextOnly"])
+			{
+				var oParaPr = this.Document.GetDirectParaPr();
+				var oTextPr = this.Document.GetDirectTextPr();
+
+				for (var nIndex = 0, nCount = oSelectedContent.Elements.length; nIndex < nCount; ++nIndex)
+				{
+					var oElement = oSelectedContent.Elements[nIndex].Element;
+					var arrParagraphs = oElement.GetAllParagraphs();
+					for (var nParaIndex = 0, nParasCount = arrParagraphs.length; nParaIndex < nParasCount; ++nParaIndex)
+					{
+						arrParagraphs[nParaIndex].SetDirectParaPr(oParaPr);
+						arrParagraphs[nParaIndex].SetDirectTextPr(oTextPr);
+					}
+				}
+			}
+		}
 
 		oParagraph.Check_NearestPos(oNearestPos);
 

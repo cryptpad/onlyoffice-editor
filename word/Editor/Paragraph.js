@@ -472,7 +472,7 @@ Paragraph.prototype.GetAllParagraphs = function(Props, ParaArray)
 			this.Content[CurPos].GetAllParagraphs(Props, ParaArray);
 	}
 
-	if (true === Props.All)
+	if (!Props || true === Props.All)
 	{
 		ParaArray.push(this);
 	}
