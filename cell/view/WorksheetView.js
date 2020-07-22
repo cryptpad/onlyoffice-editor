@@ -3506,6 +3506,7 @@
 			var c = this._getVisibleCell(col, row);
 			var findFillColor = this.handlers.trigger('selectSearchingResults') && this.model.inFindResults(row, col) ? this.settings.findFillColor : null;
 			var fill = c.getFill();
+			var hasFill = fill.hasFill();
 			var mwidth = 0, mheight = 0;
 
 			if (mergedCells) {
@@ -3526,17 +3527,17 @@
 				mheight = this._getRowTop(mc.r2 + 1) - this._getRowTop(mc.r1 + 1);
 			}
 
-			if (findFillColor || fill.hasFill() || mc) {
+			if (findFillColor || hasFill || mc) {
 				// ToDo не отрисовываем заливку границ от ячеек c заливкой, которые находятся правее и ниже
 				//  отрисовываемого диапазона. Но по факту проблем быть не должно.
-				var fillGrid = findFillColor || fill.hasFill();
+				var fillGrid = findFillColor || hasFill;
 
 				var x = this._getColLeft(col) - (fillGrid ? 1 : 0);
 				var y = top - (fillGrid ? 1 : 0);
 				var w = width + (fillGrid ? +1 : -1) + mwidth;
 				var h = height + (fillGrid ? +1 : -1) + mheight;
 
-                findFillColor = findFillColor || (mc && this.settings.cells.defaultState.background);
+                findFillColor = findFillColor || (!hasFill && mc && this.settings.cells.defaultState.background);
                 if (findFillColor) {
                     fill = new AscCommonExcel.Fill();
                     fill.patternFill = new AscCommonExcel.PatternFill();
