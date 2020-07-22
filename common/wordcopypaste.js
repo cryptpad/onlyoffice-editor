@@ -7170,9 +7170,11 @@ PasteProcessor.prototype =
 		}
 		this.nBrCount = 0;
 	},
-	_StartExecuteTable: function (node, pPr) {
+
+	_StartExecuteTable: function (node, pPr, arrShapes, arrImages, arrTables) {
 		var oDocument = this.oDocument;
 		var tableNode = node, newNode, headNode;
+		var bPresentation = !PasteElementsId.g_bIsDocumentCopyPaste;
 
 		//Ищем если есть tbody
 		for (var i = 0, length = node.childNodes.length; i < length; ++i) {
@@ -7214,7 +7216,10 @@ PasteProcessor.prototype =
 		var nCurSum = 0;
 		var nAllSum = 0;
 		var oRowSpans = {};
-		var columnSize = ((!window["Asc"] || (window["Asc"] && window["Asc"]["editor"] === undefined))) && this.oLogicDocument ? this.oLogicDocument.GetColumnSize() : null;
+		var columnSize;
+		if (!bPresentation && ((!window["Asc"] || (window["Asc"] && window["Asc"]["editor"] === undefined))) && this.oLogicDocument) {
+			columnSize = this.oLogicDocument.GetColumnSize();
+		}
 		var fParseSpans = function () {
 			var spans = oRowSpans[nCurColWidth];
 			while (null != spans && spans.row > 0) {
@@ -7347,8 +7352,21 @@ PasteProcessor.prototype =
 				nPrevVal = nCurVal;
 				nPrevIndex = nCurIndex;
 			}
-			var CurPage = 0;
-			var table = new CTable(oDocument.DrawingDocument, oDocument, true, 0, 0, aGrid);
+
+			var table;
+			if (bPresentation) {
+				table = this._createNewPresentationTable(aGrid);
+				var graphicFrame = table.Parent;
+				table.Set_TableStyle(0);
+				arrTables.push(graphicFrame);
+
+				//TODO пересмотреть!!!
+				//graphicFrame.setXfrm(dd.GetMMPerDot(node["offsetLeft"]), dd.GetMMPerDot(node["offsetTop"]), dd.GetMMPerDot(node["offsetWidth"]), dd.GetMMPerDot(node["offsetHeight"]), null, null, null);
+			} else {
+				table = new CTable(oDocument.DrawingDocument, oDocument, true, 0, 0, aGrid);
+			}
+
+
 			//считаем aSumGrid
 			var aSumGrid = [];
 			aSumGrid[-1] = 0;
@@ -7358,11 +7376,15 @@ PasteProcessor.prototype =
 				aSumGrid[i] = nSum;
 			}
 			//набиваем content
-			this._ExecuteTable(tableNode, node, table, aSumGrid, nMaxColCount !== nMinColCount ? aColsCountByRow : null, pPr, bUseScaleKoef, dScaleKoef);
+			this._ExecuteTable(tableNode, node, table, aSumGrid, nMaxColCount !== nMinColCount ? aColsCountByRow : null, pPr, bUseScaleKoef, dScaleKoef, arrShapes, arrImages, arrTables);
 			table.MoveCursorToStartPos();
-			this.aContent.push(table);
+
+			if (!bPresentation) {
+				this.aContent.push(table);
+			}
 		}
 	},
+
 	_ExecuteBorder: function (computedStyle, node, type, type2, bAddIfNull, setUnifill) {
 		var res = null;
 		var style = this._getStyle(node, computedStyle, "border-" + type + "-style");
@@ -8475,7 +8497,7 @@ PasteProcessor.prototype =
 			var sNodeName = node.nodeName.toLowerCase();
 			if (bPresentation) {
 				if ("table" === sNodeName) {
-					this._StartExecuteTablePresentation(node, pPr, arrShapes, arrImages, arrTables);
+					this._StartExecuteTable(node, pPr, arrShapes, arrImages, arrTables);
 					return;
 				}
 			} else {
@@ -8577,168 +8599,6 @@ PasteProcessor.prototype =
 				this.oCurRun.Set_Pr(clonePr);
 			}
 			this.needAddCommentEnd = null;
-		}
-	},
-
-	_StartExecuteTablePresentation: function (node, pPr, arrShapes, arrImages, arrTables) {
-		var oDocument = this.oDocument;
-		var tableNode = node;
-		//Ищем если есть tbody
-		for (var i = 0, length = node.childNodes.length; i < length; ++i) {
-			if ("tbody" === node.childNodes[i].nodeName.toLowerCase()) {
-				node = node.childNodes[i];
-				break;
-			}
-		}
-		//валидация талиц. В таблице не может быть строк состоящих из вертикально замерженых ячеек.
-		var nRowCount = 0;
-		var nMinColCount = 0;
-		var nMaxColCount = 0;
-		var aColsCountByRow = [];
-		var oRowSums = {};
-		oRowSums[0] = 0;
-		var dMaxSum = 0;
-		var nCurColWidth = 0;
-		var nCurSum = 0;
-		var oRowSpans = {};
-		var fParseSpans = function () {
-			var spans = oRowSpans[nCurColWidth];
-			while (null != spans && spans.row > 0) {
-				spans.row--;
-				nCurColWidth += spans.col;
-				nCurSum += spans.width;
-				spans = oRowSpans[nCurColWidth];
-			}
-		};
-		for (var i = 0, length = node.childNodes.length; i < length; ++i) {
-			var tr = node.childNodes[i];
-			if ("tr" === tr.nodeName.toLowerCase()) {
-				nCurSum = 0;
-				nCurColWidth = 0;
-				var nMinRowSpanCount = null;//минимальный rowspan ячеек строки
-				for (var j = 0, length2 = tr.childNodes.length; j < length2; ++j) {
-					var tc = tr.childNodes[j];
-					var tcName = tc.nodeName.toLowerCase();
-					if ("td" === tcName || "th" === tcName) {
-						fParseSpans();
-
-						var dWidth = null;
-						var computedStyle = this._getComputedStyle(tc);
-						var computedWidth = this._getStyle(tc, computedStyle, "width");
-						if (null != computedWidth && null != (computedWidth = AscCommon.valueToMm(computedWidth)))
-							dWidth = computedWidth;
-
-						if (null == dWidth)
-							dWidth = tc.clientWidth * g_dKoef_pix_to_mm;
-
-						var nColSpan = tc.getAttribute("colspan");
-						if (null != nColSpan)
-							nColSpan = nColSpan - 0;
-						else
-							nColSpan = 1;
-						var nCurRowSpan = tc.getAttribute("rowspan");
-						if (null != nCurRowSpan) {
-							nCurRowSpan = nCurRowSpan - 0;
-							if (null == nMinRowSpanCount)
-								nMinRowSpanCount = nCurRowSpan;
-							else if (nMinRowSpanCount > nCurRowSpan)
-								nMinRowSpanCount = nCurRowSpan;
-							if (nCurRowSpan > 1)
-								oRowSpans[nCurColWidth] = {row: nCurRowSpan - 1, col: nColSpan, width: dWidth};
-						} else
-							nMinRowSpanCount = 0;
-
-						nCurSum += dWidth;
-						if (null == oRowSums[nCurColWidth + nColSpan])
-							oRowSums[nCurColWidth + nColSpan] = nCurSum;
-						nCurColWidth += nColSpan;
-					}
-				}
-				fParseSpans();
-				//Удаляем лишние rowspan
-				if (nMinRowSpanCount > 1) {
-					for (var j = 0, length2 = tr.childNodes.length; j < length2; ++j) {
-						var tc = tr.childNodes[j];
-						var tcName = tc.nodeName.toLowerCase();
-						if ("td" === tcName || "th" === tcName) {
-							var nCurRowSpan = tc.getAttribute("rowspan");
-							if (null != nCurRowSpan)
-								tc.setAttribute("rowspan", nCurRowSpan - nMinRowSpanCount);
-						}
-					}
-				}
-				if (dMaxSum < nCurSum)
-					dMaxSum = nCurSum;
-				//удаляем пустые tr
-				if (0 === nCurColWidth) {
-					node.removeChild(tr);
-					length--;
-					i--;
-				} else {
-					if (0 === nMinColCount || nMinColCount > nCurColWidth)
-						nMinColCount = nCurColWidth;
-					if (nMaxColCount < nCurColWidth)
-						nMaxColCount = nCurColWidth;
-					nRowCount++;
-					aColsCountByRow.push(nCurColWidth);
-				}
-			}
-		}
-		if (nMaxColCount != nMinColCount) {
-			for (var i = 0, length = aColsCountByRow.length; i < length; ++i)
-				aColsCountByRow[i] = nMaxColCount - aColsCountByRow[i];
-		}
-		if (nRowCount > 0 && nMaxColCount > 0) {
-			var bUseScaleKoef = this.bUseScaleKoef;
-			var dScaleKoef = this.dScaleKoef;
-			if (dMaxSum * dScaleKoef > this.dMaxWidth) {
-				dScaleKoef = dScaleKoef * this.dMaxWidth / dMaxSum;
-				bUseScaleKoef = true;
-			}
-			//строим Grid
-			var aGrid = [];
-			var nPrevIndex = null;
-			var nPrevVal = 0;
-			for (var i in oRowSums) {
-				var nCurIndex = i - 0;
-				var nCurVal = oRowSums[i];
-				var nCurWidth = nCurVal - nPrevVal;
-				if (bUseScaleKoef)
-					nCurWidth *= dScaleKoef;
-				if (null != nPrevIndex) {
-					var nDif = nCurIndex - nPrevIndex;
-					if (1 === nDif)
-						aGrid.push(nCurWidth);
-					else {
-						var nPartVal = nCurWidth / nDif;
-						for (var i = 0; i < nDif; ++i)
-							aGrid.push(nPartVal);
-					}
-				}
-				nPrevVal = nCurVal;
-				nPrevIndex = nCurIndex;
-			}
-
-			var table = this._createNewPresentationTable(aGrid);
-			var graphicFrame = table.Parent;
-			table.Set_TableStyle(0);
-			arrTables.push(graphicFrame);
-
-			//TODO пересмотреть!!!
-			//graphicFrame.setXfrm(dd.GetMMPerDot(node["offsetLeft"]), dd.GetMMPerDot(node["offsetTop"]), dd.GetMMPerDot(node["offsetWidth"]), dd.GetMMPerDot(node["offsetHeight"]), null, null, null);
-
-			//считаем aSumGrid
-			var aSumGrid = [];
-			aSumGrid[-1] = 0;
-			var nSum = 0;
-			for (var i = 0, length = aGrid.length; i < length; ++i) {
-				nSum += aGrid[i];
-				aSumGrid[i] = nSum;
-			}
-			//набиваем content
-			this._ExecuteTable(tableNode, node, table, aSumGrid, nMaxColCount != nMinColCount ? aColsCountByRow : null, pPr, bUseScaleKoef, dScaleKoef, arrShapes, arrImages, arrTables);
-			table.MoveCursorToStartPos();
-			return;
 		}
 	},
 
