@@ -1321,7 +1321,10 @@ CT_PivotCacheDefinition.prototype.Get_Id = function () {
 	return this.Id;
 };
 CT_PivotCacheDefinition.prototype.Write_ToBinary2 = function(w) {
-	toXmlWithLength(w, this);
+	var t = this;
+	AscCommonExcel.executeInR1C1Mode(false, function () {
+		toXmlWithLength(w, t);
+	});
 	if (this.cacheRecords) {
 		w.WriteBool(true);
 		this.cacheRecords.Write_ToBinary2(w);
@@ -1330,8 +1333,11 @@ CT_PivotCacheDefinition.prototype.Write_ToBinary2 = function(w) {
 	}
 };
 CT_PivotCacheDefinition.prototype.Read_FromBinary2 = function(r) {
+	var t = this;
 	var len = r.GetLong();
-	new AscCommon.openXml.SaxParserBase().parse(AscCommon.GetStringUtf8(r, len), this);
+	AscCommonExcel.executeInR1C1Mode(false, function () {
+		new AscCommon.openXml.SaxParserBase().parse(AscCommon.GetStringUtf8(r, len), t);
+	});
 	if (r.GetBool()) {
 		this.cacheRecords = new CT_PivotCacheRecords();
 		this.cacheRecords.Read_FromBinary2(r);
@@ -1969,11 +1975,17 @@ CT_PivotCacheRecords.prototype.getType = function() {
 };
 CT_PivotCacheRecords.prototype.Write_ToBinary2 = function(w) {
 	//todo write binary
-	toXmlWithLength(w, this);
+	var t = this;
+	AscCommonExcel.executeInR1C1Mode(false, function () {
+		toXmlWithLength(w, t);
+	});
 };
 CT_PivotCacheRecords.prototype.Read_FromBinary2 = function(r) {
+	var t = this;
 	var len = r.GetLong();
-	new AscCommon.openXml.SaxParserBase().parse(AscCommon.GetStringUtf8(r, len), this);
+	AscCommonExcel.executeInR1C1Mode(false, function () {
+		new AscCommon.openXml.SaxParserBase().parse(AscCommon.GetStringUtf8(r, len), t);
+	});
 };
 
 function PivotTableChanged() {
@@ -2196,9 +2208,12 @@ CT_pivotTableDefinition.prototype.getAndCleanChanged = function () {
 	return res;
 };
 CT_pivotTableDefinition.prototype.Write_ToBinary2 = function (w) {
+	var t = this;
 	w.WriteLong(this.getObjectType());
 	w.WriteString2(this.worksheet ? this.worksheet.getId() : '-1');
-	toXmlWithLength(w, this);
+	AscCommonExcel.executeInR1C1Mode(false, function () {
+		toXmlWithLength(w, t);
+	});
 	if (this.cacheDefinition) {
 		w.WriteBool(true);
 		this.cacheDefinition.Write_ToBinary2(w);
@@ -2207,11 +2222,14 @@ CT_pivotTableDefinition.prototype.Write_ToBinary2 = function (w) {
 	}
 };
 CT_pivotTableDefinition.prototype.Read_FromBinary2 = function (r) {
+	var t = this;
 	this.setDefaults();
 	var api_sheet = Asc['editor'];
 	this.worksheet = api_sheet.wbModel.getWorksheetById(r.GetString2());
 	var len = r.GetLong();
-	new AscCommon.openXml.SaxParserBase().parse(AscCommon.GetStringUtf8(r, len), this);
+	AscCommonExcel.executeInR1C1Mode(false, function () {
+		new AscCommon.openXml.SaxParserBase().parse(AscCommon.GetStringUtf8(r, len), t);
+	});
 	if (r.GetBool()) {
 		this.cacheDefinition = new CT_PivotCacheDefinition();
 		this.cacheDefinition.Read_FromBinary2(r);
@@ -5236,7 +5254,7 @@ CT_Location.prototype.readAttributes = function(attr, uq) {
 CT_Location.prototype.toXml = function(writer, name) {
 	writer.WriteXmlNodeStart(name);
 	if (null !== this.ref) {
-		writer.WriteXmlAttributeStringEncode("ref", this.ref.getName());
+		writer.WriteXmlAttributeStringEncode("ref", this.ref.getName(AscCommonExcel.referenceType.R));
 	}
 	if (null !== this.firstHeaderRow) {
 		writer.WriteXmlAttributeNumber("firstHeaderRow", this.firstHeaderRow);
@@ -6154,7 +6172,7 @@ CT_WorksheetSource.prototype._updateAttributes = function() {
 				case AscCommonExcel.cElementType.cell3D:
 				case AscCommonExcel.cElementType.cellsRange3D:
 					this.sheet = elem.getWS().getName();
-					this.ref = elem.getBBox0().getName();
+					this.ref = elem.getBBox0().getName(AscCommonExcel.referenceType.R);
 					break;
 				case AscCommonExcel.cElementType.name:
 					this.name = elem.toString();

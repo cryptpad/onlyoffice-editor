@@ -1010,8 +1010,10 @@ var editor;
 					wbPart = doc.getPartByRelationshipType(openXml.relationshipTypes.workbook);
 					return wbPart.getDocumentContent();
 				}).then(function (contentWorkbook) {
-					wbXml = new AscCommonExcel.CT_Workbook();
-					new openXml.SaxParserBase().parse(contentWorkbook, wbXml);
+					AscCommonExcel.executeInR1C1Mode(false, function () {
+						wbXml = new AscCommonExcel.CT_Workbook();
+						new openXml.SaxParserBase().parse(contentWorkbook, wbXml);
+					});
 					if (wbXml.pivotCaches) {
 						return wbXml.pivotCaches.reduce(function (prevVal, wbPivotCacheXml) {
 							var pivotTableCacheDefinitionPart;
@@ -1023,8 +1025,10 @@ var editor;
 								}
 							}).then(function (content) {
 								if (content) {
-									pivotTableCacheDefinition = new Asc.CT_PivotCacheDefinition();
-									new openXml.SaxParserBase().parse(content, pivotTableCacheDefinition);
+									AscCommonExcel.executeInR1C1Mode(false, function () {
+										pivotTableCacheDefinition = new Asc.CT_PivotCacheDefinition();
+										new openXml.SaxParserBase().parse(content, pivotTableCacheDefinition);
+									});
 									if (pivotTableCacheDefinition.isValidCacheSource()) {
 										pivotCaches[wbPivotCacheXml.cacheId] = pivotTableCacheDefinition;
 										if (pivotTableCacheDefinition.id) {
@@ -1036,9 +1040,11 @@ var editor;
 								}
 							}).then(function (content) {
 								if (content) {
-									var pivotTableCacheRecords = new Asc.CT_PivotCacheRecords();
-									new openXml.SaxParserBase().parse(content, pivotTableCacheRecords);
-									pivotTableCacheDefinition.cacheRecords = pivotTableCacheRecords;
+									AscCommonExcel.executeInR1C1Mode(false, function () {
+										var pivotTableCacheRecords = new Asc.CT_PivotCacheRecords();
+										new openXml.SaxParserBase().parse(content, pivotTableCacheRecords);
+										pivotTableCacheDefinition.cacheRecords = pivotTableCacheRecords;
+									});
 								}
 							});
 						}, Promise.resolve());
