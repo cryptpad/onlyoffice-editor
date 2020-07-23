@@ -16244,7 +16244,7 @@
         return true;
     };
 
-	WorksheetView.prototype.af_changeSelectionFormatTable = function (tableName, optionType, opt_row, opt_col) {
+	WorksheetView.prototype.changeTableSelection = function (tableName, optionType, opt_row, opt_col) {
 		var t = this;
 		var ws = this.model;
 
@@ -16282,6 +16282,15 @@
 				}
 
 				startRow = rangeWithoutHeaderFooter.r1;
+
+				if (undefined !== opt_row) {
+					if (lastSelection.isEqual(rangeWithoutHeaderFooter)) {
+						startRow = refTablePart.r1;
+					} else if (lastSelection.isEqual(refTablePart)) {
+						startRow = rangeWithoutHeaderFooter.r1;
+					}
+				}
+
 				endRow = rangeWithoutHeaderFooter.r2;
 
 				break;
@@ -16309,12 +16318,26 @@
 			case c_oAscChangeSelectionFormatTable.dataColumn: {
 				rangeWithoutHeaderFooter = tablePart.getRangeWithoutHeaderFooter();
 				startRow = rangeWithoutHeaderFooter.r1;
+
+				if (undefined !== opt_row) {
+					if (lastSelection.c1 === startCol && lastSelection.c2 === endCol) {
+						if (lastSelection.r1 === rangeWithoutHeaderFooter.r1 && lastSelection.r2 === rangeWithoutHeaderFooter.r2) {
+							startRow = refTablePart.r1;
+						} else if (lastSelection.r1 === refTablePart.r1 && lastSelection.r2 === refTablePart.r2) {
+							startRow = rangeWithoutHeaderFooter.r1;
+						}
+					} else if (lastSelection.isEqual(refTablePart)) {
+						startRow = rangeWithoutHeaderFooter.r1;
+					}
+				}
+
 				endRow = rangeWithoutHeaderFooter.r2;
 
 				break;
 			}
 		}
 
+		//todo обработать выделение при клике с зажатым ctrl
 		t.setSelection(new Asc.Range(startCol, startRow, endCol, endRow));
 	};
 

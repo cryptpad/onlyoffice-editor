@@ -581,7 +581,7 @@ var editor;
 
   spreadsheet_api.prototype.asc_changeSelectionFormatTable = function(tableName, optionType) {
     var ws = this.wb.getWorksheet();
-    return ws.af_changeSelectionFormatTable(tableName, optionType);
+    return ws.changeTableSelection(tableName, optionType);
   };
 
   spreadsheet_api.prototype.asc_changeFormatTableInfo = function(tableName, optionType, val) {
