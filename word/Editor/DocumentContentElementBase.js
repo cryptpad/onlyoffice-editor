@@ -1045,9 +1045,11 @@ CDocumentContentElementBase.prototype.GetSimilarNumbering = function(oContinueEn
  * Переходим к следующей ссылке на сноску
  * @param isNext {boolean} - направление поиска
  * @param isCurrent {boolean} - ищем начиная с текущей позиции или с края элемента
+ * @param isStepFootnote {boolean} - ищем сноски на странице
+ * @param isStepEndnote {boolean} - ищем концевые сноски
  * @returns {boolean}
  */
-CDocumentContentElementBase.prototype.GotoFootnoteRef = function(isNext, isCurrent)
+CDocumentContentElementBase.prototype.GotoFootnoteRef = function(isNext, isCurrent, isStepFootnote, isStepEndnote)
 {
 	return false;
 };

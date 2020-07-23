@@ -4467,12 +4467,30 @@ background-repeat: no-repeat;\
 
 		return false;
 	};
+	asc_docs_api.prototype.asc_AddEndnote = function(sText)
+	{
+		this.WordControl.m_oLogicDocument.AddEndnote(sText);
+	};
+	asc_docs_api.prototype.asc_GotoEndnote = function(isNext)
+	{
+		this.WordControl.m_oLogicDocument.GotoEndnote(isNext);
+	};
+	asc_docs_api.prototype.asc_IsCursorInEndnote = function()
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		return (oLogicDocument ? oLogicDocument.IsCursorInEndnote() : false);
+	};
 	asc_docs_api.prototype["asc_AddFootnote"]        = asc_docs_api.prototype.asc_AddFootnote;
 	asc_docs_api.prototype["asc_RemoveAllFootnotes"] = asc_docs_api.prototype.asc_RemoveAllFootnotes;
 	asc_docs_api.prototype["asc_GetFootnoteProps"]   = asc_docs_api.prototype.asc_GetFootnoteProps;
 	asc_docs_api.prototype["asc_SetFootnoteProps"]   = asc_docs_api.prototype.asc_SetFootnoteProps;
 	asc_docs_api.prototype["asc_GotoFootnote"]       = asc_docs_api.prototype.asc_GotoFootnote;
 	asc_docs_api.prototype["asc_IsCursorInFootnote"] = asc_docs_api.prototype.asc_IsCursorInFootnote;
+
+	asc_docs_api.prototype["asc_AddEndnote"]         = asc_docs_api.prototype.asc_AddEndnote;
+	asc_docs_api.prototype["asc_GotoEndnote"]        = asc_docs_api.prototype.asc_GotoEndnote;
+	asc_docs_api.prototype["asc_IsCursorInEndnote"]  = asc_docs_api.prototype.asc_IsCursorInEndnote;
+
 
 	asc_docs_api.prototype.put_AddPageBreak              = function()
 	{

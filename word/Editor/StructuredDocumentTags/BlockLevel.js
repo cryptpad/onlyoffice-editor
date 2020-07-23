@@ -1495,9 +1495,9 @@ CBlockLevelSdt.prototype.ClearContentControl = function()
 	this.Content.RemoveSelection();
 	this.Content.MoveCursorToStartPos();
 };
-CBlockLevelSdt.prototype.GotoFootnoteRef = function(isNext, isCurrent)
+CBlockLevelSdt.prototype.GotoFootnoteRef = function(isNext, isCurrent, isStepFootnote, isStepEndnote)
 {
-	return this.Content.GotoFootnoteRef(isNext, isCurrent);
+	return this.Content.GotoFootnoteRef(isNext, isCurrent, isStepFootnote, isStepEndnote);
 };
 /**
  * Получаем последний элемент содержимого

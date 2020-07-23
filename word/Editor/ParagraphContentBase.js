@@ -3855,7 +3855,7 @@ CParagraphContentWithParagraphLikeContent.prototype.GetFootnotesList = function(
 			return;
 	}
 };
-CParagraphContentWithParagraphLikeContent.prototype.GotoFootnoteRef = function(isNext, isCurrent, isStepOver)
+CParagraphContentWithParagraphLikeContent.prototype.GotoFootnoteRef = function(isNext, isCurrent, isStepOver, isStepFootnote, isStepEndnote)
 {
 	var nPos = 0;
 
@@ -3878,7 +3878,7 @@ CParagraphContentWithParagraphLikeContent.prototype.GotoFootnoteRef = function(i
 	{
 		for (var nIndex = nPos, nCount = this.Content.length - 1; nIndex < nCount; ++nIndex)
 		{
-			var nRes = this.Content[nIndex].GotoFootnoteRef ? this.Content[nIndex].GotoFootnoteRef(true, true === isCurrent && nPos === nIndex, isStepOver) : 0;
+			var nRes = this.Content[nIndex].GotoFootnoteRef ? this.Content[nIndex].GotoFootnoteRef(true, true === isCurrent && nPos === nIndex, isStepOver, isStepFootnote, isStepEndnote) : 0;
 
 			if (nRes > 0)
 				isStepOver = true;
@@ -3890,7 +3890,7 @@ CParagraphContentWithParagraphLikeContent.prototype.GotoFootnoteRef = function(i
 	{
 		for (var nIndex = nPos; nIndex >= 0; --nIndex)
 		{
-			var nRes = this.Content[nIndex].GotoFootnoteRef ? this.Content[nIndex].GotoFootnoteRef(true, true === isCurrent && nPos === nIndex, isStepOver) : 0;
+			var nRes = this.Content[nIndex].GotoFootnoteRef ? this.Content[nIndex].GotoFootnoteRef(true, true === isCurrent && nPos === nIndex, isStepOver, isStepFootnote, isStepEndnote) : 0;
 
 			if (nRes > 0)
 				isStepOver = true;

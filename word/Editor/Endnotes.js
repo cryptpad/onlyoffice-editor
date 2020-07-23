@@ -960,6 +960,24 @@ CEndnotesController.prototype.IsContinueRecalculateFromPrevPage = function(nPage
 
 	return (this.Pages[nPageAbs - 1].Sections.length > 0 && true === this.Pages[nPageAbs - 1].Continue);
 };
+CEndnotesController.prototype.GotoNextEndnote = function()
+{
+	var oNextEndnote = this.private_GetNextEndnote(this.CurEndnote);
+	if (oNextEndnote)
+	{
+		oNextEndnote.MoveCursorToStartPos(false);
+		this.private_SetCurrentEndnoteNoSelection(oNextEndnote);
+	}
+};
+CEndnotesController.prototype.GotoPrevEndnote = function()
+{
+	var oPrevEndnote = this.private_GetPrevEndnote(this.CurEndnote);
+	if (oPrevEndnote)
+	{
+		oPrevEndnote.MoveCursorToStartPos(false);
+		this.private_SetCurrentEndnoteNoSelection(oPrevEndnote);
+	}
+};
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Private area
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

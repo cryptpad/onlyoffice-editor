@@ -16855,7 +16855,7 @@ CDocument.prototype.GotoFootnote = function(isNext)
 		this.Document_UpdateSelectionState();
 	}
 
-	return this.GotoFootnoteRef(isNext, true);
+	return this.GotoFootnoteRef(isNext, true, true, false);
 };
 /**
  * @return {CFootnotesController}
@@ -16931,7 +16931,7 @@ CDocument.prototype.GetFootnotePr = function()
 };
 CDocument.prototype.IsCursorInFootnote = function()
 {
-	return (docpostype_Footnotes === this.GetDocPosType() ? true : false);
+	return (docpostype_Footnotes === this.GetDocPosType());
 };
 CDocument.prototype.GetFootnotesList = function(oFirstFootnote, oLastFootnote)
 {
@@ -17000,6 +17000,48 @@ CDocument.prototype.AddEndnote = function(sText)
 		this.Recalculate();
 		this.FinalizeAction();
 	}
+};
+CDocument.prototype.GotoEndnote = function(isNext)
+{
+	var nDocPosType = this.GetDocPosType();
+
+	if (docpostype_Endnotes === nDocPosType)
+	{
+		if (isNext)
+			this.Endnotes.GotoNextEndnote();
+		else
+			this.Endnotes.GotoPrevEndnote();
+
+		this.UpdateSelection();
+		this.UpdateInterface();
+
+		return;
+	}
+
+	if (docpostype_HdrFtr === nDocPosType)
+	{
+		this.EndHdrFtrEditing(true);
+	}
+	else if (docpostype_Footnotes === nDocPosType)
+	{
+		this.EndFootnotesEditing();
+	}
+	else if (docpostype_DrawingObjects === nDocPosType)
+	{
+		this.DrawingObjects.resetSelection2();
+		this.private_UpdateCursorXY(true, true);
+
+		this.CurPos.Type = docpostype_Content;
+
+		this.Document_UpdateInterfaceState();
+		this.Document_UpdateSelectionState();
+	}
+
+	return this.GotoFootnoteRef(isNext, true, false, true);
+};
+CDocument.prototype.IsCursorInEndnote = function()
+{
+	return (docpostype_Endnotes === this.GetDocPosType());
 };
 CDocument.prototype.TurnOffCheckChartSelection = function()
 {
