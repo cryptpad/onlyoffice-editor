@@ -17043,6 +17043,62 @@ CDocument.prototype.IsCursorInEndnote = function()
 {
 	return (docpostype_Endnotes === this.GetDocPosType());
 };
+CDocument.prototype.GetEndnotePr = function()
+{
+	var oSectPr    = this.GetCurrentSectionPr();
+	var oEndnotePr = new Asc.CAscFootnotePr();
+	oEndnotePr.put_Pos(this.Endnotes.GetEndnotePrPos());
+	oEndnotePr.put_NumStart(oSectPr.GetEndnoteNumStart());
+	oEndnotePr.put_NumRestart(oSectPr.GetEndnoteNumRestart());
+	oEndnotePr.put_NumFormat(oSectPr.GetEndnoteNumFormat());
+	return oEndnotePr;
+};
+CDocument.prototype.SetEndnotePr = function(oEndnotePr, bApplyToAll)
+{
+	var nNumStart   = oEndnotePr.get_NumStart();
+	var nNumRestart = oEndnotePr.get_NumRestart();
+	var nNumFormat  = oEndnotePr.get_NumFormat();
+	var nPos        = oEndnotePr.get_Pos();
+
+	if (!this.IsSelectionLocked(AscCommon.changestype_Document_SectPr))
+	{
+		this.StartAction(AscDFH.historydescription_Document_SetEndnotePr);
+
+		if (undefined !== nPos)
+			this.Endnotes.SetEndnotePrPos(nPos);
+
+		if (bApplyToAll)
+		{
+			for (var nIndex = 0, nCount = this.SectionsInfo.Get_SectionsCount(); nIndex < nCount; ++nIndex)
+			{
+				var oSectPr = this.SectionsInfo.Get_SectPr2(nIndex).SectPr;
+				if (undefined !== nNumStart)
+					oSectPr.SetEndnoteNumStart(nNumStart);
+
+				if (undefined !== nNumRestart)
+					oSectPr.SetEndnoteNumRestart(nNumRestart);
+
+				if (undefined !== nNumFormat)
+					oSectPr.SetEndnoteNumFormat(nNumFormat);
+			}
+		}
+		else
+		{
+			var oSectPr = this.GetCurrentSectionPr();
+			if (undefined !== nNumStart)
+				oSectPr.SetEndnoteNumStart(nNumStart);
+
+			if (undefined !== nNumRestart)
+				oSectPr.SetEndnoteNumRestart(nNumRestart);
+
+			if (undefined !== nNumFormat)
+				oSectPr.SetEndnoteNumFormat(nNumFormat);
+		}
+
+		this.Recalculate();
+		this.FinalizeAction();
+	}
+};
 CDocument.prototype.TurnOffCheckChartSelection = function()
 {
 	if (this.DrawingObjects)

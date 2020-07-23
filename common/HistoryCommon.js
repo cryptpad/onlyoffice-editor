@@ -1166,6 +1166,9 @@
 			case AscDFH.historydescription_Document_AddContentControlTextForm:
 				sString = "Document_AddContentControlTextForm";
 				break;
+			case AscDFH.historydescription_Document_SetEndnotePr:
+				sString = "Document_SetEndnotePr";
+				break;
 		}
 		return sString;
 	}
@@ -3270,7 +3273,7 @@
 	window['AscDFH'].historydescription_Document_SetContentControlTextPlaceholder   = 0x0177;
 	window['AscDFH'].historydescription_Document_AddEndnote                         = 0x0178;
 	window['AscDFH'].historydescription_Document_AddContentControlTextForm          = 0x0179;
-
+	window['AscDFH'].historydescription_Document_SetEndnotePr                       = 0x017a;
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//
