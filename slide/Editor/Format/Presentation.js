@@ -4951,7 +4951,9 @@ CPresentation.prototype.GetChartObject = function (type) {
 
 CPresentation.prototype.Check_GraphicFrameRowHeight = function (grFrame, bIgnoreHeight) {
     grFrame.recalculate();
-    var content = grFrame.graphicObject.Content, i, j;
+    var oTable = grFrame.graphicObject;
+    oTable.private_SetTableLayoutFixedAndUpdateCellsWidth(-1);
+    var content = oTable.Content, i, j;
     for (i = 0; i < content.length; ++i) {
         var row = content[i];
         if (!bIgnoreHeight && row.Pr && row.Pr.Height && row.Pr.Height.HRule === Asc.linerule_AtLeast
