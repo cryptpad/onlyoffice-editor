@@ -2592,8 +2592,6 @@ GraphicOption.prototype.union = function(oGraphicOption) {
         {
             var model = worksheet.model;
 			History.Clear();
-			History.TurnOff();
-
             for (var i = 0; i < aObjects.length; i++) {
                 aObjects[i].graphicObject.deleteDrawingBase();
             }
@@ -2866,7 +2864,6 @@ GraphicOption.prototype.union = function(oGraphicOption) {
                     _this.controller.selectObject(oNewChartSpace, 0);
                     _this.controller.updateSelectionState();
                     _this.sendGraphicObjectProps();
-                    History.TurnOn();
                     if(aImagesSync.length > 0)
                     {
                         window["Asc"]["editor"].ImageLoader.LoadDocumentImages(aImagesSync);
