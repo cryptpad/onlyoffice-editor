@@ -7742,7 +7742,7 @@
 			if (onCol && onRow) {
 				res = true;
 				type = c_oAscChangeSelectionFormatTable.data;
-				cursor = "pointer";
+				cursor = "select-table-content";
 				break;
 			} else if (onCol) {
 				res = true;
