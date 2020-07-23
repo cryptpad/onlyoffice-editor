@@ -16771,12 +16771,12 @@ CDocument.prototype.AddFootnote = function(sText)
 		this.FinalizeAction();
 	}
 };
-CDocument.prototype.RemoveAllFootnotes = function()
+CDocument.prototype.RemoveAllFootnotes = function(bRemoveFootnotes, bRemoveEndnotes)
 {
 	var nDocPosType = this.GetDocPosType();
 
 	var oEngine = new CDocumentFootnotesRangeEngine(true);
-	oEngine.Init(null, null);
+	oEngine.Init(null, null, bRemoveFootnotes, bRemoveEndnotes);
 
 	var arrParagraphs = this.GetAllParagraphs({OnlyMainDocument : true, All : true});
 	for (var nIndex = 0, nCount = arrParagraphs.length; nIndex < nCount; ++nIndex)
@@ -24930,6 +24930,7 @@ function CDocumentFootnotesRangeEngine(bExtendedInfo)
 	this.m_oFirstFootnote = null; // Если не задана ищем с начала
 	this.m_oLastFootnote  = null; // Если не задана ищем до конца
 	this.m_bFootnotes     = true;
+	this.m_bEndnotes      = true;
 
 	this.m_arrFootnotes  = [];
 	this.m_bForceStop    = false;
@@ -24940,11 +24941,12 @@ function CDocumentFootnotesRangeEngine(bExtendedInfo)
 	this.m_arrRuns       = [];
 	this.m_arrRefs       = [];
 }
-CDocumentFootnotesRangeEngine.prototype.Init = function(oFirstFootnote, oLastFootnote, isEndnotes)
+CDocumentFootnotesRangeEngine.prototype.Init = function(oFirstFootnote, oLastFootnote, isFootnotes, isEndnotes)
 {
 	this.m_oFirstFootnote = oFirstFootnote ? oFirstFootnote : null;
 	this.m_oLastFootnote  = oLastFootnote ? oLastFootnote : null;
-	this.m_bFootnotes     = !isEndnotes;
+	this.m_bFootnotes     = isFootnotes;
+	this.m_bEndnotes      = isEndnotes;
 };
 CDocumentFootnotesRangeEngine.prototype.Add = function(oFootnote, oFootnoteRef, oRun)
 {
@@ -25016,6 +25018,10 @@ CDocumentFootnotesRangeEngine.prototype.GetRefs = function()
 CDocumentFootnotesRangeEngine.prototype.IsCheckFootnotes = function()
 {
 	return this.m_bFootnotes;
+};
+CDocumentFootnotesRangeEngine.prototype.IsCheckEndnotes = function()
+{
+	return this.m_bEndnotes;
 };
 
 /**

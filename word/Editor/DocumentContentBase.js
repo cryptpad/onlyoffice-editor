@@ -204,7 +204,7 @@ CDocumentContentBase.prototype.GetAllSeqFieldsByType = function(sType, aFields)
 CDocumentContentBase.prototype.GetFootnotesList = function(oFirstFootnote, oLastFootnote, isEndnotes)
 {
 	var oEngine = new CDocumentFootnotesRangeEngine();
-	oEngine.Init(oFirstFootnote, oLastFootnote, isEndnotes);
+	oEngine.Init(oFirstFootnote, oLastFootnote, !isEndnotes, isEndnotes);
 
 	var arrFootnotes = [];
 

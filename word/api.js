@@ -4451,9 +4451,9 @@ background-repeat: no-repeat;\
 	{
 		return this.WordControl.m_oLogicDocument.AddFootnote(sText);
 	};
-	asc_docs_api.prototype.asc_RemoveAllFootnotes = function()
+	asc_docs_api.prototype.asc_RemoveAllFootnotes = function(bRemoveFootnotes, bRemoveEndnotes)
 	{
-		this.WordControl.m_oLogicDocument.RemoveAllFootnotes();
+		this.WordControl.m_oLogicDocument.RemoveAllFootnotes(bRemoveFootnotes, bRemoveEndnotes);
 	};
 	asc_docs_api.prototype.asc_GotoFootnote = function(isNext)
 	{
