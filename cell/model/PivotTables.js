@@ -280,6 +280,14 @@ PivotDataElem.prototype.unionTotal = function(val){
 		this.total[i].union(val.total[i]);
 	}
 }
+PivotDataElem.prototype.getTotalCount = function (val) {
+	return this.total.length;
+}
+PivotDataElem.prototype.resetTotal = function (dataLength) {
+	for (var i = 0; i < this.total.length; ++i) {
+		this.total[i].reset();
+	}
+}
 function setTableProperty(pivot, oldVal, newVal, addToHistory, historyType, changeData) {
 	if (oldVal === newVal) {
 		return;
@@ -1715,7 +1723,7 @@ CT_PivotCacheRecords.prototype._getDataMapAddElem = function(dataMap, val, dataL
 	}
 	return elem;
 };
-CT_PivotCacheRecords.prototype._getDataMapMergeSubtotal = function(rowMapFrom, rowMapTo) {
+CT_PivotCacheRecords.prototype._getDataMapMergeSubtotal = function(rowMapFrom, rowMapTo, skipUnion) {
 	for (var i in rowMapFrom.subtotal) {
 		if (rowMapFrom.subtotal.hasOwnProperty(i)) {
 			var subTo = rowMapTo.subtotal[i];
@@ -1724,8 +1732,21 @@ CT_PivotCacheRecords.prototype._getDataMapMergeSubtotal = function(rowMapFrom, r
 				rowMapTo.subtotal[i] = subTo;
 			}
 			var subFrom = rowMapFrom.subtotal[i];
-			subTo.unionTotal(subFrom);
-			this._getDataMapMergeSubtotal(subFrom, subTo);
+			if(!skipUnion) {
+				subTo.unionTotal(subFrom);
+			}
+			this._getDataMapMergeSubtotal(subFrom, subTo, skipUnion);
+		}
+	}
+};
+CT_PivotCacheRecords.prototype._getDataMapTrimBySubtotal = function(rowMapFrom, rowMapTo) {
+	for (var i in rowMapFrom.subtotal) {
+		if (rowMapFrom.subtotal.hasOwnProperty(i)) {
+			if(rowMapTo.subtotal.hasOwnProperty(i)) {
+				this._getDataMapTrimBySubtotal(rowMapFrom.subtotal[i], rowMapTo.subtotal[i]);
+			} else {
+				delete rowMapFrom.subtotal[i];
+			}
 		}
 	}
 };
@@ -1747,11 +1768,14 @@ CT_PivotCacheRecords.prototype._getDataMapSubtotal = function(rowMap, rowIndex, 
 		}
 	}
 };
-CT_PivotCacheRecords.prototype._getDataMapTotal = function(rowMap) {
+CT_PivotCacheRecords.prototype._getDataMapTotal = function(rowMap, index, length) {
 	var i;
+	if(index !== length){
+		rowMap.resetTotal(rowMap.getTotalCount());
+	}
 	for (i in rowMap.vals) {
 		if (rowMap.vals.hasOwnProperty(i)) {
-			this._getDataMapTotal(rowMap.vals[i]);
+			this._getDataMapTotal(rowMap.vals[i], index + 1, length);
 			rowMap.unionTotal(rowMap.vals[i]);
 		}
 	}
@@ -1776,26 +1800,93 @@ CT_PivotCacheRecords.prototype._getDataMapRowToTotal = function(cacheFields, row
 	}
 };
 CT_PivotCacheRecords.prototype.getDataMap = function(cacheFields, filterMaps, rowIndexes, colIndexes, dataFields) {
-	var res, row, rowMapCur;
-	do {
-		res = new PivotDataElem(dataFields.length);
-		for (row = 0; row < this.getRowsCount(); ++row) {
-			if (this.getDataMapLabelFilters(row, filterMaps)) {
-				continue;
-			}
-			rowMapCur = res;
-			if (rowIndexes.length > 0) {
-				rowMapCur = this._getDataMapFromFields(rowIndexes, rowIndexes.length, row, rowMapCur);
-			}
-			if (colIndexes.length > 0) {
-				rowMapCur = this._getDataMapFromFields(colIndexes, colIndexes.length, row, rowMapCur);
-			}
-			this._getDataMapRowToTotal(cacheFields, row, rowMapCur, dataFields);
+	var row, rowMapCur;
+	var res = new PivotDataElem(dataFields.length);
+	for (row = 0; row < this.getRowsCount(); ++row) {
+		if (this.getDataMapLabelFilters(row, filterMaps)) {
+			continue;
 		}
-		this._getDataMapTotal(res);
-		this._getDataMapSubtotal(res, 0, rowIndexes);
-	} while (false);
+		rowMapCur = res;
+		if (rowIndexes.length > 0) {
+			rowMapCur = this._getDataMapFromFields(rowIndexes, rowIndexes.length, row, rowMapCur);
+		}
+		if (colIndexes.length > 0) {
+			rowMapCur = this._getDataMapFromFields(colIndexes, colIndexes.length, row, rowMapCur);
+		}
+		this._getDataMapRowToTotal(cacheFields, row, rowMapCur, dataFields);
+	}
+	this._getDataMapTotal(res, 0, rowIndexes.length + colIndexes.length);
+	this._getDataMapSubtotal(res, 0, rowIndexes);
+	this._getDataMapApplyValueFilters(res, rowIndexes, colIndexes, filterMaps, dataFields);
 	return res;
+};
+CT_PivotCacheRecords.prototype._getDataMapApplyValueFilters = function(rowMap, rowIndexes, colIndexes, filterMaps, dataFields) {
+	var tmp;
+	var firstSubtotal = new PivotDataElem(dataFields.length);
+	firstSubtotal.subtotal = rowMap.subtotal;
+	while (filterMaps.valueFilters.length > 0) {
+		var valueFilter = filterMaps.valueFilters.shift();
+		var isHide = false;
+		if (c_oAscAxis.AxisRow === valueFilter.pivotField.axis) {
+			isHide = this._getDataMapConvertValueFiltersIsHide(rowMap, true, 0, rowIndexes, valueFilter, dataFields);
+		} else if (c_oAscAxis.AxisCol === valueFilter.pivotField.axis) {
+			isHide = this._getDataMapConvertValueFiltersIsHide(rowMap, false, 0, colIndexes, valueFilter, dataFields);
+			if (isHide) {
+				tmp = new PivotDataElem(dataFields.length);
+				tmp.subtotal = rowMap.subtotal;
+				this._getDataMapConvertFilterBySubtotal(rowMap, 0, rowIndexes, tmp);
+				this._getDataMapTrimBySubtotal(firstSubtotal, tmp);
+			}
+		}
+		if(isHide){
+			this._getDataMapTotal(rowMap, 0, rowIndexes.length + colIndexes.length);
+			this._getDataMapSubtotal(rowMap, 0, rowIndexes);
+		}
+	}
+	if (firstSubtotal.subtotal !== rowMap.subtotal) {
+		this._getDataMapMergeSubtotal(firstSubtotal, rowMap, true);
+	}
+};
+CT_PivotCacheRecords.prototype._getDataMapConvertValueFiltersIsHide = function(rowMap, isRow, index, indexes, valueFilter, dataFields) {
+	var res = false;
+	var i;
+	if (index < indexes.length) {
+		var elems = isRow ? rowMap.vals : rowMap.subtotal;
+		if (valueFilter.index === indexes[index]) {
+			var pivotFilter = this._getDataMapInitFilter(elems, valueFilter, dataFields);
+			for (i in elems) {
+				if (elems.hasOwnProperty(i)) {
+					var isHide = this.getDataMapValueFilters(pivotFilter, elems[i], dataFields);
+					if (isHide) {
+						delete elems[i];
+					}
+					res = res || isHide;
+				}
+			}
+		} else {
+			for (i in elems) {
+				if (elems.hasOwnProperty(i)) {
+					res = res || this._getDataMapConvertValueFiltersIsHide(elems[i], isRow, index + 1, indexes, valueFilter, dataFields)
+				}
+			}
+			if (res && AscCommon.isEmptyObject(elems)) {
+				delete elems[i];
+			}
+		}
+	}
+	return res;
+};
+CT_PivotCacheRecords.prototype._getDataMapConvertFilterBySubtotal = function(rowMap, rowIndex, rowIndexes, subtotal) {
+	var i;
+	if (rowIndex < rowIndexes.length) {
+		for (i in rowMap.vals) {
+			if (rowMap.vals.hasOwnProperty(i)) {
+				this._getDataMapConvertFilterBySubtotal(rowMap.vals[i], rowIndex + 1, rowIndexes, subtotal);
+			}
+		}
+	} else {
+		this._getDataMapTrimBySubtotal(rowMap, subtotal);
+	}
 };
 CT_PivotCacheRecords.prototype.getDataMapLabelFilters = function(row, filterMaps) {
 	for (var i = 0; i < filterMaps.labelFilters.length; ++i) {
@@ -1807,14 +1898,37 @@ CT_PivotCacheRecords.prototype.getDataMapLabelFilters = function(row, filterMaps
 	}
 	return false;
 };
+CT_PivotCacheRecords.prototype._getDataMapInitFilter = function(elems, valueFilter, dataFields) {
+	var pivotFilter = valueFilter.pivotFilter;
+	var filterColumn = pivotFilter && pivotFilter.getFilterColumn();
+	if (filterColumn && filterColumn.hasInitByArray()) {
+		var dataIndex = pivotFilter.iMeasureFld;
+		var dataType = dataFields[dataIndex].subtotal;
+		var arr = [];
+		for (var i in elems) {
+			if (elems.hasOwnProperty(i)) {
+				var cellValue = elems[i].total[dataIndex].getCellValue(dataType, Asc.c_oAscItemType.Default, Asc.c_oAscItemType.Default, Asc.c_oAscItemType.Default);
+				if (!cellValue) {
+					arr.push(0);
+				} else if (AscCommon.CellValueType.Number === cellValue.type) {
+					arr.push(cellValue.number);
+				}
+			}
+		}
+		filterColumn.initByArray(arr);
+	}
+	return pivotFilter;
+};
 CT_PivotCacheRecords.prototype.getDataMapValueFilters = function(pivotFilter, dataElem, dataFields) {
 	if(pivotFilter){
 		var dataIndex = pivotFilter.iMeasureFld;
 		var dataType = dataFields[dataIndex].subtotal;
 		var filterColumn = pivotFilter.getFilterColumn();
 		var cellValue = dataElem.total[dataIndex].getCellValue(dataType, Asc.c_oAscItemType.Default, Asc.c_oAscItemType.Default, Asc.c_oAscItemType.Default);
-		if (AscCommon.CellValueType.Number === cellValue.type) {
-			return filterColumn.isHideValue(cellValue.number);
+		if (!cellValue) {
+			return filterColumn.isHideValue("0");
+		} else if (AscCommon.CellValueType.Number === cellValue.type) {
+			return filterColumn.isHideValue(cellValue.number.toString());
 		}
 	}
 	return false;
