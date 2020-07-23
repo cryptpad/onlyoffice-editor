@@ -7387,6 +7387,65 @@ function RangeDataManagerElem(bbox, data)
 		this.ShowButton = true;
 	}
 
+	FilterColumn.prototype.Write_ToBinary2 = function(writer) {
+		writer.WriteLong(this.ColId);
+
+		if (null !== this.Filters) {
+			writer.WriteBool(true);
+			this.Filters.Write_ToBinary2(writer);
+		} else {
+			writer.WriteBool(false);
+		}
+
+		if (null !== this.CustomFiltersObj) {
+			writer.WriteBool(true);
+			this.CustomFiltersObj.Write_ToBinary2(writer);
+		} else {
+			writer.WriteBool(false);
+		}
+
+		if (null !== this.DynamicFilter) {
+			writer.WriteBool(true);
+			this.DynamicFilter.Write_ToBinary2(writer);
+		} else {
+			writer.WriteBool(false);
+		}
+
+		if (null !== this.ColorFilter) {
+			writer.WriteBool(true);
+			this.ColorFilter.Write_ToBinary2(writer);
+		} else {
+			writer.WriteBool(false);
+		}
+
+		if (null !== this.Top10) {
+			writer.WriteBool(true);
+			this.Top10.Write_ToBinary2(writer);
+		} else {
+			writer.WriteBool(false);
+		}
+
+		writer.WriteBool(this.ShowButton);
+	};
+
+	CT_Location.prototype.Read_FromBinary2 = function(reader) {
+		if (reader.GetBool()) {
+			this.ref = new Asc.Range(reader.GetLong(), reader.GetLong(), reader.GetLong(), reader.GetLong());
+		}
+		if (reader.GetBool()) {
+			this.firstHeaderRow = reader.GetLong();
+		}
+		if (reader.GetBool()) {
+			this.firstDataRow = reader.GetLong();
+		}
+		if (reader.GetBool()) {
+			this.firstDataCol = reader.GetLong();
+		}
+		this.rowPageCount = reader.GetLong();
+		this.colPageCount = reader.GetLong();
+	};
+
+
 	FilterColumn.prototype.clone = function () {
 		var res = new FilterColumn();
 		res.ColId = this.ColId;
@@ -7668,6 +7727,36 @@ function RangeDataManagerElem(bbox, data)
 
 		this.lowerCaseValues = null;
 	}
+
+	Filters.prototype.Write_ToBinary2 = function (writer) {
+		var i, length;
+		if(null != this.Values) {
+			writer.WriteBool(true);
+			for(i in this.Values) {
+				//TODO string?
+				writer.WriteLong(i);
+			}
+		} else {
+			writer.WriteBool(false);
+		}
+
+		if(null != this.Dates) {
+			writer.WriteBool(true);
+			writer.WriteLong(this.Dates);
+			for(i = 0, length = this.Dates.length; i < length; ++i) {
+				//TODO
+			}
+		} else {
+			writer.WriteBool(false);
+		}
+
+		if(null != this.Blank) {
+			writer.WriteBool(true);
+			writer.WriteBool(this.Blank);
+		} else {
+			writer.WriteBool(false);
+		}
+	};
 
 	Filters.prototype.clone = function () {
 		var i, res = new Filters();
@@ -8018,7 +8107,16 @@ CustomFilters.prototype.setProperty = function(nType, value) {
 		case this.Properties.CustomFilters: this.CustomFilters = value;break;
 	}
 };
-	
+CustomFilters.prototype.Write_ToBinary2 = function(writer) {
+	writer.WriteBool(this.And);
+
+	if (null !== this.CustomFilters) {
+		writer.WriteBool(true);
+		this.Filters.Write_ToBinary2(writer);
+	} else {
+		writer.WriteBool(false);
+	}
+};
 CustomFilters.prototype.clone = function() {
 	var i, res = new CustomFilters();
 	res.And = this.And;
