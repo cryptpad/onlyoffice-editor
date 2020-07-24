@@ -16771,12 +16771,12 @@ CDocument.prototype.AddFootnote = function(sText)
 		this.FinalizeAction();
 	}
 };
-CDocument.prototype.RemoveAllFootnotes = function()
+CDocument.prototype.RemoveAllFootnotes = function(bRemoveFootnotes, bRemoveEndnotes)
 {
 	var nDocPosType = this.GetDocPosType();
 
 	var oEngine = new CDocumentFootnotesRangeEngine(true);
-	oEngine.Init(null, null);
+	oEngine.Init(null, null, bRemoveFootnotes, bRemoveEndnotes);
 
 	var arrParagraphs = this.GetAllParagraphs({OnlyMainDocument : true, All : true});
 	for (var nIndex = 0, nCount = arrParagraphs.length; nIndex < nCount; ++nIndex)
@@ -16855,7 +16855,7 @@ CDocument.prototype.GotoFootnote = function(isNext)
 		this.Document_UpdateSelectionState();
 	}
 
-	return this.GotoFootnoteRef(isNext, true);
+	return this.GotoFootnoteRef(isNext, true, true, false);
 };
 /**
  * @return {CFootnotesController}
@@ -16931,7 +16931,7 @@ CDocument.prototype.GetFootnotePr = function()
 };
 CDocument.prototype.IsCursorInFootnote = function()
 {
-	return (docpostype_Footnotes === this.GetDocPosType() ? true : false);
+	return (docpostype_Footnotes === this.GetDocPosType());
 };
 CDocument.prototype.GetFootnotesList = function(oFirstFootnote, oLastFootnote)
 {
@@ -16995,6 +16995,104 @@ CDocument.prototype.AddEndnote = function(sText)
 		else if (docpostype_Endnotes === nDocPosType)
 		{
 			this.Endnotes.AddEndnoteRef();
+		}
+
+		this.Recalculate();
+		this.FinalizeAction();
+	}
+};
+CDocument.prototype.GotoEndnote = function(isNext)
+{
+	var nDocPosType = this.GetDocPosType();
+
+	if (docpostype_Endnotes === nDocPosType)
+	{
+		if (isNext)
+			this.Endnotes.GotoNextEndnote();
+		else
+			this.Endnotes.GotoPrevEndnote();
+
+		this.UpdateSelection();
+		this.UpdateInterface();
+
+		return;
+	}
+
+	if (docpostype_HdrFtr === nDocPosType)
+	{
+		this.EndHdrFtrEditing(true);
+	}
+	else if (docpostype_Footnotes === nDocPosType)
+	{
+		this.EndFootnotesEditing();
+	}
+	else if (docpostype_DrawingObjects === nDocPosType)
+	{
+		this.DrawingObjects.resetSelection2();
+		this.private_UpdateCursorXY(true, true);
+
+		this.CurPos.Type = docpostype_Content;
+
+		this.Document_UpdateInterfaceState();
+		this.Document_UpdateSelectionState();
+	}
+
+	return this.GotoFootnoteRef(isNext, true, false, true);
+};
+CDocument.prototype.IsCursorInEndnote = function()
+{
+	return (docpostype_Endnotes === this.GetDocPosType());
+};
+CDocument.prototype.GetEndnotePr = function()
+{
+	var oSectPr    = this.GetCurrentSectionPr();
+	var oEndnotePr = new Asc.CAscFootnotePr();
+	oEndnotePr.put_Pos(this.Endnotes.GetEndnotePrPos());
+	oEndnotePr.put_NumStart(oSectPr.GetEndnoteNumStart());
+	oEndnotePr.put_NumRestart(oSectPr.GetEndnoteNumRestart());
+	oEndnotePr.put_NumFormat(oSectPr.GetEndnoteNumFormat());
+	return oEndnotePr;
+};
+CDocument.prototype.SetEndnotePr = function(oEndnotePr, bApplyToAll)
+{
+	var nNumStart   = oEndnotePr.get_NumStart();
+	var nNumRestart = oEndnotePr.get_NumRestart();
+	var nNumFormat  = oEndnotePr.get_NumFormat();
+	var nPos        = oEndnotePr.get_Pos();
+
+	if (!this.IsSelectionLocked(AscCommon.changestype_Document_SectPr))
+	{
+		this.StartAction(AscDFH.historydescription_Document_SetEndnotePr);
+
+		if (undefined !== nPos)
+			this.Endnotes.SetEndnotePrPos(nPos);
+
+		if (bApplyToAll)
+		{
+			for (var nIndex = 0, nCount = this.SectionsInfo.Get_SectionsCount(); nIndex < nCount; ++nIndex)
+			{
+				var oSectPr = this.SectionsInfo.Get_SectPr2(nIndex).SectPr;
+				if (undefined !== nNumStart)
+					oSectPr.SetEndnoteNumStart(nNumStart);
+
+				if (undefined !== nNumRestart)
+					oSectPr.SetEndnoteNumRestart(nNumRestart);
+
+				if (undefined !== nNumFormat)
+					oSectPr.SetEndnoteNumFormat(nNumFormat);
+			}
+		}
+		else
+		{
+			var oSectPr = this.GetCurrentSectionPr();
+			if (undefined !== nNumStart)
+				oSectPr.SetEndnoteNumStart(nNumStart);
+
+			if (undefined !== nNumRestart)
+				oSectPr.SetEndnoteNumRestart(nNumRestart);
+
+			if (undefined !== nNumFormat)
+				oSectPr.SetEndnoteNumFormat(nNumFormat);
 		}
 
 		this.Recalculate();
@@ -24832,6 +24930,7 @@ function CDocumentFootnotesRangeEngine(bExtendedInfo)
 	this.m_oFirstFootnote = null; // Если не задана ищем с начала
 	this.m_oLastFootnote  = null; // Если не задана ищем до конца
 	this.m_bFootnotes     = true;
+	this.m_bEndnotes      = true;
 
 	this.m_arrFootnotes  = [];
 	this.m_bForceStop    = false;
@@ -24842,11 +24941,12 @@ function CDocumentFootnotesRangeEngine(bExtendedInfo)
 	this.m_arrRuns       = [];
 	this.m_arrRefs       = [];
 }
-CDocumentFootnotesRangeEngine.prototype.Init = function(oFirstFootnote, oLastFootnote, isEndnotes)
+CDocumentFootnotesRangeEngine.prototype.Init = function(oFirstFootnote, oLastFootnote, isFootnotes, isEndnotes)
 {
 	this.m_oFirstFootnote = oFirstFootnote ? oFirstFootnote : null;
 	this.m_oLastFootnote  = oLastFootnote ? oLastFootnote : null;
-	this.m_bFootnotes     = !isEndnotes;
+	this.m_bFootnotes     = isFootnotes;
+	this.m_bEndnotes      = isEndnotes;
 };
 CDocumentFootnotesRangeEngine.prototype.Add = function(oFootnote, oFootnoteRef, oRun)
 {
@@ -24918,6 +25018,10 @@ CDocumentFootnotesRangeEngine.prototype.GetRefs = function()
 CDocumentFootnotesRangeEngine.prototype.IsCheckFootnotes = function()
 {
 	return this.m_bFootnotes;
+};
+CDocumentFootnotesRangeEngine.prototype.IsCheckEndnotes = function()
+{
+	return this.m_bEndnotes;
 };
 
 /**

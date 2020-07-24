@@ -13727,7 +13727,7 @@ Paragraph.prototype.GetAutoWidthForDropCap = function()
 		return this.Lines[0].Ranges[0].W;
 	}
 };
-Paragraph.prototype.GotoFootnoteRef = function(isNext, isCurrent)
+Paragraph.prototype.GotoFootnoteRef = function(isNext, isCurrent, isStepFootnote, isStepEndnote)
 {
 	var nPos = 0;
 
@@ -13747,12 +13747,14 @@ Paragraph.prototype.GotoFootnoteRef = function(isNext, isCurrent)
 			nPos = this.Content.length - 1;
 	}
 
-	var isStepOver = false;
+	// Этот флаг нужен для случая, когда курсором стоим в конце рана, а в начале следующего как раз есть ссылка на
+	// сноску и тогда нам нужно искать следущую сноску
+	var isStepOver = !isCurrent;
 	if (true === isNext)
 	{
 		for (var nIndex = nPos, nCount = this.Content.length - 1; nIndex < nCount; ++nIndex)
 		{
-			var nRes = this.Content[nIndex].GotoFootnoteRef ? this.Content[nIndex].GotoFootnoteRef(true, true === isCurrent && nPos === nIndex, isStepOver) : 0;
+			var nRes = this.Content[nIndex].GotoFootnoteRef ? this.Content[nIndex].GotoFootnoteRef(true, true === isCurrent && nPos === nIndex, isStepOver, isStepFootnote, isStepEndnote) : 0;
 
 			if (nRes > 0)
 				isStepOver = true;
@@ -13764,7 +13766,7 @@ Paragraph.prototype.GotoFootnoteRef = function(isNext, isCurrent)
 	{
 		for (var nIndex = nPos; nIndex >= 0; --nIndex)
 		{
-			var nRes = this.Content[nIndex].GotoFootnoteRef ? this.Content[nIndex].GotoFootnoteRef(false, true === isCurrent && nPos === nIndex, isStepOver) : 0;
+			var nRes = this.Content[nIndex].GotoFootnoteRef ? this.Content[nIndex].GotoFootnoteRef(false, true === isCurrent && nPos === nIndex, isStepOver, isStepFootnote, isStepEndnote) : 0;
 
 			if (nRes > 0)
 				isStepOver = true;

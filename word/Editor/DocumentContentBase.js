@@ -204,7 +204,7 @@ CDocumentContentBase.prototype.GetAllSeqFieldsByType = function(sType, aFields)
 CDocumentContentBase.prototype.GetFootnotesList = function(oFirstFootnote, oLastFootnote, isEndnotes)
 {
 	var oEngine = new CDocumentFootnotesRangeEngine();
-	oEngine.Init(oFirstFootnote, oLastFootnote, isEndnotes);
+	oEngine.Init(oFirstFootnote, oLastFootnote, !isEndnotes, isEndnotes);
 
 	var arrFootnotes = [];
 
@@ -274,10 +274,12 @@ CDocumentContentBase.prototype.private_RecalculateEmptySectionParagraph = functi
  * Передвигаем курсор (от текущего положения) к началу ссылки на сноску
  * @param isNext двигаемся вперед или назад
  * @param isCurrent находимся ли мы в текущем объекте
+ * @param isStepFootnote {boolean} - ищем сноски на странице
+ * @param isStepEndnote {boolean} - ищем концевые сноски
  * @returns {boolean}
  * @constructor
  */
-CDocumentContentBase.prototype.GotoFootnoteRef = function(isNext, isCurrent)
+CDocumentContentBase.prototype.GotoFootnoteRef = function(isNext, isCurrent, isStepFootnote, isStepEndnote)
 {
 	var nCurPos = 0;
 
@@ -301,7 +303,7 @@ CDocumentContentBase.prototype.GotoFootnoteRef = function(isNext, isCurrent)
 		for (var nIndex = nCurPos, nCount = this.Content.length; nIndex < nCount; ++nIndex)
 		{
 			var oElement = this.Content[nIndex];
-			if (oElement.GotoFootnoteRef(true, true === isCurrent && nIndex === nCurPos))
+			if (oElement.GotoFootnoteRef(true, true === isCurrent && nIndex === nCurPos, isStepFootnote, isStepEndnote))
 				return true;
 		}
 	}
@@ -310,7 +312,7 @@ CDocumentContentBase.prototype.GotoFootnoteRef = function(isNext, isCurrent)
 		for (var nIndex = nCurPos; nIndex >= 0; --nIndex)
 		{
 			var oElement = this.Content[nIndex];
-			if (oElement.GotoFootnoteRef(false, true === isCurrent && nIndex === nCurPos))
+			if (oElement.GotoFootnoteRef(false, true === isCurrent && nIndex === nCurPos, isStepFootnote, isStepEndnote))
 				return true;
 		}
 	}

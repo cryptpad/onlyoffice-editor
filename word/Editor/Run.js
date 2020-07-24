@@ -5803,7 +5803,7 @@ ParaRun.prototype.Draw_Elements = function(PDSE)
             }
             else
             {
-                if(pGraphics.m_bIsTextDrawer === undefined)
+                if(pGraphics.m_bIsTextDrawer !== true)
                 {
                     pGraphics.b_color1( RGBA.R, RGBA.G, RGBA.B, RGBA.A);
                 }
@@ -5818,16 +5818,26 @@ ParaRun.prototype.Draw_Elements = function(PDSE)
             RGBA = AscFormat.G_O_VISITED_HLINK_COLOR.getRGBAColor();
             pGraphics.b_color1( RGBA.R, RGBA.G, RGBA.B, RGBA.A );
         }
-        else if ( true === CurTextPr.Color.Auto )
-        {
-            pGraphics.b_color1( AutoColor.r, AutoColor.g, AutoColor.b, 255);
-        }
         else
         {
-        	if(pGraphics.m_bIsTextDrawer === undefined)
-        	{
-				pGraphics.b_color1( CurTextPr.Color.r, CurTextPr.Color.g, CurTextPr.Color.b, 255);
-			}
+            if(true === pGraphics.m_bIsTextDrawer)
+            {
+                if ( true === CurTextPr.Color.Auto && !CurTextPr.TextFill)
+                {
+                    pGraphics.b_color1( AutoColor.r, AutoColor.g, AutoColor.b, 255);
+                }
+            }
+            else
+            {
+                if ( true === CurTextPr.Color.Auto )
+                {
+                    pGraphics.b_color1( AutoColor.r, AutoColor.g, AutoColor.b, 255);
+                }
+                else
+                {
+                    pGraphics.b_color1( CurTextPr.Color.r, CurTextPr.Color.g, CurTextPr.Color.b, 255);
+                }
+            }
         }
     }
 
@@ -5936,18 +5946,35 @@ ParaRun.prototype.Draw_Elements = function(PDSE)
                     }
                     else if (oEndTextPr.Unifill)
                     {
-						oEndTextPr.Unifill.check(PDSE.Theme, PDSE.ColorMap);
+                        oEndTextPr.Unifill.check(PDSE.Theme, PDSE.ColorMap);
                         var RGBAEnd = oEndTextPr.Unifill.getRGBAColor();
                         pGraphics.SetTextPr(oEndTextPr, PDSE.Theme);
-                        pGraphics.b_color1(RGBAEnd.R, RGBAEnd.G, RGBAEnd.B, 255);
+                        if(pGraphics.m_bIsTextDrawer !== true)
+                        {
+                            pGraphics.b_color1(RGBAEnd.R, RGBAEnd.G, RGBAEnd.B, 255);
+                        }
                     }
                     else
                     {
                         pGraphics.SetTextPr(oEndTextPr, PDSE.Theme);
-                        if (true === oEndTextPr.Color.Auto)
-                            pGraphics.b_color1(AutoColor.r, AutoColor.g, AutoColor.b, 255);
+                        if(pGraphics.m_bIsTextDrawer !== true)
+                        {
+                            if (true === oEndTextPr.Color.Auto)
+                            {
+                                pGraphics.b_color1(AutoColor.r, AutoColor.g, AutoColor.b, 255);
+                            }
+                            else
+                            {
+                                pGraphics.b_color1(oEndTextPr.Color.r, oEndTextPr.Color.g, oEndTextPr.Color.b, 255);
+                            }
+                        }
                         else
-                            pGraphics.b_color1(oEndTextPr.Color.r, oEndTextPr.Color.g, oEndTextPr.Color.b, 255);
+                        {
+                            if (true === oEndTextPr.Color.Auto && !oEndTextPr.TextFill)
+                            {
+                                pGraphics.b_color1(AutoColor.r, AutoColor.g, AutoColor.b, 255);
+                            }
+                        }
                     }
 
                     var bEndCell = false;
@@ -10983,7 +11010,7 @@ ParaRun.prototype.GetFootnotesList = function(oEngine)
 	for (var nIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex)
 	{
 		var oItem = this.Content[nIndex];
-		if ((oEngine.IsCheckFootnotes() && para_FootnoteReference === oItem.Type) || (!oEngine.IsCheckFootnotes() && para_EndnoteReference === oItem.Type))
+		if ((oEngine.IsCheckFootnotes() && para_FootnoteReference === oItem.Type) || (oEngine.IsCheckEndnotes() && para_EndnoteReference === oItem.Type))
 		{
 			oEngine.Add(oItem.GetFootnote(), oItem, this);
 		}
@@ -11019,7 +11046,7 @@ ParaRun.prototype.RemoveElement = function(oElement)
 			return this.RemoveFromContent(nIndex, 1, true);
 	}
 };
-ParaRun.prototype.GotoFootnoteRef = function(isNext, isCurrent, isStepOver)
+ParaRun.prototype.GotoFootnoteRef = function(isNext, isCurrent, isStepOver, isStepFootnote, isStepEndnote)
 {
 	var nPos = 0;
 	if (true === isCurrent)
@@ -11042,7 +11069,8 @@ ParaRun.prototype.GotoFootnoteRef = function(isNext, isCurrent, isStepOver)
 	{
 		for (var nIndex = nPos, nCount = this.Content.length; nIndex < nCount; ++nIndex)
 		{
-			if (para_FootnoteReference === this.Content[nIndex].Type && ((true !== isCurrent && true === isStepOver) || (true === isCurrent && (true === this.Selection.Use || nPos !== nIndex))))
+			if (((para_FootnoteReference === this.Content[nIndex].Type && isStepFootnote) || (para_EndnoteReference === this.Content[nIndex].Type && isStepEndnote))
+				&& ((true !== isCurrent && true === isStepOver) || (true === isCurrent && (true === this.Selection.Use || nPos !== nIndex))))
 			{
 				if (this.Paragraph && this.Paragraph.bFromDocument && this.Paragraph.LogicDocument)
 					this.Paragraph.LogicDocument.RemoveSelection();
@@ -11058,7 +11086,8 @@ ParaRun.prototype.GotoFootnoteRef = function(isNext, isCurrent, isStepOver)
 	{
 		for (var nIndex = Math.min(nPos, this.Content.length - 1); nIndex >= 0; --nIndex)
 		{
-			if (para_FootnoteReference === this.Content[nIndex].Type && ((true !== isCurrent && true === isStepOver) || (true === isCurrent && (true === this.Selection.Use || nPos !== nIndex))))
+			if (((para_FootnoteReference === this.Content[nIndex].Type && isStepFootnote) || (para_EndnoteReference === this.Content[nIndex].Type && isStepEndnote))
+				&& ((true !== isCurrent && true === isStepOver) || (true === isCurrent && (true === this.Selection.Use || nPos !== nIndex))))
 			{
 				if (this.Paragraph && this.Paragraph.bFromDocument && this.Paragraph.LogicDocument)
 					this.Paragraph.LogicDocument.RemoveSelection();

@@ -161,9 +161,10 @@ $(function() {
 	var testDataRange7 = AscCommonExcel.g_oRangeCache.getAscRange("B41:H52");
 	var testDataRangeHeader = AscCommonExcel.g_oRangeCache.getAscRange("B54:O55");
 	var testDataRangeTable = AscCommonExcel.g_oRangeCache.getAscRange("B57:H68");
+	var testDataRefreshFieldSettings = AscCommonExcel.g_oRangeCache.getAscRange("B70:H81");
+	var testDataRangeFilters = AscCommonExcel.g_oRangeCache.getAscRange("B83:H94");
 	var testDataRangeDefName = AscCommonExcel.g_oRangeCache.getAscRange("J57:P68");
 	var testDataRangeDefNameLocal = AscCommonExcel.g_oRangeCache.getAscRange("R57:X68");
-	var testDataRefreshFieldSettings = AscCommonExcel.g_oRangeCache.getAscRange("B70:H81");
 	var testDataRefreshRecords = AscCommonExcel.g_oRangeCache.getAscRange("J70:P81");
 	var testDataRefreshStructure = AscCommonExcel.g_oRangeCache.getAscRange("R70:X81");
 	var testData = [
@@ -264,6 +265,19 @@ $(function() {
 		["West","Girl","Tee","38383","15","2","13.29"],
 		["West","Girl","Golf","38383","15","3","10.67"]
 	];
+	var testDataFilter = [
+		["Region","Gender","Style","Ship date","Units","Price","Cost"],
+		["East","Boy","Tee","1","1","1","10.42"],
+		["East","Boy","Golf","1","2","2","12.6"],
+		["East","Boy","Fancy","2","2","3","11.74"],
+		["East","Girl","Tee","2","3","4","10.56"],
+		["East","Girl","Golf","3","3","5","11.95"],
+		["East","Girl","Fancy","3","4","6","13.33"],
+		["West","Boy","Tee","4","4","7","10.94"],
+		["West","Boy","Golf","4","5","20","11.73"],
+		["West","Boy","Fancy","5","5","20","11.51"],
+		["West","Girl","Tee","6","6","20","13.29"]
+	];
 	var multiElem1 = new AscCommonExcel.CMultiTextElem();
 	multiElem1.text = "qwe";
 	var multiElem2 = new AscCommonExcel.CMultiTextElem();
@@ -310,6 +324,7 @@ $(function() {
 	fillData(wsData, testData7, testDataRange7);
 	fillData(wsData, testDataHeader, testDataRangeHeader);
 	fillData(wsData, testData, testDataRangeTable);
+	fillData(wsData, testDataFilter, testDataRangeFilters);
 	var addFormatTableOptions = new AscCommonExcel.AddFormatTableOptions();
 	addFormatTableOptions.asc_setRange(testDataRangeTable.getAbsName());
 	addFormatTableOptions.asc_setIsTitle(true);
@@ -345,6 +360,7 @@ $(function() {
 	var dataRefFieldSettings = wsData.getName() + "!" + testDataRefreshFieldSettings.getName();
 	var dataRefRecords = wsData.getName() + "!" + testDataRefreshRecords.getName();
 	var dataRefStructure = wsData.getName() + "!" + testDataRefreshStructure.getName();
+	var dataRefFilters = wsData.getName() + "!" + testDataRangeFilters.getName();
 
 
 	function fillData(ws, data, range) {
@@ -3017,6 +3033,30 @@ $(function() {
 			["11.48","Girl","","","","#DIV/0!","1","11","#DIV/0!","1","11"],
 			["11.48 Average","","","","","#DIV/0!","11.48","11","#DIV/0!","11.48","11"],
 			["Grand Total","","#DIV/0!","6","21","#DIV/0!","5","45","#DIV/0!","11","66"]
+		],
+		"valueFilterOrder1":[
+			["Sum of Price","","Region","Units","","",""],
+			["","","West","","","West Total","Grand Total"],
+			["Gender","Ship date","4","5","6","",""],
+			["Boy","2","","","","",""],
+			["","4","7","20","","27","27"],
+			["","5","","20","","20","20"],
+			["Boy Total","","7","40","","47","47"],
+			["Grand Total","","7","40","","47","47"]
+		],
+		"valueFilterOrder2":[
+			["Sum of Price","","Region","Units","","","","","","",""],
+			["","","East","","","East Total","West","","","West Total","Grand Total"],
+			["Gender","Ship date","2","3","4","","4","5","6","",""],
+			["Boy","2","3","","","3","","","","","3"],
+			["","4","","","","","7","20","","27","27"],
+			["","5","","","","","","20","","20","20"],
+			["Boy Total","","3","","","3","7","40","","47","50"],
+			["Girl","2","","4","","4","","","","","4"],
+			["","3","","5","6","11","","","","","11"],
+			["","6","","","","","","","20","20","20"],
+			["Girl Total","","","9","6","15","","","20","20","35"],
+			["Grand Total","","3","9","6","18","7","40","20","67","85"]
 		]
 	};
 
@@ -3320,7 +3360,7 @@ $(function() {
 				props.asc_setOutline(false);
 				props.asc_setCompact(false);
 				props.asc_setShowAll(true);
-				pivotField.asc_set(api, pivot, 0, props);
+				pivotField.asc_set(api, pivot, 4, props);
 			});
 
 			ws.deletePivotTables(new AscCommonExcel.MultiplyRange(pivot.getReportRanges()).getUnionRange());
@@ -3741,6 +3781,61 @@ $(function() {
 		});
 	}
 
+	function testFiltersValueFilter() {
+		test("Test: filters value filter", function() {
+			var pivot = api._asc_insertPivot(wb, dataRefFilters, ws, reportRange);
+			setPivotLayout(pivot, 'tabular');
+			pivot.asc_getStyleInfo().asc_setName(api, pivot, pivotStyle);
+
+			var getNewFilter = function(val){
+				var pivotFilterObj = new Asc.PivotFilterObj();
+				pivotFilterObj.asc_setDataFieldIndexSorting(0);
+				pivotFilterObj.asc_setDataFieldIndexFilter(1);
+				pivotFilterObj.asc_setIsPageFilter(false);
+				pivotFilterObj.asc_setIsMultipleItemSelectionAllowed(false);
+				pivotFilterObj.asc_setIsTop10Sum(false);
+				var filterObj = new Asc.AutoFilterObj();
+				filterObj.asc_setFilter(new Asc.CustomFilters());
+				filterObj.asc_setType(Asc.c_oAscAutoFilterTypes.CustomFilters);
+				var customFilter = filterObj.asc_getFilter();
+				customFilter.asc_setCustomFilters([new Asc.CustomFilter()]);
+				customFilter.asc_setAnd(true);
+				var customFilters = customFilter.asc_getCustomFilters();
+				customFilters[0].asc_setOperator(Asc.c_oAscCustomAutoFilter.isGreaterThan);
+				customFilters[0].asc_setVal(val);
+				var autoFilterObject = new Asc.AutoFiltersOptions();
+				autoFilterObject.pivotObj = pivotFilterObj;
+				autoFilterObject.filter = filterObj;
+				return autoFilterObject;
+			};
+
+			AscCommon.History.Clear();
+			pivot = checkHistoryOperation(pivot, standards["valueFilterOrder1"], "order1", function(){
+				pivot.asc_addRowField(api, 1);
+				pivot.asc_addRowField(api, 3);
+				pivot.asc_addColField(api, 0);
+				pivot.asc_addColField(api, 4);
+				pivot.asc_addDataField(api, 5);
+
+				pivot.filterByFieldIndex(api, getNewFilter(1), 4, true);
+				pivot.filterByFieldIndex(api, getNewFilter(2), 3, true);
+				pivot.filterByFieldIndex(api, getNewFilter(18), 0, true);
+				pivot.filterByFieldIndex(api, getNewFilter(20), 1, true);
+			});
+
+			pivot = checkHistoryOperation(pivot, standards["valueFilterOrder2"], "order1", function(){
+				pivot.asc_removeFilters(api);
+
+				pivot.filterByFieldIndex(api, getNewFilter(20), 1, true);
+				pivot.filterByFieldIndex(api, getNewFilter(18), 0, true);
+				pivot.filterByFieldIndex(api, getNewFilter(1), 4, true);
+				pivot.filterByFieldIndex(api, getNewFilter(2), 3, true);
+			});
+
+			ws.deletePivotTables(new AscCommonExcel.MultiplyRange(pivot.getReportRanges()).getUnionRange());
+		});
+	}
+
 	function testPivotMisc() {
 		test("Test: misc", function() {
 			var pivot = api._asc_insertPivot(wb, dataRef1Row, ws, reportRange);
@@ -3821,6 +3916,8 @@ $(function() {
 		testDataRefresh();
 
 		testDataSource();
+
+		testFiltersValueFilter();
 
 		testPivotMisc();
 	}
