@@ -116,9 +116,9 @@
      */
     var kCurDefault = "default";
     var kCurCorner = "pointer";
-    var kCurColSelect = "pointer";
+    var kCurColSelect = "select-table-column";
     var kCurColResize = "col-resize";
-    var kCurRowSelect = "pointer";
+    var kCurRowSelect = "select-table-row";
     var kCurRowResize = "row-resize";
     // Курсор для автозаполнения
     var kCurFillHandle = "crosshair";
