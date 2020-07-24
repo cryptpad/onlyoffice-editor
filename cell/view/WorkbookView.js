@@ -1472,7 +1472,7 @@
       if (ws && ws.model && target) {
           var table = ws.model.TableParts[target.tableIndex];
           if (table) {
-              ws.af_changeSelectionFormatTable(table.DisplayName, target.type, target.row, target.col);
+              ws.changeTableSelection(table.DisplayName, target.type, target.row, target.col);
           }
       }
   };
