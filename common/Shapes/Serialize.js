@@ -858,7 +858,6 @@ function BinaryPPTYLoader()
                     {
                         var indexL = s.GetULong();
                         master.addToSldLayoutLstToPos(master.sldLayoutLst.length, this.aSlideLayouts[indexL]);
-                        this.aSlideLayouts[indexL].setMaster( master);
                         break;
                     }
                     case 1:
