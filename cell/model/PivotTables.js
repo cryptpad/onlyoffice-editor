@@ -1880,7 +1880,7 @@ CT_PivotCacheRecords.prototype._getDataMapConvertValueFiltersIsHide = function(r
 		} else {
 			for (i in elems) {
 				if (elems.hasOwnProperty(i)) {
-					res = res || this._getDataMapConvertValueFiltersIsHide(elems[i], isRow, index + 1, indexes, valueFilter, dataFields)
+					res = this._getDataMapConvertValueFiltersIsHide(elems[i], isRow, index + 1, indexes, valueFilter, dataFields) || res;
 				}
 			}
 			if (res && AscCommon.isEmptyObject(elems)) {
@@ -1929,7 +1929,7 @@ CT_PivotCacheRecords.prototype._getDataMapInitFilter = function(elems, valueFilt
 				}
 			}
 		}
-		filterColumn.initByArray(arr);
+		filterColumn.initByArray(arr, Asc.c_oAscPivotFilterType.Sum === pivotFilter.type);
 	}
 	return pivotFilter;
 };
