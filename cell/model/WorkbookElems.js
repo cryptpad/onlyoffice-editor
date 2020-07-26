@@ -7518,10 +7518,10 @@ function RangeDataManagerElem(bbox, data)
 	{
 		return null !== this.Top10;
 	};
-	FilterColumn.prototype.initByArray = function (arr) {
+	FilterColumn.prototype.initByArray = function (arr, isSum) {
 
 		if (null !== this.Top10) {
-			this.Top10.initByArray(arr);
+			this.Top10.initByArray(arr, isSum);
 		}
 
 	};
@@ -8787,7 +8787,7 @@ Top10.prototype.init = function(range, reWrite){
 		}
 	}
 };
-Top10.prototype.initByArray = function(arr){
+Top10.prototype.initByArray = function(arr, isSum){
 	var res = null;
 	var t = this;
 	if(arr && arr.length)
@@ -8818,7 +8818,16 @@ Top10.prototype.initByArray = function(arr){
 		}
 		else
 		{
-			res = arr[this.Val - 1];
+			if (isSum) {
+				var index = 0;
+				var sum = res = arr[index++];
+				while (index < arr.length && sum < this.Val) {
+					res = arr[index++];
+					sum += res;
+				}
+			} else {
+				res = arr[this.Val - 1];
+			}
 		}
 	}
 	if(null !== res)
