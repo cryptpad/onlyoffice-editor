@@ -456,11 +456,12 @@ var cErrorType = {
 
 /** @enum */
 var cReturnFormulaType = {
-		value: 0,
-		value_replace_area: 1,
-		array: 2,
-		area_to_ref: 3,
-		replace_only_array: 4
+	value: 0,
+	value_replace_area: 1,
+	array: 2,
+	area_to_ref: 3,
+	replace_only_array: 4,
+	setArrayRefAsArg: 5//для row/column если нет аргументов
 };
 
 var cExcelSignificantDigits = 15; //количество цифр в числе после запятой
@@ -3196,6 +3197,14 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 		var functionsCanReturnArray = ["index"];
 
 		var returnFormulaType = this.returnValueType;
+		if (cReturnFormulaType.setArrayRefAsArg === returnFormulaType) {
+			if (arg.length === 0 && parserFormula.ref) {
+				res = this.Calculate([new cArea(parserFormula.ref.getName(), parserFormula.ws)], opt_bbox, opt_defName, parserFormula.ws);
+			} else {
+				return null;
+			}
+		}
+
 		var arrayIndexes = this.arrayIndexes;
 		var replaceAreaByValue = cReturnFormulaType.value_replace_area === returnFormulaType;
 		var replaceAreaByRefs = cReturnFormulaType.area_to_ref === returnFormulaType;
