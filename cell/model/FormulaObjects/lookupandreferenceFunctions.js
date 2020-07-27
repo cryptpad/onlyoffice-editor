@@ -1633,24 +1633,40 @@ function (window, undefined) {
 	cROW.prototype.constructor = cROW;
 	cROW.prototype.name = 'ROW';
 	cROW.prototype.argumentsMax = 1;
-	cROW.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.area_to_ref;
+	cROW.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.setArrayRefAsArg;
 	cROW.prototype.argumentsType = [argType.reference];
 	cROW.prototype.Calculate = function (arg) {
 		var bbox;
+		var res;
 		var opt_row = arguments[5];
 		if (opt_row !== undefined) {
 			return new cNumber(opt_row + 1);
 		} else if (0 === arg.length) {
 			bbox = arguments[1];
+			res = bbox ? new cNumber(bbox.r1 + 1) : null;
 		} else {
 			var arg0 = arg[0];
-			if (cElementType.cell === arg0.type || cElementType.cell3D === arg0.type ||
-				cElementType.cellsRange === arg0.type || cElementType.cellsRange3D === arg0.type) {
+			if (cElementType.cell === arg0.type || cElementType.cell3D === arg0.type) {
 				bbox = arg0.getRange();
 				bbox = bbox && bbox.bbox;
+				res = bbox ? new cNumber(bbox.r1 + 1) : null;
+			} else if (cElementType.cellsRange === arg0.type || cElementType.cellsRange3D === arg0.type) {
+				bbox = arg0.getRange();
+				bbox = bbox && bbox.bbox;
+
+				if (bbox && bbox.r2 > bbox.r1) {
+					res = new cArray();
+					for (var i = bbox.r1; i <= bbox.r2; i++) {
+						res.addRow();
+						res.addElement(new cNumber(i + 1))
+					}
+				} else {
+					res = bbox ? new cNumber(bbox.r1 + 1) : null;
+				}
 			}
 		}
-		return (bbox ? new cNumber(bbox.r1 + 1) : new cError(cErrorType.bad_reference));
+
+		return res ? res : new cError(cErrorType.bad_reference);
 	};
 
 	/**
