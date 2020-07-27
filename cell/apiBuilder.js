@@ -627,8 +627,10 @@
 	 * @returns {ApiRange}
 	 */
 	ApiWorksheet.prototype.GetUsedRange = function () {
-		return new ApiRange(this.worksheet.getRange3(0, 0, this.worksheet.getRowsCount(),
-			this.worksheet.getColsCount()));
+		var rEnd = this.worksheet.getRowsCount() - 1;
+		var cEnd = this.worksheet.getColsCount() - 1;
+		return new ApiRange(this.worksheet.getRange3(0, 0, (rEnd < 0) ? 0 : rEnd,
+			(cEnd < 0) ? 0 : cEnd));
 	};
 	Object.defineProperty(ApiWorksheet.prototype, "UsedRange", {
 		get: function () {
