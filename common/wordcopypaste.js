@@ -5044,7 +5044,7 @@ PasteProcessor.prototype =
 					tempParaRun.Add_ToContent(0, newParaDrawing, false);
 
 					tempParaRun.Content[0].Set_GraphicObject(graphicObj);
-					tempParaRun.Content[0].GraphicObj.setParent(tempParaRun.Content[0]);
+					tempParaRun.Content[0].GraphicObj.setParent2(tempParaRun.Content[0]);
 					var oGraphicObj = tempParaRun.Content[0].GraphicObj;
 					if (oGraphicObj.spPr && oGraphicObj.spPr.xfrm) {
 						oGraphicObj.spPr.xfrm.setOffX(0);

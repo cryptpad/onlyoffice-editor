@@ -152,6 +152,7 @@
         var _pos = Math.max(0, Math.min(pos, this.cSld.spTree.length));
         History.Add(new AscDFH.CChangesDrawingsContentPresentation(this, AscDFH.historyitem_NotesAddToSpTree, _pos, [obj], true));
         this.cSld.spTree.splice(_pos, 0, obj);
+        obj.setParent2(this);
     };
 
     CNotes.prototype.removeFromSpTreeByPos = function(pos){
