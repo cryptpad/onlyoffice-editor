@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script type="text/javascript" src="../browser.js"></script>
+    <script type="text/javascript" src="../Drawings/WorkEvents.js"></script>
+    <script type="text/javascript" src="../scroll.js"></script>
+    <script type="text/javascript">
+        function slimScrolling() {
+            var checkbox = document.getElementById('slimScroll');
+            if(checkbox.checked === true) {
+                settings.slimScroll = true;
+                settings1.slimScroll = true;
+                scrollObject.Reinit(settings);
+                scrollObject1.Reinit(settings1);
+            } else {
+                settings.slimScroll = false;
+                settings1.slimScroll = false;
+                scrollObject.Reinit(settings);
+                scrollObject1.Reinit(settings1);
+            }
+
+        }
+        function cornerRadius() {
+            var checkbox = document.getElementById('cornerRadius');
+            if(checkbox.checked === true) {
+                settings.cornerRadius = 10;
+                settings1.cornerRadius = 10;
+                scrollObject.Reinit(settings);
+                scrollObject1.Reinit(settings1);
+            } else {
+                settings.cornerRadius = 0;
+                settings1.cornerRadius = 0;
+                scrollObject.Reinit(settings);
+                scrollObject1.Reinit(settings1);
+            }
+        }
+        function clickFadeDelay() {
+            var button = document.getElementById('buttonFadeDelay');
+            var textArea = document.getElementById('fadeDelay');
+            if(parseInt(textArea.value)) {
+                settings.fadeInFadeOutDelay = parseInt(textArea.value);
+                settings1.fadeInFadeOutDelay = parseInt(textArea.value);
+                scrollObject.Reinit(settings);
+                scrollObject1.Reinit(settings1);
+            }
+        }
+        function showArrows() {
+            var checkbox = document.getElementById('showArrows');
+            if(checkbox.checked === true) {
+                settings.showArrows = true;
+                settings1.showArrows = true;
+                scrollObject.Reinit(settings);
+                scrollObject1.Reinit(settings1);
+            } else {
+                settings.showArrows = false;
+                settings1.showArrows = false;
+                scrollObject.Reinit(settings);
+                scrollObject1.Reinit(settings1);
+            }
+
+        }
+    </script>
+</head>
+
+<body>
+<div>
+    <input type="checkbox" id="slimScroll"  onchange="slimScrolling();"> Slim Scroll
+    <input type="checkbox" id="cornerRadius"  onchange="cornerRadius();"> Corner Radius
+    <input type="checkbox" id="showArrows"  onchange="showArrows();" checked> Show Arrows
+    <input type="text" value="20" id="fadeDelay" size="1">
+    <button  id="buttonFadeDelay" onclick="clickFadeDelay()"/> Fade delay
+
+</div>
+</body>
+
+<script type="text/javascript">
+
+    var AscCommon = window['AscCommon'];
+    var div = document.createElement('div');
+    div.id = "ws-v-scrollbar";
+    div.style.width = '14px';
+    div.style.height = '720px';
+    div.style.position = "relative";
+
+    document.body.append(div);
+    var settings = new AscCommon.ScrollSettings();
+    var scrollObject = new AscCommon.ScrollObject("ws-v-scrollbar", settings);
+
+    var div = document.createElement('div');
+    div.id = "ws-h-scrollbar";
+    div.style.width = '720px';
+    div.style.height = '14px';
+    div.style.position = "relative";
+
+    document.body.append(div);
+
+    var settings1 = new AscCommon.ScrollSettings();
+    settings1.isHorizontalScroll = true;
+    settings1.isVerticalScroll = false;
+    var scrollObject1 = new AscCommon.ScrollObject("ws-h-scrollbar", settings1);
+</script>
+</html>
