@@ -155,7 +155,7 @@ function (window, undefined) {
 			var oProperties = oData.getProperties();
 			for (var i in oProperties) {
 				var nItemType = oProperties[i];
-				var oItem = oData.getProperty(nItemType);
+				var oItem = oData.getProperty(nItemType, nSheetId);
 				this.SerializeDataInner(oBinaryWriter, nItemType, oItem, nSheetId, collaborativeEditing);
 			}
 		};
@@ -1502,7 +1502,7 @@ function (window, undefined) {
 	UndoRedoData_AutoFilter.prototype.getProperties = function () {
 		return this.Properties;
 	};
-	UndoRedoData_AutoFilter.prototype.getProperty = function (nType) {
+	UndoRedoData_AutoFilter.prototype.getProperty = function (nType, nSheetId) {
 		switch (nType) {
 			case this.Properties.activeCells:
 				return new UndoRedoData_BBox(this.activeCells);
@@ -1564,7 +1564,8 @@ function (window, undefined) {
 					var memory = new AscCommon.CMemory();
 					var aDxfs = [];
 					var oBinaryTableWriter = new AscCommonExcel.BinaryTableWriter(memory, aDxfs);
-					oBinaryTableWriter.WriteTable(tablePart);
+					var ws = window["Asc"]["editor"].wb ? window["Asc"]["editor"].wb.getWorksheetById(nSheetId) : null;
+					oBinaryTableWriter.WriteTable(tablePart, ws ? ws.model : null);
 					tablePart = memory.GetBase64Memory();
 				}
 

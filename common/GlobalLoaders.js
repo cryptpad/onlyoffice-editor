@@ -463,19 +463,19 @@
 
                     window["AscDesktopEditor"]["PreloadCryptoImage"](_url, AscCommon.g_oDocumentUrls.getLocal(_url));
 
-                    oThis.Api.sync_StartAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.UploadImage);
+                    oThis.Api.sync_StartAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.LoadImage);
                 };
 
                 Image.prototype["onload_crypto"] = function(_src, _crypto_data)
                 {
                     if (_crypto_data && AscCommon.EncryptionWorker && AscCommon.EncryptionWorker.isCryptoImages())
                     {
-                        // TODO: send to plugin for decryption & call this method with empty _crypto_data
                         AscCommon.EncryptionWorker.decryptImage(_src, this, _crypto_data);
                         return;
                     }
+					this.crossOrigin = "";
                     this.src = _src;
-                    oThis.Api.sync_EndAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.UploadImage);
+                    oThis.Api.sync_EndAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.LoadImage);
                 };
             }
         }

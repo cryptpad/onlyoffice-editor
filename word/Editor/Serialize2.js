@@ -7512,7 +7512,6 @@ function BinaryFileReader(doc, openParams)
 		for(var i in oCommentsNewId)
 		{
 			var oNewComment = oCommentsNewId[i];
-			oNewComment.CreateNewCommentsGuid();
 			this.Document.DrawingDocument.m_oWordControl.m_oApi.sync_AddComment( oNewComment.Id, oNewComment.Data );
 		}
 		//remove bookmarks without end
@@ -10735,7 +10734,9 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curFoo
 		} else if ( c_oSerParType.BookmarkStart === type) {
 			readBookmarkStart(length, this.bcr, this.oReadResult, oParStruct, this.openParams);
 		} else if ( c_oSerParType.BookmarkEnd === type) {
-			readBookmarkEnd(length, this.bcr, this.stream, this.oReadResult, oParStruct);
+			if (!readBookmarkEnd(length, this.bcr, this.stream, this.oReadResult, oParStruct)) {
+				res = c_oSerConstants.ReadUnknown;
+			}
 		} else if ( c_oSerParType.MoveFromRangeStart === type) {
 			readMoveRangeStart(length, this.bcr, this.stream, this.oReadResult, oParStruct, true);
 		} else if ( c_oSerParType.MoveFromRangeEnd === type) {
@@ -12892,7 +12893,9 @@ function Binary_oMathReader(stream, oReadResult, curFootnote, openParams)
 			//todo put elems inside math(now it leads to crush)
 			readBookmarkStart(length, this.bcr, this.oReadResult, oParStruct, this.openParams);
 		} else if ( c_oSer_OMathContentType.BookmarkEnd === type) {
-			readBookmarkEnd(length, this.bcr, this.stream, this.oReadResult, oParStruct);
+			if (!readBookmarkEnd(length, this.bcr, this.stream, this.oReadResult, oParStruct)) {
+				res = c_oSerConstants.ReadUnknown;
+			}
 		} else if (c_oSer_OMathContentType.MoveFromRangeStart === type) {
 			readMoveRangeStart(length, this.bcr, this.stream, this.oReadResult, oParStruct, true);
 		} else if (c_oSer_OMathContentType.MoveFromRangeEnd === type) {

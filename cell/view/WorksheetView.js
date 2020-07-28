@@ -8173,6 +8173,10 @@
 			incY : 0, type === c_oAscSelectionType.RangeCol || type === c_oAscSelectionType.RangeCells ? incX : 0);
     };
 	WorksheetView.prototype._scrollToRange = function (range) {
+        if (window['IS_NATIVE_EDITOR']) {
+            return null;
+        }
+
 		var vr = this.visibleRange;
 		var nRowsCount = this.nRowsCount;
 		var nColsCount = this.nColsCount;
@@ -10932,7 +10936,8 @@
                     offset: offset,
                     displayName: newDisplayName
                 };
-                t.model.autoFilters.addAutoFilter(curTable.TableStyleInfo.Name, range.bbox, true, true, props);
+                var tableStyleInfoName = curTable.TableStyleInfo ? curTable.TableStyleInfo.Name : null;
+                t.model.autoFilters.addAutoFilter(tableStyleInfoName, range.bbox, true, true, props);
                 if (null === tablesMap) {
                     tablesMap = {};
                 }
