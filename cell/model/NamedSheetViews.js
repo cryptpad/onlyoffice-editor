@@ -79,8 +79,11 @@
 
 	CT_NsvFilter.prototype.clone = function () {
 		var res = new CT_NsvFilter();
-		res.columnFilter = this.columnFilter ? this.columnFilter.clone() : null;
-		for (var i = 0; i < this.sortRules.length; ++i) {
+		var i;
+		for (i = 0; i < this.columnsFilter.length; ++i) {
+			res.columnsFilter[i] = this.columnsFilter[i].clone();
+		}
+		for (i = 0; i < this.sortRules.length; ++i) {
 			res.sortRules[i] = this.sortRules[i].clone();
 		}
 

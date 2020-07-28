@@ -7751,9 +7751,9 @@ function RangeDataManagerElem(bbox, data)
 
 		if(null != this.Dates) {
 			writer.WriteBool(true);
-			writer.WriteLong(this.Dates);
+			writer.WriteLong(this.Dates.length);
 			for(i = 0, length = this.Dates.length; i < length; ++i) {
-				//TODO
+				this.Dates[i].Write_ToBinary2(writer);
 			}
 		} else {
 			writer.WriteBool(false);
@@ -7778,8 +7778,8 @@ function RangeDataManagerElem(bbox, data)
 		if (reader.GetBool()) {
 			length = reader.GetLong();
 			for (i = 0; i < length; ++i) {
-				//TODO read dates
-				this.Dates.push(reader.GetLong());
+				var _date = new AutoFilterDateElem();
+				this.Dates.push(_date.Read_FromBinary2(reader));
 			}
 		}
 		if (reader.GetBool()) {
@@ -8881,7 +8881,7 @@ ColorFilter.prototype.Write_ToBinary2 = function(writer) {
 	if(null != this.dxf) {
 		var dxf = this.dxf;
 		writer.WriteBool(true);
-		var oBinaryStylesTableWriter = new AscCommonExcel.BinaryStylesTableWriter(w);
+		var oBinaryStylesTableWriter = new AscCommonExcel.BinaryStylesTableWriter(writer);
 		oBinaryStylesTableWriter.bs.WriteItem(0, function(){oBinaryStylesTableWriter.WriteDxf(dxf);});
 	}else {
 		writer.WriteBool(false);
@@ -9348,6 +9348,16 @@ function AutoFilterDateElem(start, end, dateTimeGrouping) {
 	this.end = end;
 	this.dateTimeGrouping = dateTimeGrouping;
 }
+AutoFilterDateElem.prototype.Write_ToBinary2 = function(w) {
+	w.WriteLong(this.start);
+	w.WriteLong(this.end);
+	w.WriteLong(this.dateTimeGrouping);
+};
+AutoFilterDateElem.prototype.Read_FromBinary2 = function(r) {
+	this.start = r.GetLong();
+	this.end = r.GetLong();
+	this.dateTimeGrouping = r.GetLong();
+};
 AutoFilterDateElem.prototype.clone = function() {
 	var res = new AutoFilterDateElem();
 	res.start = this.start;
