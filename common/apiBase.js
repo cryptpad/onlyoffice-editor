@@ -2798,12 +2798,83 @@
 		}
 	};
 	/**
-	 * Return array for Math AutoCorrect for menu
+	 * Return default array for Math AutoCorrect for menu
 	 * @returns {Array.<String, Number || Array.<Number>>}
 	 */
 	baseEditorsApi.prototype.asc_getAutoCorrectMathSymbols = function()
 	{
-        return window['AscCommonWord'].g_aAutoCorrectMathSymbols;
+        return window['AscCommonWord'].g_DefaultAutoCorrectMathSymbolsList;
+	};
+	/**
+	 * Reset to defaul version list autocorrect math symbols
+	 */
+	baseEditorsApi.prototype.asc_resetToDefaultAutoCorrectMathSymbols = function()
+	{
+		window['AscCommonWord'].g_aAutoCorrectMathSymbols = JSON.parse(JSON.stringify(window['AscCommonWord'].g_DefaultAutoCorrectMathSymbolsList));
+	};
+	/**
+	 * Delete item from g_aAutoCorrectMathSymbols
+	 * @param {string} element
+	 */
+	baseEditorsApi.prototype.asc_deleteFromAutoCorrectMathSymbols = function(element)
+	{
+        var remInd = window['AscCommonWord'].g_aAutoCorrectMathSymbols.findIndex(function(val, index){
+			if (val[0] === element){
+				return index;
+			}
+		});
+		window['AscCommonWord'].g_aAutoCorrectMathSymbols.splice(remInd, 1);
+	};
+	/**
+	 * Add or edit item from g_aAutoCorrectMathSymbols
+	 * @param {string} element
+	 * @param {Array.<number> || number || string} repVal
+	 */
+	baseEditorsApi.prototype.asc_AddOrEditFromAutoCorrectMathSymbols = function(element, repVal)
+	{
+		if (typeof repVal === 'string') {
+			repVal = AscCommon.convertUTF16toUnicode(repVal);
+		}
+		var changeInd = window['AscCommonWord'].g_aAutoCorrectMathSymbols.findIndex(function(val, index){
+			if (val[0] === element){
+				return index;
+			}
+		});
+		if (changeInd >= 0) {
+			window['AscCommonWord'].g_aAutoCorrectMathSymbols[changeInd][1] = repVal;
+		} else {
+			window['AscCommonWord'].g_aAutoCorrectMathSymbols.push([element, repVal]);
+		}
+	};
+	/**
+	 * Refresh g_aAutoCorrectMathSymbols on start
+	 * @param {Array.<string>} remItems
+	 * @param {Array.<string, Array.<number> || number || string>} addItems
+	 * @param {boolean} flag
+	 */
+	baseEditorsApi.prototype.asc_refreshOnStartAutoCorrectMathSymbols = function(remItems, addItems, flag)
+	{
+		var me = this;
+		this.asc_resetToDefaultAutoCorrectMathSymbols();
+		if (remItems) {
+			remItems.forEach(function(el) {
+				me.asc_deleteFromAutoCorrectMathSymbols(el);
+			});
+		}
+		if (addItems) {
+			addItems.forEach(function(el) {
+				me.asc_AddOrEditFromAutoCorrectMathSymbols(el[0], el[1]);
+			});
+		}
+		this.asc_updateFlagAutoCorrectMathSymbols(flag);
+	};
+	/**
+	 * Update flag about autocorrect math symbols
+	 * @param {boolean} flag
+	 */
+	baseEditorsApi.prototype.asc_updateFlagAutoCorrectMathSymbols = function(flag)
+	{
+		window['AscCommonWord'].b_DoAutoCorrectMathSymbols = flag;
 	};
 
 	//----------------------------------------------------------addons----------------------------------------------------
@@ -2869,5 +2940,10 @@
 	prot['asc_runAutostartMacroses'] = prot.asc_runAutostartMacroses;
 	prot['asc_setVisiblePasteButton'] = prot.asc_setVisiblePasteButton;
 	prot['asc_getAutoCorrectMathSymbols'] = prot.asc_getAutoCorrectMathSymbols;
+	prot['asc_resetToDefaultAutoCorrectMathSymbols'] = prot.asc_resetToDefaultAutoCorrectMathSymbols;
+	prot['asc_deleteFromAutoCorrectMathSymbols'] = prot.asc_deleteFromAutoCorrectMathSymbols;
+	prot['asc_AddOrEditFromAutoCorrectMathSymbols'] = prot.asc_AddOrEditFromAutoCorrectMathSymbols;
+	prot['asc_refreshOnStartAutoCorrectMathSymbols'] = prot.asc_refreshOnStartAutoCorrectMathSymbols;
+	prot['asc_updateFlagAutoCorrectMathSymbols'] = prot.asc_updateFlagAutoCorrectMathSymbols;
 
 })(window);
