@@ -5755,6 +5755,7 @@ CPresentation.prototype.SelectAll = function () {
     if (oController) {
         oController.selectAll();
         this.Document_UpdateInterfaceState();
+        this.Api.sendEvent("asc_onSelectionEnd");
     }
 };
 
@@ -7463,7 +7464,16 @@ CPresentation.prototype.Get_CurPage = function () {
 };
 
 CPresentation.prototype.private_UpdateCursorXY = function (bUpdateX, bUpdateY) {
-
+    var oController = this.GetCurrentController();
+    var oDocContent;
+    if (oController) {
+        oDocContent = oController.getTargetDocContent();
+        if (oDocContent) {
+            if(oDocContent.Selection.Use) {
+                this.Api.sendEvent("asc_onSelectionEnd");
+            }
+        }
+    }
     this.private_CheckCursorInField();
 };
 
