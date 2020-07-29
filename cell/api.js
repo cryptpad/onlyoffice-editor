@@ -115,6 +115,9 @@ var editor;
     this.shapeElementId = null;
     this.textArtElementId = null;
 
+    //frozen pane border type
+    this.frozenPaneBorderType = Asc.c_oAscFrozenPaneBorderType.shadow;
+
 	  // Styles sizes
       this.styleThumbnailWidth = 112;
 	  this.styleThumbnailHeight = 38;
@@ -299,6 +302,17 @@ var editor;
   spreadsheet_api.prototype.asc_getGroupSeparator = function (culture) {
   	var cultureInfo = AscCommon.g_aCultureInfos[culture] || AscCommon.g_oDefaultCultureInfo;
   	return cultureInfo.NumberGroupSeparator;
+  };
+  spreadsheet_api.prototype.asc_getFrozenPaneBorderType = function() {
+    return this.frozenPaneBorderType;
+  };
+  spreadsheet_api.prototype.asc_setFrozenPaneBorderType = function(nType) {
+    if(this.frozenPaneBorderType !== nType) {
+      this.frozenPaneBorderType = nType;
+      if(this.wbModel) {
+        this.asc_showWorksheet(this.asc_getActiveWorksheetIndex());
+      }
+    }
   };
   spreadsheet_api.prototype._openDocument = function(data) {
     this.wbModel = new AscCommonExcel.Workbook(this.handlers, this);
@@ -4652,6 +4666,8 @@ var editor;
   prot["asc_getLocale"] = prot.asc_getLocale;
   prot["asc_getDecimalSeparator"] = prot.asc_getDecimalSeparator;
   prot["asc_getGroupSeparator"] = prot.asc_getGroupSeparator;
+  prot["asc_getFrozenPaneBorderType"] = prot.asc_getFrozenPaneBorderType;
+  prot["asc_setFrozenPaneBorderType"] = prot.asc_setFrozenPaneBorderType;
   prot["asc_getEditorPermissions"] = prot.asc_getEditorPermissions;
   prot["asc_LoadDocument"] = prot.asc_LoadDocument;
   prot["asc_DownloadAs"] = prot.asc_DownloadAs;
