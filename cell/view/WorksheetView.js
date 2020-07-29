@@ -11292,6 +11292,7 @@
                 }
 
 				tablesMap[curTable.DisplayName] = newDisplayName;
+				bIsAddTable = true;
 			}
 
 			if (bIsAddTable) {
