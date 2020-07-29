@@ -1971,14 +1971,12 @@ CT_PivotCacheRecords.prototype.fromWorksheetRange = function(location, cacheFiel
 	var nameDuplicateMap = new Map();
 	for (var i = 0; i < headings.length; ++i) {
 		var text = headings[i];
-		var index = nameDuplicateMap.get(text);
-		if (undefined !== index) {
+		var index = 1;
+		while (nameDuplicateMap.has(text)) {
 			index++;
-			text = text + index;
-		} else {
-			index = 1;
+			text = headings[i] + index;
 		}
-		nameDuplicateMap.set(text, index);
+		nameDuplicateMap.set(text, 1);
 		var cacheField = new CT_CacheField();
 		cacheField.name = text;
 		cacheField.numFmtId = 0;
