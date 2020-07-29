@@ -7432,20 +7432,32 @@ function RangeDataManagerElem(bbox, data)
 		this.ColId = reader.GetLong();
 		var newObj;
 		if (reader.GetBool()) {
-			newObj = new SortCondition();
+			newObj = new Filters();
 			newObj.Read_FromBinary2(reader);
+			this.Filters = newObj;
 		}
 		if (reader.GetBool()) {
-			this.firstHeaderRow = reader.GetLong();
+			newObj = new CustomFilters();
+			newObj.Read_FromBinary2(reader);
+			this.CustomFiltersObj = newObj;
 		}
 		if (reader.GetBool()) {
-			this.firstDataRow = reader.GetLong();
+			newObj = new DynamicFilter();
+			newObj.Read_FromBinary2(reader);
+			this.DynamicFilter = newObj;
 		}
 		if (reader.GetBool()) {
-			this.firstDataCol = reader.GetLong();
+			newObj = new ColorFilter();
+			newObj.Read_FromBinary2(reader);
+			this.ColorFilter = newObj;
 		}
-		this.rowPageCount = reader.GetLong();
-		this.colPageCount = reader.GetLong();
+		if (reader.GetBool()) {
+			newObj = new Top10();
+			newObj.Read_FromBinary2(reader);
+			this.Top10 = newObj;
+		}
+
+		this.ShowButton = reader.GetBool();
 	};
 
 
