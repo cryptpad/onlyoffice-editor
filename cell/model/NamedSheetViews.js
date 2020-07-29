@@ -33,11 +33,82 @@
 "use strict";
 
 (function (undefined) {
+
+	function CT_NamedSheetViews() {
+		this.namedSheetView = [];
+		// this.extLst = null;
+		return this;
+	}
+	CT_NamedSheetViews.prototype.toStream = function (s, tableIds) {
+		s.WriteUChar(AscCommon.g_nodeAttributeStart);
+		s.WriteUChar(AscCommon.g_nodeAttributeEnd);
+
+		s.StartRecord(0);
+		var len = this.namedSheetView.length;
+		s.WriteULong(len);
+		for (var i = 0; i < len; i++) {
+			s.StartRecord(0);
+			this.namedSheetView[i].toStream(s, tableIds);
+			s.EndRecord();
+		}
+		s.EndRecord();
+	};
+	CT_NamedSheetViews.prototype.fromStream = function (s, wb) {
+		var _len = s.GetULong();
+		var _start_pos = s.cur;
+		var _end_pos = _len + _start_pos;
+		var _at;
+// attributes
+		s.GetUChar();
+		while (true)
+		{
+			_at = s.GetUChar();
+			if (_at === AscCommon.g_nodeAttributeEnd)
+				break;
+			switch (_at)
+			{
+				default:
+					s.Seek2(_end_pos);
+					return;
+			}
+		}
+//members
+		var _type;
+		while (true)
+		{
+			if (s.cur >= _end_pos)
+				break;
+			_type = s.GetUChar();
+			switch (_type)
+			{
+				case 0:
+				{
+					s.Skip2(4);
+					var _c = s.GetULong();
+					for (var i = 0; i < _c; ++i)
+					{
+						s.Skip2(1); // type
+						var tmp = new CT_NamedSheetView();
+						tmp.fromStream(s, wb);
+						this.namedSheetView.push(tmp);
+					}
+					break;
+				}
+				default:
+				{
+					s.SkipRecord();
+					break;
+				}
+			}
+		}
+		s.Seek2(_end_pos);
+	};
+
 	function CT_NamedSheetView() {
 		this.nsvFilters = [];
 		//this.extLst
 		this.name = null;
-		this.id = null;
+		this.id = AscCommon.CreateGUID();
 
 		this.ws = null;
 		this.isLock = null;
@@ -48,6 +119,79 @@
 		return this;
 	}
 
+	CT_NamedSheetView.prototype.toStream = function (s, tableIds) {
+		s.WriteUChar(AscCommon.g_nodeAttributeStart);
+		s._WriteString2(0, this.name);
+		s._WriteString2(1, this.id);
+		s.WriteUChar(AscCommon.g_nodeAttributeEnd);
+
+		s.StartRecord(0);
+		var len = this.nsvFilters.length;
+		s.WriteULong(len);
+		for (var i = 0; i < len; i++) {
+			s.StartRecord(0);
+			this.nsvFilters[i].toStream(s, tableIds);
+			s.EndRecord();
+		}
+		s.EndRecord();
+	};
+	CT_NamedSheetView.prototype.fromStream = function (s, wb) {
+		var _len = s.GetULong();
+		var _start_pos = s.cur;
+		var _end_pos = _len + _start_pos;
+		var _at;
+// attributes
+		s.GetUChar();
+		while (true)
+		{
+			_at = s.GetUChar();
+			if (_at === AscCommon.g_nodeAttributeEnd)
+				break;
+			switch (_at)
+			{
+				case 0: { this.name = s.GetString2(); break; }
+				case 1: { this.id = s.GetString2(); break; }
+				default:
+					s.Seek2(_end_pos);
+					return;
+			}
+		}
+//members
+		var _type;
+		while (true)
+		{
+			if (s.cur >= _end_pos)
+				break;
+			_type = s.GetUChar();
+			switch (_type)
+			{
+				case 0:
+				{
+					s.Skip2(4);
+					var _c = s.GetULong();
+					for (var i = 0; i < _c; ++i)
+					{
+						s.Skip2(1); // type
+						var tmp = new CT_NsvFilter();
+						tmp.fromStream(s, wb);
+						this.nsvFilters.push(tmp);
+					}
+					break;
+				}
+				default:
+				{
+					s.SkipRecord();
+					break;
+				}
+			}
+		}
+		s.Seek2(_end_pos);
+	};
+	CT_NamedSheetView.prototype.initPostOpen = function (tableIds) {
+		for (var i = 0; i < this.nsvFilters.length; ++i) {
+			this.nsvFilters[i].initPostOpen(tableIds);
+		}
+	};
 	CT_NamedSheetView.prototype.clone = function () {
 		var res = new CT_NamedSheetView();
 
@@ -70,13 +214,98 @@
 		this.columnsFilter = [];
 		this.sortRules = null;
 		//this.extLst
-		this.filterId = null;
+		this.filterId = AscCommon.CreateGUID();
 		this.ref = null;
 		this.tableId = null;
+		this.tableIdOpen = null;
 
 		return this;
 	}
 
+	CT_NsvFilter.prototype.toStream = function (s, tableIds) {
+		s.WriteUChar(AscCommon.g_nodeAttributeStart);
+		s._WriteString2(0, this.filterId);
+		if (null !== this.ref) {
+			s._WriteString2(1, this.ref.getName(AscCommonExcel.referenceType.R));
+		}
+		if ("0" === this.tableId) {
+			s._WriteUInt2(2, 0);
+		} else {
+			var elem = tableIds && tableIds[this.tableId];
+			if (elem) {
+				s._WriteUInt2(2, elem.id);
+			}
+		}
+		s._WriteUInt2(2, this.tableIdOpen);
+		s.WriteUChar(AscCommon.g_nodeAttributeEnd);
+
+		s.WriteRecordArray4(0, 0, this.columnsFilter);
+		if (null !== this.sortRules) {
+			var sortRules = new CT_SortRules();
+			sortRules.sortRule = this.sortRules;
+			s.WriteRecord4(1, sortRules);
+		}
+	};
+	CT_NsvFilter.prototype.fromStream = function (s, wb) {
+		var _len = s.GetULong();
+		var _start_pos = s.cur;
+		var _end_pos = _len + _start_pos;
+		var _at;
+// attributes
+		s.GetUChar();
+		while (true)
+		{
+			_at = s.GetUChar();
+			if (_at === AscCommon.g_nodeAttributeEnd)
+				break;
+			switch (_at)
+			{
+				case 0: { this.filterId = s.GetString2(); break; }
+				case 1: { this.ref = AscCommonExcel.g_oRangeCache.getAscRange(s.GetString2()); break; }
+				case 2: { this.tableIdOpen = s.GetULong(); break; }
+				default:
+					s.Seek2(_end_pos);
+					return;
+			}
+		}
+//members
+		var _type;
+		while (true)
+		{
+			if (s.cur >= _end_pos)
+				break;
+			_type = s.GetUChar();
+			switch (_type)
+			{
+				case 0:
+				{
+					s.Skip2(4);
+					var _c = s.GetULong();
+					for (var i = 0; i < _c; ++i)
+					{
+						s.Skip2(1); // type
+						var tmp = new CT_ColumnFilter();
+						tmp.fromStream(s, wb);
+						this.columnsFilter.push(tmp);
+					}
+					break;
+				}
+				case 1:
+				{
+					var sortRules = new CT_SortRules();
+					sortRules.fromStream(s, wb);
+					this.sortRules = sortRules.sortRule;
+					break;
+				}
+				default:
+				{
+					s.SkipRecord();
+					break;
+				}
+			}
+		}
+		s.Seek2(_end_pos);
+	};
 	CT_NsvFilter.prototype.clone = function () {
 		var res = new CT_NsvFilter();
 		var i;
@@ -95,11 +324,16 @@
 
 	CT_NsvFilter.prototype.initPostOpen = function (tableIds) {
 		var table = null;
-		if (null != this.tableId) {
-			table = tableIds[this.tableId];
-			if (table) {
-				this.tableId = table.DisplayName;
-			}
+		if (null != this.tableIdOpen) {
+			if (0 !== this.tableIdOpen) {
+				table = tableIds[this.tableIdOpen];
+				if (table) {
+					this.tableId = table.DisplayName;
+				}
+			} else {
+				this.tableId = "0";
+		}
+			this.tableIdOpen = null;
 		}
 		return table;
 	};
@@ -139,47 +373,310 @@
 
 
 	function CT_ColumnFilter() {
-		this.dxf = null;
 		this.filter = null;
 		//this.extLst
 
 		//нужно ли?
 		this.colId = null;
-		this.id = null;
+		this.id = AscCommon.CreateGUID();
 
 		return this;
 	}
 
+	CT_ColumnFilter.prototype.toStream = function (s) {
+		s.WriteUChar(AscCommon.g_nodeAttributeStart);
+		s._WriteUInt2(0, this.colId);
+		s._WriteString2(1, this.id);
+		s.WriteUChar(AscCommon.g_nodeAttributeEnd);
+
+		var dxfs = [];
+		if (null !== this.filter) {
+			s.StartRecord(1);
+			s.WriteULong(1);
+			s.StartRecord(0);
+			var tmp = new AscCommon.CMemory(true);
+			s.ExportToMemory(tmp);
+			var btw = new AscCommonExcel.BinaryTableWriter(tmp, dxfs, false, {});
+			btw.WriteFilterColumn(this.filter);
+			s.ImportFromMemory(tmp);
+			s.EndRecord();
+			s.EndRecord();
+		}
+		if (dxfs.length > 0) {
+			s.StartRecord(0);
+			var tmp = new AscCommon.CMemory(true);
+			s.ExportToMemory(tmp);
+			var bstw = new AscCommonExcel.BinaryStylesTableWriter(tmp, null, null);
+			bstw.WriteDxf(dxfs[0]);
+			s.ImportFromMemory(tmp);
+			s.EndRecord();
+		}
+	};
+	CT_ColumnFilter.prototype.fromStream = function (s, wb) {
+		var _len = s.GetULong();
+		var _start_pos = s.cur;
+		var _end_pos = _len + _start_pos;
+		var _at;
+// attributes
+		s.GetUChar();
+		while (true)
+		{
+			_at = s.GetUChar();
+			if (_at === AscCommon.g_nodeAttributeEnd)
+				break;
+			switch (_at)
+			{
+				case 0: { this.colId = s.GetULong(); break; }
+				case 1: { this.id = s.GetString2(); break; }
+				default:
+					s.Seek2(_end_pos);
+					return;
+			}
+		}
+//members
+		var dxfs = [];
+		var _type;
+		while (true)
+		{
+			if (s.cur >= _end_pos)
+				break;
+			_type = s.GetUChar();
+			switch (_type)
+			{
+				case 0:
+				{
+					var _stream = new AscCommon.FT_Stream2();
+					_stream.FromFileStream(s);
+					var bsr = new AscCommonExcel.Binary_StylesTableReader(_stream, wb);
+					dxfs.push(bsr.ReadDxfExternal());
+					_stream.ToFileStream2(s);
+					break;
+				}
+				case 1:
+				{
+					s.Skip2(4);
+					var _c = s.GetULong();
+					for (var i = 0; i < _c; ++i)
+					{
+						s.Skip2(1); // type
+						var _stream = new AscCommon.FT_Stream2();
+						_stream.FromFileStream(s);
+						var oReadResult = new AscCommonWord.DocReadResult(null);
+						var bwtr = new AscCommonExcel.Binary_TableReader(_stream, oReadResult, null, dxfs);
+						this.filter = bwtr.ReadFilterColumnExternal();
+						_stream.ToFileStream2(s);
+					}
+					break;
+				}
+				default:
+				{
+					s.SkipRecord();
+					break;
+				}
+			}
+		}
+		s.Seek2(_end_pos);
+	};
 	CT_ColumnFilter.prototype.clone = function () {
 		var res = new CT_ColumnFilter();
-		res.dxf = this.dxf ? this.dxf.clone() : null;
 		res.filter = this.filter ? this.filter.clone() : null;
 
 		return res;
 	};
 
+	function CT_SortRules() {
+		this.sortMethod = null;//none
+		this.caseSensitive = null;//False
+		this.sortRule = [];
+		// this.extLst = null;
+		return this;
+	}
+	CT_SortRules.prototype.toStream = function (s) {
+		s.WriteUChar(AscCommon.g_nodeAttributeStart);
+		s._WriteUChar2(0, this.sortMethod);
+		s._WriteBool2(1, this.caseSensitive);
+		s.WriteUChar(AscCommon.g_nodeAttributeEnd);
 
+		s.WriteRecordArray4(0, 0, this.sortRule);
+	};
+	CT_SortRules.prototype.fromStream = function (s, wb) {
+		var _len = s.GetULong();
+		var _start_pos = s.cur;
+		var _end_pos = _len + _start_pos;
+		var _at;
+// attributes
+		s.GetUChar();
+		while (true)
+		{
+			_at = s.GetUChar();
+			if (_at === AscCommon.g_nodeAttributeEnd)
+				break;
+			switch (_at)
+			{
+				case 0: { this.sortMethod = s.GetUChar(); break; }
+				case 1: { this.caseSensitive = s.GetBool(); break; }
+				default:
+					s.Seek2(_end_pos);
+					return;
+			}
+		}
+//members
+		var _type;
+		while (true)
+		{
+			if (s.cur >= _end_pos)
+				break;
+			_type = s.GetUChar();
+			switch (_type)
+			{
+				case 0:
+				{
+					s.Skip2(4);
+					var _c = s.GetULong();
+					for (var i = 0; i < _c; ++i)
+					{
+						s.Skip2(1); // type
+						var tmp = new CT_SortRule();
+						tmp.fromStream(s, wb);
+						this.sortRule.push(tmp);
+					}
+					break;
+				}
+				default:
+				{
+					s.SkipRecord();
+					break;
+				}
+			}
+		}
+		s.Seek2(_end_pos);
+	};
 	function CT_SortRule() {
-		this.dxf = null;
 		this.sortCondition = null;
 		this.richSortCondition = null;
 
 		//нужно ли?
 		this.colId = null;
-		this.id = null;
+		this.id = AscCommon.CreateGUID();
 
 		return this;
 	}
 
+	CT_SortRule.prototype.toStream = function (s) {
+		s.WriteUChar(AscCommon.g_nodeAttributeStart);
+		s._WriteUInt2(0, this.colId);
+		s._WriteString2(1, this.id);
+		s.WriteUChar(AscCommon.g_nodeAttributeEnd);
+
+		// s.WriteRecord4(1, this.richSortCondition);
+		var dxfs = [];
+		if (null !== this.sortCondition) {
+			s.StartRecord(2);
+			var tmp = new AscCommon.CMemory(true);
+			s.ExportToMemory(tmp);
+			var btw = new AscCommonExcel.BinaryTableWriter(tmp, dxfs, false, {});
+			//dxfId is absent in sortCondition
+			if (this.sortCondition.dxf) {
+				dxfs.push(this.sortCondition.dxf);
+				this.sortCondition.dxf = null;
+			}
+			btw.WriteSortCondition(this.sortCondition);
+			if (dxfs.length > 0) {
+				this.sortCondition.dxf = dxfs[0];
+			}
+			s.ImportFromMemory(tmp);
+			s.EndRecord();
+		}
+		if (dxfs.length > 0) {
+			s.StartRecord(0);
+			var tmp = new AscCommon.CMemory(true);
+			s.ExportToMemory(tmp);
+			var bstw = new AscCommonExcel.BinaryStylesTableWriter(tmp, null, null);
+			bstw.WriteDxf(dxfs[0]);
+			s.ImportFromMemory(tmp);
+			s.EndRecord();
+		}
+	};
+	CT_SortRule.prototype.fromStream = function (s, wb) {
+		var _len = s.GetULong();
+		var _start_pos = s.cur;
+		var _end_pos = _len + _start_pos;
+		var _at;
+// attributes
+		s.GetUChar();
+		while (true)
+		{
+			_at = s.GetUChar();
+			if (_at === AscCommon.g_nodeAttributeEnd)
+				break;
+			switch (_at)
+			{
+				case 0: { this.colId = s.GetULong(); break; }
+				case 1: { this.id = s.GetString2(); break; }
+				default:
+					s.Seek2(_end_pos);
+					return;
+			}
+		}
+//members
+		var dxfs = [];
+		var _type;
+		while (true)
+		{
+			if (s.cur >= _end_pos)
+				break;
+			_type = s.GetUChar();
+			switch (_type)
+			{
+				case 0:
+				{
+					var _stream = new AscCommon.FT_Stream2();
+					_stream.FromFileStream(s);
+					var bsr = new AscCommonExcel.Binary_StylesTableReader(_stream, wb);
+					dxfs.push(bsr.ReadDxfExternal());
+					_stream.ToFileStream2(s);
+					break;
+				}
+				// case 1:
+				// {
+				// 	this.richSortCondition = new CT_RichSortCondition();
+				// 	this.richSortCondition.fromStream(s);
+				// 	break;
+				// }
+				case 2:
+				{
+					var _stream = new AscCommon.FT_Stream2();
+					_stream.FromFileStream(s);
+					var oReadResult = new AscCommonWord.DocReadResult(null);
+					var bwtr = new AscCommonExcel.Binary_TableReader(_stream, oReadResult, null, dxfs);
+					this.sortCondition = bwtr.ReadSortConditionExternal();
+					//dxfId is absent in sortCondition
+					if((Asc.ESortBy.sortbyCellColor === this.sortCondition.ConditionSortBy ||
+						Asc.ESortBy.sortbyFontColor === this.sortCondition.ConditionSortBy)
+						&& null === this.sortCondition.dxf && dxfs.length > 0) {
+						this.sortCondition.dxf = dxfs[0];
+					}
+					_stream.ToFileStream2(s);
+					break;
+				}
+				default:
+				{
+					s.SkipRecord();
+					break;
+				}
+			}
+		}
+		s.Seek2(_end_pos);
+	};
 	CT_SortRule.prototype.clone = function () {
 		var res = new CT_SortRule();
-		res.dxf = this.dxf ? this.dxf.clone() : null;
 		res.sortCondition = this.sortCondition ? this.sortCondition.clone() : null;
 		res.richSortCondition = this.richSortCondition ? this.richSortCondition.clone() : null;
 
 		return res;
 	};
 
+	window["Asc"]["CT_NamedSheetViews"] = window['Asc'].CT_NamedSheetViews = CT_NamedSheetViews;
 	window["Asc"]["CT_NamedSheetView"] = window['Asc'].CT_NamedSheetView = CT_NamedSheetView;
 	window["Asc"]["CT_NsvFilter"] = window['Asc'].CT_NsvFilter = CT_NsvFilter;
 	window["Asc"]["CT_ColumnFilter"] = window['Asc'].CT_ColumnFilter = CT_ColumnFilter;

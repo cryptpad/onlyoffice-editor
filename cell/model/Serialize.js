@@ -313,7 +313,8 @@
 		SortState: 36,
         Slicers: 37,
         SlicersExt: 38,
-        Slicer: 39
+		Slicer: 39,
+		NamedSheetView: 40
     };
     /** @enum */
     var c_oSerWorksheetPropTypes =
@@ -3362,6 +3363,23 @@
 			if (null !== ws.dataValidations) {
 				this.bs.WriteItem(c_oSerWorksheetsTypes.DataValidations, function () {oThis.WriteDataValidations(ws.dataValidations);});
 			}
+			if (ws.aNamedSheetViews.length > 0) {
+				this.bs.WriteItem(c_oSerWorksheetsTypes.NamedSheetView, function () {
+					var namedSheetViews = new Asc.CT_NamedSheetViews();
+					namedSheetViews.namedSheetView = ws.aNamedSheetViews;
+
+					var old = new AscCommon.CMemory(true);
+					pptx_content_writer.BinaryFileWriter.ExportToMemory(old);
+					pptx_content_writer.BinaryFileWriter.ImportFromMemory(oThis.memory);
+
+					pptx_content_writer.BinaryFileWriter.StartRecord(0);
+					namedSheetViews.toStream(pptx_content_writer.BinaryFileWriter, oThis.tableIds);
+					pptx_content_writer.BinaryFileWriter.EndRecord();
+
+					pptx_content_writer.BinaryFileWriter.ExportToMemory(oThis.memory);
+					pptx_content_writer.BinaryFileWriter.ImportFromMemory(old);
+				});
+			}
         };
 		this.WriteDataValidations = function(dataValidations)
 		{
@@ -5398,6 +5416,16 @@
                 res = c_oSerConstants.ReadUnknown;
             return res;
         };
+		this.ReadFilterColumnExternal = function()
+		{
+			var oThis = this;
+			var oFilterColumn = new AscCommonExcel.FilterColumn();
+			var length = this.stream.GetULongLE();
+			var res = this.bcr.Read1(length, function(t,l){
+				return oThis.ReadFilterColumn(t,l, oFilterColumn);
+			});
+			return oFilterColumn;
+		}
         this.ReadFilters = function(type, length, oFilters)
         {
             var res = c_oSerConstants.ReadOk;
@@ -5578,6 +5606,16 @@
                 res = c_oSerConstants.ReadUnknown;
             return res;
         };
+		this.ReadSortConditionExternal = function()
+		{
+			var oThis = this;
+			var oSortCondition = new AscCommonExcel.SortCondition();
+			var length = this.stream.GetULongLE();
+			var res = this.bcr.Read2Spreadsheet(length, function(t,l){
+				return oThis.ReadSortConditionContent(t,l, oSortCondition);
+			});
+			return oSortCondition;
+		}
         this.ReadSortState = function(type, length, oSortState)
         {
             var res = c_oSerConstants.ReadOk;
@@ -6659,6 +6697,15 @@
                 res = c_oSerConstants.ReadUnknown;
             return res;
         };
+		this.ReadDxfExternal = function () {
+			var oThis = this;
+			var dxf = new CT_Dxf();
+			var length = this.stream.GetULongLE();
+			this.bcr.Read1(length, function (t, l) {
+				return oThis.ReadDxf(t, l, dxf);
+			});
+			return dxf;
+		}
         this.ReadTableStyles = function(type, length, oTableStyles, oCustomStyles)
         {
             var res = c_oSerConstants.ReadOk;
@@ -7419,6 +7466,13 @@
                 res = this.bcr.Read1(length, function(t, l) {
                     return oThis.ReadSlicers(t, l, oWorksheet);
                 });
+			} else if (c_oSerWorksheetsTypes.NamedSheetView === type) {
+				var fileStream = this.stream.ToFileStream();
+				fileStream.GetUChar();
+				var namedSheetViews = new Asc.CT_NamedSheetViews();
+				namedSheetViews.fromStream(fileStream, this.wb);
+				oWorksheet.aNamedSheetViews = namedSheetViews.namedSheetView;
+				this.stream.FromFileStream(fileStream);
 			} else
 				res = c_oSerConstants.ReadUnknown;
 			return res;

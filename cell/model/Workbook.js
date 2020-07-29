@@ -3874,7 +3874,10 @@
 		this._setHandlersTablePart();
 		this.aSlicers.forEach(function(elem){
 			elem.initPostOpen(tableIds);
-		})
+		});
+		this.aNamedSheetViews.forEach(function(elem){
+			elem.initPostOpen(tableIds);
+		});
 	};
 	Worksheet.prototype._getValuesForConditionalFormatting = function(ranges, numbers) {
 		var res = [];
