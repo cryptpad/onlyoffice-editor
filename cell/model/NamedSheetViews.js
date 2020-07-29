@@ -191,6 +191,17 @@
 		}
 		s.Seek2(_end_pos);
 	};
+	CT_NamedSheetView.prototype.Read_FromBinary2 = function (reader) {
+		var length = reader.GetLong();
+		for (var i = 0; i < length; ++i) {
+			var _filter = new CT_NsvFilter();
+			_filter.Read_FromBinary2(reader)
+			this.nsvFilters.push(_filter);
+		}
+
+		this.name = reader.GetString2();
+		this.id = reader.GetLong();
+	};
 	CT_NamedSheetView.prototype.initPostOpen = function (tableIds) {
 		for (var i = 0; i < this.nsvFilters.length; ++i) {
 			this.nsvFilters[i].initPostOpen(tableIds);
@@ -309,6 +320,27 @@
 			}
 		}
 		s.Seek2(_end_pos);
+	};
+	CT_NsvFilter.prototype.Read_FromBinary2 = function (reader) {
+		var i, obj;
+		var length = reader.GetLong();
+		for (i = 0; i < length; ++i) {
+			_obj = new CT_ColumnFilter();
+			_obj.Read_FromBinary2(reader)
+			this.columnsFilter.push(_obj);
+		}
+
+		length = reader.GetLong();
+		for (i = 0; i < length; ++i) {
+			var _obj = new CT_SortRule();
+			if (!this.sortRules) {
+				this.sortRules = [];
+			}
+			_obj.Read_FromBinary2(reader)
+			this.sortRules.push(_obj);
+		}
+
+		this.filterId = reader.GetLong();
 	};
 	CT_NsvFilter.prototype.clone = function () {
 		var res = new CT_NsvFilter();
@@ -480,6 +512,26 @@
 			}
 		}
 		s.Seek2(_end_pos);
+	};
+	CT_ColumnFilter.prototype.Read_FromBinary2 = function (reader) {
+		if (reader.GetBool()) {
+			var api_sheet = Asc['editor'];
+			var wb = api_sheet.wbModel;
+			var bsr = new AscCommonExcel.Binary_StylesTableReader(reader, wb);
+			var bcr = new AscCommon.Binary_CommonReader(r);
+			var oDxf = new AscCommonExcel.CellXfs();
+			reader.GetUChar();
+			var length = reader.GetULongLE();
+			bcr.Read1(length, function(t,l){
+				return bsr.ReadDxf(t,l,oDxf);
+			});
+			this.dxf = oDxf;
+		}
+		if (reader.GetBool()) {
+			var obj = new window['AscCommonExcel'].FilterColumn();
+			obj.Read_FromBinary2(reader);
+			this.filter = obj;
+		}
 	};
 	CT_ColumnFilter.prototype.clone = function () {
 		var res = new CT_ColumnFilter();
@@ -671,6 +723,35 @@
 			}
 		}
 		s.Seek2(_end_pos);
+	};
+	CT_SortRule.prototype.Read_FromBinary2 = function (reader) {
+		if (reader.GetBool()) {
+			var api_sheet = Asc['editor'];
+			var wb = api_sheet.wbModel;
+			var bsr = new AscCommonExcel.Binary_StylesTableReader(reader, wb);
+			var bcr = new AscCommon.Binary_CommonReader(r);
+			var oDxf = new AscCommonExcel.CellXfs();
+			reader.GetUChar();
+			var length = reader.GetULongLE();
+			bcr.Read1(length, function(t,l){
+				return bsr.ReadDxf(t,l,oDxf);
+			});
+			this.dxf = oDxf;
+		}
+
+		var obj;
+		if (reader.GetBool()) {
+			obj = new new AscCommonExcel.FilterColumn();
+			obj.Read_FromBinary2(reader);
+			this.sortCondition = obj;
+		}
+
+		if (reader.GetBool()) {
+			obj = new AscCommonExcel.SortCondition()();
+			obj.Read_FromBinary2(reader);
+			//TODO CT_RichSortCondition ?
+			this.richSortCondition = obj;
+		}
 	};
 	CT_SortRule.prototype.clone = function () {
 		var res = new CT_SortRule();
