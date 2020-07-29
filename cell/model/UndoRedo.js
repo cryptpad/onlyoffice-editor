@@ -595,7 +595,7 @@ function (window, undefined) {
 				case this.Slicer:
 					return new window['Asc'].CT_slicer();
 				case this.NamedSheetView:
-					return new window['Asc'].UndoRedoData_NamedSheetView();
+					return new window['Asc'].CT_NamedSheetView();
 			}
 			return null;
 		};
@@ -2819,7 +2819,14 @@ function (window, undefined) {
 				namedSheetView.asc_setIsActive();
 				ws.autoFilters.reapplyAllFilters(true);
 			}
+		} else if (AscCH.historyitem_Worksheet_SheetViewAdd === Type) {
+			if (bUndo) {
+				//ws.deleteSlicer(Data.to.name);
+			} else {
+				ws.aNamedSheetViews.push(Data.to);
+			}
 		}
+
 	};
 	UndoRedoWoorksheet.prototype.forwardTransformationIsAffect = function (Type) {
 		return AscCH.historyitem_Worksheet_AddRows === Type || AscCH.historyitem_Worksheet_RemoveRows === Type ||

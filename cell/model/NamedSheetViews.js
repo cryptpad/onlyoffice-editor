@@ -119,6 +119,10 @@
 		return this;
 	}
 
+	CT_NamedSheetView.prototype.getType = function() {
+		return AscCommonExcel.UndoRedoDataTypes.NamedSheetView;
+	};
+
 	CT_NamedSheetView.prototype.toStream = function (s, tableIds) {
 		s.WriteUChar(AscCommon.g_nodeAttributeStart);
 		s._WriteString2(0, this.name);

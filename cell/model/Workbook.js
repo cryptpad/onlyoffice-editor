@@ -8386,9 +8386,9 @@
 		}
 
 		this.aNamedSheetViews.push(sheetView);
-		//TODO history
-		/*History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_SheetViewAdd, this.getId(), null,
-				new AscCommonExcel.UndoRedoData_BinaryWrapper(sheetView));*/
+
+		History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_SheetViewAdd, this.getId(), null,
+			new AscCommonExcel.UndoRedoData_FromTo(null, sheetView));
 	};
 
 	Worksheet.prototype.deleteNamedSheetViews = function (arr) {
