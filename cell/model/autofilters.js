@@ -155,7 +155,8 @@
 			filter		: 2, 
 			automaticRowCount : 3,
 			displayName: 4,
-            isTextFilter: 5
+			isTextFilter: 5,
+			namedSheetView: 6
 		};
 		function AutoFiltersOptions () {
 
@@ -177,6 +178,7 @@
 			this.sortColor = null;
 			this.columnName = null;
 			this.sheetColumnName = null;
+			this.namedSheetView = null;
 			
 			return this;
 		}
@@ -196,10 +198,11 @@
 					case this.Properties.filter: return this.filter;
 					case this.Properties.automaticRowCount: return this.automaticRowCount;
 					case this.Properties.displayName: return this.displayName;
-                    case this.Properties.isTextFilter: return this.isTextFilter;
-                    case this.Properties.colorsFill: return this.colorsFill;
-                    case this.Properties.colorsFont: return this.colorsFont;
-                    case this.Properties.sortColor: return this.sortColor;
+					case this.Properties.isTextFilter: return this.isTextFilter;
+					case this.Properties.colorsFill: return this.colorsFill;
+					case this.Properties.colorsFont: return this.colorsFont;
+					case this.Properties.sortColor: return this.sortColor;
+					case this.Properties.namedSheetView: return this.namedSheetView;
 				}
 
 				return null;
@@ -215,6 +218,7 @@
                     case this.Properties.colorsFill: this.colorsFill = value;break;
                     case this.Properties.colorsFont: this.colorsFont = value;break;
                     case this.Properties.sortColor: this.sortColor = value;break;
+					case this.Properties.namedSheetView: this.namedSheetView = value;break;
 				}
 			},
 			
@@ -732,10 +736,12 @@
 					autoFilter = filterObj.filter.addAutoFilter();
 				}
 
-				var activeNamedSheetView = worksheet.getActiveNamedSheetView();
+				var nActiveNamedSheetView = worksheet.getActiveNamedSheetView();
 				var bCollaborativeChanges = this.worksheet.workbook.bCollaborativeChanges;
 				var nsvFilter;
-				if (activeNamedSheetView !== null && !bCollaborativeChanges) {
+				var activeNamedSheetView;
+				if (nActiveNamedSheetView !== null && !bCollaborativeChanges) {
+					activeNamedSheetView = worksheet.aNamedSheetViews[nActiveNamedSheetView];
 					nsvFilter = worksheet.getNvsFilterByTableName(filterObj.filter.DisplayName);
 					if (nsvFilter) {
 						//TODO перепроверить. соответствует ли индекс?
@@ -819,6 +825,10 @@
 				//update slicer
 				if (currentFilter && !currentFilter.isAutoFilter()) {
 					this.updateSlicer(currentFilter.DisplayName);
+				}
+
+				if (activeNamedSheetView) {
+					autoFiltersObject.namedSheetView = activeNamedSheetView.name;
 				}
 
 				//history
@@ -2944,7 +2954,7 @@
 					oHistoryObject.type = redoObject.type;
 					oHistoryObject.cellId = redoObject.cellId;
 					oHistoryObject.autoFiltersObject = redoObject.autoFiltersObject;
-					oHistoryObject.addFormatTableOptionsObj = redoObject.addFormatTableOptionsObj;
+					oHistoryObject.addFormatTableOptionsObj = redoObject.addFormatTableOptionsObj
 					oHistoryObject.moveFrom = redoObject.arnFrom;
 					oHistoryObject.moveTo = redoObject.arnTo;
 					oHistoryObject.bWithoutFilter = bWithoutFilter ? bWithoutFilter : false;
