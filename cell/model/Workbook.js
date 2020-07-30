@@ -5369,10 +5369,21 @@
 
 		if (null !== this.getActiveNamedSheetView()) {
 			var rowsArr = this.autoFilters.splitRangeByFilters(start, stop);
-			if (rowsArr && rowsArr.length) {
+			if (rowsArr) {
+				var j;
 				History.Create_NewPoint();
-				for (var j = 0; j < rowsArr.length; j++) {
-					doHide(rowsArr[j].start, rowsArr[j].stop)
+				if (rowsArr[0] && rowsArr[0].length) {
+					var oldLocalChange = History.LocalChange;
+					History.LocalChange = true;
+					for (j = 0; j < rowsArr[0].length; j++) {
+						doHide(rowsArr[0][j].start, rowsArr[0][j].stop)
+					}
+					History.LocalChange = oldLocalChange;
+				}
+				if (rowsArr[1] && rowsArr[1].length) {
+					for (j = 0; j < rowsArr[1].length; j++) {
+						doHide(rowsArr[1][j].start, rowsArr[1][j].stop)
+					}
 				}
 			}
 		} else {

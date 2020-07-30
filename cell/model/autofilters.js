@@ -5629,13 +5629,42 @@
 				var otherArr;
 				var isFilter = null;
 				for (var i = start; i <= stop; i++) {
-					var addTo;
 					if (this.containInFilter(i)) {
-						if (isFilter === null) {
+						if (isFilter) {
+							if (!filterArr) {
+								filterArr = [];
 
+								filterArr[filterArr.length] = {start: i, stop: i};
+							} else {
+								filterArr[filterArr.length - 1].stop++;
+							}
+						} else {
+							isFilter = true;
+							if (!filterArr) {
+								filterArr = [];
+							}
+							filterArr[filterArr.length] = {start: i, stop: i};
+						}
+					} else {
+						if (isFilter) {
+							isFilter = false;
+							if (!otherArr) {
+								otherArr = [];
+							}
+							otherArr[otherArr.length] = {start: i, stop: i};
+						} else {
+							if (!otherArr) {
+								otherArr = [];
+
+								otherArr[otherArr.length] = {start: i, stop: i};
+							} else {
+								otherArr[otherArr.length - 1].stop++;
+							}
 						}
 					}
 				}
+
+				return [filterArr, otherArr];
 			},
 
 			containInFilter: function(row) {
