@@ -468,11 +468,19 @@ CDocumentContent.prototype.Set_CurrentElement = function(Index, bUpdateStates)
 		this.Selection.EndPos   = ContentPos;
 	}
 
-	this.Parent.Set_CurrentElement(bUpdateStates, this.Get_StartPage_Absolute(), this);
+	this.SetThisElementCurrent(bUpdateStates)
 };
 CDocumentContent.prototype.Is_ThisElementCurrent = function()
 {
-	return this.Parent.Is_ThisElementCurrent(this);
+	if (this.Parent)
+		return this.Parent.Is_ThisElementCurrent(this);
+
+	return false;
+};
+CDocumentContent.prototype.SetThisElementCurrent = function(isUpdateStates)
+{
+	if (this.Parent)
+		this.Parent.Set_CurrentElement(isUpdateStates, this.GetAbsolutePage(0), this);
 };
 // Получем ближающую возможную позицию курсора
 CDocumentContent.prototype.Get_NearestPos = function(CurPage, X, Y, bAnchor, Drawing)

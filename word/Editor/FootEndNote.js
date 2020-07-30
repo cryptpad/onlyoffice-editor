@@ -48,6 +48,7 @@ function CFootEndnote(DocumentController)
 	this.NeedUpdateHint    = true;
 	this.Hint              = "";
 	this.SectionIndex      = -1; // Номер секции, к которой относится данная сноска (нужно для концевых сносок)
+	this.Ref               = null; // Связанная с данной сноской ссылка
 
 	this.PositionInfo     = {
 		Paragraph : null,
@@ -258,6 +259,15 @@ CFootEndnote.prototype.ConvertFootnoteType = function(isToFootnote)
 			oRun.ConvertFootnoteType(isToFootnote, oStyles, oFootnote);
 		});
 	}
+};
+CFootEndnote.prototype.SetRef = function(oRef)
+{
+	if (oRef && (oRef instanceof ParaFootnoteReference || oRef instanceof ParaEndnoteReference))
+		this.Ref = oRef;
+};
+CFootEndnote.prototype.GetRef = function()
+{
+	return this.Ref;
 };
 
 //--------------------------------------------------------export----------------------------------------------------

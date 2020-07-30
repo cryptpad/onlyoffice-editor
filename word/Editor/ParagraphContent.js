@@ -1870,6 +1870,9 @@ function ParaFootnoteReference(Footnote, CustomMark)
 
 	this.Run          = null;
 	this.Widths       = [];
+
+	if (Footnote)
+		Footnote.SetRef(this);
 }
 ParaFootnoteReference.prototype = Object.create(CRunElementBase.prototype);
 ParaFootnoteReference.prototype.constructor = ParaFootnoteReference;
@@ -2083,6 +2086,14 @@ ParaFootnoteReference.prototype.GetAllFontNames = function(arrAllFonts)
 {
 	if (this.Footnote)
 		this.Footnote.Document_Get_AllFontNames(arrAllFonts);
+};
+ParaFootnoteReference.prototype.SetParent = function(oRun)
+{
+	this.Run = oRun;
+};
+ParaFootnoteReference.prototype.GetRun = function()
+{
+	return this.Run;
 };
 
 /**
