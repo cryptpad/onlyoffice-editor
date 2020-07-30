@@ -8342,13 +8342,14 @@
 		return this.nActiveNamedSheetView;
 	};
 
-	Worksheet.prototype.getNvsFilterByTableName = function (val) {
-		if (this.nActiveNamedSheetView === null) {
+	Worksheet.prototype.getNvsFilterByTableName = function (val, opt_name) {
+		var nActiveNamedSheetView = opt_name ? this.getIndexNamedSheetViewByName(opt_name) : this.nActiveNamedSheetView;
+		if (nActiveNamedSheetView === null) {
 			return;
 		}
 
 		if (Asc.CT_NamedSheetView.prototype.getNsvFiltersByTableId) {
-			var sheetView = this.aNamedSheetViews[this.nActiveNamedSheetView];
+			var sheetView = this.aNamedSheetViews[nActiveNamedSheetView];
 			return sheetView ? sheetView.getNsvFiltersByTableId(val) : null;
 		}
 

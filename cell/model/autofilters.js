@@ -740,9 +740,17 @@
 				var bCollaborativeChanges = this.worksheet.workbook.bCollaborativeChanges;
 				var nsvFilter;
 				var activeNamedSheetView;
-				if (nActiveNamedSheetView !== null && !bCollaborativeChanges) {
+				var redoNamedSheetViewName = autoFiltersObject.namedSheetView;
+				if ((nActiveNamedSheetView !== null && !bCollaborativeChanges) || redoNamedSheetViewName) {
 					activeNamedSheetView = worksheet.aNamedSheetViews[nActiveNamedSheetView];
-					nsvFilter = worksheet.getNvsFilterByTableName(filterObj.filter.DisplayName);
+					var activeNamedSheetViewName = activeNamedSheetView ? activeNamedSheetView.name : null;
+
+					if (redoNamedSheetViewName && redoNamedSheetViewName !== activeNamedSheetViewName) {
+						nsvFilter = worksheet.getNvsFilterByTableName(filterObj.filter.DisplayName, redoNamedSheetViewName);
+					} else {
+						nsvFilter = worksheet.getNvsFilterByTableName(filterObj.filter.DisplayName);
+					}
+
 					if (nsvFilter) {
 						//TODO перепроверить. соответствует ли индекс?
 						newFilterColumn = nsvFilter.getColumnFilterByColId(filterObj.ColId);

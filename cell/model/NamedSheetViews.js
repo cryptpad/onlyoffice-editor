@@ -376,8 +376,8 @@
 
 	CT_NsvFilter.prototype.getColumnFilterByColId = function (id) {
 		for (var i = 0; i < this.columnsFilter.length; ++i) {
-			if (this.columnsFilter[i].ColId === id) {
-				return this.columnsFilter[i];
+			if (this.columnsFilter[i].filter && this.columnsFilter[i].filter.ColId === id) {
+				return this.columnsFilter[i].filter;
 			}
 		}
 		return null;
