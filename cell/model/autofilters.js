@@ -5623,6 +5623,39 @@
 					rangeWithoutDiff: rangeWithoutDiff,
 					tablePartsContainsRange: tablePartsContainsRange
 				};
+			},
+			splitRangeByFilters: function(start, stop) {
+				var filterArr;
+				var otherArr;
+				var isFilter = null;
+				for (var i = start; i <= stop; i++) {
+					var addTo;
+					if (this.containInFilter(i)) {
+						if (isFilter === null) {
+
+						}
+					}
+				}
+			},
+
+			containInFilter: function(row) {
+				var ws = this.worksheet;
+				var tables = ws.TableParts;
+				var autoFilter = ws.AutoFilter;
+				if (tables) {
+					for (var i = 0; i < tables.length; i++) {
+						if (tables[i].isApplyAutoFilter() && row >= tables[i].Ref.r1 && row <= tables[i].Ref.r2) {
+							return true;
+						}
+					}
+				}
+				if (autoFilter) {
+					if (row >= autoFilter.Ref.r1 && row <= autoFilter.Ref.r2) {
+						return true;
+					}
+				}
+
+				return false;
 			}
 		};
 

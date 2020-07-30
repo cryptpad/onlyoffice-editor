@@ -5296,72 +5296,90 @@
 			return;
 		if(null == stop)
 			stop = start;
-		History.Create_NewPoint();
-		var oThis = this, i;
-		var startIndex = null, endIndex = null, updateRange, outlineLevel;
-		var bNotAddCollapsed = true == this.workbook.bUndoChanges || true == this.workbook.bRedoChanges || this.bExcludeCollapsed;
-		var _summaryBelow = this.sheetPr ? this.sheetPr.SummaryBelow : true;
-		var fProcessRow = function(row){
-			if(row && !bNotAddCollapsed && outlineLevel !== undefined && outlineLevel !== row.getOutlineLevel()) {
-				if(!_summaryBelow) {
-					oThis.setCollapsedRow(bHidden, row.index - 1);
-				} else {
-					oThis.setCollapsedRow(bHidden, null, row);
-				}
-			}
-			outlineLevel = row ? row.getOutlineLevel() : null;
 
-			if(row && bHidden != row.getHidden())
-			{
-				row.setHidden(bHidden);
+		var oThis = this;
 
-				if(row.index === endIndex + 1 && startIndex !== null)
-					endIndex++;
-				else
-				{
-					if(startIndex !== null)
-					{
-						updateRange = new Asc.Range(0, startIndex, gc_nMaxCol0, endIndex);
-						History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_RowHide, oThis.getId(), updateRange, new UndoRedoData_FromToRowCol(bHidden, startIndex, endIndex));
+		var doHide = function (_start, _stop) {
+			var i;
+			var startIndex = null, endIndex = null, updateRange, outlineLevel;
+			var bNotAddCollapsed = true == oThis.workbook.bUndoChanges || true == oThis.workbook.bRedoChanges || oThis.bExcludeCollapsed;
+			var _summaryBelow = oThis.sheetPr ? oThis.sheetPr.SummaryBelow : true;
+			var fProcessRow = function(row){
+				if(row && !bNotAddCollapsed && outlineLevel !== undefined && outlineLevel !== row.getOutlineLevel()) {
+					if(!_summaryBelow) {
+						oThis.setCollapsedRow(bHidden, row.index - 1);
+					} else {
+						oThis.setCollapsedRow(bHidden, null, row);
 					}
+				}
+				outlineLevel = row ? row.getOutlineLevel() : null;
 
-					startIndex = row.index;
-					endIndex = row.index;
+				if(row && bHidden != row.getHidden())
+				{
+					row.setHidden(bHidden);
+
+					if(row.index === endIndex + 1 && startIndex !== null)
+						endIndex++;
+					else
+					{
+						if(startIndex !== null)
+						{
+							updateRange = new Asc.Range(0, startIndex, gc_nMaxCol0, endIndex);
+							History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_RowHide, oThis.getId(), updateRange, new UndoRedoData_FromToRowCol(bHidden, startIndex, endIndex));
+						}
+
+						startIndex = row.index;
+						endIndex = row.index;
+					}
+				}
+			};
+			if(0 == _start && gc_nMaxRow0 == _stop)
+			{
+				// ToDo реализовать скрытие всех строк!
+			}
+			else
+			{
+				if(!_summaryBelow && _start > 0 && !bNotAddCollapsed) {
+					oThis._getRow(_start - 1, function(row) {
+						if(row) {
+							outlineLevel = row.getOutlineLevel();
+						}
+					});
+				}
+
+				for (i = _start; i <= _stop; ++i) {
+					false == bHidden ? oThis._getRowNoEmpty(i, fProcessRow) : oThis._getRow(i, fProcessRow);
+				}
+
+				if(_summaryBelow && outlineLevel && !bNotAddCollapsed) {
+					oThis._getRow(_stop + 1, function(row) {
+						if(row && outlineLevel !== row.getOutlineLevel()) {
+							oThis.setCollapsedRow(bHidden, null, row);
+						}
+					});
+				}
+
+				if(startIndex !== null)//заносим последние строки
+				{
+					updateRange = new Asc.Range(0, startIndex, gc_nMaxCol0, endIndex);
+					History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_RowHide, oThis.getId(),updateRange, new UndoRedoData_FromToRowCol(bHidden, startIndex, endIndex));
 				}
 			}
 		};
-		if(0 == start && gc_nMaxRow0 == stop)
-		{
-			// ToDo реализовать скрытие всех строк!
+
+		if (null !== this.getActiveNamedSheetView()) {
+			var rowsArr = this.autoFilters.splitRangeByFilters(start, stop);
+			if (rowsArr && rowsArr.length) {
+				History.Create_NewPoint();
+				for (var j = 0; j < rowsArr.length; j++) {
+					doHide(rowsArr[j].start, rowsArr[j].stop)
+				}
+			}
+		} else {
+			History.Create_NewPoint();
+			doHide(start, stop)
 		}
-		else
-		{
-			if(!_summaryBelow && start > 0 && !bNotAddCollapsed) {
-				this._getRow(start - 1, function(row) {
-					if(row) {
-						outlineLevel = row.getOutlineLevel();
-					}
-				});
-			}
 
-			for (i = start; i <= stop; ++i) {
-				false == bHidden ? this._getRowNoEmpty(i, fProcessRow) : this._getRow(i, fProcessRow);
-			}
-
-			if(_summaryBelow && outlineLevel && !bNotAddCollapsed) {
-				this._getRow(stop + 1, function(row) {
-					if(row && outlineLevel !== row.getOutlineLevel()) {
-						oThis.setCollapsedRow(bHidden, null, row);
-					}
-				});
-			}
-
-			if(startIndex !== null)//заносим последние строки
-			{
-				updateRange = new Asc.Range(0, startIndex, gc_nMaxCol0, endIndex);
-				History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_RowHide, oThis.getId(),updateRange, new UndoRedoData_FromToRowCol(bHidden, startIndex, endIndex));
-			}
-		}
 		if(this.needRecalFormulas(start, stop)) {
 			this.workbook.dependencyFormulas.calcTree();
 		}
