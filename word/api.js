@@ -4494,9 +4494,9 @@ background-repeat: no-repeat;\
 	{
 		return this.WordControl.m_oLogicDocument.GetEndnotePr();
 	};
-	asc_docs_api.prototype.asc_ConvertFootnoteType = function()
+	asc_docs_api.prototype.asc_ConvertFootnoteType = function(isCurrent, isFootnotes, isEndnotes)
 	{
-		this.WordControl.m_oLogicDocument.ConvertFootnoteType();
+		this.WordControl.m_oLogicDocument.ConvertFootnoteType(isCurrent, isFootnotes, isEndnotes);
 	};
 	asc_docs_api.prototype["asc_AddFootnote"]         = asc_docs_api.prototype.asc_AddFootnote;
 	asc_docs_api.prototype["asc_RemoveAllFootnotes"]  = asc_docs_api.prototype.asc_RemoveAllFootnotes;
