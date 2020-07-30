@@ -341,6 +341,23 @@
 		}
 
 		this.filterId = reader.GetLong();
+
+		if (reader.GetBool()) {
+			var r1 = reader.GetLong();
+			var c1 = reader.GetLong();
+			var r2 = reader.GetLong();
+			var c2 = reader.GetLong();
+
+			this.ref = new Asc.Range(c1, r1, c2, r2);
+		}
+
+		if (reader.GetBool()) {
+			this.tableId = reader.GetString2();
+		}
+
+		if (reader.GetBool()) {
+			this.tableIdOpen = reader.GetString2();
+		}
 	};
 	CT_NsvFilter.prototype.clone = function () {
 		var res = new CT_NsvFilter();
@@ -355,6 +372,8 @@
 		res.filterId = this.filterId;
 		res.ref = this.ref;
 		res.tableId = this.tableId;
+		res.tableIdOpen = this.tableIdOpen;
+
 		return res;
 	};
 
