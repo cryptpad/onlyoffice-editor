@@ -738,7 +738,7 @@
 
 				var nActiveNamedSheetView = worksheet.getActiveNamedSheetView();
 				var bCollaborativeChanges = this.worksheet.workbook.bCollaborativeChanges;
-				var nsvFilter;
+				var nsvFilter, nsvFilterIndex;
 				var activeNamedSheetView;
 				var redoNamedSheetViewName = autoFiltersObject.namedSheetView;
 				if ((nActiveNamedSheetView !== null && !bCollaborativeChanges) || redoNamedSheetViewName) {
@@ -753,7 +753,7 @@
 
 					if (nsvFilter) {
 						//TODO перепроверить. соответствует ли индекс?
-						newFilterColumn = nsvFilter.getColumnFilterByColId(filterObj.ColId);
+						newFilterColumn = nsvFilter.getColumnFilterByColId(filterObj.ColId, true);
 
 						if (!newFilterColumn) {
 							newFilterColumn = new window['AscCommonExcel'].FilterColumn();
@@ -764,6 +764,10 @@
 							_columnFilter.filter = newFilterColumn;
 
 							nsvFilter.columnsFilter.push(_columnFilter);
+						} else {
+							nsvFilterIndex = newFilterColumn.index;
+							newFilterColumn = newFilterColumn.filter;
+							newFilterColumn.clean();
 						}
 					}
 				} else {
@@ -788,12 +792,18 @@
 					autoFiltersObject.filter.filter.FilterVal = newFilterColumn.Top10.FilterVal;
 				}
 
-				if (allFilterOpenElements && autoFilter.FilterColumns[filterObj.index]) {
+				if (allFilterOpenElements && autoFilter.FilterColumns[filterObj.index] && !nsvFilter) {
 					if (autoFilter.FilterColumns[filterObj.index].ShowButton !== false) {
 						autoFilter.FilterColumns.splice(filterObj.index, 1);
 					}//if all rows opened
 					else {
 						autoFilter.FilterColumns[filterObj.index].clean();
+					}
+				} else if (allFilterOpenElements && nsvFilter && nsvFilterIndex !== undefined && nsvFilter.columnsFilter[nsvFilterIndex]) {
+					if (nsvFilter.columnsFilter[nsvFilterIndex].filter.ShowButton !== false) {
+						nsvFilter.columnsFilter.splice(nsvFilterIndex, 1);
+					} else {
+						nsvFilter.columnsFilter[nsvFilterIndex].filter.clean();
 					}
 				}
 

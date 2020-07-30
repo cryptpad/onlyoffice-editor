@@ -393,10 +393,10 @@
 		return table;
 	};
 
-	CT_NsvFilter.prototype.getColumnFilterByColId = function (id) {
+	CT_NsvFilter.prototype.getColumnFilterByColId = function (id, isGetIndex) {
 		for (var i = 0; i < this.columnsFilter.length; ++i) {
 			if (this.columnsFilter[i].filter && this.columnsFilter[i].filter.ColId === id) {
-				return this.columnsFilter[i].filter;
+				return !isGetIndex ? this.columnsFilter[i].filter : {filter: this.columnsFilter[i].filter, index: i};
 			}
 		}
 		return null;
