@@ -907,11 +907,12 @@
 
 			updateNamedSheetViewAfterAddFilter: function (filter) {
 				var worksheet = this.worksheet;
-				var activeNamedSheetViewIndex = worksheet.getActiveNamedSheetView();
-				if (activeNamedSheetViewIndex !== null) {
-					var activeNamedSheetView = worksheet.aNamedSheetViews ? worksheet.aNamedSheetViews[activeNamedSheetViewIndex] : null;
-					if (activeNamedSheetView && activeNamedSheetView.addFilter) {
-						activeNamedSheetView.addFilter(filter);
+				if (worksheet.aNamedSheetViews) {
+					for (var i = 0; i < worksheet.aNamedSheetViews.length; i++) {
+						var activeNamedSheetView = worksheet.aNamedSheetViews[i];
+						if (activeNamedSheetView && activeNamedSheetView.addFilter) {
+							activeNamedSheetView.addFilter(filter);
+						}
 					}
 				}
 			},
