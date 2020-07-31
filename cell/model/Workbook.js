@@ -8483,8 +8483,9 @@
 		var checkHiddenRow = function (ref) {
 			var range = t.getRange3(ref.r1, ref.c1, ref.r2, ref.c2);
 			range._foreachRowNoEmpty(function(row){
-				if(!row.isEmptyProp())
-					aRowProperties.push({index: row.index - from.r1, prop: row.getHeightProp(), style: row.getStyle()});
+				if(row.getHidden()) {
+					t.defaultViewHiddenRows[i] = 0;
+				}
 			});
 		};
 		
@@ -8500,6 +8501,22 @@
 		if (autoFilter) {
 			checkHiddenRow(autoFilter.Ref);
 		}
+	};
+
+	Worksheet.prototype.pullHiddenRowsIntoFilters = function () {
+		if (!this.defaultViewHiddenRows){
+			return;
+		}
+
+		var oldVal = History.LocalChange;
+		History.LocalChange = true;
+		for (var i in this.defaultViewHiddenRows) {
+			this.setRowHidden(true, i + this.defaultViewHiddenRows[i], i + this.defaultViewHiddenRows[i]);
+		}
+
+		History.LocalChange = oldVal;
+
+		this.defaultViewHiddenRows = null;
 	};
 
 //-------------------------------------------------------------------------------------------------
