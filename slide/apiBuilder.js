@@ -1334,10 +1334,6 @@
      */
     ApiTableRow.prototype.SetHeight = function(nValue)
     {
-        var bLoadVal = AscCommon.g_oIdCounter.m_bLoad;
-        var bRead = AscCommon.g_oIdCounter.m_bRead;
-        AscCommon.g_oIdCounter.m_bLoad = false;
-        AscCommon.g_oIdCounter.m_bRead = false;
         var fMaxTopMargin = 0, fMaxBottomMargin = 0, fMaxTopBorder = 0, fMaxBottomBorder = 0;
 
         for (var i = 0;  i < this.Row.Content.length; ++i){
@@ -1357,10 +1353,6 @@
                 fMaxBottomBorder = oBorders.Bottom.Size;
             }
         }
-        
-        AscCommon.g_oIdCounter.m_bLoad = bLoadVal;
-        AscCommon.g_oIdCounter.m_bRead = bRead;
-
         this.Row.Set_Height(Math.max(1, nValue/36000 - fMaxTopMargin - fMaxBottomMargin - fMaxTopBorder/2 - fMaxBottomBorder/2), Asc.linerule_AtLeast);
     };
 
