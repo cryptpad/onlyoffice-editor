@@ -3553,6 +3553,7 @@
 
 		this.aNamedSheetViews = [];
 		this.nActiveNamedSheetView = null;
+		this.defaultViewHiddenRows = null;
 	}
 
 	Worksheet.prototype.getCompiledStyle = function (row, col, opt_cell, opt_styleComponents) {
@@ -8473,6 +8474,32 @@
 			}
 		}
 		return null;
+	};
+
+	Worksheet.prototype.pushHiddenRowsIntoFilters = function () {
+		var t = this;
+		this.defaultViewHiddenRows = {};
+		
+		var checkHiddenRow = function (ref) {
+			var range = t.getRange3(ref.r1, ref.c1, ref.r2, ref.c2);
+			range._foreachRowNoEmpty(function(row){
+				if(!row.isEmptyProp())
+					aRowProperties.push({index: row.index - from.r1, prop: row.getHeightProp(), style: row.getStyle()});
+			});
+		};
+		
+		var tables = this.TableParts;
+		var autoFilter = this.AutoFilter;
+		if (tables) {
+			for (var i = 0; i < tables.length; i++) {
+				if (tables[i].isApplyAutoFilter()) {
+					checkHiddenRow(tables[i].Ref);
+				}
+			}
+		}
+		if (autoFilter) {
+			checkHiddenRow(autoFilter.Ref);
+		}
 	};
 
 //-------------------------------------------------------------------------------------------------
