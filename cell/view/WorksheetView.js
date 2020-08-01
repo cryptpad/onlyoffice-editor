@@ -11416,37 +11416,42 @@
 				return _res;
 			};
 
-			//var specialPasteShowOptions = new Asc.SpecialPasteShowOptions();
-			var isTablePasted = checkTablesPaste();
-			var allowedSpecialPasteProps;
-			var sProps = Asc.c_oSpecialPasteProps;
-			if (fromBinary) {
-				allowedSpecialPasteProps =
-					[sProps.paste, sProps.pasteOnlyFormula, sProps.formulaNumberFormat, sProps.formulaAllFormatting,
-						sProps.formulaWithoutBorders, sProps.formulaColumnWidth, sProps.pasteOnlyValues,
-						sProps.valueNumberFormat, sProps.valueAllFormating, sProps.pasteOnlyFormating, sProps.comments,
-						sProps.columnWidth/*, sProps.link*/];
-				if (!isTablePasted) {
-					//add transpose property
-					allowedSpecialPasteProps.push(sProps.transpose);
-				}
+			if (this.isMultiSelect()) {
+				window['AscCommon'].g_specialPasteHelper.CleanButtonInfo();
+				window['AscCommon'].g_specialPasteHelper.Special_Paste_Hide_Button();
 			} else {
-				//matchDestinationFormatting - пока не добавляю, так как работает как и values
-				if (bText) {
-					allowedSpecialPasteProps = [sProps.keepTextOnly, sProps.useTextImport];
+				//var specialPasteShowOptions = new Asc.SpecialPasteShowOptions();
+				var isTablePasted = checkTablesPaste();
+				var allowedSpecialPasteProps;
+				var sProps = Asc.c_oSpecialPasteProps;
+				if (fromBinary) {
+					allowedSpecialPasteProps =
+						[sProps.paste, sProps.pasteOnlyFormula, sProps.formulaNumberFormat, sProps.formulaAllFormatting,
+							sProps.formulaWithoutBorders, sProps.formulaColumnWidth, sProps.pasteOnlyValues,
+							sProps.valueNumberFormat, sProps.valueAllFormating, sProps.pasteOnlyFormating, sProps.comments,
+							sProps.columnWidth/*, sProps.link*/];
+					if (!isTablePasted) {
+						//add transpose property
+						allowedSpecialPasteProps.push(sProps.transpose);
+					}
 				} else {
-					allowedSpecialPasteProps = [sProps.sourceformatting, sProps.destinationFormatting];
+					//matchDestinationFormatting - пока не добавляю, так как работает как и values
+					if (bText) {
+						allowedSpecialPasteProps = [sProps.keepTextOnly, sProps.useTextImport];
+					} else {
+						allowedSpecialPasteProps = [sProps.sourceformatting, sProps.destinationFormatting];
+					}
 				}
+				window['AscCommon'].g_specialPasteHelper.CleanButtonInfo();
+				window['AscCommon'].g_specialPasteHelper.buttonInfo.asc_setOptions(allowedSpecialPasteProps);
+				if (fromBinary) {
+					window['AscCommon'].g_specialPasteHelper.buttonInfo.asc_setShowPasteSpecial(true);
+				}
+				if (isTablePasted) {
+					window['AscCommon'].g_specialPasteHelper.buttonInfo.asc_setContainTables(true);
+				}
+				window['AscCommon'].g_specialPasteHelper.buttonInfo.setRange(pastedData[0]);
 			}
-			window['AscCommon'].g_specialPasteHelper.CleanButtonInfo();
-			window['AscCommon'].g_specialPasteHelper.buttonInfo.asc_setOptions(allowedSpecialPasteProps);
-			if (fromBinary) {
-				window['AscCommon'].g_specialPasteHelper.buttonInfo.asc_setShowPasteSpecial(true);
-			}
-			if (isTablePasted) {
-				window['AscCommon'].g_specialPasteHelper.buttonInfo.asc_setContainTables(true);
-			}
-			window['AscCommon'].g_specialPasteHelper.buttonInfo.setRange(pastedData[0]);
 		} else {
 			window['AscCommon'].g_specialPasteHelper.buttonInfo.setRange(pastedData[0]);
 			window['AscCommon'].g_specialPasteHelper.SpecialPasteButton_Update_Position();
@@ -11467,7 +11472,6 @@
 		var pasteContent = val.data;
 		var pastedInfo = [];
 		var callback = function() {
-			//TODO здесь необходимо вставку в мультиселект сделать
 			for (var j = 0; j < pasteToRange.length; j++) {
 				_doPaste(pasteToRange[j]);
 			}
@@ -11599,7 +11603,6 @@
 				}
 			}
 			pastedInfo.push(selectData);
-
 		};
 
 		callback();
