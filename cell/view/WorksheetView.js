@@ -11029,7 +11029,7 @@
 				History.EndTransaction();
 				if(expansionTableRange) {
 					t.applyTableAutoExpansion(expansionTableRange);
-			}
+				}
 			}
 
 			if (hasUpdates) {
@@ -11046,13 +11046,16 @@
 					val.needDraw = true;
 				}
 			}
-        };
+		};
 
 		var checkPasteRange;
 		if ("paste" === prop) {
 			if (val.onlyImages) {
 				onSelectionCallback(true);
 				return;
+			} else if (!val.fromBinary && this.isMultiSelect()) {
+				t.handlers.trigger("onErrorEvent", c_oAscError.ID.LockedCellPivot, c_oAscError.Level.NoCritical);
+				return false;
 			} else {
 				var newRange = val.fromBinary ? this.pasteFromBinary(val.data, true) : this._pasteFromHTML(val.data, true);
 				checkPasteRange = newRange && newRange.length ? newRange : [newRange];

@@ -164,6 +164,7 @@
 			PastInMergeAreaError : -65,
 			CopyMultiselectAreaError : -66,
 			PasteSlicerError: 67,
+			PasteMultiSelectError : -68,
 
 			DataRangeError  : -72,
 			CannotMoveRange : -71,
@@ -2131,6 +2132,7 @@
 	prot['PastInMergeAreaError']             = prot.PastInMergeAreaError;
 	prot['CopyMultiselectAreaError']         = prot.CopyMultiselectAreaError;
 	prot['PasteSlicerError']                 = prot.PasteSlicerError;
+	prot['PasteMultiSelectError']            = prot.PasteMultiSelectError;
 	prot['DataRangeError']                   = prot.DataRangeError;
 	prot['CannotMoveRange']                  = prot.CannotMoveRange;
 	prot['MaxDataSeriesError']               = prot.MaxDataSeriesError;
