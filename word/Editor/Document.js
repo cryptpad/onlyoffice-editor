@@ -17099,61 +17099,121 @@ CDocument.prototype.SetEndnotePr = function(oEndnotePr, bApplyToAll)
 		this.FinalizeAction();
 	}
 };
-CDocument.prototype.ConvertFootnoteType = function()
+CDocument.prototype.ConvertFootnoteType = function(isCurrent, isFootnotes, isEndnotes)
 {
-	if (docpostype_Content !== this.GetDocPosType() || this.IsSelectionUse())
-		return;
+	var nDocPosType  = this.GetDocPosType();
+	var oCurFootnote = null;
 
-	var oParagraph = this.GetCurrentParagraph();
-	if (!oParagraph)
-		return;
+	if (docpostype_Footnotes === nDocPosType || docpostype_Endnotes === nDocPosType)
+		oCurFootnote = nDocPosType === docpostype_Footnotes ? this.Footnotes.GetCurFootnote() : this.Endnotes.GetCurEndnote();
 
-	var oNextElement = oParagraph.GetNextRunElement();
-	var oPrevElement = oParagraph.GetPrevRunElement();
+	var arrFootnotes  = [];
+	var arrParagraphs = [];
+	var arrRuns       = [];
+	var arrRefs       = [];
 
-	var oRef = null;
-	if (oNextElement && (para_FootnoteReference === oNextElement.Type || para_EndnoteReference === oNextElement.Type))
-		oRef = oNextElement;
-	else if (oPrevElement && (para_FootnoteReference === oPrevElement.Type || para_EndnoteReference === oPrevElement.Type))
-		oRef = oPrevElement;
-
-	if (!oRef)
-		return;
-
-	var oRunInfo = oParagraph.GetRunByElement(oRef);
-	if (!oRunInfo)
-		return;
-
-	if (!this.IsSelectionLocked(changestype_None, {
-		Type      : AscCommon.changestype_2_Element_and_Type,
-		Element   : oParagraph,
-		CheckType :  AscCommon.changestype_Paragraph_Content
-	}))
+	if (isCurrent)
 	{
-		this.StartAction();
+		var nDocPosType = this.GetDocPosType();
 
-		var oFootnote = oRef.GetFootnote();
-		if (para_FootnoteReference === oRef.Type)
+		if (docpostype_Footnotes === nDocPosType || docpostype_Endnotes === nDocPosType)
 		{
-			this.Footnotes.RemoveFootnote(oFootnote);
-			this.Endnotes.AddEndnote(oFootnote);
-			oFootnote.ConvertFootnoteType(false);
-			oRunInfo.Run.ConvertFootnoteType(false, this.GetStyles(), oFootnote);
+			var oFootnote = oCurFootnote;
+			var oRef = oFootnote.GetRef();
+			if (!oRef || !oRef.GetRun() || !oRef.GetRun().GetParagraph())
+				return;
+
+			arrFootnotes  = [oFootnote];
+			arrParagraphs = [oRef.GetRun().GetParagraph()];
+			arrRuns       = [oRef.GetRun()];
+			arrRefs       = [oRef];
 		}
 		else
 		{
-			this.Endnotes.RemoveEndnote(oFootnote);
-			this.Footnotes.AddFootnote(oFootnote);
-			oFootnote.ConvertFootnoteType(true);
-			oRunInfo.Run.ConvertFootnoteType(true, this.GetStyles(), oFootnote);
+			if (docpostype_Content !== nDocPosType || this.IsSelectionUse())
+				return;
+
+			var oParagraph = this.GetCurrentParagraph();
+			if (!oParagraph)
+				return;
+
+			var oNextElement = oParagraph.GetNextRunElement();
+			var oPrevElement = oParagraph.GetPrevRunElement();
+
+			var oRef = null;
+			if (oNextElement && (para_FootnoteReference === oNextElement.Type || para_EndnoteReference === oNextElement.Type))
+				oRef = oNextElement;
+			else if (oPrevElement && (para_FootnoteReference === oPrevElement.Type || para_EndnoteReference === oPrevElement.Type))
+				oRef = oPrevElement;
+
+			if (!oRef)
+				return;
+
+			var oRunInfo = oParagraph.GetRunByElement(oRef);
+			if (!oRunInfo)
+				return;
+
+			arrFootnotes  = [oRef.GetFootnote()];
+			arrParagraphs = [oParagraph];
+			arrRuns       = [oRunInfo.Run];
+			arrRefs       = [oRef];
 		}
+	}
+	else
+	{
+		var oEngine = new CDocumentFootnotesRangeEngine(true);
+		oEngine.Init(null, null, isFootnotes, isEndnotes);
+
+		var arrParagraphs = this.GetAllParagraphs({OnlyMainDocument : true, All : true});
+		for (var nIndex = 0, nCount = arrParagraphs.length; nIndex < nCount; ++nIndex)
+		{
+			arrParagraphs[nIndex].GetFootnotesList(oEngine);
+		}
+
+		arrFootnotes  = oEngine.GetRange();
+		arrParagraphs = oEngine.GetParagraphs();
+		arrRuns       = oEngine.GetRuns();
+		arrRefs       = oEngine.GetRefs();
+	}
+
+
+	if (arrRuns.length !== arrRefs.length || arrFootnotes.length !== arrRuns.length)
+		return;
+
+	if (false === this.Document_Is_SelectionLocked(changestype_None, { Type : changestype_2_ElementsArray_and_Type, Elements : arrParagraphs, CheckType : changestype_Paragraph_Content }, true))
+	{
+		this.StartAction(AscDFH.history);
+
+		for (var nIndex = 0, nCount = arrFootnotes.length; nIndex < nCount; ++nIndex)
+		{
+			var oRef = arrRefs[nIndex];
+			var oRun = arrRuns[nIndex];
+
+			var oFootnote = oRef.GetFootnote();
+			if (para_FootnoteReference === oRef.Type)
+			{
+				this.Footnotes.RemoveFootnote(oFootnote);
+				this.Endnotes.AddEndnote(oFootnote);
+				oFootnote.ConvertFootnoteType(false);
+				oRun.ConvertFootnoteType(false, this.GetStyles(), oFootnote, oRef);
+			}
+			else if (para_EndnoteReference === oRef.Type)
+			{
+				this.Endnotes.RemoveEndnote(oFootnote);
+				this.Footnotes.AddFootnote(oFootnote);
+				oFootnote.ConvertFootnoteType(true);
+				oRun.ConvertFootnoteType(true, this.GetStyles(), oFootnote, oRef);
+			}
+		}
+
+		if (oCurFootnote)
+			oCurFootnote.SetThisElementCurrent(false);
 
 		this.Recalculate();
 		this.UpdateSelection();
 		this.UpdateInterface();
 		this.FinalizeAction();
 	}
-
 };
 CDocument.prototype.TurnOffCheckChartSelection = function()
 {

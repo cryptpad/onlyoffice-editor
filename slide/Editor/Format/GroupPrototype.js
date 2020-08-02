@@ -208,7 +208,6 @@ CGroupShape.prototype.handleUpdateFlip = CGroupShape.prototype.handleUpdatePosit
 CGroupShape.prototype.handleUpdateChildOffset = CGroupShape.prototype.handleUpdatePosition;
 CGroupShape.prototype.handleUpdateChildExtents = CGroupShape.prototype.handleUpdatePosition;
 CGroupShape.prototype.updatePosition = CShape.prototype.updatePosition;
-CGroupShape.prototype.setParent2 = CShape.prototype.setParent2;
 CGroupShape.prototype.recalculate = function()
 {
     if(this.bDeleted || !this.parent)

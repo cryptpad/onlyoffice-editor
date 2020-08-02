@@ -738,17 +738,6 @@ CShape.prototype.Get_Worksheet = function()
 {
     return this.worksheet;
 };
-CShape.prototype.setParent2 = function(parent)
-{
-    this.setParent(parent);
-    if(Array.isArray(this.spTree))
-    {
-        for(var i = 0; i < this.spTree.length; ++i)
-        {
-            this.spTree[i].setParent2(parent);
-        }
-    }
-};
 CShape.prototype.Get_Numbering =  function()
 {
     return new CNumbering();

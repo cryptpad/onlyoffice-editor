@@ -685,10 +685,15 @@
 	 * @typeofeditors ["CSE"]
 	 * @memberof ApiWorksheet
 	 * @param {string} sRange - The range of cells from the current sheet.
-	 * @returns {ApiRange}
+	 * @returns {ApiRange | null} - returns null if such a range does not exist.
 	 */
 	ApiWorksheet.prototype.GetRange = function (sRange) {
-		return new ApiRange(this.worksheet.getRange2(sRange));
+		var Range = this.worksheet.getRange2(sRange);
+
+		if (!Range)
+			return null;
+		
+		return new ApiRange(Range);
 	};
 
 	/**
@@ -1471,9 +1476,12 @@
 	 * @typeofeditors ["CSE"]
 	 * @memberof ApiRange
 	 * @param {string} value - The general value for the cell or cell range in string format.
+	 * @return {bool} - returns false if such a range does not exist.
 	 */
 	ApiRange.prototype.SetValue = function (value) {
 		value = checkFormat(value);
+		if (!this.range)
+			return false;
 		this.range.setValue(value.toString());
 		if (value.type === AscCommonExcel.cElementType.number) {
 			this.SetNumberFormat(AscCommon.getShortDateFormat());
@@ -1481,6 +1489,8 @@
 		// ToDo update range in setValue
 		var worksheet = this.range.worksheet;
 		worksheet.workbook.handlers.trigger("cleanCellCache", worksheet.getId(), [this.range.bbox], true);
+
+		return true;
 	};
 	Object.defineProperty(ApiRange.prototype, "Value", {
 		get: function () {
@@ -2157,10 +2167,24 @@
 
 
 	/**
+	 * Deprecated in 6.2
 	 * Get the shape inner contents where a paragraph or text runs can be inserted. 
 	 * @returns {?ApiDocumentContent}
 	 */
 	ApiShape.prototype.GetDocContent = function()
+	{
+		var oApi = Asc["editor"];
+		if(oApi && this.Drawing && this.Drawing.txBody && this.Drawing.txBody.content)
+		{
+			return oApi.private_CreateApiDocContent(this.Drawing.txBody.content);
+		}
+		return null;
+	};
+	/**
+	 * Get the shape inner contents where a paragraph or text runs can be inserted. 
+	 * @returns {?ApiDocumentContent}
+	 */
+	ApiShape.prototype.GetContent = function()
 	{
 		var oApi = Asc["editor"];
 		if(oApi && this.Drawing && this.Drawing.txBody && this.Drawing.txBody.content)
@@ -2675,6 +2699,7 @@
 
 	ApiShape.prototype["GetClassType"]                 =  ApiShape.prototype.GetClassType;
 	ApiShape.prototype["GetDocContent"]                =  ApiShape.prototype.GetDocContent;
+	ApiShape.prototype["GetContent"]                   =  ApiShape.prototype.GetContent;
 	ApiShape.prototype["SetVerticalTextAlign"]         =  ApiShape.prototype.SetVerticalTextAlign;
 
 	ApiChart.prototype["GetClassType"]                 =  ApiChart.prototype.GetClassType;

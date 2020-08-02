@@ -453,6 +453,7 @@ MasterSlide.prototype =
             this.checkDrawingUniNvPr(item);
             History.Add(new AscDFH.CChangesDrawingsContent(this, AscDFH.historyitem_SlideMasterAddToSpTree, pos, [item], true));
             this.cSld.spTree.splice(pos, 0, item);
+            item.setParent2(this);
         },
 
         changeBackground: function (bg) {

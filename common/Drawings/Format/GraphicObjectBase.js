@@ -1984,6 +1984,15 @@
     CGraphicObjectBase.prototype.getSlicerViewByName = function (name) {
         return null;
     };
+    CGraphicObjectBase.prototype.setParent2 = function(parent) {
+        this.setParent(parent);
+        if(Array.isArray(this.spTree)) {
+            for(var i = 0; i < this.spTree.length; ++i) {
+                this.spTree[i].setParent2(parent);
+            }
+        }
+    };
+    
     function CRelSizeAnchor() {
         CBaseObject.call(this);
         this.fromX = null;

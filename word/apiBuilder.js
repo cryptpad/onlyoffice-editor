@@ -2458,16 +2458,21 @@
 	 * @memberof Api
 	 * @typeofeditors ["CDE"]
 	 * @param {ShapeType} [sType="rect"] - The shape type which specifies the preset shape geometry.
-	 * @param {EMU} nWidth - The shape width in English measure units.
-	 * @param {EMU} nHeight - The shape height in English measure units.
-	 * @param {ApiFill} oFill - The color or pattern used to fill the shape.
-	 * @param {ApiStroke} oStroke - The stroke used to create the element shadow.
+	 * @param {EMU} [nWidth = 914400] - The shape width in English measure units.
+	 * @param {EMU} [nHeight = 914400] - The shape height in English measure units.
+	 * @param {ApiFill} [oFill = Api.CreateNoFill()] - The color or pattern used to fill the shape.
+	 * @param {ApiStroke} [oStroke = Api.CreateStroke(0, Api.CreateNoFill())] - The stroke used to create the element shadow.
 	 * @returns {ApiShape}
 	 * */
 	Api.prototype.CreateShape = function(sType, nWidth, nHeight, oFill, oStroke)
 	{
 		var oLogicDocument = private_GetLogicDocument();
 		var oDrawingDocuemnt = private_GetDrawingDocument();
+		sType   = sType   || "rect";
+        nWidth  = nWidth  || 914400;
+	    nHeight = nHeight || 914400;
+		oFill   = oFill   || editor.CreateNoFill();
+		oStroke = oStroke || editor.CreateStroke(0, editor.CreateNoFill());
 		var nW = private_EMU2MM(nWidth);
 		var nH = private_EMU2MM(nHeight);
 		var oDrawing = new ParaDrawing(nW, nH, null, oDrawingDocuemnt, oLogicDocument, null);
@@ -5040,7 +5045,7 @@
 	 */
 	ApiParagraph.prototype.GetText = function()
 	{
-		var ParaText = this.Paragraph.GetText();
+		var ParaText = this.Paragraph.GetText({ParaEndToSpace : false});
 
 		return ParaText;
 	};
@@ -5236,6 +5241,35 @@
 		}
 
 		return arrApiRanges;
+	};
+	/**
+	 * Wrap paragraph content in a mail merge field.
+	 * @typeofeditors ["CDE"]
+	 */
+	ApiParagraph.prototype.WrapInMailMergeField = function()
+	{
+		var oDocument = private_GetLogicDocument();
+		var fieldName = this.GetText();
+		var oField    = new ParaField(fieldtype_MERGEFIELD, [fieldName], []);
+		
+		var leftQuote  = new ParaRun();
+		var rightQuote = new ParaRun();
+
+		leftQuote.AddText("«");
+		rightQuote.AddText("»");
+
+		oField.Add_ToContent(0, leftQuote);
+
+		for (var nElement = 0; nElement < this.Paragraph.Content.length; nElement++)
+		{
+			oField.Add_ToContent(nElement + 1, this.Paragraph.Content[nElement].Copy())
+		}
+	
+		oField.Add_ToContent(oField.Content.length, rightQuote);
+		
+		this.RemoveAllElements();
+		oDocument.Register_Field(oField);
+		this.Paragraph.AddToParagraph(oField);
 	};
 	//------------------------------------------------------------------------------------------------------------------
 	//
@@ -5789,6 +5823,36 @@
 		oTextPr.SetVertAlign(sType);
 		
 		return oTextPr;
+	};
+	/**
+	 * Wrap run in a mail merge field.
+	 * @typeofeditors ["CDE"]
+	 */
+	ApiRun.prototype.WrapInMailMergeField = function()
+	{
+		var oDocument = private_GetLogicDocument();
+		var fieldName = this.Run.GetText();
+		var oField    = new ParaField(fieldtype_MERGEFIELD, [fieldName], []);
+		var runParent = this.Run.GetParent();
+
+		var leftQuote  = new ParaRun();
+		var rightQuote = new ParaRun();
+
+		leftQuote.AddText("«");
+		rightQuote.AddText("»");
+
+		oField.Add_ToContent(0, leftQuote);
+		oField.Add_ToContent(1, this.Run);
+		oField.Add_ToContent(oField.Content.length, rightQuote);
+
+		if (runParent)
+		{
+			var indexInParent = runParent.Content.indexOf(this.Run);
+			runParent.Remove_FromContent(indexInParent, 1);
+			runParent.Add_ToContent(indexInParent, oField);
+		}
+		
+		oDocument.Register_Field(oField);
 	};
 	//------------------------------------------------------------------------------------------------------------------
 	//
@@ -9507,6 +9571,7 @@
 		return "shape";
 	};
 	/**
+	 * Deprecated in 6.2
 	 * Get the shape inner contents where a paragraph or text runs can be inserted.
 	 * @typeofeditors ["CDE", "CSE"]
 	 * @returns {?ApiDocumentContent}
@@ -9519,6 +9584,20 @@
 		}
 		return null;
 	};
+	/**
+	 * Get the shape inner contents where a paragraph or text runs can be inserted.
+	 * @typeofeditors ["CDE", "CSE"]
+	 * @returns {?ApiDocumentContent}
+	 */
+	ApiShape.prototype.GetContent = function()
+	{
+		if(this.Shape && this.Shape.textBoxContent)
+		{
+			return new ApiDocumentContent(this.Shape.textBoxContent);
+		}
+		return null;
+	};
+	
 	/**
 	 * Set the vertical alignment for the shape content where a paragraph or text runs can be inserted.
 	 * @typeofeditors ["CDE", "CSE"]
@@ -10957,6 +11036,8 @@
 	ApiParagraph.prototype["InsertParagraph"]        = ApiParagraph.prototype.InsertParagraph;
 	ApiParagraph.prototype["Select"]                 = ApiParagraph.prototype.Select;
 	ApiParagraph.prototype["Search"]                 = ApiParagraph.prototype.Search;
+	ApiParagraph.prototype["WrapInMailMergeField"]   = ApiParagraph.prototype.WrapInMailMergeField;
+
 
 	ApiRun.prototype["GetClassType"]                 = ApiRun.prototype.GetClassType;
 	ApiRun.prototype["GetTextPr"]                    = ApiRun.prototype.GetTextPr;
@@ -10994,6 +11075,7 @@
 	ApiRun.prototype["SetStrikeout"]                 = ApiRun.prototype.SetStrikeout;
 	ApiRun.prototype["SetUnderline"]                 = ApiRun.prototype.SetUnderline;
 	ApiRun.prototype["SetVertAlign"]                 = ApiRun.prototype.SetVertAlign;
+	ApiRun.prototype["WrapInMailMergeField"]         = ApiRun.prototype.WrapInMailMergeField;
 
 	ApiHyperlink.prototype["GetClassType"]           = ApiHyperlink.prototype.GetClassType;
 	ApiHyperlink.prototype["SetLink"]                = ApiHyperlink.prototype.SetLink;
@@ -11243,6 +11325,7 @@
 	
 	ApiShape.prototype["GetClassType"]               = ApiShape.prototype.GetClassType;
 	ApiShape.prototype["GetDocContent"]              = ApiShape.prototype.GetDocContent;
+	ApiShape.prototype["GetContent"]                 = ApiShape.prototype.GetContent;
 	ApiShape.prototype["SetVerticalTextAlign"]       = ApiShape.prototype.SetVerticalTextAlign;
 	ApiShape.prototype["SetPaddings"]                = ApiShape.prototype.SetPaddings;
 	ApiShape.prototype["GetNextShape"]               = ApiShape.prototype.GetNextShape;

@@ -5444,8 +5444,9 @@ CMathContent.prototype.Process_AutoCorrect = function(ActionElement) {
     if (false === bNeedAutoCorrect && ActionElement.Type === para_Math_Text) {
         return false;
     } else {
+        this.private_UpdateAutoCorrectMathSymbols();
         // Смотрим возможно ли выполнить автозамену, если нет, тогда пробуем произвести автозамену пропуская последний символ
-        if (g_aMathAutoCorrectTriggerCharCodes[ActionElement.value]) {
+        if (g_aMathAutoCorrectTriggerCharCodes[ActionElement.value] && AutoCorrectEngine.IntFlag) {
             CanMakeAutoCorrect = this.private_CanAutoCorrectText(AutoCorrectEngine, true);
         } else {
             CanMakeAutoCorrect = this.private_CanAutoCorrectText(AutoCorrectEngine, false);
@@ -5480,6 +5481,9 @@ CMathContent.prototype.private_NeedAutoCorrect = function(ActionElement) {
         return true;
     }
     return false;
+};
+CMathContent.prototype.private_UpdateAutoCorrectMathSymbols = function() {
+    g_aAutoCorrectMathSymbols = window['AscCommonWord'].g_aAutoCorrectMathSymbols;
 };
 CMathContent.prototype.private_CanAutoCorrectText = function(AutoCorrectEngine, bSkipLast) {
     var IndexAdd = (true === bSkipLast ? 1 : 0);
@@ -8556,20 +8560,21 @@ CMathContent.prototype.GetTextContent = function(bSelectedText) {
 	return {str: str, bIsContainsOperator: bIsContainsOperator, paraRunArr: paraRunArr};
 };
 function CMathAutoCorrectEngine(Elem, CurPos, Paragraph) {
-    this.ActionElement    = Elem;               // элемент на которотом срабатывает автодополнение
-    this.CurElement       = CurPos;             // индекс текущего элемента, где стоит курсор
-    this.CurPos           = null;               // индекс элемента с которого будет начинаться автозамена
-    this.Elements         = [];                 // елементы для обработки
-    this.Brackets         = [];                 // скобки по уровням
-    this.Type			  = null;               // тип автозамены
-    this.Kind			  = null;               // для автозамены со степенью
-    this.props            = {};                 // для автозамены с дробью
-    this.Paragraph        = Paragraph;          // параграф в котором находится формула
-    this.Remove           = [];                 // массив индексов элементов для удаления из основного контента
-    this.Remove['total']  = 0;                  // общее число элементов для удаления
-    this.ReplaceContent   = [];                 // элементы для вставки в основной контент после автозамены
-    this.Shift 			  = 0;                  // отступ
-    this.StartHystory     = false;              // флаг, обозначающий была ли уже создана точка в истории автозаменой
+    this.ActionElement    = Elem;                                               // элемент на которотом срабатывает автодополнение
+    this.CurElement       = CurPos;                                             // индекс текущего элемента, где стоит курсор
+    this.CurPos           = null;                                               // индекс элемента с которого будет начинаться автозамена
+    this.Elements         = [];                                                 // елементы для обработки
+    this.Brackets         = [];                                                 // скобки по уровням
+    this.Type			  = null;                                               // тип автозамены
+    this.Kind			  = null;                                               // для автозамены со степенью
+    this.props            = {};                                                 // для автозамены с дробью
+    this.Paragraph        = Paragraph;                                          // параграф в котором находится формула
+    this.Remove           = [];                                                 // массив индексов элементов для удаления из основного контента
+    this.Remove['total']  = 0;                                                  // общее число элементов для удаления
+    this.ReplaceContent   = [];                                                 // элементы для вставки в основной контент после автозамены
+    this.Shift 			  = 0;                                                  // отступ
+    this.StartHystory     = false;                                              // флаг, обозначающий была ли уже создана точка в истории автозаменой
+    this.IntFlag          = window['AscCommonWord'].b_DoAutoCorrectMathSymbols; // флаг из интерфейса делать ли автозамену  символов из списка
     this.TextPr           = null;
     this.MathPr           = null;
 };
@@ -8599,7 +8604,7 @@ var g_aAutoCorrectMathFuncSymbols =
     'def', 'dim', 'gcd', 'ker', 'log', 'Pr',
     'deg', 'erf', 'hom', 'lg', 'ln', 'max', 'sup'
 ];
-var g_aAutoCorrectMathSymbols =
+var g_DefaultAutoCorrectMathSymbolsList =
 [
     ['!!', 0x203C],
     ['...', 0x2026],
@@ -9103,6 +9108,7 @@ var g_aAutoCorrectMathSymbols =
     ['>=', 0x2265],
     ['>>', 0x226B]
 ];
+var g_aAutoCorrectMathSymbols = JSON.parse(JSON.stringify(g_DefaultAutoCorrectMathSymbolsList));
 //символы для mathfunc (интеграл, сумма...)
 var q_aMathAutoCorrectControlAggregationCodes =
 {
@@ -9254,5 +9260,6 @@ var g_aMathAutoCorrectLatinAlph = {
 //--------------------------------------------------------export----------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};
 window['AscCommonWord'].CMathContent = CMathContent;
+window['AscCommonWord'].g_DefaultAutoCorrectMathSymbolsList = g_DefaultAutoCorrectMathSymbolsList;
 window['AscCommonWord'].g_aAutoCorrectMathSymbols = g_aAutoCorrectMathSymbols;
 

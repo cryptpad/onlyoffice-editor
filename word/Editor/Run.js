@@ -12067,8 +12067,9 @@ ParaRun.prototype.CopyTextFormContent = function(oRun)
  * @param isToFootnote {boolean}
  * @param oStyles {CStyles}
  * @param oFootnote {CFootEndnote}
+ * @param oRef {ParaFootnoteReference | ParaEndnoteReference}
  */
-ParaRun.prototype.ConvertFootnoteType = function(isToFootnote, oStyles, oFootnote)
+ParaRun.prototype.ConvertFootnoteType = function(isToFootnote, oStyles, oFootnote, oRef)
 {
 	var sRStyle = this.GetRStyle();
 	if (isToFootnote)
@@ -12082,15 +12083,18 @@ ParaRun.prototype.ConvertFootnoteType = function(isToFootnote, oStyles, oFootnot
 		{
 			var oElement = this.Content[nCurPos];
 
-			if (para_EndnoteReference === oElement.Type)
+			if (!oRef || oRef === oElement)
 			{
-				this.RemoveFromContent(nCurPos, 1);
-				this.AddToContent(nCurPos, new ParaFootnoteReference(oFootnote, oElement.CustomMark));
-			}
-			else if (para_EndnoteRef === oElement.Type)
-			{
-				this.RemoveFromContent(nCurPos, 1);
-				this.AddToContent(nCurPos, new ParaFootnoteRef(oFootnote));
+				if (para_EndnoteReference === oElement.Type)
+				{
+					this.RemoveFromContent(nCurPos, 1);
+					this.AddToContent(nCurPos, new ParaFootnoteReference(oFootnote, oElement.CustomMark));
+				}
+				else if (para_EndnoteRef === oElement.Type)
+				{
+					this.RemoveFromContent(nCurPos, 1);
+					this.AddToContent(nCurPos, new ParaFootnoteRef(oFootnote));
+				}
 			}
 		}
 	}
@@ -12105,15 +12109,18 @@ ParaRun.prototype.ConvertFootnoteType = function(isToFootnote, oStyles, oFootnot
 		{
 			var oElement = this.Content[nCurPos];
 
-			if (para_FootnoteReference === oElement.Type)
+			if (!oRef || oRef === oElement)
 			{
-				this.RemoveFromContent(nCurPos, 1);
-				this.AddToContent(nCurPos, new ParaEndnoteReference(oFootnote, oElement.CustomMark));
-			}
-			else if (para_FootnoteRef === oElement.Type)
-			{
-				this.RemoveFromContent(nCurPos, 1);
-				this.AddToContent(nCurPos, new ParaEndnoteRef(oFootnote));
+				if (para_FootnoteReference === oElement.Type)
+				{
+					this.RemoveFromContent(nCurPos, 1);
+					this.AddToContent(nCurPos, new ParaEndnoteReference(oFootnote, oElement.CustomMark));
+				}
+				else if (para_FootnoteRef === oElement.Type)
+				{
+					this.RemoveFromContent(nCurPos, 1);
+					this.AddToContent(nCurPos, new ParaEndnoteRef(oFootnote));
+				}
 			}
 		}
 	}

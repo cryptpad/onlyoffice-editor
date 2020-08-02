@@ -48,9 +48,6 @@
 	/** @constructor */
 	function baseEditorsApi(config, editorId)
 	{
-		if (window["AscDesktopEditor"])
-			window["AscDesktopEditor"]["CreateEditorApi"]();
-
 		this.editorId      = editorId;
 		this.isLoadFullApi = false;
         this.isLoadFonts = false;
@@ -202,6 +199,9 @@
 
 	baseEditorsApi.prototype._init                           = function()
 	{
+		if (window["AscDesktopEditor"])
+			window["AscDesktopEditor"]["CreateEditorApi"](this);
+
 		var t            = this;
 		//Asc.editor = Asc['editor'] = AscCommon['editor'] = AscCommon.editor = this; // ToDo сделать это!
 		this.HtmlElement = document.getElementById(this.HtmlElementName);
@@ -409,6 +409,12 @@
 		{
 			this.onEndLoadDocInfo();
 		}
+	};
+	baseEditorsApi.prototype.asc_isCrypto = function()
+	{
+		if (this.DocInfo && this.DocInfo.get_Encrypted() === true)
+			return true;
+		return false;
 	};
 	baseEditorsApi.prototype.asc_enableKeyEvents             = function(isEnabled, isFromInput)
 	{
@@ -720,11 +726,10 @@
 		}
 		this.sync_EndAction(c_oAscAsyncActionType.BlockInteraction, c_oAscAsyncAction.Open);
 		this.sendEvent('asc_onDocumentContentReady');
+		this.sendEvent('asc_LoadPluginsOrDocument');
 
-		if (window.g_asc_plugins)
-        {
+		if (window.g_asc_plugins && window.g_asc_plugins.countEventDocContOrPluginsReady == 2)
             window.g_asc_plugins.onPluginEvent("onDocumentContentReady");
-        }
 
         if (c_oEditorId.Spreadsheet === this.editorId) {
 			this.onUpdateDocumentModified(this.asc_isDocumentModified());
@@ -2109,13 +2114,24 @@
 
 	baseEditorsApi.prototype.asc_pluginsRegister   = function(basePath, plugins)
 	{
-		if (null != this.pluginsManager)
+		this.sendEvent('asc_LoadPluginsOrDocument');
+
+		if (null != this.pluginsManager) {
 			this.pluginsManager.register(basePath, plugins);
+			
+			if (this.pluginsManager.countEventDocContOrPluginsReady == 2)
+				this.pluginsManager.onPluginEvent("onDocumentContentReady");
+		}
 	};
 	baseEditorsApi.prototype.asc_pluginRun         = function(guid, variation, pluginData)
 	{
 		if (null != this.pluginsManager)
 			this.pluginsManager.run(guid, variation, pluginData);
+	};
+	baseEditorsApi.prototype.asc_pluginStop        = function(guid)
+	{
+		if (null != this.pluginsManager)
+			this.pluginsManager.close(guid);
 	};
 	baseEditorsApi.prototype.asc_pluginResize      = function(pluginData)
 	{
@@ -2798,12 +2814,110 @@
 		}
 	};
 	/**
-	 * Return array for Math AutoCorrect for menu
+	 * Return default array for Math AutoCorrect for menu
 	 * @returns {Array.<String, Number || Array.<Number>>}
 	 */
 	baseEditorsApi.prototype.asc_getAutoCorrectMathSymbols = function()
 	{
-        return window['AscCommonWord'].g_aAutoCorrectMathSymbols;
+        return window['AscCommonWord'].g_DefaultAutoCorrectMathSymbolsList;
+	};
+	/**
+	 * Reset to defaul version list autocorrect math symbols
+	 */
+	baseEditorsApi.prototype.asc_resetToDefaultAutoCorrectMathSymbols = function()
+	{
+		window['AscCommonWord'].g_aAutoCorrectMathSymbols = JSON.parse(JSON.stringify(window['AscCommonWord'].g_DefaultAutoCorrectMathSymbolsList));
+	};
+	/**
+	 * Delete item from g_aAutoCorrectMathSymbols
+	 * @param {string} element
+	 */
+	baseEditorsApi.prototype.asc_deleteFromAutoCorrectMathSymbols = function(element)
+	{
+        var remInd = window['AscCommonWord'].g_aAutoCorrectMathSymbols.findIndex(function(val, index){
+			if (val[0] === element){
+				return index;
+			}
+		});
+		window['AscCommonWord'].g_aAutoCorrectMathSymbols.splice(remInd, 1);
+	};
+	/**
+	 * Add or edit item from g_aAutoCorrectMathSymbols
+	 * @param {string} element
+	 * @param {Array.<number> || number || string} repVal
+	 */
+	baseEditorsApi.prototype.asc_AddOrEditFromAutoCorrectMathSymbols = function(element, repVal)
+	{
+		if (typeof repVal === 'string') {
+			repVal = AscCommon.convertUTF16toUnicode(repVal);
+		}
+		var changeInd = window['AscCommonWord'].g_aAutoCorrectMathSymbols.findIndex(function(val, index){
+			if (val[0] === element){
+				return index;
+			}
+		});
+		if (changeInd >= 0) {
+			window['AscCommonWord'].g_aAutoCorrectMathSymbols[changeInd][1] = repVal;
+		} else {
+			window['AscCommonWord'].g_aAutoCorrectMathSymbols.push([element, repVal]);
+		}
+	};
+	/**
+	 * Refresh g_aAutoCorrectMathSymbols on start
+	 * @param {Array.<string>} remItems
+	 * @param {Array.<string, Array.<number> || number || string>} addItems
+	 * @param {boolean} flag
+	 */
+	baseEditorsApi.prototype.asc_refreshOnStartAutoCorrectMathSymbols = function(remItems, addItems, flag)
+	{
+		var me = this;
+		this.asc_resetToDefaultAutoCorrectMathSymbols();
+		if (remItems) {
+			remItems.forEach(function(el) {
+				me.asc_deleteFromAutoCorrectMathSymbols(el);
+			});
+		}
+		if (addItems) {
+			addItems.forEach(function(el) {
+				me.asc_AddOrEditFromAutoCorrectMathSymbols(el[0], el[1]);
+			});
+		}
+		this.asc_updateFlagAutoCorrectMathSymbols(flag);
+	};
+	/**
+	 * Update flag about autocorrect math symbols
+	 * @param {boolean} flag
+	 */
+	baseEditorsApi.prototype.asc_updateFlagAutoCorrectMathSymbols = function(flag)
+	{
+		window['AscCommonWord'].b_DoAutoCorrectMathSymbols = flag;
+	};
+
+	baseEditorsApi.prototype.getFileAsFromChanges = function()
+	{
+		var func_before = null;
+		var func_after = null;
+		if (this.editorId === AscCommon.c_oEditorId.Word)
+		{
+			if (this.WordControl && this.WordControl.m_oLogicDocument && this.WordControl.m_oLogicDocument.IsViewModeInReview())
+			{
+				var isFinal = (this.WordControl.m_oLogicDocument.ViewModeInReview.mode === 1) ? true : false;
+
+				func_before = function(api) {
+					api.WordControl.m_oLogicDocument.Start_SilentMode();
+					api.asc_EndViewModeInReview();
+				};
+				func_after = function(api) {
+					api.asc_BeginViewModeInReview(isFinal);
+					api.WordControl.m_oLogicDocument.End_SilentMode(false);
+				};
+			}
+		}
+
+		func_before && func_before(this);
+		var ret = this.asc_nativeGetFile3();
+		func_after && func_after(this);
+		return ret;
 	};
 
 	//----------------------------------------------------------addons----------------------------------------------------
@@ -2869,5 +2983,12 @@
 	prot['asc_runAutostartMacroses'] = prot.asc_runAutostartMacroses;
 	prot['asc_setVisiblePasteButton'] = prot.asc_setVisiblePasteButton;
 	prot['asc_getAutoCorrectMathSymbols'] = prot.asc_getAutoCorrectMathSymbols;
+	prot['asc_resetToDefaultAutoCorrectMathSymbols'] = prot.asc_resetToDefaultAutoCorrectMathSymbols;
+	prot['asc_deleteFromAutoCorrectMathSymbols'] = prot.asc_deleteFromAutoCorrectMathSymbols;
+	prot['asc_AddOrEditFromAutoCorrectMathSymbols'] = prot.asc_AddOrEditFromAutoCorrectMathSymbols;
+	prot['asc_refreshOnStartAutoCorrectMathSymbols'] = prot.asc_refreshOnStartAutoCorrectMathSymbols;
+	prot['asc_updateFlagAutoCorrectMathSymbols'] = prot.asc_updateFlagAutoCorrectMathSymbols;
+
+	prot['asc_isCrypto'] = prot.asc_isCrypto;
 
 })(window);

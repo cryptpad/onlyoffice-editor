@@ -485,6 +485,11 @@ var c_oAscPopUpSelectorType = {
 
   var c_kMaxPrintPages = 1500;
 
+  var c_oAscFrozenPaneBorderType = {
+    shadow: 1,
+    line: 2
+  };
+
   //----------------------------------------------------------export----------------------------------------------------
   window['AscCommonExcel'] = window['AscCommonExcel'] || {};
   window['AscCommonExcel'].c_oAscDrawDepOptions = c_oAscDrawDepOptions;
@@ -775,6 +780,11 @@ var c_oAscPopUpSelectorType = {
   prot = c_oAscDefNameType;
   prot['table'] = prot.table;
   prot['slicer'] = prot.slicer;
+
+  window['Asc']['c_oAscFrozenPaneBorderType'] = window['Asc'].c_oAscFrozenPaneBorderType = c_oAscFrozenPaneBorderType;
+  prot = c_oAscFrozenPaneBorderType;
+  prot['shadow'] = prot.shadow;
+  prot['line'] = prot.line;
 
 
 })(window);
