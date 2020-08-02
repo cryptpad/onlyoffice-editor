@@ -1483,16 +1483,21 @@ CBlockLevelSdt.prototype.Restart_CheckSpelling = function()
 };
 CBlockLevelSdt.prototype.ClearContentControl = function()
 {
-	var oPara = new Paragraph(this.LogicDocument.Get_DrawingDocument(), this.Content);
-	oPara.Correct_Content();
+	var oParagraph = new Paragraph(this.LogicDocument.Get_DrawingDocument(), this.Content);
+	oParagraph.Correct_Content();
 
-	this.Content.Add_ToContent(0, oPara);
-	this.Content.Remove_FromContent(1, this.Content.GetElementsCount() - 1);
-	this.Content.MoveCursorToStartPos(false);
+	oParagraph.SelectAll();
+	oParagraph.ApplyTextPr(this.Pr.TextPr);
+	oParagraph.RemoveSelection();
+
+	this.Content.AddToContent(0, oParagraph);
+	this.Content.RemoveFromContent(1, this.Content.GetElementsCount() - 1);
+	this.Content.RemoveSelection();
+	this.Content.MoveCursorToStartPos();
 };
-CBlockLevelSdt.prototype.GotoFootnoteRef = function(isNext, isCurrent)
+CBlockLevelSdt.prototype.GotoFootnoteRef = function(isNext, isCurrent, isStepFootnote, isStepEndnote)
 {
-	return this.Content.GotoFootnoteRef(isNext, isCurrent);
+	return this.Content.GotoFootnoteRef(isNext, isCurrent, isStepFootnote, isStepEndnote);
 };
 /**
  * Получаем последний элемент содержимого

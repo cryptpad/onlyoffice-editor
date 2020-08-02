@@ -116,9 +116,9 @@
      */
     var kCurDefault = "default";
     var kCurCorner = "pointer";
-    var kCurColSelect = "pointer";
+    var kCurColSelect = "select-table-column";
     var kCurColResize = "col-resize";
-    var kCurRowSelect = "pointer";
+    var kCurRowSelect = "select-table-row";
     var kCurRowResize = "row-resize";
     // Курсор для автозаполнения
     var kCurFillHandle = "crosshair";
@@ -3506,6 +3506,7 @@
 			var c = this._getVisibleCell(col, row);
 			var findFillColor = this.handlers.trigger('selectSearchingResults') && this.model.inFindResults(row, col) ? this.settings.findFillColor : null;
 			var fill = c.getFill();
+			var hasFill = fill.hasFill();
 			var mwidth = 0, mheight = 0;
 
 			if (mergedCells) {
@@ -3526,17 +3527,17 @@
 				mheight = this._getRowTop(mc.r2 + 1) - this._getRowTop(mc.r1 + 1);
 			}
 
-			if (findFillColor || fill.hasFill() || mc) {
+			if (findFillColor || hasFill || mc) {
 				// ToDo не отрисовываем заливку границ от ячеек c заливкой, которые находятся правее и ниже
 				//  отрисовываемого диапазона. Но по факту проблем быть не должно.
-				var fillGrid = findFillColor || fill.hasFill();
+				var fillGrid = findFillColor || hasFill;
 
 				var x = this._getColLeft(col) - (fillGrid ? 1 : 0);
 				var y = top - (fillGrid ? 1 : 0);
 				var w = width + (fillGrid ? +1 : -1) + mwidth;
 				var h = height + (fillGrid ? +1 : -1) + mheight;
 
-                findFillColor = findFillColor || (mc && this.settings.cells.defaultState.background);
+                findFillColor = findFillColor || (!hasFill && mc && this.settings.cells.defaultState.background);
                 if (findFillColor) {
                     fill = new AscCommonExcel.Fill();
                     fill.patternFill = new AscCommonExcel.PatternFill();
@@ -5410,7 +5411,7 @@
     };
 
     WorksheetView.prototype._drawSelectionRange = function () {
-        var type, ranges = this.model.getSelection().ranges;
+        var type, selection = this.model.getSelection(), ranges = selection.ranges;
         var range, selectionLineType;
         for (var i = 0, l = ranges.length; i < l; ++i) {
             range = ranges[i].clone();
@@ -5428,7 +5429,7 @@
             if (1 === l) {
                 selectionLineType |=
                   AscCommonExcel.selectionLineType.ActiveCell | AscCommonExcel.selectionLineType.Promote;
-            } else if (i === this.model.selectionRange.activeCellId) {
+            } else if (i === selection.activeCellId) {
                 selectionLineType |= AscCommonExcel.selectionLineType.ActiveCell;
             }
             this._drawElements(this._drawSelectionElement, range, selectionLineType,
@@ -7742,7 +7743,7 @@
 			if (onCol && onRow) {
 				res = true;
 				type = c_oAscChangeSelectionFormatTable.data;
-				cursor = "pointer";
+				cursor = "select-table-content";
 				break;
 			} else if (onCol) {
 				res = true;
@@ -11693,14 +11694,15 @@
 			//value
 			if (contentCurrentObj.length === 1) {
 				var onlyOneChild = contentCurrentObj[0];
-				var valFormat = onlyOneChild.text;
-				pastedRangeProps.val = valFormat;
+				pastedRangeProps.val = onlyOneChild.text;
 				pastedRangeProps.font = onlyOneChild.format;
+
 			} else {
 				pastedRangeProps.value2 = contentCurrentObj;
-				pastedRangeProps.alignVertical = currentObj.va;
 				pastedRangeProps.val = currentObj.textVal;
 			}
+
+			pastedRangeProps.alignVertical = currentObj.alignVertical;
 
 			if (contentCurrentObj.length === 1 && contentCurrentObj[0].format) {
 				var fs = contentCurrentObj[0].format.getSize();
@@ -11716,7 +11718,7 @@
 
 			//AlignHorizontal
 			if (!isOneMerge) {
-				pastedRangeProps.alignHorizontal = currentObj.a;
+				pastedRangeProps.alignHorizontal = currentObj.alignHorizontal;
 			}
 
 			//for merge
@@ -16337,7 +16339,7 @@
         return true;
     };
 
-	WorksheetView.prototype.af_changeSelectionFormatTable = function (tableName, optionType, opt_row, opt_col) {
+	WorksheetView.prototype.changeTableSelection = function (tableName, optionType, opt_row, opt_col) {
 		var t = this;
 		var ws = this.model;
 
@@ -16375,6 +16377,15 @@
 				}
 
 				startRow = rangeWithoutHeaderFooter.r1;
+
+				if (undefined !== opt_row) {
+					if (lastSelection.isEqual(rangeWithoutHeaderFooter)) {
+						startRow = refTablePart.r1;
+					} else if (lastSelection.isEqual(refTablePart)) {
+						startRow = rangeWithoutHeaderFooter.r1;
+					}
+				}
+
 				endRow = rangeWithoutHeaderFooter.r2;
 
 				break;
@@ -16402,12 +16413,26 @@
 			case c_oAscChangeSelectionFormatTable.dataColumn: {
 				rangeWithoutHeaderFooter = tablePart.getRangeWithoutHeaderFooter();
 				startRow = rangeWithoutHeaderFooter.r1;
+
+				if (undefined !== opt_row) {
+					if (lastSelection.c1 === startCol && lastSelection.c2 === endCol) {
+						if (lastSelection.r1 === rangeWithoutHeaderFooter.r1 && lastSelection.r2 === rangeWithoutHeaderFooter.r2) {
+							startRow = refTablePart.r1;
+						} else if (lastSelection.r1 === refTablePart.r1 && lastSelection.r2 === refTablePart.r2) {
+							startRow = rangeWithoutHeaderFooter.r1;
+						}
+					} else if (lastSelection.isEqual(refTablePart)) {
+						startRow = rangeWithoutHeaderFooter.r1;
+					}
+				}
+
 				endRow = rangeWithoutHeaderFooter.r2;
 
 				break;
 			}
 		}
 
+		//todo обработать выделение при клике с зажатым ctrl
 		t.setSelection(new Asc.Range(startCol, startRow, endCol, endRow));
 	};
 

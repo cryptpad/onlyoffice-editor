@@ -2881,7 +2881,12 @@
 		{
 			if(dataRange)
 			{
-				result = parserHelp.parse3DRef(dataRange);
+				var sData = dataRange;
+				if(sData[0] === "=")
+				{
+					sData = sData.slice(1);
+				}
+				result = parserHelp.parse3DRef(sData);
 			}
 			if (result)
 			{
@@ -5465,6 +5470,12 @@
 		}
 		img.onerror = backoffOnError(img, img.onerror, onRetry);
 	}
+	function isEmptyObject(obj) {
+		for ( var name in obj ) {
+			return false;
+		}
+		return true;
+	}
 
 	//------------------------------------------------------------export---------------------------------------------------
 	window['AscCommon'] = window['AscCommon'] || {};
@@ -5557,6 +5568,7 @@
 	window["AscCommon"].g_oBackoffDefaults = g_oBackoffDefaults;
 	window["AscCommon"].Backoff = Backoff;
 	window["AscCommon"].backoffOnErrorImg = backoffOnErrorImg;
+	window["AscCommon"].isEmptyObject = isEmptyObject;
 
 	window["AscCommon"].CSignatureDrawer = window["AscCommon"]["CSignatureDrawer"] = CSignatureDrawer;
 	var prot = CSignatureDrawer.prototype;

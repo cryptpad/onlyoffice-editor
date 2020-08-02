@@ -166,8 +166,12 @@
 			PasteSlicerError: 67,
 			PasteMultiSelectError : -68,
 
-			DataRangeError  : -72,
-			CannotMoveRange : -71,
+			DataRangeError   : -75,
+			CannotMoveRange  : -74,
+			ErrorInFormula   : -73,
+			InvalidReference : -72,
+			NoSingleRowCol   : -71,
+			NoValues         : -70,
 
 			MaxDataSeriesError : -80,
 			CannotFillRange    : -81,

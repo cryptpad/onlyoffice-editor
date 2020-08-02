@@ -150,6 +150,11 @@ CEndnotesController.prototype.AddEndnote = function(oEndnote)
 	this.Endnote[oEndnote.GetId()] = oEndnote;
 	this.LogicDocument.GetHistory().Add(new CChangesEndnotesAddEndnote(this, oEndnote.GetId()));
 };
+CEndnotesController.prototype.RemoveEndnote = function(oEndnote)
+{
+	delete this.Endnote[oEndnote.GetId()];
+	this.LogicDocument.GetHistory().Add(new CChangesEndnotesRemoveEndnote(this, oEndnote.GetId()));
+};
 CEndnotesController.prototype.SetSeparator = CFootnotesController.prototype.SetSeparator;
 CEndnotesController.prototype.SetContinuationSeparator = CFootnotesController.prototype.SetContinuationSeparator;
 CEndnotesController.prototype.SetContinuationNotice = CFootnotesController.prototype.SetContinuationNotice;
@@ -959,6 +964,24 @@ CEndnotesController.prototype.IsContinueRecalculateFromPrevPage = function(nPage
 		return false;
 
 	return (this.Pages[nPageAbs - 1].Sections.length > 0 && true === this.Pages[nPageAbs - 1].Continue);
+};
+CEndnotesController.prototype.GotoNextEndnote = function()
+{
+	var oNextEndnote = this.private_GetNextEndnote(this.CurEndnote);
+	if (oNextEndnote)
+	{
+		oNextEndnote.MoveCursorToStartPos(false);
+		this.private_SetCurrentEndnoteNoSelection(oNextEndnote);
+	}
+};
+CEndnotesController.prototype.GotoPrevEndnote = function()
+{
+	var oPrevEndnote = this.private_GetPrevEndnote(this.CurEndnote);
+	if (oPrevEndnote)
+	{
+		oPrevEndnote.MoveCursorToStartPos(false);
+		this.private_SetCurrentEndnoteNoSelection(oPrevEndnote);
+	}
 };
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Private area

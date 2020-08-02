@@ -2924,7 +2924,7 @@
 	 */
 	Api.prototype.CreateBlockLvlSdt = function()
 	{
-		return new ApiBlockLvlSdt(new CBlockLevelSdt());
+		return new ApiBlockLvlSdt(new CBlockLevelSdt(editor.private_GetLogicDocument()));
 	};
 
 	/**
@@ -2935,6 +2935,161 @@
 	Api.prototype.Save = function () {
 		this.SaveAfterMacros = true;
 	};
+
+	/**
+	 * Loads data for the mail merge. 
+	 * @param {String[][]} aList - mail merge data. The first element of the array is the array with names of the merge fields.
+	 * The rest of the array elements are arrays with values for the merge fields.
+	 * @typeofeditors ["CDE"]
+	 * @return {bool}  
+	 */
+	Api.prototype.LoadMailMergeData = function(aList)
+	{
+		if (!aList || aList.length === 0)
+			return false;
+
+		editor.asc_StartMailMergeByList(aList);
+
+		return true;
+	};
+
+	/**
+	 * Gets the mail merge template doc.
+	 * @typeofeditors ["CDE"]
+	 * @return {ApiDocumentContent}  
+	 */
+	Api.prototype.GetMailMergeTemplateDocContent = function()
+	{
+		var oDocument = editor.private_GetLogicDocument();
+
+		AscCommon.History.TurnOff();
+		AscCommon.g_oTableId.TurnOff();
+
+		var LogicDocument = new CDocument(undefined, false);
+		AscCommon.History.Document = oDocument;
+
+		// Копируем стили, они все одинаковые для всех документов
+		LogicDocument.Styles = oDocument.Styles.Copy();
+
+		// Нумерацию придется повторить для каждого отдельного файла
+		LogicDocument.Numbering.Clear();
+
+		LogicDocument.DrawingDocument = oDocument.DrawingDocument;
+
+		LogicDocument.theme = oDocument.theme.createDuplicate();
+		LogicDocument.clrSchemeMap   = oDocument.clrSchemeMap.createDuplicate();
+
+		var FieldsManager = oDocument.FieldsManager;
+
+		var ContentCount = oDocument.Content.length;
+		var OverallIndex = 0;
+		oDocument.ForceCopySectPr = true;
+
+		// Подменяем ссылку на менеджер полей, чтобы скопированные поля регистрировались в новом классе
+		oDocument.FieldsManager = LogicDocument.FieldsManager;
+		var NewNumbering = oDocument.Numbering.CopyAllNums(LogicDocument.Numbering);
+
+		LogicDocument.Numbering.AppendAbstractNums(NewNumbering.AbstractNum);
+		LogicDocument.Numbering.AppendNums(NewNumbering.Num);
+
+		oDocument.CopyNumberingMap = NewNumbering.NumMap;
+
+		for (var ContentIndex = 0; ContentIndex < ContentCount; ContentIndex++)
+		{
+			LogicDocument.Content[OverallIndex++] = oDocument.Content[ContentIndex].Copy(LogicDocument, oDocument.DrawingDocument);
+
+			if (type_Paragraph === oDocument.Content[ContentIndex].Get_Type())
+			{
+				var ParaSectPr = oDocument.Content[ContentIndex].Get_SectionPr();
+				if (ParaSectPr)
+				{
+					var NewParaSectPr = new CSectionPr();
+					NewParaSectPr.Copy(ParaSectPr, true);
+					LogicDocument.Content[OverallIndex - 1].Set_SectionPr(NewParaSectPr, false);
+				}
+			}
+		}
+
+		oDocument.CopyNumberingMap = null;
+		oDocument.ForceCopySectPr  = false;
+
+		for (var Index = 0, Count = LogicDocument.Content.length; Index < Count; Index++)
+		{
+			if (0 === Index)
+				LogicDocument.Content[Index].Prev = null;
+			else
+				LogicDocument.Content[Index].Prev = LogicDocument.Content[Index - 1];
+
+			if (Count - 1 === Index)
+				LogicDocument.Content[Index].Next = null;
+			else
+				LogicDocument.Content[Index].Next = LogicDocument.Content[Index + 1];
+
+			LogicDocument.Content[Index].Parent = LogicDocument;
+		}
+
+		oDocument.FieldsManager = FieldsManager;
+		AscCommon.g_oTableId.TurnOn();
+		AscCommon.History.TurnOn();
+
+		return new ApiDocumentContent(LogicDocument);
+	};
+
+	/**
+	 * Gets the mail merge template doc.
+	 * @typeofeditors ["CDE"]
+	 * @return {number}  
+	 */
+	Api.prototype.GetMailMergeReceptionsCount = function()
+	{
+		var oDocument = editor.private_GetLogicDocument();
+
+		return oDocument.Get_MailMergeReceptionsCount();
+	};
+
+	/**
+	 * Replaces the content of the main document with the another document content.
+	 * @param {ApiDocumentContent} 
+	 * @typeofeditors ["CDE"]
+	 */
+	Api.prototype.ReplaceDocumentContent = function(oApiDocumentContent)
+	{
+		var oDocument        = editor.private_GetLogicDocument();
+		var mailMergeContent = oApiDocumentContent.Document.Content;
+		oDocument.Remove_FromContent(0, oDocument.Content.length);
+
+		for (var nElement = 0; nElement < mailMergeContent.length; nElement++)
+			oDocument.Add_ToContent(oDocument.Content.length, mailMergeContent[nElement].Copy(oDocument, oDocument.DrawingDocument), false);
+
+		oDocument.Remove_FromContent(0, 1);
+	};
+
+	/**
+	 * Starts the mail merge process
+	 * @param {number} nStartIndex
+	 * @param {number} nEndIndex
+	 * @param {bool} bAll - if true -> be mail merge all recipients 
+	 * @returns {bool}
+	 * @typeofeditors ["CDE"]
+	 */
+	Api.prototype.MailMerge = function(nStartIndex, nEndIndex)
+	{
+		var oDocument        = editor.private_GetLogicDocument();
+		var mailMergeDoc     = null;
+
+		var _nStartIndex = (undefined !== nStartIndex ? Math.max(0, nStartIndex) : 0);
+		var _nEndIndex   = (undefined !== nEndIndex   ? Math.min(nEndIndex, oDocument.MailMergeMap.length - 1) : oDocument.MailMergeMap.length - 1);
+
+		mailMergeDoc = oDocument.Get_MailMergedDocument(_nStartIndex, _nEndIndex);
+
+		if (!mailMergeDoc)
+			return false;
+		
+		this.ReplaceDocumentContent(new ApiDocumentContent(mailMergeDoc));
+
+		return true;
+	};
+
 	//------------------------------------------------------------------------------------------------------------------
 	//
 	// ApiUnsupported
@@ -3380,9 +3535,10 @@
 	 * Insert an array of elements in the current position of the document.
 	 * @param {DocumentElement[]} arrContent - An array of elements to insert.
 	 * @param {boolean} [isInline=false] - Inline insert on not (works only when the length of arrContent = 1 and it's a paragraph)
+	 * @param {object} [oPr=undefined]
 	 * @returns {boolean} Success?
 	 */
-	ApiDocument.prototype.InsertContent = function(arrContent, isInline)
+	ApiDocument.prototype.InsertContent = function(arrContent, isInline, oPr)
 	{
 		var oSelectedContent = new CSelectedContent();
 		for (var nIndex = 0, nCount = arrContent.length; nIndex < nCount; ++nIndex)
@@ -3414,6 +3570,26 @@
 			Paragraph  : oParagraph,
 			ContentPos : oParagraph.Get_ParaContentPos(false, false)
 		};
+
+		if (oPr)
+		{
+			if (oPr["KeepTextOnly"])
+			{
+				var oParaPr = this.Document.GetDirectParaPr();
+				var oTextPr = this.Document.GetDirectTextPr();
+
+				for (var nIndex = 0, nCount = oSelectedContent.Elements.length; nIndex < nCount; ++nIndex)
+				{
+					var oElement = oSelectedContent.Elements[nIndex].Element;
+					var arrParagraphs = oElement.GetAllParagraphs();
+					for (var nParaIndex = 0, nParasCount = arrParagraphs.length; nParaIndex < nParasCount; ++nParaIndex)
+					{
+						arrParagraphs[nParaIndex].SetDirectParaPr(oParaPr);
+						arrParagraphs[nParaIndex].SetDirectTextPr(oTextPr);
+					}
+				}
+			}
+		}
 
 		oParagraph.Check_NearestPos(oNearestPos);
 
@@ -3648,28 +3824,7 @@
 	{
 		return this.GetElement(this.GetElementsCount() - 1);
 	};
-	/**
-	 * Push a paragraph or a table  or a text to actually add it to the document.
-	 * @typeofeditors ["CDE", "CSE", "CPE"]
-	 * @param {DocumentElement} oElement - The type of the element which will be pushed to the document.
-	 * @returns {boolean} Returns <code>false</code> if the type of <code>oElement</code> is not supported by paragraph
-	 * content.
-	 */
-	ApiDocument.prototype.Push = function(oElement)
-	{
-		if (oElement instanceof ApiParagraph || oElement instanceof ApiTable || ApiBlockLvlSdt)
-		{
-			this.Document.Internal_Content_Add(this.Document.Content.length, oElement.private_GetImpl());
-		}
-		else if (typeof oElement === "string")
-		{
-			var oParagraph = editor.CreateParagraph();
-			oParagraph.AddText(oElement);
-			this.Document.Internal_Content_Add(this.Document.Content.length, oParagraph.private_GetImpl());
-		}
-		else 
-			return false;
-	};
+	
 	/**
 	 * Removes a bookmark from the document, if one exists.
 	 * @typeofeditors ["CDE"]
@@ -4238,6 +4393,8 @@
 
 		oRun.Add_ToContent(0, oDrawing.Drawing);
 		private_PushElementToParagraph(this.Paragraph, oRun);
+		oDrawing.Drawing.Set_Parent(oRun);
+
 		return new ApiRun(oRun);
 	};
 
@@ -4736,10 +4893,7 @@
 			if (!LastNoEmptyElement || LastNoEmptyElement instanceof ApiUnsupported)
 				continue;
 
-			if (LastNoEmptyRun.GetElementsCount() !== 0)
-			{
-				return LastNoEmptyElement;
-			}
+			return LastNoEmptyElement;
 		}
 
 		return null;
@@ -5196,6 +5350,7 @@
 			return;
 
 		this.Run.Add_ToContent(this.Run.Content.length, oDrawing.Drawing);
+		oDrawing.Drawing.Set_Parent(this.Run);
 	};
 	/**
 	 * Select a run.
@@ -8979,7 +9134,7 @@
 	 */
 	ApiDrawing.prototype.GetParentContentControl = function()
 	{
-		var ParaParent = this.GetParagraph();
+		var ParaParent = this.GetParentParagraph();
 
 		if (ParaParent)
 			return ParaParent.GetParentContentControl();
@@ -8992,7 +9147,7 @@
 	 */
 	ApiDrawing.prototype.GetParentTable = function()
 	{
-		var ParaParent = this.GetParagraph();
+		var ParaParent = this.GetParentParagraph();
 
 		if (ParaParent)
 			return ParaParent.GetParentTable();
@@ -9005,7 +9160,7 @@
 	 */
 	ApiDrawing.prototype.GetParentTableCell = function()
 	{
-		var ParaParent = this.GetParagraph();
+		var ParaParent = this.GetParentParagraph();
 
 		if (ParaParent)
 			return ParaParent.GetParentTableCell();
@@ -9018,7 +9173,7 @@
 	 */
 	ApiDrawing.prototype.Delete = function()
 	{
-		var ParaParent = this.GetParagraph();
+		var ParaParent = this.GetParentParagraph();
 
 		if (ParaParent)
 		{
@@ -9090,7 +9245,7 @@
 	 */
 	ApiDrawing.prototype.InsertParagraph = function(paragraph, sPosition, beRNewPara)
 	{
-		var parentParagraph = this.GetParagraph();
+		var parentParagraph = this.GetParentParagraph();
 
 		if (parentParagraph)
 			if (beRNewPara)
@@ -9936,8 +10091,11 @@
 		return "inlineLvlSdt";
 	};
 	/**
-	 * Set the lock to the current inline text content control: either locks the content from editing, or from deleting the control, or both.
-	 * @param {SdtLock} sLockType - The type of the lock applied to the inline text content control.
+	 * Set the lock to the current inline text content control.
+	 * <b>"contentLocked"</b> - content cannot be edited
+	 * <b>"sdtContentLocked"</b> - content cannot be edited and BlockLvlSdt cannot be deleted.
+	 * <b>"sdtLocked"</b> - BlockLvlSdt cannot be deleted.
+	 * @param {"contentLocked" | "sdtContentLocked" | "sdtLocked"} sLockType - The type of the lock applied to the inline text content control.
 	 */
 	ApiInlineLvlSdt.prototype.SetLock = function(sLockType)
 	{
@@ -10255,8 +10413,11 @@
 		return "blockLvlSdt";
 	};
 	/**
-	 * Set the lock type of this container
-	 * @param {SdtLock} sLockType
+	 * Set the lock to the current inline text content control.
+	 * <b>"contentLocked"</b> - content cannot be edited
+	 * <b>"sdtContentLocked"</b> - content cannot be edited and BlockLvlSdt cannot be deleted.
+	 * <b>"sdtLocked"</b> - BlockLvlSdt cannot be deleted.
+	 * @param {"contentLocked" | "sdtContentLocked" | "sdtLocked"} sLockType - The type of the lock applied to the inline text content control.
 	 */
 	ApiBlockLvlSdt.prototype.SetLock = function(sLockType)
 	{
@@ -10657,6 +10818,11 @@
 	Api.prototype["CreateInlineLvlSdt"]              = Api.prototype.CreateInlineLvlSdt;
 	Api.prototype["CreateBlockLvlSdt"]               = Api.prototype.CreateBlockLvlSdt;
 	Api.prototype["Save"]               			 = Api.prototype.Save;
+	Api.prototype["LoadMailMergeData"]               = Api.prototype.LoadMailMergeData;
+	Api.prototype["GetMailMergeTemplateDocContent"]  = Api.prototype.GetMailMergeTemplateDocContent;
+	Api.prototype["GetMailMergeReceptionsCount"]     = Api.prototype.GetMailMergeReceptionsCount;
+	Api.prototype["ReplaceDocumentContent"]          = Api.prototype.ReplaceDocumentContent;
+	Api.prototype["MailMerge"]                       = Api.prototype.MailMerge;
 
 	ApiUnsupported.prototype["GetClassType"]         = ApiUnsupported.prototype.GetClassType;
 
@@ -10675,7 +10841,7 @@
 	ApiRange.prototype["AddHyperlink"]               = ApiRange.prototype.AddHyperlink;
 	ApiRange.prototype["GetText"]                    = ApiRange.prototype.GetText;
 	ApiRange.prototype["GetAllParagraphs"]           = ApiRange.prototype.GetAllParagraphs;
-	ApiRange.prototype["SetSelection"]               = ApiRange.prototype.SetSelection;
+	ApiRange.prototype["Select"]                     = ApiRange.prototype.Select;
 	ApiRange.prototype["ExpandTo"]                   = ApiRange.prototype.ExpandTo;
 	ApiRange.prototype["IntersectWith"]              = ApiRange.prototype.IntersectWith;
 	ApiRange.prototype["SetBold"]                    = ApiRange.prototype.SetBold;
@@ -10789,7 +10955,7 @@
 	ApiParagraph.prototype["SetTextPr"]              = ApiParagraph.prototype.SetTextPr;
 	ApiParagraph.prototype["InsertInContentControl"] = ApiParagraph.prototype.InsertInContentControl;
 	ApiParagraph.prototype["InsertParagraph"]        = ApiParagraph.prototype.InsertParagraph;
-	ApiParagraph.prototype["SetSelection"]           = ApiParagraph.prototype.SetSelection;
+	ApiParagraph.prototype["Select"]                 = ApiParagraph.prototype.Select;
 	ApiParagraph.prototype["Search"]                 = ApiParagraph.prototype.Search;
 
 	ApiRun.prototype["GetClassType"]                 = ApiRun.prototype.GetClassType;
@@ -10801,7 +10967,7 @@
 	ApiRun.prototype["AddColumnBreak"]               = ApiRun.prototype.AddColumnBreak;
 	ApiRun.prototype["AddTabStop"]                   = ApiRun.prototype.AddTabStop;
 	ApiRun.prototype["AddDrawing"]                   = ApiRun.prototype.AddDrawing;
-	ApiRun.prototype["SetSelection"]                 = ApiRun.prototype.SetSelection;
+	ApiRun.prototype["Select"]                       = ApiRun.prototype.Select;
 	ApiRun.prototype["AddHyperlink"]                 = ApiRun.prototype.AddHyperlink;
 	ApiRun.prototype["Copy"]                         = ApiRun.prototype.Copy;
 	ApiRun.prototype["RemoveAllElements"]            = ApiRun.prototype.RemoveAllElements;
@@ -10876,7 +11042,7 @@
 	ApiTable.prototype["Split"]    					 = ApiTable.prototype.Split;
 	ApiTable.prototype["AddRows"]    				 = ApiTable.prototype.AddRows;
 	ApiTable.prototype["AddColumns"]   				 = ApiTable.prototype.AddColumns;
-	ApiTable.prototype["SetSelection"]    			 = ApiTable.prototype.SetSelection;
+	ApiTable.prototype["Select"]    			     = ApiTable.prototype.Select;
 	ApiTable.prototype["GetRange"]    				 = ApiTable.prototype.GetRange;
 	ApiTable.prototype["SetHAlign"]    				 = ApiTable.prototype.SetHAlign;
 	ApiTable.prototype["SetVAlign"]    				 = ApiTable.prototype.SetVAlign;
@@ -11060,7 +11226,7 @@
 	ApiDrawing.prototype["Copy"]                     = ApiDrawing.prototype.Copy;
 	ApiDrawing.prototype["InsertInContentControl"]   = ApiDrawing.prototype.InsertInContentControl;
 	ApiDrawing.prototype["InsertParagraph"]          = ApiDrawing.prototype.InsertParagraph;
-	ApiDrawing.prototype["SetSelection"]             = ApiDrawing.prototype.SetSelection;
+	ApiDrawing.prototype["Select"]                   = ApiDrawing.prototype.Select;
 	ApiDrawing.prototype["AddBreak"]                 = ApiDrawing.prototype.AddBreak;
 	ApiDrawing.prototype["SetHorFlip"]               = ApiDrawing.prototype.SetHorFlip;
 	ApiDrawing.prototype["SetVertFlip"]              = ApiDrawing.prototype.SetVertFlip;
@@ -11171,7 +11337,7 @@
 	ApiBlockLvlSdt.prototype["AddElement"]              = ApiBlockLvlSdt.prototype.AddElement;
 	ApiBlockLvlSdt.prototype["GetRange"]                = ApiBlockLvlSdt.prototype.GetRange;
 	ApiBlockLvlSdt.prototype["Search"]                  = ApiBlockLvlSdt.prototype.Search;
-	ApiBlockLvlSdt.prototype["SetSelection"]            = ApiBlockLvlSdt.prototype.SetSelection;
+	ApiBlockLvlSdt.prototype["Select"]                  = ApiBlockLvlSdt.prototype.Select;
 
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// Private area

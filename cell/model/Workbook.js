@@ -2988,13 +2988,13 @@
 		}
 		return res;
 	};
-	Workbook.prototype.getTableByName = function(tableName){
+	Workbook.prototype.getTableByName = function(tableName, getSheetIndex){
 		var res = null;
 		for (var i = 0, length = this.aWorksheets.length; i < length; ++i) {
 			var ws = this.aWorksheets[i];
 			res = ws.getTableByName(tableName);
 			if (res !== null) {
-				return res;
+				return getSheetIndex ? {index: i, table: res} : res;
 			}
 		}
 		return res;
@@ -3589,6 +3589,20 @@
 	};
 	Worksheet.prototype.getColDataLength = function() {
 		return this.cellsByCol.length;
+	};
+	//returns minimal range containing all no empty cells
+	Worksheet.prototype.getMinimalRange = function() {
+		var oRange = null;
+		this._forEachCell(function(oCell) {
+			if(!oCell.isEmpty()) {
+				if(oRange === null) {
+					oRange = new Asc.Range(oCell.nCol, oCell.nRow, oCell.nCol, oCell.nRow)
+				} else {
+					oRange.union3(oCell.nCol, oCell.nRow)
+				}
+			}
+		});
+		return oRange;
 	};
 	Worksheet.prototype.getSnapshot = function(wb) {
 		var ws = new Worksheet(wb, this.index, this.Id);
@@ -10978,6 +10992,33 @@
 	};
 	Range.prototype.getName=function(){
 		return this.bbox.getName();
+	};
+	Range.prototype.getMinimalCellsRange = function() {
+		var nType = this._getRangeType();
+		var oMinRange;
+		if(nType === c_oRangeType.Range) {
+			return this;
+		} else {
+			oMinRange = this.worksheet.getMinimalRange();
+			if(!oMinRange) {
+				return null;
+			}
+			var oBB = this.bbox;
+			var r1 = oBB.r1, c1 = oBB.c1, r2 = oBB.r2, c2 = oBB.c2;
+			if(nType === c_oRangeType.Col) {
+				r1 = oMinRange.r1;
+				r2 = oMinRange.r2;
+			} else if(nType === c_oRangeType.Row) {
+				c1 = oMinRange.c1;
+				c2 = oMinRange.c2;
+			} else {
+				r1 = oMinRange.r1;
+				r2 = oMinRange.r2;
+				c1 = oMinRange.c1;
+				c2 = oMinRange.c2;
+			}
+			return new Range(this.worksheet, r1, c1, r2, c2);
+		}
 	};
 	Range.prototype.setValue=function(val,callback, isCopyPaste, byRef, ignoreHyperlink){
 		History.Create_NewPoint();

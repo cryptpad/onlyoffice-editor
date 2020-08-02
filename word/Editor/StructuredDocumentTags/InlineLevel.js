@@ -993,8 +993,12 @@ CInlineLevelSdt.prototype.GetSelectedContentControls = function(arrContentContro
 };
 CInlineLevelSdt.prototype.ClearContentControl = function()
 {
-	this.Add_ToContent(0, new ParaRun(this.GetParagraph(), false));
-	this.Remove_FromContent(1, this.Content.length - 1);
+	var oRun = new ParaRun(this.GetParagraph(), false);
+	oRun.SetPr(this.Pr.TextPr.Copy());
+	this.AddToContent(0, oRun);
+	this.RemoveFromContent(1, this.Content.length - 1);
+	this.RemoveSelection();
+	this.MoveCursorToStartPos();
 };
 CInlineLevelSdt.prototype.CanAddComment = function()
 {

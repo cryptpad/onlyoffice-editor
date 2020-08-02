@@ -17011,7 +17011,7 @@ CTable.prototype.private_SetTableLayoutFixedAndUpdateCellsWidth = function(nExce
 		}
 	}
 };
-CTable.prototype.GotoFootnoteRef = function(isNext, isCurrent)
+CTable.prototype.GotoFootnoteRef = function(isNext, isCurrent, isStepFootnote, isStepEndnote)
 {
 	var nRow = 0, nCell = 0;
 	if (true === isCurrent)
@@ -17064,7 +17064,7 @@ CTable.prototype.GotoFootnoteRef = function(isNext, isCurrent)
 			for (var nCurCell = nStartCell, nCellsCount = oRow.Get_CellsCount(); nCurCell < nCellsCount; ++nCurCell)
 			{
 				var oCell = oRow.Get_Cell(nCurCell);
-				if (oCell.Content.GotoFootnoteRef(true, true === isCurrent && nCurRow === nRow && nCurCell === nCell))
+				if (oCell.Content.GotoFootnoteRef(true, true === isCurrent && nCurRow === nRow && nCurCell === nCell, isStepFootnote, isStepEndnote))
 					return true;
 			}
 		}
@@ -17078,7 +17078,7 @@ CTable.prototype.GotoFootnoteRef = function(isNext, isCurrent)
 			for (var nCurCell = nStartCell; nCurCell >= 0; --nCurCell)
 			{
 				var oCell = oRow.Get_Cell(nCurCell);
-				if (oCell.Content.GotoFootnoteRef(false, true === isCurrent && nCurRow === nRow && nCurCell === nCell))
+				if (oCell.Content.GotoFootnoteRef(false, true === isCurrent && nCurRow === nRow && nCurCell === nCell, isStepFootnote, isStepEndnote))
 					return true;
 			}
 		}

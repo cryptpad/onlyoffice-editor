@@ -2360,6 +2360,17 @@ ParaRun.prototype.Get_DrawingObjectContentPos = function(Id, ContentPos, Depth)
     return false;
 };
 
+ParaRun.prototype.GetRunByElement = function(oRunElement)
+{
+	for (var nCurPos = 0, nLen = this.Content.length; nCurPos < nLen; ++nCurPos)
+	{
+		if (this.Content[nCurPos] === oRunElement)
+			return {Run : this, Pos : nCurPos};
+	}
+
+	return null;
+};
+
 ParaRun.prototype.Get_DrawingObjectSimplePos = function(Id)
 {
     var ContentLen = this.Content.length;
@@ -5696,7 +5707,18 @@ ParaRun.prototype.Draw_HighLights = function(PDSH)
 
 				break;
 			}
-        }
+		}
+
+		if (PDSH.Hyperlink)
+		{
+			PDSH.HyperCF.Add(Y0, Y1, X - ItemWidthVisible, X, 0, 0, 0, 0, {HyperlinkCF : PDSH.Hyperlink});
+		}
+		else if (PDSH.ComplexFields.IsComplexField() && !PDSH.ComplexFields.IsComplexFieldCode() && PDSH.Graphics.AddHyperlink)
+		{
+			var oCF = PDSH.ComplexFields.GetREForHYPERLINK();
+			if (oCF)
+				PDSH.HyperCF.Add(Y0, Y1, X - ItemWidthVisible, X, 0, 0, 0, 0, {HyperlinkCF : oCF});
+		}
 
         for ( var SPos = 0; SPos < SearchMarksCount; SPos++)
         {
@@ -5792,7 +5814,10 @@ ParaRun.prototype.Draw_Elements = function(PDSE)
             }
             else
             {
-                pGraphics.b_color1( RGBA.R, RGBA.G, RGBA.B, RGBA.A);
+                if(pGraphics.m_bIsTextDrawer !== true)
+                {
+                    pGraphics.b_color1( RGBA.R, RGBA.G, RGBA.B, RGBA.A);
+                }
             }
         }
     }
@@ -5804,16 +5829,26 @@ ParaRun.prototype.Draw_Elements = function(PDSE)
             RGBA = AscFormat.G_O_VISITED_HLINK_COLOR.getRGBAColor();
             pGraphics.b_color1( RGBA.R, RGBA.G, RGBA.B, RGBA.A );
         }
-        else if ( true === CurTextPr.Color.Auto )
-        {
-            pGraphics.b_color1( AutoColor.r, AutoColor.g, AutoColor.b, 255);
-        }
         else
         {
-        	if(pGraphics.m_bIsTextDrawer === undefined)
-        	{
-				pGraphics.b_color1( CurTextPr.Color.r, CurTextPr.Color.g, CurTextPr.Color.b, 255);
-			}
+            if(true === pGraphics.m_bIsTextDrawer)
+            {
+                if ( true === CurTextPr.Color.Auto && !CurTextPr.TextFill)
+                {
+                    pGraphics.b_color1( AutoColor.r, AutoColor.g, AutoColor.b, 255);
+                }
+            }
+            else
+            {
+                if ( true === CurTextPr.Color.Auto )
+                {
+                    pGraphics.b_color1( AutoColor.r, AutoColor.g, AutoColor.b, 255);
+                }
+                else
+                {
+                    pGraphics.b_color1( CurTextPr.Color.r, CurTextPr.Color.g, CurTextPr.Color.b, 255);
+                }
+            }
         }
     }
 
@@ -5922,18 +5957,35 @@ ParaRun.prototype.Draw_Elements = function(PDSE)
                     }
                     else if (oEndTextPr.Unifill)
                     {
-						oEndTextPr.Unifill.check(PDSE.Theme, PDSE.ColorMap);
+                        oEndTextPr.Unifill.check(PDSE.Theme, PDSE.ColorMap);
                         var RGBAEnd = oEndTextPr.Unifill.getRGBAColor();
                         pGraphics.SetTextPr(oEndTextPr, PDSE.Theme);
-                        pGraphics.b_color1(RGBAEnd.R, RGBAEnd.G, RGBAEnd.B, 255);
+                        if(pGraphics.m_bIsTextDrawer !== true)
+                        {
+                            pGraphics.b_color1(RGBAEnd.R, RGBAEnd.G, RGBAEnd.B, 255);
+                        }
                     }
                     else
                     {
                         pGraphics.SetTextPr(oEndTextPr, PDSE.Theme);
-                        if (true === oEndTextPr.Color.Auto)
-                            pGraphics.b_color1(AutoColor.r, AutoColor.g, AutoColor.b, 255);
+                        if(pGraphics.m_bIsTextDrawer !== true)
+                        {
+                            if (true === oEndTextPr.Color.Auto)
+                            {
+                                pGraphics.b_color1(AutoColor.r, AutoColor.g, AutoColor.b, 255);
+                            }
+                            else
+                            {
+                                pGraphics.b_color1(oEndTextPr.Color.r, oEndTextPr.Color.g, oEndTextPr.Color.b, 255);
+                            }
+                        }
                         else
-                            pGraphics.b_color1(oEndTextPr.Color.r, oEndTextPr.Color.g, oEndTextPr.Color.b, 255);
+                        {
+                            if (true === oEndTextPr.Color.Auto && !oEndTextPr.TextFill)
+                            {
+                                pGraphics.b_color1(AutoColor.r, AutoColor.g, AutoColor.b, 255);
+                            }
+                        }
                     }
 
                     var bEndCell = false;
@@ -10969,7 +11021,7 @@ ParaRun.prototype.GetFootnotesList = function(oEngine)
 	for (var nIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex)
 	{
 		var oItem = this.Content[nIndex];
-		if ((oEngine.IsCheckFootnotes() && para_FootnoteReference === oItem.Type) || (!oEngine.IsCheckFootnotes() && para_EndnoteReference === oItem.Type))
+		if ((oEngine.IsCheckFootnotes() && para_FootnoteReference === oItem.Type) || (oEngine.IsCheckEndnotes() && para_EndnoteReference === oItem.Type))
 		{
 			oEngine.Add(oItem.GetFootnote(), oItem, this);
 		}
@@ -11005,7 +11057,7 @@ ParaRun.prototype.RemoveElement = function(oElement)
 			return this.RemoveFromContent(nIndex, 1, true);
 	}
 };
-ParaRun.prototype.GotoFootnoteRef = function(isNext, isCurrent, isStepOver)
+ParaRun.prototype.GotoFootnoteRef = function(isNext, isCurrent, isStepOver, isStepFootnote, isStepEndnote)
 {
 	var nPos = 0;
 	if (true === isCurrent)
@@ -11028,7 +11080,8 @@ ParaRun.prototype.GotoFootnoteRef = function(isNext, isCurrent, isStepOver)
 	{
 		for (var nIndex = nPos, nCount = this.Content.length; nIndex < nCount; ++nIndex)
 		{
-			if (para_FootnoteReference === this.Content[nIndex].Type && ((true !== isCurrent && true === isStepOver) || (true === isCurrent && (true === this.Selection.Use || nPos !== nIndex))))
+			if (((para_FootnoteReference === this.Content[nIndex].Type && isStepFootnote) || (para_EndnoteReference === this.Content[nIndex].Type && isStepEndnote))
+				&& ((true !== isCurrent && true === isStepOver) || (true === isCurrent && (true === this.Selection.Use || nPos !== nIndex))))
 			{
 				if (this.Paragraph && this.Paragraph.bFromDocument && this.Paragraph.LogicDocument)
 					this.Paragraph.LogicDocument.RemoveSelection();
@@ -11044,7 +11097,8 @@ ParaRun.prototype.GotoFootnoteRef = function(isNext, isCurrent, isStepOver)
 	{
 		for (var nIndex = Math.min(nPos, this.Content.length - 1); nIndex >= 0; --nIndex)
 		{
-			if (para_FootnoteReference === this.Content[nIndex].Type && ((true !== isCurrent && true === isStepOver) || (true === isCurrent && (true === this.Selection.Use || nPos !== nIndex))))
+			if (((para_FootnoteReference === this.Content[nIndex].Type && isStepFootnote) || (para_EndnoteReference === this.Content[nIndex].Type && isStepEndnote))
+				&& ((true !== isCurrent && true === isStepOver) || (true === isCurrent && (true === this.Selection.Use || nPos !== nIndex))))
 			{
 				if (this.Paragraph && this.Paragraph.bFromDocument && this.Paragraph.LogicDocument)
 					this.Paragraph.LogicDocument.RemoveSelection();
@@ -12006,6 +12060,62 @@ ParaRun.prototype.CopyTextFormContent = function(oRun)
 	for (var nPos = nStart, nEndPos = nRunLen - nEnd; nPos < nEndPos; ++nPos)
 	{
 		this.AddToContent(nPos, oRun.Content[nPos].Copy());
+	}
+};
+/**
+ * Изменяем содержимое и настройки рана при конвертации одного типа сносок в другие
+ * @param isToFootnote {boolean}
+ * @param oStyles {CStyles}
+ * @param oFootnote {CFootEndnote}
+ */
+ParaRun.prototype.ConvertFootnoteType = function(isToFootnote, oStyles, oFootnote)
+{
+	var sRStyle = this.GetRStyle();
+	if (isToFootnote)
+	{
+		if (sRStyle === oStyles.GetDefaultEndnoteTextChar())
+			this.SetRStyle(oStyles.GetDefaultFootnoteTextChar());
+		else if (sRStyle === oStyles.GetDefaultEndnoteReference())
+			this.SetRStyle(oStyles.GetDefaultFootnoteReference());
+
+		for (var nCurPos = 0, nCount = this.Content.length; nCurPos < nCount; ++nCurPos)
+		{
+			var oElement = this.Content[nCurPos];
+
+			if (para_EndnoteReference === oElement.Type)
+			{
+				this.RemoveFromContent(nCurPos, 1);
+				this.AddToContent(nCurPos, new ParaFootnoteReference(oFootnote, oElement.CustomMark));
+			}
+			else if (para_EndnoteRef === oElement.Type)
+			{
+				this.RemoveFromContent(nCurPos, 1);
+				this.AddToContent(nCurPos, new ParaFootnoteRef(oFootnote));
+			}
+		}
+	}
+	else
+	{
+		if (sRStyle === oStyles.GetDefaultFootnoteTextChar())
+			this.SetRStyle(oStyles.GetDefaultEndnoteTextChar());
+		else if (sRStyle === oStyles.GetDefaultFootnoteReference())
+			this.SetRStyle(oStyles.GetDefaultEndnoteReference());
+
+		for (var nCurPos = 0, nCount = this.Content.length; nCurPos < nCount; ++nCurPos)
+		{
+			var oElement = this.Content[nCurPos];
+
+			if (para_FootnoteReference === oElement.Type)
+			{
+				this.RemoveFromContent(nCurPos, 1);
+				this.AddToContent(nCurPos, new ParaEndnoteReference(oFootnote, oElement.CustomMark));
+			}
+			else if (para_FootnoteRef === oElement.Type)
+			{
+				this.RemoveFromContent(nCurPos, 1);
+				this.AddToContent(nCurPos, new ParaEndnoteRef(oFootnote));
+			}
+		}
 	}
 };
 

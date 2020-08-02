@@ -1575,6 +1575,17 @@ CopyProcessor.prototype =
 			oDomTarget.addChild(oImg);
 		}
 
+		//TODO необходимо записать перед записью слайда ссылки стиль и сами стили
+		// - аналогично тому как это реализовано при записи таблицы
+		/*var presentation = editor.WordControl.m_oLogicDocument;
+		for(var key in presentation.TableStylesIdMap)
+		{
+			if(presentation.TableStylesIdMap.hasOwnProperty(key))
+			{
+				this.oPresentationWriter.tableStylesGuides[key] = "{" + AscCommon.GUID() + "}"
+			}
+		}*/
+
 		//записываем slide
 		this.oPresentationWriter.WriteSlide(slide);
 
@@ -6173,7 +6184,27 @@ PasteProcessor.prototype =
 					break;
 			}
 		}
+
+		var _applyTextAlign = function () {
+			var text_align = t._getStyle(node, computedStyle, "text-align")
+			if (text_align) {
+				//Может приходить -webkit-right
+				var Jc = null;
+				if (-1 !== text_align.indexOf('center'))
+					Jc = align_Center;
+				else if (-1 !== text_align.indexOf('right'))
+					Jc = align_Right;
+				else if (-1 !== text_align.indexOf('justify'))
+					Jc = align_Justify;
+				if (null != Jc)
+					Para.Set_Align(Jc, false);
+			}
+		};
+
+		var computedStyle = this._getComputedStyle(node);
 		if ("td" === sNodeName || "th" === sNodeName) {
+			_applyTextAlign();
+
 			//для случая <td>br<span></span></td> без текста в ячейке
 			var oNewSpacing = new CParaSpacing();
 			oNewSpacing.Set_FromObject({After: 0, Before: 0, Line: Asc.linerule_Auto});
@@ -6227,7 +6258,6 @@ PasteProcessor.prototype =
 			oNewBorder.Between = oNewBrd;
 		}
 
-		var computedStyle = this._getComputedStyle(node);
 		if (computedStyle) {
 			var font_family = CheckDefaultFontFamily(this._getStyle(node, computedStyle, "font-family"), this.apiEditor);
 			if (font_family && "" != font_family) {
@@ -6304,20 +6334,10 @@ PasteProcessor.prototype =
 			// pPr.Ind.FirstLine = pPr.Ind.FirstLine * this.dScaleKoef;
 			if (false === this._isEmptyProperty(Ind) && !pNoHtmlPr['mso-list'])
 				Para.Set_Ind(Ind);
+
 			//Jc
-			var text_align = this._getStyle(node, computedStyle, "text-align")
-			if (text_align) {
-				//Может приходить -webkit-right
-				var Jc = null;
-				if (-1 !== text_align.indexOf('center'))
-					Jc = align_Center;
-				else if (-1 !== text_align.indexOf('right'))
-					Jc = align_Right;
-				else if (-1 !== text_align.indexOf('justify'))
-					Jc = align_Justify;
-				if (null != Jc)
-					Para.Set_Align(Jc, false);
-			}
+			_applyTextAlign();
+
 			//Spacing
 			var Spacing = new CParaSpacing();
 			var margin_top = this._getStyle(node, computedStyle, "margin-top");
@@ -7150,25 +7170,28 @@ PasteProcessor.prototype =
 		}
 		this.nBrCount = 0;
 	},
-	_StartExecuteTable: function (node, pPr) {
+
+	_StartExecuteTable: function (node, pPr, arrShapes, arrImages, arrTables) {
 		var oDocument = this.oDocument;
 		var tableNode = node, newNode, headNode;
+		var bPresentation = !PasteElementsId.g_bIsDocumentCopyPaste;
 
 		//Ищем если есть tbody
-		for (var i = 0, length = node.childNodes.length; i < length; ++i) {
+		var i, length, j, length2;
+		for (i = 0, length = node.childNodes.length; i < length; ++i) {
 			var nodeName = node.childNodes[i].nodeName.toLowerCase();
 			if ("tbody" === nodeName) {
 				if (!newNode) {
 					newNode = node.childNodes[i];
 					if (headNode) {
-						for (var j = 0; j < headNode.childNodes.length; j++) {
+						for (j = 0; j < headNode.childNodes.length; j++) {
 							newNode.insertBefore(headNode.childNodes[0], newNode.childNodes[0]);
 						}
 						pPr.repeatHeaderRow = true;
 					}
 				} else {
 					var lengthChild = node.childNodes[i].childNodes.length;
-					for (var j = 0; j < lengthChild; j++) {
+					for (j = 0; j < lengthChild; j++) {
 						newNode.appendChild(node.childNodes[i].childNodes[0]);
 					}
 				}
@@ -7194,7 +7217,10 @@ PasteProcessor.prototype =
 		var nCurSum = 0;
 		var nAllSum = 0;
 		var oRowSpans = {};
-		var columnSize = ((!window["Asc"] || (window["Asc"] && window["Asc"]["editor"] === undefined))) && this.oLogicDocument ? this.oLogicDocument.GetColumnSize() : null;
+		var columnSize;
+		if (!bPresentation && ((!window["Asc"] || (window["Asc"] && window["Asc"]["editor"] === undefined))) && this.oLogicDocument) {
+			columnSize = this.oLogicDocument.GetColumnSize();
+		}
 		var fParseSpans = function () {
 			var spans = oRowSpans[nCurColWidth];
 			while (null != spans && spans.row > 0) {
@@ -7204,16 +7230,18 @@ PasteProcessor.prototype =
 				spans = oRowSpans[nCurColWidth];
 			}
 		};
-		for (var i = 0, length = node.childNodes.length; i < length; ++i) {
+
+		var tc, tcName, nCurRowSpan;
+		for (i = 0, length = node.childNodes.length; i < length; ++i) {
 			var tr = node.childNodes[i];
 			if ("tr" === tr.nodeName.toLowerCase()) {
 				nCurSum = 0;
 				nCurColWidth = 0;
 				var minRowSpanIndex = null;
 				var nMinRowSpanCount = null;//минимальный rowspan ячеек строки
-				for (var j = 0, length2 = tr.childNodes.length; j < length2; ++j) {
-					var tc = tr.childNodes[j];
-					var tcName = tc.nodeName.toLowerCase();
+				for (j = 0, length2 = tr.childNodes.length; j < length2; ++j) {
+					tc = tr.childNodes[j];
+					tcName = tc.nodeName.toLowerCase();
 					if ("td" === tcName || "th" === tcName) {
 						fParseSpans();
 
@@ -7231,7 +7259,7 @@ PasteProcessor.prototype =
 							nColSpan = nColSpan - 0;
 						else
 							nColSpan = 1;
-						var nCurRowSpan = tc.getAttribute("rowspan");
+						nCurRowSpan = tc.getAttribute("rowspan");
 						if (null != nCurRowSpan) {
 							nCurRowSpan = nCurRowSpan - 0;
 							if (null == nMinRowSpanCount) {
@@ -7262,11 +7290,11 @@ PasteProcessor.prototype =
 				fParseSpans();
 				//Удаляем лишние rowspan
 				if (nMinRowSpanCount > 1) {
-					for (var j = 0, length2 = tr.childNodes.length; j < length2; ++j) {
-						var tc = tr.childNodes[j];
-						var tcName = tc.nodeName.toLowerCase();
+					for (j = 0, length2 = tr.childNodes.length; j < length2; ++j) {
+						tc = tr.childNodes[j];
+						tcName = tc.nodeName.toLowerCase();
 						if (minRowSpanIndex !== j && ("td" === tcName || "th" === tcName)) {
-							var nCurRowSpan = tc.getAttribute("rowspan");
+							nCurRowSpan = tc.getAttribute("rowspan");
 							if (null != nCurRowSpan)
 								tc.setAttribute("rowspan", nCurRowSpan - nMinRowSpanCount);
 						}
@@ -7275,23 +7303,26 @@ PasteProcessor.prototype =
 				if (dMaxSum < nCurSum)
 					dMaxSum = nCurSum;
 				//удаляем пустые tr
-				if (0 == nCurColWidth) {
+				if (0 === nCurColWidth) {
 					node.removeChild(tr);
 					length--;
 					i--;
 				} else {
-					if (0 == nMinColCount || nMinColCount > nCurColWidth)
+					if (0 === nMinColCount || nMinColCount > nCurColWidth) {
 						nMinColCount = nCurColWidth;
-					if (nMaxColCount < nCurColWidth)
+					}
+					if (nMaxColCount < nCurColWidth) {
 						nMaxColCount = nCurColWidth;
+					}
 					nRowCount++;
 					aColsCountByRow.push(nCurColWidth);
 				}
 			}
 		}
-		if (nMaxColCount != nMinColCount) {
-			for (var i = 0, length = aColsCountByRow.length; i < length; ++i)
+		if (nMaxColCount !== nMinColCount) {
+			for (i = 0, length = aColsCountByRow.length; i < length; ++i) {
 				aColsCountByRow[i] = nMaxColCount - aColsCountByRow[i];
+			}
 		}
 		if (nRowCount > 0 && nMaxColCount > 0) {
 			var bUseScaleKoef = this.bUseScaleKoef;
@@ -7304,7 +7335,7 @@ PasteProcessor.prototype =
 			var aGrid = [];
 			var nPrevIndex = null;
 			var nPrevVal = 0;
-			for (var i in oRowSums) {
+			for (i in oRowSums) {
 				var nCurIndex = i - 0;
 				var nCurVal = oRowSums[i];
 				var nCurWidth = nCurVal - nPrevVal;
@@ -7320,29 +7351,46 @@ PasteProcessor.prototype =
 						}
 					} else {
 						var nPartVal = nCurWidth / nDif;
-						for (var i = 0; i < nDif; ++i)
+						for (j = 0; j < nDif; ++j)
 							aGrid.push(nPartVal);
 					}
 				}
 				nPrevVal = nCurVal;
 				nPrevIndex = nCurIndex;
 			}
-			var CurPage = 0;
-			var table = new CTable(oDocument.DrawingDocument, oDocument, true, 0, 0, aGrid);
+
+			var table;
+			if (bPresentation) {
+				table = this._createNewPresentationTable(aGrid);
+				var graphicFrame = table.Parent;
+				table.Set_TableStyle(0);
+				arrTables.push(graphicFrame);
+
+				//TODO пересмотреть!!!
+				//graphicFrame.setXfrm(dd.GetMMPerDot(node["offsetLeft"]), dd.GetMMPerDot(node["offsetTop"]), dd.GetMMPerDot(node["offsetWidth"]), dd.GetMMPerDot(node["offsetHeight"]), null, null, null);
+			} else {
+				table = new CTable(oDocument.DrawingDocument, oDocument, true, 0, 0, aGrid);
+			}
+
+
 			//считаем aSumGrid
 			var aSumGrid = [];
 			aSumGrid[-1] = 0;
 			var nSum = 0;
-			for (var i = 0, length = aGrid.length; i < length; ++i) {
+			for (i = 0, length = aGrid.length; i < length; ++i) {
 				nSum += aGrid[i];
 				aSumGrid[i] = nSum;
 			}
 			//набиваем content
-			this._ExecuteTable(tableNode, node, table, aSumGrid, nMaxColCount !== nMinColCount ? aColsCountByRow : null, pPr, bUseScaleKoef, dScaleKoef);
+			this._ExecuteTable(tableNode, node, table, aSumGrid, nMaxColCount !== nMinColCount ? aColsCountByRow : null, pPr, bUseScaleKoef, dScaleKoef, arrShapes, arrImages, arrTables);
 			table.MoveCursorToStartPos();
-			this.aContent.push(table);
+
+			if (!bPresentation) {
+				this.aContent.push(table);
+			}
 		}
 	},
+
 	_ExecuteBorder: function (computedStyle, node, type, type2, bAddIfNull, setUnifill) {
 		var res = null;
 		var style = this._getStyle(node, computedStyle, "border-" + type + "-style");
@@ -7391,7 +7439,10 @@ PasteProcessor.prototype =
 			return res;
 		}
 	},
-	_ExecuteTable: function (tableNode, node, table, aSumGrid, aColsCountByRow, pPr, bUseScaleKoef, dScaleKoef) {
+
+	_ExecuteTable: function (tableNode, node, table, aSumGrid, aColsCountByRow, pPr, bUseScaleKoef, dScaleKoef, arrShapes, arrImages, arrTables) {
+		var bPresentation = !PasteElementsId.g_bIsDocumentCopyPaste;
+
 		table.SetTableLayout(tbllayout_AutoFit);
 		//Pr
 		var Pr = table.Pr;
@@ -7399,7 +7450,7 @@ PasteProcessor.prototype =
 		var sTableAlign = null;
 		if (null != tableNode.align)
 			sTableAlign = tableNode.align;
-		else if (null != tableNode.parentNode && this.oRootNode != tableNode.parentNode) {
+		else if (null != tableNode.parentNode && this.oRootNode !== tableNode.parentNode) {
 			var computedStyleParent = this._getComputedStyle(tableNode.parentNode);
 			sTableAlign = this._getStyle(tableNode.parentNode, computedStyleParent, "text-align");
 		}
@@ -7465,16 +7516,16 @@ PasteProcessor.prototype =
 		var background_color = this._getStyle(tableNode, computedStyle, "background-color");
 		if (null != background_color && (background_color = this._ParseColor(background_color)))
 			table.Set_TableShd(c_oAscShdClear, background_color.r, background_color.g, background_color.b);
-		var oLeftBorder = this._ExecuteBorder(computedStyle, tableNode, "left", "Left", false);
+		var oLeftBorder = this._ExecuteBorder(computedStyle, tableNode, "left", "Left", bPresentation);
 		if (null != oLeftBorder)
 			table.Set_TableBorder_Left(oLeftBorder);
-		var oTopBorder = this._ExecuteBorder(computedStyle, tableNode, "top", "Top", false);
+		var oTopBorder = this._ExecuteBorder(computedStyle, tableNode, "top", "Top", bPresentation);
 		if (null != oTopBorder)
 			table.Set_TableBorder_Top(oTopBorder);
-		var oRightBorder = this._ExecuteBorder(computedStyle, tableNode, "right", "Right", false);
+		var oRightBorder = this._ExecuteBorder(computedStyle, tableNode, "right", "Right", bPresentation);
 		if (null != oRightBorder)
 			table.Set_TableBorder_Right(oRightBorder);
-		var oBottomBorder = this._ExecuteBorder(computedStyle, tableNode, "bottom", "Bottom", false);
+		var oBottomBorder = this._ExecuteBorder(computedStyle, tableNode, "bottom", "Bottom", bPresentation);
 		if (null != oBottomBorder)
 			table.Set_TableBorder_Bottom(oBottomBorder);
 
@@ -7500,11 +7551,12 @@ PasteProcessor.prototype =
 					row.Pr.TableHeader = true;
 				}
 				bFirstRow = false;
-				this._ExecuteTableRow(tr, row, aSumGrid, spacing, oRowSpans, bUseScaleKoef, dScaleKoef);
+				this._ExecuteTableRow(tr, row, aSumGrid, spacing, oRowSpans, bUseScaleKoef, dScaleKoef, arrShapes, arrImages, arrTables);
 			}
 		}
 	},
-	_ExecuteTableRow: function (node, row, aSumGrid, spacing, oRowSpans, bUseScaleKoef, dScaleKoef) {
+
+	_ExecuteTableRow: function (node, row, aSumGrid, spacing, oRowSpans, bUseScaleKoef, dScaleKoef, arrShapes, arrImages, arrTables) {
 		var oThis = this;
 		var table = row.Table;
 		var oTableSpacingMinValue = ("undefined" !== typeof tableSpacingMinValue) ? tableSpacingMinValue : 0.02;
@@ -7560,6 +7612,16 @@ PasteProcessor.prototype =
 				}
 			}
 		}
+
+		var computedStyle = this._getComputedStyle(node);
+		var background_color = this._getStyle(node, computedStyle, "background-color");
+		var Shd;
+		if (null != background_color && (background_color = this._ParseColor(background_color))) {
+			Shd = new CDocumentShd();
+			Shd.Value = c_oAscShdClear;
+			Shd.Color = background_color;
+		}
+
 		for (var i = 0, length = node.childNodes.length; i < length; ++i) {
 			//важно чтобы этот код был после определения td, потому что вертикально замерженые ячейки отсутствуют в dom
 			fParseSpans();
@@ -7580,6 +7642,9 @@ PasteProcessor.prototype =
 					var oCurCell = row.Add_Cell(row.Get_CellsCount(), row, null, false);
 					if (nColSpan > 1)
 						oCurCell.Set_GridSpan(nColSpan);
+					if (Shd) {
+						oCurCell.Set_Shd(Shd);
+					}
 					var width = aSumGrid[nCellIndexSpan + nColSpan - 1] - aSumGrid[nCellIndexSpan - 1];
 					oCurCell.Set_W(new CTableMeasurement(tblwidth_Mm, width));
 					var nRowSpan = tc.getAttribute("rowspan");
@@ -7589,19 +7654,22 @@ PasteProcessor.prototype =
 						nRowSpan = 1;
 					if (nRowSpan > 1)
 						oRowSpans[nCellIndexSpan] = {row: nRowSpan - 1, col: nColSpan};
-					this._ExecuteTableCell(tc, oCurCell, bUseScaleKoef, dScaleKoef, spacing);
+					this._ExecuteTableCell(tc, oCurCell, bUseScaleKoef, dScaleKoef, spacing, arrShapes, arrImages, arrTables);
 				}
 				nCellIndexSpan += nColSpan;
 			}
 		}
 		fParseSpans();
 	},
-	_ExecuteTableCell: function (node, cell, bUseScaleKoef, dScaleKoef, spacing) {
+
+	_ExecuteTableCell: function (node, cell, bUseScaleKoef, dScaleKoef, spacing, arrShapes, arrImages, arrTables) {
 		//Pr
 		var Pr = cell.Pr;
 		var bAddIfNull = false;
-		if (null != spacing)
+		if (null != spacing) {
 			bAddIfNull = true;
+		}
+
 		var computedStyle = this._getComputedStyle(node);
 		var background_color = this._getStyle(node, computedStyle, "background-color");
 		if (null != background_color && (background_color = this._ParseColor(background_color))) {
@@ -7641,40 +7709,93 @@ PasteProcessor.prototype =
 			cell.SetNoWrap(true);
 		}
 
-		//content
-		var oPasteProcessor = new PasteProcessor(this.api, false, false, true);
-		oPasteProcessor.msoComments = this.msoComments;
-		oPasteProcessor.oFonts = this.oFonts;
-		oPasteProcessor.oImages = this.oImages;
-		oPasteProcessor.oDocument = cell.Content;
-		oPasteProcessor.bIgnoreNoBlockText = true;
-		oPasteProcessor.dMaxWidth = this._CalcMaxWidthByCell(cell);
-		if (true === bUseScaleKoef) {
-			oPasteProcessor.bUseScaleKoef = bUseScaleKoef;
-			oPasteProcessor.dScaleKoef = dScaleKoef;
+		var vAlign = this._getStyle(node, computedStyle, "vertical-align");
+		switch (vAlign) {
+			case "middle":
+				cell.Set_VAlign(vertalignjc_Center);
+				break;
+			case "bottom":
+				cell.Set_VAlign(vertalignjc_Bottom);
+				break;
+			case "baseline":
+			case "top":
+				cell.Set_VAlign(vertalignjc_Top);
+				break;
 		}
-		oPasteProcessor._Execute(node, {}, true, true, false);
-		oPasteProcessor._PrepareContent();
-		oPasteProcessor._AddNextPrevToContent(cell.Content);
-		if (0 === oPasteProcessor.aContent.length) {
-			var oDocContent = cell.Content;
-			var oNewPar = new Paragraph(oDocContent.DrawingDocument, oDocContent);
-			//выставляем единичные настройки - важно для копирования из таблиц и других мест где встречаются пустые ячейки
-			var oNewSpacing = new CParaSpacing();
-			oNewSpacing.Set_FromObject({After: 0, Before: 0, Line: Asc.linerule_Auto});
-			oNewPar.Set_Spacing(oNewSpacing);
-			oPasteProcessor.aContent.push(oNewPar);
+
+		var i, length;
+		var bPresentation = !PasteElementsId.g_bIsDocumentCopyPaste;
+		if (bPresentation) {
+			var arrShapes2 = [], arrImages2 = [], arrTables2 = [];
+			var presentation = editor.WordControl.m_oLogicDocument;
+			var shape = new CShape();
+			shape.setParent(presentation.Slides[presentation.CurPage]);
+			shape.setTxBody(AscFormat.CreateTextBodyFromString("", presentation.DrawingDocument, shape));
+			arrShapes2.push(shape);
+			this._Execute(node, {}, true, true, false, arrShapes2, arrImages2, arrTables);
+			if (arrShapes2.length > 0) {
+				var first_shape = arrShapes2[0];
+				var content = first_shape.txBody.content;
+
+				//добавляем новый параграфы
+				for (i = 0, length = content.Content.length; i < length; ++i) {
+					if (i === length - 1) {
+						cell.Content.Internal_Content_Add(i + 1, content.Content[i], true);
+					} else {
+						cell.Content.Internal_Content_Add(i + 1, content.Content[i], false);
+					}
+				}
+				//Удаляем параграф, который создается в таблице по умолчанию
+				cell.Content.Internal_Content_Remove(0, 1);
+				arrShapes2.splice(0, 1);
+			}
+			for (i = 0; i < arrShapes2.length; ++i) {
+				arrShapes.push(arrShapes2[i]);
+			}
+			for (i = 0; i < arrImages2.length; ++i) {
+				arrImages.push(arrImages2[i]);
+			}
+			for (i = 0; i < arrTables2.length; ++i) {
+				arrTables.push(arrTables2[i]);
+			}
+		} else {
+			//content
+			var oPasteProcessor = new PasteProcessor(this.api, false, false, true);
+			oPasteProcessor.msoComments = this.msoComments;
+			oPasteProcessor.oFonts = this.oFonts;
+			oPasteProcessor.oImages = this.oImages;
+			oPasteProcessor.oDocument = cell.Content;
+			oPasteProcessor.bIgnoreNoBlockText = true;
+			oPasteProcessor.dMaxWidth = this._CalcMaxWidthByCell(cell);
+			if (true === bUseScaleKoef) {
+				oPasteProcessor.bUseScaleKoef = bUseScaleKoef;
+				oPasteProcessor.dScaleKoef = dScaleKoef;
+			}
+			oPasteProcessor._Execute(node, {}, true, true, false);
+			oPasteProcessor._PrepareContent();
+			oPasteProcessor._AddNextPrevToContent(cell.Content);
+			if (0 === oPasteProcessor.aContent.length) {
+				var oDocContent = cell.Content;
+				var oNewPar = new Paragraph(oDocContent.DrawingDocument, oDocContent);
+				//выставляем единичные настройки - важно для копирования из таблиц и других мест где встречаются пустые ячейки
+				var oNewSpacing = new CParaSpacing();
+				oNewSpacing.Set_FromObject({After: 0, Before: 0, Line: Asc.linerule_Auto});
+				oNewPar.Set_Spacing(oNewSpacing);
+				oPasteProcessor.aContent.push(oNewPar);
+			}
+			//добавляем новый параграфы
+			for (i = 0, length = oPasteProcessor.aContent.length; i < length; ++i) {
+				if (i === length - 1) {
+					cell.Content.Internal_Content_Add(i + 1, oPasteProcessor.aContent[i], true);
+				} else {
+					cell.Content.Internal_Content_Add(i + 1, oPasteProcessor.aContent[i], false);
+				}
+			}
+			//Удаляем параграф, который создается в таблице по умолчанию
+			cell.Content.Internal_Content_Remove(0, 1);
 		}
-		//добавляем новый параграфы
-		for (var i = 0, length = oPasteProcessor.aContent.length; i < length; ++i) {
-			if (i === length - 1)
-				cell.Content.Internal_Content_Add(i + 1, oPasteProcessor.aContent[i], true);
-			else
-				cell.Content.Internal_Content_Add(i + 1, oPasteProcessor.aContent[i], false);
-		}
-		//Удаляем параграф, который создается в таблице по умолчанию
-		cell.Content.Internal_Content_Remove(0, 1);
 	},
+
 	_CheckIsPlainText: function (node, dNotCheckFirstElem) {
 		var bIsPlainText = true;
 
@@ -8371,7 +8492,8 @@ PasteProcessor.prototype =
 		} else {
 			//TEXT NODE
 			if (Node.TEXT_NODE === node.nodeType) {
-				if (false === this.bIgnoreNoBlockText || true === bInBlock) {
+				//TODO пересмотреть условия
+				if (false === this.bIgnoreNoBlockText || true === bInBlock || (node.parentElement && "a" === node.parentElement.nodeName.toLowerCase())) {
 					parseTextNode();
 				}
 				return bPresentation ? false : bAddParagraph;
@@ -8381,7 +8503,7 @@ PasteProcessor.prototype =
 			var sNodeName = node.nodeName.toLowerCase();
 			if (bPresentation) {
 				if ("table" === sNodeName) {
-					this._StartExecuteTablePresentation(node, pPr, arrShapes, arrImages, arrTables);
+					this._StartExecuteTable(node, pPr, arrShapes, arrImages, arrTables);
 					return;
 				}
 			} else {
@@ -8483,442 +8605,6 @@ PasteProcessor.prototype =
 				this.oCurRun.Set_Pr(clonePr);
 			}
 			this.needAddCommentEnd = null;
-		}
-	},
-
-	_StartExecuteTablePresentation: function (node, pPr, arrShapes, arrImages, arrTables) {
-		var oDocument = this.oDocument;
-		var tableNode = node;
-		//Ищем если есть tbody
-		for (var i = 0, length = node.childNodes.length; i < length; ++i) {
-			if ("tbody" === node.childNodes[i].nodeName.toLowerCase()) {
-				node = node.childNodes[i];
-				break;
-			}
-		}
-		//валидация талиц. В таблице не может быть строк состоящих из вертикально замерженых ячеек.
-		var nRowCount = 0;
-		var nMinColCount = 0;
-		var nMaxColCount = 0;
-		var aColsCountByRow = [];
-		var oRowSums = {};
-		oRowSums[0] = 0;
-		var dMaxSum = 0;
-		var nCurColWidth = 0;
-		var nCurSum = 0;
-		var oRowSpans = {};
-		var fParseSpans = function () {
-			var spans = oRowSpans[nCurColWidth];
-			while (null != spans && spans.row > 0) {
-				spans.row--;
-				nCurColWidth += spans.col;
-				nCurSum += spans.width;
-				spans = oRowSpans[nCurColWidth];
-			}
-		};
-		for (var i = 0, length = node.childNodes.length; i < length; ++i) {
-			var tr = node.childNodes[i];
-			if ("tr" === tr.nodeName.toLowerCase()) {
-				nCurSum = 0;
-				nCurColWidth = 0;
-				var nMinRowSpanCount = null;//минимальный rowspan ячеек строки
-				for (var j = 0, length2 = tr.childNodes.length; j < length2; ++j) {
-					var tc = tr.childNodes[j];
-					var tcName = tc.nodeName.toLowerCase();
-					if ("td" === tcName || "th" === tcName) {
-						fParseSpans();
-
-						var dWidth = null;
-						var computedStyle = this._getComputedStyle(tc);
-						var computedWidth = this._getStyle(tc, computedStyle, "width");
-						if (null != computedWidth && null != (computedWidth = AscCommon.valueToMm(computedWidth)))
-							dWidth = computedWidth;
-
-						if (null == dWidth)
-							dWidth = tc.clientWidth * g_dKoef_pix_to_mm;
-
-						var nColSpan = tc.getAttribute("colspan");
-						if (null != nColSpan)
-							nColSpan = nColSpan - 0;
-						else
-							nColSpan = 1;
-						var nCurRowSpan = tc.getAttribute("rowspan");
-						if (null != nCurRowSpan) {
-							nCurRowSpan = nCurRowSpan - 0;
-							if (null == nMinRowSpanCount)
-								nMinRowSpanCount = nCurRowSpan;
-							else if (nMinRowSpanCount > nCurRowSpan)
-								nMinRowSpanCount = nCurRowSpan;
-							if (nCurRowSpan > 1)
-								oRowSpans[nCurColWidth] = {row: nCurRowSpan - 1, col: nColSpan, width: dWidth};
-						} else
-							nMinRowSpanCount = 0;
-
-						nCurSum += dWidth;
-						if (null == oRowSums[nCurColWidth + nColSpan])
-							oRowSums[nCurColWidth + nColSpan] = nCurSum;
-						nCurColWidth += nColSpan;
-					}
-				}
-				fParseSpans();
-				//Удаляем лишние rowspan
-				if (nMinRowSpanCount > 1) {
-					for (var j = 0, length2 = tr.childNodes.length; j < length2; ++j) {
-						var tc = tr.childNodes[j];
-						var tcName = tc.nodeName.toLowerCase();
-						if ("td" === tcName || "th" === tcName) {
-							var nCurRowSpan = tc.getAttribute("rowspan");
-							if (null != nCurRowSpan)
-								tc.setAttribute("rowspan", nCurRowSpan - nMinRowSpanCount);
-						}
-					}
-				}
-				if (dMaxSum < nCurSum)
-					dMaxSum = nCurSum;
-				//удаляем пустые tr
-				if (0 === nCurColWidth) {
-					node.removeChild(tr);
-					length--;
-					i--;
-				} else {
-					if (0 === nMinColCount || nMinColCount > nCurColWidth)
-						nMinColCount = nCurColWidth;
-					if (nMaxColCount < nCurColWidth)
-						nMaxColCount = nCurColWidth;
-					nRowCount++;
-					aColsCountByRow.push(nCurColWidth);
-				}
-			}
-		}
-		if (nMaxColCount != nMinColCount) {
-			for (var i = 0, length = aColsCountByRow.length; i < length; ++i)
-				aColsCountByRow[i] = nMaxColCount - aColsCountByRow[i];
-		}
-		if (nRowCount > 0 && nMaxColCount > 0) {
-			var bUseScaleKoef = this.bUseScaleKoef;
-			var dScaleKoef = this.dScaleKoef;
-			if (dMaxSum * dScaleKoef > this.dMaxWidth) {
-				dScaleKoef = dScaleKoef * this.dMaxWidth / dMaxSum;
-				bUseScaleKoef = true;
-			}
-			//строим Grid
-			var aGrid = [];
-			var nPrevIndex = null;
-			var nPrevVal = 0;
-			for (var i in oRowSums) {
-				var nCurIndex = i - 0;
-				var nCurVal = oRowSums[i];
-				var nCurWidth = nCurVal - nPrevVal;
-				if (bUseScaleKoef)
-					nCurWidth *= dScaleKoef;
-				if (null != nPrevIndex) {
-					var nDif = nCurIndex - nPrevIndex;
-					if (1 === nDif)
-						aGrid.push(nCurWidth);
-					else {
-						var nPartVal = nCurWidth / nDif;
-						for (var i = 0; i < nDif; ++i)
-							aGrid.push(nPartVal);
-					}
-				}
-				nPrevVal = nCurVal;
-				nPrevIndex = nCurIndex;
-			}
-
-			var table = this._createNewPresentationTable(aGrid);
-			var graphicFrame = table.Parent;
-			table.Set_TableStyle(0);
-			arrTables.push(graphicFrame);
-
-			//TODO пересмотреть!!!
-			//graphicFrame.setXfrm(dd.GetMMPerDot(node["offsetLeft"]), dd.GetMMPerDot(node["offsetTop"]), dd.GetMMPerDot(node["offsetWidth"]), dd.GetMMPerDot(node["offsetHeight"]), null, null, null);
-
-			//считаем aSumGrid
-			var aSumGrid = [];
-			aSumGrid[-1] = 0;
-			var nSum = 0;
-			for (var i = 0, length = aGrid.length; i < length; ++i) {
-				nSum += aGrid[i];
-				aSumGrid[i] = nSum;
-			}
-			//набиваем content
-			this._ExecuteTablePresentation(tableNode, node, table, aSumGrid, nMaxColCount != nMinColCount ? aColsCountByRow : null, pPr, bUseScaleKoef, dScaleKoef, arrShapes, arrImages, arrTables);
-			table.MoveCursorToStartPos();
-			return;
-		}
-	},
-
-	_ExecuteTablePresentation: function (tableNode, node, table, aSumGrid, aColsCountByRow, pPr, bUseScaleKoef, dScaleKoef, arrShapes, arrImages, arrTables) {
-		table.SetTableLayout(tbllayout_AutoFit);
-		//Pr
-		var Pr = table.Pr;
-		//align смотрим у parent tableNode
-		var sTableAlign = null;
-		if (null != tableNode.align)
-			sTableAlign = tableNode.align;
-		else if (null != tableNode.parentNode && this.oRootNode !== tableNode.parentNode) {
-			var computedStyleParent = this._getComputedStyle(tableNode.parentNode);
-			sTableAlign = this._getStyle(tableNode.parentNode, computedStyleParent, "text-align");
-		}
-		if (null != sTableAlign) {
-			if (-1 !== sTableAlign.indexOf('center'))
-				table.Set_TableAlign(align_Center);
-			else if (-1 !== sTableAlign.indexOf('right'))
-				table.Set_TableAlign(align_Right);
-		}
-		var spacing = null;
-		table.Set_TableBorder_InsideH(new CDocumentBorder());
-		table.Set_TableBorder_InsideV(new CDocumentBorder());
-
-		var style = tableNode.getAttribute("style");
-		if (style) {
-			var tblPrMso = {};
-			this._parseCss(style, tblPrMso);
-			var spacing = tblPrMso["mso-cellspacing"];
-			if (null != spacing && null != (spacing = AscCommon.valueToMm(spacing)))
-				;
-			var padding = tblPrMso["mso-padding-alt"];
-			if (null != padding) {
-				padding = trimString(padding);
-				var aMargins = padding.split(" ");
-				if (4 === aMargins.length) {
-					var top = aMargins[0];
-					if (null != top && null != (top = AscCommon.valueToMm(top)))
-						;
-					else
-						top = Pr.TableCellMar.Top.W;
-					var right = aMargins[1];
-					if (null != right && null != (right = AscCommon.valueToMm(right)))
-						;
-					else
-						right = Pr.TableCellMar.Right.W;
-					var bottom = aMargins[2];
-					if (null != bottom && null != (bottom = AscCommon.valueToMm(bottom)))
-						;
-					else
-						bottom = Pr.TableCellMar.Bottom.W;
-					var left = aMargins[3];
-					if (null != left && null != (left = AscCommon.valueToMm(left)))
-						;
-					else
-						left = Pr.TableCellMar.Left.W;
-					table.Set_TableCellMar(left, top, right, bottom);
-				}
-			}
-			var insideh = tblPrMso["mso-border-insideh"];
-			if (null != insideh)
-				table.Set_TableBorder_InsideH(this._ExecuteParagraphBorder(insideh));
-			var insidev = tblPrMso["mso-border-insidev"];
-			if (null != insidev)
-				table.Set_TableBorder_InsideV(this._ExecuteParagraphBorder(insidev));
-		}
-
-		var computedStyle = this._getComputedStyle(tableNode);
-		if (align_Left === table.Get_TableAlign()) {
-			var margin_left = this._getStyle(tableNode, computedStyle, "margin-left");
-			//todo возможно надо еще учесть ширину таблицы
-			if (margin_left && null != (margin_left = AscCommon.valueToMm(margin_left)) && margin_left < Page_Width - X_Left_Margin)
-				table.Set_TableInd(margin_left);
-		}
-		var background_color = this._getStyle(tableNode, computedStyle, "background-color");
-		if (null != background_color && (background_color = this._ParseColor(background_color)))
-			table.Set_TableShd(c_oAscShdClear, background_color.r, background_color.g, background_color.b);
-		var oLeftBorder = this._ExecuteBorder(computedStyle, tableNode, "left", "Left", false, true);
-		if (null != oLeftBorder)
-			table.Set_TableBorder_Left(oLeftBorder);
-		var oTopBorder = this._ExecuteBorder(computedStyle, tableNode, "top", "Top", false, true);
-		if (null != oTopBorder)
-			table.Set_TableBorder_Top(oTopBorder);
-		var oRightBorder = this._ExecuteBorder(computedStyle, tableNode, "right", "Right", false, true);
-		if (null != oRightBorder)
-			table.Set_TableBorder_Right(oRightBorder);
-		var oBottomBorder = this._ExecuteBorder(computedStyle, tableNode, "bottom", "Bottom", false, true);
-		if (null != oBottomBorder)
-			table.Set_TableBorder_Bottom(oBottomBorder);
-
-		if (null == spacing) {
-			spacing = this._getStyle(tableNode, computedStyle, "padding");
-			if (!spacing)
-				spacing = tableNode.style.padding;
-			if (!spacing)
-				spacing = null;
-			if (spacing && null != (spacing = AscCommon.valueToMm(spacing)))
-				;
-		}
-
-		//content
-		var oRowSpans = {};
-		for (var i = 0, length = node.childNodes.length; i < length; ++i) {
-			var tr = node.childNodes[i];
-			if ("tr" === tr.nodeName.toLowerCase() && tr.children.length !== 0)//в случае, если внутри строки нет ни одной ячейки, не добавляем данную строку
-			{
-				var row = table.private_AddRow(table.Content.length, 0);
-				this._ExecuteTableRowPresentation(tr, row, aSumGrid, spacing, oRowSpans, bUseScaleKoef, dScaleKoef, arrShapes, arrImages, arrTables);
-			}
-		}
-	},
-	_ExecuteTableRowPresentation: function (node, row, aSumGrid, spacing, oRowSpans, bUseScaleKoef, dScaleKoef, arrShapes, arrImages, arrTables) {
-		var oThis = this;
-		var table = row.Table;
-		if (null != spacing /*&& spacing >= tableSpacingMinValue*/)
-			row.Set_CellSpacing(spacing);
-		if (node.style.height) {
-			var height = node.style.height;
-			if (!("auto" === height || "inherit" === height || -1 !== height.indexOf("%")) && null != (height = AscCommon.valueToMm(height)))
-				row.Set_Height(height, Asc.linerule_AtLeast);
-		}
-		var bBefore = false;
-		var bAfter = false;
-		var style = node.getAttribute("style");
-		if (null != style) {
-			var tcPr = {};
-			this._parseCss(style, tcPr);
-			var margin_left = tcPr["mso-row-margin-left"];
-			if (margin_left && null != (margin_left = AscCommon.valueToMm(margin_left)))
-				bBefore = true;
-			var margin_right = tcPr["mso-row-margin-right"];
-			if (margin_right && null != (margin_right = AscCommon.valueToMm(margin_right)))
-				bAfter = true;
-		}
-
-		//content
-		var nCellIndex = 0;
-		var nCellIndexSpan = 0;
-		var fParseSpans = function () {
-			var spans = oRowSpans[nCellIndexSpan];
-			while (null != spans) {
-				var oCurCell = row.Add_Cell(row.Get_CellsCount(), row, null, false);
-				oCurCell.SetVMerge(vmerge_Continue);
-				if (spans.col > 1)
-					oCurCell.Set_GridSpan(spans.col);
-				spans.row--;
-				if (spans.row <= 0)
-					delete oRowSpans[nCellIndexSpan];
-				nCellIndexSpan += spans.col;
-				spans = oRowSpans[nCellIndexSpan];
-			}
-		};
-		var oBeforeCell = null;
-		var oAfterCell = null;
-		if (bBefore || bAfter) {
-			for (var i = 0, length = node.childNodes.length; i < length; ++i) {
-				var tc = node.childNodes[i];
-				var tcName = tc.nodeName.toLowerCase();
-				if ("td" === tcName || "th" === tcName) {
-					if (bBefore && null != oBeforeCell)
-						oBeforeCell = tc;
-					else if (bAfter)
-						oAfterCell = tc;
-				}
-			}
-		}
-		for (var i = 0, length = node.childNodes.length; i < length; ++i) {
-			//важно чтобы этот код был после определения td, потому что вертикально замерженые ячейки отсутствуют в dom
-			fParseSpans();
-
-			var tc = node.childNodes[i];
-			var tcName = tc.nodeName.toLowerCase();
-			if ("td" === tcName || "th" === tcName) {
-				var nColSpan = tc.getAttribute("colspan");
-				if (null != nColSpan)
-					nColSpan = nColSpan - 0;
-				else
-					nColSpan = 1;
-				if (tc === oBeforeCell)
-					row.Set_Before(nColSpan);
-				else if (tc === oAfterCell)
-					row.Set_After(nColSpan);
-				else {
-					var oCurCell = row.Add_Cell(row.Get_CellsCount(), row, null, false);
-					if (nColSpan > 1)
-						oCurCell.Set_GridSpan(nColSpan);
-					var width = aSumGrid[nCellIndexSpan + nColSpan - 1] - aSumGrid[nCellIndexSpan - 1];
-					oCurCell.Set_W(new CTableMeasurement(tblwidth_Mm, width));
-					var nRowSpan = tc.getAttribute("rowspan");
-					if (null != nRowSpan)
-						nRowSpan = nRowSpan - 0;
-					else
-						nRowSpan = 1;
-					if (nRowSpan > 1)
-						oRowSpans[nCellIndexSpan] = {row: nRowSpan - 1, col: nColSpan};
-					this._ExecuteTableCellPresentation(tc, oCurCell, bUseScaleKoef, dScaleKoef, spacing, arrShapes, arrImages, arrTables);
-				}
-				nCellIndexSpan += nColSpan;
-			}
-		}
-		fParseSpans();
-	},
-	_ExecuteTableCellPresentation: function (node, cell, bUseScaleKoef, dScaleKoef, spacing, arrShapes, arrImages, arrTables) {
-		//Pr
-		var Pr = cell.Pr;
-		var bAddIfNull = false;
-		if (null != spacing)
-			bAddIfNull = true;
-
-		var computedStyle = this._getComputedStyle(node);
-		var background_color = this._getStyle(node, computedStyle, "background-color");
-		if (null != background_color && (background_color = this._ParseColor(background_color))) {
-			var Shd = new CDocumentShd();
-			Shd.Value = c_oAscShdClear;
-			Shd.Unifill = AscFormat.CreteSolidFillRGB(background_color.r, background_color.g, background_color.b);
-			cell.Set_Shd(Shd);
-		}
-		var border = this._ExecuteBorder(computedStyle, node, "left", "Left", bAddIfNull, true);
-		if (null != border)
-			cell.Set_Border(border, 3);
-		border = this._ExecuteBorder(computedStyle, node, "top", "Top", bAddIfNull, true);
-		if (null != border)
-			cell.Set_Border(border, 0);
-		border = this._ExecuteBorder(computedStyle, node, "right", "Right", bAddIfNull, true);
-		if (null != border)
-			cell.Set_Border(border, 1);
-		border = this._ExecuteBorder(computedStyle, node, "bottom", "Bottom", bAddIfNull, true);
-		if (null != border)
-			cell.Set_Border(border, 2);
-
-		var top = this._getStyle(node, computedStyle, "padding-top");
-		if (null != top && null != (top = AscCommon.valueToMm(top)))
-			cell.Set_Margins({W: top, Type: tblwidth_Mm}, 0);
-		var right = this._getStyle(node, computedStyle, "padding-right");
-		if (null != right && null != (right = AscCommon.valueToMm(right)))
-			cell.Set_Margins({W: right, Type: tblwidth_Mm}, 1);
-		var bottom = this._getStyle(node, computedStyle, "padding-bottom");
-		if (null != bottom && null != (bottom = AscCommon.valueToMm(bottom)))
-			cell.Set_Margins({W: bottom, Type: tblwidth_Mm}, 2);
-		var left = this._getStyle(node, computedStyle, "padding-left");
-		if (null != left && null != (left = AscCommon.valueToMm(left)))
-			cell.Set_Margins({W: left, Type: tblwidth_Mm}, 3);
-
-		var arrShapes2 = [], arrImages2 = [], arrTables2 = [];
-		var presentation = editor.WordControl.m_oLogicDocument;
-		var shape = new CShape();
-		shape.setParent(presentation.Slides[presentation.CurPage]);
-		shape.setTxBody(AscFormat.CreateTextBodyFromString("", presentation.DrawingDocument, shape));
-		arrShapes2.push(shape);
-		this._Execute(node, {}, true, true, false, arrShapes2, arrImages2, arrTables);
-		if (arrShapes2.length > 0) {
-			var first_shape = arrShapes2[0];
-			var content = first_shape.txBody.content;
-
-			//добавляем новый параграфы
-			for (var i = 0, length = content.Content.length; i < length; ++i) {
-				if (i === length - 1)
-					cell.Content.Internal_Content_Add(i + 1, content.Content[i], true);
-				else
-					cell.Content.Internal_Content_Add(i + 1, content.Content[i], false);
-			}
-			//Удаляем параграф, который создается в таблице по умолчанию
-			cell.Content.Internal_Content_Remove(0, 1);
-			arrShapes2.splice(0, 1);
-		}
-		for (var i = 0; i < arrShapes2.length; ++i) {
-			arrShapes.push(arrShapes2[i]);
-		}
-		for (var i = 0; i < arrImages2.length; ++i) {
-			arrImages.push(arrImages2[i]);
-		}
-		for (var i = 0; i < arrTables2.length; ++i) {
-			arrTables.push(arrTables2[i]);
 		}
 	},
 

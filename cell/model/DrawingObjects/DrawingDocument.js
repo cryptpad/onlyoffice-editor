@@ -61,6 +61,7 @@ function CDrawingDocument()
     AscCommon.g_oHtmlCursor.register("de-markerformat", "marker_format", "14 8", "pointer");
     AscCommon.g_oHtmlCursor.register("select-table-row", "select_row", "10 5", "default");
     AscCommon.g_oHtmlCursor.register("select-table-column", "select_column", "5 10", "default");
+    AscCommon.g_oHtmlCursor.register("select-table-content", "select_table", "10 10", "default");
 
     this.m_oWordControl     = null;
     this.m_oLogicDocument   = null;

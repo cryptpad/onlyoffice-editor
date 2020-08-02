@@ -1166,6 +1166,9 @@
 			case AscDFH.historydescription_Document_AddContentControlTextForm:
 				sString = "Document_AddContentControlTextForm";
 				break;
+			case AscDFH.historydescription_Document_SetEndnotePr:
+				sString = "Document_SetEndnotePr";
+				break;
 		}
 		return sString;
 	}
@@ -1861,6 +1864,7 @@
 	window['AscDFH'].historyitem_Footnotes_SetSeparator             = window['AscDFH'].historyitem_type_Footnotes | 2;
 	window['AscDFH'].historyitem_Footnotes_SetContinuationSeparator = window['AscDFH'].historyitem_type_Footnotes | 3;
 	window['AscDFH'].historyitem_Footnotes_SetContinuationNotice    = window['AscDFH'].historyitem_type_Footnotes | 4;
+	window['AscDFH'].historyitem_Footnotes_RemoveFootnote           = window['AscDFH'].historyitem_type_Footnotes | 5;
 	//------------------------------------------------------------------------------------------------------------------
 	// Типы изменений в классе CGlossaryDocument
 	//------------------------------------------------------------------------------------------------------------------
@@ -1903,7 +1907,8 @@
 	//------------------------------------------------------------------------------------------------------------------
 	// Типы изменений в классе CSdtPr
 	//------------------------------------------------------------------------------------------------------------------
-	window["AscDFH"].historyitem_Endnotes_AddEndnote = window["AscDFH"].historyitem_type_Endnotes | 1;
+	window["AscDFH"].historyitem_Endnotes_AddEndnote    = window["AscDFH"].historyitem_type_Endnotes | 1;
+	window["AscDFH"].historyitem_Endnotes_RemoveEndnote = window["AscDFH"].historyitem_type_Endnotes | 2;
 	//------------------------------------------------------------------------------------------------------------------
 	// Графические классы общего назначение (без привязки к конкретному классу)
 	//------------------------------------------------------------------------------------------------------------------
@@ -3270,7 +3275,7 @@
 	window['AscDFH'].historydescription_Document_SetContentControlTextPlaceholder   = 0x0177;
 	window['AscDFH'].historydescription_Document_AddEndnote                         = 0x0178;
 	window['AscDFH'].historydescription_Document_AddContentControlTextForm          = 0x0179;
-
+	window['AscDFH'].historydescription_Document_SetEndnotePr                       = 0x017a;
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//

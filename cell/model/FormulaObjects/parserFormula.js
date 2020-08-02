@@ -456,11 +456,12 @@ var cErrorType = {
 
 /** @enum */
 var cReturnFormulaType = {
-		value: 0,
-		value_replace_area: 1,
-		array: 2,
-		area_to_ref: 3,
-		replace_only_array: 4
+	value: 0,
+	value_replace_area: 1,
+	array: 2,
+	area_to_ref: 3,
+	replace_only_array: 4,
+	setArrayRefAsArg: 5//для row/column если нет аргументов
 };
 
 var cExcelSignificantDigits = 15; //количество цифр в числе после запятой
@@ -701,7 +702,7 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 	cString.prototype = Object.create(cBaseType.prototype);
 	cString.prototype.constructor = cString;
 	cString.prototype.type = cElementType.string;
-	cString.prototype.tocNumber = function () {
+	cString.prototype.tocNumber = function (doNotParseNum) {
 		var res, m = this.value;
 		if (this.value === "") {
 			res = new cNumber(0);
@@ -717,7 +718,7 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 				res = new cNumber(numberValue);
 			}
 		} else {
-			var parseRes = AscCommon.g_oFormatParser.parse(this.value);
+			var parseRes = !doNotParseNum ? AscCommon.g_oFormatParser.parse(this.value) : null;
 			if (null != parseRes) {
 				res = new cNumber(parseRes.value);
 			} else {
@@ -3196,6 +3197,14 @@ parserHelp.setDigitSeparator(AscCommon.g_oDefaultCultureInfo.NumberDecimalSepara
 		var functionsCanReturnArray = ["index"];
 
 		var returnFormulaType = this.returnValueType;
+		if (cReturnFormulaType.setArrayRefAsArg === returnFormulaType) {
+			if (arg.length === 0 && parserFormula.ref) {
+				res = this.Calculate([new cArea(parserFormula.ref.getName(), parserFormula.ws)], opt_bbox, opt_defName, parserFormula.ws);
+			} else {
+				return null;
+			}
+		}
+
 		var arrayIndexes = this.arrayIndexes;
 		var replaceAreaByValue = cReturnFormulaType.value_replace_area === returnFormulaType;
 		var replaceAreaByRefs = cReturnFormulaType.area_to_ref === returnFormulaType;
@@ -7703,7 +7712,7 @@ function parserFormula( formula, parent, _ws ) {
 		return res;
 	}
 
-	function matching(x, matchingInfo) {
+	function matching(x, matchingInfo, doNotParseNum) {
 		var y = matchingInfo.val;
 		var operator = matchingInfo.op;
 		var res = false, rS;
@@ -7760,7 +7769,7 @@ function parserFormula( formula, parent, _ws ) {
 				case "=":
 				default:
 					if (cElementType.string === x.type) {
-						x = x.tocNumber();
+						x = x.tocNumber(doNotParseNum);
 					}
 					res = (x.value === y.value);
 					break;

@@ -2202,12 +2202,16 @@
 					return;
 				}
 
+				History.Create_NewPoint();
+				History.StartTransaction();
+
 				var _abortPaste = function (_error) {
 					window['AscCommon'].g_specialPasteHelper.CleanButtonInfo();
 					window['AscCommon'].g_specialPasteHelper.Paste_Process_End();
 					if (_error) {
 						ws.handlers.trigger("onErrorEvent", Asc.c_oAscError.ID.PasteSlicerError, Asc.c_oAscError.Level.NoCritical);
 					}
+					History.EndTransaction();
 				};
 
 				var callback = function (success, slicersNames) {
@@ -2215,9 +2219,6 @@
 						_abortPaste();
 						return;
 					}
-
-					History.Create_NewPoint();
-					History.StartTransaction();
 
 					//определяем стартовую позицию, если изображений несколько вставляется
 					var graphicObject, i;
@@ -3660,6 +3661,9 @@
 				result.hyperLink = this.hyperLink;
 				result.location = this.location;
 
+				result.alignVertical = this.alignVertical;
+				result.alignHorizontal = this.alignHorizontal;
+
 				return result;
 			}
 		};
@@ -3808,6 +3812,19 @@
 								}
 
 								newCell.borders = this._getBorders(childrens[i], row, col, newCell.borders);
+
+								var alignVertical = childrens[i].elem.Get_VAlign();
+								switch (alignVertical) {
+									case vertalignjc_Bottom:
+										newCell.alignVertical = Asc.c_oAscVAlign.Bottom;
+										break;
+									case vertalignjc_Center:
+										newCell.alignVertical = Asc.c_oAscVAlign.Center;
+										break;
+									case vertalignjc_Top:
+										newCell.alignVertical = Asc.c_oAscVAlign.Top;
+										break;
+								}
 							}
 						}
 					}
@@ -3848,6 +3865,10 @@
 						oNewItem.borders = cell.borders;
 					}
 
+					if (undefined !== cell.alignVertical) {
+						oNewItem.alignVertical = cell.alignVertical;
+					}
+
 					if (cell.rowSpan != null) {
 						oNewItem.rowSpan = cell.rowSpan;
 						oNewItem.colSpan = cell.colSpan;
@@ -3877,8 +3898,10 @@
 					oNewItem.wrap = true;
 				}
 
+				oNewItem.alignHorizontal = horisontalAlign;
+
 				//вертикальное выравнивание
-				oNewItem.va = Asc.c_oAscVAlign.Center;
+				//oNewItem.alignVertical = Asc.c_oAscVAlign.Center;
 
 				//так же wrap выставляем у параграфа, чьим родителем является ячейка таблицы
 				var cellParent = this._getParentByTag(paragraph, c_oAscBoundsElementType.Cell);
