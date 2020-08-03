@@ -1064,6 +1064,13 @@
 			return _res;
 		};
 
+		//replace not valid symbols
+		name = name.replace(/[-+*\/^&%<=>: ;//),]/g,"_");
+		//TODO дополнительная проверка - пересмотреть
+		if (!AscCommon.rx_defName.test(name)) {
+			name = name.replace(/[^a-zA-ZА-Яа-яЁё0-9]/gi,"_")
+		}
+
 		//TODO перевод - проверить на другом языке?
 		var index = 1;
 		name = "Slicer_" + name;
