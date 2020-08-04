@@ -55,19 +55,17 @@ $( function () {
 	};
 	AscCommonExcel.WorksheetView.prototype._prepareDrawingObjects = function() {
 	};
+	AscCommonExcel.WorksheetView.prototype._reinitializeScroll = function() {
+	};
 	AscCommon.baseEditorsApi.prototype._onEndLoadSdk = function() {
 	};
+
 
 
 	var sData = AscCommon.getEmpty();
 	var api = new Asc.spreadsheet_api({
 		'id-view': 'editor_sdk'
 	});
-	api.FontLoader = {
-		LoadDocumentFonts: function() {
-			setTimeout(startTests, 0)
-		}
-	};
 	window["Asc"]["editor"] = api;
 	AscCommon.g_oTableId.init();
 	api._onEndLoadSdk();
@@ -81,22 +79,58 @@ $( function () {
 		return null;
 	});
 	var wsView = api.wb.getWorksheet(0);
+	wsView.handlers = api.handlers;
 	wsView.objectRender = new AscFormat.DrawingObjects();
 	var ws = api.wbModel.aWorksheets[0];
-	api.asc_insertWorksheet(["Data"]);
-	var wsData = wb.getWorksheetByName(["Data"], 0);
 
-
-
-	module("CopyPaste");
+	var getRange = function (c1, r1, c2, r2) {
+		return new window["Asc"].Range(c1, r1, c2, r2);
+	};
 
 	test( "Test: \"simple tests\"", function () {
 
+		ws.getRange2("A1").setValue("-4");
+
+		ws.selectionRange.ranges = [getRange(0, 0, 0, 0)];
 		var base64 = AscCommonExcel.g_clipboardExcel.copyProcessor.getBinaryForCopy(ws, wsView.objectRender);
+
+		ws.selectionRange.ranges = [getRange(0, 1, 0, 1)];
 		AscCommonExcel.g_clipboardExcel.pasteData(wsView, AscCommon.c_oAscClipboardDataFormat.Internal, base64);
 
-		ws.getRange2( "A1" ).setValue( "-4" );
+		strictEqual(ws.getRange2("A2").getValue(), ws.getRange2("A1").getValue());
 
+		ws.selectionRange.ranges = [getRange(0, 5, 0, 5), getRange(1, 5, 1, 8)];
+		AscCommonExcel.g_clipboardExcel.pasteData(wsView, AscCommon.c_oAscClipboardDataFormat.Internal, base64);
+
+		strictEqual(ws.getRange2("A6").getValue(), "-4");
+		strictEqual(ws.getRange2("B6").getValue(), "-4");
+		strictEqual(ws.getRange2("B7").getValue(), "-4");
+		strictEqual(ws.getRange2("B8").getValue(), "-4");
+		strictEqual(ws.getRange2("B9").getValue(), "-4");
 	} );
 
+	test( "Test: \"formula tests\"", function () {
+		var val = "=SIN(1)";
+
+		ws.getRange2("A1").setValue(val);
+
+		ws.selectionRange.ranges = [getRange(0, 0, 0, 0)];
+		var base64 = AscCommonExcel.g_clipboardExcel.copyProcessor.getBinaryForCopy(ws, wsView.objectRender);
+
+		ws.selectionRange.ranges = [getRange(0, 1, 0, 1)];
+		AscCommonExcel.g_clipboardExcel.pasteData(wsView, AscCommon.c_oAscClipboardDataFormat.Internal, base64);
+
+		strictEqual(ws.getRange2("A2").getValueForEdit(), ws.getRange2("A1").getValueForEdit());
+
+		ws.selectionRange.ranges = [getRange(0, 5, 0, 5), getRange(1, 5, 1, 8)];
+		AscCommonExcel.g_clipboardExcel.pasteData(wsView, AscCommon.c_oAscClipboardDataFormat.Internal, base64);
+
+		strictEqual(ws.getRange2("A6").getValueForEdit(), val);
+		strictEqual(ws.getRange2("B6").getValueForEdit(), val);
+		strictEqual(ws.getRange2("B7").getValueForEdit(), val);
+		strictEqual(ws.getRange2("B8").getValueForEdit(), val);
+		strictEqual(ws.getRange2("B9").getValueForEdit(), val);
+	} );
+
+	module("CopyPaste");
 } );
