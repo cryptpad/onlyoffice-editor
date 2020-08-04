@@ -1174,7 +1174,7 @@
 				History.EndTransaction();
 			}
 
-			var _logicDoc = this.Api.WordControl ? this.Api.WordControl.m_oLogicDocument : null;
+			var _logicDoc = this.Api && this.Api.WordControl ? this.Api.WordControl.m_oLogicDocument : null;
 			if (_logicDoc && _logicDoc.Action && _logicDoc.Action.Start && this.Api._finalizeAction) {
 				this.Api._finalizeAction();
 			}
