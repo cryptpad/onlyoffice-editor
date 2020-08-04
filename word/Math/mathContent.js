@@ -5461,13 +5461,15 @@ CMathContent.prototype.Process_AutoCorrect = function(ActionElement) {
         }
     }
     if (CanMakeAutoCorrect || CanMakeAutoCorrectEquation || CanMakeAutoCorrectFunc) {
-      this.private_ReplaceAutoCorrect(AutoCorrectEngine);
-        if(oLogicDocument) {
-            oLogicDocument.FinalizeAction();
-        } else {
-            History.Remove_LastPoint();
-        }
-        AutoCorrectEngine.StartHystory = false;
+        AscFonts.FontPickerByCharacter.checkText(AutoCorrectEngine.RepCharsCode, this, function() {
+            this.private_ReplaceAutoCorrect(AutoCorrectEngine);
+            if(oLogicDocument) {
+                oLogicDocument.FinalizeAction();
+            } else {
+                History.Remove_LastPoint();
+            }
+            AutoCorrectEngine.StartHystory = false;
+        }, true, false, true);
     }
 };
 CMathContent.prototype.private_NeedAutoCorrect = function(ActionElement) {
@@ -5554,6 +5556,7 @@ CMathContent.prototype.private_CanAutoCorrectText = function(AutoCorrectEngine, 
             var ReplaceText = new CMathText();
             ReplaceText.add(ReplaceChars[i]);
             MathRun.Add(ReplaceText, true);
+            AutoCorrectEngine.RepCharsCode.push(ReplaceChars[i]);
         }
         AutoCorrectEngine.Remove.push({Count:RemoveCount, Start:Start});
         AutoCorrectEngine.Remove.total += RemoveCount;
@@ -8575,6 +8578,7 @@ function CMathAutoCorrectEngine(Elem, CurPos, Paragraph) {
     this.Shift 			  = 0;                                                  // отступ
     this.StartHystory     = false;                                              // флаг, обозначающий была ли уже создана точка в истории автозаменой
     this.IntFlag          = window['AscCommonWord'].b_DoAutoCorrectMathSymbols; // флаг из интерфейса делать ли автозамену  символов из списка
+    this.RepCharsCode     = [];                                                 // массив символов, добавленных в документ при автозамене
     this.TextPr           = null;
     this.MathPr           = null;
 };
