@@ -944,14 +944,14 @@
 				}
 				var worksheet = this.worksheet;
 				if (worksheet.AutoFilter) {
-					if (openPreviousHiddenRows) {
+					if (openPreviousHiddenRows && worksheet.AutoFilter.isApplyAutoFilter()) {
 						worksheet.setRowHidden(false, worksheet.AutoFilter.Ref.r1, worksheet.AutoFilter.Ref.r2);
 					}
 					this.reapplyAutoFilter(null);
 				}
 				if (worksheet.TableParts) {
 					for (var i = 0; i < worksheet.TableParts.length; i++) {
-						if (openPreviousHiddenRows) {
+						if (openPreviousHiddenRows && worksheet.TableParts[i].isApplyAutoFilter()) {
 							worksheet.setRowHidden(false, worksheet.TableParts[i].Ref.r1, worksheet.TableParts[i].Ref.r2);
 						}
 						this.reapplyAutoFilter(worksheet.TableParts[i].DisplayName);
@@ -5683,7 +5683,7 @@
 				var autoFilter = ws.AutoFilter;
 				if (tables) {
 					for (var i = 0; i < tables.length; i++) {
-						if (tables[i].isApplyAutoFilter() && row >= tables[i].Ref.r1 && row <= tables[i].Ref.r2) {
+						if (tables[i].AutoFilter && row >= tables[i].Ref.r1 && row <= tables[i].Ref.r2) {
 							return true;
 						}
 					}

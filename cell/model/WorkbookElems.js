@@ -4728,11 +4728,11 @@ StyleManager.prototype =
 				this._getUpdateRange(), new UndoRedoData_IndexSimpleProp(this.index, true, oRes.oldVal, oRes.newVal));
 		}
 	};
-	Row.prototype.setHidden = function (val) {
+	Row.prototype.setHidden = function (val, bViewLocalChange) {
 		if (this.index >= 0 && (!this.getHidden() !== !val)) {
 			this.ws.hiddenManager.addHidden(true, this.index);
 		}
-		var _rowFlag_hd = this.ws.getActiveNamedSheetView() === null ? g_nRowFlag_hd : g_nRowFlag_hdView;
+		var _rowFlag_hd = !bViewLocalChange ? g_nRowFlag_hd : g_nRowFlag_hdView;
 		if (true === val) {
 			this.flags |= _rowFlag_hd;
 		} else {
@@ -4766,7 +4766,8 @@ StyleManager.prototype =
 		return this.outlineLevel;
 	};
 	Row.prototype.getHidden = function () {
-		var _rowFlag_hd = this.ws.getActiveNamedSheetView() === null ? g_nRowFlag_hd : g_nRowFlag_hdView;
+		var bViewLocalChange = this.ws.getActiveNamedSheetView() !== null && this.ws.autoFilters.containInFilter(this.index);
+		var _rowFlag_hd = bViewLocalChange ? g_nRowFlag_hdView : g_nRowFlag_hd;
 		return 0 !== (_rowFlag_hd & this.flags);
 	};
 	Row.prototype.setCustomHeight = function (val) {

@@ -5300,7 +5300,7 @@
 
 		var oThis = this;
 
-		var doHide = function (_start, _stop) {
+		var doHide = function (_start, _stop, localChange) {
 			var i;
 			var startIndex = null, endIndex = null, updateRange, outlineLevel;
 			var bNotAddCollapsed = true == oThis.workbook.bUndoChanges || true == oThis.workbook.bRedoChanges || oThis.bExcludeCollapsed;
@@ -5317,7 +5317,7 @@
 
 				if(row && bHidden != row.getHidden())
 				{
-					row.setHidden(bHidden);
+					row.setHidden(bHidden, localChange);
 
 					if(row.index === endIndex + 1 && startIndex !== null)
 						endIndex++;
@@ -5368,7 +5368,8 @@
 			}
 		};
 
-		if (null !== this.getActiveNamedSheetView()) {
+		var bCollaborativeChanges = this.workbook.bCollaborativeChanges
+		if (!bCollaborativeChanges && null !== this.getActiveNamedSheetView()) {
 			var rowsArr = this.autoFilters.splitRangeByFilters(start, stop);
 			if (rowsArr) {
 				var j;
@@ -5377,7 +5378,7 @@
 					var oldLocalChange = History.LocalChange;
 					History.LocalChange = true;
 					for (j = 0; j < rowsArr[0].length; j++) {
-						doHide(rowsArr[0][j].start, rowsArr[0][j].stop)
+						doHide(rowsArr[0][j].start, rowsArr[0][j].stop, true)
 					}
 					History.LocalChange = oldLocalChange;
 				}
