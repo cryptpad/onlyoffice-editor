@@ -4416,6 +4416,7 @@ StyleManager.prototype =
 	var g_nRowFlag_CalcHeight = 8;
 	var g_nRowFlag_NullHeight = 16;
 	var g_nRowFlag_Collapsed = 32;
+	var g_nRowFlag_hdView = 64;
 
 	/**
 	 * @constructor
@@ -4731,10 +4732,11 @@ StyleManager.prototype =
 		if (this.index >= 0 && (!this.getHidden() !== !val)) {
 			this.ws.hiddenManager.addHidden(true, this.index);
 		}
+		var _rowFlag_hd = this.ws.getActiveNamedSheetView() === null ? g_nRowFlag_hd : g_nRowFlag_hdView;
 		if (true === val) {
-			this.flags |= g_nRowFlag_hd;
+			this.flags |= _rowFlag_hd;
 		} else {
-			this.flags &= ~g_nRowFlag_hd;
+			this.flags &= ~_rowFlag_hd;
 		}
 		this._hasChanged = true;
 	};
@@ -4764,7 +4766,8 @@ StyleManager.prototype =
 		return this.outlineLevel;
 	};
 	Row.prototype.getHidden = function () {
-		return 0 !== (g_nRowFlag_hd & this.flags);
+		var _rowFlag_hd = this.ws.getActiveNamedSheetView() === null ? g_nRowFlag_hd : g_nRowFlag_hdView;
+		return 0 !== (_rowFlag_hd & this.flags);
 	};
 	Row.prototype.setCustomHeight = function (val) {
 		if (true === val) {
