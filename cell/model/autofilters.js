@@ -685,6 +685,20 @@
 					return;
 				}
 
+				var nActiveNamedSheetView = worksheet.getActiveNamedSheetView();
+				var bCollaborativeChanges = this.worksheet.workbook.bCollaborativeChanges;
+				var redoNamedSheetViewName = autoFiltersObject.namedSheetView;
+				var activeNamedSheetView = worksheet.aNamedSheetViews[nActiveNamedSheetView];
+				var activeNamedSheetViewName = activeNamedSheetView ? activeNamedSheetView.name : null;
+				if (bCollaborativeChanges && nActiveNamedSheetView !== null && activeNamedSheetViewName === redoNamedSheetViewName) {
+					//если находимся в одном вью - изменения в одном фильтре от чужого пользователя не принимаем
+					//сохраняем те, которые пришли последними
+					if (this._checkCollaborativeActiveOnFilterApply(autoFiltersObject)) {
+						return;
+					}
+				}
+
+
 				worksheet.workbook.dependencyFormulas.lockRecal();
 
 				//if apply a/f from context menu
@@ -736,15 +750,8 @@
 					autoFilter = filterObj.filter.addAutoFilter();
 				}
 
-				var nActiveNamedSheetView = worksheet.getActiveNamedSheetView();
-				var bCollaborativeChanges = this.worksheet.workbook.bCollaborativeChanges;
 				var nsvFilter, nsvFilterIndex;
-				var activeNamedSheetView;
-				var redoNamedSheetViewName = autoFiltersObject.namedSheetView;
 				if ((nActiveNamedSheetView !== null && !bCollaborativeChanges) || redoNamedSheetViewName) {
-					activeNamedSheetView = worksheet.aNamedSheetViews[nActiveNamedSheetView];
-					var activeNamedSheetViewName = activeNamedSheetView ? activeNamedSheetView.name : null;
-
 					if (redoNamedSheetViewName && redoNamedSheetViewName !== activeNamedSheetViewName) {
 						nsvFilter = worksheet.getNvsFilterByTableName(filterObj.filter.DisplayName, redoNamedSheetViewName);
 					} else {
@@ -792,7 +799,7 @@
 					autoFiltersObject.filter.filter.FilterVal = newFilterColumn.Top10.FilterVal;
 				}
 
-				if (allFilterOpenElements && autoFilter.FilterColumns[filterObj.index] && !nsvFilter) {
+				if (allFilterOpenElements && !nsvFilter && autoFilter.FilterColumns && autoFilter.FilterColumns[filterObj.index]) {
 					if (autoFilter.FilterColumns[filterObj.index].ShowButton !== false) {
 						autoFilter.FilterColumns.splice(filterObj.index, 1);
 					}//if all rows opened
@@ -5695,6 +5702,31 @@
 				}
 
 				return false;
+			},
+
+			_checkCollaborativeActiveOnFilterApply: function(autoFiltersObject) {
+				//здесь проверяем массив aCollaborativeActions
+				var res = false;
+
+				var wb = this.worksheet.workbook;
+				if (wb.aCollaborativeActions) {
+					for (var i = 0; i < wb.aCollaborativeActions.length; i++) {
+						for (var j = 0; j < wb.aCollaborativeActions[i].length; j++) {
+							var action = wb.aCollaborativeActions[i][j];
+							if (action.oClass && AscCommonExcel.g_oUndoRedoAutoFilters.nType === action.oClass.nType && action.nActionType === AscCH.historyitem_AutoFilter_Apply) {
+								//сравниваю только по названию таблицы/фильтра
+								//если сравнивать ещё и наванию колонки, тогда не понятно как разруливать сдвиги
+								//в дальнейшем если перейти на айдишники колонок, то этот вопрос можно решить
+								var autoFiltersObjectAction = action && action.oData ? action.oData.autoFiltersObject : null;
+								if (autoFiltersObjectAction && autoFiltersObject && autoFiltersObject.displayName === autoFiltersObjectAction.displayName) {
+									return true;
+								}
+							}
+						}
+					}
+				}
+
+				return res;
 			}
 		};
 
