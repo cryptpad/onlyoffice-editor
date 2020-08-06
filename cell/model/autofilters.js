@@ -685,12 +685,14 @@
 					return;
 				}
 
+
 				var nActiveNamedSheetView = worksheet.getActiveNamedSheetView();
 				var bCollaborativeChanges = this.worksheet.workbook.bCollaborativeChanges;
 				var redoNamedSheetViewName = autoFiltersObject.namedSheetView;
 				var activeNamedSheetView = worksheet.aNamedSheetViews[nActiveNamedSheetView];
 				var activeNamedSheetViewName = activeNamedSheetView ? activeNamedSheetView.name : null;
-				if (bCollaborativeChanges && nActiveNamedSheetView !== null && activeNamedSheetViewName === redoNamedSheetViewName) {
+				var isEqualView = nActiveNamedSheetView !== null && activeNamedSheetViewName === redoNamedSheetViewName;
+				if (bCollaborativeChanges && isEqualView) {
 					//если находимся в одном вью - изменения в одном фильтре от чужого пользователя не принимаем
 					//сохраняем те, которые пришли последними
 					if (this._checkCollaborativeActiveOnFilterApply(autoFiltersObject)) {
@@ -828,18 +830,28 @@
 				//****open/close rows****
 				var nOpenRowsCount = null;
 				var nAllRowsCount = null;
-				if ((!bUndoChanges && !bRedoChanges) || !window['AscCommonExcel'].filteringMode) {
+				if ((!bUndoChanges && !bRedoChanges) || !window['AscCommonExcel'].filteringMode || isEqualView) {
 					var oldLocalChange = History.LocalChange;
 					if (nsvFilter) {
 						History.LocalChange = true;
 					}
 
 					//при принятии изменений от других пользователей не скрываем строки
-					if (!(bCollaborativeChanges && activeNamedSheetView !== null)) {
+					if (!(bCollaborativeChanges && activeNamedSheetView !== null) || isEqualView) {
+						//TODO пересмотреть временную подмену флага
+						//заменяю потому что в случае одинаковых вью изменения о скрытии строчек нужно
+						//записывать во временный флаг(новый флаг о скрытии строчек)
+						//по общей схеме при принятии измений - записывается с использованием основного флага
+						if (isEqualView && bCollaborativeChanges) {
+							this.worksheet.workbook.bCollaborativeChanges = false;
+						}
 						var hiddenProps = autoFilter.setRowHidden(worksheet, newFilterColumn, nsvFilter ? nsvFilter.columnsFilter : null);
 						nOpenRowsCount = hiddenProps.nOpenRowsCount;
 						nAllRowsCount = hiddenProps.nAllRowsCount;
 						minChangeRow = hiddenProps.minChangeRow;
+						if (isEqualView) {
+							this.worksheet.workbook.bCollaborativeChanges = bCollaborativeChanges;
+						}
 					}
 
 					if (nsvFilter) {
@@ -857,8 +869,9 @@
 				}
 
 				//history
+				var updateRange =  oldFilter ? oldFilter.Ref: null;
 				this._addHistoryObj(oldFilter, AscCH.historyitem_AutoFilter_Apply,
-					{activeCells: ar, autoFiltersObject: autoFiltersObject});
+					{activeCells: ar, autoFiltersObject: autoFiltersObject}, null, updateRange);
 				History.EndTransaction();
 
 				if (!bUndoChanges && !bRedoChanges) {
