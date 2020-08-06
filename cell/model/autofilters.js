@@ -5697,18 +5697,21 @@
 				return [filterArr, otherArr];
 			},
 
-			containInFilter: function(row) {
+			containInFilter: function(row, checkApplyFilter) {
 				var ws = this.worksheet;
 				var tables = ws.TableParts;
 				var autoFilter = ws.AutoFilter;
 				if (tables) {
 					for (var i = 0; i < tables.length; i++) {
-						if (tables[i].AutoFilter && row >= tables[i].Ref.r1 && row <= tables[i].Ref.r2) {
-							return true;
+						var tableFilter = tables[i].AutoFilter;
+						if (tableFilter && (!checkApplyFilter || (checkApplyFilter && tableFilter.isApplyAutoFilter()))) {
+							if (row >= tables[i].Ref.r1 && row <= tables[i].Ref.r2) {
+								return true;
+							}
 						}
 					}
 				}
-				if (autoFilter) {
+				if (autoFilter && (!checkApplyFilter || (checkApplyFilter && autoFilter.isApplyAutoFilter()))) {
 					if (row >= autoFilter.Ref.r1 && row <= autoFilter.Ref.r2) {
 						return true;
 					}
