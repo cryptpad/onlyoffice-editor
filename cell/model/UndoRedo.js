@@ -429,6 +429,7 @@ function (window, undefined) {
 		this.SlicerData = 118;
 
 		this.NamedSheetView = 130;
+		this.NamedSheetViewChange = 131;
 
 		this.Create = function (nType) {
 			switch (nType) {
@@ -596,6 +597,10 @@ function (window, undefined) {
 					return new window['Asc'].CT_slicer();
 				case this.NamedSheetView:
 					return new window['Asc'].CT_NamedSheetView();
+				case this.NamedSheetViewChange:
+					if (window['AscCommonExcel'].UndoRedoData_NamedSheetView) {
+						return new window['AscCommonExcel'].UndoRedoData_NamedSheetView();
+					}
 			}
 			return null;
 		};
@@ -2823,6 +2828,7 @@ function (window, undefined) {
 			if (bUndo) {
 				//ws.deleteSlicer(Data.to.name);
 			} else {
+				Data.to.ws = ws;
 				ws.aNamedSheetViews.push(Data.to);
 			}
 		}

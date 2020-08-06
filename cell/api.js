@@ -313,6 +313,10 @@ var editor;
 
   spreadsheet_api.prototype.initGlobalObjectsPivot = function(wbModel) {
   };
+
+  spreadsheet_api.prototype.initGlobalObjectsNamedSheetView = function(wbModel) {
+  };
+
   spreadsheet_api.prototype.initGlobalObjects = function(wbModel) {
     // History & global counters
     History.init(wbModel);
@@ -333,6 +337,7 @@ var editor;
     AscCommonExcel.g_oUndoRedoSortState = new AscCommonExcel.UndoRedoSortState(wbModel);
     AscCommonExcel.g_oUndoRedoSlicer = new AscCommonExcel.UndoRedoSlicer(wbModel);
     this.initGlobalObjectsPivot(wbModel);
+    this.initGlobalObjectsNamedSheetView(wbModel);
   };
 
   spreadsheet_api.prototype.asc_DownloadAs = function (options) {
