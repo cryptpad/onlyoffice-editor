@@ -2826,13 +2826,19 @@ function (window, undefined) {
 			}
 		} else if (AscCH.historyitem_Worksheet_SheetViewAdd === Type) {
 			if (bUndo) {
-				//ws.deleteSlicer(Data.to.name);
+				ws.deleteNamedSheetViews([Data.to.name]);
 			} else {
-				Data.to.ws = ws;
 				ws.aNamedSheetViews.push(Data.to);
+				Data.to.ws = ws;
+			}
+		} else if (AscCH.historyitem_Worksheet_SheetViewDelete === Type) {
+			if (bUndo) {
+				ws.aNamedSheetViews.push(Data.from);
+				Data.from.ws = ws;
+			} else {
+				ws.deleteNamedSheetViews([Data.from.name]);
 			}
 		}
-
 	};
 	UndoRedoWoorksheet.prototype.forwardTransformationIsAffect = function (Type) {
 		return AscCH.historyitem_Worksheet_AddRows === Type || AscCH.historyitem_Worksheet_RemoveRows === Type ||
