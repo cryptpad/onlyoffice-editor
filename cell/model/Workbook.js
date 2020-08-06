@@ -8426,15 +8426,23 @@
 	Worksheet.prototype.deleteNamedSheetViews = function (arr) {
 		var namedSheetViews = this.aNamedSheetViews;
 		if (namedSheetViews && arr) {
+			var isDeleteActive;
 			var diff = 0;
 			for (var i = 0; i < arr.length; i++) {
 				var index = this.getIndexNamedSheetViewByName(arr[i].name);
+				if (index === this.nActiveNamedSheetView) {
+					isDeleteActive = true;
+				}
 
 				History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_SheetViewDelete, this.getId(), null,
 					new AscCommonExcel.UndoRedoData_FromTo(namedSheetViews[index - diff], null));
 
 				namedSheetViews.splice(index - diff, 1);
 				diff++;
+			}
+
+			if (isDeleteActive && this.workbook.oApi.asc_setActiveNamedSheetView) {
+				this.workbook.oApi.asc_setActiveNamedSheetView(null);
 			}
 		}
 	};

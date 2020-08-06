@@ -2826,7 +2826,7 @@ function (window, undefined) {
 			}
 		} else if (AscCH.historyitem_Worksheet_SheetViewAdd === Type) {
 			if (bUndo) {
-				ws.deleteNamedSheetViews([Data.to.name]);
+				ws.deleteNamedSheetViews([Data.to]);
 			} else {
 				ws.aNamedSheetViews.push(Data.to);
 				Data.to.ws = ws;
@@ -2836,7 +2836,7 @@ function (window, undefined) {
 				ws.aNamedSheetViews.push(Data.from);
 				Data.from.ws = ws;
 			} else {
-				ws.deleteNamedSheetViews([Data.from.name]);
+				ws.deleteNamedSheetViews([Data.from]);
 			}
 		}
 	};
