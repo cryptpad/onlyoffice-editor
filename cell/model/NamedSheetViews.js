@@ -362,11 +362,15 @@
 	CT_NsvFilter.prototype.clone = function () {
 		var res = new CT_NsvFilter();
 		var i;
-		for (i = 0; i < this.columnsFilter.length; ++i) {
-			res.columnsFilter[i] = this.columnsFilter[i].clone();
+		if (this.columnsFilter) {
+			for (i = 0; i < this.columnsFilter.length; ++i) {
+				res.columnsFilter[i] = this.columnsFilter[i].clone();
+			}
 		}
-		for (i = 0; i < this.sortRules.length; ++i) {
-			res.sortRules[i] = this.sortRules[i].clone();
+		if (this.sortRules) {
+			for (i = 0; i < this.sortRules.length; ++i) {
+				res.sortRules[i] = this.sortRules[i].clone();
+			}
 		}
 
 		res.filterId = this.filterId;
