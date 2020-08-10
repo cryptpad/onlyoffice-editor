@@ -3724,12 +3724,24 @@
 						range3 = ws.getRange3(union.r1, union.c1, union.r2, union.c2);
 					}
 
-					range3._foreachNoEmpty(function (cell) {
-						if (!cell.isEmptyTextString()) {
+					if (range3.bbox.r2-range3.bbox.r1 < range3.bbox.c2-range3.bbox.c1) {
+						range3._foreachRowNoEmpty(function() {
 							res = false;
-							return null;
-						}
-					});
+						});
+					} else {
+						range3._foreachColNoEmpty(function() {
+							res = false;
+						});
+					}
+
+					if (res) {
+						range3._foreachNoEmpty(function (cell) {
+							if (!cell.isEmptyTextString()) {
+								res = false;
+								return null;
+							}
+						});
+					}
 
 					return res;
 				};
@@ -3956,12 +3968,24 @@
 						range3 = ws.getRange3(union.r1, union.c1, union.r2, union.c2);
 					}
 
-					range3._foreachNoEmpty(function (cell) {
-						if (!cell.isEmptyTextString()) {
+					if (range3.bbox.r2-range3.bbox.r1 < range3.bbox.c2-range3.bbox.c1) {
+						range3._foreachRowNoEmpty(function() {
 							res = false;
-							return null;
-						}
-					});
+						});
+					} else {
+						range3._foreachColNoEmpty(function() {
+							res = false;
+						});
+					}
+
+					if (res) {
+						range3._foreachNoEmpty(function (cell) {
+							if (!cell.isEmptyTextString()) {
+								res = false;
+								return null;
+							}
+						});
+					}
 
 					return res;
 				};
