@@ -16347,6 +16347,9 @@ CParagraphDrawStateLines.prototype.GetSpellingErrorsCounter = function()
 	{
 		var oSpellElement = oSpellChecker.GetElement(nIndex);
 
+		if (oSpellElement.Checked || oSpellElement.CurPos)
+			continue;
+
 		var oStartPos = oSpellElement.GetStartPos();
 		var oEndPos   = oSpellElement.GetEndPos();
 
