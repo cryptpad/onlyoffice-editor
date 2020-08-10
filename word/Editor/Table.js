@@ -6254,6 +6254,7 @@ CTable.prototype.MoveCursorLeft = function(AddToSelect, Word)
 						if (vmerge_Restart !== oTempCell.GetVMerge())
 							continue;
 
+						this.RemoveSelection();
 						this.CurCell = oTempCell;
 						break;
 					}
@@ -6441,6 +6442,7 @@ CTable.prototype.MoveCursorRight = function(AddToSelect, Word, FromPaste)
 						if (vmerge_Restart !== oTempCell.GetVMerge())
 							continue;
 
+						this.RemoveSelection();
 						this.CurCell = oTempCell;
 						break;
 					}

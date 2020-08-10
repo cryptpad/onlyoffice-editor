@@ -18270,7 +18270,13 @@ CDocument.prototype.controller_MoveCursorRight = function(AddToSelect, Word)
 CDocument.prototype.controller_MoveCursorUp = function(AddToSelect)
 {
 	if (true === this.IsSelectionUse() && true !== AddToSelect)
+	{
+		var oCurParagraph = this.GetCurrentParagraph(true);
 		this.MoveCursorLeft(false, false);
+
+		if (this.GetCurrentParagraph(true) !== oCurParagraph)
+			return;
+	}
 
 	var bStopSelection = false;
 	if (true !== this.IsSelectionUse() && true === AddToSelect)
@@ -18292,7 +18298,13 @@ CDocument.prototype.controller_MoveCursorUp = function(AddToSelect)
 CDocument.prototype.controller_MoveCursorDown = function(AddToSelect)
 {
 	if (true === this.IsSelectionUse() && true !== AddToSelect)
+	{
+		var oCurParagraph = this.GetCurrentParagraph(true);
 		this.MoveCursorRight(false, false);
+
+		if (this.GetCurrentParagraph(true) !== oCurParagraph)
+			return;
+	}
 
 	var bStopSelection = false;
 	if (true !== this.IsSelectionUse() && true === AddToSelect)

@@ -3402,7 +3402,18 @@ CDocumentContent.prototype.MoveCursorLeft = function(AddToSelect, Word)
 					Start = this.Selection.EndPos;
 
 				this.CurPos.ContentPos = Start;
-				this.Content[this.CurPos.ContentPos].MoveCursorLeft(false, Word);
+				if (false === this.Content[this.CurPos.ContentPos].MoveCursorLeft(false, Word))
+				{
+					if (this.CurPos.ContentPos > 0)
+					{
+						this.CurPos.ContentPos--;
+						this.Content[this.CurPos.ContentPos].MoveCursorToEndPos(false, false);
+					}
+					else
+					{
+						ReturnValue = false;
+					}
+				}
 
 				this.RemoveSelection();
 			}
@@ -3548,7 +3559,18 @@ CDocumentContent.prototype.MoveCursorRight = function(AddToSelect, Word, FromPas
 				}
 				else
 				{
-					this.Content[this.CurPos.ContentPos].MoveCursorRight(false, Word);
+					if (!this.Content[this.CurPos.ContentPos].MoveCursorRight(false, Word))
+					{
+						if (this.CurPos.ContentPos < this.Content.length - 1)
+						{
+							this.CurPos.ContentPos++;
+							this.Content[this.CurPos.ContentPos].MoveCursorToStartPos(false);
+						}
+						else
+						{
+							ReturnValue = false;
+						}
+					}
 				}
 
 				this.RemoveSelection();
