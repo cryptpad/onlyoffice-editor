@@ -2814,35 +2814,63 @@
 		}
 	};
 	/**
-	 * Return default array for Math AutoCorrect for menu
+	 * Return default array for Math AutoCorrect symbols for menu
 	 * @returns {Array.<String, Number || Array.<Number>>}
 	 */
 	baseEditorsApi.prototype.asc_getAutoCorrectMathSymbols = function()
 	{
-        return window['AscCommonWord'].g_DefaultAutoCorrectMathSymbolsList;
+        return window['AscCommonWord'].g_AutoCorrectMathsList.DefaultAutoCorrectMathSymbolsList;
 	};
 	/**
-	 * Reset to defaul version list autocorrect math symbols
+	 * Return default array for Math AutoCorrect functions for menu
+	 * @returns {Array.<String>}
+	 */
+	baseEditorsApi.prototype.asc_getAutoCorrectMathFunctions = function()
+	{
+        return window['AscCommonWord'].g_AutoCorrectMathsList.DefaultAutoCorrectMathFuncs;
+	};
+	/**
+	 * Reset to defaul math autocorrect symbols list
 	 */
 	baseEditorsApi.prototype.asc_resetToDefaultAutoCorrectMathSymbols = function()
 	{
-		window['AscCommonWord'].g_aAutoCorrectMathSymbols = JSON.parse(JSON.stringify(window['AscCommonWord'].g_DefaultAutoCorrectMathSymbolsList));
+		window['AscCommonWord'].g_AutoCorrectMathsList.AutoCorrectMathSymbols = JSON.parse(JSON.stringify(window['AscCommonWord'].g_AutoCorrectMathsList.DefaultAutoCorrectMathSymbolsList));
 	};
 	/**
-	 * Delete item from g_aAutoCorrectMathSymbols
+	 * Reset to default version math autocorrect functions list
+	 */
+	baseEditorsApi.prototype.asc_resetToDefaultAutoCorrectMathFunctions = function()
+	{
+		window['AscCommonWord'].g_AutoCorrectMathsList.AutoCorrectMathFuncs = JSON.parse(JSON.stringify(window['AscCommonWord'].g_AutoCorrectMathsList.DefaultAutoCorrectMathFuncs));
+	};
+	/**
+	 * Delete item from g_AutoCorrectMathSymbols
 	 * @param {string} element
 	 */
 	baseEditorsApi.prototype.asc_deleteFromAutoCorrectMathSymbols = function(element)
 	{
-        var remInd = window['AscCommonWord'].g_aAutoCorrectMathSymbols.findIndex(function(val, index){
+        var remInd = window['AscCommonWord'].g_AutoCorrectMathsList.AutoCorrectMathSymbols.findIndex(function(val, index){
 			if (val[0] === element){
 				return index;
 			}
 		});
-		window['AscCommonWord'].g_aAutoCorrectMathSymbols.splice(remInd, 1);
+		window['AscCommonWord'].g_AutoCorrectMathsList.AutoCorrectMathSymbols.splice(remInd, 1);
 	};
 	/**
-	 * Add or edit item from g_aAutoCorrectMathSymbols
+	 * Delete item from g_AutoCorrectMathFuncs
+	 * @param {string} element
+	 */
+	baseEditorsApi.prototype.asc_deleteFromAutoCorrectMathFunctions = function(element)
+	{
+        var remInd = window['AscCommonWord'].g_AutoCorrectMathsList.AutoCorrectMathFuncs.findIndex(function(val, index){
+			if (val === element){
+				return index;
+			}
+		});
+		window['AscCommonWord'].g_AutoCorrectMathsList.AutoCorrectMathFuncs.splice(remInd, 1);
+	};
+	/**
+	 * Add or edit item from g_AutoCorrectMathSymbols
 	 * @param {string} element
 	 * @param {Array.<number> || number || string} repVal
 	 */
@@ -2851,19 +2879,27 @@
 		if (typeof repVal === 'string') {
 			repVal = AscCommon.convertUTF16toUnicode(repVal);
 		}
-		var changeInd = window['AscCommonWord'].g_aAutoCorrectMathSymbols.findIndex(function(val, index){
+		var changeInd = window['AscCommonWord'].g_AutoCorrectMathsList.AutoCorrectMathSymbols.findIndex(function(val, index){
 			if (val[0] === element){
 				return index;
 			}
 		});
 		if (changeInd >= 0) {
-			window['AscCommonWord'].g_aAutoCorrectMathSymbols[changeInd][1] = repVal;
+			window['AscCommonWord'].g_AutoCorrectMathsList.AutoCorrectMathSymbols[changeInd][1] = repVal;
 		} else {
-			window['AscCommonWord'].g_aAutoCorrectMathSymbols.push([element, repVal]);
+			window['AscCommonWord'].g_AutoCorrectMathsList.AutoCorrectMathSymbols.push([element, repVal]);
 		}
 	};
 	/**
-	 * Refresh g_aAutoCorrectMathSymbols on start
+	 * Add item from g_AutoCorrectMathFuncs
+	 * @param {string} newEl
+	 */
+	baseEditorsApi.prototype.asc_AddFromAutoCorrectMathFunctions = function(newEl)
+	{
+		window['AscCommonWord'].g_AutoCorrectMathsList.AutoCorrectMathFuncs.push(newEl);
+	};
+	/**
+	 * Refresh g_AutoCorrectMathSymbols on start
 	 * @param {Array.<string>} remItems
 	 * @param {Array.<string, Array.<number> || number || string>} addItems
 	 * @param {boolean} flag
@@ -2885,9 +2921,25 @@
 		this.asc_updateFlagAutoCorrectMathSymbols(flag);
 	};
 	/**
-	 * Update flag about autocorrect math symbols
-	 * @param {boolean} flag
+	 * Refresh g_AutoCorrectMathFuncs on start
+	 * @param {Array.<string>} remItems
+	 * @param {Array.<string>} addItems
 	 */
+	baseEditorsApi.prototype.asc_refreshOnStartAutoCorrectMathFunctions = function(remItems, addItems)
+	{
+		var me = this;
+		this.asc_resetToDefaultAutoCorrectMathFunctions();
+		if (remItems) {
+			remItems.forEach(function(el) {
+				me.asc_deleteFromAutoCorrectMathFunctions(el);
+			});
+		}
+		if (addItems) {
+			addItems.forEach(function(el) {
+				me.asc_AddFromAutoCorrectMathFunctions(el);
+			});
+		}
+	};
 	baseEditorsApi.prototype.asc_updateFlagAutoCorrectMathSymbols = function(flag)
 	{
 		window['AscCommonWord'].b_DoAutoCorrectMathSymbols = flag;
@@ -2983,10 +3035,15 @@
 	prot['asc_runAutostartMacroses'] = prot.asc_runAutostartMacroses;
 	prot['asc_setVisiblePasteButton'] = prot.asc_setVisiblePasteButton;
 	prot['asc_getAutoCorrectMathSymbols'] = prot.asc_getAutoCorrectMathSymbols;
+	prot['asc_getAutoCorrectMathFunctions'] = prot.asc_getAutoCorrectMathFunctions;
 	prot['asc_resetToDefaultAutoCorrectMathSymbols'] = prot.asc_resetToDefaultAutoCorrectMathSymbols;
+	prot['asc_resetToDefaultAutoCorrectMathFunctions'] = prot.asc_resetToDefaultAutoCorrectMathFunctions;
 	prot['asc_deleteFromAutoCorrectMathSymbols'] = prot.asc_deleteFromAutoCorrectMathSymbols;
+	prot['asc_deleteFromAutoCorrectMathFunctions'] = prot.asc_deleteFromAutoCorrectMathFunctions;
 	prot['asc_AddOrEditFromAutoCorrectMathSymbols'] = prot.asc_AddOrEditFromAutoCorrectMathSymbols;
+	prot['asc_AddFromAutoCorrectMathFunctions'] = prot.asc_AddFromAutoCorrectMathFunctions;
 	prot['asc_refreshOnStartAutoCorrectMathSymbols'] = prot.asc_refreshOnStartAutoCorrectMathSymbols;
+	prot['asc_refreshOnStartAutoCorrectMathFunctions'] = prot.asc_refreshOnStartAutoCorrectMathFunctions;
 	prot['asc_updateFlagAutoCorrectMathSymbols'] = prot.asc_updateFlagAutoCorrectMathSymbols;
 
 	prot['asc_isCrypto'] = prot.asc_isCrypto;

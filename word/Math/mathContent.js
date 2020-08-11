@@ -5446,10 +5446,12 @@ CMathContent.prototype.Process_AutoCorrect = function(ActionElement) {
     } else {
         this.private_UpdateAutoCorrectMathSymbols();
         // Смотрим возможно ли выполнить автозамену, если нет, тогда пробуем произвести автозамену пропуская последний символ
-        if (g_aMathAutoCorrectTriggerCharCodes[ActionElement.value] && AutoCorrectEngine.IntFlag) {
-            CanMakeAutoCorrect = this.private_CanAutoCorrectText(AutoCorrectEngine, true);
-        } else {
-            CanMakeAutoCorrect = this.private_CanAutoCorrectText(AutoCorrectEngine, false);
+        if (AutoCorrectEngine.IntFlag) {
+            if (g_aMathAutoCorrectTriggerCharCodes[ActionElement.value]) {
+                CanMakeAutoCorrect = this.private_CanAutoCorrectText(AutoCorrectEngine, true);
+            } else {
+                CanMakeAutoCorrect = this.private_CanAutoCorrectText(AutoCorrectEngine, false);
+            }
         }
         if (!CanMakeAutoCorrect && g_aMathAutoCorrectTextFunc[ActionElement.value]) { 
             CanMakeAutoCorrectFunc = this.private_CanAutoCorrectTextFunc(AutoCorrectEngine);
@@ -5485,7 +5487,9 @@ CMathContent.prototype.private_NeedAutoCorrect = function(ActionElement) {
     return false;
 };
 CMathContent.prototype.private_UpdateAutoCorrectMathSymbols = function() {
-    g_aAutoCorrectMathSymbols = window['AscCommonWord'].g_aAutoCorrectMathSymbols;
+    g_AutoCorrectMathSymbols = window['AscCommonWord'].g_AutoCorrectMathsList.AutoCorrectMathSymbols;
+    g_AutoCorrectMathFuncs = window['AscCommonWord'].g_AutoCorrectMathsList.AutoCorrectMathFuncs;
+
 };
 CMathContent.prototype.private_CanAutoCorrectText = function(AutoCorrectEngine, bSkipLast) {
     var IndexAdd = (true === bSkipLast ? 1 : 0);
@@ -5500,9 +5504,9 @@ CMathContent.prototype.private_CanAutoCorrectText = function(AutoCorrectEngine, 
     var RemoveCount = 0;
     var Start = 0;
     var ReplaceChars = [0x0020];
-    var AutoCorrectCount = g_aAutoCorrectMathSymbols.length;
+    var AutoCorrectCount = g_AutoCorrectMathSymbols.length;
     for (var nIndex = 0; nIndex < AutoCorrectCount; nIndex++) {
-        var AutoCorrectElement = g_aAutoCorrectMathSymbols[nIndex];
+        var AutoCorrectElement = g_AutoCorrectMathSymbols[nIndex];
         var CheckString = AutoCorrectElement[0];
         var CheckStringLen = CheckString.length;
 
@@ -5570,9 +5574,9 @@ CMathAutoCorrectEngine.prototype.private_AutoCorrectText = function(Elements) {
     if (ElCount < 2) {
         return;
     }
-    var AutoCorrectCount = g_aAutoCorrectMathSymbols.length;
+    var AutoCorrectCount = g_AutoCorrectMathSymbols.length;
     for (var nIndex = 0; nIndex < AutoCorrectCount; nIndex++) {
-        var AutoCorrectElement = g_aAutoCorrectMathSymbols[nIndex];
+        var AutoCorrectElement = g_AutoCorrectMathSymbols[nIndex];
         var CheckString = AutoCorrectElement[0];
         var CheckStringLen = CheckString.length;
         if (ElCount < CheckStringLen) {
@@ -5605,9 +5609,9 @@ CMathAutoCorrectEngine.prototype.private_AutoCorrectTextFunc = function(Elements
     if (ElCount < 2 ) {
         return;
     }
-    var AutoCorrectCount = g_aAutoCorrectMathFuncSymbols.length;
+    var AutoCorrectCount = g_AutoCorrectMathFuncs.length;
     for (var nIndex = 0; nIndex < AutoCorrectCount; nIndex++) {
-        var AutoCorrectElement = g_aAutoCorrectMathFuncSymbols[nIndex];
+        var AutoCorrectElement = g_AutoCorrectMathFuncs[nIndex];
         var CheckStringLen = AutoCorrectElement.length;
         if (ElCount < CheckStringLen) {
             continue;
@@ -6750,9 +6754,9 @@ CMathContent.prototype.private_CanAutoCorrectTextFunc = function(AutoCorrectEngi
     var FlagEnd = false;
     var Start = ElCount - 1;
     var RemoveCount = (bActionIsSpace) ? 1 : 0;
-    var AutoCorrectCount = g_aAutoCorrectMathFuncSymbols.length;
+    var AutoCorrectCount = g_AutoCorrectMathFuncs.length;
     for (var nIndex = 0; nIndex < AutoCorrectCount; nIndex++) {
-        var AutoCorrectElement = g_aAutoCorrectMathFuncSymbols[nIndex];
+        var AutoCorrectElement = g_AutoCorrectMathFuncs[nIndex];
         var CheckStringLen = AutoCorrectElement.length;
         if (ElCount < CheckStringLen + 1) {
             continue;
@@ -8596,7 +8600,7 @@ CMathAutoCorrectEngine.prototype.private_Add_Element = function(Content) {
     }
 };
 
-var g_aAutoCorrectMathFuncSymbols =
+var g_DefaultAutoCorrectMathFuncs =
 [
     'sin', 'sec', 'asin', 'asec', 'arcsin', 'arcsec',
     'cos', 'csc', 'acos', 'acsc', 'arccos', 'arccsc',
@@ -9112,7 +9116,14 @@ var g_DefaultAutoCorrectMathSymbolsList =
     ['>=', 0x2265],
     ['>>', 0x226B]
 ];
-var g_aAutoCorrectMathSymbols = JSON.parse(JSON.stringify(g_DefaultAutoCorrectMathSymbolsList));
+var g_AutoCorrectMathSymbols = JSON.parse(JSON.stringify(g_DefaultAutoCorrectMathSymbolsList));
+var g_AutoCorrectMathFuncs = JSON.parse(JSON.stringify(g_DefaultAutoCorrectMathFuncs));
+var g_AutoCorrectMathsList = {
+    DefaultAutoCorrectMathSymbolsList : g_DefaultAutoCorrectMathSymbolsList,
+    AutoCorrectMathSymbols : g_AutoCorrectMathSymbols,
+    DefaultAutoCorrectMathFuncs : g_DefaultAutoCorrectMathFuncs,
+    AutoCorrectMathFuncs : g_AutoCorrectMathFuncs
+};
 //символы для mathfunc (интеграл, сумма...)
 var q_aMathAutoCorrectControlAggregationCodes =
 {
@@ -9264,6 +9275,5 @@ var g_aMathAutoCorrectLatinAlph = {
 //--------------------------------------------------------export----------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};
 window['AscCommonWord'].CMathContent = CMathContent;
-window['AscCommonWord'].g_DefaultAutoCorrectMathSymbolsList = g_DefaultAutoCorrectMathSymbolsList;
-window['AscCommonWord'].g_aAutoCorrectMathSymbols = g_aAutoCorrectMathSymbols;
+window['AscCommonWord'].g_AutoCorrectMathsList = g_AutoCorrectMathsList;
 
