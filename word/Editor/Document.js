@@ -2441,7 +2441,8 @@ function CDocument(DrawingDocument, isMainLogicDocument)
     	SmartQuotes            : true,
 		HyphensWithDash        : true,
     	AutomaticBulletedLists : true,
-		AutomaticNumberedLists : true
+		AutomaticNumberedLists : true,
+		FrenchPunctuation      : true
 	};
 
     // Контролируем изменения интерфейса
@@ -21804,6 +21805,14 @@ CDocument.prototype.SetAutoCorrectHyphensWithDash = function(isReplace)
 CDocument.prototype.IsAutoCorrectHyphensWithDash = function()
 {
 	return this.AutoCorrectSettings.HyphensWithDash;
+};
+/**
+ * Запрашиваем настройку автозамены для французской пунктуации
+ * @returns {boolean}
+ */
+CDocument.prototype.IsAutoCorrectFrenchPunctuation = function()
+{
+	return this.AutoCorrectSettings.FrenchPunctuation;
 };
 /**
  * Получаем идентификатор текущего пользователя

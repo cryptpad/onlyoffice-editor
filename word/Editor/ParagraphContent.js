@@ -415,6 +415,10 @@ ParaText.prototype.Is_NBSP = function()
 {
 	return (this.Value === nbsp_charcode);
 };
+ParaText.prototype.IsNBSP = function()
+{
+	return (this.Value === nbsp_charcode);
+};
 ParaText.prototype.IsPunctuation = function()
 {
 	return !!(undefined !== AscCommon.g_aPunctuation[this.Value]);
@@ -509,13 +513,21 @@ ParaText.prototype.CanBeAtEndOfLine = function()
 };
 ParaText.prototype.CanStartAutoCorrect = function()
 {
+	// 33 !
 	// 34 "
 	// 39 '
 	// 45 -
+	// 58 :
+	// 59 ;
+	// 63 ?
 
-	return (34 === this.Value
+	return (33 === this.Value
+	|| 34 === this.Value
 	|| 39 === this.Value
-	|| 45 === this.Value);
+	|| 45 === this.Value
+	|| 58 === this.Value
+	|| 59 === this.Value
+	|| 63 === this.Value);
 };
 ParaText.prototype.IsDiacriticalSymbol = function()
 {

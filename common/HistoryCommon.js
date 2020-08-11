@@ -1172,6 +1172,9 @@
 			case AscDFH.historydescription_Document_ConvertFootnoteType:
 				sString = "Document_ConvertFootnoteType";
 				break;
+			case AscDFH.historydescription_Document_AutoCorrectCommon:
+				sString = "Document_AutoCorrectCommon";
+				break;
 		}
 		return sString;
 	}
@@ -3280,6 +3283,7 @@
 	window['AscDFH'].historydescription_Document_AddContentControlTextForm          = 0x0179;
 	window['AscDFH'].historydescription_Document_SetEndnotePr                       = 0x017a;
 	window['AscDFH'].historydescription_Document_ConvertFootnoteType                = 0x017b;
+	window['AscDFH'].historydescription_Document_AutoCorrectCommon                  = 0x017c;
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//
