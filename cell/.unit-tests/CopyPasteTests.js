@@ -30,36 +30,35 @@
  *
  */
 
-$( function () {
+$(function () {
 
-	Asc.spreadsheet_api.prototype._init = function() {
+	Asc.spreadsheet_api.prototype._init = function () {
 	};
-	Asc.spreadsheet_api.prototype._loadFonts = function(fonts, callback) {
+	Asc.spreadsheet_api.prototype._loadFonts = function (fonts, callback) {
 		callback();
 	};
-	AscCommonExcel.WorkbookView.prototype._calcMaxDigitWidth = function() {
+	AscCommonExcel.WorkbookView.prototype._calcMaxDigitWidth = function () {
 	};
-	AscCommonExcel.WorkbookView.prototype._init = function() {
+	AscCommonExcel.WorkbookView.prototype._init = function () {
 	};
-	AscCommonExcel.WorkbookView.prototype._onWSSelectionChanged = function() {
+	AscCommonExcel.WorkbookView.prototype._onWSSelectionChanged = function () {
 	};
-	AscCommonExcel.WorkbookView.prototype.showWorksheet = function() {
+	AscCommonExcel.WorkbookView.prototype.showWorksheet = function () {
 	};
-	AscCommonExcel.WorksheetView.prototype._init = function() {
+	AscCommonExcel.WorksheetView.prototype._init = function () {
 	};
-	AscCommonExcel.WorksheetView.prototype._onUpdateFormatTable = function() {
+	AscCommonExcel.WorksheetView.prototype._onUpdateFormatTable = function () {
 	};
-	AscCommonExcel.WorksheetView.prototype.setSelection = function() {
+	AscCommonExcel.WorksheetView.prototype.setSelection = function () {
 	};
-	AscCommonExcel.WorksheetView.prototype.draw = function() {
+	AscCommonExcel.WorksheetView.prototype.draw = function () {
 	};
-	AscCommonExcel.WorksheetView.prototype._prepareDrawingObjects = function() {
+	AscCommonExcel.WorksheetView.prototype._prepareDrawingObjects = function () {
 	};
-	AscCommonExcel.WorksheetView.prototype._reinitializeScroll = function() {
+	AscCommonExcel.WorksheetView.prototype._reinitializeScroll = function () {
 	};
-	AscCommon.baseEditorsApi.prototype._onEndLoadSdk = function() {
+	AscCommon.baseEditorsApi.prototype._onEndLoadSdk = function () {
 	};
-
 
 
 	var sData = AscCommon.getEmpty();
@@ -75,9 +74,21 @@ $( function () {
 	api.wb = new AscCommonExcel.WorkbookView(api.wbModel, api.controller, api.handlers, api.HtmlElement,
 		api.topLineEditorElement, api, api.collaborativeEditing, api.fontRenderingMode);
 	var wb = api.wbModel;
-	wb.handlers.add("getSelectionState", function() {
+	wb.handlers.add("getSelectionState", function () {
 		return null;
 	});
+	api.wb.cellCommentator = new AscCommonExcel.CCellCommentator({
+		model: null,
+		collaborativeEditing: null,
+		draw: function() {
+		},
+		handlers: {
+			trigger: function() {
+				return false;
+			}
+		}
+	});
+
 	var wsView = api.wb.getWorksheet(0);
 	wsView.handlers = api.handlers;
 	wsView.objectRender = new AscFormat.DrawingObjects();
@@ -87,7 +98,7 @@ $( function () {
 		return new window["Asc"].Range(c1, r1, c2, r2);
 	};
 
-	test( "Test: \"simple tests\"", function () {
+	test("Test: \"simple tests\"", function () {
 
 		ws.getRange2("A1").setValue("-4");
 
@@ -107,9 +118,9 @@ $( function () {
 		strictEqual(ws.getRange2("B7").getValue(), "-4");
 		strictEqual(ws.getRange2("B8").getValue(), "-4");
 		strictEqual(ws.getRange2("B9").getValue(), "-4");
-	} );
+	});
 
-	test( "Test: \"formula tests\"", function () {
+	test("Test: \"formula tests\"", function () {
 		var val = "=SIN(1)";
 
 		ws.getRange2("A1").setValue(val);
@@ -130,7 +141,67 @@ $( function () {
 		strictEqual(ws.getRange2("B7").getValueForEdit(), val);
 		strictEqual(ws.getRange2("B8").getValueForEdit(), val);
 		strictEqual(ws.getRange2("B9").getValueForEdit(), val);
-	} );
+
+
+		var val1 = "=SIN(A2)";
+		var val2 = "=SIN(A3)";
+
+		ws.getRange2("A1").setValue(val1);
+		ws.getRange2("A2").setValue(val2);
+
+		ws.selectionRange.ranges = [getRange(0, 0, 0, 1)];
+		base64 = AscCommonExcel.g_clipboardExcel.copyProcessor.getBinaryForCopy(ws, wsView.objectRender);
+
+		ws.selectionRange.ranges = [getRange(2, 1, 2, 6), getRange(3, 5, 3, 8), getRange(4, 5, 4, 7)];
+		AscCommonExcel.g_clipboardExcel.pasteData(wsView, AscCommon.c_oAscClipboardDataFormat.Internal, base64);
+
+		strictEqual(ws.getRange2("C2").getValueForEdit(), "=SIN(C3)");
+		strictEqual(ws.getRange2("C3").getValueForEdit(), "=SIN(C4)");
+		strictEqual(ws.getRange2("C4").getValueForEdit(), "=SIN(C5)");
+		strictEqual(ws.getRange2("C5").getValueForEdit(), "=SIN(C6)");
+		strictEqual(ws.getRange2("C6").getValueForEdit(), "=SIN(C7)");
+		strictEqual(ws.getRange2("C7").getValueForEdit(), "=SIN(C8)");
+
+		strictEqual(ws.getRange2("D6").getValueForEdit(), "=SIN(D7)");
+		strictEqual(ws.getRange2("D7").getValueForEdit(), "=SIN(D8)");
+		strictEqual(ws.getRange2("D8").getValueForEdit(), "=SIN(D9)");
+		strictEqual(ws.getRange2("D9").getValueForEdit(), "=SIN(D10)");
+
+		strictEqual(ws.getRange2("E6").getValueForEdit(), "=SIN(E7)");
+		strictEqual(ws.getRange2("E7").getValueForEdit(), "=SIN(E8)");
+		strictEqual(ws.getRange2("E8").getValueForEdit(), "");
+	});
+
+	test("Test: \"comment tests\"", function () {
+
+		ws.getRange2("E10").setValue("-4");
+		var comment = new  window["Asc"].asc_CCommentData(null);
+		comment.asc_putText("test");
+		/*comment.asc_putTime(this.utcDateToString(new Date()));
+		comment.asc_putOnlyOfficeTime(this.ooDateToString(new Date()));
+		comment.asc_putUserId(this.currentUserId);
+		comment.asc_putUserName(this.currentUserName);
+		comment.asc_putSolved(false);*/
+
+		ws.selectionRange.ranges = [getRange(0, 0, 0, 0)];
+		api.asc_addComment(comment);
+
+		var base64 = AscCommonExcel.g_clipboardExcel.copyProcessor.getBinaryForCopy(ws, wsView.objectRender);
+
+		ws.selectionRange.ranges = [getRange(0, 1, 0, 1)];
+		AscCommonExcel.g_clipboardExcel.pasteData(wsView, AscCommon.c_oAscClipboardDataFormat.Internal, base64);
+
+		strictEqual(ws.getRange2("A2").getValue(), ws.getRange2("A1").getValue());
+
+		ws.selectionRange.ranges = [getRange(0, 5, 0, 5), getRange(1, 5, 1, 8)];
+		AscCommonExcel.g_clipboardExcel.pasteData(wsView, AscCommon.c_oAscClipboardDataFormat.Internal, base64);
+
+		strictEqual(ws.getRange2("A6").getValue(), "-4");
+		strictEqual(ws.getRange2("B6").getValue(), "-4");
+		strictEqual(ws.getRange2("B7").getValue(), "-4");
+		strictEqual(ws.getRange2("B8").getValue(), "-4");
+		strictEqual(ws.getRange2("B9").getValue(), "-4");
+	});
 
 	module("CopyPaste");
-} );
+});
