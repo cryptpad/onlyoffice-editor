@@ -3083,7 +3083,7 @@
 				var newFonts = {};
 				var fontName;
 				for (var i in oFonts) {
-					fontName = oFonts[i] ? oFonts[i].Name : undefined;
+					fontName = oFonts[i] ? (oFonts[i].Name || oFonts[i].name) : undefined;
 					if(undefined !== fontName) {
 						newFonts[fontName] = 1;
 					}
