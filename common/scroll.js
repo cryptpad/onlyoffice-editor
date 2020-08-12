@@ -54,8 +54,8 @@ var AnimationType = {
     NONE: 0,
     SCROLL_HOVER: 1,
     ARROW_HOVER: 2,
-    SCROLL_ACTIVE: 4,
-    ARROW_ACTIVE: 8
+    SCROLL_ACTIVE: 3,
+    ARROW_ACTIVE: 4
 };
 
 function GetClientWidth( elem ) {
@@ -2017,147 +2017,139 @@ function _HEXTORGB_( colorHEX ) {
         }
     }
 
+    ScrollObject.prototype._animateArrow = function(isFade) {
+		var xDeltaIMG = 0, yDeltaIMG = 0, cnvs = document.createElement( 'canvas' ), that = this,
+		ctx = cnvs.getContext('2d'), context = that.context;
+		cnvs.width = that.ArrowDrawer.SizeNaturalW;
+		cnvs.height = that.ArrowDrawer.SizeNaturalH;
+		cnvs.width = that.ArrowDrawer.SizeNaturalW;
+		cnvs.height = that.ArrowDrawer.SizeNaturalH;
 
-    ScrollObject.prototype._doAnimation = function () {
+		if(that.animState === AnimationType.ARROW_ACTIVE) {
+			that.arrowColor = that.ArrowDrawer.ColorBackActive;
+		}
+		ctx.fillStyle = "rgb(" + that.arrowColor + "," +
+			that.arrowColor + "," +
+			that.arrowColor + ")";
+
+		ctx.rect( 0.5, 1.5, that.ArrowDrawer.SizeW - 1, that.ArrowDrawer.SizeH - 1 );
+		ctx.fill();
+
+		if ( that.ArrowDrawer.IsDrawBorders ) {
+			ctx.strokeStyle = that.ArrowDrawer.ColorBorderOver;
+			ctx.stroke();
+		}
+		if(that.animState === AnimationType.ARROW_ACTIVE) {
+			context.drawImage(cnvs, xDeltaIMG, yDeltaIMG, that.ArrowDrawer.SizeW, that.ArrowDrawer.SizeH);
+			return;
+		}
+
+		if((isFade && that.arrowColor <= 207) || (!isFade && that.arrowColor >= 241)) {
+			return;
+		}
+		that.arrowColor = isFade ? that.arrowColor - 2 : that.arrowColor + 2;
+
+		context.drawImage(cnvs,xDeltaIMG,yDeltaIMG, that.ArrowDrawer.SizeW, that.ArrowDrawer.SizeH);
+	}
+
+	ScrollObject.prototype._animateScroll = function(isFade) {
     	var that = this;
-		/*if(that.animState === ( AnimationType.SCROLL_HOVER | AnimationType.ARROW_HOVER)) {
-			var xDeltaIMG = 0, yDeltaIMG = 0, cnvs = document.createElement( 'canvas' );
+		that.context.beginPath();
 
-			cnvs.width = that.ArrowDrawer.SizeNaturalW;
-			cnvs.height = that.ArrowDrawer.SizeNaturalH;
-			var ctx = cnvs.getContext('2d');
-			cnvs.width = that.ArrowDrawer.SizeNaturalW;
-			cnvs.height = that.ArrowDrawer.SizeNaturalH;
+		that._drawScroll();
 
-			ctx.fillStyle = "rgb(" + that.arrowColor + "," +
-				that.arrowColor + "," +
-				that.arrowColor + ")";
+		that.context.fillStyle = "rgb(" + that.scrollColor + "," + that.scrollColor + "," + that.scrollColor + ")";
+		that.context.strokeStyle = that.settings.strokeStyleOver;
 
-			ctx.rect( 0.5, 1.5, that.ArrowDrawer.SizeW - 1, that.ArrowDrawer.SizeH - 1 );
-			ctx.fill();
+		that.context.fill();
+		that.context.stroke();
+        if((isFade && that.scrollColor <= 207) || (!isFade && that.scrollColor >= 241)) {
+        	return;
+		}
+		that.scrollColor = isFade ? that.scrollColor - 2 : that.scrollColor + 2;
+		// console.log(that.scrollColor + " SCROLL COLOR");
 
-			if ( that.ArrowDrawer.IsDrawBorders ) {
-				ctx.strokeStyle = that.ArrowDrawer.ColorBorderOver;
-				ctx.stroke();
-			}
-			that.arrowColor += 2;
+	}
+    ScrollObject.prototype._doAnimation = function (lastAnimState) {
+		var that = this;
+		clearTimeout(this.fadeTimeout);
+		this.fadeInTimeout = null;
 
-			if ( this.arrowColor >= 241 ) {
+		if (that.animState === AnimationType.ARROW_HOVER && lastAnimState === AnimationType.NONE) {
+			that._animateArrow(true);
+			that._animateScroll(true);
+			if (that.scrollColor <= 207 && that.arrowColor <= 207) {
 				return;
 			}
-			console.log(that.arrowColor + " WTF");
-			var ctx = that.context;
-			ctx.drawImage(cnvs,xDeltaIMG,yDeltaIMG, that.ArrowDrawer.SizeW, that.ArrowDrawer.SizeH);
-		}*/
-    	if( that.animState ===  AnimationType.ARROW_HOVER) {
-			var xDeltaIMG = 0, yDeltaIMG = 0, cnvs = document.createElement( 'canvas' );
-
-			cnvs.width = that.ArrowDrawer.SizeNaturalW;
-			cnvs.height = that.ArrowDrawer.SizeNaturalH;
-			var ctx = cnvs.getContext('2d');
-			cnvs.width = that.ArrowDrawer.SizeNaturalW;
-			cnvs.height = that.ArrowDrawer.SizeNaturalH;
-
-			ctx.fillStyle = "rgb(" + that.arrowColor + "," +
-				that.arrowColor + "," +
-				that.arrowColor + ")";
-
-			ctx.rect( 0.5, 1.5, that.ArrowDrawer.SizeW - 1, that.ArrowDrawer.SizeH - 1 );
-			ctx.fill();
-
-			if ( that.ArrowDrawer.IsDrawBorders ) {
-				ctx.strokeStyle = that.ArrowDrawer.ColorBorderOver;
-				ctx.stroke();
+		}
+		else
+		if (that.animState === AnimationType.SCROLL_HOVER && lastAnimState === AnimationType.NONE) {
+			that._animateScroll(true);
+			if (that.scrollColor <= 207) {
+				return;
 			}
-              that.arrowColor -= 2;
+		}
+		else
+		if (that.animState === AnimationType.NONE && lastAnimState === AnimationType.ARROW_HOVER) {
+			that._animateArrow(false);
+			that._animateScroll(false);
+			if (that.scrollColor >= 241 && that.arrowColor >= 241) {
+				return;
+			}
+		}
+		else
+		if (that.animState === AnimationType.SCROLL_HOVER && lastAnimState === AnimationType.ARROW_HOVER) {
+			that._animateArrow(false);
+			that._animateScroll(true);
 			console.log(that.arrowColor);
-
-            var ctx = that.context;
-			ctx.drawImage(cnvs,xDeltaIMG,yDeltaIMG, that.ArrowDrawer.SizeW, that.ArrowDrawer.SizeH);
-		}
-        if (that.animState === AnimationType.SCROLL_HOVER || that.animState === AnimationType.ARROW_HOVER) {
-
-				that.context.beginPath();
-
-				that._drawScroll(false);
-
-				that.context.fillStyle = "rgb(" + that.scrollColor + "," + that.scrollColor + "," + that.scrollColor + ")";
-				that.context.strokeStyle = that.settings.strokeStyleOver;
-
-				that.context.fill();
-				that.context.stroke();
-
-				that.scrollColor -= 2;
-				console.log(that.scrollColor);
-
-				if (that.scrollColor <= _HEXTORGB_(that.settings.scrollerColorOver).R) {
-					return;
-				}
-			}
-        if(that.animState === AnimationType.NONE) {
-        	if(that.arrowState) {
-				var xDeltaIMG = 0, yDeltaIMG = 0, cnvs = document.createElement( 'canvas' );
-
-				cnvs.width = that.ArrowDrawer.SizeNaturalW;
-				cnvs.height = that.ArrowDrawer.SizeNaturalH;
-				var ctx = cnvs.getContext('2d');
-				cnvs.width = that.ArrowDrawer.SizeNaturalW;
-				cnvs.height = that.ArrowDrawer.SizeNaturalH;
-
-				ctx.fillStyle = "rgb(" + that.arrowColor + "," +
-					that.arrowColor + "," +
-					that.arrowColor + ")";
-
-				ctx.rect( 0.5, 1.5, that.ArrowDrawer.SizeW - 1, that.ArrowDrawer.SizeH - 1 );
-				ctx.fill();
-
-				if ( that.ArrowDrawer.IsDrawBorders ) {
-					ctx.strokeStyle = that.ArrowDrawer.ColorBorderOver;
-					ctx.stroke();
-				}
-				that.arrowColor += 2;
-				console.log(that.arrowColor + " WTF");
-				var ctx = that.context;
-				ctx.drawImage(cnvs,xDeltaIMG,yDeltaIMG, that.ArrowDrawer.SizeW, that.ArrowDrawer.SizeH);
-			}
-			that.context.beginPath();
-
-			that._drawScroll(false);
-
-			that.context.fillStyle = "rgb(" + that.scrollColor + "," + that.scrollColor + "," + that.scrollColor + ")";
-			that.context.strokeStyle = that.settings.strokeStyleOver;
-
-			that.context.fill();
-			that.context.stroke();
-
-			that.scrollColor += 2;
-			console.log(that.scrollColor);
-
-			if (that.scrollColor >= that.settings.scrollerColor) {
+			if (that.scrollColor <= 207 && that.arrowColor >= 241) {
 				return;
 			}
 		}
+		else
+		if (that.animState === AnimationType.NONE && lastAnimState === AnimationType.SCROLL_HOVER) {
+			that._animateArrow(false);
+			that._animateScroll(false);
+			if (that.scrollColor >= 241 && that.arrowColor >= 241) {
+				return;
+			}
+		}
+		else
+		if (that.animState === AnimationType.ARROW_HOVER && lastAnimState === AnimationType.SCROLL_HOVER) {
+			that._animateArrow(true);
+			that._animateScroll(true);
+			if (that.scrollColor <= 207 && that.arrowColor <= 207) {
+				return;
+			}
+		}
+		else
+		if (this.animState === AnimationType.SCROLL_ACTIVE) {
+			that.context.fillStyle = this.settings.scrollerColorActive;
+			that.context.strokeStyle = this.settings.strokeStyleActive;
+			return;
+		}
+		else
+		if (this.animState === AnimationType.SCROLL_HOVER && lastAnimState === AnimationType.SCROLL_ACTIVE) {
+			that.context.fillStyle = this.settings.scrollerColorOver;
+			that.context.strokeStyle = this.settings.strokeStyleOver;
+			return;
+		}
+		else return;
 
-
-		that.fadeTimeout = setTimeout(function() {that._doAnimation()}, that.settings.fadeInFadeOutDelay);
+		that.fadeTimeout = setTimeout(function () {that._doAnimation(lastAnimState)}, that.settings.fadeInFadeOutDelay);
     }
 
     ScrollObject.prototype._draw = function () {
 		clearTimeout(this.fadeTimeout);
+		this.fadeInTimeout = null;
 
-		if (this.animState === this.lastAnimState) {
+		if (this.animState === this.lastAnimState && this.animState !== AnimationType.SCROLL_ACTIVE) {
 			this._drawArrows();
 		}
 
 		this._drawScroll();
+		this._doAnimation(this.lastAnimState);
 
-		if (this.animState === AnimationType.SCROLL_ACTIVE) {
-			this.context.fillStyle = this.settings.scrollerColorActive;
-			this.context.strokeStyle = this.settings.strokeStyleActive;
-		}
-		if (this.lastAnimState !== this.animState) {
-			this._doAnimation();
-		}
 		this.context.fill();
 		this.context.stroke();
 		this.lastAnimState = this.animState;
@@ -2519,13 +2511,7 @@ function _HEXTORGB_( colorHEX ) {
 			this.that.arrowState = this.that._MouseArrowHover(mousePos);
 
 
-		if (scrollerHover) {
-			 this.that.animState = AnimationType.SCROLL_HOVER;
-			// arrowStat = ArrowStatus.arrowHover;
-		}
-
-
-		else if ( this.that.settings.showArrows && this.that.arrowState ) {
+	 if ( this.that.settings.showArrows && this.that.arrowState ) {
 		    this.that.animState = AnimationType.ARROW_HOVER;
 			if ( !this.that.mouseDownArrow ) {
 				if ( upHover ) {
