@@ -2221,7 +2221,7 @@
 			History.SetSheetRedo(newSheet.getId());
 			if(!(bFromRedo === true))
 			{
-				wsFrom.copyObjects(newSheet);
+				wsFrom.copyObjects(newSheet, renameParams);
 			}
 			this.sortDependency();
 
@@ -3658,7 +3658,7 @@
 		//this.index = wsFrom.index;
 		this.nRowsCount = wsFrom.nRowsCount;
 		this.nColsCount = wsFrom.nColsCount;
-		var renameParams = {lastName: wsFrom.getName(), newName: this.getName(), tableNameMap: {}};
+		var renameParams = {lastName: wsFrom.getName(), newName: this.getName(), tableNameMap: {}, slicerNameMap: {}};
 		for (i = 0; i < wsFrom.TableParts.length; ++i)
 		{
 			var tableFrom = wsFrom.TableParts[i];
@@ -3738,6 +3738,27 @@
 			this.headerFooter = wsFrom.headerFooter.clone(this);
 		}
 
+		for (i = 0; i < wsFrom.aSlicers.length; ++i) {
+			//пока только для таблиц
+			var _slicer = wsFrom.aSlicers[i];
+			var _table = _slicer.getTableSlicerCache();
+			if (_table) {
+				var tableIdNew = renameParams.tableNameMap[_table.tableId];
+				var _newSlicer;
+				if (tableIdNew) {
+					_newSlicer = this.insertSlicer(_table.column, tableIdNew, window['AscCommonExcel'].insertSlicerType.table);
+				} else {
+					var wbTable = this.wb.getTableByName(_table.tableId);
+					if (wbTable) {
+						_newSlicer = this.insertSlicer(_table.column, _table.tableId, window['AscCommonExcel'].insertSlicerType.table);
+					}
+				}
+				if (_newSlicer) {
+					renameParams.slicerNameMap[_slicer.name] = _newSlicer.name;
+				}
+			}
+		}
+
 		return renameParams;
 	};
 
@@ -3812,13 +3833,14 @@
 		return this.copySelection || this.selectionRange;
 	};
 
-	Worksheet.prototype.copyObjects = function (oNewWs) {
+	Worksheet.prototype.copyObjects = function (oNewWs, renameParams) {
 		var i;
 		if (null != this.Drawings && this.Drawings.length > 0) {
 			var drawingObjects = new AscFormat.DrawingObjects();
 			oNewWs.Drawings = [];
 			for (i = 0; i < this.Drawings.length; ++i) {
 				var drawingObject = drawingObjects.cloneDrawingObject(this.Drawings[i]);
+				this.Drawings[i].graphicObject.name = renameParams.slicerNameMap[this.Drawings[i].graphicObject.name];
 				drawingObject.graphicObject = this.Drawings[i].graphicObject.copy(undefined);
 				drawingObject.graphicObject.setWorksheet(oNewWs);
 				drawingObject.graphicObject.addToDrawingObjects();
