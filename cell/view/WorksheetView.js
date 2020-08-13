@@ -3681,6 +3681,9 @@
 						}
 					}
 				} else if (Asc.ECfType.iconSet === oRule.type) {
+					if (ct.angle) {
+						continue;
+					}
 					var img = AscCommonExcel.getCFIcon(oRuleElement, oRule.getIndexRule(values, this.model, cellValue));
 					if (!img) {
 						continue;
