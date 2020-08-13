@@ -167,6 +167,9 @@
 		}
 		return res;
 	}
+	function getCFIconSize(fontSize) {
+		return AscCommonExcel.cDefIconSize * fontSize / AscCommonExcel.cDefIconFont;
+	}
 
 	function CacheColumn() {
 	    this.left = 0;
@@ -3565,29 +3568,22 @@
 		}
 		// draw text
 		for (i in drawCells) {
-			this._drawCellText(drawingCtx, i >> 0, row, colStart, colEnd, offsetX, offsetY);
+			this._drawCellText(drawingCtx, aRules, i >> 0, row, colStart, colEnd, offsetX, offsetY);
 		}
     };
 
-    WorksheetView.prototype._drawCellCF = function (ctx, aRules, c, row, col, top, width, height, offsetX, offsetY) {
-    	var showValue = true;
+	WorksheetView.prototype._getCellCF = function (aRules, c, row, col, type) {
 		var ct = this._getCellTextCache(col, row);
 		if (!ct || !ct.flags.isNumberFormat || 0 === aRules.length) {
-			return showValue;
+			return null;
 		}
 		var cellValue = c.getNumberValue();
 		if (null === cellValue) {
-			return showValue;
+			return null;
 		}
 
-        var graphics = ctx && ctx.DocumentRenderer ? ctx.DocumentRenderer : this.handlers.trigger('getMainGraphics');
-
-		var fontSize = c.getFont().getSize();
-		width -= 3; // indent
-		top += 1 - offsetY;
-
-    	var oRule, oRuleElement, ranges, multiplyRange, values, min, max, color, isMiddle, isReverse, isPositive, tmp;
-		for (var i = 0; i < aRules.length; ++i) {
+		var oRule, oRuleElement, ranges, multiplyRange, values;
+		for (var i = aRules.length - 1; i >= 0; --i) {
 			oRule = aRules[i];
 			ranges = oRule.ranges;
 			multiplyRange = new AscCommonExcel.MultiplyRange(ranges);
@@ -3596,160 +3592,202 @@
 				if (!oRuleElement || Asc.ECfType.colorScale === oRuleElement.type) {
 					continue;
 				}
-				showValue = oRuleElement.ShowValue;
-				values = this.model._getValuesForConditionalFormatting(ranges, true);
+				if (type !== oRule.type) {
+					continue;
+				}
 
-				var x = this._getColLeft(col) - offsetX + 1;
-
-				if (Asc.ECfType.dataBar === oRule.type) {
-					min = oRule.getMin(values, this.model);
-					max = oRule.getMax(values, this.model);
-
-					isPositive = 0 <= cellValue;
-					isReverse = AscCommonExcel.EDataBarDirection.rightToLeft === oRuleElement.Direction;
-					isMiddle = (AscCommonExcel.EDataBarAxisPosition.middle === oRuleElement.AxisPosition) ||
-						(AscCommonExcel.EDataBarAxisPosition.automatic === oRuleElement.AxisPosition && 0 > min && 0 < max);
-					if (isMiddle) {
-						if (isPositive) {
-							min = Math.max(0, min);
-						} else {
-							max = Math.min(0, max);
-						}
+				if (Asc.ECfType.iconSet === oRule.type) {
+					if (ct.angle && oRuleElement.ShowValue) {
+						continue;
 					}
-					if (0 >= max) {
-						tmp = -max;
-						max = -min;
-						min = tmp;
-						cellValue = -cellValue;
-						isReverse = !isReverse;
-					}
-
-					if (cellValue < min) {
-						cellValue = min;
-					} else if (cellValue > max) {
-						cellValue = max;
-					}
-
-					var minLength = Math.floor(width * oRuleElement.MinLength / 100);
-					var maxLength = Math.floor(width * oRuleElement.MaxLength / 100);
-					var k = max - min;
-					k = k ? ((maxLength - minLength) / k) : 0;
-					var dataBarLength = minLength + (cellValue - min) * k;
-
-					color = (isPositive || oRuleElement.NegativeBarColorSameAsPositive) ? oRuleElement.Color : oRuleElement.NegativeColor;
-					if (0 !== dataBarLength && color) {
-						if (isMiddle) {
-							if (oRuleElement.AxisColor) {
-								ctx.setLineWidth(1).setLineDash([3, 1]).setStrokeStyle(oRuleElement.AxisColor);
-								ctx.beginPath().lineVer(x - 1 + Asc.floor(width / 2), top - 1, top - 1 + height - 1).stroke();
-							}
-
-							dataBarLength = Asc.floor(dataBarLength / 2);
-							x += Asc.floor(width / 2) * (isReverse ? -1 : 1);
-						}
-
-						if (isReverse) {
-							x += width - dataBarLength;
-						}
-
-                        var fill = new AscCommonExcel.Fill();
-						if (oRuleElement.Gradient) {
-							var endColor = AscCommonExcel.getDataBarGradientColor(color);
-							if (isReverse) {
-								tmp = color;
-								color = endColor;
-								endColor = tmp;
-							}
-
-							fill.gradientFill = new AscCommonExcel.GradientFill();
-							var stop0 = new AscCommonExcel.GradientStop();
-							stop0.position = 0;
-							stop0.color = color;
-							var stop1 = new AscCommonExcel.GradientStop();
-							stop1.position = 1;
-							stop1.color = endColor;
-							fill.gradientFill.asc_putGradientStops([stop0, stop1]);
-						} else {
-                            fill.patternFill = new AscCommonExcel.PatternFill();
-                            fill.patternFill.fromColor(color);
-						}
-                        AscCommonExcel.drawFillCell(ctx, graphics, fill, new AscCommon.asc_CRect(x, top, dataBarLength, height - 3));
-
-						color = (isPositive || oRuleElement.NegativeBarBorderColorSameAsPositive) ? oRuleElement.BorderColor : oRuleElement.NegativeBorderColor;
-						if (color) {
-							ctx.setLineWidth(1).setLineDash([]).setStrokeStyle(color).strokeRect(x, top, dataBarLength - 1, height - 4);
-						}
-					}
-				} else if (Asc.ECfType.iconSet === oRule.type) {
+					values = this.model._getValuesForConditionalFormatting(ranges, true);
 					var img = AscCommonExcel.getCFIcon(oRuleElement, oRule.getIndexRule(values, this.model, cellValue));
 					if (!img) {
 						continue;
 					}
-					var iconSize = AscCommon.AscBrowser.convertToRetinaValue(AscCommonExcel.cDefIconSize * fontSize / AscCommonExcel.cDefIconFont, true);
-					var rect = new AscCommon.asc_CRect(x, top, width, height);
-					var bl = rect._y + rect._height - gridlineSize - Asc.round(this._getRowDescender(row) * this.getZoom());
-					rect._y = this._calcTextVertPos(rect._y, rect._height, bl, new Asc.TextMetrics(iconSize, iconSize, 0, iconSize - 2 * fontSize / AscCommonExcel.cDefIconFont, 0, 0, 0), ct.cellVA);
-					var dScale = asc_getcvt(0, 3, this._getPPIX());
-					rect._x *= dScale;
-					rect._y *= dScale;
-					rect._width *= dScale;
-					rect._height *= dScale;
-					AscFormat.ExecuteNoHistory(
-						function (img, rect, imgSize) {
-							var geometry = new AscFormat.CreateGeometry("rect");
-							geometry.Recalculate(imgSize, imgSize, true);
-
-							var oUniFill = new AscFormat.builder_CreateBlipFill(img, "stretch");
-
-							if(ctx instanceof AscCommonExcel.CPdfPrinter)
-							{
-								graphics.SaveGrState();
-								var _baseTransform;
-								if(!ctx.Transform)
-								{
-									_baseTransform = new AscCommon.CMatrix();
-								}
-								else
-								{
-									_baseTransform = ctx.Transform;
-								}
-								graphics.SetBaseTransform(_baseTransform);
-							}
-
-
-							graphics.save();
-							var oMatrix = new AscCommon.CMatrix();
-							oMatrix.tx = rect._x;
-							oMatrix.ty = rect._y;
-							graphics.transform3(oMatrix);
-							var shapeDrawer = new AscCommon.CShapeDrawer();
-							shapeDrawer.Graphics = graphics;
-
-							shapeDrawer.fromShape2(new AscFormat.CColorObj(null, oUniFill, geometry), graphics, geometry);
-							shapeDrawer.draw(geometry);
-							graphics.restore();
-
-							if(ctx instanceof AscCommonExcel.CPdfPrinter)
-							{
-								graphics.SetBaseTransform(null);
-								graphics.RestoreGrState();
-							}
-						}, this, [img, rect, iconSize * dScale * this.getZoom()]
-					);
 				}
+				return oRule;
 			}
 		}
-		return showValue;
+
+		return null;
+	};
+	WorksheetView.prototype._drawCellCFDataBar = function (ctx, graphics, oRule, cellValue, x, top, width, height) {
+		var tmp;
+		var oRuleElement = oRule.asc_getColorScaleOrDataBarOrIconSetRule();
+		var values = this.model._getValuesForConditionalFormatting(oRule.ranges, true);
+		var min = oRule.getMin(values, this.model);
+		var max = oRule.getMax(values, this.model);
+
+		var isPositive = 0 <= cellValue;
+		var isReverse = AscCommonExcel.EDataBarDirection.rightToLeft === oRuleElement.Direction;
+		var isMiddle = (AscCommonExcel.EDataBarAxisPosition.middle === oRuleElement.AxisPosition) ||
+			(AscCommonExcel.EDataBarAxisPosition.automatic === oRuleElement.AxisPosition && 0 > min && 0 < max);
+		if (isMiddle) {
+			if (isPositive) {
+				min = Math.max(0, min);
+			} else {
+				max = Math.min(0, max);
+			}
+		}
+		if (0 >= max) {
+			tmp = -max;
+			max = -min;
+			min = tmp;
+			cellValue = -cellValue;
+			isReverse = !isReverse;
+		}
+
+		if (cellValue < min) {
+			cellValue = min;
+		} else if (cellValue > max) {
+			cellValue = max;
+		}
+
+		var minLength = Math.floor(width * oRuleElement.MinLength / 100);
+		var maxLength = Math.floor(width * oRuleElement.MaxLength / 100);
+		var k = max - min;
+		k = k ? ((maxLength - minLength) / k) : 0;
+		var dataBarLength = minLength + (cellValue - min) * k;
+
+		color = (isPositive || oRuleElement.NegativeBarColorSameAsPositive) ? oRuleElement.Color : oRuleElement.NegativeColor;
+		if (0 !== dataBarLength && color) {
+			if (isMiddle) {
+				if (oRuleElement.AxisColor) {
+					ctx.setLineWidth(1).setLineDash([3, 1]).setStrokeStyle(oRuleElement.AxisColor);
+					ctx.beginPath().lineVer(x - 1 + Asc.floor(width / 2), top - 1, top - 1 + height - 1).stroke();
+				}
+
+				dataBarLength = Asc.floor(dataBarLength / 2);
+				x += Asc.floor(width / 2) * (isReverse ? -1 : 1);
+			}
+
+			if (isReverse) {
+				x += width - dataBarLength;
+			}
+
+			var fill = new AscCommonExcel.Fill();
+			if (oRuleElement.Gradient) {
+				var endColor = AscCommonExcel.getDataBarGradientColor(color);
+				if (isReverse) {
+					tmp = color;
+					color = endColor;
+					endColor = tmp;
+				}
+
+				fill.gradientFill = new AscCommonExcel.GradientFill();
+				var stop0 = new AscCommonExcel.GradientStop();
+				stop0.position = 0;
+				stop0.color = color;
+				var stop1 = new AscCommonExcel.GradientStop();
+				stop1.position = 1;
+				stop1.color = endColor;
+				fill.gradientFill.asc_putGradientStops([stop0, stop1]);
+			} else {
+				fill.patternFill = new AscCommonExcel.PatternFill();
+				fill.patternFill.fromColor(color);
+			}
+			AscCommonExcel.drawFillCell(ctx, graphics, fill, new AscCommon.asc_CRect(x, top, dataBarLength, height - 3));
+
+			var color = (isPositive || oRuleElement.NegativeBarBorderColorSameAsPositive) ? oRuleElement.BorderColor : oRuleElement.NegativeBorderColor;
+			if (color) {
+				ctx.setLineWidth(1).setLineDash([]).setStrokeStyle(color).strokeRect(x, top, dataBarLength - 1, height - 4);
+			}
+		}
+	};
+	WorksheetView.prototype._drawCellCFIconSet = function (ctx, graphics, oRule, cellValue, fontSize, align, row, x, top, width, height) {
+		var oRuleElement = oRule.asc_getColorScaleOrDataBarOrIconSetRule();
+		var values = this.model._getValuesForConditionalFormatting(oRule.ranges, true);
+		var img = AscCommonExcel.getCFIcon(oRuleElement, oRule.getIndexRule(values, this.model, cellValue));
+		if (!img) {
+			return;
+		}
+		var iconSize = AscCommon.AscBrowser.convertToRetinaValue(getCFIconSize(fontSize), true);
+		var rect = new AscCommon.asc_CRect(x, top, width, height);
+		var bl = rect._y + rect._height - gridlineSize - Asc.round(this._getRowDescender(row) * this.getZoom());
+		var tm = new Asc.TextMetrics(iconSize, iconSize, 0, iconSize - 2 * fontSize / AscCommonExcel.cDefIconFont, 0, 0, 0);
+		var cellHA = align.getAlignHorizontal();
+		if (oRuleElement.ShowValue || (AscCommon.align_Left !== cellHA && AscCommon.align_Right !== cellHA
+			&& AscCommon.align_Center !== cellHA)) {
+			cellHA = AscCommon.align_Left;
+		}
+		rect._x = this._calcTextHorizPos(rect._x, rect._x + rect._width, tm, cellHA);
+		rect._y = this._calcTextVertPos(rect._y, rect._height, bl, tm, align.getAlignVertical());
+		var dScale = asc_getcvt(0, 3, this._getPPIX());
+		rect._x *= dScale;
+		rect._y *= dScale;
+		rect._width *= dScale;
+		rect._height *= dScale;
+		AscFormat.ExecuteNoHistory(
+			function (img, rect, imgSize) {
+				var geometry = new AscFormat.CreateGeometry("rect");
+				geometry.Recalculate(imgSize, imgSize, true);
+
+				var oUniFill = new AscFormat.builder_CreateBlipFill(img, "stretch");
+
+				if (ctx instanceof AscCommonExcel.CPdfPrinter) {
+					graphics.SaveGrState();
+					graphics.SetBaseTransform(ctx.Transform || new AscCommon.CMatrix());
+				}
+
+				graphics.save();
+				var oMatrix = new AscCommon.CMatrix();
+				oMatrix.tx = rect._x;
+				oMatrix.ty = rect._y;
+				graphics.transform3(oMatrix);
+				var shapeDrawer = new AscCommon.CShapeDrawer();
+				shapeDrawer.Graphics = graphics;
+
+				shapeDrawer.fromShape2(new AscFormat.CColorObj(null, oUniFill, geometry), graphics, geometry);
+				shapeDrawer.draw(geometry);
+				graphics.restore();
+
+				if (ctx instanceof AscCommonExcel.CPdfPrinter) {
+					graphics.SetBaseTransform(null);
+					graphics.RestoreGrState();
+				}
+			}, this, [img, rect, iconSize * dScale * this.getZoom()]
+		);
+	};
+    WorksheetView.prototype._drawCellCF = function (ctx, aRules, c, row, col, top, width, height, offsetX, offsetY) {
+		var oDataBarRule = this._getCellCF(aRules, c, row, col, Asc.ECfType.dataBar);
+		var oIconSetRule = this._getCellCF(aRules, c, row, col, Asc.ECfType.iconSet);
+		if (!oDataBarRule && !oIconSetRule) {
+			return true;
+		}
+
+		var x = this._getColLeft(col) - offsetX + 1;
+		width -= 3; // indent
+		top += 1 - offsetY;
+
+		var graphics = (ctx && ctx.DocumentRenderer) || this.handlers.trigger('getMainGraphics');
+		var cellValue = c.getNumberValue();
+		if (oDataBarRule) {
+			this._drawCellCFDataBar(ctx, graphics, oDataBarRule, cellValue, x, top, width, height);
+		}
+		if (oIconSetRule) {
+			this._drawCellCFIconSet(ctx, graphics, oIconSetRule, cellValue, c.getFont().getSize(), c.getAlign(), row, x, top, width, height);
+		}
+
+		var res;
+		if (oDataBarRule && oIconSetRule) {
+			res = oDataBarRule.priority < oIconSetRule.priority ? oDataBarRule : oIconSetRule;
+		} else {
+			res = oDataBarRule || oIconSetRule;
+		}
+		var oRuleElement = res.asc_getColorScaleOrDataBarOrIconSetRule();
+		return oRuleElement.ShowValue;
 	};
 
 	/** Рисует текст ячейки */
-	WorksheetView.prototype._drawCellText = function (drawingCtx, col, row, colStart, colEnd, offsetX, offsetY) {
+	WorksheetView.prototype._drawCellText = function (drawingCtx, aRules, col, row, colStart, colEnd, offsetX, offsetY) {
 			var ct = this._getCellTextCache(col, row);
 	        if (!ct) {
 				return null;
             }
 			var c = this._getVisibleCell(col, row);
-			var color = c.getFont().getColor();
+	        var font = c.getFont();
+			var color = font.getColor();
 			var isMerged = ct.flags.isMerged(), range, isWrapped = ct.flags.wrapText;
 			var ctx = drawingCtx || this.drawingCtx;
 
@@ -3910,6 +3948,9 @@
 				}
 			} else {
 				ctx.AddClipRect(x1, y1, w, h);
+				if (this._getCellCF(aRules, c, row, col, Asc.ECfType.iconSet) && AscCommon.align_Left === ct.cellHA) {
+					textX += getCFIconSize(font.getSize());
+				}
 				this.stringRender.restoreInternalState(ct.state).render(drawingCtx, textX, textY, textW, color);
 				ctx.RemoveClipRect();
 			}
