@@ -3747,12 +3747,8 @@
 				var _newSlicer;
 				if (tableIdNew) {
 					_newSlicer = this.insertSlicer(_table.column, tableIdNew, window['AscCommonExcel'].insertSlicerType.table);
-				} else {
-					var wbTable = this.wb.getTableByName(_table.tableId);
-					if (wbTable) {
-						_newSlicer = this.insertSlicer(_table.column, _table.tableId, window['AscCommonExcel'].insertSlicerType.table);
-					}
 				}
+
 				if (_newSlicer) {
 					renameParams.slicerNameMap[_slicer.name] = _newSlicer.name;
 				}
@@ -3840,8 +3836,11 @@
 			oNewWs.Drawings = [];
 			for (i = 0; i < this.Drawings.length; ++i) {
 				var drawingObject = drawingObjects.cloneDrawingObject(this.Drawings[i]);
-				this.Drawings[i].graphicObject.name = renameParams.slicerNameMap[this.Drawings[i].graphicObject.name];
 				drawingObject.graphicObject = this.Drawings[i].graphicObject.copy(undefined);
+				var _isSlicer = drawingObject.graphicObject.getObjectType() === AscDFH.historyitem_type_SlicerView;
+				if (_isSlicer && renameParams.slicerNameMap[drawingObject.graphicObject.name]) {
+					drawingObject.graphicObject.setName(renameParams.slicerNameMap[drawingObject.graphicObject.name]);
+				}
 				drawingObject.graphicObject.setWorksheet(oNewWs);
 				drawingObject.graphicObject.addToDrawingObjects();
 				var drawingBase = this.Drawings[i];
