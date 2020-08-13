@@ -3691,7 +3691,14 @@
 					var iconSize = AscCommon.AscBrowser.convertToRetinaValue(AscCommonExcel.cDefIconSize * fontSize / AscCommonExcel.cDefIconFont, true);
 					var rect = new AscCommon.asc_CRect(x, top, width, height);
 					var bl = rect._y + rect._height - gridlineSize - Asc.round(this._getRowDescender(row) * this.getZoom());
-					rect._y = this._calcTextVertPos(rect._y, rect._height, bl, new Asc.TextMetrics(iconSize, iconSize, 0, iconSize - 2 * fontSize / AscCommonExcel.cDefIconFont, 0, 0, 0), ct.cellVA);
+					var tm = new Asc.TextMetrics(iconSize, iconSize, 0, iconSize - 2 * fontSize / AscCommonExcel.cDefIconFont, 0, 0, 0);
+					var cellHA = c.getAlign().getAlignHorizontal();
+					if (showValue || (AscCommon.align_Left !== cellHA && AscCommon.align_Right !== cellHA
+						&& AscCommon.align_Center !== cellHA)) {
+						cellHA = AscCommon.align_Left;
+					}
+					rect._x = this._calcTextHorizPos(rect._x, rect._x + rect._width, tm, cellHA);
+					rect._y = this._calcTextVertPos(rect._y, rect._height, bl, tm, ct.cellVA);
 					var dScale = asc_getcvt(0, 3, this._getPPIX());
 					rect._x *= dScale;
 					rect._y *= dScale;
