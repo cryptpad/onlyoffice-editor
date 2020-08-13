@@ -349,6 +349,9 @@ CInlineLevelSdt.prototype.Remove = function(nDirection, bOnAddText)
 {
 	if (this.IsPlaceHolder())
 	{
+		if (!this.CanBeDeleted() && !bOnAddText)
+			return true;
+
 		if (bOnAddText || !this.Paragraph.LogicDocument.IsFillingFormMode())
 			this.private_ReplacePlaceHolderWithContent();
 
@@ -498,6 +501,28 @@ CInlineLevelSdt.prototype.MoveCursorToContentControl = function(isBegin)
 		this.MoveCursorToStartPos();
 	else
 		this.MoveCursorToEndPos();
+};
+CInlineLevelSdt.prototype.MoveCursorToStartPos = function()
+{
+	if (this.IsPlaceHolder())
+	{
+		this.SelectContentControl();
+	}
+	else
+	{
+		CParagraphContentWithParagraphLikeContent.prototype.MoveCursorToStartPos.apply(this);
+	}
+};
+CInlineLevelSdt.prototype.MoveCursorToEndPos = function(isSelectFromEnd)
+{
+	if (this.IsPlaceHolder())
+	{
+		this.SelectContentControl();
+	}
+	else
+	{
+		CParagraphContentWithParagraphLikeContent.prototype.MoveCursorToEndPos.apply(this, arguments);
+	}
 };
 CInlineLevelSdt.prototype.RemoveContentControlWrapper = function()
 {
