@@ -3766,7 +3766,7 @@
 			var rowB = isMerged ? Math.min(range.r2, this.nRowsCount - 1) : row;
 			var isTrimmedR = !isMerged && colR !== col + ct.sideR;
 
-			if (!(ct.angle || 0)) {
+			if (!ct.angle) {
 				if (!isMerged && !isWrapped) {
 					this._eraseCellRightBorder(drawingCtx, colL, colR + (isTrimmedR ? 1 : 0), row, offsetX, offsetY);
 				}
