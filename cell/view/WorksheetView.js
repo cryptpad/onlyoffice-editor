@@ -168,7 +168,7 @@
 		return res;
 	}
 	function getCFIconSize(fontSize) {
-		return AscCommon.AscBrowser.convertToRetinaValue(AscCommonExcel.cDefIconSize * fontSize / AscCommonExcel.cDefIconFont, true);
+		return AscCommonExcel.cDefIconSize * fontSize / AscCommonExcel.cDefIconFont;
 	}
 
 	function CacheColumn() {
@@ -3568,7 +3568,7 @@
 		}
 		// draw text
 		for (i in drawCells) {
-			this._drawCellText(drawingCtx, i >> 0, row, colStart, colEnd, offsetX, offsetY);
+			this._drawCellText(drawingCtx, aRules, i >> 0, row, colStart, colEnd, offsetX, offsetY);
 		}
     };
 
@@ -3702,7 +3702,7 @@
 		if (!img) {
 			return;
 		}
-		var iconSize = getCFIconSize(fontSize);
+		var iconSize = AscCommon.AscBrowser.convertToRetinaValue(getCFIconSize(fontSize), true);
 		var rect = new AscCommon.asc_CRect(x, top, width, height);
 		var bl = rect._y + rect._height - gridlineSize - Asc.round(this._getRowDescender(row) * this.getZoom());
 		var tm = new Asc.TextMetrics(iconSize, iconSize, 0, iconSize - 2 * fontSize / AscCommonExcel.cDefIconFont, 0, 0, 0);
@@ -3780,13 +3780,14 @@
 	};
 
 	/** Рисует текст ячейки */
-	WorksheetView.prototype._drawCellText = function (drawingCtx, col, row, colStart, colEnd, offsetX, offsetY) {
+	WorksheetView.prototype._drawCellText = function (drawingCtx, aRules, col, row, colStart, colEnd, offsetX, offsetY) {
 			var ct = this._getCellTextCache(col, row);
 	        if (!ct) {
 				return null;
             }
 			var c = this._getVisibleCell(col, row);
-			var color = c.getFont().getColor();
+	        var font = c.getFont();
+			var color = font.getColor();
 			var isMerged = ct.flags.isMerged(), range, isWrapped = ct.flags.wrapText;
 			var ctx = drawingCtx || this.drawingCtx;
 
@@ -3947,6 +3948,9 @@
 				}
 			} else {
 				ctx.AddClipRect(x1, y1, w, h);
+				if (this._getCellCF(aRules, c, row, col, Asc.ECfType.iconSet) && AscCommon.align_Left === ct.cellHA) {
+					textX += getCFIconSize(font.getSize());
+				}
 				this.stringRender.restoreInternalState(ct.state).render(drawingCtx, textX, textY, textW, color);
 				ctx.RemoveClipRect();
 			}
