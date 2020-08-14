@@ -3038,7 +3038,7 @@
                         stream.ImportFromMemory(oThis.memory);
 
                         stream.StartRecord(0);
-                        slicerCaches[name].toStream(stream, tableIds, oThis.isCopyPaste);
+                        slicerCaches[name].toStream(stream, tableIds, oThis.isCopyPaste || oThis.isCopyPaste === false);
                         stream.EndRecord();
 
                         stream.ExportToMemory(oThis.memory);

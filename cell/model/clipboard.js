@@ -593,7 +593,7 @@
 
 
 					//WRITE
-					var oBinaryFileWriter = new AscCommonExcel.BinaryFileWriter(wb, !ignoreCopyPaste ? selectionRange : null);
+					var oBinaryFileWriter = new AscCommonExcel.BinaryFileWriter(wb, !ignoreCopyPaste ? selectionRange : false);
 					sBase64 = "xslData;" + oBinaryFileWriter.Write();
 					pptx_content_writer.BinaryFileWriter.ClearIdMap();
 					pptx_content_writer.End_UseFullUrl();
@@ -3083,7 +3083,7 @@
 				var newFonts = {};
 				var fontName;
 				for (var i in oFonts) {
-					fontName = oFonts[i] ? oFonts[i].Name : undefined;
+					fontName = oFonts[i] ? (oFonts[i].Name || oFonts[i].name) : undefined;
 					if(undefined !== fontName) {
 						newFonts[fontName] = 1;
 					}
