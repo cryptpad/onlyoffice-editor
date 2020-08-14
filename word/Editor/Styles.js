@@ -8420,7 +8420,7 @@ CStyles.prototype =
         {
             case styletype_Paragraph:
             {
-                if (undefined === StyleId)
+                if (undefined === StyleId || null === StyleId)
                     StyleId = this.Default.Paragraph;
 
                 if (TableStyle != null || ShapeStyle != null)
@@ -8448,7 +8448,7 @@ CStyles.prototype =
             }
             case styletype_Table:
             {
-                if (undefined === StyleId)
+                if (undefined === StyleId || null === StyleId)
                     StyleId = this.Default.Table;
 
                 // Сначала копируем параметры по умолчанию
@@ -8479,7 +8479,7 @@ CStyles.prototype =
             }
             case styletype_Character:
             {
-                if (undefined === StyleId)
+                if (undefined === StyleId || null === StyleId)
                     StyleId = this.Default.Character;
 
                 Pr.TextPr = new CTextPr();
@@ -8744,32 +8744,28 @@ CStyles.prototype =
 			}
 			case styletype_Table:
 			{
-				// Делаем как в Word: стиль с именем "Normal Table" используется всегда встроенный (баг 37902)
-				if ("Normal Table" !== Style.GetName())
+				Pr.ParaPr.Merge(Style.ParaPr);
+				Pr.TextPr.Merge(Style.TextPr);
+
+				if (undefined !== Style.TablePr)
 				{
-					Pr.ParaPr.Merge(Style.ParaPr);
-					Pr.TextPr.Merge(Style.TextPr);
+					Pr.TablePr.Merge(Style.TablePr);
+					Pr.TableRowPr.Merge(Style.TableRowPr);
+					Pr.TableCellPr.Merge(Style.TableCellPr);
 
-					if (undefined != Style.TablePr)
-					{
-						Pr.TablePr.Merge(Style.TablePr);
-						Pr.TableRowPr.Merge(Style.TableRowPr);
-						Pr.TableCellPr.Merge(Style.TableCellPr);
-
-						Pr.TableBand1Horz.Merge(Style.TableBand1Horz);
-						Pr.TableBand1Vert.Merge(Style.TableBand1Vert);
-						Pr.TableBand2Horz.Merge(Style.TableBand2Horz);
-						Pr.TableBand2Vert.Merge(Style.TableBand2Vert);
-						Pr.TableFirstCol.Merge(Style.TableFirstCol);
-						Pr.TableFirstRow.Merge(Style.TableFirstRow);
-						Pr.TableLastCol.Merge(Style.TableLastCol);
-						Pr.TableLastRow.Merge(Style.TableLastRow);
-						Pr.TableTLCell.Merge(Style.TableTLCell);
-						Pr.TableTRCell.Merge(Style.TableTRCell);
-						Pr.TableBLCell.Merge(Style.TableBLCell);
-						Pr.TableBRCell.Merge(Style.TableBRCell);
-						Pr.TableWholeTable.Merge(Style.TableWholeTable);
-					}
+					Pr.TableBand1Horz.Merge(Style.TableBand1Horz);
+					Pr.TableBand1Vert.Merge(Style.TableBand1Vert);
+					Pr.TableBand2Horz.Merge(Style.TableBand2Horz);
+					Pr.TableBand2Vert.Merge(Style.TableBand2Vert);
+					Pr.TableFirstCol.Merge(Style.TableFirstCol);
+					Pr.TableFirstRow.Merge(Style.TableFirstRow);
+					Pr.TableLastCol.Merge(Style.TableLastCol);
+					Pr.TableLastRow.Merge(Style.TableLastRow);
+					Pr.TableTLCell.Merge(Style.TableTLCell);
+					Pr.TableTRCell.Merge(Style.TableTRCell);
+					Pr.TableBLCell.Merge(Style.TableBLCell);
+					Pr.TableBRCell.Merge(Style.TableBRCell);
+					Pr.TableWholeTable.Merge(Style.TableWholeTable);
 				}
 
 				break;
