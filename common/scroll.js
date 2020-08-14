@@ -112,10 +112,10 @@ function CArrowDrawer( settings ) {
         }
     }
 
-    this.ColorGradStart = [];
+    this.ColorGradStart  = {R: settings.arrowColor, G: settings.arrowColor, B: settings.arrowColor};
     this.ColorGradEnd = [];
 
-    // this.ColorGradStart[ScrollOverType.NONE] = HEXTORGB( settings.arrowColor );
+
     // this.ColorGradEnd[ScrollOverType.NONE] = HEXTORGB( settings.arrowColor );
     //
     // this.ColorGradStart[ScrollOverType.STABLE] = HEXTORGB( settings.arrowStableColor );
@@ -193,10 +193,10 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 
     if (null == this.ImageLeft || null == this.ImageTop || null == this.ImageRight || null == this.ImageBottom)
 	{
-		this.ImageLeft = [document.createElement('canvas'), document.createElement('canvas'), document.createElement('canvas'), document.createElement('canvas')];
-		this.ImageTop = [document.createElement('canvas'), document.createElement('canvas'), document.createElement('canvas'), document.createElement('canvas')];
-		this.ImageRight = [document.createElement('canvas'), document.createElement('canvas'), document.createElement('canvas'), document.createElement('canvas')];
-		this.ImageBottom = [document.createElement('canvas'), document.createElement('canvas'), document.createElement('canvas'), document.createElement('canvas')];
+		this.ImageLeft = document.createElement('canvas');
+		this.ImageTop = document.createElement('canvas');
+		this.ImageRight = document.createElement('canvas');
+		this.ImageBottom = document.createElement('canvas');
 	}
 
     /*this.ImageLeft[ScrollOverType.NONE].width = this.SizeW;
@@ -236,81 +236,55 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
     this.ImageBottom[ScrollOverType.ACTIVE].height = this.SizeH;*/
 
 
-    var len = 6;
-    if ( this.SizeH < 6 )
-        return;
+	var len = 6;
+	if ( this.SizeH < 6 )
+		return;
 
-    if (this.IsRetina)
-        len <<= 1;
+	if (this.IsRetina)
+		len <<= 1;
 
-//        else (this.SizeH > 12)
-//        len = this.Size - 8;
+	// теперь делаем нечетную длину
+	if ( 0 == (len & 1) )
+		len += 1;
 
-    // теперь делаем нечетную длину
-    if ( 0 == (len & 1) )
-        len += 1;
+	var countPart = (len + 1) >> 1,
+		plusColor, _data, px,
+		_x = ((this.SizeW - len) >> 1),
+		_y = this.SizeH - ((this.SizeH - countPart) >> 1),
+		_radx = _x + (len >> 1),
+		_rady = _y - (countPart >> 1),
+		r, g, b;
+	var __x = _x, __y = _y, _len = len;
+	r = this.ColorGradStart.R;
+	g = this.ColorGradStart.G;
+	b = this.ColorGradStart.B;
+	this.ImageTop.width = this.SizeW;
+	this.ImageTop.height = this.SizeH;
+	var ctx = this.ImageTop.getContext('2d');
 
-    var countPart = (len + 1) >> 1,
-        plusColor, _data, px,
-        _x = ((this.SizeW - len) >> 1),
-        _y = this.SizeH - ((this.SizeH - countPart) >> 1),
-        _radx = _x + (len >> 1),
-        _rady = _y - (countPart >> 1),
-        ctx_lInactive, ctx_tInactive, ctx_rInactive, ctx_bInactive,
-        r, g, b;
 
-    for ( var index = 0; index < this.ImageTop.length; index++ ) {
-        var __x = _x, __y = _y, _len = len;
-        // r = this.ColorGradStart[index].R;
-        // g = this.ColorGradStart[index].G;
-        // b = this.ColorGradStart[index].B;
+	_data = ctx.createImageData(this.SizeW, this.SizeH);
+	px = _data.data;
 
-        ctx_tInactive = this.ImageTop[index].getContext( '2d' );
-        ctx_lInactive = this.ImageLeft[index].getContext( '2d' );
-        ctx_rInactive = this.ImageRight[index].getContext( '2d' );
-        ctx_bInactive = this.ImageBottom[index].getContext( '2d' );
+	while (_len > 0) {
+		var ind = 4 * (this.SizeW * __y + __x);
+		for (var i = 0; i < _len; i++) {
+			px[ind++] = r;
+			px[ind++] = g;
+			px[ind++] = b;
+			px[ind++] = 255;
+		}
 
-        // plusColor = (this.ColorGradEnd[index].R - this.ColorGradStart[index].R) / countPart;
+		r = r >> 0;
+		g = g >> 0;
+		b = b >> 0;
 
-        _data = ctx_tInactive.createImageData( this.SizeW, this.SizeH );
-        px = _data.data;
+		__x += 1;
+		__y -= 1;
+		_len -= 2;
+	}
 
-        // while ( _len > 0 ) {
-        //     var ind = 4 * ( this.SizeW * __y + __x );
-        //     for ( var i = 0; i < _len; i++ ) {
-        //         px[ind++] = r;
-        //         px[ind++] = g;
-        //         px[ind++] = b;
-        //         px[ind++] = 255;
-        //     }
-        //
-        //     r = (r + plusColor) >> 0;
-        //     g = (g + plusColor) >> 0;
-        //     b = (b + plusColor) >> 0;
-        //
-        //     __x += 1;
-        //     __y -= 1;
-        //     _len -= 2;
-        // }
-
-        ctx_tInactive.putImageData( _data, 0, -1 );
-
-        ctx_lInactive.translate( _radx, _rady + 1 );
-        ctx_lInactive.rotate( -Math.PI / 2 );
-        ctx_lInactive.translate( -_radx, -_rady );
-        ctx_lInactive.drawImage( this.ImageTop[index], 0, 0 );
-
-        ctx_rInactive.translate( _radx + 1, _rady );
-        ctx_rInactive.rotate( Math.PI / 2 );
-        ctx_rInactive.translate( -_radx, -_rady );
-        ctx_rInactive.drawImage( this.ImageTop[index], 0, 0 );
-
-        ctx_bInactive.translate( _radx + 1, _rady + 1 );
-        ctx_bInactive.rotate( Math.PI );
-        ctx_bInactive.translate( -_radx, -_rady );
-        ctx_bInactive.drawImage( this.ImageTop[index], 0, 0 );
-
-    }
+	ctx.putImageData(_data, 0, -1);
 
     if ( this.IsRetina ) {
         this.SizeW >>= 1;
@@ -1316,7 +1290,8 @@ function _HEXTORGB_( colorHEX ) {
 		this.ScrollOverType2 = -1;
 
 		this.scrollColor = this.settings.scrollerColor;
-		this.arrowColor = this.ArrowDrawer.ColorBackNone;
+		this.arrowBackColor = this.ArrowDrawer.ColorBackNone;
+		this.arrowColor = this.settings.arrowColor;
         this.fadeTimeout = null;
 		// this.startColorFadeInStart = _HEXTORGB_(this.settings.scrollerColor).R;
 		// this.startColorFadeOutStart = _HEXTORGB_(this.settings.scrollerColorOver).R;
@@ -1779,7 +1754,7 @@ function _HEXTORGB_( colorHEX ) {
 		if ( vend ) {
 			this.moveble = true;
 		}
-		this._scrollV( this, {}, destY, isTop, isBottom, bIsAttack );
+		this._scrollV( this, {}, destY, isTop, isBottom);
 		if ( vend ) {
 			this.moveble = false;
 		}
@@ -1912,19 +1887,19 @@ function _HEXTORGB_( colorHEX ) {
         var bottomRightDelta = 1;
 
         if(that.settings.isVerticalScroll) {
-            for(var i = 0; i < 2; i++) {
-                ctx.fillRect(x1 + xDeltaBORDER >> 0, y1 + yDeltaBORDER >> 0, strokeW, strokeH);
-                // ctx.drawImage(img, x1 + xDeltaIMG, y1 + yDeltaIMG, t.SizeW, t.SizeH);
+			for (var i = 0; i < 2; i++) {
+				ctx.fillRect(x1 + xDeltaBORDER >> 0, y1 + yDeltaBORDER >> 0, strokeW, strokeH);
 
-                if (t.IsDrawBorders) {
-                    ctx.strokeStyle = t.ColorBorderNone;
-                    ctx.rect(x1 + xDeltaBORDER, y1 + yDeltaBORDER, strokeW, strokeH);
-                    ctx.stroke();
-                }
-                y1 = that.canvasH - t.SizeH - bottomRightDelta - 1;
-                // img = t.ImageBottom[AnimationType.NONE];
-            }
-        }
+				if (t.IsDrawBorders) {
+					ctx.strokeStyle = t.ColorBorderNone;
+					ctx.rect(x1 + xDeltaBORDER, y1 + yDeltaBORDER, strokeW, strokeH);
+					ctx.stroke();
+				}
+				// img = t.ImageBottom[AnimationType.NONE];
+			}
+
+			that.context.drawImage(that.ArrowDrawer.ImageTop, 0, 0);
+		}
         // if(that.settings.isHorizontalScroll) {
         //     for(var i = 0; i < 2; i++) {
         //         ctx.fillRect(x1 + xDeltaBORDER >> 0, y1 + yDeltaBORDER >> 0, strokeW, strokeH);
@@ -2017,39 +1992,57 @@ function _HEXTORGB_( colorHEX ) {
         }
     }
 
-    ScrollObject.prototype._animateArrow = function(isFade) {
+    ScrollObject.prototype._animateArrow = function(currentArColor, fadeIn) {
+
 		var xDeltaIMG = 0, yDeltaIMG = 0, cnvs = document.createElement( 'canvas' ), that = this,
 		ctx = cnvs.getContext('2d'), context = that.context;
 		cnvs.width = that.ArrowDrawer.SizeNaturalW;
 		cnvs.height = that.ArrowDrawer.SizeNaturalH;
-		cnvs.width = that.ArrowDrawer.SizeNaturalW;
-		cnvs.height = that.ArrowDrawer.SizeNaturalH;
+		ctx.fillStyle = that.ArrowDrawer.ColorBackActive;
 
-		if(that.animState === AnimationType.ARROW_ACTIVE) {
-			that.arrowColor = that.ArrowDrawer.ColorBackActive;
+		if (fadeIn) {
+			if (that.arrowBackColor >= currentArColor)
+				that.arrowBackColor -= 2;
+			else return;
+		} else if (fadeIn === false) {
+			if (that.arrowBackColor <= currentArColor)
+				that.arrowBackColor += 2;
+			else return;
+		} else {
+			that.arrowBackColor = currentArColor;
 		}
-		ctx.fillStyle = "rgb(" + that.arrowColor + "," +
-			that.arrowColor + "," +
-			that.arrowColor + ")";
 
-		ctx.rect( 0.5, 1.5, that.ArrowDrawer.SizeW - 1, that.ArrowDrawer.SizeH - 1 );
-		ctx.fill();
+            ctx.fillStyle = "rgb(" + that.arrowBackColor + "," +
+                that.arrowBackColor + "," +
+                that.arrowBackColor + ")";
 
-		if ( that.ArrowDrawer.IsDrawBorders ) {
-			ctx.strokeStyle = that.ArrowDrawer.ColorBorderOver;
+            ctx.rect(0.5, 1.5, that.ArrowDrawer.SizeW - 1, that.ArrowDrawer.SizeH - 1);
+            ctx.fill();
+
+		if (that.ArrowDrawer.IsDrawBorders) {
+
+			if(currentArColor === 241)
+				currentArColor = 207;
+
+			ctx.strokeStyle = "rgb(" + currentArColor + "," +
+				currentArColor + "," +
+				currentArColor + ")";
 			ctx.stroke();
 		}
-		if(that.animState === AnimationType.ARROW_ACTIVE) {
-			context.drawImage(cnvs, xDeltaIMG, yDeltaIMG, that.ArrowDrawer.SizeW, that.ArrowDrawer.SizeH);
-			return;
-		}
 
-		if((isFade && that.arrowColor <= 207) || (!isFade && that.arrowColor >= 241)) {
-			return;
-		}
-		that.arrowColor = isFade ? that.arrowColor - 2 : that.arrowColor + 2;
+		/*if (fadeIn) {
+			var imgContext = that.ArrowDrawer.ImageTop.getContext('2d');
+			imgContext.globalCompositeOperation = "source-in";
+			that.arrowColor += 2;
+			imgContext.fillStyle = "rgb(" + that.arrowColor + "," +
+				that.arrowColor + "," +
+				that.arrowColor + ")";
+			imgContext.fillRect(0.5, 1.5, that.ArrowDrawer.SizeW - 1, that.ArrowDrawer.SizeH - 1);
+			console.log(that.arrowColor);
+			ctx.drawImage(that.ArrowDrawer.ImageTop, xDeltaIMG, yDeltaIMG, that.ArrowDrawer.SizeW, that.ArrowDrawer.SizeH);
+		}*/
 
-		context.drawImage(cnvs,xDeltaIMG,yDeltaIMG, that.ArrowDrawer.SizeW, that.ArrowDrawer.SizeH);
+        context.drawImage(cnvs, xDeltaIMG, yDeltaIMG, that.ArrowDrawer.SizeW, that.ArrowDrawer.SizeH);
 	}
 
 	ScrollObject.prototype._animateScroll = function(isFade) {
@@ -2071,14 +2064,15 @@ function _HEXTORGB_( colorHEX ) {
 
 	}
     ScrollObject.prototype._doAnimation = function (lastAnimState) {
-		var that = this;
+		var that = this,
+		hoverColor = 207, defaultColor = 241, activeColor = 173;
 		clearTimeout(this.fadeTimeout);
 		this.fadeInTimeout = null;
 
 		if (that.animState === AnimationType.ARROW_HOVER && lastAnimState === AnimationType.NONE) {
-			that._animateArrow(true);
+			that._animateArrow(hoverColor, true);
 			that._animateScroll(true);
-			if (that.scrollColor <= 207 && that.arrowColor <= 207) {
+			if (that.scrollColor <= 207 && that.arrowBackColor <= 207) {
 				return;
 			}
 		}
@@ -2091,42 +2085,35 @@ function _HEXTORGB_( colorHEX ) {
 		}
 		else
 		if (that.animState === AnimationType.NONE && lastAnimState === AnimationType.ARROW_HOVER) {
-			that._animateArrow(false);
+			that._animateArrow(defaultColor, false);
 			that._animateScroll(false);
-			if (that.scrollColor >= 241 && that.arrowColor >= 241) {
+			if (that.scrollColor >= 241 && that.arrowBackColor >= 241) {
 				return;
 			}
 		}
 		else
 		if (that.animState === AnimationType.SCROLL_HOVER && lastAnimState === AnimationType.ARROW_HOVER) {
-			that._animateArrow(false);
+			that._animateArrow(defaultColor,false);
 			that._animateScroll(true);
-			console.log(that.arrowColor);
-			if (that.scrollColor <= 207 && that.arrowColor >= 241) {
+			if (that.scrollColor <= 207 && that.arrowBackColor >= 241) {
 				return;
 			}
 		}
 		else
 		if (that.animState === AnimationType.NONE && lastAnimState === AnimationType.SCROLL_HOVER) {
-			that._animateArrow(false);
+			that._animateArrow(defaultColor,false);
 			that._animateScroll(false);
-			if (that.scrollColor >= 241 && that.arrowColor >= 241) {
+			if (that.scrollColor >= 241 && that.arrowBackColor >= 241) {
 				return;
 			}
 		}
 		else
 		if (that.animState === AnimationType.ARROW_HOVER && lastAnimState === AnimationType.SCROLL_HOVER) {
-			that._animateArrow(true);
+			that._animateArrow(hoverColor, true);
 			that._animateScroll(true);
-			if (that.scrollColor <= 207 && that.arrowColor <= 207) {
+			if (that.scrollColor <= 207 && that.arrowBackColor <= 207) {
 				return;
 			}
-		}
-		else
-		if (this.animState === AnimationType.SCROLL_ACTIVE) {
-			that.context.fillStyle = this.settings.scrollerColorActive;
-			that.context.strokeStyle = this.settings.strokeStyleActive;
-			return;
 		}
 		else
 		if (this.animState === AnimationType.SCROLL_HOVER && lastAnimState === AnimationType.SCROLL_ACTIVE) {
@@ -2134,6 +2121,38 @@ function _HEXTORGB_( colorHEX ) {
 			that.context.strokeStyle = this.settings.strokeStyleOver;
 			return;
 		}
+		else
+        if (this.animState === AnimationType.ARROW_ACTIVE) {
+            that._animateArrow(activeColor);
+            that._animateScroll(true);
+            return;
+        }
+        else
+        if (this.animState === AnimationType.ARROW_HOVER && lastAnimState === AnimationType.ARROW_ACTIVE) {
+            that._animateArrow(hoverColor);
+            that._animateScroll(true);
+            return;
+        }
+        else
+        if (this.animState === AnimationType.NONE && lastAnimState === AnimationType.ARROW_ACTIVE) {
+			that._animateArrow(defaultColor);
+			that._animateScroll(false);
+		} else
+		if (this.animState === AnimationType.ARROW_HOVER && lastAnimState === AnimationType.SCROLL_ACTIVE) {
+			that._animateArrow(hoverColor, true);
+			that.context.fillStyle = this.settings.scrollerColorActive;
+			that.context.strokeStyle = this.settings.strokeStyleActive;
+		}
+        else
+        if (this.animState === AnimationType.SCROLL_ACTIVE) {
+            that._animateArrow(defaultColor, false);
+            that.context.fillStyle = this.settings.scrollerColorActive;
+            that.context.strokeStyle = this.settings.strokeStyleActive;
+            console.log("scroll active");
+			if (that.arrowBackColor >= 241) {
+				return;
+			}
+        }
 		else return;
 
 		that.fadeTimeout = setTimeout(function () {that._doAnimation(lastAnimState)}, that.settings.fadeInFadeOutDelay);
@@ -2153,7 +2172,6 @@ function _HEXTORGB_( colorHEX ) {
 		this.context.fill();
 		this.context.stroke();
 		this.lastAnimState = this.animState;
-
 	};
 
 	ScrollObject.prototype._checkPiperImagesV = function() {
@@ -2444,7 +2462,7 @@ function _HEXTORGB_( colorHEX ) {
 					that.scrollByY( that.settings.vscrollStep );
 				else if ( that.settings.isHorizontalScroll )
 					that.scrollByX( that.settings.hscrollStep );
-				// that._drawArrow( ArrowStatus.upLeftArrowNonActive_downRightArrowActive );
+				that._draw();
 				scrollTimeout = setTimeout( doScroll, isFirst ? that.settings.initialDelay : that.settings.arrowRepeatFreq );
 				isFirst = false;
 			};
@@ -2461,7 +2479,7 @@ function _HEXTORGB_( colorHEX ) {
 					that.scrollByY( -that.settings.vscrollStep );
 				else if ( that.settings.isHorizontalScroll )
 					that.scrollByX( -that.settings.hscrollStep );
-				// that._drawArrow( ArrowStatus.upLeftArrowActive_downRightArrowNonActive );
+                that._draw();
 				scrollTimeout = setTimeout( doScroll, isFirst ? that.settings.initialDelay : that.settings.arrowRepeatFreq );
 				isFirst = false;
 			};
@@ -2512,22 +2530,18 @@ function _HEXTORGB_( colorHEX ) {
 
 
 	 if ( this.that.settings.showArrows && this.that.arrowState ) {
-		    this.that.animState = AnimationType.ARROW_HOVER;
-			if ( !this.that.mouseDownArrow ) {
-				if ( upHover ) {
-					// arrowStat = ArrowStatus.upLeftArrowHover_downRightArrowNonActive;
-				}
-				else if ( downHover ) {
-					// arrowStat = ArrowStatus.upLeftArrowNonActive_downRightArrowHover;
-				}
+			if ( this.that.mouseDownArrow ) {
+				this.that.animState = AnimationType.ARROW_ACTIVE;
+			} else {
+				this.that.animState = AnimationType.ARROW_HOVER;
 			}
-		}
-		else {
-			if ( this.that.mouseover ) {
-				// arrowStat = ArrowStatus.arrowHover;
-			}
-			this.that.animState = AnimationType.SCROLL_HOVER;
-		}
+		} else {
+
+		 if (this.that.animState !== AnimationType.ARROW_ACTIVE) {
+			 this.that.animState = AnimationType.SCROLL_HOVER;
+		 }
+	 }
+
 		if ( this.that.mouseDown && this.that.scrollerMouseDown ) {
 			this.that.moveble = true;
 		}
@@ -2538,7 +2552,11 @@ function _HEXTORGB_( colorHEX ) {
 		if ( this.that.settings.isVerticalScroll ) {
 			if ( this.that.moveble && this.that.scrollerMouseDown ) {
 				var isTop = false, isBottom = false;
-				this.that.animState = AnimationType.SCROLL_ACTIVE;
+				if (this.that.arrowState) {
+					this.that.animState = AnimationType.ARROW_HOVER;
+				} else {
+					this.that.animState = AnimationType.SCROLL_ACTIVE;
+				}
 				var _dlt = this.that.EndMousePosition.y - this.that.StartMousePosition.y;
 				if ( this.that.EndMousePosition.y == this.that.StartMousePosition.y ) {
 					return;
@@ -2665,17 +2683,11 @@ function _HEXTORGB_( colorHEX ) {
 				this.that.animState = AnimationType.NONE;
 			}
 			// this.that._drawArrow();
-			this.that._draw();
 		} else {
-			/*if ( this.that.settings.showArrows && this.that._MouseHoverOnArrowDown( mousePos ) ) {
-				this.that._drawArrow( ArrowStatus.upLeftArrowNonActive_downRightArrowHover );
-			}
-			else if ( this.that.settings.showArrows && this.that._MouseHoverOnArrowUp( mousePos ) ) {
-				this.that._drawArrow( ArrowStatus.upLeftArrowHover_downRightArrowNonActive );
-			}*/
+		    this.that.animState = AnimationType.ARROW_HOVER;
 			this.that.mouseDownArrow = false;
 		}
-
+		this.that._draw();
 		//for unlock global mouse event
 		if ( this.that.onLockMouse && this.that.offLockMouse ) {
 			this.that.offLockMouse( evt );
@@ -2702,10 +2714,12 @@ function _HEXTORGB_( colorHEX ) {
 
 		if ( this.that.settings.showArrows && downHover ) {
 			this.that.mouseDownArrow = true;
+			this.that.animState = AnimationType.ARROW_ACTIVE;
 			this.that._arrowDownMouseDown();
 		}
 		else if ( this.that.settings.showArrows && upHover ) {
 			this.that.mouseDownArrow = true;
+            this.that.animState = AnimationType.ARROW_ACTIVE;
 			this.that._arrowUpMouseDown();
 		}
 		else {
