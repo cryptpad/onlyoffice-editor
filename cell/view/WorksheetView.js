@@ -20547,6 +20547,25 @@
 		});
 	};
 
+	WorksheetView.prototype.getDefaultDefinedNameText = function () {
+		var selectionRange = this.model.selectionRange;
+		var cell = selectionRange.activeCell;
+		var mc = this.model.getMergedByCell(cell.row, cell.col);
+		var c1 = mc ? mc.c1 : cell.col;
+		var r1 = mc ? mc.r1 : cell.row;
+		var c = this._getVisibleCell(c1, r1);
+
+		var text = null;
+		if (!c.isFormula()) {
+			text = c.getValueForEdit(true);
+			if (text && text.length > window['AscCommonExcel'].g_nDefNameMaxLength) {
+				text = null;
+			}
+		}
+
+		return !text ? "" : text;
+	};
+
 	//------------------------------------------------------------export---------------------------------------------------
     window['AscCommonExcel'] = window['AscCommonExcel'] || {};
 	window["AscCommonExcel"].CellFlags = CellFlags;

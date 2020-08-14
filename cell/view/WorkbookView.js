@@ -2715,7 +2715,8 @@
 
   WorkbookView.prototype.getDefaultDefinedName = function() {
     //ToDo проверка defName.ref на знак "=" в начале ссылки. знака нет тогда это либо число либо строка, так делает Excel.
-    return new Asc.asc_CDefName("", this.getWorksheet().getSelectionRangeValue(true, true), null);
+    var val = this.getWorksheet().getDefaultDefinedNameText();
+    return new Asc.asc_CDefName(val, this.getWorksheet().getSelectionRangeValue(true, true), null);
 
   };
   WorkbookView.prototype.getDefaultTableStyle = function() {
