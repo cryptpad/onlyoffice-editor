@@ -2158,7 +2158,7 @@
 	CT_tableSlicerCache.prototype.toStream = function (s, tableIds, historySerialize) {
 		var tableIdOpen = null;
 		var columnOpen = null;
-		var elem = tableIds && tableIds[this.tableId];
+		var elem = !historySerialize && tableIds && tableIds[this.tableId];
 		if (elem) {
 			tableIdOpen = elem.id;
 			columnOpen = (elem.table.getTableIndexColumnByName(this.column) + 1) || null;
