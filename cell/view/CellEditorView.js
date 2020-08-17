@@ -1607,7 +1607,6 @@
 		this.input.isFocused = true;
 		this.setFocus(true);
 		this._updateCursor();
-		this._updateTopLineCurPos();
 		this._cleanSelection();
 	};
 
@@ -1626,6 +1625,11 @@
 	CellEditor.prototype._updateCursorByTopLine = function () {
 		var b = this.input.selectionStart;
 		var e = this.input.selectionEnd;
+		if ('backward' === this.input.selectionDirection) {
+			var tmp = b;
+			b = e;
+			e = tmp;
+		}
 		if (typeof b !== "undefined") {
 			if (this.cursorPos !== b || this.selectionBegin !== this.selectionEnd) {
 				this._moveCursor(kPosition, b);
