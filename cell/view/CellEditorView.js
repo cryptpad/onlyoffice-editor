@@ -1607,7 +1607,6 @@
 		this.input.isFocused = true;
 		this.setFocus(true);
 		this._updateCursor();
-		this._updateTopLineCurPos();
 		this._cleanSelection();
 	};
 
