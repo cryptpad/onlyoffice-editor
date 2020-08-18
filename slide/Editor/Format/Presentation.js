@@ -3063,6 +3063,7 @@ CPresentation.prototype.setHFProperties = function (oProps, bAll) {
     var oSlideProps = oProps.get_Slide();
     var i, j, oSlide, oMaster, oParents, oHF, oLayout, oSp,
         sText, oContent, oDateTime, sDateTime, sCustomDateTime, oFld, oParagraph, bRemoveOnTitle, nLang;
+    var nLayout;
     if (oSlideProps) {
         var bShowOnTitleSlide = oSlideProps.get_ShowOnTitleSlide();
         if (bShowOnTitleSlide) {
@@ -3344,6 +3345,14 @@ CPresentation.prototype.setHFProperties = function (oProps, bAll) {
                         }
                     }
 
+                    if(!oMastersMap[oMaster.Get_Id()]) {
+                        for(nLayout = 0; nLayout < oMaster.sldLayoutLst.length; ++nLayout) {
+                            oLayout = oMaster.sldLayoutLst[nLayout];
+                            if(oLayout.hf) {
+                                oLayout.setHF(null);
+                            }
+                        }
+                    }
                     oMastersMap[oMaster.Get_Id()] = oMaster;
                 }
             }
@@ -9041,22 +9050,32 @@ CPresentation.prototype.RemoveBeforePaste = function () {
 
 CPresentation.prototype.addNextSlide = function (layoutIndex) {
     History.Create_NewPoint(AscDFH.historydescription_Presentation_AddNextSlide);
-    var new_slide, layout, i, _ph_type, sp, hf, bIsSpecialPh;
+    var new_slide, layout, i, _ph_type, sp, hf, bIsSpecialPh, aLayouts, bRemoveOnTitle;
     if (this.Slides[this.CurPage]) {
         var cur_slide = this.Slides[this.CurPage];
-
-
-        layout = AscFormat.isRealNumber(layoutIndex) ? (cur_slide.Layout.Master.sldLayoutLst[layoutIndex] ? cur_slide.Layout.Master.sldLayoutLst[layoutIndex] : cur_slide.Layout) : cur_slide.Layout.Master.getMatchingLayout(cur_slide.Layout.type, cur_slide.Layout.matchingName, cur_slide.Layout.cSld.name);
-        hf = layout.Master.hf;
+        aLayouts = cur_slide.Layout.Master.sldLayoutLst;
+        if(AscFormat.isRealNumber(layoutIndex) && aLayouts[layoutIndex]) {
+            layout = aLayouts[layoutIndex];
+        }
+        else {
+            if(cur_slide.Layout === aLayouts[0] && aLayouts[1]) {
+                layout = aLayouts[1];
+            }
+            else {
+                layout = cur_slide.Layout;
+            }
+        }
+        hf = layout.hf || layout.Master.hf;
         new_slide = new Slide(this, layout, this.CurPage + 1);
         new_slide.setNotes(AscCommonSlide.CreateNotes());
         new_slide.notes.setNotesMaster(this.notesMasters[0]);
         new_slide.notes.setSlide(new_slide);
+        bRemoveOnTitle = layout.type === AscFormat.nSldLtTTitle && this.showSpecialPlsOnTitleSld === false;
         for (i = 0; i < layout.cSld.spTree.length; ++i) {
             if (layout.cSld.spTree[i].isPlaceholder()) {
                 _ph_type = layout.cSld.spTree[i].getPhType();
                 bIsSpecialPh = _ph_type === AscFormat.phType_dt || _ph_type === AscFormat.phType_ftr || _ph_type === AscFormat.phType_hdr || _ph_type === AscFormat.phType_sldNum;
-                if (!bIsSpecialPh || hf && ((_ph_type === AscFormat.phType_dt && (hf.dt !== false)) ||
+                if (!bIsSpecialPh || hf && !bRemoveOnTitle && ((_ph_type === AscFormat.phType_dt && (hf.dt !== false)) ||
                     (_ph_type === AscFormat.phType_ftr && (hf.ftr !== false)) ||
                     (_ph_type === AscFormat.phType_hdr && (hf.hdr !== false)) ||
                     (_ph_type === AscFormat.phType_sldNum && (hf.sldNum !== false)))) {
