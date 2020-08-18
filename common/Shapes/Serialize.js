@@ -370,6 +370,8 @@ function BinaryPPTYLoader()
         this.LoadDocument();
         if(AscFonts.IsCheckSymbols)
         {
+            var bLoad = AscCommon.g_oIdCounter.m_bLoad;
+            AscCommon.g_oIdCounter.Set_Load(false);
             for(var nField = 0; nField < this.fields.length; ++nField)
             {
                 var oField = this.fields[nField];
@@ -379,6 +381,7 @@ function BinaryPPTYLoader()
                     AscFonts.FontPickerByCharacter.getFontsByString(sValue);
                 }
             }
+            AscCommon.g_oIdCounter.Set_Load(bLoad);
         }
         this.fields.length = 0;
         AscFormat.checkPlaceholdersText();
