@@ -1361,27 +1361,27 @@
 		},
 
 		startEdit: function() {
-			History.Create_NewPoint();
-			History.StartTransaction();
+			AscCommon.History.Create_NewPoint();
+			AscCommon.History.StartTransaction();
 		},
 		endEdit: function() {
-			History.EndTransaction();
+			AscCommon.History.EndTransaction();
 			this.updateChart();
 		},
 		cancelEdit: function() {
-			History.EndTransaction();
-			History.Undo();
+			AscCommon.History.EndTransaction();
+			AscCommon.History.Undo();
 			this.updateChart();
 		},
 		startEditData: function() {
-			History.SavePointIndex();
+			AscCommon.History.SavePointIndex();
 		},
 		cancelEditData: function() {
-			History.UndoToPointIndex();
+			AscCommon.History.UndoToPointIndex();
 			this.updateChart();
 		},
 		endEditData: function() {
-			History.ClearPointIndex();
+			AscCommon.History.ClearPointIndex();
 			this.updateChart();
 		},
 		updateChart: function() {
