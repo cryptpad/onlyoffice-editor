@@ -73,9 +73,9 @@ Asc['asc_docs_api'].prototype.sync_EndCatchSelectedElements = function()
             case Asc.c_oAscTypeSelectElement.Image:
             case Asc.c_oAscTypeSelectElement.Hyperlink:
             case Asc.c_oAscTypeSelectElement.Slide:
-            case Asc.c_oAscTypeSelectElement.Shape:  
-            case Asc.c_oAscTypeSelectElement.Chart:    
-            case Asc.c_oAscTypeSelectElement.Math:     
+            case Asc.c_oAscTypeSelectElement.Shape:
+            case Asc.c_oAscTypeSelectElement.Chart:
+            case Asc.c_oAscTypeSelectElement.Math:
             {
                 ++_naturalCount;
                 break;
@@ -98,12 +98,12 @@ Asc['asc_docs_api'].prototype.sync_EndCatchSelectedElements = function()
                 asc_menu_WriteSlidePr(this.SelectedObjectsStack[i].Value, _stream);
                 break;
             }
-          
+
             case Asc.c_oAscTypeSelectElement.Shape:
             {
                 //console.log("StackObjects -> Shape");
                 _stream["WriteLong"](Asc.c_oAscTypeSelectElement.Shape);
-                asc_menu_WriteShapePr(undefined, this.SelectedObjectsStack[i].Value, _stream); 
+                asc_menu_WriteShapePr(undefined, this.SelectedObjectsStack[i].Value, _stream);
                 break;
             }
 
@@ -111,7 +111,7 @@ Asc['asc_docs_api'].prototype.sync_EndCatchSelectedElements = function()
             {
                 //console.log("StackObjects -> Chart");
                 _stream["WriteLong"](Asc.c_oAscTypeSelectElement.Chart);
-                asc_menu_WriteChartPr(undefined, this.SelectedObjectsStack[i].Value.ChartProperties, _stream); 
+                asc_menu_WriteChartPr(undefined, this.SelectedObjectsStack[i].Value.ChartProperties, _stream);
                 break;
             }
 
@@ -240,7 +240,7 @@ window["AscCommon"].getFullImageSrc2 = function (src) {
                     srcFull = AscCommon.g_oDocumentUrls.getImageUrl(src);
                 }
             }
-        
+
         if(srcFull){
             window["native"]["loadUrlImage"](srcFull, src);
             return srcFull2;
@@ -532,7 +532,8 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
                     case 23:
                     {
                         var _listType = asc_menu_ReadParaListType(_params, _current);
-                        this.WordControl.m_oLogicDocument.SetParagraphNumbering( _listType );
+                        var oBullet = AscFormat.fGetPresentationBulletByNumInfo(_listType);
+                        this.WordControl.m_oLogicDocument.SetParagraphNumbering( oBullet );
                         break;
                     }
                     case 24:
@@ -574,7 +575,7 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             this.WordControl.m_oLogicDocument.Document_Undo();
             break;
         }
-        
+
         case 4: // ASC_MENU_EVENT_TYPE_REDO
         {
             this.WordControl.m_oLogicDocument.Document_Redo();
@@ -732,7 +733,7 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
 
             this.ImgApply(_imagePr);
             this.WordControl.m_oLogicDocument.Recalculate();
- 
+
             break;
         }
 
@@ -885,11 +886,11 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
 
             this.tblApply(_tablePr);
             this.WordControl.m_oLogicDocument.Recalculate();
-            
+
             break;
         }
 
-        case 12: // ASC_MENU_EVENT_TYPE_TABLESTYLES 
+        case 12: // ASC_MENU_EVENT_TYPE_TABLESTYLES
         {
 
         }
@@ -907,7 +908,7 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
 
         case 18: // ASC_MENU_EVENT_TYPE_SHAPE
         {
-            var shapeProp = asc_menu_ReadShapePr(_params, _current);           
+            var shapeProp = asc_menu_ReadShapePr(_params, _current);
             this.ShapeApply(shapeProp);
             this.WordControl.m_oLogicDocument.Recalculate();
             break;
@@ -930,7 +931,7 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             this.WordControl.m_oLogicDocument.Recalculate();
         	break;
         }
-        
+
         case 50: // ASC_MENU_EVENT_TYPE_INSERT_IMAGE
         {
             var oImageObject = {};
@@ -976,9 +977,9 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
                     }
                 }
             }
-            
+
             this.put_Table(cols, rows);
-                                       
+
             var properties = new Asc.CTableProp();
             properties.put_TableStyle(style);
 
@@ -993,7 +994,7 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             this.add_Hyperlink(props);
             break;
         }
-      
+
         case 53: // ASC_MENU_EVENT_TYPE_INSERT_SHAPE
         {
             var shapeProp = asc_menu_ReadShapePr(_params["shape"], _current);
@@ -1001,12 +1002,12 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
 
             var logicDocument = this.WordControl.m_oLogicDocument;
 
-            if (logicDocument && logicDocument.Slides[logicDocument.CurPage]) {                  
+            if (logicDocument && logicDocument.Slides[logicDocument.CurPage]) {
                 var oDrawingObjects = logicDocument.Slides[logicDocument.CurPage].graphicObjects;
                 oDrawingObjects.changeCurrentState(new AscFormat.StartAddNewShape(oDrawingObjects, shapeProp.type));
-                    
+
                 var dsx = logicDocument.Height / 2.5 * aspect
-                var dsy = logicDocument.Height / 2.5                 
+                var dsy = logicDocument.Height / 2.5
                 var dx  = logicDocument.Width * 0.5 - dsx * 0.5
                 var dy  = logicDocument.Height * 0.5 - dsy * 0.5
 
@@ -1019,7 +1020,7 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             }
             break;
         }
-        
+
         case 58: // ASC_MENU_EVENT_TYPE_CAN_ADD_HYPERLINK
         {
             var canAdd = this.can_AddHyperlink();
@@ -1110,7 +1111,7 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
                 }
             } else if (2 == _type) {
                 if (_is_add) {
-                    _is_above ? this.addRowAbove() : this.addRowBelow(); 
+                    _is_above ? this.addRowAbove() : this.addRowBelow();
                 } else {
                     this.remRow();
                 }
@@ -1120,13 +1121,13 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
 
             break;
         }
-        
+
         case 110: // ASC_MENU_EVENT_TYPE_CONTEXTMENU_COPY
         {
             _return = this.Call_Menu_Context_Copy();
             break;
         }
-        
+
         case 111 : // ASC_MENU_EVENT_TYPE_CONTEXTMENU_CUT
         {
             _return = this.Call_Menu_Context_Cut();
@@ -1145,13 +1146,13 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             this.Call_Menu_Context_Delete();
             break;
         }
-       
+
         case 114: // ASC_MENU_EVENT_TYPE_CONTEXTMENU_SELECT
         {
             this.Call_Menu_Context_Select();
             break;
         }
-        
+
         case 115: // ASC_MENU_EVENT_TYPE_CONTEXTMENU_SELECTALL
         {
             this.Call_Menu_Context_SelectAll();
@@ -1188,7 +1189,7 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
         {
 
             break;
-        }  
+        }
 
         case 440:   // ASC_MENU_EVENT_TYPE_ADD_CHART_DATA
         {
@@ -1202,7 +1203,7 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
                 }
             }
             break;
-        } 
+        }
 
         case 450:   // ASC_MENU_EVENT_TYPE_GET_CHART_DATA
         {
@@ -1212,15 +1213,15 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             }
 
             var chart = _api.asc_getChartObject(index);
-            
+
             var _stream = global_memory_stream_menu;
             _stream["ClearNoAttack"]();
             _stream["WriteStringA"](JSON.stringify(new Asc.asc_CChartBinary(chart)));
             _return = _stream;
-            
+
             break;
         }
-        
+
         case 460:   // ASC_MENU_EVENT_TYPE_SET_CHART_DATA
         {
             if (undefined !== _params) {
@@ -1273,7 +1274,7 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             break;
         }
 
-        case 8112: // ASC_PRESENTATIONS_EVENT_TYPE_DELETE_SLIDE           
+        case 8112: // ASC_PRESENTATIONS_EVENT_TYPE_DELETE_SLIDE
         {
             var oLogicDocument = this.WordControl.m_oLogicDocument;
             var oCurSlide = oLogicDocument.Slides[oLogicDocument.CurPage];
@@ -1285,13 +1286,13 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             break;
         }
 
-        case 8113: // ASC_PRESENTATIONS_EVENT_TYPE_DUBLICATE_SLIDE        
+        case 8113: // ASC_PRESENTATIONS_EVENT_TYPE_DUBLICATE_SLIDE
         {
             this.WordControl.m_oLogicDocument.shiftSlides(Math.max.apply(Math, _params) + 1, _params, true);
             break;
         }
 
-        case 8114: // ASC_PRESENTATIONS_EVENT_TYPE_MOVE_SLIDE             
+        case 8114: // ASC_PRESENTATIONS_EVENT_TYPE_MOVE_SLIDE
         {
             var _stream = global_memory_stream_menu;
             var nPos = _params[0];
@@ -1304,7 +1305,7 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             break;
         }
 
-        case 8115: // ASC_PRESENTATIONS_EVENT_TYPE_HIDE_SLIDE             
+        case 8115: // ASC_PRESENTATIONS_EVENT_TYPE_HIDE_SLIDE
         {
             var bIsHide = this.WordControl.m_oLogicDocument.Slides[_params[0]].isVisible();
             var aHideArray = _params;
@@ -1323,10 +1324,10 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             break;
         }
 
-        case 8120: // ASC_PRESENTATIONS_EVENT_TYPE_CHANGE_LEVEL           
+        case 8120: // ASC_PRESENTATIONS_EVENT_TYPE_CHANGE_LEVEL
         {
             var level = parseInt(_params);
-            
+
             if (level == Asc.c_oAscDrawingLayerType.BringToFront) {
                 this.shapes_bringToFront();
             } else if (level == Asc.c_oAscDrawingLayerType.SendToBack) {
@@ -1360,7 +1361,7 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
                 this.DistributeHorizontally();
             } else if (7 == level) {
                 this.DistributeVertically();
-            } 
+            }
 
             break;
         }
@@ -1379,14 +1380,14 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
                     return oPasteProcessor._readPresentationSelectedContent2(_params[0]);
                 }, this, []);
                 if(Array.isArray(aContent) && aContent.length > 0){
-                    _return = aContent[0].getContentType();               
+                    _return = aContent[0].getContentType();
                 }
             }
             _return = 0;
             break;
         }
 
-        case 5000: // ASC_MENU_EVENT_TYPE_GO_TO_INTERNAL_LINK 
+        case 5000: // ASC_MENU_EVENT_TYPE_GO_TO_INTERNAL_LINK
         {
 
             var aStack = this.SelectedObjectsStack;
@@ -1473,7 +1474,7 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
             this.asc_setDocumentPassword(_params[0]);
             break;
         }
-      
+
         case 22004: // ASC_EVENT_TYPE_SPELLCHECK_MESSAGE
         {
             var json = JSON.parse(_params[0]);
