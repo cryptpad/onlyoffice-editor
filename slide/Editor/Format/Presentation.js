@@ -6235,7 +6235,8 @@ CPresentation.prototype.OnKeyDown = function (e) {
         if (true === e.ShiftKey) // Ctrl + Shift + L - добавляем список к данному параграфу
         {
             if (this.CanEdit()) {
-                this.SetParagraphNumbering({Type: 0, SubType: 1});
+                var oBullet = AscFormat.fGetPresentationBulletByNumInfo({Type: 0, SubType: 1});
+                this.SetParagraphNumbering(oBullet);
             }
             bRetValue = keydownresult_PreventAll;
         } else // Ctrl + L - переключение прилегания параграфа между left и justify

@@ -2431,7 +2431,7 @@ ParaDrawing.prototype.allIncreaseDecFontSize = function(bIncrease)
 };
 ParaDrawing.prototype.setParagraphNumbering = function(NumInfo)
 {
-	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.allIncreaseDecFontSize === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.setParagraphNumbering === "function")
 		this.GraphicObj.setParagraphNumbering(NumInfo);
 };
 ParaDrawing.prototype.allIncreaseDecIndent = function(bIncrease)
