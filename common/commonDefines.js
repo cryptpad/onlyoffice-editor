@@ -390,6 +390,47 @@
 	var c_oAscShdClear = 0;
 	var c_oAscShdNil   = 1;
 
+	var c_oAscShd = {
+		Clear                 : 0,
+		Nil                   : 1,
+		DiagCross             : 2,
+		DiagStripe            : 3,
+		HorzCross             : 4,
+		HorzStripe            : 5,
+		Pct10                 : 6,
+		Pct12                 : 7,
+		Pct15                 : 8,
+		Pct20                 : 9,
+		Pct25                 : 10,
+		Pct30                 : 11,
+		Pct35                 : 12,
+		Pct37                 : 13,
+		Pct40                 : 14,
+		Pct45                 : 15,
+		Pct5                  : 16,
+		Pct50                 : 17,
+		Pct55                 : 18,
+		Pct60                 : 19,
+		Pct62                 : 20,
+		Pct65                 : 21,
+		Pct70                 : 22,
+		Pct75                 : 23,
+		Pct80                 : 24,
+		Pct85                 : 25,
+		Pct87                 : 26,
+		Pct90                 : 27,
+		Pct95                 : 28,
+		ReverseDiagStripe     : 29,
+		Solid                 : 30,
+		ThinDiagCross         : 31,
+		ThinDiagStripe        : 32,
+		ThinHorzCross         : 33,
+		ThinHorzStripe        : 34,
+		ThinReverseDiagStripe : 35,
+		ThinVertStripe        : 36,
+		VertStripe            : 37
+	};
+
 	var vertalign_Baseline    = 0;
 	var vertalign_SuperScript = 1;
 	var vertalign_SubScript   = 2;
@@ -2253,6 +2294,46 @@
 	window['Asc']['linerule_Exact'] = window['Asc'].linerule_Exact = linerule_Exact;
 	window['Asc']['c_oAscShdClear'] = window['Asc'].c_oAscShdClear = c_oAscShdClear;
 	window['Asc']['c_oAscShdNil'] = window['Asc'].c_oAscShdNil = c_oAscShdNil;
+	window['Asc']['c_oAscShd']    = window['Asc'].c_oAscShd = c_oAscShd;
+	prot                          = c_oAscShd;
+	prot['Clear'] = prot.Clear;
+	prot['Nil'] = prot.Nil;
+	prot['DiagCross'] = prot.DiagCross;
+	prot['DiagStripe'] = prot.DiagStripe;
+	prot['HorzCross'] = prot.HorzCross;
+	prot['HorzStripe'] = prot.HorzStripe;
+	prot['Pct10'] = prot.Pct10;
+	prot['Pct12'] = prot.Pct12;
+	prot['Pct15'] = prot.Pct15;
+	prot['Pct20'] = prot.Pct20;
+	prot['Pct25'] = prot.Pct25;
+	prot['Pct30'] = prot.Pct30;
+	prot['Pct35'] = prot.Pct35;
+	prot['Pct37'] = prot.Pct37;
+	prot['Pct40'] = prot.Pct40;
+	prot['Pct45'] = prot.Pct45;
+	prot['Pct5'] = prot.Pct5;
+	prot['Pct50'] = prot.Pct50;
+	prot['Pct55'] = prot.Pct55;
+	prot['Pct60'] = prot.Pct60;
+	prot['Pct62'] = prot.Pct62;
+	prot['Pct65'] = prot.Pct65;
+	prot['Pct70'] = prot.Pct70;
+	prot['Pct75'] = prot.Pct75;
+	prot['Pct80'] = prot.Pct80;
+	prot['Pct85'] = prot.Pct85;
+	prot['Pct87'] = prot.Pct87;
+	prot['Pct90'] = prot.Pct90;
+	prot['Pct95'] = prot.Pct95;
+	prot['ReverseDiagStripe'] = prot.ReverseDiagStripe;
+	prot['Solid'] = prot.Solid;
+	prot['ThinDiagCross'] = prot.ThinDiagCross;
+	prot['ThinDiagStripe'] = prot.ThinDiagStripe;
+	prot['ThinHorzCross'] = prot.ThinHorzCross;
+	prot['ThinHorzStripe'] = prot.ThinHorzStripe;
+	prot['ThinReverseDiagStripe'] = prot.ThinReverseDiagStripe;
+	prot['ThinVertStripe'] = prot.ThinVertStripe;
+	prot['VertStripe'] = prot.VertStripe;
 	window['Asc']['c_oAscDropCap'] = window['Asc'].c_oAscDropCap = c_oAscDropCap;
 	prot                                          = c_oAscDropCap;
 	prot['None']                                  = prot.None;

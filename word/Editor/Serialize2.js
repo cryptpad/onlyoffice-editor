@@ -1886,8 +1886,8 @@ function BinaryStyleTableWriter(memory, doc, oNumIdMap, copyParams, saveParams)
     {
         var oThis = this;
         var oStyles = this.Document.Styles;
-        var oDef_pPr = oStyles.Default.ParaPr;
-        var oDef_rPr = oStyles.Default.TextPr;
+        var oDef_pPr = GetDefaultParaPrForWrite();
+        var oDef_rPr = GetDefaultTextPrForWrite();
         
         //default pPr
         this.bs.WriteItem(c_oSer_st.DefpPr, function(){oThis.bpPrs.Write_pPr(oDef_pPr);});
