@@ -15265,6 +15265,7 @@
 
 				History.EndTransaction();
                 t._onUpdateFormatTable(sortProps.sortRange.bbox, false);
+                t.objectRender.updateSizeDrawingObjects({target: c_oTargetType.RowResize, row: sortProps.sortRange.bbox.r1});
             };
 
 			if (null === sortProps) {
@@ -15330,6 +15331,7 @@
 				var updateRange = t.model.autoFilters.isApplyAutoFilterInCell(ar, true);
 				if (false !== updateRange) {
 					t._onUpdateFormatTable(updateRange, false, true);
+                    t.objectRender.updateSizeDrawingObjects({target: c_oTargetType.RowResize, row: updateRange.r1});
 				}
 			});
         };
@@ -15359,6 +15361,7 @@
 				var updateRange = t.model.autoFilters.clearFilterColumn(cellId, displayName);
 				if (false !== updateRange) {
 					t._onUpdateFormatTable(updateRange, false, true);
+                    t.objectRender.updateSizeDrawingObjects({target: c_oTargetType.RowResize, row: updateRange.r1});
 				}
 			});
         };
