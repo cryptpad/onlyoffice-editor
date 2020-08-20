@@ -14039,7 +14039,7 @@ Paragraph.prototype.SetParagraphIndent = function(Ind)
 };
 Paragraph.prototype.SetParagraphShd = function(Shd)
 {
-	return this.Set_Shd(Shd);
+	return this.Set_Shd(Shd, true);
 };
 Paragraph.prototype.SetParagraphStyle = function(Name)
 {

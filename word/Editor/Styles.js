@@ -9946,6 +9946,10 @@ CDocumentShd.prototype.IsEqual = function(oShd)
 
 	return (IsEqualStyleObjects(this.Color, oShd.Color) && IsEqualStyleObjects(this.Unifill, oShd.Unifill));
 };
+CDocumentShd.prototype.IsNil = function()
+{
+	return (Asc.c_oAscShd.Nil === this.Value);
+};
 
 function CDocumentBorder()
 {
@@ -15231,7 +15235,7 @@ CParaPr.prototype.Merge = function(ParaPr)
 	if (undefined != ParaPr.Spacing)
 		this.Spacing.Merge(ParaPr.Spacing);
 
-	if (undefined != ParaPr.Shd)
+	if (undefined != ParaPr.Shd && (!this.Shd || !ParaPr.Shd.IsNil()))
 		this.Shd = ParaPr.Shd.Copy();
 
 	if (undefined != ParaPr.Brd.First)

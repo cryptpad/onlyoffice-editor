@@ -4028,7 +4028,18 @@ background-repeat: no-repeat;\
 				this.WordControl.m_oLogicDocument.SetUseTextShd(false);
 
 			if (false === is_flag)
-				this.WordControl.m_oLogicDocument.SetParagraphShd({Value : Asc.c_oAscShdNil});
+			{
+				this.WordControl.m_oLogicDocument.SetParagraphShd({
+					Value   : Asc.c_oAscShdClear,
+					Color   : {
+						r    : 255,
+						g    : 255,
+						b    : 255,
+						Auto : true
+					},
+					Unifill : undefined
+				});
+			}
 			else
 			{
 				var Unifill        = new AscFormat.CUniFill();
