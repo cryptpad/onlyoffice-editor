@@ -470,7 +470,7 @@ function handleShapeImage(drawing, drawingObjectsController, e, x, y, group, pag
         {
             if(!AscFormat.fCheckObjectHyperlink(drawing,x, y))
             {
-                return false
+                return false;
             }
         }
         var oTextObject = AscFormat.getTargetTextObject(drawingObjectsController);

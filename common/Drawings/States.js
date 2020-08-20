@@ -372,7 +372,7 @@ NullState.prototype =
         }
         else
         {
-            if(this.lastMoveHandler)
+            if(this.lastMoveHandler && !this.drawingObjects.isSlideShow())
             {
                 var oRet = {};
                 oRet.objectId = this.lastMoveHandler.Get_Id();
