@@ -1684,30 +1684,43 @@ GraphicOption.prototype.union = function(oGraphicOption) {
         if(!this.graphicObject) {
             return false;
         }
+        if(AscCommon.isFileBuild()) {
+            return false;
+        }
         var bUpdateExtents = false;
         var nType = bEdit ? this.graphicObject.getDrawingBaseType() : this.Type;
         if(target.target === AscCommonExcel.c_oTargetType.RowResize) {
-            if(this.from.row >= target.row) {
-                if(nType === AscCommon.c_oAscCellAnchorType.cellanchorTwoCell ||
-                    nType === AscCommon.c_oAscCellAnchorType.cellanchorOneCell) {
+            if(nType === AscCommon.c_oAscCellAnchorType.cellanchorTwoCell ||
+                nType === AscCommon.c_oAscCellAnchorType.cellanchorOneCell) {
+                if(this.from.row >= target.row) {
+                    bUpdateExtents = true;
+                }
+                else if(this.to.row >= target.row &&
+                    nType === AscCommon.c_oAscCellAnchorType.cellanchorTwoCell) {
                     bUpdateExtents = true;
                 }
             }
-            else if(this.to.row >= target.row) {
-                if(nType === AscCommon.c_oAscCellAnchorType.cellanchorTwoCell) {
+            else {
+                this.checkBoundsFromTo();
+                if(this.boundsFromTo.to.row >= target.row) {
                     bUpdateExtents = true;
                 }
             }
         }
         else {
-            if(this.from.col >= target.col) {
-                if(nType === AscCommon.c_oAscCellAnchorType.cellanchorTwoCell ||
-                    nType === AscCommon.c_oAscCellAnchorType.cellanchorOneCell) {
+            if(nType === AscCommon.c_oAscCellAnchorType.cellanchorTwoCell ||
+                nType === AscCommon.c_oAscCellAnchorType.cellanchorOneCell) {
+                if(this.from.col >= target.col) {
                     bUpdateExtents = true;
                 }
             }
-            else if(this.to.col >= target.col) {
-                if(nType === AscCommon.c_oAscCellAnchorType.cellanchorTwoCell) {
+            else if(nType === AscCommon.c_oAscCellAnchorType.cellanchorTwoCell &&
+                this.to.col >= target.col) {
+                bUpdateExtents = true;
+            }
+            else {
+                this.checkBoundsFromTo();
+                if(this.boundsFromTo.to.col >= target.col) {
                     bUpdateExtents = true;
                 }
             }
@@ -3463,6 +3476,9 @@ GraphicOption.prototype.union = function(oGraphicOption) {
     };
 
     _this.updateSizeDrawingObjects = function(target) {
+        if(AscCommon.isFileBuild()) {
+            return;
+        }
         var oGraphicObject;
         var bCheck, bRecalculate;
         if(!History.CanAddChanges() || History.CanNotAddChanges) {
