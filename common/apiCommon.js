@@ -4680,6 +4680,34 @@
 		}
 	};
 
+	function CShortcut()
+	{
+		this.List = {};
+	}
+	CShortcut.prototype.Add = function(nType, nCode, isCtrl, isShift, isAlt)
+	{
+		this.List[this.private_GetIndex(nCode, isCtrl, isShift, isAlt)] = nType;
+	};
+	CShortcut.prototype.Get = function(nCode, isCtrl, isShift, isAlt)
+	{
+		var nType = this.List[this.private_GetIndex(nCode, isCtrl, isShift, isAlt)];
+		return (undefined !== nType ? nType : 0);
+	};
+	CShortcut.prototype.private_GetIndex = function(nCode, isCtrl, isShift, isAlt)
+	{
+		return ((nCode << 8) | (isCtrl ? 4 : 0) | (isShift ? 2 : 0) | (isAlt ? 1 : 0));
+	}
+	CShortcut.prototype.CheckType = function(nType)
+	{
+		for (var nIndex in this.List)
+		{
+			if (this.List[nIndex] === nType)
+				return {KeyCode : nIndex >>> 8, CtrlKey : !!(nIndex & 4), ShiftKey : !!(nIndex & 2), AltKey : !!(nIndex & 1)};
+		}
+
+		return null;
+	};
+
     /*
      * Export
      * -----------------------------------------------------------------------------
@@ -5558,4 +5586,6 @@
 
 	window["Asc"]["CPluginVariation"] = window["Asc"].CPluginVariation = CPluginVariation;
 	window["Asc"]["CPlugin"] = window["Asc"].CPlugin = CPlugin;
+
+	window["Asc"]["CShortcut"] = window["Asc"].CShortcut = CShortcut;
 })(window);
