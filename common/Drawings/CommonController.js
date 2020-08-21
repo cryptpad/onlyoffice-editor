@@ -763,7 +763,7 @@ function getTargetTextObject(controller)
 
 function isConnectorPreset(sPreset){
         if(typeof sPreset === "string" && sPreset.length > 0){
-            if(sPreset === "flowChartOffpageConnector" || 
+            if(sPreset === "flowChartOffpageConnector" ||
                 sPreset === "flowChartConnector" ||
                 sPreset === "flowChartOfflineStorage" ||
                 sPreset === "flowChartOnlineStorage"){
@@ -3861,12 +3861,12 @@ DrawingObjectsController.prototype =
 
         var aGroups = [];
         var bCheckConnectors = false;
+        var aSlicerNames = [];
         if(props.SlicerProperties)
         {
             var aSlicers = objects_by_type.slicers;
             var oAPI = Asc.editor;
             History.StartTransaction();
-            var aSlicerNames = [];
             var bSize = false;
             var oSlicer;
             for(i = 0; i < aSlicers.length; ++i)
@@ -3920,7 +3920,6 @@ DrawingObjectsController.prototype =
                     }
                 }
             }
-            oAPI.asc_setSlicers(aSlicerNames, props.SlicerProperties);
         }
         var oApi = editor || Asc['editor'];
         var editorId = oApi.getEditorId();
@@ -4155,6 +4154,7 @@ DrawingObjectsController.prototype =
                         checkObjectInArray(aGroups, oSlicer.group.getMainGroup());
                     }
                     oSlicer.checkDrawingBaseCoords();
+                    oSlicer.recalculate();
                 }
             }
             if(editorId === AscCommon.c_oEditorId.Presentation || editorId === AscCommon.c_oEditorId.Spreadsheet){
@@ -4242,6 +4242,10 @@ DrawingObjectsController.prototype =
                 }
                 this.resetTextSelection();
             }
+        }
+        if(props.SlicerProperties)
+        {
+            oAPI.asc_setSlicers(aSlicerNames, props.SlicerProperties);
         }
         var oApi = this.getEditorApi();
         if(oApi && oApi.noCreatePoint && !oApi.exucuteHistory)
