@@ -1383,7 +1383,7 @@
 
     WorksheetView.prototype._prepareDrawingObjects = function () {
         this.objectRender = new AscFormat.DrawingObjects();
-        if (!window["NATIVE_EDITOR_ENJINE"] || window['IS_NATIVE_EDITOR'] || window['DoctRendererMode']) {
+        if (!AscCommon.isFileBuild()) {
             this.objectRender.init(this);
         }
     };

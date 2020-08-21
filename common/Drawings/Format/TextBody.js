@@ -752,7 +752,7 @@ function CalculateReductionParams(oBodyPrHolder, oContent) {
 
     function CheckNeedRecalcAutoFit(oBP1, oBP2)
     {
-        if(window["NATIVE_EDITOR_ENJINE"] === true && window["IS_NATIVE_EDITOR"] !== true)
+        if(AscCommon.isFileBuild())
         {
             return false;
         }
