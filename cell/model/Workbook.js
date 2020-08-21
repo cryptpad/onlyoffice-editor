@@ -3259,6 +3259,9 @@
 		return this.DrawingDocument;
 	};
 	Workbook.prototype.onSlicerUpdate = function(sName) {
+		if(AscCommon.isFileBuild()) {
+			return false;
+		}
 		var bRet = false;
 		for(var i = 0; i < this.aWorksheets.length; ++i) {
 			bRet = bRet || this.aWorksheets[i].onSlicerUpdate(sName);
@@ -3266,6 +3269,9 @@
 		return bRet;
 	};
 	Workbook.prototype.onSlicerDelete = function(sName) {
+		if(AscCommon.isFileBuild()) {
+			return false;
+		}
 		var bRet = false;
 		for(var i = 0; i < this.aWorksheets.length; ++i) {
 			bRet = bRet || this.aWorksheets[i].onSlicerDelete(sName);
@@ -3273,11 +3279,17 @@
 		return bRet;
 	};
 	Workbook.prototype.onSlicerLock = function(sName, bLock) {
+		if(AscCommon.isFileBuild()) {
+			return;
+		}
 		for(var i = 0; i < this.aWorksheets.length; ++i) {
 			this.aWorksheets[i].onSlicerLock(sName, bLock);
 		}
 	};
 	Workbook.prototype.onSlicerChangeName = function(sName, sNewName) {
+		if(AscCommon.isFileBuild()) {
+			return;
+		}
 		for(var i = 0; i < this.aWorksheets.length; ++i) {
 			this.aWorksheets[i].onSlicerChangeName(sName, sNewName);
 		}

@@ -1806,7 +1806,7 @@
    * @returns {WorkbookView}
    */
   WorkbookView.prototype.showWorksheet = function (index, bLockDraw) {
-  	if (window["NATIVE_EDITOR_ENJINE"] && !window['IS_NATIVE_EDITOR'] && !window['DoctRendererMode']) {
+  	if (AscCommon.isFileBuild()) {
 		return this;
 	}
     // ToDo disable method for assembly

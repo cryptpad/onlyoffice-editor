@@ -400,7 +400,6 @@
         }
         return true;
     };
-
     CSlicerData.prototype.onViewUpdate = function () {
         var oWorksheet = this.slicer.getWorksheet();
         if(!oWorksheet) {
@@ -433,7 +432,6 @@
             }
             aValuesToApply.push(oApplyValue);
         }
-
         if(bNeedUpdate) {
             if(this.slicer.isSubscribed()) {
                 this.values = aValuesToApply;
@@ -447,6 +445,9 @@
         }
     };
     CSlicerData.prototype.onDataUpdate = function() {
+        if(AscCommon.isFileBuild()) {
+           return;
+        }
         var oOldCache = this.save();
         this.clear();
         if(this.needUpdateValues(oOldCache)) {
@@ -729,6 +730,9 @@
         return false;
     };
     CSlicer.prototype.recalculate = function () {
+        if(AscCommon.isFileBuild()) {
+            return;
+        }
         AscFormat.ExecuteNoHistory(function () {
             AscFormat.CShape.prototype.recalculate.call(this);
             if(this.recalcInfo.recalculateHeader) {
@@ -1014,11 +1018,17 @@
         return this.buttonsContainer.onWheel(deltaX, deltaY);
     };
     CSlicer.prototype.onSlicerUpdate = function (sName) {
+        if(AscCommon.isFileBuild()) {
+            return;
+        }
         if(this.name === sName) {
             this.onDataUpdate();
         }
     };
     CSlicer.prototype.onSlicerLock = function (sName, bLock) {
+        if(AscCommon.isFileBuild()) {
+            return;
+        }
         if(this.name === sName) {
             this.data.setLocked(bLock);
             this.onUpdate(this.bounds);
@@ -1026,12 +1036,18 @@
         }
     };
     CSlicer.prototype.onSlicerChangeName = function (sName, sNewName) {
+        if(AscCommon.isFileBuild()) {
+            return;
+        }
         if(this.name === sName) {
             this.setName(sNewName);
             this.onDataUpdate();
         }
     };
     CSlicer.prototype.onSlicerDelete = function (sName) {
+        if(AscCommon.isFileBuild()) {
+            return false;
+        }
          var bRet = false;
         if(this.name === sName) {
             if(this.drawingBase) {

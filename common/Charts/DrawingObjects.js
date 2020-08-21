@@ -1724,6 +1724,9 @@ GraphicOption.prototype.union = function(oGraphicOption) {
         return this.boundsFromTo;
     };
     DrawingBase.prototype.onUpdate = function (oRect) {
+        if(AscCommon.isFileBuild()) {
+            return;
+        }
         var oDO = this.getDrawingObjects();
         if(!oDO) {
             return;
