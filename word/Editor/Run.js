@@ -5717,7 +5717,7 @@ ParaRun.prototype.Draw_HighLights = function(PDSH)
 		{
 			var oCF = PDSH.ComplexFields.GetREForHYPERLINK();
 			if (oCF)
-				PDSH.HyperCF.Add(Y0, Y1, X - ItemWidthVisible, X, 0, 0, 0, 0, {HyperlinkCF : oCF});
+				PDSH.HyperCF.Add(Y0, Y1, X - ItemWidthVisible, X, 0, 0, 0, 0, {HyperlinkCF : oCF.GetInstruction()});
 		}
 
         for ( var SPos = 0; SPos < SearchMarksCount; SPos++)
