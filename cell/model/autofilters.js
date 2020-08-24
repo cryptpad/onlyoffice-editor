@@ -4310,7 +4310,7 @@
 							}
 
 							if (textIndexMapHideValues.hasOwnProperty(textLowerCase)) {
-								_hideValues.splice(textIndexMapHideValues[textLowerCase], 1);
+								delete _hideValues[textIndexMapHideValues[textLowerCase]];
 							}
 
 							addValueToMenuObj(val, text, visible, count, values);
@@ -4335,7 +4335,7 @@
 						addValueToMenuObj(val, text, true, count, values);
 
 						if (textIndexMapHideValues.hasOwnProperty(textLowerCase)) {
-							_hideValues.splice(textIndexMapHideValues[textLowerCase], 1);
+							delete _hideValues[textIndexMapHideValues[textLowerCase]];
 						}
 
 						textIndexMap[textLowerCase] = count;
@@ -4349,14 +4349,27 @@
 					worksheet.workbook.dependencyFormulas.unlockRecal();
 				}
 
+				var cleanArr = function (_arr) {
+					if (_arr && _arr.length) {
+						for (i = 0; i < _arr.length; i++) {
+							if (!_arr[i]) {
+								_arr.splice(i, 1);
+								i--;
+							}
+						}
+					}
+				};
+
 				//sort
 				var _values;
 				if (fullValues && !showItemsWithNoDataLast) {
+					cleanArr(_hideValues);
 					_values = values.concat(_hideValues);
 					_values = this._sortArrayMinMax(_values, isAscending);
 				} else {
 					_values = this._sortArrayMinMax(values, isAscending);
 					if(fullValues) {
+						cleanArr(_hideValues);
 						_values = _values.concat(this._sortArrayMinMax(_hideValues, isAscending));
 					}
 				}
