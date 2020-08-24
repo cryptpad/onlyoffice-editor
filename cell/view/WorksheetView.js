@@ -12416,6 +12416,9 @@
 			} else if (_typePasted === CellValueType.Number && isEmptyModel) {
 				_pastedVal.value.number = _calculateSpecialOperation(0, _pastedVal.value.number, _operation);
 				res = _pastedVal;
+			} else if (_typeModel === CellValueType.Number && isEmptyPasted) {
+				_pastedVal.value.number = _calculateSpecialOperation(_modelVal.value.number, 0, _operation);
+				res = _pastedVal;
 			} else {
 				res = _modelVal;
 			}
