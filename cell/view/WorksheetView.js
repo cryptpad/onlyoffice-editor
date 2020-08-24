@@ -11892,6 +11892,18 @@
 			return res;
 		};
 
+		if (!isMergedFirstCell) {
+			if (arn.c1 === arn.c2 && arn.r2 > arn.r1 && countPasteCol > 1 && countPasteRow === 1) {
+				//если всталяем одну строку в одну колонку
+				arn.c2 = arn.c1 + countPasteCol - 1;
+				trueActiveRange.c2 = arn.c2;
+			} else if (arn.r1 === arn.r2 && arn.c2 > arn.c1 && countPasteRow > 1 && countPasteCol === 1) {
+				//если всталяем одну колонку в одну строку
+				arn.r2 = arn.r1 + countPasteRow - 1;
+				trueActiveRange.r2 = arn.r2;
+			}
+		}
+
         var rowDiff = arn.r1 - activeCellsPasteFragment.r1;
         var colDiff = arn.c1 - activeCellsPasteFragment.c1;
         var newPasteRange = new Asc.Range(arn.c1 - colDiff, arn.r1 - rowDiff, arn.c2 - colDiff, arn.r2 - rowDiff);
