@@ -4199,7 +4199,7 @@ CShape.prototype.checkExtentsByDocContent = function(bForce, bNeedRecalc)
                 {
                     return;
                 }
-                if(AscFormat.isRealNumber(dOldClipW) && AscFormat.isRealNumber(dOldClipH)
+                if(!bForce && AscFormat.isRealNumber(dOldClipW) && AscFormat.isRealNumber(dOldClipH)
                     && AscFormat.fApproxEqual(dOldClipW, this.clipRect.w) && AscFormat.fApproxEqual(dOldClipH, this.clipRect.h))
                 {
                     if(AscFormat.isRealNumber(dOldContentHeight) && AscFormat.fApproxEqual(dOldContentHeight, this.contentHeight))
@@ -4299,6 +4299,13 @@ CShape.prototype.checkExtentsByDocContent = function(bForce, bNeedRecalc)
                 }
                 this.bCheckAutoFitFlag = false;
                 this.recalculateContentWitCompiledPr();
+            }
+            else
+            {
+                if(bForce)
+                {
+                    this.recalculateContentWitCompiledPr();
+                }
             }
         }
     }
