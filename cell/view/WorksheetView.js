@@ -12193,6 +12193,8 @@
 				pastedRangeProps.hyperlinkObj = newVal.getHyperlink();
 
 				pastedRangeProps.font = newVal.getFont();
+
+				pastedRangeProps.shrinkToFit = align.getShrinkToFit();
 			}
 
 			var tableDxf = getTableDxf(pasteRow, pasteCol, newVal);
@@ -12774,6 +12776,10 @@
 		//angle
 		if (undefined !== rangeStyle.angle && specialPasteProps.angle) {
 			range.setAngle(rangeStyle.angle);
+		}
+
+		if (rangeStyle.shrinkToFit && specialPasteProps.fontSize) {
+			range.setShrinkToFit(rangeStyle.shrinkToFit);
 		}
 
 		if (rangeStyle.tableDxfLocal && specialPasteProps.format) {
