@@ -4310,11 +4310,9 @@
 							var checkValue = isDateTimeFormat ? val : text;
 							visible = false;
 							if (!isCustomFilter && !currentFilterColumn.isHideValue(checkValue, isDateTimeFormat)) {
-								hideValue(false, i);
 								visible = true;
-							} else {
-								hideValue(false, i);
 							}
+							hideValue(false, i);
 
 							if (textIndexMapHideValues.hasOwnProperty(textLowerCase)) {
 								delete _hideValues[textIndexMapHideValues[textLowerCase]];
@@ -4357,26 +4355,25 @@
 				}
 
 				var cleanArr = function (_arr) {
-					if (_arr && _arr.length) {
-						for (i = 0; i < _arr.length; i++) {
-							if (!_arr[i]) {
-								_arr.splice(i, 1);
-								i--;
-							}
+					var newArr = [];
+					for (i = 0; i < _arr.length; i++) {
+						if (_arr[i]) {
+							newArr.push(_arr[i]);
 						}
 					}
+					return newArr;
 				};
 
 				//sort
 				var _values;
 				if (fullValues && !showItemsWithNoDataLast) {
-					cleanArr(_hideValues);
+					_hideValues = cleanArr(_hideValues);
 					_values = values.concat(_hideValues);
 					_values = this._sortArrayMinMax(_values, isAscending);
 				} else {
 					_values = this._sortArrayMinMax(values, isAscending);
 					if(fullValues) {
-						cleanArr(_hideValues);
+						_hideValues = cleanArr(_hideValues);
 						_values = _values.concat(this._sortArrayMinMax(_hideValues, isAscending));
 					}
 				}
