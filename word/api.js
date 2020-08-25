@@ -9900,7 +9900,12 @@ background-repeat: no-repeat;\
 		}
 
 		Document.MoveCursorToStartPos();
-		Document.RecalculateAllAtOnce(true);
+
+		if (window['IS_NATIVE_EDITOR']) {
+			Document.RecalculateFromStart();
+		} else {
+			Document.RecalculateAllAtOnce(true);
+		}
 
 		Document.Document_UpdateInterfaceState();
 		//Document.Document_UpdateRulersState();
