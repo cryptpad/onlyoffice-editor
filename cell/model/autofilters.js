@@ -4289,8 +4289,15 @@
 						}
 
 						var _hiddenByOtherFilter = autoFilter.hiddenByAnotherFilter(worksheet, colId, i, ref.c1);
-						textIndexMapHideValues[textLowerCase] =  _hideValues.length;
-						addValueToMenuObj(val, text, _hiddenByOtherFilter, _hideValues.length, _hideValues, indicateItemsWithNoData);
+						if (_hiddenByOtherFilter) {
+							textIndexMapHideValues[textLowerCase] =  _hideValues.length;
+							addValueToMenuObj(val, text, _hiddenByOtherFilter, _hideValues.length, _hideValues, indicateItemsWithNoData);
+						} else {
+							addValueToMenuObj(val, text, true, count, values);
+							textIndexMap[textLowerCase] = count;
+							count++;
+						}
+
 						continue;
 					}
 
