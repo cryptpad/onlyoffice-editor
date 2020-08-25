@@ -4289,8 +4289,15 @@
 						}
 
 						var _hiddenByOtherFilter = autoFilter.hiddenByAnotherFilter(worksheet, colId, i, ref.c1);
-						textIndexMapHideValues[textLowerCase] =  _hideValues.length;
-						addValueToMenuObj(val, text, _hiddenByOtherFilter, _hideValues.length, _hideValues, indicateItemsWithNoData);
+						if (_hiddenByOtherFilter) {
+							textIndexMapHideValues[textLowerCase] =  _hideValues.length;
+							addValueToMenuObj(val, text, _hiddenByOtherFilter, _hideValues.length, _hideValues, indicateItemsWithNoData);
+						} else {
+							addValueToMenuObj(val, text, true, count, values);
+							textIndexMap[textLowerCase] = count;
+							count++;
+						}
+
 						continue;
 					}
 
@@ -4303,14 +4310,12 @@
 							var checkValue = isDateTimeFormat ? val : text;
 							visible = false;
 							if (!isCustomFilter && !currentFilterColumn.isHideValue(checkValue, isDateTimeFormat)) {
-								hideValue(false, i);
 								visible = true;
-							} else {
-								hideValue(false, i);
 							}
+							hideValue(false, i);
 
 							if (textIndexMapHideValues.hasOwnProperty(textLowerCase)) {
-								_hideValues.splice(textIndexMapHideValues[textLowerCase], 1);
+								delete _hideValues[textIndexMapHideValues[textLowerCase]];
 							}
 
 							addValueToMenuObj(val, text, visible, count, values);
@@ -4335,7 +4340,7 @@
 						addValueToMenuObj(val, text, true, count, values);
 
 						if (textIndexMapHideValues.hasOwnProperty(textLowerCase)) {
-							_hideValues.splice(textIndexMapHideValues[textLowerCase], 1);
+							delete _hideValues[textIndexMapHideValues[textLowerCase]];
 						}
 
 						textIndexMap[textLowerCase] = count;
@@ -4349,14 +4354,26 @@
 					worksheet.workbook.dependencyFormulas.unlockRecal();
 				}
 
+				var cleanArr = function (_arr) {
+					var newArr = [];
+					for (i = 0; i < _arr.length; i++) {
+						if (_arr[i]) {
+							newArr.push(_arr[i]);
+						}
+					}
+					return newArr;
+				};
+
 				//sort
 				var _values;
 				if (fullValues && !showItemsWithNoDataLast) {
+					_hideValues = cleanArr(_hideValues);
 					_values = values.concat(_hideValues);
 					_values = this._sortArrayMinMax(_values, isAscending);
 				} else {
 					_values = this._sortArrayMinMax(values, isAscending);
 					if(fullValues) {
+						_hideValues = cleanArr(_hideValues);
 						_values = _values.concat(this._sortArrayMinMax(_hideValues, isAscending));
 					}
 				}

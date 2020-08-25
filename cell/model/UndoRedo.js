@@ -3463,7 +3463,7 @@ function (window, undefined) {
 				break;
 			}
 			case AscCH.historyitem_Slicer_SetCacheHideItemsWithNoData: {
-				slicerCache = oModel.getSlicerCacheByName(bUndo ? Data.to : Data.from);
+				slicerCache = oModel.getSlicerCacheByName(Data.name);
 				if (slicerCache) {
 					slicerCache.setHideItemsWithNoData(bUndo ? Data.from : Data.to);
 					updateByCacheName = Data.name;
