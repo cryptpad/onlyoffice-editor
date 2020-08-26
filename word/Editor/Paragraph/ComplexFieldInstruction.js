@@ -825,7 +825,7 @@ CFieldInstructionSEQ.prototype.GetText = function ()
 	{
 		return AscCommon.translateManager.getValue("Error! Main Document Only.");
 	}
-	
+
 	if(this.H)
 	{
 		if(this.GeneralSwitches.length === 0)
@@ -993,6 +993,7 @@ CFieldInstructionSTYLEREF.prototype.SetS = function(v){this.S = v;};
 CFieldInstructionSTYLEREF.prototype.SetGeneralSwitches = function(v){this.GeneralSwitches = v;};
 CFieldInstructionSTYLEREF.prototype.GetText = function()
 {
+	var sDefaultMessage = "Error! No text of specified style in document.";
 	if(this.ParentContent)
 	{
 		var oHdrFtr = this.ParentContent.IsHdrFtr(true);
@@ -1012,35 +1013,117 @@ CFieldInstructionSTYLEREF.prototype.GetText = function()
 				//TODO: Find in all document
 				if(this.ParentParagraph)
 				{
-					if(this.ParentParagraph.Pr.PStyle === this.StyleName)
-					{
-						return AscCommon.translateManager.getValue("Error! Not a valid bookmark self-reference.");
-					}
-					var nIndex, nCount;
 					var oParagraph = null;
 					var sRet = "";
 					var bAbove = true;
 					var oStyles = this.ParentContent.Styles;
 					var sId = oStyles.GetStyleIdByName(this.StyleName);
+					var nStartIndex, oTmpContent;
+					var oShape, oMainGroup, oDrawing, oCell, oRow, oTable, oBLSdt;
+					var oParentParagraph, oParentContent, nParentIdx;
 					if(sId)
 					{
-						for(nIndex = this.ParentParagraph.Index - 1; nIndex > -1; --nIndex)
+						oParentParagraph = this.ParentParagraph;
+						oParentContent = this.ParentContent;
+						nParentIdx = this.ParentParagraph.GetIndex();
+						oShape = this.ParentContent.Is_DrawingShape(true);
+						if(oShape)
 						{
-							if(this.ParentContent.Content[nIndex].Pr.PStyle === sId)
+							if(oShape.group)
 							{
-								oParagraph = this.ParentContent.Content[nIndex];
+								oMainGroup = oShape.getMainGroup();
+								oDrawing = oMainGroup.parent;
+							}
+							else
+							{
+								oDrawing = oShape.parent;
+							}
+							if(!oDrawing)
+							{
+								return AscCommon.translateManager.getValue(sDefaultMessage);
+							}
+							oParentParagraph = oDrawing.GetParagraph();
+							oParentContent = oParentParagraph.GetParent();
+							nParentIdx = oParentParagraph.GetIndex();
+						}
+						if(oParentParagraph.GetParagraphStyle() === sId)
+						{
+							oParagraph = oParentParagraph;
+						}
+						oTmpContent = oParentContent;
+						nStartIndex = nParentIdx;
+						while(oTmpContent && !oParagraph)
+						{
+							oParagraph = oTmpContent.FindParaWithStyle(sId, true, nStartIndex);
+							if(oParagraph)
+							{
+								break;
+							}
+							oCell = oTmpContent.IsTableCellContent(true);
+							if(oCell)
+							{
+								oRow = oCell.GetRow();
+								oTable = oRow.GetTable();
+								if(!oRow || !oTable)
+								{
+									return AscCommon.translateManager.getValue(sDefaultMessage);
+								}
+								oParagraph = oRow.FindParaWithStyle(sId, true, oCell.GetIndex() - 1);
+								if(!oParagraph)
+								{
+									oParagraph = oTable.FindParaWithStyle(sId, true, oRow.GetIndex() - 1);
+								}
+								oTmpContent = oTable.Parent;
+								nStartIndex = oTable.GetIndex() - 1;
+							}
+							else if(oTmpContent.IsBlockLevelSdtContent())
+							{
+								oBLSdt = oTmpContent.GetParent();
+								oTmpContent = oBLSdt.Parent;
+								nStartIndex = oBLSdt.GetIndex() - 1;
+							}
+							else
+							{
 								break;
 							}
 						}
 						if(!oParagraph)
 						{
-							nCount = this.ParentContent.Content.length;
-							for(nIndex = this.ParentParagraph.Index + 1; nIndex < nCount; ++nIndex)
+							oTmpContent = oParentContent;
+							nStartIndex = nParentIdx + 1;
+							while(oTmpContent && !oParagraph)
 							{
-								if(this.ParentContent.Content[nIndex].Pr.PStyle === sId)
+								oParagraph = oTmpContent.FindParaWithStyle(sId, false, nStartIndex);
+								if(oParagraph)
 								{
-									oParagraph = this.ParentContent.Content[nIndex];
-									bAbove = false;
+									break;
+								}
+								oCell = oTmpContent.IsTableCellContent(true);
+								if(oCell)
+								{
+									oRow = oCell.GetRow();
+									oTable = oRow.GetTable();
+									if(!oRow || !oTable)
+									{
+										return AscCommon.translateManager.getValue(sDefaultMessage);
+									}
+									oParagraph = oRow.FindParaWithStyle(sId, false, oCell.GetIndex() + 1);
+									if(!oParagraph)
+									{
+										oParagraph = oTable.FindParaWithStyle(sId, false, oRow.GetIndex() + 1);
+									}
+									oTmpContent = oTable.Parent;
+									nStartIndex = oTable.GetIndex() + 1;
+								}
+								else if(oTmpContent.IsBlockLevelSdtContent())
+								{
+									oBLSdt = oTmpContent.GetParent();
+									oTmpContent = oBLSdt.Parent;
+									nStartIndex = oBLSdt.GetIndex() + 1;
+								}
+								else
+								{
+									break;
 								}
 							}
 						}
@@ -1070,12 +1153,12 @@ CFieldInstructionSTYLEREF.prototype.GetText = function()
 							return sRet;
 						}
 					}
-					return AscCommon.translateManager.getValue("Error! No text of specified style in document.");
+					return AscCommon.translateManager.getValue(sDefaultMessage);
 				}
 			}
 		}
 	}
-    return AscCommon.translateManager.getValue("Error! No text of specified style in document.");
+    return AscCommon.translateManager.getValue(sDefaultMessage);
 };
 CFieldInstructionSTYLEREF.prototype.SetStyleName = function(v)
 {

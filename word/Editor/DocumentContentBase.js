@@ -196,6 +196,90 @@ CDocumentContentBase.prototype.GetAllSeqFieldsByType = function(sType, aFields)
 };
 
 /**
+ * Finds a paragraph with a given style
+ * @param {string} sStyleId - id of paragraph style
+ * @param {boolean} bBackward - whether to search backward or forward
+ * @param {?number} nStartIdx - index of searching start. If it is null searching starts depends on bBackward.
+ * @returns {?Paragraph}
+ */
+CDocumentContentBase.prototype.FindParaWithStyle = function (sStyleId, bBackward, nStartIdx)
+{
+	var nIdx, oElement, oResultPara = null, oContent;
+	var nSearchStartIdx;
+	if(bBackward)
+	{
+		if(nStartIdx !== null)
+		{
+			nSearchStartIdx = Math.min(nStartIdx, this.Content.length - 1);
+		}
+		else
+		{
+			nSearchStartIdx = this.Content.length - 1;
+		}
+		for(nIdx = nSearchStartIdx; nIdx >= 0; --nIdx)
+		{
+			oElement = this.Content[nIdx];
+			if(oElement.GetType() === type_Paragraph)
+			{
+				if(oElement.GetParagraphStyle() === sStyleId)
+				{
+					oResultPara = oElement;
+				}
+			}
+			else if(oElement.GetType() === type_Table)
+			{
+				oResultPara = oElement.FindParaWithStyle(sStyleId, bBackward, null);
+			}
+			else if(oElement.GetType() === type_BlockLevelSdt)
+			{
+				oContent = oElement.GetContent();
+				oResultPara = oContent.FindParaWithStyle(sStyleId, bBackward, null);
+			}
+			if(oResultPara !== null)
+			{
+				return oResultPara;
+			}
+		}
+	}
+	else
+	{
+		if(nStartIdx !== null)
+		{
+			nSearchStartIdx = Math.max(nStartIdx, 0);
+		}
+		else
+		{
+			nSearchStartIdx = 0;
+		}
+		for(nIdx = nSearchStartIdx; nIdx < this.Content.length; ++nIdx)
+		{
+			oElement = this.Content[nIdx];
+			if(oElement.GetType() === type_Paragraph)
+			{
+				if(oElement.GetParagraphStyle() === sStyleId)
+				{
+					oResultPara = oElement;
+				}
+			}
+			else if(oElement.GetType() === type_Table)
+			{
+				oResultPara = oElement.FindParaWithStyle(sStyleId, bBackward, null);
+			}
+			else if(oElement.GetType() === type_BlockLevelSdt)
+			{
+				oContent = oElement.GetContent();
+				oResultPara = oContent.FindParaWithStyle(sStyleId, bBackward, null);
+			}
+			if(oResultPara !== null)
+			{
+				return oResultPara;
+			}
+		}
+	}
+	return null;
+};
+
+/**
  * Находим отрезок сносок, заданный между сносками.
  * @param {?CFootEndnote} oFirstFootnote - если null, то иещм с начала документа
  * @param {?CFootEndnote} oLastFootnote - если null, то ищем до конца документа
