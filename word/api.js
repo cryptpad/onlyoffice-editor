@@ -6125,6 +6125,7 @@ background-repeat: no-repeat;\
 			this.m_sUserName  = (undefined != obj.m_sUserName ) ? obj.m_sUserName : "";
 			this.m_sInitials  = (undefined != obj.m_sInitials ) ? obj.m_sInitials : this.asc_makeInitials(this.m_sUserName);
 			this.m_nDurableId = (undefined != obj.m_nDurableId) ? obj.m_nDurableId : AscCommon.CreateDurableId();
+			this.m_sUserData  = (undefined !== obj.m_sUserData) ? obj.m_sUserData : "";
 			this.m_aReplies   = [];
 			if (undefined != obj.m_aReplies)
 			{
@@ -6149,6 +6150,7 @@ background-repeat: no-repeat;\
 			this.m_sUserName  = "";
 			this.m_sInitials  = "";
 			this.m_nDurableId = AscCommon.CreateDurableId();
+			this.m_sUserData  = "";
 			this.m_aReplies   = [];
 		}
 	}
@@ -6271,8 +6273,14 @@ background-repeat: no-repeat;\
 		}
 		return initials;
 	};
-
-
+	asc_CCommentDataWord.prototype.asc_getUserData = function()
+	{
+		return this.m_sUserData;
+	};
+	asc_CCommentDataWord.prototype.asc_putUserData = function(v)
+	{
+		this.m_sUserData = v;
+	};
 
 	asc_docs_api.prototype.asc_showComments = function(isShowSolved)
 	{
@@ -6432,12 +6440,18 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype.sync_RemoveComment = function(Id)
 	{
 		this.sendEvent("asc_onRemoveComment", Id);
+
+		if (window.g_asc_plugins)
+			window.g_asc_plugins.onPluginEvent("onRemoveComment", {"Id" : Id});
 	};
 
 	asc_docs_api.prototype.sync_AddComment = function(Id, CommentData)
 	{
 		var AscCommentData = new asc_CCommentDataWord(CommentData);
 		this.sendEvent("asc_onAddComment", Id, AscCommentData);
+
+		if (window.g_asc_plugins)
+			window.g_asc_plugins.onPluginEvent("onAddComment", {"Id" : Id, "Data" : CommentData.ConvertToSimpleObject()});
 	};
 
 	asc_docs_api.prototype.sync_ShowComment = function(arrId, X, Y)
@@ -6460,6 +6474,9 @@ background-repeat: no-repeat;\
 	{
 		var AscCommentData = new asc_CCommentDataWord(CommentData);
 		this.sendEvent("asc_onChangeCommentData", Id, AscCommentData);
+
+		if (window.g_asc_plugins)
+			window.g_asc_plugins.onPluginEvent("onChangeCommentData", {"Id" : Id, "Data" : CommentData.ConvertToSimpleObject()});
 	};
 
 	asc_docs_api.prototype.sync_LockComment = function(Id, UserId)
@@ -10982,6 +10999,8 @@ background-repeat: no-repeat;\
 	asc_CCommentDataWord.prototype['asc_getRepliesCount'] = asc_CCommentDataWord.prototype.asc_getRepliesCount;
 	asc_CCommentDataWord.prototype['asc_getDocumentFlag'] = asc_CCommentDataWord.prototype.asc_getDocumentFlag;
 	asc_CCommentDataWord.prototype['asc_putDocumentFlag'] = asc_CCommentDataWord.prototype.asc_putDocumentFlag;
+	asc_CCommentDataWord.prototype['asc_getUserData']     = asc_CCommentDataWord.prototype.asc_getUserData;
+	asc_CCommentDataWord.prototype['asc_putUserData']     = asc_CCommentDataWord.prototype.asc_putUserData;
 
 	AscCommon.setUpAllFonts = function()
 	{

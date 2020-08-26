@@ -479,4 +479,29 @@
     {
         return this.ContentToHTML(true);
     };
+	/**
+	 * Get array of all comments in the document
+	 * @memberof Api
+	 * @typeofeditors ["CDE"]
+	 * @alias GetAllComments
+	 * @returns {[]}
+	 */
+	window["asc_docs_api"].prototype["pluginMethod_GetAllComments"] = function()
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return;
+
+		var arrResult = [];
+
+		var oComments = oLogicDocument.Comments.GetAllComments();
+		for (var sId in oComments)
+		{
+			var oComment = oComments[sId];
+			arrResult.push({"Id" : oComment.GetId(), "Data" : oComment.GetData().ConvertToSimpleObject()});
+		}
+
+		return arrResult;
+	};
+
 })(window);
