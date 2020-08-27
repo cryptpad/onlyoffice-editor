@@ -192,6 +192,8 @@ CGraphicObjects.prototype =
         return this.selectedObjects;
     },
 
+    getSelectedArray: DrawingObjectsController.prototype.getSelectedArray,
+
     getTheme: function()
     {
         return this.document.theme;

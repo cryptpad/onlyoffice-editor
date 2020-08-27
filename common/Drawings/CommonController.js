@@ -8340,6 +8340,12 @@ DrawingObjectsController.prototype =
         }
     },
 
+    resetTracking: function()
+    {
+        this.changeCurrentState(new AscFormat.NullState(this));
+        this.clearTrackObjects();
+        this.updateOverlay();
+    },
 
     getHyperlinkInfo: function()
     {
@@ -8744,6 +8750,15 @@ DrawingObjectsController.prototype =
 
     getSelectedObjects: function()
     {
+        return this.selectedObjects;
+    },
+
+    getSelectedArray: function()
+    {
+        if(this.selection.groupSelection)
+        {
+            return this.selection.groupSelection.selectedObjects;
+        }
         return this.selectedObjects;
     },
 

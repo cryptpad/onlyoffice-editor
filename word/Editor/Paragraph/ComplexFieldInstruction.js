@@ -1010,7 +1010,6 @@ CFieldInstructionSTYLEREF.prototype.GetText = function()
 			}
 			else
 			{
-				//TODO: Find in all document
 				if(this.ParentParagraph)
 				{
 					var oParagraph = null;
