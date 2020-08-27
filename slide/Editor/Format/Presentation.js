@@ -8411,7 +8411,7 @@ CPresentation.prototype.InsertContent2 = function (aContents, nIndex) {
         }
     }
     if (oContent.DocContent && oContent.DocContent.Elements.length > 0 && nIndex === 0) {
-        var oTextPr, oTextPr2, oParaTextPr;
+        var oTextPr, oTextPr2, oParaTextPr, nFontSize, oTextObject, oElement, aElements;
         var oController = this.GetCurrentController();
         if (oController) {
             var oTargetDocContent = oController.getTargetDocContent();
@@ -8443,20 +8443,41 @@ CPresentation.prototype.InsertContent2 = function (aContents, nIndex) {
                         }
                     }
                 }
-            }
-
-        }
-
-        oTextPr = this.GetCalculatedTextPr();
-        if (oTextPr && AscFormat.isRealNumber(oTextPr.FontSize)) {
-            oTextPr2 = new AscCommonWord.CTextPr();
-            oTextPr2.FontSize = oTextPr.FontSize;
-            oParaTextPr = new AscCommonWord.ParaTextPr(oTextPr2);
-            for (i = 0; i < oContent.DocContent.Elements.length; ++i) {
-                if (oContent.DocContent.Elements[i].Element.GetType() === AscCommonWord.type_Paragraph) {
-                    oContent.DocContent.Elements[i].Element.Set_ApplyToAll(true);
-                    oContent.DocContent.Elements[i].Element.AddToParagraph(oParaTextPr);
-                    oContent.DocContent.Elements[i].Element.Set_ApplyToAll(false);
+                oTextPr = oTargetDocContent.GetCalculatedTextPr();
+                if (oTextPr && AscFormat.isRealNumber(oTextPr.FontSize)) {
+                    nFontSize = oTextPr.FontSize;
+                    if(!AscFormat.isRealNumber(oTextPr.FontScale) ||
+                        AscFormat.fApproxEqual(oTextPr.FontScale, 1.0)) {
+                        nFontSize = oTextPr.FontSize;
+                    }
+                    else {
+                        oTextObject = AscFormat.getTargetTextObject(oController);
+                        if(oTextObject && oTextObject.getObjectType() === AscDFH.historyitem_type_Shape) {
+                            oTextObject.bCheckAutoFitFlag = true;
+                            oTextObject.tmpFontScale = 100000;
+                            oTextObject.tmpLnSpcReduction = 0;
+                            oTextObject.recalculateContentWitCompiledPr();
+                            oTextPr = oTargetDocContent.GetCalculatedTextPr();
+                            if(AscFormat.isRealNumber(oTextPr.FontSize)) {
+                                nFontSize = oTextPr.FontSize;
+                            }
+                            oTextObject.bCheckAutoFitFlag = false;
+                            oTextObject.tmpFontScale = undefined;
+                            oTextObject.recalculateContentWitCompiledPr();
+                        }
+                    }
+                    oTextPr2 = new AscCommonWord.CTextPr();
+                    oTextPr2.FontSize = nFontSize;
+                    oParaTextPr = new AscCommonWord.ParaTextPr(oTextPr2);
+                    aElements = oContent.DocContent.Elements;
+                    for (i = 0; i < aElements.length; ++i) {
+                        oElement = aElements[i].Element;
+                        if (oElement.GetType() === AscCommonWord.type_Paragraph) {
+                            oElement.Set_ApplyToAll(true);
+                            oElement.AddToParagraph(oParaTextPr);
+                            oElement.Set_ApplyToAll(false);
+                        }
+                    }
                 }
             }
         }

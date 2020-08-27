@@ -12833,8 +12833,10 @@ CTextPr.prototype.CheckFontScale =  function()
 	{
 		this.FontSize *= 	this.FontScale;
 		this.FontSize = (this.FontSize + 0.5) >> 0;
+		this.FontSize = Math.max(1, this.FontSize);
 		this.FontSizeCS *= this.FontScale;
 		this.FontSizeCS = (this.FontSizeCS + 0.5) >> 0;
+		this.FontSizeCS = Math.max(1, this.FontSizeCS);
 	}
 };
 

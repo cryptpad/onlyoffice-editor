@@ -7877,8 +7877,9 @@ ParaRun.prototype.Internal_Compile_Pr = function ()
 	}
 	else
 	{
+		var FontScale = TextPr.FontScale;
 		TextPr.Merge(this.Pr); // Мержим прямые настройки данного рана
-
+		TextPr.FontScale = FontScale;
 		if (this.Pr.Color && !this.Pr.Unifill)
 		{
 			TextPr.Unifill = undefined;
