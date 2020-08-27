@@ -663,10 +663,15 @@ RotateState.prototype =
             var group = this.group;
             var drawingObjects = this.drawingObjects;
             var oThis = this;
-
-            if(e.CtrlKey && this instanceof MoveState && !(Asc["editor"] && Asc["editor"].isChartEditor === true) && !(tracks.length > 0 && (tracks[0] instanceof AscFormat.MoveChartObjectTrack)))
+            var bIsMoveState = (this instanceof MoveState);
+            var bIsChartFrame = Asc["editor"] && Asc["editor"].isChartEditor === true;
+            var bIsTrackInChart = (tracks.length > 0 && (tracks[0] instanceof AscFormat.MoveChartObjectTrack));
+            var bCopyOnMove = e.CtrlKey && bIsMoveState && !bIsChartFrame && !bIsTrackInChart;
+            var bCopyOnMoveInGroup = (e.CtrlKey && oThis instanceof MoveInGroupState);
+            var i, j;
+            var copy;
+            if(bCopyOnMove)
             {
-                var i, copy;
                 this.drawingObjects.resetSelection();
                 var oIdMap = {};
                 var oCopyPr = new AscFormat.CCopyObjectProperties();
@@ -700,22 +705,33 @@ RotateState.prototype =
                     tracks[i].originalObject = copy;
                     tracks[i].trackEnd(false, true);
                     this.drawingObjects.selectObject(copy, 0);
-                    if(!(this.drawingObjects.drawingObjects && this.drawingObjects.drawingObjects.cSld))
+                }
+                if(!(this.drawingObjects.drawingObjects && this.drawingObjects.drawingObjects.cSld))
+                {
+                    if(History.StartTransaction && History.EndTransaction)
                     {
-                        AscFormat.ExecuteNoHistory(function(){drawingObjects.checkSelectedObjectsAndCallback(function(){}, []);}, this, []);
+                        History.StartTransaction();
                     }
-                    else
+                    AscFormat.ExecuteNoHistory(function(){drawingObjects.checkSelectedObjectsAndCallback(function(){}, []);}, this, []);
+                    if(History.StartTransaction && History.EndTransaction)
                     {
-                        this.drawingObjects.startRecalculate();
-                        this.drawingObjects.drawingObjects.sendGraphicObjectProps();
+                        History.EndTransaction();
                     }
+                    if(this.drawingObjects.checkSlicerCopies)
+                    {
+                        this.drawingObjects.checkSlicerCopies(aCopies);
+                    }
+                }
+                else
+                {
+                    this.drawingObjects.startRecalculate();
+                    this.drawingObjects.drawingObjects.sendGraphicObjectProps();
                 }
                 AscFormat.fResetConnectorsIds(aCopies, oIdMap);
             }
             else
             {
-                var i, j;
-                if(e.CtrlKey && oThis instanceof MoveInGroupState)
+                if(bCopyOnMoveInGroup)
                 {
                     this.drawingObjects.checkSelectedObjectsAndCallback(function(){
                         var oIdMap = {};
@@ -790,6 +806,10 @@ RotateState.prototype =
                                 arr_y2.push(oTransform.TransformPointY(0, drawing.extY));
                             }
                             oThis.drawingObjects.drawingObjects.checkGraphicObjectPosition(0, 0, Math.max.apply(Math, arr_x2), Math.max.apply(Math, arr_y2));
+                        }
+                        if(oThis.drawingObjects.checkSlicerCopies)
+                        {
+                            oThis.drawingObjects.checkSlicerCopies(aCopies);
                         }
                     }, [], false, AscDFH.historydescription_CommonDrawings_EndTrack)
                 }
@@ -928,11 +948,8 @@ RotateState.prototype =
                     );
                 }
             }
-
         }
-        this.drawingObjects.changeCurrentState(new NullState(this.drawingObjects));
-        this.drawingObjects.clearTrackObjects();
-        this.drawingObjects.updateOverlay();
+        this.drawingObjects.resetTracking();
     }
 };
 
