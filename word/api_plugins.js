@@ -388,26 +388,25 @@
             oLogicDocument.FinalizeAction();
         }
     };
-    /**
-     * Add comment to document
-     * @memberof Api
-     * @typeofeditors ["CDE"]
-     * @alias AddComment
-     * @param {string} sMessage Message
-     * @param {string} sAuthorName Author
-     */
-    window["asc_docs_api"].prototype["pluginMethod_AddComment"] = function(sMessage, sAuthorName)
-    {
-        var oData = new window['Asc']['asc_CCommentDataWord'] ();
+	/**
+	 * Add comment to document
+	 * @memberof Api
+	 * @typeofeditors ["CDE"]
+	 * @alias AddComment
+	 * @param {object} oCommentData
+	 * @return {string | null} Added comment id or null if comment can't be added
+	 */
+	window["asc_docs_api"].prototype["pluginMethod_AddComment"] = function(oCommentData)
+	{
+		var oCD = undefined;
+		if (oCommentData)
+		{
+			oCD = new AscCommon.CCommentData();
+			oCD.ReadFromSimpleObject(oCommentData);
+		}
 
-        if (sMessage)
-            oData.asc_putText(sMessage);
-
-        if (sAuthorName)
-            oData.asc_putUserName(sAuthorName);
-
-        this.asc_addComment(oData);
-    };
+		return this.asc_addComment(new window['Asc']['asc_CCommentDataWord'](oCD));
+	};
     /**
      * Move cursor to Start
      * @memberof Api
@@ -502,6 +501,36 @@
 		}
 
 		return arrResult;
+	};
+	/**
+	 * Remove an array of specified comments
+	 * @param {array.strings} arrIds
+	 * @memberof Api
+	 * @typeofeditors ["CDE"]
+	 * @alias RemoveComments
+	 */
+	window["asc_docs_api"].prototype["pluginMethod_RemoveComments"] = function(arrIds)
+	{
+		this.asc_RemoveAllComments(false, false, arrIds);
+	};
+	/**
+	 * Change comment
+	 * @memberof Api
+	 * @typeofeditors ["CDE"]
+	 * @alias ChangeComment
+	 * @param {string} sId
+	 * @param {object} oCommentData
+	 */
+	window["asc_docs_api"].prototype["pluginMethod_ChangeComment"] = function(sId, oCommentData)
+	{
+		var oCD = undefined;
+		if (oCommentData)
+		{
+			oCD = new AscCommon.CCommentData();
+			oCD.ReadFromSimpleObject(oCommentData);
+		}
+
+		this.asc_changeComment(sId, new window['Asc']['asc_CCommentDataWord'](oCD));
 	};
 
 })(window);

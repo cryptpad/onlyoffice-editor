@@ -332,6 +332,36 @@ CCommentData.prototype.ConvertToSimpleObject = function()
 
 	return obj;
 };
+CCommentData.prototype.ReadFromSimpleObject = function(oData)
+{
+	if (!oData)
+		return;
+
+	if (oData["Text"])
+		this.m_sText = oData["Text"];
+
+	if (oData["Time"])
+		this.m_sTime = oData["Time"];
+
+	if (oData["UserName"])
+		this.m_sUserName = oData["UserName"];
+
+	if (oData["Solved"])
+		this.m_bSolved = oData["Solved"];
+
+	if (oData["UserData"])
+		this.m_sUserData = oData["UserData"];
+
+	if (oData["Replies"] && oData["Replies"].length)
+	{
+		for (var nIndex = 0, nCount = this.m_aReplies.length; nIndex < nCount; ++nIndex)
+		{
+			var oCD = new CCommentData();
+			oCD.ReadFromSimpleObject(oData["Replies"][nIndex]);
+			this.m_aReplies.push(oCD);
+		}
+	}
+};
 
 function CCommentDrawingRect(X, Y, W, H, CommentId, InvertTransform)
 {

@@ -6302,12 +6302,12 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype.asc_addComment = function(AscCommentData)
 	{
 		if (true === AscCommon.CollaborativeEditing.Get_GlobalLock())
-			return;
+			return null;
 
 		var oLogicDocument = this.WordControl.m_oLogicDocument;
 
 		if (!oLogicDocument)
-			return;
+			return null;
 
 		// Комментарий без цитаты позволяем добавить всегда
 		if (true !== this.can_AddQuotedComment() || false === oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Paragraph_Content, null, true, oLogicDocument.IsEditCommentsMode()))
@@ -6326,6 +6326,8 @@ background-repeat: no-repeat;\
 
 			return Comment.Get_Id();
 		}
+
+		return null;
 	};
 
 	asc_docs_api.prototype.asc_removeComment = function(Id)
@@ -6488,13 +6490,13 @@ background-repeat: no-repeat;\
 	{
 		this.sendEvent("asc_onUnLockComment", Id);
 	};
-	asc_docs_api.prototype.asc_RemoveAllComments = function(isMine, isCurrent)
+	asc_docs_api.prototype.asc_RemoveAllComments = function(isMine, isCurrent, arrIds)
 	{
 		var oLogicDocument = this.private_GetLogicDocument();
 		if (!oLogicDocument)
 			return;
 
-		var arrCommentsId = oLogicDocument.GetAllComments(isMine, isCurrent);
+		var arrCommentsId = undefined !== arrIds ? arrIds : oLogicDocument.GetAllComments(isMine, isCurrent);
 
 		if (!oLogicDocument.IsSelectionLocked(changestype_None, {
 				Type : AscCommon.changestype_2_Comment,
