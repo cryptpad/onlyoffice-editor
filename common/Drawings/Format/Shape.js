@@ -340,6 +340,7 @@ function CopyRunToPPTX(Run, Paragraph, bHyper)
     {
         RunPr.RStyle = undefined;
     }
+    RunPr.FontScale = undefined;
 
     if(bHyper)
     {
@@ -5325,7 +5326,7 @@ CShape.prototype.changePresetGeom = function (sPreset) {
     if(sPreset === "textRect")
     {
         this.spPr.setGeometry(AscFormat.CreateGeometry("rect"));
-        
+
         if(this.bWordShape)
         {
             if(this.style)
@@ -5337,7 +5338,7 @@ CShape.prototype.changePresetGeom = function (sPreset) {
         {
             this.setStyle(AscFormat.CreateDefaultTextRectStyle());
         }
-        
+
         var fill = new AscFormat.CUniFill();
         fill.setFill(new AscFormat.CSolidFill());
         fill.fill.setColor(new AscFormat.CUniColor());
