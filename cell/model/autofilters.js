@@ -3694,7 +3694,7 @@
 				return range;
 			},
 
-			expandRange: function(activeRange, ignoreFilter) {
+			expandRange: function(activeRange, ignoreFilter, doNotCheckEmpty) {
 				var ws = this.worksheet;
 
 				//если вдруг встретили мерженную ячейку в диапазоне, расширяем
@@ -3946,7 +3946,7 @@
 				}
 
 				//проверяем на наличие пустых колонок/строк
-				return this.checkEmptyAreas(range, rangeAfterTableCrop);
+				return doNotCheckEmpty ? range : this.checkEmptyAreas(range, rangeAfterTableCrop);
 			},
 
 			checkEmptyAreas: function(range, rangeAfterTableCrop) {
@@ -4267,7 +4267,7 @@
 				if (!isTablePart /*&& filter.isApplyAutoFilter() === false*/)//нужно подхватить нижние ячейки
 				{
 					//TODO стоит заменить на expandRange ?
-					var automaticRange = this.expandRange(filter.Ref, true);
+					var automaticRange = this.expandRange(filter.Ref, true, true);
 					automaticRowCount = automaticRange.r2;
 
 					if (automaticRowCount > maxFilterRow) {
