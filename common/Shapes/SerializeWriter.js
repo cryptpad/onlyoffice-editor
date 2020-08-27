@@ -186,7 +186,7 @@ function CBinaryFileWriter()
             var oldPos = this.pos;
 
             this.len = Math.max(this.len * 2, this.pos + ((3 * count / 2) >> 0));
-			
+
             this.ImData = _ctx.createImageData(this.len / 4, 1);
             this.data = this.ImData.data;
             var newData = this.data;
@@ -586,10 +586,10 @@ function CBinaryFileWriter()
         // ViewProps
 		if (presentation.ViewProps)
 			this.WriteViewProps(presentation.ViewProps);
-        
+
         // PresProps
 		this.WritePresProps(presentation);
-        
+
         // presentation
         this.WritePresentation(presentation);
 
@@ -972,7 +972,7 @@ function CBinaryFileWriter()
         var ret = "PPTY;v1;" + this.pos + ";";
         return ret + this.GetBase64Memory();
     };
-	
+
 	this.WriteDocument3 = function(presentation, base64) {
 		var _memory = new AscCommon.CMemory(true);
 		_memory.ImData = this.ImData;
@@ -986,9 +986,9 @@ function CBinaryFileWriter()
 		this.data = _memory.data;
 		this.len = _memory.len;
 		this.pos = _memory.pos;
-		
+
 		this.WriteDocument2(presentation);
-		
+
 		_memory.ImData = this.ImData;
 		_memory.data = this.data;
 		_memory.len = this.len;
@@ -1030,10 +1030,10 @@ function CBinaryFileWriter()
         this.EndRecord();
     };
     this.WritePresProps = function(presentation)
-    {       
+    {
         this.StartMainRecord(c_oMainTables.PresProps);
         this.StartRecord(c_oMainTables.PresProps);
-        
+
         //showPr
         var showPr = presentation.showPr;
         if (showPr) {
@@ -1046,7 +1046,7 @@ function CBinaryFileWriter()
             this._WriteBool2(3, showPr.useTimings);
 
             this.WriteUChar(g_nodeAttributeEnd);
-            
+
             if (showPr.browse) {
                 this.StartRecord(0);
                 //todo browseShowScrollbar
@@ -2193,7 +2193,9 @@ function CBinaryFileWriter()
 
         if (undefined !== rPr.FontSize && null != rPr.FontSize)
         {
-            oThis._WriteInt1(17, rPr.FontSize * 100);
+            var nFontSize = rPr.FontSize * 100;
+            nFontSize = Math.max(100, nFontSize);
+            oThis._WriteInt1(17, nFontSize);
         }
 
         if (AscCommon.vertalign_SubScript == rPr.VertAlign)
@@ -2966,7 +2968,7 @@ function CBinaryFileWriter()
 
                 oThis.WriteUChar(g_nodeAttributeStart);
                 oThis.WriteUChar(g_nodeAttributeEnd);
-				
+
                 var _src = fill.RasterImageId;
 				var imageLocal = AscCommon.g_oDocumentUrls.getImageLocal(_src);
                 if(imageLocal)
@@ -3011,7 +3013,7 @@ function CBinaryFileWriter()
                         if(!(window.documentInfo && window.documentInfo["iscoauthoring"])){
                             _src = window["native"]["GetImageTmpPath"](_src);
                         }
-                        
+
                     }
                 }
 
@@ -3417,7 +3419,7 @@ function CBinaryFileWriter()
 							oThis.DocSaveParams = new AscCommonWord.DocSaveParams(false, false);
 						}
 						var boMaths = new Binary_oMathWriter(_memory, null, oThis.DocSaveParams);
-						boMaths.bs.WriteItemWithLength(function(){boMaths.WriteOMathPara(_elem)});	
+						boMaths.bs.WriteItemWithLength(function(){boMaths.WriteOMathPara(_elem)});
 
 						oThis.ImData = _memory.ImData;
 						oThis.data = _memory.data;
@@ -3427,7 +3429,7 @@ function CBinaryFileWriter()
 
 						_memory.ImData = null;
 						_memory.data = null;
-						
+
 						oThis.EndRecord();
 						oThis.EndRecord();
 						_count++;
@@ -3954,7 +3956,7 @@ function CBinaryFileWriter()
 			}
             oThis._WriteInt1(0, ( (row.Pr.Height.Value + fMaxBottomMargin + fMaxTopMargin + fMaxTopBorder/2 + fMaxBottomBorder/2) * 36000) >> 0);
 		}
-        
+
         oThis.WriteUChar(g_nodeAttributeEnd);
 
         oThis.StartRecord(0);
