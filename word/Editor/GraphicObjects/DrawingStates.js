@@ -698,17 +698,13 @@ RotateState.prototype =
                     {
                         for(i = 0; i < aNearestPos.length; ++i)
                         {
-                            bounds = aBounds[i];
-                            para_drawing = aDrawings[i].Copy();
-                            if(para_drawing.GraphicObj)
+                            if(aDrawings[i])
                             {
-                                para_drawing.GraphicObj.copyComments(this.drawingObjects.document);
+                                if(aDrawings[i].Locked !== true)
+                                    AscFormat.checkObjectInArray(aCheckParagraphs, aNearestPos[i].Paragraph);
+                                else
+                                    AscFormat.checkObjectInArray(aCheckParagraphs, aParentParagraphs[i]);
                             }
-                            para_drawing.Set_RelativeHeight(this.drawingObjects.getZIndex());
-                            if(aDrawings[i].Locked !== true)
-                                AscFormat.checkObjectInArray(aCheckParagraphs, aNearestPos[i].Paragraph);
-                            else
-                                AscFormat.checkObjectInArray(aCheckParagraphs, aParentParagraphs[i]);
                         }
                         if(false === this.drawingObjects.document.Document_Is_SelectionLocked(changestype_Drawing_Props, {Type : changestype_2_ElementsArray_and_Type , Elements : aCheckParagraphs, CheckType : AscCommon.changestype_Paragraph_Content}))
                         {
@@ -718,6 +714,10 @@ RotateState.prototype =
                             {
                                 bounds = aBounds[i];
                                 para_drawing = aDrawings[i].Copy();
+                                if(para_drawing.GraphicObj)
+                                {
+                                    para_drawing.GraphicObj.copyComments(this.drawingObjects.document);
+                                }
                                 para_drawing.Set_RelativeHeight(this.drawingObjects.getZIndex());
                                 if(aDrawings[i].Locked !== true)
                                 {
