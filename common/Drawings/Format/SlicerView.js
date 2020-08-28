@@ -1048,15 +1048,32 @@
         if(AscCommon.isFileBuild()) {
             return false;
         }
-         var bRet = false;
+        var bRet = false;
+        var oMainGroup, oCurGroup;
         if(this.name === sName) {
-            if(this.drawingBase) {
-                this.deleteDrawingBase();
+            if(this.group) {
+                this.group.removeFromSpTree(this.Id);
+                oCurGroup = this.group;
+                while (oCurGroup.spTree.length === 0 && oCurGroup.group) {
+                    oCurGroup.group.removeFromSpTree(oCurGroup.Get_Id());
+                    oCurGroup = oCurGroup.group;
+                }
+                if(oCurGroup.spTree.length === 0) {
+                    if(oCurGroup.drawingBase) {
+                        oCurGroup.deleteDrawingBase();
+                    }
+                }
+                else {
+                    oMainGroup = this.group.getMainGroup();
+                    if(oMainGroup) {
+                        oMainGroup.updateCoordinatesAfterInternalResize();
+                    }
+                }
                 bRet = true;
             }
             else {
-                if(this.group) {
-                    this.group.removeFromSpTree(this.Id);
+                if(this.drawingBase) {
+                    this.deleteDrawingBase();
                     bRet = true;
                 }
             }
