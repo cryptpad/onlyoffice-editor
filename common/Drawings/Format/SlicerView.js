@@ -1178,6 +1178,9 @@
         }
         return null;
     };
+    CSlicer.prototype.getAllSlicerViews = function(aSlicerView) {
+        aSlicerView.push(this);
+    };
 
     function CHeader(slicer) {
         AscFormat.CShape.call(this);

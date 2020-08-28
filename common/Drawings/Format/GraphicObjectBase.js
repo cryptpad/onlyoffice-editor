@@ -368,7 +368,7 @@
         this.bSaveSourceFormatting = null;
         this.contentCopyPr = null;
     }
-    
+
     function CBaseObject() {
         this.Id = null;
         if(AscCommon.g_oIdCounter.m_bLoad || History.CanAddChanges()) {
@@ -444,10 +444,10 @@
         this.Lock = new AscCommon.CLock();
         this.setRecalculateInfo();
     }
-    
+
     CGraphicObjectBase.prototype = Object.create(CBaseObject.prototype);
     CGraphicObjectBase.prototype.constructor = CGraphicObjectBase;
-    
+
     /**
      * Create a scheme color
      * @memberof CGraphicObjectBase
@@ -465,7 +465,7 @@
      * @memberof CGraphicObjectBase
      */
     CGraphicObjectBase.prototype.setRecalculateInfo = function(){};
-    
+
 
     /**
      * Get object bounds for defining group size
@@ -645,16 +645,16 @@
         return this.setLockValue(LOCKS_MASKS.noChangeAspect, bValue);
     };
     CGraphicObjectBase.prototype.canRotate = function() {
-        return this.getNoRot() === false;    
+        return this.getNoRot() === false;
     };
     CGraphicObjectBase.prototype.canResize = function() {
-        return this.getNoResize() === false;    
+        return this.getNoResize() === false;
     };
     CGraphicObjectBase.prototype.canMove = function() {
-        return this.getNoMove() === false;    
+        return this.getNoMove() === false;
     };
     CGraphicObjectBase.prototype.canGroup = function() {
-        return this.getNoGrp() === false;    
+        return this.getNoGrp() === false;
     };
     CGraphicObjectBase.prototype.canUnGroup = function() {
         return this.getNoUngrp() === false;
@@ -793,6 +793,10 @@
 
 
     CGraphicObjectBase.prototype.getAllRasterImages = function(mapUrl){
+    };
+
+    CGraphicObjectBase.prototype.getAllSlicerViews = function(aSlicerView) {
+
     };
 
     CGraphicObjectBase.prototype.checkCorrect = function(){
@@ -1029,23 +1033,23 @@
                     cx      : extX,
                     cy      : extY
                 })));
-    
-    
+
+
                 this.drawingBase.from.col    = fromCol;
                 this.drawingBase.from.colOff = fromColOff;
                 this.drawingBase.from.row    = fromRow;
                 this.drawingBase.from.rowOff = fromRowOff;
-    
+
                 this.drawingBase.to.col    = toCol;
                 this.drawingBase.to.colOff = toColOff;
                 this.drawingBase.to.row    = toRow;
                 this.drawingBase.to.rowOff = toRowOff;
-    
+
                 this.drawingBase.Pos.X  = posX;
                 this.drawingBase.Pos.Y  = posY;
                 this.drawingBase.ext.cx = extX;
                 this.drawingBase.ext.cy = extY;
-    
+
             this.handleUpdateExtents();
         }
     };
@@ -1062,12 +1066,12 @@
             }
         }
     };
-    
+
     CGraphicObjectBase.prototype.getWorksheet = function()
     {
         return this.worksheet;
     };
-    
+
     CGraphicObjectBase.prototype.getWorkbook = function()
     {
         var oWorksheet = this.getWorksheet();
