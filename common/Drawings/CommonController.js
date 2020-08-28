@@ -6523,6 +6523,7 @@ DrawingObjectsController.prototype =
         {
             var aSO, oSp;
             var worksheet = this.drawingObjects.getWorksheet();
+            var oWBView;
             if(worksheet)
             {
                 worksheet.endEditChart();
@@ -6623,6 +6624,12 @@ DrawingObjectsController.prototype =
                             }
                             this.resetInternalSelection();
                             this.recalculate();
+                            oWBView = Asc.editor && Asc.editor.wb;
+                            if(aSlicerNames.length > 0 && oWBView)
+                            {
+                                History.StartTransaction();
+                                oWBView.deleteSlicers(aSlicerNames);
+                            }
                             return;
                         }
                     }
@@ -6661,7 +6668,7 @@ DrawingObjectsController.prototype =
                 this.recalculate();
             }
             this.updateOverlay();
-            var oWBView = Asc.editor && Asc.editor.wb;
+            oWBView = Asc.editor && Asc.editor.wb;
             if(aSlicerNames.length > 0 && oWBView)
             {
                 History.StartTransaction();

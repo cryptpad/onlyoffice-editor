@@ -679,18 +679,21 @@ DrawingObjectsController.prototype.onKeyPress = function(e)
         {
             return;
         }
+        var aSlicerView = [];
+
         for(i = 0; i < aCopies.length; ++i)
         {
-            oDrawing = aCopies[i];
-            if(oDrawing.getObjectType() === AscDFH.historyitem_type_SlicerView)
+            aCopies[i].getAllSlicerViews(aSlicerView);
+        }
+        for(i = 0; i < aSlicerView.length; ++i)
+        {
+            oDrawing = aSlicerView[i];
+            sSlicerViewName = oDrawing.getName();
+            oSlicer = oWB.getSlicerByName(sSlicerViewName);
+            if(oSlicer)
             {
-                sSlicerViewName = oDrawing.getName();
-                oSlicer = oWB.getSlicerByName(sSlicerViewName);
-                if(oSlicer)
-                {
-                    aSlicers.push(oSlicer);
-                    aSlicerViewNames.push(sSlicerViewName);
-                }
+                aSlicers.push(oSlicer);
+                aSlicerViewNames.push(sSlicerViewName);
             }
         }
         if(aSlicers.length > 0)
@@ -705,7 +708,6 @@ DrawingObjectsController.prototype.onKeyPress = function(e)
                     return;
                 }
                 History.EndTransaction();
-                var aSelectedObjects = oThis.getSelectedArray();
                 var i, j;
                 var oDrawing;
                 var sOldSlicerName, sNewSlicerName;
@@ -713,17 +715,14 @@ DrawingObjectsController.prototype.onKeyPress = function(e)
                 {
                     sOldSlicerName = aSlicerViewNames[i];
                     sNewSlicerName = aSlicerNames[i];
-                    for(j = 0; j < aSelectedObjects.length; ++j)
+                    for(j = 0; j < aSlicerView.length; ++j)
                     {
-                        oDrawing = aSelectedObjects[j];
-                        if(oDrawing.getObjectType() === AscDFH.historyitem_type_SlicerView)
+                        oDrawing = aSlicerView[j];
+                        if(oDrawing.getName() === sOldSlicerName)
                         {
-                            if(oDrawing.getName() === sOldSlicerName)
-                            {
-                                oDrawing.setName(sNewSlicerName);
-                                oDrawing.onDataUpdate();
-                                break;
-                            }
+                            oDrawing.setName(sNewSlicerName);
+                            oDrawing.onDataUpdate();
+                            break;
                         }
                     }
                 }
