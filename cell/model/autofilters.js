@@ -3694,7 +3694,7 @@
 				return range;
 			},
 
-			expandRange: function(activeRange, ignoreFilter) {
+			expandRange: function(activeRange, ignoreFilter, doNotCheckEmpty) {
 				var ws = this.worksheet;
 
 				//если вдруг встретили мерженную ячейку в диапазоне, расширяем
@@ -3729,12 +3729,24 @@
 						range3 = ws.getRange3(union.r1, union.c1, union.r2, union.c2);
 					}
 
-					range3._foreachNoEmpty(function (cell) {
-						if (!cell.isEmptyTextString()) {
+					if (range3.bbox.r2-range3.bbox.r1 < range3.bbox.c2-range3.bbox.c1) {
+						range3._foreachRowNoEmpty(function() {
 							res = false;
-							return null;
-						}
-					});
+						});
+					} else {
+						range3._foreachColNoEmpty(function() {
+							res = false;
+						});
+					}
+
+					if (res) {
+						range3._foreachNoEmpty(function (cell) {
+							if (!cell.isEmptyTextString()) {
+								res = false;
+								return null;
+							}
+						});
+					}
 
 					return res;
 				};
@@ -3934,7 +3946,7 @@
 				}
 
 				//проверяем на наличие пустых колонок/строк
-				return this.checkEmptyAreas(range, rangeAfterTableCrop);
+				return doNotCheckEmpty ? range : this.checkEmptyAreas(range, rangeAfterTableCrop);
 			},
 
 			checkEmptyAreas: function(range, rangeAfterTableCrop) {
@@ -3961,12 +3973,24 @@
 						range3 = ws.getRange3(union.r1, union.c1, union.r2, union.c2);
 					}
 
-					range3._foreachNoEmpty(function (cell) {
-						if (!cell.isEmptyTextString()) {
+					if (range3.bbox.r2-range3.bbox.r1 < range3.bbox.c2-range3.bbox.c1) {
+						range3._foreachRowNoEmpty(function() {
 							res = false;
-							return null;
-						}
-					});
+						});
+					} else {
+						range3._foreachColNoEmpty(function() {
+							res = false;
+						});
+					}
+
+					if (res) {
+						range3._foreachNoEmpty(function (cell) {
+							if (!cell.isEmptyTextString()) {
+								res = false;
+								return null;
+							}
+						});
+					}
 
 					return res;
 				};
@@ -4243,7 +4267,7 @@
 				if (!isTablePart /*&& filter.isApplyAutoFilter() === false*/)//нужно подхватить нижние ячейки
 				{
 					//TODO стоит заменить на expandRange ?
-					var automaticRange = this.expandRange(filter.Ref, true);
+					var automaticRange = this.expandRange(filter.Ref, true, true);
 					automaticRowCount = automaticRange.r2;
 
 					if (automaticRowCount > maxFilterRow) {
