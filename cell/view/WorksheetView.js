@@ -20522,6 +20522,21 @@
 			obj = slicerCache.getFilterObj();
 		}
 
+		var checkFilterItems = function (_elems, _setItemsVisible) {
+			if (_elems) {
+				for (var i = 0; i < _elems.length; i++) {
+					if (!_setItemsVisible && _elems[i].visible === true) {
+						return true;
+					}
+					if (_setItemsVisible) {
+						_elems[i].visible = true;
+					}
+				}
+				return false;
+			}
+			return true;
+		};
+
 		var createSimpleFilterOptions = function () {
 			//get values
 			var colId = obj.colId;
@@ -20537,6 +20552,10 @@
 
 			//set menu object
 			var autoFilterObject = new Asc.AutoFiltersOptions();
+
+			if (!checkFilterItems(val)) {
+				checkFilterItems(val, true);
+			}
 
 			autoFilterObject.asc_setCellId(cellId);
 			autoFilterObject.asc_setValues(val);
