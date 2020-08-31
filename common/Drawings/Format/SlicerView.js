@@ -756,6 +756,7 @@
         if(!this.header) {
             this.header = new CHeader(this);
         }
+        this.header.worksheet = this.worksheet;
         this.header.setRecalculateInfo();
         this.header.recalculate();
     };
