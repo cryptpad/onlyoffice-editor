@@ -2672,8 +2672,9 @@ CGraphicObjects.prototype =
         var nPageIndex = objects_for_grouping[0].parent.pageIndex;
         for(i = 0; i < objects_for_grouping.length; ++i)
         {
-            objects_for_grouping[i].parent.PreDelete();
+			objects_for_grouping[i].parent.bNotPreDelete = true;
             objects_for_grouping[i].parent.Remove_FromDocument(false);
+			objects_for_grouping[i].parent.bNotPreDelete = undefined;
             if(objects_for_grouping[i].setParent){
                 objects_for_grouping[i].setParent(null);
             }
@@ -2745,8 +2746,10 @@ CGraphicObjects.prototype =
                 parent_paragraph = cur_group.parent.Get_ParentParagraph();
                 page_num = cur_group.selectStartPage;
                 cur_group.normalize();
-                cur_group.parent.PreDelete();
+				
+				cur_group.parent.bNotPreDelete = true;
                 cur_group.parent.Remove_FromDocument(false);
+				cur_group.parent.bNotPreDelete = undefined;
                 cur_group.setBDeleted(true);
                 sp_tree = cur_group.spTree;
                 aPos = arrCenterPos[i];

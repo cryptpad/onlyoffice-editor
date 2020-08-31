@@ -1795,7 +1795,7 @@ ParaDrawing.prototype.Add_ToDocument = function(NearPos, bRecalculate, RunPr, Ru
 	NearPos.Paragraph.Parent.InsertContent(SelectedContent, NearPos);
 	NearPos.Paragraph.Clear_NearestPosArray();
 	NearPos.Paragraph.Correct_Content();
-
+	this.Set_Parent(NearPos.Paragraph);
 	if (false != bRecalculate)
 		LogicDocument.Recalculate();
 };
@@ -1805,6 +1805,7 @@ ParaDrawing.prototype.Add_ToDocument2 = function(Paragraph)
 	DrawingRun.Add_ToContent(0, this);
 
 	Paragraph.Add_ToContent(0, DrawingRun);
+	this.Set_Parent(Paragraph);
 };
 ParaDrawing.prototype.UpdateCursorType = function(X, Y, PageIndex)
 {
@@ -2845,6 +2846,10 @@ ParaDrawing.prototype.UpdateBookmarks = function(oManager)
 };
 ParaDrawing.prototype.PreDelete = function()
 {
+	if(this.bNotPreDelete === true) {
+		//TODO: remove
+		return;
+	} 
 	var arrDocContents = this.GetAllDocContents();
 	for (var nIndex = 0, nCount = arrDocContents.length; nIndex < nCount; ++nIndex)
 	{
