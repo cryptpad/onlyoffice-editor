@@ -714,7 +714,8 @@ RotateState.prototype =
                         {
                             this.drawingObjects.resetSelection();
                             this.drawingObjects.document.StartAction(AscDFH.historydescription_Document_RotateFlowDrawingCtrl);
-                            for(i = 0; i < this.drawingObjects.arrTrackObjects.length; ++i)
+                            var aDrawingsToAdd = [];
+							for(i = 0; i < this.drawingObjects.arrTrackObjects.length; ++i)
                             {
                                 bounds = aBounds[i];
                                 para_drawing = aDrawings[i].Copy();
@@ -723,19 +724,31 @@ RotateState.prototype =
                                     para_drawing.GraphicObj.copyComments(this.drawingObjects.document);
                                 }
                                 para_drawing.Set_RelativeHeight(this.drawingObjects.getZIndex());
+								aDrawingsToAdd.push(para_drawing);
                                 if(aDrawings[i].Locked !== true)
                                 {
                                     aNearestPos[i].Paragraph.Check_NearestPos(aNearestPos[i]);
                                     para_drawing.Set_XYForAdd(bounds.posX, bounds.posY, aNearestPos[i], pageIndex);
-                                    para_drawing.Add_ToDocument(aNearestPos[i], false);
                                 }
                                 else
                                 {
                                     para_drawing.Set_XY(bounds.posX, bounds.posY, aDrawings[i].Get_ParentParagraph(), pageIndex, true);
+                                }
+                            }
+							for(i = 0; i < aDrawingsToAdd.length; ++i)
+							{
+								para_drawing = aDrawingsToAdd[i];
+								if(aDrawings[i].Locked !== true)
+                                {
+                                    aNearestPos[i].Paragraph.Check_NearestPos(aNearestPos[i]);
+                                    para_drawing.Add_ToDocument(aNearestPos[i], false);
+                                }
+                                else
+                                {
                                     para_drawing.Add_ToDocument2(aDrawings[i].Get_ParentParagraph());
                                 }
                                 this.drawingObjects.selectObject(para_drawing.GraphicObj, pageIndex);
-                            }
+							}
                             this.drawingObjects.document.Recalculate();
                             this.drawingObjects.document.FinalizeAction();
                         }
