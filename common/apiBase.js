@@ -3001,7 +3001,10 @@
 	};
 	baseEditorsApi.prototype.getShortcut = function(e)
 	{
-		return this.Shortcuts.Get(e.GetKeyCode(), e.IsCtrl(), e.IsShift(), e.IsAlt());
+		if (e.GetKeyCode)
+			return this.Shortcuts.Get(e.GetKeyCode(), e.IsCtrl(), e.IsShift(), e.IsAlt());
+		else
+			return this.Shortcuts.Get(e.KeyCode, e.CtrlKey, e.ShiftKey, e.AltKey);
 	};
 	baseEditorsApi.prototype.asc_initShortcuts = baseEditorsApi.prototype.initShortcuts;
 	//----------------------------------------------------------addons----------------------------------------------------
