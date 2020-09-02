@@ -2308,7 +2308,10 @@ DrawingObjectsController.prototype =
                     {
                         var paragraph = this.selectedObjects[0].parent.Get_ParentParagraph();
                         anchor_pos = paragraph.Get_AnchorPos(this.selectedObjects[0].parent);
-                        drawingDocument.AutoShapesTrack.drawFlowAnchor(anchor_pos.X, anchor_pos.Y);
+						if(anchor_pos)
+						{
+							drawingDocument.AutoShapesTrack.drawFlowAnchor(anchor_pos.X, anchor_pos.Y);
+						}
                     }
                 }
             }

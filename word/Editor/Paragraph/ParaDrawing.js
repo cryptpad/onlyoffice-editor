@@ -1301,7 +1301,7 @@ ParaDrawing.prototype.Update_Position = function(Paragraph, ParaLayout, PageLimi
 		this.PositionV.Percent      = this.PositionV_Old.Percent2;
 	}
 
-	var oDocumentContent = this.Parent.Parent;
+	var oDocumentContent = this.Parent && this.Parent.Parent;
 	if (oDocumentContent && oDocumentContent.IsBlockLevelSdtContent())
 		oDocumentContent = oDocumentContent.Parent.Parent;
 
@@ -1661,6 +1661,10 @@ ParaDrawing.prototype.CanInsertToPos = function(oAnchorPos)
 };
 ParaDrawing.prototype.OnEnd_MoveInline = function(NearPos)
 {
+	if(!this.Parent)
+	{
+		return;
+	}
 	NearPos.Paragraph.Check_NearestPos(NearPos);
 
 	var oRun        = this.Parent.Get_DrawingObjectRun(this.GetId());
@@ -1705,6 +1709,10 @@ ParaDrawing.prototype.GoTo_Text = function(bBefore, bUpdateStates)
 ParaDrawing.prototype.Remove_FromDocument = function(bRecalculate)
 {
 	var oResult = null;
+	if(!this.Parent)
+	{
+		return oResult;
+	}
 
 	var oRun = this.Parent.Get_DrawingObjectRun(this.Id);
 	if (oRun)
@@ -1843,6 +1851,10 @@ ParaDrawing.prototype.UpdateCursorType = function(X, Y, PageIndex)
 };
 ParaDrawing.prototype.Get_AnchorPos = function()
 {
+	if(!this.Parent)
+	{
+		return null;
+	}
 	return this.Parent.Get_AnchorPos(this);
 };
 ParaDrawing.prototype.CheckRecalcAutoFit = function(oSectPr)
@@ -2857,7 +2869,7 @@ ParaDrawing.prototype.PreDelete = function()
 	if(this.bNotPreDelete === true) {
 		//TODO: remove
 		return;
-	} 
+	}
 	var arrDocContents = this.GetAllDocContents();
 	for (var nIndex = 0, nCount = arrDocContents.length; nIndex < nCount; ++nIndex)
 	{
