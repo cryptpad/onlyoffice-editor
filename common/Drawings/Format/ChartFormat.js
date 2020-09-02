@@ -2051,6 +2051,7 @@ function CDLbl()
                  break;
              }
         }
+		ret.vert = nVert;
         return ret;
     };
 
