@@ -2516,7 +2516,7 @@ function CDrawingDocument()
 	this.Set_RulerState_Columns = function (markup)
 	{
 		this.TabButtonEnable(true);
-		
+
 		var hor_ruler = this.m_oWordControl.m_oHorRuler;
 		var ver_ruler = this.m_oWordControl.m_oVerRuler;
 
@@ -3441,7 +3441,7 @@ function CDrawingDocument()
 	{
         var oWordControl = this.m_oWordControl;
 		var bIsReturn = false;
-		
+
         if (this.placeholders.onPointerDown(pos, this.SlideCurrectRect, this.m_oLogicDocument.Width, this.m_oLogicDocument.Height))
             bIsReturn = true;
 
@@ -5180,7 +5180,7 @@ function CThumbnailsManager()
 						var _presentation = this.m_oWordControl.m_oLogicDocument;
 						History.Create_NewPoint(AscDFH.historydescription_Presentation_MoveSlidesToEnd);
 						var _selection_array = this.GetSelectedArray();
-						_presentation.moveSlides(_selection_array, _presentation.Slides.length);
+						_presentation.moveSlides(_selection_array, _presentation.Slides.length - _selection_array.length);
 						_presentation.Recalculate();
 						_presentation.Document_UpdateInterfaceState();
 					}
@@ -5219,7 +5219,7 @@ function CThumbnailsManager()
 							History.Create_NewPoint(AscDFH.historydescription_Presentation_MoveSlidesNextPos);
 							for (var i = first_index; i > -1; --i)
 							{
-								_presentation.moveSlides([_selected_array[i]], _selected_array[i] + 2);
+								_presentation.moveSlides([_selected_array[i]], _selected_array[i] + 1);
 							}
 							_presentation.Recalculate();
 							_presentation.Document_UpdateInterfaceState();

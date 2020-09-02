@@ -9532,9 +9532,6 @@ CPresentation.prototype.moveSlides = function (slidesIndexes, pos) {
     var removed_slides = [];
     for (var i = slidesIndexes.length - 1; i > -1; --i) {
         removed_slides.push(this.removeSlide(slidesIndexes[i]));
-        if (slidesIndexes[i] < pos) {
-            --insert_pos;
-        }
     }
     removed_slides.reverse();
     for (i = 0; i < removed_slides.length; ++i) {
