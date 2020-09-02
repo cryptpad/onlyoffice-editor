@@ -1082,6 +1082,9 @@
 		this.endRecalcDocument = false;//для документов, закончен ли пересчет документа. нужно, чтобы грамотно рассчитать позицию иконки с/в
 		this.doNotShowButton = false;
 		this.visiblePasteButton = true;
+
+		//активный диапазон до первой вставки
+		this.selectionRange = null;
 	}
 
 	CSpecialPasteHelper.prototype = {

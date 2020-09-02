@@ -11194,8 +11194,11 @@
 			window['AscCommon'].g_specialPasteHelper.Paste_Process_Start();
 			window['AscCommon'].g_specialPasteHelper.Special_Paste_Start();
 
-
+			//тут нужно откатить селект
 			api.asc_Undo();
+			if (specialPasteHelper.selectionRange) {
+				t.model.selectionRange = specialPasteHelper.selectionRange.clone();
+			}
 
 			//транзакция закроется в end_paste
 			History.Create_NewPoint();
@@ -11230,6 +11233,10 @@
 			return;
 		}
 
+		if (!specialPasteHelper.specialPasteStart) {
+			specialPasteHelper.selectionRange = this.model.selectionRange ? this.model.selectionRange.clone() : null;
+		}
+		
 		var callTrigger = false;
 		if (isLargeRange) {
 			callTrigger = true;
