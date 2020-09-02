@@ -4546,6 +4546,7 @@ background-repeat: no-repeat;\
 			this.m_sGuid      = (undefined != obj.m_sGuid     ) ? obj.m_sGuid : AscCommon.CreateGUID();
 			this.m_nTimeZoneBias= (undefined != obj.m_nTimeZoneBias) ? obj.m_nTimeZoneBias : null;
 			this.bDocument    = (undefined != obj.bDocument   ) ? obj.bDocument : false;
+			this.m_sUserData  = (undefined != obj.m_sUserData ) ? obj.m_sUserData : ""; // For compatibility with 'Word Comment Control'
 			this.m_aReplies   = [];
 			if (undefined != obj.m_aReplies)
 			{
@@ -4568,8 +4569,9 @@ background-repeat: no-repeat;\
 			this.m_sUserName  = "";
 			this.m_sGuid      = AscCommon.CreateGUID();
 			this.m_nTimeZoneBias =  null;
-			this.m_aReplies   = [];
 			this.bDocument    = false;
+			this.m_sUserData  = "";
+			this.m_aReplies   = [];
 		}
 	}
 
@@ -4665,6 +4667,14 @@ background-repeat: no-repeat;\
 	asc_CCommentData.prototype.asc_getDocumentFlag = function()
 	{
 		return this.bDocument;
+	};
+	asc_CCommentData.prototype.asc_putUserData        = function(v)
+	{
+		this.m_sUserData = v;
+	};
+	asc_CCommentData.prototype.asc_getUserData = function()
+	{
+		return this.m_sUserData;
 	};
 
 	asc_docs_api.prototype.asc_showComments = function()
@@ -7990,6 +8000,8 @@ background-repeat: no-repeat;\
 	asc_CCommentData.prototype['asc_getRepliesCount'] = asc_CCommentData.prototype.asc_getRepliesCount;
 	asc_CCommentData.prototype["asc_putDocumentFlag"] = asc_CCommentData.prototype.asc_putDocumentFlag;
 	asc_CCommentData.prototype["asc_getDocumentFlag"] = asc_CCommentData.prototype.asc_getDocumentFlag;
+	asc_CCommentData.prototype["asc_putUserData"]     = asc_CCommentData.prototype.asc_putUserData;
+	asc_CCommentData.prototype["asc_getUserData"]     = asc_CCommentData.prototype.asc_getUserData;
 
 	window['AscCommonSlide'].CContextMenuData         = CContextMenuData;
 	CContextMenuData.prototype['get_Type']            = CContextMenuData.prototype.get_Type;
