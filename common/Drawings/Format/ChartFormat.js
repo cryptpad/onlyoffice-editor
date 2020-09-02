@@ -141,7 +141,7 @@ function (window, undefined) {
     drawingsChangesMap[AscDFH.historyitem_SerAxSetCrossAx]                    = function(oClass, value){oClass.crossAx        = value;};
     drawingsChangesMap[AscDFH.historyitem_SerAxSetCrosses]                    = function(oClass, value){oClass.crosses        = value;};
     drawingsChangesMap[AscDFH.historyitem_SerAxSetCrossesAt]                  = function(oClass, value){oClass.crossesAt      = value;};
-    drawingsChangesMap[AscDFH.historyitem_SerAxSetDelete]                     = function(oClass, value){oClass.delete         = value;};
+    drawingsChangesMap[AscDFH.historyitem_SerAxSetDelete]                     = function(oClass, value){oClass.bDelete         = value;};
     drawingsChangesMap[AscDFH.historyitem_SerAxSetMajorGridlines]             = function(oClass, value){oClass.majorGridlines = value;};
     drawingsChangesMap[AscDFH.historyitem_SerAxSetMajorTickMark]              = function(oClass, value){oClass.majorTickMark  = value;};
     drawingsChangesMap[AscDFH.historyitem_SerAxSetMinorGridlines]             = function(oClass, value){oClass.minorGridlines = value;};
@@ -272,7 +272,7 @@ function (window, undefined) {
     drawingsChangesMap[AscDFH.historyitem_Legend_SetOverlay]                  = function(oClass, value){oClass.overlay   = value;};
     drawingsChangesMap[AscDFH.historyitem_Legend_SetSpPr]                     = function(oClass, value){oClass.spPr      = value;};
     drawingsChangesMap[AscDFH.historyitem_Legend_SetTxPr]                     = function(oClass, value){oClass.txPr      = value;};
-    drawingsChangesMap[AscDFH.historyitem_LegendEntry_SetDelete]              = function(oClass, value){oClass.delete = value;};
+    drawingsChangesMap[AscDFH.historyitem_LegendEntry_SetDelete]              = function(oClass, value){oClass.bDelete = value;};
     drawingsChangesMap[AscDFH.historyitem_LegendEntry_SetIdx]                 = function(oClass, value){oClass.idx    = value;};
     drawingsChangesMap[AscDFH.historyitem_LegendEntry_SetTxPr]                = function(oClass, value){oClass.txPr   = value;};
     drawingsChangesMap[AscDFH.historyitem_LineChart_SetDLbls]                 = function(oClass, value){oClass.dLbls      = value;};
