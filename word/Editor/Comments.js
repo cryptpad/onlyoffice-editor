@@ -354,7 +354,7 @@ CCommentData.prototype.ReadFromSimpleObject = function(oData)
 
 	if (oData["Replies"] && oData["Replies"].length)
 	{
-		for (var nIndex = 0, nCount = this.m_aReplies.length; nIndex < nCount; ++nIndex)
+		for (var nIndex = 0, nCount = oData["Replies"].length; nIndex < nCount; ++nIndex)
 		{
 			var oCD = new CCommentData();
 			oCD.ReadFromSimpleObject(oData["Replies"][nIndex]);
