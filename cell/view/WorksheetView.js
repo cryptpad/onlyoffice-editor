@@ -13665,7 +13665,7 @@
 		}
 	};
 
-    WorksheetView.prototype.onChangeWidthCallback = function (col, r1, r2, onlyIfMore) {
+    WorksheetView.prototype._autoFitColumnWidth = function (col, r1, r2, onlyIfMore) {
         var width = null;
         var row, ct, c, fl, str, maxW, tm, mc, isMerged, oldWidth, oldColWidth;
         var lastHeight = null;
@@ -13749,7 +13749,7 @@
         }
 
         if (cc === oldColWidth || (onlyIfMore && cc < oldColWidth)) {
-            return -1;
+            return false;
         }
 
         History.Create_NewPoint();
@@ -13767,20 +13767,14 @@
 		cw = this.model.charCountToModelColWidth(cc);
         this.model.setColBestFit(true, cw, col, col);
         History.EndTransaction();
-        return oldColWidth !== cc ? cw : -1;
+        if (oldColWidth !== cc) {
+			this._calcColWidth(0, col);
+			this._cleanCache(new asc_Range(col, 0, col, this.rows.length - 1));
+			return true;
+		}
+        return false;
     };
 
-    WorksheetView.prototype._autoFitColumnWidth = function (col) {
-    	var res = false;
-		var w = this.onChangeWidthCallback(col, null, null);
-		if (-1 !== w) {
-			this._calcColWidth(0, col);
-			res = true;
-
-			this._cleanCache(new asc_Range(col, 0, col, this.rows.length - 1));
-		}
-		return res;
-	};
     WorksheetView.prototype.autoFitColumnsWidth = function (col) {
 		var viewMode = this.handlers.trigger('getViewMode');
         var t = this;
@@ -13801,7 +13795,7 @@
 			History.StartTransaction();
 
 			if (null !== col) {
-				if (t._autoFitColumnWidth(col)) {
+				if (t._autoFitColumnWidth(col, null, null)) {
 					bUpdate = true;
 				}
 			} else {
@@ -13809,7 +13803,7 @@
 					c1 = selectionRanges[i].c1;
 					c2 = Math.min(selectionRanges[i].c2, max);
 					for (; c1 <= c2; ++c1) {
-						if (t._autoFitColumnWidth(c1)) {
+						if (t._autoFitColumnWidth(c1, null, null)) {
 							bUpdate = true;
 						}
 					}
@@ -15487,13 +15481,10 @@
 		this._calcHeightRows(AscCommonExcel.recalcType.newLines);
 		this._calcWidthColumns(AscCommonExcel.recalcType.newLines);
 
-        var i, r = range.r1, bIsUpdate = false, w;
+        var i, r = range.r1, bIsUpdate = false;
         // AutoFit column with by headers of table
         for (i = range.c1; i <= range.c2; ++i) {
-            w = this.onChangeWidthCallback(i, r, r, /*onlyIfMore*/true);
-            if (-1 !== w) {
-				this._calcColWidth(0, i);
-                this._cleanCache(new asc_Range(i, 0, i, this.rows.length - 1));
+            if (this._autoFitColumnWidth(i, r, r, true)) {
                 bIsUpdate = true;
             }
         }
