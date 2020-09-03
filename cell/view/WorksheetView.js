@@ -13732,7 +13732,7 @@
 				calcWidth = Math.abs(ct.metrics.width * angleCos) +  Math.abs(ct.metrics.height * angleSin);
                 filterButton = this.af_getSizeButton(col, row);
 				if (null !== filterButton && CellValueType.String === ct.cellType) {
-					width += filterButton.width;
+					calcWidth += filterButton.width;
 				}
             }
 			width = Math.max(width, calcWidth);
