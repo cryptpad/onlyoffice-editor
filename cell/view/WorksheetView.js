@@ -13697,12 +13697,10 @@
                 }
             }
 
-            var align = this._getCell(col, row).getAlign();
-            var angle = align.getAngle();
-            var angleSin = Math.sin(angle * Math.PI / 180.0);
-            var angleCos = Math.cos(angle * Math.PI / 180.0);
-            var calcWidth;
+            var angleSin = Math.sin(ct.angle * Math.PI / 180.0);
+            var angleCos = Math.cos(ct.angle * Math.PI / 180.0);
 
+            var calcWidth;
             if (ct.metrics.height > this.maxRowHeightPx) {
                 if (isMerged) {
                     continue;
