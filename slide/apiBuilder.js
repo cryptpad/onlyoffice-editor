@@ -361,7 +361,7 @@
      * Create a new slide layout and adds it to the slide master if it specified.
      * @typeofeditors ["CPE"]
      * @memberof Api
-     * @param {ApiMaster} [oMaster = null] - parent master slide.
+     * @param {ApiMaster} [oMaster = null] - parent slide master.
      * @returns {ApiLayout}
      */
     Api.prototype.CreateLayout = function(oMaster){
@@ -685,6 +685,7 @@
             switch (drawing.getObjectType())
             {
                 case AscDFH.historyitem_type_ChartSpace:
+                case AscDFH.historyitem_type_GraphicFrame:
                 { 
                     if(!drawing.nvGraphicFramePr)
                     {
@@ -720,6 +721,7 @@
                     break;
                 }
                 case AscDFH.historyitem_type_Shape:
+                case AscDFH.historyitem_type_Cnx:
                 {
                     if(!drawing.nvSpPr)
                     {
@@ -749,14 +751,14 @@
         if (!oPlaceholder || !oPlaceholder.GetClassType || oPlaceholder.GetClassType() !== "placeholder")
             return false;
         
-        var allShapes            = object.GetAllShapes();
+        var allDrawings          = object.GetAllDrawings();
         var maxIndex             = 0;
         var oTempPlaceholder     = null;
         var noIdxPlaceholders    = [];
 
-        for (var nShape = 0; nShape < allShapes.length; nShape++)
+        for (var nDrawing = 0; nDrawing < allDrawings.length; nDrawing++)
         {
-            oTempPlaceholder = allShapes[nShape].GetPlaceholder();
+            oTempPlaceholder = allDrawings[nDrawing].GetPlaceholder();
 
             if (oTempPlaceholder.Placeholder.type === oPlaceholder.Placeholder.type)
             {
@@ -1032,7 +1034,7 @@
     };
 
     /**
-     * Gets a layout of specified master slide by position .
+     * Gets a layout of specified slide master by position .
      * @typeofeditors ["CPE"]
      * @param {number} nPos
      * @returns {ApiLayout | null} - returns null if position is invalid.
@@ -1046,9 +1048,9 @@
     };
 
     /**
-     * Adds the layout to specified master slide .
+     * Adds the layout to specified slide master.
      * @typeofeditors ["CPE"]
-     * @param {number} [nPos       = ApiMaster.GetLayoutCount()] - position to add.
+     * @param {number} [nPos = ApiMaster.GetLayoutCount()] - position to add.
      * @param {ApiLayout} oLayout
      * @returns {bool} - returns false if param isn't layout
      */
@@ -1066,7 +1068,7 @@
     };
 
     /**
-     * Removes the layouts from this master slide.
+     * Removes the layouts from this slide master.
      * @typeofeditors ["CPE"]
      * @param {number} nPos - position from which to delete
      * @param {number} [nCount = 1] - count of elements for delete.
@@ -1079,7 +1081,7 @@
         {
             if (nPos >= 0 && nPos < this.Master.sldLayoutLst.length)
             {
-                if (nCount <= 0 || nCount > this.GetLayoutsCount())
+                if (!nCount || nCount <= 0 || nCount > this.GetLayoutsCount())
                     nCount = 1;
 
                 this.Master.removeFromSldLayoutLstByPos(nPos, nCount);
@@ -1105,6 +1107,7 @@
      * @typeofeditors ["CPE"]
      * @memberof ApiSlide
      * @param {ApiDrawing} oDrawing - The object which will be added to the current slide master.
+     * @returns {bool} - returns false if slide master doesn't exist.
      */
     ApiMaster.prototype.AddObject = function(oDrawing)
     {
@@ -1112,13 +1115,12 @@
         {
             oDrawing.Drawing.setParent(this.Master);
             this.Master.shapeAdd(this.Master.cSld.spTree.length, oDrawing.Drawing);
+            editor.private_checkPlaceholders(this, oDrawing.GetPlaceholder());
 
-            if (oDrawing.Drawing.getObjectType() === AscDFH.historyitem_type_Shape)
-            {
-                var oShape = new ApiShape(oDrawing.Drawing);
-                editor.private_checkPlaceholders(this, oShape.GetPlaceholder());
-            }
+            return true;
         }
+
+        return false;
     };
 
     /**
@@ -1135,7 +1137,7 @@
         {
             if (nPos >= 0 && nPos < this.Master.cSld.spTree.length)
             {
-                if (nCount <= 0 || nCount > this.Master.cSld.spTree.length)
+                if (!nCount || nCount <= 0 || nCount > this.Master.cSld.spTree.length)
                     nCount = 1;
 
                 this.Master.shapeRemove(nPos, nCount);
@@ -1171,7 +1173,12 @@
         if (!this.Master)
             return false;
         
-        this.Master.changeBackground(editor.CreateNoFill().UniFill);
+        var apiNoFill = editor.CreateNoFill();
+        var bg        = new AscFormat.CBg();
+        bg.bgPr       = new AscFormat.CBgPr();
+        bg.bgPr.Fill  = apiNoFill.UniFill;
+        this.Master.changeBackground(bg);
+
         return true;
     };
 
@@ -1274,7 +1281,7 @@
      * @typeofeditors ["CPE"]
      * @returns {ApiDrawing[]} 
      * */
-    ApiMaster.prototype.GetDrawingObjects = function(){
+    ApiMaster.prototype.GetAllDrawings = function(){
         var apiDrawingObjects = [];
         if (this.Master)
         {
@@ -1383,6 +1390,7 @@
      * @typeofeditors ["CPE"]
      * @memberof ApiSlide
      * @param {ApiDrawing} oDrawing - The object which will be added to the current slide layout.
+     * @returns {bool} - returns false if slide layout doesn't exist.
      */
     ApiLayout.prototype.AddObject = function(oDrawing)
     {
@@ -1390,13 +1398,12 @@
         {
             oDrawing.Drawing.setParent(this.Layout);
             this.Layout.shapeAdd(this.Layout.cSld.spTree.length, oDrawing.Drawing);
+            editor.private_checkPlaceholders(this, oDrawing.GetPlaceholder());
 
-            if (oDrawing.Drawing.getObjectType() === AscDFH.historyitem_type_Shape)
-            {
-                var oShape = new ApiShape(oDrawing.Drawing);
-                editor.private_checkPlaceholders(this, oShape.GetPlaceholder());
-            }
+            return true;
         }
+
+        return false;
     };
 
     /**
@@ -1413,7 +1420,7 @@
         {
             if (nPos >= 0 && nPos < this.Layout.cSld.spTree.length)
             {
-                if (nCount <= 0 || nCount > this.Layout.cSld.spTree.length)
+                if (!nCount || nCount <= 0 || nCount > this.Layout.cSld.spTree.length)
                     nCount = 1;
 
                 this.Layout.shapeRemove(nPos, nCount);
@@ -1447,8 +1454,13 @@
     ApiLayout.prototype.ClearBackground = function(){
         if (!this.Layout)
             return false;
-        
-        this.Layout.changeBackground(editor.CreateNoFill().UniFill);
+
+        var apiNoFill = editor.CreateNoFill();
+        var bg        = new AscFormat.CBg();
+        bg.bgPr       = new AscFormat.CBgPr();
+        bg.bgPr.Fill  = apiNoFill.UniFill;
+        this.Layout.changeBackground(bg);
+
         return true;
     };
 
@@ -1535,18 +1547,16 @@
      * @returns {bool} - returns false if layout or parent slide master doesn't exist or position is invalid. 
      * */
     ApiLayout.prototype.MoveTo = function(nPos){
-        if (!this.Layout || this.Layout.Master)
+        if (!this.Layout || !this.Layout.Master)
             return false;
         if (nPos < 0 || nPos >= this.Layout.Master.sldLayoutLst.length)
             return false;
 
-        var oPresentation = editor.GetPresentation().Presentation;
-
-        for (var Index = 0; Index < oPresentation.Slides.length; Index++)
+        for (var Index = 0; Index < this.Layout.Master.sldLayoutLst.length; Index++)
         {
-            if (this.Slide.Id === oPresentation.Slides[Index].Id)
+            if (this.Layout.Id === this.Layout.Master.sldLayoutLst[Index].Id)
             {
-                oPresentation.moveLayouts([Index], nPos)
+                this.Layout.Master.moveLayouts([Index], nPos)
                 return true;
             }
         }
@@ -1557,7 +1567,7 @@
      * @typeofeditors ["CPE"]
      * @returns {ApiDrawing[]} 
      * */
-    ApiLayout.prototype.GetDrawingObjects = function(){
+    ApiLayout.prototype.GetAllDrawings = function(){
         var apiDrawingObjects = [];
         if (this.Layout)
         {
@@ -1627,6 +1637,18 @@
         }
            
         return apiCharts;
+    };
+
+    /**
+     * Gets parent slide master.
+     * @typeofeditors ["CPE"]
+     * @returns {?ApiMaster} - returns null if parent slide master doesn't exist.
+     * */
+    ApiLayout.prototype.GetMaster = function(){
+        if (this.Layout && this.Layout.Master)
+            return new ApiMaster(this.Layout.Master);
+           
+        return null;
     };
 
     //------------------------------------------------------------------------------------------------------------------
@@ -1763,7 +1785,7 @@
      */
     ApiTheme.prototype.GetColorScheme = function()
     {
-        if (this.ThemeInfo && this.ThemeInfo.Theme && this.ThemeInfo.themeElements)
+        if (this.ThemeInfo && this.ThemeInfo.Theme && this.ThemeInfo.Theme.themeElements)
         {
             return new ApiThemeColorScheme(this.ThemeInfo.Theme.themeElements.clrScheme);
         }
@@ -1795,7 +1817,7 @@
      */
     ApiTheme.prototype.GetFormatScheme = function()
     {
-        if (this.ThemeInfo && this.ThemeInfo.Theme && this.ThemeInfo.themeElements)
+        if (this.ThemeInfo && this.ThemeInfo.Theme && this.ThemeInfo.Theme.themeElements)
         {
             return new ApiThemeFormatScheme(this.ThemeInfo.Theme.themeElements.fmtScheme);
         }
@@ -1827,7 +1849,7 @@
      */
     ApiTheme.prototype.GetFontScheme = function()
     {
-        if (this.ThemeInfo && this.ThemeInfo.Theme && this.ThemeInfo.themeElements)
+        if (this.ThemeInfo && this.ThemeInfo.Theme && this.ThemeInfo.Theme.themeElements)
         {
             return new ApiThemeFontScheme(this.ThemeInfo.Theme.themeElements.fontScheme);
         }
@@ -2138,18 +2160,18 @@
      * @typeofeditors ["CPE"]
      * @memberof ApiSlide
      * @param {ApiDrawing} oDrawing - The object which will be added to the current presentation slide.
+     * @returns {bool} - returns false if slide doesn't exist.
      */
     ApiSlide.prototype.AddObject = function(oDrawing){
         if(this.Slide){
             oDrawing.Drawing.setParent(this.Slide);
             this.Slide.shapeAdd(this.Slide.cSld.spTree.length, oDrawing.Drawing);
+            editor.private_checkPlaceholders(this, oDrawing.GetPlaceholder());
 
-            if (oDrawing.Drawing.getObjectType() === AscDFH.historyitem_type_Shape)
-            {
-                var oShape = new ApiShape(oDrawing.Drawing);
-                editor.private_checkPlaceholders(this, oShape.GetPlaceholder());
-            }
+            return true;
         }
+
+        return false;
     };
 
     /**
@@ -2166,7 +2188,7 @@
         {
             if (nPos >= 0 && nPos < this.Slide.cSld.spTree.length)
             {
-                if (nCount <= 0 || nCount > this.Slide.cSld.spTree.length)
+                if (!nCount || nCount <= 0 || nCount > this.Slide.cSld.spTree.length)
                     nCount = 1;
 
                 this.Slide.shapeRemove(nPos, nCount);
@@ -2271,7 +2293,7 @@
 
         if (nPosToDelete > -1)
         {
-            oPresentation.removeSlide(nSlide);
+            oPresentation.removeSlide(nPosToDelete);
             return true;
         }
 
@@ -2368,7 +2390,12 @@
         if (!this.Slide)
             return false;
         
-        this.Slide.changeBackground(editor.CreateNoFill().UniFill);
+        var apiNoFill = editor.CreateNoFill();
+        var bg        = new AscFormat.CBg();
+        bg.bgPr       = new AscFormat.CBgPr();
+        bg.bgPr.Fill  = apiNoFill.UniFill;
+        this.Slide.changeBackground(bg);
+
         return true;
     };
 
@@ -2544,7 +2571,7 @@
             var oThemeLoadInfo     = new AscCommonSlide.CThemeLoadInfo();
             oThemeLoadInfo.Master  = this.Slide.Layout.Master;
             oThemeLoadInfo.Layouts = this.Slide.Layout.Master.sldLayoutLst;
-            oThemeLoadInfo.Layouts = this.Slide.Layout.Master.Theme;
+            oThemeLoadInfo.Theme   = this.Slide.Layout.Master.Theme;
 
             return new ApiTheme(oThemeLoadInfo);
         }
@@ -2557,7 +2584,7 @@
      * @typeofeditors ["CPE"]
      * @returns {ApiDrawing[]} 
      * */
-    ApiSlide.prototype.GetDrawingObjects = function(){
+    ApiSlide.prototype.GetAllDrawings = function(){
         var apiDrawingObjects = [];
         if (this.Slide)
         {
@@ -2766,7 +2793,7 @@
         var oParent = this.GetParent();
         if (this.Drawing && oParent)
         {
-            var drawingObjects = oParent.GetDrawingObjects();
+            var drawingObjects = oParent.GetAllDrawings();
             for (var nDrawing = 0; nDrawing < drawingObjects.length; nDrawing++)
             {
                 if (this.Drawing.Id === drawingObjects[nDrawing].Drawing.Id)
@@ -2780,6 +2807,99 @@
         return false;
     };
 
+    /**
+     * Sets the specified placeholder to the shape.
+     * @typeofeditors ["CPE"]
+     * @param {ApiPlaceholder} oPlaceholder - The type of the vertical alignment for the shape inner contents.
+     * @returns {bool} - returns false if param doesn't placeholder.
+     */
+    ApiDrawing.prototype.SetPlaceholder = function(oPlaceholder)
+    {
+        if (!this.Drawing || !oPlaceholder || !oPlaceholder.GetClassType || !oPlaceholder.GetClassType() === "placeholder")
+            return false;
+
+        var drawingNvPr = null;
+
+        var drawingParent       = this.GetParent();
+        var allDrawingsInParent = null;
+
+        editor.private_checkDrawingUniNvPr(this);
+
+        switch (this.Drawing.getObjectType())
+        {
+            case AscDFH.historyitem_type_ChartSpace:
+            case AscDFH.historyitem_type_GraphicFrame:
+                drawingNvPr = this.Drawing.nvGraphicFramePr.nvPr;
+                break;
+            case AscDFH.historyitem_type_GroupShape:
+                drawingNvPr = this.Drawing.nvGrpSpPr;
+                break;
+            case AscDFH.historyitem_type_ImageShape:
+            case AscDFH.historyitem_type_OleObject:
+                drawingNvPr = this.Drawing.nvPicPr.nvPr;
+                break;
+            case AscDFH.historyitem_type_Shape:
+            case AscDFH.historyitem_type_Cnx:
+                drawingNvPr = this.Drawing.nvSpPr.nvPr;
+                break;
+        }
+
+        if (!drawingNvPr)
+            return false;
+
+        drawingNvPr.setPh(oPlaceholder.Placeholder);
+        if (drawingParent)
+        {
+            allDrawingsInParent = drawingParent.GetAllDrawings();
+            for (var nDrawing = 0; nDrawing < allDrawingsInParent.length; nDrawing++)
+            {
+                if (allDrawingsInParent[nDrawing].Drawing.Id === this.Drawing.Id)
+                {
+                    editor.private_checkPlaceholders(drawingParent, oPlaceholder);
+                    break;
+                }
+            }
+        }
+
+        return true;
+    };
+
+    /**
+     * Gets the placeholder of the specified shape.
+     * @typeofeditors ["CPE"]
+     * @returns {ApiPlaceholder | null} - returns null if placeholder doesn't exist.
+     */
+    ApiDrawing.prototype.GetPlaceholder = function()
+    {
+        var oPh = null;
+
+        if (this.Drawing)
+        {
+            editor.private_checkDrawingUniNvPr(this);
+            switch (this.Drawing.getObjectType())
+            {
+                case AscDFH.historyitem_type_ChartSpace:
+                case AscDFH.historyitem_type_GraphicFrame:
+                    oPh = this.Drawing.nvGraphicFramePr.nvPr.ph;
+                    break;
+                case AscDFH.historyitem_type_GroupShape:
+                    oPh = this.Drawing.nvGrpSpPr.ph;
+                case AscDFH.historyitem_type_ImageShape:
+                case AscDFH.historyitem_type_OleObject:
+                    oPh = this.Drawing.nvPicPr.nvPr.ph;
+                    break;
+                case AscDFH.historyitem_type_Shape:
+                case AscDFH.historyitem_type_Cnx:
+                    oPh = this.Drawing.nvSpPr.nvPr.ph;
+                    break;
+            }
+        }
+
+        if (oPh)
+            return new ApiPlaceholder(oPh);
+
+        return null;
+    };
 
     //------------------------------------------------------------------------------------------------------------------
     //
@@ -2872,53 +2992,6 @@
                 }
             }
         }
-    };
-
-    /**
-     * Sets the specified placeholder to the shape.
-     * @typeofeditors ["CPE"]
-     * @param {ApiPlaceholder} oPlaceholder - The type of the vertical alignment for the shape inner contents.
-     * @returns {bool} - returns false if param doesn't placeholder.
-     */
-    ApiShape.prototype.SetPlaceholder = function(oPlaceholder)
-    {
-        var shapeParent       = this.GetParent();
-        var allShapesInParent = null;
-        if (oPlaceholder && oPlaceholder.GetClassType && oPlaceholder.GetClassType() === "placeholder")
-        {
-            editor.private_checkDrawingUniNvPr(this);
-            this.Shape.nvSpPr.nvPr.setPh(oPlaceholder.Placeholder);
-
-            if (shapeParent)
-            {
-                allShapesInParent = shapeParent.GetAllShapes();
-                for (var nShape = 0; nShape < allShapesInParent.length; nShape++)
-                {
-                    if (allShapesInParent[nShape].Shape.Id === this.Shape.Id)
-                    {
-                        editor.private_checkPlaceholders(shapeParent, oPlaceholder);
-                        break;
-                    }
-                }
-            }
-
-            return true;
-        }
-
-        return false;
-    };
-
-    /**
-     * Gets the placeholder of the specified shape.
-     * @typeofeditors ["CPE"]
-     * @returns {ApiPlaceholder | null} - returns null if placeholder doesn't exist.
-     */
-    ApiShape.prototype.GetPlaceholder = function()
-    {
-        if (this.Shape && this.Shape.nvSpPr && this.Shape.nvSpPr.nvPr && this.Shape.nvSpPr.nvPr.ph)
-            return new ApiPlaceholder(this.Shape.nvSpPr.nvPr.ph);
-
-        return null;
     };
 
     //------------------------------------------------------------------------------------------------------------------
@@ -3802,11 +3875,12 @@
     ApiMaster.prototype["Delete"]                         = ApiMaster.prototype.Delete;
     ApiMaster.prototype["GetTheme"]                       = ApiMaster.prototype.GetTheme;
     ApiMaster.prototype["SetTheme"]                       = ApiMaster.prototype.SetTheme;
-    ApiMaster.prototype["GetDrawingObjects"]              = ApiMaster.prototype.GetDrawingObjects;
+    ApiMaster.prototype["GetAllDrawings"]                 = ApiMaster.prototype.GetAllDrawings;
     ApiMaster.prototype["GetAllShapes"]                   = ApiMaster.prototype.GetAllShapes;
     ApiMaster.prototype["GetAllImages"]                   = ApiMaster.prototype.GetAllImages;
     ApiMaster.prototype["GetAllCharts"]                   = ApiMaster.prototype.GetAllCharts;
-
+    
+    
     ApiLayout.prototype["GetClassType"]                   = ApiLayout.prototype.GetClassType;
     ApiLayout.prototype["SetName"]                        = ApiLayout.prototype.SetName;
     ApiLayout.prototype["AddObject"]                      = ApiLayout.prototype.AddObject;
@@ -3818,10 +3892,11 @@
     ApiLayout.prototype["Delete"]                         = ApiLayout.prototype.Delete;
     ApiLayout.prototype["Duplicate"]                      = ApiLayout.prototype.Duplicate;
     ApiLayout.prototype["MoveTo"]                         = ApiLayout.prototype.MoveTo;
-    ApiLayout.prototype["GetDrawingObjects"]              = ApiLayout.prototype.GetDrawingObjects;
+    ApiLayout.prototype["GetAllDrawings"]                 = ApiLayout.prototype.GetAllDrawings;
     ApiLayout.prototype["GetAllShapes"]                   = ApiLayout.prototype.GetAllShapes;
     ApiLayout.prototype["GetAllImages"]                   = ApiLayout.prototype.GetAllImages;
     ApiLayout.prototype["GetAllCharts"]                   = ApiLayout.prototype.GetAllCharts;
+    ApiLayout.prototype["GetMaster"]                      = ApiLayout.prototype.GetMaster;
 
     ApiPlaceholder.prototype["GetClassType"]              = ApiPlaceholder.prototype.GetClassType;
     ApiPlaceholder.prototype["SetType"]                   = ApiPlaceholder.prototype.SetType;
@@ -3871,7 +3946,7 @@
     ApiSlide.prototype["ApplyTheme"]                      = ApiSlide.prototype.ApplyTheme;
     ApiSlide.prototype["GetLayout"]                       = ApiSlide.prototype.GetLayout;
     ApiSlide.prototype["GetTheme"]                        = ApiSlide.prototype.GetTheme;
-    ApiSlide.prototype["GetDrawingObjects"]               = ApiSlide.prototype.GetDrawingObjects;
+    ApiSlide.prototype["GetAllDrawings"]                  = ApiSlide.prototype.GetAllDrawings;
     ApiSlide.prototype["GetAllShapes"]                    = ApiSlide.prototype.GetAllShapes;
     ApiSlide.prototype["GetAllImages"]                    = ApiSlide.prototype.GetAllImages;
     ApiSlide.prototype["GetAllCharts"]                    = ApiSlide.prototype.GetAllCharts;
@@ -3885,6 +3960,8 @@
     ApiDrawing.prototype["GetParentMaster"]               = ApiDrawing.prototype.GetParentMaster;
     ApiDrawing.prototype["Copy"]                          = ApiDrawing.prototype.Copy;
     ApiDrawing.prototype["Delete"]                        = ApiDrawing.prototype.Delete;
+    ApiDrawing.prototype["SetPlaceholder"]                = ApiDrawing.prototype.SetPlaceholder;
+    ApiDrawing.prototype["GetPlaceholder"]                = ApiDrawing.prototype.GetPlaceholder;
 
     ApiImage.prototype["GetClassType"]                    = ApiImage.prototype.GetClassType;
 
@@ -3892,10 +3969,7 @@
     ApiShape.prototype["GetDocContent"]                   = ApiShape.prototype.GetDocContent;
     ApiShape.prototype["GetContent"]                      = ApiShape.prototype.GetContent;
     ApiShape.prototype["SetVerticalTextAlign"]            = ApiShape.prototype.SetVerticalTextAlign;
-    ApiShape.prototype["SetPlaceholder"]                  = ApiShape.prototype.SetPlaceholder;
-    ApiShape.prototype["GetPlaceholder"]                  = ApiShape.prototype.GetPlaceholder;
-
-
+    
     ApiChart.prototype["GetClassType"]                    = ApiChart.prototype.GetClassType;
     ApiChart.prototype["SetTitle"]                        = ApiChart.prototype.SetTitle;
     ApiChart.prototype["SetHorAxisTitle"]                 = ApiChart.prototype.SetHorAxisTitle;

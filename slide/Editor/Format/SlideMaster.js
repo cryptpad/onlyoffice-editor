@@ -504,16 +504,14 @@ MasterSlide.prototype =
             var insert_pos = pos;
             var removed_layouts = [];
             for (var i = layoutsIndexes.length - 1; i > -1; --i) {
-                removed_layouts.push(this.removeSlide(layoutsIndexes[i]));
-                if (layoutsIndexes[i] < pos) {
-                    --insert_pos;
-                }
+                removed_layouts.push(this.sldLayoutLst[layoutsIndexes[i]]);
+                this.removeFromSldLayoutLstByPos(layoutsIndexes[i], 1);
             }
             removed_layouts.reverse();
             for (i = 0; i < removed_layouts.length; ++i) {
                 this.addToSldLayoutLstToPos(insert_pos + i, removed_layouts[i]);
             }
-            this.Recalculate();
+            this.recalculate();
         },
 
         getAllImages: function (images) {
