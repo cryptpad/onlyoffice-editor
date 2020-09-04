@@ -2067,6 +2067,10 @@
 
 	var document_compatibility_mode_Current = document_compatibility_mode_Word12;
 
+	var c_oAscCustomShortcutType = {
+		Symbol : 1
+	};
+
 	//------------------------------------------------------------export--------------------------------------------------
 	var prot;
 	window['Asc']                          = window['Asc'] || {};
@@ -3062,5 +3066,8 @@
 	window["AscCommon"].document_compatibility_mode_Word14  = document_compatibility_mode_Word14;
 	window["AscCommon"].document_compatibility_mode_Word15  = document_compatibility_mode_Word15;
 	window["AscCommon"].document_compatibility_mode_Current = document_compatibility_mode_Current;
+
+	prot = window['AscCommon']['c_oAscCustomShortcutType'] = window['AscCommon'].c_oAscCustomShortcutType = c_oAscCustomShortcutType;
+	prot['Symbol'] = c_oAscCustomShortcutType.Symbol;
 
 })(window);

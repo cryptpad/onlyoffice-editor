@@ -9081,9 +9081,8 @@ CDocument.prototype.OnKeyDown = function(e)
     var bUpdateSelection = true;
     var bRetValue        = keydownresult_PreventNothing;
 
-    var isShortcut = true;
-
-    switch (this.Api.getShortcut(e))
+    var nShortcutAction = this.Api.getShortcut(e);
+    switch (nShortcutAction)
 	{
 		case c_oAscDocumentShortcutType.AddPageBreak:
 		{
@@ -9509,12 +9508,21 @@ CDocument.prototype.OnKeyDown = function(e)
 		}
 		default:
 		{
-			isShortcut = false;
+			var oCustom = this.Api.getCustomShortcutAction(nShortcutAction);
+			if (oCustom)
+			{
+				if (AscCommon.c_oAscCustomShortcutType.Symbol === oCustom.Type)
+				{
+					this.Api["asc_insertSymbol"](oCustom.Font, oCustom.CharCode);
+				}
+
+			}
+
 			break;
 		}
 	}
 
-    if (!isShortcut)
+    if (!nShortcutAction)
 	{
 		if (e.KeyCode === 8) // BackSpace
 		{

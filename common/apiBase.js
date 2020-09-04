@@ -194,7 +194,7 @@
 		// macros & plugins events
 		this.internalEvents = {};
 
-		this.Shortcuts = new Asc.CShortcuts();
+		this.Shortcuts = new AscCommon.CShortcuts();
 		this.initDefaultShortcuts();
 
 		return this;
@@ -3006,7 +3006,40 @@
 		else
 			return this.Shortcuts.Get(e.KeyCode, e.CtrlKey, e.ShiftKey, e.AltKey);
 	};
+	baseEditorsApi.prototype.getCustomShortcutAction = function(nActionType)
+	{
+		return this.Shortcuts.GetCustomAction(nActionType);
+	};
 	baseEditorsApi.prototype.asc_initShortcuts = baseEditorsApi.prototype.initShortcuts;
+	baseEditorsApi.prototype.asc_getShortcutAction = function(nKeyCode, isCtrl, isShift, isAlt)
+	{
+		return this.Shortcuts.Get(nKeyCode, isCtrl, isShift, isAlt);
+	};
+	baseEditorsApi.prototype.asc_removeShortcuts = function(arrShortcuts, arrActionTypes)
+	{
+		if (arrShortcuts)
+		{
+			for (var nIndex = 0, nCount = arrShortcuts.length; nIndex < nCount; ++nIndex)
+			{
+				var s = arrShortcuts[nIndex];
+				this.Shortcuts.Remove(s[0], s[1], s[2], s[3]);
+			}
+		}
+
+		if (arrActionTypes)
+		{
+			for (var nIndex = 0, nCount = arrActionTypes.length; nIndex < nCount; ++nIndex)
+			{
+				this.Shortcuts.RemoveByType(arrActionTypes[nIndex]);
+			}
+		}
+	};
+	baseEditorsApi.prototype.asc_addCustomShortcutInsertSymbol = function(nCharCode, sFont, sShortcut)
+	{
+		var nActionType = this.Shortcuts.AddCustomActionSymbol(nCharCode, sFont);
+		this.Shortcuts.Add(nActionType, sShortcut[0], sShortcut[1], sShortcut[2], sShortcut[3]);
+		return nActionType;
+	};
 	//----------------------------------------------------------addons----------------------------------------------------
     baseEditorsApi.prototype["asc_isSupportFeature"] = function(type)
 	{
@@ -3081,6 +3114,9 @@
 	prot['asc_refreshOnStartAutoCorrectMathFunctions'] = prot.asc_refreshOnStartAutoCorrectMathFunctions;
 	prot['asc_updateFlagAutoCorrectMathSymbols'] = prot.asc_updateFlagAutoCorrectMathSymbols;
 	prot['asc_initShortcuts'] = prot.asc_initShortcuts;
+	prot['asc_getShortcutAction'] = prot.asc_getShortcutAction;
+	prot['asc_removeShortcuts'] = prot.asc_removeShortcuts;
+	prot['asc_addCustomShortcutInsertSymbol'] = prot.asc_addCustomShortcutInsertSymbol;
 
 	prot['asc_isCrypto'] = prot.asc_isCrypto;
 

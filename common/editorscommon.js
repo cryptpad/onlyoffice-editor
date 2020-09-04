@@ -4661,6 +4661,74 @@
 		};
 	}
 
+	function CShortcuts()
+	{
+		this.List = {};
+
+		this.CustomCounter = 0;
+		this.CustomActions = {};
+	}
+	CShortcuts.prototype.Add = function(nType, nCode, isCtrl, isShift, isAlt)
+	{
+		this.List[this.private_GetIndex(nCode, isCtrl, isShift, isAlt)] = nType;
+	};
+	CShortcuts.prototype.Get = function(nCode, isCtrl, isShift, isAlt)
+	{
+		var nType = this.List[this.private_GetIndex(nCode, isCtrl, isShift, isAlt)];
+		return (undefined !== nType ? nType : 0);
+	};
+	CShortcuts.prototype.private_GetIndex = function(nCode, isCtrl, isShift, isAlt)
+	{
+		return ((nCode << 8) | (isCtrl ? 4 : 0) | (isShift ? 2 : 0) | (isAlt ? 1 : 0));
+	}
+	CShortcuts.prototype.CheckType = function(nType)
+	{
+		for (var nIndex in this.List)
+		{
+			if (this.List[nIndex] === nType)
+				return {KeyCode : nIndex >>> 8, CtrlKey : !!(nIndex & 4), ShiftKey : !!(nIndex & 2), AltKey : !!(nIndex & 1)};
+		}
+
+		return null;
+	};
+	CShortcuts.prototype.Remove = function(nCode, isCtrl, isShift, isAlt)
+	{
+		delete this.List[this.private_GetIndex(nCode, isCtrl, isShift, isAlt)];
+	};
+	CShortcuts.prototype.RemoveByType = function(nType)
+	{
+		for (var nIndex in this.List)
+		{
+			if (this.List[nIndex] === nType)
+				delete this.List[nIndex];
+		}
+	};
+	CShortcuts.prototype.GetNewCustomType = function()
+	{
+		return (0x00FF0000 | (this.CustomCounter++));
+	};
+	CShortcuts.prototype.IsCustomType = function(nType)
+	{
+		return (nType >= 0x00FF0000);
+	};
+	CShortcuts.prototype.GetCustomAction = function(nType)
+	{
+		return this.CustomActions[nType];
+	};
+	CShortcuts.prototype.AddCustomActionSymbol = function(nCharCode, sFont)
+	{
+		var nType = this.GetNewCustomType();
+		this.CustomActions[nType] = new CCustomShortcutActionSymbol(nCharCode, sFont);
+		return nType;
+	};
+
+	function CCustomShortcutActionSymbol(nCharCode, sFont)
+	{
+		this.CharCode = nCharCode;
+		this.Font     = sFont;
+	}
+	CCustomShortcutActionSymbol.prototype.Type = AscCommon.c_oAscCustomShortcutType.Symbol;
+
     /////////////////////////////////////////////////////////
 	///////////////       CRYPT      ////////////////////////
 	/////////////////////////////////////////////////////////
@@ -5591,6 +5659,21 @@
 	window["AscCommon"].private_IsAbbreviation = private_IsAbbreviation;
 
 	window["AscCommon"].rx_test_ws_name = rx_test_ws_name;
+
+	window["AscCommon"].CShortcuts = window["AscCommon"]["CShortcuts"] = CShortcuts;
+	prot = CShortcuts.prototype;
+	prot["Add"]                   = prot.Add;
+	prot["Get"]                   = prot.Get;
+	prot["CheckType"]             = prot.CheckType;
+	prot["Remove"]                = prot.Remove;
+	prot["RemoveByType"]          = prot.RemoveByType;
+	prot["GetNewCustomType"]      = prot.GetNewCustomType;
+	prot["IsCustomType"]          = prot.IsCustomType;
+	prot["GetCustomAction"]       = prot.GetCustomAction;
+	prot["AddCustomActionSymbol"] = prot.AddCustomActionSymbol;
+
+	window["AscCommon"].CCustomShortcutActionSymbol = window["AscCommon"]["CCustomShortcutActionSymbol"] = CCustomShortcutActionSymbol;
+
 })(window);
 
 window["asc_initAdvancedOptions"] = function(_code, _file_hash, _docInfo)

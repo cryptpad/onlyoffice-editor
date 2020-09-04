@@ -4680,42 +4680,6 @@
 		}
 	};
 
-	function CShortcuts()
-	{
-		this.List = {};
-	}
-	CShortcuts.prototype.Add = function(nType, nCode, isCtrl, isShift, isAlt)
-	{
-		this.List[this.private_GetIndex(nCode, isCtrl, isShift, isAlt)] = nType;
-	};
-	CShortcuts.prototype.Get = function(nCode, isCtrl, isShift, isAlt)
-	{
-		var nType = this.List[this.private_GetIndex(nCode, isCtrl, isShift, isAlt)];
-		return (undefined !== nType ? nType : 0);
-	};
-	CShortcuts.prototype.private_GetIndex = function(nCode, isCtrl, isShift, isAlt)
-	{
-		return ((nCode << 8) | (isCtrl ? 4 : 0) | (isShift ? 2 : 0) | (isAlt ? 1 : 0));
-	}
-	CShortcuts.prototype.CheckType = function(nType)
-	{
-		for (var nIndex in this.List)
-		{
-			if (this.List[nIndex] === nType)
-				return {KeyCode : nIndex >>> 8, CtrlKey : !!(nIndex & 4), ShiftKey : !!(nIndex & 2), AltKey : !!(nIndex & 1)};
-		}
-
-		return null;
-	};
-	CShortcuts.prototype.RemoveByType = function(nType)
-	{
-		for (var nIndex in this.List)
-		{
-			if (this.List[nIndex] === nType)
-				delete this.List[nIndex];
-		}
-	};
-
     /*
      * Export
      * -----------------------------------------------------------------------------
@@ -5595,5 +5559,4 @@
 	window["Asc"]["CPluginVariation"] = window["Asc"].CPluginVariation = CPluginVariation;
 	window["Asc"]["CPlugin"] = window["Asc"].CPlugin = CPlugin;
 
-	window["Asc"]["CShortcuts"] = window["Asc"].CShortcuts = CShortcuts;
 })(window);
