@@ -1050,7 +1050,7 @@
     /**
      * Adds the layout to specified slide master.
      * @typeofeditors ["CPE"]
-     * @param {number} [nPos = ApiMaster.GetLayoutCount()] - position to add.
+     * @param {number} [nPos = ApiMaster.GetLayoutsCount()] - position to add.
      * @param {ApiLayout} oLayout
      * @returns {bool} - returns false if param isn't layout
      */
@@ -1192,7 +1192,7 @@
         if (!this.Master)
             return null;
         
-        var oMasterCopy    = this.Master.createDuplicate();
+        var oMasterCopy = this.Master.createDuplicate();
         return new ApiMaster(oMasterCopy);
     };
 
@@ -1494,7 +1494,7 @@
         if (!this.Layout)
             return null;
         
-        var oLayoutCopy    = this.Layout.createDuplicate();
+        var oLayoutCopy = this.Layout.createDuplicate();
         return new ApiLayout(oLayoutCopy);
     };
 
@@ -1521,20 +1521,20 @@
     /**
      * Creates a duplicate of the specified slide layout object, adds the new slide layout to the slide layout collection.
      * @typeofeditors ["CPE"]
-     * @param {number} [nPos       = ApiMaster.GetLayoutCount()]
+     * @param {number} [nPos = ApiMaster.GetLayoutsCount()]
      * @returns {ApiLayout | null} - returns new ApiLayout object that represents the copy of slide layout. 
      * Returns null if slide layout doesn't exist or not in slide master.
      * */
     ApiLayout.prototype.Duplicate = function(nPos){
         if (this.Layout && this.Layout.Master)
         {
-            var oMaster          = this.Layout.Master;
+            var oMaster     = this.Layout.Master;
             var oLayoutCopy = this.Layout.createDuplicate();
             
             if (nPos < 0 || nPos > this.Layout.Master.sldLayoutLst.length || !nPos)
                 nPos = oMaster.sldLayoutLst.length;
     
-                oMaster.addToSldLayoutLstToPos(nPos, oLayoutCopy);
+            oMaster.addToSldLayoutLstToPos(nPos, oLayoutCopy);
     
             return new ApiLayout(oLayoutCopy);
         }
@@ -2045,7 +2045,7 @@
      */
     ApiThemeFormatScheme.prototype.Copy = function()
     {
-        return new ApiThemeFormatScheme(this.ColorScheme.createDuplicate());
+        return new ApiThemeFormatScheme(this.FormatScheme.createDuplicate());
     };
 
     //------------------------------------------------------------------------------------------------------------------
@@ -2310,7 +2310,7 @@
         if (!this.Slide)
             return null;
         
-        var oSlideCopy    = this.Slide.createDuplicate();
+        var oSlideCopy = this.Slide.createDuplicate();
         return new ApiSlide(oSlideCopy);
     };
 
