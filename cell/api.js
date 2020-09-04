@@ -2545,6 +2545,9 @@ var editor;
         }
 	};
 
+    spreadsheet_api.prototype.asc_setIncludeNewRowColTable = function (value) {
+      window['AscCommonExcel'].g_IncludeNewRowColInTable = value;
+    };
 
   // Spreadsheet interface
 
@@ -4766,6 +4769,7 @@ var editor;
   prot["asc_setWorksheetRange"] = prot.asc_setWorksheetRange;
 
   prot["asc_setR1C1Mode"] = prot.asc_setR1C1Mode;
+  prot["asc_setIncludeNewRowColTable"] = prot.asc_setIncludeNewRowColTable;
 
   // Spreadsheet interface
 

@@ -19934,6 +19934,10 @@
 	};
 
 	WorksheetView.prototype.applyTableAutoExpansion = function (bbox, applyByArray) {
+		if (!window['AscCommonExcel'].g_IncludeNewRowColInTable) {
+			return;
+		}
+
 		var t = this;
 		var api = window["Asc"]["editor"];
 		var bFast = api.collaborativeEditing.m_bFast;
