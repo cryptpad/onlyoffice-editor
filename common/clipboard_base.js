@@ -1085,6 +1085,10 @@
 
 		//активный диапазон до первой вставки
 		this.selectionRange = null;
+
+		//добавил флаг для возможности применения друг за другом нескольких математических операций(paste special)
+		//если данный флаг выставлен в true и делается новая математическая операция
+		this.isAppliedOperation = false;
 	}
 
 	CSpecialPasteHelper.prototype = {
