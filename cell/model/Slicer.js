@@ -558,7 +558,15 @@
 					this.cacheDefinition = slicerCaches[cache] || null;
 					break;
 				}
-				case 3: { this.caption = s.GetString2(); break; }
+				case 3: {
+					this.caption = s.GetString2();
+					if(typeof this.caption === "string") {
+						if(AscFonts.IsCheckSymbols) {
+							AscFonts.FontPickerByCharacter.getFontsByString(this.caption);
+						}
+					}
+					break;
+				}
 				case 4: { this.startItem = s.GetULong(); break; }
 				case 5: { this.columnCount = s.GetULong(); break; }
 				case 6: { this.showCaption = s.GetBool(); break; }
