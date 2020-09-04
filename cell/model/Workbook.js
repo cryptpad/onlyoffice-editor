@@ -5088,7 +5088,7 @@
 								new UndoRedoData_IndexSimpleProp(col.index, false, oOldProps, oNewProps));
 			}
 		};
-		if(0 == start && gc_nMaxCol0 == stop)
+		if(0 === start && gc_nMaxCol0 === stop)
 		{
 			var col = this.getAllCol();
 			fProcessCol(col);
@@ -5174,7 +5174,7 @@
 			outlineLevel = col.getOutlineLevel();
 		}
 
-		if(0 != start && gc_nMaxCol0 == stop)
+		if(0 === start && gc_nMaxCol0 === stop)
 		{
 			var col = null;
 			if(false == bHidden)
@@ -5317,7 +5317,7 @@
 							col._getUpdateRange(),
 							new UndoRedoData_IndexSimpleProp(col.index, false, oOldProps, oNewProps));
 		};
-		if(0 == start && gc_nMaxCol0 == stop)
+		if(0 === start && gc_nMaxCol0 === stop)
 		{
 			var col = null;
 			if(bBestFit && oDefaultMetrics.ColWidthChars == width)
