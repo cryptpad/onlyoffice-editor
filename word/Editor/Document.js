@@ -9084,7 +9084,7 @@ CDocument.prototype.OnKeyDown = function(e)
     var nShortcutAction = this.Api.getShortcut(e);
     switch (nShortcutAction)
 	{
-		case c_oAscDocumentShortcutType.AddPageBreak:
+		case c_oAscDocumentShortcutType.InsertPageBreak:
 		{
 			if (!this.IsSelectionLocked(AscCommon.changestype_Paragraph_Content, null, false, false))
 			{
@@ -9094,7 +9094,7 @@ CDocument.prototype.OnKeyDown = function(e)
 			}
 			break;
 		}
-		case c_oAscDocumentShortcutType.AddLineBreak:
+		case c_oAscDocumentShortcutType.InsertLineBreak:
 		{
 			if (!this.IsSelectionLocked(AscCommon.changestype_Paragraph_Content, null, false, this.IsFormFieldEditing()))
 			{
@@ -9104,7 +9104,7 @@ CDocument.prototype.OnKeyDown = function(e)
 			}
 			break;
 		}
-		case c_oAscDocumentShortcutType.AddColumnBreak:
+		case c_oAscDocumentShortcutType.InsertColumnBreak:
 		{
 			if (!this.IsSelectionLocked(AscCommon.changestype_Paragraph_Content, null, false, false))
 			{
@@ -9114,7 +9114,7 @@ CDocument.prototype.OnKeyDown = function(e)
 			}
 			break;
 		}
-		case c_oAscDocumentShortcutType.ClearFormatting:
+		case c_oAscDocumentShortcutType.ResetChar:
 		{
 			if (!this.IsSelectionLocked(AscCommon.changestype_Paragraph_Content, null, true, false))
 			{
@@ -9138,7 +9138,7 @@ CDocument.prototype.OnKeyDown = function(e)
 			bRetValue = keydownresult_PreventNothing;
 			break;
 		}
-		case c_oAscDocumentShortcutType.StyleHeading1:
+		case c_oAscDocumentShortcutType.ApplyHeading1:
 		{
 			if (!this.IsSelectionLocked(AscCommon.changestype_Paragraph_Properties))
 			{
@@ -9150,7 +9150,7 @@ CDocument.prototype.OnKeyDown = function(e)
 			bRetValue = keydownresult_PreventAll;
 			break;
 		}
-		case c_oAscDocumentShortcutType.StyleHeading2:
+		case c_oAscDocumentShortcutType.ApplyHeading2:
 		{
 			if (!this.IsSelectionLocked(AscCommon.changestype_Paragraph_Properties))
 			{
@@ -9162,7 +9162,7 @@ CDocument.prototype.OnKeyDown = function(e)
 			bRetValue = keydownresult_PreventAll;
 			break;
 		}
-		case c_oAscDocumentShortcutType.StyleHeading3:
+		case c_oAscDocumentShortcutType.ApplyHeading3:
 		{
 			if (!this.IsSelectionLocked(AscCommon.changestype_Paragraph_Properties))
 			{
@@ -9190,7 +9190,7 @@ CDocument.prototype.OnKeyDown = function(e)
 			}
 			break;
 		}
-		case c_oAscDocumentShortcutType.ToggleNonPrintingCharacters:
+		case c_oAscDocumentShortcutType.ShowAll:
 		{
 			var isShow = this.Api.get_ShowParaMarks();
 			this.Api.put_ShowParaMarks(!isShow);
@@ -9198,7 +9198,7 @@ CDocument.prototype.OnKeyDown = function(e)
 			bRetValue = keydownresult_PreventAll;
 			break;
 		}
-		case c_oAscDocumentShortcutType.SelectAll:
+		case c_oAscDocumentShortcutType.EditSelectAll:
 		{
 			this.SelectAll();
 			bUpdateSelection = false;
@@ -9221,7 +9221,7 @@ CDocument.prototype.OnKeyDown = function(e)
 			}
 			break;
 		}
-		case c_oAscDocumentShortcutType.CopyFormatting:
+		case c_oAscDocumentShortcutType.CopyFormat:
 		{
 			this.Document_Format_Copy();
 			bRetValue = keydownresult_PreventAll;
@@ -9233,13 +9233,13 @@ CDocument.prototype.OnKeyDown = function(e)
 			bRetValue = keydownresult_PreventAll;
 			break;
 		}
-		case c_oAscDocumentShortcutType.AddEndnote:
+		case c_oAscDocumentShortcutType.InsertEndnoteNow:
 		{
 			this.AddEndnote();
 			bRetValue = keydownresult_PreventAll;
 			break;
 		}
-		case c_oAscDocumentShortcutType.ToggleParagraphAlignCenterLeft:
+		case c_oAscDocumentShortcutType.CenterPara:
 		{
 			this.private_ToggleParagraphAlignByHotkey(AscCommon.align_Center);
 			bRetValue = keydownresult_PreventAll;
@@ -9251,7 +9251,7 @@ CDocument.prototype.OnKeyDown = function(e)
 			bRetValue = keydownresult_PreventAll;
 			break;
 		}
-		case c_oAscDocumentShortcutType.AddFootnote:
+		case c_oAscDocumentShortcutType.InsertFootnoteNow:
 		{
 			this.AddFootnote();
 			bRetValue = keydownresult_PreventAll;
@@ -9273,13 +9273,13 @@ CDocument.prototype.OnKeyDown = function(e)
 			}
 			break;
 		}
-		case c_oAscDocumentShortcutType.ToggleParagraphAlignJustifyLeft:
+		case c_oAscDocumentShortcutType.JustifyPara:
 		{
 			this.private_ToggleParagraphAlignByHotkey(AscCommon.align_Justify);
 			bRetValue = keydownresult_PreventAll;
 			break;
 		}
-		case c_oAscDocumentShortcutType.AddHyperlink:
+		case c_oAscDocumentShortcutType.InsertHyperlink:
 		{
 			if (true === this.CanAddHyperlink(false) && this.CanEdit())
 				this.Api.sync_DialogAddHyperlink();
@@ -9287,7 +9287,7 @@ CDocument.prototype.OnKeyDown = function(e)
 			bRetValue = keydownresult_PreventAll;
 			break;
 		}
-		case c_oAscDocumentShortcutType.AddBulletedList:
+		case c_oAscDocumentShortcutType.ApplyListBullet:
 		{
 			if (!this.IsSelectionLocked(AscCommon.changestype_Paragraph_Content))
 			{
@@ -9299,31 +9299,31 @@ CDocument.prototype.OnKeyDown = function(e)
 			bRetValue = keydownresult_PreventAll;
 			break;
 		}
-		case c_oAscDocumentShortcutType.ToggleParagraphAlignLeftJustify:
+		case c_oAscDocumentShortcutType.LeftPara:
 		{
 			this.private_ToggleParagraphAlignByHotkey(align_Left);
 			bRetValue = keydownresult_PreventAll;
 			break;
 		}
-		case c_oAscDocumentShortcutType.IncreaseIndent:
+		case c_oAscDocumentShortcutType.Indent:
 		{
 			this.IncreaseIndent();
 			bRetValue = keydownresult_PreventAll;
 			break;
 		}
-		case c_oAscDocumentShortcutType.DecreaseIndent:
+		case c_oAscDocumentShortcutType.UnIndent:
 		{
 			this.DecreaseIndent();
 			bRetValue = keydownresult_PreventAll;
 			break;
 		}
-		case c_oAscDocumentShortcutType.Print:
+		case c_oAscDocumentShortcutType.PrintPreviewAndPrint:
 		{
 			this.DrawingDocument.m_oWordControl.m_oApi.onPrint();
 			bRetValue = keydownresult_PreventAll;
 			break;
 		}
-		case c_oAscDocumentShortcutType.AddPageNumber:
+		case c_oAscDocumentShortcutType.InsertPageNumber:
 		{
 			if (!this.IsSelectionLocked(AscCommon.changestype_Paragraph_Content))
 			{
@@ -9334,7 +9334,7 @@ CDocument.prototype.OnKeyDown = function(e)
 			bRetValue = keydownresult_PreventAll;
 			break;
 		}
-		case c_oAscDocumentShortcutType.ToggleParagraphAlignRightLeft:
+		case c_oAscDocumentShortcutType.RightPara:
 		{
 			this.private_ToggleParagraphAlignByHotkey(AscCommon.align_Right);
 			bRetValue = keydownresult_PreventAll;
@@ -9376,7 +9376,7 @@ CDocument.prototype.OnKeyDown = function(e)
 			}
 			break;
 		}
-		case c_oAscDocumentShortcutType.PasteFormatting:
+		case c_oAscDocumentShortcutType.PasteFormat:
 		{
 			if (!this.IsSelectionLocked(AscCommon.changestype_Paragraph_Content))
 			{
@@ -9387,7 +9387,7 @@ CDocument.prototype.OnKeyDown = function(e)
 			bRetValue = keydownresult_PreventAll;
 			break;
 		}
-		case c_oAscDocumentShortcutType.Redo:
+		case c_oAscDocumentShortcutType.EditRedo:
 		{
 			if (this.CanEdit() || this.IsEditCommentsMode() || this.IsFillingFormMode())
 				this.Document_Redo();
@@ -9395,7 +9395,7 @@ CDocument.prototype.OnKeyDown = function(e)
 			bRetValue = keydownresult_PreventAll;
 			break;
 		}
-		case c_oAscDocumentShortcutType.Undo:
+		case c_oAscDocumentShortcutType.EditUndo:
 		{
 			if ((this.CanEdit() || this.IsEditCommentsMode() || this.IsFillingFormMode()) && !this.IsViewModeInReview())
 				this.Document_Undo();
@@ -9422,7 +9422,7 @@ CDocument.prototype.OnKeyDown = function(e)
 			bRetValue        = keydownresult_PreventAll;
 			break;
 		}
-		case c_oAscDocumentShortcutType.AddEquation:
+		case c_oAscDocumentShortcutType.InsertEquation:
 		{
 			var oSelectedInfo = this.GetSelectedElementsInfo();
 			var oMath         = oSelectedInfo.Get_Math();
