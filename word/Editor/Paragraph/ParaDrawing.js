@@ -1655,7 +1655,7 @@ ParaDrawing.prototype.OnEnd_MoveInline = function(NearPos)
 {
 	NearPos.Paragraph.Check_NearestPos(NearPos);
 
-	var oRun        = this.Parent.Get_DrawingObjectRun(this.Id);
+	var oRun        = this.GetRun();
 	var isPictureCC = false;
 	if (oRun)
 	{
@@ -1668,6 +1668,24 @@ ParaDrawing.prototype.OnEnd_MoveInline = function(NearPos)
 				break;
 			}
 		}
+	}
+
+	// Ничего никуда не переносим в такой ситуации
+	if (isPictureCC)
+	{
+		var oDstRun = null;
+		var arrClasses = NearPos.Paragraph.GetClassesByPos(NearPos.ContentPos);
+		for (var nIndex = arrClasses.length - 1; nIndex >= 0; --nIndex)
+		{
+			if (arrClasses[nIndex] instanceof ParaRun)
+			{
+				oDstRun = arrClasses[nIndex];
+				break;
+			}
+		}
+
+		if (oDstRun === oRun)
+			return;
 	}
 
 	var RunPr = this.Remove_FromDocument(false);
