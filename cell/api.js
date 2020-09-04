@@ -3088,10 +3088,21 @@ var editor;
           t._loadFonts(fonts, function() {
             ws.objectRender.setGraphicObjectProps(props);
           });
-
       }
       else {
-        ws.objectRender.setGraphicObjectProps(props);
+        var oSlicerPr = props.SlicerProperties;
+        var sForCheck = null;
+        if(oSlicerPr && typeof oSlicerPr.caption === "string" && oSlicerPr.caption.length > 0) {
+          sForCheck = oSlicerPr.caption;
+        }
+        if(typeof sForCheck === "string" && sForCheck.length > 0) {
+          AscFonts.FontPickerByCharacter.checkText(sForCheck, this, function () {
+            ws.objectRender.setGraphicObjectProps(props);
+          });
+        }
+        else {
+          ws.objectRender.setGraphicObjectProps(props);
+        }
       }
     }
   };
