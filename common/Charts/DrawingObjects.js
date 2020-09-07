@@ -1718,10 +1718,6 @@ GraphicOption.prototype.union = function(oGraphicOption) {
                     bUpdateExtents = true;
                 }
             }
-            else if(nType === AscCommon.c_oAscCellAnchorType.cellanchorTwoCell &&
-                this.to.col >= target.col) {
-                bUpdateExtents = true;
-            }
             else {
                 this.checkBoundsFromTo();
                 if(this.boundsFromTo.to.col >= target.col) {
