@@ -11482,7 +11482,7 @@ ParaRun.prototype.ProcessAutoCorrect = function(nPos)
 
 	var nLang = this.Get_CompiledPr(false).Lang ? this.Get_CompiledPr(false).Lang.Val : 1033;
 
-	if (para_Text === this.Content[nPos].Type && (1036 === nLang && (0x003A === this.Content[nPos].Value || 0x003B === this.Content[nPos].Value || 0x003F === this.Content[nPos].Value || 0x0021 === this.Content)))
+	if (para_Text === this.Content[nPos].Type && (1036 === nLang && (0x003A === this.Content[nPos].Value || 0x003B === this.Content[nPos].Value || 0x003F === this.Content[nPos].Value || 0x0021 === this.Content[nPos].Value)))
 	{
 		if (oDocument.IsAutoCorrectFrenchPunctuation())
 			return this.private_ProcessFrenchPunctuation(oDocument, oParagraph, oContentPos, nPos);
