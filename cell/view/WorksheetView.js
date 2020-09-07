@@ -422,6 +422,7 @@
         this.canChangeColWidth = c_oAscCanChangeColWidth.none;
         this.scrollType = 0;
         this.updateRowHeightValuePx = null;
+        this.updateColumnsStart = Number.MAX_VALUE;
 
         this.viewPrintLines = false;
 
@@ -1434,7 +1435,7 @@
         }
     };
 
-	WorksheetView.prototype._calcColWidth = function (x, i) {
+	WorksheetView.prototype._calcColWidth = function (i) {
 		var w, hiddenW = 0;
 		// Получаем свойства колонки
 		var column = this.model._getColNoEmptyWithAll(i);
@@ -1449,7 +1450,8 @@
 
 		this.cols[i] = new CacheColumn(w);
 		this.cols[i].width = Asc.round(w * this.getZoom());
-		this.cols[i].left = x;
+
+		this.updateColumnsStart = Math.min(i, this.updateColumnsStart);
 
 		return hiddenW;
 	};
@@ -1515,7 +1517,6 @@
      * @param {AscCommonExcel.recalcType} type
      */
     WorksheetView.prototype._calcWidthColumns = function (type) {
-        var x = 0;
         var l = this.model.getColsCount();
         var i = 0, hiddenW = 0;
 
@@ -1523,11 +1524,9 @@
             this.cols = [];
         } else if (AscCommonExcel.recalcType.newLines === type) {
             i = this.cols.length;
-            x = this._getColLeft(i) - this.cellsLeft;
         }
 		for (; i < l; ++i) {
-			hiddenW += this._calcColWidth(x, i);
-            x += this._getColumnWidth(i);
+			hiddenW += this._calcColWidth(i);
         }
 
         this.nColsCount = Math.min(Math.max(this.nColsCount, i), gc_nMaxCol);
@@ -1583,7 +1582,7 @@
 
     /** Обновляет позицию колонок */
     WorksheetView.prototype._updateColumnPositions = function () {
-        var x = this.cellsLeft;
+        var x = 0;
         for (var l = this.cols.length, i = 0; i < l; ++i) {
             this.cols[i].left = x;
             x += this.cols[i].width;
@@ -6021,9 +6020,8 @@
             this.model.setColBestFit(true, this.model.charCountToModelColWidth(cc), col, col);
             History.EndTransaction();
 
-			// ToDo refactoring this!!!
-			this._calcWidthColumns(AscCommonExcel.recalcType.recalc);
-            this.isChanged = true;
+            // ToDo update cells with shrink to fit
+			this._calcColWidth(col);
         }
     };
 
@@ -13753,14 +13751,12 @@
         History.StartTransaction();
         // Выставляем, что это bestFit
 		cw = this.model.charCountToModelColWidth(cc);
+		// ToDo 2 times may be called setColBestFit. From addCellTextToCache->_changeColWidth and this
         this.model.setColBestFit(true, cw, col, col);
         History.EndTransaction();
-        if (oldColWidth !== cc) {
-			this._calcColWidth(0, col);
-			this._cleanCache(new asc_Range(col, 0, col, this.rows.length - 1));
-			return true;
-		}
-        return false;
+
+		this._calcColWidth(col);
+		return true;
     };
 
     WorksheetView.prototype.autoFitColumnsWidth = function (col) {
@@ -13777,35 +13773,24 @@
 			if (viewMode) {
 				History.TurnOff();
 			}
-			var c1, c2, bUpdate = false;
+			var c1, c2;
 
 			History.Create_NewPoint();
 			History.StartTransaction();
 
 			if (null !== col) {
-				if (t._autoFitColumnWidth(col, null, null)) {
-					bUpdate = true;
-				}
+				t._autoFitColumnWidth(col, null, null);
 			} else {
 				for (var i = 0; i < selectionRanges.length; ++i) {
 					c1 = selectionRanges[i].c1;
 					c2 = Math.min(selectionRanges[i].c2, max);
 					for (; c1 <= c2; ++c1) {
-						if (t._autoFitColumnWidth(c1, null, null)) {
-							bUpdate = true;
-						}
+						t._autoFitColumnWidth(c1, null, null);
 					}
 				}
 			}
 
-			if (bUpdate) {
-				t._updateColumnPositions();
-				t._updateVisibleColsCount();
-				t._calcHeightRows(AscCommonExcel.recalcType.recalc);
-				t._updateVisibleRowsCount();
-				t._updateDrawingArea();
-				t.changeWorksheet("update");
-			}
+			t.draw();
 			History.EndTransaction();
 			if (viewMode) {
 				History.TurnOn();
@@ -14702,6 +14687,15 @@
 
 			this.handlers.trigger("onDocumentPlaceChanged");
 		}
+
+		if (Number.MAX_VALUE !== this.updateColumnsStart) {
+			this._updateColumnPositions();
+			this._updateVisibleColsCount(true);
+			this._updateDrawingArea();
+			this.objectRender.updateDrawingsTransform({target: c_oTargetType.ColumnResize, col: this.updateColumnsStart});
+			this.updateColumnsStart = Number.MAX_VALUE;
+		}
+
 		this._reinitializeScroll();
 	};
 	WorksheetView.prototype._updateDrawingArea = function () {
@@ -15478,9 +15472,7 @@
         }
 
         if (bIsUpdate) {
-            this._updateColumnPositions();
-            this._updateVisibleColsCount();
-            this.changeWorksheet("update");
+			this.draw(lockDraw);
         } else if (changeRowsOrMerge) {
             // Был merge, нужно обновить (ToDo)
             this._initCellsArea(AscCommonExcel.recalcType.full);
