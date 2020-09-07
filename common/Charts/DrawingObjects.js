@@ -1713,6 +1713,10 @@ GraphicOption.prototype.union = function(oGraphicOption) {
                 if(this.from.col >= target.col) {
                     bUpdateExtents = true;
                 }
+                else if(this.to.col >= target.col &&
+                    nType === AscCommon.c_oAscCellAnchorType.cellanchorTwoCell) {
+                    bUpdateExtents = true;
+                }
             }
             else if(nType === AscCommon.c_oAscCellAnchorType.cellanchorTwoCell &&
                 this.to.col >= target.col) {
