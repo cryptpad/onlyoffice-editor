@@ -422,6 +422,7 @@
         this.canChangeColWidth = c_oAscCanChangeColWidth.none;
         this.scrollType = 0;
         this.updateRowHeightValuePx = null;
+        this.updateColumnsStart = Number.MAX_VALUE;
 
         this.viewPrintLines = false;
 
@@ -1434,7 +1435,7 @@
         }
     };
 
-	WorksheetView.prototype._calcColWidth = function (x, i) {
+	WorksheetView.prototype._calcColWidth = function (i) {
 		var w, hiddenW = 0;
 		// Получаем свойства колонки
 		var column = this.model._getColNoEmptyWithAll(i);
@@ -1449,7 +1450,8 @@
 
 		this.cols[i] = new CacheColumn(w);
 		this.cols[i].width = Asc.round(w * this.getZoom());
-		this.cols[i].left = x;
+
+		this.updateColumnsStart = Math.min(i, this.updateColumnsStart);
 
 		return hiddenW;
 	};
@@ -1515,7 +1517,6 @@
      * @param {AscCommonExcel.recalcType} type
      */
     WorksheetView.prototype._calcWidthColumns = function (type) {
-        var x = 0;
         var l = this.model.getColsCount();
         var i = 0, hiddenW = 0;
 
@@ -1523,11 +1524,9 @@
             this.cols = [];
         } else if (AscCommonExcel.recalcType.newLines === type) {
             i = this.cols.length;
-            x = this._getColLeft(i) - this.cellsLeft;
         }
 		for (; i < l; ++i) {
-			hiddenW += this._calcColWidth(x, i);
-            x += this._getColumnWidth(i);
+			hiddenW += this._calcColWidth(i);
         }
 
         this.nColsCount = Math.min(Math.max(this.nColsCount, i), gc_nMaxCol);
@@ -1583,7 +1582,7 @@
 
     /** Обновляет позицию колонок */
     WorksheetView.prototype._updateColumnPositions = function () {
-        var x = this.cellsLeft;
+        var x = 0;
         for (var l = this.cols.length, i = 0; i < l; ++i) {
             this.cols[i].left = x;
             x += this.cols[i].width;
@@ -5924,23 +5923,13 @@
             range = this.visibleRange;
             if (this.topLeftFrozenCell) {
                 var row = this.topLeftFrozenCell.getRow0();
-                var col = this.topLeftFrozenCell.getCol0();
-                if (0 < row && 0 < col) {
-                    firstUpdateRow = asc.getMinValueOrNull(firstUpdateRow,
-                      this._prepareCellTextMetricsCache2(new Asc.Range(0, 0, col - 1, row - 1)));
-                }
                 if (0 < row) {
-                    firstUpdateRow = asc.getMinValueOrNull(firstUpdateRow, this._prepareCellTextMetricsCache2(
-                      new Asc.Range(this.visibleRange.c1, 0, this.visibleRange.c2, row - 1)));
-                }
-                if (0 < col) {
-                    firstUpdateRow = asc.getMinValueOrNull(firstUpdateRow, this._prepareCellTextMetricsCache2(
-                      new Asc.Range(0, this.visibleRange.r1, col - 1, this.visibleRange.r2)));
+                    firstUpdateRow = asc.getMinValueOrNull(firstUpdateRow, this._prepareCellTextMetricsCache2(0, row - 1));
                 }
             }
         }
 
-        firstUpdateRow = asc.getMinValueOrNull(firstUpdateRow, this._prepareCellTextMetricsCache2(range));
+        firstUpdateRow = asc.getMinValueOrNull(firstUpdateRow, this._prepareCellTextMetricsCache2(range.r1, range.r2));
         if (null !== firstUpdateRow || this.isChanged) {
             // Убрал это из _calcCellsTextMetrics, т.к. вызов был для каждого сектора(добавляло тормоза: баг 20388)
             // Код нужен для бага http://bugzilla.onlyoffice.com/show_bug.cgi?id=13875
@@ -5955,18 +5944,19 @@
 
     /**
      * Обновляет общий кэш и кэширует метрики текста ячеек для указанного диапазона (сама реализация, напрямую не вызывать, только из _prepareCellTextMetricsCache)
-     * @param {Asc.Range} [range]  Диапазон кэширования текта
+     * @param {Number} [r1]  r1-r2 диапазон кэширования текта
+	 * @param {Number} [r2]  r1-r2 диапазон кэширования текта
      */
-    WorksheetView.prototype._prepareCellTextMetricsCache2 = function (range) {
+    WorksheetView.prototype._prepareCellTextMetricsCache2 = function (r1, r2) {
         var firstUpdateRow = null;
         var s = this.cache.sectors;
-        for (var i = Asc.floor(range.r1 / kRowsCacheSize), l = Asc.floor(range.r2 / kRowsCacheSize); i <= l; ++i) {
+        for (var i = Asc.floor(r1 / kRowsCacheSize), l = Asc.floor(r2 / kRowsCacheSize); i <= l; ++i) {
         	if (!s[i]) {
         		if (null === firstUpdateRow) {
 					firstUpdateRow = i * kRowsCacheSize;
 				}
 				s[i] = true;
-				this._calcCellsTextMetrics(new Asc.Range(0, i * kRowsCacheSize, this.cols.length - 1, (i + 1) * kRowsCacheSize - 1));
+				this._calcCellsTextMetrics(i * kRowsCacheSize, (i + 1) * kRowsCacheSize - 1);
 			}
 		}
         return firstUpdateRow;
@@ -5974,11 +5964,10 @@
 
     /**
      * Кэширует метрики текста для диапазона ячеек
-     * @param {Asc.Range} range  description
      */
-    WorksheetView.prototype._calcCellsTextMetrics = function (range) {
+    WorksheetView.prototype._calcCellsTextMetrics = function (r1, r2) {
         var t = this;
-		this.model.getRange3(range.r1, 0, range.r2, range.c2)._foreachNoEmpty(function(cell, row, col) {
+		this.model.getRange3(r1, 0, r2, this.cols.length - 1)._foreachNoEmpty(function(cell, row, col) {
 			t._addCellTextToCache(col, row);
 		}, null, true);
         this.isChanged = false;
@@ -6031,9 +6020,8 @@
             this.model.setColBestFit(true, this.model.charCountToModelColWidth(cc), col, col);
             History.EndTransaction();
 
-			// ToDo refactoring this!!!
-			this._calcWidthColumns(AscCommonExcel.recalcType.recalc);
-            this.isChanged = true;
+            // ToDo update cells with shrink to fit
+			this._calcColWidth(col);
         }
     };
 
@@ -13693,7 +13681,7 @@
 		}
 	};
 
-    WorksheetView.prototype.onChangeWidthCallback = function (col, r1, r2, onlyIfMore) {
+    WorksheetView.prototype._autoFitColumnWidth = function (col, r1, r2, onlyIfMore) {
         var width = null;
         var row, ct, c, fl, str, maxW, tm, mc, isMerged, oldWidth, oldColWidth;
         var lastHeight = null;
@@ -13725,12 +13713,10 @@
                 }
             }
 
-            var align = this._getCell(col, row).getAlign();
-            var angle = align.getAngle();
-            var angleSin = Math.sin(angle * Math.PI / 180.0);
-            var angleCos = Math.cos(angle * Math.PI / 180.0);
-            var calcWidth;
+            var angleSin = Math.sin(ct.angle * Math.PI / 180.0);
+            var angleCos = Math.cos(ct.angle * Math.PI / 180.0);
 
+            var calcWidth;
             if (ct.metrics.height > this.maxRowHeightPx) {
                 if (isMerged) {
                     continue;
@@ -13760,7 +13746,7 @@
 				calcWidth = Math.abs(ct.metrics.width * angleCos) +  Math.abs(ct.metrics.height * angleSin);
                 filterButton = this.af_getSizeButton(col, row);
 				if (null !== filterButton && CellValueType.String === ct.cellType) {
-					width += filterButton.width;
+					calcWidth += filterButton.width;
 				}
             }
 			width = Math.max(width, calcWidth);
@@ -13777,7 +13763,7 @@
         }
 
         if (cc === oldColWidth || (onlyIfMore && cc < oldColWidth)) {
-            return -1;
+            return false;
         }
 
         History.Create_NewPoint();
@@ -13793,22 +13779,14 @@
         History.StartTransaction();
         // Выставляем, что это bestFit
 		cw = this.model.charCountToModelColWidth(cc);
+		// ToDo 2 times may be called setColBestFit. From addCellTextToCache->_changeColWidth and this
         this.model.setColBestFit(true, cw, col, col);
         History.EndTransaction();
-        return oldColWidth !== cc ? cw : -1;
+
+		this._calcColWidth(col);
+		return true;
     };
 
-    WorksheetView.prototype._autoFitColumnWidth = function (col) {
-    	var res = false;
-		var w = this.onChangeWidthCallback(col, null, null);
-		if (-1 !== w) {
-			this._calcColWidth(0, col);
-			res = true;
-
-			this._cleanCache(new asc_Range(col, 0, col, this.rows.length - 1));
-		}
-		return res;
-	};
     WorksheetView.prototype.autoFitColumnsWidth = function (col) {
 		var viewMode = this.handlers.trigger('getViewMode');
         var t = this;
@@ -13823,35 +13801,24 @@
 			if (viewMode) {
 				History.TurnOff();
 			}
-			var c1, c2, bUpdate = false;
+			var c1, c2;
 
 			History.Create_NewPoint();
 			History.StartTransaction();
 
 			if (null !== col) {
-				if (t._autoFitColumnWidth(col)) {
-					bUpdate = true;
-				}
+				t._autoFitColumnWidth(col, null, null);
 			} else {
 				for (var i = 0; i < selectionRanges.length; ++i) {
 					c1 = selectionRanges[i].c1;
 					c2 = Math.min(selectionRanges[i].c2, max);
 					for (; c1 <= c2; ++c1) {
-						if (t._autoFitColumnWidth(c1)) {
-							bUpdate = true;
-						}
+						t._autoFitColumnWidth(c1, null, null);
 					}
 				}
 			}
 
-			if (bUpdate) {
-				t._updateColumnPositions();
-				t._updateVisibleColsCount();
-				t._calcHeightRows(AscCommonExcel.recalcType.recalc);
-				t._updateVisibleRowsCount();
-				t._updateDrawingArea();
-				t.changeWorksheet("update");
-			}
+			t.draw();
 			History.EndTransaction();
 			if (viewMode) {
 				History.TurnOn();
@@ -14748,6 +14715,15 @@
 
 			this.handlers.trigger("onDocumentPlaceChanged");
 		}
+
+		if (Number.MAX_VALUE !== this.updateColumnsStart) {
+			this._updateColumnPositions();
+			this._updateVisibleColsCount(true);
+			this._updateDrawingArea();
+			this.objectRender.updateDrawingsTransform({target: c_oTargetType.ColumnResize, col: this.updateColumnsStart});
+			this.updateColumnsStart = Number.MAX_VALUE;
+		}
+
 		this._reinitializeScroll();
 	};
 	WorksheetView.prototype._updateDrawingArea = function () {
@@ -15515,21 +15491,16 @@
 		this._calcHeightRows(AscCommonExcel.recalcType.newLines);
 		this._calcWidthColumns(AscCommonExcel.recalcType.newLines);
 
-        var i, r = range.r1, bIsUpdate = false, w;
+        var i, r = range.r1, bIsUpdate = false;
         // AutoFit column with by headers of table
         for (i = range.c1; i <= range.c2; ++i) {
-            w = this.onChangeWidthCallback(i, r, r, /*onlyIfMore*/true);
-            if (-1 !== w) {
-				this._calcColWidth(0, i);
-                this._cleanCache(new asc_Range(i, 0, i, this.rows.length - 1));
+            if (this._autoFitColumnWidth(i, r, r, true)) {
                 bIsUpdate = true;
             }
         }
 
         if (bIsUpdate) {
-            this._updateColumnPositions();
-            this._updateVisibleColsCount();
-            this.changeWorksheet("update");
+			this.draw(lockDraw);
         } else if (changeRowsOrMerge) {
             // Был merge, нужно обновить (ToDo)
             this._initCellsArea(AscCommonExcel.recalcType.full);
