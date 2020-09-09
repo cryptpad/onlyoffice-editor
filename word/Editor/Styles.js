@@ -14822,37 +14822,6 @@ CFramePr.prototype =
         return FramePr;
     },
 
-<<<<<<< HEAD
-=======
-    Compare : function(FramePr)
-    {
-        return !(this.DropCap !== FramePr.DropCap
-			|| !IsEqualNullableFloatNumbers(this.H, FramePr.H)
-			|| this.HAnchor !== FramePr.HAnchor
-			|| this.HRule !== FramePr.HRule
-			|| this.HSpace !== FramePr.HSpace
-			|| this.Lines !== FramePr.Lines
-			|| this.VAnchor !== FramePr.VAnchor
-			|| this.VSpace !== FramePr.VSpace
-			|| !IsEqualNullableFloatNumbers(this.W, FramePr.W)
-			|| this.Wrap !== FramePr.Wrap
-			|| !IsEqualNullableFloatNumbers(this.X, FramePr.X)
-			|| this.XAlign !== FramePr.XAlign
-			|| !IsEqualNullableFloatNumbers(this.Y, FramePr.Y)
-			|| this.YAlign !== FramePr.YAlign);
-    },
-
-    Is_Equal : function(FramePr)
-    {
-        return this.Compare(FramePr);
-    },
-
-	IsEqual : function(oFramePr)
-	{
-		return this.Compare(oFramePr);
-	},
-
->>>>>>> release/v6.0.0
     Set_FromObject : function(FramePr)
     {
         this.DropCap = FramePr.DropCap;
@@ -15050,7 +15019,6 @@ CFramePr.prototype =
         return false;
     }
 };
-<<<<<<< HEAD
 CFramePr.prototype.IsEqual = function(oFramePr)
 {
 	if (!oFramePr)
@@ -15078,7 +15046,7 @@ CFramePr.prototype.Compare = function(FramePr)
 CFramePr.prototype.Is_Equal = function(FramePr)
 {
 	return this.IsEqual(FramePr);
-=======
+};
 CFramePr.prototype.Merge = function(oFramePr)
 {
 	if (null !== oFramePr.DropCap && undefined !== oFramePr.DropCap)
@@ -15122,7 +15090,6 @@ CFramePr.prototype.Merge = function(oFramePr)
 
 	if (null !== oFramePr.YAlign && undefined !== oFramePr.YAlign)
 		this.YAlign = oFramePr.YAlign;
->>>>>>> release/v6.0.0
 };
 
 function CCalculatedFrame(FramePr, L, T, W, H, L2, T2, W2, H2, PageIndex, Index, FlowCount)

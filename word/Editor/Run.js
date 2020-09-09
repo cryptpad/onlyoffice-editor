@@ -11515,23 +11515,12 @@ ParaRun.prototype.ProcessAutoCorrect = function(nPos)
 					isOpenQuote = false;
 			}
 
-<<<<<<< HEAD
 			if (!isDoubleQoute && (1050 === nLang || 1060 === nLang))
 				return true;
 
 			// Проверку на лок можно не делать, т.к. мы собираемся менять содержимое данного рана, а такую проверку мы уже делали
 			oDocument.StartAction(AscDFH.historydescription_Document_AutoCorrectSmartQuotes);
 
-=======
-			var nLang = this.Get_CompiledPr(false).Lang ? this.Get_CompiledPr(false).Lang.Val : 1033;
-
-			if (!isDoubleQoute && (1050 === nLang || 1060 === nLang))
-				return true;
-
-			// Проверку на лок можно не делать, т.к. мы собираемся менять содержимое данного рана, а такую проверку мы уже делали
-			oDocument.StartAction(AscDFH.historydescription_Document_AutoCorrectSmartQuotes);
-
->>>>>>> release/v6.0.0
 			this.RemoveFromContent(nPos, 1);
 
 			if (isDoubleQoute)
@@ -12267,14 +12256,9 @@ ParaRun.prototype.CopyTextFormContent = function(oRun)
  * @param isToFootnote {boolean}
  * @param oStyles {CStyles}
  * @param oFootnote {CFootEndnote}
-<<<<<<< HEAD
  * @param oRef {ParaFootnoteReference | ParaEndnoteReference}
  */
 ParaRun.prototype.ConvertFootnoteType = function(isToFootnote, oStyles, oFootnote, oRef)
-=======
- */
-ParaRun.prototype.ConvertFootnoteType = function(isToFootnote, oStyles, oFootnote)
->>>>>>> release/v6.0.0
 {
 	var sRStyle = this.GetRStyle();
 	if (isToFootnote)
@@ -12287,8 +12271,6 @@ ParaRun.prototype.ConvertFootnoteType = function(isToFootnote, oStyles, oFootnot
 		for (var nCurPos = 0, nCount = this.Content.length; nCurPos < nCount; ++nCurPos)
 		{
 			var oElement = this.Content[nCurPos];
-
-<<<<<<< HEAD
 			if (!oRef || oRef === oElement)
 			{
 				if (para_EndnoteReference === oElement.Type)
@@ -12301,17 +12283,6 @@ ParaRun.prototype.ConvertFootnoteType = function(isToFootnote, oStyles, oFootnot
 					this.RemoveFromContent(nCurPos, 1);
 					this.AddToContent(nCurPos, new ParaFootnoteRef(oFootnote));
 				}
-=======
-			if (para_EndnoteReference === oElement.Type)
-			{
-				this.RemoveFromContent(nCurPos, 1);
-				this.AddToContent(nCurPos, new ParaFootnoteReference(oFootnote, oElement.CustomMark));
-			}
-			else if (para_EndnoteRef === oElement.Type)
-			{
-				this.RemoveFromContent(nCurPos, 1);
-				this.AddToContent(nCurPos, new ParaFootnoteRef(oFootnote));
->>>>>>> release/v6.0.0
 			}
 		}
 	}
@@ -12325,8 +12296,6 @@ ParaRun.prototype.ConvertFootnoteType = function(isToFootnote, oStyles, oFootnot
 		for (var nCurPos = 0, nCount = this.Content.length; nCurPos < nCount; ++nCurPos)
 		{
 			var oElement = this.Content[nCurPos];
-
-<<<<<<< HEAD
 			if (!oRef || oRef === oElement)
 			{
 				if (para_FootnoteReference === oElement.Type)
@@ -12339,17 +12308,6 @@ ParaRun.prototype.ConvertFootnoteType = function(isToFootnote, oStyles, oFootnot
 					this.RemoveFromContent(nCurPos, 1);
 					this.AddToContent(nCurPos, new ParaEndnoteRef(oFootnote));
 				}
-=======
-			if (para_FootnoteReference === oElement.Type)
-			{
-				this.RemoveFromContent(nCurPos, 1);
-				this.AddToContent(nCurPos, new ParaEndnoteReference(oFootnote, oElement.CustomMark));
-			}
-			else if (para_FootnoteRef === oElement.Type)
-			{
-				this.RemoveFromContent(nCurPos, 1);
-				this.AddToContent(nCurPos, new ParaEndnoteRef(oFootnote));
->>>>>>> release/v6.0.0
 			}
 		}
 	}

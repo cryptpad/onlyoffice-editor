@@ -988,11 +988,7 @@ CMathBase.prototype.Apply_TextPrToCtrPr = function(TextPr, IncFontSize, ApplyToA
 	if (true === ApplyToAll)
 		this.RecalcInfo.bCtrPrp = true;
 
-<<<<<<< HEAD
-	if (undefined === TextPr)
-=======
 	if (!TextPr)
->>>>>>> release/v6.0.0
 	{
 		var CtrPrp = this.Get_CompiledCtrPrp_2();
 		this.Set_FontSizeCtrPrp(FontSize_IncreaseDecreaseValue(IncFontSize, CtrPrp.FontSize));
@@ -1000,11 +996,7 @@ CMathBase.prototype.Apply_TextPrToCtrPr = function(TextPr, IncFontSize, ApplyToA
 	else
 	{
 		if (undefined !== TextPr.Bold)
-<<<<<<< HEAD
-			this.Set_Bold(TextPr.Bold);
-=======
 			this.Set_Bold(null === TextPr.Bold ? undefined : TextPr.Bold);
->>>>>>> release/v6.0.0
 
 		if (TextPr.AscFill || TextPr.AscLine || TextPr.AscUnifill)
 		{
@@ -1024,64 +1016,15 @@ CMathBase.prototype.Apply_TextPrToCtrPr = function(TextPr, IncFontSize, ApplyToA
 			return;
 		}
 
-<<<<<<< HEAD
-		if (TextPr.FontSize !== undefined)
-			this.Set_FontSizeCtrPrp(TextPr.FontSize);
-
-		if (TextPr.Shd !== undefined)
-			this.Set_Shd(TextPr.Shd);
-=======
 		if (undefined !== TextPr.FontSize)
 			this.Set_FontSizeCtrPrp(null === TextPr.FontSize ? undefined : TextPr.FontSize);
 
 		if (undefined !== TextPr.Shd)
 			this.Set_Shd(null === TextPr.Shd ? undefined : TextPr.Shd);
->>>>>>> release/v6.0.0
 
 		if (undefined !== TextPr.Unifill)
 		{
 			this.Set_Unifill(null === TextPr.Unifill ? undefined : TextPr.Unifill.createDuplicate());
-<<<<<<< HEAD
-			this.Set_Color(undefined);
-			this.Set_TextFill(undefined);
-		}
-
-		if (undefined !== TextPr.TextOutline)
-		{
-			this.Set_TextOutline(TextPr.TextOutline);
-		}
-
-		if (undefined !== TextPr.TextFill)
-		{
-			this.Set_TextFill(TextPr.TextFill);
-			this.Set_Color(undefined);
-			this.Set_Unifill(undefined);
-		}
-
-		if (undefined !== TextPr.HighLight)
-			this.Set_HighLight(TextPr.HighLight);
-
-		if (undefined !== TextPr.Underline)
-		{
-			this.Set_Underline(TextPr.Underline);
-		}
-
-		if (undefined !== TextPr.Strikeout)
-		{
-			this.Set_Strikeout(TextPr.Strikeout);
-		}
-
-		if (undefined !== TextPr.DStrikeout)
-		{
-			this.Set_DoubleStrikeout(TextPr.DStrikeout);
-		}
-
-		if (undefined !== TextPr.RFonts && null !== TextPr.RFonts)
-		{
-			var oRFonts = new CRFonts();
-			oRFonts.SetAll("Cambria Math", -1);
-			this.raw_SetRFonts(oRFonts);
-=======
 
 			if (null !== TextPr.Unifill)
 			{
@@ -1128,7 +1071,6 @@ CMathBase.prototype.Apply_TextPrToCtrPr = function(TextPr, IncFontSize, ApplyToA
 			RFonts.Set_All("Cambria Math", -1);
 
 			this.raw_SetRFonts(RFonts);
->>>>>>> release/v6.0.0
 		}
 	}
 };

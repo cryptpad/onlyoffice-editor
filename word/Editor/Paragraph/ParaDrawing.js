@@ -1661,17 +1661,12 @@ ParaDrawing.prototype.CanInsertToPos = function(oAnchorPos)
 };
 ParaDrawing.prototype.OnEnd_MoveInline = function(NearPos)
 {
-	if(!this.Parent)
-	{
+	if (!this.Parent)
 		return;
-	}
+
 	NearPos.Paragraph.Check_NearestPos(NearPos);
 
-<<<<<<< HEAD
 	var oRun        = this.GetRun();
-=======
-	var oRun        = this.Parent.Get_DrawingObjectRun(this.GetId());
->>>>>>> release/v6.0.0
 	var isPictureCC = false;
 	if (oRun)
 	{

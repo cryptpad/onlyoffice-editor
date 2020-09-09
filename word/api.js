@@ -4559,15 +4559,9 @@ background-repeat: no-repeat;\
 	{
 		return this.WordControl.m_oLogicDocument.GetEndnotePr();
 	};
-<<<<<<< HEAD
 	asc_docs_api.prototype.asc_ConvertFootnoteType = function(isCurrent, isFootnotes, isEndnotes)
 	{
 		this.WordControl.m_oLogicDocument.ConvertFootnoteType(isCurrent, isFootnotes, isEndnotes);
-=======
-	asc_docs_api.prototype.asc_ConvertFootnoteType = function()
-	{
-		this.WordControl.m_oLogicDocument.ConvertFootnoteType();
->>>>>>> release/v6.0.0
 	};
 	asc_docs_api.prototype["asc_AddFootnote"]         = asc_docs_api.prototype.asc_AddFootnote;
 	asc_docs_api.prototype["asc_RemoveAllFootnotes"]  = asc_docs_api.prototype.asc_RemoveAllFootnotes;

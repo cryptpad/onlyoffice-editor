@@ -5464,16 +5464,6 @@ CMathContent.prototype.Process_AutoCorrect = function(ActionElement) {
     }
     if (CanMakeAutoCorrect || CanMakeAutoCorrectEquation || CanMakeAutoCorrectFunc) {
         AscFonts.FontPickerByCharacter.checkText(AutoCorrectEngine.RepCharsCode, this, function() {
-<<<<<<< HEAD
-            this.private_ReplaceAutoCorrect(AutoCorrectEngine);
-            if(oLogicDocument) {
-                oLogicDocument.FinalizeAction();
-            } else {
-                History.Remove_LastPoint();
-            }
-            AutoCorrectEngine.StartHystory = false;
-        }, true, false, true);
-=======
             if (AscCommon.g_fontManager) {
                 AscCommon.g_fontManager.ClearFontsRasterCache();
                 AscCommon.g_fontManager.m_pFont = null;
@@ -5504,7 +5494,6 @@ CMathContent.prototype.Process_AutoCorrect = function(ActionElement) {
                 AutoCorrectEngine.StartHystory = false;
             }
         }, true, false, true); 
->>>>>>> release/v6.0.0
     }
 };
 CMathContent.prototype.private_NeedAutoCorrect = function(ActionElement) {
@@ -8593,10 +8582,7 @@ CMathContent.prototype.GetTextContent = function(bSelectedText) {
 	return {str: str, bIsContainsOperator: bIsContainsOperator, paraRunArr: paraRunArr};
 };
 function CMathAutoCorrectEngine(Elem, CurPos, Paragraph) {
-<<<<<<< HEAD
-=======
 
->>>>>>> release/v6.0.0
     this.ActionElement    = Elem;                                               // элемент на которотом срабатывает автодополнение
     this.CurElement       = CurPos;                                             // индекс текущего элемента, где стоит курсор
     this.CurPos           = null;                                               // индекс элемента с которого будет начинаться автозамена

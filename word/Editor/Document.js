@@ -9927,128 +9927,10 @@ CDocument.prototype.OnKeyDown = function(e)
 			{
 				this.MoveCursorToStartOfLine(true === e.ShiftKey);
 			}
-<<<<<<< HEAD
-=======
-			bRetValue = keydownresult_PreventAll;
-		}
-	}
-    else if (e.KeyCode == 89 && true === e.CtrlKey && (this.CanEdit() || this.IsEditCommentsMode() || this.IsFillingFormMode())) // Ctrl + Y - Redo
-    {
-        this.Document_Redo();
-        bRetValue = keydownresult_PreventAll;
-    }
-    else if (e.KeyCode == 90 && true === e.CtrlKey && (this.CanEdit() || this.IsEditCommentsMode() || this.IsFillingFormMode()) && !this.IsViewModeInReview()) // Ctrl + Z - Undo
-    {
-       	this.Document_Undo();
-        bRetValue = keydownresult_PreventAll;
-    }
-    else if ((e.KeyCode == 93) || (/*в Opera такой код*/AscCommon.AscBrowser.isOpera && (57351 == e.KeyCode)) ||
-             (e.KeyCode == 121 && true === e.ShiftKey)) // // Shift + F10 - контекстное меню
-    {
-        var X_abs, Y_abs, oPosition, ConvertedPos;
-        if (this.DrawingObjects.selectedObjects.length > 0)
-        {
-            oPosition    = this.DrawingObjects.getContextMenuPosition(this.CurPage);
-            ConvertedPos = this.DrawingDocument.ConvertCoordsToCursorWR(oPosition.X, oPosition.Y, oPosition.PageIndex);
-        }
-        else
-        {
-            ConvertedPos = this.DrawingDocument.ConvertCoordsToCursorWR(this.TargetPos.X, this.TargetPos.Y, this.TargetPos.PageNum);
-        }
-        X_abs = ConvertedPos.X;
-        Y_abs = ConvertedPos.Y;
-
-        editor.sync_ContextMenuCallback({Type : Asc.c_oAscContextMenuTypes.Common, X_abs : X_abs, Y_abs : Y_abs});
-
-        bUpdateSelection = false;
-        bRetValue        = keydownresult_PreventAll;
-    }
-    else if (e.KeyCode === 109) // Num-
-	{
-		if (true === e.AltKey && (true === e.CtrlKey || true === e.AltGr) && false === this.Document_Is_SelectionLocked(changestype_Paragraph_Content, null, true))
-		{
-			this.StartAction(AscDFH.historydescription_Document_MinusButton);
-
-			this.DrawingDocument.TargetStart();
-			this.DrawingDocument.TargetShow();
-
-			this.AddToParagraph(new ParaText(0x2014));
-			this.FinalizeAction();
-			bRetValue = keydownresult_PreventAll;
-		}
-		// else if (true === e.CtrlKey && !this.IsSelectionLocked(changestype_Paragraph_Content, null, true))
-		// {
-		// 	this.StartAction(AscDFH.historydescription_Document_MinusButton);
-		//
-		// 	this.DrawingDocument.TargetStart();
-		// 	this.DrawingDocument.TargetShow();
-		//
-		// 	this.AddToParagraph(new ParaText(0x2013));
-		// 	this.FinalizeAction();
-		// 	bRetValue = keydownresult_PreventAll;
-		// }
-	}
-	else if (e.KeyCode == 120) // F9 - обновление полей
-	{
-		this.UpdateFields(true);
-
-		bUpdateSelection = false;
-		bRetValue        = keydownresult_PreventAll;
-	}
-    else if (e.KeyCode == 144) // Num Lock
-    {
-        // Ничего не делаем
-        bUpdateSelection = false;
-        bRetValue        = keydownresult_PreventAll;
-    }
-    else if (e.KeyCode == 145) // Scroll Lock
-    {
-        // Ничего не делаем
-        bUpdateSelection = false;
-        bRetValue        = keydownresult_PreventAll;
-    }
-    else if (e.KeyCode == 187) // =
-    {
-        if (!e.CtrlKey && true === e.AltKey && !e.AltGr) // Alt + =
-        {
-            var oSelectedInfo = this.GetSelectedElementsInfo();
-            var oMath         = oSelectedInfo.Get_Math();
-            if (null === oMath)
-            {
-            	this.Api.asc_AddMath();
-				bRetValue = keydownresult_PreventAll;
-            }
-        }
-    }
-    else if (e.KeyCode == 188 && true === e.CtrlKey) // Ctrl + ,
-    {
-        var TextPr = this.GetCalculatedTextPr();
-        if (null != TextPr)
-        {
-            if (false === this.Document_Is_SelectionLocked(AscCommon.changestype_Paragraph_TextProperties))
-            {
-                this.StartAction(AscDFH.historydescription_Document_SetTextVertAlignHotKey2);
-                this.AddToParagraph(new ParaTextPr({VertAlign : TextPr.VertAlign === AscCommon.vertalign_SuperScript ? AscCommon.vertalign_Baseline : AscCommon.vertalign_SuperScript}));
-                this.UpdateInterface();
-				this.FinalizeAction();
-            }
-            bRetValue = keydownresult_PreventAll;
-        }
-    }
-    else if (e.KeyCode === 189) // -
-    {
-        if (true === e.CtrlKey && true === e.ShiftKey && false === this.Document_Is_SelectionLocked(changestype_Paragraph_Content, null, true))
-        {
-            this.StartAction(AscDFH.historydescription_Document_MinusButton);
-
-            this.DrawingDocument.TargetStart();
-            this.DrawingDocument.TargetShow();
->>>>>>> release/v6.0.0
 
 			this.Document_UpdateInterfaceState();
 			this.Document_UpdateRulersState();
 
-<<<<<<< HEAD
 			this.private_CheckCursorPosInFillingFormMode();
 			this.CheckComplexFieldsInSelection();
 			bRetValue = keydownresult_PreventAll;
@@ -10066,13 +9948,6 @@ CDocument.prototype.OnKeyDown = function(e)
 			bRetValue = keydownresult_PreventAll;
 		}
 		else if (e.KeyCode === 38) // Top Arrow
-=======
-            this.AddToParagraph(Item);
-			this.FinalizeAction();
-            bRetValue = keydownresult_PreventAll;
-        }
-        else if (true === e.AltKey && false === this.Document_Is_SelectionLocked(changestype_Paragraph_Content, null, true))
->>>>>>> release/v6.0.0
 		{
 			// TODO: Реализовать Ctrl + Up/ Ctrl + Shift + Up
 			// Чтобы при зажатой клавише курсор не пропадал
@@ -17270,7 +17145,6 @@ CDocument.prototype.SetEndnotePr = function(oEndnotePr, bApplyToAll)
 		this.FinalizeAction();
 	}
 };
-<<<<<<< HEAD
 CDocument.prototype.ConvertFootnoteType = function(isCurrent, isFootnotes, isEndnotes)
 {
 	var nDocPosType  = this.GetDocPosType();
@@ -17381,66 +17255,11 @@ CDocument.prototype.ConvertFootnoteType = function(isCurrent, isFootnotes, isEnd
 		if (oCurFootnote)
 			oCurFootnote.SetThisElementCurrent(false);
 
-=======
-CDocument.prototype.ConvertFootnoteType = function()
-{
-	if (docpostype_Content !== this.GetDocPosType() || this.IsSelectionUse())
-		return;
-
-	var oParagraph = this.GetCurrentParagraph();
-	if (!oParagraph)
-		return;
-
-	var oNextElement = oParagraph.GetNextRunElement();
-	var oPrevElement = oParagraph.GetPrevRunElement();
-
-	var oRef = null;
-	if (oNextElement && (para_FootnoteReference === oNextElement.Type || para_EndnoteReference === oNextElement.Type))
-		oRef = oNextElement;
-	else if (oPrevElement && (para_FootnoteReference === oPrevElement.Type || para_EndnoteReference === oPrevElement.Type))
-		oRef = oPrevElement;
-
-	if (!oRef)
-		return;
-
-	var oRunInfo = oParagraph.GetRunByElement(oRef);
-	if (!oRunInfo)
-		return;
-
-	if (!this.IsSelectionLocked(changestype_None, {
-		Type      : AscCommon.changestype_2_Element_and_Type,
-		Element   : oParagraph,
-		CheckType :  AscCommon.changestype_Paragraph_Content
-	}))
-	{
-		this.StartAction();
-
-		var oFootnote = oRef.GetFootnote();
-		if (para_FootnoteReference === oRef.Type)
-		{
-			this.Footnotes.RemoveFootnote(oFootnote);
-			this.Endnotes.AddEndnote(oFootnote);
-			oFootnote.ConvertFootnoteType(false);
-			oRunInfo.Run.ConvertFootnoteType(false, this.GetStyles(), oFootnote);
-		}
-		else
-		{
-			this.Endnotes.RemoveEndnote(oFootnote);
-			this.Footnotes.AddFootnote(oFootnote);
-			oFootnote.ConvertFootnoteType(true);
-			oRunInfo.Run.ConvertFootnoteType(true, this.GetStyles(), oFootnote);
-		}
-
->>>>>>> release/v6.0.0
 		this.Recalculate();
 		this.UpdateSelection();
 		this.UpdateInterface();
 		this.FinalizeAction();
 	}
-<<<<<<< HEAD
-=======
-
->>>>>>> release/v6.0.0
 };
 CDocument.prototype.TurnOffCheckChartSelection = function()
 {
