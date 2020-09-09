@@ -616,6 +616,11 @@
 	CT_slicer.prototype.setCaption = function (val) {
 		var oldVal = this.caption;
 		this.caption = val;
+		if(typeof this.caption === "string") {
+			if(AscFonts.IsCheckSymbols) {
+				AscFonts.FontPickerByCharacter.getFontsByString(this.caption);
+			}
+		}
 		History.Add(AscCommonExcel.g_oUndoRedoSlicer, AscCH.historyitem_Slicer_SetCaption,
 			this.ws.getId(), null, new AscCommonExcel.UndoRedoData_Slicer(this.name, oldVal, val));
 	};
