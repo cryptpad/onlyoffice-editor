@@ -3733,21 +3733,12 @@
 						range3 = ws.getRange3(union.r1, union.c1, union.r2, union.c2);
 					}
 
-					if (range3.bbox.r2-range3.bbox.r1 < range3.bbox.c2-range3.bbox.c1) {
-						range3._foreachRowNoEmpty(function() {
+					range3._foreachNoEmpty(function (cell) {
+						if (!cell.isEmptyTextString()) {
 							res = false;
 							return true;
 						}
 					});
-
-					if (res) {
-						range3._foreachNoEmpty(function (cell) {
-							if (!cell.isEmptyTextString()) {
-								res = false;
-								return null;
-							}
-						});
-					}
 
 					return res;
 				};
@@ -3974,21 +3965,12 @@
 						range3 = ws.getRange3(union.r1, union.c1, union.r2, union.c2);
 					}
 
-					if (range3.bbox.r2-range3.bbox.r1 < range3.bbox.c2-range3.bbox.c1) {
-						range3._foreachRowNoEmpty(function() {
+					range3._foreachNoEmpty(function (cell) {
+						if (!cell.isEmptyTextString()) {
 							res = false;
 							return true;
 						}
 					});
-
-					if (res) {
-						range3._foreachNoEmpty(function (cell) {
-							if (!cell.isEmptyTextString()) {
-								res = false;
-								return null;
-							}
-						});
-					}
 
 					return res;
 				};
