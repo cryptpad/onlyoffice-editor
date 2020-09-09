@@ -5431,7 +5431,7 @@ CMathContent.prototype.Process_AutoCorrect = function(ActionElement) {
     //добавить все элементы
     AutoCorrectEngine.private_Add_Element(this.Content);
     if (null == AutoCorrectEngine.TextPr) {
-        AutoCorrectEngine.TextPr = (this.Content[0] && this.Content[0].CompiledPr) ? this.Content[0].CompiledPr : new CTextPr();
+        AutoCorrectEngine.TextPr = new CTextPr();
     }
     if (null == AutoCorrectEngine.MathPr) {
         AutoCorrectEngine.MathPr = new CMPrp();
@@ -5464,6 +5464,7 @@ CMathContent.prototype.Process_AutoCorrect = function(ActionElement) {
     }
     if (CanMakeAutoCorrect || CanMakeAutoCorrectEquation || CanMakeAutoCorrectFunc) {
         AscFonts.FontPickerByCharacter.checkText(AutoCorrectEngine.RepCharsCode, this, function() {
+<<<<<<< HEAD
             this.private_ReplaceAutoCorrect(AutoCorrectEngine);
             if(oLogicDocument) {
                 oLogicDocument.FinalizeAction();
@@ -5472,6 +5473,38 @@ CMathContent.prototype.Process_AutoCorrect = function(ActionElement) {
             }
             AutoCorrectEngine.StartHystory = false;
         }, true, false, true);
+=======
+            if (AscCommon.g_fontManager) {
+                AscCommon.g_fontManager.ClearFontsRasterCache();
+                AscCommon.g_fontManager.m_pFont = null;
+            }
+            if (AscCommon.g_fontManager2) {
+                AscCommon.g_fontManager2.ClearFontsRasterCache();
+                AscCommon.g_fontManager2.m_pFont = null;
+            }
+            if(oLogicDocument) {
+                this.private_ReplaceAutoCorrect(AutoCorrectEngine);
+                if (oLogicDocument.Api.WordControl.EditorType == "presentations")
+                    this.Paragraph.Parent.Parent.parent.checkExtentsByDocContent();
+            } else {
+                var shape = this.Paragraph.Parent.DrawingDocument.drawingObjects.controller.selectedObjects[0];
+                var wb = shape.worksheet.workbook.oApi.wb;
+                for (var i = 0, length = wb.fmgrGraphics.length; i < length; ++i) 
+                    wb.fmgrGraphics[i].ClearFontsRasterCache();
+                
+                this.private_ReplaceAutoCorrect(AutoCorrectEngine);
+                shape.checkExtentsByDocContent();
+                this.Paragraph.Parent.DrawingDocument.drawingObjects.controller.startRecalculate();
+            }
+            if (AutoCorrectEngine.StartHystory) {
+                if (oLogicDocument) {
+                     oLogicDocument.FinalizeAction();
+                }
+                // History.Remove_LastPoint();
+                AutoCorrectEngine.StartHystory = false;
+            }
+        }, true, false, true); 
+>>>>>>> release/v6.0.0
     }
 };
 CMathContent.prototype.private_NeedAutoCorrect = function(ActionElement) {
@@ -5492,11 +5525,10 @@ CMathContent.prototype.private_UpdateAutoCorrectMathSymbols = function() {
 
 };
 CMathContent.prototype.private_CanAutoCorrectText = function(AutoCorrectEngine, bSkipLast) {
-    var IndexAdd = (true === bSkipLast ? 1 : 0);
-    var skip = (g_aMathAutoCorrectTriggerCharCodes[AutoCorrectEngine.ActionElement.value]) ? 1 : 0;
-    skip -= (AutoCorrectEngine.ActionElement.value == 0x20) ? 1 : 0;
+    var IndexAdd = (g_aMathAutoCorrectTriggerCharCodes[AutoCorrectEngine.ActionElement.value]) ? 1 : 0;
+    var skip = IndexAdd - (AutoCorrectEngine.ActionElement.value == 0x20) ? 1 : 0;
     var ElCount = AutoCorrectEngine.Elements.length;
-    if (ElCount < 2 + IndexAdd) {
+    if (ElCount < 1 + IndexAdd) {
         return false;
     }
     var Result = false;
@@ -7239,22 +7271,16 @@ CMathAutoCorrectEngine.prototype.private_CorrectBuffForRadical = function(buff, 
                 }
             }
         case 0x221B:
-            var MathRun = new ParaRun(this.Paragraph, true);
-            MathRun.Set_Pr(this.TextPr.Copy());
-            MathRun.Set_MathPr(this.MathPr);
             var MathText = new CMathText();
             MathText.addTxt("3");
-            MathRun.Add_ToContent(0, MathText);
-            buff.splice(1,0,MathRun);
+            var tmp = buff[0].splice(0, buff[0].length);
+            buff[0].push(tmp,[MathText]);
             return false;
         case 0x221C:
-            var MathRun = new ParaRun(this.Paragraph, true);
-            MathRun.Set_Pr(this.TextPr.Copy());
-            MathRun.Set_MathPr(this.MathPr);
             var MathText = new CMathText();
             MathText.addTxt("4");
-            MathRun.Add_ToContent(0, MathText);
-            buff.splice(1,0,MathRun);
+            var tmp = buff[0].splice(0, buff[0].length);
+            buff[0].push(tmp,[MathText]);
             return false;
     }
 };
@@ -8567,6 +8593,10 @@ CMathContent.prototype.GetTextContent = function(bSelectedText) {
 	return {str: str, bIsContainsOperator: bIsContainsOperator, paraRunArr: paraRunArr};
 };
 function CMathAutoCorrectEngine(Elem, CurPos, Paragraph) {
+<<<<<<< HEAD
+=======
+
+>>>>>>> release/v6.0.0
     this.ActionElement    = Elem;                                               // элемент на которотом срабатывает автодополнение
     this.CurElement       = CurPos;                                             // индекс текущего элемента, где стоит курсор
     this.CurPos           = null;                                               // индекс элемента с которого будет начинаться автозамена

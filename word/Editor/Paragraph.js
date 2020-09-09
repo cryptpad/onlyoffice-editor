@@ -1755,7 +1755,10 @@ Paragraph.prototype.RecalculateMinMaxContentWidth = function(isRotated)
 	}
 
 	var ParaPr = this.Get_CompiledPr2(false).ParaPr;
-	var MinInd = ParaPr.Ind.Left + ParaPr.Ind.Right + ParaPr.Ind.FirstLine;
+	var MinInd = ParaPr.Ind.Left + ParaPr.Ind.Right;
+
+	if (this.LogicDocument.GetCompatibilityMode() >= AscCommon.document_compatibility_mode_Word15)
+		MinInd += ParaPr.Ind.FirstLine;
 
 	if (MinMax.nMinWidth > 0.001 || MinMax.nMaxWidth > 0.001)
 	{
@@ -7372,7 +7375,7 @@ Paragraph.prototype.DrawSelectionOnPage = function(CurPage)
 					var StartY = DrawSelection.StartY;
 					var H      = DrawSelection.H;
 
-					if (true !== bInline)
+					if (true !== bInline && this.CalculatedFrame)
 					{
 						var Frame_X_min = this.CalculatedFrame.L2;
 						var Frame_Y_min = this.CalculatedFrame.T2;
@@ -7944,7 +7947,20 @@ Paragraph.prototype.GetSelectionAnchorPos = function()
  */
 Paragraph.prototype.GetSelectedText = function(bClearText, oPr)
 {
-	var Str   = "";
+	var Str = "";
+
+	var oNumPr = this.GetNumPr();
+	if (oNumPr && oNumPr.IsValid())
+	{
+		Str += this.GetNumberingText(false);
+
+		var nSuff = this.Parent.GetNumbering().GetNum(oNumPr.NumId).GetLvl(oNumPr.Lvl).GetSuff();
+		if (Asc.c_oAscNumberingSuff.Tab === nSuff)
+			Str += "	";
+		else if (Asc.c_oAscNumberingSuff.Space === nSuff)
+			Str += " ";
+	}
+
 	var Count = this.Content.length;
 	for (var Pos = 0; Pos < Count; Pos++)
 	{
@@ -9410,11 +9426,6 @@ Paragraph.prototype.Internal_CompileParaPr2 = function()
 		else
 			Pr.ParaPr.NumPr = undefined;
 
-		// Настройки рамки не наследуются
-		if (undefined === this.Pr.FramePr)
-			Pr.ParaPr.FramePr = undefined;
-		else
-			Pr.ParaPr.FramePr = this.Pr.FramePr.Copy();
 		return Pr;
 	}
 	else
@@ -11041,11 +11052,11 @@ Paragraph.prototype.IsInline = function()
 };
 Paragraph.prototype.GetFramePr = function()
 {
-	return this.Pr.FramePr;
+	return this.Get_CompiledPr2(false).ParaPr.FramePr;
 };
 Paragraph.prototype.Get_FramePr = function()
 {
-	return this.Pr.FramePr;
+	return this.GetFramePr();
 };
 Paragraph.prototype.Set_FramePr = function(FramePr, bDelete)
 {
@@ -12499,7 +12510,7 @@ Paragraph.prototype.CanAddComment = function()
 		return isCanAdd;
 	}
 
-	if (true === this.Selection.Use && true != this.IsSelectionEmpty())
+	if (true === this.Selection.Use && true !== this.IsSelectionEmpty())
 	{
 		var nStartPos = this.Selection.StartPos <= this.Selection.EndPos ? this.Selection.StartPos : this.Selection.EndPos;
 		var nEndPos   = this.Selection.StartPos <= this.Selection.EndPos ? this.Selection.EndPos : this.Selection.StartPos;
@@ -12513,14 +12524,13 @@ Paragraph.prototype.CanAddComment = function()
 		return true;
 	}
 
+	if (this.Content[this.CurPos.ContentPos].CanAddComment && !this.Content[this.CurPos.ContentPos].CanAddComment())
+		return false;
+
 	var oNext = this.GetNextRunElement();
 	var oPrev = this.GetPrevRunElement();
 
-	if ((oNext && para_Text === oNext.Type)
-		|| (oPrev && para_Text === oPrev.Type))
-		return true;
-
-	return false;
+	return ((oNext && para_Text === oNext.Type) || (oPrev && para_Text === oPrev.Type));
 };
 Paragraph.prototype.RemoveCommentMarks = function(Id)
 {

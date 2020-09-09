@@ -4559,9 +4559,15 @@ background-repeat: no-repeat;\
 	{
 		return this.WordControl.m_oLogicDocument.GetEndnotePr();
 	};
+<<<<<<< HEAD
 	asc_docs_api.prototype.asc_ConvertFootnoteType = function(isCurrent, isFootnotes, isEndnotes)
 	{
 		this.WordControl.m_oLogicDocument.ConvertFootnoteType(isCurrent, isFootnotes, isEndnotes);
+=======
+	asc_docs_api.prototype.asc_ConvertFootnoteType = function()
+	{
+		this.WordControl.m_oLogicDocument.ConvertFootnoteType();
+>>>>>>> release/v6.0.0
 	};
 	asc_docs_api.prototype["asc_AddFootnote"]         = asc_docs_api.prototype.asc_AddFootnote;
 	asc_docs_api.prototype["asc_RemoveAllFootnotes"]  = asc_docs_api.prototype.asc_RemoveAllFootnotes;
@@ -9963,7 +9969,7 @@ background-repeat: no-repeat;\
 				this.WordControl.m_oDrawingDocument.CheckTableStylesOne();
 		}
 	};
-	window["asc_docs_api"].prototype["asc_nativeCalculateFile"] = function()
+	window["asc_docs_api"].prototype["asc_nativeCalculateFile"] = function(options)
 	{
 		if (null == this.WordControl.m_oLogicDocument)
 			return;
@@ -9983,7 +9989,15 @@ background-repeat: no-repeat;\
 		}
 
 		Document.MoveCursorToStartPos();
-		Document.RecalculateAllAtOnce(true);
+
+		if (window['IS_NATIVE_EDITOR']) {
+			Document.RecalculateFromStart();
+		} else {
+			var pagescount = undefined;
+			if (options && options["printOptions"] && options["printOptions"]["onlyFirstPage"])
+				pagescount = 1;
+			Document.RecalculateAllAtOnce(true, pagescount);
+		}
 
 		Document.Document_UpdateInterfaceState();
 		//Document.Document_UpdateRulersState();

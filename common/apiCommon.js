@@ -156,6 +156,12 @@
 		}
 	}
 
+	function isFileBuild()
+	{
+		return window["NATIVE_EDITOR_ENJINE"] && !window["IS_NATIVE_EDITOR"] && !window["DoctRendererMode"];
+	}
+
+
 	var c_oLicenseResult = {
 		Error         : 1,
 		Expired       : 2,
@@ -4126,7 +4132,7 @@
 					else{
 						oUnifill = AscFormat.CreteSolidFillRGB(0, 0, 0);
 					}
-					oShape.spPr.setLn(AscFormat.CreatePenFromParams(oUnifill, undefined, undefined, undefined, undefined, AscFormat.isRealNumber(obj['stroke-width']) ? obj['stroke-width'] : 12700.0/36000.0))
+					oShape.spPr.setLn(AscFormat.CreatePenFromParams(oUnifill, undefined, undefined, undefined, undefined, AscFormat.isRealNumber(obj['stroke-width']) ? obj['stroke-width'] : 12700.0/36000.0));
 				}
 
 				if(bWord){
@@ -5555,6 +5561,7 @@
     prot["get_Variants"] = prot.get_Variants;
 
     window["AscCommon"].CWatermarkOnDraw = CWatermarkOnDraw;
+    window["AscCommon"].isFileBuild = isFileBuild;
 
 	window["Asc"]["CPluginVariation"] = window["Asc"].CPluginVariation = CPluginVariation;
 	window["Asc"]["CPlugin"] = window["Asc"].CPlugin = CPlugin;

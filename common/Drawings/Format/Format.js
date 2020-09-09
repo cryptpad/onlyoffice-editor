@@ -9832,6 +9832,7 @@ CBodyPr.prototype =
         this.vertOverflow   = nOTOwerflow;
         this.wrap           = AscFormat.nTWTSquare;
         this.prstTxWarp     = null;
+        this.textFit        = null;
     },
 
     createDuplicate: function()

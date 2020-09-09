@@ -199,6 +199,11 @@ function (window, undefined) {
 	window['AscCH'].historyitem_PivotTable_ColItems = 42;
 	window['AscCH'].historyitem_PivotTable_Location = 43;
 	window['AscCH'].historyitem_PivotTable_SetDataPosition = 44;
+	window['AscCH'].historyitem_PivotTable_CacheField = 45;
+	window['AscCH'].historyitem_PivotTable_PivotField = 46;
+	window['AscCH'].historyitem_PivotTable_PivotFilter = 47;
+	window['AscCH'].historyitem_PivotTable_PageFilter = 48;
+	window['AscCH'].historyitem_PivotTable_SetGridDropZones = 49;
 
 	window['AscCH'].historyitem_SharedFormula_ChangeFormula = 1;
 	window['AscCH'].historyitem_SharedFormula_ChangeShared = 2;
@@ -392,7 +397,7 @@ CHistory.prototype.RedoAdd = function(oRedoObjectParam, Class, Type, sheetid, ra
 	if(bNeedOff)
 		this.TurnOff();
 
-	var bChangeActive = oRedoObjectParam.bChangeActive && AscCommonExcel.g_oUndoRedoWorkbook === Class;
+	var bChangeActive = oRedoObjectParam.bChangeActive && (AscCommonExcel.g_oUndoRedoWorkbook === Class || (AscCommonExcel.g_oUndoRedoWorksheet === Class && AscCH.historyitem_Worksheet_Hide === Type));
 	if (bChangeActive && null != oRedoObjectParam.activeSheet) {
 		//it can be delete action, so set active and get after action
 		this.workbook.setActiveById(oRedoObjectParam.activeSheet);
@@ -426,13 +431,13 @@ CHistory.prototype.RedoAdd = function(oRedoObjectParam, Class, Type, sheetid, ra
 			}
 		}
 	}
-	if (bChangeActive) {
-		oRedoObjectParam.activeSheet = this.workbook.getActiveWs().getId();
-	}
     var curPoint = this.Points[this.Index];
     if (curPoint) {
         this._addRedoObjectParam(oRedoObjectParam, curPoint.Items[curPoint.Items.length - 1]);
     }
+	if (bChangeActive) {
+		oRedoObjectParam.activeSheet = this.workbook.getActiveWs().getId();
+	}
 };
 
 CHistory.prototype.Remove_LastPoint = function()
@@ -446,6 +451,11 @@ CHistory.prototype.Remove_LastPoint = function()
 CHistory.prototype.RemoveLastPoint = function()
 {
 	this.Remove_LastPoint();
+};
+CHistory.prototype.Clear_Redo = function()
+{
+	// Удаляем ненужные точки
+	this.Points.length = this.Index + 1;
 };
 CHistory.prototype.RedoExecute = function(Point, oRedoObjectParam)
 {

@@ -12831,8 +12831,10 @@ CTextPr.prototype.CheckFontScale =  function()
 	{
 		this.FontSize *= 	this.FontScale;
 		this.FontSize = (this.FontSize + 0.5) >> 0;
+		this.FontSize = Math.max(1, this.FontSize);
 		this.FontSizeCS *= this.FontScale;
 		this.FontSizeCS = (this.FontSizeCS + 0.5) >> 0;
+		this.FontSizeCS = Math.max(1, this.FontSizeCS);
 	}
 };
 
@@ -14820,6 +14822,37 @@ CFramePr.prototype =
         return FramePr;
     },
 
+<<<<<<< HEAD
+=======
+    Compare : function(FramePr)
+    {
+        return !(this.DropCap !== FramePr.DropCap
+			|| !IsEqualNullableFloatNumbers(this.H, FramePr.H)
+			|| this.HAnchor !== FramePr.HAnchor
+			|| this.HRule !== FramePr.HRule
+			|| this.HSpace !== FramePr.HSpace
+			|| this.Lines !== FramePr.Lines
+			|| this.VAnchor !== FramePr.VAnchor
+			|| this.VSpace !== FramePr.VSpace
+			|| !IsEqualNullableFloatNumbers(this.W, FramePr.W)
+			|| this.Wrap !== FramePr.Wrap
+			|| !IsEqualNullableFloatNumbers(this.X, FramePr.X)
+			|| this.XAlign !== FramePr.XAlign
+			|| !IsEqualNullableFloatNumbers(this.Y, FramePr.Y)
+			|| this.YAlign !== FramePr.YAlign);
+    },
+
+    Is_Equal : function(FramePr)
+    {
+        return this.Compare(FramePr);
+    },
+
+	IsEqual : function(oFramePr)
+	{
+		return this.Compare(oFramePr);
+	},
+
+>>>>>>> release/v6.0.0
     Set_FromObject : function(FramePr)
     {
         this.DropCap = FramePr.DropCap;
@@ -15017,6 +15050,7 @@ CFramePr.prototype =
         return false;
     }
 };
+<<<<<<< HEAD
 CFramePr.prototype.IsEqual = function(oFramePr)
 {
 	if (!oFramePr)
@@ -15044,6 +15078,51 @@ CFramePr.prototype.Compare = function(FramePr)
 CFramePr.prototype.Is_Equal = function(FramePr)
 {
 	return this.IsEqual(FramePr);
+=======
+CFramePr.prototype.Merge = function(oFramePr)
+{
+	if (null !== oFramePr.DropCap && undefined !== oFramePr.DropCap)
+		this.DropCap = oFramePr.DropCap;
+
+	if (null !== oFramePr.H && undefined !== oFramePr.H)
+		this.H = oFramePr.H;
+
+	if (null !== oFramePr.HAnchor && undefined !== oFramePr.HAnchor)
+		this.HAnchor = oFramePr.HAnchor;
+
+	if (null !== oFramePr.HRule && undefined !== oFramePr.HRule)
+		this.HRule = oFramePr.HRule;
+
+	if (null !== oFramePr.HSpace && undefined !== oFramePr.HSpace)
+		this.HSpace = oFramePr.HSpace;
+
+	if (null !== oFramePr.Lines && undefined !== oFramePr.Lines)
+		this.Lines = oFramePr.Lines;
+
+	if (null !== oFramePr.VAnchor && undefined !== oFramePr.VAnchor)
+		this.VAnchor = oFramePr.VAnchor;
+
+	if (null !== oFramePr.VSpace && undefined !== oFramePr.VSpace)
+		this.VSpace = oFramePr.VSpace;
+
+	if (null !== oFramePr.W && undefined !== oFramePr.W)
+		this.W = oFramePr.W;
+
+	if (null !== oFramePr.Wrap && undefined !== oFramePr.Wrap)
+		this.Wrap = oFramePr.Wrap;
+
+	if (null !== oFramePr.X && undefined !== oFramePr.X)
+		this.X = oFramePr.X;
+
+	if (null !== oFramePr.XAlign && undefined !== oFramePr.XAlign)
+		this.XAlign = oFramePr.XAlign;
+
+	if (null !== oFramePr.Y && undefined !== oFramePr.Y)
+		this.Y = oFramePr.Y;
+
+	if (null !== oFramePr.YAlign && undefined !== oFramePr.YAlign)
+		this.YAlign = oFramePr.YAlign;
+>>>>>>> release/v6.0.0
 };
 
 function CCalculatedFrame(FramePr, L, T, W, H, L2, T2, W2, H2, PageIndex, Index, FlowCount)
@@ -15102,7 +15181,7 @@ function CParaPr()
 	this.FramePr           = undefined;
 	this.OutlineLvl        = undefined; // Для TableOfContents
 	this.DefaultRunPr      = undefined;
-	this.Bullet      = new AscFormat.CreateNoneBullet();
+	this.Bullet            = undefined;
 	this.Lvl               = undefined;
 	this.DefaultTab        = undefined;
 	this.LnSpcReduction    = undefined;
@@ -15280,7 +15359,13 @@ CParaPr.prototype.Merge = function(ParaPr)
 	if (undefined != ParaPr.PStyle)
 		this.PStyle = ParaPr.PStyle;
 
-	this.FramePr = undefined;
+	if (null !== ParaPr.FramePr && undefined !== ParaPr.FramePr)
+	{
+		if (!this.FramePr)
+			this.FramePr = ParaPr.FramePr.Copy();
+		else
+			this.FramePr.Merge(ParaPr.FramePr);
+	}
 
 	if (undefined != ParaPr.DefaultRunPr)
 	{

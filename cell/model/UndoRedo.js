@@ -413,8 +413,11 @@ function (window, undefined) {
 		this.PivotCacheDefinition = 85;
 		this.PivotCacheRecords = 86;
 		this.BinaryWrapper = 87;
+		this.BinaryWrapper2 = 88;
+		this.PivotFieldElem = 89;
+		this.PivotFilter = 90;
 
-		this.Layout = 90;
+		this.Layout = 91;
 
 		this.ArrayFormula = 95;
 
@@ -578,8 +581,14 @@ function (window, undefined) {
 					return new CT_PivotCacheDefinition();
 				case this.PivotCacheRecords:
 					return new CT_PivotCacheRecords();
+				case this.PivotFieldElem:
+					return new CT_PivotField(true);
+				case this.PivotFilter:
+					return new CT_PivotFilter();
 				case this.BinaryWrapper:
 					return new UndoRedoData_BinaryWrapper();
+				case this.BinaryWrapper2:
+					return new UndoRedoData_BinaryWrapper2();
 				case this.Layout:
 					return new UndoRedoData_Layout();
 				case this.ArrayFormula:
@@ -1354,6 +1363,32 @@ function (window, undefined) {
 		data.Read_FromBinary2(reader);
 		return data;
 	};
+	function UndoRedoData_BinaryWrapper2(data) {
+		this.binary = null;
+		this.len = 0;
+		if (data) {
+			var memory = new AscCommon.CMemory(true);
+			memory.CheckSize(1000);
+			data.Write_ToBinary2(memory);
+			this.len = memory.GetCurPosition();
+			this.binary = memory.GetData();
+		}
+	}
+	UndoRedoData_BinaryWrapper2.prototype.getType = function () {
+		return UndoRedoDataTypes.BinaryWrapper2;
+	};
+	UndoRedoData_BinaryWrapper2.prototype.Write_ToBinary2 = function (writer) {
+		writer.WriteLong(this.len);
+		writer.WriteBuffer(this.binary, 0, this.len);
+	};
+	UndoRedoData_BinaryWrapper2.prototype.Read_FromBinary2 = function (reader) {
+		this.len = reader.GetLong();
+		this.binary = reader.GetBuffer(this.len);
+	};
+	UndoRedoData_BinaryWrapper2.prototype.initObject = function (data) {
+		var reader = new AscCommon.FT_Stream2(this.binary, this.len);
+		data.Read_FromBinary2(reader);
+	};
 
 	function UndoRedoData_Layout(from, to) {
 		this.from = from;
@@ -2043,9 +2078,17 @@ function (window, undefined) {
 					var tempWorkbook = new AscCommonExcel.Workbook();
 					tempWorkbook.DrawingDocument = Asc.editor.wbModel.DrawingDocument;
 					tempWorkbook.setCommonIndexObjectsFrom(wb);
-					AscCommonExcel.g_clipboardExcel.pasteProcessor._readExcelBinary(Data.opt_sheet.split('xslData;')[1], tempWorkbook);
+					AscCommonExcel.g_clipboardExcel.pasteProcessor._readExcelBinary(Data.opt_sheet.split('xslData;')[1], tempWorkbook, true);
+
+					/*var api = window["Asc"]["editor"];
+					//api.wb.pasteSheet(Data.opt_sheet, 0, Data.name);
+					api.asc_EndMoveSheet(Data.insertBefore, [Data.name], [Data.opt_sheet]);*/
 
 					wb.copyWorksheet(0, Data.insertBefore, Data.name, Data.sheetid, true, Data.tableNames, tempWorkbook.aWorksheets[0]);
+
+					//var renameParams = t.model.copyWorksheet(0, insertBefore, name, undefined, undefined, undefined, pastedWs);
+
+					//wb.copyWorksheet(0, Data.insertBefore, Data.name, Data.sheetid, true, Data.tableNames, tempWorkbook.aWorksheets[0]);
 				} else if (null != Data.sheet) {
 					//сюда заходим только если до этого было сделано Undo
 					wb.insertWorksheet(Data.insertBefore, Data.sheet);
@@ -3428,7 +3471,7 @@ function (window, undefined) {
 				break;
 			}
 			case AscCH.historyitem_Slicer_SetCacheHideItemsWithNoData: {
-				slicerCache = oModel.getSlicerCacheByName(bUndo ? Data.to : Data.from);
+				slicerCache = oModel.getSlicerCacheByName(Data.name);
 				if (slicerCache) {
 					slicerCache.setHideItemsWithNoData(bUndo ? Data.from : Data.to);
 					updateByCacheName = Data.name;
@@ -3491,6 +3534,7 @@ function (window, undefined) {
 	window['AscCommonExcel'].UndoRedoHeaderFooter = UndoRedoHeaderFooter;
 	window['AscCommonExcel'].UndoRedoSortState = UndoRedoSortState;
 	window['AscCommonExcel'].UndoRedoData_BinaryWrapper = UndoRedoData_BinaryWrapper;
+	window['AscCommonExcel'].UndoRedoData_BinaryWrapper2 = UndoRedoData_BinaryWrapper2;
 	window['AscCommonExcel'].UndoRedoSlicer = UndoRedoSlicer;
 
 	window['AscCommonExcel'].g_oUndoRedoWorkbook = null;

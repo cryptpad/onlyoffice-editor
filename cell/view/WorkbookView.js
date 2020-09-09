@@ -651,7 +651,9 @@
 
 
       AscCommon.InitBrowserInputContext(this.Api, "id_target_cursor");
-      this.model.dependencyFormulas.calcTree();
+      AscCommonExcel.executeInR1C1Mode(false, function () {
+          self.model.dependencyFormulas.calcTree();
+      });
     }
 
 	  this.cellEditor =
@@ -1804,7 +1806,7 @@
    * @returns {WorkbookView}
    */
   WorkbookView.prototype.showWorksheet = function (index, bLockDraw) {
-  	if (window["NATIVE_EDITOR_ENJINE"] && !window['IS_NATIVE_EDITOR'] && !window['DoctRendererMode']) {
+  	if (AscCommon.isFileBuild()) {
 		return this;
 	}
     // ToDo disable method for assembly
@@ -2296,7 +2298,7 @@
 
         var addFunction = function (name) {
         	t.setWizardMode(true);
-        	if (doCleanCellContent) {
+			if (doCleanCellContent || !t.cellEditor.isFormula()) {
                 t.cellEditor.selectionBegin = 0;
                 t.cellEditor.selectionEnd = t.cellEditor.textRender.getEndOfText();
             }
@@ -2608,8 +2610,8 @@
     }
   };
 
-  WorkbookView.prototype.getDefinedNames = function(defNameListId) {
-    return this.model.getDefinedNamesWB(defNameListId, true);
+  WorkbookView.prototype.getDefinedNames = function(defNameListId, excludeErrorRefNames) {
+    return this.model.getDefinedNamesWB(defNameListId, true, excludeErrorRefNames);
   };
 
   WorkbookView.prototype.setDefinedNames = function(defName) {
@@ -3453,7 +3455,12 @@
 
 		var doCopy = function() {
 			History.Create_NewPoint();
-			var renameParams = t.model.copyWorksheet(0, insertBefore, name, undefined, undefined, undefined, pastedWs);
+			var renameParams = t.model.copyWorksheet(0, insertBefore, name, undefined, undefined, undefined, pastedWs, base64);
+			//TODO ошибку по срезам добавил в renameParams. необходимо пересмотреть
+			//переименовать эту переменную, либо не добавлять copySlicerError и посылать ошибку в другом месте
+			if (renameParams && renameParams.copySlicerError) {
+				t.handlers.trigger("asc_onError", c_oAscError.ID.MoveSlicerError, c_oAscError.Level.NoCritical);
+			}
 			callback(renameParams);
 		};
 
@@ -3479,7 +3486,14 @@
 
 	WorkbookView.prototype.setFilterValuesFromSlicer = function (name, val) {
 		var slicer = this.model.getSlicerByName(name);
-		this.getWorksheet().setFilterValuesFromSlicer(slicer, val);
+		//нам нужно получить индекс листа где находится кэш данного среза
+		var sheetIndex = slicer.getIndexSheetCache();
+		if (sheetIndex !== null) {
+			var ws = this.getWorksheet(sheetIndex);
+			if (ws) {
+				ws.setFilterValuesFromSlicer(slicer, val);
+			}
+		}
 	};
 
 	WorkbookView.prototype.deleteSlicer = function (name) {

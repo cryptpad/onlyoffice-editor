@@ -1301,7 +1301,7 @@ ParaDrawing.prototype.Update_Position = function(Paragraph, ParaLayout, PageLimi
 		this.PositionV.Percent      = this.PositionV_Old.Percent2;
 	}
 
-	var oDocumentContent = this.Parent.Parent;
+	var oDocumentContent = this.Parent && this.Parent.Parent;
 	if (oDocumentContent && oDocumentContent.IsBlockLevelSdtContent())
 		oDocumentContent = oDocumentContent.Parent.Parent;
 
@@ -1651,11 +1651,27 @@ ParaDrawing.prototype.Draw_Selection = function()
 	}
 
 };
+ParaDrawing.prototype.CanInsertToPos = function(oAnchorPos)
+{
+	// Автофигуры не вставляем в другие автофигуры, сноски и концевые сноски
+	if (!oAnchorPos || !oAnchorPos.Paragraph || !oAnchorPos.Paragraph.Parent)
+		return false;
+
+	return !((this.IsShape() || this.IsGroup()) && (true === oAnchorPos.Paragraph.Parent.Is_DrawingShape() || true === oAnchorPos.Paragraph.Parent.IsFootnote()));
+};
 ParaDrawing.prototype.OnEnd_MoveInline = function(NearPos)
 {
+	if(!this.Parent)
+	{
+		return;
+	}
 	NearPos.Paragraph.Check_NearestPos(NearPos);
 
+<<<<<<< HEAD
 	var oRun        = this.GetRun();
+=======
+	var oRun        = this.Parent.Get_DrawingObjectRun(this.GetId());
+>>>>>>> release/v6.0.0
 	var isPictureCC = false;
 	if (oRun)
 	{
@@ -1692,7 +1708,7 @@ ParaDrawing.prototype.OnEnd_MoveInline = function(NearPos)
 
 	// При переносе всегда создаем копию, чтобы в совместном редактировании не было проблем
 	var NewParaDrawing = this.Copy();
-	this.DocumentContent.Select_DrawingObject(NewParaDrawing.Get_Id());
+	this.DocumentContent.Select_DrawingObject(NewParaDrawing.GetId());
 	NewParaDrawing.Add_ToDocument(NearPos, true, RunPr, undefined, isPictureCC);
 };
 ParaDrawing.prototype.Get_ParentTextTransform = function()
@@ -1715,6 +1731,10 @@ ParaDrawing.prototype.GoTo_Text = function(bBefore, bUpdateStates)
 ParaDrawing.prototype.Remove_FromDocument = function(bRecalculate)
 {
 	var oResult = null;
+	if(!this.Parent)
+	{
+		return oResult;
+	}
 
 	var oRun = this.Parent.Get_DrawingObjectRun(this.Id);
 	if (oRun)
@@ -1813,7 +1833,7 @@ ParaDrawing.prototype.Add_ToDocument = function(NearPos, bRecalculate, RunPr, Ru
 	NearPos.Paragraph.Parent.InsertContent(SelectedContent, NearPos);
 	NearPos.Paragraph.Clear_NearestPosArray();
 	NearPos.Paragraph.Correct_Content();
-
+	this.Set_Parent(NearPos.Paragraph);
 	if (false != bRecalculate)
 		LogicDocument.Recalculate();
 };
@@ -1823,6 +1843,7 @@ ParaDrawing.prototype.Add_ToDocument2 = function(Paragraph)
 	DrawingRun.Add_ToContent(0, this);
 
 	Paragraph.Add_ToContent(0, DrawingRun);
+	this.Set_Parent(Paragraph);
 };
 ParaDrawing.prototype.UpdateCursorType = function(X, Y, PageIndex)
 {
@@ -1852,6 +1873,10 @@ ParaDrawing.prototype.UpdateCursorType = function(X, Y, PageIndex)
 };
 ParaDrawing.prototype.Get_AnchorPos = function()
 {
+	if(!this.Parent)
+	{
+		return null;
+	}
 	return this.Parent.Get_AnchorPos(this);
 };
 ParaDrawing.prototype.CheckRecalcAutoFit = function(oSectPr)
@@ -2449,7 +2474,7 @@ ParaDrawing.prototype.allIncreaseDecFontSize = function(bIncrease)
 };
 ParaDrawing.prototype.setParagraphNumbering = function(NumInfo)
 {
-	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.allIncreaseDecFontSize === "function")
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.setParagraphNumbering === "function")
 		this.GraphicObj.setParagraphNumbering(NumInfo);
 };
 ParaDrawing.prototype.allIncreaseDecIndent = function(bIncrease)
@@ -2863,6 +2888,10 @@ ParaDrawing.prototype.UpdateBookmarks = function(oManager)
 };
 ParaDrawing.prototype.PreDelete = function()
 {
+	if(this.bNotPreDelete === true) {
+		//TODO: remove
+		return;
+	}
 	var arrDocContents = this.GetAllDocContents();
 	for (var nIndex = 0, nCount = arrDocContents.length; nIndex < nCount; ++nIndex)
 	{
@@ -2924,7 +2953,22 @@ ParaDrawing.prototype.GetPicture = function()
 {
 	return this.GraphicObj.getObjectType() === AscDFH.historyitem_type_ImageShape ? this.GraphicObj : null;
 };
-
+/**
+ * Является ли объект фигурой
+ * @returns {boolean}
+ */
+ParaDrawing.prototype.IsShape = function()
+{
+	return (this.GraphicObj.getObjectType() === AscDFH.historyitem_type_Shape);
+};
+/**
+ * Является ли объект группой
+ * @returns {boolean}
+ */
+ParaDrawing.prototype.IsGroup = function()
+{
+	return (this.GraphicObj.getObjectType() === AscDFH.historyitem_type_GroupShape);
+};
 /**
  * Класс, описывающий текущее положение параграфа при рассчете позиции автофигуры.
  * @constructor

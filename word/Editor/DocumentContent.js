@@ -4361,6 +4361,10 @@ CDocumentContent.prototype.InsertContent = function(SelectedContent, NearPos)
             }
         }
 
+		// Try to convert content to ParaMath in simple cases
+		if (!InsertMathContent)
+			InsertMathContent = SelectedContent.ConvertToMath();
+
         if (null !== InsertMathContent)
         {
             MathContent.Add_ToContent(MathContentPos + 1, NewMathRun);

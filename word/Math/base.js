@@ -988,7 +988,11 @@ CMathBase.prototype.Apply_TextPrToCtrPr = function(TextPr, IncFontSize, ApplyToA
 	if (true === ApplyToAll)
 		this.RecalcInfo.bCtrPrp = true;
 
+<<<<<<< HEAD
 	if (undefined === TextPr)
+=======
+	if (!TextPr)
+>>>>>>> release/v6.0.0
 	{
 		var CtrPrp = this.Get_CompiledCtrPrp_2();
 		this.Set_FontSizeCtrPrp(FontSize_IncreaseDecreaseValue(IncFontSize, CtrPrp.FontSize));
@@ -996,7 +1000,11 @@ CMathBase.prototype.Apply_TextPrToCtrPr = function(TextPr, IncFontSize, ApplyToA
 	else
 	{
 		if (undefined !== TextPr.Bold)
+<<<<<<< HEAD
 			this.Set_Bold(TextPr.Bold);
+=======
+			this.Set_Bold(null === TextPr.Bold ? undefined : TextPr.Bold);
+>>>>>>> release/v6.0.0
 
 		if (TextPr.AscFill || TextPr.AscLine || TextPr.AscUnifill)
 		{
@@ -1016,15 +1024,24 @@ CMathBase.prototype.Apply_TextPrToCtrPr = function(TextPr, IncFontSize, ApplyToA
 			return;
 		}
 
+<<<<<<< HEAD
 		if (TextPr.FontSize !== undefined)
 			this.Set_FontSizeCtrPrp(TextPr.FontSize);
 
 		if (TextPr.Shd !== undefined)
 			this.Set_Shd(TextPr.Shd);
+=======
+		if (undefined !== TextPr.FontSize)
+			this.Set_FontSizeCtrPrp(null === TextPr.FontSize ? undefined : TextPr.FontSize);
+
+		if (undefined !== TextPr.Shd)
+			this.Set_Shd(null === TextPr.Shd ? undefined : TextPr.Shd);
+>>>>>>> release/v6.0.0
 
 		if (undefined !== TextPr.Unifill)
 		{
 			this.Set_Unifill(null === TextPr.Unifill ? undefined : TextPr.Unifill.createDuplicate());
+<<<<<<< HEAD
 			this.Set_Color(undefined);
 			this.Set_TextFill(undefined);
 		}
@@ -1064,6 +1081,54 @@ CMathBase.prototype.Apply_TextPrToCtrPr = function(TextPr, IncFontSize, ApplyToA
 			var oRFonts = new CRFonts();
 			oRFonts.SetAll("Cambria Math", -1);
 			this.raw_SetRFonts(oRFonts);
+=======
+
+			if (null !== TextPr.Unifill)
+			{
+				if (this.CtrPrp.Color)
+					this.Set_Color(undefined);
+
+				if (this.CtrPrp.TextFill)
+					this.Set_TextFill(undefined);
+			}
+		}
+
+		if (undefined !== TextPr.TextOutline)
+			this.Set_TextOutline(null === TextPr.TextOutline ? undefined : TextPr.TextOutline);
+
+		if (undefined !== TextPr.TextFill)
+		{
+			this.Set_TextFill(null === TextPr.TextFill ? undefined : TextPr.TextFill);
+
+			if (null !== TextPr.TextFill)
+			{
+				if (this.CtrPrp.Color)
+					this.Set_Color(undefined);
+
+				if (this.CtrPrp.Unifill)
+					this.Set_Unifill(undefined);
+			}
+		}
+
+		if (undefined !== TextPr.HighLight)
+			this.Set_HighLight(null === TextPr.HighLight ? undefined : TextPr.HighLight);
+
+		if (undefined !== TextPr.Underline)
+			this.Set_Underline(null === TextPr.Underline ? undefined : TextPr.Underline);
+
+		if (undefined !== TextPr.Strikeout)
+			this.Set_Strikeout(null === TextPr.Strikeout ? undefined : TextPr.Strikeout);
+
+		if (undefined !== TextPr.DStrikeout)
+			this.Set_DoubleStrikeout(null === TextPr.DStrikeout ? undefined : TextPr.DStrikeout);
+
+		if (undefined !== TextPr.RFonts)
+		{
+			var RFonts = new CRFonts();
+			RFonts.Set_All("Cambria Math", -1);
+
+			this.raw_SetRFonts(RFonts);
+>>>>>>> release/v6.0.0
 		}
 	}
 };

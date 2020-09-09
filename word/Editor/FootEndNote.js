@@ -260,6 +260,7 @@ CFootEndnote.prototype.ConvertFootnoteType = function(isToFootnote)
 		});
 	}
 };
+<<<<<<< HEAD
 CFootEndnote.prototype.SetRef = function(oRef)
 {
 	if (oRef && (oRef instanceof ParaFootnoteReference || oRef instanceof ParaEndnoteReference))
@@ -269,6 +270,8 @@ CFootEndnote.prototype.GetRef = function()
 {
 	return this.Ref;
 };
+=======
+>>>>>>> release/v6.0.0
 
 //--------------------------------------------------------export----------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};

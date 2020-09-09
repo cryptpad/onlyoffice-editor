@@ -96,6 +96,7 @@ AscDFH.drawingsChangesMap[AscDFH.historyitem_TextBodySetBodyPr] =   function(oCl
         oClass.content.Recalc_AllParagraphs_CompiledPr();
     }
     oClass.bodyPr = value;
+    oClass.recalcInfo.recalculateBodyPr = true;
 };
 AscDFH.drawingsChangesMap[AscDFH.historyitem_TextBodySetContent] =  function(oClass, value){oClass.content = value;};
 AscDFH.drawingsChangesMap[AscDFH.historyitem_TextBodySetLstStyle] = function(oClass, value){oClass.lstStyle = value;};
@@ -331,7 +332,7 @@ CTextBody.prototype =
         return this.parent && this.parent.Check_AutoFit && this.parent.Check_AutoFit(true) || false;
     },
 
-    Refresh_RecalcData: function()
+    Refresh_RecalcData: function(Data)
     {
         if(this.parent && this.parent.recalcInfo)
         {
@@ -342,6 +343,13 @@ CTextBody.prototype =
             if(this.parent.addToRecalculate)
             {
                 this.parent.addToRecalculate();
+            }
+        }
+        if(AscCommon.isRealObject(Data))
+        {
+            if(Data.Type === AscDFH.historyitem_TextBodySetBodyPr)
+            {
+                this.recalcInfo.recalculateBodyPr = true;
             }
         }
     },
@@ -752,7 +760,7 @@ function CalculateReductionParams(oBodyPrHolder, oContent) {
 
     function CheckNeedRecalcAutoFit(oBP1, oBP2)
     {
-        if(window["NATIVE_EDITOR_ENJINE"] === true && window["IS_NATIVE_EDITOR"] !== true)
+        if(AscCommon.isFileBuild())
         {
             return false;
         }

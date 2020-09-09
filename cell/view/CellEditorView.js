@@ -676,21 +676,33 @@
 		if (!(fragments.length > 0)) {
 			return;
 		}
-		var length = AscCommonExcel.getFragmentsLength(fragments);
-		if (!this._checkMaxCellLength(length)) {
-			return;
-		}
 
-		this._cleanFragments(fragments);
+		var noUpdateMode = this.noUpdateMode;
+		this.noUpdateMode = true;
 
 		if (this.selectionBegin !== this.selectionEnd) {
 			this._removeChars();
 		}
 
+		// limit count characters
+		var length = AscCommonExcel.getFragmentsLength(fragments);
+		var excess = this._checkMaxCellLength(length);
+		if (excess) {
+			length -= excess;
+			if (0 === length) {
+				this.noUpdateMode = noUpdateMode;
+				return false;
+			}
+			this._extractFragments(0, length, fragments);
+		}
+
+		this._cleanFragments(fragments);
+
 		// save info to undo/redo
 		this.undoList.push({fn: this._removeChars, args: [this.cursorPos, length]});
 		this.redoList = [];
 
+		this.noUpdateMode = noUpdateMode;
 		this._addFragments(fragments, this.cursorPos);
 
 		// Сделано только для вставки формулы в ячейку (когда не открыт редактор)
@@ -724,7 +736,7 @@
 	CellEditor.prototype.replaceText = function (pos, len, newText) {
 		this._moveCursor(kPosition, pos);
 		this._selectChars(kPosition, pos + len);
-		this._addChars(newText);
+		return this._addChars(newText);
 	};
 
 	CellEditor.prototype.setFontRenderingMode = function () {
@@ -1219,51 +1231,45 @@
 		return doAdjust;
 	};
 	CellEditor.prototype._expandWidth = function () {
-		var t = this, l = false, r = false, leftSide = this.sides.l, rightSide = this.sides.r;
+		var i, l = -1, r = -1;
 
-		function expandLeftSide() {
-			var i = asc_search( leftSide, function ( v ) {
-				return v < t.left;
-			} );
-			if ( i >= 0 ) {
-				t.left = leftSide[i];
+		if (AscCommon.align_Left === this.textFlags.textAlign || AscCommon.align_Center === this.textFlags.textAlign) {
+			var rightSide = this.sides.r;
+			for (i = 0; i < rightSide.length; ++i) {
+				if (rightSide[i] > this.right) {
+					r = rightSide[i];
+					break;
+				}
+			}
+		}
+		if (AscCommon.align_Right === this.textFlags.textAlign || AscCommon.align_Center === this.textFlags.textAlign) {
+			var leftSide = this.sides.l;
+			for (i = 0; i < leftSide.length; ++i) {
+				if (leftSide[i] < this.left) {
+					l = leftSide[i];
+					break;
+				}
+			}
+		}
+
+		if (AscCommon.align_Center === this.textFlags.textAlign) {
+			if (-1 !== l && -1 !== r) {
+				var min = Math.min(this.left - l, r - this.right);
+				this.left -= min;
+				this.right += min;
 				return true;
 			}
-			var val = leftSide[leftSide.length - 1];
-			if ( Math.abs( t.left - val ) > 0.000001 ) { // left !== leftSide[len-1]
-				t.left = val;
-			}
-			return false;
-		}
-
-		function expandRightSide() {
-			var i = asc_search( rightSide, function ( v ) {
-				return v > t.right;
-			} );
-			if ( i >= 0 ) {
-				t.right = rightSide[i];
+		} else {
+			if (-1 !== l) {
+				this.left = l;
+				return true;
+			} else if (-1 !== r) {
+				this.right = r;
 				return true;
 			}
-			var val = rightSide[rightSide.length - 1];
-			if ( Math.abs( t.right - val ) > 0.000001 ) { // right !== rightSide[len-1]
-				t.right = val;
-			}
-			return false;
 		}
 
-		switch ( t.textFlags.textAlign ) {
-			case AscCommon.align_Right:
-				r = expandLeftSide();
-				break;
-			case AscCommon.align_Center:
-				l = expandLeftSide();
-				r = expandRightSide();
-				break;
-			case AscCommon.align_Left:
-			default:
-				r = expandRightSide();
-		}
-		return l || r;
+		return false;
 	};
 	CellEditor.prototype._expandHeight = function () {
 		var t = this, bottomSide = this.sides.b, i = asc_search( bottomSide, function ( v ) {
@@ -1601,7 +1607,6 @@
 		this.input.isFocused = true;
 		this.setFocus(true);
 		this._updateCursor();
-		this._updateTopLineCurPos();
 		this._cleanSelection();
 	};
 
@@ -1620,6 +1625,12 @@
 	CellEditor.prototype._updateCursorByTopLine = function () {
 		var b = this.input.selectionStart;
 		var e = this.input.selectionEnd;
+		// ToDo replace code to input.selectionDirection after updating closure-compiler to version 20200719
+		if ('backward' === this.input["selectionDirection"]) {
+			var tmp = b;
+			b = e;
+			e = tmp;
+		}
 		if (typeof b !== "undefined") {
 			if (this.cursorPos !== b || this.selectionBegin !== this.selectionEnd) {
 				this._moveCursor(kPosition, b);
@@ -1692,10 +1703,6 @@
 		if (!isRange) {
 			this.cleanSelectRange();
 		}
-		var length = str.length;
-		if (!this._checkMaxCellLength(length)) {
-			return false;
-		}
 
 		var opt = this.options, f, l, s;
 
@@ -1713,7 +1720,19 @@
 			this._removeChars(undefined, undefined, isRange);
 		}
 
+		var length = str.length;
 		if (0 !== length) {
+			// limit count characters
+			var excess = this._checkMaxCellLength(length);
+			if (excess) {
+				length -= excess;
+				if (0 === length) {
+					this.noUpdateMode = noUpdateMode;
+					return length;
+				}
+				str = str.slice(0, length);
+			}
+
 			if (pos === undefined) {
 				pos = this.cursorPos;
 			}
@@ -1747,6 +1766,8 @@
 		if (!this.noUpdateMode) {
 			this._update();
 		}
+
+		return length;
 	};
 
 	CellEditor.prototype._addNewLine = function () {
@@ -2164,22 +2185,9 @@
 		this.handlers.trigger("updateEditorSelectionInfo", xfs);
 	};
 
-	CellEditor.prototype._checkMaxCellLength = function ( length ) {
-		var newLength = AscCommonExcel.getFragmentsLength( this.options.fragments ) + length;
-		var maxLength = Asc.c_oAscMaxCellOrCommentLength;
-		// Ограничение на ввод
-		if ( newLength > maxLength ) {
-			if ( this.selectionBegin === this.selectionEnd ) {
-				return false;
-			}
-
-			var b = Math.min( this.selectionBegin, this.selectionEnd );
-			var e = Math.max( this.selectionBegin, this.selectionEnd );
-			if ( newLength - AscCommonExcel.getFragmentsLength(this._getFragments( b, e - b ) ) > maxLength) {
-				return false;
-			}
-		}
-		return true;
+	CellEditor.prototype._checkMaxCellLength = function (length) {
+		var count = AscCommonExcel.getFragmentsLength(this.options.fragments) + length - Asc.c_oAscMaxCellOrCommentLength;
+		return 0 > count ? 0 : count;
 	};
 
 	// Event handlers
@@ -2707,8 +2715,13 @@
 		AscFonts.FontPickerByCharacter.checkText(this.input.value, this, function () {
 			t.loadFonts = false;
 			t.skipTLUpdate = true;
-			t.replaceText(0, t.textRender.getEndOfText(), t.input.value);
+			var length = t.replaceText(0, t.textRender.getEndOfText(), t.input.value);
 			t._updateCursorByTopLine();
+
+			if (length !== t.input.value.length) {
+				t.input.value = AscCommonExcel.getFragmentsText((t.options.fragments));
+				t._updateTopLineCurPos();
+			}
 		});
 		return true;
 	};
@@ -2760,8 +2773,7 @@
 		}
 
 		var newText = this.getTextFromCharCodes(arrCharCodes);
-		this.replaceText(this.beginCompositePos, this.compositeLength, newText);
-		this.compositeLength = newText.length;
+		this.compositeLength = this.replaceText(this.beginCompositePos, this.compositeLength, newText);
 
 		var tmpBegin = this.selectionBegin, tmpEnd = this.selectionEnd;
 

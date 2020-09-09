@@ -2549,6 +2549,32 @@ var g_oBorderProperties = {
 	Num.prototype.setIndexNumber = function (val) {
 		this._index = val;
 	};
+	Num.prototype.initFromParams = function (id, format, oNumFmts) {
+		var res = oNumFmts && oNumFmts[id];
+		if (res) {
+			return res;
+		}
+		res = new Num();
+		if (format) {
+			res.f = format;
+		} else {
+			res.f = AscCommonExcel.aStandartNumFormats[id];
+		}
+		if (!res.f) {
+			res.f = "General";
+		}
+		if (((5 <= id && id <= 8) || (14 <= id && id <= 17) || 22 == id ||
+			(27 <= id && id <= 31) || (36 <= id && id <= 44))) {
+			res.id = id;
+		}
+		var numFormat = AscCommon.oNumFormatCache.get(res.f);
+		numFormat.checkCultureInfoFontPicker();
+		res = g_StyleCache.addNum(res);
+		if (oNumFmts) {
+			oNumFmts[res.id] = res;
+		}
+		return res;
+	};
 	Num.prototype.setFormat = function (f, opt_id) {
 		this.f = f;
 		this.id = opt_id;
@@ -4894,6 +4920,24 @@ StyleManager.prototype =
 		}
 		return sRes;
 	}
+	function getStringFromMultiTextSkipToSpace(multiText) {
+		var sRes = "";
+		if (multiText) {
+			for (var i = 0, length = multiText.length; i < length; ++i) {
+				var elem = multiText[i];
+				if (null != elem.text) {
+					if(elem.format && elem.format.getSkip()) {
+						sRes += " ";
+					} else if(!(elem.format && elem.format.getRepeat())) {
+						sRes += elem.text;
+					} else {
+						var j = 0;
+					}
+				}
+			}
+		}
+		return sRes;
+	}
 	function isEqualMultiText(multiText1, multiText2) {
 		var sRes = "";
 		if (multiText1 && multiText2) {
@@ -5049,16 +5093,22 @@ CCellValue.prototype =
 			case this.Properties.type: this.type = value;break;
 		}
 	},
-	getTextValue : function()
+	getTextValue : function(num)
 	{
+		var multiText = this.multiText;
+		var numFormat = AscCommon.oNumFormatCache.get(num && num.getFormat() || "General");
 		if (null !== this.text) {
-			return this.text;
+			multiText = numFormat.format(this.text, this.type, AscCommon.gc_nMaxDigCount, false);
 		} else if (null !== this.number) {
-			var numFormat = AscCommon.oNumFormatCache.get("General");
-			var multiText = numFormat.format(this.number, CellValueType.Number, AscCommon.gc_nMaxDigCount, false);
-			return AscCommonExcel.getStringFromMultiText(multiText)
-		} else if(null !== this.multiText){
-			return AscCommonExcel.getStringFromMultiText(this.multiText)
+			if (CellValueType.Bool === this.type) {
+				//todo Local
+				multiText = [{text: ((this.number == 1) ? AscCommon.cBoolLocal.t : AscCommon.cBoolLocal.f)}];
+			} else {
+				multiText = numFormat.format(this.number, this.type, AscCommon.gc_nMaxDigCount, false);
+			}
+		}
+		if (null !== multiText) {
+			return AscCommonExcel.getStringFromMultiTextSkipToSpace(multiText)
 		}
 		return "";
 	}
@@ -6083,6 +6133,11 @@ function RangeDataManagerElem(bbox, data)
 				this.TableColumns = newTableColumns;
 				this.buildDependencies();
 			}
+		}
+		var wb = autoFilters.worksheet.workbook;
+		if (this.isTotalsRow() && this.Ref.r2 !== range.r2 && !wb.bUndoChanges && !wb.bRedoChanges) {
+			var rangeTotal = autoFilters.worksheet.getRange3(this.Ref.r2, this.Ref.c1, this.Ref.r2, this.Ref.c2);
+			rangeTotal.cleanText()
 		}
 		this.Ref = new Asc.Range(range.c1, range.r1, range.c2, range.r2);
 		//event
@@ -7225,14 +7280,14 @@ function RangeDataManagerElem(bbox, data)
 		}
 	};
 
-	TableColumn.prototype.getTotalRowFormula = function (tablePart) {
+	TableColumn.prototype.getTotalRowFormula = function (tablePart, bLocale) {
 		var t = this;
 		var res = null;
 		var funcNum;
 		if (null !== this.TotalsRowFunction) {
 			var generateFunction = function (val) {
 				var _name = "SUBTOTAL";
-				var _f = AscCommonExcel.cFormulaFunctionToLocale ? AscCommonExcel.cFormulaFunctionToLocale[_name] : _name;
+				var _f = bLocale && AscCommonExcel.cFormulaFunctionToLocale ? AscCommonExcel.cFormulaFunctionToLocale[_name] : _name;
 				var _separator = AscCommon.FormulaSeparators.functionArgumentSeparator;
 				return _f + "(" + val + _separator + tablePart.DisplayName + "[" + t.Name + "])";
 			};
@@ -7320,7 +7375,7 @@ function RangeDataManagerElem(bbox, data)
 	TableColumn.prototype.checkTotalRowFormula = function (ws, tablePart) {
 		if (null !== this.TotalsRowFunction &&
 			Asc.ETotalsRowFunction.totalrowfunctionCustom !== this.TotalsRowFunction) {
-			var totalRowFormula = this.getTotalRowFormula(tablePart);
+			var totalRowFormula = this.getTotalRowFormula(tablePart, true);
 
 			if (null !== totalRowFormula) {
 				this.applyTotalRowFormula(totalRowFormula, ws, true);
@@ -7415,13 +7470,13 @@ function RangeDataManagerElem(bbox, data)
 		res.ShowButton = this.ShowButton;
 		return res;
 	};
-	FilterColumn.prototype.isHideValue = function (val, isDateTimeFormat, top10Length, cell) {
+	FilterColumn.prototype.isHideValue = function (val, isDateTimeFormat, top10Length, cell, isLabelFilter) {
 		var res = false;
 		if (this.Filters) {
 			this.Filters._initLowerCaseValues();
 			res = this.Filters.isHideValue(val.toLowerCase(), isDateTimeFormat);
 		} else if (this.CustomFiltersObj) {
-			res = this.CustomFiltersObj.isHideValue(val);
+			res = this.CustomFiltersObj.isHideValue(val, isLabelFilter);
 		} else if (this.Top10) {
 			res = this.Top10.isHideValue(val, top10Length);
 		} else if (this.ColorFilter) {
@@ -7518,10 +7573,10 @@ function RangeDataManagerElem(bbox, data)
 	{
 		return null !== this.Top10;
 	};
-	FilterColumn.prototype.initByArray = function (arr) {
+	FilterColumn.prototype.initByArray = function (arr, isSum) {
 
 		if (null !== this.Top10) {
-			this.Top10.initByArray(arr);
+			this.Top10.initByArray(arr, isSum);
 		}
 
 	};
@@ -8045,11 +8100,11 @@ CustomFilters.prototype.init = function(obj) {
 	if(obj.filter2 != undefined)
 		this.CustomFilters[1] = new CustomFilter(obj.filter2, obj.valFilter2);
 };
-CustomFilters.prototype.isHideValue = function(val){
+CustomFilters.prototype.isHideValue = function(val, isLabelFilter){
 	
 	var res = false;
-	var filterRes1 = this.CustomFilters[0] ? this.CustomFilters[0].isHideValue(val) : null;
-	var filterRes2 = this.CustomFilters[1] ? this.CustomFilters[1].isHideValue(val) : null;
+	var filterRes1 = this.CustomFilters[0] ? this.CustomFilters[0].isHideValue(val, isLabelFilter) : null;
+	var filterRes2 = this.CustomFilters[1] ? this.CustomFilters[1].isHideValue(val, isLabelFilter) : null;
 	
 	if(!this.And && ((filterRes1 === null && filterRes2 === true || filterRes1 === true && filterRes2 === null || filterRes1 === true && filterRes2 === true)))
 		res = true;
@@ -8162,7 +8217,7 @@ CustomFilter.prototype.init = function(operator, val) {
 	this.Operator = operator;
 	this.Val = val;
 };
-CustomFilter.prototype.isHideValue = function (val) {
+CustomFilter.prototype.isHideValue = function (val, isLabelFilter) {
 
 	var result = false;
 	var isDigitValue = !isNaN(val);
@@ -8174,15 +8229,29 @@ CustomFilter.prototype.isHideValue = function (val) {
 	if (checkComplexSymbols != null) {
 		result = checkComplexSymbols;
 	} else {
-		var isNumberFilter = this.Operator == c_oAscCustomAutoFilter.isGreaterThan || this.Operator == c_oAscCustomAutoFilter.isGreaterThanOrEqualTo || this.Operator == c_oAscCustomAutoFilter.isLessThan || this.Operator == c_oAscCustomAutoFilter.isLessThanOrEqualTo;
+		var isNumberFilter = this.Operator === c_oAscCustomAutoFilter.isGreaterThan || this.Operator === c_oAscCustomAutoFilter.isGreaterThanOrEqualTo || this.Operator === c_oAscCustomAutoFilter.isLessThan || this.Operator === c_oAscCustomAutoFilter.isLessThanOrEqualTo;
 
 		if (c_oAscCustomAutoFilter.equals === this.Operator || c_oAscCustomAutoFilter.doesNotEqual === this.Operator) {
 			filterVal = isNaN(this.Val) ? this.Val.toLowerCase() : this.Val;
 		} else if (isNumberFilter) {
-			if (isNaN(this.Val) && isNaN(val)) {
-				filterVal = this.Val.toLowerCase();
+			filterVal = this.Val;
+			if (isLabelFilter) {
+				//'1'0' - число для данного случая
+				filterVal = this.Val.replace(/'/g, "");
+				if (isNaN(filterVal)) {
+					filterVal = this.Val;
+				}
+			}
+
+			if (isLabelFilter && isNaN(filterVal)) {
+				//в случае label filter - сравнивам строки
+				filterVal = filterVal.toLowerCase();
+				isDigitValue = false;
+				val = val.toLowerCase();
+			} else if (isNaN(filterVal) && isNaN(val)) {
+				filterVal = filterVal.toLowerCase();
 			} else {
-				filterVal = parseFloat(this.Val);
+				filterVal = parseFloat(filterVal);
 				val = parseFloat(val);
 			}
 		} else {
@@ -8787,7 +8856,7 @@ Top10.prototype.init = function(range, reWrite){
 		}
 	}
 };
-Top10.prototype.initByArray = function(arr){
+Top10.prototype.initByArray = function(arr, isSum){
 	var res = null;
 	var t = this;
 	if(arr && arr.length)
@@ -8818,10 +8887,19 @@ Top10.prototype.initByArray = function(arr){
 		}
 		else
 		{
-			res = arr[this.Val - 1];
+			if (isSum) {
+				var index = 0;
+				var sum = res = arr[index++];
+				while (index < arr.length && sum < this.Val) {
+					res = arr[index++];
+					sum += res;
+				}
+			} else {
+				res = arr[this.Val - 1];
+			}
 		}
 	}
-	if(null !== res)
+	if(null != res)
 	{
 		this.FilterVal = res;
 	}
@@ -10382,6 +10460,7 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	window['AscCommonExcel'].g_nRowStructSize = g_nRowStructSize;
 	window['AscCommonExcel'].shiftGetBBox = shiftGetBBox;
 	window['AscCommonExcel'].getStringFromMultiText = getStringFromMultiText;
+	window['AscCommonExcel'].getStringFromMultiTextSkipToSpace = getStringFromMultiTextSkipToSpace;
 	window['AscCommonExcel'].isEqualMultiText = isEqualMultiText;
 	window['AscCommonExcel'].RgbColor = RgbColor;
 	window['AscCommonExcel'].createRgbColor = createRgbColor;
