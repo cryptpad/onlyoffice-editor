@@ -1507,6 +1507,8 @@
 		UpperLetter           : 0x2006,
 		DecimalZero           : 0x2007,
 		DecimalEnclosedCircle : 0x2008,
+		RussianLower          : 0x2009,
+		RussianUpper          : 0x200a,
 
 		ChineseCounting         : 0x2101,
 		ChineseCountingThousand : 0x2102,
@@ -2947,18 +2949,20 @@
 
 	window['Asc']['c_oAscNumberingFormat'] = window['Asc'].c_oAscNumberingFormat = c_oAscNumberingFormat;
 	prot = c_oAscNumberingFormat;
-	prot['None']        = c_oAscNumberingFormat.None;
-	prot['Bullet']      = c_oAscNumberingFormat.Bullet;
-	prot['Decimal']     = c_oAscNumberingFormat.Decimal;
-	prot['LowerRoman']  = c_oAscNumberingFormat.LowerRoman;
-	prot['UpperRoman']  = c_oAscNumberingFormat.UpperRoman;
-	prot['LowerLetter'] = c_oAscNumberingFormat.LowerLetter;
-	prot['UpperLetter'] = c_oAscNumberingFormat.UpperLetter;
-	prot['DecimalZero'] = c_oAscNumberingFormat.DecimalZero;
-	prot['DecimalEnclosedCircle'] = c_oAscNumberingFormat.DecimalEnclosedCircle;
-	prot['ChineseCounting'] = c_oAscNumberingFormat.ChineseCounting;
-	prot['ChineseCountingThousand'] = c_oAscNumberingFormat.ChineseCountingThousand;
-	prot['ChineseLegalSimplified'] = c_oAscNumberingFormat.ChineseLegalSimplified;
+	prot['None']                    = prot.None;
+	prot['Bullet']                  = prot.Bullet;
+	prot['Decimal']                 = prot.Decimal;
+	prot['LowerRoman']              = prot.LowerRoman;
+	prot['UpperRoman']              = prot.UpperRoman;
+	prot['LowerLetter']             = prot.LowerLetter;
+	prot['UpperLetter']             = prot.UpperLetter;
+	prot['DecimalZero']             = prot.DecimalZero;
+	prot['DecimalEnclosedCircle']   = prot.DecimalEnclosedCircle;
+	prot['RussianLower']            = prot.RussianLower;
+	prot['RussianUpper']            = prot.RussianUpper;
+	prot['ChineseCounting']         = prot.ChineseCounting;
+	prot['ChineseCountingThousand'] = prot.ChineseCountingThousand;
+	prot['ChineseLegalSimplified']  = prot.ChineseLegalSimplified;
 
 	window['Asc']['c_oAscNumberingSuff'] = window['Asc'].c_oAscNumberingSuff = c_oAscNumberingSuff;
 	prot = c_oAscNumberingSuff;

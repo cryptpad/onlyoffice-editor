@@ -3704,6 +3704,35 @@
 				break;
 			}
 
+			case Asc.c_oAscNumberingFormat.RussianLower:
+			case Asc.c_oAscNumberingFormat.RussianUpper:
+			{
+				// Формат: а,..,я,аа,..,яя,ааа,...,яяя,...
+				var Num = nValue - 1;
+
+				var Count = (Num - Num % 29) / 29;
+				var Ost   = Num % 29;
+
+				// Буквы й, ъ, ь - не участвуют
+				if (Ost > 25)
+					Ost += 3;
+				else if (Ost > 24)
+					Ost += 2;
+				else if (Ost > 8)
+					Ost++;
+
+				var Letter;
+				if (Asc.c_oAscNumberingFormat.RussianLower === nFormat)
+					Letter = String.fromCharCode(Ost + 0x0430);
+				else
+					Letter = String.fromCharCode(Ost + 0x0410);
+
+				for (var nIndex = 0; nIndex < Count + 1; ++nIndex)
+					sResult += Letter;
+
+				break;
+			}
+
 			case Asc.c_oAscNumberingFormat.LowerRoman:
 			case Asc.c_oAscNumberingFormat.UpperRoman:
 			{
