@@ -1831,6 +1831,17 @@ function (window, undefined) {
 		this.activeCells.c2 = collaborativeEditing.getLockMeColumn2(nSheetId, this.activeCells.c2);
 		this.activeCells.r1 = collaborativeEditing.getLockMeRow2(nSheetId, this.activeCells.r1);
 		this.activeCells.r2 = collaborativeEditing.getLockMeRow2(nSheetId, this.activeCells.r2);
+
+		if (this.autoFiltersObject && this.autoFiltersObject.cellId !== undefined) {
+			var curCellId = this.autoFiltersObject.cellId.split('af')[0];
+			var range;
+			AscCommonExcel.executeInR1C1Mode(false, function () {
+				range = AscCommonExcel.g_oRangeCache.getAscRange(curCellId).clone();
+			});
+			//var nRow = collaborativeEditing.getLockOtherRow2(nSheetId, Data.nRow);
+			var nCol = collaborativeEditing.getLockMeColumn2(nSheetId, range.c1);
+			this.autoFiltersObject.cellId = new AscCommon.CellBase(range.r1, nCol).getName();
+		}
 	};
 
 	//***array-formula***
