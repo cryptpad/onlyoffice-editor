@@ -2793,11 +2793,11 @@ Paragraph.prototype.Internal_Draw_5 = function(CurPage, pGraphics, Pr, BgColor)
 		var Element = aStrikeout.Get_Next();
 		while (null != Element)
 		{
-			pGraphics.p_color(Element.r, Element.g, Element.b, 255);
 			if (pGraphics.SetAdditionalProps)
 			{
 				pGraphics.SetAdditionalProps(Element.Additional2);
 			}
+			pGraphics.p_color(Element.r, Element.g, Element.b, 255);
 			pGraphics.drawHorLine(c_oAscLineDrawingRule.Top, Element.y0, Element.x0, Element.x1, Element.w);
 			Element = aStrikeout.Get_Next();
 		}
@@ -2806,11 +2806,11 @@ Paragraph.prototype.Internal_Draw_5 = function(CurPage, pGraphics, Pr, BgColor)
 		Element = aDStrikeout.Get_Next();
 		while (null != Element)
 		{
-			pGraphics.p_color(Element.r, Element.g, Element.b, 255);
 			if (pGraphics.SetAdditionalProps)
 			{
 				pGraphics.SetAdditionalProps(Element.Additional2);
 			}
+			pGraphics.p_color(Element.r, Element.g, Element.b, 255);
 			pGraphics.drawHorLine2(c_oAscLineDrawingRule.Top, Element.y0, Element.x0, Element.x1, Element.w);
 
 			Element = aDStrikeout.Get_Next();
@@ -2821,11 +2821,11 @@ Paragraph.prototype.Internal_Draw_5 = function(CurPage, pGraphics, Pr, BgColor)
 		Element = aUnderline.Get_Next();
 		while (null != Element)
 		{
-			pGraphics.p_color(Element.r, Element.g, Element.b, 255);
 			if (pGraphics.SetAdditionalProps)
 			{
 				pGraphics.SetAdditionalProps(Element.Additional2);
 			}
+			pGraphics.p_color(Element.r, Element.g, Element.b, 255);
 			pGraphics.drawHorLine(0, Element.y0, Element.x0, Element.x1, Element.w);
 			Element = aUnderline.Get_Next();
 		}
@@ -2833,11 +2833,11 @@ Paragraph.prototype.Internal_Draw_5 = function(CurPage, pGraphics, Pr, BgColor)
 		Element = aDUnderline.Get_Next();
 		while (null != Element)
 		{
-			pGraphics.p_color(Element.r, Element.g, Element.b, 255);
 			if (pGraphics.SetAdditionalProps)
 			{
 				pGraphics.SetAdditionalProps(Element.Additional2);
 			}
+			pGraphics.p_color(Element.r, Element.g, Element.b, 255);
 			pGraphics.drawHorLine2(c_oAscLineDrawingRule.Top, Element.y0, Element.x0, Element.x1, Element.w);
 
 			Element = aDUnderline.Get_Next();
