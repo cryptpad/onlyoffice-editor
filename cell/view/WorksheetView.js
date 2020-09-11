@@ -655,6 +655,8 @@
     };
 
 	WorksheetView.prototype._getColLeft = function (i) {
+		this._updateColumnPositions();
+
 		var l = this.cols.length;
 		return this.cellsLeft + ((i < l) ? this.cols[i].left : (((0 === l) ? 0 :
 			this.cols[l - 1].left + this.cols[l - 1].width) + (!this.model.isDefaultWidthHidden()) *
