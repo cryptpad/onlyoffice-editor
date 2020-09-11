@@ -4206,18 +4206,16 @@
 		//закрашиваем то, что не входит в область печати
 		var drawCurArea = function (visibleRange, offsetX, offsetY, args) {
 			var range = args[0];
-			var c = t.cols;
-			var r = t.rows;
 			var oIntersection = range.intersectionSimple(range);
 
 			if (!oIntersection) {
 				return true;
 			}
 
-			var x1 = c[oIntersection.c1].left - offsetX;
-			var x2 = c[oIntersection.c2].left + c[oIntersection.c2].width - offsetX;
-			var y1 = r[oIntersection.r1].top - offsetY;
-			var y2 = r[oIntersection.r2].top + r[oIntersection.r2].height - offsetY;
+			var x1 = t._getColLeft(oIntersection.c1) - offsetX;
+			var x2 = t._getColLeft(oIntersection.c2 + 1) - offsetX;
+			var y1 = t._getRowTop(oIntersection.r1) - offsetY;
+			var y2 = t._getRowTop(oIntersection.r2 + 1) - offsetY;
 
 			var fillColor = t.settings.cells.defaultState.border.Copy();
 			ctx.setFillStyle(fillColor).fillRect(x1, y1, x2 - x1, y2 - y1);
@@ -4227,8 +4225,6 @@
 			var range = args[0];
 			var selectionLineType = args[1];
 			var strokeColor = args[2];
-			var c = t.cols;
-			var r = t.rows;
 			var oIntersection = range.intersectionSimple(range);
 
 			if (!oIntersection) {
@@ -4254,10 +4250,10 @@
 			var drawTopSide = oIntersection.r1 === range.r1;
 			var drawBottomSide = oIntersection.r2 === range.r2;
 
-			var x1 = c[oIntersection.c1].left - offsetX;
-			var x2 = c[oIntersection.c2].left + c[oIntersection.c2].width - offsetX;
-			var y1 = r[oIntersection.r1].top - offsetY;
-			var y2 = r[oIntersection.r2].top + r[oIntersection.r2].height - offsetY;
+			var x1 = t._getColLeft(oIntersection.c1) - offsetX;
+			var x2 = t._getColLeft(oIntersection.c2 + 1) - offsetX;
+			var y1 = t._getRowTop(oIntersection.r1) - offsetY;
+			var y2 = t._getRowTop(oIntersection.r2 + 1) - offsetY;
 
 			ctx.setLineWidth(isDashLine ? 1 : 2).setStrokeStyle(strokeColor);
 
@@ -4352,18 +4348,16 @@
 		var drawCurArea = function (visibleRange, offsetX, offsetY, args) {
 			var range = args[0];
 			var ctx = t.overlayCtx;
-			var c = t.cols;
-			var r = t.rows;
 			var oIntersection = range.intersectionSimple(visibleRange);
 
 			if (!oIntersection) {
 				return true;
 			}
 
-			var x1 = c[oIntersection.c1].left - offsetX;
-			var x2 = c[oIntersection.c2].left + c[oIntersection.c2].width - offsetX;
-			var y1 = r[oIntersection.r1].top - offsetY;
-			var y2 = r[oIntersection.r2].top + r[oIntersection.r2].height - offsetY;
+			var x1 = t._getColLeft(oIntersection.c1) - offsetX;
+			var x2 = t._getColLeft(oIntersection.c2 + 1) - offsetX;
+			var y1 = t._getRowTop(oIntersection.r1) - offsetY;
+			var y2 = t._getRowTop(oIntersection.r2 + 1) - offsetY;
 
 			var fillColor = t.settings.cells.defaultState.border.Copy();
 			ctx.setFillStyle(fillColor).fillRect(x1, y1, x2 - x1, y2 - y1);
