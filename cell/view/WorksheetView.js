@@ -1436,14 +1436,13 @@
     };
 
 	WorksheetView.prototype._calcColWidth = function (i) {
-		var w, hiddenW = 0;
+		var w;
 		// Получаем свойства колонки
 		var column = this.model._getColNoEmptyWithAll(i);
 		if (!column) {
 			w = this.defaultColWidthPx; // Используем дефолтное значение
 		} else if (column.getHidden()) {
 			w = 0;            // Если столбец скрытый, ширину выставляем 0
-			hiddenW = column.widthPx || this.defaultColWidthPx;
 		} else {
 			w = null === column.widthPx ? this.defaultColWidthPx : column.widthPx;
 		}
@@ -1452,19 +1451,16 @@
 		this.cols[i].width = Asc.round(w * this.getZoom());
 
 		this.updateColumnsStart = Math.min(i, this.updateColumnsStart);
-
-		return hiddenW;
 	};
 
 	WorksheetView.prototype._calcHeightRow = function (y, i) {
 		var t = this;
-		var r, hR, hiddenH = 0;
+		var r, hR;
 		this.model._getRowNoEmptyWithAll(i, function (row) {
 			if (!row) {
 				hR = -1; // Будет использоваться дефолтная высота строки
 			} else if (row.getHidden()) {
 				hR = 0;  // Скрытая строка, высоту выставляем 0
-				hiddenH += row.h > 0 ? row.h - 1 : t.defaultRowHeightPx;
 			} else {
 				// Берем высоту из модели, если она custom(баг 15618), либо дефолтную
 				if (row.h > 0 && (row.getCustomHeight() || row.getCalcHeight())) {
@@ -1481,8 +1477,6 @@
 		r.top = y;
 		r.height = Asc.round(AscCommonExcel.convertPtToPx(hR) * this.getZoom());
 		r.descender = this.defaultRowDescender;
-
-		return hiddenH;
 	};
 
     /** Вычисляет ширину колонки заголовков */
@@ -1518,7 +1512,7 @@
      */
     WorksheetView.prototype._calcWidthColumns = function (type) {
         var l = this.model.getColsCount();
-        var i = 0, hiddenW = 0;
+        var i = 0;
 
         if (AscCommonExcel.recalcType.full === type) {
             this.cols = [];
@@ -1526,7 +1520,7 @@
             i = this.cols.length;
         }
 		for (; i < l; ++i) {
-			hiddenW += this._calcColWidth(i);
+			this._calcColWidth(i);
         }
 
         this.nColsCount = Math.min(Math.max(this.nColsCount, i), gc_nMaxCol);
@@ -1539,7 +1533,7 @@
     WorksheetView.prototype._calcHeightRows = function (type) {
         var y = this.cellsTop;
         var l = this.model.getRowsCount();
-        var i = 0, hiddenH = 0;
+        var i = 0;
 
         if (AscCommonExcel.recalcType.full === type) {
             this.rows = [];
@@ -1548,7 +1542,7 @@
             y = this._getRowTop(i);
         }
         for (; i < l; ++i) {
-			hiddenH += this._calcHeightRow(y, i);
+			this._calcHeightRow(y, i);
 			y += this._getRowHeight(i);
         }
 
