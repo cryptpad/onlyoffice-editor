@@ -1582,11 +1582,20 @@
 
     /** Обновляет позицию колонок */
     WorksheetView.prototype._updateColumnPositions = function () {
+		if (Number.MAX_VALUE === this.updateColumnsStart) {
+			return;
+		}
+
         var x = 0;
-        for (var l = this.cols.length, i = 0; i < l; ++i) {
+        for (var l = this.cols.length, i = this.updateColumnsStart; i < l; ++i) {
             this.cols[i].left = x;
             x += this.cols[i].width;
         }
+
+		this._updateVisibleColsCount(true);
+		this._updateDrawingArea();
+		this.objectRender.updateDrawingsTransform({target: c_oTargetType.ColumnResize, col: this.updateColumnsStart});
+		this.updateColumnsStart = Number.MAX_VALUE;
     };
 
     /** Обновляет позицию строк */
@@ -14715,13 +14724,7 @@
 			this.handlers.trigger("onDocumentPlaceChanged");
 		}
 
-		if (Number.MAX_VALUE !== this.updateColumnsStart) {
-			this._updateColumnPositions();
-			this._updateVisibleColsCount(true);
-			this._updateDrawingArea();
-			this.objectRender.updateDrawingsTransform({target: c_oTargetType.ColumnResize, col: this.updateColumnsStart});
-			this.updateColumnsStart = Number.MAX_VALUE;
-		}
+		this._updateColumnPositions();
 
 		this._reinitializeScroll();
 	};
