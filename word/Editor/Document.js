@@ -22630,8 +22630,6 @@ CDocument.prototype.AddTextWithPr = function(sText, oTextPr, isMoveCursorOutside
 
 			oSelectedContent.On_EndCollectElements(this, false);
 
-			oParagraph.GetParent().InsertContent(oSelectedContent, oAnchorPos);
-
 			// TODO: Надо переделать здесь по-нормальному, и сделать как-то грамотную обработку в InsertContent
 			var isMath = false;
 			if (oAnchorPos && oAnchorPos.Paragraph)
@@ -22640,7 +22638,7 @@ CDocument.prototype.AddTextWithPr = function(sText, oTextPr, isMoveCursorOutside
 				var oLastClass   = oParaNearPos.Classes[oParaNearPos.Classes.length - 1];
 				isMath = (para_Math_Run === oLastClass.Type)
 			}
-
+			oParagraph.GetParent().InsertContent(oSelectedContent, oAnchorPos);
 			if (isMath)
 			{
 				this.MoveCursorRight(false, false, true);
