@@ -15016,7 +15016,8 @@
 						t.model.autoFilters.changeTableStyleInfo(val, ar, tableName);
 						History.EndTransaction();
 
-						t._onUpdateFormatTable(filterRange, false, true);
+						t._updateRange(filterRange);
+						t.draw();
 					};
 
 					var filterRange;
