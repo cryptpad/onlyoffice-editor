@@ -454,8 +454,14 @@
                     _editor.sendEvent("asc_onError", "There is no connection with the blockchain", c_oAscError.Level.Critical);
                     return;
                 }
+                if ("no_build" === obj["error"])
+				{
+					// проблемы - но такие, при которых просто не собираем файл...
+					window["AscDesktopEditor"]["buildCryptedEnd"](true);
+					return;
+				}
 
-                var _ret = _editor.asc_nativeGetFile3();
+                var _ret = _editor.getFileAsFromChanges();
                 AscCommon.EncryptionWorker.isPasswordCryptoPresent = true;
                 _editor.currentDocumentInfoNext = obj["docinfo"];
                 window["AscDesktopEditor"]["buildCryptedStart"](_ret.data, _ret.header, obj["password"], obj["docinfo"] ? obj["docinfo"] : "");
@@ -519,12 +525,25 @@
                 case "copyoutenabled":
                 {
                     this.copyOutEnabled = obj[prop];
+                    this.sync_CanCopyCutCallback(this.copyOutEnabled);
                     break;
                 }
                 case "watermark_on_draw":
                 {
-                    this.watermarkDraw = obj[prop] ? new AscCommon.CWatermarkOnDraw(obj[prop], this) : null;
-                    this.watermarkDraw.checkOnReady();
+                    var sText = "";
+                    var tempProp = JSON.parse(obj.watermark_on_draw);
+                    tempProp.paragraphs.forEach(function(el) {
+                        sText += el.runs.reduce(function(accum, curel) {
+                            return accum + curel.text;
+                        }, "");
+                    });
+                    if(!(typeof sText === "string")) {
+                        sText = "";
+                    }
+                    AscFonts.FontPickerByCharacter.checkText(sText, this, function () {
+                        this.watermarkDraw = obj[prop] ? new AscCommon.CWatermarkOnDraw(obj[prop], this) : null;
+                        this.watermarkDraw.checkOnReady();
+                    });
                     break;
                 }
                 case "hideContentControlTrack":

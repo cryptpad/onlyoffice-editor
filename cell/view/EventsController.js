@@ -312,7 +312,8 @@
 			if(this.targetInfo && (this.targetInfo.target === c_oTargetType.MoveResizeRange ||
 				this.targetInfo.target === c_oTargetType.MoveRange ||
 				this.targetInfo.target === c_oTargetType.FillHandle ||
-				this.targetInfo.target === c_oTargetType.FilterObject))
+				this.targetInfo.target === c_oTargetType.FilterObject ||
+				this.targetInfo.target === c_oTargetType.TableSelectionChange))
 				return true;
 
 			if (t.getCellEditMode()) {if (!t.handlers.trigger("stopCellEditing")) {return true;}}
@@ -630,10 +631,6 @@
 				});
 		};
 
-		asc_CEventsController.prototype._autoFiltersClick = function (idFilter) {
-			this.handlers.trigger("autoFiltersClick", idFilter);
-		};
-
 		asc_CEventsController.prototype._groupRowClick = function (event, target) {
 			// Обновляемся в режиме перемещения диапазона
 			var coord = this._getCoordinates(event);
@@ -726,9 +723,9 @@
 
 				case 120: // F9
 					var type;
-					if (ctrlKey && altKey && shiftKey) {
+					if (ctrlKey && event.altKey && shiftKey) {
 						type = Asc.c_oAscCalculateType.All;
-					} else if (ctrlKey && altKey) {
+					} else if (ctrlKey && event.altKey) {
 						type = Asc.c_oAscCalculateType.Workbook;
 					} else if (shiftKey) {
 						type = Asc.c_oAscCalculateType.ActiveSheet;
@@ -1407,8 +1404,10 @@
 								this.handlers.trigger('onDataValidation');
 							} else if (t.targetInfo.idPivot && Asc.CT_pivotTableDefinition.prototype.asc_filterByCell) {
 								this.handlers.trigger("pivotFiltersClick", t.targetInfo.idPivot);
+							} else if (t.targetInfo.idTableTotal) {
+								this.handlers.trigger("tableTotalClick", t.targetInfo.idTableTotal);
 							} else {
-								t._autoFiltersClick(t.targetInfo.idFilter);
+								this.handlers.trigger("autoFiltersClick", t.targetInfo.idFilter);
 							}
 						}
 						event.preventDefault && event.preventDefault();
@@ -1438,6 +1437,9 @@
 						return;
 					} else if ((t.targetInfo.target === c_oTargetType.GroupCol || t.targetInfo.target === c_oTargetType.GroupRow) && 2 === button) {
 						this.handlers.trigger('onContextMenu', null);
+						return;
+					} else if (t.targetInfo.target === c_oTargetType.TableSelectionChange) {
+						this.handlers.trigger('onChangeTableSelection', t.targetInfo);
 						return;
 					}
 				}

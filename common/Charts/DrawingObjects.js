@@ -1226,7 +1226,7 @@ CSparklineView.prototype.setMinMaxValAx = function(minVal, maxVal, oSparklineGro
 //-----------------------------------------------------------------------------------
 // Manager
 //-----------------------------------------------------------------------------------
-    
+
 function GraphicOption(rect) {
     this.rect = null;
     if(rect) {
@@ -1684,30 +1684,43 @@ GraphicOption.prototype.union = function(oGraphicOption) {
         if(!this.graphicObject) {
             return false;
         }
+        if(AscCommon.isFileBuild()) {
+            return false;
+        }
         var bUpdateExtents = false;
         var nType = bEdit ? this.graphicObject.getDrawingBaseType() : this.Type;
         if(target.target === AscCommonExcel.c_oTargetType.RowResize) {
-            if(this.from.row >= target.row) {
-                if(nType === AscCommon.c_oAscCellAnchorType.cellanchorTwoCell ||
-                    nType === AscCommon.c_oAscCellAnchorType.cellanchorOneCell) {
+            if(nType === AscCommon.c_oAscCellAnchorType.cellanchorTwoCell ||
+                nType === AscCommon.c_oAscCellAnchorType.cellanchorOneCell) {
+                if(this.from.row >= target.row) {
+                    bUpdateExtents = true;
+                }
+                else if(this.to.row >= target.row &&
+                    nType === AscCommon.c_oAscCellAnchorType.cellanchorTwoCell) {
                     bUpdateExtents = true;
                 }
             }
-            else if(this.to.row >= target.row) {
-                if(nType === AscCommon.c_oAscCellAnchorType.cellanchorTwoCell) {
+            else {
+                this.checkBoundsFromTo();
+                if(this.boundsFromTo.to.row >= target.row) {
                     bUpdateExtents = true;
                 }
             }
         }
         else {
-            if(this.from.col >= target.col) {
-                if(nType === AscCommon.c_oAscCellAnchorType.cellanchorTwoCell ||
-                    nType === AscCommon.c_oAscCellAnchorType.cellanchorOneCell) {
+            if(nType === AscCommon.c_oAscCellAnchorType.cellanchorTwoCell ||
+                nType === AscCommon.c_oAscCellAnchorType.cellanchorOneCell) {
+                if(this.from.col >= target.col) {
+                    bUpdateExtents = true;
+                }
+                else if(this.to.col >= target.col &&
+                    nType === AscCommon.c_oAscCellAnchorType.cellanchorTwoCell) {
                     bUpdateExtents = true;
                 }
             }
-            else if(this.to.col >= target.col) {
-                if(nType === AscCommon.c_oAscCellAnchorType.cellanchorTwoCell) {
+            else {
+                this.checkBoundsFromTo();
+                if(this.boundsFromTo.to.col >= target.col) {
                     bUpdateExtents = true;
                 }
             }
@@ -1724,6 +1737,9 @@ GraphicOption.prototype.union = function(oGraphicOption) {
         return this.boundsFromTo;
     };
     DrawingBase.prototype.onUpdate = function (oRect) {
+        if(AscCommon.isFileBuild()) {
+            return;
+        }
         var oDO = this.getDrawingObjects();
         if(!oDO) {
             return;
@@ -2495,7 +2511,7 @@ GraphicOption.prototype.union = function(oGraphicOption) {
         _this.controller.setMathProps(MathProps);
     }
 
-    _this.setListType = function(type, subtype, size, unicolor, nNumStartAt)
+    _this.setListType = function(type, subtype)
     {
         var NumberInfo =
             {
@@ -2505,7 +2521,7 @@ GraphicOption.prototype.union = function(oGraphicOption) {
 
         NumberInfo.Type    = type;
         NumberInfo.SubType = subtype;
-        _this.controller.checkSelectedObjectsAndCallback(_this.controller.setParagraphNumbering, [AscFormat.fGetPresentationBulletByNumInfo(NumberInfo), size, unicolor, nNumStartAt], false, AscDFH.historydescription_Presentation_SetParagraphNumbering);
+        _this.controller.checkSelectedObjectsAndCallback(_this.controller.setParagraphNumbering, [AscFormat.fGetPresentationBulletByNumInfo(NumberInfo)], false, AscDFH.historydescription_Presentation_SetParagraphNumbering);
     };
 
     _this.editImageDrawingObject = function(imageUrl, obj) {
@@ -2592,8 +2608,6 @@ GraphicOption.prototype.union = function(oGraphicOption) {
         {
             var model = worksheet.model;
 			History.Clear();
-			History.TurnOff();
-
             for (var i = 0; i < aObjects.length; i++) {
                 aObjects[i].graphicObject.deleteDrawingBase();
             }
@@ -2866,7 +2880,6 @@ GraphicOption.prototype.union = function(oGraphicOption) {
                     _this.controller.selectObject(oNewChartSpace, 0);
                     _this.controller.updateSelectionState();
                     _this.sendGraphicObjectProps();
-                    History.TurnOn();
                     if(aImagesSync.length > 0)
                     {
                         window["Asc"]["editor"].ImageLoader.LoadDocumentImages(aImagesSync);
@@ -3449,7 +3462,7 @@ GraphicOption.prototype.union = function(oGraphicOption) {
         if(!AscCommon.isRealObject(target)) {
             return;
         }
-        if (target.target === AscCommonExcel.c_oTargetType.RowResize || 
+        if (target.target === AscCommonExcel.c_oTargetType.RowResize ||
             target.target === AscCommonExcel.c_oTargetType.ColumnResize) {
             for(var i = 0; i < aObjects.length; ++i) {
                 var oDrawingBase = aObjects[i];
@@ -3463,6 +3476,9 @@ GraphicOption.prototype.union = function(oGraphicOption) {
     };
 
     _this.updateSizeDrawingObjects = function(target) {
+        if(AscCommon.isFileBuild()) {
+            return;
+        }
         var oGraphicObject;
         var bCheck, bRecalculate;
         if(!History.CanAddChanges() || History.CanNotAddChanges) {
@@ -4637,7 +4653,7 @@ GraphicOption.prototype.union = function(oGraphicOption) {
                 oTargetTextObject.recalculateContent();
             }
         }
-        
+
         _this.controller.recalculateCurPos(true, true);
         _this.sendGraphicObjectProps();
         _this.showDrawingObjects();

@@ -1571,7 +1571,10 @@
                 this.bs.WriteItem(c_oSer_TablePart.SortState, function(){oThis.WriteSortState(table.SortState);});
             //TableColumns
             if(null != table.TableColumns) {
-				table.syncTotalLabels(ws);
+                if (ws) {
+                    //TODO пока оставляю. проверить необходим ли до сих пор вызов данной функции
+                    table.syncTotalLabels(ws);
+                }
                 this.bs.WriteItem(c_oSer_TablePart.TableColumns, function(){oThis.WriteTableColumns(table.TableColumns);});
 			}
             //TableStyleInfo
@@ -2783,7 +2786,7 @@
 				for (var i = 0; i < ws.pivotTables.length; ++i) {
 					var pivotTable = ws.pivotTables[i];
 					if (oThis.isCopyPaste && !pivotTable.isInRange(oThis.isCopyPaste)) {
-						return;
+						continue;
 					}
 					if (pivotTable.cacheDefinition) {
 						var pivotCache = pivotCaches[pivotTable.cacheDefinition.Get_Id()];
@@ -2828,7 +2831,7 @@
             if (slicerCacheExtIndex > 0) {
                 this.bs.WriteItem(c_oSerWorkbookTypes.SlicerCachesExt, function () {oThis.WriteSlicerCaches(slicerCachesExt, oThis.tableIds);});
             }
-			if (this.wb.externalReferences.length > 0) {
+			if (!this.isCopyPaste && this.wb.externalReferences.length > 0) {
 				this.bs.WriteItem(c_oSerWorkbookTypes.ExternalReferences, function() {oThis.WriteExternalReferences();});
 			}
 			if (!this.isCopyPaste) {
@@ -2892,7 +2895,7 @@
         this.WriteDefinedNames = function()
         {
             var oThis = this;
-            var defNameList = this.wb.dependencyFormulas.saveDefName();
+            var defNameList = this.wb.dependencyFormulas.saveDefName(this.isCopyPaste === false);
 
             var filterDefName = "_xlnm._FilterDatabase";
 			var tempMap = {};
@@ -2947,7 +2950,13 @@
                 this.memory.WriteString2(oDefinedName.Ref);
             }
             if (null !== oDefinedName.LocalSheetId){
-                this.bs.WriteItem(c_oSerDefinedNameTypes.LocalSheetId, function(){oThis.memory.WriteLong(oDefinedName.LocalSheetId);});
+                var _localSheetId = oDefinedName.LocalSheetId;
+                if (this.isCopyPaste === false) {
+                    //при переносе листов пишем только один лист
+                    // соответсвенно именованные диапазоны должны ссылаться на первый лист
+                    _localSheetId = 0;
+                }
+                this.bs.WriteItem(c_oSerDefinedNameTypes.LocalSheetId, function(){oThis.memory.WriteLong(_localSheetId);});
             }
             if (null != oDefinedName.Hidden) {
                 this.bs.WriteItem(c_oSerDefinedNameTypes.Hidden, function(){oThis.memory.WriteBool(oDefinedName.Hidden);});
@@ -3014,8 +3023,9 @@
 			this.bs.WriteItem(c_oSer_PivotTypes.id, function() {
 				oThis.memory.WriteLong(id - 0);
 			});
+			var stylesForWrite = oThis.isCopyPaste ? undefined : oThis.oBinaryWorksheetsTableWriter.stylesForWrite;
 			this.bs.WriteItem(c_oSer_PivotTypes.cache, function() {
-				pivotCache.toXml(oThis.memory);
+				pivotCache.toXml(oThis.memory, stylesForWrite);
 			});
 			if (pivotCache.cacheRecords) {
 				this.bs.WriteItem(c_oSer_PivotTypes.record, function() {
@@ -3035,7 +3045,7 @@
                         stream.ImportFromMemory(oThis.memory);
 
                         stream.StartRecord(0);
-                        slicerCaches[name].toStream(stream, tableIds, oThis.isCopyPaste);
+                        slicerCaches[name].toStream(stream, tableIds, oThis.isCopyPaste || oThis.isCopyPaste === false);
                         stream.EndRecord();
 
                         stream.ExportToMemory(oThis.memory);
@@ -4207,10 +4217,6 @@
             } else {
                 range = ws.getRange3(0, 0, gc_nMaxRow0, gc_nMaxCol0);
             }
-            var bIsTablePartContainActiveRange;
-            if (oThis.isCopyPaste) {
-                bIsTablePartContainActiveRange = ws.autoFilters.isTablePartContainActiveRange(ws.selectionRange.getLast());
-            }
 
             var curRow = -1;
             var allRow = ws.getAllRowNoEmpty();
@@ -4233,13 +4239,7 @@
                 //готовим ячейку к записи
                 var nXfsId;
                 var cellXfs = cell.xfs;
-                /*if (oThis.isCopyPaste && bIsTablePartContainActiveRange) {
-                 var compiledXfs = cell.getCompiledStyle();
-                 nXfsId = oThis.stylesForWrite.add(compiledXfs);
-                 cellXfs = compiledXfs;
-                 } else {*/
                 nXfsId = oThis.stylesForWrite.add(cell.xfs);
-                //}
 
                 //сохраняем как и Excel даже пустой стиль(нужно чтобы убрать стиль строки/колонки)
                 if (null != cellXfs || false == cell.isNullText()) {
@@ -4874,7 +4874,8 @@
 			if (null != pivotTable.cacheId) {
 				this.bs.WriteItem(c_oSer_PivotTypes.cacheId, function() {oThis.memory.WriteLong(pivotTable.cacheId);});
 			}
-			this.bs.WriteItem(c_oSer_PivotTypes.table, function() {pivotTable.toXml(oThis.memory);});
+			var stylesForWrite = oThis.isCopyPaste ? undefined : oThis.stylesForWrite;
+			this.bs.WriteItem(c_oSer_PivotTypes.table, function() {pivotTable.toXml(oThis.memory, stylesForWrite);});
 		}
         this.WriteHeaderFooter = function(headerFooter)
         {
@@ -6861,7 +6862,7 @@
 			{
 				this.oWorkbook.connections = this.stream.GetBuffer(length);
 			}
-			else if (c_oSerWorkbookTypes.PivotCaches == type)
+			else if (c_oSerWorkbookTypes.PivotCaches == type && typeof Asc.CT_PivotCacheDefinition != "undefined")
 			{
 				res = this.bcr.Read1(length, function(t,l){
 					return oThis.ReadPivotCaches(t,l);
@@ -6970,9 +6971,7 @@
                 res = this.bcr.Read1(length, function(t,l){
                     return oThis.ReadDefinedName(t,l,oNewDefinedName);
                 });
-                if (null != oNewDefinedName.Name && null != oNewDefinedName.Ref) {
-                    this.oWorkbook.dependencyFormulas.addDefNameOpen(oNewDefinedName.Name, oNewDefinedName.Ref, oNewDefinedName.LocalSheetId, oNewDefinedName.Hidden, false);
-                }
+                this.oReadResult.defNames.push(oNewDefinedName);
             }
             else
                 res = c_oSerConstants.ReadUnknown;
@@ -7462,7 +7461,7 @@
 					data.table.cacheDefinition = cacheDefinition;
 					oWorksheet.insertPivotTable(data.table);
 				}
-            } else if (c_oSerWorksheetsTypes.Slicers === type || c_oSerWorksheetsTypes.SlicersExt === type) {
+            } else if (/*c_oSerWorksheetsTypes.Slicers === type ||*/ c_oSerWorksheetsTypes.SlicersExt === type) {
                 res = this.bcr.Read1(length, function(t, l) {
                     return oThis.ReadSlicers(t, l, oWorksheet);
                 });
@@ -8011,6 +8010,11 @@
 					var parsed = new AscCommonExcel.parserFormula(formula.v, newFormulaParent, cell.ws);
 					parsed.ca = formula.ca;
 					parsed.parse(undefined, undefined, parseResult);
+					if (parseResult.error === Asc.c_oAscError.ID.FrmlMaxReference) {
+                        tmp.ws.workbook.openErrors.push(cell.getName());
+                        return;
+                    }
+
 					if (null !== formula.ref) {
 						if(formula.t === ECellFormulaType.cellformulatypeShared) {
 							sharedRef = AscCommonExcel.g_oRangeCache.getAscRange(formula.ref).clone();
@@ -8022,6 +8026,7 @@
 							}
 						}
 					}
+
 					curFormula = new OpenColumnFormula(cell.nRow, formula.v, parsed, parseResult.refPos, newFormulaParent);
 					tmp.prevFormulas[cell.nCol] = curFormula;
 				}
@@ -8029,7 +8034,9 @@
 					tmp.sharedFormulas[formula.si] = curFormula;
 					tmp.siFormulas[curFormula.parsed.getListenerId()] = curFormula.parsed;
 				}
-			}
+			} else if (formula.v && !(this.copyPasteObj && this.copyPasteObj.isCopyPaste)) {
+				tmp.ws.workbook.openErrors.push(cell.getName());
+            }
 			if (curFormula) {
 				cell.setFormulaInternal(curFormula.parsed);
 				if (curFormula.parsed.ca || cell.isNullTextString()) {
@@ -9431,7 +9438,8 @@
 			pivotCacheDefinitions: {},
 			macros: null,
             slicerCaches: {},
-            tableIds: {}
+			tableIds: {},
+			defNames: []
         };
         this.getbase64DecodedData = function(szSrc)
         {
@@ -9722,6 +9730,7 @@
                     var oStyleObject = this.oReadResult.stylesTableReader.Read();
                     this.oReadResult.stylesTableReader.InitStyleManager(oStyleObject);
                     aDxfs = oStyleObject.aDxfs;
+                    wb.oNumFmtsOpen = oStyleObject.oNumFmts;
                 }
 
             }
@@ -9788,6 +9797,7 @@
                         break;
                 }
             }
+			this.PostLoadPrepareDefNames(wb);
             //todo инициализация формул из-за именованных диапазонов перенесена в wb.init ее надо вызывать в любом случае(Rev: 61959)
             if(!this.copyPasteObj.isCopyPaste || this.copyPasteObj.selectAllSheet)
             {
@@ -9814,7 +9824,19 @@
 				wb.oApi.macros.SetData(this.oReadResult.macros);
 			}
 		}
-    }
+		this.PostLoadPrepareDefNames = function(wb)
+		{
+			this.oReadResult.defNames.forEach(function (defName) {
+				if (null != defName.Name && null != defName.Ref) {
+					var _type = Asc.c_oAscDefNameType.none;
+					if (wb.getSlicerCacheByName(defName.Name)) {
+						_type = Asc.c_oAscDefNameType.slicer;
+					}
+					wb.dependencyFormulas.addDefNameOpen(defName.Name, defName.Ref, defName.LocalSheetId, defName.Hidden, _type);
+				}
+			});
+		}
+	}
     function CSlicerStyles()
     {
         this.DefaultStyle = "SlicerStyleLight1";
@@ -10596,5 +10618,18 @@
 
 	window["AscCommonExcel"].BinaryStylesTableWriter = BinaryStylesTableWriter;
 	window["AscCommonExcel"].Binary_StylesTableReader = Binary_StylesTableReader;
+
+    window['Asc']['ETotalsRowFunction'] = window['AscCommonExcel'].ETotalsRowFunction = ETotalsRowFunction;
+    prot = ETotalsRowFunction;
+    prot['totalrowfunctionNone'] = prot.totalrowfunctionNone;
+    prot['totalrowfunctionAverage'] = prot.totalrowfunctionAverage;
+    prot['totalrowfunctionCount'] = prot.totalrowfunctionCount;
+    prot['totalrowfunctionCountNums'] = prot.totalrowfunctionCountNums;
+    prot['totalrowfunctionCustom'] = prot.totalrowfunctionCustom;
+    prot['totalrowfunctionMax'] = prot.totalrowfunctionMax;
+    prot['totalrowfunctionMin'] = prot.totalrowfunctionMin;
+    prot['totalrowfunctionStdDev'] = prot.totalrowfunctionStdDev;
+    prot['totalrowfunctionSum'] = prot.totalrowfunctionSum;
+    prot['totalrowfunctionVar'] = prot.totalrowfunctionVar;
 
 })(window);

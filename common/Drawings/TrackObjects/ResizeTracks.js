@@ -314,9 +314,9 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
         this.geometry = AscFormat.ExecuteNoHistory(function(){ return originalObject.getGeom().createDuplicate();}, this, []);
         this.cropObject = originalObject.cropObject;
         var nObjectType = originalObject.getObjectType && originalObject.getObjectType();
-        if(nObjectType === AscDFH.historyitem_type_Chart 
+        if(nObjectType === AscDFH.historyitem_type_Chart
             || nObjectType === AscDFH.historyitem_type_GraphicFrame
-            || nObjectType === AscDFH.historyitem_type_SlicerView) 
+            || nObjectType === AscDFH.historyitem_type_SlicerView)
         {
             var pen_brush = CreatePenBrushForChartTrack();
             this.brush = pen_brush.brush;
@@ -1215,10 +1215,6 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
                         xfrm.setOffY(this.resizedPosY/scale_coefficients.cy + ch_off_y);
                         xfrm.setExtX(this.resizedExtX/scale_coefficients.cx);
                         xfrm.setExtY(this.resizedExtY/scale_coefficients.cy);
-                        if(this.originalObject.checkExtentsByDocContent)
-                        {
-                            this.originalObject.checkExtentsByDocContent(true, true);
-                        }
                     }
                     else
                     {
@@ -1252,7 +1248,9 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
                         xfrm.setOffY(this.resizedPosY + this.resizedExtY/2.0  - this.originalObject.extY/2);
                     }
                 }
-                if(this.originalObject.getObjectType() !== AscDFH.historyitem_type_ChartSpace && this.originalObject.getObjectType() !== AscDFH.historyitem_type_GraphicFrame)
+                if(this.originalObject.getObjectType() !== AscDFH.historyitem_type_ChartSpace &&
+                    this.originalObject.getObjectType() !== AscDFH.historyitem_type_GraphicFrame &&
+                    this.originalObject.getObjectType() !== AscDFH.historyitem_type_SlicerView)
                 {
 
                     if(!this.originalObject.isCrop)
@@ -1356,6 +1354,10 @@ function ResizeTrackShapeImage(originalObject, cardDirection, drawingsController
             {
                 AscFormat.CheckShapeBodyAutoFitReset(this.originalObject);
                 this.originalObject.checkDrawingBaseCoords();
+                if(this.originalObject.checkExtentsByDocContent)
+                {
+                    this.originalObject.checkExtentsByDocContent(true, true);
+                }
             }
             else
             {

@@ -514,6 +514,17 @@ CTable.prototype.private_RecalculateGrid = function()
                 var CellW        = Cell.Get_W();
                 var CellWW       = null;
 
+                // TODO: Надо переделать схему расчета, маргины должны учитываться для каждой ячейки свои, а не по колонке в целом
+				if (!Cell.Is_VerticalText() && Cell.GetNoWrap())
+				{
+					if (tblwidth_Mm !== CellW.Type)
+						CellMin = Math.max(CellMin, CellMax);
+					else if (1 === GridSpan)
+						CellMin = Math.max(CellMin, CellW.W - MinMargin[CurGridCol], 0);
+					else
+						CellMin = Math.max(CellMin, CellW.W - MinMargin[CurGridCol] - MinMargin[CurGridCol + GridSpan - 1], 0);
+				}
+
                 var Add = ( ( 0 === CurCell || CellsCount - 1 === CurCell ) ? 3 / 2 * SpacingW : SpacingW );
 
                 CellMin += Add;
@@ -693,6 +704,13 @@ CTable.prototype.private_RecalculateGrid = function()
 
 		if (!PageFields)
 			PageFields = this.Parent.Get_ColumnFields ? this.Parent.Get_ColumnFields(this.Get_Index(), this.Get_AbsoluteColumn(this.PageNum), this.GetAbsolutePage(this.PageNum)) : this.Parent.Get_PageFields(this.private_GetRelativePageIndex(this.PageNum));
+
+		var oFramePr = this.GetFramePr();
+		if (oFramePr && undefined !== oFramePr.Get_W())
+		{
+			PageFields.X      = 0;
+			PageFields.XLimit = oFramePr.Get_W();
+		}
 
 		var MaxTableW = PageFields.XLimit - PageFields.X - TablePr.TableInd - this.GetTableOffsetCorrection() + this.GetRightTableOffsetCorrection();
 
@@ -1587,11 +1605,14 @@ CTable.prototype.private_RecalculatePageXY = function(CurPage)
     this.Pages.length = Math.max(CurPage, 0);
     if (0 === CurPage)
     {
+    	this.Pages.length = CurPage + 1;
         this.Pages[CurPage] = new CTablePage(this.X, this.Y, this.XLimit, this.YLimit, FirstRow, TempMaxTopBorder);
     }
     else
     {
         var StartPos = this.Parent.Get_PageContentStartPos2(this.PageNum, this.ColumnNum, CurPage, this.Index);
+
+		this.Pages.length = CurPage + 1;
         this.Pages[CurPage] = new CTablePage(StartPos.X, StartPos.Y, StartPos.XLimit, StartPos.YLimit, FirstRow, TempMaxTopBorder);
     }
 };
@@ -1625,7 +1646,7 @@ CTable.prototype.private_RecalculatePositionX = function(CurPage)
                 var TableWidth = this.TableSumGrid[this.TableSumGrid.length - 1];
 
                 if (false === this.Parent.IsTableCellContent())
-                    Page.X = Page.XLimit - TableWidth + this.GetTableOffsetCorrection();
+                    Page.X = Page.XLimit - TableWidth + this.GetRightTableOffsetCorrection();
                 else
                     Page.X = Page.XLimit - TableWidth;
                 break;

@@ -46,6 +46,9 @@
 	var argType = Asc.c_oAscFormulaArgumentType;
 
 	function StatisticOnlineAlgorithm(){
+		this.reset();
+	}
+	StatisticOnlineAlgorithm.prototype.reset = function() {
 		this.count = 0;
 		this.countNums = 0;
 		this.min = Number.POSITIVE_INFINITY;
@@ -55,7 +58,7 @@
 		this.mean = 0;
 		this.M2 = 0;
 		this.errorType = null;
-	}
+	};
 	StatisticOnlineAlgorithm.prototype.union = function(val) {
 		this.min = Math.min(this.min, val.min);
 		this.max = Math.max(this.max, val.max);
@@ -122,9 +125,12 @@
 	StatisticOnlineAlgorithm.prototype.getStdDevP = function() {
 		return Math.sqrt(this.getVarP());
 	};
+	StatisticOnlineAlgorithm.prototype.isEmpty = function() {
+		return 0 === this.count && 0 === this.countNums;
+	};
 	StatisticOnlineAlgorithm.prototype.getCellValue = function(dataType, fieldType, rowType, colType) {
 		var oCellValue;
-		if (0 === this.count && 0 === this.countNums) {
+		if (this.isEmpty()) {
 			return oCellValue;
 		}
 		oCellValue = new AscCommonExcel.CCellValue();

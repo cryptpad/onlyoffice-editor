@@ -232,7 +232,8 @@ var c_oAscChangeSelectionFormatTable = {
 	all: 1,
 	data: 2,
 	row: 3,
-	column: 4
+	column: 4,
+	dataColumn: 5
 };
 
 var c_oAscChangeTableStyleInfo = {
@@ -307,7 +308,8 @@ var c_oTargetType = {
   FrozenAnchorH: 14,
   FrozenAnchorV: 15,
   GroupRow: 16,
-  GroupCol: 17
+  GroupCol: 17,
+  TableSelectionChange: 18
 };
 
 var c_oAscAutoFilterTypes = {
@@ -372,7 +374,8 @@ var c_oAscPopUpSelectorType = {
   Func: 1,
   Range: 2,
   Table: 3,
-  Slicer: 4
+  Slicer: 4,
+  TotalRowFunc: 5
 };
   /** @enum */
   var c_oSerFormat = {
@@ -476,12 +479,12 @@ var c_oAscPopUpSelectorType = {
     pivot: 4
   };
 
-  var c_oAscDefNameType = {
-    table: 1,
-    slicer: 2
-  };
-
   var c_kMaxPrintPages = 1500;
+
+  var c_oAscFrozenPaneBorderType = {
+    shadow: 1,
+    line: 2
+  };
 
   //----------------------------------------------------------export----------------------------------------------------
   window['AscCommonExcel'] = window['AscCommonExcel'] || {};
@@ -636,6 +639,7 @@ var c_oAscPopUpSelectorType = {
   prot['data'] = prot.data;
   prot['row'] = prot.row;
   prot['column'] = prot.column;
+  prot['dataColumn'] = prot.dataColumn;
   window['Asc']['c_oAscChangeTableStyleInfo'] = window['Asc'].c_oAscChangeTableStyleInfo = c_oAscChangeTableStyleInfo;
   prot = c_oAscChangeTableStyleInfo;
   prot['columnFirst'] = prot.columnFirst;
@@ -679,6 +683,7 @@ var c_oAscPopUpSelectorType = {
   prot['Range'] = prot.Range;
   prot['Table'] = prot.Table;
   prot['Slicer'] = prot.Slicer;
+  prot['TotalRowFunc'] = prot.TotalRowFunc;
   window['Asc']['c_oAscSparklineType'] = window['Asc'].c_oAscSparklineType = c_oAscSparklineType;
   prot = c_oAscSparklineType;
   prot['Line'] = prot.Line;
@@ -767,10 +772,11 @@ var c_oAscPopUpSelectorType = {
   prot['table'] = prot.table;
   prot['pivot'] = prot.pivot;
 
-  window['Asc']['c_oAscDefNameType'] = window['Asc'].c_oAscDefNameType = c_oAscDefNameType;
-  prot = c_oAscDefNameType;
-  prot['table'] = prot.table;
-  prot['slicer'] = prot.slicer;
+
+  window['Asc']['c_oAscFrozenPaneBorderType'] = window['Asc'].c_oAscFrozenPaneBorderType = c_oAscFrozenPaneBorderType;
+  prot = c_oAscFrozenPaneBorderType;
+  prot['shadow'] = prot.shadow;
+  prot['line'] = prot.line;
 
 
 })(window);

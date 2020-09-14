@@ -101,7 +101,7 @@
     };
 	CDataFormula.prototype.getValue = function(ws, returnRaw) {
 		this._init(ws);
-		var activeCell = ws.selectionRange.activeCell;
+		var activeCell = ws.getSelection().activeCell;
 		var res = this._formula.calculate(null, new Asc.Range(activeCell.col, activeCell.row, activeCell.col, activeCell.row));
 		return returnRaw ? this._formula.simplifyRefType(res) : res;
 	};
@@ -174,7 +174,7 @@
 		return false;
 	};
 	CDataValidation.prototype.checkValue = function (cell, ws) {
-		if (!this.showErrorMessage) {
+		if (!this.showErrorMessage || EDataValidationType.None === this.type) {
 			return true;
 		}
 

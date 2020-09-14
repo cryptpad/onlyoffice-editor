@@ -156,6 +156,12 @@
 		}
 	}
 
+	function isFileBuild()
+	{
+		return window["NATIVE_EDITOR_ENJINE"] && !window["IS_NATIVE_EDITOR"] && !window["DoctRendererMode"];
+	}
+
+
 	var c_oLicenseResult = {
 		Error         : 1,
 		Expired       : 2,
@@ -706,6 +712,7 @@
 		this.smooth = null;
 		this.showHorAxis = null;
 		this.showVerAxis = null;
+		this.chartSpace = null;
 	}
 
 	asc_ChartSettings.prototype = {
@@ -870,9 +877,28 @@
 			this.aRanges[0] = range;
 		},
 
+		setRange: function(sRange) {
+			if(this.chartSpace) {
+				this.chartSpace.setRange(sRange);
+				this.updateChart();
+			}
+		},
+
+		isValidRange: function(sRange) {
+			if(sRange === "") {
+				return Asc.c_oAscError.ID.No;
+			}
+			var sCheck = sRange;
+			if(sRange[0] === "=") {
+				sCheck = sRange.slice(1);
+			}
+			var aRanges = AscFormat.fParseChartFormula(sCheck);
+			return (aRanges.length !== 0) ? Asc.c_oAscError.ID.No : Asc.c_oAscError.ID.DataRangeError;
+		},
+
 		getRange: function () {
-			if(this.aRanges.length > 0) {
-				return this.aRanges[0];
+			if(this.chartSpace) {
+				return this.chartSpace.getCommonRange();
 			}
 			return null;
 		},
@@ -1275,6 +1301,99 @@
 			this.showVerAxis = v;
 		}, getShowVerAxis: function () {
 			return this.showVerAxis;
+		},
+
+		getSeries: function() {
+			if(this.chartSpace) {
+				return this.chartSpace.getAllSeries();
+			}
+			return [];
+		},
+
+		getCatValues: function() {
+			if(this.chartSpace) {
+				return this.chartSpace.getCatValues();
+			}
+			return [];
+		},
+
+		getCatFormula: function() {
+			if(this.chartSpace) {
+				return this.chartSpace.getCatFormula();
+			}
+			return "";
+		},
+
+		setCatFormula: function(sFormula) {
+			if(this.chartSpace) {
+				return this.chartSpace.setCatFormula(sFormula);
+			}
+			this.updateChart();
+		},
+
+		isValidCatFormula: function(sFormula) {
+			if(sFormula === "" || sFormula === null) {
+				return Asc.c_oAscError.ID.No;
+			}
+			return AscFormat.ExecuteNoHistory(function(){
+				var oCat = new AscFormat.CCat();
+				return oCat.setValues(sFormula).getError();
+			}, this, []);
+		},
+
+		switchRowCol: function() {
+			if(this.chartSpace) {
+				this.chartSpace.switchRowCol();
+			}
+			this.updateChart();
+		},
+
+		addSeries: function() {
+			var oRet = null;
+			if(this.chartSpace) {
+				oRet = this.chartSpace.addSeries(null, "={1}");
+			}
+			this.updateChart();
+			return oRet;
+		},
+
+		addScatterSeries: function() {
+			var oRet = null;
+			if(this.chartSpace) {
+				oRet = this.chartSpace.addScatterSeries(null, null, "={1}");
+			}
+			this.updateChart();
+			return oRet;
+		},
+
+		startEdit: function() {
+			AscCommon.History.Create_NewPoint();
+			AscCommon.History.StartTransaction();
+		},
+		endEdit: function() {
+			AscCommon.History.EndTransaction();
+			this.updateChart();
+		},
+		cancelEdit: function() {
+			AscCommon.History.EndTransaction();
+			AscCommon.History.Undo();
+			this.updateChart();
+		},
+		startEditData: function() {
+			AscCommon.History.SavePointIndex();
+		},
+		cancelEditData: function() {
+			AscCommon.History.UndoToPointIndex();
+			this.updateChart();
+		},
+		endEditData: function() {
+			AscCommon.History.ClearPointIndex();
+			this.updateChart();
+		},
+		updateChart: function() {
+			if(this.chartSpace) {
+				this.chartSpace.onDataUpdate();
+			}
 		}
 	};
 
@@ -1921,99 +2040,9 @@
 			this.OutlineLvl = (undefined != obj.OutlineLvl) ? obj.OutlineLvl : undefined;
 			this.OutlineLvlStyle = (undefined != obj.OutlineLvlStyle) ? obj.OutlineLvlStyle : false;
 			this.Bullet = obj.Bullet;
-			this.BulletSize = undefined;
-			this.BulletColor = undefined;
-			this.NumStartAt = undefined;
-			this.BulletFont = undefined;
-			this.BulletSymbol = undefined;
 			var oBullet = obj.Bullet;
-			if(oBullet)
-			{
-				var FirstTextPr = obj.FirstTextPr;
-				this.BulletSize = 100;
-				if(oBullet.bulletSize)
-				{
-					switch (oBullet.bulletSize.type)
-					{
-						case AscFormat.BULLET_TYPE_SIZE_NONE:
-						{
-							break;
-						}
-						case AscFormat.BULLET_TYPE_SIZE_TX:
-						{
-							break;
-						}
-						case AscFormat.BULLET_TYPE_SIZE_PCT:
-						{
-							this.BulletSize = oBullet.bulletSize.val / 1000.0;
-							break;
-						}
-						case AscFormat.BULLET_TYPE_SIZE_PTS:
-						{
-							break;
-						}
-					}
-				}
-				this.BulletColor = CreateAscColorCustom(0, 0, 0);
-				if(oBullet.bulletColor)
-				{
-					if(oBullet.bulletColor.UniColor)
-					{
-						this.BulletColor = CreateAscColor(oBullet.bulletColor.UniColor);
-					}
-				}
-				else
-				{
-					if(FirstTextPr && FirstTextPr.Unifill)
-					{
-						if(FirstTextPr.Unifill.fill instanceof AscFormat.CSolidFill && FirstTextPr.Unifill.fill.color)
-						{
-							this.BulletColor = CreateAscColor(FirstTextPr.Unifill.fill.color);
-						}
-						else
-						{
-							var RGBA = FirstTextPr.Unifill.getRGBAColor();
-							this.BulletColor = CreateAscColorCustom(RGBA.R, RGBA.G, RGBA.B);
-						}
-					}
-					else
-					{
-						this.BulletColor = CreateAscColorCustom(0, 0, 0);
-					}
-				}
-
-				this.BulletFont = "";
-				if(oBullet.bulletTypeface
-					&& oBullet.bulletTypeface.type === AscFormat.BULLET_TYPE_TYPEFACE_BUFONT
-					&& typeof oBullet.bulletTypeface.typeface === "string"
-					&& oBullet.bulletTypeface.typeface.length > 0)
-				{
-					this.BulletFont = oBullet.bulletTypeface.typeface;
-				}
-				else
-				{
-					if(FirstTextPr && FirstTextPr.FontFamily && typeof FirstTextPr.FontFamily.Name === "string"
-						&& FirstTextPr.FontFamily.Name.length > 0)
-					{
-						this.BulletFont = FirstTextPr.FontFamily.Name;
-					}
-				}
-
-
-				if(oBullet.bulletType)
-				{
-					if(oBullet.bulletType.AutoNumType > 0)
-					{
-						this.NumStartAt = AscFormat.isRealNumber(oBullet.bulletType.startAt) ? Math.max(1, oBullet.bulletType.startAt) : null;
-					}
-					else
-					{
-						if(oBullet.bulletType.type === AscFormat.BULLET_TYPE_BULLET_CHAR)
-						{
-							this.BulletSymbol = oBullet.bulletType.Char;
-						}
-					}
-				}
+			if(oBullet) {
+				oBullet.FirstTextPr = obj.FirstTextPr;
 			}
 
 			this.CanDeleteBlockCC  = undefined !== obj.CanDeleteBlockCC ? obj.CanDeleteBlockCC : true;
@@ -2065,11 +2094,6 @@
 			this.OutlineLvl = undefined;
 			this.OutlineLvlStyle = false;
 			this.Bullet = undefined;
-			this.BulletSize = undefined;
-			this.BulletColor = undefined;
-			this.NumStartAt = undefined;
-			this.BulletFont = undefined;
-			this.BulletSymbol = undefined;
 
 			this.CanDeleteBlockCC  = true;
 			this.CanEditBlockCC    = true;
@@ -2185,31 +2209,59 @@
 		}, asc_getBullet: function() {
 			return this.Bullet;
 		}, asc_putBulletSize: function(size) {
-			this.BulletSize = size;
+			if(!this.Bullet) {
+				this.Bullet = new Asc.asc_CBullet();
+			}
+			this.Bullet.asc_putSize(size);
 		}, asc_getBulletSize: function() {
-			return this.BulletSize;
+			if(!this.Bullet) {
+				return undefined;
+			}
+			return this.Bullet.asc_getSize();
 		}, asc_putBulletColor: function(color) {
-			this.BulletColor = color;
+			if(!this.Bullet) {
+				this.Bullet = new Asc.asc_CBullet();
+			}
+			this.Bullet.asc_putColor(color);
 		}, asc_getBulletColor: function() {
-			return this.BulletColor;
+			if(!this.Bullet) {
+				return undefined;
+			}
+			return this.Bullet.asc_getColor();
 		}, asc_putNumStartAt: function(NumStartAt) {
-			this.NumStartAt = NumStartAt;
+			if(!this.Bullet) {
+				this.Bullet = new Asc.asc_CBullet();
+			}
+			this.Bullet.asc_putNumStartAt(NumStartAt);
 		}, asc_getNumStartAt: function() {
-			return this.NumStartAt;
+			if(!this.Bullet) {
+				return undefined;
+			}
+			return this.Bullet.asc_getNumStartAt();
 		},
-
 		asc_getBulletFont: function() {
-			return this.BulletFont;
+			if(!this.Bullet) {
+				return undefined;
+			}
+			return this.Bullet.asc_getFont();
 		},
 		asc_putBulletFont: function(v) {
-			this.BulletFont = v;
+			if(!this.Bullet) {
+				this.Bullet = new Asc.asc_CBullet();
+			}
+			this.Bullet.asc_putFont(v);
 		},
-
 		asc_getBulletSymbol: function() {
-			return this.BulletSymbol;
+			if(!this.Bullet) {
+				return undefined;
+			}
+			return this.Bullet.asc_getSymbol();
 		},
 		asc_putBulletSymbol: function(v) {
-			this.BulletSymbol = v;
+			if(!this.Bullet) {
+				this.Bullet = new Asc.asc_CBullet();
+			}
+			this.Bullet.asc_putSymbol(v);
 		},
 		asc_canDeleteBlockContentControl: function() {
 			return this.CanDeleteBlockCC;
@@ -4080,7 +4132,7 @@
 					else{
 						oUnifill = AscFormat.CreteSolidFillRGB(0, 0, 0);
 					}
-					oShape.spPr.setLn(AscFormat.CreatePenFromParams(oUnifill, undefined, undefined, undefined, undefined, AscFormat.isRealNumber(obj['stroke-width']) ? obj['stroke-width'] : 12700.0/36000.0))
+					oShape.spPr.setLn(AscFormat.CreatePenFromParams(oUnifill, undefined, undefined, undefined, undefined, AscFormat.isRealNumber(obj['stroke-width']) ? obj['stroke-width'] : 12700.0/36000.0));
 				}
 
 				if(bWord){
@@ -4322,6 +4374,7 @@
 	{
 		this.description = "";
 		this.url         = "";
+		this.help        = "";
 		this.baseUrl     = "";
 		this.index       = 0;     // сверху не выставляем. оттуда в каком порядке пришли - в таком порядке и работают
 
@@ -4364,6 +4417,14 @@
 	CPluginVariation.prototype["set_Url"]         = function(value)
 	{
 		this.url = value;
+	};
+	CPluginVariation.prototype["get_Help"]         = function()
+	{
+		return this.help;
+	};
+	CPluginVariation.prototype["set_Help"]         = function(value)
+	{
+		this.help = value;
 	};
 
 	CPluginVariation.prototype["get_Icons"] = function()
@@ -4503,6 +4564,7 @@
 		var _object            = {};
 		_object["description"] = this.description;
 		_object["url"]         = this.url;
+		_object["help"]        = this.help;
 		_object["index"]       = this.index;
 
 		_object["icons"]          = this.icons;
@@ -4531,6 +4593,7 @@
 	{
 		this.description = (_object["description"] != null) ? _object["description"] : this.description;
 		this.url         = (_object["url"] != null) ? _object["url"] : this.url;
+		this.help        = (_object["help"] != null) ? _object["help"] : this.help;
 		this.index       = (_object["index"] != null) ? _object["index"] : this.index;
 
 		this.icons          = (_object["icons"] != null) ? _object["icons"] : this.icons;
@@ -4839,6 +4902,26 @@
 	prot["getShowHorAxis"] = prot.getShowHorAxis;
 	prot["putShowVerAxis"] = prot.putShowVerAxis;
 	prot["getShowVerAxis"] = prot.getShowVerAxis;
+	prot["getSeries"] = prot.getSeries;
+	prot["getCatValues"] = prot.getCatValues;
+	prot["switchRowCol"] = prot.switchRowCol;
+	prot["addSeries"] = prot.addSeries;
+	prot["addScatterSeries"] = prot.addScatterSeries;
+	prot["getCatFormula"] = prot.getCatFormula;
+	prot["setCatFormula"] = prot.setCatFormula;
+	prot["isValidCatFormula"] = prot.isValidCatFormula;
+	prot["setRange"] = prot.setRange;
+	prot["isValidRange"] = prot.isValidRange;
+	prot["startEdit"] = prot.startEdit;
+	prot["endEdit"] = prot.endEdit;
+	prot["cancelEdit"] = prot.cancelEdit;
+	prot["startEditData"] = prot.startEditData;
+	prot["cancelEditData"] = prot.cancelEditData;
+	prot["endEditData"] = prot.endEditData;
+
+
+
+
 
 	window["AscCommon"].asc_CRect = asc_CRect;
 	prot = asc_CRect.prototype;
@@ -5478,7 +5561,9 @@
     prot["get_Variants"] = prot.get_Variants;
 
     window["AscCommon"].CWatermarkOnDraw = CWatermarkOnDraw;
+    window["AscCommon"].isFileBuild = isFileBuild;
 
 	window["Asc"]["CPluginVariation"] = window["Asc"].CPluginVariation = CPluginVariation;
 	window["Asc"]["CPlugin"] = window["Asc"].CPlugin = CPlugin;
+
 })(window);

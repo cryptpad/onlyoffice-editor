@@ -214,19 +214,25 @@ ParaHyperlink.prototype.CopyContent = function(Selected)
 ParaHyperlink.prototype.Draw_Elements = function(PDSE)
 {
     PDSE.VisitedHyperlink = this.Visited;
-    PDSE.Hyperlink = true;
+    PDSE.Hyperlink        = true;
     CParagraphContentWithParagraphLikeContent.prototype.Draw_Elements.apply(this, arguments);
     PDSE.VisitedHyperlink = false;
-    PDSE.Hyperlink = false;
+    PDSE.Hyperlink        = false;
 };
 
 ParaHyperlink.prototype.Draw_Lines = function(PDSL)
 {
-    PDSL.VisitedHyperlink = this.Visited;
-    PDSL.Hyperlink = true;
-    CParagraphContentWithParagraphLikeContent.prototype.Draw_Lines.apply(this, arguments);
-    PDSL.VisitedHyperlink = false;
-    PDSL.Hyperlink = false;
+	PDSL.VisitedHyperlink = this.Visited;
+	PDSL.Hyperlink        = true;
+	CParagraphContentWithParagraphLikeContent.prototype.Draw_Lines.apply(this, arguments);
+	PDSL.VisitedHyperlink = false;
+	PDSL.Hyperlink        = false;
+};
+ParaHyperlink.prototype.Draw_HighLights = function(PDSH)
+{
+	PDSH.Hyperlink = this;
+	CParagraphContentWithParagraphLikeContent.prototype.Draw_HighLights.apply(this, arguments);
+	PDSH.Hyperlink = null;
 };
 //-----------------------------------------------------------------------------------
 // Работаем со значениями

@@ -1045,9 +1045,11 @@ CDocumentContentElementBase.prototype.GetSimilarNumbering = function(oContinueEn
  * Переходим к следующей ссылке на сноску
  * @param isNext {boolean} - направление поиска
  * @param isCurrent {boolean} - ищем начиная с текущей позиции или с края элемента
+ * @param isStepFootnote {boolean} - ищем сноски на странице
+ * @param isStepEndnote {boolean} - ищем концевые сноски
  * @returns {boolean}
  */
-CDocumentContentElementBase.prototype.GotoFootnoteRef = function(isNext, isCurrent)
+CDocumentContentElementBase.prototype.GotoFootnoteRef = function(isNext, isCurrent, isStepFootnote, isStepEndnote)
 {
 	return false;
 };
@@ -1180,6 +1182,16 @@ CDocumentContentElementBase.prototype.GetLogicDocument = function()
 {
 	return this.LogicDocument;
 };
+/**
+ * Получаем настройки рамки для данного элемента
+ * @returns {?CFramePr}
+ */
+CDocumentContentElementBase.prototype.GetFramePr = function(){return null;};
+/**
+ * Получаем маскимальную ширину таблицы
+ * @returns {{GapLeft : {number}, GapRight : {number}, GridWidth : {number}}}
+ */
+CDocumentContentElementBase.prototype.GetMaxTableGridWidth = function(){return {GapLeft : 0, GapRight : 0, GridWidth : -1};};
 
 //--------------------------------------------------------export--------------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};

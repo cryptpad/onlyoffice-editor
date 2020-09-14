@@ -1032,12 +1032,6 @@ CGraphicFrame.prototype.setParagraphIndent = function(val)
         }
 };
 
-CGraphicFrame.prototype.setParent2 = function(parent)
-    {
-        History.Add(new AscDFH.CChangesDrawingsObject(this, AscDFH.historyitem_GraphicFrameSetSetParent, this.parent, parent));
-        this.parent = parent;
-};
-
 CGraphicFrame.prototype.setWordFlag = function(bPresentation, Document)
     {
         if(this.graphicObject)

@@ -196,6 +196,90 @@ CDocumentContentBase.prototype.GetAllSeqFieldsByType = function(sType, aFields)
 };
 
 /**
+ * Finds a paragraph with a given style
+ * @param {string} sStyleId - id of paragraph style
+ * @param {boolean} bBackward - whether to search backward or forward
+ * @param {?number} nStartIdx - index of searching start. If it is null searching starts depends on bBackward.
+ * @returns {?Paragraph}
+ */
+CDocumentContentBase.prototype.FindParaWithStyle = function (sStyleId, bBackward, nStartIdx)
+{
+	var nIdx, oElement, oResultPara = null, oContent;
+	var nSearchStartIdx;
+	if(bBackward)
+	{
+		if(nStartIdx !== null)
+		{
+			nSearchStartIdx = Math.min(nStartIdx, this.Content.length - 1);
+		}
+		else
+		{
+			nSearchStartIdx = this.Content.length - 1;
+		}
+		for(nIdx = nSearchStartIdx; nIdx >= 0; --nIdx)
+		{
+			oElement = this.Content[nIdx];
+			if(oElement.GetType() === type_Paragraph)
+			{
+				if(oElement.GetParagraphStyle() === sStyleId)
+				{
+					oResultPara = oElement;
+				}
+			}
+			else if(oElement.GetType() === type_Table)
+			{
+				oResultPara = oElement.FindParaWithStyle(sStyleId, bBackward, null);
+			}
+			else if(oElement.GetType() === type_BlockLevelSdt)
+			{
+				oContent = oElement.GetContent();
+				oResultPara = oContent.FindParaWithStyle(sStyleId, bBackward, null);
+			}
+			if(oResultPara !== null)
+			{
+				return oResultPara;
+			}
+		}
+	}
+	else
+	{
+		if(nStartIdx !== null)
+		{
+			nSearchStartIdx = Math.max(nStartIdx, 0);
+		}
+		else
+		{
+			nSearchStartIdx = 0;
+		}
+		for(nIdx = nSearchStartIdx; nIdx < this.Content.length; ++nIdx)
+		{
+			oElement = this.Content[nIdx];
+			if(oElement.GetType() === type_Paragraph)
+			{
+				if(oElement.GetParagraphStyle() === sStyleId)
+				{
+					oResultPara = oElement;
+				}
+			}
+			else if(oElement.GetType() === type_Table)
+			{
+				oResultPara = oElement.FindParaWithStyle(sStyleId, bBackward, null);
+			}
+			else if(oElement.GetType() === type_BlockLevelSdt)
+			{
+				oContent = oElement.GetContent();
+				oResultPara = oContent.FindParaWithStyle(sStyleId, bBackward, null);
+			}
+			if(oResultPara !== null)
+			{
+				return oResultPara;
+			}
+		}
+	}
+	return null;
+};
+
+/**
  * Находим отрезок сносок, заданный между сносками.
  * @param {?CFootEndnote} oFirstFootnote - если null, то иещм с начала документа
  * @param {?CFootEndnote} oLastFootnote - если null, то ищем до конца документа
@@ -204,7 +288,7 @@ CDocumentContentBase.prototype.GetAllSeqFieldsByType = function(sType, aFields)
 CDocumentContentBase.prototype.GetFootnotesList = function(oFirstFootnote, oLastFootnote, isEndnotes)
 {
 	var oEngine = new CDocumentFootnotesRangeEngine();
-	oEngine.Init(oFirstFootnote, oLastFootnote, isEndnotes);
+	oEngine.Init(oFirstFootnote, oLastFootnote, !isEndnotes, isEndnotes);
 
 	var arrFootnotes = [];
 
@@ -274,10 +358,12 @@ CDocumentContentBase.prototype.private_RecalculateEmptySectionParagraph = functi
  * Передвигаем курсор (от текущего положения) к началу ссылки на сноску
  * @param isNext двигаемся вперед или назад
  * @param isCurrent находимся ли мы в текущем объекте
+ * @param isStepFootnote {boolean} - ищем сноски на странице
+ * @param isStepEndnote {boolean} - ищем концевые сноски
  * @returns {boolean}
  * @constructor
  */
-CDocumentContentBase.prototype.GotoFootnoteRef = function(isNext, isCurrent)
+CDocumentContentBase.prototype.GotoFootnoteRef = function(isNext, isCurrent, isStepFootnote, isStepEndnote)
 {
 	var nCurPos = 0;
 
@@ -301,7 +387,7 @@ CDocumentContentBase.prototype.GotoFootnoteRef = function(isNext, isCurrent)
 		for (var nIndex = nCurPos, nCount = this.Content.length; nIndex < nCount; ++nIndex)
 		{
 			var oElement = this.Content[nIndex];
-			if (oElement.GotoFootnoteRef(true, true === isCurrent && nIndex === nCurPos))
+			if (oElement.GotoFootnoteRef(true, true === isCurrent && nIndex === nCurPos, isStepFootnote, isStepEndnote))
 				return true;
 		}
 	}
@@ -310,7 +396,7 @@ CDocumentContentBase.prototype.GotoFootnoteRef = function(isNext, isCurrent)
 		for (var nIndex = nCurPos; nIndex >= 0; --nIndex)
 		{
 			var oElement = this.Content[nIndex];
-			if (oElement.GotoFootnoteRef(false, true === isCurrent && nIndex === nCurPos))
+			if (oElement.GotoFootnoteRef(false, true === isCurrent && nIndex === nCurPos, isStepFootnote, isStepEndnote))
 				return true;
 		}
 	}

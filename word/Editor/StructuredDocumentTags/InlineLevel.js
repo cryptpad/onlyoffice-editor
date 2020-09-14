@@ -349,6 +349,9 @@ CInlineLevelSdt.prototype.Remove = function(nDirection, bOnAddText)
 {
 	if (this.IsPlaceHolder())
 	{
+		if (!this.CanBeDeleted() && !bOnAddText)
+			return true;
+
 		if (bOnAddText || !this.Paragraph.LogicDocument.IsFillingFormMode())
 			this.private_ReplacePlaceHolderWithContent();
 
@@ -498,6 +501,28 @@ CInlineLevelSdt.prototype.MoveCursorToContentControl = function(isBegin)
 		this.MoveCursorToStartPos();
 	else
 		this.MoveCursorToEndPos();
+};
+CInlineLevelSdt.prototype.MoveCursorToStartPos = function()
+{
+	if (this.IsPlaceHolder())
+	{
+		this.SelectContentControl();
+	}
+	else
+	{
+		CParagraphContentWithParagraphLikeContent.prototype.MoveCursorToStartPos.apply(this);
+	}
+};
+CInlineLevelSdt.prototype.MoveCursorToEndPos = function(isSelectFromEnd)
+{
+	if (this.IsPlaceHolder())
+	{
+		this.SelectContentControl();
+	}
+	else
+	{
+		CParagraphContentWithParagraphLikeContent.prototype.MoveCursorToEndPos.apply(this, arguments);
+	}
 };
 CInlineLevelSdt.prototype.RemoveContentControlWrapper = function()
 {
@@ -692,6 +717,8 @@ CInlineLevelSdt.prototype.private_ReplaceContentWithPlaceHolder = function(isSel
 };
 CInlineLevelSdt.prototype.private_FillPlaceholderContent = function()
 {
+	var isSelection = this.IsSelectionUse();
+
 	this.RemoveFromContent(0, this.GetElementsCount());
 
 	var oParagraph     = this.GetParagraph();
@@ -733,6 +760,9 @@ CInlineLevelSdt.prototype.private_FillPlaceholderContent = function()
 			this.AddToContent(0, oRun);
 		}
 	}
+
+	if (isSelection)
+		this.SelectAll(1);
 };
 CInlineLevelSdt.prototype.Set_SelectionContentPos = function(StartContentPos, EndContentPos, Depth, StartFlag, EndFlag)
 {
@@ -993,8 +1023,12 @@ CInlineLevelSdt.prototype.GetSelectedContentControls = function(arrContentContro
 };
 CInlineLevelSdt.prototype.ClearContentControl = function()
 {
-	this.Add_ToContent(0, new ParaRun(this.GetParagraph(), false));
-	this.Remove_FromContent(1, this.Content.length - 1);
+	var oRun = new ParaRun(this.GetParagraph(), false);
+	oRun.SetPr(this.Pr.TextPr.Copy());
+	this.AddToContent(0, oRun);
+	this.RemoveFromContent(1, this.Content.length - 1);
+	this.RemoveSelection();
+	this.MoveCursorToStartPos();
 };
 CInlineLevelSdt.prototype.CanAddComment = function()
 {

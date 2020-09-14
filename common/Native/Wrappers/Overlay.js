@@ -540,6 +540,12 @@ COverlay.prototype =
 //        _ctx.quadraticCurveTo(x, y + h, x, y + h - r);
 //        _ctx.lineTo(x, y + r);
 //        _ctx.quadraticCurveTo(x, y, x + r, y);
+    },
+    DrawFrozenPlaceHorLine: function(y, left, right)
+    {
+    },
+    DrawFrozenPlaceVerLine: function(x, top, bottom)
+    {
     }
 };
 

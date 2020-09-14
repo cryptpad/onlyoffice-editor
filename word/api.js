@@ -681,7 +681,7 @@
 							}
 							else
 							{
-								if (_blockStd.Content.GetElementsCount() > 1)
+								if (_blockStd.GetElementsCount() > 1)
 								{
 									_blockStd.Remove_FromContent(_blockStd.GetElementsCount() - 1, 1);
 									_blockStd.MoveCursorToEndPos();
@@ -1268,6 +1268,59 @@ background-repeat: no-repeat;\
 		this.WordControl.m_oLogicDocument.RemoveSelection();
 
 		return text_data.data;
+	};
+
+	asc_docs_api.prototype.initDefaultShortcuts = function()
+	{
+		// ActionType, Key, Ctrl, Shift, Alt
+		this.initShortcuts([
+			[c_oAscDocumentShortcutType.InsertAddPageBreak, 13, true, false, false],
+			[c_oAscDocumentShortcutType.InsertLineBreak, 13, false, true, false],
+			[c_oAscDocumentShortcutType.InsertColumnBreak, 13, true, true, false],
+			[c_oAscDocumentShortcutType.ResetChar, 32, true, false, false],
+			[c_oAscDocumentShortcutType.NonBreakingSpace, 32, true, true, false],
+			[c_oAscDocumentShortcutType.ApplyHeading1, 49, false, false, true],
+			[c_oAscDocumentShortcutType.ApplyHeading2, 50, false, false, true],
+			[c_oAscDocumentShortcutType.ApplyHeading3, 51, false, false, true],
+			[c_oAscDocumentShortcutType.Strikeout, 53, true, false, false],
+			[c_oAscDocumentShortcutType.ShowAll, 56, true, true, false],
+			[c_oAscDocumentShortcutType.EditSelectAll, 65, true, false, false],
+			[c_oAscDocumentShortcutType.Bold, 66, true, false, false],
+			[c_oAscDocumentShortcutType.CopyFormat, 67, true, true, false],
+			[c_oAscDocumentShortcutType.CopyrightSign, 67, true, false, true],
+			[c_oAscDocumentShortcutType.InsertEndnoteNow, 68, true, false, true],
+			[c_oAscDocumentShortcutType.CenterPara, 69, true, false, true],
+			[c_oAscDocumentShortcutType.EuroSign, 69, true, false, true],
+			[c_oAscDocumentShortcutType.InsertFootnoteNow, 70, true, false, true],
+			[c_oAscDocumentShortcutType.Italic, 73, true, false, false],
+			[c_oAscDocumentShortcutType.JustifyPara, 74, true, false, false],
+			[c_oAscDocumentShortcutType.InsertHyperlink, 75, true, false, false],
+			[c_oAscDocumentShortcutType.ApplyListBullet, 76, true, true, false],
+			[c_oAscDocumentShortcutType.LeftPara, 76, true, false, false],
+			[c_oAscDocumentShortcutType.Indent, 77, true, false, false],
+			[c_oAscDocumentShortcutType.UnIndent, 77, true, true, false],
+			[c_oAscDocumentShortcutType.PrintPreviewAndPrint, 80, true, false, false],
+			[c_oAscDocumentShortcutType.InsertPageNumber, 80, true, true, false],
+			[c_oAscDocumentShortcutType.RightPara, 82, true, false, false],
+			[c_oAscDocumentShortcutType.RegisteredSign, 82, true, false, true],
+			[c_oAscDocumentShortcutType.Save, 83, true, false, false],
+			[c_oAscDocumentShortcutType.TrademarkSign, 84, true, false, true],
+			[c_oAscDocumentShortcutType.Underline, 85, true, false, false],
+			[c_oAscDocumentShortcutType.PasteFormat, 86, true, true, false],
+			[c_oAscDocumentShortcutType.EditRedo, 89, true, false, false],
+			[c_oAscDocumentShortcutType.EditUndo, 90, true, false, false],
+			[c_oAscDocumentShortcutType.EnDash, 109, true, false, false],
+			[c_oAscDocumentShortcutType.EmDash, 109, true, false, true],
+			[c_oAscDocumentShortcutType.UpdateFields, 120, false, false, false],
+			[c_oAscDocumentShortcutType.InsertEquation, 187, false, false, true],
+			[c_oAscDocumentShortcutType.Superscript, 188, true, false, false],
+			[c_oAscDocumentShortcutType.NonBreakingHyphen, 189, true, true, false],
+			[c_oAscDocumentShortcutType.SoftHyphen, 189, false, false, true],
+			[c_oAscDocumentShortcutType.HorizontalEllipsis, 190, true, false, true],
+			[c_oAscDocumentShortcutType.Subscript, 190, true, false, false],
+			[c_oAscDocumentShortcutType.IncreaseFontSize, 219, true, false, false],
+			[c_oAscDocumentShortcutType.DecreaseFontSize, 221, true, false, false],
+		]);
 	};
 
 	asc_docs_api.prototype.InitEditor = function()
@@ -2726,11 +2779,6 @@ background-repeat: no-repeat;\
 		return this.WordControl.m_oLogicDocument.Can_CopyCut();
 	};
 
-	asc_docs_api.prototype.sync_CanCopyCutCallback = function(bCanCopyCut)
-	{
-		this.sendEvent("asc_onCanCopyCut", bCanCopyCut);
-	};
-
 	asc_docs_api.prototype.setStartPointHistory = function()
 	{
 		this.noCreatePoint  = true;
@@ -3534,7 +3582,8 @@ background-repeat: no-repeat;\
 		{
 			this.WordControl.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_SetTextVertAlign);
 			this.WordControl.m_oLogicDocument.AddToParagraph(new AscCommonWord.ParaTextPr({VertAlign : value}));
-			this.UpdateInterfaceState();
+			this.WordControl.m_oLogicDocument.Recalculate();
+			this.WordControl.m_oLogicDocument.UpdateInterface();
 			this.WordControl.m_oLogicDocument.FinalizeAction();
 		}
 	};
@@ -4032,7 +4081,18 @@ background-repeat: no-repeat;\
 				this.WordControl.m_oLogicDocument.SetUseTextShd(false);
 
 			if (false === is_flag)
-				this.WordControl.m_oLogicDocument.SetParagraphShd({Value : Asc.c_oAscShdNil});
+			{
+				this.WordControl.m_oLogicDocument.SetParagraphShd({
+					Value   : Asc.c_oAscShdClear,
+					Color   : {
+						r    : 255,
+						g    : 255,
+						b    : 255,
+						Auto : true
+					},
+					Unifill : undefined
+				});
+			}
 			else
 			{
 				var Unifill        = new AscFormat.CUniFill();
@@ -4431,7 +4491,13 @@ background-repeat: no-repeat;\
 				}
 			}
 		}
-		return this.WordControl.m_oLogicDocument.SetWatermarkProps(oProps);
+		var sText = oProps.get_Text();
+		if(!(typeof sText === "string")) {
+			sText = "";
+		}
+		AscFonts.FontPickerByCharacter.checkText(sText, this, function () {
+			return oApi.WordControl.m_oLogicDocument.SetWatermarkProps(oProps);
+		});
 	};
 	asc_docs_api.prototype.asc_WatermarkRemove = function(oProps)
 	{
@@ -4456,9 +4522,9 @@ background-repeat: no-repeat;\
 	{
 		return this.WordControl.m_oLogicDocument.AddFootnote(sText);
 	};
-	asc_docs_api.prototype.asc_RemoveAllFootnotes = function()
+	asc_docs_api.prototype.asc_RemoveAllFootnotes = function(bRemoveFootnotes, bRemoveEndnotes)
 	{
-		this.WordControl.m_oLogicDocument.RemoveAllFootnotes();
+		this.WordControl.m_oLogicDocument.RemoveAllFootnotes(bRemoveFootnotes, bRemoveEndnotes);
 	};
 	asc_docs_api.prototype.asc_GotoFootnote = function(isNext)
 	{
@@ -4472,12 +4538,44 @@ background-repeat: no-repeat;\
 
 		return false;
 	};
-	asc_docs_api.prototype["asc_AddFootnote"]        = asc_docs_api.prototype.asc_AddFootnote;
-	asc_docs_api.prototype["asc_RemoveAllFootnotes"] = asc_docs_api.prototype.asc_RemoveAllFootnotes;
-	asc_docs_api.prototype["asc_GetFootnoteProps"]   = asc_docs_api.prototype.asc_GetFootnoteProps;
-	asc_docs_api.prototype["asc_SetFootnoteProps"]   = asc_docs_api.prototype.asc_SetFootnoteProps;
-	asc_docs_api.prototype["asc_GotoFootnote"]       = asc_docs_api.prototype.asc_GotoFootnote;
-	asc_docs_api.prototype["asc_IsCursorInFootnote"] = asc_docs_api.prototype.asc_IsCursorInFootnote;
+	asc_docs_api.prototype.asc_AddEndnote = function(sText)
+	{
+		this.WordControl.m_oLogicDocument.AddEndnote(sText);
+	};
+	asc_docs_api.prototype.asc_GotoEndnote = function(isNext)
+	{
+		this.WordControl.m_oLogicDocument.GotoEndnote(isNext);
+	};
+	asc_docs_api.prototype.asc_IsCursorInEndnote = function()
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		return (oLogicDocument ? oLogicDocument.IsCursorInEndnote() : false);
+	};
+	asc_docs_api.prototype.asc_SetEndnoteProps = function(oEndnotePr, bApplyToAll)
+	{
+		this.WordControl.m_oLogicDocument.SetEndnotePr(oEndnotePr, bApplyToAll);
+	};
+	asc_docs_api.prototype.asc_GetEndnoteProps = function()
+	{
+		return this.WordControl.m_oLogicDocument.GetEndnotePr();
+	};
+	asc_docs_api.prototype.asc_ConvertFootnoteType = function(isCurrent, isFootnotes, isEndnotes)
+	{
+		this.WordControl.m_oLogicDocument.ConvertFootnoteType(isCurrent, isFootnotes, isEndnotes);
+	};
+	asc_docs_api.prototype["asc_AddFootnote"]         = asc_docs_api.prototype.asc_AddFootnote;
+	asc_docs_api.prototype["asc_RemoveAllFootnotes"]  = asc_docs_api.prototype.asc_RemoveAllFootnotes;
+	asc_docs_api.prototype["asc_GetFootnoteProps"]    = asc_docs_api.prototype.asc_GetFootnoteProps;
+	asc_docs_api.prototype["asc_SetFootnoteProps"]    = asc_docs_api.prototype.asc_SetFootnoteProps;
+	asc_docs_api.prototype["asc_GotoFootnote"]        = asc_docs_api.prototype.asc_GotoFootnote;
+	asc_docs_api.prototype["asc_IsCursorInFootnote"]  = asc_docs_api.prototype.asc_IsCursorInFootnote;
+	asc_docs_api.prototype["asc_AddEndnote"]          = asc_docs_api.prototype.asc_AddEndnote;
+	asc_docs_api.prototype["asc_GetEndnoteProps"]     = asc_docs_api.prototype.asc_GetEndnoteProps;
+	asc_docs_api.prototype["asc_SetEndnoteProps"]     = asc_docs_api.prototype.asc_SetEndnoteProps;
+	asc_docs_api.prototype["asc_GotoEndnote"]         = asc_docs_api.prototype.asc_GotoEndnote;
+	asc_docs_api.prototype["asc_IsCursorInEndnote"]   = asc_docs_api.prototype.asc_IsCursorInEndnote;
+	asc_docs_api.prototype["asc_ConvertFootnoteType"] = asc_docs_api.prototype.asc_ConvertFootnoteType;
+
 
 	asc_docs_api.prototype.put_AddPageBreak              = function()
 	{
@@ -6080,6 +6178,7 @@ background-repeat: no-repeat;\
 			this.m_sUserName  = (undefined != obj.m_sUserName ) ? obj.m_sUserName : "";
 			this.m_sInitials  = (undefined != obj.m_sInitials ) ? obj.m_sInitials : this.asc_makeInitials(this.m_sUserName);
 			this.m_nDurableId = (undefined != obj.m_nDurableId) ? obj.m_nDurableId : AscCommon.CreateDurableId();
+			this.m_sUserData  = (undefined !== obj.m_sUserData) ? obj.m_sUserData : "";
 			this.m_aReplies   = [];
 			if (undefined != obj.m_aReplies)
 			{
@@ -6104,6 +6203,7 @@ background-repeat: no-repeat;\
 			this.m_sUserName  = "";
 			this.m_sInitials  = "";
 			this.m_nDurableId = AscCommon.CreateDurableId();
+			this.m_sUserData  = "";
 			this.m_aReplies   = [];
 		}
 	}
@@ -6226,8 +6326,14 @@ background-repeat: no-repeat;\
 		}
 		return initials;
 	};
-
-
+	asc_CCommentDataWord.prototype.asc_getUserData = function()
+	{
+		return this.m_sUserData;
+	};
+	asc_CCommentDataWord.prototype.asc_putUserData = function(v)
+	{
+		this.m_sUserData = v;
+	};
 
 	asc_docs_api.prototype.asc_showComments = function(isShowSolved)
 	{
@@ -6249,12 +6355,12 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype.asc_addComment = function(AscCommentData)
 	{
 		if (true === AscCommon.CollaborativeEditing.Get_GlobalLock())
-			return;
+			return null;
 
 		var oLogicDocument = this.WordControl.m_oLogicDocument;
 
 		if (!oLogicDocument)
-			return;
+			return null;
 
 		// Комментарий без цитаты позволяем добавить всегда
 		if (true !== this.can_AddQuotedComment() || false === oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Paragraph_Content, null, true, oLogicDocument.IsEditCommentsMode()))
@@ -6273,6 +6379,8 @@ background-repeat: no-repeat;\
 
 			return Comment.Get_Id();
 		}
+
+		return null;
 	};
 
 	asc_docs_api.prototype.asc_removeComment = function(Id)
@@ -6387,12 +6495,18 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype.sync_RemoveComment = function(Id)
 	{
 		this.sendEvent("asc_onRemoveComment", Id);
+
+		if (window.g_asc_plugins)
+			window.g_asc_plugins.onPluginEvent("onRemoveComment", {"Id" : Id});
 	};
 
 	asc_docs_api.prototype.sync_AddComment = function(Id, CommentData)
 	{
 		var AscCommentData = new asc_CCommentDataWord(CommentData);
 		this.sendEvent("asc_onAddComment", Id, AscCommentData);
+
+		if (window.g_asc_plugins)
+			window.g_asc_plugins.onPluginEvent("onAddComment", {"Id" : Id, "Data" : CommentData.ConvertToSimpleObject()});
 	};
 
 	asc_docs_api.prototype.sync_ShowComment = function(arrId, X, Y)
@@ -6415,6 +6529,9 @@ background-repeat: no-repeat;\
 	{
 		var AscCommentData = new asc_CCommentDataWord(CommentData);
 		this.sendEvent("asc_onChangeCommentData", Id, AscCommentData);
+
+		if (window.g_asc_plugins)
+			window.g_asc_plugins.onPluginEvent("onChangeCommentData", {"Id" : Id, "Data" : CommentData.ConvertToSimpleObject()});
 	};
 
 	asc_docs_api.prototype.sync_LockComment = function(Id, UserId)
@@ -6426,13 +6543,13 @@ background-repeat: no-repeat;\
 	{
 		this.sendEvent("asc_onUnLockComment", Id);
 	};
-	asc_docs_api.prototype.asc_RemoveAllComments = function(isMine, isCurrent)
+	asc_docs_api.prototype.asc_RemoveAllComments = function(isMine, isCurrent, arrIds)
 	{
 		var oLogicDocument = this.private_GetLogicDocument();
 		if (!oLogicDocument)
 			return;
 
-		var arrCommentsId = oLogicDocument.GetAllComments(isMine, isCurrent);
+		var arrCommentsId = undefined !== arrIds ? arrIds : oLogicDocument.GetAllComments(isMine, isCurrent);
 
 		if (!oLogicDocument.IsSelectionLocked(changestype_None, {
 				Type : AscCommon.changestype_2_Comment,
@@ -9846,7 +9963,7 @@ background-repeat: no-repeat;\
 				this.WordControl.m_oDrawingDocument.CheckTableStylesOne();
 		}
 	};
-	window["asc_docs_api"].prototype["asc_nativeCalculateFile"] = function()
+	window["asc_docs_api"].prototype["asc_nativeCalculateFile"] = function(options)
 	{
 		if (null == this.WordControl.m_oLogicDocument)
 			return;
@@ -9866,7 +9983,15 @@ background-repeat: no-repeat;\
 		}
 
 		Document.MoveCursorToStartPos();
-		Document.RecalculateFromStart();
+
+		if (window['IS_NATIVE_EDITOR']) {
+			Document.RecalculateFromStart();
+		} else {
+			var pagescount = undefined;
+			if (options && options["printOptions"] && options["printOptions"]["onlyFirstPage"])
+				pagescount = 1;
+			Document.RecalculateAllAtOnce(true, pagescount);
+		}
 
 		Document.Document_UpdateInterfaceState();
 		//Document.Document_UpdateRulersState();
@@ -10785,6 +10910,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype["asc_setInterfaceDrawImagePlaceShape"]       = asc_docs_api.prototype.asc_setInterfaceDrawImagePlaceShape;
 	asc_docs_api.prototype["asc_pluginsRegister"]                       = asc_docs_api.prototype.asc_pluginsRegister;
 	asc_docs_api.prototype["asc_pluginRun"]                             = asc_docs_api.prototype.asc_pluginRun;
+	asc_docs_api.prototype["asc_pluginStop"]                            = asc_docs_api.prototype.asc_pluginStop;
 	asc_docs_api.prototype["asc_pluginResize"]                          = asc_docs_api.prototype.asc_pluginResize;
 	asc_docs_api.prototype["asc_pluginButtonClick"]                     = asc_docs_api.prototype.asc_pluginButtonClick;
 	asc_docs_api.prototype["asc_pluginEnableMouseEvents"]         		= asc_docs_api.prototype.asc_pluginEnableMouseEvents;
@@ -10936,6 +11062,8 @@ background-repeat: no-repeat;\
 	asc_CCommentDataWord.prototype['asc_getRepliesCount'] = asc_CCommentDataWord.prototype.asc_getRepliesCount;
 	asc_CCommentDataWord.prototype['asc_getDocumentFlag'] = asc_CCommentDataWord.prototype.asc_getDocumentFlag;
 	asc_CCommentDataWord.prototype['asc_putDocumentFlag'] = asc_CCommentDataWord.prototype.asc_putDocumentFlag;
+	asc_CCommentDataWord.prototype['asc_getUserData']     = asc_CCommentDataWord.prototype.asc_getUserData;
+	asc_CCommentDataWord.prototype['asc_putUserData']     = asc_CCommentDataWord.prototype.asc_putUserData;
 
 	AscCommon.setUpAllFonts = function()
 	{

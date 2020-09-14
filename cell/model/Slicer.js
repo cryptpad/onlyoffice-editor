@@ -356,7 +356,7 @@
 
 		if (ws) {
 			res.uid = AscCommon.CreateGUID();
-			res.cacheDefinition = this.cacheDefinition.clone(ws);
+			res.cacheDefinition = this.cacheDefinition.clone(ws.workbook);
 			return res;
 		}
 
@@ -375,6 +375,9 @@
 		return res;
 	};
 	CT_slicer.prototype.merge = function(val) {
+		if(val.name !== this.name) {
+			this.name = undefined;
+		}
 		if(val.caption !== this.caption) {
 			this.caption = undefined;
 		}
@@ -447,7 +450,7 @@
 				}
 			}
 			if (!cache) {
-				cache = new CT_slicerCacheDefinition(this.ws);
+				cache = new CT_slicerCacheDefinition(this.ws.workbook);
 				cache.init(name, obj_name, type);
 			}
 
@@ -456,15 +459,15 @@
 
 		if (ws && !this.ws) {
 			this.ws = ws;
-			if (!this.cacheDefinition.ws) {
-				this.cacheDefinition.ws = ws;
+			if (!this.cacheDefinition.wb) {
+				this.cacheDefinition.wb = ws.workbook;
 			}
 		}
 
 	};
 	CT_slicer.prototype.initPostOpen = function (tableIds) {
 		if (this.cacheDefinition) {
-			this.cacheDefinition.ws = this.ws;
+			this.cacheDefinition.wb = this.ws.workbook;
 			var tableCache = this.cacheDefinition.tableSlicerCache;
 			if (tableCache) {
 				var _obj = tableCache.initPostOpen(tableIds);
@@ -473,6 +476,12 @@
 				}
 			}
 		}
+	};
+	CT_slicer.prototype.getIndexSheetCache = function () {
+		if (this.cacheDefinition) {
+			return this.cacheDefinition.getIndexSheetCache();
+		}
+		return null;
 	};
 	CT_slicer.prototype.initInterfaceOptions = function () {
 		this._ascSourceName = this.getSourceName();
@@ -549,7 +558,15 @@
 					this.cacheDefinition = slicerCaches[cache] || null;
 					break;
 				}
-				case 3: { this.caption = s.GetString2(); break; }
+				case 3: {
+					this.caption = s.GetString2();
+					if(typeof this.caption === "string") {
+						if(AscFonts.IsCheckSymbols) {
+							AscFonts.FontPickerByCharacter.getFontsByString(this.caption);
+						}
+					}
+					break;
+				}
 				case 4: { this.startItem = s.GetULong(); break; }
 				case 5: { this.columnCount = s.GetULong(); break; }
 				case 6: { this.showCaption = s.GetBool(); break; }
@@ -702,10 +719,11 @@
 
 	};
 
-	CT_slicer.prototype.set = function (val) {
-		if (this.name !== val.name && val.name !== undefined) {
+	CT_slicer.prototype.set = function (val, opt_moveSheet) {
+		if (!opt_moveSheet && this.name !== val.name && val.name !== undefined) {
 			this.setName(val.name);
 		}
+
 		this.caption = this.checkProperty(this.caption, val.caption, AscCH.historyitem_Slicer_SetCaption);
 		this.startItem = this.checkProperty(this.startItem, val.startItem, AscCH.historyitem_Slicer_SetStartItem);
 		this.columnCount = this.checkProperty(this.columnCount, val.columnCount, AscCH.historyitem_Slicer_SetColumnCount);
@@ -730,10 +748,13 @@
 			this.setCrossFilter(crossFilter);
 		}
 
-		var slicers = this.ws.getSlicersByCacheName(this.cacheDefinition.name);
-		if (slicers) {
-			for (var i = 0; i < slicers.length; i++) {
-				this.ws.workbook.onSlicerUpdate(slicers[i].name);
+		//TODO ws?
+		if (!opt_moveSheet) {
+			var slicers = this.ws.getSlicersByCacheName(this.cacheDefinition.name);
+			if (slicers) {
+				for (var i = 0; i < slicers.length; i++) {
+					this.ws.workbook.onSlicerUpdate(slicers[i].name);
+				}
 			}
 		}
 	};
@@ -810,6 +831,7 @@
 		if (_ascIndicateItemsWithNoData && !_ascShowItemsWithNoDataLast) {
 			return ST_slicerCacheCrossFilter.ShowItemsWithNoData;
 		}
+		return ST_slicerCacheCrossFilter.None;
 	};
 
 	CT_slicer.prototype.asc_setName = function (val) {
@@ -964,7 +986,7 @@
 	};
 
 
-	function CT_slicerCacheDefinition(ws) {
+	function CT_slicerCacheDefinition(wb) {
 		this.pivotTables = [];//SlicerCachePivotTable
 		this.data = null;//CSlicerCacheData
 		this.name = null;
@@ -973,7 +995,7 @@
 		this.tableSlicerCache = null;
 		this.slicerCacheHideItemsWithNoData = null;
 
-		this.ws = ws;
+		this.wb = wb;
 
 		//пока добавил объект для хранения типа, чтобы не проходится по внутреннему дереву
 		this._type = null;
@@ -1018,8 +1040,8 @@
 		this._type = type;
 	};
 
-	CT_slicerCacheDefinition.prototype.clone = function (ws) {
-		var res = new CT_slicerCacheDefinition(ws);
+	CT_slicerCacheDefinition.prototype.clone = function (wb) {
+		var res = new CT_slicerCacheDefinition(wb);
 
 		var i
 		for (i = 0; i < this.pivotTables.length; i++) {
@@ -1050,7 +1072,7 @@
 	};
 
 	CT_slicerCacheDefinition.prototype.generateSlicerCacheName = function (name) {
-		var wb = this.ws.workbook;
+		var wb = this.wb;
 		var checkAlreadyAdd = function (_name) {
 			var _res = false;
 			if (wb.getSlicerCacheByCacheName(_name)) {
@@ -1061,6 +1083,13 @@
 
 			return _res;
 		};
+
+		//replace not valid symbols
+		name = name.replace(/[-+*\/^&%<=>: ;//),]/g,"_");
+		//TODO дополнительная проверка - пересмотреть
+		if (!AscCommon.rx_defName.test(name)) {
+			name = name.replace(/[^a-zA-ZА-Яа-яЁё0-9]/gi,"_")
+		}
 
 		//TODO перевод - проверить на другом языке?
 		var index = 1;
@@ -1169,15 +1198,37 @@
 		s.Seek2(_end_pos);
 	};
 
-	CT_slicerCacheDefinition.prototype.getFilterValues = function () {
+	CT_slicerCacheDefinition.prototype.getIndexSheetCache = function () {
+		//TODO позже можно использовать данную функцию в функции getFilterValues. сейчас часть кода дублируется.
 		var res = null;
 		var type = this.getType();
+		var wb = this.wb;
 		switch (type) {
 			case insertSlicerType.table: {
 				//пока беру первый элемент, поскольку не очень понятно в каких случаях их вообще может быть несколько
 				var tableCache = this.tableSlicerCache;
-				var table = this.ws.getTableByName(tableCache.tableId);
+				var tableObj = wb.getTableByName(tableCache.tableId, true);
+				res = tableObj ? tableObj.index : null;
+			}
+			case insertSlicerType.pivotTable: {
+				break;
+			}
+		}
+		return res;
+	};
+
+	CT_slicerCacheDefinition.prototype.getFilterValues = function () {
+		var res = null;
+		var type = this.getType();
+		var wb = this.wb;
+		switch (type) {
+			case insertSlicerType.table: {
+				//пока беру первый элемент, поскольку не очень понятно в каких случаях их вообще может быть несколько
+				var tableCache = this.tableSlicerCache;
+				var tableObj = wb.getTableByName(tableCache.tableId, true);
+				var table = tableObj ? tableObj.table : null;
 				if (table) {
+					var ws = wb.aWorksheets[tableObj.index];
 					var colId = table.getColIdByName(tableCache.column);
 					if (colId !== null) {
 						var sortObj = {};
@@ -1187,7 +1238,7 @@
 						sortObj.indicateItemsWithNoData = this.getIndicateItemsWithNoData();
 						sortObj.showItemsWithNoDataLast = this.getShowItemsWithNoDataLast();
 
-						res = this.ws.autoFilters.getOpenAndClosedValues(table, colId, null, sortObj);
+						res = ws.autoFilters.getOpenAndClosedValues(table, colId, null, sortObj);
 
 					}
 				}
@@ -1203,11 +1254,12 @@
 	CT_slicerCacheDefinition.prototype.getFilterObj = function () {
 		var res = null;
 		var type = this.getType();
+		var wb = this.wb;
 		switch (type) {
 			case insertSlicerType.table: {
 				//пока беру первый элемент, поскольку не очень понятно в каких случаях их вообще может быть несколько
 				var tableCache = this.tableSlicerCache;
-				var table = this.ws.getTableByName(tableCache.tableId);
+				var table = wb.getTableByName(tableCache.tableId);
 				if (table) {
 					var colId = table.getColIdByName(tableCache.column);
 					res = {obj: table, colId: colId}
@@ -1264,11 +1316,12 @@
 	CT_slicerCacheDefinition.prototype.getRange = function () {
 		var res = null;
 		var type = this.getType();
+		var wb = this.wb;
 		switch (type) {
 			case insertSlicerType.table: {
 				//пока беру первый элемент, поскольку не очень понятно в каких случаях их вообще может быть несколько
 				var tableCache = this.tableSlicerCache;
-				var table = this.ws.getTableByName(tableCache.tableId);
+				var table = wb.getTableByName(tableCache.tableId);
 				if (table) {
 					var colId = table.getColIdByName(tableCache.column);
 					res = new Asc.Range(table.Ref.c1 + colId, table.Ref.r1, table.Ref.c1 + colId, table.Ref.r2);
@@ -1292,7 +1345,7 @@
 		if (obj && oldVal !== val) {
 			obj.setSortOrder(val);
 			History.Add(AscCommonExcel.g_oUndoRedoSlicer, AscCH.historyitem_Slicer_SetCacheSortOrder,
-				this.ws.getId(), null, new AscCommonExcel.UndoRedoData_Slicer(this.name, oldVal, val));
+				null, null, new AscCommonExcel.UndoRedoData_Slicer(this.name, oldVal, val));
 		}
 	};
 
@@ -1306,7 +1359,7 @@
 		if (obj && oldVal !== val) {
 			obj.setCustomListSort(val);
 			History.Add(AscCommonExcel.g_oUndoRedoSlicer, AscCH.historyitem_Slicer_SetCacheCustomListSort,
-				this.ws.getId(), null, new AscCommonExcel.UndoRedoData_Slicer(this.name, oldVal, val));
+				null , null, new AscCommonExcel.UndoRedoData_Slicer(this.name, oldVal, val));
 		}
 	};
 
@@ -1320,7 +1373,7 @@
 		if (obj && oldVal !== val) {
 			obj.setCrossFilter(val);
 			History.Add(AscCommonExcel.g_oUndoRedoSlicer, AscCH.historyitem_Slicer_SetCacheCrossFilter,
-				this.ws.getId(), null, new AscCommonExcel.UndoRedoData_Slicer(this.name, oldVal, val));
+				null, null, new AscCommonExcel.UndoRedoData_Slicer(this.name, oldVal, val));
 		}
 	};
 
@@ -1331,7 +1384,7 @@
 		if (oldVal !== newVal) {
 			this.slicerCacheHideItemsWithNoData = val ? [] : null;
 			History.Add(AscCommonExcel.g_oUndoRedoSlicer, AscCH.historyitem_Slicer_SetCacheHideItemsWithNoData,
-				this.ws.getId(), null, new AscCommonExcel.UndoRedoData_Slicer(this.name, oldVal, val));
+				null, null, new AscCommonExcel.UndoRedoData_Slicer(this.name, oldVal, val));
 		}
 	};
 
@@ -2144,7 +2197,7 @@
 	CT_tableSlicerCache.prototype.toStream = function (s, tableIds, historySerialize) {
 		var tableIdOpen = null;
 		var columnOpen = null;
-		var elem = tableIds && tableIds[this.tableId];
+		var elem = !historySerialize && tableIds && tableIds[this.tableId];
 		if (elem) {
 			tableIdOpen = elem.id;
 			columnOpen = (elem.table.getTableIndexColumnByName(this.column) + 1) || null;
@@ -2222,7 +2275,7 @@
 		this.customListSort = val;
 	};
 
-	CT_slicerCacheDefinition.prototype.setCrossFilter = function (val) {
+	CT_tableSlicerCache.prototype.setCrossFilter = function (val) {
 		this.crossFilter = val;
 	};
 
@@ -2312,12 +2365,6 @@
 			}
 		}
 		s.Seek2(_end_pos);
-	};
-	CT_tabularSlicerCache.prototype.setColumn = function (val) {
-		var oldVal = this.column;
-		this.column = val;
-		History.Add(AscCommonExcel.g_oUndoRedoSlicer, AscCH.historyitem_Slicer_SetCacheSourceName,
-			this.ws.getId(), null, new AscCommonExcel.UndoRedoData_Slicer(this.name, oldVal, this.column));
 	};
 
 	function CT_slicerCacheOlapLevelName() {

@@ -202,6 +202,11 @@ function (window, undefined) {
 	window['AscCH'].historyitem_PivotTable_ColItems = 42;
 	window['AscCH'].historyitem_PivotTable_Location = 43;
 	window['AscCH'].historyitem_PivotTable_SetDataPosition = 44;
+	window['AscCH'].historyitem_PivotTable_CacheField = 45;
+	window['AscCH'].historyitem_PivotTable_PivotField = 46;
+	window['AscCH'].historyitem_PivotTable_PivotFilter = 47;
+	window['AscCH'].historyitem_PivotTable_PageFilter = 48;
+	window['AscCH'].historyitem_PivotTable_SetGridDropZones = 49;
 
 	window['AscCH'].historyitem_SharedFormula_ChangeFormula = 1;
 	window['AscCH'].historyitem_SharedFormula_ChangeShared = 2;
@@ -276,6 +281,8 @@ function CHistory()
   // Параметры для специального сохранения для локальной версии редактора
   this.UserSaveMode   = false;
   this.UserSavedIndex = null;  // Номер точки, на которой произошло последнее сохранение пользователем (не автосохранение)
+
+	this.PosInCurPoint = null; // position to roll back changes within the current point
 }
 CHistory.prototype.init = function(workbook) {
 	this.workbook = workbook;
@@ -395,7 +402,7 @@ CHistory.prototype.RedoAdd = function(oRedoObjectParam, Class, Type, sheetid, ra
 	if(bNeedOff)
 		this.TurnOff();
 
-	var bChangeActive = oRedoObjectParam.bChangeActive && AscCommonExcel.g_oUndoRedoWorkbook === Class;
+	var bChangeActive = oRedoObjectParam.bChangeActive && (AscCommonExcel.g_oUndoRedoWorkbook === Class || (AscCommonExcel.g_oUndoRedoWorksheet === Class && AscCH.historyitem_Worksheet_Hide === Type));
 	if (bChangeActive && null != oRedoObjectParam.activeSheet) {
 		//it can be delete action, so set active and get after action
 		this.workbook.setActiveById(oRedoObjectParam.activeSheet);
@@ -429,13 +436,13 @@ CHistory.prototype.RedoAdd = function(oRedoObjectParam, Class, Type, sheetid, ra
 			}
 		}
 	}
-	if (bChangeActive) {
-		oRedoObjectParam.activeSheet = this.workbook.getActiveWs().getId();
-	}
     var curPoint = this.Points[this.Index];
     if (curPoint) {
         this._addRedoObjectParam(oRedoObjectParam, curPoint.Items[curPoint.Items.length - 1]);
     }
+	if (bChangeActive) {
+		oRedoObjectParam.activeSheet = this.workbook.getActiveWs().getId();
+	}
 };
 
 CHistory.prototype.Remove_LastPoint = function()
@@ -449,6 +456,11 @@ CHistory.prototype.Remove_LastPoint = function()
 CHistory.prototype.RemoveLastPoint = function()
 {
 	this.Remove_LastPoint();
+};
+CHistory.prototype.Clear_Redo = function()
+{
+	// Удаляем ненужные точки
+	this.Points.length = this.Index + 1;
 };
 CHistory.prototype.RedoExecute = function(Point, oRedoObjectParam)
 {
@@ -534,7 +546,9 @@ CHistory.prototype.UndoRedoEnd = function (Point, oRedoObjectParam, bUndo) {
 
 		for (i in Point.UpdateRigions) {
 			this.workbook.handlers.trigger("cleanCellCache", i, [Point.UpdateRigions[i]]);
-			this.workbook.getWorksheetById(i).updateSlicersByRange(Point.UpdateRigions[i]);
+			var curSheet = this.workbook.getWorksheetById(i);
+			if (curSheet)
+				this.workbook.getWorksheetById(i).updateSlicersByRange(Point.UpdateRigions[i]);
 		}
 
 		if (oRedoObjectParam.bOnSheetsChanged)
@@ -1089,6 +1103,47 @@ CHistory.prototype.GetSerializeArray = function()
 				this.SavedIndex = null;
 			}
 		}
+	};
+	CHistory.prototype.SavePointIndex = function()
+	{
+		var oPoint = this.Points[this.Index];
+		if(oPoint)
+		{
+			this.PosInCurPoint = oPoint.Items.length;
+		}
+		else
+		{
+			this.PosInCurPoint = null;
+		}
+	};
+	CHistory.prototype.ClearPointIndex = function()
+	{
+		this.PosInCurPoint = null;
+	};
+	CHistory.prototype.UndoToPointIndex = function()
+	{
+		var oPoint = this.Points[this.Index];
+		if(oPoint)
+		{
+			if(this.PosInCurPoint !== null)
+			{
+				for ( var Index = oPoint.Items.length - 1; Index > this.PosInCurPoint; Index-- )
+				{
+					var Item = oPoint.Items[Index];
+					if(!Item.Class.RefreshRecalcData)
+						Item.Class.Undo( Item.Type, Item.Data, Item.SheetId );
+					else
+					{
+						if (Item.Class)
+						{
+							Item.Class.Undo();
+							Item.Class.RefreshRecalcData();
+						}
+					}
+				}
+			}
+		}
+		this.PosInCurPoint = null; 
 	};
 
 	//------------------------------------------------------------export--------------------------------------------------

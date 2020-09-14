@@ -763,7 +763,10 @@ function getTargetTextObject(controller)
 
 function isConnectorPreset(sPreset){
         if(typeof sPreset === "string" && sPreset.length > 0){
-            if(sPreset === "flowChartOffpageConnector" || sPreset === "flowChartConnector"){
+            if(sPreset === "flowChartOffpageConnector" ||
+                sPreset === "flowChartConnector" ||
+                sPreset === "flowChartOfflineStorage" ||
+                sPreset === "flowChartOnlineStorage"){
                 return false;
             }
             return (sPreset.toLowerCase().indexOf("line") > -1 || sPreset.toLowerCase().indexOf("connector") > -1);
@@ -2305,7 +2308,10 @@ DrawingObjectsController.prototype =
                     {
                         var paragraph = this.selectedObjects[0].parent.Get_ParentParagraph();
                         anchor_pos = paragraph.Get_AnchorPos(this.selectedObjects[0].parent);
-                        drawingDocument.AutoShapesTrack.drawFlowAnchor(anchor_pos.X, anchor_pos.Y);
+						if(anchor_pos)
+						{
+							drawingDocument.AutoShapesTrack.drawFlowAnchor(anchor_pos.X, anchor_pos.Y);
+						}
                     }
                 }
             }
@@ -3096,7 +3102,7 @@ DrawingObjectsController.prototype =
         var oThis = this;
         var callBack = function()
         {
-            oThis.paragraphAdd(new ParaTextPr({ VertAlign : isSuperscript ? AscCommon.vertalign_SubScript : AscCommon.vertalign_Baseline}));
+            oThis.paragraphAdd(new ParaTextPr({ VertAlign : isSuperscript ? AscCommon.vertalign_SuperScript : AscCommon.vertalign_Baseline}));
         };
         this.checkSelectedObjectsAndCallback(callBack, [], false, AscDFH.historydescription_Spreadsheet_SetCellSuperscript);
     },
@@ -3858,12 +3864,12 @@ DrawingObjectsController.prototype =
 
         var aGroups = [];
         var bCheckConnectors = false;
+        var aSlicerNames = [];
         if(props.SlicerProperties)
         {
             var aSlicers = objects_by_type.slicers;
             var oAPI = Asc.editor;
             History.StartTransaction();
-            var aSlicerNames = [];
             var bSize = false;
             var oSlicer;
             for(i = 0; i < aSlicers.length; ++i)
@@ -3917,7 +3923,6 @@ DrawingObjectsController.prototype =
                     }
                 }
             }
-            oAPI.asc_setSlicers(aSlicerNames, props.SlicerProperties);
         }
         var oApi = editor || Asc['editor'];
         var editorId = oApi.getEditorId();
@@ -4152,6 +4157,7 @@ DrawingObjectsController.prototype =
                         checkObjectInArray(aGroups, oSlicer.group.getMainGroup());
                     }
                     oSlicer.checkDrawingBaseCoords();
+                    oSlicer.recalculate();
                 }
             }
             if(editorId === AscCommon.c_oEditorId.Presentation || editorId === AscCommon.c_oEditorId.Spreadsheet){
@@ -4239,6 +4245,10 @@ DrawingObjectsController.prototype =
                 }
                 this.resetTextSelection();
             }
+        }
+        if(props.SlicerProperties)
+        {
+            oAPI.asc_setSlicers(aSlicerNames, props.SlicerProperties);
         }
         var oApi = this.getEditorApi();
         if(oApi && oApi.noCreatePoint && !oApi.exucuteHistory)
@@ -5800,6 +5810,7 @@ DrawingObjectsController.prototype =
     {
         var chart = chart_space.chart, plot_area = chart_space.chart.plotArea;
         var ret = new Asc.asc_ChartSettings();
+        ret.chartSpace = chart_space;
         var range_obj = chart_space.getRangeObjectStr();
         if(range_obj)
         {
@@ -6231,7 +6242,10 @@ DrawingObjectsController.prototype =
         ret.putShowCatName(data_labels.showCatName === true);
         ret.putShowVal(data_labels.showVal === true);
         ret.putSeparator(data_labels.separator);
-        if(data_labels.showSerName || data_labels.showCatName || data_labels.showVal || data_labels.showPercent){
+        if(data_labels.bDelete) {
+            ret.putDataLabelsPos(c_oAscChartDataLabelsPos.none);
+        }
+        else if(data_labels.showSerName || data_labels.showCatName || data_labels.showVal || data_labels.showPercent){
             ret.putDataLabelsPos(AscFormat.isRealNumber(data_labels.dLblPos) ? data_labels.dLblPos :  nDefaultDatalabelsPos);
         }
         else{
@@ -6516,6 +6530,7 @@ DrawingObjectsController.prototype =
         {
             var aSO, oSp;
             var worksheet = this.drawingObjects.getWorksheet();
+            var oWBView;
             if(worksheet)
             {
                 worksheet.endEditChart();
@@ -6616,6 +6631,12 @@ DrawingObjectsController.prototype =
                             }
                             this.resetInternalSelection();
                             this.recalculate();
+                            oWBView = Asc.editor && Asc.editor.wb;
+                            if(aSlicerNames.length > 0 && oWBView)
+                            {
+                                History.StartTransaction();
+                                oWBView.deleteSlicers(aSlicerNames);
+                            }
                             return;
                         }
                     }
@@ -6654,7 +6675,7 @@ DrawingObjectsController.prototype =
                 this.recalculate();
             }
             this.updateOverlay();
-            var oWBView = Asc.editor && Asc.editor.wb;
+            oWBView = Asc.editor && Asc.editor.wb;
             if(aSlicerNames.length > 0 && oWBView)
             {
                 History.StartTransaction();
@@ -7707,22 +7728,41 @@ DrawingObjectsController.prototype =
                     oSelectedContent.On_EndCollectElements(oTargetDocContent, false);
 
                     oParagraph.GetParent().InsertContent(oSelectedContent, oAnchorPos);
-
-                    if (oTargetDocContent.IsSelectionUse())
+                    oSelectedElement = oSelectedContent.Elements[0];
+                    if(oSelectedElement)
                     {
-                        if (isMoveCursorOutside)
+                        oTempPara = oSelectedElement.Element;
+                        if(oTempPara)
                         {
-                            oTargetDocContent.RemoveSelection();
-                            oRun.MoveCursorOutsideElement(false);
+                            oRun = oTempPara.Content[0];
+                            var isMath = false;
+                            if (oAnchorPos && oAnchorPos.Paragraph)
+                            {
+                                var oParaNearPos = oAnchorPos.Paragraph.Get_ParaNearestPos(oAnchorPos);
+                                var oLastClass   = oParaNearPos.Classes[oParaNearPos.Classes.length - 1];
+                                isMath = (para_Math_Run === oLastClass.Type)
+                            }
+                            if (isMath)
+                            {
+                                oTargetDocContent.MoveCursorRight(false, false, true);
+                            }
+                            else if (oTargetDocContent.IsSelectionUse())
+                            {
+                                if (isMoveCursorOutside)
+                                {
+                                    oTargetDocContent.RemoveSelection();
+                                    oRun.MoveCursorOutsideElement(false);
+                                }
+                                else
+                                {
+                                    oTargetDocContent.MoveCursorRight(false, false, true);
+                                }
+                            }
+                            else if (isMoveCursorOutside)
+                            {
+                                oRun.MoveCursorOutsideElement(false);
+                            }
                         }
-                        else
-                        {
-                            oTargetDocContent.MoveCursorRight(false, false, true);
-                        }
-                    }
-                    else if (isMoveCursorOutside)
-                    {
-                        oRun.MoveCursorOutsideElement(false);
                     }
                     var oTargetTextObject = getTargetTextObject(this);
                     if(oTargetTextObject && oTargetTextObject.checkExtentsByDocContent)
@@ -8333,6 +8373,12 @@ DrawingObjectsController.prototype =
         }
     },
 
+    resetTracking: function()
+    {
+        this.changeCurrentState(new AscFormat.NullState(this));
+        this.clearTrackObjects();
+        this.updateOverlay();
+    },
 
     getHyperlinkInfo: function()
     {
@@ -8737,6 +8783,15 @@ DrawingObjectsController.prototype =
 
     getSelectedObjects: function()
     {
+        return this.selectedObjects;
+    },
+
+    getSelectedArray: function()
+    {
+        if(this.selection.groupSelection)
+        {
+            return this.selection.groupSelection.selectedObjects;
+        }
         return this.selectedObjects;
     },
 
@@ -10144,126 +10199,74 @@ DrawingObjectsController.prototype =
 
     paraApplyCallback: function(Props)
     {
-            if ( "undefined" != typeof(Props.ContextualSpacing) && null != Props.ContextualSpacing )
-                this.setParagraphContextualSpacing( Props.ContextualSpacing );
+        if ( "undefined" != typeof(Props.Ind) && null != Props.Ind )
+            this.setParagraphIndent( Props.Ind );
 
-            if ( "undefined" != typeof(Props.Ind) && null != Props.Ind )
-                this.setParagraphIndent( Props.Ind );
+        if ( "undefined" != typeof(Props.Jc) && null != Props.Jc )
+            this.setParagraphAlign( Props.Jc );
 
-            if ( "undefined" != typeof(Props.Jc) && null != Props.Jc )
-                this.setParagraphAlign( Props.Jc );
+        if ( "undefined" != typeof(Props.Spacing) && null != Props.Spacing )
+            this.setParagraphSpacing( Props.Spacing );
 
-            if ( "undefined" != typeof(Props.KeepLines) && null != Props.KeepLines )
-                this.setParagraphKeepLines( Props.KeepLines );
+        if ( undefined != Props.Tabs )
+        {
+            var Tabs = new CParaTabs();
+            Tabs.Set_FromObject( Props.Tabs.Tabs );
+            this.setParagraphTabs( Tabs );
+        }
 
-            if ( undefined != Props.KeepNext && null != Props.KeepNext )
-                this.setParagraphKeepNext( Props.KeepNext );
+        if ( undefined != Props.DefaultTab )
+        {
+            //AscCommonWord.Default_Tab_Stop = Props.DefaultTab;
+            this.setDefaultTabSize( Props.DefaultTab );
+        }
 
-            if ( undefined != Props.WidowControl && null != Props.WidowControl )
-                this.setParagraphWidowControl( Props.WidowControl );
+        if(undefined != Props.Bullet)
+        {
+          //  if()
+            this.setParagraphNumbering(Props.Bullet)
+        }
 
-            if ( "undefined" != typeof(Props.PageBreakBefore) && null != Props.PageBreakBefore )
-                this.setParagraphPageBreakBefore( Props.PageBreakBefore );
+        // TODO: как только разъединят настройки параграфа и текста переделать тут
+        var TextPr = new CTextPr();
 
-            if ( "undefined" != typeof(Props.Spacing) && null != Props.Spacing )
-                this.setParagraphSpacing( Props.Spacing );
+        if ( true === Props.Subscript )
+            TextPr.VertAlign = AscCommon.vertalign_SubScript;
+        else if ( true === Props.Superscript )
+            TextPr.VertAlign = AscCommon.vertalign_SuperScript;
+        else if ( false === Props.Superscript || false === Props.Subscript )
+            TextPr.VertAlign = AscCommon.vertalign_Baseline;
 
-            if ( "undefined" != typeof(Props.Shd) && null != Props.Shd )
-                this.setParagraphShd( Props.Shd );
+        if ( undefined != Props.Strikeout )
+        {
+            TextPr.Strikeout  = Props.Strikeout;
+            TextPr.DStrikeout = false;
+        }
 
-            if ( "undefined" != typeof(Props.Brd) && null != Props.Brd )
-            {
-                if(Props.Brd.Left && Props.Brd.Left.Color)
-                {
-                    Props.Brd.Left.Unifill = AscFormat.CreateUnifillFromAscColor(Props.Brd.Left.Color, 1);
-                }
-                if(Props.Brd.Top && Props.Brd.Top.Color)
-                {
-                    Props.Brd.Top.Unifill = AscFormat.CreateUnifillFromAscColor(Props.Brd.Top.Color, 1);
-                }
-                if(Props.Brd.Right && Props.Brd.Right.Color)
-                {
-                    Props.Brd.Right.Unifill = AscFormat.CreateUnifillFromAscColor(Props.Brd.Right.Color, 1);
-                }
-                if(Props.Brd.Bottom && Props.Brd.Bottom.Color)
-                {
-                    Props.Brd.Bottom.Unifill = AscFormat.CreateUnifillFromAscColor(Props.Brd.Bottom.Color, 1);
-                }
-                if(Props.Brd.InsideH && Props.Brd.InsideH.Color)
-                {
-                    Props.Brd.InsideH.Unifill = AscFormat.CreateUnifillFromAscColor(Props.Brd.InsideH.Color, 1);
-                }
-                if(Props.Brd.InsideV && Props.Brd.InsideV.Color)
-                {
-                    Props.Brd.InsideV.Unifill = AscFormat.CreateUnifillFromAscColor(Props.Brd.InsideV.Color, 1);
-                }
+        if ( undefined != Props.DStrikeout )
+        {
+            TextPr.DStrikeout = Props.DStrikeout;
+            if ( true === TextPr.DStrikeout )
+                TextPr.Strikeout = false;
+        }
 
-                this.setParagraphBorders( Props.Brd );
-            }
+        if ( undefined != Props.SmallCaps )
+        {
+            TextPr.SmallCaps = Props.SmallCaps;
+            TextPr.AllCaps   = false;
+        }
 
-            if ( undefined != Props.Tabs )
-            {
-                var Tabs = new CParaTabs();
-                Tabs.Set_FromObject( Props.Tabs.Tabs );
-                this.setParagraphTabs( Tabs );
-            }
+        if ( undefined != Props.AllCaps )
+        {
+            TextPr.Caps = Props.AllCaps;
+            if ( true === TextPr.AllCaps )
+                TextPr.SmallCaps = false;
+        }
 
-            if ( undefined != Props.DefaultTab )
-            {
-                //AscCommonWord.Default_Tab_Stop = Props.DefaultTab;
-                this.setDefaultTabSize( Props.DefaultTab );
-            }
+        if ( undefined != Props.TextSpacing )
+            TextPr.Spacing = Props.TextSpacing;
 
-            if(undefined != Props.BulletSize || undefined != Props.BulletColor || undefined != Props.NumStartAt
-                || undefined != Props.BulletSymbol && undefined != Props.BulletFont)
-            {
-              //  if()
-                this.setParagraphNumbering(null, Props)
-            }
-
-            // TODO: как только разъединят настройки параграфа и текста переделать тут
-            var TextPr = new CTextPr();
-
-            if ( true === Props.Subscript )
-                TextPr.VertAlign = AscCommon.vertalign_SubScript;
-            else if ( true === Props.Superscript )
-                TextPr.VertAlign = AscCommon.vertalign_SuperScript;
-            else if ( false === Props.Superscript || false === Props.Subscript )
-                TextPr.VertAlign = AscCommon.vertalign_Baseline;
-
-            if ( undefined != Props.Strikeout )
-            {
-                TextPr.Strikeout  = Props.Strikeout;
-                TextPr.DStrikeout = false;
-            }
-
-            if ( undefined != Props.DStrikeout )
-            {
-                TextPr.DStrikeout = Props.DStrikeout;
-                if ( true === TextPr.DStrikeout )
-                    TextPr.Strikeout = false;
-            }
-
-            if ( undefined != Props.SmallCaps )
-            {
-                TextPr.SmallCaps = Props.SmallCaps;
-                TextPr.AllCaps   = false;
-            }
-
-            if ( undefined != Props.AllCaps )
-            {
-                TextPr.Caps = Props.AllCaps;
-                if ( true === TextPr.AllCaps )
-                    TextPr.SmallCaps = false;
-            }
-
-            if ( undefined != Props.TextSpacing )
-                TextPr.Spacing = Props.TextSpacing;
-
-            if ( undefined != Props.Position )
-                TextPr.Position = Props.Position;
-
-            this.paragraphAdd( new ParaTextPr(TextPr) );
+        this.paragraphAdd( new ParaTextPr(TextPr) );
         this.startRecalculate();
     },
 
@@ -10362,13 +10365,12 @@ DrawingObjectsController.prototype =
 
     alignLeft : function(bSelected)
     {
-        var selected_objects = this.selection.groupSelection ? this.selection.groupSelection.selectedObjects : this.selectedObjects, i, boundsObject, leftPos, arrBounds;
+        var selected_objects = this.selection.groupSelection ? this.selection.groupSelection.selectedObjects : this.selectedObjects, i, boundsObject, leftPos;
         if(selected_objects.length > 0)
         {
-            boundsObject = getAbsoluteRectBoundsArr(selected_objects);
-            arrBounds = boundsObject.arrBounds;
             if(bSelected && selected_objects.length > 1 )
             {
+                boundsObject = getAbsoluteRectBoundsArr(selected_objects);
                 leftPos = boundsObject.minX;
             }
             else
@@ -10377,14 +10379,22 @@ DrawingObjectsController.prototype =
             }
             this.checkSelectedObjectsForMove(this.selection.groupSelection ? this.selection.groupSelection : null);
             this.swapTrackObjects();
-            var move_state;
+            var move_state, oTrack, oDrawing, oBounds;
             if(!this.selection.groupSelection)
-                move_state = new AscFormat.MoveState(this, this.selectedObjects[0], 0, 0);
+            {
+                move_state = new AscFormat.MoveState(this, selected_objects[0], 0, 0);
+            }
             else
-                move_state = new AscFormat.MoveInGroupState(this, this.selection.groupSelection.selectedObjects[0], this.selection.groupSelection, 0, 0);
-
+            {
+                move_state = new AscFormat.MoveInGroupState(this, selected_objects[0], this.selection.groupSelection, 0, 0);
+            }
             for(i = 0; i < this.arrTrackObjects.length; ++i)
-                this.arrTrackObjects[i].track(leftPos - arrBounds[i].minX, 0, this.arrTrackObjects[i].originalObject.selectStartPage);
+            {
+                oTrack = this.arrTrackObjects[i];
+                oDrawing = oTrack.originalObject;
+                oBounds = getAbsoluteRectBoundsObject(oDrawing);
+                oTrack.track(leftPos - oBounds.minX, 0, oDrawing.selectStartPage);
+            }
             move_state.bSamePos = false;
             move_state.onMouseUp({}, 0, 0, 0);
         }
@@ -10392,13 +10402,12 @@ DrawingObjectsController.prototype =
 
     alignRight : function(bSelected)
     {
-        var selected_objects = this.selection.groupSelection ? this.selection.groupSelection.selectedObjects : this.selectedObjects, i, boundsObject, rightPos, arrBounds;
+        var selected_objects = this.selection.groupSelection ? this.selection.groupSelection.selectedObjects : this.selectedObjects, i, boundsObject, rightPos;
         if(selected_objects.length > 0)
         {
-            boundsObject = getAbsoluteRectBoundsArr(selected_objects);
-            arrBounds = boundsObject.arrBounds;
             if(bSelected && selected_objects.length > 1 )
             {
+                boundsObject = getAbsoluteRectBoundsArr(selected_objects);
                 rightPos = boundsObject.maxX;
             }
             else
@@ -10407,14 +10416,22 @@ DrawingObjectsController.prototype =
             }
             this.checkSelectedObjectsForMove(this.selection.groupSelection ? this.selection.groupSelection : null);
             this.swapTrackObjects();
-            var move_state;
+            var move_state, oTrack, oDrawing, oBounds;
             if(!this.selection.groupSelection)
+            {
                 move_state = new AscFormat.MoveState(this, this.selectedObjects[0], 0, 0);
+            }
             else
+            {
                 move_state = new AscFormat.MoveInGroupState(this, this.selection.groupSelection.selectedObjects[0], this.selection.groupSelection, 0, 0);
-
+            }
             for(i = 0; i < this.arrTrackObjects.length; ++i)
-                this.arrTrackObjects[i].track(rightPos - arrBounds[i].maxX, 0, this.arrTrackObjects[i].originalObject.selectStartPage);
+            {
+                oTrack = this.arrTrackObjects[i];
+                oDrawing = oTrack.originalObject;
+                oBounds = getAbsoluteRectBoundsObject(oDrawing);
+                oTrack.track(rightPos - oBounds.maxX, 0, oDrawing.selectStartPage);
+            }
             move_state.bSamePos = false;
             move_state.onMouseUp({}, 0, 0, 0);
         }
@@ -10423,13 +10440,12 @@ DrawingObjectsController.prototype =
 
     alignTop : function(bSelected)
     {
-        var selected_objects = this.selection.groupSelection ? this.selection.groupSelection.selectedObjects : this.selectedObjects, i, boundsObject, topPos, arrBounds;
+        var selected_objects = this.selection.groupSelection ? this.selection.groupSelection.selectedObjects : this.selectedObjects, i, boundsObject, topPos;
         if(selected_objects.length > 0)
         {
-            boundsObject = getAbsoluteRectBoundsArr(selected_objects);
-            arrBounds = boundsObject.arrBounds;
             if(bSelected && selected_objects.length > 1 )
             {
+                boundsObject = getAbsoluteRectBoundsArr(selected_objects);
                 topPos = boundsObject.minY;
             }
             else
@@ -10438,14 +10454,22 @@ DrawingObjectsController.prototype =
             }
             this.checkSelectedObjectsForMove(this.selection.groupSelection ? this.selection.groupSelection : null);
             this.swapTrackObjects();
-            var move_state;
+            var move_state, oTrack, oDrawing, oBounds;
             if(!this.selection.groupSelection)
+            {
                 move_state = new AscFormat.MoveState(this, this.selectedObjects[0], 0, 0);
+            }
             else
+            {
                 move_state = new AscFormat.MoveInGroupState(this, this.selection.groupSelection.selectedObjects[0], this.selection.groupSelection, 0, 0);
-
+            }
             for(i = 0; i < this.arrTrackObjects.length; ++i)
-                this.arrTrackObjects[i].track(0, topPos - arrBounds[i].minY, this.arrTrackObjects[i].originalObject.selectStartPage);
+            {
+                oTrack = this.arrTrackObjects[i];
+                oDrawing = oTrack.originalObject;
+                oBounds = getAbsoluteRectBoundsObject(oDrawing);
+                oTrack.track(0, topPos - oBounds.minY, oDrawing.selectStartPage);
+            }
             move_state.bSamePos = false;
             move_state.onMouseUp({}, 0, 0, 0);
         }
@@ -10454,13 +10478,12 @@ DrawingObjectsController.prototype =
 
     alignBottom : function(bSelected)
     {
-        var selected_objects = this.selection.groupSelection ? this.selection.groupSelection.selectedObjects : this.selectedObjects, i, boundsObject, bottomPos, arrBounds;
+        var selected_objects = this.selection.groupSelection ? this.selection.groupSelection.selectedObjects : this.selectedObjects, i, boundsObject, bottomPos;
         if(selected_objects.length > 0)
         {
-            boundsObject = getAbsoluteRectBoundsArr(selected_objects);
-            arrBounds = boundsObject.arrBounds;
             if(bSelected && selected_objects.length > 1 )
             {
+                boundsObject = getAbsoluteRectBoundsArr(selected_objects);
                 bottomPos = boundsObject.maxY;
             }
             else
@@ -10469,14 +10492,22 @@ DrawingObjectsController.prototype =
             }
             this.checkSelectedObjectsForMove(this.selection.groupSelection ? this.selection.groupSelection : null);
             this.swapTrackObjects();
-            var move_state;
+            var move_state, oTrack, oDrawing, oBounds;
             if(!this.selection.groupSelection)
+            {
                 move_state = new AscFormat.MoveState(this, this.selectedObjects[0], 0, 0);
+            }
             else
+            {
                 move_state = new AscFormat.MoveInGroupState(this, this.selection.groupSelection.selectedObjects[0], this.selection.groupSelection, 0, 0);
-
+            }
             for(i = 0; i < this.arrTrackObjects.length; ++i)
-                this.arrTrackObjects[i].track(0, bottomPos - arrBounds[i].maxY, this.arrTrackObjects[i].originalObject.selectStartPage);
+            {
+                oTrack = this.arrTrackObjects[i];
+                oDrawing = oTrack.originalObject;
+                oBounds = getAbsoluteRectBoundsObject(oDrawing);
+                oTrack.track(0, bottomPos - oBounds.maxY, oDrawing.selectStartPage);
+            }
             move_state.bSamePos = false;
             move_state.onMouseUp({}, 0, 0, 0);
         }
@@ -10485,13 +10516,12 @@ DrawingObjectsController.prototype =
 
     alignCenter : function(bSelected)
     {
-        var selected_objects = this.selection.groupSelection ? this.selection.groupSelection.selectedObjects : this.selectedObjects, i, boundsObject, centerPos, arrBounds;
+        var selected_objects = this.selection.groupSelection ? this.selection.groupSelection.selectedObjects : this.selectedObjects, i, boundsObject, centerPos;
         if(selected_objects.length > 0)
         {
-            boundsObject = getAbsoluteRectBoundsArr(selected_objects);
-            arrBounds = boundsObject.arrBounds;
             if(bSelected && selected_objects.length > 1 )
             {
+                boundsObject = getAbsoluteRectBoundsArr(selected_objects);
                 centerPos = boundsObject.minX +(boundsObject.maxX - boundsObject.minX)/2;
             }
             else
@@ -10500,14 +10530,22 @@ DrawingObjectsController.prototype =
             }
             this.checkSelectedObjectsForMove(this.selection.groupSelection ? this.selection.groupSelection : null);
             this.swapTrackObjects();
-            var move_state;
+            var move_state, oTrack, oDrawing, oBounds;
             if(!this.selection.groupSelection)
+            {
                 move_state = new AscFormat.MoveState(this, this.selectedObjects[0], 0, 0);
+            }
             else
+            {
                 move_state = new AscFormat.MoveInGroupState(this, this.selection.groupSelection.selectedObjects[0], this.selection.groupSelection, 0, 0);
-
+            }
             for(i = 0; i < this.arrTrackObjects.length; ++i)
-                this.arrTrackObjects[i].track(centerPos - (arrBounds[i].maxX - arrBounds[i].minX)/2 - arrBounds[i].minX, 0, this.arrTrackObjects[i].originalObject.selectStartPage);
+            {
+                oTrack = this.arrTrackObjects[i];
+                oDrawing = oTrack.originalObject;
+                oBounds = getAbsoluteRectBoundsObject(oDrawing);
+                oTrack.track(centerPos - (oBounds.maxX - oBounds.minX)/2 - oBounds.minX, 0, oDrawing.selectStartPage);
+            }
             move_state.bSamePos = false;
             move_state.onMouseUp({}, 0, 0, 0);
         }
@@ -10515,13 +10553,12 @@ DrawingObjectsController.prototype =
 
     alignMiddle : function(bSelected)
     {
-        var selected_objects = this.selection.groupSelection ? this.selection.groupSelection.selectedObjects : this.selectedObjects, i, boundsObject, middlePos, arrBounds;
+        var selected_objects = this.selection.groupSelection ? this.selection.groupSelection.selectedObjects : this.selectedObjects, i, boundsObject, middlePos;
         if(selected_objects.length > 0)
         {
-            boundsObject = getAbsoluteRectBoundsArr(selected_objects);
-            arrBounds = boundsObject.arrBounds;
             if(bSelected && selected_objects.length > 1 )
             {
+                boundsObject = getAbsoluteRectBoundsArr(selected_objects);
                 middlePos = boundsObject.minY +(boundsObject.maxY - boundsObject.minY)/2;
             }
             else
@@ -10530,14 +10567,22 @@ DrawingObjectsController.prototype =
             }
             this.checkSelectedObjectsForMove(this.selection.groupSelection ? this.selection.groupSelection : null);
             this.swapTrackObjects();
-            var move_state;
+            var move_state, oTrack, oDrawing, oBounds;
             if(!this.selection.groupSelection)
+            {
                 move_state = new AscFormat.MoveState(this, this.selectedObjects[0], 0, 0);
+            }
             else
+            {
                 move_state = new AscFormat.MoveInGroupState(this, this.selection.groupSelection.selectedObjects[0], this.selection.groupSelection, 0, 0);
-
+            }
             for(i = 0; i < this.arrTrackObjects.length; ++i)
-                this.arrTrackObjects[i].track(0, middlePos - (arrBounds[i].maxY - arrBounds[i].minY)/2 - arrBounds[i].minY, this.arrTrackObjects[i].originalObject.selectStartPage);
+            {
+                oTrack = this.arrTrackObjects[i];
+                oDrawing = oTrack.originalObject;
+                oBounds = getAbsoluteRectBoundsObject(oDrawing);
+                oTrack.track(0, middlePos - (oBounds.maxY - oBounds.minY)/2 - oBounds.minY, oDrawing.selectStartPage);
+            }
             move_state.bSamePos = false;
             move_state.onMouseUp({}, 0, 0, 0);
         }
@@ -10545,23 +10590,26 @@ DrawingObjectsController.prototype =
 
     distributeHor : function(bSelected)
     {
-        var selected_objects = this.selection.groupSelection ? this.selection.groupSelection.selectedObjects : this.selectedObjects, i, boundsObject, arrBounds, pos1, pos2, gap, sortObjects, lastPos;
+        var selected_objects = this.selection.groupSelection ? this.selection.groupSelection.selectedObjects : this.selectedObjects, i, boundsObject, pos1, pos2, gap, sortObjects, lastPos;
+        var oTrack, oDrawing, oBounds, oSortObject;
         if(selected_objects.length > 0)
         {
             boundsObject = getAbsoluteRectBoundsArr(selected_objects);
-            arrBounds = boundsObject.arrBounds;
             this.checkSelectedObjectsForMove(this.selection.groupSelection ? this.selection.groupSelection : null);
             this.swapTrackObjects();
             sortObjects = [];
             for(i = 0; i < selected_objects.length; ++i)
             {
-                sortObjects.push({trackObject: this.arrTrackObjects[i], boundsObject: arrBounds[i]});
+                oTrack = this.arrTrackObjects[i];
+                oDrawing = oTrack.originalObject;
+                oBounds = getAbsoluteRectBoundsObject(oDrawing);
+                sortObjects.push({trackObject: this.arrTrackObjects[i], bounds: oBounds});
             }
-            sortObjects.sort(function(obj1, obj2){return (obj1.boundsObject.maxX + obj1.boundsObject.minX)/2 - (obj2.boundsObject.maxX + obj2.boundsObject.minX)/2});
+            sortObjects.sort(function(obj1, obj2){return (obj1.bounds.maxX + obj1.bounds.minX)/2 - (obj2.bounds.maxX + obj2.bounds.minX)/2});
             if(bSelected && selected_objects.length > 2)
             {
-                pos1 = sortObjects[0].boundsObject.minX;
-                pos2 = sortObjects[sortObjects.length - 1].boundsObject.maxX;
+                pos1 = sortObjects[0].bounds.minX;
+                pos2 = sortObjects[sortObjects.length - 1].bounds.maxX;
                 gap = (pos2 - pos1 - boundsObject.summWidth)/(sortObjects.length - 1);
             }
             else
@@ -10581,15 +10629,22 @@ DrawingObjectsController.prototype =
             }
             var move_state;
             if(!this.selection.groupSelection)
+            {
                 move_state = new AscFormat.MoveState(this, this.selectedObjects[0], 0, 0);
+            }
             else
+            {
                 move_state = new AscFormat.MoveInGroupState(this, this.selection.groupSelection.selectedObjects[0], this.selection.groupSelection, 0, 0);
-
+            }
             lastPos = pos1;
             for(i = 0; i < sortObjects.length; ++i)
             {
-                sortObjects[i].trackObject.track(lastPos -  sortObjects[i].trackObject.originalObject.x, 0, sortObjects[i].trackObject.originalObject.selectStartPage);
-                lastPos += (gap + (sortObjects[i].boundsObject.maxX - sortObjects[i].boundsObject.minX));
+                oSortObject = sortObjects[i];
+                oTrack = oSortObject.trackObject;
+                oDrawing = oTrack.originalObject;
+                oBounds = oSortObject.bounds;
+                oTrack.track(lastPos - oBounds.minX, 0, oDrawing.selectStartPage);
+                lastPos += (gap + (oBounds.maxX - oBounds.minX));
             }
             move_state.bSamePos = false;
             move_state.onMouseUp({}, 0, 0, 0);
@@ -10597,23 +10652,26 @@ DrawingObjectsController.prototype =
     },
     distributeVer : function(bSelected)
     {
-        var selected_objects = this.selection.groupSelection ? this.selection.groupSelection.selectedObjects : this.selectedObjects, i, boundsObject, arrBounds, pos1, pos2, gap, sortObjects, lastPos;
+        var selected_objects = this.selection.groupSelection ? this.selection.groupSelection.selectedObjects : this.selectedObjects, i, boundsObject, pos1, pos2, gap, sortObjects, lastPos;
+        var oTrack, oDrawing, oBounds, oSortObject;
         if(selected_objects.length > 0)
         {
             boundsObject = getAbsoluteRectBoundsArr(selected_objects);
-            arrBounds = boundsObject.arrBounds;
             this.checkSelectedObjectsForMove(this.selection.groupSelection ? this.selection.groupSelection : null);
             this.swapTrackObjects();
             sortObjects = [];
             for(i = 0; i < selected_objects.length; ++i)
             {
-                sortObjects.push({trackObject: this.arrTrackObjects[i], boundsObject: arrBounds[i]});
+                oTrack = this.arrTrackObjects[i];
+                oDrawing = oTrack.originalObject;
+                oBounds = getAbsoluteRectBoundsObject(oDrawing);
+                sortObjects.push({trackObject: this.arrTrackObjects[i], bounds: oBounds});
             }
-            sortObjects.sort(function(obj1, obj2){return (obj1.boundsObject.maxY + obj1.boundsObject.minY)/2 - (obj2.boundsObject.maxY + obj2.boundsObject.minY)/2});
+            sortObjects.sort(function(obj1, obj2){return (obj1.bounds.maxY + obj1.bounds.minY)/2 - (obj2.bounds.maxY + obj2.bounds.minY)/2});
             if(bSelected && selected_objects.length > 2)
             {
-                pos1 = sortObjects[0].boundsObject.minY;
-                pos2 = sortObjects[sortObjects.length - 1].boundsObject.maxY;
+                pos1 = sortObjects[0].bounds.minY;
+                pos2 = sortObjects[sortObjects.length - 1].bounds.maxY;
                 gap = (pos2 - pos1 - boundsObject.summHeight)/(sortObjects.length - 1);
             }
             else
@@ -10633,15 +10691,22 @@ DrawingObjectsController.prototype =
             }
             var move_state;
             if(!this.selection.groupSelection)
+            {
                 move_state = new AscFormat.MoveState(this, this.selectedObjects[0], 0, 0);
+            }
             else
+            {
                 move_state = new AscFormat.MoveInGroupState(this, this.selection.groupSelection.selectedObjects[0], this.selection.groupSelection, 0, 0);
-
+            }
             lastPos = pos1;
             for(i = 0; i < sortObjects.length; ++i)
             {
-                sortObjects[i].trackObject.track(0, lastPos -  sortObjects[i].trackObject.originalObject.y, sortObjects[i].trackObject.originalObject.selectStartPage);
-                lastPos += (gap + (sortObjects[i].boundsObject.maxY - sortObjects[i].boundsObject.minY));
+                oSortObject = sortObjects[i];
+                oTrack = oSortObject.trackObject;
+                oDrawing = oTrack.originalObject;
+                oBounds = oSortObject.bounds;
+                oTrack.track(0, lastPos - oBounds.minY, oDrawing.selectStartPage);
+                lastPos += (gap + (oBounds.maxY - oBounds.minY));
             }
             move_state.bSamePos = false;
             move_state.onMouseUp({}, 0, 0, 0);
@@ -13001,12 +13066,52 @@ function ApplyPresetToChartSpace(oChartSpace, aPreset, bCreate){
         return null;
     }
 
-    function fGetPresentationBulletByNumInfo(NumInfo){
-        if(!AscFormat.isRealNumber(NumInfo.Type) && !AscFormat.isRealNumber(NumInfo.SubType))
+    function getNumberingType(nType) {
+        var numberingType = 12;
+        switch(nType)
         {
-            return null;
+            case 0 :
+            case 1 :
+            {
+                numberingType = 12;//numbering_numfmt_arabicPeriod;
+                break;
+            }
+            case 2:
+            {
+                numberingType = 11;//numbering_numfmt_arabicParenR;
+                break;
+            }
+            case 3 :
+            {
+                numberingType = 34;//numbering_numfmt_romanUcPeriod;
+                break;
+            }
+            case 4 :
+            {
+                numberingType = 5;//numbering_numfmt_alphaUcPeriod;
+                break;
+            }
+            case 5 :
+            {
+                numberingType = 1;
+                break;
+            }
+            case 6 :
+            {
+                numberingType = 2;
+                break;
+            }
+            case 7 :
+            {
+                numberingType = 31;//numbering_numfmt_romanLcPeriod;
+                break;
+            }
         }
-        var bullet = new AscFormat.CBullet();
+        return numberingType;
+    }
+
+
+    function fFillBullet(NumInfo, bullet) {
         if(NumInfo.SubType < 0)
         {
             bullet.bulletType = new AscFormat.CBulletType();
@@ -13094,48 +13199,9 @@ function ApplyPresetToChartSpace(oChartSpace, aPreset, bCreate){
                 }
                 case 1 : /*autonum*/
                 {
-                    switch(NumInfo.SubType)
-                    {
-                        case 0 :
-                        case 1 :
-                        {
-                            var numberingType = 12;//numbering_numfmt_arabicPeriod;
-                            break;
-                        }
-                        case 2:
-                        {
-                            numberingType = 11;//numbering_numfmt_arabicParenR;
-                            break;
-                        }
-                        case 3 :
-                        {
-                            numberingType = 34;//numbering_numfmt_romanUcPeriod;
-                            break;
-                        }
-                        case 4 :
-                        {
-                            numberingType = 5;//numbering_numfmt_alphaUcPeriod;
-                            break;
-                        }
-                        case 5 :
-                        {
-                            numberingType = 1;
-                            break;
-                        }
-                        case 6 :
-                        {
-                            numberingType = 2;
-                            break;
-                        }
-                        case 7 :
-                        {
-                            numberingType = 31;//numbering_numfmt_romanLcPeriod;
-                            break;
-                        }
-                    }
                     bullet.bulletType = new AscFormat.CBulletType();
                     bullet.bulletType.type = AscFormat.BULLET_TYPE_BULLET_AUTONUM;
-                    bullet.bulletType.AutoNumType = numberingType;
+                    bullet.bulletType.AutoNumType = getNumberingType(NumInfo.SubType);
                     break;
                 }
                 default :
@@ -13144,6 +13210,14 @@ function ApplyPresetToChartSpace(oChartSpace, aPreset, bCreate){
                 }
             }
         }
+    }
+    function fGetPresentationBulletByNumInfo(NumInfo){
+        if(!AscFormat.isRealNumber(NumInfo.Type) && !AscFormat.isRealNumber(NumInfo.SubType))
+        {
+            return null;
+        }
+        var bullet = new AscFormat.CBullet();
+        fFillBullet(NumInfo, bullet);
         return bullet;
     }
 
@@ -13289,9 +13363,11 @@ function ApplyPresetToChartSpace(oChartSpace, aPreset, bCreate){
 	window['AscFormat'].CreateBlipFillUniFillFromUrl = CreateBlipFillUniFillFromUrl;
 	window['AscFormat'].fGetListTypeFromBullet = fGetListTypeFromBullet;
 	window['AscFormat'].fGetPresentationBulletByNumInfo = fGetPresentationBulletByNumInfo;
+	window['AscFormat'].fFillBullet = fFillBullet;
 	window['AscFormat'].fGetFontByNumInfo = fGetFontByNumInfo;
 	window['AscFormat'].CreateBlipFillRasterImageId = CreateBlipFillRasterImageId;
 	window['AscFormat'].fResetConnectorsIds = fResetConnectorsIds;
 	window['AscFormat'].getAbsoluteRectBoundsArr = getAbsoluteRectBoundsArr;
 	window['AscFormat'].fCheckObjectHyperlink = fCheckObjectHyperlink;
+	window['AscFormat'].getNumberingType = getNumberingType;
 })(window);

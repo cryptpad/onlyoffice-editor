@@ -93,10 +93,10 @@
 		asc_CTextOptions.prototype.asc_getNumberDecimalSeparator = function () {
 			return this.numberDecimalSeparator !== null ? this.numberDecimalSeparator : AscCommon.g_oDefaultCultureInfo.NumberDecimalSeparator;
 		};
-		asc_CTextOptions.prototype.asc_setNumberDecimalSeparator = function(v){this.numberDecimalSeparator = v;};
-		asc_CTextOptions.prototype.asc_getNumberDecimalSeparator = function () {
+		asc_CTextOptions.prototype.asc_getNumberGroupSeparator = function () {
 			return this.numberGroupSeparator !== null ? this.numberGroupSeparator : AscCommon.g_oDefaultCultureInfo.NumberGroupSeparator;
 		};
+		asc_CTextOptions.prototype.asc_setNumberDecimalSeparator = function(v){this.numberDecimalSeparator = v;};
 		asc_CTextOptions.prototype.asc_setNumberGroupSeparator = function(v){this.numberGroupSeparator = v;};
 		asc_CTextOptions.prototype.asc_getNumberDecimalSeparatorsArr = function () {
 			var arr = [",", "."];
@@ -197,7 +197,9 @@
 		prot["asc_setDelimiterChar"] = prot.asc_setDelimiterChar;
 		prot["asc_getCodePage"] = prot.asc_getCodePage;
 		prot["asc_setCodePage"] = prot.asc_setCodePage;
-
+		prot["asc_setNumberDecimalSeparator"] = prot.asc_setNumberDecimalSeparator;
+		prot["asc_setNumberGroupSeparator"] = prot.asc_setNumberGroupSeparator;
+		
 		window["Asc"].asc_CDRMAdvancedOptions = window["Asc"]["asc_CDRMAdvancedOptions"] = asc_CDRMAdvancedOptions;
 		prot = asc_CDRMAdvancedOptions.prototype;
 		prot["asc_getPassword"] = prot.asc_getPassword;

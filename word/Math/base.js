@@ -985,97 +985,94 @@ CMathBase.prototype.Apply_TextPr = function(TextPr, IncFontSize, ApplyToAll)
 };
 CMathBase.prototype.Apply_TextPrToCtrPr = function(TextPr, IncFontSize, ApplyToAll)
 {
-    if(ApplyToAll == true)
-        this.RecalcInfo.bCtrPrp = true;
+	if (true === ApplyToAll)
+		this.RecalcInfo.bCtrPrp = true;
 
-    if(TextPr == undefined)
-    {
-        var CtrPrp = this.Get_CompiledCtrPrp_2();
-        this.Set_FontSizeCtrPrp(FontSize_IncreaseDecreaseValue( IncFontSize, CtrPrp.FontSize ));
-    }
-    else
-    {
-    	if (undefined !== TextPr.Bold)
-    		this.Set_Bold(TextPr.Bold);
+	if (!TextPr)
+	{
+		var CtrPrp = this.Get_CompiledCtrPrp_2();
+		this.Set_FontSizeCtrPrp(FontSize_IncreaseDecreaseValue(IncFontSize, CtrPrp.FontSize));
+	}
+	else
+	{
+		if (undefined !== TextPr.Bold)
+			this.Set_Bold(null === TextPr.Bold ? undefined : TextPr.Bold);
 
-        if(TextPr.AscFill || TextPr.AscLine || TextPr.AscUnifill)
-        {
-            var oCompiledPr = this.Get_CompiledCtrPrp();
-            if(TextPr.AscFill)
-            {
-                this.Set_TextFill(AscFormat.CorrectUniFill(TextPr.AscFill, oCompiledPr.TextFill, 1));
-            }
-            if(TextPr.AscUnifill)
-            {
-                this.Set_Unifill(AscFormat.CorrectUniFill(TextPr.AscUnifill, oCompiledPr.Unifill, 0));
-            }
-            if(TextPr.AscLine)
-            {
-                this.Set_TextOutline(AscFormat.CorrectUniStroke(TextPr.AscLine, oCompiledPr.TextOutline, 0));
-            }
-            return;
-        }
-        if(TextPr.FontSize !== undefined)
-            this.Set_FontSizeCtrPrp(TextPr.FontSize);
+		if (TextPr.AscFill || TextPr.AscLine || TextPr.AscUnifill)
+		{
+			var oCompiledPr = this.Get_CompiledCtrPrp();
+			if (TextPr.AscFill)
+			{
+				this.Set_TextFill(AscFormat.CorrectUniFill(TextPr.AscFill, oCompiledPr.TextFill, 1));
+			}
+			if (TextPr.AscUnifill)
+			{
+				this.Set_Unifill(AscFormat.CorrectUniFill(TextPr.AscUnifill, oCompiledPr.Unifill, 0));
+			}
+			if (TextPr.AscLine)
+			{
+				this.Set_TextOutline(AscFormat.CorrectUniStroke(TextPr.AscLine, oCompiledPr.TextOutline, 0));
+			}
+			return;
+		}
 
-        if(TextPr.Shd !== undefined)
-            this.Set_Shd(TextPr.Shd);
+		if (undefined !== TextPr.FontSize)
+			this.Set_FontSizeCtrPrp(null === TextPr.FontSize ? undefined : TextPr.FontSize);
 
-        if(undefined != TextPr.Unifill)
-        {
-            this.Set_Unifill(TextPr.Unifill.createDuplicate());
-            if(undefined != this.CtrPrp.Color)
-            {
-                this.Set_Color(undefined);
-            }
-            if(undefined != this.CtrPrp.TextFill)
-            {
-                this.Set_TextFill(undefined);
-            }
-        }
-        if(undefined != TextPr.TextOutline)
-        {
-            this.Set_TextOutline(TextPr.TextOutline);
-        }
-        if(undefined != TextPr.TextFill)
-        {
-            this.Set_TextFill(TextPr.TextFill);
-            if(undefined != this.CtrPrp.Color)
-            {
-                this.Set_Color(undefined);
-            }
-            if(undefined != this.CtrPrp.Unifill)
-            {
-                this.Set_Unifill(undefined);
-            }
-        }
+		if (undefined !== TextPr.Shd)
+			this.Set_Shd(null === TextPr.Shd ? undefined : TextPr.Shd);
 
-        if ( undefined != TextPr.HighLight )
-            this.Set_HighLight( null === TextPr.HighLight ? undefined : TextPr.HighLight );
+		if (undefined !== TextPr.Unifill)
+		{
+			this.Set_Unifill(null === TextPr.Unifill ? undefined : TextPr.Unifill.createDuplicate());
 
-        if(undefined !== TextPr.Underline)
-        {
-            this.Set_Underline(TextPr.Underline);
-        }
+			if (null !== TextPr.Unifill)
+			{
+				if (this.CtrPrp.Color)
+					this.Set_Color(undefined);
 
-        if(undefined !== TextPr.Strikeout)
-        {
-            this.Set_Strikeout(TextPr.Strikeout);
-        }
+				if (this.CtrPrp.TextFill)
+					this.Set_TextFill(undefined);
+			}
+		}
 
-        if(undefined !== TextPr.DStrikeout)
-        {
-            this.Set_DoubleStrikeout(TextPr.DStrikeout);
-        }
+		if (undefined !== TextPr.TextOutline)
+			this.Set_TextOutline(null === TextPr.TextOutline ? undefined : TextPr.TextOutline);
 
-        if ( undefined != TextPr.RFonts )
-        {
-            var RFonts = new CRFonts();
-            RFonts.Set_All("Cambria Math", -1);
+		if (undefined !== TextPr.TextFill)
+		{
+			this.Set_TextFill(null === TextPr.TextFill ? undefined : TextPr.TextFill);
 
-            this.raw_SetRFonts(RFonts);
-        }
-    }
+			if (null !== TextPr.TextFill)
+			{
+				if (this.CtrPrp.Color)
+					this.Set_Color(undefined);
+
+				if (this.CtrPrp.Unifill)
+					this.Set_Unifill(undefined);
+			}
+		}
+
+		if (undefined !== TextPr.HighLight)
+			this.Set_HighLight(null === TextPr.HighLight ? undefined : TextPr.HighLight);
+
+		if (undefined !== TextPr.Underline)
+			this.Set_Underline(null === TextPr.Underline ? undefined : TextPr.Underline);
+
+		if (undefined !== TextPr.Strikeout)
+			this.Set_Strikeout(null === TextPr.Strikeout ? undefined : TextPr.Strikeout);
+
+		if (undefined !== TextPr.DStrikeout)
+			this.Set_DoubleStrikeout(null === TextPr.DStrikeout ? undefined : TextPr.DStrikeout);
+
+		if (undefined !== TextPr.RFonts)
+		{
+			var RFonts = new CRFonts();
+			RFonts.Set_All("Cambria Math", -1);
+
+			this.raw_SetRFonts(RFonts);
+		}
+	}
 };
 CMathBase.prototype.GetMathTextPrForMenu = function(ContentPos, Depth)
 {
@@ -1092,6 +1089,9 @@ CMathBase.prototype.Set_MathTextPr2 = function(TextPr, MathPr, bAll)
 };
 CMathBase.prototype.Set_FontSizeCtrPrp = function(Value)
 {
+	if (null === Value)
+		Value = undefined;
+
 	if (Value !== this.CtrPrp.FontSize)
 	{
 		History.Add(new CChangesMathBaseFontSize(this, this.CtrPrp.FontSize, Value));
@@ -1100,6 +1100,9 @@ CMathBase.prototype.Set_FontSizeCtrPrp = function(Value)
 };
 CMathBase.prototype.Set_Color = function(Value)
 {
+	if (null === Value)
+		Value = undefined;
+
 	if ((undefined === Value && undefined !== this.CtrPrp.Color) || (Value instanceof CDocumentColor && (undefined === this.CtrPrp.Color || false === Value.Compare(this.CtrPrp.Color))))
 	{
 		History.Add(new CChangesMathBaseColor(this, this.CtrPrp.Color, Value));
@@ -1108,7 +1111,10 @@ CMathBase.prototype.Set_Color = function(Value)
 };
 CMathBase.prototype.Set_Unifill = function(Value)
 {
-	if (( undefined === Value && undefined !== this.CtrPrp.Unifill ) || ( Value instanceof AscFormat.CUniFill && ( undefined === this.CtrPrp.Unifill || false === AscFormat.CompareUnifillBool(this.CtrPrp.Unifill, Value) ) ))
+	if (null === Value)
+		Value = undefined;
+
+	if ((undefined === Value && undefined !== this.CtrPrp.Unifill) || (Value instanceof AscFormat.CUniFill && (undefined === this.CtrPrp.Unifill || false === AscFormat.CompareUnifillBool(this.CtrPrp.Unifill, Value))))
 	{
 		History.Add(new CChangesMathBaseUnifill(this, this.CtrPrp.Unifill, Value));
 		this.raw_SetUnifill(Value);
@@ -1116,7 +1122,10 @@ CMathBase.prototype.Set_Unifill = function(Value)
 };
 CMathBase.prototype.Set_TextFill = function(Value)
 {
-	if (( undefined === Value && undefined !== this.CtrPrp.TextFill ) || ( Value instanceof AscFormat.CUniFill && ( undefined === this.CtrPrp.TextFill || false === AscFormat.CompareUnifillBool(this.CtrPrp.TextFill, Value) ) ))
+	if (null === Value)
+		Value = undefined;
+
+	if ((undefined === Value && undefined !== this.CtrPrp.TextFill) || (Value instanceof AscFormat.CUniFill && (undefined === this.CtrPrp.TextFill || false === AscFormat.CompareUnifillBool(this.CtrPrp.TextFill, Value))))
 	{
 		History.Add(new CChangesMathBaseTextFill(this, this.CtrPrp.TextFill, Value));
 		this.raw_SetTextFill(Value);
@@ -1124,7 +1133,10 @@ CMathBase.prototype.Set_TextFill = function(Value)
 };
 CMathBase.prototype.Set_TextOutline = function(Value)
 {
-	if (( undefined === Value && undefined !== this.CtrPrp.TextOutline ) || ( Value instanceof AscFormat.CLn && ( undefined === this.CtrPrp.TextOutline || false === Value.IsIdentical(this.CtrPrp.TextOutline) ) ))
+	if (null === Value)
+		Value = undefined;
+
+	if ((undefined === Value && undefined !== this.CtrPrp.TextOutline) || (Value instanceof AscFormat.CLn && (undefined === this.CtrPrp.TextOutline || false === Value.IsIdentical(this.CtrPrp.TextOutline))))
 	{
 		History.Add(new CChangesMathBaseTextOutline(this, this.CtrPrp.TextOutline, Value));
 		this.raw_SetTextOutline(Value);
@@ -1132,8 +1144,11 @@ CMathBase.prototype.Set_TextOutline = function(Value)
 };
 CMathBase.prototype.Set_HighLight = function(Value)
 {
+	if (null === Value)
+		Value = undefined;
+
 	var OldValue = this.CtrPrp.HighLight;
-	if ((undefined === Value && undefined !== OldValue) || ( highlight_None === Value && highlight_None !== OldValue ) || ( Value instanceof CDocumentColor && ( undefined === OldValue || highlight_None === OldValue || false === Value.Compare(OldValue) ) ))
+	if ((undefined === Value && undefined !== OldValue) || (highlight_None === Value && highlight_None !== OldValue) || (Value instanceof CDocumentColor && (undefined === OldValue || highlight_None === OldValue || false === Value.Compare(OldValue))))
 	{
 		History.Add(new CChangesMathBaseHighLight(this, this.CtrPrp.HighLight, Value));
 		this.raw_SetHighLight(Value);
@@ -1141,6 +1156,9 @@ CMathBase.prototype.Set_HighLight = function(Value)
 };
 CMathBase.prototype.Set_Shd = function(Shd)
 {
+	if (null === Shd)
+		Shd = undefined;
+
 	if (!(undefined === this.CtrPrp.Shd && undefined === Shd) && !(undefined !== this.CtrPrp.Shd && undefined !== Shd && true === this.CtrPrp.Shd.Compare(Shd)))
 	{
 		History.Add(new CChangesMathBaseShd(this, this.CtrPrp.Shd, Shd));
@@ -1149,6 +1167,9 @@ CMathBase.prototype.Set_Shd = function(Shd)
 };
 CMathBase.prototype.Set_Underline = function(Value)
 {
+	if (null === Value)
+		Value = undefined;
+
 	if (Value !== this.CtrPrp.Underline)
 	{
 		History.Add(new CChangesMathBaseUnderline(this, this.CtrPrp.Underline, Value));
@@ -1157,6 +1178,9 @@ CMathBase.prototype.Set_Underline = function(Value)
 };
 CMathBase.prototype.Set_Strikeout = function(Value)
 {
+	if (null === Value)
+		Value = undefined;
+
 	if (Value !== this.CtrPrp.Strikeout)
 	{
 		History.Add(new CChangesMathBaseStrikeout(this, this.CtrPrp.Strikeout, Value));
@@ -1165,6 +1189,9 @@ CMathBase.prototype.Set_Strikeout = function(Value)
 };
 CMathBase.prototype.Set_DoubleStrikeout = function(Value)
 {
+	if (null === Value)
+		Value = undefined;
+
 	if (Value !== this.CtrPrp.DStrikeout)
 	{
 		History.Add(new CChangesMathBaseDoubleStrikeout(this, this.CtrPrp.DStrikeout, Value));
@@ -1173,6 +1200,9 @@ CMathBase.prototype.Set_DoubleStrikeout = function(Value)
 };
 CMathBase.prototype.Set_Bold = function(Value)
 {
+	if (null === Value)
+		Value = undefined;
+
 	if (Value !== this.CtrPrp.Bold)
 	{
 		History.Add(new CChangesMathBaseBold(this, this.CtrPrp.Bold, Value));
@@ -1181,6 +1211,9 @@ CMathBase.prototype.Set_Bold = function(Value)
 };
 CMathBase.prototype.Set_Italic = function(Value)
 {
+	if (null === Value)
+		Value = undefined;
+
 	if (Value !== this.CtrPrp.Italic)
 	{
 		History.Add(new CChangesMathBaseItalic(this, this.CtrPrp.Italic, Value));
@@ -1189,6 +1222,9 @@ CMathBase.prototype.Set_Italic = function(Value)
 };
 CMathBase.prototype.Set_RFonts_Ascii = function(Value)
 {
+	if (null === Value)
+		Value = undefined;
+
 	if (this.CtrPrp.RFonts.Ascii !== Value)
 	{
 		History.Add(new CChangesMathBaseRFontsAscii(this, this.CtrPrp.RFonts.Ascii, Value));
@@ -1197,6 +1233,9 @@ CMathBase.prototype.Set_RFonts_Ascii = function(Value)
 };
 CMathBase.prototype.Set_RFonts_HAnsi = function(Value)
 {
+	if (null === Value)
+		Value = undefined;
+
 	if (this.CtrPrp.RFonts.HAnsi !== Value)
 	{
 		History.Add(new CChangesMathBaseRFontsHAnsi(this, this.CtrPrp.RFonts.HAnsi, Value));
@@ -1205,6 +1244,9 @@ CMathBase.prototype.Set_RFonts_HAnsi = function(Value)
 };
 CMathBase.prototype.Set_RFonts_CS = function(Value)
 {
+	if (null === Value)
+		Value = undefined;
+
 	if (this.CtrPrp.RFonts.CS !== Value)
 	{
 		History.Add(new CChangesMathBaseRFontsCS(this, this.CtrPrp.RFonts.CS, Value));
@@ -1213,6 +1255,9 @@ CMathBase.prototype.Set_RFonts_CS = function(Value)
 };
 CMathBase.prototype.Set_RFonts_EastAsia = function(Value)
 {
+	if (null === Value)
+		Value = undefined;
+
 	if (this.CtrPrp.RFonts.EastAsia !== Value)
 	{
 		History.Add(new CChangesMathBaseRFontsEastAsia(this, this.CtrPrp.RFonts.EastAsia, Value));
@@ -1221,6 +1266,9 @@ CMathBase.prototype.Set_RFonts_EastAsia = function(Value)
 };
 CMathBase.prototype.Set_RFonts_Hint = function(Value)
 {
+	if (null === Value)
+		Value = undefined;
+
 	if (this.CtrPrp.RFonts.Hint !== Value)
 	{
 		History.Add(new CChangesMathBaseRFontsHint(this, this.CtrPrp.RFonts.Hint, Value));
