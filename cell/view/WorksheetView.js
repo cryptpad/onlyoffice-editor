@@ -423,6 +423,7 @@
         this.scrollType = 0;
         this.updateRowHeightValuePx = null;
         this.updateColumnsStart = Number.MAX_VALUE;
+		this.updateDrawingsColumnsStart = Number.MAX_VALUE; // ToDo delete this. Update with
 
         this.viewPrintLines = false;
 
@@ -1588,9 +1589,9 @@
             x += this.cols[i].width;
         }
 
-		this._updateVisibleColsCount(true);
-		this._updateDrawingArea();
-		this.objectRender.updateDrawingsTransform({target: c_oTargetType.ColumnResize, col: this.updateColumnsStart});
+        if (this.objectRender) {
+			this.objectRender.updateDrawingsTransform({target: c_oTargetType.ColumnResize, col: this.updateColumnsStart});
+		}
 		this.updateColumnsStart = Number.MAX_VALUE;
     };
 
@@ -14715,6 +14716,8 @@
 		}
 
 		this._updateColumnPositions();
+		this._updateVisibleColsCount(true); // ToDo check need calculate
+		this._updateDrawingArea(); // ToDo не в том месте этот вызов. Может отказаться от своих area в DO?
 
 		this._reinitializeScroll();
 	};
