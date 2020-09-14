@@ -14850,10 +14850,8 @@
 						if (styleName) {
 							t._updateRange(filterRange);
 							t._autoFitColumnsWidth([new Asc.Range(filterRange.c1, filterRange.r1, filterRange.c2, filterRange.r1)]);
-							t.draw();
-						} else {
-							t._onUpdateFormatTable(filterRange, !!(styleName), true);
 						}
+						t.draw();
 
 						History.EndTransaction();
 
