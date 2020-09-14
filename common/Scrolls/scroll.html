@@ -103,12 +103,12 @@
     settings1.isVerticalScroll = false;
     var scrollObject1 = new AscCommon.ScrollObject("ws-h-scrollbar", settings1);
 
-    mainDiv.addEventListener('mousemove', e => {
+    window.addEventListener('mousemove', e => {
             scrollObject.mouseDown ? scrollObject.evt_mousemove.call(scrollObject, event) : false;
             scrollObject1.mouseDown ? scrollObject1.evt_mousemove.call(scrollObject1, event) : false;
 
     });
-    mainDiv.addEventListener('mouseup', e => {
+    window.addEventListener('mouseup', e => {
         scrollObject.mouseDown ? scrollObject.evt_mouseup.call( scrollObject, event) : false;
         scrollObject1.mouseDown ? scrollObject1.evt_mouseup.call( scrollObject1, event) : false;
     });
