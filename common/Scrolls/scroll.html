@@ -79,30 +79,31 @@
     var mainDiv = document.createElement('div');
     mainDiv.style.width = '100%';
     mainDiv.style.height = '100%';
+    var scrollObject, scrollObject1, settings, settings1;
+    function createScrolls() {
+        mainDiv.innerHTML = '<div id="ws-v-scrollbar"></div><div id="ws-h-scrollbar"></div>';
+        document.body.append(mainDiv);
+        var div = document.getElementById("ws-v-scrollbar");
+        div.style.width = '14px';
+        div.style.height = '720px';
+        div.style.position = "relative";
 
-   mainDiv.innerHTML = '<div id="ws-v-scrollbar"></div><div id="ws-h-scrollbar"></div>';
-    document.body.append(mainDiv);
-    var div = document.getElementById("ws-v-scrollbar");
-    div.style.width = '14px';
-    div.style.height = '720px';
-    div.style.position = "relative";
-
-    var settings = new AscCommon.ScrollSettings();
-    var scrollObject = new AscCommon.ScrollObject("ws-v-scrollbar", settings);
-
-
-    document.body.append(mainDiv);
-    var div = document.getElementById("ws-h-scrollbar");
-    div.style.width = '720px';
-    div.style.height = '14px';
-    div.style.position = "relative";
+        settings = new AscCommon.ScrollSettings();
+        scrollObject = new AscCommon.ScrollObject("ws-v-scrollbar", settings);
 
 
-    var settings1 = new AscCommon.ScrollSettings();
-    settings1.isHorizontalScroll = true;
-    settings1.isVerticalScroll = false;
-    var scrollObject1 = new AscCommon.ScrollObject("ws-h-scrollbar", settings1);
+        document.body.append(mainDiv);
+        var div = document.getElementById("ws-h-scrollbar");
+        div.style.width = '720px';
+        div.style.height = '14px';
+        div.style.position = "relative";
 
+        settings1 = new AscCommon.ScrollSettings();
+        settings1.isHorizontalScroll = true;
+        settings1.isVerticalScroll = false;
+        scrollObject1 = new AscCommon.ScrollObject("ws-h-scrollbar", settings1);
+    }
+    createScrolls();
     window.addEventListener('mousemove', e => {
             scrollObject.mouseDown ? scrollObject.evt_mousemove.call(scrollObject, event) : false;
             scrollObject1.mouseDown ? scrollObject1.evt_mousemove.call(scrollObject1, event) : false;
@@ -112,6 +113,11 @@
         scrollObject.mouseDown ? scrollObject.evt_mouseup.call( scrollObject, event) : false;
         scrollObject1.mouseDown ? scrollObject1.evt_mouseup.call( scrollObject1, event) : false;
     });
+
+    window.onresize = function(){
+        document.body.innerHTML = '';
+        createScrolls();
+    }
 
 </script>
 </html>

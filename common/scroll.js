@@ -124,8 +124,8 @@ function CArrowDrawer( settings ) {
 
 }
 CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
-    if ( ( sizeH == this.SizeH || sizeW == this.SizeW ) && is_retina == this.IsRetina && null != this.ImageLeft )
-        return;
+  /*  if ( ( sizeH == this.SizeH || sizeW == this.SizeW ) && is_retina == this.IsRetina && null != this.ImageLeft )
+        return;*/
 
     this.SizeW = Math.max( sizeW, 1 );
     this.SizeH = Math.max( sizeH, 1 );
@@ -134,13 +134,14 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
     this.SizeNaturalW = this.SizeW;
     this.SizeNaturalH = this.SizeH;
 
-    if ( this.IsRetina ) {
-        this.SizeW <<= 1;
-        this.SizeH <<= 1;
+    var devicePixelRatio = window.devicePixelRatio;
 
-        this.SizeNaturalW <<= 1;
-        this.SizeNaturalH <<= 1;
-    }
+	var sizeWidth = this.SizeW;
+	var sizeHeight = this.SizeH;
+	this.SizeW = Math.ceil(this.SizeW * devicePixelRatio) ;
+	this.SizeH = Math.ceil(this.SizeH * devicePixelRatio) ;
+	this.SizeNaturalW = Math.ceil(this.SizeNaturalW * devicePixelRatio);
+	this.SizeNaturalH = Math.ceil(this.SizeNaturalH * devicePixelRatio);
 
     if (null == this.ImageLeft || null == this.ImageTop || null == this.ImageRight || null == this.ImageBottom)
 	{
@@ -151,19 +152,16 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 	}
 
 
-	var len = 6;
+	var len = Math.ceil(6 * devicePixelRatio);
 	if ( this.SizeH < 6 )
 		return;
-
-	if (this.IsRetina)
-		len <<= 1;
 
 	// теперь делаем нечетную длину
 	if ( 0 == (len & 1) )
 		len += 1;
 
 	var countPart = (len + 1) >> 1,
-		plusColor, _data, px,
+		_data, px,
 		_x = ((this.SizeW - len) >> 1),
 		_y = this.SizeH - ((this.SizeH - countPart) >> 1),
 		_radx = _x + (len >> 1),
@@ -206,28 +204,28 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 		__y -= 1;
 		_len -= 2;
 	}
-
+    var scaleCoef = devicePixelRatio >= 1 ? Math.floor(devicePixelRatio) : devicePixelRatio;
 	ctx.putImageData(_data, 0, -1);
 
-    ctxLeft.translate( _radx, _rady + 1 );
+    ctxLeft.translate( _radx, _rady + scaleCoef );
     ctxLeft.rotate( -Math.PI / 2 );
     ctxLeft.translate( -_radx, -_rady );
     ctxLeft.drawImage( this.ImageTop, 0, 0 );
 
-    ctxBottom.translate( _radx + 1, _rady + 1 );
+    ctxBottom.translate( _radx + 1, _rady + scaleCoef);
     ctxBottom.rotate( Math.PI );
     ctxBottom.translate( -_radx, -_rady );
     ctxBottom.drawImage( this.ImageTop, 0, 0 );
 
-    ctxRight.translate( _radx + 1, _rady );
-    ctxRight.rotate( Math.PI / 2 );
-    ctxRight.translate( -_radx, -_rady );
-    ctxRight.drawImage( this.ImageTop, 0, 0 );
+	var scaleCoefY = scaleCoef === 1 ? 0 : scaleCoef;
 
-    if ( this.IsRetina ) {
-        this.SizeW >>= 1;
-        this.SizeH >>= 1;
-    }
+	ctxRight.translate( _radx + scaleCoef, _rady + Math.floor(0.8 * scaleCoefY));
+	ctxRight.rotate( Math.PI / 2 );
+	ctxRight.translate( -_radx, -_rady );
+	ctxRight.drawImage( this.ImageTop, 0, 0 );
+
+	this.SizeW = sizeWidth;
+	this.SizeH = sizeHeight;
 };
 
 function _HEXTORGB_( colorHEX ) {
@@ -456,13 +454,13 @@ function _HEXTORGB_( colorHEX ) {
 		}
 
 		this.context = this.canvas.getContext( '2d' );
-		if ( !this.IsRetina ){
+		/*if ( !this.IsRetina ){
 			this.context.setTransform( 1, 0, 0, 1, 0, 0 );
 		}
 		else{
 			this.context.setTransform( 2, 0, 0, 2, 0, 0 );
-		}
-
+		}*/
+		this.context.setTransform( window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0 );
 		if ( this.settings.showArrows ){
 			this.arrowPosition = this.settings.arrowDim + 2;
 		}
@@ -933,9 +931,8 @@ function _HEXTORGB_( colorHEX ) {
 		var y1 = that.settings.isVerticalScroll ? 0 : -1;
 		var strokeW = t.SizeW - 1;
 		var strokeH = t.SizeH - 1;
-		var cnvs = that.canvas,
-			ctx = cnvs.getContext('2d');
-
+		var ctx = that.context;
+		
 		ctx.beginPath();
 		ctx.fillStyle = t.ColorBackNone;
 		var bottomRightDelta = 1;
@@ -944,23 +941,24 @@ function _HEXTORGB_( colorHEX ) {
 			for (var i = 0; i < 2; i++) {
 				ctx.fillRect(x1 + xDeltaBORDER >> 0, y1 + yDeltaBORDER >> 0, strokeW, strokeH);
 
+				ctx.drawImage(arrowImage, x1, y1, t.SizeW, t.SizeH);
+
 				if (t.IsDrawBorders) {
 					ctx.strokeStyle = t.ColorBorderNone;
 					ctx.rect(x1 + xDeltaBORDER, y1 + yDeltaBORDER, strokeW, strokeH);
 					ctx.stroke();
 				}
 
-				that.context.drawImage(arrowImage, x1, y1);
 				y1 = that.canvasH - t.SizeH - bottomRightDelta - 1;
 				arrowImage = that.ArrowDrawer.ImageBottom;
 			}
 		}
 
 		var arrowImage = that.ArrowDrawer.ImageLeft;
-
 		if (that.settings.isHorizontalScroll) {
 			for (var i = 0; i < 2; i++) {
 				ctx.fillRect(x1 + xDeltaBORDER >> 0, y1 + yDeltaBORDER >> 0, strokeW, strokeH);
+				that.context.drawImage(arrowImage, x1, y1, t.SizeW, t.SizeH);
 
 				if (t.IsDrawBorders) {
 					ctx.strokeStyle = t.ColorBorderNone;
@@ -968,7 +966,6 @@ function _HEXTORGB_( colorHEX ) {
 					ctx.stroke();
 				}
 
-				that.context.drawImage(arrowImage, x1, y1);
 				x1 = that.canvasW - t.SizeW - bottomRightDelta;
 				arrowImage = that.ArrowDrawer.ImageRight;
 			}
@@ -1094,7 +1091,7 @@ function _HEXTORGB_( colorHEX ) {
 
 	ScrollObject.prototype._animateArrow = function (fadeIn, curArrowType, backgroundColorUnfade) {
 		var that = this;
-		if (!that.settings.showArrows) {
+		if (!that.settings.showArrows || !curArrowType) {
 			return;
 		}
 
@@ -1105,6 +1102,8 @@ function _HEXTORGB_( colorHEX ) {
 		cnvs.width = that.ArrowDrawer.SizeNaturalW;
 		cnvs.height = that.ArrowDrawer.SizeNaturalH;
 		ctx.fillStyle = that.ArrowDrawer.ColorBackActive;
+
+		ctx.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
 
 		if (curArrowType === ArrowType.ARROW_TOP || curArrowType === ArrowType.ARROW_LEFT) {
 			arrowType = this.firstArrow;
@@ -1169,7 +1168,6 @@ function _HEXTORGB_( colorHEX ) {
 			}
 		}
 
-
 		ctx.rect(0.5, 1.5, that.ArrowDrawer.SizeW - 1, that.ArrowDrawer.SizeH - 1);
 		ctx.fill();
 
@@ -1192,8 +1190,8 @@ function _HEXTORGB_( colorHEX ) {
 		imgContext.fillStyle = "rgb(" + arrowType.arrowColor + "," +
 			arrowType.arrowColor + "," +
 			arrowType.arrowColor + ")";
-		imgContext.fillRect(0.5, 1.5, that.ArrowDrawer.SizeW - 1, that.ArrowDrawer.SizeH - 1);
-		ctx.drawImage(arrowImage, xDeltaIMG, yDeltaIMG, that.ArrowDrawer.SizeW, that.ArrowDrawer.SizeH);
+		imgContext.fillRect(0.5, 1.5, that.ArrowDrawer.SizeNaturalW , that.ArrowDrawer.SizeNaturalH );
+		ctx.drawImage(arrowImage, 0, 0, that.ArrowDrawer.SizeW, that.ArrowDrawer.SizeH);
 
 		context.drawImage(cnvs, x + xDeltaIMG, y + yDeltaIMG, that.ArrowDrawer.SizeW, that.ArrowDrawer.SizeH);
 
@@ -1354,7 +1352,7 @@ function _HEXTORGB_( colorHEX ) {
 		this.canvasW = w;
 		this.canvasH = h;
 
-		if ( !this.IsRetina ) {
+		/*if ( !this.IsRetina ) {
 			this.canvas.height = h;
 			this.canvas.width = w;
 
@@ -1365,7 +1363,10 @@ function _HEXTORGB_( colorHEX ) {
 			this.canvas.width = w << 1;
 
 			this.context.setTransform( 2, 0, 0, 2, 0, 0 );
-		}
+	}*/
+		this.canvas.height = Math.round(h * window.devicePixelRatio);
+		this.canvas.width = Math.round(w * window.devicePixelRatio);
+		this.context.setTransform( window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0 );
 	};
 	ScrollObject.prototype._setScrollerHW = function () {
 		if ( this.settings.isVerticalScroll ) {
