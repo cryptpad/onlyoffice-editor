@@ -423,6 +423,7 @@
         this.scrollType = 0;
         this.updateRowHeightValuePx = null;
         this.updateColumnsStart = Number.MAX_VALUE;
+		this.updateDrawingsColumnsStart = Number.MAX_VALUE; // ToDo delete this. Update with
 
         this.viewPrintLines = false;
 
@@ -655,6 +656,8 @@
     };
 
 	WorksheetView.prototype._getColLeft = function (i) {
+		this._updateColumnPositions();
+
 		var l = this.cols.length;
 		return this.cellsLeft + ((i < l) ? this.cols[i].left : (((0 === l) ? 0 :
 			this.cols[l - 1].left + this.cols[l - 1].width) + (!this.model.isDefaultWidthHidden()) *
@@ -1436,14 +1439,13 @@
     };
 
 	WorksheetView.prototype._calcColWidth = function (i) {
-		var w, hiddenW = 0;
+		var w;
 		// Получаем свойства колонки
 		var column = this.model._getColNoEmptyWithAll(i);
 		if (!column) {
 			w = this.defaultColWidthPx; // Используем дефолтное значение
 		} else if (column.getHidden()) {
 			w = 0;            // Если столбец скрытый, ширину выставляем 0
-			hiddenW = column.widthPx || this.defaultColWidthPx;
 		} else {
 			w = null === column.widthPx ? this.defaultColWidthPx : column.widthPx;
 		}
@@ -1452,19 +1454,16 @@
 		this.cols[i].width = Asc.round(w * this.getZoom());
 
 		this.updateColumnsStart = Math.min(i, this.updateColumnsStart);
-
-		return hiddenW;
 	};
 
 	WorksheetView.prototype._calcHeightRow = function (y, i) {
 		var t = this;
-		var r, hR, hiddenH = 0;
+		var r, hR;
 		this.model._getRowNoEmptyWithAll(i, function (row) {
 			if (!row) {
 				hR = -1; // Будет использоваться дефолтная высота строки
 			} else if (row.getHidden()) {
 				hR = 0;  // Скрытая строка, высоту выставляем 0
-				hiddenH += row.h > 0 ? row.h - 1 : t.defaultRowHeightPx;
 			} else {
 				// Берем высоту из модели, если она custom(баг 15618), либо дефолтную
 				if (row.h > 0 && (row.getCustomHeight() || row.getCalcHeight())) {
@@ -1481,8 +1480,6 @@
 		r.top = y;
 		r.height = Asc.round(AscCommonExcel.convertPtToPx(hR) * this.getZoom());
 		r.descender = this.defaultRowDescender;
-
-		return hiddenH;
 	};
 
     /** Вычисляет ширину колонки заголовков */
@@ -1518,7 +1515,7 @@
      */
     WorksheetView.prototype._calcWidthColumns = function (type) {
         var l = this.model.getColsCount();
-        var i = 0, hiddenW = 0;
+        var i = 0;
 
         if (AscCommonExcel.recalcType.full === type) {
             this.cols = [];
@@ -1526,7 +1523,7 @@
             i = this.cols.length;
         }
 		for (; i < l; ++i) {
-			hiddenW += this._calcColWidth(i);
+			this._calcColWidth(i);
         }
 
         this.nColsCount = Math.min(Math.max(this.nColsCount, i), gc_nMaxCol);
@@ -1539,7 +1536,7 @@
     WorksheetView.prototype._calcHeightRows = function (type) {
         var y = this.cellsTop;
         var l = this.model.getRowsCount();
-        var i = 0, hiddenH = 0;
+        var i = 0;
 
         if (AscCommonExcel.recalcType.full === type) {
             this.rows = [];
@@ -1548,7 +1545,7 @@
             y = this._getRowTop(i);
         }
         for (; i < l; ++i) {
-			hiddenH += this._calcHeightRow(y, i);
+			this._calcHeightRow(y, i);
 			y += this._getRowHeight(i);
         }
 
@@ -1582,11 +1579,20 @@
 
     /** Обновляет позицию колонок */
     WorksheetView.prototype._updateColumnPositions = function () {
+		if (Number.MAX_VALUE === this.updateColumnsStart) {
+			return;
+		}
+
         var x = 0;
-        for (var l = this.cols.length, i = 0; i < l; ++i) {
+        for (var l = this.cols.length, i = this.updateColumnsStart; i < l; ++i) {
             this.cols[i].left = x;
             x += this.cols[i].width;
         }
+
+        if (this.objectRender) {
+			this.objectRender.updateDrawingsTransform({target: c_oTargetType.ColumnResize, col: this.updateColumnsStart});
+		}
+		this.updateColumnsStart = Number.MAX_VALUE;
     };
 
     /** Обновляет позицию строк */
@@ -4201,18 +4207,16 @@
 		//закрашиваем то, что не входит в область печати
 		var drawCurArea = function (visibleRange, offsetX, offsetY, args) {
 			var range = args[0];
-			var c = t.cols;
-			var r = t.rows;
 			var oIntersection = range.intersectionSimple(range);
 
 			if (!oIntersection) {
 				return true;
 			}
 
-			var x1 = c[oIntersection.c1].left - offsetX;
-			var x2 = c[oIntersection.c2].left + c[oIntersection.c2].width - offsetX;
-			var y1 = r[oIntersection.r1].top - offsetY;
-			var y2 = r[oIntersection.r2].top + r[oIntersection.r2].height - offsetY;
+			var x1 = t._getColLeft(oIntersection.c1) - offsetX;
+			var x2 = t._getColLeft(oIntersection.c2 + 1) - offsetX;
+			var y1 = t._getRowTop(oIntersection.r1) - offsetY;
+			var y2 = t._getRowTop(oIntersection.r2 + 1) - offsetY;
 
 			var fillColor = t.settings.cells.defaultState.border.Copy();
 			ctx.setFillStyle(fillColor).fillRect(x1, y1, x2 - x1, y2 - y1);
@@ -4222,8 +4226,6 @@
 			var range = args[0];
 			var selectionLineType = args[1];
 			var strokeColor = args[2];
-			var c = t.cols;
-			var r = t.rows;
 			var oIntersection = range.intersectionSimple(range);
 
 			if (!oIntersection) {
@@ -4249,10 +4251,10 @@
 			var drawTopSide = oIntersection.r1 === range.r1;
 			var drawBottomSide = oIntersection.r2 === range.r2;
 
-			var x1 = c[oIntersection.c1].left - offsetX;
-			var x2 = c[oIntersection.c2].left + c[oIntersection.c2].width - offsetX;
-			var y1 = r[oIntersection.r1].top - offsetY;
-			var y2 = r[oIntersection.r2].top + r[oIntersection.r2].height - offsetY;
+			var x1 = t._getColLeft(oIntersection.c1) - offsetX;
+			var x2 = t._getColLeft(oIntersection.c2 + 1) - offsetX;
+			var y1 = t._getRowTop(oIntersection.r1) - offsetY;
+			var y2 = t._getRowTop(oIntersection.r2 + 1) - offsetY;
 
 			ctx.setLineWidth(isDashLine ? 1 : 2).setStrokeStyle(strokeColor);
 
@@ -4347,18 +4349,16 @@
 		var drawCurArea = function (visibleRange, offsetX, offsetY, args) {
 			var range = args[0];
 			var ctx = t.overlayCtx;
-			var c = t.cols;
-			var r = t.rows;
 			var oIntersection = range.intersectionSimple(visibleRange);
 
 			if (!oIntersection) {
 				return true;
 			}
 
-			var x1 = c[oIntersection.c1].left - offsetX;
-			var x2 = c[oIntersection.c2].left + c[oIntersection.c2].width - offsetX;
-			var y1 = r[oIntersection.r1].top - offsetY;
-			var y2 = r[oIntersection.r2].top + r[oIntersection.r2].height - offsetY;
+			var x1 = t._getColLeft(oIntersection.c1) - offsetX;
+			var x2 = t._getColLeft(oIntersection.c2 + 1) - offsetX;
+			var y1 = t._getRowTop(oIntersection.r1) - offsetY;
+			var y2 = t._getRowTop(oIntersection.r2 + 1) - offsetY;
 
 			var fillColor = t.settings.cells.defaultState.border.Copy();
 			ctx.setFillStyle(fillColor).fillRect(x1, y1, x2 - x1, y2 - y1);
@@ -14715,13 +14715,9 @@
 			this.handlers.trigger("onDocumentPlaceChanged");
 		}
 
-		if (Number.MAX_VALUE !== this.updateColumnsStart) {
-			this._updateColumnPositions();
-			this._updateVisibleColsCount(true);
-			this._updateDrawingArea();
-			this.objectRender.updateDrawingsTransform({target: c_oTargetType.ColumnResize, col: this.updateColumnsStart});
-			this.updateColumnsStart = Number.MAX_VALUE;
-		}
+		this._updateColumnPositions();
+		this._updateVisibleColsCount(true); // ToDo check need calculate
+		this._updateDrawingArea(); // ToDo не в том месте этот вызов. Может отказаться от своих area в DO?
 
 		this._reinitializeScroll();
 	};
