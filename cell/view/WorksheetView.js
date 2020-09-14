@@ -14802,7 +14802,10 @@
 
 					t.model.autoFilters.changeAutoFilterToTablePart(styleName, ar, addFormatTableOptionsObj);
 
-					t._onUpdateFormatTable(filterRange, !!(styleName), true);
+					t._updateRange(filterRange);
+					t._autoFitColumnsWidth([new Asc.Range(filterRange.c1, filterRange.r1, filterRange.c2, filterRange.r1)]);
+					t.draw();
+
 					History.EndTransaction();
 				};
 				if(ar.containsRange(filterRange)) {
