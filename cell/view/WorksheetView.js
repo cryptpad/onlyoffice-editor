@@ -14968,7 +14968,7 @@
 							t.model.autoFilters.deleteAutoFilter(ar, tableName);
 
 							t.af_drawButtons(filterRange);
-							t._onUpdateFormatTable(filterRange, false, true);
+							t._onUpdateFormatTable(filterRange, true);
 						};
 
 						t._isLockedCells(filterRange, /*subType*/null, deleteFilterCallBack);
@@ -14989,7 +14989,7 @@
 							t.model.autoFilters.addAutoFilter(null, ar);
 							History.EndTransaction();
 
-							t._onUpdateFormatTable(filterRange, false, true);
+							t._onUpdateFormatTable(filterRange, true);
 							if (opt_callback) {
 								opt_callback(true);
 							}
@@ -15078,7 +15078,7 @@
 
             if (null !== rangeOldFilter && !t.model.workbook.bUndoChanges && !t.model.workbook.bRedoChanges) {
                 t.objectRender.bUpdateMetrics = false;
-                t._onUpdateFormatTable(rangeOldFilter, false, true, differentSheetApply);
+                t._onUpdateFormatTable(rangeOldFilter, true, differentSheetApply);
                 t.objectRender.bUpdateMetrics = true;
 				if (applyFilterProps.nOpenRowsCount !== applyFilterProps.nAllRowsCount) {
 					t.handlers.trigger('onFilterInfo', applyFilterProps.nOpenRowsCount, applyFilterProps.nAllRowsCount);
@@ -15154,7 +15154,7 @@
 
             if (updateRange && !t.model.workbook.bUndoChanges && !t.model.workbook.bRedoChanges) {
                 t.objectRender.bUpdateMetrics = false;
-                t._onUpdateFormatTable(updateRange, false, true);
+                t._onUpdateFormatTable(updateRange, true);
                 t.objectRender.bUpdateMetrics = true;
             }
 
@@ -15265,7 +15265,7 @@
 
                 if (null !== rangeOldFilter && !t.model.workbook.bUndoChanges && !t.model.workbook.bRedoChanges) {
                     t.objectRender.bUpdateMetrics = false;
-                    t._onUpdateFormatTable(rangeOldFilter, false, true);
+                    t._onUpdateFormatTable(rangeOldFilter, true);
                     t.objectRender.bUpdateMetrics = true;
                 }
                 if (null !== minChangeRow) {
@@ -15370,7 +15370,7 @@
                 t.model.autoFilters.sortColFilter(type, cellId, ar, sortProps, displayName, rgbColor);
 
 				History.EndTransaction();
-                t._onUpdateFormatTable(sortProps.sortRange.bbox, false);
+                t._onUpdateFormatTable(sortProps.sortRange.bbox);
                 t.objectRender.updateSizeDrawingObjects({target: c_oTargetType.RowResize, row: sortProps.sortRange.bbox.r1});
             };
 
@@ -15435,7 +15435,7 @@
 			AscCommonExcel.checkFilteringMode(function () {
 				var updateRange = t.model.autoFilters.isApplyAutoFilterInCell(ar, true);
 				if (false !== updateRange) {
-					t._onUpdateFormatTable(updateRange, false, true);
+					t._onUpdateFormatTable(updateRange, true);
                     t.objectRender.updateSizeDrawingObjects({target: c_oTargetType.RowResize, row: updateRange.r1});
 					t._updateSlicers(updateRange);
 				}
@@ -15466,7 +15466,7 @@
 			AscCommonExcel.checkFilteringMode(function () {
 				var updateRange = t.model.autoFilters.clearFilterColumn(cellId, displayName);
 				if (false !== updateRange) {
-					t._onUpdateFormatTable(updateRange, false, true);
+					t._onUpdateFormatTable(updateRange, true);
                     t.objectRender.updateSizeDrawingObjects({target: c_oTargetType.RowResize, row: updateRange.r1});
 					t._updateSlicers(updateRange);
 				}
@@ -15478,11 +15478,10 @@
     /**
      * Обновление при изменениях форматированной таблицы
      * @param range - обновляемый диапазон (он же диапазон для выделения
-     * @param recalc - делать ли автоподбор по названию столбца
      * @param changeRowsOrMerge - менялись ли строки (скрытие раскрытие) или был unmerge
      * @private
      */
-    WorksheetView.prototype._onUpdateFormatTable = function (range, recalc, changeRowsOrMerge, lockDraw) {
+    WorksheetView.prototype._onUpdateFormatTable = function (range, changeRowsOrMerge, lockDraw) {
 		// ToDo сделать правильное обновление при скрытии/раскрытии строк/столбцов
 		this._initCellsArea(AscCommonExcel.recalcType.full);
 		this.cache.reset();
@@ -16493,7 +16492,7 @@
                 }
 
 				History.EndTransaction();
-                t._onUpdateFormatTable(updateRange, false, true);
+                t._onUpdateFormatTable(updateRange, true);
             };
 
             lockRange = lockRange ? lockRange : t.af_getLockRangeTableInfo(tablePart, optionType, val);
@@ -16672,7 +16671,7 @@
 				if (shiftCells) {
 					t.cellCommentator.updateCommentsDependencies(true, type, arn);
 					t.objectRender.updateDrawingObject(true, type, arn);
-					t._onUpdateFormatTable(range, false, true);
+					t._onUpdateFormatTable(range, true);
 				}
 			};
 
@@ -16774,7 +16773,7 @@
 				History.EndTransaction();
                 if (res) {
                     t.objectRender.updateDrawingObject(true, type, arn);
-                    t._onUpdateFormatTable(range, false, true);
+                    t._onUpdateFormatTable(range, true);
                     t._updateSlicers(arn);
                 }
             };
@@ -16805,7 +16804,7 @@
                 t.cellCommentator.deleteCommentsRange(cleanRange.bbox);
 
 				History.EndTransaction();
-                t._onUpdateFormatTable(ref, false, true);
+                t._onUpdateFormatTable(ref, true);
             };
 
             t._isLockedCells(ref, null, callback);
@@ -17071,7 +17070,7 @@
             t.model.autoFilters.convertTableToRange(tableName);
 			History.EndTransaction();
 
-            t._onUpdateFormatTable(lockRange, false, true);
+            t._onUpdateFormatTable(lockRange, true);
         };
 
         var table = t.model.autoFilters._getFilterByDisplayName(tableName);
@@ -17117,7 +17116,7 @@
 
 			History.EndTransaction();
 			if (!doNotUpdate) {
-				t._onUpdateFormatTable(range, false, true);
+				t._onUpdateFormatTable(range, true);
 			}
 			//TODO добавить перерисовку таблицы и перерисовку шаблонов
 			if (callbackAfterChange) {
@@ -19950,7 +19949,7 @@
 				obj.SortState = sortState;
 
 				if(!obj.isAutoFilter()) {
-					t._onUpdateFormatTable(selection, false);
+					t._onUpdateFormatTable(selection);
 				}
 			} else {
 				History.Add(AscCommonExcel.g_oUndoRedoSortState, AscCH.historyitem_SortState_Add, t.model.getId(), null,
