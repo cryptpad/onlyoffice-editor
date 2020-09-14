@@ -14968,7 +14968,7 @@
 							t.model.autoFilters.deleteAutoFilter(ar, tableName);
 
 							t.af_drawButtons(filterRange);
-							t._onUpdateFormatTable(filterRange, true);
+							t._onUpdateFormatTable(filterRange);
 						};
 
 						t._isLockedCells(filterRange, /*subType*/null, deleteFilterCallBack);
@@ -14989,7 +14989,7 @@
 							t.model.autoFilters.addAutoFilter(null, ar);
 							History.EndTransaction();
 
-							t._onUpdateFormatTable(filterRange, true);
+							t._onUpdateFormatTable(filterRange);
 							if (opt_callback) {
 								opt_callback(true);
 							}
@@ -15078,7 +15078,7 @@
 
             if (null !== rangeOldFilter && !t.model.workbook.bUndoChanges && !t.model.workbook.bRedoChanges) {
                 t.objectRender.bUpdateMetrics = false;
-                t._onUpdateFormatTable(rangeOldFilter, true, differentSheetApply);
+                t._onUpdateFormatTable(rangeOldFilter, differentSheetApply);
                 t.objectRender.bUpdateMetrics = true;
 				if (applyFilterProps.nOpenRowsCount !== applyFilterProps.nAllRowsCount) {
 					t.handlers.trigger('onFilterInfo', applyFilterProps.nOpenRowsCount, applyFilterProps.nAllRowsCount);
@@ -15154,7 +15154,7 @@
 
             if (updateRange && !t.model.workbook.bUndoChanges && !t.model.workbook.bRedoChanges) {
                 t.objectRender.bUpdateMetrics = false;
-                t._onUpdateFormatTable(updateRange, true);
+                t._onUpdateFormatTable(updateRange);
                 t.objectRender.bUpdateMetrics = true;
             }
 
@@ -15265,7 +15265,7 @@
 
                 if (null !== rangeOldFilter && !t.model.workbook.bUndoChanges && !t.model.workbook.bRedoChanges) {
                     t.objectRender.bUpdateMetrics = false;
-                    t._onUpdateFormatTable(rangeOldFilter, true);
+                    t._onUpdateFormatTable(rangeOldFilter);
                     t.objectRender.bUpdateMetrics = true;
                 }
                 if (null !== minChangeRow) {
@@ -15435,7 +15435,7 @@
 			AscCommonExcel.checkFilteringMode(function () {
 				var updateRange = t.model.autoFilters.isApplyAutoFilterInCell(ar, true);
 				if (false !== updateRange) {
-					t._onUpdateFormatTable(updateRange, true);
+					t._onUpdateFormatTable(updateRange);
                     t.objectRender.updateSizeDrawingObjects({target: c_oTargetType.RowResize, row: updateRange.r1});
 					t._updateSlicers(updateRange);
 				}
@@ -15466,7 +15466,7 @@
 			AscCommonExcel.checkFilteringMode(function () {
 				var updateRange = t.model.autoFilters.clearFilterColumn(cellId, displayName);
 				if (false !== updateRange) {
-					t._onUpdateFormatTable(updateRange, true);
+					t._onUpdateFormatTable(updateRange);
                     t.objectRender.updateSizeDrawingObjects({target: c_oTargetType.RowResize, row: updateRange.r1});
 					t._updateSlicers(updateRange);
 				}
@@ -15478,10 +15478,9 @@
     /**
      * Обновление при изменениях форматированной таблицы
      * @param range - обновляемый диапазон (он же диапазон для выделения
-     * @param changeRowsOrMerge - менялись ли строки (скрытие раскрытие) или был unmerge
      * @private
      */
-    WorksheetView.prototype._onUpdateFormatTable = function (range, changeRowsOrMerge, lockDraw) {
+    WorksheetView.prototype._onUpdateFormatTable = function (range, lockDraw) {
 		// ToDo сделать правильное обновление при скрытии/раскрытии строк/столбцов
 		this._initCellsArea(AscCommonExcel.recalcType.full);
 		this.cache.reset();
@@ -16492,7 +16491,7 @@
                 }
 
 				History.EndTransaction();
-                t._onUpdateFormatTable(updateRange, true);
+                t._onUpdateFormatTable(updateRange);
             };
 
             lockRange = lockRange ? lockRange : t.af_getLockRangeTableInfo(tablePart, optionType, val);
@@ -16671,7 +16670,7 @@
 				if (shiftCells) {
 					t.cellCommentator.updateCommentsDependencies(true, type, arn);
 					t.objectRender.updateDrawingObject(true, type, arn);
-					t._onUpdateFormatTable(range, true);
+					t._onUpdateFormatTable(range);
 				}
 			};
 
@@ -16773,7 +16772,7 @@
 				History.EndTransaction();
                 if (res) {
                     t.objectRender.updateDrawingObject(true, type, arn);
-                    t._onUpdateFormatTable(range, true);
+                    t._onUpdateFormatTable(range);
                     t._updateSlicers(arn);
                 }
             };
@@ -16804,7 +16803,7 @@
                 t.cellCommentator.deleteCommentsRange(cleanRange.bbox);
 
 				History.EndTransaction();
-                t._onUpdateFormatTable(ref, true);
+                t._onUpdateFormatTable(ref);
             };
 
             t._isLockedCells(ref, null, callback);
@@ -17070,7 +17069,7 @@
             t.model.autoFilters.convertTableToRange(tableName);
 			History.EndTransaction();
 
-            t._onUpdateFormatTable(lockRange, true);
+            t._onUpdateFormatTable(lockRange);
         };
 
         var table = t.model.autoFilters._getFilterByDisplayName(tableName);
@@ -17116,7 +17115,7 @@
 
 			History.EndTransaction();
 			if (!doNotUpdate) {
-				t._onUpdateFormatTable(range, true);
+				t._onUpdateFormatTable(range);
 			}
 			//TODO добавить перерисовку таблицы и перерисовку шаблонов
 			if (callbackAfterChange) {
