@@ -15483,60 +15483,18 @@
      * @private
      */
     WorksheetView.prototype._onUpdateFormatTable = function (range, recalc, changeRowsOrMerge, lockDraw) {
-		var arrChanged;
-
-        if (!recalc) {
-            // ToDo сделать правильное обновление при скрытии/раскрытии строк/столбцов
-			this._initCellsArea(AscCommonExcel.recalcType.full);
-			this.cache.reset();
-			this._cleanCellsTextMetricsCache();
-			this._prepareCellTextMetricsCache();
-			this._updateDrawingArea();
-			arrChanged = [new asc_Range(range.c1, 0, range.c2, gc_nMaxRow0)];
-			this.model.onUpdateRanges(arrChanged);
-			this.objectRender.rebuildChartGraphicObjects(arrChanged);
-			this.scrollType |= AscCommonExcel.c_oAscScrollType.ScrollVertical | AscCommonExcel.c_oAscScrollType.ScrollHorizontal;
-			this.draw(lockDraw);
-			this._updateSelectionNameAndInfo();
-            return;
-        }
-
-        if (!this.model.selectionRange.getLast().isEqual(range)) {
-            this.setSelection(range);
-        }
-
-        // ToDo refactoring this!!!
-		this._calcHeightRows(AscCommonExcel.recalcType.newLines);
-		this._calcWidthColumns(AscCommonExcel.recalcType.newLines);
-
-        var i, r = range.r1, bIsUpdate = false;
-        // AutoFit column with by headers of table
-        for (i = range.c1; i <= range.c2; ++i) {
-            if (this._autoFitColumnWidth(i, r, r, true)) {
-                bIsUpdate = true;
-            }
-        }
-
-        if (bIsUpdate) {
-			this.draw(lockDraw);
-        } else if (changeRowsOrMerge) {
-            // Был merge, нужно обновить (ToDo)
-            this._initCellsArea(AscCommonExcel.recalcType.full);
-            this.cache.reset();
-            this._cleanCellsTextMetricsCache();
-            this._prepareCellTextMetricsCache();
-			this._updateDrawingArea();
-            arrChanged = [new asc_Range(range.c1, 0, range.c2, gc_nMaxRow0)];
-			this.model.onUpdateRanges(arrChanged);
-            this.objectRender.rebuildChartGraphicObjects(arrChanged);
-			this.scrollType |= AscCommonExcel.c_oAscScrollType.ScrollVertical | AscCommonExcel.c_oAscScrollType.ScrollHorizontal;
-            this.draw(lockDraw);
-			this._updateSelectionNameAndInfo();
-        } else {
-            // Просто отрисуем
-            this.draw(lockDraw);
-			this._updateSelectionNameAndInfo();
-        }
+		// ToDo сделать правильное обновление при скрытии/раскрытии строк/столбцов
+		this._initCellsArea(AscCommonExcel.recalcType.full);
+		this.cache.reset();
+		this._cleanCellsTextMetricsCache();
+		this._prepareCellTextMetricsCache();
+		this._updateDrawingArea();
+		var arrChanged = [new asc_Range(range.c1, 0, range.c2, gc_nMaxRow0)];
+		this.model.onUpdateRanges(arrChanged);
+		this.objectRender.rebuildChartGraphicObjects(arrChanged);
+		this.scrollType |= AscCommonExcel.c_oAscScrollType.ScrollVertical | AscCommonExcel.c_oAscScrollType.ScrollHorizontal;
+		this.draw(lockDraw);
+		this._updateSelectionNameAndInfo();
     };
 
     WorksheetView.prototype._loadFonts = function (fonts, callback) {
