@@ -1838,7 +1838,7 @@ function (window, undefined) {
 			AscCommonExcel.executeInR1C1Mode(false, function () {
 				range = AscCommonExcel.g_oRangeCache.getAscRange(curCellId).clone();
 			});
-			var nRow = collaborativeEditing.getLockOtherRow2(nSheetId, range.r1);
+			var nRow = collaborativeEditing.getLockMeRow2(nSheetId, range.r1);
 			var nCol = collaborativeEditing.getLockMeColumn2(nSheetId, range.c1);
 
 			this.autoFiltersObject.cellId = new AscCommon.CellBase(nRow, nCol).getName();
@@ -3104,7 +3104,7 @@ function (window, undefined) {
 						});
 						var nRow = collaborativeEditing.getLockOtherRow2(nSheetId, range.r1);
 						var nCol = collaborativeEditing.getLockOtherColumn2(nSheetId, range.c1);
-						if (nCol !== range.c1) {
+						if (nCol !== range.c1 || nRow !== range.r1) {
 							Data.autoFiltersObject.cellId = new AscCommon.CellBase(nRow, nCol).getName();
 						}
 					}
