@@ -1234,7 +1234,21 @@ function _HEXTORGB_( colorHEX ) {
 
 	ScrollObject.prototype._doAnimation = function (lastAnimState) {
 		var that = this, hoverColor = that.settings.hoverColor,
-			defaultColor = that.settings.defaultColor, activeColor = that.settings.activeColor;
+			defaultColor = that.settings.defaultColor, activeColor = that.settings.activeColor, secondArrow;
+		switch(that.arrowState) {
+			case ArrowType.ARROW_TOP:
+				secondArrow = ArrowType.ARROW_BOTTOM;
+				break;
+			case ArrowType.ARROW_BOTTOM:
+				secondArrow = ArrowType.ARROW_TOP;
+				break;
+			case ArrowType.ARROW_LEFT:
+				secondArrow = ArrowType.ARROW_RIGHT;
+				break;
+			case ArrowType.ARROW_RIGHT:
+				secondArrow = ArrowType.ARROW_LEFT;
+				break;
+		}
 
 		//current and previous scroll state
 		if (that.animState === AnimationType.NONE && lastAnimState === AnimationType.NONE) {
@@ -1243,6 +1257,7 @@ function _HEXTORGB_( colorHEX ) {
 			that._animateArrow(false, that.arrowState);
 			that._animateScroll(true);
 		} else if (that.animState === AnimationType.ARROW_HOVER && lastAnimState === AnimationType.NONE) {
+			that._animateArrow(false, secondArrow);
 			that._animateArrow(true, that.arrowState);
 			that._animateScroll(true);
 		} else if (that.animState === AnimationType.SCROLL_HOVER && lastAnimState === AnimationType.NONE) {
@@ -1261,6 +1276,7 @@ function _HEXTORGB_( colorHEX ) {
 			that._animateArrow(false, that.arrowState);
 			that._animateScroll(false);
 		} else if (that.animState === AnimationType.ARROW_HOVER && lastAnimState === AnimationType.SCROLL_HOVER) {
+			that._animateArrow(false, secondArrow);
 			that._animateArrow(true, that.arrowState);
 			that._animateScroll(true);
 		} else if (this.animState === AnimationType.SCROLL_HOVER && lastAnimState === AnimationType.SCROLL_ACTIVE) {
@@ -1275,7 +1291,7 @@ function _HEXTORGB_( colorHEX ) {
 		} else if (this.animState === AnimationType.ARROW_HOVER && lastAnimState === AnimationType.ARROW_ACTIVE) {
 			//if different arrows
 			if (this.lastArrowState && this.lastArrowState !== this.arrowState) {
-				that._animateArrow(undefined, that.lastArrowState, defaultColor);
+				that._animateArrow(undefined, secondArrow, defaultColor);
 				that._animateArrow(true, that.arrowState);
 				that._animateScroll(true);
 			} else {
@@ -1286,6 +1302,7 @@ function _HEXTORGB_( colorHEX ) {
 			that._animateArrow(undefined, that.arrowState, defaultColor);
 			that._animateScroll(false);
 		} else if (this.animState === AnimationType.ARROW_HOVER && lastAnimState === AnimationType.SCROLL_ACTIVE) {
+			that._animateArrow(false, secondArrow);
 			that._animateArrow(true, that.arrowState);
 
 			if (that.mouseUp && !that.mouseDown) {
@@ -1418,7 +1435,6 @@ function _HEXTORGB_( colorHEX ) {
 					that.scrollByY( that.settings.vscrollStep );
 				else if ( that.settings.isHorizontalScroll )
 					that.scrollByX( that.settings.hscrollStep );
-				that._draw();
 
 				if(that.mouseDownArrow)
 				scrollTimeout = setTimeout( doScroll, isFirst ? that.settings.initialDelay : that.settings.arrowRepeatFreq );
@@ -1437,7 +1453,6 @@ function _HEXTORGB_( colorHEX ) {
 					that.scrollByY( -that.settings.vscrollStep );
 				else if ( that.settings.isHorizontalScroll )
 					that.scrollByX( -that.settings.hscrollStep );
-                that._draw();
 
                 if(that.mouseDownArrow)
 				scrollTimeout = setTimeout( doScroll, isFirst ? that.settings.initialDelay : that.settings.arrowRepeatFreq );
@@ -1486,10 +1501,7 @@ function _HEXTORGB_( colorHEX ) {
 
 		//arrow pressed
 		if (this.that.settings.showArrows && this.that.mouseDownArrow) {
-		    if(arrowHover !== this.that.arrowState && arrowHover) {
-		        this.that.lastArrowState = this.that.arrowState;
-                this.that.arrowState = arrowHover;
-            } else if (arrowHover) {
+		    if (arrowHover && arrowHover === this.that.arrowState) {
 				this.that.arrowState = arrowHover;
 			}
             this.that.animState = AnimationType.ARROW_ACTIVE;
@@ -1658,6 +1670,8 @@ function _HEXTORGB_( colorHEX ) {
 			}
 		} else {
 			if(arrowHover) {
+				this.that.lastArrowState = this.that.arrowState;
+				this.that.arrowState = arrowHover;
 				this.that.animState = AnimationType.ARROW_HOVER;
 			} else {
 				this.that.animState = AnimationType.SCROLL_HOVER;
@@ -1698,6 +1712,7 @@ function _HEXTORGB_( colorHEX ) {
 			} else if (arrowHover === ArrowType.ARROW_BOTTOM || arrowHover === ArrowType.ARROW_RIGHT) {
 				this.that._arrowDownMouseDown();
 			}
+			this.that._draw();
 		} else {
 			this.that.mouseDown = true;
 			this.that.mouseUp = false;
