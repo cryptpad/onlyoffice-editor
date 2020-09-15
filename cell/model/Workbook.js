@@ -6805,7 +6805,7 @@
 		}
 		var t = this;
 		var multiplyRange = new AscCommonExcel.MultiplyRange([]);
-		if(changed.oldRanges){
+		if (changed.oldRanges) {
 			multiplyRange.union2(new AscCommonExcel.MultiplyRange(changed.oldRanges));
 		}
 		pivotTable.init();
@@ -6816,10 +6816,10 @@
 			});
 			this._updatePivotTableCells(pivotTable, dataRow);
 		}
-		multiplyRange.union2(new AscCommonExcel.MultiplyRange(pivotTable.getReportRanges()));
-		var unionRange = multiplyRange.getUnionRange();
-		this.updatePivotTablesStyle(unionRange, true);
-		return unionRange;
+		var res = pivotTable.getReportRanges();
+		multiplyRange.union2(new AscCommonExcel.MultiplyRange(res));
+		this.updatePivotTablesStyle(multiplyRange.getUnionRange(), true);
+		return res;
 	};
 	Worksheet.prototype.clearPivotTableCell = function (pivotTable) {
 		var ranges = pivotTable.getReportRanges();
