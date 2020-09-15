@@ -13707,11 +13707,11 @@
 		}
 	};
 
-    WorksheetView.prototype._autoFitColumnWidth = function (col, r1, r2, onlyIfMore) {
+    WorksheetView.prototype._autoFitColumnWidth = function (col, r1, r2, onlyIfMore, pivotButtons) {
         var width = null;
         var row, ct, c, fl, str, maxW, tm, mc, isMerged, oldWidth, oldColWidth;
         var lastHeight = null;
-        var filterButton = null;
+        var hasButton;
         if (null == r1) {
             r1 = 0;
         }
@@ -13770,9 +13770,11 @@
 				calcWidth = Math.abs(tm.width * angleCos) + Math.abs(ct.metrics.height * angleSin);
             } else {
 				calcWidth = Math.abs(ct.metrics.width * angleCos) +  Math.abs(ct.metrics.height * angleSin);
-                filterButton = this.af_getSizeButton(col, row);
-				if (null !== filterButton && CellValueType.String === ct.cellType) {
-					calcWidth += filterButton.width;
+				hasButton = this._checkFilterButtonInRange(col, row) || pivotButtons.find(function (element) {
+					return element.row === row && element.col === col;
+				});
+				if (null !== hasButton && CellValueType.String === ct.cellType) {
+					calcWidth += this._getFilterButtonSize();
 				}
             }
 			width = Math.max(width, calcWidth);
@@ -13821,8 +13823,11 @@
 			range = ranges[i];
 			c1 = range.c1;
 			c2 = Math.min(range.c2, max);
+
+			var pivotButtons = this.model.getPivotTableButtons(range);
+
 			for (; c1 <= c2; ++c1) {
-				this._autoFitColumnWidth(c1, range.r1, range.r2, onlyIfMore);
+				this._autoFitColumnWidth(c1, range.r1, range.r2, onlyIfMore, pivotButtons);
 			}
 		}
 	};
@@ -16135,41 +16140,19 @@
 		return autoFilterObject;
 	};
 
-    WorksheetView.prototype.af_getSizeButton = function (c, r) {
-        var wsModel = this.model;
-        var result = null;
+    WorksheetView.prototype._checkFilterButtonInRange = function (c, r) {
+		//TODO добавить проверку на isHidden у кнопки
+		if (this.model.TableParts) {
+			var tablePart;
+			for (var i = 0; i < this.model.TableParts.length; i++) {
+				tablePart = this.model.TableParts[i];
+				if (tablePart.Ref.contains(c, r) && tablePart.Ref.r1 === r) {
+					return true;
+				}
+			}
+		}
 
-        var isCellContainsAutoFilterButton = function (col, row) {
-            if (wsModel.TableParts) {
-                var tablePart;
-                for (var i = 0; i < wsModel.TableParts.length; i++) {
-                    tablePart = wsModel.TableParts[i];
-                    //TODO добавить проверку на isHidden у кнопки
-                    if (tablePart.Ref.contains(col, row) && tablePart.Ref.r1 === row) {
-                        return true;
-                    }
-                }
-            }
-
-            //TODO добавить проверку на isHidden у кнопки
-			return wsModel.AutoFilter && wsModel.AutoFilter.Ref.contains(col, row) && wsModel.AutoFilter.Ref.r1 === row;
-        };
-
-        if (isCellContainsAutoFilterButton(c, r)) {
-			var width, height;
-			width = height = this._getFilterButtonSize();
-            var rowHeight = this._getRowHeight(r);
-            var index = 1;
-            if (rowHeight < height) {
-                index = rowHeight / height;
-                width = width * index;
-                height = rowHeight;
-            }
-
-            result = {width: width, height: height};
-        }
-
-        return result;
+		return this.model.AutoFilter && this.model.AutoFilter.Ref.contains(c, r) && this.model.AutoFilter.Ref.r1 === r;
     };
 
     WorksheetView.prototype.af_setDialogProp = function (filterProp, isReturnProps) {

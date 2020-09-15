@@ -4461,7 +4461,6 @@ var editor;
     };
 
 	spreadsheet_api.prototype._changePivotSimple = function(pivot, isInsert, needUpdateView, callback) {
-		var t = this;
 		var wsModel = pivot.GetWS();
 		var ws = this.wb.getWorksheet(wsModel.getIndex());
 		if (isInsert) {
@@ -4490,10 +4489,16 @@ var editor;
 		});
 	};
 	spreadsheet_api.prototype._updatePivotTable = function(pivot, changed, wsModel, ws, dataRow, needUpdateView) {
-		var unionRange = wsModel.updatePivotTable(pivot, changed, dataRow);
-		if (unionRange && needUpdateView) {
-			// ToDo update ranges, not big range
-			ws._onUpdateFormatTable(unionRange);
+		var ranges = wsModel.updatePivotTable(pivot, changed, dataRow);
+		if (needUpdateView) {
+			if (changed.oldRanges) {
+				ws.updateRanges(changed.oldRanges);
+			}
+			if (ranges) {
+				ws.updateRanges(ranges);
+				ws._autoFitColumnsWidth(ranges);
+            }
+			ws.draw();
 		}
 	};
 	spreadsheet_api.prototype.asc_getAddPivotTableOptions = function(range) {
