@@ -47,6 +47,13 @@ function CParagraphSearchElement(StartPos, EndPos, Type, Id)
     this.ClassesS = [];
     this.ClassesE = [];
 }
+CParagraphSearchElement.prototype.RegisterClass = function(isStart, oClass)
+{
+	if (isStart)
+		this.ClassesS.push(oClass);
+	else
+		this.ClassesE.push(oClass);
+};
 
 //----------------------------------------------------------------------------------------------------------------------
 // CDocumentSearch
@@ -57,9 +64,11 @@ function CDocumentSearch()
     this.Text          = "";
     this.MatchCase     = false;
 
+    this.Prefix        = [];
+
     this.Id            = 0;
     this.Count         = 0;
-    this.Elements      = [];
+    this.Elements      = {};
     this.CurId         = -1;
     this.Direction     = true; // направление true - вперед, false - назад
     this.ClearOnRecalc = true; // Флаг, говорящий о том, запустился ли пересчет из-за Replace
@@ -69,12 +78,6 @@ function CDocumentSearch()
 
 CDocumentSearch.prototype =
 {
-    Set : function(Text, Props)
-    {
-        this.Text      = Text;
-        this.MatchCase = Props.MatchCase;
-    },
-
     Reset : function()
     {
         this.Text          = "";
@@ -249,6 +252,13 @@ CDocumentSearch.prototype =
         this.Direction = bDirection;
     }
 };
+CDocumentSearch.prototype.Set = function(sText, oProps)
+{
+	this.Text      = sText;
+	this.MatchCase = oProps ? oProps.MatchCase : false;
+
+	this.private_CalculatePrefix();
+};
 CDocumentSearch.prototype.SetFootnotes = function(arrFootnotes)
 {
 	this.Footnotes = arrFootnotes;
@@ -264,6 +274,29 @@ CDocumentSearch.prototype.GetDirection = function()
 CDocumentSearch.prototype.SetDirection = function(bDirection)
 {
 	this.Direction = bDirection;
+};
+CDocumentSearch.prototype.private_CalculatePrefix = function()
+{
+	var nLen = this.Text.length;
+
+	this.Prefix    = new Int32Array(nLen);
+	this.Prefix[0] = 0;
+
+	for (var nPos = 1, nK = 0; nPos < nLen; ++nPos)
+	{
+		nK = this.Prefix[nPos - 1]
+		while (nK > 0 && this.Text[nPos] !== this.Text[nK])
+			nK = this.Prefix[nK - 1];
+
+		if (this.Text[nPos] === this.Text[nK])
+			nK++;
+
+		this.Prefix[nPos] = nK;
+	}
+};
+CDocumentSearch.prototype.GetPrefix = function(nIndex)
+{
+	return this.Prefix[nIndex];
 };
 //----------------------------------------------------------------------------------------------------------------------
 // CDocument
@@ -573,14 +606,12 @@ CDocument.prototype.private_GetSearchIdInFootnotes = function(isCurrent)
 //----------------------------------------------------------------------------------------------------------------------
 // CDocumentContent
 //----------------------------------------------------------------------------------------------------------------------
-CDocumentContent.prototype.Search = function(Str, Props, SearchEngine, Type)
+CDocumentContent.prototype.Search = function(sStr, oProps, oSearchEngine, nType)
 {
-    // Поиск в основном документе
-    var Count = this.Content.length;
-    for ( var Index = 0; Index < Count; Index++ )
-    {
-        this.Content[Index].Search( Str, Props, SearchEngine, Type );
-    }
+	for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
+	{
+		this.Content[nPos].Search(sStr, oProps, oSearchEngine, nType);
+	}
 };
 
 CDocumentContent.prototype.Search_GetId = function(bNext, bCurrent)
@@ -678,9 +709,9 @@ CDocumentContent.prototype.Search_GetId = function(bNext, bCurrent)
 //----------------------------------------------------------------------------------------------------------------------
 // CHeaderFooter
 //----------------------------------------------------------------------------------------------------------------------
-CHeaderFooter.prototype.Search = function(Str, Props, SearchEngine, Type)
+CHeaderFooter.prototype.Search = function(sStr, oProps, oSearchEngine, nType)
 {
-    this.Content.Search( Str, Props, SearchEngine, Type );
+	this.Content.Search(sStr, oProps, oSearchEngine, nType);
 };
 
 CHeaderFooter.prototype.Search_GetId = function(bNext, bCurrent)
@@ -691,33 +722,32 @@ CHeaderFooter.prototype.Search_GetId = function(bNext, bCurrent)
 //----------------------------------------------------------------------------------------------------------------------
 // CDocumentSectionsInfo
 //----------------------------------------------------------------------------------------------------------------------
-CDocumentSectionsInfo.prototype.Search = function(Str, Props, SearchEngine)
+CDocumentSectionsInfo.prototype.Search = function(sStr, oProps, oSearchEngine)
 {
-    var bEvenOdd = EvenAndOddHeaders;
-    var Count = this.Elements.length;
-    for ( var Index = 0; Index < Count; Index++ )
-    {
-        var SectPr = this.Elements[Index].SectPr;
-        var bFirst = SectPr.Get_TitlePage();
-        
-        if ( null != SectPr.HeaderFirst && true === bFirst )
-            SectPr.HeaderFirst.Search( Str, Props, SearchEngine, search_Header );
+	var bEvenOdd = EvenAndOddHeaders;
+	for (var nIndex = 0, nCount = this.Elements.length; nIndex < nCount; ++nIndex)
+	{
+		var oSectPr = this.Elements[nIndex].SectPr;
+		var bFirst  = oSectPr.Get_TitlePage();
 
-        if ( null != SectPr.HeaderEven && true === bEvenOdd )
-            SectPr.HeaderEven.Search( Str, Props, SearchEngine, search_Header );
+		if (oSectPr.HeaderFirst && true === bFirst)
+			oSectPr.HeaderFirst.Search(sStr, oProps, oSearchEngine, search_Header);
 
-        if ( null != SectPr.HeaderDefault )
-            SectPr.HeaderDefault.Search( Str, Props, SearchEngine, search_Header );
+		if (oSectPr.HeaderEven && true === bEvenOdd)
+			oSectPr.HeaderEven.Search(sStr, oProps, oSearchEngine, search_Header);
 
-        if ( null != SectPr.FooterFirst && true === bFirst )
-            SectPr.FooterFirst.Search( Str, Props, SearchEngine, search_Footer );
+		if (oSectPr.HeaderDefault)
+			oSectPr.HeaderDefault.Search(sStr, oProps, oSearchEngine, search_Header);
 
-        if ( null != SectPr.FooterEven && true === bEvenOdd )
-            SectPr.FooterEven.Search( Str, Props, SearchEngine, search_Footer );
+		if (oSectPr.FooterFirst && true === bFirst)
+			oSectPr.FooterFirst.Search(sStr, oProps, oSearchEngine, search_Footer);
 
-        if ( null != SectPr.FooterDefault )
-            SectPr.FooterDefault.Search( Str, Props, SearchEngine, search_Footer );                
-    }            
+		if (oSectPr.FooterEven && true === bEvenOdd)
+			oSectPr.FooterEven.Search(sStr, oProps, oSearchEngine, search_Footer);
+
+		if (oSectPr.FooterDefault)
+			oSectPr.FooterDefault.Search(sStr, oProps, oSearchEngine, search_Footer);
+	}
 };
 
 CDocumentSectionsInfo.prototype.Search_GetId = function(bNext, CurHdrFtr)
@@ -825,18 +855,16 @@ CDocumentSectionsInfo.prototype.Search_GetId = function(bNext, CurHdrFtr)
 //----------------------------------------------------------------------------------------------------------------------
 // CTable
 //----------------------------------------------------------------------------------------------------------------------
-CTable.prototype.Search = function(Str, Props, SearchEngine, Type)
+CTable.prototype.Search = function(sStr, oProps, oSearchEngine, nType)
 {
-    for ( var CurRow = 0; CurRow < this.Content.length; CurRow++ )
-    {
-        var Row = this.Content[CurRow];
-        var CellsCount = Row.Get_CellsCount();
-
-        for ( var CurCell = 0; CurCell < CellsCount; CurCell++ )
-        {
-            Row.Get_Cell( CurCell ).Content.Search( Str, Props, SearchEngine, Type );
-        }
-    }
+	for (var nCurRow = 0, nRowsCount = this.GetRowsCount(); nCurRow < nRowsCount; ++nCurRow)
+	{
+		var oRow = this.GetRow(nCurRow);
+		for (var nCurCell = 0, nCellsCount = oRow.GetCellsCount(); nCurCell < nCellsCount; ++nCurCell)
+		{
+			oRow.GetCell(nCurCell).GetContent().Search(sStr, oProps, oSearchEngine, nType);
+		}
+	}
 };
 
 CTable.prototype.Search_GetId = function(bNext, bCurrent)
@@ -938,19 +966,18 @@ CTable.prototype.Search_GetId = function(bNext, bCurrent)
 //----------------------------------------------------------------------------------------------------------------------
 // Paragraph
 //----------------------------------------------------------------------------------------------------------------------
-Paragraph.prototype.Search = function(Str, Props, SearchEngine, Type)
+Paragraph.prototype.Search = function(sStr, oProps, oSearchEngine, nType)
 {
-    var bMatchCase = Props.MatchCase;
-    var ParaSearch = new CParagraphSearch(this, Str, Props, SearchEngine, Type);
-    var ContentLen = this.Content.length;
-    for ( var CurPos = 0; CurPos < ContentLen; CurPos++ )
-    {
-        var Element = this.Content[CurPos];
+	var oParaSearch = new CParagraphSearch(this, sStr, oProps, oSearchEngine, nType);
+	for (var nPos = 0, nContentLen = this.Content.length; nPos < nContentLen; ++nPos)
+	{
+		this.Content[nPos].Search(oParaSearch);
+	}
 
-        ParaSearch.ContentPos.Update( CurPos, 0 );
+    return;
 
-        Element.Search( ParaSearch, 1 );
-    }
+    // TODO: Здесь расчитываем окружающий текст, надо перенести в отдельную функцию, которая будет вызываться
+	//       из интерфейса, когда сделают панель для поиска
 
     var MaxShowValue = 100;
     for ( var FoundId in this.SearchResults )
@@ -959,7 +986,7 @@ Paragraph.prototype.Search = function(Str, Props, SearchEngine, Type)
         var EndPos   = this.SearchResults[FoundId].EndPos;
         var ResultStr = new String();
 
-        var _Str = Str;
+        var _Str = sStr;
 
         // Теперь мы должны сформировать строку
         if ( _Str.length >= MaxShowValue )
@@ -1095,17 +1122,18 @@ Paragraph.prototype.Search_GetId = function(bNext, bCurrent)
     return null;
 };
 
-Paragraph.prototype.Add_SearchResult = function(Id, StartContentPos, EndContentPos, Type)
+Paragraph.prototype.AddSearchResult = function(nId, oStartPos, oEndPos, nType)
 {
-    var SearchResult = new CParagraphSearchElement( StartContentPos, EndContentPos, Type, Id );
+	if (!oStartPos || !oEndPos)
+		return;
 
-    this.SearchResults[Id] = SearchResult;
+	var oSearchResult = new CParagraphSearchElement(oStartPos, oEndPos, nType, nId);
+	this.SearchResults[nId] = oSearchResult;
+	oSearchResult.RegisterClass(true, this);
+	oSearchResult.RegisterClass(false, this);
 
-    SearchResult.ClassesS.push( this );
-    SearchResult.ClassesE.push( this );
-
-    this.Content[StartContentPos.Get(0)].Add_SearchResult( SearchResult, true, StartContentPos, 1 );
-    this.Content[EndContentPos.Get(0)].Add_SearchResult( SearchResult, false, EndContentPos, 1 );
+	this.Content[oStartPos.Get(0)].AddSearchResult(oSearchResult, true, oStartPos, 1);
+	this.Content[oEndPos.Get(0)].AddSearchResult(oSearchResult, false, oEndPos, 1);
 };
 
 Paragraph.prototype.Clear_SearchResults = function()
@@ -1154,69 +1182,73 @@ Paragraph.prototype.Remove_SearchResult = function(Id)
 //----------------------------------------------------------------------------------------------------------------------
 // ParaRun
 //----------------------------------------------------------------------------------------------------------------------
-ParaRun.prototype.Search = function(ParaSearch, Depth)
+ParaRun.prototype.Search = function(ParaSearch)
 {
-    this.SearchMarks = [];
+	this.SearchMarks = [];
 
-    var Para         = ParaSearch.Paragraph;
-    var Str          = ParaSearch.Str;
-    var Props        = ParaSearch.Props;
-    var SearchEngine = ParaSearch.SearchEngine;
-    var Type         = ParaSearch.Type;
+	var Para         = ParaSearch.Paragraph;
+	var Str          = ParaSearch.Str;
+	var Props        = ParaSearch.Props;
+	var SearchEngine = ParaSearch.SearchEngine;
+	var Type         = ParaSearch.Type;
 
-    var MatchCase    = Props.MatchCase;
+	for (var nPos = 0, nContentLen = this.Content.length; nPos < nContentLen; ++nPos)
+	{
+		var oItem = this.Content[nPos];
 
-    var ContentLen = this.Content.length;
+		if (para_Drawing === oItem.Type)
+		{
+			oItem.Search(Str, Props, SearchEngine, Type);
+			ParaSearch.Reset();
+		}
 
-    for ( var Pos = 0; Pos < ContentLen; Pos++ )
-    {
-        var Item = this.Content[Pos];
+		while (ParaSearch.SearchIndex > 0 && !ParaSearch.Check(ParaSearch.SearchIndex, oItem))
+		{
+			ParaSearch.SearchIndex = ParaSearch.GetPrefix(ParaSearch.SearchIndex - 1);
 
-        if ( para_Drawing === Item.Type )
-        {
-            Item.Search( Str, Props, SearchEngine, Type );
-            ParaSearch.Reset();
-        }
+			if (0 === ParaSearch.SearchIndex)
+			{
+				ParaSearch.Reset();
+				break;
+			}
+			else if (ParaSearch.Check(ParaSearch.SearchIndex, oItem))
+			{
+				ParaSearch.StartPos = ParaSearch.StartPosBuf.pop();
+				break;
+			}
+		}
 
-        if ( (" " === Str[ParaSearch.SearchIndex] && para_Space === Item.Type)|| (para_Math_Text == Item.Type && Item.value === Str.charCodeAt(ParaSearch.SearchIndex)) || ( para_Text === Item.Type && (  ( true != MatchCase && (String.fromCharCode(Item.Value)).toLowerCase() === Str[ParaSearch.SearchIndex].toLowerCase() ) || ( true === MatchCase && Item.Value === Str.charCodeAt(ParaSearch.SearchIndex) ) ) ) )
-        {
-            if ( 0 === ParaSearch.SearchIndex )
-            {
-                var StartContentPos = ParaSearch.ContentPos.Copy();
-                StartContentPos.Update( Pos, Depth );
-                ParaSearch.StartPos = StartContentPos;
-            }
+		if (ParaSearch.Check(ParaSearch.SearchIndex, oItem))
+		{
+			if (0 === ParaSearch.SearchIndex)
+				ParaSearch.StartPos = {Run : this, Pos : nPos};
 
-            ParaSearch.SearchIndex++;
+			if (1 === ParaSearch.GetPrefix(ParaSearch.SearchIndex))
+				ParaSearch.StartPosBuf.push({Run : this, Pos : nPos});
 
-            if ( ParaSearch.SearchIndex === Str.length )
-            {
-                var EndContentPos = ParaSearch.ContentPos.Copy();
-                EndContentPos.Update( Pos + 1, Depth );
+			ParaSearch.SearchIndex++;
 
-                var Id = SearchEngine.Add( Para );
-                Para.Add_SearchResult( Id, ParaSearch.StartPos, EndContentPos, Type );
+			if (ParaSearch.SearchIndex === Str.length)
+			{
+				if (ParaSearch.StartPos)
+				{
+					Para.AddSearchResult(
+						SearchEngine.Add(Para),
+						ParaSearch.StartPos.Run.GetParagraphContentPosFromObject(ParaSearch.StartPos.Pos),
+						this.GetParagraphContentPosFromObject(nPos + 1),
+						Type
+					);
+				}
 
-                // Обнуляем поиск
-                ParaSearch.Reset();
-            }
-        }
-        else if ( 0 !== ParaSearch.SearchIndex )
-        {
-            // Обнуляем поиск
-            ParaSearch.Reset();
-        }
-    }
+				ParaSearch.Reset();
+			}
+		}
+	}
 };
-
-ParaRun.prototype.Add_SearchResult = function(SearchResult, Start, ContentPos, Depth)
+ParaRun.prototype.AddSearchResult = function(oSearchResult, isStart, oContentPos, nDepth)
 {
-    if ( true === Start )
-        SearchResult.ClassesS.push( this );
-    else
-        SearchResult.ClassesE.push( this );
-
-    this.SearchMarks.push( new CParagraphSearchMark( SearchResult, Start, Depth ) );
+	oSearchResult.RegisterClass(isStart, this);
+	this.SearchMarks.push(new CParagraphSearchMark(oSearchResult, isStart, nDepth));
 };
 
 ParaRun.prototype.Clear_SearchResults = function()
@@ -1325,20 +1357,13 @@ ParaRun.prototype.Search_GetId = function(bNext, bUseContentPos, ContentPos, Dep
 //----------------------------------------------------------------------------------------------------------------------
 // ParaMath
 //----------------------------------------------------------------------------------------------------------------------
-ParaMath.prototype.Search = function(ParaSearch, Depth)
+ParaMath.prototype.Search = function(oParaSearch)
 {
-    // Обнуляем поиск
-    //ParaSearch.Reset();
-
-    this.SearchMarks = [];
-    this.Root.Search(ParaSearch, Depth);
-
-
+	this.Root.Search(oParaSearch);
 };
-
-ParaMath.prototype.Add_SearchResult = function(SearchResult, Start, ContentPos, Depth)
+ParaMath.prototype.AddSearchResult = function(SearchResult, Start, ContentPos, Depth)
 {
-    this.Root.Add_SearchResult(SearchResult, Start, ContentPos, Depth);
+	this.Root.AddSearchResult(SearchResult, Start, ContentPos, Depth);
 };
 
 ParaMath.prototype.Clear_SearchResults = function()
@@ -1359,9 +1384,9 @@ ParaMath.prototype.Search_GetId = function(bNext, bUseContentPos, ContentPos, De
 //----------------------------------------------------------------------------------------------------------------------
 // CBLockLevelSdt
 //----------------------------------------------------------------------------------------------------------------------
-CBlockLevelSdt.prototype.Search = function(Str, Props, SearchEngine, Type)
+CBlockLevelSdt.prototype.Search = function(sStr, oProps, oSearchEngine, nType)
 {
-	this.Content.Search(Str, Props, SearchEngine, Type);
+	this.Content.Search(sStr, oProps, oSearchEngine, nType);
 };
 CBlockLevelSdt.prototype.Search_GetId = function(bNext, bCurrent)
 {
@@ -1383,15 +1408,27 @@ function CParagraphSearch(Paragraph, Str, Props, SearchEngine, Type)
 
     this.StartPos     = null; // Запоминаем здесь стартовую позицию поиска
     this.SearchIndex  = 0;    // Номер символа, с которым мы проверяем совпадение
+	this.StartPosBuf  = [];
 }
 
-CParagraphSearch.prototype =
+CParagraphSearch.prototype.Reset = function()
 {
-    Reset : function()
-    {
-        this.StartPos    = null;
-        this.SearchIndex = 0;
-    }
+	this.StartPos    = null;
+	this.SearchIndex = 0;
+	this.StartPosBuf = [];
+};
+CParagraphSearch.prototype.Check = function(nIndex, oItem)
+{
+	var nItemType = oItem.Type;
+	return ((para_Space === nItemType && " " === this.Str[nIndex])
+		|| (para_Math_Text === nItemType && oItem.value === this.Str.charCodeAt(nIndex))
+		|| (para_Text === nItemType
+			&& ((true !== this.Props.MatchCase && (String.fromCharCode(oItem.Value)).toLowerCase() === this.Str[nIndex].toLowerCase())
+				|| (true === this.Props.MatchCase && oItem.Value === this.Str.charCodeAt(nIndex)))));
+};
+CParagraphSearch.prototype.GetPrefix = function(nIndex)
+{
+	return this.SearchEngine.GetPrefix(nIndex);
 };
 
 function CParagraphSearchMark(SearchResult, Start, Depth)

@@ -640,12 +640,11 @@ CParagraphContentBase.prototype.ApplyTextPr = function(oTextPr, isIncFontSize, i
 /**
  * Функция для поиска внутри элементов параграфа
  * @param {CParagraphSearch} oParaSearch
- * @param {number} nDepth
  */
-CParagraphContentBase.prototype.Search = function(oParaSearch, nDepth)
+CParagraphContentBase.prototype.Search = function(oParaSearch)
 {
 };
-CParagraphContentBase.prototype.Add_SearchResult = function(SearchResult, Start, ContentPos, Depth)
+CParagraphContentBase.prototype.AddSearchResult = function(oSearchResult, isStart, oContentPos, nDepth)
 {
 };
 CParagraphContentBase.prototype.Clear_SearchResults = function()
@@ -3606,30 +3605,19 @@ CParagraphContentWithParagraphLikeContent.prototype.Clear_SpellingMarks = functi
 //----------------------------------------------------------------------------------------------------------------------
 // Search and Replace
 //----------------------------------------------------------------------------------------------------------------------
-CParagraphContentWithParagraphLikeContent.prototype.Search = function(ParaSearch, Depth)
+CParagraphContentWithParagraphLikeContent.prototype.Search = function(oParaSearch)
 {
-    this.SearchMarks = [];
-
-    var ContentLen = this.Content.length;
-    for ( var CurPos = 0; CurPos < ContentLen; CurPos++ )
-    {
-        var Element = this.Content[CurPos];
-
-        ParaSearch.ContentPos.Update( CurPos, Depth );
-
-        Element.Search( ParaSearch, Depth + 1 );
-    }
+	this.SearchMarks = [];
+	for (var nPos = 0, nContentLen = this.Content.length; nPos < nContentLen; ++nPos)
+	{
+		this.Content[nPos].Search(oParaSearch);
+	}
 };
-CParagraphContentWithParagraphLikeContent.prototype.Add_SearchResult = function(SearchResult, Start, ContentPos, Depth)
+CParagraphContentWithParagraphLikeContent.prototype.AddSearchResult = function(oSearchResult, isStart, oContentPos, nDepth)
 {
-    if ( true === Start )
-        SearchResult.ClassesS.push( this );
-    else
-        SearchResult.ClassesE.push( this );
-
-    this.SearchMarks.push( new CParagraphSearchMark( SearchResult, Start, Depth ) );
-
-    this.Content[ContentPos.Get(Depth)].Add_SearchResult( SearchResult, Start, ContentPos, Depth + 1 );
+	oSearchResult.RegisterClass(isStart, this);
+	this.SearchMarks.push(new CParagraphSearchMark(oSearchResult, isStart, Depth));
+	this.Content[oContentPos.Get(Depth)].AddSearchResult(oSearchResult, isStart, oContentPos, nDepth + 1);
 };
 CParagraphContentWithParagraphLikeContent.prototype.Clear_SearchResults = function()
 {
