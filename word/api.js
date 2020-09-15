@@ -1274,7 +1274,7 @@ background-repeat: no-repeat;\
 	{
 		// ActionType, Key, Ctrl, Shift, Alt
 		this.initShortcuts([
-			[c_oAscDocumentShortcutType.InsertAddPageBreak, 13, true, false, false],
+			[c_oAscDocumentShortcutType.InsertPageBreak, 13, true, false, false],
 			[c_oAscDocumentShortcutType.InsertLineBreak, 13, false, true, false],
 			[c_oAscDocumentShortcutType.InsertColumnBreak, 13, true, true, false],
 			[c_oAscDocumentShortcutType.ResetChar, 32, true, false, false],
