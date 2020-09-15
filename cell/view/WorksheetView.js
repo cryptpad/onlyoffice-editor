@@ -13687,7 +13687,7 @@
 		}
 	};
 
-    WorksheetView.prototype._autoFitColumnWidth = function (col, r1, r2, onlyIfMore) {
+    WorksheetView.prototype._autoFitColumnWidth = function (col, r1, r2, onlyIfMore, pivotButtons) {
         var width = null;
         var row, ct, c, fl, str, maxW, tm, mc, isMerged, oldWidth, oldColWidth;
         var lastHeight = null;
@@ -13750,7 +13750,9 @@
 				calcWidth = Math.abs(tm.width * angleCos) + Math.abs(ct.metrics.height * angleSin);
             } else {
 				calcWidth = Math.abs(ct.metrics.width * angleCos) +  Math.abs(ct.metrics.height * angleSin);
-				hasButton = this._checkFilterButtonInRange(col, row);
+				hasButton = this._checkFilterButtonInRange(col, row) || pivotButtons.find(function (element) {
+					return element.row === row && element.col === col;
+				});
 				if (null !== hasButton && CellValueType.String === ct.cellType) {
 					calcWidth += this._getFilterButtonSize();
 				}
@@ -13801,8 +13803,11 @@
 			range = ranges[i];
 			c1 = range.c1;
 			c2 = Math.min(range.c2, max);
+
+			var pivotButtons = this.model.getPivotTableButtons(range);
+
 			for (; c1 <= c2; ++c1) {
-				this._autoFitColumnWidth(c1, range.r1, range.r2, onlyIfMore);
+				this._autoFitColumnWidth(c1, range.r1, range.r2, onlyIfMore, pivotButtons);
 			}
 		}
 	};
