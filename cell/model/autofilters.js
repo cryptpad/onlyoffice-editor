@@ -1666,23 +1666,45 @@
 
 						//change filterColumns
 						if (diffColId !== null) {
-							var autoFilter = bTablePart ? filter.AutoFilter : filter;
-							if (autoFilter && autoFilter.FilterColumns && autoFilter.FilterColumns.length) {
-								for (var j = 0; j < autoFilter.FilterColumns.length; j++) {
-									var col = autoFilter.FilterColumns[j].ColId + ref.c1;
+							var changeFilterColumns = function (_filterColumns, _view) {
+								for (var j = 0; j < _filterColumns.length; j++) {
+									var _colId = _view ? _filterColumns[j].filter.ColId : _filterColumns[j].ColId;
+									var col = _colId + ref.c1;
 									if (col >= activeRange.c1) {
-										var newColId = autoFilter.FilterColumns[j].ColId + diffColId;
-										if (newColId < 0 ||
-											(diff < 0 && col >= activeRange.c1 && col <= activeRange.c2)) {
-											autoFilter.FilterColumns[j].clean();
-											t._openHiddenRowsAfterDeleteColumn(autoFilter, autoFilter.FilterColumns[j].ColId);
-											autoFilter.FilterColumns.splice(j, 1);
+										var newColId = _colId + diffColId;
+										if (newColId < 0 || (diff < 0 && col >= activeRange.c1 && col <= activeRange.c2)) {
+											_view ? _filterColumns[j].filter.clean() : _filterColumns[j].clean();
+											//TODO view?
+											t._openHiddenRowsAfterDeleteColumn(autoFilter, _colId);
+											_filterColumns.splice(j, 1);
 											j--;
 										} else {
-											autoFilter.FilterColumns[j].ColId = newColId;
+											if (_view) {
+												_filterColumns[j].filter.ColId = newColId;
+											} else {
+												_filterColumns[j].ColId = newColId;
+											}
 										}
 									}
 								}
+							};
+
+							//так же необходимл сдвинуть фильтры во всех вью
+							if (Asc.CT_NamedSheetView.prototype.getNsvFiltersByTableId) {
+								if (worksheet.aNamedSheetViews) {
+									var nsvFilter;
+									for (var i = 0; i < worksheet.aNamedSheetViews.length; i++) {
+										nsvFilter = worksheet.aNamedSheetViews[i].getNsvFiltersByTableId(bTablePart ? filter.DisplayName : null);
+										if (nsvFilter.columnsFilter && nsvFilter.columnsFilter.length) {
+											changeFilterColumns(nsvFilter.columnsFilter, true);
+										}
+									}
+								}
+							}
+
+							var autoFilter = bTablePart ? filter.AutoFilter : filter;
+							if (autoFilter && autoFilter.FilterColumns && autoFilter.FilterColumns.length) {
+								changeFilterColumns(autoFilter.FilterColumns);
 							}
 						}
 
