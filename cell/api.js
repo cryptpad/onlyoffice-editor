@@ -4461,7 +4461,6 @@ var editor;
     };
 
 	spreadsheet_api.prototype._changePivotSimple = function(pivot, isInsert, needUpdateView, callback) {
-		var t = this;
 		var wsModel = pivot.GetWS();
 		var ws = this.wb.getWorksheet(wsModel.getIndex());
 		if (isInsert) {
