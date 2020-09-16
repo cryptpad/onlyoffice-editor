@@ -13562,7 +13562,8 @@ CDocument.prototype.RecalculateFromStart = function(bUpdateStates)
 		Inline   : {Pos : 0, PageNum : 0},
 		Flow     : [],
 		HdrFtr   : [],
-		Drawings : {All : true, Map : {}}
+		Drawings : {All : true, Map : {}},
+		Tables   : []
 	};
 
 	this.Reset_RecalculateCache();
