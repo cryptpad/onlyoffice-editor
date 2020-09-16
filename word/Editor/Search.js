@@ -74,6 +74,7 @@ function CDocumentSearch()
     this.ClearOnRecalc = true; // Флаг, говорящий о том, запустился ли пересчет из-за Replace
     this.Selection     = false;
     this.Footnotes     = [];
+    this.Endnotes      = [];
 }
 
 CDocumentSearch.prototype =
@@ -263,9 +264,17 @@ CDocumentSearch.prototype.SetFootnotes = function(arrFootnotes)
 {
 	this.Footnotes = arrFootnotes;
 };
+CDocumentSearch.prototype.SetEndnotes = function(arrEndnotes)
+{
+	this.Endnotes = arrEndnotes;
+};
 CDocumentSearch.prototype.GetFootnotes = function()
 {
 	return this.Footnotes;
+};
+CDocumentSearch.prototype.GetEndnotes = function()
+{
+	return this.Endnotes;
 };
 CDocumentSearch.prototype.GetDirection = function()
 {
@@ -301,44 +310,43 @@ CDocumentSearch.prototype.GetPrefix = function(nIndex)
 //----------------------------------------------------------------------------------------------------------------------
 // CDocument
 //----------------------------------------------------------------------------------------------------------------------
-CDocument.prototype.Search = function(Str, Props, bDraw)
+CDocument.prototype.Search = function(sStr, oProps, bDraw)
 {
-    //var StartTime = new Date().getTime();
+	//var StartTime = new Date().getTime();
 
-    if ( true === this.SearchEngine.Compare( Str, Props ) )
-        return this.SearchEngine;
+	if (this.SearchEngine.Compare(sStr, oProps))
+		return this.SearchEngine;
 
-    this.SearchEngine.Clear();
-    this.SearchEngine.Set( Str, Props );
+	this.SearchEngine.Clear();
+	this.SearchEngine.Set(sStr, oProps);
 
-    // Поиск в основном документе
-    var Count = this.Content.length;
-    for ( var Index = 0; Index < Count; Index++ )
-    {
-        this.Content[Index].Search( Str, Props, this.SearchEngine, search_Common );
-    }
+	for (var nIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex)
+	{
+		this.Content[nIndex].Search(sStr, oProps, this.SearchEngine, search_Common);
+	}
 
-    // Поиск в колонтитулах
-    this.SectionsInfo.Search( Str, Props, this.SearchEngine );
+	this.SectionsInfo.Search(sStr, oProps, this.SearchEngine);
 
-    // Ищем в сносках
 	var arrFootnotes = this.GetFootnotesList(null, null);
 	this.SearchEngine.SetFootnotes(arrFootnotes);
 	for (var nIndex = 0, nCount = arrFootnotes.length; nIndex < nCount; ++nIndex)
 	{
-		var oFootnote = arrFootnotes[nIndex];
-		oFootnote.Search(Str, Props, this.SearchEngine, search_Footnote);
+		arrFootnotes[nIndex].Search(sStr, oProps, this.SearchEngine, search_Footnote);
 	}
 
-    if (false !== bDraw)
-    {
-        this.DrawingDocument.ClearCachePages();
-        this.DrawingDocument.FirePaint();
-    }
+	var arrEndnotes = this.GetEndnotesList(null, null);
+	this.SearchEngine.SetEndnotes(arrEndnotes);
+	for (var nIndex = 0, nCount = arrEndnotes.length; nIndex < nCount; ++nIndex)
+	{
+		arrEndnotes[nIndex].Search(sStr, oProps, this.SearchEngine, search_Endnote);
+	}
 
-    //console.log( "Search logic: " + ((new Date().getTime() - StartTime) / 1000) + " s"  );
+	if (false !== bDraw)
+		this.Redraw(-1, -1);
 
-    return this.SearchEngine;
+	//console.log( "Search logic: " + ((new Date().getTime() - StartTime) / 1000) + " s"  );
+
+	return this.SearchEngine;
 };
 CDocument.prototype.Search_Select = function(Id)
 {
@@ -431,7 +439,7 @@ CDocument.prototype.Search_GetId = function(bNext)
 			return Id;
 
 		this.DrawingObjects.resetSelection();
-		ParaDrawing.GoTo_Text(true === bNext ? false : true, false);
+		ParaDrawing.GoTo_Text(true !== bNext, false);
 	}
 
 	if (docpostype_Content === this.CurPos.Type)
@@ -440,6 +448,9 @@ CDocument.prototype.Search_GetId = function(bNext)
 
 		if (null === Id)
 			Id = this.private_GetSearchIdInFootnotes(false);
+
+		if (null === Id)
+			Id = this.private_GetSearchIdInEndnotes(false);
 
 		if (null === Id)
 			Id = this.private_GetSearchIdInHdrFtr(false);
@@ -458,11 +469,17 @@ CDocument.prototype.Search_GetId = function(bNext)
 			Id = this.private_GetSearchIdInFootnotes(false);
 
 		if (null === Id)
+			Id = this.private_GetSearchIdInEndnotes(false);
+
+		if (null === Id)
 			Id = this.private_GetSearchIdInHdrFtr(false);
 	}
 	else if (docpostype_Footnotes === this.CurPos.Type)
 	{
 		Id = this.private_GetSearchIdInFootnotes(true);
+
+		if (null === Id)
+			Id = this.private_GetSearchIdInEndnotes(false);
 
 		if (null === Id)
 			Id = this.private_GetSearchIdInHdrFtr(false);
@@ -472,6 +489,22 @@ CDocument.prototype.Search_GetId = function(bNext)
 
 		if (null === Id)
 			Id = this.private_GetSearchIdInFootnotes(false);
+	}
+	else if (docpostype_Endnotes === this.CurPos.Type)
+	{
+		Id = this.private_GetSearchIdInEndnotes(true);
+
+		if (null === Id)
+			Id = this.private_GetSearchIdInHdrFtr(false);
+
+		if (null === Id)
+			Id = this.private_GetSearchIdInMainDocument(false);
+
+		if (null === Id)
+			Id = this.private_GetSearchIdInFootnotes(false);
+
+		if (null === Id)
+			Id = this.private_GetSearchIdInEndnotes(false);
 	}
 
 	return Id;
@@ -571,7 +604,7 @@ CDocument.prototype.private_GetSearchIdInFootnotes = function(isCurrent)
 		}
 	}
 
-	if (-1 == nCurPos)
+	if (-1 === nCurPos)
 	{
 		nCurPos      = bNext ? 0 : nCount - 1;
 		oCurFootnote = arrFootnotes[nCurPos];
@@ -596,6 +629,62 @@ CDocument.prototype.private_GetSearchIdInFootnotes = function(isCurrent)
 		for (var nIndex = nCurPos - 1; nIndex >= 0; --nIndex)
 		{
 			Id = arrFootnotes[nIndex].Search_GetId(bNext, false);
+			if (null != Id)
+				return Id;
+		}
+	}
+
+	return null;
+};
+CDocument.prototype.private_GetSearchIdInEndnotes = function(isCurrent)
+{
+	var bNext       = this.SearchEngine.GetDirection();
+	var oCurEndnote = this.Endnotes.CurEndnote;
+
+	var arrEndnotes = this.SearchEngine.GetEndnotes();
+	var nCurPos     = -1;
+	var nCount      = arrEndnotes.length;
+
+	if (nCount <= 0)
+		return null;
+
+	if (isCurrent)
+	{
+		for (var nIndex = 0; nIndex < nCount; ++nIndex)
+		{
+			if (arrEndnotes[nIndex] === oCurEndnote)
+			{
+				nCurPos = nIndex;
+				break;
+			}
+		}
+	}
+
+	if (-1 === nCurPos)
+	{
+		nCurPos     = bNext ? 0 : nCount - 1;
+		oCurEndnote = arrEndnotes[nCurPos];
+		isCurrent   = false;
+	}
+
+	var Id = oCurEndnote.Search_GetId(bNext, isCurrent);
+	if (null !== Id)
+		return Id;
+
+	if (true === bNext)
+	{
+		for (var nIndex = nCurPos + 1; nIndex < nCount; ++nIndex)
+		{
+			Id = arrEndnotes[nIndex].Search_GetId(bNext, false);
+			if (null != Id)
+				return Id;
+		}
+	}
+	else
+	{
+		for (var nIndex = nCurPos - 1; nIndex >= 0; --nIndex)
+		{
+			Id = arrEndnotes[nIndex].Search_GetId(bNext, false);
 			if (null != Id)
 				return Id;
 		}
@@ -984,7 +1073,7 @@ Paragraph.prototype.Search = function(sStr, oProps, oSearchEngine, nType)
     {
         var StartPos = this.SearchResults[FoundId].StartPos;
         var EndPos   = this.SearchResults[FoundId].EndPos;
-        var ResultStr = new String();
+        var ResultStr;
 
         var _Str = sStr;
 
