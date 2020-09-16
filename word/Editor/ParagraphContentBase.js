@@ -3617,7 +3617,7 @@ CParagraphContentWithParagraphLikeContent.prototype.AddSearchResult = function(o
 {
 	oSearchResult.RegisterClass(isStart, this);
 	this.SearchMarks.push(new CParagraphSearchMark(oSearchResult, isStart, nDepth));
-	this.Content[oContentPos.Get(Depth)].AddSearchResult(oSearchResult, isStart, oContentPos, nDepth + 1);
+	this.Content[oContentPos.Get(nDepth)].AddSearchResult(oSearchResult, isStart, oContentPos, nDepth + 1);
 };
 CParagraphContentWithParagraphLikeContent.prototype.ClearSearchResults = function()
 {
