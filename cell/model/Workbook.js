@@ -8688,6 +8688,14 @@
 		return null;
 	};
 
+	Worksheet.prototype.forEachView = function (actionView) {
+		var namedSheetViews = this.aNamedSheetViews;
+		if (namedSheetViews) {
+			for (var i = 0; i < namedSheetViews.length; i++) {
+				actionView(namedSheetViews[i]);
+			}
+		}
+	};
 
 //-------------------------------------------------------------------------------------------------
 	var g_nCellOffsetFlag = 0;

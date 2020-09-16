@@ -1691,15 +1691,12 @@
 
 							//так же необходимл сдвинуть фильтры во всех вью
 							if (Asc.CT_NamedSheetView.prototype.getNsvFiltersByTableId) {
-								if (worksheet.aNamedSheetViews) {
-									var nsvFilter;
-									for (var i = 0; i < worksheet.aNamedSheetViews.length; i++) {
-										nsvFilter = worksheet.aNamedSheetViews[i].getNsvFiltersByTableId(bTablePart ? filter.DisplayName : null);
-										if (nsvFilter.columnsFilter && nsvFilter.columnsFilter.length) {
-											changeFilterColumns(nsvFilter.columnsFilter, true);
-										}
+								worksheet.forEachView(function (curView) {
+									var nsvFilter = curView.getNsvFiltersByTableId(bTablePart ? filter.DisplayName : null);
+									if (nsvFilter.columnsFilter && nsvFilter.columnsFilter.length) {
+										changeFilterColumns(nsvFilter.columnsFilter, true);
 									}
-								}
+								});
 							}
 
 							var autoFilter = bTablePart ? filter.AutoFilter : filter;
@@ -4718,13 +4715,20 @@
 					return;
 				}
 
+				var activeNamedSheetView = worksheet.getActiveNamedSheetView();
+				var opt_columnsFilter;
+				if (activeNamedSheetView !== null) {
+					var nsvFilter = worksheet.getNvsFilterByTableName(isTablePart ? filter.DisplayName : null);
+					opt_columnsFilter = nsvFilter ? nsvFilter.columnsFilter : null;
+				}
+
 				worksheet.workbook.dependencyFormulas.lockRecal();
 				for (var i = ref.r1 + 1; i <= ref.r2; i++) {
 					if (worksheet.getRowHidden(i) === false) {
 						continue;
 					}
 
-					if (!autoFilter.hiddenByAnotherFilter(worksheet, colId, i, ref.c1))//filter another button
+					if (!autoFilter.hiddenByAnotherFilter(worksheet, colId, i, ref.c1, opt_columnsFilter))//filter another button
 					{
 						worksheet.setRowHidden(false, i, i);
 					}
