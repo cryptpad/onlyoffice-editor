@@ -2324,12 +2324,27 @@ background-repeat: no-repeat;\
 			var _X       = elem.X;
 			var _Y       = elem.Y;
 			var _PageNum = elem.GetCurrentPageAbsolute();
-			var oBounds  = elem.GetSelectionBounds(true);
-			if (oBounds && oBounds.End)
+
+			if (elem.IsTable())
 			{
-				_X       = oBounds.End.X + oBounds.End.W;
-				_Y       = oBounds.End.Y + oBounds.End.H;
-				_PageNum = oBounds.End.Page;
+				var nPagesCount = elem.GetPagesCount();
+				if (nPagesCount > 0)
+				{
+					var oBounds = elem.GetPageBounds(nPagesCount - 1);
+					_X          = oBounds.Right;
+					_Y          = oBounds.Bottom;
+					_PageNum    = elem.GetAbsolutePage(nPagesCount - 1);
+				}
+			}
+			else
+			{
+				var oBounds = elem.GetSelectionBounds(true);
+				if (oBounds && oBounds.End)
+				{
+					_X       = oBounds.End.X + oBounds.End.W;
+					_Y       = oBounds.End.Y + oBounds.End.H;
+					_PageNum = oBounds.End.Page;
+				}
 			}
 
 			var oTransform = elem.Get_ParentTextTransform();
