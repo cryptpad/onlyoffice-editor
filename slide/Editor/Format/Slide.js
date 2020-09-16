@@ -334,16 +334,16 @@ Slide.prototype =
         }
     },
 
-    Search_GetId: function(isNext, StartPos)
+	GetSearchElementId: function(isNext, StartPos)
     {
         var sp_tree = this.cSld.spTree, i, Id;
         if(isNext)
         {
             for(i = StartPos; i < sp_tree.length; ++i)
             {
-                if(sp_tree[i].Search_GetId)
+                if(sp_tree[i].GetSearchElementId)
                 {
-                    Id = sp_tree[i].Search_GetId(isNext, false);
+                    Id = sp_tree[i].GetSearchElementId(isNext, false);
                     if(Id !== null)
                     {
                         return Id;
@@ -355,9 +355,9 @@ Slide.prototype =
         {
             for(i = StartPos; i > -1; --i)
             {
-                if(sp_tree[i].Search_GetId)
+                if(sp_tree[i].GetSearchElementId)
                 {
-                    Id = sp_tree[i].Search_GetId(isNext, false);
+                    Id = sp_tree[i].GetSearchElementId(isNext, false);
                     if(Id !== null)
                     {
                         return Id;

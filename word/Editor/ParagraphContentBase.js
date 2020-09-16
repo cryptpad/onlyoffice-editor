@@ -647,13 +647,13 @@ CParagraphContentBase.prototype.Search = function(oParaSearch)
 CParagraphContentBase.prototype.AddSearchResult = function(oSearchResult, isStart, oContentPos, nDepth)
 {
 };
-CParagraphContentBase.prototype.Clear_SearchResults = function()
+CParagraphContentBase.prototype.ClearSearchResults = function()
 {
 };
-CParagraphContentBase.prototype.Remove_SearchResult = function(SearchResult)
+CParagraphContentBase.prototype.RemoveSearchResult = function(oSearchResult)
 {
 };
-CParagraphContentBase.prototype.Search_GetId = function(bNext, bUseContentPos, ContentPos, Depth)
+CParagraphContentBase.prototype.GetSearchElementId = function(bNext, bUseContentPos, ContentPos, Depth)
 {
 	return null;
 };
@@ -3619,25 +3619,24 @@ CParagraphContentWithParagraphLikeContent.prototype.AddSearchResult = function(o
 	this.SearchMarks.push(new CParagraphSearchMark(oSearchResult, isStart, Depth));
 	this.Content[oContentPos.Get(Depth)].AddSearchResult(oSearchResult, isStart, oContentPos, nDepth + 1);
 };
-CParagraphContentWithParagraphLikeContent.prototype.Clear_SearchResults = function()
+CParagraphContentWithParagraphLikeContent.prototype.ClearSearchResults = function()
 {
-    this.SearchMarks = [];
+	this.SearchMarks = [];
 };
-CParagraphContentWithParagraphLikeContent.prototype.Remove_SearchResult = function(SearchResult)
+CParagraphContentWithParagraphLikeContent.prototype.RemoveSearchResult = function(oSearchResult)
 {
-    var MarksCount = this.SearchMarks.length;
-    for ( var Index = 0; Index < MarksCount; Index++ )
-    {
-        var Mark = this.SearchMarks[Index];
-        if ( SearchResult === Mark.SearchResult )
-        {
-            this.SearchMarks.splice( Index, 1 );
-            Index--;
-            MarksCount--;
-        }
-    }
+	for (var nIndex = 0, nMarksCount = this.SearchMarks.length; nIndex < nMarksCount; ++nIndex)
+	{
+		var oMark = this.SearchMarks[nIndex];
+		if (oSearchResult === oMark.SearchResult)
+		{
+			this.SearchMarks.splice(nIndex, 1);
+			nIndex--;
+			nMarksCount--;
+		}
+	}
 };
-CParagraphContentWithParagraphLikeContent.prototype.Search_GetId = function(bNext, bUseContentPos, ContentPos, Depth)
+CParagraphContentWithParagraphLikeContent.prototype.GetSearchElementId = function(bNext, bUseContentPos, ContentPos, Depth)
 {
     // Определим позицию, начиная с которой мы будем искать ближайший найденный элемент
     var StartPos = 0;
@@ -3665,7 +3664,7 @@ CParagraphContentWithParagraphLikeContent.prototype.Search_GetId = function(bNex
 
         for ( var CurPos = StartPos; CurPos < ContentLen; CurPos++ )
         {
-            var ElementId = this.Content[CurPos].Search_GetId( true, bUseContentPos && CurPos === StartPos ? true : false, ContentPos, Depth + 1 );
+            var ElementId = this.Content[CurPos].GetSearchElementId( true, bUseContentPos && CurPos === StartPos ? true : false, ContentPos, Depth + 1 );
             if ( null !== ElementId )
                 return ElementId;
         }
@@ -3676,7 +3675,7 @@ CParagraphContentWithParagraphLikeContent.prototype.Search_GetId = function(bNex
 
         for ( var CurPos = StartPos; CurPos >= 0; CurPos-- )
         {
-            var ElementId = this.Content[CurPos].Search_GetId( false, bUseContentPos && CurPos === StartPos ? true : false, ContentPos, Depth + 1 );
+            var ElementId = this.Content[CurPos].GetSearchElementId( false, bUseContentPos && CurPos === StartPos ? true : false, ContentPos, Depth + 1 );
             if ( null !== ElementId )
                 return ElementId;
         }

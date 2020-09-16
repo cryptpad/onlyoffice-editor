@@ -2304,10 +2304,10 @@ background-repeat: no-repeat;\
 
 		var SearchEngine = editor.WordControl.m_oLogicDocument.Search(text, {MatchCase : isMatchCase});
 
-		var Id = this.WordControl.m_oLogicDocument.Search_GetId(isNext);
+		var Id = this.WordControl.m_oLogicDocument.GetSearchElementId(isNext);
 
 		if (null != Id)
-			this.WordControl.m_oLogicDocument.Search_Select(Id);
+			this.WordControl.m_oLogicDocument.SelectSearchElement(Id);
 
 		return SearchEngine.Count;
 
@@ -2322,19 +2322,19 @@ background-repeat: no-repeat;\
 		this.WordControl.m_oLogicDocument.Search(text, {MatchCase : isMatchCase});
 
 		if (true === isReplaceAll)
-			this.WordControl.m_oLogicDocument.Search_Replace(replaceWith, true, -1);
+			this.WordControl.m_oLogicDocument.ReplaceSearchElement(replaceWith, true, -1);
 		else
 		{
 			var CurId      = this.WordControl.m_oLogicDocument.SearchEngine.CurId;
 			var bDirection = this.WordControl.m_oLogicDocument.SearchEngine.Direction;
 			if (-1 != CurId)
-				this.WordControl.m_oLogicDocument.Search_Replace(replaceWith, false, CurId);
+				this.WordControl.m_oLogicDocument.ReplaceSearchElement(replaceWith, false, CurId);
 
-			var Id = this.WordControl.m_oLogicDocument.Search_GetId(bDirection);
+			var Id = this.WordControl.m_oLogicDocument.GetSearchElementId(bDirection);
 
 			if (null != Id)
 			{
-				this.WordControl.m_oLogicDocument.Search_Select(Id);
+				this.WordControl.m_oLogicDocument.SelectSearchElement(Id);
 				return true;
 			}
 			else

@@ -14063,7 +14063,7 @@ CDocument.prototype.private_ProcessTemplateReplacement = function(TemplateReplac
 	for (var Id in TemplateReplacementData)
 	{
 		this.Search(Id, {MatchCase : true}, false);
-		this.SearchEngine.Replace_All(TemplateReplacementData[Id], false);
+		this.SearchEngine.ReplaceAll(TemplateReplacementData[Id], false);
 	}
 };
 CDocument.prototype.private_CheckCursorInPlaceHolder = function()

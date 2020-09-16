@@ -426,7 +426,7 @@
         if (!oSearchEngine)
             return;
 
-        this.WordControl.m_oLogicDocument.Search_Replace(sReplace, true, null, false);
+        this.WordControl.m_oLogicDocument.ReplaceSearchElement(sReplace, true, null, false);
     };
     /**
      * Get file content in html format

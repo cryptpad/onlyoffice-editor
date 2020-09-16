@@ -4448,7 +4448,7 @@ CPresentation.prototype.Search = function (Str, Props) {
     return this.SearchEngine;
 };
 
-CPresentation.prototype.Search_GetId = function (isNext) {
+CPresentation.prototype.GetSearchElementId = function (isNext) {
     if (this.Slides.length > 0) {
         var i, Id, content, start_index;
         var target_text_object;
@@ -4458,14 +4458,14 @@ CPresentation.prototype.Search_GetId = function (isNext) {
         }
         if (target_text_object) {
             if (target_text_object.getObjectType() === AscDFH.historyitem_type_GraphicFrame) {
-                Id = target_text_object.graphicObject.Search_GetId(isNext, true);
+                Id = target_text_object.graphicObject.GetSearchElementId(isNext, true);
                 if (Id !== null) {
                     return Id;
                 }
             } else {
                 content = target_text_object.getDocContent();
                 if (content) {
-                    Id = content.Search_GetId(isNext, true);
+                    Id = content.GetSearchElementId(isNext, true);
                     if (Id !== null) {
                         return Id;
                     }
@@ -4481,7 +4481,7 @@ CPresentation.prototype.Search_GetId = function (isNext) {
                     if (group_shapes[i].selected && group_shapes[i].getObjectType() === AscDFH.historyitem_type_Shape) {
                         content = group_shapes[i].getDocContent();
                         if (content) {
-                            Id = content.Search_GetId(isNext, isRealObject(target_text_object));
+                            Id = content.GetSearchElementId(isNext, isRealObject(target_text_object));
                             if (Id !== null) {
                                 return Id;
                             }
@@ -4493,7 +4493,7 @@ CPresentation.prototype.Search_GetId = function (isNext) {
                     if (group_shapes[i].getObjectType() === AscDFH.historyitem_type_Shape) {
                         content = group_shapes[i].getDocContent();
                         if (content) {
-                            Id = content.Search_GetId(isNext, false);
+                            Id = content.GetSearchElementId(isNext, false);
                             if (Id !== null) {
                                 return Id;
                             }
@@ -4527,36 +4527,36 @@ CPresentation.prototype.Search_GetId = function (isNext) {
                     start_index = sp_tree.length;
                 }
             }
-            Id = this.Slides[this.CurPage].Search_GetId(isNext, start_index);
+            Id = this.Slides[this.CurPage].GetSearchElementId(isNext, start_index);
             if (Id !== null) {
                 return Id;
             }
             var oCurSlide = this.Slides[this.CurPage];
             if (oCurSlide.notesShape && !bSkipCurNotes) {
-                Id = oCurSlide.notesShape.Search_GetId(isNext, false);
+                Id = oCurSlide.notesShape.GetSearchElementId(isNext, false);
                 if (Id !== null) {
                     return Id;
                 }
             }
             for (i = this.CurPage + 1; i < this.Slides.length; ++i) {
-                Id = this.Slides[i].Search_GetId(isNext, 0);
+                Id = this.Slides[i].GetSearchElementId(isNext, 0);
                 if (Id !== null) {
                     return Id;
                 }
                 if (this.Slides[i].notesShape) {
-                    Id = this.Slides[i].notesShape.Search_GetId(isNext, false);
+                    Id = this.Slides[i].notesShape.GetSearchElementId(isNext, false);
                     if (Id !== null) {
                         return Id;
                     }
                 }
             }
             for (i = 0; i <= this.CurPage; ++i) {
-                Id = this.Slides[i].Search_GetId(isNext, 0);
+                Id = this.Slides[i].GetSearchElementId(isNext, 0);
                 if (Id !== null) {
                     return Id;
                 }
                 if (this.Slides[i].notesShape) {
-                    Id = this.Slides[i].notesShape.Search_GetId(isNext, false);
+                    Id = this.Slides[i].notesShape.GetSearchElementId(isNext, false);
                     if (Id !== null) {
                         return Id;
                     }
@@ -4570,7 +4570,7 @@ CPresentation.prototype.Search_GetId = function (isNext) {
                     if (group_shapes[i].selected && group_shapes[i].getObjectType() === AscDFH.historyitem_type_Shape) {
                         content = group_shapes[i].getDocContent();
                         if (content) {
-                            Id = content.Search_GetId(isNext, isRealObject(target_text_object));
+                            Id = content.GetSearchElementId(isNext, isRealObject(target_text_object));
                             if (Id !== null) {
                                 return Id;
                             }
@@ -4582,7 +4582,7 @@ CPresentation.prototype.Search_GetId = function (isNext) {
                     if (group_shapes[i].getObjectType() === AscDFH.historyitem_type_Shape) {
                         content = group_shapes[i].getDocContent();
                         if (content) {
-                            Id = content.Search_GetId(isNext, false);
+                            Id = content.GetSearchElementId(isNext, false);
                             if (Id !== null) {
                                 return Id;
                             }
@@ -4612,30 +4612,30 @@ CPresentation.prototype.Search_GetId = function (isNext) {
                     start_index = -1;
                 }
             }
-            Id = this.Slides[this.CurPage].Search_GetId(isNext, start_index);
+            Id = this.Slides[this.CurPage].GetSearchElementId(isNext, start_index);
             if (Id !== null) {
                 return Id;
             }
             for (i = this.CurPage - 1; i > -1; --i) {
                 if (this.Slides[i].notesShape) {
-                    Id = this.Slides[i].notesShape.Search_GetId(isNext, false);
+                    Id = this.Slides[i].notesShape.GetSearchElementId(isNext, false);
                     if (Id !== null) {
                         return Id;
                     }
                 }
-                Id = this.Slides[i].Search_GetId(isNext, this.Slides[i].cSld.spTree.length - 1);
+                Id = this.Slides[i].GetSearchElementId(isNext, this.Slides[i].cSld.spTree.length - 1);
                 if (Id !== null) {
                     return Id;
                 }
             }
             for (i = this.Slides.length - 1; i >= this.CurPage; --i) {
                 if (this.Slides[i].notesShape) {
-                    Id = this.Slides[i].notesShape.Search_GetId(isNext, false);
+                    Id = this.Slides[i].notesShape.GetSearchElementId(isNext, false);
                     if (Id !== null) {
                         return Id;
                     }
                 }
-                Id = this.Slides[i].Search_GetId(isNext, this.Slides[i].cSld.spTree.length - 1);
+                Id = this.Slides[i].GetSearchElementId(isNext, this.Slides[i].cSld.spTree.length - 1);
                 if (Id !== null) {
                     return Id;
                 }
@@ -4645,7 +4645,7 @@ CPresentation.prototype.Search_GetId = function (isNext) {
     return null;
 };
 
-CPresentation.prototype.Search_Select = function (Id) {
+CPresentation.prototype.SelectSearchElement = function (Id) {
     this.SearchEngine.Select(Id);
 
     this.Document_UpdateInterfaceState();
@@ -4654,7 +4654,7 @@ CPresentation.prototype.Search_Select = function (Id) {
     editor.WordControl.OnUpdateOverlay();
 };
 
-CPresentation.prototype.Search_Replace = function (NewStr, bAll, Id, bInterfaceEvent) {
+CPresentation.prototype.ReplaceSearchElement = function (NewStr, bAll, Id, bInterfaceEvent) {
     var bResult = false;
 
     var oController = this.GetCurrentController();
@@ -4687,7 +4687,7 @@ CPresentation.prototype.Search_Replace = function (NewStr, bAll, Id, bInterfaceE
     AscCommon.History.Create_NewPoint(bAll ? AscDFH.historydescription_Document_ReplaceAll : AscDFH.historydescription_Document_ReplaceSingle);
 
     if (true === bAll) {
-        this.SearchEngine.Replace_All(NewStr, true);
+        this.SearchEngine.ReplaceAll(NewStr, true);
     } else {
         this.SearchEngine.Replace(NewStr, Id, false);
 

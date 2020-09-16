@@ -215,10 +215,11 @@ ParaDrawing.prototype.GetSelectedContent = function(SelectedContent)
 		this.GraphicObj.GetSelectedContent(SelectedContent);
 	}
 };
-ParaDrawing.prototype.Search_GetId = function(bNext, bCurrent)
+ParaDrawing.prototype.GetSearchElementId = function(bNext, bCurrent)
 {
-	if (AscCommon.isRealObject(this.GraphicObj) && typeof  this.GraphicObj.Search_GetId === "function")
-		return this.GraphicObj.Search_GetId(bNext, bCurrent);
+	if (AscCommon.isRealObject(this.GraphicObj) && typeof this.GraphicObj.GetSearchElementId === "function")
+		return this.GraphicObj.GetSearchElementId(bNext, bCurrent);
+
 	return null;
 };
 

@@ -1291,12 +1291,12 @@ CShape.prototype.Search = function (Str, Props, SearchEngine, Type) {
     }
 };
 
-CShape.prototype.Search_GetId = function (bNext, bCurrent) {
+CShape.prototype.GetSearchElementId = function (bNext, bCurrent) {
     if (this.textBoxContent)
-        return this.textBoxContent.Search_GetId(bNext, bCurrent);
+        return this.textBoxContent.GetSearchElementId(bNext, bCurrent);
 
     else if (this.txBody && this.txBody.content) {
-        return this.txBody.content.Search_GetId(bNext, bCurrent);
+        return this.txBody.content.GetSearchElementId(bNext, bCurrent);
     }
 
     return null;

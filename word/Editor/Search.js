@@ -77,181 +77,161 @@ function CDocumentSearch()
     this.Endnotes      = [];
 }
 
-CDocumentSearch.prototype =
+CDocumentSearch.prototype.Reset = function()
 {
-    Reset : function()
-    {
-        this.Text          = "";
-        this.MatchCase     = false;
-    },
+	this.Text      = "";
+	this.MatchCase = false;
+};
+CDocumentSearch.prototype.Compare = function(Text, Props)
+{
+	return (this.Text === Text && this.MatchCase === Props.MatchCase);
+};
+CDocumentSearch.prototype.Clear = function()
+{
+	this.Reset();
 
-    Compare : function(Text, Props)
-    {
-        if ( this.Text === Text && this.MatchCase === Props.MatchCase )
-            return true;
-
-        return false;
-    },
-
-    Clear : function()
-    {
-        this.Text        = "";
-        this.MatchCase   = false;
-
-        // Очищаем предыдущие элементы поиска
-        for (var Id in this.Elements)
-        {
-            var Paragraph = this.Elements[Id];
-            Paragraph.Clear_SearchResults();
-        }
-
-        this.Id        = 0;
-        this.Count     = 0;
-        this.Elements  = {};
-        this.CurId     = -1;
-        this.Direction = true;
-    },
-
-    Add : function(Paragraph)
-    {
-        this.Count++;
-        this.Id++;
-        this.Elements[this.Id] = Paragraph;
-        return this.Id;
-    },
-
-    Select : function(Id, bUpdateStates)
-    {
-        var Paragraph = this.Elements[Id];
-        if ( undefined != Paragraph )
-        {
-            var SearchElement = Paragraph.SearchResults[Id];
-            if ( undefined != SearchElement )
-            {
-                Paragraph.Selection.Use      = true;
-                Paragraph.Selection.Start    = false;
-
-                Paragraph.Set_SelectionContentPos(SearchElement.StartPos, SearchElement.EndPos);
-                Paragraph.Set_ParaContentPos(SearchElement.StartPos, false, -1, -1);
-
-                Paragraph.Document_SetThisElementCurrent(false !== bUpdateStates ? true : false);
-            }
-
-            this.CurId = Id;
-        }
-    },
-
-    Reset_Current : function()
-    {
-        this.CurId = -1;
-    },
-
-    Replace : function(sReplaceString, Id, bRestorePos)
+	// Очищаем предыдущие элементы поиска
+	for (var Id in this.Elements)
 	{
-		var oPara = this.Elements[Id];
-		if (oPara)
+		this.Elements[Id].ClearSearchResults();
+	}
+
+	this.Id        = 0;
+	this.Count     = 0;
+	this.Elements  = {};
+	this.CurId     = -1;
+	this.Direction = true;
+};
+CDocumentSearch.prototype.Add = function(Paragraph)
+{
+	this.Count++;
+	this.Id++;
+	this.Elements[this.Id] = Paragraph;
+	return this.Id;
+};
+CDocumentSearch.prototype.Select = function(Id, bUpdateStates)
+{
+	var Paragraph = this.Elements[Id];
+	if (Paragraph)
+	{
+		var SearchElement = Paragraph.SearchResults[Id];
+		if (SearchElement)
 		{
-			var oLogicDocument   = oPara.LogicDocument;
-			var isTrackRevisions = oLogicDocument ? oLogicDocument.IsTrackRevisions() : false;
+			Paragraph.Selection.Use   = true;
+			Paragraph.Selection.Start = false;
 
-			var SearchElement = oPara.SearchResults[Id];
-			if (undefined != SearchElement)
+			Paragraph.Set_SelectionContentPos(SearchElement.StartPos, SearchElement.EndPos);
+			Paragraph.Set_ParaContentPos(SearchElement.StartPos, false, -1, -1);
+
+			Paragraph.Document_SetThisElementCurrent(false !== bUpdateStates);
+		}
+
+		this.CurId = Id;
+	}
+};
+CDocumentSearch.prototype.Reset_Current = function()
+{
+	this.CurId = -1;
+};
+CDocumentSearch.prototype.Replace = function(sReplaceString, Id, bRestorePos)
+{
+	var oPara = this.Elements[Id];
+	if (oPara)
+	{
+		var oLogicDocument   = oPara.LogicDocument;
+		var isTrackRevisions = oLogicDocument ? oLogicDocument.IsTrackRevisions() : false;
+
+		var SearchElement = oPara.SearchResults[Id];
+		if (SearchElement)
+		{
+			var ContentPos, StartPos, EndPos, bSelection;
+			if (true === bRestorePos)
 			{
-				var ContentPos, StartPos, EndPos, bSelection;
-				if (true === bRestorePos)
+				// Сохраняем позицию состояние параграфа, чтобы курсор остался в том же месте и после замены.
+				bSelection = oPara.IsSelectionUse();
+				ContentPos = oPara.Get_ParaContentPos(false, false);
+				StartPos   = oPara.Get_ParaContentPos(true, true);
+				EndPos     = oPara.Get_ParaContentPos(true, false);
+
+				oPara.Check_NearestPos({ContentPos : ContentPos});
+				oPara.Check_NearestPos({ContentPos : StartPos});
+				oPara.Check_NearestPos({ContentPos : EndPos});
+			}
+
+			if (isTrackRevisions)
+			{
+				// Встанем в конечную позицию поиска и добавим новый текст
+				var oEndContentPos = SearchElement.EndPos;
+				var oEndRun        = SearchElement.ClassesE[SearchElement.ClassesE.length - 1];
+
+				var nRunPos = oEndContentPos.Get(SearchElement.ClassesE.length - 1);
+
+				if (reviewtype_Add === oEndRun.GetReviewType() && oEndRun.GetReviewInfo().IsCurrentUser())
 				{
-					// Сохраняем позицию состояние параграфа, чтобы курсор остался в том же месте и после замены.
-					bSelection = oPara.IsSelectionUse();
-					ContentPos = oPara.Get_ParaContentPos(false, false);
-					StartPos   = oPara.Get_ParaContentPos(true, true);
-					EndPos     = oPara.Get_ParaContentPos(true, false);
-
-					oPara.Check_NearestPos({ContentPos : ContentPos});
-					oPara.Check_NearestPos({ContentPos : StartPos});
-					oPara.Check_NearestPos({ContentPos : EndPos});
-				}
-
-				if (isTrackRevisions)
-				{
-					// Встанем в конечную позицию поиска и добавим новый текст
-					var oEndContentPos = SearchElement.EndPos;
-					var oEndRun        = SearchElement.ClassesE[SearchElement.ClassesE.length - 1];
-
-					var nRunPos = oEndContentPos.Get(SearchElement.ClassesE.length - 1);
-
-					if (reviewtype_Add === oEndRun.GetReviewType() && oEndRun.GetReviewInfo().IsCurrentUser())
-					{
-						oEndRun.AddText(sReplaceString, nRunPos);
-					}
-					else
-					{
-						var oRunParent      = oEndRun.GetParent();
-						var nRunPosInParent = oEndRun.GetPosInParent(oRunParent);
-						var oReplaceRun     = oEndRun.Split2(nRunPos, oRunParent, nRunPosInParent);
-
-						if (!oReplaceRun.IsEmpty())
-							oReplaceRun.Split2(0, oRunParent, nRunPosInParent + 1);
-
-						oReplaceRun.AddText(sReplaceString, 0);
-						oReplaceRun.SetReviewType(reviewtype_Add);
-
-						// Выделяем старый объект поиска и удаляем его
-						oPara.Selection.Use = true;
-						oPara.Set_SelectionContentPos(SearchElement.StartPos, SearchElement.EndPos);
-						oPara.Remove();
-					}
+					oEndRun.AddText(sReplaceString, nRunPos);
 				}
 				else
 				{
-					// Сначала в начальную позицию поиска добавляем новый текст
-					var StartContentPos = SearchElement.StartPos;
-					var StartRun        = SearchElement.ClassesS[SearchElement.ClassesS.length - 1];
+					var oRunParent      = oEndRun.GetParent();
+					var nRunPosInParent = oEndRun.GetPosInParent(oRunParent);
+					var oReplaceRun     = oEndRun.Split2(nRunPos, oRunParent, nRunPosInParent);
 
-					var RunPos = StartContentPos.Get(SearchElement.ClassesS.length - 1);
-					StartRun.AddText(sReplaceString, RunPos);
-				}
+					if (!oReplaceRun.IsEmpty())
+						oReplaceRun.Split2(0, oRunParent, nRunPosInParent + 1);
 
-				// Выделяем старый объект поиска и удаляем его
-				oPara.Selection.Use = true;
-				oPara.Set_SelectionContentPos(SearchElement.StartPos, SearchElement.EndPos);
-				oPara.Remove();
+					oReplaceRun.AddText(sReplaceString, 0);
+					oReplaceRun.SetReviewType(reviewtype_Add);
 
-				// Перемещаем курсор в конец поиска
-				oPara.RemoveSelection();
-				oPara.Set_ParaContentPos(SearchElement.StartPos, true, -1, -1);
-
-				// Удаляем запись о данном элементе
-				this.Count--;
-
-				oPara.Remove_SearchResult(Id);
-				delete this.Elements[Id];
-
-				if (true === bRestorePos)
-				{
-					oPara.Set_SelectionContentPos(StartPos, EndPos);
-					oPara.Set_ParaContentPos(ContentPos, true, -1, -1);
-					oPara.Selection.Use = bSelection;
-					oPara.Clear_NearestPosArray();
+					// Выделяем старый объект поиска и удаляем его
+					oPara.Selection.Use = true;
+					oPara.Set_SelectionContentPos(SearchElement.StartPos, SearchElement.EndPos);
+					oPara.Remove();
 				}
 			}
+			else
+			{
+				// Сначала в начальную позицию поиска добавляем новый текст
+				var StartContentPos = SearchElement.StartPos;
+				var StartRun        = SearchElement.ClassesS[SearchElement.ClassesS.length - 1];
+
+				var RunPos = StartContentPos.Get(SearchElement.ClassesS.length - 1);
+				StartRun.AddText(sReplaceString, RunPos);
+			}
+
+			// Выделяем старый объект поиска и удаляем его
+			oPara.Selection.Use = true;
+			oPara.Set_SelectionContentPos(SearchElement.StartPos, SearchElement.EndPos);
+			oPara.Remove();
+
+			// Перемещаем курсор в конец поиска
+			oPara.RemoveSelection();
+			oPara.Set_ParaContentPos(SearchElement.StartPos, true, -1, -1);
+
+			// Удаляем запись о данном элементе
+			this.Count--;
+
+			oPara.RemoveSearchResult(Id);
+			delete this.Elements[Id];
+
+			if (true === bRestorePos)
+			{
+				oPara.Set_SelectionContentPos(StartPos, EndPos);
+				oPara.Set_ParaContentPos(ContentPos, true, -1, -1);
+				oPara.Selection.Use = bSelection;
+				oPara.Clear_NearestPosArray();
+			}
 		}
-	},
+	}
+};
+CDocumentSearch.prototype.ReplaceAll = function(NewStr, bUpdateStates)
+{
+	for (var Id = this.Id; Id >= 0; --Id)
+	{
+		if (this.Elements[Id])
+			this.Replace(NewStr, Id, true);
+	}
 
-    Replace_All : function(NewStr, bUpdateStates)
-    {
-        for (var Id = this.Id; Id >= 0; --Id)
-        {
-            if (this.Elements[Id])
-                this.Replace(NewStr, Id, true);
-        }
-
-        this.Clear();
-    },
-
-    Set_Direction : function(bDirection)
-    {
-        this.Direction = bDirection;
-    }
+	this.Clear();
 };
 CDocumentSearch.prototype.Set = function(sText, oProps)
 {
@@ -348,17 +328,17 @@ CDocument.prototype.Search = function(sStr, oProps, bDraw)
 
 	return this.SearchEngine;
 };
-CDocument.prototype.Search_Select = function(Id)
+CDocument.prototype.SelectSearchElement = function(Id)
 {
-    this.RemoveSelection();
-    this.SearchEngine.Select(Id, true);
-    this.RecalculateCurPos();
+	this.RemoveSelection();
+	this.SearchEngine.Select(Id, true);
+	this.RecalculateCurPos();
 
-    this.Document_UpdateInterfaceState();
-    this.Document_UpdateSelectionState();
-    this.Document_UpdateRulersState();
+	this.Document_UpdateInterfaceState();
+	this.Document_UpdateSelectionState();
+	this.Document_UpdateRulersState();
 };
-CDocument.prototype.Search_Replace = function(NewStr, bAll, Id, bInterfaceEvent)
+CDocument.prototype.ReplaceSearchElement = function(NewStr, bAll, Id, bInterfaceEvent)
 {
     var bResult = false;
 
@@ -371,7 +351,7 @@ CDocument.prototype.Search_Replace = function(NewStr, bAll, Id, bInterfaceEvent)
 		{
 			for (var sElementId in this.SearchEngine.Elements)
 			{
-				this.Search_Select(sElementId);
+				this.SelectSearchElement(sElementId);
 				if (!this.ProcessSelectionLockCheck(AscCommon.changestype_Paragraph_Content, true))
 					arrReplaceId.push(sElementId);
 			}
@@ -382,7 +362,7 @@ CDocument.prototype.Search_Replace = function(NewStr, bAll, Id, bInterfaceEvent)
 	}
 	else
 	{
-		this.Search_Select(Id);
+		this.SelectSearchElement(Id);
 
 		if (this.StartSelectionLockCheck())
 		{
@@ -424,7 +404,7 @@ CDocument.prototype.Search_Replace = function(NewStr, bAll, Id, bInterfaceEvent)
 
     return bResult;
 };
-CDocument.prototype.Search_GetId = function(bNext)
+CDocument.prototype.GetSearchElementId = function(bNext)
 {
 	var Id = null;
 
@@ -434,7 +414,7 @@ CDocument.prototype.Search_GetId = function(bNext)
 	{
 		var ParaDrawing = this.DrawingObjects.getMajorParaDrawing();
 
-		Id = ParaDrawing.Search_GetId(bNext, true);
+		Id = ParaDrawing.GetSearchElementId(bNext, true);
 		if (null != Id)
 			return Id;
 
@@ -509,7 +489,7 @@ CDocument.prototype.Search_GetId = function(bNext)
 
 	return Id;
 };
-CDocument.prototype.Search_Set_Selection = function(bSelection)
+CDocument.prototype.HighlightSearchResults = function(bSelection)
 {
     var OldValue = this.SearchEngine.Selection;
     if ( OldValue === bSelection )
@@ -519,7 +499,7 @@ CDocument.prototype.Search_Set_Selection = function(bSelection)
     this.DrawingDocument.ClearCachePages();
     this.DrawingDocument.FirePaint();
 };
-CDocument.prototype.Search_Get_Selection = function()
+CDocument.prototype.IsHighlightSearchResults = function()
 {
     return this.SearchEngine.Selection;
 };
@@ -536,7 +516,7 @@ CDocument.prototype.private_GetSearchIdInMainDocument = function(isCurrent)
 
 	if (true === bNext)
 	{
-		Id = this.Content[Pos].Search_GetId(true, isCurrent);
+		Id = this.Content[Pos].GetSearchElementId(true, isCurrent);
 
 		if (null != Id)
 			return Id;
@@ -546,7 +526,7 @@ CDocument.prototype.private_GetSearchIdInMainDocument = function(isCurrent)
 		var Count = this.Content.length;
 		while (Pos < Count)
 		{
-			Id = this.Content[Pos].Search_GetId(true, false);
+			Id = this.Content[Pos].GetSearchElementId(true, false);
 
 			if (null != Id)
 				return Id;
@@ -556,7 +536,7 @@ CDocument.prototype.private_GetSearchIdInMainDocument = function(isCurrent)
 	}
 	else
 	{
-		Id = this.Content[Pos].Search_GetId(false, isCurrent);
+		Id = this.Content[Pos].GetSearchElementId(false, isCurrent);
 
 		if (null != Id)
 			return Id;
@@ -565,7 +545,7 @@ CDocument.prototype.private_GetSearchIdInMainDocument = function(isCurrent)
 
 		while (Pos >= 0)
 		{
-			Id = this.Content[Pos].Search_GetId(false, false);
+			Id = this.Content[Pos].GetSearchElementId(false, false);
 
 			if (null != Id)
 				return Id;
@@ -578,7 +558,7 @@ CDocument.prototype.private_GetSearchIdInMainDocument = function(isCurrent)
 };
 CDocument.prototype.private_GetSearchIdInHdrFtr = function(isCurrent)
 {
-	return this.SectionsInfo.Search_GetId(this.SearchEngine.GetDirection(), isCurrent ? this.HdrFtr.CurHdrFtr : null);
+	return this.SectionsInfo.GetSearchElementId(this.SearchEngine.GetDirection(), isCurrent ? this.HdrFtr.CurHdrFtr : null);
 };
 CDocument.prototype.private_GetSearchIdInFootnotes = function(isCurrent)
 {
@@ -611,7 +591,7 @@ CDocument.prototype.private_GetSearchIdInFootnotes = function(isCurrent)
 		isCurrent    = false;
 	}
 
-	var Id = oCurFootnote.Search_GetId(bNext, isCurrent);
+	var Id = oCurFootnote.GetSearchElementId(bNext, isCurrent);
 	if (null !== Id)
 		return Id;
 
@@ -619,7 +599,7 @@ CDocument.prototype.private_GetSearchIdInFootnotes = function(isCurrent)
 	{
 		for (var nIndex = nCurPos + 1; nIndex < nCount; ++nIndex)
 		{
-			Id = arrFootnotes[nIndex].Search_GetId(bNext, false);
+			Id = arrFootnotes[nIndex].GetSearchElementId(bNext, false);
 			if (null != Id)
 				return Id;
 		}
@@ -628,7 +608,7 @@ CDocument.prototype.private_GetSearchIdInFootnotes = function(isCurrent)
 	{
 		for (var nIndex = nCurPos - 1; nIndex >= 0; --nIndex)
 		{
-			Id = arrFootnotes[nIndex].Search_GetId(bNext, false);
+			Id = arrFootnotes[nIndex].GetSearchElementId(bNext, false);
 			if (null != Id)
 				return Id;
 		}
@@ -667,7 +647,7 @@ CDocument.prototype.private_GetSearchIdInEndnotes = function(isCurrent)
 		isCurrent   = false;
 	}
 
-	var Id = oCurEndnote.Search_GetId(bNext, isCurrent);
+	var Id = oCurEndnote.GetSearchElementId(bNext, isCurrent);
 	if (null !== Id)
 		return Id;
 
@@ -675,7 +655,7 @@ CDocument.prototype.private_GetSearchIdInEndnotes = function(isCurrent)
 	{
 		for (var nIndex = nCurPos + 1; nIndex < nCount; ++nIndex)
 		{
-			Id = arrEndnotes[nIndex].Search_GetId(bNext, false);
+			Id = arrEndnotes[nIndex].GetSearchElementId(bNext, false);
 			if (null != Id)
 				return Id;
 		}
@@ -684,7 +664,7 @@ CDocument.prototype.private_GetSearchIdInEndnotes = function(isCurrent)
 	{
 		for (var nIndex = nCurPos - 1; nIndex >= 0; --nIndex)
 		{
-			Id = arrEndnotes[nIndex].Search_GetId(bNext, false);
+			Id = arrEndnotes[nIndex].GetSearchElementId(bNext, false);
 			if (null != Id)
 				return Id;
 		}
@@ -702,8 +682,7 @@ CDocumentContent.prototype.Search = function(sStr, oProps, oSearchEngine, nType)
 		this.Content[nPos].Search(sStr, oProps, oSearchEngine, nType);
 	}
 };
-
-CDocumentContent.prototype.Search_GetId = function(bNext, bCurrent)
+CDocumentContent.prototype.GetSearchElementId = function(bNext, bCurrent)
 {
     // Получим Id найденного элемента
     var Id = null;
@@ -714,11 +693,11 @@ CDocumentContent.prototype.Search_GetId = function(bNext, bCurrent)
         {
             var ParaDrawing = this.DrawingObjects.getMajorParaDrawing();
 
-            Id = ParaDrawing.Search_GetId( bNext, true );
+            Id = ParaDrawing.GetSearchElementId( bNext, true );
             if ( null != Id )
                 return Id;
 
-            ParaDrawing.GoTo_Text( true === bNext ? false : true, false );
+            ParaDrawing.GoTo_Text( true !== bNext, false );
         }
 
         var Pos = this.CurPos.ContentPos;
@@ -727,7 +706,7 @@ CDocumentContent.prototype.Search_GetId = function(bNext, bCurrent)
 
         if ( true === bNext )
         {
-            Id = this.Content[Pos].Search_GetId(true, true);
+            Id = this.Content[Pos].GetSearchElementId(true, true);
 
             if ( null != Id )
                 return Id;
@@ -737,7 +716,7 @@ CDocumentContent.prototype.Search_GetId = function(bNext, bCurrent)
             var Count = this.Content.length;
             while ( Pos < Count )
             {
-                Id = this.Content[Pos].Search_GetId(true, false);
+                Id = this.Content[Pos].GetSearchElementId(true, false);
                 if ( null != Id )
                     return Id;
 
@@ -746,7 +725,7 @@ CDocumentContent.prototype.Search_GetId = function(bNext, bCurrent)
         }
         else
         {
-            Id = this.Content[Pos].Search_GetId(false, true);
+            Id = this.Content[Pos].GetSearchElementId(false, true);
 
             if ( null != Id )
                 return Id;
@@ -755,7 +734,7 @@ CDocumentContent.prototype.Search_GetId = function(bNext, bCurrent)
 
             while ( Pos >= 0 )
             {
-                Id = this.Content[Pos].Search_GetId(false, false);
+                Id = this.Content[Pos].GetSearchElementId(false, false);
                 if ( null != Id )
                     return Id;
 
@@ -771,7 +750,7 @@ CDocumentContent.prototype.Search_GetId = function(bNext, bCurrent)
             var Pos = 0;
             while ( Pos < Count )
             {
-                Id = this.Content[Pos].Search_GetId(true, false);
+                Id = this.Content[Pos].GetSearchElementId(true, false);
                 if ( null != Id )
                     return Id;
 
@@ -783,7 +762,7 @@ CDocumentContent.prototype.Search_GetId = function(bNext, bCurrent)
             var Pos = Count - 1;
             while ( Pos >= 0 )
             {
-                Id = this.Content[Pos].Search_GetId(false, false);
+                Id = this.Content[Pos].GetSearchElementId(false, false);
                 if ( null != Id )
                     return Id;
 
@@ -794,7 +773,6 @@ CDocumentContent.prototype.Search_GetId = function(bNext, bCurrent)
 
     return null;
 };
-
 //----------------------------------------------------------------------------------------------------------------------
 // CHeaderFooter
 //----------------------------------------------------------------------------------------------------------------------
@@ -802,12 +780,10 @@ CHeaderFooter.prototype.Search = function(sStr, oProps, oSearchEngine, nType)
 {
 	this.Content.Search(sStr, oProps, oSearchEngine, nType);
 };
-
-CHeaderFooter.prototype.Search_GetId = function(bNext, bCurrent)
+CHeaderFooter.prototype.GetSearchElementId = function(bNext, bCurrent)
 {
-    return this.Content.Search_GetId( bNext, bCurrent );
+    return this.Content.GetSearchElementId( bNext, bCurrent );
 };
-
 //----------------------------------------------------------------------------------------------------------------------
 // CDocumentSectionsInfo
 //----------------------------------------------------------------------------------------------------------------------
@@ -838,8 +814,7 @@ CDocumentSectionsInfo.prototype.Search = function(sStr, oProps, oSearchEngine)
 			oSectPr.FooterDefault.Search(sStr, oProps, oSearchEngine, search_Footer);
 	}
 };
-
-CDocumentSectionsInfo.prototype.Search_GetId = function(bNext, CurHdrFtr)
+CDocumentSectionsInfo.prototype.GetSearchElementId = function(bNext, CurHdrFtr)
 {
 	var HdrFtrs = [];
 	var CurPos  = -1;
@@ -913,7 +888,7 @@ CDocumentSectionsInfo.prototype.Search_GetId = function(bNext, CurHdrFtr)
 
 	if (CurPos >= 0 && CurPos <= HdrFtrs.length - 1)
 	{
-		var Id = CurHdrFtr.Search_GetId(bNext, isCurrent);
+		var Id = CurHdrFtr.GetSearchElementId(bNext, isCurrent);
 		if (null != Id)
 			return Id;
 
@@ -921,7 +896,7 @@ CDocumentSectionsInfo.prototype.Search_GetId = function(bNext, CurHdrFtr)
 		{
 			for (var Index = CurPos + 1; Index < Count; Index++)
 			{
-				Id = HdrFtrs[Index].Search_GetId(bNext, false);
+				Id = HdrFtrs[Index].GetSearchElementId(bNext, false);
 
 				if (null != Id)
 					return Id;
@@ -931,7 +906,7 @@ CDocumentSectionsInfo.prototype.Search_GetId = function(bNext, CurHdrFtr)
 		{
 			for (var Index = CurPos - 1; Index >= 0; Index--)
 			{
-				Id = HdrFtrs[Index].Search_GetId(bNext, false);
+				Id = HdrFtrs[Index].GetSearchElementId(bNext, false);
 
 				if (null != Id)
 					return Id;
@@ -955,8 +930,7 @@ CTable.prototype.Search = function(sStr, oProps, oSearchEngine, nType)
 		}
 	}
 };
-
-CTable.prototype.Search_GetId = function(bNext, bCurrent)
+CTable.prototype.GetSearchElementId = function(bNext, bCurrent)
 {
     if ( true === bCurrent )
     {
@@ -971,7 +945,7 @@ CTable.prototype.Search_GetId = function(bNext, bCurrent)
         }
         else
         {
-            Id = this.CurCell.Content.Search_GetId(bNext, true);
+            Id = this.CurCell.Content.GetSearchElementId(bNext, true);
             if ( Id != null )
                 return Id;
 
@@ -990,7 +964,7 @@ CTable.prototype.Search_GetId = function(bNext, bCurrent)
                 for ( var _CurCell = StartCell; _CurCell < Cells_Count; _CurCell++ )
                 {
                     var Cell = Row.Get_Cell(_CurCell);
-                    Id = Cell.Content.Search_GetId( true, false );
+                    Id = Cell.Content.GetSearchElementId( true, false );
                     if ( null != Id )
                         return Id;
                 }
@@ -1006,7 +980,7 @@ CTable.prototype.Search_GetId = function(bNext, bCurrent)
                 for ( var _CurCell = StartCell; _CurCell >= 0; _CurCell-- )
                 {
                     var Cell = Row.Get_Cell(_CurCell);
-                    Id = Cell.Content.Search_GetId( false, false );
+                    Id = Cell.Content.GetSearchElementId( false, false );
                     if ( null != Id )
                         return Id;
                 }
@@ -1026,7 +1000,7 @@ CTable.prototype.Search_GetId = function(bNext, bCurrent)
                 for ( var _CurCell = 0; _CurCell < Cells_Count; _CurCell++ )
                 {
                     var Cell = Row.Get_Cell(_CurCell);
-                    Id = Cell.Content.Search_GetId( true, false );
+                    Id = Cell.Content.GetSearchElementId( true, false );
                     if ( null != Id )
                         return Id;
                 }
@@ -1041,7 +1015,7 @@ CTable.prototype.Search_GetId = function(bNext, bCurrent)
                 for ( var _CurCell = Cells_Count - 1; _CurCell >= 0; _CurCell-- )
                 {
                     var Cell = Row.Get_Cell(_CurCell);
-                    Id = Cell.Content.Search_GetId( false, false );
+                    Id = Cell.Content.GetSearchElementId( false, false );
                     if ( null != Id )
                         return Id;
                 }
@@ -1146,8 +1120,7 @@ Paragraph.prototype.Search = function(sStr, oProps, oSearchEngine, nType)
         this.SearchResults[FoundId].ResultStr = ResultStr;
     }
 };
-
-Paragraph.prototype.Search_GetId = function(bNext, bCurrent)
+Paragraph.prototype.GetSearchElementId = function(bNext, bCurrent)
 {
     // Определим позицию, начиная с которой мы будем искать ближайший найденный элемент
     var ContentPos = null;
@@ -1190,7 +1163,7 @@ Paragraph.prototype.Search_GetId = function(bNext, bCurrent)
 
         for ( var CurPos = StartPos; CurPos < ContentLen; CurPos++ )
         {
-            var ElementId = this.Content[CurPos].Search_GetId( true, CurPos === StartPos ? true : false, ContentPos, 1 );
+            var ElementId = this.Content[CurPos].GetSearchElementId( true, CurPos === StartPos, ContentPos, 1 );
             if ( null !== ElementId )
                 return ElementId;
         }
@@ -1202,7 +1175,7 @@ Paragraph.prototype.Search_GetId = function(bNext, bCurrent)
 
         for ( var CurPos = StartPos; CurPos >= 0; CurPos-- )
         {
-            var ElementId = this.Content[CurPos].Search_GetId( false, CurPos === StartPos ? true : false, ContentPos, 1 );
+            var ElementId = this.Content[CurPos].GetSearchElementId( false, CurPos === StartPos, ContentPos, 1 );
             if ( null !== ElementId )
                 return ElementId;
         }
@@ -1210,7 +1183,6 @@ Paragraph.prototype.Search_GetId = function(bNext, bCurrent)
 
     return null;
 };
-
 Paragraph.prototype.AddSearchResult = function(nId, oStartPos, oEndPos, nType)
 {
 	if (!oStartPos || !oEndPos)
@@ -1224,50 +1196,45 @@ Paragraph.prototype.AddSearchResult = function(nId, oStartPos, oEndPos, nType)
 	this.Content[oStartPos.Get(0)].AddSearchResult(oSearchResult, true, oStartPos, 1);
 	this.Content[oEndPos.Get(0)].AddSearchResult(oSearchResult, false, oEndPos, 1);
 };
-
-Paragraph.prototype.Clear_SearchResults = function()
+Paragraph.prototype.ClearSearchResults = function()
 {
-    for ( var Id in this.SearchResults )
-    {
-        var SearchResult = this.SearchResults[Id];
+	for (var Id in this.SearchResults)
+	{
+		var SearchResult = this.SearchResults[Id];
 
-        var ClassesCount = SearchResult.ClassesS.length;
-        for ( var Pos = 1; Pos < ClassesCount; Pos++ )
-        {
-            SearchResult.ClassesS[Pos].Clear_SearchResults();
-        }
+		for (var Pos = 1, ClassesCount = SearchResult.ClassesS.length; Pos < ClassesCount; Pos++)
+		{
+			SearchResult.ClassesS[Pos].ClearSearchResults();
+		}
 
-        var ClassesCount = SearchResult.ClassesE.length;
-        for ( var Pos = 1; Pos < ClassesCount; Pos++ )
-        {
-            SearchResult.ClassesE[Pos].Clear_SearchResults();
-        }
-    }
+		for (var Pos = 1, ClassesCount = SearchResult.ClassesE.length; Pos < ClassesCount; Pos++)
+		{
+			SearchResult.ClassesE[Pos].ClearSearchResults();
+		}
+	}
 
-    this.SearchResults = {};
+	this.SearchResults = {};
 };
-
-Paragraph.prototype.Remove_SearchResult = function(Id)
+Paragraph.prototype.RemoveSearchResult = function(Id)
 {
-    var SearchResult = this.SearchResults[Id];
-    if ( undefined !== SearchResult )
-    {
-        var ClassesCount = SearchResult.ClassesS.length;
-        for ( var Pos = 1; Pos < ClassesCount; Pos++ )
-        {
-            SearchResult.ClassesS[Pos].Remove_SearchResult(SearchResult);
-        }
+	var oSearchResult = this.SearchResults[Id];
+	if (oSearchResult)
+	{
+		var ClassesCount = oSearchResult.ClassesS.length;
+		for (var Pos = 1; Pos < ClassesCount; Pos++)
+		{
+			oSearchResult.ClassesS[Pos].RemoveSearchResult(oSearchResult);
+		}
 
-        var ClassesCount = SearchResult.ClassesE.length;
-        for ( var Pos = 1; Pos < ClassesCount; Pos++ )
-        {
-            SearchResult.ClassesE[Pos].Remove_SearchResult(SearchResult);
-        }
+		var ClassesCount = oSearchResult.ClassesE.length;
+		for (var Pos = 1; Pos < ClassesCount; Pos++)
+		{
+			oSearchResult.ClassesE[Pos].RemoveSearchResult(oSearchResult);
+		}
 
-        delete this.SearchResults[Id];
-    }
+		delete this.SearchResults[Id];
+	}
 };
-
 //----------------------------------------------------------------------------------------------------------------------
 // ParaRun
 //----------------------------------------------------------------------------------------------------------------------
@@ -1339,28 +1306,24 @@ ParaRun.prototype.AddSearchResult = function(oSearchResult, isStart, oContentPos
 	oSearchResult.RegisterClass(isStart, this);
 	this.SearchMarks.push(new CParagraphSearchMark(oSearchResult, isStart, nDepth));
 };
-
-ParaRun.prototype.Clear_SearchResults = function()
+ParaRun.prototype.ClearSearchResults = function()
 {
-    this.SearchMarks = [];
+	this.SearchMarks = [];
 };
-
-ParaRun.prototype.Remove_SearchResult = function(SearchResult)
+ParaRun.prototype.RemoveSearchResult = function(oSearchResult)
 {
-    var MarksCount = this.SearchMarks.length;
-    for ( var Index = 0; Index < MarksCount; Index++ )
-    {
-        var Mark = this.SearchMarks[Index];
-        if ( SearchResult === Mark.SearchResult )
-        {
-            this.SearchMarks.splice( Index, 1 );
-            Index--;
-            MarksCount--;
-        }
-    }
+	for (var nIndex = 0, nMarksCount = this.SearchMarks.length; nIndex < nMarksCount; ++nIndex)
+	{
+		var oMark = this.SearchMarks[nIndex];
+		if (oSearchResult === oMark.SearchResult)
+		{
+			this.SearchMarks.splice(nIndex, 1);
+			nIndex--;
+			nMarksCount--;
+		}
+	}
 };
-
-ParaRun.prototype.Search_GetId = function(bNext, bUseContentPos, ContentPos, Depth)
+ParaRun.prototype.GetSearchElementId = function(bNext, bUseContentPos, ContentPos, Depth)
 {
     var StartPos = 0;
 
@@ -1404,7 +1367,7 @@ ParaRun.prototype.Search_GetId = function(bNext, bUseContentPos, ContentPos, Dep
             var Item = this.Content[CurPos];
             if ( para_Drawing === Item.Type )
             {
-                var TempElementId = Item.Search_GetId( true, false );
+                var TempElementId = Item.GetSearchElementId( true, false );
                 if ( null != TempElementId )
                     return TempElementId;
             }
@@ -1433,7 +1396,7 @@ ParaRun.prototype.Search_GetId = function(bNext, bUseContentPos, ContentPos, Dep
             var Item = this.Content[CurPos];
             if ( para_Drawing === Item.Type )
             {
-                var TempElementId = Item.Search_GetId( false, false );
+                var TempElementId = Item.GetSearchElementId( false, false );
                 if ( null != TempElementId )
                     return TempElementId;
             }
@@ -1454,21 +1417,17 @@ ParaMath.prototype.AddSearchResult = function(SearchResult, Start, ContentPos, D
 {
 	this.Root.AddSearchResult(SearchResult, Start, ContentPos, Depth);
 };
-
-ParaMath.prototype.Clear_SearchResults = function()
+ParaMath.prototype.ClearSearchResults = function()
 {
-    this.Root.Clear_SearchResults();
+	this.Root.ClearSearchResults();
 };
-
-ParaMath.prototype.Remove_SearchResult = function(SearchResult)
+ParaMath.prototype.RemoveSearchResult = function(oSearchResult)
 {
-    this.Root.Remove_SearchResult(SearchResult);
+	this.Root.RemoveSearchResult(oSearchResult);
 };
-
-ParaMath.prototype.Search_GetId = function(bNext, bUseContentPos, ContentPos, Depth)
+ParaMath.prototype.GetSearchElementId = function(bNext, bUseContentPos, ContentPos, Depth)
 {
-    return this.Root.Search_GetId(bNext, bUseContentPos, ContentPos, Depth);
-    //return null;
+	return this.Root.GetSearchElementId(bNext, bUseContentPos, ContentPos, Depth);
 };
 //----------------------------------------------------------------------------------------------------------------------
 // CBLockLevelSdt
@@ -1477,11 +1436,10 @@ CBlockLevelSdt.prototype.Search = function(sStr, oProps, oSearchEngine, nType)
 {
 	this.Content.Search(sStr, oProps, oSearchEngine, nType);
 };
-CBlockLevelSdt.prototype.Search_GetId = function(bNext, bCurrent)
+CBlockLevelSdt.prototype.GetSearchElementId = function(bNext, bCurrent)
 {
-	return this.Content.Search_GetId(bNext, bCurrent);
+	return this.Content.GetSearchElementId(bNext, bCurrent);
 };
-
 //----------------------------------------------------------------------------------------------------------------------
 // Вспомогательные классы для поиска внутри параграфа
 //----------------------------------------------------------------------------------------------------------------------
@@ -1522,7 +1480,7 @@ CParagraphSearch.prototype.GetPrefix = function(nIndex)
 
 function CParagraphSearchMark(SearchResult, Start, Depth)
 {
-    this.SearchResult = SearchResult;
-    this.Start        = Start;
-    this.Depth        = Depth;
+	this.SearchResult = SearchResult;
+	this.Start        = Start;
+	this.Depth        = Depth;
 }
