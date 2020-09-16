@@ -1666,7 +1666,7 @@
 
 						//change filterColumns
 						if (diffColId !== null) {
-							var changeFilterColumns = function (_filterColumns, _view) {
+							var changeFilterColumns = function (_filterColumns, _view, _isActive) {
 								for (var j = 0; j < _filterColumns.length; j++) {
 									var _colId = _view ? _filterColumns[j].filter.ColId : _filterColumns[j].ColId;
 									var col = _colId + ref.c1;
@@ -1674,8 +1674,9 @@
 										var newColId = _colId + diffColId;
 										if (newColId < 0 || (diff < 0 && col >= activeRange.c1 && col <= activeRange.c2)) {
 											_view ? _filterColumns[j].filter.clean() : _filterColumns[j].clean();
-											//TODO view?
-											t._openHiddenRowsAfterDeleteColumn(autoFilter, _colId);
+											if (_isActive) {
+												t._openHiddenRowsAfterDeleteColumn(filter, _colId);
+											}
 											_filterColumns.splice(j, 1);
 											j--;
 										} else {
@@ -1690,18 +1691,19 @@
 							};
 
 							//так же необходимл сдвинуть фильтры во всех вью
+							var viewActive = worksheet.getActiveNamedSheetView();
 							if (Asc.CT_NamedSheetView.prototype.getNsvFiltersByTableId) {
-								worksheet.forEachView(function (curView) {
+								worksheet.forEachView(function (curView, isActive) {
 									var nsvFilter = curView.getNsvFiltersByTableId(bTablePart ? filter.DisplayName : null);
 									if (nsvFilter.columnsFilter && nsvFilter.columnsFilter.length) {
-										changeFilterColumns(nsvFilter.columnsFilter, true);
+										changeFilterColumns(nsvFilter.columnsFilter, true, isActive);
 									}
 								});
 							}
 
 							var autoFilter = bTablePart ? filter.AutoFilter : filter;
 							if (autoFilter && autoFilter.FilterColumns && autoFilter.FilterColumns.length) {
-								changeFilterColumns(autoFilter.FilterColumns);
+								changeFilterColumns(autoFilter.FilterColumns, null, null === viewActive);
 							}
 						}
 
@@ -4704,7 +4706,8 @@
 				}
 			},
 
-			_openHiddenRowsAfterDeleteColumn: function (autoFilter, colId) {
+			_openHiddenRowsAfterDeleteColumn: function (filter, colId) {
+				var autoFilter = filter.getAutoFilter();
 				var ref = autoFilter.Ref;
 				var filterColumns = autoFilter.FilterColumns;
 				var worksheet = this.worksheet;
@@ -4715,6 +4718,7 @@
 					return;
 				}
 
+				var isTablePart = !filter.isAutoFilter()
 				var activeNamedSheetView = worksheet.getActiveNamedSheetView();
 				var opt_columnsFilter;
 				if (activeNamedSheetView !== null) {
@@ -5271,7 +5275,7 @@
 
 				if (colId !== null) {
 					var index = autoFilter.getIndexByColId(colId);
-					this._openHiddenRowsAfterDeleteColumn(autoFilter, colId);
+					this._openHiddenRowsAfterDeleteColumn(filter, colId);
 
 					var filterColumn = autoFilter.FilterColumns[index];
 					filterColumn.clean();

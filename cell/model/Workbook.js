@@ -8691,8 +8691,9 @@
 	Worksheet.prototype.forEachView = function (actionView) {
 		var namedSheetViews = this.aNamedSheetViews;
 		if (namedSheetViews) {
+			var nActive = this.getActiveNamedSheetView();
 			for (var i = 0; i < namedSheetViews.length; i++) {
-				actionView(namedSheetViews[i]);
+				actionView(namedSheetViews[i], nActive === i);
 			}
 		}
 	};
