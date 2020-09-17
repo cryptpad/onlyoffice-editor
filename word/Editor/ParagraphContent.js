@@ -609,13 +609,15 @@ ParaText.prototype.private_DrawGapsBackground = function(X, Y, oContext, PDSE, o
 
 /**
  * Класс представляющий пробелбный символ
+ * @param {number} [nCharCode=0x20] - Юникодное значение символа
  * @constructor
  * @extends {CRunElementBase}
  */
-function ParaSpace()
+function ParaSpace(nCharCode)
 {
 	CRunElementBase.call(this);
 
+	this.Value        = undefined !== nCharCode ? nCharCode : 0x20;
     this.Flags        = 0x00000000 | 0;
     this.Width        = 0x00000000 | 0;
     this.WidthVisible = 0x00000000 | 0;
@@ -636,13 +638,22 @@ ParaSpace.prototype.Draw = function(X, Y, Context, PDSE, oTextPr)
 		}
 
 		Context.SetFontSlot(fontslot_ASCII, this.Get_FontKoef());
-		Context.FillText(X, Y, String.fromCharCode(0x00B7));
+
+		if (this.SpaceGap)
+			X += this.SpaceGap;
+
+		if (0x2003 === this.Value || 0x2002 === this.Value)
+			Context.FillText(X, Y, String.fromCharCode(0x00B0));
+		else if (0x2005 === this.Value)
+			Context.FillText(X, Y, String.fromCharCode(0x007C));
+		else
+			Context.FillText(X, Y, String.fromCharCode(0x00B7));
 	}
 };
 ParaSpace.prototype.Measure = function(Context, TextPr)
 {
-	this.Set_FontKoef_Script(TextPr.VertAlign !== AscCommon.vertalign_Baseline ? true : false);
-	this.Set_FontKoef_SmallCaps(true != TextPr.Caps && true === TextPr.SmallCaps ? true : false);
+	this.Set_FontKoef_Script(TextPr.VertAlign !== AscCommon.vertalign_Baseline);
+	this.Set_FontKoef_SmallCaps(true !== TextPr.Caps && true === TextPr.SmallCaps);
 
 	// Разрешенные размеры шрифта только либо целое, либо целое/2. Даже после применения FontKoef, поэтому
 	// мы должны подкрутить коэффициент так, чтобы после домножения на него, у нас получался разрешенный размер
@@ -653,11 +664,19 @@ ParaSpace.prototype.Measure = function(Context, TextPr)
 
 	Context.SetFontSlot(fontslot_ASCII, FontKoef);
 
-	var Temp  = Context.MeasureCode(0x20);
+	var Temp  = Context.MeasureCode(this.Value).Width;
 
-	var ResultWidth  = (Math.max((Temp.Width + TextPr.Spacing), 0) * 16384) | 0;
+	var ResultWidth  = (Math.max((Temp + TextPr.Spacing), 0) * 16384) | 0;
 	this.Width       = ResultWidth;
 	this.WidthOrigin = ResultWidth;
+
+	if (0x2003 === this.Value || 0x2002 === this.Value)
+		this.SpaceGap = Math.max((Temp - Context.MeasureCode(0x00B0).Width) / 2, 0);
+	else if (0x2005 === this.Value)
+		this.SpaceGap = (Temp - Context.MeasureCode(0x007C).Width) / 2;
+	else if (undefined !== this.SpaceGap)
+		this.SpaceGap = 0;
+
 	// Не меняем здесь WidthVisible, это значение для пробела высчитывается отдельно, и не должно меняться при пересчете
 };
 ParaSpace.prototype.Get_FontKoef = function()
@@ -695,7 +714,7 @@ ParaSpace.prototype.Can_AddNumbering = function()
 };
 ParaSpace.prototype.Copy = function()
 {
-	return new ParaSpace();
+	return new ParaSpace(this.Value);
 };
 ParaSpace.prototype.Write_ToBinary = function(Writer)
 {

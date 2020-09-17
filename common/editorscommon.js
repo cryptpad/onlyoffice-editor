@@ -4062,6 +4062,24 @@
 		return sResult;
 	}
 
+	var c_oAscSpaces = [];
+	c_oAscSpaces[0x000A] = 1;
+	c_oAscSpaces[0x0020] = 1;
+	c_oAscSpaces[0x2002] = 1;
+	c_oAscSpaces[0x2003] = 1;
+	c_oAscSpaces[0x2005] = 1;
+	c_oAscSpaces[0x3000] = 1;
+
+	/**
+	 * Проверяем является ли заданный юников пробелом
+	 * @param nUnicode {number}
+	 * @returns {boolean}
+	 */
+	function IsSpace(nUnicode)
+	{
+		return !!(c_oAscSpaces[nUnicode]);
+	}
+
 	function private_IsAbbreviation(sWord) {
 		if (sWord.toUpperCase() === sWord) {
 			// Корейские символы считаются символами в верхнем регистре, но при этом мы не должны считать их аббревиатурой
@@ -5638,6 +5656,7 @@
 	window["AscCommon"].RomanToInt = RomanToInt;
 	window["AscCommon"].LatinNumberingToInt = LatinNumberingToInt;
 	window["AscCommon"].IntToNumberFormat = IntToNumberFormat;
+	window["AscCommon"].IsSpace = IsSpace;
 
 	window["AscCommon"].loadSdk = loadSdk;
     window["AscCommon"].loadScript = loadScript;

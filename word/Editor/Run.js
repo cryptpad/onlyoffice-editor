@@ -1598,10 +1598,10 @@ ParaRun.prototype.AddText = function(sString, nPos)
 				continue;
 			else if (13 === nCharCode) // \r
 				continue;
-			else if (32 === nCharCode) // space
+			else if (AscCommon.IsSpace(nCharCode)) // space
 			{
 				nLettersCount++;
-				arrLetters.push(new ParaSpace());
+				arrLetters.push(new ParaSpace(nCharCode));
 			}
 			else
 			{
@@ -1630,8 +1630,8 @@ ParaRun.prototype.AddText = function(sString, nPos)
 				this.AddToContent(nCharPos++, new ParaNewLine(break_Line));
 			else if (13 === nCharCode) // \r
 				continue;
-			else if (32 === nCharCode) // space
-				this.AddToContent(nCharPos++, new ParaSpace());
+			else if (AscCommon.IsSpace(nCharCode)) // space
+				this.AddToContent(nCharPos++, new ParaSpace(nCharCode));
 			else
 				this.AddToContent(nCharPos++, new ParaText(nCharCode));
 		}

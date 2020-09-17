@@ -5468,7 +5468,7 @@ function BinaryDocumentTableWriter(memory, doc, oMapCommentId, oNumIdMap, copyPa
                     }
                     break;
                 case para_Space:
-                    sCurText += " ";
+					sCurText += AscCommon.encodeSurrogateChar(item.Value);
                     break;
                 case para_Tab:
 					sCurText = this.WriteText(sCurText, textType);
@@ -11086,8 +11086,8 @@ function Binary_DocumentTableReader(doc, oReadResult, openParams, stream, curNot
 				if(isInstrText){
 					oParStruct.addElemToContent(new ParaInstrText(nUnicode));
 				} else {
-					if (0x20 === nUnicode || 0x0A === nUnicode) {
-						oParStruct.addElemToContent(new ParaSpace());
+					if (AscCommon.IsSpace(nUnicode)) {
+						oParStruct.addElemToContent(new ParaSpace(nUnicode));
 					} else if (0x0D === nUnicode) {
 						if (i + 1 < text.length && 0x0A === text.charCodeAt(i + 1)) {
 							i++;
@@ -12550,8 +12550,8 @@ function Binary_oMathReader(stream, oReadResult, curNote, openParams)
 			        nUnicode = nCharCode;
 
 			    if (null != nUnicode) {
-					if (0x20 === nUnicode || 0x0A === nUnicode) {
-						oPos.run.AddToContent(oPos.pos, new ParaSpace(), false);
+					if (AscCommon.IsSpace(nUnicode)) {
+						oPos.run.AddToContent(oPos.pos, new ParaSpace(nUnicode), false);
 					} else if (0x0D === nUnicode) {
 						if (i + 1 < text.length && 0x0A === text.charCodeAt(i + 1)) {
 							i++;

@@ -16717,8 +16717,8 @@ CDocument.prototype.private_AddCompositeText = function(nCharCode)
 	}
 	else
 	{
-		if (32 == nCharCode || 12288 == nCharCode)
-			oChar = new ParaSpace();
+		if (AscCommon.IsSpace(nCharCode))
+			oChar = new ParaSpace(nCharCode);
 		else
 			oChar = new ParaText(nCharCode);
 	}
@@ -21370,8 +21370,8 @@ CDocument.prototype.AddTableOfContents = function(sHeading, oPr, oSdt)
 				for (var oIterator = sHeading.getUnicodeIterator(); oIterator.check(); oIterator.next())
 				{
 					var nCharCode = oIterator.value();
-					if (0x0020 === nCharCode)
-						oParagraph.Add(new ParaSpace());
+					if (AscCommon.IsSpace(nCharCode))
+						oParagraph.Add(new ParaSpace(nCharCode));
 					else
 						oParagraph.Add(new ParaText(nCharCode));
 				}
