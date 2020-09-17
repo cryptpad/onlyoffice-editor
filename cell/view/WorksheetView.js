@@ -1461,7 +1461,6 @@
 	};
 
 	WorksheetView.prototype._calcHeightRow = function (y, i) {
-		var t = this;
 		var r, hR;
 		this.model._getRowNoEmptyWithAll(i, function (row) {
 			if (!row) {
