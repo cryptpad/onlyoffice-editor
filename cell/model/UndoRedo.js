@@ -2876,8 +2876,18 @@ function (window, undefined) {
 			}
 		} else if (AscCH.historyitem_Worksheet_SetActiveNamedSheetView === Type) {
 			if (ws.aNamedSheetViews) {
-				var namedSheetView = bUndo ? ws.aNamedSheetViews[Data.from] : ws.aNamedSheetViews[Data.to];
-				namedSheetView.asc_setIsActive();
+				var activeIndex = bUndo ? Data.from : Data.to;
+				var namedSheetView = ws.aNamedSheetViews[activeIndex];
+
+				for (i = 0; i < ws.aNamedSheetViews.length; i++) {
+					ws.aNamedSheetViews[i]._isActive = false;
+				}
+
+				ws.nActiveNamedSheetView = activeIndex;
+				if (namedSheetView) {
+					namedSheetView._isActive = true;
+				}
+
 				ws.autoFilters.reapplyAllFilters(true);
 			}
 		} else if (AscCH.historyitem_Worksheet_SheetViewAdd === Type) {
