@@ -4055,13 +4055,14 @@ background-repeat: no-repeat;\
 	};
 	asc_docs_api.prototype.put_TextColor          = function(color)
 	{
-		if (false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Paragraph_TextProperties))
+		var oLogicDocument = this.WordControl.m_oLogicDocument;
+		if (false === oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Paragraph_TextProperties))
 		{
-			this.WordControl.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_SetTextColor);
+			oLogicDocument.StartAction(AscDFH.historydescription_Document_SetTextColor);
 
 			if (true === color.Auto)
 			{
-				this.WordControl.m_oLogicDocument.AddToParagraph(new AscCommonWord.ParaTextPr({
+				oLogicDocument.AddToParagraph(new AscCommonWord.ParaTextPr({
 					Color      : {
 						Auto : true,
 						r    : 0,
@@ -4072,15 +4073,23 @@ background-repeat: no-repeat;\
 			}
 			else
 			{
-				var Unifill        = new AscFormat.CUniFill();
-				Unifill.fill       = new AscFormat.CSolidFill();
-				Unifill.fill.color = AscFormat.CorrectUniColor(color, Unifill.fill.color, 1);
-				this.WordControl.m_oLogicDocument.AddToParagraph(new AscCommonWord.ParaTextPr({Unifill : Unifill}));
+				if(color && color.asc_getType && color.asc_getType() === Asc.c_oAscColor.COLOR_TYPE_SRGB)
+				{
+					var oColor = new CDocumentColor(color.r, color.g, color.b, false);
+					oLogicDocument.AddToParagraph(new AscCommonWord.ParaTextPr({Color: oColor, Unifill: undefined}));
+				}
+				else
+				{
+					var Unifill        = new AscFormat.CUniFill();
+					Unifill.fill       = new AscFormat.CSolidFill();
+					Unifill.fill.color = AscFormat.CorrectUniColor(color, Unifill.fill.color, 1);
+					oLogicDocument.AddToParagraph(new AscCommonWord.ParaTextPr({Unifill : Unifill}));
+				}
 			}
 
-			this.WordControl.m_oLogicDocument.Recalculate();
-			this.WordControl.m_oLogicDocument.UpdateInterface();
-			this.WordControl.m_oLogicDocument.FinalizeAction();
+			oLogicDocument.Recalculate();
+			oLogicDocument.UpdateInterface();
+			oLogicDocument.FinalizeAction();
 		}
 	};
 	asc_docs_api.prototype.put_ParagraphShade     = function(is_flag, color, isOnlyPara)

@@ -733,6 +733,18 @@
         if(AscCommon.isFileBuild()) {
             return;
         }
+
+        //--------------For bug 46500--------------------
+        var bCollaborativeChanges = false;
+        var oWorkbook = this.getWorkbook();
+        if(oWorkbook) {
+            bCollaborativeChanges = oWorkbook.bCollaborativeChanges;
+        }
+        if(AscFonts.IsCheckSymbols && bCollaborativeChanges) {
+            return;
+        }
+        //-------------------------------------------------
+        
         AscFormat.ExecuteNoHistory(function () {
             AscFormat.CShape.prototype.recalculate.call(this);
             if(this.recalcInfo.recalculateHeader) {

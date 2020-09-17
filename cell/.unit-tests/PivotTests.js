@@ -111,7 +111,9 @@ $(function() {
 	};
 	AscCommonExcel.WorksheetView.prototype._init = function() {
 	};
-	AscCommonExcel.WorksheetView.prototype._onUpdateFormatTable = function() {
+	AscCommonExcel.WorksheetView.prototype.updateRanges = function() {
+	};
+	AscCommonExcel.WorksheetView.prototype._autoFitColumnsWidth = function() {
 	};
 	AscCommonExcel.WorksheetView.prototype.setSelection = function() {
 	};
@@ -122,7 +124,8 @@ $(function() {
 	AscCommon.baseEditorsApi.prototype._onEndLoadSdk = function() {
 	};
 
-
+	var CT_PivotField = Asc.CT_PivotField;
+	var c_oAscDataConsolidateFunction = Asc.c_oAscDataConsolidateFunction;
 	var sData = AscCommon.getEmpty();
 	var api = new Asc.spreadsheet_api({
 		'id-view': 'editor_sdk'

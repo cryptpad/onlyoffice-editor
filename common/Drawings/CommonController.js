@@ -7727,6 +7727,13 @@ DrawingObjectsController.prototype =
 
                     oSelectedContent.On_EndCollectElements(oTargetDocContent, false);
 
+                    var isMath = false;
+                    if (oAnchorPos && oAnchorPos.Paragraph)
+                    {
+                        var oParaNearPos = oAnchorPos.Paragraph.Get_ParaNearestPos(oAnchorPos);
+                        var oLastClass   = oParaNearPos.Classes[oParaNearPos.Classes.length - 1];
+                        isMath = (para_Math_Run === oLastClass.Type)
+                    }
                     oParagraph.GetParent().InsertContent(oSelectedContent, oAnchorPos);
                     oSelectedElement = oSelectedContent.Elements[0];
                     if(oSelectedElement)
@@ -7735,13 +7742,6 @@ DrawingObjectsController.prototype =
                         if(oTempPara)
                         {
                             oRun = oTempPara.Content[0];
-                            var isMath = false;
-                            if (oAnchorPos && oAnchorPos.Paragraph)
-                            {
-                                var oParaNearPos = oAnchorPos.Paragraph.Get_ParaNearestPos(oAnchorPos);
-                                var oLastClass   = oParaNearPos.Classes[oParaNearPos.Classes.length - 1];
-                                isMath = (para_Math_Run === oLastClass.Type)
-                            }
                             if (isMath)
                             {
                                 oTargetDocContent.MoveCursorRight(false, false, true);

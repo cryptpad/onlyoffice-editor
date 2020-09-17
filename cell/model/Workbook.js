@@ -2276,7 +2276,7 @@
 			History.TurnOn();
 
 			this.dependencyFormulas.copyDefNameByWorksheet(wsFrom, newSheet, renameParams, opt_sheet);
-			if (opt_sheet && !bFromRedo) {
+			if (opt_sheet /*&& !bFromRedo*/) {
 				this.dependencyFormulas.copyDefNameByWorkbook(wsFrom, newSheet, renameParams, opt_sheet);
 			}
 			//для формул. создаем копию this.cwf[this.Id] для нового листа.
@@ -2298,6 +2298,7 @@
 			History.Add(AscCommonExcel.g_oUndoRedoWorkbook, AscCH.historyitem_Workbook_SheetAdd, null, null, new UndoRedoData_SheetAdd(insertBefore, newSheet.getName(), wsFrom.getId(), newSheet.getId(), tableNames, opt_base64));
 			History.SetSheetUndo(wsActive.getId());
 			History.SetSheetRedo(newSheet.getId());
+			newSheet.copyFromAfterInsert(wsFrom);
 			if(!(bFromRedo === true))
 			{
 				wsFrom.copyObjects(newSheet, renameParams);
@@ -3792,7 +3793,8 @@
 			this.Drawings[i].graphicObject.Reassign_ImageUrls(oImages);
 		}
 	};
-	Worksheet.prototype.copyFrom=function(wsFrom, sName, tableNames){	var i, elem, range;
+	Worksheet.prototype.copyFrom=function(wsFrom, sName, tableNames){
+		var i, elem, range;
 		var t = this;
 		this.sName = this.workbook.checkValidSheetName(sName) ? sName : this.workbook.getUniqueSheetNameFrom(wsFrom.sName, true);
 		this.bHidden = wsFrom.bHidden;
@@ -3818,9 +3820,6 @@
 		}
 		if(wsFrom.AutoFilter)
 			this.AutoFilter = wsFrom.AutoFilter.clone();
-		for (i = 0; i < wsFrom.pivotTables.length; ++i) {
-			this.insertPivotTable(wsFrom.pivotTables[i].cloneShallow());
-		}
 		for (i in wsFrom.aCols) {
 			var col = wsFrom.aCols[i];
 			if(null != col)
@@ -3901,6 +3900,13 @@
 		return renameParams;
 	};
 
+	Worksheet.prototype.copyFromAfterInsert=function(wsFrom){
+		if (!this.workbook.bUndoChanges && !this.workbook.bRedoChanges) {
+			for (var i = 0; i < wsFrom.pivotTables.length; ++i) {
+				this.insertPivotTable(wsFrom.pivotTables[i].cloneShallow(), true);
+			}
+		}
+	};
 	Worksheet.prototype.copyFromFormulas=function(renameParams, renameSheetMap) {
 		//change cell formulas
 		var t = this;
@@ -4575,6 +4581,7 @@
 				this.getId(), null, new UndoRedoData_FromTo(view.showGridLines, value));
 			view.showGridLines = value;
 
+			this.workbook.handlers.trigger("changeSheetViewSettings", this.getId(), AscCH.historyitem_Worksheet_SetDisplayGridlines);
 			if (!this.workbook.bUndoChanges && !this.workbook.bRedoChanges) {
 				this.workbook.handlers.trigger("asc_onUpdateSheetViewSettings");
 			}
@@ -4588,6 +4595,7 @@
 				this.getId(), null, new UndoRedoData_FromTo(view.showRowColHeaders, value));
 			view.showRowColHeaders = value;
 
+			this.workbook.handlers.trigger("changeSheetViewSettings", this.getId(), AscCH.historyitem_Worksheet_SetDisplayHeadings);
 			if (!this.workbook.bUndoChanges && !this.workbook.bRedoChanges) {
 				this.workbook.handlers.trigger("asc_onUpdateSheetViewSettings");
 			}
@@ -5918,16 +5926,22 @@
 		}
 		return res;
 	};
-	Worksheet.prototype._movePivots = function(oBBoxFrom, oBBoxTo, copyRange, wsTo) {
-		//todo wsTo
-		var offset = new AscCommon.CellBase(oBBoxTo.r1 - oBBoxFrom.r1, oBBoxTo.c1 - oBBoxFrom.c1);
+	Worksheet.prototype._movePivots = function (oBBoxFrom, oBBoxTo, copyRange, offset, wsTo) {
+		if (!wsTo) {
+			wsTo = this;
+		}
 		if (false == this.workbook.bUndoChanges && false == this.workbook.bRedoChanges) {
 			if (copyRange) {
-				this.deletePivotTables(oBBoxTo);
-				this.copyPivotTable(oBBoxFrom, offset);
+				wsTo.deletePivotTables(oBBoxTo);
+				this.copyPivotTable(oBBoxFrom, offset, wsTo);
 			} else {
-				this.deletePivotTablesOnMove(oBBoxFrom, oBBoxTo);
-				this.movePivotOffset(oBBoxFrom, offset);
+				if (this === wsTo) {
+					this.deletePivotTablesOnMove(oBBoxFrom, oBBoxTo);
+					this.movePivotOffset(oBBoxFrom, offset);
+				} else {
+					this.copyPivotTable(oBBoxFrom, offset, wsTo);
+					this.deletePivotTables(oBBoxFrom, true);
+				}
 			}
 		}
 	};
@@ -6807,7 +6821,7 @@
 		}
 		var t = this;
 		var multiplyRange = new AscCommonExcel.MultiplyRange([]);
-		if(changed.oldRanges){
+		if (changed.oldRanges) {
 			multiplyRange.union2(new AscCommonExcel.MultiplyRange(changed.oldRanges));
 		}
 		pivotTable.init();
@@ -6818,10 +6832,10 @@
 			});
 			this._updatePivotTableCells(pivotTable, dataRow);
 		}
-		multiplyRange.union2(new AscCommonExcel.MultiplyRange(pivotTable.getReportRanges()));
-		var unionRange = multiplyRange.getUnionRange();
-		this.updatePivotTablesStyle(unionRange, true);
-		return unionRange;
+		var res = pivotTable.getReportRanges();
+		multiplyRange.union2(new AscCommonExcel.MultiplyRange(res));
+		this.updatePivotTablesStyle(multiplyRange.getUnionRange(), true);
+		return res;
 	};
 	Worksheet.prototype.clearPivotTableCell = function (pivotTable) {
 		var ranges = pivotTable.getReportRanges();
@@ -7444,16 +7458,16 @@
 			}
 		}
 	};
-	Worksheet.prototype.copyPivotTable = function (range, offset) {
+	Worksheet.prototype.copyPivotTable = function (range, offset, wsTo) {
 		var t = this;
 		var pivotTable;
 		for (var i = 0; i < this.pivotTables.length; ++i) {
 			pivotTable = this.pivotTables[i];
 			if (pivotTable.isInRange(range)) {
 				var newPivot = pivotTable.clone();
-				newPivot.prepareToPaste(pivotTable.GetWS(), offset);
+				newPivot.prepareToPaste(wsTo, offset);
 				this.workbook.oApi._changePivotSimple(newPivot, true, false, function() {
-					t.insertPivotTable(newPivot, true, false);
+					wsTo.insertPivotTable(newPivot, true, false);
 				});
 			}
 		}
@@ -7515,18 +7529,20 @@
 			}
 		}
 	};
-	Worksheet.prototype._deletePivotTable = function (pivotTables, pivotTable, index) {
+	Worksheet.prototype._deletePivotTable = function (pivotTables, pivotTable, index, withoutCells) {
+		if (!withoutCells) {
+			this.clearPivotTableCell(pivotTable);
+		}
 		this.clearPivotTableStyle(pivotTable);
-		this.clearPivotTableCell(pivotTable);
 		History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_PivotDelete, this.getId(), null,
 			new AscCommonExcel.UndoRedoData_PivotTableRedo(pivotTable.Get_Id(), pivotTable, null));
 		this.pivotTables.splice(index, 1);
 	};
-	Worksheet.prototype.deletePivotTables = function (range) {
+	Worksheet.prototype.deletePivotTables = function (range, withoutCells) {
 		for (var i = this.pivotTables.length - 1; i >= 0; --i) {
 			var pivotTable = this.pivotTables[i];
 			if (pivotTable.intersection(range)) {
-				this._deletePivotTable(this.pivotTables, pivotTable, i);
+				this._deletePivotTable(this.pivotTables, pivotTable, i, withoutCells);
 			}
 		}
 		return true;

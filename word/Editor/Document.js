@@ -6170,6 +6170,12 @@ CDocument.prototype.ClearParagraphFormatting = function(isClearParaPr, isClearTe
 };
 CDocument.prototype.Remove = function(nDirection, isRemoveWholeElement, bRemoveOnlySelection, bOnTextAdd, isWord)
 {
+	if (undefined === nDirection)
+		nDirection = 1;
+
+	if (undefined === isRemoveWholeElement)
+		isRemoveWholeElement = false;
+
 	if (undefined === bRemoveOnlySelection)
 		bRemoveOnlySelection = false;
 
@@ -13569,7 +13575,8 @@ CDocument.prototype.RecalculateFromStart = function(bUpdateStates)
 		Inline   : {Pos : 0, PageNum : 0},
 		Flow     : [],
 		HdrFtr   : [],
-		Drawings : {All : true, Map : {}}
+		Drawings : {All : true, Map : {}},
+		Tables   : []
 	};
 
 	this.Reset_RecalculateCache();
@@ -22717,8 +22724,6 @@ CDocument.prototype.AddTextWithPr = function(sText, oTextPr, isMoveCursorOutside
 
 			oSelectedContent.On_EndCollectElements(this, false);
 
-			oParagraph.GetParent().InsertContent(oSelectedContent, oAnchorPos);
-
 			// TODO: Надо переделать здесь по-нормальному, и сделать как-то грамотную обработку в InsertContent
 			var isMath = false;
 			if (oAnchorPos && oAnchorPos.Paragraph)
@@ -22727,7 +22732,7 @@ CDocument.prototype.AddTextWithPr = function(sText, oTextPr, isMoveCursorOutside
 				var oLastClass   = oParaNearPos.Classes[oParaNearPos.Classes.length - 1];
 				isMath = (para_Math_Run === oLastClass.Type)
 			}
-
+			oParagraph.GetParent().InsertContent(oSelectedContent, oAnchorPos);
 			if (isMath)
 			{
 				this.MoveCursorRight(false, false, true);
@@ -22995,7 +23000,7 @@ CDocument.prototype.AddParaMath = function(nType)
 {
 	if ((undefined === nType || c_oAscMathType.Default_Text === nType) && (!this.IsSelectionUse() || !this.IsTextSelectionUse()))
 	{
-		this.Remove();
+		this.Remove(1, true, false, true);
 		var oCC = this.AddContentControl(c_oAscSdtLevelType.Inline);
 		if (!oCC)
 			return;

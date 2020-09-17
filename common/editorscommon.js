@@ -2707,9 +2707,13 @@
 			this._reset();
 		}
 
-		var is3D = this.is3DRef(formula, start_pos);
-		if(is3D && is3D[0] && is3D[1] && is3D[1].length) {
-			return this.isName(formula, this.pCurrPos);
+		var _is3DRef = this.is3DRef(formula, start_pos);
+		if(_is3DRef && _is3DRef[0] && _is3DRef[1] && _is3DRef[1].length)
+		{
+			var _startPos = this.pCurrPos;
+			var _isArea = this.isArea(formula, _startPos);
+			var _isRef = !_isArea && this.isRef(formula, _startPos);
+			return !_isRef && !_isArea && this.isName(formula, _startPos);
 		}
 
 		return false;

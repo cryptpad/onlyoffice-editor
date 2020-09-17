@@ -655,6 +655,8 @@
     };
 
 	WorksheetView.prototype._getColLeft = function (i) {
+		this._updateColumnPositions();
+
 		var l = this.cols.length;
 		return this.cellsLeft + ((i < l) ? this.cols[i].left : (((0 === l) ? 0 :
 			this.cols[l - 1].left + this.cols[l - 1].width) + (!this.model.isDefaultWidthHidden()) *
@@ -1436,14 +1438,18 @@
     };
 
 	WorksheetView.prototype._calcColWidth = function (i) {
-		var w, hiddenW = 0;
+		if (i !== this.cols.length) {
+			// Only this.model.getColsCount() can >= i
+			this._calcWidthColumns(AscCommonExcel.recalcType.newLines);
+		}
+
+		var w;
 		// Получаем свойства колонки
 		var column = this.model._getColNoEmptyWithAll(i);
 		if (!column) {
 			w = this.defaultColWidthPx; // Используем дефолтное значение
 		} else if (column.getHidden()) {
 			w = 0;            // Если столбец скрытый, ширину выставляем 0
-			hiddenW = column.widthPx || this.defaultColWidthPx;
 		} else {
 			w = null === column.widthPx ? this.defaultColWidthPx : column.widthPx;
 		}
@@ -1452,19 +1458,16 @@
 		this.cols[i].width = Asc.round(w * this.getZoom());
 
 		this.updateColumnsStart = Math.min(i, this.updateColumnsStart);
-
-		return hiddenW;
 	};
 
 	WorksheetView.prototype._calcHeightRow = function (y, i) {
 		var t = this;
-		var r, hR, hiddenH = 0;
+		var r, hR;
 		this.model._getRowNoEmptyWithAll(i, function (row) {
 			if (!row) {
 				hR = -1; // Будет использоваться дефолтная высота строки
 			} else if (row.getHidden()) {
 				hR = 0;  // Скрытая строка, высоту выставляем 0
-				hiddenH += row.h > 0 ? row.h - 1 : t.defaultRowHeightPx;
 			} else {
 				// Берем высоту из модели, если она custom(баг 15618), либо дефолтную
 				if (row.h > 0 && (row.getCustomHeight() || row.getCalcHeight())) {
@@ -1481,8 +1484,6 @@
 		r.top = y;
 		r.height = Asc.round(AscCommonExcel.convertPtToPx(hR) * this.getZoom());
 		r.descender = this.defaultRowDescender;
-
-		return hiddenH;
 	};
 
     /** Вычисляет ширину колонки заголовков */
@@ -1518,7 +1519,7 @@
      */
     WorksheetView.prototype._calcWidthColumns = function (type) {
         var l = this.model.getColsCount();
-        var i = 0, hiddenW = 0;
+        var i = 0;
 
         if (AscCommonExcel.recalcType.full === type) {
             this.cols = [];
@@ -1526,7 +1527,7 @@
             i = this.cols.length;
         }
 		for (; i < l; ++i) {
-			hiddenW += this._calcColWidth(i);
+			this._calcColWidth(i);
         }
 
         this.nColsCount = Math.min(Math.max(this.nColsCount, i), gc_nMaxCol);
@@ -1539,7 +1540,7 @@
     WorksheetView.prototype._calcHeightRows = function (type) {
         var y = this.cellsTop;
         var l = this.model.getRowsCount();
-        var i = 0, hiddenH = 0;
+        var i = 0;
 
         if (AscCommonExcel.recalcType.full === type) {
             this.rows = [];
@@ -1548,7 +1549,7 @@
             y = this._getRowTop(i);
         }
         for (; i < l; ++i) {
-			hiddenH += this._calcHeightRow(y, i);
+			this._calcHeightRow(y, i);
 			y += this._getRowHeight(i);
         }
 
@@ -1582,15 +1583,33 @@
 
     /** Обновляет позицию колонок */
     WorksheetView.prototype._updateColumnPositions = function () {
-        var x = 0;
-        for (var l = this.cols.length, i = 0; i < l; ++i) {
-            this.cols[i].left = x;
-            x += this.cols[i].width;
-        }
+		if (Number.MAX_VALUE === this.updateColumnsStart) {
+			return;
+		}
+
+		var i = this.updateColumnsStart;
+		var l = this.cols.length;
+		if (i < l) {
+			var x = (0 === i) ? 0 : this.cols[--i].left;
+			for (; i < l; ++i) {
+				this.cols[i].left = x;
+				x += this.cols[i].width;
+			}
+		}
+		var updateColumnsStart = this.updateColumnsStart;
+		this.updateColumnsStart = Number.MAX_VALUE;
+
+		this._updateVisibleColsCount(true); // ToDo check need calculate
+		this._updateDrawingArea(); // ToDo может отказаться от своих area в DO?
+        if (this.objectRender) {
+			this.objectRender.updateDrawingsTransform({target: c_oTargetType.ColumnResize, col: updateColumnsStart});
+		}
     };
 
     /** Обновляет позицию строк */
     WorksheetView.prototype._updateRowPositions = function () {
+    	// ToDo add updateStart. See _updateColumnPositions
+
         var y = this.cellsTop;
         for (var l = this.rows.length, i = 0; i < l; ++i) {
             this.rows[i].top = y;
@@ -2247,8 +2266,23 @@
 					printPagesData.pageHeight / vector_koef, printPagesData.scale);
 				}
 
+				//TODO временно подменяю scale. пересмотреть! подменять либо всегда, либо флаг добавить.
+				var _modelScale, _modelPagesOptions;
+				if(t.model.PagePrintOptions && t.model.PagePrintOptions.pageSetup) {
+					_modelScale = t.model.PagePrintOptions.pageSetup.scale;
+					t.model.PagePrintOptions.pageSetup.scale = printPagesData.scale;
+				} else {
+					_modelPagesOptions = t.model.PagePrintOptions;
+					t.model.PagePrintOptions = new Asc.asc_CPageOptions(t.model);
+					t.model.PagePrintOptions.pageSetup.scale = printPagesData.scale;
+				}
 				// Отрисовываем ячейки и бордеры
 				t._drawCellsAndBorders(drawingCtx, range, offsetX, offsetY);
+				if (_modelPagesOptions) {
+					t.model.PagePrintOptions = _modelPagesOptions;
+				} else {
+					t.model.PagePrintOptions.pageSetup.scale = _modelScale;
+				}
 
 				drawingCtx.RemoveClipRect();
 
@@ -4089,18 +4123,16 @@
 		var drawCurArea = function (visibleRange, offsetX, offsetY, args) {
 			var range = args[0];
 			var ctx = t.overlayCtx;
-			var c = t.cols;
-			var r = t.rows;
 			var oIntersection = range.intersectionSimple(visibleRange);
 
 			if (!oIntersection) {
 				return true;
 			}
 
-			var x1 = c[oIntersection.c1].left - offsetX;
-			var x2 = c[oIntersection.c2].left + c[oIntersection.c2].width - offsetX;
-			var y1 = r[oIntersection.r1].top - offsetY;
-			var y2 = r[oIntersection.r2].top + r[oIntersection.r2].height - offsetY;
+			var x1 = t._getColLeft(oIntersection.c1) - offsetX;
+			var x2 = t._getColLeft(oIntersection.c2 + 1) - offsetX;
+			var y1 = t._getRowTop(oIntersection.r1) - offsetY;
+			var y2 = t._getRowTop(oIntersection.r2 + 1) - offsetY;
 
 			var fillColor = t.settings.cells.defaultState.border.Copy();
 			ctx.setFillStyle(fillColor).fillRect(x1, y1, x2 - x1, y2 - y1);
@@ -8654,6 +8686,7 @@
             var checkApplyFilterOrSort = this.model.autoFilters.checkApplyFilterOrSort(tablePartsOptions);
             cell_info.autoFilterInfo.isAutoFilter = checkApplyFilterOrSort.isAutoFilter;
             cell_info.autoFilterInfo.isApplyAutoFilter = checkApplyFilterOrSort.isFilterColumns;
+			cell_info.autoFilterInfo.isSlicerAdded = checkApplyFilterOrSort.isSlicerAdded;
         }
 
         if (curTablePart !== null) {
@@ -12862,6 +12895,36 @@
 		return this.collaborativeEditing.lock(arrLocks, newCallback);
     };
 
+    WorksheetView.prototype._onChangeSheetViewSettings = function (type) {
+		if (AscCH.historyitem_Worksheet_SetDisplayHeadings === type) {
+			this._calcHeaderRowHeight(); //ToDo оставить только _calcHeaderRowHeight, а в нем выставить необходимость обновления
+			this._updateRowPositions();
+			this._updateVisibleRowsCount(/*skipScrolReinit*/true);
+		}
+	};
+    WorksheetView.prototype.changeSheetViewSettings = function (type, val) {
+		// Проверка глобального лока
+		if (this.collaborativeEditing.getGlobalLock()) {
+			return;
+		}
+
+    	var t = this;
+    	var onChangeSheetViewSettings = function (isSuccess) {
+			if (false === isSuccess) {
+				return;
+			}
+
+			if (AscCH.historyitem_Worksheet_SetDisplayHeadings === type) {
+				t.model.setDisplayHeadings(val);
+			} else {
+				t.model.setDisplayGridlines(val);
+			}
+			t.draw();
+		};
+
+		this._isLockedAll(onChangeSheetViewSettings);
+	};
+
 	WorksheetView.prototype.changeWorksheet = function (prop, val) {
 		// Проверка глобального лока
 		if (this.collaborativeEditing.getGlobalLock()) {
@@ -13397,22 +13460,6 @@
 				functionModelAction = t.clearOutline();
 				this._isLockedAll(onChangeWorksheetCallback);
 				break;
-			case "sheetViewSettings":
-				functionModelAction = function () {
-					if (AscCH.historyitem_Worksheet_SetDisplayGridlines === val.type) {
-						t.model.setDisplayGridlines(val.value);
-					} else {
-						t.model.setDisplayHeadings(val.value);
-					}
-
-					isUpdateCols = true;
-					isUpdateRows = true;
-					oRecalcType = AscCommonExcel.recalcType.full;
-					reinitRanges = true;
-				};
-
-				this._isLockedAll(onChangeWorksheetCallback);
-				break;
 			case "update":
 				if (val !== undefined) {
 					lockDraw = true === val.lockDraw;
@@ -13423,11 +13470,11 @@
 		}
 	};
 
-    WorksheetView.prototype._autoFitColumnWidth = function (col, r1, r2, onlyIfMore) {
+    WorksheetView.prototype._autoFitColumnWidth = function (col, r1, r2, onlyIfMore, pivotButtons) {
         var width = null;
         var row, ct, c, fl, str, maxW, tm, mc, isMerged, oldWidth, oldColWidth;
         var lastHeight = null;
-        var filterButton = null;
+        var hasButton;
         if (null == r1) {
             r1 = 0;
         }
@@ -13486,9 +13533,11 @@
 				calcWidth = Math.abs(tm.width * angleCos) + Math.abs(ct.metrics.height * angleSin);
             } else {
 				calcWidth = Math.abs(ct.metrics.width * angleCos) +  Math.abs(ct.metrics.height * angleSin);
-                filterButton = this.af_getSizeButton(col, row);
-				if (null !== filterButton && CellValueType.String === ct.cellType) {
-					calcWidth += filterButton.width;
+				hasButton = this._checkFilterButtonInRange(col, row) || pivotButtons.find(function (element) {
+					return element.row === row && element.col === col;
+				});
+				if (null !== hasButton && CellValueType.String === ct.cellType) {
+					calcWidth += this._getFilterButtonSize();
 				}
             }
 			width = Math.max(width, calcWidth);
@@ -13529,11 +13578,35 @@
 		return true;
     };
 
+	WorksheetView.prototype._autoFitColumnsWidth = function (ranges, onlyIfMore) {
+		var c1, c2, range;
+		var max = this.model.getColsCount();
+
+		for (var i = 0; i < ranges.length; ++i) {
+			range = ranges[i];
+			c1 = range.c1;
+			c2 = Math.min(range.c2, max);
+
+			var pivotButtons = this.model.getPivotTableButtons(range);
+
+			for (; c1 <= c2; ++c1) {
+				this._autoFitColumnWidth(c1, range.r1, range.r2, onlyIfMore, pivotButtons);
+			}
+		}
+	};
     WorksheetView.prototype.autoFitColumnsWidth = function (col) {
 		var viewMode = this.handlers.trigger('getViewMode');
         var t = this;
-        var max = this.model.getColsCount();
-		var selectionRanges = t.model.selectionRange.clone().ranges;
+        var r1 = 0, r2 = this.model.getRowsCount() - 1;
+		var ranges = [];
+		if (null !== col) {
+			ranges.push(new Asc.Range(col, r1, col, r2));
+		} else {
+			var selectionRanges = this.model.selectionRange.ranges;
+			for (var i = 0; i < selectionRanges.length; ++i) {
+				ranges.push(new Asc.Range(selectionRanges[i].c1, r1, selectionRanges[i].c2, r2));
+			}
+		}
 
 		var onChangeCallback = function (isSuccess) {
 			if (false === isSuccess) {
@@ -13543,23 +13616,10 @@
 			if (viewMode) {
 				History.TurnOff();
 			}
-			var c1, c2;
 
 			History.Create_NewPoint();
 			History.StartTransaction();
-
-			if (null !== col) {
-				t._autoFitColumnWidth(col, null, null);
-			} else {
-				for (var i = 0; i < selectionRanges.length; ++i) {
-					c1 = selectionRanges[i].c1;
-					c2 = Math.min(selectionRanges[i].c2, max);
-					for (; c1 <= c2; ++c1) {
-						t._autoFitColumnWidth(c1, null, null);
-					}
-				}
-			}
-
+			t._autoFitColumnsWidth(ranges);
 			t.draw();
 			History.EndTransaction();
 			if (viewMode) {
@@ -14458,13 +14518,7 @@
 			this.handlers.trigger("onDocumentPlaceChanged");
 		}
 
-		if (Number.MAX_VALUE !== this.updateColumnsStart) {
-			this._updateColumnPositions();
-			this._updateVisibleColsCount(true);
-			this._updateDrawingArea();
-			this.objectRender.updateDrawingsTransform({target: c_oTargetType.ColumnResize, col: this.updateColumnsStart});
-			this.updateColumnsStart = Number.MAX_VALUE;
-		}
+		this._updateColumnPositions();
 
 		this._reinitializeScroll();
 	};
@@ -14536,7 +14590,10 @@
 
 					t.model.autoFilters.changeAutoFilterToTablePart(styleName, ar, addFormatTableOptionsObj);
 
-					t._onUpdateFormatTable(filterRange, !!(styleName), true);
+					t._updateRange(filterRange);
+					t._autoFitColumnsWidth([new Asc.Range(filterRange.c1, filterRange.r1, filterRange.c2, filterRange.r1)]);
+					t.draw();
+
 					History.EndTransaction();
 				};
 				if(ar.containsRange(filterRange)) {
@@ -14580,7 +14637,13 @@
 						//для грамотного отображения формул(#46170)
 						//TODO пересчёт происходит два раза! в unlockRecal и EndTransaction.
 						t.model.workbook.dependencyFormulas.unlockRecal();
-						t._onUpdateFormatTable(filterRange, !!(styleName), true);
+
+						if (styleName) {
+							t._updateRange(filterRange);
+							t._autoFitColumnsWidth([new Asc.Range(filterRange.c1, filterRange.r1, filterRange.c2, filterRange.r1)]);
+						}
+						t.draw();
+
 						History.EndTransaction();
 
 						if (isSlowOperation) {
@@ -14693,7 +14756,7 @@
 							t.model.autoFilters.deleteAutoFilter(ar, tableName);
 
 							t.af_drawButtons(filterRange);
-							t._onUpdateFormatTable(filterRange, false, true);
+							t._onUpdateFormatTable(filterRange);
 						};
 
 						t._isLockedCells(filterRange, /*subType*/null, deleteFilterCallBack);
@@ -14714,7 +14777,7 @@
 							t.model.autoFilters.addAutoFilter(null, ar);
 							History.EndTransaction();
 
-							t._onUpdateFormatTable(filterRange, false, true);
+							t._onUpdateFormatTable(filterRange);
 							if (opt_callback) {
 								opt_callback(true);
 							}
@@ -14742,7 +14805,8 @@
 						t.model.autoFilters.changeTableStyleInfo(val, ar, tableName);
 						History.EndTransaction();
 
-						t._onUpdateFormatTable(filterRange, false, true);
+						t._updateRange(filterRange);
+						t.draw();
 					};
 
 					var filterRange;
@@ -14802,7 +14866,7 @@
 
             if (null !== rangeOldFilter && !t.model.workbook.bUndoChanges && !t.model.workbook.bRedoChanges) {
                 t.objectRender.bUpdateMetrics = false;
-                t._onUpdateFormatTable(rangeOldFilter, false, true, differentSheetApply);
+                t._onUpdateFormatTable(rangeOldFilter, differentSheetApply);
                 t.objectRender.bUpdateMetrics = true;
 				if (applyFilterProps.nOpenRowsCount !== applyFilterProps.nAllRowsCount) {
 					t.handlers.trigger('onFilterInfo', applyFilterProps.nOpenRowsCount, applyFilterProps.nAllRowsCount);
@@ -14878,7 +14942,7 @@
 
             if (updateRange && !t.model.workbook.bUndoChanges && !t.model.workbook.bRedoChanges) {
                 t.objectRender.bUpdateMetrics = false;
-                t._onUpdateFormatTable(updateRange, false, true);
+                t._onUpdateFormatTable(updateRange);
                 t.objectRender.bUpdateMetrics = true;
             }
 
@@ -14989,7 +15053,7 @@
 
                 if (null !== rangeOldFilter && !t.model.workbook.bUndoChanges && !t.model.workbook.bRedoChanges) {
                     t.objectRender.bUpdateMetrics = false;
-                    t._onUpdateFormatTable(rangeOldFilter, false, true);
+                    t._onUpdateFormatTable(rangeOldFilter);
                     t.objectRender.bUpdateMetrics = true;
                 }
                 if (null !== minChangeRow) {
@@ -15094,7 +15158,7 @@
                 t.model.autoFilters.sortColFilter(type, cellId, ar, sortProps, displayName, rgbColor);
 
 				History.EndTransaction();
-                t._onUpdateFormatTable(sortProps.sortRange.bbox, false);
+                t._onUpdateFormatTable(sortProps.sortRange.bbox);
                 t.objectRender.updateSizeDrawingObjects({target: c_oTargetType.RowResize, row: sortProps.sortRange.bbox.r1});
             };
 
@@ -15159,7 +15223,7 @@
 			AscCommonExcel.checkFilteringMode(function () {
 				var updateRange = t.model.autoFilters.isApplyAutoFilterInCell(ar, true);
 				if (false !== updateRange) {
-					t._onUpdateFormatTable(updateRange, false, true);
+					t._onUpdateFormatTable(updateRange);
                     t.objectRender.updateSizeDrawingObjects({target: c_oTargetType.RowResize, row: updateRange.r1});
 					t._updateSlicers(updateRange);
 				}
@@ -15190,7 +15254,7 @@
 			AscCommonExcel.checkFilteringMode(function () {
 				var updateRange = t.model.autoFilters.clearFilterColumn(cellId, displayName);
 				if (false !== updateRange) {
-					t._onUpdateFormatTable(updateRange, false, true);
+					t._onUpdateFormatTable(updateRange);
                     t.objectRender.updateSizeDrawingObjects({target: c_oTargetType.RowResize, row: updateRange.r1});
 					t._updateSlicers(updateRange);
 				}
@@ -15202,65 +15266,21 @@
     /**
      * Обновление при изменениях форматированной таблицы
      * @param range - обновляемый диапазон (он же диапазон для выделения
-     * @param recalc - делать ли автоподбор по названию столбца
-     * @param changeRowsOrMerge - менялись ли строки (скрытие раскрытие) или был unmerge
      * @private
      */
-    WorksheetView.prototype._onUpdateFormatTable = function (range, recalc, changeRowsOrMerge, lockDraw) {
-		var arrChanged;
-
-        if (!recalc) {
-            // ToDo сделать правильное обновление при скрытии/раскрытии строк/столбцов
-			this._initCellsArea(AscCommonExcel.recalcType.full);
-			this.cache.reset();
-			this._cleanCellsTextMetricsCache();
-			this._prepareCellTextMetricsCache();
-			this._updateDrawingArea();
-			arrChanged = [new asc_Range(range.c1, 0, range.c2, gc_nMaxRow0)];
-			this.model.onUpdateRanges(arrChanged);
-			this.objectRender.rebuildChartGraphicObjects(arrChanged);
-			this.scrollType |= AscCommonExcel.c_oAscScrollType.ScrollVertical | AscCommonExcel.c_oAscScrollType.ScrollHorizontal;
-			this.draw(lockDraw);
-			this._updateSelectionNameAndInfo();
-            return;
-        }
-
-        if (!this.model.selectionRange.getLast().isEqual(range)) {
-            this.setSelection(range);
-        }
-
-        // ToDo refactoring this!!!
-		this._calcHeightRows(AscCommonExcel.recalcType.newLines);
-		this._calcWidthColumns(AscCommonExcel.recalcType.newLines);
-
-        var i, r = range.r1, bIsUpdate = false;
-        // AutoFit column with by headers of table
-        for (i = range.c1; i <= range.c2; ++i) {
-            if (this._autoFitColumnWidth(i, r, r, true)) {
-                bIsUpdate = true;
-            }
-        }
-
-        if (bIsUpdate) {
-			this.draw(lockDraw);
-        } else if (changeRowsOrMerge) {
-            // Был merge, нужно обновить (ToDo)
-            this._initCellsArea(AscCommonExcel.recalcType.full);
-            this.cache.reset();
-            this._cleanCellsTextMetricsCache();
-            this._prepareCellTextMetricsCache();
-			this._updateDrawingArea();
-            arrChanged = [new asc_Range(range.c1, 0, range.c2, gc_nMaxRow0)];
-			this.model.onUpdateRanges(arrChanged);
-            this.objectRender.rebuildChartGraphicObjects(arrChanged);
-			this.scrollType |= AscCommonExcel.c_oAscScrollType.ScrollVertical | AscCommonExcel.c_oAscScrollType.ScrollHorizontal;
-            this.draw(lockDraw);
-			this._updateSelectionNameAndInfo();
-        } else {
-            // Просто отрисуем
-            this.draw(lockDraw);
-			this._updateSelectionNameAndInfo();
-        }
+    WorksheetView.prototype._onUpdateFormatTable = function (range, lockDraw) {
+		// ToDo сделать правильное обновление при скрытии/раскрытии строк/столбцов
+		this._initCellsArea(AscCommonExcel.recalcType.full);
+		this.cache.reset();
+		this._cleanCellsTextMetricsCache();
+		this._prepareCellTextMetricsCache();
+		this._updateDrawingArea();
+		var arrChanged = [new asc_Range(range.c1, 0, range.c2, gc_nMaxRow0)];
+		this.model.onUpdateRanges(arrChanged);
+		this.objectRender.rebuildChartGraphicObjects(arrChanged);
+		this.scrollType |= AscCommonExcel.c_oAscScrollType.ScrollVertical | AscCommonExcel.c_oAscScrollType.ScrollHorizontal;
+		this.draw(lockDraw);
+		this._updateSelectionNameAndInfo();
     };
 
     WorksheetView.prototype._loadFonts = function (fonts, callback) {
@@ -15883,41 +15903,19 @@
 		return autoFilterObject;
 	};
 
-    WorksheetView.prototype.af_getSizeButton = function (c, r) {
-        var wsModel = this.model;
-        var result = null;
+    WorksheetView.prototype._checkFilterButtonInRange = function (c, r) {
+		//TODO добавить проверку на isHidden у кнопки
+		if (this.model.TableParts) {
+			var tablePart;
+			for (var i = 0; i < this.model.TableParts.length; i++) {
+				tablePart = this.model.TableParts[i];
+				if (tablePart.Ref.contains(c, r) && tablePart.Ref.r1 === r) {
+					return true;
+				}
+			}
+		}
 
-        var isCellContainsAutoFilterButton = function (col, row) {
-            if (wsModel.TableParts) {
-                var tablePart;
-                for (var i = 0; i < wsModel.TableParts.length; i++) {
-                    tablePart = wsModel.TableParts[i];
-                    //TODO добавить проверку на isHidden у кнопки
-                    if (tablePart.Ref.contains(col, row) && tablePart.Ref.r1 === row) {
-                        return true;
-                    }
-                }
-            }
-
-            //TODO добавить проверку на isHidden у кнопки
-			return wsModel.AutoFilter && wsModel.AutoFilter.Ref.contains(col, row) && wsModel.AutoFilter.Ref.r1 === row;
-        };
-
-        if (isCellContainsAutoFilterButton(c, r)) {
-			var width, height;
-			width = height = this._getFilterButtonSize();
-            var rowHeight = this._getRowHeight(r);
-            var index = 1;
-            if (rowHeight < height) {
-                index = rowHeight / height;
-                width = width * index;
-                height = rowHeight;
-            }
-
-            result = {width: width, height: height};
-        }
-
-        return result;
+		return this.model.AutoFilter && this.model.AutoFilter.Ref.contains(c, r) && this.model.AutoFilter.Ref.r1 === r;
     };
 
     WorksheetView.prototype.af_setDialogProp = function (filterProp, isReturnProps) {
@@ -16163,16 +16161,17 @@
 				}
 
 				startRow = rangeWithoutHeaderFooter.r1;
+				endRow = rangeWithoutHeaderFooter.r2;
 
 				if (undefined !== opt_row) {
 					if (lastSelection.isEqual(rangeWithoutHeaderFooter)) {
 						startRow = refTablePart.r1;
+						endRow = refTablePart.r2;
 					} else if (lastSelection.isEqual(refTablePart)) {
 						startRow = rangeWithoutHeaderFooter.r1;
 					}
 				}
 
-				endRow = rangeWithoutHeaderFooter.r2;
 
 				break;
 			}
@@ -16198,12 +16197,15 @@
 			}
 			case c_oAscChangeSelectionFormatTable.dataColumn: {
 				rangeWithoutHeaderFooter = tablePart.getRangeWithoutHeaderFooter();
+
 				startRow = rangeWithoutHeaderFooter.r1;
+				endRow = rangeWithoutHeaderFooter.r2;
 
 				if (undefined !== opt_row) {
 					if (lastSelection.c1 === startCol && lastSelection.c2 === endCol) {
 						if (lastSelection.r1 === rangeWithoutHeaderFooter.r1 && lastSelection.r2 === rangeWithoutHeaderFooter.r2) {
 							startRow = refTablePart.r1;
+							endRow = refTablePart.r2;
 						} else if (lastSelection.r1 === refTablePart.r1 && lastSelection.r2 === refTablePart.r2) {
 							startRow = rangeWithoutHeaderFooter.r1;
 						}
@@ -16212,12 +16214,11 @@
 					}
 				}
 
-				endRow = rangeWithoutHeaderFooter.r2;
-
 				break;
 			}
 		}
 
+		t._endSelectionShape()
 		//todo обработать выделение при клике с зажатым ctrl
 		t.setSelection(new Asc.Range(startCol, startRow, endCol, endRow));
 	};
@@ -16259,7 +16260,7 @@
                 }
 
 				History.EndTransaction();
-                t._onUpdateFormatTable(updateRange, false, true);
+                t._onUpdateFormatTable(updateRange);
             };
 
             lockRange = lockRange ? lockRange : t.af_getLockRangeTableInfo(tablePart, optionType, val);
@@ -16438,7 +16439,7 @@
 				if (shiftCells) {
 					t.cellCommentator.updateCommentsDependencies(true, type, arn);
 					t.objectRender.updateDrawingObject(true, type, arn);
-					t._onUpdateFormatTable(range, false, true);
+					t._onUpdateFormatTable(range);
 				}
 			};
 
@@ -16540,7 +16541,7 @@
 				History.EndTransaction();
                 if (res) {
                     t.objectRender.updateDrawingObject(true, type, arn);
-                    t._onUpdateFormatTable(range, false, true);
+                    t._onUpdateFormatTable(range);
                     t._updateSlicers(arn);
                 }
             };
@@ -16571,7 +16572,7 @@
                 t.cellCommentator.deleteCommentsRange(cleanRange.bbox);
 
 				History.EndTransaction();
-                t._onUpdateFormatTable(ref, false, true);
+                t._onUpdateFormatTable(ref);
             };
 
             t._isLockedCells(ref, null, callback);
@@ -16837,7 +16838,7 @@
             t.model.autoFilters.convertTableToRange(tableName);
 			History.EndTransaction();
 
-            t._onUpdateFormatTable(lockRange, false, true);
+            t._onUpdateFormatTable(lockRange);
         };
 
         var table = t.model.autoFilters._getFilterByDisplayName(tableName);
@@ -16883,7 +16884,7 @@
 
 			History.EndTransaction();
 			if (!doNotUpdate) {
-				t._onUpdateFormatTable(range, false, true);
+				t._onUpdateFormatTable(range);
 			}
 			//TODO добавить перерисовку таблицы и перерисовку шаблонов
 			if (callbackAfterChange) {
@@ -19716,7 +19717,7 @@
 				obj.SortState = sortState;
 
 				if(!obj.isAutoFilter()) {
-					t._onUpdateFormatTable(selection, false);
+					t._onUpdateFormatTable(selection);
 				}
 			} else {
 				History.Add(AscCommonExcel.g_oUndoRedoSortState, AscCH.historyitem_SortState_Add, t.model.getId(), null,
