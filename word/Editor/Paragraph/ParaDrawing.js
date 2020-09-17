@@ -1312,7 +1312,7 @@ ParaDrawing.prototype.Update_Position = function(Paragraph, ParaLayout, PageLimi
 
 	var OtherFlowObjects = editor.WordControl.m_oLogicDocument.DrawingObjects.getAllFloatObjectsOnPage(PageNum, this.Parent.Parent);
 	var bInline          = this.Is_Inline();
-	this.Internal_Position.Set(this.GraphicObj.extX, this.GraphicObj.extY, this.getXfrmRot(), this.GraphicObj.bounds, this.EffectExtent, this.YOffset, ParaLayout, PageLimits);
+	this.Internal_Position.Set(this.GraphicObj.extX, this.GraphicObj.extY, this.getXfrmRot(), this.EffectExtent, this.YOffset, ParaLayout, PageLimits);
 	this.Internal_Position.Calculate_X(bInline, this.PositionH.RelativeFrom, this.PositionH.Align, this.PositionH.Value, this.PositionH.Percent);
 	this.Internal_Position.Calculate_Y(bInline, this.PositionV.RelativeFrom, this.PositionV.Align, this.PositionV.Value, this.PositionV.Percent);
 
@@ -1563,7 +1563,7 @@ ParaDrawing.prototype.private_SetXYByLayout = function(X, Y, PageNum, Layout, bC
 	}
 	this.PageNum = PageNum;
 
-	this.Internal_Position.Set(this.GraphicObj.extX, this.GraphicObj.extY, this.getXfrmRot(), this.GraphicObj.bounds, this.EffectExtent, this.YOffset, Layout.ParagraphLayout, Layout.PageLimitsOrigin);
+	this.Internal_Position.Set(this.GraphicObj.extX, this.GraphicObj.extY, this.getXfrmRot(), this.EffectExtent, this.YOffset, Layout.ParagraphLayout, Layout.PageLimitsOrigin);
 	this.Internal_Position.Calculate_X(false, c_oAscRelativeFromH.Page, false, X - Layout.PageLimitsOrigin.X, false);
 	this.Internal_Position.Calculate_Y(false, c_oAscRelativeFromV.Page, false, Y - Layout.PageLimitsOrigin.Y, false);
 	var bCorrect = false;
@@ -3004,10 +3004,6 @@ function CAnchorPosition()
 	// Данные для Flow-объектов
 	this.W             = 0;
 	this.H             = 0;
-	this.BoundsL       = 0;
-	this.BoundsT       = 0;
-	this.BoundsW       = 0;
-	this.BoundsH       = 0;
 	this.X             = 0;
 	this.Y             = 0;
 	this.PageNum       = 0;
@@ -3027,15 +3023,11 @@ function CAnchorPosition()
 	this.Page_X        = 0;
 	this.Page_Y        = 0;
 }
-CAnchorPosition.prototype.Set = function(W, H, Rot, Bounds, EffectExtent, YOffset, ParaLayout, PageLimits)
+CAnchorPosition.prototype.Set = function(W, H, Rot, EffectExtent, YOffset, ParaLayout, PageLimits)
 {
 	this.W = W;
 	this.H = H;
 	this.Rot = Rot;
-	this.BoundsL = Bounds.l;
-	this.BoundsT = Bounds.t;
-	this.BoundsW = Bounds.w;
-	this.BoundsH = Bounds.h;
 	this.EffectExtentL = EffectExtent.L;
 	this.EffectExtentT = EffectExtent.T;
 	this.EffectExtentR = EffectExtent.R;

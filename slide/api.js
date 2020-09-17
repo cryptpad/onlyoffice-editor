@@ -1387,6 +1387,27 @@ background-repeat: no-repeat;\
 		}
 	};
 
+	asc_docs_api.prototype.initDefaultShortcuts = function()
+	{
+		// [[ActionType, KeyCode, Ctrl, Shift, Alt]]
+		var aShortcuts =
+		[
+			[Asc.c_oAscPresentationShortcutType.EditSelectAll, 65, true, false, false],
+			[Asc.c_oAscPresentationShortcutType.EditUndo, 90, true, false, false],
+			[Asc.c_oAscPresentationShortcutType.EditRedo, 89, true, false, false],
+			[Asc.c_oAscPresentationShortcutType.Cut, 88, true, false, false],
+			[Asc.c_oAscPresentationShortcutType.Copy, 67, true, false, false],
+			[Asc.c_oAscPresentationShortcutType.Paste, 86, true, false, false],
+			[Asc.c_oAscPresentationShortcutType.Duplicate, 68, true, false, false],
+			[Asc.c_oAscPresentationShortcutType.Print, 80, true, false, false],
+			[Asc.c_oAscPresentationShortcutType.Save, 83, true, false, false],
+			[Asc.c_oAscPresentationShortcutType.ShowContextMenu, 93, false, false, false],
+			[Asc.c_oAscPresentationShortcutType.ShowContextMenu, 121, false, true, false],
+			[Asc.c_oAscPresentationShortcutType.ShowContextMenu, 57351, false, false, false]
+		];
+		this.initShortcuts(aShortcuts, false)
+	};
+
 	asc_docs_api.prototype.InitEditor = function()
 	{
 		this.WordControl.m_oLogicDocument                    = new AscCommonSlide.CPresentation(this.WordControl.m_oDrawingDocument);

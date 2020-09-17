@@ -9374,7 +9374,7 @@ CDocument.prototype.OnKeyDown = function(e)
 		case c_oAscDocumentShortcutType.RegisteredSign:
 		{
 			this.private_AddSymbolByShortcut(0x00AE);
-			bRetValue = keydownresult_PreventAll
+			bRetValue = keydownresult_PreventAll;
 			break;
 		}
 		case c_oAscDocumentShortcutType.Save:
@@ -9388,7 +9388,7 @@ CDocument.prototype.OnKeyDown = function(e)
 		case c_oAscDocumentShortcutType.TrademarkSign:
 		{
 			this.private_AddSymbolByShortcut(0x2122);
-			bRetValue = keydownresult_PreventAll
+			bRetValue = keydownresult_PreventAll;
 			break;
 		}
 		case c_oAscDocumentShortcutType.Underline:

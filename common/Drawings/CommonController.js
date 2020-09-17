@@ -7167,12 +7167,22 @@ DrawingObjectsController.prototype =
         var ctrlKey = e.metaKey || e.ctrlKey;
         var drawingObjectsController = this;
         var bRetValue = false;
-        var state = drawingObjectsController.curState;
         var canEdit = drawingObjectsController.canEdit();
         var oApi = window["Asc"]["editor"];
-        if ( e.keyCode == 8 && canEdit ) // BackSpace
+        var oTargetTextObject;
+        AscCommon.check_KeyboardEvent(e);
+        var oEvent = AscCommon.global_keyboardEvent;
+        var nShortcutAction = oApi.getShortcut(oEvent);
+        var oCustom = oApi.getCustomShortcutAction(nShortcutAction);
+        if (oCustom) {
+            if(this.getTargetDocContent(false, false)) {
+                if (AscCommon.c_oAscCustomShortcutType.Symbol === oCustom.Type) {
+                    oApi["asc_insertSymbol"](oCustom.Font, oCustom.CharCode);
+                }
+            }
+        }
+        else if ( e.keyCode == 8 && canEdit ) // BackSpace
         {
-            var oTargetTextObject = getTargetTextObject(this);
             drawingObjectsController.remove(-1, undefined, undefined, undefined, ctrlKey);
             bRetValue = true;
         }
@@ -7411,7 +7421,6 @@ DrawingObjectsController.prototype =
         {
 			if (!e.shiftKey)
 			{
-				var oTargetTextObject = getTargetTextObject(this);
 				drawingObjectsController.remove(1, undefined, undefined, undefined, ctrlKey);
 				bRetValue = true;
 			}
