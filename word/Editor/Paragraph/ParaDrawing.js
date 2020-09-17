@@ -68,6 +68,10 @@ function ParaDrawing(W, H, GraphicObj, DrawingDocument, DocumentContent, Parent)
 	this.Y      = 0;
 	this.Width  = 0;
 	this.Height = 0;
+	this.OrigX = 0;
+	this.OrigY = 0;
+	this.ShiftX = 0;
+	this.ShiftY = 0;
 
 	this.PageNum = 0;
 	this.LineNum = 0;
@@ -1367,7 +1371,10 @@ ParaDrawing.prototype.Update_Position = function(Paragraph, ParaLayout, PageLimi
 		// На всякий случай пересчитаем заново координату
 		this.Y = this.Internal_Position.Calculate_Y(bInline, this.PositionV.RelativeFrom, this.PositionV.Align, this.PositionV.Value, this.PositionV.Percent);
 	}
-
+	this.OrigX = this.X;
+	this.OrigY = this.Y;
+	this.ShiftX = 0;
+	this.ShiftY = 0;
 	this.updatePosition3(this.PageNum, this.X, this.Y, OldPageNum);
 	this.useWrap = this.Use_TextWrap();
 };
@@ -1396,7 +1403,8 @@ ParaDrawing.prototype.Update_PositionYHeaderFooter = function(TopMarginY, Bottom
 {
 	this.Internal_Position.Update_PositionYHeaderFooter(TopMarginY, BottomMarginY);
 	this.Internal_Position.Calculate_Y(this.Is_Inline(), this.PositionV.RelativeFrom, this.PositionV.Align, this.PositionV.Value, this.PositionV.Percent);
-	this.Y = this.Internal_Position.CalcY;
+	this.OrigY = this.Internal_Position.CalcY;
+	this.Y = this.OrigY + this.ShiftY;
 	this.updatePosition3(this.PageNum, this.X, this.Y, this.PageNum);
 };
 ParaDrawing.prototype.Reset_SavedPosition = function()
@@ -1469,8 +1477,10 @@ ParaDrawing.prototype.recalculateDocContent = function()
 };
 ParaDrawing.prototype.Shift = function(Dx, Dy)
 {
-	this.X += Dx;
-	this.Y += Dy;
+	this.ShiftX = Dx;
+	this.ShiftY = Dy;
+	this.X = this.OrigX + Dx;
+	this.Y = this.OrigY + Dy;
 
 	this.updatePosition3(this.PageNum, this.X, this.Y);
 };
