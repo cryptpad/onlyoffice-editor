@@ -3248,7 +3248,7 @@ function CBinaryFileWriter()
                             }
                             case para_Space :
                             {
-                                _run_text += ' ';
+                                _run_text += AscCommon.encodeSurrogateChar(_elem.Content[j].Value);
                                 break;
                             }
                             case para_Tab :
