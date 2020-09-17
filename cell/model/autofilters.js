@@ -1017,6 +1017,7 @@
 				History.EndTransaction();
 
 				worksheet.workbook.dependencyFormulas.unlockRecal();
+				this.updateSlicer(displayName);
 				return {minChangeRow: minChangeRow, updateRange: filter.Ref, filter: filter};
 			},
 
