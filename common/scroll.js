@@ -939,13 +939,11 @@ function _HEXTORGB_( colorHEX ) {
 		var arrowImage = that.ArrowDrawer.ImageTop;
 		if (that.settings.isVerticalScroll) {
 			for (var i = 0; i < 2; i++) {
-				ctx.fillRect(x1 + xDeltaBORDER >> 0, y1 + yDeltaBORDER >> 0, strokeW, strokeH);
-
 				ctx.drawImage(arrowImage, x1, y1, t.SizeW, t.SizeH);
 
 				if (t.IsDrawBorders) {
 					ctx.strokeStyle = t.ColorBorderNone;
-					ctx.rect(x1 + xDeltaBORDER, y1 + yDeltaBORDER, strokeW, strokeH);
+					ctx.rect(x1 + xDeltaBORDER , y1 + yDeltaBORDER, strokeW, strokeH);
 					ctx.stroke();
 				}
 
@@ -957,7 +955,6 @@ function _HEXTORGB_( colorHEX ) {
 		var arrowImage = that.ArrowDrawer.ImageLeft;
 		if (that.settings.isHorizontalScroll) {
 			for (var i = 0; i < 2; i++) {
-				ctx.fillRect(x1 + xDeltaBORDER >> 0, y1 + yDeltaBORDER >> 0, strokeW, strokeH);
 				that.context.drawImage(arrowImage, x1, y1, t.SizeW, t.SizeH);
 
 				if (t.IsDrawBorders) {
@@ -1095,15 +1092,13 @@ function _HEXTORGB_( colorHEX ) {
 			return;
 		}
 
-		var xDeltaIMG = 0, yDeltaIMG = 0, cnvs = document.createElement('canvas'), arrowType,
-			ctx = cnvs.getContext('2d'), context = that.context, bottomRightDelta = 1,
-			hoverColor = that.settings.hoverColor, defaultColor = that.settings.defaultColor,
-			activeColor = that.settings.activeColor;
+        var cnvs = document.createElement('canvas'), arrowType,
+            ctx = cnvs.getContext('2d'), context = that.context, bottomRightDelta = 1,
+            hoverColor = that.settings.hoverColor, defaultColor = that.settings.defaultColor,
+            activeColor = that.settings.activeColor;
+
 		cnvs.width = that.ArrowDrawer.SizeNaturalW;
 		cnvs.height = that.ArrowDrawer.SizeNaturalH;
-		ctx.fillStyle = that.ArrowDrawer.ColorBackActive;
-
-		ctx.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
 
 		if (curArrowType === ArrowType.ARROW_TOP || curArrowType === ArrowType.ARROW_LEFT) {
 			arrowType = this.firstArrow;
@@ -1138,11 +1133,8 @@ function _HEXTORGB_( colorHEX ) {
 			//instant change arrow color
 			arrowType.arrowBackColor = backgroundColorUnfade;
 			arrowType.arrowColor = backgroundColorUnfade === defaultColor ? activeColor : defaultColor;
+			ctx = that.context;
 		}
-
-		ctx.fillStyle = "rgb(" + arrowType.arrowBackColor + "," +
-			arrowType.arrowBackColor + "," +
-			arrowType.arrowBackColor + ")";
 
 		var x = 0, y = 0;
 		var arrowImage = that.settings.isVerticalScroll ? that.ArrowDrawer.ImageTop : that.ArrowDrawer.ImageLeft;
@@ -1168,8 +1160,15 @@ function _HEXTORGB_( colorHEX ) {
 			}
 		}
 
-		ctx.rect(0.5, 1.5, that.ArrowDrawer.SizeW - 1, that.ArrowDrawer.SizeH - 1);
-		ctx.fill();
+        ctx.fillStyle = "rgb(" + arrowType.arrowBackColor + "," +
+            arrowType.arrowBackColor + "," +
+            arrowType.arrowBackColor + ")";
+        ctx.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
+
+        var x1 = fadeIn === undefined ? x : 0;
+        var y1 = fadeIn === undefined ? y : 0;
+
+        ctx.fillRect( x1 + 1,  y1 + 2, that.ArrowDrawer.SizeW - 2, that.ArrowDrawer.SizeH - 2);
 
 		if (that.ArrowDrawer.IsDrawBorders) {
 			var borderColor = hoverColor;
@@ -1178,10 +1177,10 @@ function _HEXTORGB_( colorHEX ) {
 				borderColor = activeColor;
 			}
 
-			ctx.strokeStyle = "rgb(" + borderColor + "," +
+            ctx.strokeStyle = "rgb(" + borderColor + "," +
 				borderColor + "," +
 				borderColor + ")";
-			ctx.stroke();
+            ctx.strokeRect(x1 + 0.5, y1 + 1.5, that.ArrowDrawer.SizeW - 1, that.ArrowDrawer.SizeH - 1);
 		}
 
 		//drawing arrow icon
@@ -1191,13 +1190,9 @@ function _HEXTORGB_( colorHEX ) {
 			arrowType.arrowColor + "," +
 			arrowType.arrowColor + ")";
 		imgContext.fillRect(0.5, 1.5, that.ArrowDrawer.SizeNaturalW , that.ArrowDrawer.SizeNaturalH );
-		ctx.drawImage(arrowImage, 0, 0, that.ArrowDrawer.SizeW, that.ArrowDrawer.SizeH);
+        ctx.drawImage(arrowImage,  x1, y1, that.ArrowDrawer.SizeW, that.ArrowDrawer.SizeH);
+		context.drawImage(cnvs, x, y, that.ArrowDrawer.SizeW, that.ArrowDrawer.SizeH);
 
-		context.drawImage(cnvs, x + xDeltaIMG, y + yDeltaIMG, that.ArrowDrawer.SizeW, that.ArrowDrawer.SizeH);
-
-		if (fadeIn === undefined) {
-			return;
-		}
 		that.fadeTimeoutArrows = setTimeout(function () {
 			that._animateArrow(fadeIn, curArrowType, backgroundColorUnfade)
 		}, that.settings.fadeInFadeOutDelay);
@@ -1284,8 +1279,8 @@ function _HEXTORGB_( colorHEX ) {
 			that._animateArrow(undefined, that.arrowState, defaultColor);
 			that._drawScroll(hoverColor, defaultColor);
 		} else if (this.animState === AnimationType.ARROW_ACTIVE) {
+            that._animateArrow(undefined, that.arrowState, activeColor);
 			that._animateScroll(true);
-			that._animateArrow(undefined, that.arrowState, activeColor);
 		} else if (this.animState === AnimationType.ARROW_HOVER && lastAnimState === AnimationType.ARROW_ACTIVE) {
 			//if different arrows
 			if (this.lastArrowState && this.lastArrowState !== this.arrowState) {
