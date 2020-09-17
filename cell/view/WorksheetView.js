@@ -20499,6 +20499,13 @@
 			text = c.getValueForEdit(true);
 			if (text && text.length > window['AscCommonExcel'].g_nDefNameMaxLength) {
 				text = null;
+			} else if (text) {
+				if (!isNaN(text)) {
+					text = null;
+				} else if (text[0] && !isNaN(text[0])) {
+					//TODO 
+					text = "_" + text;
+				}
 			}
 		}
 
