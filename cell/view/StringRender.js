@@ -508,7 +508,7 @@
 
 			if (!va) {
 				var _a = Math.max(0, asc.ceil(fm.nat_y1 * f / fm.nat_scale));
-				var _d = Math.max(0, asc.ceil(-fm.nat_y2 * f / fm.nat_scale));
+				var _d = Math.max(0, asc.ceil(-fm.nat_y2 * f / fm.nat_scale)) + 1; // 1 px for border
 
 				l.th = _a + _d;
 				l.bl = _a;
@@ -558,7 +558,7 @@
 			var l = new lineMetrics();
 
 			var a = Math.max(0, asc.ceil(fm.nat_y1 * f / fm.nat_scale));
-			var d = Math.max(0, asc.ceil(-fm.nat_y2 * f / fm.nat_scale));
+			var d = Math.max(0, asc.ceil(-fm.nat_y2 * f / fm.nat_scale)) + 1; // 1 px for border
 
 			/*
 			// ToDo
@@ -598,7 +598,7 @@
 				self.lines.push(l);
 				if (TW < l.tw) {TW = l.tw;}
 				BL = TH + l.bl;
-				TH += l.th + 1;
+				TH += l.th;
 			}
 
 			if (0 >= this.chars.length) {

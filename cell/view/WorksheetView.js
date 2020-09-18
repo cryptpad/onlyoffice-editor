@@ -3109,7 +3109,6 @@
         var x2 = x + w;
         var y2 = y + h;
         var x2WithoutBorder = x2 - gridlineSize;
-        var y2WithoutBorder = y2 - gridlineSize;
 
         // background только для видимых
         if (!isZeroHeader) {
@@ -3150,7 +3149,7 @@
         var text = isColHeader ? this._getColumnTitle(index) : this._getRowTitle(index);
         var sr = this.stringRender;
         var tm = this._roundTextMetrics(sr.measureString(text));
-		var bl = y2WithoutBorder - Asc.round((isColHeader ? this.defaultRowDescender : this._getRowDescender(index)) * this.getZoom());
+		var bl = y2 - Asc.round((isColHeader ? this.defaultRowDescender : this._getRowDescender(index)) * this.getZoom());
         var textX = this._calcTextHorizPos(x, x2WithoutBorder, tm, tm.width < w ? AscCommon.align_Center : AscCommon.align_Left);
         var textY = this._calcTextVertPos(y, h, bl, tm, Asc.c_oAscVAlign.Bottom);
 
@@ -3761,7 +3760,7 @@
 		}
 		var iconSize = AscCommon.AscBrowser.convertToRetinaValue(getCFIconSize(fontSize), true);
 		var rect = new AscCommon.asc_CRect(x, top, width, height);
-		var bl = rect._y + rect._height - gridlineSize - Asc.round(this._getRowDescender(row) * this.getZoom());
+		var bl = rect._y + rect._height - Asc.round(this._getRowDescender(row) * this.getZoom());
 		var tm = new Asc.TextMetrics(iconSize, iconSize, 0, iconSize - 2 * fontSize / AscCommonExcel.cDefIconFont, 0, 0, 0);
 		var cellHA = align.getAlignHorizontal();
 		if (oRuleElement.ShowValue || (AscCommon.align_Left !== cellHA && AscCommon.align_Right !== cellHA
@@ -3872,8 +3871,8 @@
 			var w = this._getColLeft(colR + 1) - offsetX - x1;
 			var h = this._getRowTop(rowB + 1) - offsetY - y1;
 			var x2 = x1 + w - (isTrimmedR ? 0 : gridlineSize);
-			var y2 = y1 + h - gridlineSize;
-			var bl = y2 - Asc.round((isMerged ? (ct.metrics.height - ct.metrics.baseline - 1) : this._getRowDescender(rowB)) * this.getZoom());
+			var y2 = y1 + h;
+			var bl = y2 - Asc.round((isMerged ? (ct.metrics.height - ct.metrics.baseline) : this._getRowDescender(rowB)) * this.getZoom());
 			var x1ct = isMerged ? x1 : this._getColLeft(col) - offsetX;
 			var x2ct = isMerged ? x2 : x1ct + this._getColumnWidth(col) - gridlineSize;
 			var textX = this._calcTextHorizPos(x1ct, x2ct, ct.metrics, ct.cellHA);
@@ -6308,7 +6307,7 @@
 				if (!f.isEqual2(AscCommonExcel.g_oDefaultFormat.Font) || f.va) {
 					fm = getFontMetrics(f, this.stringRender);
 					lm = this.stringRender._calcLineMetrics2(f.getSize(), f.va, fm);
-					th = Math.min(this.maxRowHeightPx, Math.max(th, lm.th + 1));
+					th = Math.min(this.maxRowHeightPx, Math.max(th, lm.th));
 					if (updateDescender && !f.va) {
 						d = Math.max(d, lm.th - lm.bl);
 					}
@@ -6334,7 +6333,7 @@
 		// update row's descender
 		if (va !== Asc.c_oAscVAlign.Top && va !== Asc.c_oAscVAlign.Center && !mergeType && !cache.angle) {
 			// ToDo move descender in model
-			var newDescender = tm.height - tm.baseline - 1;
+			var newDescender = tm.height - tm.baseline;
 			if (newDescender > this._getRowDescender(row)) {
 				rowInfo.descender = newDescender;
 			}
