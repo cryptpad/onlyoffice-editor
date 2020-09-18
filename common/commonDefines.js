@@ -240,7 +240,9 @@
 			// Data Validate
 			RemoveDuplicates : -850,
 
-			LargeRangeWarning: -900
+			LargeRangeWarning: -900,
+
+			LockedEditView: -950
 		}
 	};
 
@@ -2243,6 +2245,7 @@
 	prot['CustomSortNotOriginalSelectError'] = prot.CustomSortNotOriginalSelectError;
 	prot['RemoveDuplicates']                 = prot.RemoveDuplicates;
 	prot['LargeRangeWarning']                = prot.LargeRangeWarning;
+	prot['LockedEditView']                   = prot.LockedEditView;
 	window['Asc']['c_oAscAsyncAction']       = window['Asc'].c_oAscAsyncAction = c_oAscAsyncAction;
 	prot                                     = c_oAscAsyncAction;
 	prot['Open']                             = prot.Open;
