@@ -4036,6 +4036,7 @@
 		this.aCols.forEach(this.initColumn, this);
 	};
 	Worksheet.prototype.initPostOpen = function (handlers, tableIds) {
+		var t = this;
 		this.PagePrintOptions.init();
 		this.headerFooter.init();
 		if (this.dataValidations) {
@@ -4057,7 +4058,7 @@
 			elem.initPostOpen(tableIds);
 		});
 		this.aNamedSheetViews.forEach(function(elem){
-			elem.initPostOpen(tableIds);
+			elem.initPostOpen(tableIds, t);
 		});
 	};
 	Worksheet.prototype.initPostOpenZip = function (pivotCaches, oNumFmts) {

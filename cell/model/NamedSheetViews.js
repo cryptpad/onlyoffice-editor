@@ -202,9 +202,12 @@
 		this.name = reader.GetString2();
 		this.id = reader.GetLong();
 	};
-	CT_NamedSheetView.prototype.initPostOpen = function (tableIds) {
+	CT_NamedSheetView.prototype.initPostOpen = function (tableIds, ws) {
 		for (var i = 0; i < this.nsvFilters.length; ++i) {
 			this.nsvFilters[i].initPostOpen(tableIds);
+		}
+		if (!this.ws) {
+			this.setWS(ws);
 		}
 	};
 	CT_NamedSheetView.prototype.clone = function () {
