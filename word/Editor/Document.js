@@ -4769,7 +4769,7 @@ CDocument.prototype.private_RecalculateFlowParagraph         = function(RecalcIn
         var Frame_XLimit = FramePr.Get_W();
         var Frame_YLimit = FramePr.Get_H();
 
-		var FrameHRule = ( undefined === FramePr.HRule ? Asc.linerule_Auto : FramePr.HRule );
+		var FrameHRule = (undefined === FramePr.HRule ? (undefined !== Frame_YLimit ? Asc.linerule_AtLeast : Asc.linerule_Auto) : FramePr.HRule);
 
         if (undefined === Frame_XLimit)
             Frame_XLimit = Page_Field_R - Page_Field_L;
