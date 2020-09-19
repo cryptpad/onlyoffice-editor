@@ -654,7 +654,16 @@ CFieldInstructionREF.prototype.SetToolTip = function(sToolTip)
 };
 CFieldInstructionREF.prototype.GetToolTip = function()
 {
-	return "";
+	var sTooltip;
+	if(this.HaveNumberFlag() || this.IsPosition())
+	{
+		sTooltip = AscCommon.translateManager.getValue("Current Document");
+	}
+	else
+	{
+		sTooltip = this.BookmarkName;
+	}
+	return sTooltip;
 };
 
 /**
