@@ -887,28 +887,72 @@ CComplexField.prototype.private_UpdateREF = function()
 	var oBookmarksManager = this.LogicDocument.GetBookmarksManager();
 	var sBookmarkName = this.Instruction.GetBookmarkName();
 	var oBookmark = oBookmarksManager.GetBookmarkByName(sBookmarkName);
+	var sValue = AscCommon.translateManager.getValue("Error! Reference source not found.");
 	if(!oBookmark)
 	{
-		var sValue = AscCommon.translateManager.getValue("Error! Reference source not found.");
 		this.LogicDocument.AddText(sValue);
 		return;
 	}
 	
-	if(this.Instruction.IsNumber())
+	var oStartBookmark = oBookmark[0];
+	var oSrcParagraph = oStartBookmark.Paragraph;
+	if(!oSrcParagraph)
 	{
-
+		this.LogicDocument.AddText(sValue);
+		return;
 	}
-	else if(this.Instruction.IsNumberFullContext())
+	if(this.Instruction.HaveNumberFlag())
 	{
-
-	}
-	else if(this.Instruction.IsNumberNoContext())
-	{
-
+		if(!oSrcParagraph.IsNumberedNumbering())
+		{
+			this.LogicDocument.AddText("0");
+			return;
+		}
+		var oNumPr     = oSrcParagraph.GetNumPr();
+		var oNumbering = this.LogicDocument.GetNumbering();
+		var oNumInfo   = oSrcParagraph.GetParent().CalculateNumberingValues(oSrcParagraph, oNumPr);
+		var nLvl;
+		if(this.Instruction.IsNumber())
+		{
+		}
+		else if(this.Instruction.IsNumberFullContext())
+		{
+			sValue = "";
+			for(nLvl = 0; nLvl <= oNumPr.Lvl; ++nLvl)
+			{
+				sValue += oNumbering.GetText(oNumPr.NumId, nLvl, oNumInfo, nLvl === oNumPr.Lvl);
+			}
+			this.LogicDocument.AddText(sValue);
+		}
+		else if(this.Instruction.IsNumberNoContext())
+		{
+			sValue = oNumbering.GetText(oNumPr.NumId, oNumPr.Lvl, oNumInfo, true);
+			this.LogicDocument.AddText(sValue);
+		}
 	}
 	else if(this.Instruction.IsPosition())
 	{
+		if (oStartBookmark.GetPage() === this.SeparateChar.GetPage())
+		{
+			var oBookmarkXY = oStartBookmark.GetXY();
+			var oFieldXY    = this.SeparateChar.GetXY();
 
+			if (Math.abs(oBookmarkXY.Y - oFieldXY.Y) < 0.001)
+				sValue = oBookmarkXY.X < oFieldXY.X ? AscCommon.translateManager.getValue("above") : AscCommon.translateManager.getValue("below");
+			else if (oBookmarkXY.Y < oFieldXY.Y)
+				sValue = AscCommon.translateManager.getValue("above");
+			else
+				sValue = AscCommon.translateManager.getValue("below");
+		}
+		else if(oStartBookmark.GetPage() < this.SeparateChar.GetPage())
+		{
+			sValue = AscCommon.translateManager.getValue("above");
+		}
+		else
+		{
+			sValue = AscCommon.translateManager.getValue("below");
+		}
+		this.LogicDocument.AddText(sValue);
 	}
 	else // bookmark content
 	{
@@ -940,6 +984,7 @@ CComplexField.prototype.private_UpdateREF = function()
 			}
 		}
 	}
+	//TODO: Apply formatting from general switches
 };
 CComplexField.prototype.SelectFieldValue = function()
 {

@@ -577,6 +577,10 @@ CFieldInstructionREF.prototype.IsNumberFullContext = function()
 {
 	return this.bIsNumberFullContext;
 };
+CFieldInstructionREF.prototype.HaveNumberFlag = function()
+{
+	return this.IsNumber() || this.IsNumberFullContext() || this.IsNumberNoContext();
+};
 CFieldInstructionREF.prototype.SetIsNumber = function(bVal)
 {
 	this.bIsNumber = bVal;
