@@ -425,6 +425,10 @@ CComplexField.prototype.Update = function(isCreateHistoryPoint, isNeedRecalculat
 		case fieldtype_DATE:
 			this.private_UpdateTIME();
 			break;
+		case fieldtype_REF:
+			this.private_UpdateREF();
+			break;
+
 
 	}
 
@@ -877,6 +881,65 @@ CComplexField.prototype.private_CalculateTIME = function()
 	}
 
 	return sDate;
+};
+CComplexField.prototype.private_UpdateREF = function()
+{
+	var oBookmarksManager = this.LogicDocument.GetBookmarksManager();
+	var sBookmarkName = this.Instruction.GetBookmarkName();
+	var oBookmark = oBookmarksManager.GetBookmarkByName(sBookmarkName);
+	if(!oBookmark)
+	{
+		var sValue = AscCommon.translateManager.getValue("Error! Reference source not found.");
+		this.LogicDocument.AddText(sValue);
+		return;
+	}
+	
+	if(this.Instruction.IsNumber())
+	{
+
+	}
+	else if(this.Instruction.IsNumberFullContext())
+	{
+
+	}
+	else if(this.Instruction.IsNumberNoContext())
+	{
+
+	}
+	else if(this.Instruction.IsPosition())
+	{
+
+	}
+	else // bookmark content
+	{
+		oBookmarksManager.SelectBookmark(sBookmarkName);
+		var oSelectedContent = this.LogicDocument.GetSelectedContent(true);
+		this.SelectFieldValue();
+		var oRun       = this.BeginChar.GetRun();
+		var oParagraph = oRun.GetParagraph();
+		if (oParagraph)
+		{
+			var oNearPos = oParagraph.GetCurrentAnchorPosition();
+			if(oNearPos)
+			{
+				if(this.LogicDocument.Can_InsertContent(oSelectedContent, oNearPos))
+				{
+					this.LogicDocument.TurnOff_Recalculate();
+					this.LogicDocument.TurnOff_InterfaceEvents();
+					this.LogicDocument.Remove(1, false, false, false);
+					this.LogicDocument.TurnOn_Recalculate(false);
+					this.LogicDocument.TurnOn_InterfaceEvents(false);
+					var oNearPos   = {
+						Paragraph  : oParagraph,
+						ContentPos : oParagraph.Get_ParaContentPos(false, false)
+					};
+					oParagraph.Check_NearestPos(oNearPos);
+					oSelectedContent.DoNotAddEmptyPara = true;
+					oParagraph.Parent.InsertContent(oSelectedContent, oNearPos);
+				}
+			}
+		}
+	}
 };
 CComplexField.prototype.SelectFieldValue = function()
 {

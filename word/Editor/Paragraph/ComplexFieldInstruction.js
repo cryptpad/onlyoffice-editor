@@ -529,11 +529,22 @@ function CFieldInstructionREF()
 {
 	CFieldInstructionBase.call(this);
 
+	this.GeneralSwitches = [];
 	this.BookmarkName = "";
+	this.Hyperlink = false; // \h - is hyperlink
+	this.bIsNumberNoContext = false; // \n - paragraph number (no context)
+	this.bIsNumberFullContext = false; // \w - paragraph number (full context)
+	this.bIsNumber = false; // \r - paragraph number in realtive context
+	this.bIsPosition = false; // \p - above/below
 }
 CFieldInstructionREF.prototype = Object.create(CFieldInstructionBase.prototype);
 CFieldInstructionREF.prototype.constructor = CFieldInstructionREF;
 CFieldInstructionREF.prototype.Type = fieldtype_REF;
+
+CFieldInstructionREF.prototype.SetGeneralSwitches = function (aSwitches)
+{
+	this.GeneralSwitches = aSwitches;
+};
 CFieldInstructionREF.prototype.SetBookmarkName = function(sBookmarkName)
 {
 	this.BookmarkName = sBookmarkName;
@@ -541,6 +552,76 @@ CFieldInstructionREF.prototype.SetBookmarkName = function(sBookmarkName)
 CFieldInstructionREF.prototype.GetBookmarkName = function()
 {
 	return this.BookmarkName;
+};
+CFieldInstructionREF.prototype.SetHyperlink = function(bIsHyperlink)
+{
+	this.Hyperlink = bIsHyperlink;
+};
+CFieldInstructionREF.prototype.GetHyperlink = function()
+{
+	return this.Hyperlink;
+};
+CFieldInstructionREF.prototype.SetIsNumberNoContext = function(bVal)
+{
+	this.bIsNumberNoContext = bVal;
+};
+CFieldInstructionREF.prototype.IsNumberNoContext = function()
+{
+	return this.bIsNumberNoContext;
+};
+CFieldInstructionREF.prototype.SetIsNumberFullContext = function(bVal)
+{
+	this.bIsNumberFullContext = bVal;
+};
+CFieldInstructionREF.prototype.IsNumberFullContext = function()
+{
+	return this.bIsNumberFullContext;
+};
+CFieldInstructionREF.prototype.SetIsNumber = function(bVal)
+{
+	this.bIsNumber = bVal;
+};
+CFieldInstructionREF.prototype.IsNumber = function()
+{
+	return this.bIsNumber;
+};
+CFieldInstructionREF.prototype.SetIsPosition = function(bVal)
+{
+	this.bIsPosition = bVal;
+};
+CFieldInstructionREF.prototype.IsPosition = function()
+{
+	return this.bIsPosition;
+};
+CFieldInstructionREF.prototype.ToString = function()
+{
+	var sInstruction = " REF ";
+	sInstruction += this.BookmarkName;
+	for(var nSwitch = 0; i < this.GeneralSwitches.length; ++nSwitch)
+	{
+		sInstruction +=  " \\* " + this.GeneralSwitches[nSwitch];
+	}
+	if(this.GetHyperlink())
+	{
+		sInstruction += " \\h";
+	}
+	if(this.IsNumberNoContext())
+	{
+		sInstruction += " \\n";
+	}
+	if(this.IsNumberFullContext())
+	{
+		sInstruction += " \\w";
+	}
+	if(this.IsNumber())
+	{
+		sInstruction += " \\r"
+	}
+	if(this.IsPosition())
+	{
+		sInstruction += " \\p";
+	}
+	return sInstruction;
 };
 //----------------------------------------------------------------------------------------------------------------------
 // Функции для совместимости с обычным ParaHyperlink
@@ -1604,8 +1685,34 @@ CFieldInstructionParser.prototype.private_ReadREF = function(sBookmarkName)
 			this.Result.SetBookmarkName(arrArguments[0]);
 		}
 	}
-
-	// TODO: Switches
+	while (this.private_ReadNext())
+	{
+		if (this.private_IsSwitch())
+		{
+			var sType = this.private_GetSwitchLetter();
+			if ('*' === sType)
+			{
+				arrArguments = this.private_ReadArguments();
+				if (arrArguments.length > 0)
+					this.Result.SetGeneralSwitches(arrArguments);
+			}
+			else if("h" === sType) {
+				this.Result.SetHyperlink(true);
+			}
+			else if("n" === sType) {
+				this.Result.SetIsNumberNoContext(true);
+			}
+			else if("w" === sType) {
+				this.Result.SetIsNumberFullContext(true);
+			}
+			else if("r" === sType) {
+				this.Result.SetIsNumber(true);
+			}
+			else if("p" === sType) {
+				this.Result.SetIsPosition(true);
+			}
+		}
+	}
 };
 CFieldInstructionParser.prototype.private_ReadNUMPAGES = function()
 {
