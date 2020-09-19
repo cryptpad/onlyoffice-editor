@@ -893,10 +893,11 @@ CComplexField.prototype.private_UpdateREF = function()
 		this.LogicDocument.AddText(sValue);
 		return;
 	}
-	
 	var oStartBookmark = oBookmark[0];
 	var oSrcParagraph = oStartBookmark.Paragraph;
-	if(!oSrcParagraph)
+	var oRun       = this.BeginChar.GetRun();
+	var oParagraph = oRun.GetParagraph();
+	if(!oSrcParagraph || !oParagraph)
 	{
 		this.LogicDocument.AddText(sValue);
 		return;
@@ -911,9 +912,31 @@ CComplexField.prototype.private_UpdateREF = function()
 		var oNumPr     = oSrcParagraph.GetNumPr();
 		var oNumbering = this.LogicDocument.GetNumbering();
 		var oNumInfo   = oSrcParagraph.GetParent().CalculateNumberingValues(oSrcParagraph, oNumPr);
-		var nLvl;
+		var nLvl, oParaNumInfo, nLvlStart;
 		if(this.Instruction.IsNumber())
 		{
+			var oParaNumPr = oParagraph.GetNumPr();
+			nLvlStart = oNumPr.Lvl;
+			if(oParaNumPr && oParaNumPr.NumId === oNumPr.NumId)
+			{
+				oParaNumInfo = oParagraph.GetParent().CalculateNumberingValues(oParagraph, oParaNumPr);
+				for(nLvl = 0; nLvl <= oNumPr.Lvl && nLvl <= oParaNumPr.Lvl; ++nLvl)
+				{
+					if(oParaNumInfo[nLvl] !== oNumInfo[nLvl])
+					{
+						break;
+					}
+				}
+				sValue = "";
+				for( ;nLvl <= oNumPr.Lvl; ++nLvl)
+				{
+					sValue += oNumbering.GetText(oNumPr.NumId, nLvl, oNumInfo, nLvl === oNumPr.Lvl);
+				}
+			}
+			else
+			{
+				sValue = oNumbering.GetText(oNumPr.NumId, oNumPr.Lvl, oNumInfo, true);
+			}
 		}
 		else if(this.Instruction.IsNumberFullContext())
 		{
@@ -922,13 +945,12 @@ CComplexField.prototype.private_UpdateREF = function()
 			{
 				sValue += oNumbering.GetText(oNumPr.NumId, nLvl, oNumInfo, nLvl === oNumPr.Lvl);
 			}
-			this.LogicDocument.AddText(sValue);
 		}
 		else if(this.Instruction.IsNumberNoContext())
 		{
 			sValue = oNumbering.GetText(oNumPr.NumId, oNumPr.Lvl, oNumInfo, true);
-			this.LogicDocument.AddText(sValue);
 		}
+		this.LogicDocument.AddText(sValue);
 	}
 	else if(this.Instruction.IsPosition())
 	{
@@ -959,8 +981,6 @@ CComplexField.prototype.private_UpdateREF = function()
 		oBookmarksManager.SelectBookmark(sBookmarkName);
 		var oSelectedContent = this.LogicDocument.GetSelectedContent(true);
 		this.SelectFieldValue();
-		var oRun       = this.BeginChar.GetRun();
-		var oParagraph = oRun.GetParagraph();
 		if (oParagraph)
 		{
 			var oNearPos = oParagraph.GetCurrentAnchorPosition();
