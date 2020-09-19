@@ -16056,7 +16056,7 @@ CParagraphComplexFieldsInfo.prototype.GetREForHYPERLINK = function()
 	for (var nIndex = this.CF.length - 1; nIndex >= 0; --nIndex)
 	{
 		var oInstruction = this.CF[nIndex].ComplexField.GetInstruction();
-		if (oInstruction && (fieldtype_HYPERLINK === oInstruction.GetType() || fieldtype_REF === oInstruction.GetType()))
+		if (oInstruction && (fieldtype_HYPERLINK === oInstruction.GetType() || fieldtype_REF === oInstruction.GetType() && oInstruction.GetHyperlink() ))
 			return this.CF[nIndex].ComplexField;
 	}
 
