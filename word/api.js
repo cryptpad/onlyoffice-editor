@@ -4007,7 +4007,7 @@ background-repeat: no-repeat;\
 			{
 				if(color && color.asc_getType && color.asc_getType() === Asc.c_oAscColor.COLOR_TYPE_SRGB)
 				{
-					var oColor = new CDocumentColor(color.r, color.g, color.b, false);
+					var oColor = new AscCommonWord.CDocumentColor(color.r, color.g, color.b, false);
 					oLogicDocument.AddToParagraph(new AscCommonWord.ParaTextPr({Color: oColor, Unifill: undefined}));
 				}
 				else
