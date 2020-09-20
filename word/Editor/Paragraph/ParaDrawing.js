@@ -606,6 +606,24 @@ ParaDrawing.prototype.Set_PositionV = function(RelativeFrom, Align, Value, Perce
     this.PositionV.Value        = _Value;
     this.PositionV.Percent      = _Percent;
 };
+ParaDrawing.prototype.GetPositionH = function()
+{
+	return {
+		RelativeFrom : this.PositionH.RelativeFrom,
+		Align        : this.PositionH.Align,
+		Value        : this.PositionH.Value,
+		Percent      : this.PositionH.Percent
+	};
+};
+ParaDrawing.prototype.GetPositionV = function()
+{
+	return {
+		RelativeFrom : this.PositionV.RelativeFrom,
+		Align        : this.PositionV.Align,
+		Value        : this.PositionV.Value,
+		Percent      : this.PositionV.Percent
+	};
+};
 ParaDrawing.prototype.Set_BehindDoc = function(BehindDoc)
 {
 	History.Add(new CChangesParaDrawingBehindDoc(this, this.behindDoc, BehindDoc));
@@ -1635,6 +1653,10 @@ ParaDrawing.prototype.Use_TextWrap = function()
 	// здесь должна быть проверка, нужно ли использовать обтекание относительно данного объекта,
 	// или он просто лежит над или под текстом.
 	return ( drawing_Anchor === this.DrawingType && !(this.wrappingType === WRAPPING_TYPE_NONE) );
+};
+ParaDrawing.prototype.IsUseTextWrap = function()
+{
+	return this.Use_TextWrap();
 };
 ParaDrawing.prototype.Draw_Selection = function()
 {

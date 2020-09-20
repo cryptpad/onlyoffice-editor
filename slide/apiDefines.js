@@ -229,7 +229,7 @@ prot['Zoom_In']                = c_oAscSlideTransitionParams.Zoom_In;
 prot['Zoom_Out']               = c_oAscSlideTransitionParams.Zoom_Out;
 prot['Zoom_AndRotate']         = c_oAscSlideTransitionParams.Zoom_AndRotate;
 
-prot = window['Asc']['c_oAscPresentationShortcutType'] = c_oAscPresentationShortcutType;
+prot = window['Asc']['c_oAscPresentationShortcutType'] = window['Asc'].c_oAscPresentationShortcutType = c_oAscPresentationShortcutType;
 prot['EditSelectAll']   = c_oAscPresentationShortcutType.EditSelectAll;
 prot['EditUndo']        = c_oAscPresentationShortcutType.EditUndo;
 prot['EditRedo']        = c_oAscPresentationShortcutType.EditRedo;

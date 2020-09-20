@@ -8289,6 +8289,10 @@ Paragraph.prototype.GetCalculatedParaPr = function()
 	if (undefined !== ParaPr.OutlineLvl && undefined === this.Pr.OutlineLvl)
 		ParaPr.OutlineLvlStyle = true;
 
+	// Вопреки спецификации, если у рамки задан параметр H и не задан HRule, мы должны считать его не Auto, а AtLeast
+	if (ParaPr.FramePr && undefined !== ParaPr.FramePr.H && undefined === ParaPr.FramePr.HRule)
+		ParaPr.FramePr.HRule = Asc.linerule_AtLeast;
+
 	return ParaPr;
 };
 /**
