@@ -428,6 +428,9 @@ CComplexField.prototype.Update = function(isCreateHistoryPoint, isNeedRecalculat
 		case fieldtype_REF:
 			this.private_UpdateREF();
 			break;
+		case fieldtype_NOTEREF:
+			this.private_UpdateNOTEREF();
+			break;
 
 
 	}
@@ -993,6 +996,104 @@ CComplexField.prototype.private_UpdateREF = function()
 					this.LogicDocument.Remove(1, false, false, false);
 					this.LogicDocument.TurnOn_Recalculate(false);
 					this.LogicDocument.TurnOn_InterfaceEvents(false);
+					var oNearPos   = {
+						Paragraph  : oParagraph,
+						ContentPos : oParagraph.Get_ParaContentPos(false, false)
+					};
+					oParagraph.Check_NearestPos(oNearPos);
+					oSelectedContent.DoNotAddEmptyPara = true;
+					oParagraph.Parent.InsertContent(oSelectedContent, oNearPos);
+				}
+			}
+		}
+	}
+	//TODO: Apply formatting from general switches
+};
+CComplexField.prototype.private_UpdateNOTEREF = function()
+{
+	var oBookmarksManager = this.LogicDocument.GetBookmarksManager();
+	var sBookmarkName = this.Instruction.GetBookmarkName();
+	var oBookmark = oBookmarksManager.GetBookmarkByName(sBookmarkName);
+	var sValue = AscCommon.translateManager.getValue("Error! Bookmark not defined.");
+	if(!oBookmark)
+	{
+		this.LogicDocument.AddText(sValue);
+		return;
+	}
+	//check notes in bookmarked content
+	
+	oBookmarksManager.SelectBookmark(sBookmarkName);
+	var oSelectionInfo = this.LogicDocument.GetSelectedElementsInfo({CheckAllSelection : true});
+	var aFootEndNotes = oSelectionInfo.GetFootEndNoteRefs();
+	if(aFootEndNotes.length === 0)
+	{
+		this.LogicDocument.AddText(sValue);
+		return;
+	}
+	var oFootEndNote = aFootEndNotes[0];
+	var oStartBookmark = oBookmark[0];
+	var oSrcParagraph = oStartBookmark.Paragraph;
+	var oRun       = this.BeginChar.GetRun();
+	var oParagraph = oRun.GetParagraph();
+	if(!oSrcParagraph || !oParagraph)
+	{
+		this.LogicDocument.AddText(sValue);
+		return;
+	}
+	else if(this.Instruction.IsPosition())
+	{
+		if (oStartBookmark.GetPage() === this.SeparateChar.GetPage())
+		{
+			var oBookmarkXY = oStartBookmark.GetXY();
+			var oFieldXY    = this.SeparateChar.GetXY();
+
+			if (Math.abs(oBookmarkXY.Y - oFieldXY.Y) < 0.001)
+				sValue = oBookmarkXY.X < oFieldXY.X ? AscCommon.translateManager.getValue("above") : AscCommon.translateManager.getValue("below");
+			else if (oBookmarkXY.Y < oFieldXY.Y)
+				sValue = AscCommon.translateManager.getValue("above");
+			else
+				sValue = AscCommon.translateManager.getValue("below");
+		}
+		else if(oStartBookmark.GetPage() < this.SeparateChar.GetPage())
+		{
+			sValue = AscCommon.translateManager.getValue("above");
+		}
+		else
+		{
+			sValue = AscCommon.translateManager.getValue("below");
+		}
+		this.LogicDocument.AddText(sValue);
+	}
+	else // bookmark content
+	{
+		oBookmarksManager.SelectBookmark(sBookmarkName);
+		var oSelectedContent;
+		
+		this.SelectFieldValue();
+		if (oParagraph)
+		{
+			var oNearPos = oParagraph.GetCurrentAnchorPosition();
+			if(oNearPos)
+			{
+				var oSelectedContent = new CSelectedContent();
+				var oPara = new Paragraph(this.LogicDocument.GetDrawingDocument(), this.LogicDocument, false);
+				var oRun  = new ParaRun(oPara, false);
+				oRun.AddText(oFootEndNote.private_GetString());
+				if(this.Instruction.IsFormatting())
+				{
+					oRun.Set_VertAlign(AscCommon.vertalign_SuperScript);
+				}
+				oPara.AddToContent(0, oRun);
+				oSelectedContent.Add(new CSelectedElement(oPara, false));
+				if(this.LogicDocument.Can_InsertContent(oSelectedContent, oNearPos))
+				{
+					this.LogicDocument.TurnOff_Recalculate();
+					this.LogicDocument.TurnOff_InterfaceEvents();
+					this.LogicDocument.Remove(1, false, false, false);
+					this.LogicDocument.TurnOn_Recalculate(false);
+					this.LogicDocument.TurnOn_InterfaceEvents(false);
+					oRun       = this.BeginChar.GetRun();
+					var oParagraph = oRun.GetParagraph();
 					var oNearPos   = {
 						Paragraph  : oParagraph,
 						ContentPos : oParagraph.Get_ParaContentPos(false, false)

@@ -12153,12 +12153,18 @@ ParaRun.prototype.GetSelectedElementsInfo = function(oInfo)
 	{
 		oInfo.RegisterRunWithReviewType(this.GetReviewType());
 
+        var oElement;
 		for (var nPos = 0, nCount = this.Content.length; nPos < nCount; ++nPos)
 		{
-			if (para_RevisionMove === this.Content[nPos].Type)
+            oElement = this.Content[nPos];
+			if (para_RevisionMove === oElement.Type)
 			{
-				oInfo.RegisterTrackMoveMark(this.Content[nPos].Type);
-			}
+				oInfo.RegisterTrackMoveMark(oElement.Type);
+            }
+            else if(para_FootnoteReference === oElement.Type || para_EndnoteReference === oElement.Type)
+            {
+                oInfo.RegisterFootEndNoteRef(oElement);
+            }
 		}
 	}
 };

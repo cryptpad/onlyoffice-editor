@@ -1852,6 +1852,7 @@ function CSelectedElementsInfo(oPr)
 	this.m_bReviewNormal      = false; // Обычный контент
 	this.m_oPresentationField = null;
 	this.m_arrMoveMarks       = [];
+	this.m_arrFootEndNoteRefs = [];
 
     this.Reset = function()
     {
@@ -2124,6 +2125,14 @@ CSelectedElementsInfo.prototype.RegisterTrackMoveMark = function(oMoveMark)
 CSelectedElementsInfo.prototype.GetTrackMoveMarks = function()
 {
 	return this.m_arrMoveMarks;
+};
+CSelectedElementsInfo.prototype.RegisterFootEndNoteRef = function(oRef)
+{
+	this.m_arrFootEndNoteRefs.push(oRef);
+};
+CSelectedElementsInfo.prototype.GetFootEndNoteRefs  = function()
+{
+	return this.m_arrFootEndNoteRefs;
 };
 
 function CDocumentSettings()

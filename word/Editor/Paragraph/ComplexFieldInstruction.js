@@ -55,6 +55,7 @@ var fieldtype_DATE       = 0x000B;
 var fieldtype_FORMULA    = 0x0010;
 var fieldtype_SEQ        = 0x0011;
 var fieldtype_STYLEREF   = 0x0012;
+var fieldtype_NOTEREF    = 0x0013;
 
 
 //--------------------------------------------------------export----------------------------------------------------
@@ -1315,6 +1316,118 @@ CFieldInstructionSTYLEREF.prototype.SetComplexField = function (oComplexField)
 	}
 };
 
+
+/**
+ * NOTEREF field
+ * @constructor
+ */
+function CFieldInstructionNOTEREF()
+{
+	CFieldInstructionBase.call(this);
+
+	this.GeneralSwitches = [];
+	this.BookmarkName = "";
+	this.Hyperlink = false; // \h - is hyperlink
+	this.bIsPosition = false; // \p - above/below
+	this.bFormatting = false; // \p - format as notes or endnotes
+}
+CFieldInstructionNOTEREF.prototype = Object.create(CFieldInstructionBase.prototype);
+CFieldInstructionNOTEREF.prototype.constructor = CFieldInstructionNOTEREF;
+CFieldInstructionNOTEREF.prototype.Type = fieldtype_NOTEREF;
+
+
+CFieldInstructionNOTEREF.prototype.SetGeneralSwitches = function (aSwitches)
+{
+	this.GeneralSwitches = aSwitches;
+};
+CFieldInstructionNOTEREF.prototype.SetBookmarkName = function(sBookmarkName)
+{
+	this.BookmarkName = sBookmarkName;
+};
+CFieldInstructionNOTEREF.prototype.GetBookmarkName = function()
+{
+	return this.BookmarkName;
+};
+CFieldInstructionNOTEREF.prototype.SetHyperlink = function(bIsHyperlink)
+{
+	this.Hyperlink = bIsHyperlink;
+};
+CFieldInstructionNOTEREF.prototype.GetHyperlink = function()
+{
+	return this.Hyperlink;
+};
+CFieldInstructionNOTEREF.prototype.SetIsPosition = function(bVal)
+{
+	this.bIsPosition = bVal;
+};
+CFieldInstructionNOTEREF.prototype.IsPosition = function()
+{
+	return this.bIsPosition;
+};
+CFieldInstructionNOTEREF.prototype.SetIsFormatting = function(bVal)
+{
+	this.bFormatting = bVal;
+};
+CFieldInstructionNOTEREF.prototype.IsFormatting = function()
+{
+	return this.bFormatting;
+};
+CFieldInstructionNOTEREF.prototype.ToString = function()
+{
+	var sInstruction = " NOTEREF ";
+	sInstruction += this.BookmarkName;
+	for(var nSwitch = 0; i < this.GeneralSwitches.length; ++nSwitch)
+	{
+		sInstruction +=  " \\* " + this.GeneralSwitches[nSwitch];
+	}
+	if(this.GetHyperlink())
+	{
+		sInstruction += " \\h";
+	}
+	if(this.IsPosition())
+	{
+		sInstruction += " \\p";
+	}
+	if(this.IsFormatting())
+	{
+		sInstruction += " \\f";
+	}
+	return sInstruction;
+};
+//----------------------------------------------------------------------------------------------------------------------
+// Функции для совместимости с обычным ParaHyperlink
+//----------------------------------------------------------------------------------------------------------------------
+CFieldInstructionNOTEREF.prototype.GetAnchor = function()
+{
+	return this.GetBookmarkName();
+};
+CFieldInstructionNOTEREF.prototype.GetValue = function()
+{
+	return "";
+};
+CFieldInstructionNOTEREF.prototype.SetVisited = function(isVisited)
+{
+};
+
+CFieldInstructionREF.prototype.SetToolTip = function(sToolTip)
+{
+};
+CFieldInstructionNOTEREF.prototype.GetToolTip = function()
+{
+	var sTooltip;
+	if(this.IsPosition())
+	{
+		sTooltip = AscCommon.translateManager.getValue("Current Document");
+	}
+	else
+	{
+		sTooltip = this.BookmarkName;
+	}
+	return sTooltip;
+};
+
+
+
 /**
  * Класс для разбора строки с инструкцией
  * @constructor
@@ -1365,6 +1478,10 @@ CFieldInstructionParser.prototype.private_Parse = function()
 	else if("REF" === sBuffer)
 	{
 		this.private_ReadREF();
+	}
+	else if("NOTEREF" === sBuffer)
+	{
+		this.private_ReadNOTEREF();
 	}
 	else if("NUMPAGES" === sBuffer)
 	{
@@ -1720,6 +1837,38 @@ CFieldInstructionParser.prototype.private_ReadREF = function(sBookmarkName)
 			}
 			else if("r" === sType) {
 				this.Result.SetIsNumber(true);
+			}
+			else if("p" === sType) {
+				this.Result.SetIsPosition(true);
+			}
+		}
+	}
+};
+CFieldInstructionParser.prototype.private_ReadNOTEREF = function()
+{
+	this.Result = new CFieldInstructionNOTEREF();
+
+	var arrArguments = this.private_ReadArguments();
+	if (arrArguments.length > 0)
+	{
+		this.Result.SetBookmarkName(arrArguments[0]);
+	}
+	while (this.private_ReadNext())
+	{
+		if (this.private_IsSwitch())
+		{
+			var sType = this.private_GetSwitchLetter();
+			if ('*' === sType)
+			{
+				arrArguments = this.private_ReadArguments();
+				if (arrArguments.length > 0)
+					this.Result.SetGeneralSwitches(arrArguments);
+			}
+			else if("h" === sType) {
+				this.Result.SetHyperlink(true);
+			}
+			else if("f" === sType) {
+				this.Result.SetIsFormatting(true);
 			}
 			else if("p" === sType) {
 				this.Result.SetIsPosition(true);
