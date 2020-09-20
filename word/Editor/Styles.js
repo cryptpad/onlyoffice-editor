@@ -14770,7 +14770,7 @@ CNumPr.prototype.IsEqual = function(oNumPr)
 	if (0 === this.NumId)
 		return true;
 
-	return (this.NumId === NumPr.NumId && this.Lvl === NumPr.Lvl);
+	return (this.NumId === oNumPr.NumId && this.Lvl === oNumPr.Lvl);
 };
 
 var wrap_Around    = 0x01;
