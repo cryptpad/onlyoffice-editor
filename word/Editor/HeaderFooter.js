@@ -943,7 +943,12 @@ CHeaderFooter.prototype =
 	GetAllDrawingObjects : function(arrDrawings)
 	{
 		return this.Content.GetAllDrawingObjects(arrDrawings);
-	},
+    },
+
+    UpdateBookmarks : function(oBookmarkManager)
+    {
+        this.Content.UpdateBookmarks(oBookmarkManager);
+    },
 
 	GetPrevElementEndInfo : function(CurElement)
     {

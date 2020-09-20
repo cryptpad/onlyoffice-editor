@@ -3326,6 +3326,14 @@ CFootnotesController.prototype.GetAllDrawingObjects = function(arrDrawings)
 
 	return arrDrawings;
 };
+CFootnotesController.prototype.UpdateBookmarks = function(oBookmarkManager)
+{
+	for (var sId in  this.Footnote)
+	{
+		var oFootnote = this.Footnote[sId];
+		oFootnote.UpdateBookmarks(oBookmarkManager);
+	}
+};
 CFootnotesController.prototype.IsTableCellSelection = function()
 {
 	if (this.CurFootnote)

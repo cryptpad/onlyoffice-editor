@@ -502,38 +502,49 @@ CComplexField.prototype.private_CalculateSTYLEREF = function()
 {
 	return this.Instruction.GetText();
 };
+CComplexField.prototype.private_InsertMessage = function(sMessage, oTextPr)
+{
+	this.SelectFieldValue();
+	var oSelectedContent = new CSelectedContent();
+	var oPara = new Paragraph(this.LogicDocument.GetDrawingDocument(), this.LogicDocument, false);
+	var oRun  = new ParaRun(oPara, false);
+	if(oTextPr)
+	{
+		oRun.Apply_Pr(oTextPr);
+	}
+	oRun.AddText(sMessage);
+	oPara.AddToContent(0, oRun);
+	oSelectedContent.Add(new CSelectedElement(oPara, false));
+	this.LogicDocument.TurnOff_Recalculate();
+	this.LogicDocument.TurnOff_InterfaceEvents();
+	this.LogicDocument.Remove(1, false, false, false);
+	this.LogicDocument.TurnOn_Recalculate(false);
+	this.LogicDocument.TurnOn_InterfaceEvents(false);
+	oRun       = this.BeginChar.GetRun();
+	var oParagraph = oRun.GetParagraph();
+	var oNearPos   = {
+		Paragraph  : oParagraph,
+		ContentPos : oParagraph.Get_ParaContentPos(false, false)
+	};
+	oParagraph.Check_NearestPos(oNearPos);
+	oSelectedContent.DoNotAddEmptyPara = true;
+	oParagraph.Parent.InsertContent(oSelectedContent, oNearPos);
+};
+
 CComplexField.prototype.private_UpdateFORMULA = function()
 {
 	this.Instruction.Calculate(this.LogicDocument);
 	if(this.Instruction.ErrStr !== null)
 	{
-		var oSelectedContent = new CSelectedContent();
-		var oPara = new Paragraph(this.LogicDocument.GetDrawingDocument(), this.LogicDocument, false);
-		var oRun  = new ParaRun(oPara, false);
-		oRun.Set_Bold(true);
-		oRun.AddText(this.Instruction.ErrStr);
-		oPara.AddToContent(0, oRun);
-		oSelectedContent.Add(new CSelectedElement(oPara, false));
-		this.LogicDocument.TurnOff_Recalculate();
-		this.LogicDocument.TurnOff_InterfaceEvents();
-		this.LogicDocument.Remove(1, false, false, false);
-		this.LogicDocument.TurnOn_Recalculate(false);
-		this.LogicDocument.TurnOn_InterfaceEvents(false);
-		oRun       = this.BeginChar.GetRun();
-		var oParagraph = oRun.GetParagraph();
-		var oNearPos   = {
-			Paragraph  : oParagraph,
-			ContentPos : oParagraph.Get_ParaContentPos(false, false)
-		};
-		oParagraph.Check_NearestPos(oNearPos);
-		oSelectedContent.DoNotAddEmptyPara = true;
-		oParagraph.Parent.InsertContent(oSelectedContent, oNearPos);
+		var oTextPr = new CTextPr();
+		oTextPr.Set_FromObject({Bold: true});
+		this.private_InsertMessage(this.Instruction.ErrStr, oTextPr);
 	}
 	else
 	{
 		if(this.Instruction.ResultStr !== null)
 		{
-			this.LogicDocument.AddText(this.Instruction.ResultStr);
+			this.private_InsertMessage(this.Instruction.ResultStr, null);
 		}
 	}
 };
@@ -808,6 +819,14 @@ CComplexField.prototype.private_UpdateTOC = function()
 };
 CComplexField.prototype.private_UpdatePAGEREF = function()
 {
+	var oBookmarksManager = this.LogicDocument.GetBookmarksManager();
+	var oBookmark = oBookmarksManager.GetBookmarkByName(this.Instruction.GetBookmarkName());
+	if(!oBookmark)
+	{
+		var sValue = AscCommon.translateManager.getValue("Error! Bookmark not defined.");
+		this.private_InsertError(sValue)
+		return;
+	}
 	this.LogicDocument.AddText(this.private_CalculatePAGEREF());
 };
 CComplexField.prototype.private_CalculatePAGEREF = function()
@@ -885,6 +904,12 @@ CComplexField.prototype.private_CalculateTIME = function()
 
 	return sDate;
 };
+CComplexField.prototype.private_InsertError = function(sText)
+{
+	var oTextPr = new CTextPr();
+	oTextPr.Set_FromObject({Bold: true});
+	this.private_InsertMessage(sText, oTextPr);
+};
 CComplexField.prototype.private_UpdateREF = function()
 {
 	var oBookmarksManager = this.LogicDocument.GetBookmarksManager();
@@ -893,7 +918,7 @@ CComplexField.prototype.private_UpdateREF = function()
 	var sValue = AscCommon.translateManager.getValue("Error! Reference source not found.");
 	if(!oBookmark)
 	{
-		this.LogicDocument.AddText(sValue);
+		this.private_InsertError(sValue);
 		return;
 	}
 	var oStartBookmark = oBookmark[0];
@@ -902,7 +927,7 @@ CComplexField.prototype.private_UpdateREF = function()
 	var oParagraph = oRun.GetParagraph();
 	if(!oSrcParagraph || !oParagraph)
 	{
-		this.LogicDocument.AddText(sValue);
+		this.private_InsertError(sValue);
 		return;
 	}
 	if(this.Instruction.HaveNumberFlag())
@@ -1017,7 +1042,7 @@ CComplexField.prototype.private_UpdateNOTEREF = function()
 	var sValue = AscCommon.translateManager.getValue("Error! Bookmark not defined.");
 	if(!oBookmark)
 	{
-		this.LogicDocument.AddText(sValue);
+		this.private_InsertError(sValue);
 		return;
 	}
 	//check notes in bookmarked content
@@ -1027,7 +1052,7 @@ CComplexField.prototype.private_UpdateNOTEREF = function()
 	var aFootEndNotes = oSelectionInfo.GetFootEndNoteRefs();
 	if(aFootEndNotes.length === 0)
 	{
-		this.LogicDocument.AddText(sValue);
+		this.private_InsertError(sValue);
 		return;
 	}
 	var oFootEndNote = aFootEndNotes[0];
@@ -1066,44 +1091,14 @@ CComplexField.prototype.private_UpdateNOTEREF = function()
 	}
 	else // bookmark content
 	{
-		oBookmarksManager.SelectBookmark(sBookmarkName);
-		var oSelectedContent;
-		
 		this.SelectFieldValue();
-		if (oParagraph)
+		var oTextPr = null;
+		if(this.Instruction.IsFormatting())
 		{
-			var oNearPos = oParagraph.GetCurrentAnchorPosition();
-			if(oNearPos)
-			{
-				var oSelectedContent = new CSelectedContent();
-				var oPara = new Paragraph(this.LogicDocument.GetDrawingDocument(), this.LogicDocument, false);
-				var oRun  = new ParaRun(oPara, false);
-				oRun.AddText(oFootEndNote.private_GetString());
-				if(this.Instruction.IsFormatting())
-				{
-					oRun.Set_VertAlign(AscCommon.vertalign_SuperScript);
-				}
-				oPara.AddToContent(0, oRun);
-				oSelectedContent.Add(new CSelectedElement(oPara, false));
-				if(this.LogicDocument.Can_InsertContent(oSelectedContent, oNearPos))
-				{
-					this.LogicDocument.TurnOff_Recalculate();
-					this.LogicDocument.TurnOff_InterfaceEvents();
-					this.LogicDocument.Remove(1, false, false, false);
-					this.LogicDocument.TurnOn_Recalculate(false);
-					this.LogicDocument.TurnOn_InterfaceEvents(false);
-					oRun       = this.BeginChar.GetRun();
-					var oParagraph = oRun.GetParagraph();
-					var oNearPos   = {
-						Paragraph  : oParagraph,
-						ContentPos : oParagraph.Get_ParaContentPos(false, false)
-					};
-					oParagraph.Check_NearestPos(oNearPos);
-					oSelectedContent.DoNotAddEmptyPara = true;
-					oParagraph.Parent.InsertContent(oSelectedContent, oNearPos);
-				}
-			}
+			oTextPr = new CTextPr();
+			oTextPr.Set_FromObject({VertAlign: AscCommon.vertalign_SuperScript});
 		}
+		this.private_InsertMessage(oFootEndNote.private_GetString(), oTextPr);
 	}
 	//TODO: Apply formatting from general switches
 };

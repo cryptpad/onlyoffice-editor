@@ -3175,6 +3175,14 @@ CEndnotesController.prototype.GetAllDrawingObjects = function(arrDrawings)
 
 	return arrDrawings;
 };
+CEndnotesController.prototype.UpdateBookmarks = function(oBookmarkManager)
+{
+	for (var sId in  this.Endnote)
+	{
+		var oEndnote = this.Endnote[sId];
+		oEndnote.UpdateBookmarks(oBookmarkManager);
+	}
+};
 CEndnotesController.prototype.IsTableCellSelection = function()
 {
 	if (this.CurEndnote)

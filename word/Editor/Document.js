@@ -21197,10 +21197,13 @@ CDocument.prototype.UpdateBookmarks = function()
 
 	this.BookmarksManager.BeginCollectingProcess();
 
+	this.SectionsInfo.UpdateBookmarks(this.BookmarksManager);
 	for (var nIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex)
 	{
 		this.Content[nIndex].UpdateBookmarks(this.BookmarksManager);
 	}
+	this.Footnotes.UpdateBookmarks(this.BookmarksManager);
+	this.Endnotes.UpdateBookmarks(this.BookmarksManager);
 
 	this.BookmarksManager.EndCollectingProcess();
 };
@@ -23280,7 +23283,33 @@ CDocumentSectionsInfo.prototype =
             if (null != SectPr.FooterEven)
                 SectPr.FooterEven.GetAllDrawingObjects(arrDrawings);
         }
-    },
+	},
+	
+	UpdateBookmarks : function(oBookmarkManager)
+	{
+        for (var nIndex = 0, nCount = this.Elements.length; nIndex < nCount; ++nIndex)
+        {
+            var SectPr = this.Elements[nIndex].SectPr;
+
+            if (null != SectPr.HeaderFirst)
+                SectPr.HeaderFirst.UpdateBookmarks(oBookmarkManager);
+
+            if (null != SectPr.HeaderDefault)
+                SectPr.HeaderDefault.UpdateBookmarks(oBookmarkManager);
+
+            if (null != SectPr.HeaderEven)
+                SectPr.HeaderEven.UpdateBookmarks(oBookmarkManager);
+
+            if (null != SectPr.FooterFirst)
+                SectPr.FooterFirst.UpdateBookmarks(oBookmarkManager);
+
+            if (null != SectPr.FooterDefault)
+                SectPr.FooterDefault.UpdateBookmarks(oBookmarkManager);
+
+            if (null != SectPr.FooterEven)
+                SectPr.FooterEven.UpdateBookmarks(oBookmarkManager);
+        }
+	},
 
     Document_CreateFontMap : function(FontMap)
     {
