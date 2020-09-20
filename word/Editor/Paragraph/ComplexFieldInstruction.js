@@ -78,6 +78,7 @@ window['AscCommonWord'].fieldtype_DATE       = fieldtype_DATE;
 window['AscCommonWord'].fieldtype_FORMULA    = fieldtype_FORMULA;
 window['AscCommonWord'].fieldtype_SEQ        = fieldtype_SEQ;
 window['AscCommonWord'].fieldtype_STYLEREF   = fieldtype_STYLEREF;
+window['AscCommonWord'].fieldtype_NOTEREF    = fieldtype_NOTEREF;
 
 
 /**
@@ -1397,6 +1398,10 @@ CFieldInstructionNOTEREF.prototype.ToString = function()
 //----------------------------------------------------------------------------------------------------------------------
 // Функции для совместимости с обычным ParaHyperlink
 //----------------------------------------------------------------------------------------------------------------------
+CFieldInstructionNOTEREF.prototype.IsTopOfDocument = function()
+{
+	return (this.GetBookmarkName() === "_top");
+};
 CFieldInstructionNOTEREF.prototype.GetAnchor = function()
 {
 	return this.GetBookmarkName();
@@ -1414,16 +1419,7 @@ CFieldInstructionREF.prototype.SetToolTip = function(sToolTip)
 };
 CFieldInstructionNOTEREF.prototype.GetToolTip = function()
 {
-	var sTooltip;
-	if(this.IsPosition())
-	{
-		sTooltip = AscCommon.translateManager.getValue("Current Document");
-	}
-	else
-	{
-		sTooltip = this.BookmarkName;
-	}
-	return sTooltip;
+	return AscCommon.translateManager.getValue("Current Document");
 };
 
 

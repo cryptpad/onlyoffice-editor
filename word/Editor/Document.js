@@ -2062,7 +2062,10 @@ CSelectedElementsInfo.prototype.GetHyperlink = function()
 	for (var nIndex = 0, nCount = this.m_arrComplexFields.length; nIndex < nCount; ++nIndex)
 	{
 		var oInstruction = this.m_arrComplexFields[nIndex].GetInstruction();
-		if (oInstruction && (fieldtype_HYPERLINK === oInstruction.GetType() || fieldtype_REF === oInstruction.GetType() && oInstruction.GetHyperlink()))
+		if (oInstruction && 
+			(fieldtype_HYPERLINK === oInstruction.GetType() 
+			|| fieldtype_REF === oInstruction.GetType() && oInstruction.GetHyperlink()
+			|| fieldtype_NOTEREF === oInstruction.GetType() && oInstruction.GetHyperlink()))
 			return oInstruction;
 	}
 
