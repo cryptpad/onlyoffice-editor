@@ -4063,7 +4063,7 @@ var editor;
     }
 
     // На view-режиме не нужно отправлять стили
-    if (this.canEdit()) {
+    if (!this.getViewMode()) {
       // Отправка стилей
       this._sendWorkbookStyles();
     }
@@ -4569,6 +4569,7 @@ var editor;
 		var cacheDefinition = wb.getPivotCacheByDataRef(dataRef);
 		if (!cacheDefinition) {
 			cacheDefinition = new Asc.CT_PivotCacheDefinition();
+			cacheDefinition.asc_create();
 			cacheDefinition.fromDataRef(dataRef);
 		}
 		pivot.asc_create(ws, pivotName, cacheDefinition, location);
@@ -4894,7 +4895,6 @@ var editor;
 
   prot["asc_setViewMode"] = prot.asc_setViewMode;
   prot["asc_setFilteringMode"] = prot.asc_setFilteringMode;
-  prot["asc_setRestriction"] = prot.asc_setRestriction;
   prot["asc_setAdvancedOptions"] = prot.asc_setAdvancedOptions;
   prot["asc_setPageOptions"] = prot.asc_setPageOptions;
   prot["asc_savePagePrintOptions"] = prot.asc_savePagePrintOptions;

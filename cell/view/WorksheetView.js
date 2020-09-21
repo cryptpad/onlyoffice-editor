@@ -12193,7 +12193,11 @@
 						if (_isFormula) {
 							_res = part1 + "/" + part2;
 						} else {
-							_res = part1 / part2;
+							if (part2 === 0) {
+								_res = AscCommon.cErrorLocal["div"];
+							} else {
+								_res = part1 / part2;
+							}
 						}
 						break;
 					}
@@ -12211,17 +12215,26 @@
 			var _typeModel = _modelVal && _modelVal.value && !isEmptyModel ? _modelVal.value.type : null;
 
 			var res = null;
+			var _calculateRes = undefined;
 			if (_typePasted === CellValueType.Number && _typeModel === CellValueType.Number) {
-				_pastedVal.value.number = _calculateSpecialOperation(_modelVal.value.number, _pastedVal.value.number, _operation);
-				res = _pastedVal;
+				_calculateRes = _calculateSpecialOperation(_modelVal.value.number, _pastedVal.value.number, _operation);
 			} else if (_typePasted === CellValueType.Number && isEmptyModel) {
-				_pastedVal.value.number = _calculateSpecialOperation(0, _pastedVal.value.number, _operation);
-				res = _pastedVal;
+				_calculateRes = _calculateSpecialOperation(0, _pastedVal.value.number, _operation);
 			} else if (_typeModel === CellValueType.Number && isEmptyPasted) {
-				_pastedVal.value.number = _calculateSpecialOperation(_modelVal.value.number, 0, _operation);
-				res = _pastedVal;
+				_calculateRes = _calculateSpecialOperation(_modelVal.value.number, 0, _operation);
 			} else {
 				res = _modelVal;
+			}
+
+			if (_calculateRes !== undefined) {
+				if (!isNaN(_calculateRes)) {
+					_pastedVal.value.number = _calculateRes;
+				} else {
+					_pastedVal.value.text = _calculateRes;
+					_pastedVal.value.type = CellValueType.Error;
+				}
+
+				res = _pastedVal;
 			}
 
 			return res;
@@ -13556,15 +13569,6 @@
         }
 
         History.Create_NewPoint();
-        if (!onlyIfMore) {
-            var oSelection = History.GetSelection();
-            if (null != oSelection) {
-                oSelection = oSelection.clone();
-                oSelection.assign(col, 0, col, gc_nMaxRow0);
-                History.SetSelection(oSelection);
-                History.SetSelectionRedo(oSelection);
-            }
-        }
         History.StartTransaction();
         // Выставляем, что это bestFit
 		cw = this.model.charCountToModelColWidth(cc);
@@ -13617,6 +13621,14 @@
 
 			History.Create_NewPoint();
 			History.StartTransaction();
+
+			// ToDo multi-select
+			var oSelection = ranges[0].clone();
+			oSelection.r1 = 0;
+			oSelection.r2 = gc_nMaxRow0;
+			History.SetSelection(oSelection);
+			History.SetSelectionRedo(oSelection);
+
 			t._autoFitColumnsWidth(ranges);
 			t.draw();
 			History.EndTransaction();
@@ -14641,6 +14653,7 @@
 							t._autoFitColumnsWidth([new Asc.Range(filterRange.c1, filterRange.r1, filterRange.c2, filterRange.r1)]);
 						}
 						t.draw();
+						t.handlers.trigger("selectionChanged");
 
 						History.EndTransaction();
 

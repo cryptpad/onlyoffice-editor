@@ -1764,9 +1764,7 @@ CShape.prototype.setTextFitType = function(type)
         var new_body_pr = this.getBodyPr();
         if (new_body_pr) {
             new_body_pr = new_body_pr.createDuplicate();
-            if (!AscCommon.isRealObject(new_body_pr.textFit)) {
-                new_body_pr.textFit = new AscFormat.CTextFit();
-            }
+            new_body_pr.textFit = new AscFormat.CTextFit();
             new_body_pr.textFit.type = type;
 
             if (this.bWordShape) {
@@ -4134,6 +4132,9 @@ CShape.prototype.checkExtentsByDocContent = function(bForce, bNeedRecalc)
         {
             oMainGroup.normalize();
         }
+        
+        this.tmpFontScale = undefined;
+        this.tmpLnSpcReduction = undefined;
         this.bCheckAutoFitFlag = true;
         var oOldRecalcTitle = this.recalcInfo.recalcTitle;
         var bOldRecalcTitle = this.recalcInfo.bRecalculatedTitle;
@@ -4228,6 +4229,8 @@ CShape.prototype.checkExtentsByDocContent = function(bForce, bNeedRecalc)
                         }
                     }
                     this.bCheckAutoFitFlag = false;
+                    this.tmpFontScale = undefined;
+                    this.tmpLnSpcReduction = undefined;
                     return;
                 }
 
@@ -4295,6 +4298,8 @@ CShape.prototype.checkExtentsByDocContent = function(bForce, bNeedRecalc)
                     }
                 }
                 this.bCheckAutoFitFlag = false;
+                this.tmpFontScale = undefined;
+                this.tmpLnSpcReduction = undefined;
                 this.recalculateContentWitCompiledPr();
             }
             else
