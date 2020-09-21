@@ -3293,6 +3293,7 @@
 	window['AscDFH'].historydescription_Document_AutoCorrectCommon                  = 0x017c;
 	window['AscDFH'].historydescription_Document_Shortcut_ClearFormatting           = 0x017d;
 	window['AscDFH'].historydescription_Document_Shortcut_AddNonBreakingSpace       = 0x017e;
+	window['AscDFH'].historydescription_Document_AddCrossRef                        = 0x017f;
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//

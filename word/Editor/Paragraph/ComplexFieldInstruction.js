@@ -538,6 +538,7 @@ function CFieldInstructionREF()
 	this.bIsNumberFullContext = false; // \w - paragraph number (full context)
 	this.bIsNumber = false; // \r - paragraph number in realtive context
 	this.bIsPosition = false; // \p - above/below
+	this.Delimiter = null;
 }
 CFieldInstructionREF.prototype = Object.create(CFieldInstructionBase.prototype);
 CFieldInstructionREF.prototype.constructor = CFieldInstructionREF;
@@ -599,6 +600,14 @@ CFieldInstructionREF.prototype.IsPosition = function()
 {
 	return this.bIsPosition;
 };
+CFieldInstructionREF.prototype.SetDelimiter = function(bVal)
+{
+	this.Delimiter = bVal;
+};
+CFieldInstructionREF.prototype.GetDelimiter = function()
+{
+	return this.Delimiter;
+};
 CFieldInstructionREF.prototype.ToString = function()
 {
 	var sInstruction = " REF ";
@@ -626,6 +635,10 @@ CFieldInstructionREF.prototype.ToString = function()
 	if(this.IsPosition())
 	{
 		sInstruction += " \\p";
+	}
+	if(typeof this.Delimiter === "string" && this.Delimiter.length > 0)
+	{
+		sInstruction += " \\d " + this.Delimiter;
 	}
 	return sInstruction;
 };
@@ -1822,19 +1835,35 @@ CFieldInstructionParser.prototype.private_ReadREF = function(sBookmarkName)
 				if (arrArguments.length > 0)
 					this.Result.SetGeneralSwitches(arrArguments);
 			}
-			else if("h" === sType) {
+			else if("d" === sType)
+			{
+				arrArguments = this.private_ReadArguments();
+				if (arrArguments.length > 0)
+				{
+					if(typeof arrArguments[0] === "string" && arrArguments[0].length > 0)
+					{
+						this.Result.SetDelimiter(arrArguments[0]);
+					}
+				}
+			}
+			else if("h" === sType)
+			{
 				this.Result.SetHyperlink(true);
 			}
-			else if("n" === sType) {
+			else if("n" === sType)
+			{
 				this.Result.SetIsNumberNoContext(true);
 			}
-			else if("w" === sType) {
+			else if("w" === sType)
+			{
 				this.Result.SetIsNumberFullContext(true);
 			}
-			else if("r" === sType) {
+			else if("r" === sType)
+			{
 				this.Result.SetIsNumber(true);
 			}
-			else if("p" === sType) {
+			else if("p" === sType)
+			{
 				this.Result.SetIsPosition(true);
 			}
 		}

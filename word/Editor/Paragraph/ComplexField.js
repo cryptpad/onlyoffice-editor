@@ -930,6 +930,30 @@ CComplexField.prototype.private_UpdateREF = function()
 		this.private_InsertError(sValue);
 		return;
 	}
+	var sPosition = "";
+	if(this.Instruction.IsPosition())
+	{
+		if (oStartBookmark.GetPage() === this.SeparateChar.GetPage())
+		{
+			var oBookmarkXY = oStartBookmark.GetXY();
+			var oFieldXY    = this.SeparateChar.GetXY();
+
+			if (Math.abs(oBookmarkXY.Y - oFieldXY.Y) < 0.001)
+				sPosition = oBookmarkXY.X < oFieldXY.X ? AscCommon.translateManager.getValue("above") : AscCommon.translateManager.getValue("below");
+			else if (oBookmarkXY.Y < oFieldXY.Y)
+				sPosition = AscCommon.translateManager.getValue("above");
+			else
+				sPosition = AscCommon.translateManager.getValue("below");
+		}
+		else if(oStartBookmark.GetPage() < this.SeparateChar.GetPage())
+		{
+			sPosition = AscCommon.translateManager.getValue("above");
+		}
+		else
+		{
+			sPosition = AscCommon.translateManager.getValue("below");
+		}
+	}
 	if(this.Instruction.HaveNumberFlag())
 	{
 		if(!oSrcParagraph.IsNumberedNumbering())
@@ -969,40 +993,30 @@ CComplexField.prototype.private_UpdateREF = function()
 		else if(this.Instruction.IsNumberFullContext())
 		{
 			sValue = "";
+			var sDelimiter = this.Instruction.GetDelimiter();
 			for(nLvl = 0; nLvl <= oNumPr.Lvl; ++nLvl)
 			{
 				sValue += oNumbering.GetText(oNumPr.NumId, nLvl, oNumInfo, nLvl === oNumPr.Lvl);
+				if(nLvl !== oNumPr.Lvl && typeof sDelimiter === "string" && sDelimiter.length > 0)
+				{
+					sValue += sDelimiter;
+				}
 			}
 		}
 		else if(this.Instruction.IsNumberNoContext())
 		{
 			sValue = oNumbering.GetText(oNumPr.NumId, oNumPr.Lvl, oNumInfo, true);
 		}
+		if(sPosition.length > 0)
+		{
+			sValue += " ";
+			sValue += sPosition;
+		}
 		this.LogicDocument.AddText(sValue);
 	}
 	else if(this.Instruction.IsPosition())
 	{
-		if (oStartBookmark.GetPage() === this.SeparateChar.GetPage())
-		{
-			var oBookmarkXY = oStartBookmark.GetXY();
-			var oFieldXY    = this.SeparateChar.GetXY();
-
-			if (Math.abs(oBookmarkXY.Y - oFieldXY.Y) < 0.001)
-				sValue = oBookmarkXY.X < oFieldXY.X ? AscCommon.translateManager.getValue("above") : AscCommon.translateManager.getValue("below");
-			else if (oBookmarkXY.Y < oFieldXY.Y)
-				sValue = AscCommon.translateManager.getValue("above");
-			else
-				sValue = AscCommon.translateManager.getValue("below");
-		}
-		else if(oStartBookmark.GetPage() < this.SeparateChar.GetPage())
-		{
-			sValue = AscCommon.translateManager.getValue("above");
-		}
-		else
-		{
-			sValue = AscCommon.translateManager.getValue("below");
-		}
-		this.LogicDocument.AddText(sValue);
+		this.LogicDocument.AddText(sPosition);
 	}
 	else // bookmark content
 	{

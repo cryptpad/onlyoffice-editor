@@ -242,6 +242,19 @@ var c_oAscDocumentShortcutType = {
 	DecreaseFontSize     : 46
 };
 
+var c_oAscDocumentRefenceToType = {
+	Text               : 0,
+	PageNum            : 1,
+	ParaNum            : 2,
+	ParaNumNoContext   : 3,
+	ParaNumFullContex  : 4,
+	AboveBelow         : 5,
+	EntireCaption      : 6,
+	OnlyLabelAndNumber : 7,
+	OnlyCaptionText    : 8,
+	NoteNumber         : 9,
+	NotNumberFormatted : 10
+};
 //------------------------------------------------------------export---------------------------------------------------
 var prot;
 window['Asc'] = window['Asc'] || {};
@@ -388,3 +401,16 @@ prot['HorizontalEllipsis']   = prot.HorizontalEllipsis;
 prot['Subscript']            = prot.Subscript;
 prot['IncreaseFontSize']     = prot.IncreaseFontSize;
 prot['DecreaseFontSize']     = prot.DecreaseFontSize;
+
+prot = window['Asc']['c_oAscDocumentRefenceToType'] = window['Asc'].c_oAscDocumentRefenceToType = c_oAscDocumentRefenceToType;
+prot['Text']               = prot.Text;
+prot['PageNum']            = prot.PageNum;
+prot['ParaNum']            = prot.ParaNum;
+prot['ParaNumNoContext']   = prot.ParaNumNoContext;
+prot['ParaNumFullContex']  = prot.ParaNumFullContex;
+prot['AboveBelow']         = prot.AboveBelow;
+prot['EntireCaption']      = prot.EntireCaption;
+prot['OnlyLabelAndNumber'] = prot.OnlyLabelAndNumber;
+prot['OnlyCaptionText']    = prot.OnlyCaptionText;
+prot['NoteNumber']         = prot.NoteNumber;
+prot['NotNumberFormatted'] = prot.NotNumberFormatted;

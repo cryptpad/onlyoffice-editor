@@ -9920,6 +9920,60 @@ background-repeat: no-repeat;\
 			oLogicDocument.ConvertEquationToMath(oEquation, isAll);
 		}
 	};
+	asc_docs_api.prototype.asc_GetAllNumberedParagraphs = function()
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		return oLogicDocument.GetAllNumberedParagraphs();
+	};
+	asc_docs_api.prototype.asc_AddCrossRefToParagraph = function(oParagraph, nType, bHyperlink, bAboveBelow, sSeparator)
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		oLogicDocument.AddRefToParagraph(oParagraph, nType, bHyperlink, bAboveBelow, sSeparator);
+	};
+	asc_docs_api.prototype.asc_GetAllHeadingParagraphs = function()
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		var arrOutline = [];
+		oLogicDocument.GetOutlineParagraphs(arrOutline, {SkipEmptyParagraphs : true});
+		return arrOutline;
+	};
+	asc_docs_api.prototype.asc_AddCrossRefToBookmark = function(sName, nType, bHyperlink, bAboveBelow, sSeparator)
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		oLogicDocument.AddRefToBookmark(sName, nType, bHyperlink, bAboveBelow, sSeparator);
+	};
+	asc_docs_api.prototype.asc_GetAllFootNoteParagraphs = function()
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		return oLogicDocument.GetFootNotesFirstParagraphs();
+	};
+	asc_docs_api.prototype.asc_AddCrossRefToFootNote = function(oParagraph, nType, bHyperlink, bAboveBelow)
+	{
+		
+	};
+	asc_docs_api.prototype.asc_GetAllEndNoteParagraphs = function()
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		return oLogicDocument.GetEndNotesFirstParagraphs();
+	};
+	asc_docs_api.prototype.asc_AddCrossRefToEndNote = function(oParagraph, nType, bHyperlink, bAboveBelow)
+	{
+		
+	};
+	asc_docs_api.prototype.asc_GetAllEndNoteParagraphs = function()
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		return oLogicDocument.GetEndNotesFirstParagraphs();
+	};
+	asc_docs_api.prototype.asc_GetAllCaptionParagraphs = function(sCaption)
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		return oLogicDocument.GetAllCaptionParagraphs(sCaption);
+	};
+	asc_docs_api.prototype.asc_AddCrossRefToCaption = function(oParagraph, nType, bHyperlink, bAboveBelow)
+	{
+		
+	};
 
 	window["asc_docs_api"]                                      = asc_docs_api;
 	window["asc_docs_api"].prototype["asc_nativeOpenFile"]      = function(base64File, version)

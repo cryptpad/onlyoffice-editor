@@ -472,12 +472,20 @@ Paragraph.prototype.GetAllParagraphs = function(Props, ParaArray)
 		ParaArray = [];
 
 	var ContentLen = this.Content.length;
-	for (var CurPos = 0; CurPos < ContentLen; CurPos++)
+	var CurPos;
+	var bCheckInShapes = true;
+	if(Props && Props.Shapes === false)
 	{
-		if (this.Content[CurPos].GetAllParagraphs)
-			this.Content[CurPos].GetAllParagraphs(Props, ParaArray);
+		bCheckInShapes = false;
 	}
-
+	if(bCheckInShapes)
+	{
+		for (CurPos = 0; CurPos < ContentLen; CurPos++)
+		{
+			if (this.Content[CurPos].GetAllParagraphs)
+				this.Content[CurPos].GetAllParagraphs(Props, ParaArray);
+		}	
+	}
 	if (!Props || true === Props.All)
 	{
 		ParaArray.push(this);
@@ -14424,6 +14432,33 @@ Paragraph.prototype.AddBookmarkForTOC = function()
 
 	return sName;
 };
+Paragraph.prototype.AddBookmarkForRef = function()
+{
+	if (!this.LogicDocument)
+		return;
+
+	//check is ref bookmark in paragraph
+	var oFirstElem = this.Content[0];
+	var oLastElem = this.Content[this.Content.length - 1];
+	if(oFirstElem && oFirstElem.GetType() === para_Bookmark
+	 && oLastElem && oLastElem.GetType() === para_Bookmark 
+	 && oFirstElem.GetBookmarkId() === oLastElem.GetBookmarkId() && oLastElem.Is)
+	 {
+		var sBookmarkName = oParaBookmark.GetBookmarkName();
+		if(typeof sBookmarkName === "string" && 0 === sBookmarkName.indexOf("_Ref"))
+		{
+			return sBookmarkName;
+		}
+	 }
+	var oBookmarksManager = this.LogicDocument.GetBookmarksManager();
+
+	var sId   = oBookmarksManager.GetNewBookmarkId();
+	var sName = oBookmarksManager.GetNewBookmarkNameRef();
+	this.Add_ToContent(0, new CParagraphBookmark(true, sId, sName));
+	this.Add_ToContent(this.Content.length - 1, new CParagraphBookmark(false, sId, sName));
+	this.Correct_Content();
+	return sName;
+};
 Paragraph.prototype.AddBookmarkChar = function(oBookmarkChar, isUseSelection, isStartSelection)
 {
 	var oParaPos   = this.Get_ParaContentPos(isUseSelection, isStartSelection, false);
@@ -15285,6 +15320,34 @@ Paragraph.prototype.LoadSelectionState = function(oState)
 	this.CurPos.RealY      = oState.CurPos.RealY;
 	this.CurPos.PagesPos   = oState.CurPos.PagesPos;
 };
+
+
+Paragraph.prototype.asc_getText = function()
+{
+	var sText = "";
+	var oNumPr = this.GetNumPr();
+	var nLvl = oNumPr && oNumPr.Lvl;
+	var nIndex;
+	if(nLvl !== undefined && nLvl !== null)
+	{
+		for(nIndex = 0; nIndex < nLvl; ++nIndex)
+		{
+			sText += " ";
+		}
+	}
+	var sNumText = this.GetNumberingText();
+	if(typeof sNumText === "string" && sNumText.length > 0)
+	{
+		sText += sNumText;
+		sText += " ";
+	}
+	sText += this.GetText();
+	return sText;
+};
+
+//export
+Paragraph.prototype["asc_getText"] = Paragraph.prototype.asc_getText;
+
 
 
 var pararecalc_0_All  = 0;
