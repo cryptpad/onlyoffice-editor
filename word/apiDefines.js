@@ -253,7 +253,7 @@ var c_oAscDocumentRefenceToType = {
 	OnlyLabelAndNumber : 7,
 	OnlyCaptionText    : 8,
 	NoteNumber         : 9,
-	NotNumberFormatted : 10
+	NoteNumberFormatted : 10
 };
 //------------------------------------------------------------export---------------------------------------------------
 var prot;
@@ -413,4 +413,4 @@ prot['EntireCaption']      = prot.EntireCaption;
 prot['OnlyLabelAndNumber'] = prot.OnlyLabelAndNumber;
 prot['OnlyCaptionText']    = prot.OnlyCaptionText;
 prot['NoteNumber']         = prot.NoteNumber;
-prot['NotNumberFormatted'] = prot.NotNumberFormatted;
+prot['NoteNumberFormatted'] = prot.NoteNumberFormatted;

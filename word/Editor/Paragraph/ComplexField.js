@@ -504,7 +504,6 @@ CComplexField.prototype.private_CalculateSTYLEREF = function()
 };
 CComplexField.prototype.private_InsertMessage = function(sMessage, oTextPr)
 {
-	this.SelectFieldValue();
 	var oSelectedContent = new CSelectedContent();
 	var oPara = new Paragraph(this.LogicDocument.GetDrawingDocument(), this.LogicDocument, false);
 	var oRun  = new ParaRun(oPara, false);
@@ -515,12 +514,17 @@ CComplexField.prototype.private_InsertMessage = function(sMessage, oTextPr)
 	oRun.AddText(sMessage);
 	oPara.AddToContent(0, oRun);
 	oSelectedContent.Add(new CSelectedElement(oPara, false));
+	this.private_InsertContent(oSelectedContent);
+};
+CComplexField.prototype.private_InsertContent = function(oSelectedContent)
+{
+	this.SelectFieldValue();
 	this.LogicDocument.TurnOff_Recalculate();
 	this.LogicDocument.TurnOff_InterfaceEvents();
 	this.LogicDocument.Remove(1, false, false, false);
 	this.LogicDocument.TurnOn_Recalculate(false);
 	this.LogicDocument.TurnOn_InterfaceEvents(false);
-	oRun       = this.BeginChar.GetRun();
+	var oRun       = this.BeginChar.GetRun();
 	var oParagraph = oRun.GetParagraph();
 	var oNearPos   = {
 		Paragraph  : oParagraph,
@@ -1079,7 +1083,19 @@ CComplexField.prototype.private_UpdateNOTEREF = function()
 		this.LogicDocument.AddText(sValue);
 		return;
 	}
-	else if(this.Instruction.IsPosition())
+	var oSelectedContent = new CSelectedContent();
+	var oTextPr;
+	var oPara = new Paragraph(this.LogicDocument.GetDrawingDocument(), this.LogicDocument, false);
+	var oRun  = new ParaRun(oPara, false);
+	if(this.Instruction.IsFormatting())
+	{
+		oTextPr = new CTextPr();
+		oTextPr.Set_FromObject({VertAlign: AscCommon.vertalign_SuperScript});
+		oRun.Apply_Pr(oTextPr);
+	}
+	oRun.AddText(oFootEndNote.private_GetString());
+	oPara.AddToContent(0, oRun);
+	if(this.Instruction.IsPosition())
 	{
 		if (oStartBookmark.GetPage() === this.SeparateChar.GetPage())
 		{
@@ -1101,19 +1117,13 @@ CComplexField.prototype.private_UpdateNOTEREF = function()
 		{
 			sValue = AscCommon.translateManager.getValue("below");
 		}
-		this.LogicDocument.AddText(sValue);
+		sValue = " " + sValue;
+		oRun  = new ParaRun(oPara, false);
+		oRun.AddText(sValue);
+		oPara.AddToContent(1, oRun);
 	}
-	else // bookmark content
-	{
-		this.SelectFieldValue();
-		var oTextPr = null;
-		if(this.Instruction.IsFormatting())
-		{
-			oTextPr = new CTextPr();
-			oTextPr.Set_FromObject({VertAlign: AscCommon.vertalign_SuperScript});
-		}
-		this.private_InsertMessage(oFootEndNote.private_GetString(), oTextPr);
-	}
+	oSelectedContent.Add(new CSelectedElement(oPara, false));
+	this.private_InsertContent(oSelectedContent);
 	//TODO: Apply formatting from general switches
 };
 CComplexField.prototype.SelectFieldValue = function()

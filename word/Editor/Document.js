@@ -21002,7 +21002,6 @@ CDocument.prototype.AddRefToBookmark = function(sBookmarkName, nType, bHyperlink
 	{
 		this.StartAction(AscDFH.historydescription_Document_AddCrossRef);
 		this.private_AddRefToBookmark(sBookmarkName, nType, bHyperlink, bAboveBelow, sSeparator);
-		this.AddFieldWithInstruction(sInstr);
 		this.Recalculate();
 		this.UpdateInterface();
 		this.UpdateSelection();
@@ -21029,37 +21028,98 @@ CDocument.prototype.private_AddRefToBookmark = function(sBookmarkName, nType, bH
 	{
 		case Asc.c_oAscDocumentRefenceToType.PageNum:
 		{
-			sInstr " PAGEREF " + sBookmarkRef;
+			sInstr = " PAGEREF " + sBookmarkRef;
 			sInstr += sSuffix;
 			break;
 		}
 		case Asc.c_oAscDocumentRefenceToType.ParaNum:
 		{
-			sInstr " REF " + sBookmarkRef + " \\r ";
+			sInstr = " REF " + sBookmarkRef + " \\r ";
 			sInstr += sSuffix;
 			break;
 		}
 		case Asc.c_oAscDocumentRefenceToType.ParaNumNoContext:
 		{
-			sInstr " REF " + sBookmarkRef + " \\n ";
+			sInstr = " REF " + sBookmarkRef + " \\n ";
 			sInstr += sSuffix;
 			break;
 		}
 		case Asc.c_oAscDocumentRefenceToType.ParaNumFullContex:
 		{
-			sInstr " REF " + sBookmarkRef + " \\w ";
+			sInstr = " REF " + sBookmarkRef + " \\w ";
 			sInstr += sSuffix;
 			break;
 		}
 		case Asc.c_oAscDocumentRefenceToType.AboveBelow:
 		{
-			sInstr " REF " + sBookmarkRef + "\\p";
+			sInstr = " REF " + sBookmarkRef + "\\p";
 			break;
 		}
 	}
 	oLogicDocument.AddFieldWithInstruction(sInstr);
 };
+CDocument.prototype.AddNoteRefToParagraph = function(oParagraph, nType, bHyperlink, bAboveBelow, sSeparator)
+{
+	if(false === this.IsSelectionLocked(AscCommon.changestype_Document_Content, {
+		Type      : changestype_2_ElementsArray_and_Type,
+		Elements  : [oParagraph],
+		CheckType : changestype_Paragraph_Content
+	}))
+	{
+		this.StartAction(AscDFH.historydescription_Document_AddCrossRef);
+		var sBookmarkName = oParagraph.AddBookmarkForRef();
+		this.private_AddNoteRefToBookmark(sBookmarkName, nType, bHyperlink, bAboveBelow, sSeparator);
+		this.Recalculate();
+		this.UpdateInterface();
+		this.UpdateSelection();
+		this.FinalizeAction();
+	}
+};
 
+CDocument.prototype.private_AddNoteRefToBookmark = function(sBookmarkName, nType, bHyperlink, bAboveBelow, sSeparator)
+{
+	var sInstr = "";
+	var sSuffix = "";
+	if(bHyperlink)
+	{
+		sSuffix += "\\h";
+	}
+	if(bAboveBelow)
+	{
+		if(sSuffix.length > 0)
+		{
+			sSuffix += " ";
+		}
+		sSuffix += "\\p";
+	}
+	switch (nType)
+	{
+		case Asc.c_oAscDocumentRefenceToType.NoteNumber:
+		{
+			sInstr = " NOTEREF " + sBookmarkRef;
+			sInstr += sSuffix;
+			break;
+		}
+		case Asc.c_oAscDocumentRefenceToType.PageNumber:
+		{
+			sInstr = " PAGEREF " + sBookmarkRef;
+			sInstr += sSuffix;
+			break;
+		}
+		case Asc.c_oAscDocumentRefenceToType.NoteNumberFormatted:
+		{
+			sInstr = " NOTEREF " + sBookmarkRef + " \\f ";
+			sInstr += sSuffix;
+			break;
+		}
+		case Asc.c_oAscDocumentRefenceToType.AboveBelow:
+		{
+			sInstr = " NOTEREF " + sBookmarkRef + "\\p";
+			break;
+		}
+	}
+	oLogicDocument.AddFieldWithInstruction(sInstr);
+};
 CDocument.prototype.private_CreateComplexFieldRun = function(sInstruction, oParagraph)
 {
     var oBeginChar    = new ParaFieldChar(fldchartype_Begin, this),

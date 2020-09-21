@@ -9947,18 +9947,15 @@ background-repeat: no-repeat;\
 		var oLogicDocument = this.private_GetLogicDocument();
 		return oLogicDocument.GetFootNotesFirstParagraphs();
 	};
-	asc_docs_api.prototype.asc_AddCrossRefToFootNote = function(oParagraph, nType, bHyperlink, bAboveBelow)
+	asc_docs_api.prototype.asc_AddCrossRefToNote = function(oParagraph, nType, bHyperlink, bAboveBelow)
 	{
-		
+		var oLogicDocument = this.private_GetLogicDocument();
+		oLogicDocument.AddRefToParagraph(oParagraph, nType, bHyperlink, bAboveBelow, sSeparator);
 	};
 	asc_docs_api.prototype.asc_GetAllEndNoteParagraphs = function()
 	{
 		var oLogicDocument = this.private_GetLogicDocument();
 		return oLogicDocument.GetEndNotesFirstParagraphs();
-	};
-	asc_docs_api.prototype.asc_AddCrossRefToEndNote = function(oParagraph, nType, bHyperlink, bAboveBelow)
-	{
-		
 	};
 	asc_docs_api.prototype.asc_GetAllEndNoteParagraphs = function()
 	{
