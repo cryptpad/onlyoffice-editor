@@ -5445,25 +5445,17 @@ CMathContent.prototype.Process_AutoCorrect = function(ActionElement) {
     var CanMakeAutoCorrectEquation = false;
     var CanMakeAutoCorrectFunc     = false;
     var CanMakeAutoCorrect         = false;
-    if (false === bNeedAutoCorrect && ActionElement.Type === para_Math_Text) {
-        return false;
-    } else {
-        this.private_UpdateAutoCorrectMathSymbols();
-        // Смотрим возможно ли выполнить автозамену, если нет, тогда пробуем произвести автозамену пропуская последний символ
-        if (AutoCorrectEngine.IntFlag) {
-            if (g_aMathAutoCorrectTriggerCharCodes[ActionElement.value]) {
-                CanMakeAutoCorrect = this.private_CanAutoCorrectText(AutoCorrectEngine, true);
+    // Смотрим возможно ли выполнить автозамену, если нет, тогда пробуем произвести автозамену пропуская последний символ
+    CanMakeAutoCorrect = this.private_CanAutoCorrectText(AutoCorrectEngine);
+    if (CanMakeAutoCorrect && AutoCorrectEngine.IsFull) {
+        this.private_ReplaceAutoCorrect(AutoCorrectEngine);
+        if (AutoCorrectEngine.StartHystory) {
+            if(oLogicDocument) {
+                oLogicDocument.FinalizeAction();
             } else {
-                CanMakeAutoCorrect = this.private_CanAutoCorrectText(AutoCorrectEngine, false);
+                History.Remove_LastPoint();
             }
-        }
-        if (!CanMakeAutoCorrect && g_aMathAutoCorrectTextFunc[ActionElement.value]) { 
-            CanMakeAutoCorrectFunc = this.private_CanAutoCorrectTextFunc(AutoCorrectEngine);
-        }
-        AutoCorrectEngine.CurPos = AutoCorrectEngine.Elements.length - AutoCorrectEngine.Remove.total - 1;
-        // Пробуем сделать формульную автозамену
-        if (!CanMakeAutoCorrectFunc && !CanMakeAutoCorrect) {
-            CanMakeAutoCorrectEquation = AutoCorrectEngine.private_CanAutoCorrectEquation(CanMakeAutoCorrect);
+            AutoCorrectEngine.StartHystory = false;
         }
         AutoCorrectEngine.CurElement = this.CurPos;
         AutoCorrectEngine.private_Add_Element(this.Content);
@@ -5543,13 +5535,17 @@ CMathContent.prototype.Process_AutoCorrect = function(ActionElement) {
                 this.Paragraph.Parent.DrawingDocument.drawingObjects.controller.startRecalculate();
             }
             if (AutoCorrectEngine.StartHystory) {
-                if (oLogicDocument) {
-                     oLogicDocument.FinalizeAction();
-                }
-                // History.Remove_LastPoint();
+                if(oLogicDocument)
+                    oLogicDocument.FinalizeAction();
+
                 AutoCorrectEngine.StartHystory = false;
             }
         }, true, false, true); 
+    } else if (AutoCorrectEngine.StartHystory) {
+        if(oLogicDocument)
+            oLogicDocument.FinalizeAction();
+
+        AutoCorrectEngine.StartHystory = false;
     }
 };
 CMathContent.prototype.private_NeedAutoCorrect = function(ActionElement) {
@@ -5559,12 +5555,7 @@ CMathContent.prototype.private_NeedAutoCorrect = function(ActionElement) {
     }
     return false;
 };
-CMathContent.prototype.private_UpdateAutoCorrectMathSymbols = function() {
-    g_AutoCorrectMathSymbols = window['AscCommonWord'].g_AutoCorrectMathsList.AutoCorrectMathSymbols;
-    g_AutoCorrectMathFuncs = window['AscCommonWord'].g_AutoCorrectMathsList.AutoCorrectMathFuncs;
-
-};
-CMathContent.prototype.private_CanAutoCorrectText = function(AutoCorrectEngine, bSkipLast) {
+CMathContent.prototype.private_CanAutoCorrectText = function(AutoCorrectEngine) {
     var IndexAdd = (g_aMathAutoCorrectTriggerCharCodes[AutoCorrectEngine.ActionElement.value]) ? 1 : 0;
     var skip = IndexAdd - (AutoCorrectEngine.ActionElement.value == 0x20) ? 1 : 0;
     var ElCount = AutoCorrectEngine.Elements.length;
@@ -9120,6 +9111,17 @@ CMathAutoCorrectEngine.prototype.private_Add_Element = function(Content) {
     }
 };
 
+CMathAutoCorrectEngine.prototype.private_Check_IsFull = function() {
+    var ArrFullAutocorrect = {
+        0x21 : 1, 0x23 : 1, 0x25 : 1, 0x26 : 1, 0x2A : 1, 0x2B : 1,
+        0x2C : 1, 0x2D : 1, 0x2F : 1, 0x3A : 1, 0x3B : 1, 0x3C : 1,
+        0x3D : 1, 0x3E : 1, 0x3F : 1, 0x40 : 1, 0x60 : 1, 0x7E : 1
+    };
+    if (ArrFullAutocorrect[this.ActionElement.value]) {
+        this.IsFull = true;
+    }
+};
+
 var g_DefaultAutoCorrectMathFuncs =
 [
     'sin', 'sec', 'asin', 'asec', 'arcsin', 'arcsec',
@@ -9377,7 +9379,7 @@ var g_DefaultAutoCorrectMathSymbolsList =
     ['\\hphantom', 0x2B04],
     ['\\hsmash', 0x2B0C],
     ['\\hvec', 0x20D1],
-    ['\\identitymatrix', [0x0028, 0x25A0, 0x0028, 0x0031, 0x0026, 0x0030, 0x0026, 0x0030, 0x0040, 0x0030, 0x0026,0x0031, 0x0026, 0x0030, 0x0040, 0x0030, 0x0026, 0x0030, 0x0026, 0x0031, 0x0029, 0x0029]],
+    ['\\identitymatrix', [0x0028, 0x25A0, 0x0028, 0x0031, 0x0026, 0x0030, 0x0026, 0x0030, 0x0040, 0x0030, 0x0026,0x0031, 0x0026, 0x0030, 0x0030, 0x0040, 0x0030, 0x0026, 0x0030, 0x0026, 0x0031, 0x0029, 0x0029]],
     ['\\ii', 0x2148],
     ['\\iiint', 0x222D],
     ['\\iint', 0x222C],
@@ -9498,7 +9500,7 @@ var g_DefaultAutoCorrectMathSymbolsList =
     ['\\psi', 0x03C8],
     ['\\Psi', 0x03A8],
     ['\\qdrt', 0x221C],
-    ['\\quadratic', [0x0078, 0x003d, 0x0028, 0x002d, 0x0062, 0x00B1, 0x221A, 0x0028, 0x0062, 0x005e, 0x0032, 0x002d, 0x0034, 0x0061, 0x0063, 0x0029, 0x0029, 0x002f, 0x0032, 0x0061]],
+    ['\\quadratic', [0x0078, 0x003d, 0x0028, 0x002d, 0x0062, 0x00B1, 0x221A, 0x0020, 0x0028, 0x0062, 0x005e, 0x0032, 0x002d, 0x0034, 0x0061, 0x0063, 0x0029, 0x0029, 0x002f, 0x0032, 0x0061]],
     ['\\rangle', 0x232A],
     ['\\Rangle', 0x27EB],
     ['\\ratio', 0x2236],
