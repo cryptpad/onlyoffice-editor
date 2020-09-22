@@ -2340,7 +2340,14 @@ PasteProcessor.prototype =
 			if (this.pasteIntoElem && 1 === this.aContent.length && type_Table === this.aContent[0].GetType() &&
 				this.pasteIntoElem.Parent && this.pasteIntoElem.Parent.Is_InTable() && (!bIsSpecialPaste || (bIsSpecialPaste &&
 				Asc.c_oSpecialPasteProps.overwriteCells === specialPasteHelper.specialPasteProps))) {
-				var table = this.pasteIntoElem.Parent.Parent.Get_Table();
+				//TODO пересмотреть положение кнопки специальной вставки при вставке в таблицу
+				var table;
+				var tableCell = paragraph && paragraph.Parent && paragraph.Parent.Parent;
+				if (tableCell && tableCell.GetTable) {
+					table = tableCell.GetTable()
+				} else {
+					table = this.pasteIntoElem.Parent.Parent.Get_Table();
+				}
 				specialPasteHelper.showButtonIdParagraph = table.Id;
 			} else {
 				if(oSelectedContent.Elements.length === 1)
@@ -5228,7 +5235,7 @@ PasteProcessor.prototype =
 					var type = range.getType();
 					if (null != align.hor) {
 						oCurPar.Pr.Jc = align.hor;
-					} else if (null === type || AscCommon.CellValueType.Number === type) {
+					} else if (AscCommon.CellValueType.Number === type) {
 						oCurPar.Pr.Jc = AscCommon.align_Right;
 					}
 				}

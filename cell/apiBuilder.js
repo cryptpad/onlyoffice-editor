@@ -402,6 +402,23 @@
 	};
 
 	/**
+	 * Returns an ApiRange
+	 * @memberof Api
+	 * @returns {ApiRange}
+	 */
+	Api.prototype.GetRange = function(sRange) {
+		var ws;
+		var res = AscCommon.parserHelp.parse3DRef(sRange);
+		if (res) {
+			ws = this.wbModel.getWorksheetByName(res.sheet);
+			sRange = res.range;
+		} else {
+			ws = this.wbModel.getActiveWs();
+		}
+		return new ApiRange(ws ? ws.getRange2(sRange) : null);
+	};
+
+	/**
 	 * Get mail merge fields.
 	 * @memberof Api
 	 * @typeofeditors ["CSE"]
@@ -2010,16 +2027,30 @@
 
 	/**
 	 * Set the background color for the current cell range with the previously created color object.
+	 * Set 'No Fill' when previously created color object is null
 	 * @memberof ApiRange
 	 * @typeofeditors ["CSE"]
 	 * @param {ApiColor} oColor - The color object previously created to set the color to the background in the cell/cell range.
 	 */
 	ApiRange.prototype.SetFillColor = function (oColor) {
-		this.range.setFillColor(oColor.color);
+		this.range.setFillColor('No Fill' === oColor ? null : oColor.color);
+	};
+	/**
+	 * Get the background color for the current cell range
+	 * @memberof ApiRange
+	 * @typeofeditors ["CSE"]
+	 * return {ApiColor|'No Fill'} - return 'No Fill' when the color to the background in the cell/cell range is null
+	 */
+	ApiRange.prototype.GetFillColor = function () {
+		var oColor = this.range.getFillColor();
+		return oColor ? new ApiColor(oColor) : 'No Fill';
 	};
 	Object.defineProperty(ApiRange.prototype, "FillColor", {
 		set: function (oColor) {
 			return this.SetFillColor(oColor);
+		},
+		get: function () {
+			return this.GetFillColor();
 		}
 	});
 
@@ -2793,6 +2824,26 @@
 		}
 	});
 
+	/**
+	 * Returns an ApiRange object by reference
+	 * @memberof ApiName
+	 * @typeofeditors ["CSE"]
+	 * @returns {ApiRange}
+	 */
+	ApiName.prototype.GetRefersToRange = function () {
+		var range;
+		if (this.DefName) {
+			range = AscCommonExcel.getRangeByRef(this.DefName.ref, this.DefName.wb.getActiveWs(), true, true)[0];
+		}
+		return new ApiRange(range);
+	};
+
+	Object.defineProperty(ApiName.prototype, "RefersToRange", {
+		get: function () {
+			return this.GetRefersToRange();
+		}
+	});
+
 	//------------------------------------------------------------------------------------------------------------------
 	//
 	// ApiComment
@@ -2842,6 +2893,7 @@
 	Api.prototype["Save"]                  = Api.prototype.Save;
 	Api.prototype["GetMailMergeData"]      = Api.prototype.GetMailMergeData;
 	
+	Api.prototype["GetRange"] = Api.prototype.GetRange;
 
 	ApiWorksheet.prototype["GetVisible"] = ApiWorksheet.prototype.GetVisible;
 	ApiWorksheet.prototype["SetVisible"] = ApiWorksheet.prototype.SetVisible;
@@ -2914,6 +2966,7 @@
 	ApiRange.prototype["SetWrapText"] = ApiRange.prototype.SetWrap;	
 	ApiRange.prototype["GetWrapText"] = ApiRange.prototype.GetWrapText;
 	ApiRange.prototype["SetFillColor"] = ApiRange.prototype.SetFillColor;
+	ApiRange.prototype["GetFillColor"] = ApiRange.prototype.GetFillColor;
 	ApiRange.prototype["SetNumberFormat"] = ApiRange.prototype.SetNumberFormat;
 	ApiRange.prototype["SetBorders"] = ApiRange.prototype.SetBorders;
 	ApiRange.prototype["Merge"] = ApiRange.prototype.Merge;
@@ -2974,6 +3027,7 @@
 	ApiName.prototype["Delete"]                  =  ApiName.prototype.Delete;
 	ApiName.prototype["GetRefersTo"]             =  ApiName.prototype.GetRefersTo;
 	ApiName.prototype["SetRefersTo"]             =  ApiName.prototype.SetRefersTo;
+	ApiName.prototype["GetRefersToRange"]        =  ApiName.prototype.GetRefersToRange;
 
 
 	ApiComment.prototype["GetText"]              =  ApiComment.prototype.GetText;

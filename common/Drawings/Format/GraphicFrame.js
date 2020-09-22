@@ -241,11 +241,11 @@ CGraphicFrame.prototype.Search = function(Str, Props, SearchEngine, Type)
         }
 };
 
-CGraphicFrame.prototype.Search_GetId = function(bNext, bCurrent)
+CGraphicFrame.prototype.GetSearchElementId = function(bNext, bCurrent)
     {
         if(this.graphicObject)
         {
-            return this.graphicObject.Search_GetId(bNext, bCurrent);
+            return this.graphicObject.GetSearchElementId(bNext, bCurrent);
         }
 
         return null;

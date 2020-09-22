@@ -1048,9 +1048,9 @@ Asc['asc_docs_api'].prototype["Call_Menu_Event"] = function(type, _params)
         case 62: //ASC_MENU_EVENT_TYPE_SEARCH_FINDTEXT
         {
             var SearchEngine = this.WordControl.m_oLogicDocument.Search(_params[0], {MatchCase : _params[2]});
-            var Id = this.WordControl.m_oLogicDocument.Search_GetId(_params[1]);
+            var Id = this.WordControl.m_oLogicDocument.GetSearchElementId(_params[1]);
             if (null != Id)
-                this.WordControl.m_oLogicDocument.Search_Select(Id);
+                this.WordControl.m_oLogicDocument.SelectSearchElement(Id);
 
             var _stream = global_memory_stream_menu;
             _stream["ClearNoAttack"]();

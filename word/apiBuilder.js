@@ -3870,7 +3870,7 @@
 		if (!oSearchEngine)
 			return;
 
-		this.Document.Search_Replace(sReplace, true, null, false);
+		this.Document.ReplaceSearchElement(sReplace, true, null, false);
 	};
 	/**
 	 * Get the list of all content controls in the document

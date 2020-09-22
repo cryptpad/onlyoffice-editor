@@ -2022,6 +2022,14 @@ CMathBase.prototype.Make_ShdColor = function(PDSE, CurTextPr)
     var AutoColor = ( undefined != BgColor && false === BgColor.Check_BlackAutoColor() ? new CDocumentColor( 255, 255, 255, false ) : new CDocumentColor( 0, 0, 0, false ) );
 
     var RGBA;
+
+    if(CurTextPr.FontRef && CurTextPr.FontRef.Color)
+    {
+        CurTextPr.FontRef.Color.check(PDSE.Theme, PDSE.ColorMap);
+        RGBA = CurTextPr.FontRef.Color.RGBA;
+        AutoColor = new CDocumentColor( RGBA.R, RGBA.G, RGBA.B, RGBA.A );
+    }
+
     if(CurTextPr.Unifill)
     {
         CurTextPr.Unifill.check(PDSE.Theme, PDSE.ColorMap);
@@ -2049,15 +2057,21 @@ CMathBase.prototype.Make_ShdColor = function(PDSE, CurTextPr)
             pGraphics.p_color( RGBA.R, RGBA.G, RGBA.B, RGBA.A );
             pGraphics.b_color1( RGBA.R, RGBA.G, RGBA.B, RGBA.A );
         }
-        else if ( true === CurTextPr.Color.Auto )
-        {
-            pGraphics.p_color( AutoColor.r, AutoColor.g, AutoColor.b, 255);
-            pGraphics.b_color1( AutoColor.r, AutoColor.g, AutoColor.b, 255);
-        }
         else
         {
-            pGraphics.p_color( CurTextPr.Color.r, CurTextPr.Color.g, CurTextPr.Color.b, 255);
-            pGraphics.b_color1( CurTextPr.Color.r, CurTextPr.Color.g, CurTextPr.Color.b, 255);
+            if(!pGraphics.m_bIsTextDrawer || !CurTextPr.TextFill)
+            {
+                if ( true === CurTextPr.Color.Auto )
+                {
+                    pGraphics.p_color( AutoColor.r, AutoColor.g, AutoColor.b, 255);
+                    pGraphics.b_color1( AutoColor.r, AutoColor.g, AutoColor.b, 255);
+                }
+                else
+                {
+                    pGraphics.p_color( CurTextPr.Color.r, CurTextPr.Color.g, CurTextPr.Color.b, 255);
+                    pGraphics.b_color1( CurTextPr.Color.r, CurTextPr.Color.g, CurTextPr.Color.b, 255);
+                }
+            }
         }
     }
 

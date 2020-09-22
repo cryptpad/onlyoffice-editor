@@ -207,6 +207,7 @@ function (window, undefined) {
 	window['AscCH'].historyitem_PivotTable_PivotFilter = 47;
 	window['AscCH'].historyitem_PivotTable_PageFilter = 48;
 	window['AscCH'].historyitem_PivotTable_SetGridDropZones = 49;
+	window['AscCH'].historyitem_PivotTable_WorksheetSource = 50;
 
 	window['AscCH'].historyitem_SharedFormula_ChangeFormula = 1;
 	window['AscCH'].historyitem_SharedFormula_ChangeShared = 2;
@@ -577,8 +578,6 @@ CHistory.prototype.UndoRedoEnd = function (Point, oRedoObjectParam, bUndo) {
 			this.workbook.bUndoChanges = false;
 		else
 			this.workbook.bRedoChanges = false;
-		if (oRedoObjectParam.bIsReInit)
-			this.workbook.handlers.trigger("reInit");
 		//TODO вызывать только в случае, если были изменения строк/столбцов и отдельно для строк и столбцов
 		this.workbook.handlers.trigger("updateGroupData");
 		this.workbook.handlers.trigger("drawWS");
@@ -653,7 +652,6 @@ CHistory.prototype._addRedoObjectParam = function (oRedoObjectParam, Point) {
 	if (AscCommonExcel.g_oUndoRedoWorksheet === Point.Class &&
 		(AscCH.historyitem_Worksheet_SetDisplayGridlines === Point.Type ||
 		AscCH.historyitem_Worksheet_SetDisplayHeadings === Point.Type)) {
-		oRedoObjectParam.bIsReInit = true;
 		oRedoObjectParam.oOnUpdateSheetViewSettings[Point.SheetId] = Point.SheetId;
 	}
 	else if (AscCommonExcel.g_oUndoRedoWorksheet === Point.Class && (AscCH.historyitem_Worksheet_RowProp == Point.Type || AscCH.historyitem_Worksheet_ColProp == Point.Type || AscCH.historyitem_Worksheet_RowHide == Point.Type))

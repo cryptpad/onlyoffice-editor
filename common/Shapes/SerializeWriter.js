@@ -3127,8 +3127,8 @@ function CBinaryFileWriter()
 
                 if(fill.color){
                     oThis.CorrectUniColorAlpha(fill.color, trans);
-                    oThis.WriteRecord1(0, fill.color, oThis.WriteUniColor);
                 }
+                oThis.WriteRecord1(0, fill.color, oThis.WriteUniColor);
                 oThis.EndRecord();
                 break;
             }
@@ -3248,7 +3248,7 @@ function CBinaryFileWriter()
                             }
                             case para_Space :
                             {
-                                _run_text += ' ';
+                                _run_text += AscCommon.encodeSurrogateChar(_elem.Content[j].Value);
                                 break;
                             }
                             case para_Tab :

@@ -1274,7 +1274,7 @@ background-repeat: no-repeat;\
 	{
 		// ActionType, Key, Ctrl, Shift, Alt
 		this.initShortcuts([
-			[c_oAscDocumentShortcutType.InsertAddPageBreak, 13, true, false, false],
+			[c_oAscDocumentShortcutType.InsertPageBreak, 13, true, false, false],
 			[c_oAscDocumentShortcutType.InsertLineBreak, 13, false, true, false],
 			[c_oAscDocumentShortcutType.InsertColumnBreak, 13, true, true, false],
 			[c_oAscDocumentShortcutType.ResetChar, 32, true, false, false],
@@ -2324,12 +2324,27 @@ background-repeat: no-repeat;\
 			var _X       = elem.X;
 			var _Y       = elem.Y;
 			var _PageNum = elem.GetCurrentPageAbsolute();
-			var oBounds  = elem.GetSelectionBounds(true);
-			if (oBounds && oBounds.End)
+
+			if (elem.IsTable())
 			{
-				_X       = oBounds.End.X + oBounds.End.W;
-				_Y       = oBounds.End.Y + oBounds.End.H;
-				_PageNum = oBounds.End.Page;
+				var nPagesCount = elem.GetPagesCount();
+				if (nPagesCount > 0)
+				{
+					var oBounds = elem.GetPageBounds(nPagesCount - 1);
+					_X          = oBounds.Right;
+					_Y          = oBounds.Bottom;
+					_PageNum    = elem.GetAbsolutePage(nPagesCount - 1);
+				}
+			}
+			else
+			{
+				var oBounds = elem.GetSelectionBounds(true);
+				if (oBounds && oBounds.End)
+				{
+					_X       = oBounds.End.X + oBounds.End.W;
+					_Y       = oBounds.End.Y + oBounds.End.H;
+					_PageNum = oBounds.End.Page;
+				}
 			}
 
 			var oTransform = elem.Get_ParentTextTransform();
@@ -2987,10 +3002,10 @@ background-repeat: no-repeat;\
 
 		var SearchEngine = editor.WordControl.m_oLogicDocument.Search(text, {MatchCase : isMatchCase});
 
-		var Id = this.WordControl.m_oLogicDocument.Search_GetId(isNext);
+		var Id = this.WordControl.m_oLogicDocument.GetSearchElementId(isNext);
 
 		if (null != Id)
-			this.WordControl.m_oLogicDocument.Search_Select(Id);
+			this.WordControl.m_oLogicDocument.SelectSearchElement(Id);
 
 		return SearchEngine.Count;
 	};
@@ -3003,19 +3018,19 @@ background-repeat: no-repeat;\
 		this.WordControl.m_oLogicDocument.Search(text, {MatchCase : isMatchCase});
 
 		if (true === isReplaceAll)
-			this.WordControl.m_oLogicDocument.Search_Replace(replaceWith, true, -1);
+			this.WordControl.m_oLogicDocument.ReplaceSearchElement(replaceWith, true, -1);
 		else
 		{
 			var CurId      = this.WordControl.m_oLogicDocument.SearchEngine.CurId;
 			var bDirection = this.WordControl.m_oLogicDocument.SearchEngine.Direction;
 			if (-1 != CurId)
-				this.WordControl.m_oLogicDocument.Search_Replace(replaceWith, false, CurId);
+				this.WordControl.m_oLogicDocument.ReplaceSearchElement(replaceWith, false, CurId);
 
-			var Id = this.WordControl.m_oLogicDocument.Search_GetId(bDirection);
+			var Id = this.WordControl.m_oLogicDocument.GetSearchElementId(bDirection);
 
 			if (null != Id)
 			{
-				this.WordControl.m_oLogicDocument.Search_Select(Id);
+				this.WordControl.m_oLogicDocument.SelectSearchElement(Id);
 				return true;
 			}
 
@@ -3031,7 +3046,7 @@ background-repeat: no-repeat;\
 			this.WordControl.OnUpdateOverlay();
 			return;
 		}
-		this.WordControl.m_oLogicDocument.Search_Set_Selection(bShow);
+		this.WordControl.m_oLogicDocument.HighlightSearchResults(bShow);
 	};
 
 	asc_docs_api.prototype.asc_isSelectSearchingResults = function()
@@ -3040,7 +3055,7 @@ background-repeat: no-repeat;\
 		{
 			return this.WordControl.m_oDrawingDocument.m_oDocumentRenderer.SearchResults.Show;
 		}
-		return this.WordControl.m_oLogicDocument.Search_Get_Selection();
+		return this.WordControl.m_oLogicDocument.IsHighlightSearchResults();
 	};
 
 	asc_docs_api.prototype.sync_ReplaceAllCallback = function(ReplaceCount, OverallCount)
@@ -4040,13 +4055,14 @@ background-repeat: no-repeat;\
 	};
 	asc_docs_api.prototype.put_TextColor          = function(color)
 	{
-		if (false === this.WordControl.m_oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Paragraph_TextProperties))
+		var oLogicDocument = this.WordControl.m_oLogicDocument;
+		if (false === oLogicDocument.Document_Is_SelectionLocked(AscCommon.changestype_Paragraph_TextProperties))
 		{
-			this.WordControl.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_SetTextColor);
+			oLogicDocument.StartAction(AscDFH.historydescription_Document_SetTextColor);
 
 			if (true === color.Auto)
 			{
-				this.WordControl.m_oLogicDocument.AddToParagraph(new AscCommonWord.ParaTextPr({
+				oLogicDocument.AddToParagraph(new AscCommonWord.ParaTextPr({
 					Color      : {
 						Auto : true,
 						r    : 0,
@@ -4057,15 +4073,23 @@ background-repeat: no-repeat;\
 			}
 			else
 			{
-				var Unifill        = new AscFormat.CUniFill();
-				Unifill.fill       = new AscFormat.CSolidFill();
-				Unifill.fill.color = AscFormat.CorrectUniColor(color, Unifill.fill.color, 1);
-				this.WordControl.m_oLogicDocument.AddToParagraph(new AscCommonWord.ParaTextPr({Unifill : Unifill}));
+				if(color && color.asc_getType && color.asc_getType() === Asc.c_oAscColor.COLOR_TYPE_SRGB)
+				{
+					var oColor = new AscCommonWord.CDocumentColor(color.r, color.g, color.b, false);
+					oLogicDocument.AddToParagraph(new AscCommonWord.ParaTextPr({Color: oColor, Unifill: undefined}));
+				}
+				else
+				{
+					var Unifill        = new AscFormat.CUniFill();
+					Unifill.fill       = new AscFormat.CSolidFill();
+					Unifill.fill.color = AscFormat.CorrectUniColor(color, Unifill.fill.color, 1);
+					oLogicDocument.AddToParagraph(new AscCommonWord.ParaTextPr({Unifill : Unifill}));
+				}
 			}
 
-			this.WordControl.m_oLogicDocument.Recalculate();
-			this.WordControl.m_oLogicDocument.UpdateInterface();
-			this.WordControl.m_oLogicDocument.FinalizeAction();
+			oLogicDocument.Recalculate();
+			oLogicDocument.UpdateInterface();
+			oLogicDocument.FinalizeAction();
 		}
 	};
 	asc_docs_api.prototype.put_ParagraphShade     = function(is_flag, color, isOnlyPara)
@@ -10841,7 +10865,6 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['GetSectionInfo']                            = asc_docs_api.prototype.GetSectionInfo;
 	asc_docs_api.prototype['add_SectionBreak']                          = asc_docs_api.prototype.add_SectionBreak;
 	asc_docs_api.prototype['asc_setViewMode']                           = asc_docs_api.prototype.asc_setViewMode;
-	asc_docs_api.prototype['asc_setRestriction']                        = asc_docs_api.prototype.asc_setRestriction;
 	asc_docs_api.prototype['OnMouseUp']                                 = asc_docs_api.prototype.OnMouseUp;
 	asc_docs_api.prototype['asyncImageEndLoaded2']                      = asc_docs_api.prototype.asyncImageEndLoaded2;
 	asc_docs_api.prototype['SetDrawImagePlaceParagraph']                = asc_docs_api.prototype.SetDrawImagePlaceParagraph;

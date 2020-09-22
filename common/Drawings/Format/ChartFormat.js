@@ -12360,12 +12360,12 @@ CTitle.prototype =
     },
 
 
-    Search_GetId : function(bNext, bCurrent)
+    GetSearchElementId : function(bNext, bCurrent)
     {
         var content = this.getDocContent();
         if(content && this.tx && this.tx.rich)
         {
-            return content.Search_GetId(bNext, bCurrent);
+            return content.GetSearchElementId(bNext, bCurrent);
         }
         return null;
     },

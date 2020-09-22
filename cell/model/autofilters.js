@@ -1073,7 +1073,7 @@
 					}
 
 					if (result && result.isAutoFilter && workbook.getSlicersByTableName(tablePart.DisplayName)) {
-						result.isAutoFilter = null;
+						result.isSlicerAdded = true;
 					}
 				} else {
 					if (worksheet.AutoFilter &&

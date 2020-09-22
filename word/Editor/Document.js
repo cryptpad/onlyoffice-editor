@@ -80,6 +80,7 @@ var search_Common              = 0x0000; // Поиск в простом тек�
 var search_Header              = 0x0100; // Поиск в верхнем колонтитуле
 var search_Footer              = 0x0200; // Поиск в нижнем колонтитуле
 var search_Footnote            = 0x0400; // Поиск в сноске
+var search_Endnote             = 0x0800; // Поиск в концевой сноске
 
 var search_HdrFtr_All          = 0x0001; // Поиск в колонтитуле, который находится на всех страницах
 var search_HdrFtr_All_no_First = 0x0002; // Поиск в колонтитуле, который находится на всех страницах, кроме первой
@@ -4768,7 +4769,7 @@ CDocument.prototype.private_RecalculateFlowParagraph         = function(RecalcIn
         var Frame_XLimit = FramePr.Get_W();
         var Frame_YLimit = FramePr.Get_H();
 
-		var FrameHRule = ( undefined === FramePr.HRule ? Asc.linerule_Auto : FramePr.HRule );
+		var FrameHRule = (undefined === FramePr.HRule ? (undefined !== Frame_YLimit ? Asc.linerule_AtLeast : Asc.linerule_Auto) : FramePr.HRule);
 
         if (undefined === Frame_XLimit)
             Frame_XLimit = Page_Field_R - Page_Field_L;
@@ -6169,6 +6170,12 @@ CDocument.prototype.ClearParagraphFormatting = function(isClearParaPr, isClearTe
 };
 CDocument.prototype.Remove = function(nDirection, isRemoveWholeElement, bRemoveOnlySelection, bOnTextAdd, isWord)
 {
+	if (undefined === nDirection)
+		nDirection = 1;
+
+	if (undefined === isRemoveWholeElement)
+		isRemoveWholeElement = false;
+
 	if (undefined === bRemoveOnlySelection)
 		bRemoveOnlySelection = false;
 
@@ -9367,7 +9374,7 @@ CDocument.prototype.OnKeyDown = function(e)
 		case c_oAscDocumentShortcutType.RegisteredSign:
 		{
 			this.private_AddSymbolByShortcut(0x00AE);
-			bRetValue = keydownresult_PreventAll
+			bRetValue = keydownresult_PreventAll;
 			break;
 		}
 		case c_oAscDocumentShortcutType.Save:
@@ -9381,7 +9388,7 @@ CDocument.prototype.OnKeyDown = function(e)
 		case c_oAscDocumentShortcutType.TrademarkSign:
 		{
 			this.private_AddSymbolByShortcut(0x2122);
-			bRetValue = keydownresult_PreventAll
+			bRetValue = keydownresult_PreventAll;
 			break;
 		}
 		case c_oAscDocumentShortcutType.Underline:
@@ -13568,7 +13575,8 @@ CDocument.prototype.RecalculateFromStart = function(bUpdateStates)
 		Inline   : {Pos : 0, PageNum : 0},
 		Flow     : [],
 		HdrFtr   : [],
-		Drawings : {All : true, Map : {}}
+		Drawings : {All : true, Map : {}},
+		Tables   : []
 	};
 
 	this.Reset_RecalculateCache();
@@ -14062,7 +14070,7 @@ CDocument.prototype.private_ProcessTemplateReplacement = function(TemplateReplac
 	for (var Id in TemplateReplacementData)
 	{
 		this.Search(Id, {MatchCase : true}, false);
-		this.SearchEngine.Replace_All(TemplateReplacementData[Id], false);
+		this.SearchEngine.ReplaceAll(TemplateReplacementData[Id], false);
 	}
 };
 CDocument.prototype.private_CheckCursorInPlaceHolder = function()
@@ -16709,8 +16717,8 @@ CDocument.prototype.private_AddCompositeText = function(nCharCode)
 	}
 	else
 	{
-		if (32 == nCharCode || 12288 == nCharCode)
-			oChar = new ParaSpace();
+		if (AscCommon.IsSpace(nCharCode))
+			oChar = new ParaSpace(nCharCode);
 		else
 			oChar = new ParaText(nCharCode);
 	}
@@ -21362,8 +21370,8 @@ CDocument.prototype.AddTableOfContents = function(sHeading, oPr, oSdt)
 				for (var oIterator = sHeading.getUnicodeIterator(); oIterator.check(); oIterator.next())
 				{
 					var nCharCode = oIterator.value();
-					if (0x0020 === nCharCode)
-						oParagraph.Add(new ParaSpace());
+					if (AscCommon.IsSpace(nCharCode))
+						oParagraph.Add(new ParaSpace(nCharCode));
 					else
 						oParagraph.Add(new ParaText(nCharCode));
 				}
@@ -22716,8 +22724,6 @@ CDocument.prototype.AddTextWithPr = function(sText, oTextPr, isMoveCursorOutside
 
 			oSelectedContent.On_EndCollectElements(this, false);
 
-			oParagraph.GetParent().InsertContent(oSelectedContent, oAnchorPos);
-
 			// TODO: Надо переделать здесь по-нормальному, и сделать как-то грамотную обработку в InsertContent
 			var isMath = false;
 			if (oAnchorPos && oAnchorPos.Paragraph)
@@ -22726,7 +22732,7 @@ CDocument.prototype.AddTextWithPr = function(sText, oTextPr, isMoveCursorOutside
 				var oLastClass   = oParaNearPos.Classes[oParaNearPos.Classes.length - 1];
 				isMath = (para_Math_Run === oLastClass.Type)
 			}
-
+			oParagraph.GetParent().InsertContent(oSelectedContent, oAnchorPos);
 			if (isMath)
 			{
 				this.MoveCursorRight(false, false, true);
@@ -22994,7 +23000,7 @@ CDocument.prototype.AddParaMath = function(nType)
 {
 	if ((undefined === nType || c_oAscMathType.Default_Text === nType) && (!this.IsSelectionUse() || !this.IsTextSelectionUse()))
 	{
-		this.Remove();
+		this.Remove(1, true, false, true);
 		var oCC = this.AddContentControl(c_oAscSdtLevelType.Inline);
 		if (!oCC)
 			return;

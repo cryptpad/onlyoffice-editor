@@ -640,21 +640,20 @@ CParagraphContentBase.prototype.ApplyTextPr = function(oTextPr, isIncFontSize, i
 /**
  * Функция для поиска внутри элементов параграфа
  * @param {CParagraphSearch} oParaSearch
- * @param {number} nDepth
  */
-CParagraphContentBase.prototype.Search = function(oParaSearch, nDepth)
+CParagraphContentBase.prototype.Search = function(oParaSearch)
 {
 };
-CParagraphContentBase.prototype.Add_SearchResult = function(SearchResult, Start, ContentPos, Depth)
+CParagraphContentBase.prototype.AddSearchResult = function(oSearchResult, isStart, oContentPos, nDepth)
 {
 };
-CParagraphContentBase.prototype.Clear_SearchResults = function()
+CParagraphContentBase.prototype.ClearSearchResults = function()
 {
 };
-CParagraphContentBase.prototype.Remove_SearchResult = function(SearchResult)
+CParagraphContentBase.prototype.RemoveSearchResult = function(oSearchResult)
 {
 };
-CParagraphContentBase.prototype.Search_GetId = function(bNext, bUseContentPos, ContentPos, Depth)
+CParagraphContentBase.prototype.GetSearchElementId = function(bNext, bUseContentPos, ContentPos, Depth)
 {
 	return null;
 };
@@ -1056,6 +1055,11 @@ CParagraphContentWithContentBase.prototype.IsSolid = function()
 CParagraphContentWithContentBase.prototype.ConvertParaContentPosToRangePos = function(oContentPos, nDepth)
 {
 	return 0;
+};
+CParagraphContentWithContentBase.prototype.ProcessNotInlineObjectCheck = function(oChecker)
+{
+	oChecker.Result = false;
+	oChecker.Found  = true;
 };
 /**
  * Это базовый класс для элементов параграфа, которые сами по себе могут содержать элементы параграфа.
@@ -2438,11 +2442,6 @@ CParagraphContentWithParagraphLikeContent.prototype.CheckMathPara = function(nMa
 
 	return this.CheckNotInlineObject(nMathPos);
 };
-CParagraphContentWithParagraphLikeContent.prototype.ProcessNotInlineObjectCheck = function(oChecker)
-{
-	oChecker.Result = false;
-	oChecker.Found  = true;
-};
 CParagraphContentWithParagraphLikeContent.prototype.CheckNotInlineObject = function(nMathPos, nDirection)
 {
 	var oParent = this.GetParent();
@@ -3606,50 +3605,38 @@ CParagraphContentWithParagraphLikeContent.prototype.Clear_SpellingMarks = functi
 //----------------------------------------------------------------------------------------------------------------------
 // Search and Replace
 //----------------------------------------------------------------------------------------------------------------------
-CParagraphContentWithParagraphLikeContent.prototype.Search = function(ParaSearch, Depth)
+CParagraphContentWithParagraphLikeContent.prototype.Search = function(oParaSearch)
 {
-    this.SearchMarks = [];
-
-    var ContentLen = this.Content.length;
-    for ( var CurPos = 0; CurPos < ContentLen; CurPos++ )
-    {
-        var Element = this.Content[CurPos];
-
-        ParaSearch.ContentPos.Update( CurPos, Depth );
-
-        Element.Search( ParaSearch, Depth + 1 );
-    }
+	this.SearchMarks = [];
+	for (var nPos = 0, nContentLen = this.Content.length; nPos < nContentLen; ++nPos)
+	{
+		this.Content[nPos].Search(oParaSearch);
+	}
 };
-CParagraphContentWithParagraphLikeContent.prototype.Add_SearchResult = function(SearchResult, Start, ContentPos, Depth)
+CParagraphContentWithParagraphLikeContent.prototype.AddSearchResult = function(oSearchResult, isStart, oContentPos, nDepth)
 {
-    if ( true === Start )
-        SearchResult.ClassesS.push( this );
-    else
-        SearchResult.ClassesE.push( this );
-
-    this.SearchMarks.push( new CParagraphSearchMark( SearchResult, Start, Depth ) );
-
-    this.Content[ContentPos.Get(Depth)].Add_SearchResult( SearchResult, Start, ContentPos, Depth + 1 );
+	oSearchResult.RegisterClass(isStart, this);
+	this.SearchMarks.push(new CParagraphSearchMark(oSearchResult, isStart, nDepth));
+	this.Content[oContentPos.Get(nDepth)].AddSearchResult(oSearchResult, isStart, oContentPos, nDepth + 1);
 };
-CParagraphContentWithParagraphLikeContent.prototype.Clear_SearchResults = function()
+CParagraphContentWithParagraphLikeContent.prototype.ClearSearchResults = function()
 {
-    this.SearchMarks = [];
+	this.SearchMarks = [];
 };
-CParagraphContentWithParagraphLikeContent.prototype.Remove_SearchResult = function(SearchResult)
+CParagraphContentWithParagraphLikeContent.prototype.RemoveSearchResult = function(oSearchResult)
 {
-    var MarksCount = this.SearchMarks.length;
-    for ( var Index = 0; Index < MarksCount; Index++ )
-    {
-        var Mark = this.SearchMarks[Index];
-        if ( SearchResult === Mark.SearchResult )
-        {
-            this.SearchMarks.splice( Index, 1 );
-            Index--;
-            MarksCount--;
-        }
-    }
+	for (var nIndex = 0, nMarksCount = this.SearchMarks.length; nIndex < nMarksCount; ++nIndex)
+	{
+		var oMark = this.SearchMarks[nIndex];
+		if (oSearchResult === oMark.SearchResult)
+		{
+			this.SearchMarks.splice(nIndex, 1);
+			nIndex--;
+			nMarksCount--;
+		}
+	}
 };
-CParagraphContentWithParagraphLikeContent.prototype.Search_GetId = function(bNext, bUseContentPos, ContentPos, Depth)
+CParagraphContentWithParagraphLikeContent.prototype.GetSearchElementId = function(bNext, bUseContentPos, ContentPos, Depth)
 {
     // Определим позицию, начиная с которой мы будем искать ближайший найденный элемент
     var StartPos = 0;
@@ -3677,7 +3664,7 @@ CParagraphContentWithParagraphLikeContent.prototype.Search_GetId = function(bNex
 
         for ( var CurPos = StartPos; CurPos < ContentLen; CurPos++ )
         {
-            var ElementId = this.Content[CurPos].Search_GetId( true, bUseContentPos && CurPos === StartPos ? true : false, ContentPos, Depth + 1 );
+            var ElementId = this.Content[CurPos].GetSearchElementId( true, bUseContentPos && CurPos === StartPos ? true : false, ContentPos, Depth + 1 );
             if ( null !== ElementId )
                 return ElementId;
         }
@@ -3688,7 +3675,7 @@ CParagraphContentWithParagraphLikeContent.prototype.Search_GetId = function(bNex
 
         for ( var CurPos = StartPos; CurPos >= 0; CurPos-- )
         {
-            var ElementId = this.Content[CurPos].Search_GetId( false, bUseContentPos && CurPos === StartPos ? true : false, ContentPos, Depth + 1 );
+            var ElementId = this.Content[CurPos].GetSearchElementId( false, bUseContentPos && CurPos === StartPos ? true : false, ContentPos, Depth + 1 );
             if ( null !== ElementId )
                 return ElementId;
         }

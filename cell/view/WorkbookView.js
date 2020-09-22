@@ -770,6 +770,13 @@
 		  }
 	  });
 
+	  this.model.handlers.add("changeSheetViewSettings", function (wsId, type) {
+		  var ws = self.getWorksheetById(wsId, true);
+		  if (ws) {
+			  ws._onChangeSheetViewSettings(type);
+		  }
+	  });
+
     this.model.handlers.add("cleanCellCache", function(wsId, oRanges, skipHeight) {
       var ws = self.getWorksheetById(wsId, true);
       if (ws) {
@@ -797,9 +804,6 @@
     });
     this.model.handlers.add("setSelectionState", function() {
       self._onSetSelectionState.apply(self, arguments);
-    });
-    this.model.handlers.add("reInit", function() {
-      self.reInit.apply(self, arguments);
     });
     this.model.handlers.add("drawWS", function() {
       self.drawWS.apply(self, arguments);
@@ -2831,12 +2835,6 @@
   	this.drawWS();
   };
 
-  WorkbookView.prototype.reInit = function() {
-    var ws = this.getWorksheet();
-    ws._initCellsArea(AscCommonExcel.recalcType.full);
-    ws._updateVisibleColsCount();
-    ws._updateVisibleRowsCount();
-  };
   WorkbookView.prototype.drawWS = function() {
     this.getWorksheet().draw();
   };

@@ -14770,7 +14770,7 @@ CNumPr.prototype.IsEqual = function(oNumPr)
 	if (0 === this.NumId)
 		return true;
 
-	return (this.NumId === NumPr.NumId && this.Lvl === NumPr.Lvl);
+	return (this.NumId === oNumPr.NumId && this.Lvl === oNumPr.Lvl);
 };
 
 var wrap_Around    = 0x01;
@@ -15049,17 +15049,30 @@ CFramePr.prototype.Is_Equal = function(FramePr)
 };
 CFramePr.prototype.Merge = function(oFramePr)
 {
+	// Некоторые свойства завязаны друг на друга. Если одно присутствует, то второе берется из текущего объекта
+	// (даже если оно не задано), а не по иерархии выше. H / HRule, X / XAlign, Y / YAlign
+
 	if (null !== oFramePr.DropCap && undefined !== oFramePr.DropCap)
 		this.DropCap = oFramePr.DropCap;
 
 	if (null !== oFramePr.H && undefined !== oFramePr.H)
+	{
+		if (null === oFramePr.HRule || undefined === oFramePr.HRule)
+			this.HRule = undefined;
+
 		this.H = oFramePr.H;
+	}
 
 	if (null !== oFramePr.HAnchor && undefined !== oFramePr.HAnchor)
 		this.HAnchor = oFramePr.HAnchor;
 
 	if (null !== oFramePr.HRule && undefined !== oFramePr.HRule)
+	{
+		if (null === oFramePr.H || undefined === oFramePr.H)
+			this.H = undefined;
+
 		this.HRule = oFramePr.HRule;
+	}
 
 	if (null !== oFramePr.HSpace && undefined !== oFramePr.HSpace)
 		this.HSpace = oFramePr.HSpace;
@@ -15080,16 +15093,36 @@ CFramePr.prototype.Merge = function(oFramePr)
 		this.Wrap = oFramePr.Wrap;
 
 	if (null !== oFramePr.X && undefined !== oFramePr.X)
+	{
+		if (null === oFramePr.XAlign || undefined === oFramePr.XAlign)
+			this.XAlign = undefined;
+
 		this.X = oFramePr.X;
+	}
 
 	if (null !== oFramePr.XAlign && undefined !== oFramePr.XAlign)
+	{
+		if (null === oFramePr.X || undefined === oFramePr.X)
+			this.X = undefined;
+
 		this.XAlign = oFramePr.XAlign;
+	}
 
 	if (null !== oFramePr.Y && undefined !== oFramePr.Y)
+	{
+		if (null === oFramePr.YAlign || undefined === oFramePr.YAlign)
+			this.YAlign = undefined;
+
 		this.Y = oFramePr.Y;
+	}
 
 	if (null !== oFramePr.YAlign && undefined !== oFramePr.YAlign)
+	{
+		if (null === oFramePr.Y || undefined === oFramePr.Y)
+			this.Y = undefined;
+
 		this.YAlign = oFramePr.YAlign;
+	}
 };
 
 function CCalculatedFrame(FramePr, L, T, W, H, L2, T2, W2, H2, PageIndex, Index, FlowCount)

@@ -884,11 +884,9 @@ Paragraph.prototype.Internal_Content_Add = function(Pos, Item, bCorrectPos)
 	}
 
 	// Передвинем все метки слов для проверки орфографии
-	// Обновляем позиции в SearchResults
-	var SpellingsCount = this.SpellChecker.Elements.length;
-	for (var Pos = 0; Pos < SpellingsCount; Pos++)
+	for (var nIndex = 0, nCount = this.SpellChecker.Elements.length; nIndex < nCount; ++nIndex)
 	{
-		var Element    = this.SpellChecker.Elements[Pos];
+		var Element    = this.SpellChecker.Elements[nIndex];
 		var ContentPos = Element.StartPos;
 
 		if (ContentPos.Data[0] >= Pos)
@@ -990,10 +988,9 @@ Paragraph.prototype.Internal_Content_Remove = function(Pos)
 	if (true === this.DeleteCommentOnRemove && para_Comment === Item.Type && this.LogicDocument)
 		this.LogicDocument.RemoveComment(Item.CommentId, true, false);
 
-	var SpellingsCount = this.SpellChecker.Elements.length;
-	for (var Pos = 0; Pos < SpellingsCount; Pos++)
+	for (var nIndex = 0, nCount = this.SpellChecker.Elements.length; nIndex < nCount; ++nIndex)
 	{
-		var Element    = this.SpellChecker.Elements[Pos];
+		var Element    = this.SpellChecker.Elements[nIndex];
 		var ContentPos = Element.StartPos;
 
 		if (ContentPos.Data[0] > Pos)
@@ -1757,7 +1754,7 @@ Paragraph.prototype.RecalculateMinMaxContentWidth = function(isRotated)
 	var ParaPr = this.Get_CompiledPr2(false).ParaPr;
 	var MinInd = ParaPr.Ind.Left + ParaPr.Ind.Right;
 
-	if (this.LogicDocument.GetCompatibilityMode() >= AscCommon.document_compatibility_mode_Word15)
+	if (this.bFromDocument && this.LogicDocument && this.LogicDocument.GetCompatibilityMode() >= AscCommon.document_compatibility_mode_Word15)
 		MinInd += ParaPr.Ind.FirstLine;
 
 	if (MinMax.nMinWidth > 0.001 || MinMax.nMaxWidth > 0.001)
@@ -2793,11 +2790,11 @@ Paragraph.prototype.Internal_Draw_5 = function(CurPage, pGraphics, Pr, BgColor)
 		var Element = aStrikeout.Get_Next();
 		while (null != Element)
 		{
-			pGraphics.p_color(Element.r, Element.g, Element.b, 255);
 			if (pGraphics.SetAdditionalProps)
 			{
 				pGraphics.SetAdditionalProps(Element.Additional2);
 			}
+			pGraphics.p_color(Element.r, Element.g, Element.b, 255);
 			pGraphics.drawHorLine(c_oAscLineDrawingRule.Top, Element.y0, Element.x0, Element.x1, Element.w);
 			Element = aStrikeout.Get_Next();
 		}
@@ -2806,11 +2803,11 @@ Paragraph.prototype.Internal_Draw_5 = function(CurPage, pGraphics, Pr, BgColor)
 		Element = aDStrikeout.Get_Next();
 		while (null != Element)
 		{
-			pGraphics.p_color(Element.r, Element.g, Element.b, 255);
 			if (pGraphics.SetAdditionalProps)
 			{
 				pGraphics.SetAdditionalProps(Element.Additional2);
 			}
+			pGraphics.p_color(Element.r, Element.g, Element.b, 255);
 			pGraphics.drawHorLine2(c_oAscLineDrawingRule.Top, Element.y0, Element.x0, Element.x1, Element.w);
 
 			Element = aDStrikeout.Get_Next();
@@ -2821,11 +2818,11 @@ Paragraph.prototype.Internal_Draw_5 = function(CurPage, pGraphics, Pr, BgColor)
 		Element = aUnderline.Get_Next();
 		while (null != Element)
 		{
-			pGraphics.p_color(Element.r, Element.g, Element.b, 255);
 			if (pGraphics.SetAdditionalProps)
 			{
 				pGraphics.SetAdditionalProps(Element.Additional2);
 			}
+			pGraphics.p_color(Element.r, Element.g, Element.b, 255);
 			pGraphics.drawHorLine(0, Element.y0, Element.x0, Element.x1, Element.w);
 			Element = aUnderline.Get_Next();
 		}
@@ -2833,11 +2830,11 @@ Paragraph.prototype.Internal_Draw_5 = function(CurPage, pGraphics, Pr, BgColor)
 		Element = aDUnderline.Get_Next();
 		while (null != Element)
 		{
-			pGraphics.p_color(Element.r, Element.g, Element.b, 255);
 			if (pGraphics.SetAdditionalProps)
 			{
 				pGraphics.SetAdditionalProps(Element.Additional2);
 			}
+			pGraphics.p_color(Element.r, Element.g, Element.b, 255);
 			pGraphics.drawHorLine2(c_oAscLineDrawingRule.Top, Element.y0, Element.x0, Element.x1, Element.w);
 
 			Element = aDUnderline.Get_Next();
@@ -8291,6 +8288,10 @@ Paragraph.prototype.GetCalculatedParaPr = function()
 
 	if (undefined !== ParaPr.OutlineLvl && undefined === this.Pr.OutlineLvl)
 		ParaPr.OutlineLvlStyle = true;
+
+	// Вопреки спецификации, если у рамки задан параметр H и не задан HRule, мы должны считать его не Auto, а AtLeast
+	if (ParaPr.FramePr && undefined !== ParaPr.FramePr.H && undefined === ParaPr.FramePr.HRule)
+		ParaPr.FramePr.HRule = Asc.linerule_AtLeast;
 
 	return ParaPr;
 };

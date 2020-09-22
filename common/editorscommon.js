@@ -2707,9 +2707,13 @@
 			this._reset();
 		}
 
-		var is3D = this.is3DRef(formula, start_pos);
-		if(is3D && is3D[0] && is3D[1] && is3D[1].length) {
-			return this.isName(formula, this.pCurrPos);
+		var _is3DRef = this.is3DRef(formula, start_pos);
+		if(_is3DRef && _is3DRef[0] && _is3DRef[1] && _is3DRef[1].length)
+		{
+			var _startPos = this.pCurrPos;
+			var _isArea = this.isArea(formula, _startPos);
+			var _isRef = !_isArea && this.isRef(formula, _startPos);
+			return !_isRef && !_isArea && this.isName(formula, _startPos);
 		}
 
 		return false;
@@ -4056,6 +4060,24 @@
 		}
 
 		return sResult;
+	}
+
+	var c_oAscSpaces = [];
+	c_oAscSpaces[0x000A] = 1;
+	c_oAscSpaces[0x0020] = 1;
+	c_oAscSpaces[0x2002] = 1;
+	c_oAscSpaces[0x2003] = 1;
+	c_oAscSpaces[0x2005] = 1;
+	c_oAscSpaces[0x3000] = 1;
+
+	/**
+	 * Проверяем является ли заданный юников пробелом
+	 * @param nUnicode {number}
+	 * @returns {boolean}
+	 */
+	function IsSpace(nUnicode)
+	{
+		return !!(c_oAscSpaces[nUnicode]);
 	}
 
 	function private_IsAbbreviation(sWord) {
@@ -5634,6 +5656,7 @@
 	window["AscCommon"].RomanToInt = RomanToInt;
 	window["AscCommon"].LatinNumberingToInt = LatinNumberingToInt;
 	window["AscCommon"].IntToNumberFormat = IntToNumberFormat;
+	window["AscCommon"].IsSpace = IsSpace;
 
 	window["AscCommon"].loadSdk = loadSdk;
     window["AscCommon"].loadScript = loadScript;

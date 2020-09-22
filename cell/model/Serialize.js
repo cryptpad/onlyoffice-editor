@@ -9657,9 +9657,13 @@
                 // ReadDefTableStyles(wb, wb.TableStyles.DefaultStyles);
                 // wb.TableStyles.concatStyles();
             }
+            if(pptx_content_loader.Reader)
+            {
+                pptx_content_loader.Reader.AssignConnectorsId();
+            }
 			if(!pasteBinaryFromExcel)
 				History.TurnOn();
-			//чтобы удалялся stream с бинарником
+            //чтобы удалялся stream с бинарником
 			pptx_content_loader.Clear(true);
         };
         this.ReadMainTable = function(wb)

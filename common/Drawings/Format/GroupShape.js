@@ -1207,7 +1207,7 @@ function CGroupShape()
         }
     };
 
-    CGroupShape.prototype.Search_GetId  = function(bNext, bCurrent)
+    CGroupShape.prototype.GetSearchElementId  = function(bNext, bCurrent)
     {
         var Current = -1;
         var Len = this.arrGraphicObjects.length;
@@ -1231,9 +1231,9 @@ function CGroupShape()
 
             for ( var i = Start; i < Len; i++ )
             {
-                if ( this.arrGraphicObjects[i].Search_GetId )
+                if ( this.arrGraphicObjects[i].GetSearchElementId )
                 {
-                    Id = this.arrGraphicObjects[i].Search_GetId(true, i === Current ? true : false);
+                    Id = this.arrGraphicObjects[i].GetSearchElementId(true, i === Current ? true : false);
                     if ( null !== Id )
                         return Id;
                 }
@@ -1245,9 +1245,9 @@ function CGroupShape()
 
             for ( var i = Start; i >= 0; i-- )
             {
-                if ( this.arrGraphicObjects[i].Search_GetId )
+                if ( this.arrGraphicObjects[i].GetSearchElementId )
                 {
-                    Id = this.arrGraphicObjects[i].Search_GetId(false, i === Current ? true : false);
+                    Id = this.arrGraphicObjects[i].GetSearchElementId(false, i === Current ? true : false);
                     if ( null !== Id )
                         return Id;
                 }
