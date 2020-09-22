@@ -391,11 +391,15 @@
 	 * @returns {ApiRange}
 	 */
 	Api.prototype.GetRange = function(sRange) {
-		var ws, regex = /Sheet\d+/;
-		var wsName = sRange.match(regex);
-		ws = wsName ? this.wbModel.getWorksheetByName(wsName[0]) : this.wbModel.getActiveWs();
-		var range = AscCommonExcel.getRangeByRef(sRange, ws, true, true)[0];
-		return new ApiRange(range);
+		var ws;
+		var res = AscCommon.parserHelp.parse3DRef(sRange);
+		if (res) {
+			ws = this.wbModel.getWorksheetByName(res.sheet);
+			sRange = res.range;
+		} else {
+			ws = this.wbModel.getActiveWs();
+		}
+		return new ApiRange(ws ? ws.getRange2(sRange) : null);
 	};
 
 	/**
