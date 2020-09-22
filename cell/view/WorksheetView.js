@@ -14815,14 +14815,22 @@
 			}
 		};
 
+		var api = window["Asc"]["editor"];
 		if (!window['AscCommonExcel'].filteringMode) {
 			History.LocalChange = true;
 			onChangeAutoFilterCallback();
 			History.LocalChange = false;
 		} else {
 			//в особом режиме не лочим лист при фильтрации
-			if (null !== t.model.getActiveNamedSheetView()) {
-				onChangeAutoFilterCallback();
+			var nActive = t.model.getActiveNamedSheetView();
+			if (null !== nActive) {
+				api._isLockedNamedSheetView(t.model.aNamedSheetViews[nActive], function (_success) {
+					if (!_success) {
+						t.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.LockedEditView, c_oAscError.Level.NoCritical);
+						return;
+					}
+					onChangeAutoFilterCallback(true);
+				});
 			} else {
 				this._isLockedAll(onChangeAutoFilterCallback);
 			}
@@ -15006,12 +15014,24 @@
 
 		if (null === isAddAutoFilter)//do not add autoFilter
 		{
+			var api = window["Asc"]["editor"];
 			if (!window['AscCommonExcel'].filteringMode) {
 				History.LocalChange = true;
 				onChangeAutoFilterCallback();
 				History.LocalChange = false;
 			} else {
-				this._isLockedAll(onChangeAutoFilterCallback);
+				var nActive = t.model.getActiveNamedSheetView();
+				if (null !== nActive) {
+					api._isLockedNamedSheetView(t.model.aNamedSheetViews[nActive], function (_success) {
+						if (!_success) {
+							t.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.LockedEditView, c_oAscError.Level.NoCritical);
+							return;
+						}
+						onChangeAutoFilterCallback(true);
+					});
+				} else {
+					this._isLockedAll(onChangeAutoFilterCallback);
+				}
 			}
 		} else//add autofilter + apply
 		{
