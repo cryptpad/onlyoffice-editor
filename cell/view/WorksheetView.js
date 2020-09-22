@@ -14899,7 +14899,7 @@
 			//в особом режиме не лочим лист при фильтрации
 			var nActive = t.model.getActiveNamedSheetView();
 			if (null !== nActive) {
-				api._isLockedNamedSheetView(t.model.aNamedSheetViews[nActive], function (_success) {
+				api._isLockedNamedSheetView([t.model.aNamedSheetViews[nActive]], function (_success) {
 					if (!_success) {
 						t.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.LockedEditView, c_oAscError.Level.NoCritical);
 						return;
@@ -15097,7 +15097,7 @@
 			} else {
 				var nActive = t.model.getActiveNamedSheetView();
 				if (null !== nActive) {
-					api._isLockedNamedSheetView(t.model.aNamedSheetViews[nActive], function (_success) {
+					api._isLockedNamedSheetView([t.model.aNamedSheetViews[nActive]], function (_success) {
 						if (!_success) {
 							t.model.workbook.handlers.trigger("asc_onError", c_oAscError.ID.LockedEditView, c_oAscError.Level.NoCritical);
 							return;

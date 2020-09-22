@@ -1225,6 +1225,11 @@ var editor;
       },
       "updateAllPrintScaleLock": function() {
           t._onUpdateAllPrintScaleLock.apply(t, arguments);
+      },
+      "updateAllSheetViewLock": function() {
+          if (t._onUpdateAllSheetViewLock) {
+            t._onUpdateAllSheetViewLock.apply(t, arguments);
+          }
       }
     }, this.getViewMode());
 
