@@ -11391,6 +11391,42 @@ ParaRun.prototype.GetAllSeqFieldsByType = function(sType, aFields)
 		}
 	}
 };
+ParaRun.prototype.GetLastSEQPos = function(sType)
+{
+	for (var nPos = this.Content.length - 1; nPos > -1; --nPos)
+	{
+		var oItem = this.Content[nPos];
+		if (para_FieldChar === oItem.Type)
+		{
+			var oComplexField = oItem.GetComplexField();
+			if(oComplexField)
+			{
+				var oInstruction = oComplexField.Instruction;
+				if(oInstruction)
+				{
+					if(oInstruction.Type === fieldtype_SEQ)
+					{
+						if(oInstruction.Id === sType)
+						{
+							return this.GetParagraphContentPosFromObject(nPos + 1);
+						}
+					}
+				}
+			}
+		}
+		else if(para_Field === oItem.Type)
+		{
+			if(oItem.FieldType === fieldtype_SEQ)
+			{
+				if(oItem.Arguments[0] === sType)
+				{
+                    return this.GetParagraphContentPosFromObject(nPos + 1);
+				}
+			}
+		}
+    }
+    return null;;
+};
 ParaRun.prototype.AddToContent = function(nPos, oItem, isUpdatePositions)
 {
 	return this.Add_ToContent(nPos, oItem, isUpdatePositions);

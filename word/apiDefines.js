@@ -249,11 +249,10 @@ var c_oAscDocumentRefenceToType = {
 	ParaNumNoContext   : 3,
 	ParaNumFullContex  : 4,
 	AboveBelow         : 5,
-	EntireCaption      : 6,
-	OnlyLabelAndNumber : 7,
-	OnlyCaptionText    : 8,
-	NoteNumber         : 9,
-	NoteNumberFormatted : 10
+	OnlyLabelAndNumber : 6,
+	OnlyCaptionText    : 7,
+	NoteNumber         : 8,
+	NoteNumberFormatted : 9
 };
 //------------------------------------------------------------export---------------------------------------------------
 var prot;
@@ -409,7 +408,6 @@ prot['ParaNum']            = prot.ParaNum;
 prot['ParaNumNoContext']   = prot.ParaNumNoContext;
 prot['ParaNumFullContex']  = prot.ParaNumFullContex;
 prot['AboveBelow']         = prot.AboveBelow;
-prot['EntireCaption']      = prot.EntireCaption;
 prot['OnlyLabelAndNumber'] = prot.OnlyLabelAndNumber;
 prot['OnlyCaptionText']    = prot.OnlyCaptionText;
 prot['NoteNumber']         = prot.NoteNumber;
