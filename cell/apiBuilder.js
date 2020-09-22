@@ -1771,8 +1771,8 @@
 	 * return {ApiColor|'No Fill'} - return 'NoFill' when the color to the background in the cell/cell range is null
 	 */
 	ApiRange.prototype.GetFillColor = function () {
-		var color = this.range.getFillColor();
-		return color ? new ApiColor(color) : 'No Fill';
+		var oColor = this.range.getFillColor();
+		return oColor ? new ApiColor(oColor) : 'No Fill';
 	};
 	Object.defineProperty(ApiRange.prototype, "FillColor", {
 		set: function (color) {
