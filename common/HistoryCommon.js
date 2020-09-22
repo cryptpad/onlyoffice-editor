@@ -478,14 +478,14 @@
 			case AscDFH.historydescription_Document_ShiftDeleteButton                  :
 				sString = "Document_ShiftDeleteButton";
 				break;
-			case AscDFH.historydescription_Document_SetStyleHeading1                   :
-				sString = "Document_SetStyleHeading1";
+			case AscDFH.historydescription_Document_Shortcut_SetStyleHeading1:
+				sString = "Document_Shortcut_SetStyleHeading1";
 				break;
-			case AscDFH.historydescription_Document_SetStyleHeading2                   :
-				sString = "Document_SetStyleHeading2";
+			case AscDFH.historydescription_Document_Shortcut_SetStyleHeading2:
+				sString = "Document_Shortcut_SetStyleHeading2";
 				break;
-			case AscDFH.historydescription_Document_SetStyleHeading3                   :
-				sString = "Document_SetStyleHeading3";
+			case AscDFH.historydescription_Document_Shortcut_SetStyleHeading3:
+				sString = "Document_Shortcut_SetStyleHeading3";
 				break;
 			case AscDFH.historydescription_Document_SetTextStrikeoutHotKey             :
 				sString = "Document_SetTextStrikeoutHotKey";
@@ -1142,6 +1142,46 @@
 			case AscDFH.historydescription_Document_AddTextWithProperties:
 				sString = "Document_AddTextWithProperties";
 				break;
+			case AscDFH.historydescription_Document_AddCaption:
+				sString = "Document_AddCaption";
+				break;
+			case AscDFH.historydescription_Document_CompareDocuments:
+				sString = "Document_CompareDocuments";
+				break;
+			case AscDFH.historydescription_Document_DrawNewTable:
+				sString = "Document_DrawNewTable";
+				break;
+			case AscDFH.historydescription_Document_DrawTable:
+				sString = "Document_DrawTable";
+				break;
+			case AscDFH.historydescription_Document_AddDateTimeField:
+				sString = "Document_AddDateTimeField";
+				break;
+			case AscDFH.historydescription_Document_SetContentControlTextPlaceholder:
+				sString = "Document_SetContentControlTextPlaceholder";
+				break;
+			case AscDFH.historydescription_Document_AddEndnote:
+				sString = "Document_AddEndnote";
+				break;
+			case AscDFH.historydescription_Document_AddContentControlTextForm:
+				sString = "Document_AddContentControlTextForm";
+				break;
+			case AscDFH.historydescription_Document_SetEndnotePr:
+				sString = "Document_SetEndnotePr";
+				break;
+			case AscDFH.historydescription_Document_ConvertFootnoteType:
+				sString = "Document_ConvertFootnoteType";
+				break;
+			case AscDFH.historydescription_Document_AutoCorrectCommon:
+				sString = "Document_AutoCorrectCommon";
+				break;
+			case AscDFH.historydescription_Document_Shortcut_ClearFormatting:
+				sString = "Document_Shortcut_ClearFormatting";
+				break;
+			case AscDFH.historydescription_Document_Shortcut_AddNonBreakingSpace:
+				sString = "Document_Shortcut_AddNonBreakingSpace";
+				break;
+
 		}
 		return sString;
 	}
@@ -1239,6 +1279,9 @@
 	window['AscDFH'].historyitem_type_PresentationField  = 64 << 16;
 	window['AscDFH'].historyitem_type_ParaRevisionMove   = 65 << 16;
 	window['AscDFH'].historyitem_type_RunRevisionMove    = 66 << 16;
+	window['AscDFH'].historyitem_type_GlossaryDocument   = 67 << 16;
+	window['AscDFH'].historyitem_type_DocPart            = 68 << 16;
+	window['AscDFH'].historyitem_type_Endnotes           = 69 << 16;
 
 	window['AscDFH'].historyitem_type_CommonShape            = 1000 << 16; // Этот класс добавлен для элементов, у которых нет конкретного класса
 
@@ -1378,6 +1421,7 @@
 	window['AscDFH'].historyitem_type_RelSizeAnchor          = 1134 << 16;
 	window['AscDFH'].historyitem_type_AbsSizeAnchor          = 1135 << 16;
 	window['AscDFH'].historyitem_type_Core                   = 1136 << 16;
+	window['AscDFH'].historyitem_type_SlicerView             = 1137 << 16;
 
 
 	window['AscDFH'].historyitem_type_DocumentMacros         = 2000 << 16;
@@ -1667,6 +1711,9 @@
 	window['AscDFH'].historyitem_Styles_ChangeDefaultQuoteId             = window['AscDFH'].historyitem_type_Styles | 21;
 	window['AscDFH'].historyitem_Styles_ChangeDefaultIntenseQuoteId      = window['AscDFH'].historyitem_type_Styles | 22;
 	window['AscDFH'].historyitem_Styles_ChangeDefaultCaption             = window['AscDFH'].historyitem_type_Styles | 23;
+	window['AscDFH'].historyitem_Styles_ChangeDefaultEndnoteTextId       = window['AscDFH'].historyitem_type_Styles | 24;
+	window['AscDFH'].historyitem_Styles_ChangeDefaultEndnoteTextCharId   = window['AscDFH'].historyitem_type_Styles | 25;
+	window['AscDFH'].historyitem_Styles_ChangeDefaultEndnoteReferenceId  = window['AscDFH'].historyitem_type_Styles | 26;
 	//------------------------------------------------------------------------------------------------------------------
 	// Типы изменений в классе ParaMath
 	//------------------------------------------------------------------------------------------------------------------
@@ -1808,6 +1855,10 @@
 	window['AscDFH'].historyitem_Section_Footnote_NumFormat  = window['AscDFH'].historyitem_type_Section | 31;
 	window['AscDFH'].historyitem_Section_PageMargins_Gutter  = window['AscDFH'].historyitem_type_Section | 32;
 	window['AscDFH'].historyitem_Section_Gutter_RTL          = window['AscDFH'].historyitem_type_Section | 33;
+	window['AscDFH'].historyitem_Section_Endnote_Pos         = window['AscDFH'].historyitem_type_Section | 34;
+	window['AscDFH'].historyitem_Section_Endnote_NumStart    = window['AscDFH'].historyitem_type_Section | 35;
+	window['AscDFH'].historyitem_Section_Endnote_NumRestart  = window['AscDFH'].historyitem_type_Section | 36;
+	window['AscDFH'].historyitem_Section_Endnote_NumFormat   = window['AscDFH'].historyitem_type_Section | 37;
 	//------------------------------------------------------------------------------------------------------------------
 	// Типы изменений в классе AscCommon.ParaComment
 	//------------------------------------------------------------------------------------------------------------------
@@ -1826,10 +1877,21 @@
 	window['AscDFH'].historyitem_Footnotes_SetSeparator             = window['AscDFH'].historyitem_type_Footnotes | 2;
 	window['AscDFH'].historyitem_Footnotes_SetContinuationSeparator = window['AscDFH'].historyitem_type_Footnotes | 3;
 	window['AscDFH'].historyitem_Footnotes_SetContinuationNotice    = window['AscDFH'].historyitem_type_Footnotes | 4;
-	window['AscDFH'].historyitem_Footnotes_SetFootnotePrPos         = window['AscDFH'].historyitem_type_Footnotes | 5;
-	window['AscDFH'].historyitem_Footnotes_SetFootnotePrNumStart    = window['AscDFH'].historyitem_type_Footnotes | 6;
-	window['AscDFH'].historyitem_Footnotes_SetFootnotePrNumRestart  = window['AscDFH'].historyitem_type_Footnotes | 7;
-	window['AscDFH'].historyitem_Footnotes_SetFootnotePrNumFormat   = window['AscDFH'].historyitem_type_Footnotes | 8;
+	window['AscDFH'].historyitem_Footnotes_RemoveFootnote           = window['AscDFH'].historyitem_type_Footnotes | 5;
+	//------------------------------------------------------------------------------------------------------------------
+	// Типы изменений в классе CGlossaryDocument
+	//------------------------------------------------------------------------------------------------------------------
+	window['AscDFH'].historyitem_GlossaryDocument_AddDocPart = window['AscDFH'].historyitem_type_GlossaryDocument | 1;
+	//------------------------------------------------------------------------------------------------------------------
+	// Типы изменений в классе CDocPart
+	//------------------------------------------------------------------------------------------------------------------
+	window["AscDFH"].historyitem_DocPart_Name        = window["AscDFH"].historyitem_type_DocPart | 1;
+	window["AscDFH"].historyitem_DocPart_Style       = window["AscDFH"].historyitem_type_DocPart | 2;
+	window["AscDFH"].historyitem_DocPart_Types       = window["AscDFH"].historyitem_type_DocPart | 3;
+	window["AscDFH"].historyitem_DocPart_Description = window["AscDFH"].historyitem_type_DocPart | 4;
+	window["AscDFH"].historyitem_DocPart_GUID        = window["AscDFH"].historyitem_type_DocPart | 5;
+	window["AscDFH"].historyitem_DocPart_Category    = window["AscDFH"].historyitem_type_DocPart | 6;
+	window["AscDFH"].historyitem_DocPart_Behavior    = window["AscDFH"].historyitem_type_DocPart | 7;
 	//------------------------------------------------------------------------------------------------------------------
 	// Типы изменений в классе CSdtPr
 	//------------------------------------------------------------------------------------------------------------------
@@ -1848,6 +1910,18 @@
 	window['AscDFH'].historyitem_SdtPr_DropDownList     = window['AscDFH'].historyitem_type_SdtPr | 13;
 	window['AscDFH'].historyitem_SdtPr_DatePicker       = window['AscDFH'].historyitem_type_SdtPr | 14;
 	window['AscDFH'].historyitem_SdtPr_TextPr           = window['AscDFH'].historyitem_type_SdtPr | 15;
+	window['AscDFH'].historyitem_SdtPr_Placeholder      = window['AscDFH'].historyitem_type_SdtPr | 16;
+	window['AscDFH'].historyitem_SdtPr_ShowingPlcHdr    = window['AscDFH'].historyitem_type_SdtPr | 17;
+	window['AscDFH'].historyitem_SdtPr_Equation         = window['AscDFH'].historyitem_type_SdtPr | 18;
+	window['AscDFH'].historyitem_SdtPr_Text             = window['AscDFH'].historyitem_type_SdtPr | 19;
+	window['AscDFH'].historyitem_SdtPr_Temporary        = window['AscDFH'].historyitem_type_SdtPr | 20;
+	window['AscDFH'].historyitem_SdtPr_TextForm         = window['AscDFH'].historyitem_type_SdtPr | 21;
+	window['AscDFH'].historyitem_SdtPr_FormPr           = window['AscDFH'].historyitem_type_SdtPr | 22;
+	//------------------------------------------------------------------------------------------------------------------
+	// Типы изменений в классе CSdtPr
+	//------------------------------------------------------------------------------------------------------------------
+	window["AscDFH"].historyitem_Endnotes_AddEndnote    = window["AscDFH"].historyitem_type_Endnotes | 1;
+	window["AscDFH"].historyitem_Endnotes_RemoveEndnote = window["AscDFH"].historyitem_type_Endnotes | 2;
 	//------------------------------------------------------------------------------------------------------------------
 	// Графические классы общего назначение (без привязки к конкретному классу)
 	//------------------------------------------------------------------------------------------------------------------
@@ -1864,10 +1938,20 @@
 
 	window['AscDFH'].historyitem_ChartFormatSetChart = window['AscDFH'].historyitem_type_CommonShape | 201;
 
-	window['AscDFH'].historyitem_CommonChart_RemoveSeries    = window['AscDFH'].historyitem_type_CommonShape | 301;
-	window['AscDFH'].historyitem_CommonSeries_RemoveDPt      = window['AscDFH'].historyitem_type_CommonShape | 302;
-	window['AscDFH'].historyitem_CommonLit_RemoveDPt         = window['AscDFH'].historyitem_type_CommonShape | 303;
-	window['AscDFH'].historyitem_CommonChartFormat_SetParent = window['AscDFH'].historyitem_type_CommonShape | 304;
+	window['AscDFH'].historyitem_CommonChart_RemoveSeries         = window['AscDFH'].historyitem_type_CommonShape | 301;
+	window['AscDFH'].historyitem_CommonSeries_RemoveDPt           = window['AscDFH'].historyitem_type_CommonShape | 302;
+	window['AscDFH'].historyitem_CommonLit_RemoveDPt              = window['AscDFH'].historyitem_type_CommonShape | 303;
+	window['AscDFH'].historyitem_CommonChartFormat_SetParent      = window['AscDFH'].historyitem_type_CommonShape | 304;
+	window['AscDFH'].historyitem_CommonSeries_SetIdx              = window['AscDFH'].historyitem_type_CommonShape | 305;
+	window['AscDFH'].historyitem_CommonSeries_SetOrder            = window['AscDFH'].historyitem_type_CommonShape | 306;
+	window['AscDFH'].historyitem_CommonSeries_SetTx               = window['AscDFH'].historyitem_type_CommonShape | 307;
+	window['AscDFH'].historyitem_CommonSeries_SetSpPr             = window['AscDFH'].historyitem_type_CommonShape | 308;
+	window['AscDFH'].historyitem_CommonChart_AddSeries            = window['AscDFH'].historyitem_type_CommonShape | 309;
+	window['AscDFH'].historyitem_CommonChart_SetDlbls             = window['AscDFH'].historyitem_type_CommonShape | 310;
+	window['AscDFH'].historyitem_CommonChart_AddAxId              = window['AscDFH'].historyitem_type_CommonShape | 311;
+	window['AscDFH'].historyitem_CommonChart_SetVaryColors        = window['AscDFH'].historyitem_type_CommonShape | 312;
+	window['AscDFH'].historyitem_CommonChart_AddFilteredSeries    = window['AscDFH'].historyitem_type_CommonShape | 313;
+	window['AscDFH'].historyitem_CommonChart_RemoveFilteredSeries = window['AscDFH'].historyitem_type_CommonShape | 314;
 
 	window['AscDFH'].historyitem_Common_AddWatermark = window['AscDFH'].historyitem_type_CommonShape | 401;
 	//------------------------------------------------------------------------------------------------------------------
@@ -2759,8 +2843,6 @@
     window['AscDFH'].historyitem_Sparkline_RemoveData = window['AscDFH'].historyitem_type_Sparkline | 28;
     window['AscDFH'].historyitem_Sparkline_RemoveSparkline = window['AscDFH'].historyitem_type_Sparkline | 29;
 
-	window['AscDFH'].historyitem_PivotTableDefinitionDelete = window['AscDFH'].historyitem_type_PivotTableDefinition | 1;
-
 
     window['AscDFH'].historyitem_NotesMasterSetHF          = window['AscDFH'].historyitem_type_NotesMaster | 1;
     window['AscDFH'].historyitem_NotesMasterSetNotesStyle  = window['AscDFH'].historyitem_type_NotesMaster | 2;
@@ -2811,6 +2893,11 @@
 	// Типы изменений класса CCore
 	//------------------------------------------------------------------------------------------------------------------
 	window['AscDFH'].historyitem_CoreProperties = window['AscDFH'].historyitem_type_Core | 1;
+
+	//------------------------------------------------------------------------------------------------------------------
+	// Типы изменений класса CSlicerView
+	//------------------------------------------------------------------------------------------------------------------
+	window['AscDFH'].historyitem_SlicerViewName = window['AscDFH'].historyitem_type_SlicerView | 1;
 
     ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -2962,9 +3049,9 @@
 	window['AscDFH'].historydescription_Document_ShiftInsertSafari                  = 0x008d;
 	window['AscDFH'].historydescription_Document_DeleteButton                       = 0x008e;
 	window['AscDFH'].historydescription_Document_ShiftDeleteButton                  = 0x008f;
-	window['AscDFH'].historydescription_Document_SetStyleHeading1                   = 0x0090;
-	window['AscDFH'].historydescription_Document_SetStyleHeading2                   = 0x0091;
-	window['AscDFH'].historydescription_Document_SetStyleHeading3                   = 0x0092;
+	window['AscDFH'].historydescription_Document_Shortcut_SetStyleHeading1          = 0x0090;
+	window['AscDFH'].historydescription_Document_Shortcut_SetStyleHeading2          = 0x0091;
+	window['AscDFH'].historydescription_Document_Shortcut_SetStyleHeading3          = 0x0092;
 	window['AscDFH'].historydescription_Document_SetTextStrikeoutHotKey             = 0x0093;
 	window['AscDFH'].historydescription_Document_SetTextBoldHotKey                  = 0x0094;
 	window['AscDFH'].historydescription_Document_SetParagraphAlignHotKey            = 0x0095;
@@ -3194,8 +3281,18 @@
 	window['AscDFH'].historydescription_Presentation_FitImagesToSlide               = 0x0170;
 	window['AscDFH'].historydescription_Document_AddTextWithProperties              = 0x0171;
 	window['AscDFH'].historydescription_Document_AddCaption                         = 0x0172;
-	window['AscDFH'].historydescription_Document_CompareDocuments                   = 0x0172;
-
+	window['AscDFH'].historydescription_Document_CompareDocuments                   = 0x0173;
+	window['AscDFH'].historydescription_Document_DrawNewTable                       = 0x0174;
+	window['AscDFH'].historydescription_Document_DrawTable                          = 0x0175;
+	window['AscDFH'].historydescription_Document_AddDateTimeField                   = 0x0176;
+	window['AscDFH'].historydescription_Document_SetContentControlTextPlaceholder   = 0x0177;
+	window['AscDFH'].historydescription_Document_AddEndnote                         = 0x0178;
+	window['AscDFH'].historydescription_Document_AddContentControlTextForm          = 0x0179;
+	window['AscDFH'].historydescription_Document_SetEndnotePr                       = 0x017a;
+	window['AscDFH'].historydescription_Document_ConvertFootnoteType                = 0x017b;
+	window['AscDFH'].historydescription_Document_AutoCorrectCommon                  = 0x017c;
+	window['AscDFH'].historydescription_Document_Shortcut_ClearFormatting           = 0x017d;
+	window['AscDFH'].historydescription_Document_Shortcut_AddNonBreakingSpace       = 0x017e;
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	//

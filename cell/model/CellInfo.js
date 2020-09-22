@@ -41,81 +41,6 @@
 	var c_oAscBorderStyles = AscCommon.c_oAscBorderStyles;
 
 	/** @constructor */
-	function asc_CCellFlag() {
-		this.merge = Asc.c_oAscMergeOptions.None;
-		this.shrinkToFit = false;
-		this.wrapText = false;
-		this.selectionType = null;
-		this.lockText = false;
-		this.multiselect = false;
-	}
-
-	asc_CCellFlag.prototype.asc_getMerge = function () {
-		return this.merge;
-	};
-	asc_CCellFlag.prototype.asc_getShrinkToFit = function () {
-		return this.shrinkToFit;
-	};
-	asc_CCellFlag.prototype.asc_getWrapText = function () {
-		return this.wrapText;
-	};
-	asc_CCellFlag.prototype.asc_getSelectionType = function () {
-		return this.selectionType;
-	};
-	asc_CCellFlag.prototype.asc_getMultiselect = function () {
-		return this.multiselect;
-	};
-	asc_CCellFlag.prototype.asc_getLockText = function () {
-		return this.lockText;
-	};
-
-	/** @constructor */
-	function asc_CFont(name, size, color, b, i, u, s, sub, sup) {
-		this.name = name !== undefined ? name : "Arial";
-		this.size = size !== undefined ? size : 10;
-		this.color = color !== undefined ? color : null;
-		this.bold = !!b;
-		this.italic = !!i;
-		this.underline = !!u;
-		this.strikeout = !!s;
-		this.subscript = !!sub;
-		this.superscript = !!sup;
-	}
-
-	asc_CFont.prototype = {
-		asc_getName: function () {
-			return this.name;
-		}, asc_getSize: function () {
-			return this.size;
-		}, asc_getBold: function () {
-			return this.bold;
-		}, asc_getItalic: function () {
-			return this.italic;
-		}, asc_getUnderline: function () {
-			return this.underline;
-		}, asc_getStrikeout: function () {
-			return this.strikeout;
-		}, asc_getSubscript: function () {
-			return this.subscript;
-		}, asc_getSuperscript: function () {
-			return this.superscript;
-		}, asc_getColor: function () {
-			return this.color;
-		}
-	};
-
-	/** @constructor */
-	function asc_CFill(color) {
-		this.color = color !== undefined ? color : null;
-	}
-
-	asc_CFill.prototype = {
-		asc_getColor: function () {
-			return this.color;
-		}
-	};
-
-	/** @constructor */
 	function asc_CBorder(style, color) {
 		this.style = style !== undefined ? style : c_oAscBorderStyles.None;
 		this.color = color !== undefined ? color : null;
@@ -163,6 +88,7 @@
 		this.isAutoFilter = false;  // Кнопка автофильтр (также влияет на formatTable и Sort). Возможные состояния:
 		// - null - мы в пересечении с таблицой (но не полностью в ней)
 		// - true/false - когда мы полностью в таблице или вне ее (true/false в зависимости от того применен фильтр или нет)
+		this.isSlicerAdded = false;//добавлен флаг для особой ситуации - блокировать кнопку удалить фильтр с ф/т со срезом
 	}
 
 	asc_CAutoFilterInfo.prototype = {
@@ -174,6 +100,8 @@
 			return this.isAutoFilter;
 		}, asc_getIsApplyAutoFilter: function () {
 			return this.isApplyAutoFilter;
+		}, asc_getIsSlicerAdded: function () {
+			return this.isSlicerAdded;
 		}
 	};
 
@@ -255,17 +183,16 @@
 
 	/** @constructor */
 	function asc_CCellInfo() {
-		this.formula = "";
+		this.xfs = null;
+
 		this.text = "";
-		this.halign = "left";
-		this.valign = "top";
-		this.flags = null;
-		this.font = null;
-		this.fill = null;
-		this.fill2 = null;
-		this.border = null;
+
+		this.merge = Asc.c_oAscMergeOptions.None;
+		this.selectionType = null;
+		this.multiselect = false;
+		this.lockText = false;
+
 		this.innertext = null;
-		this.numFormat = null;
 		this.hyperlink = null;
 		this.comment = null;
 		this.isLocked = false;
@@ -273,8 +200,6 @@
 		this.isLockedSparkline = false;
 		this.isLockedPivotTable = false;
 		this.styleName = null;
-		this.numFormatInfo = null;
-		this.angle = null;
 		this.autoFilterInfo = null;
 		this.formatTableInfo = null;
 		this.sparklineInfo = null;
@@ -282,40 +207,34 @@
 		this.dataValidation = null;
 		this.selectedColsCount = null;
 		this.isLockedHeaderFooter = false;
+
+		// ToDo not used
+		this.border = null;
 	}
 
-	asc_CCellInfo.prototype.asc_getFormula = function () {
-		return this.formula;
+	asc_CCellInfo.prototype.asc_getXfs = function () {
+		return this.xfs;
 	};
 	asc_CCellInfo.prototype.asc_getText = function () {
 		return this.text;
 	};
-	asc_CCellInfo.prototype.asc_getHorAlign = function () {
-		return this.halign;
+	asc_CCellInfo.prototype.asc_getMerge = function () {
+		return this.merge;
 	};
-	asc_CCellInfo.prototype.asc_getVertAlign = function () {
-		return this.valign;
+	asc_CCellInfo.prototype.asc_getSelectionType = function () {
+		return this.selectionType;
 	};
-	asc_CCellInfo.prototype.asc_getFlags = function () {
-		return this.flags;
+	asc_CCellInfo.prototype.asc_getMultiselect = function () {
+		return this.multiselect;
 	};
-	asc_CCellInfo.prototype.asc_getFont = function () {
-		return this.font;
-	};
-	asc_CCellInfo.prototype.asc_getFill = function () {
-		return this.fill;
-	};
-	asc_CCellInfo.prototype.asc_getFill2 = function () {
-		return this.fill2;
+	asc_CCellInfo.prototype.asc_getLockText = function () {
+		return this.lockText;
 	};
 	asc_CCellInfo.prototype.asc_getBorders = function () {
 		return this.border;
 	};
 	asc_CCellInfo.prototype.asc_getInnerText = function () {
 		return this.innertext;
-	};
-	asc_CCellInfo.prototype.asc_getNumFormat = function () {
-		return this.numFormat;
 	};
 	asc_CCellInfo.prototype.asc_getHyperlink = function () {
 		return this.hyperlink;
@@ -337,12 +256,6 @@
 	};
 	asc_CCellInfo.prototype.asc_getStyleName = function () {
 		return this.styleName;
-	};
-	asc_CCellInfo.prototype.asc_getNumFormatInfo = function () {
-		return this.numFormatInfo;
-	};
-	asc_CCellInfo.prototype.asc_getAngle = function () {
-		return this.angle;
 	};
 	asc_CCellInfo.prototype.asc_getAutoFilterInfo = function () {
 		return this.autoFilterInfo;
@@ -371,7 +284,7 @@
 		this.Name = n;
 		this.LocalSheetId = s;
 		this.Ref = r;
-		this.isTable = t;
+		this.type = t;
 		this.Hidden = h;
 		this.isLock = l;
 		this.isXLNM = x;
@@ -388,8 +301,8 @@
 			return this.LocalSheetId;
 		}, asc_getRef: function () {
 			return this.Ref;
-		}, asc_getIsTable: function () {
-			return this.isTable;
+		}, asc_getType: function () {
+			return this.type;
 		}, asc_getIsHidden: function () {
 			return this.Hidden;
 		}, asc_getIsLock: function () {
@@ -425,31 +338,6 @@
 	window['Asc'] = window['Asc'] || {};
 	window['AscCommonExcel'] = window['AscCommonExcel'] || {};
 
-	window["AscCommonExcel"].asc_CCellFlag = asc_CCellFlag;
-	prot = asc_CCellFlag.prototype;
-	prot["asc_getMerge"] = prot.asc_getMerge;
-	prot["asc_getShrinkToFit"] = prot.asc_getShrinkToFit;
-	prot["asc_getWrapText"] = prot.asc_getWrapText;
-	prot["asc_getSelectionType"] = prot.asc_getSelectionType;
-	prot["asc_getMultiselect"] = prot.asc_getMultiselect;
-	prot["asc_getLockText"] = prot.asc_getLockText;
-
-	window["AscCommonExcel"].asc_CFont = asc_CFont;
-	prot = asc_CFont.prototype;
-	prot["asc_getName"] = prot.asc_getName;
-	prot["asc_getSize"] = prot.asc_getSize;
-	prot["asc_getBold"] = prot.asc_getBold;
-	prot["asc_getItalic"] = prot.asc_getItalic;
-	prot["asc_getUnderline"] = prot.asc_getUnderline;
-	prot["asc_getStrikeout"] = prot.asc_getStrikeout;
-	prot["asc_getSubscript"] = prot.asc_getSubscript;
-	prot["asc_getSuperscript"] = prot.asc_getSuperscript;
-	prot["asc_getColor"] = prot.asc_getColor;
-
-	window["AscCommonExcel"].asc_CFill = asc_CFill;
-	prot = asc_CFill.prototype;
-	prot["asc_getColor"] = prot.asc_getColor;
-
 	window["Asc"].asc_CBorder = window["Asc"]["asc_CBorder"] = asc_CBorder;
 	prot = asc_CBorder.prototype;
 	prot["asc_getStyle"] = prot.asc_getStyle;
@@ -470,6 +358,7 @@
 	prot["asc_getTableName"] = prot.asc_getTableName;
 	prot["asc_getIsAutoFilter"] = prot.asc_getIsAutoFilter;
 	prot["asc_getIsApplyAutoFilter"] = prot.asc_getIsApplyAutoFilter;
+	prot["asc_getIsSlicerAdded"] = prot.asc_getIsSlicerAdded;
 
 	window["AscCommonExcel"].asc_CFormatTableInfo = asc_CFormatTableInfo;
 	prot = asc_CFormatTableInfo.prototype;
@@ -495,18 +384,14 @@
 
 	window["AscCommonExcel"].asc_CCellInfo = asc_CCellInfo;
 	prot = asc_CCellInfo.prototype;
-	prot["asc_getName"] = prot.asc_getName;
-	prot["asc_getFormula"] = prot.asc_getFormula;
+	prot["asc_getXfs"] = prot.asc_getXfs;
 	prot["asc_getText"] = prot.asc_getText;
-	prot["asc_getHorAlign"] = prot.asc_getHorAlign;
-	prot["asc_getVertAlign"] = prot.asc_getVertAlign;
-	prot["asc_getFlags"] = prot.asc_getFlags;
-	prot["asc_getFont"] = prot.asc_getFont;
-	prot["asc_getFill"] = prot.asc_getFill;
-	prot["asc_getFill2"] = prot.asc_getFill2;
+	prot["asc_getMerge"] = prot.asc_getMerge;
+	prot["asc_getSelectionType"] = prot.asc_getSelectionType;
+	prot["asc_getMultiselect"] = prot.asc_getMultiselect;
+	prot["asc_getLockText"] = prot.asc_getLockText;
 	prot["asc_getBorders"] = prot.asc_getBorders;
 	prot["asc_getInnerText"] = prot.asc_getInnerText;
-	prot["asc_getNumFormat"] = prot.asc_getNumFormat;
 	prot["asc_getHyperlink"] = prot.asc_getHyperlink;
 	prot["asc_getComments"] = prot.asc_getComments;
 	prot["asc_getLocked"] = prot.asc_getLocked;
@@ -514,8 +399,6 @@
 	prot["asc_getLockedSparkline"] = prot.asc_getLockedSparkline;
 	prot["asc_getLockedPivotTable"] = prot.asc_getLockedPivotTable;
 	prot["asc_getStyleName"] = prot.asc_getStyleName;
-	prot["asc_getNumFormatInfo"] = prot.asc_getNumFormatInfo;
-	prot["asc_getAngle"] = prot.asc_getAngle;
 	prot["asc_getAutoFilterInfo"] = prot.asc_getAutoFilterInfo;
 	prot["asc_getFormatTableInfo"] = prot.asc_getFormatTableInfo;
 	prot["asc_getSparklineInfo"] = prot.asc_getSparklineInfo;
@@ -529,7 +412,7 @@
 	prot["asc_getName"] = prot.asc_getName;
 	prot["asc_getScope"] = prot.asc_getScope;
 	prot["asc_getRef"] = prot.asc_getRef;
-	prot["asc_getIsTable"] = prot.asc_getIsTable;
+	prot["asc_getType"] = prot.asc_getType;
 	prot["asc_getIsHidden"] = prot.asc_getIsHidden;
 	prot["asc_getIsLock"] = prot.asc_getIsLock;
 	prot["asc_getIsXlnm"] = prot.asc_getIsXlnm;

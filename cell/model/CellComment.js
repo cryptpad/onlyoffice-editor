@@ -103,9 +103,7 @@ function (window, undefined) {
 		return AscCommonExcel.UndoRedoDataTypes.CommentCoords;
 	};
 	asc_CCommentCoords.prototype.isValid = function() {
-		return null !== this.nLeft && null !== this.nTop && null !== this.nRight && null !== this.nBottom &&
-			null !== this.nLeftOffset && null !== this.nTopOffset && null !== this.nRightOffset && null !== this.nBottomOffset &&
-			null !== this.dWidthMM && null !== this.dHeightMM;
+		return null !== this.nRow && null !== this.nCol;
 	};
 	asc_CCommentCoords.prototype.Read_FromBinary2 = function(r) {
 		this.nRow = r.GetLong();
@@ -188,18 +186,19 @@ function (window, undefined) {
 		this.sUserName = "";
 		this.bDocument = true; 	// For compatibility with 'Word Comment Control'
 		this.bSolved = false;
+		this.m_sUserData = ""; 	// For compatibility with 'Word Comment Control'
 		this.aReplies = [];
 
 		this.coords = null;
 	}
 
-	asc_CCommentData.prototype.clone = function () {
+	asc_CCommentData.prototype.clone = function (uniqueGuid) {
 		var res = new asc_CCommentData();
-		res.updateData(this);
+		res.updateData(this, uniqueGuid);
 		res.coords = this.coords ? this.coords.clone() : null;
 		return res;
 	};
-	asc_CCommentData.prototype.updateData = function (comment) {
+	asc_CCommentData.prototype.updateData = function (comment, uniqueGuid) {
 		this.bHidden = comment.bHidden;
 		this.wsId = comment.wsId;
 		this.nCol = comment.nCol;
@@ -207,7 +206,9 @@ function (window, undefined) {
 		this.nId = comment.nId;
 		this.oParent = comment.oParent;
 		this.nLevel = (null === this.oParent) ? 0 : this.oParent.asc_getLevel() + 1;
-		this.sGuid = comment.sGuid;
+		if (!uniqueGuid) {
+			this.sGuid = comment.sGuid;
+		}
 		this.sProviderId = comment.sProviderId;
 
 		// Common
@@ -218,10 +219,11 @@ function (window, undefined) {
 		this.sUserName = comment.sUserName;
 		this.bDocument = comment.bDocument;
 		this.bSolved = comment.bSolved;
+		this.m_sUserData = comment.m_sUserData;
 		this.aReplies = [];
 
 		for (var i = 0; i < comment.aReplies.length; i++) {
-			this.aReplies.push(comment.aReplies[i].clone());
+			this.aReplies.push(comment.aReplies[i].clone(uniqueGuid));
 		}
 	};
 	asc_CCommentData.prototype.guid = function () {
@@ -287,6 +289,9 @@ function (window, undefined) {
 
 	asc_CCommentData.prototype.asc_putSolved = function(val) { this.bSolved = val; };
 	asc_CCommentData.prototype.asc_getSolved = function() { return this.bSolved; };
+
+	asc_CCommentData.prototype.asc_putUserData = function(val) { this.m_sUserData = val; };
+	asc_CCommentData.prototype.asc_getUserData = function() { return this.m_sUserData; };
 
 	asc_CCommentData.prototype.asc_getRepliesCount = function() { return this.aReplies.length; };
 	asc_CCommentData.prototype.asc_getReply = function(index) { return this.aReplies[index]; };
@@ -403,13 +408,13 @@ CCellCommentator.prototype.isLockedComment = function(oComment, callbackFunc) {
 	}
 };
 
-	CCellCommentator.prototype.getCommentsRange = function (range, sUserId) {
+	CCellCommentator.prototype.getCommentsRange = function (range, sUserId, copy) {
 		var res = [];
 		var aComments = this.model.aComments;
 		for (var i = 0; i < aComments.length; ++i) {
 			var comment = aComments[i];
 			if (range.contains(comment.nCol, comment.nRow) && (!sUserId || sUserId === comment.sUserId)) {
-				res.push(comment.clone());
+				res.push(comment.clone(copy));
 			}
 		}
 		return res;
@@ -425,7 +430,7 @@ CCellCommentator.prototype.isLockedComment = function(oComment, callbackFunc) {
 
 			modelTo.workbook.handlers.trigger("asc_onHideComment");
 
-			var comments = this.getCommentsRange(from);
+			var comments = this.getCommentsRange(from, undefined, copy);
 			if (!copy) {
 				this._deleteCommentsRange(comments);
 			}
@@ -612,7 +617,7 @@ CCellCommentator.prototype.updateCommentsDependencies = function(bInsert, operTy
 			case c_oAscDeleteOptions.DeleteCellsAndShiftTop:
 				for (i = 0; i < aComments.length; i++) {
 					comment = aComments[i].clone();
-					if ((comment.nRow > updateRange.r1) && (comment.nCol >= updateRange.c1) && (comment.nCol <= updateRange.c2)) {
+					if ((comment.nRow > updateRange.r2) && (comment.nCol >= updateRange.c1) && (comment.nCol <= updateRange.c2)) {
 						comment.nRow -= updateRange.r2 - updateRange.r1 + 1;
 						aChangedComments.push(new UpdatePair(comment, true));
 					} else if (updateRange.contains(comment.nCol, comment.nRow)) {
@@ -1374,6 +1379,8 @@ CCellCommentator.prototype.Redo = function(type, data) {
 	prot["asc_getHiddenFlag"] = prot.asc_getHiddenFlag;
 	prot["asc_putSolved"] = prot.asc_putSolved;
 	prot["asc_getSolved"] = prot.asc_getSolved;
+	prot["asc_putUserData"] = prot.asc_putUserData;
+	prot["asc_getUserData"] = prot.asc_getUserData;
 	prot["asc_getRepliesCount"] = prot.asc_getRepliesCount;
 	prot["asc_getReply"] = prot.asc_getReply;
 	prot["asc_addReply"] = prot.asc_addReply;

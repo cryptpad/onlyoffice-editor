@@ -214,7 +214,6 @@ CGroupShape.prototype.getHierarchy = CShape.prototype.getHierarchy;
 CGroupShape.prototype.getParentObjects = CShape.prototype.getParentObjects;
 CGroupShape.prototype.recalculateTransform = CShape.prototype.recalculateTransform;
 CGroupShape.prototype.deselect = CShape.prototype.deselect;
-CGroupShape.prototype.hitToHandles = CShape.prototype.hitToHandles;
 CGroupShape.prototype.hitInBoundingRect = CShape.prototype.hitInBoundingRect;
 CGroupShape.prototype.getRotateAngle = CShape.prototype.getRotateAngle;
 CGroupShape.prototype.getDrawingDocument = CShape.prototype.getDrawingDocument;

@@ -799,12 +799,12 @@ CDrawingDocument.prototype =
     ConvertCoordsToCursorWR : function(x, y, pageIndex, transform)
     {
         var _return = null;
-        if (!transform)
+        if (!transform) {
             _return = this.__DD_ConvertCoordsToCursor(x, y, pageIndex);
-        else
-            _return = this.__DD_ConvertCoordsToCursor(x, y, pageIndex,
-                transform.sx, transform.shy, transform.shx, transform.sy, transform.tx, transform.ty);
-        return { X : _return[0], Y : _return[1], Error : _return[2] };
+        } else {
+            _return = this.__DD_ConvertCoordsToCursor(x, y, pageIndex, transform.sx, transform.shy, transform.shx, transform.sy, transform.tx, transform.ty);
+        }
+        return { X : _return.X, Y : _return.Y, Error : _return.Error };
     },
 
     ConvertCoordsToAnotherPage : function(x, y, pageCoord, pageNeed)
@@ -2109,8 +2109,8 @@ CDrawingDocument.prototype =
 
     __DD_ConvertCoordsToCursor : function(x, y, page)
     {
-        var _arr = this.Native["DD_ConvertCoordsToCursor"](x, y, page);
-        return { X : _arr[0], Y : _arr[1] };
+        var _arr = window["native"]["DD_ConvertCoordsToCursor"](x, y, page);
+        return { X : _arr[0], Y : _arr[1], Error : _arr[2] };
     },
 
     __DD_ConvetToPageCoords : function(x, y, page)

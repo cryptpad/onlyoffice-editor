@@ -453,6 +453,7 @@ MasterSlide.prototype =
             this.checkDrawingUniNvPr(item);
             History.Add(new AscDFH.CChangesDrawingsContent(this, AscDFH.historyitem_SlideMasterAddToSpTree, pos, [item], true));
             this.cSld.spTree.splice(pos, 0, item);
+            item.setParent2(this);
         },
 
         changeBackground: function (bg) {
@@ -482,6 +483,7 @@ MasterSlide.prototype =
         addToSldLayoutLstToPos: function (pos, obj) {
             History.Add(new AscDFH.CChangesDrawingsContent(this, AscDFH.historyitem_SlideMasterAddLayout, pos, [obj], true));
             this.sldLayoutLst.splice(pos, 0, obj);
+            obj.setMaster(this);
         },
 
         getAllImages: function (images) {

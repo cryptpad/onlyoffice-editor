@@ -2893,6 +2893,12 @@ function CDemonstrationManager(htmlpage)
 		}
 
 		this.waitReporterObject = [main_div_id, start_slide_num, is_play_mode];
+
+		if (undefined !== window["AscDesktopEditor"])
+		{
+			this.HtmlPage.m_oApi.hideVideoControl();
+			window["AscDesktopEditor"]["SetFullscreen"](true);
+		}
     }
 
     this.EndWaitReporter = function(isNoStart)
@@ -2908,11 +2914,11 @@ function CDemonstrationManager(htmlpage)
         }
 
         if (true !== isNoStart)
-            this.Start(this.waitReporterObject[0], this.waitReporterObject[1], this.waitReporterObject[2]);
+            this.Start(this.waitReporterObject[0], this.waitReporterObject[1], this.waitReporterObject[2], true);
         this.waitReporterObject = null;
     }
 
-    this.Start = function(main_div_id, start_slide_num, is_play_mode)
+    this.Start = function(main_div_id, start_slide_num, is_play_mode, is_no_fullscreen)
     {
 		this.StartSlideNum = start_slide_num;
 		if (-1 == start_slide_num)
@@ -2923,7 +2929,7 @@ function CDemonstrationManager(htmlpage)
         if (this.DemonstrationDiv == null || start_slide_num < 0 || start_slide_num >= this.SlidesCount)
             return;
 
-        if (undefined !== window["AscDesktopEditor"])
+        if (undefined !== window["AscDesktopEditor"] && (true !== is_no_fullscreen))
             window["AscDesktopEditor"]["SetFullscreen"](true);
 
         this.MainDivId = main_div_id;

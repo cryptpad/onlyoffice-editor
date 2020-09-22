@@ -100,12 +100,15 @@ CHeaderFooter.prototype =
         return this.LogicDocument.Get_ColorMap();
     },
     
-    Copy : function()
-    {
-        var NewHdrFtr = new CHeaderFooter(this.Parent, this.LogicDocument, this.DrawingDocument, this.Type);
-        NewHdrFtr.Content.Copy2( this.Content );
-        return NewHdrFtr;
-    },
+    Copy : function(oLogicDocument, oCopyPr)
+	{
+		if (!oLogicDocument)
+			oLogicDocument = this.LogicDocument;
+
+		var oNewHdrFtr = new CHeaderFooter(oLogicDocument.GetHdrFtr(), oLogicDocument, oLogicDocument.GetDrawingDocument(), this.Type);
+		oNewHdrFtr.Content.Copy2(this.Content, oCopyPr);
+		return oNewHdrFtr;
+	},
 
     Set_Page : function(Page_abs)
     {
@@ -706,10 +709,10 @@ CHeaderFooter.prototype =
         this.Content.EditChart( Chart );
     },
 
-	AddInlineTable : function(Cols, Rows)
-    {
-        this.Content.AddInlineTable( Cols, Rows );
-    },
+	AddInlineTable : function(nCols, nRows, nMode)
+	{
+		return this.Content.AddInlineTable(nCols, nRows, nMode);
+	},
 
 	AddToParagraph : function(ParaItem, bRecalculate)
 	{
@@ -932,6 +935,11 @@ CHeaderFooter.prototype =
         return this.Content.GetAllParagraphs(Props, ParaArray);
     },
 
+	GetAllTables : function(oProps, arrTables)
+	{
+		return this.Content.GetAllTables(oProps, arrTables);
+	},
+
 	GetAllDrawingObjects : function(arrDrawings)
 	{
 		return this.Content.GetAllDrawingObjects(arrDrawings);
@@ -1035,15 +1043,15 @@ CHeaderFooter.prototype =
 //-----------------------------------------------------------------------------------
 // Функции для работы с таблицами
 //-----------------------------------------------------------------------------------
-	AddTableRow : function(bBefore)
+	AddTableRow : function(bBefore, nCount)
 	{
-		this.Content.AddTableRow(bBefore);
+		this.Content.AddTableRow(bBefore, nCount);
 	},
 
-	AddTableColumn : function(bBefore)
-    {
-        this.Content.AddTableColumn( bBefore );
-    },
+	AddTableColumn : function(bBefore, nCount)
+	{
+		this.Content.AddTableColumn(bBefore, nCount);
+	},
 
 	RemoveTableRow : function()
 	{
@@ -1332,6 +1340,11 @@ CHeaderFooter.prototype.FindWatermark = function()
         }
     }
     return oCandidate;
+};
+CHeaderFooter.prototype.GetAllTablesOnPage = function(nPageAbs, arrTables)
+{
+	this.Set_Page(nPageAbs);
+	return this.Content.GetAllTablesOnPage(nPageAbs, arrTables);
 };
 
 //-----------------------------------------------------------------------------------
@@ -1940,15 +1953,17 @@ CHeaderFooterController.prototype =
             return this.CurHdrFtr.EditChart( Chart );
     },
 
-	AddInlineTable : function(Cols, Rows)
-    {
-        if ( null != this.CurHdrFtr )
-            return this.CurHdrFtr.AddInlineTable( Cols, Rows );
-    },
+	AddInlineTable : function(nCols, nRows, nMode)
+	{
+		if (this.CurHdrFtr)
+			return this.CurHdrFtr.AddInlineTable(nCols, nRows, nMode);
+
+		return null;
+	},
 
 	AddToParagraph : function(ParaItem, bRecalculate)
 	{
-		if (para_NewLine === ParaItem.Type && true === ParaItem.IsPageOrColumnBreak())
+		if (para_NewLine === ParaItem.Type && true === ParaItem.IsPageBreak())
 			return;
 
 		if (null != this.CurHdrFtr)
@@ -2280,16 +2295,11 @@ CHeaderFooterController.prototype =
                 HdrFtr = this.Pages[PageIndex].Footer;
         }
 
-        if ( null === HdrFtr )
+        if (!HdrFtr)
         {
             // Ничего не делаем и отключаем дальнейшую обработку MouseUp и MouseMove
             this.WaitMouseDown = true;
-
             return true;
-        }
-        else
-        {
-            this.WaitMouseDown = false;
         }
 
         // В зависимости от страницы и позиции на странице мы активируем(делаем текущим)
@@ -2303,7 +2313,6 @@ CHeaderFooterController.prototype =
 		}
 
 		this.CurHdrFtr = HdrFtr;
-
 		if ( null != this.CurHdrFtr )
         {
             this.CurHdrFtr.Selection_SetStart( X, Y, PageIndex, MouseEvent );
@@ -2317,6 +2326,7 @@ CHeaderFooterController.prototype =
             }
         }
 
+		this.WaitMouseDown = false;
         return true;
     },
 
@@ -2431,16 +2441,16 @@ CHeaderFooterController.prototype =
 //-----------------------------------------------------------------------------------
 // Функции для работы с таблицами
 //-----------------------------------------------------------------------------------
-	AddTableRow : function(bBefore)
+	AddTableRow : function(bBefore, nCount)
 	{
 		if (null != this.CurHdrFtr)
-			this.CurHdrFtr.AddTableRow(bBefore);
+			this.CurHdrFtr.AddTableRow(bBefore, nCount);
 	},
 
-	AddTableColumn : function(bBefore)
+	AddTableColumn : function(bBefore, nCount)
 	{
 		if (null != this.CurHdrFtr)
-			this.CurHdrFtr.AddTableColumn(bBefore);
+			this.CurHdrFtr.AddTableColumn(bBefore, nCount);
 	},
 
 	RemoveTableRow : function()
@@ -2658,7 +2668,7 @@ CHeaderFooterController.prototype.RecalculatePageCountUpdate = function(nPageAbs
 		bNeedRecalc = true;
 	}
 
-	if (false === bNeedRecalc && oFooter && oFooter.Have_PageCountElement())
+	if (oFooter && oFooter.Have_PageCountElement())
 	{
 		oFooter.Update_PageCountElements(nPageCount);
 		bNeedRecalc = true;
@@ -2668,6 +2678,22 @@ CHeaderFooterController.prototype.RecalculatePageCountUpdate = function(nPageAbs
 		return this.Recalculate(nPageAbs);
 
 	return null;
+};
+CHeaderFooterController.prototype.UpdatePagesCount = function(nPageAbs, nPageCount)
+{
+	var oPage = this.Pages[nPageAbs];
+	if (!oPage)
+		return false;
+
+	var oHeader = oPage.Header;
+	var oFooter = oPage.Footer;
+
+	if (oHeader && oHeader.Have_PageCountElement())
+		oHeader.Update_PageCountElements(nPageCount);
+
+	if (oFooter && oFooter.Have_PageCountElement())
+		oFooter.Update_PageCountElements(nPageCount);
+
 };
 CHeaderFooterController.prototype.HavePageCountElement = function()
 {
@@ -2731,6 +2757,20 @@ CHeaderFooterController.prototype.Document_Is_SelectionLocked = function(nCheckT
     // Нужно запускать проверку дальше, чтобы проверить залоченность Sdt
     if (this.CurHdrFtr)
         this.CurHdrFtr.GetContent().Document_Is_SelectionLocked(nCheckType);
+};
+CHeaderFooterController.prototype.GetAllTablesOnPage = function(nPageAbs, arrTables)
+{
+	var oPage = this.Pages[nPageAbs];
+	if (!oPage)
+		return arrTables;
+
+	if (oPage.Header)
+		oPage.Header.GetAllTablesOnPage(nPageAbs, arrTables);
+
+	if (oPage.Footer)
+		oPage.Footer.GetAllTablesOnPage(nPageAbs, arrTables);
+
+	return arrTables;
 };
 
 

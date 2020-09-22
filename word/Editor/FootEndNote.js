@@ -47,6 +47,8 @@ function CFootEndnote(DocumentController)
 	this.CurtomMarkFollows = false;
 	this.NeedUpdateHint    = true;
 	this.Hint              = "";
+	this.SectionIndex      = -1; // Номер секции, к которой относится данная сноска (нужно для концевых сносок)
+	this.Ref               = null; // Связанная с данной сноской ссылка
 
 	this.PositionInfo     = {
 		Paragraph : null,
@@ -80,7 +82,7 @@ CFootEndnote.prototype.Get_PageContentStartPos = function(nCurPage)
 {
 	var nPageAbs   = this.Get_AbsolutePage(nCurPage);
 	var nColumnAbs = this.Get_AbsoluteColumn(nCurPage);
-	return this.Parent.Get_PageContentStartPos(nPageAbs, nColumnAbs);
+	return this.Parent.Get_PageContentStartPos(nPageAbs, nColumnAbs, this.GetSectionIndex());
 };
 CFootEndnote.prototype.Refresh_RecalcData2 = function(nIndex, nCurPage)
 {
@@ -116,21 +118,41 @@ CFootEndnote.prototype.IsCustomMarkFollows = function()
 };
 CFootEndnote.prototype.AddDefaultFootnoteContent = function(sText)
 {
-	var oStyles    = this.LogicDocument.Get_Styles();
-	var oParagraph = this.GetElement(0);
+	var oStyles    = this.LogicDocument.GetStyles();
+	var oParagraph = this.GetFirstParagraph();
 
 	oParagraph.Style_Add(oStyles.GetDefaultFootnoteText());
 	var oRun = new ParaRun(oParagraph, false);
-	oRun.Set_RStyle(oStyles.GetDefaultFootnoteReference());
+	oRun.SetRStyle(oStyles.GetDefaultFootnoteReference());
 	if (sText)
 		oRun.AddText(sText);
 	else
-		oRun.Add_ToContent(0, new ParaFootnoteRef(this));
+		oRun.AddToContent(0, new ParaFootnoteRef(this));
 
-	oParagraph.Add_ToContent(0, oRun);
+	oParagraph.AddToContent(0, oRun);
 	oRun = new ParaRun(oParagraph, false);
-	oRun.Add_ToContent(0, new ParaSpace());
-	oParagraph.Add_ToContent(1, oRun);
+	oRun.AddToContent(0, new ParaSpace());
+	oParagraph.AddToContent(1, oRun);
+
+	this.MoveCursorToEndPos(false);
+};
+CFootEndnote.prototype.AddDefaultEndnoteContent = function(sText)
+{
+	var oStyles    = this.LogicDocument.GetStyles();
+	var oParagraph = this.GetFirstParagraph();
+
+	oParagraph.Style_Add(oStyles.GetDefaultEndnoteText());
+	var oRun = new ParaRun(oParagraph, false);
+	oRun.SetRStyle(oStyles.GetDefaultEndnoteReference());
+	if (sText)
+		oRun.AddText(sText);
+	else
+		oRun.AddToContent(0, new ParaEndnoteRef(this));
+
+	oParagraph.AddToContent(0, oRun);
+	oRun = new ParaRun(oParagraph, false);
+	oRun.AddToContent(0, new ParaSpace());
+	oParagraph.AddToContent(1, oRun);
 
 	this.MoveCursorToEndPos(false);
 };
@@ -174,7 +196,78 @@ CFootEndnote.prototype.OnFastRecalculate = function()
 };
 CFootEndnote.prototype.Get_ColumnFields = function(nElementIndex, nColumnIndex)
 {
-	return this.Parent.GetColumnFields(undefined, nColumnIndex, this.Get_StartPage_Absolute());
+	return this.Parent.GetColumnFields(this.Get_StartPage_Absolute(), nColumnIndex, this.GetSectionIndex());
+};
+CFootEndnote.prototype.SetSectionIndex = function(nSectionIndex)
+{
+	this.SectionIndex = nSectionIndex;
+};
+CFootEndnote.prototype.GetSectionIndex = function(nSectionIndex)
+{
+	return this.SectionIndex;
+};
+CFootEndnote.prototype.PrepareRecalculateObject = function()
+{
+	CDocumentContent.prototype.PrepareRecalculateObject.call(this);
+};
+CFootEndnote.prototype.SaveRecalculateObject = function()
+{
+	return {
+		SectionIndex : this.SectionIndex,
+		DocContent   : CDocumentContent.prototype.SaveRecalculateObject.call(this)
+	};
+};
+CFootEndnote.prototype.LoadRecalculateObject = function(oRecalcObj)
+{
+	this.SectionIndex = oRecalcObj.SectionIndex;
+	CDocumentContent.prototype.LoadRecalculateObject.call(this, oRecalcObj.DocContent);
+};
+/**
+ * Конвертируем содержимое сноски из концевой в обычную, или ноборот
+ * @param isToFootnote {boolean}
+ */
+CFootEndnote.prototype.ConvertFootnoteType = function(isToFootnote)
+{
+	if (!this.LogicDocument)
+		return;
+
+	var oStyles   = this.LogicDocument.GetStyles();
+	var oFootnote = this;
+
+	var arrParagraphs = this.GetAllParagraphs();
+
+	var sSrcStyle, sDstStyle;
+	if (isToFootnote)
+	{
+		sSrcStyle = oStyles.GetDefaultEndnoteText();
+		sDstStyle = oStyles.GetDefaultFootnoteText();
+	}
+	else
+	{
+		sSrcStyle = oStyles.GetDefaultFootnoteText();
+		sDstStyle = oStyles.GetDefaultEndnoteText();
+	}
+
+	for (var nIndex = 0, nCount = arrParagraphs.length; nIndex < nCount; ++nIndex)
+	{
+		var oParagraph = arrParagraphs[nIndex];
+		if (oParagraph.Style_Get() === sSrcStyle)
+			oParagraph.Style_Add(sDstStyle, true);
+
+		oParagraph.CheckRunContent(function(oRun)
+		{
+			oRun.ConvertFootnoteType(isToFootnote, oStyles, oFootnote);
+		});
+	}
+};
+CFootEndnote.prototype.SetRef = function(oRef)
+{
+	if (oRef && (oRef instanceof ParaFootnoteReference || oRef instanceof ParaEndnoteReference))
+		this.Ref = oRef;
+};
+CFootEndnote.prototype.GetRef = function()
+{
+	return this.Ref;
 };
 
 //--------------------------------------------------------export----------------------------------------------------

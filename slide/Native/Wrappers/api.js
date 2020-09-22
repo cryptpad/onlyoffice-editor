@@ -36,10 +36,12 @@ var _api = null;
 
 var sdkCheck = true;
 var spellCheck = true;
+var _internalStorage = {};
 
 // endsectionPr -----------------------------------------------------------------------------------------
 
 window['SockJS'] = createSockJS();
+window['JSZipUtils'] = JSZipUtils();
 
 // font engine -------------------------------------
 var FontStyle =
@@ -192,40 +194,6 @@ function asc_menu_WriteColor(_type, _color, _stream)
     }
 
     _stream["WriteByte"](255);
-}
-
-function asc_WriteUsers(c, s) {
-    if (!c) return;
-
-    var len = 0, name, user;
-    for (name in c) {
-        if (undefined !== name) {
-            len++;
-        }
-    }
-
-    s["WriteLong"](len);
-
-    for (name in c) {
-        if (undefined !== name) {
-            user = c[name];
-            if (user) {
-                s['WriteString2'](user.asc_getId());
-                s['WriteString2'](user.asc_getFirstName() === undefined ? "" : user.asc_getFirstName());
-                s['WriteString2'](user.asc_getLastName() === undefined ? "" : user.asc_getLastName());
-                s['WriteString2'](user.asc_getUserName() === undefined ? "" : user.asc_getUserName());
-                s['WriteBool'](user.asc_getView());
-
-                var color = new Asc.asc_CColor();
-
-                color.r = (user.color >> 16) & 255;
-                color.g = (user.color >> 8 ) & 255;
-                color.b = (user.color      ) & 255;
-
-                asc_menu_WriteColor(0, color, s);
-            }
-        }
-    }
 }
 
 function asc_WriteColorSchemes(schemas, s) {
@@ -3050,6 +3018,9 @@ function NativeOpenFileP(_params, documentInfo){
     docInfo.put_UserInfo(userInfo);
     docInfo.put_Token(window.documentInfo["token"]);
 
+    _internalStorage.externalUserInfo = userInfo;
+    _internalStorage.externalDocInfo = docInfo;
+
     var permissions = window.documentInfo["permissions"];
     if (undefined != permissions && null != permissions && permissions.length > 0) {
         docInfo.put_Permissions(JSON.parse(permissions));
@@ -3081,6 +3052,19 @@ function NativeOpenFileP(_params, documentInfo){
         window["native"]["OnCallMenuEvent"](8093, stream); // ASC_PRESENTATIONS_EVENT_TYPE_THEME_INDEX
     });
 
+    // Comments
+
+    _api.asc_registerCallback("asc_onAddComment", onApiAddComment);
+    _api.asc_registerCallback("asc_onAddComments", onApiAddComments);
+    _api.asc_registerCallback("asc_onRemoveComment", onApiRemoveComment);
+    _api.asc_registerCallback("asc_onChangeComments", onChangeComments);
+    _api.asc_registerCallback("asc_onRemoveComments", onApiRemoveComments);
+    _api.asc_registerCallback("asc_onChangeCommentData", onApiChangeCommentData);
+    _api.asc_registerCallback("asc_onLockComment", onApiLockComment);
+    _api.asc_registerCallback("asc_onUnLockComment", onApiUnLockComment);
+    _api.asc_registerCallback("asc_onShowComment", onApiShowComment);
+    _api.asc_registerCallback("asc_onHideComment", onApiHideComment);
+    _api.asc_registerCallback("asc_onUpdateCommentPosition", onApiUpdateCommentPosition);
 
     if (window.documentInfo["iscoauthoring"]) {
         _api.isSpellCheckEnable = false;
@@ -3090,19 +3074,8 @@ function NativeOpenFileP(_params, documentInfo){
         _api.SetCollaborativeMarksShowType(Asc.c_oAscCollaborativeMarksShowType.None);
         window["native"]["onTokenJWT"](_api.CoAuthoringApi.get_jwt());
 
-        _api.asc_registerCallback("asc_onAuthParticipantsChanged", function(users) {
-            var stream = global_memory_stream_menu;
-            stream["ClearNoAttack"]();
-            asc_WriteUsers(users, stream);
-            window["native"]["OnCallMenuEvent"](20101, stream); // ASC_COAUTH_EVENT_TYPE_PARTICIPANTS_CHANGED
-        });
-
-        _api.asc_registerCallback("asc_onParticipantsChanged", function(users) {
-            var stream = global_memory_stream_menu;
-            stream["ClearNoAttack"]();
-            asc_WriteUsers(users, stream);
-            window["native"]["OnCallMenuEvent"](20101, stream); // ASC_COAUTH_EVENT_TYPE_PARTICIPANTS_CHANGED
-        });
+        _api.asc_registerCallback("asc_onAuthParticipantsChanged", onApiAuthParticipantsChanged);
+        _api.asc_registerCallback("asc_onParticipantsChanged", onApiParticipantsChanged);
 
         _api.asc_registerCallback("asc_onGetEditorPermissions", function(state) {
 
@@ -3157,10 +3130,221 @@ function NativeOpenFileP(_params, documentInfo){
 
         initSpellCheckApi();
 
+        if (!_api.bNoSendComments) {
+            var _slides = _presentation.Slides;
+            var _slidesCount = _slides.length;
+            for (var i = 0; i < _slidesCount; i++) {
+                var slideComments = _slides[i].slideComments;
+                if (slideComments) {
+                    var _comments = slideComments.comments;
+                    var _commentsCount = _comments.length;
+                    for (var j = 0; j < _commentsCount; j++) {
+                        _api.sync_AddComment(_comments[j].Get_Id(), _comments[j].Data);
+                    }
+                }
+            }
+        }
+
         return [nSlidesCount, dPresentationWidth, dPresentationHeight, aTimings];
     }
 }
 
+// Common
+
+function postDataAsJSONString(data, eventId) {
+    var stream = global_memory_stream_menu;
+    stream["ClearNoAttack"]();
+    if (data !== undefined && data !== null) {
+        stream["WriteString2"](JSON.stringify(data));
+    }
+    window["native"]["OnCallMenuEvent"](eventId, stream);
+}
+
+// Users
+
+function sdkUsersToJson(users) {
+    var arrUsers = [];
+
+    for (var userId in users) {
+        if (undefined !== userId) {
+            var user = users[userId];
+            if (user) {
+                arrUsers.push({
+                    id          : user.asc_getId(),
+                    idOriginal  : user.asc_getIdOriginal(),
+                    userName    : user.asc_getUserName(),
+                    online      : true,
+                    color       : user.asc_getColor(),
+                    view        : user.asc_getView()
+                });
+            }
+        }
+    }
+    return arrUsers;
+}
+
+function onApiAuthParticipantsChanged(users) {
+    var users = sdkUsersToJson(users) || [];
+    postDataAsJSONString(users, 20101); // ASC_COAUTH_EVENT_TYPE_PARTICIPANTS_CHANGED
+}
+
+function onApiParticipantsChanged(users) {
+    var users = sdkUsersToJson(users) || [];
+    postDataAsJSONString(users, 20101); // ASC_COAUTH_EVENT_TYPE_PARTICIPANTS_CHANGED
+}
+
+// Comments
+
+function stringOOToLocalDate (date) {
+    if (typeof date === 'string')
+        return parseInt(date);
+    return 0;
+}
+
+function stringUtcToLocalDate(date) {
+    if (typeof date === 'string')
+        return parseInt(date) + (new Date()).getTimezoneOffset() * 60000;
+    return 0;
+}
+
+function readSDKComment(id, data) {
+    var date = data.asc_getOnlyOfficeTime()
+            ? new Date(stringOOToLocalDate(data.asc_getOnlyOfficeTime()))
+            : (data.asc_getTime() == '') ? new Date() : new Date(stringUtcToLocalDate(data.asc_getTime())),
+        groupname = id.substr(0, id.lastIndexOf('_') + 1).match(/^(doc|sheet[0-9_]+)_/);
+
+    return {
+        id          : id,
+        guid        : data.asc_getGuid(),
+        userId      : data.asc_getUserId(),
+        userName    : data.asc_getUserName(),
+        date        : date.getTime().toString(),
+        quoteText   : data.asc_getQuoteText(),
+        text        : data.asc_getText(),
+        solved      : data.asc_getSolved(),
+        unattached  : (data.asc_getDocumentFlag === undefined) ? false : data.asc_getDocumentFlag(),
+        groupName   : (groupname && groupname.length>1) ? groupname[1] : null,
+        replies     : readSDKReplies(data)
+    };
+}
+
+function readSDKReplies (data) {
+    var i = 0,
+        replies = [],
+        date = null;
+    var repliesCount = data.asc_getRepliesCount();
+    if (repliesCount) {
+        for (i = 0; i < repliesCount; ++i) {
+            var reply = data.asc_getReply(i);
+            date = (reply.asc_getOnlyOfficeTime()) 
+                ? new Date(stringOOToLocalDate(reply.asc_getOnlyOfficeTime()))
+                : ((reply.asc_getTime() == '') ? new Date() : new Date(stringUtcToLocalDate(reply.asc_getTime())));
+            replies.push({
+                userId      : reply.asc_getUserId(),
+                userName    : reply.asc_getUserName(),
+                text        : reply.asc_getText(),
+                date        : date.getTime().toString()
+            });
+        }
+    }
+    return replies;
+}
+
+function onApiAddComment(id, data) {
+    var comment = readSDKComment(id, data) || {};
+    postDataAsJSONString(comment, 23001); // ASC_MENU_EVENT_TYPE_ADD_COMMENT
+}
+
+function onApiAddComments(data) {
+    var comments = [];
+    for (var i = 0; i < data.length; ++i) {
+        comments.push(readSDKComment(data[i].asc_getId(), data[i]));
+    }
+    postDataAsJSONString(comments, 23002); // ASC_MENU_EVENT_TYPE_ADD_COMMENTS
+}
+
+function onApiRemoveComment(id) {
+    var data = {
+        "id": id
+    };
+    postDataAsJSONString(data, 23003); // ASC_MENU_EVENT_TYPE_REMOVE_COMMENT
+}
+
+function onChangeComments(data) {
+    var comments = [];
+    for (var i = 0; i < data.length; ++i) {
+        comments.push(readSDKComment(data[i].asc_getId(), data[i]));
+    }
+    postDataAsJSONString(comments, 23004); // ASC_MENU_EVENT_TYPE_CHANGE_COMMENTS
+}
+
+function onApiRemoveComments(data) {
+    var ids = [];
+    for (var i = 0; i < data.length; ++i) {
+        ids.push({
+            "id": data[i]
+        });
+    }
+    postDataAsJSONString(ids, 23005); // ASC_MENU_EVENT_TYPE_REMOVE_COMMENTS
+}
+
+function onApiChangeCommentData(id, data) {
+    var comment = readSDKComment(id, data) || {},
+        data = {
+            "id": id,
+            "comment": comment
+        };
+
+    postDataAsJSONString(data, 23006); // ASC_MENU_EVENT_TYPE_CHANGE_COMMENTDATA
+}
+
+function onApiLockComment(id, userId) {
+    var data = {
+        "id": id,
+        "userId": userId
+    };
+    postDataAsJSONString(data, 23007); // ASC_MENU_EVENT_TYPE_LOCK_COMMENT
+}
+
+function onApiUnLockComment(id) {
+    var data = {
+        "id": id
+    };
+    postDataAsJSONString(data, 23008); // ASC_MENU_EVENT_TYPE_UNLOCK_COMMENT
+}
+
+function onApiShowComment(uids, posX, posY, leftX, opts, hint) {
+    var data = {
+        "uids": uids,
+        "posX": posX,
+        "posY": posY,
+        "leftX": leftX,
+        "opts": opts,
+        "hint": hint
+    };
+    postDataAsJSONString(data, 23009); // ASC_MENU_EVENT_TYPE_SHOW_COMMENT
+}
+
+function onApiHideComment(hint) {
+    var data = {
+        "hint": hint
+    };
+    postDataAsJSONString(data, 23010); // ASC_MENU_EVENT_TYPE_HIDE_COMMENT
+}
+
+function onApiUpdateCommentPosition(uids, posX, posY, leftX) {
+    var data = {
+        "uids": uids,
+        "posX": posX,
+        "posY": posY,
+        "leftX": leftX
+    };
+    postDataAsJSONString(data, 23011); // ASC_MENU_EVENT_TYPE_UPDATE_COMMENT_POSITION
+}
+
+function onDocumentPlaceChanged() {
+    postDataAsJSONString(null, 23012); // ASC_MENU_EVENT_TYPE_DOCUMENT_PLACE_CHANGED
+}
 Asc['asc_docs_api'].prototype.UpdateTextPr = function(TextPr)
 {
     if (!TextPr)
@@ -3365,7 +3549,6 @@ window["asc_docs_api"].prototype["asc_nativeOpenFile2"] = function(base64File, v
     _loader.Api = this;
 
     _loader.Load(base64File, this.WordControl.m_oLogicDocument);
-    _loader.Check_TextFit();
     this.LoadedObject = 1;
     AscCommon.g_oIdCounter.Set_Load(false);
 };

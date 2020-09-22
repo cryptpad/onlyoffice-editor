@@ -157,7 +157,7 @@
      */
     window["asc_docs_api"].prototype["pluginMethod_InsertAndReplaceContentControls"] = function(arrDocuments)
     {
-        var _worker = new AscCommonWord.CContentControlPluginWorker(this, arrDocuments);
+        var _worker = new AscCommon.CContentControlPluginWorker(this, arrDocuments);
         return _worker.start();
     };
     /**
@@ -172,7 +172,7 @@
      */
     window["asc_docs_api"].prototype["pluginMethod_RemoveContentControls"] = function(arrDocuments)
     {
-        var _worker = new AscCommonWord.CContentControlPluginWorker(this, arrDocuments);
+        var _worker = new AscCommon.CContentControlPluginWorker(this, arrDocuments);
         return _worker.delete();
     };
     /**
@@ -195,43 +195,6 @@
             _ret.push({"Tag" : _obj.Tag, "Id" : _obj.Id, "Lock" : _obj.Lock, "InternalId" : _obj.InternalId});
         }
         return _ret;
-    };
-    /**
-     * This method allows to add an empty content control to the document.
-     * @memberof Api
-     * @typeofeditors ["CDE"]
-     * @alias AddContentControl
-     * @param {ContentControlType} type is a numeric value that specifies the content control type
-     * @param {ContentControlProperties}  [ properties = {} ] is property of content control
-     * @returns {ContentControl} return json with "Tag", "Id", "Lock" and "InternalId" values of created content control
-     * @example
-     * var type = 1;
-     * var properties = {"Id": 100, "Tag": "CC_Tag", "Lock": 3};
-     * window.Asc.plugin.executeMethod("AddContentControl", [type, properties]);
-     */
-    window["asc_docs_api"].prototype["pluginMethod_AddContentControl"] = function(type, properties)
-    {
-        var _content_control_pr;
-        if (properties)
-        {
-            _content_control_pr = new AscCommon.CContentControlPr();
-            _content_control_pr.Id = properties["Id"];
-            _content_control_pr.Tag = properties["Tag"];
-            _content_control_pr.Lock = properties["Lock"];
-
-            _content_control_pr.Alias = properties["Alias"];
-
-            if (undefined !== properties["Appearance"])
-                _content_control_pr.Appearance = properties["Appearance"];
-
-            if (undefined !== properties["Color"])
-                _content_control_pr.Color = new Asc.asc_CColor(properties["Color"]["R"], properties["Color"]["G"], properties["Color"]["B"]);
-        }
-
-        var _obj = this.asc_AddContentControl(type, _content_control_pr);
-        if (!_obj)
-            return undefined;
-        return {"Tag" : _obj.Tag, "Id" : _obj.Id, "Lock" : _obj.Lock, "InternalId" : _obj.InternalId};
     };
     /**
      * This method allows to remove content control, but leave all its contents.
@@ -269,10 +232,53 @@
      * @example
      * window.Asc.plugin.executeMethod("GetCurrentContentControlPr")
      */
-    window["asc_docs_api"].prototype["pluginMethod_GetCurrentContentControlPr"] = function()
-    {
-        return this.asc_GetContentControlProperties();
-    };
+	window["asc_docs_api"].prototype["pluginMethod_GetCurrentContentControlPr"] = function(contentFormat)
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+
+		var oState;
+		var prop = this.asc_GetContentControlProperties();
+		if (!prop)
+			return null;
+
+		if (oLogicDocument && prop.CC)
+		{
+			oState = oLogicDocument.SaveDocumentState();
+			prop.CC.SelectContentControl();
+		}
+
+		if (prop && prop.CC) delete prop.CC;
+
+		prop["Tag"] = prop.Tag;
+		prop["Id"] = prop.Id;
+		prop["Lock"] = prop.Lock;
+		prop["InternalId"] = prop.InternalId;
+		prop["Appearance"] = prop.Appearance;
+
+		if (contentFormat)
+		{
+			var copy_data = {
+				data     : "",
+				pushData : function(format, value)
+				{
+					this.data = value;
+				}
+			};
+			var copy_format = 1;
+			if (contentFormat == Asc.EPluginDataType.html)
+				copy_format = 2;
+			this.asc_CheckCopy(copy_data, copy_format);
+			prop["content"] = copy_data.data;
+		}
+
+		if (oState)
+		{
+			oLogicDocument.LoadDocumentState(oState);
+			oLogicDocument.UpdateSelection();
+		}
+
+		return prop;
+	};
     /**
      * Select specified content control
      * @memberof Api
@@ -345,26 +351,25 @@
             oLogicDocument.FinalizeAction();
         }
     };
-    /**
-     * Add comment to document
-     * @memberof Api
-     * @typeofeditors ["CDE"]
-     * @alias AddComment
-     * @param {string} sMessage Message
-     * @param {string} sAuthorName Author
-     */
-    window["asc_docs_api"].prototype["pluginMethod_AddComment"] = function(sMessage, sAuthorName)
-    {
-        var oData = new asc_CCommentDataWord();
+	/**
+	 * Add comment to document
+	 * @memberof Api
+	 * @typeofeditors ["CDE"]
+	 * @alias AddComment
+	 * @param {object} oCommentData
+	 * @return {string | null} Added comment id or null if comment can't be added
+	 */
+	window["asc_docs_api"].prototype["pluginMethod_AddComment"] = function(oCommentData)
+	{
+		var oCD = undefined;
+		if (oCommentData)
+		{
+			oCD = new AscCommon.CCommentData();
+			oCD.ReadFromSimpleObject(oCommentData);
+		}
 
-        if (sMessage)
-            oData.asc_putText(sMessage);
-
-        if (sAuthorName)
-            oData.asc_putUserName(sAuthorName);
-
-        this.asc_addComment(oData);
-    };
+		return this.asc_addComment(new window['Asc']['asc_CCommentDataWord'](oCD));
+	};
     /**
      * Move cursor to Start
      * @memberof Api
@@ -421,7 +426,7 @@
         if (!oSearchEngine)
             return;
 
-        this.WordControl.m_oLogicDocument.Search_Replace(sReplace, true, null, false);
+        this.WordControl.m_oLogicDocument.ReplaceSearchElement(sReplace, true, null, false);
     };
     /**
      * Get file content in html format
@@ -436,4 +441,59 @@
     {
         return this.ContentToHTML(true);
     };
+	/**
+	 * Get array of all comments in the document
+	 * @memberof Api
+	 * @typeofeditors ["CDE"]
+	 * @alias GetAllComments
+	 * @returns {[]}
+	 */
+	window["asc_docs_api"].prototype["pluginMethod_GetAllComments"] = function()
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return;
+
+		var arrResult = [];
+
+		var oComments = oLogicDocument.Comments.GetAllComments();
+		for (var sId in oComments)
+		{
+			var oComment = oComments[sId];
+			arrResult.push({"Id" : oComment.GetId(), "Data" : oComment.GetData().ConvertToSimpleObject()});
+		}
+
+		return arrResult;
+	};
+	/**
+	 * Remove an array of specified comments
+	 * @param {array.strings} arrIds
+	 * @memberof Api
+	 * @typeofeditors ["CDE"]
+	 * @alias RemoveComments
+	 */
+	window["asc_docs_api"].prototype["pluginMethod_RemoveComments"] = function(arrIds)
+	{
+		this.asc_RemoveAllComments(false, false, arrIds);
+	};
+	/**
+	 * Change comment
+	 * @memberof Api
+	 * @typeofeditors ["CDE"]
+	 * @alias ChangeComment
+	 * @param {string} sId
+	 * @param {object} oCommentData
+	 */
+	window["asc_docs_api"].prototype["pluginMethod_ChangeComment"] = function(sId, oCommentData)
+	{
+		var oCD = undefined;
+		if (oCommentData)
+		{
+			oCD = new AscCommon.CCommentData();
+			oCD.ReadFromSimpleObject(oCommentData);
+		}
+
+		this.asc_changeComment(sId, new window['Asc']['asc_CCommentDataWord'](oCD));
+	};
+
 })(window);

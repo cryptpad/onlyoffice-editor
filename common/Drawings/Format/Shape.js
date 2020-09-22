@@ -43,7 +43,7 @@ function (window, undefined) {
 var g_memory = AscFonts.g_memory;
 var DecodeBase64Char = AscFonts.DecodeBase64Char;
 var b64_decode = AscFonts.b64_decode;
-    
+
 var c_oAscSizeRelFromH = AscCommon.c_oAscSizeRelFromH;
 var c_oAscSizeRelFromV = AscCommon.c_oAscSizeRelFromV;
 var CMatrix = AscCommon.CMatrix;
@@ -58,6 +58,7 @@ var MOVE_DELTA = AscFormat.MOVE_DELTA;
 
 var c_oAscFill = Asc.c_oAscFill;
 
+    var dTextFitDelta = 3;// mm
 
 function CheckObjectLine(obj)
 {
@@ -339,6 +340,7 @@ function CopyRunToPPTX(Run, Paragraph, bHyper)
     {
         RunPr.RStyle = undefined;
     }
+    RunPr.FontScale = undefined;
 
     if(bHyper)
     {
@@ -360,14 +362,57 @@ function CopyRunToPPTX(Run, Paragraph, bHyper)
     for ( var CurPos = 0; CurPos < Run.Content.length; CurPos++ )
     {
         var Item = Run.Content[CurPos];
-        if ( para_End !== Item.Type && Item.Type !== para_Drawing && Item.Type !== para_Comment &&
-            Item.Type !== para_PageCount && Item.Type !== para_FootnoteRef && Item.Type !== para_FootnoteReference && Item.Type !== para_PageNum)
+        if (   Item.Type !== para_End       && Item.Type !== para_Drawing     && Item.Type !== para_Comment
+            && Item.Type !== para_PageCount && Item.Type !== para_FootnoteRef && Item.Type !== para_FootnoteReference
+            && Item.Type !== para_PageNum   && Item.Type !== para_FieldChar   && Item.Type !== para_Bookmark
+            && Item.Type !== para_RevisionMove && Item.Type !== para_InstrText
+			&& Item.Type !== para_EndnoteReference && Item.Type !== para_EndnoteRef)
         {
             NewRun.Add_ToContent( PosToAdd, Item.Copy(), false );
             ++PosToAdd;
         }
     }
     return NewRun;
+}
+
+
+function ConvertParagraphContentToPPTX(aOrigContent, oNewParagraph, bIsAddMath, bRemoveHyperlink )
+{
+    var Count = aOrigContent.length;
+    for ( var Index = 0; Index < Count; Index++ )
+    {
+        var Item = aOrigContent[Index];
+        if(Item.Type === para_Run)
+        {
+            oNewParagraph.Internal_Content_Add(oNewParagraph.Content.length, CopyRunToPPTX(Item, oNewParagraph), false);
+        }
+        else if(Item.Type === para_Hyperlink)
+        {
+            if(bRemoveHyperlink === true)
+            {
+                for(var j = 0; j < Item.Content.length; ++j)
+                {
+                    if(Item.Content[j].Type === para_Run)
+                    {
+                        oNewParagraph.Internal_Content_Add(oNewParagraph.Content.length, CopyRunToPPTX(Item.Content[j], oNewParagraph), false);
+                    }
+                }
+            }
+            else
+            {
+                oNewParagraph.Internal_Content_Add(oNewParagraph.Content.length, ConvertHyperlinkToPPTX(Item, oNewParagraph), false);
+            }
+
+        }
+        else if(Item.Type === para_InlineLevelSdt)
+        {
+            ConvertParagraphContentToPPTX(Item.Content, oNewParagraph, bIsAddMath, bRemoveHyperlink )
+        }
+        else if(true === bIsAddMath && Item.Type === para_Math)
+        {
+            oNewParagraph.Internal_Content_Add(oNewParagraph.Content.length, Item.Copy(), false);
+        }
+    }
 }
 
 function ConvertParagraphToPPTX(paragraph, drawingDocument, newParent, bIsAddMath, bRemoveHyperlink)
@@ -408,41 +453,38 @@ function ConvertParagraphToPPTX(paragraph, drawingDocument, newParent, bIsAddMat
     }
     new_paragraph.TextPr.Set_Value( oNewEndPr );
     new_paragraph.Internal_Content_Remove2(0, new_paragraph.Content.length);
-    var Count = paragraph.Content.length;
-    for ( var Index = 0; Index < Count; Index++ )
-    {
-        var Item = paragraph.Content[Index];
-        if(Item.Type === para_Run)
-        {
-            new_paragraph.Internal_Content_Add(new_paragraph.Content.length, CopyRunToPPTX(Item, new_paragraph), false);
-        }
-        else if(Item.Type === para_Hyperlink)
-        {
-            if(bRemoveHyperlink === true)
-            {
-                for(var j = 0; j < Item.Content.length; ++j)
-                {
-                    if(Item.Content[j].Type === para_Run)
-                    {
-                        new_paragraph.Internal_Content_Add(new_paragraph.Content.length, CopyRunToPPTX(Item.Content[j], new_paragraph), false);
-                    }
-                }
-            }
-            else
-            {
-                new_paragraph.Internal_Content_Add(new_paragraph.Content.length, ConvertHyperlinkToPPTX(Item, new_paragraph), false);
-            }
-
-        }
-        else if(true === bIsAddMath && Item.Type === para_Math)
-        {
-            new_paragraph.Internal_Content_Add(new_paragraph.Content.length, Item.Copy(), false);
-        }
-    }
+    ConvertParagraphContentToPPTX(paragraph.Content, new_paragraph, bIsAddMath, bRemoveHyperlink);
     var EndRun = new ParaRun(new_paragraph);
     EndRun.Add_ToContent( 0, new ParaEnd() );
     new_paragraph.Internal_Content_Add( new_paragraph.Content.length, EndRun, false );
     return new_paragraph;
+}
+
+
+function ConvertElementsToPPTX(aResult, aElements, drawingDocument, newParent, bIsAddMath, bRemoveHyperlink)
+{
+    var i, j, oElement;
+    for(i = 0; i < aElements.length; ++i)
+    {
+        oElement = aElements[i];
+        if(oElement instanceof AscCommonWord.Paragraph)
+        {
+            aResult.push(ConvertParagraphToPPTX(oElement));
+        }
+        else if(oElement instanceof AscCommonWord.CTable)
+        {
+            var paragraphs = [];
+            oElement.GetAllParagraphs({All: true}, paragraphs);
+            for (j = 0; j < paragraphs.length; j++) {
+                aResult.push(AscFormat.ConvertParagraphToPPTX(paragraphs[j], drawingDocument,
+                    newParent, bIsAddMath, bRemoveHyperlink));
+            }
+        }
+        else if(oElement instanceof AscCommonWord.CBlockLevelSdt)
+        {
+            ConvertElementsToPPTX(aResult, oElement.Content.Content, drawingDocument, newParent, bIsAddMath, bRemoveHyperlink)
+        }
+    }
 }
 
 function ConvertHyperlinkToPPTX(hyperlink, paragraph)
@@ -701,6 +743,7 @@ function ConvertTableToGraphicFrame(oTable, oPresentation){
         var nIndex = oTable2.Content.length;
         oTable2.Content[nIndex] = oNewRow;
         History.Add(new CChangesTableAddRow(oTable2, nIndex, [oNewRow]));
+        oTable2.private_UpdateTableGrid();
     }
 
     if(!oGraphicFrame.spPr){
@@ -947,8 +990,8 @@ function CShape()
     this.txWarpStructNoTransform = null;
     this.txWarpStructParamarksNoTransform = null;
 
-    this.Id = AscCommon.g_oIdCounter.Get_NewId();
-    AscCommon.g_oTableId.Add( this, this.Id );
+    this.tmpFontScale = undefined;
+    this.tmpLnSpcReduction = undefined;
 }
 
 	CShape.prototype = Object.create(AscFormat.CGraphicObjectBase.prototype);
@@ -1109,8 +1152,8 @@ CShape.prototype.setTextBoxContent = function (textBoxContent) {
 CShape.prototype.setBodyPr = function (pr) {
     History.Add(new AscDFH.CChangesDrawingsObjectNoId(this, AscDFH.historyitem_ShapeSetBodyPr, this.bodyPr, pr));
     this.bodyPr = pr;
-    this.recalcInfo.recalcContent = true;
-    this.recalcInfo.recalcTransformText = true;
+    this.recalcInfo.recalculateContent = true;
+    this.recalcInfo.recalculateTransformText = true;
     this.addToRecalculate();
 };
 
@@ -1125,6 +1168,7 @@ CShape.prototype.createTextBody = function () {
     }
     tx_body.setBodyPr(oBodyPr);
     tx_body.content.Content[0].Set_DocumentIndex(0);
+    tx_body.content.MoveCursorToStartPos(false);
     this.setTxBody(tx_body);
 };
 
@@ -1134,19 +1178,22 @@ CShape.prototype.createTextBoxContent = function () {
     this.setBodyPr(body_pr);
     this.setTextBoxContent(new CDocumentContent(this, this.getDrawingDocument(), 0, 0, 0, 20000, false, false));
     this.textBoxContent.SetParagraphAlign(AscCommon.align_Center);
+    this.textBoxContent.MoveCursorToStartPos(false);
     this.textBoxContent.Content[0].Set_DocumentIndex(0);
 };
 
 CShape.prototype.paragraphAdd = function (paraItem, bRecalculate) {
     var content_to_add = this.getDocContent();
     if (!content_to_add) {
-        if (this.bWordShape) {
-            this.createTextBoxContent();
+        if(!AscFormat.CheckLinePresetForParagraphAdd(this.getPresetGeom())) {
+            if (this.bWordShape) {
+                this.createTextBoxContent();
+            }
+            else {
+                this.createTextBody();
+            }
+            content_to_add = this.getDocContent();
         }
-        else {
-            this.createTextBody();
-        }
-        content_to_add = this.getDocContent();
     }
     if (content_to_add) {
         content_to_add.AddToParagraph(paraItem, bRecalculate);
@@ -1158,16 +1205,19 @@ CShape.prototype.applyTextFunction = function (docContentFunction, tableFunction
     var content_to_add = this.getDocContent();
     if (!content_to_add)
     {
-        if (this.bWordShape)
-        {
-            this.createTextBoxContent();
+        if(!AscFormat.CheckLinePresetForParagraphAdd(this.getPresetGeom())) {
+
+            if (this.bWordShape)
+            {
+                this.createTextBoxContent();
+            }
+            else
+            {
+                this.createTextBody();
+            }
+            content_to_add = this.getDocContent();
+            content_to_add.MoveCursorToStartPos();
         }
-        else
-        {
-            this.createTextBody();
-        }
-        content_to_add = this.getDocContent();
-        content_to_add.MoveCursorToStartPos();
     }
     if (content_to_add)
     {
@@ -1241,12 +1291,12 @@ CShape.prototype.Search = function (Str, Props, SearchEngine, Type) {
     }
 };
 
-CShape.prototype.Search_GetId = function (bNext, bCurrent) {
+CShape.prototype.GetSearchElementId = function (bNext, bCurrent) {
     if (this.textBoxContent)
-        return this.textBoxContent.Search_GetId(bNext, bCurrent);
+        return this.textBoxContent.GetSearchElementId(bNext, bCurrent);
 
     else if (this.txBody && this.txBody.content) {
-        return this.txBody.content.Search_GetId(bNext, bCurrent);
+        return this.txBody.content.GetSearchElementId(bNext, bCurrent);
     }
 
     return null;
@@ -1653,6 +1703,17 @@ CShape.prototype.getPhIndex = function () {
 };
 
 CShape.prototype.setVerticalAlign = function (align) {
+    var content_to_add = this.getDocContent();
+    if (!content_to_add) {
+        if(!AscFormat.CheckLinePresetForParagraphAdd(this.getPresetGeom())) {
+            if (this.bWordShape) {
+                this.createTextBoxContent();
+            }
+            else {
+                this.createTextBody();
+            }
+        }
+    }
     var new_body_pr = this.getBodyPr();
     if (new_body_pr) {
         new_body_pr = new_body_pr.createDuplicate();
@@ -1668,6 +1729,17 @@ CShape.prototype.setVerticalAlign = function (align) {
     }
 };
 CShape.prototype.setVert = function (vert) {
+    var content_to_add = this.getDocContent();
+    if (!content_to_add) {
+        if(!AscFormat.CheckLinePresetForParagraphAdd(this.getPresetGeom())) {
+            if (this.bWordShape) {
+                this.createTextBoxContent();
+            }
+            else {
+                this.createTextBody();
+            }
+        }
+    }
     var new_body_pr = this.getBodyPr();
     if (new_body_pr) {
         new_body_pr = new_body_pr.createDuplicate();
@@ -1683,6 +1755,55 @@ CShape.prototype.setVert = function (vert) {
     }
     this.checkExtentsByDocContent && this.checkExtentsByDocContent();
 };
+
+
+CShape.prototype.setTextFitType = function(type)
+{
+    if(AscFormat.isRealNumber(type))
+    {
+        var new_body_pr = this.getBodyPr();
+        if (new_body_pr) {
+            new_body_pr = new_body_pr.createDuplicate();
+            new_body_pr.textFit = new AscFormat.CTextFit();
+            new_body_pr.textFit.type = type;
+
+            if (this.bWordShape) {
+                this.setBodyPr(new_body_pr);
+            }
+            else {
+                if (this.txBody) {
+                    this.txBody.setBodyPr(new_body_pr);
+                }
+            }
+        }
+        this.checkExtentsByDocContent(true, true);
+    }
+};
+
+
+
+CShape.prototype.setVertOverflowType = function(type)
+{
+    if(AscFormat.isRealNumber(type))
+    {
+        var new_body_pr = this.getBodyPr();
+        if (new_body_pr) {
+            new_body_pr = new_body_pr.createDuplicate();
+            new_body_pr.vertOverflow = type;
+
+            if (this.bWordShape) {
+                this.setBodyPr(new_body_pr);
+            }
+            else {
+                if (this.txBody) {
+                    this.txBody.setBodyPr(new_body_pr);
+                }
+            }
+        }
+        this.checkExtentsByDocContent(true, true);
+    }
+};
+
 
 CShape.prototype.setPaddings = function (paddings) {
     if (paddings) {
@@ -2662,6 +2783,27 @@ CShape.prototype.recalculateTextStyles = function (level) {
             default_style.TextPr.RFonts.CS = {Name: "+mn-cs", Index: -1};
             default_style.TextPr.RFonts.HAnsi = {Name: "+mn-lt", Index: -1};
         }
+        if(!this.bCheckAutoFitFlag)
+        {
+            var oBodyPr = this.getBodyPr && this.getBodyPr();
+            if(oBodyPr)
+            {
+                default_style.ParaPr.LnSpcReduction = oBodyPr.getLnSpcReduction();
+                default_style.TextPr.FontScale = oBodyPr.getFontScale();
+            }
+        }
+        else
+        {
+            if(this.tmpLnSpcReduction !== null && this.tmpLnSpcReduction !== undefined)
+            {
+                default_style.ParaPr.LnSpcReduction = this.tmpLnSpcReduction / 100000.0;
+            }
+            if(this.tmpFontScale !== null && this.tmpFontScale !== undefined)
+            {
+                default_style.TextPr.FontScale = this.tmpFontScale / 100000.0;
+            }
+
+        }
         if(this.getObjectType && this.getObjectType() === AscDFH.historyitem_type_GraphicFrame){
             default_style.TextPr.FontSize = 18;
         }
@@ -2834,24 +2976,13 @@ CShape.prototype.recalculateBrush = function () {
     var compiled_style = this.getCompiledStyle();
     var RGBA = {R: 0, G: 0, B: 0, A: 255};
     var parents = this.getParentObjects();
+    var oStyleBrush = null;
+    var oLin;
     if (isRealObject(parents.theme) && isRealObject(compiled_style) && isRealObject(compiled_style.fillRef)) {
-        //compiled_style.fillRef.Color.Calculate(parents.theme, parents.slide, parents.layout, parents.master, {R: 0, G: 0, B: 0, A:255});
-        //RGBA = compiled_style.fillRef.Color.RGBA;
         this.brush = parents.theme.getFillStyle(compiled_style.fillRef.idx, compiled_style.fillRef.Color);
-        //if (isRealObject(this.brush))
-        //{
-        //    if (isRealObject(compiled_style.fillRef.Color.color)
-        //        && isRealObject(this.brush)
-        //        && isRealObject(this.brush.fill)
-        //        && this.brush.fill.type === FILL_TYPE_SOLID)
-        //    {
-        //        this.brush.fill.color = compiled_style.fillRef.Color.createDuplicate();
-        //    }
-        //}
-        //else
-        //{
-        //    this.brush = new AscFormat.CUniFill();
-        //}
+        if(this.brush) {
+            oStyleBrush = this.brush.createDuplicate();
+        }
     }
     else {
         this.brush = new AscFormat.CUniFill();
@@ -2860,15 +2991,22 @@ CShape.prototype.recalculateBrush = function () {
     this.brush.merge(this.getCompiledFill());
     this.brush.transparent = this.getCompiledTransparent();
     this.brush.calculate(parents.theme, parents.slide, parents.layout, parents.master, RGBA);
-    if(this.bWordShape){
-        if(this.brush.fill && this.brush.fill.type === Asc.c_oAscFill.FILL_TYPE_GRAD){
-            var oGradFill = this.brush.fill;
-            if(!oGradFill.lin && !oGradFill.path){
-                var oLin = new AscFormat.GradLin();
+    if(this.brush.fill && this.brush.fill.type === Asc.c_oAscFill.FILL_TYPE_GRAD) {
+        var oGradFill = this.brush.fill;
+        if(!oGradFill.lin && !oGradFill.path) {
+            if(oStyleBrush &&
+                oStyleBrush.fill &&
+                oStyleBrush.fill.type === Asc.c_oAscFill.FILL_TYPE_GRAD &&
+                oStyleBrush.fill.lin) {
+                    oLin = oStyleBrush.fill.lin.createDuplicate();
+            }
+            else {
+                oLin = new AscFormat.GradLin();
                 oLin.setScale(false);
-                oLin.setAngle(5400000);
+                oLin.setAngle(0);
                 oGradFill.setLin(oLin);
             }
+            oGradFill.setLin(oLin);
         }
     }
 };
@@ -3116,8 +3254,25 @@ CShape.prototype.recalculateLocalTransform = function(transform)
             else if (this.spPr && this.spPr.xfrm && this.spPr.xfrm.isNotNull())
             {
                 var xfrm = this.spPr.xfrm;
-                this.x = xfrm.offX;
-                this.y = xfrm.offY;
+                var bAlign = false;
+                if(this.parent)
+                {
+                    if(this.parent.PositionH && this.parent.PositionH.Align
+                        || this.parent.PositionV && this.parent.PositionV.Align)
+                        {
+                            bAlign = true;
+                        }
+                }
+                if(bAlign)
+                {
+                    this.x = 0;
+                    this.y = 0;
+                }
+                else
+                {
+                    this.x = xfrm.offX;
+                    this.y = xfrm.offY;
+                }
                 this.extX = xfrm.extX;
                 this.extY = xfrm.extY;
                 this.rot = AscFormat.isRealNumber(xfrm.rot) ? xfrm.rot : 0;
@@ -3953,6 +4108,21 @@ CShape.prototype.recalculateDocContent = function(oDocContent, oBodyPr)
     return oRet;
 };
 
+var aScales = [25000, 30000, 35000, 40000, 45000, 50000, 55000, 60000, 65000, 70000, 75000, 80000, 85000, 90000, 95000, 10000];
+
+
+    CShape.prototype.recalculateContentWitCompiledPr = function()
+    {
+        var oContent = this.getDocContent && this.getDocContent();
+        if(oContent)
+        {
+            oContent.Recalc_AllParagraphs_CompiledPr();
+            this.recalcInfo.recalculateContent = true;
+            this.recalcInfo.recalculateTransformText = true;
+            this.recalculate();
+        }
+    };
+
 CShape.prototype.checkExtentsByDocContent = function(bForce, bNeedRecalc)
 {
     if((!this.bWordShape || this.group || bForce) && this.checkAutofit(true))
@@ -3962,6 +4132,9 @@ CShape.prototype.checkExtentsByDocContent = function(bForce, bNeedRecalc)
         {
             oMainGroup.normalize();
         }
+        
+        this.tmpFontScale = undefined;
+        this.tmpLnSpcReduction = undefined;
         this.bCheckAutoFitFlag = true;
         var oOldRecalcTitle = this.recalcInfo.recalcTitle;
         var bOldRecalcTitle = this.recalcInfo.bRecalculatedTitle;
@@ -4004,6 +4177,139 @@ CShape.prototype.checkExtentsByDocContent = function(bForce, bNeedRecalc)
             }
         }
         return true;
+    }
+    else
+    {
+        var oBodyPr = this.getBodyPr && this.getBodyPr();
+        var oContent = this.getDocContent && this.getDocContent();
+        if(oBodyPr && oContent && this.clipRect)
+        {
+            var oTextFit = oBodyPr.textFit;
+            if(oTextFit && oTextFit.type === AscFormat.text_fit_NormAuto)
+            {
+                var dOldContentHeight = this.contentHeight;
+                var dOldClipW = this.clipRect.w;
+                var dOldClipH = this.clipRect.h;
+                this.recalcInfo.recalculateContent = true;
+                this.recalculate();
+                if(!AscFormat.isRealNumber(oTextFit.fontScale) && !AscFormat.isRealNumber(oTextFit.lnSpcReduction)
+                && this.contentHeight <= this.clipRect.h)
+                {
+                    return;
+                }
+                if(!bForce && AscFormat.isRealNumber(dOldClipW) && AscFormat.isRealNumber(dOldClipH)
+                    && AscFormat.fApproxEqual(dOldClipW, this.clipRect.w) && AscFormat.fApproxEqual(dOldClipH, this.clipRect.h))
+                {
+                    if(AscFormat.isRealNumber(dOldContentHeight) && AscFormat.fApproxEqual(dOldContentHeight, this.contentHeight))
+                    {
+                        return;
+                    }
+                    if(dOldContentHeight < this.contentHeight && oTextFit.fontScale === aScales[0])
+                    {
+                        return;
+                    }
+                }
+
+                this.bCheckAutoFitFlag = true;
+
+                this.tmpFontScale = undefined;
+                this.tmpLnSpcReduction = undefined;
+                this.recalculateContentWitCompiledPr();
+                if(this.contentHeight <= this.clipRect.h)
+                {
+                    oBodyPr = oBodyPr.createDuplicate();
+                    oBodyPr.textFit.lnSpcReduction = this.tmpLnSpcReduction;
+                    oBodyPr.textFit.fontScale = this.tmpFontScale;
+                    if (this.bWordShape) {
+                        this.setBodyPr(oBodyPr);
+                    }
+                    else {
+                        if (this.txBody) {
+                            this.txBody.setBodyPr(oBodyPr);
+                        }
+                    }
+                    this.bCheckAutoFitFlag = false;
+                    this.tmpFontScale = undefined;
+                    this.tmpLnSpcReduction = undefined;
+                    return;
+                }
+
+
+                var dReductionScale = 0.2;
+
+                var nCurIndex = aScales.length - 1;
+                var nCurShift = -((aScales.length) / 2);
+                while (true)
+                {
+                    nCurIndex += nCurShift;
+                    if(nCurIndex - 1 >= 0)
+                    {
+                        this.tmpFontScale = aScales[nCurIndex - 1];
+                        this.tmpLnSpcReduction = dReductionScale*(100000 - this.tmpFontScale) >> 0;
+                        this.recalculateContentWitCompiledPr();
+
+
+                        if(this.contentHeight <= this.clipRect.h)
+                        {
+                            this.tmpFontScale = aScales[nCurIndex];
+                            this.tmpLnSpcReduction = dReductionScale*(100000 - this.tmpFontScale) >> 0;
+                            this.recalculateContentWitCompiledPr();
+                            if(this.contentHeight >= this.clipRect.h)
+                            {
+                                this.tmpFontScale = aScales[nCurIndex - 1];
+                                this.tmpLnSpcReduction = dReductionScale*(100000 - this.tmpFontScale) >> 0;
+                                break;
+                            }
+                            else
+                            {
+                                nCurShift = Math.abs(nCurShift) / 2;
+                            }
+                        }
+                        else
+                        {
+                            nCurShift = -Math.abs(nCurShift) / 2;
+                        }
+                        if(Math.abs(nCurShift) < 1)
+                        {
+                            break;
+                        }
+                    }
+                    else
+                    {
+                        this.tmpFontScale = aScales[0];
+                        this.tmpLnSpcReduction = dReductionScale*(100000 - this.tmpFontScale) >> 0;
+                        break;
+                    }
+                }
+
+                if(oBodyPr.textFit.lnSpcReduction !== this.tmpLnSpcReduction
+                || oBodyPr.textFit.fontScale !== this.tmpFontScale)
+                {
+                    oBodyPr = oBodyPr.createDuplicate();
+                    oBodyPr.textFit.lnSpcReduction = this.tmpLnSpcReduction;
+                    oBodyPr.textFit.fontScale = this.tmpFontScale;
+                    if (this.bWordShape) {
+                        this.setBodyPr(oBodyPr);
+                    }
+                    else {
+                        if (this.txBody) {
+                            this.txBody.setBodyPr(oBodyPr);
+                        }
+                    }
+                }
+                this.bCheckAutoFitFlag = false;
+                this.tmpFontScale = undefined;
+                this.tmpLnSpcReduction = undefined;
+                this.recalculateContentWitCompiledPr();
+            }
+            else
+            {
+                if(bForce)
+                {
+                    this.recalculateContentWitCompiledPr();
+                }
+            }
+        }
     }
     return false;
 };
@@ -4087,7 +4393,6 @@ CShape.prototype.select = function (drawingObjectsController, pageIndex)
 
 CShape.prototype.deselect = function (drawingObjectsController) {
     this.selected = false;
-    this.addTextFlag = false;
     var selected_objects;
     if (!isRealObject(this.group))
         selected_objects = drawingObjectsController.selectedObjects;
@@ -4400,10 +4705,12 @@ CShape.prototype.haveSelectedDrawingInContent = function()
 };
 
 
-CShape.prototype.clipTextRect = function(graphics)
+CShape.prototype.clipTextRect = function(graphics, transform, transformText, pageIndex)
 {
     if(this.clipRect)
     {
+        var transform_ = transform ? transform : this.transform;
+        var transformText_ = transformText ? transformText : this.transformText;
         var clip_rect = this.clipRect;
         var oBodyPr = this.getBodyPr();
         if(!this.bWordShape)
@@ -4415,17 +4722,17 @@ CShape.prototype.clipTextRect = function(graphics)
         }
         if(!oBodyPr || !oBodyPr.upright)
         {
-            graphics.transform3(this.transform);
+            graphics.transform3(transform_);
             graphics.AddClipRect(clip_rect.x, clip_rect.y, clip_rect.w, clip_rect.h);
 
             graphics.SetIntegerGrid(false);
-            graphics.transform3(this.transformText, true);
+            graphics.transform3(transformText_, true);
         }
         else
         {
             var oTransform = new CMatrix();
-            var cX = this.transform.TransformPointX(this.extX/2, this.extY/2);
-            var cY = this.transform.TransformPointY(this.extX/2, this.extY/2);
+            var cX = transform_.TransformPointX(this.extX/2, this.extY/2);
+            var cY = transform_.TransformPointY(this.extX/2, this.extY/2);
 
             if(checkNormalRotate(this.rot))
             {
@@ -4442,7 +4749,7 @@ CShape.prototype.clipTextRect = function(graphics)
             graphics.AddClipRect(clip_rect.x, clip_rect.y, clip_rect.w, clip_rect.h);
 
             graphics.SetIntegerGrid(false);
-            graphics.transform3(this.transformText, true);
+            graphics.transform3(transformText_, true);
         }
     }
 };
@@ -4453,24 +4760,20 @@ CShape.prototype.draw = function (graphics, transform, transformText, pageIndex)
         return;
     }
 
-    if(graphics.updatedRect && this.bounds)
-    {
-        var rect = graphics.updatedRect;
-        var bounds = this.bounds;
-        if(bounds.x > rect.x + rect.w
-            || bounds.y > rect.y + rect.h
-            || bounds.x + bounds.w < rect.x
-            || bounds.y + bounds.h < rect.y)
+    var oUR = graphics.updatedRect;
+    if(oUR && this.bounds) {
+        if(!oUR.isIntersectOther(this.bounds)) {
             return;
+        }
     }
 
     var _transform = transform ? transform : this.transform;
     var _transform_text = transformText ? transformText : this.transformText;
     var geometry = this.calcGeometry || this.spPr && this.spPr.geometry;
-	
+
 	this.drawShdw &&  this.drawShdw(graphics);
     if (graphics.IsSlideBoundsCheckerType === true) {
-		
+
         graphics.transform3(_transform);
         if (!this.spPr || null == geometry || geometry.pathLst.length === 0 || (geometry.pathLst.length === 1 && geometry.pathLst[0].ArrPathCommandInfo.length === 0) || !graphics.IsShapeNeedBounds(geometry.preset)) {
             graphics._s();
@@ -4638,7 +4941,7 @@ CShape.prototype.draw = function (graphics, transform, transformText, pageIndex)
                 if(this instanceof CShape)
                 {
                     if(!(oController && (AscFormat.getTargetTextObject(oController) === this)))
-                        this.clipTextRect(graphics);
+                        this.clipTextRect(graphics, transform, transformText, pageIndex);
                 }
                 graphics.transform3(transform_text, true);
                 if (graphics.CheckUseFonts2 !== undefined)
@@ -4658,7 +4961,7 @@ CShape.prototype.draw = function (graphics, transform, transformText, pageIndex)
 
                 graphics.SaveGrState();
                 graphics.SetIntegerGrid(false);
-                this.clipTextRect(graphics);
+                this.clipTextRect(graphics, transform, transformText, pageIndex);
                 var result_page_index = AscFormat.isRealNumber(graphics.shapePageIndex) ? graphics.shapePageIndex : old_start_page;
 
                 if (graphics.CheckUseFonts2 !== undefined)
@@ -4998,14 +5301,15 @@ CShape.prototype.getAllRasterImages = function(images)
                 drawings[i].GraphicObj && drawings[i].GraphicObj.getAllRasterImages && drawings[i].GraphicObj.getAllRasterImages(images);
             }
         }
-        var fCallback = function(oTextPr)
-        {
-            if( (oTextPr.Unifill && oTextPr.Unifill.fill && oTextPr.Unifill.fill.type == c_oAscFill.FILL_TYPE_BLIP))
-            {
-                images.push(oTextPr.Unifill.fill.RasterImageId);
-            }
-            return false;
-        }
+        var fCallback = function(oRun)
+		{
+			var oTextPr = oRun && oRun.Pr;
+			if (oTextPr && oTextPr.Unifill && oTextPr.Unifill.fill && oTextPr.Unifill.fill.type == c_oAscFill.FILL_TYPE_BLIP)
+			{
+				images.push(oTextPr.Unifill.fill.RasterImageId);
+			}
+			return false;
+		};
 
         oContent.CheckRunContent(fCallback);
     }
@@ -5023,7 +5327,19 @@ CShape.prototype.changePresetGeom = function (sPreset) {
     if(sPreset === "textRect")
     {
         this.spPr.setGeometry(AscFormat.CreateGeometry("rect"));
-        this.setStyle(AscFormat.CreateDefaultTextRectStyle());
+
+        if(this.bWordShape)
+        {
+            if(this.style)
+            {
+                this.setStyle(null);
+            }
+        }
+        else
+        {
+            this.setStyle(AscFormat.CreateDefaultTextRectStyle());
+        }
+
         var fill = new AscFormat.CUniFill();
         fill.setFill(new AscFormat.CSolidFill());
         fill.fill.setColor(new AscFormat.CUniColor());
@@ -5273,6 +5589,10 @@ CShape.prototype.hitToAdjustment = function (x, y) {
     if (_calcGeoem)
     {
         invert_transform = this.getInvertTransform();
+        if(!invert_transform)
+        {
+            return { hit: false, adjPolarFlag: null, adjNum: null, warp: false };
+        }
         t_x = invert_transform.TransformPointX(x, y);
         t_y = invert_transform.TransformPointY(x, y);
         ret = _calcGeoem.hitToAdj(t_x, t_y, _dist);
@@ -5299,14 +5619,6 @@ CShape.prototype.hitToAdjustment = function (x, y) {
     }
 
     return { hit: false, adjPolarFlag: null, adjNum: null, warp: false };
-};
-
-CShape.prototype.hitToHandles = function (x, y) {
-    if(this.parent && this.parent.kind === AscFormat.TYPE_KIND.NOTES){
-        return -1;
-    }
-    return hitToHandles(x, y, this);
-
 };
 
 CShape.prototype.hit = function (x, y) {
@@ -5340,8 +5652,9 @@ CShape.prototype.hitInInnerArea = function (x, y) {
         }
         var x_t = invert_transform.TransformPointX(x, y);
         var y_t = invert_transform.TransformPointY(x, y);
-        if (isRealObject(this.spPr) && isRealObject(this.spPr.geometry) && this.spPr.geometry.pathLst.length > 0 && !(this.getObjectType && this.getObjectType() === AscDFH.historyitem_type_ChartSpace))
-            return this.spPr.geometry.hitInInnerArea(this.getCanvasContext(), x_t, y_t);
+        var oGeometry = this.spPr && this.spPr.geometry || this.calcGeometry;
+        if (isRealObject(oGeometry) && oGeometry.pathLst.length > 0 && !(this.getObjectType && this.getObjectType() === AscDFH.historyitem_type_ChartSpace))
+            return oGeometry.hitInInnerArea(this.getCanvasContext(), x_t, y_t);
         if(this.getObjectType() === AscDFH.historyitem_type_Shape)
         {
             return false;
@@ -5373,29 +5686,22 @@ CShape.prototype.hitInBoundingRect = function (x, y) {
 };
 
 CShape.prototype.canRotate = function () {
-    if(this.cropObject){
+    if(this.cropObject) {
         return false;
     }
-    return true;
+    return AscFormat.CGraphicObjectBase.prototype.canRotate.call(this);
 };
 
-CShape.prototype.canResize = function () {
-    return true;
-};
-
-CShape.prototype.canMove = function () {
-    return true; //TODO
-};
 
 CShape.prototype.canGroup = function () {
-    return !this.isPlaceholder(); //TODO
+    if(this.isPlaceholder()) {
+        return false;
+    }
+    return AscFormat.CGraphicObjectBase.prototype.canGroup.call(this);
 };
 
 
 
-CShape.prototype.canChangeAdjustments = function () {
-    return true; //TODO
-};
 
 CShape.prototype.createRotateTrack = function () {
     return new AscFormat.RotateTrackShapeImage(this);
@@ -5820,6 +6126,25 @@ CShape.prototype.getColumnNumber = function(){
     };
 
 
+    CShape.prototype.getTextFitType = function(){
+        var oBodyPr = this.getBodyPr();
+        if(AscCommon.isRealObject(oBodyPr.textFit) && AscFormat.isRealNumber(oBodyPr.textFit.type))
+        {
+            return oBodyPr.textFit.type;
+        }
+        return AscFormat.text_fit_No;
+    };
+
+    CShape.prototype.getVertOverflowType = function(){
+        var oBodyPr = this.getBodyPr();
+        if(AscFormat.isRealNumber(oBodyPr.vertOverflow))
+        {
+            return oBodyPr.vertOverflow;
+        }
+        return AscFormat.nOTOwerflow;
+    };
+
+
     CShape.prototype.checkWrap = function(){
         if(!this.txBody){
             return;
@@ -6153,6 +6478,7 @@ function SaveRunsFormatting(aSourceContent, aCopyContent, oTheme, oColorMap, oPr
     window['AscFormat'].CreateUniFillByUniColorCopy = CreateUniFillByUniColorCopy;
     window['AscFormat'].CreateUniFillByUniColor = CreateUniFillByUniColor;
     window['AscFormat'].ConvertParagraphToPPTX = ConvertParagraphToPPTX;
+    window['AscFormat'].ConvertElementsToPPTX = ConvertElementsToPPTX;
     window['AscFormat'].ConvertParagraphToWord = ConvertParagraphToWord;
     window['AscFormat'].SetXfrmFromMetrics = SetXfrmFromMetrics;
     window['AscFormat'].CShape = CShape;

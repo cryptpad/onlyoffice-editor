@@ -1501,23 +1501,9 @@ CDocumentPositionsManager.prototype.Update_DocumentPositionsOnRemove = function(
                 }
                 else if (_Pos.Position >= Pos)
                 {
-                	if (Class instanceof AscCommonWord.CTable)
-					{
-						_Pos.Position = Pos;
-						if (DocPos[ClassPos + 1]
-							&& DocPos[ClassPos + 1].Class instanceof AscCommonWord.CTableRow
-							&& undefined !== DocPos[ClassPos + 1].Position
-							&& Class.Content[Pos])
-						{
-							DocPos[ClassPos + 1].Position = Math.max(0, Math.min(DocPos[ClassPos + 1].Position, Class.Content.length - 1));
-						}
-					}
-					else
-					{
-						// Элемент, в котором находится наша позиция, удаляется. Ставим специальную отметку об этом.
-						_Pos.Position = Pos;
-						_Pos.Deleted  = true;
-					}
+					// Элемент, в котором находится наша позиция, удаляется. Ставим специальную отметку об этом.
+					_Pos.Position = Pos;
+					_Pos.Deleted  = true;
                 }
 
                 break;
@@ -1573,8 +1559,8 @@ CDocumentPositionsManager.prototype.Update_DocumentPosition = function(DocPos)
         if (AscCommonWord.CanUpdatePosition(Para, Run))
         {
             DocPos.length = 0;
-            DocPos.push({Class : Run, Position : NewDocPos[0].Position});
             Run.GetDocumentPositionFromObject(DocPos);
+			DocPos.push({Class : Run, Position : NewDocPos[0].Position});
         }
     }
     // Возможно ран с позицией переместился в другой класс
@@ -1586,9 +1572,9 @@ CDocumentPositionsManager.prototype.Update_DocumentPosition = function(DocPos)
         if (AscCommonWord.CanUpdatePosition(Para, Run))
         {
             DocPos.length = 0;
-            DocPos.push({Class : Run, Position : RunPos});
             Run.GetDocumentPositionFromObject(DocPos);
-        }
+			DocPos.push({Class : Run, Position : RunPos});
+		}
     }
 };
 CDocumentPositionsManager.prototype.Remove_DocumentPosition = function(DocPos)

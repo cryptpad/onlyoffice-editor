@@ -124,6 +124,11 @@ ParaComment.prototype =
         return null;
     },
 
+	GetRunByElement : function(oRunElement)
+	{
+		return null;
+	},
+
     Get_DrawingObjectContentPos : function(Id, ContentPos, Depth)
     {
         return false;
@@ -251,6 +256,11 @@ ParaComment.prototype =
     Recalculate_PageEndInfo : function(PRSI, _CurLine, _CurRange)
     {
     },
+
+	RecalculateEndInfo : function(PRSI)
+	{
+
+	},
 
     SaveRecalculateObject : function(Copy)
     {
@@ -676,19 +686,19 @@ function CCommentData()
 CCommentData.prototype =
 {
 
-    createDuplicate: function(){
+    createDuplicate: function(bNewGuid){
         var ret = new CCommentData();
         ret.m_sText = this.m_sText;
         ret.m_sTime = this.m_sTime;
         ret.m_sOOTime = this.m_sOOTime;
         ret.m_sUserId = this.m_sUserId;
         ret.m_sUserName = this.m_sUserName;
-        ret.m_sGuid = this.m_sGuid;
+        ret.m_sGuid =  bNewGuid ? AscCommon.CreateGUID() : this.m_sGuid;
         ret.m_sQuoteText = this.m_sQuoteText;
         ret.m_bSolved = this.m_bSolved;
         ret.m_nTimeZoneBias = this.m_nTimeZoneBias;
         for(var i = 0; i < this.m_aReplies.length; ++i){
-            ret.m_aReplies.push(this.m_aReplies[i].createDuplicate());
+            ret.m_aReplies.push(this.m_aReplies[i].createDuplicate(bNewGuid));
         }
         return ret;
     },
@@ -949,8 +959,8 @@ CComment.prototype =
         return AscDFH.historyitem_type_Comment;
     },
 
-    createDuplicate: function(Parent){
-        var oData = this.Data ? this.Data.createDuplicate() : null;
+    createDuplicate: function(Parent, bNewGuid){
+        var oData = this.Data ? this.Data.createDuplicate(bNewGuid) : null;
         var ret = new CComment(Parent, oData);
         ret.setPosition(this.x, this.y);
         return ret;

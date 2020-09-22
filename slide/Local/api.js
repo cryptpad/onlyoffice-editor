@@ -210,7 +210,7 @@ Asc['asc_docs_api'].prototype.asc_DownloadAs = function(options)
 Asc['asc_docs_api'].prototype.AddImageUrl = function(url, imgProp, token, obj)
 {
 	var _url = window["AscDesktopEditor"]["LocalFileGetImageUrl"](url);
-	this.AddImageUrlAction(AscCommon.g_oDocumentUrls.getImageUrl(_url), imgProp, obj);
+	this.AddImageUrlAction(AscCommon.g_oDocumentUrls.getImageUrl(_url), obj);
 };
 Asc['asc_docs_api'].prototype.AddImage = Asc['asc_docs_api'].prototype.asc_addImage = function(obj)
 {
@@ -244,6 +244,49 @@ Asc['asc_docs_api'].prototype["asc_DownloadAs"] = Asc['asc_docs_api'].prototype.
 Asc['asc_docs_api'].prototype["asc_isOffline"] = Asc['asc_docs_api'].prototype.asc_isOffline;
 Asc['asc_docs_api'].prototype["SetDocumentModified"] = Asc['asc_docs_api'].prototype.SetDocumentModified;
 Asc['asc_docs_api'].prototype["SetThemesPath"] = Asc['asc_docs_api'].prototype.SetThemesPath;
+
+Asc['asc_docs_api'].prototype["pluginMethod_AddVideo"] = Asc['asc_docs_api'].prototype["asc_AddVideo"] = function(obj)
+{
+	window["AscDesktopEditor"]["OpenFilenameDialog"]("video", false, function(_file) {
+		var file = _file;
+		if (Array.isArray(file))
+			file = file[0];
+
+		if (!file)
+			return;
+
+		var _api = window.editor;
+		_api.sync_StartAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.Waiting);
+
+		setTimeout(function(){
+			window["AscDesktopEditor"]["AddVideo"](file, function(local_url, file_url) {
+				_api.asc_AddVideoCallback(local_url, file_url, obj);
+			});
+			_api.sync_EndAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.Waiting);
+		}, 100);
+	});
+};
+Asc['asc_docs_api'].prototype["pluginMethod_AddAudio"] = Asc['asc_docs_api'].prototype["asc_AddAudio"] = function(obj)
+{
+	window["AscDesktopEditor"]["OpenFilenameDialog"]("audio", false, function(_file) {
+		var file = _file;
+		if (Array.isArray(file))
+			file = file[0];
+
+		if (!file)
+			return;
+
+		var _api = window.editor;
+		_api.sync_StartAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.Waiting);
+
+		setTimeout(function(){
+			window["AscDesktopEditor"]["AddAudio"](file, function(local_url, file_url) {
+				_api.asc_AddAudioCallback(local_url, file_url, obj);
+			});
+			_api.sync_EndAction(Asc.c_oAscAsyncActionType.BlockInteraction, Asc.c_oAscAsyncAction.Waiting);
+		}, 100);
+	});
+};
 
 window["on_editor_native_message"] = function(sCommand, sParam)
 {

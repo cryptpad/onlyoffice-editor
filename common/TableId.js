@@ -85,6 +85,10 @@
 	{
 		this.m_bTurnOff = false;
 	};
+	CTableId.prototype.IsOn = function()
+	{
+		return (!this.m_bTurnOff);
+	};
 	/**
 	 * Получаем указатель на класс по Id
 	 * @param Id
@@ -190,10 +194,8 @@
 		this.m_oFactoryClass[AscDFH.historyitem_type_StrRef]                 = AscFormat.CStrRef;
 		this.m_oFactoryClass[AscDFH.historyitem_type_StrCache]               = AscFormat.CStrCache;
 		this.m_oFactoryClass[AscDFH.historyitem_type_StrPoint]               = AscFormat.CStringPoint;
-		this.m_oFactoryClass[AscDFH.historyitem_type_XVal]                   = AscFormat.CXVal;
 		this.m_oFactoryClass[AscDFH.historyitem_type_MultiLvlStrRef]         = AscFormat.CMultiLvlStrRef;
 		this.m_oFactoryClass[AscDFH.historyitem_type_MultiLvlStrCache]       = AscFormat.CMultiLvlStrCache;
-		this.m_oFactoryClass[AscDFH.historyitem_type_StringLiteral]          = AscFormat.CStringLiteral;
 		this.m_oFactoryClass[AscDFH.historyitem_type_YVal]                   = AscFormat.CYVal;
 		this.m_oFactoryClass[AscDFH.historyitem_type_AreaSeries]             = AscFormat.CAreaSeries;
 		this.m_oFactoryClass[AscDFH.historyitem_type_Cat]                    = AscFormat.CCat;
@@ -270,6 +272,8 @@
 		this.m_oFactoryClass[AscDFH.historyitem_type_AbsSizeAnchor]      	 = AscFormat.CAbsSizeAnchor;
 		this.m_oFactoryClass[AscDFH.historyitem_type_ParaRevisionMove]       = AscCommon.CParaRevisionMove;
 		this.m_oFactoryClass[AscDFH.historyitem_type_RunRevisionMove]        = AscCommon.CRunRevisionMove;
+		this.m_oFactoryClass[AscDFH.historyitem_type_DocPart]                = AscCommon.CDocPart;
+		this.m_oFactoryClass[AscDFH.historyitem_type_SlicerView]             = AscFormat.CSlicer;
 
 
 		if (window['AscCommonSlide'])

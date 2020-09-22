@@ -1081,6 +1081,14 @@
 		this.showButtonIdParagraph = null;
 		this.endRecalcDocument = false;//для документов, закончен ли пересчет документа. нужно, чтобы грамотно рассчитать позицию иконки с/в
 		this.doNotShowButton = false;
+		this.visiblePasteButton = true;
+
+		//активный диапазон до первой вставки
+		this.selectionRange = null;
+
+		//добавил флаг для возможности применения друг за другом нескольких математических операций(paste special)
+		//если данный флаг выставлен в true и делается новая математическая операция
+		this.isAppliedOperation = false;
 	}
 
 	CSpecialPasteHelper.prototype = {
@@ -1138,6 +1146,10 @@
 
 		Paste_Process_End : function(checkEnd)
 		{
+			// при открытии хтмл не инициализируется. так как нет никакого ввода.
+			if (!this.Api)
+				return;
+
 			AscFonts.IsCheckSymbols             = false;
 			//todo возможно стоит добавить проверку
 			/*if(!this.pasteStart)
@@ -1181,7 +1193,7 @@
 		
 		SpecialPasteButton_Show : function()
 		{
-			if (!this.Api || this.doNotShowButton)
+			if (!this.Api || this.doNotShowButton || !this.visiblePasteButton)
 				return;
 
 			//при быстром совместном редактировании отключаем возможность специальной вставки
@@ -1212,7 +1224,7 @@
 				return;
 			}
 
-			if(!this.Api || !this.Api.asc_specialPasteShowButton || this.doNotShowButton)
+			if(!this.Api || !this.Api.asc_specialPasteShowButton || this.doNotShowButton || !this.visiblePasteButton)
 			{
 				if(this.doNotShowButton) {
 					this.showButtonIdParagraph = null;
@@ -1291,6 +1303,14 @@
 				return this.specialPasteData.text_data;
 			}
 			return this.specialPasteData.data1;
+		},
+
+		setVisiblePasteButton: function(val)
+		{
+			this.visiblePasteButton = val;
+			if (!val) {
+				this.SpecialPasteButton_Hide();
+			}
 		}
 	};
 

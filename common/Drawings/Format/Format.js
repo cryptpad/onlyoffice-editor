@@ -268,7 +268,7 @@ var asc_CShapeProperty = Asc.asc_CShapeProperty;
 
     drawingContentChanges[AscDFH.historyitem_ClrMap_SetClr] = function(oClass){return oClass.color_map};
     drawingContentChanges[AscDFH.historyitem_ThemeAddExtraClrScheme] =  function(oClass){return oClass.extraClrSchemeLst;};
-    drawingContentChanges[AscDFH.historyitem_ThemeAddRemoveClrScheme] =  function(oClass){return oClass.extraClrSchemeLst;};
+    drawingContentChanges[AscDFH.historyitem_ThemeRemoveExtraClrScheme] =  function(oClass){return oClass.extraClrSchemeLst;};
 
 
     drawingConstructorsMap[AscDFH.historyitem_ClrMap_SetClr] =  CUniColor;
@@ -970,6 +970,20 @@ CColorModifiers.prototype =
 
     },
 
+    getModValue: function(sName)
+    {
+        if(Array.isArray(this.Mods))
+        {
+            for(var i = 0; i < this.Mods.length; ++i)
+            {
+                if(this.Mods[i] && this.Mods[i].name === sName)
+                {
+                    return this.Mods[i].val;
+                }
+            }
+        }
+        return null;
+    },
 
 
     Write_ToBinary: function(w)
@@ -1849,6 +1863,15 @@ CUniColor.prototype =
         }
     },
 
+    getModValue: function(sModName)
+    {
+        if(this.Mods && this.Mods.getModValue)
+        {
+            return  this.Mods.getModValue(sModName);
+        }
+        return null;
+    },
+
     checkWordMods: function()
     {
         return this.Mods && this.Mods.Mods.length === 1
@@ -2506,6 +2529,17 @@ CBlipFill.prototype =
             duplicate.srcRect = this.srcRect.createDublicate();
 
         duplicate.rotWithShape = this.rotWithShape;
+
+        if(Array.isArray(this.Effects))
+        {
+            for(var i = 0; i < this.Effects.length; ++i)
+            {
+                if(this.Effects[i] && this.Effects[i].createDuplicate)
+                {
+                    duplicate.Effects.push(this.Effects[i].createDuplicate());
+                }
+            }
+        }
         return duplicate;
     },
 
@@ -4768,6 +4802,52 @@ CUniFill.prototype =
         }
     },
 
+    Get_TextBackGroundColor: function()
+    {
+        if(!this.fill)
+        {
+            return undefined;
+        }
+        var oColor = undefined, RGBA;
+        switch(this.fill.type)
+        {
+            case c_oAscFill.FILL_TYPE_SOLID:
+            {
+                if(this.fill.color)
+                {
+                    RGBA = this.fill.color.RGBA;
+                    if(RGBA)
+                    {
+                        oColor = new CDocumentColor(RGBA.R, RGBA.G, RGBA.B, false);
+                    }
+                }
+                break;
+            }
+            case c_oAscFill.FILL_TYPE_PATT:
+            {
+                var oClr;
+                if(this.fill.ftype === 38)
+                {
+                    oClr = this.fill.fgClr;
+                }
+                else
+                {
+                    oClr = this.fill.bgClr;
+                }
+                if(oClr)
+                {
+                    RGBA = oClr.RGBA;
+                    if(RGBA)
+                    {
+                        oColor = new CDocumentColor(RGBA.R, RGBA.G, RGBA.B, false);
+                    }
+                }
+                break;
+            }
+        }
+        return oColor;
+    },
+
     checkWordMods: function()
     {
         return this.fill && this.fill.checkWordMods();
@@ -5016,13 +5096,13 @@ CUniFill.prototype =
         {
             return false;
         }
-		
+
 		if(isRealNumber(this.transparent) !== isRealNumber(unifill.transparent)
 		|| isRealNumber(this.transparent) && this.transparent !== unifill.transparent)
 		{
 			return false;
 		}
-		
+
         if(this.fill == null && unifill.fill == null)
         {
             return true;
@@ -5057,6 +5137,11 @@ CUniFill.prototype =
             }
         }
         return _ret.fill;
+    },
+
+    isAccent1: function() {
+        return (this.fill && this.fill.color && this.fill.color.color
+        && this.fill.color.color.type === window['Asc'].c_oAscColor.COLOR_TYPE_SCHEME &&  this.fill.color.color.id === 0)
     }
 };
 
@@ -5386,6 +5471,13 @@ function CompareShapeProperties(shapeProp1, shapeProp2)
     }
     if(shapeProp1.columnSpace === shapeProp2.columnSpace){
         _result_shape_prop.columnSpace = shapeProp1.columnSpace;
+    }
+    if(shapeProp1.textFitType === shapeProp2.textFitType){
+        _result_shape_prop.textFitType = shapeProp1.textFitType;
+    }
+
+    if(shapeProp1.vertOverflowType === shapeProp2.vertOverflowType){
+        _result_shape_prop.vertOverflowType = shapeProp1.vertOverflowType;
     }
 
     if(!shapeProp1.shadow && !shapeProp2.shadow){
@@ -6986,73 +7078,73 @@ CXfrm.prototype =
 
     setParent: function(pr)
     {
-        History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_Xfrm_SetParent, this.parent,  pr));
+        History.CanAddChanges() && History.Add(new CChangesDrawingsObject(this, AscDFH.historyitem_Xfrm_SetParent, this.parent,  pr));
         this.parent = pr;
     },
 
     setOffX: function(pr)
     {
-        History.Add(new CChangesDrawingsDouble(this, AscDFH.historyitem_Xfrm_SetOffX, this.offX,  pr));
+        History.CanAddChanges() && History.Add(new CChangesDrawingsDouble(this, AscDFH.historyitem_Xfrm_SetOffX, this.offX,  pr));
         this.offX = pr;
         this.handleUpdatePosition();
     },
     setOffY: function(pr)
     {
-        History.Add(new CChangesDrawingsDouble(this, AscDFH.historyitem_Xfrm_SetOffY, this.offY,  pr));
+        History.CanAddChanges() && History.Add(new CChangesDrawingsDouble(this, AscDFH.historyitem_Xfrm_SetOffY, this.offY,  pr));
         this.offY = pr;
         this.handleUpdatePosition();
     },
     setExtX: function(pr)
     {
-        History.Add(new CChangesDrawingsDouble(this, AscDFH.historyitem_Xfrm_SetExtX, this.extX,  pr));
+        History.CanAddChanges() && History.Add(new CChangesDrawingsDouble(this, AscDFH.historyitem_Xfrm_SetExtX, this.extX,  pr));
         this.extX = pr;
         this.handleUpdateExtents(true);
     },
     setExtY: function(pr)
     {
-        History.Add(new CChangesDrawingsDouble(this, AscDFH.historyitem_Xfrm_SetExtY, this.extY,  pr));
+        History.CanAddChanges() && History.Add(new CChangesDrawingsDouble(this, AscDFH.historyitem_Xfrm_SetExtY, this.extY,  pr));
         this.extY = pr;
         this.handleUpdateExtents(false);
     },
     setChOffX: function(pr)
     {
-        History.Add(new CChangesDrawingsDouble(this, AscDFH.historyitem_Xfrm_SetChOffX, this.chOffX,  pr));
+        History.CanAddChanges() && History.Add(new CChangesDrawingsDouble(this, AscDFH.historyitem_Xfrm_SetChOffX, this.chOffX,  pr));
         this.chOffX = pr;
         this.handleUpdateChildOffset();
     },
     setChOffY: function(pr)
     {
-        History.Add(new CChangesDrawingsDouble(this, AscDFH.historyitem_Xfrm_SetChOffY, this.chOffY,  pr));
+        History.CanAddChanges() && History.Add(new CChangesDrawingsDouble(this, AscDFH.historyitem_Xfrm_SetChOffY, this.chOffY,  pr));
         this.chOffY = pr;
         this.handleUpdateChildOffset();
     },
     setChExtX: function(pr)
     {
-        History.Add(new CChangesDrawingsDouble(this, AscDFH.historyitem_Xfrm_SetChExtX, this.chExtX,  pr));
+        History.CanAddChanges() && History.Add(new CChangesDrawingsDouble(this, AscDFH.historyitem_Xfrm_SetChExtX, this.chExtX,  pr));
         this.chExtX = pr;
         this.handleUpdateChildExtents();
     },
     setChExtY: function(pr)
     {
-        History.Add(new CChangesDrawingsDouble(this, AscDFH.historyitem_Xfrm_SetChExtY, this.chExtY,  pr));
+        History.CanAddChanges() && History.Add(new CChangesDrawingsDouble(this, AscDFH.historyitem_Xfrm_SetChExtY, this.chExtY,  pr));
         this.chExtY = pr;
         this.handleUpdateChildExtents();
     },
     setFlipH: function(pr)
     {
-        History.Add(new CChangesDrawingsBool(this, AscDFH.historyitem_Xfrm_SetFlipH, this.flipH,  pr));
+        History.CanAddChanges() && History.Add(new CChangesDrawingsBool(this, AscDFH.historyitem_Xfrm_SetFlipH, this.flipH,  pr));
         this.flipH = pr;
         this.handleUpdateFlip();
     },
     setFlipV: function(pr)
     {
-        History.Add(new CChangesDrawingsBool(this, AscDFH.historyitem_Xfrm_SetFlipV, this.flipV,  pr));
+        History.CanAddChanges() && History.Add(new CChangesDrawingsBool(this, AscDFH.historyitem_Xfrm_SetFlipV, this.flipV,  pr));
         this.flipV = pr;
         this.handleUpdateFlip();
     },
     setRot: function(pr)
     {
-        History.Add(new CChangesDrawingsDouble(this, AscDFH.historyitem_Xfrm_SetRot, this.rot,  pr));
+        History.CanAddChanges() && History.Add(new CChangesDrawingsDouble(this, AscDFH.historyitem_Xfrm_SetRot, this.rot,  pr));
         this.rot = pr;
         this.handleUpdateRot();
     },
@@ -9208,15 +9300,15 @@ CTextFit.prototype =
     Write_ToBinary: function(w)
     {
         writeLong(w, this.type);
-        writeDouble(w, this.fontScale);
-        writeDouble(w, this.lnSpcReduction);
+        writeLong(w, this.fontScale);
+        writeLong(w, this.lnSpcReduction);
     },
 
     Read_FromBinary: function(r)
     {
         this.type = readLong(r);
-        this.fontScale = readDouble(r);
-        this.lnSpcReduction = readDouble(r);
+        this.fontScale = readLong(r);
+        this.lnSpcReduction = readLong(r);
     },
 
     Get_Id: function()
@@ -9281,6 +9373,26 @@ CBodyPr.prototype =
     Refresh_RecalcData: function()
     {},
 
+    getLnSpcReduction: function()
+    {
+        if(this.textFit
+            && this.textFit.type === AscFormat.text_fit_NormAuto
+            && AscFormat.isRealNumber(this.textFit.lnSpcReduction))
+        {
+            return this.textFit.lnSpcReduction / 100000.0;
+        }
+        return undefined;
+    },
+    getFontScale: function()
+    {
+        if(this.textFit
+            && this.textFit.type === AscFormat.text_fit_NormAuto
+            && AscFormat.isRealNumber(this.textFit.fontScale))
+        {
+            return this.textFit.fontScale / 100000.0;
+        }
+        return undefined;
+    },
     isNotNull: function()
     {
         return this.flatTx          !== null ||
@@ -9389,6 +9501,8 @@ CBodyPr.prototype =
             }
         }, this, []);
     },
+
+
 
     Write_ToBinary2: function(w)
     {
@@ -9718,6 +9832,7 @@ CBodyPr.prototype =
         this.vertOverflow   = nOTOwerflow;
         this.wrap           = AscFormat.nTWTSquare;
         this.prstTxWarp     = null;
+        this.textFit        = null;
     },
 
     createDuplicate: function()
@@ -10190,6 +10305,12 @@ function CTextParagraphPr()
     this.rPr = new CTextPr();
 }
 
+function CreateNoneBullet() {
+    var ret = new CBullet();
+    ret.bulletType = new CBulletType();
+    ret.bulletType.type = BULLET_TYPE_BULLET_NONE;
+    return ret;
+}
 
 function CompareBullets(bullet1, bullet2)
 {
@@ -10197,8 +10318,7 @@ function CompareBullets(bullet1, bullet2)
     //TODO: пока будем сравнивать только bulletType, т. к. эта функция используется для мержа свойств при отдаче в интерфейс, а для интерфейса bulletTyp'a достаточно. Если понадобится нужно сделать полное сравнение.
     //
     if(bullet1.bulletType && bullet2.bulletType
-        && bullet1.bulletType.type === bullet2.bulletType.type
-        && bullet1.bulletType.type !== BULLET_TYPE_BULLET_NONE)
+        && bullet1.bulletType.type === bullet2.bulletType.type)
     {
         var ret = new CBullet();
         ret.bulletType = new CBulletType();
@@ -10249,10 +10369,13 @@ function CompareBullets(bullet1, bullet2)
         if(bullet1.bulletColor && bullet2.bulletColor
         && bullet1.bulletColor.type ===  bullet2.bulletColor.type)
         {
-            ret.bulletColor = new CBulletColor()
+            ret.bulletColor = new CBulletColor();
             ret.bulletColor.type =  bullet2.bulletColor.type;
-            ret.bulletColor.UniColor = bullet1.bulletColor.UniColor.compare(bullet2.bulletColor.UniColor);
-            if(!ret.bulletColor.UniColor.color)
+            if(bullet1.bulletColor.UniColor)
+            {
+                ret.bulletColor.UniColor = bullet1.bulletColor.UniColor.compare(bullet2.bulletColor.UniColor);
+            }
+            if(!ret.bulletColor.UniColor || !ret.bulletColor.UniColor.color)
             {
                 ret.bulletColor = null;
             }
@@ -10265,25 +10388,18 @@ function CompareBullets(bullet1, bullet2)
     }
 }
 
-function CBullet()
-{
-    this.bulletColor = null;
-    this.bulletSize = null;
-    this.bulletTypeface = null;
-    this.bulletType = null;
-    this.Bullet = null;
-}
-
-CBullet.prototype =
-{
-    Get_Id: function()
+    function CBullet()
     {
-        return this.Id;
-    },
-    Refresh_RecalcData: function()
-    {},
+        this.bulletColor = null;
+        this.bulletSize = null;
+        this.bulletTypeface = null;
+        this.bulletType = null;
+        this.Bullet = null;
 
-    Set_FromObject: function(obj)
+        //used to get properties for interface
+        this.FirstTextPr = null;
+    }
+    CBullet.prototype.Set_FromObject = function(obj)
     {
         if(obj)
         {
@@ -10311,9 +10427,59 @@ CBullet.prototype =
             else
                 this.bulletTypeface = null;
         }
-    },
-
-    createDuplicate: function()
+    };
+    CBullet.prototype.merge = function(oBullet)
+    {
+        if(!oBullet)
+        {
+            return;
+        }
+        if(oBullet.bulletColor)
+        {
+            if(!this.bulletColor)
+            {
+                this.bulletColor = oBullet.bulletColor.createDuplicate();
+            }
+            else
+            {
+                this.bulletColor.merge(oBullet.bulletColor);
+            }
+        }
+        if(oBullet.bulletSize)
+        {
+            if(!this.bulletSize)
+            {
+                this.bulletSize = oBullet.bulletSize.createDuplicate();
+            }
+            else
+            {
+                this.bulletSize.merge(oBullet.bulletSize);
+            }
+        }
+        if(oBullet.bulletTypeface)
+        {
+            if(!this.bulletTypeface)
+            {
+                this.bulletTypeface = oBullet.bulletTypeface.createDuplicate();
+            }
+            else
+            {
+                this.bulletTypeface.merge(oBullet.bulletTypeface);
+            }
+        }
+        if(oBullet.bulletType)
+        {
+            if(!this.bulletType)
+            {
+                this.bulletType = oBullet.bulletType.createDuplicate();
+            }
+            else
+            {
+                this.bulletType.merge(oBullet.bulletType);
+            }
+        }
+    };
+    CBullet.prototype.createDuplicate = function()
     {
         var duplicate = new CBullet();
         if(this.bulletColor)
@@ -10336,26 +10502,22 @@ CBullet.prototype =
 
         duplicate.Bullet = this.Bullet;
         return duplicate;
-    },
-
-    isBullet: function()
+    };
+    CBullet.prototype.isBullet = function()
     {
         return this.bulletType != null && this.bulletType.type != null;
-    },
-
-    getPresentationBullet: function(theme, color)
+    };
+    CBullet.prototype.getPresentationBullet = function(theme, color)
     {
         var para_pr = new CParaPr();
         para_pr.Bullet = this;
         return para_pr.Get_PresentationBullet(theme, color);
-    },
-
-    getBulletType: function(theme, color)
+    };
+    CBullet.prototype.getBulletType = function(theme, color)
     {
         return this.getPresentationBullet(theme, color).m_nType;
-    },
-
-    Write_ToBinary: function(w)
+    };
+    CBullet.prototype.Write_ToBinary = function(w)
     {
         w.WriteBool(isRealObject(this.bulletColor));
         if(isRealObject(this.bulletColor))
@@ -10383,9 +10545,8 @@ CBullet.prototype =
             this.bulletType.Write_ToBinary(w);
         }
 
-    },
-
-    Read_FromBinary: function(r)
+    };
+    CBullet.prototype.Read_FromBinary = function(r)
     {
         if(r.GetBool())
         {
@@ -10410,42 +10571,191 @@ CBullet.prototype =
             this.bulletType = new CBulletType();
             this.bulletType.Read_FromBinary(r);
         }
-    },
-
-    Get_AllFontNames: function(AllFonts){
+    };
+    CBullet.prototype.Get_AllFontNames = function(AllFonts){
         if(this.bulletTypeface && typeof this.bulletTypeface.typeface === "string" && this.bulletTypeface.typeface.length > 0){
             AllFonts[this.bulletTypeface.typeface] = true;
         }
-    }
-
-};
-
-function CBulletColor()
-{
-    this.type = AscFormat.BULLET_TYPE_COLOR_CLRTX;
-    this.UniColor = null;
-
-}
-
-CBulletColor.prototype =
-{
-    Get_Id: function()
-    {
-        return this.Id;
-    },
-
-    Refresh_RecalcData: function()
-    {},
-    Set_FromObject: function(o)
-    {
-        this.type = o.type;
-        if(o.UniColor)
-        {
-
+    };
+    CBullet.prototype.putNumStartAt = function(NumStartAt) {
+        if(!this.bulletType) {
+            this.bulletType = new CBulletType();
         }
-    },
+        this.bulletType.type = AscFormat.BULLET_TYPE_BULLET_AUTONUM;
+        this.bulletType.startAt = NumStartAt;
+    };
+    CBullet.prototype.getNumStartAt = function() {
+        if(this.bulletType){
+            if(AscFormat.isRealNumber(this.bulletType.startAt)) {
+                return Math.max(1, this.bulletType.startAt);
+            }
+        }
+        return undefined;
+    };
+    //interface methods
+    var prot = CBullet.prototype;
+    prot.asc_getSize = function () {
+        var nRet = 100;
+        if(this.bulletSize) {
+            switch (this.bulletSize.type) {
+                case AscFormat.BULLET_TYPE_SIZE_NONE: {
+                    break;
+                }
+                case AscFormat.BULLET_TYPE_SIZE_TX: {
+                    break;
+                }
+                case AscFormat.BULLET_TYPE_SIZE_PCT: {
+                    nRet = this.bulletSize.val / 1000.0;
+                    break;
+                }
+                case AscFormat.BULLET_TYPE_SIZE_PTS: {
+                    break;
+                }
+            }
+        }
+        return nRet;
+    };
+    prot["get_Size"] = prot["asc_getSize"] = CBullet.prototype.asc_getSize;
+    prot.asc_putSize = function(Size) {
+        if(AscFormat.isRealNumber(Size)) {
+            this.bulletSize = new AscFormat.CBulletSize();
+            this.bulletSize.type = AscFormat.BULLET_TYPE_SIZE_PCT;
+            this.bulletSize.val = (Size * 1000) >> 0;
+        }
+    };
+    prot["put_Size"] = prot["asc_putSize"] = CBullet.prototype.asc_putSize;
+    prot.asc_getColor = function() {
+        if(this.bulletColor) {
+            if(this.bulletColor.UniColor) {
+                return AscCommon.CreateAscColor(this.bulletColor.UniColor);
+            }
+        }
+        else {
+            var FirstTextPr = this.FirstTextPr;
+            if(FirstTextPr && FirstTextPr.Unifill) {
+                if(FirstTextPr.Unifill.fill instanceof AscFormat.CSolidFill && FirstTextPr.Unifill.fill.color) {
+                    return AscCommon.CreateAscColor(FirstTextPr.Unifill.fill.color);
+                }
+                else {
+                    var RGBA = FirstTextPr.Unifill.getRGBAColor();
+                    return AscCommon.CreateAscColorCustom(RGBA.R, RGBA.G, RGBA.B);
+                }
+            }
+        }
+        return AscCommon.CreateAscColorCustom(0, 0, 0);
+    };
+    prot["get_Color"] = prot["asc_getColor"] = prot.asc_getColor;
+    prot.asc_putColor = function(color) {
+        this.bulletColor = new AscFormat.CBulletColor();
+        this.bulletColor.type = AscFormat.BULLET_TYPE_COLOR_CLR;
+        this.bulletColor.UniColor = AscFormat.CorrectUniColor(color, this.bulletColor.UniColor, 0);
+    };
+    prot["put_Color"] = prot["asc_putColor"] = prot.asc_putColor;
+    prot.asc_getFont = function() {
+        var sRet = "";
+        if(this.bulletTypeface
+            && this.bulletTypeface.type === AscFormat.BULLET_TYPE_TYPEFACE_BUFONT
+            && typeof this.bulletTypeface.typeface === "string"
+            && this.bulletTypeface.typeface.length > 0) {
+            sRet = this.bulletTypeface.typeface;
+        }
+        else {
+            var FirstTextPr = this.FirstTextPr;
+            if(FirstTextPr && FirstTextPr.FontFamily && typeof FirstTextPr.FontFamily.Name === "string"
+                && FirstTextPr.FontFamily.Name.length > 0) {
+                sRet = FirstTextPr.FontFamily.Name;
+            }
+        }
+        return sRet;
+    };
+    prot["get_Font"] = prot["asc_getFont"] = prot.asc_getFont;
+    prot.asc_putFont = function(val) {
+        if(typeof val === "string" && val.length > 0) {
+            this.bulletTypeface = new AscFormat.CBulletTypeface();
+            this.bulletTypeface.type = AscFormat.BULLET_TYPE_TYPEFACE_BUFONT;
+            this.bulletTypeface.typeface = val;
+        }
+    };
+    prot["put_Font"] = prot["asc_putFont"] = prot.asc_putFont;
+    prot.asc_putNumStartAt = function(NumStartAt) {
+        this.putNumStartAt(NumStartAt);
+    };
+    prot["put_NumStartAt"] = prot["asc_putNumStartAt"] = prot.asc_putNumStartAt;
+    prot.asc_getNumStartAt = function() {
+        return this.getNumStartAt();
+    };
+    prot["get_NumStartAt"] = prot["asc_getNumStartAt"] = prot.asc_getNumStartAt;
+    prot.asc_getSymbol = function () {
+        if(this.bulletType && this.bulletType.type === AscFormat.BULLET_TYPE_BULLET_CHAR) {
+            return this.bulletType.Char;
+        }
+        return undefined;
+    }
+    prot["get_Symbol"] = prot["asc_getSymbol"] = prot.asc_getSymbol;
+    prot.asc_putSymbol = function(v) {
+        if(!this.bulletType) {
+            this.bulletType = new CBulletType();
+        }
+        this.bulletType.AutoNumType = 0;
+        this.bulletType.type = AscFormat.BULLET_TYPE_BULLET_CHAR;
+        this.bulletType.Char = v;
+    };
+    prot["put_Symbol"] = prot["asc_putSymbol"] = prot.asc_putSymbol;
+    prot.asc_putAutoNumType = function(val) {
+        if(!this.bulletType) {
+            this.bulletType = new CBulletType();
+        }
+        this.bulletType.type = AscFormat.BULLET_TYPE_BULLET_AUTONUM;
+        this.bulletType.AutoNumType = AscFormat.getNumberingType(val);
+    };
+    prot["put_AutoNumType"] = prot["asc_putAutoNumType"] = prot.asc_putAutoNumType;
+    prot.asc_getAutoNumType = function() {
+        if(this.bulletType && this.bulletType.type === AscFormat.BULLET_TYPE_BULLET_AUTONUM) {
+            return AscFormat.fGetListTypeFromBullet(this).SubType;
+        }
+        return -1;
+    };
+    prot["get_AutoNumType"] = prot["asc_getAutoNumType"] = prot.asc_getAutoNumType;
+    prot.asc_putListType = function(type, subtype) {
+        var NumberInfo =
+            {
+                Type     : type,
+                SubType  : subtype
+            };
+        AscFormat.fFillBullet(NumberInfo, this);
+    };
+    prot["put_ListType"] = prot["asc_putListType"] = prot.asc_putListType;
+    prot.asc_getListType = function() {
+        return new AscCommon.asc_CListType(AscFormat.fGetListTypeFromBullet(this));
+    };
+    prot.asc_getType = function() {
+        return this.bulletType && this.bulletType.type;
+    };
+    prot["get_Type"] = prot["asc_getType"] = prot.asc_getType;
+    window["Asc"]["asc_CBullet"] = window["Asc"].asc_CBullet = CBullet;
 
-    createDuplicate: function()
+    function CBulletColor()
+    {
+        this.type = AscFormat.BULLET_TYPE_COLOR_CLRTX;
+        this.UniColor = null;
+    }
+    CBulletColor.prototype.Set_FromObject = function(o)
+    {
+        this.merge(o);
+    };
+    CBulletColor.prototype.merge = function(oBulletColor)
+    {
+        if(!oBulletColor)
+        {
+            return;
+        }
+        if(oBulletColor.UniColor)
+        {
+            this.type = oBulletColor.type;
+            this.UniColor = oBulletColor.UniColor.createDuplicate();
+        }
+    };
+    CBulletColor.prototype.createDuplicate = function()
     {
         var duplicate = new CBulletColor();
         duplicate.type = this.type;
@@ -10454,9 +10764,8 @@ CBulletColor.prototype =
             duplicate.UniColor = this.UniColor.createDuplicate();
         }
         return duplicate;
-    },
-
-    Write_ToBinary: function(w)
+    };
+    CBulletColor.prototype.Write_ToBinary = function(w)
     {
         w.WriteBool(isRealNumber(this.type));
         if(isRealNumber(this.type))
@@ -10469,9 +10778,8 @@ CBulletColor.prototype =
             this.UniColor.Write_ToBinary(w);
         }
 
-    },
-
-    Read_FromBinary: function(r)
+    };
+    CBulletColor.prototype.Read_FromBinary = function(r)
     {
         if(r.GetBool())
         {
@@ -10483,8 +10791,7 @@ CBulletColor.prototype =
             this.UniColor = new CUniColor();
             this.UniColor.Read_FromBinary(r);
         }
-    }
-};
+    };
 
 function CBulletSize()
 {
@@ -10495,13 +10802,20 @@ function CBulletSize()
 
 CBulletSize.prototype =
 {
-    Get_Id: function()
+    Set_FromObject: function(o)
     {
-        return this.Id;
+        this.merge(o);
     },
 
-    Refresh_RecalcData: function()
-    {},
+    merge: function(oBulletSize)
+    {
+        if(!oBulletSize)
+        {
+            return;
+        }
+        this.type = oBulletSize.type;
+        this.val = oBulletSize.val;
+    },
 
     createDuplicate: function()
     {
@@ -10548,13 +10862,11 @@ function CBulletTypeface()
 
 CBulletTypeface.prototype =
 {
-    Get_Id: function()
-    {
-        return this.Id;
-    },
 
-    Refresh_RecalcData: function()
-    {},
+    Set_FromObject: function(o)
+    {
+        this.merge(o);
+    },
 
     createDuplicate: function()
     {
@@ -10562,6 +10874,16 @@ CBulletTypeface.prototype =
         d.type = this.type;
         d.typeface = this.typeface;
         return d;
+    },
+
+    merge: function(oBulletTypeface)
+    {
+        if(!oBulletTypeface)
+        {
+            return;
+        }
+        this.type = oBulletTypeface.type;
+        this.typeface = oBulletTypeface.typeface;
     },
 
     Write_ToBinary: function(w)
@@ -10608,13 +10930,51 @@ function CBulletType()
 
 CBulletType.prototype =
 {
-    Get_Id: function()
+    Set_FromObject: function(o)
     {
-        return this.Id;
-    } ,
+        this.merge(o);
+    },
 
-    Refresh_RecalcData: function()
-    {},
+    merge: function(oBulletType)
+    {
+        if(!oBulletType)
+        {
+            return;
+        }
+        if(oBulletType.type !== null && this.type !== oBulletType.type)
+        {
+            this.type = oBulletType.type;
+            this.Char = oBulletType.Char;
+            this.AutoNumType = oBulletType.AutoNumType;
+            this.startAt = oBulletType.startAt;
+        }
+        else
+        {
+            if(this.type === AscFormat.BULLET_TYPE_BULLET_CHAR)
+            {
+                if(typeof oBulletType.Char === "string"
+                    && oBulletType.Char.length > 0)
+                {
+                    if(this.Char !== oBulletType.Char)
+                    {
+                        this.Char = oBulletType.Char;
+                    }
+                }
+            }
+            if(this.type === AscFormat.BULLET_TYPE_BULLET_AUTONUM)
+            {
+                if(oBulletType.AutoNumType !== null && this.AutoNumType !== oBulletType.AutoNumType)
+                {
+                    this.AutoNumType = oBulletType.AutoNumType;
+                }
+                if(oBulletType.startAt !== null && this.startAt !== oBulletType.startAt)
+                {
+                    this.startAt = oBulletType.startAt;
+                }
+            }
+
+        }
+    },
 
     createDuplicate: function()
     {
@@ -10662,6 +11022,8 @@ CBulletType.prototype =
         if(r.GetBool())
         {
             (this.Char) = r.GetString2();
+            if (AscFonts.IsCheckSymbols)
+                AscFonts.FontPickerByCharacter.getFontsByString(this.Char);
         }
 
         if(r.GetBool())
@@ -10837,16 +11199,10 @@ function GenerateDefaultTheme(presentation, opt_fontName)
         brush.fill.color.color.setId(phClr);
         theme.themeElements.fmtScheme.bgFillStyleLst.push(brush);
 
-        brush = new CUniFill();
-        brush.setFill(new CSolidFill());
-        brush.fill.setColor(new CUniColor());
-        brush.fill.color.setColor(CreateUniColorRGB(0,0,0));
+        brush = AscFormat.CreateUniFillByUniColor(AscFormat.CreateUniColorRGB(0, 0, 0));
         theme.themeElements.fmtScheme.bgFillStyleLst.push(brush);
 
-        brush = new CUniFill();
-        brush.setFill(new CSolidFill());
-        brush.fill.setColor(new CUniColor());
-        brush.fill.color.setColor(CreateUniColorRGB(0,0,0));
+        brush = AscFormat.CreateUniFillByUniColor(AscFormat.CreateUniColorRGB(0, 0, 0));
         theme.themeElements.fmtScheme.bgFillStyleLst.push(brush);
         // ----------------------------------------------------
 
@@ -11344,23 +11700,23 @@ function CorrectUniFill(asc_fill, unifill, editorId)
     if (null != _alpha)
 	{
 		ret.transparent = _alpha;
-		
-		
+
+
 	}
-	
+
 	if(ret.transparent != null)
 	{
-		
+
 		if(ret.fill && ret.fill.type === c_oAscFill.FILL_TYPE_BLIP)
 		{
-			
+
 			for(var i = 0; i < ret.fill.Effects.length; ++i)
 			{
-				if(ret.fill.Effects[i].Type = EFFECT_TYPE_ALPHAMODFIX)
+				if(ret.fill.Effects[i].Type === EFFECT_TYPE_ALPHAMODFIX)
 				{
 					ret.fill.Effects[i].amt = ((ret.transparent * 100000 / 255) >> 0);
 					break;
-				}  
+				}
 			}
 			if(i === ret.fill.Effects.length)
 			{
@@ -11370,7 +11726,7 @@ function CorrectUniFill(asc_fill, unifill, editorId)
 			}
 		}
 	}
-        
+
 
     return ret;
 }
@@ -11642,6 +11998,8 @@ function CreateAscShapePropFromProp(shapeProp)
     obj.description = shapeProp.description;
     obj.columnNumber = shapeProp.columnNumber;
     obj.columnSpace = shapeProp.columnSpace;
+    obj.textFitType = shapeProp.textFitType;
+    obj.vertOverflowType = shapeProp.vertOverflowType;
     obj.shadow = shapeProp.shadow;
     if(shapeProp.signatureId)
     {
@@ -12350,7 +12708,7 @@ function CorrectUniColor(asc_color, unicolor, flag)
                             ser.dLbls.setShowBubbleSize(false);
                         }
                     }
-                    var dLbl  = ser.dLbls.findDLblByIdx(nPointIndex);
+                    var dLbl  = ser.dLbls && ser.dLbls.findDLblByIdx(nPointIndex);
                     if(!dLbl)
                     {
                         dLbl = new AscFormat.CDLbl();
@@ -12750,9 +13108,9 @@ function CorrectUniColor(asc_color, unicolor, flag)
     window['AscFormat'].nTWTNone   = 0;
     window['AscFormat'].nTWTSquare = 1;
 
-    window['AscFormat'].text_fit_No         = 0;
-    window['AscFormat'].text_fit_Auto       = 1;
-    window['AscFormat'].text_fit_NormAuto   = 2;
+    window['AscFormat']["text_fit_No"]         = window['AscFormat'].text_fit_No         = 0;
+    window['AscFormat']["text_fit_Auto"]       = window['AscFormat'].text_fit_Auto       = 1;
+    window['AscFormat']["text_fit_NormAuto"]   = window['AscFormat'].text_fit_NormAuto   = 2;
 
     window['AscFormat'].BULLET_TYPE_COLOR_NONE	= 0;
     window['AscFormat'].BULLET_TYPE_COLOR_CLRTX	= 1;
@@ -12795,14 +13153,14 @@ function CorrectUniColor(asc_color, unicolor, flag)
     window['AscFormat']._arr_lt_types_weight = _arr_lt_types_weight;
     window['AscFormat']._global_layout_summs_array = _global_layout_summs_array;
 
-    window['AscFormat'].nOTOwerflow = nOTOwerflow;
-    window['AscFormat'].nOTClip = nOTClip;
-    window['AscFormat'].nOTEllipsis = nOTEllipsis;
+    window['AscFormat'].nOTOwerflow = window['AscFormat']['nOTOwerflow'] = nOTOwerflow;
+    window['AscFormat'].nOTClip = window['AscFormat']['nOTClip'] = nOTClip;
+    window['AscFormat'].nOTEllipsis = window['AscFormat']['nOTEllipsis'] = nOTEllipsis;
 
-    window['AscFormat'].BULLET_TYPE_BULLET_NONE = BULLET_TYPE_BULLET_NONE;
-    window['AscFormat'].BULLET_TYPE_BULLET_CHAR = BULLET_TYPE_BULLET_CHAR;
-    window['AscFormat'].BULLET_TYPE_BULLET_AUTONUM = BULLET_TYPE_BULLET_AUTONUM;
-    window['AscFormat'].BULLET_TYPE_BULLET_BLIP = BULLET_TYPE_BULLET_BLIP;
+    window['AscFormat'].BULLET_TYPE_BULLET_NONE = window['AscFormat']['BULLET_TYPE_BULLET_NONE'] = BULLET_TYPE_BULLET_NONE;
+    window['AscFormat'].BULLET_TYPE_BULLET_CHAR = window['AscFormat']['BULLET_TYPE_BULLET_CHAR'] = BULLET_TYPE_BULLET_CHAR;
+    window['AscFormat'].BULLET_TYPE_BULLET_AUTONUM = window['AscFormat']['BULLET_TYPE_BULLET_AUTONUM'] = BULLET_TYPE_BULLET_AUTONUM;
+    window['AscFormat'].BULLET_TYPE_BULLET_BLIP = window['AscFormat']['BULLET_TYPE_BULLET_BLIP'] = BULLET_TYPE_BULLET_BLIP;
 
     window['AscFormat'].AUDIO_CD = AUDIO_CD;
     window['AscFormat'].WAV_AUDIO_FILE = WAV_AUDIO_FILE;
@@ -12840,6 +13198,7 @@ function CorrectUniColor(asc_color, unicolor, flag)
         window['AscFormat'].CAlphaInv = CAlphaInv;
         window['AscFormat'].CAlphaMod = CAlphaMod;
         window['AscFormat'].CBlend = CBlend;
+        window['AscFormat'].CreateNoneBullet = CreateNoneBullet;
 
     window['AscFormat'].DEFAULT_COLOR_MAP = GenerateDefaultColorMap();
 })(window);

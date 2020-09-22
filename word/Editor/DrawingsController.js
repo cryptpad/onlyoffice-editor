@@ -127,9 +127,9 @@ CDrawingsController.prototype.EditChart = function(Chart)
 {
 	this.DrawingObjects.editChart(Chart);
 };
-CDrawingsController.prototype.AddInlineTable = function(Cols, Rows)
+CDrawingsController.prototype.AddInlineTable = function(nCols, nRows, nMode)
 {
-	this.DrawingObjects.addInlineTable(Cols, Rows);
+	return this.DrawingObjects.addInlineTable(nCols, nRows, nMode);
 };
 CDrawingsController.prototype.ClearParagraphFormatting = function(isClearParaPr, isClearTextPr)
 {
@@ -137,7 +137,7 @@ CDrawingsController.prototype.ClearParagraphFormatting = function(isClearParaPr,
 };
 CDrawingsController.prototype.AddToParagraph = function(oItem, bRecalculate)
 {
-	if (para_NewLine === oItem.Type && true === oItem.IsPageOrColumnBreak())
+	if (para_NewLine === oItem.Type && true === oItem.IsPageBreak())
 		return;
 
 	this.DrawingObjects.paragraphAdd(oItem, bRecalculate);
@@ -431,8 +431,6 @@ CDrawingsController.prototype.GetCurrentParagraph = function(bIgnoreSelection, a
 };
 CDrawingsController.prototype.GetSelectedElementsInfo = function(oInfo)
 {
-	this.DrawingObjects.getSelectedElementsInfo(oInfo);
-
 	var oContentControl = this.private_GetParentContentControl();
 	if (oContentControl)
 	{
@@ -445,14 +443,16 @@ CDrawingsController.prototype.GetSelectedElementsInfo = function(oInfo)
 			oInfo.SetInlineLevelSdt(oContentControl);
 		}
 	}
+
+	this.DrawingObjects.getSelectedElementsInfo(oInfo);
 };
-CDrawingsController.prototype.AddTableRow = function(bBefore)
+CDrawingsController.prototype.AddTableRow = function(bBefore, nCount)
 {
-	this.DrawingObjects.tableAddRow(bBefore);
+	this.DrawingObjects.tableAddRow(bBefore, nCount);
 };
-CDrawingsController.prototype.AddTableColumn = function(bBefore)
+CDrawingsController.prototype.AddTableColumn = function(bBefore, nCount)
 {
-	this.DrawingObjects.tableAddCol(bBefore);
+	this.DrawingObjects.tableAddCol(bBefore, nCount);
 };
 CDrawingsController.prototype.RemoveTableRow = function()
 {

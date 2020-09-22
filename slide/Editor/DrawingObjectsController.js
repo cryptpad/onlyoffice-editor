@@ -66,7 +66,7 @@ DrawingObjectsController.prototype.fitImagesToSlide = function()
                 {
                     sImageId = AscCommon.getFullImageSrc2(sImageId);
                     var _image = oApi.ImageLoader.map_image_index[sImageId];
-                    if(_image)
+                    if(_image && _image.Image)
                     {
                         var __w = Math.max((_image.Image.width * AscCommon.g_dKoef_pix_to_mm), 1);
                         var __h = Math.max((_image.Image.height * AscCommon.g_dKoef_pix_to_mm), 1);
@@ -393,7 +393,7 @@ DrawingObjectsController.prototype.handleSlideComments  =  function(e, x, y, pag
                 this.changeCurrentState(new PreMoveCommentState(this, x, y, comments[i]));
                 if(i !== index_selected)
                 {
-                    this.drawingObjects.showDrawingObjects(true);
+                    this.drawingObjects.showDrawingObjects();
                 }
                 ret.result = true;
                 ret.selectedIndex = index_selected;
@@ -413,7 +413,7 @@ DrawingObjectsController.prototype.handleSlideComments  =  function(e, x, y, pag
         ret.selectedIndex = index_selected;
         if(-1 !== index_selected)
         {
-            this.drawingObjects.showDrawingObjects(true);
+            this.drawingObjects.showDrawingObjects();
         }
         return ret;
     }

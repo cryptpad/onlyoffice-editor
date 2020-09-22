@@ -76,60 +76,41 @@
 		GreaterThanOrEqual: 7
 	};
 
-	var EFormulaType = {
-		None: 0,
-		Whole: 1,
-		Decimal: 2,
-		Formula: 3
-	};
+	function checkIntegerType(val) {
+		return val && AscCommonExcel.cElementType.number === val.type;
+	}
 
 	function CDataFormula(value) {
 		this.text = value;
 		this._formula = null;
-		this.type = EFormulaType.None;
 	}
 
-	CDataFormula.prototype._init = function (vt, ws) {
+	CDataFormula.prototype._init = function (ws) {
 		if (this._formula || !this.text) {
 			return;
 		}
 
-		var value = null;
-		if (vt !== EDataValidationType.Custom && vt !== EDataValidationType.List) {
-			value = Number(this.text);
-			if (!isNaN(value)) {
-				if (vt !== EDataValidationType.Decimal && vt !== EDataValidationType.Time) {
-					if (Number.isInteger(value)) {
-						this.type = EFormulaType.Whole;
-						this._formula = value;
-						return;
-					}
-				} else {
-					this.type = EFormulaType.Decimal;
-					this._formula = value;
-					return;
-				}
-			}
-		}
-
-		this.type = EFormulaType.Formula;
-		this._formula = new AscCommonExcel.parserFormula(this.text, null, ws);
+		this._formula = new AscCommonExcel.parserFormula(this.text, this, ws);
 		this._formula.parse();
+        this._formula.buildDependencies();
 	};
-	CDataFormula.prototype.getValue = function(vt, ws, returnRaw) {
-		this._init(vt, ws);
-		if (EFormulaType.Formula === this.type) {
-			var res = this._formula.calculate();
-			return returnRaw ? this._formula.simplifyRefType(res).getValue() : res;
-		}
-		return this._formula;
+    CDataFormula.prototype.onFormulaEvent = function (type, eventData) {
+        if (AscCommon.c_oNotifyParentType.ChangeFormula === type) {
+            this.text = eventData.assemble;
+        }
+    };
+	CDataFormula.prototype.getValue = function(ws, returnRaw) {
+		this._init(ws);
+		var activeCell = ws.getSelection().activeCell;
+		var res = this._formula.calculate(null, new Asc.Range(activeCell.col, activeCell.row, activeCell.col, activeCell.row));
+		return returnRaw ? this._formula.simplifyRefType(res) : res;
 	};
 
 	function CDataValidation() {
 		this.ranges = null;
 
 		this.allowBlank = false;
-		this.showDropDown = false;
+		this.showDropDown = false; // Excel considers this field to be a refusal to display
 		this.showErrorMessage = false;
 		this.showInputMessage = false;
 		this.type = EDataValidationType.None;
@@ -147,6 +128,14 @@
 		return this;
 	}
 
+	CDataValidation.prototype._init = function (ws) {
+		if (this.formula1) {
+			this.formula1._init(ws);
+		}
+		if (this.formula2) {
+			this.formula2._init(ws);
+		}
+	};
 	CDataValidation.prototype.clone = function() {
 		var res = new CDataValidation();
 		if (this.ranges) {
@@ -184,66 +173,113 @@
 		}
 		return false;
 	};
-	CDataValidation.prototype.checkValue = function (val, ws) {
-		var res = true;
-		if (this.showErrorMessage) {
-			val = (this.type === EDataValidationType.TextLength) ? AscCommonExcel.getFragmentsLength(val) : AscCommonExcel.getFragmentsText(val);
-			if (EDataValidationType.List === this.type) {
-				var list = this.formula1 && this.formula1.getValue(this.type, ws, false);
-				if (list && AscCommonExcel.cElementType.error !== list.type) {
-					if (AscCommonExcel.cElementType.string === list.type) {
-						list = list.getValue().split(AscCommon.FormulaSeparators.functionArgumentSeparatorDef);
-						res = -1 !== list.indexOf(val);
-					} else {
-						list = list.getRange();
-						if (list) {
-							res = false;
-							list._foreachNoEmpty(function (cell) {
-								// ToDo check cells type
-								if (!cell.isEmptyTextString() && cell.getValue() === val) {
-									res = true;
-									return null;
-								}
-							});
-						}
+	CDataValidation.prototype.checkValue = function (cell, ws) {
+		if (!this.showErrorMessage || EDataValidationType.None === this.type) {
+			return true;
+		}
+
+		var cellType = cell.getType();
+		var val = cell.getValueWithoutFormat();
+
+		if (EDataValidationType.List === this.type) {
+			var list = this._getListValues(ws);
+			var aValue = list[0];
+			if (!aValue) {
+				return false;
+			}
+			var aData = list[1];
+			if (aData) {
+				for (var i = 0; i < aData.length; ++i) {
+					if (aData[i].isEqualCell(cell)) {
+						return true;
 					}
 				}
-			} else if (EDataValidationType.Custom === this.type) {
 			} else {
+				return -1 !== aValue.indexOf(val);
+			}
+		} else if (EDataValidationType.Custom === this.type) {
+			var v = this.formula1 && this.formula1.getValue(ws, true);
+			v = v && v.tocBool();
+			return !!(v && AscCommonExcel.cElementType.bool === v.type && v.toBool());
+		} else {
+			if (EDataValidationType.TextLength === this.type) {
+				val = val.length;
+			} else {
+				if (AscCommon.CellValueType.Number !== cellType) {
+					return false;
+				}
 				val = Number(val);
-				if (!isNaN(val)) {
-					var v1 = this.formula1 && this.formula1.getValue(this.type, ws, true);
-					var v2 = this.formula2 && this.formula2.getValue(this.type, ws, true);
-					switch (this.operator) {
-						case EDataValidationOperator.Between:
-							res = v1 <= val && val <= v2;
-							break;
-						case EDataValidationOperator.NotBetween:
-							res = !(v1 <= val && val <= v2);
-							break;
-						case EDataValidationOperator.Equal:
-							res = v1 === val;
-							break;
-						case EDataValidationOperator.NotEqual:
-							res = v1 !== val;
-							break;
-						case EDataValidationOperator.LessThan:
-							res = v1 > val;
-							break;
-						case EDataValidationOperator.LessThanOrEqual:
-							res = v1 >= val;
-							break;
-						case EDataValidationOperator.GreaterThan:
-							res = v1 < val;
-							break;
-						case EDataValidationOperator.GreaterThanOrEqual:
-							res = v1 <= val;
-							break;
-					}
+
+				if (isNaN(val) || (EDataValidationType.Whole === this.type && (val >> 0) !== val)) {
+					return false;
+				}
+			}
+
+			var v1 = this.formula1 && this.formula1.getValue(ws, true);
+			var v2 = this.formula2 && this.formula2.getValue(ws, true);
+			if (!checkIntegerType(v1)) {
+				return false;
+			}
+			v1 = v1.toNumber();
+
+			var res = false;
+			switch (this.operator) {
+				case EDataValidationOperator.Between:
+					res = checkIntegerType(v2) && v1 <= val && val <= v2.toNumber();
+					break;
+				case EDataValidationOperator.NotBetween:
+					res = checkIntegerType(v2) && !(v1 <= val && val <= v2.toNumber());
+					break;
+				case EDataValidationOperator.Equal:
+					res = v1 === val;
+					break;
+				case EDataValidationOperator.NotEqual:
+					res = v1 !== val;
+					break;
+				case EDataValidationOperator.LessThan:
+					res = v1 > val;
+					break;
+				case EDataValidationOperator.LessThanOrEqual:
+					res = v1 >= val;
+					break;
+				case EDataValidationOperator.GreaterThan:
+					res = v1 < val;
+					break;
+				case EDataValidationOperator.GreaterThanOrEqual:
+					res = v1 <= val;
+					break;
+			}
+			return res;
+		}
+		return false;
+	};
+	CDataValidation.prototype._getListValues = function (ws) {
+		var aValue, aData;
+		var list = this.formula1 && this.formula1.getValue(ws, false);
+		if (list && AscCommonExcel.cElementType.error !== list.type) {
+			if (AscCommonExcel.cElementType.string === list.type) {
+				aValue = list.getValue().split(AscCommon.FormulaSeparators.functionArgumentSeparatorDef);
+			} else {
+				list = list.getRange();
+				if (list) {
+					aValue = [];
+					aData = [];
+					list._foreachNoEmpty(function (cell) {
+						if (!cell.isNullTextString()) {
+							aValue.push(cell.getValue());
+							aData.push(new AscCommonExcel.CCellValue(cell));
+						}
+					});
 				}
 			}
 		}
-		return res;
+		return [aValue, aData];
+	};
+	CDataValidation.prototype.isListValues = function () {
+		return (this.type === EDataValidationType.List && !this.showDropDown);
+	};
+	CDataValidation.prototype.getListValues = function (ws) {
+		return this.isListValues() ?  this._getListValues(ws) : null;
 	};
 
 	CDataValidation.prototype.getError = function () {
@@ -266,13 +302,19 @@
 		return this;
 	}
 
+	CDataValidations.prototype.init = function (ws) {
+		for (var i = 0; i < this.elems.length; ++i) {
+			this.elems[i]._init(ws);
+		}
+	};
 	CDataValidations.prototype.clone = function() {
 		var i, res = new CDataValidations();
 		res.disablePrompts = this.disablePrompts;
 		res.xWindow = this.xWindow;
 		res.yWindow = this.yWindow;
-		for (i = 0; i < this.elems.length; ++i)
+		for (i = 0; i < this.elems.length; ++i) {
 			res.elems.push(this.elems[i].clone());
+		}
 		return res;
 	};
 

@@ -60,6 +60,7 @@ function (window, undefined) {
 
 	var checkTypeCell = AscCommonExcel.checkTypeCell;
 	var cFormulaFunctionGroup = AscCommonExcel.cFormulaFunctionGroup;
+	var argType = Asc.c_oAscFormulaArgumentType;
 
 	var _func = AscCommonExcel._func;
 
@@ -107,6 +108,7 @@ function (window, undefined) {
 	cADDRESS.prototype.name = 'ADDRESS';
 	cADDRESS.prototype.argumentsMin = 2;
 	cADDRESS.prototype.argumentsMax = 5;
+	cADDRESS.prototype.argumentsType = [argType.number, argType.number, argType.number, argType.logical, argType.text];
 	cADDRESS.prototype.Calculate = function (arg) {
 		var rowNumber = arg[0], colNumber = arg[1], refType = arg[2] ? arg[2] : new cNumber(1),
 			A1RefType = arg[3] ? arg[3] : new cBool(true), sheetName = arg[4] ? arg[4] : null;
@@ -238,6 +240,7 @@ function (window, undefined) {
 	cAREAS.prototype = Object.create(cBaseFunction.prototype);
 	cAREAS.prototype.constructor = cAREAS;
 	cAREAS.prototype.name = 'AREAS';
+	cAREAS.prototype.argumentsType = [argType.reference];
 
 	/**
 	 * @constructor
@@ -252,6 +255,7 @@ function (window, undefined) {
 	cCHOOSE.prototype.name = 'CHOOSE';
 	cCHOOSE.prototype.argumentsMin = 2;
 	cCHOOSE.prototype.argumentsMax = 30;
+	cCHOOSE.prototype.argumentsType = [argType.number, [argType.any]];
 	cCHOOSE.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 
@@ -287,20 +291,38 @@ function (window, undefined) {
 	cCOLUMN.prototype.constructor = cCOLUMN;
 	cCOLUMN.prototype.name = 'COLUMN';
 	cCOLUMN.prototype.argumentsMax = 1;
-	cCOLUMN.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.area_to_ref;
+	cCOLUMN.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.setArrayRefAsArg;
+	cCOLUMN.prototype.argumentsType = [argType.reference];
 	cCOLUMN.prototype.Calculate = function (arg) {
 		var bbox;
-		if (0 === arg.length) {
+		var res;
+		var opt_col = arguments[6];
+		if (opt_col !== undefined) {
+			return new cNumber(opt_col + 1);
+		} else if (0 === arg.length) {
 			bbox = arguments[1];
+			res = bbox ? new cNumber(bbox.c1 + 1) : null;
 		} else {
 			var arg0 = arg[0];
-			if (cElementType.cell === arg0.type || cElementType.cell3D === arg0.type ||
-				cElementType.cellsRange === arg0.type || cElementType.cellsRange3D === arg0.type) {
+			if (cElementType.cell === arg0.type || cElementType.cell3D === arg0.type) {
 				bbox = arg0.getRange();
 				bbox = bbox && bbox.bbox;
+				res = bbox ? new cNumber(bbox.c1 + 1) : null;
+			} else if (cElementType.cellsRange === arg0.type || cElementType.cellsRange3D === arg0.type) {
+				bbox = arg0.getRange();
+				bbox = bbox && bbox.bbox;
+
+				if (bbox && bbox.c2 > bbox.c1) {
+					res = new cArray();
+					for (var i = bbox.c1; i <= bbox.c2; i++) {
+						res.addElement(new cNumber(i + 1))
+					}
+				} else {
+					res = bbox ? new cNumber(bbox.c1 + 1) : null;
+				}
 			}
 		}
-		return (bbox ? new cNumber(bbox.c1 + 1) : new cError(cErrorType.bad_reference));
+		return res ? res : new cError(cErrorType.bad_reference);
 	};
 
 	/**
@@ -317,6 +339,7 @@ function (window, undefined) {
 	cCOLUMNS.prototype.argumentsMin = 1;
 	cCOLUMNS.prototype.argumentsMax = 1;
 	cCOLUMNS.prototype.arrayIndexes = {0: 1};
+	cCOLUMNS.prototype.argumentsType = [argType.reference];
 	cCOLUMNS.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		var range;
@@ -345,6 +368,7 @@ function (window, undefined) {
 	cFORMULATEXT.prototype.argumentsMax = 1;
 	cFORMULATEXT.prototype.isXLFN = true;
 	cFORMULATEXT.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.area_to_ref;
+	cFORMULATEXT.prototype.argumentsType = [argType.reference];
 	cFORMULATEXT.prototype.Calculate = function (arg) {
 
 		var arg0 = arg[0];
@@ -356,11 +380,11 @@ function (window, undefined) {
 		if (cElementType.cell === arg0.type || cElementType.cell3D === arg0.type ||
 			cElementType.cellsRange === arg0.type || cElementType.cellsRange3D === arg0.type) {
 			var bbox = arg0.getRange();
-			var formula = bbox.getFormula();
-			if ("" === formula) {
+			var formula = bbox.isFormula();
+			if (!formula) {
 				return new cError(cErrorType.not_available);
 			} else {
-				res = new cString("=" + formula);
+				res = new cString(bbox.getValueForEdit(true));
 			}
 		}
 
@@ -377,6 +401,7 @@ function (window, undefined) {
 	cGETPIVOTDATA.prototype = Object.create(cBaseFunction.prototype);
 	cGETPIVOTDATA.prototype.constructor = cGETPIVOTDATA;
 	cGETPIVOTDATA.prototype.name = 'GETPIVOTDATA';
+	cGETPIVOTDATA.prototype.argumentsType = [argType.text, argType.text, [argType.text, argType.any]];
 
 	/**
 	 * @constructor
@@ -392,6 +417,7 @@ function (window, undefined) {
 	cHLOOKUP.prototype.argumentsMin = 3;
 	cHLOOKUP.prototype.argumentsMax = 4;
 	cHLOOKUP.prototype.arrayIndexes = {1: 1, 2: 1};
+	cHLOOKUP.prototype.argumentsType = [argType.any, argType.number, argType.number, argType.logical];
 	cHLOOKUP.prototype.Calculate = function (arg) {
 		//TODO  с excel есть несоостветствие - в тестовом файле - E11:H13
 		if(this.bArrayFormula) {
@@ -417,6 +443,7 @@ function (window, undefined) {
 	cHYPERLINK.prototype.name = 'HYPERLINK';
 	cHYPERLINK.prototype.argumentsMin = 1;
 	cHYPERLINK.prototype.argumentsMax = 2;
+	cHYPERLINK.prototype.argumentsType = [argType.text, argType.any];
 	cHYPERLINK.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg.length === 1 ? null : arg[1];
 
@@ -476,6 +503,7 @@ function (window, undefined) {
 	cINDEX.prototype.argumentsMax = 4;
 	cINDEX.prototype.numFormat = AscCommonExcel.cNumFormatNone;
 	cINDEX.prototype.arrayIndexes = {0: 1};
+	cINDEX.prototype.argumentsType = [argType.reference, argType.number, argType.number];
 	cINDEX.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1] && (cElementType.empty !== arg[1].type) ? arg[1] : new cNumber(1),
 			arg2 = arg[2] && (cElementType.empty !== arg[2].type) ? arg[2] : new cNumber(1),
@@ -498,6 +526,20 @@ function (window, undefined) {
 			return new cError(cErrorType.wrong_value_type);
 		}
 
+		//TODO в дальнейшем необходимо продумать преобразования аргументов на основе argumentsType!!!
+		if (cElementType.array === arg1.type) {
+			arg1 = arg1.getElementRowCol(0,0);
+			if (cElementType.error === arg1.type) {
+				return new cError(cErrorType.wrong_value_type);
+			}
+		}
+		if (cElementType.array === arg2.type) {
+			arg2 = arg1.getElementRowCol(0,0);
+			if (cElementType.error === arg2.type) {
+				return new cError(cErrorType.wrong_value_type);
+			}
+		}
+
 		if(arg[3] && cElementType.empty !== arg[3].type && arg3 > 1) {
 			return new cError(cErrorType.bad_reference);
 		}
@@ -509,9 +551,59 @@ function (window, undefined) {
 			return new cError(cErrorType.wrong_value_type);
 		}
 
+		var generateArray = function (_from, row, col) {
+			var ret = null;
+			var _colCount = _from.getCountElementInRow();
+			var _rowCount = _from.rowCount;
+			var i;
+			row = row !== undefined ? Math.ceil(row) : row;
+			col = col !== undefined ? Math.ceil(col) : col;
+			if (undefined !== row) {
+				if (_rowCount < row) {
+					if (col === undefined && _rowCount === 1 && _from.array[0] && _from.array[0][row - 1]) {
+						ret = new cArray();
+						ret.addElement(_from.array[0][row - 1]);
+						return ret;
+					} else {
+						return null;
+					}
+				}
+				ret = new cArray();
+				for (i = 0; i < _colCount; i++) {
+					ret.addElement(_from.array[row - 1][i])
+				}
+			} else if (undefined !== col) {
+				if (_colCount < col) {
+					if (row === undefined && _colCount === 1 && _from.array[col - 1] && _from.array[col - 1][0]) {
+						ret = new cArray();
+						ret.addElement(_from.array[col - 1][0]);
+						return ret;
+					} else {
+						return null;
+					}
+				}
+
+				ret = new cArray();
+				for (i = 0; i < _rowCount; i++) {
+					ret.addRow();
+					ret.addElement(_from.array[i][col - 1])
+				}
+			}
+			return ret;
+		};
+
 		AscCommonExcel.executeInR1C1Mode(false, function () {
 			if (cElementType.array === arg0.type) {
-				if(undefined === arg[2] && 1 === arg0.rowCount) {//если последний аргумент опущен, и выделенa 1 строка
+				if ((!arg[1] || arg1 === 0) && (!arg[2] || arg2 === 0)) {
+					//возвращаем массив
+					res = arg0;
+				} else if (!arg[2] || arg2 === 0) {
+					//возращаем массив из arg1 строки
+					res = generateArray(arg0, arg1);
+				} else if (!arg[1] || arg1 === 0) {
+					//возращаем массив из arg2 столбца
+					res = generateArray(arg0, undefined, arg2);
+				} else if(undefined === arg[2] && 1 === arg0.rowCount) {//если последний аргумент опущен, и выделенa 1 строка
 					res = arg0.getValue2(0, (0 === arg1) ? 0 : arg1 - 1);
 				} else if(undefined === arg[2] && 1 === arg0.getCountElementInRow()) {//если последний аргумент опущен, и выделен 1 столбец
 					res = arg0.getValue2((0 === arg1) ? 0 : arg1 - 1, 0);
@@ -552,9 +644,23 @@ function (window, undefined) {
 						if (arg2 > Math.abs(bbox.c1 - bbox.c2) + 1) {
 							res = new cError(cErrorType.bad_reference);
 						} else {
-							res = new Asc.Range(bbox.c1 + arg2 - 1, bbox.r1, bbox.c1 + arg2 - 1, bbox.r2);
+							if (0 === arg2 || undefined === arg[2] || cElementType.empty === arg[2].type) {
+								res = new Asc.Range(bbox.c1 + arg2 - 1, bbox.r1, bbox.c2 + arg2 - 1, bbox.r2);
+							} else {
+								res = new Asc.Range(bbox.c1 + arg2 - 1, bbox.r1, bbox.c1 + arg2 - 1, bbox.r2);
+							}
 							res = new cArea(res.getName(), ws);
 						}
+					} else if ((0 === arg2 || undefined === arg[2] || cElementType.empty === arg[2].type) && arg1 > 0) {
+						if (arg1 > Math.abs(bbox.r1 - bbox.r2) + 1) {
+							res = new cError(cErrorType.bad_reference);
+						} else {
+							res = new Asc.Range(bbox.c1 + arg2 - diffArg2, bbox.r1 + arg1 - diffArg1, bbox.c2 + arg2 - diffArg2, bbox.r1 + arg1 - diffArg1);
+							res = new cArea(res.getName(), ws);
+						}
+					} else if ((0 === arg1 || undefined === arg[1] || cElementType.empty === arg[1].type) && (0 === arg2 || undefined === arg[2] || cElementType.empty === arg[2].type)) {
+						res = new Asc.Range(bbox.c1 + arg2 - diffArg2, bbox.r1 + arg1 - diffArg1, bbox.c2 + arg2 - diffArg2, bbox.r2 + arg1 - diffArg1);
+						res = new cArea(res.getName(), ws);
 					} else {
 						if (arg1 > Math.abs(bbox.r1 - bbox.r2) + 1 || arg2 > Math.abs(bbox.c1 - bbox.c2) + 1) {
 							res = new cError(cErrorType.bad_reference);
@@ -591,6 +697,7 @@ function (window, undefined) {
 	cINDIRECT.prototype.argumentsMin = 1;
 	cINDIRECT.prototype.argumentsMax = 2;
 	cINDIRECT.prototype.ca = true;
+	cINDIRECT.prototype.argumentsType = [argType.text, argType.logical];
 	cINDIRECT.prototype.Calculate = function (arg) {
 		var t = this, arg0 = arg[0].tocString(), arg1 = arg[1] ? arg[1] : new cBool(true), ws = arguments[3],
 			wb = ws.workbook, o = {
@@ -628,7 +735,7 @@ function (window, undefined) {
 				found_operand = new cArea(o.real_str ? o.real_str.toUpperCase() : o.operand_str.toUpperCase(), ws);
 			} else if (parserHelp.isRef.call(o, o.Formula, o.pCurrPos, true)) {
 				found_operand = new cRef(o.real_str ? o.real_str.toUpperCase() : o.operand_str.toUpperCase(), ws);
-			} else if (parserHelp.isName.call(o, o.Formula, o.pCurrPos, wb)[0]) {
+			} else if (parserHelp.isName.call(o, o.Formula, o.pCurrPos)) {
 				found_operand = new AscCommonExcel.cName(o.operand_str, ws);
 			}
 		}
@@ -676,6 +783,7 @@ function (window, undefined) {
 	cLOOKUP.prototype.argumentsMin = 2;
 	cLOOKUP.prototype.argumentsMax = 3;
 	cLOOKUP.prototype.arrayIndexes = {1: 1, 2: 1};
+	cLOOKUP.prototype.argumentsType = [argType.any, argType.reference, argType.reference];
 	cLOOKUP.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1], arg2 = 2 === arg.length ? arg1 : arg[2], resC = -1, resR = -1,
 			t = this, res;
@@ -938,6 +1046,7 @@ function (window, undefined) {
 	cMATCH.prototype.argumentsMin = 2;
 	cMATCH.prototype.argumentsMax = 3;
 	cMATCH.prototype.arrayIndexes = {1: 1};
+	cMATCH.prototype.argumentsType = [argType.any, argType.number, argType.number];
 	cMATCH.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1], arg2 = arg[2] ? arg[2] : new cNumber(1);
 
@@ -1426,6 +1535,8 @@ function (window, undefined) {
 	cOFFSET.prototype.argumentsMin = 3;
 	cOFFSET.prototype.argumentsMax = 5;
 	cOFFSET.prototype.ca = true;
+	cOFFSET.prototype.arrayIndexes = {0: 1};
+	cOFFSET.prototype.argumentsType = [argType.reference, argType.number, argType.number, argType.number, argType.number];
 	cOFFSET.prototype.Calculate = function (arg) {
 
 		function validBBOX(bbox) {
@@ -1536,20 +1647,40 @@ function (window, undefined) {
 	cROW.prototype.constructor = cROW;
 	cROW.prototype.name = 'ROW';
 	cROW.prototype.argumentsMax = 1;
-	cROW.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.area_to_ref;
+	cROW.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.setArrayRefAsArg;
+	cROW.prototype.argumentsType = [argType.reference];
 	cROW.prototype.Calculate = function (arg) {
 		var bbox;
-		if (0 === arg.length) {
+		var res;
+		var opt_row = arguments[5];
+		if (opt_row !== undefined) {
+			return new cNumber(opt_row + 1);
+		} else if (0 === arg.length) {
 			bbox = arguments[1];
+			res = bbox ? new cNumber(bbox.r1 + 1) : null;
 		} else {
 			var arg0 = arg[0];
-			if (cElementType.cell === arg0.type || cElementType.cell3D === arg0.type ||
-				cElementType.cellsRange === arg0.type || cElementType.cellsRange3D === arg0.type) {
+			if (cElementType.cell === arg0.type || cElementType.cell3D === arg0.type) {
 				bbox = arg0.getRange();
 				bbox = bbox && bbox.bbox;
+				res = bbox ? new cNumber(bbox.r1 + 1) : null;
+			} else if (cElementType.cellsRange === arg0.type || cElementType.cellsRange3D === arg0.type) {
+				bbox = arg0.getRange();
+				bbox = bbox && bbox.bbox;
+
+				if (bbox && bbox.r2 > bbox.r1) {
+					res = new cArray();
+					for (var i = bbox.r1; i <= bbox.r2; i++) {
+						res.addRow();
+						res.addElement(new cNumber(i + 1))
+					}
+				} else {
+					res = bbox ? new cNumber(bbox.r1 + 1) : null;
+				}
 			}
 		}
-		return (bbox ? new cNumber(bbox.r1 + 1) : new cError(cErrorType.bad_reference));
+
+		return res ? res : new cError(cErrorType.bad_reference);
 	};
 
 	/**
@@ -1566,6 +1697,7 @@ function (window, undefined) {
 	cROWS.prototype.argumentsMin = 1;
 	cROWS.prototype.argumentsMax = 1;
 	cROWS.prototype.arrayIndexes = {0: 1};
+	cROWS.prototype.argumentsType = [argType.reference];
 	cROWS.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		var range;
@@ -1589,6 +1721,7 @@ function (window, undefined) {
 	cRTD.prototype = Object.create(cBaseFunction.prototype);
 	cRTD.prototype.constructor = cRTD;
 	cRTD.prototype.name = 'RTD';
+	cRTD.prototype.argumentsType = [argType.text, argType.text, [argType.text]];
 
 	/**
 	 * @constructor
@@ -1605,6 +1738,7 @@ function (window, undefined) {
 	cTRANSPOSE.prototype.argumentsMax = 1;
 	cTRANSPOSE.prototype.numFormat = AscCommonExcel.cNumFormatNone;
 	cTRANSPOSE.prototype.arrayIndexes = {0: 1};
+	cTRANSPOSE.prototype.argumentsType = [argType.any];
 	cTRANSPOSE.prototype.Calculate = function (arg) {
 
 		function TransposeMatrix(A) {
@@ -2169,6 +2303,7 @@ function (window, undefined) {
 	cVLOOKUP.prototype.argumentsMax = 4;
 	cVLOOKUP.prototype.arrayIndexes = {1: 1, 2: {0: 0}};
 	cVLOOKUP.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cVLOOKUP.prototype.argumentsType = [argType.any, argType.number, argType.number, argType.logical];
 	cVLOOKUP.prototype.Calculate = function (arg) {
 
 		if(this.bArrayFormula) {

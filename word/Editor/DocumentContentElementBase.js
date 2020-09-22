@@ -248,13 +248,13 @@ CDocumentContentElementBase.prototype.SelectAll = function(nDirection)
 CDocumentContentElementBase.prototype.GetCalculatedTextPr = function()
 {
 	var oTextPr = new CTextPr();
-	oTextPr.Init_Default();
+	oTextPr.InitDefault();
 	return oTextPr;
 };
 CDocumentContentElementBase.prototype.GetCalculatedParaPr = function()
 {
 	var oParaPr = new CParaPr();
-	oParaPr.Init_Default();
+	oParaPr.InitDefault();
 	return oParaPr;
 };
 CDocumentContentElementBase.prototype.GetDirectParaPr = function()
@@ -403,6 +403,11 @@ CDocumentContentElementBase.prototype.IsStartFromNewPage = function()
 };
 CDocumentContentElementBase.prototype.GetAllParagraphs = function(Props, ParaArray)
 {
+	return [];
+};
+CDocumentContentElementBase.prototype.GetAllTables = function(oProps, arrTables)
+{
+	return [];
 };
 CDocumentContentElementBase.prototype.SetContentSelection = function(StartDocPos, EndDocPos, Depth, StartFlag, EndFlag)
 {
@@ -431,8 +436,9 @@ CDocumentContentElementBase.prototype.AddSignatureLine = function(oSignatureDraw
 CDocumentContentElementBase.prototype.AddTextArt = function(nStyle)
 {
 };
-CDocumentContentElementBase.prototype.AddInlineTable = function(nCols, nRows)
+CDocumentContentElementBase.prototype.AddInlineTable = function(nCols, nRows, nMode)
 {
+	return null;
 };
 CDocumentContentElementBase.prototype.Remove = function(nCount, bOnlyText, bRemoveOnlySelection, bOnAddText, isWord)
 {
@@ -541,11 +547,11 @@ CDocumentContentElementBase.prototype.GetCurrentParagraph = function(bIgnoreSele
 {
 	return null;
 };
-CDocumentContentElementBase.prototype.AddTableRow = function(bBefore)
+CDocumentContentElementBase.prototype.AddTableRow = function(bBefore, nCount)
 {
 	return false;
 };
-CDocumentContentElementBase.prototype.AddTableColumn = function(bBefore)
+CDocumentContentElementBase.prototype.AddTableColumn = function(bBefore, nCount)
 {
 	return false;
 };
@@ -730,18 +736,27 @@ CDocumentContentElementBase.prototype.AcceptRevisionChanges = function(Type, bAl
 CDocumentContentElementBase.prototype.RejectRevisionChanges = function(Type, bAll)
 {
 };
-CDocumentContentElementBase.prototype.GetDocumentPositionFromObject = function(PosArray)
+CDocumentContentElementBase.prototype.GetDocumentPositionFromObject = function(arrPos)
 {
-	if (!PosArray)
-		PosArray = [];
+	if (!arrPos)
+		arrPos = [];
 
-	if (this.Parent)
+	var oParent = this.GetParent();
+	if (oParent)
 	{
-		PosArray.splice(0, 0, {Class : this.Parent, Position : this.Get_Index()});
-		this.Parent.GetDocumentPositionFromObject(PosArray);
+		if (arrPos.length > 0)
+		{
+			arrPos.splice(0, 0, {Class : oParent, Position : this.GetIndex()});
+			arrPos = oParent.GetDocumentPositionFromObject(arrPos);
+		}
+		else
+		{
+			arrPos = oParent.GetDocumentPositionFromObject(arrPos);
+			arrPos.push({Class : oParent, Position : this.GetIndex()});
+		}
 	}
 
-	return PosArray;
+	return arrPos;
 };
 CDocumentContentElementBase.prototype.Get_Index = function()
 {
@@ -766,6 +781,14 @@ CDocumentContentElementBase.prototype.Get_StartColumn = function()
 	return this.ColumnNum;
 };
 CDocumentContentElementBase.prototype.Get_ColumnsCount = function()
+{
+	return this.ColumnsCount;
+};
+CDocumentContentElementBase.prototype.GetStartColumn = function()
+{
+	return this.ColumnNum;
+};
+CDocumentContentElementBase.prototype.GetColumnsCount = function()
 {
 	return this.ColumnsCount;
 };
@@ -822,6 +845,15 @@ CDocumentContentElementBase.prototype.GetAbsoluteColumn = function(CurPage)
 CDocumentContentElementBase.prototype.GetStartPageRelative = function()
 {
 	return this.PageNum;
+};
+/**
+ * Получаем номер страницы, относительно родительского класса
+ * @param {number} nCurPage
+ * @returns {number}
+ */
+CDocumentContentElementBase.prototype.GetRelativePage = function(nCurPage)
+{
+	return this.private_GetRelativePageIndex(nCurPage);
 };
 /**
  * Получаем обсолютный начальный номер страницы данного элемента
@@ -1013,9 +1045,11 @@ CDocumentContentElementBase.prototype.GetSimilarNumbering = function(oContinueEn
  * Переходим к следующей ссылке на сноску
  * @param isNext {boolean} - направление поиска
  * @param isCurrent {boolean} - ищем начиная с текущей позиции или с края элемента
+ * @param isStepFootnote {boolean} - ищем сноски на странице
+ * @param isStepEndnote {boolean} - ищем концевые сноски
  * @returns {boolean}
  */
-CDocumentContentElementBase.prototype.GotoFootnoteRef = function(isNext, isCurrent)
+CDocumentContentElementBase.prototype.GotoFootnoteRef = function(isNext, isCurrent, isStepFootnote, isStepEndnote)
 {
 	return false;
 };
@@ -1125,6 +1159,39 @@ CDocumentContentElementBase.prototype.GetPresentationField = function()
 {
 	return null;
 };
+/**
+ * Получаем список таблицы на заданной абсолютной странице
+ * @param {number} nPageAbs
+ * @param {Array} arrTables
+ * @returns {Array}
+ */
+CDocumentContentElementBase.prototype.GetAllTablesOnPage = function(nPageAbs, arrTables){return arrTables ? arrTables : [];};
+/**
+ * Обрабатываем сложные поля
+ */
+CDocumentContentElementBase.prototype.ProcessComplexFields = function() {};
+/**
+ * Вычисляем EndInfo для всех параграфаов
+ */
+CDocumentContentElementBase.prototype.RecalculateEndInfo = function() {};
+/**
+ * Получаем ссылку на глобальный класс документа
+ * @returns {CDocument}
+ */
+CDocumentContentElementBase.prototype.GetLogicDocument = function()
+{
+	return this.LogicDocument;
+};
+/**
+ * Получаем настройки рамки для данного элемента
+ * @returns {?CFramePr}
+ */
+CDocumentContentElementBase.prototype.GetFramePr = function(){return null;};
+/**
+ * Получаем маскимальную ширину таблицы
+ * @returns {{GapLeft : {number}, GapRight : {number}, GridWidth : {number}}}
+ */
+CDocumentContentElementBase.prototype.GetMaxTableGridWidth = function(){return {GapLeft : 0, GapRight : 0, GridWidth : -1};};
 
 //--------------------------------------------------------export--------------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};

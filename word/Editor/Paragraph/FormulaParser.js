@@ -56,7 +56,7 @@
     var sCellReference = '(' + sCellRange + ')\|(' + sCellName + ')';
     var sBookmark = "[_A-Z]([A-Z0-9]{0,39})";//TODO: not only latin
     var sBookmarkCellRef = sBookmark + '( +(' + sCellReference + '))*';
-    var sFunctions = "(ABS\|AND\|AVERAGE\|COUNT\|DEFINED\|FALSE\|INT\|MAX\|MIN\|MOD\|NOT\|OR\|PRODUCT\|ROUND\|SIGN\|SUM\|TRUE)" ;
+    var sFunctions = "(ABS\|AND\|AVERAGE\|COUNT\|DEFINED\|FALSE\|IF\|INT\|MAX\|MIN\|MOD\|NOT\|OR\|PRODUCT\|ROUND\|SIGN\|SUM\|TRUE)" ;
 
     var oComparisonOpRegExp = new RegExp(sComparison, 'g');
     var oColumnNameRegExp = new RegExp(sColumnName, 'g');
@@ -392,7 +392,7 @@
     }
 
     CDivisionOperatorNode.prototype = Object.create(COperatorNode.prototype);
-    CDivisionOperatorNode.prototype.precedence = 10;
+    CDivisionOperatorNode.prototype.precedence = 11;
     CDivisionOperatorNode.prototype._calculate = function (aArgs) {
         this.checkCellInFunction(aArgs);
         if(this.error){
@@ -1126,7 +1126,7 @@
     CIFFunctionNode.prototype.minArgumentsCount = 3;
     CIFFunctionNode.prototype.maxArgumentsCount = 3;
     CIFFunctionNode.prototype._calculate = function (aArgs) {
-        this.result = ((aArgs[2].result !== 0.0) ? aArgs[1] : aArgs[0]);
+        this.result = ((aArgs[2].result !== 0.0) ? aArgs[1].result : aArgs[0].result);
     };
     function CMAXFunctionNode(parseQueue){
         CFunctionNode.call(this, parseQueue);
@@ -1451,6 +1451,7 @@
     oFuncMap['COUNT'] = CCOUNTFunctionNode;
     oFuncMap['DEFINED'] = CDEFINEDFunctionNode;
     oFuncMap['FALSE'] = CFALSEFunctionNode;
+    oFuncMap['IF'] = CIFFunctionNode;
     oFuncMap['INT'] = CINTFunctionNode;
     oFuncMap['MAX'] = CMAXFunctionNode;
     oFuncMap['MIN'] = CMINFunctionNode;

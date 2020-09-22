@@ -977,6 +977,23 @@ function CEditorPage(api)
 
 		if (this.m_oApi.isReporterMode)
 			this.m_oApi.StartDemonstration(this.Name, 0);
+
+		if (AscCommon.AscBrowser.isIE && !AscCommon.AscBrowser.isIeEdge)
+		{
+			var ie_hack = [
+				this.m_oThumbnailsBack,
+				this.m_oThumbnails,
+				this.m_oMainContent,
+				this.m_oEditor,
+				this.m_oOverlay
+			];
+
+			for (var elem in ie_hack)
+			{
+				if (ie_hack[elem] && ie_hack[elem].HtmlElement)
+					ie_hack[elem].HtmlElement.style.zIndex = 0;
+			}
+		}
 	};
 
 	this.CheckRetinaDisplay = function()
@@ -3049,7 +3066,9 @@ function CEditorPage(api)
 		if (this.MobileTouchManager)
 			this.MobileTouchManager.Resize_Before();
 
-		if (this.Splitter1Pos > 0.1)
+		var isDesktopVersion = (undefined !== window["AscDesktopEditor"]) ? true : false;
+
+		if (this.Splitter1Pos > 0.1 && !isDesktopVersion)
 		{
             var maxSplitterThMax = g_dKoef_pix_to_mm * this.Width / 3;
             if (maxSplitterThMax > 80)
@@ -3074,7 +3093,7 @@ function CEditorPage(api)
 		{
 			var _pos = this.Height - ((this.Splitter2Pos * g_dKoef_mm_to_pix) >> 0);
 			var _min = 30 * g_dKoef_mm_to_pix;
-			if (_pos < _min)
+			if (_pos < _min && !isDesktopVersion)
 			{
 				this.Splitter2Pos = (this.Height - _min) / g_dKoef_mm_to_pix;
 				if (this.Splitter2Pos < this.Splitter2PosMin)

@@ -1076,7 +1076,7 @@ ParaMath.prototype.Get_Id = function()
     return this.Id;
 };
 
-ParaMath.prototype.Copy = function(Selected)
+ParaMath.prototype.Copy = function(Selected, oPr)
 {
     var NewMath = new ParaMath();
     NewMath.Root.bRoot = true;
@@ -1084,11 +1084,11 @@ ParaMath.prototype.Copy = function(Selected)
     if(Selected)
     {
         var result = this.GetSelectContent();
-        result.Content.CopyTo(NewMath.Root, Selected);
+        result.Content.CopyTo(NewMath.Root, Selected, oPr);
     }
     else
     {
-        this.Root.CopyTo(NewMath.Root, Selected);
+        this.Root.CopyTo(NewMath.Root, Selected, oPr);
     }
 
     NewMath.Root.Correct_Content(true);
@@ -1412,7 +1412,7 @@ ParaMath.prototype.Remove = function(Direction, bOnAddText)
                         oContent.Select_ElementByPos(nStartPos + 1, true);
                     }
                 }
-                else //if (Direction < 0)
+                else
                 {
                     var oPrevElement = oContent.getElem(nStartPos - 1);
                     if (para_Math_Run === oPrevElement.Type)
@@ -1630,6 +1630,11 @@ ParaMath.prototype.Get_DrawingObjectRun = function(Id)
     return null;
 };
 
+ParaMath.prototype.GetRunByElement = function(oRunElement)
+{
+	return null;
+};
+
 ParaMath.prototype.Get_DrawingObjectContentPos = function(Id, ContentPos, Depth)
 {
     return false;
@@ -1747,6 +1752,12 @@ ParaMath.prototype.Set_MenuProps = function(Props)
     if(Props != undefined)
         this.Root.Set_MenuProps(Props);
 };
+
+ParaMath.prototype.CheckRunContent = function(fCheck)
+{
+    this.Root.CheckRunContent(fCheck);
+};
+
 //-----------------------------------------------------------------------------------
 // Функции пересчета
 //-----------------------------------------------------------------------------------
@@ -1795,7 +1806,6 @@ ParaMath.prototype.Recalculate_Range = function(PRS, ParaPr, Depth)
 		// информация о пересчете
 		var RPI = new CRPI();
 		RPI.MergeMathInfo(this.ParaMathRPI);
-
 		this.Root.PreRecalc(null, this, new CMathArgSize(), RPI);
 
 		this.PageInfo.Reset();
@@ -2384,6 +2394,9 @@ ParaMath.prototype.Recalculate_Range_Spaces = function(PRSA, _CurLine, _CurRange
 ParaMath.prototype.Recalculate_PageEndInfo = function(PRSI, _CurLine, _CurRange)
 {
 
+};
+ParaMath.prototype.RecalculateEndInfo = function(oPRSI)
+{
 };
 ParaMath.prototype.SaveRecalculateObject = function(Copy)
 {
@@ -3408,6 +3421,21 @@ ParaMath.prototype.IsStopCursorOnEntryExit = function()
 ParaMath.prototype.RemoveTabsForTOC = function(isTab)
 {
 	return isTab;
+};
+/**
+ * Проверяем, что данный класс лежит в плейсхолдере специального контейнера для формул
+ * @return {boolean}
+ */
+ParaMath.prototype.IsParentEquationPlaceholder = function()
+{
+	var arrContentControl = this.GetParentContentControls();
+	for (var nIndex = 0, nCount = arrContentControl.length; nIndex < nCount; ++nIndex)
+	{
+		if (arrContentControl[nIndex].IsContentControlEquation() && arrContentControl[nIndex].IsPlaceHolder())
+			return true;
+	}
+
+	return false;
 };
 
 function MatGetKoeffArgSize(FontSize, ArgSize)

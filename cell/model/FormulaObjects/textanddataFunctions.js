@@ -55,6 +55,7 @@ function (window, undefined) {
 	var cArray = AscCommonExcel.cArray;
 	var cBaseFunction = AscCommonExcel.cBaseFunction;
 	var cFormulaFunctionGroup = AscCommonExcel.cFormulaFunctionGroup;
+	var argType = Asc.c_oAscFormulaArgumentType;
 
 	cFormulaFunctionGroup['TextAndData'] = cFormulaFunctionGroup['TextAndData'] || [];
 	cFormulaFunctionGroup['TextAndData'].push(cASC, cBAHTTEXT, cCHAR, cCLEAN, cCODE, cCONCATENATE, cCONCAT, cDOLLAR,
@@ -97,31 +98,30 @@ function (window, undefined) {
 		};
 
 		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
-			arg0 = arg0.cross(arguments[1]).tocString();
+			arg0 = arg0.cross(arguments[1]);
+		} else if(arg0 instanceof cRef || arg0 instanceof cRef3D) {
+			arg0 = arg0.getValue();
 		} else if (arg0 instanceof cArray) {
 			var ret = new cArray();
 			arg0.foreach(function (elem, r, c) {
-				var _elem = elem.tocString();
 				if (!ret.array[r]) {
 					ret.addRow();
 				}
 
-				if (_elem instanceof cError) {
-					ret.addElement(_elem.toString());
+				if (elem instanceof cError) {
+					ret.addElement(elem);
 				} else {
-					ret.addElement(calcAsc(_elem));
+					ret.addElement(calcAsc(elem.toLocaleString()));
 				}
 			});
 			return ret;
 		}
 
-		arg0 = arg0.tocString();
-
 		if (arg0 instanceof cError) {
 			return arg0;
 		}
 
-		return calcAsc(arg0.toString());
+		return calcAsc(arg0.toLocaleString());
 	};
 
 	/**
@@ -134,6 +134,7 @@ function (window, undefined) {
 	cBAHTTEXT.prototype = Object.create(cBaseFunction.prototype);
 	cBAHTTEXT.prototype.constructor = cBAHTTEXT;
 	cBAHTTEXT.prototype.name = 'BAHTTEXT';
+	cBAHTTEXT.prototype.argumentsType = [argType.number];
 
 	/**
 	 * @constructor
@@ -148,6 +149,7 @@ function (window, undefined) {
 	cCHAR.prototype.name = 'CHAR';
 	cCHAR.prototype.argumentsMin = 1;
 	cCHAR.prototype.argumentsMax = 1;
+	cCHAR.prototype.argumentsType = [argType.number];
 	cCHAR.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 
@@ -192,19 +194,24 @@ function (window, undefined) {
 	cCLEAN.prototype.name = 'CLEAN';
 	cCLEAN.prototype.argumentsMin = 1;
 	cCLEAN.prototype.argumentsMax = 1;
+	cCLEAN.prototype.argumentsType = [argType.text];
 	cCLEAN.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 
 		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
-			arg0 = arg0.cross(arguments[1]).tocNumber();
+			arg0 = arg0.cross(arguments[1]);
+		}
+		if (arg0 instanceof cRef || arg0 instanceof cRef3D) {
+			arg0 = arg0.getValue();
 		}
 		if (arg0 instanceof cArray) {
 			arg0 = arg0.getElementRowCol(0, 0);
 		}
+		if (arg0 instanceof cError) {
+			return arg0;
+		}
 
-		arg0 = arg0.tocString();
-
-		var v = arg0.getValue(), l = v.length, res = "";
+		var v = arg0.toLocaleString(), l = v.length, res = "";
 
 		for (var i = 0; i < l; i++) {
 			if (v.charCodeAt(i) > 0x1f) {
@@ -228,35 +235,35 @@ function (window, undefined) {
 	cCODE.prototype.name = 'CODE';
 	cCODE.prototype.argumentsMin = 1;
 	cCODE.prototype.argumentsMax = 1;
+	cCODE.prototype.argumentsType = [argType.text];
 	cCODE.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 
 		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
-			arg0 = arg0.cross(arguments[1]).tocString();
+			arg0 = arg0.cross(arguments[1]);
+		} else if (arg0 instanceof cRef || arg0 instanceof cRef3D) {
+			arg0 = arg0.getValue();
 		} else if (arg0 instanceof cArray) {
 			var ret = new cArray();
 			arg0.foreach(function (elem, r, c) {
-				var _elem = elem.tocString();
 				if (!ret.array[r]) {
 					ret.addRow();
 				}
 
-				if (_elem instanceof cError) {
-					ret.addElement(_elem);
+				if (elem instanceof cError) {
+					ret.addElement(elem);
 				} else {
-					ret.addElement(new cNumber(_elem.toString().charCodeAt()));
+					ret.addElement(new cNumber(elem.toLocaleString().charCodeAt()));
 				}
 			});
 			return ret;
 		}
 
-		arg0 = arg0.tocString();
-
 		if (arg0 instanceof cError) {
 			return arg0;
 		}
 
-		return new cNumber(arg0.toString().charCodeAt());
+		return new cNumber(arg0.toLocaleString().charCodeAt());
 	};
 
 	/**
@@ -273,14 +280,17 @@ function (window, undefined) {
 	cCONCATENATE.prototype.name = 'CONCATENATE';
 	cCONCATENATE.prototype.argumentsMin = 1;
 	cCONCATENATE.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cCONCATENATE.prototype.argumentsType = [[argType.text]];
 	cCONCATENATE.prototype.Calculate = function (arg) {
 		var arg0 = new cString(""), argI;
 		for (var i = 0; i < arg.length; i++) {
 			argI = arg[i];
 			if (argI instanceof cArea || argI instanceof cArea3D) {
 				argI = argI.cross(arguments[1]);
+			} else if (argI instanceof cRef || argI instanceof cRef3D) {
+				argI = argI.getValue();
 			}
-			argI = argI.tocString();
+
 			if (argI instanceof cError) {
 				return argI;
 			} else if (argI instanceof cArray) {
@@ -290,14 +300,14 @@ function (window, undefined) {
 						return true;
 					}
 
-					arg0 = new cString(arg0.toString().concat(elem.toString()));
+					arg0 = new cString(arg0.toString().concat(elem.toLocaleString()));
 
 				});
 				if (arg0 instanceof cError) {
 					return arg0;
 				}
 			} else {
-				arg0 = new cString(arg0.toString().concat(argI.toString()));
+				arg0 = new cString(arg0.toString().concat(argI.toLocaleString()));
 			}
 		}
 		return arg0;
@@ -317,6 +327,7 @@ function (window, undefined) {
 	cCONCAT.prototype.argumentsMin = 1;
 	cCONCAT.prototype.numFormat = AscCommonExcel.cNumFormatNone;
 	cCONCAT.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.array;
+	cCONCAT.prototype.argumentsType = [[argType.text]];
 	cCONCAT.prototype.Calculate = function (arg) {
 		var arg0 = new cString(""), argI;
 
@@ -326,15 +337,20 @@ function (window, undefined) {
 			if (cElementType.cellsRange === argI.type || cElementType.cellsRange3D === argI.type) {
 				var _arrVal = argI.getValue(this.checkExclude, this.excludeHiddenRows);
 				for (var j = 0; j < _arrVal.length; j++) {
-					var _arrElem = _arrVal[j].tocString();
+					var _arrElem = _arrVal[j].toLocaleString();
 					if (cElementType.error === _arrElem.type) {
 						return _arrVal[j];
 					} else {
 						arg0 = new cString(arg0.toString().concat(_arrElem));
 					}
 				}
+			} else if (cElementType.cell === argI.type || cElementType.cell3D === argI.type) {
+				argI = argI.getValue();
+				if (cElementType.error === argI.type) {
+					return argI;
+				}
+				arg0 = new cString(arg0.toString().concat(argI.toLocaleString()));
 			} else {
-				argI = argI.tocString();
 				if (cElementType.error === argI.type) {
 					return argI;
 				} else if (cElementType.array === argI.type) {
@@ -344,14 +360,14 @@ function (window, undefined) {
 							return true;
 						}
 
-						arg0 = new cString(arg0.toString().concat(elem.toString()));
+						arg0 = new cString(arg0.toString().concat(elem.toLocaleString()));
 
 					});
 					if (cElementType.error === arg0.type) {
 						return arg0;
 					}
 				} else {
-					arg0 = new cString(arg0.toString().concat(argI.toString()));
+					arg0 = new cString(arg0.toString().concat(argI.toLocaleString()));
 				}
 			}
 		}
@@ -371,6 +387,7 @@ function (window, undefined) {
 	cDOLLAR.prototype.argumentsMin = 1;
 	cDOLLAR.prototype.argumentsMax = 2;
 	cDOLLAR.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cDOLLAR.prototype.argumentsType = [argType.number, argType.number];
 	cDOLLAR.prototype.Calculate = function (arg) {
 
 		function SignZeroPositive(number) {
@@ -567,17 +584,19 @@ function (window, undefined) {
 	cEXACT.prototype.name = 'EXACT';
 	cEXACT.prototype.argumentsMin = 2;
 	cEXACT.prototype.argumentsMax = 2;
+	cEXACT.prototype.argumentsType = [argType.text, argType.text];
 	cEXACT.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1];
 		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
 			arg0 = arg0.cross(arguments[1]);
+		} else if (arg0 instanceof cRef || arg0 instanceof cRef3D) {
+			arg0 = arg0.getValue();
 		}
 		if (arg1 instanceof cArea || arg1 instanceof cArea3D) {
 			arg1 = arg1.cross(arguments[1]);
+		} else if (arg1 instanceof cRef || arg1 instanceof cRef3D) {
+			arg1 = arg1.getValue();
 		}
-
-		arg0 = arg0.tocString();
-		arg1 = arg1.tocString();
 
 		if (arg0 instanceof cArray && arg1 instanceof cArray) {
 			arg0 = arg0.getElementRowCol(0, 0);
@@ -595,7 +614,7 @@ function (window, undefined) {
 			return arg1;
 		}
 
-		var arg0val = arg0.getValue(), arg1val = arg1.getValue();
+		var arg0val = arg0.toLocaleString(), arg1val = arg1.toLocaleString();
 		return new cBool(arg0val === arg1val);
 	};
 
@@ -612,19 +631,22 @@ function (window, undefined) {
 	cFIND.prototype.name = 'FIND';
 	cFIND.prototype.argumentsMin = 2;
 	cFIND.prototype.argumentsMax = 3;
+	cFIND.prototype.argumentsType = [argType.text, argType.text, argType.number];
 	cFIND.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1], arg2 = arg.length == 3 ? arg[2] : null, res, str, searchStr,
 			pos = -1;
 
 		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
 			arg0 = arg0.cross(arguments[1]);
-		}
-		if (arg1 instanceof cArea || arg1 instanceof cArea3D) {
-			arg1 = arg1.cross(arguments[1]);
+		} else if (arg0 instanceof cRef || arg0 instanceof cRef3D) {
+			arg0 = arg0.getValue();
 		}
 
-		arg0 = arg0.tocString();
-		arg1 = arg1.tocString();
+		if (arg1 instanceof cArea || arg1 instanceof cArea3D) {
+			arg1 = arg1.cross(arguments[1]);
+		} else if (arg1 instanceof cRef || arg1 instanceof cRef3D) {
+			arg1 = arg1.getValue();
+		}
 
 		if (arg2 !== null) {
 
@@ -634,7 +656,7 @@ function (window, undefined) {
 
 			arg2 = arg2.tocNumber();
 			if (arg2 instanceof cArray) {
-				arg2 = arg1.getElementRowCol(0, 0);
+				arg2 = arg2.getElementRowCol(0, 0);
 			}
 			if (arg2 instanceof cError) {
 				return arg2;
@@ -658,8 +680,8 @@ function (window, undefined) {
 			return arg1;
 		}
 
-		str = arg1.getValue();
-		searchStr = RegExp.escape(arg0.getValue());
+		str = arg1.toLocaleString();
+		searchStr = RegExp.escape(arg0.toLocaleString());
 
 		if (arg2) {
 
@@ -681,7 +703,6 @@ function (window, undefined) {
 		}
 
 		return new cNumber(res + 1);
-
 	};
 
 	/**
@@ -695,6 +716,7 @@ function (window, undefined) {
 	cFINDB.prototype = Object.create(cFIND.prototype);
 	cFINDB.prototype.constructor = cFINDB;
 	cFINDB.prototype.name = 'FINDB';
+	cFINDB.prototype.argumentsType = [argType.text, argType.text, argType.number];
 
 	/**
 	 * @constructor
@@ -708,6 +730,7 @@ function (window, undefined) {
 	cFIXED.prototype.name = 'FIXED';
 	cFIXED.prototype.argumentsMin = 1;
 	cFIXED.prototype.argumentsMax = 3;
+	cFIXED.prototype.argumentsType = [argType.number, argType.number, argType.logical];
 	cFIXED.prototype.Calculate = function (arg) {
 
 		function SignZeroPositive(number) {
@@ -925,31 +948,30 @@ function (window, undefined) {
 		};
 
 		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
-			arg0 = arg0.cross(arguments[1]).tocString();
+			arg0 = arg0.cross(arguments[1]);
+		} else if (arg0 instanceof cRef || arg0 instanceof cRef3D) {
+			arg0 = arg0.getValue();
 		} else if (arg0 instanceof cArray) {
 			var ret = new cArray();
 			arg0.foreach(function (elem, r, c) {
-				var _elem = elem.tocString();
 				if (!ret.array[r]) {
 					ret.addRow();
 				}
 
-				if (_elem instanceof cError) {
-					ret.addElement(_elem.toString());
+				if (elem instanceof cError) {
+					ret.addElement(elem.toLocaleString());
 				} else {
-					ret.addElement(calc(_elem));
+					ret.addElement(calc(elem));
 				}
 			});
 			return ret;
 		}
 
-		arg0 = arg0.tocString();
-
 		if (arg0 instanceof cError) {
 			return arg0;
 		}
 
-		return calc(arg0.toString());
+		return calc(arg0.toLocaleString());
 	};
 
 	/**
@@ -964,6 +986,7 @@ function (window, undefined) {
 	cLEFT.prototype.name = 'LEFT';
 	cLEFT.prototype.argumentsMin = 1;
 	cLEFT.prototype.argumentsMax = 2;
+	cLEFT.prototype.argumentsType = [argType.text, argType.number];
 	cLEFT.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg.length == 1 ? new cNumber(1) : arg[1];
 		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
@@ -1010,6 +1033,7 @@ function (window, undefined) {
 	cLEFTB.prototype = Object.create(cLEFT.prototype);
 	cLEFTB.prototype.constructor = cLEFTB;
 	cLEFTB.prototype.name = 'LEFTB';
+	cLEFTB.prototype.argumentsType = [argType.text, argType.number];
 
 	/**
 	 * @constructor
@@ -1024,15 +1048,14 @@ function (window, undefined) {
 	cLEN.prototype.name = 'LEN';
 	cLEN.prototype.argumentsMin = 1;
 	cLEN.prototype.argumentsMax = 1;
+	cLEN.prototype.argumentsType = [argType.text];
 	cLEN.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
 			arg0 = arg0.cross(arguments[1]);
-		}
-
-		arg0 = arg0.tocString();
-
-		if (arg0 instanceof cArray) {
+		} if (arg0 instanceof cRef || arg0 instanceof cRef3D) {
+			arg0 = arg0.getValue();
+		} else if (arg0 instanceof cArray) {
 			arg0 = arg0.getElementRowCol(0, 0);
 		}
 
@@ -1040,8 +1063,7 @@ function (window, undefined) {
 			return arg0;
 		}
 
-		return new cNumber(arg0.getValue().length)
-
+		return new cNumber(arg0.toLocaleString().length)
 	};
 
 	/**
@@ -1055,6 +1077,7 @@ function (window, undefined) {
 	cLENB.prototype = Object.create(cLEN.prototype);
 	cLENB.prototype.constructor = cLENB;
 	cLENB.prototype.name = 'LENB';
+	cLENB.prototype.argumentsType = [argType.text];
 
 	/**
 	 * @constructor
@@ -1069,23 +1092,33 @@ function (window, undefined) {
 	cLOWER.prototype.name = 'LOWER';
 	cLOWER.prototype.argumentsMin = 1;
 	cLOWER.prototype.argumentsMax = 1;
+	cLOWER.prototype.argumentsType = [argType.text];
 	cLOWER.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
-
 		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
 			arg0 = arg0.cross(arguments[1]);
 		}
-
-		arg0 = arg0.tocString();
 		if (arg0 instanceof cArray) {
 			arg0 = arg0.getElementRowCol(0, 0);
+		}
+
+		if (arg0 instanceof cRef || arg0 instanceof cRef3D) {
+			arg0 = arg0.getValue();
+			if (arg0 instanceof cError) {
+				return arg0;
+			} else {
+				arg0 = arg0.toLocaleString();
+			}
+		} else {
+			arg0 = arg0.toLocaleString();
 		}
 
 		if (arg0 instanceof cError) {
 			return arg0;
 		}
 
-		return new cString(arg0.getValue().toLowerCase());
+		return new cString(arg0.toLowerCase());
+
 	};
 
 	/**
@@ -1101,10 +1134,13 @@ function (window, undefined) {
 	cMID.prototype.name = 'MID';
 	cMID.prototype.argumentsMin = 3;
 	cMID.prototype.argumentsMax = 3;
+	cMID.prototype.argumentsType = [argType.text, argType.number, argType.number];
 	cMID.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1], arg2 = arg[2];
 		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
 			arg0 = arg0.cross(arguments[1]);
+		} else if(arg0 instanceof cRef || arg0 instanceof cRef3D) {
+			arg0 = arg0.getValue();
 		}
 		if (arg1 instanceof cArea || arg1 instanceof cArea3D) {
 			arg1 = arg1.cross(arguments[1]);
@@ -1113,7 +1149,7 @@ function (window, undefined) {
 			arg2 = arg2.cross(arguments[1]);
 		}
 
-		arg0 = arg0.tocString();
+		arg0 = arg0.toLocaleString();
 		arg1 = arg1.tocNumber();
 		arg2 = arg2.tocNumber();
 
@@ -1143,17 +1179,13 @@ function (window, undefined) {
 			return new cError(cErrorType.wrong_value_type);
 		}
 
-		var l = arg0.getValue().length;
+		var l = arg0.length;
 
 		if (arg1.getValue() > l) {
 			return new cString("");
 		}
 
-		/* if( arg1.getValue() < l )
-		 return arg0; */
-
-		return new cString(arg0.getValue().substr(arg1.getValue() == 0 ? 0 : arg1.getValue() - 1, arg2.getValue()));
-
+		return new cString(arg0.substr(arg1.getValue() == 0 ? 0 : arg1.getValue() - 1, arg2.getValue()));
 	};
 
 	/**
@@ -1182,6 +1214,7 @@ function (window, undefined) {
 	cNUMBERVALUE.prototype.argumentsMin = 1;
 	cNUMBERVALUE.prototype.argumentsMax = 3;
 	cNUMBERVALUE.prototype.isXLFN = true;
+	cNUMBERVALUE.prototype.argumentsType = [argType.text, argType.text, argType.text];
 	cNUMBERVALUE.prototype.Calculate = function (arg) {
 
 		var oArguments = this._prepareArguments(arg, arguments[1], true);
@@ -1304,6 +1337,7 @@ function (window, undefined) {
 	cPHONETIC.prototype = Object.create(cBaseFunction.prototype);
 	cPHONETIC.prototype.constructor = cPHONETIC;
 	cPHONETIC.prototype.name = 'PHONETIC';
+	//
 
 	/**
 	 * @constructor
@@ -1318,6 +1352,7 @@ function (window, undefined) {
 	cPROPER.prototype.name = 'PROPER';
 	cPROPER.prototype.argumentsMin = 1;
 	cPROPER.prototype.argumentsMax = 1;
+	cPROPER.prototype.argumentsType = [argType.text];
 	cPROPER.prototype.Calculate = function (arg) {
 		var reg_PROPER = new RegExp("[-#$+*/^&%<\\[\\]='?_\\@!~`\">: ;.\\)\\(,]|\\d|\\s"), arg0 = arg[0];
 
@@ -1343,31 +1378,30 @@ function (window, undefined) {
 		}
 
 		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
-			arg0 = arg0.cross(arguments[1]).tocString();
+			arg0 = arg0.cross(arguments[1]);
+		} else if (arg0 instanceof cRef || arg0 instanceof cRef3D) {
+			arg0 = arg0.getValue();
 		} else if (arg0 instanceof cArray) {
 			var ret = new cArray();
 			arg0.foreach(function (elem, r, c) {
-				var _elem = elem.tocString();
 				if (!ret.array[r]) {
 					ret.addRow();
 				}
 
-				if (_elem instanceof cError) {
-					ret.addElement(_elem);
+				if (elem instanceof cError) {
+					ret.addElement(elem);
 				} else {
-					ret.addElement(new cString(proper(_elem.toString())));
+					ret.addElement(new cString(proper(elem.toLocaleString())));
 				}
 			});
 			return ret;
 		}
 
-		arg0 = arg0.tocString();
-
 		if (arg0 instanceof cError) {
 			return arg0;
 		}
 
-		return new cString(proper(arg0.toString()));
+		return new cString(proper(arg0.toLocaleString()));
 	};
 
 	/**
@@ -1383,6 +1417,7 @@ function (window, undefined) {
 	cREPLACE.prototype.name = 'REPLACE';
 	cREPLACE.prototype.argumentsMin = 4;
 	cREPLACE.prototype.argumentsMax = 4;
+	cREPLACE.prototype.argumentsType = [argType.text, argType.number, argType.number, argType.text];
 	cREPLACE.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1], arg2 = arg[2], arg3 = arg[3];
 
@@ -1458,6 +1493,7 @@ function (window, undefined) {
 	cREPLACEB.prototype = Object.create(cREPLACE.prototype);
 	cREPLACEB.prototype.constructor = cREPLACEB;
 	cREPLACEB.prototype.name = 'REPLACEB';
+	cREPLACEB.prototype.argumentsType = [argType.text, argType.number, argType.number, argType.text];
 
 	/**
 	 * @constructor
@@ -1471,6 +1507,7 @@ function (window, undefined) {
 	cREPT.prototype.name = 'REPT';
 	cREPT.prototype.argumentsMin = 2;
 	cREPT.prototype.argumentsMax = 2;
+	cREPT.prototype.argumentsType = [argType.text, argType.number];
 	cREPT.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1], res = "";
 		if (arg0 instanceof cError) {
@@ -1532,6 +1569,7 @@ function (window, undefined) {
 	cRIGHT.prototype.name = 'RIGHT';
 	cRIGHT.prototype.argumentsMin = 1;
 	cRIGHT.prototype.argumentsMax = 2;
+	cRIGHT.prototype.argumentsType = [argType.text, argType.number];
 	cRIGHT.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg.length === 1 ? new cNumber(1) : arg[1];
 		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
@@ -1579,6 +1617,7 @@ function (window, undefined) {
 	cRIGHTB.prototype = Object.create(cRIGHT.prototype);
 	cRIGHTB.prototype.constructor = cRIGHTB;
 	cRIGHTB.prototype.name = 'RIGHTB';
+	cRIGHTB.prototype.argumentsType = [argType.text, argType.number];
 
 	/**
 	 * @constructor
@@ -1593,6 +1632,7 @@ function (window, undefined) {
 	cSEARCH.prototype.name = 'SEARCH';
 	cSEARCH.prototype.argumentsMin = 2;
 	cSEARCH.prototype.argumentsMax = 3;
+	cSEARCH.prototype.argumentsType = [argType.text, argType.text, argType.number];
 	cSEARCH.prototype.Calculate = function (arg) {
 
 		var arg0 = arg[0], arg1 = arg[1], arg2 = arg[2] ? arg[2] : new cNumber(1);
@@ -1681,6 +1721,7 @@ function (window, undefined) {
 	cSEARCHB.prototype = Object.create(cSEARCH.prototype);
 	cSEARCHB.prototype.constructor = cSEARCHB;
 	cSEARCHB.prototype.name = 'SEARCHB';
+	cSEARCHB.prototype.argumentsType = [argType.text, argType.text, argType.number];
 
 	/**
 	 * @constructor
@@ -1695,6 +1736,7 @@ function (window, undefined) {
 	cSUBSTITUTE.prototype.name = 'SUBSTITUTE';
 	cSUBSTITUTE.prototype.argumentsMin = 3;
 	cSUBSTITUTE.prototype.argumentsMax = 4;
+	cSUBSTITUTE.prototype.argumentsType = [argType.text, argType.text, argType.text, argType.text];
 	cSUBSTITUTE.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1], arg2 = arg[2], arg3 = arg[3] ? arg[3] : new cNumber(0);
 
@@ -1777,6 +1819,7 @@ function (window, undefined) {
 	cT.prototype.argumentsMin = 1;
 	cT.prototype.argumentsMax = 1;
 	cT.prototype.returnValueType = AscCommonExcel.cReturnFormulaType.replace_only_array;
+	cT.prototype.argumentsType = [argType.any];
 	cT.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		if (arg0 instanceof cRef || arg0 instanceof cRef3D) {
@@ -1809,6 +1852,7 @@ function (window, undefined) {
 	cTEXT.prototype.name = 'TEXT';
 	cTEXT.prototype.argumentsMin = 2;
 	cTEXT.prototype.argumentsMax = 2;
+	cTEXT.prototype.argumentsType = [argType.any, argType.text];
 	cTEXT.prototype.Calculate = function (arg) {
 		var arg0 = arg[0], arg1 = arg[1];
 		if (arg0 instanceof cRef || arg0 instanceof cRef3D) {
@@ -1836,14 +1880,16 @@ function (window, undefined) {
 			return arg1;
 		}
 
-		var _tmp = arg0.tocNumber();
-		if (_tmp instanceof cNumber) {
-			arg0 = _tmp;
+		if(!(arg0 instanceof cBool)) {
+			var _tmp = arg0.tocNumber();
+			if (_tmp instanceof cNumber) {
+				arg0 = _tmp;
+			}
 		}
 
 		var oFormat = oNumFormatCache.get(arg1.toString());
 		var a = g_oFormatParser.parse(arg0.toLocaleString(true) + ""), aText;
-		aText = oFormat.format(a ? a.value : arg0.getValue(),
+		aText = oFormat.format(a ? a.value : arg0.toLocaleString(),
 			(arg0 instanceof cNumber || a) ? CellValueType.Number : CellValueType.String,
 			AscCommon.gc_nMaxDigCountView);
 		var text = "";
@@ -1938,16 +1984,24 @@ function (window, undefined) {
 				}
 
 				for (var n = 0; n < argI.length; n++) {
-					arg0 = new cString(concatString(arg0.toString(), argI[n].toString()));
+					arg0 = new cString(concatString(arg0.toString(), argI[n].toLocaleString()));
 				}
 
-			} else {
-				argI = argI.tocString();
+			} else if (cElementType.cell === type || cElementType.cell3D === type) {
+				argI = argI.getValue();
+
 				if (argI instanceof cError) {
 					return argI;
 				}
 
-				arg0 = new cString(concatString(arg0.toString(), argI.toString()));
+				arg0 = new cString(concatString(arg0.toString(), argI.toLocaleString()));
+			} else {
+
+				if (argI instanceof cError) {
+					return argI;
+				}
+
+				arg0 = new cString(concatString(arg0.toString(), argI.toLocaleString()));
 			}
 		}
 
@@ -1967,6 +2021,7 @@ function (window, undefined) {
 	cTRIM.prototype.name = 'TRIM';
 	cTRIM.prototype.argumentsMin = 1;
 	cTRIM.prototype.argumentsMax = 1;
+	cTRIM.prototype.argumentsType = [argType.text];
 	cTRIM.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 
@@ -2002,6 +2057,7 @@ function (window, undefined) {
 	cUNICHAR.prototype.argumentsMin = 1;
 	cUNICHAR.prototype.argumentsMax = 1;
 	cUNICHAR.prototype.isXLFN = true;
+	cUNICHAR.prototype.argumentsType = [argType.number];
 	cUNICHAR.prototype.Calculate = function (arg) {
 		var oArguments = this._prepareArguments(arg, arguments[1]);
 		var argClone = oArguments.args;
@@ -2045,6 +2101,7 @@ function (window, undefined) {
 	cUNICODE.prototype.argumentsMin = 1;
 	cUNICODE.prototype.argumentsMax = 1;
 	cUNICODE.prototype.isXLFN = true;
+	cUNICODE.prototype.argumentsType = [argType.text];
 	cUNICODE.prototype.Calculate = function (arg) {
 		var oArguments = this._prepareArguments(arg, arguments[1]);
 		var argClone = oArguments.args;
@@ -2057,7 +2114,7 @@ function (window, undefined) {
 		}
 
 		function _func(argArray) {
-			var str = argArray[0].toString();
+			var str = argArray[0].toLocaleString();
 			var res = str.charCodeAt(0);
 			return new cNumber(res);
 		}
@@ -2078,6 +2135,7 @@ function (window, undefined) {
 	cUPPER.prototype.name = 'UPPER';
 	cUPPER.prototype.argumentsMin = 1;
 	cUPPER.prototype.argumentsMax = 1;
+	cUPPER.prototype.argumentsType = [argType.text];
 	cUPPER.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 		if (arg0 instanceof cArea || arg0 instanceof cArea3D) {
@@ -2087,12 +2145,22 @@ function (window, undefined) {
 			arg0 = arg0.getElementRowCol(0, 0);
 		}
 
-		arg0 = arg0.tocString();
+		if (arg0 instanceof cRef || arg0 instanceof cRef3D) {
+			arg0 = arg0.getValue();
+			if (arg0 instanceof cError) {
+				return arg0;
+			} else {
+				arg0 = arg0.toLocaleString();
+			}
+		} else {
+			arg0 = arg0.toLocaleString();
+		}
 
 		if (arg0 instanceof cError) {
 			return arg0;
 		}
-		return new cString(arg0.getValue().toUpperCase());
+
+		return new cString(arg0.toUpperCase());
 	};
 
 	/**
@@ -2109,6 +2177,7 @@ function (window, undefined) {
 	cVALUE.prototype.argumentsMin = 1;
 	cVALUE.prototype.argumentsMax = 1;
 	cVALUE.prototype.numFormat = AscCommonExcel.cNumFormatNone;
+	cVALUE.prototype.argumentsType = [argType.any];
 	cVALUE.prototype.Calculate = function (arg) {
 		var arg0 = arg[0];
 

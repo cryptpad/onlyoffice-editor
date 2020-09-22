@@ -125,6 +125,226 @@ function shiftSort(a, b, offset)
 function createRgbColor(r, g, b) {
 	return new RgbColor((r << 16) + (g << 8) + b);
 }
+function FromXml_ST_DynamicFilterType(val) {
+	var res = -1;
+	if ("null" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.nullType;
+	} else if ("aboveAverage" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.aboveAverage;
+	} else if ("belowAverage" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.belowAverage;
+	} else if ("tomorrow" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.tomorrow;
+	} else if ("today" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.today;
+	} else if ("yesterday" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.yesterday;
+	} else if ("nextWeek" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.nextWeek;
+	} else if ("thisWeek" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.thisWeek;
+	} else if ("lastWeek" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.lastWeek;
+	} else if ("nextMonth" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.nextMonth;
+	} else if ("thisMonth" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.thisMonth;
+	} else if ("lastMonth" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.lastMonth;
+	} else if ("nextQuarter" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.nextQuarter;
+	} else if ("thisQuarter" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.thisQuarter;
+	} else if ("lastQuarter" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.lastQuarter;
+	} else if ("nextYear" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.nextYear;
+	} else if ("thisYear" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.thisYear;
+	} else if ("lastYear" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.lastYear;
+	} else if ("yearToDate" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.yearToDate;
+	} else if ("Q1" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.q1;
+	} else if ("Q2" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.q2;
+	} else if ("Q3" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.q3;
+	} else if ("Q4" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.q4;
+	} else if ("M1" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.m1;
+	} else if ("M2" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.m2;
+	} else if ("M3" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.m3;
+	} else if ("M4" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.m4;
+	} else if ("M5" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.m5;
+	} else if ("M6" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.m6;
+	} else if ("M7" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.m7;
+	} else if ("M8" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.m8;
+	} else if ("M9" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.m9;
+	} else if ("M10" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.m10;
+	} else if ("M11" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.m11;
+	} else if ("M12" === val) {
+		res = Asc.c_oAscDynamicAutoFilter.m12;
+	}
+	return res;
+}
+function ToXml_ST_DynamicFilterType(val) {
+	var res = "";
+	if (Asc.c_oAscDynamicAutoFilter.nullType === val){
+		res = "null";
+	} else if (Asc.c_oAscDynamicAutoFilter.aboveAverage === val) {
+		res = "aboveAverage";
+	} else if (Asc.c_oAscDynamicAutoFilter.belowAverage === val) {
+		res = "belowAverage";
+	} else if (Asc.c_oAscDynamicAutoFilter.tomorrow === val) {
+		res = "tomorrow";
+	} else if (Asc.c_oAscDynamicAutoFilter.today === val) {
+		res = "today";
+	} else if (Asc.c_oAscDynamicAutoFilter.yesterday === val) {
+		res = "yesterday";
+	} else if (Asc.c_oAscDynamicAutoFilter.nextWeek === val) {
+		res = "nextWeek";
+	} else if (Asc.c_oAscDynamicAutoFilter.thisWeek === val) {
+		res = "thisWeek";
+	} else if (Asc.c_oAscDynamicAutoFilter.lastWeek === val) {
+		res = "lastWeek";
+	} else if (Asc.c_oAscDynamicAutoFilter.nextMonth === val) {
+		res = "nextMonth";
+	} else if (Asc.c_oAscDynamicAutoFilter.thisMonth === val) {
+		res = "thisMonth";
+	} else if (Asc.c_oAscDynamicAutoFilter.lastMonth === val) {
+		res = "lastMonth";
+	} else if (Asc.c_oAscDynamicAutoFilter.nextQuarter === val) {
+		res = "nextQuarter";
+	} else if (Asc.c_oAscDynamicAutoFilter.thisQuarter === val) {
+		res = "thisQuarter";
+	} else if (Asc.c_oAscDynamicAutoFilter.lastQuarter === val) {
+		res = "lastQuarter";
+	} else if (Asc.c_oAscDynamicAutoFilter.nextYear === val) {
+		res = "nextYear";
+	} else if (Asc.c_oAscDynamicAutoFilter.thisYear === val) {
+		res = "thisYear";
+	} else if (Asc.c_oAscDynamicAutoFilter.lastYear === val) {
+		res = "lastYear";
+	} else if (Asc.c_oAscDynamicAutoFilter.yearToDate === val) {
+		res = "yearToDate";
+	} else if (Asc.c_oAscDynamicAutoFilter.q1 === val) {
+		res = "Q1";
+	} else if (Asc.c_oAscDynamicAutoFilter.q2 === val) {
+		res = "Q2";
+	} else if (Asc.c_oAscDynamicAutoFilter.q3 === val) {
+		res = "Q3";
+	} else if (Asc.c_oAscDynamicAutoFilter.q4 === val) {
+		res = "Q4";
+	} else if (Asc.c_oAscDynamicAutoFilter.m1 === val) {
+		res = "M1";
+	} else if (Asc.c_oAscDynamicAutoFilter.m2 === val) {
+		res = "M2";
+	} else if (Asc.c_oAscDynamicAutoFilter.m3 === val) {
+		res = "M3";
+	} else if (Asc.c_oAscDynamicAutoFilter.m4 === val) {
+		res = "M4";
+	} else if (Asc.c_oAscDynamicAutoFilter.m5 === val) {
+		res = "M5";
+	} else if (Asc.c_oAscDynamicAutoFilter.m6 === val) {
+		res = "M6";
+	} else if (Asc.c_oAscDynamicAutoFilter.m7 === val) {
+		res = "M7";
+	} else if (Asc.c_oAscDynamicAutoFilter.m8 === val) {
+		res = "M8";
+	} else if (Asc.c_oAscDynamicAutoFilter.m9 === val) {
+		res = "M9";
+	} else if (Asc.c_oAscDynamicAutoFilter.m10 === val) {
+		res = "M10";
+	} else if (Asc.c_oAscDynamicAutoFilter.m11 === val) {
+		res = "M11";
+	} else if (Asc.c_oAscDynamicAutoFilter.m12 === val) {
+		res = "M12";
+	}
+	return res;
+}
+function FromXml_ST_FilterOperator(val) {
+	var res = -1;
+	if ("equal" === val) {
+		res = Asc.c_oAscCustomAutoFilter.equals;
+	} else if ("lessThan" === val) {
+		res = Asc.c_oAscCustomAutoFilter.isLessThan;
+	} else if ("lessThanOrEqual" === val) {
+		res = Asc.c_oAscCustomAutoFilter.isLessThanOrEqualTo;
+	} else if ("notEqual" === val) {
+		res = Asc.c_oAscCustomAutoFilter.doesNotEqual;
+	} else if ("greaterThanOrEqual" === val) {
+		res = Asc.c_oAscCustomAutoFilter.isGreaterThanOrEqualTo;
+	} else if ("greaterThan" === val) {
+		res = Asc.c_oAscCustomAutoFilter.isGreaterThan;
+	}
+	return res;
+}
+function ToXml_ST_FilterOperator(val) {
+	var res = "";
+	if (Asc.c_oAscCustomAutoFilter.equals === val) {
+		res = "equal";
+	} else if (Asc.c_oAscCustomAutoFilter.isLessThan === val) {
+		res = "lessThan";
+	} else if (Asc.c_oAscCustomAutoFilter.isLessThanOrEqualTo === val) {
+		res = "lessThanOrEqual";
+	} else if (Asc.c_oAscCustomAutoFilter.doesNotEqual === val) {
+		res = "notEqual";
+	} else if (Asc.c_oAscCustomAutoFilter.isGreaterThanOrEqualTo === val) {
+		res = "greaterThanOrEqual";
+	} else if (Asc.c_oAscCustomAutoFilter.isGreaterThan === val) {
+		res = "greaterThan";
+	}
+	return res;
+}
+
+function FromXml_ST_DateTimeGrouping(val) {
+	var res = -1;
+	if ("year" === val) {
+		res = Asc.EDateTimeGroup.datetimegroupYear;
+	} else if ("month" === val) {
+		res = Asc.EDateTimeGroup.datetimegroupMonth;
+	} else if ("day" === val) {
+		res = Asc.EDateTimeGroup.datetimegroupDay;
+	} else if ("hour" === val) {
+		res = Asc.EDateTimeGroup.datetimegroupHour;
+	} else if ("minute" === val) {
+		res = Asc.EDateTimeGroup.datetimegroupMinute;
+	} else if ("second" === val) {
+		res = Asc.EDateTimeGroup.datetimegroupSecond;
+	}
+	return res;
+}
+function ToXml_ST_DateTimeGrouping(val) {
+	var res = "";
+	if (Asc.EDateTimeGroup.datetimegroupYear === val) {
+		res = "year";
+	} else if (Asc.EDateTimeGroup.datetimegroupMonth === val) {
+		res = "month";
+	} else if (Asc.EDateTimeGroup.datetimegroupDay === val) {
+		res = "day";
+	} else if (Asc.EDateTimeGroup.datetimegroupHour === val) {
+		res = "hour";
+	} else if (Asc.EDateTimeGroup.datetimegroupMinute === val) {
+		res = "minute";
+	} else if (Asc.EDateTimeGroup.datetimegroupSecond === val) {
+		res = "second";
+	}
+	return res;
+}
+
 var g_oRgbColorProperties = {
 		rgb : 0
 	};
@@ -463,7 +683,9 @@ g_oColorManager = new ColorManager();
 		NumAbs: null,
 		BorderAbs: null,
 		AlignAbs: null,
-		ColorAuto: new RgbColor(0)
+		ColorAuto: new RgbColor(0),
+
+		xfs: new CellXfs()
 	};
 
 	/** @constructor */
@@ -608,6 +830,23 @@ var g_oFontProperties = {
 			this.setRepeat(font.repeat);
 		}
 	};
+    Font.prototype.assignFromTextPr = function (textPr) {
+        if (textPr.FontFamily) {
+            this.setName(textPr.FontFamily.Name);
+        }
+        this.setSize(textPr.FontSize);
+        this.setBold(textPr.Bold);
+        this.setItalic(textPr.Italic);
+        this.setUnderline(textPr.Underline === true ? Asc.EUnderline.underlineSingle : Asc.EUnderline.underlineNone);
+        this.setStrikeout(textPr.Strikeout);
+        this.setVerticalAlign(textPr.VertAlign);
+        if (textPr.Unifill) {
+            var color = textPr.Unifill.getRGBAColor();
+            this.setColor(createRgbColor(color.R, color.G, color.B));
+        } else if (textPr.Color) {
+            this.setColor(createRgbColor(textPr.Color.r, textPr.Color.g, textPr.Color.b));
+        }
+    };
 	Font.prototype.merge = function (font, isTable, isTableColor) {
 		var oRes = new Font();
 		oRes.fn = this.fn || font.fn;
@@ -1396,7 +1635,7 @@ var g_oFontProperties = {
 		this.position = value;
 	};
 	GradientStop.prototype.asc_getColor = function () {
-		return this.color ? Asc.colorObjToAscColor(this.color) : this.color;
+		return Asc.colorObjToAscColor(this.color);
 	};
 	GradientStop.prototype.asc_setColor = function (value) {
 		this.color = CorrectAscColor(value);
@@ -1425,13 +1664,10 @@ var g_oFontProperties = {
 		switch (nType) {
 			case this.Properties.patternType:
 				return this.patternType;
-				break;
 			case this.Properties.fgColor:
 				return this.fgColor;
-				break;
 			case this.Properties.bgColor:
 				return this.bgColor;
-				break;
 		}
 	};
 	PatternFill.prototype.setProperty = function (nType, value) {
@@ -1583,13 +1819,13 @@ var g_oFontProperties = {
 		}
 	};
 	PatternFill.prototype.asc_getFgColor = function () {
-		return this.fgColor ? Asc.colorObjToAscColor(this.fgColor) : this.fgColor;
+		return Asc.colorObjToAscColor(this.fgColor);
 	};
 	PatternFill.prototype.asc_setFgColor = function (value) {
 		this.fgColor = CorrectAscColor(value);
 	};
 	PatternFill.prototype.asc_getBgColor = function () {
-		return this.bgColor ? Asc.colorObjToAscColor(this.bgColor) : this.bgColor;
+		return Asc.colorObjToAscColor(this.bgColor);
 	};
 	PatternFill.prototype.asc_setBgColor = function (value) {
 		this.bgColor = CorrectAscColor(value);
@@ -1612,14 +1848,12 @@ var g_oFontProperties = {
 		return ((this.patternFill && c_oAscPatternType.None !== this.patternFill.patternType) || this.gradientFill);
 	};
 	Fill.prototype.getSolidFill = function () {
-		return (this.patternFill && c_oAscPatternType.Solid === this.patternFill.patternType) ? this.patternFill.fgColor : null;
+		return (this.patternFill && c_oAscPatternType.Solid === this.patternFill.patternType) ? (this.patternFill.fgColor || createRgbColor(255, 255, 255)) : null;
 	};
 	Fill.prototype.bg = function () {
 		var res = null;
 		if (this.patternFill && c_oAscPatternType.None !== this.patternFill.patternType) {
 			res = this.patternFill.fgColor || AscCommonExcel.g_oColorManager.getThemeColor(g_nColorTextDefault, 0);
-		} else if (this.gradientFill) {
-			res = this.gradientFill.stop.length > 0 ? this.gradientFill.stop[0].color : AscCommonExcel.g_oColorManager.getThemeColor(g_nColorTextDefault, 0)
 		}
 		return res;
 	};
@@ -1681,10 +1915,8 @@ var g_oFontProperties = {
 		switch (nType) {
 			case this.Properties.patternFill:
 				return this.patternFill;
-				break;
 			case this.Properties.gradientFill:
 				return this.gradientFill;
-				break;
 		}
 	};
 	Fill.prototype.setProperty = function (nType, value) {
@@ -2287,95 +2519,123 @@ var g_oBorderProperties = {
 		}
 		return newContext;
 	};
-var g_oNumProperties = {
+
+	var g_oNumProperties = {
 		f: 0,
 		id: 1
 	};
-/** @constructor */
-function Num(val)
-{
-	if(null == val)
-		val = g_oDefaultFormat.NumAbs;
-	this.f = val.f;
-  this.id = val.id;
 
-	this._hash;
-	this._index;
-}
-Num.prototype =
-{
-	Properties: g_oNumProperties,
-	getHash: function() {
+	/** @constructor */
+	function Num(val) {
+		if (null == val)
+			val = g_oDefaultFormat.NumAbs;
+		this.f = val.f;
+		this.id = val.id;
+
+		this._hash;
+		this._index;
+	}
+
+	Num.prototype.Properties = g_oNumProperties;
+	Num.prototype.getHash = function () {
 		if (!this._hash) {
 			this._hash = this.f + '|' + this.id;
 		}
 		return this._hash;
-	},
-	getIndexNumber: function() {
+	};
+	Num.prototype.getIndexNumber = function () {
 		return this._index;
-	},
-	setIndexNumber: function(val) {
+	};
+	Num.prototype.setIndexNumber = function (val) {
 		this._index = val;
-	},
-  setFormat: function(f, opt_id) {
-    this.f = f;
-    this.id = opt_id;
-  },
-  getFormat: function() {
-    return (null != this.id) ? (AscCommon.getFormatByStandardId(this.id) || this.f) : this.f;
-  },
-  _mergeProperty : function(first, second, def)
-  {
-    if(def != first)
-      return first;
-    else
-      return second;
-  },
-	merge : function(num)
-	{
+	};
+	Num.prototype.initFromParams = function (id, format, oNumFmts) {
+		var res = oNumFmts && oNumFmts[id];
+		if (res) {
+			return res;
+		}
+		res = new Num();
+		if (format) {
+			res.f = format;
+		} else {
+			res.f = AscCommonExcel.aStandartNumFormats[id];
+		}
+		if (!res.f) {
+			res.f = "General";
+		}
+		if (((5 <= id && id <= 8) || (14 <= id && id <= 17) || 22 == id ||
+			(27 <= id && id <= 31) || (36 <= id && id <= 44))) {
+			res.id = id;
+		}
+		var numFormat = AscCommon.oNumFormatCache.get(res.f);
+		numFormat.checkCultureInfoFontPicker();
+		res = g_StyleCache.addNum(res);
+		if (oNumFmts) {
+			oNumFmts[res.id] = res;
+		}
+		return res;
+	};
+	Num.prototype.setFormat = function (f, opt_id) {
+		this.f = f;
+		this.id = opt_id;
+	};
+	Num.prototype.getFormat = function () {
+		return (null != this.id) ? (AscCommon.getFormatByStandardId(this.id) || this.f) : this.f;
+	};
+	Num.prototype.getNumFormat = function () {
+		return AscCommon.oNumFormatCache.get(this.getFormat());
+	};
+	Num.prototype._mergeProperty = function (first, second, def) {
+		if (def != first)
+			return first;
+		else
+			return second;
+	};
+	Num.prototype.merge = function (num) {
 		var oRes = new Num();
-    oRes.f = this._mergeProperty(this.f, num.f, g_oDefaultFormat.Num.f);
-    oRes.id = this._mergeProperty(this.id, num.id, g_oDefaultFormat.Num.id);
+		oRes.f = this._mergeProperty(this.f, num.f, g_oDefaultFormat.Num.f);
+		oRes.id = this._mergeProperty(this.id, num.id, g_oDefaultFormat.Num.id);
 		return oRes;
-	},
-  isEqual: function(val) {
-    if (null != this.id && null != val.id) {
-      return this.id == val.id;
-    } else if (null != this.id || null != val.id) {
-      return false;
-    } else {
-      return this.f == val.f;
-    }
-  },
-    clone : function()
-    {
-        return new Num(this);
-    },
-	getType : function()
-	{
+	};
+	Num.prototype.isEqual = function (val) {
+		if (null != this.id && null != val.id) {
+			return this.id == val.id;
+		} else if (null != this.id || null != val.id) {
+			return false;
+		} else {
+			return this.f == val.f;
+		}
+	};
+	Num.prototype.clone = function () {
+		return new Num(this);
+	};
+	Num.prototype.getType = function () {
 		return UndoRedoDataTypes.StyleNum;
-	},
-	getProperties : function()
-	{
+	};
+	Num.prototype.getProperties = function () {
 		return this.Properties;
-	},
-	getProperty : function(nType)
-	{
-		switch(nType)
-		{
-			case this.Properties.f: return this.f;break;
-			case this.Properties.id: return this.id;break;
+	};
+	Num.prototype.getProperty = function (nType) {
+		switch (nType) {
+			case this.Properties.f:
+				return this.f;
+				break;
+			case this.Properties.id:
+				return this.id;
+				break;
 		}
-	},
-	setProperty : function(nType, value)
-	{
-		switch(nType)
-		{
-			case this.Properties.f: this.f = value;break;
-			case this.Properties.id: this.id = value;break;
+	};
+	Num.prototype.setProperty = function (nType, value) {
+		switch (nType) {
+			case this.Properties.f:
+				this.f = value;
+				break;
+			case this.Properties.id:
+				this.id = value;
+				break;
 		}
-	},
-	readAttributes : function(attr, uq) {
+	};
+	Num.prototype.readAttributes = function (attr, uq) {
 		if (attr()) {
 			var vals = attr();
 			var val;
@@ -2395,237 +2655,327 @@ Num.prototype =
 				this.id = id;
 			}
 		}
-	}
-};
-var g_oCellXfsProperties = {
-		border: 0,
-		fill: 1,
-		font: 2,
-		num: 3,
-		align: 4,
-		QuotePrefix: 5,
-		XfId: 6,
-		PivotButton: 7
 	};
-/** @constructor */
-function CellXfs() {
-    this.border = null;
-    this.fill = null;
-    this.font = null;
-    this.num = null;
-    this.align = null;
-	this.QuotePrefix = null;
-	this.PivotButton = null;
-	this.XfId = null;
 
-	//inner
-	this._hash;
-	this._index;
-	this.operationCache = {};
-}
-CellXfs.prototype =
-{
-	Properties: g_oCellXfsProperties,
-	getHash: function() {
-		if (!this._hash) {
-			this._hash = (this.border ? this.border.getIndexNumber() : '') + '|';
-			this._hash += (this.fill ? this.fill.getIndexNumber() : '') + '|';
-			this._hash += (this.font ? this.font.getIndexNumber() : '') + '|';
-			this._hash += (this.num ? this.num.getIndexNumber() : '') + '|';
-			this._hash += (this.align ? this.align.getIndexNumber() : '') + '|';
-			this._hash += this.QuotePrefix + '|';
-			this._hash += this.PivotButton + '|';
-			this._hash += this.XfId + '|';
-		}
-		return this._hash;
-	},
-	getIndexNumber: function() {
-		return this._index;
-	},
-	setIndexNumber: function(val) {
-		this._index = val;
-	},
-	_mergeProperty : function(addFunc, first, second, isTable, isTableColor)
-	{
-		var res = null;
-		if(null != first || null != second)
-		{
-			if(null == first)
-				res = second;
-			else if(null == second)
-				res = first;
-			else
-			{
-				if (null != first.merge) {
-					res = addFunc.call(g_StyleCache, first.merge(second, isTable, isTableColor));
-				} else {
-					res = first;
-				}
-			}
-		}
-		return res;
-	},
-	merge : function(xfs, isTable)
-	{
-		var xfIndexNumber = xfs.getIndexNumber();
-		if (undefined === xfIndexNumber) {
-			xfs = g_StyleCache.addXf(xfs);
-			xfIndexNumber = xfs.getIndexNumber();
-		}
-		var cache = this.getOperationCache("merge", xfIndexNumber);
-		if (!cache) {
-			cache = new CellXfs();
-			cache.border = this._mergeProperty(g_StyleCache.addBorder, xfs.border, this.border, isTable);
-			if (isTable && (g_StyleCache.firstXf === xfs || g_StyleCache.normalXf.fill === xfs.fill)) {
-				if (g_StyleCache.normalXf.fill === xfs.fill) {
-					cache.fill = this._mergeProperty(g_StyleCache.addFill, this.fill, g_oDefaultFormat.Fill);
-				} else {
-					cache.fill = this._mergeProperty(g_StyleCache.addFill, this.fill, xfs.fill);
-				}
-			} else {
-				cache.fill = this._mergeProperty(g_StyleCache.addFill, xfs.fill, this.fill);
-			}
-			var isTableColor = true;
-			if (isTable && (g_StyleCache.firstXf === xfs || g_StyleCache.normalXf.font === xfs.font)) {
-				if (g_StyleCache.normalXf.font === xfs.font) {
-					cache.font = this._mergeProperty(g_StyleCache.addFont, g_oDefaultFormat.Font, this.font, isTable, isTableColor);
-				} else {
-					cache.font = this._mergeProperty(g_StyleCache.addFont, xfs.font, this.font, isTable, isTableColor);
-				}
-			} else {
-				isTableColor = isTable && xfs.font && xfs.font.c && xfs.font.c.isEqual(g_StyleCache.normalXf.font.c);
-				cache.font = this._mergeProperty(g_StyleCache.addFont, xfs.font, this.font, isTable, isTableColor);
-			}
-			cache.num = this._mergeProperty(g_StyleCache.addNum, xfs.num, this.num);
-			cache.align = this._mergeProperty(g_StyleCache.addAlign, xfs.align, this.align);
-			cache.QuotePrefix = this._mergeProperty(null, xfs.QuotePrefix, this.QuotePrefix);
-			cache.PivotButton = this._mergeProperty(null, xfs.PivotButton, this.PivotButton);
-			cache.XfId = this._mergeProperty(null, xfs.XfId, this.XfId);
-			cache = g_StyleCache.addXf(cache);
-			this.setOperationCache("merge", xfIndexNumber, cache);
-		}
-		return cache;
-	},
-    clone : function()
-    {
-        var res = new CellXfs();
-		res.border = this.border;
-		res.fill = this.fill;
-		res.font = this.font;
-		res.num = this.num;
-		res.align = this.align;
-		res.QuotePrefix = this.QuotePrefix;
-		res.PivotButton = this.PivotButton;
-		res.XfId = this.XfId;
+    var g_oCellXfsProperties = {
+        border: 0,
+        fill: 1,
+        font: 2,
+        num: 3,
+        align: 4,
+        QuotePrefix: 5,
+        XfId: 6,
+        PivotButton: 7
+    };
+
+    /** @constructor */
+    function CellXfs() {
+        this.border = null;
+        this.fill = null;
+        this.font = null;
+        this.num = null;
+        this.align = null;
+        this.QuotePrefix = null;
+        this.PivotButton = null;
+        this.XfId = null;
+
+        //inner
+        this._hash;
+        this._index;
+        this.operationCache = {};
+    }
+
+    CellXfs.prototype.Properties = g_oCellXfsProperties;
+    CellXfs.prototype.getHash = function () {
+        if (!this._hash) {
+            this._hash = (this.border ? this.border.getIndexNumber() : '') + '|';
+            this._hash += (this.fill ? this.fill.getIndexNumber() : '') + '|';
+            this._hash += (this.font ? this.font.getIndexNumber() : '') + '|';
+            this._hash += (this.num ? this.num.getIndexNumber() : '') + '|';
+            this._hash += (this.align ? this.align.getIndexNumber() : '') + '|';
+            this._hash += this.QuotePrefix + '|';
+            this._hash += this.PivotButton + '|';
+            this._hash += this.XfId + '|';
+        }
+        return this._hash;
+    };
+    CellXfs.prototype.getIndexNumber = function () {
+        return this._index;
+    };
+    CellXfs.prototype.setIndexNumber = function (val) {
+        this._index = val;
+    };
+    CellXfs.prototype._mergeProperty = function (addFunc, first, second, isTable, isTableColor) {
+        var res = null;
+        if (null != first || null != second) {
+            if (null == first)
+                res = second;
+            else if (null == second)
+                res = first;
+            else {
+                if (null != first.merge) {
+                    res = addFunc.call(g_StyleCache, first.merge(second, isTable, isTableColor));
+                } else {
+                    res = first;
+                }
+            }
+        }
         return res;
-    },
-	isEqual : function(xfs)
-	{
-		return this.font === xfs.font && this.fill === xfs.fill && this.border === xfs.border && this.num === xfs.num &&
-			this.align === xfs.align && this.QuotePrefix === xfs.QuotePrefix && this.PivotButton === xfs.PivotButton &&
-			this.XfId === xfs.XfId;
-	},
-	getType : function()
-	{
-		return UndoRedoDataTypes.StyleXfs;
-	},
-	getProperties : function()
-	{
-		return this.Properties;
-	},
-	getProperty : function(nType)
-	{
-		switch(nType)
-		{
-			case this.Properties.border: return this.border;break;
-			case this.Properties.fill: return this.fill;break;
-			case this.Properties.font: return this.font;break;
-			case this.Properties.num: return this.num;break;
-			case this.Properties.align: return this.align;break;
-			case this.Properties.QuotePrefix: return this.QuotePrefix;break;
-			case this.Properties.PivotButton: return this.PivotButton;break;
-			case this.Properties.XfId: return this.XfId; break;
-		}
-	},
-	setProperty : function(nType, value)
-	{
-		switch(nType)
-		{
-			case this.Properties.border: this.border = value;break;
-			case this.Properties.fill: this.fill = value;break;
-			case this.Properties.font: this.font = value;break;
-			case this.Properties.num: this.num = value;break;
-			case this.Properties.align: this.align = value;break;
-			case this.Properties.QuotePrefix: this.QuotePrefix = value;break;
-			case this.Properties.PivotButton: this.PivotButton = value;break;
-			case this.Properties.XfId: this.XfId = value; break;
-		}
-	},
-	getBorder: function() {
-		return this.border;
-	},
-	setBorder: function(val) {
-		this.border = val;
-	},
-	getFill: function() {
-		return this.fill;
-	},
-	setFill: function(val) {
-		this.fill = val;
-	},
-	getFont: function() {
-		return this.font;
-	},
-	setFont: function(val) {
-		this.font = val;
-	},
-	getNum: function() {
-		return this.num;
-	},
-	setNum: function(val) {
-		this.num = val;
-	},
-	getAlign: function() {
-		return this.align;
-	},
-	setAlign: function(val) {
-		this.align = val;
-	},
-	getQuotePrefix: function() {
-		return this.QuotePrefix;
-	},
-	setQuotePrefix: function(val) {
-		this.QuotePrefix = val;
-	},
-	getPivotButton: function() {
-		return this.PivotButton;
-	},
-	setPivotButton: function(val) {
-		this.PivotButton = val;
-	},
-	getXfId: function() {
-		return this.XfId;
-	},
-	setXfId: function(val) {
-		this.XfId = val;
-	},
-	getOperationCache: function(operation, val) {
-		var res = undefined;
-		var operation = this.operationCache[operation];
-		if (operation) {
-			res = operation[val];
-		}
-		return res;
-	},
-	setOperationCache: function(operation, val, xfs) {
-		var valCache = this.operationCache[operation];
-		if (!valCache) {
-			valCache = {};
-			this.operationCache[operation] = valCache;
-		}
-		valCache[val] = xfs;
-	}
-};
+    };
+    CellXfs.prototype.merge = function (xfs, isTable) {
+        var xfIndexNumber = xfs.getIndexNumber();
+        if (undefined === xfIndexNumber) {
+            xfs = g_StyleCache.addXf(xfs);
+            xfIndexNumber = xfs.getIndexNumber();
+        }
+        var cache = this.getOperationCache("merge", xfIndexNumber);
+        if (!cache) {
+            cache = new CellXfs();
+            cache.border = this._mergeProperty(g_StyleCache.addBorder, xfs.border, this.border, isTable);
+            if (isTable && (g_StyleCache.firstXf === xfs || g_StyleCache.normalXf.fill === xfs.fill)) {
+                if (g_StyleCache.normalXf.fill === xfs.fill) {
+                    cache.fill = this._mergeProperty(g_StyleCache.addFill, this.fill, g_oDefaultFormat.Fill);
+                } else {
+                    cache.fill = this._mergeProperty(g_StyleCache.addFill, this.fill, xfs.fill);
+                }
+            } else {
+                cache.fill = this._mergeProperty(g_StyleCache.addFill, xfs.fill, this.fill);
+            }
+            var isTableColor = true;
+            if (isTable && (g_StyleCache.firstXf === xfs || g_StyleCache.normalXf.font === xfs.font)) {
+                if (g_StyleCache.normalXf.font === xfs.font) {
+                    cache.font = this._mergeProperty(g_StyleCache.addFont, g_oDefaultFormat.Font, this.font, isTable, isTableColor);
+                } else {
+                    cache.font = this._mergeProperty(g_StyleCache.addFont, xfs.font, this.font, isTable, isTableColor);
+                }
+            } else {
+                isTableColor = isTable && xfs.font && xfs.font.c && xfs.font.c.isEqual(g_StyleCache.normalXf.font.c);
+                cache.font = this._mergeProperty(g_StyleCache.addFont, xfs.font, this.font, isTable, isTableColor);
+            }
+            cache.num = this._mergeProperty(g_StyleCache.addNum, xfs.num, this.num);
+            cache.align = this._mergeProperty(g_StyleCache.addAlign, xfs.align, this.align);
+            cache.QuotePrefix = this._mergeProperty(null, xfs.QuotePrefix, this.QuotePrefix);
+            cache.PivotButton = this._mergeProperty(null, xfs.PivotButton, this.PivotButton);
+            cache.XfId = this._mergeProperty(null, xfs.XfId, this.XfId);
+            cache = g_StyleCache.addXf(cache);
+            this.setOperationCache("merge", xfIndexNumber, cache);
+        }
+        return cache;
+    };
+    CellXfs.prototype.clone = function () {
+        var res = new CellXfs();
+        res.border = this.border;
+        res.fill = this.fill;
+        res.font = this.font;
+        res.num = this.num;
+        res.align = this.align;
+        res.QuotePrefix = this.QuotePrefix;
+        res.PivotButton = this.PivotButton;
+        res.XfId = this.XfId;
+        return res;
+    };
+    CellXfs.prototype.isEqual = function (xfs) {
+        return this.font === xfs.font && this.fill === xfs.fill && this.border === xfs.border && this.num === xfs.num &&
+            this.align === xfs.align && this.QuotePrefix === xfs.QuotePrefix && this.PivotButton === xfs.PivotButton &&
+            this.XfId === xfs.XfId;
+    };
+    CellXfs.prototype.getType = function () {
+        return UndoRedoDataTypes.StyleXfs;
+    };
+    CellXfs.prototype.getProperties = function () {
+        return this.Properties;
+    };
+    CellXfs.prototype.getProperty = function (nType) {
+        switch (nType) {
+            case this.Properties.border:
+                return this.border;
+            case this.Properties.fill:
+                return this.fill;
+            case this.Properties.font:
+                return this.font;
+            case this.Properties.num:
+                return this.num;
+            case this.Properties.align:
+                return this.align;
+            case this.Properties.QuotePrefix:
+                return this.QuotePrefix;
+            case this.Properties.PivotButton:
+                return this.PivotButton;
+            case this.Properties.XfId:
+                return this.XfId;
+        }
+    };
+    CellXfs.prototype.setProperty = function (nType, value) {
+        switch (nType) {
+            case this.Properties.border:
+                this.border = value;
+                break;
+            case this.Properties.fill:
+                this.fill = value;
+                break;
+            case this.Properties.font:
+                this.font = value;
+                break;
+            case this.Properties.num:
+                this.num = value;
+                break;
+            case this.Properties.align:
+                this.align = value;
+                break;
+            case this.Properties.QuotePrefix:
+                this.QuotePrefix = value;
+                break;
+            case this.Properties.PivotButton:
+                this.PivotButton = value;
+                break;
+            case this.Properties.XfId:
+                this.XfId = value;
+                break;
+        }
+    };
+    CellXfs.prototype.getBorder = function () {
+        return this.border;
+    };
+    CellXfs.prototype.setBorder = function (val) {
+        this.border = val;
+    };
+    CellXfs.prototype.getFill = function () {
+        return this.fill;
+    };
+	CellXfs.prototype.getFill2 = function () {
+		// ToDo check this! Rename to getFill
+		return this.fill || g_oDefaultFormat.Fill;
+	};
+    CellXfs.prototype.setFill = function (val) {
+        this.fill = val;
+    };
+    CellXfs.prototype.getFont = function () {
+        return this.font;
+    };
+	CellXfs.prototype.getFont2 = function () {
+		// ToDo check this! Rename to getFont
+		return this.font || g_oDefaultFormat.Font;
+	};
+    CellXfs.prototype.setFont = function (val) {
+        this.font = val;
+    };
+    CellXfs.prototype.getNum = function () {
+        return this.num;
+    };
+	CellXfs.prototype.getNum2 = function () {
+		// ToDo check this! Rename to getNum
+		return this.num || g_oDefaultFormat.Num;
+	};
+    CellXfs.prototype.setNum = function (val) {
+        this.num = val;
+    };
+    CellXfs.prototype.getAlign = function () {
+        return this.align;
+    };
+    CellXfs.prototype.getAlign2 = function () {
+        // ToDo check this! Rename to getAlign
+        return this.align || g_oDefaultFormat.Align;
+    };
+    CellXfs.prototype.setAlign = function (val) {
+        this.align = val;
+    };
+    CellXfs.prototype.getQuotePrefix = function () {
+        return this.QuotePrefix;
+    };
+    CellXfs.prototype.setQuotePrefix = function (val) {
+        this.QuotePrefix = val;
+    };
+    CellXfs.prototype.getPivotButton = function () {
+        return this.PivotButton;
+    };
+    CellXfs.prototype.setPivotButton = function (val) {
+        this.PivotButton = val;
+    };
+    CellXfs.prototype.getXfId = function () {
+        return this.XfId;
+    };
+    CellXfs.prototype.setXfId = function (val) {
+        this.XfId = val;
+    };
+    CellXfs.prototype.getOperationCache = function (operation, val) {
+        var res = undefined;
+        operation = this.operationCache[operation];
+        if (operation) {
+            res = operation[val];
+        }
+        return res;
+    };
+    CellXfs.prototype.setOperationCache = function (operation, val, xfs) {
+        var valCache = this.operationCache[operation];
+        if (!valCache) {
+            valCache = {};
+            this.operationCache[operation] = valCache;
+        }
+        valCache[val] = xfs;
+    };
+
+	CellXfs.prototype.asc_getFillColor = function () {
+		return Asc.colorObjToAscColor(this.getFill2().bg());
+	};
+	CellXfs.prototype.asc_getFill = function () {
+		return this.getFill2().clone();
+	};
+
+    CellXfs.prototype.asc_getFontName = function () {
+		return this.getFont2().getName();
+	};
+    CellXfs.prototype.asc_getFontSize = function () {
+        return this.getFont2().getSize();
+    };
+    CellXfs.prototype.asc_getFontColor = function () {
+        return Asc.colorObjToAscColor(this.getFont2().getColor());
+    };
+    CellXfs.prototype.asc_getFontBold = function () {
+        return this.getFont2().getBold();
+    };
+    CellXfs.prototype.asc_getFontItalic = function () {
+        return this.getFont2().getItalic();
+    };
+    CellXfs.prototype.asc_getFontUnderline = function () {
+        // ToDo убрать, когда будет реализовано двойное подчеркивание
+        return (Asc.EUnderline.underlineNone !== this.getFont2().getUnderline());
+    };
+    CellXfs.prototype.asc_getFontStrikeout = function () {
+        return this.getFont2().getStrikeout();
+    };
+    CellXfs.prototype.asc_getFontSubscript = function () {
+        return (AscCommon.vertalign_SubScript === this.getFont2().getVerticalAlign());
+    };
+    CellXfs.prototype.asc_getFontSuperscript = function () {
+        return (AscCommon.vertalign_SuperScript === this.getFont2().getVerticalAlign());
+    };
+
+	CellXfs.prototype.asc_getNumFormat = function () {
+		return this.getNum2().getFormat();
+	};
+	CellXfs.prototype.asc_getNumFormatInfo = function () {
+		return this.getNum2().getNumFormat().getTypeInfo();
+	};
+
+	CellXfs.prototype.asc_getHorAlign = function () {
+		return this.getAlign2().getAlignHorizontal();
+	};
+	CellXfs.prototype.asc_getVertAlign = function () {
+		return this.getAlign2().getAlignVertical();
+	};
+	CellXfs.prototype.asc_getAngle = function () {
+		return this.getAlign2().getAngle();
+	};
+	CellXfs.prototype.asc_getWrapText = function () {
+		return this.getAlign2().getWrap();
+	};
+	CellXfs.prototype.asc_getShrinkToFit = function () {
+		return this.getAlign2().getShrinkToFit();
+	};
+
+	CellXfs.prototype.asc_getPreview = function (api, text, width, height) {
+		return AscCommonExcel.generateXfsStyle(width, height, api.wb, this, text);
+	};
 
 	function FromXml_ST_HorizontalAlignment(val) {
 		var res = -1;
@@ -2665,7 +3015,7 @@ CellXfs.prototype =
 		return res;
 	}
 
-var g_oAlignProperties = {
+	var g_oAlignProperties = {
 		hor: 0,
 		indent: 1,
 		RelativeIndent: 2,
@@ -2674,47 +3024,44 @@ var g_oAlignProperties = {
 		ver: 5,
 		wrap: 6
 	};
-/** @constructor */
-function Align(val)
-{
-	if(null == val)
-		val = g_oDefaultFormat.AlignAbs;
-	this.hor = val.hor;
-	this.indent = val.indent;
-	this.RelativeIndent = val.RelativeIndent;
-	this.shrink = val.shrink;
-	this.angle = val.angle;
-	this.ver = val.ver;
-	this.wrap = val.wrap;
 
-	this._hash;
-	this._index;
-}
-Align.prototype =
-{
-	Properties: g_oAlignProperties,
-	getHash: function() {
+	/** @constructor */
+	function Align(val) {
+		if (null == val)
+			val = g_oDefaultFormat.AlignAbs;
+		this.hor = val.hor;
+		this.indent = val.indent;
+		this.RelativeIndent = val.RelativeIndent;
+		this.shrink = val.shrink;
+		this.angle = val.angle;
+		this.ver = val.ver;
+		this.wrap = val.wrap;
+
+		this._hash;
+		this._index;
+	}
+
+	Align.prototype.Properties = g_oAlignProperties;
+	Align.prototype.getHash = function () {
 		if (!this._hash) {
 			this._hash = this.hor + '|' + this.indent + '|' + this.RelativeIndent + '|' + this.shrink + '|' +
 				this.angle + '|' + this.ver + '|' + this.wrap;
 		}
 		return this._hash;
-	},
-	getIndexNumber: function() {
+	};
+	Align.prototype.getIndexNumber = function () {
 		return this._index;
-	},
-	setIndexNumber: function(val) {
+	};
+	Align.prototype.setIndexNumber = function (val) {
 		this._index = val;
-	},
-	_mergeProperty : function(first, second, def)
-	{
+	};
+	Align.prototype._mergeProperty = function (first, second, def) {
 		if (def != first)
 			return first;
 		else
 			return second;
-	},
-	merge : function(align)
-	{
+	};
+	Align.prototype.merge = function (align) {
 		var defaultAlign = g_oDefaultFormat.Align;
 		var oRes = new Align();
 		oRes.hor = this._mergeProperty(this.hor, align.hor, defaultAlign.hor);
@@ -2725,162 +3072,183 @@ Align.prototype =
 		oRes.ver = this._mergeProperty(this.ver, align.ver, defaultAlign.ver);
 		oRes.wrap = this._mergeProperty(this.wrap, align.wrap, defaultAlign.wrap);
 		return oRes;
-	},
-	getDif : function(val)
-	{
+	};
+	Align.prototype.getDif = function (val) {
 		var oRes = new Align(this);
 		var bEmpty = true;
-		if(this.hor == val.hor)
-			oRes.hor =  null;
+		if (this.hor == val.hor)
+			oRes.hor = null;
 		else
 			bEmpty = false;
-		if(this.indent == val.indent)
-			oRes.indent =  null;
+		if (this.indent == val.indent)
+			oRes.indent = null;
 		else
 			bEmpty = false;
-		if(this.RelativeIndent == val.RelativeIndent)
-			oRes.RelativeIndent =  null;
+		if (this.RelativeIndent == val.RelativeIndent)
+			oRes.RelativeIndent = null;
 		else
 			bEmpty = false;
-		if(this.shrink == val.shrink)
-			oRes.shrink =  null;
+		if (this.shrink == val.shrink)
+			oRes.shrink = null;
 		else
 			bEmpty = false;
-		if(this.angle == val.angle)
-			oRes.angle =  null;
+		if (this.angle == val.angle)
+			oRes.angle = null;
 		else
 			bEmpty = false;
-		if(this.ver == val.ver)
-			oRes.ver =  null;
+		if (this.ver == val.ver)
+			oRes.ver = null;
 		else
 			bEmpty = false;
-		if(this.wrap == val.wrap)
-			oRes.wrap =  null;
+		if (this.wrap == val.wrap)
+			oRes.wrap = null;
 		else
 			bEmpty = false;
-		if(bEmpty)
+		if (bEmpty)
 			oRes = null;
 		return oRes;
-	},
-	isEqual : function(val)
-	{
+	};
+	Align.prototype.isEqual = function (val) {
 		return this.hor == val.hor && this.indent == val.indent && this.RelativeIndent == val.RelativeIndent && this.shrink == val.shrink &&
-				this.angle == val.angle && this.ver == val.ver && this.wrap == val.wrap;
-	},
-    clone : function()
-    {
-        return new Align(this);
-    },
-	getType : function()
-	{
+			this.angle == val.angle && this.ver == val.ver && this.wrap == val.wrap;
+	};
+	Align.prototype.clone = function () {
+		return new Align(this);
+	};
+	Align.prototype.getType = function () {
 		return UndoRedoDataTypes.StyleAlign;
-	},
-	getProperties : function()
-	{
+	};
+	Align.prototype.getProperties = function () {
 		return this.Properties;
-	},
-	getProperty : function(nType)
-	{
-		switch(nType)
-		{
-			case this.Properties.hor: return this.hor;break;
-			case this.Properties.indent: return this.indent;break;
-			case this.Properties.RelativeIndent: return this.RelativeIndent;break;
-			case this.Properties.shrink: return this.shrink;break;
-			case this.Properties.angle: return this.angle;break;
-			case this.Properties.ver: return this.ver;break;
-			case this.Properties.wrap: return this.wrap;break;
+	};
+	Align.prototype.getProperty = function (nType) {
+		switch (nType) {
+			case this.Properties.hor:
+				return this.hor;
+				break;
+			case this.Properties.indent:
+				return this.indent;
+				break;
+			case this.Properties.RelativeIndent:
+				return this.RelativeIndent;
+				break;
+			case this.Properties.shrink:
+				return this.shrink;
+				break;
+			case this.Properties.angle:
+				return this.angle;
+				break;
+			case this.Properties.ver:
+				return this.ver;
+				break;
+			case this.Properties.wrap:
+				return this.wrap;
+				break;
 		}
-	},
-	setProperty : function(nType, value)
-	{
-		switch(nType)
-		{
-			case this.Properties.hor: this.hor = value;break;
-			case this.Properties.indent: this.indent = value;break;
-			case this.Properties.RelativeIndent: this.RelativeIndent = value;break;
-			case this.Properties.shrink: this.shrink = value;break;
-			case this.Properties.angle: this.angle = value;break;
-			case this.Properties.ver: this.ver = value;break;
-			case this.Properties.wrap: this.wrap = value;break;
+	};
+	Align.prototype.setProperty = function (nType, value) {
+		switch (nType) {
+			case this.Properties.hor:
+				this.hor = value;
+				break;
+			case this.Properties.indent:
+				this.indent = value;
+				break;
+			case this.Properties.RelativeIndent:
+				this.RelativeIndent = value;
+				break;
+			case this.Properties.shrink:
+				this.shrink = value;
+				break;
+			case this.Properties.angle:
+				this.angle = value;
+				break;
+			case this.Properties.ver:
+				this.ver = value;
+				break;
+			case this.Properties.wrap:
+				this.wrap = value;
+				break;
 		}
-	},
-	getAngle: function() {
+	};
+	Align.prototype.getAngle = function () {
 		var nRes = 0;
 		if (0 <= this.angle && this.angle <= 180) {
 			nRes = this.angle <= 90 ? this.angle : 90 - this.angle;
+		} else if (this.angle === AscCommonExcel.g_nVerticalTextAngle) {
+			nRes = this.angle;
 		}
 		return nRes;
-	},
-	setAngle: function(val) {
-		this.angle = AscCommonExcel.angleInterfaceToFormat(val);;
-	},
-	getWrap: function() {
+	};
+	Align.prototype.setAngle = function (val) {
+		this.angle = null !== val ? AscCommonExcel.angleInterfaceToFormat(val) : val;
+	};
+	Align.prototype.getWrap = function () {
 		// Для justify wrap всегда true
 		return (AscCommon.align_Justify === this.hor || Asc.c_oAscVAlign.Just === this.ver || Asc.c_oAscVAlign.Dist === this.ver) ? true : this.wrap;
-	},
-	setWrap: function(val) {
+	};
+	Align.prototype.setWrap = function (val) {
 		this.wrap = val;
-	},
-	getShrinkToFit: function() {
+	};
+	Align.prototype.getShrinkToFit = function () {
 		return this.shrink;
-	},
-	setShrinkToFit: function(val) {
+	};
+	Align.prototype.setShrinkToFit = function (val) {
 		this.shrink = val;
-	},
-	getAlignHorizontal: function() {
+	};
+	Align.prototype.getAlignHorizontal = function () {
 		return this.hor;
-	},
-	setAlignHorizontal: function(val) {
+	};
+	Align.prototype.setAlignHorizontal = function (val) {
 		this.hor = val;
-	},
-	getAlignVertical: function() {
+	};
+	Align.prototype.getAlignVertical = function () {
 		return this.ver;
-	},
-	setAlignVertical: function(val) {
+	};
+	Align.prototype.setAlignVertical = function (val) {
 		this.ver = val;
-	},
-	readAttributes : function(attr, uq) {
-	if(attr()){
-		var vals = attr();
-		var val;
-		val = vals["horizontal"];
-		if(undefined !== val){
-			val = FromXml_ST_HorizontalAlignment(val);
-			if(-1 !== val){
-				this.hor = val;
+	};
+	Align.prototype.readAttributes = function (attr, uq) {
+		if (attr()) {
+			var vals = attr();
+			var val;
+			val = vals["horizontal"];
+			if (undefined !== val) {
+				val = FromXml_ST_HorizontalAlignment(val);
+				if (-1 !== val) {
+					this.hor = val;
+				}
+			}
+			val = vals["vertical"];
+			if (undefined !== val) {
+				val = FromXml_ST_VerticalAlignment(val);
+				if (-1 !== val) {
+					this.ver = val;
+				}
+			}
+			val = vals["textRotation"];
+			if (undefined !== val) {
+				this.angle = val - 0;
+			}
+			val = vals["wrapText"];
+			if (undefined !== val) {
+				this.wrap = AscCommon.getBoolFromXml(val);
+			}
+			val = vals["indent"];
+			if (undefined !== val) {
+				this.indent = val - 0;
+			}
+			val = vals["relativeIndent"];
+			if (undefined !== val) {
+				this.RelativeIndent = val - 0;
+			}
+			val = vals["shrinkToFit"];
+			if (undefined !== val) {
+				this.shrink = AscCommon.getBoolFromXml(val);
 			}
 		}
-		val = vals["vertical"];
-		if(undefined !== val){
-			val = FromXml_ST_VerticalAlignment(val);
-			if(-1 !== val){
-				this.ver = val;
-			}
-		}
-		val = vals["textRotation"];
-		if(undefined !== val){
-			this.angle = val - 0;
-		}
-		val = vals["wrapText"];
-		if(undefined !== val){
-			this.wrap = AscCommon.getBoolFromXml(val);
-		}
-		val = vals["indent"];
-		if(undefined !== val){
-			this.indent = val - 0;
-		}
-		val = vals["relativeIndent"];
-		if(undefined !== val){
-			this.RelativeIndent = val - 0;
-		}
-		val = vals["shrinkToFit"];
-		if(undefined !== val){
-			this.shrink = AscCommon.getBoolFromXml(val);
-		}
-	}
-}
-};
+	};
+
 /** @constructor */
 function CCellStyles() {
 	this.CustomStyles = [];
@@ -3052,9 +3420,6 @@ CCellStyle.prototype.getFill = function () {
 
 	return g_oDefaultFormat.Fill;
 };
-CCellStyle.prototype.getFillColor = function () {
-	return this.getFill().bg();
-};
 CCellStyle.prototype.getFontColor = function () {
 	if (null != this.xfs && null != this.xfs.font)
 		return this.xfs.font.getColor();
@@ -3081,7 +3446,7 @@ function StyleManager(){
 }
 StyleManager.prototype =
 {
-	init: function(wb, firstXf, firstFont, firstFill, secondFill, firstBorder, normalXf) {
+	init: function(firstXf, firstFont, firstFill, secondFill, firstBorder, normalXf) {
 		g_StyleCache.firstXf = firstXf;
 		g_StyleCache.firstFont = firstFont;
 		g_StyleCache.firstFill = firstFill;
@@ -3089,15 +3454,15 @@ StyleManager.prototype =
 		g_StyleCache.firstBorder = firstBorder;
 		g_StyleCache.normalXf = normalXf;
 		if(null != firstXf.font)
-			g_oDefaultFormat.Font = firstXf.font;
+			g_oDefaultFormat.xfs.font = g_oDefaultFormat.Font = firstXf.font;
 		if(null != firstXf.fill)
-			g_oDefaultFormat.Fill = firstXf.fill.clone();
+			g_oDefaultFormat.xfs.fill = g_oDefaultFormat.Fill = firstXf.fill.clone();
 		if(null != firstXf.border)
-			g_oDefaultFormat.Border = firstXf.border.clone();
+			g_oDefaultFormat.xfs.border = g_oDefaultFormat.Border = firstXf.border.clone();
 		if(null != firstXf.num)
-			g_oDefaultFormat.Num = firstXf.num.clone();
+			g_oDefaultFormat.xfs.num = g_oDefaultFormat.Num = firstXf.num.clone();
 		if(null != firstXf.align)
-			g_oDefaultFormat.Align = firstXf.align.clone();
+			g_oDefaultFormat.xfs.align = g_oDefaultFormat.Align = firstXf.align.clone();
 		if (null !== firstXf.XfId) {
 			g_oDefaultFormat.XfId = firstXf.XfId;
 		}
@@ -3108,6 +3473,10 @@ StyleManager.prototype =
 	},
 	setNum : function(oItemWithXfs, val)
 	{
+		if (val && val.f) {
+			var numFormat = AscCommon.oNumFormatCache.get(val.f);
+			numFormat.checkCultureInfoFontPicker();
+		}
 		return this._setProperty(oItemWithXfs, val, "num", CellXfs.prototype.getNum, CellXfs.prototype.setNum, g_StyleCache.addNum);
 	},
 	setFont : function(oItemWithXfs, val)
@@ -3186,13 +3555,6 @@ StyleManager.prototype =
 		return this._setAlignProperty(oItemWithXfs, val, "angle", function(){
 			return AscCommonExcel.angleFormatToInterface2(this.angle);
 		}, Align.prototype.setAngle);
-    },
-	setVerticalText : function(oItemWithXfs, val)
-    {
-		if(true == val)
-			return this.setAngle(oItemWithXfs, AscCommonExcel.g_nVerticalTextAngle);
-		else
-			return this.setAngle(oItemWithXfs, 0);
     },
 	_initXf: function(oItemWithXfs){
 		var xfs = oItemWithXfs.xfs;
@@ -3524,29 +3886,30 @@ StyleManager.prototype =
 		}
 		return borderIndex;
 	};
-var g_oHyperlinkProperties = {
+
+	var g_oHyperlinkProperties = {
 		Ref: 0,
 		Location: 1,
 		Hyperlink: 2,
 		Tooltip: 3
 	};
-/** @constructor */
-function Hyperlink () {
-	this.Properties = g_oHyperlinkProperties;
-    this.Ref = null;
-    this.Hyperlink = null;
-    this.Tooltip = null;
-	// Составные части Location
-	this.Location = null;
-	this.LocationSheet = null;
-	this.LocationRange = null;
-	this.LocationRangeBbox = null;
-	this.bUpdateLocation = false;
-	
-	this.bVisited = false;
-}
-Hyperlink.prototype = {
-	clone : function (oNewWs) {
+	/** @constructor */
+	function Hyperlink() {
+		this.Properties = g_oHyperlinkProperties;
+		this.Ref = null;
+		this.Hyperlink = null;
+		this.Tooltip = null;
+		// Составные части Location
+		this.Location = null;
+		this.LocationSheet = null;
+		this.LocationRange = null;
+		this.LocationRangeBbox = null;
+		this.bUpdateLocation = false;
+
+		this.bVisited = false;
+	}
+
+	Hyperlink.prototype.clone = function (oNewWs) {
 		var oNewHyp = new Hyperlink();
 		if (null !== this.Ref)
 			oNewHyp.Ref = this.Ref.clone(oNewWs);
@@ -3565,8 +3928,8 @@ Hyperlink.prototype = {
 		if (null !== this.bVisited)
 			oNewHyp.bVisited = this.bVisited;
 		return oNewHyp;
-	},
-	isEqual : function (obj) {
+	};
+	Hyperlink.prototype.isEqual = function (obj) {
 		var bRes = (this.getLocation() == obj.getLocation() && this.Hyperlink == obj.Hyperlink && this.Tooltip == obj.Tooltip);
 		if (bRes) {
 			var oBBoxRef = this.Ref.getBBox0();
@@ -3574,48 +3937,52 @@ Hyperlink.prototype = {
 			bRes = (oBBoxRef.r1 == oBBoxObj.r1 && oBBoxRef.c1 == oBBoxObj.c1 && oBBoxRef.r2 == oBBoxObj.r2 && oBBoxRef.c2 == oBBoxObj.c2);
 		}
 		return bRes;
-	},
-	isValid : function () {
+	};
+	Hyperlink.prototype.isValid = function () {
 		return null != this.Ref && (null != this.getLocation() || null != this.Hyperlink);
-	},
-	setLocationSheet : function (LocationSheet) {
+	};
+	Hyperlink.prototype.setLocationSheet = function (LocationSheet) {
 		this.LocationSheet = LocationSheet;
 		this.bUpdateLocation = true;
-	},
-	setLocationRange : function (LocationRange) {
+	};
+	Hyperlink.prototype.setLocationRange = function (LocationRange) {
 		this.LocationRange = LocationRange;
 		this.LocationRangeBbox = null;
 		this.bUpdateLocation = true;
-	},
-	setLocation : function (Location) {
+	};
+	Hyperlink.prototype.setLocation = function (Location) {
 		this.bUpdateLocation = true;
 		this.LocationSheet = this.LocationRange = this.LocationRangeBbox = null;
 
 		if (null !== Location) {
-			var result = parserHelp.parse3DRef(Location);
-			if (!result) {
-				// Can be in all mods. Excel bug...
-				AscCommonExcel.executeInR1C1Mode(!AscCommonExcel.g_R1C1Mode, function () {
-					result = parserHelp.parse3DRef(Location);
-				});
-			}
-			if (null !== result) {
-				this.LocationSheet = result.sheet;
-				this.LocationRange = result.range;
+			if (parserHelp.isName3D(Location, 0) || parserHelp.isName(Location, 0)) {
+				this.LocationRange = Location;
+			} else {
+				var result = parserHelp.parse3DRef(Location);
+				if (!result) {
+					// Can be in all mods. Excel bug...
+					AscCommonExcel.executeInR1C1Mode(!AscCommonExcel.g_R1C1Mode, function () {
+						result = parserHelp.parse3DRef(Location);
+					});
+				}
+				if (null !== result) {
+					this.LocationSheet = result.sheet;
+					this.LocationRange = result.range;
+				}
 			}
 		}
 		this._updateLocation();
-	},
-	getLocation : function () {
+	};
+	Hyperlink.prototype.getLocation = function () {
 		if (this.bUpdateLocation)
 			this._updateLocation();
 		return this.Location;
-	},
-	getLocationRange : function () {
+	};
+	Hyperlink.prototype.getLocationRange = function () {
 		return this.LocationRangeBbox && this.LocationRangeBbox.getName(AscCommonExcel.g_R1C1Mode ?
 			AscCommonExcel.referenceType.A : AscCommonExcel.referenceType.R);
-	},
-	_updateLocation : function () {
+	};
+	Hyperlink.prototype._updateLocation = function () {
 		var t = this;
 		this.Location = null;
 		this.bUpdateLocation = false;
@@ -3633,32 +4000,34 @@ Hyperlink.prototype = {
 				});
 				this.Location = parserHelp.get3DRef(this.LocationSheet, this.LocationRange);
 			}
+		} else if (null !== this.LocationRange) {
+			this.Location = this.LocationRange;
 		}
-	},
-	setVisited : function (bVisited) {
+	};
+	Hyperlink.prototype.setVisited = function (bVisited) {
 		this.bVisited = bVisited;
-	},
-	getVisited : function () {
+	};
+	Hyperlink.prototype.getVisited = function () {
 		return this.bVisited;
-	},
-	getHyperlinkType : function () {
+	};
+	Hyperlink.prototype.getHyperlinkType = function () {
 		return null !== this.Hyperlink ? Asc.c_oAscHyperlinkType.WebLink : Asc.c_oAscHyperlinkType.RangeLink;
-	},
-	getType : function () {
+	};
+	Hyperlink.prototype.getType = function () {
 		return UndoRedoDataTypes.Hyperlink;
-	},
-	getProperties : function () {
+	};
+	Hyperlink.prototype.getProperties = function () {
 		return this.Properties;
-	},
-	getProperty : function (nType) {
+	};
+	Hyperlink.prototype.getProperty = function (nType) {
 		switch (nType) {
-			case this.Properties.Ref: return parserHelp.get3DRef(this.Ref.worksheet.getName(), this.Ref.getName()); break;
-			case this.Properties.Location: return this.getLocation();break;
-			case this.Properties.Hyperlink: return this.Hyperlink;break;
-			case this.Properties.Tooltip: return this.Tooltip;break;
+			case this.Properties.Ref: return parserHelp.get3DRef(this.Ref.worksheet.getName(), this.Ref.getName());
+			case this.Properties.Location: return this.getLocation();
+			case this.Properties.Hyperlink: return this.Hyperlink;
+			case this.Properties.Tooltip: return this.Tooltip;
 		}
-	},
-	setProperty : function (nType, value) {
+	};
+	Hyperlink.prototype.setProperty = function (nType, value) {
 		switch (nType) {
 			case this.Properties.Ref:
 				//todo обработать нули
@@ -3669,13 +4038,13 @@ Hyperlink.prototype = {
 					if (ws)
 						this.Ref = ws.getRange2(oRefParsed.range);
 				}
-			break;
+				break;
 			case this.Properties.Location: this.setLocation(value);break;
 			case this.Properties.Hyperlink: this.Hyperlink = value;break;
 			case this.Properties.Tooltip: this.Tooltip = value;break;
 		}
-	},
-	applyCollaborative : function (nSheetId, collaborativeEditing) {
+	};
+	Hyperlink.prototype.applyCollaborative = function (nSheetId, collaborativeEditing) {
 		var bbox = this.Ref.getBBox0();
 		var OffsetFirst = new AscCommon.CellBase(0, 0);
 		var OffsetLast = new AscCommon.CellBase(0, 0);
@@ -3685,8 +4054,8 @@ Hyperlink.prototype = {
 		OffsetLast.col = collaborativeEditing.getLockMeColumn2(nSheetId, bbox.c2) - bbox.c2;
 		this.Ref.setOffsetFirst(OffsetFirst);
 		this.Ref.setOffsetLast(OffsetLast);
-	}
-};
+	};
+
 	/** @constructor */
 	function SheetFormatPr() {
 		this.nBaseColWidth = null;
@@ -4002,13 +4371,6 @@ Hyperlink.prototype = {
 	};
 	Col.prototype.setAngle = function (val) {
 		var oRes = this.ws.workbook.oStyleManager.setAngle(this, val);
-		if (History.Is_On() && oRes.oldVal != oRes.newVal) {
-			History.Add(AscCommonExcel.g_oUndoRedoCol, AscCH.historyitem_RowCol_Angle, this.ws.getId(),
-				this._getUpdateRange(), new UndoRedoData_IndexSimpleProp(this.index, false, oRes.oldVal, oRes.newVal));
-		}
-	};
-	Col.prototype.setVerticalText = function (val) {
-		var oRes = this.ws.workbook.oStyleManager.setVerticalText(this, val);
 		if (History.Is_On() && oRes.oldVal != oRes.newVal) {
 			History.Add(AscCommonExcel.g_oUndoRedoCol, AscCH.historyitem_RowCol_Angle, this.ws.getId(),
 				this._getUpdateRange(), new UndoRedoData_IndexSimpleProp(this.index, false, oRes.oldVal, oRes.newVal));
@@ -4391,13 +4753,6 @@ Hyperlink.prototype = {
 				this._getUpdateRange(), new UndoRedoData_IndexSimpleProp(this.index, true, oRes.oldVal, oRes.newVal));
 		}
 	};
-	Row.prototype.setVerticalText = function (val) {
-		var oRes = this.ws.workbook.oStyleManager.setVerticalText(this, val);
-		if (History.Is_On() && oRes.oldVal != oRes.newVal) {
-			History.Add(AscCommonExcel.g_oUndoRedoRow, AscCH.historyitem_RowCol_Angle, this.ws.getId(),
-				this._getUpdateRange(), new UndoRedoData_IndexSimpleProp(this.index, true, oRes.oldVal, oRes.newVal));
-		}
-	};
 	Row.prototype.setHidden = function (val) {
 		if (this.index >= 0 && (!this.getHidden() !== !val)) {
 			this.ws.hiddenManager.addHidden(true, this.index);
@@ -4565,6 +4920,24 @@ Hyperlink.prototype = {
 		}
 		return sRes;
 	}
+	function getStringFromMultiTextSkipToSpace(multiText) {
+		var sRes = "";
+		if (multiText) {
+			for (var i = 0, length = multiText.length; i < length; ++i) {
+				var elem = multiText[i];
+				if (null != elem.text) {
+					if(elem.format && elem.format.getSkip()) {
+						sRes += " ";
+					} else if(!(elem.format && elem.format.getRepeat())) {
+						sRes += elem.text;
+					} else {
+						var j = 0;
+					}
+				}
+			}
+		}
+		return sRes;
+	}
 	function isEqualMultiText(multiText1, multiText2) {
 		var sRes = "";
 		if (multiText1 && multiText2) {
@@ -4688,6 +5061,10 @@ CCellValue.prototype =
 
 		return false;
 	},
+	isEqualCell : function(cell)
+	{
+		return this.isEqual(cell);
+	},
 	getType : function()
 	{
 		return UndoRedoDataTypes.CellValue;
@@ -4715,6 +5092,25 @@ CCellValue.prototype =
 			case this.Properties.number: this.number = value;break;
 			case this.Properties.type: this.type = value;break;
 		}
+	},
+	getTextValue : function(num)
+	{
+		var multiText = this.multiText;
+		var numFormat = AscCommon.oNumFormatCache.get(num && num.getFormat() || "General");
+		if (null !== this.text) {
+			multiText = numFormat.format(this.text, this.type, AscCommon.gc_nMaxDigCount, false);
+		} else if (null !== this.number) {
+			if (CellValueType.Bool === this.type) {
+				//todo Local
+				multiText = [{text: ((this.number == 1) ? AscCommon.cBoolLocal.t : AscCommon.cBoolLocal.f)}];
+			} else {
+				multiText = numFormat.format(this.number, this.type, AscCommon.gc_nMaxDigCount, false);
+			}
+		}
+		if (null !== multiText) {
+			return AscCommonExcel.getStringFromMultiTextSkipToSpace(multiText)
+		}
+		return "";
 	}
 };
 
@@ -5187,8 +5583,7 @@ function RangeDataManagerElem(bbox, data)
 				--i;
 			}
 		}
-		var bRemove = (0 === this.arrSparklines.length);
-		return bRemove;
+		return (0 === this.arrSparklines.length);
 	};
 	sparklineGroup.prototype.getLocationRanges = function (onlySingle) {
 		var result = new AscCommonExcel.SelectionRange();
@@ -5275,28 +5670,28 @@ function RangeDataManagerElem(bbox, data)
 		return this.manualMin;
 	};
 	sparklineGroup.prototype.asc_getColorSeries = function () {
-		return this.colorSeries ? Asc.colorObjToAscColor(this.colorSeries) : this.colorSeries;
+		return Asc.colorObjToAscColor(this.colorSeries);
 	};
 	sparklineGroup.prototype.asc_getColorNegative = function () {
-		return this.colorNegative ? Asc.colorObjToAscColor(this.colorNegative) : this.colorNegative;
+		return Asc.colorObjToAscColor(this.colorNegative);
 	};
 	sparklineGroup.prototype.asc_getColorAxis = function () {
-		return this.colorAxis ? Asc.colorObjToAscColor(this.colorAxis) : this.colorAxis;
+		return Asc.colorObjToAscColor(this.colorAxis);
 	};
 	sparklineGroup.prototype.asc_getColorMarkers = function () {
-		return this.colorMarkers ? Asc.colorObjToAscColor(this.colorMarkers) : this.colorMarkers;
+		return Asc.colorObjToAscColor(this.colorMarkers);
 	};
 	sparklineGroup.prototype.asc_getColorFirst = function () {
-		return this.colorFirst ? Asc.colorObjToAscColor(this.colorFirst) : this.colorFirst;
+		return Asc.colorObjToAscColor(this.colorFirst);
 	};
 	sparklineGroup.prototype.asc_getColorLast = function () {
-		return this.colorLast ? Asc.colorObjToAscColor(this.colorLast) : this.colorLast;
+		return Asc.colorObjToAscColor(this.colorLast);
 	};
 	sparklineGroup.prototype.asc_getColorHigh = function () {
-		return this.colorHigh ? Asc.colorObjToAscColor(this.colorHigh) : this.colorHigh;
+		return Asc.colorObjToAscColor(this.colorHigh);
 	};
 	sparklineGroup.prototype.asc_getColorLow = function () {
-		return this.colorLow ? Asc.colorObjToAscColor(this.colorLow) : this.colorLow;
+		return Asc.colorObjToAscColor(this.colorLow);
 	};
 	sparklineGroup.prototype.asc_getDataRanges = function () {
 		var arrResultData = [];
@@ -5739,6 +6134,11 @@ function RangeDataManagerElem(bbox, data)
 				this.buildDependencies();
 			}
 		}
+		var wb = autoFilters.worksheet.workbook;
+		if (this.isTotalsRow() && this.Ref.r2 !== range.r2 && !wb.bUndoChanges && !wb.bRedoChanges) {
+			var rangeTotal = autoFilters.worksheet.getRange3(this.Ref.r2, this.Ref.c1, this.Ref.r2, this.Ref.c2);
+			rangeTotal.cleanText()
+		}
 		this.Ref = new Asc.Range(range.c1, range.r1, range.c2, range.r2);
 		//event
 		this.handlers.trigger("changeRefTablePart", this);
@@ -5959,6 +6359,22 @@ function RangeDataManagerElem(bbox, data)
 		return res;
 	};
 
+	TablePart.prototype.getTableRangeColumnByName = function (name) {
+		var res = null;
+		if (name === null || name === undefined || !this.TableColumns) {
+			return res;
+		}
+
+		for (var i = 0; i < this.TableColumns.length; i++) {
+			if (name.toLowerCase() === this.TableColumns[i].Name.toLowerCase()) {
+				res = new Asc.Range(this.Ref.c1 + i, this.Ref.r1, this.Ref.c1 + i, this.Ref.r2);
+				break;
+			}
+		}
+
+		return res;
+	};
+
 	TablePart.prototype.getTableNameColumnByIndex = function (index) {
 		var res = null;
 		if (index === null || index === undefined || !this.TableColumns) {
@@ -6109,6 +6525,14 @@ function RangeDataManagerElem(bbox, data)
 		}
 	};
 
+	TablePart.prototype.getColIdByName = function(name) {
+		for (var i = 0; i < this.TableColumns.length; i++) {
+			if (name === this.TableColumns[i].Name) {
+				return i;
+			}
+		}
+		return null;
+	};
 
 	/** @constructor */
 	function AutoFilter() {
@@ -6153,6 +6577,18 @@ function RangeDataManagerElem(bbox, data)
 		this.FilterColumns.push(oNewElem);
 
 		return oNewElem;
+	};
+	AutoFilter.prototype.setStringRef = function (ref) {
+		//TODO пересмотреть проверку
+		//возможно здесь 3d ref - проверяем
+		if(-1 !== ref.indexOf("!"))
+		{
+			var is3DRef = AscCommon.parserHelp.parse3DRef(ref);
+			if(is3DRef){
+				ref = is3DRef.range;
+			}
+		}
+		this.Ref = AscCommonExcel.g_oRangeCache.getAscRange(ref);
 	};
 	AutoFilter.prototype.moveRef = function (col, row) {
 		var ref = this.Ref.clone();
@@ -6361,7 +6797,7 @@ function RangeDataManagerElem(bbox, data)
 				var colId = filterColumns[j].ColId;
 				if (colId !== cellId) {
 					var cell = worksheet.getCell3(row, colId + col);
-					var isDateTimeFormat = cell.getNumFormat().isDateTimeFormat() && cell.getType() === window["AscCommon"].CellValueType.Number;
+					var isDateTimeFormat = cell.getType() === window["AscCommon"].CellValueType.Number && cell.getNumFormat().isDateTimeFormat();
 
 					var isNumberFilter = filterColumns[j].isApplyCustomFilter();
 					var val = (isDateTimeFormat || isNumberFilter) ? cell.getValueWithoutFormat() : cell.getValueWithFormat();
@@ -6401,7 +6837,7 @@ function RangeDataManagerElem(bbox, data)
 			} else {
 				if (!isHidden) {
 					var cell = worksheet.getCell3(i, colId + this.Ref.c1);
-					var isDateTimeFormat = cell.getNumFormat().isDateTimeFormat() && cell.getType() === window["AscCommon"].CellValueType.Number;
+					var isDateTimeFormat = cell.getType() === window["AscCommon"].CellValueType.Number && cell.getNumFormat().isDateTimeFormat();
 					var isNumberFilter = false;
 					if (newFilterColumn.CustomFiltersObj || newFilterColumn.Top10 || newFilterColumn.DynamicFilter) {
 						isNumberFilter = true;
@@ -6452,6 +6888,49 @@ function RangeDataManagerElem(bbox, data)
 		this.SortState = new AscCommonExcel.SortState();
 		this.SortState.SortConditions = [];
 		this.SortState.SortConditions[0] = new AscCommonExcel.SortCondition();
+	};
+
+	AutoFilter.prototype.readAttributes = function(attr, uq) {
+		if (attr()) {
+			var vals = attr();
+			var val;
+			val = vals["ref"];
+			if (undefined !== val) {
+				this.setStringRef(AscCommon.unleakString(uq(val)));
+			}
+		}
+	};
+	AutoFilter.prototype.onStartNode = function(elem, attr, uq) {
+		var newContext = this;
+		if ("filterColumn" === elem) {
+			if (!this.FilterColumns) {
+				this.FilterColumns = [];
+			}
+			newContext = new FilterColumn();
+			if (newContext.readAttributes) {
+				newContext.readAttributes(attr, uq);
+			}
+			this.FilterColumns.push(newContext);
+		} else if ("sortState" === elem) {
+		//todo
+			newContext = null;
+		} else {
+			newContext = null;
+		}
+		return newContext;
+	};
+	AutoFilter.prototype.toXml = function(writer, name) {
+		writer.WriteXmlNodeStart(name);
+		if (null !== this.Ref) {
+			writer.WriteXmlAttributeStringEncode("ref", this.Ref.getName());
+		}
+		writer.WriteXmlNodeEnd(name, true);
+		for (var i = 0; i < this.FilterColumns.length; ++i) {
+			var elem = this.FilterColumns[i];
+			elem.toXml(writer, "filterColumn");
+		}
+		//todo sortState
+		writer.WriteXmlNodeEnd(name);
 	};
 
 	function FilterColumns() {
@@ -6642,6 +7121,11 @@ function RangeDataManagerElem(bbox, data)
 					nTemp2 = range.c2 - range.c1 + 1;
 					to.setOffsetLast(new AscCommon.CellBase(0, -Math.min(nTemp1, nTemp2)));
 				}
+			} else if(range.c1 <= from.c1 && range.c2 >= from.c1 && range.c2 <= from.c2 && range.r1 <= from.r1 && from.r2 <= range.r2 && !bAdd) {
+				to = from.clone();
+				nTemp1 = range.c2 - from.c1 + 1;
+				nTemp2 = range.c2 - range.c1 + 1;
+				to.setOffsetFirst(new AscCommon.CellBase(0, Math.min(nTemp1, nTemp2)));
 			}
 		} else {
 			if (from.r1 < range.r1 && range.c1 <= from.c1 && from.c2 <= range.c2) {
@@ -6654,6 +7138,11 @@ function RangeDataManagerElem(bbox, data)
 					nTemp2 = range.r2 - range.r1 + 1;
 					to.setOffsetLast(new AscCommon.CellBase(-Math.min(nTemp1, nTemp2), 0));
 				}
+			} else if(range.r1 <= from.r1 && range.r2 >= from.r1 && range.r2 <= from.r2 && range.c1 <= from.c1 && from.c2 <= range.c2 && !bAdd) {
+				to = from.clone();
+				nTemp1 = range.r2 - from.r1 + 1;
+				nTemp2 = range.r2 - range.r1 + 1;
+				to.setOffsetFirst(new AscCommon.CellBase(Math.min(nTemp1, nTemp2), 0));
 			}
 		}
 
@@ -6791,17 +7280,25 @@ function RangeDataManagerElem(bbox, data)
 		}
 	};
 
-	TableColumn.prototype.getTotalRowFormula = function (tablePart) {
+	TableColumn.prototype.getTotalRowFormula = function (tablePart, bLocale) {
+		var t = this;
 		var res = null;
-
+		var funcNum;
 		if (null !== this.TotalsRowFunction) {
+			var generateFunction = function (val) {
+				var _name = "SUBTOTAL";
+				var _f = bLocale && AscCommonExcel.cFormulaFunctionToLocale ? AscCommonExcel.cFormulaFunctionToLocale[_name] : _name;
+				var _separator = AscCommon.FormulaSeparators.functionArgumentSeparator;
+				return _f + "(" + val + _separator + tablePart.DisplayName + "[" + t.Name + "])";
+			};
+
 			switch (this.TotalsRowFunction) {
 				case Asc.ETotalsRowFunction.totalrowfunctionAverage: {
-					res = "SUBTOTAL(101," + tablePart.DisplayName + "[" + this.Name + "])";
+					res = generateFunction(101);
 					break;
 				}
 				case Asc.ETotalsRowFunction.totalrowfunctionCount: {
-					res = "SUBTOTAL(103," + tablePart.DisplayName + "[" + this.Name + "])";
+					res = generateFunction(103);
 					break;
 				}
 				case Asc.ETotalsRowFunction.totalrowfunctionCountNums: {
@@ -6812,26 +7309,26 @@ function RangeDataManagerElem(bbox, data)
 					break;
 				}
 				case Asc.ETotalsRowFunction.totalrowfunctionMax: {
-					res = "SUBTOTAL(104," + tablePart.DisplayName + "[" + this.Name + "])";
+					res = generateFunction(104);
 					break;
 				}
 				case Asc.ETotalsRowFunction.totalrowfunctionMin: {
-					res = "SUBTOTAL(105," + tablePart.DisplayName + "[" + this.Name + "])";
+					res = generateFunction(105);
 					break;
 				}
 				case Asc.ETotalsRowFunction.totalrowfunctionNone: {
 					break;
 				}
 				case Asc.ETotalsRowFunction.totalrowfunctionStdDev: {
-					res = "SUBTOTAL(107," + tablePart.DisplayName + "[" + this.Name + "])";
+					res = generateFunction(107);
 					break;
 				}
 				case Asc.ETotalsRowFunction.totalrowfunctionSum: {
-					res = "SUBTOTAL(109," + tablePart.DisplayName + "[" + this.Name + "])";
+					res = generateFunction(109);
 					break;
 				}
 				case Asc.ETotalsRowFunction.totalrowfunctionVar: {
-					res = "SUBTOTAL(110," + tablePart.DisplayName + "[" + this.Name + "])";
+					res = generateFunction(110);
 					break;
 				}
 			}
@@ -6878,7 +7375,7 @@ function RangeDataManagerElem(bbox, data)
 	TableColumn.prototype.checkTotalRowFormula = function (ws, tablePart) {
 		if (null !== this.TotalsRowFunction &&
 			Asc.ETotalsRowFunction.totalrowfunctionCustom !== this.TotalsRowFunction) {
-			var totalRowFormula = this.getTotalRowFormula(tablePart);
+			var totalRowFormula = this.getTotalRowFormula(tablePart, true);
 
 			if (null !== totalRowFormula) {
 				this.applyTotalRowFormula(totalRowFormula, ws, true);
@@ -6973,13 +7470,13 @@ function RangeDataManagerElem(bbox, data)
 		res.ShowButton = this.ShowButton;
 		return res;
 	};
-	FilterColumn.prototype.isHideValue = function (val, isDateTimeFormat, top10Length, cell) {
+	FilterColumn.prototype.isHideValue = function (val, isDateTimeFormat, top10Length, cell, isLabelFilter) {
 		var res = false;
 		if (this.Filters) {
 			this.Filters._initLowerCaseValues();
 			res = this.Filters.isHideValue(val.toLowerCase(), isDateTimeFormat);
 		} else if (this.CustomFiltersObj) {
-			res = this.CustomFiltersObj.isHideValue(val);
+			res = this.CustomFiltersObj.isHideValue(val, isLabelFilter);
 		} else if (this.Top10) {
 			res = this.Top10.isHideValue(val, top10Length);
 		} else if (this.ColorFilter) {
@@ -7072,6 +7569,17 @@ function RangeDataManagerElem(bbox, data)
 		}
 
 	};
+	FilterColumn.prototype.hasInitByArray = function ()
+	{
+		return null !== this.Top10;
+	};
+	FilterColumn.prototype.initByArray = function (arr, isSum) {
+
+		if (null !== this.Top10) {
+			this.Top10.initByArray(arr, isSum);
+		}
+
+	};
 
 	FilterColumn.prototype.isApplyCustomFilter = function () {
 		var res = false;
@@ -7107,7 +7615,112 @@ function RangeDataManagerElem(bbox, data)
 
 		return false;
 	};
+	FilterColumn.prototype.readAttributes = function(attr, uq) {
+		if (attr()) {
+			var vals = attr();
+			var val;
+			val = vals["colId"];
+			if (undefined !== val) {
+				this.ColId = val - 0;
+			}
+			val = vals["hiddenButton"];
+			if (undefined !== val) {
+				this.ShowButton = !AscCommon.getBoolFromXml(val);
+			}
+			val = vals["showButton"];
+			if (undefined !== val) {
+				this.ShowButton = AscCommon.getBoolFromXml(val);
+			}
+		}
+	};
+	FilterColumn.prototype.onStartNode = function(elem, attr, uq) {
+		var newContext = this;
+		if ("colorFilter" === elem) {
+			newContext = new ColorFilter();
+			if (newContext.readAttributes) {
+				newContext.readAttributes(attr, uq);
+			}
+			this.ColorFilter = newContext;
+		} else if ("customFilters" === elem) {
+			newContext = new CustomFilters();
+			if (newContext.readAttributes) {
+				newContext.readAttributes(attr, uq);
+			}
+			this.CustomFiltersObj = newContext;
+		} else if ("dynamicFilter" === elem) {
+			newContext = new DynamicFilter();
+			if (newContext.readAttributes) {
+				newContext.readAttributes(attr, uq);
+			}
+			this.DynamicFilter = newContext;
+		} else if ("filters" === elem) {
+			newContext = new Filters();
+			if (newContext.readAttributes) {
+				newContext.readAttributes(attr, uq);
+			}
+			this.Filters = newContext;
+		} else if ("iconFilter" === elem) {
+			//todo iconFilter
+			newContext = null;
+		} else if ("top10" === elem) {
+			newContext = new Top10();
+			if (newContext.readAttributes) {
+				newContext.readAttributes(attr, uq);
+			}
+			this.Top10 = newContext;
+		} else {
+			newContext = null;
+		}
+		return newContext;
+	};
+	FilterColumn.prototype.toXml = function(writer, name) {
+		writer.WriteXmlNodeStart(name);
+		if (null !== this.colId) {
+			writer.WriteXmlAttributeNumber("colId", this.ColId);
+		}
+		if (true !== this.ShowButton) {
+			writer.WriteXmlAttributeBool("showButton", this.ShowButton);
+		}
+		writer.WriteXmlNodeEnd(name, true);
+		if (null !== this.ColorFilter) {
+			this.ColorFilter.toXml(writer, "colorFilter");
+		}
+		if (null !== this.CustomFiltersObj) {
+			this.CustomFiltersObj.toXml(writer, "customFilters");
+		}
+		if (null !== this.DynamicFilter) {
+			this.DynamicFilter.toXml(writer, "dynamicFilter");
+		}
+		if (null !== this.Filters) {
+			this.Filters.toXml(writer, "filters");
+		}
+		if (null !== this.Top10) {
+			this.Top10.toXml(writer, "top10");
+		}
+		writer.WriteXmlNodeEnd(name);
+	};
 
+	function CT_Filter() {
+		//Attributes
+		this.Val = null;
+	}
+	CT_Filter.prototype.readAttributes = function(attr, uq) {
+		if (attr()) {
+			var vals = attr();
+			var val;
+			val = vals["val"];
+			if (undefined !== val) {
+				this.Val = AscCommon.unleakString(uq(val));
+			}
+		}
+	};
+	CT_Filter.prototype.toXml = function(writer, name) {
+		writer.WriteXmlNodeStart(name);
+		if (null !== this.Val) {
+			writer.WriteXmlAttributeStringEncode("val", this.Val);
+		}
+		writer.WriteXmlNodeEnd(name, true, true);
+	};
 
 	/** @constructor */
 	function Filters() {
@@ -7157,7 +7770,7 @@ function RangeDataManagerElem(bbox, data)
 				allFilterOpenElements = false;
 			}
 		}
-		this._sortDate();
+		this.sortDate();
 		this._initLowerCaseValues();
 
 		return allFilterOpenElements;
@@ -7223,7 +7836,7 @@ function RangeDataManagerElem(bbox, data)
 			}
 		}
 	};
-	Filters.prototype._sortDate = function () {
+	Filters.prototype.sortDate = function () {
 		if (this.Dates && this.Dates.length) {
 			this.Dates.sort(function sortArr(a, b) {
 				return a.start - b.start;
@@ -7235,6 +7848,58 @@ function RangeDataManagerElem(bbox, data)
 		this.Values = {};
 		this.Dates = [];
 		this.Blank = null;
+	};
+	Filters.prototype.readAttributes = function(attr, uq) {
+		if (attr()) {
+			var vals = attr();
+			var val;
+			val = vals["blank"];
+			if (undefined !== val) {
+				this.Blank = AscCommon.getBoolFromXml(val);
+			}
+			//todo calendarType
+		}
+	};
+	Filters.prototype.onStartNode = function(elem, attr, uq) {
+		var newContext = this;
+		if ("filter" === elem) {
+			newContext = new CT_Filter();
+			if (newContext.readAttributes) {
+				newContext.readAttributes(attr, uq);
+			}
+			if(null != newContext.Val)
+				this.Values[newContext.Val] = 1;
+		} else if ("dateGroupItem" === elem) {
+			newContext = new DateGroupItem();
+			if (newContext.readAttributes) {
+				newContext.readAttributes(attr, uq);
+			}
+			var autoFilterDateElem = new AscCommonExcel.AutoFilterDateElem();
+			autoFilterDateElem.convertDateGroupItemToRange(newContext);
+			this.Dates.push(autoFilterDateElem);
+		} else {
+			newContext = null;
+		}
+		return newContext;
+	};
+	Filters.prototype.toXml = function(writer, name) {
+		writer.WriteXmlNodeStart(name);
+		if (null !== this.Blank) {
+			writer.WriteXmlAttributeBool("blank", this.Blank);
+		}
+		writer.WriteXmlNodeEnd(name, true);
+		for (var val in this.Values) {
+			var filter = new CT_Filter();
+			filter.Val = val;
+			filter.toXml(writer, "filter");
+		}
+		for (var i = 0; i < this.Dates.length; ++i) {
+			var elem = this.Dates[i];
+			var dateGroupItem = new AscCommonExcel.DateGroupItem();
+			dateGroupItem.convertRangeToDateGroupItem(elem);
+			dateGroupItem.toXml(writer, "dateGroupItem");
+		}
+		writer.WriteXmlNodeEnd(name);
 	};
 	
 /** @constructor */
@@ -7322,7 +7987,68 @@ DateGroupItem.prototype.convertRangeToDateGroupItem = function(range) {
 		}
 	}
 };
-
+DateGroupItem.prototype.readAttributes = function(attr, uq) {
+	if (attr()) {
+		var vals = attr();
+		var val;
+		val = vals["year"];
+		if (undefined !== val) {
+			this.Year = val - 0;
+		}
+		val = vals["month"];
+		if (undefined !== val) {
+			this.Month = val - 0;
+		}
+		val = vals["day"];
+		if (undefined !== val) {
+			this.Day = val - 0;
+		}
+		val = vals["hour"];
+		if (undefined !== val) {
+			this.Hour = val - 0;
+		}
+		val = vals["minute"];
+		if (undefined !== val) {
+			this.Minute = val - 0;
+		}
+		val = vals["second"];
+		if (undefined !== val) {
+			this.Second = val - 0;
+		}
+		val = vals["dateTimeGrouping"];
+		if (undefined !== val) {
+			val = FromXml_ST_DateTimeGrouping(val);
+			if (-1 !== val) {
+				this.DateTimeGrouping = val;
+			}
+		}
+	}
+};
+DateGroupItem.prototype.toXml = function(writer, name) {
+	writer.WriteXmlNodeStart(name);
+	if (null !== this.Year) {
+		writer.WriteXmlAttributeNumber("year", this.Year);
+	}
+	if (null !== this.Month) {
+		writer.WriteXmlAttributeNumber("month", this.Month);
+	}
+	if (null !== this.Day) {
+		writer.WriteXmlAttributeNumber("day", this.Day);
+	}
+	if (null !== this.Hour) {
+		writer.WriteXmlAttributeNumber("hour", this.Hour);
+	}
+	if (null !== this.Minute) {
+		writer.WriteXmlAttributeNumber("minute", this.Minute);
+	}
+	if (null !== this.Second) {
+		writer.WriteXmlAttributeNumber("second", this.Second);
+	}
+	if (null !== this.DateTimeGrouping) {
+		writer.WriteXmlAttributeStringEncode("dateTimeGrouping", ToXml_ST_DateTimeGrouping(this.DateTimeGrouping));
+	}
+	writer.WriteXmlNodeEnd(name, true, true);
+};
 
 var g_oCustomFilters = {
 	And	 : 0,
@@ -7332,7 +8058,7 @@ var g_oCustomFilters = {
 function CustomFilters() {
 	this.Properties = g_oCustomFilters;
 	
-	this.And = null;
+	this.And = false;
 	this.CustomFilters = null;
 }
 CustomFilters.prototype.getType = function() {
@@ -7374,11 +8100,11 @@ CustomFilters.prototype.init = function(obj) {
 	if(obj.filter2 != undefined)
 		this.CustomFilters[1] = new CustomFilter(obj.filter2, obj.valFilter2);
 };
-CustomFilters.prototype.isHideValue = function(val){
+CustomFilters.prototype.isHideValue = function(val, isLabelFilter){
 	
 	var res = false;
-	var filterRes1 = this.CustomFilters[0] ? this.CustomFilters[0].isHideValue(val) : null;
-	var filterRes2 = this.CustomFilters[1] ? this.CustomFilters[1].isHideValue(val) : null;
+	var filterRes1 = this.CustomFilters[0] ? this.CustomFilters[0].isHideValue(val, isLabelFilter) : null;
+	var filterRes2 = this.CustomFilters[1] ? this.CustomFilters[1].isHideValue(val, isLabelFilter) : null;
 	
 	if(!this.And && ((filterRes1 === null && filterRes2 === true || filterRes1 === true && filterRes2 === null || filterRes1 === true && filterRes2 === true)))
 		res = true;
@@ -7408,6 +8134,46 @@ CustomFilters.prototype._generateEmptyValueFilter = function() {
 	customFilter._generateEmptyValueFilter();
 	this.CustomFilters.push(customFilter);
 };
+CustomFilters.prototype.readAttributes = function(attr, uq) {
+	if (attr()) {
+		var vals = attr();
+		var val;
+		val = vals["and"];
+		if (undefined !== val) {
+			this.And = AscCommon.getBoolFromXml(val);
+		}
+	}
+};
+CustomFilters.prototype.onStartNode = function(elem, attr, uq) {
+	var newContext = this;
+	if ("customFilter" === elem) {
+		if (!this.CustomFilters) {
+			this.CustomFilters = [];
+		}
+		newContext = new CustomFilter();
+		if (newContext.readAttributes) {
+			newContext.readAttributes(attr, uq);
+		}
+		this.CustomFilters.push(newContext);
+	} else {
+		newContext = null;
+	}
+	return newContext;
+};
+CustomFilters.prototype.toXml = function(writer, name) {
+	writer.WriteXmlNodeStart(name);
+	if (false !== this.And) {
+		writer.WriteXmlAttributeBool("and", this.And);
+	}
+	writer.WriteXmlNodeEnd(name, true);
+	if (this.CustomFilters) {
+		for (var i = 0; i < this.CustomFilters.length; ++i) {
+			var elem = this.CustomFilters[i];
+			elem.toXml(writer, "customFilter");
+		}
+	}
+	writer.WriteXmlNodeEnd(name);
+};
 
 var g_oCustomFilter = {
 	Operator	 : 0,
@@ -7418,7 +8184,7 @@ var g_oCustomFilter = {
 function CustomFilter(operator, val) {
 	this.Properties = g_oCustomFilter;
 	
-	this.Operator = operator != undefined ? operator : null;
+	this.Operator = operator != undefined ? operator : c_oAscCustomAutoFilter.equals;
 	this.Val = val != undefined ? val : null;
 }
 CustomFilter.prototype.getType = function() {
@@ -7451,7 +8217,7 @@ CustomFilter.prototype.init = function(operator, val) {
 	this.Operator = operator;
 	this.Val = val;
 };
-CustomFilter.prototype.isHideValue = function (val) {
+CustomFilter.prototype.isHideValue = function (val, isLabelFilter) {
 
 	var result = false;
 	var isDigitValue = !isNaN(val);
@@ -7463,15 +8229,29 @@ CustomFilter.prototype.isHideValue = function (val) {
 	if (checkComplexSymbols != null) {
 		result = checkComplexSymbols;
 	} else {
-		var isNumberFilter = this.Operator == c_oAscCustomAutoFilter.isGreaterThan || this.Operator == c_oAscCustomAutoFilter.isGreaterThanOrEqualTo || this.Operator == c_oAscCustomAutoFilter.isLessThan || this.Operator == c_oAscCustomAutoFilter.isLessThanOrEqualTo;
+		var isNumberFilter = this.Operator === c_oAscCustomAutoFilter.isGreaterThan || this.Operator === c_oAscCustomAutoFilter.isGreaterThanOrEqualTo || this.Operator === c_oAscCustomAutoFilter.isLessThan || this.Operator === c_oAscCustomAutoFilter.isLessThanOrEqualTo;
 
 		if (c_oAscCustomAutoFilter.equals === this.Operator || c_oAscCustomAutoFilter.doesNotEqual === this.Operator) {
 			filterVal = isNaN(this.Val) ? this.Val.toLowerCase() : this.Val;
 		} else if (isNumberFilter) {
-			if (isNaN(this.Val) && isNaN(val)) {
-				filterVal = this.Val.toLowerCase();
+			filterVal = this.Val;
+			if (isLabelFilter) {
+				//'1'0' - число для данного случая
+				filterVal = this.Val.replace(/'/g, "");
+				if (isNaN(filterVal)) {
+					filterVal = this.Val;
+				}
+			}
+
+			if (isLabelFilter && isNaN(filterVal)) {
+				//в случае label filter - сравнивам строки
+				filterVal = filterVal.toLowerCase();
+				isDigitValue = false;
+				val = val.toLowerCase();
+			} else if (isNaN(filterVal) && isNaN(val)) {
+				filterVal = filterVal.toLowerCase();
 			} else {
-				filterVal = parseFloat(this.Val);
+				filterVal = parseFloat(filterVal);
 				val = parseFloat(val);
 			}
 		} else {
@@ -7482,12 +8262,14 @@ CustomFilter.prototype.isHideValue = function (val) {
 		var trimFilterVal = "string" === typeof(filterVal) ? window["Asc"].trim(filterVal) : filterVal;
 
 
-		var matchingValues = function (val1, val2, op) {
-			var matchingInfo = AscCommonExcel.matchingValue(new AscCommonExcel.cString(val1));
+		var matchingValues = function (_val1, _val2, op) {
+			_val1 = _val1 + "";
+			_val2 = _val2 + "";
+			var matchingInfo = AscCommonExcel.matchingValue(new AscCommonExcel.cString(_val1));
 			if (op) {
 				matchingInfo.op = op;
 			}
-			return AscCommonExcel.matching(new AscCommonExcel.cString(val2), matchingInfo);
+			return AscCommonExcel.matching(new AscCommonExcel.cString(_val2), matchingInfo);
 		};
 
 		switch (this.Operator) {
@@ -7630,6 +8412,33 @@ CustomFilter.prototype._generateEmptyValueFilter = function () {
 	this.Operator = c_oAscCustomAutoFilter.doesNotEqual;
 	this.Val = " ";
 };
+CustomFilter.prototype.readAttributes = function(attr, uq) {
+	if (attr()) {
+		var vals = attr();
+		var val;
+		val = vals["operator"];
+		if (undefined !== val) {
+			val = FromXml_ST_FilterOperator(val);
+			if (-1 !== val) {
+				this.Operator = val;
+			}
+		}
+		val = vals["val"];
+		if (undefined !== val) {
+			this.Val = AscCommon.unleakString(uq(val));
+		}
+	}
+};
+CustomFilter.prototype.toXml = function(writer, name) {
+	writer.WriteXmlNodeStart(name);
+	if (null !== this.Operator) {
+		writer.WriteXmlAttributeStringEncode("operator", ToXml_ST_FilterOperator(this.Operator));
+	}
+	if (null !== this.Val) {
+		writer.WriteXmlAttributeStringEncode("val", this.Val);
+	}
+	writer.WriteXmlNodeEnd(name, true, true);
+};
 
 var g_oDynamicFilter = {
 	Type : 0,
@@ -7731,6 +8540,40 @@ DynamicFilter.prototype.asc_getMaxVal = function () { return this.MaxVal; };
 DynamicFilter.prototype.asc_setType = function (val) { this.Type = val; };
 DynamicFilter.prototype.asc_setVal = function (val) { this.Val = val; };
 DynamicFilter.prototype.asc_setMaxVal = function (val) { this.MaxVal = val; };
+DynamicFilter.prototype.readAttributes = function(attr, uq) {
+	if (attr()) {
+		var vals = attr();
+		var val;
+		val = vals["type"];
+		if (undefined !== val) {
+			val = FromXml_ST_DynamicFilterType(val);
+			if (-1 !== val) {
+				this.Type = val;
+			}
+		}
+		val = vals["val"];
+		if (undefined !== val) {
+			this.Val = val - 0;
+		}
+		val = vals["maxVal"];
+		if (undefined !== val) {
+			this.MaxVal = val - 0;
+		}
+	}
+};
+DynamicFilter.prototype.toXml = function(writer, name) {
+	writer.WriteXmlNodeStart(name);
+	if (null !== this.Type) {
+		writer.WriteXmlAttributeStringEncode("type", ToXml_ST_DynamicFilterType(this.Type));
+	}
+	if (null !== this.Val) {
+		writer.WriteXmlAttributeNumber("val", this.Val);
+	}
+	if (null !== this.MaxVal) {
+		writer.WriteXmlAttributeNumber("maxVal", this.MaxVal);
+	}
+	writer.WriteXmlNodeEnd(name, true, true);
+};
 
 var g_oColorFilter = {
 	CellColor : 0,
@@ -7890,6 +8733,32 @@ ColorFilter.prototype.asc_setCColor = function (asc_CColor)
 		this.dxf.fill.fromColor(new RgbColor((asc_CColor.asc_getR() << 16) + (asc_CColor.asc_getG() << 8) + asc_CColor.asc_getB()));
 	}
 };
+ColorFilter.prototype.readAttributes = function(attr, uq) {
+	if (attr()) {
+		var vals = attr();
+		var val;
+		//todo
+		// val = vals["dxfId"];
+		// if (undefined !== val) {
+		// 	this.dxfId = val - 0;
+		// }
+		val = vals["cellColor"];
+		if (undefined !== val) {
+			this.CellColor = AscCommon.getBoolFromXml(val);
+		}
+	}
+};
+ColorFilter.prototype.toXml = function(writer, name) {
+	writer.WriteXmlNodeStart(name);
+	//todo
+	// if (null !== this.dxfId) {
+	// 	writer.WriteXmlAttributeNumber("dxfId", this.dxfId);
+	// }
+	if (null !== this.CellColor) {
+		writer.WriteXmlAttributeBool("cellColor", this.CellColor);
+	}
+	writer.WriteXmlNodeEnd(name, true, true);
+};
 
 var g_oTop10 = {
 	FilterVal : 0,
@@ -7903,8 +8772,8 @@ function Top10() {
 	this.Properties = g_oTop10;
 	
 	this.FilterVal = null;
-	this.Percent = null;
-	this.Top = null;
+	this.Percent = false;
+	this.Top = true;
 	this.Val = null;
 }
 Top10.prototype.getType = function() {
@@ -7964,7 +8833,6 @@ Top10.prototype.isHideValue = function(val) {
 };
 
 Top10.prototype.init = function(range, reWrite){
-	var res = null;
 	var t = this;
 	
 	if(null === this.FilterVal || true === reWrite)
@@ -7984,47 +8852,58 @@ Top10.prototype.init = function(range, reWrite){
 					count++;
 				}
 			});
-			
-			if(arr.length)
+			this.initByArray(arr);
+		}
+	}
+};
+Top10.prototype.initByArray = function(arr, isSum){
+	var res = null;
+	var t = this;
+	if(arr && arr.length)
+	{
+		arr.sort(function(a, b){
+			var res;
+			if(t.Top)
 			{
-				arr.sort(function(a, b){
-					var res;
-					if(t.Top)
-					{
-						res = b - a;
-					}
-					else
-					{
-						res = a - b;
-					}
-					
-					return res; 
-				});
-				
-				if(this.Percent)
-				{
-					var num = parseInt(count * (this.Val / 100));
-					if(0 === num)
-					{
-						num = 1;
-					}
-					
-					res = arr[num - 1];
+				res = b - a;
+			}
+			else
+			{
+				res = a - b;
+			}
+
+			return res;
+		});
+		
+		if(this.Percent)
+		{
+			var num = parseInt(arr.length * (this.Val / 100));
+			if(0 === num)
+			{
+				num = 1;
+			}
+			
+			res = arr[num - 1];
+		}
+		else
+		{
+			if (isSum) {
+				var index = 0;
+				var sum = res = arr[index++];
+				while (index < arr.length && sum < this.Val) {
+					res = arr[index++];
+					sum += res;
 				}
-				else
-				{
-					res = arr[this.Val - 1];
-				}
-				
+			} else {
+				res = arr[this.Val - 1];
 			}
 		}
 	}
-	
-	if(null !== res)
+	if(null != res)
 	{
 		this.FilterVal = res;
 	}
-}; 
+};
 
 Top10.prototype.asc_getFilterVal = function () { return this.FilterVal; };
 Top10.prototype.asc_getPercent = function () { return this.Percent; };
@@ -8035,6 +8914,44 @@ Top10.prototype.asc_setFilterVal = function (val) { this.FilterVal = val; };
 Top10.prototype.asc_setPercent = function (val) { this.Percent = val; };
 Top10.prototype.asc_setTop = function (val) { this.Top = val; };
 Top10.prototype.asc_setVal = function (val) { this.Val = val; };
+Top10.prototype.readAttributes = function(attr, uq) {
+	if (attr()) {
+		var vals = attr();
+		var val;
+		val = vals["top"];
+		if (undefined !== val) {
+			this.Top = AscCommon.getBoolFromXml(val);
+		}
+		val = vals["percent"];
+		if (undefined !== val) {
+			this.Percent = AscCommon.getBoolFromXml(val);
+		}
+		val = vals["val"];
+		if (undefined !== val) {
+			this.Val = val - 0;
+		}
+		val = vals["filterVal"];
+		if (undefined !== val) {
+			this.FilterVal = val - 0;
+		}
+	}
+};
+Top10.prototype.toXml = function(writer, name) {
+	writer.WriteXmlNodeStart(name);
+	if (true !== this.Top) {
+		writer.WriteXmlAttributeBool("top", this.Top);
+	}
+	if (false !== this.Percent) {
+		writer.WriteXmlAttributeBool("percent", this.Percent);
+	}
+	if (null !== this.Val) {
+		writer.WriteXmlAttributeNumber("val", this.Val);
+	}
+	if (null !== this.FilterVal) {
+		writer.WriteXmlAttributeNumber("filterVal", this.FilterVal);
+	}
+	writer.WriteXmlNodeEnd(name, true, true);
+};
 
 /** @constructor */
 function SortCondition() {
@@ -8725,6 +9642,10 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		this.headings = null;
 		this.ws = ws;
 
+		//только для передачи из интефейса
+		this.printTitlesWidth = null;
+		this.printTitlesHeight = null;
+
 		return this;
 	}
 	asc_CPageOptions.prototype.init = function () {
@@ -8735,11 +9656,47 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		if (null == this.headings)
 			this.headings = c_oAscPrintDefaultSettings.PageHeadings;
 	};
+	asc_CPageOptions.prototype.initPrintTitles = function () {
+		//функция добавлена только для того, чтобы в интерфейс передать текущие заголовки печати, которые хранятся как именованный диапазон
+
+		this.printTitlesWidth = null;
+		this.printTitlesHeight = null;
+
+		var printTitles = this.ws.workbook.getDefinesNames("Print_Titles", this.ws.getId());
+		var c1, c2, r1, r2;
+		var t = this;
+		if (printTitles) {
+			var printTitleRefs;
+			AscCommonExcel.executeInR1C1Mode(false, function () {
+				printTitleRefs = AscCommonExcel.getRangeByRef(printTitles.ref, t.ws, true, true)
+			});
+			if (printTitleRefs && printTitleRefs.length) {
+				for (var i = 0; i < printTitleRefs.length; i++) {
+					var bbox = printTitleRefs[i].bbox;
+					if (bbox) {
+						if (Asc.c_oAscSelectionType.RangeCol === bbox.getType()) {
+							c1 = bbox.c1;
+							c2 = bbox.c2;
+						} else if(Asc.c_oAscSelectionType.RangeRow === bbox.getType()) {
+							r1 = bbox.r1;
+							r2 = bbox.r2;
+						}
+					}
+				}
+			}
+		}
+		if (c1 !== undefined) {
+			this.printTitlesWidth = new Asc.Range(c1, 0, c2, gc_nMaxRow0).getAbsName();
+		}
+		if(r1 !== undefined) {
+			this.printTitlesHeight = new Asc.Range(0, r1, gc_nMaxCol0, r2).getAbsName()
+		}
+	};
 	asc_CPageOptions.prototype.clone = function (ws) {
 		var res = new asc_CPageOptions(ws);
 
-		res.pageMargins = this.pageMargins.clone();
-		res.pageSetup = this.pageSetup.clone();
+		res.pageMargins = this.pageMargins.clone(ws);
+		res.pageSetup = this.pageSetup.clone(ws);
 		res.gridLines = this.gridLines;
 		res.headings = this.headings;
 
@@ -8781,6 +9738,18 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 
 		this.asc_getPageMargins().asc_setOptions(obj.asc_getPageMargins());
 		this.asc_getPageSetup().asc_setOptions(obj.asc_getPageSetup());
+	};
+	asc_CPageOptions.prototype.asc_setPrintTitlesWidth = function (newVal) {
+		this.printTitlesWidth = newVal;
+	};
+	asc_CPageOptions.prototype.asc_setPrintTitlesHeight = function (newVal) {
+		this.printTitlesHeight = newVal;
+	};
+	asc_CPageOptions.prototype.asc_getPrintTitlesWidth = function () {
+		return this.printTitlesWidth;
+	};
+	asc_CPageOptions.prototype.asc_getPrintTitlesHeight = function () {
+		return this.printTitlesHeight;
 	};
 
 
@@ -9089,7 +10058,7 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	};
 
 	function CSortProperties(ws) {
-		this._oldSelect = null;
+		this.selection = null;
 		this._newSelection = null;
 		this.hasHeaders = null;
 		this.columnSort = null;
@@ -9264,6 +10233,14 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		return this._newSelection.getAbsName();
 	};
 
+	CSortProperties.prototype.asc_getSelection = function () {
+		return this.selection;
+	};
+
+	CSortProperties.prototype.asc_setSelection = function (val) {
+		this.selection = val;
+	};
+
 	function CSortPropertiesLevel() {
 		this.index = null;
 		this.name = null;
@@ -9326,6 +10303,147 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 		return this.isText;
 	};
 
+	function CRemoveDuplicatesProps(ws) {
+		this.selection = null;
+		this._newSelection = null;
+		this.hasHeaders = null;
+
+		this.columnList = null;
+
+		this._ws = ws;
+
+		this.duplicateValues = null;
+		this.uniqueValues = null;
+
+		return this;
+	}
+	CRemoveDuplicatesProps.prototype.asc_getHasHeaders = function () {
+		return this.hasHeaders;
+	};
+	CRemoveDuplicatesProps.prototype.asc_getColumnList = function () {
+		return this.columnList;
+	};
+	CRemoveDuplicatesProps.prototype.asc_setHasHeaders = function (val) {
+		var oldVal = !!this.hasHeaders;
+		if (this._newSelection && oldVal !== val) {
+			if(val) {
+				this._newSelection.r1++;
+			} else {
+				this._newSelection.r1--;
+			}
+			this._ws.setSelection(this._newSelection);
+		}
+		this.hasHeaders = val;
+	};
+	CRemoveDuplicatesProps.prototype.asc_updateColumnList = function () {
+		//TODO change selection
+		this.generateColumnList();
+	};
+	CRemoveDuplicatesProps.prototype.generateColumnList = function () {
+		var maxCount = 500;
+		var selection = this._newSelection;
+		var j, elem;
+
+		if(this.columnList && this.columnList.length) {
+			for(j in this.columnList) {
+				this.columnList[j].asc_setVal(this.getNameColumnByIndex(parseInt(j)));
+			}
+		} else {
+			this.columnList = [];
+			for(j = selection.c1; j <= selection.c2; j++) {
+				if(j - selection.c1 >= maxCount) {
+					break;
+				}
+				elem = new window["AscCommonExcel"].AutoFiltersOptionsElements();
+				elem.asc_setVisible(true);
+				elem.asc_setVal(this.getNameColumnByIndex(j - selection.c1));
+				this.columnList.push(elem);
+			}
+		}
+	};
+	CRemoveDuplicatesProps.prototype.getNameColumnByIndex = function (index) {
+		var t = this;
+		var _generateName = function(index) {
+			var base = AscCommon.translateManager.getValue("Column");
+			var text = t._ws._getColumnTitle(index);
+			text = base + " " + text;
+			return text;
+		};
+
+		var row = this._newSelection.r1;
+		var col = index + this._newSelection.c1;
+
+		if(!this.hasHeaders) {
+			return _generateName(col);
+		} else {
+			var cell = t._ws.model.getCell3(row - 1, col);
+			var value = cell.getValueWithFormat();
+			return value !== "" ? value : _generateName(col);
+		}
+	};
+	CRemoveDuplicatesProps.prototype.setDuplicateValues = function (val) {
+		this.duplicateValues = val;
+	};
+	CRemoveDuplicatesProps.prototype.setUniqueValues = function (val) {
+		this.uniqueValues = val;
+	};
+	CRemoveDuplicatesProps.prototype.asc_getDuplicateValues = function (val) {
+		return this.duplicateValues;
+	};
+	CRemoveDuplicatesProps.prototype.asc_getUniqueValues = function (val) {
+		return this.uniqueValues;
+	};
+
+	function CFunctionInfo(name) {
+		this.name = null;
+		this.argumentsMin = null;
+		this.argumentsMax = null;
+
+		this.argumentsValue = null;
+		this.argumentsType = null;
+		this.argumentsResult = null;
+		this.formulaResult = null;
+		this.functionResult = null;
+
+		this._init(name);
+
+		return this;
+	}
+
+	CFunctionInfo.prototype._init = function (name) {
+		var f = AscCommonExcel.cFormulaFunctionLocalized ?
+			AscCommonExcel.cFormulaFunctionLocalized[name] : AscCommonExcel.cFormulaFunction[name];
+		if (f) {
+			this.name = name;
+			this.argumentsMin = f.prototype.argumentsMin;
+			this.argumentsMax = f.prototype.argumentsMax;
+			this.argumentsType = f.prototype.argumentsType;
+		}
+	};
+	CFunctionInfo.prototype.asc_getArgumentMin = function () {
+		return this.argumentsMin;
+	};
+	CFunctionInfo.prototype.asc_getArgumentMax = function () {
+		return this.argumentsMax;
+	};
+	CFunctionInfo.prototype.asc_getArgumentsValue = function () {
+		return this.argumentsValue;
+	};
+	CFunctionInfo.prototype.asc_getArgumentsType = function () {
+		return this.argumentsType;
+	};
+	CFunctionInfo.prototype.asc_getArgumentsResult = function () {
+		return this.argumentsResult;
+	};
+	CFunctionInfo.prototype.asc_getFormulaResult = function () {
+		return this.formulaResult;
+	};
+	CFunctionInfo.prototype.asc_getFunctionResult = function () {
+		return this.functionResult;
+	};
+	CFunctionInfo.prototype.asc_getName = function () {
+		return this.name;
+	};
 
 	//----------------------------------------------------------export----------------------------------------------------
 	var prot;
@@ -9342,6 +10460,7 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	window['AscCommonExcel'].g_nRowStructSize = g_nRowStructSize;
 	window['AscCommonExcel'].shiftGetBBox = shiftGetBBox;
 	window['AscCommonExcel'].getStringFromMultiText = getStringFromMultiText;
+	window['AscCommonExcel'].getStringFromMultiTextSkipToSpace = getStringFromMultiTextSkipToSpace;
 	window['AscCommonExcel'].isEqualMultiText = isEqualMultiText;
 	window['AscCommonExcel'].RgbColor = RgbColor;
 	window['AscCommonExcel'].createRgbColor = createRgbColor;
@@ -9410,6 +10529,26 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	window['AscCommonExcel'].Border = Border;
 	window['AscCommonExcel'].Num = Num;
 	window['AscCommonExcel'].CellXfs = CellXfs;
+	prot = CellXfs.prototype;
+	prot["asc_getFillColor"] = prot.asc_getFillColor;
+	prot["asc_getFill"] = prot.asc_getFill;
+	prot["asc_getFontName"] = prot.asc_getFontName;
+    prot["asc_getFontSize"] = prot.asc_getFontSize;
+    prot["asc_getFontColor"] = prot.asc_getFontColor;
+    prot["asc_getFontBold"] = prot.asc_getFontBold;
+    prot["asc_getFontItalic"] = prot.asc_getFontItalic;
+    prot["asc_getFontUnderline"] = prot.asc_getFontUnderline;
+    prot["asc_getFontStrikeout"] = prot.asc_getFontStrikeout;
+    prot["asc_getFontSubscript"] = prot.asc_getFontSubscript;
+    prot["asc_getFontSuperscript"] = prot.asc_getFontSuperscript;
+	prot["asc_getNumFormat"] = prot.asc_getNumFormat;
+	prot["asc_getNumFormatInfo"] = prot.asc_getNumFormatInfo;
+	prot["asc_getHorAlign"] = prot.asc_getHorAlign;
+	prot["asc_getVertAlign"] = prot.asc_getVertAlign;
+	prot["asc_getAngle"] = prot.asc_getAngle;
+	prot["asc_getWrapText"] = prot.asc_getWrapText;
+	prot["asc_getShrinkToFit"] = prot.asc_getShrinkToFit;
+	prot["asc_getPreview"] = prot.asc_getPreview;
 	window['AscCommonExcel'].Align = Align;
 	window['AscCommonExcel'].CCellStyles = CCellStyles;
 	window['AscCommonExcel'].CCellStyle = CCellStyle;
@@ -9573,6 +10712,10 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	prot["asc_setPageSetup"] = prot.asc_setPageSetup;
 	prot["asc_setGridLines"] = prot.asc_setGridLines;
 	prot["asc_setHeadings"] = prot.asc_setHeadings;
+	prot["asc_setPrintTitlesWidth"] = prot.asc_setPrintTitlesWidth;
+	prot["asc_setPrintTitlesHeight"] = prot.asc_setPrintTitlesHeight;
+	prot["asc_getPrintTitlesWidth"] = prot.asc_getPrintTitlesWidth;
+	prot["asc_getPrintTitlesHeight"] = prot.asc_getPrintTitlesHeight;
 
 	window["Asc"]["CHeaderFooter"] = window["Asc"].CHeaderFooter = CHeaderFooter;
 	window["Asc"]["CHeaderFooterData"] = window["Asc"].CHeaderFooterData = CHeaderFooterData;
@@ -9594,6 +10737,8 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	prot["asc_setCaseSensitive"] = prot.asc_setCaseSensitive;
 	prot["asc_addBySortList"] = prot.asc_addBySortList;
 	prot["asc_getRangeStr"] = prot.asc_getRangeStr;
+	prot["asc_getSelection"] = prot.asc_getSelection;
+	prot["asc_setSelection"] = prot.asc_setSelection;
 
 	window["Asc"]["CSortPropertiesLevel"] = window["Asc"].CSortPropertiesLevel = CSortPropertiesLevel;
 	prot = CSortPropertiesLevel.prototype;
@@ -9613,5 +10758,25 @@ AutoFilterDateElem.prototype.convertDateGroupItemToRange = function(oDateGroupIt
 	prot["asc_getColorsFill"] = prot.asc_getColorsFill;
 	prot["asc_getColorsFont"] = prot.asc_getColorsFont;
 	prot["asc_getIsTextData"] = prot.asc_getIsTextData;
+
+	window["Asc"]["CRemoveDuplicatesProps"] = window["Asc"].CRemoveDuplicatesProps = CRemoveDuplicatesProps;
+	prot = CRemoveDuplicatesProps.prototype;
+	prot["asc_getHasHeaders"] = prot.asc_getHasHeaders;
+	prot["asc_getColumnList"] = prot.asc_getColumnList;
+	prot["asc_updateColumnList"] = prot.asc_updateColumnList;
+	prot["asc_setHasHeaders"] = prot.asc_setHasHeaders;
+	prot["asc_getDuplicateValues"] = prot.asc_getDuplicateValues;
+	prot["asc_getUniqueValues"] = prot.asc_getUniqueValues;
+
+	window["AscCommonExcel"].CFunctionInfo = CFunctionInfo;
+	prot = CFunctionInfo.prototype;
+	prot["asc_getArgumentMin"] = prot.asc_getArgumentMin;
+	prot["asc_getArgumentMax"] = prot.asc_getArgumentMax;
+	prot["asc_getArgumentsValue"] = prot.asc_getArgumentsValue;
+	prot["asc_getArgumentsType"] = prot.asc_getArgumentsType;
+	prot["asc_getArgumentsResult"] = prot.asc_getArgumentsResult;
+	prot["asc_getFormulaResult"] = prot.asc_getFormulaResult;
+	prot["asc_getFunctionResult"] = prot.asc_getFunctionResult;
+	prot["asc_getName"] = prot.asc_getName;
 
 })(window);

@@ -329,7 +329,13 @@ CHistory.prototype =
         return this.RecalculateData;
     },
 
-    Create_NewPoint : function(Description)
+	/**
+	 * Создаем новую точку в истории
+	 * @param {number} nDescription - идентификатор производимого действия
+	 * @param {object} [oSelectionState=undefined] - сохраненное состояние редактора до начала действия (если не задано используем состояние на текущий момент)
+	 * @returns {boolean}
+	 */
+    Create_NewPoint : function(nDescription, oSelectionState)
     {
 		if ( 0 !== this.TurnOffHistory )
 			return false;
@@ -343,11 +349,11 @@ CHistory.prototype =
 		if (null !== this.SavedIndex && this.Index < this.SavedIndex)
             this.Set_SavedIndex(this.Index);
 
-        this.Clear_Additional();
+        this.ClearAdditional();
 
         this.CheckUnionLastPoints();
         
-        var State = this.Document.GetSelectionState();
+        var State = oSelectionState ? oSelectionState : this.Document.GetSelectionState();
         var Items = [];
         var Time  = new Date().getTime();
 
@@ -358,7 +364,7 @@ CHistory.prototype =
             Items      : Items, // Массив изменений, начиная с текущего момента
             Time       : Time,  // Текущее время
             Additional : {},    // Дополнительная информация
-            Description: Description
+            Description: nDescription
         };
 
         // Удаляем ненужные точки
@@ -439,7 +445,7 @@ CHistory.prototype =
     // Data  - сами изменения
 	Add : function(_Class, Data)
 	{
-		if (0 !== this.TurnOffHistory || this.Index < 0)
+		if (!this.CanAddChanges())
 			return;
 
 		this._CheckCanNotAddChanges();
@@ -689,6 +695,10 @@ CHistory.prototype =
         if (true !== this.Document.Is_OnRecalculate())
             return false;
 
+        // Не объединяем точки во время Undo/Redo
+        if (this.Index < this.Points.length - 1)
+        	return false;
+
         // Не объединяем точки истории, если на предыдущей точке произошло сохранение
         if (this.Points.length < 2
             || (true !== this.Is_UserSaveMode() && null !== this.SavedIndex && this.SavedIndex >= this.Points.length - 2)
@@ -802,6 +812,12 @@ CHistory.prototype =
     {
 		return (0 === this.TurnOffHistory);
     },
+
+	/** @returns {boolean} */
+	IsOn : function()
+	{
+		return (0 === this.TurnOffHistory);
+	},
 
 	Reset_SavedIndex : function(IsUserSave)
 	{
@@ -958,17 +974,6 @@ CHistory.prototype =
         return true;
     },
 
-    Clear_Additional : function()
-    {
-        if ( this.Index >= 0 )
-        {
-            this.Points[this.Index].Additional = {};
-        }
-
-        if (this.Api && true === this.Api.isMarkerFormat)
-            this.Api.sync_MarkerFormatCallback(false);
-    },
-
     Get_EditingTime : function(dTime)
     {
         var Count = this.Points.length;
@@ -1027,6 +1032,28 @@ CHistory.prototype =
         } catch (e) {
         }
     }
+};
+/**
+ * Проверяем, можно ли добавить изменение
+ * @returns {boolean}
+ */
+CHistory.prototype.CanAddChanges = function()
+{
+	return (0 === this.TurnOffHistory && this.Index >= 0);
+};
+CHistory.prototype.ClearAdditional = function()
+{
+	if (this.Index >= 0)
+		this.Points[this.Index].Additional = {};
+
+	if (this.Api && true === this.Api.isMarkerFormat)
+		this.Api.sync_MarkerFormatCallback(false);
+
+	if (this.Api && true === this.Api.isDrawTablePen)
+		this.Api.sync_TableDrawModeCallback(false);
+
+	if (this.Api && true === this.Api.isDrawTableErase)
+		this.Api.sync_TableEraseModeCallback(false);
 };
 CHistory.prototype.private_UpdateContentChangesOnUndo = function(Item)
 {
@@ -1172,15 +1199,15 @@ CHistory.prototype.RemoveLastPoint = function()
 };
 CHistory.prototype.IsParagraphSimpleChanges = function()
 {
-	var Count, Items;
+	var nCount, arrItems;
 	if (this.Index - this.RecIndex !== 1 && this.RecIndex >= -1)
 	{
-		Items = [];
-		Count = 0;
+		arrItems = [];
+		nCount = 0;
 		for (var PointIndex = this.RecIndex + 1; PointIndex <= this.Index; PointIndex++)
 		{
-			Items = Items.concat(this.Points[PointIndex].Items);
-			Count += this.Points[PointIndex].Items.length;
+			arrItems = arrItems.concat(this.Points[PointIndex].Items);
+			nCount += this.Points[PointIndex].Items.length;
 		}
 	}
 	else if (this.Index >= 0)
@@ -1188,63 +1215,62 @@ CHistory.prototype.IsParagraphSimpleChanges = function()
 		// Считываем изменения, начиная с последней точки, и смотрим что надо пересчитать.
 		var Point = this.Points[this.Index];
 
-		Count = Point.Items.length;
-		Items = Point.Items;
+		nCount = Point.Items.length;
+		arrItems = Point.Items;
 	}
 	else
-		return null;
-
-
-	if (Items.length > 0)
 	{
-		// Смотрим, чтобы параграф, в котором происходили все изменения был один и тот же. Если есть изменение,
-		// которое не возвращает параграф, значит возвращаем null.
-
-		var Para = null;
-		for (var Index = 0; Index < Count; Index++)
-		{
-			var Class = Items[Index].Class;
-
-			if (Class instanceof Paragraph)
-			{
-				if (null === Para)
-					Para = Class;
-				else if (Para !== Class)
-					return null;
-			}
-			else if (Class instanceof AscCommon.CTableId || Class instanceof AscCommon.CComments)
-			{
-				continue;
-			}
-			else if (Class.GetParagraph)
-			{
-				if (null === Para)
-					Para = Class.GetParagraph();
-				else if (Para !== Class.GetParagraph())
-					return null;
-			}
-			else
-				return null;
-		}
-
-		// Все изменения сделаны в одном параграфе, нам осталось проверить, что каждое из этих изменений
-		// влияет только на данный параграф.
-		for (var Index = 0; Index < Count; Index++)
-		{
-			var Item  = Items[Index];
-			var Class = Item.Class;
-
-			if (Class instanceof AscCommon.CTableId || Class instanceof AscCommon.CComments)
-				continue;
-
-			if (!Class.IsParagraphSimpleChanges || !Class.IsParagraphSimpleChanges(Item))
-				return null;
-		}
-
-		return Para;
+		return [];
 	}
 
-	return null;
+	if (arrItems.length > 0)
+	{
+		// Смотрим, чтобы изменения происходили только внутри параграфов. Если есть изменение,
+		// которое не возвращает параграф, значит возвращаем null.
+		// А также проверяем, что каждое из этих изменений влияет только на параграф.
+
+		var arrParagraphs = [];
+		for (var nIndex = 0; nIndex < nCount; ++nIndex)
+		{
+			var oClass = arrItems[nIndex].Class;
+			var oPara  = null;
+
+			if (oClass instanceof Paragraph)
+				oPara = oClass;
+			else if (oClass instanceof AscCommon.CTableId || oClass instanceof AscCommon.CComments)
+				continue;
+			else if (oClass.GetParagraph)
+				oPara = oClass.GetParagraph();
+			else
+				return [];
+
+			// Такое может быть, если класс еще не приписан ни к какому параграфу. Либо класс дальше небудет
+			// использован, либо его добавят в параграф и в этом изменении мы отметим параграф
+			// Поэтому мы не отказываемся от быстрого пересчета в данной ситуации
+			if (!oPara)
+				continue;
+
+			if (!oClass.IsParagraphSimpleChanges || !oClass.IsParagraphSimpleChanges(arrItems[nIndex]))
+				return [];
+
+			var isAdd = true;
+			for (var nParaIndex = 0, nParasCount = arrParagraphs.length; nParaIndex < nParasCount; ++nParaIndex)
+			{
+				if (oPara === arrParagraphs[nParaIndex])
+				{
+					isAdd = false;
+					break;
+				}
+			}
+
+			if (isAdd)
+				arrParagraphs.push(oPara);
+		}
+
+		return arrParagraphs;
+	}
+
+	return [];
 };
 CHistory.prototype.private_ClearRecalcData = function()
 {

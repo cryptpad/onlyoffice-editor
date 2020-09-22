@@ -305,7 +305,6 @@ CDocumentControllerBase.prototype.AddNewParagraph = function(bRecalculate, bForc
  * @param {boolean} bFlow - инлайн объект или "плавающий"
  */
 CDocumentControllerBase.prototype.AddInlineImage = function(nW, nH, oImage, oChart, bFlow){};
-
 /**
  * Добавляем несколько изображений
  * @param {Array} aImages - массив объектов типа CImage
@@ -338,11 +337,13 @@ CDocumentControllerBase.prototype.AddSignatureLine = function(oSignatureDrawing)
  */
 CDocumentControllerBase.prototype.EditChart = function(Chart){};
 /**
- * Добавляем инлайн таблицу.
+ * Добавляем инлайн таблицу
  * @param nCols
  * @param nRows
+ * @param {number} [nMode=0] режим добавления таблицы внутрь параграфа
+ * @returns {?CTable}
  */
-CDocumentControllerBase.prototype.AddInlineTable = function(nCols, nRows){};
+CDocumentControllerBase.prototype.AddInlineTable = function(nCols, nRows, nMode){return null;};
 /**
  * Очищаем форматирование внутри селекта
  * {boolean} [isClearParaPr=true] Очищать ли настройки параграфа
@@ -521,22 +522,22 @@ CDocumentControllerBase.prototype.SetTableProps = function(Props){};
  * Получаем текущие настройки параграфа.
  * @returns {CParaPr}
  */
-CDocumentControllerBase.prototype.GetCalculatedParaPr = function(){var oParaPr = new CParaPr(); oParaPr.Init_Default(); return oParaPr};
+CDocumentControllerBase.prototype.GetCalculatedParaPr = function(){var oParaPr = new CParaPr(); oParaPr.InitDefault(); return oParaPr};
 /**
  * Получаем текущие настройки текста.
  * @returns {CTextPr}
  */
-CDocumentControllerBase.prototype.GetCalculatedTextPr = function(){var oTextPr = new CTextPr(); oTextPr.Init_Default(); return oTextPr};
+CDocumentControllerBase.prototype.GetCalculatedTextPr = function(){var oTextPr = new CTextPr(); oTextPr.InitDefault(); return oTextPr};
 /**
  * Получаем прямые настройки параграфа.
  * @returns {CParaPr}
  */
-CDocumentControllerBase.prototype.GetDirectParaPr = function(){var oParaPr = new CParaPr(); oParaPr.Init_Default(); return oParaPr};
+CDocumentControllerBase.prototype.GetDirectParaPr = function(){var oParaPr = new CParaPr(); oParaPr.InitDefault(); return oParaPr};
 /**
  * Получаем прямые настройки текста.
  * @returns {CTextPr}
  */
-CDocumentControllerBase.prototype.GetDirectTextPr = function(){var oTextPr = new CTextPr(); oTextPr.Init_Default(); return oTextPr};
+CDocumentControllerBase.prototype.GetDirectTextPr = function(){var oTextPr = new CTextPr(); oTextPr.InitDefault(); return oTextPr};
 /**
  * Убираем селект.
  * @param bNoCheckDrawing
@@ -630,13 +631,15 @@ CDocumentControllerBase.prototype.GetSelectedElementsInfo = function(oInfo){};
 /**
  * Добавляем строку таблицы.
  * @param bBefore
+ * @param {number} [nCount = 1]
  */
-CDocumentControllerBase.prototype.AddTableRow = function(bBefore){};
+CDocumentControllerBase.prototype.AddTableRow = function(bBefore, nCount){};
 /**
  * Добавляем столбец таблицы.
  * @param bBefore
+ * @param {number} [nCount = 1]
  */
-CDocumentControllerBase.prototype.AddTableColumn = function(bBefore){};
+CDocumentControllerBase.prototype.AddTableColumn = function(bBefore, nCount){};
 /**
  * Удаляем строку таблицы.
  */
@@ -729,7 +732,7 @@ CDocumentControllerBase.prototype.CanAddHyperlink = function(bCheckInHyperlink){
  * Проверяем находится ли курсор сейчас в гиперссылке.
  * @returns {?ParaHyperlink}
  */
-CDocumentControllerBase.prototype.IsCursorInHyperlink = function(bCheckEnd){return false;};
+CDocumentControllerBase.prototype.IsCursorInHyperlink = function(bCheckEnd){return null;};
 /**
  * Добавляем комментарий.
  * @param Comment

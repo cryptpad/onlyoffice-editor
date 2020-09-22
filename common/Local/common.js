@@ -40,15 +40,43 @@
 		{
 			return this._openEmptyDocument();
 		}
+	};
+	AscCommon.baseEditorsApi.prototype.onEndLoadFile2 = AscCommon.baseEditorsApi.prototype.onEndLoadFile;
+	AscCommon.baseEditorsApi.prototype.onEndLoadFile = function(result)
+	{
+		if (this.isChartEditor)
+		{
+			return this.onEndLoadFile2(result);
+		}
 
-		this.asc_registerCallback('asc_onDocumentContentReady', function(){
-			DesktopOfflineUpdateLocalName(Asc.editor || editor);
+		if (this.isLoadFullApi && this.DocInfo && this.isLoadFonts)
+		{
+			this.asc_registerCallback('asc_onDocumentContentReady', function(){
+				DesktopOfflineUpdateLocalName(Asc.editor || editor);
 
-			setTimeout(function(){window["UpdateInstallPlugins"]();}, 10);
-		});
+				setTimeout(function(){window["UpdateInstallPlugins"]();}, 10);
+			});
 
-		AscCommon.History.UserSaveMode = true;
-		window["AscDesktopEditor"]["LocalStartOpen"]();
+			AscCommon.History.UserSaveMode = true;
+			window["AscDesktopEditor"]["LocalStartOpen"]();
+		}
+	};
+
+	AscCommon.baseEditorsApi.prototype["asc_setIsReadOnly"] = function(value, is_from_app)
+	{
+		if (value)
+			this.asc_addRestriction(Asc.c_oAscRestrictionType.View);
+		else
+			this.asc_removeRestriction(Asc.c_oAscRestrictionType.View);
+
+		if (is_from_app)
+			return;
+
+		window["AscDesktopEditor"] && window["AscDesktopEditor"]["SetIsReadOnly"] && window["AscDesktopEditor"]["SetIsReadOnly"](value);
+	};
+	AscCommon.baseEditorsApi.prototype["asc_isReadOnly"] = function()
+	{
+		return this.isRestrictionView();
 	};
 })(window);
 
@@ -126,7 +154,7 @@ window["DesktopOfflineAppDocumentEndLoad"] = function(_url, _data, _len)
 	AscCommon.g_oIdCounter.m_sUserId = window["AscDesktopEditor"]["CheckUserId"]();
 	if (_data == "")
 	{
-		this.sendEvent("asc_onError", c_oAscError.ID.ConvertationOpenError, c_oAscError.Level.Critical);
+        editor.sendEvent("asc_onError", c_oAscError.ID.ConvertationOpenError, c_oAscError.Level.Critical);
 		return;
 	}
 
@@ -469,21 +497,12 @@ window["DesktopOfflineAppDocumentSignatures"] = function(_json)
 		});
 		_editor.asc_registerCallback("asc_onUpdateSignatures", function (signatures, requested)
 		{
-
 			var _api = window["Asc"]["editor"] ? window["Asc"]["editor"] : window.editor;
-			if (_api.editorId == AscCommon.c_oEditorId.Word || _api.editorId == AscCommon.c_oEditorId.Presentation)
-			{
-				if (0 == signatures.length)
-					_api.asc_setRestriction(Asc.c_oAscRestrictionType.None);
-				else
-					_api.asc_setRestriction(Asc.c_oAscRestrictionType.OnlySignatures);
-			}
-			else
-			{
-				//_api.asc_setViewMode((0 == signatures.length) ? false : true);
-				_api.collaborativeEditing.m_bGlobalLock = (0 == signatures.length) ? false : true;
-			}
 
+			if (0 === signatures.length)
+				_api.asc_removeRestriction(Asc.c_oAscRestrictionType.OnlySignatures);
+			else
+				_api.asc_addRestriction(Asc.c_oAscRestrictionType.OnlySignatures);
 		});
 	}
 	window.FirstSignaturesCall = true;
@@ -730,6 +749,8 @@ _proto.prototype["pluginMethod_OnEncryption"] = function(obj)
         }
 	}
 };
+
+AscCommon.getBinaryArray = getBinaryArray;
 // -------------------------------------------
 
 // меняем среду
