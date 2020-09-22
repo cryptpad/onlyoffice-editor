@@ -9970,7 +9970,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype.asc_AddCrossRefToCaption = function(sCaption, oParagraph, nType, bHyperlink, bAboveBelow)
 	{
 		var oLogicDocument = this.private_GetLogicDocument();
-		oLogicDocument.AddRefToCaption(sCaption, oParagraph, nType, bHyperlink, bAboveBelow, sSeparator);
+		oLogicDocument.AddRefToCaption(sCaption, oParagraph, nType, bHyperlink, bAboveBelow);
 	};
 
 	window["asc_docs_api"]                                      = asc_docs_api;
