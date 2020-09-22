@@ -1024,14 +1024,30 @@ CComplexField.prototype.private_UpdateREF = function()
 	}
 	else // bookmark content
 	{
-		oBookmarksManager.SelectBookmark(sBookmarkName);
-		var oSelectedContent = this.LogicDocument.GetSelectedContent(true);
-		this.SelectFieldValue();
 		if (oParagraph)
 		{
 			var oNearPos = oParagraph.GetCurrentAnchorPosition();
 			if(oNearPos)
 			{
+				oBookmarksManager.SelectBookmark(sBookmarkName);
+				var oSelectedContent = this.LogicDocument.GetSelectedContent(true);
+				var aElements = oSelectedContent.Elements;
+				var oElement;
+				for(var nIndex = 0; nIndex < aElements.length; ++nIndex)
+				{
+					oElement = aElements[nIndex];
+					oElement.Element = oElement.Element.Copy(null, null, {
+						SkipPageBreak         : true,
+						SkipColumnBreak       : true,
+						SkipAnchors           : true,
+						SkipFootnoteReference : true,
+						SkipComplexFields     : true,
+						SkipComments          : true,
+						SkipBookmarks         : true
+					});
+				}
+				
+				this.SelectFieldValue();
 				if(this.LogicDocument.Can_InsertContent(oSelectedContent, oNearPos))
 				{
 					this.LogicDocument.TurnOff_Recalculate();

@@ -21038,6 +21038,7 @@ CDocument.prototype.private_AddRefToBookmark = function(sBookmarkName, nType, bH
 		case Asc.c_oAscDocumentRefenceToType.Text:
 		{
 			sInstr = " REF " + sBookmarkName + " ";
+			sInstr += sSuffix;
 			break;
 		}
 		case Asc.c_oAscDocumentRefenceToType.ParaNum:

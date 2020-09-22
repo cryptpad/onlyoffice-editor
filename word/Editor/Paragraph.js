@@ -294,6 +294,8 @@ Paragraph.prototype.Copy = function(Parent, DrawingDocument, oPr)
 
 		if (para_Comment === Item.Type && true === oPr.SkipComments)
 			continue;
+		if(para_Bookmark === Item.Type && true === oPr.SkipBookmarks)
+			continue;
 
 		Para.Internal_Content_Add(Para.Content.length, Item.Copy(false, oPr), false);
 	}

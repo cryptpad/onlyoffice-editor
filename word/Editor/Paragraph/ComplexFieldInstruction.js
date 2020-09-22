@@ -669,14 +669,10 @@ CFieldInstructionREF.prototype.SetToolTip = function(sToolTip)
 };
 CFieldInstructionREF.prototype.GetToolTip = function()
 {
-	var sTooltip;
-	if(this.HaveNumberFlag() || this.IsPosition())
+	var sTooltip = this.BookmarkName;
+	if(!sTooltip || '_' === sTooltip.charAt(0))
 	{
 		sTooltip = AscCommon.translateManager.getValue("Current Document");
-	}
-	else
-	{
-		sTooltip = this.BookmarkName;
 	}
 	return sTooltip;
 };
