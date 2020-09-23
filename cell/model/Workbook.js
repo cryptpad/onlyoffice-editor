@@ -8654,7 +8654,7 @@
 		this.aNamedSheetViews.push(sheetView);
 
 		History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_SheetViewAdd, this.getId(), null,
-			new AscCommonExcel.UndoRedoData_FromTo(null, sheetView));
+			new AscCommonExcel.UndoRedoData_BinaryWrapper(sheetView));
 	};
 
 	Worksheet.prototype.deleteNamedSheetViews = function (arr) {
@@ -8700,6 +8700,18 @@
 		if (namedSheetViews) {
 			for (var i = 0; i < namedSheetViews.length; i++) {
 				if (name === namedSheetViews[i].name) {
+					return namedSheetViews[i];
+				}
+			}
+		}
+		return null;
+	};
+
+	Worksheet.prototype.getNamedSheetViewById = function (id) {
+		var namedSheetViews = this.aNamedSheetViews;
+		if (namedSheetViews) {
+			for (var i = 0; i < namedSheetViews.length; i++) {
+				if (id === namedSheetViews[i].Get_Id()) {
 					return namedSheetViews[i];
 				}
 			}

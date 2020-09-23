@@ -114,10 +114,18 @@
 		this.isLock = null;
 		this._isActive = null;
 
-		//this.Id = AscCommon.g_oIdCounter.Get_NewId();
+		this.Id = AscCommon.g_oIdCounter.Get_NewId();
 
 		return this;
 	}
+
+	CT_NamedSheetView.prototype.Get_Id = function () {
+		return this.Id;
+	};
+
+	CT_NamedSheetView.prototype.getObjectType = function () {
+		return AscDFH.historyitem_type_NamedSheetView;
+	};
 
 	CT_NamedSheetView.prototype.getType = function() {
 		return AscCommonExcel.UndoRedoDataTypes.NamedSheetView;
@@ -211,7 +219,7 @@
 		}
 	};
 	CT_NamedSheetView.prototype.clone = function () {
-		var res = new CT_NamedSheetView();
+		var res = new CT_NamedSheetView(true);
 
 		for (var i = 0; i < this.nsvFilters.length; ++i) {
 			res.nsvFilters[i] = this.nsvFilters[i].clone();
