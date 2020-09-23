@@ -689,7 +689,9 @@
 
 				var nActiveNamedSheetView = worksheet.getActiveNamedSheetView();
 				var bCollaborativeChanges = this.worksheet.workbook.bCollaborativeChanges;
-				var redoNamedSheetViewName = autoFiltersObject.namedSheetView;
+				var redoNamedSheetViewId = autoFiltersObject.namedSheetView;
+				var redoNamedSheetView = worksheet.getNamedSheetViewById(redoNamedSheetViewId);
+				var redoNamedSheetViewName = redoNamedSheetView ? redoNamedSheetView.name : null;
 				var activeNamedSheetView = worksheet.aNamedSheetViews[nActiveNamedSheetView];
 				var activeNamedSheetViewName = activeNamedSheetView ? activeNamedSheetView.name : null;
 				var isEqualView = nActiveNamedSheetView !== null && activeNamedSheetViewName === redoNamedSheetViewName;
@@ -866,7 +868,7 @@
 				}
 
 				if (activeNamedSheetView) {
-					autoFiltersObject.namedSheetView = activeNamedSheetView.name;
+					autoFiltersObject.namedSheetView = activeNamedSheetView.Id;
 				}
 
 				//history
