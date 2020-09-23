@@ -14482,7 +14482,7 @@ Paragraph.prototype.CanAddRefAfterSEQ = function(sCaption)
 {
 	if (!this.LogicDocument)
 		return false;
-	var oSEQPos = this.private_GetLastSEQPos();
+	var oSEQPos = this.private_GetLastSEQPos(sCaption);
 	if(!oSEQPos)
 	{
 		return false;
@@ -15448,9 +15448,10 @@ Paragraph.prototype.asc_getText = function()
 	sText += this.GetText();
 	return sText;
 };
-
+Paragraph.prototype.asc_canAddRefToCaptionText = Paragraph.prototype.CanAddRefAfterSEQ;
 //export
-Paragraph.prototype["asc_getText"] = Paragraph.prototype.asc_getText;
+Paragraph.prototype["asc_getText"]                = Paragraph.prototype.asc_getText;
+Paragraph.prototype["asc_canAddRefToCaptionText"] = Paragraph.prototype.asc_canAddRefToCaptionText;
 
 
 
