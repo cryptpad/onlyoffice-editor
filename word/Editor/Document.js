@@ -21018,19 +21018,15 @@ CDocument.prototype.private_AddRefToBookmark = function(sBookmarkName, nType, bH
 	var sSuffix = "";
 	if(bHyperlink)
 	{
-		sSuffix += "\\h";
+		sSuffix += " \\h";
 	}
 	if(bAboveBelow)
 	{
-		if(sSuffix.length > 0)
-		{
-			sSuffix += " ";
-		}
-		sSuffix += "\\p";
+		sSuffix += " \\p";
 	}
 	if(typeof sSeparator === "string" && sSeparator.length > 0)
 	{
-		sSuffix += "\\d " + sSeparator;
+		sSuffix += " \\d " + sSeparator;
 	}
 	switch (nType)
 	{
@@ -21066,7 +21062,7 @@ CDocument.prototype.private_AddRefToBookmark = function(sBookmarkName, nType, bH
 		}
 		case Asc.c_oAscDocumentRefenceToType.AboveBelow:
 		{
-			sInstr = " REF " + sBookmarkName + "\\p";
+			sInstr = " REF " + sBookmarkName + " \\p ";
 			break;
 		}
 	}
@@ -21095,19 +21091,15 @@ CDocument.prototype.private_AddNoteRefToBookmark = function(sBookmarkName, nType
 	var sSuffix = "";
 	if(bHyperlink)
 	{
-		sSuffix += "\\h";
+		sSuffix += " \\h";
 	}
 	if(bAboveBelow)
 	{
-		if(sSuffix.length > 0)
-		{
-			sSuffix += " ";
-		}
-		sSuffix += "\\p";
+		sSuffix += " \\p";
 	}
 	if(typeof sSeparator === "string" && sSeparator.length > 0)
 	{
-		sSuffix += "\\d " + sSeparator;
+		sSuffix += " \\d " + sSeparator;
 	}
 	switch (nType)
 	{
@@ -21131,7 +21123,7 @@ CDocument.prototype.private_AddNoteRefToBookmark = function(sBookmarkName, nType
 		}
 		case Asc.c_oAscDocumentRefenceToType.AboveBelow:
 		{
-			sInstr = " NOTEREF " + sBookmarkName + "\\p";
+			sInstr = " NOTEREF " + sBookmarkName + "\\p ";
 			break;
 		}
 	}

@@ -9955,7 +9955,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype.asc_AddCrossRefToNote = function(oParagraph, nType, bHyperlink, bAboveBelow)
 	{
 		var oLogicDocument = this.private_GetLogicDocument();
-		oLogicDocument.AddRefToParagraph(oParagraph, nType, bHyperlink, bAboveBelow, sSeparator);
+		oLogicDocument.AddRefToParagraph(oParagraph, nType, bHyperlink, bAboveBelow, null);
 	};
 	asc_docs_api.prototype.asc_GetAllEndNoteParagraphs = function()
 	{
