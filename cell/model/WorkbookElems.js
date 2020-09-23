@@ -8608,6 +8608,14 @@ CustomFilter.prototype.Write_ToBinary2 = function(writer) {
 		writer.WriteBool(false);
 	}
 };
+CustomFilter.prototype.Read_FromBinary2 = function(reader) {
+	if (reader.GetBool()) {
+		this.Operator = reader.GetLong();
+	}
+	if (reader.GetBool()) {
+		this.Val = reader.GetLong();
+	}
+};
 
 var g_oDynamicFilter = {
 	Type : 0,

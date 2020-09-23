@@ -552,7 +552,7 @@
 			var api_sheet = Asc['editor'];
 			var wb = api_sheet.wbModel;
 			var bsr = new AscCommonExcel.Binary_StylesTableReader(reader, wb);
-			var bcr = new AscCommon.Binary_CommonReader(r);
+			var bcr = new AscCommon.Binary_CommonReader(reader);
 			var oDxf = new AscCommonExcel.CellXfs();
 			reader.GetUChar();
 			var length = reader.GetULongLE();
@@ -763,7 +763,7 @@
 			var api_sheet = Asc['editor'];
 			var wb = api_sheet.wbModel;
 			var bsr = new AscCommonExcel.Binary_StylesTableReader(reader, wb);
-			var bcr = new AscCommon.Binary_CommonReader(r);
+			var bcr = new AscCommon.Binary_CommonReader(reader);
 			var oDxf = new AscCommonExcel.CellXfs();
 			reader.GetUChar();
 			var length = reader.GetULongLE();
@@ -775,13 +775,13 @@
 
 		var obj;
 		if (reader.GetBool()) {
-			obj = new new AscCommonExcel.FilterColumn();
+			obj = new AscCommonExcel.FilterColumn();
 			obj.Read_FromBinary2(reader);
 			this.sortCondition = obj;
 		}
 
 		if (reader.GetBool()) {
-			obj = new AscCommonExcel.SortCondition()();
+			obj = new AscCommonExcel.SortCondition();
 			obj.Read_FromBinary2(reader);
 			//TODO CT_RichSortCondition ?
 			this.richSortCondition = obj;

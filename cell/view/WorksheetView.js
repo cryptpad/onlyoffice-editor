@@ -14901,9 +14901,9 @@
 			if (null !== nActive) {
 				//лочу для того, чтобы не было возможности изменить имя текущего отображения
 				//иначе будут конфликты при принятии изменений
-				api._isLockedNamedSheetView([t.model.aNamedSheetViews[nActive]], function (_success) {
+				//api._isLockedNamedSheetView([t.model.aNamedSheetViews[nActive]], function (_success) {
 					onChangeAutoFilterCallback(true);
-				});
+				//});
 			} else {
 				this._isLockedAll(onChangeAutoFilterCallback);
 			}
@@ -15095,9 +15095,9 @@
 			} else {
 				var nActive = t.model.getActiveNamedSheetView();
 				if (null !== nActive) {
-					api._isLockedNamedSheetView([t.model.aNamedSheetViews[nActive]], function (_success) {
+					//api._isLockedNamedSheetView([t.model.aNamedSheetViews[nActive]], function (_success) {
 						onChangeAutoFilterCallback(true);
-					});
+					//});
 				} else {
 					this._isLockedAll(onChangeAutoFilterCallback);
 				}
