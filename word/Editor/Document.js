@@ -20993,6 +20993,7 @@ CDocument.prototype.AddRefToParagraph = function(oParagraph, nType, bHyperlink, 
 	{
 		this.StartAction(AscDFH.historydescription_Document_AddCrossRef);
 		var sBookmarkName = oParagraph.AddBookmarkForRef();
+		this.Recalculate(true);
 		this.private_AddRefToBookmark(sBookmarkName, nType, bHyperlink, bAboveBelow, sSeparator);
 		this.Recalculate();
 		this.UpdateInterface();
@@ -21014,6 +21015,10 @@ CDocument.prototype.AddRefToBookmark = function(sBookmarkName, nType, bHyperlink
 };
 CDocument.prototype.private_AddRefToBookmark = function(sBookmarkName, nType, bHyperlink, bAboveBelow, sSeparator)
 {
+	if(!(typeof sBookmarkName === "string" && sBookmarkName.length > 0))
+	{
+		return;
+	}
 	var sInstr = "";
 	var sSuffix = "";
 	if(bHyperlink)
@@ -21078,6 +21083,7 @@ CDocument.prototype.AddNoteRefToParagraph = function(oParagraph, nType, bHyperli
 	{
 		this.StartAction(AscDFH.historydescription_Document_AddCrossRef);
 		var sBookmarkName = oParagraph.AddBookmarkForRef();
+		this.Recalculate(true);
 		this.private_AddNoteRefToBookmark(sBookmarkName, nType, bHyperlink, bAboveBelow, sSeparator);
 		this.Recalculate();
 		this.UpdateInterface();
@@ -21087,6 +21093,10 @@ CDocument.prototype.AddNoteRefToParagraph = function(oParagraph, nType, bHyperli
 };
 CDocument.prototype.private_AddNoteRefToBookmark = function(sBookmarkName, nType, bHyperlink, bAboveBelow, sSeparator)
 {
+	if(!(typeof sBookmarkName === "string" && sBookmarkName.length > 0))
+	{
+		return;
+	}
 	var sInstr = "";
 	var sSuffix = "";
 	if(bHyperlink)

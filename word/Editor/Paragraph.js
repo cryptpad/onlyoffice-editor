@@ -14437,21 +14437,72 @@ Paragraph.prototype.AddBookmarkForTOC = function()
 Paragraph.prototype.AddBookmarkForRef = function()
 {
 	if (!this.LogicDocument)
-		return;
+		return null;
 
 	//check is ref bookmark in paragraph
-	var oFirstElem = this.Content[0];
-	var oLastElem = this.Content[this.Content.length - 1];
-	if(oFirstElem && oFirstElem.GetType() === para_Bookmark
-	 && oLastElem && oLastElem.GetType() === para_Bookmark 
-	 && oFirstElem.GetBookmarkId() === oLastElem.GetBookmarkId() && oLastElem.Is)
-	 {
-		var sBookmarkName = oParaBookmark.GetBookmarkName();
+	var oFirstBookmark = null, oSecondBookmark = null;
+	var nIndex, oElement;
+	for(nIndex = 0; nIndex < this.Content.length; ++nIndex)
+	{
+		oElement = this.Content[nIndex];
+		if(oElement.GetType() === para_Bookmark)
+		{
+			oFirstBookmark = oElement;
+			break;
+		}
+		else if(oElement.GetType() === para_Run)
+		{
+			if(oElement.IsEmpty())
+			{
+				continue;
+			}
+			else
+			{
+				break;
+			}
+		}
+		else
+		{
+			break;
+		}
+	}
+	if(oFirstBookmark)
+	{
+		for(nIndex = this.Content.length - 1; nIndex > -1; --nIndex)
+		{
+			oElement = this.Content[nIndex];
+			if(oElement.GetType() === para_Bookmark)
+			{
+				oSecondBookmark = oElement;
+				break;
+			}
+			else if(oElement.GetType() === para_Run)
+			{
+				if(oElement.IsEmpty() || oElement.IsParaEndRun())
+				{
+					continue;
+				}
+				else
+				{
+					break;
+				}
+			}
+			else
+			{
+				break;
+			}
+		}
+	}
+	if(oFirstBookmark && oSecondBookmark && 
+		oFirstBookmark.GetBookmarkId() === oSecondBookmark.GetBookmarkId() && 
+		oFirstBookmark.IsStart() && !oSecondBookmark.IsStart())
+	{
+		var sBookmarkName = oFirstBookmark.GetBookmarkName();
 		if(typeof sBookmarkName === "string" && 0 === sBookmarkName.indexOf("_Ref"))
 		{
 			return sBookmarkName;
 		}
-	 }
+	}
 	var oBookmarksManager = this.LogicDocument.GetBookmarksManager();
 
 	var sId   = oBookmarksManager.GetNewBookmarkId();
