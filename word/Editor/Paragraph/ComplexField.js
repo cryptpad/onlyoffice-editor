@@ -481,6 +481,13 @@ CComplexField.prototype.CalculateValue = function()
 		case fieldtype_DATE:
 			sResult = this.private_CalculateTIME();
 			break;
+		case fieldtype_REF:
+			sResult = this.private_CalculateREF();
+			break;
+		case fieldtype_NOTEREF:
+			sResult = this.private_CalculateNOTEREF();
+			break;
+
 	}
 
 	return sResult;
@@ -518,23 +525,27 @@ CComplexField.prototype.private_InsertMessage = function(sMessage, oTextPr)
 };
 CComplexField.prototype.private_InsertContent = function(oSelectedContent)
 {
-	this.SelectFieldValue();
-	this.LogicDocument.TurnOff_Recalculate();
-	this.LogicDocument.TurnOff_InterfaceEvents();
-	this.LogicDocument.Remove(1, false, false, false);
-	this.LogicDocument.TurnOn_Recalculate(false);
-	this.LogicDocument.TurnOn_InterfaceEvents(false);
 	var oRun       = this.BeginChar.GetRun();
 	var oParagraph = oRun.GetParagraph();
-	var oNearPos   = {
-		Paragraph  : oParagraph,
-		ContentPos : oParagraph.Get_ParaContentPos(false, false)
-	};
-	oParagraph.Check_NearestPos(oNearPos);
-	oSelectedContent.DoNotAddEmptyPara = true;
-	oParagraph.Parent.InsertContent(oSelectedContent, oNearPos);
+	if (oParagraph)
+	{
+		this.SelectFieldValue();
+		var oNearPos = oParagraph.GetCurrentAnchorPosition();
+		if(oNearPos)
+		{
+			if(this.LogicDocument.Can_InsertContent(oSelectedContent, oNearPos))
+			{
+				this.LogicDocument.TurnOff_Recalculate();
+				this.LogicDocument.TurnOff_InterfaceEvents();
+				this.LogicDocument.Remove(1, false, false, false);
+				this.LogicDocument.TurnOn_Recalculate(false);
+				this.LogicDocument.TurnOn_InterfaceEvents(false);
+				oParagraph.Check_NearestPos(oNearPos);
+				oParagraph.Parent.InsertContent(oSelectedContent, oNearPos);
+			}
+		}
+	}
 };
-
 CComplexField.prototype.private_UpdateFORMULA = function()
 {
 	this.Instruction.Calculate(this.LogicDocument);
@@ -914,16 +925,14 @@ CComplexField.prototype.private_InsertError = function(sText)
 	oTextPr.Set_FromObject({Bold: true});
 	this.private_InsertMessage(sText, oTextPr);
 };
-CComplexField.prototype.private_UpdateREF = function()
+CComplexField.prototype.private_GetREFPosValue = function()
 {
 	var oBookmarksManager = this.LogicDocument.GetBookmarksManager();
 	var sBookmarkName = this.Instruction.GetBookmarkName();
 	var oBookmark = oBookmarksManager.GetBookmarkByName(sBookmarkName);
-	var sValue = AscCommon.translateManager.getValue("Error! Reference source not found.");
 	if(!oBookmark)
 	{
-		this.private_InsertError(sValue);
-		return;
+		return "";
 	}
 	var oStartBookmark = oBookmark[0];
 	var oSrcParagraph = oStartBookmark.Paragraph;
@@ -931,39 +940,94 @@ CComplexField.prototype.private_UpdateREF = function()
 	var oParagraph = oRun.GetParagraph();
 	if(!oSrcParagraph || !oParagraph)
 	{
-		this.private_InsertError(sValue);
-		return;
+		return "";
+	}
+	var sPosition = "";
+	if (oStartBookmark.GetPage() === this.SeparateChar.GetPage())
+	{
+		var oBookmarkXY = oStartBookmark.GetXY();
+		var oFieldXY    = this.SeparateChar.GetXY();
+
+		if (Math.abs(oBookmarkXY.Y - oFieldXY.Y) < 0.001)
+			sPosition = oBookmarkXY.X < oFieldXY.X ? AscCommon.translateManager.getValue("above") : AscCommon.translateManager.getValue("below");
+		else if (oBookmarkXY.Y < oFieldXY.Y)
+			sPosition = AscCommon.translateManager.getValue("above");
+		else
+			sPosition = AscCommon.translateManager.getValue("below");
+	}
+	else if(oStartBookmark.GetPage() < this.SeparateChar.GetPage())
+	{
+		sPosition = AscCommon.translateManager.getValue("above");
+	}
+	else
+	{
+		sPosition = AscCommon.translateManager.getValue("below");
+	}
+	return sPosition;
+};
+CComplexField.prototype.private_UpdateREF = function()
+{
+	this.private_InsertContent(this.private_GetREFContent());
+
+};
+CComplexField.prototype.private_CalculateREF = function()
+{
+	var oSelectedContent = this.private_GetREFContent();
+	return oSelectedContent.GetText(null);
+};
+CComplexField.prototype.private_GetMessageContent = function(sMessage, oTextPr)
+{
+	var oSelectedContent = new CSelectedContent();
+	var oPara = new Paragraph(this.LogicDocument.GetDrawingDocument(), this.LogicDocument, false);
+	var oRun  = new ParaRun(oPara, false);
+	if(oTextPr)
+	{
+		oRun.Apply_Pr(oTextPr);
+	}
+	oRun.AddText(sMessage);
+	oPara.AddToContent(0, oRun);
+	oSelectedContent.Add(new CSelectedElement(oPara, false));
+	oSelectedContent.DoNotAddEmptyPara = true;
+	return oSelectedContent;
+};
+CComplexField.prototype.private_GetErrorContent = function(sMessage, oTextPr)
+{
+	var oTextPr = new CTextPr();
+	oTextPr.Set_FromObject({Bold: true});
+	return this.private_GetMessageContent(sMessage, oTextPr);
+};
+CComplexField.prototype.private_GetREFContent = function()
+{
+	var sValue = AscCommon.translateManager.getValue("Error! Reference source not found.");
+	if(!this.Instruction || this.Instruction.Type !== fieldtype_REF)
+	{
+		return this.private_GetErrorContent(sValue);
+	}
+	var oBookmarksManager = this.LogicDocument.GetBookmarksManager();
+	var sBookmarkName = this.Instruction.GetBookmarkName();
+	var oBookmark = oBookmarksManager.GetBookmarkByName(sBookmarkName);
+	if(!oBookmark)
+	{
+		return this.private_GetErrorContent(sValue);
+	}
+	var oStartBookmark = oBookmark[0];
+	var oSrcParagraph = oStartBookmark.Paragraph;
+	var oRun       = this.BeginChar.GetRun();
+	var oParagraph = oRun.GetParagraph();
+	if(!oSrcParagraph || !oParagraph)
+	{
+		return this.private_GetErrorContent(sValue);
 	}
 	var sPosition = "";
 	if(this.Instruction.IsPosition())
 	{
-		if (oStartBookmark.GetPage() === this.SeparateChar.GetPage())
-		{
-			var oBookmarkXY = oStartBookmark.GetXY();
-			var oFieldXY    = this.SeparateChar.GetXY();
-
-			if (Math.abs(oBookmarkXY.Y - oFieldXY.Y) < 0.001)
-				sPosition = oBookmarkXY.X < oFieldXY.X ? AscCommon.translateManager.getValue("above") : AscCommon.translateManager.getValue("below");
-			else if (oBookmarkXY.Y < oFieldXY.Y)
-				sPosition = AscCommon.translateManager.getValue("above");
-			else
-				sPosition = AscCommon.translateManager.getValue("below");
-		}
-		else if(oStartBookmark.GetPage() < this.SeparateChar.GetPage())
-		{
-			sPosition = AscCommon.translateManager.getValue("above");
-		}
-		else
-		{
-			sPosition = AscCommon.translateManager.getValue("below");
-		}
+		sPosition = this.private_GetREFPosValue();
 	}
 	if(this.Instruction.HaveNumberFlag())
 	{
 		if(!oSrcParagraph.IsNumberedNumbering())
 		{
-			this.LogicDocument.AddText("0");
-			return;
+			return this.private_GetMessageContent("0", null);
 		}
 		var oNumPr     = oSrcParagraph.GetNumPr();
 		var oNumbering = this.LogicDocument.GetNumbering();
@@ -1016,78 +1080,58 @@ CComplexField.prototype.private_UpdateREF = function()
 			sValue += " ";
 			sValue += sPosition;
 		}
-		this.LogicDocument.AddText(sValue);
+		return this.private_GetMessageContent(sValue, null);
 	}
 	else if(this.Instruction.IsPosition())
 	{
-		this.LogicDocument.AddText(sPosition);
+		return this.private_GetMessageContent(sPosition, null);
 	}
 	else // bookmark content
 	{
-		if (oParagraph)
+		oBookmarksManager.SelectBookmark(sBookmarkName);
+		var oSelectedContent = this.LogicDocument.GetSelectedContent(true);
+		var aElements = oSelectedContent.Elements;
+		var oElement;
+		for(var nIndex = 0; nIndex < aElements.length; ++nIndex)
 		{
-			var oNearPos = oParagraph.GetCurrentAnchorPosition();
-			if(oNearPos)
-			{
-				oBookmarksManager.SelectBookmark(sBookmarkName);
-				var oSelectedContent = this.LogicDocument.GetSelectedContent(true);
-				var aElements = oSelectedContent.Elements;
-				var oElement;
-				for(var nIndex = 0; nIndex < aElements.length; ++nIndex)
-				{
-					oElement = aElements[nIndex];
-					oElement.Element = oElement.Element.Copy(null, null, {
-						SkipPageBreak         : true,
-						SkipColumnBreak       : true,
-						SkipAnchors           : true,
-						SkipFootnoteReference : true,
-						SkipComplexFields     : true,
-						SkipComments          : true,
-						SkipBookmarks         : true
-					});
-				}
-				
-				this.SelectFieldValue();
-				if(this.LogicDocument.Can_InsertContent(oSelectedContent, oNearPos))
-				{
-					this.LogicDocument.TurnOff_Recalculate();
-					this.LogicDocument.TurnOff_InterfaceEvents();
-					this.LogicDocument.Remove(1, false, false, false);
-					this.LogicDocument.TurnOn_Recalculate(false);
-					this.LogicDocument.TurnOn_InterfaceEvents(false);
-					var oNearPos   = {
-						Paragraph  : oParagraph,
-						ContentPos : oParagraph.Get_ParaContentPos(false, false)
-					};
-					oParagraph.Check_NearestPos(oNearPos);
-					oSelectedContent.DoNotAddEmptyPara = true;
-					oParagraph.Parent.InsertContent(oSelectedContent, oNearPos);
-				}
-			}
+			oElement = aElements[nIndex];
+			oElement.Element = oElement.Element.Copy(null, null, {
+				SkipPageBreak         : true,
+				SkipColumnBreak       : true,
+				SkipAnchors           : true,
+				SkipFootnoteReference : true,
+				SkipComplexFields     : true,
+				SkipComments          : true,
+				SkipBookmarks         : true
+			});
 		}
+		oSelectedContent.DoNotAddEmptyPara = true;
+		return oSelectedContent;
 	}
 	//TODO: Apply formatting from general switches
 };
-CComplexField.prototype.private_UpdateNOTEREF = function()
+CComplexField.prototype.private_GetNOTEREFContent = function()
 {
+	var sValue = AscCommon.translateManager.getValue("Error! Bookmark not defined.");
+	if(!this.Instruction || this.Instruction.Type !== fieldtype_NOTEREF)
+	{
+		return this.private_GetErrorContent(sValue);
+	}
 	var oBookmarksManager = this.LogicDocument.GetBookmarksManager();
 	var sBookmarkName = this.Instruction.GetBookmarkName();
 	var oBookmark = oBookmarksManager.GetBookmarkByName(sBookmarkName);
-	var sValue = AscCommon.translateManager.getValue("Error! Bookmark not defined.");
 	if(!oBookmark)
 	{
-		this.private_InsertError(sValue);
-		return;
+		return this.private_GetErrorContent(sValue);
 	}
 	//check notes in bookmarked content
-	
+
 	oBookmarksManager.SelectBookmark(sBookmarkName);
 	var oSelectionInfo = this.LogicDocument.GetSelectedElementsInfo({CheckAllSelection : true});
 	var aFootEndNotes = oSelectionInfo.GetFootEndNoteRefs();
 	if(aFootEndNotes.length === 0)
 	{
-		this.private_InsertError(sValue);
-		return;
+		return this.private_GetErrorContent(sValue);
 	}
 	var oFootEndNote = aFootEndNotes[0];
 	var oStartBookmark = oBookmark[0];
@@ -1096,8 +1140,7 @@ CComplexField.prototype.private_UpdateNOTEREF = function()
 	var oParagraph = oRun.GetParagraph();
 	if(!oSrcParagraph || !oParagraph)
 	{
-		this.LogicDocument.AddText(sValue);
-		return;
+		return this.private_GetErrorContent(sValue);
 	}
 	var oSelectedContent = new CSelectedContent();
 	var oTextPr;
@@ -1113,34 +1156,23 @@ CComplexField.prototype.private_UpdateNOTEREF = function()
 	oPara.AddToContent(0, oRun);
 	if(this.Instruction.IsPosition())
 	{
-		if (oStartBookmark.GetPage() === this.SeparateChar.GetPage())
-		{
-			var oBookmarkXY = oStartBookmark.GetXY();
-			var oFieldXY    = this.SeparateChar.GetXY();
-
-			if (Math.abs(oBookmarkXY.Y - oFieldXY.Y) < 0.001)
-				sValue = oBookmarkXY.X < oFieldXY.X ? AscCommon.translateManager.getValue("above") : AscCommon.translateManager.getValue("below");
-			else if (oBookmarkXY.Y < oFieldXY.Y)
-				sValue = AscCommon.translateManager.getValue("above");
-			else
-				sValue = AscCommon.translateManager.getValue("below");
-		}
-		else if(oStartBookmark.GetPage() < this.SeparateChar.GetPage())
-		{
-			sValue = AscCommon.translateManager.getValue("above");
-		}
-		else
-		{
-			sValue = AscCommon.translateManager.getValue("below");
-		}
-		sValue = " " + sValue;
+		sValue = " " + this.private_GetREFPosValue();
 		oRun  = new ParaRun(oPara, false);
 		oRun.AddText(sValue);
 		oPara.AddToContent(1, oRun);
 	}
 	oSelectedContent.Add(new CSelectedElement(oPara, false));
-	this.private_InsertContent(oSelectedContent);
-	//TODO: Apply formatting from general switches
+	oSelectedContent.DoNotAddEmptyPara = true;
+	return oSelectedContent;
+}
+CComplexField.prototype.private_UpdateNOTEREF = function()
+{
+	this.private_InsertContent(this.private_GetNOTEREFContent());
+};
+CComplexField.prototype.private_CalculateNOTEREF = function()
+{
+	var oSelectedContent = this.private_GetNOTEREFContent();
+	return oSelectedContent.GetText(null);
 };
 CComplexField.prototype.SelectFieldValue = function()
 {
