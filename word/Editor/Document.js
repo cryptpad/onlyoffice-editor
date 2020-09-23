@@ -22358,7 +22358,7 @@ CDocument.prototype.AddCaption = function(oPr)
                 break;
             }
         }
-        aFields = aFields.slice(i, aFields.length - i);
+        aFields = aFields.slice(i);
         var arrParagraphs = [];
         for (var nIndex = 0, nCount = aFields.length; nIndex < nCount; ++nIndex)
         {
