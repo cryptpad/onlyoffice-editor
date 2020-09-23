@@ -14293,6 +14293,10 @@ CDocument.prototype.GetEndNotesFirstParagraphs = function()
 CDocument.prototype.GetAllCaptionParagraphs = function(sCaption)
 {
 	var aFields = [];
+	if(!(typeof sCaption === "string" && sCaption.length > 0))
+	{
+		return [];
+	}
 	this.GetAllSeqFieldsByType(sCaption, aFields);
 	var aParagraphs = [];
 	for(var nField = 0; nField < aFields.length; ++nField)
@@ -14308,6 +14312,7 @@ CDocument.prototype.GetAllCaptionParagraphs = function(sCaption)
 			}
 		}
 	}
+	return aParagraphs;
 };
 CDocument.prototype.TurnOffHistory = function()
 {

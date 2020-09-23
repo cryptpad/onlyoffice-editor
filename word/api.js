@@ -9935,7 +9935,12 @@ background-repeat: no-repeat;\
 		var oLogicDocument = this.private_GetLogicDocument();
 		var arrOutline = [];
 		oLogicDocument.GetOutlineParagraphs(arrOutline, {SkipEmptyParagraphs : true});
-		return arrOutline;
+		var aParagraphs = [];
+		for(var nIndex = 0; nIndex < arrOutline.length; ++nIndex)
+		{
+			aParagraphs.push(arrOutline[nIndex].Paragraph);
+		}
+		return aParagraphs;
 	};
 	asc_docs_api.prototype.asc_AddCrossRefToBookmark = function(sName, nType, bHyperlink, bAboveBelow, sSeparator)
 	{
