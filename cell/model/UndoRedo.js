@@ -433,6 +433,7 @@ function (window, undefined) {
 
 		this.NamedSheetView = 130;
 		this.NamedSheetViewChange = 131;
+		this.NamedSheetViewRedo = 132;
 
 		this.Create = function (nType) {
 			switch (nType) {
@@ -609,6 +610,10 @@ function (window, undefined) {
 				case this.NamedSheetViewChange:
 					if (window['AscCommonExcel'].UndoRedoData_NamedSheetView) {
 						return new window['AscCommonExcel'].UndoRedoData_NamedSheetView();
+					}
+				case this.NamedSheetViewRedo:
+					if (window['AscCommonExcel'].UndoRedoData_NamedSheetViewRedo) {
+						return new window['AscCommonExcel'].UndoRedoData_NamedSheetViewRedo();
 					}
 			}
 			return null;
@@ -2883,9 +2888,7 @@ function (window, undefined) {
 			if (bUndo) {
 				ws.deleteNamedSheetViews([Data.to]);
 			} else {
-				var _namedSheetView = Data.getData();
-				_namedSheetView.ws = ws;
-				ws.aNamedSheetViews.push(_namedSheetView);
+				ws.addNamedSheetView(Data.getData());
 			}
 		} else if (AscCH.historyitem_Worksheet_SheetViewDelete === Type) {
 			if (bUndo) {
