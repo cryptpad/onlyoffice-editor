@@ -21073,7 +21073,9 @@ CDocument.prototype.private_AddRefToBookmark = function(sBookmarkName, nType, bH
 			break;
 		}
 	}
-	this.AddFieldWithInstruction(sInstr);
+	var oComplexField = this.AddFieldWithInstruction(sInstr);
+	this.Recalculate(true);
+	oComplexField.Update(false);
 };
 CDocument.prototype.AddNoteRefToParagraph = function(oParagraph, nType, bHyperlink, bAboveBelow)
 {
@@ -21135,7 +21137,9 @@ CDocument.prototype.private_AddNoteRefToBookmark = function(sBookmarkName, nType
 			break;
 		}
 	}
-	this.AddFieldWithInstruction(sInstr);
+	var oComplexField = this.AddFieldWithInstruction(sInstr);
+	this.Recalculate(true);
+	oComplexField.Update(false);
 };
 CDocument.prototype.AddRefToCaption = function(sCaption, oParagraph, nType, bHyperlink, bAboveBelow)
 {

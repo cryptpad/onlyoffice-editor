@@ -14542,7 +14542,7 @@ Paragraph.prototype.AddBookmarkForNoteRef = function()
 Paragraph.prototype.private_FindRefBookmarks = function(nStart, nEnd)
 {
 	var nPos;
-	var aBookmarks = [], oElement;
+	var aBookmarks = [], oElement, sBookmarkName;
 	if(nStart < nEnd)
 	{
 		for(nPos = nStart; nPos <= nEnd; ++nPos)
