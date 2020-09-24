@@ -21042,6 +21042,8 @@ CDocument.prototype.private_AddRefToBookmark = function(sBookmarkName, nType, bH
 			break;
 		}
 		case Asc.c_oAscDocumentRefenceToType.Text:
+		case Asc.c_oAscDocumentRefenceToType.OnlyCaptionText:
+		case Asc.c_oAscDocumentRefenceToType.OnlyLabelAndNumber:
 		{
 			sInstr = " REF " + sBookmarkName + " ";
 			sInstr += sSuffix;
@@ -21073,7 +21075,7 @@ CDocument.prototype.private_AddRefToBookmark = function(sBookmarkName, nType, bH
 	}
 	this.AddFieldWithInstruction(sInstr);
 };
-CDocument.prototype.AddNoteRefToParagraph = function(oParagraph, nType, bHyperlink, bAboveBelow, sSeparator)
+CDocument.prototype.AddNoteRefToParagraph = function(oParagraph, nType, bHyperlink, bAboveBelow)
 {
 	if(false === this.IsSelectionLocked(AscCommon.changestype_Document_Content, {
 		Type      : changestype_2_ElementsArray_and_Type,
@@ -21084,14 +21086,14 @@ CDocument.prototype.AddNoteRefToParagraph = function(oParagraph, nType, bHyperli
 		this.StartAction(AscDFH.historydescription_Document_AddCrossRef);
 		var sBookmarkName = oParagraph.AddBookmarkForRef();
 		this.Recalculate(true);
-		this.private_AddNoteRefToBookmark(sBookmarkName, nType, bHyperlink, bAboveBelow, sSeparator);
+		this.private_AddNoteRefToBookmark(sBookmarkName, nType, bHyperlink, bAboveBelow);
 		this.Recalculate();
 		this.UpdateInterface();
 		this.UpdateSelection();
 		this.FinalizeAction();
 	}
 };
-CDocument.prototype.private_AddNoteRefToBookmark = function(sBookmarkName, nType, bHyperlink, bAboveBelow, sSeparator)
+CDocument.prototype.private_AddNoteRefToBookmark = function(sBookmarkName, nType, bHyperlink, bAboveBelow)
 {
 	if(!(typeof sBookmarkName === "string" && sBookmarkName.length > 0))
 	{
@@ -21106,10 +21108,6 @@ CDocument.prototype.private_AddNoteRefToBookmark = function(sBookmarkName, nType
 	if(bAboveBelow)
 	{
 		sSuffix += " \\p";
-	}
-	if(typeof sSeparator === "string" && sSeparator.length > 0)
-	{
-		sSuffix += " \\d " + sSeparator;
 	}
 	switch (nType)
 	{

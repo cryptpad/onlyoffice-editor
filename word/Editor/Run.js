@@ -11425,7 +11425,7 @@ ParaRun.prototype.GetLastSEQPos = function(sType)
 			}
 		}
     }
-    return null;;
+    return null;
 };
 ParaRun.prototype.AddToContent = function(nPos, oItem, isUpdatePositions)
 {
