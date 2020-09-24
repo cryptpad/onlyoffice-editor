@@ -8653,38 +8653,40 @@
 		this.insertNamedSheetView(sheetView, true);
 	};
 
-	Worksheet.prototype.deleteNamedSheetViews = function (arr) {
+	Worksheet.prototype.deleteNamedSheetViews = function (arr, doNotAddHistory) {
 		var namedSheetViews = this.aNamedSheetViews;
 		if (namedSheetViews && arr) {
-			var isDeleteActive;
 			var diff = 0;
 			for (var i = 0; i < arr.length; i++) {
+				if (!arr[i]) {
+					continue;
+				}
 				var index = this.getIndexNamedSheetViewByName(arr[i].name);
 				if (index === this.nActiveNamedSheetView) {
-					isDeleteActive = true;
+					if (this.workbook.oApi.asc_setActiveNamedSheetView) {
+						this.workbook.oApi.asc_setActiveNamedSheetView(null);
+					}
 				}
 
-				History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_SheetViewDelete, this.getId(), null,
-					new AscCommonExcel.UndoRedoData_NamedSheetViewRedo(namedSheetViews[index - diff].Get_Id(), namedSheetViews[index - diff], null));
+				if (!doNotAddHistory) {
+					History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_SheetViewDelete, this.getId(), null,
+						new AscCommonExcel.UndoRedoData_NamedSheetViewRedo(namedSheetViews[index - diff].Get_Id(), namedSheetViews[index - diff], null));
+				}
 
 				namedSheetViews.splice(index - diff, 1);
 				diff++;
 			}
-
-			if (isDeleteActive && this.workbook.oApi.asc_setActiveNamedSheetView) {
-				this.workbook.oApi.asc_setActiveNamedSheetView(null);
-			}
 		}
 	};
 
-	Worksheet.prototype.deleteNamedSheetView = function (id) {
+	Worksheet.prototype.getNamedSheetViewById = function (id) {
 		for (var i = 0; i < this.aNamedSheetViews.length; ++i) {
 			var sheetView = this.aNamedSheetViews[i];
 			if (id === sheetView.Get_Id()) {
-				this.aNamedSheetViews.splice(i, 1);
-				break;
+				return sheetView;
 			}
 		}
+		return null;
 	};
 
 	Worksheet.prototype.insertNamedSheetView = function (sheetView, addToHistory) {
