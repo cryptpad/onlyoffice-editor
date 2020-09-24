@@ -195,21 +195,20 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 		__y -= 1;
 		_len -= 2;
 	}
+
 	ctx.putImageData(_data, 0, -1);
 
-    ctxLeft.translate( _radx, _rady + Math.round(window.devicePixelRatio) );
+    ctxLeft.translate( _radx, _rady + 1);
     ctxLeft.rotate( -Math.PI / 2 );
     ctxLeft.translate( -_radx, -_rady );
     ctxLeft.drawImage( this.ImageTop, 0, 0 );
 
-    ctxBottom.translate( _radx + 1, _rady + Math.round( window.devicePixelRatio));
+	ctxBottom.translate( _radx + 1, _rady);
     ctxBottom.rotate( Math.PI );
-    ctxBottom.translate( -_radx, -_rady );
-    ctxBottom.drawImage( this.ImageTop, 0, 0 );
+    ctxBottom.translate( -_radx, -_rady);
+    ctxBottom.drawImage( this.ImageTop, 0, -1 );
 
-	// var scaleCoefY = scaleCoef === 1 ? 0 : scaleCoef;
-
-	ctxRight.translate( _radx + Math.round(window.devicePixelRatio), _rady + Math.round(window.devicePixelRatio) - 1);
+	ctxRight.translate( _radx + Math.round(dPR), _rady + Math.round(dPR) - 1);
 	ctxRight.rotate( Math.PI / 2 );
 	ctxRight.translate( -_radx, -_rady );
 	ctxRight.drawImage( this.ImageTop, 0, 0 );
@@ -355,11 +354,11 @@ function _HEXTORGB_( colorHEX ) {
 		this.piperImgVert = document.createElement( 'canvas' );
 		this.piperImgHor =  document.createElement( 'canvas' );
 
-		this.piperImgVert.height = 13;
-		this.piperImgVert.width = 5;
+		this.piperImgVert.height = Math.round( 13 * window.devicePixelRatio);
+		this.piperImgVert.width = Math.round(5 * window.devicePixelRatio);
 
-		this.piperImgHor.width = 13;
-		this.piperImgHor.height = 5;
+		this.piperImgHor.width = Math.round( 13 * window.devicePixelRatio);
+		this.piperImgHor.height = Math.round(5 * window.devicePixelRatio);
 
 		this.disableCurrentScroll = false;
 
@@ -374,36 +373,34 @@ function _HEXTORGB_( colorHEX ) {
 		b = r.B;
 		r = r.R;
 
+		var scrollDPR = (window.devicePixelRatio % 0.5 === 0) ? Math.floor(window.devicePixelRatio) : Math.round(window.devicePixelRatio);
+
 		k = this.piperImgVert.width * 4;
+		var k1 = this.piperImgVert.width * 4;
 
-			ctx_piperImg = this.piperImgVert.getContext( '2d' );
-			_data = ctx_piperImg.createImageData( this.piperImgVert.width, this.piperImgVert.height );
-			px = _data.data;
+        ctx_piperImg = this.piperImgVert.getContext('2d');
+        ctx_piperImg.beginPath();
+        ctx_piperImg.lineWidth = Math.floor(window.devicePixelRatio);
+        var count = 0;
+        for (var i = 0; i < this.piperImgVert.height; i += Math.round(window.devicePixelRatio) + Math.floor(window.devicePixelRatio)) {
+            ctx_piperImg.moveTo(0, i + 0.5 * ctx_piperImg.lineWidth);
+            ctx_piperImg.lineTo(this.piperImgVert.width, i + 0.5 * ctx_piperImg.lineWidth);
+            ctx_piperImg.stroke();
+            ++count;
+            if (count > 6) break;
+        }
 
-			for ( var i = 0; i < this.piperImgVert.width * this.piperImgVert.height * 4; ) {
-				px[i++] = r;
-				px[i++] = g;
-				px[i++] = b;
-				px[i++] = 255;
-				i = ( i % k === 0 ) ? i + k : i;
-			}
-
-			ctx_piperImg.putImageData( _data, 0, 0 );
-
-			ctx_piperImg = this.piperImgHor.getContext( '2d' );
-
-			_data = ctx_piperImg.createImageData( this.piperImgHor.width, this.piperImgHor.height );
-			px = _data.data;
-
-			for ( var i = 0; i < this.piperImgHor.width * this.piperImgHor.height * 4; ) {
-				px[i++] = r;
-				px[i++] = g;
-				px[i++] = b;
-				px[i++] = 255;
-				i = ( i % 4 === 0 && i % 52 !== 0 ) ? i + 4 : i;
-			}
-
-			ctx_piperImg.putImageData( _data, 0, 0 )
+        ctx_piperImg = this.piperImgHor.getContext('2d');
+        ctx_piperImg.beginPath();
+        ctx_piperImg.lineWidth = Math.floor(window.devicePixelRatio);
+        var count = 0;
+        for (var i = 0; i < this.piperImgHor.width; i += Math.round(window.devicePixelRatio) + Math.floor(window.devicePixelRatio)) {
+            ctx_piperImg.moveTo(i + 0.5 * ctx_piperImg.lineWidth, 0);
+            ctx_piperImg.lineTo(i + 0.5 * ctx_piperImg.lineWidth, this.piperImgHor.height);
+            ctx_piperImg.stroke();
+            ++count;
+            if (count > 6) break;
+        }
 
 			r = _HEXTORGB_( this.settings.piperColorHover );
 			g = r.G;
@@ -932,7 +929,7 @@ function _HEXTORGB_( colorHEX ) {
 					ctx.stroke();
 				}
 
-				y1 = that.canvasH - t.SizeH + Math.round((-bottomRightDelta - 1) * dPR);
+				y1 = that.canvasH - t.SizeH - Math.round((bottomRightDelta + 1) * dPR);
 				arrowImage = that.ArrowDrawer.ImageBottom;
 			}
 		}
@@ -1037,8 +1034,8 @@ function _HEXTORGB_( colorHEX ) {
 		//drawing scroll stripes
 		if (that._checkPiperImagesV()) {
 
-			x = that.scroller.x + (that.settings.slimScroll ? 2 : 3);
-			y = (that.scroller.y >> 0) + Math.floor(that.scroller.h / 2) - 6;
+			x = Math.round((that.scroller.w - that.piperImgVert.width) / 2);
+			y = Math.floor((that.scroller.y + Math.floor(that.scroller.h / 2) - 6 * dPR));
 
 			ctx_piperImg = that.piperImgVert.getContext('2d');
 			ctx_piperImg.globalCompositeOperation = "source-in";
@@ -1049,8 +1046,8 @@ function _HEXTORGB_( colorHEX ) {
 
 			img = that.piperImgVert;
 		} else if (that._checkPiperImagesH()) {
-			x = (that.scroller.x >> 0) + Math.floor(that.scroller.w / 2) - 6;
-			y = that.scroller.y + 3;
+            x = Math.round(that.scroller.x + (that.scroller.w - that.piperImgHor.width) / 2);
+            y = Math.round((that.scroller.h - that.piperImgHor.height) / 2);
 
 			ctx_piperImg = that.piperImgHor.getContext('2d');
 			_data = ctx_piperImg.getImageData(0, 0, that.piperImgHor.width, that.piperImgHor.height);
@@ -1130,7 +1127,7 @@ function _HEXTORGB_( colorHEX ) {
 		//what type of arrow to draw
 		switch (curArrowType) {
 			case ArrowType.ARROW_BOTTOM: {
-				y = that.canvasH - that.ArrowDrawer.SizeH + Math.round((-bottomRightDelta - 1) * dPR);
+				y = that.canvasH - that.ArrowDrawer.SizeH - Math.round((bottomRightDelta + 1) * dPR);
 				arrowImage = that.ArrowDrawer.ImageBottom;
 				break;
 			}
