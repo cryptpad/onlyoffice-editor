@@ -8633,7 +8633,6 @@
 
 		if (!sheetView) {
 			sheetView = new Asc.CT_NamedSheetView();
-			sheetView.ws = this;
 			sheetView.name = sheetView.generateName();
 		}
 
@@ -8651,10 +8650,7 @@
 			}
 		}
 
-		this.aNamedSheetViews.push(sheetView);
-
-		History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_SheetViewAdd, this.getId(), null,
-			new AscCommonExcel.UndoRedoData_BinaryWrapper(sheetView));
+		this.insertNamedSheetView(sheetView, true);
 	};
 
 	Worksheet.prototype.deleteNamedSheetViews = function (arr) {
@@ -8669,7 +8665,7 @@
 				}
 
 				History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_SheetViewDelete, this.getId(), null,
-					new AscCommonExcel.UndoRedoData_FromTo(namedSheetViews[index - diff], null));
+					new AscCommonExcel.UndoRedoData_NamedSheetViewRedo(namedSheetViews[index - diff].Get_Id(), namedSheetViews[index - diff], null));
 
 				namedSheetViews.splice(index - diff, 1);
 				diff++;
@@ -8678,6 +8674,25 @@
 			if (isDeleteActive && this.workbook.oApi.asc_setActiveNamedSheetView) {
 				this.workbook.oApi.asc_setActiveNamedSheetView(null);
 			}
+		}
+	};
+
+	Worksheet.prototype.deleteNamedSheetView = function (id) {
+		for (var i = 0; i < this.aNamedSheetViews.length; ++i) {
+			var sheetView = this.aNamedSheetViews[i];
+			if (id === sheetView.Get_Id()) {
+				this.aNamedSheetViews.splice(i, 1);
+				break;
+			}
+		}
+	};
+
+	Worksheet.prototype.insertNamedSheetView = function (sheetView, addToHistory) {
+		sheetView.ws = this;
+		this.aNamedSheetViews.push(sheetView);
+		if (addToHistory) {
+			History.Add(AscCommonExcel.g_oUndoRedoWorksheet, AscCH.historyitem_Worksheet_SheetViewAdd, this.getId(), null,
+				new AscCommonExcel.UndoRedoData_BinaryWrapper(sheetView));
 		}
 	};
 

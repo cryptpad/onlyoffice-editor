@@ -2889,10 +2889,9 @@ function (window, undefined) {
 			}
 		} else if (AscCH.historyitem_Worksheet_SheetViewDelete === Type) {
 			if (bUndo) {
-				ws.aNamedSheetViews.push(Data.from);
-				Data.from.ws = ws;
+				ws.addNamedSheetView(Data.from);
 			} else {
-				ws.deleteNamedSheetViews([Data.from]);
+				ws.deleteNamedSheetView(Data.view);
 			}
 		}
 	};
