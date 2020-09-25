@@ -39,6 +39,7 @@
 		// this.extLst = null;
 		return this;
 	}
+
 	CT_NamedSheetViews.prototype.toStream = function (s, tableIds) {
 		s.WriteUChar(AscCommon.g_nodeAttributeStart);
 		s.WriteUChar(AscCommon.g_nodeAttributeEnd);
@@ -60,13 +61,11 @@
 		var _at;
 // attributes
 		s.GetUChar();
-		while (true)
-		{
+		while (true) {
 			_at = s.GetUChar();
 			if (_at === AscCommon.g_nodeAttributeEnd)
 				break;
-			switch (_at)
-			{
+			switch (_at) {
 				default:
 					s.Seek2(_end_pos);
 					return;
@@ -74,19 +73,15 @@
 		}
 //members
 		var _type;
-		while (true)
-		{
+		while (true) {
 			if (s.cur >= _end_pos)
 				break;
 			_type = s.GetUChar();
-			switch (_type)
-			{
-				case 0:
-				{
+			switch (_type) {
+				case 0: {
 					s.Skip2(4);
 					var _c = s.GetULong();
-					for (var i = 0; i < _c; ++i)
-					{
+					for (var i = 0; i < _c; ++i) {
 						s.Skip2(1); // type
 						var tmp = new CT_NamedSheetView();
 						tmp.fromStream(s, wb);
@@ -94,8 +89,7 @@
 					}
 					break;
 				}
-				default:
-				{
+				default: {
 					s.SkipRecord();
 					break;
 				}
@@ -127,7 +121,7 @@
 		return AscDFH.historyitem_type_NamedSheetView;
 	};
 
-	CT_NamedSheetView.prototype.getType = function() {
+	CT_NamedSheetView.prototype.getType = function () {
 		return AscCommonExcel.UndoRedoDataTypes.NamedSheetView;
 	};
 
@@ -154,15 +148,19 @@
 		var _at;
 // attributes
 		s.GetUChar();
-		while (true)
-		{
+		while (true) {
 			_at = s.GetUChar();
 			if (_at === AscCommon.g_nodeAttributeEnd)
 				break;
-			switch (_at)
-			{
-				case 0: { this.name = s.GetString2(); break; }
-				case 1: { this.id = s.GetString2(); break; }
+			switch (_at) {
+				case 0: {
+					this.name = s.GetString2();
+					break;
+				}
+				case 1: {
+					this.id = s.GetString2();
+					break;
+				}
 				default:
 					s.Seek2(_end_pos);
 					return;
@@ -170,19 +168,15 @@
 		}
 //members
 		var _type;
-		while (true)
-		{
+		while (true) {
 			if (s.cur >= _end_pos)
 				break;
 			_type = s.GetUChar();
-			switch (_type)
-			{
-				case 0:
-				{
+			switch (_type) {
+				case 0: {
 					s.Skip2(4);
 					var _c = s.GetULong();
-					for (var i = 0; i < _c; ++i)
-					{
+					for (var i = 0; i < _c; ++i) {
 						s.Skip2(1); // type
 						var tmp = new CT_NsvFilter();
 						tmp.fromStream(s, wb);
@@ -190,8 +184,7 @@
 					}
 					break;
 				}
-				default:
-				{
+				default: {
 					s.SkipRecord();
 					break;
 				}
@@ -279,16 +272,23 @@
 		var _at;
 // attributes
 		s.GetUChar();
-		while (true)
-		{
+		while (true) {
 			_at = s.GetUChar();
 			if (_at === AscCommon.g_nodeAttributeEnd)
 				break;
-			switch (_at)
-			{
-				case 0: { this.filterId = s.GetString2(); break; }
-				case 1: { this.ref = AscCommonExcel.g_oRangeCache.getAscRange(s.GetString2()); break; }
-				case 2: { this.tableIdOpen = s.GetULong(); break; }
+			switch (_at) {
+				case 0: {
+					this.filterId = s.GetString2();
+					break;
+				}
+				case 1: {
+					this.ref = AscCommonExcel.g_oRangeCache.getAscRange(s.GetString2());
+					break;
+				}
+				case 2: {
+					this.tableIdOpen = s.GetULong();
+					break;
+				}
 				default:
 					s.Seek2(_end_pos);
 					return;
@@ -296,19 +296,15 @@
 		}
 //members
 		var _type;
-		while (true)
-		{
+		while (true) {
 			if (s.cur >= _end_pos)
 				break;
 			_type = s.GetUChar();
-			switch (_type)
-			{
-				case 0:
-				{
+			switch (_type) {
+				case 0: {
 					s.Skip2(4);
 					var _c = s.GetULong();
-					for (var i = 0; i < _c; ++i)
-					{
+					for (var i = 0; i < _c; ++i) {
 						s.Skip2(1); // type
 						var tmp = new CT_ColumnFilter();
 						tmp.fromStream(s, wb);
@@ -316,15 +312,13 @@
 					}
 					break;
 				}
-				case 1:
-				{
+				case 1: {
 					var sortRules = new CT_SortRules();
 					sortRules.fromStream(s, wb);
 					this.sortRules = sortRules.sortRule;
 					break;
 				}
-				default:
-				{
+				default: {
 					s.SkipRecord();
 					break;
 				}
@@ -402,7 +396,7 @@
 				}
 			} else {
 				this.tableId = "0";
-		}
+			}
 			this.tableIdOpen = null;
 		}
 		return table;
@@ -489,15 +483,19 @@
 		var _at;
 // attributes
 		s.GetUChar();
-		while (true)
-		{
+		while (true) {
 			_at = s.GetUChar();
 			if (_at === AscCommon.g_nodeAttributeEnd)
 				break;
-			switch (_at)
-			{
-				case 0: { this.colId = s.GetULong(); break; }
-				case 1: { this.id = s.GetString2(); break; }
+			switch (_at) {
+				case 0: {
+					this.colId = s.GetULong();
+					break;
+				}
+				case 1: {
+					this.id = s.GetString2();
+					break;
+				}
 				default:
 					s.Seek2(_end_pos);
 					return;
@@ -506,15 +504,12 @@
 //members
 		var dxfs = [];
 		var _type;
-		while (true)
-		{
+		while (true) {
 			if (s.cur >= _end_pos)
 				break;
 			_type = s.GetUChar();
-			switch (_type)
-			{
-				case 0:
-				{
+			switch (_type) {
+				case 0: {
 					var _stream = new AscCommon.FT_Stream2();
 					_stream.FromFileStream(s);
 					var bsr = new AscCommonExcel.Binary_StylesTableReader(_stream, wb);
@@ -522,12 +517,10 @@
 					_stream.ToFileStream2(s);
 					break;
 				}
-				case 1:
-				{
+				case 1: {
 					s.Skip2(4);
 					var _c = s.GetULong();
-					for (var i = 0; i < _c; ++i)
-					{
+					for (var i = 0; i < _c; ++i) {
 						s.Skip2(1); // type
 						var _stream = new AscCommon.FT_Stream2();
 						_stream.FromFileStream(s);
@@ -538,8 +531,7 @@
 					}
 					break;
 				}
-				default:
-				{
+				default: {
 					s.SkipRecord();
 					break;
 				}
@@ -556,8 +548,8 @@
 			var oDxf = new AscCommonExcel.CellXfs();
 			reader.GetUChar();
 			var length = reader.GetULongLE();
-			bcr.Read1(length, function(t,l){
-				return bsr.ReadDxf(t,l,oDxf);
+			bcr.Read1(length, function (t, l) {
+				return bsr.ReadDxf(t, l, oDxf);
 			});
 			this.dxf = oDxf;
 		}
@@ -581,6 +573,7 @@
 		// this.extLst = null;
 		return this;
 	}
+
 	CT_SortRules.prototype.toStream = function (s) {
 		s.WriteUChar(AscCommon.g_nodeAttributeStart);
 		s._WriteUChar2(0, this.sortMethod);
@@ -596,15 +589,19 @@
 		var _at;
 // attributes
 		s.GetUChar();
-		while (true)
-		{
+		while (true) {
 			_at = s.GetUChar();
 			if (_at === AscCommon.g_nodeAttributeEnd)
 				break;
-			switch (_at)
-			{
-				case 0: { this.sortMethod = s.GetUChar(); break; }
-				case 1: { this.caseSensitive = s.GetBool(); break; }
+			switch (_at) {
+				case 0: {
+					this.sortMethod = s.GetUChar();
+					break;
+				}
+				case 1: {
+					this.caseSensitive = s.GetBool();
+					break;
+				}
 				default:
 					s.Seek2(_end_pos);
 					return;
@@ -612,19 +609,15 @@
 		}
 //members
 		var _type;
-		while (true)
-		{
+		while (true) {
 			if (s.cur >= _end_pos)
 				break;
 			_type = s.GetUChar();
-			switch (_type)
-			{
-				case 0:
-				{
+			switch (_type) {
+				case 0: {
 					s.Skip2(4);
 					var _c = s.GetULong();
-					for (var i = 0; i < _c; ++i)
-					{
+					for (var i = 0; i < _c; ++i) {
 						s.Skip2(1); // type
 						var tmp = new CT_SortRule();
 						tmp.fromStream(s, wb);
@@ -632,8 +625,7 @@
 					}
 					break;
 				}
-				default:
-				{
+				default: {
 					s.SkipRecord();
 					break;
 				}
@@ -641,6 +633,7 @@
 		}
 		s.Seek2(_end_pos);
 	};
+
 	function CT_SortRule() {
 		this.sortCondition = null;
 		this.richSortCondition = null;
@@ -694,15 +687,19 @@
 		var _at;
 // attributes
 		s.GetUChar();
-		while (true)
-		{
+		while (true) {
 			_at = s.GetUChar();
 			if (_at === AscCommon.g_nodeAttributeEnd)
 				break;
-			switch (_at)
-			{
-				case 0: { this.colId = s.GetULong(); break; }
-				case 1: { this.id = s.GetString2(); break; }
+			switch (_at) {
+				case 0: {
+					this.colId = s.GetULong();
+					break;
+				}
+				case 1: {
+					this.id = s.GetString2();
+					break;
+				}
 				default:
 					s.Seek2(_end_pos);
 					return;
@@ -711,15 +708,12 @@
 //members
 		var dxfs = [];
 		var _type;
-		while (true)
-		{
+		while (true) {
 			if (s.cur >= _end_pos)
 				break;
 			_type = s.GetUChar();
-			switch (_type)
-			{
-				case 0:
-				{
+			switch (_type) {
+				case 0: {
 					var _stream = new AscCommon.FT_Stream2();
 					_stream.FromFileStream(s);
 					var bsr = new AscCommonExcel.Binary_StylesTableReader(_stream, wb);
@@ -733,15 +727,14 @@
 				// 	this.richSortCondition.fromStream(s);
 				// 	break;
 				// }
-				case 2:
-				{
+				case 2: {
 					var _stream = new AscCommon.FT_Stream2();
 					_stream.FromFileStream(s);
 					var oReadResult = new AscCommonWord.DocReadResult(null);
 					var bwtr = new AscCommonExcel.Binary_TableReader(_stream, oReadResult, null, dxfs);
 					this.sortCondition = bwtr.ReadSortConditionExternal();
 					//dxfId is absent in sortCondition
-					if((Asc.ESortBy.sortbyCellColor === this.sortCondition.ConditionSortBy ||
+					if ((Asc.ESortBy.sortbyCellColor === this.sortCondition.ConditionSortBy ||
 						Asc.ESortBy.sortbyFontColor === this.sortCondition.ConditionSortBy)
 						&& null === this.sortCondition.dxf && dxfs.length > 0) {
 						this.sortCondition.dxf = dxfs[0];
@@ -749,8 +742,7 @@
 					_stream.ToFileStream2(s);
 					break;
 				}
-				default:
-				{
+				default: {
 					s.SkipRecord();
 					break;
 				}
@@ -767,8 +759,8 @@
 			var oDxf = new AscCommonExcel.CellXfs();
 			reader.GetUChar();
 			var length = reader.GetULongLE();
-			bcr.Read1(length, function(t,l){
-				return bsr.ReadDxf(t,l,oDxf);
+			bcr.Read1(length, function (t, l) {
+				return bsr.ReadDxf(t, l, oDxf);
 			});
 			this.dxf = oDxf;
 		}
