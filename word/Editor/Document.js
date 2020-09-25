@@ -21086,7 +21086,7 @@ CDocument.prototype.AddNoteRefToParagraph = function(oParagraph, nType, bHyperli
 	}))
 	{
 		this.StartAction(AscDFH.historydescription_Document_AddCrossRef);
-		var sBookmarkName = oParagraph.AddBookmarkForRef();
+		var sBookmarkName = oParagraph.AddBookmarkForNoteRef();
 		this.Recalculate(true);
 		this.private_AddNoteRefToBookmark(sBookmarkName, nType, bHyperlink, bAboveBelow);
 		this.Recalculate();

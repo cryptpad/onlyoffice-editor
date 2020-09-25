@@ -602,7 +602,16 @@ CDocumentContent.prototype.IsHdrFtr = function(bReturnHdrFtr)
 CDocumentContent.prototype.IsFootnote = function(bReturnFootnote)
 {
 	if (this instanceof CFootEndnote)
-		return true;
+	{
+		if(bReturnFootnote)
+		{
+			return this;
+		}
+		else
+		{
+			return true;
+		}
+	}
 
 	if (this.Parent)
 		return this.Parent.IsFootnote(bReturnFootnote);
