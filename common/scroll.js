@@ -143,7 +143,7 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 	}
 
 
-	var len = Math.ceil(6 * dPR);
+	var len = Math.floor(6 * dPR);
 	if ( this.SizeH < 6 )
 		return;
 
@@ -195,32 +195,45 @@ CArrowDrawer.prototype.InitSize = function ( sizeW, sizeH, is_retina ) {
 		__y -= 1;
 		_len -= 2;
 	}
+    var dy = dPR <= 1 ? -1 : 0;
 
-	ctx.putImageData(_data, 0, -1);
+	ctx.putImageData(_data, 0, dy);
 
-    ctxLeft.translate( _radx, _rady + 1);
-    ctxLeft.rotate( -Math.PI / 2 );
-    ctxLeft.translate( -_radx, -_rady );
-    ctxLeft.drawImage( this.ImageTop, 0, 0 );
+	_data = ctxLeft.createImageData(this.SizeW, this.SizeH);
+	px = _data.data;
+	_len = len;
+	__x = _x, __y = _y;
+	while (_len > 0) {
+		var ind = 4 * (this.SizeH * __x + __y);
+		var xx = __x;
+		for (var i = 0; i < _len; i++) {
+			px[ind++] = r;
+			px[ind++] = g;
+			px[ind++] = b;
+			px[ind++] = 255;
+			++xx;
+			ind = 4 * (this.SizeH * xx  + __y);
+		}
+		r = r >> 0;
+		g = g >> 0;
+		b = b >> 0;
+		__x += 1;
+		__y -= 1;
+		_len -= 2;
+	}
+	var dx = dPR <= 1 ? -1 : 0;
+	ctxLeft.putImageData(_data, dx, 0);
 
-	ctxBottom.translate( _radx + 1, _rady);
-    ctxBottom.rotate( Math.PI );
-    ctxBottom.translate( -_radx, -_rady);
-    ctxBottom.drawImage( this.ImageTop, 0, -1 );
+	ctxBottom.translate( this.SizeW / 2, this.SizeH / 2);
+	ctxBottom.rotate(Math.PI);
+	ctxBottom.translate(-this.SizeW / 2, -this.SizeH / 2);
+    ctxBottom.drawImage( this.ImageTop, 0, 0, this.ImageBottom.width, this.ImageBottom.height);
 
-	ctxRight.translate( _radx + Math.round(dPR), _rady + Math.round(dPR) - 1);
-	ctxRight.rotate( Math.PI / 2 );
-	ctxRight.translate( -_radx, -_rady );
-	ctxRight.drawImage( this.ImageTop, 0, 0 );
+	ctxRight.translate( this.SizeW / 2, this.SizeH / 2);
+	ctxRight.rotate(Math.PI);
+	ctxRight.translate(-this.SizeW / 2, -this.SizeH / 2);
+	ctxRight.drawImage( this.ImageLeft, 0, 0, this.ImageRight.width, this.ImageRight.height);
 };
-
-function _HEXTORGB_( colorHEX ) {
-    return {
-        R:parseInt( colorHEX.substring( 1, 3 ), 16 ),
-        G:parseInt( colorHEX.substring( 3, 5 ), 16 ),
-        B:parseInt( colorHEX.substring( 5, 7 ), 16 )
-    }
-}
 
 	/**
 	 * @constructor
@@ -265,8 +278,8 @@ function _HEXTORGB_( colorHEX ) {
 		this.defaultColor = 241;
 		this.hoverColor = 207;
 		this.activeColor = 173;
-        this.arrowSizeW = Math.ceil(13 * window.devicePixelRatio);
-        this.arrowSizeH = Math.ceil(13 * window.devicePixelRatio);
+        this.arrowSizeW = Math.round(13 * window.devicePixelRatio);
+        this.arrowSizeH = Math.round(13 * window.devicePixelRatio);
 		this.cornerRadius = 0;
 		this.slimScroll = false;
 		this.alwaysVisible = false;
@@ -350,15 +363,16 @@ function _HEXTORGB_( colorHEX ) {
 		this.startColorFadeInOutStart = -1;
 
 		this.IsRetina = AscBrowser.isRetina;
+		var dPR = window.devicePixelRatio;
 
 		this.piperImgVert = document.createElement( 'canvas' );
 		this.piperImgHor =  document.createElement( 'canvas' );
 
-		this.piperImgVert.height = Math.round( 13 * window.devicePixelRatio);
-		this.piperImgVert.width = Math.round(5 * window.devicePixelRatio);
+		this.piperImgVert.height = Math.round( 13 * dPR);
+		this.piperImgVert.width = Math.round(5 * dPR);
 
-		this.piperImgHor.width = Math.round( 13 * window.devicePixelRatio);
-		this.piperImgHor.height = Math.round(5 * window.devicePixelRatio);
+		this.piperImgHor.width = Math.round( 13 * dPR);
+		this.piperImgHor.height = Math.round(5 * dPR);
 
 		this.disableCurrentScroll = false;
 
@@ -367,45 +381,33 @@ function _HEXTORGB_( colorHEX ) {
 					this.piperImgHor.height = 3;
 		}
 
-		var r, g, b, ctx_piperImg, _data, px, k;
-		r = _HEXTORGB_( this.settings.piperColor );
-		g = r.G;
-		b = r.B;
-		r = r.R;
-
-		var scrollDPR = (window.devicePixelRatio % 0.5 === 0) ? Math.floor(window.devicePixelRatio) : Math.round(window.devicePixelRatio);
-
-		k = this.piperImgVert.width * 4;
-		var k1 = this.piperImgVert.width * 4;
-
+		var ctx_piperImg;
         ctx_piperImg = this.piperImgVert.getContext('2d');
         ctx_piperImg.beginPath();
-        ctx_piperImg.lineWidth = Math.floor(window.devicePixelRatio);
+        ctx_piperImg.lineWidth = Math.floor(dPR);
         var count = 0;
-        for (var i = 0; i < this.piperImgVert.height; i += Math.round(window.devicePixelRatio) + Math.floor(window.devicePixelRatio)) {
+
+        var _dPR = dPR < 0.5 ? Math.ceil(dPR) :  Math.round(dPR);
+
+        for (var i = 0; i < this.piperImgVert.height; i += _dPR + Math.floor(dPR)) {
             ctx_piperImg.moveTo(0, i + 0.5 * ctx_piperImg.lineWidth);
             ctx_piperImg.lineTo(this.piperImgVert.width, i + 0.5 * ctx_piperImg.lineWidth);
             ctx_piperImg.stroke();
             ++count;
-            if (count > 6) break;
+            if (count > 6 && dPR >= 1) break;
         }
 
         ctx_piperImg = this.piperImgHor.getContext('2d');
         ctx_piperImg.beginPath();
-        ctx_piperImg.lineWidth = Math.floor(window.devicePixelRatio);
+        ctx_piperImg.lineWidth = Math.floor(dPR);
         var count = 0;
-        for (var i = 0; i < this.piperImgHor.width; i += Math.round(window.devicePixelRatio) + Math.floor(window.devicePixelRatio)) {
+        for (var i = 0; i < this.piperImgHor.width; i += Math.round(dPR) + Math.floor(dPR)) {
             ctx_piperImg.moveTo(i + 0.5 * ctx_piperImg.lineWidth, 0);
             ctx_piperImg.lineTo(i + 0.5 * ctx_piperImg.lineWidth, this.piperImgHor.height);
             ctx_piperImg.stroke();
             ++count;
             if (count > 6) break;
         }
-
-			r = _HEXTORGB_( this.settings.piperColorHover );
-			g = r.G;
-			b = r.B;
-			r = r.R;
 
 		this._init( elemID );
 	}
@@ -909,35 +911,38 @@ function _HEXTORGB_( colorHEX ) {
 		var xDeltaBORDER = 0.5, yDeltaBORDER = 1.5;
 		var dPR = window.devicePixelRatio;
 		var x1 = that.settings.isVerticalScroll ? 0 : Math.round(dPR);
-		var y1 = that.settings.isVerticalScroll ? 0 : -Math.round(dPR);
-		var strokeW = t.SizeW - Math.ceil(dPR);
-		var strokeH = t.SizeH - Math.ceil(dPR);
+		var y1 = that.settings.isVerticalScroll ? yDeltaBORDER * Math.round(dPR) : -Math.round(dPR);
+		var x2 = 0;
+		var y2 = that.settings.isVerticalScroll ? 0 : 0;
+		var strokeW = t.SizeW - Math.round(dPR);
+		var strokeH = t.SizeH - Math.round(dPR);
 		var ctx = that.context;
-		
+
 		ctx.beginPath();
-		ctx.fillStyle = t.ColorBackNone;
-		var bottomRightDelta = 1;
+		ctx.fillStyle = t.ColorBackNone;;
 		var arrowImage = that.ArrowDrawer.ImageTop;
 		if (that.settings.isVerticalScroll) {
 			for (var i = 0; i < 2; i++) {
-				ctx.drawImage(arrowImage, x1, y1, t.SizeW, t.SizeH);
+				ctx.drawImage(arrowImage, x1, y2, t.SizeW, t.SizeH);
 
 				if (t.IsDrawBorders) {
 					ctx.strokeStyle = t.ColorBorderNone;
 					ctx.lineWidth = Math.round(dPR);
-					ctx.rect(x1 + xDeltaBORDER * ctx.lineWidth, y1 + yDeltaBORDER * ctx.lineWidth, strokeW, strokeH);
+					ctx.rect(x1 + xDeltaBORDER * ctx.lineWidth, y1, strokeW, strokeH);
 					ctx.stroke();
 				}
 
-				y1 = that.canvasH - t.SizeH - Math.round((bottomRightDelta + 1) * dPR);
+				y1 = that.canvasH - t.SizeH + Math.round(dPR) - yDeltaBORDER * Math.round(dPR);
+                y2 = that.canvasH - t.SizeH;
 				arrowImage = that.ArrowDrawer.ImageBottom;
 			}
 		}
 
 		var arrowImage = that.ArrowDrawer.ImageLeft;
+		y2 = t.SizeH % 2 === 0 ? 1 : 0;
 		if (that.settings.isHorizontalScroll) {
 			for (var i = 0; i < 2; i++) {
-				that.context.drawImage(arrowImage, x1, y1, t.SizeW, t.SizeH);
+				that.context.drawImage(arrowImage, x2, y2, t.SizeW, t.SizeH);
 
 				if (t.IsDrawBorders) {
 					ctx.strokeStyle = t.ColorBorderNone;
@@ -946,7 +951,9 @@ function _HEXTORGB_( colorHEX ) {
 					ctx.stroke();
 				}
 
-				x1 = that.canvasW - t.SizeW -  Math.round(bottomRightDelta * dPR);
+				x1 = that.canvasW - t.SizeW -  Math.round(dPR);
+                x2 = that.canvasW - t.SizeW;
+                y2 = 0;
 				arrowImage = that.ArrowDrawer.ImageRight;
 			}
 		}
@@ -1072,24 +1079,62 @@ function _HEXTORGB_( colorHEX ) {
 
 	ScrollObject.prototype._animateArrow = function (fadeIn, curArrowType, backgroundColorUnfade) {
 		var that = this;
-		var dPR = window.devicePixelRatio;
+		var dPR = Math.round(window.devicePixelRatio);
+		var sizeW = that.ArrowDrawer.SizeW, sizeH = that.ArrowDrawer.SizeH;
+
 		if (!that.settings.showArrows || !curArrowType) {
 			return;
 		}
-
         var cnvs = document.createElement('canvas'), arrowType,
-            ctx = cnvs.getContext('2d'), context = that.context, bottomRightDelta = 1,
+            ctx = cnvs.getContext('2d'), context = that.context,
             hoverColor = that.settings.hoverColor, defaultColor = that.settings.defaultColor,
             activeColor = that.settings.activeColor;
 
-		cnvs.width = that.ArrowDrawer.SizeW;
-		cnvs.height = that.ArrowDrawer.SizeH;
+		cnvs.width = sizeW;
+		cnvs.height = sizeH;
 
 		if (curArrowType === ArrowType.ARROW_TOP || curArrowType === ArrowType.ARROW_LEFT) {
 			arrowType = this.firstArrow;
 		} else if (curArrowType === ArrowType.ARROW_BOTTOM || curArrowType === ArrowType.ARROW_RIGHT) {
 			arrowType = this.secondArrow;
 		} else return;
+
+
+		var x = 0, y = 0, fillRectX = 0, fillRectY = 0, strokeRectX = 0, strokeRectY = 0;
+		var arrowImage = that.settings.isVerticalScroll ? that.ArrowDrawer.ImageTop : that.ArrowDrawer.ImageLeft;
+
+		//what type of arrow to draw
+		switch (curArrowType) {
+			case ArrowType.ARROW_TOP: {
+				fillRectX = dPR;
+				fillRectY = dPR;
+				break;
+			}
+			case ArrowType.ARROW_BOTTOM: {
+				y = that.canvasH - sizeH;
+				fillRectY = -dPR;
+				strokeRectY = -2 * dPR;
+				arrowImage = that.ArrowDrawer.ImageBottom;
+				break;
+			}
+			case ArrowType.ARROW_RIGHT: {
+				y = 0;
+				x = that.canvasW - sizeW;
+				fillRectX = -dPR;
+				strokeRectX = -dPR;
+				strokeRectY = -dPR;
+				arrowImage = that.ArrowDrawer.ImageRight;
+				break;
+			}
+			case ArrowType.ARROW_LEFT: {
+				y = sizeH % 2 === 0 ? 1 : 0;
+				x = 0;
+				fillRectX = dPR;
+				strokeRectX = dPR;
+				strokeRectY = sizeH % 2 === 0 ? -dPR - 1: -dPR;
+				break;
+			}
+		}
 
 		//dimming the arrow
 		if (fadeIn) {
@@ -1121,29 +1166,6 @@ function _HEXTORGB_( colorHEX ) {
 			ctx = that.context;
 		}
 
-		var x = 0, y = 0;
-		var arrowImage = that.settings.isVerticalScroll ? that.ArrowDrawer.ImageTop : that.ArrowDrawer.ImageLeft;
-
-		//what type of arrow to draw
-		switch (curArrowType) {
-			case ArrowType.ARROW_BOTTOM: {
-				y = that.canvasH - that.ArrowDrawer.SizeH - Math.round((bottomRightDelta + 1) * dPR);
-				arrowImage = that.ArrowDrawer.ImageBottom;
-				break;
-			}
-			case ArrowType.ARROW_RIGHT: {
-				y = -Math.round(dPR);
-				x = Math.round(dPR);
-				x = that.canvasW - that.ArrowDrawer.SizeW - Math.round(dPR);
-				arrowImage = that.ArrowDrawer.ImageRight;
-				break;
-			}
-			case ArrowType.ARROW_LEFT: {
-				y = -Math.round(dPR);
-				x = Math.round(dPR);
-				break;
-			}
-		}
 
         ctx.fillStyle = "rgb(" + arrowType.arrowBackColor + "," +
             arrowType.arrowBackColor + "," +
@@ -1152,7 +1174,7 @@ function _HEXTORGB_( colorHEX ) {
         var x1 = fadeIn === undefined ? x : 0;
         var y1 = fadeIn === undefined ? y : 0;
 
-        ctx.fillRect( x1 + Math.round(dPR),  y1 +  Math.round(dPR), that.ArrowDrawer.SizeW - Math.ceil(dPR), that.ArrowDrawer.SizeH - Math.ceil(dPR));
+        ctx.fillRect( x1 + fillRectX,  y1 +  fillRectY, sizeW - dPR, sizeH - dPR);
 
 		if (that.ArrowDrawer.IsDrawBorders) {
 			var borderColor = hoverColor;
@@ -1165,7 +1187,7 @@ function _HEXTORGB_( colorHEX ) {
 				borderColor + "," +
 				borderColor + ")";
 			ctx.lineWidth = Math.round(dPR);
-            ctx.strokeRect(x1 + 0.5 * ctx.lineWidth, y1 + 1.5 * ctx.lineWidth, that.ArrowDrawer.SizeW - Math.ceil(dPR), that.ArrowDrawer.SizeH - Math.ceil(dPR));
+            ctx.strokeRect(x1 + 0.5 * ctx.lineWidth + strokeRectX, y1 + 1.5 * ctx.lineWidth + strokeRectY, sizeW - dPR, sizeH - dPR);
 		}
 
 		//drawing arrow icon
@@ -1174,9 +1196,9 @@ function _HEXTORGB_( colorHEX ) {
 		imgContext.fillStyle = "rgb(" + arrowType.arrowColor + "," +
 			arrowType.arrowColor + "," +
 			arrowType.arrowColor + ")";
-		imgContext.fillRect(0.5, 1.5, that.ArrowDrawer.SizeW , that.ArrowDrawer.SizeH );
-        ctx.drawImage(arrowImage,  x1, y1, that.ArrowDrawer.SizeW, that.ArrowDrawer.SizeH);
-		context.drawImage(cnvs, x, y, that.ArrowDrawer.SizeW, that.ArrowDrawer.SizeH);
+		imgContext.fillRect(0.5, 1.5, sizeW , sizeH);
+        ctx.drawImage(arrowImage,  x1, y1, sizeW, sizeH);
+		context.drawImage(cnvs, x, y, sizeW, sizeH);
 
 		that.fadeTimeoutArrows = setTimeout(function () {
 			that._animateArrow(fadeIn, curArrowType, backgroundColorUnfade)
