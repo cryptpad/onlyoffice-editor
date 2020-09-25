@@ -21081,27 +21081,27 @@ CDocument.prototype.AddNoteRefToParagraph = function(oParagraph, nType, bHyperli
 {
 	if(!oParagraph.Parent)
 	{
-		return null;
+		return;
 	}
 	var oFootnote = oParagraph.Parent.IsFootnote(true);
 	if(!oFootnote)
 	{
-		return null;
+		return;
 	}
 	var oRef = oFootnote.Ref;
 	if(!oRef)
 	{
-		return null;
+		return;
 	}
 	var oRun = oRef.Run;
 	if(!oRun)
 	{
-		return null;
+		return;
 	}
 	var oRefParagraph = oRun.Paragraph;
 	if(!oRefParagraph)
 	{
-		return null;
+		return;
 	}
 	if(false === this.IsSelectionLocked(AscCommon.changestype_Document_Content, {
 		Type      : changestype_2_ElementsArray_and_Type,
