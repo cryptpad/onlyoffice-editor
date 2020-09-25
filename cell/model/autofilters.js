@@ -687,14 +687,14 @@
 				}
 
 
-				var nActiveNamedSheetView = worksheet.getActiveNamedSheetView();
+				var activeNamedSheetViewId = worksheet.getActiveNamedSheetView();
 				var bCollaborativeChanges = this.worksheet.workbook.bCollaborativeChanges;
 				var redoNamedSheetViewId = autoFiltersObject.namedSheetView;
 				var redoNamedSheetView = worksheet.getNamedSheetViewById(redoNamedSheetViewId);
 				var redoNamedSheetViewName = redoNamedSheetView ? redoNamedSheetView.name : null;
-				var activeNamedSheetView = worksheet.aNamedSheetViews[nActiveNamedSheetView];
+				var activeNamedSheetView = worksheet.getNamedSheetViewById(activeNamedSheetViewId);
 				var activeNamedSheetViewName = activeNamedSheetView ? activeNamedSheetView.name : null;
-				var isEqualView = nActiveNamedSheetView !== null && activeNamedSheetViewName === redoNamedSheetViewName;
+				var isEqualView = activeNamedSheetViewId !== null && activeNamedSheetViewName === redoNamedSheetViewName;
 				if (bCollaborativeChanges && isEqualView) {
 					//если находимся в одном вью - изменения в одном фильтре от чужого пользователя не принимаем
 					//сохраняем те, которые пришли последними
@@ -756,7 +756,7 @@
 				}
 
 				var nsvFilter, nsvFilterIndex;
-				if ((nActiveNamedSheetView !== null && !bCollaborativeChanges) || redoNamedSheetViewName) {
+				if ((activeNamedSheetViewId !== null && !bCollaborativeChanges) || redoNamedSheetViewName) {
 					if (redoNamedSheetViewName && redoNamedSheetViewName !== activeNamedSheetViewName) {
 						nsvFilter = worksheet.getNvsFilterByTableName(filterObj.filter.DisplayName, redoNamedSheetViewName);
 					} else {

@@ -3700,7 +3700,7 @@
 		this.aSlicers = [];
 
 		this.aNamedSheetViews = [];
-		this.nActiveNamedSheetView = null;
+		this.activeNamedSheetViewId = null;
 		this.defaultViewHiddenRows = null;
 	}
 
@@ -8604,17 +8604,17 @@
 
 
 	Worksheet.prototype.getActiveNamedSheetView = function () {
-		return this.nActiveNamedSheetView;
+		return this.activeNamedSheetViewId;
 	};
 
 	Worksheet.prototype.getNvsFilterByTableName = function (val, opt_name) {
-		var nActiveNamedSheetView = opt_name ? this.getIndexNamedSheetViewByName(opt_name) : this.nActiveNamedSheetView;
-		if (nActiveNamedSheetView === null) {
+		var activeNamedSheetViewId = opt_name ? this.getIdNamedSheetViewByName(opt_name) : this.activeNamedSheetViewId;
+		if (activeNamedSheetViewId === null) {
 			return;
 		}
 
 		if (Asc.CT_NamedSheetView.prototype.getNsvFiltersByTableId) {
-			var sheetView = this.aNamedSheetViews[nActiveNamedSheetView];
+			var sheetView = this.getNamedSheetViewById(activeNamedSheetViewId);
 			return sheetView ? sheetView.getNsvFiltersByTableId(val) : null;
 		}
 
@@ -8662,7 +8662,7 @@
 					continue;
 				}
 				var index = this.getIndexNamedSheetViewByName(arr[i].name);
-				if (index === this.nActiveNamedSheetView) {
+				if (index === this.activeNamedSheetViewId) {
 					if (this.workbook.oApi.asc_setActiveNamedSheetView) {
 						this.workbook.oApi.asc_setActiveNamedSheetView(null);
 					}
@@ -8677,16 +8677,6 @@
 				diff++;
 			}
 		}
-	};
-
-	Worksheet.prototype.getNamedSheetViewById = function (id) {
-		for (var i = 0; i < this.aNamedSheetViews.length; ++i) {
-			var sheetView = this.aNamedSheetViews[i];
-			if (id === sheetView.Get_Id()) {
-				return sheetView;
-			}
-		}
-		return null;
 	};
 
 	Worksheet.prototype.insertNamedSheetView = function (sheetView, addToHistory) {
@@ -8704,7 +8694,7 @@
 			var res = [], ascSheetView;
 			for (var i = 0; i < namedSheetViews.length; i++) {
 				ascSheetView = namedSheetViews[i];
-				ascSheetView._isActive = i === this.nActiveNamedSheetView;
+				ascSheetView._isActive = ascSheetView.Id === this.activeNamedSheetViewId;
 				res.push(ascSheetView);
 			}
 			return res;
@@ -8742,6 +8732,18 @@
 			for (var i = 0; i < namedSheetViews.length; i++) {
 				if (name === namedSheetViews[i].name) {
 					return i;
+				}
+			}
+		}
+		return null;
+	};
+
+	Worksheet.prototype.getIdNamedSheetViewByName = function (name) {
+		var namedSheetViews = this.aNamedSheetViews;
+		if (namedSheetViews) {
+			for (var i = 0; i < namedSheetViews.length; i++) {
+				if (name === namedSheetViews[i].name) {
+					return namedSheetViews[i].Id;
 				}
 			}
 		}

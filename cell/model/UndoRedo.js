@@ -2865,14 +2865,14 @@ function (window, undefined) {
 			}
 		} else if (AscCH.historyitem_Worksheet_SetActiveNamedSheetView === Type) {
 			if (ws.aNamedSheetViews) {
-				var activeIndex = bUndo ? Data.from : Data.to;
-				var namedSheetView = ws.aNamedSheetViews[activeIndex];
+				var activeId = bUndo ? Data.from : Data.to;
+				var namedSheetView = ws.getNamedSheetViewById(activeId);
 
 				for (i = 0; i < ws.aNamedSheetViews.length; i++) {
 					ws.aNamedSheetViews[i]._isActive = false;
 				}
 
-				ws.nActiveNamedSheetView = activeIndex;
+				ws.activeNamedSheetViewId = activeId;
 				if (namedSheetView) {
 					namedSheetView._isActive = true;
 				}
