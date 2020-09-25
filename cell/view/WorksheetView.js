@@ -10469,6 +10469,7 @@
             if (t.model.autoFilters._searchFiltersInRange(arnFrom, true)) {
                 t._isLockedAll(onApplyMoveAutoFiltersCallback);
 				if(copyRange){
+					//TODO перепроверить лок
 					t._isLockedDefNames(null, null);
 				}
             } else {
@@ -11141,6 +11142,7 @@
 
 			if (bIsAddTable) {
 				t._isLockedAll(function () {
+					//TODO перепроверить лок
 					t._isLockedDefNames(null, null)
 				});
 			}
@@ -20266,6 +20268,7 @@
 					History.EndTransaction();
 					return;
 				}
+				//TODO перепроверить лок
 				t._isLockedDefNames(callback);
 			});
 		} else {
@@ -20274,6 +20277,7 @@
 					History.EndTransaction();
 					return;
 				}
+				//TODO перепроверить лок
 				t._isLockedDefNames(callback);
 			});
 		}
@@ -20518,6 +20522,7 @@
 		this._isLockedCells(lockRanges, null, function(success) {
 			if (success) {
 				if (isLockDefNames) {
+					//TODO перепроверить лок
 					t._isLockedDefNames(_callback);
 				} else {
 					_callback(true);
