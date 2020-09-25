@@ -2872,7 +2872,7 @@ function (window, undefined) {
 					ws.aNamedSheetViews[i]._isActive = false;
 				}
 
-				ws.activeNamedSheetViewId = activeId;
+				ws.setActiveNamedSheetView(activeId);
 				if (namedSheetView) {
 					namedSheetView._isActive = true;
 				}

@@ -4792,7 +4792,7 @@ StyleManager.prototype =
 		return this.outlineLevel;
 	};
 	Row.prototype.getHidden = function () {
-		var bViewLocalChange = this.ws.getActiveNamedSheetView() !== null && this.ws.autoFilters.containInFilter(this.index);
+		var bViewLocalChange = this.ws.getActiveNamedSheetViewId() !== null && this.ws.autoFilters.containInFilter(this.index);
 		var _rowFlag_hd = bViewLocalChange ? g_nRowFlag_hdView : g_nRowFlag_hd;
 		return 0 !== (_rowFlag_hd & this.flags);
 	};

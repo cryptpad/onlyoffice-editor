@@ -687,7 +687,7 @@
 				}
 
 
-				var activeNamedSheetViewId = worksheet.getActiveNamedSheetView();
+				var activeNamedSheetViewId = worksheet.getActiveNamedSheetViewId();
 				var bCollaborativeChanges = this.worksheet.workbook.bCollaborativeChanges;
 				var redoNamedSheetViewId = autoFiltersObject.namedSheetView;
 				var redoNamedSheetView = worksheet.getNamedSheetViewById(redoNamedSheetViewId);
@@ -952,9 +952,9 @@
 
 			updateNamedSheetViewAfterDeleteFilter: function (filter) {
 				var worksheet = this.worksheet;
-				var activeNamedSheetViewIndex = worksheet.getActiveNamedSheetView();
-				if (activeNamedSheetViewIndex !== null) {
-					var activeNamedSheetView = worksheet.aNamedSheetViews ? worksheet.aNamedSheetViews[activeNamedSheetViewIndex] : null;
+				var activeNamedSheetViewId = worksheet.getActiveNamedSheetViewId();
+				if (activeNamedSheetViewId !== null) {
+					var activeNamedSheetView = worksheet.getNamedSheetViewById(activeNamedSheetViewId);
 					if (activeNamedSheetView && activeNamedSheetView.deleteFilter) {
 						activeNamedSheetView.deleteFilter(filter);
 					}
@@ -1007,7 +1007,7 @@
 
 				//open/close rows
 				if (!bUndoChanges && !bRedoChanges) {
-					var activeNamedSheetView = worksheet.getActiveNamedSheetView();
+					var activeNamedSheetView = worksheet.getActiveNamedSheetViewId();
 					var opt_columnsFilter;
 					if (activeNamedSheetView !== null) {
 						opt_columnsFilter = worksheet.getNvsFilterByTableName(displayName);
@@ -1694,7 +1694,7 @@
 							};
 
 							//так же необходимл сдвинуть фильтры во всех вью
-							var viewActive = worksheet.getActiveNamedSheetView();
+							var viewActive = worksheet.getActiveNamedSheetViewId();
 							if (Asc.CT_NamedSheetView.prototype.getNsvFiltersByTableId) {
 								worksheet.forEachView(function (curView, isActive) {
 									var nsvFilter = curView.getNsvFiltersByTableId(bTablePart ? filter.DisplayName : null);
@@ -4399,7 +4399,7 @@
 				colId = this._getTrueColId(autoFilter, colId, true);
 
 				var currentFilterColumn = null;
-				var activeNamedSheetView = worksheet.getActiveNamedSheetView();
+				var activeNamedSheetView = worksheet.getActiveNamedSheetViewId();
 				var nsvFilter;
 				if (activeNamedSheetView !== null) {
 					nsvFilter = worksheet.getNvsFilterByTableName(isTablePart ? filter.DisplayName : null);
@@ -4722,7 +4722,7 @@
 				}
 
 				var isTablePart = !filter.isAutoFilter()
-				var activeNamedSheetView = worksheet.getActiveNamedSheetView();
+				var activeNamedSheetView = worksheet.getActiveNamedSheetViewId();
 				var opt_columnsFilter;
 				if (activeNamedSheetView !== null) {
 					var nsvFilter = worksheet.getNvsFilterByTableName(isTablePart ? filter.DisplayName : null);

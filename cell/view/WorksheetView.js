@@ -3104,7 +3104,7 @@
             }
         }
 
-        var activeNamedSheetView = this.model.getActiveNamedSheetView() !== null;
+        var activeNamedSheetView = this.model.getActiveNamedSheetViewId() !== null;
         var ctx = drawingCtx || this.drawingCtx;
         var st = this.settings.header.style[style];
         var x2 = x + w;
@@ -14899,7 +14899,7 @@
 			History.LocalChange = false;
 		} else {
 			//в особом режиме не лочим лист при фильтрации
-			var nActive = t.model.getActiveNamedSheetView();
+			var nActive = t.model.getActiveNamedSheetViewId();
 			if (null !== nActive) {
 				//лочу для того, чтобы не было возможности изменить имя текущего отображения
 				//иначе будут конфликты при принятии изменений
@@ -15095,8 +15095,8 @@
 				onChangeAutoFilterCallback();
 				History.LocalChange = false;
 			} else {
-				var nActive = t.model.getActiveNamedSheetView();
-				if (null !== nActive) {
+				var activeId = t.model.getActiveNamedSheetViewId();
+				if (null !== activeId) {
 					//api._isLockedNamedSheetView([t.model.aNamedSheetViews[nActive]], function (_success) {
 						onChangeAutoFilterCallback(true);
 					//});
@@ -15990,7 +15990,7 @@
         //для случае когда скрыто только пустое значение не отображаем customfilter
 		var ignoreCustomFilter = openAndClosedValues.ignoreCustomFilter;
 
-		var activeNamedSheetView = ws.getActiveNamedSheetView();
+		var activeNamedSheetView = ws.getActiveNamedSheetViewId();
 		var nsvFilter;
 		var filters;
 		if (activeNamedSheetView !== null) {
