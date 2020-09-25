@@ -21147,7 +21147,7 @@ CDocument.prototype.private_AddNoteRefToBookmark = function(sBookmarkName, nType
 			sInstr += sSuffix;
 			break;
 		}
-		case Asc.c_oAscDocumentRefenceToType.PageNumber:
+		case Asc.c_oAscDocumentRefenceToType.PageNum:
 		{
 			sInstr = " PAGEREF " + sBookmarkName;
 			sInstr += sSuffix;
@@ -21161,7 +21161,7 @@ CDocument.prototype.private_AddNoteRefToBookmark = function(sBookmarkName, nType
 		}
 		case Asc.c_oAscDocumentRefenceToType.AboveBelow:
 		{
-			sInstr = " NOTEREF " + sBookmarkName + "\\p ";
+			sInstr = " NOTEREF " + sBookmarkName + " \\p ";
 			break;
 		}
 	}
