@@ -14653,11 +14653,23 @@ Paragraph.prototype.CanAddRefAfterSEQ = function(sCaption)
 		return false;
 	}
 	var nPos, oElement;
-	for(nPos = this.Content.length - 1; nPos > nRunPos; nPos--)
+	for(nPos = this.Content.length - 2; nPos > nRunPos; nPos--)
 	{
 		oElement = this.Content[nPos];
-		if((oElement.GetType() === para_Run 
-		|| oElement.GetType() === para_Math_Run
+		if(oElement.GetType() === para_Run)
+		{
+			var oPr =
+			{
+				SkipNewLine : true,
+				SkipSpace   : true,
+				SkipTab     : true
+			}
+			if(!oElement.Is_Empty(oPr))
+			{
+				return true;
+			}
+		}
+		else if((oElement.GetType() === para_Math_Run
 		|| oElement.GetType() === para_InlineLevelSdt
 		|| oElement.GetType() === para_Math) && !oElement.IsEmpty())
 		{
@@ -14667,7 +14679,16 @@ Paragraph.prototype.CanAddRefAfterSEQ = function(sCaption)
 	var nPosInRun = oSEQPos.Get(oSEQPos.Get_Depth())
 	if(nPosInRun < oRun.Content.length - 1)
 	{
-		return true;
+		for(nPos = oRun.Content.length - 1; nPos > nPosInRun; --nPos)
+		{
+			oElement = oRun.Content[nPos];
+			if(oElement.Type !== para_Space &&
+				oElement.Type !== para_Tab &&
+				oElement.Type !== para_NewLine)
+				{
+					return true;
+				}
+		}
 	}
 	return false;
 };
@@ -14675,6 +14696,11 @@ Paragraph.prototype.AddBookmarkForCaption = function(sCaption, isOnlyText)
 {
 	if (!this.LogicDocument)
 		return;
+	
+	if(isOnlyText && !this.CanAddRefAfterSEQ(sCaption))
+	{
+		return null;
+	}
 	var oParaPos = this.private_GetLastSEQPos(sCaption);
 	if(!oParaPos)
 	{
@@ -14707,10 +14733,6 @@ Paragraph.prototype.AddBookmarkForCaption = function(sCaption, isOnlyText)
 	var nPos, oElement;
 	if(isOnlyText)
 	{
-		if(!this.CanAddRefAfterSEQ(sCaption))
-		{
-			return null;
-		}
 		if(nPosInRun < oRun.Content.length - 1)
 		{
 			oRun.Split2(nPosInRun, oParent, nRunPos);
