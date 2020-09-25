@@ -21079,9 +21079,33 @@ CDocument.prototype.private_AddRefToBookmark = function(sBookmarkName, nType, bH
 };
 CDocument.prototype.AddNoteRefToParagraph = function(oParagraph, nType, bHyperlink, bAboveBelow)
 {
+	if(!oParagraph.Parent)
+	{
+		return null;
+	}
+	var oFootnote = oParagraph.Parent.IsFootnote(true);
+	if(!oFootnote)
+	{
+		return null;
+	}
+	var oRef = oFootnote.Ref;
+	if(!oRef)
+	{
+		return null;
+	}
+	var oRun = oRef.Run;
+	if(!oRun)
+	{
+		return null;
+	}
+	var oRefParagraph = oRun.Paragraph;
+	if(!oRefParagraph)
+	{
+		return null;
+	}
 	if(false === this.IsSelectionLocked(AscCommon.changestype_Document_Content, {
 		Type      : changestype_2_ElementsArray_and_Type,
-		Elements  : [oParagraph],
+		Elements  : [oRefParagraph],
 		CheckType : changestype_Paragraph_Content
 	}))
 	{
