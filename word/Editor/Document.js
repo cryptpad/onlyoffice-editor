@@ -2480,6 +2480,8 @@ function CDocument(DrawingDocument, isMainLogicDocument)
 
 	this.SectionEndMark = {}; // Храним пересчитанные метки конца секции
 
+	this.LineNumbersInfo = new CDocumentLineNumbersInfo(this); // Класс для кэширования информации для отрисовки нумерации строк
+
 	// Класс для работы со сносками
 	this.Footnotes               = new CFootnotesController(this);
 	this.LogicDocumentController = new CLogicDocumentController(this);
@@ -6413,6 +6415,16 @@ CDocument.prototype.SetParagraphOutlineLvl = function(nLvl)
 	{
 		arrParagraphs[nIndex].SetOutlineLvl(nLvl);
 		arrParagraphs[nIndex].UpdateDocumentOutline();
+	}
+
+	this.Recalculate();
+};
+CDocument.prototype.SetParagraphSuppressLineNumbers = function(isSuppress)
+{
+	var arrParagraphs = this.GetSelectedParagraphs();
+	for (var nIndex = 0, nCount = arrParagraphs.length; nIndex < nCount; ++nIndex)
+	{
+		arrParagraphs[nIndex].SetSuppressLineNumbers(isSuppress);
 	}
 
 	this.Recalculate();
@@ -23118,6 +23130,14 @@ CDocument.prototype.GetSectionEndMarkPr = function(nType)
 		return oPr;
 	}
 };
+/**
+ * Получаем закэшированную информацию для отрисовки нумерации строк
+ * @returns {CDocumentLineNumbersInfo}
+ */
+CDocument.prototype.GetLineNumbersInfo = function()
+{
+	return this.LineNumbersInfo;
+};
 
 function CDocumentSelectionState()
 {
@@ -25391,6 +25411,45 @@ CDocumentNumberingContinueEngine.prototype.CheckParagraph = function(oParagraph)
 CDocumentNumberingContinueEngine.prototype.GetNumPr = function()
 {
 	return this.SimilarNumPr ? this.SimilarNumPr : this.LastNumPr;
+};
+
+function CDocumentLineNumbersInfo(oLogicDocument)
+{
+	this.LogicDocument = oLogicDocument;
+	this.Widths        = [0, 0, 0, 0, 0, 0, 0, 0, 0];
+	this.TextPr        = null;
+	this.RecalcId      = null;
+}
+CDocumentLineNumbersInfo.prototype.GetTextPr = function()
+{
+	this.private_Update();
+	return this.TextPr;
+};
+CDocumentLineNumbersInfo.prototype.GetWidths = function()
+{
+	this.private_Update();
+	return this.Widths;
+};
+CDocumentLineNumbersInfo.prototype.private_Update = function()
+{
+	if (this.RecalcId && this.RecalcId === this.LogicDocument.GetRecalcId())
+		return;
+
+	this.RecalcId = this.LogicDocument.GetRecalcId();
+
+	var oPr = this.LogicDocument.GetStyles().Get_Pr(undefined, styletype_Paragraph);
+	this.TextPr = oPr.TextPr.Copy();
+
+	var nFontKoef = 1;
+	if (this.TextPr.VertAlign !== AscCommon.vertalign_Baseline)
+		nFontKoef = AscCommon.vaKSize;
+
+	g_oTextMeasurer.SetTextPr(this.TextPr, this.LogicDocument.GetTheme());
+	g_oTextMeasurer.SetFontSlot(fontslot_ASCII, nFontKoef);
+	for (var nDigit = 0; nDigit < 10; ++nDigit)
+	{
+		this.Widths[nDigit] = g_oTextMeasurer.MeasureCode(0x0030 + nDigit).Width;
+	}
 };
 
 //-------------------------------------------------------------export---------------------------------------------------

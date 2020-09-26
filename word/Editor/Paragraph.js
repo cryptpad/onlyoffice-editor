@@ -2448,10 +2448,15 @@ Paragraph.prototype.Internal_Draw_4 = function(CurPage, pGraphics, Pr, BgColor, 
 			pGraphics.Start_Command(AscFormat.DRAW_COMMAND_LINE, Line, CurLine, 0);
 		}
 
+		var Y = this.Pages[CurPage].Y + this.Lines[CurLine].Y;
+		var X = this.Pages[CurPage].X;
+
+		if (this.LineNumbersInfo && (1 === RangesCount || (RangesCount > 1 && Line.Ranges[0].W > 0.001)))
+			this.private_DrawLineNumber(X, Y, pGraphics, this.LineNumbersInfo.StartNum + CurLine + 1, Theme, ColorMap, CurPage, CurLine);
+
 		for (var CurRange = 0; CurRange < RangesCount; CurRange++)
 		{
-			var Y = this.Pages[CurPage].Y + this.Lines[CurLine].Y;
-			var X = this.Lines[CurLine].Ranges[CurRange].XVisible;
+			X = this.Lines[CurLine].Ranges[CurRange].XVisible;
 
 			var Range = Line.Ranges[CurRange];
 
@@ -3145,6 +3150,135 @@ Paragraph.prototype.private_IsEmptyPageWithBreak = function(CurPage)
 		return true;
 
 	return false;
+};
+/**
+ * Функция отрисовки нумерации строк
+ */
+Paragraph.prototype.private_DrawLineNumber = function(X, Y, oContext, nLineNumber, Theme, ColorMap, nCurPage, nCurLine)
+{
+	var oLineNumInfo = this.LogicDocument.GetLineNumbersInfo();
+
+	var oSectPr = this.Get_SectPr();
+
+	var nStart    = oSectPr.GetLineNumbersStart();
+	var nCountBy  = oSectPr.GetLineNumbersCountBy();
+	var nDistance = oSectPr.GetLineNumbersDistance();
+	var nRestart  = oSectPr.GetLineNumbersRestart();
+
+	var _nLineNumber = this.LineNumbersInfo.StartNum + nStart + nCurLine; // nStart - 1 + nCurLine + 1
+
+	if (Asc.c_oAscLineNumberRestartType.NewPage === nRestart && nCurPage > 0)
+	{
+		var nLinesCount = 0;
+		var nPageAbs = this.GetAbsolutePage(nCurPage);
+
+		var _nCurLine = nCurLine - this.Pages[nCurPage].StartLine;
+
+		while (nCurPage > 0)
+		{
+			nCurPage--;
+
+			if (nPageAbs !== this.GetAbsolutePage(nCurPage))
+				break;
+
+			nLinesCount += this.Pages[nCurPage].EndLine - this.Pages[nCurPage].StartLine + 1;
+
+			if (0 === nCurPage)
+				nLinesCount += this.LineNumbersInfo.StartNum;
+		}
+
+		_nLineNumber = nLinesCount + nStart + _nCurLine;  // nStart - 1 + nCurLine + 1
+	}
+
+	if (nCountBy && nCountBy > 1 && 0 !== _nLineNumber % nCountBy)
+		return;
+
+	var nLineNumDistance = undefined === nDistance ? AscCommon.TwipsToMM(180) : AscCommon.TwipsToMM(nDistance);
+	var sLineNum         = "" + _nLineNumber;
+
+	var oTextPr    = oLineNumInfo.GetTextPr();
+	var arrDigitsW = oLineNumInfo.GetWidths();
+
+	var nLineNumSumW = 0;
+	for (var nPos = 0, nCount = sLineNum.length; nPos < nCount; ++nPos)
+	{
+		var nDigit = Math.min(9, Math.max(0, sLineNum.charCodeAt(nPos) - 0x0030));
+		nLineNumSumW += arrDigitsW[nDigit];
+	}
+
+	X -= nLineNumDistance + nLineNumSumW;
+
+	if (oTextPr.Unifill)
+	{
+		oTextPr.Unifill.check(Theme, ColorMap);
+		var RGBA = oTextPr.Unifill.getRGBAColor();
+		oContext.b_color1(RGBA.R, RGBA.G, RGBA.B, RGBA.A);
+		oContext.p_color(RGBA.R, RGBA.G, RGBA.B, RGBA.A);
+	}
+	else
+	{
+		oContext.b_color1(oTextPr.Color.r, oTextPr.Color.g, oTextPr.Color.b, 255);
+		oContext.p_color(oTextPr.Color.r, oTextPr.Color.g, oTextPr.Color.b, 255);
+	}
+
+	if (oTextPr.Underline && this.Lines[nCurLine])
+	{
+		var nLineW      = (oTextPr.FontSize / 18) * g_dKoef_pt_to_mm;
+		var nUnderlineY = Y + this.Lines[nCurLine].Metrics.TextDescent * 0.4;
+
+		if (oTextPr.VertAlign === AscCommon.vertalign_SubScript)
+			nUnderlineY -= AscCommon.vaKSub * oTextPr.FontSize * g_dKoef_pt_to_mm;
+
+		oContext.drawHorLine(0, nUnderlineY, X, X + nLineNumSumW, nLineW);
+	}
+
+	if (oTextPr.DStrikeout || oTextPr.Strikeout)
+	{
+		var nLineW      = (oTextPr.FontSize / 18) * g_dKoef_pt_to_mm;
+		var nStrikeoutY = Y;
+
+		switch (oTextPr.VertAlign)
+		{
+			case AscCommon.vertalign_Baseline   :
+			{
+				nStrikeoutY += -oTextPr.FontSize * g_dKoef_pt_to_mm * 0.27;
+				break;
+			}
+			case AscCommon.vertalign_SubScript  :
+			{
+				nStrikeoutY += -oTextPr.FontSize * AscCommon.vaKSize * g_dKoef_pt_to_mm * 0.27 - AscCommon.vaKSub * oTextPr.FontSize * g_dKoef_pt_to_mm;
+				break;
+			}
+			case AscCommon.vertalign_SuperScript:
+			{
+				nStrikeoutY += -oTextPr.FontSize * AscCommon.vaKSize * g_dKoef_pt_to_mm * 0.27 - AscCommon.vaKSuper * oTextPr.FontSize * g_dKoef_pt_to_mm;
+				break;
+			}
+		}
+
+		if (oTextPr.DStrikeout)
+			oContext.drawHorLine2(c_oAscLineDrawingRule.Top, nStrikeoutY, X, X + nLineNumSumW, nLineW);
+		else
+			oContext.drawHorLine(c_oAscLineDrawingRule.Top, nStrikeoutY, X, X + nLineNumSumW, nLineW);
+	}
+
+	var nFontKoef = 1;
+	if (oTextPr.VertAlign !== AscCommon.vertalign_Baseline)
+		nFontKoef = AscCommon.vaKSize;
+
+	oContext.SetTextPr(oTextPr, Theme);
+	oContext.SetFontSlot(fontslot_ASCII, nFontKoef);
+
+	if (oTextPr.VertAlign === AscCommon.vertalign_SubScript)
+		Y -= AscCommon.vaKSub * oTextPr.FontSize * g_dKoef_pt_to_mm;
+	else if (oTextPr.VertAlign === AscCommon.vertalign_SuperScript)
+		Y -= AscCommon.vaKSuper * oTextPr.FontSize * g_dKoef_pt_to_mm;
+
+	for (var nPos = 0, nCount = sLineNum.length; nPos < nCount; ++nPos)
+	{
+		oContext.FillTextCode(X, Y, sLineNum.charCodeAt(nPos));
+		X += arrDigitsW[Math.min(9, Math.max(0, sLineNum.charCodeAt(nPos) - 0x0030))];
+	}
 };
 Paragraph.prototype.Is_NeedDrawBorders = function()
 {
@@ -10299,6 +10433,21 @@ Paragraph.prototype.GetOutlineLvl = function()
 
 	return ParaPr.OutlineLvl;
 };
+Paragraph.prototype.SetSuppressLineNumbers = function(isSuppress)
+{
+	if (null === isSuppress)
+		isSuppress = undefined;
+
+	this.private_AddPrChange();
+	History.Add(new CChangesParagraphSuppressLineNumbers(this, this.Pr.SuppressLineNumbers, isSuppress));
+	this.Pr.SuppressLineNumbers = isSuppress;
+	this.CompiledPr.NeedRecalc = true;
+	this.private_UpdateTrackRevisionOnChangeParaPr(true);
+};
+Paragraph.prototype.IsSuppressLineNumbers = function()
+{
+	return this.Get_CompiledPr2(false).ParaPr.SuppressLineNumbers;
+};
 /**
  * Проверяем начинается ли текущий параграф с новой страницы.
  */
@@ -15285,7 +15434,80 @@ Paragraph.prototype.LoadSelectionState = function(oState)
 	this.CurPos.RealY      = oState.CurPos.RealY;
 	this.CurPos.PagesPos   = oState.CurPos.PagesPos;
 };
+Paragraph.prototype.UpdateLineNumbersInfo = function()
+{
+	if (this.IsCountLineNumbers() && this.Parent && this.LogicDocument && this.LogicDocument === this.Parent.GetDocumentContentForRecalcInfo())
+	{
+		var nIndex  = this.GetIndex();
+		var oSectPr = this.Get_SectPr();
 
+		if (!oSectPr || !oSectPr.HaveLineNumbers())
+		{
+			this.LineNumbersInfo = null;
+			return;
+		}
+
+		var nRestart = oSectPr.GetLineNumbersRestart();
+
+		var nStartLineNum = 0;
+		var oPrevParagraph = this.Parent.GetPrevParagraphForLineNumbers(nIndex, nRestart === Asc.c_oAscLineNumberRestartType.NewSection);
+		if (oPrevParagraph)
+		{
+			var nPrevLinesCount = oPrevParagraph.GetLineNumbersInfo(nRestart === oPrevParagraph.Get_SectPr().GetLineNumbersRestart);
+			if (nPrevLinesCount > 0)
+				nStartLineNum = nPrevLinesCount;
+
+			if (nRestart === Asc.c_oAscLineNumberRestartType.NewPage && oPrevParagraph.GetAbsolutePage(oPrevParagraph.GetPagesCount() - 1) !== this.GetAbsolutePage(0))
+				nStartLineNum = 0;
+		}
+
+
+		this.LineNumbersInfo = new CParagraphLineNumbersInfo(nStartLineNum);
+	}
+	else
+	{
+		this.LineNumbersInfo = null;
+	}
+};
+Paragraph.prototype.GetLineNumbersInfo = function(isNewPage)
+{
+	if (!this.LineNumbersInfo && this.Pages.length <= 0 || this.Lines.length <= 0)
+		return -1;
+
+	if (isNewPage && this.Pages.length > 1)
+	{
+		var nPageAbs    = this.GetAbsolutePage(this.Pages.length - 1);
+		var nLinesCount = this.Pages[this.Pages.length - 1].EndLine - this.Pages[this.Pages.length - 1].StartLine + 1;
+
+		var nCurPage = this.Pages.length - 2;
+		while (nCurPage >= 0)
+		{
+			if (nPageAbs !== this.GetAbsolutePage(nCurPage))
+				break;
+
+			if (0 === nCurPage)
+				nLinesCount += this.LineNumbersInfo.StartNum;
+
+			nLinesCount += this.Pages[nCurPage].EndLine - this.Pages[nCurPage].StartLine + 1;
+
+			nCurPage--;
+		}
+
+		return nLinesCount;
+	}
+	else
+	{
+		return this.LineNumbersInfo.StartNum + this.Lines.length;
+	}
+}
+/**
+ * Учитываем ли номера строк у данного параграфа
+ * @returns {boolean}
+ */
+Paragraph.prototype.IsCountLineNumbers = function()
+{
+	return (this.IsInline() && (!this.Get_SectionPr() || !this.IsEmpty()) && !this.IsSuppressLineNumbers());
+};
 
 var pararecalc_0_All  = 0;
 var pararecalc_0_None = 1;
@@ -17292,6 +17514,11 @@ function CParagraphSelectionState()
 
 	this.Selection  = new CParagraphSelection();
 	this.CurPos     = new CParagraphCurPos();
+}
+
+function CParagraphLineNumbersInfo(nStartLineNum)
+{
+	this.StartNum = undefined !== nStartLineNum ? nStartLineNum : -1;
 }
 
 //--------------------------------------------------------export----------------------------------------------------

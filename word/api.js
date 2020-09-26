@@ -3531,6 +3531,8 @@ background-repeat: no-repeat;\
 				this.WordControl.m_oLogicDocument.Set_DocumentDefaultTab(Props.DefaultTab);
 			}
 
+			if (undefined !== Props.OutlineLvl)
+				oLogicDocument.SetParagraphOutlineLvl(Props.SuppressLineNumbers);
 
 			// TODO: как только разъединят настройки параграфа и текста переделать тут
 			var TextPr = new AscCommonWord.CTextPr();
@@ -3868,6 +3870,19 @@ background-repeat: no-repeat;\
 		{
 			this.WordControl.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_SetParagraphStyle);
 			this.WordControl.m_oLogicDocument.SetParagraphStyle(sName, true);
+			this.WordControl.m_oLogicDocument.FinalizeAction();
+		}
+	};
+	asc_docs_api.prototype.put_ParagraphSuppressLineNumbers = function(isSuppress)
+	{
+		var oLogicDocument = this.private_GetLogicDocument();
+		if (!oLogicDocument)
+			return;
+
+		if (!oLogicDocument.IsSelectionLocked(AscCommon.changestype_Paragraph_Properties))
+		{
+			this.WordControl.m_oLogicDocument.StartAction(AscDFH.historydescription_Document_SetParagraphSuppressLineNumbers);
+			this.WordControl.m_oLogicDocument.SetParagraphSuppressLineNumbers(isSuppress);
 			this.WordControl.m_oLogicDocument.FinalizeAction();
 		}
 	};
@@ -10619,6 +10634,7 @@ background-repeat: no-repeat;\
 	asc_docs_api.prototype['asc_AddNewNumbering']                       = asc_docs_api.prototype.asc_AddNewNumbering;
 	asc_docs_api.prototype['asc_ChangeNumberingLvl']                    = asc_docs_api.prototype.asc_ChangeNumberingLvl;
 	asc_docs_api.prototype['put_Style']                                 = asc_docs_api.prototype.put_Style;
+	asc_docs_api.prototype['put_ParagraphSuppressLineNumbers']          = asc_docs_api.prototype.put_ParagraphSuppressLineNumbers;
 	asc_docs_api.prototype['SetDeviceInputHelperId']                    = asc_docs_api.prototype.SetDeviceInputHelperId;
 	asc_docs_api.prototype['put_ShowSnapLines']                         = asc_docs_api.prototype.put_ShowSnapLines;
 	asc_docs_api.prototype['get_ShowSnapLines']                         = asc_docs_api.prototype.get_ShowSnapLines;
