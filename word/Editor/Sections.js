@@ -1310,7 +1310,7 @@ CSectionPr.prototype.SetLineNumbers = function(nCountBy, nDistance, nStart, nRes
 /**
  * Убираем нумерацию строк
  */
-CSectionLnNumType.prototype.RemoveLineNumbers = function()
+CSectionPr.prototype.RemoveLineNumbers = function()
 {
 	if (this.LnNumType)
 	{
