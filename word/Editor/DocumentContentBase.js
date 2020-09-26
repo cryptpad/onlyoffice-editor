@@ -2141,3 +2141,41 @@ CDocumentContentBase.prototype.GetDocumentContentForRecalcInfo = function()
 {
 	return this;
 };
+CDocumentContentBase.prototype.GetPrevParagraphForLineNumbers = function(nIndex, isNewSection)
+{
+	var _nIndex = nIndex;
+	if (-1 === _nIndex || undefined === _nIndex)
+		_nIndex = this.Content.length;
+
+	while (_nIndex >= 0)
+	{
+		if (0 === _nIndex)
+		{
+			var oParent = this.GetParent();
+			if (oParent && oParent.GetPrevParagraphForLineNumbers)
+				return oParent.GetPrevParagraphForLineNumbers(true, isNewSection);
+
+			return null;
+		}
+
+		_nIndex--;
+
+		if (this.Content[_nIndex].IsParagraph())
+		{
+			var oSectPr = this.Content[_nIndex].Get_SectionPr();
+			if (oSectPr && (isNewSection || !oSectPr.HaveLineNumbers()))
+				return null;
+
+			if (!this.Content[_nIndex].IsCountLineNumbers())
+				continue;
+
+			return this.Content[_nIndex];
+		}
+		else if (this.Content[_nIndex].IsBlockLevelSdt())
+		{
+			return this.Content[_nIndex].GetPrevParagraphForLineNumbers(false, isNewSection);
+		}
+	}
+
+	return null;
+};

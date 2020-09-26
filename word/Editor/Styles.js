@@ -15187,6 +15187,8 @@ function CParaPr()
 	this.LnSpcReduction    = undefined;
 	this.PrChange          = undefined;
 	this.ReviewInfo        = undefined;
+
+	this.SuppressLineNumbers = undefined;
 }
 
 CParaPr.prototype.Copy = function(bCopyPrChange, oPr)
@@ -15284,6 +15286,9 @@ CParaPr.prototype.Copy = function(bCopyPrChange, oPr)
 
 	if (undefined !== this.Locked)
 		ParaPr.Locked = this.Locked;
+
+	if (undefined !== this.SuppressLineNumbers)
+		ParaPr.SuppressLineNumbers = this.SuppressLineNumbers;
 
 	return ParaPr;
 };
@@ -15433,6 +15438,9 @@ CParaPr.prototype.Merge = function(ParaPr)
 
 	if (undefined !== ParaPr.OutlineLvl)
 		this.OutlineLvl = ParaPr.OutlineLvl;
+
+	if (undefined !== ParaPr.SuppressLineNumbers)
+		this.SuppressLineNumbers = ParaPr.SuppressLineNumbers;
 };
 CParaPr.prototype.InitDefault = function(nCompatibilityMode)
 {
@@ -15466,6 +15474,7 @@ CParaPr.prototype.InitDefault = function(nCompatibilityMode)
 	this.PStyle                    = undefined;
 	this.FramePr                   = undefined;
 	this.OutlineLvl                = undefined;
+	this.SuppressLineNumbers       = false;
 
 	this.DefaultRunPr   = undefined;
 	this.Bullet         = undefined;
@@ -15595,6 +15604,9 @@ CParaPr.prototype.Set_FromObject = function(ParaPr)
 
 	if (undefined !== ParaPr.OutlineLvl)
 		this.OutlineLvl = ParaPr.OutlineLvl;
+
+	if (undefined !== ParaPr.SuppressLineNumbers)
+		this.SuppressLineNumbers = ParaPr.SuppressLineNumbers;
 };
 CParaPr.prototype.Compare = function(ParaPr)
 {
@@ -15719,6 +15731,9 @@ CParaPr.prototype.Compare = function(ParaPr)
 
 	if (this.OutlineLvlStyle || ParaPr.OutlineLvlStyle)
 		Result_ParaPr.OutlineLvlStyle = true;
+
+	if (this.SuppressLineNumbers === ParaPr.SuppressLineNumbers)
+		Result_ParaPr.SuppressLineNumbers = this.SuppressLineNumbers;
 
 	return Result_ParaPr;
 };
@@ -15873,6 +15888,12 @@ CParaPr.prototype.Write_ToBinary = function(Writer)
 		Flags |= 8388608;
 	}
 
+	if (undefined !== this.SuppressLineNumbers)
+	{
+		Writer.WriteBool(this.SuppressLineNumbers);
+		Flags |= 16777216;
+	}
+
 	var EndPos = Writer.GetCurPosition();
 	Writer.Seek(StartPos);
 	Writer.WriteLong(Flags);
@@ -16001,6 +16022,9 @@ CParaPr.prototype.Read_FromBinary = function(Reader)
 		this.PrChange.ReadFromBinary(Reader);
 		this.ReviewInfo.ReadFromBinary(Reader);
 	}
+
+	if (Flags & 16777216)
+		this.SuppressLineNumbers = Reader.GetBool();
 };
 CParaPr.prototype.isEqual = function(ParaPrUOld,ParaPrNew)
 {
@@ -16028,7 +16052,7 @@ CParaPr.prototype.isEqual = function(ParaPrUOld,ParaPrNew)
 };
 CParaPr.prototype.Is_Equal = function(ParaPr)
 {
-	if (this.ContextualSpacing !== ParaPr.ContextualSpacing
+	return !(this.ContextualSpacing !== ParaPr.ContextualSpacing
 		|| true !== IsEqualStyleObjects(this.Ind, ParaPr.Ind)
 		|| this.Jc !== ParaPr.Jc
 		|| this.KeepLines !== ParaPr.KeepLines
@@ -16046,10 +16070,8 @@ CParaPr.prototype.Is_Equal = function(ParaPr)
 		|| true !== IsEqualStyleObjects(this.NumPr, ParaPr.NumPr)
 		|| this.PStyle !== ParaPr.PStyle
 		|| true !== IsEqualStyleObjects(this.FramePr, ParaPr.FramePr)
-		|| this.OutlineLvl !== ParaPr.OutlineLvl)
-		return false;
-
-	return true;
+		|| this.OutlineLvl !== ParaPr.OutlineLvl
+		|| this.SuppressLineNumbers !== ParaPr.SuppressLineNumbers);
 };
 /**
  * Сравниваем данные настройки с заданными, если настройка совпала ставим undefined, если нет, то берем из текущей
@@ -16119,6 +16141,9 @@ CParaPr.prototype.GetDiff = function(oParaPr)
 
 	if (this.DefaultRunPr && !this.DefaultRunPr.IsEqual(oParaPr.DefaultRunPr))
 		oResultParaPr.DefaultRunPr = this.DefaultRunPr.Copy();
+
+	if (this.SuppressLineNumbers !== oParaPr.SuppressLineNumbers)
+		oResultParaPr.SuppressLineNumbers = this.SuppressLineNumbers;
 
 	return oResultParaPr;
 };
@@ -16224,7 +16249,7 @@ CParaPr.prototype.Get_PresentationBullet = function(theme, colorMap)
 };
 CParaPr.prototype.Is_Empty = function()
 {
-	if (undefined !== this.ContextualSpacing
+	return !(undefined !== this.ContextualSpacing
 		|| true !== this.Ind.Is_Empty()
 		|| undefined !== this.Jc
 		|| undefined !== this.KeepLines
@@ -16242,10 +16267,9 @@ CParaPr.prototype.Is_Empty = function()
 		|| undefined !== this.WidowControl
 		|| undefined !== this.Tabs
 		|| undefined !== this.NumPr
-		|| undefined !== this.PStyle)
-		return false;
-
-	return true;
+		|| undefined !== this.PStyle
+		|| undefined !== this.OutlineLvl
+		|| undefined !== this.SuppressLineNumbers);
 };
 CParaPr.prototype.GetDiffPrChange = function()
 {
@@ -16468,6 +16492,14 @@ CParaPr.prototype.SetOutlineLvl = function(nOutlineLvl)
 {
 	this.OutlineLvl = nOutlineLvl;
 };
+CParaPr.prototype.GetSuppressLineNumbers = function()
+{
+	return this.SuppressLineNumbers;
+};
+CParaPr.prototype.SetSuppressLineNumbers = function(isSuppress)
+{
+	this.SuppressLineNumbers = isSuppress;
+};
 CParaPr.prototype.WriteToBinary = function(oWriter)
 {
 	return this.Write_ToBinary(oWriter);
@@ -16535,6 +16567,8 @@ CParaPr.prototype['get_PStyle']                   = CParaPr.prototype.get_PStyle
 CParaPr.prototype['put_PStyle']                   = CParaPr.prototype.put_PStyle                   = CParaPr.prototype.SetPStyle;
 CParaPr.prototype['get_OutlineLvl']               = CParaPr.prototype.get_OutlineLvl               = CParaPr.prototype['Get_OutlineLvl']               = CParaPr.prototype.GetOutlineLvl;
 CParaPr.prototype['put_OutlineLvl']               = CParaPr.prototype.put_OutlineLvl               = CParaPr.prototype.SetOutlineLvl;
+CParaPr.prototype['get_SuppressLineNumbers']      = CParaPr.prototype.get_SuppressLineNumbers      = CParaPr.prototype['Get_SuppressLineNumbers']      = CParaPr.prototype.GetSuppressLineNumbers;
+CParaPr.prototype['pet_SuppressLineNumbers']      = CParaPr.prototype.put_SuppressLineNumbers      = CParaPr.prototype.SetSuppressLineNumbers;
 //----------------------------------------------------------------------------------------------------------------------
 
 function Copy_Bounds(Bounds)
