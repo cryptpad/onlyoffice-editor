@@ -2433,6 +2433,10 @@ CBlockLevelSdt.prototype.GetPrevParagraphForLineNumbers = function(isPrev, isNew
 
 	return oPrevPara;
 };
+CBlockLevelSdt.prototype.UpdateLineNumbersInfo = function()
+{
+	this.Content.UpdateLineNumbersInfo();
+};
 //--------------------------------------------------------export--------------------------------------------------------
 window['AscCommonWord'] = window['AscCommonWord'] || {};
 window['AscCommonWord'].CBlockLevelSdt = CBlockLevelSdt;

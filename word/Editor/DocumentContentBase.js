@@ -2179,3 +2179,10 @@ CDocumentContentBase.prototype.GetPrevParagraphForLineNumbers = function(nIndex,
 
 	return null;
 };
+CDocumentContentBase.prototype.UpdateLineNumbersInfo = function()
+{
+	for (var nIndex = 0, nCount = this.Content.length; nIndex < nCount; ++nIndex)
+	{
+		this.Content[nIndex].UpdateLineNumbersInfo();
+	}
+};

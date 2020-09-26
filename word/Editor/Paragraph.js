@@ -13306,6 +13306,14 @@ Paragraph.prototype.Get_SectPr = function()
 
     return null;
 };
+/**
+ * Получаем секцию, в которой лежит заданный параграф
+ * @returns  {?CSectionPr}
+ */
+Paragraph.prototype.GetDocumentSectPr = function()
+{
+	return this.Get_SectPr();
+};
 Paragraph.prototype.CheckRevisionsChanges = function(oRevisionsManager)
 {
 	var sParaId = this.GetId();

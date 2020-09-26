@@ -3009,6 +3009,9 @@ CDocument.prototype.FinalizeAction = function(isCheckEmptyAction)
 	if (this.Action.Additional.FormChange)
 		this.private_FinalizeFormChange();
 
+	if (this.Action.Additional.RecalculateLineNumbers)
+		this.private_FinalizeRecalculateLineNumbers();
+
 	//------------------------------------------------------------------------------------------------------------------
 
 	var isAllPointsEmpty = true;
@@ -3071,6 +3074,16 @@ CDocument.prototype.FinalizeAction = function(isCheckEmptyAction)
 	this.Action.Redraw.Start    = undefined;
 	this.Action.Redraw.End      = undefined;
 	this.Action.Additional      = {};
+};
+/**
+ * Сообщаем, что нужно пересчитать нумерацию строк
+ */
+CDocument.prototype.RecalculateLineNumbers = function()
+{
+	if (!this.Action.Start)
+		return;
+
+	this.Action.Additional.RecalculateLineNumbers = true;
 };
 CDocument.prototype.private_FinalizeRemoveTrackMove = function()
 {
@@ -3233,6 +3246,17 @@ CDocument.prototype.private_FinalizeFormChange = function()
 	}
 
 	delete this.Action.Additional.FormChangeStart;
+};
+CDocument.prototype.private_FinalizeRecalculateLineNumbers = function()
+{
+	// Если мы будет запускать обычный пересчет, то пересчет нумерации строк отдельно запускать не нужно
+	if (this.Action.Recalculate)
+		return;
+
+	this.UpdateLineNumbersInfo();
+
+	this.Action.Redraw.Start = -1;
+	this.Action.Redraw.End   = -1;
 };
 /**
  * Данная функция предназначена для отключения пересчета. Это может быть полезно, т.к. редактор всегда запускает
@@ -6426,8 +6450,6 @@ CDocument.prototype.SetParagraphSuppressLineNumbers = function(isSuppress)
 	{
 		arrParagraphs[nIndex].SetSuppressLineNumbers(isSuppress);
 	}
-
-	this.Recalculate();
 };
 CDocument.prototype.private_SetParagraphNumbering = function(oNumInfo)
 {
@@ -23138,6 +23160,74 @@ CDocument.prototype.GetLineNumbersInfo = function()
 {
 	return this.LineNumbersInfo;
 };
+/**
+ * Убираем нумерацию строк
+ * @param {boolean} isAllSections - Удаляем из всех секций или только из текущей
+ */
+CDocument.prototype.RemoveLineNumbers = function(isAllSections)
+{
+	if (!this.IsSelectionLocked(AscCommon.changestype_Document_SectPr))
+	{
+		this.StartAction(AscDFH.historydescription_Document_RemoveLineNumbers);
+
+		if (isAllSections)
+		{
+			for (var nIndex = 0, nCount = this.SectionsInfo.GetCount(); nIndex < nCount; ++nIndex)
+			{
+				var oSectPr = this.SectionsInfo.Get(nIndex).SectPr;
+				oSectPr.RemoveLineNumbers();
+			}
+		}
+		else
+		{
+			if (docpostype_Content === this.GetDocPosType())
+			{
+				var oParagraph = this.GetCurrentParagraph(true);
+				if (oParagraph)
+				{
+					var oSectPr = oParagraph.GetDocumentSectPr();
+					if (oSectPr)
+						oSectPr.RemoveLineNumbers();
+				}
+			}
+		}
+
+		this.RecalculateLineNumbers();
+		this.FinalizeAction();
+	}
+};
+CDocument.prototype.AddLineNumbers = function(isAllSections, nCountBy, nDistance, nStart, nRestartType)
+{
+	if (!this.IsSelectionLocked(AscCommon.changestype_Document_SectPr))
+	{
+		this.StartAction(AscDFH.historydescription_Document_RemoveLineNumbers);
+
+		if (isAllSections)
+		{
+			for (var nIndex = 0, nCount = this.SectionsInfo.GetCount(); nIndex < nCount; ++nIndex)
+			{
+				var oSectPr = this.SectionsInfo.Get(nIndex).SectPr;
+				oSectPr.SetLineNumbers(nCountBy, nDistance, nStart, nRestartType);
+			}
+		}
+		else
+		{
+			if (docpostype_Content === this.GetDocPosType())
+			{
+				var oParagraph = this.GetCurrentParagraph(true);
+				if (oParagraph)
+				{
+					var oSectPr = oParagraph.GetDocumentSectPr();
+					if (oSectPr)
+						oSectPr.SetLineNumbers(nCountBy, nDistance, nStart, nRestartType);
+				}
+			}
+		}
+
+		this.RecalculateLineNumbers();
+		this.FinalizeAction();
+	}
+};
 
 function CDocumentSelectionState()
 {
@@ -23493,6 +23583,14 @@ CDocumentSectionsInfo.prototype =
                 this.Elements[Index].Index -= Count;
         }
     }
+};
+CDocumentSectionsInfo.prototype.GetCount = function()
+{
+	return this.Elements.length;
+};
+CDocumentSectionsInfo.prototype.Get = function(nIndex)
+{
+	return this.Elements[nIndex];
 };
 /**
  * Получаем массив всех колонтитулов, используемых в данном документе
