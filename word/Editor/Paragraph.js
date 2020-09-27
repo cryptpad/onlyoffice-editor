@@ -14783,6 +14783,15 @@ Paragraph.prototype.private_GetLastSEQPos = function(sCaption)
 				return oFieldPos;
 			}
 		}
+		else if(oElement.Type === para_Field)
+		{
+			var oContentPos = this.GetPosByElement(oElement);
+			if (oContentPos)
+			{
+				oContentPos.Add(oElement.Content.length);
+				return oContentPos;
+			}
+		}
 	}
 	return null;
 };
@@ -14797,15 +14806,15 @@ Paragraph.prototype.CanAddRefAfterSEQ = function(sCaption)
 	}
 	var nRunPos = oSEQPos.Get(oSEQPos.Get_Depth() - 1);
 	var arrClasses = this.Get_ClassesByPos(oSEQPos);
-	var oRun, oParent;
-	if (1 === arrClasses.length && arrClasses[arrClasses.length - 1].Type === para_Run)
+	var oParaElement, oParent;
+	if (1 === arrClasses.length && (arrClasses[arrClasses.length - 1].Type === para_Run || arrClasses[arrClasses.length - 1].Type === para_Field))
 	{
-		oRun    = arrClasses[arrClasses.length - 1];
+		oParaElement    = arrClasses[arrClasses.length - 1];
 		oParent = this;
 	}
-	else if (arrClasses.length >= 2 && arrClasses[arrClasses.length - 1].Type === para_Run)
+	else if (arrClasses.length >= 2 && (arrClasses[arrClasses.length - 1].Type === para_Run || arrClasses[arrClasses.length - 1].Type === para_Field))
 	{
-		oRun    = arrClasses[arrClasses.length - 1];
+		oParaElement    = arrClasses[arrClasses.length - 1];
 		oParent = arrClasses[arrClasses.length - 2];
 	}
 	else
@@ -14823,7 +14832,7 @@ Paragraph.prototype.CanAddRefAfterSEQ = function(sCaption)
 				SkipNewLine : true,
 				SkipSpace   : true,
 				SkipTab     : true
-			}
+			};
 			if(!oElement.Is_Empty(oPr))
 			{
 				return true;
@@ -14836,17 +14845,20 @@ Paragraph.prototype.CanAddRefAfterSEQ = function(sCaption)
 			return true;
 		}
 	}
-	var nPosInRun = oSEQPos.Get(oSEQPos.Get_Depth());
-	if(nPosInRun < oRun.Content.length - 1)
+	if(oParaElement.Type === para_Run)
 	{
-		for(nPos = oRun.Content.length - 1; nPos > nPosInRun; --nPos)
+		var nPosInRun = oSEQPos.Get(oSEQPos.Get_Depth());
+		if(nPosInRun < oParaElement.Content.length - 1)
 		{
-			oElement = oRun.Content[nPos];
-			if(oElement.Type !== para_Space &&
-				oElement.Type !== para_Tab &&
-				oElement.Type !== para_NewLine)
+			for(nPos = oParaElement.Content.length - 1; nPos > nPosInRun; --nPos)
 			{
-				return true;
+				oElement = oParaElement.Content[nPos];
+				if(oElement.Type !== para_Space &&
+					oElement.Type !== para_Tab &&
+					oElement.Type !== para_NewLine)
+				{
+					return true;
+				}
 			}
 		}
 	}
@@ -14867,16 +14879,16 @@ Paragraph.prototype.AddBookmarkForCaption = function(sCaption, isOnlyText)
 		return null;
 	}
 	var arrClasses = this.Get_ClassesByPos(oParaPos);
-	var oRun, oParent, nRunPos, nPosInRun;
+	var oRun, oParent, nRunPos, nPosInRun, oElement;
 	var sBookmarkName = null, sId;
-	if (1 === arrClasses.length && arrClasses[arrClasses.length - 1].Type === para_Run)
+	if (1 === arrClasses.length && (arrClasses[arrClasses.length - 1].Type === para_Run || arrClasses[arrClasses.length - 1].Type === para_Field))
 	{
-		oRun    = arrClasses[arrClasses.length - 1];
+		oElement    = arrClasses[arrClasses.length - 1];
 		oParent = this;
 	}
-	else if (arrClasses.length >= 2 && arrClasses[arrClasses.length - 1].Type === para_Run)
+	else if (arrClasses.length >= 2 && (arrClasses[arrClasses.length - 1].Type === para_Run || arrClasses[arrClasses.length - 1].Type === para_Field))
 	{
-		oRun    = arrClasses[arrClasses.length - 1];
+		oElement    = arrClasses[arrClasses.length - 1];
 		oParent = arrClasses[arrClasses.length - 2];
 	}
 	else
@@ -14889,28 +14901,31 @@ Paragraph.prototype.AddBookmarkForCaption = function(sCaption, isOnlyText)
 	nPosInRun = oParaPos.Get(oParaPos.Get_Depth());
 	
 	var aStartBookmarks = [], aEndBookmarks = [];
-	var nPos, oElement, oRunElement, aPair;
+	var nPos, oRunElement, aPair;
 	if(isOnlyText)
 	{
-
-		for(; nPosInRun < oRun.Content.length; ++nPosInRun)
+		var bRun = (oElement.Type === para_Run);
+		if(bRun)
 		{
-			oRunElement = oRun.Content[nPosInRun];
-			if(oRunElement.Type === para_Space ||
-				oRunElement.Type === para_Tab ||
-				oRunElement.Type === para_NewLine)
+			for(; nPosInRun < oElement.Content.length; ++nPosInRun)
 			{
-				continue;
-			}
-			else
-			{
-				break;
+				oRunElement = oElement.Content[nPosInRun];
+				if(oRunElement.Type === para_Space ||
+					oRunElement.Type === para_Tab ||
+					oRunElement.Type === para_NewLine)
+				{
+					continue;
+				}
+				else
+				{
+					break;
+				}
 			}
 		}
-		var nBookmarkPos = nRunPos;
-		if(nPosInRun < oRun.Content.length - 1)
+		var nBookmarkPos = nRunPos + 1;
+		if(bRun && nPosInRun < oElement.Content.length - 1)
 		{
-			oRun.Split2(nPosInRun, oParent, nRunPos);
+			oElement.Split2(nPosInRun, oParent, nRunPos);
 			nBookmarkPos = nRunPos + 1;
 		}
 		else
@@ -14969,9 +14984,12 @@ Paragraph.prototype.AddBookmarkForCaption = function(sCaption, isOnlyText)
 	}
 	else
 	{
-		if(nPosInRun < oRun.Content.length - 1)
+		if(oElement.Type === para_Run)
 		{
-			oRun.Split2(nPosInRun, oParent, nRunPos);
+			if(nPosInRun < oElement.Content.length - 1)
+			{
+				oElement.Split2(nPosInRun, oParent, nRunPos);
+			}
 		}
 		aStartBookmarks = oParent.private_FindBookmarks(0, nRunPos - 1);
 		if(aStartBookmarks.length > 0)

@@ -14325,14 +14325,21 @@ CDocument.prototype.GetAllCaptionParagraphs = function(sCaption)
 	for(var nField = 0; nField < aFields.length; ++nField)
 	{
 		var oField = aFields[nField];
-		if(oField && oField.BeginChar)
+		if(oField)
 		{
-			var oRun       = oField.BeginChar.GetRun();
-			var oParagraph = oRun.GetParagraph();
-			if(oParagraph)
-			{
-				aParagraphs.push(oParagraph);
-			}
+            if(oField.BeginChar)
+            {
+                var oRun       = oField.BeginChar.GetRun();
+                var oParagraph = oRun.GetParagraph();
+                if(oParagraph)
+                {
+                    aParagraphs.push(oParagraph);
+                }
+            }
+            else if(oField.Paragraph)
+            {
+                aParagraphs.push(oField.Paragraph);
+            }
 		}
 	}
 	return aParagraphs;
